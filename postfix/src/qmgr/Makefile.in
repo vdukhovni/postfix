@@ -136,6 +136,7 @@ qmgr_deliver.o: ../../include/mail_proto.h
 qmgr_deliver.o: ../../include/recipient_list.h
 qmgr_deliver.o: ../../include/mail_params.h
 qmgr_deliver.o: ../../include/deliver_request.h
+qmgr_deliver.o: ../../include/verp_sender.h
 qmgr_deliver.o: qmgr.h
 qmgr_deliver.o: ../../include/scan_dir.h
 qmgr_deliver.o: ../../include/maps.h

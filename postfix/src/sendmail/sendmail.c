@@ -76,6 +76,11 @@
 /*	\fBdebug_peer_level\fR configuration parameters instead.
 /* .IP "\fB-U\fR (ignored)"
 /*	Initial user submission.
+/* .IP \fB-V\fR
+/*	Variable Envelope Return Path. Given an envelope sender address
+/*	\fIprefix\fR-@\fIorigin\fR, each recipient \fIuser@domain\fR
+/*	receives mail with a personalized envelope sender address
+/*	\fIprefix\fB-\fIuser=domain\fR@\fIorigin\fR.
 /* .IP \fB-bd\fR
 /*	Go into daemon mode. This mode of operation is implemented by
 /*	executing the \fBpostfix start\fR command.
@@ -320,6 +325,11 @@ static void sendmail_cleanup(void);
 #define SM_FLAG_DEFAULT	(SM_FLAG_AEOF)
 
  /*
+  * VERP support.
+  */
+char   *verp_delims;
+
+ /*
   * Silly little macros (SLMs).
   */
 #define STR	vstring_str
@@ -414,6 +424,10 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
     if (full_name || (full_name = fullname()) != 0)
 	rec_fputs(dst, REC_TYPE_FULL, full_name);
     rec_fputs(dst, REC_TYPE_FROM, saved_sender);
+    if (verp_delims && *saved_sender == 0)
+	msg_fatal("-V option requires non-null sender address");
+    if (verp_delims)
+	rec_fputs(dst, REC_TYPE_VERP, verp_delims);
     if (recipients) {
 	for (cpp = recipients; *cpp != 0; cpp++) {
 	    tree = tok822_parse(*cpp);
@@ -794,7 +808,7 @@ int     main(int argc, char **argv)
 	    optind++;
 	    continue;
 	}
-	if ((c = GETOPT(argc, argv, "B:C:F:GIN:R:UX:b:ce:f:h:imno:p:r:q:tvx")) <= 0)
+	if ((c = GETOPT(argc, argv, "B:C:F:GIN:R:UVX:b:ce:f:h:imno:p:r:q:tvx")) <= 0)
 	    break;
 	switch (c) {
 	default:
@@ -816,6 +830,9 @@ int     main(int argc, char **argv)
 	case 'N':				/* DSN */
 	    break;
 	case 'R':				/* DSN */
+	    break;
+	case 'V':				/* VERP */
+	    verp_delims = "";
 	    break;
 	case 'b':
 	    switch (*optarg) {

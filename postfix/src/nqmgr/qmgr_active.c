@@ -275,12 +275,21 @@ void    qmgr_active_done(QMGR_MESSAGE *message)
 	} else {
 	    if (msg_verbose)
 		msg_info("%s: bounce %s", myname, message->queue_id);
-	    abounce_flush(BOUNCE_FLAG_KEEP,
-			  message->queue_name,
-			  message->queue_id,
-			  message->errors_to,
-			  qmgr_active_done_2_bounce_flush,
-			  (char *) message);
+	    if (message->verp_delims == 0)
+		abounce_flush(BOUNCE_FLAG_KEEP,
+			      message->queue_name,
+			      message->queue_id,
+			      message->errors_to,
+			      qmgr_active_done_2_bounce_flush,
+			      (char *) message);
+	    else
+		abounce_flush_verp(BOUNCE_FLAG_KEEP,
+				   message->queue_name,
+				   message->queue_id,
+				   message->errors_to,
+				   message->verp_delims,
+				   qmgr_active_done_2_bounce_flush,
+				   (char *) message);
 	    return;
 	}
     }
@@ -353,12 +362,21 @@ static void qmgr_active_done_2_generic(QMGR_MESSAGE *message)
 	if (event_time() > message->arrival_time + var_max_queue_time) {
 	    if (msg_verbose)
 		msg_info("%s: too old, bouncing %s", myname, message->queue_id);
-	    adefer_flush(BOUNCE_FLAG_KEEP,
-			 message->queue_name,
-			 message->queue_id,
-			 message->errors_to,
-			 qmgr_active_done_3_defer_flush,
-			 (char *) message);
+	    if (message->verp_delims == 0)
+		adefer_flush(BOUNCE_FLAG_KEEP,
+			     message->queue_name,
+			     message->queue_id,
+			     message->errors_to,
+			     qmgr_active_done_3_defer_flush,
+			     (char *) message);
+	    else
+		adefer_flush_verp(BOUNCE_FLAG_KEEP,
+				  message->queue_name,
+				  message->queue_id,
+				  message->errors_to,
+				  message->verp_delims,
+				  qmgr_active_done_3_defer_flush,
+				  (char *) message);
 	    return;
 	} else if (message->warn_time > 0
 		   && event_time() > message->warn_time) {

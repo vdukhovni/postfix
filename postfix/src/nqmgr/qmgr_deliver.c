@@ -68,6 +68,7 @@
 #include <recipient_list.h>
 #include <mail_params.h>
 #include <deliver_request.h>
+#include <verp_sender.h>
 
 /* Application-specific. */
 
@@ -124,6 +125,22 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
     QMGR_RCPT *recipient;
     QMGR_MESSAGE *message = entry->message;
     char   *cp;
+    VSTRING *sender_buf = 0;
+    char   *sender;
+
+    /*
+     * If variable envelope return path is requested, change prefix+@origin
+     * into prefix+user=domain@origin. Note that with VERP there is only one
+     * recipient per delivery.
+     */
+    if (message->verp_delims == 0) {
+	sender = message->sender;
+    } else {
+	sender_buf = vstring_alloc(100);
+	verp_sender(sender_buf, message->verp_delims, 
+		    message->sender, list.info->address);
+	sender = vstring_str(sender_buf);
+    }
 
     /*
      * With mail transports that accept only one recipient per delivery, the
@@ -136,9 +153,11 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
 	       message->queue_name, message->queue_id,
 	       message->data_offset, message->data_size,
 	    (cp = strrchr(entry->queue->name, '@')) != 0 && cp[1] ? cp + 1 :
-	       entry->queue->name, message->sender,
+	       entry->queue->name, sender,
 	       message->errors_to, message->return_receipt,
 	       message->arrival_time);
+    if (sender_buf != 0)
+	vstring_free(sender_buf);
     for (recipient = list.info; recipient < list.info + list.len; recipient++)
 	mail_print(stream, "%ld %s", recipient->offset, recipient->address);
     mail_print(stream, "%s", "0");

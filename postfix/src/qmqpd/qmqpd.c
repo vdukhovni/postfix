@@ -210,11 +210,34 @@ static void qmqpd_read_content(QMQPD_STATE *state)
 
 static void qmqpd_copy_sender(QMQPD_STATE *state)
 {
+    char   *end_prefix;
+    char   *end_origin;
+    int     verp_requested;
+
+    /*
+     * If the sender address looks like prefix-@origin-@[], then request
+     * variable envelope return path delivery, with an envelope sender
+     * address of prefix@origin, and with VERP delimiters of - and =. This
+     * way, the recipients will see envelope sender addresses that look like:
+     * prefix-user=domain@origin.
+     */
     state->where = "receiving sender address";
     netstring_get(state->client, state->buf, var_line_limit);
+    verp_requested = ((end_prefix = strstr(STR(state->buf), "-@")) != 0
+		      && (end_origin = strstr(end_prefix + 2, "-@")) != 0
+		      && strncmp(end_origin + 2, "[]", 2) == 0
+		      && vstring_end(state->buf) == end_origin + 4);
+    if (verp_requested) {
+	memcpy(end_prefix, end_prefix + 1, end_origin - end_prefix - 1);
+	vstring_truncate(state->buf, end_origin - STR(state->buf) - 1);
+    }
     if (state->err == CLEANUP_STAT_OK
 	&& REC_PUT_BUF(state->cleanup, REC_TYPE_FROM, state->buf) < 0)
 	state->err = CLEANUP_STAT_WRITE;
+    if (verp_requested)
+	if (state->err == CLEANUP_STAT_OK
+	    && rec_put(state->cleanup, REC_TYPE_VERP, "-=", 2) < 0)
+	    state->err = CLEANUP_STAT_WRITE;
     state->sender = mystrndup(STR(state->buf), LEN(state->buf));
 }
 

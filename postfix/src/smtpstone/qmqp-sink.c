@@ -8,7 +8,7 @@
 /*	\fBqmqp-sink\fR [\fB-cv\fR] [\fB-x \fItime\fR]
 /*	[\fBinet:\fR][\fIhost\fR]:\fIport\fR \fIbacklog\fR
 /*
-/*	\fBqmqp-sink\fR [\fB-cv\fR]
+/*	\fBqmqp-sink\fR [\fB-cv\fR] [\fB-x \fItime\fR]
 /*	\fBunix:\fR\fIpathname\fR \fIbacklog\fR
 /* DESCRIPTION
 /*	\fIqmqp-sink\fR listens on the named host (or address) and port.

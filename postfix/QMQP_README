@@ -6,8 +6,8 @@ that Postfix can be used as a backend for the Ezmlm-idx mailing
 list manager. This support includes qmqp-source and qmqp-sink
 programs for protocol stress testing.
 
-Turning on the QMQP service
-===========================
+Turning on the Postfix QMQP service
+===================================
 
 To enable QMQP server support on an existing Postfix system you
 have to add the following line to /etc/postfix/master.cf:
@@ -15,8 +15,8 @@ have to add the following line to /etc/postfix/master.cf:
 628       inet  n       -       n       -       -       qmqpd
 
 
-QMQP server access control
-==========================
+Postfix QMQP server access control
+==================================
 
 By default, the QMQP server does not accept mail from any client.
 This is because the QMQP server relays mail to any destination
@@ -37,3 +37,9 @@ instead.
 Patterns are separated by whitespace and/or commas. In order to
 reverse the result, precede a non-file name pattern with an
 exclamation point (!).
+
+Setting up Ezmlm-idx to use Postfix QMQP support
+================================================
+
+You need to list the Postfix IP address in a suitable configuration
+file. See the ezmlm-idx documentation for details.

@@ -179,6 +179,20 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, 
 	    state->errs |= CLEANUP_STAT_BAD;
 	    return;
 	}
+    } else if (type == REC_TYPE_VERP) {
+	if (state->sender == 0 || *state->sender == 0) {
+	    state->errs |= CLEANUP_STAT_BAD;
+	    return;
+	}
+	if (len == 0) {
+	    buf = var_verp_delim;
+	    len = strlen(buf);
+	}
+	if (len == 2) {
+	    cleanup_out(state, type, buf, len);
+	} else {
+	    state->errs |= CLEANUP_STAT_BAD;
+	}
     } else {
 	cleanup_out(state, type, buf, len);
     }

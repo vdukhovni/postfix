@@ -5292,13 +5292,12 @@ Apologies for any names omitted.
 
 	Cleanup: the virtual delivery agent was poorly integrated
 	so that the SMTP server and queue manager did not reject
-	mail for unknown users. Files: smtpd/smtpd_check.c,
-	*qmgr/qmgr_message.c.
+	mail for unknown users. Files: smtpd/smtpd_check.c.
 
 20010705
 
-	Feature: QMQP server for compatibility with the ezmlm list
-	manager. Files:  util/netstring.[hc], qmqpd/qmqpd*.c.
+	Feature: QMQP server, compatible with qmail and the ezmlm
+	list manager.  Files:  util/netstring.[hc], qmqpd/qmqpd*.c.
 
 20010706
 
@@ -5309,3 +5308,17 @@ Apologies for any names omitted.
 
 	Bugfix: with disable_dns=yes, the SMTP client treated all
 	host lookup errors as permanent. File: smtp/smtp_addr.c.
+
+20010709
+
+	Feature: VERP support, based on a patch by Peng Yong, and
+	with the missing parts filled in so that the Postfix bounce
+	daemon can send one VERP bounce per undeliverable recipient.
+	Files: , sendmail/sendmail.c, smtpd/smtpd.c, qmgr/qmgr_deliver.c,
+	bounce/bounce_notify_verp.c, qmqpd/qmqpd.c, plus a couple
+	support routines in the global library.
+
+	Cleanup: with recipient_delimiter=+ (or any character other
+	than -) Postfix will now recognize address extensions even
+	with owner-foo+extension addresses. This is necessary to
+	make VERP work for mailing lists.

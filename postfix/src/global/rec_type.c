@@ -56,6 +56,7 @@ REC_TYPE_NAME rec_type_names[] = {
     REC_TYPE_RRTO, "return_receipt",
     REC_TYPE_ERTO, "errors_to",
     REC_TYPE_PRIO, "priority",
+    REC_TYPE_VERP, "verp_delimiters",
     REC_TYPE_END, "message_end",
     0, 0,
 };

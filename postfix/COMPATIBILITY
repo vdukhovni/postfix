@@ -25,7 +25,7 @@ lmtp support	yes (client)
 m4 config	no
 mail to command	yes (configurable for .forward, aliases, :include:)
 mail to file	yes (configurable for .forward, aliases, :include:)
-maildir		yes (with procmail)
+maildir		yes
 mailertable	yes (it's called transport)
 mailq		yes
 majordomo	yes (edit approve script to delete /delivered-to/i)
@@ -38,6 +38,7 @@ nis tables	yes
 nis+ tables	not yet
 pipeline option	yes (server and client)
 pop/imap	yes (with third-party daemons that use /var[/spool]/mail)
+qmqp server	yes (with verp support)
 rbl support	yes
 return-receipt:	not yet
 sasl support	yes (compile time option)
@@ -55,5 +56,6 @@ user+extension	yes (also: .forward+extension)
 user-extension	yes (also: .forward-extension)
 user.lock	yes (runtime configurable)
 uucp support	yes (sends user@domain recipients)
+verp support	yes (delimiters are configurable)
 virtual domains	yes
 year 2000 safe	yes

@@ -32,8 +32,8 @@
 /* STANDARDS
 /*	RFC 821 (SMTP protocol)
 /*	RFC 1123 (Host requirements)
-/*	RFC 1651 (SMTP service extensions)
 /*	RFC 1652 (8bit-MIME transport)
+/*	RFC 1869 (SMTP service extensions)
 /*	RFC 1854 (SMTP Pipelining)
 /*	RFC 1870 (Message Size Declaration)
 /*	RFC 1985 (ETRN command)
@@ -364,6 +364,12 @@ char   *smtpd_path;
 #define LEN(x)	VSTRING_LEN(x)
 
  /*
+  * VERP command name.
+  */
+#define VERP_CMD	"XVERP"
+#define VERP_CMD_LEN	5
+
+ /*
   * Forward declarations.
   */
 static void helo_reset(SMTPD_STATE *);
@@ -459,6 +465,7 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    smtpd_chat_reply(state, "250-AUTH=%s", state->sasl_mechanism_list);
     }
 #endif
+    smtpd_chat_reply(state, "250-%s", VERP_CMD);
     smtpd_chat_reply(state, "250 8BITMIME");
     return (0);
 }
@@ -626,6 +633,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     char   *err;
     int     narg;
     char   *arg;
+    char   *verp_delims = 0;
 
     state->msg_size = 0;
 
@@ -680,11 +688,26 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		return (-1);
 	    }
 #endif
+	} else if (strcasecmp(arg, VERP_CMD) == 0) {
+	    verp_delims = "";
+	} else if (strncasecmp(arg, VERP_CMD, VERP_CMD_LEN) == 0
+		   && arg[VERP_CMD_LEN] == '=') {
+	    verp_delims = arg + VERP_CMD_LEN + 1;
+	    if (strlen(verp_delims) != 2) {
+		state->error_mask |= MAIL_ERROR_PROTOCOL;
+		smtpd_chat_reply(state, "501 Bad %s parameter: %s",
+				 VERP_CMD, arg);
+		return (-1);
+	    }
 	} else {
 	    state->error_mask |= MAIL_ERROR_PROTOCOL;
 	    smtpd_chat_reply(state, "555 Unsupported option: %s", arg);
 	    return (-1);
 	}
+    }
+    if (verp_delims && argv[2].strval[0] == 0) {
+	smtpd_chat_reply(state, "503 Error: XVERP requires non-null sender");
+	return (-1);
     }
     state->time = time((time_t *) 0);
     if (SMTPD_STAND_ALONE(state) == 0
@@ -718,6 +741,8 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     if (*var_filter_xport)
 	rec_fprintf(state->cleanup, REC_TYPE_FILT, "%s", var_filter_xport);
     rec_fputs(state->cleanup, REC_TYPE_FROM, argv[2].strval);
+    if (verp_delims)
+	rec_fputs(state->cleanup, REC_TYPE_VERP, verp_delims);
     state->sender = mystrdup(argv[2].strval);
     smtpd_chat_reply(state, "250 Ok");
     return (0);

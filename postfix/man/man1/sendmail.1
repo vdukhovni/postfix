@@ -82,6 +82,11 @@ Log mailer traffic. Use the \fBdebug_peer_list\fR and
 \fBdebug_peer_level\fR configuration parameters instead.
 .IP "\fB-U\fR (ignored)"
 Initial user submission.
+.IP \fB-V\fR
+Variable Envelope Return Path. Given an envelope sender address
+\fIprefix\fR-@\fIorigin\fR, each recipient \fIuser@domain\fR
+receives mail with a personalized envelope sender address
+\fIprefix\fB-\fIuser=domain\fR@\fIorigin\fR.
 .IP \fB-bd\fR
 Go into daemon mode. This mode of operation is implemented by
 executing the \fBpostfix start\fR command.

@@ -199,7 +199,7 @@ BOUNCE_INFO *bounce_mail_init(const char *service, const char *queue_name,
      */
     if ((bounce_info->log_handle = bounce_log_open(bounce_info->service,
 						   bounce_info->queue_id,
-						   O_RDONLY, 0)) == 0
+						   O_RDWR, 0)) == 0
 	&& errno != ENOENT)
 	msg_fatal("open %s %s: %m", bounce_info->service,
 		  bounce_info->queue_id);

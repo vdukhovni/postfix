@@ -1271,6 +1271,14 @@ extern int var_qmqpd_timeout;
 #define DEF_QMTPD_ERR_SLEEP		"5s"
 extern int var_qmqpd_err_sleep;
 
+ /*
+  * VERP, more DJB intellectual cross-pollination. However, we prefer + as
+  * the default recipient delimiter.
+  */
+#define VAR_VERP_DELIM			"default_verp_delimiters"
+#define DEF_VERP_DELIM			"+="
+extern char *var_verp_delim;
+
 /* LICENSE
 /* .ad
 /* .fi

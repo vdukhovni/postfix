@@ -267,6 +267,7 @@ struct QMGR_MESSAGE {
     char   *queue_name;			/* queue name */
     char   *queue_id;			/* queue file */
     char   *sender;			/* complete address */
+    char   *verp_delims;		/* VERP delimiters */
     char   *errors_to;			/* error report address */
     char   *return_receipt;		/* confirm receipt address */
     char   *filter_xport;		/* filtering transport */

@@ -45,6 +45,7 @@
 #define REC_TYPE_RRTO	'r'		/* return-receipt, from headers */
 #define REC_TYPE_ERTO	'e'		/* errors-to, from headers */
 #define REC_TYPE_PRIO	'P'		/* priority */
+#define REC_TYPE_VERP	'V'		/* VERP delimiters */
 
 #define REC_TYPE_END	'E'		/* terminator, required */
 
@@ -53,7 +54,7 @@
   * record groups. The first member in each set is the record type that
   * indicates the end of that record group.
   */
-#define REC_TYPE_ENVELOPE	"MCTFILSDRW"
+#define REC_TYPE_ENVELOPE	"MCTFILSDRWV"
 #define REC_TYPE_CONTENT	"XLN"
 #define REC_TYPE_EXTRACT	"EDRPre"
 #define REC_TYPE_NOEXTRACT	"E"

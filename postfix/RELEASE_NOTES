@@ -1,17 +1,33 @@
-Incompatible changes with snapshot-20010707
+Incompatible changes with snapshot-20010709
 ===========================================
 
-The SMTP client by default breaks lines > 2048 characters, in order
-to avoid problems with mail delivery to fragile SMTP server software.
-To get the old behavior, specify "smtp_break_lines = no" in the
-Postfix main.cf file.
+This release introduces a new queue file record type that is used
+only for messages that actually use VERP (variable envelope return
+path) support.  With this sole exception, the queue file format is
+entirely backwards compatible with previous Postfix releases.
 
-Major changes with snapshot-20010707
+The SMTP client now by default breaks lines > 2048 characters, to
+avoid mail delivery problems with fragile SMTP server software.
+To get the old behavior back, specify "smtp_break_lines = no" in
+the Postfix main.cf file.
+
+With recipient_delimiter=+ (or any character other than -) Postfix
+will now recognize address extensions even with owner-foo+extension
+addresses. This change was necessary to make VERP useful for mailing
+list bounce processing.
+
+Major changes with snapshot-20010709
 ====================================
 
 QMQP server support, so that Postfix can be used as a backend mailer
-for the Ezmlm-idx mailing list manager. The service is disabled by
-default. To enable, follow instructions in the README_QMQP file.
+for the ezmlm-idx mailing list manager. You still need qmail to
+drive ezmlm and to process mailing list bounces. The QMQP service
+is disabled by default. To enable, follow the instructions in the
+QMQP_README file.
+
+VERP (variable envelope return path) support. This is enabled by
+default. See the VERP_README file for instructions. These instructions
+need more examples for how to process bounces automatically.
 
 You can now reject unknown virtual(8) recipients at the SMTP port
 by specifying a "domain.name whatever" entry in the tables specified
