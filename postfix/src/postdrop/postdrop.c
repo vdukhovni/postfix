@@ -97,6 +97,7 @@
 #include <msg_syslog.h>
 #include <argv.h>
 #include <iostuff.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -178,11 +179,14 @@ int     main(int argc, char **argv)
     MAIL_STREAM *dst;
     int     rec_type;
     static char *segment_info[] = {
-	REC_TYPE_ENVELOPE, REC_TYPE_CONTENT, REC_TYPE_EXTRACT,
+	REC_TYPE_POST_ENVELOPE, REC_TYPE_POST_CONTENT, REC_TYPE_POST_EXTRACT, ""
     };
     char  **expected;
     uid_t   uid = getuid();
     ARGV   *import_env;
+    const char *error_text;
+    char   *attr_name;
+    char   *attr_value;
 
     /*
      * Be consistent with file permissions.
@@ -297,6 +301,9 @@ int     main(int argc, char **argv)
      * 
      * If something goes wrong, slurp up the input before responding to the
      * client, otherwise the client will give up after detecting SIGPIPE.
+     * 
+     * Allow attribute records if the attribute specifies the MIME body type
+     * (sendmail -B).
      */
     vstream_control(VSTREAM_IN, VSTREAM_CTL_PATH, "stdin", VSTREAM_CTL_END);
     buf = vstring_alloc(100);
@@ -319,6 +326,28 @@ int     main(int argc, char **argv)
 	    msg_fatal("uid=%ld: unexpected record type: %d", (long) uid, rec_type);
 	if (rec_type == **expected)
 	    expected++;
+	if (rec_type == REC_TYPE_ATTR) {
+	    if ((error_text = split_nameval(vstring_str(buf), &attr_name,
+					    &attr_value)) != 0) {
+		msg_warn("uid=%ld: ignoring malformed record: %s: %.200s",
+			 (long) uid, error_text, vstring_str(buf));
+		continue;
+	    }
+#define STREQ(x,y) (strcmp(x,y) == 0)
+
+	    if ((STREQ(attr_name, MAIL_ATTR_ENCODING)
+		 && (STREQ(attr_value, MAIL_ATTR_ENC_7BIT)
+		     || STREQ(attr_value, MAIL_ATTR_ENC_8BIT)
+		     || STREQ(attr_value, MAIL_ATTR_ENC_NONE)))
+		|| STREQ(attr_name, MAIL_ATTR_TRACE_FLAGS)) {	/* XXX */
+		rec_fprintf(dst->stream, REC_TYPE_ATTR, "%s=%s",
+			    attr_name, attr_value);
+	    } else {
+		msg_warn("uid=%ld: ignoring attribute record: %.200s=%.200s",
+			 (long) uid, attr_name, attr_value);
+	    }
+	    continue;
+	}
 	if (REC_PUT_BUF(dst->stream, rec_type, buf) < 0) {
 	    while ((rec_type = rec_get(VSTREAM_IN, buf, var_line_limit)) > 0
 		   && rec_type != REC_TYPE_END)

@@ -139,6 +139,7 @@ typedef struct {
 static PLPGSQL *plpgsql_init(char *hostnames[], int);
 static PGSQL_RES *plpgsql_query(PLPGSQL *, const char *, char *, char *, char *);
 static void plpgsql_dealloc(PLPGSQL *);
+static void plpgsql_close_host(HOST *);
 static void plpgsql_down_host(HOST *);
 static void plpgsql_connect_single(HOST *, char *, char *, char *);
 static const char *dict_pgsql_lookup(DICT *, const char *);
@@ -380,7 +381,7 @@ static PGSQL_RES *plpgsql_query(PLPGSQL *PLDB,
 	    if (msg_verbose)
 		msg_info("dict_pgsql: closing unnessary connection to %s",
 			 host->hostname);
-	    plpgsql_down_host(host);
+	    plpgsql_close_host(host);
 	}
 	/* try to connect for the first time if we don't have a result yet */
 	if (res == 0 && host->stat == STATUNTRIED) {
@@ -461,18 +462,25 @@ static void plpgsql_connect_single(HOST *host, char *dbname, char *username, cha
 	myfree(hostname);
 }
 
+/* plpgsql_close_host - close an established PostgreSQL connection */
+
+static void plpgsql_close_host(HOST *host)
+{
+    PQfinish(host->db);
+    host->db = 0;
+    host->stat = STATUNTRIED;
+}
+
 /*
- * plpgsql_down_host - mark a HOST down update ts if marked down
- * for the first time so that we'll know when to retry the connection
+ * plpgsql_down_host - close a failed connection AND set a "stay away from
+ * this host" timer.
  */
 static void plpgsql_down_host(HOST *host)
 {
-    if (host->stat != STATFAIL) {
-	host->ts = time((time_t *) 0) + RETRY_CONN_INTV;
-	host->stat = STATFAIL;
-    }
     PQfinish(host->db);
     host->db = 0;
+    host->ts = time((time_t *) 0) + RETRY_CONN_INTV;
+    host->stat = STATFAIL;
 }
 
 /**********************************************************************

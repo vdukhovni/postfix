@@ -20,8 +20,8 @@
 /* .fi
 /*	The mailbox location is controlled by the \fBvirtual_mailbox_base\fR
 /*	and \fBvirtual_mailbox_maps\fR configuration parameters (see below).
-/*	The \fBvirtual_mailbox_maps\fR table is indexed by the full recipient
-/*	address.
+/*	The \fBvirtual_mailbox_maps\fR table is indexed by the recipient
+/*	address as described under TABLE SEARCH ORDER below.
 /*
 /*	The mailbox pathname is constructed as follows:
 /*
@@ -74,6 +74,32 @@
 /*	The \fBvirtual_minimum_uid\fR parameter imposes a lower bound on
 /*	numerical user ID values that may be specified in any
 /*	\fBvirtual_uid_maps\fR.
+/* TABLE SEARCH ORDER
+/* .ad
+/* .fi
+/*	Normally, a lookup table is specified as a text file that
+/*	serves as input to the \fBpostmap\fR(1) command. The result, an 
+/*	indexed file in \fBdbm\fR or \fBdb\fR format, is used for fast 
+/*	searching by the mail system.
+/*
+/*	The canonical search order is as follows. The search stops
+/*	upon the first successful lookup.
+/* .IP \(bu
+/*	When the recipient has an optional address extension the
+/*	\fIuser+extension@domain.tld\fR address is looked up first.
+/* .IP \(bu
+/*	The \fIuser@domain.tld\fR address, without address extension, 
+/*	is looked up next.
+/* .IP \(bu
+/*	Finally, the recipient \fI@domain\fR is looked up.
+/* .PP
+/*	When the table is provided via other means such as NIS, LDAP
+/*	or SQL, the same lookups are done as for ordinary indexed files.
+/*
+/*	Alternatively, a table can be provided as a regular-expression
+/*	map where patterns are given as regular expressions. In that case,
+/*	only the full recipient address is given to the regular-expression
+/*	map.
 /* SECURITY
 /* .ad
 /* .fi
@@ -94,7 +120,9 @@
 /*	Depending on the setting of the \fBnotify_classes\fR parameter,
 /*	the postmaster is notified of bounces and of other trouble.
 /* BUGS
-/*	This delivery agent silently ignores address extensions.
+/*	This delivery agent supports address extensions in email
+/*	addresses and in lookup table keys, but does not propagate
+/*	address extension information to the result of table lookup.
 /*
 /*	Postfix should have lookup tables that can return multiple result
 /*	attributes. In order to avoid the inconvenience of maintaining
@@ -142,7 +170,7 @@
 /*	configuration parameter.
 /* .IP \fBvirtual_minimum_uid\fR
 /*	Specifies a minimum uid that will be accepted as a return from
-/*	a \fBvirtual_owner_maps\fR or \fBvirtual_uid_maps\fR lookup.
+/*	a \fBvirtual_uid_maps\fR lookup.
 /*	Returned values less than this will be rejected, and the message
 /*	will be deferred.
 /* .IP \fBvirtual_uid_maps\fR
@@ -283,7 +311,7 @@
 #include <mail_params.h>
 #include <mail_conf.h>
 #include <mail_params.h>
-#include <virtual8_maps.h>
+#include <mail_addr_find.h>
 
 /* Single server skeleton. */
 
@@ -414,15 +442,15 @@ static void post_init(char *unused_name, char **unused_argv)
     set_eugid(var_owner_uid, var_owner_gid);
 
     virtual_mailbox_maps =
-	virtual8_maps_create(VAR_VIRT_MAILBOX_MAPS, var_virt_mailbox_maps,
+	maps_create(VAR_VIRT_MAILBOX_MAPS, var_virt_mailbox_maps,
 			     DICT_FLAG_LOCK | DICT_FLAG_PARANOID);
 
     virtual_uid_maps =
-	virtual8_maps_create(VAR_VIRT_UID_MAPS, var_virt_uid_maps,
+	maps_create(VAR_VIRT_UID_MAPS, var_virt_uid_maps,
 			     DICT_FLAG_LOCK | DICT_FLAG_PARANOID);
 
     virtual_gid_maps =
-	virtual8_maps_create(VAR_VIRT_GID_MAPS, var_virt_gid_maps,
+	maps_create(VAR_VIRT_GID_MAPS, var_virt_gid_maps,
 			     DICT_FLAG_LOCK | DICT_FLAG_PARANOID);
 
     virtual_mbox_lock_mask = mbox_lock_mask(var_virt_mailbox_lock);

@@ -8106,6 +8106,8 @@ Apologies for any names omitted.
 
 2003052[3-9]
 
+	Cleanup: qmgr_fudge_factor is gone.
+
 	Cleanup: rewrote the queue file record processing loops in
 	cleanup and in [n]qmgr. This code had deteriorated a lot
 	as the result of small changes over the years. This change
@@ -8142,6 +8144,27 @@ Apologies for any names omitted.
 
 	Compatibility: allow <@site,@site:address> route addresses
 	in SMTP commands.  File: smtpd/smtpd.c.
+
+20030605
+
+	Cleanup: input checks moved from the pickup daemon to the
+	postdrop mail submission command; this is to prepare for
+	mail submission from postdrop->cleanup without going through
+	the maildrop directory. Files: pickup/pickup.c,
+	postdrop/postdrop.c.
+
+	Bugfix: the "dead host" backoff timer in the MySQL client
+	didn't work.  Fix by Leandro Santi. File: util/dict_mysql.c.
+
+	Bugfix: same problem in the PostgreSQL client. File:
+	util/dict_pgsql.c.
+
+	Workaround: turned off non-blocking write to pipe because
+	too many systems give a weird write() result. File:
+	global/pipe_command.c.
+
+	Cleanup: added support for vstream_fseek(.., .., SEEK_END).
+	File: util/vstream.c.
 
 Open problems:
 

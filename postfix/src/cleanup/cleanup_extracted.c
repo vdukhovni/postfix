@@ -50,7 +50,6 @@
 #include <msg.h>
 #include <vstring.h>
 #include <vstream.h>
-#include <argv.h>
 #include <mymalloc.h>
 #include <nvtable.h>
 
@@ -61,7 +60,6 @@
 #include <record.h>
 #include <rec_type.h>
 #include <mail_params.h>
-#include <ext_prop.h>
 #include <mail_proto.h>
 
 /* Application-specific. */
@@ -71,6 +69,7 @@
 #define STR(x)	vstring_str(x)
 
 static void cleanup_extracted_process(CLEANUP_STATE *, int, const char *, int);
+static void cleanup_extracted_finish(CLEANUP_STATE *);
 
 /* cleanup_extracted - initialize extracted segment */
 
@@ -95,7 +94,6 @@ void    cleanup_extracted(CLEANUP_STATE *state, int type,
 void    cleanup_extracted_process(CLEANUP_STATE *state, int type,
 				          const char *buf, int len)
 {
-    const char myname[] = "cleanup_extracted_process";
     const char *encoding;
     const char generated_by_cleanup[] = {
 	REC_TYPE_FILT, REC_TYPE_RDR, REC_TYPE_ATTR,
@@ -114,8 +112,8 @@ void    cleanup_extracted_process(CLEANUP_STATE *state, int type,
     }
 
     /*
-     * At the end of the non-recipient records, emit optional information
-     * from header/body content.
+     * On the transition from non-recipient records to recipient records,
+     * emit optional information from header/body content.
      */
     if ((state->flags & CLEANUP_FLAG_INRCPT) == 0
 	&& strchr(REC_TYPE_EXT_RECIPIENT, type) != 0) {
@@ -126,11 +124,15 @@ void    cleanup_extracted_process(CLEANUP_STATE *state, int type,
 	if ((encoding = nvtable_find(state->attr, MAIL_ATTR_ENCODING)) != 0)
 	    cleanup_out_format(state, REC_TYPE_ATTR, "%s=%s",
 			       MAIL_ATTR_ENCODING, encoding);
+	if (state->return_receipt)
+	    cleanup_out_string(state, REC_TYPE_RRTO, state->return_receipt);
+	if (state->errors_to)
+	    cleanup_out_string(state, REC_TYPE_ERTO, state->errors_to);
 	state->flags |= CLEANUP_FLAG_INRCPT;
     }
 
     /*
-     * Regular extracted envelope record processing.
+     * Extracted envelope recipient record processing.
      */
     if (type == REC_TYPE_RCPT) {
 	if (state->sender == 0) {		/* protect showq */
@@ -164,20 +166,34 @@ void    cleanup_extracted_process(CLEANUP_STATE *state, int type,
 	state->orig_rcpt = mystrdup(buf);
 	return;
     }
-    if (type != REC_TYPE_END && (state->flags & CLEANUP_FLAG_INRCPT))
-	/* Tell qmgr that recipients are mixed with other information. */
+    if (type == REC_TYPE_END) {
+	state->flags &= ~CLEANUP_FLAG_INRCPT;
+	state->flags |= CLEANUP_FLAG_END_SEEN;
+	cleanup_extracted_finish(state);
+	return;
+    }
+
+    /*
+     * Extracted envelope non-recipient record processing.
+     */
+    if (state->flags & CLEANUP_FLAG_INRCPT)
+	/* Tell qmgr that recipient records are mixed with other information. */
 	state->qmgr_opts |= QMGR_READ_FLAG_MIXED_RCPT_OTHER;
     if (strchr(generated_by_cleanup, type) != 0) {
 	/* Use our own header/body info instead. */
 	return;
-    }
-    if (type != REC_TYPE_END) {
+    } else {
 	/* Pass on other non-recipient record. */
 	cleanup_out(state, type, buf, len);
 	return;
     }
-    state->flags &= ~CLEANUP_FLAG_INRCPT;
-    state->flags |= CLEANUP_FLAG_END_SEEN;
+}
+
+/* cleanup_extracted_finish - process one extracted envelope record */
+
+void    cleanup_extracted_finish(CLEANUP_STATE *state)
+{
+    const char myname[] = "cleanup_extracted_finish";
 
     /*
      * On the way out, add the optional automatic BCC recipient.

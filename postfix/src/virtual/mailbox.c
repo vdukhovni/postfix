@@ -60,7 +60,7 @@
 #include <defer.h>
 #include <sent.h>
 #include <mail_params.h>
-#include <virtual8_maps.h>
+#include <mail_addr_find.h>
 
 #ifndef EDQUOT
 #define EDQUOT EFBIG
@@ -182,7 +182,10 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
      * Look up the mailbox location. Bounce if not found, defer in case of
      * trouble.
      */
-    mailbox_res = virtual8_maps_find(virtual_mailbox_maps, state.msg_attr.user);
+#define IGNORE_EXTENSION ((char **) 0)
+
+    mailbox_res = mail_addr_find(virtual_mailbox_maps, state.msg_attr.user,
+				 IGNORE_EXTENSION);
     if (mailbox_res == 0) {
 	if (dict_errno == 0)
 	    return (NO);
@@ -201,7 +204,8 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     /*
      * Look up the mailbox owner rights. Defer in case of trouble.
      */
-    uid_res = virtual8_maps_find(virtual_uid_maps, state.msg_attr.user);
+    uid_res = mail_addr_find(virtual_uid_maps, state.msg_attr.user,
+			     IGNORE_EXTENSION);
     if (uid_res == 0) {
 	*statusp = defer_append(BOUNCE_FLAGS(state.request),
 				BOUNCE_ATTR(state.msg_attr),
@@ -221,7 +225,8 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     /*
      * Look up the mailbox group rights. Defer in case of trouble.
      */
-    gid_res = virtual8_maps_find(virtual_gid_maps, state.msg_attr.user);
+    gid_res = mail_addr_find(virtual_gid_maps, state.msg_attr.user,
+			     IGNORE_EXTENSION);
     if (gid_res == 0) {
 	*statusp = defer_append(BOUNCE_FLAGS(state.request),
 				BOUNCE_ATTR(state.msg_attr),

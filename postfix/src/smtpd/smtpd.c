@@ -816,7 +816,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		verp_delims = arg + VERP_CMD_LEN + 1;
 		if (verp_delims_verify(verp_delims) != 0) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
-		    smtpd_chat_reply(state, "501 %s needs two characters from %s",
+		    smtpd_chat_reply(state, "501 Error: %s needs two characters from %s",
 				     VERP_CMD, var_verp_filter);
 		    return (-1);
 		}
@@ -828,7 +828,8 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	}
     }
     if (verp_delims && argv[2].strval[0] == 0) {
-	smtpd_chat_reply(state, "503 Error: XVERP requires non-null sender");
+	smtpd_chat_reply(state, "503 Error: %s requires non-null sender",
+			 VERP_CMD);
 	return (-1);
     }
     state->time = time((time_t *) 0);

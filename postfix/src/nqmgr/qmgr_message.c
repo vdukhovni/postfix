@@ -216,7 +216,6 @@ static void qmgr_message_oldstyle_scan(QMGR_MESSAGE *message)
 {
     VSTRING *buf;
     long    orig_offset,
-            curr_offset,
             extra_offset;
     int     rec_type;
     char   *start;
@@ -243,8 +242,6 @@ static void qmgr_message_oldstyle_scan(QMGR_MESSAGE *message)
      */
     message->rcpt_unread = 0;
     for (;;) {
-	if ((curr_offset = vstream_ftell(message->fp)) < 0)
-	    msg_fatal("vstream_ftell %s: %m", VSTREAM_PATH(message->fp));
 	rec_type = rec_get(message->fp, buf, 0);
 	if (rec_type <= 0)
 	    /* Report missing end record later. */
@@ -344,7 +341,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
      * queue file, to protect against memory exhaustion. Recipient records
      * may appear before or after the message content, so we keep reading
      * from the queue file until we have enough recipients (rcpt_offset != 0)
-     * and until we know all the non-recipient extracted segment information.
+     * and until we know all the non-recipient information.
      * 
      * Note that the total recipient count record is accurate only for fresh
      * queue files. After some of the recipients are marked as done and the
@@ -358,8 +355,8 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
      * XXX We know how to skip over large numbers of recipient records in the
      * initial envelope segment but we haven't yet implemented code to skip
      * over large numbers of recipient records in the extracted envelope
-     * segment. This is not a problem as long as only "sendmail -t" produces
-     * extracted segment recipients.
+     * segment. This is not a problem as long as extracted segment recipients
+     * are not mixed with non-recipient information (sendmail -t, qmqpd).
      */
     for (;;) {
 	if ((curr_offset = vstream_ftell(message->fp)) < 0)

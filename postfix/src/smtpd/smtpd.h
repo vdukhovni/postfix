@@ -95,10 +95,6 @@ typedef struct SMTPD_STATE {
     int     defer_if_permit_sender;	/* force permit into warning */
     int     discard;			/* discard message */
     VSTRING *expand_buf;		/* scratch space for $name expansion */
-    int     session_hold;		/* per-session hold action */
-    int     session_discard;		/* per-session discard_action */
-    char   *session_filter;		/* per-session filter action */
-    char   *session_redirect;		/* per-session redirect action */
 } SMTPD_STATE;
 
 extern void smtpd_state_init(SMTPD_STATE *, VSTREAM *);

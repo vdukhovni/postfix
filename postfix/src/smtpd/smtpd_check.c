@@ -429,19 +429,6 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient);
   */
 #define STR	vstring_str
 #define CONST_STR(x)	((const char *) vstring_str(x))
-#define STREQ(x,y) (*(x) == *(y) && strcmp((x), (y)) == 0)
-
- /*
-  * Safety.
-  */
-#define SAFE_STRDUP(dst, src) { \
-	if (src) { \
-	    if (dst) { \
-		myfree(dst); \
-	    } \
-	    dst = mystrdup(src); \
-	} \
-    }
 
  /*
   * If some decision can't be made due to a temporary error, then change
@@ -1799,16 +1786,9 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 	    vstring_sprintf(error_text, "<%s>: %s triggers FILTER %s",
 			    reply_name, reply_class, cmd_text);
 	    log_whatsup(state, "filter", STR(error_text));
-	    /* This action must execute with every MAIL FROM command. */
-	    if (var_smtpd_delay_reject == 0
-		&& (STREQ(reply_class, SMTPD_NAME_CLIENT)
-		    || STREQ(reply_class, SMTPD_NAME_HELO))) {
-		SAFE_STRDUP(state->session_filter, cmd_text);
-	    } else {
 #ifndef TEST
-		rec_fprintf(state->dest->stream, REC_TYPE_FILT, "%s", cmd_text);
+	    rec_fprintf(state->dest->stream, REC_TYPE_FILT, "%s", cmd_text);
 #endif
-	    }
 	    return (SMTPD_CHECK_DUNNO);
 	}
     }
@@ -1827,17 +1807,10 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 	vstring_sprintf(error_text, "<%s>: %s %s", reply_name, reply_class,
 			*cmd_text ? cmd_text : "triggers HOLD action");
 	log_whatsup(state, "hold", STR(error_text));
-	/* This action must execute with every MAIL FROM command. */
-	if (var_smtpd_delay_reject == 0
-	    && (STREQ(reply_class, SMTPD_NAME_CLIENT)
-		|| STREQ(reply_class, SMTPD_NAME_HELO))) {
-	    state->session_hold = 1;
-	} else {
 #ifndef TEST
-	    rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
-			CLEANUP_FLAG_HOLD);
+	rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
+		    CLEANUP_FLAG_HOLD);
 #endif
-	}
 	return (SMTPD_CHECK_DUNNO);
     }
 
@@ -1854,18 +1827,11 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 	vstring_sprintf(error_text, "<%s>: %s %s", reply_name, reply_class,
 			*cmd_text ? cmd_text : "triggers DISCARD action");
 	log_whatsup(state, "discard", STR(error_text));
-	/* This action must execute with every MAIL FROM command. */
-	if (var_smtpd_delay_reject == 0
-	    && (STREQ(reply_class, SMTPD_NAME_CLIENT)
-		|| STREQ(reply_class, SMTPD_NAME_HELO))) {
-	    state->session_discard = 1;
-	} else {
 #ifndef TEST
-	    rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
-			CLEANUP_FLAG_DISCARD);
-	    state->discard = 1;
+	rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
+		    CLEANUP_FLAG_DISCARD);
+	state->discard = 1;
 #endif
-	}
 	return (SMTPD_CHECK_OK);
     }
 
@@ -1888,16 +1854,9 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 	    vstring_sprintf(error_text, "<%s>: %s triggers REDIRECT %s",
 			    reply_name, reply_class, cmd_text);
 	    log_whatsup(state, "redirect", STR(error_text));
-	    /* This action must execute with every MAIL FROM command. */
-	    if (var_smtpd_delay_reject == 0
-		&& (STREQ(reply_class, SMTPD_NAME_CLIENT)
-		    || STREQ(reply_class, SMTPD_NAME_HELO))) {
-		SAFE_STRDUP(state->session_redirect, cmd_text);
-	    } else {
 #ifndef TEST
-		rec_fprintf(state->dest->stream, REC_TYPE_RDR, "%s", cmd_text);
+	    rec_fprintf(state->dest->stream, REC_TYPE_RDR, "%s", cmd_text);
 #endif
-	    }
 	    return (SMTPD_CHECK_DUNNO);
 	}
     }
@@ -2307,6 +2266,8 @@ static const char *smtpd_expand_addr(VSTRING *buf, const char *addr,
     /*
      * "sender_name" or "recipient_name".
      */
+#define STREQ(x,y) (*(x) == *(y) && strcmp((x), (y)) == 0)
+
     else if (STREQ(suffix, MAIL_ATTR_S_NAME)) {
 	if (*addr) {
 	    if ((p = strrchr(addr, '@')) != 0) {
@@ -3126,27 +3087,6 @@ char   *smtpd_check_mail(SMTPD_STATE *state, char *sender)
      */
     if (sender == 0)
 	return (0);
-
-    /*
-     * Actions that were triggered during connect or HELO need to be repeated
-     * with each MAIL FROM command.
-     */
-    if (var_smtpd_delay_reject == 0) {
-#ifndef TEST
-	if (state->session_hold)
-	    rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
-			CLEANUP_FLAG_HOLD);
-	if (state->session_discard)
-	    rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
-			CLEANUP_FLAG_DISCARD);
-	if (state->session_redirect)
-	    rec_fprintf(state->dest->stream, REC_TYPE_RDR, "%s",
-			state->session_redirect);
-	if (state->session_filter)
-	    rec_fprintf(state->dest->stream, REC_TYPE_FILT, "%s",
-			state->session_filter);
-#endif
-    }
 
     /*
      * Minor kluge so that we can delegate work to the generic routine and so

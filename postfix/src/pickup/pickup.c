@@ -87,7 +87,6 @@
 #include <vstream.h>
 #include <set_ugid.h>
 #include <safe_open.h>
-#include <stringops.h>
 
 /* Global library. */
 
@@ -154,9 +153,6 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 {
     int     type;
     int     check_first = (*expected == REC_TYPE_CONTENT[0]);
-    const char *error_text;
-    char   *attr_name;
-    char   *attr_value;
 
     /*
      * Limit the input record size. All front-end programs should protect the
@@ -181,44 +177,17 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 	if (type == REC_TYPE_FROM)
 	    if (info->sender == 0)
 		info->sender = mystrdup(vstring_str(buf));
-	if (type == REC_TYPE_ORCP)
-	    if (info->st.st_uid != var_owner_uid) {
-		msg_warn("uid=%ld: ignoring original recipient record: %.200s",
-			 (long) info->st.st_uid, vstring_str(buf));
-		continue;
-	    }
 	if (type == REC_TYPE_TIME)
 	    /* Use our own arrival time record instead. */
 	    continue;
-	if (type == REC_TYPE_ATTR) {
-	    if ((error_text = split_nameval(vstring_str(buf), &attr_name,
-					    &attr_value)) != 0) {
-		msg_warn("uid=%ld: malformed attribute record: %s: %.200s",
-		      (long) info->st.st_uid, error_text, vstring_str(buf));
-		continue;
-	    }
-#define STREQ(x,y) (strcmp(x,y) == 0)
-
-	    if ((STREQ(attr_name, MAIL_ATTR_ENCODING)
-		 && (STREQ(attr_value, MAIL_ATTR_ENC_7BIT)
-		     || STREQ(attr_value, MAIL_ATTR_ENC_8BIT)
-		     || STREQ(attr_value, MAIL_ATTR_ENC_NONE)))
-		|| STREQ(attr_name, MAIL_ATTR_TRACE_FLAGS)) {	/* XXX */
-		rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
-			    attr_name, attr_value);
-	    } else if (info->st.st_uid != var_owner_uid) {
-		msg_warn("uid=%ld: ignoring attribute record: %.200s=%.200s",
-			 (long) info->st.st_uid, attr_name, attr_value);
-	    }
-	    continue;
-	}
 
 	/*
 	 * XXX Force an empty record when the queue file content begins with
 	 * whitespace, so that it won't be considered as being part of our
 	 * own Received: header. What an ugly Kluge.
 	 */
-	if (check_first && *expected == REC_TYPE_CONTENT[0]) {
+	if (check_first
+	    && (type == REC_TYPE_NORM || type == REC_TYPE_CONT)) {
 	    check_first = 0;
 	    if (VSTRING_LEN(buf) > 0 && IS_SPACE_TAB(vstring_str(buf)[0]))
 		rec_put(cleanup, REC_TYPE_NORM, "", 0);

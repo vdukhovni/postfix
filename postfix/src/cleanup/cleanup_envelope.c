@@ -64,11 +64,7 @@
 #include <rec_type.h>
 #include <cleanup_user.h>
 #include <qmgr_user.h>
-#include <tok822.h>
 #include <mail_params.h>
-#include <ext_prop.h>
-#include <mail_addr.h>
-#include <canon_addr.h>
 #include <verp_sender.h>
 
 /* Application-specific. */
@@ -160,11 +156,6 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
      */
     if ((state->flags & CLEANUP_FLAG_INRCPT) == 0
 	&& strchr(REC_TYPE_ENV_RECIPIENT, type) != 0) {
-	if ((state->flags & CLEANUP_FLAG_WARN_SEEN) == 0
-	    && var_delay_warn_time > 0) {
-	    cleanup_out_format(state, REC_TYPE_WARN, REC_TYPE_WARN_FORMAT,
-			       (long) var_delay_warn_time);
-	}
 	if (state->sender == 0) {
 	    msg_warn("%s: message rejected: missing sender envelope record",
 		     state->queue_id);
@@ -177,11 +168,16 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	    state->errs |= CLEANUP_STAT_BAD;
 	    return;
 	}
+	if ((state->flags & CLEANUP_FLAG_WARN_SEEN) == 0
+	    && var_delay_warn_time > 0) {
+	    cleanup_out_format(state, REC_TYPE_WARN, REC_TYPE_WARN_FORMAT,
+			       (long) state->time + var_delay_warn_time);
+	}
 	state->flags |= CLEANUP_FLAG_INRCPT;
     }
 
     /*
-     * Regular initial envelope record processing.
+     * Initial envelope recipient record processing.
      */
     if (type == REC_TYPE_RCPT) {
 	if (state->sender == 0) {		/* protect showq */
@@ -215,8 +211,17 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	state->orig_rcpt = mystrdup(buf);
 	return;
     }
-    if (type != REC_TYPE_MESG && (state->flags & CLEANUP_FLAG_INRCPT))
-	/* Tell qmgr that recipients are mixed with other information. */
+    if (type == REC_TYPE_MESG) {
+	state->action = cleanup_message;
+	state->flags &= ~CLEANUP_FLAG_INRCPT;
+	return;
+    }
+
+    /*
+     * Initial envelope non-recipient record processing.
+     */
+    if (state->flags & CLEANUP_FLAG_INRCPT)
+	/* Tell qmgr that recipient records are mixed with other information. */
 	state->qmgr_opts |= QMGR_READ_FLAG_MIXED_RCPT_OTHER;
     if (type == REC_TYPE_SIZE)
 	/* Use our own SIZE record instead. */
@@ -277,11 +282,8 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	myfree(sbuf);
 	cleanup_out(state, type, buf, len);
 	return;
-    }
-    if (type != REC_TYPE_MESG) {
+    } else {
 	cleanup_out(state, type, buf, len);
 	return;
     }
-    state->action = cleanup_message;
-    state->flags &= ~CLEANUP_FLAG_INRCPT;
 }

@@ -561,7 +561,7 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
      * delivered intact via SMTP. Strip leading From_ lines. For the benefit
      * of UUCP environments, also get rid of leading >>>From_ lines.
      */
-    rec_fprintf(dst, REC_TYPE_MESG, REC_TYPE_MESG_FORMAT, 0L);
+    rec_fputs(dst, REC_TYPE_MESG, "");
     if (DEL_REQ_TRACE_ONLY(flags) != 0) {
 	rec_fprintf(dst, REC_TYPE_NORM, "Subject: probe");
 	if (recipients) {

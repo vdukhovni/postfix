@@ -380,13 +380,13 @@ int     pipe_command(VSTREAM *src, VSTRING *why,...)
      * Turn on non-blocking writes to the child process so that we can enforce
      * timeouts after partial writes.
      * 
-     * XXX This breaks on IRIX where select reports that a pipe is writable
-     * while write transfers zero bytes.
+     * XXX Too much trouble with different systems returning weird write()
+     * results when a pipe is writable.
      */
     if (pipe(cmd_in_pipe) < 0 || pipe(cmd_out_pipe) < 0)
 	msg_fatal("%s: pipe: %m", myname);
     non_blocking(cmd_out_pipe[1], NON_BLOCKING);
-#ifndef BROKEN_WRITE_SELECT_ON_NON_BLOCKING_PIPE
+#if 0
     non_blocking(cmd_in_pipe[1], NON_BLOCKING);
 #endif
 

@@ -810,6 +810,8 @@ long    vstream_fseek(VSTREAM *stream, long offset, int whence)
 	if (bp->ptr > bp->data) {
 	    if (whence == SEEK_CUR)
 		offset += (bp->ptr - bp->data);	/* add unwritten data */
+	    else if (whence == SEEK_END)
+		bp->flags &= ~VSTREAM_FLAG_SEEK;
 	    if (VSTREAM_FFLUSH_SOME(stream))
 		return (-1);
 	}
@@ -818,6 +820,8 @@ long    vstream_fseek(VSTREAM *stream, long offset, int whence)
     case VSTREAM_FLAG_READ:
 	if (whence == SEEK_CUR)
 	    offset += bp->cnt;			/* subtract unread data */
+	else if (whence == SEEK_END)
+	    bp->flags &= ~VSTREAM_FLAG_SEEK;
     case 0:
 	VSTREAM_BUF_AT_END(bp);
 	break;

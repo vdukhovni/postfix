@@ -83,6 +83,13 @@
 #define REC_TYPE_EXTRACT	"EDROPreAFIL>"
 
  /*
+  * The subset of inputs that the postdrop command allows.
+  */
+#define REC_TYPE_POST_ENVELOPE	"MFSRVA"
+#define REC_TYPE_POST_CONTENT	"XLN"
+#define REC_TYPE_POST_EXTRACT	"ERA"
+
+ /*
   * The record at the beginning of the envelope segment specifies the message
   * content size, data offset, recipient count, and processing flags. These
   * are fixed-width fields so they can be updated in place. Flags are defined
@@ -93,14 +100,6 @@
 #define REC_TYPE_SIZE_CAST2	long
 #define REC_TYPE_SIZE_CAST3	long
 #define REC_TYPE_SIZE_CAST4	long
-
- /*
-  * The record at the beginning of the message content records specifies the
-  * position of the next record group. This is the format of the position
-  * field. It is a fixed-width field so it can be updated in place.
-  */
-#define REC_TYPE_MESG_FORMAT	"%15ld"	/* message length format */
-#define REC_TYPE_MESG_CAST	long
 
  /*
   * The warn record specifies when the next warning that the message was
