@@ -6,23 +6,24 @@
 /* SYNOPSIS
 /*	#include <cleanup.h>
 /*
-/*	void	cleanup_rewrite_external(context_name, result, addr)
+/*	int	cleanup_rewrite_external(context_name, result, addr)
 /*	const char *context;
 /*	VSTRING	*result;
 /*	const char *addr;
 /*
-/*	void	cleanup_rewrite_internal(context_name, result, addr)
+/*	int	cleanup_rewrite_internal(context_name, result, addr)
 /*	const char *context;
 /*	VSTRING	*result;
 /*	const char *addr;
 /*
-/*	void	cleanup_rewrite_tree(context_name, tree)
+/*	int	cleanup_rewrite_tree(context_name, tree)
 /*	const char *context;
 /*	TOK822	*tree;
 /* DESCRIPTION
 /*	This module rewrites addresses to canonical form, adding missing
 /*	domains and stripping source routes etc., and performs
 /*	\fIcanonical\fR map lookups to map addresses to official form.
+/*	These functions return non-zero when the address was changed.
 /*
 /*	cleanup_rewrite_init() performs one-time initialization.
 /*
@@ -80,38 +81,43 @@
 
 /* cleanup_rewrite_external - rewrite address external form */
 
-void    cleanup_rewrite_external(const char *context_name, VSTRING *result,
+int     cleanup_rewrite_external(const char *context_name, VSTRING *result,
 				         const char *addr)
 {
     rewrite_clnt(context_name, addr, result);
+    return (strcmp(STR(result), addr) != 0);
 }
 
 /* cleanup_rewrite_tree - rewrite address node */
 
-void    cleanup_rewrite_tree(const char *context_name, TOK822 *tree)
+int    cleanup_rewrite_tree(const char *context_name, TOK822 *tree)
 {
     VSTRING *dst = vstring_alloc(100);
     VSTRING *src = vstring_alloc(100);
+    int     did_rewrite;
 
     tok822_externalize(src, tree->head, TOK822_STR_DEFL);
-    cleanup_rewrite_external(context_name, dst, STR(src));
+    did_rewrite = cleanup_rewrite_external(context_name, dst, STR(src));
     tok822_free_tree(tree->head);
     tree->head = tok822_scan(STR(dst), &tree->tail);
     vstring_free(dst);
     vstring_free(src);
+    return (did_rewrite);
 }
 
 /* cleanup_rewrite_internal - rewrite address internal form */
 
-void    cleanup_rewrite_internal(const char *context_name,
+int     cleanup_rewrite_internal(const char *context_name,
 				         VSTRING *result, const char *addr)
 {
     VSTRING *dst = vstring_alloc(100);
     VSTRING *src = vstring_alloc(100);
+    int     did_rewrite;
 
     quote_822_local(src, addr);
-    cleanup_rewrite_external(context_name, dst, STR(src));
+    did_rewrite = cleanup_rewrite_external(context_name, dst, STR(src));
     unquote_822_local(result, STR(dst));
     vstring_free(dst);
     vstring_free(src);
+    return (did_rewrite);
 }

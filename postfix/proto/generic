@@ -205,8 +205,9 @@
 #	"\fBpostconf html_directory\fR" to locate this information.
 # .na
 # .nf
-#	DATABASE_README, Postfix lookup table overview
 #	ADDRESS_REWRITING_README, address rewriting guide
+#	DATABASE_README, Postfix lookup table overview
+#	STANDARD_CONFIGURATION_README, configuration examples
 # LICENSE
 # .ad
 # .fi

@@ -161,6 +161,7 @@ static void cleanup_rewrite_sender(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
     TOK822 *tree;
     TOK822 **addr_list;
     TOK822 **tpp;
+    int     did_rewrite = 0;
 
     if (msg_verbose)
 	msg_info("rewrite_sender: %s", hdr_opts->name);
@@ -175,27 +176,36 @@ static void cleanup_rewrite_sender(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
 			      var_token_limit);
     addr_list = tok822_grep(tree, TOK822_ADDR);
     for (tpp = addr_list; *tpp; tpp++) {
-	cleanup_rewrite_tree(state->hdr_rewrite_context, *tpp);
+	did_rewrite |= cleanup_rewrite_tree(state->hdr_rewrite_context, *tpp);
 	if (state->flags & CLEANUP_FLAG_MAP_OK) {
 	    if (cleanup_send_canon_maps
 		&& (cleanup_send_canon_flags & CLEANUP_CANON_FLAG_HDR_FROM))
-		cleanup_map11_tree(state, *tpp, cleanup_send_canon_maps,
+		did_rewrite |=
+		    cleanup_map11_tree(state, *tpp, cleanup_send_canon_maps,
 				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
 	    if (cleanup_comm_canon_maps
 		&& (cleanup_comm_canon_flags & CLEANUP_CANON_FLAG_HDR_FROM))
-		cleanup_map11_tree(state, *tpp, cleanup_comm_canon_maps,
+		did_rewrite |=
+		    cleanup_map11_tree(state, *tpp, cleanup_comm_canon_maps,
 				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
 	    if (cleanup_masq_domains
 		&& (cleanup_masq_flags & CLEANUP_MASQ_FLAG_HDR_FROM))
-		cleanup_masquerade_tree(*tpp, cleanup_masq_domains);
+		did_rewrite |=
+		    cleanup_masquerade_tree(*tpp, cleanup_masq_domains);
 	}
     }
-    vstring_sprintf(header_buf, "%s: ", hdr_opts->name);
-    tok822_externalize(header_buf, tree, TOK822_STR_HEAD);
+    if (did_rewrite) {
+	vstring_sprintf(header_buf, "%s: ", hdr_opts->name);
+	tok822_externalize(header_buf, tree, TOK822_STR_HEAD);
+    }
     myfree((char *) addr_list);
     tok822_free_tree(tree);
-    if ((hdr_opts->flags & HDR_OPT_DROP) == 0)
-	cleanup_fold_header(state, header_buf);
+    if ((hdr_opts->flags & HDR_OPT_DROP) == 0) {
+	if (did_rewrite)
+	    cleanup_fold_header(state, header_buf);
+	else
+	    cleanup_out_header(state, header_buf);
+    }
 }
 
 /* cleanup_rewrite_recip - recipient address rewriting */
@@ -206,6 +216,7 @@ static void cleanup_rewrite_recip(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
     TOK822 *tree;
     TOK822 **addr_list;
     TOK822 **tpp;
+    int     did_rewrite = 0;
 
     if (msg_verbose)
 	msg_info("rewrite_recip: %s", hdr_opts->name);
@@ -220,27 +231,36 @@ static void cleanup_rewrite_recip(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
 			      var_token_limit);
     addr_list = tok822_grep(tree, TOK822_ADDR);
     for (tpp = addr_list; *tpp; tpp++) {
-	cleanup_rewrite_tree(state->hdr_rewrite_context, *tpp);
+	did_rewrite |= cleanup_rewrite_tree(state->hdr_rewrite_context, *tpp);
 	if (state->flags & CLEANUP_FLAG_MAP_OK) {
 	    if (cleanup_rcpt_canon_maps
 		&& (cleanup_rcpt_canon_flags & CLEANUP_CANON_FLAG_HDR_RCPT))
-		cleanup_map11_tree(state, *tpp, cleanup_rcpt_canon_maps,
+		did_rewrite |=
+		    cleanup_map11_tree(state, *tpp, cleanup_rcpt_canon_maps,
 				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
 	    if (cleanup_comm_canon_maps
 		&& (cleanup_comm_canon_flags & CLEANUP_CANON_FLAG_HDR_RCPT))
-		cleanup_map11_tree(state, *tpp, cleanup_comm_canon_maps,
+		did_rewrite |=
+		    cleanup_map11_tree(state, *tpp, cleanup_comm_canon_maps,
 				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
 	    if (cleanup_masq_domains
 		&& (cleanup_masq_flags & CLEANUP_MASQ_FLAG_HDR_RCPT))
-		cleanup_masquerade_tree(*tpp, cleanup_masq_domains);
+		did_rewrite |=
+		    cleanup_masquerade_tree(*tpp, cleanup_masq_domains);
 	}
     }
-    vstring_sprintf(header_buf, "%s: ", hdr_opts->name);
-    tok822_externalize(header_buf, tree, TOK822_STR_HEAD);
+    if (did_rewrite) {
+	vstring_sprintf(header_buf, "%s: ", hdr_opts->name);
+	tok822_externalize(header_buf, tree, TOK822_STR_HEAD);
+    }
     myfree((char *) addr_list);
     tok822_free_tree(tree);
-    if ((hdr_opts->flags & HDR_OPT_DROP) == 0)
-	cleanup_fold_header(state, header_buf);
+    if ((hdr_opts->flags & HDR_OPT_DROP) == 0) {
+	if (did_rewrite)
+	    cleanup_fold_header(state, header_buf);
+	else
+	    cleanup_out_header(state, header_buf);
+    }
 }
 
 /* cleanup_act_log - log action with context */

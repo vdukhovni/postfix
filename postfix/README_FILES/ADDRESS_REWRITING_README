@@ -164,16 +164,18 @@ table will help you to quickly find what you need.
     |mapping     |SMTP    |smtp(8) |smtp_generic_maps   |none                    |
     |table       |mail    |        |                    |                        |
     |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |Local alias |all mail|local(8)|alias_maps          |none                    |
-    |database    |        |        |                    |                        |
+    |Local alias |local   |        |                    |                        |
+    |database    |mail    |local(8)|alias_maps          |none                    |
+    |            |only    |        |                    |                        |
     |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |Local per-  |        |        |                    |                        |
-    |user        |all mail|local(8)|forward_path        |none                    |
-    |.forward    |        |        |                    |                        |
+    |Local per-  |local   |        |                    |                        |
+    |user        |mail    |local(8)|forward_path        |none                    |
+    |.forward    |only    |        |                    |                        |
     |files       |        |        |                    |                        |
     |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |Local catch-|all mail|local(8)|luser_relay         |none                    |
-    |all address |        |        |                    |                        |
+    |Local catch-|local   |        |                    |                        |
+    |all address |mail    |local(8)|luser_relay         |none                    |
+    |            |only    |        |                    |                        |
     |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 
 AAddddrreessss rreewwrriittiinngg wwhheenn mmaaiill iiss rreecceeiivveedd

@@ -220,8 +220,7 @@ static int qmgr_message_open(QMGR_MESSAGE *message)
 static void qmgr_message_oldstyle_scan(QMGR_MESSAGE *message)
 {
     VSTRING *buf;
-    long    orig_offset,
-            extra_offset;
+    long    orig_offset, extra_offset;
     int     rec_type;
     char   *start;
 
@@ -535,28 +534,28 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		    message->sasl_method = mystrdup(value);
 		else
 		    msg_warn("%s: ignoring multiple %s attribute: %s",
-			message->queue_id, MAIL_ATTR_SASL_METHOD, value);
+			   message->queue_id, MAIL_ATTR_SASL_METHOD, value);
 	    }
 	    if (strcmp(name, MAIL_ATTR_SASL_USERNAME) == 0) {
 		if (message->sasl_username == 0)
 		    message->sasl_username = mystrdup(value);
 		else
 		    msg_warn("%s: ignoring multiple %s attribute: %s",
-			message->queue_id, MAIL_ATTR_SASL_USERNAME, value);
+			 message->queue_id, MAIL_ATTR_SASL_USERNAME, value);
 	    }
 	    if (strcmp(name, MAIL_ATTR_SASL_SENDER) == 0) {
 		if (message->sasl_sender == 0)
 		    message->sasl_sender = mystrdup(value);
 		else
 		    msg_warn("%s: ignoring multiple %s attribute: %s",
-			message->queue_id, MAIL_ATTR_SASL_SENDER, value);
+			   message->queue_id, MAIL_ATTR_SASL_SENDER, value);
 	    }
 	    if (strcmp(name, MAIL_ATTR_RWR_CONTEXT) == 0) {
 		if (message->rewrite_context == 0)
 		    message->rewrite_context = mystrdup(value);
 		else
 		    msg_warn("%s: ignoring multiple %s attribute: %s",
-			message->queue_id, MAIL_ATTR_RWR_CONTEXT, value);
+			   message->queue_id, MAIL_ATTR_RWR_CONTEXT, value);
 	    }
 	    /* Optional tracing flags. */
 	    else if (strcmp(name, MAIL_ATTR_TRACE_FLAGS) == 0) {
@@ -1170,10 +1169,17 @@ QMGR_MESSAGE *qmgr_message_alloc(const char *queue_name, const char *queue_id,
 	 * queue file and *before* resolving new recipients. Since all those
 	 * operations are encapsulated so nicely by this routine, the defer
 	 * log reset has to be done here as well.
+	 * 
+	 * Likewise remove a trace file with results from address verification,
+	 * "what if" testing, or verbose delivery.
 	 */
 	if (mail_queue_remove(MAIL_QUEUE_DEFER, queue_id) && errno != ENOENT)
 	    msg_fatal("%s: %s: remove %s %s: %m", myname,
 		      queue_id, MAIL_QUEUE_DEFER, queue_id);
+	if (message->tflags != 0
+	&& mail_queue_remove(MAIL_QUEUE_TRACE, queue_id) && errno != ENOENT)
+	    msg_fatal("%s: %s: remove %s %s: %m", myname,
+		      queue_id, MAIL_QUEUE_TRACE, queue_id);
 	qmgr_message_sort(message);
 	qmgr_message_resolve(message);
 	qmgr_message_sort(message);

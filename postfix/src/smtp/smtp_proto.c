@@ -387,6 +387,7 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
 		}
 #ifdef USE_TLS
 	    } else if (strcasecmp(word, "STARTTLS") == 0) {
+		/* Ignored later if we already sent STARTTLS. */
 		if ((discard_mask & EHLO_MASK_STARTTLS) == 0)
 		    session->features |= SMTP_FEATURE_STARTTLS;
 #endif

@@ -174,16 +174,16 @@ extern void cleanup_extracted(CLEANUP_STATE *, int, const char *, int);
  /*
   * cleanup_rewrite.c
   */
-extern void cleanup_rewrite_external(const char *, VSTRING *, const char *);
-extern void cleanup_rewrite_internal(const char *, VSTRING *, const char *);
-extern void cleanup_rewrite_tree(const char *, TOK822 *);
+extern int cleanup_rewrite_external(const char *, VSTRING *, const char *);
+extern int cleanup_rewrite_internal(const char *, VSTRING *, const char *);
+extern int cleanup_rewrite_tree(const char *, TOK822 *);
 
  /*
   * cleanup_map11.c
   */
-extern void cleanup_map11_external(CLEANUP_STATE *, VSTRING *, MAPS *, int);
-extern void cleanup_map11_internal(CLEANUP_STATE *, VSTRING *, MAPS *, int);
-extern void cleanup_map11_tree(CLEANUP_STATE *, TOK822 *, MAPS *, int);
+extern int cleanup_map11_external(CLEANUP_STATE *, VSTRING *, MAPS *, int);
+extern int cleanup_map11_internal(CLEANUP_STATE *, VSTRING *, MAPS *, int);
+extern int cleanup_map11_tree(CLEANUP_STATE *, TOK822 *, MAPS *, int);
 
  /*
   * cleanup_map1n.c
@@ -193,9 +193,9 @@ ARGV   *cleanup_map1n_internal(CLEANUP_STATE *, const char *, MAPS *, int);
  /*
   * cleanup_masquerade.c
   */
-extern void cleanup_masquerade_external(VSTRING *, ARGV *);
-extern void cleanup_masquerade_internal(VSTRING *, ARGV *);
-extern void cleanup_masquerade_tree(TOK822 *, ARGV *);
+extern int cleanup_masquerade_external(VSTRING *, ARGV *);
+extern int cleanup_masquerade_internal(VSTRING *, ARGV *);
+extern int cleanup_masquerade_tree(TOK822 *, ARGV *);
 
  /*
   * cleanup_recipient.c

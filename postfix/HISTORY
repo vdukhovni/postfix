@@ -10356,21 +10356,34 @@ Apologies for any names omitted.
 	is renamed to "generic", for consistency with "canonical"
 	and "virtual".
 
+20050212
+
+	Cleanup: remove old trace(8) logfile before attempting
+	delivery (and after locking the message file exclusively).
+	Files: *qmgr/qmgr_message.c.
+
+	Cleanup: don't parse-then-regenerate message headers when
+	no address is changed by address rewriting operations. This
+	behavior was copied from the SMTP client's generic mapping
+	code.  Files: cleanup/cleanup_rewrite.c, cleanup/cleanup_map11.c,
+	cleanup/cleanup_masquerade.c, cleanup/cleanup_message.c..
+
 Open problems:
 
-	Low: 9kbyte memory leak when an expired in-memory session
-	is removed by SSL_CTX_flush_sessions(). The occurrance of
-	this is rare enough that it is a low priority.
+	Med: disable header address rewriting after XCLIENT?
+	Introduce a better concept of original submission?
+
+	Low: 9kbyte memory leak when expired in-memory session
+	information is removed by SSL_CTX_flush_sessions(); found
+	by setting the expiry time shorter than the time to deliver
+	one or two messages. Postfix processes are short-lived,
+	and the occurrance of this leak is rare enough that it is
+	a low priority.
+
+	Low: configurable order of local(8) delivery methods.
 
 	Med: local and remote source port and IP address for smtpd
 	policy hook.
-
-	Med: canonical/generic/virtual mapping always append
-	myorigin/mydomain and never remote_header_rewrite_domain;
-	this needs to be clear from documentation.
-
-	Med: disable address rewriting after XCLIENT? Introduce a
-	better concept of original submission?
 
 	Med: smtp_connect_timeout_budget (default: 3x smtp_connect_timeout)
 	to limit the total time spent trying to connect.
@@ -10435,9 +10448,6 @@ Open problems:
 	Low: make post-install a "postfix-only script" so it can
 	take data from the environment instead of main.cf.
 
-	Low: qmgr should truncate trace logfile before attempting
-	delivery.
-
 	Low: randomize deferred mail backoff.
 
 	Med: separate ulimit for delivery to command?
@@ -10455,9 +10465,6 @@ Open problems:
 	Med: postsuper -r should do something with recipients in
 	bounce logfiles.
 
-	Low: qmgr_move should not reset time stamps on queue files
-	without shared lock (i.e. not open by a delivery agent).
-
 	Low: postsuper re-run after renaming files, but only a
 	limited number of times.
 
@@ -10465,6 +10472,9 @@ Open problems:
 
 	Med: make qmgr recipient bounce/defer activity asynchronous
 	or add a multi-recipient operation that reduces overhead.
+	One possibility is to pass delivery requests to a retry(8)
+	delivery agent which is error(8) in disguise, and which
+	calls defer_append() instead of bounce_append().
 
 	Low: postmap/postalias should not try to open a bogus file
 	when given an unsupported dictionary type.

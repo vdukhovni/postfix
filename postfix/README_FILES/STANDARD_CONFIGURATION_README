@@ -478,8 +478,8 @@ hosts without a real Internet hostname".
 
     /usr/sbin/sendmail -q (whenever the Internet link is up)
 
-    The exact location of the sendmail command is system-specific. Use the
-    command "ppoossttccoonnff sseennddmmaaiill__ppaatthh" to find out where the Postfix sendmail
+    The exact location of the Postfix sendmail command is system-specific. Use
+    the command "ppoossttccoonnff sseennddmmaaiill__ppaatthh" to find out where the Postfix sendmail
     command is located on your machine.
 
     In order to find out if the mail queue is flushed, use something like:
@@ -515,7 +515,7 @@ with non-existent domain names.
 Note: the following information is Postfix version dependent. To find out what
 Postfix version you have, execute the command "ppoossttccoonnff mmaaiill__vveerrssiioonn".
 
-PPoossttffiixx vveerrssiioonn 22..22 aanndd llaatteerr
+SSoolluuttiioonn 11:: PPoossttffiixx vveerrssiioonn 22..22 aanndd llaatteerr
 
 Postfix 2.2 uses the generic(5) address mapping to replace local fantasy email
 addresses by valid Internet addresses. This mapping happens ONLY when mail
@@ -549,7 +549,7 @@ To find out what lookup tables Postfix supports, use the command "ppoossttc
 Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//ggeenneerriicc" whenever you change the
 generic table.
 
-PPoossttffiixx vveerrssiioonn 22..11 aanndd eeaarrlliieerr
+SSoolluuttiioonn 22:: PPoossttffiixx vveerrssiioonn 22..11 aanndd eeaarrlliieerr
 
 The solution with older Postfix systems is to use valid Internet addresses
 where possible, and to let Postfix map valid Internet addresses to local

@@ -659,7 +659,7 @@ calls from being placed, disable spontaneous SMTP mail deliveries. </p>
 /usr/sbin/sendmail -q (whenever the Internet link is up)
 </pre>
 
-<p> The exact location of the sendmail command is system-specific.
+<p> The exact location of the Postfix sendmail command is system-specific.
 Use the command "<b>postconf <a href="postconf.5.html#sendmail_path">sendmail_path</a></b>" to find out where the
 Postfix sendmail command is located on your machine. </p>
 
@@ -705,7 +705,7 @@ non-existent domain names. </p>
 To find out what Postfix version you have, execute the command
 "<b>postconf <a href="postconf.5.html#mail_version">mail_version</a></b>". </p>
 
-<h3>Postfix version 2.2 and later </h3>
+<h3>Solution 1: Postfix version 2.2 and later </h3>
 
 <p> Postfix 2.2 uses the <a href="generic.5.html">generic(5)</a> address mapping to replace
 local fantasy email addresses by valid Internet addresses.  This
@@ -751,7 +751,7 @@ tables Postfix supports, use the command "<b>postconf -m</b>".  </p>
 <p> Execute the command "<b>postmap /etc/postfix/generic</b>"
 whenever you change the generic table. </p>
 
-<h3>Postfix version 2.1 and earlier </h3>
+<h3>Solution 2: Postfix version 2.1 and earlier </h3>
 
 <p> The solution with older Postfix systems is to use valid
 Internet addresses where possible, and to let Postfix map valid
