@@ -128,6 +128,8 @@ static void plmysql_down_host(HOST *);
 static void plmysql_connect_single(HOST *, char *, char *, char *);
 static int plmysql_ready_reconn(HOST *);
 static void dict_mysql_update(DICT *, const char *, const char *);
+static void dict_mysql_delete(struct DICT *, const char *);
+static void dict_mysql_sequence(struct DICT *, const int, const char **, const char **);
 static const char *dict_mysql_lookup(DICT *, const char *);
 DICT   *dict_mysql_open(const char *, int, int);
 static void dict_mysql_close(DICT *);
@@ -350,6 +352,8 @@ DICT   *dict_mysql_open(const char *name, int unused_flags, int unused_dict_flag
     dict_mysql = (DICT_MYSQL *) mymalloc(sizeof(DICT_MYSQL));
     dict_mysql->dict.lookup = dict_mysql_lookup;
     dict_mysql->dict.update = dict_mysql_update;
+    dict_mysql->dict.delete = dict_mysql_delete;
+    dict_mysql->dict.sequence = dict_mysql_sequence;
     dict_mysql->dict.close = dict_mysql_close;
     dict_mysql->dict.fd = -1;			/* there's no file descriptor
 						 * for locking */
@@ -552,6 +556,17 @@ static void dict_mysql_update(DICT *dict, const char *unused_name, const char *u
     DICT_MYSQL *dict_mysql = (DICT_MYSQL *) dict;
 
     msg_fatal("dict_mysql_update: attempt to update mysql database");
+}
+
+static void dict_mysql_delete(DICT *unused_dict, const char *unused_name)
+{
+    msg_fatal("dict_mysql_delete: attempt to delete mysql database entry");
+}
+
+static void dict_mysql_sequence(DICT *unused_dict, const int unused_function,
+		         const char **unused_key, const char **unused_value)
+{
+    msg_fatal("dict_mysql_sequence: attempt to iterate over mysql database");
 }
 
 #endif

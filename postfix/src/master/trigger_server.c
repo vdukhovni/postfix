@@ -63,7 +63,7 @@
 /*	global Postfix configuration file. Tables are loaded in the
 /*	order as specified, and multiple instances of the same type
 /*	are allowed.
-/* .IP "MAIL_SERVER_RAW_TABLE (CONFIG_STR_TABLE *)"
+/* .IP "MAIL_SERVER_RAW_TABLE (CONFIG_RAW_TABLE *)"
 /*	A table with configurable parameters, to be loaded from the
 /*	global Postfix configuration file. Tables are loaded in the
 /*	order as specified, and multiple instances of the same type
@@ -452,7 +452,7 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
 	    get_mail_conf_time_table(va_arg(ap, CONFIG_TIME_TABLE *));
 	    break;
 	case MAIL_SERVER_RAW_TABLE:
-	    get_mail_conf_raw_table(va_arg(ap, CONFIG_STR_TABLE *));
+	    get_mail_conf_raw_table(va_arg(ap, CONFIG_RAW_TABLE *));
 	    break;
 	case MAIL_SERVER_PRE_INIT:
 	    pre_init = va_arg(ap, MAIL_SERVER_INIT_FN);

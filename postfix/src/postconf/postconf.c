@@ -30,10 +30,10 @@
 /* .IP \fB-h\fR
 /*	Show parameter values only, not the ``name = '' label
 /*	that normally precedes the value.
-/* .IP \fB-m\fR
-/*	List the names of all supported lookup table types.
 /* .IP \fB-l\fR
 /*	List the names of all supported mailbox locking methods.
+/* .IP \fB-m\fR
+/*	List the names of all supported lookup table types.
 /* .IP \fB-n\fR
 /*	Print non-default parameter settings only.
 /* .IP \fB-v\fR
@@ -106,6 +106,7 @@
 #define SHOW_MAPS	(1<<3)		/* show map types */
 #define EDIT_MAIN	(1<<4)		/* edit main.cf */
 #define SHOW_LOCKS	(1<<5)		/* show mailbox lock methods */
+#define SHOW_EVAL	(1<<6)		/* expand right-hand sides */
 
  /*
   * Lookup table for in-core parameter info.
@@ -124,6 +125,7 @@ DICT   *text_table;
 #include "bool_vars.h"
 #include "int_vars.h"
 #include "str_vars.h"
+#include "raw_vars.h"
 
  /*
   * Manually extracted.
@@ -153,6 +155,11 @@ static CONFIG_STR_TABLE str_table[] = {
 #include "str_table.h"
 #include "local_table.h"		/* XXX */
 #include "smtp_table.h"			/* XXX */
+    0,
+};
+
+static CONFIG_RAW_TABLE raw_table[] = {
+#include "raw_table.h"
     0,
 };
 
@@ -400,6 +407,30 @@ static void read_parameters(void)
     myfree(path);
 }
 
+/* set_parameters - set parameter values from default or explicit setting */
+
+static void set_parameters(void)
+{
+
+    /*
+     * Populate the configuration parameter dictionary with default settings
+     * or with actual settings.
+     * 
+     * Iterate over each entry in str_fn_table, str_fn_table_2, time_table,
+     * bool_table, int_table, str_table, and raw_table. Look up each
+     * parameter name in the configuration parameter dictionary. If the
+     * parameter is not set, take the default value, or take the value from
+     * in main.c, without doing $name expansions. This includes converting
+     * default values from numeric/boolean internal forms to external string
+     * form.
+     * 
+     * Once the configuration parameter dictionary is populated, printing a
+     * parameter setting is a matter of querying the configuration parameter
+     * dictionary, optionally expanding of $name values, and printing the
+     * result.
+     */
+}
+
 /* hash_parameters - hash all parameter names so we can find and sort them */
 
 static void hash_parameters(void)
@@ -409,6 +440,7 @@ static void hash_parameters(void)
     CONFIG_INT_TABLE *cit;
     CONFIG_STR_TABLE *cst;
     CONFIG_STR_FN_TABLE *csft;
+    CONFIG_RAW_TABLE *rst;
 
     param_table = htable_create(100);
 
@@ -424,12 +456,17 @@ static void hash_parameters(void)
 	htable_enter(param_table, csft->name, (char *) csft);
     for (csft = str_fn_table_2; csft->name; csft++)
 	htable_enter(param_table, csft->name, (char *) csft);
+    for (rst = raw_table; rst->name; rst++)
+	htable_enter(param_table, rst->name, (char *) rst);
 }
 
 /* show_strval - show string-valued parameter */
 
 static void show_strval(int mode, const char *name, const char *value)
 {
+    if (mode & SHOW_EVAL)
+	value = mail_conf_eval(value);
+
     if (mode & SHOW_NAME) {
 	vstream_printf("%s = %s\n", name, value);
     } else {
@@ -586,6 +623,33 @@ static void print_str_fn_2(int mode, CONFIG_STR_FN_TABLE *csft)
     }
 }
 
+/* print_raw - print raw string parameter */
+
+static void print_raw(int mode, CONFIG_RAW_TABLE * rst)
+{
+    const char *value;
+
+    if (mode & SHOW_EVAL)
+	msg_warn("parameter %s expands at run-time", rst->name);
+    mode &= ~SHOW_EVAL;
+
+    if (mode & SHOW_DEFS) {
+	show_strval(mode, rst->name, rst->defval);
+    } else {
+	value = dict_lookup(CONFIG_DICT, rst->name);
+	if ((mode & SHOW_NONDEF) == 0) {
+	    if (value == 0) {
+		show_strval(mode, rst->name, rst->defval);
+	    } else {
+		show_strval(mode, rst->name, value);
+	    }
+	} else {
+	    if (value != 0)
+		show_strval(mode, rst->name, value);
+	}
+    }
+}
+
 /* print_parameter - show specific parameter */
 
 static void print_parameter(int mode, char *ptr)
@@ -594,7 +658,9 @@ static void print_parameter(int mode, char *ptr)
 #define INSIDE(p,t) (ptr >= (char *) t && ptr < ((char *) t) + sizeof(t))
 
     /*
-     * This is gross, but the best we can do on short notice.
+     * This is gross, but the best we can do on short notice. Instead of
+     * guessing we should use a tagged union. This is what code looks like
+     * when written under the pressure of a first public release.
      */
     if (INSIDE(ptr, time_table))
 	print_time(mode, (CONFIG_TIME_TABLE *) ptr);
@@ -608,6 +674,8 @@ static void print_parameter(int mode, char *ptr)
 	print_str_fn(mode, (CONFIG_STR_FN_TABLE *) ptr);
     if (INSIDE(ptr, str_fn_table_2))
 	print_str_fn_2(mode, (CONFIG_STR_FN_TABLE *) ptr);
+    if (INSIDE(ptr, raw_table))
+	print_raw(mode, (CONFIG_RAW_TABLE *) ptr);
     if (msg_verbose)
 	vstream_fflush(VSTREAM_OUT);
 }
@@ -722,6 +790,9 @@ int     main(int argc, char **argv)
 	case 'd':
 	    mode |= SHOW_DEFS;
 	    break;
+	case 'E':
+	    mode |= SHOW_EVAL;
+	    break;
 	case 'e':
 	    mode |= EDIT_MAIN;
 	    break;
@@ -778,8 +849,10 @@ int     main(int argc, char **argv)
      * If showing non-default values, read main.cf.
      */
     else {
-	if ((mode & SHOW_DEFS) == 0)
+	if ((mode & SHOW_DEFS) == 0) {
 	    read_parameters();
+	    set_parameters();
+	}
 
 	/*
 	 * Throw together all parameters and show the asked values.

@@ -10,7 +10,7 @@ DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 TESTPROG= 
 MAKES	= bool_table.h bool_vars.h int_table.h int_vars.h str_table.h \
-	str_vars.h time_table.h time_vars.h
+	str_vars.h time_table.h time_vars.h raw_table.h raw_vars.h
 PROG	= postconf
 SAMPLES	= ../../conf/main.cf.default
 INC_DIR	= ../../include

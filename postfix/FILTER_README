@@ -60,11 +60,12 @@ The filter program can start out as a simple shell script like this:
     # Exit codes from <sysexits.h>
     EX_TEMPFAIL=75
     EX_UNAVAILABLE=69
+    STATUS=$EX_TEMPFAIL
 
     cd $INSPECT_DIR || { echo $INSPECT_DIR does not exist; exit $EX_TEMPFAIL; }
 
     # Clean up when done or when aborting.
-    trap "rm -f in.$$; exit" 0 1 2 3 15
+    trap "rm -f in.$$; exit $STATUS" 0 1 2 3 15
 
     cat >in.$$ || { echo Cannot save mail to file; exit $EX_TEMPFAIL; }
 
@@ -72,7 +73,7 @@ The filter program can start out as a simple shell script like this:
 
     $SENDMAIL "$@" <in.$$
 
-    exit $?
+    STATUS=$?
 
 The idea is to first capture the message to file and then run the
 content through run a third-party content filter program.  If the

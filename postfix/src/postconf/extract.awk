@@ -12,6 +12,12 @@
 	print | "sed 's/[ 	][ 	]*/ /g' | sort -u >str_table.h" 
     }
 }
+/^(static| )*CONFIG_RAW_TABLE .*\{/,/\};/ { 
+    if ($1 ~ /VAR/) {
+	print "char *" substr($3,2,length($3)-2) ";" > "raw_vars.h"
+	print | "sed 's/[ 	][ 	]*/ /g' | sort -u >raw_table.h" 
+    }
+}
 /^(static| )*CONFIG_BOOL_TABLE .*\{/,/\};/ { 
     if ($1 ~ /VAR/) {
 	print "int " substr($3,2,length($3)-2) ";" > "bool_vars.h"

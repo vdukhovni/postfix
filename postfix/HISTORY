@@ -4664,3 +4664,10 @@ Apologies for any names omitted.
 	Bugfix: reorganized some code in the MYSQL client to end
 	a number of memory allocation/deallocation problems.
 	This code needs more work. File: dict_mysql.c.
+
+20001218
+
+	Bugfix: the MYSQL client did not provide function pointers
+	for unimplemented operations, causing "postmap -d" to dump
+	core instead if issuing an error message. This is what I
+	get for accepting code that I cannot test myself.

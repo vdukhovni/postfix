@@ -658,7 +658,7 @@ int     main(int argc, char **argv)
     };
 
     /* Suppress $name expansion upon loading. */
-    static CONFIG_STR_TABLE raw_table[] = {
+    static CONFIG_RAW_TABLE raw_table[] = {
 	VAR_FORWARD_PATH, DEF_FORWARD_PATH, &var_forward_path, 0, 0,
 	VAR_MAILBOX_COMMAND, DEF_MAILBOX_COMMAND, &var_mailbox_command, 0, 0,
 	VAR_LUSER_RELAY, DEF_LUSER_RELAY, &var_luser_relay, 0, 0,

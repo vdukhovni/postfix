@@ -83,6 +83,14 @@ typedef struct {
 
 typedef struct {
     const char *name;			/* config variable name */
+    const char *defval;			/* default value or null */
+    char  **target;			/* pointer to global variable */
+    int     min;			/* min length or zero */
+    int     max;			/* max length or zero */
+} CONFIG_RAW_TABLE;
+
+typedef struct {
+    const char *name;			/* config variable name */
     int     defval;			/* default value */
     int    *target;			/* pointer to global variable */
     int     min;			/* lower bound or zero */
@@ -107,7 +115,7 @@ extern void get_mail_conf_str_table(CONFIG_STR_TABLE *);
 extern void get_mail_conf_int_table(CONFIG_INT_TABLE *);
 extern void get_mail_conf_bool_table(CONFIG_BOOL_TABLE *);
 extern void get_mail_conf_time_table(CONFIG_TIME_TABLE *);
-extern void get_mail_conf_raw_table(CONFIG_STR_TABLE *);
+extern void get_mail_conf_raw_table(CONFIG_RAW_TABLE *);
 
  /*
   * Tables to initialize parameters from the global configuration file or
@@ -120,6 +128,14 @@ typedef struct {
     int     min;			/* lower bound or zero */
     int     max;			/* upper bound or zero */
 } CONFIG_STR_FN_TABLE;
+
+typedef struct {
+    const char *name;			/* config variable name */
+    const char *(*defval) (void);	/* default value provider */
+    char  **target;			/* pointer to global variable */
+    int     min;			/* lower bound or zero */
+    int     max;			/* upper bound or zero */
+} CONFIG_RAW_FN_TABLE;
 
 typedef struct {
     const char *name;			/* config variable name */
@@ -138,7 +154,7 @@ typedef struct {
 extern void get_mail_conf_str_fn_table(CONFIG_STR_FN_TABLE *);
 extern void get_mail_conf_int_fn_table(CONFIG_INT_FN_TABLE *);
 extern void get_mail_conf_bool_fn_table(CONFIG_BOOL_FN_TABLE *);
-extern void get_mail_conf_raw_fn_table(CONFIG_STR_FN_TABLE *);
+extern void get_mail_conf_raw_fn_table(CONFIG_RAW_FN_TABLE *);
 
 /* LICENSE
 /* .ad
