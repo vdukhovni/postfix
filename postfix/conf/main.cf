@@ -9,8 +9,8 @@
 #
 # The queue_directory specifies the location of the Postfix queue.
 # This is also the root directory of Postfix daemons that run chrooted.
-# The contributed source code from http://www.postfix.org/ has examples
-# for setting up Postfix chroot environments on different UNIX systems.
+# See the files in examples/chroot-setup for setting up Postfix chroot
+# environments on different UNIX systems.
 #
 queue_directory = /var/spool/postfix
 
@@ -222,20 +222,22 @@ program_directory = /some/where/postfix/bin
 
 # The mailbox_command parameter specifies the optional external
 # command to use instead of mailbox delivery. The command is run as
-# the recipient with proper HOME, SHELL and LOGNAME settings.
+# the recipient with proper HOME, SHELL and LOGNAME environment settings.
 # Exception:  delivery for root is done as $default_user.
 #
-# The following expansions are done on mailbox_command: $user (recipient
-# username), $shell (recipient shell), $home (recipient home directory),
-# $recipient (full recipient address), $extension (recipient address
-# extension), $domain (recipient domain), $mailbox (entire recipient
-# localpart), $recipient_delimiter. Specify ${name?value} or
-# ${name:value} to expand value only when $name does (does not) exist.
-# 
+# Other environment variables of interest: USER (recipient username),
+# EXTENSION (address extension), DOMAIN (domain part of address),
+# and LOCAL (the address localpart).
+#
+# Unlike other Postfix configuration parameters, the mailbox_command
+# parameter is not subjected to $parameter substitutions. This is to
+# make it easier to specify shell syntax (see example below).
+#
 # Avoid shell meta characters because they will force Postfix to run
 # an expensive shell process. Procmail alone is expensive enough.
 #
 #mailbox_command = /some/where/procmail
+#mailbox_command = /some/where/procmail -a "$EXTENSION"
 
 # The mailbox_transport specifies the optional transport in master.cf
 # to use after processing aliases and .forward files. This parameter
@@ -257,13 +259,13 @@ program_directory = /some/where/postfix/bin
 # The following expansions are done on luser_relay: $user (recipient
 # username), $shell (recipient shell), $home (recipient home directory),
 # $recipient (full recipient address), $extension (recipient address
-# extension), $domain (recipient domain), $mailbox (entire recipient
+# extension), $domain (recipient domain), $local (entire recipient
 # localpart), $recipient_delimiter. Specify ${name?value} or
 # ${name:value} to expand value only when $name does (does not) exist.
 #
 # luser_relay = $user@other.host
-# luser_relay = $mailbox@other.host
-# luser_relay = admin+$mailbox
+# luser_relay = $local@other.host
+# luser_relay = admin+$local
   
 # JUNK MAIL CONTROLS
 # 

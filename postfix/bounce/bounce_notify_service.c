@@ -378,6 +378,8 @@ int     bounce_notify_service(char *service, char *queue_name,
      * and substitute something else so mail does not come back at us.
      */
     if (strcasecmp(recipient, mail_addr_double_bounce()) == 0) {
+	msg_warn("%s: undeliverable postmaster notification discarded",
+		  queue_id);
 	bounce_status = 0;
     }
 

@@ -513,6 +513,8 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 		sent(message->queue_id, recipient->address,
 		     "none", message->arrival_time, "discarded");
 		deliver_completed(message->fp, recipient->offset);
+		msg_warn("%s: undeliverable postmaster notification discarded",
+			 message->queue_id);
 		continue;
 	    }
 	}

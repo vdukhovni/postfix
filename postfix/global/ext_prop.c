@@ -16,20 +16,20 @@
 /*	recognized in \fBpattern\fR, with the corresponding bit mask
 /*	given in parentheses:
 /* .IP "canonical (EXP_PROP_CANONICAL)"
-/*	Propagate unmatched address extensions tothe right-hand side
-/*	canonical map entries.
+/*	Propagate unmatched address extensions to the right-hand side
+/*	of canonical table entries (not: regular expressions).
 /* .IP "virtual (EXP_PROP_VIRTUAL)
-/*	Propagate unmatched address extensions tothe right-hand side
-/*	canonical map entries.
+/*	Propagate unmatched address extensions to the right-hand side
+/*	of virtual table entries (not: regular expressions).
 /* .IP "alias (EXP_PROP_ALIAS)
-/*	Propagate unmatched address extensions tothe right-hand side
-/*	canonical map entries.
+/*	Propagate unmatched address extensions to the right-hand side
+/*	of alias database entries.
 /* .IP "forward (EXP_PROP_FORWARD)"
-/*	Propagate unmatched address extensions tothe right-hand side
-/*	canonical map entries.
+/*	Propagate unmatched address extensions to the right-hand side
+/*	of .forward file entries.
 /* .IP "include (EXP_PROP_INCLUDE)"
-/*	Propagate unmatched address extensions tothe right-hand side
-/*	canonical map entries.
+/*	Propagate unmatched address extensions to the right-hand side
+/*	of :include: file entries.
 /* DIAGNOSTICS
 /*	Panic: inappropriate use.
 /* LICENSE

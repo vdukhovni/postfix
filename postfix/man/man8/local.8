@@ -43,7 +43,7 @@ The \fBforward_path\fR parameter is subject to interpolation of
 \fB$user\fR (recipient username), \fB$home\fR (recipient home
 directory), \fB$shell\fR (recipient shell), \fB$recipient\fR
 (complete recipient address), \fB$extension\fR (recipient address
-extension), \fB$domain\fR (recipient domain), \fBmailbox\fR
+extension), \fB$domain\fR (recipient domain), \fBlocal\fR
 (entire recipient address localpart) and
 \fB$recipient_delimiter.\fR The forms \fI${name?value}\fR and
 \fI${name:value}\fR expand conditionally to \fIvalue\fR when
@@ -163,6 +163,11 @@ The optional recipient address extension.
 The recipient address domain part.
 .IP \fBLOGNAME\fR
 The bare recipient name.
+.IP \fBLOCAL\fR
+The entire recipient address localpart (text to the left of the
+rightmost @ character).
+.IP \fBRECIPIENT\fR
+The entire recipient address.
 .PP
 The \fBPATH\fR environment variable is always reset to a
 system-dependent default path, and the \fBTZ\fR (time zone)

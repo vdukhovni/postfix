@@ -329,7 +329,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 
     dict_ldap->server_host =
 	mystrdup((char *) get_mail_conf_str(vstring_str(config_param),
-					 "localhost", 0, 0));
+					    "localhost", 0, 0));
     if (msg_verbose)
 	msg_info("%s: %s is %s", myname, vstring_str(config_param),
 		 dict_ldap->server_host);
@@ -370,7 +370,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     vstring_sprintf(config_param, "%s_result_attribute", ldapsource);
     dict_ldap->result_attribute =
 	mystrdup((char *) get_mail_conf_str(vstring_str(config_param),
-					 "maildrop", 0, 0));
+					    "maildrop", 0, 0));
     if (msg_verbose)
 	msg_info("%s: %s is %s", myname, vstring_str(config_param),
 		 dict_ldap->result_attribute);

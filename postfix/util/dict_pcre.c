@@ -121,14 +121,18 @@ static int dict_pcre_action(int type, VSTRING *buf, char *ptr)
 	if (ret < 0) {
 	    if (ret == PCRE_ERROR_NOSUBSTRING)
 		msg_fatal("regexp %s, line %d: replace index out of range",
-			 ctxt->dict_name, ctxt->lineno);
+			  ctxt->dict_name, ctxt->lineno);
 	    else
 		msg_fatal("regexp %s, line %d: pcre_get_substring error: %d",
-			 ctxt->dict_name, ctxt->lineno, ret);
+			  ctxt->dict_name, ctxt->lineno, ret);
 	}
-	if (*pp == 0)
+	if (*pp == 0) {
+	    myfree((char *) pp);
 	    return (MAC_PARSE_UNDEF);
+	}
 	vstring_strcat(ctxt->buf, pp);
+	myfree((char *) pp);
+	return (0);
     } else
 	/* Straight text - duplicate with no substitution */
 	vstring_strcat(ctxt->buf, vstring_str(buf));
@@ -226,6 +230,7 @@ static void dict_pcre_close(DICT *dict)
 	if (pcre_list->replace)
 	    myfree((char *) pcre_list->replace);
     }
+    myfree(dict_pcre->map);
     myfree((char *) dict_pcre);
 }
 

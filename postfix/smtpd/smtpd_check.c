@@ -400,21 +400,11 @@ static int smtpd_check_reject(SMTPD_STATE *state, int error_class,
      * postmaster notices, this may be the only trace left that service was
      * rejected. Print the request, client name/address, and response.
      */
-    msg_info("%s: reject: %s from %s: %s",
-	     state->queue_id, state->where,
-	     state->namaddr, STR(error_text));
-
-    /*
-     * Log from/to information if available, for the benefit of the local
-     * sysadmin.
-     */
-    if (state->sender) {
-	msg_info(state->recipient ?
-		 "%s: reject: %s from %s: from=<%s> to=<%s>" :
-		 "%s: reject: %s from %s: from=<%s>",
-		 state->queue_id, state->where, state->namaddr,
-		 state->sender, state->recipient);
-    }
+    msg_info(state->recipient ? "reject: %s from %s: %s; from=<%s> to=<%s>"
+	     : state->sender ? "reject: %s from %s: %s; from=<%s>"
+	     : "reject: %s from %s: %s",
+	     state->where, state->namaddr, STR(error_text),
+	     state->sender, state->recipient);
     return (SMTPD_CHECK_REJECT);
 }
 
@@ -892,6 +882,12 @@ static int check_table_result(SMTPD_STATE *state, char *table,
 	msg_info("%s: %s %s %s", myname, table, value, datum);
 
     /*
+     * DUNNO means skip this table.
+     */
+    if (strcasecmp(value, "DUNNO") == 0)
+	return (SMTPD_CHECK_DUNNO);
+
+    /*
      * REJECT means NO. Generate a generic error response.
      */
     if (strcasecmp(value, "REJECT") == 0)
@@ -1327,6 +1323,8 @@ char   *smtpd_check_client(SMTPD_STATE *state)
     /*
      * Initialize.
      */
+    if (state->name == 0 && state->addr == 0)
+	return (0);
     status = setjmp(smtpd_check_buf);
     if (status != 0)
 	return (0);
@@ -1361,6 +1359,8 @@ char   *smtpd_check_helo(SMTPD_STATE *state, char *helohost)
     /*
      * Initialize.
      */
+    if (helohost == 0)
+	return (0);
     status = setjmp(smtpd_check_buf);
     if (status != 0)
 	return (0);
@@ -1399,6 +1399,8 @@ char   *smtpd_check_mail(SMTPD_STATE *state, char *sender)
     /*
      * Initialize.
      */
+    if (sender == 0)
+	return (0);
     status = setjmp(smtpd_check_buf);
     if (status != 0)
 	return (0);
@@ -1436,26 +1438,42 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
     char   *err;
 
     /*
+     * Initialize.
+     */
+    if (recipient == 0)
+	return (0);
+
+    /*
+     * Minor kluge so that we can delegate work to the generic routine and so
+     * that we can syslog the recipient with the reject messages.
+     */
+    state->recipient = mystrdup(recipient);
+
+#define SMTPD_CHECK_RCPT_RETURN(x) { \
+	myfree(state->recipient); \
+	state->recipient = saved_recipient; \
+	return (x); \
+    }
+
+    /*
      * Apply delayed restrictions.
      */
     if (var_smtpd_delay_reject)
 	if ((err = smtpd_check_client(state)) != 0
 	    || (err = smtpd_check_helo(state, state->helo_name)) != 0
 	    || (err = smtpd_check_mail(state, state->sender)) != 0)
-	    return (err);
+	    SMTPD_CHECK_RCPT_RETURN(err);
 
     /*
-     * Initialize.
+     * More initialization.
      */
     status = setjmp(smtpd_check_buf);
     if (status != 0)
-	return (0);
+	SMTPD_CHECK_RCPT_RETURN(0);
 
     /*
-     * Apply restrictions in the order as specified. Minor kluge so that we
-     * can delegate work to the generic routine.
+     * Apply restrictions in the order as specified.
      */
-    state->recipient = mystrdup(recipient);
     for (cpp = rcpt_restrctions->argv; (name = *cpp) != 0; cpp++) {
 	if (strchr(name, ':') != 0) {
 	    status = check_mail_access(state, name, recipient,
@@ -1482,9 +1500,7 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
 	if (status != 0)
 	    break;
     }
-    myfree(state->recipient);
-    state->recipient = saved_recipient;
-    return (status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
+    SMTPD_CHECK_RCPT_RETURN(status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
 }
 
 /* smtpd_check_etrn - validate ETRN request */
@@ -1507,6 +1523,8 @@ char   *smtpd_check_etrn(SMTPD_STATE *state, char *domain)
     /*
      * Initialize.
      */
+    if (domain == 0)
+	return (0);
     status = setjmp(smtpd_check_buf);
     if (status != 0)
 	return (0);

@@ -16,7 +16,8 @@
 /*	output is captured for diagnostics purposes.
 /*	Duplicate commands for the same recipient are suppressed.
 /*	A limited amount of information is exported via the environment:
-/*	HOME, SHELL, LOGNAME, USER, EXTENSION, and DOMAIN. The exported
+/*	HOME, SHELL, LOGNAME, USER, EXTENSION, DOMAIN, RECIPIENT (entire
+/*	address) and LOCAL (just the local part). The exported
 /*	information is censored with var_cmd_filter.
 /*
 /*	Arguments:
@@ -146,8 +147,12 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, char *command)
     env = argv_alloc(1);
     if (usr_attr.home)
 	argv_add(env, "HOME", usr_attr.home, ARGV_END);
-    argv_add(env, "LOGNAME", state.msg_attr.user, ARGV_END);
-    argv_add(env, "USER", state.msg_attr.user, ARGV_END);
+    argv_add(env,
+	     "LOGNAME", state.msg_attr.user,
+	     "USER", state.msg_attr.user,
+	     "RECIPIENT", state.msg_attr.recipient,
+	     "LOCAL", state.msg_attr.local,
+	     ARGV_END);
     if (usr_attr.shell)
 	argv_add(env, "SHELL", usr_attr.shell, ARGV_END);
     if (state.msg_attr.domain)

@@ -20,7 +20,6 @@
   * Utility library.
   */
 #include <vstream.h>
-#include <vstring.h>
 
  /*
   * Generic dictionary interface - in reality, a dictionary extends this

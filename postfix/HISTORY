@@ -2744,14 +2744,11 @@ Apologies for any names omitted.
 	= canonical, virtual, alias, forward, include" to restore
 	previous behavior.
 
-	Feature: forward_expansion_filter configuration parameter
-	that controls what characters may appear in $name expansions
-	of forward_path.
-
 19990509
 
-	Feature: USER, EXTENSION and DOMAIN environment variables
-	are exported to shell commands (including mailbox_command).
+	Feature: USER, EXTENSION, DOMAIN, RECIPIENT (entire address)
+	and MAILBOX (address localpart) environment variables are
+	exported to shell commands (including mailbox_command).
 
 	Feature: new command_expansion_filter parameter to control
 	what characters may appear in message attributes that are
@@ -2774,7 +2771,8 @@ Apologies for any names omitted.
 	Bugfix: missing duplicate filter call. This caused too many
 	deliveries when a user is listed multiple times in an alias.
 	Reported by Hideyuki Suzuki, School of Engineering, University
-	of Tokyo.
+	of Tokyo. Backed out on 19990512 because it caused problems.
+	Fixed 19990513 but needs further study.
 
 	Feature: it is now possible to move queue files back into
 	the maildrop queue, so that they can benefit from changes
@@ -2785,3 +2783,9 @@ Apologies for any names omitted.
 	Feature: made a start with integrating Joerg Henne's
 	dictionary extensions to remove entries and to iterate over
 	entries. That code is almost four months old by now.
+
+19990511
+
+	Feature: added a "undeliverable postmaster notification
+	discarded" warning when mail is dropped on the floor.
+	Requested by Michael Hasenstein, SuSE, Germany.

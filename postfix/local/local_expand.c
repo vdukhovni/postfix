@@ -28,10 +28,10 @@
 /*	The recipient address extension.
 /* .IP home
 /*	The recipient home directory.
-/* .IP mailbox
-/*	The full recipient address localpart.
+/* .IP local
+/*	The entire recipient address localpart.
 /* .IP recipient
-/*	The full recipient address.
+/*	The entire recipient address.
 /* .IP recipient_delimiter
 /*	The recipient delimiter.
 /* .IP shell
@@ -110,6 +110,8 @@ static const char *local_expand_lookup(const char *name, int mode, char *ptr)
 	return (local->usr_attr->shell);
     } else if (STREQ(name, "domain")) {
 	return (local->state->msg_attr.domain);
+    } else if (STREQ(name, "local")) {
+	return (local->state->msg_attr.local);
     } else if (STREQ(name, "mailbox")) {
 	return (local->state->msg_attr.local);
     } else if (STREQ(name, "recipient")) {

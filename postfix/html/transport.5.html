@@ -91,6 +91,13 @@ TRANSPORT(5)                                         TRANSPORT(5)
        port <b>2025</b>. Instead of a numerical port a symbolic name may be
        used. Specify [] around the destination in order to disable MX lookups.
 
+       The error mailer can be used to bounce mail:
+
+            <b>.foo.org</b>      <b>error:mail</b> <b>for</b> <b>*.foo.org</b> <b>is</b> <b>not</b> <b>deliverable</b>
+
+       This causes all mail for <i>user</i>@<i>anything</i><b>foo.org</b>
+       to be bounced.
+
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
        The following <b>main.cf</b> parameters are  especially  relevant
        to  this  topic.  See  the Postfix <b>main.cf</b> file for syntax
@@ -118,6 +125,18 @@ TRANSPORT(5)                                         TRANSPORT(5)
        The  Secure  Mailer  license must be distributed with this
        software.
 
+
+
+
+                                                                2
+
+
+
+
+
+TRANSPORT(5)                                         TRANSPORT(5)
+
+
 <b>AUTHOR(S)</b>
        Wietse Venema
        IBM T.J. Watson Research
@@ -128,7 +147,54 @@ TRANSPORT(5)                                         TRANSPORT(5)
 
 
 
-                                                                2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                3
 
 
 </pre> </body> </html>

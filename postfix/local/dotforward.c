@@ -102,7 +102,6 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     char   *saved_forward_path;
     char   *lhs;
     char   *next;
-    const char *forward_path;
     int     expand_status;
 
     /*
@@ -113,24 +112,10 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 	MSG_LOG_STATE(myname, state);
 
     /*
-     * Skip this module if per-user forwarding is disabled. XXX We need to
-     * extend the mail_conf_XXX() interface to request no expansion of $names
-     * in the given value or in the default value.
+     * Skip this module if per-user forwarding is disabled. 
      */
-    if ((forward_path = mail_conf_lookup(VAR_FORWARD_PATH)) == 0)
-	forward_path = DEF_FORWARD_PATH;
-    if (*forward_path == 0)
+    if (*var_forward_path == 0)
 	return (NO);
-
-    /*
-     * DUPLICATE/LOOP ELIMINATION
-     * 
-     * If this user includes (an alias of) herself in her own .forward file,
-     * deliver to the user instead.
-     */
-    if (been_here(state.dup_filter, "forward %s", state.msg_attr.local))
-	return (NO);
-    state.msg_attr.exp_from = state.msg_attr.local;
 
     /*
      * Skip non-existing users. The mailbox delivery routine will catch the
@@ -180,7 +165,7 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
      * be this user and 2) mail forwarded to other local users will be
      * resubmitted as a new queue file.
      */
-    state.msg_attr.owner = state.msg_attr.recipient;
+    state.msg_attr.owner = state.msg_attr.user;
 
     /*
      * Search the forward_path for an existing forward file.
@@ -193,7 +178,7 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 
     status = 0;
     path = vstring_alloc(100);
-    saved_forward_path = mystrdup(forward_path);
+    saved_forward_path = mystrdup(var_forward_path);
     next = saved_forward_path;
     lookup_status = -1;
 
@@ -221,8 +206,15 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
      * .forward file as the user. Ignore files that aren't regular files,
      * files that are owned by the wrong user, or files that have world write
      * permission enabled.
+     * 
+     * DUPLICATE/LOOP ELIMINATION
+     * 
+     * If this user includes (an alias of) herself in her own .forward file,
+     * deliver to the user instead.
      */
-    if (lookup_status >= 0) {
+    if (lookup_status >= 0
+	&& been_here(state.dup_filter, "forward %s", STR(path)) == 0) {
+	state.msg_attr.exp_from = state.msg_attr.local;
 	if (S_ISREG(st.st_mode) == 0) {
 	    msg_warn("file %s is not a regular file", STR(path));
 	} else if (st.st_uid != 0 && st.st_uid != usr_attr.uid) {

@@ -397,7 +397,7 @@ extern int var_qmgr_rcpt_limit;
   * Queue manager: default destination concurrency levels.
   */
 #define VAR_INIT_DEST_CON	"initial_destination_concurrency"
-#define DEF_INIT_DEST_CON	2
+#define DEF_INIT_DEST_CON	5
 extern int var_init_dest_concurrency;
 
 #define VAR_DEST_CON_LIMIT	"default_destination_concurrency_limit"

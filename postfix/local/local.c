@@ -35,7 +35,7 @@
 /*	\fB$user\fR (recipient username), \fB$home\fR (recipient home
 /*	directory), \fB$shell\fR (recipient shell), \fB$recipient\fR
 /*	(complete recipient address), \fB$extension\fR (recipient address
-/*	extension), \fB$domain\fR (recipient domain), \fBmailbox\fR
+/*	extension), \fB$domain\fR (recipient domain), \fBlocal\fR
 /*	(entire recipient address localpart) and
 /*	\fB$recipient_delimiter.\fR The forms \fI${name?value}\fR and
 /*	\fI${name:value}\fR expand conditionally to \fIvalue\fR when
@@ -149,6 +149,11 @@
 /*	The recipient address domain part.
 /* .IP \fBLOGNAME\fR
 /*	The bare recipient name.
+/* .IP \fBLOCAL\fR
+/*	The entire recipient address localpart (text to the left of the
+/*	rightmost @ character).
+/* .IP \fBRECIPIENT\fR
+/*	The entire recipient address.
 /* .PP
 /*	The \fBPATH\fR environment variable is always reset to a
 /*	system-dependent default path, and the \fBTZ\fR (time zone)
@@ -575,7 +580,6 @@ int     main(int argc, char **argv)
 	VAR_ALLOW_FILES, DEF_ALLOW_FILES, &var_allow_files, 0, 0,
 	VAR_RCPT_FDELIM, DEF_RCPT_FDELIM, &var_rcpt_fdelim, 0, 0,
 	VAR_LOCAL_CMD_SHELL, DEF_LOCAL_CMD_SHELL, &var_local_cmd_shell, 0, 0,
-	VAR_LUSER_RELAY, DEF_LUSER_RELAY, &var_luser_relay, 0, 0,
 	VAR_MAIL_SPOOL_DIR, DEF_MAIL_SPOOL_DIR, &var_mail_spool_dir, 0, 0,
 	VAR_MAILBOX_TRANSP, DEF_MAILBOX_TRANSP, &var_mailbox_transport, 0, 0,
 	VAR_FALLBACK_TRANSP, DEF_FALLBACK_TRANSP, &var_fallback_transport, 0, 0,

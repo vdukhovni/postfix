@@ -1,35 +1,38 @@
-Incompatible changes with snapshot-19990509:
+Incompatible changes with snapshot-19990513:
 ===========================================
 
-- The SMTP server now always delays UCE restrictions until RCPT
-TO, VRFY or ETRN command. To change back to the default specify
+- The SMTP server now delays all UCE restrictions until the RCPT
+TO, VRFY or ETRN command. This makes the restrictions more useful,
+because many SMTP clients do not expect negative responses earlier
+in the protocol.  In order to restore the old behavior, specify
 "smtpd_delay_reject = no" in /etc/postfix/main.cf.
 
 - The Postfix local delivery agent no longer automatically propagates
-the address extension to aliases/include/forward addresses.  Specify
+address extensions to aliases/include/forward addresses.  Specify
 "propagate_unmatched_extensions = canonical, virtual, alias, forward,
 include" to restore the old behavior.
+
+- The Postfix local delivery agent no longer does $name expansion
+on words found in the mailbox_command configuration parameter. This
+makes it easier to specify shell syntax. See conf/main.cf.
 
 - The luser_relay syntax has changed. You can specify one address;
 it is subjected to $user, etc. expansions. See conf/main.cf.
 
-- File system reorganization: daemon executables are in the libexec
-subdirectory, command executables in the bin subdirectory.  The
-INSTALL instructions now recommend installing daemons and commands
-into separate directories.
+- File system reorganization: daemon executables are now in the
+libexec subdirectory, command executables in the bin subdirectory.
+The INSTALL instructions now recommend installing daemons and
+commands into separate directories.
 
-Major changes with snapshot-19990509:
+Major changes with snapshot-19990513:
 =====================================
 
-In addition to several little bugfixes, none related to security,
-lots of internal code cleanup, lots of new functionality, and lots
-of Solaris workarounds.
-
-- New USER, EXTENSION and DOMAIN environment variables for delivery
-to command by the local delivery agent. As you might expect, the
-information is censored. The list of acceptable characters is
-specified with the command_expansion_filter configuration parameter.
-Unacceptable characters are replaced by underscores.
+- New USER, EXTENSION, LOCAL and DOMAIN environment variables for
+delivery to command (including mailbox_command) by the local delivery
+agent. As you might expect, the information is censored. The list
+of acceptable characters is specified with the command_expansion_filter
+configuration parameter.  Unacceptable characters are replaced by
+underscores.
 
 - Specify "forward_path = /var/forward/$user" to avoid looking up
 .forward files in user home directories.  The default value is
@@ -38,13 +41,13 @@ Initial code by Philip A.  Prindeville, Mirapoint, Inc., USA.
 
 - Conditional $name expansion in forward_path and luser_relay.
 Available names are: $user (bare user name) $shell (user login
-shell), $home (user home directory), $recipient (everything to the
-left of @), $extension (optional address extension), $domain
-(everything to the right of @), and $recipient_delimiter.  A simple
-$name expands as usual.  ${name?value} expands to value when $name
-is defined.  ${name:value} expands to value when $name is not
-defined. With ${name?value} and ${name:value}, the value is subject
-to another iteration of $name expansion.
+shell), $home (user home directory), $local (everything to the left
+of @), $extension (optional address extension), $domain (everything
+to the right of @), $recipient (the complete address) and
+$recipient_delimiter.  A simple $name expands as usual.  ${name?value}
+expands to value when $name is defined.  ${name:value} expands to
+value when $name is not defined. With ${name?value} and ${name:value},
+the value is subject to another iteration of $name expansion.
 
 - POSIX regular expression support, enabled by default on 4.4BSD,
 LINUX, HP-UX, and Solaris 2.5 and later. See conf/sample-regexp.cf.

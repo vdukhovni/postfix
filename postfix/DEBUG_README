@@ -16,6 +16,8 @@ from or to the loopback interface:
 
     debug_peer_list = 127.0.0.1
 
+You can specify one or more hosts, domains, addresses or net/masks.
+
 3 - Making daemon programs more verbose
 =======================================
 

@@ -151,8 +151,7 @@ static int deliver_switch(LOCAL_STATE state, USER_ATTR usr_attr)
      * recipient domain is local, so we only have to compare local parts.
      */
     if (state.msg_attr.owner != 0
-	&& strncasecmp(state.msg_attr.owner, state.msg_attr.recipient,
-		       strlen(state.msg_attr.local) + 1) != 0)
+	&& strcasecmp(state.msg_attr.owner, state.msg_attr.user) != 0)
 	return (deliver_indirect(state));
 
     /*
@@ -182,7 +181,8 @@ int     deliver_recipient(LOCAL_STATE state, USER_ATTR usr_attr)
     /*
      * Duplicate filter.
      */
-    if (been_here(state.dup_filter, "recipient %s", state.msg_attr.recipient))
+    if (been_here(state.dup_filter, "recipient %d %s",
+		  state.level, state.msg_attr.recipient))
 	return (0);
 
     /*
@@ -212,7 +212,7 @@ int     deliver_recipient(LOCAL_STATE state, USER_ATTR usr_attr)
     state.msg_attr.user = mystrdup(state.msg_attr.local);
     if (*var_rcpt_delim) {
 	state.msg_attr.extension =
-	    split_addr(state.msg_attr.local, *var_rcpt_delim);
+	    split_addr(state.msg_attr.user, *var_rcpt_delim);
 	if (state.msg_attr.extension && strchr(state.msg_attr.extension, '/')) {
 	    msg_warn("%s: address with illegal extension: %s",
 		     state.msg_attr.queue_id, state.msg_attr.local);

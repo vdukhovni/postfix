@@ -122,6 +122,8 @@ int     mac_parse(const char *value, MAC_PARSE_FN action, char *context)
 		    if (*ep == close_paren[pp - open_paren])
 			level--;
 		}
+		if (status & MAC_PARSE_ERROR)
+		    break;
 		vstring_strncat(buf, vp, level > 0 ? ep - vp : ep - vp - 1);
 		vp = ep;
 	    } else {				/* plain $x */

@@ -331,8 +331,6 @@ static int dict_db_sequence(DICT *dict, const int function,
     return status;
 }
 
-
-
 /* dict_db_close - close data base */
 
 static void dict_db_close(DICT *dict)
