@@ -330,6 +330,8 @@ static void multi_server_accept_inet(int unused_event, char *context)
     if (client_count == 0 && var_idle_limit > 0)
 	time_left = event_cancel_timer(multi_server_timeout, (char *) 0);
 
+    if (multi_server_pre_accept)
+	multi_server_pre_accept();
     fd = inet_accept(listen_fd);
     if (multi_server_lock != 0
 	&& myflock(vstream_fileno(multi_server_lock), MYFLOCK_NONE) < 0)

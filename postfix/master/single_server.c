@@ -299,6 +299,8 @@ static void single_server_accept_inet(int unused_event, char *context)
     if (var_idle_limit > 0)
 	time_left = event_cancel_timer(single_server_timeout, (char *) 0);
 
+    if (single_server_pre_accept)
+	single_server_pre_accept();
     fd = inet_accept(listen_fd);
     if (single_server_lock != 0
 	&& myflock(vstream_fileno(single_server_lock), MYFLOCK_NONE) < 0)

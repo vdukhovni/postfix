@@ -122,7 +122,7 @@ static int bounce_header(VSTREAM *bounce, VSTRING *buf, const char *dest,
      */
     post_mail_fprintf(bounce, "MIME-Version: 1.0");
     post_mail_fprintf(bounce, "Content-Type: %s; report-type=%s;",
-		      "multipart/report", "x-postfix-report");
+		      "multipart/report", "plain");
     post_mail_fprintf(bounce, "\tboundary=\"%s\"", boundary);
     post_mail_fputs(bounce, "");
     post_mail_fputs(bounce, "This is a MIME-encapsulated message.");
@@ -213,7 +213,7 @@ static int bounce_diagnostics(char *service, VSTREAM *bounce, VSTRING *buf,
      */
     post_mail_fprintf(bounce, "--%s", boundary);
     post_mail_fprintf(bounce, "Content-Description: %s", "Delivery error report");
-    post_mail_fprintf(bounce, "Content-Type: %s", "text/x-postfix-report");
+    post_mail_fprintf(bounce, "Content-Type: %s", "text/plain");
     post_mail_fputs(bounce, "");
 
     /*

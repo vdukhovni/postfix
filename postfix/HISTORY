@@ -2445,7 +2445,7 @@ Apologies for any names omitted.
 
 19990326
 
-	Compatibility: Postfix now puts to spaces after the sender
+	Compatibility: Postfix now puts two spaces after the sender
 	in a "From sender date..." header. Found by John A. Martin,
 	fixed by Lamont Jones, Hewlett-Packard.
 
@@ -2495,7 +2495,7 @@ Apologies for any names omitted.
 	Feature: new dictionary types can be registered with
 	dict_open_register(). File: util/dict_open.c.
 
-1990330
+19990330
 
 	Bug fix: match_list membership dictionary lookups were case
 	sensitive when they should not. Patch by Lutz Jaenicke,
@@ -2595,6 +2595,12 @@ Apologies for any names omitted.
 	(patterns are case-insensitive by default).  Code by Lamont
 	Jones, Hewlett-Packard.  It is to be expected that full
 	content filtering will be delegated to an external command.
+
+19990410
+
+	Bugfix: auto-detection of changes to DB or DBM lookup
+	tables wan't done for TCP connections.
+
 
 Future:
 
