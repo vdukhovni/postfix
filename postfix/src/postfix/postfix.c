@@ -8,11 +8,15 @@
 /*	\fBpostfix\fR [\fB-c \fIconfig_dir\fR] [\fB-D\fR] [\fB-v\fR]
 /*		\fIcommand\fR
 /* DESCRIPTION
+/*	This command is reserved for the super-user. To submit mail,
+/*	use the Postfix \fBsendmail\fR command.
+/*
 /*	The \fBpostfix\fR command controls the operation of the Postfix
 /*	mail system: start or stop the \fBmaster\fR daemon, do a health
-/*	check, and other maintenance. The command sets up a standardized
-/*	environment and runs the \fBpostfix-script\fR shell script to
-/*	do the actual work.
+/*	check, and other maintenance. 
+/*
+/*	The \fBpostfix\fR command sets up a standardized environment and 
+/*	runs the \fBpostfix-script\fR shell script to do the actual work.
 /*
 /*	The following commands are implemented:
 /* .IP \fBcheck\fR
@@ -79,7 +83,9 @@
 /*	The directory with the Postfix queue directory (and with some
 /*	files needed for programs running in a chrooted environment).
 /* .IP \fBmail_owner\fR
-/*	The owner of the Postfix queue and of most Postfix processes.
+/*	The owner of Postfix queue files and of most Postfix processes.
+/* .IP \fBsetgid_group\fR
+/*	The group for mail submission and queue management commands.
 /* FILES
 /*	$\fBconfig_directory/postfix-script\fR, administrative commands
 /* SEE ALSO
@@ -215,6 +221,7 @@ int     main(int argc, char **argv)
     check_setenv(VAR_QUEUE_DIR, var_queue_dir);	/* main.cf */
     check_setenv(VAR_CONFIG_DIR, var_config_dir);	/* main.cf */
     check_setenv(VAR_MAIL_OWNER, var_mail_owner);	/* main.cf */
+    check_setenv(VAR_SGID_GROUP, var_sgid_group);	/* main.cf */
 
     /*
      * Make sure these directories exist. Run the maintenance scripts with as

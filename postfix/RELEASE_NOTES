@@ -34,18 +34,15 @@ Major changes with snapshot-20020106
 
 Simplification of the local Postfix security model.
 
-- The world-writable maildrop directory is gone. Postfix now always
-  uses the set-gid postdrop command for local mail submissions.
-  The local mail pickup daemon is now an unprivileged process.
+- No world-writable maildrop directory. Postfix now always uses
+  the set-gid postdrop command for local mail submissions.  The
+  local mail pickup daemon is now an unprivileged process.
 
-- The world-accessible pickup and queue manager server FIFOs are
-  gone.  Postfix now uses a new set-gid postqueue command for all
-  the queue operations that were implemented by the Postfix sendmail
-  command.
+- No world-accessible pickup and queue manager server FIFOs. Postfix
+  now uses a new set-gid postqueue command for the queue operations
+  that used to implemented by the Postfix sendmail command.
 
 Simplification of Postfix installation.
-
-- The install.cf file is gone.
 
 - All installation settings are now kept in the main.cf file, and
   better default settings are now generated for sendmail_path etc.

@@ -179,7 +179,7 @@ check)
 		mkdir maildrop || exit 1
 		chmod 730 maildrop || exit 1
 		chown $mail_owner maildrop || exit 1
-		(. $config_directory/install.cf; chgrp $setgid maildrop)
+		chgrp $setgid_group maildrop || exit 1
 	}
 	test -d pid || {
 		$WARN creating missing Postfix pid directory
@@ -200,6 +200,7 @@ check)
 		mkdir public || exit 1
 		chmod 710 public || exit 1
 		chown $mail_owner public || exit 1
+		chgrp $setgid_group public || exit 1
 	}
 	test -d private || {
 		$WARN creating missing Postfix private directory

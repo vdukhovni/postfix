@@ -5902,15 +5902,29 @@ Apologies for any names omitted.
 	Security: additional run-time checks to discourage sharing
 	of Postfix user/group ID values with other accounts.
 
-20020104
+20020105
 
 	Cleanup: SMTPD access maps now return DUNNO (undetermined)
 	instead of OK when a recipient address contains multiple
 	domains (user@dom1@dom2, etcetera).  Victor Duchovny, Morgan
 	Stanley.  File:  smtpd/smtpd_check.c.
 
+20020106
+
 	Bugfix: SMTPD access maps did not handle address extensions.
 	File: smtpd/smtpd_check.c.
+
+20020107
+
+	Bugfix: postfix-script, when creating a missing maildrop
+	queue directory, still referenced install.cf when setting
+	maildrop directory group ownership; and the postfix command
+	did not export the setgid_group parameter to the postfix-script
+	shell script.  Victor Duchovny.
+
+	Bugfix: postfix-script, when creating a missing public
+	queue directory, did not set group ownership of the public
+	directory.
 
 Open problems:
 
