@@ -741,7 +741,7 @@ int     main(int argc, char **argv)
 	    msg_verbose++;
 	    break;
 	default:
-	    msg_fatal("usage: %s [-c config_dir] [-d (defaults)] [-e (edit)] [-h (no names)] [-l (lock types)] [-m (map types) [-n (non-defaults)] [-v] [name...]", argv[0]);
+	    msg_fatal("usage: %s [-c config_dir] [-d (defaults)] [-e (edit)] [-h (no names)] [-l (lock types)] [-m (map types)] [-n (non-defaults)] [-v] [name...]", argv[0]);
 	}
     }
 
@@ -763,7 +763,7 @@ int     main(int argc, char **argv)
     /*
      * If showing locking methods, show them and exit
      */
-    if (mode & SHOW_LOCKS) {
+    else if (mode & SHOW_LOCKS) {
 	show_locks();
     }
 

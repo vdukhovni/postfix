@@ -4608,3 +4608,9 @@ Apologies for any names omitted.
 	Feature: support for MYSQL connections over UNIX-domain
 	sockets by Piotr Klaban.  Files: util/dict_mysql.c,
 	MYSQL_README.
+
+20001211
+
+	Small dirt: postconf -m produced too much output due to a
+	missing "else", and the optional SASL code needed a fix
+	for the changed name_mask API.

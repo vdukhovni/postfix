@@ -164,7 +164,8 @@ void    smtpd_sasl_initialize(void)
     /*
      * Configuration parameters.
      */
-    smtpd_sasl_opts = name_mask(smtpd_sasl_mask, var_smtpd_sasl_opts);
+    smtpd_sasl_opts = name_mask(VAR_SMTPD_SASL_OPTS, smtpd_sasl_mask,
+				var_smtpd_sasl_opts);
 }
 
 /* smtpd_sasl_connect - per-connection initialization */
