@@ -551,12 +551,12 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		    msg_warn("%s: ignoring multiple %s attribute: %s",
 			message->queue_id, MAIL_ATTR_SASL_SENDER, value);
 	    }
-	    if (strcmp(name, MAIL_ATTR_RWR_CTXT_NAME) == 0) {
+	    if (strcmp(name, MAIL_ATTR_RWR_CONTEXT) == 0) {
 		if (message->rewrite_context == 0)
 		    message->rewrite_context = mystrdup(value);
 		else
 		    msg_warn("%s: ignoring multiple %s attribute: %s",
-			message->queue_id, MAIL_ATTR_RWR_CTXT_NAME, value);
+			message->queue_id, MAIL_ATTR_RWR_CONTEXT, value);
 	    }
 	    /* Optional tracing flags. */
 	    else if (strcmp(name, MAIL_ATTR_TRACE_FLAGS) == 0) {

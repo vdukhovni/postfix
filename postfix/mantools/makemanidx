@@ -86,7 +86,7 @@ NR == 1,/SH "*SEE ALSO"*/ { next }
 
 /^[A-Z].*:$/ { print ul "<h2>", $0, "</h2>\n\n<ul>\n\n"; ul = "</ul>\n\n" }
 
-/^[a-z][a-z0-9_]+\(/ { print "<li>", $0, "\n" }
+/^[a-z][-a-z0-9_]+\(/ { print "<li>", $0, "\n" }
 
 ' | sed 's;: </h2>$; </h2>;'
 

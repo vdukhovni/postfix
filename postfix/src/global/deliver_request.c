@@ -240,7 +240,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 		  ATTR_TYPE_STR, MAIL_ATTR_SASL_METHOD, sasl_method,
 		  ATTR_TYPE_STR, MAIL_ATTR_SASL_USERNAME, sasl_username,
 		  ATTR_TYPE_STR, MAIL_ATTR_SASL_SENDER, sasl_sender,
-		  ATTR_TYPE_STR, MAIL_ATTR_RWR_CTXT_NAME, rewrite_context,
+		  ATTR_TYPE_STR, MAIL_ATTR_RWR_CONTEXT, rewrite_context,
 		  ATTR_TYPE_END) != 19) {
 	msg_warn("%s: error receiving common attributes", myname);
 	return (-1);

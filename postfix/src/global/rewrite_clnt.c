@@ -83,12 +83,6 @@ VSTRING *rewrite_clnt(const char *rule, const char *addr, VSTRING *result)
     VSTREAM *stream;
 
     /*
-     * Sanity check.
-     */
-    if (strcmp(rule, REWRITE_NONE) == 0)
-	msg_panic("rewrite_clnt: bad rewrite context: \"%s\"", rule);
-
-    /*
      * One-entry cache.
      */
     if (last_addr == 0) {

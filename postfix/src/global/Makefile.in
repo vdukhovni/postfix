@@ -455,6 +455,10 @@ canon_addr.o: ../../include/vstring.h
 canon_addr.o: ../../include/vbuf.h
 canon_addr.o: ../../include/mymalloc.h
 canon_addr.o: rewrite_clnt.h
+canon_addr.o: mail_proto.h
+canon_addr.o: ../../include/vstream.h
+canon_addr.o: ../../include/iostuff.h
+canon_addr.o: ../../include/attr.h
 canon_addr.o: canon_addr.h
 cfg_parser.o: cfg_parser.c
 cfg_parser.o: ../../include/sys_defs.h
@@ -1381,6 +1385,10 @@ tok822_rewrite.o: ../../include/vstring.h
 tok822_rewrite.o: ../../include/vbuf.h
 tok822_rewrite.o: ../../include/msg.h
 tok822_rewrite.o: rewrite_clnt.h
+tok822_rewrite.o: mail_proto.h
+tok822_rewrite.o: ../../include/vstream.h
+tok822_rewrite.o: ../../include/iostuff.h
+tok822_rewrite.o: ../../include/attr.h
 tok822_rewrite.o: tok822.h
 tok822_rewrite.o: resolve_clnt.h
 tok822_tree.o: tok822_tree.c

@@ -211,6 +211,8 @@ smtpd_check.o: ../../include/namadr_list.h
 smtpd_check.o: ../../include/domain_list.h
 smtpd_check.o: ../../include/mail_params.h
 smtpd_check.o: ../../include/rewrite_clnt.h
+smtpd_check.o: ../../include/mail_proto.h
+smtpd_check.o: ../../include/iostuff.h
 smtpd_check.o: ../../include/resolve_clnt.h
 smtpd_check.o: ../../include/mail_error.h
 smtpd_check.o: ../../include/name_mask.h
@@ -225,8 +227,6 @@ smtpd_check.o: ../../include/virtual8_maps.h
 smtpd_check.o: ../../include/cleanup_user.h
 smtpd_check.o: ../../include/record.h
 smtpd_check.o: ../../include/rec_type.h
-smtpd_check.o: ../../include/mail_proto.h
-smtpd_check.o: ../../include/iostuff.h
 smtpd_check.o: ../../include/mail_addr.h
 smtpd_check.o: ../../include/verify_clnt.h
 smtpd_check.o: ../../include/deliver_request.h

@@ -111,7 +111,7 @@ int     forward_init(void)
 
 /* forward_open - open connection to cleanup service */
 
-static FORWARD_INFO *forward_open(char *sender)
+static FORWARD_INFO *forward_open(DELIVER_REQUEST *request, char *sender)
 {
     VSTRING *buffer = vstring_alloc(100);
     FORWARD_INFO *info;
@@ -152,6 +152,22 @@ static FORWARD_INFO *forward_open(char *sender)
      * designated sender: mailing list owner, posting user, whatever.
      */
     rec_fprintf(cleanup, REC_TYPE_TIME, "%ld", (long) info->posting_time);
+    rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
+		MAIL_ATTR_CLIENT_NAME, request->client_name);
+    rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
+		MAIL_ATTR_CLIENT_ADDR, request->client_addr);
+    rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
+		MAIL_ATTR_PROTO_NAME, request->client_proto);
+    rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
+		MAIL_ATTR_HELO_NAME, request->client_helo);
+    rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
+		MAIL_ATTR_SASL_METHOD, request->sasl_method);
+    rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
+		MAIL_ATTR_SASL_USERNAME, request->sasl_username);
+    rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
+		MAIL_ATTR_SASL_SENDER, request->sasl_sender);
+    rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
+		MAIL_ATTR_RWR_CONTEXT, request->rewrite_context);
     rec_fputs(cleanup, REC_TYPE_FROM, sender);
 
     vstring_free(buffer);
@@ -183,7 +199,7 @@ int     forward_append(DELIVER_ATTR attr)
 	htable_enter(forward_dt, attr.delivered, (char *) table_snd);
     }
     if ((info = (FORWARD_INFO *) htable_find(table_snd, attr.sender)) == 0) {
-	if ((info = forward_open(attr.sender)) == 0)
+	if ((info = forward_open(attr.request, attr.sender)) == 0)
 	    return (-1);
 	htable_enter(table_snd, attr.sender, (char *) info);
     }

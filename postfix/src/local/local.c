@@ -608,6 +608,7 @@ static int local_deliver(DELIVER_REQUEST *rqst, char *service)
     state.msg_attr.sender = rqst->sender;
     state.msg_attr.relay = service;
     state.msg_attr.arrival_time = rqst->arrival_time;
+    state.msg_attr.request = rqst;
     RESET_OWNER_ATTR(state.msg_attr, state.level);
     RESET_USER_ATTR(usr_attr, state.level);
     state.loop_info = delivered_init(state.msg_attr);	/* delivered-to */

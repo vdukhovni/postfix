@@ -119,7 +119,6 @@
 #include <mark_corrupt.h>
 #include <quote_821_local.h>
 #include <mail_proto.h>
-#include <rewrite_clnt.h>
 
 /* Application-specific. */
 
@@ -314,7 +313,7 @@ static int lmtp_loop(LMTP_STATE *state, NOCLOBBER int send_state,
     LMTP_RESP *resp;
     RECIPIENT *rcpt;
     VSTRING *next_command = vstring_alloc(100);
-    int *NOCLOBBER survivors = 0;
+    int    *NOCLOBBER survivors = 0;
     NOCLOBBER int next_state;
     NOCLOBBER int next_rcpt;
     NOCLOBBER int send_rcpt;
@@ -420,12 +419,12 @@ static int lmtp_loop(LMTP_STATE *state, NOCLOBBER int send_state,
 		vstring_sprintf_append(next_command, " %s=%s",
 		   XFORWARD_HELO, DEL_REQ_ATTR_AVAIL(request->client_helo) ?
 			       request->client_helo : XFORWARD_UNAVAILABLE);
-            if (state->features & LMTP_FEATURE_XFORWARD_DOMAIN)
-                vstring_sprintf_append(next_command, " %s=%s", XFORWARD_DOMAIN,
-                         DEL_REQ_ATTR_AVAIL(request->rewrite_context) == 0 ?
-                                       XFORWARD_UNAVAILABLE :
-                           strcmp(request->rewrite_context, REWRITE_LOCAL) ?
-                                  XFORWARD_DOM_REMOTE : XFORWARD_DOM_LOCAL );
+	    if (state->features & LMTP_FEATURE_XFORWARD_DOMAIN)
+		vstring_sprintf_append(next_command, " %s=%s", XFORWARD_DOMAIN,
+			 DEL_REQ_ATTR_AVAIL(request->rewrite_context) == 0 ?
+				       XFORWARD_UNAVAILABLE :
+		     strcmp(request->rewrite_context, MAIL_ATTR_RWR_LOCAL) ?
+				  XFORWARD_DOM_REMOTE : XFORWARD_DOM_LOCAL);
 	    next_state = LMTP_STATE_MAIL;
 	    break;
 

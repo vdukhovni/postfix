@@ -61,7 +61,7 @@ typedef struct CLEANUP_STATE {
     NVTABLE *attr;			/* queue file attribute list */
     MIME_STATE *mime_state;		/* MIME state engine */
     int     mime_errs;			/* MIME error flags */
-    char   *rewrite_context_name;	/* address rewrite context */
+    char   *hdr_rewrite_context;	/* header rewrite context */
     char   *filter;			/* from header/body patterns */
     char   *redirect;			/* from header/body patterns */
 } CLEANUP_STATE;

@@ -157,7 +157,6 @@
 #include <mail_params.h>
 #include <rec_type.h>
 #include <mail_proto.h>
-#include <rewrite_clnt.h>
 
 /* Application-specific. */
 
@@ -340,7 +339,7 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
 					FORWARD_PROTO(state))))
 	 && (!(state->proxy_xforward_features & SMTPD_PROXY_XFORWARD_DOMAIN)
 	     || !(bad = smtpd_xforward(state, buf, XFORWARD_DOMAIN, 1,
-			       STREQ(FORWARD_DOMAIN(state), REWRITE_LOCAL) ?
+			 STREQ(FORWARD_DOMAIN(state), MAIL_ATTR_RWR_LOCAL) ?
 				XFORWARD_DOM_LOCAL : XFORWARD_DOM_REMOTE))))
 	    bad = smtpd_xforward_flush(state, buf);
 	vstring_free(buf);

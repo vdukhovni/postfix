@@ -121,6 +121,7 @@ int     var_virt_expan_limit;		/* maximum virtual alias expansion */
 int     var_body_check_len;		/* when to stop body scan */
 char   *var_send_bcc_maps;		/* sender auto-bcc maps */
 char   *var_rcpt_bcc_maps;		/* recipient auto-bcc maps */
+char   *var_remote_rwr_domain;		/* header-only surrogate */
 
 CONFIG_INT_TABLE cleanup_int_table[] = {
     VAR_HOPCOUNT_LIMIT, DEF_HOPCOUNT_LIMIT, &var_hopcount_limit, 1, 0,
@@ -163,6 +164,7 @@ CONFIG_STR_TABLE cleanup_str_table[] = {
     VAR_MASQ_CLASSES, DEF_MASQ_CLASSES, &var_masq_classes, 0, 0,
     VAR_SEND_BCC_MAPS, DEF_SEND_BCC_MAPS, &var_send_bcc_maps, 0, 0,
     VAR_RCPT_BCC_MAPS, DEF_RCPT_BCC_MAPS, &var_rcpt_bcc_maps, 0, 0,
+    VAR_REM_RWR_DOMAIN, DEF_REM_RWR_DOMAIN, &var_remote_rwr_domain, 0, 0,
     0,
 };
 

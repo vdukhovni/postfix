@@ -57,7 +57,6 @@
 #include <mymalloc.h>
 #include <stringops.h>
 #include <nvtable.h>
-#include <name_code.h>
 
 /* Global library. */
 
@@ -68,13 +67,13 @@
 #include <mail_params.h>
 #include <verp_sender.h>
 #include <mail_proto.h>
-#include <rewrite_clnt.h>
 
 /* Application-specific. */
 
 #include "cleanup.h"
 
 #define STR	vstring_str
+#define STREQ(x,y) (strcmp((x), (y)) == 0)
 
 static void cleanup_envelope_process(CLEANUP_STATE *, int, const char *, int);
 
@@ -112,12 +111,6 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
     char   *attr_value;
     const char *error_text;
     int     extra_opts;
-    NAME_CODE rewrite_context_names[] = {
-	REWRITE_LOCAL, 1,
-	REWRITE_REMOTE, 1,
-	REWRITE_NONE, 1,
-	0, 0,
-    };
 
     if (msg_verbose)
 	msg_info("initial envelope %c %.*s", type, len, buf);
@@ -287,16 +280,18 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	    myfree(sbuf);
 	    return;
 	}
-	if (strcmp(attr_name, MAIL_ATTR_RWR_CTXT_NAME) == 0) {
-	    if (name_code(rewrite_context_names, NAME_CODE_FLAG_STRICT_CASE,
-			  attr_value) == 0) {
-		msg_warn("%s: message rejected: bad rewriting context: %.100s",
-			 state->queue_id, attr_value);
-		state->errs |= CLEANUP_STAT_BAD;
-		return;
+	if (strcmp(attr_name, MAIL_ATTR_RWR_CONTEXT) == 0) {
+	    /* Choose header rewriting context. See also cleanup_addr.c. */
+	    if (STREQ(attr_value, MAIL_ATTR_RWR_LOCAL)) {
+		state->hdr_rewrite_context = MAIL_ATTR_RWR_LOCAL;
+	    } else if (STREQ(attr_value, MAIL_ATTR_RWR_REMOTE)) {
+		state->hdr_rewrite_context = 
+		    (*var_remote_rwr_domain ?  MAIL_ATTR_RWR_REMOTE : 0);
 	    } else {
-		myfree(state->rewrite_context_name);
-		state->rewrite_context_name = mystrdup(attr_value);
+                msg_warn("%s: message rejected: bad rewriting context: %.100s",
+                         state->queue_id, attr_value);
+                state->errs |= CLEANUP_STAT_BAD;
+                return;
 	    }
 	}
 	nvtable_update(state->attr, attr_name, attr_value);

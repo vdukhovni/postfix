@@ -78,7 +78,6 @@
 #include <resolve_local.h>
 #include <tok822.h>
 #include <mail_conf.h>
-#include <rewrite_clnt.h>
 
 /* Application-specific. */
 
@@ -245,9 +244,9 @@ int     rewrite_proto(VSTREAM *stream)
 		  ATTR_TYPE_END) != 2)
 	return (-1);
 
-    if (strcmp(vstring_str(ruleset), REWRITE_LOCAL) == 0)
+    if (strcmp(vstring_str(ruleset), MAIL_ATTR_RWR_LOCAL) == 0)
 	context = &local_context;
-    else if (strcmp(vstring_str(ruleset), REWRITE_REMOTE) == 0)
+    else if (strcmp(vstring_str(ruleset), MAIL_ATTR_RWR_REMOTE) == 0)
 	context = &remote_context;
     else {
 	msg_warn("unknown context: %s", vstring_str(ruleset));

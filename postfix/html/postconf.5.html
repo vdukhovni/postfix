@@ -3132,15 +3132,25 @@ and always append my own domain to incomplete header addresses.  </p>
     <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = static:all
 </pre>
 
+<p> The purist setting: rewrite headers only in mail from Postfix
+sendmail and in SMTP mail from this machine. </p>
+
+<pre>
+    <a href="postconf.5.html#mynetworks_style">mynetworks_style</a> = host
+    <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>
+</pre>
+
 <p> The default setting: rewrite headers and append my own domain
-only with mail from local or authorized clients. </p>
+only with mail from Postfix sendmail and from local or authorized
+SMTP clients. </p>
 
 <pre>
     <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>,
         <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a> <a href="postconf.5.html#permit_tls_clientcerts">permit_tls_clientcerts</a>
 </pre>
 
-<p> Include clients that are pop-before-smtp authenticated: </p>
+<p> The ISP setting: include clients that are pop-before-smtp
+authenticated. </p>
 
 <pre>
     <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>,
@@ -5069,7 +5079,9 @@ Examples:
 
 <p> Don't rewrite message headers from remote clients at all when
 this parameter is empty; otherwise, rewrite remote message headers
-and append the specified domain name to incomplete addresses. </p>
+and append the specified domain name to incomplete addresses.  The
+<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> parameter controls what clients Postfix
+considers local. </p>
 
 <p> Examples:  </p>
 

@@ -7,7 +7,7 @@ snapshot release).  Patches are issued for the official release
 and change the patchlevel and the release date. Patches are never
 issued for snapshot releases.
 
-Incompatible changes with snapshot Postfix-2.2-20041022
+Incompatible changes with snapshot Postfix-2.2-20041023
 =======================================================
 
 You must reload or stop/start Postfix, because the queue manager
@@ -19,13 +19,13 @@ It was already disabled by default with Postfix version 2.1. Since
 Errors-To: is non-standard, there was no guarantee that it would
 have effect with other MTAs.
 
-Major changes with snapshot Postfix-2.2-20041022
+Major changes with snapshot Postfix-2.2-20041023
 ================================================
 
 The NIS+ client by Geoff Gibbs is now part of the Postfix source
 tree. Details are given in the nisplus_table(5) manual page.
 
-By default, Postfix no longer appends the local domain to addresses
+By default, Postfix no longer appends the its own domain to addresses
 in message headers from remote clients. Thus, spam from poorly
 written software no longer looks like it came from a local user.
 
@@ -33,18 +33,24 @@ Postfix either does not rewrite remote message headers at all, or
 it rewrites headers and appends the domain name that is specified
 with the remote_header_rewrite_domain parameter (like "domain.invalid").
 
-To get the behavior of earlier Postfix versions specify
+To get the behavior of earlier Postfix versions (always append
+Postfix's own domain to incomplete addresses in message headers)
+specify:
 
 /etc/postfix/main.cf:
     local_header_rewrite_clients = static:all
 
-Postfix always appends local domain information in message headers
-from Postfix sendmail and from local clients.
+Postfix always appends its own domain information to addresses in
+message headers from Postfix sendmail and from local SMTP clients.
 
-By default, Postfix considers a client local when its address
-matches mynetworks, or when it is SASL or TLS authenticated.  If
-you want to include a pop-before-smtp table, then you have to
-specify that via the new local_header_rewrite_clients parameter:
+By default, Postfix considers an SMTP client local (and thus updates
+message header addresses with the Postfix's own domain) when the
+client IP address matches mynetworks, or when the client is SASL
+or TLS authenticated.  
+
+If you want to include other clients via a pop-before-smtp table,
+then you have to specify that via the new local_header_rewrite_clients
+parameter:
 
 /etc/postfix/main.cf:
     local_header_rewrite_clients = permit_mynetworks,
@@ -52,8 +58,14 @@ specify that via the new local_header_rewrite_clients parameter:
 	check_address_map hash:/etc/postfix/pop-before-smtp
 
 As before, Postfix appends local domain information to envelope
-addresses, because an unqualified address is effectively local when
-someone attempts to reply to it.
+addresses (as opposed to header addresses), because an unqualified
+envelope address is effectively local for the purpose of delivery,
+and for the purpose of replying to it.
+
+Full details are given in ADDRESS_REWRITING_README, and in the
+postconf(5) manual. For best results, point your browser at the
+ADDRESS_REWRITING_README.html file and navigate to the section
+titled "To rewrite or not to rewrite, or to label as invalid".
 
 Incompatible changes with snapshot Postfix-2.2-20041009
 =======================================================

@@ -72,7 +72,7 @@ typedef struct DELIVER_ATTR {
     char   *sender;			/* taken from envelope */
     char   *orig_rcpt;			/* from submission */
     char   *recipient;			/* taken from resolver */
-    long   rcpt_offset;			/* taken from resolver */
+    long    rcpt_offset;		/* taken from resolver */
     char   *domain;			/* recipient domain */
     char   *local;			/* recipient full localpart */
     char   *user;			/* recipient localpart, base name */
@@ -84,6 +84,7 @@ typedef struct DELIVER_ATTR {
     long    arrival_time;		/* arrival time */
     int     exp_type;			/* expansion type. see below */
     char   *exp_from;			/* expanded_from */
+    DELIVER_REQUEST *request;		/* the kitchen sink */
 } DELIVER_ATTR;
 
 extern void deliver_attr_init(DELIVER_ATTR *);

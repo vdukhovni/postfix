@@ -308,7 +308,7 @@ static int scache_clnt_find_dest(SCACHE *scache, const char *dest_label,
 
 /* scache_clnt_size - dummy */
 
-static void scache_clnt_size(SCACHE *scache, SCACHE_SIZE *size)
+static void scache_clnt_size(SCACHE *unused_scache, SCACHE_SIZE *size)
 {
     /* XXX Crap in a hurry. */
     size->dest_count = 0;

@@ -88,7 +88,7 @@ typedef struct SMTPD_STATE {
     off_t   msg_size;			/* MAIL FROM message size */
     int     junk_cmds;			/* counter */
     int     rcpt_overshoot;		/* counter */
-    char   *rewrite_context_name;	/* address rewriting context */
+    char   *rewrite_context;		/* address rewriting context */
 
     /*
      * SASL specific.
@@ -245,7 +245,7 @@ extern void smtpd_peer_reset(SMTPD_STATE *state);
 
 #define FORWARD_DOMAIN(s) \
 	(((s)->xforward.flags & SMTPD_STATE_XFORWARD_DOMAIN) ? \
-	    (s)->xforward.domain : (s)->rewrite_context_name)
+	    (s)->xforward.domain : (s)->rewrite_context)
 
 extern void smtpd_xforward_init(SMTPD_STATE *);
 extern void smtpd_xforward_preset(SMTPD_STATE *);

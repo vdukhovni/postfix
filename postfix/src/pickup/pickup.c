@@ -138,7 +138,6 @@
 #include <rec_type.h>
 #include <lex_822.h>
 #include <input_transp.h>
-#include <rewrite_clnt.h>		/* XXX */
 
 /* Single-threaded server skeleton. */
 
@@ -295,7 +294,7 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
     rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
 		MAIL_ATTR_ORIGIN, MAIL_ATTR_ORG_LOCAL);
     rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
-		MAIL_ATTR_RWR_CTXT_NAME, REWRITE_LOCAL);
+		MAIL_ATTR_RWR_CONTEXT, MAIL_ATTR_RWR_LOCAL);
 
     /*
      * Copy the message envelope segment. Allow only those records that we

@@ -65,7 +65,6 @@
 
 #include <mail_params.h>
 #include <mail_proto.h>
-#include <rewrite_clnt.h>
 #include <resolve_local.h>
 #include <mail_conf.h>
 #include <quote_822_local.h>

@@ -212,6 +212,7 @@
 #include <verify_clnt.h>
 #include <input_transp.h>
 #include <is_header.h>
+#include <rewrite_clnt.h>
 
 /* Application-specific. */
 
@@ -424,7 +425,7 @@ static void *resolve_pagein(const char *addr, void *unused_context)
     /*
      * Resolve the address.
      */
-    rewrite_clnt_internal(REWRITE_LOCAL, addr, query);
+    rewrite_clnt_internal(MAIL_ATTR_RWR_LOCAL, addr, query);
     resolve_clnt_query(STR(query), reply);
     lowercase(STR(reply->recipient));
 
@@ -3429,14 +3430,11 @@ void    smtpd_check_rewrite(SMTPD_STATE *state)
 	    continue;
 	}
 	if (status == SMTPD_CHECK_OK) {
-	    if (state->rewrite_context_name)
-		myfree(state->rewrite_context_name);
-	    state->rewrite_context_name = mystrdup(REWRITE_LOCAL);
+	    state->rewrite_context = MAIL_ATTR_RWR_LOCAL;
 	    return;
 	}
     }
-    state->rewrite_context_name = mystrdup(*var_remote_rwr_domain ?
-					   REWRITE_REMOTE : REWRITE_NONE);
+    state->rewrite_context = MAIL_ATTR_RWR_REMOTE;
 }
 
 /* smtpd_check_client - validate client name or address */
@@ -3615,7 +3613,7 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
     if (*recipient) {
 	if (canon_verify_sender == 0) {
 	    canon_verify_sender = vstring_alloc(10);
-	    rewrite_clnt_internal(REWRITE_LOCAL,
+	    rewrite_clnt_internal(MAIL_ATTR_RWR_LOCAL,
 				  var_verify_sender,
 				  canon_verify_sender);
 	}
@@ -4064,7 +4062,6 @@ char   *var_def_rbl_reply;
 char   *var_relay_rcpt_maps;
 char   *var_verify_sender;
 char   *var_smtpd_sasl_opts;
-char   *var_remote_rwr_domain;
 char   *var_local_rwr_clients;
 
 typedef struct {
@@ -4106,7 +4103,6 @@ static STRING_TABLE string_table[] = {
     VAR_VERIFY_SENDER, DEF_VERIFY_SENDER, &var_verify_sender,
     VAR_MAIL_NAME, DEF_MAIL_NAME, &var_mail_name,
     VAR_SMTPD_SASL_OPTS, DEF_SMTPD_SASL_OPTS, &var_smtpd_sasl_opts,
-    VAR_REM_RWR_DOMAIN, DEF_REM_RWR_DOMAIN, &var_remote_rwr_domain,
     VAR_LOC_RWR_CLIENTS, DEF_LOC_RWR_CLIENTS, &var_local_rwr_clients,
     0,
 };
@@ -4596,7 +4592,7 @@ int     main(int argc, char **argv)
 	default:
 	    if (strcasecmp(args->argv[0], "check_rewrite") == 0) {
 		smtpd_check_rewrite(&state);
-		resp = state.rewrite_context_name;
+		resp = state.rewrite_context;
 		break;
 	    }
 	    resp = "Commands...\n\

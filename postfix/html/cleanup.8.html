@@ -234,10 +234,16 @@ CLEANUP(8)                                             CLEANUP(8)
               What addresses are subject to <a href="postconf.5.html#sender_canonical_maps">sender_canonical_maps</a>
               address mapping.
 
+       <b><a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> (empty)</b>
+              Don't rewrite message headers from  remote  clients
+              at  all  when  this  parameter is empty; otherwise,
+              rewrite remote message headers and append the spec-
+              ified domain name to incomplete addresses.
+
 <b>RESOURCE AND RATE CONTROLS</b>
        <b><a href="postconf.5.html#duplicate_filter_limit">duplicate_filter_limit</a> (1000)</b>
-              The maximal number of addresses remembered  by  the
-              address  duplicate  filter  for  <a href="aliases.5.html">aliases(5)</a> or vir-
+              The  maximal  number of addresses remembered by the
+              address duplicate filter  for  <a href="aliases.5.html">aliases(5)</a>  or  vir-
               tual(5) alias expansion, or for <a href="showq.8.html">showq(8)</a> queue dis-
               plays.
 
@@ -246,16 +252,16 @@ CLEANUP(8)                                             CLEANUP(8)
               message header.
 
        <b><a href="postconf.5.html#hopcount_limit">hopcount_limit</a> (50)</b>
-              The maximal number of  Received:   message  headers
+              The  maximal  number  of Received:  message headers
               that is allowed in the primary message headers.
 
        <b><a href="postconf.5.html#in_flow_delay">in_flow_delay</a> (1s)</b>
-              Time  to pause before accepting a new message, when
+              Time to pause before accepting a new message,  when
               the message arrival rate exceeds the message deliv-
               ery rate.
 
        <b><a href="postconf.5.html#message_size_limit">message_size_limit</a> (10240000)</b>
-              The  maximal  size in bytes of a message, including
+              The maximal size in bytes of a  message,  including
               envelope information.
 
        Available in Postfix version 2.0 and later:
@@ -273,31 +279,31 @@ CLEANUP(8)                                             CLEANUP(8)
               will handle.
 
        <b><a href="postconf.5.html#queue_file_attribute_count_limit">queue_file_attribute_count_limit</a> (100)</b>
-              The  maximal number of (name=value) attributes that
+              The maximal number of (name=value) attributes  that
               may be stored in a Postfix queue file.
 
        Available in Postfix version 2.1 and later:
 
        <b><a href="postconf.5.html#virtual_alias_expansion_limit">virtual_alias_expansion_limit</a> (1000)</b>
-              The maximal number of addresses that virtual  alias
+              The  maximal number of addresses that virtual alias
               expansion produces from each original recipient.
 
        <b><a href="postconf.5.html#virtual_alias_recursion_limit">virtual_alias_recursion_limit</a> (1000)</b>
-              The  maximal  nesting depth of virtual alias expan-
+              The maximal nesting depth of virtual  alias  expan-
               sion.
 
 <b>MISCELLANEOUS CONTROLS</b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The default location of  the  Postfix  main.cf  and
+              The  default  location  of  the Postfix main.cf and
               master.cf configuration files.
 
        <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
-              How  much time a Postfix daemon process may take to
-              handle a request  before  it  is  terminated  by  a
+              How much time a Postfix daemon process may take  to
+              handle  a  request  before  it  is  terminated by a
               built-in watchdog timer.
 
        <b><a href="postconf.5.html#delay_warning_time">delay_warning_time</a> (0h)</b>
-              The  time  after which the sender receives the mes-
+              The time after which the sender receives  the  mes-
               sage headers of mail that is still queued.
 
        <b><a href="postconf.5.html#ipc_timeout">ipc_timeout</a> (3600s)</b>
@@ -305,12 +311,12 @@ CLEANUP(8)                                             CLEANUP(8)
               over an internal communication channel.
 
        <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
-              The  maximum  amount  of  time that an idle Postfix
-              daemon process waits for the next  service  request
+              The maximum amount of time  that  an  idle  Postfix
+              daemon  process  waits for the next service request
               before exiting.
 
        <b><a href="postconf.5.html#max_use">max_use</a> (100)</b>
-              The  maximal number of connection requests before a
+              The maximal number of connection requests before  a
               Postfix daemon process terminates.
 
        <b><a href="postconf.5.html#myhostname">myhostname</a> (see 'postconf -d' output)</b>
@@ -318,19 +324,19 @@ CLEANUP(8)                                             CLEANUP(8)
 
        <b><a href="postconf.5.html#myorigin">myorigin</a> ($<a href="postconf.5.html#myhostname">myhostname</a>)</b>
               The domain name that locally-posted mail appears to
-              come  from,  and that locally posted mail is deliv-
+              come from, and that locally posted mail  is  deliv-
               ered to.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
-              The process ID of a Postfix command or daemon  pro-
+              The  process ID of a Postfix command or daemon pro-
               cess.
 
        <b><a href="postconf.5.html#process_name">process_name</a> (read-only)</b>
-              The  process  name  of  a Postfix command or daemon
+              The process name of a  Postfix  command  or  daemon
               process.
 
        <b><a href="postconf.5.html#queue_directory">queue_directory</a> (see 'postconf -d' output)</b>
-              The location of the Postfix top-level queue  direc-
+              The  location of the Postfix top-level queue direc-
               tory.
 
        <b><a href="postconf.5.html#soft_bounce">soft_bounce</a> (no)</b>
@@ -341,14 +347,14 @@ CLEANUP(8)                                             CLEANUP(8)
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (postfix)</b>
-              The mail system name that is prepended to the  pro-
+              The  mail system name that is prepended to the pro-
               cess  name  in  syslog  records,  so  that  "smtpd"
               becomes, for example, "postfix/smtpd".
 
        Available in Postfix version 2.1 and later:
 
        <b><a href="postconf.5.html#enable_original_recipient">enable_original_recipient</a> (yes)</b>
-              Enable  support  for  the   X-Original-To   message
+              Enable   support   for  the  X-Original-To  message
               header.
 
 <b>FILES</b>
@@ -371,7 +377,7 @@ CLEANUP(8)                                             CLEANUP(8)
        <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a> Postfix address manipulation
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

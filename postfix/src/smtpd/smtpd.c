@@ -89,6 +89,8 @@
 /* ADDRESS REWRITING CONTROLS
 /* .ad
 /* .fi
+/*      See the ADDRESS_REWRITING_README document for a detailed
+/*	discussion of Postfix address rewriting.
 /* .IP "\fBreceive_override_options (empty)\fR"
 /*	Enable or disable recipient validation, built-in content
 /*	filtering, or address mapping.
@@ -99,10 +101,6 @@
 /*	header addresses from these clients only; either don't rewrite
 /*	message headers from other clients at all, or append the domain
 /*	specified with the remote_header_rewrite_domain parameter.
-/* .IP "\fBremote_header_rewrite_domain (empty)\fR"
-/*	Don't rewrite message headers from remote clients at all when
-/*	this parameter is empty; otherwise, rewrite remote message headers
-/*	and append the specified domain name to incomplete addresses.
 /* AFTER QUEUE EXTERNAL CONTENT INSPECTION CONTROLS
 /* .ad
 /* .fi
@@ -595,6 +593,7 @@
 /* .na
 /* .nf
 /*	ADDRESS_CLASS_README, blocking unknown hosted or relay recipients
+/*	ADDRESS_REWRITING_README Postfix address manipulation
 /*	FILTER_README, external after-queue content filter
 /*	LOCAL_RECIPIENT_README, blocking unknown local recipients
 /*	SMTPD_ACCESS_README, built-in access policies
@@ -680,7 +679,6 @@
 #include <anvil_clnt.h>
 #endif
 #include <flush_clnt.h>
-#include <rewrite_clnt.h>
 
 /* Single-threaded server skeleton. */
 
@@ -793,7 +791,6 @@ char   *var_smtpd_hoggers;
 
 #endif
 
-char   *var_remote_rwr_domain;
 char   *var_local_rwr_clients;
 
  /*
@@ -1074,7 +1071,7 @@ static void mail_open_stream(SMTPD_STATE *state)
 	if (*var_filter_xport)
 	    rec_fprintf(state->cleanup, REC_TYPE_FILT, "%s", var_filter_xport);
 	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_RWR_CTXT_NAME, FORWARD_DOMAIN(state));
+		    MAIL_ATTR_RWR_CONTEXT, FORWARD_DOMAIN(state));
 #ifdef USE_SASL_AUTH
 	if (var_smtpd_sasl_enable) {
 	    if (state->sasl_method)
@@ -2247,8 +2244,8 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	0, 0,
     };
     static char *context_name[] = {
-	REWRITE_LOCAL,			/* Postfix internal form */
-	0,				/* filled in on the fly */
+	MAIL_ATTR_RWR_LOCAL,		/* Postfix internal form */
+	MAIL_ATTR_RWR_REMOTE,		/* Postfix internal form */
     };
     static NAME_CODE xforward_to_context[] = {
 	XFORWARD_DOM_LOCAL, 0,		/* XFORWARD representation */
@@ -2375,8 +2372,6 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	case SMTPD_STATE_XFORWARD_DOMAIN:
 	    if (STREQ(attr_value, XFORWARD_UNAVAILABLE))
 		attr_value = XFORWARD_DOM_LOCAL;
-	    context_name[1] = *var_remote_rwr_domain ? 
-		REWRITE_REMOTE : REWRITE_NONE;
 	    if ((context_code = name_code(xforward_to_context,
 					  NAME_CODE_FLAG_NONE,
 					  attr_value)) < 0) {
@@ -2919,7 +2914,6 @@ int     main(int argc, char **argv)
 #ifdef SNAPSHOT
 	VAR_SMTPD_HOGGERS, DEF_SMTPD_HOGGERS, &var_smtpd_hoggers, 0, 0,
 #endif
-	VAR_REM_RWR_DOMAIN, DEF_REM_RWR_DOMAIN, &var_remote_rwr_domain, 0, 0,
 	VAR_LOC_RWR_CLIENTS, DEF_LOC_RWR_CLIENTS, &var_local_rwr_clients, 0, 0,
 	0,
     };

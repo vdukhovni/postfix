@@ -114,7 +114,7 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
     state->saved_flags = 0;
     state->instance = vstring_alloc(10);
     state->seqno = 0;
-    state->rewrite_context_name = 0;
+    state->rewrite_context = 0;
 
 #ifdef USE_SASL_AUTH
     if (SMTPD_STAND_ALONE(state))
@@ -171,8 +171,6 @@ void    smtpd_state_reset(SMTPD_STATE *state)
 	vstring_free(state->proxy_buffer);
     if (state->instance)
 	vstring_free(state->instance);
-    if (state->rewrite_context_name)
-	myfree(state->rewrite_context_name);
 
 #ifdef USE_SASL_AUTH
     if (var_smtpd_sasl_enable)

@@ -104,24 +104,21 @@ SMTPD(8)                                                 SMTPD(8)
               port to.
 
 <b>ADDRESS REWRITING CONTROLS</b>
+       See  the  <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a> document for a detailed
+       discussion of Postfix address rewriting.
+
        <b><a href="postconf.5.html#receive_override_options">receive_override_options</a> (empty)</b>
-              Enable  or  disable  recipient validation, built-in
+              Enable or disable  recipient  validation,  built-in
               content filtering, or address mapping.
 
        Available in Postfix version 2.2 and later:
 
        <b><a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> (see 'postconf -d' output)</b>
               Append the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> to
-              message  header  addresses from these clients only;
-              either don't rewrite  message  headers  from  other
+              message header addresses from these  clients  only;
+              either  don't  rewrite  message  headers from other
               clients at all, or append the domain specified with
               the <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> parameter.
-
-       <b><a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> (empty)</b>
-              Don't rewrite message headers from  remote  clients
-              at  all  when  this  parameter is empty; otherwise,
-              rewrite remote message headers and append the spec-
-              ified domain name to incomplete addresses.
 
 <b>AFTER QUEUE EXTERNAL CONTENT INSPECTION CONTROLS</b>
        As  of  version 1.0, Postfix can be configured to send new
@@ -787,6 +784,7 @@ SMTPD(8)                                                 SMTPD(8)
 
 <b>README FILES</b>
        <a href="ADDRESS_CLASS_README.html">ADDRESS_CLASS_README</a>, blocking unknown hosted or relay recipients
+       <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a> Postfix address manipulation
        <a href="FILTER_README.html">FILTER_README</a>, external after-queue content filter
        <a href="LOCAL_RECIPIENT_README.html">LOCAL_RECIPIENT_README</a>, blocking unknown local recipients
        <a href="SMTPD_ACCESS_README.html">SMTPD_ACCESS_README</a>, built-in access policies

@@ -44,7 +44,7 @@
 #include <been_here.h>
 #include <mail_params.h>
 #include <mime_state.h>
-#include <rewrite_clnt.h>
+#include <mail_proto.h>
 
 /* Application-specific. */
 
@@ -85,7 +85,7 @@ CLEANUP_STATE *cleanup_state_alloc(void)
     state->attr = nvtable_create(10);
     state->mime_state = 0;
     state->mime_errs = 0;
-    state->rewrite_context_name = mystrdup(REWRITE_LOCAL);
+    state->hdr_rewrite_context = MAIL_ATTR_RWR_LOCAL;
     state->filter = 0;
     state->redirect = 0;
     return (state);
@@ -123,7 +123,5 @@ void    cleanup_state_free(CLEANUP_STATE *state)
 	myfree(state->filter);
     if (state->redirect)
 	myfree(state->redirect);
-    if (state->rewrite_context_name)
-	myfree(state->rewrite_context_name);
     myfree((char *) state);
 }

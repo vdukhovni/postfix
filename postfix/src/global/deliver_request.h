@@ -47,7 +47,7 @@ typedef struct DELIVER_REQUEST {
     char   *sasl_method;		/* SASL method */
     char   *sasl_username;		/* SASL user name */
     char   *sasl_sender;		/* SASL sender */
-    char   *rewrite_context;		/* header rewrite context */
+    char   *rewrite_context;		/* address rewrite context */
 } DELIVER_REQUEST;
 
  /*

@@ -76,7 +76,7 @@
 #include <mail_addr.h>
 #include <canon_addr.h>
 #include <mail_addr_find.h>
-#include <rewrite_clnt.h>
+#include <mail_proto.h>
 
 /* Application-specific. */
 
@@ -93,14 +93,13 @@ void    cleanup_addr_sender(CLEANUP_STATE *state, const char *buf)
     const char *bcc;
 
     /*
-     * Note: an unqualified username is for all practical purposes equivalent
-     * to a fully qualified local address, if only because a reply to an
-     * incomplete address will be sent to a local recipient. Having to
-     * support both forms is error prone, therefore an incomplete envelope
-     * address is rewritten to fully qualified form in the local domain
-     * context.
+     * Note: an unqualified envelope address is for all practical purposes
+     * equivalent to a fully qualified local address, both for delivery and
+     * for replying. Having to support both forms is error prone, therefore
+     * an incomplete envelope address is rewritten to fully qualified form in
+     * the local domain context.
      */
-    cleanup_rewrite_internal(REWRITE_LOCAL, clean_addr, buf);
+    cleanup_rewrite_internal(MAIL_ATTR_RWR_LOCAL, clean_addr, buf);
     if (strncasecmp(STR(clean_addr), MAIL_ADDR_MAIL_DAEMON "@",
 		    sizeof(MAIL_ADDR_MAIL_DAEMON)) == 0) {
 	canon_addr_internal(state->temp1, MAIL_ADDR_MAIL_DAEMON);
@@ -140,14 +139,13 @@ void    cleanup_addr_recipient(CLEANUP_STATE *state, const char *buf)
     const char *bcc;
 
     /*
-     * Note: an unqualified username is for all practical purposes equivalent
-     * to a fully qualified local address, if only because a reply to an
-     * incomplete address will be sent to a local recipient. Having to
-     * support both forms is error prone, therefore an incomplete envelope
-     * address is rewritten to fully qualified form in the local domain
-     * context.
+     * Note: an unqualified envelope address is for all practical purposes
+     * equivalent to a fully qualified local address, both for delivery and
+     * for replying. Having to support both forms is error prone, therefore
+     * an incomplete envelope address is rewritten to fully qualified form in
+     * the local domain context.
      */
-    cleanup_rewrite_internal(REWRITE_LOCAL,
+    cleanup_rewrite_internal(MAIL_ATTR_RWR_LOCAL,
 			     clean_addr, *buf ? buf : var_empty_addr);
     if (state->flags & CLEANUP_FLAG_MAP_OK) {
 	if (cleanup_rcpt_canon_maps
@@ -181,10 +179,10 @@ void    cleanup_addr_bcc(CLEANUP_STATE *state, const char *bcc)
     VSTRING *clean_addr = vstring_alloc(100);
 
     /*
-     * Note: BCC addresses are supplied locally, andmust be rewritten in the
+     * Note: BCC addresses are supplied locally, and must be rewritten in the
      * local address rewriting context.
      */
-    cleanup_rewrite_internal(REWRITE_LOCAL, clean_addr, bcc);
+    cleanup_rewrite_internal(MAIL_ATTR_RWR_LOCAL, clean_addr, bcc);
     if (state->flags & CLEANUP_FLAG_MAP_OK) {
 	if (cleanup_rcpt_canon_maps
 	    && (cleanup_rcpt_canon_flags & CLEANUP_CANON_FLAG_ENV_RCPT))

@@ -63,6 +63,9 @@ tables. </p>
 
 <ul>
 
+<li> <a href="#william"> To rewrite or not to rewrite, or to label
+as invalid </a>
+
 <li> <a href="#overview"> Postfix address rewriting overview </a>
 
 <li> <a href="#receiving"> Address rewriting when mail is received</a>
@@ -102,6 +105,48 @@ tables. </p>
 <li> <a href="#debugging"> Debugging your address manipulations </a>
 
 </ul>
+
+<h2> <a name="william"> To rewrite or not to rewrite, or to label
+as invalid </a> </h2>
+
+<p> Postfix versions 2.1 and earlier always rewrite message header
+addresses, and append Postfix's own domain information to incomplete
+addresses.  While rewriting message headers is OK for mail with a
+local origin, it is undesirable for remote mail: </p>
+
+<ul>
+
+<li> Header mangling is frowned upon by mail standards,
+
+<li> Appending Postfix's own domain information produces incorrect
+results with remote incomplete addresses,
+
+<li> Appending Postfix's own domain information sometimes creates
+the appearance that spam is sent by local users.
+
+</ul>
+
+<p> Postfix versions 2.2 give you the option to either not rewrite
+message headers from remote SMTP clients at all, or to label
+incomplete addresses in such message headers as invalid. Here is
+how it works:  </p>
+
+<ul>
+
+<li> Postfix does not rewrite message headers from remote SMTP
+clients at all when the <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> parameter
+value is empty.
+
+<li> Otherwise, Postfix appends the specified domain name to
+incomplete addresses in message headers from remote SMTP clients.
+This feature can be used to append a reserved domain such as
+"domain.invalid", so that incomplete addresses cannot be mistaken
+for local addresses.
+
+</ul>
+
+<p> The <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> parameter controls what SMTP
+clients Postfix considers local instead of remote. </p>
 
 <h2> <a name="overview"> Postfix address rewriting overview </a> </h2>
 
@@ -296,8 +341,8 @@ none </td> </tr>
 
 </blockquote>
 
-
-<h2> <a name="receiving"> Address rewriting when mail is received</a> </h2>
+<h2> <a name="receiving"> Address rewriting when mail is received</a>
+</h2>
 
 <p> The <a href="cleanup.8.html">cleanup(8)</a> server receives mail from outside of Postfix as
 well as mail from internal sources such as forwarded mail,
@@ -383,9 +428,9 @@ parameter (default: yes).  You should never turn off this feature,
 because a lot of Postfix components expect that all addresses have
 the form "user@domain".  </p>
 
-<p> Postfix versions 2.2 and later do not rewrite message headers
-from remote SMTP clients at all, or they append the domain name
-specified with the <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> configuration
+<p> Postfix versions 2.2 and later either do not rewrite message
+headers from remote SMTP clients at all, or they append the domain
+name specified with the <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> configuration
 parameter.  </p>
 
 <p> If your machine is not the main machine for $<a href="postconf.5.html#myorigin">myorigin</a> and you
@@ -404,13 +449,14 @@ Rewrite "user@host" to "user@host.$<a href="postconf.5.html#mydomain">mydomain</
 parameter (default: yes).  The purpose is to get consistent treatment
 of different forms of the same hostname. </p>
 
-<p> Postfix versions 2.2 and later do not rewrite message headers
-from remote clients at all, or they append the domain name specified
-with the <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> configuration parameter. </p>
+<p> Postfix versions 2.2 and later either do not rewrite message
+headers from remote clients at all, or they append the domain name
+specified with the <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> configuration
+parameter. </p>
 
 <p> Some will argue that rewriting "host" to "host.domain"
 is bad. That is why it can be turned off. Others like the convenience
-of having the <a href="ADDRESS_CLASS_README.html#local_domain_class">local domain</a> appended automatically. </p> </dd>
+of having Postfix's own domain appended automatically. </p> </dd>
 
 <dt>Rewrite "user@site." to "user@site" (without the trailing dot).</dt>
 

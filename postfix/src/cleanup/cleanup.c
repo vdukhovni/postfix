@@ -176,6 +176,10 @@
 /* .IP "\fBsender_canonical_classes (envelope_sender, header_sender)\fR"
 /*	What addresses are subject to sender_canonical_maps address
 /*	mapping.
+/* .IP "\fBremote_header_rewrite_domain (empty)\fR"
+/*	Don't rewrite message headers from remote clients at all when
+/*	this parameter is empty; otherwise, rewrite remote message headers
+/*	and append the specified domain name to incomplete addresses.
 /* RESOURCE AND RATE CONTROLS
 /* .ad
 /* .fi

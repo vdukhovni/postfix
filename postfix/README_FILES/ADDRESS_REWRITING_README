@@ -35,6 +35,7 @@ document gives an introduction to Postfix lookup tables.
 
 Topics covered in this document:
 
+  * To rewrite or not to rewrite, or to label as invalid
   * Postfix address rewriting overview
   * Address rewriting when mail is received
 
@@ -54,6 +55,33 @@ Topics covered in this document:
       o Local catch-all address
 
   * Debugging your address manipulations
+
+TToo rreewwrriittee oorr nnoott ttoo rreewwrriittee,, oorr ttoo llaabbeell aass iinnvvaalliidd
+
+Postfix versions 2.1 and earlier always rewrite message header addresses, and
+append Postfix's own domain information to incomplete addresses. While
+rewriting message headers is OK for mail with a local origin, it is undesirable
+for remote mail:
+
+  * Header mangling is frowned upon by mail standards,
+  * Appending Postfix's own domain information produces incorrect results with
+    remote incomplete addresses,
+  * Appending Postfix's own domain information sometimes creates the appearance
+    that spam is sent by local users.
+
+Postfix versions 2.2 give you the option to either not rewrite message headers
+from remote SMTP clients at all, or to label incomplete addresses in such
+message headers as invalid. Here is how it works:
+
+  * Postfix does not rewrite message headers from remote SMTP clients at all
+    when the remote_header_rewrite_domain parameter value is empty.
+  * Otherwise, Postfix appends the specified domain name to incomplete
+    addresses in message headers from remote SMTP clients. This feature can be
+    used to append a reserved domain such as "domain.invalid", so that
+    incomplete addresses cannot be mistaken for local addresses.
+
+The local_header_rewrite_clients parameter controls what SMTP clients Postfix
+considers local instead of remote.
 
 PPoossttffiixx aaddddrreessss rreewwrriittiinngg oovveerrvviieeww
 
@@ -199,9 +227,10 @@ address manipulations:
         of Postfix components expect that all addresses have the form
         "user@domain".
 
-        Postfix versions 2.2 and later do not rewrite message headers from
-        remote SMTP clients at all, or they append the domain name specified
-        with the remote_header_rewrite_domain configuration parameter.
+        Postfix versions 2.2 and later either do not rewrite message headers
+        from remote SMTP clients at all, or they append the domain name
+        specified with the remote_header_rewrite_domain configuration
+        parameter.
 
         If your machine is not the main machine for $myorigin and you wish to
         have some users delivered locally without going via that main machine,
@@ -214,13 +243,13 @@ address manipulations:
         (default: yes). The purpose is to get consistent treatment of different
         forms of the same hostname.
 
-        Postfix versions 2.2 and later do not rewrite message headers from
-        remote clients at all, or they append the domain name specified with
-        the remote_header_rewrite_domain configuration parameter.
+        Postfix versions 2.2 and later either do not rewrite message headers
+        from remote clients at all, or they append the domain name specified
+        with the remote_header_rewrite_domain configuration parameter.
 
         Some will argue that rewriting "host" to "host.domain" is bad. That is
-        why it can be turned off. Others like the convenience of having the
-        local domain appended automatically.
+        why it can be turned off. Others like the convenience of having
+        Postfix's own domain appended automatically.
 
     Rewrite "user@site." to "user@site" (without the trailing dot).
         A single trailing dot is silently removed. However, an address that

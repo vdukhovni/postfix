@@ -7222,7 +7222,9 @@ physical endpoints. </p>
 
 <p> Don't rewrite message headers from remote clients at all when
 this parameter is empty; otherwise, rewrite remote message headers
-and append the specified domain name to incomplete addresses. </p>
+and append the specified domain name to incomplete addresses.  The
+local_header_rewrite_clients parameter controls what clients Postfix
+considers local. </p>
 
 <p> Examples:  </p>
 
@@ -7300,15 +7302,25 @@ and always append my own domain to incomplete header addresses.  </p>
     local_header_rewrite_clients = static:all
 </pre>
 
+<p> The purist setting: rewrite headers only in mail from Postfix
+sendmail and in SMTP mail from this machine. </p>
+
+<pre>
+    mynetworks_style = host
+    local_header_rewrite_clients = permit_mynetworks
+</pre>
+
 <p> The default setting: rewrite headers and append my own domain
-only with mail from local or authorized clients. </p>
+only with mail from Postfix sendmail and from local or authorized
+SMTP clients. </p>
 
 <pre>
     local_header_rewrite_clients = permit_mynetworks, 
         permit_sasl_authenticated permit_tls_clientcerts
 </pre>
 
-<p> Include clients that are pop-before-smtp authenticated: </p>
+<p> The ISP setting: include clients that are pop-before-smtp
+authenticated. </p>
 
 <pre>
     local_header_rewrite_clients = permit_mynetworks, 

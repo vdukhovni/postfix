@@ -9774,7 +9774,7 @@ Apologies for any names omitted.
 
 	Portability: AIX 5.1/GCC.
 
-20041014-21
+20041014-23
 
 	Postfix no longer appends the local domain to header
 	addresses from remote clients.  Instead, Postfix either
@@ -9786,6 +9786,14 @@ Apologies for any names omitted.
 	from the Postfix sendmail command, or from clients listed
 	with the new local_header_rewrite_clients parameter (default:
 	permit_mynetworks, permit_sasl_authenticated).
+
+	These changes affect the SMTP server (including XFORWARD
+	support), the cleanup server (do or don't rewrite headers),
+	the trivial-rewrite server (append local domain or surrogate
+	remote domain to incomplete addresses), the queue manager
+	(send additional attributes to delivery agents), the LMTP
+	and SMTP clients (XFORWARD support), and the local delivery
+	agent (preserve XFORWARD attributes when forwarding mail).
 
 20041016
 

@@ -80,7 +80,6 @@
 #include <mail_proto.h>
 #include <mime_state.h>
 #include <lex_822.h>
-#include <rewrite_clnt.h>
 
 /* Application-specific. */
 
@@ -176,7 +175,7 @@ static void cleanup_rewrite_sender(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
 			      var_token_limit);
     addr_list = tok822_grep(tree, TOK822_ADDR);
     for (tpp = addr_list; *tpp; tpp++) {
-	cleanup_rewrite_tree(state->rewrite_context_name, *tpp);
+	cleanup_rewrite_tree(state->hdr_rewrite_context, *tpp);
 	if (state->flags & CLEANUP_FLAG_MAP_OK) {
 	    if (cleanup_send_canon_maps
 		&& (cleanup_send_canon_flags & CLEANUP_CANON_FLAG_HDR_FROM))
@@ -221,7 +220,7 @@ static void cleanup_rewrite_recip(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
 			      var_token_limit);
     addr_list = tok822_grep(tree, TOK822_ADDR);
     for (tpp = addr_list; *tpp; tpp++) {
-	cleanup_rewrite_tree(state->rewrite_context_name, *tpp);
+	cleanup_rewrite_tree(state->hdr_rewrite_context, *tpp);
 	if (state->flags & CLEANUP_FLAG_MAP_OK) {
 	    if (cleanup_rcpt_canon_maps
 		&& (cleanup_rcpt_canon_flags & CLEANUP_CANON_FLAG_HDR_RCPT))
@@ -499,10 +498,10 @@ static void cleanup_header_callback(void *context, int header_class,
 	    if (hdr_opts->flags & HDR_OPT_RR)
 		state->resent = "Resent-";
 	    if ((hdr_opts->flags & HDR_OPT_SENDER)
-		&& strcmp(state->rewrite_context_name, REWRITE_NONE) != 0) {
+		&& state->hdr_rewrite_context) {
 		cleanup_rewrite_sender(state, hdr_opts, header_buf);
 	    } else if ((hdr_opts->flags & HDR_OPT_RECIP)
-		&& strcmp(state->rewrite_context_name, REWRITE_NONE) != 0) {
+		       && state->hdr_rewrite_context) {
 		cleanup_rewrite_recip(state, hdr_opts, header_buf);
 	    } else if ((hdr_opts->flags & HDR_OPT_DROP) == 0) {
 		cleanup_out_header(state, header_buf);
