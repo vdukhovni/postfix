@@ -302,7 +302,8 @@ often the queue manager scans the queue for deferred mail.
 
 <dt> <b>maximal_queue_lifetime</b> (default: 5 days) <dd> How
 long a message stays in the queue before it is sent back as
-undeliverable.
+undeliverable. Specify 0 for mail that should be returned
+immediately after the first unsuccessful delivery attempt.
 
 <p>
 

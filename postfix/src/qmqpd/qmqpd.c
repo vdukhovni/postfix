@@ -137,6 +137,7 @@
 #include <quote_822_local.h>
 #include <match_parent_style.h>
 #include <lex_822.h>
+#include <verp_sender.h>
 
 /* Single-threaded server skeleton. */
 
@@ -217,7 +218,7 @@ static void qmqpd_copy_sender(QMQPD_STATE *state)
     char   *end_prefix;
     char   *end_origin;
     int     verp_requested;
-    static char verp_chars[] = "-=";
+    static char verp_delims[] = "-=";
 
     /*
      * If the sender address looks like prefix@origin-@[], then request
@@ -236,7 +237,12 @@ static void qmqpd_copy_sender(QMQPD_STATE *state)
 	 && --end_prefix < end_origin - 2	/* non-null origin */
 	 && end_prefix > STR(state->buf));	/* non-null prefix */
     if (verp_requested) {
-	verp_chars[0] = end_prefix[0];
+	verp_delims[0] = end_prefix[0];
+	if (verp_delims_verify(verp_delims) != 0) {
+	    state->err |= CLEANUP_STAT_CONT;	/* XXX */
+	    vstring_sprintf(state->why_rejected, "Invalid VERP delimiters: \"%s\". Need two characters from \"%s\"",
+			    verp_delims, var_verp_filter);
+	}
 	memmove(end_prefix, end_prefix + 1, end_origin - end_prefix - 1);
 	vstring_truncate(state->buf, end_origin - STR(state->buf) - 1);
     }
@@ -245,7 +251,7 @@ static void qmqpd_copy_sender(QMQPD_STATE *state)
 	state->err = CLEANUP_STAT_WRITE;
     if (verp_requested)
 	if (state->err == CLEANUP_STAT_OK
-	    && rec_put(state->cleanup, REC_TYPE_VERP, verp_chars, 2) < 0)
+	    && rec_put(state->cleanup, REC_TYPE_VERP, verp_delims, 2) < 0)
 	    state->err = CLEANUP_STAT_WRITE;
     state->sender = mystrndup(STR(state->buf), LEN(state->buf));
 }
@@ -535,7 +541,8 @@ static void qmqpd_receive(QMQPD_STATE *state)
      * Start the message content segment, prepend our own Received: header,
      * and write the message content.
      */
-    qmqpd_write_content(state);
+    if (state->err == 0)
+	qmqpd_write_content(state);
 
     /*
      * Close the queue file.

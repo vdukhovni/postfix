@@ -42,6 +42,8 @@ maximal_backoff_time = 4000s
 # Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 # The default time unit is d (days).
 #
+# Specify 0 when mail delivery should be tried only once.
+#
 maximal_queue_lifetime = 5d
 
 # The minimal_backoff_time parameter specifies the minimal time

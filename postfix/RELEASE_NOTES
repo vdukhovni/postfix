@@ -12,7 +12,16 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
-Major changes with Postfix snapshot 1.1.11-20020XXX
+Incompatible changes with Postfix snapshot 1.1.11-20020906
+==========================================================
+
+The permit_mx_backup restriction is made more strict. With older
+versions, some DNS failures would cause mail to be accepted anyway,
+and some DNS failures would cause mail to be rejected by later
+restrictions in the same restriction list.  The improved version
+will defer delivery when Postfix could make the wrong decision.
+
+Major changes with Postfix snapshot 1.1.11-20020906
 ===================================================
 
 More sophisticated handling of UCE-related DNS lookup errors.
@@ -20,20 +29,21 @@ These cause Postfix to not give up so easily, so that some deliveries
 will not have to be deferred after all.  This affects the following
 restrictions:
 
-- permit_mx_backup (defer the request if a subsequent restriction
-would cause the request to be rejected, accept the request if a
-subsequent restriction would cause the request to be accepted
-anyway);
-
-- reject_unknown_hostname, reject_unknown_sender_domain and
-reject_unknown_recipient_domain (defer the request if a subsequent
-restriction would cause the request to be accepted, reject the
+- After DNS lookup failure, permit_mx_backup will now accept the
 request if a subsequent restriction would cause the request to be
-rejected anyway).
+accepted anyway, and will defer the request if a subsequent
+restriction would cause the request to be rejected.
+
+- After DNS lookup failure, reject_unknown_hostname (the hostname
+given in HELO/EHLO commands) reject_unknown_sender_domain and
+reject_unknown_recipient_domain will now reject the request if a
+subsequent restriction would cause the request to be rejected
+anyway, and will defer the request if a subsequent restriction
+would cause the request to be accepted.
 
 Specify "smtpd_data_restrictions = reject_unauth_pipelining" to
 block mail from SMTP clients that send message content before
-Postfix has replied to the DATA command.
+Postfix has replied to the SMTP DATA command.
 
 Incompatible changes with Postfix snapshot 1.1.11-20020819
 ==========================================================

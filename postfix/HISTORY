@@ -6888,6 +6888,11 @@ Apologies for any names omitted.
 	Feature: "FILTER transport:nexthop" is now also available
 	in SMTPD access tables.
 
+20020826
+
+	Workaround: HP-UX 11 accept() fails with ENOBUFS when the
+	client disconnects early. File: sane_accept.c.
+
 20020901
 
 	Cleanup: postfix-install no longer installs all the manual
@@ -6900,6 +6905,10 @@ Apologies for any names omitted.
 	Postfix sendmail was changed to recognize `.' as the end
 	of input.  Problem fix by Christian Kratzer, cksoft.de.
 	File:  auxiliary/rmail/rmail.
+
+	Feature: specify "maximal_queue_lifetime = 0" for mail that
+	should be returned immediately after the first unsuccessful
+	delivery attempt. Files: qmgr/qmgr.c, nqmgr/nqmgr.c.
 
 20020904
 

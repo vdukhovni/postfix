@@ -2219,9 +2219,9 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 
 	if (strchr(name, ':') != 0) {
 	    if (def_acl == NO_DEF_ACL) {
-		msg_warn("specify one of (%s, %s, %s, %s, %s) before restriction \"%s\"",
+		msg_warn("specify one of (%s, %s, %s, %s, %s) before %s restriction \"%s\"",
 			 CHECK_CLIENT_ACL, CHECK_HELO_ACL, CHECK_SENDER_ACL,
-			 CHECK_RECIP_ACL, CHECK_ETRN_ACL, name);
+			 CHECK_RECIP_ACL, CHECK_ETRN_ACL, reply_class, name);
 		longjmp(smtpd_check_buf, smtpd_check_reject(state,
 		    MAIL_ERROR_SOFTWARE, "451 Server configuration error"));
 	    }
@@ -2494,7 +2494,7 @@ char   *smtpd_check_helo(SMTPD_STATE *state, char *helohost)
      */
 #define SMTPD_CHECK_PUSH(backup, current, new) { \
 	backup = current; \
-	current = (new ? mystrdup(new) : new); \
+	current = (new ? mystrdup(new) : 0); \
     }
 
 #define SMTPD_CHECK_POP(current, backup) { \
@@ -2818,10 +2818,14 @@ char   *smtpd_check_data(SMTPD_STATE *state)
 
     /*
      * Minor kluge so that we can delegate work to the generic routine. We
-     * provide no recipient information, because this restriction applies to
-     * all recipients alike. Picking a specific recipient would be wrong.
+     * provide no recipient information in the case of multiple recipients,
+     * This restriction applies to all recipients alike, and logging only one
+     * of them would be misleading.
      */
-    SMTPD_CHECK_PUSH(saved_recipient, state->recipient, 0);
+    if (state->rcpt_count > 1) {
+	saved_recipient = state->recipient;
+	state->recipient = 0;
+    }
 
     /*
      * Apply restrictions in the order as specified.
@@ -2833,8 +2837,10 @@ char   *smtpd_check_data(SMTPD_STATE *state)
     if (status == 0 && data_restrctions->argc)
 	status = generic_checks(state, data_restrctions,
 				"DATA", SMTPD_NAME_DATA, NO_DEF_ACL);
+    if (state->rcpt_count > 1)
+	state->recipient = saved_recipient;
 
-    SMTPD_CHECK_RCPT_RETURN(status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
+    return (status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
 }
 
 #ifdef TEST
