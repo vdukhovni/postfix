@@ -132,6 +132,7 @@ typedef struct DNS_REPLY {
 } DNS_REPLY;
 
 #define INET_ADDR_LEN	4		/* XXX */
+#define INET6_ADDR_LEN	16		/* XXX */
 
 /* dns_query - query name server and pre-parse the reply */
 
@@ -168,8 +169,8 @@ static int dns_query(const char *name, int type, int flags,
     len = res_search((char *) name, C_IN, type, reply->buf, sizeof(reply->buf));
     if (len < 0) {
 	if (why)
-	    vstring_sprintf(why, "Name service error for %s: %s",
-			    name, dns_strerror(h_errno));
+	    vstring_sprintf(why, "Name service error for name=%s type=%s: %s",
+			    name, dns_strtype(type), dns_strerror(h_errno));
 	if (msg_verbose)
 	    msg_info("dns_query: %s (%s): %s",
 		     name, dns_strtype(type), dns_strerror(h_errno));
@@ -337,6 +338,19 @@ static DNS_RR *dns_get_rr(DNS_REPLY *reply, unsigned char *pos,
 	memcpy(temp, pos, fixed->length);
 	data_len = fixed->length;
 	break;
+#ifdef T_AAAA
+    case T_AAAA:
+	if (fixed->length != INET6_ADDR_LEN) {
+	    msg_warn("extract_answer: bad address length: %d", fixed->length);
+	    return (0);
+	}
+	if (fixed->length > sizeof(temp))
+	    msg_panic("dns_get_rr: length %d > DNS_NAME_LEN",
+		      fixed->length);
+	memcpy(temp, pos, fixed->length);
+	data_len = fixed->length;
+	break;
+#endif
     case T_TXT:
 	data_len = MIN2(pos[0] + 1, MIN2(fixed->length + 1, sizeof(temp)));
 	for (src = pos + 1, dst = (unsigned char *) (temp);

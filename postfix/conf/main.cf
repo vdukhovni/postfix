@@ -84,6 +84,10 @@ mail_owner = postfix
 # a domain-wide alias database that aliases each user to
 # user@that.users.mailhost.
 #
+# For the sake of consistency between sender and recipient addresses,
+# myorigin also specifies the default domain name that is appended
+# to recipient addresses that have no @domain part.
+#
 #myorigin = $myhostname
 #myorigin = $mydomain
 
@@ -385,8 +389,8 @@ mail_owner = postfix
 #fallback_transport =
 
 # The luser_relay parameter specifies an optional destination address
-# for unknown recipients.  By default, mail for unknown local recipients
-# is bounced.
+# for unknown recipients.  By default, mail for unknown@$mydestination
+# and unknown@[$inet_interfaces] is returned as undeliverable.
 #
 # The following expansions are done on luser_relay: $user (recipient
 # username), $shell (recipient shell), $home (recipient home directory),

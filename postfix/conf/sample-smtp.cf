@@ -168,13 +168,14 @@ smtp_destination_recipient_limit = $default_destination_recipient_limit
 #
 # When no connection can be made within the deadline, the SMTP client
 # tries the next address on the mail exchanger list. Specify 0 to
-# disable the timeout.
+# disable the timeout (i.e. use whatever timeout is implemented by
+# the operating system).
 #
 # Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 # The default time unit is s (seconds).
 #
-#smtp_connect_timeout = 30s
-smtp_connect_timeout = 0s
+#smtp_connect_timeout = 0s
+smtp_connect_timeout = 30s
 
 # The smtp_helo_timeout parameter specifies the SMTP client timeout
 # for receiving the SMTP greeting banner.

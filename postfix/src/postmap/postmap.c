@@ -111,7 +111,8 @@
 /*	your Postfix installation can support.
 /*
 /*	When no \fIfile_type\fR is specified, the software uses the database
-/*	type specified via the \fBdatabase_type\fR configuration parameter.
+/*	type specified via the \fBdefault_database_type\fR configuration
+/*	parameter.
 /* .RE
 /* .IP \fIfile_name\fR
 /*	The name of the lookup table source file when rebuilding a database.
@@ -133,7 +134,7 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/* .IP \fBdatabase_type\fR
+/* .IP \fBdefault_database_type\fR
 /*	Default output database type.
 /*	On many UNIX systems, the default database type is either \fBhash\fR
 /*	or \fBdbm\fR.

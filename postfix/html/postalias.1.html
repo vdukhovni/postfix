@@ -106,16 +106,17 @@ POSTALIAS(1)                                         POSTALIAS(1)
               of database your Postfix installation can  support.
 
               When  no  <i>file_type</i> is specified, the software uses
-              the database type specified via  the  <b>database</b><i>_</i><b>type</b>
-              configuration  parameter.   The  default  value for
-              this parameter depends on the host environment.
+              the    database    type    specified    via     the
+              <b>default</b><i>_</i><b>database</b><i>_</i><b>type</b> configuration parameter.  The
+              default value for this  parameter  depends  on  the
+              host environment.
 
        <i>file_name</i>
-              The name of the alias  database  source  file  when
+              The  name  of  the  alias database source file when
               rebuilding a database.
 
 <b>DIAGNOSTICS</b>
-       Problems  are logged to the standard error stream. No out-
+       Problems are logged to the standard error stream. No  out-
        put means no problems were detected. Duplicate entries are
        skipped and are flagged with a warning.
 
@@ -131,20 +132,20 @@ POSTALIAS(1)                                         POSTALIAS(1)
               Enable verbose logging for debugging purposes.
 
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
-       The  following  <b>main.cf</b> parameters are especially relevant
-       to this program. See the Postfix <b>main.cf</b> file  for  syntax
+       The following <b>main.cf</b> parameters are  especially  relevant
+       to  this  program. See the Postfix <b>main.cf</b> file for syntax
        details and for default values.
 
-       <b>database</b><i>_</i><b>type</b>
-              Default  alias database type. On many UNIX systems,
+       efault_Bdatabase_type
+              Default alias database type. On many UNIX  systems,
               the default type is either <b>dbm</b> or <b>hash</b>.
 
        <b>berkeley</b><i>_</i><b>db</b><i>_</i><b>create</b><i>_</i><b>buffer</b><i>_</i><b>size</b>
-              Amount of buffer memory to be used when creating  a
+              Amount  of buffer memory to be used when creating a
               Berkeley DB <b>hash</b> or <b>btree</b> lookup table.
 
        <b>berkeley</b><i>_</i><b>db</b><i>_</i><b>read</b><i>_</i><b>buffer</b><i>_</i><b>size</b>
-              Amount  of  buffer memory to be used when reading a
+              Amount of buffer memory to be used when  reading  a
               Berkeley DB <b>hash</b> or <b>btree</b> lookup table.
 
 <b>STANDARDS</b>
@@ -155,7 +156,7 @@ POSTALIAS(1)                                         POSTALIAS(1)
        <a href="sendmail.1.html">sendmail(1)</a> mail posting and compatibility interface.
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

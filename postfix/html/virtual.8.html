@@ -1,5 +1,4 @@
 <html> <head> </head> <body> <pre>
-
 VIRTUAL(8)                                             VIRTUAL(8)
 
 <b>NAME</b>
@@ -70,7 +69,7 @@ VIRTUAL(8)                                             VIRTUAL(8)
 
        The <b>virtual</b><i>_</i><b>minimum</b><i>_</i><b>uid</b> parameter imposes a lower bound on
        numerical user ID values that may be specified in any <b>vir-</b>
-       <b>tual</b><i>_</i><b>owner</b><i>_</i><b>maps</b> or <b>virtual</b><i>_</i><b>uid</b><i>_</i><b>maps</b>.
+       <b>tual</b><i>_</i><b>uid</b><i>_</i><b>maps</b>.
 
 <b>SECURITY</b>
        The virtual delivery agent is not security sensitive, pro-
@@ -123,6 +122,14 @@ VIRTUAL(8)                                             VIRTUAL(8)
               delivery  is  carried  out,  otherwise  the path is
               assumed to specify a UNIX-style mailbox file.
 
+              While searching a lookup table, an  address  exten-
+              sion (<i>user+foo@domain.tld</i>) is ignored.
+
+              In  a  lookup  table,  specify  a left-hand side of
+              <i>@domain.tld</i> to match  any  user  in  the  specified
+              domain    that    does    not   have   a   specific
+              <i>user@domain.tld</i> entry.
+
               Note that <b>virtual</b><i>_</i><b>mailbox</b><i>_</i><b>base</b>  is  unconditionally
               prepended to this path.
 
@@ -138,10 +145,26 @@ VIRTUAL(8)                                             VIRTUAL(8)
               the user ID to be used when writing to  the  target
               mailbox.
 
+              While  searching  a lookup table, an address exten-
+              sion (<i>user+foo@domain.tld</i>) is ignored.
+
+              In a lookup table,  specify  a  left-hand  side  of
+              <i>@domain.tld</i>  to  match  any  user  in the specified
+              domain   that   does   not    have    a    specific
+              <i>user@domain.tld</i> entry.
+
        <b>virtual</b><i>_</i><b>gid</b><i>_</i><b>maps</b> (regexp maps disallowed)
               Recipients are looked up in these maps to determine
               the group ID to be used when writing to the  target
               mailbox.
+
+              While  searching  a lookup table, an address exten-
+              sion (<i>user+foo@domain.tld</i>) is ignored.
+
+              In a lookup table,  specify  a  left-hand  side  of
+              <i>@domain.tld</i>  to  match  any  user  in the specified
+              domain   that   does   not    have    a    specific
+              <i>user@domain.tld</i> entry.
 
 <b>Locking</b> <b>controls</b>
        <b>virtual</b><i>_</i><b>mailbox</b><i>_</i><b>lock</b>
@@ -223,6 +246,5 @@ VIRTUAL(8)                                             VIRTUAL(8)
        Level 3, 213 Miller St
        North Sydney 2060, NSW, Australia
 
-                                                                1
-
+                                                       VIRTUAL(8)
 </pre> </body> </html>

@@ -90,7 +90,9 @@ int     sane_accept(int sock, struct sockaddr * sa, SOCKADDR_SIZE *len)
 	}
 	for (count = 0; (err = accept_warn_errors[count]) != 0; count++) {
 	    if (errno == err) {
+#if 0
 		msg_warn("accept: %m");
+#endif
 		errno = EAGAIN;
 		break;
 	    }

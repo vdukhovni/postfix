@@ -1,5 +1,5 @@
-#ifndef _SPACE_822_H_INCLUDED_
-#define _SPACE_822_H_INCLUDED_
+#ifndef _LEX_822_H_INCLUDED_
+#define _LEX_822_H_INCLUDED_
 
 /*++
 /* NAME

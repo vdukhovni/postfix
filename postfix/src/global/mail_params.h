@@ -671,7 +671,7 @@ extern int var_hash_queue_depth;
 extern char *var_bestmx_transp;
 
 #define VAR_SMTP_CONN_TMOUT	"smtp_connect_timeout"
-#define DEF_SMTP_CONN_TMOUT	"0s"
+#define DEF_SMTP_CONN_TMOUT	"30s"
 extern int var_smtp_conn_tmout;
 
 #define VAR_SMTP_HELO_TMOUT	"smtp_helo_timeout"

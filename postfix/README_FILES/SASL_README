@@ -136,6 +136,9 @@ In order to authenticate against the UNIX password database, try:
 	pwcheck_method: pwcheck
 
 The pwcheck daemon is contained in the cyrus-sasl source tarball.
+IMPORTANT: postfix processes need to have group read+execute
+permission for the /var/pwcheck directory, otherwise authentication
+attempts will fail.
 
 Alternately, in SASL 1.5.27 and later (including 2.1.1), try:
 

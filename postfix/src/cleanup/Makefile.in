@@ -14,7 +14,7 @@ WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wunused
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
-TESTPROG=
+TESTPROG= cleanup_masquerade
 PROG	= cleanup
 INC_DIR	= ../../include
 LIBS	= ../../lib/libmaster.a ../../lib/libglobal.a ../../lib/libutil.a
@@ -52,6 +52,26 @@ clean:
 	rm -rf printfck
 
 tidy:	clean
+
+cleanup_masquerade: cleanup_masquerade.o 
+	mv cleanup_masquerade.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIBS) $(SYSLIBS)
+	mv junk cleanup_masquerade.o
+
+tests:	cleanup_masquerade_test
+
+cleanup_masquerade_test: cleanup_masquerade cleanup_masq.ref
+	rm -f cleanup_masq.tmp
+	./cleanup_masquerade '' a.b.c,b.c xxx@aa.a.b.c    >>cleanup_masq.tmp
+	./cleanup_masquerade 'xxx' a.b.c,b.c xxx@aa.a.b.c >>cleanup_masq.tmp
+	./cleanup_masquerade 'yyy' a.b.c,b.c xxx@aa.a.b.c >>cleanup_masq.tmp
+	./cleanup_masquerade '' !a.b.c,b.c xxx@aa.a.b.c   >>cleanup_masq.tmp
+	./cleanup_masquerade '' a.b.c,b.c xxx@a.b.c       >>cleanup_masq.tmp
+	./cleanup_masquerade '' !a.b.c,b.c xxx@a.b.c      >>cleanup_masq.tmp
+	./cleanup_masquerade '' a.b.c,b.c xxx@aaa.b.c     >>cleanup_masq.tmp
+	./cleanup_masquerade '' a.b.c,b.c xxx@b.c         >>cleanup_masq.tmp
+	diff cleanup_masq.ref cleanup_masq.tmp
+	rm -f cleanup_masq.tmp
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \

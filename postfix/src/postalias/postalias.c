@@ -90,7 +90,8 @@
 /*	your Postfix installation can support.
 /*
 /*	When no \fIfile_type\fR is specified, the software uses the database
-/*	type specified via the \fBdatabase_type\fR configuration parameter.
+/*	type specified via the \fBdefault_database_type\fR configuration
+/*	parameter.
 /*	The default value for this parameter depends on the host environment.
 /* .RE
 /* .IP \fIfile_name\fR
@@ -116,7 +117,7 @@
 /*	The following \fBmain.cf\fR parameters are especially relevant to
 /*	this program. See the Postfix \fBmain.cf\fR file for syntax details
 /*	and for default values.
-/* .IP \fBdatabase_type\fR
+/* .IP \fdefault_Bdatabase_type\fR
 /*	Default alias database type. On many UNIX systems, the default type
 /*	is either \fBdbm\fR or \fBhash\fR.
 /* .IP \fBberkeley_db_create_buffer_size\fR

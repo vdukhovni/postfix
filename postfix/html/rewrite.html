@@ -233,20 +233,33 @@ comes from the gateway itself, instead of from individual machines.
 <p>
 
 Address masquerading is disabled by default. To enable, edit the
-<b>masquerade_domains</b> parameter in the <b>main.cf</b>
-file and specify one or more domain names separated by whitespace
-or commas. For example:
+<b>masquerade_domains</b> parameter in the <b>main.cf</b> file and
+specify one or more domain names separated by whitespace or commas.
+The list is processed left to right, and processing stops at the
+first match.  Thus,
 
-<dl>
+<blockquote>
 
-<dd><b>masquerade_domains = $mydomain</b>
+<b>masquerade_domains = foo.example.com example.com</b>
 
-</dl>
+</blockquote>
+
+strips any.thing.foo.example.com to foo.example.com, but strips
+any.thing.else.example.com to example.com.
 
 <p>
 
-In this example, addresses of the form <i>user@host.$mydomain</i>
-would be rewritten to <i>user@$mydomain</i>.
+A domain name prefixed with ! means do not masquerade this domain
+or its subdomains. Thus,
+
+<blockquote>
+
+<b>masquerade_domains = !foo.example.com example.com</b>
+
+</blockquote>
+
+does not change any.thing.foo.example.com and foo.example.com,
+but strips any.thing.else.example.com to example.com.
 
 <p>
 

@@ -124,9 +124,18 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
     while (tree->head) {
 
 	/*
-	 * Strip trailing dot or @.
+	 * Strip trailing dot at end of domain, but not dot-dot. This merely
+	 * makes diagnostics more accurate by leaving bogus addresses alone.
 	 */
-	if (tree->tail->type == '.' || tree->tail->type == '@') {
+	if (tree->tail->type == '.'
+	    && tok822_rfind_type(tree->tail, '@') != 0
+	    && tree->tail->prev->type != '.')
+	    tok822_free_tree(tok822_sub_keep_before(tree, tree->tail));
+
+	/*
+	 * Strip trailing @.
+	 */
+	if (tree->tail->type == '@') {
 	    tok822_free_tree(tok822_sub_keep_before(tree, tree->tail));
 	    continue;
 	}
@@ -193,7 +202,7 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 	if (saved_domain) {
 	    tok822_sub_append(tree, saved_domain);
 	    saved_domain = 0;
-	} else if (tree->head) {
+	} else {				/* Aargh! Always! */
 	    tok822_sub_append(tree, tok822_alloc('@', (char *) 0));
 	    tok822_sub_append(tree, tok822_scan(var_myhostname, (TOK822 **) 0));
 	}

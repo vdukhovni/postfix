@@ -119,8 +119,8 @@ default_privs = nobody
 home_mailbox = 
 
 # The luser_relay parameter specifies an optional destination address
-# for unknown recipients.  By default, mail for unknown local recipients
-# is bounced.
+# for unknown recipients.  By default, mail for unknown@$mydestination
+# and unknown@[$inet_interfaces] is returned as undeliverable.
 #
 # The following expansions are done on luser_relay: $user (recipient
 # username), $shell (recipient shell), $home (recipient home directory),

@@ -92,8 +92,9 @@ lmtp	  unix	-	-	n	-	-	lmtp
 #
 old-cyrus unix	-	n	n	-	-	pipe
   flags=R user=cyrus argv=/cyrus/bin/deliver -e -m ${extension} ${user}
+# Cyrus 2.1.5 (Amos Gouaux)
 cyrus	  unix	-	n	n	-	-	pipe
-  user=cyrus argv=/cyrus/bin/deliver -e -r ${recipient} -m ${extension} ${user}
+  user=cyrus argv=/cyrus/bin/deliver -e -r ${sender} -m ${extension} ${user}
 uucp	  unix	-	n	n	-	-	pipe
   flags=Fqhu user=uucp argv=uux -r -n -z -a$sender - $nexthop!rmail ($recipient)
 ifmail    unix  -       n       n       -       -       pipe

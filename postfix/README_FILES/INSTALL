@@ -162,7 +162,7 @@ In any case, if the command
     % make
 
 produces compiler error messages, it may be time to examine the
-FAQ document (see htlm/faq.html).
+FAQ document (see html/faq.html).
 
 5 - Porting to on an unsupported system
 =======================================
@@ -474,7 +474,7 @@ the Postfix queue directories (/var/spool/postfix).  This provides
 a significant barrier against intrusion. The barrier is not
 impenetrable, but every little bit helps.
 
-With the exception of the Postfix local delivery and `pipe' daemons,
+With the exception of the Postfix daemons that deliver mail locally,
 every Postfix daemon can run chrooted.
 
 Sites with high security requirements should consider to chroot

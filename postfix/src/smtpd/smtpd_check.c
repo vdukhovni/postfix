@@ -291,6 +291,7 @@
 #include <mail_addr_find.h>
 #include <match_parent_style.h>
 #include <strip_addr.h>
+#include <virtual8.h>
 
 /* Application-specific. */
 
@@ -721,6 +722,20 @@ static const char *check_maps_find(SMTPD_STATE *state, const char *reply_name,
     return (result);
 }
 
+/* checkv8_maps_find - reject with temporary failure if dict lookup fails */
+
+static const char *checkv8_maps_find(SMTPD_STATE *state, const char *reply_name,
+			             MAPS *maps, const char *key)
+{
+    const char *result;
+
+    dict_errno = 0;
+    if ((result = virtual8_maps_find(maps, key)) == 0
+	&& dict_errno == DICT_ERR_RETRY)
+	reject_dict_retry(state, reply_name);
+    return (result);
+}
+
 /* check_mail_addr_find - reject with temporary failure if dict lookup fails */
 
 static const char *check_mail_addr_find(SMTPD_STATE *state,
@@ -744,8 +759,17 @@ static int resolve_final(SMTPD_STATE *state, const char *reply_name,
 {
 
     /* If matches $mydestination or $inet_interfaces. */
-    if (resolve_local(domain))
+    if (resolve_local(domain)) {
+	if (*var_virtual_maps
+	    && check_maps_find(state, reply_name, virtual_maps, domain, 0))
+	    msg_warn("list domain %s in only one of $%s and $%s",
+		     domain, VAR_MYDEST, VAR_VIRTUAL_MAPS);
+	if (*var_virt_mailbox_maps
+	&& checkv8_maps_find(state, reply_name, virt_mailbox_maps, domain))
+	    msg_warn("list domain %s in only one of $%s and $%s",
+		     domain, VAR_MYDEST, VAR_VIRT_MAILBOX_MAPS);
 	return (1);
+    }
 
     /* If Postfix-style virtual domain. */
     if (*var_virtual_maps
@@ -754,7 +778,7 @@ static int resolve_final(SMTPD_STATE *state, const char *reply_name,
 
     /* If virtual mailbox domain. */
     if (*var_virt_mailbox_maps
-	&& check_maps_find(state, reply_name, virt_mailbox_maps, domain, 0))
+	&& checkv8_maps_find(state, reply_name, virt_mailbox_maps, domain))
 	return (1);
 
     return (0);
@@ -801,6 +825,10 @@ static char *dup_if_truncate(char *name)
 
     /*
      * Truncate hostnames ending in dot but not dot-dot.
+     * 
+     * XXX This should not be distributed all over the code. Problem is,
+     * addresses can enter the system via multiple paths: networks, local
+     * forward/alias/include files, even as the result of address rewriting.
      */
     if ((len = strlen(name)) > 1
 	&& name[len - 1] == '.'
@@ -920,7 +948,7 @@ static int reject_non_fqdn_hostname(SMTPD_STATE *state, char *name,
     return (stat);
 }
 
-/* reject_unknown_hostname - fail if name has no A or MX record */
+/* reject_unknown_hostname - fail if name has no A, AAAA or MX record */
 
 static int reject_unknown_hostname(SMTPD_STATE *state, char *name,
 				        char *reply_name, char *reply_class)
@@ -931,8 +959,14 @@ static int reject_unknown_hostname(SMTPD_STATE *state, char *name,
     if (msg_verbose)
 	msg_info("%s: %s", myname, name);
 
+#ifdef T_AAAA
+#define RR_ADDR_TYPES	T_A, T_AAAA
+#else
+#define RR_ADDR_TYPES	T_A
+#endif
+
     dns_status = dns_lookup_types(name, 0, (DNS_RR **) 0, (VSTRING *) 0,
-				  (VSTRING *) 0, T_A, T_MX, 0);
+				  (VSTRING *) 0, RR_ADDR_TYPES, T_MX, 0);
     if (dns_status != DNS_OK)
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				   "%d <%s>: %s rejected: Host not found",
@@ -942,7 +976,7 @@ static int reject_unknown_hostname(SMTPD_STATE *state, char *name,
     return (SMTPD_CHECK_DUNNO);
 }
 
-/* reject_unknown_mailhost - fail if name has no A or MX record */
+/* reject_unknown_mailhost - fail if name has no A, AAAA or MX record */
 
 static int reject_unknown_mailhost(SMTPD_STATE *state, const char *name,
 		            const char *reply_name, const char *reply_class)
@@ -954,7 +988,7 @@ static int reject_unknown_mailhost(SMTPD_STATE *state, const char *name,
 	msg_info("%s: %s", myname, name);
 
     dns_status = dns_lookup_types(name, 0, (DNS_RR **) 0, (VSTRING *) 0,
-				  (VSTRING *) 0, T_A, T_MX, 0);
+				  (VSTRING *) 0, RR_ADDR_TYPES, T_MX, 0);
     if (dns_status != DNS_OK)
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				   "%d <%s>: %s rejected: Domain not found",
@@ -2462,6 +2496,9 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
 #define NOMATCH(map, rcpt) \
     (check_mail_addr_find(state, recipient, map, rcpt, (char **) 0) == 0)
 
+#define NOMATCHV8(map, rcpt) \
+    (checkv8_maps_find(state, recipient, map, rcpt) == 0)
+
     /*
      * Reject mail to unknown addresses in Postfix-style virtual domains.
      */
@@ -2470,7 +2507,7 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
 	if (NOMATCH(rcpt_canon_maps, CONST_STR(reply->recipient))
 	    && NOMATCH(canonical_maps, CONST_STR(reply->recipient))
 	    && NOMATCH(relocated_maps, CONST_STR(reply->recipient))
-	    && NOMATCH(virt_mailbox_maps, CONST_STR(reply->recipient))
+	    && NOMATCHV8(virt_mailbox_maps, CONST_STR(reply->recipient))
 	    && NOMATCH(virtual_maps, CONST_STR(reply->recipient))) {
 	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 				   "%d <%s>: User unknown", 550, recipient);
@@ -2486,7 +2523,7 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
 	if (NOMATCH(rcpt_canon_maps, CONST_STR(reply->recipient))
 	    && NOMATCH(canonical_maps, CONST_STR(reply->recipient))
 	    && NOMATCH(relocated_maps, CONST_STR(reply->recipient))
-	    && NOMATCH(virt_mailbox_maps, CONST_STR(reply->recipient))
+	    && NOMATCHV8(virt_mailbox_maps, CONST_STR(reply->recipient))
 	    && NOMATCH(virtual_maps, CONST_STR(reply->recipient))) {
 	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 				   "%d <%s>: User unknown", 550, recipient);
@@ -2503,7 +2540,7 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
 	if (NOMATCH(rcpt_canon_maps, CONST_STR(reply->recipient))
 	    && NOMATCH(canonical_maps, CONST_STR(reply->recipient))
 	    && NOMATCH(relocated_maps, CONST_STR(reply->recipient))
-	    && NOMATCH(virt_mailbox_maps, CONST_STR(reply->recipient))
+	    && NOMATCHV8(virt_mailbox_maps, CONST_STR(reply->recipient))
 	    && NOMATCH(virtual_maps, CONST_STR(reply->recipient))
 	    && NOMATCH(local_rcpt_maps, CONST_STR(reply->recipient))) {
 	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,

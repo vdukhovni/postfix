@@ -6632,7 +6632,78 @@ Apologies for any names omitted.
 	experienced by Pavol Luptak. Files: pickup/pickup.c,
 	cleanup/cleanup_extracted.c.
 
+20020705
+
+	Safety: log a warning when a domain is listed in mydestination
+	and (virtual_maps or virtual_mailbox_maps).  This configuration
+	error causes the Postfix SMTP server to reject recipients
+	when the local_recipient_maps feature is enabled.  File:
+	smtpd/smtpd_check.c.
+
+200207011
+
+	Portability: in the master daemon, the default now is to
+	enable the signal handler code that writes a byte into a
+	pipe, instead of the signal handler code that sets a global
+	flag and hopes that select() will somehow wake up. File:
+	master/master_sig.c. This is needed for some IRIX and
+	UnixWare versions, but it should also produce a robust
+	result on all other supported systems.
+
+	Performance: the default SMTP connection establishment
+	timeout is now 30 seconds, instead of the system default
+	which can be atrociously large.
+
+20020712
+
+	When DNS lookup fails while delivering mail, report not
+	only the domain name but also the DNS record type.  This
+	should clue in people who ask why Postfix can't find a
+	domain while nslookup can.  File:  dns/dns_lookup.c.
+
+20020713
+
+	Bugfix: undo change made at 20020610 that causes the trivial
+	resolver client to loop when an address consists entirely
+	of @ and . characters.  File: trivial-rewrite/resolve.c.
+
+	Cleanup: Postfix no longer strips multiple '.' at the end
+	of a domain name. One '.' is silently tolerated. Files:
+	trivial-rewrite/rewrite.c, trivial-rewrite/resolve.c,
+	global/resolve_local.c. This policy is too distributed.
+
+20020715
+
+	Feature: @domain.tld catch-all map entries for the virtual
+	mail delivery agent. Files: global/virtual8_maps_find.c,
+	virtual/mailbox.c, smtpd/smtpd_check.c.
+
+	Feature: the virtual mail delivery agent now accepts address
+	extensions (user+foo@domain.tld), ignores them when looking
+	up users in its tables, but displays them in Delivered-To:
+	message headers.  File: global/virtual8_maps_find.c.
+
+20020716
+
+	Feature: domain names in a masquerade_domains list can now
+	be prefixed with !, in order to disable masquerading for
+	that domain name and for its subdomains. File:
+	cleanup/cleanup_masquerade.c.
+
+20020717
+
+	Bugfix: Mac OS X niscript (Netinfo) update by Gerben Wierda.
+	File: auxiliary/MacOSX/niscript.
+
+	Feature: The SMTP server reject_unknown_whatever restrictions
+	now also attempt to look up AAAA (IPV6 address) records.
+	Jun-ichiro itojun Hagino, IIJ labs. Files: smtpd/smtpd_check.c,
+	dns/dns_lookup.c.
+
 Open problems:
+
+	Medium: should permit_mx_backup defer delivery if DNS
+	has some error of some kind?
 
 	Medium: old maildrop files are no longer readable by the
 	pickup service. Log a message that suggests a fix.

@@ -169,9 +169,12 @@ void    rewrite_tree(char *unused_ruleset, TOK822 *tree)
     }
 
     /*
-     * Strip trailing dot.
+     * Strip trailing dot at end of domain, but not dot-dot. This merely
+     * makes diagnostics more accurate by leaving bogus addresses alone.
      */
-    if (tree->tail->type == '.')
+    if (tree->tail->type == '.'
+	&& tok822_rfind_type(tree->tail, '@') != 0
+	&& tree->tail->prev->type != '.')
 	tok822_free_tree(tok822_sub_keep_before(tree, tree->tail));
 }
 

@@ -162,7 +162,7 @@ In any case, if the command
     % make
 
 produces compiler error messages, it may be time to examine the
-FAQ document (see htlm/faq.html).
+FAQ document (see html/faq.html).
 
 5 - Porting to on an unsupported system
 =======================================

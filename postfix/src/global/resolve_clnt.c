@@ -264,7 +264,9 @@ int     main(int argc, char **argv)
 	while (vstring_fgets_nonl(buffer, VSTREAM_IN)) {
 	    resolve(STR(buffer), &reply);
 	}
+	vstring_free(buffer);
     }
+    resolve_clnt_free(&reply);
 }
 
 #endif

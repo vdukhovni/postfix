@@ -117,7 +117,8 @@ Use the command \fBpostconf -m\fR to find out what types of database
 your Postfix installation can support.
 
 When no \fIfile_type\fR is specified, the software uses the database
-type specified via the \fBdatabase_type\fR configuration parameter.
+type specified via the \fBdefault_database_type\fR configuration
+parameter.
 .RE
 .IP \fIfile_name\fR
 The name of the lookup table source file when rebuilding a database.
@@ -145,7 +146,7 @@ Enable verbose logging for debugging purposes.
 .nf
 .ad
 .fi
-.IP \fBdatabase_type\fR
+.IP \fBdefault_database_type\fR
 Default output database type.
 On many UNIX systems, the default database type is either \fBhash\fR
 or \fBdbm\fR.

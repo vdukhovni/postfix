@@ -36,7 +36,7 @@
 /*	the \fB-oA\fR option, see below), the program processes the file(s)
 /*	specified with the \fBalias_database\fR configuration parameter.
 /*	If no alias database type is specified, the program uses the type
-/*	specified with the \fBdatabase_type\fR configuration parameter.
+/*	specified with the \fBdefault_database_type\fR configuration parameter.
 /*	This mode of operation is implemented by running the \fBpostalias\fR(1)
 /*	command.
 /* .sp
@@ -201,7 +201,7 @@
 /* .IP \fBbounce_size_limit\fR
 /*	The amount of original message context that is sent along
 /*	with a non-delivery notification.
-/* .IP \fBdatabase_type\fR
+/* .IP \fBdefault_database_type\fR
 /*	Default alias etc. database type. On many UNIX systems the
 /*	default type is either \fBdbm\fR or \fBhash\fR.
 /* .IP \fBdebugger_command\fR

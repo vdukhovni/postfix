@@ -68,6 +68,11 @@ virtual_mailbox_maps
     directory is unconditionally prepended to this path. If the
     recipient is not found the mail is bounced.
 
+    In a lookup table, specify a left-hand side of @domain.tld to
+    match any user in the specified domain that does not have a
+    specific user@domain.tld entry. While searching a lookup table,
+    an address extension (user+foo@domain.tld) is ignored.
+
     If a recipient is not found the mail is returned to the sender.
 
     For security reasons, regexp maps are not allowed here, because
@@ -87,6 +92,11 @@ virtual_uid_maps
     Recipients are looked up in this map to determine the UID (owner
     privileges) to be used when writing to the target mailbox.
 
+    In a lookup table, specify a left-hand side of @domain.tld to
+    match any user in the specified domain that does not have a
+    specific user@domain.tld entry. While searching a lookup table,
+    an address extension (user+foo@domain.tld) is ignored.
+
     For security reasons, regexp maps are not allowed here, because
     their $1 etc. substitutions would open a security hole.
 
@@ -100,6 +110,11 @@ virtual_gid_maps
 
     Recipients are looked up in this map to determine the GID (group
     privileges) to be used when writing to the target mailbox.
+
+    In a lookup table, specify a left-hand side of @domain.tld to
+    match any user in the specified domain that does not have a
+    specific user@domain.tld entry. While searching a lookup table,
+    an address extension (user+foo@domain.tld) is ignored.
 
     For security reasons, regexp maps are not allowed here, because
     their $1 etc. substitutions would open a security hole.

@@ -68,7 +68,7 @@
 /*
 /*	The \fBvirtual_minimum_uid\fR parameter imposes a lower bound on
 /*	numerical user ID values that may be specified in any
-/*	\fBvirtual_owner_maps\fR or \fBvirtual_uid_maps\fR.
+/*	\fBvirtual_uid_maps\fR.
 /* SECURITY
 /* .ad
 /* .fi
@@ -115,6 +115,13 @@
 /*	("/"), maildir-style delivery is carried out, otherwise the
 /*	path is assumed to specify a UNIX-style mailbox file.
 /*
+/*	While searching a lookup table, an address extension
+/*	(\fIuser+foo@domain.tld\fR) is ignored.
+/*
+/*	In a lookup table, specify a left-hand side of \fI@domain.tld\fR 
+/*	to match any user in the specified domain that does not have a
+/*	specific \fIuser@domain.tld\fR entry.
+/*
 /*	Note that \fBvirtual_mailbox_base\fR is unconditionally prepended
 /*	to this path.
 /* .IP \fBvirtual_minimum_uid\fR
@@ -125,9 +132,23 @@
 /* .IP "\fBvirtual_uid_maps\fR (regexp maps disallowed)"
 /*	Recipients are looked up in these maps to determine the user ID to be
 /*	used when writing to the target mailbox.
+/*
+/*	While searching a lookup table, an address extension
+/*	(\fIuser+foo@domain.tld\fR) is ignored.
+/*
+/*	In a lookup table, specify a left-hand side of \fI@domain.tld\fR 
+/*	to match any user in the specified domain that does not have a
+/*	specific \fIuser@domain.tld\fR entry.
 /* .IP "\fBvirtual_gid_maps\fR (regexp maps disallowed)"
 /*	Recipients are looked up in these maps to determine the group ID to be
 /*	used when writing to the target mailbox.
+/*
+/*	While searching a lookup table, an address extension
+/*	(\fIuser+foo@domain.tld\fR) is ignored.
+/*
+/*	In a lookup table, specify a left-hand side of \fI@domain.tld\fR 
+/*	to match any user in the specified domain that does not have a
+/*	specific \fIuser@domain.tld\fR entry.
 /* .SH "Locking controls"
 /* .ad
 /* .fi

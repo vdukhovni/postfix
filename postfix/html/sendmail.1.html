@@ -42,9 +42,9 @@ SENDMAIL(1)                                           SENDMAIL(1)
               program  processes  the  file(s) specified with the
               <b>alias</b><i>_</i><b>database</b>  configuration  parameter.   If   no
               alias  database type is specified, the program uses
-              the type specified with the <b>database</b><i>_</i><b>type</b>  configu-
-              ration parameter.  This mode of operation is imple-
-              mented by running the <a href="postalias.1.html"><b>postalias</b>(1)</a> command.
+              the type specified with  the  <b>default</b><i>_</i><b>database</b><i>_</i><b>type</b>
+              configuration parameter.  This mode of operation is
+              implemented by running the <a href="postalias.1.html"><b>postalias</b>(1)</a> command.
 
               Note: it may take a minute or so  before  an  alias
               database  update  becomes  visible. Use the <b>postfix</b>
@@ -244,7 +244,7 @@ SENDMAIL(1)                                           SENDMAIL(1)
               The amount of original message context that is sent
               along with a non-delivery notification.
 
-       <b>database</b><i>_</i><b>type</b>
+       <b>default</b><i>_</i><b>database</b><i>_</i><b>type</b>
               Default alias etc. database type. On many UNIX sys-
               tems the default type is either <b>dbm</b> or <b>hash</b>.
 

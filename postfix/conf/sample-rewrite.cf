@@ -40,8 +40,24 @@ empty_address_recipient = MAILER-DAEMON
 #
 masquerade_classes = envelope_sender, header_sender, header_recipient
 
-# The masquerade_domains parameter gives an optional list of domains
-# that must have their subdomain structure stripped off.
+# The masquerade_domains parameter specifies an optional list of
+# domains that must have their subdomain structure stripped off.
+#
+# The list is processed left to right, and processing stops at the
+# first match.  Thus,
+#
+#	masquerade_domains = foo.example.com example.com
+#
+# strips any.thing.foo.example.com to foo.example.com, but strips
+# any.thing.else.example.com to example.com.
+#
+# A domain name prefixed with ! means do not masquerade this domain
+# or its subdomains. Thus,
+#
+#       masquerade_domains = !foo.example.com example.com
+#
+# does not change any.thing.foo.example.com and foo.example.com,
+# but strips any.thing.else.example.com to example.com.
 #
 # By default, address masquerading is disabled.
 #

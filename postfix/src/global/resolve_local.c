@@ -88,13 +88,19 @@ int     resolve_local(const char *addr)
 	resolve_local_init();
 
     /*
-     * Strip one trailing dot.
+     * Strip one trailing dot but not dot-dot.
+     *
+     * XXX This should not be distributed all over the code. Problem is,
+     * addresses can enter the system via multiple paths: networks, local  
+     * forward/alias/include files, even as the result of address rewriting.
      */
     len = strlen(saved_addr);
     if (len == 0)
 	RETURN(0);
     if (saved_addr[len - 1] == '.')
 	saved_addr[--len] = 0;
+    if (len == 0 || saved_addr[len - 1] == '.')
+	RETURN(0);
 
     /*
      * Compare the destination against the list of destinations that we

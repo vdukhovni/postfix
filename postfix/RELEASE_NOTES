@@ -12,6 +12,38 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix snapshot 1.1.11-20020717
+==========================================================
+
+The default timeout for establishing an SMTP connection has been
+reduced to 30 seconds, because many systems have an atrociously
+large default timeout value.
+
+The Postfix SMTP client now logs a warning when the same domain is
+listed in main.cf:mydestination as well as a Postfix-style virtual
+map. Such a mis-configuration may cause mail for users to be rejected
+with "user unknown".
+
+Postfix no longer strips multiple '.' characters from the end of
+an email address or domain name. Only one '.' is tolerated.
+
+The SMTP server reject_unknown_{sender,recipient}_domain etc.
+restrictions now also attempt to look up AAAA (IPV6 address) records.
+
+Major changes with Postfix snapshot 1.1.11-20020717
+===================================================
+
+The masquerade_domains feature now supports exceptions.  Prepend
+a ! character to a domain name in order to not strip its subdomain
+structure.  More information in conf/sample-rewrite.cf.
+
+The Postfix virtual delivery agent supports catch-all entries
+(@domain.tld) in lookup tables. These match users that do not
+have a specific user@domain.tld entry. The virtual delivery agent
+now ignores address extensions (user+foo@domain.tld) when searching
+its lookup tables, but displays the extensions in Delivered-To:
+message headers.
+
 Incompatible changes with Postfix snapshot 1.1.11-20020610
 ==========================================================
 
