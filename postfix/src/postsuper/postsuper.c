@@ -45,7 +45,7 @@
 /*	as the message that \fBpostsuper\fR was supposed to delete.
 /*	The probability for reusing a deleted queue ID is about 1 in 2**15
 /*	(the number of different microsecond values that the system clock
-/*	can distinguish).
+/*	can distinguish within a second).
 /* .IP \(bu
 /*	\fBpostsuper\fR deletes the new message file, instead of the
 /*	old file that should have been deleted.
@@ -157,6 +157,22 @@ static struct queue_info queue_info[] = {
     0,
 };
 
+/* postunlink - remove file with prejudice */
+
+static int postunlink(const char *path)
+{
+    int     ret;
+
+    if ((ret = unlink(path)) == 0) {
+	msg_info("removed file %s", path);
+    } else if (errno != ENOENT) {
+	msg_warn("remove file %s: %m", path);
+    } else if (msg_verbose) {
+	msg_info("remove file %s: %m", path);
+    }
+    return (ret);
+}
+
 /* delete_one - delete one message instance and all its associated files */
 
 static int delete_one(const char *queue_id)
@@ -189,22 +205,14 @@ static int delete_one(const char *queue_id)
      * in deleting the wrong files.
      */
     for (msg_qpp = msg_queue_names; *msg_qpp != 0; msg_qpp++) {
-	if (!mail_open_ok(*msg_qpp, queue_id, &st, &msg_path))
+	if (mail_open_ok(*msg_qpp, queue_id, &st, &msg_path) != MAIL_OPEN_YES)
 	    continue;
 	for (log_qpp = log_queue_names; *log_qpp != 0; log_qpp++)
-	    (void) mail_queue_path(log_path_buf, *log_qpp, queue_id);
-	if (unlink(STR(log_path_buf)) < 0 && errno != ENOENT)
-	    msg_warn("remove file %s: %m", STR(log_path_buf));
-	if (unlink(msg_path) == 0) {
+	    postunlink(mail_queue_path(log_path_buf, *log_qpp, queue_id));
+	if (postunlink(msg_path) == 0) {
 	    found = 1;
-	    msg_info("removed file %s", msg_path);
 	    break;
-	}
-	if (errno != ENOENT) {
-	    msg_warn("remove file %s: %m", msg_path);
-	} else if (msg_verbose) {
-	    msg_info("remove file %s: %m", msg_path);
-	}
+	}					/* else: lost a race */
     }
     vstring_free(log_path_buf);
     return (found);

@@ -219,7 +219,7 @@ int     smtp_helo(SMTP_STATE *state)
      */
     lines = resp->str;
     while ((words = mystrtok(&lines, "\n")) != 0) {
-	if (mystrtok(&words, "- =") && (word = mystrtok(&words, " \t")) != 0) {
+	if (mystrtok(&words, "- ") && (word = mystrtok(&words, " \t=")) != 0) {
 	    if (strcasecmp(word, "8BITMIME") == 0)
 		state->features |= SMTP_FEATURE_8BITMIME;
 	    else if (strcasecmp(word, "PIPELINING") == 0)

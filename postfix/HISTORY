@@ -5138,6 +5138,12 @@ Apologies for any names omitted.
 	RFC 2821 recommendation: if VRFY is enabled, list it in
 	the EHLO response.
 
+	RFC 2821 recommendation: SMTP clients should use EHLO.
+	The default setting of smtp_always_send_ehlo has changed
+	from 0 (send EHLO if server greets with ESMTP) to 1 (always
+	greet with EHLO). In all cases, Postfix falls back to HELO
+	if the remote host does not support EHLO.
+
 20010507
 
 	Bugfix: with soft_bounce=yes, the SMTP server would log
