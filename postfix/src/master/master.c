@@ -154,6 +154,7 @@
 #include <watchdog.h>
 #include <clean_env.h>
 #include <argv.h>
+#include <safe.h>
 
 /* Global library. */
 
@@ -239,6 +240,16 @@ int     main(int argc, char **argv)
      * Initialize logging and exit handler.
      */
     msg_syslog_init(mail_task(var_procname), LOG_PID, LOG_FACILITY);
+
+    /*
+     * The mail system must be run by the superuser so it can revoke
+     * privileges for selected operations. That's right - it takes privileges
+     * to toss privileges.
+     */
+    if (getuid() != 0)
+	msg_fatal("the master command is reserved for the superuser");
+    if (unsafe() != 0)
+	msg_fatal("the master command must not run as a set-uid process");
 
     /*
      * If started from a terminal, get rid of any tty association. This also

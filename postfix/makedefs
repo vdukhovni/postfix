@@ -196,7 +196,9 @@ case "$SYSTEM.$RELEASE" in
 		SYSLIBS="-ldb"
 		for name in nsl resolv $GDBM_LIBS
 		do
-		    test -f /usr/lib/lib$name.a && SYSLIBS="$SYSLIBS -l$name"
+		    test -e /usr/lib/lib$name.a -o -e /usr/lib/lib$name.so \
+			-o -e /lib/lib$name.a -o -e /lib/lib$name.so \
+			    && SYSLIBS="$SYSLIBS -l$name"
 		done
 		;;
      IRIX*.5.*)	SYSTYPE=IRIX5

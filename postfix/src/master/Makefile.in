@@ -100,6 +100,7 @@ master.o: ../../include/myflock.h
 master.o: ../../include/watchdog.h
 master.o: ../../include/clean_env.h
 master.o: ../../include/argv.h
+master.o: ../../include/safe.h
 master.o: ../../include/mail_params.h
 master.o: ../../include/debug_process.h
 master.o: ../../include/mail_task.h

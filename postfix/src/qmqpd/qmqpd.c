@@ -432,7 +432,7 @@ static void qmqpd_reply(QMQPD_STATE *state, int log_message,
 
 /* qmqpd_send_status - send mail transaction completion status */
 
-static int qmqpd_send_status(QMQPD_STATE *state)
+static void qmqpd_send_status(QMQPD_STATE *state)
 {
 
     /*
@@ -472,7 +472,7 @@ static int qmqpd_send_status(QMQPD_STATE *state)
 
 /* qmqpd_receive - receive QMQP message+sender+recipients */
 
-static int qmqpd_receive(QMQPD_STATE *state)
+static void qmqpd_receive(QMQPD_STATE *state)
 {
 
     /*

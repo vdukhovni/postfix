@@ -31,15 +31,11 @@
 /* .ti +5
 /*	\fIkey\fR whitespace \fIvalue\fR
 /* .IP \(bu
-/*	A line that starts with whitespace (space or tab) is a continuation
-/*	of the previous line. An empty line terminates the previous line,
-/*	as does a line that starts with non-whitespace (text or comment). A
-/*	comment line that starts with whitespace does not terminate multi-line
-/*	text.
+/*	Empty lines and whitespace-only lines are ignored, as
+/*	are lines whose first non-whitespace character is a `#'.
 /* .IP \(bu
-/*	The \fB#\fR is recognized as the start of a comment, but only when it is
-/*	the first non-whitespace character on a line.  A comment terminates
-/*	at the end of the line, even when the next line starts with whitespace.
+/*	A logical line starts with non-whitespace text. A line that
+/*	starts with whitespace continues a logical line.
 /* .PP
 /*	The \fIkey\fR and \fIvalue\fR are processed as is, except that
 /*	surrounding white space is stripped off. Unlike with Postfix alias

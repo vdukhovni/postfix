@@ -7,9 +7,19 @@ Official Postfix releases are called a.b.c where a=major release
 number, b=minor release number, c=patchlevel.  Snapshot releases
 are now called a.b.c-yyyymmdd where yyyymmdd is the release date
 (yyyy=year, mm=month, dd=day).  The mail_release_date configuration
-parameter contains the release date.  Patches change the patchlevel
-and the release date. Snapshots change only the release date, unless
-they include the same bugfix as a patch release.
+parameter contains the release date (both for official release and
+snapshot release).  Patches change the patchlevel and the release
+date. Snapshots change only the release date, unless they include
+the same bugfix as a patch release.
+
+Incompatible changes with Postfix version 1.1.2 (released 20020125)
+===================================================================
+
+Postfix now detects if the run-time Berkeley DB library routines
+do not match the major version number of the compile-time include
+file that was used for compiling Postfix. The software issues a
+warning and aborts in case of a discrepancy. If it didn't, the
+software was certain to crash with a segmentation violation.
 
 Incompatible changes with Postfix version 1.1.1 (released 20020122)
 ===================================================================
@@ -28,7 +38,7 @@ date.
 type that is used only for messages that actually use VERP (variable
 envelope return path) support.  With this sole exception, the queue
 file format is entirely backwards compatible with the previous
-official Postfix release (20020228, a.k.a. Postfix 1.0.0).
+official Postfix release (20010228, a.k.a. Postfix 1.0.0).
 
 [snapshot-20020106] This release modifies the existing master.cf
 file. The local pickup service is now unprivileged, and the cleanup

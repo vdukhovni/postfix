@@ -234,6 +234,12 @@ else
     POSTCONF="postconf"
 fi
 
+$POSTCONF -d mail_version >/dev/null 2>/dev/null || {
+    echo $0: Error: no $POSTCONF command found. 1>&2
+    echo Re-run this command as $0 command_directory=/some/where. 1>&2
+    exit 1
+}
+
 test -n "$config_directory" ||
     config_directory=`$POSTCONF -d -h config_directory` || exit 1
 

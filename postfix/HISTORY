@@ -6004,7 +6004,32 @@ Apologies for any names omitted.
 
 	Safety: when postmap creates a non-existent file, the new
 	file inherits group/other read permissions from the source
-	file.  LaMont Jones, HP.  File: postmap/postmap.c.
+	file.  Based on code by LaMont Jones, HP.  File:
+	postmap/postmap.c.
+
+20020124
+
+	Portability: some Linux systems install libnsl.so without
+	libnsl.a file, causing an yp_match undefined reference
+	problem.  File: makedefs.
+
+20020124
+
+	Portability: post-install now requests that command_directory
+	is given on the command line when the postconf command is
+	in an unusual place.
+
+	Safety: extra code to detect and report Berkeley DB version
+	mismatches between compile time and run time.  This test
+	is limited to mismatches in the major version number only.
+	File:  util/dict_db.c. Based on code by Lawrence Greenfield,
+	Carnegie-Mellon university.
+
+	Safety: the postfix command and the master daemon abort if
+	they are running set-uid.
+
+	Documentation: the postmap manual page described an out of
+	date input file format.
 
 Open problems:
 
