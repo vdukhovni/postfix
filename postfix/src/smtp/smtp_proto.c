@@ -660,11 +660,11 @@ int     smtp_xfer(SMTP_STATE *state)
 		smtp_fputs("", 0, session->stream);
 	    if ((state->features & SMTP_FEATURE_MAYBEPIX) != 0
 		&& request->arrival_time < vstream_ftime(session->stream)
-		- var_min_backoff_time) {
+		- var_smtp_pix_thresh) {
 		msg_info("%s: enabling PIX <CRLF>.<CRLF> workaround for %s",
 			 request->queue_id, session->namaddr);
 		vstream_fflush(session->stream);/* hurts performance */
-		sleep(10);			/* not to mention this */
+		sleep(var_smtp_pix_delay);	/* not to mention this */
 	    }
 	    if (vstream_ferror(state->src))
 		msg_fatal("queue file read error");

@@ -45,6 +45,8 @@
 /*	recipient address.
 /* .IP "\fB-s \fIsession_count\fR"
 /*	Run the specified number of SMTP sessions in parallel (default: 1).
+/* .IP "\fB-S \fIsubject\fR"
+/*	Send mail with the named subject line (default: none).
 /* .IP "\fB-t \fIto\fR"
 /*	Use the specified recipient address (default: <foo@myhostname>).
 /* .IP "\fB-R \fIinterval\fR"
@@ -165,6 +167,7 @@ static int connect_count = 1;
 static int random_delay = 0;
 static int fixed_delay = 0;
 static int talk_lmtp = 0;
+static char *subject = 0;
 
 static void enqueue_connect(SESSION *);
 static void start_connect(SESSION *);
@@ -653,6 +656,8 @@ static void data_done(int unused_event, char *context)
 	smtp_printf(session->stream, "Date: %s", mydate);
 	smtp_printf(session->stream, "Message-Id: <%04x.%04x.%04x@%s>",
 		    mypid, vstream_fileno(session->stream), message_count, var_myhostname);
+	if (subject)
+	    smtp_printf(session->stream, "Subject: %s", subject);
 	smtp_fputs("", 0, session->stream);
     }
 
@@ -769,7 +774,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "cC:df:l:Lm:or:R:s:t:vw:")) > 0) {
+    while ((ch = GETOPT(argc, argv, "cC:df:l:Lm:or:R:s:S:t:vw:")) > 0) {
 	switch (ch) {
 	case 'c':
 	    count++;
@@ -817,6 +822,9 @@ int     main(int argc, char **argv)
 	case 's':
 	    if ((sessions = atoi(optarg)) <= 0)
 		usage(argv[0]);
+	    break;
+	case 'S':
+	    subject = optarg;
 	    break;
 	case 't':
 	    recipient = optarg;

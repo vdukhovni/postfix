@@ -376,6 +376,10 @@ smtpd_recipient_restrictions = permit_mynetworks,check_relay_domains
 # be tricked into forwarding junk mail to a primary MX host which
 # then spams it out to the world.
 #
+# This parameter also controls if non-local addresses with sender-specified
+# routing can match Postfix access tables. By default, such addresses
+# cannot match Postfix access tables, because the address is ambigous.
+#
 allow_untrusted_routing = no
 
 # The maps_rbl_domains parameter specifies an optional list of DNS

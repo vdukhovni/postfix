@@ -62,19 +62,23 @@ PCRE_TABLE(5)                                       PCRE_TABLE(5)
        string may need to be written as  ${n}  or  $(n)  if  they
        aren't followed by whitespace.
 
-<b>EXAMPLES</b>
+<b>EXAMPLE</b> <b>SMTPD</b> <b>ACCESS</b> <b>MAP</b>
        # Protect your outgoing majordomo exploders
-       /^(?!owner-)(.*)-outgoing@(my.domain)$/    550 Use ${1}@${2} instead
+       /^(?!owner-)(.*)-outgoing@/     550 Use ${1}@${2} instead
 
        # Bounce friend@whatever, except when whatever is our domain (you would
        # be better just bouncing all friend@ mail - this is just an example).
-       /^friend@(?!my.domain).*$/         550 Stick this in your pipe $0
+       /^friend@(?!my\.domain).*$/     550 Stick this in your pipe $0
 
        # A multi-line entry. The text is sent as one line.
        #
-       /^noddy@connect.com.au$/
+       /^noddy@my\.domain$/
         550 This user is a funny one. You really don't want to send mail to
         them as it only makes their head spin.
+
+<b>EXAMPLE</b> <b>HEADER</b> <b>FILTER</b> <b>MAP</b>
+       /^Subject: make money fast/     REJECT
+       /^To: friend@public\.com/        REJECT
 
 <b>SEE</b> <b>ALSO</b>
        <a href="regexp_table.5.html">regexp_table(5)</a> format of POSIX regular expression tables

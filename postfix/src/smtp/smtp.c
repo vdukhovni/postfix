@@ -95,6 +95,8 @@
 /*	Always send EHLO at the start of a connection.
 /* .IP \fBsmtp_never_send_ehlo\fR
 /*	Never send EHLO at the start of a connection.
+/* .IP \fBsmtp_bind_address\fR
+/*	Numerical source network address to bind to when making a connection.
 /* .IP \fBsmtp_break_lines\fR
 /*	Break lines > \fB$line_length_limit\fR into multiple shorter lines.
 /*	Some SMTP servers misbehave on long lines.
@@ -104,8 +106,12 @@
 /*	Skip servers that greet us with a 5xx status code.
 /* .IP \fBsmtp_skip_quit_response\fR
 /*	Do not wait for the server response after sending QUIT.
-/* .IP \fBsmtp_bind_address\fR
-/*	Numerical network address to bind to when making a connection.
+/* .IP \fBsmtp_pix_workaround_delay_time\fR
+/*	The time to pause before sending .<CR><LF>, while working
+/*	around the CISCO PIX firewall <CR><LF>.<CR><LF> bug.
+/* .IP \fBsmtp_pix_workaround_threshold_time\fR
+/*	The time a message must be queued before the CISCO PIX firewall
+/*	<CR><LF>.<CR><LF> bug workaround is turned on.
 /* .SH "Authentication controls"
 /* .IP \fBsmtp_enable_sasl_auth\fR
 /*	Enable per-session authentication as per RFC 2554 (SASL).
@@ -254,7 +260,8 @@ bool    var_smtp_sasl_enable;
 char   *var_smtp_bind_addr;
 bool    var_smtp_rand_addr;
 bool    var_smtp_break_lines;
-int     var_min_backoff_time;
+int     var_smtp_pix_thresh;
+int     var_smtp_pix_delay;
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
@@ -417,7 +424,8 @@ int     main(int argc, char **argv)
 	VAR_SMTP_DATA1_TMOUT, DEF_SMTP_DATA1_TMOUT, &var_smtp_data1_tmout, 1, 0,
 	VAR_SMTP_DATA2_TMOUT, DEF_SMTP_DATA2_TMOUT, &var_smtp_data2_tmout, 1, 0,
 	VAR_SMTP_QUIT_TMOUT, DEF_SMTP_QUIT_TMOUT, &var_smtp_quit_tmout, 1, 0,
-	VAR_MIN_BACKOFF_TIME, DEF_MIN_BACKOFF_TIME, &var_min_backoff_time, 1, 0,
+	VAR_SMTP_PIX_THRESH, DEF_SMTP_PIX_THRESH, &var_smtp_pix_thresh, 0, 0,
+	VAR_SMTP_PIX_DELAY, DEF_SMTP_PIX_DELAY, &var_smtp_pix_delay, 1, 0,
 	0,
     };
     static CONFIG_INT_TABLE int_table[] = {

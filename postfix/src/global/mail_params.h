@@ -733,6 +733,14 @@ extern bool var_smtp_rand_addr;
 #define DEF_SMTP_BREAK_LINES	1
 extern bool var_smtp_break_lines;
 
+#define VAR_SMTP_PIX_THRESH	"smtp_pix_workaround_threshold_time"
+#define DEF_SMTP_PIX_THRESH	"500s"
+extern int var_smtp_pix_thresh;
+
+#define VAR_SMTP_PIX_DELAY	"smtp_pix_workaround_delay_time"
+#define DEF_SMTP_PIX_DELAY	"10s"
+extern int var_smtp_pix_delay;
+
  /*
   * SMTP server. The soft error limit determines how many errors an SMTP
   * client may make before we start to slow down; the hard error limit

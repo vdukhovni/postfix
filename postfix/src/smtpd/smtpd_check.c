@@ -1717,7 +1717,9 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
     /*
      * Avoid surprise matches with source-routed, non-local addresses.
      */
-    if (!resolve_local(ratsign + 1) && (reply->flags & RESOLVE_FLAG_ROUTED))
+    if (var_allow_untrust_route == 0
+	&& (reply->flags & RESOLVE_FLAG_ROUTED)
+	&& !resolve_local(ratsign + 1))
 	return (SMTPD_CHECK_DUNNO);
 
     /*

@@ -150,6 +150,11 @@
 #        details  and  for  default  values. Use the postfix reload
 #        command after a configuration change.
 # 
+#        parent_domain_matches_subdomains (versions >= 20011119)
+#               List of Postfix features that use domain.name  pat-
+#               terns  to  match  sub.domain.name  (as  opposed  to
+#               requiring .domain.name patterns).
+# 
 #        transport_maps
 #               List of transport lookup tables.
 # 
@@ -167,15 +172,16 @@
 #        postmap(1) create mapping table
 #        trivial-rewrite(8) rewrite and resolve addresses
 #        pcre_table(5) format of PCRE tables
+# 
+#                                                                 3
+# 
+# TRANSPORT(5)                                         TRANSPORT(5)
+# 
 #        regexp_table(5) format of POSIX regular expression tables
 # 
 # LICENSE
 #        The Secure Mailer license must be  distributed  with  this
 #        software.
-# 
-#                                                                 3
-# 
-# TRANSPORT(5)                                         TRANSPORT(5)
 # 
 # AUTHOR(S)
 #        Wietse Venema

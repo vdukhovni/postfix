@@ -56,21 +56,26 @@ Substitution of substrings from the matched expression into the result
 string is possible using the conventional perl syntax ($1, $2, etc.).
 The macros in the result string may need to be written as ${n}
 or $(n) if they aren't followed by whitespace.
-.SH EXAMPLES
+.SH EXAMPLE SMTPD ACCESS MAP
 .na
 .nf
 # Protect your outgoing majordomo exploders
-/^(?!owner-)(.*)-outgoing@(my\.domain)$/    550 Use ${1}@${2} instead
+/^(?!owner-)(.*)-outgoing@/     550 Use ${1}@${2} instead
 
 # Bounce friend@whatever, except when whatever is our domain (you would
 # be better just bouncing all friend@ mail - this is just an example).
-/^friend@(?!my\.domain).*$/         550 Stick this in your pipe $0
+/^friend@(?!my\\.domain)/        550 Stick this in your pipe $0
 
 # A multi-line entry. The text is sent as one line.
 #
-/^noddy@connect\.com\.au$/
+/^noddy@my\\.domain$/
 \ 550 This user is a funny one. You really don't want to send mail to
 \ them as it only makes their head spin.
+.SH EXAMPLE HEADER FILTER MAP
+.na
+.nf
+/^Subject: make money fast/     REJECT
+/^To: friend@public\\.com/        REJECT
 .SH SEE ALSO
 .na
 .nf

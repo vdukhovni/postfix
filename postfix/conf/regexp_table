@@ -68,17 +68,22 @@
 #        macros in the result string may need to be written as ${n}
 #        or $(n) if they aren't followed by whitespace.
 # 
-# EXAMPLES
+# EXAMPLE SMTPD ACCESS MAP
 #        # Disallow sender-specified routing. This is a must if you relay mail
 #        # for other domains.
 #        /[%!@].*[%!@]/            550 Sender-specified routing rejected
 # 
 #        # Postmaster is OK, that way they can talk to us about how to fix
 #        # their problem.
-#        /^postmaster@.*$/         OK
+#        /^postmaster@/            OK
 # 
 #        # Protect your outgoing majordomo exploders
-#        /^(.*)-outgoing@(.*)$/!/^owner-.*/      550 Use ${1}@${2} instead
+#        /^(.*)-outgoing@(.*)$/!/^owner-/        550 Use ${1}@${2} instead
+# 
+# EXAMPLE HEADER FILTER MAP
+#        # These were once common in junk mail.
+#        /^Subject: make money fast/     REJECT
+#        /^To: friend@public\.com/        REJECT
 # 
 # SEE ALSO
 #        pcre_table(5) format of PCRE tables

@@ -5759,12 +5759,16 @@ Apologies for any names omitted.
 	third-party patches such as TLS that introduce their own
 	files into the jail.
 
-	Feature: disable the PIX workaround for mail that is queued
-	for less than $minimal_backoff_time seconds.
-
 	Feature: static map type that always returns the map name
 	as lookup value, regardless of lookup key value. Contributed
 	Jeff Miller (jeffm at ghostgun.com)
+
+	Feature: turn off the PIX <CR><LF>.<CR><LF> workaround for
+	the first mail delivery attempt, i.e. when mail is queued
+	for less than $smtp_pix_workaround_threshold_time (default:
+	500) seconds. New parameter $smtp_pix_workaround_delay_time
+	to control the delay before sending .<CR><LF> (default: 10
+	seconds) when doing the PIX <CR><LF>.<CR><LF> workaround.
 
 Open problems:
 

@@ -281,6 +281,9 @@ MAIL_STREAM *mail_stream_command(const char *command)
 	sleep(10);
     }
     argv_free(export_env);
+    vstream_control(stream,
+		    VSTREAM_CTL_PATH, command,
+		    VSTREAM_CTL_END);
 
     if (attr_scan(stream, ATTR_FLAG_MISSING,
 		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id_buf, 0) != 1) {

@@ -58,7 +58,7 @@ Substitution of substrings from the matched expression into the result
 string is possible using $1, $2, etc.. The macros in the result string
 may need to be written as ${n} or $(n) if they aren't followed
 by whitespace.
-.SH EXAMPLES
+.SH EXAMPLE SMTPD ACCESS MAP
 .na
 .nf
 # Disallow sender-specified routing. This is a must if you relay mail
@@ -67,10 +67,16 @@ by whitespace.
 
 # Postmaster is OK, that way they can talk to us about how to fix
 # their problem.
-/^postmaster@.*$/         OK
+/^postmaster@/            OK
 
 # Protect your outgoing majordomo exploders
-/^(.*)-outgoing@(.*)$/!/^owner-.*/      550 Use ${1}@${2} instead
+/^(.*)-outgoing@(.*)$/!/^owner-/        550 Use ${1}@${2} instead
+.SH EXAMPLE HEADER FILTER MAP
+.na
+.nf
+# These were once common in junk mail.
+/^Subject: make money fast/     REJECT
+/^To: friend@public\\.com/        REJECT
 .SH SEE ALSO
 .na
 .nf

@@ -1,3 +1,45 @@
+Incompatible changes with snapshot-20011210
+===========================================
+
+Postfix SMTPD access maps no longer match non-local mail addresses
+that contain multiple domains (user@dom1@dom2, user%dom1@dom2,
+etcetera).  This change prevents false or spurious matches.
+Non-local multi-domain addresses are already prohibited from matching
+permit_mx_backup and the relay_domains-based restrictions.
+
+Stricter checking of Postfix chroot configurations.  The Postfix
+startup procedure now warns if "system" directories (etc, bin, lib,
+usr) under the Postfix top-level queue directory are not owned by
+the super-user (usually the result of well-intended, but misguided,
+applications of "chroot -R postfix /var/spool/postfix).
+
+The Postfix sendmail command no longer exits with status 1 when
+mail submission fails, but instead returns a sendmail-compatible
+status code as defined in /usr/include/sysexits.h.
+
+Major changes with snapshot-20011210
+====================================
+
+Updated LDAP client module by LaMont Jones, with control over
+verbose logging of LDAP library routines.
+
+More usable virtual delivery agent, thanks to a new "static" map
+type by Jeff Miller that always returns its map name as the lookup
+result. This eliminates the need for per-recipient user ID and
+group ID tables.  See the VIRTUAL_README file for more details.
+
+Much-needed documentation on how to configure header/body filters:
+sample regexp and pcre lookup tables for header/body filtering,
+and updated examples in the regexp_table(5) and pcre_table(5) manual
+pages.
+
+Configurable PIX firewall <CR><LF>.<CR><LF> bug workaround behavior:
+the workaround is turned off when mail is queued for less than
+$smtp_pix_workaround_threshold_time seconds (default:  500 seconds)
+so that the workaround is normally enabled only for deferred mail.
+The delay before sending .<CR><LF> is now controlled by the
+$smtp_pix_workaround_delay_time setting (default: 10 seconds).
+
 Major changes with snapshot-20011127
 ====================================
 

@@ -416,6 +416,7 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
 				  MAIL_CLASS_PUBLIC, MAIL_SERVICE_PICKUP);
 	sendmail_path = mystrdup(VSTREAM_PATH(handle->stream));
     } else {
+	errno = 0;
 	postdrop_command = concatenate(var_command_dir, "/postdrop",
 			      msg_verbose ? " -v" : (char *) 0, (char *) 0);
 	if ((handle = mail_stream_command(postdrop_command)) == 0)

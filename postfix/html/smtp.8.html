@@ -117,24 +117,34 @@ SMTP(8)                                                   SMTP(8)
        <b>smtp</b><i>_</i><b>never</b><i>_</i><b>send</b><i>_</i><b>ehlo</b>
               Never send EHLO at the start of a connection.
 
+       <b>smtp</b><i>_</i><b>bind</b><i>_</i><b>address</b>
+              Numerical source network address to  bind  to  when
+              making a connection.
+
        <b>smtp</b><i>_</i><b>break</b><i>_</i><b>lines</b>
               Break  lines  &gt;  <b>$line</b><i>_</i><b>length</b><i>_</i><b>limit</b>  into  multiple
               shorter lines.  Some SMTP servers misbehave on long
               lines.
 
        <b>smtp</b><i>_</i><b>skip</b><i>_</i><b>4xx</b><i>_</i><b>greeting</b>
-              Skip servers that greet us with a 4xx status  code.
+              Skip  servers that greet us with a 4xx status code.
 
        <b>smtp</b><i>_</i><b>skip</b><i>_</i><b>5xx</b><i>_</i><b>greeting</b>
-              Skip  servers that greet us with a 5xx status code.
+              Skip servers that greet us with a 5xx status  code.
 
        <b>smtp</b><i>_</i><b>skip</b><i>_</i><b>quit</b><i>_</i><b>response</b>
-              Do not wait for the server response  after  sending
+              Do  not  wait for the server response after sending
               QUIT.
 
-       <b>smtp</b><i>_</i><b>bind</b><i>_</i><b>address</b>
-              Numerical  network address to bind to when making a
-              connection.
+       <b>smtp</b><i>_</i><b>pix</b><i>_</i><b>workaround</b><i>_</i><b>delay</b><i>_</i><b>time</b>
+              The time to pause before sending  .&lt;CR&gt;&lt;LF&gt;,  while
+              working    around    the    CISCO    PIX   firewall
+              &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt; bug.
+
+       <b>smtp</b><i>_</i><b>pix</b><i>_</i><b>workaround</b><i>_</i><b>threshold</b><i>_</i><b>time</b>
+              The time a message must be queued before the  CISCO
+              PIX  firewall  &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;  bug workaround is
+              turned on.
 
 <b>Authentication</b> <b>controls</b>
        <b>smtp</b><i>_</i><b>enable</b><i>_</i><b>sasl</b><i>_</i><b>auth</b>
