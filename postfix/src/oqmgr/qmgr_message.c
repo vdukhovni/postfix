@@ -638,7 +638,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
     if (message->sasl_sender == 0)
 	message->sasl_sender = mystrdup("");
     if (message->rewrite_context == 0)
-	message->rewrite_context = mystrdup("");
+	message->rewrite_context = mystrdup(MAIL_ATTR_RWR_LOCAL);
 
     /*
      * Clean up.

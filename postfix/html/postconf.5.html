@@ -3110,11 +3110,9 @@ client TLS certificate is successfully verified, regardless of
 whether it is listed on the server, and regardless of the certifying
 authority. </dd>
 
-<dt><b> <a name="check_address_map">check_address_map</a> <i><a
-href="DATABASE_README.html">type:table</a></i> </b></dt>
+<dt><b> <a name="check_address_map">check_address_map</a> <i><a href="DATABASE_README.html">type:table</a></i> </b></dt>
 
-<dt><b> <i><a href="DATABASE_README.html">type:table</a></i>
-</b></dt>
+<dt><b> <i><a href="DATABASE_README.html">type:table</a></i> </b></dt>
 
 <dd> Append the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> when the
 client IP address matches the specified lookup table. The lookup
@@ -6532,7 +6530,8 @@ a restriction list, to make the default policy explicit.</dd>
 and the message has multiple envelope recipients. Although this
 usage is technically allowed, it seems to have no legitimate
 application. <br> NOTE: this restriction can only work reliably
-when used in <a href="postconf.5.html#smtpd_data_restrictions">smtpd_data_restrictions</a>, because the total number of
+when used in <a href="postconf.5.html#smtpd_data_restrictions">smtpd_data_restrictions</a> or
+<a href="postconf.5.html#smtpd_end_of_data_restrictions">smtpd_end_of_data_restrictions</a>, because the total number of
 recipients is not known at an earlier stage of the SMTP conversation.
 Use at the RCPT stage will only reject the second etc.  recipient.
 <br>
@@ -6665,6 +6664,19 @@ recipient address information when rejecting a client name/address
 or sender address, so that it is possible to find out whose mail
 is being rejected.
 </p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_end_of_data_restrictions">smtpd_end_of_data_restrictions</a>
+(default: empty)</b></DT><DD>
+
+<p> Optional access restrictions that the Postfix SMTP server
+applies in the context of the SMTP END-OF-DATA command. </p>
+
+<p> This feature is available in Postfix 2.2 and later. </p>
+
+<p> See <a href="postconf.5.html#smtpd_data_restrictions">smtpd_data_restrictions</a> for syntax details. </p>
 
 
 </DD>

@@ -1332,6 +1332,10 @@ extern char *var_etrn_checks;
 #define DEF_DATA_CHECKS		""
 extern char *var_data_checks;
 
+#define VAR_EOD_CHECKS		"smtpd_end_of_data_restrictions"
+#define DEF_EOD_CHECKS		""
+extern char *var_eod_checks;
+
 #define VAR_REST_CLASSES	"smtpd_restriction_classes"
 #define DEF_REST_CLASSES	""
 extern char *var_rest_classes;

@@ -7,6 +7,21 @@ snapshot release).  Patches are issued for the official release
 and change the patchlevel and the release date. Patches are never
 issued for snapshot releases.
 
+Incompatible changes with snapshot Postfix-2.2-20041118
+=======================================================
+
+You must restart Postfix, because the master-child protocol has
+changed.  Postfix will log warnings about partial status updates
+if you forget to restart the master.
+
+Major changes with snapshot Postfix-2.2-20041118
+================================================
+
+New "smtpd_end_of_data_restrictions" feature that is invoked after
+the client terminates the SMTP DATA command. The syntax is the same
+as with "smtpd_data_restrictions", but the message size is the
+actual byte count of the message content.
+
 Incompatible changes with snapshot Postfix-2.2-20041030
 =======================================================
 

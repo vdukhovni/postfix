@@ -89,13 +89,15 @@ static void master_status_event(int event, char *context)
 	/* NOTREACHED */
 
     default:
-	msg_warn("%s: partial status (%d bytes)", myname, n);
+	msg_warn("service %s: child (pid %d) sent partial status update (%d bytes)", 
+		 serv->name, stat.pid, n);
 	return;
 
     case sizeof(stat):
 	pid = stat.pid;
 	if (msg_verbose)
-	    msg_info("%s: pid %d avail %d", myname, stat.pid, stat.avail);
+	    msg_info("%s: pid %d gen %u avail %d",
+		     myname, stat.pid, stat.gen, stat.avail);
     }
 
     /*
@@ -109,6 +111,11 @@ static void master_status_event(int event, char *context)
 					(char *) &pid, sizeof(pid))) == 0) {
 	if (msg_verbose)
 	    msg_info("%s: process id not found: %d", myname, stat.pid);
+	return;
+    }
+    if (proc->gen != stat.gen) {
+	msg_info("ignoring status update from child pid %d generation %u",
+		 pid, stat.gen);
 	return;
     }
     if (proc->serv != serv)

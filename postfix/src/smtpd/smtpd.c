@@ -445,6 +445,11 @@
 /*	Request that the Postfix SMTP server rejects mail for unknown
 /*	recipient addresses, even when no explicit reject_unlisted_recipient
 /*	access restriction is specified.
+/* .PP
+/*	Available in Postfix version 2.2 and later:
+/* .IP "\fBsmtpd_end_of_data_restrictions (empty)\fR"
+/*	Optional access restrictions that the Postfix SMTP server
+/*	applies in the context of the SMTP END-OF-DATA command.
 /* SENDER AND RECIPIENT ADDRESS VERIFICATION CONTROLS
 /* .ad
 /* .fi
@@ -583,6 +588,7 @@
 /*	trivial-rewrite(8), address resolver
 /*	verify(8), address verification service
 /*	postconf(5), configuration parameters
+/*	master(5), generic daemon options
 /*	master(8), process manager
 /*	syslogd(8), system logging
 /* README FILES
@@ -715,6 +721,7 @@ char   *var_mail_checks;
 char   *var_rcpt_checks;
 char   *var_etrn_checks;
 char   *var_data_checks;
+char   *var_eod_checks;
 int     var_unk_client_code;
 int     var_bad_name_code;
 int     var_unk_name_code;
@@ -1388,6 +1395,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 static void mail_reset(SMTPD_STATE *state)
 {
     state->msg_size = 0;
+    state->act_size = 0;
 
     /*
      * Unceremoniously close the pipe to the cleanup service. The cleanup
@@ -1758,9 +1766,22 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	if (prev_rec_type != REC_TYPE_CONT && *start == '.'
 	    && (state->proxy == 0 ? (++start, --len) == 0 : len == 1))
 	    break;
+	state->act_size += len + 2;
 	if (state->err == CLEANUP_STAT_OK
 	    && out_record(out_stream, curr_rec_type, start, len) < 0)
 	    state->err = out_error;
+    }
+    state->where = SMTPD_AFTER_DOT;
+    if (SMTPD_STAND_ALONE(state) == 0 && (err = smtpd_check_eod(state)) != 0) {
+	smtpd_chat_reply(state, "%s", err);
+	if (state->proxy) {
+	    smtpd_proxy_close(state);
+	} else {
+	    mail_stream_cleanup(state->dest);
+	    state->dest = 0;
+	    state->cleanup = 0;
+	}
+	return (-1);
     }
 
     /*
@@ -1845,12 +1866,6 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
 	smtpd_chat_reply(state, "451 Error: internal error %d", state->err);
     }
-
-    /*
-     * Disconnect after transmission must not be treated as "lost connection
-     * after DATA".
-     */
-    state->where = SMTPD_AFTER_DOT;
 
     /*
      * Cleanup. The client may send another MAIL command.
@@ -2884,6 +2899,7 @@ int     main(int argc, char **argv)
 	VAR_RCPT_CHECKS, DEF_RCPT_CHECKS, &var_rcpt_checks, 0, 0,
 	VAR_ETRN_CHECKS, DEF_ETRN_CHECKS, &var_etrn_checks, 0, 0,
 	VAR_DATA_CHECKS, DEF_DATA_CHECKS, &var_data_checks, 0, 0,
+	VAR_EOD_CHECKS, DEF_EOD_CHECKS, &var_eod_checks, 0, 0,
 	VAR_MAPS_RBL_DOMAINS, DEF_MAPS_RBL_DOMAINS, &var_maps_rbl_domains, 0, 0,
 	VAR_RBL_REPLY_MAPS, DEF_RBL_REPLY_MAPS, &var_rbl_reply_maps, 0, 0,
 	VAR_ERROR_RCPT, DEF_ERROR_RCPT, &var_error_rcpt, 1, 0,

@@ -77,6 +77,7 @@ typedef int MASTER_PID;			/* pid is key into binhash table */
 
 typedef struct MASTER_PROC {
     MASTER_PID pid;			/* child process id */
+    unsigned gen;			/* child generation number */
     int     avail;			/* availability */
     MASTER_SERV *serv;			/* parent linkage */
     int     use_count;			/* number of service requests */

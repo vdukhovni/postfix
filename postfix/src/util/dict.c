@@ -473,8 +473,10 @@ const char *dict_eval(const char *dict_name, const char *value, int recursive)
      */
     if (buf == 0)
 	buf = vstring_alloc(10);
-    if (loop++ == 0)
+    if (loop++ == 0) {
 	VSTRING_RESET(buf);
+	VSTRING_TERMINATE(buf);
+    }
     ctxt.buf = buf;
     ctxt.recursive = recursive;
     ctxt.dict_name = dict_name;

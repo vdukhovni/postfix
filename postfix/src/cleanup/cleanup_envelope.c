@@ -280,18 +280,25 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	    myfree(sbuf);
 	    return;
 	}
+	/* Zero-length values are place holders for unavailable values. */
+	if (*attr_value == 0) {
+	    msg_warn("%s: spurious null attribute value for \"%s\" -- ignored",
+		     state->queue_id, attr_name);
+	    myfree(sbuf);
+	    return;
+	}
 	if (strcmp(attr_name, MAIL_ATTR_RWR_CONTEXT) == 0) {
 	    /* Choose header rewriting context. See also cleanup_addr.c. */
 	    if (STREQ(attr_value, MAIL_ATTR_RWR_LOCAL)) {
 		state->hdr_rewrite_context = MAIL_ATTR_RWR_LOCAL;
 	    } else if (STREQ(attr_value, MAIL_ATTR_RWR_REMOTE)) {
-		state->hdr_rewrite_context = 
-		    (*var_remote_rwr_domain ?  MAIL_ATTR_RWR_REMOTE : 0);
+		state->hdr_rewrite_context =
+		    (*var_remote_rwr_domain ? MAIL_ATTR_RWR_REMOTE : 0);
 	    } else {
-                msg_warn("%s: message rejected: bad rewriting context: %.100s",
-                         state->queue_id, attr_value);
-                state->errs |= CLEANUP_STAT_BAD;
-                return;
+		msg_warn("%s: message rejected: bad rewriting context: %.100s",
+			 state->queue_id, attr_value);
+		state->errs |= CLEANUP_STAT_BAD;
+		return;
 	    }
 	}
 	nvtable_update(state->attr, attr_name, attr_value);

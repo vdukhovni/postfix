@@ -152,23 +152,26 @@ static FORWARD_INFO *forward_open(DELIVER_REQUEST *request, char *sender)
      * designated sender: mailing list owner, posting user, whatever.
      */
     rec_fprintf(cleanup, REC_TYPE_TIME, "%ld", (long) info->posting_time);
-    rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
-		MAIL_ATTR_CLIENT_NAME, request->client_name);
-    rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
-		MAIL_ATTR_CLIENT_ADDR, request->client_addr);
-    rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
-		MAIL_ATTR_PROTO_NAME, request->client_proto);
-    rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
-		MAIL_ATTR_HELO_NAME, request->client_helo);
-    rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
-		MAIL_ATTR_SASL_METHOD, request->sasl_method);
-    rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
-		MAIL_ATTR_SASL_USERNAME, request->sasl_username);
-    rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
-		MAIL_ATTR_SASL_SENDER, request->sasl_sender);
-    rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
-		MAIL_ATTR_RWR_CONTEXT, request->rewrite_context);
     rec_fputs(cleanup, REC_TYPE_FROM, sender);
+
+    /*
+     * Zero-length attribute values are place holders for unavailable
+     * attribute values. See qmgr_message.c. They are not meant to be
+     * propagated to queue files.
+     */
+#define PASS_ATTR(fp, name, value) do { \
+    if ((value) && *(value)) \
+	rec_fprintf((fp), REC_TYPE_ATTR, "%s=%s", (name), (value)); \
+    } while (0)
+
+    PASS_ATTR(cleanup, MAIL_ATTR_CLIENT_NAME, request->client_name);
+    PASS_ATTR(cleanup, MAIL_ATTR_CLIENT_ADDR, request->client_addr);
+    PASS_ATTR(cleanup, MAIL_ATTR_PROTO_NAME, request->client_proto);
+    PASS_ATTR(cleanup, MAIL_ATTR_HELO_NAME, request->client_helo);
+    PASS_ATTR(cleanup, MAIL_ATTR_SASL_METHOD, request->sasl_method);
+    PASS_ATTR(cleanup, MAIL_ATTR_SASL_USERNAME, request->sasl_username);
+    PASS_ATTR(cleanup, MAIL_ATTR_SASL_SENDER, request->sasl_sender);
+    PASS_ATTR(cleanup, MAIL_ATTR_RWR_CONTEXT, request->rewrite_context);
 
     vstring_free(buffer);
     return (info);

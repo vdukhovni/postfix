@@ -144,6 +144,7 @@
 #include <signal.h>
 #include <syslog.h>
 #include <stdlib.h>
+#include <limits.h>
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -205,6 +206,7 @@ static void (*multi_server_onexit) (char *, char **);
 static void (*multi_server_pre_accept) (char *, char **);
 static VSTREAM *multi_server_lock;
 static int multi_server_in_flow_delay;
+static unsigned multi_server_generation;
 static void (*multi_server_pre_disconn) (VSTREAM *, char *, char **);
 
 /* multi_server_exit - normal termination */
@@ -263,10 +265,10 @@ static void multi_server_execute(int unused_event, char *context)
      * Do not bother the application when the client disconnected.
      */
     if (peekfd(vstream_fileno(stream)) > 0) {
-	if (master_notify(var_pid, MASTER_STAT_TAKEN) < 0)
+	if (master_notify(var_pid, multi_server_generation, MASTER_STAT_TAKEN) < 0)
 	    multi_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
 	multi_server_service(stream, multi_server_name, multi_server_argv);
-	if (master_notify(var_pid, MASTER_STAT_AVAIL) < 0)
+	if (master_notify(var_pid, multi_server_generation, MASTER_STAT_AVAIL) < 0)
 	    multi_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
     } else {
 	multi_server_disconnect(stream);
@@ -406,6 +408,7 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     int     zerolimit = 0;
     WATCHDOG *watchdog;
     char   *oval;
+    char   *generation;
 
     /*
      * Process environment options as early as we can.
@@ -595,6 +598,15 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 	    multi_server_accept = multi_server_accept_local;
 	else
 	    msg_fatal("unsupported transport type: %s", transport);
+    }
+
+    /*
+     * Retrieve process generation from environment.
+     */
+    if ((generation = getenv(MASTER_GEN_NAME)) != 0) {
+	if (!alldig(generation))
+	    msg_fatal("bad generation: %s", generation);
+	multi_server_generation = strtoul(generation, (char **) 0, 8);
     }
 
     /*

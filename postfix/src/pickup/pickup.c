@@ -289,14 +289,6 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
 	rec_fprintf(cleanup, REC_TYPE_FILT, "%s", var_filter_xport);
 
     /*
-     * Origin is local.
-     */
-    rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
-		MAIL_ATTR_ORIGIN, MAIL_ATTR_ORG_LOCAL);
-    rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
-		MAIL_ATTR_RWR_CONTEXT, MAIL_ATTR_RWR_LOCAL);
-
-    /*
      * Copy the message envelope segment. Allow only those records that we
      * expect to see in the envelope section. The envelope segment must
      * contain an envelope sender address.

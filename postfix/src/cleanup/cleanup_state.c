@@ -83,6 +83,7 @@ CLEANUP_STATE *cleanup_state_alloc(void)
     state->rcpt_count = 0;
     state->reason = 0;
     state->attr = nvtable_create(10);
+    nvtable_update(state->attr, MAIL_ATTR_ORIGIN, MAIL_ATTR_ORG_LOCAL);
     state->mime_state = 0;
     state->mime_errs = 0;
     state->hdr_rewrite_context = MAIL_ATTR_RWR_LOCAL;

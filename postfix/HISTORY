@@ -9823,6 +9823,63 @@ Apologies for any names omitted.
 	Compatibility: "session cache" renamed to "connection cache"
 	to avoid confusion with the TLS session cache.
 
+20041102
+
+	Feature: smtpd_end_of_data_restrictions allow you to specify
+	restrictions at the end of the SMTP DATA command. The syntax
+	is identical to that of the smtpd_data_restrictions feature.
+	This introduces a new END-OF-DATA protocol state for the
+	external policy server. Files:  proto/SMTPD_POLICY_README.html,
+	proto/SMTPD_ACCESS_README.html, smtpd/smtpd_check.c.
+
+20041111
+
+	Cleanup: terminate the dict_eval() result buffer for verbose
+	logging.  Victor Duchovni, Morgan Stanley. File: util/dict.c.
+
+20041112
+
+	Cleanup: be more careful when saving and restoring resolver(3)
+	options to avoid problems with an HP-UX security patch
+	(change introduced 20031215). File:  dns/dns_lookup.c.
+
+20041115
+
+	Bugfix: the test for "no debugger_command" was wrong.
+	Leandro Santi. File: global/debugger_command.c.
+
+20040117
+
+	Robustness: the master-child protocol now includes a process
+	generation number besides the child process ID.  The process
+	generation number is incremented by one each time the master
+	creates a child process. Child-to-master status updates
+	with the wrong generation number are ignored, instead of
+	triggering a consistency error in the master server.  Files:
+	master/*server.c, master/master_status.c, master/master_spawn.c.
+
+20041118
+
+	Bugfix: the "local_header_rewrite_clients" feature (20041023)
+	did not recognize "bare" lookup tables as documented.  Victor
+	Duchovni, Morgan Stanley. File: smtpd/smtpd_check.c.
+
+	Bugfix: the "local_header_rewrite_clients" feature (20041023)
+	was broken because the local delivery agent passed on a
+	bogus attribute value when forwarding internally generated
+	mail, causing the mail to be rejected by the cleanup server.
+	File: local/dotforward.c.
+
+	Bugfix: the "local_header_rewrite_clients" feature (20041023)
+	was broken because the pickup server always overwrote origin
+	information. Files: pickup/pickup.c, cleanup/cleanup_state.c,
+	*qmgr/qmgr_message.c.
+
+	Workaround: enable the "can't write before sending a file
+	descriptor" workaround for Solaris. Problem reported by
+	Victor Duchovni for Solaris 2.5.1, but we play safe and
+	enable it unconditionally.
+
 Open problems:
 
 	Low: reject HELO with any domain name or IP address that

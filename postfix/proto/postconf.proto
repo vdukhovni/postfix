@@ -4208,7 +4208,8 @@ a restriction list, to make the default policy explicit.</dd>
 and the message has multiple envelope recipients. Although this
 usage is technically allowed, it seems to have no legitimate
 application. <br> NOTE: this restriction can only work reliably
-when used in smtpd_data_restrictions, because the total number of
+when used in smtpd_data_restrictions or 
+smtpd_end_of_data_restrictions, because the total number of
 recipients is not known at an earlier stage of the SMTP conversation.
 Use at the RCPT stage will only reject the second etc.  recipient.
 <br>
@@ -6666,6 +6667,15 @@ smtpd_data_restrictions = reject_unauth_pipelining
 smtpd_data_restrictions = reject_multi_recipient_bounce
 </pre>
 
+%PARAM smtpd_end_of_data_restrictions 
+
+<p> Optional access restrictions that the Postfix SMTP server
+applies in the context of the SMTP END-OF-DATA command. </p>
+
+<p> This feature is available in Postfix 2.2 and later. </p>
+
+<p> See smtpd_data_restrictions for syntax details. </p>
+
 %PARAM smtpd_delay_reject yes
 
 <p>
@@ -7280,11 +7290,9 @@ client TLS certificate is successfully verified, regardless of
 whether it is listed on the server, and regardless of the certifying
 authority. </dd>
 
-<dt><b> <a name="check_address_map">check_address_map</a> <i><a
-href="DATABASE_README.html">type:table</a></i> </b></dt>
+<dt><b> <a name="check_address_map">check_address_map</a> <i><a href="DATABASE_README.html">type:table</a></i> </b></dt>
 
-<dt><b> <i><a href="DATABASE_README.html">type:table</a></i>
-</b></dt>
+<dt><b> <i><a href="DATABASE_README.html">type:table</a></i> </b></dt>
 
 <dd> Append the domain name in $myorigin or $mydomain when the
 client IP address matches the specified lookup table. The lookup

@@ -75,13 +75,18 @@ Notes:
   * The "instance" attribute value can be used to correlate different requests
     regarding the same message delivery.
 
+  * The "size" attribute value specifies the message size that the client
+    specified in the MAIL FROM command (zero if none was specified). With
+    Postfix 2.2 and later, it specifies the actual message size when the client
+    sends the END-OF-DATA command.
+
 The following is specific to SMTPD delegated policy requests:
 
   * Protocol names are ESMTP or SMTP.
 
-  * Protocol states are CONNECT, EHLO, HELO, MAIL, RCPT, DATA, VRFY or ETRN;
-    these are the SMTP protocol states where the Postfix SMTP server makes an
-    OK/REJECT/HOLD/etc. decision.
+  * Protocol states are CONNECT, EHLO, HELO, MAIL, RCPT, DATA, END-OF-DATA,
+    VRFY or ETRN; these are the SMTP protocol states where the Postfix SMTP
+    server makes an OK/REJECT/HOLD/etc. decision.
 
   * The SASL attributes are sent only when SASL support is built into Postfix.
 

@@ -134,6 +134,7 @@
 #include <signal.h>
 #include <syslog.h>
 #include <stdlib.h>
+#include <limits.h>
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -193,6 +194,7 @@ static void (*single_server_onexit) (char *, char **);
 static void (*single_server_pre_accept) (char *, char **);
 static VSTREAM *single_server_lock;
 static int single_server_in_flow_delay;
+static unsigned single_server_generation;
 
 /* single_server_exit - normal termination */
 
@@ -243,13 +245,13 @@ static void single_server_wakeup(int fd)
     vstream_control(stream, VSTREAM_CTL_PATH, tmp, VSTREAM_CTL_END);
     myfree(tmp);
     timed_ipc_setup(stream);
-    if (master_notify(var_pid, MASTER_STAT_TAKEN) < 0)
+    if (master_notify(var_pid, single_server_generation, MASTER_STAT_TAKEN) < 0)
 	single_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
     if (single_server_in_flow_delay && mail_flow_get(1) < 0)
 	doze(var_in_flow_delay * 1000000);
     single_server_service(stream, single_server_name, single_server_argv);
     (void) vstream_fclose(stream);
-    if (master_notify(var_pid, MASTER_STAT_AVAIL) < 0)
+    if (master_notify(var_pid, single_server_generation, MASTER_STAT_AVAIL) < 0)
 	single_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
     if (msg_verbose)
 	msg_info("connection closed");
@@ -352,6 +354,7 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
     int     zerolimit = 0;
     WATCHDOG *watchdog;
     char   *oval;
+    char   *generation;
 
     /*
      * Process environment options as early as we can.
@@ -538,6 +541,15 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
 	    single_server_accept = single_server_accept_local;
 	else
 	    msg_fatal("unsupported transport type: %s", transport);
+    }
+
+    /*
+     * Retrieve process generation from environment.
+     */
+    if ((generation = getenv(MASTER_GEN_NAME)) != 0) {
+	if (!alldig(generation))
+	    msg_fatal("bad generation: %s", generation);
+	single_server_generation = strtoul(generation, (char **) 0, 8);
     }
 
     /*

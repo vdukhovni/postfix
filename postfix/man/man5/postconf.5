@@ -1585,10 +1585,8 @@ Append the domain name in $myorigin or $mydomain when the
 client TLS certificate is successfully verified, regardless of
 whether it is listed on the server, and regardless of the certifying
 authority.
-.IP "\fB check_address_map \fI<a
-href="DATABASE_README.html">type:table\fR \fR"
-.IP "\fB \fItype:table\fR
-\fR"
+.IP "\fB check_address_map \fItype:table\fR \fR"
+.IP "\fB \fItype:table\fR \fR"
 Append the domain name in $myorigin or $mydomain when the
 client IP address matches the specified lookup table. The lookup
 result is ignored, and no subnet lookup is done. This is suitable
@@ -3530,7 +3528,8 @@ usage is technically allowed, it seems to have no legitimate
 application.
 .br
 NOTE: this restriction can only work reliably
-when used in smtpd_data_restrictions, because the total number of
+when used in smtpd_data_restrictions or
+smtpd_end_of_data_restrictions, because the total number of
 recipients is not known at an earlier stage of the SMTP conversation.
 Use at the RCPT stage will only reject the second etc.  recipient.
 .br
@@ -3625,6 +3624,13 @@ The default setting has one major benefit: it allows Postfix to log
 recipient address information when rejecting a client name/address
 or sender address, so that it is possible to find out whose mail
 is being rejected.
+.SH smtpd_end_of_data_restrictions (default: empty)
+Optional access restrictions that the Postfix SMTP server
+applies in the context of the SMTP END-OF-DATA command.
+.PP
+This feature is available in Postfix 2.2 and later.
+.PP
+See smtpd_data_restrictions for syntax details.
 .SH smtpd_error_sleep_time (default: 1s)
 With Postfix 2.1 and later: the SMTP server response delay after
 a client has made more than $smtpd_soft_error_limit errors, and

@@ -55,7 +55,7 @@ void    debug_process(void)
      * Expand $debugger_command then run it.
      */
     command = mail_conf_lookup_eval(VAR_DEBUG_COMMAND);
-    if (*command == 0)
+    if (command == 0 || *command == 0)
 	msg_fatal("no %s variable set up", VAR_DEBUG_COMMAND);
     msg_info("running: %s", command);
     system(command);

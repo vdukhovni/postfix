@@ -142,6 +142,7 @@
 #include <signal.h>
 #include <syslog.h>
 #include <stdlib.h>
+#include <limits.h>
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -200,6 +201,7 @@ static void (*trigger_server_onexit) (char *, char **);
 static void (*trigger_server_pre_accept) (char *, char **);
 static VSTREAM *trigger_server_lock;
 static int trigger_server_in_flow_delay;
+static unsigned trigger_server_generation;
 
 /* trigger_server_exit - normal termination */
 
@@ -238,14 +240,14 @@ static void trigger_server_wakeup(int fd)
     /*
      * Commit suicide when the master process disconnected from us.
      */
-    if (master_notify(var_pid, MASTER_STAT_TAKEN) < 0)
+    if (master_notify(var_pid, trigger_server_generation, MASTER_STAT_TAKEN) < 0)
 	trigger_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
     if (trigger_server_in_flow_delay && mail_flow_get(1) < 0)
 	doze(var_in_flow_delay * 1000000);
     if ((len = read(fd, buf, sizeof(buf))) >= 0)
 	trigger_server_service(buf, len, trigger_server_name,
 			       trigger_server_argv);
-    if (master_notify(var_pid, MASTER_STAT_AVAIL) < 0)
+    if (master_notify(var_pid, trigger_server_generation, MASTER_STAT_AVAIL) < 0)
 	trigger_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
     if (var_idle_limit > 0)
 	event_request_timer(trigger_server_timeout, (char *) 0, var_idle_limit);
@@ -348,6 +350,7 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
     int     zerolimit = 0;
     WATCHDOG *watchdog;
     char   *oval;
+    char   *generation;
 
     /*
      * Process environment options as early as we can.
@@ -548,6 +551,15 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
 	    trigger_server_accept = trigger_server_accept_fifo;
 	else
 	    msg_fatal("unsupported transport type: %s", transport);
+    }
+
+    /*
+     * Retrieve process generation from environment.
+     */
+    if ((generation = getenv(MASTER_GEN_NAME)) != 0) {
+	if (!alldig(generation))
+	    msg_fatal("bad generation: %s", generation);
+	trigger_server_generation = strtoul(generation, (char **) 0, 8);
     }
 
     /*

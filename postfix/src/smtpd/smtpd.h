@@ -86,6 +86,7 @@ typedef struct SMTPD_STATE {
     char   *where;			/* protocol stage */
     int     recursion;			/* Kellerspeicherpegelanzeiger */
     off_t   msg_size;			/* MAIL FROM message size */
+    off_t   act_size;			/* END-OF-DATA message size */
     int     junk_cmds;			/* counter */
     int     rcpt_overshoot;		/* counter */
     char   *rewrite_context;		/* address rewriting context */

@@ -36,6 +36,9 @@
 /*
 /*	char	*smtpd_check_data(state)
 /*	SMTPD_STATE *state;
+/*
+/*	char	*smtpd_check_eod(state)
+/*	SMTPD_STATE *state;
 /* DESCRIPTION
 /*	This module implements additional checks on SMTP client requests.
 /*	A client request is validated in the context of the session state.
@@ -113,6 +116,9 @@
 /* .PP
 /*	smtpd_check_data() enforces generic restrictions after the
 /*	client has sent the DATA command.
+/*
+/*	smtpd_check_eod() enforces generic restrictions after the
+/*	client has sent the END-OF-DATA command.
 /*
 /*	Arguments:
 /* .IP name
@@ -292,6 +298,7 @@ static ARGV *mail_restrctions;
 static ARGV *rcpt_restrctions;
 static ARGV *etrn_restrctions;
 static ARGV *data_restrctions;
+static ARGV *eod_restrictions;
 
 static HTABLE *smtpd_rest_classes;
 static HTABLE *policy_clnt_table;
@@ -324,6 +331,7 @@ static int check_rcpt_maps(SMTPD_STATE *, const char *, const char *);
 #define SMTPD_NAME_RECIPIENT	"Recipient address"
 #define SMTPD_NAME_ETRN		"Etrn command"
 #define SMTPD_NAME_DATA		"Data command"
+#define SMTPD_NAME_EOD		"End-of-data"
 
  /*
   * YASLM.
@@ -651,6 +659,8 @@ void    smtpd_check_init(void)
 					 var_etrn_checks);
     data_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
 					 var_data_checks);
+    eod_restrictions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+					 var_eod_checks);
 
     /*
      * Parse the pre-defined restriction classes.
@@ -2898,7 +2908,8 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 			  ATTR_TYPE_STR, MAIL_ATTR_INSTANCE,
 			  STR(state->instance),
 			  ATTR_TYPE_LONG, MAIL_ATTR_SIZE,
-			  (unsigned long) state->msg_size,
+			  (unsigned long) (state->act_size > 0 ?
+					 state->act_size : state->msg_size),
 #ifdef USE_SASL_AUTH
 			  ATTR_TYPE_STR, MAIL_ATTR_SASL_METHOD,
 			  var_smtpd_sasl_enable && state->sasl_method ?
@@ -3395,6 +3406,7 @@ void    smtpd_check_rewrite(SMTPD_STATE *state)
     int     status;
     char  **cpp;
     DICT   *dict;
+    char   *name;
 
     /*
      * We don't use generic_checks() because it produces results that aren't
@@ -3404,29 +3416,33 @@ void    smtpd_check_rewrite(SMTPD_STATE *state)
 	if (msg_verbose)
 	    msg_info("%s: trying: %s", myname, *cpp);
 	status = SMTPD_CHECK_DUNNO;
-	if (strcasecmp(*cpp, PERMIT_MYNETWORKS) == 0) {
+	if (strchr(name = *cpp, ':') != 0) {
+	    name = CHECK_ADDR_MAP;
+	    cpp -= 1;
+	}
+	if (strcasecmp(name, PERMIT_MYNETWORKS) == 0) {
 	    status = permit_mynetworks(state);
-	} else if (is_map_command(state, *cpp, CHECK_ADDR_MAP, &cpp)) {
-	    if ((dict = dict_handle(*cpp)) == 0)
-		msg_panic("%s: dictionary not found: %s", myname, *cpp);
+	} else if (is_map_command(state, name, CHECK_ADDR_MAP, &cpp)) {
+	    if ((dict = dict_handle(name)) == 0)
+		msg_panic("%s: dictionary not found: %s", myname, name);
 	    if (dict_get(dict, state->addr) != 0)
 		status = SMTPD_CHECK_OK;
-	} else if (strcasecmp(*cpp, PERMIT_SASL_AUTH) == 0) {
+	} else if (strcasecmp(name, PERMIT_SASL_AUTH) == 0) {
 #ifdef USE_SASL_AUTH
 	    status = permit_sasl_auth(state, SMTPD_CHECK_OK,
 				      SMTPD_CHECK_DUNNO);
 #else
 	    status = SMTPD_CHECK_DUNNO;
 #endif
-#ifdef USE_SSL
-	} else if (strcasecmp(*cpp, PERMIT_TLS_ALL_CLIENTCERTS) == 0) {
+#ifdef USE_TLS
+	} else if (strcasecmp(name, PERMIT_TLS_ALL_CLIENTCERTS) == 0) {
 	    status = permit_tls_clientcerts(state, 1);
-	} else if (strcasecmp(*cpp, PERMIT_TLS_CLIENTCERTS) == 0) {
+	} else if (strcasecmp(name, PERMIT_TLS_CLIENTCERTS) == 0) {
 	    status = permit_tls_clientcerts(state, 0);
 #endif
 	} else {
 	    msg_warn("parameter %s: invalid request: %s",
-		     VAR_LOC_RWR_CLIENTS, *cpp);
+		     VAR_LOC_RWR_CLIENTS, name);
 	    continue;
 	}
 	if (status == SMTPD_CHECK_OK) {
@@ -3987,6 +4003,55 @@ char   *smtpd_check_data(SMTPD_STATE *state)
     if (status == 0 && data_restrctions->argc)
 	status = generic_checks(state, data_restrctions,
 				"DATA", SMTPD_NAME_DATA, NO_DEF_ACL);
+
+    /*
+     * Force permission into deferral when some earlier temporary error may
+     * have prevented us from rejecting mail, and report the earlier problem.
+     */
+    if (status != SMTPD_CHECK_REJECT && state->defer_if_permit.active)
+	status = smtpd_check_reject(state, state->defer_if_permit.class,
+				  "%s", STR(state->defer_if_permit.reason));
+
+    if (state->rcpt_count > 1)
+	state->recipient = saved_recipient;
+
+    return (status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
+}
+
+/* smtpd_check_eod - check end-of-data command */
+
+char   *smtpd_check_eod(SMTPD_STATE *state)
+{
+    int     status;
+    char   *NOCLOBBER saved_recipient;
+
+    /*
+     * Minor kluge so that we can delegate work to the generic routine. We
+     * provide no recipient information in the case of multiple recipients,
+     * This restriction applies to all recipients alike, and logging only one
+     * of them would be misleading.
+     */
+    if (state->rcpt_count > 1) {
+	saved_recipient = state->recipient;
+	state->recipient = 0;
+    }
+
+    /*
+     * Reset the defer_if_permit flag. This is necessary when some recipients
+     * were accepted but the last one was rejected.
+     */
+    state->defer_if_permit.active = 0;
+
+    /*
+     * Apply restrictions in the order as specified.
+     * 
+     * XXX We cannot specify a default target for a bare access map.
+     */
+    SMTPD_CHECK_RESET();
+    status = setjmp(smtpd_check_buf);
+    if (status == 0 && eod_restrictions->argc)
+	status = generic_checks(state, eod_restrictions,
+				"END-OF-DATA", SMTPD_NAME_EOD, NO_DEF_ACL);
 
     /*
      * Force permission into deferral when some earlier temporary error may
