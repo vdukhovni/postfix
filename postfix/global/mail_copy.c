@@ -136,10 +136,9 @@ int     mail_copy(const char *sender, const char *delivered,
 	quote_822_local(buf, sender);
 	if (flags & MAIL_COPY_FROM) {
 	    time(&now);
-	    vstream_fprintf(dst, "From %s  %s", *sender == 0 ?
-			    MAIL_ADDR_MAIL_DAEMON :
-			    vstring_str(buf),
-			    asctime(localtime(&now)));
+	    vstream_fprintf(dst, "From %s  %.24s%s", *sender == 0 ?
+			    MAIL_ADDR_MAIL_DAEMON : vstring_str(buf),
+			    asctime(localtime(&now)), eol);
 	}
 	if (flags & MAIL_COPY_RETURN_PATH) {
 	    vstream_fprintf(dst, "Return-Path: <%s>%s",

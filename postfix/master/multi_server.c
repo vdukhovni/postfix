@@ -395,7 +395,68 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
      * Initialize from the configuration file. Allow command-line options to
      * override compiled-in defaults or configured parameter values.
      */
-    mail_conf_read();
+    mail_conf_suck();
+
+    /*
+     * Pick up policy settings from master process. Shut up error messages to
+     * stderr, because no-one is going to see them.
+     */
+    opterr = 0;
+    while ((c = GETOPT(argc, argv, "cDi:lm:n:o:s:St:uv")) > 0) {
+	switch (c) {
+	case 'c':
+	    root_dir = "setme";
+	    break;
+	case 'D':
+	    debug_me = 1;
+	    break;
+	case 'i':
+	    mail_conf_update(VAR_MAX_IDLE, optarg);
+	    break;
+	case 'l':
+	    alone = 1;
+	    break;
+	case 'm':
+	    mail_conf_update(VAR_MAX_USE, optarg);
+	    break;
+	case 'n':
+	    service_name = optarg;
+	    break;
+	case 'o':
+	    if ((oval = split_at(optarg, '=')) == 0)
+		oval = "";
+	    mail_conf_update(optarg, oval);
+	    break;
+	case 's':
+	    if ((socket_count = atoi(optarg)) <= 0)
+		msg_fatal("invalid socket_count: %s", optarg);
+	    break;
+	case 'S':
+	    stream = VSTREAM_IN;
+	    break;
+	case 'u':
+	    user_name = "setme";
+	    break;
+	case 't':
+	    transport = optarg;
+	    break;
+	case 'v':
+	    msg_verbose++;
+	    break;
+	default:
+	    msg_fatal("invalid option: %c", c);
+	    break;
+	}
+    }
+
+    /*
+     * Initialize generic parameters.
+     */
+    mail_params_init();
+
+    /*
+     * Application-specific initialization.
+     */
     va_start(ap, service);
     while ((key = va_arg(ap, int)) != 0) {
 	switch (key) {
@@ -432,59 +493,10 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     }
     va_end(ap);
 
-    /*
-     * Pick up policy settings from master process. Shut up error messages to
-     * stderr, because no-one is going to see them.
-     */
-    opterr = 0;
-    while ((c = GETOPT(argc, argv, "cDi:lm:n:o:s:St:uv")) > 0) {
-	switch (c) {
-	case 'c':
-	    root_dir = var_queue_dir;
-	    break;
-	case 'D':
-	    debug_me = 1;
-	    break;
-	case 'i':
-	    if ((var_idle_limit = atoi(optarg)) <= 0)
-		msg_fatal("invalid max_idle time: %s", optarg);
-	    break;
-	case 'l':
-	    alone = 1;
-	    break;
-	case 'm':
-	    if ((var_use_limit = atoi(optarg)) <= 0)
-		msg_fatal("invalid max_use: %s", optarg);
-	    break;
-	case 'n':
-	    service_name = optarg;
-	    break;
-	case 'o':
-	    mail_conf_update(optarg,
-			     (oval = split_at(optarg, '=')) ? oval : "");
-	    mail_params_init();			/* XXX */
-	    break;
-	case 's':
-	    if ((socket_count = atoi(optarg)) <= 0)
-		msg_fatal("invalid socket_count: %s", optarg);
-	    break;
-	case 'S':
-	    stream = VSTREAM_IN;
-	    break;
-	case 'u':
-	    user_name = var_mail_owner;
-	    break;
-	case 't':
-	    transport = optarg;
-	    break;
-	case 'v':
-	    msg_verbose++;
-	    break;
-	default:
-	    msg_fatal("invalid option: %c", c);
-	    break;
-	}
-    }
+    if (root_dir)
+	root_dir = var_queue_dir;
+    if (user_name)
+	user_name = var_mail_owner;
 
     /*
      * If not connected to stdin, stdin must not be a terminal.

@@ -33,6 +33,15 @@ fallback_relay =
 #
 ignore_mx_lookup_error = no
 
+# The smtp_bind_address parameter specifies a numerical network
+# address that the client should bind to when making a connection.
+# This can be used in the main.cf file, or in the master.cf file,
+# for example:
+# 
+# 	smtp ... smtp -o smtp_bind_address=111.222.333.444
+# 
+#smtp_bind_address=111.222.333.444
+
 # The smtp_skip_4xx_greeting parameter controls what happens when
 # an SMTP server greets us with a 4XX status code. By default, Postfix
 # backs off. Specify "smtp_skip_4xx_greeting = yes" to move on the

@@ -423,7 +423,7 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "250-SIZE");
     smtpd_chat_reply(state, "250-ETRN");
 #ifdef USE_SASL_AUTH
-    if (var_smtpd_sasl_enable)
+    if (SMTPD_STAND_ALONE(state) == 0 && var_smtpd_sasl_enable)
 	smtpd_chat_reply(state, "250-AUTH %s", state->sasl_mechanism_list);
 #endif
     smtpd_chat_reply(state, "250 8BITMIME");
@@ -535,7 +535,8 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
     }
 
     /*
-     * Report trouble. Log a warning only if we are going to sleep+reject.
+     * Report trouble. Log a warning only if we are going to sleep+reject so
+     * that attackers can't flood our logfiles.
      */
     if ((naddr < 1 && !allow_empty_addr)
 	|| naddr > 1
@@ -615,7 +616,9 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    if ((state->msg_size = off_cvt_string(arg + 5)) < 0)
 		state->msg_size = 0;
 #ifdef USE_SASL_AUTH
-	} else if (var_smtpd_sasl_enable && strncasecmp(arg, "AUTH=", 5) == 0) {
+	} else if (SMTPD_STAND_ALONE(state) == 0
+		   && var_smtpd_sasl_enable
+		   && strncasecmp(arg, "AUTH=", 5) == 0) {
 	    if ((err = smtpd_sasl_mail_opt(state, arg + 5)) != 0) {
 		smtpd_chat_reply(state, "%s", err);
 		return (-1);
@@ -1089,7 +1092,9 @@ static int quit_cmd(SMTPD_STATE *state, int unused_argc, SMTPD_TOKEN *unused_arg
 }
 
  /*
-  * The table of all SMTP commands that we know.
+  * The table of all SMTP commands that we know. Set the junk limit flag on
+  * any command that can be repeated an arbitrary number of times without
+  * triggering a tarpit delay of some sort.
   */
 typedef struct SMTPD_CMD {
     char   *name;
@@ -1100,8 +1105,8 @@ typedef struct SMTPD_CMD {
 #define SMTPD_CMD_FLAG_LIMIT    (1<<0)	/* limit usage */
 
 static SMTPD_CMD smtpd_cmd_table[] = {
-    "HELO", helo_cmd, 0,
-    "EHLO", ehlo_cmd, 0,
+    "HELO", helo_cmd, SMTPD_CMD_FLAG_LIMIT,
+    "EHLO", ehlo_cmd, SMTPD_CMD_FLAG_LIMIT,
 
 #ifdef USE_SASL_AUTH
     "AUTH", smtpd_sasl_auth_cmd, 0,

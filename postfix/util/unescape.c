@@ -31,9 +31,11 @@
 /*	Vertical tab character.
 /* .IP \e\e
 /*	Backslash character.
-/* .IP \enum
+/* .IP \e\fInum\fR
 /*	8-bit character whose ASCII value is the 1..3 digit
 /*	octal number \fInum\fR.
+/* .IP \e\fIother\fR
+/*	The backslash character is discarded.
 /* LICENSE
 /* .ad
 /* .fi

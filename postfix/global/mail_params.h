@@ -609,6 +609,10 @@ extern bool var_skip_quit_resp;
 #define DEF_SMTP_ALWAYS_EHLO	0
 extern bool var_smtp_always_ehlo;
 
+#define VAR_SMTP_BIND_ADDR	"smtp_bind_address"
+#define DEF_SMTP_BIND_ADDR	""
+extern char *var_smtp_bind_addr;
+
  /*
   * SMTP server. The soft error limit determines how many errors an SMTP
   * client may make before we start to slow down; the hard error limit

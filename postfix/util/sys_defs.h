@@ -19,6 +19,10 @@
   * directory. Adding support for a new system type means updating the
   * makedefs script, and adding a section below for the new system.
   */
+#if (defined(__NetBSD_Version__) && __NetBSD_Version__ >= 104250000)
+#define ALIAS_DB_MAP   "hash:/etc/mail/aliases"	/* sendmail 8.10 */
+#endif
+
 #if defined(FREEBSD2) || defined(FREEBSD3) || defined(FREEBSD4) \
     || defined(FREEBSD5) \
     || defined(BSDI2) || defined(BSDI3) || defined(BSDI4) \
@@ -32,7 +36,9 @@
 #define HAS_DB
 #define HAS_SA_LEN
 #define DEF_DB_TYPE	"hash"
+#ifndef ALIAS_DB_MAP
 #define ALIAS_DB_MAP	"hash:/etc/aliases"
+#endif
 #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
 #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
 #define USE_STATFS

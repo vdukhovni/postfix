@@ -94,6 +94,8 @@
 /*	Skip servers that greet us with a 5xx status code.
 /* .IP \fBsmtp_skip_quit_response\fR
 /*	Do not wait for the server response after sending QUIT.
+/* .IP \fBsmtp_bind_address\fR
+/*	Numerical network address to bind to when making a connection.
 /* .SH "Authentication controls"
 /* .IP \fBsmtp_enable_sasl_auth\fR
 /*	Enable per-session authentication as per RFC 2554 (SASL).
@@ -236,6 +238,7 @@ int     var_smtp_always_ehlo;
 char   *var_smtp_sasl_opts;
 char   *var_smtp_sasl_passwd;
 bool    var_smtp_sasl_enable;
+char   *var_smtp_bind_addr;
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
@@ -383,6 +386,7 @@ int     main(int argc, char **argv)
 	VAR_ERROR_RCPT, DEF_ERROR_RCPT, &var_error_rcpt, 1, 0,
 	VAR_SMTP_SASL_PASSWD, DEF_SMTP_SASL_PASSWD, &var_smtp_sasl_passwd, 0, 0,
 	VAR_SMTP_SASL_OPTS, DEF_SMTP_SASL_OPTS, &var_smtp_sasl_opts, 0, 0,
+	VAR_SMTP_BIND_ADDR, DEF_SMTP_BIND_ADDR, &var_smtp_bind_addr, 0, 0,
 	0,
     };
     static CONFIG_INT_TABLE int_table[] = {

@@ -29,7 +29,6 @@
 #define SMTP_ERR_EOF	1		/* unexpected client disconnect */
 #define SMTP_ERR_TIME	2		/* time out */
 
-extern void smtp_jump_setup(VSTREAM *, jmp_buf *);
 extern void smtp_timeout_setup(VSTREAM *, int);
 extern void smtp_printf(VSTREAM *, const char *,...);
 extern int smtp_get(VSTRING *, VSTREAM *, int);

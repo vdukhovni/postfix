@@ -1,3 +1,4 @@
+
 /*++
 /* NAME
 /*	dict_ldap 3
@@ -39,6 +40,8 @@
 /* .IP \fIldapsource_\fRresult_attribute
 /*	The attribute returned by the search, in which to find
 /*	RFC822 addresses, for example \fImaildrop\fR.
+/* .IP \fIldapsource_\fRscope
+/*	LDAP search scope: sub, base, or one.
 /* .IP \fIldapsource_\fRbind
 /*	Whether or not to bind to the server -- LDAP v3 implementations don't
 /*	require it, which saves some overhead.
@@ -46,12 +49,16 @@
 /*	If you must bind to the server, do it with this distinguished name ...
 /* .IP \fIldapsource_\fRbind_pw
 /*	\&... and this password.
-/* BUGS
-/*	Thrice a year, needed or not.
+/* .IP \fIldapsource_\fRcache
+/*	Whether or not to turn on client-side caching.
+/* .IP \fIldapsource_\fRcache_expiry
+/*	If you do cache results, expire them after this many seconds.
+/* .IP \fIldapsource_\fRcache_size
+/*	The cache size in bytes. Does nothing if the cache is off, of course.
+/* .IP \fIldapsource_\fRdereference
+/*	How to handle LDAP aliases. See ldap.h or ldap_open(3) man page.
 /* SEE ALSO
 /*	dict(3) generic dictionary manager
-/* DIAGNOSTICS
-/*	Warnings: unable to connect to server, unable to bind to server.
 /* AUTHOR(S)
 /*	Prabhat K Singh
 /*	VSNL, Bombay, India.
@@ -63,7 +70,7 @@
 /*	Yorktown Heights, NY 10532, USA
 /*
 /*	John Hensley
-/*	stormroll@yahoo.com
+/*	roll@ic.net
 /*
 /*--*/
 
@@ -75,8 +82,6 @@
 
 #include <sys/time.h>
 #include <stdio.h>
-#include <unistd.h>
-#include <string.h>
 #include <signal.h>
 #include <setjmp.h>
 #include <stdlib.h>
@@ -91,19 +96,16 @@
 #include "dict.h"
 #include "dict_ldap.h"
 
-/* Global library. */
-
-#include "../global/mail_conf.h"	/* XXX Fixme. */
-
 /*
- * structure containing all the configuration parameters for a given
- * LDAP source, plus its connection handle
+ * Structure containing all the configuration parameters for a given
+ * LDAP source, plus its connection handle.
  */
 typedef struct {
     DICT    dict;			/* generic member */
     char   *ldapsource;
     char   *server_host;
     int     server_port;
+    int     scope;
     char   *search_base;
     char   *query_filter;
     char   *result_attribute;
@@ -111,17 +113,118 @@ typedef struct {
     char   *bind_dn;
     char   *bind_pw;
     int     timeout;
+    int     cache;
+    long    cache_expiry;
+    long    cache_size;
+    int     dereference;
     LDAP   *ld;
 } DICT_LDAP;
 
- /*
-  * LDAP connection timeout support.
-  */
+/*
+ * LDAP connection timeout support.
+ */
 static jmp_buf env;
 
 static void dict_ldap_timeout(int unused_sig)
 {
     longjmp(env, 1);
+}
+
+/* Establish a connection to the LDAP server. */
+static int dict_ldap_connect(DICT_LDAP *dict_ldap)
+{
+    char   *myname = "dict_ldap_connect";
+    void    (*saved_alarm) (int);
+    int     rc = 0;
+
+    dict_errno = 0;
+
+    if (msg_verbose)
+	msg_info("%s: Connecting to server %s", myname,
+		 dict_ldap->server_host);
+
+    if ((saved_alarm = signal(SIGALRM, dict_ldap_timeout)) == SIG_ERR) {
+	msg_warn("%s: Error setting signal handler for open timeout: %m",
+		 myname);
+	dict_errno = DICT_ERR_RETRY;
+	return (-1);
+    }
+    alarm(dict_ldap->timeout);
+    if (setjmp(env) == 0)
+	dict_ldap->ld = ldap_open(dict_ldap->server_host,
+				  (int) dict_ldap->server_port);
+    alarm(0);
+
+    if (signal(SIGALRM, saved_alarm) == SIG_ERR) {
+	msg_warn("%s: Error resetting signal handler after open: %m",
+		 myname);
+	dict_errno = DICT_ERR_RETRY;
+	return (-1);
+    }
+    if (dict_ldap->ld == NULL) {
+	msg_warn("%s: Unable to connect to LDAP server %s",
+		 myname, dict_ldap->server_host);
+	dict_errno = DICT_ERR_RETRY;
+	return (-1);
+    }
+
+    /*
+     * Configure alias dereferencing for this connection. Thanks to Mike
+     * Mattice for this.
+     */
+    dict_ldap->ld->ld_deref = dict_ldap->dereference;
+
+    /*
+     * If this server requires a bind, do so. Thanks to Sam Tardieu for
+     * noticing that the original bind call was broken.
+     */
+    if (dict_ldap->bind) {
+	if (msg_verbose)
+	    msg_info("%s: Binding to server %s as dn %s",
+		     myname, dict_ldap->server_host, dict_ldap->bind_dn);
+
+	rc = ldap_bind_s(dict_ldap->ld, dict_ldap->bind_dn,
+			 dict_ldap->bind_pw, LDAP_AUTH_SIMPLE);
+
+	if (rc != LDAP_SUCCESS) {
+	    msg_warn("%s: Unable to bind to server %s as %s: %d (%s)",
+		     myname, dict_ldap->server_host, dict_ldap->bind_dn,
+		     rc, ldap_err2string(rc));
+	    dict_errno = DICT_ERR_RETRY;
+	    return (-1);
+	}
+	if (msg_verbose)
+	    msg_info("%s: Successful bind to server %s as %s ",
+		     myname, dict_ldap->server_host, dict_ldap->bind_dn);
+    }
+
+    /*
+     * Set up client-side caching if it's configured.
+     */
+    if (dict_ldap->cache) {
+	if (msg_verbose)
+	    msg_info
+		("%s: Enabling %ld-byte cache for %s with %ld-second expiry",
+		 myname, dict_ldap->cache_size, dict_ldap->ldapsource,
+		 dict_ldap->cache_expiry);
+
+	rc = ldap_enable_cache(dict_ldap->ld, dict_ldap->cache_expiry,
+			       dict_ldap->cache_size);
+	if (rc != LDAP_SUCCESS) {
+	    msg_warn
+		("%s: Unable to configure cache for %s: %d (%s) -- continuing",
+		 myname, dict_ldap->ldapsource, rc, ldap_err2string(rc));
+	} else {
+	    if (msg_verbose)
+		msg_info("%s: Caching enabled for %s",
+			 myname, dict_ldap->ldapsource);
+	}
+    }
+    if (msg_verbose)
+	msg_info("%s: Cached connection handle for LDAP source %s",
+		 myname, dict_ldap->ldapsource);
+
+    return (0);
 }
 
 /* dict_ldap_lookup - find database entry */
@@ -136,85 +239,45 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
     struct timeval tv;
     VSTRING *escaped_name = 0,
            *filter_buf = 0;
-    char  **attr_values;
+    char   *result_attributes[1],
+          **attr_values;
     long    i = 0;
     int     rc = 0;
-    void    (*saved_alarm) (int);
     char   *sub,
            *end;
 
     dict_errno = 0;
 
     /*
-     * Initialize.
+     * Initialize the result holder.
      */
     if (result == 0)
 	result = vstring_alloc(2);
-
     vstring_strcpy(result, "");
 
     if (msg_verbose)
 	msg_info("%s: In dict_ldap_lookup", myname);
 
+    /*
+     * Connect to the LDAP server, if necessary.
+     */
     if (dict_ldap->ld == NULL) {
 	if (msg_verbose)
-	    msg_info("%s: no existing connection for ldapsource %s, reopening",
-		     myname, dict_ldap->ldapsource);
+	    msg_info
+		("%s: No existing connection for ldapsource %s, reopening",
+		 myname, dict_ldap->ldapsource);
 
-	if ((saved_alarm = signal(SIGALRM, dict_ldap_timeout)) == SIG_ERR) {
-	    msg_warn("%s: error setting signal handler for open timeout: %m", myname);
-	    dict_errno = DICT_ERR_RETRY;
+	dict_ldap_connect(dict_ldap);
+
+	/*
+	 * if dict_ldap_connect() set dict_errno, abort.
+	 */
+	if (dict_errno)
 	    return (0);
-	}
-	if (msg_verbose)
-	    msg_info("%s: connecting to server %s", myname,
-		     dict_ldap->server_host);
+    } else if (msg_verbose)
+	msg_info("%s: Using existing connection for ldapsource %s",
+		 myname, dict_ldap->ldapsource);
 
-	alarm(dict_ldap->timeout);
-	if (setjmp(env) == 0)
-	    dict_ldap->ld = ldap_open(dict_ldap->server_host,
-				      (int) dict_ldap->server_port);
-	alarm(0);
-
-	if (signal(SIGALRM, saved_alarm) == SIG_ERR) {
-	    msg_warn("%s: error resetting signal handler after open: %m", myname);
-	    dict_errno = DICT_ERR_RETRY;
-	    return (0);
-	}
-	if (msg_verbose)
-	    msg_info("%s: after ldap_open", myname);
-
-	if (dict_ldap->ld == NULL) {
-	    msg_warn("%s: Unable to contact LDAP server %s",
-		     myname, dict_ldap->server_host);
-	    dict_errno = DICT_ERR_RETRY;
-	    return (0);
-	} else {
-
-	    /*
-	     * If this server requires a bind, do so.
-	     */
-	    if (dict_ldap->bind) {
-		if (msg_verbose)
-		    msg_info("%s: about to bind to server %s as dn %s", myname,
-			     dict_ldap->server_host, dict_ldap->bind_dn);
-
-		rc = ldap_bind_s(dict_ldap->ld, dict_ldap->bind_dn,
-				 dict_ldap->bind_pw, LDAP_AUTH_SIMPLE);
-		if (rc != LDAP_SUCCESS) {
-		    msg_warn("%s: Unable to bind to server %s as %s (%d -- %s): ", myname, dict_ldap->server_host, dict_ldap->bind_dn, rc, ldap_err2string(rc));
-		    dict_errno = DICT_ERR_RETRY;
-		    return (0);
-		} else {
-		    if (msg_verbose)
-			msg_info("%s: Successful bind to server %s as %s (%d -- %s): ", myname, dict_ldap->server_host, dict_ldap->bind_dn, rc, ldap_err2string(rc));
-		}
-	    }
-	    if (msg_verbose)
-		msg_info("%s: cached connection handle for LDAP source %s",
-			 myname, dict_ldap->ldapsource);
-	}
-    }
 
     /*
      * Prepare the query.
@@ -226,14 +289,17 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 
     /*
      * If any characters in the supplied address should be escaped per RFC
-     * 2254, do so.
+     * 2254, do so. Thanks to Keith Stevenson and Wietse. And thanks to
+     * Samuel Tardieu for spotting that wildcard searches were being done in
+     * the first place, which prompted the ill-conceived lookup_wildcards
+     * parameter and then this more comprehensive mechanism.
      */
-
     end = (char *) name + strlen((char *) name);
     sub = (char *) strpbrk((char *) name, "*()\\\0");
     if (sub && sub != end) {
 	if (msg_verbose)
-	    msg_info("%s: found character(s) in %s that must be escaped", myname, name);
+	    msg_info("%s: Found character(s) in %s that must be escaped",
+		     myname, name);
 	for (sub = (char *) name; sub != end; sub++) {
 	    switch (*sub) {
 	    case '*':
@@ -256,19 +322,27 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	    }
 	}
 	if (msg_verbose)
-	    msg_info("%s: after escaping, it's %s", myname, vstring_str(escaped_name));
+	    msg_info("%s: After escaping, it's %s", myname,
+		     vstring_str(escaped_name));
     } else
 	vstring_strcpy(escaped_name, (char *) name);
 
-    /* Does the supplied query_filter even include a substitution? */
-    if (strstr(dict_ldap->query_filter, "%s") == NULL) {
-	/* No, log the fact and continue. */
-	msg_warn("%s: fixed query_filter %s is probably useless", myname,
+    /*
+     * Does the supplied query_filter even include a substitution?
+     */
+    if ((char *) strstr(dict_ldap->query_filter, "%s") == NULL) {
+
+	/*
+	 * No, log the fact and continue.
+	 */
+	msg_warn("%s: Fixed query_filter %s is probably useless", myname,
 		 dict_ldap->query_filter);
 	vstring_strcpy(filter_buf, dict_ldap->query_filter);
     } else {
 
-	/* Yes, replace all instances of %s with the address to look up. */
+	/*
+	 * Yes, replace all instances of %s with the address to look up.
+	 */
 	sub = dict_ldap->query_filter;
 	end = sub + strlen(dict_ldap->query_filter);
 	while (sub < end) {
@@ -279,7 +353,9 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	     */
 	    if (*(sub) == '%') {
 		if ((sub + 1) != end && *(sub + 1) != 's')
-		    msg_warn("%s: invalid lookup substitution format '%%%c'!", myname, *(sub + 1));
+		    msg_warn
+			("%s: Invalid lookup substitution format '%%%c'!",
+			 myname, *(sub + 1));
 		vstring_strcat(filter_buf, vstring_str(escaped_name));
 		sub++;
 	    } else
@@ -288,31 +364,46 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	}
     }
 
-    /* On to the search. */
+    /*
+     * On to the search.
+     */
     if (msg_verbose)
-	msg_info("%s: searching with filter %s", myname,
+	msg_info("%s: Searching with filter %s", myname,
 		 vstring_str(filter_buf));
 
+    /*
+     * Put result_attribute in an array, so the search can return only that
+     * attribute and not the entire entry.
+     */
+    result_attributes[0] = dict_ldap->result_attribute;
+
     if ((rc = ldap_search_st(dict_ldap->ld, dict_ldap->search_base,
-			     LDAP_SCOPE_SUBTREE,
+			     dict_ldap->scope,
 			     vstring_str(filter_buf),
-			     0, 0, &tv, &res)) == LDAP_SUCCESS) {
+			     result_attributes,
+			     0, &tv, &res)) == LDAP_SUCCESS) {
 
 	/*
 	 * Search worked; extract the requested result_attribute.
 	 */
 	if (msg_verbose)
-	    msg_info("%s: search found %d matches", myname,
+	    msg_info("%s: Search found %d match(es)", myname,
 		     ldap_count_entries(dict_ldap->ld, res));
 
-	/* There could have been lots of hits. */
-	for (entry = ldap_first_entry(dict_ldap->ld, res); entry != NULL; entry = ldap_next_entry(dict_ldap->ld, entry)) {
+	/*
+	 * There could have been lots of hits.
+	 */
+	for (entry = ldap_first_entry(dict_ldap->ld, res); entry != NULL;
+	     entry = ldap_next_entry(dict_ldap->ld, entry)) {
 
-	    /* And each entry could have multiple attributes. */
+	    /*
+	     * And each entry could have multiple attributes.
+	     */
 	    attr_values = ldap_get_values(dict_ldap->ld, entry,
 					  dict_ldap->result_attribute);
 	    if (attr_values == NULL) {
-		msg_warn("%s: entry doesn't have any values for %s", myname, dict_ldap->result_attribute);
+		msg_warn("%s: Entry doesn't have any values for %s",
+			 myname, dict_ldap->result_attribute);
 		continue;
 	    }
 
@@ -326,11 +417,20 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	    }
 	    ldap_value_free(attr_values);
 	}
+	if (dict_ldap->ld->ld_errno != LDAP_SUCCESS)
+	    msg_warn
+		("%s: Had some trouble with entries returned by search: %s",
+		 myname, ldap_err2string(dict_ldap->ld->ld_errno));
 	if (msg_verbose)
-	    msg_info("%s: search returned: %s", myname, vstring_str(result));
+	    msg_info("%s: Search returned %s", myname,
+		     VSTRING_LEN(result) >
+		     0 ? vstring_str(result) : "nothing");
     } else {
-	/* Rats. That didn't work. */
-	msg_warn("%s: search error %d: %s ", myname, rc,
+
+	/*
+	 * Rats. The search didn't work.
+	 */
+	msg_warn("%s: Search error %d: %s ", myname, rc,
 		 ldap_err2string(rc));
 
 	/*
@@ -340,11 +440,15 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	ldap_unbind(dict_ldap->ld);
 	dict_ldap->ld = NULL;
 
-	/* And tell the caller to try again later. */
+	/*
+	 * And tell the caller to try again later.
+	 */
 	dict_errno = DICT_ERR_RETRY;
     }
 
-    /* Cleanup. */
+    /*
+     * Cleanup.
+     */
     if (res != 0)
 	ldap_msgfree(res);
     if (filter_buf != 0)
@@ -358,7 +462,7 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 static void dict_ldap_update(DICT *dict, const char *unused_name,
 			             const char *unused_value)
 {
-    msg_fatal("dict_ldap_update: operation not implemented");
+    msg_fatal("dict_ldap_update: Operation not implemented");
 }
 
 /* dict_ldap_close - disassociate from data base */
@@ -389,7 +493,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     DICT_LDAP *dict_ldap;
     VSTRING *config_param;
     int     rc = 0;
-    void    (*saved_alarm) (int);
+    char   *scope;
 
     dict_ldap = (DICT_LDAP *) mymalloc(sizeof(*dict_ldap));
     dict_ldap->dict.lookup = dict_ldap_lookup;
@@ -399,7 +503,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     dict_ldap->dict.flags = dict_flags | DICT_FLAG_FIXED;
 
     if (msg_verbose)
-	msg_info("%s: using LDAP source %s", myname, ldapsource);
+	msg_info("%s: Using LDAP source %s", myname, ldapsource);
 
     dict_ldap->ldapsource = mystrdup(ldapsource);
 
@@ -424,16 +528,53 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 	msg_info("%s: %s is %d", myname, vstring_str(config_param),
 		 dict_ldap->server_port);
 
+    /*
+     * Scope handling thanks to Carsten Hoeger of SuSE.
+     */
+    vstring_sprintf(config_param, "%s_scope", ldapsource);
+    scope =
+	(char *) get_mail_conf_str(vstring_str(config_param), "sub", 0, 0);
+
+    if (strcasecmp(scope, "one") == 0) {
+	dict_ldap->scope = LDAP_SCOPE_ONELEVEL;
+	if (msg_verbose)
+	    msg_info("%s: %s is LDAP_SCOPE_ONELEVEL", myname,
+		     vstring_str(config_param));
+
+    } else if (strcasecmp(scope, "base") == 0) {
+	dict_ldap->scope = LDAP_SCOPE_BASE;
+	if (msg_verbose)
+	    msg_info("%s: %s is LDAP_SCOPE_BASE", myname,
+		     vstring_str(config_param));
+
+    } else {
+	dict_ldap->scope = LDAP_SCOPE_SUBTREE;
+	if (msg_verbose)
+	    msg_info("%s: %s is LDAP_SCOPE_SUBTREE", myname,
+		     vstring_str(config_param));
+
+    }
+
+    myfree(scope);
+
     vstring_sprintf(config_param, "%s_search_base", ldapsource);
-    dict_ldap->search_base =
-	mystrdup((char *) get_mail_conf_str(vstring_str(config_param), "", 0, 0));
+    dict_ldap->search_base = mystrdup((char *)
+				      get_mail_conf_str(vstring_str
+							(config_param), "",
+							0, 0));
     if (msg_verbose)
 	msg_info("%s: %s is %s", myname, vstring_str(config_param),
 		 dict_ldap->search_base);
 
-    /* get configured value of "ldapsource_timeout"; default to 10 */
+    /*
+     * get configured value of "ldapsource_timeout"; default to 10 seconds
+     * 
+     * Thanks to Manuel Guesdon for spotting that this wasn't really getting
+     * set.
+     */
     vstring_sprintf(config_param, "%s_timeout", ldapsource);
-    dict_ldap->timeout = get_mail_conf_int(vstring_str(config_param), 10, 0, 0);
+    dict_ldap->timeout =
+	get_mail_conf_int(vstring_str(config_param), 10, 0, 0);
     if (msg_verbose)
 	msg_info("%s: %s is %d", myname, vstring_str(config_param),
 		 dict_ldap->timeout);
@@ -441,7 +582,8 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     vstring_sprintf(config_param, "%s_query_filter", ldapsource);
     dict_ldap->query_filter =
 	mystrdup((char *) get_mail_conf_str(vstring_str(config_param),
-				      "(mailacceptinggeneralid=%s)", 0, 0));
+					    "(mailacceptinggeneralid=%s)",
+					    0, 0));
     if (msg_verbose)
 	msg_info("%s: %s is %s", myname, vstring_str(config_param),
 		 dict_ldap->query_filter);
@@ -454,87 +596,104 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 	msg_info("%s: %s is %s", myname, vstring_str(config_param),
 		 dict_ldap->result_attribute);
 
-    /* get configured value of "ldapsource_bind"; default to true */
+    /*
+     * get configured value of "ldapsource_bind"; default to true
+     */
     vstring_sprintf(config_param, "%s_bind", ldapsource);
     dict_ldap->bind = get_mail_conf_bool(vstring_str(config_param), 1);
     if (msg_verbose)
 	msg_info("%s: %s is %d", myname, vstring_str(config_param),
 		 dict_ldap->bind);
 
-    /* get configured value of "ldapsource_bind_dn"; default to "" */
+    /*
+     * get configured value of "ldapsource_bind_dn"; default to ""
+     */
     vstring_sprintf(config_param, "%s_bind_dn", ldapsource);
-    dict_ldap->bind_dn =
-	mystrdup((char *) get_mail_conf_str(vstring_str(config_param), "", 0, 0));
+    dict_ldap->bind_dn = mystrdup((char *)
+				  get_mail_conf_str(vstring_str
+						    (config_param), "", 0,
+						    0));
     if (msg_verbose)
 	msg_info("%s: %s is %s", myname, vstring_str(config_param),
 		 dict_ldap->bind_dn);
 
-    /* get configured value of "ldapsource_bind_pw"; default to "" */
+    /*
+     * get configured value of "ldapsource_bind_pw"; default to ""
+     */
     vstring_sprintf(config_param, "%s_bind_pw", ldapsource);
-    dict_ldap->bind_pw =
-	mystrdup((char *) get_mail_conf_str(vstring_str(config_param), "", 0, 0));
+    dict_ldap->bind_pw = mystrdup((char *)
+				  get_mail_conf_str(vstring_str
+						    (config_param), "", 0,
+						    0));
     if (msg_verbose)
 	msg_info("%s: %s is %s", myname, vstring_str(config_param),
 		 dict_ldap->bind_pw);
 
     /*
-     * establish the connection to the LDAP server
+     * get configured value of "ldapsource_cache"; default to false
      */
-
+    vstring_sprintf(config_param, "%s_cache", ldapsource);
+    dict_ldap->cache = get_mail_conf_bool(vstring_str(config_param), 0);
     if (msg_verbose)
-	msg_info("%s: connecting to server %s", myname,
-		 dict_ldap->server_host);
+	msg_info("%s: %s is %d", myname, vstring_str(config_param),
+		 dict_ldap->cache);
 
-    if ((saved_alarm = signal(SIGALRM, dict_ldap_timeout)) == SIG_ERR) {
-	msg_warn("%s: error setting signal handler for open timeout: %m", myname);
-	dict_errno = DICT_ERR_RETRY;
+    /*
+     * get configured value of "ldapsource_cache_expiry"; default to 30
+     * seconds
+     */
+    vstring_sprintf(config_param, "%s_cache_expiry", ldapsource);
+    dict_ldap->cache_expiry = get_mail_conf_int(vstring_str(config_param),
+						30, 0, 0);
+    if (msg_verbose)
+	msg_info("%s: %s is %d", myname, vstring_str(config_param),
+		 dict_ldap->cache_expiry);
+
+    /*
+     * get configured value of "ldapsource_cache_size"; default to 32k
+     */
+    vstring_sprintf(config_param, "%s_cache_size", ldapsource);
+    dict_ldap->cache_size = get_mail_conf_int(vstring_str(config_param),
+					      32768, 0, 0);
+    if (msg_verbose)
+	msg_info("%s: %s is %d", myname, vstring_str(config_param),
+		 dict_ldap->cache_size);
+
+    /*
+     * Alias dereferencing suggested by Mike Mattice.
+     */
+    vstring_sprintf(config_param, "%s_dereference", ldapsource);
+    dict_ldap->dereference = get_mail_conf_int(vstring_str(config_param), 0, 0,
+					       0);
+
+    /*
+     * Make sure only valid options for alias dereferencing are used.
+     */
+    if (dict_ldap->dereference < 0 || dict_ldap->dereference > 3) {
+	msg_warn("%s: Unrecognized value %d specified for %s; using 0",
+		 myname, dict_ldap->dereference, vstring_str(config_param));
+	dict_ldap->dereference = 0;
+    }
+    if (msg_verbose)
+	msg_info("%s: %s is %d", myname, vstring_str(config_param),
+		 dict_ldap->dereference);
+
+    dict_ldap_connect(dict_ldap);
+
+    /*
+     * if dict_ldap_connect() set dict_errno, free dict_ldap and abort.
+     */
+    if (dict_errno) {
+	if (dict_ldap->ld)
+	    ldap_unbind(dict_ldap->ld);
+
+	myfree((char *) dict_ldap);
 	return (0);
     }
-    alarm(dict_ldap->timeout);
-    if (setjmp(env) == 0)
-	dict_ldap->ld = ldap_open(dict_ldap->server_host,
-				  (int) dict_ldap->server_port);
-    alarm(0);
 
-    if (signal(SIGALRM, saved_alarm) == SIG_ERR) {
-	msg_warn("%s: error resetting signal handler after open: %m", myname);
-	dict_errno = DICT_ERR_RETRY;
-	return (0);
-    }
-    if (dict_ldap->ld == NULL) {
-	msg_warn("%s: Unable to contact LDAP server %s",
-		 myname, dict_ldap->server_host);
-	dict_errno = DICT_ERR_RETRY;
-	return (0);
-    } else {
-
-	if (msg_verbose)
-	    msg_info("%s: after ldap_open", myname);
-
-	/*
-	 * If this server requires a bind, do so.
-	 */
-	if (dict_ldap->bind) {
-	    if (msg_verbose)
-		msg_info("%s: about to bind to server %s as dn %s", myname,
-			 dict_ldap->server_host, dict_ldap->bind_dn);
-
-	    rc = ldap_bind_s(dict_ldap->ld, dict_ldap->bind_dn,
-			     dict_ldap->bind_pw, LDAP_AUTH_SIMPLE);
-	    if (rc != LDAP_SUCCESS) {
-		msg_warn("%s: Unable to bind to server %s as %s (%d -- %s): ", myname, dict_ldap->server_host, dict_ldap->bind_dn, rc, ldap_err2string(rc));
-		dict_errno = DICT_ERR_RETRY;
-		return (0);
-	    } else {
-		if (msg_verbose)
-		    msg_info("%s: Successful bind to server %s as %s (%d -- %s): ", myname, dict_ldap->server_host, dict_ldap->bind_dn, rc, ldap_err2string(rc));
-	    }
-	}
-	if (msg_verbose)
-	    msg_info("%s: cached connection handle for LDAP source %s",
-		     myname, dict_ldap->ldapsource);
-    }
-
+    /*
+     * Otherwise, we're all set. Return the new dict_ldap structure.
+     */
     return (&dict_ldap->dict);
 }
 

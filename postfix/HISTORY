@@ -3618,7 +3618,7 @@ Apologies for any names omitted.
 	field by the recipient localpart when a destination matches
 	$mydestination/$inet_interfaces. The price is the introduction
 	of a new parameter local_destination_recipient_limit which
-	defaults to 1 i order to maintain backwards compatibility.
+	defaults to 1 in order to maintain backwards compatibility.
 	Files: qmgr/qmgr.c, qmgr/qmgr_message.c.
 
 20000129
@@ -3843,13 +3843,6 @@ Apologies for any names omitted.
 	record delimiter (for example, eol=\r\n). This is necessary
 	for transports that require CRLF instead of UNIX-style LF.
 
-20000428
-
-	New code: added support to the vstring module for fixed-size
-	buffers. This may help to avoid clumsy code that would have
-	to prevent memory leaks.  The buffers cause a fatal error
-	when they turn out too small.  File: util/vstring.[hc].
-
 20000502
 
 	In order to support timeouts more conveniently, VSTREAMs
@@ -3881,13 +3874,45 @@ Apologies for any names omitted.
 
 20000505
 
-	Bugfix: the SMTP server now flushes output in-between tarpit
-	delays, to avoid protocol timeouts when a client causes lots
-	of errors. Found by Lamont Jones, HP. File:  smtpd/smtpd_chat.c.
+	Bugfix: the SMTP server now flushes unwritten output before
+	tarpit delays, to avoid protocol timeouts in pipelined
+	sessions when a client causes lots of errors. Found by
+	Lamont Jones, HP. File:  smtpd/smtpd_chat.c.
+
+	Finished the LMTP client, which is based on a modified
+	version of the SMTP client by Philippe Prindeville, Mirapoint,
+	Inc., later modified by Amos Gouaux, UTDallas, and then
+	Wietse ripped it all up again. Currently this talks LMTP
+	over TCP only.
+
+	Feature: override main.cf parameters in master.cf. Specify
+	"-o parameter=value" after the program name. This allows
+	you to selectively override myhostname etc. See also the
+	new smtp_bind_address parameter below.
 
 20000506
 
 	Convenience: the LMTP and SMTP clients now append the local
 	domain to unqualified nexthop destinations. This makes it
-	more convenient to set up transport maps. Files: 
+	more convenient to set up transport maps. Files:
 	lmtp/lmtp_addr.c, smtp/smtp_addr.c.
+
+	Sendmail compatibility: the Postfix SMTP client now skips
+	servers that greet the client with a 4xx or 5xx status
+	code.  To disable, set both smtp_skip_4xx_greeting and
+	smtp_skip_5xx_greeting to "no".
+
+20000507
+
+	Portability: NetBSD has migrated to /etc/mail/aliases. We
+	can expect to see this happen more often when systems start
+	shipping Sendmail 8.10. File: util/sys_defs.h
+
+	Updated LDAP code by John Hensley, with support for
+	dereferencing of LDAP aliases, which have nothing to do
+	with Postfix aliases.
+
+	Feature: "smtp_bind_address=x.x.x.x" specifies the source
+	IP address for SMTP client connections. Specify in master.cf
+	as "smtp -o smtp_bind_address=x.x.x.x" in order to give
+	different delivery agents different source addresses.

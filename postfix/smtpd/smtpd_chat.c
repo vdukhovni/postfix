@@ -147,11 +147,14 @@ void    smtpd_chat_reply(SMTPD_STATE *state, char *format,...)
      * that abort the connection and go into a connect-error-disconnect loop;
      * sleep-on-anything slows down clients that make an excessive number of
      * errors within a session.
+     * 
+     * Flush unsent output before sleeping. Pipelined error responses could
+     * result in client-side timeouts.
      */
     if (state->error_count > var_smtpd_soft_erlim)
-	sleep(state->error_count), vstream_fflush(state->client);
+	vstream_fflush(state->client), sleep(state->error_count);
     else if (STR(state->buffer)[0] == '4' || STR(state->buffer)[0] == '5')
-	sleep(var_smtpd_err_sleep), vstream_fflush(state->client);
+	vstream_fflush(state->client), sleep(var_smtpd_err_sleep);
 
     smtp_fputs(STR(state->buffer), LEN(state->buffer), state->client);
 }

@@ -358,11 +358,11 @@ static void cleanup_missing_headers(CLEANUP_STATE *state)
 	vstring_sprintf(state->temp2, "%sFrom: %s",
 			state->resent, vstring_str(state->temp1));
 	if (state->fullname && *state->fullname) {
-	    vstring_strcat(state->temp2, " (");
-	    token = tok822_alloc(TOK822_COMMENT_TEXT, state->fullname);
+	    vstring_sprintf(state->temp1, "(%s)", state->fullname);
+	    token = tok822_parse(vstring_str(state->temp1));
+	    vstring_strcat(state->temp2, " ");
 	    tok822_externalize(state->temp2, token, TOK822_STR_NONE);
-	    tok822_free(token);
-	    vstring_strcat(state->temp2, ")");
+	    tok822_free_tree(token);
 	}
 	CLEANUP_OUT_BUF(state, REC_TYPE_NORM, state->temp2);
     } else if ((state->headers_seen & (1 << (state->resent[0] ?

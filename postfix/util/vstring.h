@@ -31,7 +31,6 @@ typedef struct VSTRING {
 } VSTRING;
 
 extern VSTRING *vstring_alloc(int);
-extern VSTRING *vstring_init(VSTRING *, char *, int);
 extern void vstring_ctl(VSTRING *,...);
 extern VSTRING *vstring_truncate(VSTRING *, int);
 extern VSTRING *vstring_free(VSTRING *);

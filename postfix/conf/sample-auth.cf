@@ -2,15 +2,24 @@
 # HERE JUST SERVES AS AN EXAMPLE.
 #
 # This file contains example settings of Postfix configuration 
-# parameters that control SASL authentication.
+# parameters that control SASL authentication for the Postfix
+# SMTP server and client programs.
 
 # SMTP SERVER CONTROLS
 
-# The smtpd_sasl_auth_enable parameter controls whether authentication
-# is enabled in the Postfix SMTP server.
+# The smtpd_sasl_auth_enable parameter controls whether SMTP client
+# authentication is enabled in the Postfix SMTP server. By default,
+# the Postfix SMTP server does not use authentication.
 #
-# If a client is authenticated, then the permit_sasl_authenticated
-# can be used to permit relay access.
+# If an SMTP client is authenticated, then the permit_sasl_authenticated
+# access restriction can be used to permit relay access, like this:
+#
+#	smtpd_recipient_restrictions = permit_sasl_authenticated, ...
+#
+# To reject all SMTP connections from unauthenticated clients,
+# specify smtpd_delay_reject=yes (which is the default) and use:
+#
+#	smtpd_client_restrictions = permit_sasl_authenticated
 #
 # In order to enable server-side authentication, build Postfix with
 # SASL support, and install a configuration file /usr/lib/sasl/smtpd.conf
@@ -19,15 +28,17 @@
 #	pwcheck_method:  sasldb
 #
 # or whatever method is suitable for your environment: PAM, shadow,
-# whatever.  If you use sasldb, you can add users with the "saslpasswd"
-# command that is part of the SASL library. If you use PAM, The PAM
-# service name for SASL authentication is "smtp", and adding users
-# depends entirely on how PAM is set up.
+# etc.  If you use sasldb, you can add users with the "saslpasswd"
+# command that comes with the SASL library. If you configure Postfix
+# to use PAM, the PAM service name for SASL authentication is "smtp",
+# and adding users depends entirely on how PAM is set up.
 #
 # If you run your SMTP server chrooted, then you need to copy PAM
 # and/or SASL support libraries and data files into the chroot jail.
+# That's a lot of files, and it seems not very practical to do so.
 #
-smtpd_sasl_auth_enable = yes
+#smtpd_sasl_auth_enable = yes
+smtpd_sasl_auth_enable = no
 
 # The smtpd_sasl_security_options parameter controls what authentication
 # mechanisms the Postfix SMTP server will offer to the client.  The
@@ -43,10 +54,10 @@ smtpd_sasl_auth_enable = yes
 # By default, the Postfix SMTP server accepts plaintext passwords but
 # not anonymous logins. 
 #
-# Horror! It appears that clients try authentication methods in the
-# order as advertised by the server (PLAIN ANONYMOUS CRAM-MD5
-# ...) which means that if you disable plaintext passwords, clients
-# will log in anonymously even when they would be able to use CRAM-MD5.
+# HORROR! It appears that clients try authentication methods in the
+# order as advertised by the server (e.g., PLAIN ANONYMOUS CRAM-MD5)
+# which means that if you disable plaintext passwords, clients will
+# log in anonymously, even when they should be able to use CRAM-MD5.
 # So, if you disable plaintext logins, disable anonymous logins too.
 # Postfix treats anonymous login as no authentication.
 #
@@ -56,9 +67,11 @@ smtpd_sasl_security_options = noanonymous
 # SMTP CLIENT CONTROLS
 
 # The smtp_sasl_auth_enable parameter controls whether authentication
-# is enabled in the Postfix SMTP client.
+# is enabled in the Postfix SMTP client. By default, the Postfix SMTP
+# client uses no authentication.
 #
-smtp_sasl_auth_enable = yes
+#smtp_sasl_auth_enable = yes
+smtp_sasl_auth_enable = no
 
 # The smtp_sasl_password_maps parameter specifies the names of lookup
 # tables with one username:password entry per remote hostname.  If a
@@ -66,7 +79,7 @@ smtp_sasl_auth_enable = yes
 # client will not attempt to authenticate to the remote host.
 #
 # The Postfix SMTP client opens the lookup table before going to
-# chroot jail, so you can keep the password file in /etc/postfix.
+# chroot jail, so you can leave the password file in /etc/postfix.
 #
 smtp_auth_passwd_map = hash:/etc/postfix/saslpass
 

@@ -91,6 +91,10 @@
 #include <strings.h>
 #endif
 
+#ifndef INADDR_NONE
+#define INADDR_NONE 0xffffff
+#endif
+
 /* Utility library. */
 
 #include <msg.h>
@@ -150,12 +154,25 @@ static SMTP_SESSION *smtp_connect_addr(DNS_RR *addr, unsigned port,
 	msg_fatal("%s: socket: %m", myname);
 
     /*
+     * Allow the sysadmin to specify the source address, for example, as "-o
+     * smtp_bind_address=x.x.x.x" in the master.cf file.
+     */
+    if (*var_smtp_bind_addr) {
+	sin.sin_addr.s_addr = inet_addr(var_smtp_bind_addr);
+	if (sin.sin_addr.s_addr == INADDR_NONE)
+	    msg_fatal("%s: bad %s parameter: %s",
+		      myname, VAR_SMTP_BIND_ADDR, var_smtp_bind_addr);
+	if (bind(sock, (struct sockaddr *) & sin, sizeof(sin)) < 0)
+	    msg_warn("%s: bind %s: %m", myname, inet_ntoa(sin.sin_addr));
+	if (msg_verbose)
+	    msg_info("%s: bind %s", myname, inet_ntoa(sin.sin_addr));
+    }
+
+    /*
      * When running as a virtual host, bind to the virtual interface so that
      * the mail appears to come from the "right" machine address.
      */
-    addr_list = own_inet_addr_list();
-    if (addr_list->used == 1) {
-	sin.sin_port = 0;
+    else if ((addr_list = own_inet_addr_list())->used == 1) {
 	memcpy((char *) &sin.sin_addr, addr_list->addrs, sizeof(sin.sin_addr));
 	inaddr = ntohl(sin.sin_addr.s_addr);
 	if (!IN_CLASSA(inaddr)

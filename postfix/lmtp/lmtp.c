@@ -382,6 +382,12 @@ static void lmtp_service(VSTREAM *client_stream, char *unused_service, char **ar
     int     status;
 
     /*
+     * Sanity check. This service takes no command-line arguments.
+     */
+    if (argv[0])
+	msg_fatal("unexpected command-line argument: %s", argv[0]);
+
+    /*
      * This routine runs whenever a client connects to the UNIX-domain socket
      * dedicated to remote LMTP delivery service. What we see below is a
      * little protocol to (1) tell the queue manager that we are ready, (2)

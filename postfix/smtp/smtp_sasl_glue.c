@@ -201,7 +201,7 @@ static int smtp_sasl_get_passwd(sasl_conn_t *conn, void *context,
     if ((*psecret = (sasl_secret_t *) malloc(sizeof(sasl_secret_t) + len)) == 0)
 	return (SASL_NOMEM);
     (*psecret)->len = len;
-    strcpy((*psecret)->data, state->sasl_passwd);
+    memcpy((*psecret)->data, state->sasl_passwd, len + 1);
 
     return (SASL_OK);
 }

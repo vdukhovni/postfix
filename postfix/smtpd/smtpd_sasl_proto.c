@@ -123,7 +123,7 @@ int     smtpd_sasl_auth_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "503 Error: send HELO/EHLO first");
 	return (-1);
     }
-    if (!var_smtpd_sasl_enable) {
+    if (SMTPD_STAND_ALONE(state) || !var_smtpd_sasl_enable) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "503 Error: authentication not enabled");
 	return (-1);

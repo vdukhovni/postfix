@@ -173,7 +173,7 @@ void    smtpd_sasl_initialize(void)
 
 void    smtpd_sasl_connect(SMTPD_STATE *state)
 {
-    int     sasl_mechanism_count;
+    unsigned sasl_mechanism_count;
     sasl_security_properties_t sec_props;
 
     /*

@@ -94,9 +94,8 @@
 /*	int	vstream_peek(stream)
 /*	VSTREAM	*stream;
 /*
-/*	int	vstream_setjmp(stream, buffer)
+/*	int	vstream_setjmp(stream)
 /*	VSTREAM	*stream;
-/*	jmp_buf	*buffer;
 /*
 /*	void	longjmp(stream, val)
 /*	VSTREAM	*stream;

@@ -1,37 +1,64 @@
-Incompatible changes with snapshot-20000506
+Incompatible changes with snapshot-20000507
 ===========================================
 
-None.
+As required by RFC 822, Postfix now inserts a generic destination
+message header when no destination header is present.  The text is
+specified via the undisclosed_recipients_header configuration
+parameter (default:  "To: undisclosed-recipients:;").
 
-Major changes with snapshot-20000506
+The Postfix sendmail command treats a line with only `.' as
+the end of input, for the sake of sendmail compatibility. To disable
+this feature, specify the sendmail-compatible `-i' or `-oi' flags
+on the sendmail command line.
+
+For the sake of Sendmail compatibility, the Postfix SMTP client
+skips over SMTP servers that greet with a 4XX or 5XX reply code,
+treating them as unreachable servers.  To obtain prior behavior
+(4XX=retry, 5XX=bounce), specify "smtp_skip_4xx_greeting = no" and
+"smtp_skip_5xx_greeting = no".
+
+The read/write interface underneath VSTREAMs has been extended with
+parameters that specify a read/write timeout and application context.
+This should make it easier to plug in encryption modules such as TLS.
+
+Major changes with snapshot-20000507
 ====================================
 
-Preliminary LMTP client support with connection cacheing, currently
-only over TCP sockets.  Support for LMTP over UNIX-domain support
-will be added later. See the LMTP_README file for more details.
+Better documentation of Postfix lookup tables, including descriptions
+of how to use regular expressions in Postfix lookup tables.
+
+Updated mysql and LDAP client code with fixes and improvements.
+
+In master.cf you can selectively override main.cf configuration
+parameters, for example: "smtpd -o myhostname=foo.com".
+
+In main.cf, specify "smtp_bind_address=x.x.x.x" to bind SMTP
+connections to a specific local interface. Or override the default
+setting in master.cf with "smtp -o smtp_bind_address=x.x.x.x".
+For now, you must specify a numeric IP address.
+
+Preliminary LMTP client support over TCP with connection cacheing.
+Support for LMTP over UNIX-domain sockets will be added later as
+an enhancement to the transport table syntax. See the LMTP_README
+file for more details.
+
+By the way, LMTP client-side connection cacheing is a good example
+for how to do the same in the SMTP client.
 
 Preliminary support for SASL authentication, both in the SMTP server
 and in the SMTP client. See the SASL_README file for more details.
 
-The pipe mailer now has a configurable end-of-line attribute.
-Specify, for example, "pipe ... eol=\r\n" for delivery mechanisms
-that require CRLF record delimiters.
-
-The manual pages in sample configuration files now show plain text
-without TROFF escape sequences.
+The pipe delivery agent has a configurable end-of-line attribute.
+Specify "pipe ... eol=\r\n" for delivery mechanisms that require
+CRLF record delimiters. The eol attribute understands the following
+C-style escape sequences:  \a \b \f \n \r \t \v \nnn \\.
 
 Incompatible changes with snapshot-20000309
 ===========================================
 
-As required by RFC 822, Postfix now inserts a generic destination 
-message header when no destination header is present.  The text is  
-specified via the undisclosed_recipients_header configuration 
-parameter (default:  "To: undisclosed-recipients:;").
-
-The Postfix sendmail command now treats a line with only `.' as
-the end of input, for the sake of sendmail compatibility. To disable
-this feature, specify the sendmail-compatible `-i' or `-oi' flags
-on the sendmail command line.
+This release is mainly to have a reference point after reorganizing
+the cleanup daemon, and before adding some major contributions from
+other people.
 
 Major changes with snapshot-20000309
 ====================================
@@ -50,7 +77,6 @@ read keys from stdin).
 The manual pages in Postfix configuration files no longer contain
 troff formatting codes.  The text is now generated from prototype
 files in a new "proto" subdirectory.
-        
 
 Incompatible changes with postfix-19991231:
 ===========================================

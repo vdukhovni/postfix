@@ -92,10 +92,8 @@ development are in /usr/ccs/bin, so you MUST have /usr/ccs/bin in
 your command search path.
 
 If you need to build Postfix for multiple architectures, use the
-makelinks shell script to build a shadow tree with symbolic links
-to the source files.
-
-    % sh makelinks `pwd` /some/where/else
+lndir command to build a shadow tree with symbolic links to the
+source files. lndir is part of X11R6.
 
 If at any time in the build process you get messages like: "make:
 don't know how to ..." you should be able to recover by running

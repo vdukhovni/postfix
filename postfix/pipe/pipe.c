@@ -51,8 +51,9 @@
 /*	\fIusername\fR.
 /* .IP "\fBeol=string\fR (default: \fB\en\fR)"
 /*	The output record delimiter. Typically one would use either
-/*	\fB\er\en\fR or \fB\en\fR. You can specify the usual C-style
-/*	backslash escape sequences.
+/*	\fB\er\en\fR or \fB\en\fR. The usual C-style backslash escape
+/*	sequences are recognized: \fB\ea \eb \ef \en \er \et \ev
+/*	\e\fIoctal\fR and \fB\e\e\fR.
 /* .IP "\fBargv\fR=\fIcommand\fR... (required)"
 /*	The command to be executed. This must be specified as the
 /*	last command attribute.
@@ -479,7 +480,7 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
 	 * eol=string
 	 */
 	else if (strncasecmp("eol=", *argv, sizeof("eol=") - 1) == 0) {
-	    unescape(attr->eol, *argv + sizeof("eol=") -1);
+	    unescape(attr->eol, *argv + sizeof("eol=") - 1);
 	}
 
 	/*

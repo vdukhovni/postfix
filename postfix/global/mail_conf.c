@@ -8,6 +8,8 @@
 /*
 /*	void	mail_conf_read()
 /*
+/*	void	mail_conf_suck()
+/*
 /*	void	mail_conf_update(name, value)
 /*	const char *name;
 /*	const char *value;
@@ -21,8 +23,11 @@
 /*	const char *mail_conf_lookup_eval(name)
 /*	const char *name;
 /* DESCRIPTION
-/*	mail_conf_read() reads the global Postfix configuration file, and
+/*	mail_conf_suck() reads the global Postfix configuration file, and
 /*	stores its values into a global configuration dictionary.
+/*
+/*	mail_conf_read() invokes mail_conf_suck() and assigns the values
+/*	to global variables by calling mail_params_init().
 /*
 /*	The following routines are wrappers around the generic dictionary
 /*	access routines.
@@ -89,6 +94,14 @@
 
 void    mail_conf_read(void)
 {
+    mail_conf_suck();
+    mail_params_init();
+}
+
+/* mail_conf_suck - suck in the global configuration file */
+
+void    mail_conf_suck(void)
+{
     char   *config_dir;
     char   *path;
 
@@ -107,7 +120,6 @@ void    mail_conf_read(void)
     path = concatenate(var_config_dir, "/", "main.cf", (char *) 0);
     dict_load_file(CONFIG_DICT, path);
     myfree(path);
-    mail_params_init();
 }
 
 /* mail_conf_eval - expand macros in string */
