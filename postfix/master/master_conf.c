@@ -124,8 +124,7 @@ void    master_config(void)
 	else {
 	    serv->flags &= ~MASTER_FLAG_MARK;
 	    serv->wakeup_time = entry->wakeup_time;
-	    serv->max_proc_pk = entry->max_proc_pk;
-	    serv->max_proc_avg = entry->max_proc_avg;
+	    serv->max_proc = entry->max_proc;
 	    serv->throttle_delay = entry->throttle_delay;
 	    SWAP(char *, serv->path, entry->path);
 	    SWAP(ARGV *, serv->args, entry->args);

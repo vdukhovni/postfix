@@ -130,11 +130,11 @@ static int bounce_header(VSTREAM *bounce, VSTRING *buf, const char *dest,
     post_mail_fprintf(bounce, "\tboundary=\"%s\"", boundary);
     post_mail_fputs(bounce, "");
     post_mail_fputs(bounce, "This is a MIME-encapsulated message.");
-    post_mail_fputs(bounce, "");
 
     /*
      * More MIME header.
      */
+    post_mail_fputs(bounce, "");
     post_mail_fprintf(bounce, "--%s", boundary);
     post_mail_fprintf(bounce, "Content-Description: %s", "Notification");
     post_mail_fprintf(bounce, "Content-Type: %s", "text/plain");
@@ -217,6 +217,7 @@ static int bounce_diagnostics(char *service, VSTREAM *bounce, VSTRING *buf,
      * MIME header.
      */
 #ifdef DSN
+    post_mail_fputs(bounce, "");
     post_mail_fprintf(bounce, "--%s", boundary);
     post_mail_fprintf(bounce, "Content-Description: %s", "Delivery error report");
     post_mail_fprintf(bounce, "Content-Type: %s", "message/delivery-status");
@@ -275,6 +276,7 @@ static int bounce_original(char *service, VSTREAM *bounce, VSTRING *buf,
     /*
      * MIME headers.
      */
+    post_mail_fputs(bounce, "");
     post_mail_fprintf(bounce, "--%s", boundary);
     post_mail_fprintf(bounce, "Content-Description: %s", "Undelivered Message");
     post_mail_fprintf(bounce, "Content-Type: %s", headers_only ?
@@ -325,6 +327,7 @@ static int bounce_original(char *service, VSTREAM *bounce, VSTRING *buf,
 	    status = (REC_PUT_BUF(bounce, rec_type, buf) != rec_type);
 	}
     }
+    post_mail_fputs(bounce, "");
     post_mail_fprintf(bounce, "--%s--", boundary);
     if (headers_only == 0 && rec_type != REC_TYPE_XTRA)
 	status |= mark_corrupt(src);

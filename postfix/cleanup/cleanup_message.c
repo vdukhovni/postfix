@@ -391,8 +391,7 @@ void    cleanup_message(void)
 	    break;
 	}
 	if (strchr(REC_TYPE_CONTENT, type) == 0) {
-	    msg_warn("%s: %s: unexpected record type %d",
-		     cleanup_queue_id, myname, type);
+	    msg_warn("%s: unexpected record type %d", myname, type);
 	    cleanup_errs |= CLEANUP_STAT_BAD;
 	    break;
 	}

@@ -2740,7 +2740,7 @@ Apologies for any names omitted.
 	Feature: control over how address extensions are propagated
 	to other addresses. By default, propagation of unmatched
 	address extensions is now restricted to canonical and
-	virtual mappings. Specify "propagate_unmatched_extension
+	virtual mappings. Specify "propagate_unmatched_extensions
 	= canonical, virtual, alias, forward, include" to restore
 	previous behavior.
 
@@ -2790,22 +2790,14 @@ Apologies for any names omitted.
 	discarded" warning when mail is dropped on the floor.
 	Requested by Michael Hasenstein, SuSE, Germany.
 
-19990516
-
-	Feature: per-service peak and average process limit. When
-	the system is lightly loaded, use the per-service peak
-	process limit.  When the system is under stress, use the
-	per-service average process limit. The per-service average
-	process count is computed once a minute.
-
 19990517
 
 	Bugfix: reject_non_fqdn_sender/recipient would pass
 	user@[ip_address] regardless of destination. Eric Cholet
 	had the honor of suffering from this one.
 
-19990527
+1990601
 
-	More SMTP client logging for easier debugging: the smtp
-	client now logs hostname[ip.addr], and logs every failed
-	attempt to reach an MX host, not just the last one.
+	Bugfix: emit a blank line before a MIME boundary; the line
+	is part of the boundary. File: bounce/bounce_notify_service.c.
+	Wolfgang Segmuller, IBM Research.

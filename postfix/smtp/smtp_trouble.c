@@ -168,7 +168,7 @@ int     smtp_site_fail(SMTP_STATE *state, int code, char *format,...)
 	    continue;
 	status = (soft_error ? defer_append : bounce_append)
 	    (KEEP, request->queue_id, rcpt->address,
-	     session ? session->namaddr : "none",
+	     session ? session->host : "none",
 	     request->arrival_time, "%s", vstring_str(why));
 	if (status == 0) {
 	    deliver_completed(state->src, rcpt->offset);
@@ -215,7 +215,7 @@ int     smtp_mesg_fail(SMTP_STATE *state, int code, char *format,...)
 	    continue;
 	status = (SMTP_SOFT(code) ? defer_append : bounce_append)
 	    (KEEP, request->queue_id, rcpt->address,
-	     session->namaddr, request->arrival_time,
+	     session->host, request->arrival_time,
 	     "%s", vstring_str(why));
 	if (status == 0) {
 	    deliver_completed(state->src, rcpt->offset);
@@ -248,7 +248,7 @@ void    smtp_rcpt_fail(SMTP_STATE *state, int code, RECIPIENT *rcpt,
      */
     va_start(ap, format);
     status = (SMTP_SOFT(code) ? vdefer_append : vbounce_append)
-	(KEEP, request->queue_id, rcpt->address, session->namaddr,
+	(KEEP, request->queue_id, rcpt->address, session->host,
 	 request->arrival_time, format, ap);
     va_end(ap);
     if (status == 0) {
@@ -277,11 +277,11 @@ int     smtp_stream_except(SMTP_STATE *state, int code, char *description)
 	msg_panic("smtp_stream_except: unknown exception %d", code);
     case SMTP_ERR_EOF:
 	vstring_sprintf(why, "lost connection with %s while %s",
-			session->namaddr, description);
+			session->host, description);
 	break;
     case SMTP_ERR_TIME:
 	vstring_sprintf(why, "conversation with %s timed out while %s",
-			session->namaddr, description);
+			session->host, description);
 	break;
     }
 
@@ -294,7 +294,7 @@ int     smtp_stream_except(SMTP_STATE *state, int code, char *description)
 	if (rcpt->offset == 0)
 	    continue;
 	state->status |= defer_append(KEEP, request->queue_id,
-				      rcpt->address, session->namaddr,
+				      rcpt->address, session->host,
 				      request->arrival_time,
 				      "%s", vstring_str(why));
     }

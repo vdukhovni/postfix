@@ -78,8 +78,7 @@ void    cleanup_envelope(void)
 	}
 	if (type == REC_TYPE_MESG) {
 	    if (cleanup_sender == 0 || cleanup_time == 0) {
-		msg_warn("%s: missing sender or time envelope record",
-			 cleanup_queue_id);
+		msg_warn("missing sender or time envelope record");
 		cleanup_errs |= CLEANUP_STAT_BAD;
 	    } else {
 		if (warn_time == 0 && var_delay_warn_time > 0)
@@ -91,8 +90,7 @@ void    cleanup_envelope(void)
 	    break;
 	}
 	if (strchr(REC_TYPE_ENVELOPE, type) == 0) {
-	    msg_warn("%s: unexpected record type %d in envelope", type,
-		     cleanup_queue_id);
+	    msg_warn("unexpected record type %d in envelope", type);
 	    cleanup_errs |= CLEANUP_STAT_BAD;
 	    break;
 	}
@@ -119,8 +117,7 @@ void    cleanup_envelope(void)
 		cleanup_sender = mystrdup(STR(clean_addr));
 	} else if (type == REC_TYPE_RCPT) {
 	    if (cleanup_sender == 0) {		/* protect showq */
-		msg_warn("%s: envelope recipient precedes sender",
-			 cleanup_queue_id);
+		msg_warn("envelope recipient precedes sender");
 		cleanup_errs |= CLEANUP_STAT_BAD;
 		break;
 	    }

@@ -1,4 +1,4 @@
-Incompatible changes with snapshot-19990513:
+Incompatible changes with postfix-19990601:
 ===========================================
 
 - The SMTP server now delays all UCE restrictions until the RCPT
@@ -24,10 +24,10 @@ libexec subdirectory, command executables in the bin subdirectory.
 The INSTALL instructions now recommend installing daemons and
 commands into separate directories.
 
-Major changes with snapshot-19990513:
+Major changes with postfix-19990601:
 =====================================
 
-- New USER, EXTENSION, LOCAL, DOMAIN. and RECIPIENT environment
+- New USER, EXTENSION, LOCAL, DOMAIN and RECIPIENT environment
 variables for delivery to command (including mailbox_command) by
 the local delivery agent. As you might expect, the information is
 censored. The list of acceptable characters is specified with the

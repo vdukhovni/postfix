@@ -142,7 +142,7 @@ void    smtp_chat_cmd(SMTP_STATE *state, char *fmt,...)
      * program is trying to do.
      */
     if (msg_verbose)
-	msg_info("> %s: %s", session->namaddr, STR(state->buffer));
+	msg_info("> %s: %s", session->host, STR(state->buffer));
 
     /*
      * Send the command to the SMTP server.
@@ -177,9 +177,9 @@ SMTP_RESP *smtp_chat_resp(SMTP_STATE *state)
 	cp = printable(STR(state->buffer), '?');
 	if (last_char != '\n')
 	    msg_warn("%s: response longer than %d: %.30s...",
-		     session->namaddr, var_line_limit, cp);
+		     session->host, var_line_limit, cp);
 	if (msg_verbose)
-	    msg_info("< %s: %s", session->namaddr, cp);
+	    msg_info("< %s: %s", session->host, cp);
 	while (ISDIGIT(*cp))
 	    cp++;
 	rdata.code = (cp - STR(state->buffer) == 3 ?
@@ -256,9 +256,9 @@ void    smtp_chat_notify(SMTP_STATE *state)
 		      mail_addr_mail_daemon());
     post_mail_fprintf(notice, "To: %s (Postmaster)", var_error_rcpt);
     post_mail_fprintf(notice, "Subject: %s SMTP client: errors from %s",
-		      var_mail_name, session->namaddr);
+		      var_mail_name, session->host);
     post_mail_fputs(notice, "");
-    post_mail_fprintf(notice, "Unexpected response from %s.", session->namaddr);
+    post_mail_fprintf(notice, "Unexpected response from %s.", session->host);
     post_mail_fputs(notice, "");
     post_mail_fputs(notice, "Transcript of session follows.");
     post_mail_fputs(notice, "");

@@ -283,7 +283,7 @@ delivery.</a>
 
 Normally, Postfix attempts to deliver outbound mail at its convenience.
 If your machine uses on-demand dialup IP, this causes your system
-to place a telephone call whenever you submit mail, and whenever
+to place a telephone call whenever you submit new mail, and whenever
 Postfix retries to deliver delayed mail. To prevent such telephone
 calls from being placed, disable spontaneous SMTP mail deliveries.
 
@@ -323,6 +323,12 @@ that are disconnected most of the time)
 
 <p>
 
+<i> When you disable DNS lookups, you must specify a</i> <b>relayhost</b>
+<i> as either a numeric IP address, or as a hostname that appears
+in</i> <b>/etc/hosts</b>.
+
+<p>
+
 <li> Flush the mail queue whenever the Internet link is established.
 
 <p>
@@ -340,12 +346,12 @@ Put the following command into your PPP or SLIP dialup scripts:
 <p>
 
 The exact location of the <b>sendmail</b> command is system-specific.
-With some UNIX versions, usr <b>/usr/lib/sendmail</b>.
+With some UNIX versions, use <b>/usr/lib/sendmail</b>.
 
 If you have disabled <a href="#spontaneous_smtp">spontaneous SMTP
-mail delivery</a> you need to run this command occasionally while
-the dialup link is up, so that newly-posted mail is flushed from
-the queue.
+mail delivery</a>, you also need to run the above command every
+now and then while the dialup link is up, so that newly-posted mail
+is flushed from the queue.
 
 </ul>
 

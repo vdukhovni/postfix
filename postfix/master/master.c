@@ -331,7 +331,6 @@ int     main(int argc, char **argv)
      * that there are no concurrency conflicts within the master process.
      */
     signal(SIGALRM, master_watchdog);
-    master_sample_start();
     for (;;) {
 #ifdef HAS_VOLATILE_LOCKS
 	if (myflock(vstream_fileno(lock_fp), MYFLOCK_EXCLUSIVE) < 0)

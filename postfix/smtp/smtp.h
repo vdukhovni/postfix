@@ -54,7 +54,6 @@ typedef struct SMTP_SESSION {
     VSTREAM *stream;			/* network connection */
     char   *host;			/* mail exchanger */
     char   *addr;			/* mail exchanger */
-    char   *namaddr;			/* mail exchanger */
     int     best;			/* most preferred host */
 } SMTP_SESSION;
 

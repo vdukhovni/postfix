@@ -84,8 +84,7 @@ void    cleanup_out(int type, char *string, int len)
     if (CLEANUP_OUT_OK()) {
 	if (rec_put(cleanup_dst, type, string, len) < 0) {
 	    if (errno == EFBIG) {
-		msg_warn("%s: queue file size limit exceeded",
-			 cleanup_queue_id);
+		msg_warn("queue file size limit exceeded");
 		cleanup_errs |= CLEANUP_STAT_SIZE;
 	    } else {
 		msg_warn("%s: write queue file: %m", cleanup_queue_id);
