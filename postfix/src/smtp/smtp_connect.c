@@ -391,9 +391,9 @@ SMTP_SESSION *smtp_connect(char *destination, VSTRING *why)
     char   *host;
     unsigned port;
     char   *def_service = "smtp";	/* XXX configurable? */
-    char   *save;
+    ARGV   *sites;
     char   *dest;
-    char   *cp;
+    char  **cpp;
     int     found_myself = 0;
 
     /*
@@ -401,9 +401,11 @@ SMTP_SESSION *smtp_connect(char *destination, VSTRING *why)
      * to the optional fall-back relays. Each can be a list of destinations
      * by itself, with domain, host, [], numerical address, and port.
      */
-    cp = save = concatenate(destination, " ", var_fallback_relay, (char *) 0);
+    sites = argv_alloc(1);
+    argv_add(sites, destination, (char *) 0);
+    argv_split_append(sites, var_fallback_relay, ", \t\r\n");
 
-    while ((dest = mystrtok(&cp, ", \t\r\n")) != 0) {
+    for (cpp = sites->argv; (dest = *cpp) != 0; cpp++) {
 
 	/*
 	 * Parse the destination. Default is to use the SMTP port.
@@ -448,8 +450,8 @@ SMTP_SESSION *smtp_connect(char *destination, VSTRING *why)
 		     VAR_RELAYHOST, var_relayhost);
 	    smtp_errno = SMTP_RETRY;
 	}
-	if (*var_fallback_relay) {
-	    msg_warn("%s configuration problem: %s",
+	if (cpp > sites->argv && sites->argc > 1) {
+	    msg_warn("%s problem: %s",
 		     VAR_FALLBACK_RELAY, var_fallback_relay);
 	    smtp_errno = SMTP_RETRY;
 	}
@@ -458,6 +460,6 @@ SMTP_SESSION *smtp_connect(char *destination, VSTRING *why)
     /*
      * Cleanup.
      */
-    myfree(save);
+    argv_free(sites);
     return (session);
 }

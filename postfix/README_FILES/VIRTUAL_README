@@ -138,7 +138,7 @@ virtual_mailbox_lock
     Use the "postconf -m" command to find out what locking methods
     Postfix supports on your system.
 
-virtual_mailbox_size
+virtual_mailbox_limit
 
     An upper limit on the size of a mailbox file or maildir file.
 

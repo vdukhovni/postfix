@@ -6926,6 +6926,25 @@ Apologies for any names omitted.
 	Bugfix: the LDAP client dumped core in verbose mode.
 	Reported by Will Day and others.  File: util/dict_ldap.c.
 
+20020906
+
+	Cleanup: dict_regexp module speedups by avoiding unnecessary
+	work while matching strings. File: util/dict_regexp.c.
+
+20020907
+
+	Feature: IF..ENDIF support based on code by Bert Driehuis.
+	File: util/dict_regexp.c.
+
+ 
+200209010
+
+	Bugfix: the SMTP client produced unnecessary warnings about
+	trouble with the fallback_relay hosts. File:  smtp/smtp_connect.c.
+
+	Robustness: don't wait with detecting broken SMTP connections
+	until reading input. Leandro Santi. File: smtpd/smtpd_chat.c.
+
 Open problems:
 
 	Low: smtpd should log queue ID with reject/warn/hold/discard

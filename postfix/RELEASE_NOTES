@@ -12,6 +12,12 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix snapshot 1.1.11-20020910
+==========================================================
+
+The relayhost setting now behaves as documented, i.e. you can no
+longer specify multiple destinations.
+
 Incompatible changes with Postfix snapshot 1.1.11-20020906
 ==========================================================
 
