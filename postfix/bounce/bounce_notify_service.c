@@ -131,6 +131,15 @@ static int bounce_header(VSTREAM *bounce, VSTRING *buf, const char *dest,
     post_mail_fputs(bounce, "");
     post_mail_fputs(bounce, "This is a MIME-encapsulated message.");
     post_mail_fputs(bounce, "");
+
+    /*
+     * More MIME header.
+     */
+    post_mail_fprintf(bounce, "--%s", boundary);
+    post_mail_fprintf(bounce, "Content-Description: %s", "Notification");
+    post_mail_fprintf(bounce, "Content-Type: %s", "text/plain");
+    post_mail_fputs(bounce, "");
+
     return (vstream_ferror(bounce));
 }
 
@@ -139,14 +148,6 @@ static int bounce_header(VSTREAM *bounce, VSTRING *buf, const char *dest,
 static int bounce_boilerplate(VSTREAM *bounce, VSTRING *buf,
 			              const char *boundary, int flush)
 {
-
-    /*
-     * MIME header.
-     */
-    post_mail_fprintf(bounce, "--%s", boundary);
-    post_mail_fprintf(bounce, "Content-Description: %s", "Notification");
-    post_mail_fprintf(bounce, "Content-Type: %s", "text/plain");
-    post_mail_fputs(bounce, "");
 
     /*
      * Print the message body with the problem report. XXX For now, we use a

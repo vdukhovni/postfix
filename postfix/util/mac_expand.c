@@ -16,11 +16,10 @@
 /* DESCRIPTION
 /*	This module implements parameter-less macro expansions, both
 /*	conditional and unconditional, and both recursive and non-recursive.
-/*	The algorithm can search multiple user-specified symbol tables.
 /*
-/*	In the text below, an attribute is considered "undefined" when its
-/*	value is a null pointer.  In all other cases the attribute is
-/*	considered "defined".
+/*	In this text, an attribute is considered "undefined" when its value
+/*	is a null pointer.  Otherwise, the attribute is considered "defined"
+/*	and is expected to have as value a null-terminated string.
 /*
 /*	The following expansions are implemented:
 /* .IP "$name, ${name}, $(name)"
@@ -47,8 +46,9 @@
 /* .RS
 /* .IP MAC_EXP_FLAG_RECURSE
 /*	Expand $name recursively.
-/* .RE
+/* .PP
 /*	The constant MAC_EXP_FLAG_NONE specifies a manifest null value.
+/* .RE
 /* .IP filter
 /*	A null pointer, or a null-terminated array of characters that
 /*	are allowed to appear in an expansion. Illegal characters are
@@ -134,14 +134,13 @@ static int mac_expand_callback(int type, VSTRING *buf, char *ptr)
 	return (mc->status);
 
     /*
-     * $Name reference.
+     * $Name etc. reference.
      */
     if (type == MAC_PARSE_VARNAME) {
 
 	/*
 	 * Look for the ? or : delimiter. In case of a syntax error, return
-	 * without doing damage. We do not have enough context to produce an
-	 * understandable error message, so don't try.
+	 * without doing damage, and issue a warning instead.
 	 */
 	for (cp = vstring_str(buf); /* void */ ; cp++) {
 	    if ((ch = *cp) == 0) {

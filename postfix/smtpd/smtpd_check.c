@@ -1433,6 +1433,16 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
     char   *name;
     int     status;
     char   *saved_recipient = state->recipient;
+    char   *err;
+
+    /*
+     * Apply delayed restrictions.
+     */
+    if (var_smtpd_delay_reject)
+	if ((err = smtpd_check_client(state)) != 0
+	    || (err = smtpd_check_helo(state, state->helo_name)) != 0
+	    || (err = smtpd_check_mail(state, state->sender)) != 0)
+	    return (err);
 
     /*
      * Initialize.
@@ -1484,6 +1494,15 @@ char   *smtpd_check_etrn(SMTPD_STATE *state, char *domain)
     char  **cpp;
     char   *name;
     int     status;
+    char   *err;
+
+    /*
+     * Apply delayed restrictions.
+     */
+    if (var_smtpd_delay_reject)
+	if ((err = smtpd_check_client(state)) != 0
+	    || (err = smtpd_check_helo(state, state->helo_name)) != 0)
+	    return (err);
 
     /*
      * Initialize.
@@ -1644,6 +1663,7 @@ int     var_maps_rbl_code;
 int     var_access_map_code;
 int     var_reject_code;
 int     var_non_fqdn_code;
+int     var_smtpd_delay_reject;
 
 static INT_TABLE int_table[] = {
     "msg_verbose", 0, &msg_verbose,
@@ -1656,6 +1676,7 @@ static INT_TABLE int_table[] = {
     VAR_ACCESS_MAP_CODE, DEF_ACCESS_MAP_CODE, &var_access_map_code,
     VAR_REJECT_CODE, DEF_REJECT_CODE, &var_reject_code,
     VAR_NON_FQDN_CODE, DEF_NON_FQDN_CODE, &var_non_fqdn_code,
+    VAR_SMTPD_DELAY_REJECT, DEF_SMTPD_DELAY_REJECT, &var_smtpd_delay_reject,
     0,
 };
 

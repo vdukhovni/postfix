@@ -44,11 +44,7 @@ LOCAL(8)                                                 LOCAL(8)
        address  extension),  <b>$domain</b>  (recipient domain), <b>mailbox</b>
        (entire recipient address localpart) and <b>$recipient</b><i>_</i><b>delim-</b>
        <b>iter.</b>  The  forms  <i>${name?value}</i>  and <i>${name:value}</i> expand
-       conditionally to <i>value</i> when <i>$name</i> is (is not) defined.  In
-       the result of <i>name</i> expansion, characters that have special
-       meaning to the shell are replaced by underscores. The list
-       of  legal  characters is specified with the <b>forward</b><i>_</i><b>expan-</b>
-       <b>sion</b><i>_</i><b>filter</b> configuration parameter.
+       conditionally to <i>value</i> when <i>$name</i> is (is not) defined.
 
        An alias or ~/.<b>forward</b> file may list  any  combination  of
        external   commands,  destination  file  names,  <b>:include:</b>
@@ -59,6 +55,10 @@ LOCAL(8)                                                 LOCAL(8)
        When an address is  found  in  its  own  alias  expansion,
        delivery  is  made  to  the  user  instead. When a user is
        listed in the user's own ~/.<b>forward</b> file, delivery is made
+       to  the  user's mailbox instead.  An empty ~/.<b>forward</b> file
+       means do not forward mail.
+
+       In  order  to  prevent  the  mail  system  from  using  up
 
 
 
@@ -71,11 +71,7 @@ LOCAL(8)                                                 LOCAL(8)
 LOCAL(8)                                                 LOCAL(8)
 
 
-       to  the  user's mailbox instead.  An empty ~/.<b>forward</b> file
-       means do not forward mail.
-
-       In order to prevent the mail system from using  up  unrea-
-       sonable   amounts  of  memory,  input  records  read  from
+       unreasonable  amounts  of  memory, input records read from
        <b>:include:</b> or from ~/.<b>forward</b>  files  are  broken  up  into
        chunks of length <b>line</b><i>_</i><b>length</b><i>_</i><b>limit</b>.
 
@@ -125,6 +121,10 @@ LOCAL(8)                                                 LOCAL(8)
        In the case of UNIX-style mailbox delivery, the <b>local</b> dae-
        mon prepends a "<b>From</b> <i>sender</i> <i>time_stamp</i>" envelope header to
        each  message,  prepends  a  <b>Delivered-To:</b> header with the
+       envelope recipient address, prepends a <b>Return-Path:</b> header
+       with  the  envelope sender address, prepends a &gt; character
+       to lines beginning with "<b>From</b>  ",  and  appends  an  empty
+       line.   The  mailbox  is locked for exclusive access while
 
 
 
@@ -137,10 +137,6 @@ LOCAL(8)                                                 LOCAL(8)
 LOCAL(8)                                                 LOCAL(8)
 
 
-       envelope recipient address, prepends a <b>Return-Path:</b> header
-       with  the  envelope sender address, prepends a &gt; character
-       to lines beginning with "<b>From</b>  ",  and  appends  an  empty
-       line.   The  mailbox  is locked for exclusive access while
        delivery is in progress. In case of problems,  an  attempt
        is made to truncate the mailbox to its original length.
 
@@ -191,6 +187,10 @@ LOCAL(8)                                                 LOCAL(8)
        dependent default path, and the <b>TZ</b> (time zone) environment
        variable is always passed on without change.
 
+       The current working directory is the mail queue directory.
+
+       The <b>local</b> daemon prepends a "<b>From</b> <i>sender</i> <i>time_stamp</i>" enve-
+       lope  header  to  each  message,  prepends a <b>Delivered-To:</b>
 
 
 
@@ -203,10 +203,6 @@ LOCAL(8)                                                 LOCAL(8)
 LOCAL(8)                                                 LOCAL(8)
 
 
-       The current working directory is the mail queue directory.
-
-       The <b>local</b> daemon prepends a "<b>From</b> <i>sender</i> <i>time_stamp</i>" enve-
-       lope  header  to  each  message,  prepends a <b>Delivered-To:</b>
        header with the recipient  envelope  address,  prepends  a
        <b>Return-Path:</b>  header with the sender envelope address, and
        appends an empty line.
@@ -256,7 +252,11 @@ LOCAL(8)                                                 LOCAL(8)
        superuser, delivery is made with the rights specified with
        the <b>default</b><i>_</i><b>privs</b> configuration parameter.
 
+<b>STANDARDS</b>
+       RFC 822 (ARPA Internet Text Messages)
 
+<b>DIAGNOSTICS</b>
+       Problems  and  transactions  are  logged  to   <b>syslogd</b>(8).
 
 
 
@@ -269,13 +269,8 @@ LOCAL(8)                                                 LOCAL(8)
 LOCAL(8)                                                 LOCAL(8)
 
 
-<b>STANDARDS</b>
-       RFC 822 (ARPA Internet Text Messages)
-
-<b>DIAGNOSTICS</b>
-       Problems and transactions are logged to <b>syslogd</b>(8).   Cor-
-       rupted  message files are marked so that the queue manager
-       can move them to the <b>corrupt</b> queue afterwards.
+       Corrupted  message files are marked so that the queue man-
+       ager can move them to the <b>corrupt</b> queue afterwards.
 
        Depending on the setting of the <b>notify</b><i>_</i><b>classes</b>  parameter,
        the  postmaster  is notified of bounces and of other trou-
@@ -323,6 +318,11 @@ LOCAL(8)                                                 LOCAL(8)
 <b>Mailbox</b> <b>delivery</b>
        <b>fallback</b><i>_</i><b>transport</b>
               Message transport for recipients that are not found
+              in the UNIX passwd database.  This parameter  over-
+              rides <b>luser</b><i>_</i><b>relay</b>.
+
+       <b>home</b><i>_</i><b>mailbox</b>
+              Pathname  of  a  mailbox  relative to a user's home
 
 
 
@@ -335,11 +335,6 @@ LOCAL(8)                                                 LOCAL(8)
 LOCAL(8)                                                 LOCAL(8)
 
 
-              in the UNIX passwd database.  This parameter  over-
-              rides <b>luser</b><i>_</i><b>relay</b>.
-
-       <b>home</b><i>_</i><b>mailbox</b>
-              Pathname  of  a  mailbox  relative to a user's home
               directory.  Specify a path ending in <b>/</b> for maildir-
               style delivery.
 
@@ -390,6 +385,11 @@ LOCAL(8)                                                 LOCAL(8)
               Limit the amount of memory used  for  processing  a
               partial input line.
 
+       <b>local</b><i>_</i><b>destination</b><i>_</i><b>concurrency</b><i>_</i><b>limit</b>
+              Limit the number of parallel deliveries to the same
+              user.   The  default  limit  is  taken   from   the
+              <b>default</b><i>_</i><b>destination</b><i>_</i><b>concurrency</b><i>_</i><b>limit</b> parameter.
+
 
 
                                                                 6
@@ -400,11 +400,6 @@ LOCAL(8)                                                 LOCAL(8)
 
 LOCAL(8)                                                 LOCAL(8)
 
-
-       <b>local</b><i>_</i><b>destination</b><i>_</i><b>concurrency</b><i>_</i><b>limit</b>
-              Limit the number of parallel deliveries to the same
-              user.   The  default  limit  is  taken   from   the
-              <b>default</b><i>_</i><b>destination</b><i>_</i><b>concurrency</b><i>_</i><b>limit</b> parameter.
 
        <b>local</b><i>_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
               Limit  the  number of recipients per message deliv-
@@ -429,11 +424,6 @@ LOCAL(8)                                                 LOCAL(8)
               Default  rights  for  delivery  to external file or
               command.
 
-       <b>forward</b><i>_</i><b>expansion</b><i>_</i><b>filter</b>
-              What characters are  allowed  to  appear  in  $name
-              expansions  of forward_path. Illegal characters are
-              replaced by underscores.
-
 <b>HISTORY</b>
        The <b>Delivered-To:</b> header appears in the  <b>qmail</b>  system  by
        Daniel Bernstein.
@@ -455,18 +445,6 @@ LOCAL(8)                                                 LOCAL(8)
 <b>AUTHOR(S)</b>
        Wietse Venema
        IBM T.J. Watson Research
-
-
-
-                                                                7
-
-
-
-
-
-LOCAL(8)                                                 LOCAL(8)
-
-
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
 
@@ -480,51 +458,7 @@ LOCAL(8)                                                 LOCAL(8)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                                                                8
+                                                                7
 
 
 </pre> </body> </html>

@@ -40,15 +40,20 @@
 #include <cleanup_user.h>
 #include <record.h>
 #include <rec_type.h>
+#include <mail_params.h>
+#include <ext_prop.h>
 
 /* Application-specific. */
 
 #include "cleanup.h"
 
+#define STR(x)	vstring_str(x)
+
 /* cleanup_extracted - generate segment with header-extracted information */
 
 void    cleanup_extracted(void)
 {
+    VSTRING *clean_addr;
     ARGV   *rcpt;
     char  **cpp;
     int     type;
@@ -59,25 +64,38 @@ void    cleanup_extracted(void)
      * 
      * XXX Rely on the front-end programs to enforce record size limits.
      */
-    if ((type = rec_get(cleanup_src, cleanup_inbuf, 0)) < 0) {
-	cleanup_errs |= CLEANUP_STAT_BAD;
-	return;
-    }
-
-    /*
-     * Require that the client sends an empty record group. It is OUR job to
-     * extract information from message headers. Clients can specify options
-     * via special message header lines.
-     * 
-     * XXX Keep reading in case of trouble, so that the sender is ready for our
-     * status report.
-     */
-    if (type != REC_TYPE_END) {
-	msg_warn("unexpected record type %d in extracted segment", type);
-	cleanup_errs |= CLEANUP_STAT_BAD;
-	if (type >= 0)
-	    cleanup_skip();
-	return;
+    while (CLEANUP_OUT_OK()) {
+	if ((type = rec_get(cleanup_src, cleanup_inbuf, 0)) < 0) {
+	    cleanup_errs |= CLEANUP_STAT_BAD;
+	    return;
+	}
+	if (type == REC_TYPE_RRTO) {
+	     /* XXX Use extracted information instead. */ ;
+	} else if (type == REC_TYPE_ERTO) {
+	     /* XXX Use extracted information instead. */ ;
+	} else if (type == REC_TYPE_RCPT) {
+	    clean_addr = vstring_alloc(100);
+	    cleanup_rewrite_internal(clean_addr, *STR(cleanup_inbuf) ?
+				     STR(cleanup_inbuf) : var_empty_addr);
+	    if (cleanup_rcpt_canon_maps)
+		cleanup_map11_internal(clean_addr, cleanup_rcpt_canon_maps,
+				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
+	    if (cleanup_comm_canon_maps)
+		cleanup_map11_internal(clean_addr, cleanup_comm_canon_maps,
+				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
+	    cleanup_out_recipient(STR(clean_addr));
+	    if (cleanup_recip == 0)
+		cleanup_recip = mystrdup(STR(clean_addr));
+	    vstring_free(clean_addr);
+	} else if (type == REC_TYPE_END) {
+	    break;
+	} else {
+	    msg_warn("unexpected record type %d in extracted segment", type);
+	    cleanup_errs |= CLEANUP_STAT_BAD;
+	    if (type >= 0)
+		cleanup_skip();
+	    return;
+	}
     }
 
     /*

@@ -257,13 +257,13 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
 	return (status);
 
     /*
-     * Send the segment with information extracted from message headers. At
-     * this stage of the mail processing pipeline, that segment should be
-     * empty, so we require that the it is. This record group ends with a
-     * type REC_TYPE_END record.
+     * Send the segment with information extracted from message headers.
+     * Permit a non-empty extracted segment, so that list manager software
+     * can to output recipients after the message, and so that sysadmins can
+     * re-inject messages after a change of configuration.
      */
     rec_fputs(cleanup, REC_TYPE_XTRA, "");
-    if ((status = copy_segment(qfile, cleanup, info, buf, REC_TYPE_NOEXTRACT)) != 0)
+    if ((status = copy_segment(qfile, cleanup, info, buf, REC_TYPE_EXTRACT)) != 0)
 	return (status);
 
     /*

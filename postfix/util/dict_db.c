@@ -188,7 +188,8 @@ static void dict_db_update(DICT *dict, const char *name, const char *value)
     /*
      * Do the update.
      */
-    if ((status = db->put(db, &db_key, &db_value, R_NOOVERWRITE)) < 0)
+    if ((status = db->put(db, &db_key, &db_value,
+	    (dict->flags & DICT_FLAG_DUP_REPLACE) ? 0 : R_NOOVERWRITE)) < 0)
 	msg_fatal("error writing %s: %m", dict_db->path);
     if (status) {
 	if (dict->flags & DICT_FLAG_DUP_IGNORE)
@@ -205,6 +206,132 @@ static void dict_db_update(DICT *dict, const char *name, const char *value)
     if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_NONE) < 0)
 	msg_fatal("%s: unlock dictionary: %m", dict_db->path);
 }
+
+/* delete one entry from the dictionary */
+
+static int dict_db_delete(DICT *dict, const char *key)
+{
+    DICT_DB *dict_db = (DICT_DB *) dict;
+    DB     *db = dict_db->db;
+    DBT     db_key;
+    int     status;
+    int     flags = 0;
+
+    db_key.data = (void *) key;
+    db_key.size = strlen(key);
+
+    /*
+     * If undecided about appending a null byte to key and value, choose a
+     * default depending on the platform.
+     */
+    if ((dict->flags & DICT_FLAG_TRY1NULL)
+	&& (dict->flags & DICT_FLAG_TRY0NULL)) {
+#ifdef DB_NO_TRAILING_NULL
+	dict->flags = DICT_FLAG_TRY0NULL;
+#else
+	dict->flags = DICT_FLAG_TRY1NULL;
+#endif
+    }
+
+    /*
+     * Optionally append a null byte to key and value.
+     */
+    if (dict->flags & DICT_FLAG_TRY1NULL) {
+	db_key.size++;
+    }
+
+    /*
+     * Acquire an exclusive lock.
+     */
+    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_EXCLUSIVE) < 0)
+	msg_fatal("%s: lock dictionary: %m", dict_db->path);
+
+    /*
+     * Do the delete operation.
+     */
+    if ((status = db->del(db, &db_key, flags)) < 0)
+	msg_fatal("error deleting %s: %m", dict_db->path);
+
+    /*
+     * Release the exclusive lock.
+     */
+    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_NONE) < 0)
+	msg_fatal("%s: unlock dictionary: %m", dict_db->path);
+
+    return status;
+}
+
+/* dict_db_sequence - traverse the dictionary */
+
+static int dict_db_sequence(DICT *dict, const int function,
+			            const char **key, const char **value)
+{
+    char   *myname = "dict_db_sequence";
+    DICT_DB *dict_db = (DICT_DB *) dict;
+    DB     *db = dict_db->db;
+    DBT     db_key;
+    DBT     db_value;
+    int     status = 0;
+    int     db_function;
+    static VSTRING *key_buf;
+    static VSTRING *value_buf;
+
+    /*
+     * determine the function
+     */
+    switch (function) {
+    case DICT_SEQ_FUN_FIRST:
+	db_function = R_FIRST;
+	break;
+    case DICT_SEQ_FUN_NEXT:
+	db_function = R_NEXT;
+	break;
+    default:
+	msg_panic("%s: invalid function %d", myname, function);
+    }
+
+    /*
+     * Acquire an exclusive lock.
+     */
+    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_EXCLUSIVE) < 0)
+	msg_fatal("%s: lock dictionary: %m", dict_db->path);
+
+    if ((status = db->seq(db, &db_key, &db_value, db_function)) < 0)
+	msg_fatal("error seeking %s: %m", dict_db->path);
+
+    /*
+     * Release the exclusive lock.
+     */
+    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_NONE) < 0)
+	msg_fatal("%s: unlock dictionary: %m", dict_db->path);
+
+    if (status == 0) {
+
+	/*
+	 * See if this DB file was written with one null byte appended to key
+	 * and value or not.
+	 */
+	if (((char *) db_key.data)[db_key.size] == 0) {
+	    *key = db_key.data;
+	} else {
+	    if (key_buf == 0)
+		key_buf = vstring_alloc(10);
+	    vstring_strncpy(key_buf, db_key.data, db_key.size);
+	    *key = vstring_str(key_buf);
+	}
+	if (((char *) db_value.data)[db_value.size] == 0) {
+	    *value = db_value.data;
+	} else {
+	    if (value_buf == 0)
+		value_buf = vstring_alloc(10);
+	    vstring_strncpy(value_buf, db_value.data, db_value.size);
+	    *value = vstring_str(value_buf);
+	}
+    }
+    return status;
+}
+
+
 
 /* dict_db_close - close data base */
 
@@ -235,6 +362,8 @@ static DICT *dict_db_open(const char *path, int flags, int type,
     dict_db = (DICT_DB *) mymalloc(sizeof(*dict_db));
     dict_db->dict.lookup = dict_db_lookup;
     dict_db->dict.update = dict_db_update;
+    dict_db->dict.delete = dict_db_delete;
+    dict_db->dict.sequence = dict_db_sequence;
     dict_db->dict.close = dict_db_close;
     dict_db->dict.fd = db->fd(db);
     if (fstat(dict_db->dict.fd, &st) < 0)

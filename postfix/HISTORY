@@ -2706,11 +2706,10 @@ Apologies for any names omitted.
 	${name:text} expands to text when name is undefined,
 	otherwise the result is empty. File: util/mac_expand.c.
 
-	Feature: conditional macro expansion of the forward_path and
-	mailbox_command configuration parameters of $user, $home,
-	$shell, $recipient, $extension, $domain, $mailbox and
-	$recipient_delimiter.  Files:  local/command.c,
-	local/dotforward.c, local/local_expand.c.
+	Feature: conditional macro expansion of the forward_path
+	configuration parameters of $user, $home, $shell, $recipient,
+	$extension, $domain, $mailbox and $recipient_delimiter.
+	Files:  local/dotforward.c, local/local_expand.c.
 
 19990506
 
@@ -2751,10 +2750,38 @@ Apologies for any names omitted.
 
 19990509
 
-	Feature: command_expansion_filter to control what characters
-	may appearin message attributes that are exported via
-	environment variables.
+	Feature: USER, EXTENSION and DOMAIN environment variables
+	are exported to shell commands (including mailbox_command).
+
+	Feature: new command_expansion_filter parameter to control
+	what characters may appear in message attributes that are
+	exported via environment variables.
 
 	Cleanup: SMTPD reject messages are more informative, and
 	more complete sender/recipient information is logged for
 	the local sysadmin.
+
+19990510
+
+	Bugfix: missing MIME header in postmaster bounce notices.
+	Found by Samuel Tardieu, Ecole Nationale Superieure des
+	Telecommunications, France.
+
+	Feature: UCE restrictions are always delayed until RCPT
+	TO, VRFY or ETRN. To change back to the default specify
+	"smtpd_delay_reject = no" in /etc/postfix/main.cf.
+
+	Bugfix: missing duplicate filter call. This caused too many
+	deliveries when a user is listed multiple times in an alias.
+	Reported by Hideyuki Suzuki, School of Engineering, University
+	of Tokyo.
+
+	Feature: it is now possible to move queue files back into
+	the maildrop queue, so that they can benefit from changes
+	in canonical and virtual mappings. In order to make this
+	possible, some restrictions on queue file contents were
+	relaxed. Files: pickup/pickup.c, cleanup/cleanup_extracted.c.
+
+	Feature: made a start with integrating Joerg Henne's
+	dictionary extensions to remove entries and to iterate over
+	entries. That code is almost four months old by now.

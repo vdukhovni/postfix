@@ -1,6 +1,10 @@
 Incompatible changes with snapshot-19990509:
 ===========================================
 
+- The SMTP server now always delays UCE restrictions until RCPT
+TO, VRFY or ETRN command. To change back to the default specify
+"smtpd_delay_reject = no" in /etc/postfix/main.cf.
+
 - The Postfix local delivery agent no longer automatically propagates
 the address extension to aliases/include/forward addresses.  Specify
 "propagate_unmatched_extensions = canonical, virtual, alias, forward,

@@ -101,9 +101,7 @@ static int deliver_message(DELIVER_REQUEST *request)
 	msg_info("deliver_message: from %s", request->sender);
 
     /*
-     * Sanity checks. The smtp server is unprivileged and chrooted, so we can
-     * afford to distribute the data censoring code, instead of having it all
-     * in one place.
+     * Sanity checks.
      */
     if (request->nexthop[0] == 0)
 	msg_fatal("empty nexthop hostname");

@@ -342,12 +342,6 @@ abcdefghijklmnopqrstuvwxyz\
 ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 extern char *var_cmd_exp_filter;
 
-#define VAR_FWD_EXP_FILTER	"forward_expansion_filter"
-#define DEF_FWD_EXP_FILTER	"1234567890!@%-_=+:,./\
-abcdefghijklmnopqrstuvwxyz\
-ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-extern char *var_fwd_exp_filter;
-
 #define VAR_RCPT_FDELIM		"recipient_feature_delimiter"
 #define DEF_RCPT_FDELIM		""
 extern char *var_rcpt_fdelim;
@@ -783,6 +777,10 @@ extern int var_maps_rbl_code;
 #define VAR_MAPS_RBL_DOMAINS	"maps_rbl_domains"
 #define DEF_MAPS_RBL_DOMAINS	"rbl.maps.vix.com"
 extern char *var_maps_rbl_domains;
+
+#define VAR_SMTPD_DELAY_REJECT	"smtpd_delay_reject"
+#define DEF_SMTPD_DELAY_REJECT	1
+extern int var_smtpd_delay_reject;
 
  /*
   * Other.

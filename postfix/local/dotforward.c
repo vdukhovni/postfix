@@ -198,8 +198,7 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     lookup_status = -1;
 
     while ((lhs = mystrtok(&next, ", \t\r\n")) != 0) {
-	expand_status = local_expand(path, lhs, &state,
-				     &usr_attr, var_fwd_exp_filter);
+	expand_status = local_expand(path, lhs, &state, &usr_attr, (char *) 0);
 	if ((expand_status & (MAC_PARSE_ERROR | MAC_PARSE_UNDEF)) == 0) {
 	    lookup_status =
 		lstat_as(STR(path), &st, usr_attr.uid, usr_attr.gid);

@@ -163,7 +163,8 @@ static void dict_dbm_update(DICT *dict, const char *name, const char *value)
     /*
      * Do the update.
      */
-    if ((status = dbm_store(dict_dbm->dbm, dbm_key, dbm_value, DBM_INSERT)) < 0)
+    if ((status = dbm_store(dict_dbm->dbm, dbm_key, dbm_value,
+       (dict->flags & DICT_FLAG_DUP_REPLACE) ? DBM_REPLACE : DBM_INSERT)) < 0)
 	msg_fatal("error writing DBM database %s: %m", dict_dbm->path);
     if (status) {
 	if (dict->flags & DICT_FLAG_DUP_IGNORE)
@@ -179,6 +180,155 @@ static void dict_dbm_update(DICT *dict, const char *name, const char *value)
      */
     if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_NONE) < 0)
 	msg_fatal("%s: unlock dictionary: %m", dict_dbm->path);
+}
+
+/* dict_dbm_delete - delete one entry from the dictionary */
+
+static int dict_dbm_delete(DICT *dict, const char *key)
+{
+    DICT_DBM *dict_dbm = (DICT_DBM *) dict;
+    datum   dbm_key;
+    int     status;
+    int     flags = 0;
+
+    dbm_key.dptr = (void *) key;
+    dbm_key.dsize = strlen(key);
+
+    /*
+     * If undecided about appending a null byte to key and value, choose a
+     * default depending on the platform.
+     */
+    if ((dict->flags & DICT_FLAG_TRY1NULL)
+	&& (dict->flags & DICT_FLAG_TRY0NULL)) {
+#ifdef DBM_NO_TRAILING_NULL
+	dict->flags = DICT_FLAG_TRY0NULL;
+#else
+	dict->flags = DICT_FLAG_TRY1NULL;
+#endif
+    }
+
+    /*
+     * Optionally append a null byte to key and value.
+     */
+    if (dict->flags & DICT_FLAG_TRY1NULL) {
+	dbm_key.dsize++;
+    }
+
+    /*
+     * Acquire an exclusive lock.
+     */
+    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_EXCLUSIVE) < 0)
+	msg_fatal("%s: lock dictionary: %m", dict_dbm->path);
+
+    /*
+     * Do the delete operation.
+     */
+    if ((status = dbm_delete(dict_dbm->dbm, dbm_key)) < 0)
+	msg_fatal("error deleting %s: %m", dict_dbm->path);
+
+    /*
+     * Release the exclusive lock.
+     */
+    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_NONE) < 0)
+	msg_fatal("%s: unlock dictionary: %m", dict_dbm->path);
+
+    return (status);
+}
+
+/* traverse the dictionary */
+
+static int dict_dbm_sequence(DICT *dict, const int function,
+			             const char **key, const char **value)
+{
+    char   *myname = "dict_dbm_sequence";
+    DICT_DBM *dict_dbm = (DICT_DBM *) dict;
+    datum   dbm_key;
+    datum   dbm_value;
+    int     status = 0;
+    static VSTRING *key_buf;
+    static VSTRING *value_buf;
+
+    /*
+     * Acquire an exclusive lock.
+     */
+    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_EXCLUSIVE) < 0)
+	msg_fatal("%s: lock dictionary: %m", dict_dbm->path);
+
+    /*
+     * Determine and execute the seek function. It returns the key.
+     */
+    switch (function) {
+    case DICT_SEQ_FUN_FIRST:
+	dbm_key = dbm_firstkey(dict_dbm->dbm);
+	break;
+    case DICT_SEQ_FUN_NEXT:
+	dbm_key = dbm_nextkey(dict_dbm->dbm);
+	break;
+    default:
+	msg_panic("%s: invalid function: %d", myname, function);
+    }
+
+    /*
+     * Release the exclusive lock.
+     */
+    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_NONE) < 0)
+	msg_fatal("%s: unlock dictionary: %m", dict_dbm->path);
+
+    if (dbm_key.dptr != 0 && dbm_key.dsize > 0) {
+
+	/*
+	 * See if this DB file was written with one null byte appended to key
+	 * an d value or not. If necessary, copy the key.
+	 */
+	if (((char *) dbm_key.dptr)[dbm_key.dsize - 1] == 0) {
+	    *key = dbm_key.dptr;
+	} else {
+	    if (key_buf == 0)
+		key_buf = vstring_alloc(10);
+	    vstring_strncpy(key_buf, dbm_key.dptr, dbm_key.dsize);
+	    *key = vstring_str(key_buf);
+	}
+
+	/*
+	 * Fetch the corresponding value.
+	 */
+	dbm_value = dbm_fetch(dict_dbm->dbm, dbm_key);
+
+	if (dbm_value.dptr != 0 && dbm_value.dsize > 0) {
+
+	    /*
+	     * See if this DB file was written with one null byte appended to
+	     * key and value or not. If necessary, copy the key.
+	     */
+	    if (((char *) dbm_value.dptr)[dbm_value.dsize - 1] == 0) {
+		*value = dbm_value.dptr;
+	    } else {
+		if (value_buf == 0)
+		    value_buf = vstring_alloc(10);
+		vstring_strncpy(value_buf, dbm_value.dptr, dbm_value.dsize);
+		*value = vstring_str(value_buf);
+	    }
+	} else {
+
+	    /*
+	     * Determine if we have hit the last record or an error
+	     * condition.
+	     */
+	    if (dbm_error(dict_dbm->dbm))
+		msg_fatal("error seeking %s: %m", dict_dbm->path);
+	    return (1);				/* no error: eof/not found
+						 * (should not happen!) */
+	}
+    } else {
+
+	/*
+	 * Determine if we have hit the last record or an error condition.
+	 */
+	if (dbm_error(dict_dbm->dbm))
+	    msg_fatal("error seeking %s: %m", dict_dbm->path);
+	return (1);				/* no error: eof/not found */
+    }
+    return (0);
 }
 
 /* dict_dbm_close - disassociate from data base */
@@ -209,6 +359,8 @@ DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
     dict_dbm = (DICT_DBM *) mymalloc(sizeof(*dict_dbm));
     dict_dbm->dict.lookup = dict_dbm_lookup;
     dict_dbm->dict.update = dict_dbm_update;
+    dict_dbm->dict.delete = dict_dbm_delete;
+    dict_dbm->dict.sequence = dict_dbm_sequence;
     dict_dbm->dict.close = dict_dbm_close;
     dict_dbm->dict.fd = dbm_pagfno(dbm);
     if (fstat(dict_dbm->dict.fd, &st) < 0)

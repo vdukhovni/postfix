@@ -277,6 +277,7 @@ int     var_smtpd_err_sleep;
 int     var_non_fqdn_code;
 char   *var_always_bcc;
 char   *var_error_rcpt;
+int     var_smtpd_delay_reject;
 
  /*
   * Global state, for stand-alone mode queue file cleanup. When this is
@@ -314,6 +315,12 @@ static int helo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	return (-1);
     }
     collapse_args(argc, argv);
+    if (SMTPD_STAND_ALONE(state) == 0
+	&& var_smtpd_delay_reject == 0
+	&& (err = smtpd_check_helo(state, argv[1].strval)) != 0) {
+	smtpd_chat_reply(state, "%s", err);
+	return (-1);
+    }
     state->helo_name = mystrdup(printable(argv[1].strval, '?'));
     state->protocol = "SMTP";
     smtpd_chat_reply(state, "250 %s", var_myhostname);
@@ -337,6 +344,12 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	return (-1);
     }
     collapse_args(argc, argv);
+    if (SMTPD_STAND_ALONE(state) == 0
+	&& var_smtpd_delay_reject == 0
+	&& (err = smtpd_check_helo(state, argv[1].strval)) != 0) {
+	smtpd_chat_reply(state, "%s", err);
+	return (-1);
+    }
     state->helo_name = mystrdup(printable(argv[1].strval, '?'));
     state->protocol = "ESMTP";
     smtpd_chat_reply(state, "250-%s", var_myhostname);
@@ -451,6 +464,12 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	}
     }
     state->time = time((time_t *) 0);
+    if (SMTPD_STAND_ALONE(state) == 0
+	&& var_smtpd_delay_reject == 0
+	&& (err = smtpd_check_mail(state, argv[3].strval)) != 0) {
+	smtpd_chat_reply(state, "%s", err);
+	return (-1);
+    }
     if ((err = smtpd_check_size(state, size)) != 0) {
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
@@ -533,25 +552,10 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "452 Error: too many recipients");
 	return (-1);
     }
-    if (SMTPD_STAND_ALONE(state) == 0) {
-	if ((err = smtpd_check_client(state)) != 0) {
-	    smtpd_chat_reply(state, "%s", err);
-	    return (-1);
-	}
-	if (state->helo_name
-	    && (err = smtpd_check_helo(state, state->helo_name)) != 0) {
-	    smtpd_chat_reply(state, "%s", err);
-	    return (-1);
-	}
-	if (state->sender
-	    && (err = smtpd_check_mail(state, state->sender)) != 0) {
-	    smtpd_chat_reply(state, "%s", err);
-	    return (-1);
-	}
-	if ((err = smtpd_check_rcpt(state, argv[3].strval)) != 0) {
-	    smtpd_chat_reply(state, "%s", err);
-	    return (-1);
-	}
+    if (SMTPD_STAND_ALONE(state) == 0
+	&& (err = smtpd_check_rcpt(state, argv[3].strval)) != 0) {
+	smtpd_chat_reply(state, "%s", err);
+	return (-1);
     }
 
     /*
@@ -795,23 +799,8 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	return (-1);
     }
     collapse_args(argc, argv);
-    if (SMTPD_STAND_ALONE(state) == 0) {
-	if ((err = smtpd_check_client(state)) != 0) {
-	    smtpd_chat_reply(state, "%s", err);
-	    return (-1);
-	}
-	if (state->helo_name
-	    && (err = smtpd_check_helo(state, state->helo_name)) != 0) {
-	    smtpd_chat_reply(state, "%s", err);
-	    return (-1);
-	}
-	if (state->sender
-	    && (err = smtpd_check_mail(state, state->sender)) != 0) {
-	    smtpd_chat_reply(state, "%s", err);
-	    return (-1);
-	}
+    if (SMTPD_STAND_ALONE(state) == 0)
 	err = smtpd_check_rcpt(state, argv[1].strval);
-    }
 
     /*
      * End untokenize.
@@ -862,20 +851,10 @@ static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * rejected. RFC 1985 requires that 459 be sent when the server refuses
      * to perform the request.
      */
-    if (SMTPD_STAND_ALONE(state) == 0) {
-	if ((err = smtpd_check_client(state)) != 0) {
-	    smtpd_chat_reply(state, "%s", err);
-	    return (-1);
-	}
-	if (state->helo_name
-	    && (err = smtpd_check_helo(state, state->helo_name)) != 0) {
-	    smtpd_chat_reply(state, "%s", err);
-	    return (-1);
-	}
-	if ((err = smtpd_check_etrn(state, argv[1].strval)) != 0) {
-	    smtpd_chat_reply(state, "%s", err);
-	    return (-1);
-	}
+    if (SMTPD_STAND_ALONE(state) == 0
+	&& (err = smtpd_check_etrn(state, argv[1].strval)) != 0) {
+	smtpd_chat_reply(state, "%s", err);
+	return (-1);
     }
 
     /*
@@ -1068,10 +1047,16 @@ static void smtpd_service(VSTREAM *stream, char *unused_service, char **argv)
     debug_peer_check(state.name, state.addr);
 
     /*
-     * Greet the client and log the connection event.
+     * See if we want to talk to this client at all. Then, log the connection
+     * event.
      */
-    smtpd_chat_reply(&state, "220 %s", var_smtpd_banner);
-    msg_info("connect from %s[%s]", state.name, state.addr);
+    if (var_smtpd_delay_reject == 0
+	&& (state.access_denied = smtpd_check_client(&state)) != 0) {
+	smtpd_chat_reply(&state, "%s", state.access_denied);
+    } else {
+	smtpd_chat_reply(&state, "220 %s", var_smtpd_banner);
+	msg_info("connect from %s[%s]", state.name, state.addr);
+    }
 
     /*
      * Provide the SMTP service.
@@ -1177,6 +1162,7 @@ int     main(int argc, char **argv)
     };
     static CONFIG_BOOL_TABLE bool_table[] = {
 	VAR_HELO_REQUIRED, DEF_HELO_REQUIRED, &var_helo_required,
+	VAR_SMTPD_DELAY_REJECT, DEF_SMTPD_DELAY_REJECT, &var_smtpd_delay_reject,
 	0,
     };
     static CONFIG_STR_TABLE str_table[] = {

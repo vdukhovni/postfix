@@ -40,10 +40,6 @@
 /*	\fB$recipient_delimiter.\fR The forms \fI${name?value}\fR and
 /*	\fI${name:value}\fR expand conditionally to \fIvalue\fR when
 /*	\fI$name\fR is (is not) defined.
-/*	In the result of \fIname\fR expansion, characters that have special
-/*	meaning to the shell are replaced by underscores. The list of legal
-/*	characters is specified with the \fBforward_expansion_filter\fR
-/*	configuration parameter.
 /*
 /*	An alias or ~/.\fBforward\fR file may list any combination of external
 /*	commands, destination file names, \fB:include:\fR directives, or
@@ -325,9 +321,6 @@
 /*	mailbox_command. Illegal characters are replaced by underscores.
 /* .IP \fBdefault_privs\fR
 /*	Default rights for delivery to external file or command.
-/* .IP \fBforward_expansion_filter\fR
-/*	What characters are allowed to appear in $name expansions of
-/*	forward_path. Illegal characters are replaced by underscores.
 /* HISTORY
 /* .ad
 /* .fi
@@ -416,7 +409,6 @@ char   *var_mailbox_transport;
 char   *var_fallback_transport;
 char   *var_forward_path;
 char   *var_cmd_exp_filter;
-char   *var_fwd_exp_filter;
 char   *var_prop_extension;
 
 int     local_cmd_deliver_mask;
@@ -588,7 +580,6 @@ int     main(int argc, char **argv)
 	VAR_MAILBOX_TRANSP, DEF_MAILBOX_TRANSP, &var_mailbox_transport, 0, 0,
 	VAR_FALLBACK_TRANSP, DEF_FALLBACK_TRANSP, &var_fallback_transport, 0, 0,
 	VAR_CMD_EXP_FILTER, DEF_CMD_EXP_FILTER, &var_cmd_exp_filter, 1, 0,
-	VAR_FWD_EXP_FILTER, DEF_FWD_EXP_FILTER, &var_fwd_exp_filter, 1, 0,
 	VAR_PROP_EXTENSION, DEF_PROP_EXTENSION, &var_prop_extension, 0, 0,
 	0,
     };

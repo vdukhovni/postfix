@@ -26,6 +26,16 @@
 /*	DICT	*dict;
 /*	const char *key;
 /*
+/*	char	*dict_del(dict, key)
+/*	DICT	*dict;
+/*	const char *key;
+/*
+/*	void	dict_seq(dict, func, key, value)
+/*	DICT	*dict;
+/*	int	func;
+/*	const char **key;
+/*	const char **value;
+/*
 /*	void	dict_close(dict)
 /*	DICT	*dict;
 /*
@@ -48,6 +58,9 @@
 /*	Ignore duplicate keys if the underlying database does not
 /*	support duplicate keys. The default is to terminate with a fatal
 /*	error.
+/* .IP DICT_FLAG_DUP_REPLACE
+/*	Replace duplicate keys if the underlying database supports such
+/*	an operation. The default is to terminate with a fatal error.
 /* .IP DICT_FLAG_TRY0NULL
 /*	With maps where this is appropriate, append no null byte to
 /*	keys and values.
@@ -96,6 +109,14 @@
 /*
 /*	dict_put() stores the specified key and value into the named
 /*	dictionary.
+/*
+/*	dict_del() removes a dictionary entry, and returns non-zero
+/*	in case of problems.
+/*
+/*	dict_seq() iterates over all members in the named dictionary.
+/*	func is define DICT_SEQ_FUN_FIRST (select first member) or
+/*	DICT_SEQ_FUN_NEXT (select next member). A null result means
+/*	there is more.
 /*
 /*	dict_close() closes the specified dictionary and cleans up the
 /*	associated data structures.

@@ -71,6 +71,14 @@
 #	This directs mail for \fIuser\fR@\fBfoo.org\fR to host \fBbar.org\fR
 #	port \fB2025\fR. Instead of a numerical port a symbolic name may be
 #	used. Specify [] around the destination in order to disable MX lookups.
+#
+#	The error mailer can be used to bounce mail:
+#
+# .ti +5
+#	\fB\&.foo.org      error:mail for *.foo.org is not deliverable\fR
+#
+#	This causes all mail for \fIuser\fR@\fIanything\fBfoo.org\fR 
+#	to be bounced.
 # CONFIGURATION PARAMETERS
 # .ad
 # .fi

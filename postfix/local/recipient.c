@@ -180,6 +180,12 @@ int     deliver_recipient(LOCAL_STATE state, USER_ATTR usr_attr)
 	MSG_LOG_STATE(myname, state);
 
     /*
+     * Duplicate filter.
+     */
+    if (been_here(state.dup_filter, "recipient %s", state.msg_attr.recipient))
+	return (0);
+
+    /*
      * With each level of recursion, detect and break external message
      * forwarding loops.
      */

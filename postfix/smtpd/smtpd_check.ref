@@ -3,6 +3,8 @@
 >>> #
 >>> #! ../bin/postmap smtpd_check_access
 >>> #msg_verbose 1
+>>> smtpd_delay_reject 0
+OK
 >>> mynetworks 127.0.0.0/8,168.100.189.0/28
 OK
 >>> relay_domains porcupine.org

@@ -28,6 +28,16 @@
 /*	const char *dict_name;
 /*	const char *member;
 /*
+/*	int	dict_delete(dict_name, member)
+/*	const char *dict_name;
+/*	const char *member;
+/*
+/*	int	dict_sequence(dict_name, func, member, value)
+/*	const char *dict_name;
+/*	int	func;
+/*	const char **member;
+/*	const char **value;
+/*
 /*	const char *dict_eval(dict_name, string, int recursive)
 /*	const char *dict_name;
 /*	const char *string;
@@ -92,6 +102,17 @@
 /*	when no value is found, otherwise the result is owned by the
 /*	underlying dictionary method. Make a copy if the result is to be
 /*	modified, or if the result is to survive multiple dict_lookup() calls.
+/*
+/*	dict_delete() removes the named member from the named dictionary.
+/*	The result is non-zero when the member does not exist.
+/*
+/*	dict_sequence() steps throuh the named dictionary and returns
+/*	keys and values in some implementation-defined order. The func
+/*	argument is DICT_SEQ_FUN_FIRST to set the cursor to the first
+/*	entry or DICT_SEQ_FUN_NEXT so select the next entry. The result
+/*	is owned by the underlying dictionary method. Make a copy if the
+/*	result is to be modified, or if the result is to survive multiple
+/*	dict_sequence() calls.
 /*
 /*	dict_eval() expands macro references in the specified string.
 /*	The result is owned by the dictionary manager. Make a copy if the
@@ -288,6 +309,51 @@ const char *dict_lookup(const char *dict_name, const char *member)
     return (ret);
 }
 
+/* dict_delete - delete dictionary entry */
+
+int     dict_delete(const char *dict_name, const char *member)
+{
+    char   *myname = "dict_delete";
+    DICT_NODE *node;
+    DICT   *dict;
+    int     result;
+
+    if ((node = dict_node(dict_name)) == 0) {
+	if (dict_unknown_allowed == 0)
+	    msg_fatal("%s: unknown dictionary: %s", myname, dict_name);
+	dict = dict_ht_open(htable_create(0), myfree);
+	dict_register(dict_name, dict);
+    } else
+	dict = node->dict;
+    if (msg_verbose > 1)
+	msg_info("%s: delete %s", myname, member);
+    if ((result = dict->delete(dict, member)) != 0 && dict_unknown_allowed == 0)
+	msg_fatal("%s: dictionary %s: unknown member: %s",
+		  myname, dict_name, member);
+    return (result);
+}
+
+/* dict_sequence - traverse dictionary */
+
+int     dict_sequence(const char *dict_name, const int func,
+		              const char **member, const char **value)
+{
+    char   *myname = "dict_sequence";
+    DICT_NODE *node;
+    DICT   *dict;
+
+    if ((node = dict_node(dict_name)) == 0) {
+	if (dict_unknown_allowed == 0)
+	    msg_fatal("%s: unknown dictionary: %s", myname, dict_name);
+	dict = dict_ht_open(htable_create(0), myfree);
+	dict_register(dict_name, dict);
+    } else
+	dict = node->dict;
+    if (msg_verbose > 1)
+	msg_info("%s: sequence func %d", myname, func);
+    return (dict->sequence(dict, func, member, value));
+}
+
 /* dict_load_file - read entries from text file */
 
 void    dict_load_file(const char *dict_name, const char *path)
@@ -389,7 +455,7 @@ static int dict_eval_action(int type, VSTRING *buf, char *ptr)
     } else {
 	vstring_strcat(ctxt->buf, STR(buf));
     }
-    return(0);
+    return (0);
 }
 
 /* dict_eval - expand embedded dictionary references */
