@@ -133,6 +133,7 @@ void    smtpd_chat_query(SMTPD_STATE *state)
 void    smtpd_chat_reply(SMTPD_STATE *state, char *format,...)
 {
     va_list ap;
+    int     slept = 0;
 
     va_start(ap, format);
     vstring_vsprintf(state->buffer, format, ap);
@@ -147,16 +148,21 @@ void    smtpd_chat_reply(SMTPD_STATE *state, char *format,...)
      * that abort the connection and go into a connect-error-disconnect loop;
      * sleep-on-anything slows down clients that make an excessive number of
      * errors within a session.
-     * 
-     * Flush unsent output before sleeping. Pipelined error responses could
-     * result in client-side timeouts.
      */
     if (state->error_count > var_smtpd_soft_erlim)
-	vstream_fflush(state->client), sleep(state->error_count);
+	sleep(slept = state->error_count);
     else if (STR(state->buffer)[0] == '4' || STR(state->buffer)[0] == '5')
-	vstream_fflush(state->client), sleep(var_smtpd_err_sleep);
+	sleep(slept = var_smtpd_err_sleep);
 
     smtp_fputs(STR(state->buffer), LEN(state->buffer), state->client);
+
+    /*
+     * Flush unsent output AFTER writing instead of before sleeping (so that
+     * vstream_fflush() flushes the output half of a bidirectional stream).
+     * Pipelined error responses could result in client-side timeouts.
+     */
+    if (slept)
+	(vstream_fflush(state->client));
 }
 
 /* print_line - line_wrap callback */

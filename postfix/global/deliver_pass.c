@@ -90,7 +90,7 @@ static int deliver_pass_send_request(VSTREAM *stream, DELIVER_REQUEST *request,
     mail_print(stream, "%s %s %ld %ld %s %s %s %s %ld %ld %s %s",
 	       request->queue_name, request->queue_id,
 	       request->data_offset, request->data_size,
-	       addr, request->sender,
+	       request->nexthop, request->sender,
 	       request->errors_to, request->return_receipt,
 	       request->arrival_time,
 	       offs, addr, "0");

@@ -3916,3 +3916,31 @@ Apologies for any names omitted.
 	IP address for SMTP client connections. Specify in master.cf
 	as "smtp -o smtp_bind_address=x.x.x.x" in order to give
 	different delivery agents different source addresses.
+
+20000510
+
+	Cleanup: mailbox_transport did not work with the lmtp
+	delivery agent. This dates back to when Postfix used empty
+	nexthop information to indicate that a destination was
+	local. File: global/deliver_pass.c.
+
+	Bugfix: configuration parameters for one mysql dictionary
+	would become default settings for the next one. File:
+	dict_mysql.c. This patch was merged into Postfix a while
+	back but apparently that Postfix version was nuked when
+	other parts were redesigned. Update by Scott Cotton.
+
+	Bugfix: some Postfix delivery agents would abort on addresses
+	of the form `stuff@.' which could be generated only locally.
+	Found by Patrik Rak. File:  trivial-rewrite/resolve.c.
+
+	Third-party Berkeley DB support for HP-UX by Lamont Jones.
+	File: makedefs.
+
+20000511
+
+	Bugfix: Postfix would incorrectly reject domain names with
+	adjacent - characters. File: util/valid_hostname.c.
+
+	The 20000505 pipeline tarpit delay flush was wrong and
+	caused SMTP protocol errors.
