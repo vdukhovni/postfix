@@ -5,7 +5,7 @@
 /*	Postfix superintendent
 /* SYNOPSIS
 /* .fi
-/*	\fBpostsuper\fR [\fB-psv\fR] [\fB-d \fIqueue_id\fR]
+/*	\fBpostsuper\fR [\fB-cpsv\fR] [\fB-d \fIqueue_id\fR]
 /*		[\fB-h \fIqueue_id\fR] [\fB-H \fIqueue_id\fR]
 /*		[\fB-r \fIqueue_id\fR] [\fIdirectory ...\fR]
 /* DESCRIPTION
@@ -19,6 +19,10 @@
 /*	\fBdefer\fR and \fBflush\fR directories with log files.
 /*
 /*	Options:
+/* .IP "\fB-c \fIconfig_dir\fR"
+/*	The \fBmain.cf\fR configuration file is in the named directory
+/*	instead of the default configuration directory. See also the
+/*	MAIL_CONFIG environment setting below.
 /* .IP "\fB-d \fIqueue_id\fR"
 /*	Delete one message with the named queue ID from the named
 /*	mail queue(s) (default: \fBhold\fR, \fBincoming\fR, \fBactive\fR and
@@ -139,6 +143,11 @@
 /*	the number of messages requeued with \fB-r\fR, and the number of
 /*	messages whose queue file name was fixed with \fB-s\fR. The report
 /*	is written to the standard error stream and to \fBsyslogd\fR.
+/* ENVIRONMENT
+/* .ad
+/* .fi
+/* .IP MAIL_CONFIG
+/*	Directory with the \fBmain.cf\fR file.
 /* BUGS
 /*	Mail that is not sanitized by Postfix (i.e. mail in the \fBmaildrop\fR
 /*	queue) cannot be placed "on hold".
@@ -838,8 +847,8 @@ static void super(const char **queues, int action)
 	     * move queue files to the "right" subdirectory level. Like the
 	     * hold_one() routine, this code does not touch logfiles, and
 	     * must not touch files in the maildrop queue, because maildrop
-	     * files contain data that has not yet been sanitized and therefore
-	     * must not be mixed with already sanitized mail.
+	     * files contain data that has not yet been sanitized and
+	     * therefore must not be mixed with already sanitized mail.
 	     */
 	    if ((action & ACTION_HOLD_ALL)
 		&& MESSAGE_QUEUE(qp)

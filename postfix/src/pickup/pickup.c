@@ -212,15 +212,17 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 	    }
 	    continue;
 	}
-	if (type == REC_TYPE_RRTO) 
+	if (type == REC_TYPE_RRTO)
 	    /* Use message header extracted information instead. */
 	    continue;
-	if (type == REC_TYPE_ERTO) 
+	if (type == REC_TYPE_ERTO)
 	    /* Use message header extracted information instead. */
 	    continue;
-	if (type == REC_TYPE_INSP && info->st.st_uid != var_owner_uid)
+	if (type == REC_TYPE_INSP)
+	    /* Use current content inspection settings instead. */
 	    continue;
-	if (type == REC_TYPE_FILT && info->st.st_uid != var_owner_uid)
+	if (type == REC_TYPE_FILT)
+	    /* Use current content filter settings instead. */
 	    continue;
 	else {
 

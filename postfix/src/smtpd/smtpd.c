@@ -1407,6 +1407,13 @@ static void smtpd_proto(SMTPD_STATE *state)
 	break;
 
     case 0:
+	if (var_smtpd_delay_reject == 0
+	    && (state->access_denied = smtpd_check_client(state)) != 0) {
+	    smtpd_chat_reply(state, "%s", state->access_denied);
+	} else {
+	    smtpd_chat_reply(state, "220 %s", var_smtpd_banner);
+	}
+
 	for (;;) {
 	    if (state->error_count > var_smtpd_hard_erlim) {
 		state->reason = "too many errors";
@@ -1508,23 +1515,12 @@ static void smtpd_service(VSTREAM *stream, char *unused_service, char **argv)
      * machines.
      */
     smtpd_state_init(&state, stream);
+    msg_info("connect from %s[%s]", state.name, state.addr);
 
     /*
      * See if we need to turn on verbose logging for this client.
      */
     debug_peer_check(state.name, state.addr);
-
-    /*
-     * See if we want to talk to this client at all. Then, log the connection
-     * event.
-     */
-    if (var_smtpd_delay_reject == 0
-	&& (state.access_denied = smtpd_check_client(&state)) != 0) {
-	smtpd_chat_reply(&state, "%s", state.access_denied);
-    } else {
-	smtpd_chat_reply(&state, "220 %s", var_smtpd_banner);
-	msg_info("connect from %s[%s]", state.name, state.addr);
-    }
 
     /*
      * Provide the SMTP service.

@@ -6419,7 +6419,6 @@ Apologies for any names omitted.
 
 20020513
 
-
 	Bugfix: the LDAP client used the "wrong" @ character in
 	addresses with multiple @. LaMont Jones, HP. File:
 	util/dict_ldap.c.
@@ -6968,6 +6967,16 @@ Apologies for any names omitted.
 	Feature: on Linux, support for PCRE lookup tables is now
 	compiled in if the PCRE library code is found under
 	/usr/include and /usr/lib.  File: makedefs.
+
+20020918
+
+	Documentation: postsuper(1) did not document the -c option.
+
+	Bugfix: possible longjump() before setjmp(). File:
+	smtpd/smtpd.c.
+
+	Bugfix: pickup should not preserve INSPECT or FILTER records
+	from "postsuper -r". File: pickup/pickup.c.
 
 Open problems:
 
