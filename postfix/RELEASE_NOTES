@@ -1,16 +1,44 @@
-Incompatible changes with snapshot-20001027
+Incompatible changes with snapshot-20001029
 ===========================================
 
+If this release does not work for you, you can go back to a previous
+Postfix version without losing your mail, subject to the "incompatible
+changes" listed for previous Postfix releases below.
+
 Berkeley DB support has changed for Solaris, HP-UX, UNIXWARE, IRIX.
-You can no longer use the DB 1.85 compatibility interface, because
-that interface loses the file lock while building a table, so that
-table lookups fail and mail is lost. See the DB_README file for
-instructions on how to build with third-party Berkeley DB support.
+On these systems, Postfix must no longer use DB 1.85 compatibility
+mode, because that mode loses the file lock while building a table,
+so that table lookups fail and mail is lost. See the DB_README file
+for instructions on how to build Postfix with third-party Berkeley
+DB support.
 
 The "fast ETRN" policy configuration has changed. You now specify
 the list of eligible "fast ETRN" domains with the fast_flush_domains
 parameter (default: $relay_domains). In order to disable the feature,
 specify an empty value (fast_flush_domains =).
+
+Major changes with snapshot-20001029
+====================================
+
+This release ships with an updated LDAP client module that has better
+group support by Lamont Jones, and that has several other enhancements.
+Review the LDAP_README file for more information.
+
+The LMTP client can now make connections over UNIX-domain sockets
+in addition to IPV4.  For connections over UNIX-domain sockets,
+specify a transport table entry like:
+
+    domain.name		lmtp:unix:/path/name
+
+IPV4-based servers are still the default. The LMTP_README file
+still needs to be revised to account for this change. This is
+best done by someone who actually uses the Postfix LMTP client.
+
+You can now specify multiple SMTP destinations in the relayhost
+and fallback_relay configuration parameters. The destinations are
+tried in the specified order. Specify host or host:port (perform
+MX record lookups), [host] or [host]:port (no MX record lookups),
+[address] or [address]:port (numerical IP address).
 
 Incompatible changes with snapshot-20001005
 ===========================================

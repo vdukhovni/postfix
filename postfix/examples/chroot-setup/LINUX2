@@ -1,16 +1,56 @@
-# Setup chroot jail for Linux
+#! /bin/sh
+
+# LINUX2 - shell script to set up a Postfix chroot jail for Linux
+# Tested on SuSE Linux 5.3 (libc5) and 6.4 (glibc2.1)
+
+# Copyright (c) 2000 by Matthias Andree
+# Redistributable unter the MIT-style license that follows:
+# Abstract: "do whatever you want except hold somebody liable or change
+# the copyright information".
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to
+# deal in the Software without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+# IN THE SOFTWARE.
+
+cond_copy() {
+  # find files as per pattern in $1
+  # if any, copy to directory $2
+  dir=`dirname "$1"`
+  pat=`basename "$1"`
+  lr=`find "$dir" -name "$pat"`
+  if test ! -d "$2" ; then exit 1 ; fi
+  if test "x$lr" != "x" ; then cp -p $1 "$2" ; fi
+} 
 
 set -e
 umask 022
 
 POSTFIX_DIR=${POSTFIX_DIR-/var/spool/postfix}
-
 cd ${POSTFIX_DIR}
 
-mkdir etc
-cp /etc/localtime /etc/services /etc/resolv.conf /etc/nsswitch.conf etc
-mkdir -p usr/lib/zoneinfo
-ln -s /etc/localtime usr/lib/zoneinfo
+mkdir -p etc lib usr/lib/zoneinfo
 
-mkdir lib
-cp /lib/libnss_* lib
+# find localtime (SuSE 5.3 does not have /etc/localtime)
+lt=/etc/localtime
+if test ! -f $lt ; then lt=/usr/lib/zoneinfo/localtime ; fi
+if test ! -f $lt ; then echo "cannot find localtime" ; exit 1 ; fi
+cp -p -f $lt /etc/services /etc/resolv.conf /etc/nsswitch.conf etc
+cp -p -f /etc/host.conf /etc/hosts /etc/passwd etc
+ln -s -f /etc/localtime usr/lib/zoneinfo
+
+cond_copy '/lib/libnss_*' lib
+cond_copy '/lib/libresolv*' lib

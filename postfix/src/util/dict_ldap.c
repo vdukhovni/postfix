@@ -1,4 +1,3 @@
-
 /*++
 /* NAME
 /*	dict_ldap 3
@@ -32,14 +31,20 @@
 /*	The port the LDAP server listens on.
 /* .IP \fIldapsource_\fRsearch_base
 /*	The LDAP search base, for example: \fIO=organization name, C=country\fR.
+/* .IP \fIldapsource_\fRdomain
+/*	If specified, only lookups ending in this value will be queried.
+/*      This can significantly reduce the query load on the LDAP server.
 /* .IP \fIldapsource_\fRtimeout
 /*	Deadline for LDAP open() and LDAP search() .
 /* .IP \fIldapsource_\fRquery_filter
 /*	The filter used to search for directory entries, for example
 /*	\fI(mailacceptinggeneralid=%s)\fR.
 /* .IP \fIldapsource_\fRresult_attribute
-/*	The attribute returned by the search, in which to find
+/*	The attribute(s) returned by the search, in which to find
 /*	RFC822 addresses, for example \fImaildrop\fR.
+/* .IP \fIldapsource_\fRspecial_result_attribute
+/*	The attribute(s) of directory entries that can contain DNs or URLs.
+/*      If found, a recursive subsequent search is done using their values.
 /* .IP \fIldapsource_\fRscope
 /*	LDAP search scope: sub, base, or one.
 /* .IP \fIldapsource_\fRbind
@@ -70,7 +75,7 @@
 /*	Yorktown Heights, NY 10532, USA
 /*
 /*	John Hensley
-/*	roll@ic.net
+/*	john@sunislelodge.com
 /*
 /*--*/
 
@@ -90,6 +95,8 @@
 
 /* Utility library. */
 
+#include "match_list.h"
+#include "match_ops.h"
 #include "msg.h"
 #include "mymalloc.h"
 #include "vstring.h"
@@ -107,8 +114,10 @@ typedef struct {
     int     server_port;
     int     scope;
     char   *search_base;
+    MATCH_LIST *domain;
     char   *query_filter;
-    char   *result_attribute;
+    ARGV   *result_attributes;
+    int     num_attributes;		/* rest of list is DN's. */
     int     bind;
     char   *bind_dn;
     char   *bind_pw;
@@ -170,9 +179,13 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 
     /*
      * Configure alias dereferencing for this connection. Thanks to Mike
-     * Mattice for this.
+     * Mattice for this, and to Hery Rakotoarisoa for the v3 update.
      */
+#if (LDAP_API_VERSION >= 2000)
+    ldap_set_option(dict_ldap->ld, LDAP_OPT_DEREF, &(dict_ldap->dereference));
+#else
     dict_ldap->ld->ld_deref = dict_ldap->dereference;
+#endif
 
     /*
      * If this server requires a bind, do so. Thanks to Sam Tardieu for
@@ -227,26 +240,137 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
     return (0);
 }
 
+/*
+ * dict_ldap_get_values: for each entry returned by a search, get the values
+ * of all its attributes. Recurses to resolve any DN or URL values found.
+ *
+ * This and the rest of the handling of multiple attributes, DNs and URLs
+ * are thanks to LaMont Jones.
+ */
+static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
+				         VSTRING * result)
+{
+    long    i = 0;
+    int     rc = 0;
+    LDAPMessage *resloop = 0;
+    LDAPMessage *entry = 0;
+    BerElement *ber;
+    char  **vals;
+    char   *attr;
+    char   *myname = "dict_ldap_get_values";
+    struct timeval tv;
+
+    tv.tv_sec = dict_ldap->timeout;
+    tv.tv_usec = 0;
+
+    if (msg_verbose)
+	msg_info("%s: Search found %d match(es)", myname,
+		 ldap_count_entries(dict_ldap->ld, res));
+
+    for (entry = ldap_first_entry(dict_ldap->ld, res); entry != NULL;
+	 entry = ldap_next_entry(dict_ldap->ld, entry)) {
+	attr = ldap_first_attribute(dict_ldap->ld, entry, &ber);
+	if (attr == NULL) {
+	    msg_warn("%s: no attributes found", myname);
+	    continue;
+	}
+	for (; attr != NULL;
+	     attr = ldap_next_attribute(dict_ldap->ld, entry, ber)) {
+
+	    vals = ldap_get_values(dict_ldap->ld, entry, attr);
+	    if (vals == NULL) {
+		msg_warn("%s: Entry doesn't have any values for %s",
+			 myname, attr);
+		continue;
+	    }
+	    for (i = 0; dict_ldap->result_attributes->argv[i]; i++) {
+		if (strcasecmp(dict_ldap->result_attributes->argv[i],
+			       attr) == 0) {
+		    if (msg_verbose)
+			msg_info("%s: search returned value(s) for requested result attribute %s", myname, attr);
+		    break;
+		}
+	    }
+
+	    /*
+	     * Append each returned address to the result list, possibly
+	     * recursing (for dn or url attributes).
+	     */
+	    if (i < dict_ldap->num_attributes) {
+		for (i = 0; vals[i] != NULL; i++) {
+		    if (VSTRING_LEN(result) > 0)
+			vstring_strcat(result, ",");
+		    vstring_strcat(result, vals[i]);
+		}
+	    } else if (dict_ldap->result_attributes->argv[i]) {
+		for (i = 0; vals[i] != NULL; i++) {
+		    if (ldap_is_ldap_url(vals[i])) {
+			if (msg_verbose)
+			    msg_info("%s: looking up URL %s", myname,
+				     vals[i]);
+			rc = ldap_url_search_st(dict_ldap->ld, vals[i],
+						0, &tv, &resloop);
+		    } else {
+			if (msg_verbose)
+			    msg_info("%s: looking up DN %s", myname, vals[i]);
+			rc = ldap_search_st(dict_ldap->ld, vals[i],
+					    LDAP_SCOPE_BASE, "objectclass=*",
+					 dict_ldap->result_attributes->argv,
+					    0, &tv, &resloop);
+		    }
+		    if (rc == LDAP_SUCCESS)
+			dict_ldap_get_values(dict_ldap, resloop, result);
+		    else {
+			msg_warn("%s: search error %d: %s ", myname, rc,
+				 ldap_err2string(rc));
+			dict_errno = DICT_ERR_RETRY;
+		    }
+		    if (resloop != 0)
+			ldap_msgfree(resloop);
+		}
+	    }
+	    ldap_value_free(vals);
+	}
+    }
+    if (msg_verbose)
+	msg_info("%s: Leaving %s", myname, myname);
+}
+
 /* dict_ldap_lookup - find database entry */
 
 static const char *dict_ldap_lookup(DICT *dict, const char *name)
 {
     char   *myname = "dict_ldap_lookup";
     DICT_LDAP *dict_ldap = (DICT_LDAP *) dict;
-    static VSTRING *result;
     LDAPMessage *res = 0;
-    LDAPMessage *entry = 0;
+    static VSTRING *result;
     struct timeval tv;
     VSTRING *escaped_name = 0,
            *filter_buf = 0;
-    char   *result_attributes[1],
-          **attr_values;
-    long    i = 0;
     int     rc = 0;
     char   *sub,
            *end;
 
     dict_errno = 0;
+
+    if (msg_verbose)
+	msg_info("%s: In dict_ldap_lookup", myname);
+
+    /*
+     * If they specified a domain list for this map, then only search for
+     * addresses in domains on the list. This can significantly reduce the
+     * load on the LDAP server.
+     */
+    if (dict_ldap->domain) {
+	if (strrchr(name, '@') != 0) {
+	    if (match_list_match(dict_ldap->domain, (char *) strrchr(name, '@') + 1) == 0) {
+		if (msg_verbose)
+		    msg_info("%s: domain of %s not found in domain list", myname,
+			     name);
+		return (0);
+	    }
+	}
+    }
 
     /*
      * Initialize the result holder.
@@ -254,9 +378,6 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
     if (result == 0)
 	result = vstring_alloc(2);
     vstring_strcpy(result, "");
-
-    if (msg_verbose)
-	msg_info("%s: In dict_ldap_lookup", myname);
 
     /*
      * Connect to the LDAP server, if necessary.
@@ -371,56 +492,35 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	msg_info("%s: Searching with filter %s", myname,
 		 vstring_str(filter_buf));
 
-    /*
-     * Put result_attribute in an array, so the search can return only that
-     * attribute and not the entire entry.
-     */
-    result_attributes[0] = dict_ldap->result_attribute;
-
     if ((rc = ldap_search_st(dict_ldap->ld, dict_ldap->search_base,
 			     dict_ldap->scope,
 			     vstring_str(filter_buf),
-			     result_attributes,
+			     dict_ldap->result_attributes->argv,
 			     0, &tv, &res)) == LDAP_SUCCESS) {
 
 	/*
 	 * Search worked; extract the requested result_attribute.
 	 */
-	if (msg_verbose)
-	    msg_info("%s: Search found %d match(es)", myname,
-		     ldap_count_entries(dict_ldap->ld, res));
+
+	dict_ldap_get_values(dict_ldap, res, result);
 
 	/*
-	 * There could have been lots of hits.
+	 * OpenLDAP's ldap_next_attribute returns a bogus
+	 * LDAP_DECODING_ERROR; I'm ignoring that for now.
 	 */
-	for (entry = ldap_first_entry(dict_ldap->ld, res); entry != NULL;
-	     entry = ldap_next_entry(dict_ldap->ld, entry)) {
 
-	    /*
-	     * And each entry could have multiple attributes.
-	     */
-	    attr_values = ldap_get_values(dict_ldap->ld, entry,
-					  dict_ldap->result_attribute);
-	    if (attr_values == NULL) {
-		msg_warn("%s: Entry doesn't have any values for %s",
-			 myname, dict_ldap->result_attribute);
-		continue;
-	    }
-
-	    /*
-	     * Append each returned address to the result list.
-	     */
-	    for (i = 0; attr_values[i] != NULL; i++) {
-		if (VSTRING_LEN(result) > 0)
-		    vstring_strcat(result, ",");
-		vstring_strcat(result, attr_values[i]);
-	    }
-	    ldap_value_free(attr_values);
-	}
-	if (dict_ldap->ld->ld_errno != LDAP_SUCCESS)
+#if (LDAP_API_VERSION >= 2000)
+	ldap_get_option(dict_ldap->ld, LDAP_OPT_ERROR_NUMBER, &rc);
+	if (rc != LDAP_SUCCESS && rc != LDAP_DECODING_ERROR)
+	    msg_warn("%s: Had some trouble with entries returned by search: %s", myname, ldap_err2string(rc));
+#else
+	if (dict_ldap->ld->ld_errno != LDAP_SUCCESS &&
+	    dict_ldap->ld->ld_errno != LDAP_DECODING_ERROR)
 	    msg_warn
 		("%s: Had some trouble with entries returned by search: %s",
 		 myname, ldap_err2string(dict_ldap->ld->ld_errno));
+#endif
+
 	if (msg_verbose)
 	    msg_info("%s: Search returned %s", myname,
 		     VSTRING_LEN(result) >
@@ -454,7 +554,11 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
     if (filter_buf != 0)
 	vstring_free(filter_buf);
 
-    return (VSTRING_LEN(result) > 0 ? vstring_str(result) : 0);
+    /*
+     * If we had an error, return nothing, Otherwise, return the result, if
+     * any.
+     */
+    return (VSTRING_LEN(result) > 0 && !dict_errno ? vstring_str(result) : 0);
 }
 
 /* dict_ldap_update - add or update database entry */
@@ -478,8 +582,9 @@ static void dict_ldap_close(DICT *dict)
     myfree(dict_ldap->ldapsource);
     myfree(dict_ldap->server_host);
     myfree(dict_ldap->search_base);
+    match_list_free(dict_ldap->domain);
     myfree(dict_ldap->query_filter);
-    myfree(dict_ldap->result_attribute);
+    argv_free(dict_ldap->result_attributes);
     myfree(dict_ldap->bind_dn);
     myfree(dict_ldap->bind_pw);
     myfree((char *) dict_ldap);
@@ -492,8 +597,9 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     char   *myname = "dict_ldap_open";
     DICT_LDAP *dict_ldap;
     VSTRING *config_param;
-    int     rc = 0;
+    char   *domainlist;
     char   *scope;
+    char   *attr;
 
     dict_ldap = (DICT_LDAP *) mymalloc(sizeof(*dict_ldap));
     dict_ldap->dict.lookup = dict_ldap_lookup;
@@ -566,6 +672,20 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 	msg_info("%s: %s is %s", myname, vstring_str(config_param),
 		 dict_ldap->search_base);
 
+    vstring_sprintf(config_param, "%s_domain", ldapsource);
+    domainlist =
+	mystrdup((char *) get_mail_conf_str(vstring_str(config_param),
+					    "", 0, 0));
+    if (domainlist) {
+	dict_ldap->domain = match_list_init(domainlist, 1, match_string);
+	if (dict_ldap->domain == NULL)
+	    msg_warn("%s: domain match list creation using \"%s\" failed, will continue without it", myname, domainlist);
+	if (msg_verbose)
+	    msg_info("%s: domain list created using \"%s\"", myname,
+		     domainlist);
+	myfree(domainlist);
+    }
+
     /*
      * get configured value of "ldapsource_timeout"; default to 10 seconds
      * 
@@ -589,12 +709,22 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 		 dict_ldap->query_filter);
 
     vstring_sprintf(config_param, "%s_result_attribute", ldapsource);
-    dict_ldap->result_attribute =
-	mystrdup((char *) get_mail_conf_str(vstring_str(config_param),
-					    "maildrop", 0, 0));
+    attr = mystrdup((char *) get_mail_conf_str(vstring_str(config_param),
+					       "maildrop", 0, 0));
     if (msg_verbose)
-	msg_info("%s: %s is %s", myname, vstring_str(config_param),
-		 dict_ldap->result_attribute);
+	msg_info("%s: %s is %s", myname, vstring_str(config_param), attr);;
+    dict_ldap->result_attributes = argv_split(attr, " ,\t\r\n");
+    dict_ldap->num_attributes = dict_ldap->result_attributes->argc;
+
+    vstring_sprintf(config_param, "%s_special_result_attribute", ldapsource);
+    attr = mystrdup((char *) get_mail_conf_str(vstring_str(config_param),
+					       "", 0, 0));
+    if (msg_verbose)
+	msg_info("%s: %s is %s", myname, vstring_str(config_param), attr);
+
+    if (*attr) {
+	argv_split_append(dict_ldap->result_attributes, attr, " ,\t\r\n");
+    }
 
     /*
      * get configured value of "ldapsource_bind"; default to true
@@ -646,7 +776,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     dict_ldap->cache_expiry = get_mail_conf_int(vstring_str(config_param),
 						30, 0, 0);
     if (msg_verbose)
-	msg_info("%s: %s is %d", myname, vstring_str(config_param),
+	msg_info("%s: %s is %ld", myname, vstring_str(config_param),
 		 dict_ldap->cache_expiry);
 
     /*
@@ -656,7 +786,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     dict_ldap->cache_size = get_mail_conf_int(vstring_str(config_param),
 					      32768, 0, 0);
     if (msg_verbose)
-	msg_info("%s: %s is %d", myname, vstring_str(config_param),
+	msg_info("%s: %s is %ld", myname, vstring_str(config_param),
 		 dict_ldap->cache_size);
 
     /*
@@ -698,3 +828,4 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 }
 
 #endif
+

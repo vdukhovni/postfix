@@ -353,6 +353,13 @@ char   *smtpd_path;
 #define STR(x)	vstring_str(x)
 #define LEN(x)	VSTRING_LEN(x)
 
+ /*
+  * Forward declarations.
+  */
+static void helo_reset(SMTPD_STATE *);
+static void mail_reset(SMTPD_STATE *);
+static void rcpt_reset(SMTPD_STATE *);
+
 /* collapse_args - put arguments together again */
 
 static void collapse_args(int argc, SMTPD_TOKEN *argv)
@@ -377,10 +384,8 @@ static int helo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "501 Syntax: HELO hostname");
 	return (-1);
     }
-    if (state->helo_name != 0) {
-	myfree(state->helo_name);
-	state->helo_name = 0;
-    }
+    if (state->helo_name != 0)
+	helo_reset(state);
     if (argc > 2)
 	collapse_args(argc - 1, argv + 1);
     if (SMTPD_STAND_ALONE(state) == 0
@@ -406,10 +411,12 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "501 Syntax: EHLO hostname");
 	return (-1);
     }
-    if (state->helo_name != 0) {
-	myfree(state->helo_name);
-	state->helo_name = 0;
-    }
+    if (state->helo_name != 0)
+	helo_reset(state);
+#if 0
+    mail_reset(state);
+    rcpt_reset(state);
+#endif
     if (argc > 2)
 	collapse_args(argc - 1, argv + 1);
     if (SMTPD_STAND_ALONE(state) == 0

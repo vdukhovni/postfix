@@ -24,14 +24,31 @@ LMTP(8)                                                   LMTP(8)
        problem reports are sent to the <a href="bounce.8.html"><b>bounce</b>(8)</a> or <a href="defer.8.html"><b>defer</b>(8)</a> dae-
        mon as appropriate.
 
-       If no server is given on the command line, the LMTP client
-       connects to  the  destination  specified  in  the  message
-       delivery  request  and  to the TCP port defined as <b>lmtp</b> in
-       <b>services</b>(4).   If  no   such   service   is   found,   the
-       <b>lmtp</b><i>_</i><b>tcp</b><i>_</i><b>port</b>  configuration  parameter  (default value of
-       24) will be used. The LMTP  client  does  not  perform  MX
-       (mail  exchanger) lookups since those are defined only for
-       SMTP.
+       The  LMTP  client connects to the destination specified in
+       the message delivery  request.  The  destination,  usually
+       specified in the Postfix <a href="transport.5.html"><b>transport</b>(5)</a> table, has the form:
+
+       <b>unix</b>:<i>pathname</i>
+              Connect to the UNIX-domain server that is bound  to
+              the   specified   <i>pathname</i>.  If  the  process  runs
+              chrooted, an absolute pathname is interpreted rela-
+              tive to the changed root directory.
+
+       <b>inet</b>:<i>host</i>, <b>inet:</b><i>host</i>:<i>port</i> (symbolic host)
+
+       <b>inet</b>:[<i>addr</i>], <b>inet</b>:[<i>addr</i>]:<i>port</i> (numeric host)
+              Connect to the specified IPV4 TCP port on the spec-
+              ified host. If no port is specified, connect to the
+              port  defined  as  <b>lmtp</b> in <b>services</b>(4).  If no such
+              service is found, the  <b>lmtp</b><i>_</i><b>tcp</b><i>_</i><b>port</b>  configuration
+              parameter (default value of 24) will be used.
+
+              The   LMTP   client   does  not  perform  MX  (mail
+              exchanger) lookups since those are defined only for
+              mail delivery via SMTP.
+
+       If  neither  <b>unix:</b>  nor  <b>inet:</b>  are  specified,  <b>inet:</b>  is
+       assumed.
 
 <b>SECURITY</b>
        The LMTP client is moderately security-sensitive. It talks
@@ -42,6 +59,18 @@ LMTP(8)                                                   LMTP(8)
        <a href="http://www.faqs.org/rfcs/rfc821.html">RFC 821</a> (SMTP protocol)
        <a href="http://www.faqs.org/rfcs/rfc1651.html">RFC 1651</a> (SMTP service extensions)
        <a href="http://www.faqs.org/rfcs/rfc1870.html">RFC 1870</a> (Message Size Declaration)
+
+
+
+                                                                1
+
+
+
+
+
+LMTP(8)                                                   LMTP(8)
+
+
        <a href="http://www.faqs.org/rfcs/rfc2033.html">RFC 2033</a> (LMTP protocol)
        <a href="http://www.faqs.org/rfcs/rfc2197.html">RFC 2197</a> (Pipelining)
 
@@ -59,18 +88,6 @@ LMTP(8)                                                   LMTP(8)
        The  following  <b>main.cf</b> parameters are especially relevant
        to this program. See the Postfix <b>main.cf</b> file  for  syntax
        details  and  for  default  values. Use the <b>postfix</b> <b>reload</b>
-
-
-
-                                                                1
-
-
-
-
-
-LMTP(8)                                                   LMTP(8)
-
-
        command after a configuration change.
 
 <b>Miscellaneous</b>
@@ -108,6 +125,18 @@ LMTP(8)                                                   LMTP(8)
               The  effectiveness  of  cached  connections will be
               determined by the number of LMTP  servers  in  use,
               and  the  concurrency  limit specified for the LMTP
+
+
+
+                                                                2
+
+
+
+
+
+LMTP(8)                                                   LMTP(8)
+
+
               client.  Cached connections are closed under any of
               the following conditions:
 
@@ -125,18 +154,6 @@ LMTP(8)                                                   LMTP(8)
 
               <b>o</b>      Upon  the onset of another delivery request,
                      the LMTP server associated with the  current
-
-
-
-                                                                2
-
-
-
-
-
-LMTP(8)                                                   LMTP(8)
-
-
                      session  does  not  respond to the <b>RSET</b> com-
                      mand.
 
@@ -175,6 +192,17 @@ LMTP(8)                                                   LMTP(8)
               LMTP server.  If no connection can be  made  within
               the deadline, the message is deferred.
 
+
+
+                                                                3
+
+
+
+
+
+LMTP(8)                                                   LMTP(8)
+
+
        <b>lmtp</b><i>_</i><b>lhlo</b><i>_</i><b>timeout</b>
               Timeout  in  seconds  for sending the <b>LHLO</b> command,
               and for receiving the server response.
@@ -190,18 +218,6 @@ LMTP(8)                                                   LMTP(8)
        <b>lmtp</b><i>_</i><b>data</b><i>_</i><b>init</b><i>_</i><b>timeout</b>
               Timeout in seconds for sending  the  <b>DATA</b>  command,
               and for receiving the server response.
-
-
-
-
-                                                                3
-
-
-
-
-
-LMTP(8)                                                   LMTP(8)
-
 
        <b>lmtp</b><i>_</i><b>data</b><i>_</i><b>xfer</b><i>_</i><b>timeout</b>
               Timeout in seconds for sending the message content.
@@ -226,7 +242,7 @@ LMTP(8)                                                   LMTP(8)
        <a href="master.8.html">master(8)</a> process manager
        <a href="qmgr.8.html">qmgr(8)</a> queue manager
        services(4) Internet services and aliases
-       spawn(8) auxiliary command spawner
+       <a href="spawn.8.html">spawn(8)</a> auxiliary command spawner
        syslogd(8) system logging
 
 <b>LICENSE</b>
@@ -241,6 +257,18 @@ LMTP(8)                                                   LMTP(8)
 
        Alterations for LMTP by:
        Philip A. Prindeville
+
+
+
+                                                                4
+
+
+
+
+
+LMTP(8)                                                   LMTP(8)
+
+
        Mirapoint, Inc.
        USA.
 
@@ -260,7 +288,45 @@ LMTP(8)                                                   LMTP(8)
 
 
 
-                                                                4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                5
 
 
 </pre> </body> </html>

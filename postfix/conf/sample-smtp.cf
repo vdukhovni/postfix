@@ -24,6 +24,11 @@
 # By default, mail is bounced when a destination is not found, and
 # delivery is deferred if a destination is unreachable.
 #
+# In the case of SMTP, specify a domain, host, host:port, [host]:port,
+# [address] or [address]:port; the form [host] turns off MX lookups.
+# If you specify multiple SMTP destinations, Postfix will try them
+# in the specified order.
+#
 fallback_relay = 
 
 # The ignore_mx_lookup_error parameter controls what happens when a

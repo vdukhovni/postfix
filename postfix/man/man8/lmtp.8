@@ -23,12 +23,26 @@ as finished, or it informs the queue manager that delivery should
 be tried again at a later time. Delivery problem reports are sent
 to the \fBbounce\fR(8) or \fBdefer\fR(8) daemon as appropriate.
 
-If no server is given on the command line, the LMTP client connects
-to the destination specified in the message delivery request and to
-the TCP port defined as \fBlmtp\fR in \fBservices\fR(4).  If no such
-service is found, the \fBlmtp_tcp_port\fR configuration parameter
-(default value of 24) will be used. The LMTP client does not perform
-MX (mail exchanger) lookups since those are defined only for SMTP.
+The LMTP client connects to the destination specified in the message
+delivery request. The destination, usually specified in the Postfix
+\fBtransport\fR(5) table, has the form:
+.IP \fBunix\fR:\fIpathname\fR
+Connect to the UNIX-domain server that is bound to the specified
+\fIpathname\fR. If the process runs chrooted, an absolute pathname
+is interpreted relative to the changed root directory.
+.IP "\fBinet\fR:\fIhost\fR, \fBinet\fB:\fIhost\fR:\fIport\fR (symbolic host)"
+.IP "\fBinet\fR:[\fIaddr\fR], \fBinet\fR:[\fIaddr\fR]:\fIport\fR (numeric host)"
+Connect to the specified IPV4 TCP port on the specified host. If no
+port is specified, connect to the port defined as \fBlmtp\fR in
+\fBservices\fR(4).
+If no such service is found, the \fBlmtp_tcp_port\fR configuration
+parameter (default value of 24) will be used.
+
+The LMTP client does not perform MX (mail exchanger) lookups since
+those are defined only for mail delivery via SMTP.
+.PP
+If neither \fBunix:\fR nor \fBinet:\fR are specified, \fBinet:\fR
+is assumed.
 .SH SECURITY
 .na
 .nf

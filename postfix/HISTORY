@@ -4358,12 +4358,12 @@ Apologies for any names omitted.
 	the [] or host:port syntax, and there was no way to suppress
 	MX record lookups. Files: smtp/smtp_addr.c, smtp/smtp_connect.c.
 
-	Convenience: you can now specify multiple destinations in
-	the relayhost or fallback_relay configuration parameters.
+	Convenience: you can now specify multiple SMTP destinations
+	in the relayhost or fallback_relay configuration parameters.
 	The specified destinations will be tried in the specified
 	order. File:  smtp/smtp_connect.c.
 
-	Typographical corrections by Matthias Andree.
+	Many typographical corrections by Matthias Andree.
 
 20001024
 
@@ -4380,13 +4380,13 @@ Apologies for any names omitted.
 
 	Horror:  postmap and postalias (newaliases) silently lose
 	the file lock while building a lookup table with Berkeley
-	DB 2.x and later on Solaris, HP-UX or IRIX.  The result is
-	that table lookups fail while the table is being built, so
-	that mail is lost.  In order to avoid this misbehavior one
-	has to use an undocumented feature that is NOT available
-	with the DB1.85 compatibility interface.  Therefore, Postfix
-	now supports three Berkeley DB programming interfaces of
-	increasing complexity. File: util/dict_db.c.
+	DB 2.x and later on Solaris, HP-UX, IRIX, and UNIXWARE.
+	The result is that table lookups fail while the table is
+	being built, so that mail is lost.  In order to avoid this
+	misbehavior one has to use an undocumented feature that is
+	NOT available with the DB1.85 compatibility interface.
+	Therefore, Postfix now supports three Berkeley DB programming
+	interfaces of increasing complexity. File: util/dict_db.c.
 
 	Bugfix: some character manipulations were not portable for
 	signed/unsigned characters. Files: global/quote_821_local.c,
@@ -4396,3 +4396,25 @@ Apologies for any names omitted.
 	begins with "From sender time-stamp". Sendmail silently
 	ignores such RFC violating garbage, and therefore Postfix
 	needs to jump another hoop.  File: smtpd/smtpd.c.
+
+20001028
+
+	Bugfix: the flush server tried to access config files after
+	going to the chroot jail. Found by Lutz Jaenicke, TU-Cottbus.DE.
+	File: flush/flush.c.
+
+	Update: revised LDAP module from primary maintainer John
+	Hensley, with contributions from many other people. Files:
+	util/dict_ldap.c, LDAP_README.
+
+	Update: LINUX2 chroot setup script by Matthias Andree,
+	uni-dortmund.de.
+
+	Feature: specify unix:/path/name for LMTP connections over
+	UNIX-domain sockets, and specify inet:host or inet:host:port
+	for IPV4. If no unix: or inet: is specified, IPV4 is assumed.
+	File: lmtp/lmtp_connect.c.
+
+	Feature: added UNIX-domain support to the smtpstone test
+	programs in order to test the LMTP client UNIX-domain
+	support.

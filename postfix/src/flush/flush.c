@@ -189,9 +189,6 @@ static DOMAIN_LIST *flush_domains;
 
 static int flush_policy_ok(const char *site)
 {
-    if (flush_domains == 0)
-	flush_domains = domain_list_init(var_fflush_domains);
-
     return (domain_list_match(flush_domains, site));
 }
 
@@ -497,6 +494,13 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
 	vstring_free(queue_id);
 }
 
+/* pre_jail_init - pre-jail initialization */
+
+static void pre_jail_init(char *unused_name, char **unused_argv)
+{
+    flush_domains = domain_list_init(var_fflush_domains);
+}
+
 /* main - pass control to the single-threaded skeleton */
 
 int     main(int argc, char **argv)
@@ -509,5 +513,6 @@ int     main(int argc, char **argv)
 
     single_server_main(argc, argv, flush_service,
 		       MAIL_SERVER_TIME_TABLE, time_table,
+		       MAIL_SERVER_PRE_INIT, pre_jail_init,
 		       0);
 }

@@ -159,18 +159,12 @@ case "$SYSTEM.$RELEASE" in
 		*)	echo "Unknown AIX version: `uname -v`." 1>&2; exit 1;;
 		esac;;
     Linux.2*)	SYSTYPE=LINUX2
-		if [ -f /usr/lib/libdb-3.1.a ]
+		# Postfix no longer needs DB 1.85 compatibility
+		if [ ! -f /usr/include/db.h -a -f /usr/include/db/db.h ]
 		then
-		    CCARGS="$CCARGS -I/usr/include/db3"
-		    SYSLIBS="$SYSLIBS -ldb-3.1"
-		else
-		    if [ -f /usr/include/db/db.h ]
-		    then
-			CCARGS="$CCARGS -I/usr/include/db"
-		    fi
-		    test -f /usr/lib/libdb.a && SYSLIBS="$SYSLIBS -ldb"
+		    CCARGS="$CCARGS -I/usr/include/db"
 		fi
-		for name in nsl resolv
+		for name in db nsl resolv
 		do
 		    test -f /usr/lib/lib$name.a && SYSLIBS="$SYSLIBS -l$name"
 		done
@@ -192,9 +186,6 @@ HP-UX.A.09.*)	SYSTYPE=HPUX9
 		    CCARGS="$CCARGS -DHAS_DB"
 		    SYSLIBS="$SYSLIBS -ldb"
 		fi
-		if [ -f /usr/include/db_185.h ]; then
-		    CCARGS="$CCARGS -DPATH_DB_H='<db_185.h>'"
-		fi
 		;;
 HP-UX.B.10.*)	SYSTYPE=HPUX10
 		CCARGS="$CCARGS `nm /usr/lib/libc.a 2>/dev/null |
@@ -203,18 +194,12 @@ HP-UX.B.10.*)	SYSTYPE=HPUX10
 		    CCARGS="$CCARGS -DHAS_DB"
 		    SYSLIBS=-ldb
 		fi
-		if [ -f /usr/include/db_185.h ]; then
-		    CCARGS="$CCARGS -DPATH_DB_H='<db_185.h>'"
-		fi
 		;;
 HP-UX.B.11.*)	SYSTYPE=HPUX11
 		SYSLIBS=-lnsl
 		if [ -f /usr/lib/libdb.a ]; then
 		    CCARGS="$CCARGS -DHAS_DB"
 		    SYSLIBS="$SYSLIBS -ldb"
-		fi
-		if [ -f /usr/include/db_185.h ]; then
-		    CCARGS="$CCARGS -DPATH_DB_H='<db_185.h>'"
 		fi
 		;;
 ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543

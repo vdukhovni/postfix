@@ -4,12 +4,19 @@
 /* SUMMARY
 /*	multi-threaded SMTP/LMTP test server
 /* SYNOPSIS
-/*	smtp-sink [-cLpv] [-w delay] [host]:port backlog
+/* .fi
+/*	\fBsmtp-sink\fR [\fB-cLpv\fR] [\fB-w \fIdelay\fR] 
+/*	[\fBinet:\fR][\fIhost\fR]:\fIport\fR \fIbacklog\fR
+/*
+/*	\fBsmtp-sink\fR [\fB-cLpv\fR] [\fB-w \fIdelay\fR] 
+/*	\fBunix:\fR\fIpathname\fR \fIbacklog\fR
 /* DESCRIPTION
 /*	\fIsmtp-sink\fR listens on the named host (or address) and port.
 /*	It takes SMTP messages from the network and throws them away.
 /*	The purpose is to measure SMTP client performance, not protocol
 /*	compliance.
+/*	Connections can be accepted on IPV4 endpoints or UNIX-domain sockets.
+/*	IPV4 is the default.
 /*	This program is the complement of the \fIsmtp-source\fR program.
 /* .IP -c
 /*	Display a running counter that is updated whenever an SMTP
@@ -392,7 +399,13 @@ int     main(int argc, char **argv)
      */
     buffer = vstring_alloc(1024);
     var_myhostname = "smtp-sink";
-    sock = inet_listen(argv[optind], backlog, BLOCKING);
+    if (strncmp(argv[optind], "unix:", 5) == 0) {
+	sock = unix_listen(argv[optind] + 5, backlog, BLOCKING);
+    } else {
+	if (strncmp(argv[optind], "inet:", 5) == 0)
+	    argv[optind] += 5;
+	sock = inet_listen(argv[optind], backlog, BLOCKING);
+    }
 
     /*
      * Start the event handler.

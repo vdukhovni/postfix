@@ -2592,79 +2592,11 @@ systems.
 <p>
 
 In order to build Postfix with <b>db</b> support on UNIX systems
-that do not have <b>db</b> support out of the box, you need the
-db-1.85 release, or <a href="http://www.sleepycat.com">the current
-version</a> which has a db-1.85 compatible interface.
-
-<p>
-
-To build with a third-party DB library, use the following commands
-in the Postfix top-level directory.
-On Solaris, the LD_LIBRARY_PATH unset commands may be required to
-avoid linking in the wrong libraries.
-
-<p>
-
-<pre>
-    % LD_LIBRARY_PATH=         (Bourne-shell syntax)
-    % unsetenv LD_LIBRARY_PATH (C-shell syntax)
-    % make tidy
-    % make makefiles CCARGS="-DHAS_DB -DPATH_DB_H='&lt;db_185.h&gt;' -I/some/where/include" AUXLIBS=/some/where/libdb.a
-    % make
-</pre>
-
-<p>
-
-Of course you will have to specify the actual location of the
-include directory and of the object library.
-
-<p>
-
-When building with a third-party DB library you may into one of the
-following problems:
-
-<p>
-
-<ul>
-
-<li> Older DB versions install a file
-<b>/usr/local/include/ndbm.h</b> that is incompatible with
-<b>/usr/include/ndbm.h</b>. Be sure to get rid of the bogus file.
-See the FAQ entry titled "<a href="#dbm_dirfno">Undefined symbols:
-dbm_pagfno, dbm_dirfno etc</a>".
-
-<p>
-
-<li>With Sleepcat DB 3.0.55, the linker will complain that dbopen()
-is not found. To fix, apply the following patch to the DB 3.0.55
-db_185.h include file:
-
-<p>
-<pre>
-*** db_185.h.orig       Tue Mar  7 16:27:32 2000
---- db_185.h    Tue Mar  7 16:27:44 2000
-***************
-*** 166,173 ****
-  #if defined(__cplusplus)
-  extern "C" {
-  #endif
-- #ifdef DB_LIBRARY_COMPATIBILITY_API
-  #define       dbopen  __db185_open
-  DB *__db185_open __P((const char *, int, int, DBTYPE, const void *));
-  #else
-  DB *dbopen __P((const char *, int, int, DBTYPE, const void *));
---- 166,173 ----
-  #if defined(__cplusplus)
-  extern "C" {
-  #endif
-  #define       dbopen  __db185_open
-+ #ifdef DB_LIBRARY_COMPATIBILITY_API
-  DB *__db185_open __P((const char *, int, int, DBTYPE, const void *));
-  #else
-  DB *dbopen __P((const char *, int, int, DBTYPE, const void *));
-</pre>
-
-</ul>
+that do not have <b>db</b> support out of the box, you can use the
+Berkeley DB source code from <a
+href="http://www.sleepycat.com">www.sleepycat.com</a>. See the file
+<b>DB_README</b> in the Postfix source code distribution for
+instructions on how to build Postfix with Sleepycat's Berkeley DB.
 
 <hr>
 

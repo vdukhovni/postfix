@@ -82,6 +82,10 @@
 #define DONT_CLOBBER			DB_NOOVERWRITE
 #endif
 
+#ifndef DB_FCNTL_LOCKING
+#define DB_FCNTL_LOCKING		0
+#endif
+
 /* Utility library. */
 
 #include "msg.h"
@@ -399,6 +403,8 @@ static void dict_db_close(DICT *dict)
 {
     DICT_DB *dict_db = (DICT_DB *) dict;
 
+    if (DICT_DB_SYNC(dict_db->db, 0) < 0)
+	msg_fatal("flush database %s: %m", dict_db->path);
     if (DICT_DB_CLOSE(dict_db->db) < 0)
 	msg_fatal("close database %s: %m", dict_db->path);
     myfree(dict_db->path);

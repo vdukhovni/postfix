@@ -401,7 +401,7 @@ SMTP_SESSION *smtp_connect(char *destination, VSTRING *why)
      */
     cp = save = concatenate(destination, " ", var_fallback_relay, (char *) 0);
 
-    while ((dest = mystrtok(&cp, " \t\r\n")) != 0) {
+    while ((dest = mystrtok(&cp, ", \t\r\n")) != 0) {
 
 	/*
 	 * Parse the destination. Default is to use the SMTP port.

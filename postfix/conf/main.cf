@@ -122,9 +122,12 @@ mail_owner = postfix
 # internal DNS uses no MX records, specify the name of the intranet
 # gateway host instead.
 #
-# Specify a domain, host, host:port, [host]:port, [address] or
-# [address]:port.  Use the form [name] to turn off MX lookups. See
-# also the default_transport parameter if you're connected via UUCP.
+# In the case of SMTP, specify a domain, host, host:port, [host]:port,
+# [address] or [address]:port; the form [host] turns off MX lookups.
+# If you specify multiple SMTP destinations, Postfix will try them
+# in the specified order.
+#
+# If you're connected via UUCP, see also the default_transport parameter.
 #
 # relayhost = $mydomain
 # relayhost = gateway.my.domain

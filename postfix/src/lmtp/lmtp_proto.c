@@ -246,11 +246,9 @@ int     lmtp_lhlo(LMTP_STATE *state)
      * because they benefit little from pipelining.
      */
     if (state->features & LMTP_FEATURE_PIPELINING) {
-	if (getsockopt(vstream_fileno(state->session->stream), SOL_SOCKET,
-		       SO_SNDBUF, (char *) &state->sndbufsize, &optlen) < 0)
-	    msg_fatal("%s: getsockopt: %m", myname);
+	state->sndbufsize = 4 * 1024;
 	if (msg_verbose)
-	    msg_info("Using LMTP PIPELINING, TCP send buffer size is %d",
+	    msg_info("Using LMTP PIPELINING, send buffer size is %d",
 		     state->sndbufsize);
     } else
 	state->sndbufsize = 0;

@@ -4,12 +4,16 @@
 /* SUMMARY
 /*	multi-threaded SMTP test generator
 /* SYNOPSIS
-/*	smtp-source [options] host[:port]
+/* .fi
+/*	\fBsmtp-source\fR [\fIoptions\fR] [\fBinet:\fR]\fIhost\fR[:\fIport\fR]
+/*
+/*	\fBsmtp-source\fR [\fIoptions\fR] \fBunix:\fIpathname\fR
 /* DESCRIPTION
 /*	smtp-source connects to the named host and port (default 25)
 /*	and sends one or more little messages to it, either sequentially
 /*	or in parallel. The program speaks either SMTP (default) or
-/*	LMTP.
+/*	LMTP. Connections can be made to UNIX-domain and IPV4 servers.
+/*	IPV4 is the default.
 /*
 /*	Options:
 /* .IP -c
@@ -64,6 +68,7 @@
 #include <sys/socket.h>
 #include <sys/wait.h>
 #include <netinet/in.h>
+#include <sys/un.h>
 #include <stdarg.h>
 #include <string.h>
 #include <ctype.h>
@@ -131,6 +136,10 @@ static const char *var_myhostname;
 static int session_count;
 static int message_count = 1;
 static struct sockaddr_in sin;
+#undef sun
+static struct sockaddr_un sun;
+static struct sockaddr *sa;
+static int sa_len;
 static int recipients = 1;
 static char *defaddr;
 static char *recipient;
@@ -383,14 +392,13 @@ static void start_connect(SESSION *session)
      * retrieving it later with getsockopt(). We can't use MSG_PEEK to
      * distinguish between server disconnect and connection refused.
      */
-    if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    if ((fd = socket(sa->sa_family, SOCK_STREAM, 0)) < 0)
 	msg_fatal("socket: %m");
     (void) non_blocking(fd, NON_BLOCKING);
     session->stream = vstream_fdopen(fd, O_RDWR);
     event_enable_write(fd, connect_done, (char *) session);
     smtp_timeout_setup(session->stream, var_timeout);
-    if (connect(fd, (struct sockaddr *) & sin, sizeof(sin)) < 0
-	&& errno != EINPROGRESS)
+    if (connect(fd, sa, sa_len) < 0 && errno != EINPROGRESS)
 	fail_connect(session);
 }
 
@@ -739,6 +747,8 @@ int     main(int argc, char **argv)
     SESSION *session;
     char   *host;
     char   *port;
+    char   *path;
+    int     path_len;
     int     sessions = 1;
     int     ch;
     int     i;
@@ -813,8 +823,6 @@ int     main(int argc, char **argv)
     }
     if (argc - optind != 1)
 	usage(argv[0]);
-    if ((port = split_at(host = argv[optind], ':')) == 0)
-	port = "smtp";
 
     if (random_delay > 0)
 	srand(getpid());
@@ -822,10 +830,31 @@ int     main(int argc, char **argv)
     /*
      * Translate endpoint address to internal form.
      */
-    memset((char *) &sin, 0, sizeof(sin));
-    sin.sin_family = AF_INET;
-    sin.sin_addr.s_addr = find_inet_addr(host);
-    sin.sin_port = find_inet_port(port, "tcp");
+    if (strncmp(argv[optind], "unix:", 5) == 0) {
+	path = argv[optind] + 5;
+	path_len = strlen(path);
+	if (path_len >= (int) sizeof(sun.sun_path))
+	    msg_fatal("unix-domain name too long: %s", path);
+	memset((char *) &sun, 0, sizeof(sun));
+	sun.sun_family = AF_UNIX;
+#ifdef HAS_SUN_LEN
+	sun.sun_len = path_len + 1;
+#endif
+	memcpy(sun.sun_path, path, path_len);
+	sa = (struct sockaddr *) & sun;
+	sa_len = sizeof(sun);
+    } else {
+	if (strncmp(argv[optind], "inet:", 5) == 0)
+	    argv[optind] += 5;
+	if ((port = split_at(host = argv[optind], ':')) == 0)
+	    port = "smtp";
+	memset((char *) &sin, 0, sizeof(sin));
+	sin.sin_family = AF_INET;
+	sin.sin_addr.s_addr = find_inet_addr(host);
+	sin.sin_port = find_inet_port(port, "tcp");
+	sa = (struct sockaddr *) & sin;
+	sa_len = sizeof(sin);
+    }
 
     /*
      * Make sure the SMTP server cannot run us out of memory by sending

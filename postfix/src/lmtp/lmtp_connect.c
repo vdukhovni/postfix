@@ -1,6 +1,6 @@
 /*++
 /* NAME
-/*	lmtp_connect_inet 3
+/*	lmtp_connect 3
 /* SUMMARY
 /*	connect to LMTP server
 /* SYNOPSIS
@@ -12,13 +12,22 @@
 /* DESCRIPTION
 /*	This module implements LMTP connection management.
 /*
-/*	lmtp_connect() attempts to establish an LMTP session with a host.
+/*	lmtp_connect() attempts to establish an LMTP session.
 /*
+/*	The destination is one of the following:
+/* .IP unix:address
+/*	Connect to a UNIX-domain service. The destination is a pathname.
+/*	Beware: UNIX-domain sockets are flakey on Solaris, at last up to
+/*	and including Solaris 7.0.
+/* .IP inet:address
+/*	Connect to an IPV4 service.
 /*	The destination is either a host name or a numeric address.
 /*	Symbolic or numeric service port information may be appended,
 /*	separated by a colon (":").
 /*
 /*	Numerical address information should always be quoted with `[]'.
+/* .PP
+/*	When no transport is specified, "inet" is assumed.
 /* DIAGNOSTICS
 /*	This routine either returns an LMTP_SESSION pointer, or
 /*	returns a null pointer and set the \fIlmtp_errno\fR
@@ -58,6 +67,7 @@
 
 #include <sys_defs.h>
 #include <sys/socket.h>
+#include <sys/un.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <errno.h>
@@ -97,6 +107,58 @@
 #include "lmtp.h"
 #include "lmtp_addr.h"
 
+ /*
+  * Forward declaration.
+  */
+static LMTP_SESSION *lmtp_connect_sock(int, struct sockaddr *, int,
+				               const char *, const char *,
+				               const char *, VSTRING *);
+
+/* lmtp_connect_unix - connect to UNIX-domain address */
+
+static LMTP_SESSION *lmtp_connect_unix(const char *addr, VSTRING *why)
+{
+#undef sun
+    char   *myname = "lmtp_connect_unix";
+    struct sockaddr_un sun;
+    int     len = strlen(addr);
+    int     sock;
+
+    /*
+     * Sanity checks.
+     */
+    if (len >= (int) sizeof(sun.sun_path)) {
+	msg_warn("unix-domain name too long: %s", addr);
+	lmtp_errno = LMTP_RETRY;
+	return (0);
+    }
+
+    /*
+     * Initialize.
+     */
+    memset((char *) &sun, 0, sizeof(sun));
+    sun.sun_family = AF_UNIX;
+#ifdef HAS_SUN_LEN
+    sun.sun_len = len + 1;
+#endif
+    memcpy(sun.sun_path, addr, len + 1);
+
+    /*
+     * Create a client socket.
+     */
+    if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
+	msg_fatal("%s: socket: %m", myname);
+
+    /*
+     * Connect to the LMTP server.
+     */
+    if (msg_verbose)
+	msg_info("%s: trying: %s...", myname, addr);
+
+    return (lmtp_connect_sock(sock, (struct sockaddr *) & sun, sizeof(sun),
+			      addr, addr, addr, why));
+}
+
 /* lmtp_connect_addr - connect to explicit address */
 
 static LMTP_SESSION *lmtp_connect_addr(DNS_RR *addr, unsigned port,
@@ -105,10 +167,6 @@ static LMTP_SESSION *lmtp_connect_addr(DNS_RR *addr, unsigned port,
     char   *myname = "lmtp_connect_addr";
     struct sockaddr_in sin;
     int     sock;
-    int     conn_stat;
-    int     saved_errno;
-    VSTREAM *stream;
-    int     ch;
 
     /*
      * Sanity checks.
@@ -137,19 +195,35 @@ static LMTP_SESSION *lmtp_connect_addr(DNS_RR *addr, unsigned port,
     if (msg_verbose)
 	msg_info("%s: trying: %s[%s] port %d...",
 		 myname, addr->name, inet_ntoa(sin.sin_addr), ntohs(port));
+
+    return (lmtp_connect_sock(sock, (struct sockaddr *) & sin, sizeof(sin),
+			      addr->name, inet_ntoa(sin.sin_addr),
+			      destination, why));
+}
+
+/* lmtp_connect_sock - connect a socket over some transport */
+
+static LMTP_SESSION *lmtp_connect_sock(int sock, struct sockaddr * sa, int len,
+				         const char *name, const char *addr,
+			              const char *destination, VSTRING *why)
+{
+    int     conn_stat;
+    int     saved_errno;
+    VSTREAM *stream;
+    int     ch;
+
     if (var_lmtp_conn_tmout > 0) {
 	non_blocking(sock, NON_BLOCKING);
-	conn_stat = timed_connect(sock, (struct sockaddr *) & sin,
-				  sizeof(sin), var_lmtp_conn_tmout);
+	conn_stat = timed_connect(sock, sa, len, var_lmtp_conn_tmout);
 	saved_errno = errno;
 	non_blocking(sock, BLOCKING);
 	errno = saved_errno;
     } else {
-	conn_stat = connect(sock, (struct sockaddr *) & sin, sizeof(sin));
+	conn_stat = connect(sock, sa, len);
     }
     if (conn_stat < 0) {
 	vstring_sprintf(why, "connect to %s[%s]: %m",
-			addr->name, inet_ntoa(sin.sin_addr));
+			name, addr);
 	lmtp_errno = LMTP_RETRY;
 	close(sock);
 	return (0);
@@ -160,7 +234,7 @@ static LMTP_SESSION *lmtp_connect_addr(DNS_RR *addr, unsigned port,
      */
     if (read_wait(sock, var_lmtp_lhlo_tmout) < 0) {
 	vstring_sprintf(why, "connect to %s[%s]: read timeout",
-			addr->name, inet_ntoa(sin.sin_addr));
+			name, addr);
 	lmtp_errno = LMTP_RETRY;
 	close(sock);
 	return (0);
@@ -172,7 +246,7 @@ static LMTP_SESSION *lmtp_connect_addr(DNS_RR *addr, unsigned port,
     stream = vstream_fdopen(sock, O_RDWR);
     if ((ch = VSTREAM_GETC(stream)) == VSTREAM_EOF) {
 	vstring_sprintf(why, "connect to %s[%s]: server dropped connection",
-			addr->name, inet_ntoa(sin.sin_addr));
+			name, addr);
 	lmtp_errno = LMTP_RETRY;
 	vstream_fclose(stream);
 	return (0);
@@ -184,13 +258,12 @@ static LMTP_SESSION *lmtp_connect_addr(DNS_RR *addr, unsigned port,
      */
     if (ch == '4' || ch == '5') {
 	vstring_sprintf(why, "connect to %s[%s]: server refused mail service",
-			addr->name, inet_ntoa(sin.sin_addr));
+			name, addr);
 	lmtp_errno = LMTP_RETRY;
 	vstream_fclose(stream);
 	return (0);
     }
-    return (lmtp_session_alloc(stream, addr->name, inet_ntoa(sin.sin_addr),
-			       destination));
+    return (lmtp_session_alloc(stream, name, addr, destination));
 }
 
 /* lmtp_connect_host - direct connection to host */
@@ -220,7 +293,7 @@ static LMTP_SESSION *lmtp_connect_host(char *host, unsigned port,
 /* lmtp_parse_destination - parse destination */
 
 static char *lmtp_parse_destination(const char *destination, char *def_service,
-				              char **hostp, unsigned *portp)
+				            char **hostp, unsigned *portp)
 {
     char   *myname = "lmtp_parse_destination";
     char   *buf = mystrdup(destination);
@@ -272,7 +345,7 @@ static char *lmtp_parse_destination(const char *destination, char *def_service,
 
 LMTP_SESSION *lmtp_connect(const char *destination, VSTRING *why)
 {
-    char   *myname = "lmtp_connect_inet";
+    char   *myname = "lmtp_connect";
     LMTP_SESSION *session;
     char   *dest_buf;
     char   *host;
@@ -281,7 +354,15 @@ LMTP_SESSION *lmtp_connect(const char *destination, VSTRING *why)
 
     /*
      * Connect to the LMTP server.
+     * 
+     * XXX Ad-hoc transport parsing and connection management. Some or all
+     * should be moved away to a reusable library routine so that every
+     * program benefits from it.
      */
+    if (strncmp(destination, "unix:", 5) == 0)
+	return (lmtp_connect_unix(destination + 5, why));
+    if (strncmp(destination, "inet:", 5) == 0)
+	destination += 5;
     dest_buf = lmtp_parse_destination(destination, def_service,
 				      &host, &port);
     if (msg_verbose)
