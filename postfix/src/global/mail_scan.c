@@ -238,7 +238,7 @@ int     mail_vscan(VSTREAM *stream, const char *fmt, va_list ap)
 	    continue;
 	if (*cp != '%')
 	    msg_fatal("mail_scan: bad format: %.*s>%c<%s",
-		      cp - fmt, fmt, *cp, cp + 1);
+		      (int) (cp - fmt), fmt, *cp, cp + 1);
 	if ((lflag = (*++cp == 'l')) != 0)
 	    cp++;
 
@@ -262,7 +262,7 @@ int     mail_vscan(VSTREAM *stream, const char *fmt, va_list ap)
 		}
 	    if (tp >= mail_scan_tab + mail_scan_tablen)
 		msg_fatal("mail_scan: bad format: %.*s>%c<%s",
-			  cp - fmt, fmt, *cp, cp + 1);
+			  (int) (cp - fmt), fmt, *cp, cp + 1);
 	}
 	if (error == 0)
 	    count++;

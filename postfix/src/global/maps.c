@@ -36,7 +36,7 @@
 /*	See dict_open(3) for a description of flags.
 /*
 /*	maps_append() appends a dictionary to an existing handle
-/*	under the given name. If dict_handle is a null pointer, 
+/*	under the given name. If dict_handle is a null pointer,
 /*	the named dictionary is opened on the fly.
 /*
 /*	maps_find() searches the specified list of dictionaries

@@ -28,7 +28,7 @@
 /*
 /*	deliver_token() delivers to the address in the given token:
 /*	an absolute /path/name, a ~/path/name relative to the recipient's
-/*	home directory, an :include:/path/name request, an external 
+/*	home directory, an :include:/path/name request, an external
 /*	"|command", or a mail address.
 /*
 /*	deliver_token_string() delivers to all addresses listed in

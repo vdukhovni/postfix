@@ -22,7 +22,7 @@
 /*
 /*	msg_syslog_facility() is a helper routine that overrides the
 /*	logging facility that is specified with msg_syslog_init().
-/*	The result is zero in case of an unknown facility name. 
+/*	The result is zero in case of an unknown facility name.
 /* SEE ALSO
 /*	syslog(3) syslog library
 /*	msg(3)	diagnostics module
@@ -153,10 +153,10 @@ static void msg_syslog_print(int level, const char *text)
 
     if (level == MSG_INFO) {
 	syslog(syslog_facility | log_level[level], "%.*s",
-	       MSG_SYSLOG_RECLEN, text);
+	       (int) MSG_SYSLOG_RECLEN, text);
     } else {
 	syslog(syslog_facility | log_level[level], "%s: %.*s",
-	       severity_name[level], MSG_SYSLOG_RECLEN, text);
+	       severity_name[level], (int) MSG_SYSLOG_RECLEN, text);
     }
 }
 

@@ -353,7 +353,7 @@ void    event_disable_readwrite(int fd)
 
 /* event_request_timer - (re)set timer */
 
-time_t    event_request_timer(EVENT_NOTIFY_TIME callback, char *context, int delay)
+time_t  event_request_timer(EVENT_NOTIFY_TIME callback, char *context, int delay)
 {
     char   *myname = "event_request_timer";
     RING   *ring;

@@ -105,7 +105,8 @@ int     valid_hostname(const char *name)
 	/* NOT: return (0); this confuses users of the DNS client */
     }
     if (cp - name > VALID_HOSTNAME_LEN) {
-	msg_warn("%s: bad length %d for %.100s...", myname, cp - name, name);
+	msg_warn("%s: bad length %d for %.100s...",
+		 myname, (int) (cp - name), name);
 	return (0);
     }
     return (1);

@@ -12,18 +12,19 @@ ALIASES(5)                                             ALIASES(5)
        <b>newaliases</b>
 
 <b>DESCRIPTION</b>
-       The <b>aliases</b> file provides a system-wide mechanism to redi-
-       rect mail for local recipients. The redirections are  pro-
-       cessed by the Postfix <a href="local.8.html"><b>local</b>(8)</a> delivery agent.
+       The  <b>aliases</b>  table  provides  a  system-wide mechanism to
+       redirect mail for local recipients. The  redirections  are
+       processed by the Postfix <a href="local.8.html"><b>local</b>(8)</a> delivery agent.
 
-       The  file serves as input to the <a href="postalias.1.html"><b>postalias</b>(1)</a> command. The
-       result, an indexed file in <b>dbm</b> or <b>db</b> format, is  used  for
-       fast  lookup  by  the  mail  system.  Execute  the command
-       <b>newaliases</b> in order to  rebuild  the  indexed  file  after
+       Normally,  the  <b>aliases</b>  table is specified as a text file
+       that serves as input  to  the  <a href="postalias.1.html"><b>postalias</b>(1)</a>  command.  The
+       result,  an  indexed file in <b>dbm</b> or <b>db</b> format, is used for
+       fast lookup  by  the  mail  system.  Execute  the  command
+       <b>newaliases</b>  in  order  to  rebuild  the indexed file after
        changing the Postfix alias database.
 
-       The  input and output file formats are expected to be com-
-       patible with Sendmail version 8, and are  expected  to  be
+       The input and output file formats are expected to be  com-
+       patible  with  Sendmail  version 8, and are expected to be
        suitable for the use as NIS maps.
 
        Users can control delivery of their own mail by setting up
@@ -37,27 +38,26 @@ ALIASES(5)                                             ALIASES(5)
 
                    <i>name</i>: <i>value1</i>, <i>value2</i>, <i>...</i>
 
-       <b>o</b>      Lines  that begin with whitespace continue the pre-
+       <b>o</b>      Lines that begin with whitespace continue the  pre-
               vious line.
 
-       <b>o</b>      Blank lines are ignored,  as  are  lines  beginning
+       <b>o</b>      Blank  lines  are  ignored,  as are lines beginning
               with `#'.
 
-       The  <i>name</i> is a local address (no domain part).  Use double
-       quotes when the name contains any special characters  such
-       as  whitespace,  `#',  `:',  or `@'. The <i>name</i> is folded to
+       The <i>name</i> is a local address (no domain part).  Use  double
+       quotes  when the name contains any special characters such
+       as whitespace, `#', `:', or `@'. The  <i>name</i>  is  folded  to
        lowercase, in order to make database lookups case insensi-
        tive.
 
        In addition, when an alias exists for <b>owner-</b><i>name</i>, delivery
-       diagnostics are directed to that address,  instead  of  to
+       diagnostics  are  directed  to that address, instead of to
        the originator.  This is typically used to direct delivery
-       errors to the owner of a mailing list, who is in a  better
-       position  to deal with mailing list delivery problems than
+       errors  to the owner of a mailing list, who is in a better
+       position to deal with mailing list delivery problems  than
        the originator of the undelivered mail.
 
        The <i>value</i> contains one or more of the following:
-
 
 
 
@@ -72,30 +72,30 @@ ALIASES(5)                                             ALIASES(5)
 
 
        <i>address</i>
-              Mail is forwarded to <i>address</i>, which  is  compatible
+              Mail  is  forwarded to <i>address</i>, which is compatible
               with the <a href="http://www.faqs.org/rfcs/rfc822.html">RFC 822</a> standard.
 
        <i>/file/name</i>
-              Mail  is  appended  to <i>/file/name</i>. See <a href="local.8.html"><b>local</b>(8)</a> for
-              details of delivery to file.  Delivery is not  lim-
-              ited  to regular files.  For example, to dispose of
+              Mail is appended to <i>/file/name</i>.  See  <a href="local.8.html"><b>local</b>(8)</a>  for
+              details  of delivery to file.  Delivery is not lim-
+              ited to regular files.  For example, to dispose  of
               unwanted mail, deflect it to <b>/dev/null</b>.
 
        |<i>command</i>
-              Mail is piped into <i>command</i>. Commands  that  contain
-              special  characters,  such as whitespace, should be
-              enclosed between double quotes.  See  <a href="local.8.html"><b>local</b>(8)</a>  for
+              Mail  is  piped into <i>command</i>. Commands that contain
+              special characters, such as whitespace,  should  be
+              enclosed  between  double  quotes. See <a href="local.8.html"><b>local</b>(8)</a> for
               details of delivery to command.
 
               When the command fails, a limited amount of command
-              output is mailed back  to  the  sender.   The  file
-              <b>/usr/include/sysexits.h</b>  defines  the expected exit
-              status codes. For example, use <b>|"exit</b> <b>67"</b> to  simu-
-              late  a  "user  unknown"  error,  and  <b>|"exit</b> <b>0"</b> to
+              output  is  mailed  back  to  the sender.  The file
+              <b>/usr/include/sysexits.h</b> defines the  expected  exit
+              status  codes. For example, use <b>|"exit</b> <b>67"</b> to simu-
+              late a "user  unknown"  error,  and  <b>|"exit</b>  <b>0"</b>  to
               implement an expensive black hole.
 
        <b>:include:</b><i>/file/name</i>
-              Mail is sent to  the  destinations  listed  in  the
+              Mail  is  sent  to  the  destinations listed in the
               named file.  Lines in <b>:include:</b> files have the same
               syntax as the right-hand side of alias entries.
 
@@ -107,21 +107,21 @@ ALIASES(5)                                             ALIASES(5)
 
 <b>ADDRESS</b> <b>EXTENSION</b>
        When alias database search fails, and the recipient local-
-       part  contains  the  optional  recipient  delimiter (e.g.,
-       <i>user+foo</i>), the  search  is  repeated  for  the  unextended
+       part contains  the  optional  recipient  delimiter  (e.g.,
+       <i>user+foo</i>),  the  search  is  repeated  for  the unextended
        address (e.g., <i>user</i>).
 
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
-       The  following  <b>main.cf</b> parameters are especially relevant
-       to this topic. See the Postfix  <b>main.cf</b>  file  for  syntax
-       details  and  for  default  values. Use the <b>postfix</b> <b>reload</b>
+       The following <b>main.cf</b> parameters are  especially  relevant
+       to  this  topic.  See  the Postfix <b>main.cf</b> file for syntax
+       details and for default values.  Use  the  <b>postfix</b>  <b>reload</b>
        command after a configuration change.
 
        <b>alias</b><i>_</i><b>maps</b>
               List of alias databases.
 
        <b>allow</b><i>_</i><b>mail</b><i>_</i><b>to</b><i>_</i><b>commands</b>
-              Restrict the usage of  mail  delivery  to  external
+              Restrict  the  usage  of  mail delivery to external
               command.
 
 
@@ -138,7 +138,7 @@ ALIASES(5)                                             ALIASES(5)
 
 
        <b>allow</b><i>_</i><b>mail</b><i>_</i><b>to</b><i>_</i><b>files</b>
-              Restrict  the  usage  of  mail delivery to external
+              Restrict the usage of  mail  delivery  to  external
               file.
 
        <b>owner</b><i>_</i><b>request</b><i>_</i><b>special</b>
@@ -146,7 +146,7 @@ ALIASES(5)                                             ALIASES(5)
               addresses.
 
        <b>recipient</b><i>_</i><b>delimiter</b>
-              Delimiter  that  separates  recipients from address
+              Delimiter that separates  recipients  from  address
               extensions.
 
 <b>STANDARDS</b>
@@ -157,7 +157,7 @@ ALIASES(5)                                             ALIASES(5)
        <a href="postalias.1.html">postalias(1)</a> alias database management
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

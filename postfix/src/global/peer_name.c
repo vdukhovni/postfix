@@ -102,7 +102,7 @@ PEER_NAME *peer_name(int sock)
 
 #include <unistd.h>
 
-int    main(int unused_argc, char **unused_argv)
+int     main(int unused_argc, char **unused_argv)
 {
     PEER_NAME *peer;
 

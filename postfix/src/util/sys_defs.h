@@ -56,7 +56,6 @@
 #endif
 
 #if defined(NETBSD1)
-#define ANAL_CAST
 #define USE_DOT_LOCK
 #endif
 
@@ -654,13 +653,8 @@ extern int h_errno;
 #error "unsupported platform"
 #endif
 
-#ifndef ANAL_CAST
 #define CAST_CHAR_PTR_TO_INT(cptr)	((int) (long) (cptr))
 #define CAST_INT_TO_CHAR_PTR(ival)	((char *) (long) (ival))
-#else
-#define CAST_CHAR_PTR_TO_INT(cptr)	((int) (cptr))
-#define CAST_INT_TO_CHAR_PTR(ival)	((char *) (ival))
-#endif
 
 #ifdef DUP2_DUPS_CLOSE_ON_EXEC
 /* dup2_pass_on_exec() can be found in util/sys_compat.c */

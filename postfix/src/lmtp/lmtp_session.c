@@ -77,7 +77,7 @@
 /* lmtp_session_alloc - allocate and initialize LMTP_SESSION structure */
 
 LMTP_SESSION *lmtp_session_alloc(VSTREAM *stream, const char *host,
-		               const char *addr, const char *dest)
+				         const char *addr, const char *dest)
 {
     LMTP_SESSION *session;
 

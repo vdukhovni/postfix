@@ -44,7 +44,7 @@
 /*	request \fBFLUSH_REQ_REFRESH\fR.
 /* .IP "\fBFLUSH_REQ_REFRESH\fR (completes in the background)"
 /*	Refresh non-empty per-destination logfiles that were not read in
-/*	\fB$fast_flush_refresh_time\fR hours, by simulating
+/*	\fBfast_flush_refresh_time\fR hours, by simulating
 /*	send requests (see above) for the corresponding destinations.
 /* .sp
 /*	Delete empty per-destination logfiles that were not updated in
@@ -142,6 +142,7 @@
 #include <htable.h>
 #include <dict.h>
 #include <scan_dir.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -467,13 +468,13 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
 	    if (mail_command_read(client_stream, "%s %s", site, queue_id) == 2
 		&& valid_hostname(STR(site))
 		&& mail_queue_id_ok(STR(queue_id)))
-		status = flush_add_service(STR(site), STR(queue_id));
+		status = flush_add_service(lowercase(STR(site)), STR(queue_id));
 	    mail_print(client_stream, "%d", status);
 	} else if (STREQ(STR(request), FLUSH_REQ_SEND)) {
 	    site = vstring_alloc(10);
 	    if (mail_command_read(client_stream, "%s", site) == 1
 		&& valid_hostname(STR(site)))
-		status = flush_send_service(STR(site));
+		status = flush_send_service(lowercase(STR(site)));
 	    mail_print(client_stream, "%d", status);
 	} else if (STREQ(STR(request), FLUSH_REQ_REFRESH)
 		   || STREQ(STR(request), wakeup)) {

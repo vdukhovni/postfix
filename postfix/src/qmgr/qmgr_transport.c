@@ -320,10 +320,10 @@ QMGR_TRANSPORT *qmgr_transport_create(const char *name)
      */
     transport->dest_concurrency_limit =
 	get_mail_conf_int2(name, "_destination_concurrency_limit",
-			var_dest_con_limit, 0, 0);
+			   var_dest_con_limit, 0, 0);
     transport->recipient_limit =
 	get_mail_conf_int2(name, "_destination_recipient_limit",
-			var_dest_rcpt_limit, 0, 0);
+			   var_dest_rcpt_limit, 0, 0);
 
     if (transport->dest_concurrency_limit == 0
 	|| transport->dest_concurrency_limit >= var_init_dest_concurrency)

@@ -61,7 +61,7 @@
 
 #include "master_proto.h"
 
-int    master_notify(int pid, int status)
+int     master_notify(int pid, int status)
 {
     char   *myname = "master_notify";
     MASTER_STATUS stat;

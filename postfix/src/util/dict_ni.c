@@ -65,7 +65,7 @@ typedef struct {
 /* Hard worker doing lookups.	Returned value is statically allocated and
    reused each call.  */
 static const char *dict_ni_do_lookup(char *path, char *key_prop,
-			               const char *key_value, char *val_prop)
+			              const char *key_value, char *val_prop)
 {
     unsigned int result_cap = 0;
     static char *result = 0;

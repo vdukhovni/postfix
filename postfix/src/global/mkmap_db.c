@@ -59,7 +59,7 @@
 /* mkmap_db_open - create or open database */
 
 static MKMAP *mkmap_db_open(const char *path,
-		             DICT *(*db_open) (const char *, int, int))
+			          DICT *(*db_open) (const char *, int, int))
 {
     MKMAP  *mkmap = (MKMAP *) mymalloc(sizeof(*mkmap));
 

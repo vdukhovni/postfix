@@ -118,7 +118,7 @@ static void clnt_stream_open(CLNT_STREAM *clnt_stream)
      * connection. Note that both events are handled by the same routine.
      */
     clnt_stream->vstream = mail_connect_wait(clnt_stream->class,
-					  clnt_stream->service);
+					     clnt_stream->service);
     close_on_exec(vstream_fileno(clnt_stream->vstream), CLOSE_ON_EXEC);
     event_enable_read(vstream_fileno(clnt_stream->vstream), clnt_stream_event,
 		      (char *) clnt_stream);

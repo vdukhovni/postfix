@@ -49,7 +49,7 @@
 /*
 /*	bounce_log_rewind() is a helper that seeks to the first recipient
 /*	in an open bounce or defer logfile (skipping over recipients that
-/*	are marked as done). The result is 0 in case of success, -1 in case 
+/*	are marked as done). The result is 0 in case of success, -1 in case
 /*	of problems.
 /*
 /*	bounce_log_close() closes an open bounce or defer logfile and

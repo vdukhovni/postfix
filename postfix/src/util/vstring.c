@@ -218,7 +218,7 @@
 
 #include <sys_defs.h>
 #include <stddef.h>
-#include <stdlib.h>		/* 44BSD stdarg.h uses abort() */
+#include <stdlib.h>			/* 44BSD stdarg.h uses abort() */
 #include <stdarg.h>
 #include <string.h>
 

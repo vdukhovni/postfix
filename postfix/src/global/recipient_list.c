@@ -67,6 +67,10 @@
 /*	Yorktown Heights, NY 10598, USA
 /*--*/
 
+/* System library. */
+
+#include <sys_defs.h>
+
 /* Utility library. */
 
 #include <mymalloc.h>

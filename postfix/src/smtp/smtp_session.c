@@ -71,4 +71,3 @@ void    smtp_session_free(SMTP_SESSION *session)
     myfree(session->namaddr);
     myfree((char *) session);
 }
-

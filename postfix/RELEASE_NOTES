@@ -1,8 +1,23 @@
-Incompatible changes with snapshot-20001104
+Incompatible changes with snapshot-20001120
 ===========================================
 
 On RedHat Linux 7.0, you must install the db3-devel RPM before you
 can compile the Postfix source code.
+
+Major changes with snapshot-20001120
+====================================
+
+The mailbox_transport feature works again.
+
+Postfix now supports both Sendmail-style virtual domains (all local
+users and aliases are visible in all virtual domains) and Postfix-style
+virtual domains (local users and aliases are not visible in virtual
+domains).  Details and examples are given in the revised virtual
+manual page.
+
+The soft bounce feature now includes the Postfix SMTP server.
+Specify "soft_bounce = yes" in main.cf to prevent the SMTP server
+from bouncing mail while you are testing configurations.
 
 Incompatible changes with snapshot-20001029
 ===========================================

@@ -6,10 +6,11 @@
 # SYNOPSIS
 #	\fBpostmap /etc/postfix/relocated\fR
 # DESCRIPTION
-#	The optional \fBrelocated\fR file provides the information that is
+#	The optional \fBrelocated\fR table provides the information that is
 #	used in "user has moved to \fInew_location\fR" bounce messages.
 #
-#	Normally, the file serves as input to the \fBpostmap\fR(1) command.
+#	Normally, the \fBrelocated\fR table is specified as a text file
+#	that serves as input to the \fBpostmap\fR(1) command.
 #	The result, an indexed file in \fBdbm\fR or \fBdb\fR format,
 #	is used for fast searching by the mail system. Execute the command
 #	\fBpostmap /etc/postfix/relocated\fR in order to rebuild the indexed

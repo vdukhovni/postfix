@@ -40,6 +40,8 @@ void    clean_env(void)
     char   *TZ;
     char   *DISPLAY;
     char   *XAUTHORITY;
+    char   *HOME;
+    char   *PURIFYOPTIONS;
     extern char **environ;
 
     /*
@@ -49,6 +51,8 @@ void    clean_env(void)
     TZ = getenv("TZ");
     DISPLAY = getenv("DISPLAY");
     XAUTHORITY = getenv("XAUTHORITY");
+    HOME = getenv("HOME");
+    PURIFYOPTIONS = getenv("PURIFYOPTIONS");
 
     /*
      * Truncate the process environment, if available. On some systems
@@ -65,6 +69,10 @@ void    clean_env(void)
     if (DISPLAY && setenv("DISPLAY", DISPLAY, 1))
 	msg_fatal("setenv: %m");
     if (XAUTHORITY && setenv("XAUTHORITY", XAUTHORITY, 1))
+	msg_fatal("setenv: %m");
+    if (HOME && setenv("HOME", HOME, 1))
+	msg_fatal("setenv: %m");
+    if (PURIFYOPTIONS && setenv("PURIFYOPTIONS", PURIFYOPTIONS, 1))
 	msg_fatal("setenv: %m");
 
     /*

@@ -854,6 +854,7 @@ recdump.o: ../../include/vstring.h
 recdump.o: rec_streamlf.h
 recdump.o: rec_type.h
 recipient_list.o: recipient_list.c
+recipient_list.o: ../../include/sys_defs.h
 recipient_list.o: ../../include/mymalloc.h
 recipient_list.o: recipient_list.h
 record.o: record.c

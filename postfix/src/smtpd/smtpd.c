@@ -881,7 +881,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	if (first) {
 	    if (strncmp(start + strspn(start, ">"), "From ", 5) == 0) {
 		rec_fprintf(state->cleanup, curr_rec_type,
-			    "Mbox-Line: %s", start);
+			    "Mailbox-Line: %s", start);
 		continue;
 	    }
 	    first = 0;

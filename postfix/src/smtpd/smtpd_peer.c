@@ -100,7 +100,7 @@ static int h_errno = TRY_AGAIN;
 
 /* smtpd_peer_init - initialize peer information */
 
-void    smtpd_peer_init(SMTPD_STATE * state)
+void    smtpd_peer_init(SMTPD_STATE *state)
 {
     struct sockaddr_in sin;
     SOCKADDR_SIZE len = sizeof(sin);
@@ -196,7 +196,7 @@ void    smtpd_peer_init(SMTPD_STATE * state)
 
 /* smtpd_peer_reset - destroy peer information */
 
-void    smtpd_peer_reset(SMTPD_STATE * state)
+void    smtpd_peer_reset(SMTPD_STATE *state)
 {
     myfree(state->name);
     myfree(state->addr);

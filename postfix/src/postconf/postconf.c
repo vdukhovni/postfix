@@ -469,7 +469,7 @@ static void print_bool(int mode, CONFIG_BOOL_TABLE *cbt)
 
 /* print_time - print relative time parameter */
 
-static void print_time(int mode, CONFIG_TIME_TABLE * ctt)
+static void print_time(int mode, CONFIG_TIME_TABLE *ctt)
 {
     const char *value;
 

@@ -301,7 +301,7 @@ int     main(int argc, char **argv)
 	exit(lock_fp ? 0 : 1);
     if (lock_fp == 0)
 	msg_fatal("%s", vstring_str(why));
-    vstream_fprintf(lock_fp, "%*lu\n", sizeof(unsigned long) * 4,
+    vstream_fprintf(lock_fp, "%*lu\n", (int) sizeof(unsigned long) * 4,
 		    (unsigned long) var_pid);
     if (vstream_fflush(lock_fp))
 	msg_fatal("cannot update lock file %s: %m", vstring_str(lock_path));

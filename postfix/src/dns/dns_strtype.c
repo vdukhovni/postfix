@@ -197,4 +197,3 @@ unsigned dns_type(const char *text)
 	    return (dns_type_map[i].type);
     return (0);
 }
-

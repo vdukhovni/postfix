@@ -42,18 +42,19 @@ decode:		root
 #        newaliases
 # 
 # DESCRIPTION
-#        The aliases file provides a system-wide mechanism to redi-
-#        rect mail for local recipients. The redirections are  pro-
-#        cessed by the Postfix local(8) delivery agent.
+#        The  aliases  table  provides  a  system-wide mechanism to
+#        redirect mail for local recipients. The  redirections  are
+#        processed by the Postfix local(8) delivery agent.
 # 
-#        The  file serves as input to the postalias(1) command. The
-#        result, an indexed file in dbm or db format, is  used  for
-#        fast  lookup  by  the  mail  system.  Execute  the command
-#        newaliases in order to  rebuild  the  indexed  file  after
+#        Normally,  the  aliases  table is specified as a text file
+#        that serves as input  to  the  postalias(1)  command.  The
+#        result,  an  indexed file in dbm or db format, is used for
+#        fast lookup  by  the  mail  system.  Execute  the  command
+#        newaliases  in  order  to  rebuild  the indexed file after
 #        changing the Postfix alias database.
 # 
-#        The  input and output file formats are expected to be com-
-#        patible with Sendmail version 8, and are  expected  to  be
+#        The input and output file formats are expected to be  com-
+#        patible  with  Sendmail  version 8, and are expected to be
 #        suitable for the use as NIS maps.
 # 
 #        Users can control delivery of their own mail by setting up
@@ -67,23 +68,23 @@ decode:		root
 # 
 #                    name: value1, value2, ...
 # 
-#        o      Lines  that begin with whitespace continue the pre-
+#        o      Lines that begin with whitespace continue the  pre-
 #               vious line.
 # 
-#        o      Blank lines are ignored,  as  are  lines  beginning
+#        o      Blank  lines  are  ignored,  as are lines beginning
 #               with `#'.
 # 
-#        The  name is a local address (no domain part).  Use double
-#        quotes when the name contains any special characters  such
-#        as  whitespace,  `#',  `:',  or `@'. The name is folded to
+#        The name is a local address (no domain part).  Use  double
+#        quotes  when the name contains any special characters such
+#        as whitespace, `#', `:', or `@'. The  name  is  folded  to
 #        lowercase, in order to make database lookups case insensi-
 #        tive.
 # 
 #        In addition, when an alias exists for owner-name, delivery
-#        diagnostics are directed to that address,  instead  of  to
+#        diagnostics  are  directed  to that address, instead of to
 #        the originator.  This is typically used to direct delivery
-#        errors to the owner of a mailing list, who is in a  better
-#        position  to deal with mailing list delivery problems than
+#        errors  to the owner of a mailing list, who is in a better
+#        position to deal with mailing list delivery problems  than
 #        the originator of the undelivered mail.
 # 
 #        The value contains one or more of the following:
@@ -93,30 +94,30 @@ decode:		root
 # ALIASES(5)                                             ALIASES(5)
 # 
 #        address
-#               Mail is forwarded to address, which  is  compatible
+#               Mail  is  forwarded to address, which is compatible
 #               with the RFC 822 standard.
 # 
 #        /file/name
-#               Mail  is  appended  to /file/name. See local(8) for
-#               details of delivery to file.  Delivery is not  lim-
-#               ited  to regular files.  For example, to dispose of
+#               Mail is appended to /file/name.  See  local(8)  for
+#               details  of delivery to file.  Delivery is not lim-
+#               ited to regular files.  For example, to dispose  of
 #               unwanted mail, deflect it to /dev/null.
 # 
 #        |command
-#               Mail is piped into command. Commands  that  contain
-#               special  characters,  such as whitespace, should be
-#               enclosed between double quotes.  See  local(8)  for
+#               Mail  is  piped into command. Commands that contain
+#               special characters, such as whitespace,  should  be
+#               enclosed  between  double  quotes. See local(8) for
 #               details of delivery to command.
 # 
 #               When the command fails, a limited amount of command
-#               output is mailed back  to  the  sender.   The  file
-#               /usr/include/sysexits.h  defines  the expected exit
-#               status codes. For example, use |"exit 67" to  simu-
-#               late  a  "user  unknown"  error,  and  |"exit 0" to
+#               output  is  mailed  back  to  the sender.  The file
+#               /usr/include/sysexits.h defines the  expected  exit
+#               status  codes. For example, use |"exit 67" to simu-
+#               late a "user  unknown"  error,  and  |"exit  0"  to
 #               implement an expensive black hole.
 # 
 #        :include:/file/name
-#               Mail is sent to  the  destinations  listed  in  the
+#               Mail  is  sent  to  the  destinations listed in the
 #               named file.  Lines in :include: files have the same
 #               syntax as the right-hand side of alias entries.
 # 
@@ -128,21 +129,21 @@ decode:		root
 # 
 # ADDRESS EXTENSION
 #        When alias database search fails, and the recipient local-
-#        part  contains  the  optional  recipient  delimiter (e.g.,
-#        user+foo), the  search  is  repeated  for  the  unextended
+#        part contains  the  optional  recipient  delimiter  (e.g.,
+#        user+foo),  the  search  is  repeated  for  the unextended
 #        address (e.g., user).
 # 
 # CONFIGURATION PARAMETERS
-#        The  following  main.cf parameters are especially relevant
-#        to this topic. See the Postfix  main.cf  file  for  syntax
-#        details  and  for  default  values. Use the postfix reload
+#        The following main.cf parameters are  especially  relevant
+#        to  this  topic.  See  the Postfix main.cf file for syntax
+#        details and for default values.  Use  the  postfix  reload
 #        command after a configuration change.
 # 
 #        alias_maps
 #               List of alias databases.
 # 
 #        allow_mail_to_commands
-#               Restrict the usage of  mail  delivery  to  external
+#               Restrict  the  usage  of  mail delivery to external
 #               command.
 # 
 #                                                                 2
@@ -150,7 +151,7 @@ decode:		root
 # ALIASES(5)                                             ALIASES(5)
 # 
 #        allow_mail_to_files
-#               Restrict  the  usage  of  mail delivery to external
+#               Restrict the usage of  mail  delivery  to  external
 #               file.
 # 
 #        owner_request_special
@@ -158,7 +159,7 @@ decode:		root
 #               addresses.
 # 
 #        recipient_delimiter
-#               Delimiter  that  separates  recipients from address
+#               Delimiter that separates  recipients  from  address
 #               extensions.
 # 
 # STANDARDS
@@ -169,7 +170,7 @@ decode:		root
 #        postalias(1) alias database management
 # 
 # LICENSE
-#        The Secure Mailer license must be  distributed  with  this
+#        The  Secure  Mailer  license must be distributed with this
 #        software.
 # 
 # AUTHOR(S)

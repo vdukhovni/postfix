@@ -50,7 +50,7 @@ This wakeup request from the master is an alternative way to
 request \fBFLUSH_REQ_REFRESH\fR.
 .IP "\fBFLUSH_REQ_REFRESH\fR (completes in the background)"
 Refresh non-empty per-destination logfiles that were not read in
-\fB$fast_flush_refresh_time\fR hours, by simulating
+\fBfast_flush_refresh_time\fR hours, by simulating
 send requests (see above) for the corresponding destinations.
 .sp
 Delete empty per-destination logfiles that were not updated in

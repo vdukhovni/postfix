@@ -4470,6 +4470,7 @@ Apologies for any names omitted.
 	and nqmgr/qmgr_queue.c. Yup, changed the same code, again.
 	We now allow for a margin above the actual concurrency,
 	with the size of the initial destination concurrency.
+	Final solution by Patrik Rak.
 
 	Bugfix: the recipient home directory test broke mailbox_transport
 	support for non-UNIX recipients.  File:  local/recipient.c.
@@ -4497,3 +4498,21 @@ Apologies for any names omitted.
 	several FAQ entries concerning virtual domain support.
 
 	Documentation: added FAQ entry for the biff service.
+
+20001119
+
+	Bugfix: per-destination queue names were case sensitive so
+	that the same site could have multiple queues.  Reported
+	by Patrik Rak. Files: *qmgr/qmgr_message.c.
+
+20001120
+
+	Bugfix: per-destination deferred mail logfiles were case
+	sensitive so that the same site could have multiple deferred
+	mail logfiles, so that not all mail would be flushed with
+	ETRN. Reported by Ralph Hildebrandt. Files:  flush/flush.c.
+
+	Portability: added (int) casts to printf-like arguments
+	that specify the width of %*letter conversions.  On some
+	systems, sizeof and pointer difference expressions are
+	wider than an int.  Reported by Valentin Nechayev @ lucky.net.

@@ -5,10 +5,10 @@
 /*	multi-threaded SMTP/LMTP test server
 /* SYNOPSIS
 /* .fi
-/*	\fBsmtp-sink\fR [\fB-cLpv\fR] [\fB-w \fIdelay\fR] 
+/*	\fBsmtp-sink\fR [\fB-cLpv\fR] [\fB-w \fIdelay\fR]
 /*	[\fBinet:\fR][\fIhost\fR]:\fIport\fR \fIbacklog\fR
 /*
-/*	\fBsmtp-sink\fR [\fB-cLpv\fR] [\fB-w \fIdelay\fR] 
+/*	\fBsmtp-sink\fR [\fB-cLpv\fR] [\fB-w \fIdelay\fR]
 /*	\fBunix:\fR\fIpathname\fR \fIbacklog\fR
 /* DESCRIPTION
 /*	\fIsmtp-sink\fR listens on the named host (or address) and port.
@@ -328,7 +328,7 @@ static void disconnect(SINK_STATE *state)
 
 static void connect_event(int unused_event, char *context)
 {
-    int     sock = (int) context;
+    int     sock = CAST_CHAR_PTR_TO_INT(context);
     SINK_STATE *state;
     int     fd;
 
@@ -410,7 +410,7 @@ int     main(int argc, char **argv)
     /*
      * Start the event handler.
      */
-    event_enable_read(sock, connect_event, (char *) sock);
+    event_enable_read(sock, connect_event, CAST_INT_TO_CHAR_PTR(sock));
     for (;;)
 	event_loop(-1);
 }

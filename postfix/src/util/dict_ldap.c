@@ -248,7 +248,7 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
  * are thanks to LaMont Jones.
  */
 static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
-				         VSTRING * result)
+				         VSTRING *result)
 {
     long    i = 0;
     int     rc = 0;
@@ -830,4 +830,3 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 }
 
 #endif
-
