@@ -7194,6 +7194,11 @@ Apologies for any names omitted.
 	raises the defer_if_reject flag, to avoid loss of legitimate
 	mail.
 
+20021109
+
+	Bugfix: a misguided change to the .forward macro expansion
+	filter broke .forward file lookup.
+
 Open problems:
 
 	Low: revise other local delivery agent duplicate filters.
