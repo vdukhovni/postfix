@@ -544,8 +544,20 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 */
 	if (var_sender_routing == 0) {
 	    resolve_clnt_query(recipient->address, &reply);
+	    if (reply.flags & RESOLVE_FLAG_ERROR) {
+		qmgr_bounce_recipient(message, recipient,
+				      "bad address syntax: \"%s\"",
+				      recipient->address);
+		continue;
+	    }
 	} else {
 	    resolve_clnt_query(message->sender, &reply);
+	    if (reply.flags & RESOLVE_FLAG_ERROR) {
+		qmgr_bounce_recipient(message, recipient,
+				      "bad address syntax: \"%s\"",
+				      message->sender);
+		continue;
+	    }
 	    vstring_strcpy(reply.recipient, recipient->address);
 	}
 	if (message->filter_xport) {
