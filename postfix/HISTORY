@@ -10373,6 +10373,20 @@ Apologies for any names omitted.
 	code.  Files: cleanup/cleanup_rewrite.c, cleanup/cleanup_map11.c,
 	cleanup/cleanup_masquerade.c, cleanup/cleanup_message.c..
 
+20050215
+
+	Bugfix: don't chmod queue files while running "postfix
+	set-permissions". This avoids mail inadvertantly being
+	labeled as "corrupt" when a live Postfix system is upgraded.
+	Found by Victor Duchovni.  File: conf/post-install.
+
+20050216
+
+	Feature: in smtpd?_discard_ehlo_keyword(s|_address_maps)
+	specify the pseudo keyword "silent-discard" in order to
+	avoid logging that some EHLO keyword is being suppressed.
+	File: global/ehlo_mask.[hc].
+
 Open problems:
 
 	Med: disable header address rewriting after XCLIENT?

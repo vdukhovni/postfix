@@ -347,7 +347,7 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
 	|| (ehlo_words = maps_find(smtp_ehlo_dis_maps, state->session->addr, 0)) == 0)
 	ehlo_words = var_smtp_ehlo_dis_words;
     discard_mask = ehlo_mask(ehlo_words);
-    if (discard_mask)
+    if (discard_mask && !(discard_mask & EHLO_MASK_SILENT))
 	msg_info("discarding EHLO keywords: %s", str_ehlo_mask(discard_mask));
 
     /*

@@ -3504,6 +3504,12 @@ or processes on the system.  In particular, don't specify nobody
 or daemon.  PLEASE USE A DEDICATED USER ID AND GROUP ID.
 </p>
 
+<p>
+When this parameter value is changed you need to re-run "<b>postfix
+set-permissions</b>" (with Postfix 2.0 and earlier:
+"<b>/etc/postfix/post-install set-permissions</b>".
+</p>
+
 
 </DD>
 
@@ -5878,7 +5884,8 @@ into concurrency per recipient.  </p>
 <p> Lookup tables, indexed by the remote SMTP server address, with
 case insensitive lists of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP client will ignore in the EHLO response
-from a remote SMTP server. </p>
+from a remote SMTP server. See <a href="postconf.5.html#smtp_discard_ehlo_keywords">smtp_discard_ehlo_keywords</a> for
+details. </p>
 
 
 </DD>
@@ -5888,8 +5895,10 @@ from a remote SMTP server. </p>
 
 <p> A case insensitive list of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP client will ignore in the EHLO response
-from a remote SMTP server. Use the <a href="postconf.5.html#smtp_discard_ehlo_keyword_address_maps">smtp_discard_ehlo_keyword_address_maps</a>
-feature to discard EHLO keywords selectively. </p>
+from a remote SMTP server. Specify the pseudo keyword <b>silent-discard</b>
+to prevent this action from being logged. Use the
+<a href="postconf.5.html#smtp_discard_ehlo_keyword_address_maps">smtp_discard_ehlo_keyword_address_maps</a> feature to discard EHLO
+keywords selectively. </p>
 
 
 </DD>
@@ -7339,7 +7348,8 @@ is being rejected.
 <p> Lookup tables, indexed by the remote SMTP client address, with
 case insensitive lists of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP server will not send in the EHLO response
-to a remote SMTP client. </p>
+to a remote SMTP client. See <a href="postconf.5.html#smtpd_discard_ehlo_keywords">smtpd_discard_ehlo_keywords</a> for details.
+</p>
 
 
 </DD>
@@ -7349,8 +7359,10 @@ to a remote SMTP client. </p>
 
 <p> A case insensitive list of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP server will not send in the EHLO response
-to a remote SMTP client. Use the <a href="postconf.5.html#smtpd_discard_ehlo_keyword_address_maps">smtpd_discard_ehlo_keyword_address_maps</a>
-feature to discard EHLO keywords selectively.  </p>
+to a remote SMTP client. Specify the pseudo keyword <b>silent-discard</b>
+to prevent this action from being logged. Use the
+<a href="postconf.5.html#smtpd_discard_ehlo_keyword_address_maps">smtpd_discard_ehlo_keyword_address_maps</a> feature to discard EHLO
+keywords selectively.  </p>
 
 
 </DD>

@@ -1125,7 +1125,7 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	|| (ehlo_words = maps_find(ehlo_discard_maps, state->addr, 0)) == 0)
 	ehlo_words = var_smtpd_ehlo_dis_words;
     discard_mask = ehlo_mask(ehlo_words);
-    if (discard_mask)
+    if (discard_mask && !(discard_mask & EHLO_MASK_SILENT))
 	msg_info("discarding EHLO keywords: %s", str_ehlo_mask(discard_mask));
 
     /*

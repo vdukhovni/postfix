@@ -2141,6 +2141,12 @@ or processes on the system.  In particular, don't specify nobody
 or daemon.  PLEASE USE A DEDICATED USER ID AND GROUP ID.
 </p>
 
+<p>
+When this parameter value is changed you need to re-run "<b>postfix
+set-permissions</b>" (with Postfix 2.0 and earlier:
+"<b>/etc/postfix/post-install set-permissions</b>".
+</p>
+
 %PARAM mail_spool_directory see "postconf -d" output
 
 <p>
@@ -7476,29 +7482,35 @@ and virtual_alias_maps. </p>
 
 <p> A case insensitive list of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP client will ignore in the EHLO response
-from a remote SMTP server. Use the smtp_discard_ehlo_keyword_address_maps
-feature to discard EHLO keywords selectively. </p>
+from a remote SMTP server. Specify the pseudo keyword <b>silent-discard</b>
+to prevent this action from being logged. Use the
+smtp_discard_ehlo_keyword_address_maps feature to discard EHLO
+keywords selectively. </p>
 
 %PARAM smtpd_discard_ehlo_keywords
 
 <p> A case insensitive list of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP server will not send in the EHLO response
-to a remote SMTP client. Use the smtpd_discard_ehlo_keyword_address_maps
-feature to discard EHLO keywords selectively.  </p>
+to a remote SMTP client. Specify the pseudo keyword <b>silent-discard</b>
+to prevent this action from being logged. Use the
+smtpd_discard_ehlo_keyword_address_maps feature to discard EHLO
+keywords selectively.  </p>
 
 %PARAM smtp_discard_ehlo_keyword_address_maps
 
 <p> Lookup tables, indexed by the remote SMTP server address, with
 case insensitive lists of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP client will ignore in the EHLO response
-from a remote SMTP server. </p>
+from a remote SMTP server. See smtp_discard_ehlo_keywords for
+details. </p>
 
 %PARAM smtpd_discard_ehlo_keyword_address_maps
 
 <p> Lookup tables, indexed by the remote SMTP client address, with
 case insensitive lists of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP server will not send in the EHLO response
-to a remote SMTP client. </p>
+to a remote SMTP client. See smtpd_discard_ehlo_keywords for details.
+</p>
 
 %PARAM connection_cache_service scache
 

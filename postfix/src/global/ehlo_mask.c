@@ -16,6 +16,7 @@
 /*	#define EHLO_MASK_STARTTLS	(1<<7)
 /*	#define EHLO_MASK_XCLIENT	(1<<8)
 /*	#define EHLO_MASK_XFORWARD	(1<<9)
+/*	#define EHLO_MASK_SILENT	(1<<10)
 /*
 /*	int	ehlo_mask(keyword_list)
 /*	const char *keyword_list;
@@ -70,6 +71,7 @@ static NAME_MASK ehlo_mask_table[] = {
     "XCLIENT", EHLO_MASK_XCLIENT,
     "XFORWARD", EHLO_MASK_XFORWARD,
     "STARTTLS", EHLO_MASK_STARTTLS,
+    "SILENT-DISCARD", EHLO_MASK_SILENT,	/* XXX In-band signaling */
     0,
 };
 

@@ -1875,6 +1875,10 @@ daemon processes.  Specify the name of a user account that does
 not share a group with other accounts and that owns no other files
 or processes on the system.  In particular, don't specify nobody
 or daemon.  PLEASE USE A DEDICATED USER ID AND GROUP ID.
+.PP
+When this parameter value is changed you need to re-run "\fBpostfix
+set-permissions\fR" (with Postfix 2.0 and earlier:
+"\fB/etc/postfix/post-install set-permissions\fR".
 .SH mail_release_date (default: see "postconf -d" output)
 The Postfix release date, in "YYYYMMDD" format.
 .SH mail_spool_directory (default: see "postconf -d" output)
@@ -3225,12 +3229,15 @@ into concurrency per recipient.
 Lookup tables, indexed by the remote SMTP server address, with
 case insensitive lists of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP client will ignore in the EHLO response
-from a remote SMTP server.
+from a remote SMTP server. See smtp_discard_ehlo_keywords for
+details.
 .SH smtp_discard_ehlo_keywords (default: empty)
 A case insensitive list of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP client will ignore in the EHLO response
-from a remote SMTP server. Use the smtp_discard_ehlo_keyword_address_maps
-feature to discard EHLO keywords selectively.
+from a remote SMTP server. Specify the pseudo keyword \fBsilent-discard\fR
+to prevent this action from being logged. Use the
+smtp_discard_ehlo_keyword_address_maps feature to discard EHLO
+keywords selectively.
 .SH smtp_enforce_tls (default: no)
 Enforcement mode: require that remote SMTP servers use TLS
 encryption, and never send mail in the clear.  This also requires
@@ -4143,12 +4150,14 @@ is being rejected.
 Lookup tables, indexed by the remote SMTP client address, with
 case insensitive lists of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP server will not send in the EHLO response
-to a remote SMTP client.
+to a remote SMTP client. See smtpd_discard_ehlo_keywords for details.
 .SH smtpd_discard_ehlo_keywords (default: empty)
 A case insensitive list of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP server will not send in the EHLO response
-to a remote SMTP client. Use the smtpd_discard_ehlo_keyword_address_maps
-feature to discard EHLO keywords selectively.
+to a remote SMTP client. Specify the pseudo keyword \fBsilent-discard\fR
+to prevent this action from being logged. Use the
+smtpd_discard_ehlo_keyword_address_maps feature to discard EHLO
+keywords selectively.
 .SH smtpd_end_of_data_restrictions (default: empty)
 Optional access restrictions that the Postfix SMTP server
 applies in the context of the SMTP END-OF-DATA command.
