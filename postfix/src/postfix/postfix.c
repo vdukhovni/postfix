@@ -195,7 +195,7 @@
 /*	proxymap(8), Postfix lookup table proxy server
 /*	qmgr(8), Postfix queue manager
 /*	qmqpd(8), Postfix QMQP server
-/*	scache(8), Postfix session cache manager
+/*	scache(8), Postfix connection cache manager
 /*	showq(8), list Postfix mail queue
 /*	smtp(8), Postfix SMTP client
 /*	smtpd(8), Postfix SMTP server

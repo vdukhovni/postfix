@@ -40,7 +40,7 @@ mysql tables	yes (contributed)
 netinfo tables	yes (contributed)
 newaliases	yes (main alias database only)
 nis tables	yes
-nis+ tables	not yet
+nis+ tables	yes
 no <> in smtp	yes (most common address forms)
 pgsql tables	yes (contributed)
 pipeline option	yes (server and client)

@@ -7,6 +7,13 @@ snapshot release).  Patches are issued for the official release
 and change the patchlevel and the release date. Patches are never
 issued for snapshot releases.
 
+Incompatible changes with snapshot Postfix-2.2-20041030
+=======================================================
+
+The SMTP session cache is renamed to connection cache, to avoid
+confusion with the TLS session cache. Thus, all session_cache_mumble
+parameters are now called connection_cache_mumble.
+
 Incompatible changes with snapshot Postfix-2.2-20041023
 =======================================================
 
@@ -25,7 +32,7 @@ Major changes with snapshot Postfix-2.2-20041023
 The NIS+ client by Geoff Gibbs is now part of the Postfix source
 tree. Details are given in the nisplus_table(5) manual page.
 
-By default, Postfix no longer appends the its own domain to addresses
+By default, Postfix no longer appends its own domain to addresses
 in message headers from remote clients. Thus, spam from poorly
 written software no longer looks like it came from a local user.
 

@@ -9816,12 +9816,17 @@ Apologies for any names omitted.
 	the SMTP client. File: smtp/smtp_connect.c.
 
 	Robustness: extra sanity checks. Files: util/dict_db.c,
-	util/dict_dbm.c.
+	util/dict_dbm.c, dict_nis.c.
+
+20041030
+
+	Compatibility: "session cache" renamed to "connection cache"
+	to avoid confusion with the TLS session cache.
 
 Open problems:
 
-	Low: reject HELO with any domain name that this MTA is
-	final destination for.
+	Low: reject HELO with any domain name or IP address that
+	this MTA is the final destination for.
 
 	Low: should the Delivered-To: test in local(8) be configurable?
 

@@ -1836,15 +1836,15 @@ extern char *var_flush_service;
  /*
   * Session cache service.
   */
-#define VAR_SCACHE_SERVICE		"session_cache_service"
+#define VAR_SCACHE_SERVICE		"connection_cache_service"
 #define DEF_SCACHE_SERVICE		"scache"
 extern char *var_scache_service;
 
-#define VAR_SCACHE_TTL_LIM		"session_cache_ttl_limit"
+#define VAR_SCACHE_TTL_LIM		"connection_cache_ttl_limit"
 #define DEF_SCACHE_TTL_LIM		"2s"
 extern int var_scache_ttl_lim;
 
-#define VAR_SCACHE_STAT_TIME		"session_cache_status_update_time"
+#define VAR_SCACHE_STAT_TIME		"connection_cache_status_update_time"
 #define DEF_SCACHE_STAT_TIME		"600s"
 extern int var_scache_stat_time;
 

@@ -2,44 +2,44 @@
 /* NAME
 /*	scache 8
 /* SUMMARY
-/*	Postfix session cache server
+/*	Postfix connection cache server
 /* SYNOPSIS
 /*	\fBscache\fR [generic Postfix daemon options]
 /* DESCRIPTION
-/*	The \fBscache\fR server maintains a shared multi-session
+/*	The \fBscache\fR server maintains a shared multi-connection
 /*	cache. This information can be used by, for example, Postfix
 /*	SMTP clients or other Postfix delivery agents.
 /*
-/*	The session cache is organized into logical destination
-/*	names, physical endpoint names, and sessions.
+/*	The connection cache is organized into logical destination
+/*	names, physical endpoint names, and connections.
 /*
 /*	As a specific example, logical SMTP destinations specify
 /*	(transport, domain, port), and physical SMTP endpoints
-/*	specify (transport, IP address, port).  An SMTP session
+/*	specify (transport, IP address, port).  An SMTP connection
 /*	may be saved after a successful mail transaction.
 /*
 /*	In the general case, one logical destination may refer to
 /*	zero or more physical endpoints, one physical endpoint may
 /*	be referenced by zero or more logical destinations, and
-/*	one endpoint may refer to zero or more sessions.
+/*	one endpoint may refer to zero or more connections.
 /*
 /*	The exact syntax of a logical destination or endpoint name
 /*	is application dependent; the \fBscache\fR service does
-/*	not care.  A session is stored as a file descriptor together
+/*	not care.  A connection is stored as a file descriptor together
 /*	with application-dependent information that is needed to
-/*	re-activate a session object. Again, the \fBscache\fR
+/*	re-activate a connection object. Again, the \fBscache\fR
 /*	service is completely unaware about the details of that
 /*	information.
 /*
 /*	All information is stored with a finite time to live (ttl).
-/*	The session cache daemon terminates when no client is
+/*	The connection cache daemon terminates when no client is
 /*	connected for \fBmax_idle\fR time units.
 /*
 /*	This server implements the following requests:
 /* .IP "\fBsave_endp\fI ttl endpoint endpoint_properties file_descriptor\fR"
-/*	Save the specified file descriptor and session property data
+/*	Save the specified file descriptor and connection property data
 /*	under the specified endpoint name. The endpoint properties
-/*	are used by the client to re-activate a passivated session
+/*	are used by the client to re-activate a passivated connection
 /*	object.
 /* .IP "\fBfind_endp\fI endpoint\fR"
 /*	Look up cached properties and a cached file descriptor for the
@@ -47,8 +47,8 @@
 /* .IP "\fBsave_dest\fI ttl destination destination_properties endpoint\fR"
 /*	Save the binding between a logical destination and an
 /*	endpoint under the destination name, together with destination
-/*	specific session properties. The destination properties
-/*	are used by the client to re-activate a passivated session
+/*	specific connection properties. The destination properties
+/*	are used by the client to re-activate a passivated connection
 /*	object.
 /* .IP "\fBfind_dest\fI destination\fR"
 /*	Look up cached destination properties, cached endpoint properties,
@@ -56,18 +56,18 @@
 /* SECURITY
 /* .ad
 /* .fi
-/*	The session cache server is not security-sensitive. It does not
+/*	The connection cache server is not security-sensitive. It does not
 /*	talk to the network, and it does not talk to local users.
 /*	The scache server can run chrooted at fixed low privilege.
 /*
-/*	The session cache server is not a trusted process. It must
+/*	The connection cache server is not a trusted process. It must
 /*	not be used to store information that is security sensitive.
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* BUGS
 /*	Sessions cannot be cached across multiple machines.
 /*
-/*      When a session expires from the cache it is closed without
+/*	When a connection expires from the cache it is closed without
 /*	protocol specific handshake.
 /* CONFIGURATION PARAMETERS
 /* .ad
@@ -81,12 +81,12 @@
 /* RESOURCE CONTROLS
 /* .ad
 /* .fi
-/* .IP "\fBsession_cache_ttl_limit (2s)\fR"
-/*	The maximal time-to-live value that the session cache server
+/* .IP "\fBconnection_cache_ttl_limit (2s)\fR"
+/*	The maximal time-to-live value that the connection cache server
 /*	allows.
-/* .IP "\fBsession_cache_status_update_time (600s)\fR"
+/* .IP "\fBconnection_cache_status_update_time (600s)\fR"
 /*	How frequently the scache(8) server logs usage statistics with
-/*	session cache hit and miss rates for logical destinations and for
+/*	connection cache hit and miss rates for logical destinations and for
 /*	physical endpoints.
 /* MISCELLANEOUS CONTROLS
 /* .ad
@@ -252,7 +252,7 @@ static void scache_save_endp_service(VSTREAM *client_stream)
     }
 }
 
-/* scache_find_endp_service - protocol to find session for endpoint */
+/* scache_find_endp_service - protocol to find connection for endpoint */
 
 static void scache_find_endp_service(VSTREAM *client_stream)
 {
@@ -335,7 +335,7 @@ static void scache_save_dest_service(VSTREAM *client_stream)
     }
 }
 
-/* scache_find_dest_service - protocol to find session for destination */
+/* scache_find_dest_service - protocol to find connection for destination */
 
 static void scache_find_dest_service(VSTREAM *client_stream)
 {
@@ -450,7 +450,7 @@ static void scache_status_dump(char *unused_name, char **unused_argv)
 	scache_endp_hits = scache_endp_miss = 0;
     }
     if (scache_dest_count || scache_endp_count || scache_sess_count) {
-	msg_info("statistics: max simultaneous domains=%d addresses=%d sessions=%d",
+	msg_info("statistics: max simultaneous domains=%d addresses=%d connection=%d",
 		 scache_dest_count, scache_endp_count, scache_sess_count);
 	scache_dest_count = 0;
 	scache_endp_count = 0;

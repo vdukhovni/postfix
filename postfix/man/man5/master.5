@@ -12,7 +12,8 @@ The Postfix mail system is implemented by small number of
 (mostly) client commands that are invoked by users, and by
 a larger number of services that run in the background.
 
-Postfix services run under control of the \fBmaster\fR(8)
+Postfix services are implemented by daemon processes. These
+run in the background under control of the \fBmaster\fR(8)
 process.  The master.cf configuration file defines how a
 client program connects to a service, and what daemon
 program runs when a service is requested.  Most daemon
@@ -25,8 +26,8 @@ protocol. In order to execute non-Postfix software use the
 \fBlocal\fR(8), \fBpipe\fR(8) or \fBspawn\fR(8) services, or
 run the server under control by \fBinetd\fR(8) or equivalent.
 .PP
-Changes in master.cf requires that "\fBpostfix reload\fR" be
-executed in order to reload the configuration.
+After changing master.cf you must execute "\fBpostfix reload\fR"
+to reload the configuration.
 .SH "SYNTAX"
 .na
 .nf
@@ -177,7 +178,7 @@ instances of Postfix, instead of configuring multiple
 personalities via master.cf.
 .IP \fB-v\fR
 Increase the verbose logging level. Specify multiple \fB-v\fR
-options to make a command more verbose.
+options to make a Postfix daemon process increasingly verbose.
 .SH "SEE ALSO"
 .na
 .nf

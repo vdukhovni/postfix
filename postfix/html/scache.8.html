@@ -7,47 +7,48 @@
 SCACHE(8)                                               SCACHE(8)
 
 <b>NAME</b>
-       scache - Postfix session cache server
+       scache - Postfix connection cache server
 
 <b>SYNOPSIS</b>
        <b>scache</b> [generic Postfix daemon options]
 
 <b>DESCRIPTION</b>
-       The  <b>scache</b> server maintains a shared multi-session cache.
-       This information can be used by, for example, Postfix SMTP
-       clients or other Postfix delivery agents.
+       The  <b>scache</b>  server  maintains  a  shared multi-connection
+       cache. This information can be used by, for example, Post-
+       fix SMTP clients or other Postfix delivery agents.
 
-       The  session  cache  is organized into logical destination
-       names, physical endpoint names, and sessions.
+       The connection cache is organized into logical destination
+       names, physical endpoint names, and connections.
 
        As a specific example, logical SMTP  destinations  specify
        (transport,  domain,  port),  and  physical SMTP endpoints
-       specify (transport, IP address, port).   An  SMTP  session
+       specify (transport, IP address, port).  An SMTP connection
        may be saved after a successful mail transaction.
 
        In  the general case, one logical destination may refer to
        zero or more physical endpoints, one physical endpoint may
        be  referenced  by  zero or more logical destinations, and
-       one endpoint may refer to zero or more sessions.
+       one endpoint may refer to zero or more connections.
 
        The exact syntax of a logical destination or endpoint name
        is  application  dependent;  the  <b>scache</b>  service does not
-       care.  A session is stored as a file  descriptor  together
-       with  application-dependent  information that is needed to
-       re-activate a session object. Again, the <b>scache</b> service is
-       completely  unaware about the details of that information.
+       care.   A  connection  is  stored  as  a  file  descriptor
+       together  with  application-dependent  information that is
+       needed to re-activate  a  connection  object.  Again,  the
+       <b>scache</b>  service is completely unaware about the details of
+       that information.
 
        All information is stored  with  a  finite  time  to  live
-       (ttl).  The session cache daemon terminates when no client
-       is connected for <b><a href="postconf.5.html#max_idle">max_idle</a></b> time units.
+       (ttl).   The  connection  cache  daemon terminates when no
+       client is connected for <b><a href="postconf.5.html#max_idle">max_idle</a></b> time units.
 
        This server implements the following requests:
 
        <b>save_endp</b> <i>ttl endpoint endpoint</i><b>_</b><i>properties file</i><b>_</b><i>descriptor</i>
-              Save the  specified  file  descriptor  and  session
+              Save the specified file descriptor  and  connection
               property  data  under  the specified endpoint name.
               The endpoint properties are used by the  client  to
-              re-activate a passivated session object.
+              re-activate a passivated connection object.
 
        <b>find_endp</b> <i>endpoint</i>
               Look   up  cached  properties  and  a  cached  file
@@ -56,9 +57,9 @@ SCACHE(8)                                               SCACHE(8)
        <b>save_dest</b> <i>ttl destination destination</i><b>_</b><i>properties endpoint</i>
               Save the binding between a logical destination  and
               an  endpoint  under  the destination name, together
-              with destination specific session  properties.  The
-              destination  properties  are  used by the client to
-              re-activate a passivated session object.
+              with destination  specific  connection  properties.
+              The  destination  properties are used by the client
+              to re-activate a passivated connection object.
 
        <b>find_dest</b> <i>destination</i>
               Look up cached destination properties, cached  end-
@@ -66,14 +67,14 @@ SCACHE(8)                                               SCACHE(8)
               the specified logical destination.
 
 <b>SECURITY</b>
-       The session cache server  is  not  security-sensitive.  It
+       The connection cache server is not security-sensitive.  It
        does  not  talk  to  the  network, and it does not talk to
        local users.  The scache server can run chrooted at  fixed
        low privilege.
 
-       The session cache server is not a trusted process. It must
-       not be used to store information that is  security  sensi-
-       tive.
+       The  connection  cache server is not a trusted process. It
+       must not be used to store  information  that  is  security
+       sensitive.
 
 <b>DIAGNOSTICS</b>
        Problems and transactions are logged to <b>syslogd</b>(8).
@@ -81,8 +82,8 @@ SCACHE(8)                                               SCACHE(8)
 <b>BUGS</b>
        Sessions cannot be cached across multiple machines.
 
-       When a session expires from the cache it is closed without
-       protocol specific handshake.
+       When  a  connection  expires  from  the cache it is closed
+       without protocol specific handshake.
 
 <b>CONFIGURATION PARAMETERS</b>
        Changes  to  <b>main.cf</b>  are  picked  up   automatically   as
@@ -93,13 +94,13 @@ SCACHE(8)                                               SCACHE(8)
        <a href="postconf.5.html">postconf(5)</a> for more details including examples.
 
 <b>RESOURCE CONTROLS</b>
-       <b><a href="postconf.5.html#session_cache_ttl_limit">session_cache_ttl_limit</a> (2s)</b>
-              The  maximal  time-to-live  value  that the session
+       <b><a href="postconf.5.html#connection_cache_ttl_limit">connection_cache_ttl_limit</a> (2s)</b>
+              The  maximal time-to-live value that the connection
               cache server allows.
 
-       <b><a href="postconf.5.html#session_cache_status_update_time">session_cache_status_update_time</a> (600s)</b>
+       <b><a href="postconf.5.html#connection_cache_status_update_time">connection_cache_status_update_time</a> (600s)</b>
               How frequently  the  <a href="scache.8.html">scache(8)</a>  server  logs  usage
-              statistics  with  session  cache hit and miss rates
+              statistics with connection cache hit and miss rates
               for logical  destinations  and  for  physical  end-
               points.
 

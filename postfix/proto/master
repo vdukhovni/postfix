@@ -8,7 +8,8 @@
 #	(mostly) client commands that are invoked by users, and by
 #	a larger number of services that run in the background.
 #
-#	Postfix services run under control of the \fBmaster\fR(8)
+#	Postfix services are implemented by daemon processes. These
+#	run in the background under control of the \fBmaster\fR(8)
 #	process.  The master.cf configuration file defines how a
 #	client program connects to a service, and what daemon
 #	program runs when a service is requested.  Most daemon
@@ -21,8 +22,8 @@
 #	\fBlocal\fR(8), \fBpipe\fR(8) or \fBspawn\fR(8) services, or
 #	run the server under control by \fBinetd\fR(8) or equivalent.
 # .PP
-#	Changes in master.cf requires that "\fBpostfix reload\fR" be
-#	executed in order to reload the configuration.
+#	After changing master.cf you must execute "\fBpostfix reload\fR" 
+#	to reload the configuration.
 # SYNTAX
 # .ad
 # .fi
@@ -171,7 +172,7 @@
 #	personalities via master.cf.
 # .IP \fB-v\fR
 #	Increase the verbose logging level. Specify multiple \fB-v\fR
-#	options to make a command more verbose.
+#	options to make a Postfix daemon process increasingly verbose.
 # SEE ALSO
 #	master(8), process manager
 #	postconf(5), configuration parameters

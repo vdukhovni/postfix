@@ -2872,14 +2872,14 @@ appears to be malfunctioning.
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 .SH session_cache_service (default: scache)
-The name of the scache(8) session cache service.  This service
+The name of the scache(8) connection cache service.  This service
 maintains a limited pool of cached sessions.
 .SH session_cache_status_update_time (default: 600s)
 How frequently the scache(8) server logs usage statistics with
-session cache hit and miss rates for logical destinations and for
+connection cache hit and miss rates for logical destinations and for
 physical endpoints.
 .SH session_cache_ttl_limit (default: 2s)
-The maximal time-to-live value that the session cache server
+The maximal time-to-live value that the connection cache server
 allows. Requests that specify a larger TTL will be stored with the
 maximum allowed TTL. The purpose of this additional control is to
 protect the infrastructure against careless people. The cache TTL
@@ -2964,7 +2964,7 @@ ignored.
 .PP
 This feature is available in Postfix 2.2 and later.
 .SH smtp_connection_cache_on_demand (default: yes)
-Temporarily enable SMTP session caching while a destination
+Temporarily enable SMTP connection caching while a destination
 has a high volume of mail in the active queue.  With SMTP connection
 caching, a connection is not closed immediately after completion
 of a mail transaction.  Instead, the connection is kept open for
@@ -2974,12 +2974,12 @@ delivery performance.
 .PP
 This feature is available in Postfix 2.2 and later.
 .SH smtp_connection_cache_reuse_limit (default: 10)
-When SMTP session caching is enabled, the number of times that
+When SMTP connection caching is enabled, the number of times that
 an SMTP session is reused before it is closed.
 .PP
 This feature is available in Postfix 2.2 and later.
 .SH smtp_connection_cache_time_limit (default: 2s)
-When SMTP session caching is enabled, the amount of time that
+When SMTP connection caching is enabled, the amount of time that
 an unused SMTP client socket is kept open before it is closed.  Do
 not specify larger values without permission from the remote sites.
 .PP
