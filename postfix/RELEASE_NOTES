@@ -22,6 +22,27 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix snapshot 2.0.8-20040414
+=========================================================
+
+Too many people mess up their net/mask patterns, causing open
+mail relay problems. Postfix processes now abort when given a
+net/mask pattern with a non-zero host portion (for example,
+168.100.189.2/28), and suggest to specify the proper net/mask
+pattern instead (for example, 168.100.189.0/28).
+
+Major changes with Postfix snapshot 2.0.8-20040414
+==================================================
+
+PostgreSQL table lookups. Specify "pgsql:/file/name" where "/file/name"
+defines the database. See the sample-pgsql-aliases.cf file for
+examples, and the PGSQL_README file for general information.
+
+Workarounds for file systems whose clock runs ahead of the local
+clock (this can happen with remote file systems). Postfix now logs
+a warning and proceeds with reduced performance, instead of ignoring
+new mail completely.
+
 Incompatible changes with Postfix snapshot 2.0.6-20030305
 =========================================================
 

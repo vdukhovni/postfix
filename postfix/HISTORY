@@ -7926,7 +7926,50 @@ Apologies for any names omitted.
 	Feature: the installation procedure records build information
 	(by default:  in /etc/postfix/makedefs.out).
 
+20030324
+
+	Bugfix: smtp-source flushed too often, causing suboptimal
+	performance with smtp-source sending directly into smtp-sink.
+	Files: smtpstone/smtp-source.c.
+
+20030410
+
+	Safety: log a fatal error when a net/mask pattern has a
+	non-zero host part, so that mail delivery is deferred.
+	File: util/match_ops.c.
+
+20030411
+
+	Bugfix: extraneous warning about out-of-order original
+	recipient records by Patrik Rak. Files: *qmgr/qmgr_message.c.
+
+20030412
+
+	Workaround: log a warning and reset the queue file time
+	stamps when the file system clock is ahead of the local
+	clock.  File: global/mail_stream.c.
+
+20030414
+
+	Feature: PostgreSQL client module, adopted by LaMont Jones.
+	Files: README_FILES/PGSQL_README, util/dict_pgsql.c,
+	util/dict_pgsql.h, conf/sample-pgsql-aliases.cf.
+
+	Cleanup: the generic smtp client/server code in smtp_stream.c
+	now has an explicit flush operation, and the smtp-source/sink
+	programs are updated to take advantage of this.
+
+	Cleanup: the file system clock drift detection code now runs
+	only once per process instance, to minimize the performance
+	impact. File: global/mail_stream.c.
+
+	Robustness: avoid TIME_WAIT state with smtp/qmqp-source
+	client sockets.  This puts less strain on local system
+	resources.
+
 Open problems:
+
+	Low: smtp-source may block when sending large test messages.
 
 	Med: make qmgr recipient bounce/defer activity asynchronous
 	or add a multi-recipient operation that reduces overhead.

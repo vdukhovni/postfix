@@ -35,7 +35,7 @@
 /*	Disable ESMTP command pipelining.
 /* .IP \fB-P\fR
 /*	Change the server greeting so that it appears to come through
-/*	a CISCO PIX system.
+/*	a CISCO PIX system. Implies \fB-e\fR.
 /* .IP "\fB-s \fIcommand,command,...\fR"
 /*	Log the named commands to syslogd.
 /*	Examples of commands that can be logged are HELO, EHLO, LHLO, MAIL,
@@ -146,6 +146,7 @@ static void ehlo_response(SINK_STATE *state)
     if (!disable_8bitmime)
 	smtp_printf(state->stream, "250-8BITMIME");
     smtp_printf(state->stream, "250 ");
+    smtp_flush(state->stream);
 }
 
 /* helo_response - respond to HELO command */
@@ -153,6 +154,7 @@ static void ehlo_response(SINK_STATE *state)
 static void helo_response(SINK_STATE *state)
 {
     smtp_printf(state->stream, "250 %s", var_myhostname);
+    smtp_flush(state->stream);
 }
 
 /* ok_response - send 250 OK */
@@ -160,6 +162,7 @@ static void helo_response(SINK_STATE *state)
 static void ok_response(SINK_STATE *state)
 {
     smtp_printf(state->stream, "250 Ok");
+    smtp_flush(state->stream);
 }
 
 /* mail_response - reset recipient count, send 250 OK */
@@ -184,6 +187,7 @@ static void data_response(SINK_STATE *state)
 {
     state->data_state = ST_CR_LF;
     smtp_printf(state->stream, "354 End data with <CR><LF>.<CR><LF>");
+    smtp_flush(state->stream);
     state->read = data_read;
 }
 
@@ -213,6 +217,7 @@ static void dot_response(SINK_STATE *state)
 static void quit_response(SINK_STATE *state)
 {
     smtp_printf(state->stream, "221 Bye");
+    smtp_flush(state->stream);
     if (count) {
 	counter++;
 	vstream_printf("%d\r", counter);
@@ -418,6 +423,7 @@ static int command_read(SINK_STATE *state)
     ptr = vstring_str(state->buffer);
     if ((command = mystrtok(&ptr, " \t")) == 0) {
 	smtp_printf(state->stream, "500 Error: unknown command");
+	smtp_flush(state->stream);
 	return (0);
     }
     if (msg_verbose)
@@ -427,6 +433,7 @@ static int command_read(SINK_STATE *state)
 	    break;
     if (cmdp->name == 0 || (cmdp->flags & FLAG_ENABLE) == 0) {
 	smtp_printf(state->stream, "500 Error: unknown command");
+	smtp_flush(state->stream);
 	return (0);
     }
     /* We use raw syslog. Sanitize data content and length. */
@@ -522,6 +529,7 @@ static void connect_event(int unused_event, char *context)
 	    smtp_printf(state->stream, "220 %s", var_myhostname);
 	else
 	    smtp_printf(state->stream, "220 %s ESMTP", var_myhostname);
+	smtp_flush(state->stream);
 	event_enable_read(fd, read_event, (char *) state);
     }
 }
@@ -569,6 +577,7 @@ int     main(int argc, char **argv)
 	    break;
 	case 'P':
 	    pretend_pix = 1;
+	    disable_esmtp = 1;
 	    break;
 	case 's':
 	    openlog(basename(argv[0]), LOG_PID, LOG_MAIL);

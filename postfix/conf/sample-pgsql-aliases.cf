@@ -1,0 +1,51 @@
+#
+# pgsql config file for alias lookups on postfix
+# comments are ok.
+#
+
+# the user name and password to log into the pgsql server
+user = someone
+password = some_password
+
+# the database name on the servers
+dbname = customer_database
+
+# the table name
+table = mxaliases
+
+# query components, see below
+select_field = forw_addr
+where_field = alias
+
+# you may specify additional_conditions here
+additional_conditions = and status = 'paid'
+
+# the above variables will result in a query of the form:
+#
+# select forw_addr from mxaliases where alias = '$lookup' and status = 'paid'
+#
+# ($lookup is escaped so if it contains single quotes or other odd
+# characters, it will not cause a parse error in the sql).
+
+# If you just want to use a PostgreSQL function, you can ignore the
+# table name, select_field, where_field and additional_conditions,
+# and just specify a database function to call:
+
+#select_function = my_lookup_user_alias
+
+# this will result in "select my_lookup_user_alias('name')" being
+# used as the SQL statement to execute. If select_function is specified
+# the table-related fields above will be ignored.
+#
+# As of 25-Jun-2002, if the function returns a single row and a single
+# column AND that value is NULL, then the result will be treated as
+# if the key was not in the dictionary.
+#
+# Future versions of PG will allow functions to return result sets.
+#
+
+#
+# the hosts that postfix will try to connect to
+# and query from (in the order listed)
+# specify unix: for unix-domain sockets, inet: for TCP connections (default)
+hosts = host1.some.domain host2.some.domain unix:/file/name

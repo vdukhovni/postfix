@@ -79,7 +79,6 @@ static VSTRING *last_result;
 
 VSTRING *rewrite_clnt(const char *rule, const char *addr, VSTRING *result)
 {
-    char   *myname = "rewrite_clnt";
     VSTREAM *stream;
 
     /*

@@ -83,6 +83,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
+#include <utime.h>
 
 /* Utility library. */
 
@@ -125,6 +126,12 @@ static int mail_stream_finish_file(MAIL_STREAM * info, VSTRING *unused_why)
 {
     int     status = 0;
     static char wakeup[] = {TRIGGER_REQ_WAKEUP};
+    struct stat st;
+    time_t  now;
+    struct utimbuf tbuf;
+    char   *queue_file_path = 0;
+    static int fs_clock_ok = 0;
+    static int fs_clock_warned = 0;
 
     /*
      * Make sure the message makes it to file. Set the execute bit when no
@@ -137,14 +144,45 @@ static int mail_stream_finish_file(MAIL_STREAM * info, VSTRING *unused_why)
      * as are files with unknown record type codes. Every Postfix queue file
      * must end with an explicit END record. Postfix queue files without END
      * record are discarded.
+     * 
+     * Attempt to detect file system clocks that are ahead of local time. the
+     * effect can be difficult to understand (mail is enqueued but Postfix
+     * ignores it). This clock drift detection may not work with file systems
+     * that work on a local copy of the file and that update the server only
+     * after the file is closed.
      */
     if (vstream_fflush(info->stream)
 	|| fchmod(vstream_fileno(info->stream), 0700 | info->mode)
 #ifdef HAS_FSYNC
 	|| fsync(vstream_fileno(info->stream))
 #endif
+	|| (fs_clock_ok == 0 && fstat(vstream_fileno(info->stream), &st) < 0)
 	)
 	status = (errno == EFBIG ? CLEANUP_STAT_SIZE : CLEANUP_STAT_WRITE);
+
+#ifdef TEST
+    st.st_mtime += 10;
+#endif
+
+    /*
+     * Don't check the file system clock all the time.
+     */
+    if (fs_clock_ok == 0 && st.st_mtime <= time(&now))
+	fs_clock_ok = 1;
+
+    /*
+     * Work around file system clocks that are ahead of local time.
+     */
+    if (status == CLEANUP_STAT_OK && fs_clock_ok == 0) {
+	if (fs_clock_warned == 0) {
+	    msg_warn("%s: file system clock is %d seconds ahead of local clock",
+		     info->id, (int) (st.st_mtime - now));
+	    msg_warn("%s: resetting file time stamps - this hurts performance",
+		     info->id);
+	    fs_clock_warned = 1;
+	}
+	queue_file_path = mystrdup(VSTREAM_PATH(info->stream));
+    }
 
     /*
      * Close the queue file and mark it as closed. Be prepared for
@@ -157,6 +195,16 @@ static int mail_stream_finish_file(MAIL_STREAM * info, VSTRING *unused_why)
     if (info->close(info->stream))
 	status = (errno == EFBIG ? CLEANUP_STAT_SIZE : CLEANUP_STAT_WRITE);
     info->stream = 0;
+
+    /*
+     * Work around file system clocks that are ahead of local time.
+     */
+    if (queue_file_path != 0) {
+	tbuf.actime = tbuf.modtime = now;
+	if (utime(queue_file_path, &tbuf) < 0 && errno != ENOENT)
+	    msg_fatal("%s: update file time stamps: %m", info->id);
+	myfree(queue_file_path);
+    }
 
     /*
      * When all is well, notify the next service that a new message has been

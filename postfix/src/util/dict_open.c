@@ -174,6 +174,7 @@
 #include <dict_ni.h>
 #include <dict_ldap.h>
 #include <dict_mysql.h>
+#include <dict_pgsql.h>
 #include <dict_pcre.h>
 #include <dict_regexp.h>
 #include <dict_static.h>
@@ -216,6 +217,9 @@ static DICT_OPEN_INFO dict_open_info[] = {
 #endif
 #ifdef HAS_MYSQL
     DICT_TYPE_MYSQL, dict_mysql_open,
+#endif
+#ifdef HAS_PGSQL
+    DICT_TYPE_PGSQL, dict_pgsql_open,
 #endif
 #ifdef HAS_PCRE
     DICT_TYPE_PCRE, dict_pcre_open,

@@ -163,6 +163,7 @@ $sample_directory/sample-misc.cf:f:root:-:644
 $sample_directory/sample-pcre-access.cf:f:root:-:644
 $sample_directory/sample-pcre-body.cf:f:root:-:644
 $sample_directory/sample-pcre-header.cf:f:root:-:644
+$sample_directory/sample-pgsql-aliases.cf:f:root:-:644
 $sample_directory/sample-qmqpd.cf:f:root:-:644
 $sample_directory/sample-rate.cf:f:root:-:644
 $sample_directory/sample-regexp-access.cf:f:root:-:644
