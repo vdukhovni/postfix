@@ -5,24 +5,28 @@
 # parameters that control LDAP lookups. Source code for LDAP
 # lookup is available separately from http://www.postfix.org/
 
-# The ldap_timeout parameter specifies the timeout for LDAP database
+# The timeout parameter specifies the timeout for LDAP database
 # lookups.
 #
-#ldap_timeout = 10
+#timeout = 10
 
-# The ldap_search_base parameter specifies the LDAP database to search.
+# The search_base parameter specifies the LDAP database to search.
 #
-#ldap_search_base = 
+#search_base = 
 
-# The ldap_server_host parameter specifies the LDAP server hostname.
+# The server_host parameter specifies the LDAP server hostname.
 #
-#ldap_server_host = localhost
+#server_host = localhost
 
-# The ldap_server_port parameter specifies the LDAP server port number.
+# The server_port parameter specifies the LDAP server port number.
 #
-#ldap_server_port = 389
+#server_port = 389
 
-# The ldap_query_filter parameter specifies the filter used for queries.
+# The version parameter specifies the LDAP protocol version to use.
+#
+#version = 2
+
+# The query_filter parameter specifies the filter used for queries.
 # The replacement for "%s" is the address input into the map; e.g.
 # for alias maps, the "user" part (the RFC 2822 local-part) of
 # "user@domain.com" for To: addresses destined for local delivery 
@@ -31,69 +35,69 @@
 # "%u" provides just the user portion of the input, and "%d" provides
 # just the hostname.
 #
-#ldap_query_filter = (mailacceptinggeneralid=%s)
+#query_filter = (mailacceptinggeneralid=%s)
 
-# The ldap_result_filter parameter specifies the filter to be applied
-# to the result attribute(s).  See ldap_query_filter for valid expansions.
+# The result_filter parameter specifies the filter to be applied
+# to the result attribute(s).  See query_filter for valid expansions.
 #
-#ldap_result_filter = %s
+#result_filter = %s
 
-# The ldap_result_attribute parameter specifies the attribute returned by
+# The result_attribute parameter specifies the attribute returned by
 # the search.
 #
-#ldap_result_attribute = maildrop
+#result_attribute = maildrop
 
-# The ldap_special_result_attribute lists the attribute(s) of an
+# The special_result_attribute lists the attribute(s) of an
 # entry which contain links, either ldap url's or distinguished names.
 # The entries referenced by these links are (recursively) treated as if
 # they were contained in the referencing entity.
 #
-#ldap_special_result_attribute =
+#special_result_attribute =
 
-# The ldap_scope parameter specifies the LDAP search scope: sub, base, or one.
+# The scope parameter specifies the LDAP search scope: sub, base, or one.
 #
-#ldap_scope = sub
+#scope = sub
 
-# The ldap_bind parameter specifies whether or not to bind to the server.
+# The bind parameter specifies whether or not to bind to the server.
 # LDAP v3 implementations don't require it, which saves some overhead.
 #
-#ldap_bind = yes
+#bind = yes
 
-# The ldap_bind_dn parameter specifies what distinguished name to use
+# The bind_dn parameter specifies what distinguished name to use
 # when binding.
 #
-#ldap_bind_dn =
+#bind_dn =
 
-# The ldap_bind_pw parameter specifies the password to use.
+# The bind_pw parameter specifies the password to use.
 #
-#ldap_bind_pw =
+#bind_pw =
 
-#ldap_cache        (IGNORED with a warning)
-#ldap_cache_expiry (IGNORED with a warning)
-#ldap_cache_size   (IGNORED with a warning)
+#cache        (IGNORED with a warning)
+#cache_expiry (IGNORED with a warning)
+#cache_size   (IGNORED with a warning)
 #
 # The above parameters are NO LONGER SUPPORTED by Postfix.
 # Cache support has been dropped from OpenLDAP as of release 2.1.13.
 
-# The ldap_recursion_limit parameter specifies a limit on the nesting
+# The recursion_limit parameter specifies a limit on the nesting
 # depth of DN and URL special result attribute evaluation. The limit
 # must be a non-zero positive number. The default value is 1000.
 # 
-#ldap_recursion_limit = 1000
+#recursion_limit = 1000
 
-# The ldap_expansion_limit parameter specifies a limit on the total
+# The expansion_limit parameter specifies a limit on the total
 # number of result elements returned (as a comma separated list) by a lookup
 # against the map. A setting of 0 disables the limit. Lookups fail with a
 # temporary error if the limit is exceeded. Setting the limit to 1 ensures
 # that lookups do not return multiple values. The default value is 0.
 #
-#ldap_expansion_limit = 0
+#expansion_limit = 0
 
-# The ldap_size_limit parameter specifies a limit on the number of LDAP
+# The size_limit parameter specifies a limit on the number of LDAP
 # entries returned by any single LDAP query performed as part of the
 # lookup. A setting of 0 disables the limit. Expansion of DN and URL
 # references involves nested LDAP queries, each of which is separately
-# subjected to this limit. The default value is $ldap_expansion_limit.
+# subjected to this limit. The default value is $expansion_limit.
 # 
 # Note: even a single LDAP entry can generate multiple lookup results, via
 # multiple result attributes and/or multi-valued result attributes.
@@ -101,18 +105,65 @@
 # not the final multiplicity of the lookup result. It is analogous to the
 # "-z" option of "ldapsearch".
 #
-#ldap_size_limit = $ldap_expansion_limit
+#size_limit = 0
 
-# The ldap_deference parameter specifies how to handle LDAP aliases.  See the
+# The deference parameter specifies how to handle LDAP aliases.  See the
 # ldap_open(3) man page.
 #
-#ldap_dereference = 0
+#dereference = 0
 
-# The ldap_domain parameter limits the LDAP searches to just things in
+# The domain parameter limits the LDAP searches to just things in
 # (exactly) the specified list of domains.
 #
-#ldap_domain =
+#domain =
 
-# The ldap_debuglevel parameter sets the debug level in the OpenLDAP
+# The start_tls parameter specifies whether or not to issue
+# STARTTLS upon connection to the server.  STARTTLS requires LDAP
+# protocol version 3.
+#
+#start_tls = no
+
+# The tls_ca_cert_dir parameter specifies a directory containing,
+# in separate individual files, the X509 Certificate Authority
+# certificates which are to be recognized by the client in SSL/TLS
+# connections.
+#
+#tls_ca_cert_dir =
+
+# The tls_ca_cert_file parameter specifies a file containing the
+# X509 Certificate Authority certificates which are to be recognized by
+# the client in SSL/TLS connections.  This setting takes precedence over
+# tls_ca_cert_dir.
+#
+#tls_ca_cert_file =
+
+# The tls_cert parameter specifies the client's X509 certificate to
+# be used in SSL/TLS connections.
+#
+#tls_cert =
+
+# The tls_key parameter specifies the private key corresponding to
+# the above tls_cert.
+#
+#tls_key =
+
+# The tls_require_cert parameter specifies whether or not to
+# request server's X509 certificate and check its validity when
+# establishing SSL/TLS connections.
+#
+#tls_require_cert = no
+
+# The tls_random_file parameter specifies a file to obtain random
+# bits from when /dev/[u]random is not available, to be used in SSL/TLS
+# connections.
+#
+#tls_random_file =
+
+# The tls_cipher_suite parameter specifies the cipher suite to be
+# use in SSL/TLS negotiations.
+#
+#tls_cipher_suite =
+
+# The debuglevel parameter sets the debug level in the OpenLDAP
 # libraries.
-#ldap_debuglevel = 0
+#debuglevel = 0

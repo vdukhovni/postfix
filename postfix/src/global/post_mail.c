@@ -294,6 +294,7 @@ static void post_mail_open_event(int event, char *context)
 	    event_disable_readwrite(vstream_fileno(state->stream));
 	    vstream_fclose(state->stream);
 	} else {
+    case EVENT_XCPT:
 	    msg_warn("connect to service: %s: %m", var_cleanup_service);
 	}
 	myfree(state->sender);

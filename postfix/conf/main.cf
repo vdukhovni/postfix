@@ -1,7 +1,7 @@
 # Global Postfix configuration file. This file lists only a subset
 # of all 300+ parameters. See the sample-xxx.cf files for a full list.
 # 
-# The general format is lines with parameter = value pairs. Lines
+# The general format of each line is: parameter = value. Lines
 # that begin with whitespace continue the previous line. A value can
 # contain references to other $names or ${name}s.
 #
@@ -146,6 +146,12 @@ mail_owner = postfix
 # pattern is replaced by its contents; a type:table is matched when
 # a name matches a lookup key (the right-hand side is ignored).
 # Continue long lines by starting the next line with whitespace.
+#
+# DO NOT LIST RELAY DESTINATIONS IN MYDESTINATION.
+# DO NOT LIST RELAY DESTINATIONS IN MYDESTINATION.
+# DO NOT LIST RELAY DESTINATIONS IN MYDESTINATION.
+# DO NOT LIST RELAY DESTINATIONS IN MYDESTINATION.
+# DO NOT LIST RELAY DESTINATIONS IN MYDESTINATION.
 #
 # See also below, section "REJECTING MAIL FOR UNKNOWN LOCAL USERS".
 #

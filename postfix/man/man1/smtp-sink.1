@@ -25,11 +25,15 @@ IPV4 is the default.
 This program is the complement of the \fIsmtp-source\fR program.
 
 Arguments:
+.IP \fB-a\fR
+Do not announce SASL authentication support.
 .IP \fB-c\fR
 Display a running counter that is updated whenever an SMTP
 QUIT command is executed.
 .IP \fB-e\fR
 Disable ESMTP support.
+.IP "\fB-f  \fIcommand,command,...\fR"
+Reject the specified commands with a hard (5xx) error code.
 .IP \fB-h\fI hostname\fR
 Use \fIhostname\fR in the SMTP greeting, in the HELO response,
 and in the EHLO response. The default hostname is "smtp-sink".
@@ -42,6 +46,8 @@ Disable ESMTP command pipelining.
 .IP \fB-P\fR
 Change the server greeting so that it appears to come through
 a CISCO PIX system. Implies \fB-e\fR.
+.IP "\fB-r  \fIcommand,command,...\fR"
+Reject the specified commands with a soft (4xx) error code.
 .IP "\fB-s \fIcommand,command,...\fR"
 Log the named commands to syslogd.
 Examples of commands that can be logged are HELO, EHLO, LHLO, MAIL,

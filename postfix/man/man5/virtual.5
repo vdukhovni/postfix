@@ -97,8 +97,11 @@ This works for the first address in the expansion only.
 When a mail address localpart contains the optional recipient delimiter
 (e.g., \fIuser+foo\fR@\fIdomain\fR), the lookup order becomes:
 \fIuser+foo\fR@\fIdomain\fR, \fIuser\fR@\fIdomain\fR, \fIuser+foo\fR,
-\fIuser\fR, and @\fIdomain\fR.  An unmatched address extension
-(\fI+foo\fR) is propagated to the result of table lookup.
+\fIuser\fR, and @\fIdomain\fR.
+
+The \fBpropagate_unmatched_extensions\fR parameter controls whether
+an unmatched address extension (\fI+foo\fR) is propagated to the
+result of table lookup.
 .SH VIRTUAL ALIAS DOMAINS
 .na
 .nf
@@ -212,6 +215,11 @@ List of virtual aliasing tables.
 .IP \fBvirtual_alias_domains\fR
 List of virtual alias domains. This uses the same syntax
 as the \fBmydestination\fR parameter.
+.IP \fBpropagate_unmatched_extensions\fR
+A list of address rewriting or forwarding mechanisms that propagate
+an address extension from the original address to the result.
+Specify zero or more of \fBcanonical\fR, \fBvirtual\fR, \fBalias\fR,
+\fBforward\fR, or \fBinclude\fR.
 .PP
 Other parameters of interest:
 .IP \fBinet_interfaces\fR

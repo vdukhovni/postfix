@@ -59,9 +59,14 @@
 /*	Disallow non-RFC 821 style addresses in SMTP commands. For example,
 /*	the RFC822-style address forms with comments that Sendmail allows.
 /* .IP \fBbroken_sasl_auth_clients\fR
-/*	Support older Microsoft clients that mis-implement the AUTH
+/*	Support Microsoft clients that implement an older version of the AUTH
 /*	protocol, and that expect an EHLO response of "250 AUTH=list"
 /*	instead of "250 AUTH list".
+/* .IP \fBsmtpd_sasl_exceptions_networks\fR
+/*	Don't offer AUTH in the response to EHLO when talking to clients
+/*	in the specified networks.  This is a workaround for clients that
+/*	that demand a login and password from the user whenever AUTH is
+/*	offered by an SMTP server.
 /* .IP \fBsmtpd_noop_commands\fR
 /*	List of commands that are treated as NOOP (no operation) commands,
 /*	without any parameter syntax checking and without any state change.
@@ -492,6 +497,7 @@ int     var_smtpd_junk_cmd_limit;
 bool    var_smtpd_sasl_enable;
 char   *var_smtpd_sasl_opts;
 char   *var_smtpd_sasl_realm;
+char   *var_smtpd_sasl_exceptions_networks;
 char   *var_filter_xport;
 bool    var_broken_auth_clients;
 char   *var_perm_mx_networks;
@@ -548,6 +554,35 @@ static void helo_reset(SMTPD_STATE *);
 static void mail_reset(SMTPD_STATE *);
 static void rcpt_reset(SMTPD_STATE *);
 static void chat_reset(SMTPD_STATE *, int);
+
+ /*
+  * SASL exceptions.
+  */
+static NAMADR_LIST *sasl_exceptions_networks;
+
+/* sasl_client_exception - can we offer AUTH for this client */
+
+static int sasl_client_exception(SMTPD_STATE *state)
+{
+    int     match;
+
+    /*
+     * This is to work around a Netscape mail client bug where it tries to
+     * use AUTH if available, even if user has not configured it. Returns
+     * TRUE if AUTH should be offered in the EHLO.
+     */
+    if (sasl_exceptions_networks == 0)
+	return (0);
+
+    match = namadr_list_match(sasl_exceptions_networks,
+			      state->name, state->addr);
+
+    if (msg_verbose)
+	msg_info("sasl_exceptions: %s[%s], match=%d",
+		 state->name, state->addr, match);
+
+    return (match);
+}
 
 /* collapse_args - put arguments together again */
 
@@ -635,7 +670,7 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "250-VRFY");
     smtpd_chat_reply(state, "250-ETRN");
 #ifdef USE_SASL_AUTH
-    if (var_smtpd_sasl_enable) {
+    if (var_smtpd_sasl_enable && !sasl_client_exception(state)) {
 	smtpd_chat_reply(state, "250-AUTH %s", state->sasl_mechanism_list);
 	if (var_broken_auth_clients)
 	    smtpd_chat_reply(state, "250-AUTH=%s", state->sasl_mechanism_list);
@@ -1765,13 +1800,6 @@ static void smtpd_service(VSTREAM *stream, char *unused_service, char **argv)
     msg_info("connect from %s[%s]", state.name, state.addr);
 
     /*
-     * XXX non_blocking() aborts upon error.
-     */
-#ifdef BROKEN_READ_SELECT_ON_BLOCKING_SOCKET
-    non_blocking(vstream_fileno(stream), NON_BLOCKING);
-#endif
-
-    /*
      * See if we need to turn on verbose logging for this client.
      */
     debug_peer_check(state.name, state.addr);
@@ -1820,6 +1848,11 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     if (var_smtpd_sasl_enable)
 #ifdef USE_SASL_AUTH
 	smtpd_sasl_initialize();
+
+    if (*var_smtpd_sasl_exceptions_networks)
+	sasl_exceptions_networks =
+	    namadr_list_init(MATCH_FLAG_NONE,
+			     var_smtpd_sasl_exceptions_networks);
 #else
 	msg_warn("%s is true, but SASL support is not compiled in",
 		 VAR_SMTPD_SASL_ENABLE);
@@ -1912,6 +1945,7 @@ int     main(int argc, char **argv)
 	VAR_LOCAL_RCPT_MAPS, DEF_LOCAL_RCPT_MAPS, &var_local_rcpt_maps, 0, 0,
 	VAR_SMTPD_SASL_OPTS, DEF_SMTPD_SASL_OPTS, &var_smtpd_sasl_opts, 0, 0,
 	VAR_SMTPD_SASL_REALM, DEF_SMTPD_SASL_REALM, &var_smtpd_sasl_realm, 0, 0,
+	VAR_SMTPD_SASL_EXCEPTIONS_NETWORKS, DEF_SMTPD_SASL_EXCEPTIONS_NETWORKS, &var_smtpd_sasl_exceptions_networks, 0, 0,
 	VAR_FILTER_XPORT, DEF_FILTER_XPORT, &var_filter_xport, 0, 0,
 	VAR_PERM_MX_NETWORKS, DEF_PERM_MX_NETWORKS, &var_perm_mx_networks, 0, 0,
 	VAR_SMTPD_SND_AUTH_MAPS, DEF_SMTPD_SND_AUTH_MAPS, &var_smtpd_snd_auth_maps, 0, 0,

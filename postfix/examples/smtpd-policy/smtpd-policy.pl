@@ -65,6 +65,9 @@ use Sys::Syslog qw(:DEFAULT setlogsock);
 # or /var/tmp. DO NOT create the greylist database in a file system
 # that can run out of space.
 #
+# In case of database corruption, this script saves the database as
+# $database_name.time(), so that the mail system does not get stuck.
+#
 $database_name="/var/mta/smtpd-policy.db";
 $greylist_delay=3600;
 
@@ -147,7 +150,8 @@ sub open_database {
 
 #
 # Read database. Use a shared lock to avoid reading the database
-# while it is being changed.
+# while it is being changed. XXX There should be a way to synchronize
+# our cache from the on-file database before looking up the key.
 #
 sub read_database {
     my($key) = @_;
@@ -155,6 +159,7 @@ sub read_database {
 
     flock DATABASE_HANDLE, LOCK_SH ||
 	fatal_exit "Can't get shared lock on %s: $!", $database_name;
+    # XXX Synchronize our cache from the on-disk copy before lookup.
     $value = $db_hash{$key};
     syslog $syslog_priority, "lookup %s: %s", $key, $value if $verbose;
     flock DATABASE_HANDLE, LOCK_UN ||
@@ -164,7 +169,9 @@ sub read_database {
 
 #
 # Update database. Use an exclusive lock to avoid collisions with
-# other updaters, and to avoid surprises in database readers.
+# other updaters, and to avoid surprises in database readers. XXX
+# There should be a way to synchronize our cache from the on-file
+# database before updating the database.
 #
 sub update_database {
     my($key, $value) = @_;
@@ -172,12 +179,28 @@ sub update_database {
     syslog $syslog_priority, "store %s: %s", $key, $value if $verbose;
     flock DATABASE_HANDLE, LOCK_EX ||
 	fatal_exit "Can't exclusively lock %s: $!", $database_name;
+    # XXX Synchronize our cache from the on-disk copy before update.
     $db_hash{$key} = $value;
     $database_obj->sync() &&
 	fatal_exit "Can't update %s: $!", $database_name;
     flock DATABASE_HANDLE, LOCK_UN ||
 	fatal_exit "Can't unlock %s: $!", $database_name;
 }
+
+#
+# Signal 11 means that we have some kind of database corruption (yes
+# Berkeley DB should handle this better).  Move the corrupted database
+# out of the way, and start with a new database.
+#
+sub sigsegv_handler {
+    my $backup = $database_name . time();
+
+    rename $database_name, $backup || 
+	fatal_exit "Can't save %s as %s: $!", $database_name, $backup;
+    fatal_exit "Caught signal 11; the corrupted database is saved as $backup";
+}
+
+$SIG{'SEGV'} = 'sigsegv_handler';
 
 #
 # This process runs as a daemon, so it can't log to a terminal. Use

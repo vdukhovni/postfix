@@ -1,4 +1,4 @@
-<html> <head> </head> <body> <pre>
+<html> <body> <pre>
 LMTP(8)                                                   LMTP(8)
 
 <b>NAME</b>
@@ -37,7 +37,7 @@ LMTP(8)                                                   LMTP(8)
               ified local or remote host. If no  port  is  speci-
               fied,  connect  to the port defined as <b>lmtp</b> in <b>ser-</b>
               <b>vices</b>(4).   If  no  such  service  is  found,   the
-              <b>lmtp</b><i>_</i><b>tcp</b><i>_</i><b>port</b>   configuration   parameter  (default
+              <b>lmtp_tcp_port</b>   configuration   parameter  (default
               value of 24) will be used.
 
               The  LMTP  client  does  not   perform   MX   (mail
@@ -67,58 +67,58 @@ LMTP(8)                                                   LMTP(8)
        rupted message files are marked so that the queue  manager
        can move them to the <b>corrupt</b> queue for further inspection.
 
-       Depending on the setting of the <b>notify</b><i>_</i><b>classes</b>  parameter,
+       Depending on the setting of the <b>notify_classes</b>  parameter,
        the  postmaster is notified of bounces, protocol problems,
        and of other trouble.
 
 <b>BUGS</b>
-<b>CONFIGURATION</b> <b>PARAMETERS</b>
+<b>CONFIGURATION PARAMETERS</b>
        The following <b>main.cf</b> parameters are  especially  relevant
        to  this  program. See the Postfix <b>main.cf</b> file for syntax
-       details and for default values.  Use  the  <b>postfix</b>  <b>reload</b>
+       details and for default values.  Use  the  <b>postfix  reload</b>
        command after a configuration change.
 
 <b>Miscellaneous</b>
-       <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b>
+       <b>debug_peer_level</b>
               Verbose  logging  level  increment  for  hosts that
-              match a pattern in the <b>debug</b><i>_</i><b>peer</b><i>_</i><b>list</b> parameter.
+              match a pattern in the <b>debug_peer_list</b> parameter.
 
-       <b>debug</b><i>_</i><b>peer</b><i>_</i><b>list</b>
+       <b>debug_peer_list</b>
               List of domain or network patterns. When  a  remote
               host  matches  a pattern, increase the verbose log-
               ging  level  by  the  amount   specified   in   the
-              <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b> parameter.
+              <b>debug_peer_level</b> parameter.
 
-       <b>error</b><i>_</i><b>notice</b><i>_</i><b>recipient</b>
+       <b>error_notice_recipient</b>
               Recipient    of   protocol/policy/resource/software
               error notices.
 
-       <b>notify</b><i>_</i><b>classes</b>
+       <b>notify_classes</b>
               When this parameter includes  the  <b>protocol</b>  class,
               send  mail  to  the  postmaster with transcripts of
               LMTP sessions with protocol errors.
 
-       <b>lmtp</b><i>_</i><b>skip</b><i>_</i><b>quit</b><i>_</i><b>response</b>
+       <b>lmtp_skip_quit_response</b>
               Do not wait for the server response  after  sending
               QUIT.
 
-       <b>lmtp</b><i>_</i><b>tcp</b><i>_</i><b>port</b>
+       <b>lmtp_tcp_port</b>
               The  TCP  port to be used when connecting to a LMTP
               server.  Used as backup if the <b>lmtp</b> service is  not
               found in <b>services</b>(4).
 
-<b>Authentication</b> <b>controls</b>
-       <b>lmtp</b><i>_</i><b>sasl</b><i>_</i><b>auth</b><i>_</i><b>enable</b>
+<b>Authentication controls</b>
+       <b>lmtp_sasl_auth_enable</b>
               Enable  per-session  authentication as per <a href="http://www.faqs.org/rfcs/rfc2554.html">RFC 2554</a>
               (SASL).  By default, Postfix is built without  SASL
               support.
 
-       <b>lmtp</b><i>_</i><b>sasl</b><i>_</i><b>password</b><i>_</i><b>maps</b>
+       <b>lmtp_sasl_password_maps</b>
               Lookup tables with per-host or domain <i>name</i>:<i>password</i>
               entries.  No entry for a host means no  attempt  to
               authenticate.
 
-       <b>lmtp</b><i>_</i><b>sasl</b><i>_</i><b>security</b><i>_</i><b>options</b>
+       <b>lmtp_sasl_security_options</b>
               Zero or more of the following.
 
               <b>noplaintext</b>
@@ -136,8 +136,8 @@ LMTP(8)                                                   LMTP(8)
               <b>noanonymous</b>
                      Disallow anonymous logins.
 
-<b>Resource</b> <b>controls</b>
-       <b>lmtp</b><i>_</i><b>cache</b><i>_</i><b>connection</b>
+<b>Resource controls</b>
+       <b>lmtp_cache_connection</b>
               Should  we cache the connection to the LMTP server?
               The effectiveness of  cached  connections  will  be
               determined  by  the  number of LMTP servers in use,
@@ -147,14 +147,14 @@ LMTP(8)                                                   LMTP(8)
 
               <b>o</b>      The LMTP client idle time limit is  reached.
                      This  limit  is  specified  with the Postfix
-                     <b>max</b><i>_</i><b>idle</b> configuration parameter.
+                     <b>max_idle</b> configuration parameter.
 
               <b>o</b>      A delivery  request  specifies  a  different
                      destination than the one currently cached.
 
               <b>o</b>      The  per-process  limit  on  the  number  of
                      delivery requests is reached.  This limit is
-                     specified  with the Postfix <b>max</b><i>_</i><b>use</b> configu-
+                     specified  with the Postfix <b>max_use</b> configu-
                      ration parameter.
 
               <b>o</b>      Upon the onset of another delivery  request,
@@ -162,20 +162,20 @@ LMTP(8)                                                   LMTP(8)
                      session does not respond to  the  <b>RSET</b>  com-
                      mand.
 
-       <i>transport_</i><b>destination</b><i>_</i><b>concurrency</b><i>_</i><b>limit</b>
+       <i>transport</i><b>_destination_concurrency_limit</b>
               Limit the number of parallel deliveries to the same
               destination  via  this  mail  delivery   transport.
               <i>transport</i>  is  the name of the service as specified
               in the <b>master.cf</b> file.  The default limit is  taken
-              from    the   <b>default</b><i>_</i><b>destination</b><i>_</i><b>concurrency</b><i>_</i><b>limit</b>
+              from    the   <b>default_destination_concurrency_limit</b>
               parameter.
 
-       <i>transport_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
+       <i>transport</i><b>_destination_recipient_limit</b>
               Limit the number of recipients per message delivery
               via  this mail delivery transport. <i>transport</i> is the
               name of the service as specified in  the  <b>master.cf</b>
               file.    The   default  limit  is  taken  from  the
-              <b>default</b><i>_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b> parameter.
+              <b>default_destination_recipient_limit</b> parameter.
 
               This parameter  becomes  significant  if  the  LMTP
               client  is  used  for  local  delivery.   Some LMTP
@@ -191,51 +191,51 @@ LMTP(8)                                                   LMTP(8)
               of  recipients.   Exercise  care  when setting this
               parameter.
 
-<b>Timeout</b> <b>controls</b>
+<b>Timeout controls</b>
        The default time unit is seconds; an  explicit  time  unit
        can  be  specified by appending a one-letter suffix to the
        value: s (seconds), m (minutes), h (hours), d (days) or  w
        (weeks).
 
-       <b>lmtp</b><i>_</i><b>connect</b><i>_</i><b>timeout</b>
+       <b>lmtp_connect_timeout</b>
               Timeout  for  opening  a  connection  to  the  LMTP
               server.  If no connection can be  made  within  the
               deadline, the message is deferred.
 
-       <b>lmtp</b><i>_</i><b>lhlo</b><i>_</i><b>timeout</b>
+       <b>lmtp_lhlo_timeout</b>
               Timeout  for  sending  the  <b>LHLO</b>  command,  and for
               receiving the server response.
 
-       <b>lmtp</b><i>_</i><b>mail</b><i>_</i><b>timeout</b>
-              Timeout for sending the <b>MAIL</b> <b>FROM</b> command, and  for
+       <b>lmtp_mail_timeout</b>
+              Timeout for sending the <b>MAIL FROM</b> command, and  for
               receiving the server response.
 
-       <b>lmtp</b><i>_</i><b>rcpt</b><i>_</i><b>timeout</b>
-              Timeout  for  sending  the <b>RCPT</b> <b>TO</b> command, and for
+       <b>lmtp_rcpt_timeout</b>
+              Timeout  for  sending  the <b>RCPT TO</b> command, and for
               receiving the server response.
 
-       <b>lmtp</b><i>_</i><b>data</b><i>_</i><b>init</b><i>_</i><b>timeout</b>
+       <b>lmtp_data_init_timeout</b>
               Timeout for  sending  the  <b>DATA</b>  command,  and  for
               receiving the server response.
 
-       <b>lmtp</b><i>_</i><b>data</b><i>_</i><b>xfer</b><i>_</i><b>timeout</b>
+       <b>lmtp_data_xfer_timeout</b>
               Timeout for sending the message content.
 
-       <b>lmtp</b><i>_</i><b>data</b><i>_</i><b>done</b><i>_</i><b>timeout</b>
+       <b>lmtp_data_done_timeout</b>
               Timeout  for  sending  the  "<b>.</b>"  command,  and  for
               receiving the server response. When no response  is
               received,  a warning is logged that the mail may be
               delivered multiple times.
 
-       <b>lmtp</b><i>_</i><b>rset</b><i>_</i><b>timeout</b>
+       <b>lmtp_rset_timeout</b>
               Timeout for  sending  the  <b>RSET</b>  command,  and  for
               receiving the server response.
 
-       <b>lmtp</b><i>_</i><b>quit</b><i>_</i><b>timeout</b>
+       <b>lmtp_quit_timeout</b>
               Timeout  for  sending  the  <b>QUIT</b>  command,  and for
               receiving the server response.
 
-<b>SEE</b> <b>ALSO</b>
+<b>SEE ALSO</b>
        <a href="bounce.8.html">bounce(8)</a> non-delivery status reports
        <a href="local.8.html">local(8)</a> local mail delivery
        <a href="master.8.html">master(8)</a> process manager

@@ -38,7 +38,7 @@
 /*	policy of the SASL authentication.
 /*
 /*	lmtp_sasl_passwd_lookup() looks up the username/password
-/*	for the current SMTP server. The result is zero in case
+/*	for the current LMTP server. The result is zero in case
 /*	of failure.
 /*
 /*	lmtp_sasl_authenticate() implements the SASL authentication
@@ -49,7 +49,7 @@
 /*	suceeds.
 /*
 /*	lmtp_sasl_cleanup() cleans up. It must be called at the
-/*	end of every SMTP session that uses SASL authentication.
+/*	end of every LMTP session that uses SASL authentication.
 /*	This routine is a noop for non-SASL sessions.
 /*
 /*	Arguments:

@@ -504,6 +504,16 @@ int     smtp_xfer(SMTP_STATE *state)
 		    msg_warn("%s: unknown content encoding: %s",
 			     request->queue_id, request->encoding);
 	    }
+
+	    /*
+	     * We authenticate the client, not the sender.
+	     */
+#ifdef USE_SASL_AUTH
+	    if (var_smtp_sasl_enable
+		&& (state->features & SMTP_FEATURE_AUTH)
+		&& state->sasl_passwd)
+		vstring_strcat(next_command, " AUTH=<>");
+#endif
 	    next_state = SMTP_STATE_RCPT;
 	    break;
 

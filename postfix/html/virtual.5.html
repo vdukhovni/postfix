@@ -1,4 +1,4 @@
-<html> <head> </head> <body> <pre>
+<html> <body> <pre>
 VIRTUAL(5)                                             VIRTUAL(5)
 
 <b>NAME</b>
@@ -103,24 +103,27 @@ VIRTUAL(5)                                             VIRTUAL(5)
        When a mail address localpart contains the optional recip-
        ient delimiter (e.g., <i>user+foo</i>@<i>domain</i>), the  lookup  order
        becomes: <i>user+foo</i>@<i>domain</i>, <i>user</i>@<i>domain</i>, <i>user+foo</i>, <i>user</i>, and
-       @<i>domain</i>.  An unmatched address extension (<i>+foo</i>) is  propa-
+       @<i>domain</i>.
+
+       The  <b>propagate_unmatched_extensions</b>   parameter   controls
+       whether  an  unmatched  address extension (<i>+foo</i>) is propa-
        gated to the result of table lookup.
 
 <b>VIRTUAL ALIAS DOMAINS</b>
-       Besides  virtual aliases, the virtual alias table can also
+       Besides virtual aliases, the virtual alias table can  also
        be used to implement virtual alias domains. With a virtual
-       alias  domain,  all  recipient  addresses  are  aliased to
+       alias domain,  all  recipient  addresses  are  aliased  to
        addresses in other domains.
 
        Virtual alias domains are not to be confused with the vir-
        tual mailbox domains that are implemented with the Postfix
        <a href="virtual.8.html"><b>virtual</b>(8)</a>  mail  delivery  agent.  With  virtual  mailbox
-       domains,  each recipient address can have its own mailbox.
+       domains, each recipient address can have its own  mailbox.
 
-       With a virtual alias domain, the virtual  domain  has  its
-       own  user  name  space. Local (i.e. non-virtual) usernames
-       are not visible in a virtual alias domain. In  particular,
-       local  <a href="aliases.5.html"><b>aliases</b>(5)</a>  and local mailing lists are not visible
+       With  a  virtual  alias domain, the virtual domain has its
+       own user name space. Local  (i.e.  non-virtual)  usernames
+       are  not visible in a virtual alias domain. In particular,
+       local <a href="aliases.5.html"><b>aliases</b>(5)</a> and local mailing lists are  not  visible
        as <i>localname@virtual-alias.domain</i>.
 
        Support for a virtual alias domain looks like:
@@ -128,7 +131,7 @@ VIRTUAL(5)                                             VIRTUAL(5)
        /etc/postfix/main.cf:
            virtual_alias_maps = hash:/etc/postfix/virtual
 
-           Note: some systems use <b>dbm</b> databases instead of  <b>hash</b>.
+           Note:  some systems use <b>dbm</b> databases instead of <b>hash</b>.
            See the output from <b>postconf -m</b> for available database
            types.
 
@@ -138,87 +141,94 @@ VIRTUAL(5)                                             VIRTUAL(5)
            <i>user1@virtual-alias.domain   address1</i>
            <i>user2@virtual-alias.domain   address2, address3</i>
 
-       The <i>virtual-alias.domain anything</i> entry is required for  a
+       The  <i>virtual-alias.domain anything</i> entry is required for a
        virtual alias domain. <b>Without this entry, mail is rejected</b>
-       <b>with "relay access denied", or bounces  with  "mail  loops</b>
+       <b>with  "relay  access  denied", or bounces with "mail loops</b>
        <b>back to myself".</b>
 
-       Do  not  specify virtual alias domain names in the <b>main.cf</b>
+       Do not specify virtual alias domain names in  the  <b>main.cf</b>
        <b>mydestination</b> or <b>relay_domains</b> configuration parameters.
 
-       With a virtual  alias  domain,  the  Postfix  SMTP  server
-       accepts   mail  for  <i>known-user@virtual-alias.domain</i>,  and
-       rejects  mail  for  <i>unknown-user</i>@<i>virtual-alias.domain</i>   as
+       With  a  virtual  alias  domain,  the  Postfix SMTP server
+       accepts  mail  for  <i>known-user@virtual-alias.domain</i>,   and
+       rejects   mail  for  <i>unknown-user</i>@<i>virtual-alias.domain</i>  as
        undeliverable.
 
-       Instead  of  specifying  the virtual alias domain name via
-       the <b>virtual_alias_maps</b> table, you may also specify it  via
+       Instead of specifying the virtual alias  domain  name  via
+       the  <b>virtual_alias_maps</b> table, you may also specify it via
        the <b>main.cf virtual_alias_domains</b> configuration parameter.
-       This latter parameter uses the same syntax as the  <b>main.cf</b>
+       This  latter parameter uses the same syntax as the <b>main.cf</b>
        <b>mydestination</b> configuration parameter.
 
 <b>REGULAR EXPRESSION TABLES</b>
-       This  section  describes how the table lookups change when
+       This section describes how the table lookups  change  when
        the table is given in the form of regular expressions. For
-       a  description  of regular expression lookup table syntax,
+       a description of regular expression lookup  table  syntax,
        see <a href="regexp_table.5.html"><b>regexp_table</b>(5)</a> or <a href="pcre_table.5.html"><b>pcre_table</b>(5)</a>.
 
-       Each pattern is a regular expression that  is  applied  to
+       Each  pattern  is  a regular expression that is applied to
        the entire address being looked up. Thus, <i>user@domain</i> mail
-       addresses are not broken up into their  <i>user</i>  and  <i>@domain</i>
+       addresses  are  not  broken up into their <i>user</i> and <i>@domain</i>
        constituent parts, nor is <i>user+foo</i> broken up into <i>user</i> and
        <i>foo</i>.
 
-       Patterns are applied in the  order  as  specified  in  the
-       table,  until  a  pattern is found that matches the search
+       Patterns  are  applied  in  the  order as specified in the
+       table, until a pattern is found that  matches  the  search
        string.
 
-       Results are the same as with indexed  file  lookups,  with
-       the  additional feature that parenthesized substrings from
+       Results  are  the  same as with indexed file lookups, with
+       the additional feature that parenthesized substrings  from
        the pattern can be interpolated as <b>$1</b>, <b>$2</b> and so on.
 
 <b>TCP-BASED TABLES</b>
-       This section describes how the table lookups  change  when
+       This  section  describes how the table lookups change when
        lookups are directed to a TCP-based server. For a descrip-
-       tion  of  the  TCP  client/server  lookup  protocol,   see
+       tion   of  the  TCP  client/server  lookup  protocol,  see
        <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.
 
        Each lookup operation uses the entire address once.  Thus,
-       <i>user@domain</i> mail addresses are not broken  up  into  their
+       <i>user@domain</i>  mail  addresses  are not broken up into their
        <i>user</i> and <i>@domain</i> constituent parts, nor is <i>user+foo</i> broken
        up into <i>user</i> and <i>foo</i>.
 
        Results are the same as with indexed file lookups.
 
 <b>BUGS</b>
-       The table format does not understand quoting  conventions.
+       The  table format does not understand quoting conventions.
 
 <b>CONFIGURATION PARAMETERS</b>
-       The  following  <b>main.cf</b> parameters are especially relevant
-       to this topic. See the Postfix  <b>main.cf</b>  file  for  syntax
-       details  and  for  default  values. Use the <b>postfix reload</b>
+       The following <b>main.cf</b> parameters are  especially  relevant
+       to  this  topic.  See  the Postfix <b>main.cf</b> file for syntax
+       details and for default values.  Use  the  <b>postfix  reload</b>
        command after a configuration change.
 
        <b>virtual_alias_maps</b>
               List of virtual aliasing tables.
 
        <b>virtual_alias_domains</b>
-              List of virtual alias domains. This uses  the  same
+              List  of  virtual alias domains. This uses the same
               syntax as the <b>mydestination</b> parameter.
+
+       <b>propagate_unmatched_extensions</b>
+              A list of address rewriting  or  forwarding  mecha-
+              nisms  that propagate an address extension from the
+              original address to the result.   Specify  zero  or
+              more  of  <b>canonical</b>,  <b>virtual</b>,  <b>alias</b>,  <b>forward</b>, or
+              <b>include</b>.
 
        Other parameters of interest:
 
        <b>inet_interfaces</b>
-              The  network  interface  addresses that this system
+              The network interface addresses  that  this  system
               receives mail on.  You need to stop and start Post-
               fix when this parameter changes.
 
        <b>mydestination</b>
-              List  of  domains  that  this mail system considers
+              List of domains that  this  mail  system  considers
               local.
 
        <b>myorigin</b>
-              The domain that is appended  to  any  address  that
+              The  domain  that  is  appended to any address that
               does not have a domain.
 
        <b>owner_request_special</b>
@@ -233,7 +243,7 @@ VIRTUAL(5)                                             VIRTUAL(5)
        <a href="tcp_table.5.html">tcp_table(5)</a> TCP client/server table lookup protocol
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

@@ -1,9 +1,9 @@
-Purpose of the SMTPD pass-through proxy feature
-===============================================
+Purpose of the SMTP-based before-queue proxy filter feature
+===========================================================
 
 Normally, Postfix receives mail, stores it in the mail queue and
 then delivers it.  The Postfix SMTP server can be configured to
-forward all incoming mail to an SMTP proxy server (for example, a
+forward all incoming mail through a proxy filter (for example, a
 real-time SPAM filter) that inspects all mail BEFORE it is stored
 in the Postfix mail queue.
 
@@ -11,10 +11,11 @@ in the Postfix mail queue.
 FILTER_README document, where all mail is inspected AFTER it is
 stored in the Postfix mail queue]
 
-This feature is meant to be used as follows:
-                                                             / smtp
-    Internet -> smtpd -> proxy -> smtpd -> cleanup -> queue -> local
-               Postfix           Postfix                     \ virtual etc.
+The SMTP-based before-queue proxy filter is meant to be used as follows:
+
+                        before                               / smtp
+    Internet -> smtpd -> queue -> smtpd -> cleanup -> queue -> local
+               Postfix  filter   Postfix                     \ virtual etc.
 
 For reference, this is the normal path through Postfix:
 
@@ -23,20 +24,21 @@ For reference, this is the normal path through Postfix:
                 Postfix                    \ virtual etc.
 
 For comparison, this is the FILTER_README approach with an SMTP-based
-content filter:
+after-queue content filter:
                                            / smtp
     Internet -> smtpd -> cleanup -> queue -> local
                Postfix      ^         v    \ virtual etc.
                           smtpd      smtp
                          Postfix   Postfix
-                            \         /
-                             filter <-
+                            \ after   /
+                              queue <-
+			      filter
 
-The SMTP proxy server receives unfiltered mail from Postfix and
-does one of the following:
+The SMTP-based before-queue proxy filter receives unfiltered mail
+from Postfix and does one of the following:
 
-1 - Re-inject the mail back into Postfix, perhaps after changing
-    content.
+1 - Re-inject the mail back into Postfix via SMTP, perhaps after
+    changing content.
 
 2 - Reject the mail (by sending a suitable status code back to
     Postfix). Postfix passes the status back to the remote SMTP
@@ -47,8 +49,8 @@ does one of the following:
 Limitations
 ===========
 
-When used with a real-time SPAM filter, this approach allows Postfix
-to reject mail before the SMTP mail transfer completes, so that
+The SMTP-based before-queue proxy filter allows Postfix to reject
+mail before the incoming SMTP mail transfer completes, so that
 Postfix does not have to send rejected mail back to the sender.
 Mail that is not accepted remains the responsibility of the client.
 
@@ -57,7 +59,7 @@ to the existing content filter (see FILTER_README) which processes
 mail AFTER it is queued, because that gives you full control over
 how many filtering processes can be run in parallel.
 
-The problem with real-time content filtering is that the remote
+The problem with before-queue content filtering is that the remote
 SMTP client expects an SMTP reply within a deadline. As the system
 load increases, fewer and fewer CPU cycles remain available to
 answer within the deadline, and eventually you either have to stop
@@ -69,15 +71,23 @@ triggers a Postfix header_checks FILTER action, or send the mail
 into Postfix via an alternative Postfix SMTP server that always
 turns on content filtering.
 
-How the Postfix talks to the SMTP proxy
-=======================================
+How Postfix talks to the before-queue proxy filter
+==================================================
 
-When Postfix talks to the SMTP proxy server it generates its own
-EHLO, DATA and QUIT commands, and forwards unmodified copies of
-the MAIL FROM and RCPT TO commands that the Postfix SMTP server
-has approved.  All commands are sent without using ESMTP command
-pipelining. The SMTP proxy server must accept the same MAIL FROM
-and RCPT TO command syntax as the Postfix SMTP server.
+When passing mail to the SMTP-based before-queue filter, Postfix
+generates its own EHLO, DATA and QUIT commands, and forwards
+unmodified copies of the MAIL FROM and RCPT TO commands that the
+Postfix SMTP server has approved.  All commands are sent without
+using ESMTP command pipelining. The SMTP proxy server should accept
+the same MAIL FROM and RCPT TO command syntax as the Postfix SMTP
+server.
+
+The before-queue proxy filter is expected literally pass on the
+SMTP commands that it receives from Postfix to an after-filter
+Postfix SMTP server that listens on a non-standard port.  When the
+filter rejects content, it should send a negative response back to
+Postfix, and it should abort any connection with the after-filter
+Postfix SMTP server without completing the SMTP dialog.
 
 Configuration parameters 
 ========================
@@ -86,26 +96,28 @@ Parameters that control proxying:
 
 smtpd_proxy_filter (syntax: host:port)
 
-    The host and TCP port of the SMTP proxy server.  When no host
-    or host:  is specified, localhost is assumed.
+    The host and TCP port of the before-queue proxy filter.  When
+    no host or host:  is specified, localhost is assumed.
 
 smtpd_proxy_timeout (default: 100s)
 
-    Timeout for connecting to the SMTP proxy server and for sending
-    and receiving data.  All proxy errors are logged to the maillog
-    file, but the client sees "451 Error: queue file write error".
+    Timeout for connecting to the before-queue proxy filter and
+    for sending and receiving commands and data.  All proxy errors
+    are logged to the maillog file. For privacy reasons, all the
+    remote SMTP client sees is "451 Error:  queue file write error".
 
 smtpd_proxy_ehlo (default: $myhostname)
 
-    The hostname to use when sending an EHLO command to the SMTP
-    proxy server.
+    The hostname to use when sending an EHLO command to the
+    before-queue proxy filter.
 
 Testing the SMTP pass-through proxy feature
 ===========================================
 
 The following example sets up a null proxy, that is, the Postfix
 SMTP server gives the mail directly to another Postfix SMTP server
-process.
+process without intervening content filter. This useful only for
+testing, of course.
 
 /etc/postfix/master.cf
     smtp      inet  n       -       n       -       -       smtpd 

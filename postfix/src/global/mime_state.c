@@ -56,7 +56,7 @@
 /*	A message header contains 8-bit data. This is always illegal.
 /* .IP MIME_ERR_8BIT_IN_7BIT_BODY
 /*	A MIME header specifies (or defaults to) 7-bit content, but the
-/*	correspnding message body or body parts contain 8-bit content.
+/*	corresponding message body or body parts contain 8-bit content.
 /* .IP MIME_ERR_ENCODING_DOMAIN
 /*	An entity of type "message" or "multipart" specifies the wrong
 /*	content transfer encoding domain, or specifies a transformation

@@ -1,17 +1,17 @@
-<html> <head> </head> <body> <pre>
+<html> <body> <pre>
 SENDMAIL(1)                                           SENDMAIL(1)
 
 <b>NAME</b>
        sendmail - Postfix to Sendmail compatibility interface
 
 <b>SYNOPSIS</b>
-       <b>sendmail</b> [<i>option</i> <i>...</i>] [<i>recipient</i> <i>...</i>]
+       <b>sendmail</b> [<i>option ...</i>] [<i>recipient ...</i>]
 
        <b>mailq</b>
-       <b>sendmail</b> <b>-bp</b>
+       <b>sendmail -bp</b>
 
        <b>newaliases</b>
-       <b>sendmail</b> <b>-I</b>
+       <b>sendmail -I</b>
 
 <b>DESCRIPTION</b>
        The  <b>sendmail</b>  program  implements the Postfix to Sendmail
@@ -40,9 +40,9 @@ SENDMAIL(1)                                           SENDMAIL(1)
               Initialize the alias database.  If no input file is
               specified (with the <b>-oA</b>  option,  see  below),  the
               program  processes  the  file(s) specified with the
-              <b>alias</b><i>_</i><b>database</b>  configuration  parameter.   If   no
+              <b>alias_database</b>  configuration  parameter.   If   no
               alias  database type is specified, the program uses
-              the type specified with  the  <b>default</b><i>_</i><b>database</b><i>_</i><b>type</b>
+              the type specified with  the  <b>default_database_type</b>
               configuration parameter.  This mode of operation is
               implemented by running the <a href="postalias.1.html"><b>postalias</b>(1)</a> command.
 
@@ -64,14 +64,14 @@ SENDMAIL(1)                                           SENDMAIL(1)
               regardless of whether or not a message is  an  ini-
               tial submission.
 
-       <b>-B</b> <i>body_type</i>
+       <b>-B</b> <i>body</i><b>_</b><i>type</i>
               The message body MIME type: <b>7BIT</b> or <b>8BITMIME</b>.
 
-       <b>-C</b> <i>config_file</i> (ignored :-)
+       <b>-C</b> <i>config</i><b>_</b><i>file</i> (ignored :-)
               The path name of the <b>sendmail.cf</b> file. Postfix con-
               figuration files are kept in <b>/etc/postfix</b>.
 
-       <b>-F</b> <i>full_name</i>
+       <b>-F</b> <i>full</i><b>_</b><i>name</i>
               Set the sender full name. This is  used  only  with
               messages that have no <b>From:</b> message header.
 
@@ -83,20 +83,20 @@ SENDMAIL(1)                                           SENDMAIL(1)
               mand above.
 
        <b>-L</b> <i>label</i> (ignored)
-              The  logging  label. Use the <b>syslog</b><i>_</i><b>name</b> configura-
+              The  logging  label. Use the <b>syslog_name</b> configura-
               tion parameter instead.
 
        <b>-N</b> <i>dsn</i> (ignored)
               Delivery status  notification  control.  Currently,
               Postfix does not implement <b>DSN</b>.
 
-       <b>-R</b> <i>return_limit</i> (ignored)
+       <b>-R</b> <i>return</i><b>_</b><i>limit</i> (ignored)
               Limit   the   size   of   bounced   mail.  Use  the
-              <b>bounce</b><i>_</i><b>size</b><i>_</i><b>limit</b> configuration parameter  instead.
+              <b>bounce_size_limit</b> configuration parameter  instead.
 
-       <b>-X</b> <i>log_file</i> (ignored)
-              Log  mailer  traffic.  Use  the <b>debug</b><i>_</i><b>peer</b><i>_</i><b>list</b> and
-              <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b> configuration parameters  instead.
+       <b>-X</b> <i>log</i><b>_</b><i>file</i> (ignored)
+              Log  mailer  traffic.  Use  the <b>debug_peer_list</b> and
+              <b>debug_peer_level</b> configuration parameters  instead.
 
        <b>-U</b> (ignored)
               Initial user submission.
@@ -109,16 +109,16 @@ SENDMAIL(1)                                           SENDMAIL(1)
               By  default,  the  personalized   envelope   sender
               address  is  <i>owner-listname</i><b>+</b><i>user</i><b>=</b><i>domain</i>@<i>origin</i>. The
               default <b>+</b> and <b>=</b> characters  are  configurable  with
-              the  <b>default</b><i>_</i><b>verp</b><i>_</i><b>delimiters</b>  configuration parame-
+              the  <b>default_verp_delimiters</b>  configuration parame-
               ter.
 
        <b>-V</b><i>xy</i>   As <b>-V</b>, but uses <i>x</i> and <i>y</i> as the VERP delimiter char-
               acters,  instead  of  the characters specified with
-              the <b>default</b><i>_</i><b>verp</b><i>_</i><b>delimiters</b>  configuration  parame-
+              the <b>default_verp_delimiters</b>  configuration  parame-
               ter.
 
        <b>-bd</b>    Go  into  daemon  mode.  This  mode of operation is
-              implemented by executing the <b>postfix</b> <b>start</b> command.
+              implemented by executing the <b>postfix start</b> command.
 
        <b>-bi</b>    Initialize  alias database. See the <b>newaliases</b> com-
               mand above.
@@ -133,7 +133,7 @@ SENDMAIL(1)                                           SENDMAIL(1)
               dard  output.  In stand-alone SMTP server mode, UCE
               restrictions and access controls  are  disabled  by
               default.  To  enable  them,  run the process as the
-              <b>mail</b><i>_</i><b>owner</b> user.
+              <b>mail_owner</b> user.
 
               This mode of operation is  implemented  by  running
               the <a href="smtpd.8.html"><b>smtpd</b>(8)</a> daemon.
@@ -148,8 +148,8 @@ SENDMAIL(1)                                           SENDMAIL(1)
               address where delivery problems are sent to, unless
               the message contains an <b>Errors-To:</b> message  header.
 
-       <b>-h</b> <i>hop_count</i> (ignored)
-              Hop  count limit. Use the <b>hopcount</b><i>_</i><b>limit</b> configura-
+       <b>-h</b> <i>hop</i><b>_</b><i>count</i> (ignored)
+              Hop  count limit. Use the <b>hopcount_limit</b> configura-
               tion parameter instead.
 
        <b>-i</b>     When reading a message from standard  input,  don't
@@ -162,7 +162,7 @@ SENDMAIL(1)                                           SENDMAIL(1)
        <b>-n</b> (ignored)
               Backwards compatibility.
 
-       <b>-oA</b><i>alias_database</i>
+       <b>-oA</b><i>alias</i><b>_</b><i>database</i>
               Non-default alias  database.  Specify  <i>pathname</i>  or
               <i>type</i>:<i>pathname</i>. See <a href="postalias.1.html"><b>postalias</b>(1)</a> for details.
 
@@ -181,7 +181,7 @@ SENDMAIL(1)                                           SENDMAIL(1)
               The  sender  is  never  eliminated  from alias etc.
               expansions.
 
-       <b>-o</b> <i>x</i> <i>value</i> (ignored)
+       <b>-o</b> <i>x value</i> (ignored)
               Set option <i>x</i> to <i>value</i>. Use the equivalent  configu-
               ration parameter in <b>main.cf</b> instead.
 
@@ -195,7 +195,7 @@ SENDMAIL(1)                                           SENDMAIL(1)
 
        <b>-q</b><i>interval</i> (ignored)
               The   interval   between   queue   runs.   Use  the
-              <b>queue</b><i>_</i><b>run</b><i>_</i><b>delay</b> configuration parameter instead.
+              <b>queue_run_delay</b> configuration parameter instead.
 
        <b>-qR</b><i>site</i>
               Schedule immediate delivery of  all  mail  that  is
@@ -207,7 +207,7 @@ SENDMAIL(1)                                           SENDMAIL(1)
 
        <b>-qS</b><i>site</i>
               This  command  is  not  implemented. Use the slower
-              <b>sendmail</b> <b>-q</b> command instead.
+              <b>sendmail -q</b> command instead.
 
        <b>-t</b>     Extract recipients from message headers. These  are
               added  to  any  recipients specified on the command
@@ -229,101 +229,101 @@ SENDMAIL(1)                                           SENDMAIL(1)
        error stream.
 
 <b>ENVIRONMENT</b>
-       <b>MAIL</b><i>_</i><b>CONFIG</b>
+       <b>MAIL_CONFIG</b>
               Directory with Postfix configuration files.
 
-       <b>MAIL</b><i>_</i><b>VERBOSE</b>
+       <b>MAIL_VERBOSE</b>
               Enable verbose logging for debugging purposes.
 
-       <b>MAIL</b><i>_</i><b>DEBUG</b>
+       <b>MAIL_DEBUG</b>
               Enable debugging with an external command, as spec-
-              ified  with  the   <b>debugger</b><i>_</i><b>command</b>   configuration
+              ified  with  the   <b>debugger_command</b>   configuration
               parameter.
 
 <b>FILES</b>
        /var/spool/postfix, mail queue
        /etc/postfix, configuration files
 
-<b>CONFIGURATION</b> <b>PARAMETERS</b>
+<b>CONFIGURATION PARAMETERS</b>
        See  the  Postfix  <b>main.cf</b> file for syntax details and for
-       default values. Use the <b>postfix</b>  <b>reload</b>  command  after  a
+       default values. Use the <b>postfix  reload</b>  command  after  a
        configuration change.
 
-       <b>alias</b><i>_</i><b>database</b>
+       <b>alias_database</b>
               Default   alias  database(s)  for  <b>newaliases</b>.  The
               default value for  this  parameter  is  system-spe-
               cific.
 
-       <b>bounce</b><i>_</i><b>size</b><i>_</i><b>limit</b>
+       <b>bounce_size_limit</b>
               The amount of original message context that is sent
               along with a non-delivery notification.
 
-       <b>default</b><i>_</i><b>database</b><i>_</i><b>type</b>
+       <b>default_database_type</b>
               Default alias etc. database type. On many UNIX sys-
               tems the default type is either <b>dbm</b> or <b>hash</b>.
 
-       <b>debugger</b><i>_</i><b>command</b>
+       <b>debugger_command</b>
               Command that is executed after a Postfix daemon has
               initialized.
 
-       <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b>
+       <b>debug_peer_level</b>
               Increment in verbose logging level  when  a  remote
-              host  matches  a  pattern  in  the  <b>debug</b><i>_</i><b>peer</b><i>_</i><b>list</b>
+              host  matches  a  pattern  in  the  <b>debug_peer_list</b>
               parameter.
 
-       <b>debug</b><i>_</i><b>peer</b><i>_</i><b>list</b>
+       <b>debug_peer_list</b>
               List of domain or network patterns. When  a  remote
               host  matches  a pattern, increase the verbose log-
               ging  level  by  the  amount   specified   in   the
-              <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b> parameter.
+              <b>debug_peer_level</b> parameter.
 
-       <b>default</b><i>_</i><b>verp</b><i>_</i><b>delimiters</b>
+       <b>default_verp_delimiters</b>
               The  VERP  delimiter  characters that are used when
               the <b>-V</b> command line  option  is  specified  without
               delimiter characters.
 
-       <b>fast</b><i>_</i><b>flush</b><i>_</i><b>domains</b>
+       <b>fast_flush_domains</b>
               List of domains that will receive "fast flush" ser-
               vice (default: all  domains  that  this  system  is
               willing  to relay mail to). This list specifies the
               domains that  Postfix  accepts  in  the  SMTP  <b>ETRN</b>
-              request and in the <b>sendmail</b> <b>-qR</b> command.
+              request and in the <b>sendmail -qR</b> command.
 
-       <b>fork</b><i>_</i><b>attempts</b>
+       <b>fork_attempts</b>
               Number  of attempts to <b>fork</b>() a process before giv-
               ing up.
 
-       <b>fork</b><i>_</i><b>delay</b>
+       <b>fork_delay</b>
               Delay  in   seconds   between   successive   <b>fork</b>()
               attempts.
 
-       <b>hopcount</b><i>_</i><b>limit</b>
+       <b>hopcount_limit</b>
               Limit the number of <b>Received:</b> message headers.
 
-       <b>mail</b><i>_</i><b>owner</b>
+       <b>mail_owner</b>
               The  owner  of  the  mail queue and of most Postfix
               processes.
 
-       <b>command</b><i>_</i><b>directory</b>
+       <b>command_directory</b>
               Directory with Postfix support commands.
 
-       <b>daemon</b><i>_</i><b>directory</b>
+       <b>daemon_directory</b>
               Directory with Postfix daemon programs.
 
-       <b>queue</b><i>_</i><b>directory</b>
+       <b>queue_directory</b>
               Top-level directory of the Postfix queue.  This  is
               also the root directory of Postfix daemons that run
               chrooted.
 
-       <b>queue</b><i>_</i><b>run</b><i>_</i><b>delay</b>
+       <b>queue_run_delay</b>
               The time between successive scans of  the  deferred
               queue.
 
-       <b>verp</b><i>_</i><b>delimiter</b><i>_</i><b>filter</b>
+       <b>verp_delimiter_filter</b>
               The  characters that Postfix accepts as VERP delim-
               iter characters.
 
-<b>SEE</b> <b>ALSO</b>
+<b>SEE ALSO</b>
        <a href="pickup.8.html">pickup(8)</a> mail pickup daemon
        <a href="postsuper.1.html">postsuper(1)</a> queue maintenance
        <a href="postalias.1.html">postalias(1)</a> maintain alias database

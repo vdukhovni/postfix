@@ -360,6 +360,10 @@ smtpd_helo_required = no
 #	see access(5) for possible lookup results.
 #   check_policy_service transport:endpoint: delegate the decision to
 #	an external policy server. See SMTPD_POLICY_README for details.
+#   reject_rhsbl_helo domain.tld: reject if the helo argument is listed
+#	in an A record under domain.tld.
+#	Append e.g., "=127.0.0.2" to the RBL domain name to select a specific
+#	address record when an RBL server provides multi-valued results.
 #   reject: reject the request. Place this at the end of a restriction.
 #   permit: permit the request. Place this at the end of a restriction.
 #   warn_if_reject: next restriction logs a warning instead of rejecting.

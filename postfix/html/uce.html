@@ -134,9 +134,14 @@ matches a table, the action depends on the lookup result:
 Reject the message, log the header and the optional text,
 and send the optional text to the originator.
 
-<dt>OK <dd>Skip all further header patterns for this header line.
+<dt>DUNNO <dd>
 
-<dt>IGNORE <dd> Delete the header line from the message.
+<dt>DUNNO text... <dd>Skip all further header patterns for this header line.
+This has the same effect as OK, which is deprecated.
+
+<dt>IGNORE <dd>
+
+<dt>IGNORE text... <dd> Delete the header line from the message.
 
 <dt>WARN <dd>
 
@@ -247,9 +252,14 @@ and send the optional text to the originator.
 Log (but do not reject) the body line with a warning, and log the
 optional text.
 
-<dt>OK <dd>Skip all further body patterns for this body line.
+<dt>DUNNO <dd>
 
-<dt>IGNORE <dd> Delete the body line from the message.
+<dt>DUNNO text... <dd>Skip all further body patterns for this body line.
+This has the same effect as OK, which is deprecated.
+
+<dt>IGNORE <dd>
+
+<dt>IGNORE text... <dd> Delete the body line from the message.
 
 <dt>HOLD <dd> 
 
@@ -358,8 +368,8 @@ reject_rbl_client relays.mail-abuse.org</b> (paid service)
 <dd> <b>smtpd_client_restrictions = hash:/etc/postfix/access,
 reject_rbl_client relays.ordb.org</b> (free service)
 
-<dd> <b>smtpd_client_restrictions = hash:/etc/postfix/access,
-reject_rhsbl_client dsn.rfc-ignorant.org</b> (free service)
+<dd> <b>smtpd_sender_restrictions = hash:/etc/postfix/access,
+reject_rhsbl_sender dsn.rfc-ignorant.org</b> (free service)
 
 <dd> <b>smtpd_client_restrictions = permit_mynetworks,
 reject_unknown_client</b>
@@ -586,6 +596,27 @@ specifies the response code to rejected requests (default:
 <dt> <i>maptype</i>:<i>mapname</i> <dd> Search the named <a
 href="access.5.html">access database</a> for the <b>HELO</b> hostname
 or parent domains.
+
+<p>
+
+<a name="reject_rhsbl_helo">
+
+<dt> <b>reject_rhsbl_helo</b> <i>domain.tld=127.0.0.2</i>
+
+<dt> <b>reject_rhsbl_helo</b> <i>domain.tld</i> <dd> Reject the
+request when the HELO (or EHLO) hostname is listed with an A record
+under <i>domain.tld</i>.  See above for additional RBL related
+configuration parameters.
+
+Append the address to the RBL server's domain name to select a
+specific address from a multi-valued result.
+
+The <b> maps_rbl_reject_code</b> parameter specifies the response
+code for rejected requests (default:  <b>554</b>), the <b><a
+href="#default_rbl_reply"> default_rbl_reply </a></b> parameter
+specifies the default server reply, and the <b><a href="#rbl_reply_maps">
+rbl_reply_maps </a></b> parameter specifies tables with server replies
+indexed by RBL domain.
 
 <p>
 
@@ -974,19 +1005,19 @@ lookup tables:
 
 <table border="1">
 
-<tr><th>Recipient domain matches <th>Recipient lookup table 
+<tr><th>Recipient domain matches</th> <th>Recipient lookup table</th> 
 
-<tr><td><a href="basic.html#mydestination"> $mydestination</a> or
-<a href="basic.html#inet_interfaces">$inet_interfaces</a> 
-<td>$local_recipient_maps
+</tr><tr><td><a href="basic.html#mydestination"> $mydestination</a> or
+<a href="basic.html#inet_interfaces">$inet_interfaces</a></td> 
+<td>$local_recipient_maps</td>
 
-<tr><td>$virtual_alias_domains <td>$virtual_alias_maps 
+</tr><tr><td>$virtual_alias_domains</td> <td>$virtual_alias_maps</td> 
 
-<tr><td>$virtual_mailbox_domains <td>$virtual_mailbox_maps 
+</tr><tr><td>$virtual_mailbox_domains</td> <td>$virtual_mailbox_maps</td> 
 
-<tr><td>$relay_domains <td>$relay_recipient_maps 
+</tr><tr><td>$relay_domains</td> <td>$relay_recipient_maps</td> 
 
-</table>
+</tr></table>
 
 </blockquote>
 

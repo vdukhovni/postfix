@@ -413,7 +413,8 @@ int     pipe_command(VSTREAM *src, VSTRING *why,...)
 	 */
     case 0:
 	set_ugid(args.uid, args.gid);
-	setsid();
+	if (setsid() < 0)
+	    msg_warn("setsid failed: %m");
 
 	/*
 	 * Pipe plumbing.

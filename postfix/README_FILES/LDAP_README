@@ -69,39 +69,41 @@ CONFIGURING LDAP LOOKUPS
 In order to use LDAP lookups, define at least one LDAP source as a table
 lookup in main.cf, for example:
 
-    alias_maps = hash:/etc/aliases, ldap:ldapsource
+    alias_maps = hash:/etc/aliases, ldap:/etc/ldap-aliases.cf
 
-Each LDAP source can have the following parameters, which should be
-prefixed in main.cf with the name you've given the source in its
-definition and an underscore. To continue the example, the first
-parameter below, "server_host", would be defined in main.cf as
-"ldapsource_server_host". Defaults are given in parentheses:
+The file /etc/postfix/ldap-aliases.cf can specify the following
+parameters. Defaults are given in parentheses:
 
     server_host (localhost)
     	The name of the host running the LDAP server, e.g.
-		ldapsource_server_host = ldap.your.com
+		server_host = ldap.your.com
 	It should be possible with all the libraries mentioned above to 
 	specify multiple servers separated by spaces, with the libraries
 	trying them in order should the first one fail. It should also
 	be possible to give each server in the list a different port, by
 	naming them like "ldap.your.com:1444".
 
+        With OpenLDAP, LDAP URLs can be used to request connection
+        over UNIX domain sockets (ldapi://%2Fsome%2Fpath) or LDAP SSL
+        (ldaps://ldap.your.com:636, provided OpenLDAP was compiled with
+        support for SSL).
+
     server_port (389) 
     	The port the LDAP server listens on, e.g.
-		ldapsource_server_port = 778
+		server_port = 778
 
     search_base (No default; you must configure this.)
     	The base at which to conduct the search, e.g. 
-		ldapsource_search_base = dc=your, dc=com
+		search_base = dc=your, dc=com
 
     timeout (10 seconds)
     	The number of seconds a search can take before timing out, e.g.
-		ldapsource_timeout = 5
+		timeout = 5
     	
     query_filter (mailacceptinggeneralid=%s)
     	The RFC2254 filter used to search the directory, where %s is a 
 	substitute for the address Postfix is trying to resolve, e.g.
-		ldapsource_query_filter = (&(mail=%s)(paid_up=true))
+		query_filter = (&(mail=%s)(paid_up=true))
 
     result_filter (%s)
 	Filter applied to result attributes.  Supports the same expansions
@@ -114,17 +116,17 @@ parameter below, "server_host", would be defined in main.cf as
 	performed.  This means that the LDAP map won't get searched for
 	'user', nor will it get searched for any domain not listed.  This
 	can significantly reduce the query load on the LDAP server.
-		ldapsource_domain = postfix.org, hash:/etc/postfix/searchdomains
+		domain = postfix.org, hash:/etc/postfix/searchdomains
 
     result_attribute (maildrop)
 	The attribute(s) Postfix will read from any directory entries
 	returned by the lookup, to be resolved to an email address.
-		ldapsource_result_attribute = mailbox,maildrop
+		result_attribute = mailbox,maildrop
 
     special_result_attribute (No default)
     	The attribute(s) of directory entries that can contain DNs or URLs.
 	If found, a recursive subsequent search is done using their values.
-		ldapsource_special_result_attribute = member
+		special_result_attribute = member
 
     scope (sub)
         The LDAP search scope: sub, base, or one. These translate into
@@ -134,7 +136,7 @@ parameter below, "server_host", would be defined in main.cf as
     	Whether or not to bind to the LDAP server. Newer LDAP
 	implementations don't require clients to bind, which saves
 	time. Example:
-		ldapsource_bind = no
+		bind = no
 
 	If you do need to bind, you might consider configuring Postfix
 	to connect to the local machine on a port that's an SSL tunnel
@@ -146,13 +148,17 @@ parameter below, "server_host", would be defined in main.cf as
     bind_dn ("")
     	If you do have to bind, do it with this distinguished name.
 	Example:
-		ldapsource_bind_dn = uid=postfix, dc=your, dc=com
+		bind_dn = uid=postfix, dc=your, dc=com
 
     bind_pw ("")
-    	The password for the distinguished name above. If you have to
-	use this, you probably want to make main.cf readable only by
-	the Postfix user. Example:
-		ldapsource_bind_pw = postfixpw
+	The password for the distinguished name above. If you have to
+	use this, you probably want to make the map configuration file
+	readable only by the Postfix user. When using the obselete
+	ldap:ldapsource syntax, with map parameters in main.cf, it is
+	not possible to securely store the bind password. This is
+	because main.cf needs to be world readable to allow local
+	accounts to submit mail via the sendmail command. Example:
+		bind_pw = postfixpw
 
     cache        (IGNORED with a warning)
     cache_expiry (IGNORED with a warning)
@@ -213,6 +219,76 @@ parameter below, "server_host", would be defined in main.cf as
 Don't use quotes in these variables; at least, not until the Postfix
 configuration routines understand how to deal with quoted strings.
 
+For backward compatibility, these parameters can also be defined
+in main.cf, prefixed with the name you've given the source in its
+definition, and an underscore. For example, if the map is specified as
+"ldap:ldapsource", the first parameter above, "server_host", would be
+defined in main.cf as "ldapsource_server_host".
+
+LDAP SSL and STARTTLS
+---------------------
+
+If you're using the OpenLDAP libraries compiled with SSL support,
+Postfix can connect to LDAP SSL servers and can issue the STARTTLS
+command.  The first form can be requested by using a LDAP URL in
+server_host:
+
+        server_host = ldaps://ldap.your.com:636
+
+STARTTLS can be turned on with the start_tls command:
+
+	start_tls = yes
+
+Both forms require LDAP protocol version 3, which has to be set
+explicitly:
+
+	version = 3
+
+If any of the Postfix programs querying the map is configured in
+master.cf to run chrooted, all the certificates and keys involved have
+to be copied to the chroot jail.  Of course, the private keys should
+only be readable by the user "postfix".
+
+The following commands are relevant to LDAP SSL and STARTTLS:
+
+       start_tls (no)
+	      Whether or not to issue STARTTLS upon connection to
+	      the server.  Don't set this with LDAP SSL.
+
+       tls_ca_cert_dir (No default; set either this or tls_ca_cert_file)
+	      Directory containing, in separate individual files,
+	      the  X509	 Certificate Authority certificates which
+	      are to be recognized by the client in SSL/TLS  con-
+	      nections.
+
+       tls_ca_cert_file (No default; set either this or tls_ca_cert_dir)
+	      File containing the X509 Certificate Authority cer-
+	      tificates which are to be recognized by the  client
+	      in  SSL/TLS connections.	This setting takes prece-
+	      dence over tls_ca_cert_dir.
+
+       tls_cert (No default; you must set this)
+	      File containing client's	X509  certificate  to  be
+	      used by the client in SSL/TLS connections.
+
+       tls_key (No default; you must set this)
+	      File  containing	the  private key corresponding to
+	      the above tls_cert.
+
+       tls_require_cert (no)
+	      Whether or not to request server's X509 certificate
+	      and  check  its  validity when establishing SSL/TLS
+	      connections.
+
+       tls_random_file (No default)
+	      Path of a file to	 obtain	 random	 bits  from  when
+	      /dev/[u]random  is not available, to be used by the
+	      client in SSL/TLS connections.
+
+       tls_cipher_suite  (No default)
+	      Cipher suite to use in SSL/TLS negotiations.
+
+
 EXAMPLES
 ========
 
@@ -220,11 +296,14 @@ ALIASES
 -------
 
 Here's a basic example for using LDAP to look up aliases. Assume that in
-main.cf, you have these configuration parameters defined:
+main.cf, you have:
 
-alias_maps = hash:/etc/aliases, ldap:ldapsource
-ldapsource_server_host = ldap.my.com
-ldapsource_search_base = dc=my, dc=com
+alias_maps = hash:/etc/aliases, ldap:/etc/ldap-aliases.cf
+
+and in ldap:/etc/ldap-aliases.cf you have:
+
+server_host = ldap.my.com
+search_base = dc=my, dc=com
 
 Upon receiving mail for a local address "ldapuser" that isn't found in
 the /etc/aliases database, Postfix will search the LDAP server listening
@@ -321,7 +400,7 @@ NOTES AND THINGS TO THINK ABOUT
   Postfix can't know how to set the ownership for program or file
   delivery. Your query_filter should probably look something like this:
 
-  virtual_query_filter = (&(mailacceptinggeneralid=%s)(!(|(maildrop="*|*")(maildrop="*:*")(maildrop="*/*"))))
+  query_filter = (&(mailacceptinggeneralid=%s)(!(|(maildrop="*|*")(maildrop="*:*")(maildrop="*/*"))))
 
 - And for that matter, even for aliases, you may not want users able to
   specify their maildrops as programs, includes, etc. This might be
@@ -330,7 +409,7 @@ NOTES AND THINGS TO THINK ABOUT
   the fun stuff only for directory entries owned by an administrative
   account:
 
-  local_query_filter = (&(mailacceptinggeneralid=%s)(|(!(maildrop="*|*")(maildrop="*:*")(maildrop="*/*"))(owner=cn=root, dc=your, dc=com)))
+  query_filter = (&(mailacceptinggeneralid=%s)(!(|(maildrop="*|*")(maildrop="*:*")(maildrop="*/*"))(owner=cn=root, dc=your, dc=com)))
 
   So that if the object had a program as its maildrop and weren't owned
   by "cn=root" it wouldn't be returned as a valid local user. This will
@@ -356,7 +435,7 @@ contents, please include the applicable bits of some directory entries.
 CREDITS
 =======
 
-Manuel Guesdon: Spotted a bug with the ldapsource_timeout attribute.
+Manuel Guesdon: Spotted a bug with the timeout attribute.
 John Hensley: Multiple LDAP sources with more configurable attributes.
 Carsten Hoeger: Search scope handling. 
 LaMont Jones: Domain restriction, URL and DN searches, multiple result
@@ -369,5 +448,11 @@ Samuel Tardieu: Noticed that searches could include wildcards, prompting
                 the work on RFC 2254 escaping in queries. Spotted a bug
                 in binding.
 Sami Haahtinen: Referral chasing and v3 support.
+Victor Duchovni: ldap_bind() timeout. With fixes from LaMont Jones:
+		 OpenLDAP cache deprecation. Limits on recursion, expansion
+		 and query results size.
+Liviu Daia: Support for SSL/STARTTLS. Support for storing map definitions in
+	    external files (ldap:/path/ldap.cf) need to securely store
+	    passwords for plain auth.
 
 And of course Wietse.

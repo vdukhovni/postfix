@@ -2,7 +2,7 @@
 
 # Crude script to convert formatted manual pages to HTML
 
-echo '<html> <head> </head> <body> <pre>'
+echo '<html> <body> <pre>'
 
 sed '
 	s/\([<>&]\)\1/\1/g

@@ -16,71 +16,108 @@
 /*
 /*	Arguments:
 /* .IP ldapsource
-/*	The prefix which will be used to obtain configuration parameters
-/*	for this search. If it's 'ldapone', the configuration variables below
-/*	would look like 'ldapone_server_host', 'ldapone_search_base', and so
-/*	on in main.cf.
+/*      Either the path to the LDAP configuration file (if it starts
+/*      with '/' or '.'), or the prefix which will be used to obtain
+/*      configuration parameters for this search.
+/*
+/*      In the first case, the configuration variables below are
+/*      specified in the file as \fBname\fR=\fBvalue\fR pairs.
+/*
+/*      In the second case, the configuration variables are prefixed
+/*      with the value of \fIldapsource\fR and an underscore,
+/*      and they are specified in main.cf.  For example, if this
+/*      value is \fBldapone\fR, the variables would look like
+/*      \fBldapone_server_host\fR, \fBldapone_search_base\fR, and so on.
 /* .IP dummy
 /*	Not used; this argument exists only for compatibility with
 /*	the dict_open(3) interface.
 /* .PP
 /*	Configuration parameters:
-/* .IP \fIldapsource_\fRserver_host
-/*	The host at which all LDAP queries are directed.
-/* .IP \fIldapsource_\fRserver_port
+/* .IP server_host
+/*	Blank-separated list of hosts at which all LDAP queries are directed.
+/*	The host names can also be LDAP URLs if the LDAP client library used
+/*	is OpenLDAP.
+/* .IP server_port
 /*	The port the LDAP server listens on.
-/* .IP \fIldapsource_\fRsearch_base
+/* .IP search_base
 /*	The LDAP search base, for example: \fIO=organization name, C=country\fR.
-/* .IP \fIldapsource_\fRdomain
+/* .IP domain
 /*	If specified, only lookups ending in this value will be queried.
 /*      This can significantly reduce the query load on the LDAP server.
-/* .IP \fIldapsource_\fRtimeout
+/* .IP timeout
 /*	Deadline for LDAP open() and LDAP search() .
-/* .IP \fIldapsource_\fRquery_filter
+/* .IP query_filter
 /*	The filter used to search for directory entries, for example
 /*	\fI(mailacceptinggeneralid=%s)\fR.
-/* .IP \fIldapsource_\fRresult_filter
+/* .IP result_filter
 /*	The filter used to expand results from queries.  Default is
 /*	\fI%s\fR.
-/* .IP \fIldapsource_\fRresult_attribute
+/* .IP result_attribute
 /*	The attribute(s) returned by the search, in which to find
 /*	RFC822 addresses, for example \fImaildrop\fR.
-/* .IP \fIldapsource_\fRspecial_result_attribute
+/* .IP special_result_attribute
 /*	The attribute(s) of directory entries that can contain DNs or URLs.
 /*      If found, a recursive subsequent search is done using their values.
-/* .IP \fIldapsource_\fRscope
+/* .IP scope
 /*	LDAP search scope: sub, base, or one.
-/* .IP \fIldapsource_\fRbind
+/* .IP bind
 /*	Whether or not to bind to the server -- LDAP v3 implementations don't
 /*	require it, which saves some overhead.
-/* .IP \fIldapsource_\fRbind_dn
+/* .IP bind_dn
 /*	If you must bind to the server, do it with this distinguished name ...
-/* .IP \fIldapsource_\fRbind_pw
+/* .IP bind_pw
 /*	\&... and this password.
-/* .IP \fIldapsource_\fRcache (no longer supported)
+/* .IP cache (no longer supported)
 /*	Whether or not to turn on client-side caching.
-/* .IP \fIldapsource_\fRcache_expiry (no longer supported)
+/* .IP cache_expiry (no longer supported)
 /*	If you do cache results, expire them after this many seconds.
-/* .IP \fIldapsource_\fRcache_size (no longer supported)
+/* .IP cache_size (no longer supported)
 /*	The cache size in bytes. Does nothing if the cache is off, of course.
-/* .IP \fIldapsource_\fRrecursion_limit
+/* .IP recursion_limit
 /*	Maximum recursion depth when expanding DN or URL references.
 /*	Queries which exceed the recursion limit fail with
 /*	dict_errno = DICT_ERR_RETRY.
-/* .IP \fIldapsource_\fRexpansion_limit
+/* .IP expansion_limit
 /*	Limit (if any) on the total number of lookup result values. Lookups which
 /*	exceed the limit fail with dict_errno=DICT_ERR_RETRY. Note that
 /*	each value of a multivalued result attribute counts as one result.
-/* .IP \fIldapsource_\fRsize_limit
+/* .IP size_limit
 /*	Limit on the number of entries returned by individual LDAP queries.
 /*	Queries which exceed the limit fail with dict_errno=DICT_ERR_RETRY.
 /*	This is an *entry* count, for any single query performed during the
 /*	possibly recursive lookup.
-/* .IP \fIldapsource_\fRchase_referrals
+/* .IP chase_referrals
 /*	Controls whether LDAP referrals are obeyed.
-/* .IP \fIldapsource_\fRdereference
+/* .IP dereference
 /*	How to handle LDAP aliases. See ldap.h or ldap_open(3) man page.
-/* .IP \fIldapsource_\fRdebuglevel
+/* .IP version
+/*	Specifies the LDAP protocol version to use.  Default is version
+/*	\fI2\fR.
+/* .IP start_tls
+/*	Whether or not to issue STARTTLS upon connection to the server.
+/*	At this time, STARTTLS and LDAP SSL are only available if the
+/*	LDAP client library used is OpenLDAP.  Default is \fIno\fR.
+/* .IP tls_ca_cert_file
+/* 	File containing certificates for all of the X509 Certificate
+/* 	Authorities the client will recognize.  Takes precedence over
+/* 	tls_ca_cert_dir.
+/* .IP tls_ca_cert_dir
+/*	Directory containing X509 Certificate Authority certificates
+/*	in separate individual files.
+/* .IP tls_cert
+/*	File containing client's X509 certificate.
+/* .IP tls_key
+/*	File containing the private key corresponding to
+/*	tls_cert.
+/* .IP tls_require_cert
+/*	Whether or not to request server's X509 certificate and check its
+/*	validity.
+/* .IP tls_random_file
+/*	Path of a file to obtain random bits from when /dev/[u]random is
+/*	not available. Generally set to the name of the EGD/PRNGD socket.
+/* .IP tls_cipher_suite
+/*	Cipher suite to use in SSL/TLS negotiations.
+/* .IP debuglevel
 /*	Debug level.  See 'loglevel' option in slapd.conf(5) man page.
 /*      Currently only in openldap libraries (and derivatives).
 /* SEE ALSO
@@ -142,6 +179,7 @@
 #include "vstring.h"
 #include "dict.h"
 #include "dict_ldap.h"
+#include "stringops.h"
 
 /* AAARGH!! */
 
@@ -174,10 +212,27 @@ typedef struct {
     int     chase_referrals;
     int     debuglevel;
     int     version;
+#ifdef LDAP_API_FEATURE_X_OPENLDAP
+    int     ldap_ssl;
+    int     start_tls;
+    int     tls_require_cert;
+    char   *tls_ca_cert_file;
+    char   *tls_ca_cert_dir;
+    char   *tls_cert;
+    char   *tls_key;
+    char   *tls_random_file;
+    char   *tls_cipher_suite;
+#endif
     LDAP   *ld;
 } DICT_LDAP;
 
-#ifndef LDAP_OPT_NETWORK_TIMEOUT
+typedef struct {
+    char   *(*get_str) (const char *, const char *, const char *, int, int);
+    int     (*get_int) (const char *, const char *, int, int, int);
+    int     (*get_bool) (const char *, const char *, int);
+}       CFG_PARSER;
+
+#if defined(LDAP_API_FEATURE_X_OPENLDAP) || !defined(LDAP_OPT_NETWORK_TIMEOUT)
 /*
  * LDAP connection timeout support.
  */
@@ -195,6 +250,104 @@ static void dict_ldap_logprint(LDAP_CONST char *data)
     char   *myname = "dict_ldap_debug";
 
     msg_info("%s: %s", myname, data);
+}
+
+
+static char *dict_ldap_get_dict_str(const char *opt_dict_name,
+			               const char *name, const char *defval,
+				            int min, int max)
+{
+    const char *strval;
+    int     len;
+
+    if ((strval = (char *) dict_lookup(opt_dict_name, name)) == 0)
+	strval = defval;
+
+    len = strlen(strval);
+    if (min && len < min)
+	msg_fatal("%s: bad string length %d < %d: %s = %s",
+		  opt_dict_name, len, min, name, strval);
+    if (max && len > max)
+	msg_fatal("%s: bad string length %d > %d: %s = %s",
+		  opt_dict_name, len, max, name, strval);
+    return (mystrdup(strval));
+}
+
+static char *dict_ldap_get_mail_str(const char *opt_dict_name,
+			               const char *name, const char *defval,
+				            int min, int max)
+{
+    static VSTRING *buf = 0;
+
+    if (buf == 0)
+	buf = vstring_alloc(15);
+    vstring_sprintf(buf, "%s_%s", opt_dict_name, name);
+    return ((char *) get_mail_conf_str(vstring_str(buf),
+				       defval, min, max));
+}
+
+static int dict_ldap_get_dict_int(const char *opt_dict_name,
+		             const char *name, int defval, int min, int max)
+{
+    const char *strval;
+    int     intval;
+    char    junk;
+
+    if ((strval = (char *) dict_lookup(opt_dict_name, name)) != 0) {
+	if (sscanf(strval, "%d%c", &intval, &junk) != 1)
+	    msg_fatal("%s: bad numerical configuration: %s = %s",
+		      opt_dict_name, name, strval);
+    } else
+	intval = defval;
+    if (min && intval < min)
+	msg_fatal("%s: invalid %s parameter value %d < %d",
+		  opt_dict_name, name, intval, min);
+    if (max && intval > max)
+	msg_fatal("%s: invalid %s parameter value %d > %d",
+		  opt_dict_name, name, intval, max);
+    return (intval);
+}
+
+static int dict_ldap_get_mail_int(const char *opt_dict_name,
+		             const char *name, int defval, int min, int max)
+{
+    static VSTRING *buf = 0;
+
+    if (buf == 0)
+	buf = vstring_alloc(15);
+    vstring_sprintf(buf, "%s_%s", opt_dict_name, name);
+    return (get_mail_conf_int(vstring_str(buf), defval, min, max));
+}
+
+static int dict_ldap_get_dict_bool(const char *opt_dict_name,
+				           const char *name, int defval)
+{
+    const char *strval;
+    int     intval;
+
+    if ((strval = (char *) dict_lookup(opt_dict_name, name)) != 0) {
+	if (strcasecmp(strval, CONFIG_BOOL_YES) == 0) {
+	    intval = 1;
+	} else if (strcasecmp(strval, CONFIG_BOOL_NO) == 0) {
+	    intval = 0;
+	} else {
+	    msg_fatal("%s: bad boolean configuration: %s = %s",
+		      opt_dict_name, name, strval);
+	}
+    } else
+	intval = defval;
+    return (intval);
+}
+
+static int dict_ldap_get_mail_bool(const char *opt_dict_name,
+				           const char *name, int defval)
+{
+    static VSTRING *buf = 0;
+
+    if (buf == 0)
+	buf = vstring_alloc(15);
+    vstring_sprintf(buf, "%s_%s", opt_dict_name, name);
+    return (get_mail_conf_bool(vstring_str(buf), defval));
 }
 
 
@@ -240,6 +393,67 @@ static int dict_ldap_bind_st(DICT_LDAP *dict_ldap)
     return (ldap_result2error(dict_ldap->ld, res, 1));
 }
 
+#ifdef LDAP_API_FEATURE_X_OPENLDAP
+static void dict_ldap_set_tls_options(DICT_LDAP *dict_ldap)
+{
+    char   *myname = "dict_ldap_set_tls_options";
+    int     rc;
+
+    if (dict_ldap->start_tls || dict_ldap->ldap_ssl) {
+	if (*dict_ldap->tls_random_file) {
+	    if ((rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_RANDOM_FILE,
+			       dict_ldap->tls_random_file)) != LDAP_SUCCESS)
+		msg_warn("%s: Unable to set tls_random_file to %s: %d: %s",
+			 myname, dict_ldap->tls_random_file,
+			 rc, ldap_err2string(rc));
+	}
+	if (*dict_ldap->tls_ca_cert_file) {
+	    if ((rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_CACERTFILE,
+			      dict_ldap->tls_ca_cert_file)) != LDAP_SUCCESS)
+		msg_warn("%s: Unable to set tls_ca_cert_file to %s: %d: %s",
+			 myname, dict_ldap->tls_ca_cert_file,
+			 rc, ldap_err2string(rc));
+	}
+	if (*dict_ldap->tls_ca_cert_dir) {
+	    if ((rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_CACERTDIR,
+			       dict_ldap->tls_ca_cert_dir)) != LDAP_SUCCESS)
+		msg_warn("%s: Unable to set tls_ca_cert_dir to %s: %d: %s",
+			 myname, dict_ldap->tls_ca_cert_dir,
+			 rc, ldap_err2string(rc));
+	}
+	if (*dict_ldap->tls_cert) {
+	    if ((rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_CERTFILE,
+				      dict_ldap->tls_cert)) != LDAP_SUCCESS)
+		msg_warn("%s: Unable to set tls_cert to %s: %d: %s",
+			 myname, dict_ldap->tls_cert,
+			 rc, ldap_err2string(rc));
+	}
+	if (*dict_ldap->tls_key) {
+	    if ((rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_KEYFILE,
+				      dict_ldap->tls_key)) != LDAP_SUCCESS)
+		msg_warn("%s: Unable to set tls_key to %s: %d: %s",
+			 myname, dict_ldap->tls_key,
+			 rc, ldap_err2string(rc));
+	}
+	if (*dict_ldap->tls_cipher_suite) {
+	    if ((rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_CIPHER_SUITE,
+			      dict_ldap->tls_cipher_suite)) != LDAP_SUCCESS)
+		msg_warn("%s: Unable to set tls_cipher_suite to %s: %d: %s",
+			 myname, dict_ldap->tls_cipher_suite,
+			 rc, ldap_err2string(rc));
+	}
+	if (dict_ldap->tls_require_cert) {
+	    if ((rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_REQUIRE_CERT,
+			   &(dict_ldap->tls_require_cert))) != LDAP_SUCCESS)
+		msg_warn("%s: Unable to set tls_require_cert to %d: %d: %s",
+			 myname, dict_ldap->tls_require_cert,
+			 rc, ldap_err2string(rc));
+	}
+    }
+}
+
+#endif
+
 /* Establish a connection to the LDAP server. */
 static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 {
@@ -249,7 +463,9 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 #ifdef LDAP_OPT_NETWORK_TIMEOUT
     struct timeval mytimeval;
 
-#else
+#endif
+
+#if defined(LDAP_API_FEATURE_X_OPENLDAP) || !defined(LDAP_OPT_NETWORK_TIMEOUT)
     void    (*saved_alarm) (int);
 
 #endif
@@ -261,8 +477,13 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 		 dict_ldap->server_host);
 
 #ifdef LDAP_OPT_NETWORK_TIMEOUT
+#ifdef LDAP_API_FEATURE_X_OPENLDAP
+    dict_ldap_set_tls_options(dict_ldap);
+    ldap_initialize(&(dict_ldap->ld), dict_ldap->server_host);
+#else
     dict_ldap->ld = ldap_init(dict_ldap->server_host,
 			      (int) dict_ldap->server_port);
+#endif
     if (dict_ldap->ld == NULL) {
 	msg_warn("%s: Unable to init LDAP server %s",
 		 myname, dict_ldap->server_host);
@@ -318,7 +539,7 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 			    &dict_ldap->version) != LDAP_OPT_SUCCESS)
 	    msg_warn("%s: Unable to get LDAP protocol version", myname);
 	else
-	    msg_warn("%s: Actual Protocol version used is %d.",
+	    msg_info("%s: Actual Protocol version used is %d.",
 		     myname, dict_ldap->version);
     }
 #endif
@@ -365,6 +586,36 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 #else
     if (dict_ldap->chase_referrals) {
 	msg_warn("%s: Unable to set Referral chasing.", myname);
+    }
+#endif
+
+#ifdef LDAP_API_FEATURE_X_OPENLDAP
+    if (dict_ldap->start_tls) {
+	if ((saved_alarm = signal(SIGALRM, dict_ldap_timeout)) == SIG_ERR) {
+	    msg_warn("%s: Error setting signal handler for STARTTLS timeout: %m",
+		     myname);
+	    dict_errno = DICT_ERR_RETRY;
+	    return (-1);
+	}
+	alarm(dict_ldap->timeout);
+	if (setjmp(env) == 0)
+	    rc = ldap_start_tls_s(dict_ldap->ld, NULL, NULL);
+	else
+	    rc = LDAP_TIMEOUT;
+	alarm(0);
+
+	if (signal(SIGALRM, saved_alarm) == SIG_ERR) {
+	    msg_warn("%s: Error resetting signal handler after STARTTLS: %m",
+		     myname);
+	    dict_errno = DICT_ERR_RETRY;
+	    return (-1);
+	}
+	if (rc != LDAP_SUCCESS) {
+	    msg_error("%s: Unable to set STARTTLS: %d: %s", myname,
+		      rc, ldap_err2string(rc));
+	    dict_errno = DICT_ERR_RETRY;
+	    return (-1);
+	}
     }
 #endif
 
@@ -893,6 +1144,14 @@ static void dict_ldap_close(DICT *dict)
     argv_free(dict_ldap->result_attributes);
     myfree(dict_ldap->bind_dn);
     myfree(dict_ldap->bind_pw);
+#ifdef LDAP_API_FEATURE_X_OPENLDAP
+    myfree(dict_ldap->tls_ca_cert_file);
+    myfree(dict_ldap->tls_ca_cert_dir);
+    myfree(dict_ldap->tls_cert);
+    myfree(dict_ldap->tls_key);
+    myfree(dict_ldap->tls_random_file);
+    myfree(dict_ldap->tls_cipher_suite);
+#endif
     dict_free(dict);
 }
 
@@ -902,7 +1161,15 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 {
     char   *myname = "dict_ldap_open";
     DICT_LDAP *dict_ldap;
-    VSTRING *config_param;
+
+#if defined(LDAP_API_FEATURE_X_OPENLDAP) && defined(LDAP_OPT_NETWORK_TIMEOUT)
+    VSTRING *url_list;
+    char   *s,
+           *h;
+
+#endif
+    char   *server_host;
+    CFG_PARSER parser;
     char   *domainlist;
     char   *scope;
     char   *attr;
@@ -917,71 +1184,134 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     dict_ldap->dict.close = dict_ldap_close;
     dict_ldap->dict.flags = dict_flags | DICT_FLAG_FIXED;
 
+    dict_ldap->ld = NULL;
     dict_ldap->ldapsource = mystrdup(ldapsource);
 
-    config_param = vstring_alloc(15);
-    vstring_sprintf(config_param, "%s_server_host", ldapsource);
+    if (ldapsource[0] == '/' || ldapsource[0] == '.') {
+	dict_load_file(ldapsource, ldapsource);
+	parser.get_str = dict_ldap_get_dict_str;
+	parser.get_int = dict_ldap_get_dict_int;
+	parser.get_bool = dict_ldap_get_dict_bool;
+    } else {
 
-    dict_ldap->server_host =
-	mystrdup((char *) get_mail_conf_str(vstring_str(config_param),
-					    "localhost", 0, 0));
+	/*
+	 * msg_warn("Defining LDAP attributes in main.cf is deprecated. Use
+	 * ldap:/path/to/file instead");
+	 */
+	parser.get_str = dict_ldap_get_mail_str;
+	parser.get_int = dict_ldap_get_mail_int;
+	parser.get_bool = dict_ldap_get_mail_bool;
+    }
+
+    server_host = parser.get_str(ldapsource, "server_host",
+				 "localhost", 0, 0);
     if (msg_verbose)
-	msg_info("%s: %s is %s", myname, vstring_str(config_param),
-		 dict_ldap->server_host);
+	msg_info("%s: %s server_host is %s", myname, ldapsource,
+		 server_host);
 
     /*
-     * get configured value of "ldapsource_server_port"; default to LDAP_PORT
-     * (389)
+     * get configured value of "server_port"; default to LDAP_PORT (389)
      */
-    vstring_sprintf(config_param, "%s_server_port", ldapsource);
     dict_ldap->server_port =
-	get_mail_conf_int(vstring_str(config_param), LDAP_PORT, 0, 0);
+	parser.get_int(ldapsource, "server_port", LDAP_PORT, 0, 0);
     if (msg_verbose)
-	msg_info("%s: %s is %d", myname, vstring_str(config_param),
+	msg_info("%s: %s server_port is %d", myname, ldapsource,
 		 dict_ldap->server_port);
+
+    /*
+     * Define LDAP Version.
+     */
+    dict_ldap->version = parser.get_int(ldapsource, "version", 2, 0, 0);
+    switch (dict_ldap->version) {
+    case 2:
+	dict_ldap->version = LDAP_VERSION2;
+	break;
+    case 3:
+	dict_ldap->version = LDAP_VERSION3;
+	break;
+    default:
+	msg_warn("%s: %s Unknown version %d.", myname, ldapsource,
+		 dict_ldap->version);
+	dict_ldap->version = LDAP_VERSION2;
+    }
+
+#if defined(LDAP_API_FEATURE_X_OPENLDAP) && defined(LDAP_OPT_NETWORK_TIMEOUT)
+
+    /*
+     * Convert (host, port) pairs to LDAP URLs
+     */
+    url_list = vstring_alloc(32);
+    s = server_host;
+    dict_ldap->ldap_ssl = 0;
+    while ((h = mystrtok(&s, " \t")) != NULL) {
+	if (ldap_is_ldap_url(h)) {
+	    LDAPURLDesc *url_desc;
+	    int     rc;
+
+	    if ((rc = ldap_url_parse(h, &url_desc)) != 0) {
+		msg_error("%s: error parsing URL %s: %d: %s; skipping", myname,
+			  h, rc, ldap_err2string(rc));
+		continue;
+	    }
+	    if (strcasecmp(url_desc->lud_scheme, "ldap") != 0 &&
+		dict_ldap->version != LDAP_VERSION3) {
+		msg_warn("%s: URL scheme %s requires protocol version 3", myname,
+			 url_desc->lud_scheme);
+		dict_ldap->version = LDAP_VERSION3;
+	    }
+	    if (strcasecmp(url_desc->lud_scheme, "ldaps") == 0)
+		dict_ldap->ldap_ssl = 1;
+	    ldap_free_urldesc(url_desc);
+	    vstring_sprintf_append(url_list, " %s", h);
+	} else {
+	    if (strrchr(h, ':'))
+		vstring_sprintf_append(url_list, " ldap://%s", h);
+	    else
+		vstring_sprintf_append(url_list, " ldap://%s:%d", h,
+				       dict_ldap->server_port);
+	}
+    }
+    dict_ldap->server_host = mystrdup(vstring_str(url_list) + 1);
+    if (msg_verbose)
+	msg_info("%s: %s server_host URL is %s", myname, ldapsource,
+		 dict_ldap->server_host);
+    myfree(server_host);
+    vstring_free(url_list);
+#else
+    dict_ldap->server_host = server_host;
+#endif
 
     /*
      * Scope handling thanks to Carsten Hoeger of SuSE.
      */
-    vstring_sprintf(config_param, "%s_scope", ldapsource);
-    scope =
-	(char *) get_mail_conf_str(vstring_str(config_param), "sub", 0, 0);
+    scope = parser.get_str(ldapsource, "scope", "sub", 0, 0);
 
     if (strcasecmp(scope, "one") == 0) {
 	dict_ldap->scope = LDAP_SCOPE_ONELEVEL;
 	if (msg_verbose)
-	    msg_info("%s: %s is LDAP_SCOPE_ONELEVEL", myname,
-		     vstring_str(config_param));
+	    msg_info("%s: %s scope is LDAP_SCOPE_ONELEVEL", myname, ldapsource);
 
     } else if (strcasecmp(scope, "base") == 0) {
 	dict_ldap->scope = LDAP_SCOPE_BASE;
 	if (msg_verbose)
-	    msg_info("%s: %s is LDAP_SCOPE_BASE", myname,
-		     vstring_str(config_param));
+	    msg_info("%s: %s scope is LDAP_SCOPE_BASE", myname, ldapsource);
 
     } else {
 	dict_ldap->scope = LDAP_SCOPE_SUBTREE;
 	if (msg_verbose)
-	    msg_info("%s: %s is LDAP_SCOPE_SUBTREE", myname,
-		     vstring_str(config_param));
+	    msg_info("%s: %s scope is LDAP_SCOPE_SUBTREE", myname, ldapsource);
 
     }
 
     myfree(scope);
 
-    vstring_sprintf(config_param, "%s_search_base", ldapsource);
-    dict_ldap->search_base = mystrdup((char *)
-				      get_mail_conf_str(vstring_str
-							(config_param), "",
-							0, 0));
+    dict_ldap->search_base = parser.get_str(ldapsource, "search_base",
+					    "", 0, 0);
     if (msg_verbose)
-	msg_info("%s: %s is %s", myname, vstring_str(config_param),
+	msg_info("%s: %s search_base is %s", myname, ldapsource,
 		 dict_ldap->search_base);
 
-    vstring_sprintf(config_param, "%s_domain", ldapsource);
-    domainlist =
-	mystrdup((char *) get_mail_conf_str(vstring_str(config_param),
-					    "", 0, 0));
+    domainlist = parser.get_str(ldapsource, "domain", "", 0, 0);
     if (*domainlist) {
 #ifdef MATCH_FLAG_NONE
 	dict_ldap->domain = match_list_init(MATCH_FLAG_NONE,
@@ -1000,219 +1330,212 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     myfree(domainlist);
 
     /*
-     * get configured value of "ldapsource_timeout"; default to 10 seconds
+     * get configured value of "timeout"; default to 10 seconds
      * 
      * Thanks to Manuel Guesdon for spotting that this wasn't really getting
      * set.
      */
-    vstring_sprintf(config_param, "%s_timeout", ldapsource);
     dict_ldap->timeout =
-	get_mail_conf_int(vstring_str(config_param), 10, 0, 0);
+	parser.get_int(ldapsource, "timeout", 10, 0, 0);
     if (msg_verbose)
-	msg_info("%s: %s is %d", myname, vstring_str(config_param),
+	msg_info("%s: %s timeout is %d", myname, ldapsource,
 		 dict_ldap->timeout);
 
-    vstring_sprintf(config_param, "%s_query_filter", ldapsource);
     dict_ldap->query_filter =
-	mystrdup((char *) get_mail_conf_str(vstring_str(config_param),
-					    "(mailacceptinggeneralid=%s)",
-					    0, 0));
+	parser.get_str(ldapsource, "query_filter",
+		       "(mailacceptinggeneralid=%s)", 0, 0);
     if (msg_verbose)
-	msg_info("%s: %s is %s", myname, vstring_str(config_param),
+	msg_info("%s: %s query_filter is %s", myname, ldapsource,
 		 dict_ldap->query_filter);
 
-    vstring_sprintf(config_param, "%s_result_filter", ldapsource);
     dict_ldap->result_filter =
-	mystrdup((char *) get_mail_conf_str(vstring_str(config_param),
-					    "%s",
-					    0, 0));
+	parser.get_str(ldapsource, "result_filter", "%s", 0, 0);
     if (msg_verbose)
-	msg_info("%s: %s is %s", myname, vstring_str(config_param),
+	msg_info("%s: %s result_filter is %s", myname, ldapsource,
 		 dict_ldap->result_filter);
 
     if (strcmp(dict_ldap->result_filter, "%s") == 0) {
 	myfree(dict_ldap->result_filter);
 	dict_ldap->result_filter = NULL;
     }
-    vstring_sprintf(config_param, "%s_result_attribute", ldapsource);
-    attr = mystrdup((char *) get_mail_conf_str(vstring_str(config_param),
-					       "maildrop", 0, 0));
+    attr = parser.get_str(ldapsource, "result_attribute", "maildrop", 0, 0);
     if (msg_verbose)
-	msg_info("%s: %s is %s", myname, vstring_str(config_param), attr);;
+	msg_info("%s: %s result_attribute is %s", myname, ldapsource, attr);;
     dict_ldap->result_attributes = argv_split(attr, " ,\t\r\n");
     dict_ldap->num_attributes = dict_ldap->result_attributes->argc;
+    myfree(attr);
 
-    vstring_sprintf(config_param, "%s_special_result_attribute", ldapsource);
-    attr = mystrdup((char *) get_mail_conf_str(vstring_str(config_param),
-					       "", 0, 0));
+    attr = parser.get_str(ldapsource, "special_result_attribute", "", 0, 0);
     if (msg_verbose)
-	msg_info("%s: %s is %s", myname, vstring_str(config_param), attr);
-
+	msg_info("%s: %s special_result_attribute is %s", myname, ldapsource,
+		 attr);
     if (*attr) {
 	argv_split_append(dict_ldap->result_attributes, attr, " ,\t\r\n");
     }
+    myfree(attr);
 
     /*
-     * get configured value of "ldapsource_bind"; default to true
+     * get configured value of "bind"; default to true
      */
-    vstring_sprintf(config_param, "%s_bind", ldapsource);
-    dict_ldap->bind = get_mail_conf_bool(vstring_str(config_param), 1);
+    dict_ldap->bind = parser.get_bool(ldapsource, "bind", 1);
     if (msg_verbose)
-	msg_info("%s: %s is %d", myname, vstring_str(config_param),
-		 dict_ldap->bind);
+	msg_info("%s: %s bind is %d", myname, ldapsource, dict_ldap->bind);
 
     /*
-     * get configured value of "ldapsource_bind_dn"; default to ""
+     * get configured value of "bind_dn"; default to ""
      */
-    vstring_sprintf(config_param, "%s_bind_dn", ldapsource);
-    dict_ldap->bind_dn = mystrdup((char *)
-				  get_mail_conf_str(vstring_str
-						    (config_param), "", 0,
-						    0));
+    dict_ldap->bind_dn = parser.get_str(ldapsource, "bind_dn", "", 0, 0);
     if (msg_verbose)
-	msg_info("%s: %s is %s", myname, vstring_str(config_param),
+	msg_info("%s: %s bind_dn is %s", myname, ldapsource,
 		 dict_ldap->bind_dn);
 
     /*
-     * get configured value of "ldapsource_bind_pw"; default to ""
+     * get configured value of "bind_pw"; default to ""
      */
-    vstring_sprintf(config_param, "%s_bind_pw", ldapsource);
-    dict_ldap->bind_pw = mystrdup((char *)
-				  get_mail_conf_str(vstring_str
-						    (config_param), "", 0,
-						    0));
+    dict_ldap->bind_pw = parser.get_str(ldapsource, "bind_pw", "", 0, 0);
     if (msg_verbose)
-	msg_info("%s: %s is %s", myname, vstring_str(config_param),
+	msg_info("%s: %s bind_pw is %s", myname, ldapsource,
 		 dict_ldap->bind_pw);
 
     /*
-     * get configured value of "ldapsource_cache"; default to false
+     * get configured value of "cache"; default to false
      */
-    vstring_sprintf(config_param, "%s_cache", ldapsource);
-    tmp = get_mail_conf_bool(vstring_str(config_param), 0);
+    tmp = parser.get_bool(ldapsource, "cache", 0);
     if (tmp)
-	msg_warn("%s: ignoring %s", myname, vstring_str(config_param));
+	msg_warn("%s: %s ignoring cache", myname, ldapsource);
 
     /*
-     * get configured value of "ldapsource_cache_expiry"; default to 30
-     * seconds
+     * get configured value of "cache_expiry"; default to 30 seconds
      */
-    vstring_sprintf(config_param, "%s_cache_expiry", ldapsource);
-    tmp = get_mail_conf_int(vstring_str(config_param), -1, 0, 0);
+    tmp = parser.get_int(ldapsource, "cache_expiry", -1, 0, 0);
     if (tmp >= 0)
-	msg_warn("%s: ignoring %s", myname, vstring_str(config_param));
+	msg_warn("%s: %s ignoring cache_expiry", myname, ldapsource);
 
     /*
-     * get configured value of "ldapsource_cache_size"; default to 32k
+     * get configured value of "cache_size"; default to 32k
      */
-    vstring_sprintf(config_param, "%s_cache_size", ldapsource);
-    tmp = get_mail_conf_int(vstring_str(config_param), -1, 0, 0);
+    tmp = parser.get_int(ldapsource, "cache_size", -1, 0, 0);
     if (tmp >= 0)
-	msg_warn("%s: ignoring %s", myname, vstring_str(config_param));
+	msg_warn("%s: %s ignoring cache_size", myname, ldapsource);
 
     /*
-     * get configured value of "ldapsource_recursion_limit"; default to 1000
+     * get configured value of "recursion_limit"; default to 1000
      */
-    vstring_sprintf(config_param, "%s_recursion_limit", ldapsource);
-    dict_ldap->recursion_limit = get_mail_conf_int(vstring_str(config_param),
-						   1000, 1, 0);
+    dict_ldap->recursion_limit = parser.get_int(ldapsource, "recursion_limit",
+						1000, 1, 0);
     if (msg_verbose)
-	msg_info("%s: %s is %ld", myname, vstring_str(config_param),
+	msg_info("%s: %s recursion_limit is %ld", myname, ldapsource,
 		 dict_ldap->recursion_limit);
 
     /*
-     * get configured value of "ldapsource_expansion_limit"; default to 1000
+     * get configured value of "expansion_limit"; default to 0
      */
-    vstring_sprintf(config_param, "%s_expansion_limit", ldapsource);
-    dict_ldap->expansion_limit = get_mail_conf_int(vstring_str(config_param),
-						   0, 0, 0);
+    dict_ldap->expansion_limit = parser.get_int(ldapsource, "expansion_limit",
+						0, 0, 0);
     if (msg_verbose)
-	msg_info("%s: %s is %ld", myname, vstring_str(config_param),
+	msg_info("%s: %s expansion_limit is %ld", myname, ldapsource,
 		 dict_ldap->expansion_limit);
 
     /*
-     * get configured value of "ldapsource_size_limit"; default to
-     * expansion_limit
+     * get configured value of "size_limit"; default to expansion_limit
      */
-    vstring_sprintf(config_param, "%s_size_limit", ldapsource);
-    dict_ldap->size_limit = get_mail_conf_int(vstring_str(config_param),
-					      dict_ldap->expansion_limit,
-					      0, 0);
+    dict_ldap->size_limit = parser.get_int(ldapsource, "size_limit",
+					   dict_ldap->expansion_limit,
+					   0, 0);
     if (msg_verbose)
-	msg_info("%s: %s is %ld", myname, vstring_str(config_param),
+	msg_info("%s: %s size_limit is %ld", myname, ldapsource,
 		 dict_ldap->size_limit);
 
     /*
      * Alias dereferencing suggested by Mike Mattice.
      */
-    vstring_sprintf(config_param, "%s_dereference", ldapsource);
-    dict_ldap->dereference = get_mail_conf_int(vstring_str(config_param), 0, 0,
-					       0);
-
-    /*
-     * Define LDAP Version.
-     */
-    vstring_sprintf(config_param, "%s_version", ldapsource);
-    dict_ldap->version = get_mail_conf_int(vstring_str(config_param), 2, 0,
-					   0);
-    switch (dict_ldap->version) {
-    case 2:
-	dict_ldap->version = LDAP_VERSION2;
-	break;
-    case 3:
-	dict_ldap->version = LDAP_VERSION3;
-	break;
-    default:
-	msg_warn("%s: Unknown version %d.", myname, dict_ldap->version);
-	dict_ldap->version = LDAP_VERSION2;
-    }
-
-    /*
-     * Make sure only valid options for alias dereferencing are used.
-     */
+    dict_ldap->dereference = parser.get_int(ldapsource, "dereference", 0, 0,
+					    0);
     if (dict_ldap->dereference < 0 || dict_ldap->dereference > 3) {
-	msg_warn("%s: Unrecognized value %d specified for %s; using 0",
-		 myname, dict_ldap->dereference, vstring_str(config_param));
+	msg_warn("%s: %s Unrecognized value %d specified for dereference; using 0",
+		 myname, ldapsource, dict_ldap->dereference);
 	dict_ldap->dereference = 0;
     }
     if (msg_verbose)
-	msg_info("%s: %s is %d", myname, vstring_str(config_param),
+	msg_info("%s: %s dereference is %d", myname, ldapsource,
 		 dict_ldap->dereference);
 
     /* Referral chasing */
-    vstring_sprintf(config_param, "%s_chase_referrals", ldapsource);
-    dict_ldap->chase_referrals = get_mail_conf_bool(vstring_str(config_param), 0);
+    dict_ldap->chase_referrals = parser.get_bool(ldapsource, "chase_referrals",
+						 0);
     if (msg_verbose)
-	msg_info("%s: %s is %d", myname, vstring_str(config_param),
+	msg_info("%s: %s chase_referrals is %d", myname, ldapsource,
 		 dict_ldap->chase_referrals);
+
+#ifdef LDAP_API_FEATURE_X_OPENLDAP
+
+    /*
+     * TLS options
+     */
+    /* get configured value of "start_tls"; default to no */
+    dict_ldap->start_tls = parser.get_bool(ldapsource, "start_tls", 0);
+    if (msg_verbose)
+	msg_info("%s: %s start_tls is %d", myname, ldapsource,
+		 dict_ldap->start_tls);
+    if (dict_ldap->start_tls && dict_ldap->version < LDAP_VERSION3) {
+	msg_warn("%s: %s start_tls requires protocol version 3", myname, ldapsource);
+	dict_ldap->version = LDAP_VERSION3;
+    }
+    /* get configured value of "tls_require_cert"; default to no */
+    dict_ldap->tls_require_cert = parser.get_bool(ldapsource, "tls_require_cert", 0);
+    if (msg_verbose)
+	msg_info("%s: %s tls_require_cert is %d", myname, ldapsource,
+		 dict_ldap->tls_require_cert);
+    /* get configured value of "tls_ca_cert_file"; default "" */
+    dict_ldap->tls_ca_cert_file = parser.get_str(ldapsource, "tls_ca_cert_file",
+						 "", 0, 0);
+    if (msg_verbose)
+	msg_info("%s: %s tls_ca_cert_file is %s", myname, ldapsource,
+		 dict_ldap->tls_ca_cert_file);
+    /* get configured value of "tls_ca_cert_dir"; default "" */
+    dict_ldap->tls_ca_cert_dir = parser.get_str(ldapsource, "tls_ca_cert_dir",
+						"", 0, 0);
+    if (msg_verbose)
+	msg_info("%s: %s tls_ca_cert_dir is %s", myname, ldapsource,
+		 dict_ldap->tls_ca_cert_dir);
+    /* get configured value of "tls_cert"; default "" */
+    dict_ldap->tls_cert = parser.get_str(ldapsource, "tls_cert",
+					 "", 0, 0);
+    if (msg_verbose)
+	msg_info("%s: %s tls_cert is %s", myname, ldapsource,
+		 dict_ldap->tls_cert);
+    /* get configured value of "tls_key"; default "" */
+    dict_ldap->tls_key = parser.get_str(ldapsource, "tls_key",
+					"", 0, 0);
+    if (msg_verbose)
+	msg_info("%s: %s tls_key is %s", myname, ldapsource,
+		 dict_ldap->tls_key);
+    /* get configured value of "tls_random_file"; default "" */
+    dict_ldap->tls_random_file = parser.get_str(ldapsource,
+						"tls_random_file", "", 0, 0);
+    if (msg_verbose)
+	msg_info("%s: %s tls_random_file is %s", myname, ldapsource,
+		 dict_ldap->tls_random_file);
+    /* get configured value of "tls_cipher_suite"; default "" */
+    dict_ldap->tls_cipher_suite = parser.get_str(ldapsource,
+					      "tls_cipher_suite", "", 0, 0);
+    if (msg_verbose)
+	msg_info("%s: %s tls_cipher_suite is %s", myname, ldapsource,
+		 dict_ldap->tls_cipher_suite);
+#endif
 
     /*
      * Debug level.
      */
 #if defined(LDAP_OPT_DEBUG_LEVEL) && defined(LBER_OPT_LOG_PRINT_FN)
-    vstring_sprintf(config_param, "%s_debuglevel", ldapsource);
-    dict_ldap->debuglevel = get_mail_conf_int(vstring_str(config_param), 0, 0,
-					      0);
+    dict_ldap->debuglevel = parser.get_int(ldapsource, "debuglevel", 0, 0, 0);
     if (msg_verbose)
-	msg_info("%s: %s is %d", myname, vstring_str(config_param),
+	msg_info("%s: %s debuglevel is %d", myname, ldapsource,
 		 dict_ldap->debuglevel);
 #endif
 
-    dict_ldap_connect(dict_ldap);
-
     /*
-     * if dict_ldap_connect() set dict_errno, free dict_ldap and abort.
-     */
-    if (dict_errno) {
-	if (dict_ldap->ld)
-	    ldap_unbind(dict_ldap->ld);
-
-	myfree((char *) dict_ldap);
-	return (0);
-    }
-
-    /*
-     * Otherwise, we're all set. Return the new dict_ldap structure.
+     * Return the new dict_ldap structure.
      */
     return (DICT_DEBUG (&dict_ldap->dict));
 }

@@ -56,6 +56,12 @@
 # in the main.cf configuration file). See individual command man pages
 # for specific command-line options, if any.
 #
+# General main.cf options can be overridden for specific services.
+# To override one or more main.cf options, specify them as arguments
+# below, preceding each option by "-o".  There must be no whitespace
+# in the option itself (separate multiple values for an option by
+# commas).
+#
 # In order to use the "uucp" message tranport below, set up entries
 # in the transport table.
 #

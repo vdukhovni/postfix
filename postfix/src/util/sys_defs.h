@@ -261,7 +261,7 @@ extern int opterr;
 #define LOCAL_CONNECT	stream_connect
 #define LOCAL_TRIGGER	stream_trigger
 #define HAS_VOLATILE_LOCKS
-#define BROKEN_READ_SELECT_ON_BLOCKING_SOCKET
+#define BROKEN_READ_SELECT_ON_TCP_SOCKET
 
 /*
  * Allow build environment to override paths.
@@ -1087,6 +1087,17 @@ typedef int pid_t;
 #else
 #define SCANFLIKE(x,y)
 #endif
+#endif
+
+ /*
+  * Bit banging!! There is no official constant that defines the INT_MAX
+  * equivalent of the off_t type. Wietse came up with the following macro
+  * that works as long as off_t is some two's complement number.
+  */
+#include <limits.h>
+#define __MAXINT__(T) ((T) (((T)1 << ((sizeof(T) * CHAR_BIT) - 1) ^ ((T) -1))))
+#ifndef OFF_T_MAX
+#define OFF_T_MAX __MAXINT__(off_t)
 #endif
 
  /*

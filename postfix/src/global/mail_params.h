@@ -939,6 +939,10 @@ extern int var_lmtpd_err_sleep;
 #define DEF_LMTPD_JUNK_CMD	1000
 extern int var_lmtpd_junk_cmd_limit;
 
+#define VAR_SMTPD_SASL_EXCEPTIONS_NETWORKS	"smtpd_sasl_exceptions_networks"
+#define DEF_SMTPD_SASL_EXCEPTIONS_NETWORKS	""
+extern char *var_smtpd_sasl_exceptions_networks;
+
  /*
   * SASL authentication support, LMTP server side.
   */
@@ -1315,6 +1319,7 @@ extern int var_access_map_code;
 #define REJECT_RBL		"reject_rbl"	/* LaMont compatibility */
 #define REJECT_RBL_CLIENT	"reject_rbl_client"
 #define REJECT_RHSBL_CLIENT	"reject_rhsbl_client"
+#define REJECT_RHSBL_HELO	"reject_rhsbl_helo"
 #define REJECT_RHSBL_SENDER	"reject_rhsbl_sender"
 #define REJECT_RHSBL_RECIPIENT	"reject_rhsbl_recipient"
 

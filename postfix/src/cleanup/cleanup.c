@@ -148,13 +148,18 @@
 /*	Address mapping lookup table for envelope and header sender
 /*	addresses.
 /* .IP \fBmasquerade_classes\fR
-/*      List of address classes subject to masquerading: zero or
-/*      more of \fBenvelope_sender\fR, \fBenvelope_recipient\fR,
+/*	List of address classes subject to masquerading: zero or
+/*	more of \fBenvelope_sender\fR, \fBenvelope_recipient\fR,
 /*	\fBheader_sender\fR, \fBheader_recipient\fR.
 /* .IP \fBmasquerade_domains\fR
 /*	List of domains that hide their subdomain structure.
 /* .IP \fBmasquerade_exceptions\fR
 /*	List of user names that are not subject to address masquerading.
+/* .IP \fBpropagate_unmatched_extensions\fR
+/*	A list of address rewriting or forwarding mechanisms that propagate   
+/*	an address extension from the original address to the result.
+/*	Specify zero or more of \fBcanonical\fR, \fBvirtual\fR, \fBalias\fR,  
+/*	\fBforward\fR, or \fBinclude\fR.
 /* .IP \fBvirtual_alias_maps\fR
 /*	Address mapping lookup table for envelope recipient addresses.
 /* .SH "Resource controls"

@@ -1441,7 +1441,20 @@ the address does resolve to a name.
 <p>
 
 You run the Postfix SMTP server inside a <b>chroot</b> jail for
-extra security, but some configuration files are missing. In order
+extra security, but some configuration files are missing or have
+incorrect information. The command "postfix check" will report
+what files may have incorrect information. For example:
+
+<blockquote>
+<pre>
+warning: /var/spool/postfix/etc/resolv.conf and /etc/resolv.conf differ
+warning: /var/spool/postfix/etc/localtime and /etc/localtime differ
+</pre>
+</blockquote>
+
+<p>
+
+In order
 to run inside a chroot jail, the Postfix SMTP client and server
 need copies of system configuration files inside the Postfix queue
 directory.  The exact list of files is very system dependent, but
@@ -1776,7 +1789,8 @@ for the <b>/etc/resolv.conf</b> file.
 Check out your Postfix <b>master.cf</b> file. If the SMTP client
 runs chrooted, then it needs a bunch of files inside the Postfix
 queue directory.  Examples are in the source distribution in the
-<b>examples</b> subdirectory.
+<b>examples</b> subdirectory. See also the other FAQ entry on 
+<a href="#numerical_log">name service trouble</a>.
 
 </ul>
 

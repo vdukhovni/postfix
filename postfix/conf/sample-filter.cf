@@ -18,25 +18,27 @@
 # REJECT [optional text...]
 #	Reject the entire message. The optional text is sent to the
 #	originator and is logged to the maillog file.
-# OK	Skip all further header patterns for this header line.
-# IGNORE Silently discard the header line.
+# DUNNO [optional text...]
+#	Skip all further header patterns for this header line.
+# IGNORE [optional text...]
+#	Silently discard the header line.
 # WARN [optional text...]
 #	Log the message header and the optional text. This is useful
 #	for testing. When the pattern is good, change the WARN into a
 #	REJECT or into a DISCARD.
 # HOLD [optional text...]
 #	Place the message on the hold queue. Mail on hold can be
-#       inspected with the postcat command, and can be destroyed or
-#       taken off hold (i.e. delivered) with the postsuper command.
-#       The matched header is logged with the optional text.
+#	inspected with the postcat command, and can be destroyed or
+#	taken off hold (i.e. delivered) with the postsuper command.
+#	The matched header is logged with the optional text.
 # DISCARD [optional text...]
 #	Claim successful delivery and silently discard the message.
-#       The matched header is logged with the optional text.
+#	The matched header is logged with the optional text.
 # FILTER transport:nexthop
-#       after the message is queued, the message is sent through
-#       a content filter. This requires different cleanup servers
-#       before and after the filter, with header/body checks turned
-#       off in the second cleanup server. More info about content
+#	After the message is queued, send the message through
+#	a content filter. This requires different cleanup servers
+#	before and after the filter, with header/body checks turned
+#	off in the second cleanup server. More info about content
 #	filtering is in the Postfix FILTER_README file. This feature
 #	overrides the main.cf content_filter setting.
 # REDIRECT user@domain
@@ -60,38 +62,7 @@ header_checks = regexp:/etc/postfix/header_checks
 # For examples of pattern syntax see the sample-regexp-header.cf and
 # sample-pcre-header files.
 #
-# When a pattern matches, what happens next depends on the associated
-# action that is specified in the right-hand side of the table:
-#
-# REJECT [optional text...]
-#       Reject the entire message. The optional text is sent to the
-#       originator and is logged to the maillog file.
-# OK	Skip all further header patterns for this header line.
-# IGNORE Silently discard the body line
-# WARN [optional text...]
-#       Log the body line and the optional text. This is useful
-#       for testing. When the pattern is good, change the WARN into a
-#       REJECT or into a DISCARD.
-# HOLD [optional text...]
-#       Place the message on the hold queue. Mail on hold can be
-#       inspected with the postcat command, and can be destroyed or
-#       taken off hold (i.e. delivered) with the postsuper command.
-#       The matched body line is logged with the optional text.
-# DISCARD [optional text...]
-#       Claim successful delivery and silently discard the message.
-#       The matched body line is logged with the optional text.
-# FILTER transport:nexthop
-#       after the message is queued, the message is sent through
-#       a content filter. This requires different cleanup servers
-#       before and after the filter, with header/body checks turned
-#       off in the second cleanup server. More info about content
-#	filtering is in the Postfix FILTER_README file. This feature
-#	overrides the main.cf content_filter setting.
-# REDIRECT user@domain
-#	Send the message to the specified address instead of the
-#	intended recipient(s). This feature overrides the FILTER action.
-#
-# By default, the same patterns are applied as for header_checks.
+# Actions on the table right-hand side are the same as with header_checks.
 #
 mime_header_checks = $header_checks
 
@@ -107,33 +78,7 @@ mime_header_checks = $header_checks
 # When a pattern matches, what happens next depends on the associated
 # action that is specified in the right-hand side of the table:
 #
-# REJECT [optional text...]
-#       Reject the entire message. The optional text is sent to the
-#       originator and is logged to the maillog file.
-# OK	Skip all further header patterns for this header line.
-# IGNORE Silently discard the body line
-# WARN [optional text...]
-#       Log the body line and the optional text. This is useful
-#       for testing. When the pattern is good, change the WARN into a
-#       REJECT or into a DISCARD.
-# HOLD [optional text...]
-#       Place the message on the hold queue. Mail on hold can be
-#       inspected with the postcat command, and can be destroyed or
-#       taken off hold (i.e. delivered) with the postsuper command.
-#       The matched body line is logged with the optional text.
-# DISCARD [optional text...]
-#       Claim successful delivery and silently discard the message.
-#       The matched body line is logged with the optional text.
-# FILTER transport:nexthop
-#       after the message is queued, the message is sent through
-#       a content filter. This requires different cleanup servers
-#       before and after the filter, with header/body checks turned
-#       off in the second cleanup server. More info about content
-#	filtering is in the Postfix FILTER_README file. This feature
-#	overrides the main.cf content_filter setting.
-# REDIRECT user@domain
-#	Send the message to the specified address instead of the
-#	intended recipient(s). This feature overrides the FILTER action.
+# Actions on the table right-hand side are the same as with header_checks.
 #
 # By default, the same patterns are applied as for header_checks.
 #
@@ -150,21 +95,7 @@ nested_header_checks = $header_checks
 # For examples of pattern syntax see the sample-regexp-body.cf and
 # sample-pcre-body.cf files.
 #
-# When a pattern matches, what happens next depends on the associated
-# action that is specified in the right-hand side of the table:
-#
-# REJECT the entire message is rejected.
-# REJECT text.... The text is sent to the originator.
-# IGNORE the body line is silently discarded.
-# WARN   the body line is logged (not rejected) with a warning message.
-# WARN text... as above, and the text is logged, too.
-# FILTER transport:nexthop
-#       after the message is queued, the message is sent through
-#       a content filter. This requires different cleanup servers
-#       before and after the filter, with header/body checks turned
-#       off in the second cleanup server. More info about content
-#	filtering is in the Postfix FILTER_README file. This feature
-#	overrides the main.cf content_filter setting.
+# Actions on the table right-hand side are the same as with header_checks.
 #
 body_checks = regexp:/etc/postfix/body_checks
 

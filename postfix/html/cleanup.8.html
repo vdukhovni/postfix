@@ -1,4 +1,4 @@
-<html> <head> </head> <body> <pre>
+<html> <body> <pre>
 CLEANUP(8)                                             CLEANUP(8)
 
 <b>NAME</b>
@@ -199,6 +199,13 @@ CLEANUP(8)                                             CLEANUP(8)
        <b>masquerade_exceptions</b>
               List of user names that are not subject to  address
               masquerading.
+
+       <b>propagate_unmatched_extensions</b>
+              A  list  of  address rewriting or forwarding mecha-
+              nisms that propagate an address extension from  the
+              original  address  to  the result.  Specify zero or
+              more of  <b>canonical</b>,  <b>virtual</b>,  <b>alias</b>,  <b>forward</b>,  or
+              <b>include</b>.
 
        <b>virtual_alias_maps</b>
               Address mapping lookup table for envelope recipient

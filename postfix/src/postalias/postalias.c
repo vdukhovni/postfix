@@ -60,12 +60,12 @@
 /*	when creating a new file.  Instead, create a new file with default
 /*	access permissions (mode 0644).
 /* .IP "\fB-q \fIkey\fR"
-/*	Search the specified maps for \fIkey\fR and print the first value
-/*	found on the standard output stream. The exit status is zero
+/*	Search the specified maps for \fIkey\fR and write the first value
+/*	found to the standard output stream. The exit status is zero
 /*	when the requested information was found.
 /*
 /*	If a key value of \fB-\fR is specified, the program reads key
-/*	values from the standard input stream and prints one line of
+/*	values from the standard input stream and writes one line of
 /*	\fIkey: value\fR output for each key that was found. The exit
 /*	status is zero when at least one of the requested keys was found.
 /* .IP \fB-r\fR

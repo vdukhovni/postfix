@@ -75,7 +75,7 @@
 /*
 /*	In order to stop mail forwarding loops early, the software adds an
 /*	optional
-/*	\fBDelivered-To:\fR header with the envelope recipient address. If
+/*	\fBDelivered-To:\fR header with the final envelope recipient address. If
 /*	mail arrives for a recipient that is already listed in a
 /*	\fBDelivered-To:\fR header, the message is bounced.
 /* MAILBOX DELIVERY
@@ -112,7 +112,7 @@
 /*	\fBX-Original-To:\fR header with the recipient address as given to
 /*	Postfix, prepends an
 /*	optional \fBDelivered-To:\fR header
-/*	with the envelope recipient address, prepends a \fBReturn-Path:\fR
+/*	with the final envelope recipient address, prepends a \fBReturn-Path:\fR
 /*	header with the envelope sender address, prepends a \fB>\fR character
 /*	to lines beginning with "\fBFrom \fR", and appends an empty line.
 /*	The mailbox is locked for exclusive access while delivery is in
@@ -182,7 +182,7 @@
 /*	\fBX-Original-To:\fR header with the recipient address as given to
 /*	Postfix, prepends an
 /*	optional \fBDelivered-To:\fR
-/*	header with the recipient envelope address, prepends a
+/*	header with the final recipient envelope address, prepends a
 /*	\fBReturn-Path:\fR header with the sender envelope address,
 /*	and appends no empty line.
 /* EXTERNAL FILE DELIVERY
@@ -202,7 +202,7 @@
 /*	\fBX-Original-To:\fR header with the recipient address as given to
 /*	Postfix, prepends an
 /*	optional \fBDelivered-To:\fR
-/*	header with the recipient envelope address, prepends a \fB>\fR
+/*	header with the final recipient envelope address, prepends a \fB>\fR
 /*	character to lines beginning with "\fBFrom \fR", and appends an
 /*	empty line.
 /*	The envelope sender address is available in the \fBReturn-Path:\fR
@@ -213,8 +213,8 @@
 /*
 /*	In the case of \fBmaildir\fR delivery, the local daemon prepends
 /*	an optional
-/*	\fBDelivered-To:\fR header with the envelope recipient address, and
-/*	prepends an
+/*	\fBDelivered-To:\fR header with the final envelope recipient address,
+/*	and prepends an
 /*	\fBX-Original-To:\fR header with the recipient address as given to
 /*	Postfix.
 /*	The envelope sender address is available in the \fBReturn-Path:\fR
@@ -234,7 +234,8 @@
 /*	undeliverable.
 /*
 /*	In all cases the \fBlocal\fR daemon prepends an optional
-/*	`\fBDelivered-To:\fR \fIname\fR+\fIfoo\fR' header line.
+/*	`\fBDelivered-To:\fR header line with the final recipient
+/*	address.
 /* DELIVERY RIGHTS
 /* .ad
 /* .fi
@@ -301,6 +302,11 @@
 /*	forwarding, delivery to command or file. Specify zero or more of:
 /*	\fBcommand, file, forward\fR. Turning off \fBDelivered-To:\fR when
 /*	forwarding mail is not recommended.
+/* .IP \fBpropagate_unmatched_extensions\fR
+/*	A list of address rewriting or forwarding mechanisms that propagate
+/*	an address extension from the original address to the result.
+/*	Specify zero or more of \fBcanonical\fR, \fBvirtual\fR, \fBalias\fR,
+/*	\fBforward\fR, or \fBinclude\fR.
 /* .IP \fBrecipient_delimiter\fR
 /*	Separator between username and address extension.
 /* .IP \fBrequire_home_directory\fR

@@ -342,14 +342,15 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
 	}
 	return (CLEANUP_ACT_KEEP);
     }
-    if (*optional_text)
-	msg_warn("unexpected text after command in %s map: %s",
-		 map_class, value);
+    /* Allow and ignore optional text after the action. */
 
     if (STREQUAL(value, "IGNORE", command_len))
 	return (CLEANUP_ACT_DROP);
 
-    if (STREQUAL(value, "OK", command_len))
+    if (STREQUAL(value, "DUNNO", command_len))	/* preferred */
+	return (CLEANUP_ACT_KEEP);
+
+    if (STREQUAL(value, "OK", command_len))	/* compat */
 	return (CLEANUP_ACT_KEEP);
 
     msg_warn("unknown command in %s map: %s", map_class, value);

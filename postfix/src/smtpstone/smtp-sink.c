@@ -19,11 +19,15 @@
 /*	This program is the complement of the \fIsmtp-source\fR program.
 /*
 /*	Arguments:
+/* .IP \fB-a\fR
+/*	Do not announce SASL authentication support.
 /* .IP \fB-c\fR
 /*	Display a running counter that is updated whenever an SMTP
 /*	QUIT command is executed.
 /* .IP \fB-e\fR
 /*	Disable ESMTP support.
+/* .IP "\fB-f  \fIcommand,command,...\fR"
+/*	Reject the specified commands with a hard (5xx) error code.
 /* .IP \fB-h\fI hostname\fR
 /*	Use \fIhostname\fR in the SMTP greeting, in the HELO response,
 /*	and in the EHLO response. The default hostname is "smtp-sink".
@@ -36,6 +40,8 @@
 /* .IP \fB-P\fR
 /*	Change the server greeting so that it appears to come through
 /*	a CISCO PIX system. Implies \fB-e\fR.
+/* .IP "\fB-r  \fIcommand,command,...\fR"
+/*	Reject the specified commands with a soft (4xx) error code.
 /* .IP "\fB-s \fIcommand,command,...\fR"
 /*	Log the named commands to syslogd.
 /*	Examples of commands that can be logged are HELO, EHLO, LHLO, MAIL,
@@ -98,6 +104,7 @@
 #include <iostuff.h>
 #include <msg_vstream.h>
 #include <stringops.h>
+#include <sane_accept.h>
 
 /* Global library. */
 
@@ -135,6 +142,7 @@ static int fixed_delay;
 static int disable_esmtp;
 static int enable_lmtp;
 static int pretend_pix;
+static int disable_saslauth;
 
 /* ehlo_response - respond to EHLO command */
 
@@ -145,6 +153,8 @@ static void ehlo_response(SINK_STATE *state)
 	smtp_printf(state->stream, "250-PIPELINING");
     if (!disable_8bitmime)
 	smtp_printf(state->stream, "250-8BITMIME");
+    if (!disable_saslauth)
+	smtp_printf(state->stream, "250-AUTH PLAIN LOGIN");
     smtp_printf(state->stream, "250 ");
     smtp_flush(state->stream);
 }
@@ -205,8 +215,8 @@ static void data_event(int unused_event, char *context)
 static void dot_response(SINK_STATE *state)
 {
     if (enable_lmtp) {
-	while (state->rcpts-- > 0)		/* XXX this could block */
-	    ok_response(state);			/* XXX this flushes too often */
+	while (state->rcpts-- > 0)	/* XXX this could block */
+	    ok_response(state);		/* XXX this flushes too often */
     } else {
 	ok_response(state);
     }
@@ -297,11 +307,14 @@ typedef struct SINK_COMMAND {
 
 #define FLAG_ENABLE	(1<<0)		/* command is enabled */
 #define FLAG_SYSLOG	(1<<1)		/* log the command */
+#define FLAG_HARD_ERR	(1<<2)		/* report hard error */
+#define FLAG_SOFT_ERR	(1<<3)		/* report soft error */
 
 static SINK_COMMAND command_table[] = {
     "helo", helo_response, 0,
     "ehlo", ehlo_response, 0,
     "lhlo", ehlo_response, 0,
+    "auth", ok_response, FLAG_ENABLE,
     "mail", mail_response, FLAG_ENABLE,
     "rcpt", rcpt_response, FLAG_ENABLE,
     "data", data_response, FLAG_ENABLE,
@@ -436,6 +449,16 @@ static int command_read(SINK_STATE *state)
 	smtp_flush(state->stream);
 	return (0);
     }
+    if (cmdp->flags & FLAG_HARD_ERR) {
+	smtp_printf(state->stream, "500 Error: command failed");
+	smtp_flush(state->stream);
+	return (0);
+    }
+    if (cmdp->flags & FLAG_SOFT_ERR) {
+	smtp_printf(state->stream, "450 Error: command failed");
+	smtp_flush(state->stream);
+	return (0);
+    }
     /* We use raw syslog. Sanitize data content and length. */
     if (cmdp->flags & FLAG_SYSLOG)
 	syslog(LOG_INFO, "%s %.100s", command, printable(ptr, '?'));
@@ -503,7 +526,7 @@ static void connect_event(int unused_event, char *context)
     SINK_STATE *state;
     int     fd;
 
-    if ((fd = accept(sock, &sa, &len)) >= 0) {
+    if ((fd = sane_accept(sock, &sa, &len)) >= 0) {
 	if (msg_verbose)
 	    msg_info("connect (%s)",
 #ifdef AF_LOCAL
@@ -555,13 +578,19 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "ceh:Ln:pPs:vw:8")) > 0) {
+    while ((ch = GETOPT(argc, argv, "acef:h:Ln:pPr:s:vw:8")) > 0) {
 	switch (ch) {
+	case 'a':
+	    disable_saslauth = 1;
+	    break;
 	case 'c':
 	    count++;
 	    break;
 	case 'e':
 	    disable_esmtp = 1;
+	    break;
+	case 'f':
+	    set_cmds_flags(optarg, FLAG_HARD_ERR);
 	    break;
 	case 'h':
 	    var_myhostname = optarg;
@@ -578,6 +607,9 @@ int     main(int argc, char **argv)
 	case 'P':
 	    pretend_pix = 1;
 	    disable_esmtp = 1;
+	    break;
+	case 'r':
+	    set_cmds_flags(optarg, FLAG_SOFT_ERR);
 	    break;
 	case 's':
 	    openlog(basename(argv[0]), LOG_PID, LOG_MAIL);

@@ -103,9 +103,10 @@
 /*	configuration parameter specifies the reject status code used in
 /*	the default template (default: 554).
 /* .IP reject_rhsbl_client rbl.domain.tld
+/* .IP reject_rhsbl_helo rbl.domain.tld
 /* .IP reject_rhsbl_sender rbl.domain.tld
 /* .IP reject_rhsbl_recipient rbl.domain.tld
-/*	Look up the client/sender/recipient domain name in the specified
+/*	Look up the client/helo/sender/recipient domain name in the specified
 /*	real-time blackhole DNS zone.  The \fIrbl_reply_maps\fR configuration
 /*	parameter is used to generate the template for the reject message.
 /*	If it is not specified, or the rbl domain cannot be found, then a
@@ -2986,6 +2987,16 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		else
 		    status = reject_invalid_hostaddr(state, state->helo_name,
 					 state->helo_name, SMTPD_NAME_HELO);
+	    }
+	} else if (strcasecmp(name, REJECT_RHSBL_HELO) == 0) {
+	    if (cpp[1] == 0)
+		msg_warn("restriction %s requires domain name argument",
+			 name);
+	    else {
+		cpp += 1;
+		if (state->helo_name)
+		    status = reject_rbl_domain(state, *cpp, state->helo_name,
+					       SMTPD_NAME_HELO);
 	    }
 	}
 

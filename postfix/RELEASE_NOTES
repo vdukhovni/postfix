@@ -22,6 +22,53 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix snapshot 2.0.13-20030914
+==========================================================
+
+In header/body_checks actions, the OK action is being phased out,
+and the DUNNO action is being phased in. Both actions still work
+and do the same thing, but hopefully DUNNO causes less confusion.
+
+Major changes with Postfix snapshot 2.0.13-20030914
+===================================================
+
+LDAP parameters can now be defined in external files.  Specify the
+LDAP maps in main.cf as
+
+    ldap:/path/to/ldap.cf
+
+and write the LDAP parameters in /path/to/ldap.cf, without the
+"ldapsource_" prefix.  This makes it possible to securely store
+bind passwords for plain auth outside of main.cf (which must be
+world readable).  The old syntax still works, for backwards
+compatibility.  By Liviu Daia, based on a suggestion by Victor
+Duchovni and Lamont Jones.
+
+Support for LDAP URLs in the LDAP parameter "server_host", if
+Postfix is linked against OpenLDAP.  LDAP hosts, ports, and connection
+protocols to be used as LDAP sources can be specified as a
+blank-separated list of LDAP URLs in "server_host".  As with
+OpenLDAP, specifying a port in a LDAP URL overrides "server_port".
+Examples:
+
+    server_host = ldap://ldap.itd.umich.edu
+    server_host = ldaps://ldap.itd.umich.edu:636
+    server_host = ldapi://%2Fsome%2Fpath
+
+The LDAP SSL scheme ldaps:// is available if OpenLDAP was compiled
+with SSL support.  New parameters "tls_ca_cert_dir", "tls_ca_cert_file",
+"tls_cert", "tls_key", "tls_require_cert", "tls_random_file",
+"tls_cipher_suite" control the certificates, source of random
+numbers, and cipher suites used for SSL connections.  See LDAP_README
+for further information.  By Liviu Daia.
+
+Support for STARTTLS command in LDAP, if Postfix is linked against
+OpenLDAP and OpenLDAP was compiled with SSL support.  STARTTLS is
+controlled by the "start_tls" parameter.  The above parameters for
+certificates, source of random numbers, and cipher suites also
+apply.  See LDAP_README for further information.  By Liviu Daia,
+amended by Victor Duchovni.
+
 Major changes with Postfix snapshot 2.0.13-20030715
 ===================================================
 

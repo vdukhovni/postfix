@@ -8437,13 +8437,120 @@ Apologies for any names omitted.
 	when it is given a non-existent command-line macro name.
 	File:  pipe/pipe.c.
 
+20030810
+
+	Bugfix: dict_ldap had a few harmless memory leaks.  By
+	Liviu Daia.  File: util/dict_ldap.c.
+
+	Feature: support for LDAP URLs in the LDAP parameter
+	"server_host", if Postfix is linked against OpenLDAP.  This
+	allows Postfix to connect to LDAP SSL sources.  By Liviu
+	Daia.  File: util/dict_ldap.c.
+
+
 20030811
 
 	Cleanup: produce a warning when host:port specifies a badly
 	formatted numerical port.  Files:  util/find_inet.c,
 	smtp/smtp_connect.c, lmtp/lmtp_connect.c.
 
+20030822
+
+	Feature: the export_environment and import_environment
+	parameters now accept name=value information that will be
+	entered into the new environment. File: util/clean_env.c.
+
+20030823
+
+	Feature: smtpd_sasl_exceptions_networks parameter to prevent
+	Postfix from offering AUTH  to clients that match the listed
+	networks. Based on code by Ben Rosengart, Panix. Files:
+	conf/sample-auth.cf, smtpd/smtpd.c.
+
+20030905
+
+	Workaround: Solaris 8 select() claims that a non-blocking
+	socket is readable and then read() fails with EAGAIN. Files:
+	util/timed_read.c and as precautionary measure,
+	util/timed_write.c.
+
+	Bugfix: dict_register() should not be called from dict_open()
+	in dict_mysql and dict_pgsql.  Liviu Daia.  Files:
+	util/dict_mysql.c, util/dict_pgsql.c.
+
+	Feature: LDAP parameters can now be specified in external
+	files.  This makes it possible to securely store bind
+	passwords for plain auth outside of main.cf (which is world
+	readable).  By Liviu Daia, based on a suggestion by Victor
+	Duchovni and Lamont Jones.  File: util/dict_ldap.c.
+
+	Feature: STARTTLS option for LDAP, if Postfix is linked
+	against OpenLDAP.  By Liviu Daia, amended by Victor Duchovni.
+	File:  util/dict_ldap.c.
+
+	Cleanup: connections to LDAP sources are now postponed
+	until they are actually needed.  By Liviu Daia.  File:
+	util/dict_ldap.c.
+
+20030908
+
+	The 20030905 workaround triggers too many warnings. TCP
+	sockets are back to blocking, and keepalives are turned on
+	to kill off dead sockets, as suggested by Leandro Santi.
+	Files: master/{single,multi}_server.c, smtpd/smtpd.c,
+	util/sys_defs.h.
+
+20030909
+
+	Bugfix: the LMTP session caching code had problems with
+	SASL authentication after the first connection, and pipelining
+	was working poorly.  Fix by Victor Duchovni, Morgan Stanley.
+	Files: lmtp/lmtp.c, lmtp/lmtp_proto.c.
+
+20030913
+
+	Safety: set-gid commands don't trust TZ.  File: msg_syslog.c.
+
+20030914
+
+	Address extension propagation wasn't documented enough when
+	it was added to Postfix. Based on patches by Roman Neuhauser.
+
+	Added clarifying notes to main.cf, master.cf and access by
+	Dean Gibson.
+
+	In header/body_checks, DUNNO is now the preferred action
+	instead of the now deprecated OK.
+
+	In header/body_checks, allow text after IGNORE and DUNNO,
+	suggested by Victor Duchovni, Morgan Stanley.  File:
+	src/cleanup/cleanup_message.c.
+
+	Feature: reject_rhsbl_helo. File: smtpd/smtpd_check.c.
+
+	Cleanup: the LMTP and SMTP clients now send "MAIL FROM:<sender>
+	AUTH=<>" when SASL authenticated. Suggested by by Victor
+	Duchovni, Morgan Stanley. Files: smtp/smtp_proto.c,
+	lmtp/lmtp_proto.c.
+
 Open problems:
+
+	Med: do not list myorigin in virtual_alias_maps.
+
+	High: when virtual aliasing is turned off after content
+	filtering, local submissions may escape virtual aliasing.
+
+	Med: qmgr should not exit while an asynchronous bounce
+	request is in progress; this can result in multiple
+	non-delivery notifications.
+
+	Low: postcat should be null byte transparent.
+
+	Low: qmgr_move should not reset time stamps on queue files
+	without shared lock (i.e. not open by a delivery agent).
+
+	Low: postsuper re-run after renaming files, but only a
+	limited number of times.
 
 	Doc: mention the proxy_interfaces parameter everywhere the
 	inet_interfaces and mydestination parameters are mentioned.

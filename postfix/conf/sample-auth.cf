@@ -78,6 +78,25 @@ smtpd_sasl_security_options = noanonymous
 #smtpd_sasl_local_domain = $mydomain
 smtpd_sasl_local_domain = $myhostname
 
+# The smtpd_sasl_exceptions_networks parameter controls what SMTP
+# clients Postfix will not offer AUTH support.
+# 
+# Some clients (Netscape 4 at least) have a bug that causes them to
+# require a login and password whenever AUTH is offered, whether it's
+# necessary or not. To work around this, specify, for example,
+# $mynetworks to prevent Postfix from offering AUTH to local clients.
+# 
+# Specify an explicit list of network/netmask patterns, where the
+# mask specifies the number of bits in the network part of a host
+# address.
+#
+# You can also specify the absolute pathname of a pattern file instead
+# of listing the patterns here. Specify type:table for table-based lookups
+# (the value on the table right-hand side is not used).
+#
+#smtpd_sasl_exceptions_networks = $mynetworks
+smtpd_sasl_exceptions_networks =
+
 # SMTP CLIENT CONTROLS
 
 # The smtp_sasl_auth_enable parameter controls whether authentication

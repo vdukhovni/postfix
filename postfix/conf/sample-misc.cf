@@ -88,8 +88,10 @@ enable_original_recipient = yes
 # 
 # - TZ is needed for sane time keeping on most SYSV-ish systems
 # 
-# Specify a list of names separated by whitespace or comma.
+# Specify a list of names and/or name=value pairs, separated by 
+# whitespace or comma.
 #
+#export_environment = TZ PATH=/bin:/usr/bin
 export_environment = TZ
 
 # The hash_queue_depth parameter specifies the number of subdirectory
@@ -133,7 +135,8 @@ hopcount_limit = 50
 #   with an X-windows debugger.
 # - MAIL_CONFIG is needed to make "postfix -c" work.
 # 
-# Specify a list of names separated by whitespace or comma.
+# Specify a list of names and/or name=value pairs, separated by 
+# whitespace or comma.
 #
 #import_environment = MAIL_CONFIG TZ XAUTHORITY DISPLAY HOME PURIFYOPTIONS
 import_environment = MAIL_CONFIG MAIL_DEBUG MAIL_LOGTAG TZ XAUTHORITY DISPLAY

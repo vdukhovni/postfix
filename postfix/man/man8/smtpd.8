@@ -73,9 +73,14 @@ a configuration change.
 Disallow non-RFC 821 style addresses in SMTP commands. For example,
 the RFC822-style address forms with comments that Sendmail allows.
 .IP \fBbroken_sasl_auth_clients\fR
-Support older Microsoft clients that mis-implement the AUTH
+Support Microsoft clients that implement an older version of the AUTH
 protocol, and that expect an EHLO response of "250 AUTH=list"
 instead of "250 AUTH list".
+.IP \fBsmtpd_sasl_exceptions_networks\fR
+Don't offer AUTH in the response to EHLO when talking to clients
+in the specified networks.  This is a workaround for clients that
+that demand a login and password from the user whenever AUTH is
+offered by an SMTP server.
 .IP \fBsmtpd_noop_commands\fR
 List of commands that are treated as NOOP (no operation) commands,
 without any parameter syntax checking and without any state change.
