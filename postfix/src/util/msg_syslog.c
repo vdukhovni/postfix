@@ -174,7 +174,7 @@ void    msg_syslog_init(const char *name, int logopt, int facility)
      * This scrubbing code is in the wrong place.
      */
     if (unsafe())
-	putenv("TZ=");
+	putenv("TZ=UTC");
     tzset();
     openlog(name, LOG_NDELAY | logopt, facility);
     if (first_call) {

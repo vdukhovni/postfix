@@ -7899,6 +7899,63 @@ Apologies for any names omitted.
 
 	Safety: set-gid commands don't trust TZ.  File: msg_syslog.c.
 
+20031027
+
+	Portability: MacOS X Bind8 compatibility. File: makedefs.
+
+20031110
+
+	Cleanup: don't report that $queue_directory/etc/filename
+	differs from /etc/filename when /etc/filename does not
+	exist.  File: conf/postfix-script.
+
+20031126
+
+	Bugfix: "panic: mymalloc: requested length 0" when master.cf
+	specified an invalid host name or address.  Postfix now
+	logs more specific information. File:  master/master_ent.c.
+	Reported by several people.
+
+20031215
+
+	Safety: updated mail_queue_id_ok() for long fast flush
+	logfile names. File: global/mail_queue.c.
+
+	Robustness: save and restore the resolver _res.options
+	settings before and after DNS lookup, to avoid surprises
+	in third-party code. This may eliminate some "localhost
+	not found" problems. File: dns/dns_lookup.c.
+
+20031222
+
+	Cleanup: shaved half the worst-case bits off the cleanup
+	duplicate address filter footprint. After discussion with
+	Victor Duchovni. File: cleanup/cleanup_out_recipient.c.
+
+20031223
+
+	Bugfix: restore errno after write failure in SIGCHLD handler.
+	Leandro Santi. File: master/master_sig.c.
+
+20040104
+
+	Workaround: MacOSX dumps core on the 20030913 TZ censoring
+	code. We explictly set TZ=UTC, which will produce incorrect
+	results when "mailq" formatting is moved from the showq
+	daemon to the postqueue command.   File: msg_syslog.c.
+
+	Bugfix: vstring_get() etc. now return VSTREAM_EOF when they
+	terminate prematurely, instead of returning the last
+	character stored.  This avoids mis-leading warnings. File:
+	global/vstring_vstream.c.
+
+20040115
+
+	Performance: allow delivery concurrency to increase even
+	while mail is deferred, as long as the delivery agent does
+	not report really serious trouble with the destination.
+	Files:  *qmgr/qmgr_deliver.c.
+
 Open problems:
 
 	Doc: mention the proxy_interfaces parameter everywhere the

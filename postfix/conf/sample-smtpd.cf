@@ -396,7 +396,7 @@ smtpd_sender_restrictions =
 #	  $virtual_alias_domains, or $virtual_mailbox_domains.
 #	- to destinations matching $relay_domains or subdomain thereof,
 #	  except for addresses with sender-specified routing.
-#   reject_unauth_destination: reject mail unless it is sent
+#  *reject_unauth_destination: reject mail unless it is sent
 #	- to destinations matching $inet_interfaces, $mydestination,
 #	  $virtual_alias_domains, or $virtual_mailbox_domains.
 #	- to destinations matching $relay_domains or subdomain thereof,

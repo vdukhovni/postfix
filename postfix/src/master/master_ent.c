@@ -303,7 +303,9 @@ MASTER_SERV *get_master_ent()
 	    MASTER_INET_ADDRLIST(serv) = (INET_ADDR_LIST *)
 		mymalloc(sizeof(*MASTER_INET_ADDRLIST(serv)));
 	    inet_addr_list_init(MASTER_INET_ADDRLIST(serv));
-	    inet_addr_host(MASTER_INET_ADDRLIST(serv), host);
+	    if (inet_addr_host(MASTER_INET_ADDRLIST(serv), host) == 0)
+		msg_fatal("%s: line %d: bad hostname or network address: %s",
+			  VSTREAM_PATH(master_fp), master_line, host);
 	    inet_addr_list_uniq(MASTER_INET_ADDRLIST(serv));
 	    serv->listen_fd_count = MASTER_INET_ADDRLIST(serv)->used;
 	} else if (strcasecmp(saved_interfaces, DEF_INET_INTERFACES) == 0) {
