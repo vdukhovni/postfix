@@ -49,6 +49,9 @@
 # In order to use the "cyrus" message transport below, configure it
 # in main.cf as the mailbox_transport.
 #
+# SPECIFY ONLY PROGRAMS THAT ARE WRITTEN TO RUN AS POSTFIX DAEMONS.
+# ALL DAEMONS SPECIFIED HERE MUST SPEAK A POSTFIX-INTERNAL PROTOCOL.
+#
 # ==========================================================================
 # service type	private	unpriv	chroot	wakeup	maxproc	command + args
 # 		(yes)	(yes)	(yes)	(never)	(50)
@@ -72,4 +75,3 @@ ifmail    unix  -       n       n       -       -       pipe
     flags=F user=ftn argv=/usr/lib/ifmail/ifmail -r $nexthop ($recipient)
 bsmtp     unix  -       n       n       -       -       pipe
     flags=F. user=foo argv=/usr/local/sbin/bsmtp -f $sender $nexthop $recipient
-

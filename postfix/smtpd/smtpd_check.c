@@ -963,6 +963,12 @@ static int permit_mx_backup(SMTPD_STATE *unused_state, const char *recipient)
 	msg_info("%s: not local: %s", myname, recipient);
 
     /*
+     * Skip source-routed mail (uncertain destination).
+     */
+    if (var_allow_untrust_route == 0 && (reply.flags & RESOLVE_FLAG_ROUTED))
+	return (SMTPD_CHECK_DUNNO);
+
+    /*
      * Skip numerical forms that didn't match the local system.
      */
     if (domain[0] == '#'
@@ -1184,11 +1190,19 @@ static int check_table_result(SMTPD_STATE *state, char *table,
     }
 
     /*
-     * Recursively evaluate the restrictions given in the right-hand side.
+     * Recursively evaluate the restrictions given in the right-hand side. In
+     * the dark ages, an empty right-hand side meant OK. Make some
+     * discouraging comments.
      */
     restrictions = argv_split(value, " \t\r\n,");
-    status = generic_checks(state, restrictions, reply_name,
-			    reply_class, def_acl);
+    if (restrictions->argc == 0) {
+	msg_warn("SMTPD access map %s entry %s has empty value",
+		 table, value);
+	status = SMTPD_CHECK_OK;
+    } else {
+	status = generic_checks(state, restrictions, reply_name,
+				reply_class, def_acl);
+    }
     argv_free(restrictions);
     return (status);
 }

@@ -24,6 +24,17 @@
 # .IP "\fI.domain transport\fR:\fInexthop\fR"
 #	Mail for any subdomain of \fIdomain\fR is delivered through
 #	\fItransport\fR to \fInexthop\fR.
+# .PP
+#	Note: transport map entries take precedence over domains
+#	specified in the \fBmydestination\fR parameter. If you use
+#	the optional transport map, it may be safer to specify explicit
+#	entries for all domains specified in \fBmydestination\fR,
+#	for example:
+#
+# .ti +5
+#	\fBhostname.my.domain       local:\fR
+# .ti +5
+#	\fBlocalhost.my.domain      local:\fR
 #
 #	The interpretation of the \fInexthop\fR field is transport
 #	dependent. In the case of SMTP, specify \fIhost\fR:\fIservice\fR for a

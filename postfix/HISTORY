@@ -3497,3 +3497,21 @@ Apologies for any names omitted.
 	with @ in the recipient localpart no longer bounces with
 	"user unknown" but instead is rejected with "relay access
 	denied" or "source-routed relay access denied".
+
+19991227
+
+	Workaround: the BSD/OS "mkdir -p" and "cmp -s" commands
+	misbehave on boundary cases: directory exists or file does
+	not exist. Those who re-invent...
+
+19991229
+
+	Added the no source routing info requirement to addresses
+	accepted by the permit_mx_backup UCE restriction.
+
+19991230
+
+	Added a spawn daemon (not compiled and installed by default)
+	to enable LMTP delivery over UNIX-domain sockets. The goal
+	is to simplify the experimental LMTP delivery agent by
+	ripping out the privileged code that forks the LMTP server.

@@ -584,7 +584,7 @@ href="#relay_domains">$relay_domains</a> or a subdomain thereof,
 <li>from untrusted clients to destinations that match <a
 href="#relay_domains"> $relay_domains</a> or a subdomain thereof,
 except for addresses that contain sender-specified routing
-(<i>user@there@here</i>).
+(<i>user@elsewhere@domain</i>).
 
 </ul>
 
@@ -656,7 +656,7 @@ or a subdomain thereof,
 <li>the resolved destination address matches <a
 href="#relay_domains">$relay_domains</a> or a subdomain thereof,
 and the address contains no sender-specified routing
-(<i>user@there@here</i>),
+(<i>user@elsewhere@domain</i>),
 
 <li>Postfix is the final destination:  any destination that matches
 <a href="basic.html#mydestination">$mydestination</a>, <a
@@ -674,14 +674,14 @@ parameter specifies the response code for rejected requests (default:
 <a name="permit_auth_destination">
 
 <dt> <b>permit_auth_destination</b> <dd> Ignore the client hostname.
-Permit the request when:
+Permit the request when one of the following is true:
 
 <ul>
 
 <li>the resolved destination address matches <a
 href="#relay_domains">$relay_domains</a> or a subdomain thereof,
 and the address contains no sender-specified routing
-(<i>user@there@here</i>),
+(<i>user@elsewhere@domain</i>),
 
 <li>Postfix is the final destination:  any destination that matches
 <a href="basic.html#mydestination">$mydestination</a>, <a
@@ -697,14 +697,14 @@ Otherwise proceed with the next restriction.
 <a name="reject_unauth_destination">
 
 <dt> <b>reject_unauth_destination</b> <dd> Ignore the client
-hostname.  Reject the request unless:
+hostname.  Reject the request unless one of the following is true:
 
 <ul>
 
 <li>the resolved destination address matches <a
 href="#relay_domains">$relay_domains</a> or a subdomain thereof,
 and the address contains no sender-specified routing
-(<i>user@there@here</i>),
+(<i>user@elsewhere@domain</i>),
 
 <li>Postfix is the final destination:  any destination that matches
 <a href="basic.html#mydestination">$mydestination</a>, <a
@@ -723,6 +723,12 @@ code for rejected requests (default:  <b>554</b>).
 <dt> <b>permit_mx_backup</b> <dd> Permit the request when the local
 mail system is MX host for the resolved destination. This includes
 the case that the local mail system is the final destination.
+However, the SMTP server will not forward mail with addresses that
+have sender-specified routing information (example:
+<i>user@elsewhere@domain</i>),
+
+<p>
+
 Relevant configuration parameters:  <a href="basic.html#mydestination">
 $mydestination</a>, <a href="basic.html#inet_interfaces">
 $inet_interfaces</a>.
@@ -1029,7 +1035,7 @@ href="#relay_domains">$relay_domains</a> or a subdomain thereof,
 <li>from untrusted clients to destinations that match <a
 href="#relay_domains"> $relay_domains</a> or a subdomain thereof,
 except for addresses that contain sender-specified routing
-(<i>user@there@here</i>).
+(<i>user@elsewhere@domain</i>).
 
 </ul>
 

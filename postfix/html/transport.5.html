@@ -37,12 +37,21 @@ TRANSPORT(5)                                         TRANSPORT(5)
               Mail for  any  subdomain  of  <i>domain</i>  is  delivered
               through <i>transport</i> to <i>nexthop</i>.
 
-              The  interpretation  of the <i>nexthop</i> field is trans-
-              port  dependent.  In  the  case  of  SMTP,  specify
-              <i>host</i>:<i>service</i> for a non-default server port, and use
-              [<i>host</i>] or [<i>host</i>:<i>port</i>] in order to disable MX  (mail
-              exchanger)  DNS  lookups.  The  [] form can also be
-              used with IP addresses instead of hostnames.
+       Note:  transport  map entries take precedence over domains
+       specified in the <b>mydestination</b> parameter. If you  use  the
+       optional  transport  map,  it  may  be  safer  to  specify
+       explicit entries for all domains specified  in  <b>mydestina-</b>
+       <b>tion</b>, for example:
+
+            <b>hostname.my.domain</b>       <b>local:</b>
+            <b>localhost.my.domain</b>      <b>local:</b>
+
+       The  interpretation  of  the  <i>nexthop</i>  field  is transport
+       dependent. In the case of SMTP, specify <i>host</i>:<i>service</i> for a
+       non-default  server port, and use [<i>host</i>] or [<i>host</i>:<i>port</i>] in
+       order to disable MX (mail exchanger) DNS lookups.  The  []
+       form  can  also be used with IP addresses instead of host-
+       names.
 
 <b>EXAMPLES</b>
        In order to send mail for <b>foo.org</b> and its subdomains
@@ -50,15 +59,6 @@ TRANSPORT(5)                                         TRANSPORT(5)
 
             <b>foo.org</b>      <b>uucp:foo</b>
             <b>.foo.org</b>     <b>uucp:foo</b>
-
-       When no <i>nexthop</i> host name is specified, the destination domain
-       name is used instead. For example, the following directs mail for
-       <i>user</i>@<b>foo.org</b> via the <b>slow</b> transport to a mail
-       exchanger for <b>foo.org</b>.  The <b>slow</b> transport could be
-       something that runs at most one delivery process at a time:
-
-            <b>foo.org</b>      <b>slow:</b>
-
 
 
 
@@ -70,6 +70,14 @@ TRANSPORT(5)                                         TRANSPORT(5)
 
 TRANSPORT(5)                                         TRANSPORT(5)
 
+
+       When no <i>nexthop</i> host name is specified, the destination domain
+       name is used instead. For example, the following directs mail for
+       <i>user</i>@<b>foo.org</b> via the <b>slow</b> transport to a mail
+       exchanger for <b>foo.org</b>.  The <b>slow</b> transport could be
+       something that runs at most one delivery process at a time:
+
+            <b>foo.org</b>      <b>slow:</b>
 
        When no <i>transport</i> is specified, the default transport is
        used, as specified via the <b>default</b><i>_</i><b>transport</b> configuration
@@ -117,14 +125,6 @@ TRANSPORT(5)                                         TRANSPORT(5)
               The default host to send to when no transport table
               entry matches.
 
-<b>SEE</b> <b>ALSO</b>
-       <a href="postmap.1.html">postmap(1)</a> create mapping table
-       <a href="trivial-rewrite.8.html">trivial-rewrite(8)</a> rewrite and resolve addresses
-
-<b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
-       software.
-
 
 
 
@@ -137,19 +137,19 @@ TRANSPORT(5)                                         TRANSPORT(5)
 TRANSPORT(5)                                         TRANSPORT(5)
 
 
+<b>SEE</b> <b>ALSO</b>
+       <a href="postmap.1.html">postmap(1)</a> create mapping table
+       <a href="trivial-rewrite.8.html">trivial-rewrite(8)</a> rewrite and resolve addresses
+
+<b>LICENSE</b>
+       The  Secure  Mailer  license must be distributed with this
+       software.
+
 <b>AUTHOR(S)</b>
        Wietse Venema
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
-
-
-
-
 
 
 

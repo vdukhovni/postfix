@@ -233,7 +233,7 @@ test -d $COMMAND_DIRECTORY || mkdir -p $COMMAND_DIRECTORY || exit 1
 test -d $QUEUE_DIRECTORY || mkdir -p $QUEUE_DIRECTORY || exit 1
 for path in $SENDMAIL_PATH $NEWALIASES_PATH $MAILQ_PATH
 do
-    dir=`echo $path|sed 's/[^/]*[/]*$//'`
+    dir=`echo $path|sed -e 's/[/][/]*[^/]*$//' -e 's/^$/\//'`
     test -d $dir || mkdir -p $dir || exit 1
 done
 
@@ -324,7 +324,7 @@ no) ;;
      done
      for file in man?/*
      do
-	 cmp -s $file $MANPAGES/$file || {
+	 (test -f $MANPAGES/$file && cmp -s $file $MANPAGES/$file) || {
 	     rm -f $MANPAGES/$file
 	     cp $file $MANPAGES/$file || exit 1
 	     chmod 644 $MANPAGES/$file || exit 1

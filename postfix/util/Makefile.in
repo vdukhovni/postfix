@@ -20,7 +20,7 @@ SRCS	= argv.c argv_split.c attr.c basename.c binhash.c chroot_uid.c \
 	vstream.c vstream_popen.c vstring.c vstring_vstream.c writable.c \
 	write_buf.c write_wait.c dict_unix.c dict_pcre.c stream_listen.c \
 	stream_connect.c stream_trigger.c dict_regexp.c mac_expand.c \
-	clean_env.c watchdog.c
+	clean_env.c watchdog.c spawn_command.c
 OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	close_on_exec.o concatenate.o dict.o dict_db.o dict_dbm.o \
 	dict_env.o dict_ht.o dict_ldap.o dict_mysql.o dict_ni.o dict_nis.o \
@@ -42,7 +42,7 @@ OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	vstream.o vstream_popen.o vstring.o vstring_vstream.o writable.o \
 	write_buf.o write_wait.o dict_unix.o dict_pcre.o stream_listen.o \
 	stream_connect.o stream_trigger.o dict_regexp.o mac_expand.o \
-	clean_env.o watchdog.o
+	clean_env.o watchdog.o spawn_command.o
 HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	dict_dbm.h dict_env.h dict_ht.h dict_ldap.h dict_mysql.h \
 	dict_ni.h dict_nis.h dict_nisplus.h dir_forest.h events.h \
@@ -57,7 +57,7 @@ HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	timed_connect.h timed_wait.h trigger.h username.h valid_hostname.h \
 	vbuf.h vbuf_print.h vstream.h vstring.h vstring_vstream.h \
 	dict_unix.h dict_pcre.h dict_regexp.h mac_expand.h clean_env.h \
-	watchdog.h
+	watchdog.h spawn_command.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
@@ -746,6 +746,15 @@ sigdelay.o: sigdelay.h
 skipblanks.o: skipblanks.c
 skipblanks.o: sys_defs.h
 skipblanks.o: stringops.h
+spawn_command.o: spawn_command.c
+spawn_command.o: sys_defs.h
+spawn_command.o: msg.h
+spawn_command.o: timed_wait.h
+spawn_command.o: set_ugid.h
+spawn_command.o: argv.h
+spawn_command.o: spawn_command.h
+spawn_command.o: exec_command.h
+spawn_command.o: clean_env.h
 split_at.o: split_at.c
 split_at.o: sys_defs.h
 split_at.o: split_at.h

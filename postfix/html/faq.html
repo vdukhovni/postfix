@@ -76,7 +76,7 @@
 
 <li><a href="#root">Root's mail is delivered to nobody</a>
 
-<li><a href="#bogus">Postfix accepts mail for non-existing users</a>
+<li><a href="#bogus">Postfix accepts mail for non-existing local users</a>
 
 <li><a href="#duplicate">Postfix sends duplicate mail</a>
 
@@ -118,7 +118,7 @@ virtual domains</a>
 
 <li><a href="#root">Root's mail is delivered to nobody</a>
 
-<li><a href="#bogus">Postfix accepts mail for non-existing users</a>
+<li><a href="#bogus">Postfix accepts mail for non-existing local users</a>
 
 <li><a href="#some_local">Delivering some users locally while
 sending mail as user@domain</a>
@@ -569,6 +569,30 @@ Put the following command into your PPP or SLIP dialup scripts:
 The exact location of the <b>sendmail</b> command is system-specific.
 With some UNIX versions, use <b>/usr/lib/sendmail</b>.
 
+<p>
+
+In order to find out if the mail queue is flushed, use something
+like:
+
+<p>
+<pre>
+    #!/bin/sh
+
+    # Start deliveries.
+    /usr/sbin/sendmail -q
+
+    # Allow deliveries to start.
+    sleep 10
+
+    # Loop until all messages have been tried at least once.
+    while mailq | grep '^[^ ]*\*' &gt;/dev/null
+    do  
+        sleep 10
+    done
+</pre>
+
+<p>
+
 If you have disabled <a href="#spontaneous_smtp">spontaneous SMTP
 mail delivery</a>, you also need to run the above command every
 now and then while the dialup link is up, so that newly-posted mail
@@ -704,18 +728,106 @@ mail for arbitrary non-local destinations:
     &lt;&lt;&lt; 250 Ok: queued as A958F5A15
 </pre>
 
-
 <p>
 
 Don't Panic!  Upgrade to a Postfix version of 19991227 or later.
 
 <p>
 
-Older Postfix versions would either <i>bounce</i> the mail because
-"test@some.other.site" is not a known local username (which is
-good), or they would <i>forward</i> the mail to a primary MX host
-for "some.site" which would then spam it into the Internet (which
-is bad).
+With earlier Postfix versions, 
+
+<ol>
+
+<li>Good but confusing: a Postfix primary MX host for <i>some.site</i>
+accepts <i>test@some.other.site@some.site</i> then bounces it because
+<i>test@some.other.site</i> is not a known local username.
+
+<li>Good: a Postfix primary MX host for <i>some.site</i> rejects
+other source-routed addresses such as <i>test%some.other.site@some.site</i>
+or <i>some.other.site!test@some.site</i>.
+
+<li>Loophole: a Postfix backup MX host for <i>some.site</i> forwards
+source-routed addresses such as <i>test@some.other.site@some.site</i>
+or <i>test%some.other.site@some.site</i> to a primary MX host for
+<i>some.site</i>. Depending on the primary MX host's mailer
+configuration, the primary MX host could then spam the mail into
+the Internet.
+
+</ol>
+
+<p>
+
+With newer Postfix versions,
+
+<ol>
+
+<li>A Postfix primary MX host for <i>some.site</i> host rejects
+<i>test@some.other.site@some.site</i> just like it rejects
+<i>test%some.other.site@some.site</i>.  This ends the confusion
+mentioned in 1 above.
+
+<li>A Postfix backup MX host for <i>some.site</i> host rejects
+source-routed addresses including <i>test@some.other.site@some.site</i>.
+This closes the loophole mentioned in 3 above.
+
+</ol>
+
+<p>
+
+To be precise, Postfix UCE restrictions refuse to forward source-routed
+addresses under the following conditions:
+
+<p>
+
+<ul>
+
+<li> <a href="uce.html#check_relay_domains">check_relay_domains</a>:
+reject when the destination is not local and when the client hostname
+does not match <a href="uce.html#relay_domains">relay_domains</a>.
+
+<li> <a
+href="uce.html#permit_auth_destination">permit_auth_destination</a>:
+skip when the destination is not local.
+
+<li> <a
+href="uce.html#reject_unauth_destination">reject_unauth_destination</a>:
+reject when the destination is not local.
+
+<li> <a href="uce.html#permit_mx_backup">permit_mx_backup</a>:
+reject when the destination is not local.
+
+<li> Other UCE restrictions (e.g., SMTPD access maps) are not aware
+of sender-provided routing information.
+
+</ul>
+
+<p>
+
+However, a Postfix primary MX host for still forwards source-routed
+addresses <b>if received from a trusted client</b>, just like it
+did before.
+
+<p>
+
+In order to have guaranteed protection against source-routed relaying
+through trusted SMTP clients, specify a regular expression restriction
+ahead of the other SMTPD recipient restrictions:
+
+<p>
+
+<pre>
+    <b>/etc/postfix/main.cf</b>:
+        smtpd_recipient_restrictions = 
+	    regexp:/etc/postfix/regexp_access
+	    <i>...other restrictions...</i>
+
+    <b>/etc/postfix/regexp_access</b>:
+        /[%!@].*[%!@]/ 550 Sender specified routing is not supported here.
+</pre>
+
+<p>
+
+This would be installed on all MX hosts.
 
 <hr>
 
@@ -1008,10 +1120,11 @@ To find out the location for your system, execute the command
 
 <hr>
 
-<a name="bogus"><h3>Postfix accepts mail for non-existing users</h3>
+<a name="bogus"><h3>Postfix accepts mail for non-existing local users</h3>
 
 The information in this section applies to Postfix versions 19991216
-and later.
+and later. See elsewhere for <a href="#unknown_virtual">unknown
+virtual</a> users.
 
 <p>
 
@@ -1024,7 +1137,7 @@ types of user databases.
 
 Of course mail for a non-existent local user will eventually bounce
 as undeliverable, but why accept such mail in the first place? You
-can tell the Postfix SMTP server how find out if a user exists by
+can tell the Postfix SMTP server how to find out if a user exists by
 listing all tables with local addresses in the <b>local_recipient_maps</b>
 parameter:
 
@@ -1686,8 +1799,17 @@ host.
 
 <ul>
 
-<li>Specify that mail for, let's say, <i>some.domain</i>, should be
-delivered via UUCP, for example, to a host named <i>uucp-host</i>:
+<li>You need an <b>rmail</b> program that extracts the sender
+address from mail that arrives via UUCP, and that feeds the mail
+into the Postfix <b>sendmail<b> command.  Most UNIX systems come
+with an <b>rmail</b> utility. If you're in a pinch, try the one
+bundled with the Postfix source code in the <b>auxiliary</b>
+directory. Some day Postfix may have its own <b>rmail</b> command.
+
+<p>
+
+<li>Specify that mail for, let's say, <i>some.domain</i>, should
+be delivered via UUCP, for example, to a host named <i>uucp-host</i>:
 
 <p>
 
