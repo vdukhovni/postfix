@@ -4630,12 +4630,30 @@ Apologies for any names omitted.
 
 	Bugfix: dict_ldap did not properly initialize a handle
 	after connection timeout. Problem reported by Alain Thivillon.
-	did not take his patch because I have no means to verify
-	the code. File: util/dict_ldap.c.
+	File: util/dict_ldap.c.
 
 20001214
 
 	Feature: local_transport and default_transport now also
 	understand the transport[:destination] notation, so that
-	transport parameters are similar again. File:
+	all transport config parameters are similar again. File:
 	trivial-rewrite/resolve.c, trivial-rewrite/transport.c.
+
+	Code cleanup: mailbox_transport and fallback_transport no
+	longer allow the user to omit the transport part of a
+	transport:destination specification. That just did not make
+	any sense at all. The :destination part is still optional.
+	File: global/deliver_pass.c.
+
+	Feature: most time-related configuration parameters take
+	a one-letter suffix that specifies the time unit:  s
+	(second), m (minutes), h (hours), d (days), w (weeks).
+	"postconf -d" output includes the default time unit. Files:
+	many.
+
+	Code cleanup: in a CONFIG_TIME_TABLE, the default time unit
+	is now always the last character of a default time value.
+	It is no longer necessary to specify the default time unit
+	separately. This change means that it is not longer possible
+	to specify default values in the form of function calls.
+	Files: global/mail_conf_time.c, and user code.

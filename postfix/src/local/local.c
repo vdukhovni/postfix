@@ -626,7 +626,7 @@ static void post_init(char *unused_name, char **unused_argv)
 int     main(int argc, char **argv)
 {
     static CONFIG_TIME_TABLE time_table[] = {
-	VAR_COMMAND_MAXTIME, DEF_COMMAND_MAXTIME, &var_command_maxtime, 's', 1, 0,
+	VAR_COMMAND_MAXTIME, DEF_COMMAND_MAXTIME, &var_command_maxtime, 1, 0,
 	0,
     };
     static CONFIG_INT_TABLE int_table[] = {

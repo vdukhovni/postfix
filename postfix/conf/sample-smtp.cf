@@ -114,8 +114,11 @@ smtp_destination_recipient_limit = $default_destination_recipient_limit
 # tries the next address on the mail exchanger list. Specify 0 to
 # disable the timeout.
 #
-# smtp_connect_timeout = 30
-smtp_connect_timeout = 0
+# Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+# The default time unit is s (seconds).
+#
+# smtp_connect_timeout = 30s
+smtp_connect_timeout = 0s
 
 # The smtp_helo_timeout parameter specifies the SMTP client timeout
 # in seconds for receiving the SMTP greeting banner.
@@ -124,7 +127,10 @@ smtp_connect_timeout = 0
 # banner, or when it sends no greeting banner within the deadline,
 # the SMTP client tries the next address on the mail exchanger list.
 #
-smtp_helo_timeout = 300
+# Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+# The default time unit is s (seconds).
+#
+smtp_helo_timeout = 300s
 
 # The smtp_mail_timeout parameter specifies the SMTP client timeout
 # in seconds for sending the SMTP MAIL FROM command, and for receiving
@@ -133,7 +139,10 @@ smtp_helo_timeout = 300
 # In case of problems the client does NOT try the next address on
 # the mail exchanger list.
 #
-smtp_mail_timeout = 300
+# Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+# The default time unit is s (seconds).
+#
+smtp_mail_timeout = 300s
 
 # The smtp_rcpt_timeout parameter specifies the SMTP client timeout
 # in seconds for sending the SMTP RCPT TO command, and for receiving
@@ -142,7 +151,10 @@ smtp_mail_timeout = 300
 # In case of problems the client does NOT try the next address on
 # the mail exchanger list.
 #
-smtp_rcpt_timeout = 300
+# Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+# The default time unit is s (seconds).
+#
+smtp_rcpt_timeout = 300s
 
 # The smtp_data_init_timeout parameter specifies the SMTP client
 # timeout in seconds for sending the SMTP DATA command, and for
@@ -151,7 +163,10 @@ smtp_rcpt_timeout = 300
 # In case of problems the client does NOT try the next address on
 # the mail exchanger list.
 #
-smtp_data_init_timeout = 120
+# Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+# The default time unit is s (seconds).
+#
+smtp_data_init_timeout = 120s
 
 # The smtp_data_xfer_timeout parameter specifies the SMTP client
 # timeout in seconds for sending the SMTP message content. When
@@ -161,7 +176,10 @@ smtp_data_init_timeout = 120
 # In case of problems the client does NOT try the next address on
 # the mail exchanger list.
 #
-smtp_data_xfer_timeout = 180
+# Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+# The default time unit is s (seconds).
+#
+smtp_data_xfer_timeout = 180s
 
 # The smtp_data_done_timeout parameter specifies the SMTP client
 # timeout in seconds for sending the SMTP ".", and for receiving
@@ -173,10 +191,16 @@ smtp_data_xfer_timeout = 180
 # In case of problems the client does NOT try the next address on
 # the mail exchanger list.
 #
-smtp_data_done_timeout = 600
+# Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+# The default time unit is s (seconds).
+#
+smtp_data_done_timeout = 600s
 
 # The smtp_quit_timeout parameter specifies the SMTP client timeout
 # in seconds for sending the SMTP QUIT command, and for receiving
 # the server response.
 #
-smtp_quit_timeout = 300
+# Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+# The default time unit is s (seconds).
+#
+smtp_quit_timeout = 300s

@@ -58,7 +58,10 @@ smtpd_recipient_limit = 1000
 # Note: if you set SMTP timeouts to large values you must update the
 # global ipc_timeout parameter as well. See sample-misc.cf for details.
 #
-smtpd_timeout = 300
+# Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+# The default time unit is s (seconds).
+#
+smtpd_timeout = 300s
 
 #
 # TARPIT CONTROLS

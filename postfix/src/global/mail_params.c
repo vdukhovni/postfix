@@ -307,14 +307,14 @@ void    mail_params_init()
 	0,
     };
     static CONFIG_TIME_TABLE time_defaults[] = {
-	VAR_MAX_IDLE, DEF_MAX_IDLE, &var_idle_limit, 's', 1, 0,
-	VAR_IPC_IDLE, DEF_IPC_IDLE, &var_ipc_idle_limit, 's', 1, 0,
-	VAR_IPC_TIMEOUT, DEF_IPC_TIMEOUT, &var_ipc_timeout, 's', 1, 0,
-	VAR_TRIGGER_TIMEOUT, DEF_TRIGGER_TIMEOUT, &var_trigger_timeout, 's', 1, 0,
-	VAR_FLOCK_DELAY, DEF_FLOCK_DELAY, &var_flock_delay, 's', 1, 0,
-	VAR_FLOCK_STALE, DEF_FLOCK_STALE, &var_flock_stale, 's', 1, 0,
-	VAR_FORK_DELAY, DEF_FORK_DELAY, &var_fork_delay, 's', 1, 0,
-	VAR_DAEMON_TIMEOUT, DEF_DAEMON_TIMEOUT, &var_daemon_timeout, 's', 1, 0,
+	VAR_MAX_IDLE, DEF_MAX_IDLE, &var_idle_limit, 1, 0,
+	VAR_IPC_IDLE, DEF_IPC_IDLE, &var_ipc_idle_limit, 1, 0,
+	VAR_IPC_TIMEOUT, DEF_IPC_TIMEOUT, &var_ipc_timeout, 1, 0,
+	VAR_TRIGGER_TIMEOUT, DEF_TRIGGER_TIMEOUT, &var_trigger_timeout, 1, 0,
+	VAR_FLOCK_DELAY, DEF_FLOCK_DELAY, &var_flock_delay, 1, 0,
+	VAR_FLOCK_STALE, DEF_FLOCK_STALE, &var_flock_stale, 1, 0,
+	VAR_FORK_DELAY, DEF_FORK_DELAY, &var_fork_delay, 1, 0,
+	VAR_DAEMON_TIMEOUT, DEF_DAEMON_TIMEOUT, &var_daemon_timeout, 1, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_defaults[] = {

@@ -6,17 +6,9 @@
 /* SYNOPSIS
 /*	#include <mail_conf.h>
 /*
-/*	int	get_mail_conf_time(name, defval, def_unit, min, max);
+/*	int	get_mail_conf_time(name, defval, min, max);
 /*	const char *name;
 /*	const char *defval;
-/*	int	def_unit;
-/*	int	min;
-/*	int	max;
-/*
-/*	int	get_mail_conf_time_fn(name, defval, def_unit, min, max);
-/*	const char *name;
-/*	const char *(*defval)();
-/*	int	def_unit;
 /*	int	min;
 /*	int	max;
 /*
@@ -25,15 +17,11 @@
 /*	const char *value;
 /*
 /*	void	get_mail_conf_time_table(table)
-/*	CONFIG_INT_TABLE *table;
-/*
-/*	void	get_mail_conf_time_fn_table(table)
-/*	CONFIG_INT_TABLE *table;
+/*	CONFIG_TIME_TABLE *table;
 /* AUXILIARY FUNCTIONS
-/*	int	get_mail_conf_time2(name1, name2, defval, def_unit, min, max);
+/*	int	get_mail_conf_time2(name1, name2, defval, min, max);
 /*	const char *name1;
 /*	const char *name2;
-/*	const char *defval;
 /*	int	def_unit;
 /*	int	min;
 /*	int	max;
@@ -42,6 +30,7 @@
 /*	for time interval values. The conversion routines understand
 /*	one-letter suffixes to specify an explicit time unit: s
 /*	(seconds), m (minutes), h (hours), d (days) or w (weeks).
+/*	Internally, time is represented in seconds.
 /*
 /*	get_mail_conf_time() looks up the named entry in the global
 /*	configuration dictionary. The default value is returned
@@ -51,10 +40,6 @@
 /*	value or string length; \fImax\fR is zero or specifies an
 /*	upper limit on the integer value or string length.
 /*
-/*	get_mail_conf_time_fn() is similar but specifies a function that
-/*	provides the default value. The function is called only
-/*	when the default value is needed.
-/*
 /*	set_mail_conf_time() updates the named entry in the global
 /*	configuration dictionary. This has no effect on values that
 /*	have been looked up earlier via the get_mail_conf_XXX() routines.
@@ -62,11 +47,11 @@
 /*	get_mail_conf_time_table() and get_mail_conf_time_fn_table() initialize
 /*	lists of variables, as directed by their table arguments. A table
 /*	must be terminated by a null entry.
-/*
-/*	get_mail_conf_time2() concatenates the two names and is otherwise
-/*	identical to get_mail_conf_time().
 /* DIAGNOSTICS
 /*	Fatal errors: malformed numerical value, unknown time unit.
+/* BUGS
+/*	Values and defaults are given in any unit; upper and lower
+/*	bounds are given in seconds.
 /* SEE ALSO
 /*	config(3) general configuration
 /*	mail_conf_str(3) string-valued configuration parameters
@@ -86,6 +71,7 @@
 #include <sys_defs.h>
 #include <stdlib.h>
 #include <stdio.h>			/* sscanf() */
+#include <ctype.h>
 
 /* Utility library. */
 
@@ -111,31 +97,31 @@ static int convert_mail_conf_time(const char *name, int *intval, int def_unit)
     char    unit;
     char    junk;
 
-    if ((strval = mail_conf_lookup_eval(name)) != 0) {
-	switch (sscanf(strval, "%d%c%c", intval, &unit, &junk)) {
-	case 1:
-	    unit = def_unit;
-	case 2:
-	    switch (unit) {
-	    case 'w':
-		*intval *= WEEK;
-		return (1);
-	    case 'd':
-		*intval *= DAY;
-		return (1);
-	    case 'h':
-		*intval *= HOUR;
-		return (1);
-	    case 'm':
-		*intval *= MINUTE;
-		return (1);
-	    case 's':
-		return (1);
-	    }
+    if ((strval = mail_conf_lookup_eval(name)) == 0)
+	return (0);
+
+    switch (sscanf(strval, "%d%c%c", intval, &unit, &junk)) {
+    case 1:
+	unit = def_unit;
+    case 2:
+	switch (unit) {
+	case 'w':
+	    *intval *= WEEK;
+	    return (1);
+	case 'd':
+	    *intval *= DAY;
+	    return (1);
+	case 'h':
+	    *intval *= HOUR;
+	    return (1);
+	case 'm':
+	    *intval *= MINUTE;
+	    return (1);
+	case 's':
+	    return (1);
 	}
-	msg_fatal("bad time configuration: %s = %s", name, strval);
     }
-    return (0);
+    msg_fatal("bad time parameter configuration: %s = %s", name, strval);
 }
 
 /* check_mail_conf_time - validate integer value */
@@ -148,12 +134,33 @@ static void check_mail_conf_time(const char *name, int intval, int min, int max)
 	msg_fatal("invalid %s: %d (max %d)", name, intval, max);
 }
 
+/* get_def_time_unit - extract time unit from default value */
+
+static int get_def_time_unit(const char *name, const char *defval)
+{
+    const char *cp;
+
+    for (cp = defval; /* void */ ; cp++) {
+	if (*cp == 0)
+	    msg_panic("parameter %s: missing time unit in default value: %s",
+		      name, defval);
+	if (ISALPHA(*cp)) {
+	    if (cp[1] != 0)
+		msg_panic("parameter %s: bad time unit in default value: %s",
+			  name, defval);
+	    return (*cp);
+	}
+    }
+}
+
 /* get_mail_conf_time - evaluate integer-valued configuration variable */
 
-int     get_mail_conf_time(const char *name, const char *defval, int def_unit, int min, int max)
+int     get_mail_conf_time(const char *name, const char *defval, int min, int max)
 {
     int     intval;
+    int     def_unit;
 
+    def_unit = get_def_time_unit(name, defval);
     if (convert_mail_conf_time(name, &intval, def_unit) == 0)
 	set_mail_conf_time(name, defval);
     if (convert_mail_conf_time(name, &intval, def_unit) == 0)
@@ -165,35 +172,20 @@ int     get_mail_conf_time(const char *name, const char *defval, int def_unit, i
 /* get_mail_conf_time2 - evaluate integer-valued configuration variable */
 
 int     get_mail_conf_time2(const char *name1, const char *name2,
-		         const char *defval, int def_unit, int min, int max)
+			            const char *defval, int min, int max)
 {
     int     intval;
     char   *name;
+    int     def_unit;
 
     name = concatenate(name1, name2, (char *) 0);
+    def_unit = get_def_time_unit(name, defval);
     if (convert_mail_conf_time(name, &intval, def_unit) == 0)
 	set_mail_conf_time(name, defval);
     if (convert_mail_conf_time(name, &intval, def_unit) == 0)
 	msg_panic("get_mail_conf_time2: parameter not found: %s", name);
     check_mail_conf_time(name, intval, min, max);
     myfree(name);
-    return (intval);
-}
-
-/* get_mail_conf_time_fn - evaluate integer-valued configuration variable */
-
-typedef const char *(*stupid_indent_time) (void);
-
-int     get_mail_conf_time_fn(const char *name, stupid_indent_time defval,
-			              int def_unit, int min, int max)
-{
-    int     intval;
-
-    if (convert_mail_conf_time(name, &intval, def_unit) == 0)
-	set_mail_conf_time(name, defval());
-    if (convert_mail_conf_time(name, &intval, def_unit) == 0)
-	msg_panic("get_mail_conf_time_fn: parameter not found: %s", name);
-    check_mail_conf_time(name, intval, min, max);
     return (intval);
 }
 
@@ -210,18 +202,7 @@ void    get_mail_conf_time_table(CONFIG_TIME_TABLE *table)
 {
     while (table->name) {
 	table->target[0] = get_mail_conf_time(table->name, table->defval,
-				   table->def_unit, table->min, table->max);
-	table++;
-    }
-}
-
-/* get_mail_conf_time_fn_table - look up integers, defaults are functions */
-
-void    get_mail_conf_time_fn_table(CONFIG_TIME_FN_TABLE *table)
-{
-    while (table->name) {
-	table->target[0] = get_mail_conf_time_fn(table->name, table->defval,
-				   table->def_unit, table->min, table->max);
+					      table->min, table->max);
 	table++;
     }
 }

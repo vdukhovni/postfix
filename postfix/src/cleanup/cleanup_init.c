@@ -116,7 +116,7 @@ CONFIG_INT_TABLE cleanup_int_table[] = {
 };
 
 CONFIG_TIME_TABLE cleanup_time_table[] = {
-    VAR_DELAY_WARN_TIME, DEF_DELAY_WARN_TIME, &var_delay_warn_time, 'h', 0, 0,
+    VAR_DELAY_WARN_TIME, DEF_DELAY_WARN_TIME, &var_delay_warn_time, 0, 0,
     0,
 };
 

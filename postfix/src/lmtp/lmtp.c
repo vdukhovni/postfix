@@ -471,15 +471,15 @@ int     main(int argc, char **argv)
 	0,
     };
     static CONFIG_TIME_TABLE time_table[] = {
-	VAR_LMTP_CONN_TMOUT, DEF_LMTP_CONN_TMOUT, &var_lmtp_conn_tmout, 's', 0, 0,
-	VAR_LMTP_RSET_TMOUT, DEF_LMTP_RSET_TMOUT, &var_lmtp_rset_tmout, 's', 1, 0,
-	VAR_LMTP_LHLO_TMOUT, DEF_LMTP_LHLO_TMOUT, &var_lmtp_lhlo_tmout, 's', 1, 0,
-	VAR_LMTP_MAIL_TMOUT, DEF_LMTP_MAIL_TMOUT, &var_lmtp_mail_tmout, 's', 1, 0,
-	VAR_LMTP_RCPT_TMOUT, DEF_LMTP_RCPT_TMOUT, &var_lmtp_rcpt_tmout, 's', 1, 0,
-	VAR_LMTP_DATA0_TMOUT, DEF_LMTP_DATA0_TMOUT, &var_lmtp_data0_tmout, 's', 1, 0,
-	VAR_LMTP_DATA1_TMOUT, DEF_LMTP_DATA1_TMOUT, &var_lmtp_data1_tmout, 's', 1, 0,
-	VAR_LMTP_DATA2_TMOUT, DEF_LMTP_DATA2_TMOUT, &var_lmtp_data2_tmout, 's', 1, 0,
-	VAR_LMTP_QUIT_TMOUT, DEF_LMTP_QUIT_TMOUT, &var_lmtp_quit_tmout, 's', 1, 0,
+	VAR_LMTP_CONN_TMOUT, DEF_LMTP_CONN_TMOUT, &var_lmtp_conn_tmout, 0, 0,
+	VAR_LMTP_RSET_TMOUT, DEF_LMTP_RSET_TMOUT, &var_lmtp_rset_tmout, 1, 0,
+	VAR_LMTP_LHLO_TMOUT, DEF_LMTP_LHLO_TMOUT, &var_lmtp_lhlo_tmout, 1, 0,
+	VAR_LMTP_MAIL_TMOUT, DEF_LMTP_MAIL_TMOUT, &var_lmtp_mail_tmout, 1, 0,
+	VAR_LMTP_RCPT_TMOUT, DEF_LMTP_RCPT_TMOUT, &var_lmtp_rcpt_tmout, 1, 0,
+	VAR_LMTP_DATA0_TMOUT, DEF_LMTP_DATA0_TMOUT, &var_lmtp_data0_tmout, 1, 0,
+	VAR_LMTP_DATA1_TMOUT, DEF_LMTP_DATA1_TMOUT, &var_lmtp_data1_tmout, 1, 0,
+	VAR_LMTP_DATA2_TMOUT, DEF_LMTP_DATA2_TMOUT, &var_lmtp_data2_tmout, 1, 0,
+	VAR_LMTP_QUIT_TMOUT, DEF_LMTP_QUIT_TMOUT, &var_lmtp_quit_tmout, 1, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {

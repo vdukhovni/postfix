@@ -14,7 +14,10 @@ always_bcc =
 # take to handle a request before it assumes it is wedged and commits
 # suicide.
 #
-daemon_timeout = 18000
+# Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+# The default time unit is s (seconds).
+#
+daemon_timeout = 18000s
 
 # The default_database_type parameter specifies the default database
 # type to use in postalias(1) and postmap(1) commands. On many UNIX
@@ -117,7 +120,10 @@ ipc_idle = 100
 # of deadlock situations. If the timeout is exceeded the software
 # aborts with a fatal error.
 #
-ipc_timeout = 3600
+# Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+# The default time unit is s (seconds).
+#
+#ipc_timeout = 3600s
 
 # The mail_name parameter specifies the mail system name that is used
 # in Received: headers, in the SMTP greeting banner, and in bounced
@@ -333,10 +339,16 @@ syslog_facility = mail
 # a Postfix daemon. This prevents programs from getting stuck when the
 # mail system is under heavy load.
 #
-trigger_timeout = 10
+# Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+# The default time unit is s (seconds).
+#
+trigger_timeout = 10s
 
 # The delay_warning_time specifies after how many hours a warning
 # is sent that mail has not yet been delivered. By default, no warning
 # is sent.
 #
-# delay_warning_time = 0
+# Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+# The default time unit is h (hours).
+#
+# delay_warning_time = 0h

@@ -143,11 +143,15 @@ Instead of dGVzdAB0ZXN0AHRlc3RwYXNz, specify the base64 encoded
 form of username\0username\0password (the \0 is a null byte). The
 example above is for a user named `test' with password `testpass'.
 
-You can use e. g.: printf 'username\0username\0password' | mmencode 
-or perl -MMIME::Base64 -e 'print
-       encode_base64("username\0username\0password");'
-to get this output (MIME::Base64 is available from CPAN in case you
-don't have it).
+In order to generate base64 encoded authentication information you
+can use one of the following commands:
+
+    % printf 'username\0username\0password' | mmencode 
+
+    % perl -MMIME::Base64 -e \
+	'print encode_base64("username\0username\0password");'
+
+MIME::Base64 is available from www.cpan.org.
 
 Enabling SASL authentication in the Postfix SMTP client
 =======================================================

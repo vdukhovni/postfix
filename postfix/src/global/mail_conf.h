@@ -46,11 +46,11 @@ extern const char *mail_conf_lookup_eval(const char *);
 extern char *get_mail_conf_str(const char *, const char *, int, int);
 extern int get_mail_conf_int(const char *, int, int, int);
 extern int get_mail_conf_bool(const char *, int);
-extern int get_mail_conf_time(const char *, const char *, int, int, int);
+extern int get_mail_conf_time(const char *, const char *, int, int);
 extern char *get_mail_conf_raw(const char *, const char *, int, int);
 
 extern int get_mail_conf_int2(const char *, const char *, int, int, int);
-extern int get_mail_conf_time2(const char *, const char *, const char *, int, int, int);
+extern int get_mail_conf_time2(const char *, const char *, const char *, int, int);
 
  /*
   * Lookup with function-call defaults.
@@ -97,9 +97,8 @@ typedef struct {
 
 typedef struct {
     const char *name;			/* config variable name */
-    const char *defval;			/* default value */
+    const char *defval;			/* default value + default unit */
     int    *target;			/* pointer to global variable */
-    int     def_unit;			/* default unit: s|m|h|d|w */
     int     min;			/* lower bound or zero */
     int     max;			/* upper bound or zero */
 } CONFIG_TIME_TABLE;
@@ -136,19 +135,9 @@ typedef struct {
     int    *target;			/* pointer to global variable */
 } CONFIG_BOOL_FN_TABLE;
 
-typedef struct {
-    const char *name;			/* config variable name */
-    const char *(*defval) (void);	/* default value provider */
-    int    *target;			/* pointer to global variable */
-    int     def_unit;			/* default unit: s|m|h|d|w */
-    int     min;			/* lower bound or zero */
-    int     max;			/* upper bound or zero */
-} CONFIG_TIME_FN_TABLE;
-
 extern void get_mail_conf_str_fn_table(CONFIG_STR_FN_TABLE *);
 extern void get_mail_conf_int_fn_table(CONFIG_INT_FN_TABLE *);
 extern void get_mail_conf_bool_fn_table(CONFIG_BOOL_FN_TABLE *);
-extern void get_mail_conf_time_fn_table(CONFIG_TIME_FN_TABLE *);
 extern void get_mail_conf_raw_fn_table(CONFIG_STR_FN_TABLE *);
 
 /* LICENSE

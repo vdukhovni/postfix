@@ -36,7 +36,10 @@ deliver_lock_attempts = 5
 # The deliver_lock_delay parameter limits the time in seconds between
 # attempts to acquire an exclusive lock.
 #
-deliver_lock_delay = 1
+# Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+# The default time unit is s (seconds).
+#
+deliver_lock_delay = 1s
 
 # The duplicate_filter_limit parameter limits the number of addresses
 # remembered by the duplicate filter for alias, virtual, etc.
@@ -52,7 +55,10 @@ fork_attempts = 5
 # The fork_delay parameter specifies the delay in seconds between
 # fork() attempts.
 #
-fork_delay = 1
+# Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+# The default time unit is s (seconds).
+#
+fork_delay = 1s
 
 # The header_size_limit parameter limits the amount of memory in
 # bytes used for processing a message header. If a header is larger,

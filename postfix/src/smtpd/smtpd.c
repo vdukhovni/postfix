@@ -1436,8 +1436,8 @@ int     main(int argc, char **argv)
 	0,
     };
     static CONFIG_TIME_TABLE time_table[] = {
-	VAR_SMTPD_TMOUT, DEF_SMTPD_TMOUT, &var_smtpd_tmout, 's', 1, 0,
-	VAR_SMTPD_ERR_SLEEP, DEF_SMTPD_ERR_SLEEP, &var_smtpd_err_sleep, 's', 0, 0,
+	VAR_SMTPD_TMOUT, DEF_SMTPD_TMOUT, &var_smtpd_tmout, 1, 0,
+	VAR_SMTPD_ERR_SLEEP, DEF_SMTPD_ERR_SLEEP, &var_smtpd_err_sleep, 0, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {

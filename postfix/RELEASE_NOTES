@@ -1,3 +1,21 @@
+Major changes with snapshot-20001215
+====================================
+
+This release involves little change in functionality and a lot of
+small changes to lots of files. The code is put out as a separate
+snapshot release so that I have a tested baseline for further work.
+
+All time-related configuration parameters now accept a one-letter
+suffix to indicate the time unit (s: second, m: minute, h: hour,
+d: day, w: week). The exceptions are the LDAP and MYSQL modules
+which are maintained separately.
+
+The local_transport and default_transport configuration parameters
+can now be specified in transport:destination notation, just like
+the mailbox_transport and fallback_transport parameters.  The
+:destination part is optional.  This change makes the relayhost
+parameter obsolescent.
+
 Incompatible changes with snapshot-20001210
 ===========================================
 

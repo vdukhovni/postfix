@@ -507,8 +507,8 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 int     main(int argc, char **argv)
 {
     static CONFIG_TIME_TABLE time_table[] = {
-	VAR_FFLUSH_REFRESH, DEF_FFLUSH_REFRESH, &var_fflush_refresh, 'h', 1, 0,
-	VAR_FFLUSH_PURGE, DEF_FFLUSH_PURGE, &var_fflush_purge, 'd', 1, 0,
+	VAR_FFLUSH_REFRESH, DEF_FFLUSH_REFRESH, &var_fflush_refresh, 1, 0,
+	VAR_FFLUSH_PURGE, DEF_FFLUSH_PURGE, &var_fflush_purge, 1, 0,
 	0,
     };
 

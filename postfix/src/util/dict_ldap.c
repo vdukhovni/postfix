@@ -146,12 +146,30 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
     void    (*saved_alarm) (int);
     int     rc = 0;
 
+#ifdef LDAP_OPT_NETWORK_TIMEOUT
+    struct timeval mytimeval;
+
+#endif
+
     dict_errno = 0;
 
     if (msg_verbose)
 	msg_info("%s: Connecting to server %s", myname,
 		 dict_ldap->server_host);
 
+#ifdef UNTESTED_LDAP_OPT_NETWORK_TIMEOUT
+    dict_ldap->ld = ldap_init(dict_ldap->server_host,
+			      (int) dict_ldap->server_port);
+    if (dict_ldap->ld == NULL) {
+	msg_warn("%s: Unable to int LDAP server %s",
+		 myname, dict_ldap->server_host);
+	dict_errno = DICT_ERR_RETRY;
+	return (-1);
+    }
+    mytimeval.tv_sec = dict_ldap->timeout;
+    mytimeval.tv_usec = 0;
+    ldap_set_option(dict_ldap->ld, LDAP_OPT_NETWORK_TIMEOUT, &mytimeval);
+#else
     if ((saved_alarm = signal(SIGALRM, dict_ldap_timeout)) == SIG_ERR) {
 	msg_warn("%s: Error setting signal handler for open timeout: %m",
 		 myname);
@@ -178,6 +196,7 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 	dict_errno = DICT_ERR_RETRY;
 	return (-1);
     }
+#endif
 
     /*
      * Configure alias dereferencing for this connection. Thanks to Mike

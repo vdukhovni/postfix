@@ -58,7 +58,7 @@ void    master_vars_init(void)
 	0,
     };
     static CONFIG_TIME_TABLE time_table[] = {
-	VAR_THROTTLE_TIME, DEF_THROTTLE_TIME, &var_throttle_time, 's', 1, 0,
+	VAR_THROTTLE_TIME, DEF_THROTTLE_TIME, &var_throttle_time, 1, 0,
 	0,
     };
 
