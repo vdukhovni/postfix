@@ -697,6 +697,7 @@ static void cleanup_message_headerbody(CLEANUP_STATE *state, int type,
 				               const char *buf, int len)
 {
     char   *myname = "cleanup_message_headerbody";
+    MIME_STATE_DETAIL *detail;
 
     /*
      * Copy text record to the output.
@@ -715,7 +716,8 @@ static void cleanup_message_headerbody(CLEANUP_STATE *state, int type,
 	state->mime_errs &= ~MIME_ERR_TRUNC_HEADER;
 	if (state->mime_errs && state->reason == 0) {
 	    state->errs |= CLEANUP_STAT_CONT;
-	    state->reason = mystrdup(mime_state_error(state->mime_errs));
+	    detail = mime_state_detail(state->mime_errs);
+	    state->reason = dsn_prepend(detail->dsn, detail->text);
 	}
 	state->mime_state = mime_state_free(state->mime_state);
 	if ((state->xtra_offset = vstream_ftell(state->dst)) < 0)

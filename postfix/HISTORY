@@ -10588,6 +10588,24 @@ Apologies for any names omitted.
 	dsn_vstring_update() module. File: global/dsn_util.h,
 	global/pipe_command.c.
 
+20050401
+
+	Cleanup: ignore incorrect enhanced status codes (such as
+	5xx reply followed by a 4.x.x status), and don't look for
+	enhanced status codes unless the server replies with a
+	[245]XX reply.  Files: smtp/smtp_chat.c, lmtp/lmtp_chat.c.
+
+20050402
+
+	Feature: enhanced status code support for errors found by
+	the MIME processor. Files: global/mime_state.c,
+	cleanup/cleanup_message.c, smtp/smtp_proto.c.
+
+	Cleanup: updated error messages about MIME processing
+	errors in the SMTP client. These errors are no longer
+	specific to 8bit->7bit conversion; they can also happen
+	with generic address mapping. File: smtp/smtp_proto.c.
+
 Open problems:
 
 	Med: disable header address rewriting after XCLIENT?

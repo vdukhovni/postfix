@@ -392,6 +392,12 @@ inet_proto: $(LIB)
 stream_test: stream_test.c $(LIB)
 	$(CC) $(CFLAGS)  -o $@ $@.c $(LIB) $(SYSLIBS)
 
+gcctest: gccw.c gccw.ref
+	rm -f gccw.o
+	make gccw.o 2>&1 | sed "s/\`/'/g; s/return-/return /" | sort >gccw.tmp
+	diff gccw.ref gccw.tmp
+	rm -f gccw.o gccw.tmp
+
 tests: valid_hostname_test mac_expand_test dict_test unescape_test \
 	hex_quote_test ctable_test inet_addr_list_test base64_code_test \
 	attr_scan64_test attr_scan0_test dict_pcre_test host_port_test \

@@ -232,17 +232,23 @@ LMTP_RESP *lmtp_chat_resp(LMTP_STATE *state)
     /*
      * Extract RFC 821 reply code and RFC 2034 detail code. Use a default
      * detail code if none was given.
+     * 
+     * Ignore out-of-protocol enhanced status codes: codes that accompany 3XX
+     * replies, or codes whose initial digit is out of sync with the reply
+     * code.
      */
     DSN_CLASS(rdata.dsn) = 0;
     if (three_digs != 0) {
 	rdata.code = atoi(STR(state->buffer));
-	for (cp = STR(state->buffer) + 4; *cp == ' '; cp++)
-	     /* void */ ;
-	if ((len = dsn_valid(cp)) > 0) {
-	    DSN_UPDATE(rdata.dsn, cp, len);
-	} else if (strchr("245", STR(state->buffer)[0]) != 0) {
-	    DSN_UPDATE(rdata.dsn, "0.0.0", sizeof("0.0.0") - 1);
-	    DSN_CLASS(rdata.dsn) = STR(state->buffer)[0];
+	if (strchr("245", STR(state->buffer)[0]) != 0) {
+	    for (cp = STR(state->buffer) + 4; *cp == ' '; cp++)
+		 /* void */ ;
+	    if ((len = dsn_valid(cp)) > 0 && *cp == *STR(state->buffer)) {
+		DSN_UPDATE(rdata.dsn, cp, len);
+	    } else {
+		DSN_UPDATE(rdata.dsn, "0.0.0", sizeof("0.0.0") - 1);
+		DSN_CLASS(rdata.dsn) = STR(state->buffer)[0];
+	    }
 	}
     } else {
 	rdata.code = 0;

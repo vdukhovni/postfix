@@ -32,6 +32,17 @@
 /*
 /*	const char *mime_state_error(error_code)
 /*	int	error_code;
+/*
+/*	typedef struct {
+/* .in +4
+/*		const int code;		/* internal error code */
+/*		const char *dsn;	/* RFC 3463 */
+/*		const char *text;	/* descriptive text */
+/* .in -4
+/*	} MIME_STATE_DETAIL;
+/*
+/*	MIME_STATE_DETAIL *mime_state_detail(error_code)
+/*	int	error_code;
 /* DESCRIPTION
 /*	This module implements a one-pass MIME processor with optional
 /*	8-bit to quoted-printable conversion.
@@ -69,6 +80,11 @@
 /*	mime_state_error() returns a string representation for the
 /*	specified error code. When multiple errors are specified it
 /*	reports what it deems the most serious one.
+/*
+/*	mime_state_detail() returns a table entry with error
+/*	information for the specified error code. When multiple
+/*	errors are specified it reports what it deems the most
+/*	serious one.
 /*
 /*	Arguments:
 /* .IP body_out
@@ -1015,27 +1031,51 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
     }
 }
 
+ /*
+  * Mime error to (DSN, text) mapping. Order matters; more serious errors
+  * must precede less serious errors, because the error-to-text conversion
+  * can report only one error.
+  */
+static MIME_STATE_DETAIL mime_err_detail[] = {
+    MIME_ERR_NESTING, "5.6.0", "MIME nesting exceeds safety limit",
+    MIME_ERR_TRUNC_HEADER, "5.6.0", "message header length exceeds safety limit",
+    MIME_ERR_8BIT_IN_HEADER, "5.6.0", "improper use of 8-bit data in message header",
+    MIME_ERR_8BIT_IN_7BIT_BODY, "5.6.0", "improper use of 8-bit data in message body",
+    MIME_ERR_ENCODING_DOMAIN, "5.6.0", "invalid message/* or multipart/* encoding domain",
+    0,
+};
+
 /* mime_state_error - error code to string */
 
 const char *mime_state_error(int error_code)
 {
+    MIME_STATE_DETAIL *mp;
+
     if (error_code == 0)
 	msg_panic("mime_state_error: there is no error");
-    if (error_code & MIME_ERR_NESTING)
-	return ("MIME nesting exceeds safety limit");
-    if (error_code & MIME_ERR_TRUNC_HEADER)
-	return ("message header length exceeds safety limit");
-    if (error_code & MIME_ERR_8BIT_IN_HEADER)
-	return ("improper use of 8-bit data in message header");
-    if (error_code & MIME_ERR_8BIT_IN_7BIT_BODY)
-	return ("improper use of 8-bit data in message body");
-    if (error_code & MIME_ERR_ENCODING_DOMAIN)
-	return ("invalid message/* or multipart/* encoding domain");
+    for (mp = mime_err_detail; mp->code; mp++)
+	if (mp->code & error_code)
+	    return (mp->text);
     msg_panic("mime_state_error: unknown error code %d", error_code);
+}
+
+/* mime_state_detail - error code to table entry with assorted data */
+
+MIME_STATE_DETAIL *mime_state_detail(int error_code)
+{
+    MIME_STATE_DETAIL *mp;
+
+    if (error_code == 0)
+	msg_panic("mime_state_detail: there is no error");
+    for (mp = mime_err_detail; mp->code; mp++)
+	if (mp->code & error_code)
+	    return (mp);
+    msg_panic("mime_state_detail: unknown error code %d", error_code);
 }
 
 #ifdef TEST
 
+#include <stdlib.h>
 #include <stringops.h>
 #include <vstream.h>
 #include <msg_vstream.h>
