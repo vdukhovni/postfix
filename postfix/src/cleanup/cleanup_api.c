@@ -216,12 +216,13 @@ int     cleanup_close(CLEANUP_STATE *state)
 
     if (state->errs & CLEANUP_STAT_LETHAL) {
 	if (CAN_BOUNCE()) {
-	    if (bounce_recip(BOUNCE_FLAG_CLEAN,
-			     MAIL_QUEUE_INCOMING, state->queue_id,
-			     state->sender, state->recip ?
-			   state->recip : "unknown", "cleanup", state->time,
-			     "Message processing aborted: %s",
-			     cleanup_strerror(state->errs)) == 0) {
+	    if (bounce_append(BOUNCE_FLAG_CLEAN, state->queue_id,
+			      state->recip ? state->recip : "unknown",
+			      "cleanup", state->time,
+			      "Message processing aborted: %s",
+			      cleanup_strerror(state->errs)) == 0
+		&& bounce_flush(BOUNCE_FLAG_CLEAN, MAIL_QUEUE_INCOMING,
+				state->queue_id, state->sender) == 0) {
 		state->errs = 0;
 	    } else {
 		msg_warn("%s: bounce message failure", state->queue_id);

@@ -67,6 +67,7 @@
 #include <vstring_vstream.h>
 #include <stringops.h>
 #include <mymalloc.h>
+#include <htable.h>
 
 /* Global library. */
 
@@ -79,7 +80,7 @@
 #include <mail_conf.h>
 #include <record.h>
 #include <rec_type.h>
-#include <htable.h>
+#include <bounce_log.h>
 
 /* Single-threaded server skeleton. */
 
@@ -92,7 +93,7 @@ int     var_dup_filter_limit;
 #define STRING_FORMAT	"%-10s %8s %-20s %s\n"
 #define DATA_FORMAT	"%-10s%c%8ld %20.20s %s\n"
 
-static void showq_reasons(VSTREAM *, VSTREAM *, HTABLE *);
+static void showq_reasons(VSTREAM *, BOUNCE_LOG *, HTABLE *);
 
 static void showq_report(VSTREAM *client, char *queue, char *id,
 			         VSTREAM *qfile, long size)
@@ -102,7 +103,7 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
     time_t  arrival_time = 0;
     char   *start;
     long    msg_size = 0;
-    VSTREAM *logfile;
+    BOUNCE_LOG *logfile;
     HTABLE *dup_filter = 0;
     char    status = (strcmp(queue, MAIL_QUEUE_ACTIVE) == 0 ? '*' : ' ');
 
@@ -150,11 +151,10 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 	 */
 	if (rec_type == REC_TYPE_FROM
 	    && dup_filter == 0
-	    && (logfile = mail_queue_open(MAIL_QUEUE_DEFER, id,
-					  O_RDONLY, 0)) != 0) {
+	    && (logfile = bounce_log_open(MAIL_QUEUE_DEFER, id, O_RDONLY, 0)) != 0) {
 	    dup_filter = htable_create(var_dup_filter_limit);
 	    showq_reasons(client, logfile, dup_filter);
-	    if (vstream_fclose(logfile))
+	    if (bounce_log_close(logfile))
 		msg_warn("close %s %s: %m", MAIL_QUEUE_DEFER, id);
 	}
     }
@@ -165,88 +165,37 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 
 /* showq_reasons - show deferral reasons */
 
-static void showq_reasons(VSTREAM *client, VSTREAM *logfile, HTABLE *dup_filter)
+static void showq_reasons(VSTREAM *client, BOUNCE_LOG *bp, HTABLE *dup_filter)
 {
-    VSTRING *buf = vstring_alloc(100);
-    char   *recipient;
-    char   *reason;
     char   *saved_reason = 0;
-    char   *cp;
+    int     padding;
 
-    /*
-     * XXX Kluge alert. The defer log is an unstructured file. This has the
-     * advantage that information is directly suitable for human consumption,
-     * and that a process may crash while updating the file - the result will
-     * still be usable. The downside of using an unstructured file is that it
-     * is hard to process such information mechanically, like we do here. In
-     * the end this will have to be a structured file anyway so we can do
-     * DSN.
-     */
-#define STR	vstring_str
-
-    while (vstring_get_nonl(buf, logfile) != VSTREAM_EOF) {
-
-	/*
-	 * Do this now so the string won't be reallocated.
-	 */
-	VSTRING_ADDCH(buf, ')');
-	VSTRING_TERMINATE(buf);
-
-	cp = printable(STR(buf), '?');
-	if (cp[1] == 0)
-	    continue;
-
-	/*
-	 * Find the recipient address.
-	 */
-	if (*cp != '<') {
-	    msg_warn("%s: bad defer record: %.30s...",
-		     VSTREAM_PATH(logfile), cp);
-	    continue;
-	}
-	recipient = cp + 1;
-	if ((cp = strstr(recipient, ">:")) == 0) {
-	    msg_warn("%s: bad defer record: %.30s...",
-		     VSTREAM_PATH(logfile), cp);
-	    continue;
-	}
-	*cp = 0;
+    while (bounce_log_read(bp) != 0) {
 
 	/*
 	 * Update the duplicate filter.
 	 */
-	if (*recipient == 0)			/* can't happen? */
-	    recipient = "(MAILER-DAEMON)";
 	if (var_dup_filter_limit == 0
 	    || dup_filter->used < var_dup_filter_limit)
-	    if (htable_locate(dup_filter, recipient) == 0)
-		htable_enter(dup_filter, recipient, (char *) 0);
-
-	/*
-	 * Find the reason for deferral. Put parentheses around it.
-	 */
-	reason = cp + 2;
-	while (*reason && ISSPACE(*reason))
-	    reason++;
-	reason -= 1;
-	*reason = '(';
+	    if (htable_locate(dup_filter, bp->recipient) == 0)
+		htable_enter(dup_filter, bp->recipient, (char *) 0);
 
 	/*
 	 * Don't print the reason when the previous recipient had the same
 	 * problem.
 	 */
-	if (saved_reason == 0 || strcmp(saved_reason, reason) != 0) {
+	if (saved_reason == 0 || strcmp(saved_reason, bp->text) != 0) {
 	    if (saved_reason)
 		myfree(saved_reason);
-	    saved_reason = mystrdup(reason);
-	    vstream_fprintf(client, "%78s\n", reason);
+	    saved_reason = mystrdup(bp->text);
+	    if ((padding = 76 - strlen(saved_reason)) < 0)
+		padding = 0;
+	    vstream_fprintf(client, "%*s(%s)\n", padding, "", saved_reason);
 	}
-	vstream_fprintf(client, STRING_FORMAT, "", "", "",
-			printable(recipient, '?'));
+	vstream_fprintf(client, STRING_FORMAT, "", "", "", bp->recipient);
     }
     if (saved_reason)
 	myfree(saved_reason);
-    vstring_free(buf);
 }
 
 

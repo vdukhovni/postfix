@@ -837,7 +837,7 @@ typedef int pid_t;
 #if __GNUC__ == 2 && __GNUC_MINOR__ >= 7
 #define SCANFLIKE(x,y) __attribute__ ((format (scanf, (x), (y))))
 #else
-#define SCANFLIKE
+#define SCANFLIKE(x,y)
 #endif
 #endif
 

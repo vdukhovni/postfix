@@ -1,3 +1,17 @@
+Incompatible changes with snapshot-20000924
+===========================================
+
+The postmaster address in the "sorry" text at the top of bounced
+mail is now just postmaster, not postmaster@sending.machine.  The
+idea is to refer users to their own postmaster.
+
+Major changes with snapshot-20000924
+====================================
+
+DSN formatted bounced/delayed mail notifications, finally.  The
+human-readable text still exists, so that users will not have to
+be unnecessarily confused by all the ugliness of RFC 1894.
+
 Major changes with snapshot-20000923
 ====================================
 

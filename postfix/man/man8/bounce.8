@@ -27,8 +27,6 @@ Append a recipient status record to a per-message log file.
 Post a bounce message, with a copy of a log file and of the
 corresponding message. When the bounce is posted successfully,
 the log file is deleted.
-.IP \(bu
-Post a bounce message without accessing a per-message log file.
 .PP
 The software does a best effort to notify the sender that there
 was a problem. A notification is sent even when the log file
@@ -42,6 +40,7 @@ themselves, and that depend on retry logic in their own client.
 .na
 .nf
 RFC 822 (ARPA Internet Text Messages)
+RFC 1894 (Delivery Status Notifications)
 .SH DIAGNOSTICS
 .ad
 .fi

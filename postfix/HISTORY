@@ -4256,8 +4256,8 @@ Apologies for any names omitted.
 	Portability: MacOSX hints and tips by Joe Block, University
 	of Central Florida School of Optics/CREOL
 
-	The MacOSX gcc compiler does not understand the new
-	printf_like/scanf_like attributes. File: util/sys_defs.h.
+	Portability: The MacOSX gcc compiler does not understand
+	the new printf_like/scanf_like attributes. File: util/sys_defs.h.
 
 20000922
 
@@ -4270,3 +4270,25 @@ Apologies for any names omitted.
 	still logged with the default syslog facility, as are errors
 	while processing the main.cf file (surprise).  Based on
 	code by Andrew McNamara.
+
+20000923
+
+	Cleanup: new bounce logfile API so that Postfix can change
+	to an extensible bounce logfile format with per-recipient
+	sender addresses (needed for VERP and for reporting local
+	list delivery problems to the list owner) and other
+	attributes.  File:  global/bounce_log.[hc].
+
+	Cleanup: replaced the ad-hoc logfile parsing code in showq
+	by something that uses the generic bounce logfile API.
+
+20000924
+
+	Feature: Postfix bounced mail and delayed mail notifications
+	now have the standard RFC 1894 form (DSN). The bounce
+	service now uses the's generic bounce logfile API.  File:
+	bounce/bounce_notify_service.c, bounce/bounce_notify_util.c.
+
+	Cleanup: deleted the per-recipient bounce protocol.  Future
+	bounce logfiles will support per-recipient bounce addresses.
+	Files:  global/bounce.c, bounce/bounce_recip_service.

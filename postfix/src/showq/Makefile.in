@@ -63,6 +63,7 @@ showq.o: ../../include/vstream.h
 showq.o: ../../include/vstring_vstream.h
 showq.o: ../../include/stringops.h
 showq.o: ../../include/mymalloc.h
+showq.o: ../../include/htable.h
 showq.o: ../../include/mail_queue.h
 showq.o: ../../include/mail_open_ok.h
 showq.o: ../../include/mail_proto.h
@@ -73,5 +74,5 @@ showq.o: ../../include/mail_scan_dir.h
 showq.o: ../../include/mail_conf.h
 showq.o: ../../include/record.h
 showq.o: ../../include/rec_type.h
-showq.o: ../../include/htable.h
+showq.o: ../../include/bounce_log.h
 showq.o: ../../include/mail_server.h
