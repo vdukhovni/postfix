@@ -1262,12 +1262,12 @@ Apologies for any names omitted.
 	reorganization of the way queue scans were done. The queue
 	manager socket now has become public.
 
-10091002
+19981002
 
 	SMTPD now logs "lost connection after end-of-message" instead
 	of "lost connection after DATA".
 
-10091005
+19981005
 
 	More bullet proofing: timeouts on all triggers.
 
@@ -7765,6 +7765,54 @@ Apologies for any names omitted.
 	count the "already done" recipients. Problem reported by
 	Richard Stockton, Gramma Software. Files:
 	cleanup/cleanup_envelope.c, cleanup/cleanup_extracted.c
+
+20030528
+
+	Compatibility: "sendmail -q<time>" without -bd option now
+	exits immediately, instead of waiting for input on the
+	standard input stream and screwing up system boot sequences.
+	File: sendmail/sendmail.c.
+
+	Bugfix: the Postfix LMTP client used the wrong service
+	name, causing trouble with SASL 2.1.13.  Daniel Schales,
+	Louisiana Tech. File: lmtp/lmtp_sasl_glue.c.
+
+	Workaround: IRIX select() reports that a non-blocking file
+	descriptor is writable while write() transfers zero bytes.
+	File:  global/pipe_command.c.
+
+	Feature: "postcat -q" (search the queue for the named file)
+	support copied from snapshot release because I can't see
+	people suffer. File: postcat/postcat.c.
+
+20030530
+
+	Bugfix: client access denied with smtpd_delay_reject=no
+	broke "sendmail -bs". Fix by Victor Duchovni, Morgan Stanley.
+	File: smtpd/smtpd.c.
+
+20030531
+
+	Compatibility: allow <@site,@site:address> route addresses
+	in SMTP commands.  File: smtpd/smtpd.c.
+
+20030605
+
+	Bugfix: the "dead host" backoff timer in the MySQL client
+	didn't work.  Fix by Leandro Santi. File: util/dict_mysql.c.
+
+	Safety: stricter checks on what queue file records the
+	postdrop submission command accepts (idea copied from
+	snapshot). File:  postdrop/postdrop.c.
+
+	Workaround: turned off non-blocking write to pipe because
+	too many systems give a weird write() result. File:
+	global/pipe_command.c.  
+
+20030609
+
+	Workaround: Solaris non-blocking socket read() may hang.
+	Leandro Santi. File: smtpd/smtpd.c.
 
 Open problems:
 

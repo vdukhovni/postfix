@@ -178,7 +178,7 @@ int     main(int argc, char **argv)
     MAIL_STREAM *dst;
     int     rec_type;
     static char *segment_info[] = {
-	REC_TYPE_ENVELOPE, REC_TYPE_CONTENT, REC_TYPE_EXTRACT,
+	REC_TYPE_POST_ENVELOPE, REC_TYPE_POST_CONTENT, REC_TYPE_POST_EXTRACT, ""
     };
     char  **expected;
     uid_t   uid = getuid();

@@ -629,7 +629,9 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
     int     naddr;
     int     non_addr;
     char   *err = 0;
-    char   *junk;
+    char   *junk = 0;
+    char   *text;
+    char   *colon;
 
     /*
      * Special case.
@@ -653,11 +655,19 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
 	msg_info("%s: input: %s", myname, STR(arg->vstrval));
     if (STR(arg->vstrval)[0] == '<'
 	&& STR(arg->vstrval)[LEN(arg->vstrval) - 1] == '>') {
-	junk = mystrndup(STR(arg->vstrval) + 1, LEN(arg->vstrval) - 2);
-	tree = tok822_parse(junk);
-	myfree(junk);
+	junk = text = mystrndup(STR(arg->vstrval) + 1, LEN(arg->vstrval) - 2);
     } else
-	tree = tok822_parse(STR(arg->vstrval));
+	text = STR(arg->vstrval);
+
+    /*
+     * Truncate deprecated route address form.
+     */
+    if (*text == '@' && (colon = strchr(text, ':')) != 0)
+	text = colon + 1;
+    tree = tok822_parse(text);
+
+    if (junk)
+	myfree(junk);
 
     /*
      * Find trouble.
@@ -700,7 +710,7 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
      * Report trouble. Log a warning only if we are going to sleep+reject so
      * that attackers can't flood our logfiles.
      */
-    if (arg->strval[0] == 0 && !allow_empty_addr) {
+    if ((arg->strval[0] == 0 && !allow_empty_addr) || arg->strval[0] == '@') {
 	msg_warn("Illegal address syntax from %s in %s command: %s",
 		 state->namaddr, state->where, STR(arg->vstrval));
 	err = "501 Bad address syntax";
@@ -796,7 +806,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		verp_delims = arg + VERP_CMD_LEN + 1;
 		if (verp_delims_verify(verp_delims) != 0) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
-		    smtpd_chat_reply(state, "501 %s needs two characters from %s",
+		    smtpd_chat_reply(state, "501 Error: %s needs two characters from %s",
 				     VERP_CMD, var_verp_filter);
 		    return (-1);
 		}
@@ -808,7 +818,8 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	}
     }
     if (verp_delims && argv[2].strval[0] == 0) {
-	smtpd_chat_reply(state, "503 Error: XVERP requires non-null sender");
+	smtpd_chat_reply(state, "503 Error: %s requires non-null sender",
+			 VERP_CMD);
 	return (-1);
     }
     state->time = time((time_t *) 0);
@@ -1460,7 +1471,8 @@ static void smtpd_proto(SMTPD_STATE *state)
 	break;
 
     case 0:
-	if (var_smtpd_delay_reject == 0
+	if (SMTPD_STAND_ALONE(state) == 0
+	    && var_smtpd_delay_reject == 0
 	    && (state->access_denied = smtpd_check_client(state)) != 0) {
 	    smtpd_chat_reply(state, "%s", state->access_denied);
 	} else {
@@ -1571,6 +1583,13 @@ static void smtpd_service(VSTREAM *stream, char *unused_service, char **argv)
      */
     smtpd_state_init(&state, stream);
     msg_info("connect from %s[%s]", state.name, state.addr);
+
+    /*
+     * XXX non_blocking() aborts upon error.
+     */
+#ifdef BROKEN_READ_SELECT_ON_BLOCKING_SOCKET
+    non_blocking(vstream_fileno(stream), NON_BLOCKING);
+#endif
 
     /*
      * See if we need to turn on verbose logging for this client.

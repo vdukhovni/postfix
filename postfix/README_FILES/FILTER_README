@@ -505,7 +505,7 @@ Limitations:
   precedence over filters specified with the main.cf content_filter 
   parameter.
 
-- Only the last FILTER action from smtpd access maps or in
+- Only the last FILTER action from smtpd access maps or from
   header/body_checks takes effect.
 
 - The same content filter is applied to all the recipients of a

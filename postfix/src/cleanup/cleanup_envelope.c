@@ -153,10 +153,12 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, 
 	}
     }
     if (type == REC_TYPE_TIME) {
-	state->time = atol(buf);
+	if (state->time == 0)
+	    state->time = atol(buf);
 	cleanup_out(state, type, buf, len);
     } else if (type == REC_TYPE_FULL) {
-	state->fullname = mystrdup(buf);
+	if (state->fullname == 0)
+	    state->fullname = mystrdup(buf);
     } else if (type == REC_TYPE_FROM) {
 	VSTRING *clean_addr = vstring_alloc(100);
 

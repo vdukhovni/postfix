@@ -554,6 +554,7 @@ int     main(int argc, char **argv)
     int     flags = SM_FLAG_DEFAULT;
     char   *site_to_flush = 0;
     char   *encoding = 0;
+    char   *qtime = 0;
 
     /*
      * Be consistent with file permissions.
@@ -750,11 +751,7 @@ int     main(int argc, char **argv)
 	    break;
 	case 'q':
 	    if (ISDIGIT(optarg[0])) {
-		if (mode == SM_MODE_DAEMON) {
-		    if (msg_verbose)
-			msg_info("-%c%s option ignored", c, optarg);
-
-		}
+		qtime = optarg;
 	    } else if (optarg[0] == 'R') {
 		site_to_flush = optarg + 1;
 		if (*site_to_flush == 0)
@@ -798,6 +795,8 @@ int     main(int argc, char **argv)
     /*
      * Start processing. Everything is delegated to external commands.
      */
+    if (qtime && mode != SM_MODE_DAEMON)
+	exit(0);
     switch (mode) {
     default:
 	msg_panic("unknown operation mode: %d", mode);
