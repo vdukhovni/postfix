@@ -1,0 +1,7 @@
+bad.domain		550 match bad.domain
+friend.bad.domain	OK
+bad-sender@		550 match bad-sender@
+bad-sender@good.domain	OK
+131.155.210		550 match 131.155.210
+131.155.210.17		OK
+reject@this.address	550 match reject@this.address

@@ -1,0 +1,322 @@
+/*++
+/* NAME
+/*	smtp 8
+/* SUMMARY
+/*	Postfix remote delivery via SMTP
+/* SYNOPSIS
+/*	\fBsmtp\fR [generic Postfix daemon options]
+/* DESCRIPTION
+/*	The SMTP client processes message delivery requests from
+/*	the queue manager. Each request specifies a queue file, a sender
+/*	address, a domain or host to deliver to, and recipient information.
+/*	This program expects to be run from the \fBmaster\fR(8) process
+/*	manager.
+/*
+/*	The SMTP client updates the queue file and marks recipients
+/*	as finished, or it informs the queue manager that delivery should
+/*	be tried again at a later time. Delivery problem reports are sent
+/*	to the \fBbounce\fR(8) or \fBdefer\fR(8) daemon as appropriate.
+/*
+/*	The SMTP client looks up a list of mail exchanger addresses for
+/*	the destination host, sorts the list by preference, and connects
+/*	to each listed address until it finds a server that responds.
+/*
+/*	Once the SMTP client has received the server greeting banner, no
+/*	error will cause it to proceed to the next address on the mail
+/*	exchanger list. Instead, the message is either bounced, or its
+/*	delivery is deferred until later.
+/* SECURITY
+/* .ad
+/* .fi
+/*	The SMTP client is moderately security-sensitive. It talks to SMTP
+/*	servers and to DNS servers on the network. The SMTP client can be
+/*	run chrooted at fixed low privilege.
+/* STANDARDS
+/*	RFC 821 (SMTP protocol)
+/*	RFC 1651 (SMTP service extensions)
+/*	RFC 1870 (Message Size Declaration)
+/*	RFC 2197 (Pipelining)
+/* DIAGNOSTICS
+/*	Problems and transactions are logged to \fBsyslogd\fR(8).
+/*	Corrupted message files are marked so that the queue manager can
+/*	move them to the \fBcorrupt\fR queue for further inspection.
+/*
+/*	Depending on the setting of the \fBnotify_classes\fR parameter,
+/*	the postmaster is notified of bounces, protocol problems, and of
+/*	other trouble.
+/* BUGS
+/* CONFIGURATION PARAMETERS
+/* .ad
+/* .fi
+/*	The following \fBmain.cf\fR parameters are especially relevant to
+/*	this program. See the Postfix \fBmain.cf\fR file for syntax details
+/*	and for default values. Use the \fBpostfix reload\fR command after
+/*	a configuration change.
+/* .SH Miscellaneous
+/* .ad
+/* .fi
+/* .IP \fBdebug_peer_level\fR
+/*	Verbose logging level increment for hosts that match a
+/*	pattern in the \fBdebug_peer_list\fR parameter.
+/* .IP \fBdebug_peer_list\fR
+/*	List of domain or network patterns. When a remote host matches
+/*	a pattern, increase the verbose logging level by the amount
+/*	specified in the \fBdebug_peer_level\fR parameter.
+/* .IP \fBinet_interfaces\fR
+/*	The network interface addresses that this mail system receives
+/*	mail on. When any of those addresses appears in the list of mail
+/*	exchangers for a remote destination, the list is truncated to
+/*	avoid mail delivery loops.
+/* .IP \fBnotify_classes\fR
+/*	When this parameter includes the \fBprotocol\fR class, send mail to the
+/*	postmaster with transcripts of SMTP sessions with protocol errors.
+/* .SH "Resource controls"
+/* .ad
+/* .fi
+/* .IP \fBsmtp_destination_concurrency_limit\fR
+/*	Limit the number of parallel deliveries to the same destination.
+/*	The default limit is taken from the
+/*	\fBdefault_destination_concurrency_limit\fR parameter.
+/* .IP \fBsmtp_destination_recipient_limit\fR
+/*	Limit the number of recipients per message delivery.
+/*	The default limit is taken from the
+/*	\fBdefault_destination_recipient_limit\fR parameter.
+/* .SH "Timeout controls"
+/* .ad
+/* .fi
+/* .IP \fBsmtp_connect_timeout\fR
+/*	Timeout in seconds for completing a TCP connection. When no
+/*	connection can be made within the deadline, the SMTP client
+/*	tries the next address on the mail exchanger list.
+/* .IP \fBsmtp_helo_timeout\fR
+/*	Timeout in seconds for receiving the SMTP greeting banner.
+/*	When the server drops the connection without sending a
+/*	greeting banner, or when it sends no greeting banner within the
+/*	deadline, the SMTP client tries the next address on the mail
+/*	exchanger list.
+/* .IP \fBsmtp_helo_timeout\fR
+/*	Timeout in seconds for sending the \fBHELO\fR command, and for
+/*	receiving the server response.
+/* .IP \fBsmtp_mail_timeout\fR
+/*	Timeout in seconds for sending the \fBMAIL FROM\fR command, and for
+/*	receiving the server response.
+/* .IP \fBsmtp_rcpt_timeout\fR
+/*	Timeout in seconds for sending the \fBRCPT TO\fR command, and for
+/*	receiving the server response.
+/* .IP \fBsmtp_data_init_timeout\fR
+/*	Timeout in seconds for sending the \fBDATA\fR command, and for
+/*	receiving the server response.
+/* .IP \fBsmtp_data_xfer_timeout\fR
+/*	Timeout in seconds for sending the message content.
+/* .IP \fBsmtp_data_done_timeout\fR
+/*	Timeout in seconds for sending the "\fB.\fR" command, and for
+/*	receiving the server response. When no response is received, a
+/*	warning is logged that the mail may be delivered multiple times.
+/* .IP \fBsmtp_quit_timeout\fR
+/*	Timeout in seconds for sending the \fBQUIT\fR command, and for
+/*	receiving the server response.
+/* SEE ALSO
+/*	bounce(8) non-delivery status reports
+/*	master(8) process manager
+/*	qmgr(8) queue manager
+/*	syslogd(8) system logging
+/* LICENSE
+/* .ad
+/* .fi
+/*	The Secure Mailer license must be distributed with this software.
+/* AUTHOR(S)
+/*	Wietse Venema
+/*	IBM T.J. Watson Research
+/*	P.O. Box 704
+/*	Yorktown Heights, NY 10598, USA
+/*--*/
+
+/* System library. */
+
+#include <sys_defs.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <fcntl.h>
+
+/* Utility library. */
+
+#include <msg.h>
+#include <mymalloc.h>
+#include <name_mask.h>
+
+/* Global library. */
+
+#include <deliver_request.h>
+#include <mail_queue.h>
+#include <mail_params.h>
+#include <config.h>
+#include <debug_peer.h>
+#include <mail_error.h>
+
+/* Single server skeleton. */
+
+#include <mail_server.h>
+
+/* Application-specific. */
+
+#include "smtp.h"
+
+ /*
+  * Tunable parameters. These have compiled-in defaults that can be overruled
+  * by settings in the global Postfix configuration file.
+  */
+int     var_smtp_conn_tmout;
+int     var_smtp_helo_tmout;
+int     var_smtp_mail_tmout;
+int     var_smtp_rcpt_tmout;
+int     var_smtp_data0_tmout;
+int     var_smtp_data1_tmout;
+int     var_smtp_data2_tmout;
+int     var_smtp_quit_tmout;
+char   *var_inet_interfaces;
+char   *var_debug_peer_list;
+int     var_debug_peer_level;
+char   *var_notify_classes;
+
+ /*
+  * Global variables. smtp_errno is set by the address lookup routines and by
+  * the connection management routines.
+  */
+int     smtp_errno;
+
+/* deliver_message - deliver message with extreme prejudice */
+
+static int deliver_message(DELIVER_REQUEST *request)
+{
+    char   *myname = "deliver_message";
+    VSTRING *why;
+    SMTP_STATE *state;
+    int     result;
+
+    if (msg_verbose)
+	msg_info("deliver_message: from %s", request->sender);
+
+    /*
+     * Sanity checks. The smtp server is unprivileged and chrooted, so we can
+     * afford to distribute the data censoring code, instead of having it all
+     * in one place.
+     */
+    if (request->nexthop[0] == 0)
+	msg_fatal("empty nexthop hostname");
+    if (request->rcpt_list.len <= 0)
+	msg_fatal("recipient count: %d", request->rcpt_list.len);
+
+    /*
+     * Initialize. Bundle all information about the delivery request, so that
+     * we can produce understandable diagnostics when something goes wrong
+     * many levels below. The alternative would be to make everything global.
+     */
+    why = vstring_alloc(100);
+    state = smtp_state_alloc();
+    state->request = request;
+
+    /*
+     * Open the queue file. Opening the file can fail for a variety of
+     * reasons, such as the system running out of resources. Instead of
+     * throwing away mail, we're raising a fatal error which forces the mail
+     * system to back off, and retry later.
+     */
+    state->src = mail_queue_open(request->queue_name, request->queue_id,
+				 O_RDWR, 0);
+    if (state->src == 0)
+	msg_fatal("%s: open %s %s: %m", myname,
+		  request->queue_name, request->queue_id);
+    if (msg_verbose)
+	msg_info("%s: file %s", myname, VSTREAM_PATH(state->src));
+
+    /*
+     * Establish an SMTP session and deliver this message to (limited batches
+     * of) recipients. XXX By doing the recipient batching in the SMTP agent
+     * instead of in the queue manager, we're stuck with one connection per
+     * message per domain. But, the queue manager should not have hard-wired
+     * logic that is specific to SMTP processing. At the end, notify the
+     * postmaster of any protocol errors.
+     */
+    if ((state->session = smtp_connect(request->nexthop, why)) == 0) {
+	smtp_site_fail(state, smtp_errno == SMTP_RETRY ? 450 : 550,
+		       "%s", vstring_str(why));
+    } else {
+	debug_peer_check(state->session->host, state->session->addr);
+	if (smtp_helo(state) == 0)
+	    smtp_xfer(state);
+	if (state->history != 0
+	    && (state->error_mask & name_mask(mail_error_masks, var_notify_classes)))
+	    smtp_chat_notify(state);
+	smtp_session_free(state->session);
+	debug_peer_restore();
+    }
+
+    /*
+     * Clean up.
+     */
+    if (vstream_fclose(state->src))
+	msg_warn("close %s %s: %m", request->queue_name, request->queue_id);
+    vstring_free(why);
+    smtp_chat_reset(state);
+    result = state->status;
+    smtp_state_free(state);
+
+    return (result);
+}
+
+/* smtp_service - perform service for client */
+
+static void smtp_service(VSTREAM *client_stream, char *unused_service, char **argv)
+{
+    DELIVER_REQUEST *request;
+    int     status;
+
+    /*
+     * Sanity check. This service takes no command-line arguments.
+     */
+    if (argv[0])
+	msg_fatal("unexpected command-line argument: %s", argv[0]);
+
+    /*
+     * This routine runs whenever a client connects to the UNIX-domain socket
+     * dedicated to remote SMTP delivery service. What we see below is a
+     * little protocol to (1) tell the queue manager that we are ready, (2)
+     * read a request from the queue manager, and (3) report the completion
+     * status of that request. All connection-management stuff is handled by
+     * the common code in single_server.c.
+     */
+    if ((request = deliver_request_read(client_stream)) != 0) {
+	status = deliver_message(request);
+	deliver_request_done(client_stream, request, status);
+    }
+}
+
+/* main - pass control to the single-threaded skeleton */
+
+int     main(int argc, char **argv)
+{
+    static CONFIG_STR_TABLE str_table[] = {
+	VAR_DEBUG_PEER_LIST, DEF_DEBUG_PEER_LIST, &var_debug_peer_list, 0, 0,
+	VAR_NOTIFY_CLASSES, DEF_NOTIFY_CLASSES, &var_notify_classes, 0, 0,
+	0,
+    };
+    static CONFIG_INT_TABLE int_table[] = {
+	VAR_SMTP_CONN_TMOUT, DEF_SMTP_CONN_TMOUT, &var_smtp_conn_tmout, 0, 0,
+	VAR_SMTP_HELO_TMOUT, DEF_SMTP_HELO_TMOUT, &var_smtp_helo_tmout, 1, 0,
+	VAR_SMTP_MAIL_TMOUT, DEF_SMTP_MAIL_TMOUT, &var_smtp_mail_tmout, 1, 0,
+	VAR_SMTP_RCPT_TMOUT, DEF_SMTP_RCPT_TMOUT, &var_smtp_rcpt_tmout, 1, 0,
+	VAR_SMTP_DATA0_TMOUT, DEF_SMTP_DATA0_TMOUT, &var_smtp_data0_tmout, 1, 0,
+	VAR_SMTP_DATA1_TMOUT, DEF_SMTP_DATA1_TMOUT, &var_smtp_data1_tmout, 1, 0,
+	VAR_SMTP_DATA2_TMOUT, DEF_SMTP_DATA2_TMOUT, &var_smtp_data2_tmout, 1, 0,
+	VAR_SMTP_QUIT_TMOUT, DEF_SMTP_QUIT_TMOUT, &var_smtp_quit_tmout, 1, 0,
+	VAR_DEBUG_PEER_LEVEL, DEF_DEBUG_PEER_LEVEL, &var_debug_peer_level, 1, 0,
+	0,
+    };
+
+    single_server_main(argc, argv, smtp_service,
+		       MAIL_SERVER_INT_TABLE, int_table,
+		       MAIL_SERVER_STR_TABLE, str_table,
+		       MAIL_SERVER_PRE_INIT, debug_peer_init,
+		       0);
+}

@@ -1,0 +1,42 @@
+SHELL	= /bin/sh
+WARN    = -Wmissing-prototypes
+OPTS	= "CC=$(CC)"
+DIRS	= util global dns master postfix smtpstone fsstone sendmail \
+	pickup cleanup smtpd local trivial-rewrite qmgr smtp bounce pipe \
+	showq postalias postcat postconf postdrop postkick postlock postlog \
+	postmap # man html
+
+default: update
+
+makefiles Makefiles:
+	set -e; for i in $(DIRS); do \
+	 (set -e; echo "[$$i]"; cd $$i; rm -f Makefile; \
+	 $(MAKE) -f Makefile.in Makefile); \
+	done;
+	rm -f Makefile; (set -e; sh makedefs; cat Makefile.in) >Makefile
+
+update printfck:
+	set -e; for i in $(DIRS); do \
+	 (set -e; echo "[$$i]"; cd $$i; $(MAKE) $(OPTS) $@) || exit 1; \
+	done
+
+depend clean:
+	set -e; for i in $(DIRS); do \
+	 (set -e; echo "[$$i]"; cd $$i; $(MAKE) $@) || exit 1; \
+	done
+
+depend_update:
+	set -e; for i in $(DIRS); do \
+	 (set -e; echo "[$$i]"; cd $$i; $(MAKE) depend && $(MAKE) $(OPTS) update) \
+	    || exit 1; \
+	done
+
+tidy:	clean
+	rm -f Makefile */Makefile
+	cp Makefile.init Makefile
+	-rm -f *core */*core .nfs* .pure bin/* lib/* include/* */.nfs* */.pure \
+	*.out */*.out */*.db */*.a *~ */*~ *- */*- *.orig */*.orig *.bak \
+	*/*.bak make.err
+	find . -type s -print | xargs rm -f
+	find . -type d -print | xargs chmod 755
+	find . -type f -print | xargs chmod a+r

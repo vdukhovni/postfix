@@ -1,0 +1,43 @@
+.TH POSTCONF 1 
+.ad
+.fi
+.SH NAME
+postconf
+\-
+Postfix configuration utility
+.SH SYNOPSIS
+.na
+.nf
+.fi
+\fBpostconf\fR [\fB-d\fR] [\fB-n\fR] [\fB-v\fR] [\fIparameter ...\fR]
+.SH DESCRIPTION
+.ad
+.fi
+The \fBpostconf\fR command prints the actual value of
+\fIparameter\fR (all known parameters by default).
+
+Options:
+.IP \fB-d\fR
+Print default parameter settings instead of actual settings.
+.IP \fB-n\fR
+Print non-default parameter settings only.
+.IP \fB-v\fR
+Enable verbose mode for debugging purposes. Multiple \fB-v\fR
+options make the software increasingly verbose.
+.SH DIAGNOSTICS
+.ad
+.fi
+Problems are reported to the standard error stream.
+.SH LICENSE
+.na
+.nf
+.ad
+.fi
+The Secure Mailer license must be distributed with this software.
+.SH AUTHOR(S)
+.na
+.nf
+Wietse Venema
+IBM T.J. Watson Research
+P.O. Box 704
+Yorktown Heights, NY 10598, USA

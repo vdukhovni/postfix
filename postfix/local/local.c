@@ -1,0 +1,467 @@
+/*++
+/* NAME
+/*	local 8
+/* SUMMARY
+/*	Postfix local mail delivery
+/* SYNOPSIS
+/*	\fBlocal\fR [generic Postfix daemon options]
+/* DESCRIPTION
+/*	The \fBlocal\fR daemon processes delivery requests from the
+/*	Postfix queue manager to deliver mail to local recipients.
+/*	Each delivery request specifies a queue file, a sender address,
+/*	a domain or host to deliver to, and one or more recipients.
+/*	This program expects to be run from the \fBmaster\fR(8) process
+/*	manager.
+/*
+/*	The \fBlocal\fR daemon updates queue files and marks recipients
+/*	as finished, or it informs the queue manager that delivery should
+/*	be tried again at a later time. Delivery problem reports are sent
+/*	to the \fBbounce\fR(8) or \fBdefer\fR(8) daemon as appropriate.
+/* SYSTEM-WIDE AND USER-LEVEL ALIASING
+/* .ad
+/* .fi
+/*	The system adminstrator can set up one or more system-wide
+/*	\fBsendmail\fR-style alias databases.
+/*	Users can have \fBsendmail\fR-style ~/.\fBforward\fR files.
+/*	Mail for \fIname\fR is delivered to the alias \fIname\fR, to
+/*	destinations in ~\fIname\fR/.\fBforward\fR, to the mailbox owned
+/*	by the user \fIname\fR, or it is sent back as undeliverable.
+/*
+/*	An alias or ~/.\fBforward\fR file may list any combination of external
+/*	commands, destination file names, \fB:include:\fR directives, or
+/*	mail addresses.
+/*	See \fBaliases\fR(5) for a precise description. Each line in a
+/*	user's .\fBforward\fR file has the same syntax as the right-hand part
+/*	of an alias.
+/*
+/*	When an address is found in its own alias expansion, delivery is
+/*	made to the user instead. When a user is listed in the user's own
+/*	~/.\fBforward\fR file, delivery is made to the user's mailbox instead.
+/*	An empty ~/.\fBforward\fR file means do not forward mail.
+/*
+/*	In order to prevent the mail system from using up unreasonable
+/*	amounts of memory, input records read from \fB:include:\fR or from
+/*	~/.\fBforward\fR files are broken up into chunks of length
+/*	\fBline_length_limit\fR.
+/*
+/*	While expanding aliases, ~/.\fBforward\fR files, and so on, the
+/*	program attempts to avoid duplicate deliveries. The
+/*	\fBduplicate_filter_limit\fR configuration parameter limits the
+/*	number of remembered recipients.
+/* MAIL FORWARDING
+/* .ad
+/* .fi
+/*	For the sake of reliability, forwarded mail is re-submitted as
+/*	a new message, so that each recipient has a separate on-file
+/*	delivery status record.
+/*
+/*	In order to stop mail forwarding loops early, the software adds a
+/*	\fBDelivered-To:\fR header with the envelope recipient address. If
+/*	mail arrives for a recipient that is already listed in a
+/*	\fBDelivered-To:\fR header, the message is bounced.
+/* MAILBOX DELIVERY
+/* .ad
+/* .fi
+/*	The per-user mailbox is either a file in the default UNIX mailbox
+/*	directory (\fB/var/mail/\fIuser\fR or \fB/var/spool/mail/\fIuser\fR)
+/*	or it is a file in the user's home directory with a name specified
+/*	via the \fBhome_mailbox\fR configuration parameter.
+/*	Mailbox delivery can be delegated to an external command specified
+/*	with the \fBmailbox_command\fR configuration parameter.
+/*
+/*	The \fBlocal\fR daemon prepends a "\fBFrom \fIsender time_stamp\fR"
+/*	envelope header to each message, prepends a \fBDelivered-To:\fR header
+/*	with the envelope recipient address, prepends a \fB>\fR character to
+/*	lines beginning with "\fBFrom \fR", and appends an empty line.
+/*	The mailbox is locked for exclusive access while delivery is in
+/*	progress. In case of problems, an attempt is made to truncate the
+/*	mailbox to its original length.
+/* EXTERNAL COMMAND DELIVERY
+/* .ad
+/* .fi
+/*	The \fBallow_mail_to_commands\fR configuration parameter restricts
+/*	delivery to external commands. The default setting (\fBalias,
+/*	forward\fR) forbids command destinations in \fB:include:\fR files.
+/*
+/*	The command is executed directly where possible. Assistance by the
+/*	shell (\fB/bin/sh\fR on UNIX systems) is used only when the command
+/*	contains shell magic characters, or when the command invokes a shell
+/*	built-in command.
+/*
+/*	A limited amount of command output (standard output and standard
+/*	error) is captured for inclusion with non-delivery status reports.
+/*	A command is forcibly terminated if it does not complete within
+/*	\fBcommand_time_limit\fR seconds.  Command exit status codes are
+/*	expected to follow the conventions defined in <\fBsysexits.h\fR>.
+/*
+/*	When mail is delivered on behalf of a user, the \fBHOME\fR,
+/*	\fBLOGNAME\fR, and \fBSHELL\fR environment variables are set
+/*	accordingly.
+/*	The \fBPATH\fR environment variable is always reset to a
+/*	system-dependent default path, and the \fBTZ\fR (time zone)
+/*	environment variable is always passed on without change.
+/*
+/*	The current working directory is the mail queue directory.
+/*
+/*	The \fBlocal\fR daemon prepends a "\fBFrom \fIsender time_stamp\fR"
+/*	envelope header to each message, prepends a \fBDelivered-To:\fR
+/*	header with the recipient envelope address, and appends an empty line.
+/* EXTERNAL FILE DELIVERY
+/* .ad
+/* .fi
+/*	The \fBallow_mail_to_files\fR configuration parameter restricts
+/*	delivery to external files. The default setting (\fBalias,
+/*	forward\fR) forbids file destinations in \fB:include:\fR files.
+/*
+/*	The \fBlocal\fR daemon prepends a "\fBFrom \fIsender time_stamp\fR"
+/*	envelope header to each message, prepends a \fBDelivered-To:\fR
+/*	header with the recipient envelope address, prepends a \fB>\fR
+/*	character to lines beginning with "\fBFrom \fR", and appends an
+/*	empty line.
+/*	When the destination is a regular file, it is locked for exclusive
+/*	access while delivery is in progress. In case of problems, an attempt
+/*	is made to truncate a regular file to its original length.
+/* ADDRESS EXTENSION
+/* .ad
+/* .fi
+/*	The optional \fBrecipient_delimiter\fR configuration parameter
+/*	specifies how to separate address extensions from local recipient
+/*	names.
+/*
+/*	For example, with "\fBrecipient_delimiter = +\fR", mail for
+/*	\fIname\fR+\fIfoo\fR is delivered to the alias \fIname\fR+\fIfoo\fR
+/*	or to the alias \fIname\fR, to the destinations listed in
+/*	~\fIname\fR/.\fBforward\fR+\fIfoo\fR or in ~\fIname\fR/.\fBforward\fR,
+/*	to the mailbox owned by the user \fIname\fR, or it is sent back as
+/*	undeliverable.
+/*
+/*	In all cases the \fBlocal\fR daemon prepends a
+/*	`\fBDelivered-To:\fR \fIname\fR+\fIfoo\fR' header line.
+/* DELIVERY RIGHTS
+/* .ad
+/* .fi
+/*	Deliveries to external files and external commands are made with
+/*	the rights of the receiving user on whose behalf the delivery is made.
+/*	In the absence of a user context, the \fBlocal\fR daemon uses the
+/*	owner rights of the \fB:include:\fR file or alias database.
+/*	When those files are owned by the superuser, delivery is made with
+/*	the rights specified with the \fBdefault_privs\fR configuration
+/*	parameter.
+/* STANDARDS
+/*	RFC 822 (ARPA Internet Text Messages)
+/* DIAGNOSTICS
+/*	Problems and transactions are logged to \fBsyslogd\fR(8).
+/*	Corrupted message files are marked so that the queue
+/*	manager can move them to the \fBcorrupt\fR queue afterwards.
+/*
+/*	Depending on the setting of the \fBnotify_classes\fR parameter,
+/*	the postmaster is notified of bounces and of other trouble.
+/* BUGS
+/*	For security reasons, the message delivery status of external commands
+/*	or of external files is never checkpointed to file. As a result,
+/*	the program may occasionally deliver more than once to a command or
+/*	external file. Better safe than sorry.
+/*
+/*	Mutually-recursive aliases or ~/.\fBforward\fR files are not detected
+/*	early.  The resulting mail forwarding loop is broken by the use of the
+/*	\fBDelivered-To:\fR message header.
+/* CONFIGURATION PARAMETERS
+/* .ad
+/* .fi
+/*	The following \fBmain.cf\fR parameters are especially relevant to
+/*	this program. See the Postfix \fBmain.cf\fR file for syntax details
+/*	and for default values. Use the \fBpostfix reload\fR command after
+/*	a configuration change.
+/* .SH Miscellaneous
+/* .ad
+/* .fi
+/* .IP \fBalias_maps\fR
+/*	List of alias databases.
+/* .IP \fBhome_mailbox\fR
+/*	Pathname of a mailbox relative to a user's home directory.
+/*	Specify \fBmaildir\fR for maildir-style delivery.
+/* .IP \fBlocal_command_shell\fR
+/*	Shell to use for external command execution (for example,
+/*	/some/where/smrsh -c).
+/*	When a shell is specified, it is invoked even when the command
+/*	contains no shell built-in commands or meta characters.
+/* .IP \fBmailbox_command\fR
+/*	External command to use for mailbox delivery.
+/* .IP \fBrecipient_delimiter\fR
+/*	Separator between username and address extension.
+/* .SH "Locking controls"
+/* .ad
+/* .fi
+/* .IP \fBdeliver_lock_attempts\fR
+/*	Limit the number of attempts to acquire an exclusive lock
+/*	on a mailbox or external file.
+/* .IP \fBdeliver_lock_delay\fR
+/*	Time in seconds between successive attempts to acquire
+/*	an exclusive lock.
+/* .IP \fBstale_lock_time\fR
+/*	Limit the time after which a stale lock is removed.
+/* .SH "Resource controls"
+/* .ad
+/* .fi
+/* .IP \fBcommand_time_limit\fR
+/*	Limit the amount of time for delivery to external command.
+/* .IP \fBduplicate_filter_limit\fR
+/*	Limit the size of the duplicate filter for results from
+/*	alias etc. expansion.
+/* .IP \fBline_length_limit\fR
+/*	Limit the amount of memory used for processing a partial
+/*	input line.
+/* .IP \fBlocal_destination_concurrency_limit\fR
+/*	Limit the number of parallel deliveries to the same user.
+/*	The default limit is taken from the
+/*	\fBdefault_destination_concurrency_limit\fR parameter.
+/* .IP \fBlocal_destination_recipient_limit\fR
+/*	Limit the number of recipients per message delivery.
+/*	The default limit is taken from the
+/*	\fBdefault_destination_recipient_limit\fR parameter.
+/* .SH "Security controls"
+/* .ad
+/* .fi
+/* .IP \fBallow_mail_to_commands\fR
+/*	Restrict the usage of mail delivery to external command.
+/* .IP \fBallow_mail_to_files\fR
+/*	Restrict the usage of mail delivery to external file.
+/* .IP \fBdefault_privs\fR
+/*	Default rights for delivery to external file or command.
+/* HISTORY
+/* .ad
+/* .fi
+/*	The \fBDelivered-To:\fR header appears in the \fBqmail\fR system
+/*	by Daniel Bernstein.
+/*
+/*	The \fImaildir\fR structure appears in the \fBqmail\fR system
+/*	by Daniel Bernstein.
+/* SEE ALSO
+/*	aliases(5) format of alias database
+/*	bounce(8) non-delivery status reports
+/*	postalias(1) create/update alias database
+/*	syslogd(8) system logging
+/*	qmgr(8) queue manager
+/* LICENSE
+/* .ad
+/* .fi
+/*	The Secure Mailer license must be distributed with this software.
+/* AUTHOR(S)
+/*	Wietse Venema
+/*	IBM T.J. Watson Research
+/*	P.O. Box 704
+/*	Yorktown Heights, NY 10598, USA
+/*--*/
+
+/* System library. */
+
+#include <sys_defs.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <fcntl.h>
+
+/* Utility library. */
+
+#include <msg.h>
+#include <mymalloc.h>
+#include <htable.h>
+#include <vstring.h>
+#include <vstream.h>
+#include <iostuff.h>
+#include <name_mask.h>
+#include <set_eugid.h>
+
+/* Global library. */
+
+#include <mail_queue.h>
+#include <recipient_list.h>
+#include <deliver_request.h>
+#include <deliver_completed.h>
+#include <mail_params.h>
+#include <mail_addr.h>
+#include <config.h>
+#include <been_here.h>
+
+/* Single server skeleton. */
+
+#include <mail_server.h>
+
+/* Application-specific. */
+
+#include "local.h"
+
+ /*
+  * Tunable parameters.
+  */
+char   *var_allow_commands;
+char   *var_allow_files;
+char   *var_alias_maps;
+int     var_dup_filter_limit;
+int     var_command_maxtime;
+char   *var_home_mailbox;
+char   *var_mailbox_command;
+char   *var_rcpt_fdelim;
+char   *var_local_cmd_shell;
+
+int     local_cmd_deliver_mask;
+int     local_file_deliver_mask;
+
+/* local_deliver - deliver message with extreme prejudice */
+
+static int local_deliver(DELIVER_REQUEST *rqst, char *service)
+{
+    char   *myname = "local_deliver";
+    RECIPIENT *rcpt_end = rqst->rcpt_list.info + rqst->rcpt_list.len;
+    RECIPIENT *rcpt;
+    int     rcpt_stat;
+    int     msg_stat;
+    LOCAL_STATE state;
+    USER_ATTR usr_attr;
+
+    if (msg_verbose)
+	msg_info("local_deliver: %s from %s", rqst->queue_id, rqst->sender);
+
+    /*
+     * Initialize the delivery attributes that are not recipient specific.
+     * While messages are being delivered and while aliases or forward files
+     * are being expanded, this attribute list is being changed constantly.
+     * For this reason, the list is passed on by value (except when it is
+     * being initialized :-), so that there is no need to undo attribute
+     * changes made by lower-level routines. The alias/include/forward
+     * expansion attribute list is part of a tree with self and parent
+     * references (see the EXPAND_ATTR definitions). The user-specific
+     * attributes are security sensitive, and are therefore kept separate.
+     * All this results in a noticeable level of clumsiness, but passing
+     * things around by value gives good protection against accidental change
+     * by subroutines.
+     */
+    state.level = 0;
+    deliver_attr_init(&state.msg_attr);
+    state.msg_attr.queue_name = rqst->queue_name;
+    state.msg_attr.queue_id = rqst->queue_id;
+    state.msg_attr.fp =
+	mail_queue_open(rqst->queue_name, rqst->queue_id, O_RDWR, 0);
+    if (state.msg_attr.fp == 0)
+	msg_fatal("open file %s %s: %m", rqst->queue_name, rqst->queue_id);
+    close_on_exec(vstream_fileno(state.msg_attr.fp), CLOSE_ON_EXEC);
+    state.msg_attr.offset = rqst->data_offset;
+    state.msg_attr.sender = rqst->sender;
+    state.msg_attr.relay = service;
+    state.msg_attr.arrival_time = rqst->arrival_time;
+    RESET_OWNER_ATTR(state.msg_attr, state.level);
+    RESET_USER_ATTR(usr_attr, state.level);
+    state.loop_info = delivered_init(state.msg_attr);	/* delivered-to */
+
+    /*
+     * Iterate over each recipient named in the delivery request. When the
+     * mail delivery status for a given recipient is definite (i.e. bounced
+     * or delivered), update the message queue file and cross off the
+     * recipient. Update the per-message delivery status.
+     */
+    for (msg_stat = 0, rcpt = rqst->rcpt_list.info; rcpt < rcpt_end; rcpt++) {
+	state.dup_filter = been_here_init(var_dup_filter_limit, BH_FLAG_FOLD);
+	forward_init();
+	state.msg_attr.recipient = rcpt->address;
+	rcpt_stat = deliver_recipient(state, usr_attr);
+	rcpt_stat |= forward_finish(state.msg_attr, rcpt_stat);
+	if (rcpt_stat == 0)
+	    deliver_completed(state.msg_attr.fp, rcpt->offset);
+	been_here_free(state.dup_filter);
+	msg_stat |= rcpt_stat;
+    }
+
+    /*
+     * Clean up.
+     */
+    delivered_free(state.loop_info);
+    vstream_fclose(state.msg_attr.fp);
+
+    return (msg_stat);
+}
+
+/* local_service - perform service for client */
+
+static void local_service(VSTREAM *stream, char *service, char **argv)
+{
+    DELIVER_REQUEST *request;
+    int     status;
+
+    /*
+     * Sanity check. This service takes no command-line arguments.
+     */
+    if (argv[0])
+	msg_fatal("unexpected command-line argument: %s", argv[0]);
+
+    /*
+     * This routine runs whenever a client connects to the UNIX-domain socket
+     * that is dedicated to local mail delivery service. What we see below is
+     * a little protocol to (1) tell the client that we are ready, (2) read a
+     * delivery request from the client, and (3) report the completion status
+     * of that request.
+     */
+    if ((request = deliver_request_read(stream)) != 0) {
+	status = local_deliver(request, service);
+	deliver_request_done(stream, request, status);
+    }
+}
+
+/* local_mask_init - initialize delivery restrictions */
+
+static void local_mask_init(void)
+{
+    static NAME_MASK file_mask[] = {
+	"alias", EXPAND_TYPE_ALIAS,
+	"forward", EXPAND_TYPE_FWD,
+	"include", EXPAND_TYPE_INCL,
+	0,
+    };
+    static NAME_MASK command_mask[] = {
+	"alias", EXPAND_TYPE_ALIAS,
+	"forward", EXPAND_TYPE_FWD,
+	"include", EXPAND_TYPE_INCL,
+	0,
+    };
+
+    local_file_deliver_mask = name_mask(file_mask, var_allow_files);
+    local_cmd_deliver_mask = name_mask(command_mask, var_allow_commands);
+}
+
+/* post_init - post-jail initialization */
+
+static void post_init(void)
+{
+
+    /*
+     * Drop privileges most of the time, and set up delivery restrictions.
+     */
+    set_eugid(var_owner_uid, var_owner_gid);
+    local_mask_init();
+}
+
+/* main - pass control to the single-threaded skeleton */
+
+int     main(int argc, char **argv)
+{
+    static CONFIG_INT_TABLE int_table[] = {
+	VAR_COMMAND_MAXTIME, DEF_COMMAND_MAXTIME, &var_command_maxtime, 1, 0,
+	VAR_DUP_FILTER_LIMIT, DEF_DUP_FILTER_LIMIT, &var_dup_filter_limit, 0, 0,
+	0,
+    };
+    static CONFIG_STR_TABLE str_table[] = {
+	VAR_ALIAS_MAPS, DEF_ALIAS_MAPS, &var_alias_maps, 0, 0,
+	VAR_HOME_MAILBOX, DEF_HOME_MAILBOX, &var_home_mailbox, 0, 0,
+	VAR_MAILBOX_COMMAND, DEF_MAILBOX_COMMAND, &var_mailbox_command, 0, 0,
+	VAR_ALLOW_COMMANDS, DEF_ALLOW_COMMANDS, &var_allow_commands, 0, 0,
+	VAR_ALLOW_FILES, DEF_ALLOW_FILES, &var_allow_files, 0, 0,
+	VAR_RCPT_FDELIM, DEF_RCPT_FDELIM, &var_rcpt_fdelim, 0, 0,
+	VAR_LOCAL_CMD_SHELL, DEF_LOCAL_CMD_SHELL, &var_local_cmd_shell, 0, 0,
+	0,
+    };
+
+    single_server_main(argc, argv, local_service,
+		       MAIL_SERVER_INT_TABLE, int_table,
+		       MAIL_SERVER_STR_TABLE, str_table,
+		       MAIL_SERVER_POST_INIT, post_init,
+		       0);
+}

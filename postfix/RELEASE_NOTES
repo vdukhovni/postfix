@@ -1,0 +1,62 @@
+This release introduces lots of new functionality in response to feedback
+from users.
+
+Incompatible changes:
+=====================
+
+- The syntax of the transport table has changed. An entry like:
+
+	customer.org	smtp:[gateway.customer.org]
+
+  no longer forwards mail for anything.customer.org. For that you
+  need to specify:
+
+	customer.org	smtp:[gateway.customer.org]
+	.customer.org	smtp:[gateway.customer.org]
+
+  This change makes tranport tables more compatible with
+  sendmail mailer tables.
+
+- The format of syslog records has changed. A client is now always
+logged as hostname[address]; the pickup daemon logs queue file uid
+and sender address.
+
+Major changes over the previous version:
+========================================
+
+- Junk mail restrictions can now be postoned to the RCPT TO command.
+Specify: "smtpd_recipient_restrictions = reject_maps_rbl...".
+
+- More flexible interface for delivery to e.g., cyrus IMAP without
+need for PERL scripts to munge recipient addresses. In addition to
+$sender, $nexthop and $recipient, the pipe mailer now also supports
+$user, $extension and $mailbox.
+
+- New mail now has precedence over deferred mail, plus some other
+tweaks to make bulk mail go faster. But it ain't no cure for massive
+network outages.
+
+- Watchdog timer for systems that cause the Postfix queue manager
+to lock up, so it recovers without human intervention.
+
+- Delivery to qmail-style maildir files, which is good for NFS
+environments.  Specify "home_mailbox = Maildir/", or specify
+/file/name/ in aliases or in .forward files. The trailing / is
+required to turn on maildir delivery.
+
+- Incremental updates of aliases and maps. Specify "postmap -i
+mapname" and it will read new entries from stdin. 
+
+- Newaliases will now update more than one alias database.
+Specify the names with the main.cf "alias_database" parameter.
+
+- Address masquerading exceptions to prevent users from being
+masqueraded. Specify "masquerade_exceptions = root".
+
+- A pipelined SMTP client. Deliveries to Postfix, qmail, LSOFT,
+zmailer, and exim (once it's fixed) speed up by some 30% for short
+messages with one recipient, with more for multi-recipient mails.
+
+- Hook for local delivery to "|command" via the smrsh restricted
+shell, to restrict what commands may be used in .forward etc. files.
+Specify "local_command_shell = /some/where/smrsh -c".

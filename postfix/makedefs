@@ -1,0 +1,199 @@
+#!/bin/sh
+
+#++
+# NAME
+#	makedefs 1
+# SUMMARY
+#	makefile configuration utility
+# SYNOPSIS
+#	\fBmakedefs\fR
+# DESCRIPTION
+#	The \fBmakedefs\fR command identifies the program compilation
+#	environment, and emits macro definitions on the standard output
+#	stream that can be prepended to template Makefiles.
+#
+#	Default settings can be overruled by specifying them as
+#	environment variables. Use quotes if variables contain
+#	whitespace or shell meta characters.
+# .IP \fBAUXLIBS=\fIobject_library...\fR
+#	Specifies one or more non-default object libraries.
+# .IP \fBCC=\fIcompiler_command\fR
+#	Specifies a non-default compiler. On many systems, the default
+#	is \fBgcc\fR.
+# .IP \fBCCARGS=\fIcompiler_arguments\fR
+#	Specifies non-default compiler arguments, for example, a non-default
+#	\fIinclude\fR directory.
+# .IP \fBDEBUG=\fIdebug_level\fR
+#	Specifies a non-default debugging level. The default is \fB-g\fR.
+#	Specify \fBDEBUG=\fR to turn off debugging.
+# .IP \fBOPT=\fIoptimization_level\fR
+#	Specifies a non-default optimization level. The default is \fB-O\fR.
+#	Specify \fBOPT=\fR to turn off optimization.
+# LICENSE
+# .ad
+# .fi
+#	The Secure Mailer license must be distributed with this software.
+# AUTHOR(S)
+#	Wietse Venema
+#	IBM T.J. Watson Research
+#	P.O. Box 704
+#	Yorktown Heights, NY 10598, USA
+#--
+
+# Emit system-dependent Makefile macro definitions to standard output.
+
+# Defaults for most sane systems
+
+RANLIB=ranlib
+SYSLIBS=
+AR=ar
+ARFL=rv
+
+SYSTEM=`(uname -s) 2>/dev/null`
+RELEASE=`(uname -r) 2>/dev/null`
+
+case "$SYSTEM.$RELEASE" in
+  UnixWare.5*)	SYSTYPE=UW7
+		CC=cc
+		DEBUG=
+		RANLIB=echo
+		SYSLIBS="-lresolv -lsocket -lnsl"
+		;;
+  FreeBSD.2*)	SYSTYPE=FREEBSD2
+		;;
+  FreeBSD.3*)	SYSTYPE=FREEBSD3
+		;;
+  OpenBSD.2*)	SYSTYPE=OPENBSD2
+		;;
+   NetBSD.1*)	SYSTYPE=NETBSD1
+		;;
+   BSD/OS.2*)	SYSTYPE=BSDI2
+		;;
+   BSD/OS.3*)	SYSTYPE=BSDI3
+		;;
+   BSD/OS.4*)	SYSTYPE=BSDI4
+		;;
+   OSF1.V3.*)	SYSTYPE=OSF1
+		# Use the native compiler by default
+		: ${CC=cc}
+		: ${DEBUG="-g3"}
+		;;
+   OSF1.V4.*)	SYSTYPE=OSF1
+		# Use the native compiler by default
+		: ${CC=cc}
+		: ${DEBUG="-g3"}
+		;;
+    SunOS.4*)	SYSTYPE=SUNOS4
+		SYSLIBS=-lresolv
+		;;
+    SunOS.5*)	SYSTYPE=SUNOS5
+		RANLIB=echo
+		SYSLIBS="-lresolv -lsocket -lnsl"
+		case $RELEASE in
+		    5.[0-4]) CCARGS="$CCARGS -Dusleep=doze"
+		esac
+		# Avoid common types of braindamage
+		case "$LD_LIBRARY_PATH" in
+		?*) echo "Don't set LD_LIBRARY_PATH" 1>&2; exit 1;;
+		esac
+		case "$CC" in
+		*ucb*) echo "Don't use /usr/ucb/cc or ucblib" 1>&2; exit 1;;
+		  cc*) case `which cc` in
+		*ucb*) echo "Don't use /usr/ucb/cc or ucblib" 1>&2; exit 1;;
+		  esac;;
+		esac
+		;;
+       AIX.*)	case "`uname -v`" in
+		4)	SYSTYPE=AIX4
+			# How embarrassing...
+			case "$CC" in
+			cc|*/cc|xlc|*/xlc) OPT=;;
+			esac
+			;;
+		*)	echo "Unknown AIX version: `uname -v`." 1>&2; exit 1;;
+		esac;;
+    Linux.2*)	SYSTYPE=LINUX2
+		for name in db nsl resolv
+		do
+		    test -f /usr/lib/lib$name.a && SYSLIBS="$SYSLIBS -l$name"
+		done
+		if [ -f /usr/include/db_185.h ]; then
+		    CCARGS="$CCARGS -DPATH_DB_H='<db_185.h>'"
+		fi
+		if [ -f /usr/include/db/db.h ]; then
+		    CCARGS="$CCARGS -DPATH_DB_H='<db/db.h>'"
+		fi
+		;;
+     IRIX*.5*)	SYSTYPE=IRIX5
+		# Use the native compiler by default
+		: ${CC=cc}
+		RANLIB=echo
+		;;
+     IRIX*.6*)	SYSTYPE=IRIX6
+		# Use the native compiler by default, and allow nested comments.
+		: ${CC="cc -woff 1009,1116,1412"}
+		RANLIB=echo
+		;;
+HP-UX.A.09.*)	SYSTYPE=HPUX9
+		SYSLIBS=-ldbm
+		CCARGS="$CCARGS -Dusleep=doze"
+		if [ -f /usr/lib/libdb.a ]; then
+		    CCARGS="$CCARGS -DHAS_DB"
+		    SYSLIBS="$SYSLIBS -ldb"
+		fi
+		;;
+HP-UX.B.10.*)	SYSTYPE=HPUX10
+		if [ -f /usr/lib/libdb.a ]; then
+		    CCARGS="$CCARGS -DHAS_DB"
+		    SYSLIBS=-ldb
+		fi
+		;;
+HP-UX.B.11.*)	SYSTYPE=HPUX11
+		SYSLIBS=-lnsl
+		if [ -f /usr/lib/libdb.a ]; then
+		    CCARGS="$CCARGS -DHAS_DB"
+		    SYSLIBS="$SYSLIBS -ldb"
+		fi
+		;;
+	 ".")	if [ -d /NextApps ]; then
+		    SYSTYPE=`hostinfo | sed -n \
+			's/^.*NeXT Mach 3.*$/NEXTSTEP3/;/NEXTSTEP3/{p;q;}'`
+		    if [ "$SYSTYPE" = "" ]; then
+			SYSTYPE=`hostinfo | sed -n \
+			    's/^.*NeXT Mach 4.*$/OPENSTEP4/;/OPENSTEP4/{p;q;}'`
+		    fi
+		    RANLIB="sleep 5; ranlib"
+		else
+		    echo "Unable to determine your system type." 1>&2; exit 1
+		fi
+		;;
+	   *)	echo "Unknown system type: $SYSTEM $RELEASE" 1>&2; exit 1;;
+esac
+
+# Defaults that can be overruled (make makefiles CC=cc OPT=-O6 DEBUG=)
+# Disable optimizations by default when compiling for Purify. Disable
+# optimizations by default with gcc 2.8, until the compiler is known to
+# be OK. Those who dare can still overrule this (make makefiles OPT=-O).
+
+case "$CC" in
+ *purify*) : ${OPT=};;
+*/gcc|gcc) case `$CC -v` in
+	   "gcc version 2.8"*) : ${OPT=};;
+	   esac;;
+       *) : ${OPT='-O'};;
+esac
+
+: ${CC='gcc $(WARN)'} ${OPT='-O'} ${DEBUG='-g'}
+
+export SYSTYPE AR ARFL RANLIB SYSLIBS CC OPT DEBUG OPTS
+
+sed 's/  / /g' <<EOF
+SYSTYPE	= $SYSTYPE
+AR	= $AR
+ARFL	= $ARFL
+RANLIB	= $RANLIB
+SYSLIBS	= $AUXLIBS $SYSLIBS
+CC	= $CC $CCARGS
+OPT	= $OPT
+DEBUG	= $DEBUG
+EOF

@@ -1,0 +1,93 @@
+# This file contains example settings of Postfix configuration
+# parameters that control local delivery.
+# 
+# See the sample-aliases.cf file for parameters that are specific to
+# alias database lookup.
+
+#
+# SECURITY CONTROLS
+#
+
+# The local_command_shell parameter controls what shell will be used
+# for delivery to external command. By default, external commands
+# are executed directly; commands are given to given to /bin/sh only
+# when they contain shell meta characters or shell built-in commands. 
+# 
+# Specify a different shell when you need more control over what
+# programs can be run from e.g. .forward files. 
+#
+# "sendmail's restricted shell" (smrsh) is what most people will use
+# (smrsh is part of recent sendmail distributions)
+#
+# Note: when a shell is specified, it is invoked even when the
+# command contains no shell built-in commands or meta characters.
+#
+#local_command_shell = /some/where/smrsh -c
+
+# The allow_mail_to_commands parameter restricts mail delivery to
+# external commands. The default is to disallow delivery to "|command"
+# in :include: files.
+#
+# allow_mail_to_commands = alias,forward,include
+allow_mail_to_commands = alias,forward
+
+# The allow_mail_to_files parameter restricts mail delivery to external
+# file. The default is to disallow delivery to /file/name in :include:
+# files.
+#
+# allow_mail_to_files = alias,forward,include
+allow_mail_to_files = alias,forward
+
+# The default_privs parameter specifies the default rights used by
+# the local delivery agent for delivery to external file or command.
+# These rights are used in the absence of a recipient user context.
+# DO NOT SPECIFY A PRIVILEGED USER OR THE POSTFIX OWNER.
+#
+default_privs = nobody
+
+#
+# MAILBOX DELIVERY CONTROLS
+#
+
+# The home_mailbox parameter specifies the optional pathname of a
+# mailbox relative to a user's home directory. The default is to
+# deliver to the UNIX-style /var/spool/mail/user or /var/mail/user.
+# Specify "Maildir/" for qmail-style delivery (the / is required).
+#
+# home_mailbox = Mailbox
+# home_mailbox = Maildir/
+home_mailbox = 
+
+# The mailbox_command specifies the optional external command to use
+# instead of mailbox delivery. The command is run with proper HOME,
+# SHELL and LOGNAME settings.
+# 
+# Avoid shell meta characters because they will force Postfix to run
+# an expensive shell process. Procmail alone is expensive enough.
+#
+# mailbox_command = /some/where/procmail
+mailbox_command = 
+
+#
+# RATE CONTROLS
+#
+
+# The local_destination_concurrency_limit parameter limits the number
+# of parallel deliveries to the same local recipient.
+#
+# The default limit is taken from the default_destination_concurrency_limit
+# parameter. I recommend a low limit of 2, just in case someone has
+# an expensive shell command in a .forward file or in an alias (e.g.,
+# a mailing list manager). You don't want to run lots of those.
+#
+local_destination_concurrency_limit = 2
+
+# The local_destination_recipient_limit parameter limits the number
+# of recipients per local message delivery.  The default limit is
+# taken from the default_destination_recipient_limit parameter.
+# 
+# However, the queue manager by design limits the number of recipients
+# per local delivery request to exactly 1, so this parameter has no
+# effect.
+#
+local_destination_recipient_limit = 1

@@ -1,0 +1,266 @@
+<html> <head> </head> <body> <pre>
+
+
+
+SMTPD(8)                                                 SMTPD(8)
+
+
+<b>NAME</b>
+       smtpd - Postfix SMTP server
+
+<b>SYNOPSIS</b>
+       <b>smtpd</b> [generic Postfix daemon options]
+
+<b>DESCRIPTION</b>
+       The  SMTP  server  accepts network connection requests and
+       performs zero or more SMTP  transactions  per  connection.
+       Each received message is piped through the <a href="cleanup.8.html"><b>cleanup</b>(8)</a> dae-
+       mon, and is placed into the <b>incoming</b> queue as  one  single
+       queue  file.   For  this  mode  of  operation, the program
+       expects to be run from the <a href="master.8.html"><b>master</b>(8)</a> process manager.
+
+       Alternatively, the SMTP server takes an  established  con-
+       nection  on  standard input and deposits messages directly
+       into the <b>maildrop</b> queue.  In  this  so-called  stand-alone
+       mode,  the SMTP server can accept mail even while the mail
+       system is not running.
+
+       The SMTP server implements a variety of policies for  con-
+       nection  requests,  and for parameters given to <b>HELO,</b> <b>MAIL</b>
+       <b>FROM,</b> <b>VRFY</b> and <b>RCPT</b> <b>TO</b> commands. They are  detailed  below
+       and in the <b>main.cf</b> configuration file.
+
+<b>SECURITY</b>
+       The SMTP server is moderately security-sensitive. It talks
+       to SMTP clients and to DNS servers  on  the  network.  The
+       SMTP server can be run chrooted at fixed low privilege.
+
+<b>STANDARDS</b>
+       RFC 821 (SMTP protocol)
+       RFC 1123 (Host requirements)
+       RFC 1651 (SMTP service extensions)
+       RFC 1652 (8bit-MIME transport)
+       RFC 1854 (SMTP Pipelining)
+       RFC 1870 (Message Size Declaration)
+       RFC 1985 (ETRN command) (partial)
+
+<b>DIAGNOSTICS</b>
+       Problems and transactions are logged to <b>syslogd</b>(8).
+
+       Depending  on the setting of the <b>notify</b><i>_</i><b>classes</b> parameter,
+       the postmaster is notified of bounces, protocol  problems,
+       policy violations, and of other trouble.
+
+<b>BUGS</b>
+       RFC  1985  is  implemented  by  forcing  delivery  of  all
+       deferred mail.
+
+<b>CONFIGURATION</b> <b>PARAMETERS</b>
+       The following <b>main.cf</b> parameters are  especially  relevant
+       to  this  program. See the Postfix <b>main.cf</b> file for syntax
+       details and for default values.  Use  the  <b>postfix</b>  <b>reload</b>
+
+
+
+                                                                1
+
+
+
+
+
+SMTPD(8)                                                 SMTPD(8)
+
+
+       command after a configuration change.
+
+<b>Miscellaneous</b>
+       <b>command</b><i>_</i><b>directory</b>
+              Location  of  Postfix  support  commands  (default:
+              <b>$program</b><i>_</i><b>directory</b>).
+
+       <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b>
+              Increment in verbose logging level  when  a  remote
+              host  matches  a  pattern  in  the  <b>debug</b><i>_</i><b>peer</b><i>_</i><b>list</b>
+              parameter.
+
+       <b>debug</b><i>_</i><b>peer</b><i>_</i><b>list</b>
+              List of domain or network patterns. When  a  remote
+              host  matches  a pattern, increase the verbose log-
+              ging  level  by  the  amount   specified   in   the
+              <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b> parameter.
+
+       <b>hopcount</b><i>_</i><b>limit</b>
+              Limit the number of <b>Received:</b> message headers.
+
+       <b>notify</b><i>_</i><b>classes</b>
+              List of error classes. Of special interest are:
+
+              <b>policy</b> When  a  client  violates any policy, mail a
+                     transcript of the entire SMTP session to the
+                     postmaster.
+
+              <b>protocol</b>
+                     When  a client violates the SMTP protocol or
+                     issues  an  unimplemented  command,  mail  a
+                     transcript of the entire SMTP session to the
+                     postmaster.
+
+       <b>smtpd</b><i>_</i><b>banner</b>
+              Text that follows the <b>220</b> status code in  the  SMTP
+              greeting banner.
+
+       <b>smtpd</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
+              Restrict  the  number  of  recipients that the SMTP
+              server accepts per message delivery.
+
+       <b>smtpd</b><i>_</i><b>timeout</b>
+              Limit the time to send a  server  response  and  to
+              receive a client request.
+
+<b>Resource</b> <b>controls</b>
+       <b>line</b><i>_</i><b>length</b><i>_</i><b>limit</b>
+              Limit  the  amount  of memory in bytes used for the
+              handling of partial input lines.
+
+       <b>message</b><i>_</i><b>size</b><i>_</i><b>limit</b>
+              Limit the total size in bytes of a message, includ-
+              ing on-disk storage for envelope information.
+
+
+
+                                                                2
+
+
+
+
+
+SMTPD(8)                                                 SMTPD(8)
+
+
+       <b>queue</b><i>_</i><b>minfree</b>
+              Minimal  amount of free space in bytes in the queue
+              file system for the SMTP server to accept any  mail
+              at all.
+
+<b>Tarpitting</b>
+       <b>smtpd</b><i>_</i><b>error</b><i>_</i><b>sleep</b><i>_</i><b>time</b>
+              Time to wait in seconds before sending a 4xx or 5xx
+              server error response.
+
+       <b>smtpd</b><i>_</i><b>soft</b><i>_</i><b>error</b><i>_</i><b>limit</b>
+              When an SMTP client has made this number of errors,
+              wait  <i>error_count</i>  seconds before responding to any
+              client request.
+
+       <b>smtpd</b><i>_</i><b>hard</b><i>_</i><b>error</b><i>_</i><b>limit</b>
+              Disconnect after a client has made this  number  of
+              errors.
+
+<b>UCE</b> <b>control</b> <b>restrictions</b>
+       <b>smtpd</b><i>_</i><b>client</b><i>_</i><b>restrictions</b>
+              Restrict what clients may connect to this mail sys-
+              tem.
+
+       <b>smtpd</b><i>_</i><b>helo</b><i>_</i><b>required</b>
+              Require that clients introduce  themselves  at  the
+              beginning of an SMTP session.
+
+       <b>smtpd</b><i>_</i><b>helo</b><i>_</i><b>restrictions</b>
+              Restrict  what client hostnames are allowed in <b>HELO</b>
+              and <b>EHLO</b> commands.
+
+       <b>smtpd</b><i>_</i><b>sender</b><i>_</i><b>restrictions</b>
+              Restrict what sender addresses are allowed in  <b>MAIL</b>
+              <b>FROM</b> commands.
+
+       <b>smtpd</b><i>_</i><b>recipient</b><i>_</i><b>restrictions</b>
+              Restrict  what  recipient  addresses are allowed in
+              <b>RCPT</b> <b>TO</b> commands.
+
+       <b>maps</b><i>_</i><b>rbl</b><i>_</i><b>domains</b>
+              List of DNS domains that publish the  addresses  of
+              blacklisted hosts.
+
+       <b>relay</b><i>_</i><b>domains</b>
+              Restrict  what domains or networks this mail system
+              will relay mail from or to.
+
+<b>UCE</b> <b>control</b> <b>responses</b>
+       <b>access</b><i>_</i><b>map</b><i>_</i><b>reject</b><i>_</i><b>code</b>
+              Server response when a client  violates  an  access
+              database restriction.
+
+
+
+
+
+                                                                3
+
+
+
+
+
+SMTPD(8)                                                 SMTPD(8)
+
+
+       <b>invalid</b><i>_</i><b>hostname</b><i>_</i><b>reject</b><i>_</i><b>code</b>
+              Server   response   when   a  client  violates  the
+              <b>reject</b><i>_</i><b>invalid</b><i>_</i><b>hostname</b> restriction.
+
+       <b>maps</b><i>_</i><b>rbl</b><i>_</i><b>reject</b><i>_</i><b>code</b>
+              Server  response  when  a   client   violates   the
+              <b>maps</b><i>_</i><b>rbl</b><i>_</i><b>domains</b> restriction.
+
+       <b>reject</b><i>_</i><b>code</b>
+              Response  code  when  the  client  matches a <b>reject</b>
+              restriction.
+
+       <b>relay</b><i>_</i><b>domains</b><i>_</i><b>reject</b><i>_</i><b>code</b>
+              Server response when a client attempts  to  violate
+              the mail relay policy.
+
+       <b>unknown</b><i>_</i><b>address</b><i>_</i><b>reject</b><i>_</i><b>code</b>
+              Server   response   when   a  client  violates  the
+              <b>reject</b><i>_</i><b>unknown</b><i>_</i><b>address</b> restriction.
+
+       <b>unknown</b><i>_</i><b>client</b><i>_</i><b>reject</b><i>_</i><b>code</b>
+              Server response when a client  without  address  to
+              name  mapping  violates  the <b>reject</b><i>_</i><b>unknown</b><i>_</i><b>clients</b>
+              restriction.
+
+       <b>unknown</b><i>_</i><b>hostname</b><i>_</i><b>reject</b><i>_</i><b>code</b>
+              Server  response  when  a   client   violates   the
+              <b>reject</b><i>_</i><b>unknown</b><i>_</i><b>hostname</b> restriction.
+
+<b>SEE</b> <b>ALSO</b>
+       <a href="cleanup.8.html">cleanup(8)</a> message canonicalization
+       <a href="master.8.html">master(8)</a> process manager
+       syslogd(8) system logging
+
+<b>LICENSE</b>
+       The  Secure  Mailer  license must be distributed with this
+       software.
+
+<b>AUTHOR(S)</b>
+       Wietse Venema
+       IBM T.J. Watson Research
+       P.O. Box 704
+       Yorktown Heights, NY 10598, USA
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                4
+
+
+</pre> </body> </html>

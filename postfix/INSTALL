@@ -1,0 +1,504 @@
+Purpose of this document
+========================
+
+This document describes how to build, install and configure a
+Postfix system so that it can do one of the following:
+
+    - Send mail only, without changing an existing sendmail
+      installation.
+
+    - Send and receive mail via a virtual host interface, still
+      without any change to an existing sendmail installation.
+
+    - Replace sendmail altogether.
+
+Typographical conventions
+=========================
+
+In the instructions below, a command written as
+
+    # command
+
+should be executed as the superuser. 
+
+A command written as
+
+    % command
+
+should be executed as an unprivileged user.
+
+Documentation
+=============
+
+Documentation is available as HTML web pages (point your browser
+to html/index.html) and as UNIX-style manpages (point your MANPATH
+environment variable to the `man' subdirectory; be sure to use an
+absolute path).
+
+The sample configuration files in the `conf' directory have extensive
+comments, but they may not describe every nuance of every feature.
+
+Many files have their own built-in manual page.  Tools to extract
+those embedded manual pages are available in the contributed software
+from http://www.postfix.org/
+
+Building on a supported system
+==============================
+
+If your system is supported, it is one of
+
+    AIX 4.1.x
+    AIX 4.2.0
+    BSD/OS 2.x
+    BSD/OS 3.x
+    BSD/OS 4.x
+    FreeBSD 2.x
+    FreeBSD 3.x
+    HP-UX  9.x
+    HP-UX 10.x
+    HP-UX 11.x
+    IRIX 5.x
+    IRIX 6.x
+    Linux Debian 1.3.1
+    Linux Debian 2.x
+    Linux RedHat 4.2
+    Linux RedHat 5.x
+    Linux Slackware 3.5
+    Linux SuSE 5.x
+    NEXTSTEP 3.x
+    NetBSD 1.x
+    OPENSTEP 4.x
+    OSF1.V4 aka Digital UNIX V4
+    OpenBSD 2.x
+    SunOS 4.1.x
+    SunOS 5.4..5.7 (Solaris 2.4..7)
+
+or something closely resemblant. Some platforms such as Ultrix 4
+might work, but that has not been verified. It is sufficiently
+similar to SunOS 4 that my guesses should be mostly right.
+
+Download the contributed software from http://www.postfix.org/ if
+you wish to include support for LDAP (light-weight directory access
+protocol) lookups, for NEXTSTEP version 3 or for OPENSTEP version 4.
+
+If at any time in the build process you get messages like: "make:
+don't know how to ..." you should be able to recover by running
+the following command from the Postfix top-level directory:
+
+    % make -f Makefile.init makefiles
+
+If you copied the Postfix source code after building it on another
+machine, it is a good idea to cd into the top-level directory and
+
+    % make tidy
+
+first. This will get rid of any system dependencies left over from
+compiling the software elsewhere.
+
+To build with GCC, or with the native compiler if people told me
+that is better for your system, just cd into the top-level Postfix
+directory of the source tree and type:
+
+    % make
+
+To build with a non-default compiler, you need to specify the name
+of the compiler:
+
+    % make makefiles CC=/opt/SUNWspro/bin/cc
+    % make
+
+    % make makefiles CC="purify cc"
+    % make
+
+and so on. On some cases, optimization is turned off automatically.
+
+In order to build with non-default settings, for example, with a
+configuration directory other than /etc/postfix, use:
+
+    % make makefiles CCARGS=-DDEF_CONFIG_DIR=\\\\\\\"/some/where\\\\\\\"
+    % make
+
+That's seven backslashes :-) But at least this works with sh and csh.
+
+In any case, if the command
+
+    % make
+
+produces compiler error messages, it may be time to examine the
+FAQ document.
+
+Porting to on an unsupported system
+===================================
+
+- Choose a SYSTEMTYPE name for the new system. Please use a name
+that includes the major version of the operating system (such as
+SUNOS4 or LINUX2), so that different releases of the same system
+can be supported without confusion.
+
+- Add a case statement to the "makedefs" shell script in the
+top-level directory that recognizes the new system reliably, and
+that emits the right system-specific information.  Be sure to make
+the code robust against user PATH settings; if the system offers
+multiple UNIX flavors (e.g. BSD and SYSV) be sure to build for the
+native flavor, not the emulated one.
+
+- Add an #ifdef SYSTEMTYPE section to the central util/sys_defs.h
+include file.  You may have to invent new feature macros.  Please
+choose sensible feature macro names such as HAS_DBM or
+FIONREAD_IN_SYS_FILIO_H.  I strongly recommend against #ifdef
+SYSTEMTYPE dependencies in individual source files.  This may seem
+to be the quickest solution, but it will create a mess that becomes
+increasingly difficult to maintain over time. Moreover, with the
+next port you'd have to place #ifdefs all over the source code
+again.
+
+Installing the software after successful compilation
+====================================================
+
+There is no automated installation procedure. The Postfix system
+is sufficiently complex, and UNIX systems are sufficiently different,
+that I feel uncomfortable providing an out-of-the-box procedure.
+
+Installing Postfix by hand takes only a few steps.
+
+- Configuration directory. This name is wired into the programs,
+  but it can be overruled by setting the MAIL_CONFIG environment
+  variable.  This text assumes that you have chosen the default
+  location.
+
+  As superuser, execute the commands:
+
+    # mkdir /etc/postfix
+    # chmod 755 /etc/postfix
+    # cp /some/where/postfix/conf/* /etc/postfix
+    # chmod 644 /etc/postfix/*
+    # chmod 755 /etc/postfix/postfix-script
+
+  This also installs the LICENSE file, as required.
+
+- Spool directory. The pathname is configurable in /etc/postfix/main.cf.
+  This text assumes that you have chosen the default location.
+
+  As superuser, execute the commands:
+
+    # mkdir /var/spool/postfix
+    # chmod 755 /var/spool/postfix
+
+- Program directory. The pathname is configurable in /etc/postfix/main.cf.
+  I recommend that you install the programs in a separate directory,
+  not in a place that contains other software.
+
+  As superuser, execute the commands:
+
+    # mkdir /some/where/bin
+    # cp bin/* /some/where/bin
+
+  Alternative 1: leave the programs in the Postfix source tree.
+
+  Alternative 2: use separate program and daemon directories (again,
+  configurable in /etc/postfix/main.cf):
+
+    # mkdir /some/where/sbin /some/where/libexec
+    # cp bin/sendmail bin/post* /some/where/sbin
+    # cp `ls bin/*|egrep -v 'post|fsstone|smtp-|sendmail'` /some/where/libexec
+
+- On-line manual pages:
+
+    # mkdir /some/where/man
+    # (cd man; tar cf - .) | (cd /some/where/man; tar xvf -)
+
+  Alternative: leave the manpages in the Postfix source tree.
+
+  You may wish to update your MANPATH so you can view the Postfix
+  manual pages.  For example:
+
+    # export MANPATH
+    # MANPATH=/some/where/man:/usr/share/man:/usr/local/man
+
+- Next, review the "To chroot or not to chroot" section, and proceed
+  to the section on how you wish to run Postfix on your particular
+  machine:
+
+    - Send mail only, without changing an existing sendmail
+      installation.
+
+    - Send and receive mail via a virtual host interface, still
+      without any change to an existing sendmail installation.
+
+    - Replace sendmail altogether.
+
+To chroot or not to chroot
+==========================
+
+Most Postfix daemons can run in a chroot jail, that is, in a chroot
+environment at fixed low privilege. This provides a significant
+barrier against intrusion. The barrier is not impenetrable, but
+every little bit helps.
+
+The file /etc/postfix/master.cf by default runs no Postfix daemons
+in a chroot jail. However, with the exception of the `local' and
+`pipe' daemons, every Postfix daemon can run chrooted.
+
+- The contributed source code from http://www.postfix.org/ has
+  scripts for setting up chroot environments for Postfix systems.
+
+Configuring Postfix to send mail only
+=====================================
+
+If you are going to use Postfix to send mail only, there is no need
+to change your sendmail setup. Instead, set up your mail user agent
+so that it calls the Postfix sendmail program directly.
+
+Follow the instructions in the "Mandatory configuration file edits"
+section below.
+
+You must comment out the smtp inet service in /etc/postfix/master.cf,
+in order to avoid conflicts with the sendmail daemon.
+
+Start the Postfix system:
+
+    # postfix start
+
+or, if you feel nostalgic,
+
+    # /some/where/bin/sendmail -bd -qwhatever
+
+and watch your syslog file for any error messages.
+
+When it is run for the first time, the Postfix startup shell script
+will create a bunch of subdirectories below the Postfix spool
+directory.
+
+In order to inspect the mail queue, use
+
+    % /some/where/bin/sendmail -bp
+
+See also the "Care and feeding" section below.
+
+Configuring Postfix to send and receive mail (virtual interface)
+================================================================
+
+Alternatively, you can use the Postfix system to send AND receive
+mail while leaving your sendmail setup intact, by running Postfix
+on a virtual interface address.  Simply configure your mail user
+agent to directly invoke the Postfix sendmail program.
+
+The contributed source code from http://www.postfix.org/ gives
+examples for setting up virtual interfaces for a variety of UNIX
+versions.
+
+In the /etc/postfix/main.cf file, I would specify 
+
+    myhostname = virtual.host.name
+    inet_interfaces = $myhostname
+    mydestination = $myhostname
+
+You still have to do the "Mandatory configuration file edits"
+described below. After those edits, start the mail system:
+
+    # /some/where/bin/postfix start
+
+or, if you feel nostalgic,
+
+    # /some/where/bin/sendmail -bd -qwhatever
+
+and watch your syslog file for any error messages. 
+
+When it is run for the first time, the Postfix startup shell script
+will create a bunch of subdirectories below the Postfix spool
+directory.
+
+In order to inspect the mail queue, use
+
+    % /some/where/bin/sendmail -bp
+
+See also the "Care and feeding" section below.
+
+Turning off sendmail forever
+============================
+
+If you are going to REPLACE sendmail by Postfix, execute the
+following commands.  The text assumes that your sendmail is in
+/usr/sbin, and that mailq and newaliases are in /usr/bin.
+
+First, move the existing sendmail, mailq and newaliases commands
+out of the way:
+
+    # mv /usr/sbin/sendmail /usr/sbin/sendmail.OFF
+    # mv /usr/bin/mailq /usr/bin/mailq.OFF
+    # mv /usr/bin/newaliases /usr/bin/newaliases.OFF
+    # chmod 555 /usr/sbin/sendmail.OFF /usr/bin/mailq.OFF \
+	/usr/bin/newaliases.OFF
+
+Then, drop in the new Postfix sendmail and support programs, and
+set up links for the mailq and newaliases commands:
+
+    # ln -s /some/where/bin/sendmail /some/where/bin/post* /usr/sbin
+    # chmod 755 /usr/sbin/sendmail /usr/sbin/post*
+    # ln -s /usr/sbin/sendmail /usr/bin/mailq
+    # ln -s /usr/sbin/sendmail /usr/bin/newaliases
+
+Be sure to keep the old sendmail running for at least a couple
+days to flush any unsent mail.
+
+After you have visited the "Mandatory configuration file edits"
+section below, you can start the Postfix system with
+
+    # postfix start
+
+But the good old sendmail way works just as well:
+
+    # sendmail -bd -qwhatever
+
+and watch the syslog file for any complaints from the mail system.
+
+When it is run for the first time, the Postfix startup shell script
+will create a bunch of subdirectories below the Postfix spool
+directory.
+
+See also the "Care and feeding" section below.
+
+Mandatory configuration file edits
+==================================
+
+By default, all Postfix configuration files are in /etc/postfix, and
+must be owned by root. 
+
+Whenever you make a change to a config file, execute the following
+command in order to refresh a running mail system:
+
+    # postfix reload
+
+In /etc/postfix/main.cf you will have to set up a minimal number of
+configuration parameters. Postfix configuration parameters
+resemble shell variables. You specify a variable as
+
+    parameter = value
+
+and you use it by putting a $ in front of it:
+
+    other_parameter = $parameter
+
+You can use $parameter before it is given a value. The Postfix
+configuration language uses lazy evaluation, and does not look at
+a parameter value until it is needed at runtime.
+
+First of all you have to specify the userid that owns the Postfix
+queue and processes. The default setting,
+
+    mail_owner = postfix
+
+should be appropriate for your system. I would recommend that you
+create a dedicated user account "postfix", that is not in the same
+group as other accounts.  Make sure it is a locked account that
+no-one can log into.  It does not need an executable login shell,
+nor does it need an existing home directory.
+
+Secondly, you should specify what domain name will be appended to
+a local address. The "myorigin" parameter defaults to the local
+hostname, but that is probably OK only for very small sites.
+
+Some examples:
+
+    myorigin = $myhostname
+    myorigin = $mydomain
+
+In the first case, local mail goes out as user@$myhostname, in
+the second case the sender address is user@$mydomain.
+
+Next you nee to specify what mail addresses are local to the Postfix
+system.
+
+Some examples:
+
+    mydestination = $myhostname, localhost.$mydomain
+    mydestination = $myhostname, localhost.$mydomain, $mydomain
+    mydestination = $myhostname
+
+The first example is appropriate for a workstation, the second is
+appropriate for the mailserver for an entire domain. The third
+example should be used when running on a virtual host interface.
+
+If you're behind a firewall, you should set up a relayhost.  If
+you can, specify the organizational domain name so that Postfix
+can use DNS lookups, and so that it can fall back to a secondary
+MX host when the primary MX host is down. Otherwise just specify
+a hard-coded hostname.
+
+Some examples:
+
+    relayhost = $mydomain
+    relayhost = mail.$mydomain
+
+If you haven't used sendmail prior to using Postfix, you will have
+to build the alias database (with: sendmail -bi, or: newaliases).
+
+Finally, specify the program and queue directories.
+
+    program_directory = /some/where/bin
+    queue_directory = /var/spool/postfix
+
+For further configuration information I suggest that you browse
+the configuration documentation in the html subdirectory.
+
+Security: writable versus protected maildrop directory
+======================================================
+
+Postfix offers a choice of submission mechanims.
+
+1 - Postfix can use a world-writable, sticky, mode 1733 maildrop
+    directory where local users can submit mail. This approach
+    avoids the need for set-uid or set-gid software. Mail can be
+    posted even while the mail system is down.  Queue files in the
+    maildrop directory have no read/write/execute permission for
+    other users.  The maildrop directory is not used for mail
+    received via the network.
+
+    With directory world write permission come opportunities for
+    annoyance: a local user can make hard links to someone else's
+    maildrop files so they don't go away and may be delivered
+    multiple times; a local user can fill the maildrop directory
+    with junk and try to crash the mail system; and a local user
+    can hard link someone else's files into the maildrop directory
+    and try to have them delivered as mail.  However, Postfix queue
+    files have a specific format; less than one in 10^12 non-Postfix
+    files would be recognized as a valid Postfix queue file.
+
+    In order to enable this mode, step into /etc/postfix and:
+
+	# cp postfix-script-nosgid postfix-script
+
+2 - On systems with many users it may be desirable to revoke maildrop
+    directory world write permission, and to enable set-gid privileges
+    on a small "postdrop" command that is provided for this purpose.
+
+    In order to revoke world-write permission, create a group
+    "maildrop" that is unique and that does not share its group ID
+    with any other user, certainly not with the postfix account,
+    then execute the following commands to make "postdrop" set-gid,
+    and to make maildrop non-writable for unprivileged users:
+
+    # chgrp maildrop /var/spool/postfix/maildrop /some/where/postdrop
+    # chmod 730 /var/spool/postfix/maildrop
+    # chmod 2755 /some/where/postdrop
+
+    The sendmail posting program will automatically invoke the
+    postdrop command when maildrop directory write permission is
+    restricted.
+
+    In order to enable this mode, step into /etc/postfix and:
+
+	# cp postfix-script-sgid postfix-script
+
+Care and feeding of the Postfix system
+======================================
+
+The Postfix programs log all problems to the syslog daemon.
+Hopefully, the number of problems will be small, but it is a good
+idea to run every night before the syslog files are rotated:
+
+    # postfix check
+    # egrep '(reject|warning|error|fatal|panic):' /some/log/file
+
+The second line looks for problem reports from the mail software,
+and reports how effective the anti-relay and anti-UCE blocks are.
