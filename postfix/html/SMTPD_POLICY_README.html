@@ -84,6 +84,9 @@ instance=123.456.7
 sasl_method=plain
 sasl_username=you
 sasl_sender=
+ccert_subject=solaris9.porcupine.org
+ccert_issuer=Wietse Venema
+ccert_fingerprint=C2:9D:F4:87:71:73:73:D9:18:E7:C2:F3:C1:DA:6E:04
 size=12345
 [empty line]
 </pre>
@@ -125,6 +128,9 @@ size=12345
     command.
     </p>
 
+    <li> <p> The "sasl_*" attributes specify information about how
+    the client was authenticated via SASL. </p>
+ 
 </ul>
 
 <p> The following is specific to SMTPD delegated policy requests:
@@ -140,8 +146,9 @@ size=12345
     the Postfix SMTP server makes an OK/REJECT/HOLD/etc. decision.
     </p>
 
-    <li> <p> The SASL attributes are sent only when SASL support
-    is built into Postfix. </p>
+    <li> <p> The "ccert_*" attributes specify information from the
+    client TLS certificate. This information is presented only
+    if the client certificate was successfully verified. </p>
 
 </ul>
 

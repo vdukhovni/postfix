@@ -144,6 +144,7 @@
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>
 #endif
+#include <time.h>
 
 /* Utility library. */
 
@@ -647,6 +648,9 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
      * Optionally, restrict the damage that this process can do.
      */
     resolve_local_init();
+#ifdef SNAPSHOT
+    tzset();
+#endif
     chroot_uid(root_dir, user_name);
 
     /*

@@ -7,6 +7,13 @@ snapshot release).  Patches are issued for the official release
 and change the patchlevel and the release date. Patches are never
 issued for snapshot releases.
 
+Major changes with snapshot Postfix-2.2-20050209
+================================================
+
+The policy delegation protocol now supplies TLS client certificate
+information after successful verification. The new attribute names
+are ccert_subject, ccert_issuer and cccert_fingerprint.
+
 Major changes with snapshot Postfix-2.2-20050208
 ================================================
 

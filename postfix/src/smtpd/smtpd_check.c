@@ -3046,6 +3046,17 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 			  var_smtpd_sasl_enable && state->sasl_sender ?
 			  state->sasl_sender : "",
 #endif
+#ifdef USE_TLS
+			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_SUBJECT,
+			  state->tls_info.peer_verified ?
+			  state->tls_info.peer_CN : "",
+			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_ISSSUER,
+			  state->tls_info.peer_verified ?
+			  state->tls_info.issuer_CN : "",
+			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_FINGERPRINT,
+			  state->tls_info.peer_verified ?
+			  state->tls_info.peer_fingerprint : "",
+#endif
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
 			  ATTR_TYPE_STR, MAIL_ATTR_ACTION, action,

@@ -95,9 +95,16 @@
 #               Redirect mail for other users in domain to address.
 #               This form has the lowest precedence.
 # 
-#        In  all the above forms, when address has the form @other-
-#        domain, the result is the same user in otherdomain.   This
-#        works for the first address in the expansion only.
+# RESULT ADDRESS REWRITING
+#        The lookup result is subject to address rewriting:
+# 
+#        o      When  the  result  has  the  form @otherdomain, the
+#               result becomes the same user in otherdomain.   This
+#               works only for the first address in a multi-address
+#               lookup result.
+# 
+#        o      The  result  is   rewritten   as   specified   with
+#               append_at_myorigin or with append_dot_mydomain.
 # 
 # ADDRESS EXTENSION
 #        When a mail address localpart contains the optional recip-
@@ -218,6 +225,14 @@
 #               include, or generics.
 # 
 #        Other parameters of interest:
+# 
+#        append_at_myorigin
+#               Do  or don't append "@$myorigin" to addresses with-
+#               out domain.  This must be turned on in Postfix.
+# 
+#        append_dot_mydomain
+#               Do or don't append ".$mydomain" to addresses  with-
+#               out "." on the right-hand side of the @.
 # 
 #        inet_interfaces
 #               The  network  interface  addresses that this system

@@ -50,7 +50,7 @@ for hosts in specific environments. </p>
 
 <li><a href="#intranet">Running Postfix behind a firewall</a>
 
-<li><a href="#backup">Configuring Postfix as MX host for a remote
+<li><a href="#backup">Configuring Postfix as primary or backup MX host for a remote
 site</a>
 
 <li><a href="#dialup">Postfix on a dialup machine</a>
@@ -499,7 +499,7 @@ tables Postfix supports, use the command "<b>postconf -m</b>". </p>
 <p> Execute the command "<b>postmap /etc/postfix/transport</b>" whenever
 you edit the transport table. </p>
 
-<h2><a name="backup">Configuring Postfix as MX host for a remote site</a></h2>
+<h2><a name="backup">Configuring Postfix as primary or backup MX host for a remote site</a></h2>
 
 <p> This section presents additional configuration. You need to
 combine this with basic configuration information as discussed the

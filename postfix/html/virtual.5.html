@@ -101,9 +101,16 @@ VIRTUAL(5)                                             VIRTUAL(5)
               Redirect mail for other users in <i>domain</i> to <i>address</i>.
               This form has the lowest precedence.
 
-       In  all the above forms, when <i>address</i> has the form @<i>other-</i>
-       <i>domain</i>, the result is the same user in <i>otherdomain</i>.   This
-       works for the first address in the expansion only.
+<b>RESULT ADDRESS REWRITING</b>
+       The lookup result is subject to address rewriting:
+
+       <b>o</b>      When  the  result  has  the  form @<i>otherdomain</i>, the
+              result becomes the same <i>user</i> in <i>otherdomain</i>.   This
+              works only for the first address in a multi-address
+              lookup result.
+
+       <b>o</b>      The  result  is   rewritten   as   specified   with
+              <b><a href="postconf.5.html#append_at_myorigin">append_at_myorigin</a></b> or with <b><a href="postconf.5.html#append_dot_mydomain">append_dot_mydomain</a></b>.
 
 <b>ADDRESS EXTENSION</b>
        When a mail address localpart contains the optional recip-
@@ -224,6 +231,14 @@ VIRTUAL(5)                                             VIRTUAL(5)
               <b>include</b>, or <b>generics</b>.
 
        Other parameters of interest:
+
+       <b><a href="postconf.5.html#append_at_myorigin">append_at_myorigin</a></b>
+              Do  or don't append "<b>@$<a href="postconf.5.html#myorigin">myorigin</a></b>" to addresses with-
+              out domain.  This must be turned on in Postfix.
+
+       <b><a href="postconf.5.html#append_dot_mydomain">append_dot_mydomain</a></b>
+              Do or don't append "<b>.$<a href="postconf.5.html#mydomain">mydomain</a></b>" to addresses  with-
+              out "." on the right-hand side of the @.
 
        <b><a href="postconf.5.html#inet_interfaces">inet_interfaces</a></b>
               The  network  interface  addresses that this system

@@ -10311,8 +10311,30 @@ Apologies for any names omitted.
 	control, based on code by Victor Duchovni. File:
 	smtpd/smtpd_check.c and documentation.
 
-	Sanity check: don't allow unlimited message size with
-	limited mailbox size. File: local/local.c, virtual/virtual.c.
+	Safety: don't allow unlimited message size with limited
+	mailbox size. File: local/local.c, virtual/virtual.c.
+
+	Feature: new smtpd policy attributes ccert_subject,
+	ccert_issuer and ccert_fingerprint, with TLS client
+	certificate information, but only when verification was
+	successful.  Files:  src/smtpd/smtpd_check.c.
+
+	Cleanup: corrected the address verification data flow in
+	the ADDRESS_VERIFICATION_README illustration.
+
+20050209
+
+	Cleanup: the smtp generics mapping did syntax check on the
+	input address instead of the result. These tests were not
+	going to be useful in any case, because mail_addr_map()
+	canonicalizes the lookup result, including @dom1->@dom2
+	mapping. File:  smtp_map11.c.
+
+	Cleanup: made the generics mapping documentation consistent
+	with the implementation.
+
+	Cleanup: documented the myorigin/mydomain address rewriting
+	in canonical, generics and virtual alias maps.
 
 Open problems:
 
@@ -10321,10 +10343,6 @@ Open problems:
 
 	Med: disable address rewriting after XCLIENT? Introduce a
 	better concept of original submission?
-
-	Med: find out what TLS attributes to export via the policy
-	servicer hooks: peer CN, issuer CN, peer fingerprint,
-	verification status.
 
 	Med: smtp_connect_timeout_budget (default: 3x smtp_connect_timeout)
 	to limit the total time spent trying to connect.

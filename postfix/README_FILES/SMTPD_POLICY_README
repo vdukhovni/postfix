@@ -52,6 +52,9 @@ a delegated SMTPD access policy request:
     sasl_method=plain
     sasl_username=you
     sasl_sender=
+    ccert_subject=solaris9.porcupine.org
+    ccert_issuer=Wietse Venema
+    ccert_fingerprint=C2:9D:F4:87:71:73:73:D9:18:E7:C2:F3:C1:DA:6E:04
     size=12345
     [empty line]
 
@@ -83,6 +86,9 @@ Notes:
     Postfix 2.2 and later, it specifies the actual message size when the client
     sends the END-OF-DATA command.
 
+  * The "sasl_*" attributes specify information about how the client was
+    authenticated via SASL.
+
 The following is specific to SMTPD delegated policy requests:
 
   * Protocol names are ESMTP or SMTP.
@@ -91,7 +97,9 @@ The following is specific to SMTPD delegated policy requests:
     VRFY or ETRN; these are the SMTP protocol states where the Postfix SMTP
     server makes an OK/REJECT/HOLD/etc. decision.
 
-  * The SASL attributes are sent only when SASL support is built into Postfix.
+  * The "ccert_*" attributes specify information from the client TLS
+    certificate. This information is presented only if the client certificate
+    was successfully verified.
 
 The policy server replies with any action that is allowed in a Postfix SMTPD
 access(5) table. Example:

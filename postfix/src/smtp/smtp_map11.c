@@ -83,22 +83,24 @@
 
 int     smtp_map11_external(VSTRING *addr, MAPS *maps, int propagate)
 {
+    const char *myname = "smtp_map11_external";
     ARGV   *new_addr;
-    const char *at;
+    const char *result;
 
     if ((new_addr = mail_addr_map(maps, STR(addr), propagate)) != 0) {
 	if (new_addr->argc > 1)
-	    msg_fatal("multi-valued %s entry for %s", maps->title, STR(addr));
-	if ((at = strrchr(STR(addr), '@')) == 0
-	    || !valid_hostname(at + 1, DO_GRIPE))
-	    msg_fatal("invalid domain information in %s entry for %s",
-		      maps->title, STR(addr));
-	vstring_strcpy(addr, new_addr->argv[0]);
+	    msg_warn("multi-valued %s result for %s", maps->title, STR(addr));
+	result = new_addr->argv[0];
+	if (msg_verbose)
+	    msg_info("%s: %s -> %s", myname, STR(addr), result);
+	vstring_strcpy(addr, result);
 	argv_free(new_addr);
 	return (1);
     } else {
 	if (dict_errno != 0)
 	    msg_fatal("%s map lookup problem for %s", maps->title, STR(addr));
+	if (msg_verbose)
+	    msg_info("%s: %s not found", myname, STR(addr));
 	return (0);
     }
 }
@@ -131,3 +133,36 @@ int     smtp_map11_internal(VSTRING *addr, MAPS *maps, int propagate)
     vstring_free(temp);
     return (ret);
 }
+
+#ifdef TEST
+
+#include <msg_vstream.h>
+#include <stringops.h>
+#include <mail_params.h>
+
+int     main(int argc, char **argv)
+{
+    VSTRING *buf = vstring_alloc(100);
+    MAPS   *maps;
+
+    msg_vstream_init(basename(argv[0]), VSTREAM_ERR);
+    if (argc < 3)
+	msg_fatal("usage: %s maptype:mapname address...", argv[0]);
+
+    maps = maps_create(argv[1], argv[1], 0);
+    mail_params_init();
+    if (chdir(var_queue_dir) < 0)
+	msg_fatal("chdir(%s): %m", var_queue_dir);
+    argv += 1;
+
+    msg_verbose = 1;
+    while (--argc && *++argv) {
+	msg_info("-- start %s --", *argv);
+	smtp_map11_external(vstring_strcpy(buf, *argv), maps, 1);
+	msg_info("-- end %s --", *argv);
+    }
+    vstring_free(buf);
+    return (0);
+}
+
+#endif

@@ -84,9 +84,18 @@ or $\fBproxy_interfaces\fR.
 .IP "@\fIdomain address\fR"
 Replace other addresses in \fIdomain\fR by \fIaddress\fR.
 This form has the lowest precedence.
-.PP
-In all the above forms, the result \fIaddress\fR must have
-the form \fIusername@domainname\fR.
+.SH "RESULT ADDRESS REWRITING"
+.na
+.nf
+.ad
+.fi
+The lookup result is subject to address rewriting:
+.IP \(bu
+When the result has the form @\fIotherdomain\fR, the
+result becomes the same \fIuser\fR in \fIotherdomain\fR.
+.IP \(bu
+The result is rewritten as specified with \fBappend_at_myorigin\fR
+or with \fBappend_dot_mydomain\fR.
 .SH "ADDRESS EXTENSION"
 .na
 .nf
@@ -159,9 +168,9 @@ that the ISP supports "+" style address extensions).
 
 /etc/postfix/generics:
 .in +4
-his@localdomain.local   hisaccount@hisisp.example
-her@localdomain.local   heraccount@herisp.example
-@localdomain.local      hisaccount+local@hisisp.example
+    his@localdomain.local   hisaccount@hisisp.example
+    her@localdomain.local   heraccount@herisp.example
+    @localdomain.local      hisaccount+local@hisisp.example
 .in -4
 
 .ad
@@ -193,6 +202,12 @@ Specify zero or more of \fBcanonical\fR, \fBvirtual\fR, \fBalias\fR,
 \fBforward\fR, \fBinclude\fR, or \fBgenerics\fR.
 .PP
 Other parameters of interest:
+.IP \fBappend_at_myorigin\fR
+Do or don't append "\fB@$myorigin\fR" to addresses without domain.
+This must be turned on in Postfix.
+.IP \fBappend_dot_mydomain\fR
+Do or don't append "\fB.$mydomain\fR" to addresses without "." on
+the right-hand side of the @.
 .IP \fBinet_interfaces\fR
 The network interface addresses that this system receives mail on.
 You need to stop and start Postfix when this parameter changes.

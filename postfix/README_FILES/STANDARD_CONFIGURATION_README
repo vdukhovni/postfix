@@ -23,7 +23,7 @@ in specific environments.
 
   * Delivering some but not all accounts locally
   * Running Postfix behind a firewall
-  * Configuring Postfix as MX host for a remote site
+  * Configuring Postfix as primary or backup MX host for a remote site
   * Postfix on a dialup machine
   * Postfix on hosts without a real Internet hostname
 
@@ -362,7 +362,7 @@ To find out what lookup tables Postfix supports, use the command "ppoossttc
 Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//ttrraannssppoorrtt" whenever you edit the
 transport table.
 
-CCoonnffiigguurriinngg PPoossttffiixx aass MMXX hhoosstt ffoorr aa rreemmoottee ssiittee
+CCoonnffiigguurriinngg PPoossttffiixx aass pprriimmaarryy oorr bbaacckkuupp MMXX hhoosstt ffoorr aa rreemmoottee ssiittee
 
 This section presents additional configuration. You need to combine this with
 basic configuration information as discussed the first half of this document.

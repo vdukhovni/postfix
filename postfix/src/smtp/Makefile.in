@@ -9,7 +9,7 @@ HDRS	= smtp.h smtp_sasl.h smtp_addr.h smtp_reuse.h
 TESTSRC	= 
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
-TESTPROG= smtp_unalias
+TESTPROG= smtp_unalias smtp_map11
 PROG	= smtp
 INC_DIR	= ../../include
 LIBS	= ../../lib/libmaster.a ../../lib/libtls.a ../../lib/libdns.a \
@@ -25,7 +25,7 @@ Makefile: Makefile.in
 
 test:	$(TESTPROG)
 
-tests:	test
+tests:	smtp_map11_test
 
 update: ../../libexec/$(PROG)
 
@@ -51,6 +51,19 @@ tidy:	clean
 
 smtp_unalias: smtp_unalias.c $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIBS) $(SYSLIBS)
+
+smtp_map11: smtp_map11.c $(LIBS)
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIBS) $(SYSLIBS)
+
+# This needs trivial-rewrite service and myorigin==mydomain
+smtp_map11_test: smtp_map11 map11_map smtp_map11.ref
+	../postmap/postmap map11_map
+	./smtp_map11 hash:map11_map foo@example.com bar@example.com \
+	    baz@example.com foo@example.net >smtp_map11.tmp 2>&1
+	sed -e "s/MYDOMAIN/`postconf -h mydomain`/" \
+	    -e "s/MYHOSTNAME/`postconf -h myhostname`/" smtp_map11.ref | \
+	    diff - smtp_map11.tmp
+	rm -f smtp_map11.tmp map11_map.db
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \
