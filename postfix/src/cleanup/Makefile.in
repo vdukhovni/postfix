@@ -75,7 +75,6 @@ cleanup.o: ../../include/iostuff.h
 cleanup.o: ../../include/mail_params.h
 cleanup.o: ../../include/record.h
 cleanup.o: ../../include/rec_type.h
-cleanup.o: ../../include/mail_flow.h
 cleanup.o: ../../include/mail_server.h
 cleanup.o: cleanup.h
 cleanup.o: ../../include/maps.h
@@ -154,6 +153,7 @@ cleanup_init.o: cleanup_init.c
 cleanup_init.o: ../../include/sys_defs.h
 cleanup_init.o: ../../include/msg.h
 cleanup_init.o: ../../include/iostuff.h
+cleanup_init.o: ../../include/name_mask.h
 cleanup_init.o: ../../include/mail_addr.h
 cleanup_init.o: ../../include/mail_params.h
 cleanup_init.o: ../../include/ext_prop.h

@@ -339,7 +339,7 @@ int     bounce_boilerplate(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 			"####################################################################");
 	post_mail_fputs(bounce, "");
 	post_mail_fprintf(bounce,
-			"Your message could not be delivered for %.1f hours.",
+		      "Your message could not be delivered for %.1f hours.",
 			  var_delay_warn_time / 3600.0);
 	post_mail_fprintf(bounce,
 			  "It will be retried until it is %.1f days old.",
@@ -478,7 +478,7 @@ int     bounce_recipient_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 #endif
     if (bounce_info->flush == 0)
 	post_mail_fprintf(bounce, "Will-Retry-Until: %s",
-	 mail_date(bounce_info->arrival_time + var_max_queue_time));
+		 mail_date(bounce_info->arrival_time + var_max_queue_time));
     return (vstream_ferror(bounce));
 }
 
@@ -547,12 +547,16 @@ int     bounce_original(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
 	if (var_bounce_limit == 0 || bounce_length < var_bounce_limit) {
 	    bounce_length += VSTRING_LEN(bounce_info->buf) + 2;
 	    status = (REC_PUT_BUF(bounce, rec_type, bounce_info->buf) != rec_type);
-	}
+	} else
+	    break;
     }
 
     /*
      * Final MIME headers. These require -- at the end of the boundary
      * string.
+     * 
+     * XXX This should be a separate bounce_terminate() entry so we can be
+     * assured that the terminator will always be sent.
      */
     post_mail_fputs(bounce, "");
     post_mail_fprintf(bounce, "--%s--", bounce_info->mime_boundary);

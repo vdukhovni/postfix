@@ -165,6 +165,8 @@ void    myfree(char *ptr)
 
 char   *mystrdup(const char *str)
 {
+    if (str == 0)
+	msg_panic("mystrdup: null pointer argument");
     return (strcpy(mymalloc(strlen(str) + 1), str));
 }
 
@@ -175,6 +177,8 @@ char   *mystrndup(const char *str, int len)
     char   *result;
     char   *cp;
 
+    if (str == 0)
+	msg_panic("mystrndup: null pointer argument");
     if ((cp = memchr(str, 0, len)) != 0)
 	len = cp - str;
     result = memcpy(mymalloc(len + 1), str, len);
@@ -186,5 +190,7 @@ char   *mystrndup(const char *str, int len)
 
 char   *mymemdup(const char *ptr, int len)
 {
+    if (ptr == 0)
+	msg_panic("mymemdup: null pointer argument");
     return (memcpy(mymalloc(len), ptr, len));
 }

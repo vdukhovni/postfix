@@ -93,6 +93,8 @@ case "$SYSTEM.$RELEASE" in
 		;;
   OpenBSD.2*)	SYSTYPE=OPENBSD2
 		;;
+  OpenBSD.3*)	SYSTYPE=OPENBSD3
+		;;
    NetBSD.1*)	SYSTYPE=NETBSD1
 		;;
    BSD/OS.2*)	SYSTYPE=BSDI2

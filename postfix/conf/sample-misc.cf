@@ -175,7 +175,7 @@ max_use = 100
 # gateway, you should also include $mydomain. Do not specify the
 # names of domains that this machine is backup MX host for. Specify
 # those names via the relay_domains or permit_mx_backup settings for
-# the SMTP server (see sample-smtpd.cf.
+# the SMTP server (see sample-smtpd.cf).
 #
 # The local machine is always the final destination for mail addressed
 # to user@[the.net.work.address] of an interface that the mail system

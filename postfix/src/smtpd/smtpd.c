@@ -195,6 +195,9 @@
 /* .IP \fBmaps_rbl_domains\fR
 /*	List of DNS domains that publish the addresses of blacklisted
 /*	hosts.
+/* .IP \fBpermit_mx_backup_networks\fR
+/*	Only domains whose primary MX hosts match the listed networks
+/*	are eligible for the \fBpermit_mx_backup\fR feature.
 /* .IP \fBrelay_domains\fR
 /*	Restrict what domains or networks this mail system will relay
 /*	mail from or to.
@@ -356,7 +359,7 @@ char   *var_smtpd_sasl_opts;
 char   *var_smtpd_sasl_realm;
 char   *var_filter_xport;
 bool    var_broken_auth_clients;
-char   *var_auth_mx_networks;
+char   *var_perm_mx_networks;
 
  /*
   * Global state, for stand-alone mode queue file cleanup. When this is
@@ -1227,6 +1230,12 @@ static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     case FLUSH_STAT_OK:
 	smtpd_chat_reply(state, "250 Queuing started");
 	return (0);
+    case FLUSH_STAT_DENY:
+	msg_warn("reject: ETRN %.100s... from %s",
+		 argv[1].strval, state->namaddr);
+	smtpd_chat_reply(state, "459 <%s>: service unavailable",
+			 argv[1].strval);
+	return (-1);
     case FLUSH_STAT_BAD:
 	msg_warn("bad ETRN %.100s... from %s", argv[1].strval, state->namaddr);
 	smtpd_chat_reply(state, "458 Unable to queue messages");
@@ -1591,7 +1600,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_SASL_OPTS, DEF_SMTPD_SASL_OPTS, &var_smtpd_sasl_opts, 0, 0,
 	VAR_SMTPD_SASL_REALM, DEF_SMTPD_SASL_REALM, &var_smtpd_sasl_realm, 1, 0,
 	VAR_FILTER_XPORT, DEF_FILTER_XPORT, &var_filter_xport, 0, 0,
-	VAR_AUTH_MX_NETWORKS, DEF_AUTH_MX_NETWORKS, &var_auth_mx_networks, 0, 0,
+	VAR_PERM_MX_NETWORKS, DEF_PERM_MX_NETWORKS, &var_perm_mx_networks, 0, 0,
 	0,
     };
 

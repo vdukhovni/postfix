@@ -250,6 +250,11 @@ SMTPD(8)                                                 SMTPD(8)
               List of DNS domains that publish the  addresses  of
               blacklisted hosts.
 
+       <b>permit</b><i>_</i><b>mx</b><i>_</i><b>backup</b><i>_</i><b>networks</b>
+              Only  domains  whose  primary  MX  hosts  match the
+              listed  networks  are   eligible   for   the   <b>per-</b>
+              <b>mit</b><i>_</i><b>mx</b><i>_</i><b>backup</b> feature.
+
        <b>relay</b><i>_</i><b>domains</b>
               Restrict  what domains or networks this mail system
               will relay mail from or to.

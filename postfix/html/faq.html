@@ -409,7 +409,7 @@ implements its own private mail database system. Not for beginners.
 <p>
 
 <li><a href="http://www.inter7.com/courierimap/">Courier-Imap</a>
-provides POP3, IMAP, POP3 and IMAP, and supports access over SSL.
+provides POP3 and IMAP, and supports access over SSL.
 This software supports the maildir-style mailbox format only
 (one message per file, same format as qmail).
 
@@ -1522,9 +1522,10 @@ reject when the destination is not local.
 
 <li> <a href="uce.html#permit_mx_backup">permit_mx_backup</a>:
 permit if the local system is listed as MX host for the recipient
-domain, provided that the primary MX host for the recipient domain
-is within the networks specified with <a
-href="uce.html#auth_mx_backup_networks">auth_mx_backup_networks</a>.
+domain. Use the optional <a
+href="#permit_mx_backup_networks">permit_mx_backup_networks</a>
+parameter to also require that the primary MX hosts match a list
+of network blocks.
 
 <li> Other UCE restrictions (e.g., SMTPD access maps) are not aware
 of sender-provided routing information.

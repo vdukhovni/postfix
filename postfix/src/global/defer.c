@@ -158,8 +158,14 @@ int     vdefer_append(int flags, const char *id, const char *recipient,
      * bounce/defer daemon? Well, doing it here is more robust.
      */
     if ((rcpt_domain = strrchr(recipient, '@')) != 0 && *++rcpt_domain != 0)
-	if (flush_add(rcpt_domain, id) != FLUSH_STAT_OK)
+	switch (flush_add(rcpt_domain, id)) {
+	case FLUSH_STAT_OK:
+	case FLUSH_STAT_DENY:
+	    break;
+	default:
 	    msg_warn("unable to talk to fast flush service");
+	    break;
+	}
 
     return (-1);
 }

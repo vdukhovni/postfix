@@ -1616,7 +1616,7 @@ Apologies for any names omitted.
 	wrong place. Problem tackled with help of Chip Christian.
 
 	Portability: reportedly, Solaris 2.5.1 can hang waiting
-	for a UNIX-domain connection to be accepted, to it gets
+	for a UNIX-domain connection to be accepted, so it gets
 	the same workaround that was designed for LINUX. Problem
 	reported by Scott Cotton.
 
@@ -5412,3 +5412,78 @@ Apologies for any names omitted.
 	address masquerading. The default setting is backwards
 	compatible: envelope_sender header_sender header_recipient.
 	Files: cleanup/whatever.c.
+
+20010822
+
+	Code cleanup: the bounce daemon complained about data that
+	it was not going to send back anyway. Fix: stop reading
+	the original message when the bounce message reaches the
+	bounce message size limit. File: bounce/bounce_notify_util.c.
+
+20010826
+
+	Logging: postsuper now logs the queue ID when it requeues
+	a message, or when it deletes a message from the mail queue.
+	File: postsuper/postsuper.c.
+
+20010830
+
+	Safety: the SMTP server now sends a 4xx (try again later)
+	response when an UCE restriction is misconfigured, instead
+	of ignoring the bad restriction and possibly accepting mail
+	that it should not accept.   File: smtpd/smtpd_check.c.
+
+20010907
+
+	Workaround: the Postfix qmqp-source program produced mail
+	not ending in newline that qmail-qmqpd accepts but that
+	qmail-remote was unable to deliver.  Matthias Andree,
+	uni-dortmund.de. File: smtpstone/qmqp-source.c.
+
+20010910
+
+	Bugfix: smtp-sink broke when RCPT TO commands crossed a
+	network packet boundary. Problem reported by Matthias
+	Andree, uni-dortmund.de.  File: smtpstone/smtp-sink.c.
+
+20010917
+
+	Code cleanup: permit_mx_backup implements the old behavior
+	(accept mail if the local MTA is MX relay), and allows an
+	additional restriction via the permit_mx_backup_networks
+	parameter (accept mail only if the primary MX hosts match
+	the specified list of network blocks). This second restriction
+	is now entirely optional, for backwards compatiblity.
+
+	Bugfix: an address extension could be appended multiple
+	times to the result of a canonical or virtual map lookup.
+	File: global/mail_addr_map.c.  Fix by Victor Duchovni,
+	Morgan Stanley.
+
+	Bugfix: split_addr() would split an address even when there
+	was no data before the recipient delimiter. In combination
+	with the above bug, this could cause an address to grow
+	exponentially in size.  Problem reported by Victor Duchovni,
+	Morgan Stanley.  File:  global/split_addr.c.
+
+20010918
+
+	Bugfix: the mail_addr_map() fix was almost but not quite
+	right. It took two really clever people and several iterations
+	of email to really fix the mail_addr_map() problem.  Thanks
+	to Victor Duchovni and Liviu Daia.
+
+20011006
+
+	Cleanup: Postfix no longer flushes the whole deferred queue
+	after an ETRN request for a random domain name; the SMTP
+	server instead replies with "459 service unavailable".
+	Files:  smtpd/smtpd.c, global/flush_clnt.c, flush/flush.c.
+
+Open problems:
+
+	Minor: The $process_id_directory setting is not used anywhere
+	in Postfix. Problem reported by Michael Smith, texas.net.
+
+	Medium: address rewriting should be configurable for envelopes
+	and headers.

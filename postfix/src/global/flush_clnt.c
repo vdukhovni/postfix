@@ -46,6 +46,8 @@
 /* .IP MAIL_FLUSH_BAD
 /*	The "fast flush" server rejected the request (invalid request
 /*	parameter).
+/* .IP MAIL_FLUSH_DENY
+/*	The specified domain is not eligible for "fast flush" service.
 /* SEE ALSO
 /*	flush(8) Postfix fast flush cache manager
 /* LICENSE
@@ -95,7 +97,7 @@ int     flush_purge(void)
      * Don't bother the server if the service is turned off.
      */
     if (*var_fflush_domains == 0)
-	status = FLUSH_STAT_OK;
+	status = FLUSH_STAT_DENY;
     else
 	status = mail_command_write(MAIL_CLASS_PRIVATE, MAIL_SERVICE_FLUSH,
 				    "%s", FLUSH_REQ_PURGE);
@@ -120,7 +122,7 @@ int     flush_refresh(void)
      * Don't bother the server if the service is turned off.
      */
     if (*var_fflush_domains == 0)
-	status = FLUSH_STAT_OK;
+	status = FLUSH_STAT_DENY;
     else
 	status = mail_command_write(MAIL_CLASS_PRIVATE, MAIL_SERVICE_FLUSH,
 				    "%s", FLUSH_REQ_REFRESH);
@@ -145,7 +147,7 @@ int     flush_send(const char *site)
      * Don't bother the server if the service is turned off.
      */
     if (*var_fflush_domains == 0)
-	status = mail_flush_deferred();
+	status = FLUSH_STAT_DENY;
     else
 	status = mail_command_write(MAIL_CLASS_PRIVATE, MAIL_SERVICE_FLUSH,
 				    "%s %s", FLUSH_REQ_SEND, site);
@@ -170,7 +172,7 @@ int     flush_add(const char *site, const char *queue_id)
      * Don't bother the server if the service is turned off.
      */
     if (*var_fflush_domains == 0)
-	status = FLUSH_STAT_OK;
+	status = FLUSH_STAT_DENY;
     else
 	status = mail_command_write(MAIL_CLASS_PRIVATE, MAIL_SERVICE_FLUSH,
 				 "%s %s %s", FLUSH_REQ_ADD, site, queue_id);

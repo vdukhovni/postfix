@@ -282,8 +282,9 @@ smtpd_sender_restrictions =
 #	- to destinations matching $relay_domains or subdomain thereof,
 #	  except for addresses with sender-specified routing.
 #   reject_unauth_pipelining: reject mail from improperly pipelining spamware
-#   permit_mx_backup: accept mail for sites whose primary MX hosts
-#       match the networks specified with auth_mx_backup_networks.
+#   permit_mx_backup: accept mail for sites that list me as MX host.
+#       Use the optional permit_mx_backup_networks parameter to also
+#	require that the primary MX hosts match a list of network blocks.
 #   reject_unknown_recipient_domain: reject domains without A or MX record.
 #   check_recipient_access maptype:mapname
 #   maptype:mapname: look up recipient address, parent domain, or localpart@.
@@ -309,20 +310,6 @@ smtpd_sender_restrictions =
 #	reject, check_relay_domains, reject_unauth_destination
 #
 smtpd_recipient_restrictions = permit_mynetworks,check_relay_domains
-
-# The auth_mx_backup_networks parameter specifies a list of networks 
-# for which the permit_mx_backup feature (see above) can be used.
-#
-# By default, auth_mx_backup_networks is empty and no networks are
-# authorized to use the permit_mx_backup feature.  You can specify
-# a complete class A network (X.0.0.0/8), a complete class B network
-# (X.X.0.0/16), and so on. If you want stricter control, specify a
-# list of network/mask patterns, where the mask specifies the number
-# of bits in the network part of a host address. You can also specify
-# the absolute pathname of a pattern file instead of listing the
-# patterns here.
-#
-auth_mx_backup_networks =
 
 #
 # ADDITIONAL UCE CONTROLS

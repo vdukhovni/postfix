@@ -1122,9 +1122,9 @@ extern int var_relay_code;
 
 #define PERMIT_MX_BACKUP	"permit_mx_backup"
 
-#define VAR_AUTH_MX_NETWORKS	"auth_mx_backup_networks"
-#define DEF_AUTH_MX_NETWORKS	""
-extern char *var_auth_mx_networks;
+#define VAR_PERM_MX_NETWORKS	"permit_mx_backup_networks"
+#define DEF_PERM_MX_NETWORKS	""
+extern char *var_perm_mx_networks;
 
 #define VAR_ACCESS_MAP_CODE	"access_map_reject_code"
 #define DEF_ACCESS_MAP_CODE	554

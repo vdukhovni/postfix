@@ -97,7 +97,7 @@
 /*	int	vstream_setjmp(stream)
 /*	VSTREAM	*stream;
 /*
-/*	void	longjmp(stream, val)
+/*	void	vstream_longjmp(stream, val)
 /*	VSTREAM	*stream;
 /*	int	val;
 /*

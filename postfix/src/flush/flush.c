@@ -38,7 +38,7 @@
 /*	if mail is undeliverable it will be added back to the logfile.
 /* .sp
 /*	If the destination is not eligible for a fast flush logfile,
-/*	this request triggers delivery of all queued mail.
+/*	this request is rejected (see below for status codes).
 /* .IP \fBTRIGGER_REQ_WAKEUP\fR
 /*	This wakeup request from the master is an alternative way to
 /*	request \fBFLUSH_REQ_REFRESH\fR.
@@ -66,6 +66,10 @@
 /*	request parameter value).
 /* .IP \fBFLUSH_STAT_FAIL\fR
 /*	The request failed.
+/* .IP \fBFLUSH_STAT_DENY\fR
+/*	The request was denied because the destination domain is not
+/*	eligible for fast flush service, or because the fast flush
+/*	service is disabled.
 /* SECURITY
 /* .ad
 /* .fi
@@ -243,10 +247,10 @@ static int flush_add_service(const char *site, const char *queue_id)
 	msg_info("%s: site %s queue_id %s", myname, site, queue_id);
 
     /*
-     * If this site is not eligible for logging, just ignore the request.
+     * If this site is not eligible for logging, deny the request.
      */
     if (flush_policy_ok(site) == 0)
-	return (FLUSH_STAT_OK);
+	return (FLUSH_STAT_DENY);
 
     /*
      * Map site to path and update log.
@@ -319,10 +323,10 @@ static int flush_send_service(const char *site)
 	msg_info("%s: site %s", myname, site);
 
     /*
-     * If this site is not eligible for logging, deliver all queued mail.
+     * If this site is not eligible for logging, deny the request.
      */
     if (flush_policy_ok(site) == 0)
-	return (mail_flush_deferred());
+	return (FLUSH_STAT_DENY);
 
     /*
      * Map site name to path name and flush the log.

@@ -337,6 +337,7 @@ static int delete_one(const char **queue_names, const char *queue_id)
 		postremove(mail_queue_path(log_path_buf, *log_qpp, queue_id));
 	    if (postremove(msg_path) == 0) {
 		found = 1;
+		msg_info("%s: removed", queue_id);
 		break;
 	    }					/* else: maybe lost a race */
 	}
@@ -381,6 +382,7 @@ static int requeue_one(const char **queue_names, const char *queue_id)
 		continue;
 	    (void) mail_queue_path(new_path_buf, MAIL_QUEUE_MAILDROP, queue_id);
 	    if (postrename(old_path, STR(new_path_buf)) == 0) {
+		msg_info("%s: requeued", queue_id);
 		found = 1;
 		break;
 	    }					/* else: maybe lost a race */

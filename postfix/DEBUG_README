@@ -44,10 +44,15 @@ a lot of activity to be logged to the syslog daemon.
 Some systems allow you to inspect a running process with a system
 call tracer. For example:
 
-	# trace -p process-id
-	# strace -p process-id
-	# truss -p process-id
-	# ktrace -p process-id
+    # trace -p process-id (SunOS 4)
+    # strace -p process-id (Linux and many others)
+    # truss -p process-id (Solaris, FreeBSD)
+    # ktrace -p process-id (generic 4.4BSD)
+
+Even more informative are traces of system library calls. Examples:
+
+    # ltrace -p process-id (Linux, also ported to FreeBSD and BSD/OS)
+    # sotruss -p process-id (Solaris)
 
 See your system documentation for details.
 

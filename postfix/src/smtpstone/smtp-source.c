@@ -52,6 +52,8 @@
 /* .IP "-w interval"
 /*	Wait a fixed time between messages.
 /*	Suspending one thread does not affect other delivery threads.
+/* BUGS
+/*	No SMTP command pipelining support.
 /* LICENSE
 /* .ad
 /* .fi
@@ -739,7 +741,7 @@ static void quit_done(int unused_event, char *context)
 
 static void usage(char *myname)
 {
-    msg_fatal("usage: %s -s sess -l msglen -m msgs -c -C count -d -f from -o -t to -R delay -v -w delay host[:port]", myname);
+    msg_fatal("usage: %s -s sess -l msglen -m msgs -c -C count -d -f from -o -t to -r rcptcount -R delay -v -w delay host[:port]", myname);
 }
 
 /* main - parse JCL and start the machine */

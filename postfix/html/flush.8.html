@@ -44,8 +44,8 @@ FLUSH(8)                                                 FLUSH(8)
               undeliverable it will be added back to the logfile.
 
               If the destination is not eligible for a fast flush
-              logfile,  this  request  triggers  delivery  of all
-              queued mail.
+              logfile,  this  request  is rejected (see below for
+              status codes).
 
        <b>TRIGGER</b><i>_</i><b>REQ</b><i>_</i><b>WAKEUP</b>
               This wakeup request from the master is an  alterna-
@@ -81,6 +81,11 @@ FLUSH(8)                                                 FLUSH(8)
 
        <b>FLUSH</b><i>_</i><b>STAT</b><i>_</i><b>FAIL</b>
               The request failed.
+
+       <b>FLUSH</b><i>_</i><b>STAT</b><i>_</i><b>DENY</b>
+              The  request  was  denied  because  the destination
+              domain is not eligible for fast flush  service,  or
+              because the fast flush service is disabled.
 
 <b>SECURITY</b>
        The  fast  flush server is not security-sensitive. It does

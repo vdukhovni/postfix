@@ -200,87 +200,87 @@ fifo_rdonly_bug: fifo_rdonly_bug.c $(LIB)
 select_bug: select_bug.c $(LIB)
 	$(CC) $(CFLAGS)  -o $@ $@.c $(LIB) $(SYSLIBS)
 
-translit: $(LIB)
+translit: $(LIB) $@.o
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-fsspace: $(LIB)
+fsspace: $(LIB) $@.o
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-exec_command: $(LIB)
+exec_command: $(LIB) $@.o
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-make_dirs: $(LIB)
+make_dirs: $(LIB) $@.o
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-mac_parse: $(LIB)
+mac_parse: $(LIB) $@.o
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-vstream_popen: $(LIB)
+vstream_popen: $(LIB) $@.o
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-fifo_trigger: $(LIB)
+fifo_trigger: $(LIB) $@.o
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-doze: $(LIB)
+doze: $(LIB) $@.o
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-mac_expand: $(LIB)
+mac_expand: $(LIB) $@.o
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-watchdog: $(LIB)
+watchdog: $(LIB) $@.o
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-unescape: $(LIB)
+unescape: $(LIB) $@.o
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-hex_quote: $(LIB)
+hex_quote: $(LIB) $@.o
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-name_mask: $(LIB)
+name_mask: $(LIB) $@.o
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-rand_sleep: $(LIB)
+rand_sleep: $(LIB) $@.o
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-sane_time: $(LIB)
+sane_time: $(LIB) $@.o
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-ctable: $(LIB)
+ctable: $(LIB) $@.o
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-inet_addr_list: $(LIB)
+inet_addr_list: $(LIB) $@.o
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o

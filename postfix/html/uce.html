@@ -146,6 +146,14 @@ clients this system accepts SMTP connections from.
 
 <p>
 
+By default, this restriction is applied when the client sends the
+RCPT TO command. In order to have the restriction take effect
+as soon as possible, specify <b>smtpd_delay_reject = yes</b> in
+the Postfix <b>main.cf</b> configuration file. Doing so may cause
+unexpected results with poorly implemented client software.
+
+<p>
+
 <dl>
 
 <dt>Default:
@@ -279,6 +287,14 @@ does not require the use of <b>HELO</b> (<b>EHLO</b>).
 The <b>smtpd_helo_restrictions</b> parameter restricts what hostnames
 clients may send with the <b>HELO</b> (<b>EHLO</b>) command.  Some
 UCE software can be stopped by being strict here.
+
+<p>
+
+By default, this restriction is applied when the client sends the
+RCPT TO command. In order to have the restriction take effect
+as soon as possible, specify <b>smtpd_delay_reject = yes</b> in
+the Postfix <b>main.cf</b> configuration file. Doing so may cause
+unexpected results with poorly implemented client software.
 
 <dl>
 
@@ -440,6 +456,14 @@ software out there on the Internet.
 
 The <b>smtpd_sender_restrictions</b> parameter restricts what sender
 addresses this system accepts in MAIL FROM commands.
+
+<p>
+
+By default, this restriction is applied when the client sends the
+RCPT TO command. In order to have the restriction take effect
+as soon as possible, specify <b>smtpd_delay_reject = yes</b> in
+the Postfix <b>main.cf</b> configuration file. Doing so may cause
+unexpected results with poorly implemented client software.
 
 <p>
 
@@ -722,9 +746,7 @@ code for rejected requests (default:  <b>554</b>).
 <a name="permit_mx_backup">
 
 <dt> <b>permit_mx_backup</b> <dd> Permit the request when the local
-mail system is MX host for the resolved destination, provided that
-the primary MX host is within the networks specified with <a
-href="#auth_mx_backup_networks">auth_mx_backup_networks</a> parameter.
+mail system is MX host for the resolved destination. 
 This includes the case that the local mail system is the final
 destination.  However, the SMTP server will not forward mail with
 addresses that have sender-specified routing information (example:
@@ -732,9 +754,15 @@ addresses that have sender-specified routing information (example:
 
 <p>
 
+Use the optional <a href="#permit_mx_backup_networks">
+permit_mx_backup_networks</a> parameter to also require that the
+primary MX hosts match a list of network blocks.
+
+<p>
+
 Relevant configuration parameters:  <a
-href="#auth_mx_backup_networks">auth_mx_backup_networks</a>, <a
-href="basic.html#mydestination"> $mydestination</a>, <a
+href="#permit_mx_backup_networks">permit_mx_backup_networks</a>,
+<a href="basic.html#mydestination"> $mydestination</a>, <a
 href="basic.html#inet_interfaces"> $inet_interfaces</a>.
 
 <p>
@@ -969,13 +997,13 @@ to speed up deliveries.
 
 <dl>
 
-<a name="auth_mx_backup_networks">
+<a name="permit_mx_backup_networks">
 
-<dt> <b>auth_mx_backup_networks</b>
+<dt> <b>permit_mx_backup_networks</b>
 
-<dd>This parameter specifies the networks that are allowed to
-use the <a href="#permit_mx_backup">permit_mx_backup</a>
-relay control feature.
+<dd>Restrict the use of the <a href="#permit_mx_backup">
+permit_mx_backup</a> relay control feature to destinations whose
+primary MX hosts match a list of network blocks.
 
 <p>
 
@@ -983,11 +1011,11 @@ relay control feature.
 
 <dt>Default:
 
-<dd><b>auth_mx_backup_networks = </b>
+<dd><b>permit_mx_backup_networks = </b>
 
 <p>
 
-That is, no networks are authorized by default.
+That is, all networks are authorized by default.
 
 <p>
 
@@ -1000,7 +1028,7 @@ blocks in CIDR (network/mask) notation, for example:
 
 <dl>
 
-<dd> <b>auth_mx_backup_networks = 168.100.0.0/16</b>
+<dd> <b>permit_mx_backup_networks = 168.100.0.0/16</b>
 
 </dl>
 

@@ -549,6 +549,7 @@ int     main(int argc, char **argv)
 	    VSTRING_ADDCH(buffer, 'X');
 	VSTRING_ADDCH(buffer, '\n');
     }
+    STR(buffer)[message_length - 1] = '\n';
     netstring_memcpy(message_buffer, STR(buffer), message_length);
 
     n = strlen(sender);
