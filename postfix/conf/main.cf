@@ -214,8 +214,6 @@ mail_owner = postfix
 #
 # In the case of SMTP, specify a domain, host, host:port, [host]:port,
 # [address] or [address]:port; the form [host] turns off MX lookups.
-# If you specify multiple SMTP destinations, Postfix will try them
-# in the specified order.
 #
 # If you're connected via UUCP, see also the default_transport parameter.
 #

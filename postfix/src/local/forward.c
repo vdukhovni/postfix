@@ -120,6 +120,10 @@ static FORWARD_INFO *forward_open(char *sender)
      * Contact the cleanup service and save the new mail queue id. Request
      * that the cleanup service bounces bad messages to the sender so that we
      * can avoid the trouble of bounce management.
+     * 
+     * In case you wonder what kind of bounces, examples are "too many hops",
+     * "message too large", perhaps some others. The reason not to bounce
+     * ourselves is that we don't really know who the recipients are.
      */
     cleanup = mail_connect(MAIL_CLASS_PRIVATE, MAIL_SERVICE_CLEANUP, BLOCKING);
     if (cleanup == 0)

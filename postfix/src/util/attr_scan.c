@@ -29,6 +29,8 @@
 /*	(item1 | item2) stands for choice:
 /*
 /* .in +5
+/*	input :== attr-list
+/* .br
 /*	attr-list :== (simple-attr | list-attr)* newline
 /* .br
 /*	simple-attr :== attr-name colon attr-value newline
@@ -227,7 +229,7 @@ int     attr_vscan(VSTREAM *fp, int flags, va_list ap)
     static VSTRING *name_buf = 0;
     int     wanted_type = -1;
     char   *wanted_name;
-    int    *number;
+    unsigned int *number;
     VSTRING *string;
     INTV   *number_array;
     ARGV   *string_array;

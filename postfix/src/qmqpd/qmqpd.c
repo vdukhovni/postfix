@@ -436,6 +436,8 @@ static int qmqpd_send_status(QMQPD_STATE *state)
     /*
      * One message may suffer from multiple errors, so complain only about
      * the most severe error.
+     * 
+     * See also: smtpd.c
      */
     state->where = "sending completion status";
 
@@ -461,7 +463,8 @@ static int qmqpd_send_status(QMQPD_STATE *state)
 	qmqpd_reply(state, DO_LOG, QMQPD_STAT_HARD,
 		    "Error: no recipients specified");
     } else {
-	msg_panic("qmqpd_send_status: unknown status %d", state->err);
+	qmqpd_reply(state, DO_LOG, QMQPD_STAT_RETRY,
+		    "Error: internal error %d", state->err);
     }
 }
 

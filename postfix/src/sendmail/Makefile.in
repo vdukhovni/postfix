@@ -73,6 +73,8 @@ sendmail.o: ../../include/set_ugid.h
 sendmail.o: ../../include/connect.h
 sendmail.o: ../../include/mail_queue.h
 sendmail.o: ../../include/mail_proto.h
+sendmail.o: ../../include/attr.h
+sendmail.o: ../../include/htable.h
 sendmail.o: ../../include/mail_params.h
 sendmail.o: ../../include/record.h
 sendmail.o: ../../include/rec_type.h

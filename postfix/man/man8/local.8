@@ -335,6 +335,9 @@ dependent.
 External command to use for mailbox delivery. The command executes
 with the recipient privileges (exception: root). The string is subject
 to $name expansions.
+.IP \fBmailbox_command_maps\fR
+Lookup tables with per-recipient external commands to use for mailbox
+delivery. Behavior is as with \fBmailbox_command\fR.
 .IP \fBmailbox_transport\fR
 Message transport to use for mailbox delivery to all local
 recipients, whether or not they are found in the UNIX passwd database.

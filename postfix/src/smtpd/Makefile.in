@@ -113,6 +113,8 @@ smtpd.o: ../../include/record.h
 smtpd.o: ../../include/rec_type.h
 smtpd.o: ../../include/mail_proto.h
 smtpd.o: ../../include/iostuff.h
+smtpd.o: ../../include/attr.h
+smtpd.o: ../../include/htable.h
 smtpd.o: ../../include/cleanup_user.h
 smtpd.o: ../../include/mail_date.h
 smtpd.o: ../../include/mail_conf.h
@@ -148,6 +150,8 @@ smtpd_chat.o: ../../include/record.h
 smtpd_chat.o: ../../include/rec_type.h
 smtpd_chat.o: ../../include/mail_proto.h
 smtpd_chat.o: ../../include/iostuff.h
+smtpd_chat.o: ../../include/attr.h
+smtpd_chat.o: ../../include/htable.h
 smtpd_chat.o: ../../include/mail_params.h
 smtpd_chat.o: ../../include/mail_addr.h
 smtpd_chat.o: ../../include/post_mail.h
@@ -226,6 +230,8 @@ smtpd_sasl_proto.o: ../../include/mail_proto.h
 smtpd_sasl_proto.o: ../../include/vstream.h
 smtpd_sasl_proto.o: ../../include/vbuf.h
 smtpd_sasl_proto.o: ../../include/iostuff.h
+smtpd_sasl_proto.o: ../../include/attr.h
+smtpd_sasl_proto.o: ../../include/htable.h
 smtpd_sasl_proto.o: ../../include/mail_error.h
 smtpd_sasl_proto.o: ../../include/name_mask.h
 smtpd_sasl_proto.o: smtpd.h

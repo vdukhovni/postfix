@@ -85,6 +85,7 @@ postconf.o: ../../include/mynetworks.h
 postconf.o: ../../include/mail_conf.h
 postconf.o: ../../include/mail_proto.h
 postconf.o: ../../include/iostuff.h
+postconf.o: ../../include/attr.h
 postconf.o: ../../include/mail_version.h
 postconf.o: ../../include/mail_params.h
 postconf.o: ../../include/mail_addr.h

@@ -516,7 +516,7 @@ static void mail_open_stream(SMTPD_STATE *state)
 					  MAIL_SERVICE_CLEANUP);
 	if (state->dest == 0
 	    || attr_print(state->dest->stream, ATTR_FLAG_NONE,
-			  ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, CLEANUP_FLAG_FILTER,
+			ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, CLEANUP_FLAG_FILTER,
 			  ATTR_TYPE_END) != 0)
 	    msg_fatal("unable to connect to the %s %s service",
 		      MAIL_CLASS_PRIVATE, MAIL_SERVICE_CLEANUP);
@@ -1000,7 +1000,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      * Finish the queue file or finish the cleanup conversation.
      */
     if (state->err == 0)
-	state->err |= mail_stream_finish(state->dest, why = vstring_alloc(10));
+	state->err = mail_stream_finish(state->dest, why = vstring_alloc(10));
     else
 	mail_stream_cleanup(state->dest);
     state->dest = 0;
@@ -1024,6 +1024,8 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      * Handle any errors. One message may suffer from multiple errors, so
      * complain only about the most severe error. Forgive any previous client
      * errors when a message was received successfully.
+     * 
+     * See also: qmqpd.c
      */
     if (state->err == CLEANUP_STAT_OK) {
 	state->error_count = 0;
@@ -1041,15 +1043,14 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	smtpd_chat_reply(state, "554 Error: too many hops");
     } else if ((state->err & CLEANUP_STAT_CONT) != 0) {
 	state->error_mask |= MAIL_ERROR_POLICY;
-	smtpd_chat_reply(state, "552 Error: %s", STR(why));
+	smtpd_chat_reply(state, "552 Error: %s", LEN(why) ?
+			 STR(why) : "content rejected");
     } else if ((state->err & CLEANUP_STAT_WRITE) != 0) {
 	state->error_mask |= MAIL_ERROR_RESOURCE;
 	smtpd_chat_reply(state, "451 Error: queue file write error");
-    } else if ((state->err & CLEANUP_STAT_RCPT) != 0) {
+    } else {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
 	smtpd_chat_reply(state, "451 Error: internal error %d", state->err);
-    } else {
-	msg_panic("data_cmd: unknown status %d", state->err);
     }
 
     /*

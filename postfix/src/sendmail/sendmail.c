@@ -148,9 +148,8 @@
 /*	configuration parameter instead.
 /* .IP \fB-qR\fIsite\fR
 /*	Schedule immediate delivery of all mail that is queued for the named
-/*	\fIsite\fR. Depending on the destination, this uses "fast flush"
-/*	service, or it has the same effect as \fBsendmail -q\fR.
-/*	This is implemented by connecting to the local SMTP server.
+/*	\fIsite\fR. This uses "fast flush" service, and is implemented
+/*	by connecting to the local SMTP server at \fB$myhostname\fR.
 /*	See \fBsmtpd\fR(8) for more information about the "fast flush"
 /*	service.
 /* .IP \fB-qS\fIsite\fR
@@ -516,7 +515,7 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
     if (vstream_ferror(VSTREAM_IN))
 	msg_fatal("%s(%ld): error reading input: %m",
 		  saved_sender, (long) uid);
-    if ((status = mail_stream_finish(handle, buf)) != 0)
+    if ((status = mail_stream_finish(handle, (VSTRING *) 0)) != 0)
 	msg_fatal("%s(%ld): %s", saved_sender,
 		  (long) uid, cleanup_strerror(status));
     if (sendmail_path) {

@@ -64,5 +64,7 @@ postkick.o: ../../include/safe.h
 postkick.o: ../../include/events.h
 postkick.o: ../../include/mail_proto.h
 postkick.o: ../../include/iostuff.h
+postkick.o: ../../include/attr.h
+postkick.o: ../../include/htable.h
 postkick.o: ../../include/mail_params.h
 postkick.o: ../../include/mail_conf.h

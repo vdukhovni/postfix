@@ -273,6 +273,7 @@ static void multi_server_wakeup(int fd)
 {
     VSTREAM *stream;
     char   *tmp;
+
     if (msg_verbose)
 	msg_info("connection established fd %d", fd);
     non_blocking(fd, BLOCKING);
@@ -280,7 +281,7 @@ static void multi_server_wakeup(int fd)
     client_count++;
     stream = vstream_fdopen(fd, O_RDWR);
     tmp = concatenate(multi_server_name, " socket", (char *) 0);
-    vstream_control(stream, VSTREAM_CTL_PATH, tmp,  VSTREAM_CTL_END);
+    vstream_control(stream, VSTREAM_CTL_PATH, tmp, VSTREAM_CTL_END);
     myfree(tmp);
     timed_ipc_setup(stream);
     if (multi_server_in_flow_delay && mail_flow_get(1) < 0)

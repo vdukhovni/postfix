@@ -51,17 +51,6 @@ extern int attr_scan(VSTREAM *, int,...);
 extern int attr_vscan(VSTREAM *, int, va_list);
 
  /*
-  * attr_table.c.
-  */
-typedef HTABLE ATTR_TABLE;
-
-extern ATTR_TABLE *attr_table_create(int);
-extern void attr_table_free(ATTR_TABLE *);
-extern int attr_table_read(ATTR_TABLE *, int, VSTREAM *);
-extern int attr_table_get(ATTR_TABLE *, int,...);
-extern int attr_table_vget(ATTR_TABLE *, int, va_list);
-
- /*
   * attr.c.
   */
 extern void attr_enter(HTABLE *, int,...);
@@ -77,11 +66,6 @@ extern int attr_find(HTABLE *, int,...);
 #define ATTR_NAME_NUM_ARRAY	"number_array"
 #define ATTR_NAME_STR_ARRAY	"string_array"
 #endif
-
- /*
-  * Testing.
-  */
-#define BASE64_DECODE(buf, str, len)	vstring_strncpy((buf), (str), (len))
 
 /* LICENSE
 /* .ad

@@ -60,6 +60,7 @@ void    cleanup_out_recipient(CLEANUP_STATE *state, char *recip)
 {
     ARGV   *argv;
     char  **cpp;
+    int     envelope_changed;
 
     if (cleanup_virtual_maps == 0) {
 	if (been_here_fixed(state->dups, recip) == 0)
@@ -67,9 +68,13 @@ void    cleanup_out_recipient(CLEANUP_STATE *state, char *recip)
     } else {
 	argv = cleanup_map1n_internal(state, recip, cleanup_virtual_maps,
 				  cleanup_ext_prop_mask & EXT_PROP_VIRTUAL);
+	envelope_changed = (argv->argc > 1 || strcmp(recip, argv->argv[0]));
 	for (cpp = argv->argv; *cpp; cpp++)
-	    if (been_here_fixed(state->dups, *cpp) == 0)
+	    if (been_here_fixed(state->dups, *cpp) == 0) {
+		if (envelope_changed)
+		    cleanup_out_string(state, REC_TYPE_ORCP, recip);
 		cleanup_out_string(state, REC_TYPE_RCPT, *cpp), state->rcpt_count++;
+	    }
 	argv_free(argv);
     }
 }

@@ -29,8 +29,9 @@
 /*	void	mail_stream_cleanup(info)
 /*	MAIL_STREAM *info;
 /*
-/*	int	mail_stream_finish(info)
+/*	int	mail_stream_finish(info, why)
 /*	MAIL_STREAM *info;
+/*	VSTRING	*why;
 /* DESCRIPTION
 /*	This module provides a generic interface to Postfix queue file
 /*	format messages to file, to Postfix server, or to external command.
@@ -62,6 +63,7 @@
 /*	any of the mail_stream_xxx() routines, and destroys the argument.
 /*	The result is any of the status codes defined in <cleanup_user.h>.
 /*	It is up to the caller to remove incomplete file objects.
+/*	The why argument can be a null pointer.
 /* LICENSE
 /* .ad
 /* .fi
@@ -123,7 +125,15 @@ static int mail_stream_finish_file(MAIL_STREAM * info, VSTRING *unused_why)
 
     /*
      * Make sure the message makes it to file. Set the execute bit when no
-     * write error was detected.
+     * write error was detected. Some people believe that this code has a
+     * problem if the system crashes before fsync() returns; fchmod() could
+     * take effect before all the data blocks are written. Wietse claims that
+     * this is not a problem. Postfix rejects incomplete queue files, even
+     * when the +x attribute is set. Every Postfix queue file record has a
+     * type code and a length field. Files with truncated records are
+     * rejected, as are files with unknown type codes. Every Postfix queue
+     * file must end with an explicit END record. Postfix queue files without
+     * END record are discarded.
      */
     if (vstream_fflush(info->stream)
 	|| fchmod(vstream_fileno(info->stream), 0700)
@@ -168,10 +178,13 @@ static int mail_stream_finish_ipc(MAIL_STREAM * info, VSTRING *why)
     /*
      * Receive the peer's completion status.
      */
-    if (attr_scan(info->stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
-		  ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
-		  ATTR_TYPE_STR, MAIL_ATTR_WHY, why,
-		  ATTR_TYPE_END) != 2)
+    if ((why && attr_scan(info->stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+			  ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
+			  ATTR_TYPE_STR, MAIL_ATTR_WHY, why,
+			  ATTR_TYPE_END) != 2)
+	|| (!why && attr_scan(info->stream, ATTR_FLAG_MISSING,
+			      ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
+			      ATTR_TYPE_END) != 1))
 	status = CLEANUP_STAT_WRITE;
 
     /*

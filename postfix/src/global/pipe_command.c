@@ -33,11 +33,11 @@
 /*	or when it appears to be a shell built-in command, otherwise
 /*	the command is executed without invoking a shell.
 /*	One of PIPE_CMD_COMMAND or PIPE_CMD_ARGV must be specified.
+/*	See also the PIPE_CMD_SHELL attribute below.
 /* .IP "PIPE_CMD_ARGV (char **)"
 /*	The command is specified as an argument vector. This vector is
 /*	passed without further inspection to the \fIexecvp\fR() routine.
 /*	One of PIPE_CMD_COMMAND or PIPE_CMD_ARGV must be specified.
-/*	See also the PIPE_CMD_SHELL attribute below.
 /* .IP "PIPE_CMD_ENV (char **)"
 /*	Additional environment information, in the form of a null-terminated
 /*	list of name, value, name, value, ... elements. By default only the

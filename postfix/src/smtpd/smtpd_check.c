@@ -1158,7 +1158,7 @@ static int i_am_mx(DNS_RR *mx_list)
 static int permit_mx_primary(DNS_RR *mx_list)
 {
     DNS_RR *mx;
-    int     best_pref;
+    unsigned int best_pref;
     int     status;
 
     /*

@@ -71,6 +71,7 @@ flush.o: ../../include/mail_params.h
 flush.o: ../../include/mail_queue.h
 flush.o: ../../include/mail_proto.h
 flush.o: ../../include/iostuff.h
+flush.o: ../../include/attr.h
 flush.o: ../../include/mail_flush.h
 flush.o: ../../include/flush_clnt.h
 flush.o: ../../include/mail_conf.h

@@ -5487,6 +5487,12 @@ Apologies for any names omitted.
 	Bugfix: there was a minute memory leak when an smtpd access
 	restriction is misconfigured. File: smtpd/smtpd_check.c.
 
+20011010
+
+	Specify the name of the UNIX-domain socket (instead of
+	"unknown stream") when a Postfix daemon complains about a
+	malformed client request. Files:  master/*server.c.
+
 20011010-14
 
 	Replaced the internal protocols by (name,value) attribute
@@ -5502,10 +5508,29 @@ Apologies for any names omitted.
 	is sent to the originator. Files: cleanup/cleanup.c,
 	cleanup/cleanup_message.c, conf/sample-filter.cf.
 
+20011016
+
+	Bugfix: As of 20000625, Errors-To: was broken, because the
+	code to extract the address was not moved from recipient
+	address rewriting to sender address rewriting. Problem
+	reported by Roelof Osinga @ nisser.com. File:
+	cleanup/cleanup_message.c.
+
+20011029
+
+	Bugfix: virtual map expansion terminated early because the
+	detection of self-referential entries was flawed.  File:
+	cleanup/cleanup_map1n.c.
+
 Open problems:
 
 	Minor: The $process_id_directory setting is not used anywhere
 	in Postfix. Problem reported by Michael Smith, texas.net.
+	This should either be documented, or better, the code should
+	issue a warning to set a read-only parameter.
 
 	Medium: address rewriting should be on/off configurable
 	for envelopes and/or headers.
+
+	Medium: smtpd access maps doesn't understand the recipient
+	delimiter setting.

@@ -19,7 +19,7 @@ SRCS	= been_here.c bounce.c canon_addr.c cleanup_strerror.c clnt_stream.c \
 	timed_ipc.c tok822_find.c tok822_node.c tok822_parse.c \
 	tok822_resolve.c tok822_rewrite.c tok822_tree.c xtext.c bounce_log.c \
 	flush_clnt.c mail_conf_time.c mbox_conf.c mbox_open.c abounce.c \
-	verp_sender.c
+	verp_sender.c been_here_level.c
 OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o clnt_stream.o \
 	debug_peer.o debug_process.o defer.o deliver_completed.o \
 	deliver_flock.o deliver_pass.o deliver_request.o domain_list.o \
@@ -40,7 +40,7 @@ OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o clnt_stream.o \
 	timed_ipc.o tok822_find.o tok822_node.o tok822_parse.o \
 	tok822_resolve.o tok822_rewrite.o tok822_tree.o xtext.o bounce_log.o \
 	flush_clnt.o mail_conf_time.o mbox_conf.o mbox_open.o abounce.o \
-	verp_sender.o
+	verp_sender.o been_here_level.o
 HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h clnt_stream.h \
 	config.h debug_peer.h debug_process.h defer.h deliver_completed.h \
 	deliver_flock.h deliver_pass.h deliver_request.h domain_list.h \
@@ -267,6 +267,15 @@ been_here.o: ../../include/vstring.h
 been_here.o: ../../include/vbuf.h
 been_here.o: ../../include/stringops.h
 been_here.o: been_here.h
+been_here_level.o: been_here_level.c
+been_here_level.o: ../../include/sys_defs.h
+been_here_level.o: ../../include/msg.h
+been_here_level.o: ../../include/mymalloc.h
+been_here_level.o: ../../include/htable.h
+been_here_level.o: ../../include/vstring.h
+been_here_level.o: ../../include/vbuf.h
+been_here_level.o: ../../include/stringops.h
+been_here_level.o: been_here.h
 bounce.o: bounce.c
 bounce.o: ../../include/sys_defs.h
 bounce.o: ../../include/msg.h
@@ -499,6 +508,15 @@ mail_command_client.o: mail_proto.h
 mail_command_client.o: ../../include/iostuff.h
 mail_command_client.o: ../../include/attr.h
 mail_command_client.o: ../../include/htable.h
+mail_command_read.o: mail_command_read.c
+mail_command_read.o: ../../include/sys_defs.h
+mail_command_read.o: ../../include/vstring.h
+mail_command_read.o: ../../include/vbuf.h
+mail_command_read.o: ../../include/vstream.h
+mail_command_read.o: mail_proto.h
+mail_command_read.o: ../../include/iostuff.h
+mail_command_read.o: ../../include/attr.h
+mail_command_read.o: ../../include/htable.h
 mail_command_server.o: mail_command_server.c
 mail_command_server.o: ../../include/sys_defs.h
 mail_command_server.o: ../../include/vstream.h
@@ -507,6 +525,14 @@ mail_command_server.o: mail_proto.h
 mail_command_server.o: ../../include/iostuff.h
 mail_command_server.o: ../../include/attr.h
 mail_command_server.o: ../../include/htable.h
+mail_command_write.o: mail_command_write.c
+mail_command_write.o: ../../include/sys_defs.h
+mail_command_write.o: ../../include/vstream.h
+mail_command_write.o: ../../include/vbuf.h
+mail_command_write.o: mail_proto.h
+mail_command_write.o: ../../include/iostuff.h
+mail_command_write.o: ../../include/attr.h
+mail_command_write.o: ../../include/htable.h
 mail_conf.o: mail_conf.c
 mail_conf.o: ../../include/sys_defs.h
 mail_conf.o: ../../include/msg.h
@@ -568,6 +594,8 @@ mail_connect.o: ../../include/vbuf.h
 mail_connect.o: ../../include/connect.h
 mail_connect.o: ../../include/iostuff.h
 mail_connect.o: ../../include/mymalloc.h
+mail_connect.o: ../../include/stringops.h
+mail_connect.o: ../../include/vstring.h
 mail_connect.o: timed_ipc.h
 mail_connect.o: mail_proto.h
 mail_connect.o: ../../include/attr.h

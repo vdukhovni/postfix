@@ -295,7 +295,7 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
      * bounce, the cleanup service can report only soft errors here.
      */
     rec_fputs(cleanup, REC_TYPE_END, "");
-    if (attr_scan(cleanup, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+    if (attr_scan(cleanup, ATTR_FLAG_MISSING,
 		  ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
 		  ATTR_TYPE_END) != 1)
 	return (cleanup_service_error(info, CLEANUP_STAT_WRITE));

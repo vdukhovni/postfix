@@ -24,7 +24,7 @@ SRCS	= argv.c argv_split.c attr.c basename.c binhash.c chroot_uid.c \
 	sane_link.c unescape.c timed_read.c timed_write.c dict_tcp.c \
 	hex_quote.c dict_alloc.c rand_sleep.c sane_time.c dict_debug.c \
 	sane_socketpair.c myrand.c netstring.c ctable.c attr_print.c intv.c \
-	attr_scan.c attr_table.c base64_code.c
+	attr_scan.c base64_code.c
 OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	close_on_exec.o concatenate.o dict.o dict_db.o dict_dbm.o \
 	dict_env.o dict_ht.o dict_ldap.o dict_mysql.o dict_ni.o dict_nis.o \
@@ -50,7 +50,7 @@ OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	sane_link.o unescape.o timed_read.o timed_write.o dict_tcp.o \
 	hex_quote.o dict_alloc.o rand_sleep.o sane_time.o dict_debug.o \
 	sane_socketpair.o myrand.o netstring.o ctable.o attr_print.o intv.o \
-	attr_scan.o attr_table.o base64_code.o
+	attr_scan.o base64_code.o
 HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	dict_dbm.h dict_env.h dict_ht.h dict_ldap.h dict_mysql.h \
 	dict_ni.h dict_nis.h dict_nisplus.h dir_forest.h events.h \
@@ -84,7 +84,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	mystrtok sigdelay translit valid_hostname vstream_popen \
 	vstring vstring_vstream doze select_bug stream_test mac_expand \
 	watchdog unescape hex_quote name_mask rand_sleep sane_time ctable \
-	inet_addr_list attr_print attr_scan attr_table base64_code
+	inet_addr_list attr_print attr_scan base64_code
 
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
@@ -294,11 +294,6 @@ attr_print: $(LIB) $@.o
 	mv junk $@.o
 
 attr_scan: $(LIB) $@.o
-	mv $@.o junk
-	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
-	mv junk $@.o
-
-attr_table: $(LIB) $@.o
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o

@@ -181,12 +181,10 @@ SENDMAIL(1)                                           SENDMAIL(1)
 
        <b>-qR</b><i>site</i>
               Schedule  immediate  delivery  of  all mail that is
-              queued for the named <i>site</i>. Depending on the  desti-
-              nation,  this  uses "fast flush" service, or it has
-              the same effect as <b>sendmail</b>  <b>-q</b>.   This  is  imple-
-              mented by connecting to the local SMTP server.  See
-              <a href="smtpd.8.html"><b>smtpd</b>(8)</a>  for  more  information  about  the  "fast
-              flush" service.
+              queued for the named <i>site</i>. This uses  "fast  flush"
+              service,  and  is  implemented by connecting to the
+              local SMTP server at <b>$myhostname</b>.  See <a href="smtpd.8.html"><b>smtpd</b>(8)</a> for
+              more information about the "fast flush" service.
 
        <b>-qS</b><i>site</i>
               This  command  is  not  implemented. Use the slower

@@ -132,6 +132,8 @@ lmtp_connect.o: ../../include/timed_connect.h
 lmtp_connect.o: ../../include/stringops.h
 lmtp_connect.o: ../../include/mail_params.h
 lmtp_connect.o: ../../include/mail_proto.h
+lmtp_connect.o: ../../include/attr.h
+lmtp_connect.o: ../../include/htable.h
 lmtp_connect.o: ../../include/dns.h
 lmtp_connect.o: lmtp.h
 lmtp_connect.o: ../../include/argv.h

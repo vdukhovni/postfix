@@ -59,7 +59,7 @@ typedef struct CLEANUP_STATE {
     off_t   xtra_offset;		/* start of extra segment */
     int     end_seen;			/* REC_TYPE_END seen */
     int     rcpt_count;			/* recipient count */
-    VSTRING *why_rejected;		/* REJECT reason */
+    char   *reason;			/* failure reason */
 } CLEANUP_STATE;
 
  /*

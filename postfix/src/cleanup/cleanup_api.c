@@ -31,14 +31,23 @@
 /*	cleanup_open() creates a new queue file and performs other
 /*	per-message initialization. The result is a handle that should be
 /*	given to the cleanup_control(), cleanup_record(), cleanup_close()
-/*	and cleanup_close()
-/*	routines. The name of the queue file is in the queue_id result
-/*	structure member.
+/*	and cleanup_free() routines. The name of the queue file is in the
+/*	queue_id result structure member.
 /*
 /*	cleanup_control() processes per-message flags specified by the caller.
 /*	These flags control the handling of data errors, and must be set
 /*	before processing the first message record.
-/*
+/* .IP CLEANUP_FLAG_BOUNCE
+/*	The cleanup server is responsible for returning undeliverable 
+/*	mail (too many hops, message too large) to the sender.
+/* .IP CLEANUP_FLAG_FILTER
+/*	Enable header/body filtering. This should be enabled only with mail 
+/*	that enters Postfix, not with locally forwarded mail or with bounce 
+/*	messages.
+/* .IP CLEANUP_FLAG_EXTRACT
+/*	Extract recipients from message headers when no recipients are
+/*	provided in the message envelope records.
+/* .PP
 /*	CLEANUP_RECORD() is a macro that processes one message record,
 /*	that copies the result to the queue file, and that maintains a
 /*	little state machine. The last record in a valid message has type
@@ -49,8 +58,9 @@
 /*
 /*	cleanup_close() closes a queue file. In case of any errors,
 /*	the file is removed. The result value is non-zero in case of
-/*	problems. Use cleanup_strerror() to translate the result into
-/*	human_readable text.
+/*	problems. In some cases a human-readable text can be found in
+/*	the state->reason member. In all other cases, use cleanup_strerror()
+/*	to translate the result into human-readable text.
 /*
 /*	cleanup_free() destroys its argument.
 /* DIAGNOSTICS
@@ -154,10 +164,9 @@ void    cleanup_control(CLEANUP_STATE *state, int flags)
      * definition.
      */
     if ((state->flags = flags) & CLEANUP_FLAG_BOUNCE) {
-	state->err_mask =
-	(CLEANUP_STAT_BAD | CLEANUP_STAT_WRITE | CLEANUP_STAT_SIZE);
+	state->err_mask = CLEANUP_STAT_MASK_INCOMPLETE;
     } else {
-	state->err_mask = CLEANUP_STAT_LETHAL;
+	state->err_mask = ~CLEANUP_STAT_MASK_EXTRACT_RCPT;
     }
 }
 
@@ -167,13 +176,16 @@ int     cleanup_close(CLEANUP_STATE *state)
 {
     char   *junk;
     int     status;
-    const char *reason;
 
     /*
-     * See if there are any errors. For example, the message is incomplete,
-     * or it needs to be bounced for lack of recipients. We want to turn on
-     * the execute bits on a file only when we really want the queue manager
-     * to process it.
+     * Ignore recipient extraction alarms if (a) we did (not need to) extract
+     * recipients, or (b) we did not examine all queue file records.
+     */
+    if (state->recip != 0 || CLEANUP_OUT_OK(state) == 0)
+	state->errs &= ~CLEANUP_STAT_MASK_EXTRACT_RCPT;
+
+    /*
+     * Raise these errors only if we examined all queue file records.
      */
     if (CLEANUP_OUT_OK(state)) {
 	if (state->recip == 0)
@@ -187,10 +199,11 @@ int     cleanup_close(CLEANUP_STATE *state)
      * because we are about to tell the sender that it can throw away its
      * copy of the message.
      */
-    if ((state->errs & CLEANUP_STAT_LETHAL) == 0)
-	state->errs |= mail_stream_finish(state->handle, (VSTRING *) 0);
-    else
+    if (state->errs == 0) {
+	state->errs = mail_stream_finish(state->handle, (VSTRING *) 0);
+    } else {
 	mail_stream_cleanup(state->handle);
+    }
     state->handle = 0;
     state->dst = 0;
 
@@ -207,35 +220,26 @@ int     cleanup_close(CLEANUP_STATE *state)
      * 
      * Do not log the arrival of a message that will be bounced by the client.
      * 
-     * XXX CLEANUP_STAT_LETHAL masks errors that are not directly fatal (e.g.,
-     * header buffer overflow is normally allowed to happen), but that can
-     * indirectly become a problem (e.g., no recipients were extracted from
-     * message headers because we could not process all the message headers).
-     * However, cleanup_strerror() prioritizes errors so that it can report
-     * the cause (e.g., header buffer overflow), which is more useful.
-     * 
      * XXX When bouncing, should log sender because qmgr won't be able to.
      */
 #define CAN_BOUNCE() \
-	((state->errs & (CLEANUP_STAT_BAD | CLEANUP_STAT_WRITE)) == 0 \
+	((state->errs & CLEANUP_STAT_MASK_CANT_BOUNCE) == 0 \
 	    && state->sender != 0 \
 	    && (state->flags & CLEANUP_FLAG_BOUNCE) != 0)
 
-    if (state->errs & CLEANUP_STAT_LETHAL) {
+    if (state->errs != 0) {
 	if (CAN_BOUNCE()) {
-	    reason = cleanup_strerror(state->errs);
-	    if (reason == cleanup_strerror(CLEANUP_STAT_CONT))
-		reason = vstring_str(state->why_rejected);
 	    if (bounce_append(BOUNCE_FLAG_CLEAN, state->queue_id,
 			      state->recip ? state->recip : "unknown",
 			      "cleanup", state->time,
-			      "Message processing aborted: %s",
-			      reason) == 0
+			   "Message processing aborted: %s", state->reason ?
+			 state->reason : cleanup_strerror(state->errs)) == 0
 		&& bounce_flush(BOUNCE_FLAG_CLEAN, MAIL_QUEUE_INCOMING,
 				state->queue_id, state->sender) == 0) {
 		state->errs = 0;
 	    } else {
-		msg_warn("%s: bounce message failure", state->queue_id);
+		if (var_soft_bounce == 0)
+		    msg_warn("%s: bounce message failure", state->queue_id);
 		state->errs = CLEANUP_STAT_WRITE;
 	    }
 	}
@@ -258,11 +262,11 @@ int     cleanup_close(CLEANUP_STATE *state)
      */
     if (msg_verbose)
 	msg_info("cleanup_close: status %d", state->errs);
-    status = state->errs & CLEANUP_STAT_LETHAL;
+    status = state->errs;
     return (status);
 }
 
-/* cleanup_close - pay the last respects */
+/* cleanup_free - pay the last respects */
 
 void    cleanup_free(CLEANUP_STATE *state)
 {
