@@ -334,6 +334,28 @@ extern char *var_send_canon_maps;
 #define DEF_RCPT_CANON_MAPS	""
 extern char *var_rcpt_canon_maps;
 
+#define CANON_CLASS_ENV_FROM	"envelope_sender"
+#define CANON_CLASS_ENV_RCPT	"envelope_recipient"
+#define CANON_CLASS_HDR_FROM	"header_sender"
+#define CANON_CLASS_HDR_RCPT	"header_recipient"
+
+#define VAR_CANON_CLASSES	"canonical_classes"
+#define DEF_CANON_CLASSES	CANON_CLASS_ENV_FROM ", " \
+				CANON_CLASS_ENV_RCPT ", " \
+				CANON_CLASS_HDR_FROM ", " \
+				CANON_CLASS_HDR_RCPT
+extern char *var_canon_classes;
+
+#define VAR_SEND_CANON_CLASSES	"sender_canonical_classes"
+#define DEF_SEND_CANON_CLASSES	CANON_CLASS_ENV_FROM ", " \
+				CANON_CLASS_HDR_FROM
+extern char *var_send_canon_classes;
+
+#define VAR_RCPT_CANON_CLASSES	"recipient_canonical_classes"
+#define DEF_RCPT_CANON_CLASSES	CANON_CLASS_ENV_RCPT ", " \
+				CANON_CLASS_HDR_RCPT
+extern char *var_rcpt_canon_classes;
+
 #define VAR_SEND_BCC_MAPS	"sender_bcc_maps"
 #define DEF_SEND_BCC_MAPS	""
 extern char *var_send_bcc_maps;
@@ -979,6 +1001,10 @@ extern char *var_smtp_sasl_passwd;
 #define VAR_SMTP_SASL_OPTS	"smtp_sasl_security_options"
 #define DEF_SMTP_SASL_OPTS	"noplaintext, noanonymous"
 extern char *var_smtp_sasl_opts;
+
+#define VAR_SMTP_SASL_MECHS	"smtp_sasl_mechanism_filter"
+#define DEF_SMTP_SASL_MECHS	""
+extern char *var_smtp_sasl_mechs;
 
  /*
   * LMTP server. The soft error limit determines how many errors an LMTP
@@ -2038,6 +2064,7 @@ extern int var_anvil_stat_time;
 #define VAR_ANVIL_SERVICE		"client_connection_rate_service"
 #define DEF_ANVIL_SERVICE		"local:" ANVIL_CLASS "/" ANVIL_SERVICE
 extern char *var_anvil_service;
+
 #endif
 
 /* LICENSE

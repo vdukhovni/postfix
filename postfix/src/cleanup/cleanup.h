@@ -80,6 +80,9 @@ typedef struct CLEANUP_STATE {
 extern MAPS *cleanup_comm_canon_maps;
 extern MAPS *cleanup_send_canon_maps;
 extern MAPS *cleanup_rcpt_canon_maps;
+extern int cleanup_comm_canon_flags;
+extern int cleanup_send_canon_flags;
+extern int cleanup_rcpt_canon_flags;
 extern MAPS *cleanup_header_checks;
 extern MAPS *cleanup_mimehdr_checks;
 extern MAPS *cleanup_nesthdr_checks;
@@ -90,6 +93,14 @@ extern STRING_LIST *cleanup_masq_exceptions;
 extern int cleanup_masq_flags;
 extern MAPS *cleanup_send_bcc_maps;
 extern MAPS *cleanup_rcpt_bcc_maps;
+
+ /*
+  * Address canonicalization fine control.
+  */
+#define CLEANUP_CANON_FLAG_ENV_FROM	(1<<0)	/* envelope sender */
+#define CLEANUP_CANON_FLAG_ENV_RCPT	(1<<1)	/* envelope recipient */
+#define CLEANUP_CANON_FLAG_HDR_FROM	(1<<2)	/* header sender */
+#define CLEANUP_CANON_FLAG_HDR_RCPT	(1<<3)	/* header recipient */
 
  /*
   * Address masquerading fine control.

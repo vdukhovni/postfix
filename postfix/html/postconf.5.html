@@ -528,8 +528,11 @@ Example:
 <p>
 Allow a recipient address to have `-' as the first character.  By
 default, this is not allowed, to avoid accidents with software that
-passes email addresses via the command line.
-</p>
+passes email addresses via the command line. Such software
+would not be able to distinguish a malicious address from a
+bona fide command-line option. Although this can be prevented by
+inserting a "--" option terminator into the command line, this is
+difficult to enforce consistently and globally.  </p>
 
 
 </DD>
@@ -947,13 +950,28 @@ AUTH support in a non-standard way.
 
 </DD>
 
+<DT><b><a name="canonical_classes">canonical_classes</a>
+(default: envelope_sender, envelope_recipient, header_sender, header_recipient)</b></DT><DD>
+
+<p> What addresses are subject to <a href="postconf.5.html#canonical_maps">canonical_maps</a> address mapping.
+By default, <a href="postconf.5.html#canonical_maps">canonical_maps</a> address mapping is applied to envelope
+sender and recipient addresses, and to header sender and header
+recipient addresses.  </p>
+
+<p> Specify one or more of: envelope_sender, envelope_recipient,
+header_sender, header_recipient </p>
+
+
+</DD>
+
 <DT><b><a name="canonical_maps">canonical_maps</a>
 (default: empty)</b></DT><DD>
 
 <p>
 Optional address mapping lookup tables for message headers and
 envelopes. The mapping is applied to both sender and recipient
-addresses, in both envelopes and in headers. This is typically used
+addresses, in both envelopes and in headers, as controlled
+with the <a href="postconf.5.html#canonical_classes">canonical_classes</a> parameter. This is typically used
 to clean up dirty addresses from legacy mail systems, or to replace
 login names by Firstname.Lastname.  The table format and lookups
 are documented in <a href="canonical.5.html">canonical(5)</a>.
@@ -2404,6 +2422,26 @@ on.  By default, the software claims all active interfaces on the
 machine. The parameter also controls delivery of mail to
 user@[ip.address].
 </p>
+
+<p>
+When <a href="postconf.5.html#inet_interfaces">inet_interfaces</a> consists of just one IP address that is not a
+loopback (net 127) address, the Postfix SMTP client will use this address
+as the IP source address for outbound mail. </p>
+
+<p>
+On a multi-homed firewall with separate Postfix instances listening on the
+"inside" and "outside" interfaces, this can prevent each instance from
+being able to reach servers on the "other side" of the firewall. Setting
+<a href="postconf.5.html#smtp_bind_address">smtp_bind_address</a> to 0.0.0.0 avoids the potential problem. </p>
+
+<p>
+A better solution is to leave <a href="postconf.5.html#inet_interfaces">inet_interfaces</a> at the default value
+and instead use explicit IP addresses in master.cf. This preserves SMTP
+loop detection, by ensuring that each side of the firewall knows that the
+other IP address is still the same host. Setting $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> to a
+single IP address is primarily useful with virtual hosting of domains on
+secondary IP addresses, when each IP address serves a different domain
+(and has a different $<a href="postconf.5.html#myhostname">myhostname</a> setting). </p>
 
 <p>
 See also the <a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a> parameter, for network addresses that
@@ -4559,6 +4597,20 @@ Example:
 
 </DD>
 
+<DT><b><a name="recipient_canonical_classes">recipient_canonical_classes</a>
+(default: envelope_recipient, header_recipient)</b></DT><DD>
+
+<p> What addresses are subject to <a href="postconf.5.html#recipient_canonical_maps">recipient_canonical_maps</a> address
+mapping.  By default, <a href="postconf.5.html#recipient_canonical_maps">recipient_canonical_maps</a> address mapping is
+applied to envelope recipient addresses, and to header recipient
+addresses.  </p>
+
+<p> Specify one or more of: envelope_recipient, header_recipient
+</p>
+
+
+</DD>
+
 <DT><b><a name="recipient_canonical_maps">recipient_canonical_maps</a>
 (default: empty)</b></DT><DD>
 
@@ -4973,6 +5025,19 @@ Example:
 
 </DD>
 
+<DT><b><a name="sender_canonical_classes">sender_canonical_classes</a>
+(default: envelope_sender, header_sender)</b></DT><DD>
+
+<p> What addresses are subject to <a href="postconf.5.html#sender_canonical_maps">sender_canonical_maps</a> address
+mapping.  By default, <a href="postconf.5.html#sender_canonical_maps">sender_canonical_maps</a> address mapping is
+applied to envelope sender addresses, and to header sender addresses.
+</p>
+
+<p> Specify one or more of: envelope_sender, header_sender </p>
+
+
+</DD>
+
 <DT><b><a name="sender_canonical_maps">sender_canonical_maps</a>
 (default: empty)</b></DT><DD>
 
@@ -5139,6 +5204,12 @@ for example:
   /etc/postfix/master.cf:
         smtp ... smtp -o <a href="postconf.5.html#smtp_bind_address">smtp_bind_address</a>=11.22.33.44
 </pre>
+
+<p> Note: when <a href="postconf.5.html#inet_interfaces">inet_interfaces</a> specifies exactly one address that
+is a non-loopback address, it is automatically used as the
+<a href="postconf.5.html#smtp_bind_address">smtp_bind_address</a>.  This supports virtual IP hosting, but can be
+a problem on multi-homed firewalls. See the <a href="postconf.5.html#inet_interfaces">inet_interfaces</a>
+documentation for more detail. </p>
 
 
 </DD>
@@ -5639,6 +5710,33 @@ Example:
 
 <pre>
 <a href="postconf.5.html#smtp_sasl_auth_enable">smtp_sasl_auth_enable</a> = yes
+</pre>
+
+
+</DD>
+
+<DT><b><a name="smtp_sasl_mechanism_filter">smtp_sasl_mechanism_filter</a>
+(default: empty)</b></DT><DD>
+
+<p>
+If non-empty, filters the SMTP server's list of offered SASL mechanisms.
+Different client and server implementations may support different
+mechanism lists. By default, the client will use the intersection of the
+two. <a href="postconf.5.html#smtp_sasl_mechanism_filter">smtp_sasl_mechanism_filter</a> further restricts what server mechanisms
+the client will take into consideration.  </p>
+
+<p> Specify mechanism names, "/file/name" patterns or "<a href="DATABASE_README.html">type:table</a>"
+lookup tables. The right-hand side result from "<a href="DATABASE_README.html">type:table</a>" lookups
+is ignored. </p>
+
+<p>
+Examples:
+</p>
+
+<pre>
+<a href="postconf.5.html#smtp_sasl_mechanism_filter">smtp_sasl_mechanism_filter</a> = plain, login
+<a href="postconf.5.html#smtp_sasl_mechanism_filter">smtp_sasl_mechanism_filter</a> = /etc/postfix/smtp_mechs
+<a href="postconf.5.html#smtp_sasl_mechanism_filter">smtp_sasl_mechanism_filter</a> = !gssapi, !login, static:rest
 </pre>
 
 
@@ -6857,9 +6955,8 @@ from filling up with undeliverable MAILER-DAEMON messages.
 or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>, but the recipient is not listed in
 $<a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a>, and $<a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a> is not null.
 
-<li> The recipient domain matches $<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> but the
-recipient is not listed in $<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>, and $<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>
-is not null.
+<li> The recipient domain matches $<a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a> but the
+recipient is not listed in $<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>.
 
 <li> The recipient domain matches $<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a> but the
 recipient is not listed in $<a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a>, and $<a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a>
@@ -6892,9 +6989,8 @@ of forged mail from worms or viruses.  </p>
 $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>, but the recipient is not listed in
 $<a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a>, and $<a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a> is not null.
 
-<li> The sender domain matches $<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> but the recipient
-is not listed in $<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>, and $<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> is
-not null.
+<li> The sender domain matches $<a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a> but the recipient
+is not listed in $<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>.
 
 <li> The sender domain matches $<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a> but the
 recipient is not listed in $<a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a>, and $<a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a>
@@ -7992,9 +8088,10 @@ lookup tables, because that would open a security hole.
 </p>
 
 <p>
-Note 2: for security reasons, the <a href="virtual.8.html">virtual(8)</a> delivery agent does
-not allow table lookup through the <a href="proxymap.8.html">proxymap(8)</a> service, because
-that would open a security hole.
+Note 2: for security reasons, the <a href="virtual.8.html">virtual(8)</a> delivery agent will
+silently ignore requests to use the <a href="proxymap.8.html">proxymap(8)</a> server. Instead
+it will open the table directly. Before Postfix version 2.2, the
+<a href="virtual.8.html">virtual(8)</a> delivery agent will terminate with a fatal error.
 </p>
 
 
@@ -8118,9 +8215,10 @@ lookup tables, because that would open a security hole.
 </p>
 
 <p>
-Note 2: for security reasons, the <a href="virtual.8.html">virtual(8)</a> delivery agent disallows
-table lookup through the <a href="proxymap.8.html">proxymap(8)</a> server, because that would
-open a security hole.
+Note 2: for security reasons, the <a href="virtual.8.html">virtual(8)</a> delivery agent will
+silently ignore requests to use the <a href="proxymap.8.html">proxymap(8)</a> server. Instead
+it will open the table directly. Before Postfix version 2.2, the
+<a href="virtual.8.html">virtual(8)</a> delivery agent will terminate with a fatal error.
 </p>
 
 
@@ -8203,9 +8301,10 @@ lookup tables, because that would open a security hole.
 </p>
 
 <p>
-Note 2: for security reasons, the <a href="virtual.8.html">virtual(8)</a> delivery agent does
-not allow table lookup through the <a href="proxymap.8.html">proxymap(8)</a> service, because
-that would open a security hole.
+Note 2: for security reasons, the <a href="virtual.8.html">virtual(8)</a> delivery agent will
+silently ignore requests to use the <a href="proxymap.8.html">proxymap(8)</a> server. Instead
+it will open the table directly. Before Postfix version 2.2, the
+<a href="virtual.8.html">virtual(8)</a> delivery agent will terminate with a fatal error.
 </p>
 
 

@@ -61,6 +61,7 @@
 
 #include <msg.h>
 #include <mymalloc.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -73,28 +74,67 @@
 
 #ifdef USE_SASL_AUTH
 
+/* smtp_sasl_compat_mechs - Trim server's mechanism list */
+
+static const char *smtp_sasl_compat_mechs(const char *words)
+{
+    static VSTRING *buf;
+    char   *mech_list;
+    char   *save_mech;
+    char   *mech;
+    int     ret;
+
+    /*
+     * Use server's mechanisms if no filter specified
+     */
+    if (smtp_sasl_mechs == 0 || *words == 0)
+    	return (words);
+
+    if (buf == 0)
+    	buf = vstring_alloc(10);
+
+    VSTRING_RESET(buf);
+    VSTRING_TERMINATE(buf);
+
+    save_mech = mech_list = mystrdup(words);
+
+    while (mech = mystrtok(&mech_list, " \t")) {
+    	if (string_list_match(smtp_sasl_mechs, mech)) {
+	    if (VSTRING_LEN(buf) > 0)
+		VSTRING_ADDCH(buf, ' ');
+	    vstring_strcat(buf, mech);
+	}
+    }
+    myfree(save_mech);
+
+    return (vstring_str(buf));
+}
+
 /* smtp_sasl_helo_auth - handle AUTH option in EHLO reply */
 
 void    smtp_sasl_helo_auth(SMTP_SESSION *session, const char *words)
 {
+    const char *mech_list = smtp_sasl_compat_mechs(words);
 
     /*
-     * XXX If the server offers a null list of authentication mechanisms,
+     * XXX If the server offers no compatible authentication mechanisms,
      * then pretend that the server doesn't support SASL authentication.
      */
     if (session->sasl_mechanism_list) {
-	if (strcasecmp(session->sasl_mechanism_list, words) == 0)
+	if (strcasecmp(session->sasl_mechanism_list, mech_list) == 0)
 	    return;
 	myfree(session->sasl_mechanism_list);
 	msg_warn("%s offered AUTH option multiple times", session->namaddr);
 	session->sasl_mechanism_list = 0;
 	session->features &= ~SMTP_FEATURE_AUTH;
     }
-    if (strlen(words) > 0) {
-	session->sasl_mechanism_list = mystrdup(words);
+    if (strlen(mech_list) > 0) {
+	session->sasl_mechanism_list = mystrdup(mech_list);
 	session->features |= SMTP_FEATURE_AUTH;
     } else {
-	msg_warn("%s offered null AUTH mechanism list", session->namaddr);
+	msg_warn(*words ? "%s offered no supported AUTH mechanisms: '%s'" :
+		    "%s offered null AUTH mechanism list",
+		 session->namaddr, words);
     }
 }
 

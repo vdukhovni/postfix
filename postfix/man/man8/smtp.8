@@ -162,6 +162,10 @@ per remote hostname or domain.
 .IP "\fBsmtp_sasl_security_options (noplaintext, noanonymous)\fR"
 What authentication mechanisms the Postfix SMTP client is allowed
 to use.
+.PP
+Available in Postfix version 2.2 and later:
+.IP "\fBsmtp_sasl_mechanism_filter (empty)\fR"
+If non-empty, filters the SMTP server's list of offered SASL mechanisms.
 .SH "RESOURCE AND RATE CONTROLS"
 .na
 .nf

@@ -410,7 +410,11 @@ address. </p> </dd>
 <h3> <a name="canonical"> Canonical address mapping </a> </h3>
 
 <p> The cleanup(8) daemon uses the canonical(5) tables to rewrite
-all addresses in message envelopes and in message headers. This is
+addresses in message envelopes and in message headers.  By default
+all header and envelope addresses are rewritten; this is controlled
+with the canonical_classes configuration parameter.  </p>
+
+<p> Address rewriting is 
 done for local and remote addresses.  The mapping is useful to
 replace login names by "Firstname.Lastname" style addresses, or to
 clean up invalid domains in mail addresses produced by legacy mail
@@ -453,7 +457,10 @@ applied only to sender addresses or to recipient addresses. </p>
 </blockquote>
 
 <p> The sender and recipient canonical maps are applied before the
-common canonical maps. </p>
+common canonical maps. The sender_canonical_classes and
+recipient_canonical_classes parameters control what addresses are
+subject to sender_canonical_maps and recipient_canonical_maps
+mappings, respectively. </p>
 
 <p> Sender-specific rewriting is useful when you want to rewrite
 ugly sender addresses to pretty ones, and still want to be able to

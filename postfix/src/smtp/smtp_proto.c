@@ -526,6 +526,14 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	(session->features |= SMTP_FEATURE_RSET_REJECTED)
 
     /*
+     * Sanity check. We don't want smtp_chat() to inadvertently flush the
+     * output buffer. That means someone broke pipelining support.
+     */
+    if (session->sndbufsize > VSTREAM_BUFSIZE)
+	msg_panic("bad sndbufsize %d > VSTREAM_BUFSIZE %d",
+		  session->sndbufsize, VSTREAM_BUFSIZE);
+
+    /*
      * Miscellaneous initialization. Some of this might be done in
      * smtp_xfer() but that just complicates interfaces and data structures.
      */
@@ -551,6 +559,42 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
     next_rcpt = send_rcpt = recv_rcpt = 0;
     mail_from_rejected = 0;
 
+    /*
+     * Prepare for disaster. This should not be needed because the design
+     * guarantees that no output is flushed before smtp_chat_resp() is
+     * called.
+     * 
+     * 1) Every SMTP command fits entirely in a VSTREAM output buffer.
+     * 
+     * 2) smtp_loop() never invokes smtp_chat_cmd() without making sure that
+     * there is sufficient space for the command in the output buffer.
+     * 
+     * 3) smtp_loop() flushes the output buffer to avoid server timeouts.
+     * 
+     * Changing any of these would violate the design, and would likely break
+     * SMTP pipelining.
+     * 
+     * We set up the error handler anyway (only upon entry to avoid wasting
+     * resources) because 1) there is code below that expects that VSTREAM
+     * timeouts are enabled, and 2) this allows us to detect if someone broke
+     * Postfix by introducing spurious flush before read operations.
+     */
+    if (send_state < SMTP_STATE_XFORWARD_NAME_ADDR
+	|| send_state > SMTP_STATE_QUIT)
+	msg_panic("%s: bad sender state %d (receiver state %d)",
+		  myname, send_state, recv_state);
+    smtp_timeout_setup(session->stream,
+		       *xfer_timeouts[send_state]);
+    if ((except = vstream_setjmp(session->stream)) != 0) {
+	msg_warn("smtp_proto: spurious flush before read in send state %d",
+		 send_state);
+	RETURN(SENDING_MAIL ? smtp_stream_except(state, except,
+					     xfer_states[send_state]) : -1);
+    }
+
+    /*
+     * The main protocol loop.
+     */
     do {
 
 	/*

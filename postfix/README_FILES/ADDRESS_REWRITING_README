@@ -214,11 +214,14 @@ address manipulations:
 
 CCaannoonniiccaall aaddddrreessss mmaappppiinngg
 
-The cleanup(8) daemon uses the canonical(5) tables to rewrite all addresses in
-message envelopes and in message headers. This is done for local and remote
-addresses. The mapping is useful to replace login names by "Firstname.Lastname"
-style addresses, or to clean up invalid domains in mail addresses produced by
-legacy mail systems.
+The cleanup(8) daemon uses the canonical(5) tables to rewrite addresses in
+message envelopes and in message headers. By default all header and envelope
+addresses are rewritten; this is controlled with the canonical_classes
+configuration parameter.
+
+Address rewriting is done for local and remote addresses. The mapping is useful
+to replace login names by "Firstname.Lastname" style addresses, or to clean up
+invalid domains in mail addresses produced by legacy mail systems.
 
 Canonical mapping is disabled by default. To enable, edit the canonical_maps
 parameter in the main.cf file and specify one or more lookup tables, separated
@@ -248,7 +251,9 @@ Example:
         recipient_canonical_maps = hash:/etc/postfix/recipient_canonical
 
 The sender and recipient canonical maps are applied before the common canonical
-maps.
+maps. The sender_canonical_classes and recipient_canonical_classes parameters
+control what addresses are subject to sender_canonical_maps and
+recipient_canonical_maps mappings, respectively.
 
 Sender-specific rewriting is useful when you want to rewrite ugly sender
 addresses to pretty ones, and still want to be able to send mail to the those

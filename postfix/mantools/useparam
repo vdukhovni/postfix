@@ -175,6 +175,7 @@ BEGIN {
     table["var_smtpd_sasl_realm"] = "smtpd_sasl_local_domain"
     table["var_smtpd_snd_auth_maps"] = "smtpd_sender_login_maps"
     table["var_smtp_sasl_enable"] = "smtp_sasl_auth_enable"
+    table["var_smtp_sasl_mechs"] = "smtp_sasl_mechanism_filter"
     table["var_smtp_sasl_passwd"] = "smtp_sasl_password_maps"
     table["var_smtp_sasl_opts"] = "smtp_sasl_security_options"
     table["var_lmtpd_banner"] = "lmtpd_banner"

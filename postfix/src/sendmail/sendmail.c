@@ -621,6 +621,7 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
      */
     rec_fputs(dst, REC_TYPE_MESG, "");
     if (DEL_REQ_TRACE_ONLY(flags) != 0) {
+	rec_fprintf(dst, REC_TYPE_NORM, "From: %s", saved_sender);
 	rec_fprintf(dst, REC_TYPE_NORM, "Subject: probe");
 	if (recipients) {
 	    rec_fprintf(dst, REC_TYPE_NORM, "To:");

@@ -7,6 +7,25 @@ snapshot release).  Patches are issued for the official release
 and change the patchlevel and the release date. Patches are never
 issued for snapshot releases.
 
+Major changes with snapshot Postfix-2.2-20040827
+================================================
+
+Easier use of the proxymap service with the virtual(8) delivery
+agent. As of now, the virtual(8) delivery agent will silently open
+maps directly when they can't be proxied.  This means you can now
+specify "virtual_mailbox_maps = proxy:mysql:whatever" without
+triggering fatal errors in the virtual(8) delivery agent.
+
+Better SMTP client control over the use of SASL mechanisms. New
+smtp_sasl_mechanism_filter mechanism to shorten the list of SASL
+mechanisms from a remote server to just those that the local SASL
+library can actually use.
+
+Finer control over canonical mapping with canonical_classes,
+sender_canonical_classes and recipient_canonical_classes.  These
+specify one or more of envelope_sender, header_sender, envelope_recipient
+or header_recipient. The default settings are backwards compatible.
+
 Incompatible changes with snapshot Postfix-2.2-20040729
 =======================================================
 

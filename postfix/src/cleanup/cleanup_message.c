@@ -177,10 +177,12 @@ static void cleanup_rewrite_sender(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
     for (tpp = addr_list; *tpp; tpp++) {
 	cleanup_rewrite_tree(*tpp);
 	if (state->flags & CLEANUP_FLAG_MAP_OK) {
-	    if (cleanup_send_canon_maps)
+	    if (cleanup_send_canon_maps
+		&& (cleanup_send_canon_flags & CLEANUP_CANON_FLAG_HDR_FROM))
 		cleanup_map11_tree(state, *tpp, cleanup_send_canon_maps,
 				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-	    if (cleanup_comm_canon_maps)
+	    if (cleanup_comm_canon_maps
+		&& (cleanup_comm_canon_flags & CLEANUP_CANON_FLAG_HDR_FROM))
 		cleanup_map11_tree(state, *tpp, cleanup_comm_canon_maps,
 				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
 	    if (cleanup_masq_domains
@@ -234,13 +236,14 @@ static void cleanup_rewrite_recip(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
     for (tpp = addr_list; *tpp; tpp++) {
 	cleanup_rewrite_tree(*tpp);
 	if (state->flags & CLEANUP_FLAG_MAP_OK) {
-	    if (cleanup_rcpt_canon_maps)
+	    if (cleanup_rcpt_canon_maps
+		&& (cleanup_rcpt_canon_flags & CLEANUP_CANON_FLAG_HDR_RCPT))
 		cleanup_map11_tree(state, *tpp, cleanup_rcpt_canon_maps,
 				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-	    if (cleanup_comm_canon_maps)
+	    if (cleanup_comm_canon_maps
+		&& (cleanup_comm_canon_flags & CLEANUP_CANON_FLAG_HDR_RCPT))
 		cleanup_map11_tree(state, *tpp, cleanup_comm_canon_maps,
 				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-
 	    if (cleanup_masq_domains
 		&& (cleanup_masq_flags & CLEANUP_MASQ_FLAG_HDR_RCPT))
 		cleanup_masquerade_tree(*tpp, cleanup_masq_domains);

@@ -164,6 +164,18 @@ void    smtp_chat_cmd(SMTP_SESSION *session, char *fmt,...)
     smtp_fputs(STR(session->buffer), LEN(session->buffer), session->stream);
 
     /*
+     * Force flushing of output does not belong here. It is done in the
+     * smtp_loop() main protocol loop when reading the server response, and
+     * in smtp_helo() when reading the EHLO response after sending the EHLO
+     * command.
+     * 
+     * If we do forced flush here, then we must longjmp() on error, and a
+     * matching "prepare for disaster" error handler must be set up before
+     * every smtp_chat_cmd() call.
+     */
+#if 0
+
+    /*
      * Flush unsent data to avoid timeouts after slow DNS lookups.
      */
     if (time((time_t *) 0) - vstream_ftime(session->stream) > 10)
@@ -176,6 +188,7 @@ void    smtp_chat_cmd(SMTP_SESSION *session, char *fmt,...)
 	vstream_longjmp(session->stream, SMTP_ERR_TIME);
     if (vstream_ferror(session->stream))
 	vstream_longjmp(session->stream, SMTP_ERR_EOF);
+#endif
 }
 
 /* smtp_chat_resp - read and process SMTP server response */

@@ -36,6 +36,13 @@ can be directed to TCP-based server. In that case, the lookups are
 done in a slightly different way as described below under
 "REGULAR EXPRESSION TABLES" and "TCP-BASED TABLES".
 
+By default the \fBcanonical\fR mapping affects both message
+header addresses (i.e. addresses that appear inside messages)
+and message envelope addresses (for example, the addresses
+that are used in SMTP protocol commands). Think Sendmail
+rule set \fBS3\fR, if you like.  This is controlled with
+the \fBcanonical_classes\fR parameter.
+
 The \fBcanonical\fR mapping affects both message header addresses
 (i.e. addresses that appear inside messages) and message envelope
 addresses (for example, the addresses that are used in SMTP protocol
@@ -152,6 +159,8 @@ The table format does not understand quoting conventions.
 The following \fBmain.cf\fR parameters are especially relevant.
 The text below provides only a parameter summary. See
 postconf(5) for more details including examples.
+.IP \fBcanonical_classes\fR
+What addresses are subject to canonical address mapping.
 .IP \fBcanonical_maps\fR
 List of canonical mapping tables.
 .IP \fBrecipient_canonical_maps\fR

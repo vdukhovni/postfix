@@ -486,8 +486,11 @@ allow_mail_to_files = alias,forward,include
 <p>
 Allow a recipient address to have `-' as the first character.  By
 default, this is not allowed, to avoid accidents with software that
-passes email addresses via the command line.
-</p>
+passes email addresses via the command line. Such software
+would not be able to distinguish a malicious address from a
+bona fide command-line option. Although this can be prevented by
+inserting a "--" option terminator into the command line, this is
+difficult to enforce consistently and globally.  </p>
 
 %PARAM allow_percent_hack yes
 
@@ -655,7 +658,8 @@ proportionally.  </p>
 <p>
 Optional address mapping lookup tables for message headers and
 envelopes. The mapping is applied to both sender and recipient
-addresses, in both envelopes and in headers. This is typically used
+addresses, in both envelopes and in headers, as controlled
+with the canonical_classes parameter. This is typically used
 to clean up dirty addresses from legacy mail systems, or to replace
 login names by Firstname.Lastname.  The table format and lookups
 are documented in canonical(5).
@@ -676,6 +680,35 @@ Examples:
 canonical_maps = dbm:/etc/postfix/canonical
 canonical_maps = hash:/etc/postfix/canonical
 </pre>
+
+%PARAM canonical_classes envelope_sender, envelope_recipient, header_sender, header_recipient
+
+<p> What addresses are subject to canonical_maps address mapping.
+By default, canonical_maps address mapping is applied to envelope
+sender and recipient addresses, and to header sender and header
+recipient addresses.  </p>
+
+<p> Specify one or more of: envelope_sender, envelope_recipient,
+header_sender, header_recipient </p>
+
+%PARAM sender_canonical_classes envelope_sender, header_sender
+
+<p> What addresses are subject to sender_canonical_maps address
+mapping.  By default, sender_canonical_maps address mapping is
+applied to envelope sender addresses, and to header sender addresses.
+</p>
+
+<p> Specify one or more of: envelope_sender, header_sender </p>
+
+%PARAM recipient_canonical_classes envelope_recipient, header_recipient
+
+<p> What addresses are subject to recipient_canonical_maps address
+mapping.  By default, recipient_canonical_maps address mapping is
+applied to envelope recipient addresses, and to header recipient
+addresses.  </p>
+
+<p> Specify one or more of: envelope_recipient, header_recipient
+</p>
 
 %PARAM command_directory see "postconf -d" output
 
@@ -1506,6 +1539,26 @@ on.  By default, the software claims all active interfaces on the
 machine. The parameter also controls delivery of mail to
 user@[ip.address].
 </p>
+
+<p>
+When inet_interfaces consists of just one IP address that is not a
+loopback (net 127) address, the Postfix SMTP client will use this address
+as the IP source address for outbound mail. </p>
+
+<p>
+On a multi-homed firewall with separate Postfix instances listening on the
+"inside" and "outside" interfaces, this can prevent each instance from
+being able to reach servers on the "other side" of the firewall. Setting
+smtp_bind_address to 0.0.0.0 avoids the potential problem. </p>
+
+<p>
+A better solution is to leave inet_interfaces at the default value
+and instead use explicit IP addresses in master.cf. This preserves SMTP
+loop detection, by ensuring that each side of the firewall knows that the
+other IP address is still the same host. Setting $inet_interfaces to a
+single IP address is primarily useful with virtual hosting of domains on
+secondary IP addresses, when each IP address serves a different domain
+(and has a different $myhostname setting). </p>
 
 <p>
 See also the proxy_interfaces parameter, for network addresses that
@@ -3172,6 +3225,12 @@ for example:
         smtp ... smtp -o smtp_bind_address=11.22.33.44
 </pre>
 
+<p> Note: when inet_interfaces specifies exactly one address that
+is a non-loopback address, it is automatically used as the
+smtp_bind_address.  This supports virtual IP hosting, but can be
+a problem on multi-homed firewalls. See the inet_interfaces
+documentation for more detail. </p>
+
 %PARAM smtp_connection_cache_time_limit 2s
 
 <p> When SMTP session caching is enabled, the amount of time that
@@ -3652,6 +3711,29 @@ Example:
 
 <pre>
 smtp_sasl_security_options = noplaintext
+</pre>
+
+%PARAM smtp_sasl_mechanism_filter
+
+<p>
+If non-empty, filters the SMTP server's list of offered SASL mechanisms.
+Different client and server implementations may support different
+mechanism lists. By default, the client will use the intersection of the
+two. smtp_sasl_mechanism_filter further restricts what server mechanisms
+the client will take into consideration.  </p>
+
+<p> Specify mechanism names, "/file/name" patterns or "type:table"
+lookup tables. The right-hand side result from "type:table" lookups
+is ignored. </p>
+
+<p>
+Examples:
+</p>
+
+<pre>
+smtp_sasl_mechanism_filter = plain, login
+smtp_sasl_mechanism_filter = /etc/postfix/smtp_mechs
+smtp_sasl_mechanism_filter = !gssapi, !login, static:rest
 </pre>
 
 %PARAM smtp_send_xforward_command no
@@ -6484,9 +6566,8 @@ from filling up with undeliverable MAILER-DAEMON messages.
 or $proxy_interfaces, but the recipient is not listed in
 $local_recipient_maps, and $local_recipient_maps is not null.
 
-<li> The recipient domain matches $virtual_alias_maps but the
-recipient is not listed in $virtual_alias_maps, and $virtual_alias_maps
-is not null.
+<li> The recipient domain matches $virtual_alias_domains but the
+recipient is not listed in $virtual_alias_maps.
 
 <li> The recipient domain matches $virtual_mailbox_domains but the
 recipient is not listed in $virtual_mailbox_maps, and $virtual_mailbox_maps
@@ -6515,9 +6596,8 @@ of forged mail from worms or viruses.  </p>
 $proxy_interfaces, but the recipient is not listed in
 $local_recipient_maps, and $local_recipient_maps is not null.
 
-<li> The sender domain matches $virtual_alias_maps but the recipient
-is not listed in $virtual_alias_maps, and $virtual_alias_maps is
-not null.
+<li> The sender domain matches $virtual_alias_domains but the recipient
+is not listed in $virtual_alias_maps.
 
 <li> The sender domain matches $virtual_mailbox_domains but the
 recipient is not listed in $virtual_mailbox_maps, and $virtual_mailbox_maps
@@ -6729,9 +6809,10 @@ lookup tables, because that would open a security hole.
 </p>
 
 <p>
-Note 2: for security reasons, the virtual(8) delivery agent does
-not allow table lookup through the proxymap(8) service, because
-that would open a security hole.
+Note 2: for security reasons, the virtual(8) delivery agent will
+silently ignore requests to use the proxymap(8) server. Instead
+it will open the table directly. Before Postfix version 2.2, the
+virtual(8) delivery agent will terminate with a fatal error.
 </p>
 
 %PARAM virtual_mailbox_base 
@@ -6835,9 +6916,10 @@ lookup tables, because that would open a security hole.
 </p>
 
 <p>
-Note 2: for security reasons, the virtual(8) delivery agent disallows
-table lookup through the proxymap(8) server, because that would
-open a security hole.
+Note 2: for security reasons, the virtual(8) delivery agent will
+silently ignore requests to use the proxymap(8) server. Instead
+it will open the table directly. Before Postfix version 2.2, the
+virtual(8) delivery agent will terminate with a fatal error.
 </p>
 
 %PARAM virtual_minimum_uid 100
@@ -6895,9 +6977,10 @@ lookup tables, because that would open a security hole.
 </p>
 
 <p>
-Note 2: for security reasons, the virtual(8) delivery agent does
-not allow table lookup through the proxymap(8) service, because
-that would open a security hole.
+Note 2: for security reasons, the virtual(8) delivery agent will
+silently ignore requests to use the proxymap(8) server. Instead
+it will open the table directly. Before Postfix version 2.2, the
+virtual(8) delivery agent will terminate with a fatal error.
 </p>
 
 %PARAM config_directory see "postconf -d" output

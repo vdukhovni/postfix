@@ -293,6 +293,7 @@
 %PARAM smtp_sasl_auth_enable
 %PARAM smtp_sasl_password_maps
 %PARAM smtp_sasl_security_options
+%PARAM smtp_sasl_mechanism_filter
 
 %CLASS lmtp-sasl
 %PARAM lmtp_sasl_auth_enable

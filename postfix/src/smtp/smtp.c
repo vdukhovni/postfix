@@ -138,6 +138,10 @@
 /* .IP "\fBsmtp_sasl_security_options (noplaintext, noanonymous)\fR"
 /*	What authentication mechanisms the Postfix SMTP client is allowed
 /*	to use.
+/* .PP
+/*	Available in Postfix version 2.2 and later:
+/* .IP "\fBsmtp_sasl_mechanism_filter (empty)\fR"
+/*	If non-empty, filters the SMTP server's list of offered SASL mechanisms.
 /* RESOURCE AND RATE CONTROLS
 /* .ad
 /* .fi
@@ -365,6 +369,7 @@ int     var_smtp_never_ehlo;
 char   *var_smtp_sasl_opts;
 char   *var_smtp_sasl_passwd;
 bool    var_smtp_sasl_enable;
+char   *var_smtp_sasl_mechs;
 char   *var_smtp_bind_addr;
 bool    var_smtp_rand_addr;
 int     var_smtp_pix_thresh;
@@ -568,6 +573,7 @@ int     main(int argc, char **argv)
 	VAR_ERROR_RCPT, DEF_ERROR_RCPT, &var_error_rcpt, 1, 0,
 	VAR_SMTP_SASL_PASSWD, DEF_SMTP_SASL_PASSWD, &var_smtp_sasl_passwd, 0, 0,
 	VAR_SMTP_SASL_OPTS, DEF_SMTP_SASL_OPTS, &var_smtp_sasl_opts, 0, 0,
+	VAR_SMTP_SASL_MECHS, DEF_SMTP_SASL_MECHS, &var_smtp_sasl_mechs, 0, 0,
 	VAR_SMTP_BIND_ADDR, DEF_SMTP_BIND_ADDR, &var_smtp_bind_addr, 0, 0,
 	VAR_SMTP_HELO_NAME, DEF_SMTP_HELO_NAME, &var_smtp_helo_name, 1, 0,
 	VAR_SMTP_HOST_LOOKUP, DEF_SMTP_HOST_LOOKUP, &var_smtp_host_lookup, 1, 0,

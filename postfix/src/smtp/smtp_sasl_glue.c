@@ -190,6 +190,11 @@ static NAME_MASK smtp_sasl_sec_mask[] = {
   */
 static MAPS *smtp_sasl_passwd_map;
 
+ /* 
+  * Supported SASL mechanisms.
+  */
+STRING_LIST *smtp_sasl_mechs;
+
 /* smtp_sasl_log - logging call-back routine */
 
 static int smtp_sasl_log(void *unused_context, int priority,
@@ -343,6 +348,12 @@ void    smtp_sasl_initialize(void)
     if (sasl_client_init(callbacks) != SASL_OK)
 	msg_fatal("SASL library initialization");
 
+    /*
+     * Initialize optional supported mechanism matchlist
+     */
+    if (*var_smtp_sasl_mechs)
+    	smtp_sasl_mechs = string_list_init(MATCH_FLAG_NONE,
+					   var_smtp_sasl_mechs);
 }
 
 /* smtp_sasl_connect - per-session client initialization */

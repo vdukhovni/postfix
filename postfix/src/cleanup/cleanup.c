@@ -170,6 +170,16 @@
 /* .IP "\fBvirtual_alias_maps ($virtual_maps)\fR"
 /*	Optional lookup tables that alias specific mail addresses or domains
 /*	to other local or remote address.
+/* .PP
+/*	Available in Postfix version 2.2 and later:
+/* .IP "\fBcanonical_classes (envelope_sender, envelope_recipient, header_sender, header_recipient)\fR"
+/*	What addresses are subject to canonical_maps address mapping.
+/* .IP "\fBrecipient_canonical_classes (envelope_recipient, header_recipient)\fR"
+/*	What addresses are subject to recipient_canonical_maps address
+/*	mapping.
+/* .IP "\fBsender_canonical_classes (envelope_sender, header_sender)\fR"
+/*	What addresses are subject to sender_canonical_maps address
+/*	mapping.
 /* RESOURCE AND RATE CONTROLS
 /* .ad
 /* .fi

@@ -543,14 +543,14 @@ static int vstream_fflush_some(VSTREAM *stream, int to_flush)
      * any.
      */
     for (data = (char *) bp->data, len = to_flush; len > 0; len -= n, data += n) {
-	if (stream->timeout)
-	    stream->iotime = time((time_t *) 0);
 	if ((n = stream->write_fn(stream->fd, data, len, stream->timeout, stream->context)) <= 0) {
 	    bp->flags |= VSTREAM_FLAG_ERR;
 	    if (errno == ETIMEDOUT)
 		bp->flags |= VSTREAM_FLAG_TIMEOUT;
 	    return (VSTREAM_EOF);
 	}
+	if (stream->timeout)
+	    stream->iotime = time((time_t *) 0);
 	if (msg_verbose > 2 && stream != VSTREAM_ERR && n != to_flush)
 	    msg_info("%s: %d flushed %d/%d", myname, stream->fd, n, to_flush);
     }
@@ -674,8 +674,6 @@ static int vstream_buf_get_ready(VBUF *bp)
      * data as is available right now, whichever is less. Update the cached
      * file seek position, if any.
      */
-    if (stream->timeout)
-	stream->iotime = time((time_t *) 0);
     switch (n = stream->read_fn(stream->fd, bp->data, bp->len, stream->timeout, stream->context)) {
     case -1:
 	bp->flags |= VSTREAM_FLAG_ERR;
@@ -686,6 +684,8 @@ static int vstream_buf_get_ready(VBUF *bp)
 	bp->flags |= VSTREAM_FLAG_EOF;
 	return (VSTREAM_EOF);
     default:
+	if (stream->timeout)
+	    stream->iotime = time((time_t *) 0);
 	if (msg_verbose > 2)
 	    msg_info("%s: fd %d got %d", myname, stream->fd, n);
 	bp->cnt = -n;

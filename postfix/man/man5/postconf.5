@@ -287,7 +287,11 @@ allow_mail_to_files = alias,forward,include
 .SH allow_min_user (default: no)
 Allow a recipient address to have `-' as the first character.  By
 default, this is not allowed, to avoid accidents with software that
-passes email addresses via the command line.
+passes email addresses via the command line. Such software
+would not be able to distinguish a malicious address from a
+bona fide command-line option. Although this can be prevented by
+inserting a "--" option terminator into the command line, this is
+difficult to enforce consistently and globally.
 .SH allow_percent_hack (default: yes)
 Enable the rewriting of the form "user%domain" to "user@domain".
 This is enabled by default.
@@ -483,10 +487,19 @@ version 5.0.
 .PP
 Specify "\fBbroken_sasl_auth_clients = yes\fR" to have Postfix advertise
 AUTH support in a non-standard way.
+.SH canonical_classes (default: envelope_sender, envelope_recipient, header_sender, header_recipient)
+What addresses are subject to canonical_maps address mapping.
+By default, canonical_maps address mapping is applied to envelope
+sender and recipient addresses, and to header sender and header
+recipient addresses.
+.PP
+Specify one or more of: envelope_sender, envelope_recipient,
+header_sender, header_recipient
 .SH canonical_maps (default: empty)
 Optional address mapping lookup tables for message headers and
 envelopes. The mapping is applied to both sender and recipient
-addresses, in both envelopes and in headers. This is typically used
+addresses, in both envelopes and in headers, as controlled
+with the canonical_classes parameter. This is typically used
 to clean up dirty addresses from legacy mail systems, or to replace
 login names by Firstname.Lastname.  The table format and lookups
 are documented in canonical(5).
@@ -1201,6 +1214,23 @@ The network interface addresses that this mail system receives mail
 on.  By default, the software claims all active interfaces on the
 machine. The parameter also controls delivery of mail to
 user@[ip.address].
+.PP
+When inet_interfaces consists of just one IP address that is not a
+loopback (net 127) address, the Postfix SMTP client will use this address
+as the IP source address for outbound mail.
+.PP
+On a multi-homed firewall with separate Postfix instances listening on the
+"inside" and "outside" interfaces, this can prevent each instance from
+being able to reach servers on the "other side" of the firewall. Setting
+smtp_bind_address to 0.0.0.0 avoids the potential problem.
+.PP
+A better solution is to leave inet_interfaces at the default value
+and instead use explicit IP addresses in master.cf. This preserves SMTP
+loop detection, by ensuring that each side of the firewall knows that the
+other IP address is still the same host. Setting $inet_interfaces to a
+single IP address is primarily useful with virtual hosting of domains on
+secondary IP addresses, when each IP address serves a different domain
+(and has a different $myhostname setting).
 .PP
 See also the proxy_interfaces parameter, for network addresses that
 are forwarded to us by way of a proxy or address translator.
@@ -2350,6 +2380,13 @@ recipient_bcc_maps = hash:/etc/postfix/recipient_bcc
 .fi
 .ad
 .ft R
+.SH recipient_canonical_classes (default: envelope_recipient, header_recipient)
+What addresses are subject to recipient_canonical_maps address
+mapping.  By default, recipient_canonical_maps address mapping is
+applied to envelope recipient addresses, and to header recipient
+addresses.
+.PP
+Specify one or more of: envelope_recipient, header_recipient
 .SH recipient_canonical_maps (default: empty)
 Optional address mapping lookup tables for envelope and header
 recipient addresses.
@@ -2606,6 +2643,12 @@ sender_bcc_maps = hash:/etc/postfix/sender_bcc
 .fi
 .ad
 .ft R
+.SH sender_canonical_classes (default: envelope_sender, header_sender)
+What addresses are subject to sender_canonical_maps address
+mapping.  By default, sender_canonical_maps address mapping is
+applied to envelope sender addresses, and to header sender addresses.
+.PP
+Specify one or more of: envelope_sender, header_sender
 .SH sender_canonical_maps (default: empty)
 Optional address mapping lookup tables for envelope and header
 sender addresses.
@@ -2686,6 +2729,12 @@ for example:
 .fi
 .ad
 .ft R
+.PP
+Note: when inet_interfaces specifies exactly one address that
+is a non-loopback address, it is automatically used as the
+smtp_bind_address.  This supports virtual IP hosting, but can be
+a problem on multi-homed firewalls. See the inet_interfaces
+documentation for more detail.
 .SH smtp_connect_timeout (default: 30s)
 The SMTP client time limit for completing a TCP connection, or
 zero (use the operating system built-in time limit).
@@ -2926,6 +2975,28 @@ Example:
 .na
 .ft C
 smtp_sasl_auth_enable = yes
+.fi
+.ad
+.ft R
+.SH smtp_sasl_mechanism_filter (default: empty)
+If non-empty, filters the SMTP server's list of offered SASL mechanisms.
+Different client and server implementations may support different
+mechanism lists. By default, the client will use the intersection of the
+two. smtp_sasl_mechanism_filter further restricts what server mechanisms
+the client will take into consideration.
+.PP
+Specify mechanism names, "/file/name" patterns or "type:table"
+lookup tables. The right-hand side result from "type:table" lookups
+is ignored.
+.PP
+Examples:
+.PP
+.nf
+.na
+.ft C
+smtp_sasl_mechanism_filter = plain, login
+smtp_sasl_mechanism_filter = /etc/postfix/smtp_mechs
+smtp_sasl_mechanism_filter = !gssapi, !login, static:rest
 .fi
 .ad
 .ft R
@@ -3661,9 +3732,8 @@ The recipient domain matches $mydestination, $inet_interfaces
 or $proxy_interfaces, but the recipient is not listed in
 $local_recipient_maps, and $local_recipient_maps is not null.
 .IP \(bu
-The recipient domain matches $virtual_alias_maps but the
-recipient is not listed in $virtual_alias_maps, and $virtual_alias_maps
-is not null.
+The recipient domain matches $virtual_alias_domains but the
+recipient is not listed in $virtual_alias_maps.
 .IP \(bu
 The recipient domain matches $virtual_mailbox_domains but the
 recipient is not listed in $virtual_mailbox_maps, and $virtual_mailbox_maps
@@ -3684,9 +3754,8 @@ The sender domain matches $mydestination, $inet_interfaces or
 $proxy_interfaces, but the recipient is not listed in
 $local_recipient_maps, and $local_recipient_maps is not null.
 .IP \(bu
-The sender domain matches $virtual_alias_maps but the recipient
-is not listed in $virtual_alias_maps, and $virtual_alias_maps is
-not null.
+The sender domain matches $virtual_alias_domains but the recipient
+is not listed in $virtual_alias_maps.
 .IP \(bu
 The sender domain matches $virtual_mailbox_domains but the
 recipient is not listed in $virtual_mailbox_maps, and $virtual_mailbox_maps
@@ -4300,9 +4369,10 @@ Note 1: for security reasons, the virtual(8) delivery agent disallows
 regular expression substitution of $1 etc. in regular expression
 lookup tables, because that would open a security hole.
 .PP
-Note 2: for security reasons, the virtual(8) delivery agent does
-not allow table lookup through the proxymap(8) service, because
-that would open a security hole.
+Note 2: for security reasons, the virtual(8) delivery agent will
+silently ignore requests to use the proxymap(8) server. Instead
+it will open the table directly. Before Postfix version 2.2, the
+virtual(8) delivery agent will terminate with a fatal error.
 .SH virtual_mailbox_base (default: empty)
 A prefix that the virtual(8) delivery agent prepends to all pathname
 results from $virtual_mailbox_maps table lookups.  This is a safety
@@ -4372,9 +4442,10 @@ Note 1: for security reasons, the virtual(8) delivery agent disallows
 regular expression substitution of $1 etc. in regular expression
 lookup tables, because that would open a security hole.
 .PP
-Note 2: for security reasons, the virtual(8) delivery agent disallows
-table lookup through the proxymap(8) server, because that would
-open a security hole.
+Note 2: for security reasons, the virtual(8) delivery agent will
+silently ignore requests to use the proxymap(8) server. Instead
+it will open the table directly. Before Postfix version 2.2, the
+virtual(8) delivery agent will terminate with a fatal error.
 .SH virtual_maps (default: empty)
 Optional lookup tables with a) names of domains for which all
 addresses are aliased to addresses in other local or remote domains,
@@ -4415,9 +4486,10 @@ Note 1: for security reasons, the virtual(8) delivery agent disallows
 regular expression substitution of $1 etc. in regular expression
 lookup tables, because that would open a security hole.
 .PP
-Note 2: for security reasons, the virtual(8) delivery agent does
-not allow table lookup through the proxymap(8) service, because
-that would open a security hole.
+Note 2: for security reasons, the virtual(8) delivery agent will
+silently ignore requests to use the proxymap(8) server. Instead
+it will open the table directly. Before Postfix version 2.2, the
+virtual(8) delivery agent will terminate with a fatal error.
 .SH SEE ALSO
 .na
 .nf

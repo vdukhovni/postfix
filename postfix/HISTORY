@@ -9617,7 +9617,7 @@ Apologies for any names omitted.
 	queue manager is unable to schedule back-to-back deliveries.
 	File: *qmgr/qmgr_entry.c.
 
-20040730
+20040731
 
 	Hysteresis: turn on "opportunistic session caching" when
 	back-to-back deliveries happen, but don't turn if off
@@ -9631,6 +9631,67 @@ Apologies for any names omitted.
 
 	Portability: h_errno is not an lvalue in the UnixWare 7.1
 	multi-threaded environment. Olivier PRENANT.
+
+20040812
+
+	Bugfix: update SMTP server error counter when a client is
+	denied access with smtpd_delay_reject=no.
+
+20040816
+
+	Bugfix: The smtp_chat_cmd() forced output flushing code in
+	the SMTP client could run before an I/O error handler was
+	set up.  Problem diagnosed by Victor Duchovni, Morgan
+	Stanley. The fix is to disable the smtp_chat_cmd() forced
+	output flushing code as it duplicates better code in
+	smtp_loop(). File: smtp/smtp_chat.c.
+
+	Safety: set up an I/O error handler before the smtp_loop()
+	protocol engine starts; this handler logs a warning in case
+	it ever runs, because that means someone broke ESMTP command
+	pipelining.  File: smtp/smtp_proto.c.
+
+	Feature: canonical_classes parameter by Kimmo Suominen, to
+	control what addresses are rewritten by canonical_maps.
+	Files: cleanup/cleanup_addr.c, cleanup/cleanup_message.c.
+
+20040817
+
+	Bugfix: update the vstream I/O time AFTER the completion
+	of an I/O request, so that time-sensitive applications
+	don't force flush output too soon and possibly trigger
+	NAGLE delays.  Problem diagnosed by Victor Duchovni, Morgan
+	Stanley. File: util/vstream.c.
+
+	Portability: avoid postmap/postalias test file name clashes
+	on Windows.  Ian Lance Taylor (of Taylor UUCP fame).
+
+20030823
+
+	Bugfix: vstream_popen() did not close the child pipe
+	after failure to fork(). File: util/vstream_popen.c.
+
+20040826
+
+	Feature: support for systems with closefrom(), and emulation
+	for those without. Victor Duchovni, Morgan Stanley. Files:
+	util/sys_defs.h, util/sys_compat.c.
+
+20040827
+
+	Feature: {sender,recipient}_canonical_classes parameters,
+	which give better control than sender_canonical_classes.
+	Files: cleanup/cleanup_addr.c, cleanup/cleanup_message.c.
+
+	Feature: the proxymap client now recognizes when a map
+	can't be proxied, and will open it directly instead.  This
+	makes proxy maps easier to use for virtual mailbox domains.
+	File: global/dict_proxy.c.
+
+	Feature: smtp_sasl_mechanism_filter restricts what remote
+	SMTP server mechanism names the Postfix SMTP client passes
+	on to the SASL library.  Victor Duchovni, Morgan Stanley.
+	Files: smtp/smtp.c.  smtp/smtp_sasl_glue.c, smtp/smtp_sasl_proto.c.
 
 Open problems:
 

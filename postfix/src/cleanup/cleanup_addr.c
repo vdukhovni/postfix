@@ -99,10 +99,12 @@ void    cleanup_addr_sender(CLEANUP_STATE *state, const char *buf)
 	    vstring_strcpy(clean_addr, "");
     }
     if (state->flags & CLEANUP_FLAG_MAP_OK) {
-	if (cleanup_send_canon_maps)
+	if (cleanup_send_canon_maps
+	    && (cleanup_send_canon_flags & CLEANUP_CANON_FLAG_ENV_FROM))
 	    cleanup_map11_internal(state, clean_addr, cleanup_send_canon_maps,
 				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-	if (cleanup_comm_canon_maps)
+	if (cleanup_comm_canon_maps
+	    && (cleanup_comm_canon_flags & CLEANUP_CANON_FLAG_ENV_FROM))
 	    cleanup_map11_internal(state, clean_addr, cleanup_comm_canon_maps,
 				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
 	if (cleanup_masq_domains
@@ -130,10 +132,12 @@ void    cleanup_addr_recipient(CLEANUP_STATE *state, const char *buf)
 
     cleanup_rewrite_internal(clean_addr, *buf ? buf : var_empty_addr);
     if (state->flags & CLEANUP_FLAG_MAP_OK) {
-	if (cleanup_rcpt_canon_maps)
+	if (cleanup_rcpt_canon_maps
+	    && (cleanup_rcpt_canon_flags & CLEANUP_CANON_FLAG_ENV_RCPT))
 	    cleanup_map11_internal(state, clean_addr, cleanup_rcpt_canon_maps,
 				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-	if (cleanup_comm_canon_maps)
+	if (cleanup_comm_canon_maps
+	    && (cleanup_comm_canon_flags & CLEANUP_CANON_FLAG_ENV_RCPT))
 	    cleanup_map11_internal(state, clean_addr, cleanup_comm_canon_maps,
 				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
 	if (cleanup_masq_domains
@@ -160,10 +164,12 @@ void    cleanup_addr_bcc(CLEANUP_STATE *state, const char *bcc)
 
     cleanup_rewrite_internal(clean_addr, bcc);
     if (state->flags & CLEANUP_FLAG_MAP_OK) {
-	if (cleanup_rcpt_canon_maps)
+	if (cleanup_rcpt_canon_maps
+	    && (cleanup_rcpt_canon_flags & CLEANUP_CANON_FLAG_ENV_RCPT))
 	    cleanup_map11_internal(state, clean_addr, cleanup_rcpt_canon_maps,
 				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-	if (cleanup_comm_canon_maps)
+	if (cleanup_comm_canon_maps
+	    && (cleanup_comm_canon_flags & CLEANUP_CANON_FLAG_ENV_RCPT))
 	    cleanup_map11_internal(state, clean_addr, cleanup_comm_canon_maps,
 				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
 	if (cleanup_masq_domains

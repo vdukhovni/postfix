@@ -23,6 +23,7 @@ extern int smtp_sasl_helo_login(SMTP_STATE *);
 
 extern void smtp_sasl_passivate(SMTP_SESSION *, VSTRING *);
 extern int smtp_sasl_activate(SMTP_SESSION *, char *);
+extern STRING_LIST *smtp_sasl_mechs;
 
 /* LICENSE
 /* .ad

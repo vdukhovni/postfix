@@ -6,6 +6,9 @@
 /* SYNOPSIS
 /*	#include <sys_defs.h>
 /*
+/*	void	closefrom(int lowfd)
+/*	int	lowfd;
+/*
 /*	const char *strerror(err)
 /*	int	err;
 /*
@@ -231,6 +234,31 @@ int     dup2_pass_on_exec(int oldd, int newd)
 	close_on_exec(newd, PASS_ON_EXEC);
 
     return res;
+}
+
+#endif
+
+#ifndef HAS_CLOSEFROM
+
+#include <errno.h>
+
+/* closefrom() - closes all file descriptors from the given one up */
+
+int     closefrom(int lowfd)
+{
+    int     fd_limit = open_limit(0);
+    int     fd;
+
+    if (lowfd > fd_limit) {
+	errno = EINVAL;
+	return (-1);
+    }
+    if (fd_limit > 500)
+	fd_limit = 500;
+    for (fd = lowfd; fd < fd_limit; fd++)
+	(void) close(fd);
+
+    return (0);
 }
 
 #endif

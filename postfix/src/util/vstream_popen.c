@@ -213,6 +213,8 @@ VSTREAM *vstream_popen(int flags,...)
 
     switch (pid = fork()) {
     case -1:					/* error */
+	(void) close(sockfd[0]);
+	(void) close(sockfd[1]);
 	return (0);
     case 0:					/* child */
 	if (close(sockfd[1]))

@@ -209,7 +209,6 @@ int     main(int argc, char **argv)
     int     fd;
     int     n;
     int     test_lock = 0;
-    int     fd_limit = open_limit(0);
     VSTRING *why;
     WATCHDOG *watchdog;
     ARGV   *import_env;
@@ -252,10 +251,7 @@ int     main(int argc, char **argv)
      * of this we have to close descriptors > 2, and pray that doing so does
      * not break things.
      */
-    if (fd_limit > 500)
-	fd_limit = 500;
-    for (fd = 3; fd < fd_limit; fd++)
-	(void) close(fd);
+    closefrom(3);
 
     /*
      * Initialize logging and exit handler.

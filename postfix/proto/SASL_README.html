@@ -473,6 +473,13 @@ for example: </p>
 enters the optional chroot jail, so you can keep the file in
 /etc/postfix. </p>
 
+<p> Note: Some SMTP servers support authentication mechanisms that,
+although available on the client system, may not in practice work or
+possess the appropriate credentials to authenticate to the server. It
+is possible via the smtp_sasl_mechanism_filter parameter to further
+restrict the list of server mechanisms that the smtp(8) client will take
+into consideration.  </p>
+
 <p> The Postfix SMTP client is backwards compatible with SMTP
 servers that use the non-standard "AUTH=method..." syntax in response
 to the EHLO command; there is no Postfix client configuration needed

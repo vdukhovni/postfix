@@ -92,20 +92,28 @@
 #define SOCKOPT_SIZE	socklen_t
 #endif
 
+#if OpenBSD >= 200405			/* 3.5 */
+#define HAS_CLOSEFROM
+#endif
+
 /* __NetBSD_Version__ is major+minor */
 
-#if __NetBSD_Version__ >= 103000000	/* XXX */
+#if __NetBSD_Version__ >= 103000000	/* XXX maybe earlier */
 #undef DEF_MAILBOX_LOCK
 #define DEF_MAILBOX_LOCK "flock, dotlock"
 #endif
 
-#if __NetBSD_Version__ >= 105000000	/* XXX */
+#if __NetBSD_Version__ >= 105000000	/* XXX maybe earlier */
 #define HAS_ISSETUGID
 #endif
 
-#if __NetBSD_Version__ >= 106000000	/* XXX */
+#if __NetBSD_Version__ >= 106000000	/* XXX maybe earlier */
 #define SOCKADDR_SIZE	socklen_t
 #define SOCKOPT_SIZE	socklen_t
+#endif
+
+#if __NetBSD_Version__ >= 200060000	/* 2.0F */
+#define HAS_CLOSEFROM
 #endif
 
  /*
@@ -302,6 +310,10 @@ extern int opterr;
 #define LOCAL_RECV_FD	stream_recv_fd
 #define HAS_VOLATILE_LOCKS
 #define BROKEN_READ_SELECT_ON_TCP_SOCKET
+
+#if SOLARIS >= 20900 || (SOLARIS < 10000 && SOLARIS >= 209)
+#define HAS_CLOSEFROM
+#endif
 
 /*
  * Allow build environment to override paths.
@@ -1064,6 +1076,11 @@ extern int waitpid(int, WAIT_STATUS_T *status, int options);
 
 #ifdef MISSING_SETSID
 extern int setsid(void);
+
+#endif
+
+#ifndef HAS_CLOSEFROM
+extern int closefrom(int);
 
 #endif
 
