@@ -184,8 +184,8 @@ OK
 >>> client spike.porcupine.org 168.100.189.2
 OK
 >>> client foo 127.0.0.2
-./smtpd_check: reject: CONNECT from foo[127.0.0.2]: 554 Service unavailable; [127.0.0.2] blocked using blackholes.mail-abuse.org, reason: Blackholed - see <URL:http://mail-abuse.org/cgi-bin/lookup?127.0.0.2>; from=<foo@friend.bad.domain>
-554 Service unavailable; [127.0.0.2] blocked using blackholes.mail-abuse.org, reason: Blackholed - see <URL:http://mail-abuse.org/cgi-bin/lookup?127.0.0.2>
+./smtpd_check: reject: CONNECT from foo[127.0.0.2]: 554 Service unavailable; Client host [127.0.0.2] blocked using blackholes.mail-abuse.org; Blackholed - see <URL:http://mail-abuse.org/cgi-bin/lookup?127.0.0.2>; from=<foo@friend.bad.domain>
+554 Service unavailable; Client host [127.0.0.2] blocked using blackholes.mail-abuse.org; Blackholed - see <URL:http://mail-abuse.org/cgi-bin/lookup?127.0.0.2>
 >>> #
 >>> # Hybrids
 >>> #

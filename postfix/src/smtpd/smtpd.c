@@ -229,33 +229,38 @@
 /* .ad
 /* .fi
 /* .IP \fBaccess_map_reject_code\fR
-/*	Server response when a client violates an access database restriction.
+/*	Response code when a client violates an access database restriction.
+/* .IP \fBdefault_rbl_reply\fR
+/*	Default template reply when a request is RBL blacklisted.
+/*	This template is used by the \fBreject_rbl_*\fR and
+/*	\fBreject_rhsbl_*\fR restrictions. See also: 
+/*	\fBrbl_reply_maps\fR and \fBsmtpd_expansion_filter\fR.
 /* .IP \fBdefer_code\fR
-/*	Server response when a client request is rejected by the \fBdefer\fR
+/*	Response code when a client request is rejected by the \fBdefer\fR
 /*	restriction.
 /* .IP \fBinvalid_hostname_reject_code\fR
-/*	Server response when a client violates the \fBreject_invalid_hostname\fR
+/*	Response code when a client violates the \fBreject_invalid_hostname\fR
 /*	restriction.
 /* .IP \fBmaps_rbl_reject_code\fR
-/*	Server response when a client violates the \fBmaps_rbl_domains\fR
-/*	restriction.
+/*	Response code when a request is RBL blacklisted.
 /* .IP \fBrbl_reply_maps\fR
-/*	Table with template responses, indexed by RBL domain name. These
-/*	templates are used by the \fBreject_rbl\fR and \fBreject_rhsbl\fR
-/*	restrictions. See also: \fBsmtpd_expansion_filter\fR.
+/*	Table with template responses for RBL blacklisted requests, indexed by 
+/*	RBL domain name. These templates are used by the \fBreject_rbl_*\fR 
+/*	and \fBreject_rhsbl_*\fR restrictions. See also: 
+/*	\fBdefault_rbl_reply\fR and \fBsmtpd_expansion_filter\fR.
 /* .IP \fBreject_code\fR
 /*	Response code when the client matches a \fBreject\fR restriction.
 /* .IP \fBrelay_domains_reject_code\fR
-/*	Server response when a client attempts to violate the mail relay
+/*	Response code when a client attempts to violate the mail relay
 /*	policy.
 /* .IP \fBunknown_address_reject_code\fR
-/*	Server response when a client violates the \fBreject_unknown_address\fR
+/*	Response code when a client violates the \fBreject_unknown_address\fR
 /*	restriction.
 /* .IP \fBunknown_client_reject_code\fR
-/*	Server response when a client without address to name mapping
+/*	Response code when a client without address to name mapping
 /*	violates the \fBreject_unknown_clients\fR restriction.
 /* .IP \fBunknown_hostname_reject_code\fR
-/*	Server response when a client violates the \fBreject_unknown_hostname\fR
+/*	Response code when a client violates the \fBreject_unknown_hostname\fR
 /*	restriction.
 /* SEE ALSO
 /*	cleanup(8) message canonicalization
@@ -402,6 +407,7 @@ char   *var_smtpd_noop_cmds;
 char   *var_smtpd_null_key;
 int     var_smtpd_hist_thrsh;
 char   *var_smtpd_exp_filter;
+char   *var_def_rbl_reply;
 
  /*
   * Silly little macros.
@@ -1648,6 +1654,7 @@ int     main(int argc, char **argv)
     };
     static CONFIG_RAW_TABLE raw_table[] = {
 	VAR_SMTPD_EXP_FILTER, DEF_SMTPD_EXP_FILTER, &var_smtpd_exp_filter, 1, 0,
+	VAR_DEF_RBL_REPLY, DEF_DEF_RBL_REPLY, &var_def_rbl_reply, 1, 0,
 	0,
     };
 

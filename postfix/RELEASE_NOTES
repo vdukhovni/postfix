@@ -12,33 +12,43 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
-Incompatible changes with Postfix snapshot 1.1.11-20020922
+Incompatible changes with Postfix snapshot 1.1.11-20020923
 ==========================================================
 
 Subtle change in ${name:result} macro expansions:  the expansion
-no longer happens when $name is an empty string.
+no longer happens when $name is an empty string. This probably
+makes more sense than the old behavior.
 
-Major changes with Postfix snapshot 1.1.11-20020922
+The default RBL "reject" server reply now includes an indication
+of *what* is being rejected: Client host, Helo command, Sender
+address, or Recipient address.
+
+Major changes with Postfix snapshot 1.1.11-20020923
 ===================================================
 
-Complete rewrite of RBL internals to avoid unnecessary code
-duplication and to implement caching of results.
+Complete rewrite of the RBL blacklisting code. The names of RBL
+restrictions are now based on a suggestion that was made by Liviu
+Daia in October 2001. See conf/sample-smtpd.cf or html/uce.html
+for details.
 
-Feature: "reject_rbl rbl.domain.tld" for client IP address
-blacklisting.  The old "reject_maps_rbl" is now implemented as a
-wrapper around the reject_rbl code.  Based on code by LaMont Jones.
+Feature: "reject_rbl_client rbl.domain.tld" for client IP address
+blacklisting. Based on code by LaMont Jones.  The old "reject_maps_rbl"
+is now implemented as a wrapper around the reject_rbl_client code.
 
-Feature: "reject_rhsbl rbl.domain.tld" for sender domain based
-blacklisting.
+Feature: "reject_rhsbl_sender rbl.domain.tld" for sender domain
+blacklisting. Also: reject_rhsbl_client and reject_rhsbl_recipient
+for client and recipient domain blacklisting.
 
 "rbl_reply_maps" configuration parameter for lookup tables with
-template responses per RBL server.  The template responses support
-$name expansion of client, helo, sender, recipient and RBL server
-attributes. See sample-smtpd.cf for details. Based on code by LaMont
-Jones.
+template responses per RBL server. Based on code by LaMont Jones.
+If no reply template is found the default template is used as
+specified with the default_rbl_reply configuration parameter.  The
+template responses support $name expansion of client, helo, sender,
+recipient and RBL related attributes.
 
 "smtpd_expansion_filter" configuration parameter to control what
-characters are allowed in the expansion of $name macros.
+characters are allowed in the expansion of template reply $name
+macros. Characters outside the allowed set are replaced by "_".
 
 Incompatible changes with Postfix snapshot 1.1.11-20020917
 ==========================================================

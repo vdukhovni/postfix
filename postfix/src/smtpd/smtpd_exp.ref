@@ -29,10 +29,10 @@ OK
 >>> client foo 127.0.0.2
 OK
 >>> rcpt rname@rdomain
-./smtpd_check: reject: RCPT from foo[127.0.0.2]: 554 client=foo[127.0.0.2] client_address=127.0.0.2 client_name=foo helo_name=foobar  sender=sname@sdomain sender_name=sname  sender_domain=sdomain recipient=rname@rdomain recipient_name=rname recipient_domain=rdomain rbl_code=554 rbl_domain=blackholes.mail-abuse.org rbl_txt=Blackholed - see <URL:http://mail-abuse.org/cgi-bin/lookup?127.0.0.2>; from=<sname@sdomain> to=<rname@rdomain>
-554 client=foo[127.0.0.2] client_address=127.0.0.2 client_name=foo helo_name=foobar  sender=sname@sdomain sender_name=sname  sender_domain=sdomain recipient=rname@rdomain recipient_name=rname recipient_domain=rdomain rbl_code=554 rbl_domain=blackholes.mail-abuse.org rbl_txt=Blackholed - see <URL:http://mail-abuse.org/cgi-bin/lookup?127.0.0.2>
+./smtpd_check: reject: RCPT from foo[127.0.0.2]: 554 client=foo[127.0.0.2] client_address=127.0.0.2 client_name=foo helo_name=foobar  sender=sname@sdomain sender_name=sname  sender_domain=sdomain recipient=rname@rdomain recipient_name=rname recipient_domain=rdomain rbl_code=554 rbl_domain=blackholes.mail-abuse.org rbl_txt=Blackholed - see <URL:http://mail-abuse.org/cgi-bin/lookup?127.0.0.2> rbl_what=127.0.0.2 rbl_class=Client host; from=<sname@sdomain> to=<rname@rdomain>
+554 client=foo[127.0.0.2] client_address=127.0.0.2 client_name=foo helo_name=foobar  sender=sname@sdomain sender_name=sname  sender_domain=sdomain recipient=rname@rdomain recipient_name=rname recipient_domain=rdomain rbl_code=554 rbl_domain=blackholes.mail-abuse.org rbl_txt=Blackholed - see <URL:http://mail-abuse.org/cgi-bin/lookup?127.0.0.2> rbl_what=127.0.0.2 rbl_class=Client host
 >>> #
->>> recipient_restrictions reject_rbl,blackholes.mail-abuse.org
+>>> recipient_restrictions reject_rbl_client,blackholes.mail-abuse.org
 OK
 >>> client spike.porcupine.org 168.100.189.2
 OK
@@ -41,21 +41,47 @@ OK
 >>> client foo 127.0.0.2
 OK
 >>> rcpt rname@rdomain
-./smtpd_check: reject: RCPT from foo[127.0.0.2]: 554 client=foo[127.0.0.2] client_address=127.0.0.2 client_name=foo helo_name=foobar  sender=sname@sdomain sender_name=sname  sender_domain=sdomain recipient=rname@rdomain recipient_name=rname recipient_domain=rdomain rbl_code=554 rbl_domain=blackholes.mail-abuse.org rbl_txt=Blackholed - see <URL:http://mail-abuse.org/cgi-bin/lookup?127.0.0.2>; from=<sname@sdomain> to=<rname@rdomain>
-554 client=foo[127.0.0.2] client_address=127.0.0.2 client_name=foo helo_name=foobar  sender=sname@sdomain sender_name=sname  sender_domain=sdomain recipient=rname@rdomain recipient_name=rname recipient_domain=rdomain rbl_code=554 rbl_domain=blackholes.mail-abuse.org rbl_txt=Blackholed - see <URL:http://mail-abuse.org/cgi-bin/lookup?127.0.0.2>
+./smtpd_check: reject: RCPT from foo[127.0.0.2]: 554 client=foo[127.0.0.2] client_address=127.0.0.2 client_name=foo helo_name=foobar  sender=sname@sdomain sender_name=sname  sender_domain=sdomain recipient=rname@rdomain recipient_name=rname recipient_domain=rdomain rbl_code=554 rbl_domain=blackholes.mail-abuse.org rbl_txt=Blackholed - see <URL:http://mail-abuse.org/cgi-bin/lookup?127.0.0.2> rbl_what=127.0.0.2 rbl_class=Client host; from=<sname@sdomain> to=<rname@rdomain>
+554 client=foo[127.0.0.2] client_address=127.0.0.2 client_name=foo helo_name=foobar  sender=sname@sdomain sender_name=sname  sender_domain=sdomain recipient=rname@rdomain recipient_name=rname recipient_domain=rdomain rbl_code=554 rbl_domain=blackholes.mail-abuse.org rbl_txt=Blackholed - see <URL:http://mail-abuse.org/cgi-bin/lookup?127.0.0.2> rbl_what=127.0.0.2 rbl_class=Client host
 >>> #
->>> # RHSBL
+>>> # RHSBL sender domain name
 >>> #
->>> recipient_restrictions reject_rhsbl,dsn.rfc-ignorant.org
+>>> recipient_restrictions reject_rhsbl_sender,dsn.rfc-ignorant.org
 OK
 >>> client spike.porcupine.org 168.100.189.2
 OK
 >>> mail sname@example.tld
 OK
 >>> rcpt rname@rdomain
-./smtpd_check: reject: RCPT from spike.porcupine.org[168.100.189.2]: 554 client=spike.porcupine.org[168.100.189.2] client_address=168.100.189.2 client_name=spike.porcupine.org helo_name=foobar  sender=sname@example.tld sender_name=sname  sender_domain=example.tld recipient=rname@rdomain recipient_name=rname recipient_domain=rdomain rbl_code=554 rbl_domain=dsn.rfc-ignorant.org rbl_txt=Not supporting null originator (DSN); from=<sname@example.tld> to=<rname@rdomain>
-554 client=spike.porcupine.org[168.100.189.2] client_address=168.100.189.2 client_name=spike.porcupine.org helo_name=foobar  sender=sname@example.tld sender_name=sname  sender_domain=example.tld recipient=rname@rdomain recipient_name=rname recipient_domain=rdomain rbl_code=554 rbl_domain=dsn.rfc-ignorant.org rbl_txt=Not supporting null originator (DSN)
+./smtpd_check: reject: RCPT from spike.porcupine.org[168.100.189.2]: 554 client=spike.porcupine.org[168.100.189.2] client_address=168.100.189.2 client_name=spike.porcupine.org helo_name=foobar  sender=sname@example.tld sender_name=sname  sender_domain=example.tld recipient=rname@rdomain recipient_name=rname recipient_domain=rdomain rbl_code=554 rbl_domain=dsn.rfc-ignorant.org rbl_txt=Not supporting null originator (DSN) rbl_what=sname@example.tld rbl_class=Sender address; from=<sname@example.tld> to=<rname@rdomain>
+554 client=spike.porcupine.org[168.100.189.2] client_address=168.100.189.2 client_name=spike.porcupine.org helo_name=foobar  sender=sname@example.tld sender_name=sname  sender_domain=example.tld recipient=rname@rdomain recipient_name=rname recipient_domain=rdomain rbl_code=554 rbl_domain=dsn.rfc-ignorant.org rbl_txt=Not supporting null originator (DSN) rbl_what=sname@example.tld rbl_class=Sender address
 >>> mail sname@sdomain
 OK
 >>> rcpt rname@rdomain
 OK
+>>> #
+>>> # RHSBL client domain name
+>>> #
+>>> recipient_restrictions reject_rhsbl_client,dsn.rfc-ignorant.org
+OK
+>>> client example.tld 1.2.3.4
+OK
+>>> mail sname@sdomain
+OK
+>>> rcpt rname@rdomain
+./smtpd_check: reject: RCPT from example.tld[1.2.3.4]: 554 client=example.tld[1.2.3.4] client_address=1.2.3.4 client_name=example.tld helo_name=foobar  sender=sname@sdomain sender_name=sname  sender_domain=sdomain recipient=rname@rdomain recipient_name=rname recipient_domain=rdomain rbl_code=554 rbl_domain=dsn.rfc-ignorant.org rbl_txt=Not supporting null originator (DSN) rbl_what=example.tld rbl_class=Client host; from=<sname@sdomain> to=<rname@rdomain>
+554 client=example.tld[1.2.3.4] client_address=1.2.3.4 client_name=example.tld helo_name=foobar  sender=sname@sdomain sender_name=sname  sender_domain=sdomain recipient=rname@rdomain recipient_name=rname recipient_domain=rdomain rbl_code=554 rbl_domain=dsn.rfc-ignorant.org rbl_txt=Not supporting null originator (DSN) rbl_what=example.tld rbl_class=Client host
+>>> #
+>>> # RHSBL recipient domain name
+>>> #
+>>> recipient_restrictions reject_rhsbl_recipient,dsn.rfc-ignorant.org
+OK
+>>> client spike.porcupine.org 168.100.189.2
+OK
+>>> mail sname@sdomain
+OK
+>>> rcpt rname@rdomain
+OK
+>>> rcpt rname@example.tld
+./smtpd_check: reject: RCPT from spike.porcupine.org[168.100.189.2]: 554 client=spike.porcupine.org[168.100.189.2] client_address=168.100.189.2 client_name=spike.porcupine.org helo_name=foobar  sender=sname@sdomain sender_name=sname  sender_domain=sdomain recipient=rname@example.tld recipient_name=rname recipient_domain=example.tld rbl_code=554 rbl_domain=dsn.rfc-ignorant.org rbl_txt=Not supporting null originator (DSN) rbl_what=rname@example.tld rbl_class=Recipient address; from=<sname@sdomain> to=<rname@example.tld>
+554 client=spike.porcupine.org[168.100.189.2] client_address=168.100.189.2 client_name=spike.porcupine.org helo_name=foobar  sender=sname@sdomain sender_name=sname  sender_domain=sdomain recipient=rname@example.tld recipient_name=rname recipient_domain=example.tld rbl_code=554 rbl_domain=dsn.rfc-ignorant.org rbl_txt=Not supporting null originator (DSN) rbl_what=rname@example.tld rbl_class=Recipient address

@@ -1202,18 +1202,26 @@ extern int var_access_map_code;
 
 #define WARN_IF_REJECT		"warn_if_reject"
 
-#define REJECT_RBL		"reject_rbl"
-#define REJECT_RHSBL		"reject_rhsbl"
+#define REJECT_RBL		"reject_rbl"	/* LaMont compatibility */
+#define REJECT_RBL_CLIENT	"reject_rbl_client"
+#define REJECT_RHSBL_CLIENT	"reject_rhsbl_client"
+#define REJECT_RHSBL_SENDER	"reject_rhsbl_sender"
+#define REJECT_RHSBL_RECIPIENT	"reject_rhsbl_recipient"
+
 #define VAR_RBL_REPLY_MAPS	"rbl_reply_maps"
 #define DEF_RBL_REPLY_MAPS	""
 extern char *var_rbl_reply_maps;
 
-#define REJECT_MAPS_RBL		"reject_maps_rbl"
+#define VAR_DEF_RBL_REPLY	"default_rbl_reply"
+#define DEF_DEF_RBL_REPLY	"$rbl_code Service unavailable; $rbl_class [$rbl_what] blocked using $rbl_domain${rbl_reason?; $rbl_reason}"
+extern char *var_def_rbl_reply;
+
+#define REJECT_MAPS_RBL		"reject_maps_rbl"	/* backwards compat */
 #define VAR_MAPS_RBL_CODE	"maps_rbl_reject_code"
 #define DEF_MAPS_RBL_CODE	554
 extern int var_maps_rbl_code;
 
-#define VAR_MAPS_RBL_DOMAINS	"maps_rbl_domains"
+#define VAR_MAPS_RBL_DOMAINS	"maps_rbl_domains"	/* backwards compat */
 #define DEF_MAPS_RBL_DOMAINS	""
 extern char *var_maps_rbl_domains;
 

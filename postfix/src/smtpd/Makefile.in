@@ -187,6 +187,8 @@ smtpd_check.o: ../../include/dict.h
 smtpd_check.o: ../../include/vstream.h
 smtpd_check.o: ../../include/htable.h
 smtpd_check.o: ../../include/ctable.h
+smtpd_check.o: ../../include/mac_expand.h
+smtpd_check.o: ../../include/mac_parse.h
 smtpd_check.o: ../../include/dns.h
 smtpd_check.o: ../../include/namadr_list.h
 smtpd_check.o: ../../include/match_list.h
@@ -208,6 +210,9 @@ smtpd_check.o: ../../include/virtual8.h
 smtpd_check.o: ../../include/cleanup_user.h
 smtpd_check.o: ../../include/record.h
 smtpd_check.o: ../../include/rec_type.h
+smtpd_check.o: ../../include/mail_proto.h
+smtpd_check.o: ../../include/iostuff.h
+smtpd_check.o: ../../include/attr.h
 smtpd_check.o: smtpd.h
 smtpd_check.o: ../../include/mail_stream.h
 smtpd_check.o: smtpd_sasl_glue.h

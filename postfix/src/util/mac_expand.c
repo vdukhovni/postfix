@@ -23,15 +23,15 @@
 /*
 /*	The following expansions are implemented:
 /* .IP "$name, ${name}, $(name)"
-/*	Unconditional expansion. If the named attribute is non-empty, the
+/*	Unconditional expansion. If the named attribute value is non-empty, the
 /*	expansion is the value of the named attribute,  optionally subjected
 /*	to further $name expansions.  Otherwise, the expansion is empty.
 /* .IP "${name?text}, $(name?text)"
-/*	Conditional expansion. If the named attribute is non-empty, the
+/*	Conditional expansion. If the named attribute value is non-empty, the
 /*	expansion is the given text, subjected to another iteration of
 /*	$name expansion.  Otherwise, the expansion is empty.
 /* .IP "${name:text}, $(name:text)"
-/*	Conditional expansion. If the named attribute is empty or undefined,
+/*	Conditional expansion. If the attribute value is empty or undefined,
 /*	the expansion is the given text, subjected to another iteration
 /*	of $name expansion.  Otherwise, the expansion is empty.
 /* .PP

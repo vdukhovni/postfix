@@ -99,6 +99,22 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_NEXTHOP	"nexthop"
 
  /*
+  * Suffixes for sender_name, sender_domain etc.
+  */
+#define MAIL_ATTR_S_NAME	"_name"
+#define MAIL_ATTR_S_DOMAIN	"_domain"
+
+ /*
+  * Special names for RBL results.
+  */
+#define MAIL_ATTR_RBL_WHAT	"rbl_what"
+#define MAIL_ATTR_RBL_DOMAIN	"rbl_domain"
+#define MAIL_ATTR_RBL_REASON	"rbl_reason"
+#define MAIL_ATTR_RBL_TXT	"rbl_txt"	/* LaMont compatibility */
+#define MAIL_ATTR_RBL_CLASS	"rbl_class"
+#define MAIL_ATTR_RBL_CODE	"rbl_code"
+
+ /*
   * The following attribute names are stored in queue files. Changing this
   * means lots of work to maintain backwards compatibility with queued mail.
   */
@@ -106,6 +122,7 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_ENC_8BIT	"8bit"	/* 8BITMIME equivalent */
 #define MAIL_ATTR_ENC_7BIT	"7bit"	/* 7BIT equivalent */
 #define MAIL_ATTR_ENC_NONE	""	/* encoding unknown */
+#define MAIL_ATTR_CLIENT	"client"	/* client name[addr] */
 #define MAIL_ATTR_CLIENT_NAME	"client_name"	/* client hostname */
 #define MAIL_ATTR_CLIENT_ADDR	"client_address"	/* client address */
 #define MAIL_ATTR_HELO_NAME	"helo_name"	/* SMTP helo name */

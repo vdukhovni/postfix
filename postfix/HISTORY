@@ -6980,21 +6980,23 @@ Apologies for any names omitted.
 
 20020919
 
-	Feature: reject_rbl <domain> for client address blacklisting
+	Feature: "reject_rbl <domain>" for client address blacklisting
 	by LaMont Jones, including $name expansion for per-domain
 	customized response messages. The obsolete reject_maps_rbl
 	is now a wrapper that uses the new code.
 
 20020921
 
-	Internal: added caching and reject reporting that can be
-	used for both reject_rbl and for the upcoming reject_rhsbl.
+	Internal: added caching and factored out common code that
+	will be used for both reject_rbl and for the upcoming
+	reject_rhsbl restriction.
 
 20020922
 
-	Feature: reject_rhsbl <domain> for sender domain blacklisting.
-	Provides the same per-domain customized response message
-	mechanisms with $name expansion as reject_rbl.
+	Feature: "reject_rhsbl <domain>" for sender domain
+	blacklisting.  Provides the same per-domain customized
+	response message mechanisms with $name expansion as
+	reject_rbl.
 
 	Safety: the smtpd_expansion_filter parameter controls what
 	characters are allowed in the expansion of $name macros in
@@ -7005,6 +7007,16 @@ Apologies for any names omitted.
 	mac_expand() had to be changed so that an empty string
 	result (i.e. the name does exist) will no longer cause
 	${name?text} to succeed.  File:  util/mac_expand.c.
+
+20020923
+
+	Cleanup. Renamed the RBL features according to a scheme
+	that was suggested by Liviu Daia in October 2001. The
+	names are reject_rbl_client and reject_rhsbl_sender,
+	respectively.  Added domain name based reject_rhsbl_client
+	and reject_rhsbl_recipient restrictions for completeness.
+	The reject_rbl restriction name is still recognized for
+	compatibility with systems maintained by LaMont Jones.
 
 Open problems:
 

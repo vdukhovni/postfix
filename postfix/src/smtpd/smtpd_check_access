@@ -36,11 +36,13 @@ blackholes.mail-abuse.org	$rbl_code client=$client
  client_name=$client_name helo_name=$helo_name 
  sender=$sender sender_name=$sender_name  sender_domain=$sender_domain
  recipient=$recipient recipient_name=$recipient_name recipient_domain=$recipient_domain
- rbl_code=$rbl_code rbl_domain=$rbl_domain rbl_txt=$rbl_txt
+ rbl_code=$rbl_code rbl_domain=$rbl_domain rbl_txt=$rbl_txt rbl_what=$rbl_what
+ rbl_class=$rbl_class
 
 dsn.rfc-ignorant.org	$rbl_code client=$client
  client_address=$client_address
  client_name=$client_name helo_name=$helo_name 
  sender=$sender sender_name=$sender_name  sender_domain=$sender_domain
  recipient=$recipient recipient_name=$recipient_name recipient_domain=$recipient_domain
- rbl_code=$rbl_code rbl_domain=$rbl_domain rbl_txt=$rbl_txt
+ rbl_code=$rbl_code rbl_domain=$rbl_domain rbl_txt=$rbl_txt rbl_what=$rbl_what
+ rbl_class=$rbl_class

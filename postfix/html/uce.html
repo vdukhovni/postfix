@@ -325,10 +325,24 @@ specified; the first restriction that matches wins.
 
 <p>
 
+In addition to restrictions that are specific to the client hostname
+or IP address, you may list here any restrictions based on the
+information passed with the <a href="#smtpd_helo_restrictions">
+HELO/EHLO command</a>, on the <a href="#smtpd_sender_restrictions">
+sender address </a> or on the <a href="#smtpd_recipient_restrictions">
+recipient address</a>.  The HELO/EHLO, sender or recipient restrictions
+take effect only if <b>smtpd_delay_reject = yes</b> so that all
+restrictions are evaluated after the RCPT TO command.
+
+<p>
+
 <dt>Examples:
 
 <dd> <b>smtpd_client_restrictions = hash:/etc/postfix/access,
-reject_maps_rbl</b>
+reject_rbl_client relays.mail-abuse.org</b>
+
+<dd> <b>smtpd_client_restrictions = hash:/etc/postfix/access,
+reject_rhsbl_client dsn.rfc-ignorant.org</b>
 
 <dd> <b>smtpd_client_restrictions = permit_mynetworks,
 reject_unknown_client</b>
@@ -358,6 +372,30 @@ href="basic.html#mynetworks"> $mynetworks</a>.
 
 <p>
 
+<a name="reject_rbl_client">
+
+<dt> <b>reject_rbl_client</b> <i>domain.tld</i> <dd> Reject the
+request when the reversed client network address is listed with an
+A record under <i>domain.tld</i>.  
+
+The <b> maps_rbl_reject_code</b> parameter specifies the response
+code for rejected requests (default:  <b>554</b>), the <b><a
+href="#default_rbl_reply"> default_rbl_reply </a></b> parameter
+specifies the default server reply, and the <b><a href="#rbl_reply_maps">
+rbl_reply_maps </a></b> parameter specifies tables with server replies
+indexed by RBL domain.
+
+<p>
+
+<a name="reject_rhsbl_client">
+
+<dt> <b>reject_rhsbl_client</b> <i>domain.tld</i> <dd> Reject the
+request when the client hostname is listed with an A record under
+<i>domain.tld</i>.  See above for additional RBL related configuration
+parameters.
+
+<p>
+
 <a name="check_client_access">
 
 <dt> <b>check_client_access</b> <i>maptype</i>:<i>mapname</i>
@@ -366,71 +404,6 @@ href="basic.html#mynetworks"> $mynetworks</a>.
 href="access.5.html">access database</a> for the client hostname, parent
 domains, client IP address, or networks obtained by stripping least
 significant octets.  
-
-<p>
-
-<dl compact>
-
-<dt>REJECT
-<dd>Reject the request. The <b>access_map_reject_code</b> parameter
-specifies the response code (default:  <b>554</b>).
-
-<p>
-
-<dt>[<b>45</b>]<i>XX text</i>
-<dd>Reject the request. Send the numerical code and text to the SMTP client.
-
-<p>
-
-<dt>OK
-<dt>RELAY
-<dt>all-numerical
-<dd>Permit the request.
-
-<p>
-
-<dt>HOLD
-<dd> Place the message on the <b>hold</b> queue. Mail on hold can
-be inspected with the <a href="postcat.1.html">postcat</a> command,
-and can be destroyed or taken off hold with the <a
-href="postsuper.1.html">postsuper</a> command.
-
-<b> Note: this action currently affects all recipients of a message.</b>
-
-<p>
-
-<dt>DISCARD
-<dd> Claim successful delivery and silently discard the message.
-
-<b> Note: this action currently affects all recipients of a message.</b>
-
-<p>
-
-<dt>FILTER <i>transport</i>:<i>nexthop</i> <dd>
-After the message is queued, send the entire message through
-a content filter. This requires different cleanup servers
-before and after the filter, with header/body checks turned
-off in the second cleanup server. More details about content
-filtering are in the Postfix FILTER_README file. This feature
-overrides the main.cf <b>content_filter</b> setting.
-
-<b> Note: this action currently affects all recipients of a message.</b>
-
-<p>
-
-<dt>Other<dd> Treat the result as another list of UCE restrictions.  
-
-</dl>
-
-<p>
-
-<a name="reject_maps_rbl">
-
-<dt> <b>reject_maps_rbl</b> <dd> Reject the request when the reversed
-client network address is listed under any of the domains listed
-in <a href="#maps_rbl_domains">$maps_rbl_domains</a>. The <b>
-maps_rbl_reject_code</b> parameter specifies the response code for
-rejected requests (default: <b>554</b>).
 
 <p>
 
@@ -523,9 +496,15 @@ specified; the first restriction that matches wins.
 
 <p>
 
-In addition to restrictions that are specific to HELO (EHLO)
-command parameters, you can also specify restrictions based
-on the client hostname or network address.
+In addition to restrictions that are specific to HELO (EHLO) command
+parameters, you may list here any restrictions on the <a
+href="#smtpd_client_restrictions"> client hostname </a>, <a
+href="#smtpd_client_restrictions"> client address </a>, <a
+href="#smtpd_sender_restrictions"> sender address </a> or <a
+href="#smtpd_recipient_restrictions"> recipient address</a>.  The
+sender or recipient restrictions take effect only if <b>smtpd_delay_reject
+= yes</b> so that all restrictions are evaluated after the RCPT TO
+command.
 
 <p>
 
@@ -586,24 +565,7 @@ specifies the response code to rejected requests (default:
 
 <dt> <i>maptype</i>:<i>mapname</i> <dd> Search the named <a
 href="access.5.html">access database</a> for the <b>HELO</b> hostname
-or parent domains in the specified table.  Reject the request if
-the result is <b>REJECT</b> or "[<b>45</b>]<i>XX text</i>". Permit
-the request when the result is <b>OK</b> or <b>RELAY</b> or
-all-numerical. Otherwise, treat the result as another list of UCE
-restrictions.  The <b>access_map_reject_code </b> parameter specifies
-the response code for <b>REJECT</b> results (default:  <b>554</b>).
-
-<p>
-
-<dt> <b><a href="#reject_maps_rbl">reject_maps_rbl</a></b>
-
-<dt> <b><a href="#reject_unknown_client">reject_unknown_client</a></b>
-
-<dt> <b><a href="#permit_mynetworks">permit_mynetworks</a></b>
-
-<dt> <b><a href="#check_client_access">check_client_access</a></b> <i>maptype</i>:<i>mapname</i>
-
-<dd> See client hostname/address restrictions.
+or parent domains.
 
 <p>
 
@@ -699,8 +661,13 @@ specified; the first restriction that matches wins.
 
 In addition to restrictions that are specific to sender mail
 addresses, you can also specify restrictions based on the information
-passed with the HELO/EHLO command, and on the client hostname or
-network address.
+passed with the <a href="#smtpd_helo_restrictions"> HELO/EHLO
+command </a>, on the <a href="#smtpd_client_restrictions"> client
+hostname </a> or <a href="#smtpd_client_restrictions"> network
+address </a>, or on the <a href="#smtpd_recipient_restrictions">
+recipient address </a>.  The recipient restrictions take effect
+only if <b>smtpd_delay_reject = yes</b> so that all restrictions
+are evaluated after the RCPT TO command.
 
 <p>
 
@@ -725,18 +692,27 @@ is always <b>450</b> in case of a temporary DNS error.
 
 <p>
 
+<a name="reject_rhsbl_sender">
+
+<dt> <b>reject_rhsbl_sender</b> <i>domain.tld</i> <dd> Reject the
+request when the sender mail address domain is listed with an A
+record under <i>domain.tld</i>.
+
+The <b> maps_rbl_reject_code</b> parameter specifies the response
+code for rejected requests (default:  <b>554</b>), the <b><a
+href="#default_rbl_reply"> default_rbl_reply </a></b> parameter
+specifies the default server reply, and the <b><a href="#rbl_reply_maps">
+rbl_reply_maps </a></b> parameter specifies tables with server replies
+indexed by RBL domain.
+<p>
+
 <a name="check_sender_access">
 
 <dt> <b>check_sender_access</b> <i>maptype</i>:<i>mapname</i>
 
 <dt> <i>maptype</i>:<i>mapname</i> <dd> Search the named <a
 href="access.5.html">access database</a> for the sender mail address,
-parent domain, or <i>localpart</i>@. Reject the request if the
-result is <b>REJECT</b> or "[<b>45</b>]<i>XX text</i>". Permit the
-request if the result is <b>OK</b> or <b>RELAY</b> or all-numerical.
-Otherwise, treat the result as another list of UCE restrictions.  The
-<b>access_map_reject_code </b> parameter specifies the result code for
-rejected requests (default: <b>554</b>).
+sender domain and parent domain, or <i>localpart</i>@. 
 
 <p>
 
@@ -759,32 +735,6 @@ address, but the client is not (SASL) logged in as that MAIL FROM
 address owner; or when the client is (SASL) logged in, but the
 client login name doesn't own the MAIL FROM address according to
 <a href="#smtpd_sender_login_maps"> $smtpd_sender_login_maps</a>.
-
-<p>
-
-<dt> <b><a href="#permit_naked_ip_address">permit_naked_ip_address</a></b>
-
-<dt> <b><a href="#reject_invalid_hostname">reject_invalid_hostname</a></b>
-
-<dt> <b><a href="#reject_unknown_hostname">reject_unknown_hostname</a></b>
-
-<dt> <b><a href="#reject_non_fqdn_hostname">reject_non_fqdn_hostname</a></b>
-
-<dt> <b><a href="#check_helo_access">check_helo_access</a></b> <i>maptype</i>:<i>mapname</i>
-
-<dd> See HELO (EHLO) hostname restrictions.
-
-<p>
-
-<dt> <b><a href="#reject_maps_rbl">reject_maps_rbl</a></b>
-
-<dt> <b><a href="#reject_unknown_client">reject_unknown_client</a></b>
-
-<dt> <b><a href="#permit_mynetworks">permit_mynetworks</a></b>
-
-<dt> <b><a href="#check_client_access">check_client_access</a></b> <i>maptype</i>:<i>mapname</i>
-
-<dd> See client hostname/address restrictions.
 
 <p>
 
@@ -870,9 +820,12 @@ specified; the first restriction that matches wins.
 <p>
 
 In addition to restrictions that are specific to recipient mail
-addresses, you can also specify restrictions based on the sender mail
-address, on the information passed with the HELO/EHLO command, and
-on the client hostname or network address.
+addresses, you can also specify restrictions based on the <a
+href="#smtpd_sender_restrictions"> sender mail address</a>, on the
+information passed with the <a href="#smtpd_helo_restrictions">
+HELO/EHLO command </a>, and on the <a href="#smtpd_client_restrictions">
+client hostname </a> or <a href="#smtpd_client_restrictions">
+network address </a>.
 
 <p>
 
@@ -997,12 +950,7 @@ href="basic.html#inet_interfaces"> $inet_interfaces</a>.
 
 <dt> <i>maptype</i>:<i>mapname</i> <dd> Search the named <a
 href="access.5.html">access database</a> for the resolved destination
-address, parent domain, or <i>localpart</i>@. Reject the request if the
-result is <b>REJECT</b> or "[<b>45</b>]<i>XX text</i>".  Permit the
-request if the result is <b>OK</b> or <b>RELAY</b> or all-numerical.
-Otherwise, treat the result as another list of UCE restrictions.  The
-<b>access_map_reject_code </b> parameter specifies the result code for
-rejected requests (default: <b>554</b>).
+address, recipient domain or parent domain, or <i>localpart</i>@. 
 
 <p>
 
@@ -1016,51 +964,27 @@ is always <b>450</b> in case of a temporary DNS error.
 
 <p>
 
+<a name="reject_rhsbl_recipient">
+
+<dt> <b>reject_rhsbl_recipient</b> <i>domain.tld</i> <dd> Reject the
+request when the recipient mail address domain is listed with an A
+record under <i>domain.tld</i>.
+
+The <b> maps_rbl_reject_code</b> parameter specifies the response
+code for rejected requests (default:  <b>554</b>), the <b><a
+href="#default_rbl_reply"> default_rbl_reply </a></b> parameter
+specifies the default server reply, and the <b><a href="#rbl_reply_maps">
+rbl_reply_maps </a></b> parameter specifies tables with server replies
+indexed by RBL domain.
+
+<p>
+
 <a name="reject_non_fqdn_recipient">
 
 <dt> <b>reject_non_fqdn_recipient</b> <dd> Reject the request when
 the address in the client RCPT TO command is not in fully-qualified
 domain form. The <b>non_fqdn_reject_code</b> specifies the
 response code to rejected requests (default:  <b>504</b>).
-
-<p>
-
-<dt> <b><a href="#reject_unknown_sender_domain">reject_unknown_sender_domain</a></b>
-
-<dt> <b><a href="#reject_non_fqdn_sender">reject_non_fqdn_sender</a></b>
-
-<dt> <b><a href="#check_sender_access">check_sender_access</a></b> <i>maptype</i>:<i>mapname</i>
-
-<dt> <b><a href="#reject_sender_login_mismatch">reject_sender_login_mismatch
-</a></b>
-
-<dd> See sender address restrictions.
-
-<p>
-
-<dt> <b><a href="#permit_naked_ip_address">permit_naked_ip_address</a></b>
-
-<dt> <b><a href="#reject_invalid_hostname">reject_invalid_hostname</a></b>
-
-<dt> <b><a href="#reject_unknown_hostname">reject_unknown_hostname</a></b>
-
-<dt> <b><a href="#reject_non_fqdn_hostname">reject_non_fqdn_hostname</a></b>
-
-<dt> <b><a href="#check_helo_access">check_helo_access</a></b> <i>maptype</i>:<i>mapname</i>
-
-<dd> See HELO (EHLO) hostname restrictions.
-
-<p>
-
-<dt> <b><a href="#reject_maps_rbl">reject_maps_rbl</a></b>
-
-<dt> <b><a href="#reject_unknown_client">reject_unknown_client</a></b>
-
-<dt> <b><a href="#permit_mynetworks">permit_mynetworks</a></b>
-
-<dt> <b><a href="#check_client_access">check_client_access</a></b> <i>maptype</i>:<i>mapname</i>
-
-<dd> See client hostname/address restrictions.
 
 <p>
 
@@ -1111,8 +1035,10 @@ specified; the first restriction that matches wins.
 
 In addition to restrictions that are specific to ETRN domain names,
 you can also specify restrictions based on the information passed
-with the HELO/EHLO command, and on the client hostname or network
-address.
+with the <a href="#smtpd_helo_restrictions"> HELO/EHLO command
+</a>, and on the <a href="#smtpd_client_restrictions"> client
+hostname </a> or <a href="#smtpd_client_restrictions"> network
+address </a>.
 
 <p>
 
@@ -1139,30 +1065,6 @@ the request if the result is <b>OK</b> or <b>RELAY</b> or
 all-numerical. Otherwise, treat the result as another list of UCE
 restrictions.  The <b>access_map_reject_code </b> parameter specifies
 the result code for rejected requests (default: <b>554</b>).
-
-<p>
-
-<dt> <b><a href="#permit_naked_ip_address">permit_naked_ip_address</a></b>
-
-<dt> <b><a href="#reject_invalid_hostname">reject_invalid_hostname</a></b>
-
-<dt> <b><a href="#reject_unknown_hostname">reject_unknown_hostname</a></b>
-
-<dt> <b><a href="#check_helo_access">check_helo_access</a></b> <i>maptype</i>:<i>mapname</i>
-
-<dd> See HELO (EHLO) hostname restrictions.
-
-<p>
-
-<dt> <b><a href="#reject_maps_rbl">reject_maps_rbl</a></b>
-
-<dt> <b><a href="#reject_unknown_client">reject_unknown_client</a></b>
-
-<dt> <b><a href="#permit_mynetworks">permit_mynetworks</a></b>
-
-<dt> <b><a href="#check_client_access">check_client_access</a></b> <i>maptype</i>:<i>mapname</i>
-
-<dd> See client hostname/address restrictions.
 
 <p>
 
@@ -1253,6 +1155,109 @@ to speed up deliveries.
 
 <dl>
 
+<a name="default_rbl_reply">
+
+<dt> <b>default_rbl_reply</b>
+
+<dd>The default reply template that is used when an SMTP client
+request is blocked by a <b>reject_rbl</b> or <b>reject_rhsbl</b>
+restriction.  The reply template is subjected to exactly one level
+of $name macro substitution as described below. The
+<b>smtpd_expansion_filter</b> configuration parameter specifies
+the set of characters that are allowed in $name macro expansions.
+Characters outside the allowed set are replaced by "_".
+
+<p>
+
+<dl>
+
+<dt>Default:
+
+<dd><b> default_rbl_reply = $rbl_code Service unavailable; $rbl_class [$rbl_what] blocked using $rbl_domain${rbl_reason?; $rbl_reason} </b>
+
+<p>
+
+Instead of the form $<i>name</i> you can also specify ${<i>name</i>}
+or $(<i>name</i>).
+
+<p>
+
+<dt>Macro expansion syntax:
+
+<dl>
+
+<dt> $client <dd>  The client hostname and IP address, formatted as
+<i>name</i>[<i>address</i>].
+
+<dt> $client_name <dd>  The client hostname, or <b>unknown</b>.
+
+<dt> $client_address <dd>  The client IP address.
+
+<dt> $helo_name <dd>  The hostname given in the HELO or EHLO command,
+or the empty string when no HELO or EHLO command was given.
+
+<dt> $sender <dd>  The sender address, or <> in case of the null
+address.
+
+<dt> $sender_name <dd>  The sender address localpart, or <> in case
+of the null address.
+
+<dt> $sender_domain <dd>  The sender address domain, or the empty
+string when no domain is available.
+
+<dt> $recipient <dd>  The recipient address, or <> in case of the
+null address.
+
+<dt> $recipient_name <dd>  The recipient address localpart, or <>
+in case of the null address.
+
+<dt> $recipient_domain <dd>  The recipient address domain, or the
+empty string when no domain is available.
+
+<dt> $rbl_what <dd>  The blacklisted entity: an IP address, a
+hostname, a domain name, or an email address whose domain is
+blacklisted.
+
+<dt> $rbl_domain <dd>  The RBL domain where $rbl_what is blacklisted
+with an A record.
+
+<dt> $rbl_reason <dd>  The reason why $rbl_what is blacklisted, or
+the empty string when no information is available.
+
+<dt> $rbl_class <dd>  The blacklisted entity type: Client host,
+Helo command, Sender address, or Recipient address.
+
+<dt> $rbl_code <dd>  The numerical server reply code, as specified
+with the <b>maps_rbl_reject_code</b> configuration parameter
+(default: 554).
+
+<dt> All other text <dd> Copied without change, with the exception
+of conditional macro expansion as described below.
+
+</dl>
+
+<p>
+
+Conditional macro expansion syntax:
+
+<dl>
+
+<dt> ${<i>name</i>?<i>text</i>} <dd> expands to <i>text</i> if
+$<i>name</i> is not empty.
+
+<dt> ${<i>name</i>:<i>text</i>} <dd> expands to <i>text</i> if
+$<i>name</i> is empty.
+
+</dl>
+
+</dl>
+
+</dl>
+
+<p>
+
+<dl>
+
 <a name="permit_mx_backup_networks">
 
 <dt> <b>permit_mx_backup_networks</b>
@@ -1297,15 +1302,18 @@ of listing the patterns in the <b>main.cf</b> file.
 
 </dl>
 
+<p>
+
 <dl>
 
-<a name="maps_rbl_domains">
+<a name="rbl_reply_maps">
 
-<dt> <b>maps_rbl_domains</b>
+<dt> <b>rbl_reply_maps</b>
 
-<dd>This parameter controls the behavior of the <a
-href="#reject_maps_rbl">reject_maps_rbl</a> restriction that can
-appear as part of a client hostname/address restriction list.
+<dd> This parameter specifies lookup tables with RBL reply templates
+indexed by RBL domain name. If no template is found, the
+<a href="#default_rbl_reply"> default_rbl_reply </a> template is
+used instead.
 
 <p>
 
@@ -1313,23 +1321,27 @@ appear as part of a client hostname/address restriction list.
 
 <dt>Default:
 
-<dd><b>maps_rbl_domains = </b>
+<dd><b>rbl_reply_maps = </b>
 
 <p>
 
-Note: RBL lookups are disabled by default.
+By default, Postfix always uses the <a href="#default_rbl_reply">
+default_rbl_reply </a> template.
 
 <p>
 
 <dt>Syntax:
 
-<dd> Zero or more DNS domains that blacklist client IP addresses.  A
-host is blacklisted when its reversed IP address is listed as a
-subdomain under any of the domains listed in <b>$maps_rbl_domains.</b>
+<dd> Specify zero or more <i>type</i>:<i>name</i> lookup tables,
+separated by whitespace and/or commas. For the syntax of the
+template reply strings, see the <a href="#default_rbl_reply">
+default_rbl_reply </a> parameter description.
 
 </dl>
 
-<p>
+</dl>
+
+<dl>
 
 <a name="relay_domains">
 

@@ -296,46 +296,52 @@ SMTPD(8)                                                 SMTPD(8)
 
 <b>UCE</b> <b>control</b> <b>responses</b>
        <b>access</b><i>_</i><b>map</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server response when a client  violates  an  access
+              Response code when  a  client  violates  an  access
               database restriction.
 
+       <b>default</b><i>_</i><b>rbl</b><i>_</i><b>reply</b>
+              Default template reply when a request is RBL black-
+              listed.  This template is used by the  <b>reject</b><i>_</i><b>rbl</b><i>_</i><b>*</b>
+              and    <b>reject</b><i>_</i><b>rhsbl</b><i>_</i><b>*</b>   restrictions.   See   also:
+              <b>rbl</b><i>_</i><b>reply</b><i>_</i><b>maps</b> and <b>smtpd</b><i>_</i><b>expansion</b><i>_</i><b>filter</b>.
+
        <b>defer</b><i>_</i><b>code</b>
-              Server  response  when a client request is rejected
-              by the <b>defer</b> restriction.
+              Response code when a client request is rejected  by
+              the <b>defer</b> restriction.
 
        <b>invalid</b><i>_</i><b>hostname</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server  response  when  a   client   violates   the
+              Response   code   when   a   client   violates  the
               <b>reject</b><i>_</i><b>invalid</b><i>_</i><b>hostname</b> restriction.
 
        <b>maps</b><i>_</i><b>rbl</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server   response   when   a  client  violates  the
-              <b>maps</b><i>_</i><b>rbl</b><i>_</i><b>domains</b> restriction.
+              Response code when a request is RBL blacklisted.
 
        <b>rbl</b><i>_</i><b>reply</b><i>_</i><b>maps</b>
-              Table  with  template  responses,  indexed  by  RBL
-              domain  name.  These  templates  are  used  by  the
-              <b>reject</b><i>_</i><b>rbl</b> and <b>reject</b><i>_</i><b>rhsbl</b> restrictions. See also:
-              <b>smtpd</b><i>_</i><b>expansion</b><i>_</i><b>filter</b>.
+              Table with template responses for  RBL  blacklisted
+              requests,  indexed  by  RBL domain name. These tem-
+              plates   are   used   by   the   <b>reject</b><i>_</i><b>rbl</b><i>_</i><b>*</b>   and
+              <b>reject</b><i>_</i><b>rhsbl</b><i>_</i><b>*</b>      restrictions.     See     also:
+              <b>default</b><i>_</i><b>rbl</b><i>_</i><b>reply</b> and <b>smtpd</b><i>_</i><b>expansion</b><i>_</i><b>filter</b>.
 
        <b>reject</b><i>_</i><b>code</b>
-              Response  code  when  the  client  matches a <b>reject</b>
+              Response code when  the  client  matches  a  <b>reject</b>
               restriction.
 
        <b>relay</b><i>_</i><b>domains</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server response when a client attempts  to  violate
-              the mail relay policy.
+              Response code when a client attempts to violate the
+              mail relay policy.
 
        <b>unknown</b><i>_</i><b>address</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server   response   when   a  client  violates  the
+              Response  code   when   a   client   violates   the
               <b>reject</b><i>_</i><b>unknown</b><i>_</i><b>address</b> restriction.
 
        <b>unknown</b><i>_</i><b>client</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server response when a client  without  address  to
-              name  mapping  violates  the <b>reject</b><i>_</i><b>unknown</b><i>_</i><b>clients</b>
+              Response code when a client without address to name
+              mapping   violates    the    <b>reject</b><i>_</i><b>unknown</b><i>_</i><b>clients</b>
               restriction.
 
        <b>unknown</b><i>_</i><b>hostname</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server  response  when  a   client   violates   the
+              Response   code   when   a   client   violates  the
               <b>reject</b><i>_</i><b>unknown</b><i>_</i><b>hostname</b> restriction.
 
 <b>SEE</b> <b>ALSO</b>
@@ -344,7 +350,7 @@ SMTPD(8)                                                 SMTPD(8)
        syslogd(8) system logging
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>
