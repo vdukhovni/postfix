@@ -8911,6 +8911,15 @@ Apologies for any names omitted.
 	Fix is to turn off loop detection when a non-default TCP
 	port is specified.  File: smtp/smtp_addr.c.
 
+	Bugfix: restore errno after write failure in SIGCHLD handler.
+	Leandro Santi. File: master/master_sig.c.
+
+	Bugfix: the auto_clnt module disconnected too early, causing
+	unnecessary work by the anvil server.
+
+	Cleanup: eliminated binary hashes from anvil server. Anvil
+	client information is now stored on top of its VSTREAM.
+
 Open problems:
 
 	Low: in the SMTP client, pass the session, request and

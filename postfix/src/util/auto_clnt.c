@@ -212,8 +212,9 @@ VSTREAM *auto_clnt_access(AUTO_CLNT *auto_clnt)
     if (auto_clnt->vstream == 0) {
 	auto_clnt_open(auto_clnt);
     } else {
-	event_request_timer(auto_clnt_event, (char *) auto_clnt,
-			    auto_clnt->max_idle);
+	if (auto_clnt->max_idle > 0)
+	    event_request_timer(auto_clnt_event, (char *) auto_clnt,
+				auto_clnt->max_idle);
     }
     return (auto_clnt->vstream);
 }

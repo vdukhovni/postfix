@@ -189,7 +189,7 @@
 /*	\fBdefault_destination_recipient_limit\fR parameter.
 /* .IP \fBsmtp_mx_address_limit\fR
 /*	An upper bound on the total number of MX (mail exchanger) IP
-/*	addresses that that can result from mail exchanger lookups.
+/*	addresses that can result from mail exchanger lookups.
 /* .sp
 /*	Specify zero to disable the limit.
 /* .sp

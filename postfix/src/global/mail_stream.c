@@ -114,7 +114,13 @@ static VSTRING *id_buf;
 
 void    mail_stream_cleanup(MAIL_STREAM *info)
 {
-    FREE_AND_WIPE(info->close, info->stream);
+    int     status;
+
+    if (info->stream) {
+	if ((status = info->close(info->stream)) != 0)
+	    msg_warn("bad mail stream close status %d", status);
+	info->stream = 0;
+    }
     FREE_AND_WIPE(myfree, info->queue);
     FREE_AND_WIPE(myfree, info->id);
     FREE_AND_WIPE(myfree, info->class);
@@ -318,6 +324,7 @@ MAIL_STREAM *mail_stream_command(const char *command)
     VSTREAM *stream;
     MAIL_STREAM *info;
     ARGV   *export_env;
+    int     status;
 
     if (id_buf == 0)
 	id_buf = vstring_alloc(10);
@@ -347,7 +354,8 @@ MAIL_STREAM *mail_stream_command(const char *command)
 
     if (attr_scan(stream, ATTR_FLAG_MISSING,
 		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id_buf, 0) != 1) {
-	vstream_pclose(stream);
+	if ((status = vstream_pclose(stream)) != 0)
+	    msg_warn("command \"%s\" exited with status %d", command, status);
 	return (0);
     } else {
 	info = (MAIL_STREAM *) mymalloc(sizeof(*info));

@@ -87,9 +87,10 @@ Specify \fB-h ALL\fR to hold all messages; for example, specify
 As a safety measure, the word \fBALL\fR must be specified in upper
 case.
 .sp
-Note: mail that is put "on hold" will not expire when its
+Note: while mail is "on hold" it will not expire when its
 time in the queue exceeds the \fBmaximal_queue_lifetime\fR
-setting.
+setting. It becomes subject to expiration after it is
+released from "hold".
 .IP "\fB-H \fIqueue_id\fR"
 Release mail that was put "on hold".
 Move one message with the named queue ID from the named

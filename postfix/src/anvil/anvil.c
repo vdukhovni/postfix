@@ -122,7 +122,6 @@
 #include <msg.h>
 #include <mymalloc.h>
 #include <htable.h>
-#include <binhash.h>
 #include <stringops.h>
 #include <events.h>
 
@@ -146,7 +145,6 @@ int     var_anvil_stat_time;
   * State.
   */
 static HTABLE *anvil_remote_map;	/* indexed by service+ remote client */
-static BINHASH *anvil_local_map;	/* indexed by local client handle */
 
  /*
   * Absent a real-time query interface, these are logged at process exit time
@@ -291,8 +289,8 @@ static void anvil_remote_expire(int unused_event, char *context)
     ANVIL_REMOTE_FREE(anvil_remote);
 
     if (msg_verbose)
-	msg_info("%s: anvil_remote_map used=%d", 
-		myname, anvil_remote_map->used);
+	msg_info("%s: anvil_remote_map used=%d",
+		 myname, anvil_remote_map->used);
 }
 
 /* anvil_remote_lookup - dump address status */
@@ -375,14 +373,12 @@ static void anvil_remote_connect(VSTREAM *client_stream, const char *ident)
      * Record this connection under the local client information, so that we
      * can clean up all its connection state when the local client goes away.
      */
-    if ((anvil_local =
-	 (ANVIL_LOCAL *) binhash_find(anvil_local_map,
-				      (char *) &client_stream,
-				      sizeof(client_stream))) == 0) {
+    if ((anvil_local = (ANVIL_LOCAL *) vstream_context(client_stream)) == 0) {
 	anvil_local = (ANVIL_LOCAL *) mymalloc(sizeof(*anvil_local));
 	ANVIL_LOCAL_INIT(anvil_local);
-	binhash_enter(anvil_local_map, (char *) &client_stream,
-		      sizeof(client_stream), (char *) anvil_local);
+	vstream_control(client_stream,
+			VSTREAM_CTL_CONTEXT, (void *) anvil_local,
+			VSTREAM_CTL_END);
     }
     ANVIL_LOCAL_ADD_ONE(anvil_local, anvil_remote);
     if (msg_verbose)
@@ -446,10 +442,7 @@ static void anvil_remote_disconnect(VSTREAM *client_stream, const char *ident)
     /*
      * Update the local client information.
      */
-    if ((anvil_local =
-	 (ANVIL_LOCAL *) binhash_find(anvil_local_map,
-				      (char *) &client_stream,
-				      sizeof(client_stream))) != 0)
+    if ((anvil_local = (ANVIL_LOCAL *) vstream_context(client_stream)) != 0)
 	ANVIL_LOCAL_DROP_ONE(anvil_local, anvil_remote);
     if (msg_verbose)
 	msg_info("%s: anvil_local 0x%lx",
@@ -481,24 +474,15 @@ static void anvil_service_done(VSTREAM *client_stream, char *unused_service,
      * that we still have for this local client. Do not destroy remote client
      * status information before it expires.
      */
-    if ((anvil_local =
-	 (ANVIL_LOCAL *) binhash_find(anvil_local_map,
-				      (char *) &client_stream,
-				      sizeof(client_stream))) != 0) {
+    if ((anvil_local = (ANVIL_LOCAL *) vstream_context(client_stream)) != 0) {
 	if (msg_verbose)
 	    msg_info("%s: anvil_local 0x%lx",
 		     myname, (unsigned long) anvil_local);
 	ANVIL_LOCAL_DROP_ALL(client_stream, anvil_local);
-	binhash_delete(anvil_local_map,
-		       (char *) &client_stream,
-		       sizeof(client_stream), myfree);
+	myfree((char *) anvil_local);
     } else if (msg_verbose)
 	msg_info("client socket not found for fd=%d",
 		 vstream_fileno(client_stream));
-
-    if (msg_verbose)
-	msg_info("%s: anvil_local_map used=%d", 
-		myname, anvil_local_map->used);
 }
 
 /* anvil_service - perform service for client */
@@ -520,6 +504,8 @@ static void anvil_service(VSTREAM *client_stream, char *unused_service, char **a
      * connection-management stuff is handled by the common code in
      * multi_server.c.
      */
+    if (msg_verbose)
+	msg_info("--- start request ---");
     if (attr_scan_plain(client_stream,
 			ATTR_FLAG_MISSING | ATTR_FLAG_STRICT,
 			ATTR_TYPE_STR, ANVIL_ATTR_REQ, request,
@@ -542,6 +528,8 @@ static void anvil_service(VSTREAM *client_stream, char *unused_service, char **a
 	/* Note: invokes anvil_service_done() */
 	multi_server_disconnect(client_stream);
     }
+    if (msg_verbose)
+	msg_info("--- end request ---");
     vstring_free(ident);
     vstring_free(request);
 }
@@ -561,7 +549,6 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      * Initial client state tables.
      */
     anvil_remote_map = htable_create(1000);
-    anvil_local_map = binhash_create(100);
 
     /*
      * Do not limit the number of client requests.

@@ -57,7 +57,6 @@ anvil.o: ../../include/sys_defs.h
 anvil.o: ../../include/msg.h
 anvil.o: ../../include/mymalloc.h
 anvil.o: ../../include/htable.h
-anvil.o: ../../include/binhash.h
 anvil.o: ../../include/stringops.h
 anvil.o: ../../include/vstring.h
 anvil.o: ../../include/vbuf.h
