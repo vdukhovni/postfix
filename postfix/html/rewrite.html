@@ -55,11 +55,11 @@ All mail:
 
 <p>
 
-<li> <a href="#relocated"> Relocated users table</a>
+<li> <a href="#transport"> Mail transport switch</a>
 
 <p>
 
-<li> <a href="#transport"> Mail transport switch</a>
+<li> <a href="#relocated"> Relocated users table</a>
 
 </ul>
 
@@ -307,7 +307,7 @@ individual machines.
 
 After applying the canonical and masquerade mappings, the <a
 href="cleanup.8.html">cleanup</a> daemon uses the <a
-href="virtual.5.html">virtual</a> table to redirect mail for all
+href="virtual.5.html">virtual alias</a> table to redirect mail for all
 recipients, local or remote.  The mapping affects only envelope
 recipients; it has no effect on message headers or envelope senders.
 Virtual alias lookups are useful to redirect mail for simulated
@@ -336,39 +336,48 @@ Addresses found in virtual alias maps are subjected to another
 iteration of virtual aliasing, but are not subjected to canonical
 mapping, in order to avoid loops.
 
-<a name="relocated"> <h2> Relocated users table</h2>
-
-Next, the queue manager runs each recipient name through the
-<a href="relocated.5.html">relocated</a> database.  This table
-provides information on how to reach users that no longer have an
-account, or what to do with mail for entire domains that no longer
-exist.  When mail is sent to an address that is listed in this
-table, the message is bounced with an informative message.
-
-<p>
-
-Lookups of relocated users are disabled by default. To enable, edit
-the <b>relocated_maps</b> parameter in the <b>main.cf</b>
-file and specify one or more lookup tables, separated by whitespace
-or commas. For example:
-
-<dl>
-
-<dd><b>relocated_maps = hash:/etc/postfix/relocated</b>
-
-</dl>
-
 <a name="transport"> <h2> Mail transport switch</h2>
 
-Once the queue manager has established the destination of a message,
-the optional <a href="transport.5.html">transport</a> table controls
-how the message will be delivered (this table is used by the address
-rewriting and resolving daemon). By default, everything is sent
-via the <a href="smtp.8.html">smtp</a> transport. The transport
-table can be used to send mail to specific sites via <b>UUCP</b>,
-or to send mail to a really broken mail system that can handle only
-one SMTP connection at a time (yes, such systems exist and people
-used to pay real money for them).
+Once the address rewriting and resolving daemon has established
+the destination of a message, it determines the default delivery
+method for that destination. Postfix distinguishes four major
+address classes, each with its own default delivery method.
+
+<blockquote>
+
+<table border="1">
+
+<tr><th align="left">Destination matches<th align="left">Default delivery agent <th align="left">Controlling parameter
+
+<tr><td><a href="basic.html#mydestination">$mydestination</a> or
+<a href="basic.html#inet_interfaces">$inet_interfaces</a>
+<td><a href="local.8.html">local</a>
+<td><b>$local_transport</b> 
+
+<tr><td><b>$virtual_mailbox_domains</b> 
+<td><a href="virtual.8.html">virtual</a>
+<td><b>$virtual_transport</b> 
+
+<tr><td><a href="uce.html#relay_domains">$relay_domains</a>
+<td>relay (clone of <a href="smtp.8.html">smtp</a>)
+<td><b>$relay_transport</b> 
+
+<tr><td>none 
+<td><a href="smtp.8.html">smtp</a>
+<td><b>$default_transport</b> 
+
+</table>
+
+</blockquote>
+
+The optional <a href="transport.5.html">transport</a> table overrides
+the default message delivery method (this table is used by the
+address rewriting and resolving daemon).
+
+The transport table can be used to send mail to specific sites via
+<b>UUCP</b>, or to send mail to a really broken mail system that
+can handle only one SMTP connection at a time (yes, such systems
+exist and people used to pay real money for them).
 
 <p>
 
@@ -380,6 +389,28 @@ commas. For example:
 <dl>
 
 <dd><b>transport_maps = hash:/etc/postfix/transport</b>
+
+</dl>
+
+<a name="relocated"> <h2> Relocated users table</h2>
+
+Next, the address rewriting and resolving daemon runs each recipient
+name through the <a href="relocated.5.html">relocated</a> database.
+This table provides information on how to reach users that no longer
+have an account, or what to do with mail for entire domains that
+no longer exist.  When mail is sent to an address that is listed
+in this table, the message is bounced with an informative message.
+
+<p>
+
+Lookups of relocated users are disabled by default. To enable, edit
+the <b>relocated_maps</b> parameter in the <b>main.cf</b>
+file and specify one or more lookup tables, separated by whitespace
+or commas. For example:
+
+<dl>
+
+<dd><b>relocated_maps = hash:/etc/postfix/relocated</b>
 
 </dl>
 

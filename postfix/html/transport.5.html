@@ -217,11 +217,11 @@ TRANSPORT(5)                                         TRANSPORT(5)
 
        <b>virtual</b><i>_</i><b>transport</b>
               The default mail delivery transport when the desti-
-              nation matches <b>virtual</b><i>_</i><b>mailbox</b><i>_</i><b>domains</b>.
+              nation matches <b>$virtual</b><i>_</i><b>mailbox</b><i>_</i><b>domains</b>.
 
        <b>relay</b><i>_</i><b>transport</b>
               The default mail delivery transport when the desti-
-              nation matches <b>relay</b><i>_</i><b>domains</b>.
+              nation matches <b>$relay</b><i>_</i><b>domains</b>.
 
        <b>default</b><i>_</i><b>transport</b>
               The default mail delivery transport when the desti-
@@ -234,8 +234,8 @@ TRANSPORT(5)                                         TRANSPORT(5)
 
        <b>relayhost</b>
               The default host for destinations that do not match
-              <b>$mydestination</b>,        <b>$inet</b><i>_</i><b>interfaces</b>,       <b>vir-</b>
-              <b>tual</b><i>_</i><b>alias</b><i>_</i><b>domains</b> or <b>virtual</b><i>_</i><b>mailbox</b><i>_</i><b>domains</b>.
+              <b>$mydestination</b>,       <b>$inet</b><i>_</i><b>interfaces</b>,       <b>$vir-</b>
+              <b>tual</b><i>_</i><b>alias</b><i>_</i><b>domains</b> or <b>$virtual</b><i>_</i><b>mailbox</b><i>_</i><b>domains</b>.
 
 <b>SEE</b> <b>ALSO</b>
        <a href="postmap.1.html">postmap(1)</a> create mapping table

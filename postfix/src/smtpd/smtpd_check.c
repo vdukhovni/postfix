@@ -3175,7 +3175,8 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
 #endif
 	&& NOMATCH(local_rcpt_maps, CONST_STR(reply->recipient))) {
 	(void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
-				  "%d <%s>: User unknown", 550, recipient);
+			   "%d <%s>: User unknown in local recipient table",
+				  550, recipient);
 	SMTPD_CHECK_RCPT_RETURN(STR(error_text));
     }
 
@@ -3188,7 +3189,8 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
 #endif
 	&& NOMATCHV8(virt_mailbox_maps, CONST_STR(reply->recipient))) {
 	(void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
-				  "%d <%s>: User unknown", 550, recipient);
+			   "%d <%s>: User unknown in virtual mailbox table",
+				  550, recipient);
 	SMTPD_CHECK_RCPT_RETURN(STR(error_text));
     }
 
@@ -3202,7 +3204,8 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
 #endif
 	&& NOMATCH(relay_rcpt_maps, CONST_STR(reply->recipient))) {
 	(void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
-				  "%d <%s>: User unknown", 550, recipient);
+			   "%d <%s>: User unknown in relay recipient table",
+				  550, recipient);
 	SMTPD_CHECK_RCPT_RETURN(STR(error_text));
     }
 
@@ -3374,6 +3377,9 @@ typedef struct {
     char   *defval;
     char  **target;
 } STRING_TABLE;
+
+#undef DEF_LOCAL_RCPT_MAPS
+#define DEF_LOCAL_RCPT_MAPS		""
 
 #undef DEF_VIRT_ALIAS_MAPS
 #define DEF_VIRT_ALIAS_MAPS	""
@@ -3781,7 +3787,7 @@ int     main(int argc, char **argv)
 	    }
 	    if (strcasecmp(args->argv[0], "relay_recipient_maps") == 0) {
 		UPDATE_STRING(var_relay_rcpt_maps, args->argv[1]);
-		UPDATE_MAPS(relay_rcpt_maps, VAR_LOCAL_RCPT_MAPS,
+		UPDATE_MAPS(relay_rcpt_maps, VAR_RELAY_RCPT_MAPS,
 			    var_relay_rcpt_maps, DICT_FLAG_LOCK);
 		resp = 0;
 		break;

@@ -177,11 +177,13 @@ $readme_directory/LDAP_README:f:root:-:644
 $readme_directory/LINUX_README:f:root:-:644
 $readme_directory/LMTP_README:f:root:-:644
 $readme_directory/MACOSX_README:f:root:-:644
+$readme_directory/MAILDROP_README:f:root:-:644
 $readme_directory/MYSQL_README:f:root:-:644
 $readme_directory/NFS_README:f:root:-:644
 $readme_directory/PACKAGE_README:f:root:-:644
 $readme_directory/PCRE_README:f:root:-:644
 $readme_directory/QMQP_README:f:root:-:644
+$readme_directory/RELEASE_NOTES:f:root:-:644
 $readme_directory/RESTRICTION_CLASS_README:f:root:-:644
 $readme_directory/SASL_README:f:root:-:644
 $readme_directory/ULTRIX_README:f:root:-:644

@@ -7348,7 +7348,7 @@ Apologies for any names omitted.
 	only one of the results has a malformed name or address.
 	File:  dns/dns_lookup.c.
 
-200201208
+20021208
 
 	Cleanup: with the preliminary address domain classification
 	concept as implemented by the trivial-rewrite address
@@ -7361,6 +7361,9 @@ Apologies for any names omitted.
 	recipients). This is for consistency with virtual_xx_maps
 	and virtual_xx_domains, and with local_recipient_maps and
 	the local delivery agent.  File:  smtpd/smtpd_check.c.
+
+	Cleanup: removed support for obsolete #number domain forms.
+	File: smtpd/smtpd_check.c.
 
 20021209
 
@@ -7378,6 +7381,25 @@ Apologies for any names omitted.
 	database, to prevent massive complaints from people who
 	suddenly lose all their mail because local_recipient_maps
 	is now turned on by default.
+
+20021211
+
+	Performance: doubled the default process limit (50->100)
+	and default queue manager active queue message/recipient
+	limits (10k->20k).  File: global/mail_params.h.
+
+20021212
+
+	Cleanup: allow transport map lookups to override error
+	mailer results (to avoid breaking existing installations),
+	and do transport map lookups before relocated map lookups.
+	Files:  trivial-rewrite/resolve.c, trivial-rewrite/transport.c.
+
+	Admin friendliness: the SMTP server now reports "User
+	unknown in {local recipient | virtual alias | virtual
+	mailbox | relay recipient} table". This will make trouble
+	shooting a little easier. Files: smtpd/smtpd_check.c,
+	trivial-rewrite/resolve.c.
 
 Open problems:
 

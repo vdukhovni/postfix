@@ -509,11 +509,11 @@ extern int var_delay_warn_time;
   * Queue manager: various in-core message and recipient limits.
   */
 #define VAR_QMGR_ACT_LIMIT	"qmgr_message_active_limit"
-#define DEF_QMGR_ACT_LIMIT	10000
+#define DEF_QMGR_ACT_LIMIT	20000
 extern int var_qmgr_active_limit;
 
 #define VAR_QMGR_RCPT_LIMIT	"qmgr_message_recipient_limit"
-#define DEF_QMGR_RCPT_LIMIT	10000
+#define DEF_QMGR_RCPT_LIMIT	20000
 extern int var_qmgr_rcpt_limit;
 
 #define VAR_QMGR_MSG_RCPT_LIMIT	"qmgr_message_recipient_minimum"
@@ -611,7 +611,7 @@ extern int var_qmgr_clog_warn_time;
   * Master: default process count limit per mail subsystem.
   */
 #define VAR_PROC_LIMIT		"default_process_limit"
-#define DEF_PROC_LIMIT		50
+#define DEF_PROC_LIMIT		100
 extern int var_proc_limit;
 
  /*

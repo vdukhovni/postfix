@@ -216,11 +216,11 @@
 # 
 #        virtual_transport
 #               The default mail delivery transport when the desti-
-#               nation matches virtual_mailbox_domains.
+#               nation matches $virtual_mailbox_domains.
 # 
 #        relay_transport
 #               The default mail delivery transport when the desti-
-#               nation matches relay_domains.
+#               nation matches $relay_domains.
 # 
 #        default_transport
 #               The default mail delivery transport when the desti-
@@ -233,8 +233,8 @@
 # 
 #        relayhost
 #               The default host for destinations that do not match
-#               $mydestination,        $inet_interfaces,       vir-
-#               tual_alias_domains or virtual_mailbox_domains.
+#               $mydestination,       $inet_interfaces,       $vir-
+#               tual_alias_domains or $virtual_mailbox_domains.
 # 
 # SEE ALSO
 #        postmap(1) create mapping table

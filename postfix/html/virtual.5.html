@@ -25,6 +25,10 @@ VIRTUAL(5)                                             VIRTUAL(5)
        <b>o</b>      To  simulate  virtual  domains  where  all  virtual
               addresses are aliased to non-virtual addresses.
 
+              Simulated virtual domains are not  to  be  confused
+              with  the true virtual domains that are implemented
+              with the Postfix <a href="virtual.8.html"><b>virtual</b>(8)</a> mail delivery agent.
+
        Virtual aliasing is applied  only  to  recipient  envelope
        addresses,  and  does  not  affect message headers.  Think
        Sendmail rule set <b>S0</b>, if you like. Use  <a href="canonical.5.html"><b>canonical</b>(5)</a>  map-

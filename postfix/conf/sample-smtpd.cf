@@ -401,18 +401,16 @@ smtpd_recipient_restrictions = permit_mynetworks,reject_unauth_destination
 #
 allow_untrusted_routing = no
 
-# The relay_domains parameter restricts what client hostname domains
-# (and subdomains thereof) this mail system will relay mail from,
-# and restricts what destination domains (and subdomains thereof)
-# this system will relay mail to.
+# The relay_domains parameter restricts what destination domains (and
+# subdomains thereof) this system will relay mail to.
 #
 # These domains are routed to the delivery agent specified with the
 # relay_transport parameter setting.
 #
 # By default, Postfix relays mail
 # - from trusted clients whose IP address matches $mynetworks,
-# - from untrusted clients to destinations that match $relay_domains
-#   or subdomains thereof, except addresses with sender-specified routing.
+# - from any client to destinations that match $relay_domains or
+#   subdomains thereof, except addresses with sender-specified routing.
 # The default relay_domains value is $mydestination. 
 #
 # In addition to the above, the Postfix SMTP server by default accepts mail

@@ -90,7 +90,8 @@ void    transport_init(void)
 /* find_transport_entry - look up and parse transport table entry */
 
 static int find_transport_entry(const char *key, int flags,
-				        VSTRING *channel, VSTRING *nexthop)
+				        VSTRING *channel, VSTRING *nexthop,
+				        const char *def_nexthop)
 {
     char   *saved_value;
     const char *host;
@@ -131,7 +132,8 @@ static int find_transport_entry(const char *key, int flags,
 	    } else
 #endif
 		vstring_strcpy(nexthop, host);
-	}
+	} else if (def_nexthop != 0)
+	    vstring_strcpy(nexthop, def_nexthop);
 	if (*saved_value != 0)
 	    vstring_strcpy(channel, saved_value);
 	myfree(saved_value);
@@ -150,7 +152,7 @@ void    transport_wildcard_init(void)
 #define FULL		0
 #define PARTIAL		DICT_FLAG_FIXED
 
-    if (find_transport_entry(WILDCARD, FULL, channel, nexthop)) {
+    if (find_transport_entry(WILDCARD, FULL, channel, nexthop, (char *) 0)) {
 	wildcard_channel = channel;
 	wildcard_nexthop = nexthop;
 	if (msg_verbose)
@@ -172,6 +174,7 @@ int     transport_lookup(const char *addr, VSTRING *channel, VSTRING *nexthop)
     const char *name;
     const char *next;
     int     found;
+    const char *def_nexthop = 0;
 
 #define STREQ(x,y)	(strcmp((x), (y)) == 0)
 #define DISCARD_EXTENSION ((char **) 0)
@@ -190,7 +193,7 @@ int     transport_lookup(const char *addr, VSTRING *channel, VSTRING *nexthop)
      * string. Specify the FULL flag to include regexp maps in the query.
      */
     if (STREQ(full_addr, var_xport_null_key)) {
-	if (find_transport_entry(full_addr, FULL, channel, nexthop))
+	if (find_transport_entry(full_addr, FULL, channel, nexthop, def_nexthop))
 	    RETURN_FREE(FOUND);
 	RETURN_FREE(NOTFOUND);
     }
@@ -199,10 +202,12 @@ int     transport_lookup(const char *addr, VSTRING *channel, VSTRING *nexthop)
      * Look up the full address with the FULL flag to include regexp maps in
      * the query.
      */
-    if ((ratsign = strrchr(full_addr, '@')) == 0)
+    if ((ratsign = strrchr(full_addr, '@')) == 0 || ratsign[1] == 0)
 	msg_panic("transport_lookup: bad address: \"%s\"", full_addr);
 
-    if (find_transport_entry(full_addr, FULL, channel, nexthop))
+    def_nexthop = ratsign + 1;
+
+    if (find_transport_entry(full_addr, FULL, channel, nexthop, def_nexthop))
 	RETURN_FREE(FOUND);
 
     /*
@@ -212,7 +217,8 @@ int     transport_lookup(const char *addr, VSTRING *channel, VSTRING *nexthop)
      */
     if ((stripped_addr = strip_addr(full_addr, DISCARD_EXTENSION,
 				    *var_rcpt_delim)) != 0) {
-	if (find_transport_entry(stripped_addr, PARTIAL, channel, nexthop)) {
+	if (find_transport_entry(stripped_addr, PARTIAL, channel, nexthop,
+				 def_nexthop)) {
 	    myfree(stripped_addr);
 	    RETURN_FREE(FOUND);
 	} else {
@@ -237,7 +243,7 @@ int     transport_lookup(const char *addr, VSTRING *channel, VSTRING *nexthop)
      * with regular expressions.
      */
     for (found = 0, name = ratsign + 1; /* void */ ; name = next) {
-	if (find_transport_entry(name, PARTIAL, channel, nexthop))
+	if (find_transport_entry(name, PARTIAL, channel, nexthop, def_nexthop))
 	    RETURN_FREE(FOUND);
 	if ((next = strchr(name + 1, '.')) == 0)
 	    break;

@@ -19,11 +19,15 @@ This release adds a new "relay" service to the Postfix master.cf
 file.  If your Postfix is unable to connect to the "relay" service
 then you have not properly followed the installation procedure.
 
-The Postfix SMTP server now rejects mail for local recipients that
-it does not know about.  For this to work correctly, you need to
-review the section titled "REJECTING UNKNOWN LOCAL USERS" in
-conf/main.cf if one of the following is true:
+The Postfix SMTP server now rejects mail for $mydestination domain
+recipients that it does not know about.  For this to work correctly,
+you need to review the section titled "REJECTING UNKNOWN LOCAL
+USERS" in conf/main.cf if one of the following is true:
 
+- You define $mydestination domain recipients in files other than
+  /etc/passwd, /etc/aliases, or the $virtual_alias_maps files.
+  For example, you define $mydestination domain recipients in the
+  $virtual_mailbox_maps files.
 - You run the Postfix SMTP server chrooted (see master.cf).
 - You redefined the local delivery agent in master.cf.
 - You redefined the "local_transport" setting in main.cf.
@@ -62,12 +66,15 @@ The "check_relay_domains" restriction is going away. The SMTP server
 logs a warning and suggests using "reject_unauth_destination"
 instead.
 
+The Postfix SMTP client no longer expands CNAMEs in MAIL FROM or
+RCPT TO addresses (as permitted by RFC 2821).
+
 The Postfix installation procedure no longer sets the "chattr +S"
 bit on Linux queue directories. Wietse has gotten too annoyed with
 naive reviewers who complain about performance without having a
 clue of what they are comparing.
 
-Major changes with Postfix snapshot 1.1.11-20021209
+Major changes with Postfix snapshot 1.1.12-20021209
 ===================================================
 
 This release introduces separation of lookup tables for addresses

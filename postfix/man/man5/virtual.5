@@ -26,6 +26,10 @@ To redirect mail from one address to one or more other addresses.
 .IP \(bu
 To simulate virtual domains where all virtual addresses are aliased
 to non-virtual addresses.
+.sp
+Simulated virtual domains are not to be confused with the true virtual
+domains that are implemented with the Postfix \fBvirtual\fR(8) mail
+delivery agent.
 .PP
 Virtual aliasing is applied only to recipient
 envelope addresses, and does not affect message headers.

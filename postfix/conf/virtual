@@ -24,6 +24,10 @@
 #        o      To  simulate  virtual  domains  where  all  virtual
 #               addresses are aliased to non-virtual addresses.
 # 
+#               Simulated virtual domains are not  to  be  confused
+#               with  the true virtual domains that are implemented
+#               with the Postfix virtual(8) mail delivery agent.
+# 
 #        Virtual aliasing is applied  only  to  recipient  envelope
 #        addresses,  and  does  not  affect message headers.  Think
 #        Sendmail rule set S0, if you like. Use  canonical(5)  map-

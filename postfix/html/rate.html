@@ -70,7 +70,7 @@ command.
 
 <a name="process"><h2> Process limits</h2>
 
-The <b>default_process_limit</b> parameter (default: 50) gives
+The <b>default_process_limit</b> parameter (default: 100) gives
 direct control over inbound and outbound delivery rates.  This
 parameter controls the number of concurrent processes that implement
 a Postfix service (smtp client, smtp server, local delivery, etc.).
@@ -319,7 +319,7 @@ failure.
 
 <p>
 
-<dt> <b>qmgr_message_recipient_limit</b> (default: 1000) <dd> The
+<dt> <b>qmgr_message_recipient_limit</b> (default: 20000) <dd> The
 size of many in-memory queue manager data structures.  Among others,
 this parameter limits the size of the short-term, in-memory "dead"
 list.  Destinations that don't fit the list are not added.

@@ -207,10 +207,10 @@
 #	\fB$mydestination\fR or \fB$inet_interfaces\fR.
 # .IP \fBvirtual_transport\fR
 #	The default mail delivery transport when the destination matches
-#	\fBvirtual_mailbox_domains\fR.
+#	\fB$virtual_mailbox_domains\fR.
 # .IP \fBrelay_transport\fR
 #	The default mail delivery transport when the destination matches
-#	\fBrelay_domains\fR.
+#	\fB$relay_domains\fR.
 # .IP \fBdefault_transport\fR
 #	The default mail delivery transport when the destination does not
 #	match a local, virtual or relay destination.
@@ -220,7 +220,7 @@
 # .IP \fBrelayhost\fR
 #	The default host for destinations that do not match
 #	\fB$mydestination\fR, \fB$inet_interfaces\fR,
-#	\fBvirtual_alias_domains\fR or \fBvirtual_mailbox_domains\fR.
+#	\fB$virtual_alias_domains\fR or \fB$virtual_mailbox_domains\fR.
 # SEE ALSO
 #	postmap(1) create mapping table
 #	trivial-rewrite(8) rewrite and resolve addresses

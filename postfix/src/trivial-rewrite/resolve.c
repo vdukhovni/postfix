@@ -247,7 +247,7 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 		msg_warn("do not list domain %s in BOTH %s and %s",
 		  STR(nexthop), VAR_VIRT_ALIAS_DOMS, VAR_VIRT_MAILBOX_DOMS);
 	    vstring_strcpy(channel, var_error_transport);
-	    vstring_strcpy(nexthop, "User unknown");
+	    vstring_strcpy(nexthop, "User unknown in virtual alias table");
 	    blame = VAR_ERROR_TRANSPORT;
 	    *flags |= RESOLVE_CLASS_ALIAS;
 	} else if (dict_errno != 0) {
@@ -326,17 +326,26 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
     }
 
     /*
-     * Bounce recipients that have moved. We do it here instead of in the
-     * local delivery agent. The benefit is that we can bounce mail for
-     * virtual addresses, not just local addresses only, and that there is no
-     * need to run a local delivery agent just for the sake of relocation
-     * notices. The downside is that this table has no effect on local alias
-     * expansion results, so that mail will have to make almost an entire
-     * iteration through the mail system.
+     * The transport map overrides any transport and next-hop host info that
+     * is set up above.
+     */
+    if ((*flags & RESOLVE_FLAG_FAIL) == 0 && *var_transport_maps) {
+	if (transport_lookup(STR(nextrcpt), channel, nexthop) == 0
+	    && dict_errno != 0) {
+	    msg_warn("%s lookup failure", VAR_TRANSPORT_MAPS);
+	    *flags |= RESOLVE_FLAG_FAIL;
+	}
+    }
+
+    /*
+     * Bounce recipients that have moved, regardless of domain address class.
+     * The downside of doing this here is that this table has no effect on
+     * local alias expansion results. Such mail will have to make almost an
+     * entire iteration through the mail system.
      */
 #define IGNORE_ADDR_EXTENSION   ((char **) 0)
 
-    if ((*flags & RESOLVE_FLAG_FAIL) == 0 && relocated_maps != 0) {
+    if ((*flags & RESOLVE_FLAG_FAIL) == 0 && *var_relocated_maps != 0) {
 	const char *newloc;
 
 	if ((newloc = mail_addr_find(relocated_maps, STR(nextrcpt),
@@ -345,22 +354,6 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 	    vstring_sprintf(nexthop, "user has moved to %s", newloc);
 	} else if (dict_errno != 0) {
 	    msg_warn("%s lookup failure", VAR_RELOCATED_MAPS);
-	    *flags |= RESOLVE_FLAG_FAIL;
-	}
-    }
-
-    /*
-     * The transport map overrides any transport and next-hop host info that
-     * is set up above.
-     * 
-     * XXX Don't override the error transport :-(
-     */
-    if ((*flags & RESOLVE_FLAG_FAIL) == 0
-	&& *var_transport_maps
-	&& strcmp(STR(channel), var_error_transport) != 0) {
-	if (transport_lookup(STR(nextrcpt), channel, nexthop) == 0
-	    && dict_errno != 0) {
-	    msg_warn("%s lookup failure", VAR_TRANSPORT_MAPS);
 	    *flags |= RESOLVE_FLAG_FAIL;
 	}
     }
