@@ -243,9 +243,9 @@ SMTP(8)                                                   SMTP(8)
               <b>default_destination_recipient_limit</b> parameter.
 
        <b>smtp_mx_address_limit</b>
-              An upper bound on the number of MX (mail exchanger)
-              IP  addresses that that can result from DNS or host
-              lookups.
+              An upper bound on the  total  number  of  MX  (mail
+              exchanger)  IP  addresses that that can result from
+              mail exchanger lookups.
 
               Specify zero to disable the limit.
 
@@ -253,10 +253,10 @@ SMTP(8)                                                   SMTP(8)
               sorted into random order.
 
        <b>smtp_mx_session_limit</b>
-              An  upper bound on the number of SMTP sessions that
-              the SMTP client will engage in per message delivery
-              (ignoring MX IP addresses that fail to complete the
-              SMTP initial handshake).
+              An  upper  bound on the number of SMTP sessions per
+              delivery request before giving up or delivering  to
+              a  fall-back relay host (ignoring IP addresses that
+              fail to complete the SMTP initial handshake).
 
               Specify zero to disable the limit.
 

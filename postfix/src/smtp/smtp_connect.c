@@ -15,7 +15,9 @@
 /*	smtp_connect() attempts to establish an SMTP session with a host
 /*	that represents the destination domain, or with an optional fallback
 /*	relay when the destination cannot be found, or when all the
-/*	destination servers are unavailable.
+/*	destination servers are unavailable. It skips over IP addresses
+/*	that fail to complete the SMTP handshake and tries to find
+/*	an alternate server when an SMTP session fails to deliver.
 /*
 /*	The destination is either a host (or domain) name or a numeric
 /*	address. Symbolic or numeric service port information may be
@@ -108,6 +110,8 @@ static SMTP_SESSION *smtp_connect_addr(DNS_RR *addr, unsigned port,
     VSTREAM *stream;
     int     ch;
     unsigned long inaddr;
+
+    smtp_errno = SMTP_NONE;			/* Paranoia */
 
     /*
      * Sanity checks.
@@ -318,7 +322,6 @@ int     smtp_connect(SMTP_STATE *state)
      */
     for (cpp = sites->argv; SMTP_RCPT_LEFT(state) > 0 && (dest = *cpp) != 0; cpp++) {
 	state->final_server = (cpp[1] == 0);
-	smtp_errno = SMTP_NONE;
 
 	/*
 	 * Parse the destination. Default is to use the SMTP port. Look up
@@ -378,6 +381,7 @@ int     smtp_connect(SMTP_STATE *state)
 		    smtp_chat_notify(state);
 		/* XXX smtp_xfer() may abort in the middle of DATA. */
 		smtp_session_free(state->session);
+		state->session = 0;
 		debug_peer_restore();
 		smtp_rcpt_cleanup(state);
 	    } else {
@@ -440,7 +444,7 @@ int     smtp_connect(SMTP_STATE *state)
 	     * We still need to bounce or defer some left-over recipients:
 	     * either mail loops or some backup mail server was unavailable.
 	     */
-	    state->final_server = 1;
+	    state->final_server = 1;		/* XXX */
 	    smtp_site_fail(state, smtp_errno == SMTP_RETRY ? 450 : 550,
 			   "%s", vstring_str(why));
 

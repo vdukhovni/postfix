@@ -184,10 +184,12 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
 	    smtp_errno = SMTP_RETRY;
 	    return (addr_list);
 	case DNS_FAIL:
-	    smtp_errno = SMTP_FAIL;
+	    if (smtp_errno != SMTP_RETRY)
+		smtp_errno = SMTP_FAIL;
 	    return (addr_list);
 	case DNS_NOTFOUND:
-	    smtp_errno = SMTP_FAIL;
+	    if (smtp_errno != SMTP_RETRY)
+		smtp_errno = SMTP_FAIL;
 	    /* maybe gethostbyname() will succeed */
 	    break;
 	}
@@ -200,12 +202,14 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
 	memset((char *) &fixed, 0, sizeof(fixed));
 	if ((hp = gethostbyname(host)) == 0) {
 	    vstring_sprintf(why, "%s: %s", host, HSTRERROR(h_errno));
-	    smtp_errno = (h_errno == TRY_AGAIN ? SMTP_RETRY : SMTP_FAIL);
+	    if (smtp_errno != SMTP_RETRY)
+		smtp_errno = (h_errno == TRY_AGAIN ? SMTP_RETRY : SMTP_FAIL);
 	} else if (hp->h_addrtype != AF_INET) {
 	    vstring_sprintf(why, "%s: host not found", host);
 	    msg_warn("%s: unknown address family %d for %s",
 		     myname, hp->h_addrtype, host);
-	    smtp_errno = SMTP_FAIL;
+	    if (smtp_errno != SMTP_RETRY)
+		smtp_errno = SMTP_FAIL;
 	} else {
 	    while (hp->h_addr_list[0]) {
 		addr_list = dns_rr_append(addr_list,
@@ -335,6 +339,8 @@ DNS_RR *smtp_domain_addr(char *name, VSTRING *why)
     unsigned best_pref;
     unsigned best_found;
 
+    smtp_errno = SMTP_NONE;			/* Paranoia */
+
     /*
      * Preferences from DNS use 0..32767, fall-backs use 32768+.
      */
@@ -449,12 +455,20 @@ DNS_RR *smtp_host_addr(char *host, VSTRING *why)
 {
     DNS_RR *addr_list;
 
+    smtp_errno = SMTP_NONE;			/* Paranoia */
+
     /*
      * If the host is specified by numerical address, just convert the
      * address to internal form. Otherwise, the host is specified by name.
      */
 #define PREF0	0
     addr_list = smtp_addr_one((DNS_RR *) 0, host, PREF0, why);
+    if (addr_list && smtp_find_self(addr_list) != 0) {
+	dns_rr_free(addr_list);
+	vstring_sprintf(why, "mail for %s loops back to myself", host);
+	smtp_errno = SMTP_LOOP;
+	return (0);
+    }
     if (addr_list && addr_list->next && var_smtp_rand_addr)
 	addr_list = dns_rr_shuffle(addr_list);
     if (msg_verbose)

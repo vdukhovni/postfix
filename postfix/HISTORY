@@ -8871,7 +8871,7 @@ Apologies for any names omitted.
 	between short queue ID and message status).  File:
 	showq/showq.c.
 
-20031216-20
+20031216-21
 
 	Cleanup: the SMTP client now moves on to the next MX host
 	or fallback relay when delivery fails in the middle of an
@@ -8884,13 +8884,27 @@ Apologies for any names omitted.
 	(limit the number of actual SMTP sessions per delivery
 	attempt, ignoring unusable MX IP addresses).
 
+	The new code centers around a mark-and-sweep algorithm
+	(replacing code that twiddled the rcpt->offset structure
+	member), with paranoid sanity checks to ensure that every
+	recipient is explicitly accounted for.
+
 20031217
 
 	Update: LDAP client logging (Liviu Daia) and LDAP client
 	documentation (Victor Duchovni). Files: util/dict_ldap.c,
 	conf/sample-ldap.cf, README_FILES/LDAP_README.
 
+20031222
+
+	Cleanup: shaved half the worst-case bits off the cleanup
+	duplicate address filter footprint. After discussion with
+	Victor Duchovni. File: cleanup/cleanup_out_recipient.c.
+
 Open problems:
+
+	Low: in the SMTP client, pass the session, request and
+	state structures as separate arguments.
 
 	High: when virtual aliasing is turned off after content
 	filtering, local submissions may escape virtual aliasing.

@@ -45,6 +45,9 @@
 /* .IP \fB-P\fR
 /*	Change the server greeting so that it appears to come through
 /*	a CISCO PIX system. Implies \fB-e\fR.
+/* .IP "\fB-q  \fIcommand,command,...\fR"
+/*	Disconnect (without replying) after receiving one of the
+/*	specified commands.
 /* .IP "\fB-r  \fIcommand,command,...\fR"
 /*	Reject the specified commands with a soft (4xx) error code.
 /* .IP "\fB-s \fIcommand,command,...\fR"
@@ -320,6 +323,7 @@ typedef struct SINK_COMMAND {
 #define FLAG_SYSLOG	(1<<1)		/* log the command */
 #define FLAG_HARD_ERR	(1<<2)		/* report hard error */
 #define FLAG_SOFT_ERR	(1<<3)		/* report soft error */
+#define FLAG_DISCONNECT	(1<<4)		/* disconnect */
 
 static SINK_COMMAND command_table[] = {
     "helo", helo_response, 0,
@@ -476,6 +480,8 @@ static int command_read(SINK_STATE *state)
 	smtp_flush(state->stream);
 	return (0);
     }
+    if (cmdp->flags & FLAG_DISCONNECT) 
+	return (-1);
     if (cmdp->flags & FLAG_HARD_ERR) {
 	smtp_printf(state->stream, "500 Error: command failed");
 	smtp_flush(state->stream);
@@ -588,7 +594,7 @@ static void connect_event(int unused_event, char *context)
 
 static void usage(char *myname)
 {
-    msg_fatal("usage: %s [-ceLpPv8] [-h hostname] [-n count] [-s commands] [-w delay] [host]:port backlog", myname);
+    msg_fatal("usage: %s [-acCeFLpPv8] [-f commands] [-h hostname] [-n count] [-q commands] [-r commands] [-s commands] [-w delay] [host]:port backlog", myname);
 }
 
 int     main(int argc, char **argv)
@@ -605,7 +611,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "acCef:Fh:Ln:pPr:s:vw:8")) > 0) {
+    while ((ch = GETOPT(argc, argv, "acCef:Fh:Ln:pPq:r:s:vw:8")) > 0) {
 	switch (ch) {
 	case 'a':
 	    disable_saslauth = 1;
@@ -643,6 +649,9 @@ int     main(int argc, char **argv)
 	case 'P':
 	    pretend_pix = 1;
 	    disable_esmtp = 1;
+	    break;
+	case 'q':
+	    set_cmds_flags(optarg, FLAG_DISCONNECT);
 	    break;
 	case 'r':
 	    set_cmds_flags(optarg, FLAG_SOFT_ERR);

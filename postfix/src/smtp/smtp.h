@@ -98,15 +98,6 @@ extern int smtp_host_lookup_mask;	/* host lookup methods to use */
 #define SMTP_MASK_NATIVE	(1<<1)
 
  /*
-  * What soft errors qualify for going to a backup host.
-  */
-extern int smtp_backup_mask;		/* when to try backup host */
-
-#define SMTP_BACKUP_SESSION_FAILURE	(1<<0)
-#define SMTP_BACKUP_MESSAGE_FAILURE	(1<<1)
-#define SMTP_BACKUP_RECIPIENT_FAILURE	(1<<2)
-
- /*
   * smtp_session.c
   */
 typedef struct SMTP_SESSION {
@@ -147,11 +138,26 @@ extern void smtp_chat_reset(SMTP_STATE *);
 extern void smtp_chat_notify(SMTP_STATE *);
 
  /*
-  * These operations are extensively documented in smtp_rcpt.c
+  * These operations implement a redundant mark-and-sweep algorithm that
+  * explicitly accounts for the fate of every recipient. The interface is
+  * documented in smtp_rcpt.c, which also implements the sweeping. The
+  * smtp_trouble.c module does most of the marking after failure.
+  * 
+  * When a delivery fails or succeeds, take one of the following actions:
+  * 
+  * - Mark the recipient as KEEP (deliver to alternate MTA) and do not update
+  * the delivery request status.
+  * 
+  * - Mark the recipient as DROP (remove from delivery request), log whether
+  * delivery succeeded or failed, delete the recipient from the queue file
+  * and/or update defer or bounce logfiles, and update the delivery request
+  * status.
+  * 
+  * At the end of a delivery attempt, all recipients must be marked one way or
+  * the other. Failure to do so will trigger a panic.
   */
-#define SMTP_RCPT_STATE_KEEP	1		/* send to backup host */
-#define SMTP_RCPT_STATE_DROP	2		/* remove from request */
-
+#define SMTP_RCPT_STATE_KEEP	1	/* send to backup host */
+#define SMTP_RCPT_STATE_DROP	2	/* remove from request */
 #define SMTP_RCPT_INIT(state) do { \
 	    (state)->rcpt_drop = (state)->rcpt_keep = 0; \
 	    (state)->rcpt_left = state->request->rcpt_list.len; \

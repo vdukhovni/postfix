@@ -41,6 +41,9 @@
 /*	After a delivery attempt any recipients marked DROP are deleted 
 /*	from the request, and the left-over recipients are unmarked.
 /* .PP
+/*	The mark/sweep algorithm is implemented in a redundant manner,
+/*	and ensures that all recipients are explicitly accounted for.
+/*
 /*	Operations with upper case names are implemented by macros
 /*	whose arguments may be evaluated more than once.
 /*
@@ -170,7 +173,7 @@ void    smtp_rcpt_cleanup(SMTP_STATE *state)
      */
     if (state->rcpt_drop > 0 && state->rcpt_keep > 0)
 	qsort((void *) rcpt_list->info, state->rcpt_left,
-	      sizeof(rcpt_list->info), smtp_rcpt_cleanup_callback);
+	      sizeof(rcpt_list->info[0]), smtp_rcpt_cleanup_callback);
 
     /*
      * Truncate the recipient list and unmark the left-over recipients.

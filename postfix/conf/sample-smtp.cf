@@ -77,17 +77,19 @@ smtp_never_send_ehlo = no
 smtp_defer_if_no_mx_address_found = no
 
 # The smtp_mx_address_limit parameter limits the number of MX (mail
-# exchanger) IP addresses that can result from DNS or host lookups.
+# exchanger) IP addresses that can result from mail exchanger lookups.
 #
 # Specify zero to disable the limit. This is also the default.
 #
 smtp_mx_address_limit = 0
 
 # The smtp_mx_session_limit parameter limits the number of SMTP
-# sessions that the client will engage in, skipping over MX IP
-# addresses that fail to complete the SMTP initial handshake.
+# sessions per delivery request before giving up or delivering to a
+# fall-back relay host, ignoring IP addresses that fail to complete
+# the SMTP initial handshake.
 # 
-# By default, Postfix SMTP client gives up after two SMTP sessions.
+# By default, Postfix SMTP client gives up or delivers to fall-back
+# relay after two SMTP sessions.  
 #
 # Specify zero to disable the limit.
 #

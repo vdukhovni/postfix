@@ -22,13 +22,40 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
-Major changes with Postfix snapshot 2.0.16-20031221
+Incompatible changes with Postfix snapshot 2.0.16-20031222
+==========================================================
+
+In mailq (queue listing) output, there no longer is space between
+a short queue ID and the "*" (delivery in progress) or ! (mail on
+hold) status indicator. This makes the output easier to parse.
+
+The SMTP client now tries to connect to an alternate MX address
+when a delivery attempt fails **after the initial SMTP handshake**.
+This includes both broken connections and 4XX SMTP replies.  To
+get the old behavior, specify "smtp_mx_session_limit = 1" in main.cf.
+
+After delivery failure due to a temporary error condition, the SMTP
+client now always connects to the fall-back relay if specified.
+
+Major changes with Postfix snapshot 2.0.16-20031222
 ===================================================
 
-The SMTP client now moves on to the next MX host (or fallback relay)
-when delivery fails in the middle of a session. This includes both
-broken connections as well as 4XX replies to SMTP commands.  Finally,
-fallback_relay works as expected.
+The SMTP client now tries to connect to an alternate MX address
+when a delivery attempt fails **after the initial SMTP handshake**.
+This includes both broken connections and 4XX SMTP replies.
+
+Finally, fallback_relay works as promised.
+
+The new SMTP client connection management is controlled by two new
+configuration parameters:
+
+- smtp_mx_address_limit (default unlimited): the number of MX (mail
+exchanger) IP addresses that can result from mail exchanger lookups.
+
+- smtp_mx_session_limit (default 2):  the number of SMTP sessions
+per delivery request before giving up or delivering to a fall-back
+relay, ignoring IP addresses that fail to complete the SMTP initial
+handshake.
 
 Incompatible changes with Postfix snapshot 2.0.16-20031215
 ==========================================================
@@ -62,7 +89,7 @@ Incompatible changes with Postfix snapshot 2.0.16-20031203
 ==========================================================
 
 Many SMTPD reject logfile entries now show NOQUEUE instead of a
-queue ID.  This is because Postfix no longer creates queue file
+queue ID.  This is because Postfix no longer creates a queue file
 before the SMTP server has received a valid recipient.
 
 The experimental XADDR and XLOGINFO extensions to SMTP are now

@@ -113,6 +113,7 @@ maildrop  unix  -       n       n       -       -       pipe
 old-cyrus unix  -       n       n       -       -       pipe
   flags=R user=cyrus argv=/cyrus/bin/deliver -e -m ${extension} ${user}
 # Cyrus 2.1.5 (Amos Gouaux)
+# Also specify in main.cf: cyrus_destination_recipient_limit=1
 cyrus     unix  -       n       n       -       -       pipe
   user=cyrus argv=/cyrus/bin/deliver -e -r ${sender} -m ${extension} ${user}
 uucp      unix  -       n       n       -       -       pipe

@@ -188,17 +188,18 @@
 /*	The default limit is taken from the
 /*	\fBdefault_destination_recipient_limit\fR parameter.
 /* .IP \fBsmtp_mx_address_limit\fR
-/*	An upper bound on the number of MX (mail exchanger) IP addresses
-/*	that that can result from DNS or host lookups.
+/*	An upper bound on the total number of MX (mail exchanger) IP
+/*	addresses that that can result from mail exchanger lookups.
 /* .sp
 /*	Specify zero to disable the limit.
 /* .sp
 /*	Note: by default, equal preference MX addresses are sorted into 
 /*	random order.
 /* .IP \fBsmtp_mx_session_limit\fR
-/*      An upper bound on the number of SMTP sessions that the SMTP
-/*      client will engage in per message delivery (ignoring MX IP 
-/*	addresses that fail to complete the SMTP initial handshake).
+/*      An upper bound on the number of SMTP sessions per delivery request
+/*	before giving up or delivering to a fall-back relay host
+/*	(ignoring IP addresses that fail to complete the SMTP initial 
+/*	handshake).
 /* .sp
 /*	Specify zero to disable the limit.
 /* .SH "Timeout controls"
