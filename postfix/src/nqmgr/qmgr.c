@@ -552,7 +552,6 @@ int     main(int argc, char **argv)
     static CONFIG_BOOL_TABLE bool_table[] = {
 	VAR_ALLOW_MIN_USER, DEF_ALLOW_MIN_USER, &var_allow_min_user,
 	VAR_VERP_BOUNCE_OFF, DEF_VERP_BOUNCE_OFF, &var_verp_bounce_off,
-	VAR_SENDER_ROUTING, DEF_SENDER_ROUTING, &var_sender_routing,
 	0,
     };
 

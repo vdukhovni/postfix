@@ -531,7 +531,7 @@ EOF
     if [ -z "$has_lrm" -a -z "$has_lrjc" ]
     then
 	echo SAFETY: editing main.cf, setting $unknown_local=450.
-	echo See the RELEASE_NOTES and $config_directory/main.cf for details.
+	echo See the RELEASE_NOTES and LOCAL_RECIPIENT_README files for details.
 	$POSTCONF -e "$unknown_local = 450" || exit 1
     fi
 

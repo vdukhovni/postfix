@@ -6597,10 +6597,6 @@ Apologies for any names omitted.
 	with unread data according to ioctl FIONREAD.  Incredible.
 	Diagnosis by Max Pashkov.  File:  smtp/smtp-sink.c.
 
-	Weird feature: sender-based routing. This will become more
-	useful once per-address transport map entries are done.
-	File:  src/*qmgr/qmgr_message.c.
-
 20020605
 
 	Safety: header_address_token_limit limits the amount of
@@ -6614,13 +6610,6 @@ Apologies for any names omitted.
 	by Scott Cotton, from several years ago. Adding this code
 	now was much less painful than it was in the past. Files:
 	global/strip_addr.c, trivial-rewrite/transport.c.
-
-20020610
-
-	Cleanup: making user@domain transport map lookups work with
-	sender-based routing was a bit tricky, because the null
-	address must be handled sensibly. Files: global/resolve_clnt.c,
-	trivial-rewrite/resolve.c. It ain't perfect yet, but close.
 
 20020613
 
@@ -7493,10 +7482,6 @@ Apologies for any names omitted.
 
 20021220
 
-	Bugfix: the reject_multi_recipient_bounce restriction had
-	an off-by-one error when used in smtpd_data_restrictions.
-	File: smtpd/smtpd_check.c.
-
 	Feature: new check_recipient_maps restriction that gives
 	finer control over when unknown recipients are rejected.
 	As with Postfix 1.1, the default is to do this at the end
@@ -7510,6 +7495,12 @@ Apologies for any names omitted.
 	"User unknown" responses. The extra detail makes trouble
 	shooting easier but also reveals information that is nobody
 	elses business.
+
+20021221
+
+	Workaround: don't allow the transport map to override the
+	virtual alias class (error:User unknown) result.  File:
+	trivial-rewrite/transport.c.
 
 Open problems:
 
