@@ -367,6 +367,7 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
     uid_t   uid = getuid();
     int     status;
     int     naddr;
+    int     prev_type;
 
     /*
      * Initialize.
@@ -457,8 +458,8 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
     rec_fprintf(dst, REC_TYPE_MESG, REC_TYPE_MESG_FORMAT, 0L);
     skip_from_ = 1;
     strip_cr = STRIP_CR_DUNNO;
-    while ((type = rec_streamlf_get(VSTREAM_IN, buf, var_line_limit))
-	   != REC_TYPE_EOF) {
+    for (prev_type = 0; (type = rec_streamlf_get(VSTREAM_IN, buf, var_line_limit))
+	 != REC_TYPE_EOF; prev_type = type) {
 	if (strip_cr == STRIP_CR_DUNNO && type == REC_TYPE_NORM) {
 	    if (VSTRING_LEN(buf) > 0 && vstring_end(buf)[-1] == '\r')
 		strip_cr = STRIP_CR_DO;
@@ -476,7 +477,8 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
 	if (strip_cr == STRIP_CR_DO && type == REC_TYPE_NORM)
 	    if (VSTRING_LEN(buf) > 0 && vstring_end(buf)[-1] == '\r')
 		vstring_truncate(buf, VSTRING_LEN(buf) - 1);
-	if ((flags & SM_FLAG_AEOF) && VSTRING_LEN(buf) == 1 && *STR(buf) == '.')
+	if ((flags & SM_FLAG_AEOF) && prev_type != REC_TYPE_CONT
+	    && VSTRING_LEN(buf) == 1 && *STR(buf) == '.')
 	    break;
 	if (REC_PUT_BUF(dst, type, buf) < 0)
 	    msg_fatal_status(EX_TEMPFAIL,

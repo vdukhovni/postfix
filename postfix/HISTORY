@@ -6125,7 +6125,73 @@ Apologies for any names omitted.
 	Duchovny, Morgan Stanley.  Files: util/dict.h util/dict.c
 	util/dict_db.c util/dict_dbm.c global/mkmap.c local/alias.c.
 
+20020313
+
+	Bugfix: mailq could show addresses with unusual characters
+	twice.  Problem reported by Victor Duchovny, Morgan Stanley.
+	File: showq/showq.c.
+
+	Bugfix: null recipients weren't properly recorded in
+	bounce/defer logfiles. Such recipient addresses are not
+	accepted in SMTP mail, but they could appear within locally
+	submitted mail.  File: bounce/bounce_append_service.c.
+
+20020318
+
+	Workaround: Berkeley DB can't handle null key lookups,
+	which happen with HELO names ending in ".".  Victor Duchovni,
+	Morgan Stanley. File: smtpd/smtpd_check.c.
+
+	Logging: log a hint when mail is deferred because the
+	soft_bounce parameter is set. People sometimes forget to
+	turn it off. File: global/bounce.c.
+
+20020319
+
+	Cleanup: add a msg_warn() call when fork() fails in
+	pipe_command(), to make problems easier to investigate.
+	Chris Wedgwood. File:  global/pipe_command.c.
+
+20020324
+
+	Cleanup: more graceful handling of long physical message
+	header lines upon input. Physical header lines can now
+	extend up to $header_size_limit characters. When a logical
+	message header is too long, the excess text is discarded
+	and Postfix no longer switches to body mode, to avoid
+	breaking MIME encapsulation.  Based on code by Victor
+	Duchovni, Morgan Stanley.  Files:  cleanup/cleanup_out.c,
+	cleanup/cleanup_message.c.
+
+	Cleanup: more graceful handling of long physical message
+	header or body lines upon output by the SMTP client. The
+	SMTP client output line length is controlled by a new
+	parameter smtp_line_length_limit (default: 990; specify 0
+	to disable the limit). Long lines are folded by inserting
+	<CR> <LF> <SPACE>, to avoid breaking MIME encapsulation.
+	Based on code by Victor Duchovni, Morgan Stanley.  File:
+	smtp/smtp_proto.c.
+
+20020325
+
+	Cleanup: allow additional text after a WARN command in a
+	header/body_checks pattern file, so that one can change
+	REJECT+text into WARN+text and vice versa. Based on code
+	by Fredrik Thulin, Stockholm University.
+
+	Cleanup: log a warning when an unknown command is found in
+	a header/body_checks pattern file, or when additional text
+	is found after a command that does not expect additional
+	text. Based on code by Fredrik Thulin, Stockholm University.
+
+	Bugfix: sendmail should not recognize "." as the end of
+	input when the current read operation started in the middle
+	of a line.  Victor Duchovni, Morgan Stanley. File:
+	sendmail/sendmail.c.
+
 Open problems:
+
+	Low: sendmail does not store null command-line recipients.
 
 	Low: don't do user@domain and @domain lookups in
 	local_recipient_maps queries.

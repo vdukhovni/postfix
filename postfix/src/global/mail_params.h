@@ -738,9 +738,9 @@ extern char *var_smtp_bind_addr;
 #define DEF_SMTP_RAND_ADDR	1
 extern bool var_smtp_rand_addr;
 
-#define VAR_SMTP_BREAK_LINES	"smtp_break_lines"
-#define DEF_SMTP_BREAK_LINES	1
-extern bool var_smtp_break_lines;
+#define VAR_SMTP_LINE_LIMIT	"smtp_line_length_limit"
+#define DEF_SMTP_LINE_LIMIT	990
+extern int var_smtp_line_limit;
 
 #define VAR_SMTP_PIX_THRESH	"smtp_pix_workaround_threshold_time"
 #define DEF_SMTP_PIX_THRESH	"500s"

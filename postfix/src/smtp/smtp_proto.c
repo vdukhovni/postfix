@@ -296,6 +296,9 @@ int     smtp_xfer(SMTP_STATE *state)
     int     sndbuffree;
     SOCKOPT_SIZE optlen = sizeof(sndbufsize);
     int     mail_from_rejected;
+    int     space_left = var_smtp_line_limit;
+    int     data_left;
+    char   *data_start;
 
     /*
      * Macros for readability.
@@ -665,16 +668,38 @@ int     smtp_xfer(SMTP_STATE *state)
 		if (prev_type != REC_TYPE_CONT)
 		    if (vstring_str(state->scratch)[0] == '.')
 			smtp_fputc('.', session->stream);
-		if (var_smtp_break_lines)
-		    rec_type = REC_TYPE_NORM;
-		if (rec_type == REC_TYPE_CONT)
-		    smtp_fwrite(vstring_str(state->scratch),
-				VSTRING_LEN(state->scratch),
-				session->stream);
-		else
-		    smtp_fputs(vstring_str(state->scratch),
-			       VSTRING_LEN(state->scratch),
-			       session->stream);
+
+		/*
+		 * Deal with an impedance mismatch between Postfix queue
+		 * files (record length <= $message_line_length_limit) and
+		 * SMTP (DATA record length <= $smtp_line_length_limit). The
+		 * code below does a little too much work when the SMTP line
+		 * length limit is disabled, but it avoids code duplication,
+		 * and thus, it avoids testing and maintenance problems.
+		 */
+		data_left = VSTRING_LEN(state->scratch);
+		data_start = vstring_str(state->scratch);
+		do {
+		    if (var_smtp_line_limit > 0 && data_left >= space_left) {
+			smtp_fputs(data_start, space_left, session->stream);
+			data_start += space_left;
+			data_left -= space_left;
+			space_left = var_smtp_line_limit;
+			if (data_left > 0 || rec_type == REC_TYPE_CONT) {
+			    smtp_fputc(' ', session->stream);
+			    space_left -= 1;
+			}
+		    } else {
+			if (rec_type == REC_TYPE_CONT) {
+			    smtp_fwrite(data_start, data_left, session->stream);
+			    space_left -= data_left;
+			} else {
+			    smtp_fputs(data_start, data_left, session->stream);
+			    space_left = var_smtp_line_limit;
+			}
+			break;
+		    }
+		} while (data_left > 0);
 		prev_type = rec_type;
 	    }
 

@@ -21,3 +21,4 @@
 #   REJECT text.... The text is sent to the originator.
 #   IGNORE          The header line is silently discarded.
 #   WARN            The header is logged (not rejected) with a warning.
+#   WARN text....   As above, and the text is logged, too.

@@ -1398,7 +1398,7 @@ static void smtpd_proto(SMTPD_STATE *state)
 		continue;
 	    }
 	    if (cmdp->flags & SMTPD_CMD_FLAG_HEADER) {
-		msg_warn("%s sent mail content instead of SMTP command: %.100s",
+		msg_warn("%s sent message header instead of SMTP command: %.100s",
 			 state->namaddr, vstring_str(state->buffer));
 		smtpd_chat_reply(state, "221 Error: I can break rules, too. Goodbye.");
 		break;

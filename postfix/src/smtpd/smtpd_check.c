@@ -1594,12 +1594,16 @@ static int check_domain_access(SMTPD_STATE *state, const char *table,
 
     /*
      * Try the name and its parent domains. Including top-level domains.
+     * 
+     * Helo names can end in ".". The test below avoids lookups of the empty
+     * key, because Berkeley DB cannot deal with it. [Victor Duchovni, Morgan
+     * Stanley].
      */
 #define CHK_DOMAIN_RETURN(x,y) { *found = y; myfree(low_domain); return(x); }
 
     if ((dict = dict_handle(table)) == 0)
 	msg_panic("%s: dictionary not found: %s", myname, table);
-    for (name = low_domain; /* void */ ; name = next) {
+    for (name = low_domain; *name != 0; name = next) {
 	if (flags == 0 || (flags & dict->flags) != 0) {
 	    if ((value = dict_get(dict, name)) != 0)
 		CHK_DOMAIN_RETURN(check_table_result(state, table, value,
