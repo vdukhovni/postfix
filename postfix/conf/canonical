@@ -1,4 +1,4 @@
-# CANONICAL(5)                                         CANONICAL(5)
+# CANONICAL(5)                                                      CANONICAL(5)
 # 
 # NAME
 #        canonical - Postfix canonical table format
@@ -40,6 +40,14 @@
 #        addresses  that are used in SMTP protocol commands). Think
 #        Sendmail rule set S3, if you  like.   This  is  controlled
 #        with the canonical_classes parameter.
+# 
+#        NOTE: Postfix versions 2.2 and later rewrite message head-
+#        ers from remote SMTP clients only if  the  client  matches
+#        the  local_header_rewrite_clients  parameter,  or  if  the
+#        remote_header_rewrite_domain configuration parameter spec-
+#        ifies  a non-empty value. To get the behavior before Post-
+#        fix   2.2,   specify    "local_header_rewrite_clients    =
+#        static:all".
 # 
 #        Typically, one would use the canonical(5) table to replace
 #        login  names  by  Firstname.Lastname,  or  to   clean   up
@@ -130,8 +138,8 @@
 #        constituent parts, nor is user+foo broken up into user and
 #        foo.
 # 
-#        Patterns are applied in the  order  as  specified  in  the
-#        table,  until  a  pattern is found that matches the search
+#        Patterns are applied in the order as specified in the  ta-
+#        ble,  until  a  pattern  is  found that matches the search
 #        string.
 # 
 #        Results are the same as with indexed  file  lookups,  with
@@ -141,9 +149,9 @@
 # TCP-BASED TABLES
 #        This section describes how the table lookups  change  when
 #        lookups are directed to a TCP-based server. For a descrip-
-#        tion  of  the  TCP  client/server  lookup  protocol,   see
-#        tcp_table(5).   This  feature  is  not available up to and
-#        including Postfix version 2.2.
+#        tion of the TCP client/server lookup protocol, see tcp_ta-
+#        ble(5).  This feature is not available up to and including
+#        Postfix version 2.2.
 # 
 #        Each lookup operation uses the entire address once.  Thus,
 #        user@domain  mail  addresses  are not broken up into their
@@ -189,6 +197,15 @@
 #               receives mail on.  You need to stop and start Post-
 #               fix when this parameter changes.
 # 
+#        local_header_rewrite_clients
+#               Rewrite message header addresses in mail from these
+#               clients and update incomplete  addresses  with  the
+#               domain name in $myorigin or $mydomain; either don't
+#               rewrite message headers from other clients at  all,
+#               or  rewrite  message  headers and update incomplete
+#               addresses  with  the  domain   specified   in   the
+#               remote_header_rewrite_domain parameter.
+# 
 #        proxy_interfaces
 #               Other interfaces that this machine receives mail on
 #               by way of a proxy agent or network address transla-
@@ -218,6 +235,12 @@
 #               Give special treatment to owner-xxx and xxx-request
 #               addresses.
 # 
+#        remote_header_rewrite_domain
+#               Don't rewrite message headers from  remote  clients
+#               at all when this parameter is empty; otherwise, re-
+#               write message  headers  and  append  the  specified
+#               domain name to incomplete addresses.
+# 
 # SEE ALSO
 #        cleanup(8), canonicalize and enqueue mail
 #        postmap(1), Postfix lookup table manager
@@ -225,13 +248,13 @@
 #        virtual(5), virtual aliasing
 # 
 # README FILES
-#        Use "postconf readme_directory" or  "postconf  html_direc-
+#        Use  "postconf  readme_directory" or "postconf html_direc-
 #        tory" to locate this information.
 #        DATABASE_README, Postfix lookup table overview
 #        ADDRESS_REWRITING_README, address rewriting guide
 # 
 # LICENSE
-#        The  Secure  Mailer  license must be distributed with this
+#        The Secure Mailer license must be  distributed  with  this
 #        software.
 # 
 # AUTHOR(S)
@@ -240,4 +263,4 @@
 #        P.O. Box 704
 #        Yorktown Heights, NY 10598, USA
 # 
-#                                                      CANONICAL(5)
+#                                                                   CANONICAL(5)

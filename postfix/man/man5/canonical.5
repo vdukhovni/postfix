@@ -44,6 +44,13 @@ that are used in SMTP protocol commands). Think Sendmail
 rule set \fBS3\fR, if you like.  This is controlled with
 the \fBcanonical_classes\fR parameter.
 
+NOTE: Postfix versions 2.2 and later rewrite message headers
+from remote SMTP clients only if the client matches the
+local_header_rewrite_clients parameter, or if the
+remote_header_rewrite_domain configuration parameter specifies
+a non-empty value. To get the behavior before Postfix 2.2,
+specify "local_header_rewrite_clients = static:all".
+
 Typically, one would use the \fBcanonical\fR(5) table to replace login
 names by \fIFirstname.Lastname\fR, or to clean up addresses produced
 by legacy mail systems.
@@ -191,6 +198,13 @@ Other parameters of interest:
 .IP \fBinet_interfaces\fR
 The network interface addresses that this system receives mail on.
 You need to stop and start Postfix when this parameter changes.
+.IP \fBlocal_header_rewrite_clients\fR
+Rewrite message header addresses in mail from these clients
+and update incomplete addresses with the domain name in
+$myorigin or $mydomain; either don't rewrite message headers
+from other clients at all, or rewrite message headers and
+update incomplete addresses with the domain specified in
+the remote_header_rewrite_domain parameter.
 .IP \fBproxy_interfaces\fR
 Other interfaces that this machine receives mail on by way of a
 proxy agent or network address translator.
@@ -208,6 +222,11 @@ List of domains that this mail system considers local.
 The domain that is appended to locally-posted mail.
 .IP \fBowner_request_special\fR
 Give special treatment to \fBowner-\fIxxx\fR and \fIxxx\fB-request\fR
+addresses.
+.IP \fBremote_header_rewrite_domain\fR
+Don't rewrite message headers from remote clients at all
+when this parameter is empty; otherwise, rewrite message
+headers and append the specified domain name to incomplete
 addresses.
 .SH "SEE ALSO"
 .na

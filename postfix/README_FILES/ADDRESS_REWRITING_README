@@ -84,17 +84,19 @@ Postfix versions 2.2 give you the option to either not rewrite message headers
 from remote SMTP clients at all, or to label incomplete addresses in such
 message headers as invalid. Here is how it works:
 
-  * Postfix always rewrites message header addresses from local SMTP clients,
-    and from the Postfix sendmail command. The local_header_rewrite_clients
-    parameter controls what SMTP clients Postfix considers local (by default,
-    only local network interface addresses).
+  * Postfix always rewrites message headers from local SMTP clients and from
+    the Postfix sendmail command, and appends its own domain to incomplete
+    addresses. The local_header_rewrite_clients parameter controls what SMTP
+    clients Postfix considers local (by default, only local network interface
+    addresses).
   * Postfix never rewrites message header addresses from remote SMTP clients
     when the remote_header_rewrite_domain parameter value is empty (the default
     setting).
-  * Otherwise, Postfix appends the remote_header_rewrite_domain value to
-    incomplete message header addresses from remote SMTP clients. This feature
-    can be used to append a reserved domain such as "domain.invalid", so that
-    incomplete addresses cannot be mistaken for local addresses.
+  * Otherwise, Postfix rewrites message headers from remote SMTP clients, and
+    appends the remote_header_rewrite_domain value to incomplete addresses.
+    This feature can be used to append a reserved domain such as
+    "domain.invalid", so that incomplete addresses cannot be mistaken for local
+    addresses.
 
 PPoossttffiixx aaddddrreessss rreewwrriittiinngg oovveerrvviieeww
 
@@ -129,58 +131,59 @@ this document for the first time, skip forward to "Address rewriting when mail
 is received". Once you've finished reading the remainder of this document, the
 table will help you to quickly find what you need.
 
-     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-    |AAddddrreessss     |SSccooppee   |DDaaeemmoonn  |GGlloobbaall ttuurrnn--oonn      |SSeelleeccttiivvee ttuurrnn--ooffff      |
-    |mmaanniippuullaattiioonn|        |        |ccoonnttrrooll             |ccoonnttrrooll                 |
-    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |Rewrite     |        |trivial-|append_at_myorigin, |                        |
-    |addresses to|all mail|rewrite |append_dot_mydomain,|none                    |
-    |standard    |        |(8)     |swap_bangpath,      |                        |
-    |form        |        |        |allow_percent_hack  |                        |
-    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |Canonical   |        |cleanup |                    |                        |
-    |address     |all mail|(8)     |canonical_maps      |receive_override_options|
-    |mapping     |        |        |                    |                        |
-    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |Address     |all mail|cleanup |masquerade_domains  |receive_override_options|
-    |masquerading|        |(8)     |                    |                        |
-    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |Automatic   |        |cleanup |always_bcc,         |                        |
-    |BCC         |new mail|(8)     |sender_bcc_maps,    |receive_override_options|
-    |recipients  |        |        |recipient_bcc_maps  |                        |
-    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |Virtual     |all mail|cleanup |virtual_alias_maps  |receive_override_options|
-    |aliasing    |        |(8)     |                    |                        |
-    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |Resolve     |        |trivial-|                    |                        |
-    |address to  |all mail|rewrite |none                |none                    |
-    |destination |        |(8)     |                    |                        |
-    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |Mail        |        |trivial-|                    |                        |
-    |transport   |all mail|rewrite |transport_maps      |none                    |
-    |switch      |        |(8)     |                    |                        |
-    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |Relocated   |        |trivial-|                    |                        |
-    |users table |all mail|rewrite |relocated_maps      |none                    |
-    |            |        |(8)     |                    |                        |
-    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |Generic     |outgoing|        |                    |                        |
-    |mapping     |SMTP    |smtp(8) |smtp_generic_maps   |none                    |
-    |table       |mail    |        |                    |                        |
-    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |Local alias |local   |        |                    |                        |
-    |database    |mail    |local(8)|alias_maps          |none                    |
-    |            |only    |        |                    |                        |
-    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |Local per-  |local   |        |                    |                        |
-    |user        |mail    |local(8)|forward_path        |none                    |
-    |.forward    |only    |        |                    |                        |
-    |files       |        |        |                    |                        |
-    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |Local catch-|local   |        |                    |                        |
-    |all address |mail    |local(8)|luser_relay         |none                    |
-    |            |only    |        |                    |                        |
-    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+    |AAddddrreessss     |SSccooppee   |DDaaeemmoonn  |GGlloobbaall ttuurrnn--oonn      |SSeelleeccttiivvee ttuurrnn--ooffff ccoonnttrrooll   |
+    |mmaanniippuullaattiioonn|        |        |ccoonnttrrooll             |                             |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |Rewrite     |        |trivial-|append_at_myorigin, |                             |
+    |addresses to|all mail|rewrite |append_dot_mydomain,|local_header_rewrite_clients,|
+    |standard    |        |(8)     |swap_bangpath,      |remote_header_rewrite_domain |
+    |form        |        |        |allow_percent_hack  |                             |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |Canonical   |        |cleanup |                    |receive_override_options,    |
+    |address     |all mail|(8)     |canonical_maps      |local_header_rewrite_clients,|
+    |mapping     |        |        |                    |remote_header_rewrite_domain |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |Address     |        |cleanup |                    |receive_override_options,    |
+    |masquerading|all mail|(8)     |masquerade_domains  |local_header_rewrite_clients,|
+    |            |        |        |                    |remote_header_rewrite_domain |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |Automatic   |        |cleanup |always_bcc,         |                             |
+    |BCC         |new mail|(8)     |sender_bcc_maps,    |receive_override_options     |
+    |recipients  |        |        |recipient_bcc_maps  |                             |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |Virtual     |all mail|cleanup |virtual_alias_maps  |receive_override_options     |
+    |aliasing    |        |(8)     |                    |                             |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |Resolve     |        |trivial-|                    |                             |
+    |address to  |all mail|rewrite |none                |none                         |
+    |destination |        |(8)     |                    |                             |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |Mail        |        |trivial-|                    |                             |
+    |transport   |all mail|rewrite |transport_maps      |none                         |
+    |switch      |        |(8)     |                    |                             |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |Relocated   |        |trivial-|                    |                             |
+    |users table |all mail|rewrite |relocated_maps      |none                         |
+    |            |        |(8)     |                    |                             |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |Generic     |outgoing|        |                    |                             |
+    |mapping     |SMTP    |smtp(8) |smtp_generic_maps   |none                         |
+    |table       |mail    |        |                    |                             |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |Local alias |local   |        |                    |                             |
+    |database    |mail    |local(8)|alias_maps          |none                         |
+    |            |only    |        |                    |                             |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |Local per-  |local   |        |                    |                             |
+    |user        |mail    |local(8)|forward_path        |none                         |
+    |.forward    |only    |        |                    |                             |
+    |files       |        |        |                    |                             |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |Local catch-|local   |        |                    |                             |
+    |all address |mail    |local(8)|luser_relay         |none                         |
+    |            |only    |        |                    |                             |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 
 AAddddrreessss rreewwrriittiinngg wwhheenn mmaaiill iiss rreecceeiivveedd
 
@@ -213,12 +216,6 @@ table, it first rewrites the address to the standard
 rewrite(8) daemon. The purpose of rewriting to standard form is to reduce the
 number of entries needed in lookup tables.
 
-Postfix versions 2.2 and later do not rewrite message headers from remote SMTP
-clients at all, unless a non-empty domain name is specified with the
-remote_header_rewrite_domain configuration parameter. The
-local_header_rewrite_clients parameter controls what SMTP clients Postfix
-considers local.
-
 The Postfix trivial-rewrite(8) daemon implements the following hard-coded
 address manipulations:
 
@@ -229,16 +226,37 @@ address manipulations:
         time. Postfix has no ability to handle route addresses, other than to
         strip off the route part.
 
+        NOTE: Postfix versions 2.2 and later rewrite message headers from
+        remote SMTP clients only if the client matches the
+        local_header_rewrite_clients parameter, or if the
+        remote_header_rewrite_domain configuration parameter specifies a non-
+        empty value. To get the behavior before Postfix 2.2, specify
+        "local_header_rewrite_clients = static:all".
+
     Rewrite "site!user" to "user@site"
         This feature is controlled by the boolean swap_bangpath parameter
         (default: yes). The purpose is to rewrite UUCP-style addresses to
         domain style. This is useful only when you receive mail via UUCP, but
         it probably does not hurt otherwise.
 
+        NOTE: Postfix versions 2.2 and later rewrite message headers from
+        remote SMTP clients only if the client matches the
+        local_header_rewrite_clients parameter, or if the
+        remote_header_rewrite_domain configuration parameter specifies a non-
+        empty value. To get the behavior before Postfix 2.2, specify
+        "local_header_rewrite_clients = static:all".
+
     Rewrite "user%domain" to "user@domain"
         This feature is controlled by the boolean allow_percent_hack parameter
         (default: yes). Typically, this is used in order to deal with
         monstrosities such as "user%domain@otherdomain".
+
+        NOTE: Postfix versions 2.2 and later rewrite message headers from
+        remote SMTP clients only if the client matches the
+        local_header_rewrite_clients parameter, or if the
+        remote_header_rewrite_domain configuration parameter specifies a non-
+        empty value. To get the behavior before Postfix 2.2, specify
+        "local_header_rewrite_clients = static:all".
 
     Rewrite "user" to "user@$myorigin"
         This feature is controlled by the boolean append_at_myorigin parameter
@@ -246,10 +264,13 @@ address manipulations:
         of Postfix components expect that all addresses have the form
         "user@domain".
 
-        Postfix versions 2.2 and later either do not rewrite message headers
-        from remote SMTP clients at all, or they append the domain name
-        specified with the remote_header_rewrite_domain configuration
-        parameter.
+        NOTE: Postfix versions 2.2 and later rewrite message headers from
+        remote SMTP clients only if the client matches the
+        local_header_rewrite_clients parameter; otherwise they append the
+        domain name specified with the remote_header_rewrite_domain
+        configuration parameter, if one is specified. To get the behavior
+        before Postfix 2.2, specify "local_header_rewrite_clients = static:
+        all".
 
         If your machine is not the main machine for $myorigin and you wish to
         have some users delivered locally without going via that main machine,
@@ -262,9 +283,13 @@ address manipulations:
         (default: yes). The purpose is to get consistent treatment of different
         forms of the same hostname.
 
-        Postfix versions 2.2 and later either do not rewrite message headers
-        from remote clients at all, or they append the domain name specified
-        with the remote_header_rewrite_domain configuration parameter.
+        NOTE: Postfix versions 2.2 and later rewrite message headers from
+        remote SMTP clients only if the client matches the
+        local_header_rewrite_clients parameter; otherwise they append the
+        domain name specified with the remote_header_rewrite_domain
+        configuration parameter, if one is specified. To get the behavior
+        before Postfix 2.2, specify "local_header_rewrite_clients = static:
+        all".
 
         Some will argue that rewriting "host" to "host.domain" is bad. That is
         why it can be turned off. Others like the convenience of having
@@ -274,6 +299,13 @@ address manipulations:
         A single trailing dot is silently removed. However, an address that
         ends in multiple dots will be rejected as an invalid address.
 
+        NOTE: Postfix versions 2.2 and later rewrite message headers from
+        remote SMTP clients only if the client matches the
+        local_header_rewrite_clients parameter, or if the
+        remote_header_rewrite_domain configuration parameter specifies a non-
+        empty value. To get the behavior before Postfix 2.2, specify
+        "local_header_rewrite_clients = static:all".
+
 CCaannoonniiccaall aaddddrreessss mmaappppiinngg
 
 The cleanup(8) daemon uses the canonical(5) tables to rewrite addresses in
@@ -281,11 +313,11 @@ message envelopes and in message headers. By default all header and envelope
 addresses are rewritten; this is controlled with the canonical_classes
 configuration parameter.
 
-Postfix versions 2.2 and later do not rewrite message headers from remote
-clients at all, unless a non-empty domain name is specified with the
-remote_header_rewrite_domain configuration parameter. The
-local_header_rewrite_clients parameter controls what SMTP clients Postfix
-considers local.
+NOTE: Postfix versions 2.2 and later rewrite message headers from remote SMTP
+clients only if the client matches the local_header_rewrite_clients parameter,
+or if the remote_header_rewrite_domain configuration parameter specifies a non-
+empty value. To get the behavior before Postfix 2.2, specify
+"local_header_rewrite_clients = static:all".
 
 Address rewriting is done for local and remote addresses. The mapping is useful
 to replace login names by "Firstname.Lastname" style addresses, or to clean up
@@ -345,11 +377,11 @@ Address masquerading is a method to hide hosts inside a domain behind their
 mail gateway, and to make it appear as if the mail comes from the gateway
 itself, instead of from individual machines.
 
-Postfix versions 2.2 and later do not rewrite message headers from remote SMTP
-clients at all, unless a non-empty domain name is specified with the
-remote_header_rewrite_domain configuration parameter. The
-local_header_rewrite_clients parameter controls what SMTP clients Postfix
-considers local.
+NOTE: Postfix versions 2.2 and later rewrite message headers from remote SMTP
+clients only if the client matches the local_header_rewrite_clients parameter,
+or if the remote_header_rewrite_domain configuration parameter specifies a non-
+empty value. To get the behavior before Postfix 2.2, specify
+"local_header_rewrite_clients = static:all".
 
 Address masquerading is disabled by default, and is implemented by the cleanup
 (8) server. To enable, edit the masquerade_domains parameter in the main.cf

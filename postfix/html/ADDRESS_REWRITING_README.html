@@ -153,21 +153,21 @@ how it works:  </p>
 
 <ul>
 
-<li> Postfix always rewrites message header addresses from local
-SMTP clients, and from the Postfix sendmail command.  The
-<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> parameter controls what SMTP clients
-Postfix considers local (by default, only local network interface
-addresses).
+<li> Postfix always rewrites message headers from local SMTP clients
+and from the Postfix sendmail command, and appends its own domain
+to incomplete addresses.  The <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> parameter
+controls what SMTP clients Postfix considers local (by default,
+only local network interface addresses).
 
 <li> Postfix never rewrites message header addresses from remote
 SMTP clients when the <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> parameter value
 is empty (the default setting).
 
-<li> Otherwise, Postfix appends the <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a>
-value to incomplete message header addresses from remote SMTP
-clients.  This feature can be used to append a reserved domain such
-as "domain.invalid", so that incomplete addresses cannot be mistaken
-for local addresses.
+<li> Otherwise, Postfix rewrites message headers from remote SMTP
+clients, and appends the <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> value to
+incomplete addresses.  This feature can be used to append a reserved
+domain such as "domain.invalid", so that incomplete addresses cannot
+be mistaken for local addresses.
 
 </ul>
 
@@ -317,15 +317,18 @@ turn-off control </th> </tr>
 <tr> <td> <a href="#standard"> Rewrite addresses to standard form</a>
 </td> <td nowrap> all mail </td> <td> <a href="trivial-rewrite.8.html">trivial-<br>rewrite(8)</a> </td>
 <td> <a href="postconf.5.html#append_at_myorigin">append_at_myorigin</a>, <a href="postconf.5.html#append_dot_mydomain">append_dot_mydomain</a>, <a href="postconf.5.html#swap_bangpath">swap_bangpath</a>,
-<a href="postconf.5.html#allow_percent_hack">allow_percent_hack</a> </td> <td> none </td> </tr>
+<a href="postconf.5.html#allow_percent_hack">allow_percent_hack</a> </td> <td> <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a>,
+<a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> </td> </tr>
 
-<tr> <td> <a href="#canonical"> Canonical address mapping </a>
-</td> <td nowrap> all mail </td> <td> <a href="cleanup.8.html">cleanup(8)</a> </td> <td>
-<a href="postconf.5.html#canonical_maps">canonical_maps</a> </td> <td> <a href="postconf.5.html#receive_override_options">receive_override_options</a> </td> </tr>
+<tr> <td> <a href="#canonical"> Canonical address mapping </a> </td>
+<td nowrap> all mail </td> <td> <a href="cleanup.8.html">cleanup(8)</a> </td> <td> <a href="postconf.5.html#canonical_maps">canonical_maps</a>
+</td> <td> <a href="postconf.5.html#receive_override_options">receive_override_options</a>, <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a>,
+<a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> </td> </tr>
 
-<tr> <td> <a href="#canonical"> Address masquerading </a> </td>
-<td nowrap> all mail </td> <td> <a href="cleanup.8.html">cleanup(8)</a> </td> <td> <a href="postconf.5.html#masquerade_domains">masquerade_domains</a>
-</td> <td> <a href="postconf.5.html#receive_override_options">receive_override_options</a> </td> </tr>
+<tr> <td> <a href="#masquerade"> Address masquerading </a> </td> <td
+nowrap> all mail </td> <td> <a href="cleanup.8.html">cleanup(8)</a> </td> <td> <a href="postconf.5.html#masquerade_domains">masquerade_domains</a>
+</td> <td> <a href="postconf.5.html#receive_override_options">receive_override_options</a>, <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a>,
+<a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> </td> </tr>
 
 <tr> <td> <a href="#auto_bcc"> Automatic BCC recipients </a> </td>
 <td nowrap> new mail </td> <td> <a href="cleanup.8.html">cleanup(8)</a> </td> <td> <a href="postconf.5.html#always_bcc">always_bcc</a>,
@@ -411,12 +414,6 @@ mapping lookup table, it first rewrites the address to the standard
 form is to reduce the number of entries needed in lookup tables.
 </p>
 
-<p> Postfix versions 2.2 and later do not rewrite message headers
-from remote SMTP clients at all, unless a non-empty domain name is
-specified with the <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> configuration
-parameter.  The <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> parameter controls
-what SMTP clients Postfix considers local. </p>
-
 <p> The Postfix <a href="trivial-rewrite.8.html">trivial-rewrite(8)</a> daemon implements the following
 hard-coded address manipulations: </p>
 
@@ -430,21 +427,41 @@ hard-coded address manipulations: </p>
 is called a route address, and specifies that mail for "user@site"
 be delivered via "hosta" and "hostb". Usage of this form has been
 deprecated for a long time.  Postfix has no ability to handle route
-addresses, other than to strip off the route part.  </p> </dd>
+addresses, other than to strip off the route part.  </p>
+
+<p> NOTE: Postfix versions 2.2 and later rewrite message headers
+from remote SMTP clients only if the client matches the
+<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> parameter, or if the
+<a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> configuration parameter specifies a
+non-empty value. To get the behavior before Postfix 2.2, specify
+"<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = static:all".  </p> </dd>
 
 <dt>Rewrite "site!user" to "user@site" </dt>
 
 <dd> <p> This feature is controlled by the boolean <a href="postconf.5.html#swap_bangpath">swap_bangpath</a>
 parameter (default: yes).  The purpose is to rewrite UUCP-style
 addresses to domain style. This is useful only when you receive
-mail via UUCP, but it probably does not hurt otherwise. </p> </dd>
+mail via UUCP, but it probably does not hurt otherwise. </p>
+
+<p> NOTE: Postfix versions 2.2 and later rewrite message headers
+from remote SMTP clients only if the client matches the
+<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> parameter, or if the
+<a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> configuration parameter specifies a
+non-empty value. To get the behavior before Postfix 2.2, specify
+"<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = static:all".  </p> </dd>
 
 <dt>Rewrite "user%domain" to "user@domain"</dt>
 
 <dd> <p> This feature is controlled by the boolean <a href="postconf.5.html#allow_percent_hack">allow_percent_hack</a>
 parameter (default: yes). Typically, this is used in order to deal
 with monstrosities such as "user%domain@otherdomain". </p>
-</dd>
+
+<p> NOTE: Postfix versions 2.2 and later rewrite message headers
+from remote SMTP clients only if the client matches the
+<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> parameter, or if the
+<a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> configuration parameter specifies a
+non-empty value. To get the behavior before Postfix 2.2, specify
+"<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = static:all".  </p> </dd>
 
 <dt>
 
@@ -455,10 +472,13 @@ parameter (default: yes).  You should never turn off this feature,
 because a lot of Postfix components expect that all addresses have
 the form "user@domain".  </p>
 
-<p> Postfix versions 2.2 and later either do not rewrite message
-headers from remote SMTP clients at all, or they append the domain
-name specified with the <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> configuration
-parameter.  </p>
+<p> NOTE: Postfix versions 2.2 and later rewrite message headers
+from remote SMTP clients only if the client matches the
+<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> parameter; otherwise they append the
+domain name specified with the <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a>
+configuration parameter, if one is specified. To get the behavior
+before Postfix 2.2, specify "<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> =
+static:all". </p>
 
 <p> If your machine is not the main machine for $<a href="postconf.5.html#myorigin">myorigin</a> and you
 wish to have some users delivered locally without going via that
@@ -476,10 +496,13 @@ Rewrite "user@host" to "user@host.$<a href="postconf.5.html#mydomain">mydomain</
 parameter (default: yes).  The purpose is to get consistent treatment
 of different forms of the same hostname. </p>
 
-<p> Postfix versions 2.2 and later either do not rewrite message
-headers from remote clients at all, or they append the domain name
-specified with the <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> configuration
-parameter. </p>
+<p> NOTE: Postfix versions 2.2 and later rewrite message headers
+from remote SMTP clients only if the client matches the
+<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> parameter; otherwise they append the
+domain name specified with the <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a>
+configuration parameter, if one is specified. To get the behavior
+before Postfix 2.2, specify "<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> =
+static:all". </p>
 
 <p> Some will argue that rewriting "host" to "host.domain"
 is bad. That is why it can be turned off. Others like the convenience
@@ -489,7 +512,14 @@ of having Postfix's own domain appended automatically. </p> </dd>
 
 <dd> <p> A single trailing dot is silently removed. However, an
 address that ends in multiple dots will be rejected as an invalid
-address. </p> </dd>
+address. </p>
+
+<p> NOTE: Postfix versions 2.2 and later rewrite message headers
+from remote SMTP clients only if the client matches the
+<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> parameter, or if the
+<a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> configuration parameter specifies a
+non-empty value. To get the behavior before Postfix 2.2, specify
+"<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = static:all".  </p> </dd>
 
 </dl>
 
@@ -502,11 +532,12 @@ addresses in message envelopes and in message headers.  By default
 all header and envelope addresses are rewritten; this is controlled
 with the <a href="postconf.5.html#canonical_classes">canonical_classes</a> configuration parameter.  </p>
 
-<p> Postfix versions 2.2 and later do not rewrite message headers
-from remote clients at all, unless a non-empty domain name is
-specified with the <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> configuration
-parameter.  The <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> parameter controls
-what SMTP clients Postfix considers local. </p>
+<p> NOTE: Postfix versions 2.2 and later rewrite message headers
+from remote SMTP clients only if the client matches the
+<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> parameter, or if the
+<a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> configuration parameter specifies a
+non-empty value. To get the behavior before Postfix 2.2, specify
+"<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = static:all".  </p>
 
 <p> Address rewriting is 
 done for local and remote addresses.  The mapping is useful to
@@ -585,11 +616,12 @@ behind their mail gateway, and to make it appear as if the mail
 comes from the gateway itself, instead of from individual machines.
 </p>
 
-<p> Postfix versions 2.2 and later do not rewrite message headers
-from remote SMTP clients at all, unless a non-empty domain name is
-specified with the <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> configuration
-parameter.  The <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> parameter controls
-what SMTP clients Postfix considers local. </p>
+<p> NOTE: Postfix versions 2.2 and later rewrite message headers
+from remote SMTP clients only if the client matches the
+<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> parameter, or if the
+<a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> configuration parameter specifies a
+non-empty value. To get the behavior before Postfix 2.2, specify
+"<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = static:all".  </p>
 
 <p> Address masquerading is disabled by default, and is implemented
 by the <a href="cleanup.8.html">cleanup(8)</a> server. To enable, edit the <a href="postconf.5.html#masquerade_domains">masquerade_domains</a>

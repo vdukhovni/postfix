@@ -493,7 +493,7 @@
 /* FILES
 /*	The following are examples; details differ between systems.
 /*	$HOME/.forward, per-user aliasing
-/*	/etc/aliases, sytem-wide alias database
+/*	/etc/aliases, system-wide alias database
 /*	/var/spool/mail, system mailboxes
 /* SEE ALSO
 /*	qmgr(8), queue manager

@@ -511,6 +511,24 @@ Enable the rewriting of the form "user%domain" to "user@domain".
 This is enabled by default.
 </p>
 
+<p> Note: with Postfix version 2.2, message header address rewriting
+happens only when one of the following conditions is true: </p>
+ 
+<ul>
+ 
+<li> The message is received with the Postfix sendmail(1) command,
+ 
+<li> The message is received from a network client that matches
+$local_header_rewrite_clients,
+ 
+<li> The message is received from the network, and the
+remote_header_rewrite_domain parameter specifies a non-empty value.
+ 
+</ul>
+
+<p> To get the behavior before Postfix 2.2, specify
+"local_header_rewrite_clients = static:all". </p>
+
 <p>
 Example:
 </p>
@@ -546,11 +564,11 @@ that is received by the Postfix mail system.
 </p>
 
 <p>
-NOTE: if mail to the BCC address bounces it will be returned to
+Note: if mail to the BCC address bounces it will be returned to
 the sender.
 </p>
 
-<p> NOTE: automatic BCC recipients are produced only for new mail.
+<p> Note: automatic BCC recipients are produced only for new mail.
 To avoid mailer loops, automatic BCC recipients are not generated
 for mail that Postfix forwards internally, nor for mail that Postfix
 generates itself. </p>
@@ -684,6 +702,24 @@ build the necessary DBM or DB file after every change. The changes
 will become visible after a minute or so.  Use "<b>postfix reload</b>"
 to eliminate the delay.
 </p>
+
+<p> Note: with Postfix version 2.2, message header address mapping
+happens only when message header address rewriting is enabled: </p>
+
+<ul>
+
+<li> The message is received with the Postfix sendmail(1) command,
+
+<li> The message is received from a network client that matches
+$local_header_rewrite_clients,
+
+<li> The message is received from the network, and the
+remote_header_rewrite_domain parameter specifies a non-empty value.
+
+</ul>
+
+<p> To get the behavior before Postfix 2.2, specify
+"local_header_rewrite_clients = static:all". </p>
 
 <p>
 Examples:
@@ -1181,7 +1217,7 @@ host, host:port, [host]:port, [address] or [address]:port; the form
 [host] turns off MX lookups.  If you specify multiple SMTP
 destinations, Postfix will try them in the specified order.  </p>
 
-<p> NOTE: Do not use the fallback_relay feature when relaying mail
+<p> Note: do not use the fallback_relay feature when relaying mail
 for a backup or primary MX domain. Mail would loop between the
 Postfix MX host and the fallback_relay host when the final destination
 is unavailable. </p>
@@ -1638,7 +1674,8 @@ inet_interfaces = 192.168.1.2, 127.0.0.1
 <p> The Internet protocols Postfix will attempt to use when making
 or accepting connections. Specify one or more of "ipv4"
 or "ipv6", separated by whitespace or commas. The form
-"all" is equivalent to "ipv4, ipv6". </p>
+"all" is equivalent to "ipv4, ipv6" or "ipv4", depending
+on whether the operating system implements IPv6. </p>
 
 <p> This feature is available in Postfix version 2.2 and later. </p>
 
@@ -2109,7 +2146,7 @@ Note: luser_relay works only for the Postfix local(8) delivery agent.
 </p>
 
 <p>
-NOTE: if you use this feature for accounts not in the UNIX password
+Note: if you use this feature for accounts not in the UNIX password
 file, then you must specify "local_recipient_maps =" (i.e. empty)
 in the main.cf file, otherwise the Postfix SMTP server will reject mail
 for non-UNIX accounts with "User unknown in local recipient table".
@@ -2384,6 +2421,25 @@ or its subdomains. Thus,
 does not change "user@any.thing.foo.example.com" or "user@foo.example.com",
 but strips "user@any.thing.else.example.com" to "user@example.com".
 </p>
+
+<p> Note: with Postfix version 2.2, message header address masquerading
+happens only when message header address rewriting is enabled: </p>
+
+<ul>
+
+<li> The message is received with the Postfix sendmail(1) command,
+
+<li> The message is received from a network client that matches
+$local_header_rewrite_clients,
+
+<li> The message is received from the network, and the
+remote_header_rewrite_domain parameter specifies a non-empty value.
+
+</ul>
+
+<p> To get the behavior before Postfix 2.2, specify
+"local_header_rewrite_clients = static:all". </p>
+
 
 <p>
 Example:
@@ -3038,11 +3094,11 @@ run "<b>postmap /etc/postfix/recipient_bcc</b>".
 </p>
 
 <p>
-NOTE: if mail to the BCC address bounces it will be returned to
+Note: if mail to the BCC address bounces it will be returned to
 the sender.
 </p>
 
-<p> NOTE: automatic BCC recipients are produced only for new mail.
+<p> Note: automatic BCC recipients are produced only for new mail.
 To avoid mailer loops, automatic BCC recipients are not generated
 for mail that Postfix forwards internally, nor for mail that Postfix
 generates itself. </p>
@@ -3119,7 +3175,7 @@ recipient addresses with $relay_recipient_maps and rejects non-existent
 recipients. See also the relay domains address class in the
 ADDRESS_CLASS_README file.  </p>
 
-<p> NOTE: Postfix will not automatically forward mail for domains
+<p> Note: Postfix will not automatically forward mail for domains
 that list this system as their primary or backup MX host. See the
 permit_mx_backup restriction in the postconf(5) manual page.  </p>
 
@@ -3311,11 +3367,11 @@ run "<b>postmap /etc/postfix/sender_bcc</b>".
 </p>
 
 <p>
-NOTE: if mail to the BCC address bounces it will be returned to
+Note: if mail to the BCC address bounces it will be returned to
 the sender.
 </p>
 
-<p> NOTE: automatic BCC recipients are produced only for new mail.
+<p> Note: automatic BCC recipients are produced only for new mail.
 To avoid mailer loops, automatic BCC recipients are not generated
 for mail that Postfix forwards internally, nor for mail that Postfix
 generates itself. </p>
@@ -4444,7 +4500,7 @@ a restriction list, to make the default policy explicit.</dd>
 <dd>Reject the request when the envelope sender is the null address,
 and the message has multiple envelope recipients. Although this
 usage is technically allowed, it seems to have no legitimate
-application. <br> NOTE: this restriction can only work reliably
+application. <br> Note: this restriction can only work reliably
 when used in smtpd_data_restrictions or 
 smtpd_end_of_data_restrictions, because the total number of
 recipients is not known at an earlier stage of the SMTP conversation.
@@ -4461,7 +4517,7 @@ of time where it is not allowed, or when the client sends SMTP
 commands ahead of time without knowing that Postfix actually supports
 ESMTP command pipelining. This stops mail from bulk mail software
 that improperly uses ESMTP command pipelining in order to speed up
-deliveries. <br> NOTE: reject_unauth_pipelining is not useful
+deliveries. <br> Note: reject_unauth_pipelining is not useful
 outside smtpd_data_restrictions when 1) the client uses ESMTP (EHLO
 instead of HELO) and 2) with "smtpd_delay_reject = yes" (the
 default).  The use of reject_unauth_pipelining in the other
@@ -4977,7 +5033,7 @@ system is the final destination. However, the SMTP server will not
 forward mail with addresses that have sender-specified routing
 information (example: user@elsewhere@domain).  Use the optional
 permit_mx_backup_networks parameter to require that the primary
-MX hosts match a list of network blocks. <br> NOTE: prior to
+MX hosts match a list of network blocks. <br> Note: prior to
 Postfix version 2.0, use of permit_mx_backup is not recommended;
 mail may be rejected in case of a temporary DNS lookup problem. </dd>
 
@@ -5478,6 +5534,24 @@ necessary if your machine is connected to UUCP networks.  It is
 enabled by default.
 </p>
 
+<p> Note: with Postfix version 2.2, message header address rewriting
+happens only when one of the following conditions is true: </p>
+ 
+<ul>
+ 
+<li> The message is received with the Postfix sendmail(1) command,
+ 
+<li> The message is received from a network client that matches
+$local_header_rewrite_clients,
+ 
+<li> The message is received from the network, and the
+remote_header_rewrite_domain parameter specifies a non-empty value.
+ 
+</ul>
+
+<p> To get the behavior before Postfix 2.2, specify
+"local_header_rewrite_clients = static:all". </p>
+
 <p>
 Example:
 </p>
@@ -5834,9 +5908,27 @@ append the string "@$remote_header_rewrite_domain" instead.
 </p>
 
 <p>
-This feature is enabled by default and must not be turned off.
+Note 1: this feature is enabled by default and must not be turned off.
 Postfix does not support domain-less addresses.
 </p>
+
+<p> Note 2: with Postfix version 2.2, message header address rewriting
+happens only when one of the following conditions is true: </p>
+ 
+<ul>
+ 
+<li> The message is received with the Postfix sendmail(1) command,
+ 
+<li> The message is received from a network client that matches
+$local_header_rewrite_clients,
+ 
+<li> The message is received from the network, and the
+remote_header_rewrite_domain parameter specifies a non-empty value.
+ 
+</ul>
+
+<p> To get the behavior before Postfix 2.2, specify
+"local_header_rewrite_clients = static:all". </p>
 
 %PARAM append_dot_mydomain yes
 
@@ -5848,10 +5940,28 @@ instead.
 </p>
 
 <p>
-This feature is enabled by default. If disabled, users will not be
+Note 1: this feature is enabled by default. If disabled, users will not be
 able to send mail to "user@partialdomainname" but will have to
 specify full domain names instead.
 </p>
+
+<p> Note 2: with Postfix version 2.2, message header address rewriting
+happens only when one of the following conditions is true: </p>
+ 
+<ul>
+ 
+<li> The message is received with the Postfix sendmail(1) command,
+ 
+<li> The message is received from a network client that matches
+$local_header_rewrite_clients,
+ 
+<li> The message is received from the network, and the
+remote_header_rewrite_domain parameter specifies a non-empty value.
+ 
+</ul>
+
+<p> To get the behavior before Postfix 2.2, specify
+"local_header_rewrite_clients = static:all". </p>
 
 %PARAM application_event_drain_time 100s
 
@@ -7340,7 +7450,7 @@ such deliveries are safe without application-level locks.
 </p>
 
 <p>
-Note 1: The <b>dotlock</b> method requires that the recipient UID
+Note 1: the <b>dotlock</b> method requires that the recipient UID
 or GID has write access to the parent directory of the recipient's
 mailbox file.
 </p>
@@ -7555,8 +7665,8 @@ physical endpoints. </p>
 %PARAM remote_header_rewrite_domain 
 
 <p> Don't rewrite message headers from remote clients at all when
-this parameter is empty; otherwise, rewrite remote message headers
-and append the specified domain name to incomplete addresses.  The
+this parameter is empty; otherwise, rewrite message headers and
+append the specified domain name to incomplete addresses.  The
 local_header_rewrite_clients parameter controls what clients Postfix
 considers local. </p>
 
@@ -7579,10 +7689,12 @@ clients at all. </p>
 
 %PARAM local_header_rewrite_clients permit_inet_interfaces
 
-<p> Append the domain name in $myorigin or $mydomain to message
-header addresses from these clients only; either don't rewrite
-message headers from other clients at all, or append the domain
-specified with the remote_header_rewrite_domain parameter.  </p>
+<p> Rewrite message header addresses in mail from these clients and
+update incomplete addresses with the domain name in $myorigin or
+$mydomain; either don't rewrite message headers from other clients
+at all, or rewrite message headers and update incomplete addresses
+with the domain specified in the remote_header_rewrite_domain
+parameter.  </p>
 
 <p> See the append_at_myorigin and append_dot_mydomain parameters
 for details of how domain names are appended to incomplete addresses.
@@ -7657,7 +7769,7 @@ from Postfix sendmail and in SMTP mail from this machine. </p>
 $myorigin or $mydomain information only with mail from Postfix
 sendmail, from local clients, or from authorized SMTP clients. </p>
 
-<p> NOTE: This setting will not prevent remote mail header address
+<p> Note: this setting will not prevent remote mail header address
 rewriting when mail from a remote client is forwarded by a neighboring
 system.  </p>
 
@@ -7879,7 +7991,7 @@ TLS session cache. Specify a database type that supports enumeration,
 such as <b>btree</b> or <b>sdbm</b>; there is no need to support
 concurrent access.  The file is created if it does not exist.  </p>
 
-<p> NOTE: <b>dbm</b> databases are not suitable. TLS
+<p> Note: <b>dbm</b> databases are not suitable. TLS
 session objects are too large. </p>
 
 <p> Example: </p>
@@ -8076,7 +8188,7 @@ TLS session cache. Specify a database type that supports enumeration,
 such as <b>btree</b> or <b>sdbm</b>; there is no need to support
 concurrent access.  The file is created if it does not exist.  </p>
 
-<p> NOTE: <b>dbm</b> databases are not suitable. TLS
+<p> Note: <b>dbm</b> databases are not suitable. TLS
 session objects are too large. </p>
 
 <p> Example: </p>

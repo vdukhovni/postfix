@@ -416,7 +416,7 @@ DNS_RR *smtp_domain_addr(char *name, int misc_flags, VSTRING *why,
 	if (addr_list == 0) {
 	    if (var_smtp_defer_mxaddr)
 		smtp_errno = SMTP_ERR_RETRY;
-	    msg_warn("no MX host for %s has a valid A record", name);
+	    msg_warn("no MX host for %s has a valid address record", name);
 	    break;
 	}
 	best_found = (addr_list ? addr_list->pref : IMPOSSIBLE_PREFERENCE);
