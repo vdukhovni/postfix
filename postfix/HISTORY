@@ -8348,14 +8348,11 @@ Apologies for any names omitted.
 20030708
 
 	Hardened the attr_scan routines for exposure to an untrusted
-	environment, in preparation of the tuple0 and tuple64
-	protocols that will be used for SMTP policy delegation.
+	environment, in preparation for possible use with SMTP
+	policy delegation to an external server.
 
 	Feature: address filter for RBL lookups, for use with
 	multi-valued RBL services. File: smtpd/smtpd_check.c.
-
-	Feature: accept_socket option to pass the spawn(8) listen
-	socket to a persistent non-Postfix process. File: spawn/spawn.c.
 
 20030709
 
@@ -8386,7 +8383,6 @@ Apologies for any names omitted.
 	the greylisting server in examples/smtpd-policy.  Specify
 	"check_smtpd_policy_service" in smtpd_mumble_restrictions.
 	See SMTPD_POLICY_SERVICE_README for details.
-
 
 Open problems:
 

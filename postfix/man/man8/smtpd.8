@@ -250,19 +250,15 @@ it is penalized with tarpit delays.
 .SH "Delegated policy"
 .ad
 .fi
-.IP \fBsmtpd_policy_service_endpoint\fR
-The \fItransport\fR:\fIendpoint\fR of a server that speaks
-the delegated SMTP policy protocol. \fItransport\fR is
-either \fBinet\fR or \fBunix\fR. \fIendpoint\fR is either
-\fIhost:port\fR, \fBprivate/\fIservicename\fR or
-\fBpublic/\fIservicename\fR.
 .IP \fBsmtpd_policy_service_timeout\fR
 Time limit for connecting to, writing to and receiving from
-a delegated SMTP policy server.
+a delegated SMTPD policy server.
 .IP \fBsmtpd_policy_service_max_idle\fR
-Time after which an unused policy service connection is closed.
+Time after which an unused SMTPD policy service connection
+is closed.
 .IP \fBsmtpd_policy_service_timeout\fR
-Time after which an active policy service connection is closed.
+Time after which an active SMTPD policy service connection
+is closed.
 .SH "UCE control restrictions"
 .ad
 .fi

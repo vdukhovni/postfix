@@ -57,7 +57,7 @@
 /*	Reject, defer or permit the request unconditionally. This is to be used
 /*	at the end of a restriction list in order to make the default
 /*	action explicit.
-/* .IP check_policy_service
+/* .IP "check_policy_service transport:server"
 /*	query an external policy service with client, helo, sender, recipient
 /*	and queue ID attributes.
 /* .IP reject_unknown_client
@@ -407,6 +407,7 @@ static ARGV *etrn_restrctions;
 static ARGV *data_restrctions;
 
 static HTABLE *smtpd_rest_classes;
+static HTABLE *policy_clnt_table;
 
  /*
   * Pre-parsed expansion filter.
@@ -422,11 +423,6 @@ static int generic_checks(SMTPD_STATE *, ARGV *, const char *, const char *, con
   * Recipient table check.
   */
 static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient);
-
- /*
-  * Delegated policy.
-  */
-static ATTR_CLNT *policy_clnt;
 
  /*
   * Reject context.
@@ -551,6 +547,21 @@ static void resolve_pageout(void *data, void *unused_context)
     myfree((void *) reply);
 }
 
+/* policy_client_register - register policy service endpoint */
+
+static void policy_client_register(const char *name)
+{
+    if (policy_clnt_table == 0)
+	policy_clnt_table = htable_create(1);
+
+    if (htable_find(policy_clnt_table, name) == 0)
+	htable_enter(policy_clnt_table, name,
+		     (char *) attr_clnt_create(name,
+					       var_smtpd_policy_tmout,
+					       var_smtpd_policy_idle,
+					       var_smtpd_policy_ttl));
+}
+
 /* smtpd_check_parse - pre-parse restrictions */
 
 static ARGV *smtpd_check_parse(const char *checks)
@@ -559,6 +570,7 @@ static ARGV *smtpd_check_parse(const char *checks)
     ARGV   *argv = argv_alloc(1);
     char   *bp = saved_checks;
     char   *name;
+    char   *last = 0;
 
     /*
      * Pre-parse the restriction list, and open any dictionaries that we
@@ -567,8 +579,12 @@ static ARGV *smtpd_check_parse(const char *checks)
      */
     while ((name = mystrtok(&bp, " \t\r\n,")) != 0) {
 	argv_add(argv, name, (char *) 0);
-	if (strchr(name, ':') && dict_handle(name) == 0)
+	if (last && strcasecmp(last, CHECK_POLICY_SERVICE) == 0)
+	    policy_client_register(name);
+	else if (strchr(name, ':') && dict_handle(name) == 0) {
 	    dict_register(name, dict_open(name, O_RDONLY, DICT_FLAG_LOCK));
+	}
+	last = name;
     }
     argv_terminate(argv);
 
@@ -764,15 +780,6 @@ void    smtpd_check_init(void)
      */
     expand_filter = vstring_alloc(10);
     unescape(expand_filter, var_smtpd_exp_filter);
-
-    /*
-     * Delegated policy.
-     */
-    if (*var_smtpd_policy_srv)
-	policy_clnt = attr_clnt_create(var_smtpd_policy_srv,
-				       var_smtpd_policy_tmout,
-				       var_smtpd_policy_idle,
-				       var_smtpd_policy_ttl);
 }
 
 /* log_whatsup - log as much context as we have */
@@ -2714,29 +2721,30 @@ static int reject_sender_login_mismatch(SMTPD_STATE *state, const char *sender)
 
 /* check_policy_service - check delegated policy service */
 
-static int check_policy_service(SMTPD_STATE *state, const char *reply_name,
-		               const char *reply_class, const char *def_acl)
+static int check_policy_service(SMTPD_STATE *state, const char *server,
+		            const char *reply_name, const char *reply_class,
+				        const char *def_acl)
 {
     static VSTRING *action = 0;
+    ATTR_CLNT *policy_clnt;
 
     /*
      * Sanity check.
      */
-    if (policy_clnt == 0) {
-	msg_warn("%s is used in %s restrictions, but no service is defined",
-		 CHECK_POLICY_SERVICE, reply_class);
-	return (SMTPD_CHECK_DUNNO);
-    }
+    if (!policy_clnt_table
+    || !(policy_clnt = (ATTR_CLNT *) htable_find(policy_clnt_table, server)))
+	msg_panic("check_policy_service: no client endpoint for server %s",
+		  server);
 
     /*
      * Initialize.
      */
     if (action == 0)
 	action = vstring_alloc(10);
-
     if (attr_clnt_request(policy_clnt,
 			  ATTR_FLAG_NONE,	/* Query attributes. */
-			  ATTR_TYPE_STR, MAIL_ATTR_CLIENT, state->namaddr,
+			  ATTR_TYPE_STR, MAIL_ATTR_PROTO_STATE, state->where,
+		       ATTR_TYPE_STR, MAIL_ATTR_PROTO_NAME, state->protocol,
 			  ATTR_TYPE_STR, MAIL_ATTR_CLIENT_ADDR, state->addr,
 			  ATTR_TYPE_STR, MAIL_ATTR_CLIENT_NAME, state->name,
 			  ATTR_TYPE_STR, MAIL_ATTR_HELO_NAME,
@@ -2759,7 +2767,7 @@ static int check_policy_service(SMTPD_STATE *state, const char *reply_name,
 	 * XXX This produces bogus error messages when the reply is
 	 * malformed.
 	 */
-	return (check_table_result(state, var_smtpd_policy_srv, STR(action),
+	return (check_table_result(state, server, STR(action),
 				   "policy query", reply_name,
 				   reply_class, def_acl));
     }
@@ -2867,8 +2875,12 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	} else if (strcasecmp(name, REJECT_UNAUTH_PIPE) == 0) {
 	    status = reject_unauth_pipelining(state, reply_name, reply_class);
 	} else if (strcasecmp(name, CHECK_POLICY_SERVICE) == 0) {
-	    status = check_policy_service(state, reply_name,
-					  reply_class, def_acl);
+	    if (cpp[1] == 0)
+		msg_warn("restriction %s must be followed by transport:server",
+			 CHECK_POLICY_SERVICE);
+	    else
+		status = check_policy_service(state, *++cpp, reply_name,
+					      reply_class, def_acl);
 	} else if (strcasecmp(name, DEFER_IF_PERMIT) == 0) {
 	    DEFER_IF_PERMIT2(state, MAIL_ERROR_POLICY,
 			 "450 <%s>: %s rejected: defer_if_permit requested",
@@ -3689,7 +3701,6 @@ char   *var_def_rbl_reply;
 char   *var_relay_rcpt_maps;
 char   *var_verify_sender;
 char   *var_smtpd_sasl_opts;
-char   *var_smtpd_policy_srv;
 
 typedef struct {
     char   *name;
@@ -3730,7 +3741,6 @@ static STRING_TABLE string_table[] = {
     VAR_VERIFY_SENDER, DEF_VERIFY_SENDER, &var_verify_sender,
     VAR_MAIL_NAME, DEF_MAIL_NAME, &var_mail_name,
     VAR_SMTPD_SASL_OPTS, DEF_SMTPD_SASL_OPTS, &var_smtpd_sasl_opts,
-    VAR_SMTPD_POLICY_SRV, DEF_SMTPD_POLICY_SRV, &var_smtpd_policy_srv, 0, 0,
     0,
 };
 

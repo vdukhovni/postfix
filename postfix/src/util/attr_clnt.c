@@ -27,7 +27,7 @@
 /*	ATTR_CLNT *client;
 /* DESCRIPTION
 /*	This module implements a client for a simple attribute-based
-/*	protocol as described in attr_scan0(3) and attr_scan64(3).
+/*	protocol as described in attr_scan_plain(3).
 /*
 /*	attr_clnt_create() creates a client handle. The server
 /*	argument specifies "transport:servername" where transport is
@@ -134,8 +134,10 @@ ATTR_CLNT *attr_clnt_create(const char *service, int timeout,
     char   *endpoint;
     ATTR_CLNT *client;
 
-    if ((endpoint = split_at(transport, ':')) == 0 || *endpoint == 0)
-	msg_fatal("missing attribute server endpoint: %s", service);
+    if ((endpoint = split_at(transport, ':')) == 0
+	|| *endpoint == 0 || *transport == 0)
+	msg_fatal("service \"%s\" should be specified as transport:endpoint",
+		  service);
     if (msg_verbose)
 	msg_info("%s: transport=%s endpoint=%s", myname, transport, endpoint);
 
@@ -222,7 +224,7 @@ int     attr_clnt_request(ATTR_CLNT *client, int send_flags,...)
 	    || msg_verbose
 	    || (errno != EPIPE && errno != ENOENT && errno != ECONNRESET))
 	    msg_warn("problem talking to server %s: %m", client->endpoint);
-	if (count >= 3)
+	if (count >= 2)
 	    return (-1);
 	sleep(1);				/* XXX make configurable */
 	auto_clnt_recover(client->auto_clnt);

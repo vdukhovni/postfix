@@ -11,6 +11,13 @@ use Sys::Syslog qw(:DEFAULT setlogsock);
 # greylisting. State is kept in a Berkeley DB database.  Logging is
 # sent to syslogd.
 #
+# How it works: each time a Postfix SMTP server process is started
+# it connects to the policy service socket, and Postfix runs one
+# instance of this PERL script.  By default, a Postfix SMTP server
+# process terminates after 100 seconds of idle time, or after serving
+# 100 clients. Thus, the cost of starting this PERL script is smoothed
+# out over time.
+#
 # To run this from /etc/postfix/master.cf:
 #
 #    policy  unix  -       n       n       -       -       spawn
@@ -18,12 +25,35 @@ use Sys::Syslog qw(:DEFAULT setlogsock);
 #
 # To use this from Postfix SMTPD, use in /etc/postfix/main.cf:
 #
-#    smtpd_policy_service_endpoint = plain:unix:private/policy
-#    smtpd_recipient_restrictions = ... check_policy_service ...
+#    smtpd_recipient_restrictions =
+#	... reject_unauth_destination 
+#	check_policy_service unix:private/policy ...
 #
-# This script runs as one PERL process per SMTP server process.
-# By default, a Postfix SMTP server process terminates after 100
-# seconds of idle time, or after serving 100 clients.
+# NOTE: specify check_policy_service AFTER reject_unauth_destination
+# or else your system can become an open relay.
+#
+# To test this script by hand, execute:
+#
+#    % perl smtpd-policy.pl
+#
+# Each query is a bunch of attributes. Order does not matter, and
+# the demo script uses only a few of all the attributes shown below:
+#
+#    protocol_state=RCPT
+#    protocol_name=SMTP
+#    helo_name=some.domain.tld
+#    queue_id=8045F2AB23
+#    sender=foo@bar.tld
+#    recipient=bar@foo.tld
+#    client_address=1.2.3.4
+#    client_name=another.domain.tld
+#    [empty line]
+#
+# The policy server script will answer in the same style, with an
+# attribute list followed by a empty line:
+#
+#    action=ok
+#    [empty line]
 #
 
 #
@@ -36,8 +66,9 @@ $database_name="/var/mta/smtpd-policy.db";
 $greylist_delay=3600;
 
 #
-# Syslogging options for verbose mode and for fatal errors. Comment
-# out the $syslog_socktype line if syslogging does not work.
+# Syslogging options for verbose mode and for fatal errors. 
+# NOTE: comment out the $syslog_socktype line if syslogging does not
+# work on your system.
 #
 $syslog_socktype = 'unix'; # inet, unix, stream, console
 $syslog_facility="mail";
@@ -99,43 +130,45 @@ sub open_database {
 
     $database_obj = tie(%db_hash, 'DB_File', $database_name, 
 			    O_CREAT|O_RDWR, 0644) ||
-	fatal_exit "Cannot open database %s: %m", $database_name;
+	fatal_exit "Cannot open database %s: $!", $database_name;
     $database_fd = $database_obj->fd;
     open DATABASE_HANDLE, "+<&=$database_fd" ||
-	fatal_exit "Cannot fdopen database %s: %m", $database_name;
+	fatal_exit "Cannot fdopen database %s: $!", $database_name;
     syslog $syslog_priority, "open %s", $database_name if $verbose;
 }
 
 #
-# Read database.
+# Read database. Use a shared lock to avoid reading the database
+# while it is being changed.
 #
 sub read_database {
     my($key) = @_;
     my($value);
 
     flock DATABASE_HANDLE, LOCK_SH ||
-	fatal_exit "Can't get shared lock on %s: %m", $database_name;
+	fatal_exit "Can't get shared lock on %s: $!", $database_name;
     $value = $db_hash{$key};
     syslog $syslog_priority, "lookup %s: %s", $key, $value if $verbose;
     flock DATABASE_HANDLE, LOCK_UN ||
-	fatal_exit "Can't unlock %s: %m", $database_name;
+	fatal_exit "Can't unlock %s: $!", $database_name;
     return $value;
 }
 
 #
-# Update database.
+# Update database. Use an exclusive lock to avoid collisions with
+# other updaters, and to avoid surprises in database readers.
 #
 sub update_database {
     my($key, $value) = @_;
 
     syslog $syslog_priority, "store %s: %s", $key, $value if $verbose;
     flock DATABASE_HANDLE, LOCK_EX ||
-	fatal_exit "Can't exclusively lock %s: %m", $database_name;
+	fatal_exit "Can't exclusively lock %s: $!", $database_name;
     $db_hash{$key} = $value;
     $database_obj->sync() &&
-	fatal_exit "Can't update %s: %m", $database_name;
+	fatal_exit "Can't update %s: $!", $database_name;
     flock DATABASE_HANDLE, LOCK_UN ||
-	fatal_exit "Can't unlock %s: %m", $database_name;
+	fatal_exit "Can't unlock %s: $!", $database_name;
 }
 
 #

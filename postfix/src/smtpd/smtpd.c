@@ -67,7 +67,7 @@
 /*	without any parameter syntax checking and without any state change.
 /*	This list overrides built-in command definitions.
 /* .SH "Content inspection controls"
-/*	Optionally, Postfix can be configured to send new mail to 
+/*	Optionally, Postfix can be configured to send new mail to
 /*	external content filter software AFTER the mail is queued.
 /* .IP \fBcontent_filter\fR
 /*	The name of a mail delivery transport that filters mail and that
@@ -236,19 +236,15 @@
 /* .SH "Delegated policy"
 /* .ad
 /* .fi
-/* .IP \fBsmtpd_policy_service_endpoint\fR
-/*	The \fItransport\fR:\fIendpoint\fR of a server that speaks
-/*	the delegated SMTP policy protocol. \fItransport\fR is
-/*	either \fBinet\fR or \fBunix\fR. \fIendpoint\fR is either
-/*	\fIhost:port\fR, \fBprivate/\fIservicename\fR or
-/*	\fBpublic/\fIservicename\fR.
 /* .IP \fBsmtpd_policy_service_timeout\fR
 /*	Time limit for connecting to, writing to and receiving from
-/*	a delegated SMTP policy server.
+/*	a delegated SMTPD policy server.
 /* .IP \fBsmtpd_policy_service_max_idle\fR
-/*	Time after which an unused policy service connection is closed.
+/*	Time after which an unused SMTPD policy service connection
+/*	is closed.
 /* .IP \fBsmtpd_policy_service_timeout\fR
-/*	Time after which an active policy service connection is closed.
+/*	Time after which an active SMTPD policy service connection
+/*	is closed.
 /* .SH "UCE control restrictions"
 /* .ad
 /* .fi
@@ -522,7 +518,6 @@ char   *var_smtpd_proxy_filt;
 int     var_smtpd_proxy_tmout;
 char   *var_smtpd_proxy_ehlo;
 char   *var_input_transp;
-char   *var_smtpd_policy_srv;
 int     var_smtpd_policy_tmout;
 int     var_smtpd_policy_idle;
 int     var_smtpd_policy_ttl;
@@ -1928,7 +1923,6 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_PROXY_FILT, DEF_SMTPD_PROXY_FILT, &var_smtpd_proxy_filt, 0, 0,
 	VAR_SMTPD_PROXY_EHLO, DEF_SMTPD_PROXY_EHLO, &var_smtpd_proxy_ehlo, 0, 0,
 	VAR_INPUT_TRANSP, DEF_INPUT_TRANSP, &var_input_transp, 0, 0,
-	VAR_SMTPD_POLICY_SRV, DEF_SMTPD_POLICY_SRV, &var_smtpd_policy_srv, 0, 0,
 	0,
     };
     static CONFIG_RAW_TABLE raw_table[] = {

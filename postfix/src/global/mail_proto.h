@@ -145,6 +145,7 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_CLIENT_ADDR	"client_address"	/* client address */
 #define MAIL_ATTR_HELO_NAME	"helo_name"	/* SMTP helo name */
 #define MAIL_ATTR_PROTO_NAME	"protocol_name"	/* SMTP/ESMTP/QMQP/... */
+#define MAIL_ATTR_PROTO_STATE	"protocol_state"	/* MAIL/RCPT/... */
 #define MAIL_ATTR_ORIGIN	"message_origin"	/* hostname[address] */
 #define MAIL_ATTR_ORG_NONE	"unknown"	/* origin unknown */
 #define MAIL_ATTR_ORG_LOCAL	"local"	/* local submission */

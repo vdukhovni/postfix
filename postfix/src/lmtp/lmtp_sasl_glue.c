@@ -11,7 +11,7 @@
 /*	void	lmtp_sasl_connect(state)
 /*	LMTP_STATE *state;
 /*
-/*	void	lmtp_sasl_start(state, sasl_opts_name, sasl_opts_var)
+/*	void	lmtp_sasl_start(state, sasl_opts_name, sasl_opts_val)
 /*	LMTP_STATE *state;
 /*
 /*	int     lmtp_sasl_passwd_lookup(state)
@@ -33,7 +33,7 @@
 /*
 /*	lmtp_sasl_start() performs per-session initialization. This
 /*	routine must be called once per session before doing any SASL
-/*	authentication. The sasl_opts_name and sasl_opts_var parameters are
+/*	authentication. The sasl_opts_name and sasl_opts_val parameters are
 /*	the postfix configuration parameters setting the security
 /*	policy of the SASL authentication.
 /*
@@ -337,7 +337,7 @@ void    lmtp_sasl_connect(LMTP_STATE *state)
 /* lmtp_sasl_start - per-session SASL initialization */
 
 void    lmtp_sasl_start(LMTP_STATE *state, const char *sasl_opts_name,
-			        const char *sasl_opts_var)
+			        const char *sasl_opts_val)
 {
     static sasl_callback_t callbacks[] = {
 	{SASL_CB_USER, &lmtp_sasl_get_user, 0},
@@ -380,7 +380,7 @@ void    lmtp_sasl_start(LMTP_STATE *state, const char *sasl_opts_name,
     sec_props.max_ssf = 1;			/* don't allow real SASL
 						 * security layer */
     sec_props.security_flags = name_mask(sasl_opts_name, lmtp_sasl_sec_mask,
-					 sasl_opts_var);
+					 sasl_opts_val);
     sec_props.maxbufsize = 0;
     sec_props.property_names = 0;
     sec_props.property_values = 0;
