@@ -1,10 +1,10 @@
 SHELL	= /bin/sh
 SRCS	= smtpd.c smtpd_token.c smtpd_check.c smtpd_chat.c smtpd_state.c \
-	smtpd_peer.c smtpd_sasl_proto.c smtpd_sasl_glue.c
+	smtpd_peer.c smtpd_sasl_proto.c smtpd_sasl_glue.c smtpd_proxy.c
 OBJS	= smtpd.o smtpd_token.o smtpd_check.o smtpd_chat.o smtpd_state.o \
-	smtpd_peer.o smtpd_sasl_proto.o smtpd_sasl_glue.o
+	smtpd_peer.o smtpd_sasl_proto.o smtpd_sasl_glue.o smtpd_proxy.o
 HDRS	= smtpd_token.h smtpd_check.h smtpd_chat.h smtpd_sasl_proto.h \
-	smtpd_sasl_glue.h
+	smtpd_sasl_glue.h smtpd_proxy.h
 TESTSRC	= smtpd_token_test.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
@@ -154,6 +154,7 @@ smtpd.o: smtpd_check.h
 smtpd.o: smtpd_chat.h
 smtpd.o: smtpd_sasl_proto.h
 smtpd.o: smtpd_sasl_glue.h
+smtpd.o: smtpd_proxy.h
 smtpd_chat.o: smtpd_chat.c
 smtpd_chat.o: ../../include/sys_defs.h
 smtpd_chat.o: ../../include/msg.h
@@ -241,6 +242,25 @@ smtpd_peer.o: smtpd.h
 smtpd_peer.o: ../../include/vstream.h
 smtpd_peer.o: ../../include/argv.h
 smtpd_peer.o: ../../include/mail_stream.h
+smtpd_proxy.o: smtpd_proxy.c
+smtpd_proxy.o: ../../include/sys_defs.h
+smtpd_proxy.o: ../../include/msg.h
+smtpd_proxy.o: ../../include/vstream.h
+smtpd_proxy.o: ../../include/vbuf.h
+smtpd_proxy.o: ../../include/vstring.h
+smtpd_proxy.o: ../../include/stringops.h
+smtpd_proxy.o: ../../include/connect.h
+smtpd_proxy.o: ../../include/iostuff.h
+smtpd_proxy.o: ../../include/mail_error.h
+smtpd_proxy.o: ../../include/name_mask.h
+smtpd_proxy.o: ../../include/smtp_stream.h
+smtpd_proxy.o: ../../include/cleanup_user.h
+smtpd_proxy.o: ../../include/mail_params.h
+smtpd_proxy.o: ../../include/rec_type.h
+smtpd_proxy.o: smtpd.h
+smtpd_proxy.o: ../../include/argv.h
+smtpd_proxy.o: ../../include/mail_stream.h
+smtpd_proxy.o: smtpd_proxy.h
 smtpd_sasl_glue.o: smtpd_sasl_glue.c
 smtpd_sasl_glue.o: ../../include/sys_defs.h
 smtpd_sasl_glue.o: ../../include/msg.h

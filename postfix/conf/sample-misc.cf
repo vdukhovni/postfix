@@ -71,6 +71,18 @@ default_transport = smtp
 #
 double_bounce_sender = double-bounce
 
+# The enable_original_recipient parameter enables support for the
+# X-Original-To message header, which is needed for multi-recipient
+# mailboxes. When this parameter is set to yes, the cleanup daemon
+# performs duplicate elimination on distinct pairs of (original
+# recipient, rewritten recipient), and generates non-empty original
+# recipient queue file records.  When this parameter is set to no,
+# the cleanup daemon performs duplicate elimination on the rewritten
+# recipient address only, and generates empty original recipient
+# queue file records.  The default value is "yes".
+# 
+enable_original_recipient = yes
+
 # The export_environment parameter specifies the names of environment
 # parameters that Postfix will export to non-Postfix processes.
 # 

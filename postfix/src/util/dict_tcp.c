@@ -27,8 +27,8 @@
 /* ENCODING
 /* .ad
 /* .fi
-/*	In request and reply parameters, the character % and any non-printable
-/*	characters (including whitespace) are replaced by %XX, XX being the
+/*	In request and reply parameters, the character % and any non-printing
+/*	and whitespace characters must be replaced by %XX, XX being the
 /*	corresponding ASCII hexadecimal character value. The hexadecimal codes
 /*	can be specified in any case (upper, lower, mixed).
 /* REQUEST FORMAT
@@ -43,7 +43,8 @@
 /* REPLY FORMAT
 /* .ad
 /* .fi
-/*      Replies can have the following form:
+/*      Replies must be no longer than 4096 characters including the
+/*	newline terminator, and must have the following form:
 /* .IP "500 SPACE optional-text NEWLINE"
 /*	In case of a lookup request, the requested data does not exist.
 /*	In case of an update request, the request was rejected.
@@ -83,16 +84,16 @@
 
 /* Utility library. */
 
-#include "msg.h"
-#include "mymalloc.h"
-#include "vstring.h"
-#include "vstream.h"
-#include "vstring_vstream.h"
-#include "connect.h"
-#include "hex_quote.h"
-#include "dict.h"
-#include "stringops.h"
-#include "dict_tcp.h"
+#include <msg.h>
+#include <mymalloc.h>
+#include <vstring.h>
+#include <vstream.h>
+#include <vstring_vstream.h>
+#include <connect.h>
+#include <hex_quote.h>
+#include <dict.h>
+#include <stringops.h>
+#include <dict_tcp.h>
 
 /* Application-specific. */
 
@@ -103,8 +104,9 @@ typedef struct {
     VSTREAM *fp;			/* I/O stream */
 } DICT_TCP;
 
-#define DICT_TCP_MAXTRY	10
-#define DICT_TCP_TMOUT	100
+#define DICT_TCP_MAXTRY	10		/* attempts before giving up */
+#define DICT_TCP_TMOUT	100		/* connect/read/write timeout */
+#define DICT_TCP_MAXLEN	4096		/* server reply size limit */
 
 #define STR(x)		vstring_str(x)
 
@@ -115,10 +117,10 @@ static int dict_tcp_connect(DICT_TCP *dict_tcp)
     int     fd;
 
     /*
-     * Connect to the server. Enforce a time limit on read/write operations
-     * so that we do not get stuck.
+     * Connect to the server. Enforce a time limit on all operations so that
+     * we do not get stuck.
      */
-    if ((fd = inet_connect(dict_tcp->dict.name, BLOCKING, 0)) < 0) {
+    if ((fd = inet_connect(dict_tcp->dict.name, NON_BLOCKING, DICT_TCP_TMOUT)) < 0) {
 	msg_warn("connect to TCP map %s: %m", dict_tcp->dict.name);
 	return (-1);
     }
@@ -153,6 +155,7 @@ static const char *dict_tcp_lookup(DICT *dict, const char *key)
     char   *myname = "dict_tcp_lookup";
     int     tries;
     char   *start;
+    int     last_ch;
 
 #define RETURN(errval, result) { dict_errno = errval; return (result); }
 
@@ -173,14 +176,22 @@ static const char *dict_tcp_lookup(DICT *dict, const char *key)
 	     */
 	    hex_quote(dict_tcp->hex_buf, key);
 	    vstream_fprintf(dict_tcp->fp, "get %s\n", STR(dict_tcp->hex_buf));
-	    if (vstring_get_nonl(dict_tcp->hex_buf, dict_tcp->fp) > 0)
+	    if (msg_verbose)
+		msg_info("%s: send \"get %s\"", myname, STR(dict_tcp->hex_buf));
+	    last_ch = vstring_get_nonl_bound(dict_tcp->hex_buf, dict_tcp->fp,
+					     DICT_TCP_MAXLEN);
+	    if (last_ch == '\n')
 		break;
 
 	    /*
 	     * Disconnect from the server if it can't talk to us.
 	     */
-	    msg_warn("read TCP map reply from %s: unexpected EOF (%m)",
-		     dict_tcp->dict.name);
+	    if (last_ch < 0)
+		msg_warn("read TCP map reply from %s: unexpected EOF (%m)",
+			 dict_tcp->dict.name);
+	    else
+		msg_warn("read TCP map reply from %s: text longer than %d",
+			 dict_tcp->dict.name, DICT_TCP_MAXLEN);
 	    dict_tcp_disconnect(dict_tcp);
 	}
 
@@ -195,6 +206,8 @@ static const char *dict_tcp_lookup(DICT *dict, const char *key)
 	 */
 	sleep(1);
     }
+    if (msg_verbose)
+	msg_info("%s: recv: \"%s\"", myname, STR(dict_tcp->hex_buf));
 
     /*
      * Check the general reply syntax. If the reply is malformed, disconnect
@@ -205,7 +218,7 @@ static const char *dict_tcp_lookup(DICT *dict, const char *key)
 	|| !ISDIGIT(start[2]) || !ISSPACE(start[3])
 	|| !hex_unquote(dict_tcp->raw_buf, start + 4)) {
 	msg_warn("read TCP map reply from %s: malformed reply %.100s",
-		 dict_tcp->dict.name, printable(STR(dict_tcp->hex_buf), '_'));
+	       dict_tcp->dict.name, printable(STR(dict_tcp->hex_buf), '_'));
 	dict_tcp_disconnect(dict_tcp);
 	RETURN(DICT_ERR_RETRY, 0);
     }
@@ -217,7 +230,7 @@ static const char *dict_tcp_lookup(DICT *dict, const char *key)
     switch (start[0]) {
     default:
 	msg_warn("read TCP map reply from %s: bad status code %.100s",
-		 dict_tcp->dict.name, printable(STR(dict_tcp->hex_buf), '_'));
+	       dict_tcp->dict.name, printable(STR(dict_tcp->hex_buf), '_'));
 	dict_tcp_disconnect(dict_tcp);
 	RETURN(DICT_ERR_RETRY, 0);
     case '4':
@@ -268,5 +281,5 @@ DICT   *dict_tcp_open(const char *map, int unused_flags, int dict_flags)
     dict_tcp->dict.lookup = dict_tcp_lookup;
     dict_tcp->dict.close = dict_tcp_close;
     dict_tcp->dict.flags = dict_flags | DICT_FLAG_FIXED;
-    return (DICT_DEBUG(&dict_tcp->dict));
+    return (DICT_DEBUG (&dict_tcp->dict));
 }

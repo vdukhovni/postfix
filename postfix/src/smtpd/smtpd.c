@@ -97,6 +97,24 @@
 /*	Maps that specify the SASL login name that owns a MAIL FROM sender
 /*	address. Used by the \fBreject_sender_login_mismatch\fR sender
 /*	anti-spoofing restriction.
+/* .SH "Pass-through proxy"
+/* .ad
+/* .fi
+/* .ad
+/*	Optionally, the Postfix SMTP server can be configured to
+/*	forward all mail to a proxy server, for example a real-time
+/*	content filter. This proxy server should support the same
+/*	MAIL FROM and RCPT TO command syntax as Postfix, but does not
+/*	need to support ESMTP command pipelining.
+/* .IP \fBsmtpd_proxy_filter\fR
+/*	The \fIhost:port\fR of the SMTP proxy server. The \fIhost\fR
+/*	or \fIhost:\fR portion is optional.
+/* .IP \fBsmtpd_proxy_timeout\fR
+/*	Timeout for connecting to, sending to and receiving from
+/*	the SMTP proxy server.
+/* .IP \fBsmtpd_proxy_ehlo\fR
+/*	The hostname to use when sending an EHLO command to the
+/*	SMTP proxy server.
 /* .SH Miscellaneous
 /* .ad
 /* .fi
@@ -245,6 +263,21 @@
 /*	Restrict what domains this mail system will relay
 /*	mail to. The domains are routed to the delivery agent
 /*	specified with the \fBrelay_transport\fR setting.
+/* .SH "Sender/recipient address verification"
+/* .ad
+/* .fi
+/*	Address verification is implemented by sending probe email
+/*	messages that are not actually delivered, and is enabled
+/*	via the reject_unverified_{sender,recipient} access restriction.
+/*	The status of verification probes is maintained by the address
+/*	verification service.
+/* .IP \fBaddress_verify_poll_count\fR
+/*	How many times to query the address verification service
+/*	for completion of an address verification request.
+/*	Specify 0 to implement a simple form of greylisting.
+/* .IP \fBaddress_verify_poll_delay\fR
+/*	Time to wait after querying the address verification service
+/*	for completion of an address verification request.
 /* .SH "UCE control responses"
 /* .ad
 /* .fi
@@ -289,10 +322,11 @@
 /* .IP \fBunverified_recipient_reject_code\fR
 /*	Response code when a recipient address is known to be undeliverable.
 /* SEE ALSO
-/*	trivial-rewrite(8) address resolver
 /*	cleanup(8) message canonicalization
 /*	master(8) process manager
 /*	syslogd(8) system logging
+/*	trivial-rewrite(8) address resolver
+/*	verify(8) address verification service
 /* LICENSE
 /* .ad
 /* .fi
@@ -368,12 +402,13 @@
 
 /* Application-specific */
 
-#include "smtpd_token.h"
-#include "smtpd.h"
-#include "smtpd_check.h"
-#include "smtpd_chat.h"
-#include "smtpd_sasl_proto.h"
-#include "smtpd_sasl_glue.h"
+#include <smtpd_token.h>
+#include <smtpd.h>
+#include <smtpd_check.h>
+#include <smtpd_chat.h>
+#include <smtpd_sasl_proto.h>
+#include <smtpd_sasl_glue.h>
+#include <smtpd_proxy.h>
 
  /*
   * Tunable parameters. Make sure that there is some bound on the length of
@@ -446,6 +481,12 @@ int     var_virt_mailbox_code;
 int     var_relay_rcpt_code;
 char   *var_verp_clients;
 int     var_show_unk_rcpt_table;
+int     var_verify_poll_count;
+int     var_verify_poll_delay;
+
+char   *var_smtpd_proxy_filt;
+int     var_smtpd_proxy_tmout;
+char   *var_smtpd_proxy_ehlo;
 
  /*
   * Silly little macros.
@@ -762,7 +803,9 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "503 Error: send HELO/EHLO first");
 	return (-1);
     }
-    if (state->cleanup != 0) {
+#define IN_MAIL_TRANSACTION(state) ((state)->cleanup || (state)->proxy)
+
+    if (IN_MAIL_TRANSACTION(state)) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "503 Error: nested MAIL command");
 	return (-1);
@@ -840,50 +883,58 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
-    if ((err = smtpd_check_size(state, state->msg_size)) != 0) {
-	smtpd_chat_reply(state, "%s", err);
-	return (-1);
-    }
+    if (SMTPD_STAND_ALONE(state) == 0 && *var_smtpd_proxy_filt) {
+	if (smtpd_proxy_open(state, var_smtpd_proxy_filt, var_smtpd_proxy_tmout,
+			   var_smtpd_proxy_ehlo, STR(state->buffer)) != 0) {
+	    smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
+	    return (-1);
+	}
+    } else {
+	if ((err = smtpd_check_size(state, state->msg_size)) != 0) {
+	    smtpd_chat_reply(state, "%s", err);
+	    return (-1);
+	}
 
-    /*
-     * Open queue file or IPC stream.
-     */
-    mail_open_stream(state);
+	/*
+	 * Open queue file or IPC stream.
+	 */
+	mail_open_stream(state);
 #ifdef USE_SASL_AUTH
-    if (var_smtpd_sasl_enable)
-	smtpd_sasl_mail_log(state);
-    else
+	if (var_smtpd_sasl_enable)
+	    smtpd_sasl_mail_log(state);
+	else
 #endif
-	msg_info("%s: client=%s[%s]", state->queue_id, state->name, state->addr);
+	    msg_info("%s: client=%s[%s]", state->queue_id, state->name, state->addr);
 
-    /*
-     * Record the time of arrival and the sender envelope address.
-     */
-    if (SMTPD_STAND_ALONE(state) == 0) {
-	rec_fprintf(state->cleanup, REC_TYPE_TIME, "%ld",
-		    (long) time((time_t *) 0));
-	if (*var_filter_xport)
-	    rec_fprintf(state->cleanup, REC_TYPE_FILT, "%s", var_filter_xport);
-    }
-    rec_fputs(state->cleanup, REC_TYPE_FROM, argv[2].strval);
-    if (encoding != 0)
-	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_ENCODING, encoding);
-    if (SMTPD_STAND_ALONE(state) == 0) {
-	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_CLIENT_NAME, state->name);
-	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_CLIENT_ADDR, state->addr);
-	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_ORIGIN, state->namaddr);
-	if (state->helo_name != 0)
+	/*
+	 * Record the time of arrival and the sender envelope address.
+	 */
+	if (SMTPD_STAND_ALONE(state) == 0) {
+	    rec_fprintf(state->cleanup, REC_TYPE_TIME, "%ld",
+			(long) time((time_t *) 0));
+	    if (*var_filter_xport)
+		rec_fprintf(state->cleanup, REC_TYPE_FILT, "%s", var_filter_xport);
+	}
+	rec_fputs(state->cleanup, REC_TYPE_FROM, argv[2].strval);
+	if (encoding != 0)
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			MAIL_ATTR_HELO_NAME, state->helo_name);
-	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_PROTO_NAME, state->protocol);
+			MAIL_ATTR_ENCODING, encoding);
+	if (SMTPD_STAND_ALONE(state) == 0) {
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_CLIENT_NAME, state->name);
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_CLIENT_ADDR, state->addr);
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_ORIGIN, state->namaddr);
+	    if (state->helo_name != 0)
+		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			    MAIL_ATTR_HELO_NAME, state->helo_name);
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_PROTO_NAME, state->protocol);
+	}
+	if (verp_delims)
+	    rec_fputs(state->cleanup, REC_TYPE_VERP, verp_delims);
     }
-    if (verp_delims)
-	rec_fputs(state->cleanup, REC_TYPE_VERP, verp_delims);
     state->sender = mystrdup(argv[2].strval);
     smtpd_chat_reply(state, "250 Ok");
     return (0);
@@ -918,6 +969,8 @@ static void mail_reset(SMTPD_STATE *state)
 	smtpd_sasl_mail_reset(state);
 #endif
     state->discard = 0;
+    if (state->proxy)
+	smtpd_proxy_close(state);
 }
 
 /* rcpt_cmd - process RCPT TO command */
@@ -937,7 +990,7 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * command with a 501 response. So much for the principle of "be liberal
      * in what you accept, be strict in what you send".
      */
-    if (state->cleanup == 0) {
+    if (!IN_MAIL_TRANSACTION(state)) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "503 Error: need MAIL command");
 	return (-1);
@@ -977,6 +1030,11 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    return (-1);
 	}
     }
+    if (state->proxy && smtpd_proxy_cmd(state, SMTPD_PROX_STAT_OK,
+					"%s", STR(state->buffer)) != 0) {
+	smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
+	return (-1);
+    }
 
     /*
      * Store the recipient. Remember the first one.
@@ -984,7 +1042,8 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     state->rcpt_count++;
     if (state->recipient == 0)
 	state->recipient = mystrdup(argv[2].strval);
-    rec_fputs(state->cleanup, REC_TYPE_RCPT, argv[2].strval);
+    if (state->cleanup)
+	rec_fputs(state->cleanup, REC_TYPE_RCPT, argv[2].strval);
     smtpd_chat_reply(state, "250 Ok");
     return (0);
 }
@@ -1012,6 +1071,10 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     int     first = 1;
     VSTRING *why = 0;
     int     saved_err;
+    int     (*out_record) (VSTREAM *, int, const char *, int);
+    int     (*out_fprintf) (VSTREAM *, int, const char *,...);
+    VSTREAM *out_stream;
+    int     out_error;
 
     /*
      * Sanity checks. With ESMTP command pipelining the client can send DATA
@@ -1019,7 +1082,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      * error.
      */
     if (state->rcpt_count == 0) {
-	if (state->cleanup == 0) {
+	if (!IN_MAIL_TRANSACTION(state)) {
 	    state->error_mask |= MAIL_ERROR_PROTOCOL;
 	    smtpd_chat_reply(state, "503 Error: need RCPT command");
 	} else {
@@ -1036,35 +1099,61 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
+    if (state->proxy && smtpd_proxy_cmd(state, SMTPD_PROX_STAT_MORE,
+					"%s", STR(state->buffer)) != 0) {
+	smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
+	return (-1);
+    }
+
+    /*
+     * One level of indirection to choose between normal or proxied
+     * operation. We want to avoid massive code duplication within tons of
+     * if-else clauses.
+     */
+    if (state->proxy) {
+	out_stream = state->proxy;
+	out_record = smtpd_proxy_rec_put;
+	out_fprintf = smtpd_proxy_rec_fprintf;
+	out_error = CLEANUP_STAT_PROXY;
+    } else {
+	out_stream = state->cleanup;
+	out_record = rec_put;
+	out_fprintf = rec_fprintf;
+	out_error = CLEANUP_STAT_WRITE;
+    }
 
     /*
      * Terminate the message envelope segment. Start the message content
      * segment, and prepend our own Received: header. If there is only one
      * recipient, list the recipient address.
      */
-    rec_fputs(state->cleanup, REC_TYPE_MESG, "");
-    rec_fprintf(state->cleanup, REC_TYPE_NORM,
+    if (state->cleanup)
+	rec_fputs(state->cleanup, REC_TYPE_MESG, "");
+    out_fprintf(out_stream, REC_TYPE_NORM,
 		"Received: from %s (%s [%s])",
 		state->helo_name ? state->helo_name : state->name,
 		state->name, state->addr);
     if (state->rcpt_count == 1 && state->recipient) {
-	rec_fprintf(state->cleanup, REC_TYPE_NORM,
-		    "\tby %s (%s) with %s id %s",
+	out_fprintf(out_stream, REC_TYPE_NORM,
+		    state->cleanup ? "\tby %s (%s) with %s id %s" :
+		    "\tby %s (%s) with %s",
 		    var_myhostname, var_mail_name,
 		    state->protocol, state->queue_id);
 	quote_822_local(state->buffer, state->recipient);
-	rec_fprintf(state->cleanup, REC_TYPE_NORM,
+	out_fprintf(out_stream, REC_TYPE_NORM,
 	      "\tfor <%s>; %s", STR(state->buffer), mail_date(state->time));
     } else {
-	rec_fprintf(state->cleanup, REC_TYPE_NORM,
-		    "\tby %s (%s) with %s",
-		    var_myhostname, var_mail_name, state->protocol);
-	rec_fprintf(state->cleanup, REC_TYPE_NORM,
-		    "\tid %s; %s", state->queue_id, mail_date(state->time));
+	out_fprintf(out_stream, REC_TYPE_NORM,
+		    state->cleanup ? "\tby %s (%s) with %s id %s;" :
+		    "\tby %s (%s) with %s;",
+		    var_myhostname, var_mail_name,
+		    state->protocol, state->queue_id);
+	out_fprintf(out_stream, REC_TYPE_NORM,
+		    "\t%s", mail_date(state->time));
     }
 #ifdef RECEIVED_ENVELOPE_FROM
     quote_822_local(state->buffer, state->sender);
-    rec_fprintf(state->cleanup, REC_TYPE_NORM,
+    out_fprintf(out_stream, REC_TYPE_NORM,
 		"\t(envelope-from %s)", STR(state->buffer));
 #endif
     smtpd_chat_reply(state, "354 End data with <CR><LF>.<CR><LF>");
@@ -1081,9 +1170,6 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      * XXX Deal with UNIX-style From_ lines at the start of message content
      * because sendmail permits it.
      */
-    if (vstream_fflush(state->cleanup))
-	state->err = CLEANUP_STAT_WRITE;
-
     for (prev_rec_type = 0; /* void */ ; prev_rec_type = curr_rec_type) {
 	if (smtp_get(state->buffer, state->client, var_line_limit) == '\n')
 	    curr_rec_type = REC_TYPE_NORM;
@@ -1093,40 +1179,46 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	len = VSTRING_LEN(state->buffer);
 	if (first) {
 	    if (strncmp(start + strspn(start, ">"), "From ", 5) == 0) {
-		rec_fprintf(state->cleanup, curr_rec_type,
+		out_fprintf(out_stream, curr_rec_type,
 			    "X-Mailbox-Line: %s", start);
 		continue;
 	    }
 	    first = 0;
 	    if (len > 0 && IS_SPACE_TAB(start[0]))
-		rec_put(state->cleanup, REC_TYPE_NORM, "", 0);
+		out_record(out_stream, REC_TYPE_NORM, "", 0);
 	}
-	if (prev_rec_type != REC_TYPE_CONT
-	    && *start == '.' && (++start, --len) == 0)
+	if (prev_rec_type != REC_TYPE_CONT && *start == '.'
+	    && (state->proxy == 0 ? (++start, --len) == 0 : len == 1))
 	    break;
 	if (state->err == CLEANUP_STAT_OK
-	    && rec_put(state->cleanup, curr_rec_type, start, len) < 0)
-	    state->err = CLEANUP_STAT_WRITE;
+	    && out_record(out_stream, curr_rec_type, start, len) < 0)
+	    state->err = out_error;
     }
 
     /*
      * Send the end-of-segment markers.
      */
-    if (state->err == CLEANUP_STAT_OK)
-	if (rec_fputs(state->cleanup, REC_TYPE_XTRA, "") < 0
-	    || rec_fputs(state->cleanup, REC_TYPE_END, "") < 0
-	    || vstream_fflush(state->cleanup))
-	    state->err = CLEANUP_STAT_WRITE;
+    if (state->proxy) {
+	if (state->err == CLEANUP_STAT_OK)
+	    (void) smtpd_proxy_cmd(state, SMTPD_PROX_STAT_ANY, ".");
+	smtpd_proxy_close(state);
+    } else {
+	if (state->err == CLEANUP_STAT_OK)
+	    if (rec_fputs(state->cleanup, REC_TYPE_XTRA, "") < 0
+		|| rec_fputs(state->cleanup, REC_TYPE_END, "") < 0
+		|| vstream_fflush(state->cleanup))
+		state->err = CLEANUP_STAT_WRITE;
 
-    /*
-     * Finish the queue file or finish the cleanup conversation.
-     */
-    if (state->err == 0)
-	state->err = mail_stream_finish(state->dest, why = vstring_alloc(10));
-    else
-	mail_stream_cleanup(state->dest);
-    state->dest = 0;
-    state->cleanup = 0;
+	/*
+	 * Finish the queue file or finish the cleanup conversation.
+	 */
+	if (state->err == 0)
+	    state->err = mail_stream_finish(state->dest, why = vstring_alloc(10));
+	else
+	    mail_stream_cleanup(state->dest);
+	state->dest = 0;
+	state->cleanup = 0;
+    }
 
     /*
      * Handle any errors. One message may suffer from multiple errors, so
@@ -1139,7 +1231,10 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	state->error_count = 0;
 	state->error_mask = 0;
 	state->junk_cmds = 0;
-	smtpd_chat_reply(state, "250 Ok: queued as %s", state->queue_id);
+	if (state->queue_id)
+	    smtpd_chat_reply(state, "250 Ok: queued as %s", state->queue_id);
+	else
+	    smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
     } else if ((state->err & CLEANUP_STAT_BAD) != 0) {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
 	smtpd_chat_reply(state, "451 Error: internal error %d", state->err);
@@ -1155,6 +1250,9 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 			 STR(why) : "content rejected");
     } else if ((state->err & CLEANUP_STAT_WRITE) != 0) {
 	state->error_mask |= MAIL_ERROR_RESOURCE;
+	smtpd_chat_reply(state, "451 Error: queue file write error");
+    } else if ((state->err & CLEANUP_STAT_PROXY) != 0) {
+	state->error_mask |= MAIL_ERROR_SOFTWARE;
 	smtpd_chat_reply(state, "451 Error: queue file write error");
     } else {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
@@ -1310,7 +1408,7 @@ static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "503 Error: send HELO/EHLO first");
 	return (-1);
     }
-    if (state->cleanup != 0) {
+    if (IN_MAIL_TRANSACTION(state)) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "503 Error: MAIL transaction in progress");
 	return (-1);
@@ -1409,7 +1507,7 @@ typedef struct SMTPD_CMD {
 } SMTPD_CMD;
 
 #define SMTPD_CMD_FLAG_LIMIT    (1<<0)	/* limit usage */
-#define SMTPD_CMD_FLAG_HEADER	(1<<1)	/* RFC 2822 mail header */
+#define SMTPD_CMD_FLAG_FORBIDDEN	(1<<1)	/* RFC 2822 mail header */
 
 static SMTPD_CMD smtpd_cmd_table[] = {
     "HELO", helo_cmd, SMTPD_CMD_FLAG_LIMIT,
@@ -1427,11 +1525,13 @@ static SMTPD_CMD smtpd_cmd_table[] = {
     "VRFY", vrfy_cmd, SMTPD_CMD_FLAG_LIMIT,
     "ETRN", etrn_cmd, SMTPD_CMD_FLAG_LIMIT,
     "QUIT", quit_cmd, 0,
-    "Received:", 0, SMTPD_CMD_FLAG_HEADER,
-    "Reply-To:", 0, SMTPD_CMD_FLAG_HEADER,
-    "Message-ID:", 0, SMTPD_CMD_FLAG_HEADER,
-    "Subject:", 0, SMTPD_CMD_FLAG_HEADER,
-    "From:", 0, SMTPD_CMD_FLAG_HEADER,
+    "Received:", 0, SMTPD_CMD_FLAG_FORBIDDEN,
+    "Reply-To:", 0, SMTPD_CMD_FLAG_FORBIDDEN,
+    "Message-ID:", 0, SMTPD_CMD_FLAG_FORBIDDEN,
+    "Subject:", 0, SMTPD_CMD_FLAG_FORBIDDEN,
+    "From:", 0, SMTPD_CMD_FLAG_FORBIDDEN,
+    "CONNECT", 0, SMTPD_CMD_FLAG_FORBIDDEN,
+    "User-Agent:", 0, SMTPD_CMD_FLAG_FORBIDDEN,
     0,
 };
 
@@ -1521,8 +1621,8 @@ static void smtpd_proto(SMTPD_STATE *state)
 		state->error_count++;
 		continue;
 	    }
-	    if (cmdp->flags & SMTPD_CMD_FLAG_HEADER) {
-		msg_warn("%s sent %s header instead of SMTP command: %.100s",
+	    if (cmdp->flags & SMTPD_CMD_FLAG_FORBIDDEN) {
+		msg_warn("%s sent %s instead of SMTP command: %.100s",
 		    state->namaddr, cmdp->name, vstring_str(state->buffer));
 		smtpd_chat_reply(state, "221 Error: I can break rules, too. Goodbye.");
 		break;
@@ -1685,11 +1785,14 @@ int     main(int argc, char **argv)
 	VAR_VIRT_ALIAS_CODE, DEF_VIRT_ALIAS_CODE, &var_virt_alias_code, 0, 0,
 	VAR_VIRT_MAILBOX_CODE, DEF_VIRT_MAILBOX_CODE, &var_virt_mailbox_code, 0, 0,
 	VAR_RELAY_RCPT_CODE, DEF_RELAY_RCPT_CODE, &var_relay_rcpt_code, 0, 0,
+	VAR_VERIFY_POLL_COUNT, DEF_VERIFY_POLL_COUNT, &var_verify_poll_count, 1, 0,
 	0,
     };
     static CONFIG_TIME_TABLE time_table[] = {
 	VAR_SMTPD_TMOUT, DEF_SMTPD_TMOUT, &var_smtpd_tmout, 1, 0,
 	VAR_SMTPD_ERR_SLEEP, DEF_SMTPD_ERR_SLEEP, &var_smtpd_err_sleep, 0, 0,
+	VAR_SMTPD_PROXY_TMOUT, DEF_SMTPD_PROXY_TMOUT, &var_smtpd_proxy_tmout, 1, 0,
+	VAR_VERIFY_POLL_DELAY, DEF_VERIFY_POLL_DELAY, &var_verify_poll_delay, 1, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {
@@ -1732,6 +1835,8 @@ int     main(int argc, char **argv)
 	VAR_RELAY_RCPT_MAPS, DEF_RELAY_RCPT_MAPS, &var_relay_rcpt_maps, 0, 0,
 	VAR_VERIFY_SENDER, DEF_VERIFY_SENDER, &var_verify_sender, 0, 0,
 	VAR_VERP_CLIENTS, DEF_VERP_CLIENTS, &var_verp_clients, 0, 0,
+	VAR_SMTPD_PROXY_FILT, DEF_SMTPD_PROXY_FILT, &var_smtpd_proxy_filt, 0, 0,
+	VAR_SMTPD_PROXY_EHLO, DEF_SMTPD_PROXY_EHLO, &var_smtpd_proxy_ehlo, 0, 0,
 	0,
     };
     static CONFIG_RAW_TABLE raw_table[] = {

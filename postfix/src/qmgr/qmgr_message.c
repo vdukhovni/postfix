@@ -357,7 +357,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 #define FUDGE(x)	((x) * (var_qmgr_fudge / 100.0))
 	    if (message->rcpt_offset == 0) {
 		qmgr_rcpt_list_add(&message->rcpt_list, curr_offset,
-				   orig_rcpt ? orig_rcpt : "unknown", start);
+				   orig_rcpt ? orig_rcpt : "", start);
 		if (orig_rcpt) {
 		    myfree(orig_rcpt);
 		    orig_rcpt = 0;

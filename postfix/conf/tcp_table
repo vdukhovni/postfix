@@ -1,0 +1,85 @@
+# TCP_TABLE(5)                                         TCP_TABLE(5)
+# 
+# NAME
+#        tcp_table - Postfix client/server table lookup protocol
+# 
+# SYNOPSIS
+#        postmap -q "string" tcp:host:port
+# 
+#        postmap -q - regexp:host:port <inputfile
+# 
+# DESCRIPTION
+#        The  Postfix  mail system uses optional tables for address
+#        rewriting or mail routing. These tables are usually in dbm
+#        or  db  format. Alternatively, lookup tables can be speci-
+#        fied as a TCP client/server pair.
+# 
+#        To find out what types of lookup tables your Postfix  sys-
+#        tem supports use the postconf -m command.
+# 
+#        To   test  lookup  tables,  use  the  postmap  command  as
+#        described in the SYNOPSIS above.
+# 
+# PROTOCOL DESCRIPTION
+#        The TCP map class implements a very simple  protocol:  the
+#        client  sends  a  request, and the server sends one reply.
+#        Requests and replies are sent as one line of  ASCII  text,
+#        terminated  by  the  ASCII  newline character. Request and
+#        reply parameters (see below) are separated by  whitespace.
+# 
+# ENCODING
+#        In  request  and reply parameters, the character % and any
+#        non-printing and whitespace characters must be replaced by
+#        %XX,  XX being the corresponding ASCII hexadecimal charac-
+#        ter value. The hexadecimal codes can be specified  in  any
+#        case (upper, lower, mixed).
+# 
+# REQUEST FORMAT
+#        Requests are strings that serve as lookup key in the simu-
+#        lated table.
+# 
+#        get SPACE key NEWLINE
+#               Look up data under the specified key.
+# 
+#        put SPACE key SPACE value NEWLINE
+#               This request is currently not implemented.
+# 
+# REPLY FORMAT
+#        Replies must be no longer than 4096  characters  including
+#        the newline terminator, and must have the following form:
+# 
+#        500 SPACE optional-text NEWLINE
+#               In  case  of  a  lookup request, the requested data
+#               does not exist.  In case of an update request,  the
+#               request was rejected.
+# 
+#        400 SPACE optional-text NEWLINE
+#               This  indicates  an error condition. The text gives
+#               the nature of the problem. The client should  retry
+#               the request later.
+# 
+#        200 SPACE text NEWLINE
+#               The request was successful. In the case of a lookup
+#               request, the text contains an  encoded  version  of
+#               the   requested   data.    Otherwise  the  text  is
+#               optional.
+# 
+# SEE ALSO
+#        regexp_table(5) format of regular expression tables
+#        pcre_table(5) format of PCRE tables
+#        cidr_table(5) format of CIDR tables
+# 
+# BUGS
+#        Only the lookup method is currently implemented.
+# 
+# LICENSE
+#        The Secure Mailer license must be  distributed  with  this
+#        software.
+# 
+# AUTHOR(S)
+#        Wietse Venema
+#        IBM T.J. Watson Research
+#        P.O. Box 704
+#        Yorktown Heights, NY 10598, USA
+# 
+#                                                      TCP_TABLE(5)

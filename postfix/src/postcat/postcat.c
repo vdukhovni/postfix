@@ -98,7 +98,7 @@ static void postcat(VSTREAM *fp, VSTRING *buffer)
      * See if this is a plausible file.
      */
     if ((ch = VSTREAM_GETC(fp)) != VSTREAM_EOF) {
-	if (!strchr(REC_TYPE_POST_ENVELOPE, ch)) {
+	if (!strchr(REC_TYPE_ENVELOPE, ch)) {
 	    msg_warn("%s: input is not a valid queue file", VSTREAM_PATH(fp));
 	    return;
 	}

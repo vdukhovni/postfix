@@ -8,8 +8,6 @@ format of Postfix regular expression tables
 .SH SYNOPSIS
 .na
 .nf
-\fBregexp:/etc/postfix/\fIfilename\fR
-
 \fBpostmap -q "\fIstring\fB" regexp:/etc/postfix/\fIfilename\fR
 
 \fBpostmap -q - regexp:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
@@ -71,7 +69,9 @@ pattern is found that matches the search string.
 Substitution of substrings from the matched expression into the result
 string is possible using $1, $2, etc.. The macros in the result string
 may need to be written as ${n} or $(n) if they aren't followed
-by whitespace.
+by whitespace. Since negated patterns (those preceded by \fB!\fR)
+return a result when the expression does not match, substitutions are
+not available for negated patterns.
 .SH EXAMPLE SMTPD ACCESS MAP
 .na
 .nf
@@ -104,6 +104,8 @@ endif
 .na
 .nf
 pcre_table(5) format of PCRE tables
+cidr_table(5) format of CIDR tables
+tcp_table(5) TCP client/server table lookup protocol
 .SH AUTHOR(S)
 .na
 .nf

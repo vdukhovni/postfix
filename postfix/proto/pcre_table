@@ -4,8 +4,6 @@
 # SUMMARY
 #	format of Postfix PCRE tables
 # SYNOPSIS
-#	\fBpcre:/etc/postfix/\fIfilename\fR
-#
 #	\fBpostmap -q "\fIstring\fB" pcre:/etc/postfix/\fIfilename\fR
 #
 #	\fBpostmap -q - pcre:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
@@ -23,8 +21,9 @@
 #
 #	The general form of a PCRE table is:
 # .IP "\fB/\fIpattern\fB/\fIflags result\fR"
-#	When \fIpattern\fR matches a search string, use the corresponding
-#	\fIresult\fR value.
+# .IP "\fB!/\fIpattern\fB/\fIflags result\fR"
+#	When \fIpattern\fR matches (does not match) a search string, use
+#	the corresponding \fIresult\fR value.
 # .IP "blank lines and comments"
 #	Empty lines and whitespace-only lines are ignored, as
 #	are lines whose first non-whitespace character is a `#'.
@@ -32,10 +31,12 @@
 #	A logical line starts with non-whitespace text. A line that
 #	starts with whitespace continues a logical line.
 # .IP "\fBif /\fIpattern\fB/\fIflags\fR"
+# .IP "\fBif !/\fIpattern\fB/\fIflags\fR"
 # .IP "\fBendif\fR"
 #	Examine the lines between \fBif\fR..\fBendif\fR only if
-#	\fIpattern\fR matches. The \fBif\fR..\fBendif\fR can nest.
-#	Do not prepend whitespace to patterns inside \fBif\fR..\fBendif\fR.
+#	\fIpattern\fR matches (does not match). The \fBif\fR..\fBendif\fR
+#	can nest. Do not prepend whitespace to patterns inside
+#	\fBif\fR..\fBendif\fR.
 # .PP
 #	Each pattern is a perl-like regular expression. The expression
 #	delimiter can be any character, except whitespace or characters
@@ -108,7 +109,9 @@
 #	Substitution of substrings from the matched expression into the result
 #	string is possible using the conventional perl syntax ($1, $2, etc.).
 #	The macros in the result string may need to be written as ${n}
-#	or $(n) if they aren't followed by whitespace.
+#	or $(n) if they aren't followed by whitespace. Since negated patterns
+#	(those preceded by \fB!\fR) return a result when the expression does
+#	not match, substitutions are not available for negated patterns.
 # EXAMPLE SMTPD ACCESS MAP
 #	# Protect your outgoing majordomo exploders
 #	/^(?!owner-)(.*)-outgoing@(.*)/ 550 Use ${1}@${2} instead
@@ -133,6 +136,8 @@
 #	# Put your own body patterns here.
 # SEE ALSO
 #	regexp_table(5) format of POSIX regular expression tables
+#	cidr_table(5) format of CIDR tables
+#	tcp_table(5) TCP client/server table lookup protocol
 # AUTHOR(S)
 #	The PCRE table lookup code was originally written by:
 #	Andrew McNamara

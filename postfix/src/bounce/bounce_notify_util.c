@@ -155,6 +155,8 @@
 #include <vstring.h>
 #include <vstream.h>
 #include <line_wrap.h>
+#include <stringops.h>
+#include <xtext.h>
 
 /* Global library. */
 
@@ -210,9 +212,18 @@ static BOUNCE_INFO *bounce_mail_alloc(const char *service,
     }
     bounce_info->flush = flush;
     bounce_info->buf = vstring_alloc(100);
+    bounce_info->sender = vstring_alloc(100);
     bounce_info->arrival_time = 0;
     bounce_info->orig_offs = 0;
     bounce_info->log_handle = log_handle;
+
+    /*
+     * RFC 1894: diagnostic-type is an RFC 822 atom. We use X-$mail_name and
+     * must ensure it is valid.
+     */
+    bounce_info->mail_name = mystrdup(var_mail_name);
+    translit(bounce_info->mail_name, " \t\r\n()<>@,;:\\\".[]",
+	     "-----------------");
 
     /*
      * Compute a supposedly unique boundary string. This assumes that a queue
@@ -247,7 +258,16 @@ static BOUNCE_INFO *bounce_mail_alloc(const char *service,
 	    if (rec_type == REC_TYPE_TIME && bounce_info->arrival_time == 0) {
 		if ((bounce_info->arrival_time = atol(STR(bounce_info->buf))) < 0)
 		    bounce_info->arrival_time = 0;
+	    } else if (rec_type == REC_TYPE_FROM) {
+		quote_822_local_flags(bounce_info->sender,
+				      VSTRING_LEN(bounce_info->buf) ?
+				      STR(bounce_info->buf) :
+				      mail_addr_mail_daemon(), 0);
 	    } else if (rec_type == REC_TYPE_MESG) {
+		/* XXX Future: sender+recipient after message content. */
+		if (VSTRING_LEN(bounce_info->sender) == 0)
+		    msg_warn("%s: no sender before message content record",
+				bounce_info->queue_id);
 		bounce_info->orig_offs = vstream_ftell(bounce_info->orig_fp);
 		break;
 	    }
@@ -322,6 +342,8 @@ void    bounce_mail_free(BOUNCE_INFO *bounce_info)
 		 bounce_info->queue_id, bounce_info->queue_name,
 		 bounce_info->queue_id);
     vstring_free(bounce_info->buf);
+    vstring_free(bounce_info->sender);
+    myfree(bounce_info->mail_name);
     myfree((char *) bounce_info->mime_boundary);
     myfree((char *) bounce_info);
 }
@@ -542,6 +564,11 @@ int     bounce_header_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 #if 0
     post_mail_fprintf(bounce, "Received-From-MTA: dns; %s", "whatever");
 #endif
+    post_mail_fprintf(bounce, "X-%s-Queue-ID: %s",
+		      bounce_info->mail_name, bounce_info->queue_id);
+    if (VSTRING_LEN(bounce_info->sender) > 0)
+	post_mail_fprintf(bounce, "X-%s-Sender: rfc822; %s",
+			  bounce_info->mail_name, STR(bounce_info->sender));
     if (bounce_info->arrival_time > 0)
 	post_mail_fprintf(bounce, "Arrival-Date: %s",
 			  mail_date(bounce_info->arrival_time));
@@ -552,25 +579,21 @@ int     bounce_header_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 
 int     bounce_recipient_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 {
-    char   *fixed_mail_name;
-
     post_mail_fputs(bounce, "");
     post_mail_fprintf(bounce, "Final-Recipient: rfc822; %s",
 		      bounce_info->log_handle->recipient);
-    if (bounce_info->log_handle->orig_rcpt)
+    if (bounce_info->log_handle->orig_rcpt) {
+	xtext_quote(bounce_info->buf, bounce_info->log_handle->orig_rcpt, "+=");
 	post_mail_fprintf(bounce, "Original-Recipient: rfc822; %s",
-			  bounce_info->log_handle->orig_rcpt);
+			  STR(bounce_info->buf));
+    }
     post_mail_fprintf(bounce, "Action: %s",
 		      bounce_info->flush == BOUNCE_MSG_FAIL ?
 		      "failed" : bounce_info->log_handle->dsn_action);
     post_mail_fprintf(bounce, "Status: %s",
 		      bounce_info->log_handle->dsn_status);
-    /* RFC 1894: diagnostic-type is an RFC 822 atom. */
-    fixed_mail_name = mystrdup(var_mail_name);
-    translit(fixed_mail_name, " \t\r\n()<>@,;:\\\".[]", "-----------------");
     bounce_print_wrap(bounce, bounce_info, "Diagnostic-Code: X-%s; %s",
-		      fixed_mail_name, bounce_info->log_handle->text);
-    myfree(fixed_mail_name);
+		      bounce_info->mail_name, bounce_info->log_handle->text);
 #if 0
     post_mail_fprintf(bounce, "Last-Attempt-Date: %s",
 		      bounce_info->log_handle->log_time);

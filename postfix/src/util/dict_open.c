@@ -178,6 +178,7 @@
 #include <dict_pcre.h>
 #include <dict_regexp.h>
 #include <dict_static.h>
+#include <dict_cidr.h>
 #include <stringops.h>
 #include <split_at.h>
 #include <htable.h>
@@ -193,9 +194,7 @@ typedef struct {
 static DICT_OPEN_INFO dict_open_info[] = {
     DICT_TYPE_ENVIRON, dict_env_open,
     DICT_TYPE_UNIX, dict_unix_open,
-#if 0
     DICT_TYPE_TCP, dict_tcp_open,
-#endif
 #ifdef HAS_DBM
     DICT_TYPE_DBM, dict_dbm_open,
 #endif
@@ -228,6 +227,7 @@ static DICT_OPEN_INFO dict_open_info[] = {
     DICT_TYPE_REGEXP, dict_regexp_open,
 #endif
     DICT_TYPE_STATIC, dict_static_open,
+    DICT_TYPE_CIDR, dict_cidr_open,
     0,
 };
 

@@ -27,10 +27,6 @@ The SMTP client looks up a list of mail exchanger addresses for
 the destination host, sorts the list by preference, and connects
 to each listed address until it finds a server that responds.
 
-When the domain or host is specified as a comma/whitespace
-separated list, the SMTP client repeats the above process
-for all destinations until it finds a server that responds.
-
 Once the SMTP client has received the server greeting banner, no
 error will cause it to proceed to the next address on the mail
 exchanger list. Instead, the message is either bounced, or its
@@ -134,6 +130,9 @@ Length limit for SMTP message content lines. Zero means no limit.
 Some SMTP servers misbehave on long lines.
 .IP \fBsmtp_helo_name\fR
 The hostname to be used in HELO and EHLO commands.
+.IP \fBsmtp_quote_rfc821_envelope\fR
+Whether or not to quote MAIL FROM and RCPT TO addresses as
+per the rules laid out in RFC 821.
 .IP \fBsmtp_skip_4xx_greeting\fR
 Skip servers that greet us with a 4xx status code.
 .IP \fBsmtp_skip_5xx_greeting\fR

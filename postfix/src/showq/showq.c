@@ -104,7 +104,7 @@ static void showq_reasons(VSTREAM *, BOUNCE_LOG *, HTABLE *);
 /* showq_report - report status of sender and recipients */
 
 static void showq_report(VSTREAM *client, char *queue, char *id,
-			         VSTREAM *qfile, long size)
+			         VSTREAM *qfile, long size, time_t mtime)
 {
     VSTRING *buf = vstring_alloc(100);
     VSTRING *printable_quoted_addr = vstring_alloc(100);
@@ -152,7 +152,8 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 	    printable(STR(printable_quoted_addr), '?');
 	    vstream_fprintf(client, DATA_FORMAT, id, status,
 			  msg_size > 0 ? msg_size : size, arrival_time > 0 ?
-			    asctime(localtime(&arrival_time)) : "??",
+			    asctime(localtime(&arrival_time)) : 
+			    asctime(localtime(&mtime)),
 			    STR(printable_quoted_addr));
 	    break;
 	case REC_TYPE_RCPT:
@@ -302,7 +303,8 @@ static void showq_service(VSTREAM *client, char *unused_service, char **argv)
 		    vstream_fprintf(client, "\n");
 		if ((qfile = mail_queue_open(qp->name, id, O_RDONLY, 0)) != 0) {
 		    queue_size += st.st_size;
-		    showq_report(client, qp->name, id, qfile, (long) st.st_size);
+		    showq_report(client, qp->name, id, qfile, (long) st.st_size,
+			st.st_mtime);
 		    if (vstream_fclose(qfile))
 			msg_warn("close file %s %s: %m", qp->name, id);
 		} else if (strcmp(qp->name, MAIL_QUEUE_MAILDROP) == 0) {

@@ -1,0 +1,75 @@
+#++
+# NAME
+#	tcp_table 5
+# SUMMARY
+#	Postfix client/server table lookup protocol
+# SYNOPSIS
+#	\fBpostmap -q "\fIstring\fB" tcp:\fIhost:port\fR
+#
+#	\fBpostmap -q - regexp:\fIhost:port\fR <\fIinputfile\fR
+# DESCRIPTION
+#       The Postfix mail system uses optional tables for address
+#       rewriting or mail routing. These tables are usually in
+#       \fBdbm\fR or \fBdb\fR format. Alternatively, lookup tables
+#       can be specified as a TCP client/server pair.
+#
+#       To find out what types of lookup tables your Postfix system
+#       supports use the \fBpostconf -m\fR command.
+#
+#       To test lookup tables, use the \fBpostmap\fR command as
+#       described in the SYNOPSIS above.
+# PROTOCOL DESCRIPTION
+# .ad
+# .fi
+#	The TCP map class implements a very simple protocol: the client
+#	sends a request, and the server sends one reply. Requests and
+#	replies are sent as one line of ASCII text, terminated by the
+#	ASCII newline character. Request and reply parameters (see below)
+#	are separated by whitespace.
+# ENCODING
+# .ad
+# .fi
+#	In request and reply parameters, the character % and any non-printing
+#	and whitespace characters must be replaced by %XX, XX being the
+#	corresponding ASCII hexadecimal character value. The hexadecimal codes
+#	can be specified in any case (upper, lower, mixed).
+# REQUEST FORMAT
+# .ad
+# .fi
+#	Requests are strings that serve as lookup key in the simulated
+#	table.
+# .IP "\fBget\fR SPACE \fIkey\fR NEWLINE"
+#	Look up data under the specified key.
+# .IP "\fBput\fR SPACE \fIkey\fR SPACE \fIvalue\fR NEWLINE"
+#	This request is currently not implemented.
+# REPLY FORMAT
+# .ad
+# .fi
+#      Replies must be no longer than 4096 characters including the
+#	newline terminator, and must have the following form:
+# .IP "\fB500\fR SPACE \fIoptional-text\fR NEWLINE"
+#	In case of a lookup request, the requested data does not exist.
+#	In case of an update request, the request was rejected.
+# .IP "\fB400\fR SPACE \fIoptional-text\fR NEWLINE"
+#	This indicates an error condition. The text gives the nature of
+#	the problem. The client should retry the request later.
+# .IP "\fB200\fR SPACE \fItext\fR NEWLINE"
+#	The request was successful. In the case of a lookup request,
+#	the text contains an encoded version of the requested data.
+#	Otherwise the text is optional.
+# SEE ALSO
+#	regexp_table(5) format of regular expression tables
+#	pcre_table(5) format of PCRE tables
+#	cidr_table(5) format of CIDR tables
+# BUGS
+#	Only the lookup method is currently implemented.
+# LICENSE
+# .ad
+# .fi
+#	The Secure Mailer license must be distributed with this software.
+# AUTHOR(S)
+#	Wietse Venema
+#	IBM T.J. Watson Research
+#	P.O. Box 704
+#	Yorktown Heights, NY 10598, USA
+#--*/

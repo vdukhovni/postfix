@@ -1,13 +1,13 @@
-#ifndef _VRFY_STAT_H_INCLUDED_
-#define _VRFY_STAT_H_INCLUDED_
+#ifndef _VRFY_CLNT_H_INCLUDED_
+#define _VRFY_CLNT_H_INCLUDED_
 
 /*++
 /* NAME
-/*	mail_proto 3h
+/*	verify_clnt 3h
 /* SUMMARY
-/*	mail internal IPC support
+/*	address verification client interface
 /* SYNOPSIS
-/*	#include <mail_proto.h>
+/*	#include <verify_clnt.h>
 /* DESCRIPTION
 /* .nf
 

@@ -216,6 +216,41 @@ smtpd_soft_error_limit = 10
 smtpd_hard_error_limit = 20
 
 #
+# PASS-THROUGH PROXY OPERATION
+#
+
+# The smtpd_proxy_filter parameter specifies the host:port of a proxy
+# filter, for example a real-time SPAM filter. The proxy receives
+# all mail from the Postfix SMTP server, and is supposed to give the
+# result to another Postfix SMTP server process.
+#
+# WARNING: the proxy filter must reply within a fixed deadline or
+# else the remote SMTP client times out and mail duplication happens.
+# This becomes a problem as mail load increases so that fewer and
+# fewer CPU cycles remain available to mead the fixed deadline.
+#
+# Specify host:port. When no host or host: are specified, the local
+# machine is assumed.
+#
+smtpd_proxy_filter =
+
+# The smtpd_proxy_timeout parameter specifies a deadline for
+# connecting to a proxy filter and for sending or receiving information.
+# When a connection fails the client gets a generic error message
+# while more detailed information is logged to the maillog file.
+#
+# Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+# The default time unit is s (seconds).
+#
+smtpd_proxy_timeout = 100s
+
+# The smtpd_proxy_ehlo parameter specifies how the Postfix SMTP
+# server announces itself to the proxy filter. By default, the
+# Postfix hostname is used.
+#
+smtpd_proxy_ehlo = $myhostname
+
+#
 # UCE RESTRICTIONS
 #
 

@@ -154,21 +154,41 @@ parameter below, "server_host", would be defined in main.cf as
 	the Postfix user. Example:
 		ldapsource_bind_pw = postfixpw
 
-    cache (no)
-        Whether to use a client-side cache for the LDAP connection. See
-	ldap_enable_cache(3). It's off by default.
+    cache        (IGNORED with a warning)
+    cache_expiry (IGNORED with a warning)
+    cache_size   (IGNORED with a warning)
+	The above parameters are NO LONGER SUPPORTED by Postfix.
+	Cache support has been dropped from OpenLDAP as of release 2.1.13.
 
-    cache_expiry (30 seconds)
-        If the client-side cache is enabled, cached results will expire
-	after this many seconds.
+    recursion_limit (1000)
+	A limit on the nesting depth of DN and URL special result
+	attribute evaluation. The limit must be a non-zero positive
+	number.
 
-    cache_size (32768 bytes)
-        If the client-side cache is enabled, this is its size in bytes.
+    expansion_limit (0)
+	A limit on the total number of result elements returned (as a
+	comma separated list) by a lookup against the map. A setting of
+	zero disables the limit. Lookups fail with a temporary error
+	if the limit is exceeded. Setting the limit to 1 ensures that
+	lookups do not return multiple values.
+
+    size_limit ($expansion_limit)
+	A limit on the number of LDAP entries returned by any single LDAP
+	query performed as part of the lookup. A setting of 0 disables
+	the limit. Expansion of DN and URL references involves nested
+	LDAP queries, each of which is separately subjected to this
+	limit.
+
+	Note: even a single LDAP entry can generate multiple lookup
+	results, via multiple result attributes and/or multi-valued
+	result attributes. This limit caps the per query resource
+	utilization on the LDAP server, not the final multiplicity of the
+	lookup result. It is analogous to the "-z" option of "ldapsearch".
 
     dereference (0)
-    	When to dereference LDAP aliases. (Note that this has nothing
-	do with Postfix aliases.) The permitted values are those 
-	legal for the OpenLDAP/UM LDAP implementations:
+	When to dereference LDAP aliases. (Note that this has nothing
+	do with Postfix aliases.) The permitted values are those legal
+	for the OpenLDAP/UM LDAP implementations:
 
 		0	never
 		1	when searching

@@ -95,6 +95,8 @@ typedef struct SMTPD_STATE {
     int     defer_if_permit_sender;	/* force permit into warning */
     int     discard;			/* discard message */
     VSTRING *expand_buf;		/* scratch space for $name expansion */
+    VSTREAM *proxy;			/* proxy handle */
+    VSTRING *proxy_buffer;		/* proxy query/reply buffer */
 } SMTPD_STATE;
 
 extern void smtpd_state_init(SMTPD_STATE *, VSTREAM *);

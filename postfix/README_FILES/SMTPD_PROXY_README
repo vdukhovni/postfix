@@ -1,0 +1,81 @@
+Purpose of the SMTPD pass-through proxy feature
+===============================================
+
+The Postfix SMTP server can be configured to forward all mail to
+a proxy server, for example, a real-time SPAM filter. The proxy is
+supposed to send the mail into another Postfix SMTP server process
+for normal delivery.
+
+The proxy server receives only the commands that the Postfix SMTP
+server has approved. The proxy server should accept the same MAIL
+FROM and RCPT TO command syntax as Postfix, but does not need to
+support ESMTP command pipelining.
+
+This feature is meant to be used as follows:
+
+    Internet -> smtpd -> proxy -> smtpd -> cleanup -> queue
+               Postfix           Postfix   Postfix   Postfix
+
+Limitations
+===========
+
+When used with a real-time SPAM filter, this approach allows Postfix
+to reject mail before the SMTP mail transfer completes, so that
+Postfix does not have to send rejected mail back to the sender.
+Mail that is not accepted remains the responsibility of the client.
+
+In all other respects this content filtering approach is inferior
+to the existing content filter (see FILTER_README) which processes
+mail AFTER it is queued, because that gives you full control over
+how many filtering processes can be run in parallel.
+
+The problem with real-time content filtering is that the remote
+SMTP client expects an SMTP reply within a deadline. As the system
+load increases, fewer and fewer CPU cycles remain available to
+answer within the deadline, and eventually you either have to stop
+accepting mail or you have to accept unfiltered mail.
+
+A possible workaround is to have the proxy take special action when
+the deadline is reached: add a distinctive message header that
+triggers a Postfix header_checks FILTER action, or send the mail
+into Postfix via an alternative Postfix SMTP server that always
+turns on content filtering.
+
+Configuration parameters 
+========================
+
+Parameters that control proxying:
+
+smtpd_proxy_filter (syntax: host:port)
+
+    The host and TCP port of the SMTP proxy server.  When no host
+    or host:  is specified, localhost is assumed.
+
+smtpd_proxy_timeout (default: 100s)
+
+    Timeout for connecting to the SMTP proxy server and for sending
+    and receiving data.  All proxy errors are logged to the maillog
+    file, but the client sees "451 Error: queue file write error".
+
+smtpd_proxy_ehlo (default: $myhostname)
+
+    The hostname to use when sending an EHLO command to the SMTP
+    proxy server.
+
+Testing the SMTP pass-through proxy feature
+===========================================
+
+The following example sets up a null proxy, that is, the Postfix
+SMTP server gives the mail directly to another Postfix SMTP server
+process.
+
+/etc/postfix/master.cf
+    smtp      inet  n       -       n       -       -       smtpd 
+	-o smtpd_proxy_filter=26
+    26        inet  n       -       n       -       -       smtpd
+
+The result is as follows:
+
+    Internet -> smtpd on port 25 -> smtpd on port 26 -> cleanup -> queue
+
+This configuration is sufficient for stress testing.

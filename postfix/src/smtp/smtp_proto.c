@@ -379,7 +379,7 @@ int     smtp_xfer(SMTP_STATE *state)
      * Macros for readability.
      */
 #define REWRITE_ADDRESS(dst, mid, src) do { \
-	if (*(src)) { \
+	if (*(src) && var_smtp_quote_821_env) { \
 	    quote_821_local(mid, src); \
 	    smtp_unalias_addr(dst, vstring_str(mid)); \
 	} else { \
@@ -388,7 +388,7 @@ int     smtp_xfer(SMTP_STATE *state)
     } while (0)
 
 #define QUOTE_ADDRESS(dst, src) do { \
-	if (*(src)) { \
+	if (*(src) && var_smtp_quote_821_env) { \
 	    quote_821_local(dst, src); \
 	} else { \
 	    vstring_strcpy(dst, src); \
@@ -640,6 +640,7 @@ int     smtp_xfer(SMTP_STATE *state)
 			if (resp->code == 552)
 			    resp->code = 452;
 #endif
+			rcpt = request->rcpt_list.info + recv_rcpt;
 			if (resp->code / 100 == 2) {
 			    ++nrcpt;
 			    /* If trace-only, mark the recipient done. */
@@ -654,7 +655,6 @@ int     smtp_xfer(SMTP_STATE *state)
 				rcpt->offset = 0;	/* in case deferred */
 			    }
 			} else {
-			    rcpt = request->rcpt_list.info + recv_rcpt;
 			    smtp_rcpt_fail(state, resp->code, rcpt,
 					"host %s said: %s (in reply to %s)",
 					   session->namaddr,

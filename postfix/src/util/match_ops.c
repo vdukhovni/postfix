@@ -69,7 +69,7 @@
 #endif
 
 #ifndef INADDR_NONE
-#define INADDR_NONE 0xffffff
+#define INADDR_NONE 0xffffffff
 #endif
 
 /* Utility library. */

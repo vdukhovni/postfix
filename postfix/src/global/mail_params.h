@@ -486,6 +486,16 @@ extern char *var_fwd_exp_filter;
 #define DEF_DELIVER_HDR		"command, file, forward"
 extern char *var_deliver_hdr;
 
+ /*
+  * Cleanup: enable support for X-Original-To message headers, which are
+  * needed for multi-recipient mailboxes. When this is turned on, perform
+  * duplicate elimination on (original rcpt, rewritten rcpt) pairs, and
+  * generating non-empty original recipient records in the queue file.
+  */
+#define VAR_ENABLE_ORCPT	"enable_original_recipient"
+#define DEF_ENABLE_ORCPT	1
+extern bool var_enable_orcpt;
+
 #define VAR_EXP_OWN_ALIAS	"expand_owner_alias"
 #define DEF_EXP_OWN_ALIAS	0
 extern bool var_exp_own_alias;
@@ -762,6 +772,10 @@ extern int var_smtp_rset_tmout;
 #define VAR_SMTP_QUIT_TMOUT	"smtp_quit_timeout"
 #define DEF_SMTP_QUIT_TMOUT	"300s"
 extern int var_smtp_quit_tmout;
+
+#define VAR_SMTP_QUOTE_821_ENV	"smtp_quote_rfc821_envelope"
+#define DEF_SMTP_QUOTE_821_ENV	1
+extern int var_smtp_quote_821_env;
 
 #define VAR_SMTP_SKIP_4XX	"smtp_skip_4xx_greeting"
 #define DEF_SMTP_SKIP_4XX	1
@@ -1691,6 +1705,14 @@ extern bool var_verify_neg_cache;
 #define DEF_VERIFY_SENDER		"postmaster"
 extern char *var_verify_sender;
 
+#define VAR_VERIFY_POLL_COUNT		"address_verify_poll_count"
+#define DEF_VERIFY_POLL_COUNT		3
+extern int var_verify_poll_count;
+
+#define VAR_VERIFY_POLL_DELAY		"address_verify_poll_delay"
+#define DEF_VERIFY_POLL_DELAY		"3s"
+extern int var_verify_poll_delay;
+
 #define VAR_VRFY_LOCAL_XPORT		"address_verify_local_transport"
 #define DEF_VRFY_LOCAL_XPORT		"$" VAR_LOCAL_TRANSPORT
 extern char *var_vrfy_local_xport;
@@ -1803,6 +1825,21 @@ extern char *var_xport_null_key;
 #define VAR_OLDLOG_COMPAT		"backwards_bounce_logfile_compatibility"
 #define DEF_OLDLOG_COMPAT		1
 extern bool var_oldlog_compat;
+
+ /*
+  * SMTPD content proxy.
+  */
+#define VAR_SMTPD_PROXY_FILT		"smtpd_proxy_filter"
+#define DEF_SMTPD_PROXY_FILT		""
+extern char *var_smtpd_proxy_filt;
+
+#define VAR_SMTPD_PROXY_EHLO		"smtpd_proxy_ehlo"
+#define DEF_SMTPD_PROXY_EHLO		"$" VAR_MYHOSTNAME
+extern char *var_smtpd_proxy_ehlo;
+
+#define VAR_SMTPD_PROXY_TMOUT		"smtpd_proxy_timeout"
+#define DEF_SMTPD_PROXY_TMOUT		"100s"
+extern int var_smtpd_proxy_tmout;
 
 /* LICENSE
 /* .ad

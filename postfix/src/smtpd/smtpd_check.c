@@ -1153,8 +1153,9 @@ static int check_relay_domains(SMTPD_STATE *state, char *recipient,
 
     if (once == 0) {
 	once = 1;
-	msg_warn("the \"%s\" restriction is going away; use \"%s\" instead",
-		 CHECK_RELAY_DOMAINS, REJECT_UNAUTH_DEST);
+	msg_warn("support for restriction \"%s\" will be removed from %s; "
+		 "use \"%s\" instead",
+		 CHECK_RELAY_DOMAINS, var_mail_name, REJECT_UNAUTH_DEST);
     }
 #endif
 
@@ -1650,17 +1651,17 @@ static int reject_unverified_address(SMTPD_STATE *state, const char *addr,
     /*
      * Verify the address. Don't waste too much of their or our time.
      */
-    for (count = 0; /* see below */ ; count++) {
+    for (count = 0; /* see below */ ; /* see below */ ) {
 	verify_status = verify_clnt_query(addr, &rcpt_status, why);
 	if (verify_status != VRFY_STAT_OK || rcpt_status != DEL_RCPT_STAT_TODO)
 	    break;
-	if (count >= 2)
+	if (++count >= var_verify_poll_count)
 	    break;
-	sleep(3);
+	sleep(var_verify_poll_delay);
     }
     if (verify_status != VRFY_STAT_OK) {
 	msg_warn("%s service failure", var_verify_service);
-	DEFER_IF_REJECT2(state, MAIL_ERROR_POLICY,
+	DEFER_IF_PERMIT2(state, MAIL_ERROR_POLICY,
 		      "450 <%s>: %s rejected: address verification problem",
 			 reply_name, reply_class);
 	rqst_status = SMTPD_CHECK_DUNNO;
@@ -2589,8 +2590,9 @@ static int reject_maps_rbl(SMTPD_STATE *state)
 
     if (warned == 0) {
 	warned++;
-	msg_warn("restriction %s is going away. Please use %s <domain> instead",
-		 REJECT_MAPS_RBL, REJECT_RBL_CLIENT);
+	msg_warn("support for restriction \"%s\" will be removed from %s; "
+		 "use \"%s <domain-name>\" instead",
+		 REJECT_MAPS_RBL, var_mail_name, REJECT_RBL_CLIENT);
     }
     while ((rbl_domain = mystrtok(&bp, " \t\r\n,")) != 0) {
 	result = reject_rbl_addr(state, rbl_domain, state->addr,
@@ -2683,7 +2685,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
     int     saved_recursion = state->recursion++;
 
     if (msg_verbose)
-	msg_info("%s: START", myname);
+	msg_info(">>> START %s RESTRICTIONS <<<", reply_class);
 
     for (cpp = restrictions->argv; (name = *cpp) != 0; cpp++) {
 
@@ -2980,7 +2982,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    break;
     }
     if (msg_verbose && name == 0)
-	msg_info("%s: END", myname);
+	msg_info(">>> END %s RESTRICTIONS <<<", reply_class);
 
     state->recursion = saved_recursion;
 
@@ -3295,6 +3297,9 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient)
     if (state->rcptmap_checked == 1)
 	return (0);
     state->rcptmap_checked = 1;
+
+    if (msg_verbose)
+	msg_info(">>> CHECKING RECIPIENT MAPS <<<");
 
     /*
      * Resolve the address.
@@ -3653,6 +3658,8 @@ int     var_relay_rcpt_code;
 int     var_virt_mailbox_code;
 int     var_virt_alias_code;
 int     var_show_unk_rcpt_table;
+int     var_verify_poll_count;
+int     var_verify_poll_delay;
 
 static INT_TABLE int_table[] = {
     "msg_verbose", 0, &msg_verbose,
@@ -3676,6 +3683,8 @@ static INT_TABLE int_table[] = {
     VAR_VIRT_ALIAS_CODE, DEF_VIRT_ALIAS_CODE, &var_virt_alias_code,
     VAR_VIRT_MAILBOX_CODE, DEF_VIRT_MAILBOX_CODE, &var_virt_mailbox_code,
     VAR_SHOW_UNK_RCPT_TABLE, DEF_SHOW_UNK_RCPT_TABLE, &var_show_unk_rcpt_table,
+    VAR_VERIFY_POLL_COUNT, DEF_VERIFY_POLL_COUNT, &var_verify_poll_count,
+    VAR_VERIFY_POLL_DELAY, DEF_VERIFY_POLL_DELAY, &var_verify_poll_delay,
     0,
 };
 
@@ -3803,6 +3812,14 @@ int     permit_sasl_auth(SMTPD_STATE *state, int ifyes, int ifnot)
 
 #endif
 
+/* verify_clnt_query - stub */
+
+int     verify_clnt_query(const char *addr, int *addr_status, VSTRING *why)
+{
+    *addr_status = DEL_RCPT_STAT_OK;
+    return (VRFY_STAT_OK);
+}
+
 /* canon_addr_internal - stub */
 
 VSTRING *canon_addr_internal(VSTRING *result, const char *addr)
@@ -3816,7 +3833,7 @@ VSTRING *canon_addr_internal(VSTRING *result, const char *addr)
 
 /* resolve_clnt_query - stub */
 
-void    resolve_clnt_query(const char *addr, RESOLVE_REPLY *reply)
+void    resolve_clnt(const char *class, const char *addr, RESOLVE_REPLY *reply)
 {
     const char *domain;
 

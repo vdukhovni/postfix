@@ -111,6 +111,24 @@ Disallow anonymous logins.
 Maps that specify the SASL login name that owns a MAIL FROM sender
 address. Used by the \fBreject_sender_login_mismatch\fR sender
 anti-spoofing restriction.
+.SH "Pass-through proxy"
+.ad
+.fi
+.ad
+Optionally, the Postfix SMTP server can be configured to
+forward all mail to a proxy server, for example a real-time
+content filter. This proxy server should support the same
+MAIL FROM and RCPT TO command syntax as Postfix, but does not
+need to support ESMTP command pipelining.
+.IP \fBsmtpd_proxy_filter\fR
+The \fIhost:port\fR of the SMTP proxy server. The \fIhost\fR
+or \fIhost:\fR portion is optional.
+.IP \fBsmtpd_proxy_timeout\fR
+Timeout for connecting to, sending to and receiving from
+the SMTP proxy server.
+.IP \fBsmtpd_proxy_ehlo\fR
+The hostname to use when sending an EHLO command to the
+SMTP proxy server.
 .SH Miscellaneous
 .ad
 .fi
@@ -259,6 +277,21 @@ are eligible for the \fBpermit_mx_backup\fR feature.
 Restrict what domains this mail system will relay
 mail to. The domains are routed to the delivery agent
 specified with the \fBrelay_transport\fR setting.
+.SH "Sender/recipient address verification"
+.ad
+.fi
+Address verification is implemented by sending probe email
+messages that are not actually delivered, and is enabled
+via the reject_unverified_{sender,recipient} access restriction.
+The status of verification probes is maintained by the address
+verification service.
+.IP \fBaddress_verify_poll_count\fR
+How many times to query the address verification service
+for completion of an address verification request.
+Specify 0 to implement a simple form of greylisting.
+.IP \fBaddress_verify_poll_delay\fR
+Time to wait after querying the address verification service
+for completion of an address verification request.
 .SH "UCE control responses"
 .ad
 .fi
@@ -305,10 +338,11 @@ Response code when a recipient address is known to be undeliverable.
 .SH SEE ALSO
 .na
 .nf
-trivial-rewrite(8) address resolver
 cleanup(8) message canonicalization
 master(8) process manager
 syslogd(8) system logging
+trivial-rewrite(8) address resolver
+verify(8) address verification service
 .SH LICENSE
 .na
 .nf

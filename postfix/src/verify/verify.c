@@ -29,7 +29,8 @@
 /* .IP "\fBVRFY_ADDR_UPDATE\fI address status text\fR"
 /*	Update the status of the specified address.
 /* .IP "\fBVRFY_ADDR_QUERY\fI address\fR"
-/*	Look up the \fIstatus\fR and \fItext\fR of the specified address.
+/*	Look up the \fIstatus\fR, \fIlast update time\fR and \fItext\fR 
+/*	of the specified address.
 /*	If the status is unknown, a probe is sent and a default status is
 /*	returned.
 /* .PP

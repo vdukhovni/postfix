@@ -38,6 +38,7 @@
 #define CLEANUP_STAT_CONT	(1<<3)	/* Message content rejected */
 #define CLEANUP_STAT_HOPS	(1<<4)	/* Too many hops */
 #define CLEANUP_STAT_RCPT	(1<<6)	/* No recipients found */
+#define CLEANUP_STAT_PROXY	(1<<7)	/* Proxy reject */
 
  /*
   * These are set when we can't bounce even if we were asked to.

@@ -8,7 +8,7 @@ Purpose of this software
 You can use the virtual delivery agent for mailbox delivery of some
 or all domains that are handled by a machine.
 
-This mechanism is different from simulated virtual domains. Those
+This mechanism is different from virtual alias domains. Those
 are implemented by translating every recipient address into a
 different address. For that, see the virtual(5) manual page.
 

@@ -57,12 +57,27 @@
 /*	If you must bind to the server, do it with this distinguished name ...
 /* .IP \fIldapsource_\fRbind_pw
 /*	\&... and this password.
-/* .IP \fIldapsource_\fRcache
+/* .IP \fIldapsource_\fRcache (no longer supported)
 /*	Whether or not to turn on client-side caching.
-/* .IP \fIldapsource_\fRcache_expiry
+/* .IP \fIldapsource_\fRcache_expiry (no longer supported)
 /*	If you do cache results, expire them after this many seconds.
-/* .IP \fIldapsource_\fRcache_size
+/* .IP \fIldapsource_\fRcache_size (no longer supported)
 /*	The cache size in bytes. Does nothing if the cache is off, of course.
+/* .IP \fIldapsource_\fRrecursion_limit
+/*	Maximum recursion depth when expanding DN or URL references.
+/*	Queries which exceed the recursion limit fail with
+/*	dict_errno = DICT_ERR_RETRY.
+/* .IP \fIldapsource_\fRexpansion_limit
+/*	Limit (if any) on the total number of lookup result values. Lookups which
+/*	exceed the limit fail with dict_errno=DICT_ERR_RETRY. Note that
+/*	each value of a multivalued result attribute counts as one result.
+/* .IP \fIldapsource_\fRsize_limit
+/*	Limit on the number of entries returned by individual LDAP queries.
+/*	Queries which exceed the limit fail with dict_errno=DICT_ERR_RETRY.
+/*	This is an *entry* count, for any single query performed during the
+/*	possibly recursive lookup.
+/* .IP \fIldapsource_\fRchase_referrals
+/*	Controls whether LDAP referrals are obeyed.
 /* .IP \fIldapsource_\fRdereference
 /*	How to handle LDAP aliases. See ldap.h or ldap_open(3) man page.
 /* .IP \fIldapsource_\fRdebuglevel
@@ -152,10 +167,10 @@ typedef struct {
     char   *bind_dn;
     char   *bind_pw;
     int     timeout;
-    int     cache;
-    long    cache_expiry;
-    long    cache_size;
     int     dereference;
+    long    recursion_limit;
+    long    expansion_limit;
+    long    size_limit;
     int     chase_referrals;
     int     debuglevel;
     int     version;
@@ -230,11 +245,6 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 {
     char   *myname = "dict_ldap_connect";
     int     rc = 0;
-
-#ifdef LDAP_API_FEATURE_X_MEMCACHE
-    LDAPMemCache *dircache;
-
-#endif
 
 #ifdef LDAP_OPT_NETWORK_TIMEOUT
     struct timeval mytimeval;
@@ -314,6 +324,16 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 #endif
 
     /*
+     * Limit the number of entries returned by each query.
+     */
+    if (dict_ldap->size_limit) {
+	if (ldap_set_option(dict_ldap->ld, LDAP_OPT_SIZELIMIT,
+			    &dict_ldap->size_limit) != LDAP_OPT_SUCCESS)
+	    msg_warn("%s: %s: Unable to set query result size limit to %ld.",
+		     myname, dict_ldap->ldapsource, dict_ldap->size_limit);
+    }
+
+    /*
      * Configure alias dereferencing for this connection. Thanks to Mike
      * Mattice for this, and to Hery Rakotoarisoa for the v3 update.
      */
@@ -370,52 +390,6 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 	    msg_info("%s: Successful bind to server %s as %s ",
 		     myname, dict_ldap->server_host, dict_ldap->bind_dn);
     }
-
-    /*
-     * Set up client-side caching if it's configured.
-     */
-    if (dict_ldap->cache) {
-	if (msg_verbose)
-	    msg_info
-		("%s: Enabling %ld-byte cache for %s with %ld-second expiry",
-		 myname, dict_ldap->cache_size, dict_ldap->ldapsource,
-		 dict_ldap->cache_expiry);
-
-#ifdef LDAP_API_FEATURE_X_MEMCACHE
-	rc = ldap_memcache_init(dict_ldap->cache_expiry, dict_ldap->cache_size,
-				NULL, NULL, &dircache);
-	if (rc != LDAP_SUCCESS) {
-	    msg_warn
-		("%s: Unable to configure cache for %s: %d (%s) -- continuing",
-		 myname, dict_ldap->ldapsource, rc, ldap_err2string(rc));
-	} else {
-	    rc = ldap_memcache_set(dict_ldap->ld, dircache);
-	    if (rc != LDAP_SUCCESS) {
-		msg_warn
-		    ("%s: Unable to configure cache for %s: %d (%s) -- continuing",
-		     myname, dict_ldap->ldapsource, rc, ldap_err2string(rc));
-	    } else {
-		if (msg_verbose)
-		    msg_info("%s: Caching enabled for %s",
-			     myname, dict_ldap->ldapsource);
-	    }
-	}
-#else
-
-	rc = ldap_enable_cache(dict_ldap->ld, dict_ldap->cache_expiry,
-			       dict_ldap->cache_size);
-	if (rc != LDAP_SUCCESS) {
-	    msg_warn
-		("%s: Unable to configure cache for %s: %d (%s) -- continuing",
-		 myname, dict_ldap->ldapsource, rc, ldap_err2string(rc));
-	} else {
-	    if (msg_verbose)
-		msg_info("%s: Caching enabled for %s",
-			 myname, dict_ldap->ldapsource);
-	}
-
-#endif
-    }
     if (msg_verbose)
 	msg_info("%s: Cached connection handle for LDAP source %s",
 		 myname, dict_ldap->ldapsource);
@@ -426,7 +400,8 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 /*
  * expand a filter (lookup or result)
  */
-static void dict_ldap_expand_filter(char *filter, char *value, VSTRING *out)
+static void dict_ldap_expand_filter(char *ldapsource, char *filter,
+				            char *value, VSTRING *out)
 {
     char   *myname = "dict_ldap_expand_filter";
     char   *sub,
@@ -461,9 +436,8 @@ static void dict_ldap_expand_filter(char *filter, char *value, VSTRING *out)
 		    vstring_strcat(out, u);
 		break;
 	    default:
-		msg_warn
-		    ("%s: Invalid filter substitution format '%%%c'!",
-		     myname, *(sub + 1));
+		msg_warn("%s: %s: Invalid filter substitution format '%%%c'!",
+			 myname, ldapsource, *(sub + 1));
 		/* fall through */
 	    case 's':
 		vstring_strcat(out, u);
@@ -486,6 +460,9 @@ static void dict_ldap_expand_filter(char *filter, char *value, VSTRING *out)
 static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
 				         VSTRING *result)
 {
+    static int recursion = 0;
+    static int expansion;
+    long    entries = 0;
     long    i = 0;
     int     rc = 0;
     LDAPMessage *resloop = 0;
@@ -500,13 +477,27 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
     tv.tv_sec = dict_ldap->timeout;
     tv.tv_usec = 0;
 
+    if (++recursion == 1)
+	expansion = 0;
+
     if (msg_verbose)
-	msg_info("%s: Search found %d match(es)", myname,
+	msg_info("%s[%d]: Search found %d match(es)", myname, recursion,
 		 ldap_count_entries(dict_ldap->ld, res));
 
     for (entry = ldap_first_entry(dict_ldap->ld, res); entry != NULL;
 	 entry = ldap_next_entry(dict_ldap->ld, entry)) {
 	ber = NULL;
+
+	/*
+	 * LDAP should not, but may produce more than the requested maximum
+	 * number of entries.
+	 */
+	if (dict_errno == 0 && ++entries > dict_ldap->size_limit
+	    && dict_ldap->size_limit) {
+	    msg_warn("%s[%d]: %s: Query size limit (%ld) exceeded", myname,
+		   recursion, dict_ldap->ldapsource, dict_ldap->size_limit);
+	    dict_errno = DICT_ERR_RETRY;
+	}
 	for (attr = ldap_first_attribute(dict_ldap->ld, entry, &ber);
 	     attr != NULL;
 	     ldap_memfree(attr), attr = ldap_next_attribute(dict_ldap->ld,
@@ -514,17 +505,38 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
 	    vals = ldap_get_values(dict_ldap->ld, entry, attr);
 	    if (vals == NULL) {
 		if (msg_verbose)
-		    msg_info("%s: Entry doesn't have any values for %s",
-			     myname, attr);
+		    msg_info("%s[%d]: Entry doesn't have any values for %s",
+			     myname, recursion, attr);
 		continue;
 	    }
+
+	    /*
+	     * If we previously encountered an error, we still continue
+	     * through the loop, to avoid memory leaks, but we don't waste
+	     * time accumulating any further results.
+	     * 
+	     * XXX: There may be a more efficient way to exit the loop with no
+	     * leaks, but it will likely be more fragile and not worth the
+	     * extra code.
+	     */
+	    if (dict_errno != 0 || vals[0] == 0) {
+		ldap_value_free(vals);
+		continue;
+	    }
+
+	    /*
+	     * The "result_attributes" list enumerates all the requested
+	     * attributes, first the ordinary result attribtutes and then the
+	     * special result attributes that hold DN or LDAP URL values.
+	     * 
+	     * The number of ordinary attributes is "num_attributes".
+	     * 
+	     * We compute the attribute type (ordinary or special) from its
+	     * index on the "result_attributes" list.
+	     */
 	    for (i = 0; dict_ldap->result_attributes->argv[i]; i++) {
-		if (strcasecmp(dict_ldap->result_attributes->argv[i],
-			       attr) == 0) {
-		    if (msg_verbose)
-			msg_info("%s: search returned %ld value(s) for requested result attribute %s", myname, i, attr);
+		if (strcasecmp(dict_ldap->result_attributes->argv[i], attr) == 0)
 		    break;
-		}
 	    }
 
 	    /*
@@ -532,21 +544,39 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
 	     * recursing (for dn or url attributes).
 	     */
 	    if (i < dict_ldap->num_attributes) {
+		/* Ordinary result attribute */
 		for (i = 0; vals[i] != NULL; i++) {
+		    if (++expansion > dict_ldap->expansion_limit &&
+			dict_ldap->expansion_limit) {
+			msg_warn("%s[%d]: %s: Expansion limit exceeded at"
+			       " result attribute %s=%s", myname, recursion,
+				 dict_ldap->ldapsource, attr, vals[i]);
+			dict_errno = DICT_ERR_RETRY;
+			break;
+		    }
 		    if (VSTRING_LEN(result) > 0)
 			vstring_strcat(result, ",");
 		    if (dict_ldap->result_filter == NULL)
 			vstring_strcat(result, vals[i]);
 		    else
-			dict_ldap_expand_filter(dict_ldap->result_filter,
+			dict_ldap_expand_filter(dict_ldap->ldapsource,
+						dict_ldap->result_filter,
 						vals[i], result);
 		}
-	    } else if (dict_ldap->result_attributes->argv[i]) {
+		if (dict_errno != 0)
+		    continue;
+		if (msg_verbose)
+		    msg_info("%s[%d]: search returned %ld value(s) for"
+			     " requested result attribute %s",
+			     myname, recursion, i, attr);
+	    } else if (recursion < dict_ldap->recursion_limit
+		       && dict_ldap->result_attributes->argv[i]) {
+		/* Special result attribute */
 		for (i = 0; vals[i] != NULL; i++) {
 		    if (ldap_is_ldap_url(vals[i])) {
 			if (msg_verbose)
-			    msg_info("%s: looking up URL %s", myname,
-				     vals[i]);
+			    msg_info("%s[%d]: looking up URL %s", myname,
+				     recursion, vals[i]);
 			rc = ldap_url_parse(vals[i], &url);
 			if (rc == 0) {
 			    rc = ldap_search_st(dict_ldap->ld, url->lud_dn,
@@ -557,7 +587,8 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
 			}
 		    } else {
 			if (msg_verbose)
-			    msg_info("%s: looking up DN %s", myname, vals[i]);
+			    msg_info("%s[%d]: looking up DN %s",
+				     myname, recursion, vals[i]);
 			rc = ldap_search_st(dict_ldap->ld, vals[i],
 					    LDAP_SCOPE_BASE, "objectclass=*",
 					 dict_ldap->result_attributes->argv,
@@ -573,27 +604,44 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
 			 * Go ahead and treat this as though the DN existed
 			 * and just didn't have any result attributes.
 			 */
-			msg_warn("%s: DN %s not found, skipping ", myname,
-				 vals[i]);
+			msg_warn("%s[%d]: DN %s not found, skipping ", myname,
+				 recursion, vals[i]);
 			break;
 		    default:
-			msg_warn("%s: search error %d: %s ", myname, rc,
-				 ldap_err2string(rc));
+			msg_warn("%s[%d]: search error %d: %s ", myname,
+				 recursion, rc, ldap_err2string(rc));
 			dict_errno = DICT_ERR_RETRY;
 			break;
 		    }
 
 		    if (resloop != 0)
 			ldap_msgfree(resloop);
+
+		    if (dict_errno != 0)
+			break;
 		}
+		if (dict_errno != 0)
+		    continue;
+		if (msg_verbose)
+		    msg_info("%s[%d]: search returned %ld value(s) for"
+			     " special result attribute %s",
+			     myname, recursion, i, attr);
+	    } else if (recursion >= dict_ldap->recursion_limit
+		       && dict_ldap->result_attributes->argv[i]) {
+		msg_warn("%s[%d]: %s: Recursion limit exceeded"
+			 " for special attribute %s=%s",
+		   myname, recursion, dict_ldap->ldapsource, attr, vals[0]);
+		dict_errno = DICT_ERR_RETRY;
 	    }
 	    ldap_value_free(vals);
 	}
 	if (ber)
 	    ber_free(ber, 0);
     }
+
     if (msg_verbose)
-	msg_info("%s: Leaving %s", myname, myname);
+	msg_info("%s[%d]: Leaving %s", myname, recursion, myname);
+    --recursion;
 }
 
 /* dict_ldap_lookup - find database entry */
@@ -720,11 +768,11 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	/*
 	 * No, log the fact and continue.
 	 */
-	msg_warn("%s: Fixed query_filter %s is probably useless", myname,
-		 dict_ldap->query_filter);
+	msg_warn("%s: %s: Fixed query_filter %s is probably useless",
+		 myname, dict_ldap->ldapsource, dict_ldap->query_filter);
 	vstring_strcpy(filter_buf, dict_ldap->query_filter);
     } else {
-	dict_ldap_expand_filter(dict_ldap->query_filter,
+	dict_ldap_expand_filter(dict_ldap->ldapsource, dict_ldap->query_filter,
 				vstring_str(escaped_name), filter_buf);
     }
 
@@ -858,6 +906,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     char   *domainlist;
     char   *scope;
     char   *attr;
+    int     tmp;
 
     if (msg_verbose)
 	msg_info("%s: Using LDAP source %s", myname, ldapsource);
@@ -1040,31 +1089,58 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
      * get configured value of "ldapsource_cache"; default to false
      */
     vstring_sprintf(config_param, "%s_cache", ldapsource);
-    dict_ldap->cache = get_mail_conf_bool(vstring_str(config_param), 0);
-    if (msg_verbose)
-	msg_info("%s: %s is %d", myname, vstring_str(config_param),
-		 dict_ldap->cache);
+    tmp = get_mail_conf_bool(vstring_str(config_param), 0);
+    if (tmp)
+	msg_warn("%s: ignoring %s", myname, vstring_str(config_param));
 
     /*
      * get configured value of "ldapsource_cache_expiry"; default to 30
      * seconds
      */
     vstring_sprintf(config_param, "%s_cache_expiry", ldapsource);
-    dict_ldap->cache_expiry = get_mail_conf_int(vstring_str(config_param),
-						30, 0, 0);
-    if (msg_verbose)
-	msg_info("%s: %s is %ld", myname, vstring_str(config_param),
-		 dict_ldap->cache_expiry);
+    tmp = get_mail_conf_int(vstring_str(config_param), -1, 0, 0);
+    if (tmp >= 0)
+	msg_warn("%s: ignoring %s", myname, vstring_str(config_param));
 
     /*
      * get configured value of "ldapsource_cache_size"; default to 32k
      */
     vstring_sprintf(config_param, "%s_cache_size", ldapsource);
-    dict_ldap->cache_size = get_mail_conf_int(vstring_str(config_param),
-					      32768, 0, 0);
+    tmp = get_mail_conf_int(vstring_str(config_param), -1, 0, 0);
+    if (tmp >= 0)
+	msg_warn("%s: ignoring %s", myname, vstring_str(config_param));
+
+    /*
+     * get configured value of "ldapsource_recursion_limit"; default to 1000
+     */
+    vstring_sprintf(config_param, "%s_recursion_limit", ldapsource);
+    dict_ldap->recursion_limit = get_mail_conf_int(vstring_str(config_param),
+						   1000, 1, 0);
     if (msg_verbose)
 	msg_info("%s: %s is %ld", myname, vstring_str(config_param),
-		 dict_ldap->cache_size);
+		 dict_ldap->recursion_limit);
+
+    /*
+     * get configured value of "ldapsource_expansion_limit"; default to 1000
+     */
+    vstring_sprintf(config_param, "%s_expansion_limit", ldapsource);
+    dict_ldap->expansion_limit = get_mail_conf_int(vstring_str(config_param),
+						   0, 0, 0);
+    if (msg_verbose)
+	msg_info("%s: %s is %ld", myname, vstring_str(config_param),
+		 dict_ldap->expansion_limit);
+
+    /*
+     * get configured value of "ldapsource_size_limit"; default to
+     * expansion_limit
+     */
+    vstring_sprintf(config_param, "%s_size_limit", ldapsource);
+    dict_ldap->size_limit = get_mail_conf_int(vstring_str(config_param),
+					      dict_ldap->expansion_limit,
+					      0, 0);
+    if (msg_verbose)
+	msg_info("%s: %s is %ld", myname, vstring_str(config_param),
+		 dict_ldap->size_limit);
 
     /*
      * Alias dereferencing suggested by Mike Mattice.

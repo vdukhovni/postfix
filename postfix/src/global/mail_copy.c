@@ -165,8 +165,15 @@ int     mail_copy(const char *sender,
     if (flags & MAIL_COPY_ORIG_RCPT) {
 	if (orig_rcpt == 0)
 	    msg_panic("%s: null orig_rcpt", myname);
-	quote_822_local(buf, orig_rcpt);
-	vstream_fprintf(dst, "X-Original-To: %s%s", vstring_str(buf), eol);
+
+	/*
+	 * An empty original recipient record almost certainly means that
+	 * original recipient processing was disabled.
+	 */
+	if (*orig_rcpt) {
+	    quote_822_local(buf, orig_rcpt);
+	    vstream_fprintf(dst, "X-Original-To: %s%s", vstring_str(buf), eol);
+	}
     }
     if (flags & MAIL_COPY_DELIVERED) {
 	if (delivered == 0)

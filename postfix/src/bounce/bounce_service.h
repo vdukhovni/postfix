@@ -69,10 +69,12 @@ typedef struct {
     const char *mime_boundary;		/* for MIME */
     int     flush;			/* 0=defer, other=bounce */
     VSTRING *buf;			/* scratch pad */
+    VSTRING *sender;			/* envelope sender */
     VSTREAM *orig_fp;			/* open queue file */
     long    orig_offs;			/* start of content */
     time_t  arrival_time;		/* time of arrival */
     BOUNCE_LOG *log_handle;		/* open logfile */
+    char   *mail_name;			/* $mail_name, cooked */
 } BOUNCE_INFO;
 
 extern BOUNCE_INFO *bounce_mail_init(const char *, const char *, const char *, const char *, int);

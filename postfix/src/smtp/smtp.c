@@ -21,10 +21,6 @@
 /*	the destination host, sorts the list by preference, and connects
 /*	to each listed address until it finds a server that responds.
 /*
-/*	When the domain or host is specified as a comma/whitespace
-/*	separated list, the SMTP client repeats the above process
-/*	for all destinations until it finds a server that responds.
-/*
 /*	Once the SMTP client has received the server greeting banner, no
 /*	error will cause it to proceed to the next address on the mail
 /*	exchanger list. Instead, the message is either bounced, or its
@@ -118,6 +114,9 @@
 /*	Some SMTP servers misbehave on long lines.
 /* .IP \fBsmtp_helo_name\fR
 /*	The hostname to be used in HELO and EHLO commands.
+/* .IP \fBsmtp_quote_rfc821_envelope\fR
+/*	Whether or not to quote MAIL FROM and RCPT TO addresses as
+/*	per the rules laid out in RFC 821.
 /* .IP \fBsmtp_skip_4xx_greeting\fR
 /*	Skip servers that greet us with a 4xx status code.
 /* .IP \fBsmtp_skip_5xx_greeting\fR
@@ -298,6 +297,7 @@ int     var_smtp_pix_delay;
 int     var_smtp_line_limit;
 char   *var_smtp_helo_name;
 char   *var_smtp_host_lookup;
+int     var_smtp_quote_821_env;
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
@@ -509,6 +509,7 @@ int     main(int argc, char **argv)
 	VAR_SMTP_NEVER_EHLO, DEF_SMTP_NEVER_EHLO, &var_smtp_never_ehlo,
 	VAR_SMTP_SASL_ENABLE, DEF_SMTP_SASL_ENABLE, &var_smtp_sasl_enable,
 	VAR_SMTP_RAND_ADDR, DEF_SMTP_RAND_ADDR, &var_smtp_rand_addr,
+	VAR_SMTP_QUOTE_821_ENV, DEF_SMTP_QUOTE_821_ENV, &var_smtp_quote_821_env,
 	0,
     };
 

@@ -3,7 +3,7 @@ SRCS	= alldig.c argv.c argv_split.c attr_print0.c attr_print64.c \
 	attr_scan0.c attr_scan64.c base64_code.c basename.c binhash.c \
 	chroot_uid.c clean_env.c close_on_exec.c concatenate.c ctable.c \
 	dict.c dict_alloc.c dict_db.c dict_dbm.c dict_debug.c dict_env.c \
-	dict_ht.c dict_ldap.c dict_mysql.c dict_ni.c dict_nis.c \
+	dict_cidr.c dict_ht.c dict_ldap.c dict_mysql.c dict_ni.c dict_nis.c \
 	dict_nisplus.c dict_open.c dict_pcre.c dict_pgsql.c dict_regexp.c \
 	dict_static.c dict_tcp.c dict_unix.c dir_forest.c doze.c \
 	duplex_pipe.c environ.c events.c exec_command.c fifo_listen.c \
@@ -31,7 +31,7 @@ OBJS	= alldig.o argv.o argv_split.o attr_print0.o attr_print64.o \
 	attr_scan0.o attr_scan64.o base64_code.o basename.o binhash.o \
 	chroot_uid.o clean_env.o close_on_exec.o concatenate.o ctable.o \
 	dict.o dict_alloc.o dict_db.o dict_dbm.o dict_debug.o dict_env.o \
-	dict_ht.o dict_ldap.o dict_mysql.o dict_ni.o dict_nis.o \
+	dict_cidr.o dict_ht.o dict_ldap.o dict_mysql.o dict_ni.o dict_nis.o \
 	dict_nisplus.o dict_open.o dict_pcre.o dict_pgsql.o dict_regexp.o \
 	dict_static.o dict_tcp.o dict_unix.o dir_forest.o doze.o \
 	duplex_pipe.o environ.o events.o exec_command.o fifo_listen.o \
@@ -57,7 +57,7 @@ OBJS	= alldig.o argv.o argv_split.o attr_print0.o attr_print64.o \
 	write_buf.o write_wait.o $(STRCASE)
 HDRS	= argv.h attr.h base64_code.h binhash.h chroot_uid.h clean_env.h \
 	connect.h ctable.h dict.h dict_db.h dict_dbm.h dict_env.h \
-	dict_ht.h dict_ldap.h dict_mysql.h dict_ni.h dict_nis.h \
+	dict_cidr.h dict_ht.h dict_ldap.h dict_mysql.h dict_ni.h dict_nis.h \
 	dict_nisplus.h dict_pcre.h dict_pgsql.h dict_regexp.h \
 	dict_static.h dict_tcp.h dict_unix.h dir_forest.h events.h \
 	exec_command.h find_inet.h fsspace.h fullname.h get_domainname.h \
@@ -337,7 +337,8 @@ stream_test: stream_test.c $(LIB)
 
 tests: valid_hostname_test mac_expand_test dict_test unescape_test \
 	hex_quote_test ctable_test inet_addr_list_test base64_code_test \
-	attr_scan64_test attr_scan0_test dict_pcre_test host_port_test
+	attr_scan64_test attr_scan0_test dict_pcre_test host_port_test \
+	dict_cidr_test
 
 valid_hostname_test: valid_hostname valid_hostname.in valid_hostname.ref
 	./valid_hostname <valid_hostname.in 2>valid_hostname.tmp
@@ -402,6 +403,11 @@ dict_regexp_test: dict_open dict_regexp.in dict_regexp.map dict_regexp.ref
 	./dict_open regexp:dict_regexp.map read <dict_regexp.in >dict_regexp.tmp 2>&1
 	diff dict_regexp.ref dict_regexp.tmp
 	rm -f dict_regexp.tmp
+
+dict_cidr_test: dict_open dict_cidr.in dict_cidr.map dict_cidr.ref
+	./dict_open cidr:dict_cidr.map read <dict_cidr.in >dict_cidr.tmp 2>&1
+	diff dict_cidr.ref dict_cidr.tmp
+	rm -f dict_cidr.tmp
 
 host_port_test: host_port host_port.in host_port.ref
 	./host_port <host_port.in >host_port.tmp 2>&1
@@ -529,6 +535,19 @@ dict_alloc.o: dict.h
 dict_alloc.o: vstream.h
 dict_alloc.o: vbuf.h
 dict_alloc.o: argv.h
+dict_cidr.o: dict_cidr.c
+dict_cidr.o: sys_defs.h
+dict_cidr.o: mymalloc.h
+dict_cidr.o: msg.h
+dict_cidr.o: vstream.h
+dict_cidr.o: vbuf.h
+dict_cidr.o: vstring.h
+dict_cidr.o: stringops.h
+dict_cidr.o: readlline.h
+dict_cidr.o: dict.h
+dict_cidr.o: argv.h
+dict_cidr.o: dict_cidr.h
+dict_cidr.o: split_at.h
 dict_db.o: dict_db.c
 dict_db.o: sys_defs.h
 dict_db.o: msg.h
@@ -619,6 +638,7 @@ dict_open.o: dict_pgsql.h
 dict_open.o: dict_pcre.h
 dict_open.o: dict_regexp.h
 dict_open.o: dict_static.h
+dict_open.o: dict_cidr.h
 dict_open.o: stringops.h
 dict_open.o: vstring.h
 dict_open.o: split_at.h

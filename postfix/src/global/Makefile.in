@@ -77,7 +77,7 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	off_cvt quote_822_local rec2stream recdump resolve_clnt \
 	resolve_local rewrite_clnt stream2rec string_list tok822_parse \
 	quote_821_local mail_conf_time mime_state strip_addr \
-	virtual8_maps verify_clnt
+	virtual8_maps verify_clnt xtext
 
 LIBS	= ../../lib/libutil.a
 LIB_DIR	= ../../lib
@@ -240,9 +240,14 @@ verify_clnt: $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 	mv junk $@.o
 
+xtext: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
+	mv junk $@.o
+
 tests: tok822_test mime_test mime_nest mime_8bit mime_dom mime_trunc \
 	mime_cvt mime_cvt2 mime_cvt3 strip_addr_test tok822_limit_test \
-	virtual8_test
+	virtual8_test xtext_test
 
 tok822_test: tok822_parse tok822_parse.in tok822_parse.ref
 	./tok822_parse <tok822_parse.in >tok822_parse.tmp 2>&1
@@ -305,6 +310,12 @@ virtual8_test: virtual8_maps virtual8_map virtual8.in virtual8.ref \
 	./virtual8_maps <virtual8.in hash:virtual8_map >virtual8.tmp
 	diff virtual8.ref virtual8.tmp
 	rm -f virtual8.tmp virtual8_map.db
+
+xtext_test: xtext
+	./xtext <xtext.c | od -cb >xtext.tmp
+	od -cb <xtext.c >xtext.ref
+	cmp xtext.ref xtext.tmp
+	rm -f xtext.ref xtext.tmp
 
 # Requires: Postfix running, root privileges
 
@@ -1344,7 +1355,7 @@ virtual8_maps.o: strip_addr.h
 virtual8_maps.o: virtual8_maps.h
 xtext.o: xtext.c
 xtext.o: ../../include/sys_defs.h
-xtext.o: ../../include/vstream.h
-xtext.o: ../../include/vbuf.h
+xtext.o: ../../include/msg.h
 xtext.o: ../../include/vstring.h
+xtext.o: ../../include/vbuf.h
 xtext.o: xtext.h

@@ -4,7 +4,7 @@ SHELL	= /bin/sh
 
 CONFIG	= ../conf/access ../conf/aliases ../conf/canonical ../conf/relocated \
 	../conf/transport ../conf/virtual ../conf/pcre_table \
-	../conf/regexp_table
+	../conf/regexp_table ../conf/cidr_table ../conf/tcp_table
 
 AWK	= awk '{ print; if (NR == 1) print ".pl 9999" }'
 
@@ -30,6 +30,9 @@ clobber:
 ../conf/canonical: canonical
 	srctoman - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
 
+../conf/cidr_table: cidr_table
+	srctoman - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
+
 ../conf/pcre_table: pcre_table
 	srctoman - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
 
@@ -37,6 +40,9 @@ clobber:
 	srctoman - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
 
 ../conf/relocated: relocated
+	srctoman - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
+
+../conf/tcp_table: tcp_table
 	srctoman - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
 
 ../conf/transport: transport

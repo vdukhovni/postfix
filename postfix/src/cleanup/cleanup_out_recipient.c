@@ -69,6 +69,12 @@ void    cleanup_out_recipient(CLEANUP_STATE *state, const char *orcpt,
     char  **cpp;
 
     /*
+     * XXX Not elegant, but eliminates complexity in the record reading loop.
+     */
+    if (!var_enable_orcpt)
+	orcpt = "";
+
+    /*
      * Distinguish between different original recipient addresses that map
      * onto the same mailbox. The recipient will use our original recipient
      * message header to figure things out.

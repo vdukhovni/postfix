@@ -8189,8 +8189,8 @@ Apologies for any names omitted.
 	of mail probes, so it will no longer block for in_flow_delay
 	seconds when mail arrives faster than it is delivered.
 	Still need to make mail_stream_finish() asynchronous in
-	order to avoid blocking for trigger_timeout seconds when
-	the queue manager is overwhelmed.  Files:  global/post_mail.c,
+	order to avoid blocking for trigger_timeout seconds when the
+	queue manager is overwhelmed.  Files:  global/post_mail.c,
 	verify/verify.c.
 
 	Bugfix: removed extraneous sleep() after the last attempt
@@ -8201,12 +8201,62 @@ Apologies for any names omitted.
 	Bugfix: the stricter postdrop input filter broke "sendmail
 	-bs". Found by Lutz Jaenicke. File: smtpd/smtpd.c.
 
+20030614
+
+	Portability: Dropped support for client side LDAP caching.
+	As of release 2.1.13 OpenLDAP no longer supports client
+	side caching, it has been deprecated for some time, and
+	never worked well.  Implemented by Victor Duchovni, Morgan
+	Stanley, and further enhanced by Lamont Jones, HP. Files:
+	src/util/dict_ldap.c, conf/sample-ldap.cf,
+	README_FILES/LDAP_README.
+
+	Safety: Given suitable invalid database contents, LDAP
+	lookups can produce too many results, enter an infinite
+	loop in the expansion of "special result attributes" (LDAP
+	DNs and LDAP URLs) or just consume excessive server resources
+	returning large result sets.  Three new (per LDAP map)
+	configuration parameters enable one to set limits on
+	recursive nesting, result expansion and the server response
+	"entry" count. Implemented by Victor Duchovni, Morgan
+	Stanley, further enanced by Lamont Jones, HP. Files:
+	src/util/dict_ldap.c, conf/sample-ldap.cf,
+	README_FILES/LDAP_README.
+
+20030616
+
+	Feature: in mail delivery status reports, report the sender
+	address as X-Postfix-Sender. Matthias Andree. File:
+	bounce/bounce_notify_util.c.
+
+	Cleanup: in mail delivery status reports, transform the
+	original recipient into xtext format as required by RFC
+	1891. Files: bounce/bounce_notify_util.c, util/xtext.[hc].
+
+	Cleanup: more accurate "postfix check" warning for files
+	that miss one or more of the required mode 02111 execute
+	permission bits. Matthias Andree. File: conf/postfix-script.
+
 20030618
 
 	After "postfix reload", the master daemon now warns when
 	inet_interfaces has changed, and ignores the change, instead
 	of passing incorrect information to the smtp server. File:
 	master/master_ent.c.
+
+20030619
+
+	Feature: the Postfix SMTP server can send all mail into a
+	proxy server, for example a real-time SPAM filter. This
+	proxy is supposed to send the mail into another Postfix
+	SMTP server process for normal delivery. Files: smtpd/smtpd.c
+	smtpd/smtpd_proxy.[hc].
+
+20030620
+
+	Bugfix: a cut-and-paste error caused the proxy server's
+	354 status code to be reported when a proxy connection
+	broke during the DATA phase. File: smtpd.c.
 
 20030620
 
@@ -8216,6 +8266,74 @@ Apologies for any names omitted.
 	Bugfix: after moving "sendmail -t" address extraction to
 	sendmail, "-t" broke multi-line recipient headers.  Victor
 	Duchovni, Morgan Stanley. File: sendmail/sendmail.c.
+
+20030621
+
+	Workaround: the safe_open(O_CREAT) race condition exploit
+	avoiding code tries a little harder when it encounters a
+	race condition. File: util/safe_open.c.
+
+20030623
+
+	Non-prod operator precedence bug with detecting end of
+	DATA. Matthias Andree. File: smtpd/smtpd.c.
+
+20030624
+
+	Bugfix: reject_unverified_address() set the defer_if_reject
+	flag when the verify service was unavailable (which never
+	happens). Victor Duchovni, Morgan Stanley. File:
+	smtpd/smtpd_check.c.
+
+	New parameters address_verify_poll_{count,delay} that
+	control how often to poll the address verification service
+	for the completion of an address verification request.
+	Specify address_verify_poll_count=1 to implement a crude
+	form of greylisting, that is, always defer the first delivery
+	attempt for an unknown address.  File: smtpd/smtpd_check.c.
+
+	Bugfix: after the last change to postdrop, postcat no longer
+	recognized non-maildrop queue files as valid. File:
+	postcat/postcat.c.
+
+20030629
+
+	Cleanup: replaced references to "simulated virtual domains"
+	by "virtual alias domains". Victor Duchovni, Morgan Stanley.
+
+20030630
+
+	Feature: smtp_quote_rfc821_envelope=(yes|no) to control
+	RFC 821 style quoting of MAIL FROM and RCPT TO addresses.
+	Files: global/mail_params.h, smtp/smtp.c, smtp/smtp_proto.c.
+
+20030701
+
+	Bugfix: multi-recipient probes triggered a bug in the SMTP
+	client.  File: smtp/smtp_proto.c.
+
+	Feature: enable_original_recipient (default: yes) to control
+	whether Postfix keeps track of original recipient address
+	information. Victor Duchovni, Morgan Stanley.  Files:
+	cleanup/cleanup.c, cleanup/cleanup_init.c,
+	cleanup/cleanup_out_recipient.c, global/log_adhoc.c,
+	global/mail_copy.c, *qmgr/qmgr_message.c.
+
+	Feature: !/pattern/ support for PCRE lookup tables.  Victor
+	Duchovni, Morgan Stanley.  Files: util/dict_pcre.c.
+
+	Cleanup: allow whitespace after patterns in repexp and pcre
+	tables. Victor Duchovni, Morgan Stanley.  Files:
+	util/dict_pcre.c, util/dict_regexp.c.
+
+20030702
+
+	Feature: CIDR lookup table support, very remotely based on
+	code by Jozsef Kadlecsik. Files: proto/cidr_table,
+	util/dict_cidr.[hc].
+
+	Feature: TCP lookup table support, finally finished.  Files:
+	proto/tcp_table, proto/dict_tcp.[hc].
 
 Open problems:
 

@@ -4,8 +4,6 @@
 #        regexp_table - format of Postfix regular expression tables
 # 
 # SYNOPSIS
-#        regexp:/etc/postfix/filename
-# 
 #        postmap -q "string" regexp:/etc/postfix/filename
 # 
 #        postmap -q - regexp:/etc/postfix/filename <inputfile
@@ -77,7 +75,10 @@
 #        Substitution  of  substrings  from  the matched expression
 #        into the result string is possible using $1, $2, etc.. The
 #        macros in the result string may need to be written as ${n}
-#        or $(n) if they aren't followed by whitespace.
+#        or $(n) if  they  aren't  followed  by  whitespace.  Since
+#        negated  patterns  (those  preceded by !)  return a result
+#        when the expression does not match, substitutions are  not
+#        available for negated patterns.
 # 
 # EXAMPLE SMTPD ACCESS MAP
 #        # Disallow sender-specified routing. This is a must if you relay mail
@@ -106,6 +107,8 @@
 # 
 # SEE ALSO
 #        pcre_table(5) format of PCRE tables
+#        cidr_table(5) format of CIDR tables
+#        tcp_table(5) TCP client/server table lookup protocol
 # 
 # AUTHOR(S)
 #        The regexp table lookup code was originally written by:

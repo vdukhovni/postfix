@@ -389,7 +389,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	    if (message->rcpt_offset == 0) {
 		message->rcpt_unread--;
 		qmgr_rcpt_list_add(&message->rcpt_list, curr_offset,
-				   orig_rcpt ? orig_rcpt : "unknown", start);
+				   orig_rcpt ? orig_rcpt : "", start);
 		if (orig_rcpt) {
 		    myfree(orig_rcpt);
 		    orig_rcpt = 0;

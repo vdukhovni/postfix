@@ -8,22 +8,6 @@
 # ADDRESS VERIFICATION (see also: verify(8) and SENDER_VERIFICATION_README)
 #
 
-# The address_verify_map configuration parameter specifies an optional
-# table for persistent recipient status storage. The file is opened
-# before the process enters a chroot jail and before it drops root
-# privileges.
-# 
-# By default, the information is kept in volatile memory, and is lost
-# after postfix reload or postfix stop.
-#
-# Specify a pathname in a file system that will not fill up. If the
-# database becomes corrupted, the world comes to an end. To recover
-# you have to delete the file and do "postfix reload".
-# 
-#address_verify_map = hash:/etc/postfix/verify
-#address_verify_map = btree:/etc/postfix/verify
-address_verify_map = 
-
 # The address_verify_sender configuration parameter specifies the
 # sender address that Postfix will use in address verification probe
 # messages.
@@ -37,6 +21,40 @@ address_verify_map =
 #address_verify_sender = <>
 #address_verify_sender = postmaster@my.domain
 address_verify_sender = postmaster
+
+# The address_verify_poll_count parameter specifies how many times
+# to query the address verification service for completion of an
+# address verification request.  Specify 0 to implement a simple form
+# of greylisting, that is, always defer the first delivery request
+# from an unknown sender address.
+#
+#address_verify_poll_count = 0
+address_verify_poll_count = 3
+
+# The address_verify_poll_delay parameter specifies how long to wait
+# after querying the address verification service for completion of
+# an address verification request.
+#
+address_verify_poll_delay = 3
+
+#
+# CACHE CONTROL
+#
+# The address_verify_map configuration parameter specifies an optional
+# table for persistent address status storage. The file is opened
+# before the process enters a chroot jail and before it drops root
+# privileges.
+# 
+# By default, the information is kept in volatile memory, and is lost
+# after postfix reload or postfix stop.
+#
+# Specify a pathname in a file system that will not fill up. If the
+# database becomes corrupted, the world comes to an end. To recover
+# you have to delete the file and do "postfix reload".
+# 
+#address_verify_map = hash:/etc/postfix/verify
+#address_verify_map = btree:/etc/postfix/verify
+address_verify_map = 
 
 # The address_verify_positive_expire_time configuration parameter
 # specifies the amount of time after which a known to be good address
