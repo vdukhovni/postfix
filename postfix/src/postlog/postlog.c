@@ -168,7 +168,7 @@ int     main(int argc, char **argv)
     char   *slash;
     int     fd;
     int     ch;
-    char   *tag;
+    const char *tag;
     int     log_flags = 0;
     int     level = MSG_INFO;
 

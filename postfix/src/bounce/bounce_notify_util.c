@@ -716,7 +716,7 @@ int     bounce_original(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
 
 /* bounce_delrcpt - delete recipients from original queue file */
 
-int     bounce_delrcpt(BOUNCE_INFO *bounce_info)
+void    bounce_delrcpt(BOUNCE_INFO *bounce_info)
 {
     if (bounce_info->orig_fp != 0
 	&& bounce_info->log_handle != 0
@@ -729,7 +729,7 @@ int     bounce_delrcpt(BOUNCE_INFO *bounce_info)
 
 /* bounce_delrcpt_one - delete one recipient from original queue file */
 
-int     bounce_delrcpt_one(BOUNCE_INFO *bounce_info)
+void    bounce_delrcpt_one(BOUNCE_INFO *bounce_info)
 {
     if (bounce_info->orig_fp != 0
 	&& bounce_info->log_handle != 0

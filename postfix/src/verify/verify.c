@@ -139,7 +139,12 @@
 /*	postconf(5), configuration parameters
 /*	syslogd(5), system logging
 /* README FILES
-/*	Use "\fBpostconf readme_directory\fR" to locate this information.
+/* .ad
+/* .fi
+/*	Use "\fBpostconf readme_directory\fR" or
+/*	"\fBpostconf html_directory\fR" to locate this information.
+/* .na
+/* .nf
 /*	ADDRESS_VERIFICATION_README, address verification howto
 /* LICENSE
 /* .ad

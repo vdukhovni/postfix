@@ -303,7 +303,8 @@ int     lmtp_lhlo(LMTP_STATE *state)
 
 /* lmtp_loop - the LMTP state machine */
 
-static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
+static int lmtp_loop(LMTP_STATE *state, NOCLOBBER int send_state,
+		             NOCLOBBER int recv_state)
 {
     char   *myname = "lmtp_loop";
     DELIVER_REQUEST *request = state->request;
@@ -311,18 +312,18 @@ static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
     LMTP_RESP *resp;
     RECIPIENT *rcpt;
     VSTRING *next_command = vstring_alloc(100);
-    int    *survivors = 0;
-    int     next_state;
-    int     next_rcpt;
-    int     send_rcpt;
-    int     recv_rcpt;
-    int     nrcpt;
+    int *NOCLOBBER survivors = 0;
+    NOCLOBBER int next_state;
+    NOCLOBBER int next_rcpt;
+    NOCLOBBER int send_rcpt;
+    NOCLOBBER int recv_rcpt;
+    NOCLOBBER int nrcpt;
     int     except;
     int     rec_type;
-    int     prev_type = 0;
-    int     sndbuffree;
-    int     mail_from_rejected;
-    int     recv_dot;
+    NOCLOBBER int prev_type = 0;
+    NOCLOBBER int sndbuffree;
+    NOCLOBBER int mail_from_rejected;
+    NOCLOBBER int recv_dot;
 
     /*
      * Macros for readability. XXX Aren't LMTP addresses supposed to be case

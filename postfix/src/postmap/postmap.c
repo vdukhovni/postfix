@@ -173,7 +173,12 @@
 /*	postconf(5), configuration parameters
 /*	syslogd(8), system logging
 /* README FILES
-/*	Use "\fBpostconf readme_directory\fR" to locate this information.
+/* .ad
+/* .fi
+/*	Use "\fBpostconf readme_directory\fR" or
+/*	"\fBpostconf html_directory\fR" to locate this information.
+/* .na
+/* .nf
 /*	DATABASE_README, Postfix lookup table overview
 /* LICENSE
 /* .ad

@@ -1,6 +1,6 @@
 SHELL	= /bin/sh
 WARN    = -Wmissing-prototypes -Wformat
-OPTS	= 'CC=$(CC) -DSNAPSHOT'
+OPTS	= 'CC=$(CC)'
 DIRS	= src/util src/global src/dns src/master src/postfix src/smtpstone \
 	src/sendmail src/error src/pickup src/cleanup src/smtpd src/local \
 	src/lmtp src/trivial-rewrite src/qmgr src/oqmgr src/smtp src/bounce \
@@ -15,7 +15,7 @@ default: update
 makefiles Makefiles:
 	set -e; for i in $(DIRS); do \
 	 (set -e; echo "[$$i]"; cd $$i; rm -f Makefile; \
-	 $(MAKE) $(OPTS) -f Makefile.in Makefile MAKELEVEL=) || exit 1; \
+	 $(MAKE) -f Makefile.in Makefile MAKELEVEL=) || exit 1; \
 	done;
 	rm -f Makefile; (set -e; $(SHELL) makedefs && cat Makefile.in) >Makefile
 	(echo "# Do not edit -- this file documents how Postfix was built for your machine."; $(SHELL) makedefs) >makedefs.tmp

@@ -312,7 +312,8 @@
 /*	postqueue(1), mail queue control
 /*	syslogd(8), system logging
 /* README_FILES
-/*	Use "\fBpostconf readme_directory\fR" to locate this information.
+/*	Use "\fBpostconf readme_directory\fR" or
+/*	"\fBpostconf html_directory\fR" to locate this information.
 /*	DEBUG_README, Postfix debugging howto
 /*	ETRN_README, Postfix ETRN howto
 /*	VERP_README, Postfix VERP howto

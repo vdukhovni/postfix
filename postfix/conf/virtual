@@ -246,13 +246,14 @@
 #        canonical(5), canonical address mapping
 # 
 # README FILES
-#        Use postconf readme_directory to locate this information.
+#        Use  "postconf  readme_directory" or "postconf html_direc-
+#        tory" to locate this information.
 #        DATABASE_README, Postfix lookup table overview
 #        ADDRESS_REWRITING_README, address rewriting guide
 #        VIRTUAL_README, domain hosting guide
 # 
 # LICENSE
-#        The  Secure  Mailer  license must be distributed with this
+#        The Secure Mailer license must be  distributed  with  this
 #        software.
 # 
 # AUTHOR(S)

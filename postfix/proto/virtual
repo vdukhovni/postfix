@@ -222,7 +222,12 @@
 #	postconf(5), configuration parameters
 #	canonical(5), canonical address mapping
 # README FILES
-#	Use \fBpostconf readme_directory\fR to locate this information.
+# .ad
+# .fi
+#	Use "\fBpostconf readme_directory\fR" or
+#	"\fBpostconf html_directory\fR" to locate this information.
+# .na
+# .nf
 #	DATABASE_README, Postfix lookup table overview
 #	ADDRESS_REWRITING_README, address rewriting guide
 #	VIRTUAL_README, domain hosting guide
@@ -236,5 +241,3 @@
 #	P.O. Box 704
 #	Yorktown Heights, NY 10598, USA
 #--
-
-# By default, this file is not used.  See sample-virtual.cf

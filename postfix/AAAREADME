@@ -85,9 +85,9 @@ not yet implement, and how well it works with other software.
 
 The HISTORY file gives a detailed log of changes to the software.
 
-Point your browser at html/index.html for Postfix documentation,
-for manual pages, and for the unavoidable Postfix FAQ. Expect to
-see updated versions on-line at http://www.postfix.org/
+Point your browser at html/index.html for Postfix documentation
+and for hyperlinked versions of Postfix manual pages.  Expect
+to see updated versions on-line at http://www.postfix.org/
 
 Point your MANPATH environment variable at the `man' directory (use
 an absolute path) for UNIX-style on-line manual pages.  These pages
@@ -109,7 +109,7 @@ Documentation:
 
 Example files:
 
-    conf/		sample configuration files
+    conf/		configuration files, run-time scripts
     examples/		chroot environments, virtual domains
 
 Library routines:
@@ -134,20 +134,24 @@ Command-line utilities:
 
 Postfix daemons:
 
+    src/anvil/		Connection count/rate limiter
     src/bounce/		Bounce or defer mail
     src/cleanup/	Canonicalize and enqueue mail
     src/error/		Trivial error mailer
+    src/lmtp/		LMTP client
     src/local/		Local delivery
     src/master/		Postfix resident superserver
+    src/oqmgr/		Old queue manager
     src/pickup/		Local pickup
     src/pipe/		Pipe delivery
     src/qmgr/		Queue manager
+    src/qmqpd/		QMQPD server
     src/showq/		List Postfix queue status
-    src/spawn/		Run any command from a network socket
-    src/lmtp/		LMTP client
     src/smtp/		SMTP client
     src/smtpd/		SMTP server
+    src/spawn/		Run non-Postfix server
     src/trivial-rewrite/ Address rewriting and resolving
+    src/verify/		address verification service
     src/virtual/	virtual mailbox-only delivery agent
 
 Test programs:
@@ -159,9 +163,9 @@ Miscellaneous:
 
     auxiliary/		Auxiliary software etc.
     bin/		Postfix command executables
-    conf/		Sample configuration files
+    conf/		Configuration files, run-time scripts
     include/		Installed include files
     lib/		Installed object libraries
     libexec/		Postfix daemon executables
     mantools/		Manual page utilities
-    proto/		Manual pages for sample configuration files
+    proto/		Documentation source

@@ -204,7 +204,12 @@
 /*	master(8), process manager
 /*	syslogd(8), system logging
 /* README FILES
-/*	Use "\fBpostconf readme_directory\fR" to locate this information.
+/* .ad
+/* .fi
+/*	Use "\fBpostconf readme_directory\fR" or
+/*	"\fBpostconf html_directory\fR" to locate this information.
+/* .na
+/* .nf
 /*	LMTP_README, Postfix LMTP client howto
 /*	VIRTUAL_README, virtual delivery agent howto
 /* LICENSE

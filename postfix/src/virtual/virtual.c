@@ -226,7 +226,8 @@
 /*	postconf(5), configuration parameters
 /*	syslogd(8), system logging
 /* README_FILES
-/*	Use "\fBpostconf readme_directory\fR" to locate this information.
+/*	Use "\fBpostconf readme_directory\fR" or
+/*	"\fBpostconf html_directory\fR" to locate this information.
 /*	VIRTUAL_README, domain hosting howto
 /* LICENSE
 /* .ad

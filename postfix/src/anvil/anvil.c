@@ -134,7 +134,12 @@
 /*	smtpd(8), Postfix SMTP server
 /*	postconf(5), configuration parameters
 /* README FILES
-/*	Use "\fBpostconf readme_directory\fR" to locate this information.
+/* .ad
+/* .fi
+/*	Use "\fBpostconf readme_directory\fR" or
+/*	"\fBpostconf html_directory\fR" to locate this information.
+/* .na
+/* .nf
 /*	TUNING_README, performance tuning
 /* LICENSE
 /* .ad

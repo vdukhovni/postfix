@@ -23,4 +23,6 @@ SMTPD policy delegation protocol provides a superior mechanism.
 
     find . type f -print | xargs egrep -i 'tcp_table|tcp-based'
 
-- Change top-level Makefiles, disable -DSNAPSHOT.
+- Change top-level Makefile.stable/snapshot, makedefs.stable/snapshot
+
+- Delete TODO-BEFORE-RELEASE :-)

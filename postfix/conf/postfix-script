@@ -238,12 +238,19 @@ set-permissions|upgrade-configuration)
 	;;
 
 post-install)
+	# Currently not part of the public interface.
 	shift
 	$config_directory/post-install "$@"
 	;;
+
+/*)
+	# Currently not part of the public interface.
+	"$@"
+	;;
+
 *)
 
-	$FATAL "usage: postfix start (or stop, reload, abort, flush, or check)"
+	$FATAL "usage: postfix start (or stop, reload, abort, flush, check, set-permissions, upgrade-configuration)"
 	exit 1
 	;;
 

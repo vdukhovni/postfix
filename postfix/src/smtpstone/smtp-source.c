@@ -478,7 +478,7 @@ static void read_banner(int unused_event, char *context)
 static void send_helo(SESSION *session)
 {
     int     except;
-    char   *protocol = (talk_lmtp ? "LHLO" : "HELO");
+    char   *NOCLOBBER protocol = (talk_lmtp ? "LHLO" : "HELO");
 
     /*
      * Send the standard greeting with our hostname

@@ -1135,6 +1135,14 @@ typedef int pid_t;
 #endif
 
  /*
+  * ISO C says that the "volatile" qualifier protects against optimizations
+  * that cause longjmp() to clobber local variables.
+  */
+#ifndef NOCLOBBER
+#define NOCLOBBER volatile
+#endif
+
+ /*
   * Bit banging!! There is no official constant that defines the INT_MAX
   * equivalent of the off_t type. Wietse came up with the following macro
   * that works as long as off_t is some two's complement number.

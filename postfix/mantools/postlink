@@ -158,6 +158,7 @@ exec sed '
 	s;[[:<:]]helpful_warnings[[:>:]];<a href="postconf.5.html#helpful_warnings">&</a>;g
 	s;[[:<:]]home_mailbox[[:>:]];<a href="postconf.5.html#home_mailbox">&</a>;g
 	s;[[:<:]]hopcount_limit[[:>:]];<a href="postconf.5.html#hopcount_limit">&</a>;g
+	s;[[:<:]]html_direc[-</bB>]*\n*[ <bB>]*tory[[:>:]];<a href="postconf.5.html#html_directory">&</a>;g
 	s;[[:<:]]ignore_mx_lookup_error[[:>:]];<a href="postconf.5.html#ignore_mx_lookup_error">&</a>;g
 	s;[[:<:]]import_environment[[:>:]];<a href="postconf.5.html#import_environment">&</a>;g
 	s;[[:<:]]in_flow_delay[[:>:]];<a href="postconf.5.html#in_flow_delay">&</a>;g

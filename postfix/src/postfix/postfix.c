@@ -199,8 +199,12 @@
 /*	Other:
 /*	syslogd(8), system logging
 /* README FILES
+/* .ad
+/* .fi
 /*	Use "\fBpostconf readme_directory\fR" or
-/*	"\fBpostconf html_directory\fR to locate this information.
+/*	"\fBpostconf html_directory\fR" to locate this information.
+/* .na
+/* .nf
 /*	OVERVIEW, overview of Postfix commands and processes
 /*	BASIC_CONFIGURATION_README, Postfix basic configuration
 /*	ADDRESS_REWRITING_README, Postfix address rewriting

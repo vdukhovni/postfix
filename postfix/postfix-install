@@ -720,5 +720,5 @@ bin/postconf -c $CONFIG_DIRECTORY -e \
 # post-install processing now.
 
 test -n "$install_root" || {
-    ${command_directory}/postfix post-install $post_install_options || exit 1
+    bin/postfix post-install $post_install_options || exit 1
 }

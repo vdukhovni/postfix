@@ -204,6 +204,7 @@
 #include <mail_addr.h>
 #include <verify_clnt.h>
 #include <input_transp.h>
+#include <is_header.h>
 
 /* Application-specific. */
 
@@ -3869,7 +3870,7 @@ char   *smtpd_check_size(SMTPD_STATE *state, off_t size)
 char   *smtpd_check_data(SMTPD_STATE *state)
 {
     int     status;
-    char   *saved_recipient;
+    char *NOCLOBBER saved_recipient;
 
     /*
      * Minor kluge so that we can delegate work to the generic routine. We

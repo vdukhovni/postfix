@@ -131,12 +131,12 @@ mail_owner = postfix
 # gateway, you should also include $mydomain.
 #
 # Do not specify the names of virtual domains - those domains are
-# specified elsewhere (see sample-virtual.cf).
+# specified elsewhere (see VIRTUAL_README).
 #
 # Do not specify the names of domains that this machine is backup MX
 # host for. Specify those names via the relay_domains settings for
 # the SMTP server, or use permit_mx_backup if you are lazy (see
-# sample-smtpd.cf).
+# STANDARD_CONFIGURATION_README).
 #
 # The local machine is always the final destination for mail addressed
 # to user@[the.net.work.address] of an interface that the mail system
@@ -181,7 +181,7 @@ mail_owner = postfix
 # - You redefine the "local_transport" setting in main.cf.
 #
 # - You use the "luser_relay", "mailbox_transport", or "fallback_transport"
-#   feature of the Postfix local delivery agent (see sample-local.cf).
+#   feature of the Postfix local delivery agent (see local(8)).
 #
 # Details are described in the LOCAL_RECIPIENT_README file.
 #
@@ -216,7 +216,7 @@ unknown_local_recipient_reject_code = 550
 #
 # In particular, "trusted" SMTP clients are allowed to relay mail
 # through Postfix.  See the smtpd_recipient_restrictions parameter
-# in file sample-smtpd.cf.
+# in postconf(5).
 #
 # You can specify the list of "trusted" network addresses by hand
 # or you can let Postfix do it for you (which is the default).
@@ -255,8 +255,8 @@ unknown_local_recipient_reject_code = 550
 #mynetworks = hash:/etc/postfix/network_table
 
 # The relay_domains parameter restricts what destinations this system will
-# relay mail to.  See the smtpd_recipient_restrictions restriction in the
-# file sample-smtpd.cf for detailed information.
+# relay mail to.  See the smtpd_recipient_restrictions description in
+# postconf(5) for detailed information.
 #
 # By default, Postfix relays mail
 # - from "trusted" clients (IP address matches $mynetworks) to any destination,
@@ -280,7 +280,7 @@ unknown_local_recipient_reject_code = 550
 #
 # NOTE: Postfix will not automatically forward mail for domains that
 # list this system as their primary or backup MX host. See the
-# permit_mx_backup restriction in the file sample-smtpd.cf.
+# permit_mx_backup restriction description in postconf(5).
 #
 #relay_domains = $mydestination
 
@@ -337,25 +337,22 @@ unknown_local_recipient_reject_code = 550
 
 # ADDRESS REWRITING
 #
-# Insert text from sample-rewrite.cf if you need to do address
-# masquerading.
-#
-# Insert text from sample-canonical.cf if you need to do address
-# rewriting, or if you need username->Firstname.Lastname mapping.
+# The ADDRESS_REWRITING_README document gives information about
+# address masquerading or other forms of address rewriting including
+# username->Firstname.Lastname mapping.
 
 # ADDRESS REDIRECTION (VIRTUAL DOMAIN)
 #
-# Insert text from sample-virtual.cf if you need virtual domain support.
+# The VIRTUAL_README document gives information about the many forms
+# of domain hosting that Postfix supports.
 
 # "USER HAS MOVED" BOUNCE MESSAGES
 #
-# Insert text from sample-relocated.cf if you need "user has moved"
-# style bounce messages. Alternatively, you can bounce recipients
-# with an SMTP server access table. See sample-smtpd.cf.
+# See the discussion in the ADDRESS_REWRITING_README document.
 
 # TRANSPORT MAP
 #
-# Insert text from sample-transport.cf if you need explicit routing.
+# See the discussion in the ADDRESS_REWRITING_README document.
 
 # ALIAS DATABASE
 #
@@ -499,8 +496,8 @@ unknown_local_recipient_reject_code = 550
   
 # JUNK MAIL CONTROLS
 # 
-# The controls listed here are only a very small subset. See the file
-# sample-smtpd.cf for an elaborate list of anti-UCE controls.
+# The controls listed here are only a very small subset. The file
+# SPTMD_ACCESS_README provides an overview.
 
 # The header_checks parameter specifies an optional table with patterns
 # that each logical message header is matched against, including
@@ -519,19 +516,13 @@ unknown_local_recipient_reject_code = 550
 # Postfix maintains per-destination logfiles with information about
 # deferred mail, so that mail can be flushed quickly with the SMTP
 # "ETRN domain.tld" command, or by executing "sendmail -qRdomain.tld".
-# 
-# By default, Postfix maintains deferred mail logfile information
-# only for destinations that Postfix is willing to relay to (as
-# specified in the relay_domains parameter). For other destinations,
-# Postfix attempts to deliver ALL queued mail after receiving the
-# SMTP "ETRN domain.tld" command, or after execution of "sendmail
-# -qRdomain.tld". This can be slow when a lot of mail is queued.
+# See the ETRN_README document for a detailed description.
 # 
 # The fast_flush_domains parameter controls what destinations are
-# eligible for this "fast ETRN/sendmail -qR" service.
+# eligible for this service. By default, they are all domains that
+# this server is willing to relay mail to.
 # 
 #fast_flush_domains = $relay_domains
-#fast_flush_domains =
 
 # SHOW SOFTWARE VERSION OR NOT
 #
@@ -621,11 +612,16 @@ mailq_path =
 #
 setgid_group =
 
+# html_directory: The location of the Postfix HTML documentation.
+#
+html_directory =
+
 # manpage_directory: The location of the Postfix on-line manual pages.
 #
 manpage_directory =
 
 # sample_directory: The location of the Postfix sample configuration files.
+# This parameter is obsolete as of Postfix 2.1.
 #
 sample_directory =
 

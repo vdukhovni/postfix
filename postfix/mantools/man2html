@@ -31,6 +31,6 @@ sed '
 	s;.\(.\);<b>\1</b>;g
 	s;</i>\( *\)<i>;\1;g
 	s;</b>\( *\)<b>;\1;g
-' "$@" | grep -v 'postconf readme_directory'
+' "$@" | egrep -v 'postconf (readme|html)_direc|tory</b>" *to *locate *this'
 
 echo '</pre> </body> </html>'

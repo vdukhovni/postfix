@@ -3,8 +3,7 @@ SHELL	= /bin/sh
 # For now, just hard-coded rules.
 
 CONFIG	= ../conf/access ../conf/aliases ../conf/canonical ../conf/relocated \
-	../conf/transport ../conf/virtual ../conf/header_checks \
-	../conf/ldap_table ../conf/mysql_table ../conf/pgsql_table
+	../conf/transport ../conf/virtual ../conf/header_checks
 
 HTML	= ../html/ADDRESS_CLASS_README.html \
 	../html/ADDRESS_REWRITING_README.html \

@@ -286,8 +286,8 @@ int     main(int argc, char **argv)
     signal(SIGPIPE, SIG_IGN);
     signal(SIGXFSZ, SIG_IGN);
 
-    if (signal(SIGHUP, postdrop_sig) == SIG_IGN)
-	signal(SIGHUP, SIG_IGN);
+    if (signal(SIGHUP, SIG_IGN) == SIG_DFL)
+	signal(SIGHUP, postdrop_sig);
     signal(SIGINT, postdrop_sig);
     signal(SIGQUIT, postdrop_sig);
     signal(SIGTERM, postdrop_sig);

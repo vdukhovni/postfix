@@ -123,7 +123,12 @@
 /*	sendmail(1), Sendmail-compatible user interface
 /*	postsuper(1), privileged queue operations
 /* README FILES
-/*	Use "\fBpostconf readme_directory\fR" to locate this information.
+/* .ad
+/* .fi
+/*	Use "\fBpostconf readme_directory\fR" or
+/*	"\fBpostconf html_directory\fR" to locate this information.
+/* .na
+/* .nf
 /*	ETRN_README, Postfix ETRN howto
 /* LICENSE
 /* .ad

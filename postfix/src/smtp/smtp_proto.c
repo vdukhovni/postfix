@@ -388,24 +388,24 @@ int     smtp_xfer(SMTP_STATE *state)
     SMTP_RESP *resp;
     RECIPIENT *rcpt;
     VSTRING *next_command = vstring_alloc(100);
-    int     next_state;
-    int     next_rcpt;
-    int     send_state;
-    int     recv_state;
-    int     send_rcpt;
-    int     recv_rcpt;
-    int     nrcpt;
+    NOCLOBBER int next_state;
+    NOCLOBBER int next_rcpt;
+    NOCLOBBER int send_state;
+    NOCLOBBER int recv_state;
+    NOCLOBBER int send_rcpt;
+    NOCLOBBER int recv_rcpt;
+    NOCLOBBER int nrcpt;
     int     except;
     int     rec_type;
-    int     prev_type = 0;
+    NOCLOBBER int prev_type = 0;
     int     sndbufsize = 0;
-    int     sndbuffree;
+    NOCLOBBER int sndbuffree;
     SOCKOPT_SIZE optlen = sizeof(sndbufsize);
-    int     mail_from_rejected;
-    int     downgrading;
+    NOCLOBBER int mail_from_rejected;
+    NOCLOBBER int downgrading;
     int     mime_errs;
     int     send_name_addr;
-    int     send_proto_helo;
+    NOCLOBBER int send_proto_helo;
 
     /*
      * Macros for readability.

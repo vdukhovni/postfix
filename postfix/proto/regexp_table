@@ -127,7 +127,12 @@
 #	pcre_table(5), format of PCRE tables
 #	cidr_table(5), format of CIDR tables
 # README FILES
-#	Use "\fBpostconf readme_directory\fR" to locate this information.
+# .ad
+# .fi
+#	Use "\fBpostconf readme_directory\fR" or
+#	"\fBpostconf html_directory\fR" to locate this information.
+# .na
+# .nf
 #	DATABASE_README, Postfix lookup table overview
 # AUTHOR(S)
 #	The regexp table lookup code was originally written by:

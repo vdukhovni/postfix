@@ -9278,11 +9278,40 @@ Apologies for any names omitted.
 	Cleanup: README file installation is now optional.  Files:
 	postfix-install, conf/postfix-files, conf/post-install.
 
+20040414
+
+	Cleanup: references to sample-mumble.cf files removed,
+	conf/mumble_table files removed, new commands added to
+	conf/postfix-script.
+
+	Cleanups: function declared in but used as void, missing
+	include file, missing const qualifier, unused variable.
+	Matthias Andree. Files:  bounce/bounce_notify_util.c,
+	bounce/bounce_service.h, postlog/postlog.c, smtpd/smtpd_check.c,
+	util/attr_scan64.c.
+
+	Bugfix: more robust version of SIGHUP test of 20040331.
+	Victor Duchovni, Morgan Stanley. File: postdrop/postdrop.c.
+
+	Safety: added NOCLOBBER qualifiers to local variables that
+	might be clobbered by longjmp(). Files: util/sys_defs.h,
+	smtp/smtp_proto.c, lmtp/lmtp_proto.c, smtpd/smtpd_check.c,
+	smtpstone/smtp-source.c.
+
+	Bugfix: sub-level Makefiles no longer turned on the extra
+	compiler warnings. Files: Makefile.in.*, makedefs.*.
+
 Open problems:
 
 	Low: noise filter: allow smtp(8) to retry immediately if
 	all MXes return a quick ECONNRESET or 4xx reply during the
 	initial handshake.
+
+	Low: add msg_panic() guard to ensure that at least one of
+	DICT_FLAG_TRY1NULL or DICT_FLAG_TRY1NULL is set upon lookup.
+
+	Low: make post-install a "postfix-only script" so it can
+	take data from the environment instead of main.cf.
 
 	Low: qmgr should truncate trace logfile before attempting
 	delivery.

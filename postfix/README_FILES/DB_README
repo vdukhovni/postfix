@@ -10,6 +10,8 @@ Postfix database type of "hash" and "btree". The name of a Postfix Berkeley DB
 database is the name of the database file without the ".db" suffix. Berkeley DB
 databases are maintained with the postmap(1) command.
 
+Note: Berkeley DB version 4 is not supported by Postfix versions before 2.0.
+
 This document describes:
 
  1. How to build Postfix on systems without Berkeley DB library.
@@ -27,10 +29,16 @@ Many commercial UNIXes ship without Berkeley DB support. Examples are Solaris,
 HP-UX, IRIX, UNIXWARE. In order to build Postfix with Berkeley DB support you
 need to download and install the source code from http://www.sleepycat.com/
 
-Warning: some Linux system libraries use Berkeley DB. If you compile Postfix
-with a non-default Berkeley DB implementation, then every Postfix program will
-dump core because either the system library or Postfix itself ends up using the
-wrong version.
+Warning: some Linux system libraries use Berkeley DB, as do some third-party
+libraries such as SASL. If you compile Postfix with a different Berkeley DB
+implementation, then every Postfix program will dump core because either the
+system library, SASL library, or Postfix itself ends up using the wrong
+version.
+
+The more recent Berkeley DB versions have a compile-time switch, "--with-
+uniquename", which renames the symbols so that multiple versions of Berkeley DB
+can co-exist in the same application. Although wasteful this may be the only
+way to keep things from falling apart.
 
 To build Postfix after you installed the Berkeley DB from http://
 www.sleepycat.com/, use something like:
@@ -63,7 +71,7 @@ To build Postfix on BSD systems with a specific DB version, use a variant of
 the following commands:
 
     % make tidy
-    % make makefiles CCARGS=-I/usr/include/db2 AUXLIBS=-ldb2
+    % make makefiles CCARGS=-I/usr/include/db3 AUXLIBS=-ldb3
     % make
 
 Warning: the file format produced by Berkeley DB version 1 is not compatible
