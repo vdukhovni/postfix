@@ -312,6 +312,14 @@ int     smtp_xfer(SMTP_STATE *state)
 	} \
     } while (0)
 
+#define QUOTE_ADDRESS(addr) do { \
+	if (*(addr)) { \
+	    quote_821_local(state->scratch, addr); \
+	    myfree(addr); \
+	    addr = mystrdup(vstring_str(state->scratch)); \
+	} \
+    } while (0)
+
 #define RETURN(x) do { vstring_free(next_command); return (x); } while (0)
 
 #define SENDER_IS_AHEAD \
@@ -399,9 +407,11 @@ int     smtp_xfer(SMTP_STATE *state)
 	     * Build the MAIL FROM command.
 	     */
 	case SMTP_STATE_MAIL:
-	    if (*request->sender)
-		if (var_disable_dns == 0)
-		    REWRITE_ADDRESS(request->sender);
+	    if (var_disable_dns == 0) {
+		REWRITE_ADDRESS(request->sender);
+	    } else {
+		QUOTE_ADDRESS(request->sender);
+	    }
 	    vstring_sprintf(next_command, "MAIL FROM:<%s>", request->sender);
 	    if (state->features & SMTP_FEATURE_SIZE)
 		vstring_sprintf_append(next_command, " SIZE=%lu",
@@ -415,8 +425,11 @@ int     smtp_xfer(SMTP_STATE *state)
 	     */
 	case SMTP_STATE_RCPT:
 	    rcpt = request->rcpt_list.info + send_rcpt;
-	    if (var_disable_dns == 0)
+	    if (var_disable_dns == 0) {
 		REWRITE_ADDRESS(rcpt->address);
+	    } else {
+		QUOTE_ADDRESS(rcpt->address);
+	    }
 	    vstring_sprintf(next_command, "RCPT TO:<%s>", rcpt->address);
 	    if ((next_rcpt = send_rcpt + 1) == request->rcpt_list.len)
 		next_state = SMTP_STATE_DATA;

@@ -6213,6 +6213,42 @@ Apologies for any names omitted.
 	stripping in postqueue/postqueue.c. Problem reported by
 	Victor Duchovni, Morgan Stanley.
 
+20020414
+
+	Portability: Postfix will no longer attempt to build with
+	gdbm support, because gdbm is broken. File:  makedefs.
+
+20020417
+
+	Bugfix: the post-install script failed to upgrade master.cf
+	settings from private to public if the service was explicitly
+	configured as private.
+
+20020426
+
+	Bugfix: the SMTP client forgot to quote whitespace etc.
+	in a sender/recipient address when DNS lookup was turned
+	off (disable_dns_lookups = yes). Problem experienced by
+	Chip Paswater. Files: smtp/smtp_proto.c.
+
+20020503
+
+	Cleanup: postqueue silently ignored command-line arguments
+	following -p or -f options, instead of complaining; postqueue
+	produced an incorrect error message (mail system down) when
+	the command was installed with incorrect privileges.  File:
+	postqueue/postqueue.c.
+
+	Bugfix: while reporting a domain name or IP address syntax
+	error, postqueue could dereference a dangling pointer with
+	some getopt() implementations. LaMont Jones, HP.  File:
+	postqueue/postqueue.c.
+
+20020504
+
+	Portability: run-time test to avoid GDBM trouble.  File:
+	util/dict_dbm.c.
+
 Open problems:
 
 	Low: sendmail does not store null command-line recipients.

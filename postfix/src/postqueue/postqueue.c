@@ -185,6 +185,16 @@ static void show_queue(void)
     }
 
     /*
+     * Don't assume that the mail system is down when the user has
+     * insufficient permission to access the showq socket.
+     */
+    else if (errno == EACCES) {
+	msg_fatal_status(EX_SOFTWARE,
+			 "Connect to the %s %s service: %m",
+			 var_mail_name, MAIL_SERVICE_SHOWQ);
+    }
+
+    /*
      * When the mail system is down, the superuser can still access the queue
      * directly. Just run the showq program in stand-alone mode.
      */
@@ -255,7 +265,7 @@ static void flush_site(const char *site)
 
 static NORETURN usage(void)
 {
-    msg_fatal_status(EX_USAGE, "usage: specify one of -f, -p, or -s");
+    msg_fatal_status(EX_USAGE, "usage: postqueue -f | postqueue -p | postqueue -s site");
 }
 
 /* main - the main program */
@@ -270,6 +280,7 @@ int     main(int argc, char **argv)
     char   *site_to_flush = 0;
     ARGV   *import_env;
     char   *last;
+    int     bad_site;
 
     /*
      * Be consistent with file permissions.
@@ -319,7 +330,6 @@ int     main(int argc, char **argv)
 		usage();
 	    mode = PQ_MODE_MAILQ_LIST;
 	    break;
-	    break;
 	case 's':				/* flush site */
 	    if (mode != PQ_MODE_DEFAULT)
 		usage();
@@ -333,6 +343,8 @@ int     main(int argc, char **argv)
 	    usage();
 	}
     }
+    if (argc > optind)
+	usage();
 
     /*
      * Further initialization...
@@ -362,21 +374,20 @@ int     main(int argc, char **argv)
      * Further input validation.
      */
     if (site_to_flush != 0) {
+	bad_site = 0;
 	if (*site_to_flush == '['
 	    && *(last = site_to_flush + strlen(site_to_flush) - 1) == ']') {
 	    *last = 0;
-	    if (!valid_hostaddr(site_to_flush + 1, DONT_GRIPE))
-		site_to_flush = 0;
+	    bad_site = !valid_hostaddr(site_to_flush + 1, DONT_GRIPE);
 	    *last = ']';
 	} else {
-	    if (!valid_hostname(site_to_flush, DONT_GRIPE)
-		&& !valid_hostaddr(site_to_flush, DONT_GRIPE))
-		site_to_flush = 0;
+	    bad_site = (!valid_hostname(site_to_flush, DONT_GRIPE)
+			&& !valid_hostaddr(site_to_flush, DONT_GRIPE));
 	}
-	if (site_to_flush == 0)
+	if (bad_site)
 	    msg_fatal_status(EX_USAGE,
 	      "Cannot flush mail queue - invalid destination: \"%.100s%s\"",
-			     optarg, strlen(optarg) > 100 ? "..." : "");
+		   site_to_flush, strlen(site_to_flush) > 100 ? "..." : "");
     }
 
     /*

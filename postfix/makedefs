@@ -187,16 +187,16 @@ case "$SYSTEM.$RELEASE" in
 		    echo "See the RELEASE_NOTES file for more information." 1>&2
 		    exit 1
 		fi
-		# See where GDBM's ndbm.h include file sits.
-		if [ -f /usr/include/gdbm-ndbm.h ]
-		then
-		    CCARGS="$CCARGS -DHAS_DBM -DPATH_NDBM_H='<gdbm-ndbm.h>'"
-		    GDBM_LIBS=gdbm
-		elif [ -f /usr/include/gdbm/ndbm.h ]
-		then
-		    CCARGS="$CCARGS -DHAS_DBM -DPATH_NDBM_H='<gdbm/ndbm.h>'"
-		    GDBM_LIBS=gdbm
-		fi
+		# GDBM locks the DBM .pag file after open. This breaks postmap.
+		# if [ -f /usr/include/gdbm-ndbm.h ]
+		# then
+		#     CCARGS="$CCARGS -DHAS_DBM -DPATH_NDBM_H='<gdbm-ndbm.h>'"
+		#     GDBM_LIBS=gdbm
+		# elif [ -f /usr/include/gdbm/ndbm.h ]
+		# then
+		#     CCARGS="$CCARGS -DHAS_DBM -DPATH_NDBM_H='<gdbm/ndbm.h>'"
+		#     GDBM_LIBS=gdbm
+		# fi
 		SYSLIBS="-ldb"
 		for name in nsl resolv $GDBM_LIBS
 		do

@@ -21,14 +21,14 @@
   * release date only, unless they include the same bugfix as a patch release.
   */
 #define VAR_MAIL_VERSION	"mail_version"
-#define DEF_MAIL_VERSION	"1.1.7"
+#define DEF_MAIL_VERSION	"1.1.8"
 extern char *var_mail_version;
 
  /*
   * Release date.
   */
 #define VAR_MAIL_RELEASE	"mail_release_date"
-#define DEF_MAIL_RELEASE	"20020331"
+#define DEF_MAIL_RELEASE	"20020504"
 extern char *var_mail_release;
 
 /* LICENSE
