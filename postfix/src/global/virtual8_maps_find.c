@@ -22,6 +22,8 @@
 /*	agent. The code is made available as a library module so that
 /*	other programs can perform compatible queries.
 /*
+/*	Lookups are case sensitive.
+/*
 /*	virtual8_maps_create() takes list of type:name pairs and opens the
 /*	named dictionaries.
 /*	The result is a handle that must be specified along with all
@@ -111,7 +113,7 @@ const char *virtual8_maps_find(MAPS *maps, const char *recipient)
     }
 
     /*
-     * Look up the full address.
+     * Look up the full address. Allow regexp table searches.
      */
     if (bare == 0) {
 	result = maps_find(maps, recipient, DICT_FLAG_NONE);
@@ -147,7 +149,7 @@ int     main(int argc, char **argv)
     var_rcpt_delim = "+";
     var_double_bounce_sender = DEF_DOUBLE_BOUNCE;
 
-    maps = maps_create("testmap", argv[1], DICT_FLAG_LOCK);
+    maps = virtual8_maps_create("testmap", argv[1], DICT_FLAG_LOCK);
     buffer = vstring_alloc(1);
 
     while (vstring_fgets_nonl(buffer, VSTREAM_IN)) {
@@ -155,7 +157,7 @@ int     main(int argc, char **argv)
 	vstream_printf("%s -> %s\n", STR(buffer), result ? result : "(none)");
 	vstream_fflush(VSTREAM_OUT);
     }
-    maps_free(maps);
+    virtual8_maps_free(maps);
     vstring_free(buffer);
     return (0);
 }

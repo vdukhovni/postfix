@@ -103,7 +103,7 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
     TOK822 *saved_domain = 0;
     TOK822 *domain = 0;
     char   *destination;
-    const char *blame;
+    const char *blame = 0;
 
     *flags = 0;
 
@@ -239,9 +239,9 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 	if (virt_alias_doms
 	    && string_list_match(virt_alias_doms, STR(nexthop))) {
 	    vstring_strcpy(channel, var_error_transport);
-	    vstring_strcpy(nexthop, "unknown user");
+	    vstring_strcpy(nexthop, "User unknown");
 	    blame = VAR_ERROR_TRANSPORT;
-	    *flags |= RESOLVE_CLASS_ERROR;
+	    *flags |= RESOLVE_CLASS_ALIAS;
 	} else if (dict_errno != 0) {
 	    msg_warn("%s lookup failure", VAR_VIRT_ALIAS_DOMS);
 	    *flags |= RESOLVE_FLAG_FAIL;
@@ -291,11 +291,17 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
     /*
      * Sanity checks.
      */
-    if (*STR(channel) == 0)
-	msg_fatal("file %s/%s: parameter %s: null transport is not allowed",
-		  var_config_dir, MAIN_CONF_FILE, blame);
-    if (*STR(nexthop) == 0)
-	msg_panic("%s: null nexthop", myname);
+    if ((*flags & RESOLVE_FLAG_FAIL) == 0) {
+	if (*STR(channel) == 0) {
+	    if (blame == 0)
+		msg_panic("%s: null blame", myname);
+	    msg_warn("file %s/%s: parameter %s: null transport is not allowed",
+		     var_config_dir, MAIN_CONF_FILE, blame);
+	    *flags |= RESOLVE_FLAG_FAIL;
+	}
+	if (*STR(nexthop) == 0)
+	    msg_panic("%s: null nexthop", myname);
+    }
 
     /*
      * Bounce recipients that have moved. We do it here instead of in the
@@ -315,7 +321,6 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 				     IGNORE_ADDR_EXTENSION)) != 0) {
 	    vstring_strcpy(channel, var_error_transport);
 	    vstring_sprintf(nexthop, "user has moved to %s", newloc);
-	    *flags |= RESOLVE_CLASS_ERROR;
 	} else if (dict_errno != 0) {
 	    msg_warn("%s lookup failure", VAR_RELOCATED_MAPS);
 	    *flags |= RESOLVE_FLAG_FAIL;
@@ -328,9 +333,9 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
      * 
      * XXX Don't override the error transport :-(
      */
-    if ((*flags & RESOLVE_FLAG_FAIL) == 0 
-	&& (*flags & RESOLVE_CLASS_ERROR) != 0
-	&& *var_transport_maps) {
+    if ((*flags & RESOLVE_FLAG_FAIL) == 0
+	&& *var_transport_maps
+	&& strcmp(STR(channel), var_error_transport) != 0) {
 	if (transport_lookup(STR(nextrcpt), channel, nexthop) == 0
 	    && dict_errno != 0) {
 	    msg_warn("%s lookup failure", VAR_TRANSPORT_MAPS);

@@ -15,13 +15,92 @@ the same bugfixes as a patch release.
 Incompatible changes with Postfix snapshot 1.1.12-200212XX
 ==========================================================
 
-The default hash_queue_depth setting is reduced to 1 level of
-subdirectories. This improves "mailq" performance on most systems,
-but results in poorer worst-case performance on systems with lots
-of mail in the queue.
+Postfix now uses the "relay" mail delivery transport for relayed
+mail (domains matching relay_domains). This may affect your
+defer_transports settings.  The old "smtp" transport is now the
+default mail delivery transport for domains that do not match
+relay_domains or any local or virtual domain name.
 
-The check_relay_domains restriction is going away. The SMTP server
-logs a warning and suggests using reject_unauth_destination instead.
+The "virtual_maps" configuration parameter is now called
+"virtual_alias_maps", for consistency with "virtual_mailbox_maps".
+Default settings are backwards compatible with Postfix 1.1.
+
+Postfix-style virtual domains are now called simulated virtual
+domains.  Sendmail-style virtual domains are no longer documented.
+This part of Postfix was too confusing.
+
+The default queue directory hash_queue_depth setting is reduced to
+1 level of subdirectories per Postfix queue. This improves "mailq"
+performance on most systems, but can result in poorer worst-case
+performance on systems with lots of mail in the queue.
+
+The "reject_maps_rbl" restriction is going away. The SMTP server
+logs a warning and suggests using the more flexible "reject_rbl_client"
+instead.
+
+The "check_relay_domains" restriction is going away. The SMTP server
+logs a warning and suggests using "reject_unauth_destination"
+instead.
+
+Major changes with Postfix snapshot 1.1.11-200212XX
+===================================================
+
+This release introduces separation of lookup tables for addresses
+and for domain names of virtual domains.
+
+- virtual_maps is replaced by virtual_alias_maps (for address
+  lookups) and virtual_alias_domains (for the names of what were
+  formerly called "Postfix-style virtual domains").
+
+  For backwards compatibility with Postfix version 1.1, the new
+  virtual_alias_maps parameter defaults to $virtual_maps, and the
+  new virtual_alias_domains parameter defaults to $virtual_alias_maps.
+
+- virtual_mailbox_maps now has a companion parameter called
+  virtual_mailbox_domains (for the names of domains served by the
+  virtual delivery agent). virtual_mailbox_maps is now used for
+  address lookups only.
+
+  For backwards compatibility with Postfix version 1.1,, the new
+  virtual_mailbox_domains parameter defaults to $virtual_mailbox_maps.
+
+This release introduces the concept of address domain classes, each
+having its own default mail delivery transport:
+
+  Destination matches      Default transport       Default name
+  --------------------------------------------------------------
+  $mydestination or
+     $inet_interfaces      $local_transport        local
+  $virtual_alias_domains   (not applicable)        (not applicable)
+  $virtual_mailbox_domains $virtual_transport      virtual
+  $relay_domains           $relay_transport        relay
+  other                    $default_transport      smtp
+
+The benefits of these changes are that:
+
+- You no longer need to specify all the virtual(8) domains in the
+  Postfix transport map.
+
+- A lot of table lookups could be eliminated from the SMTP server's
+  mail relay control and unknown user blocking code.
+
+Better handling of unknown recipients. Each address domain class
+now has its own table with known recipients, so that you can reject
+mail for unknown addresses consistently.
+
+  Destination matches      Recipients defined by   Remarks
+  --------------------------------------------------------------
+  $mydestination or
+     $inet_interfaces      $local_recipient_maps   optional
+  $virtual_alias_domains   $virtual_alias_maps     none
+  $virtual_mailbox_domains $virtual_mailbox_maps   none
+  $relay_domains           $relay_recipient_maps   optional
+  other                    (not applicable)        (not applicable)
+
+Finally, regular expression maps are now allowed with local delivery
+agent alias tables and with all virtual delivery agent lookup tables.
+However, regular expression substitution of $1 etc. is still
+forbidden for security reasons.
 
 Incompatible changes with Postfix snapshot 1.1.11-20021108
 ==========================================================
@@ -389,7 +468,7 @@ Postfix header_checks now properly recognize MIME headers in
 attachments. This is much more efficient than previous versions
 that recognized MIME headers via body_checks.  MIME headers are
 now processed one multi-line header at a time, instead of one body
-line at a time.  
+line at a time.
 
 In fact, Postfix now has three classes of header patterns:
 header_checks (for primary message headers except MIME headers),
@@ -1675,7 +1754,7 @@ environments.  Specify "home_mailbox = Maildir/", or specify
 required to turn on maildir delivery.
 
 - Incremental updates of aliases and maps. Specify "postmap -i
-mapname" and it will read new entries from stdin. 
+mapname" and it will read new entries from stdin.
 
 - Newaliases will now update more than one alias database.
 Specify the names with the main.cf "alias_database" parameter.

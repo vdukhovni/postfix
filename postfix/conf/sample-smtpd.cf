@@ -406,6 +406,9 @@ allow_untrusted_routing = no
 # and restricts what destination domains (and subdomains thereof)
 # this system will relay mail to.
 #
+# These domains are routed to the delivery agent specified with the
+# relay_transport parameter setting.
+#
 # By default, Postfix relays mail
 # - from trusted clients whose IP address matches $mynetworks,
 # - from untrusted clients to destinations that match $relay_domains

@@ -108,11 +108,6 @@
 /*	default template is used.  The \fImaps_rbl_reject_code\fR
 /*	configuration parameter specifies the reject status code used in
 /*	the default template (default: 554).
-/* .IP reject_maps_rbl
-/*	Look up the reversed client network address in the real-time blackhole
-/*	DNS zones below the domains listed in the "maps_rbl_domains"
-/*	configuration parameter.  This is equivalent to using
-/*	"reject_rbl_client" once for each such domain.
 /* .IP permit_naked_ip_address
 /*	Permit the use of a naked IP address (without enclosing [])
 /*	in HELO/EHLO commands.
@@ -353,10 +348,15 @@ static MAPS *rcpt_canon_maps;
 static MAPS *canonical_maps;
 static MAPS *virt_alias_maps;
 static MAPS *virt_mailbox_maps;
+static MAPS *relay_rcpt_maps;
+
+#ifdef TEST
 static MAPS *relocated_maps;
 
 static STRING_LIST *virt_alias_doms;
 static STRING_LIST *virt_mailbox_doms;
+
+#endif
 
  /*
   * Response templates for various rbl domains.
@@ -641,11 +641,16 @@ void    smtpd_check_init(void)
     virt_mailbox_maps = virtual8_maps_create(VAR_VIRT_MAILBOX_MAPS,
 					     var_virt_mailbox_maps,
 					     DICT_FLAG_LOCK);
+    relay_rcpt_maps = maps_create(VAR_RELAY_RCPT_MAPS, var_relay_rcpt_maps,
+				  DICT_FLAG_LOCK);
+
+#ifdef TEST
     relocated_maps = maps_create(VAR_RELOCATED_MAPS, var_relocated_maps,
 				 DICT_FLAG_LOCK);
 
     virt_alias_doms = string_list_init(MATCH_FLAG_NONE, var_virt_alias_doms);
     virt_mailbox_doms = string_list_init(MATCH_FLAG_NONE, var_virt_mailbox_doms);
+#endif
 
     access_parent_style = match_parent_style(SMTPD_ACCESS_MAPS);
 
@@ -869,20 +874,6 @@ static void reject_dict_retry(SMTPD_STATE *state, const char *reply_name)
 						451, reply_name));
 }
 
-/* check_str_match - reject with temporary failure if dict lookup fails */
-
-static int check_str_match(SMTPD_STATE *state, const char *reply_name,
-			           STRING_LIST *list, const char *key)
-{
-    int     result;
-
-    dict_errno = 0;
-    if ((result = string_list_match(list, key)) == 0
-	&& dict_errno == DICT_ERR_RETRY)
-	reject_dict_retry(state, reply_name);
-    return (result);
-}
-
 /* checkv8_maps_find - reject with temporary failure if dict lookup fails */
 
 static const char *checkv8_maps_find(SMTPD_STATE *state, const char *reply_name,
@@ -911,37 +902,6 @@ static const char *check_mail_addr_find(SMTPD_STATE *state,
 	&& dict_errno == DICT_ERR_RETRY)
 	reject_dict_retry(state, reply_name);
     return (result);
-}
-
-/* resolve_final - do we do final delivery for the domain? */
-
-static int resolve_final(SMTPD_STATE *state, const char *reply_name,
-			         const char *domain)
-{
-
-    /* If matches $mydestination or $inet_interfaces. */
-    if (resolve_local(domain)) {
-	if (*var_virt_alias_doms
-	    && check_str_match(state, reply_name, virt_alias_doms, domain))
-	    msg_warn("list domain %s in only one of $%s and $%s",
-		     domain, VAR_MYDEST, VAR_VIRT_ALIAS_DOMS);
-	if (*var_virt_mailbox_doms
-	    && check_str_match(state, reply_name, virt_mailbox_doms, domain))
-	    msg_warn("list domain %s in only one of $%s and $%s",
-		     domain, VAR_MYDEST, VAR_VIRT_MAILBOX_DOMS);
-	return (1);
-    }
-    /* If Postfix-style virtual domain. */
-    if (*var_virt_alias_doms
-	&& check_str_match(state, reply_name, virt_alias_doms, domain))
-	return (1);
-
-    /* If virtual mailbox domain. */
-    if (*var_virt_mailbox_doms
-	&& check_str_match(state, reply_name, virt_mailbox_doms, domain))
-	return (1);
-
-    return (0);
 }
 
 /* reject_unknown_client - fail if client hostname is unknown */
@@ -1212,7 +1172,6 @@ static int permit_auth_destination(SMTPD_STATE *state, char *recipient)
 {
     char   *myname = "permit_auth_destination";
     const RESOLVE_REPLY *reply;
-    const char *domain;
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, recipient);
@@ -1222,13 +1181,14 @@ static int permit_auth_destination(SMTPD_STATE *state, char *recipient)
      */
     reply = (const RESOLVE_REPLY *)
 	ctable_locate(smtpd_resolve_cache, recipient);
+    if (reply->flags & RESOLVE_FLAG_FAIL)
+	reject_dict_retry(state, recipient);
 
     /*
      * Handle special case that is not supposed to happen.
      */
-    if ((domain = strrchr(CONST_STR(reply->recipient), '@')) == 0)
+    if (strrchr(CONST_STR(reply->recipient), '@') == 0)
 	return (SMTPD_CHECK_OK);
-    domain += 1;
 
     /*
      * Skip source-routed non-local or virtual mail (uncertain destination).
@@ -1240,13 +1200,13 @@ static int permit_auth_destination(SMTPD_STATE *state, char *recipient)
      * Permit final delivery: the destination matches mydestination,
      * virtual_alias_domains, or virtual_mailbox_domains.
      */
-    if (resolve_final(state, recipient, domain))
+    if (reply->flags & RESOLVE_CLASS_FINAL)
 	return (SMTPD_CHECK_OK);
 
     /*
      * Permit if the destination matches the relay_domains list.
      */
-    if (domain_list_match(relay_domains, domain))
+    if (reply->flags & RESOLVE_CLASS_RELAY)
 	return (SMTPD_CHECK_OK);
 
     /*
@@ -1492,6 +1452,8 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
      */
     reply = (const RESOLVE_REPLY *)
 	ctable_locate(smtpd_resolve_cache, recipient);
+    if (reply->flags & RESOLVE_FLAG_FAIL)
+	reject_dict_retry(state, recipient);
 
     /*
      * If the destination is local, it is acceptable, because we are
@@ -1510,7 +1472,7 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
     /*
      * The destination is local, or it is a local virtual destination.
      */
-    if (resolve_final(state, recipient, domain))
+    if (reply->flags & RESOLVE_CLASS_FINAL)
 	return (SMTPD_CHECK_OK);
 
     if (msg_verbose)
@@ -1519,8 +1481,7 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
     /*
      * Skip numerical forms that didn't match the local system.
      */
-    if (domain[0] == '#'
-	|| (domain[0] == '[' && domain[strlen(domain) - 1] == ']'))
+    if (domain[0] == '[' && domain[strlen(domain) - 1] == ']')
 	return (SMTPD_CHECK_DUNNO);
 
     /*
@@ -1590,8 +1551,6 @@ static int reject_non_fqdn_address(SMTPD_STATE *state, char *addr,
     /*
      * Skip forms that we can't handle yet.
      */
-    if (domain[0] == '#')
-	return (SMTPD_CHECK_DUNNO);
     if (domain[0] == '[' && domain[strlen(domain) - 1] == ']')
 	return (SMTPD_CHECK_DUNNO);
 
@@ -1635,6 +1594,8 @@ static int reject_unknown_address(SMTPD_STATE *state, const char *addr,
      * Resolve the address.
      */
     reply = (const RESOLVE_REPLY *) ctable_locate(smtpd_resolve_cache, addr);
+    if (reply->flags & RESOLVE_FLAG_FAIL)
+	reject_dict_retry(state, addr);
 
     /*
      * Skip local destinations and non-DNS forms.
@@ -1642,9 +1603,7 @@ static int reject_unknown_address(SMTPD_STATE *state, const char *addr,
     if ((domain = strrchr(CONST_STR(reply->recipient), '@')) == 0)
 	return (SMTPD_CHECK_DUNNO);
     domain += 1;
-    if (resolve_final(state, reply_name, domain))
-	return (SMTPD_CHECK_DUNNO);
-    if (domain[0] == '#')
+    if (reply->flags & RESOLVE_CLASS_FINAL)
 	return (SMTPD_CHECK_DUNNO);
     if (domain[0] == '[' && domain[strlen(domain) - 1] == ']')
 	return (SMTPD_CHECK_DUNNO);
@@ -2017,6 +1976,8 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
      * Resolve the address.
      */
     reply = (const RESOLVE_REPLY *) ctable_locate(smtpd_resolve_cache, addr);
+    if (reply->flags & RESOLVE_FLAG_FAIL)
+	reject_dict_retry(state, addr);
 
     /*
      * Garbage in, garbage out. Every address from canon_addr_internal() and
@@ -2439,7 +2400,7 @@ static int reject_rbl_domain(SMTPD_STATE *state, const char *rbl_domain,
      */
     if ((domain = strrchr(what, '@')) != 0) {
 	domain += 1;
-	if (domain[0] == '#' || domain[0] == '[')
+	if (domain[0] == '[')
 	    return (SMTPD_CHECK_DUNNO);
     } else
 	domain = what;
@@ -2470,10 +2431,16 @@ static int reject_maps_rbl(SMTPD_STATE *state)
     char   *bp = saved_domains;
     char   *rbl_domain;
     int     result = SMTPD_CHECK_DUNNO;
+    static int warned;
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, state->addr);
 
+    if (warned == 0) {
+	warned++;
+	msg_warn("restriction %s is going away. Please use %s <domain> instead",
+		 REJECT_MAPS_RBL, REJECT_RBL_CLIENT);
+    }
     while ((rbl_domain = mystrtok(&bp, " \t\r\n,")) != 0) {
 	result = reject_rbl_addr(state, rbl_domain, state->addr,
 				 SMTPD_NAME_CLIENT);
@@ -2503,6 +2470,8 @@ static int reject_sender_login_mismatch(SMTPD_STATE *state, const char *sender)
      * the sender address.
      */
     reply = (const RESOLVE_REPLY *) ctable_locate(smtpd_resolve_cache, sender);
+    if (reply->flags & RESOLVE_FLAG_FAIL)
+	reject_dict_retry(state, sender);
     owner = check_mail_addr_find(state, sender, smtpd_sender_login_maps,
 				 STR(reply->recipient), (char **) 0);
 #ifdef USE_SASL_AUTH
@@ -3116,7 +3085,6 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
     char   *myname = "smtpd_check_rcptmap";
     char   *saved_recipient;
     const RESOLVE_REPLY *reply;
-    const char *domain;
     int     status;
 
     /*
@@ -3145,71 +3113,94 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
      */
     reply = (const RESOLVE_REPLY *)
 	ctable_locate(smtpd_resolve_cache, recipient);
+    if (reply->flags & RESOLVE_FLAG_FAIL)
+	reject_dict_retry(state, recipient);
 
     /*
-     * Skip non-DNS forms. Skip non-local numerical forms.
+     * Make complex expressions more readable?
      */
-    if ((domain = strrchr(CONST_STR(reply->recipient), '@')) == 0)
-	SMTPD_CHECK_RCPT_RETURN(0);
-    domain += 1;
-    if (domain[0] == '#' || domain[0] == '[')
-	if (!resolve_local(domain))
-	    SMTPD_CHECK_RCPT_RETURN(0);
+#define MATCH(map, rcpt) \
+    check_mail_addr_find(state, recipient, map, rcpt, (char **) 0)
 
-#define NOMATCH(map, rcpt) \
-    (check_mail_addr_find(state, recipient, map, rcpt, (char **) 0) == 0)
+#define NOMATCH(map, rcpt) (MATCH(map, rcpt) == 0)
 
 #define NOMATCHV8(map, rcpt) \
     (checkv8_maps_find(state, recipient, map, rcpt) == 0)
 
     /*
-     * Reject mail to unknown addresses in Postfix-style virtual domains.
+     * XXX We throw up our hands if the address matches a canonical or
+     * virtual alias map. Eventually, the address resolver should give us the
+     * final resolved recipient address, and the SMTP server should write the
+     * final recipient address to the output record stream. See also the next
+     * comment block on recipients in simulated virtual domains.
      */
-    if (*var_virt_alias_doms
-	&& (check_str_match(state, recipient, virt_alias_doms, domain))) {
-	if (NOMATCH(rcpt_canon_maps, CONST_STR(reply->recipient))
-	    && NOMATCH(canonical_maps, CONST_STR(reply->recipient))
-	    && NOMATCH(relocated_maps, CONST_STR(reply->recipient))
-	    && NOMATCHV8(virt_mailbox_maps, CONST_STR(reply->recipient))
-	    && NOMATCH(virt_alias_maps, CONST_STR(reply->recipient))) {
-	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
-				   "%d <%s>: User unknown", 550, recipient);
-	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
-	}
-    }
+    if (MATCH(rcpt_canon_maps, CONST_STR(reply->recipient))
+	|| MATCH(canonical_maps, CONST_STR(reply->recipient))
+	|| MATCH(virt_alias_maps, CONST_STR(reply->recipient)))
+	SMTPD_CHECK_RCPT_RETURN(0);
 
     /*
-     * Reject mail to unknown addresses in Postfix-style virtual domains.
+     * At this point, anything that resolves to the error mailer is known to
+     * be undeliverable.
+     * 
+     * XXX Until the address resolver does final address resolution, known and
+     * unknown recipients in simulated virtual domains will both resolve to
+     * "error:user unknown".
      */
-    if (*var_virt_mailbox_doms
-	&& (check_str_match(state, recipient, virt_mailbox_doms, domain))) {
-	if (NOMATCH(rcpt_canon_maps, CONST_STR(reply->recipient))
-	    && NOMATCH(canonical_maps, CONST_STR(reply->recipient))
-	    && NOMATCH(relocated_maps, CONST_STR(reply->recipient))
-	    && NOMATCHV8(virt_mailbox_maps, CONST_STR(reply->recipient))
-	    && NOMATCH(virt_alias_maps, CONST_STR(reply->recipient))) {
-	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
-				   "%d <%s>: User unknown", 550, recipient);
-	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
-	}
+    if (strcmp(STR(reply->transport), var_error_transport) == 0) {
+	(void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
+				  "%d <%s>: %s", 550,
+				  recipient, STR(reply->nexthop));
+	SMTPD_CHECK_RCPT_RETURN(STR(error_text));
     }
 
     /*
      * Reject mail to unknown addresses in local domains (domains that match
-     * $mydestination or $inet_interfaces). Accept mail for addresses in
-     * Sendmail-style virtual domains.
+     * $mydestination or $inet_interfaces).
+     * 
+     * XXX For now, we throw up our hands when a transport mapping overrides the
+     * default local delivery transport.
+     * 
+     * XXX Use the less expensive maps_find() (case is already folded) instead
+     * of the baroque mail_addr_find(). But then we have to strip the domain
+     * and deal with address extensions ourselves.
      */
-    if (*var_local_rcpt_maps && resolve_local(domain)) {
-	if (NOMATCH(rcpt_canon_maps, CONST_STR(reply->recipient))
-	    && NOMATCH(canonical_maps, CONST_STR(reply->recipient))
-	    && NOMATCH(relocated_maps, CONST_STR(reply->recipient))
-	    && NOMATCHV8(virt_mailbox_maps, CONST_STR(reply->recipient))
-	    && NOMATCH(virt_alias_maps, CONST_STR(reply->recipient))
-	    && NOMATCH(local_rcpt_maps, CONST_STR(reply->recipient))) {
-	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
-				   "%d <%s>: User unknown", 550, recipient);
-	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
-	}
+    if ((reply->flags & RESOLVE_CLASS_LOCAL)
+	&& *var_local_rcpt_maps
+	&& strcmp(STR(reply->transport), var_local_transport) == 0
+	&& NOMATCH(local_rcpt_maps, CONST_STR(reply->recipient))) {
+	(void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
+				  "%d <%s>: User unknown", 550, recipient);
+	SMTPD_CHECK_RCPT_RETURN(STR(error_text));
+    }
+
+    /*
+     * Reject mail to unknown addresses in virtual mailbox domains.
+     * 
+     * XXX For now, we throw up our hands when a transport mapping overrides the
+     * default virtual delivery transport.
+     */
+    if ((reply->flags & RESOLVE_CLASS_VIRTUAL)
+	&& strcmp(STR(reply->transport), var_virt_transport) == 0
+	&& NOMATCHV8(virt_mailbox_maps, CONST_STR(reply->recipient))) {
+	(void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
+				  "%d <%s>: User unknown", 550, recipient);
+	SMTPD_CHECK_RCPT_RETURN(STR(error_text));
+    }
+
+    /*
+     * Reject mail to unknown addresses in relay domains.
+     * 
+     * XXX For now, we throw up our hands when a transport mapping overrides the
+     * default relay transport.
+     */
+    if ((reply->flags & RESOLVE_CLASS_RELAY)
+	&& *var_relay_rcpt_maps
+	&& strcmp(STR(reply->transport), var_relay_transport) == 0
+	&& NOMATCH(relay_rcpt_maps, CONST_STR(reply->recipient))) {
+	(void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
+				  "%d <%s>: User unknown", 550, recipient);
+	SMTPD_CHECK_RCPT_RETURN(STR(error_text));
     }
 
     /*
@@ -3368,12 +3359,21 @@ char   *var_double_bounce_sender;
 char   *var_rbl_reply_maps;
 char   *var_smtpd_exp_filter;
 char   *var_def_rbl_reply;
+char   *var_local_transport;
+char   *var_error_transport;
+char   *var_virt_transport;
+char   *var_relay_transport;
+char   *var_def_transport;
+char   *var_relay_rcpt_maps;
 
 typedef struct {
     char   *name;
     char   *defval;
     char  **target;
 } STRING_TABLE;
+
+#undef DEF_VIRT_ALIAS_MAPS
+#define DEF_VIRT_ALIAS_MAPS	""
 
 static STRING_TABLE string_table[] = {
     VAR_MAPS_RBL_DOMAINS, DEF_MAPS_RBL_DOMAINS, &var_maps_rbl_domains,
@@ -3399,6 +3399,12 @@ static STRING_TABLE string_table[] = {
     VAR_RBL_REPLY_MAPS, DEF_RBL_REPLY_MAPS, &var_rbl_reply_maps,
     VAR_SMTPD_EXP_FILTER, DEF_SMTPD_EXP_FILTER, &var_smtpd_exp_filter,
     VAR_DEF_RBL_REPLY, DEF_DEF_RBL_REPLY, &var_def_rbl_reply,
+    VAR_LOCAL_TRANSPORT, DEF_LOCAL_TRANSPORT, &var_local_transport,
+    VAR_ERROR_TRANSPORT, DEF_ERROR_TRANSPORT, &var_error_transport,
+    VAR_VIRT_TRANSPORT, DEF_VIRT_TRANSPORT, &var_virt_transport,
+    VAR_RELAY_TRANSPORT, DEF_RELAY_TRANSPORT, &var_relay_transport,
+    VAR_DEF_TRANSPORT, DEF_DEF_TRANSPORT, &var_def_transport,
+    VAR_RELAY_RCPT_MAPS, DEF_RELAY_RCPT_MAPS, &var_relay_rcpt_maps,
     0,
 };
 
@@ -3409,7 +3415,7 @@ static void string_init(void)
     STRING_TABLE *sp;
 
     for (sp = string_table; sp->name; sp++)
-	sp->target[0] = mystrdup(sp->defval[0] == '$' ? "" : sp->defval);
+	sp->target[0] = mystrdup(sp->defval);
 }
 
 /* string_update - update string parameter */
@@ -3607,12 +3613,36 @@ VSTRING *canon_addr_internal(VSTRING *result, const char *addr)
 
 void    resolve_clnt_query(const char *addr, RESOLVE_REPLY *reply)
 {
+    const char *domain;
+
     if (addr == CONST_STR(reply->recipient))
 	msg_panic("resolve_clnt_query: result clobbers input");
-    vstring_strcpy(reply->transport, "foo");
-    vstring_strcpy(reply->nexthop, "foo");
     if (strchr(addr, '%'))
 	msg_fatal("%s: address rewriting is disabled", addr);
+    if ((domain = strrchr(addr, '@')) == 0)
+	msg_fatal("%s: unqualified address", addr);
+    domain += 1;
+    if (resolve_local(domain)) {
+	reply->flags = RESOLVE_CLASS_LOCAL;
+	vstring_strcpy(reply->transport, var_local_transport);
+	vstring_strcpy(reply->nexthop, domain);
+    } else if (string_list_match(virt_alias_doms, domain)) {
+	reply->flags = RESOLVE_CLASS_ALIAS;
+	vstring_strcpy(reply->transport, var_error_transport);
+	vstring_strcpy(reply->nexthop, "user unknown");
+    } else if (string_list_match(virt_mailbox_doms, domain)) {
+	reply->flags = RESOLVE_CLASS_VIRTUAL;
+	vstring_strcpy(reply->transport, var_virt_transport);
+	vstring_strcpy(reply->nexthop, domain);
+    } else if (domain_list_match(relay_domains, domain)) {
+	reply->flags = RESOLVE_CLASS_RELAY;
+	vstring_strcpy(reply->transport, var_relay_transport);
+	vstring_strcpy(reply->nexthop, domain);
+    } else {
+	reply->flags = RESOLVE_CLASS_DEFAULT;
+	vstring_strcpy(reply->transport, var_def_transport);
+	vstring_strcpy(reply->nexthop, domain);
+    }
     vstring_strcpy(reply->recipient, addr);
 }
 
@@ -3743,6 +3773,13 @@ int     main(int argc, char **argv)
 		UPDATE_STRING(var_local_rcpt_maps, args->argv[1]);
 		UPDATE_MAPS(local_rcpt_maps, VAR_LOCAL_RCPT_MAPS,
 			    var_local_rcpt_maps, DICT_FLAG_LOCK);
+		resp = 0;
+		break;
+	    }
+	    if (strcasecmp(args->argv[0], "relay_recipient_maps") == 0) {
+		UPDATE_STRING(var_relay_rcpt_maps, args->argv[1]);
+		UPDATE_MAPS(relay_rcpt_maps, VAR_LOCAL_RCPT_MAPS,
+			    var_relay_rcpt_maps, DICT_FLAG_LOCK);
 		resp = 0;
 		break;
 	    }

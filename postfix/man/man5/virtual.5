@@ -17,9 +17,16 @@ format of Postfix virtual alias table
 .ad
 .fi
 The optional \fBvirtual\fR alias table specifies address aliasing
-for local and non-local recipients. Virtual aliasing is used
-by the \fBcleanup\fR(8) daemon. Virtual aliasing is recursive.
+for arbitrary local or non-local recipient addresses. Virtual aliasing
+is recursive, and is done by the Postfix \fBcleanup\fR(8) daemon.
 
+The main applications of virtual aliasing are:
+.IP \(bu
+To redirect mail from one address to one or more other addresses.
+.IP \(bu
+To simulate virtual domains where all virtual addresses are aliased
+to non-virtual addresses.
+.PP
 Virtual aliasing is applied only to recipient
 envelope addresses, and does not affect message headers.
 Think Sendmail rule set \fBS0\fR, if you like. Use \fBcanonical\fR(5)
@@ -56,8 +63,8 @@ have its own mailbox.
 With a simulated virtual domain, the virtual domain has its
 own user name space. Local (i.e. non-virtual) usernames are not
 visible in a simulated virtual domain. In particular, local
-\fBaliases\fR(5) and mailing lists are not visible as
-\fIlocalname@virtual.domain\fR.
+\fBaliases\fR(5) and local mailing lists are not visible as
+\fIlocalname@simulated.domain\fR.
 
 Support for a simulated virtual domain looks like:
 
@@ -72,16 +79,16 @@ See the output from \fBpostconf -m\fR for available database types.
 /etc/postfix/virtual:
 .nf
 .na
-\fIvirtual.domain       anything\fR (right-hand content does not matter)
-\fIpostmaster@virtual.domain    postmaster\fR
-\fIuser1@virtual.domain address1\fR
-\fIuser2@virtual.domain address2, address3\fR
+\fIsimulated.domain     anything\fR (right-hand content does not matter)
+\fIpostmaster@simulated.domain  postmaster\fR
+\fIuser1@simulated.domain       address1\fR
+\fIuser2@simulated.domain       address2, address3\fR
 .fi
 .in -4
 .ad
 .fi
 .sp
-The \fIvirtual.domain anything\fR entry is required for a
+The \fIsimulated.domain anything\fR entry is required for a
 simulated virtual domain. Without this entry, mail will
 be rejected with a "relay access denied" error condition.
 
@@ -89,8 +96,8 @@ Do not list a simulated virtual domain name in the \fBmain.cf
 mydestination\fR configuration parameter.
 
 With a simulated virtual domain, the Postfix SMTP server
-accepts mail for \fIknown-user@virtual.domain\fR, and rejects
-mail for \fIunknown-user\fR@\fIvirtual.domain\fR as undeliverable.
+accepts mail for \fIknown-user@simulated.domain\fR, and rejects
+mail for \fIunknown-user\fR@\fIsimulated.domain\fR as undeliverable.
 
 Instead of specifying the simulated virtual domain name via
 the \fBvirtual_alias_maps\fR table, you may also specify it via
@@ -192,7 +199,7 @@ You need to stop and start Postfix when this parameter changes.
 .IP \fBmydestination\fR
 List of domains that this mail system considers local.
 .IP \fBmyorigin\fR
-The domain that is appended to locally-posted mail.
+The domain that is appended to any address that does not have a domain.
 .IP \fBowner_request_special\fR
 Give special treatment to \fBowner-\fIxxx\fR and \fIxxx\fB-request\fR
 addresses.
@@ -201,8 +208,8 @@ addresses.
 .nf
 cleanup(8) canonicalize and enqueue mail
 postmap(1) create mapping table
-pcre_table(5) format of PCRE tables
-regexp_table(5) format of POSIX regular expression tables
+regexp_table(5) POSIX regular expression table format
+pcre_table(5) Perl Compatible Regular Expression table format
 .SH LICENSE
 .na
 .nf

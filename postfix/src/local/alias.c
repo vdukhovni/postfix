@@ -183,8 +183,6 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
      * With aliases that have an owner- alias, the latter is used to set the
      * sender and owner attributes. Otherwise, the owner attribute is reset
      * (the alias is globally visible and could be sent to by anyone).
-     * 
-     * Don't allow regexp substitutions.
      */
     for (cpp = alias_maps->argv->argv; *cpp; cpp++) {
 	if ((dict = dict_handle(*cpp)) == 0)

@@ -136,6 +136,10 @@ Limit the number of \fBReceived:\fR message headers.
 List of maps with user names that are local to \fB$myorigin\fR
 or \fB$inet_interfaces\fR. If this parameter is defined,
 then the SMTP server rejects mail for unknown local users.
+.IP \fBrelay_recipient_maps\fR
+List of maps that define all the email addresses in the domains
+that match \fB$relay_domains\fR.  If this parameter is defined,
+then the SMTP server rejects mail for unknown relay recipients.
 .IP \fBnotify_classes\fR
 List of error classes. Of special interest are:
 .RS
@@ -237,8 +241,9 @@ restriction.
 Only domains whose primary MX hosts match the listed networks
 are eligible for the \fBpermit_mx_backup\fR feature.
 .IP \fBrelay_domains\fR
-Restrict what domains or networks this mail system will relay
-mail from or to.
+Restrict what domains this mail system will relay
+mail to. The domains are routed to the delivery agent
+specified with the \fBrelay_transport\fR setting.
 .SH "UCE control responses"
 .ad
 .fi
@@ -279,6 +284,7 @@ restriction.
 .SH SEE ALSO
 .na
 .nf
+trivial-rewrite(8) address resolver
 cleanup(8) message canonicalization
 master(8) process manager
 syslogd(8) system logging

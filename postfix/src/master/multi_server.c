@@ -249,15 +249,15 @@ static void multi_server_execute(int unused_event, char *context)
     /*
      * Do not bother the application when the client disconnected.
      */
-    if (master_notify(var_pid, MASTER_STAT_TAKEN) < 0)
-        multi_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
     if (peekfd(vstream_fileno(stream)) > 0) {
+	if (master_notify(var_pid, MASTER_STAT_TAKEN) < 0)
+	    multi_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
 	multi_server_service(stream, multi_server_name, multi_server_argv);
+	if (master_notify(var_pid, MASTER_STAT_AVAIL) < 0)
+	    multi_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
     } else {
 	multi_server_disconnect(stream);
     }
-    if (master_notify(var_pid, MASTER_STAT_AVAIL) < 0)
-        multi_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
     if (client_count == 0 && var_idle_limit > 0)
 	event_request_timer(multi_server_timeout, (char *) 0, var_idle_limit);
 }
@@ -572,6 +572,12 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
      * Illustrated volume 2 page 532. We avoid select() collisions with an
      * external lock file.
      */
+
+    /*
+     * XXX Can't compete for exclusive access to the listen socket because we
+     * also have to monitor existing client connections for service requests.
+     */
+#if 0
     if (stream == 0 && !alone) {
 	lock_path = concatenate(DEF_PID_DIR, "/", transport,
 				".", service_name, (char *) 0);
@@ -583,6 +589,7 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 	myfree(lock_path);
 	vstring_free(why);
     }
+#endif
 
     /*
      * Set up call-back info.

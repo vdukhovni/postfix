@@ -433,7 +433,7 @@ static int dict_pcre_prescan(int type, VSTRING *buf, char *context)
     if (type == MAC_PARSE_VARNAME) {
 	if (ctxt->flags & DICT_FLAG_NO_REGSUB) {
 	    msg_warn("pcre map %s, line %d: "
-		      "regular expression substitution is not allowed"
+		      "regular expression substitution is not allowed",
 		      ctxt->mapname, ctxt->lineno);
 	    return (MAC_PARSE_ERROR);
 	}

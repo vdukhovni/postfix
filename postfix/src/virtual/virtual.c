@@ -111,7 +111,7 @@
 /*	This is a safety measure to ensure that an out of control map in
 /*	\fBvirtual_mailbox_maps\fR doesn't litter the filesystem with mailboxes.
 /*	While it could be set to "/", this setting isn't recommended.
-/* .IP "\fBvirtual_mailbox_maps\fR (regexp maps disallowed)"
+/* .IP \fBvirtual_mailbox_maps\fR
 /*	Recipients are looked up in these maps to determine the path to
 /*	their mailbox or maildir. If the returned path ends in a slash
 /*	("/"), maildir-style delivery is carried out, otherwise the
@@ -126,6 +126,10 @@
 /*
 /*	Note that \fBvirtual_mailbox_base\fR is unconditionally prepended
 /*	to this path.
+/*
+/*	For security reasons, regular expression maps are allowed but
+/*	regular expression substitution of $1 etc. is disallowed,
+/*	because that would open a security hole.
 /* .IP \fBvirtual_mailbox_domains\fR
 /*	The list of domains that should be delivered via the Postfix virtual
 /*	delivery agent. This uses the same syntax as the \fBmydestination\fR
@@ -135,7 +139,7 @@
 /*	a \fBvirtual_owner_maps\fR or \fBvirtual_uid_maps\fR lookup.
 /*	Returned values less than this will be rejected, and the message
 /*	will be deferred.
-/* .IP "\fBvirtual_uid_maps\fR (regexp maps disallowed)"
+/* .IP \fBvirtual_uid_maps\fR
 /*	Recipients are looked up in these maps to determine the user ID to be
 /*	used when writing to the target mailbox.
 /*
@@ -145,7 +149,11 @@
 /*	In a lookup table, specify a left-hand side of \fI@domain.tld\fR
 /*	to match any user in the specified domain that does not have a
 /*	specific \fIuser@domain.tld\fR entry.
-/* .IP "\fBvirtual_gid_maps\fR (regexp maps disallowed)"
+/*
+/*	For security reasons, regular expression maps are allowed but
+/*	regular expression substitution of $1 etc. is disallowed,
+/*	because that would open a security hole.
+/* .IP \fBvirtual_gid_maps\fR
 /*	Recipients are looked up in these maps to determine the group ID to be
 /*	used when writing to the target mailbox.
 /*
@@ -155,6 +163,10 @@
 /*	In a lookup table, specify a left-hand side of \fI@domain.tld\fR
 /*	to match any user in the specified domain that does not have a
 /*	specific \fIuser@domain.tld\fR entry.
+/*
+/*	For security reasons, regular expression maps are allowed but
+/*	regular expression substitution of $1 etc. is disallowed,
+/*	because that would open a security hole.
 /* .SH "Locking controls"
 /* .ad
 /* .fi
@@ -211,6 +223,8 @@
 /*	The \fBmaildir\fR structure appears in the \fBqmail\fR system
 /*	by Daniel Bernstein.
 /* SEE ALSO
+/*	regexp_table(5) POSIX regular expression table format 
+/*	pcre_table(5) Perl Compatible Regular Expression table format
 /*	bounce(8) non-delivery status reports
 /*	syslogd(8) system logging
 /*	qmgr(8) queue manager

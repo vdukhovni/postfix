@@ -29,6 +29,8 @@
 /*	locking. Dictionaries are opened read-only, and in-memory
 /*	dictionary instances are shared.
 /*
+/*	Lookups are case sensitive.
+/*
 /*	maps_create() takes list of type:name pairs and opens the
 /*	named dictionaries.
 /*	The result is a handle that must be specified along with all

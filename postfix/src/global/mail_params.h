@@ -1115,6 +1115,10 @@ extern char *var_relay_domains;
 #define DEF_RELAY_TRANSPORT	MAIL_SERVICE_RELAY
 extern char *var_relay_transport;
 
+#define VAR_RELAY_RCPT_MAPS	"relay_recipient_maps"
+#define DEF_RELAY_RCPT_MAPS	""
+extern char *var_relay_rcpt_maps;
+
 #define VAR_CLIENT_CHECKS	"smtpd_client_restrictions"
 #define DEF_CLIENT_CHECKS	""
 extern char *var_client_checks;

@@ -51,13 +51,34 @@
 #	or \fInexthop\fR field means "do not change": use the delivery
 #	transport and nexthop information that would be used if no
 #	match were found.
-# .PP
-#	The interpretation of the \fInexthop\fR field is transport
+# .SH TRANSPORT FIELD
+# .ad
+# .fi
+#	The transport field specifies the name of a mail delivery transport
+#	(the first name of a mail delivery service entry in the Postfix
+#	\fBmaster.cf\fR file).
+#
+#	When a null transport field is specified, Postfix uses one of the
+#	following transports:
+# .IP \fB$local_transport\fR
+#	The domain matches \fB$mydestination\fR or \fB$inet_interfaces\fR.
+# .IP \fB$virtual_transport\fR
+#	The domain matches \fB$virtual_mailbox_domains\fR.
+# .IP \fB$relay_transport\fR
+#	The domain matches \fB$relay_transport\fR.
+# .IP \fB$default_transport\fR
+#	All other non-local, non-virtual destinations.
+# .SH NEXTHOP FIELD
+# .ad
+# .fi
+#	The interpretation of the nexthop field is transport
 #	dependent. In the case of SMTP, specify \fIhost\fR:\fIservice\fR for a
 #	non-default server port, and use [\fIhost\fR] or [\fIhost\fR]:\fIport\fR
 #	in order to disable MX (mail exchanger) DNS lookups. The [] form
 #	can also be used with IP addresses instead of hostnames.
-# .PP
+# .SH LOOKUP ORDER
+# .ad
+# .fi
 #	With lookups from indexed files such as DB or DBM, or from networked
 #	tables such as NIS, LDAP or SQL, patterns are tried in the order as
 #	listed below:
@@ -109,7 +130,7 @@
 # .ti +5
 #	\fB\&.foo.org     uucp:foo\fR
 #
-#	When no \fInexthop\fR host name is specified, the destination domain
+#	When no nexthop host name is specified, the destination domain
 #	name is used instead. For example, the following directs mail for
 #	\fIuser\fR@\fBfoo.org\fR via the \fBslow\fR transport to a mail
 #	exchanger for \fBfoo.org\fR.  The \fBslow\fR transport could be
@@ -118,10 +139,9 @@
 # .ti +5
 #	\fBfoo.org      slow:\fR
 #
-#	When no \fItransport\fR is specified, Postfix uses either
-#	\fB$local_transport\fR or \fB$default_transport\fR, depending
-#	on whether the destination matches \fB$mydestination\fR.
-#	The following sends all mail for \fBfoo.org\fR and its
+#	When no transport is specified, Postfix uses the transport that
+#	matches the address domain class (see TRANSPORT FIELD discussion
+#	above).  The following sends all mail for \fBfoo.org\fR and its
 #	subdomains to host \fBgateway.foo.org\fR:
 #
 # .ti +5
@@ -183,17 +203,24 @@
 # .PP
 #	Other parameters of interest:
 # .IP \fBlocal_transport\fR
-#	The mail delivery transport to use when no transport is explicitly
-#	specified, and the destination matches \fB$mydestination\fR.
+#	The default mail delivery transport when the destination matches
+#	\fB$mydestination\fR or \fB$inet_interfaces\fR.
+# .IP \fBvirtual_transport\fR
+#	The default mail delivery transport when the destination matches
+#	\fBvirtual_mailbox_domains\fR.
+# .IP \fBrelay_transport\fR
+#	The default mail delivery transport when the destination matches
+#	\fBrelay_domains\fR.
 # .IP \fBdefault_transport\fR
-#	The mail delivery transport to use when no transport is explicitly
-#	specified, and the destination does not match \fB$mydestination\fR.
+#	The default mail delivery transport when the destination does not
+#	match a local, virtual or relay destination.
 # .IP \fBmydestination\fR
 #	The destinations that are given to \fB$local_transport\fR
 #	by default.
 # .IP \fBrelayhost\fR
 #	The default host for destinations that do not match
-#	\fB$mydestination\fR.
+#	\fB$mydestination\fR, \fB$inet_interfaces\fR,
+#	\fBvirtual_alias_domains\fR or \fBvirtual_mailbox_domains\fR.
 # SEE ALSO
 #	postmap(1) create mapping table
 #	trivial-rewrite(8) rewrite and resolve addresses

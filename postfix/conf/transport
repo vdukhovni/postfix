@@ -59,6 +59,28 @@
 #        "do not change": use the delivery  transport  and  nexthop
 #        information that would be used if no match were found.
 # 
+# TRANSPORT FIELD
+#        The  transport field specifies the name of a mail delivery
+#        transport (the first name of a mail delivery service entry
+#        in the Postfix master.cf file).
+# 
+#        When a null transport field is specified, Postfix uses one
+#        of the following transports:
+# 
+#        $local_transport
+#               The domain matches $mydestination  or  $inet_inter-
+#               faces.
+# 
+#        $virtual_transport
+#               The domain matches $virtual_mailbox_domains.
+# 
+#        $relay_transport
+#               The domain matches $relay_transport.
+# 
+#        $default_transport
+#               All other non-local, non-virtual destinations.
+# 
+# NEXTHOP FIELD
 #        The  interpretation  of  the  nexthop  field  is transport
 #        dependent. In the case of SMTP, specify host:service for a
 #        non-default  server port, and use [host] or [host]:port in
@@ -66,6 +88,7 @@
 #        form  can  also be used with IP addresses instead of host-
 #        names.
 # 
+# LOOKUP ORDER
 #        With lookups from indexed files such as DB or DBM, or from
 #        networked  tables  such  as NIS, LDAP or SQL, patterns are
 #        tried in the order as listed below:
@@ -123,64 +146,63 @@
 # 
 #             foo.org      slow:
 # 
-#        When  no  transport  is  specified,  Postfix  uses  either
-#        $local_transport   or   $default_transport,  depending  on
-#        whether the destination matches $mydestination.  The  fol-
-#        lowing  sends  all  mail for foo.org and its subdomains to
-#        host gateway.foo.org:
+#        When no transport is specified, Postfix uses the transport
+#        that matches the address domain class (see TRANSPORT FIELD
+#        discussion above).   The  following  sends  all  mail  for
+#        foo.org and its subdomains to host gateway.foo.org:
 # 
 #             foo.org      :[gateway.foo.org]
 #             .foo.org     :[gateway.foo.org]
 # 
-#        In the above example, the  []  are  used  to  suppress  MX
-#        lookups.   The  result  would  likely  point to your local
+#        In  the  above  example,  the  []  are used to suppress MX
+#        lookups.  The result would  likely  point  to  your  local
 #        machine.
 # 
-#        In the case of delivery via SMTP, one  may  specify  host-
+#        In  the  case  of delivery via SMTP, one may specify host-
 #        name:service instead of just a host:
 # 
 #             foo.org      smtp:bar.org:2025
 # 
-#        This  directs  mail  for user@foo.org to host bar.org port
-#        2025. Instead of a numerical port a symbolic name  may  be
-#        used.  Specify  [] around the hostname in order to disable
+#        This directs mail for user@foo.org to  host  bar.org  port
+#        2025.  Instead  of a numerical port a symbolic name may be
+#        used. Specify [] around the hostname in order  to  disable
 #        MX lookups.
 # 
 #        The error mailer can be used to bounce mail:
 # 
-#             .foo.org      error:mail for *.foo.org is not  deliv-
+#             .foo.org       error:mail for *.foo.org is not deliv-
 #        erable
 # 
-#        This  causes  all  mail  for  user@anything.foo.org  to be
+#        This causes  all  mail  for  user@anything.foo.org  to  be
 #        bounced.
 # 
 # REGULAR EXPRESSION TABLES
-#        This section describes how the table lookups  change  when
+#        This  section  describes how the table lookups change when
 #        the table is given in the form of regular expressions. For
-#        a description of regular expression lookup  table  syntax,
+#        a  description  of regular expression lookup table syntax,
 #        see regexp_table(5) or pcre_table(5).
 # 
-#        Each  pattern  is  a regular expression that is applied to
+#        Each pattern is a regular expression that  is  applied  to
 #        the entire domain being looked up. Thus, some.domain.hier-
 #        archy is not broken up into parent domains.
 # 
-#        Patterns  are  applied  in  the  order as specified in the
-#        table, until a pattern is found that  matches  the  search
+#        Patterns are applied in the  order  as  specified  in  the
+#        table,  until  a  pattern is found that matches the search
 #        string.
 # 
-#        Results  are  the  same as with indexed file lookups, with
-#        the additional feature that parenthesized substrings  from
+#        Results are the same as with indexed  file  lookups,  with
+#        the  additional feature that parenthesized substrings from
 #        the pattern can be interpolated as $1, $2 and so on.
 # 
 # CONFIGURATION PARAMETERS
-#        The  following  main.cf parameters are especially relevant
-#        to this topic. See the Postfix  main.cf  file  for  syntax
-#        details  and  for  default  values. Use the postfix reload
+#        The following main.cf parameters are  especially  relevant
+#        to  this  topic.  See  the Postfix main.cf file for syntax
+#        details and for default values.  Use  the  postfix  reload
 #        command after a configuration change.
 # 
 #        parent_domain_matches_subdomains
-#               List of Postfix features that use  domain.tld  pat-
-#               terns   to  match  sub.domain.tld  (as  opposed  to
+#               List  of  Postfix features that use domain.tld pat-
+#               terns  to  match  sub.domain.tld  (as  opposed   to
 #               requiring .domain.tld patterns).
 # 
 #        transport_maps
@@ -189,14 +211,21 @@
 #        Other parameters of interest:
 # 
 #        local_transport
-#               The mail delivery transport to use when  no  trans-
-#               port  is  explicitly specified, and the destination
-#               matches $mydestination.
+#               The default mail delivery transport when the desti-
+#               nation matches $mydestination or  $inet_interfaces.
+# 
+#        virtual_transport
+#               The default mail delivery transport when the desti-
+#               nation matches virtual_mailbox_domains.
+# 
+#        relay_transport
+#               The default mail delivery transport when the desti-
+#               nation matches relay_domains.
 # 
 #        default_transport
-#               The mail delivery transport to use when  no  trans-
-#               port  is  explicitly specified, and the destination
-#               does not match $mydestination.
+#               The default mail delivery transport when the desti-
+#               nation does not match a  local,  virtual  or  relay
+#               destination.
 # 
 #        mydestination
 #               The destinations that are given to $local_transport
@@ -204,7 +233,8 @@
 # 
 #        relayhost
 #               The default host for destinations that do not match
-#               $mydestination.
+#               $mydestination,        $inet_interfaces,       vir-
+#               tual_alias_domains or virtual_mailbox_domains.
 # 
 # SEE ALSO
 #        postmap(1) create mapping table

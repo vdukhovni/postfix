@@ -12,9 +12,17 @@
 # 
 # DESCRIPTION
 #        The  optional virtual alias table specifies address alias-
-#        ing for local and non-local recipients.  Virtual  aliasing
-#        is  used  by  the  cleanup(8)  daemon. Virtual aliasing is
-#        recursive.
+#        ing for arbitrary local or non-local recipient  addresses.
+#        Virtual  aliasing is recursive, and is done by the Postfix
+#        cleanup(8) daemon.
+# 
+#        The main applications of virtual aliasing are:
+# 
+#        o      To redirect mail from one address to  one  or  more
+#               other addresses.
+# 
+#        o      To  simulate  virtual  domains  where  all  virtual
+#               addresses are aliased to non-virtual addresses.
 # 
 #        Virtual aliasing is applied  only  to  recipient  envelope
 #        addresses,  and  does  not  affect message headers.  Think
@@ -52,8 +60,8 @@
 #        With  a  simulated  virtual domain, the virtual domain has
 #        its own user name space. Local  (i.e.  non-virtual)  user-
 #        names  are  not  visible in a simulated virtual domain. In
-#        particular, local aliases(5) and  mailing  lists  are  not
-#        visible as localname@virtual.domain.
+#        particular, local aliases(5) and local mailing  lists  are
+#        not visible as localname@simulated.domain.
 # 
 #        Support for a simulated virtual domain looks like:
 # 
@@ -65,21 +73,21 @@
 #            types.
 # 
 #        /etc/postfix/virtual:
-#            virtual.domain       anything (right-hand content does not matter)
-#            postmaster@virtual.domain    postmaster
-#            user1@virtual.domain address1
-#            user2@virtual.domain address2, address3
+#            simulated.domain     anything (right-hand content does not matter)
+#            postmaster@simulated.domain  postmaster
+#            user1@simulated.domain       address1
+#            user2@simulated.domain       address2, address3
 # 
-#        The  virtual.domain anything entry is required for a simu-
-#        lated virtual domain. Without this  entry,  mail  will  be
+#        The simulated.domain anything entry is required for a sim-
+#        ulated virtual domain. Without this entry,  mail  will  be
 #        rejected with a "relay access denied" error condition.
 # 
 #        Do not list a simulated virtual domain name in the main.cf
 #        mydestination configuration parameter.
 # 
 #        With a simulated virtual domain, the Postfix  SMTP  server
-#        accepts  mail  for  known-user@virtual.domain, and rejects
-#        mail for unknown-user@virtual.domain as undeliverable.
+#        accepts  mail for known-user@simulated.domain, and rejects
+#        mail for unknown-user@simulated.domain as undeliverable.
 # 
 #        Instead of specifying the simulated  virtual  domain  name
 #        via  the virtual_alias_maps table, you may also specify it
@@ -187,7 +195,8 @@
 #               local.
 # 
 #        myorigin
-#               The domain that is appended to locally-posted mail.
+#               The  domain  that  is  appended to any address that
+#               does not have a domain.
 # 
 #        owner_request_special
 #               Give special treatment to owner-xxx and xxx-request
@@ -196,8 +205,8 @@
 # SEE ALSO
 #        cleanup(8) canonicalize and enqueue mail
 #        postmap(1) create mapping table
-#        pcre_table(5) format of PCRE tables
-#        regexp_table(5) format of POSIX regular expression tables
+#        regexp_table(5) POSIX regular expression table format
+#        pcre_table(5) Perl Compatible Regular Expression table format
 # 
 # LICENSE
 #        The  Secure  Mailer  license must be distributed with this

@@ -119,17 +119,21 @@ mail_owner = postfix
 #proxy_interfaces = 1.2.3.4
 
 # The mydestination parameter specifies the list of domains that this
-# machine considers itself the final destination for. That includes
-# Sendmail-style virtual domains hosted on this machine.
+# machine considers itself the final destination for.
 #
-# Do not include Postfix-style virtual domains - those domains are
-# specified elsewhere (see sample-virtual.cf, and sample-transport.cf).
+# These domains are routed to the delivery agent specified with the
+# local_transport parameter setting.
 #
 # The default is $myhostname + localhost.$mydomain.  On a mail domain
-# gateway, you should also include $mydomain. Do not specify the
-# names of domains that this machine is backup MX host for. Specify
-# those names via the relay_domains or permit_mx_backup settings for
-# the SMTP server (see sample-smtpd.cf).
+# gateway, you should also include $mydomain.
+#
+# Do not specify the names of virtual domains - those domains are
+# specified elsewhere (see sample-virtual.cf).
+#
+# Do not specify the names of domains that this machine is backup MX
+# host for. Specify those names via the relay_domains settings for
+# the SMTP server, or use permit_mx_backup if you are lazy (see
+# sample-smtpd.cf).
 #
 # The local machine is always the final destination for mail addressed
 # to user@[the.net.work.address] of an interface that the mail system
@@ -242,6 +246,16 @@ mail_owner = postfix
 #relayhost = uucphost
 #relayhost = [an.ip.add.ress]
 
+# REJECTING UNKNOWN RELAY USERS
+#
+# The relay_recipient_maps parameter specifies optional lookup tables
+# with all addresses in the domains that match $relay_domains.
+#
+# If this parameter is defined, then the SMTP server will reject
+# mail for unknown relay users.
+# 
+#relay_recipient_maps = hash:/etc/postfix/relay_recipients
+
 # REJECTING UNKNOWN LOCAL USERS
 #
 # The local_recipient_maps parameter specifies optional lookup tables
@@ -302,6 +316,7 @@ mail_owner = postfix
 #
 # The alias_maps parameter specifies the list of alias databases used
 # by the local delivery agent. The default list is system dependent.
+#
 # On systems with NIS, the default is to search the local alias
 # database, then the NIS alias database. See aliases(5) for syntax
 # details.

@@ -400,7 +400,7 @@ static int dns_get_answer(DNS_REPLY *reply, int type,
     DNS_RR *rr;
     int     resource_found = 0;
     int     cname_found = 0;
-    int     default_status = DNS_NOTFOUND;
+    int     not_found_status = DNS_NOTFOUND;
 
     /*
      * Initialize. Skip over the name server query if we haven't yet.
@@ -466,7 +466,7 @@ static int dns_get_answer(DNS_REPLY *reply, int type,
 		    resource_found++;
 		    *rrlist = dns_rr_append(*rrlist, rr);
 		} else
-		    default_status = DNS_RETRY;
+		    not_found_status = DNS_RETRY;
 	    } else
 		resource_found++;
 	} else if (fixed.type == T_CNAME) {	/* cname resource */
@@ -487,7 +487,7 @@ static int dns_get_answer(DNS_REPLY *reply, int type,
 	return (DNS_OK);
     if (cname_found)
 	return (DNS_RECURSE);
-    return (default_status);
+    return (not_found_status);
 }
 
 /* dns_lookup - DNS lookup user interface */
@@ -543,7 +543,9 @@ int     dns_lookup(const char *name, unsigned type, unsigned flags,
 	switch (status) {
 	default:
 	    if (why)
-		vstring_sprintf(why, "%s: Malformed name server reply", name);
+		vstring_sprintf(why, "Name service error for name=%s type=%s: "
+				"Malformed name server reply",
+				name, dns_strtype(type));
 	case DNS_NOTFOUND:
 	case DNS_OK:
 	    return (status);

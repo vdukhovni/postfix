@@ -122,6 +122,10 @@
 /*	List of maps with user names that are local to \fB$myorigin\fR
 /*	or \fB$inet_interfaces\fR. If this parameter is defined,
 /*	then the SMTP server rejects mail for unknown local users.
+/* .IP \fBrelay_recipient_maps\fR
+/*	List of maps that define all the email addresses in the domains
+/*	that match \fB$relay_domains\fR.  If this parameter is defined,
+/*	then the SMTP server rejects mail for unknown relay recipients.
 /* .IP \fBnotify_classes\fR
 /*	List of error classes. Of special interest are:
 /* .RS
@@ -223,8 +227,9 @@
 /*	Only domains whose primary MX hosts match the listed networks
 /*	are eligible for the \fBpermit_mx_backup\fR feature.
 /* .IP \fBrelay_domains\fR
-/*	Restrict what domains or networks this mail system will relay
-/*	mail from or to.
+/*	Restrict what domains this mail system will relay
+/*	mail to. The domains are routed to the delivery agent
+/*	specified with the \fBrelay_transport\fR setting.
 /* .SH "UCE control responses"
 /* .ad
 /* .fi
@@ -263,6 +268,7 @@
 /*	Response code when a client violates the \fBreject_unknown_hostname\fR
 /*	restriction.
 /* SEE ALSO
+/*	trivial-rewrite(8) address resolver
 /*	cleanup(8) message canonicalization
 /*	master(8) process manager
 /*	syslogd(8) system logging
@@ -390,10 +396,8 @@ bool    var_disable_vrfy_cmd;
 char   *var_canonical_maps;
 char   *var_rcpt_canon_maps;
 char   *var_virt_alias_maps;
-char   *var_virt_alias_doms;
 char   *var_virt_mailbox_maps;
 char   *var_virt_mailbox_doms;
-char   *var_relocated_maps;
 char   *var_alias_maps;
 char   *var_local_rcpt_maps;
 bool    var_allow_untrust_route;
@@ -410,6 +414,12 @@ char   *var_smtpd_null_key;
 int     var_smtpd_hist_thrsh;
 char   *var_smtpd_exp_filter;
 char   *var_def_rbl_reply;
+char   *var_def_transport;
+char   *var_error_transport;
+char   *var_local_transport;
+char   *var_relay_transport;
+char   *var_virt_transport;
+char   *var_relay_rcpt_maps;
 
  /*
   * Silly little macros.
@@ -1644,10 +1654,8 @@ int     main(int argc, char **argv)
 	VAR_CANONICAL_MAPS, DEF_CANONICAL_MAPS, &var_canonical_maps, 0, 0,
 	VAR_RCPT_CANON_MAPS, DEF_RCPT_CANON_MAPS, &var_rcpt_canon_maps, 0, 0,
 	VAR_VIRT_ALIAS_MAPS, DEF_VIRT_ALIAS_MAPS, &var_virt_alias_maps, 0, 0,
-	VAR_VIRT_ALIAS_DOMS, DEF_VIRT_ALIAS_DOMS, &var_virt_alias_doms, 0, 0,
 	VAR_VIRT_MAILBOX_MAPS, DEF_VIRT_MAILBOX_MAPS, &var_virt_mailbox_maps, 0, 0,
 	VAR_VIRT_MAILBOX_DOMS, DEF_VIRT_MAILBOX_DOMS, &var_virt_mailbox_doms, 0, 0,
-	VAR_RELOCATED_MAPS, DEF_RELOCATED_MAPS, &var_relocated_maps, 0, 0,
 	VAR_ALIAS_MAPS, DEF_ALIAS_MAPS, &var_alias_maps, 0, 0,
 	VAR_LOCAL_RCPT_MAPS, DEF_LOCAL_RCPT_MAPS, &var_local_rcpt_maps, 0, 0,
 	VAR_SMTPD_SASL_OPTS, DEF_SMTPD_SASL_OPTS, &var_smtpd_sasl_opts, 0, 0,
@@ -1657,6 +1665,12 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_SND_AUTH_MAPS, DEF_SMTPD_SND_AUTH_MAPS, &var_smtpd_snd_auth_maps, 0, 0,
 	VAR_SMTPD_NOOP_CMDS, DEF_SMTPD_NOOP_CMDS, &var_smtpd_noop_cmds, 0, 0,
 	VAR_SMTPD_NULL_KEY, DEF_SMTPD_NULL_KEY, &var_smtpd_null_key, 0, 0,
+	VAR_DEF_TRANSPORT, DEF_DEF_TRANSPORT, &var_def_transport, 1, 0,
+	VAR_ERROR_TRANSPORT, DEF_ERROR_TRANSPORT, &var_error_transport, 1, 0,
+	VAR_LOCAL_TRANSPORT, DEF_LOCAL_TRANSPORT, &var_local_transport, 1, 0,
+	VAR_RELAY_TRANSPORT, DEF_RELAY_TRANSPORT, &var_relay_transport, 1, 0,
+	VAR_VIRT_TRANSPORT, DEF_VIRT_TRANSPORT, &var_virt_transport, 1, 0,
+	VAR_RELAY_RCPT_MAPS, DEF_RELAY_RCPT_MAPS, &var_relay_rcpt_maps, 0, 0,
 	0,
     };
     static CONFIG_RAW_TABLE raw_table[] = {

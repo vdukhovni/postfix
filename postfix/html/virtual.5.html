@@ -13,9 +13,17 @@ VIRTUAL(5)                                             VIRTUAL(5)
 
 <b>DESCRIPTION</b>
        The  optional <b>virtual</b> alias table specifies address alias-
-       ing for local and non-local recipients.  Virtual  aliasing
-       is  used  by  the  <a href="cleanup.8.html"><b>cleanup</b>(8)</a>  daemon. Virtual aliasing is
-       recursive.
+       ing for arbitrary local or non-local recipient  addresses.
+       Virtual  aliasing is recursive, and is done by the Postfix
+       <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemon.
+
+       The main applications of virtual aliasing are:
+
+       <b>o</b>      To redirect mail from one address to  one  or  more
+              other addresses.
+
+       <b>o</b>      To  simulate  virtual  domains  where  all  virtual
+              addresses are aliased to non-virtual addresses.
 
        Virtual aliasing is applied  only  to  recipient  envelope
        addresses,  and  does  not  affect message headers.  Think
@@ -53,8 +61,8 @@ VIRTUAL(5)                                             VIRTUAL(5)
        With  a  simulated  virtual domain, the virtual domain has
        its own user name space. Local  (i.e.  non-virtual)  user-
        names  are  not  visible in a simulated virtual domain. In
-       particular, local <a href="aliases.5.html"><b>aliases</b>(5)</a> and  mailing  lists  are  not
-       visible as <i>localname@virtual.domain</i>.
+       particular, local <a href="aliases.5.html"><b>aliases</b>(5)</a> and local mailing  lists  are
+       not visible as <i>localname@simulated.domain</i>.
 
        Support for a simulated virtual domain looks like:
 
@@ -66,21 +74,21 @@ VIRTUAL(5)                                             VIRTUAL(5)
            types.
 
        /etc/postfix/virtual:
-           <i>virtual.domain</i>       <i>anything</i> (right-hand content does not matter)
-           <i>postmaster@virtual.domain</i>    <i>postmaster</i>
-           <i>user1@virtual.domain</i> <i>address1</i>
-           <i>user2@virtual.domain</i> <i>address2,</i> <i>address3</i>
+           <i>simulated.domain</i>     <i>anything</i> (right-hand content does not matter)
+           <i>postmaster@simulated.domain</i>  <i>postmaster</i>
+           <i>user1@simulated.domain</i>       <i>address1</i>
+           <i>user2@simulated.domain</i>       <i>address2,</i> <i>address3</i>
 
-       The  <i>virtual.domain</i> <i>anything</i> entry is required for a simu-
-       lated virtual domain. Without this  entry,  mail  will  be
+       The <i>simulated.domain</i> <i>anything</i> entry is required for a sim-
+       ulated virtual domain. Without this entry,  mail  will  be
        rejected with a "relay access denied" error condition.
 
        Do not list a simulated virtual domain name in the <b>main.cf</b>
        <b>mydestination</b> configuration parameter.
 
        With a simulated virtual domain, the Postfix  SMTP  server
-       accepts  mail  for  <i>known-user@virtual.domain</i>, and rejects
-       mail for <i>unknown-user</i>@<i>virtual.domain</i> as undeliverable.
+       accepts  mail for <i>known-user@simulated.domain</i>, and rejects
+       mail for <i>unknown-user</i>@<i>simulated.domain</i> as undeliverable.
 
        Instead of specifying the simulated  virtual  domain  name
        via  the <b>virtual</b><i>_</i><b>alias</b><i>_</i><b>maps</b> table, you may also specify it
@@ -188,7 +196,8 @@ VIRTUAL(5)                                             VIRTUAL(5)
               local.
 
        <b>myorigin</b>
-              The domain that is appended to locally-posted mail.
+              The  domain  that  is  appended to any address that
+              does not have a domain.
 
        <b>owner</b><i>_</i><b>request</b><i>_</i><b>special</b>
               Give special treatment to <b>owner-</b><i>xxx</i> and <i>xxx</i><b>-request</b>
@@ -197,8 +206,8 @@ VIRTUAL(5)                                             VIRTUAL(5)
 <b>SEE</b> <b>ALSO</b>
        <a href="cleanup.8.html">cleanup(8)</a> canonicalize and enqueue mail
        <a href="postmap.1.html">postmap(1)</a> create mapping table
-       <a href="pcre_table.5.html">pcre_table(5)</a> format of PCRE tables
-       <a href="regexp_table.5.html">regexp_table(5)</a> format of POSIX regular expression tables
+       <a href="regexp_table.5.html">regexp_table(5)</a> POSIX regular expression table format
+       <a href="pcre_table.5.html">pcre_table(5)</a> Perl Compatible Regular Expression table format
 
 <b>LICENSE</b>
        The  Secure  Mailer  license must be distributed with this

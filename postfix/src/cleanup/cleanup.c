@@ -163,7 +163,7 @@
 /*	qmgr(8) queue manager daemon
 /*	syslogd(8) system logging
 /*	trivial-rewrite(8) address rewriting
-/*	virtual(5) virtual address lookup table format
+/*	virtual(5) virtual alias lookup table format
 /* FILES
 /*	/etc/postfix/canonical*, canonical mapping table
 /*	/etc/postfix/virtual*, virtual mapping table

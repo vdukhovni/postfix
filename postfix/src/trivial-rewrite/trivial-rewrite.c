@@ -218,6 +218,7 @@ char   *var_virt_mailbox_maps;		/* XXX virtual_mailbox_domains */
 char   *var_virt_alias_doms;
 char   *var_virt_mailbox_doms;
 char   *var_relocated_maps;
+char   *var_def_transport;
 
 /* rewrite_service - read request and send reply */
 
@@ -282,15 +283,16 @@ int     main(int argc, char **argv)
 {
     static CONFIG_STR_TABLE str_table[] = {
 	VAR_TRANSPORT_MAPS, DEF_TRANSPORT_MAPS, &var_transport_maps, 0, 0,
-	VAR_LOCAL_TRANSPORT, DEF_LOCAL_TRANSPORT, &var_local_transport, 0, 0,
-	VAR_ERROR_TRANSPORT, DEF_ERROR_TRANSPORT, &var_error_transport, 0, 0,
-	VAR_VIRT_TRANSPORT, DEF_VIRT_TRANSPORT, &var_virt_transport, 0, 0,
-	VAR_RELAY_TRANSPORT, DEF_RELAY_TRANSPORT, &var_relay_transport, 0, 0,
+	VAR_LOCAL_TRANSPORT, DEF_LOCAL_TRANSPORT, &var_local_transport, 1, 0,
+	VAR_ERROR_TRANSPORT, DEF_ERROR_TRANSPORT, &var_error_transport, 1, 0,
+	VAR_VIRT_TRANSPORT, DEF_VIRT_TRANSPORT, &var_virt_transport, 1, 0,
+	VAR_RELAY_TRANSPORT, DEF_RELAY_TRANSPORT, &var_relay_transport, 1, 0,
 	VAR_XPORT_NULL_KEY, DEF_XPORT_NULL_KEY, &var_xport_null_key, 1, 0,
 	VAR_VIRT_ALIAS_MAPS, DEF_VIRT_ALIAS_MAPS, &var_virt_alias_maps, 0, 0,
 	VAR_VIRT_ALIAS_DOMS, DEF_VIRT_ALIAS_DOMS, &var_virt_alias_doms, 0, 0,
 	VAR_VIRT_MAILBOX_MAPS, DEF_VIRT_MAILBOX_MAPS, &var_virt_mailbox_maps, 0, 0,
 	VAR_VIRT_MAILBOX_DOMS, DEF_VIRT_MAILBOX_DOMS, &var_virt_mailbox_doms, 0, 0,
+	VAR_DEF_TRANSPORT, DEF_DEF_TRANSPORT, &var_def_transport, 1, 0,
 	VAR_VIRT_TRANSPORT, DEF_VIRT_TRANSPORT, &var_virt_transport, 1, 0,
 	VAR_RELAY_TRANSPORT, DEF_RELAY_TRANSPORT, &var_relay_transport, 1, 0,
 	VAR_RELOCATED_MAPS, DEF_RELOCATED_MAPS, &var_relocated_maps, 0, 0,

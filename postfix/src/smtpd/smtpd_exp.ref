@@ -25,6 +25,7 @@ OK
 >>> client spike.porcupine.org 168.100.189.2
 OK
 >>> rcpt rname@rdomain
+./smtpd_check: warning: restriction reject_maps_rbl is going away. Please use reject_rbl_client <domain> instead
 OK
 >>> client foo 127.0.0.2
 OK

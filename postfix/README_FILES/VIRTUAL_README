@@ -8,9 +8,9 @@ Purpose of this software
 You can use the virtual delivery agent for mailbox delivery of some
 or all domains that are handled by a machine.
 
-This mechanism is different from virtual domains that are implemented
-by translating each virtual address into a real local user. For
-that, see the virtual(5) manual page.
+This mechanism is different from simulated virtual domains that
+are implemented by translating each virtual address into a real
+local user. For that, see the virtual(5) manual page.
 
 This is what Andrew McNamara wrote when he made the virtual delivery
 agent available.
@@ -80,8 +80,9 @@ virtual_mailbox_maps
 
     If a recipient is not found the mail is returned to the sender.
 
-    For security reasons, regexp maps are not allowed here, because
-    their $1 etc. substitutions would open a security hole.
+    For security reasons, regular expression maps are allowed but
+    regular expression substitution of $1 etc. is disallowed,
+    because that would open a security hole.
 
     The mail administrator is expected to create and chown recipient
     mailbox files or maildir directories ahead of time.
@@ -102,8 +103,9 @@ virtual_uid_maps
     specific user@domain.tld entry. While searching a lookup table,
     an address extension (user+foo@domain.tld) is ignored.
 
-    For security reasons, regexp maps are not allowed here, because
-    their $1 etc. substitutions would open a security hole.
+    For security reasons, regular expression maps are allowed but
+    regular expression substitution of $1 etc. is disallowed,
+    because that would open a security hole.
 
     Specify a static map if all mailboxes should be owned by the same
     UID. For example, to specify that all mailboxes are owned by the
@@ -121,8 +123,9 @@ virtual_gid_maps
     specific user@domain.tld entry. While searching a lookup table,
     an address extension (user+foo@domain.tld) is ignored.
 
-    For security reasons, regexp maps are not allowed here, because
-    their $1 etc. substitutions would open a security hole.
+    For security reasons, regular expression maps are allowed but
+    regular expression substitution of $1 etc. is disallowed,
+    because that would open a security hole.
 
     Specify a static map if all mailboxes should be owned by the same
     GID. For example, to specify that all mailboxes are owned by the

@@ -27,10 +27,13 @@
 #define RESOLVE_FLAG_FAIL	(1<<3)	/* request failed */
 
 #define RESOLVE_CLASS_LOCAL	(1<<8)	/* mydestination/inet_interfaces */
-#define RESOLVE_CLASS_ERROR	(1<<9)	/* virtual_alias_domains */
+#define RESOLVE_CLASS_ALIAS	(1<<9)	/* virtual_alias_domains */
 #define RESOLVE_CLASS_VIRTUAL	(1<<10)	/* virtual_mailbox_domains */
 #define RESOLVE_CLASS_RELAY	(1<<11)	/* relay_domains */
 #define RESOLVE_CLASS_DEFAULT	(1<<12)	/* raise reject_unauth_destination */
+
+#define RESOLVE_CLASS_FINAL \
+	(RESOLVE_CLASS_LOCAL | RESOLVE_CLASS_ALIAS | RESOLVE_CLASS_VIRTUAL)
 
 typedef struct RESOLVE_REPLY {
     VSTRING *transport;

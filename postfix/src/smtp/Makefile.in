@@ -1,9 +1,9 @@
 SHELL	= /bin/sh
 SRCS	= smtp.c smtp_connect.c smtp_proto.c smtp_chat.c smtp_session.c \
-	smtp_addr.c smtp_trouble.c smtp_unalias.c smtp_state.c \
+	smtp_addr.c smtp_trouble.c smtp_state.c \
 	smtp_sasl_proto.c smtp_sasl_glue.c
 OBJS	= smtp.o smtp_connect.o smtp_proto.o smtp_chat.o smtp_session.o \
-	smtp_addr.o smtp_trouble.o smtp_unalias.o smtp_state.o \
+	smtp_addr.o smtp_trouble.o smtp_state.o \
 	smtp_sasl_proto.o smtp_sasl_glue.o
 HDRS	= smtp.h smtp_sasl.h
 TESTSRC	= 

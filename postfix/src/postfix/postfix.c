@@ -110,7 +110,16 @@
 /*	$\fBconfig_directory/main.cf\fR, configuration parameters
 /*	$\fBconfig_directory/master.cf\fR, Postfix daemon processes
 /* SEE ALSO
-/*	master(8) Postfix master program
+/*	postconf(1) Postfix configuration management
+/*	postsuper(1) Postfix housekeeping
+/*	sendmail(1) Sendmail-compatible interface
+/*	postmap(1) Postfix lookup table management
+/*	master(8) Postfix master daemon
+/* .ad
+/* .fi
+/*	The respective manual pages for the daemon processes
+/*	specified in the \fBmaster.cf\fR file, and the manual
+/*	pages referenced by those manual pages.
 /* LICENSE
 /* .ad
 /* .fi

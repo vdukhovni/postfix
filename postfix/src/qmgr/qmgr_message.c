@@ -671,7 +671,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	    if (defer_xport_argv == 0)
 		defer_xport_argv = argv_split(var_defer_xports, " \t\r\n,");
 	    for (cpp = defer_xport_argv->argv; *cpp; cpp++)
-		if (strcasecmp(*cpp, STR(reply.transport)) == 0)
+		if (strcmp(*cpp, STR(reply.transport)) == 0)
 		    break;
 	    if (*cpp) {
 		qmgr_defer_recipient(message, recipient, "deferred transport");

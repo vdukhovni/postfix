@@ -41,7 +41,9 @@ berkeley_db_read_buffer_size = 131072
 #default_database_type = dbm
 
 # The default_transport parameter specifies the default message
-# delivery transport to use when no transport is explicitly given in
+# delivery transport for domains that do not match mydestination,
+# inet_interfaces, virtual_alias_domains, virtual_mailbox_domains,
+# relay_domains, and for which no transport is explicitly given in
 # the optional transport(5) table.
 #
 # Specify a string of the form transport:nexthop, where transport is
@@ -195,17 +197,21 @@ max_idle = 100s
 max_use = 100
 
 # The mydestination parameter specifies the list of domains that this
-# machine considers itself the final destination for. That includes
-# Sendmail-style virtual domains hosted on this machine.
+# machine considers itself the final destination for.
 #
-# Do not include Postfix-style virtual domains - those domains are
-# specified elsewhere (see sample-virtual.cf, and sample-transport.cf).
+# These domains are routed to the delivery agent specified with the 
+# local_transport parameter setting.
 #
 # The default is $myhostname + localhost.$mydomain.  On a mail domain
-# gateway, you should also include $mydomain. Do not specify the
-# names of domains that this machine is backup MX host for. Specify
-# those names via the relay_domains or permit_mx_backup settings for
-# the SMTP server (see sample-smtpd.cf).
+# gateway, you should also include $mydomain. 
+#
+# Do not specify the names of virtual domains - those domains are
+# specified elsewhere (see sample-virtual.cf).
+#
+# Do not specify the names of domains that this machine is backup MX
+# host for. Specify those names via the relay_domains settings for
+# the SMTP server, or use permit_mx_backup if you are lazy (see
+# sample-smtpd.cf).
 #
 # The local machine is always the final destination for mail addressed
 # to user@[the.net.work.address] of an interface that the mail system

@@ -52,6 +52,28 @@
 /*	The address resolved to something that has invalid syntax.
 /* .IP RESOLVE_FLAG_FAIL
 /*	The request could not be completed.
+/* .PP
+/*	In addition, the address domain class is returned by setting
+/*	one of the following flags (this is preliminary code awaiting
+/*	more permanent implementation of address domain class handling):
+/* .IP RESOLVE_CLASS_LOCAL
+/*	The address domain matches $mydestination or $inet_interfaces.
+/* .IP RESOLVE_CLASS_ALIAS
+/*	The address domain matches $virtual_alias_domains (simulated
+/*	virtual domains, where each address is redirected to a real
+/*	local or remote address).
+/* .IP RESOLVE_CLASS_VIRTUAL
+/*	The address domain matches $virtual_mailbox_domains (true
+/*	virtual domains where each address can have its own mailbox).
+/* .IP RESOLVE_CLASS_RELAY
+/*	The address domain matches $relay_domains, i.e. this is an
+/*	authorized mail relay destination.
+/* .IP RESOLVE_CLASS_DEFAULT
+/*	The address matches none of the above. Access to this domain
+/*	should be limited to authorized senders only. 
+/* .PP
+/*	For convenience, the constant RESOLVE_CLASS_FINAL includes all
+/*	cases where the local machine is the final destination.
 /* DIAGNOSTICS
 /*	Warnings: communication failure. Fatal error: mail system is down.
 /* SEE ALSO

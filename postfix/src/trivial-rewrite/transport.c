@@ -104,6 +104,8 @@ static int find_transport_entry(const char *key, int flags,
 
     /*
      * Look up an entry with extreme prejedice.
+     * 
+     * XXX Should report lookup failure status to caller instead of aborting.
      */
     if ((value = maps_find(transport_path, key, flags)) == 0) {
 	if (dict_errno != 0)
