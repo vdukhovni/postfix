@@ -57,7 +57,7 @@
 /*	The \fBpostfix\fR command sets the following environment
 /*	variables:
 /* .IP \fBMAIL_CONFIG\fR
-/*	The Postfix configuration directory.
+/*	Directory with Postfix configuration files.
 /* .IP \fBMAIL_VERBOSE\fR
 /*	This is set when the -v command-line option is present.
 /* .IP \fBMAIL_DEBUG\fR
@@ -66,13 +66,13 @@
 /*	The following configuration parameters are made available
 /*	as process environment variables with the same names:
 /* .IP \fBcommand_directory\fR
-/*	The directory with Postfix support commands (default:
+/*	Directory with Postfix support commands (default:
 /*	\fB$program_directory\fR).
 /* .IP \fBdaemon_directory\fR
-/*	The directory with Postfix daemon programs (default:
+/*	Directory with Postfix daemon programs (default:
 /*	\fB$program_directory\fR).
 /* .IP \fBconfig_directory\fR
-/*	The directory with configuration files and with administrative
+/*	Directory with Postfix configuration files and with administrative
 /*	shell scripts.
 /* .IP \fBqueue_directory\fR
 /*	The directory with the Postfix queue directory (and with some

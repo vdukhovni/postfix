@@ -39,7 +39,7 @@
 /* .IP \fBMAIL_CONFIG\fR
 /*	Directory with Postfix configuration files.
 /* .IP \fBMAIL_VERBOSE\fR
-/*	Enable verbose logging.
+/*	Enable verbose logging for debugging purposes.
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi

@@ -78,7 +78,7 @@
 /* .ad
 /* .fi
 /* .IP \fBMAIL_CONFIG\fR
-/*	Mail configuration database
+/*	Directory with Postfix configuration files.
 /* .IP \fBMAIL_VERBOSE\fR
 /*	Enable verbose logging for debugging purposes.
 /* CONFIGURATION PARAMETERS

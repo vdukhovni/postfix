@@ -7,7 +7,6 @@
 /*	#include <dict.h>
 /*	#include <dict_mysql.h>
 /*
-/*
 /*	DICT	*dict_mysql_open(name, dummy, unused_dict_flags)
 /*	const char	*name;
 /*	int     dummy;
@@ -53,7 +52,6 @@
 /*	josh@icgroup.com
 /*--*/
 
-
 /* System library. */
 #include "sys_defs.h"
 
@@ -72,7 +70,6 @@
 #include "argv.h"
 #include "vstring.h"
 
-
 extern int dict_errno;
 
 typedef struct {
@@ -86,7 +83,6 @@ typedef struct {
     char  **hostnames;
     int     len_hosts;
 } MYSQL_NAME;
-
 
 typedef struct {
     DICT    dict;
@@ -103,7 +99,6 @@ static MYSQL_NAME *mysqlname_parse(const char *mysqlcf_path)
     char   *hosts;
     MYSQL_NAME *name = (MYSQL_NAME *) mymalloc(sizeof(MYSQL_NAME));
     ARGV   *hosts_argv;
-
 
     dict_load_file("mysql_options", mysqlcf_path);
     /* mysql username lookup */
@@ -191,7 +186,6 @@ static MYSQL_NAME *mysqlname_parse(const char *mysqlcf_path)
     return name;
 }
 
-
 /* dict_mysql_lookup - find database entry return 0 if no alias found */
 static const char *dict_mysql_lookup(DICT *dict, const char *name)
 {
@@ -228,6 +222,7 @@ static const char *dict_mysql_lookup(DICT *dict, const char *name)
 	vstring_free(query);
 	return 0;
     }
+    dict_errno = 0;
     /* free the vstring query */
     vstring_free(query);
     numrows = mysql_num_rows(query_res);
@@ -252,7 +247,6 @@ static const char *dict_mysql_lookup(DICT *dict, const char *name)
     return vstring_str(result);
 }
 
-
 /* dict_mysql_close - unregister, disassociate from database */
 static void dict_mysql_close(DICT *dict)
 {
@@ -272,7 +266,6 @@ static void dict_mysql_close(DICT *dict)
     }
     myfree((char *) dict_mysql->name);
 }
-
 
 /* dict_mysql_update - add or update table entry */
 static void dict_mysql_update(DICT *dict, const char *unused_name, const char *unused_value)
@@ -327,7 +320,6 @@ static HOST host_init(char *hostname)
     return host;
 }
 
-
 /*
  * plmysql_init - initalize a MYSQL database.
  *	          Return NULL on failure, or a PLMYSQL * on success.
@@ -370,10 +362,10 @@ void    plmysql_dealloc(PLMYSQL *PLDB)
 /* plmysql_down_host - down a HOST * */
 inline void plmysql_down_host(HOST *host)
 {
+    if (host->stat != STATFAIL)
+	host->ts = time(&(host->ts));
     host->stat = STATFAIL;
-    host->ts = time(&(host->ts));
 }
-
 
 /* plmysql_connect_single -
  * used to reconnect to a single database when one is down and as a helper for
@@ -396,7 +388,6 @@ int     plmysql_connect_single(PLMYSQL *PLDB, int host)
     }
     return 0;
 }
-
 
 /*
  * plmysql_connect -

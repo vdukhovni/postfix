@@ -17,7 +17,7 @@
 /*	Read configuration information from \fBmain.cf\fR in the named
 /*	configuration directory.
 /* .IP \fB-v\fR
-/*	Enable verbose mode for debugging purposes. Multiple \fB-v\fR
+/*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
 /* .PP
 /*	Arguments:
@@ -42,7 +42,7 @@
 /* .IP \fBMAIL_CONFIG\fR
 /*	Directory with Postfix configuration files.
 /* .IP \fBMAIL_VERBOSE\fR
-/*	Enable verbose logging.
+/*	Enable verbose logging for debugging purposes.
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi

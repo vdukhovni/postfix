@@ -30,6 +30,8 @@
 
 <li><a href="#local">Delivering some users locally while sending mail as user@domain</a>
 
+<li><a href="#masquerade">Address masquerading with exceptions</a>
+
 <li><a href="#scanning">Support for virus scanning</a>
 
 <li><a href="#maildir">Support for maildir-style mailboxes</a>
@@ -421,6 +423,95 @@ effective.
 
 <hr>
 
+<a name="masquerade"><h2>Address masquerading with exceptions</h2></a>
+
+For people outside your organization it can be desirable to only
+see addresses of the form <i>user@company.com</i> rather than
+addresses with individual internal host names.  This can be achieved
+with address masquerading.
+
+<p>
+
+Address masquerading is intended for use only on mail gateways.
+
+<ul>
+
+<li>In order to have all mail through the gateway host appear as
+coming from <i>user@my.domain</i>, edit <b>/etc/postfix/main.cf</b>
+and specify:
+
+<p>
+
+<dl>
+
+<dd><b>masquerade_domains = </b><i>$mydomain</i>
+
+</dl>
+
+<p>
+
+Note that the gateway should have <b>append_dot_domain</b> and
+<b>append_myorigin</b> turned on (which is the default setting) so
+that all addresses are fully qualified before they are subjected
+to address masquerading.
+
+</ul>
+
+<p>
+
+In some cases, you may wish to have certain users or hosts exempted
+from masquerading.
+
+<ul>
+
+<li>To exempt certain <i>users</i> from masquerading,
+such as <b>root</b>, add:
+
+<p>
+
+<dl>
+
+<dd><b>masquerade_exceptions = </b><i>root</i>
+
+</dl>
+
+<p>
+
+<li>To exempt certain <i>hosts</i> from masquerading, write
+<b>masquerade_domains</b> as:
+
+<p>
+
+<dl>
+
+<dd><b>masquerade_domains = </b><i>somehost.my.domain otherhost.my.domain
+$mydomain</i>
+
+</dl>
+
+<p>
+
+Note that the order above is crucial: exemptions such as
+<i>somehost.my.domain</i> must precede <i>$mydomain</i> in the
+statement.
+
+<p>
+
+It should go without saying that if a particular host you wish to
+exempt this way is originating mail as <i>user@my.domain</i> in
+the first place, you can hardly exempt it.
+
+<p>
+
+</ul>
+
+As usual, execute the command <b>postfix reload</b> to make the changes
+effective.
+
+<p>
+
+<hr>
+
 <a name="scanning"><h2>Support for virus scanning</h2> </a>
 
 Would not it be great if operating systems and applications actually
@@ -531,7 +622,7 @@ shell are replaced by underscores.
 
 <dt><b>EXTENSION</b> <dd> Optional address extension part.
 
-<dt><b>HOME</b> <dd> The recpient's home directory.
+<dt><b>HOME</b> <dd> The recipient's home directory.
 
 <dt><b>LOCAL</b> <dd> The text to the left-hand side of the <b>@</b>
 in the recipient address, for example, <b>$USER+$EXTENSION</b>.
@@ -975,8 +1066,8 @@ version</a> which has a db-1.85 compatible interface.
 <p>
 
 Use the following commands in the Postfix top-level directory.
-The LD_LIBRARY_PATH unsets may be required to avoid linking in the
-wrong libraries.
+The LD_LIBRARY_PATH unset commands may be required to avoid linking
+in the wrong libraries.
 
 <dl>
 

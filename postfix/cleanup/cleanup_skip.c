@@ -33,6 +33,7 @@
 
 /* Global library. */
 
+#include <cleanup_user.h>
 #include <record.h>
 #include <rec_type.h>
 
@@ -46,7 +47,8 @@ void    cleanup_skip(void)
 {
     int     type;
 
-    msg_warn("%s: skipping further client input", cleanup_queue_id);
+    if ((cleanup_errs & CLEANUP_STAT_CONT) == 0)
+	msg_warn("%s: skipping further client input", cleanup_queue_id);
 
     /*
      * XXX Rely on the front-end programs to enforce record size limits.

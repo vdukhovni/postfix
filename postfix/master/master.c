@@ -61,14 +61,14 @@
 /*	Problems are reported to \fBsyslogd\fR(8).
 /* BUGS
 /* ENVIRONMENT
-/* .IP \fBMAIL_DEBUG\fR
 /* .ad
 /* .fi
+/* .IP \fBMAIL_DEBUG\fR
 /*	After initialization, start a debugger as specified with the
 /*	\fBdebugger_command\fR configuration parameter in the \fBmain.cf\fR
 /*	configuration file.
 /* .IP \fBMAIL_CONFIG\fR
-/*	Directory with configuration files.
+/*	Directory with Postfix configuration files.
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
@@ -81,8 +81,10 @@
 /* .fi
 /* .IP \fBmail_owner\fR
 /*	The owner of the mail queue and of most Postfix processes.
-/* .IP \fBprogram_directory\fR
-/*	Directory with Postfix support programs and daemons.
+/* .IP \fBcommand_directory\fR
+/*	Directory with Postfix support programs.
+/* .IP \fBdaemon_directory\fR
+/*	Directory with Postfix daemon programs.
 /* .IP \fBqueue_directory\fR
 /*	Top-level directory of the Postfix queue. This is also the root
 /*	directory of Postfix daemons that run chrooted.

@@ -324,7 +324,7 @@ static DNS_RR *smtp_find_self(DNS_RR *addr_list)
 
 /* smtp_truncate_self - truncate address list at self and equivalents */
 
-static DNS_RR *smtp_truncate_self(DNS_RR *addr_list, unsigned pref, char *name)
+static DNS_RR *smtp_truncate_self(DNS_RR *addr_list, unsigned pref)
 {
     DNS_RR *addr;
     DNS_RR *last;
@@ -416,7 +416,7 @@ DNS_RR *smtp_domain_addr(char *name, VSTRING *why)
 	if (msg_verbose)
 	    smtp_print_addr(name, addr_list);
 	if ((self = smtp_find_self(addr_list)) != 0) {
-	    addr_list = smtp_truncate_self(addr_list, self->pref, name);
+	    addr_list = smtp_truncate_self(addr_list, self->pref);
 	    if (addr_list == 0) {
 		if (best_pref != best_found) {
 		    vstring_sprintf(why, "unable to find primary relay for %s",

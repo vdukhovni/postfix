@@ -1,5 +1,5 @@
-Incompatible changes with snapshot-19990627:
-============================================
+Incompatible changes with postfix-19990904
+==========================================
 
 - On systems that use user.lock files to protect system mailboxes
 against simultaneous updates, Postfix now uses /file/name.lock
@@ -7,16 +7,23 @@ files while delivering to files specified in aliases/forward/include
 files. This is a no-op when the recipient lacks directory write
 permission.
 
-Major changes with snapshot-19990627:
-=====================================
+- The LDAP client code no longer looks up name containing "*"
+because it could be abused.  See the LDAP_README file for how to
+restore previous behavior.
+
+- The Postfix to PCRE interface now expects PCRE version 2.08.
+Postfix is no longer compatible with PCRE versions prior to 2.06.
+
+Major changes with postfix-19990904
+===================================
 
 Several bugfixes, none related to security.  See the HISTORY file
 for a complete list of changes.
 
 - Postfix is now distributed under IBM Public License Version 1.0
-(June 14, 1999), which does not carry the controversial termination
-clause. The new license does have a requirement that contributors
-make source code available.
+which does not carry the controversial termination clause. The new
+license does have a requirement that contributors make source code
+available.
 
 - The ugly Delivered-To: header can now be turned off selectively.
 The default setting is:  "prepend_delivered_header = command, file,
@@ -25,6 +32,24 @@ mail is not recommended.
 
 - mysql client support by Scott Cotton and Joshua Marcus, Internet
 Consultants Group, Inc. See the file MYSQL_README for instructions.
+
+- reject_unauth_destination SMTP recipient restriction that rejects
+destinations not in $relay_domains. Unlike the check_relay_domains
+restriction, reject_unauth_destination ignores the client hostname.
+By Lamont Jones of Hewlett-Packard.
+
+- reject_unauth_pipelining SMTP *anything* restriction to stop mail
+from spammers that improperly use SMTP command pipelining to speed
+up their deliveries.
+
+- Postfix "sendmail" now issues a warning and drops privileges if
+installed set-uid root.
+
+- No more duplicate delivery when "postfix reload" is immediately
+followed by "sendmail -q".
+
+- No more "invalid argument" errors when a Postfix daemon opens a
+DB/DBM file while some other process is changing the file.
 
 - Portability to the Mac OS X Server, Reliant Unix, AIX 3.2.5 and
 Ultrix 4.3.

@@ -128,6 +128,9 @@
 /*	Reject the request when the resolved recipient domain does not match
 /*	the \fIrelay_domains\fR configuration parameter.  Same error code as
 /*	check_relay_domains.
+/* .IP reject_unauth_pipelining
+/*	Reject the request when the client has already sent the next request
+/*	without being told that the server implements SMTP command pipelining.
 /* .IP permit_mx_backup
 /*	Allow the request when the local mail system is mail exchanger
 /*	for the recipient domain (this includes the case where the local
@@ -222,6 +225,7 @@
 #include <netdb.h>
 #include <setjmp.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>
@@ -708,6 +712,25 @@ static int reject_unauth_destination(SMTPD_STATE *state, char *recipient)
     return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 			       "%d <%s>: Relay access denied",
 			       var_relay_code, recipient));
+}
+
+/* reject_unauth_pipelining - reject improper use of SMTP command pipelining */
+
+static int reject_unauth_pipelining(SMTPD_STATE *state)
+{
+    char   *myname = "reject_unauth_pipelining";
+
+    if (msg_verbose)
+	msg_info("%s: %s", myname, state->where);
+
+    if (state->client != 0
+	&& SMTPD_STAND_ALONE(state) == 0
+	&& vstream_peek(state->client) > 0
+	&& strcasecmp(state->protocol, "ESMTP") != 0) {
+	return (smtpd_check_reject(state, MAIL_ERROR_PROTOCOL,
+			    "503 Improper use of SMTP command pipelining"));
+    }
+    return (SMTPD_CHECK_DUNNO);
 }
 
 /* has_my_addr - see if this host name lists one of my network addresses */
@@ -1268,6 +1291,10 @@ static int generic_checks(SMTPD_STATE *state, char *name,
 		     (*cpp)[1], REJECT_ALL);
 	return (1);
     }
+    if (strcasecmp(name, REJECT_UNAUTH_PIPE) == 0) {
+	*status = reject_unauth_pipelining(state);
+	return (1);
+    }
 
     /*
      * Client name/address restrictions.
@@ -1659,7 +1686,6 @@ char   *smtpd_check_size(SMTPD_STATE *state, off_t size)
   * rewrite/resolve service. This is just for testing code, not for debugging
   * configuration files.
   */
-#include <unistd.h>
 #include <stdlib.h>
 
 #include <msg_vstream.h>

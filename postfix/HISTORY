@@ -2928,7 +2928,7 @@ Apologies for any names omitted.
 
 19990810
 
-	Feature: added "-c config_directory" support to the postconf
+	Feature: added "-c config_dir" support to the postconf
 	command. This probably means that "-f file" will never be
 	implemented.
 
@@ -3008,3 +3008,26 @@ Apologies for any names omitted.
 
 	Bugfix: in case of some error conditions the pickup daemon
 	could leak small amounts of memory.
+
+19990905
+
+	Bugfix: no more "skipping further client input" warnings
+	when a message header is rejected.
+
+	Feature: reject_unauth_pipelining SMTP restriction that
+	rejects mail from clients that improperly use SMTP command
+	pipelining.
+
+	Robustness: the LDAP client by default no longer looks up
+	names containing "*". See the lookup_wildcards feature in
+	LDAP_README. Update by John Hensley.
+
+	Documentation: address masquerading with exceptions FAQ by
+	Jim Seymour @ jimsun.LinxNet.com.
+
+	Bugfix: mysql reconnect after disconnect by Scott Cotton
+	Internet Consultants Group, Inc. File: util/dict_myqsl.c.
+
+	Portability: the Postfix to PCRE interface now expects
+	version 2.08.  Postfix is no longer compatible with PCRE
+	versions before 2.6.

@@ -261,6 +261,7 @@ cleanup_skip.o: ../include/sys_defs.h
 cleanup_skip.o: ../include/msg.h
 cleanup_skip.o: ../include/vstream.h
 cleanup_skip.o: ../include/vbuf.h
+cleanup_skip.o: ../include/cleanup_user.h
 cleanup_skip.o: ../include/record.h
 cleanup_skip.o: ../include/vstring.h
 cleanup_skip.o: ../include/rec_type.h

@@ -92,7 +92,7 @@ MASTER(8)                                               MASTER(8)
               in the <b>main.cf</b> configuration file.
 
        <b>MAIL</b><i>_</i><b>CONFIG</b>
-              Directory with configuration files.
+              Directory with Postfix configuration files.
 
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
        The following <b>main.cf</b> parameters are  especially  relevant
@@ -105,26 +105,26 @@ MASTER(8)                                               MASTER(8)
               The  owner  of  the  mail queue and of most Postfix
               processes.
 
-       <b>program</b><i>_</i><b>directory</b>
-              Directory with Postfix support  programs  and  dae-
-              mons.
+       <b>command</b><i>_</i><b>directory</b>
+              Directory with Postfix support programs.
+
+       <b>daemon</b><i>_</i><b>directory</b>
+              Directory with Postfix daemon programs.
 
        <b>queue</b><i>_</i><b>directory</b>
-              Top-level  directory  of the Postfix queue. This is
+              Top-level directory of the Postfix queue.  This  is
               also the root directory of Postfix daemons that run
               chrooted.
 
 <b>Resource</b> <b>controls</b>
        <b>default</b><i>_</i><b>process</b><i>_</i><b>limit</b>
-              Default  limit for the number of simultaneous child
+              Default limit for the number of simultaneous  child
               processes that provide a given service.
 
        <b>max</b><i>_</i><b>idle</b>
-              Limit the time in  seconds  that  a  child  process
+              Limit  the  time  in  seconds  that a child process
               waits between service requests.
 
-       <b>max</b><i>_</i><b>use</b>
-              Limit  the  number of service requests handled by a
 
 
 
@@ -137,10 +137,12 @@ MASTER(8)                                               MASTER(8)
 MASTER(8)                                               MASTER(8)
 
 
+       <b>max</b><i>_</i><b>use</b>
+              Limit the number of service requests handled  by  a
               child process.
 
        <b>service</b><i>_</i><b>throttle</b><i>_</i><b>time</b>
-              Time to avoid forking a server that appears  to  be
+              Time  to  avoid forking a server that appears to be
               broken.
 
 <b>FILES</b>
@@ -154,7 +156,7 @@ MASTER(8)                                               MASTER(8)
        syslogd(8) system logging
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>
@@ -162,8 +164,6 @@ MASTER(8)                                               MASTER(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
 
 
 

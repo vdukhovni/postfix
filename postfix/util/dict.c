@@ -148,9 +148,9 @@
 /*	malformed macro name.
 /*
 /*	The lookup routines may set the \fIdict_errno\fR variable when
-/*	they were unable to find the requested result. The variable
-/*	is reset before each lookup operation. \fIdict_errno\fR can
-/*	have the following values:
+/*	they were unable to find the requested result. The lookup
+/*	routines must reset \fIdict_errno\fR before each lookup operation.
+/*	\fIdict_errno\fR can have the following values:
 /* .IP DICT_ERR_RETRY
 /*	The dictionary was temporarily unavailable. This can happen
 /*	with network-based services.

@@ -162,7 +162,7 @@ static const char *dict_pcre_lookup(DICT *dict, const char *name)
     for (pcre_list = dict_pcre->head; pcre_list; pcre_list = pcre_list->next) {
 	if (pcre_list->pattern) {
 	    ctxt.matches = pcre_exec(pcre_list->pattern, pcre_list->hints,
-		     name, name_len, 0, ctxt.offsets, PCRE_MAX_CAPTURE * 3);
+		     name, name_len, 0, 0, ctxt.offsets, PCRE_MAX_CAPTURE * 3);
 	    if (ctxt.matches != PCRE_ERROR_NOMATCH) {
 		if (ctxt.matches > 0)
 		    break;			/* Got a match! */

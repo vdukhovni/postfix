@@ -69,6 +69,7 @@ sendmail.o: ../include/argv.h
 sendmail.o: ../include/safe.h
 sendmail.o: ../include/iostuff.h
 sendmail.o: ../include/stringops.h
+sendmail.o: ../include/set_ugid.h
 sendmail.o: ../include/mail_queue.h
 sendmail.o: ../include/mail_proto.h
 sendmail.o: ../include/mail_params.h

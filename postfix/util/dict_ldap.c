@@ -36,6 +36,8 @@
 /* .IP \fIldapsource_\fRquery_filter
 /*	The filter used to search for directory entries, for example
 /*	\fI(mailacceptinggeneralid=%s)\fR.
+/* .IP \fIldapsource_\fRlookup_wildcards
+/*	Whether to allow '*' in addresses to be looked up.
 /* .IP \fIldapsource_\fRresult_attribute
 /*	The attribute returned by the search, in which we expect to find
 /*	RFC822 addresses, for example \fImaildrop\fR.
@@ -108,6 +110,7 @@ typedef struct {
     int     server_port;
     char   *search_base;
     char   *query_filter;
+    int     lookup_wildcards;
     char   *result_attribute;
     int     bind;
     char   *bind_dn;
@@ -141,8 +144,21 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
     long    i = 0;
     int     rc = 0;
     void    (*saved_alarm) (int);
+    char   *sub,
+           *end;
 
     dict_errno = 0;
+
+    /*
+     * Unless configured to allow them, refuse to search for a name
+     * containing wildcards.
+     */
+    if (!dict_ldap->lookup_wildcards) {
+	if (strstr(name, "*") != NULL) {
+	    msg_warn("%s: Address (%s) contains a wildcard; refusing to search. See the lookup_wildcards attribute in LDAP_README for more information.", myname, name);
+	    return (0);
+	}
+    }
 
     /*
      * Initialize.
@@ -187,16 +203,16 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	     */
 	    if (dict_ldap->bind) {
 		if (msg_verbose)
-		    msg_info("%s: about to bind: server %s, base %s", myname,
-			     dict_ldap->server_host, dict_ldap->search_base);
+		    msg_info("%s: about to bind to server %s as dn %s", myname,
+			     dict_ldap->server_host, dict_ldap->bind_dn);
 
-		rc = ldap_bind_s(dict_ldap->ld, dict_ldap->search_base, NULL,
-				 LDAP_AUTH_SIMPLE);
+		rc = ldap_bind_s(dict_ldap->ld, dict_ldap->bind_dn,
+				 dict_ldap->bind_pw, LDAP_AUTH_SIMPLE);
 		if (rc != LDAP_SUCCESS) {
-		    msg_fatal("%s: Unable to bind with search base %s at server %s (%d -- %s): ", myname, dict_ldap->search_base, dict_ldap->server_host, rc, ldap_err2string(rc));
+		    msg_fatal("%s: Unable to bind to server %s as %s (%d -- %s): ", myname, dict_ldap->server_host, dict_ldap->bind_dn, rc, ldap_err2string(rc));
 		} else {
 		    if (msg_verbose)
-			msg_info("%s: Successful bind to server %s with search base %s(%d -- %s): ", myname, dict_ldap->search_base, dict_ldap->server_host, rc, ldap_err2string(rc));
+			msg_info("%s: Successful bind to server %s as %s (%d -- %s): ", myname, dict_ldap->server_host, dict_ldap->bind_dn, rc, ldap_err2string(rc));
 		}
 	    }
 	    if (msg_verbose)
@@ -211,7 +227,36 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
     tv.tv_sec = dict_ldap->timeout;
     tv.tv_usec = 0;
     filter_buf = vstring_alloc(30);
-    vstring_sprintf(filter_buf, dict_ldap->query_filter, name);
+
+    /* Does the supplied query_filter even include a substitution? */
+    if (strstr(dict_ldap->query_filter, "%s") == NULL) {
+	msg_warn("%s: fixed query_filter %s is probably useless", myname,
+		 dict_ldap->query_filter);
+	vstring_strcpy(filter_buf, dict_ldap->query_filter);
+    } else {
+
+	/*
+	 * OK, let's replace all the instances of %s with the address to look
+	 * up.
+	 */
+	sub = dict_ldap->query_filter;
+	end = sub + strlen(dict_ldap->query_filter);
+	while (sub < end) {
+
+	    /*
+	     * Make sure it's %s and not something else, though it wouldn't
+	     * really matter; we could skip any single character.
+	     */
+	    if (*(sub) == '%') {
+		if ((sub + 1) != end && *(sub + 1) != 's')
+		    msg_fatal("%s: invalid lookup substitution format '%%%c'!", myname, *(sub + 1));
+		vstring_strcat(filter_buf, name);
+		sub++;
+	    } else
+		vstring_strncat(filter_buf, sub, 1);
+	    sub++;
+	}
+    }
 
     if (msg_verbose)
 	msg_info("%s: searching with filter %s", myname,
@@ -367,6 +412,17 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 	msg_info("%s: %s is %s", myname, vstring_str(config_param),
 		 dict_ldap->query_filter);
 
+    /*
+     * get configured value of "ldapsource_lookup_wildcards"; default to
+     * false
+     */
+    vstring_sprintf(config_param, "%s_lookup_wildcards", ldapsource);
+    dict_ldap->lookup_wildcards =
+	get_mail_conf_bool(vstring_str(config_param), 0);
+    if (msg_verbose)
+	msg_info("%s: %s is %d", myname, vstring_str(config_param),
+		 dict_ldap->lookup_wildcards);
+
     vstring_sprintf(config_param, "%s_result_attribute", ldapsource);
     dict_ldap->result_attribute =
 	mystrdup((char *) get_mail_conf_str(vstring_str(config_param),
@@ -431,16 +487,16 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 	 */
 	if (dict_ldap->bind) {
 	    if (msg_verbose)
-		msg_info("%s: about to bind: server %s, base %s", myname,
-			 dict_ldap->server_host, dict_ldap->search_base);
+		msg_info("%s: about to bind to server %s as dn %s", myname,
+			 dict_ldap->server_host, dict_ldap->bind_dn);
 
-	    rc = ldap_bind_s(dict_ldap->ld, dict_ldap->search_base, NULL,
-			     LDAP_AUTH_SIMPLE);
+	    rc = ldap_bind_s(dict_ldap->ld, dict_ldap->bind_dn,
+			     dict_ldap->bind_pw, LDAP_AUTH_SIMPLE);
 	    if (rc != LDAP_SUCCESS) {
-		msg_fatal("%s: Unable to bind with search base %s at server %s (%d -- %s): ", myname, dict_ldap->search_base, dict_ldap->server_host, rc, ldap_err2string(rc));
+		msg_fatal("%s: Unable to bind to server %s as %s (%d -- %s): ", myname, dict_ldap->server_host, dict_ldap->bind_dn, rc, ldap_err2string(rc));
 	    } else {
 		if (msg_verbose)
-		    msg_info("%s: Successful bind to server %s with search base %s(%d -- %s): ", myname, dict_ldap->search_base, dict_ldap->server_host, rc, ldap_err2string(rc));
+		    msg_info("%s: Successful bind to server %s as %s (%d -- %s): ", myname, dict_ldap->server_host, dict_ldap->bind_dn, rc, ldap_err2string(rc));
 	    }
 	}
 	if (msg_verbose)

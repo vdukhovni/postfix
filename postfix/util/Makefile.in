@@ -424,7 +424,6 @@ doze.o: doze.c
 doze.o: sys_defs.h
 doze.o: msg.h
 doze.o: iostuff.h
-dup2_pass_on_exec.o: dup2_pass_on_exec.c
 environ.o: environ.c
 environ.o: sys_defs.h
 events.o: events.c

@@ -13,7 +13,7 @@
 /*
 /*	Options:
 /* .IP \fB-v\fR
-/*	Enable verbose mode for debugging purposes. Multiple \fB-v\fR
+/*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
 /* DIAGNOSTICS
 /*	Problems are reported to the standard error stream.

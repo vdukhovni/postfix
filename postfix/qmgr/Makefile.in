@@ -166,6 +166,7 @@ qmgr_message.o: ../include/split_at.h
 qmgr_message.o: ../include/valid_hostname.h
 qmgr_message.o: ../include/argv.h
 qmgr_message.o: ../include/stringops.h
+qmgr_message.o: ../include/myflock.h
 qmgr_message.o: ../include/dict.h
 qmgr_message.o: ../include/mail_queue.h
 qmgr_message.o: ../include/mail_params.h

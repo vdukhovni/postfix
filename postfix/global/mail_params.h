@@ -793,6 +793,8 @@ extern char *var_maps_rbl_domains;
 #define DEF_SMTPD_DELAY_REJECT	1
 extern int var_smtpd_delay_reject;
 
+#define REJECT_UNAUTH_PIPE	"reject_unauth_pipelining"
+
  /*
   * Other.
   */

@@ -128,11 +128,13 @@ int     match_hostname(const char *name, const char *pattern)
     if (strchr(pattern, ':') != 0) {
 	temp = lowercase(mystrdup(name));
 	match = 0;
-	for (entry = temp; (next = strchr(entry, '.')) != 0; entry = next + 1) {
+	for (entry = temp; /* void */ ; entry = next + 1) {
 	    if ((match = (dict_lookup(pattern, entry) != 0)) != 0)
 		break;
 	    if (dict_errno != 0)
 		msg_fatal("%s: table lookup problem", pattern);
+	    if ((next = strchr(entry, '.')) == 0)
+		break;
 	}
 	myfree(temp);
 	return (match);
