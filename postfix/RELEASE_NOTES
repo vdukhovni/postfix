@@ -40,7 +40,7 @@ but should work properly. To disable backwards compatibility specify
 The behavior of "sendmail -v" has changed. One -v option now sends
 an email report with the status of each delivery attempt.  Multiple
 -v options behave as before: turn on verbose logging in the sendmail
-and and postdrop commands.
+and postdrop commands.
 
 The Postfix upgrade procedure will add two new services to your
 master.cf file: "trace" and "verify". These servers can run inside

@@ -145,7 +145,7 @@ smtp_pix_workaround_threshold_time = 500s
 # The default limit is the default_destination_concurrency_limit
 # parameter. It is probably safer to limit the concurrency to 10.
 #
-smtp_destination_concurrency_limit = 10
+smtp_destination_concurrency_limit = 20
 
 # The smtp_destination_recipient_limit parameter limits the number
 # of recipients per delivery via the smtp delivery agent.

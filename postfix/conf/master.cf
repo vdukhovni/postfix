@@ -67,7 +67,7 @@
 #
 # ==========================================================================
 # service type	private	unpriv	chroot	wakeup	maxproc	command + args
-# 		(yes)	(yes)	(yes)	(never)	(50)
+# 		(yes)	(yes)	(yes)	(never)	(100)
 # ==========================================================================
 smtp	  inet	n	-	n	-	-	smtpd
 #628	  inet	n	-	n	-	-	qmqpd

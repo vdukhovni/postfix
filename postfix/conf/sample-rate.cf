@@ -9,7 +9,7 @@
 # destination.  This is the default limit for delivery via SMTP, via
 # the local delivery agent and via the pipe mailer.
 #
-default_destination_concurrency_limit = 10
+default_destination_concurrency_limit = 20
 
 # The default_destination_recipient_limit parameter specifies a
 # default limit on the number of recipients per message delivery.

@@ -580,7 +580,7 @@ extern int var_init_dest_concurrency;
 
 #define VAR_DEST_CON_LIMIT	"default_destination_concurrency_limit"
 #define _DEST_CON_LIMIT		"_destination_concurrency_limit"
-#define DEF_DEST_CON_LIMIT	10
+#define DEF_DEST_CON_LIMIT	20
 extern int var_dest_con_limit;
 
 #define VAR_LOCAL_CON_LIMIT	"local" _DEST_CON_LIMIT

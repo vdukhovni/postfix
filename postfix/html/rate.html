@@ -82,14 +82,14 @@ Use a larger value if your machine is a major mail hub.
 
 You can override this setting for specific Postfix daemons by
 editing the <b>master.cf</b> file.  For example, if you do not
-wish to receive 50 SMTP messages at the same time, you could specify:
+wish to receive 100 SMTP messages at the same time, you could specify:
 
 <dl>
 
 <dd> <pre> 
 # ==========================================================================
 # service type  private unpriv  chroot  wakeup  maxproc command + args
-#               (yes)   (yes)   (yes)   (never) (50)
+#               (yes)   (yes)   (yes)   (never) (100)
 # ==========================================================================
 . . .
 smtp      inet  n       -       -       -       5       smtpd
@@ -126,7 +126,7 @@ limit for the specific mail transport channel.
 <p>
 
 The <b>default_destination_concurrency_limit</b> parameter
-(default: 10) controls how many messages may be sent to the same
+(default: 20) controls how many messages may be sent to the same
 destination simultaneously. You can override this setting for
 specific delivery channels (<b>local, smtp, uucp</b> etc.). The
 <b>main.cf</b> file recommends the following:
@@ -135,7 +135,7 @@ specific delivery channels (<b>local, smtp, uucp</b> etc.). The
 
 <dd> <b>local_destination_concurrency_limit = 2</b>
 
-<dd> <b>default_destination_concurrency_limit = 10</b>
+<dd> <b>default_destination_concurrency_limit = 20</b>
 
 </dl>
 
@@ -150,7 +150,7 @@ manager, you don't want to run too many instances at the same time.
 
 <p>
 
-A destination concurrency limit of 10 for SMTP delivery seems enough
+A destination concurrency limit of 20 for SMTP delivery seems enough
 to noticeably load a system without bringing it to its knees. Be
 careful when changing this to a much larger number.
 

@@ -185,7 +185,7 @@ exercise.  It probably is not worth the trouble.
 Older Microsoft SMTP client software implements a non-standard 
 version of the AUTH protocol syntax, and expects that the SMTP
 server replies to EHLO with "250 AUTH=stuff" instead of "250 AUTH
-stuff".  To accomodate such clients in addition to conformant
+stuff".  To accommodate such clients in addition to conformant
 clients, set "broken_sasl_auth_clients = yes" in the main.cf file.
 
 Testing SASL authentication in the Postfix SMTP server
