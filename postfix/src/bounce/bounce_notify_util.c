@@ -169,6 +169,7 @@
 #include <line_wrap.h>
 #include <stringops.h>
 #include <xtext.h>
+#include <myflock.h>
 
 /* Global library. */
 
@@ -256,7 +257,7 @@ static BOUNCE_INFO *bounce_mail_alloc(const char *service,
      * backoff.
      */
     if ((bounce_info->orig_fp = mail_queue_open(queue_name, queue_id,
-						O_RDONLY, 0)) == 0
+						O_RDWR, 0)) == 0
 	&& errno != ENOENT)
 	msg_fatal("open %s %s: %m", service, queue_id);
 
@@ -264,8 +265,17 @@ static BOUNCE_INFO *bounce_mail_alloc(const char *service,
      * Skip over the original message envelope records. If the envelope is
      * corrupted just send whatever we can (remember this is a best effort,
      * it does not have to be perfect).
+     * 
+     * Lock the file for shared use, so that queue manager leaves it alone after
+     * restarting.
      */
+#define DELIVER_LOCK_MODE (MYFLOCK_OP_SHARED | MYFLOCK_OP_NOWAIT)
+
     if (bounce_info->orig_fp != 0) {
+	if (myflock(vstream_fileno(bounce_info->orig_fp), INTERNAL_LOCK,
+		    DELIVER_LOCK_MODE) < 0)
+	    msg_fatal("cannot get shared lock on %s: %m",
+		      VSTREAM_PATH(bounce_info->orig_fp));
 	while ((rec_type = rec_get(bounce_info->orig_fp,
 				   bounce_info->buf, 0)) > 0) {
 	    if (rec_type == REC_TYPE_TIME && bounce_info->arrival_time == 0) {
@@ -308,7 +318,7 @@ BOUNCE_INFO *bounce_mail_init(const char *service,
      * job. But if the system IS running out of resources, raise a fatal
      * run-time error and force a backoff.
      */
-    if ((log_handle = bounce_log_open(service, queue_id, O_RDWR, 0)) == 0
+    if ((log_handle = bounce_log_open(service, queue_id, O_RDONLY, 0)) == 0
 	&& errno != ENOENT)
 	msg_fatal("open %s %s: %m", service, queue_id);
     bounce_info = bounce_mail_alloc(service, queue_name, queue_id,
@@ -544,7 +554,7 @@ int     bounce_diagnostic_log(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
      */
     if (bounce_info->log_handle == 0
 	|| bounce_log_rewind(bounce_info->log_handle)) {
-	post_mail_fputs(bounce, "\t--- Delivery error report unavailable ---");
+	post_mail_fputs(bounce, "\t--- Delivery report unavailable ---");
     } else {
 	while (bounce_log_read(bounce_info->log_handle) != 0)
 	    if (bounce_recipient_log(bounce, bounce_info) != 0)

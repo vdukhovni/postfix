@@ -49,6 +49,8 @@
 /* .IP \fBqueue_directory\fR
 /*	Location of the Postfix queue, and of the local IPC communication
 /*	endpoints.
+/* .IP \fBapplication_event_drain_time\fR
+/*	How long the program waits for the trigger to be accepted.
 /* SEE ALSO
 /*	qmgr(8) queue manager trigger protocol
 /*	pickup(8) local pickup daemon

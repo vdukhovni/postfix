@@ -2238,8 +2238,8 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 	}
     }
     if (dns_status != DNS_OK) {
-	msg_warn("Unable to look up %s host for %s", dns_strtype(type),
-		 domain && domain[1] ? domain : name);
+	msg_warn("Unable to look up %s host for %s: %s", dns_strtype(type),
+		 domain && domain[1] ? domain : name, dns_strerror(h_errno));
 	return (SMTPD_CHECK_DUNNO);
     }
 
@@ -2253,9 +2253,9 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
      */
     for (server = server_list; server != 0; server = server->next) {
 	if ((hp = gethostbyname((char *) server->data)) == 0) {
-	    msg_warn("Unable to look up %s host %s for %s %s",
+	    msg_warn("Unable to look up %s host %s for %s %s: %s",
 		     dns_strtype(type), (char *) server->data,
-		     reply_class, reply_name);
+		     reply_class, reply_name, dns_strerror(h_errno));
 	    continue;
 	}
 	if (hp->h_addrtype != AF_INET || hp->h_length != sizeof(addr)) {

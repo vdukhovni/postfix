@@ -8605,15 +8605,25 @@ Apologies for any names omitted.
 
 20030920
 
-	Bugfix: LDAP client update by by Victor Duchovni, Morgan
-	Stanley.  Files: README_FILES/LDAP_README, util/dict_ldap.c.
+	Bugfix: the 20030917 LDAP connection sharing code introduced
+	a compilation problem with non-OpenLDAP implementations.
+	Fix by Liviu Daia. File: util/dict_ldap.c
+
+	Compatibility: the LDAP server_host parameter now supports
+	all the usual Postfix list element delimiters. Some LDAP
+	libraries support just SPACE, others SPACE and ",". Postfix
+	now normalizes the host list into a space separated format.
+	This is less surprising to Postfix users used to the full
+	range of delimeters in other contexts. Implemented by Liviu
+	Daia. File: util/dict_ldap.c
 
 	Bugfix: after returning too old mail, the bounce daemon
-	now deletes recipients from the original queue file, to
-	avoid repeated bounce notifications when the queue manager
-	is restarted. Files:  bounce/*.[hc], global/bounce_log.[hc],
-	global/{bounce,defer}.[hc] and everything that invokes
-	these routines including queue manager and delivery agents.
+	now locks the original queue file and deletes deferred
+	recipients, to avoid repeated bounce notifications when
+	the queue manager is restarted. Files:  bounce/*.[hc],
+	global/bounce_log.[hc], global/{bounce,defer}.[hc] and
+	everything that invokes these routines including queue
+	manager and delivery agents.
 
 Open problems:
 

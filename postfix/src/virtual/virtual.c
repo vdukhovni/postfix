@@ -384,6 +384,7 @@ static int local_deliver(DELIVER_REQUEST *rqst, char *service)
     for (msg_stat = 0, rcpt = rqst->rcpt_list.info; rcpt < rcpt_end; rcpt++) {
 	state.msg_attr.orig_rcpt = rcpt->orig_addr;
 	state.msg_attr.recipient = rcpt->address;
+	state.msg_attr.rcpt_offset = rcpt->offset;
 	rcpt_stat = deliver_recipient(state, usr_attr);
 	if (rcpt_stat == 0)
 	    deliver_completed(state.msg_attr.fp, rcpt->offset);

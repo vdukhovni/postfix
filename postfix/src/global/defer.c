@@ -59,6 +59,8 @@
 /*
 /*	defer_flush() bounces the specified message to the specified
 /*	sender, including the defer log that was built with defer_append().
+/*	defer_flush() requests that the deferred recipients are deleted
+/*	from the original queue file.
 /*	The result is zero in case of success, non-zero otherwise.
 /*
 /*	defer_warn() sends a warning message that the mail in question has
