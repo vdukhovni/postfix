@@ -33,7 +33,7 @@ Postfix should work out of the box without change on a stand-alone machine that
 has direct Internet access. At least, that is how Postfix installs when you
 download the Postfix source code via http://www.postfix.org/.
 
-You can use the command "postconf -n" to find out what settings are overruled
+You can use the command "ppoossttccoonnff --nn" to find out what settings are overruled
 by your main.cf. Besides a few pathname settings, few parameters should be set
 on a stand-alone box, beyond what is covered in the BASIC_CONFIGURATION_README
 document:
@@ -174,9 +174,9 @@ to her preferred machine:
         jane:   jane@janes.preferred.machine
 
 On some systems the alias database is not in /etc/aliases. To find out the
-location for your system, execute the command "postconf alias_maps".
+location for your system, execute the command "ppoossttccoonnff aalliiaass__mmaappss".
 
-Execute the command "newaliases" whenever you change the aliases file.
+Execute the command "nneewwaalliiaasseess" whenever you change the aliases file.
 
 PPoossttffiixx eemmaaiill ffiirreewwaallll//ggaatteewwaayy
 
@@ -187,7 +187,7 @@ example.com", the firewall normally also accepts mail for
 "anything.example.com". That would not be right.
 
 Note: this example requires Postfix version 2.0 and later. To find out what
-Postfix version you have, execute the command "postconf mail_version".
+Postfix version you have, execute the command "ppoossttccoonnff mmaaiill__vveerrssiioonn".
 
 The solution is presented in multiple parts. This first part gets rid of local
 mail delivery on the firewall, making the firewall harder to break.
@@ -268,13 +268,13 @@ Translation:
   * Lines 10, 17-18: Route mail for "example.com" to the inside gateway
     machine. The [] forces Postfix to do no MX lookup.
 
-Specify dbm instead of hash if your system uses dbm files instead of db. To
-find out what lookup tables Postfix supports, use the command "postconf -m".
+Specify ddbbmm instead of hhaasshh if your system uses ddbbmm files instead of ddbb files.
+To find out what lookup tables Postfix supports, use the command "ppoossttccoonnff --mm".
 
-Execute the command "postmap /etc/postfix/relay_recipients" whenever you change
+Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//rreellaayy__rreecciippiieennttss" whenever you change
 the relay_recipients table.
 
-Execute the command "postmap /etc/postfix/transport" whenever you change the
+Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//ttrraannssppoorrtt" whenever you change the
 transport table.
 
 DDeelliivveerriinngg ssoommee bbuutt nnoott aallll aaccccoouunnttss llooccaallllyy
@@ -324,7 +324,7 @@ mail to the gateway host, and to send intranet mail directly. That's what
 Wietse does at work.
 
 Note: this example requires Postfix version 2.0 and later. To find out what
-Postfix version you have, execute the command "postconf mail_version".
+Postfix version you have, execute the command "ppoossttccoonnff mmaaiill__vveerrssiioonn".
 
 The following example presents additional configuration. You need to combine
 this with basic configuration information as discussed the first half of this
@@ -356,10 +356,10 @@ Translation:
     is turned off. Postfix tries to deliver mail directly, and gives
     undeliverable mail to a gateway.
 
-Specify dbm instead of hash if your system uses dbm files instead of db. To
-find out what lookup tables Postfix supports, use the command "postconf -m".
+Specify ddbbmm instead of hhaasshh if your system uses ddbbmm files instead of ddbb files.
+To find out what lookup tables Postfix supports, use the command "ppoossttccoonnff --mm".
 
-Execute the command "postmap /etc/postfix/transport" whenever you edit the
+Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//ttrraannssppoorrtt" whenever you edit the
 transport table.
 
 CCoonnffiigguurriinngg PPoossttffiixx aass MMXX hhoosstt ffoorr aa rreemmoottee ssiittee
@@ -418,10 +418,10 @@ Important notes:
 
   * Line 22: The [] forces Postfix to do no MX lookup.
 
-Specify dbm instead of hash if your system uses dbm files instead of db files.
-To find out what lookup tables Postfix supports, use the command "postconf -m".
+Specify ddbbmm instead of hhaasshh if your system uses ddbbmm files instead of ddbb files.
+To find out what lookup tables Postfix supports, use the command "ppoossttccoonnff --mm".
 
-Execute the command "postmap /etc/postfix/transport" whenever you change the
+Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//ttrraannssppoorrtt" whenever you change the
 transport table.
 
 PPoossttffiixx oonn aa ddiiaalluupp mmaacchhiinnee
@@ -467,7 +467,7 @@ should also study the section on "Postfix on hosts without a real hostname".
     /usr/sbin/sendmail -q (whenever the Internet link is up)
 
     The exact location of the sendmail command is system-specific. Use the
-    command "postconf sendmail_path" to find out where the Postfix sendmail
+    command "ppoossttccoonnff sseennddmmaaiill__ppaatthh" to find out where the Postfix sendmail
     command is located on your machine.
 
     In order to find out if the mail queue is flushed, use something like:
@@ -487,7 +487,7 @@ should also study the section on "Postfix on hosts without a real hostname".
     done
 
     If you have disabled spontaneous SMTP mail delivery, you also need to run
-    the "sendmail -q" command every now and then while the dialup link is up,
+    the "sseennddmmaaiill --qq" command every now and then while the dialup link is up,
     so that newly-posted mail is flushed from the queue.
 
 PPoossttffiixx oonn hhoossttss wwiitthhoouutt aa rreeaall hhoossttnnaammee

@@ -10,7 +10,7 @@
 /*	char	*buffer;
 /*	int	replacement;
 /* DESCRIPTION
-/*	printable() replaces non-printable characters in its input
+/*	printable() replaces non-ASCII or non-printable characters in its input
 /*	by the given replacement.
 /*
 /*	Arguments:
@@ -45,7 +45,7 @@ char   *printable(char *string, int replacement)
     int     ch;
 
     for (cp = string; (ch = *(unsigned char *) cp) != 0; cp++)
-	if (!ISPRINT(ch))
+	if (!ISASCII(ch) || !ISPRINT(ch))
 	    *cp = replacement;
     return (string);
 }

@@ -121,9 +121,9 @@ POSTMAP(1)                                             POSTMAP(1)
 
        <i>file</i><b>_</b><i>type</i>
               The  database type. To find out what types are sup-
-              ported, use the "<b>postconf -m" command.</b>
+              ported, use the "<b>postconf -m</b>" command.
 
-              <b>The postmap</b> command can query  any  supported  file
+              The <b>postmap</b> command can query  any  supported  file
               type,  but  it  can  create only the following file
               types:
 
@@ -139,9 +139,6 @@ POSTMAP(1)                                             POSTMAP(1)
               <b>hash</b>   The  output  file  is  a  hashed file, named
                      <i>file</i><b>_</b><i>name</i><b>.db</b>.  This  is  available  only  on
                      systems with support for <b>db</b> databases.
-
-              Use  the command <b>postconf -m</b> to find out what types
-              of database your Postfix installation can  support.
 
               When  no  <i>file</i><b>_</b><i>type</i> is specified, the software uses
               the    database    type    specified    via     the

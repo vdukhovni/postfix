@@ -67,10 +67,10 @@ machine that has direct Internet access.  At least, that is how
 Postfix installs when you download the Postfix source code via
 http://www.postfix.org/. </p>
 
-<p> You can use the command "postconf -n" to find out what settings
-are overruled by your main.cf. Besides a few pathname settings,
-few parameters should be set on a stand-alone box, beyond what is
-covered in the BASIC_CONFIGURATION_README document: </p>
+<p> You can use the command "<b>postconf -n</b>" to find out what
+settings are overruled by your main.cf. Besides a few pathname
+settings, few parameters should be set on a stand-alone box, beyond
+what is covered in the BASIC_CONFIGURATION_README document: </p>
 
 <blockquote>
 <pre>
@@ -253,11 +253,11 @@ forwards mail to her preferred machine: </p>
 </blockquote>
 
 <p> On some systems the alias database is not in /etc/aliases.  To
-find out the location for your system, execute the command "postconf
-alias_maps". </p>
+find out the location for your system, execute the command "<b>postconf
+alias_maps</b>". </p>
 
-<p> Execute the command "newaliases" whenever you change the aliases
-file.  </p>
+<p> Execute the command "<b>newaliases</b>" whenever you change
+the aliases file.  </p>
 
 <h2><a name="firewall">Postfix email firewall/gateway</a></h2>
 
@@ -269,8 +269,8 @@ accepts mail for "anything.example.com".  That would not be right.
 </p>
 
 <p> Note: this example requires Postfix version 2.0 and later. To find
-out what Postfix version you have, execute the command "postconf
-mail_version". </p>
+out what Postfix version you have, execute the command "<b>postconf
+mail_version</b>". </p>
 
 <p> The solution is presented in multiple parts. This first part
 gets rid of local mail delivery on the firewall, making the firewall
@@ -381,14 +381,14 @@ gateway machine. The <tt>[]</tt> forces Postfix to do no MX lookup.
 
 </ul>
 
-<p>Specify dbm instead of hash if your system uses
-dbm files instead of db. To find out what lookup tables
-Postfix supports, use the command "postconf -m".  </p>
+<p>Specify <b>dbm</b> instead of <b>hash</b> if your system uses
+<b>dbm</b> files instead of <b>db</b> files. To find out what lookup
+tables Postfix supports, use the command "<b>postconf -m</b>".  </p>
 
-<p> Execute the command "postmap /etc/postfix/relay_recipients"
+<p> Execute the command "<b>postmap /etc/postfix/relay_recipients</b>"
 whenever you change the relay_recipients table. </p>
 
-<p> Execute the command "postmap /etc/postfix/transport"
+<p> Execute the command "<b>postmap /etc/postfix/transport</b>"
 whenever you change the transport table. </p>
 
 <h2><a name="some_local">Delivering some but not all accounts
@@ -449,8 +449,8 @@ mail to the gateway host, and to send intranet mail directly.
 That's what Wietse does at work.  </p>
 
 <p> Note: this example requires Postfix version 2.0 and later. To find
-out what Postfix version you have, execute the command "postconf
-mail_version". </p>
+out what Postfix version you have, execute the command "<b>postconf
+mail_version</b>". </p>
 
 <p> The following example presents additional configuration. You
 need to combine this with basic configuration information as
@@ -492,11 +492,11 @@ directly, and gives undeliverable mail to a gateway.  </p>
 
 </ul>
 
-<p> Specify dbm instead of hash if your system uses dbm files
-instead of db. To find out what lookup tables Postfix supports, use
-the command "postconf -m". </p>
+<p> Specify <b>dbm</b> instead of <b>hash</b> if your system uses
+<b>dbm</b> files instead of <b>db</b> files. To find out what lookup
+tables Postfix supports, use the command "<b>postconf -m</b>". </p>
 
-<p> Execute the command "postmap /etc/postfix/transport" whenever
+<p> Execute the command "<b>postmap /etc/postfix/transport</b>" whenever
 you edit the transport table. </p>
 
 <h2><a name="backup">Configuring Postfix as MX host for a remote site</a></h2>
@@ -573,11 +573,11 @@ table. </p>
 
 </ul>
 
-<p> Specify dbm instead of hash if your system uses dbm files
-instead of db files. To find out what lookup tables Postfix supports,
-use the command "postconf -m". </p>
+<p> Specify <b>dbm</b> instead of <b>hash</b> if your system uses
+<b>dbm</b> files instead of <b>db</b> files. To find out what lookup
+tables Postfix supports, use the command "<b>postconf -m</b>". </p>
 
-<p> Execute the command "postmap /etc/postfix/transport" whenever
+<p> Execute the command "<b>postmap /etc/postfix/transport</b>" whenever
 you change the transport table. </p>
 
 <h2><a name="dialup">Postfix on a dialup machine</a></h2>
@@ -640,7 +640,7 @@ calls from being placed, disable spontaneous SMTP mail deliveries. </p>
 </pre>
 
 <p> The exact location of the sendmail command is system-specific.
-Use the command "postconf sendmail_path" to find out where the
+Use the command "<b>postconf sendmail_path</b>" to find out where the
 Postfix sendmail command is located on your machine. </p>
 
 <p> In order to find out if the mail queue is flushed, use something
@@ -663,7 +663,7 @@ done
 </pre>
 
 <p> If you have disabled <a href="#spontaneous_smtp">spontaneous
-SMTP mail delivery</a>, you also need to run the "sendmail -q"
+SMTP mail delivery</a>, you also need to run the "<b>sendmail -q</b>"
 command every now and then while the dialup link is up, so that
 newly-posted mail is flushed from the queue. </p>
 

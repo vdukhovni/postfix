@@ -102,7 +102,7 @@
 /*	Arguments:
 /* .IP \fIfile_type\fR
 /*	The database type. To find out what types are supported, use
-/*	the "\fBpostconf -m" command.
+/*	the "\fBpostconf -m\fR" command.
 /*
 /*	The \fBpostmap\fR command can query any supported file type,
 /*	but it can create only the following file types:
@@ -118,9 +118,6 @@
 /*	The output file is a hashed file, named \fIfile_name\fB.db\fR.
 /*	This is available only on systems with support for \fBdb\fR databases.
 /* .PP
-/*	Use the command \fBpostconf -m\fR to find out what types of database
-/*	your Postfix installation can support.
-/*
 /*	When no \fIfile_type\fR is specified, the software uses the database
 /*	type specified via the \fBdefault_database_type\fR configuration
 /*	parameter.

@@ -188,7 +188,9 @@ have a problem when the update fails because the disk is full or
 because something else happens.  This is because commands such as
 <a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1.html">postalias(1)</a> overwrite existing files. If the update
 fails in the middle then you have no usable database, and Postfix
-will stop working. </p>
+will stop working. This is not an issue with the CDB database type
+available with Postfix 2.2 and later, because <a href="CDB_README.html">CDB</a>
+database rebuilds are atomic. </p>
 
 <p> With multi-file databases such as DBM, there is no simple
 solution. With Berkeley DB and other "one file" databases, it is
@@ -244,7 +246,7 @@ database file as if nothing happened. </p>
 <h2><a name="types">Postfix lookup table types</a> </h2>
 
 <p> To find out what database types your Postfix system supports,
-use the "postconf -m" command.  Here is a list of database types
+use the "<b>postconf -m</b>" command.  Here is a list of database types
 that are often supported: </p>
 
 <blockquote>
@@ -258,6 +260,14 @@ systems with support for Berkeley DB databases. Database files are
 created with the <a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1.html">postalias(1)</a> command. The lookup
 table name as used in "btree:table" is the database file name
 without the ".db" suffix.  </dd>
+
+<dt> <b>cdb</b> </dt>
+
+<dd> A read-optimized structure with no support for incremental updates.
+Database files are created with the <a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1.html">postalias(1)</a> command.
+The lookup table name as used in "cdb:table" is the database file name
+without the ".cdb" suffix.  This feature is available with Postfix 2.2
+and later. </dd>
 
 <dt> <b>cidr</b> </dt>
 

@@ -164,6 +164,7 @@
 #include <mymalloc.h>
 #include <msg.h>
 #include <dict.h>
+#include <dict_cdb.h>
 #include <dict_env.h>
 #include <dict_unix.h>
 #include <dict_tcp.h>
@@ -189,6 +190,9 @@ typedef struct {
 } DICT_OPEN_INFO;
 
 static DICT_OPEN_INFO dict_open_info[] = {
+#ifdef HAS_CDB
+    DICT_TYPE_CDB, dict_cdb_open,
+#endif
     DICT_TYPE_ENVIRON, dict_env_open,
     DICT_TYPE_UNIX, dict_unix_open,
 #ifdef SNAPSHOT

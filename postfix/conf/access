@@ -23,7 +23,7 @@
 #        that serves as  input  to  the  postmap(1)  command.   The
 #        result,  an  indexed file in dbm or db format, is used for
 #        fast searching by the mail  system.  Execute  the  command
-#        postmap   /etc/postfix/access  in  order  to  rebuild  the
+#        "postmap  /etc/postfix/access"  in  order  to  rebuild the
 #        indexed file after changing the access table.
 # 
 #        When the table is provided via other means  such  as  NIS,
@@ -286,8 +286,8 @@
 #        The  following  example  uses an indexed file, so that the
 #        order of table entries does not matter. The  example  per-
 #        mits  access  by the client at address 1.2.3.4 but rejects
-#        all other clients in 1.2.3.0/24. Instead of "hash"  lookup
-#        tables, some systems use "dbm".  Use the command "postconf
+#        all other clients in 1.2.3.0/24. Instead  of  hash  lookup
+#        tables,  some  systems use dbm.  Use the command "postconf
 #        -m" to find out what lookup  tables  Postfix  supports  on
 #        your system.
 # 

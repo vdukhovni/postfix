@@ -10,6 +10,7 @@ README
 RFC
 Sendmail's
 Wietse
+cdb
 cf
 com
 db
@@ -91,6 +92,7 @@ sysadmin
 userid
 username
 Autoreplies
+CDB
 DBM
 Howto
 MAILDROP

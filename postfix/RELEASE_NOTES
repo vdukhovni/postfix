@@ -7,6 +7,13 @@ snapshot release).  Patches are issued for the official release
 and change the patchlevel and the release date. Patches are never
 issued for snapshot releases.
 
+Major changes with snapshot Postfix-2.2-20041208
+================================================
+
+Support for CDB databases by Michael Tokarev. This supports both
+Michael's tinycdb and Daniel Bernstein's cdb implementations, but
+neither of the two implementations is bundled with Postfix.
+
 Incompatible changes with snapshot Postfix-2.2-20041118
 =======================================================
 

@@ -38,6 +38,7 @@ LLooookkuupp ttaabblleess ((ddaattaabbaasseess))
 
   * DATABASE_README: Lookup table overview
   * DB_README: Berkeley DB Howto
+  * CDB_README: CDB Howto
   * LDAP_README: LDAP Howto
   * MYSQL_README: MySQL Howto
   * PCRE_README: PCRE Howto

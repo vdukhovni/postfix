@@ -9889,6 +9889,11 @@ Apologies for any names omitted.
 	client sends a message header instead of an SMTP command.
 	Magnus Baeck.  File: smtpd/smtpd.c.
 
+20041207
+
+	CDB support by Michael Tokarev, documentation by Victor
+	Duchovni. Files: util/dict_cdb.[hc], global/mkmap_cdb.c.
+
 Open problems:
 
 	Med: implement ${name[?:]value} in main.cf or update the

@@ -29,7 +29,7 @@ ACCESS(5)                                               ACCESS(5)
        that serves as  input  to  the  <a href="postmap.1.html"><b>postmap</b>(1)</a>  command.   The
        result,  an  indexed file in <b>dbm</b> or <b>db</b> format, is used for
        fast searching by the mail  system.  Execute  the  command
-       <b>postmap   /etc/postfix/access</b>  in  order  to  rebuild  the
+       "<b>postmap  /etc/postfix/access</b>"  in  order  to  rebuild the
        indexed file after changing the access table.
 
        When the table is provided via other means  such  as  NIS,
@@ -292,8 +292,8 @@ ACCESS(5)                                               ACCESS(5)
        The  following  example  uses an indexed file, so that the
        order of table entries does not matter. The  example  per-
        mits  access  by the client at address 1.2.3.4 but rejects
-       all other clients in 1.2.3.0/24. Instead of "<b>hash</b>"  lookup
-       tables, some systems use "<b>dbm</b>".  Use the command "<b>postconf</b>
+       all other clients in 1.2.3.0/24. Instead  of  <b>hash</b>  lookup
+       tables,  some  systems use <b>dbm</b>.  Use the command "<b>postconf</b>
        <b>-m</b>" to find out what lookup  tables  Postfix  supports  on
        your system.
 

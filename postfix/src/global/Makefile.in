@@ -14,7 +14,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	mail_open_ok.c mail_params.c mail_pathname.c mail_queue.c \
 	mail_run.c mail_scan_dir.c mail_stream.c mail_task.c mail_trigger.c \
 	maps.c mark_corrupt.c match_parent_style.c mbox_conf.c \
-	mbox_open.c mime_state.c mkmap_db.c mkmap_dbm.c mkmap_open.c \
+	mbox_open.c mime_state.c mkmap_db.c mkmap_cdb.c mkmap_dbm.c mkmap_open.c \
 	mynetworks.c mypwd.c namadr_list.c off_cvt.c opened.c \
 	own_inet_addr.c pipe_command.c post_mail.c quote_821_local.c \
 	quote_822_local.c rec_streamlf.c rec_type.c recipient_list.c \
@@ -39,7 +39,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	mail_open_ok.o mail_params.o mail_pathname.o mail_queue.o \
 	mail_run.o mail_scan_dir.o mail_stream.o mail_task.o mail_trigger.o \
 	maps.o mark_corrupt.o match_parent_style.o mbox_conf.o \
-	mbox_open.o mime_state.o mkmap_db.o mkmap_dbm.o mkmap_open.o \
+	mbox_open.o mime_state.o mkmap_db.o mkmap_cdb.o mkmap_dbm.o mkmap_open.o \
 	mynetworks.o mypwd.o namadr_list.o off_cvt.o opened.o \
 	own_inet_addr.o pipe_command.o post_mail.o quote_821_local.o \
 	quote_822_local.o rec_streamlf.o rec_type.o recipient_list.o \
@@ -1031,6 +1031,8 @@ mime_state.o: mail_params.h
 mime_state.o: header_token.h
 mime_state.o: lex_822.h
 mime_state.o: mime_state.h
+mkmap_cdb.o: mkmap_cdb.c
+mkmap_cdb.o: ../../include/sys_defs.h
 mkmap_db.o: mkmap_db.c
 mkmap_db.o: ../../include/sys_defs.h
 mkmap_db.o: ../../include/msg.h
@@ -1066,6 +1068,7 @@ mkmap_open.o: ../../include/vstream.h
 mkmap_open.o: ../../include/vbuf.h
 mkmap_open.o: ../../include/argv.h
 mkmap_open.o: ../../include/dict_db.h
+mkmap_open.o: ../../include/dict_cdb.h
 mkmap_open.o: ../../include/dict_dbm.h
 mkmap_open.o: ../../include/sigdelay.h
 mkmap_open.o: ../../include/mymalloc.h

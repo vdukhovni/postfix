@@ -123,7 +123,8 @@ Berkeley DB or other local database files, you still have a problem when the
 update fails because the disk is full or because something else happens. This
 is because commands such as postmap(1) or postalias(1) overwrite existing
 files. If the update fails in the middle then you have no usable database, and
-Postfix will stop working.
+Postfix will stop working. This is not an issue with the CDB database type
+available with Postfix 2.2 and later, because CDB database rebuilds are atomic.
 
 With multi-file databases such as DBM, there is no simple solution. With
 Berkeley DB and other "one file" databases, it is possible to add some extra
@@ -169,14 +170,20 @@ Postfix will keep using the existing database file as if nothing happened.
 
 PPoossttffiixx llooookkuupp ttaabbllee ttyyppeess
 
-To find out what database types your Postfix system supports, use the "postconf
--m" command. Here is a list of database types that are often supported:
+To find out what database types your Postfix system supports, use the "ppoossttccoonnff
+--mm" command. Here is a list of database types that are often supported:
 
     bbttrreeee
         A sorted, balanced tree structure. This is available only on systems
         with support for Berkeley DB databases. Database files are created with
         the postmap(1) or postalias(1) command. The lookup table name as used
         in "btree:table" is the database file name without the ".db" suffix.
+    ccddbb
+        A read-optimized structure with no support for incremental updates.
+        Database files are created with the postmap(1) or postalias(1) command.
+        The lookup table name as used in "cdb:table" is the database file name
+        without the ".cdb" suffix. This feature is available with Postfix 2.2
+        and later.
     cciiddrr
         A table that associates values with Classless Inter-Domain Routing
         (CIDR) patterns. The table format is described in cidr_table(5).
