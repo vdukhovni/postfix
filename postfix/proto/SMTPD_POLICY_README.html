@@ -128,9 +128,14 @@ size=12345
     command.
     </p>
 
-    <li> <p> The "sasl_*" attributes specify information about how
-    the client was authenticated via SASL. </p>
- 
+    <li> <p> The "sasl_*" attributes (Postfix 2.2 and later) specify
+    information about how the client was authenticated via SASL.
+    </p>
+
+    <li> <p> The "ccert_*" attributes (Postfix 2.2 and later) specify
+    information about how the client was authenticated via TLS.
+    </p>
+
 </ul>
 
 <p> The following is specific to SMTPD delegated policy requests:
@@ -145,10 +150,6 @@ size=12345
     states where
     the Postfix SMTP server makes an OK/REJECT/HOLD/etc. decision.
     </p>
-
-    <li> <p> The "ccert_*" attributes specify information from the
-    client TLS certificate. This information is presented only
-    if the client certificate was successfully verified. </p>
 
 </ul>
 

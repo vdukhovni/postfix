@@ -225,6 +225,8 @@ $readme_directory/ADDRESS_VERIFICATION_README:f:root:-:644
 $readme_directory/BACKSCATTER_README:f:root:-:644
 $readme_directory/BASIC_CONFIGURATION_README:f:root:-:644
 $readme_directory/BUILTIN_FILTER_README:f:root:-:644
+$readme_directory/CDB_README:f:root:-:644
+$readme_directory/CONNECTION_CACHE_README:f:root:-:644
 $readme_directory/CONTENT_INSPECTION_README:f:root:-:644
 $readme_directory/DATABASE_README:f:root:-:644
 $readme_directory/DB_README:f:root:-:644
@@ -270,6 +272,8 @@ $html_directory/ADDRESS_VERIFICATION_README.html:f:root:-:644
 $html_directory/BACKSCATTER_README.html:f:root:-:644
 $html_directory/BASIC_CONFIGURATION_README.html:f:root:-:644
 $html_directory/BUILTIN_FILTER_README.html:f:root:-:644
+$html_directory/CDB_README.html:f:root:-:644
+$html_directory/CONNECTION_CACHE_README.html:f:root:-:644
 $html_directory/CONTENT_INSPECTION_README.html:f:root:-:644
 $html_directory/CYRUS_README.html:f:root:-:644
 $html_directory/DATABASE_README.html:f:root:-:644

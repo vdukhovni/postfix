@@ -10475,6 +10475,11 @@ Apologies for any names omitted.
 	delete the right entry. Problem found by Victor Duchovni,
 	more problems found by Wietse. File: tls/tls_scache.c.
 
+20050314
+
+	Portability: Berkeley DB changed API from version 2.5 to
+	2.6. Rob Foehl. File: util/dict_db.c.
+
 Open problems:
 
 	Med: disable header address rewriting after XCLIENT?
