@@ -1,4 +1,4 @@
-Incompatible changes with snapshot 19991122
+Incompatible changes with snapshot 19991123
 ===========================================
 
 - In an SMTPD access map, an all-numeric right-hand side now means
@@ -13,7 +13,7 @@ main.cf.
 SMTPD access control tables. Use the permit_recipient_map feature
 instead. The loss is compensated for (see below).
 
-Major changes with snapshot 19991122
+Major changes with snapshot 19991123
 ====================================
 
 - It is now relatively safe to configure 550 status codes for the
@@ -36,7 +36,7 @@ a non-relaying host could use the following to reject mail for
 non-existent local users and for all non-local destinations.
 
     smtpd_recipient_restrictions =
-	reject_unknown_sender
+	reject_unknown_sender_domain
 	permit_recipient_map unix:passwd.byname
 	permit_recipient_map hash:/etc/postfix/canonical
 	permit_recipient_map hash:/etc/postfix/virtual

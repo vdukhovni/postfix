@@ -238,7 +238,7 @@ test -f $CONFIG_DIRECTORY/main.cf || {
 
 # Save settings.
 
-postconf -e \
+bin/postconf -e \
     "daemon_directory = $daemon_directory" \
     "command_directory = $command_directory" \
     "queue_directory = $queue_directory" \

@@ -3287,3 +3287,7 @@ Apologies for any names omitted.
 	Bugfix: the LDAP client did not properly escape special
 	characters in lookup keys (patch by John Hensley).
 	File: util/dict_ldap.c.
+
+19991122
+
+	Bugfix: missing absolute path in INSTALL.sh broke fresh install.
