@@ -1,62 +1,67 @@
-Enabling the Postfix fast ETRN service
-======================================
+The Postfix fast ETRN service
+=============================
 
-Postfix "fast ETRN" speeds up deliveries by looking only at mail
-that is queued for a given destination site. Postfix ordinary ETRN
-attempts to deliver all queued mail. Postfix fast ETRN service is
-available only for destinations that the local MTA is willing to
-relay mail to.
+The SMTP ETRN command was designed for sites that have intermittent
+Internet connectivity. With ETRN, a site can tell the mail server
+of its network provider "Please deliver all my mail now".
 
-But first you need to configure Postfix to provide fast ETRN service.
+Postfix versions before 20001001 implemented the ETRN command in
+a lame manner: they would attempt to deliver all queued mail.  This
+is slow on mail servers that queue mail for many customers.
 
-- Execute "postfix stop"
+The Postfix "fast ETRN" service speeds up deliveries by looking
+only at mail that is queued for a given destination site. Postfix
+"slow ETRN" is still used as a fall-back method.
 
-- Execute "make install" if you are running an older Postfix version
-  that does not have "fast flush" logfile support,
+The "fast ETRN" service uses the new "fast flush" service which
+maintains per-destination logfiles of queued mail.  The "fast flush"
+service is enabled by default:
 
-- Add a "flush" service entry to /etc/postfix/master.cf if you were
-  running an older Postfix version:
+    fast_flush_domains = $relay_domains
 
-	flush	  unix	-	-	n	-	0	flush
+By default, Postfix "fast ETRN" service is available only for
+destinations that the local MTA is willing to relay mail to.  
 
-  That is, the same line as bounce, except that bounce is replaced
-  by flush, twice.
+To disable the "fast ETRN" service, specify an empty string:
 
-- Execute "postconf hash_queue_names" and verify that the output
-  includes at the very least the "active", "bounce", "defer", and
-  "flush" queue names.  If any queue name is missing, edit the
-  main.cf file and either delete the explicit hash_queue_names
-  entry, or add the missing queue names.
+    fast_flush_domains = 
 
-- Execute "postconf hash_queue_names" again, just to be sure.
+The syntax of the fast_flush_domains parameter is exactly the
+same as for the relay_domains parameter: a list of domain names,
+files with domain names, or maptype:mapname lookup tables where
+the right-hand side is ignored.
 
-- Edit the main.cf file and specify
+For destinations that cannot have "fast ETRN" service, Postfix
+falls back to the old "slow ETRN" service that attempts to deliver
+all queued mail.
 
-    enable_fast_flush = yes
+By default, every site can issue ETRN commands to your SMTP
+server:
 
-- Execute "postconf enable_fast_flush", to verify that the fast
-  flush feature is indeed enabled.
+    smtpd_etrn_restrictions = 
 
-- Execute "postfix start"
+To test the "fast ETRN" service, telnet to the Postfix SMTP server
+from a client that is allowed to execute ETRN commands, and type:
 
-- From a client that is allowed to execute ETRN commands, connect
-  to the Postfix SMTP server and type:
+    helo my.client.name
+    etrn some.customer.domain
 
-	helo my.client.name
-	etrn some.customer.domain
+where "some.customer.domain" is the name of a domain that your mail
+server is willing to relay mail to.
 
-  where "some.customer.domain" is the name of a domain that your
-  mail server is willing to relay mail to.
+In the maillog file, you should see something logged like:
 
-  In the maillog file, you should see something logged like:
+    created fast ETRN cache for some.customer.domain
 
-	created fast ETRN cache for some.customer.domain
+It will then do a "slow ETRN" once. The next time the same ETRN
+command is given, Postfix will do "fast ETRN".
 
-  If Postfix logs that it cannot create a fast ETRN cache then
-  execute the command "postfix check". You probably skipped some
-  of the above instructions so that the necessary directories were
-  not created.
+If Postfix logs that it cannot create a fast ETRN cache for
+"some.customer.domain", then execute the command "postfix check".
+You probably skipped some installation instructions so that the
+necessary directories were not created.
 
-  If Postfix logs that it refuses fast ETRN service, then either
-  "some.customer.domain" does not exist, or it is not listed as a
-  valid relay destination. Check your relay_domains setting.
+If Postfix logs that it uses slow ETRN service for "some.customer.domain",
+instead of creating a fast ETRN cache, then either "some.customer.domain"
+was not found in the DNS, or it was not listed as a valid fast ETRN
+destination.  Check your fast_flush_domains or relay_domains settings.

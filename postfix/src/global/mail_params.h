@@ -1067,9 +1067,9 @@ extern char *var_filter_xport;
  /*
   * Fast flush service support.
   */
-#define VAR_ENABLE_FFLUSH		"enable_fast_flush"
-#define DEF_ENABLE_FFLUSH		0
-extern bool var_enable_fflush;
+#define VAR_FFLUSH_DOMAINS		"fast_flush_domains"
+#define DEF_FFLUSH_DOMAINS		"$relay_domains"
+extern char *var_fast_flush_domains;
 
 /* LICENSE
 /* .ad

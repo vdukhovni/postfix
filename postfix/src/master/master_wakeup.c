@@ -124,7 +124,7 @@ void    master_wakeup_init(MASTER_SERV *serv)
 {
     char   *myname = "master_wakeup_init";
 
-    if (serv->wakeup_time == 0)
+    if (serv->wakeup_time == 0 || (serv->flags & MASTER_FLAG_CONDWAKE))
 	return;
     if (msg_verbose)
 	msg_info("%s: service %s time %d",

@@ -185,8 +185,8 @@
 /* .PP
 /*	smtpd_check_etrn_cache_policy_ok() returns "true" if it is OK to
 /*	create a fast ETRN cache file for the specified destination.
-/*	Currently, the hard-coded policy is that the local MTA must be
-/*	is willing to relay mail to that destination.
+/*	The default policy ($smtpd_fast_flush_domains) is that the local MTA
+/*	must be willing to relay mail to that destination.
 /*
 /*	smtpd_check_size() checks if a message with the given size can
 /*	be received (zero means that the message size is unknown).  The
@@ -328,6 +328,7 @@ static MAPS *relocated_maps;
   */
 static DOMAIN_LIST *relay_domains;
 static NAMADR_LIST *mynetworks;
+static DOMAIN_LIST *fast_flush_domains;
 
  /*
   * Pre-parsed restriction lists.
@@ -453,6 +454,7 @@ void    smtpd_check_init(void)
      */
     mynetworks = namadr_list_init(var_mynetworks);
     relay_domains = domain_list_init(var_relay_domains);
+    fast_flush_domains = domain_list_init(var_fast_flush_domains);
 
     /*
      * Pre-parse and pre-open the recipient maps.
@@ -1932,16 +1934,27 @@ int     smtpd_check_etrn_cache_policy_ok(SMTPD_STATE *unused_state, char *domain
 {
 
     /*
-     * The domain name must be an authorized relay destination.
+     * Fast ETRN cache files are created on demand. Anything else would make
+     * the feature unusable.  However, it should not be possible that some
+     * network vandal abuses this feature to create lots of bogus fast ETRN
+     * cache files.
+     * 
+     * By default, Postfix accepts ETRN commands from everywhere, but will
+     * create fast ETRN cache files only for destinations that Postfix is
+     * willing to relay mail to.
      */
-    if (domain_list_match(relay_domains, domain) == 0)
-	return (0);
 
     /*
      * The domain name must exist.
      */
     if (dns_lookup_types(domain, 0, (DNS_RR **) 0, (VSTRING *) 0,
 			 (VSTRING *) 0, T_A, T_MX, 0) != DNS_OK)
+	return (0);
+
+    /*
+     * The domain name must be an authorized relay destination.
+     */
+    if (domain_list_match(fast_flush_domains, domain) == 0)
 	return (0);
 
     /*

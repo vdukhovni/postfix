@@ -323,7 +323,7 @@ DELIVER_REQUEST *deliver_request_read(VSTREAM *stream)
      * Make sure the mail flush dupfilter sees no false positive if we're
      * repeatedly delivering the same message.
      */
-    if (var_enable_fflush)
+    if (*var_fast_flush_domains)
 	mail_flush_append_init();
 
     return (request);

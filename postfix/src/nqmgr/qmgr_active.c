@@ -232,7 +232,7 @@ void    qmgr_active_feed(QMGR_SCAN *scan_info, const char *queue_id)
 	 * Make sure the mail flush dupfilter sees no false positive if we're
 	 * repeatedly trying to deliver the same message.
 	 */
-	else if (var_enable_fflush)
+	else if (*var_fast_flush_domains)
 	    mail_flush_append_init();
     }
 }

@@ -97,15 +97,6 @@
 /*	List of domain or network patterns. When a remote host matches
 /*	a pattern, increase the verbose logging level by the amount
 /*	specified in the \fBdebug_peer_level\fR parameter.
-/* .IP \fBenable_fast_flush\fR
-/*	Enable the "fast flush" cache for improved ETRN performance.
-/*	By default, Postfix attempts to deliver all messages in the queue
-/*	after receiving an ETRN command.
-/*	The "fast flush" cache keeps a record of what mail is queued up for
-/*	specific destinations.
-/*	Currently, "fast flush" support is available only for destinations
-/*	that the local MTA is willing to relay mail to (i.e. the policy
-/*	is hard coded).
 /* .IP \fBerror_notice_recipient\fR
 /*	Recipient of protocol/policy/resource/software error notices.
 /* .IP \fBhopcount_limit\fR
@@ -160,6 +151,18 @@
 /*	Limit the number of times a client can issue a junk command
 /*	such as NOOP, VRFY, ETRN or RSET in one SMTP session before
 /*	it is penalized with tarpit delays.
+/* .SH "ETRN controls"
+/* .ad
+/* .fi
+/* .IP \fBsmtpd_etrn_restrictions\fR
+/*	Restrict what domain names can be used in \fBETRN\fR commands,
+/*	and what clients may issue \fBETRN\fR commands.
+/* .IP \fBfast_flush_domains\fR
+/*	The destinations that this system is willing to provide "fast ETRN"
+/*	service for.  By default, "fast ETRN" service is available only
+/*	for destinations that the local system is willing to relay mail to.
+/*	For other destinations, Postfix simply attempts to deliver all mail
+/*	in the queue.
 /* .SH "UCE control restrictions"
 /* .ad
 /* .fi
@@ -175,9 +178,6 @@
 /*	Restrict what sender addresses are allowed in \fBMAIL FROM\fR commands.
 /* .IP \fBsmtpd_recipient_restrictions\fR
 /*	Restrict what recipient addresses are allowed in \fBRCPT TO\fR commands.
-/* .IP \fBsmtpd_etrn_restrictions\fR
-/*	Restrict what domain names can be used in \fBETRN\fR commands,
-/*	and what clients may issue \fBETRN\fR commands.
 /* .IP \fBallow_untrusted_routing\fR
 /*	Allow untrusted clients to specify addresses with sender-specified
 /*	routing.  Enabling this opens up nasty relay loopholes involving
@@ -307,7 +307,6 @@
   */
 int     var_smtpd_rcpt_limit;
 int     var_smtpd_tmout;
-char   *var_relay_domains;
 int     var_smtpd_soft_erlim;
 int     var_smtpd_hard_erlim;
 int     var_queue_minfree;		/* XXX use off_t */
@@ -350,6 +349,7 @@ bool    var_smtpd_sasl_enable;
 char   *var_smtpd_sasl_opts;
 char   *var_smtpd_sasl_realm;
 char   *var_filter_xport;
+char   *var_fast_flush_domains;
 
  /*
   * Global state, for stand-alone mode queue file cleanup. When this is
@@ -1056,7 +1056,6 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 
 static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 {
-    VSTREAM *fp;
     char   *err;
 
     /*
@@ -1099,7 +1098,7 @@ static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
-    if (!var_enable_fflush) {
+    if (!*var_fast_flush_domains) {
 	mail_flush_deferred();
 	smtpd_chat_reply(state, "250 Queuing started");
 	return (0);
@@ -1116,10 +1115,9 @@ static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    } else {
 		msg_info("created fast ETRN cache for %s (client=%s)",
 			 argv[1].strval, state->namaddr);
-		vstream_fclose(fp);
 	    }
 	} else {
-	    msg_info("refused fast ETRN service for %s (client=%s)",
+	    msg_info("using slow ETRN service for %s (client=%s)",
 		     argv[1].strval, state->namaddr);
 	}
 	/* Fallthrough. */
@@ -1462,7 +1460,6 @@ int     main(int argc, char **argv)
 	0,
     };
     static CONFIG_STR_TABLE str_table[] = {
-	VAR_RELAY_DOMAINS, DEF_RELAY_DOMAINS, &var_relay_domains, 0, 0,
 	VAR_SMTPD_BANNER, DEF_SMTPD_BANNER, &var_smtpd_banner, 1, 0,
 	VAR_DEBUG_PEER_LIST, DEF_DEBUG_PEER_LIST, &var_debug_peer_list, 0, 0,
 	VAR_NOTIFY_CLASSES, DEF_NOTIFY_CLASSES, &var_notify_classes, 0, 0,

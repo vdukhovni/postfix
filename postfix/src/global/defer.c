@@ -157,7 +157,7 @@ int     vdefer_append(int flags, const char *id, const char *recipient,
     /*
      * Notify the fast flush service.
      */
-    if (var_enable_fflush
+    if (*var_fast_flush_domains
 	&& (rcpt_domain = strrchr(recipient, '@')) != 0
 	&& *++rcpt_domain != 0)
 	mail_flush_append(rcpt_domain, id);

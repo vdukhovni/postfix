@@ -111,15 +111,6 @@ pattern in the \fBdebug_peer_list\fR parameter.
 List of domain or network patterns. When a remote host matches
 a pattern, increase the verbose logging level by the amount
 specified in the \fBdebug_peer_level\fR parameter.
-.IP \fBenable_fast_flush\fR
-Enable the "fast flush" cache for improved ETRN performance.
-By default, Postfix attempts to deliver all messages in the queue
-after receiving an ETRN command.
-The "fast flush" cache keeps a record of what mail is queued up for
-specific destinations.
-Currently, "fast flush" support is available only for destinations
-that the local MTA is willing to relay mail to (i.e. the policy
-is hard coded).
 .IP \fBerror_notice_recipient\fR
 Recipient of protocol/policy/resource/software error notices.
 .IP \fBhopcount_limit\fR
@@ -174,6 +165,18 @@ Disconnect after a client has made this number of errors.
 Limit the number of times a client can issue a junk command
 such as NOOP, VRFY, ETRN or RSET in one SMTP session before
 it is penalized with tarpit delays.
+.SH "ETRN controls"
+.ad
+.fi
+.IP \fBsmtpd_etrn_restrictions\fR
+Restrict what domain names can be used in \fBETRN\fR commands,
+and what clients may issue \fBETRN\fR commands.
+.IP \fBfast_flush_domains\fR
+The destinations that this system is willing to provide "fast ETRN"
+service for.  By default, "fast ETRN" service is available only
+for destinations that the local system is willing to relay mail to.
+For other destinations, Postfix simply attempts to deliver all mail
+in the queue.
 .SH "UCE control restrictions"
 .ad
 .fi
@@ -189,9 +192,6 @@ Restrict what client hostnames are allowed in \fBHELO\fR and
 Restrict what sender addresses are allowed in \fBMAIL FROM\fR commands.
 .IP \fBsmtpd_recipient_restrictions\fR
 Restrict what recipient addresses are allowed in \fBRCPT TO\fR commands.
-.IP \fBsmtpd_etrn_restrictions\fR
-Restrict what domain names can be used in \fBETRN\fR commands,
-and what clients may issue \fBETRN\fR commands.
 .IP \fBallow_untrusted_routing\fR
 Allow untrusted clients to specify addresses with sender-specified
 routing.  Enabling this opens up nasty relay loopholes involving

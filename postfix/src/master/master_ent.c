@@ -340,6 +340,13 @@ MASTER_SERV *get_master_ent()
     serv->wakeup_time = get_int_ent(&bufp, "wakeup_time", "0", 0);
 
     /*
+     * Find out if the wakeup time is conditional, i.e., wakeup triggers
+     * should not be sent until the service has actually been used.
+     */
+    if (serv->wakeup_time > 0 && bufp[*bufp ? -2 : -1] == '?')
+	serv->flags |= MASTER_FLAG_CONDWAKE;
+
+    /*
      * Concurrency limit. Zero means no limit.
      */
     vstring_sprintf(junk, "%d", var_proc_limit);

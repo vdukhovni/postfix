@@ -8,6 +8,8 @@
 /*
 /*	int	mail_flush_deferred()
 /*
+/*	int	mail_flush_purge()
+/*
 /*	int	mail_flush_enable(site)
 /*	const char *site;
 /*
@@ -25,7 +27,7 @@
 /*	mail_flush_deferred() triggers delivery of all deferred
 /*	or incoming mail.
 /*
-/*	The following services are available only for sites have a
+/*	The following services are available only for sites that have a
 /*	"fast flush" logfile. These files list all mail that is queued
 /*	for a given site, and are created on demand when, for example,
 /*	an eligible SMTP client issues the ETRN command.
@@ -48,6 +50,11 @@
 /*	the application opens a new queue file, to prevent false
 /*	positives with the duplicate filter when repeated attempts
 /*	are made to deliver the same message.
+/*
+/*	mail_flush_purge() requests the "fast flush" service to
+/*	flush all its "fast flush" logfiles. This is necessary
+/*	once a day or so, in order to prevent accumulation of
+/*	too much outdated information.
 /* DIAGNOSTICS
 /*	The result codes and their meaning are (see mail_flush(5h)):
 /* .IP MAIL_FLUSH_OK
@@ -192,6 +199,22 @@ int     mail_flush_enable(const char *site)
     status = mail_flush_clnt("%s %s", FLUSH_REQ_ENABLE, site);
     if (msg_verbose)
 	msg_info("%s: site %s status %d", myname, site, status);
+
+    return (status);
+}
+
+/* mail_flush_purge - house keeping */
+
+int     mail_flush_purge(void)
+{
+    char   *myname = "mail_flush_purge";
+    int     status;
+
+    if (msg_verbose)
+	msg_info("%s", myname);
+    status = mail_flush_clnt("%s", FLUSH_REQ_SEND);
+    if (msg_verbose)
+	msg_info("%s: status %d", myname, status);
 
     return (status);
 }

@@ -27,6 +27,18 @@ specified site.
 Arrange for the delivery of all messages that are listed in the fast
 flush logfile for the specified site.  After the logfile is processed,
 the file is truncated to length zero.
+.IP "\fBTRIGGER_REQ_WAKEUP\fR (wakeup signal from master)"
+.IP "\fBFLUSH_REQ_PURGE\fR"
+Pretend that \fBFLUSH_REQ_SEND\fR was received for all sites with
+a non-empty "fast flush" logfile, and delete empty "fast flush"
+logfiles that have not been updated in several days.  This operation
+completes in the background because it can take a noticeable
+amount of time.
+.sp
+Fast flush logfiles are truncated only after a \fBFLUSH_REQ_SEND\fR
+request, not when mail is actually delivered, and therefore can
+accumulate redundant or even outdated information. In order to
+maintain sanity, \fBFLUSH_REQ_PURGE\fR must be requested occasionally.
 .PP
 The response to the client is one of:
 .IP \fBFLUSH_STAT_OK\fR
@@ -36,12 +48,6 @@ The flush server rejected the request (bad request name, bad
 request parameter value).
 .IP \fBFLUSH_STAT_UNKNOWN\fR
 The specified site has no fast flush log.
-.PP
-Fast flush logfiles are truncated only after a flush request. In
-order to prevent fast flush logs from growing too large, and to
-prevent them from accumulating too much outdated information, the
-flush service generates a pro-active flush request once every
-every 1000 append requests. This should not impact operation.
 .SH SECURITY
 .na
 .nf
@@ -60,17 +66,6 @@ Problems and transactions are logged to \fBsyslogd\fR(8).
 In reality, this server schedules delivery of messages, regardless
 of their destination. This limitation is due to the fact that
 one queue runner has to handle mail for multiple destinations.
-.SH CONFIGURATION PARAMETERS
-.na
-.nf
-.ad
-.fi
-The following \fBmain.cf\fR parameters are especially relevant to
-this program. See the Postfix \fBmain.cf\fR file for syntax details
-and for default values. Use the \fBpostfix reload\fR command after
-a configuration change.
-.IP \fBline_length_limit\fR
-Maximal length of strings in a fast flush client request.
 .SH SEE ALSO
 .na
 .nf

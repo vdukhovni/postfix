@@ -58,7 +58,7 @@
 /*	int	var_ownreq_special;
 /*	int	var_daemon_timeout;
 /*	char	*var_syslog_facility;
-/*	int	var_enable_fflush;
+/*	char	*var_fast_flush_domains;
 /*
 /*	void	mail_params_init()
 /* DESCRIPTION
@@ -165,7 +165,8 @@ time_t  var_starttime;
 int     var_ownreq_special;
 int     var_daemon_timeout;
 char   *var_syslog_facility;
-int     var_enable_fflush;
+char   *var_relay_domains;
+char   *var_fast_flush_domains;
 
 /* check_myhostname - lookup hostname and validate */
 
@@ -276,6 +277,8 @@ void    mail_params_init()
 	VAR_DB_TYPE, DEF_DB_TYPE, &var_db_type, 1, 0,
 	VAR_HASH_QUEUE_NAMES, DEF_HASH_QUEUE_NAMES, &var_hash_queue_names, 1, 0,
 	VAR_RCPT_DELIM, DEF_RCPT_DELIM, &var_rcpt_delim, 0, 1,
+	VAR_RELAY_DOMAINS, DEF_RELAY_DOMAINS, &var_relay_domains, 0, 0,
+	VAR_FFLUSH_DOMAINS, DEF_FFLUSH_DOMAINS, &var_fast_flush_domains, 0, 0,
 	0,
     };
     static CONFIG_STR_FN_TABLE function_str_defaults_2[] = {
@@ -305,7 +308,6 @@ void    mail_params_init()
 	VAR_SOFT_BOUNCE, DEF_SOFT_BOUNCE, &var_soft_bounce,
 	VAR_OWNREQ_SPECIAL, DEF_OWNREQ_SPECIAL, &var_ownreq_special,
 	VAR_MAILTOOL_COMPAT, DEF_MAILTOOL_COMPAT, &var_mailtool_compat,
-	VAR_ENABLE_FFLUSH, DEF_ENABLE_FFLUSH, &var_enable_fflush,
 	0,
     };
 

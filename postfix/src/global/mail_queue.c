@@ -270,7 +270,7 @@ int     mail_queue_name_ok(const char *queue_name)
 {
     const char *cp;
 
-    if (strlen(queue_name) > 100)
+    if (*queue_name == 0 || strlen(queue_name) > 100)
 	return (0);
 
     for (cp = queue_name; *cp; cp++)
@@ -285,7 +285,7 @@ int     mail_queue_id_ok(const char *queue_id)
 {
     const char *cp;
 
-    if (strlen(queue_id) > 100)
+    if (*queue_id == 0 || strlen(queue_id) > 100)
 	return (0);
 
     /*

@@ -123,6 +123,10 @@ void    master_config(void)
 	 */
 	else {
 	    serv->flags &= ~MASTER_FLAG_MARK;
+	    if (entry->flags & MASTER_FLAG_CONDWAKE)
+		serv->flags |= MASTER_FLAG_CONDWAKE;
+	    else
+		serv->flags &= ~MASTER_FLAG_CONDWAKE;
 	    serv->wakeup_time = entry->wakeup_time;
 	    serv->max_proc = entry->max_proc;
 	    serv->throttle_delay = entry->throttle_delay;

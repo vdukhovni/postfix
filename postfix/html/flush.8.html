@@ -32,6 +32,23 @@ FLUSH(8)                                                 FLUSH(8)
               site.   After the logfile is processed, the file is
               truncated to length zero.
 
+       <b>TRIGGER</b><i>_</i><b>REQ</b><i>_</i><b>WAKEUP</b> (wakeup signal from master)
+
+       <b>FLUSH</b><i>_</i><b>REQ</b><i>_</i><b>PURGE</b>
+              Pretend that <b>FLUSH</b><i>_</i><b>REQ</b><i>_</i><b>SEND</b> was  received  for  all
+              sites  with  a  non-empty "fast flush" logfile, and
+              delete empty "fast flush" logfiles  that  have  not
+              been  updated in several days.  This operation com-
+              pletes in the background  because  it  can  take  a
+              noticeable amount of time.
+
+              Fast  flush  logfiles  are  truncated  only after a
+              <b>FLUSH</b><i>_</i><b>REQ</b><i>_</i><b>SEND</b> request, not when mail  is  actually
+              delivered,  and  therefore can accumulate redundant
+              or even outdated information. In order to  maintain
+              sanity, <b>FLUSH</b><i>_</i><b>REQ</b><i>_</i><b>PURGE</b> must be requested occasion-
+              ally.
+
        The response to the client is one of:
 
        <b>FLUSH</b><i>_</i><b>STAT</b><i>_</i><b>OK</b>
@@ -41,24 +58,7 @@ FLUSH(8)                                                 FLUSH(8)
               The flush server rejected the request (bad  request
               name, bad request parameter value).
 
-       <b>FLUSH</b><i>_</i><b>STAT</b><i>_</i><b>UNKNOWN</b>
-              The specified site has no fast flush log.
 
-       Fast  flush  logfiles  are  truncated  only  after a flush
-       request. In order to prevent fast flush logs from  growing
-       too  large, and to prevent them from accumulating too much
-       outdated information, the flush service generates  a  pro-
-       active   flush   request  once  every  every  1000  append
-       requests. This should not impact operation.
-
-<b>SECURITY</b>
-       The fast flush server is not security-sensitive.  It  does
-       not  talk  to  the  network, and it does not talk to local
-       users.  The fast flush server can run  chrooted  at  fixed
-       low privilege.
-
-<b>DIAGNOSTICS</b>
-       Problems and transactions are logged to <b>syslogd</b>(8).
 
 
 
@@ -71,21 +71,23 @@ FLUSH(8)                                                 FLUSH(8)
 FLUSH(8)                                                 FLUSH(8)
 
 
+       <b>FLUSH</b><i>_</i><b>STAT</b><i>_</i><b>UNKNOWN</b>
+              The specified site has no fast flush log.
+
+<b>SECURITY</b>
+       The  fast  flush server is not security-sensitive. It does
+       not talk to the network, and it does  not  talk  to  local
+       users.   The  fast  flush server can run chrooted at fixed
+       low privilege.
+
+<b>DIAGNOSTICS</b>
+       Problems and transactions are logged to <b>syslogd</b>(8).
+
 <b>BUGS</b>
-       In  reality,  this  server schedules delivery of messages,
+       In reality, this server schedules  delivery  of  messages,
        regardless of their destination. This limitation is due to
        the fact that one queue runner has to handle mail for mul-
        tiple destinations.
-
-<b>CONFIGURATION</b> <b>PARAMETERS</b>
-       The following <b>main.cf</b> parameters are  especially  relevant
-       to  this  program. See the Postfix <b>main.cf</b> file for syntax
-       details and for default values.  Use  the  <b>postfix</b>  <b>reload</b>
-       command after a configuration change.
-
-       <b>line</b><i>_</i><b>length</b><i>_</i><b>limit</b>
-              Maximal  length  of  strings in a fast flush client
-              request.
 
 <b>SEE</b> <b>ALSO</b>
        <a href="smtpd.8.html">smtpd(8)</a> Postfix SMTP server
@@ -93,7 +95,7 @@ FLUSH(8)                                                 FLUSH(8)
        syslogd(8) system logging
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>
@@ -101,8 +103,6 @@ FLUSH(8)                                                 FLUSH(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
 
 
 

@@ -198,6 +198,8 @@ void    master_spawn(MASTER_SERV *serv)
 	/*
 	 * Parent. Fill in a process member data structure and set up links
 	 * between child and process. Say this process has become available.
+	 * If this service has a wakeup timer that is turned on only when the
+	 * service is actually used, turn on the wakeup timer.
 	 */
     default:
 	if (msg_verbose)
@@ -211,6 +213,12 @@ void    master_spawn(MASTER_SERV *serv)
 		      sizeof(pid), (char *) proc);
 	serv->total_proc++;
 	master_avail_more(serv, proc);
+	if (serv->flags & MASTER_FLAG_CONDWAKE) {
+	    serv->flags &= ~MASTER_FLAG_CONDWAKE;
+	    master_wakeup_init(serv);
+	    if (msg_verbose)
+		msg_info("start conditional timer for %s", serv->name);
+	}
 	return;
     }
 }

@@ -29,8 +29,10 @@
 # chroot environment for your type of machine.
 #
 # Wakeup time: automatically wake up the named service after the
-# specified number of seconds.  Specify 0 for no wakeup. Presently,
-# only the local pickup and queue manager daemons need a wakeup timer.
+# specified number of seconds. A ? at the end of the wakeup time
+# field requests that wake up events be sent only to services that
+# are actually being used.  Specify 0 for no wakeup. Presently, only
+# the pickup, queue manager and flush daemons need a wakeup timer.
 #
 # Max procs: the maximum number of processes that may execute this
 # service simultaneously. Default is to use a globally configurable
@@ -73,7 +75,7 @@ qmgr	  fifo	n	-	n	300	1	qmgr
 rewrite	  unix	-	-	n	-	-	trivial-rewrite
 bounce	  unix	-	-	n	-	0	bounce
 defer	  unix	-	-	n	-	0	bounce
-flush	  unix	-	-	n	-	0	flush
+flush	  unix	-	-	n	18000?	0	flush
 smtp	  unix	-	-	n	-	-	smtp
 showq     unix	n	-	n	-	-	showq
 error     unix	-	-	n	-	-	error

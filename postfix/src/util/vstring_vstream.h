@@ -24,7 +24,6 @@ extern int vstring_get_nonl(VSTRING *, VSTREAM *);
 extern int vstring_get_null(VSTRING *, VSTREAM *);
 extern int vstring_get_bound(VSTRING *, VSTREAM *, int);
 extern int vstring_get_nonl_bound(VSTRING *, VSTREAM *, int);
-extern int vstring_get_null_bound(VSTRING *, VSTREAM *, int);
 
  /*
   * Backwards compatibility for code that still uses the vstring_fgets()
@@ -40,8 +39,6 @@ extern int vstring_get_null_bound(VSTRING *, VSTREAM *, int);
 	(vstring_get_bound((s), (p), (l)) == VSTREAM_EOF ? 0 : (s))
 #define vstring_fgets_nonl_bound(s, p, l) \
 	(vstring_get_nonl_bound((s), (p), (l)) == VSTREAM_EOF ? 0 : (s))
-#define vstring_fgets_null_bound(s, p, l) \
-	(vstring_get_null_bound((s), (p), (l)) == VSTREAM_EOF ? 0 : (s))
 
 /* LICENSE
 /* .ad

@@ -124,7 +124,7 @@
 /*	delivery problems are sent to, unless the message contains an
 /*	\fBErrors-To:\fR message header.
 /* .IP \fB-q\fR
-/*	Flush the mail queue. This is implemented by kicking the
+/*	Attempt to deliver all queued mail. This is implemented by kicking the
 /*	\fBqmgr\fR(8) daemon.
 /* .IP "\fB-q\fIinterval\fR (ignored)"
 /*	The interval between queue runs. Use the \fBqueue_run_delay\fR
@@ -133,8 +133,8 @@
 /*	Schedule immediate delivery of all mail that is queued for the named
 /*	\fIsite\fR. Depending on the destination, this uses "fast flush"
 /*	service, or it has the same effect as \fBsendmail -q\fR.
-/*	This functionality is implemented by connecting to the local SMTP
-/*	server. See smtpd(8) for more information about the "fast flush"
+/*	This is implemented by connecting to the local SMTP server.
+/*	See \fBsmtpd\fR(8) for more information about the "fast flush"
 /*	service.
 /* .IP \fB-qS\fIsite\fR
 /*	This command is not implemented. Use the slower \fBsendmail -q\fR
@@ -192,6 +192,12 @@
 /*	List of domain or network patterns. When a remote host matches
 /*	a pattern, increase the verbose logging level by the amount
 /*	specified in the \fBdebug_peer_level\fR parameter.
+/* .IP \fBfast_flush_domains\fR
+/*	List of domains that will receive "fast flush" service (default: all
+/*	domains that this system is willing to relay mail to). This greatly
+/*	improves the performance of the SMTP \fBETRN\fR request, and of the
+/*	\fBsendmail -qR\fR command. For domains not in the list, Postfix simply
+/*	attempts to deliver all queued mail.
 /* .IP \fBfork_attempts\fR
 /*	Number of attempts to \fBfork\fR() a process before giving up.
 /* .IP \fBfork_delay\fR
@@ -562,7 +568,7 @@ static void flush_queue(void)
 
 /* chat - send command and examine reply */
 
-static void chat(VSTREAM *fp, VSTRING *buf, const char *fmt,...)
+static void chat(VSTREAM * fp, VSTRING * buf, const char *fmt,...)
 {
     va_list ap;
 
