@@ -109,7 +109,15 @@
 typedef struct {
     DICT    dict;			/* generic members */
     DB     *db;				/* open db file */
+#if DB_VERSION_MAJOR > 1
+    DBC    *cursor;			/* dict_db_sequence() */
+#endif
+    VSTRING *key_buf;			/* key result */
+    VSTRING *val_buf;			/* value result */
 } DICT_DB;
+
+#define SCOPY(buf, data, size) \
+    vstring_str(vstring_strncpy(buf ? buf : (buf = vstring_alloc(10)), data, size))
 
  /*
   * You can override the default dict_db_cache_size setting before calling
@@ -164,7 +172,6 @@ static const char *dict_db_lookup(DICT *dict, const char *name)
     DBT     db_key;
     DBT     db_value;
     int     status;
-    static VSTRING *buf;
     const char *result = 0;
 
     /*
@@ -195,7 +202,7 @@ static const char *dict_db_lookup(DICT *dict, const char *name)
 	    msg_fatal("error reading %s: %m", dict_db->dict.name);
 	if (status == 0) {
 	    dict->flags &= ~DICT_FLAG_TRY0NULL;
-	    result = db_value.data;
+	    result = SCOPY(dict_db->val_buf, db_value.data, db_value.size);
 	}
     }
 
@@ -209,11 +216,8 @@ static const char *dict_db_lookup(DICT *dict, const char *name)
 	if ((status = DICT_DB_GET(db, &db_key, &db_value, 0)) < 0)
 	    msg_fatal("error reading %s: %m", dict_db->dict.name);
 	if (status == 0) {
-	    if (buf == 0)
-		buf = vstring_alloc(10);
-	    vstring_strncpy(buf, db_value.data, db_value.size);
 	    dict->flags &= ~DICT_FLAG_TRY1NULL;
-	    result = vstring_str(buf);
+	    result = SCOPY(dict_db->val_buf, db_value.data, db_value.size);
 	}
     }
 
@@ -373,9 +377,6 @@ static int dict_db_delete(DICT *dict, const char *name)
 static int dict_db_sequence(DICT *dict, int function,
 			            const char **key, const char **value)
 {
-#if DB_VERSION_MAJOR > 1
-    msg_fatal("dict_db_sequence - operation is to be implemented");
-#else
     char   *myname = "dict_db_sequence";
     DICT_DB *dict_db = (DICT_DB *) dict;
     DB     *db = dict_db->db;
@@ -383,8 +384,64 @@ static int dict_db_sequence(DICT *dict, int function,
     DBT     db_value;
     int     status = 0;
     int     db_function;
-    static VSTRING *key_buf;
-    static VSTRING *value_buf;
+
+#if DB_VERSION_MAJOR > 1
+
+    /*
+     * Initialize.
+     */
+    dict_errno = 0;
+    memset(&db_key, 0, sizeof(db_key));
+    memset(&db_value, 0, sizeof(db_value));
+    if (dict_db->cursor == 0)
+	db->cursor(db, NULL, &(dict_db->cursor), 0);
+
+    /*
+     * Determine the function.
+     */
+    switch (function) {
+    case DICT_SEQ_FUN_FIRST:
+	db_function = DB_FIRST;
+	break;
+    case DICT_SEQ_FUN_NEXT:
+	db_function = DB_NEXT;
+	break;
+    default:
+	msg_panic("%s: invalid function %d", myname, function);
+    }
+
+    /*
+     * Acquire a shared lock.
+     */
+    if ((dict->flags & DICT_FLAG_LOCK)
+	&& myflock(dict->lock_fd, INTERNAL_LOCK, MYFLOCK_OP_SHARED) < 0)
+	msg_fatal("%s: lock dictionary: %m", dict_db->dict.name);
+
+    /*
+     * Database lookup.
+     */
+    status =
+	dict_db->cursor->c_get(dict_db->cursor, &db_key, &db_value, DB_NEXT);
+    if (status != 0 && status != DB_NOTFOUND)
+	msg_fatal("error [%d] seeking %s: %m", status, dict_db->dict.name);
+
+    /*
+     * Release the shared lock.
+     */
+    if ((dict->flags & DICT_FLAG_LOCK)
+	&& myflock(dict->lock_fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
+	msg_fatal("%s: unlock dictionary: %m", dict_db->dict.name);
+
+    if (status == 0) {
+
+	/*
+	 * Copy the result so it is guaranteed null terminated.
+	 */
+	*key = SCOPY(dict_db->key_buf, db_key.data, db_key.size);
+	*value = SCOPY(dict_db->val_buf, db_value.data, db_value.size);
+    }
+    return (status);
+#else
 
     /*
      * determine the function
@@ -401,17 +458,17 @@ static int dict_db_sequence(DICT *dict, int function,
     }
 
     /*
-     * Acquire an exclusive lock.
+     * Acquire a shared lock.
      */
     if ((dict->flags & DICT_FLAG_LOCK)
-	&& myflock(dict->lock_fd, INTERNAL_LOCK, MYFLOCK_OP_EXCLUSIVE) < 0)
+	&& myflock(dict->lock_fd, INTERNAL_LOCK, MYFLOCK_OP_SHARED) < 0)
 	msg_fatal("%s: lock dictionary: %m", dict_db->dict.name);
 
     if ((status = db->seq(db, &db_key, &db_value, db_function)) < 0)
 	msg_fatal("error seeking %s: %m", dict_db->dict.name);
 
     /*
-     * Release the exclusive lock.
+     * Release the shared lock.
      */
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->lock_fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
@@ -420,25 +477,10 @@ static int dict_db_sequence(DICT *dict, int function,
     if (status == 0) {
 
 	/*
-	 * See if this DB file was written with one null byte appended to key
-	 * and value or not.
+	 * Copy the result so that it is guaranteed null terminated.
 	 */
-	if (((char *) db_key.data)[db_key.size] == 0) {
-	    *key = db_key.data;
-	} else {
-	    if (key_buf == 0)
-		key_buf = vstring_alloc(10);
-	    vstring_strncpy(key_buf, db_key.data, db_key.size);
-	    *key = vstring_str(key_buf);
-	}
-	if (((char *) db_value.data)[db_value.size] == 0) {
-	    *value = db_value.data;
-	} else {
-	    if (value_buf == 0)
-		value_buf = vstring_alloc(10);
-	    vstring_strncpy(value_buf, db_value.data, db_value.size);
-	    *value = vstring_str(value_buf);
-	}
+	*key = SCOPY(dict_db->key_buf, db_key.data, db_key.size);
+	*value = SCOPY(dict_db->val_buf, db_value.data, db_value.size);
     }
     return status;
 #endif
@@ -450,10 +492,18 @@ static void dict_db_close(DICT *dict)
 {
     DICT_DB *dict_db = (DICT_DB *) dict;
 
+#if DB_VERSION_MAJOR > 1
+    if (dict_db->cursor)
+	dict_db->cursor->c_close(dict_db->cursor);
+#endif
     if (DICT_DB_SYNC(dict_db->db, 0) < 0)
 	msg_fatal("flush database %s: %m", dict_db->dict.name);
     if (DICT_DB_CLOSE(dict_db->db) < 0)
 	msg_fatal("close database %s: %m", dict_db->dict.name);
+    if (dict_db->key_buf)
+	vstring_free(dict_db->key_buf);
+    if (dict_db->val_buf)
+	vstring_free(dict_db->val_buf);
     dict_free(dict);
 }
 
@@ -612,6 +662,12 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
     if ((dict_flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
 	dict_db->dict.flags |= (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL);
     dict_db->db = db;
+#if DB_VERSION_MAJOR > 1
+    dict_db->cursor = 0;
+#endif
+    dict_db->key_buf = 0;
+    dict_db->val_buf = 0;
+
     myfree(db_path);
     return (DICT_DEBUG (&dict_db->dict));
 }

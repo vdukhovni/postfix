@@ -2108,7 +2108,7 @@ extern char *var_remote_rwr_domain;
 #define VAR_LOC_RWR_CLIENTS		"local_header_rewrite_clients"
 #ifdef USE_TLS
 #define DEF_LOC_RWR_CLIENTS		PERMIT_MYNETWORKS " " PERMIT_SASL_AUTH \
-					" " PERMIT_TLS_CLIENT
+					" " PERMIT_TLS_CLIENTCERTS
 #else
 #define DEF_LOC_RWR_CLIENTS		PERMIT_MYNETWORKS " " PERMIT_SASL_AUTH
 #endif

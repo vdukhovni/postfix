@@ -72,6 +72,10 @@
 #define HAS_DUPLEX_PIPE
 #endif
 
+#if __FreeBSD_version >= 220000
+#define HAS_DEV_URANDOM			/* introduced in 2.1.5 */
+#endif
+
 #if __FreeBSD_version >= 300000
 #define HAS_ISSETUGID
 #endif
@@ -85,6 +89,7 @@
 
 #if OpenBSD >= 200000			/* XXX */
 #define HAS_ISSETUGID
+#define HAS_DEV_URANDOM			/* XXX probably earlier */
 #endif
 
 #if OpenBSD >= 200200			/* XXX */
@@ -101,6 +106,7 @@
 #if __NetBSD_Version__ >= 103000000	/* XXX maybe earlier */
 #undef DEF_MAILBOX_LOCK
 #define DEF_MAILBOX_LOCK "flock, dotlock"
+#define HAS_DEV_URANDOM			/* XXX probably earlier */
 #endif
 
 #if __NetBSD_Version__ >= 105000000	/* XXX maybe earlier */
@@ -592,6 +598,7 @@ extern int initgroups(const char *, int);
 #else
 # define CANT_WRITE_BEFORE_SENDING_FD
 #endif
+#define HAS_DEV_URANDOM			/* introduced in 1.1 */
 #endif
 
 #ifdef LINUX1

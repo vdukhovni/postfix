@@ -861,6 +861,13 @@ static void chat_reset(SMTPD_STATE *, int);
   */
 #define NEUTER_CHARACTERS " <>()\\\";:@"
 
+ /*
+  * Reasons for losing the client.
+  */
+#define REASON_TIMEOUT			"timeout"
+#define REASON_LOST_CONNECTION		"lost connection"
+#define REASON_ERROR_LIMIT		"too many errors"
+
 #ifdef USE_SASL_AUTH
 
  /*
@@ -2472,11 +2479,9 @@ typedef struct SMTPD_CMD {
 static SMTPD_CMD smtpd_cmd_table[] = {
     "HELO", helo_cmd, SMTPD_CMD_FLAG_LIMIT,
     "EHLO", ehlo_cmd, SMTPD_CMD_FLAG_LIMIT,
-
 #ifdef USE_SASL_AUTH
     "AUTH", smtpd_sasl_auth_cmd, 0,
 #endif
-
     "MAIL", mail_cmd, 0,
     "RCPT", rcpt_cmd, 0,
     "DATA", data_cmd, 0,
@@ -2531,14 +2536,14 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 	break;
 
     case SMTP_ERR_TIME:
-	state->reason = "timeout";
+	state->reason = REASON_TIMEOUT;
 	if (vstream_setjmp(state->client) == 0)
 	    smtpd_chat_reply(state, "421 %s Error: timeout exceeded",
 			     var_myhostname);
 	break;
 
     case SMTP_ERR_EOF:
-	state->reason = "lost connection";
+	state->reason = REASON_LOST_CONNECTION;
 	break;
 
     case 0:
@@ -2589,7 +2594,7 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 
 	for (;;) {
 	    if (state->error_count >= var_smtpd_hard_erlim) {
-		state->reason = "too many errors";
+		state->reason = REASON_ERROR_LIMIT;
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
 		smtpd_chat_reply(state, "421 %s Error: too many errors",
 				 var_myhostname);
@@ -2673,7 +2678,7 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
      */
     if (state->reason && state->where
 	&& (strcmp(state->where, SMTPD_AFTER_DOT)
-	    || strcmp(state->reason, "lost connection")))
+	    || strcmp(state->reason, REASON_LOST_CONNECTION)))
 	msg_info("%s after %s from %s[%s]",
 		 state->reason, state->where, state->name, state->addr);
 

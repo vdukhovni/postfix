@@ -201,6 +201,10 @@ int     attr_clnt_request(ATTR_CLNT *client, int send_flags,...)
 	(void) va_arg(ap, char *); \
 	(void) va_arg(ap, type); \
     }
+#define SKIP_ARG2(ap, t1, t2) { \
+	SKIP_ARG(ap, t1); \
+	(void) va_arg(ap, t2); \
+    }
 
     for (;;) {
 	errno = 0;
@@ -217,6 +221,9 @@ int     attr_clnt_request(ATTR_CLNT *client, int send_flags,...)
 		    switch (type) {
 		    case ATTR_TYPE_STR:
 			SKIP_ARG(ap, char *);
+			break;
+		    case ATTR_TYPE_DATA:
+			SKIP_ARG2(ap, char *, int);
 			break;
 		    case ATTR_TYPE_NUM:
 			SKIP_ARG(ap, int);

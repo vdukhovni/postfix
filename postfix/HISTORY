@@ -9880,6 +9880,12 @@ Apologies for any names omitted.
 	Victor Duchovni for Solaris 2.5.1, but we play safe and
 	enable it unconditionally.
 
+20041122
+
+	Infrastructure: support for binary attribute values
+	(ATTR_TYPE_DATA) in Postfix IPC messages. Files:
+	util/attr_scan*c, util/attr_print*c.
+
 20041124
 
 	Feature: configurable list of forbidden SMTP commands
@@ -9893,6 +9899,32 @@ Apologies for any names omitted.
 
 	CDB support by Michael Tokarev, documentation by Victor
 	Duchovni. Files: util/dict_cdb.[hc], global/mkmap_cdb.c.
+
+20041209
+
+	Completed support for the Berkeley DB sequence operator.
+	This is needed for finding and deleting old entries in TLS
+	session databases. File:  util/dict_db.c.
+
+	Bugfix: the DBM client's sequence operator used exclusive
+	locking instead of shared locking. File: util/dict_dbm.c.
+
+	Feature: dump an entire database with the new postmap/postalias
+	"-s" option. This works only for database types with Postfix
+	sequence operator support: hash, btree, dbm, and sdbm.
+	Files:  postmap/postmap.c, postalias/postalias.c.
+
+20041210
+
+	Back-ports of minor cosmetic changes in comments, in order
+	to keep differences minimal with respect to the TLS-enabled
+	version.
+
+	Client SDBM module, from the TLS-enabled version. Files:
+	util/dict_sdbm.[hc].
+
+	Hexadecimal encode/decode routines, from the TLS-enabled
+	version. Files:  util/hext_code.[hc].
 
 Open problems:
 

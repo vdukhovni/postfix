@@ -132,7 +132,7 @@ static void watchdog_event(int unused_sig)
      */
     if ((wp = watchdog_curr) == 0)
 	msg_panic("%s: no instance", myname);
-    if (msg_verbose)
+    if (msg_verbose > 1)
 	msg_info("%s: %p %d", myname, (void *) wp, wp->trip_run);
     if (++(wp->trip_run) < WATCHDOG_STEPS) {
 	alarm(wp->timeout);
@@ -168,7 +168,7 @@ WATCHDOG *watchdog_create(unsigned timeout, WATCHDOG_FN action, char *context)
     sig_action.sa_handler = watchdog_event;
     if (sigaction(SIGALRM, &sig_action, &wp->saved_action) < 0)
 	msg_fatal("%s: sigaction(SIGALRM): %m", myname);
-    if (msg_verbose)
+    if (msg_verbose > 1)
 	msg_info("%s: %p %d", myname, (void *) wp, timeout);
     return (watchdog_curr = wp);
 }
@@ -186,7 +186,7 @@ void    watchdog_destroy(WATCHDOG *wp)
     if (wp->saved_time)
 	alarm(wp->saved_time);
     myfree((char *) wp);
-    if (msg_verbose)
+    if (msg_verbose > 1)
 	msg_info("%s: %p", myname, (void *) wp);
 }
 
@@ -200,7 +200,7 @@ void    watchdog_start(WATCHDOG *wp)
 	msg_panic("%s: wrong watchdog instance", myname);
     wp->trip_run = 0;
     alarm(wp->timeout);
-    if (msg_verbose)
+    if (msg_verbose > 1)
 	msg_info("%s: %p", myname, (void *) wp);
 }
 
@@ -213,7 +213,7 @@ void    watchdog_stop(WATCHDOG *wp)
     if (wp != watchdog_curr)
 	msg_panic("%s: wrong watchdog instance", myname);
     alarm(0);
-    if (msg_verbose)
+    if (msg_verbose > 1)
 	msg_info("%s: %p", myname, (void *) wp);
 }
 
@@ -225,7 +225,7 @@ void    watchdog_pat(void)
 
     if (watchdog_curr)
 	watchdog_curr->trip_run = 0;
-    if (msg_verbose)
+    if (msg_verbose > 1)
 	msg_info("%s: %p", myname, (void *) watchdog_curr);
 }
 
@@ -237,7 +237,7 @@ main(int unused_argc, char **unused_argv)
 {
     WATCHDOG *wp;
 
-    msg_verbose = 1;
+    msg_verbose = 2;
 
     wp = watchdog_create(10, (WATCHDOG_FN) 0, (char *) 0);
     watchdog_start(wp);

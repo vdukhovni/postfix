@@ -93,6 +93,8 @@
 /*	This argument is followed by an attribute name and a long pointer.
 /* .IP "ATTR_TYPE_STR (char *, VSTRING *)"
 /*	This argument is followed by an attribute name and a VSTRING pointer.
+/* .IP "ATTR_TYPE_DATA (char *, VSTRING *)"
+/*	This argument is followed by an attribute name and a VSTRING pointer.
 /* .IP "ATTR_TYPE_HASH (HTABLE *)"
 /* .IP "ATTR_TYPE_NAMEVAL (NVTABLE *)"
 /*	All further input attributes are processed as string attributes.
@@ -401,6 +403,22 @@ int     attr_vscan64(VSTREAM *fp, int flags, va_list ap)
 		return (-1);
 	    }
 	    break;
+	case ATTR_TYPE_DATA:
+	    if (ch != ':') {
+		msg_warn("missing value for data attribute %s from %s",
+			 STR(name_buf), VSTREAM_PATH(fp));
+		return (-1);
+	    }
+	    string = va_arg(ap, VSTRING *);
+	    if ((ch = attr_scan64_string(fp, string,
+					 "input attribute value")) < 0)
+		return (-1);
+	    if (ch != '\n') {
+		msg_warn("multiple values for attribute %s from %s",
+			 STR(name_buf), VSTREAM_PATH(fp));
+		return (-1);
+	    }
+	    break;
 	case ATTR_TYPE_HASH:
 	    if (ch != ':') {
 		msg_warn("missing value for string attribute %s from %s",
@@ -461,6 +479,7 @@ int     var_line_limit = 2048;
 
 int     main(int unused_argc, char **used_argv)
 {
+    VSTRING *data_val = vstring_alloc(1);
     VSTRING *str_val = vstring_alloc(1);
     HTABLE *table = htable_create(1);
     HTABLE_INFO **ht_info_list;
@@ -476,11 +495,13 @@ int     main(int unused_argc, char **used_argv)
 			   ATTR_TYPE_NUM, ATTR_NAME_NUM, &int_val,
 			   ATTR_TYPE_LONG, ATTR_NAME_LONG, &long_val,
 			   ATTR_TYPE_STR, ATTR_NAME_STR, str_val,
+			   ATTR_TYPE_DATA, ATTR_NAME_DATA, data_val,
 			   ATTR_TYPE_HASH, table,
-			   ATTR_TYPE_END)) > 3) {
+			   ATTR_TYPE_END)) > 4) {
 	vstream_printf("%s %d\n", ATTR_NAME_NUM, int_val);
 	vstream_printf("%s %ld\n", ATTR_NAME_LONG, long_val);
 	vstream_printf("%s %s\n", ATTR_NAME_STR, STR(str_val));
+	vstream_printf("%s %s\n", ATTR_NAME_DATA, STR(data_val));
 	ht_info_list = htable_list(table);
 	for (ht = ht_info_list; *ht; ht++)
 	    vstream_printf("(hash) %s %s\n", ht[0]->key, ht[0]->value);
@@ -493,10 +514,12 @@ int     main(int unused_argc, char **used_argv)
 			   ATTR_TYPE_NUM, ATTR_NAME_NUM, &int_val,
 			   ATTR_TYPE_LONG, ATTR_NAME_LONG, &long_val,
 			   ATTR_TYPE_STR, ATTR_NAME_STR, str_val,
-			   ATTR_TYPE_END)) == 3) {
+			   ATTR_TYPE_DATA, ATTR_NAME_DATA, data_val,
+			   ATTR_TYPE_END)) == 4) {
 	vstream_printf("%s %d\n", ATTR_NAME_NUM, int_val);
 	vstream_printf("%s %ld\n", ATTR_NAME_LONG, long_val);
 	vstream_printf("%s %s\n", ATTR_NAME_STR, STR(str_val));
+	vstream_printf("%s %s\n", ATTR_NAME_DATA, STR(data_val));
 	ht_info_list = htable_list(table);
 	for (ht = ht_info_list; *ht; ht++)
 	    vstream_printf("(hash) %s %s\n", ht[0]->key, ht[0]->value);

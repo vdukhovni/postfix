@@ -32,8 +32,8 @@
 #include <string_list.h>
 
  /*
-  * State information associated with each SMTP delivery. We're bundling the
-  * state so that we can give meaningful diagnostics in case of problems.
+  * State information associated with each SMTP delivery request.
+  * Session-specific state is stored separately.
   */
 typedef struct SMTP_STATE {
     VSTREAM *src;			/* queue file stream */
@@ -44,12 +44,12 @@ typedef struct SMTP_STATE {
     int     space_left;			/* output length control */
 
     /*
-     * Session cache support. The (nexthop_lookup_mx, nexthop_domain,
+     * Connection cache support. The (nexthop_lookup_mx, nexthop_domain,
      * nexthop_port) triple is a parsed next-hop specification, and should be
      * a data type by itself. The (service, nexthop_mumble) members specify
-     * the name under which the first good session should be cached. The
+     * the name under which the first good connection should be cached. The
      * nexthop_mumble members are initialized by the connection management
-     * module. nexthop_domain is reset to null after one session is saved
+     * module. nexthop_domain is reset to null after one connection is saved
      * under the (service, nexthop_mumble) label, or upon exit from the
      * connection management module.
      */
@@ -104,7 +104,7 @@ typedef struct SMTP_STATE {
 #define SMTP_FEATURE_XFORWARD_DOMAIN	(1<<11)
 #define SMTP_FEATURE_BEST_MX		(1<<12)	/* for next-hop or fall-back */
 #define SMTP_FEATURE_RSET_REJECTED	(1<<13)	/* RSET probe rejected */
-#define SMTP_FEATURE_FROM_CACHE		(1<<14)	/* cached session */
+#define SMTP_FEATURE_FROM_CACHE		(1<<14)	/* cached connection */
 
  /*
   * Features that passivate under the endpoint.
@@ -140,7 +140,7 @@ extern int smtp_host_lookup_mask;	/* host lookup methods to use */
 #define SMTP_HOST_FLAG_DNS	(1<<0)
 #define SMTP_HOST_FLAG_NATIVE	(1<<1)
 
-extern SCACHE *smtp_scache;		/* cache instance */
+extern SCACHE *smtp_scache;		/* connection cache instance */
 extern STRING_LIST *smtp_cache_dest;	/* cached destinations */
 
  /*
@@ -183,7 +183,7 @@ typedef struct SMTP_SESSION {
 } SMTP_SESSION;
 
 extern SMTP_SESSION *smtp_session_alloc(VSTREAM *, const char *,
-			              const char *, const char *, unsigned, int);
+			         const char *, const char *, unsigned, int);
 extern void smtp_session_free(SMTP_SESSION *);
 extern int smtp_session_passivate(SMTP_SESSION *, VSTRING *, VSTRING *);
 extern SMTP_SESSION *smtp_session_activate(int, VSTRING *, VSTRING *);

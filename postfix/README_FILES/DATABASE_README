@@ -229,6 +229,12 @@ To find out what database types your Postfix system supports, use the "ppooss
         A lookup table based on regular expressions. The file format is
         described in regexp_table(5). The lookup table name as used in "regexp:
         table" is the name of the regular expression file.
+    ssddbbmm
+        An indexed file type based on hashing. This is available only on
+        systems with support for SDBM databases. Database files are created
+        with the postmap(1) or postalias(1) command. The lookup table name as
+        used in "sdbm:table" is the database file name without the ".dir" or
+        ".pag" suffix.
     ssttaattiicc (read-only)
         Always returns its lookup table name as lookup result. For example, the
         lookup table "static:foobar" always returns the string "foobar" as

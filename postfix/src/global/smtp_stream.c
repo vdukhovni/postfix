@@ -17,6 +17,9 @@
 /*	void	smtp_flush(stream)
 /*	VSTREAM *stream;
 /*
+/*	int	smtp_fgetc(stream)
+/*	VSTREAM *stream;
+/*
 /*	int	smtp_get(vp, stream, maxlen)
 /*	VSTRING	*vp;
 /*	VSTREAM *stream;
@@ -60,6 +63,8 @@
 /*	Long lines of text are not broken.
 /*
 /*	smtp_flush() flushes the named stream.
+/*
+/*	smtp_fgetc() reads one character from the named stream.
 /*
 /*	smtp_get() reads the named stream up to and including
 /*	the next LF character and strips the trailing CR LF. The
@@ -214,6 +219,31 @@ void    smtp_printf(VSTREAM *stream, const char *fmt,...)
     va_start(ap, fmt);
     smtp_vprintf(stream, fmt, ap);
     va_end(ap);
+}
+
+/* smtp_fgetc - read one character from SMTP peer */
+
+int     smtp_fgetc(VSTREAM *stream)
+{
+    int     err;
+    int     ch;
+
+    /*
+     * Do the I/O, protected against timeout.
+     */
+    smtp_timeout_reset(stream);
+    ch = VSTREAM_GETC(stream);
+    smtp_timeout_detect(stream);
+
+    /*
+     * See if there was a problem.
+     */
+    if (vstream_feof(stream) || vstream_ferror(stream)) {
+	if (msg_verbose)
+	    msg_info("smtp_fgetc: EOF");
+	vstream_longjmp(stream, SMTP_ERR_EOF);
+    }
+    return (ch);
 }
 
 /* smtp_get - read one line from SMTP peer */

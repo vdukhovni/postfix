@@ -4027,7 +4027,7 @@ specified with the anvil_rate_time_unit configuration parameter.
 
 <p>
 By default, a client can send as many message delivery requests
-requests per time unit as Postfix can accept.
+per time unit as Postfix can accept.
 </p>
 
 <p>
@@ -6359,7 +6359,7 @@ or reject_non_fqdn_recipient restriction.
 
 <p>
 Give special treatment to owner-listname and listname-request
-address localparts: don't don't split such addresses when the
+address localparts: don't split such addresses when the
 recipient_delimiter is set to "-".  This feature is useful for
 mailing lists.
 </p>

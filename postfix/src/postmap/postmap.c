@@ -5,7 +5,7 @@
 /*	Postfix lookup table management
 /* SYNOPSIS
 /* .fi
-/*	\fBpostmap\fR [\fB-Nfinoprvw\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostmap\fR [\fB-Nfinoprsvw\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fB-d \fIkey\fR] [\fB-q \fIkey\fR]
 /*		[\fIfile_type\fR:]\fIfile_name\fR ...
 /* DESCRIPTION
@@ -92,6 +92,13 @@
 /* .IP \fB-r\fR
 /*	When updating a table, do not complain about attempts to update
 /*	existing entries, and make those updates anyway.
+/* .IP \fB-s\fR
+/*	Retrieve all database elements, and write one line of
+/*	\fIkey value\fR output for each element. The elements are
+/*	printed in database order, which is not necessarily the same
+/*	as the original input order.
+/*	This feature is available in Postfix version 2.2 and later,
+/*	and is not available for all database types.
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
@@ -117,6 +124,10 @@
 /* .IP \fBhash\fR
 /*	The output file is a hashed file, named \fIfile_name\fB.db\fR.
 /*	This is available only on systems with support for \fBdb\fR databases.
+/* .IP \fBsdbm\fR
+/*	The output consists of two files, named \fIfile_name\fB.pag\fR and
+/*	\fIfile_name\fB.dir\fR.
+/*	This is available only on systems with support for \fBsdbm\fR databases.
 /* .PP
 /*	When no \fIfile_type\fR is specified, the software uses the database
 /*	type specified via the \fBdefault_database_type\fR configuration
@@ -417,8 +428,8 @@ static int postmap_query(const char *map_type, const char *map_name,
 		     map_type, map_name);
 	}
 	vstream_printf("%s\n", value);
-	vstream_fflush(VSTREAM_OUT);
     }
+    vstream_fflush(VSTREAM_OUT);
     dict_close(dict);
     return (value != 0);
 }
@@ -481,6 +492,34 @@ static int postmap_delete(const char *map_type, const char *map_name,
     return (status == 0);
 }
 
+/* postmap_seq - print all map entries to stdout */
+
+static void postmap_seq(const char *map_type, const char *map_name)
+{
+    DICT   *dict;
+    const char *key;
+    const char *value;
+    int     func;
+
+    dict = dict_open3(map_type, map_name, O_RDONLY, DICT_FLAG_LOCK);
+    for (func = DICT_SEQ_FUN_FIRST; /* void */ ; func = DICT_SEQ_FUN_NEXT) {
+	if (dict_seq(dict, func, &key, &value) != 0)
+	    break;
+	if (*key == 0) {
+	    msg_warn("table %s:%s: empty lookup key value is not allowed",
+		     map_type, map_name);
+	} else if (*value == 0) {
+	    msg_warn("table %s:%s: key %s: empty string result is not allowed",
+		     map_type, map_name, key);
+	    msg_warn("table %s:%s should return NO RESULT in case of NOT FOUND",
+		     map_type, map_name);
+	}
+	vstream_printf("%s	%s\n", key, value);
+    }
+    vstream_fflush(VSTREAM_OUT);
+    dict_close(dict);
+}
+
 /* usage - explain */
 
 static NORETURN usage(char *myname)
@@ -501,6 +540,7 @@ int     main(int argc, char **argv)
     int     dict_flags = DICT_FLAG_DUP_WARN | DICT_FLAG_FOLD_KEY;
     char   *query = 0;
     char   *delkey = 0;
+    int     sequence = 0;
     int     found;
 
     /*
@@ -537,7 +577,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "Nc:d:finopq:rvw")) > 0) {
+    while ((ch = GETOPT(argc, argv, "Nc:d:finopq:rsvw")) > 0) {
 	switch (ch) {
 	default:
 	    usage(argv[0]);
@@ -551,8 +591,8 @@ int     main(int argc, char **argv)
 		msg_fatal("out of memory");
 	    break;
 	case 'd':
-	    if (query || delkey)
-		msg_fatal("specify only one of -q or -d");
+	    if (sequence || query || delkey)
+		msg_fatal("specify only one of -s -q or -d");
 	    delkey = optarg;
 	    break;
 	case 'f':
@@ -572,13 +612,18 @@ int     main(int argc, char **argv)
 	    postmap_flags &= ~POSTMAP_FLAG_SAVE_PERM;
 	    break;
 	case 'q':
-	    if (query || delkey)
-		msg_fatal("specify only one of -q or -d");
+	    if (sequence || query || delkey)
+		msg_fatal("specify only one of -s -q or -d");
 	    query = optarg;
 	    break;
 	case 'r':
 	    dict_flags &= ~(DICT_FLAG_DUP_WARN | DICT_FLAG_DUP_IGNORE);
 	    dict_flags |= DICT_FLAG_DUP_REPLACE;
+	    break;
+	case 's':
+	    if (query || delkey)
+		msg_fatal("specify only one of -s or -q or -d");
+	    sequence = 1;
 	    break;
 	case 'v':
 	    msg_verbose++;
@@ -628,6 +673,16 @@ int     main(int argc, char **argv)
 	    if (found)
 		exit(0);
 	    optind++;
+	}
+	exit(1);
+    } else if (sequence) {
+	while (optind < argc) {
+	    if ((path_name = split_at(argv[optind], ':')) != 0) {
+		postmap_seq(argv[optind], path_name);
+	    } else {
+		postmap_seq(var_db_type, argv[optind]);
+	    }
+	    exit(0);
 	}
 	exit(1);
     } else {					/* create/update map(s) */

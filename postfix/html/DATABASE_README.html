@@ -343,6 +343,14 @@ lookup table name syntax is "<a href="proxymap.8.html">proxy</a>:type:table". </
 is described in <a href="regexp_table.5.html">regexp_table(5)</a>. The lookup table name as used in
 "<a href="regexp_table.5.html">regexp</a>:table" is the name of the regular expression file. </dd>
 
+<dt> <b>sdbm</b> </dt>
+
+<dd> An indexed file type based on hashing.  This is available only
+on systems with support for SDBM databases. Database files are
+created with the <a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1.html">postalias(1)</a> command. The lookup
+table name as used in "sdbm:table" is the database file name without
+the ".dir" or ".pag" suffix.  </dd>
+
 <dt> <b>static</b> (read-only) </dt>
 
 <dd> Always returns its lookup table name as lookup result.  For
