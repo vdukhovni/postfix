@@ -363,6 +363,8 @@ int     smtp_connect(SMTP_STATE *state)
 			smtp_chat_notify(state);
 		    smtp_chat_reset(state);
 		}
+		state->error_mask = 0;
+		state->size_limit = 0;
 		/* XXX smtp_xfer() may abort in the middle of DATA. */
 		smtp_session_free(state->session);
 		state->session = 0;

@@ -9389,3 +9389,20 @@ Apologies for any names omitted.
 
 	Bugfix: space in HELO commands could end up in XFORWARD
 	commands.  File: smtpd/smtpd.c.
+
+20040619
+
+	Bugfix: more missing resets in the SMTP client when it
+	switches to an alternate SMTP server.  In this case the
+	error_mask that controls whether an SMTP session transcript
+	is mailed to the postmaster, and the size_limit that controls
+	how large a message Postfix will send. Found during code
+	maintenance.  File: smtp/smtp_connect.c.
+
+20040622
+
+	Safety: when mail is delivered to a transport with per-delivery
+	recipient limit of 1, split the recipient address on the
+	recipient delimiter if one is defined, so that extended
+	addresses don't get extra delivery concurrency slots.
+	Files: *qmgr/qmgr_message.c.
