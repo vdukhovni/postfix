@@ -145,6 +145,7 @@ static QMGR_MESSAGE *qmgr_message_create(const char *queue_name,
     message->errors_to = 0;
     message->return_receipt = 0;
     message->filter_xport = 0;
+    message->inspect_xport = 0;
     message->data_size = 0;
     message->warn_offset = 0;
     message->warn_time = 0;
@@ -250,6 +251,9 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	} else if (rec_type == REC_TYPE_FILT) {
 	    if (message->filter_xport == 0)
 		message->filter_xport = mystrdup(start);
+	} else if (rec_type == REC_TYPE_INSP) {
+	    if (message->inspect_xport == 0)
+		message->inspect_xport = mystrdup(start);
 	} else if (rec_type == REC_TYPE_FROM) {
 	    if (message->sender == 0) {
 		message->sender = mystrdup(start);
@@ -706,6 +710,8 @@ void    qmgr_message_free(QMGR_MESSAGE *message)
 	myfree(message->return_receipt);
     if (message->filter_xport)
 	myfree(message->filter_xport);
+    if (message->inspect_xport)
+	myfree(message->inspect_xport);
     qmgr_rcpt_list_free(&message->rcpt_list);
     qmgr_message_count--;
     myfree((char *) message);

@@ -186,7 +186,7 @@ int     mail_copy(const char *sender, const char *delivered,
 	    corrupt_error = mark_corrupt(src);
 	if (prev_type != REC_TYPE_NORM)
 	    vstream_fputs(eol, dst);
-	if (flags & MAIL_COPY_FROM)
+	if (flags & MAIL_COPY_BLANK)
 	    vstream_fputs(eol, dst);
     }
     vstring_free(buf);

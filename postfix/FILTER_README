@@ -1,4 +1,8 @@
 This is a very first implementation of Postfix content filtering.
+A Postfix content filter re-injects filtered mail back into Postfix.
+If all you want is content _inspection_, see the INSPECT_README
+file instead.
+
 It involves an incompatible change to queue file formats.  Older
 Postfix versions will reject mail that needs to be content filtered,
 and will move the queue file to the "corrupt" mail queue subdirectory.
@@ -76,18 +80,19 @@ content through run a third-party content filter program.  If the
 mail cannot be captured to file, mail delivery is deferred by
 terminating with exit status 75 (EX_TEMPFAIL).  If the content
 filter program finds a problem, the mail is bounced by terminating
-the filter command with exit status 69 (EX_UNAVAILABLE).  If the
+the shell script with exit status 69 (EX_UNAVAILABLE).  If the
 content is OK, it is given as input to Postfix sendmail, and the
 exit status of the filter command is whatever exit status Postfix
 sendmail produces.
 
-The problem with content filterings like this is that they are not
-very robust, because they do not talk a well-defined protocol with
-Postfix. If the filter command aborts because of some memory
-allocation problem, it will not produce a nice exit status as per
-/usr/include/sysexits.h and mail will probably bounce. The same
-lack of robustness is possible when the content filtering software
-itself runs into a resource problem.
+The problem with content filters like this is that they are not
+very robust, because the software does not talk a well-defined
+protocol with Postfix. If the filter shell script aborts because
+the shell runs into some memory allocation problem, the script will
+not produce a nice exit status as per /usr/include/sysexits.h and
+mail will probably bounce. The same lack of robustness is possible
+when the content filtering software itself runs into a resource
+problem.
 
 I suggest that you play with this script for a while until you are
 satisfied with the results. Run it as root or as the filter user,
@@ -159,7 +164,7 @@ When a queue file has content filtering information, the queue
 manager will deliver the mail to the specified content filtering
 regardless of its final destination.
 
-The content filtering can be set up with the Postfix spawn service,
+The content filter can be set up with the Postfix spawn service,
 which is the Postfix equivalent of inetd. For example, to instantiate
 up to 10 content filtering processes on demand:
 
@@ -184,18 +189,18 @@ For now, it is left up to the Postfix users to come up with a
 PERL/SMTP framework for Postfix content filtering. If done well,
 it can be used with other mailers too, which is a nice spin-off.
 
-The simplest content filtering just copies SMTP commands and data
+The simplest content filter just copies SMTP commands and data
 between its inputs and outputs. If it has a problem, all it has to
 do is to reply to an input of `.' with `550 content rejected', and
 to disconnect its output side instead of sending `.'.
 
-The job of the content filtering is to either bounce mail with a
+The job of the content filter is to either bounce mail with a
 suitable diagnostic, or to feed the mail back into Postfix through
 a dedicated listener on port localhost 10026:
 
     /etc/postfix/master.cf:
         localhost:10026     inet  n      -      n      -      10      smtpd
-	    -o content_filter= myhostname=localhost.domain.name
+	    -o content_filter= -o myhostname=localhost.domain.name
 
 This is just another SMTP server. It is configured NOT to request
 content filtering for incoming mail, has the same process limit

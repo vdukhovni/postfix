@@ -92,6 +92,8 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream)
     state->junk_cmds = 0;
 
 #ifdef USE_SASL_AUTH
+    if (SMTPD_STAND_ALONE(state))
+	var_smtpd_sasl_enable = 0;
     if (var_smtpd_sasl_enable)
 	smtpd_sasl_connect(state);
 #endif

@@ -9,6 +9,7 @@
 /*	typedef struct DELIVER_REQUEST {
 /* .in +5
 /*		VSTREAM	*fp;
+/*		int	flags;
 /*		char	*queue_name;
 /*		char	*queue_id;
 /*		long	data_offset;
@@ -39,6 +40,17 @@
 /*	opens the queue file, and acquires a shared lock.
 /*	A null result means that the client sent bad information or that
 /*	it went away unexpectedly.
+/*
+/*	The \fBflags\fR structure member is the bit-wise OR of zero or more
+/*	of the following:
+/* .IP \fBDEL_REQ_FLAG_SUCCESS\fR
+/*	Delete successful recipients from the queue file.
+/* .IP \fBDEL_REQ_FLAG_BOUNCE\fR
+/*	Delete bounced recipients from the queue file. Currently,
+/*	this flag is considered to be "always on".
+/* .PP
+/*	The \fBDEL_REQ_FLAG_DEFLT\fR constant provides a convenient shorthand
+/*	for the most common case: delete successful and bounced recipients.
 /*
 /*	The \fIhop_status\fR structure member must be updated
 /*	by the caller when all delivery to the destination in
@@ -174,7 +186,8 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
      * Extract the queue file name, data offset, and sender address. Abort
      * the conversation when they send bad information.
      */
-    if (mail_scan(stream, "%s %s %ld %ld %s %s %s %s %ld",
+    if (mail_scan(stream, "%d %s %s %ld %ld %s %s %s %s %ld",
+		  &request->flags,
 		  queue_name, queue_id, &request->data_offset,
 		  &request->data_size, nexthop, address,
 		  errors_to, return_receipt, &request->arrival_time) != 9)

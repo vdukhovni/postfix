@@ -173,7 +173,7 @@
 /*	optional \fBDelivered-To:\fR
 /*	header with the recipient envelope address, prepends a
 /*	\fBReturn-Path:\fR header with the sender envelope address,
-/*	and appends an empty line.
+/*	and appends no empty line.
 /* EXTERNAL FILE DELIVERY
 /* .ad
 /* .fi
@@ -278,6 +278,9 @@
 /*	forwarding mail is not recommended.
 /* .IP \fBrecipient_delimiter\fR
 /*	Separator between username and address extension.
+/* .IP \fBtest_home_directory\fR
+/*	Require that a recipient's home directory is accessible by the 
+/*	recipient before attempting delivery.
 /* .SH Mailbox delivery
 /* .ad
 /* .fi
@@ -439,6 +442,7 @@ char   *var_fwd_exp_filter;
 char   *var_prop_extension;
 int     var_exp_own_alias;
 char   *var_deliver_hdr;
+int     var_stat_home_dir;
 
 int     local_cmd_deliver_mask;
 int     local_file_deliver_mask;
@@ -500,7 +504,7 @@ static int local_deliver(DELIVER_REQUEST *rqst, char *service)
 	state.msg_attr.recipient = rcpt->address;
 	rcpt_stat = deliver_recipient(state, usr_attr);
 	rcpt_stat |= forward_finish(state.msg_attr, rcpt_stat);
-	if (rcpt_stat == 0)
+	if (rcpt_stat == 0 && (rqst->flags & DEL_REQ_FLAG_SUCCESS))
 	    deliver_completed(state.msg_attr.fp, rcpt->offset);
 	been_here_free(state.dup_filter);
 	msg_stat |= rcpt_stat;
@@ -618,6 +622,7 @@ int     main(int argc, char **argv)
     static CONFIG_BOOL_TABLE bool_table[] = {
 	VAR_BIFF, DEF_BIFF, &var_biff,
 	VAR_EXP_OWN_ALIAS, DEF_EXP_OWN_ALIAS, &var_exp_own_alias,
+	VAR_STAT_HOME_DIR, DEF_STAT_HOME_DIR, &var_stat_home_dir,
 	0,
     };
 

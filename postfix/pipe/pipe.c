@@ -22,10 +22,14 @@
 /* .fi
 /*	The external command attributes are given in the \fBmaster.cf\fR
 /*	file at the end of a service definition.  The syntax is as follows:
-/* .IP "\fBflags=FR.>\fR (optional)"
+/* .IP "\fBflags=BFR.>\fR (optional)"
 /*	Optional message processing flags. By default, a message is
 /*	copied unchanged.
 /* .RS
+/* .IP \fBB\fR
+/*	Append a blank line at the end of each message. This is required
+/*	by some mail user agents that recognize "\fBFrom \fR" lines only
+/*	when preceded by a blank line.
 /* .IP \fBF\fR
 /*	Prepend a "\fBFrom \fIsender time_stamp\fR" envelope header to
 /*	the message content.
@@ -54,6 +58,9 @@
 /*	\fB\er\en\fR or \fB\en\fR. The usual C-style backslash escape
 /*	sequences are recognized: \fB\ea \eb \ef \en \er \et \ev
 /*	\e\fIoctal\fR and \fB\e\e\fR.
+/* .IP "\fBsize\fR=\fIsize_limit\fR (optional)"
+/*	Messages greater in size than this limit (in bytes) will be bounced
+/*	back to the sender.
 /* .IP "\fBargv\fR=\fIcommand\fR... (required)"
 /*	The command to be executed. This must be specified as the
 /*	last command attribute.
@@ -200,6 +207,7 @@
 #include <mail_addr.h>
 #include <canon_addr.h>
 #include <split_addr.h>
+#include <off_cvt.h>
 
 /* Single server skeleton. */
 
@@ -255,6 +263,7 @@ typedef struct {
     gid_t   gid;			/* command privileges */
     int     flags;			/* mail_copy() flags */
     VSTRING *eol;			/* output record delimiter */
+    off_t   size_limit;			/* max size in bytes we will accept */
 } PIPE_ATTR;
 
 /* parse_callback - callback for mac_parse() */
@@ -415,6 +424,7 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
     struct group *grp;
     char   *user;			/* user name */
     char   *group;			/* group name */
+    char   *size;			/* max message size */
     char   *cp;
 
     /*
@@ -425,6 +435,7 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
     attr->command = 0;
     attr->flags = 0;
     attr->eol = vstring_strcpy(vstring_alloc(1), "\n");
+    attr->size_limit = 0;
 
     /*
      * Iterate over the command-line attribute list.
@@ -437,6 +448,9 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
 	if (strncasecmp("flags=", *argv, sizeof("flags=") - 1) == 0) {
 	    for (cp = *argv + sizeof("flags=") - 1; *cp; cp++) {
 		switch (*cp) {
+		case 'B':
+		    attr->flags |= MAIL_COPY_BLANK;
+		    break;
 		case 'F':
 		    attr->flags |= MAIL_COPY_FROM;
 		    break;
@@ -484,6 +498,15 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
 	}
 
 	/*
+	 * size=max_message_size (in bytes)
+	 */
+	else if (strncasecmp("size=", *argv, sizeof("size=") - 1) == 0) {
+	    size = *argv + sizeof("size=") - 1;
+	    if ((attr->size_limit = off_cvt_string(size)) < 0)
+		msg_fatal("%s: bad size= value: %s", myname, size);
+	}
+
+	/*
 	 * argv=command...
 	 */
 	else if (strncasecmp("argv=", *argv, sizeof("argv=") - 1) == 0) {
@@ -519,8 +542,9 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
      * Give the poor tester a clue of what is going on.
      */
     if (msg_verbose)
-	msg_info("%s: uid %d, gid %d. flags %d",
-		 myname, attr->uid, attr->gid, attr->flags);
+	msg_info("%s: uid %d, gid %d, flags %d, size %ld",
+		 myname, attr->uid, attr->gid, attr->flags,
+		 (long) attr->size_limit);
 }
 
 /* eval_command_status - do something with command completion status */
@@ -544,7 +568,8 @@ static int eval_command_status(int command_status, char *service,
 	    rcpt = request->rcpt_list.info + n;
 	    sent(request->queue_id, rcpt->address, service,
 		 request->arrival_time, "%s", request->nexthop);
-	    deliver_completed(src, rcpt->offset);
+	    if (request->flags & DEL_REQ_FLAG_SUCCESS)
+		deliver_completed(src, rcpt->offset);
 	}
 	break;
     case PIPE_STAT_BOUNCE:
@@ -619,6 +644,19 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
     if (attr.command == 0) {
 	get_service_params(&conf, service);
 	get_service_attr(&attr, argv);
+    }
+
+    /*
+     * Check that this agent accepts messages this large.
+     */
+    if (attr.size_limit != 0 && request->data_size > attr.size_limit) {
+	if (msg_verbose)
+	    msg_info("%s: too big: size_limit = %ld, request->data_size = %ld",
+		     myname, (long) attr.size_limit, request->data_size);
+
+	deliver_status = eval_command_status(PIPE_STAT_BOUNCE, service,
+				 request, request->fp, "message too large");
+	return (deliver_status);
     }
 
     /*

@@ -30,23 +30,28 @@ PIPE(8)                                                   PIPE(8)
        file at the end of a service definition.  The syntax is as
        follows:
 
-       <b>flags=FR.</b>&gt; (optional)
+       <b>flags=BFR.</b>&gt; (optional)
               Optional message processing flags.  By  default,  a
               message is copied unchanged.
 
-              <b>F</b>      Prepend  a "<b>From</b> <i>sender</i> <i>time_stamp</i>" envelope
-                     header to  the  message  content.   This  is
+              <b>B</b>      Append  a blank line at the end of each mes-
+                     sage. This is required  by  some  mail  user
+                     agents  that  recognize  "<b>From</b>  " lines only
+                     when preceded by a blank line.
+
+              <b>F</b>      Prepend a "<b>From</b> <i>sender</i> <i>time_stamp</i>"  envelope
+                     header  to  the  message  content.   This is
                      expected by, for example, <b>UUCP</b> software. The
-                     <b>F</b> flag also  causes  an  empty  line  to  be
+                     <b>F</b>  flag  also  causes  an  empty  line to be
                      appended to the message.
 
-              <b>R</b>      Prepend  a  <b>Return-Path:</b> message header with
+              <b>R</b>      Prepend a <b>Return-Path:</b> message  header  with
                      the envelope sender address.
 
-              <b>.</b>      Prepend <b>.</b> to lines starting with  "<b>.</b>".  This
+              <b>.</b>      Prepend  <b>.</b>  to lines starting with "<b>.</b>". This
                      is needed by, for example, <b>BSMTP</b> software.
 
-              &gt;      Prepend  &gt;  to  lines starting with "<b>From</b> ".
+              &gt;      Prepend &gt; to lines starting  with  "<b>From</b>  ".
                      This is expected by, for example, <b>UUCP</b> soft-
                      ware.
 
@@ -54,11 +59,6 @@ PIPE(8)                                                   PIPE(8)
 
        <b>user</b>=<i>username</i>:<i>groupname</i>
               The external command is executed with the rights of
-              the specified <i>username</i>.  The  software  refuses  to
-              execute  commands with root privileges, or with the
-              privileges of the mail system owner.  If  <i>groupname</i>
-              is  specified,  the  corresponding group ID is used
-              instead of the group ID of <i>username</i>.
 
 
 
@@ -71,11 +71,21 @@ PIPE(8)                                                   PIPE(8)
 PIPE(8)                                                   PIPE(8)
 
 
+              the  specified  <i>username</i>.   The software refuses to
+              execute commands with root privileges, or with  the
+              privileges  of  the mail system owner. If <i>groupname</i>
+              is specified, the corresponding group  ID  is  used
+              instead of the group ID of <i>username</i>.
+
        <b>eol=string</b> (default: <b>\n</b>)
-              The output record delimiter.  Typically  one  would
-              use  either <b>\r\n</b> or <b>\n</b>. The usual C-style backslash
-              escape sequences are recognized: <b>\a</b> <b>\b</b> <b>\f</b> <b>\n</b> <b>\r</b>  <b>\t</b>
+              The  output  record  delimiter. Typically one would
+              use either <b>\r\n</b> or <b>\n</b>. The usual C-style  backslash
+              escape  sequences are recognized: <b>\a</b> <b>\b</b> <b>\f</b> <b>\n</b> <b>\r</b> <b>\t</b>
               <b>\v</b> <b>\</b><i>octal</i> and <b>\\</b>.
+
+       <b>size</b>=<i>size_limit</i> (optional)
+              Messages greater in size than this limit (in bytes)
+              will be bounced back to the sender.
 
        <b>argv</b>=<i>command</i>... (required)
               The  command to be executed. This must be specified
@@ -115,16 +125,6 @@ PIPE(8)                                                   PIPE(8)
                      tains <b>${recipient</b>} expands into as many com-
                      mand-line arguments as there are recipients.
 
-              <b>${sender</b>}
-                     This macro expands to  the  envelope  sender
-                     address.
-
-              <b>${user</b>}
-                     This macro expands to the username part of a
-                     recipient address.   For  example,  with  an
-                     address <i>user+foo@domain</i> the username part is
-                     <i>user</i>.  A command-line argument that contains
-                     <b>${user</b>}  expands  into  as many command-line
 
 
 
@@ -137,6 +137,16 @@ PIPE(8)                                                   PIPE(8)
 PIPE(8)                                                   PIPE(8)
 
 
+              <b>${sender</b>}
+                     This macro expands to  the  envelope  sender
+                     address.
+
+              <b>${user</b>}
+                     This macro expands to the username part of a
+                     recipient address.   For  example,  with  an
+                     address <i>user+foo@domain</i> the username part is
+                     <i>user</i>.  A command-line argument that contains
+                     <b>${user</b>}  expands  into  as many command-line
                      arguments as there are recipients.
 
        In addition to the  form  ${<i>name</i>},  the  forms  $<i>name</i>  and
@@ -180,17 +190,7 @@ PIPE(8)                                                   PIPE(8)
               enforced by the Postfix queue manager.
 
        <i>transport_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
-              Limit the number of recipients per  message  deliv-
-              ery,  for  delivery  via  the  named <i>transport</i>. The
-              default limit is taken  from  the  <b>default</b><i>_</i><b>destina-</b>
-              <b>tion</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>   parameter.    The  limit  is
-              enforced by the Postfix queue manager.
-
-       <i>transport_</i><b>time</b><i>_</i><b>limit</b>
-              Limit the time for delivery  to  external  command,
-              for  delivery  via the named <b>transport</b>. The default
-              limit is taken from the <b>command</b><i>_</i><b>time</b><i>_</i><b>limit</b>  parame-
-              ter.   The  limit  is enforced by the Postfix queue
+              Limit  the  number  of   recipients   per   message
 
 
 
@@ -203,6 +203,16 @@ PIPE(8)                                                   PIPE(8)
 PIPE(8)                                                   PIPE(8)
 
 
+              delivery, for delivery via the named <i>transport</i>. The
+              default limit is taken  from  the  <b>default</b><i>_</i><b>destina-</b>
+              <b>tion</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>   parameter.    The  limit  is
+              enforced by the Postfix queue manager.
+
+       <i>transport_</i><b>time</b><i>_</i><b>limit</b>
+              Limit the time for delivery  to  external  command,
+              for  delivery  via the named <b>transport</b>. The default
+              limit is taken from the <b>command</b><i>_</i><b>time</b><i>_</i><b>limit</b>  parame-
+              ter.   The  limit  is enforced by the Postfix queue
               manager.
 
 <b>SEE</b> <b>ALSO</b>
@@ -220,16 +230,6 @@ PIPE(8)                                                   PIPE(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
-
-
-
-
-
-
 
 
 

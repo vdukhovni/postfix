@@ -30,10 +30,14 @@ to the \fBbounce\fR(8) or \fBdefer\fR(8) daemon as appropriate.
 .fi
 The external command attributes are given in the \fBmaster.cf\fR
 file at the end of a service definition.  The syntax is as follows:
-.IP "\fBflags=FR.>\fR (optional)"
+.IP "\fBflags=BFR.>\fR (optional)"
 Optional message processing flags. By default, a message is
 copied unchanged.
 .RS
+.IP \fBB\fR
+Append a blank line at the end of each message. This is required
+by some mail user agents that recognize "\fBFrom \fR" lines only
+when preceded by a blank line.
 .IP \fBF\fR
 Prepend a "\fBFrom \fIsender time_stamp\fR" envelope header to
 the message content.
@@ -62,6 +66,9 @@ The output record delimiter. Typically one would use either
 \fB\er\en\fR or \fB\en\fR. The usual C-style backslash escape
 sequences are recognized: \fB\ea \eb \ef \en \er \et \ev
 \e\fIoctal\fR and \fB\e\e\fR.
+.IP "\fBsize\fR=\fIsize_limit\fR (optional)"
+Messages greater in size than this limit (in bytes) will be bounced
+back to the sender.
 .IP "\fBargv\fR=\fIcommand\fR... (required)"
 The command to be executed. This must be specified as the
 last command attribute.

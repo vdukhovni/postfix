@@ -27,6 +27,7 @@
   */
 typedef struct DELIVER_REQUEST {
     VSTREAM *fp;			/* stream, shared lock */
+    int     flags;			/* see below */
     char   *queue_name;			/* message queue name */
     char   *queue_id;			/* message queue id */
     long    data_offset;		/* offset to message */
@@ -39,6 +40,10 @@ typedef struct DELIVER_REQUEST {
     RECIPIENT_LIST rcpt_list;		/* envelope recipients */
     char   *hop_status;			/* reason if unavailable */
 } DELIVER_REQUEST;
+
+#define DEL_REQ_FLAG_DEFLT	(DEL_REQ_FLAG_SUCCESS | DEL_REQ_FLAG_BOUNCE)
+#define DEL_REQ_FLAG_SUCCESS	(1<<0)	/* delete successful recipients */
+#define DEL_REQ_FLAG_BOUNCE	(1<<1)	/* unimplemented */
 
 typedef struct VSTREAM _deliver_vstream_;
 extern DELIVER_REQUEST *deliver_request_read(_deliver_vstream_ *);

@@ -533,7 +533,8 @@ int     smtp_xfer(SMTP_STATE *state)
 					 session->namaddr,
 					 request->arrival_time, "%s",
 					 resp->str);
-				    deliver_completed(state->src, rcpt->offset);
+				    if (request->flags & DEL_REQ_FLAG_SUCCESS)
+					deliver_completed(state->src, rcpt->offset);
 				    rcpt->offset = 0;
 				}
 			    }

@@ -4032,3 +4032,66 @@ Apologies for any names omitted.
 	Renamed "content inspection" etc. to "content filtering"
 	in anticipation of a new hook for content inspection that
 	only inspects mail without re-injecting it into Postfix.
+
+20000601
+
+	Feature: limit the size of pipe mailer deliveries with the
+	size=nnn command-line attribute. Patch by Andrew McNamara.
+
+20000603
+
+	Bugfix: don't try to do SASL authentication when running
+	in stand-alone (sendmail -bs) mode. Fix by Liviu Daia.
+
+	Bug: the unauthorized pipelining test fails with single
+	recipient mail when smtpd_delay_reject = yes.
+
+20000617
+
+	Bugfix: conf/sample-ldap.cf was no longer up to date with
+	reality. Patch by Lamont Jones, HP.
+
+	Bugfix: the maildir delivery routine left temporary files
+	lying around after unsuccessful delivery (problem reported
+	by Brian Laughton @ Corp.Axxent.Ca).
+
+20000619
+
+	Workaround: if append_dot_mydomain=no, turn on parent domain
+	search in the Postfix SMTP client, so that mail does not
+	bounce. Files: smtp/smtp.c, smtp/smtp_unalias.c.
+
+20000621
+
+	AIX 4.x had POSIX regular expression support all the time
+	I was working on Postfix. Beter find out late than never.
+
+20000623
+
+	Bugfix: the SMTP server did not reset the so-called junk
+	command counter after successfull delivery (Mark Hoffman
+	@ wallst.com).  File: smtpd/smtpd.c.
+
+20000625
+
+	Cleanup: remove Content-Length from incoming mail. The
+	sender has no authority over the format of mail as stored
+	by the receiving system. File: global/header_opts.h.
+
+	Feature: rewrite Mail-Followup-To: as sender. Files:
+	global/header_opts.[hc].
+
+	Cleanup: rewrite Reply-To, Errors-To, Return-Receipt-To as
+	sender, so that address masquerading works as expected.
+	Files: global/header_opts.c.
+
+	Feature: specify "test_home_directory = yes" to prevent
+	mail from being delivered to a user whose home directory
+	is not mounted. File: local/dotforward.c.
+
+	Cleanup: the pipe deliver agent no longer appends a blank
+	line when the F flag (prepend From_ line) is specified.
+	Specify the B flag if you need that blank line. The local
+	delivery agent no longer appends a blank line to mail that
+	is delivered to external command. Files:  pipe/pipe.c,
+	global/mail_copy.[hc].

@@ -213,7 +213,7 @@
 /*	value arguments.
 /* .IP "VSTREAM_CTL_READ_FN (int (*)(int, void *, unsigned, int, void *))"
 /*	The argument specifies an alternative for the timed_read(3) function,
-/*	for example, a read function that performs encryption.
+/*	for example, a read function that performs decryption.
 /* .IP "VSTREAM_CTL_WRITE_FN (int (*)(int, void *, unsigned, int, void *))"
 /*	The argument specifies an alternative for the timed_write(3) function,
 /*	for example, a write function that performs encryption.

@@ -187,7 +187,7 @@ envelope header to each message, prepends an
 optional \fBDelivered-To:\fR
 header with the recipient envelope address, prepends a
 \fBReturn-Path:\fR header with the sender envelope address,
-and appends an empty line.
+and appends no empty line.
 .SH EXTERNAL FILE DELIVERY
 .na
 .nf
@@ -306,6 +306,9 @@ forwarding, delivery to command or file. Specify zero or more of:
 forwarding mail is not recommended.
 .IP \fBrecipient_delimiter\fR
 Separator between username and address extension.
+.IP \fBtest_home_directory\fR
+Require that a recipient's home directory is accessible by the
+recipient before attempting delivery.
 .SH Mailbox delivery
 .ad
 .fi

@@ -531,7 +531,8 @@ static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
 				sent(request->queue_id, rcpt->address,
 				     session->namaddr, request->arrival_time,
 				     "%s", resp->str);
-				deliver_completed(state->src, rcpt->offset);
+				if (request->flags & DEL_REQ_FLAG_SUCCESS)
+				    deliver_completed(state->src, rcpt->offset);
 				rcpt->offset = 0;
 			    }
 			} else {

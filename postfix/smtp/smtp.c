@@ -56,6 +56,8 @@
 /* .SH Miscellaneous
 /* .ad
 /* .fi
+/* .IP \fBappend_dot_mydomain\fR
+/*	Rewrite \fIuser\fR@\fIhost\fR to \fIuser\fR@\fIhost\fR.$\fBmydomain\fR.
 /* .IP \fBbest_mx_transport\fR
 /*	Name of the delivery transport to use when the local machine
 /*	is the most-preferred mail exchanger (by default, a mailer
@@ -239,6 +241,7 @@ char   *var_smtp_sasl_opts;
 char   *var_smtp_sasl_passwd;
 bool    var_smtp_sasl_enable;
 char   *var_smtp_bind_addr;
+bool    var_append_dot_mydomain;
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
@@ -408,6 +411,7 @@ int     main(int argc, char **argv)
 	VAR_SKIP_QUIT_RESP, DEF_SKIP_QUIT_RESP, &var_skip_quit_resp,
 	VAR_SMTP_ALWAYS_EHLO, DEF_SMTP_ALWAYS_EHLO, &var_smtp_always_ehlo,
 	VAR_SMTP_SASL_ENABLE, DEF_SMTP_SASL_ENABLE, &var_smtp_sasl_enable,
+	VAR_APP_DOT_MYDOMAIN, DEF_APP_DOT_MYDOMAIN, &var_append_dot_mydomain,
 	0,
     };
 

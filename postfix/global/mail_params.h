@@ -381,9 +381,13 @@ extern char *var_fwd_exp_filter;
 #define DEF_DELIVER_HDR		"command, file, forward"
 extern char *var_deliver_hdr;
 
-#define VAR_EXP_OWN_ALIAS		"expand_owner_alias"
-#define DEF_EXP_OWN_ALIAS		0
+#define VAR_EXP_OWN_ALIAS	"expand_owner_alias"
+#define DEF_EXP_OWN_ALIAS	0
 extern bool var_exp_own_alias;
+
+#define VAR_STAT_HOME_DIR	"test_home_directory"
+#define DEF_STAT_HOME_DIR	0
+extern bool var_stat_home_dir;
 
  /*
   * Queue manager: maximal size of the duplicate expansion filter. By

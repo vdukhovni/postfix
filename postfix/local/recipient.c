@@ -104,6 +104,10 @@ static int deliver_switch(LOCAL_STATE state, USER_ATTR usr_attr)
 
     /*
      * \user is special: it means don't do any alias or forward expansion.
+     * 
+     * XXX This code currently does not work due to revision of the RFC822
+     * address parser. \user should be permitted only in locally specified
+     * aliases, includes or forward files.
      */
     if (state.msg_attr.recipient[0] == '\\') {
 	state.msg_attr.recipient++, state.msg_attr.local++, state.msg_attr.user++;

@@ -1,3 +1,12 @@
+Incompatible changes with snapshot-20000625
+===========================================
+
+The local delivery agent no longer appends a blank line to mail
+that is delivered to external command.
+
+The pipe delivery agent no longer appends a blank line when the F
+flag is specified. Specify the B flag if you need that blank line.
+
 Incompatible changes with snapshot-20000531
 ===========================================
 

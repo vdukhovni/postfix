@@ -431,7 +431,7 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "250-SIZE");
     smtpd_chat_reply(state, "250-ETRN");
 #ifdef USE_SASL_AUTH
-    if (SMTPD_STAND_ALONE(state) == 0 && var_smtpd_sasl_enable)
+    if (var_smtpd_sasl_enable)
 	smtpd_chat_reply(state, "250-AUTH %s", state->sasl_mechanism_list);
 #endif
     smtpd_chat_reply(state, "250 8BITMIME");
@@ -624,9 +624,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    if ((state->msg_size = off_cvt_string(arg + 5)) < 0)
 		state->msg_size = 0;
 #ifdef USE_SASL_AUTH
-	} else if (SMTPD_STAND_ALONE(state) == 0
-		   && var_smtpd_sasl_enable
-		   && strncasecmp(arg, "AUTH=", 5) == 0) {
+	} else if (var_smtpd_sasl_enable && strncasecmp(arg, "AUTH=", 5) == 0) {
 	    if ((err = smtpd_sasl_mail_opt(state, arg + 5)) != 0) {
 		smtpd_chat_reply(state, "%s", err);
 		return (-1);
@@ -913,6 +911,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     if (state->err == CLEANUP_STAT_OK) {
 	state->error_count = 0;
 	state->error_mask = 0;
+	state->junk_cmds = 0;
 	smtpd_chat_reply(state, "250 Ok: queued as %s", state->queue_id);
     } else if ((state->err & CLEANUP_STAT_BAD) != 0) {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;

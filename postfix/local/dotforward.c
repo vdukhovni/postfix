@@ -64,6 +64,7 @@
 #include <vstream.h>
 #include <htable.h>
 #include <open_as.h>
+#include <stat_as.h>
 #include <lstat_as.h>
 #include <iostuff.h>
 #include <stringops.h>
@@ -78,6 +79,7 @@
 #include <mail_params.h>
 #include <mail_conf.h>
 #include <ext_prop.h>
+#include <defer.h>
 
 /* Application-specific. */
 
@@ -113,17 +115,35 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 	MSG_LOG_STATE(myname, state);
 
     /*
+     * Skip non-existing users. The mailbox delivery routine will catch the
+     * error.
+     * 
+     * Defer delivery to recipients whose home directory is not accessible.
+     * 
+     * XXX This code should be one level up. The caller should pass the
+     * recipient's password file info along with the call.
+     * 
+     * XXX This code should also be executed for \user deliveries that bypass
+     * aliasing and .forward processing. Said code is currently broken after
+     * a revision of the RFC822 address parser.
+     */
+    if ((mypwd = mypwnam(state.msg_attr.user)) == 0)
+	return (NO);
+    if (var_stat_home_dir
+	&& stat_as(mypwd->pw_dir, &st, mypwd->pw_uid, mypwd->pw_gid) < 0) {
+	*statusp = defer_append(BOUNCE_FLAG_KEEP,
+				BOUNCE_ATTR(state.msg_attr),
+				"cannot access %s home directory %s: %m",
+				mypwd->pw_name, mypwd->pw_dir);
+	return (YES);
+    }
+
+    /*
      * Skip this module if per-user forwarding is disabled.
      */
     if (*var_forward_path == 0)
 	return (NO);
 
-    /*
-     * Skip non-existing users. The mailbox delivery routine will catch the
-     * error.
-     */
-    if ((mypwd = mypwnam(state.msg_attr.user)) == 0)
-	return (NO);
 
     /*
      * From here on no early returns or we have a memory leak.

@@ -13,8 +13,6 @@
 /* DESCRIPTION
 /*	dict_pcre_open() opens the named file and compiles the contained
 /*	regular expressions.
-/*
-/*	 The lookup interface will match only user@domain form addresses.
 /* SEE ALSO
 /*	dict(3) generic dictionary manager
 /* AUTHOR(S)

@@ -48,6 +48,7 @@ typedef struct {
 #define HDR_RETURN_RECEIPT_TO		23
 #define HDR_SENDER			24
 #define HDR_TO				25
+#define HDR_MAIL_FOLLOWUP_TO		26
 
  /*
   * Header flags.
