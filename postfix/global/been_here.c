@@ -157,8 +157,8 @@ int     been_here_fixed(BH_TABLE *dup_filter, const char *string)
     if (htable_locate(dup_filter->table, lookup_key) != 0) {
 	status = 1;
     } else {
-	if (dup_filter->limit > 0
-	    && dup_filter->limit > dup_filter->table->used)
+	if (dup_filter->limit <= 0
+	    || dup_filter->limit > dup_filter->table->used)
 	    htable_enter(dup_filter->table, lookup_key, (char *) 0);
 	status = 0;
     }

@@ -638,6 +638,8 @@ int     main(int argc, char **argv)
     struct stat st;
     int     junk;
 
+    umask(022);
+
     /*
      * To minimize confusion, make sure that the standard file descriptors
      * are open before opening anything else. XXX Work around for 44BSD where

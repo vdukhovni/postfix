@@ -253,7 +253,6 @@ static DNS_RR *dns_get_rr(DNS_REPLY *reply, unsigned char *pos,
     int     ch;
 
 #define MIN2(a, b)	((unsigned)(a) < (unsigned)(b) ? (a) : (b))
-#define UC(x)		((unsigned char *) (x))
 
     if (pos + fixed->length > reply->end)
 	return (0);
@@ -294,8 +293,9 @@ static DNS_RR *dns_get_rr(DNS_REPLY *reply, unsigned char *pos,
 	data_len = fixed->length;
 	break;
     case T_TXT:
-	data_len = MIN2(fixed->length + 1, sizeof(temp));
-	for (src = pos, dst = UC(temp); dst < UC(temp) + data_len - 1; /* */ ) {
+	data_len = MIN2(pos[0] + 1, MIN2(fixed->length + 1, sizeof(temp)));
+	for (src = pos + 1, dst = (unsigned char *) (temp);
+	     dst < (unsigned char *) (temp) + data_len - 1; /* */ ) {
 	    ch = *src++;
 	    *dst++ = (ISPRINT(ch) ? ch : ' ');
 	}

@@ -176,9 +176,18 @@ href="transport.5.html">transport</a> table lookups.
 
 <dd><i>.my.domain</i> &nbsp; <b>smtp</b>:
 
+<dd><i>thishost.my.domain</i> &nbsp; <b>local</b>:
+
 </dl>
 
 </dl>
+
+<p>
+
+<p>
+
+Do not omit the entry that routes mail for the local machine to
+the local delivery agent.
 
 <p>
 
@@ -198,11 +207,6 @@ changes effective.
 
 <a name="firewall"><h2>Running Postfix on a firewall</h2> </a>
 
-Note: this section depends on accidental properties of the
-implementation so this information is subject to change.
-
-<p>
-
 How to set up Postfix on the firewall machine so that it relays
 mail for <i>my.domain</i> to a gateway machine on the inside, and
 so that it refuses mail for <i>*.my.domain</i>? The problem is that
@@ -215,7 +219,7 @@ you specify <i>my.domain</i>.
 <ul>
 
 <li>Specify a null <a href="uce.html#relay_domains">relay_domains</a>
-parameter plus a <a href="virtual.5.html">virtual</a> table to
+parameter plus a <a href="transport.5.html">transport</a> table to
 route mail for <i>my.domain</i> to the inside machine:
 
 <p>
@@ -229,19 +233,21 @@ route mail for <i>my.domain</i> to the inside machine:
 
 <dd><b>relay_domains = </b>
 
-<dd><b>virtual_maps = hash:/etc/postfix/virtual</b>
+<dd><b>transport_maps = hash:/etc/postfix/transport</b>
 
 <p>
 
-<dt>/etc/postfix/virtual:
+<dt>/etc/postfix/transport:
 
-<dd><i>@my.domain</i> &nbsp; <i>@inside-gateway.my.domain</i>
+<dd><i>my.domain</i> &nbsp; <b>smtp:</b><i>inside-gateway.my.domain</i>
+
+<dd><i>.my.domain</i> &nbsp; <b>smtp:</b><i>inside-gateway.my.domain</i>
 
 </dl>
 
 <p>
 
-Specify <b>dbm:/etc/postfix/virtual</b> if your system uses <b>dbm</b>
+Specify <b>dbm:/etc/postfix/transport</b> if your system uses <b>dbm</b>
 files instead of <b>db</b>. 
 
 <p>

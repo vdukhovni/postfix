@@ -13,6 +13,11 @@ main.cf.
 SMTPD access control tables. Use the permit_recipient_map feature
 instead. The loss is compensated for (see below).
 
+- transport_maps entries override mydestination.  If any of the
+$mydestination domains matches a transport specification, you also
+need to add a "domain.name local:" entry in your transport_maps.
+See the html/faq.html sections for firewalls and intranets.
+
 Major changes with snapshot 19991123
 ====================================
 
@@ -49,9 +54,9 @@ relay mail for other systems.
 - Use "postmap -q key" or "postalias -q key" for testing Postfix
 lookup tables or alias files.
 
-- Use "postconf -e name=value..." edits the main.cf file.  This is
-easier and safer than editing the main.cf file by hand. The edits
-are done on a temporary copy that is renamed into place.
+- Use "postconf -e name=value..." to edit the main.cf file.  This
+is easier and safer than editing the main.cf file by hand. The
+edits are done on a temporary copy that is renamed into place.
 
 - Use "postconf -m" to display all supported lookup table types
 (Scott Cotton).

@@ -3277,7 +3277,8 @@ Apologies for any names omitted.
 
 19991121
 
-	Robustness: INSTALL.sh no longer uses postmap for sanity checks.
+	Robustness: INSTALL.sh no longer uses postmap for sanity
+	checks.
 
 	Feature: INSTALL.sh now has an install_root option.
 
@@ -3285,9 +3286,26 @@ Apologies for any names omitted.
 	permissions and ownership.
 
 	Bugfix: the LDAP client did not properly escape special
-	characters in lookup keys (patch by John Hensley).
-	File: util/dict_ldap.c.
+	characters in lookup keys (patch by John Hensley).  File:
+	util/dict_ldap.c.
 
 19991122
 
-	Bugfix: missing absolute path in INSTALL.sh broke fresh install.
+	Bugfix: missing absolute path in INSTALL.sh broke fresh
+	install.
+
+19991124
+
+	Bugfix: the local delivery agent's recipient duplicate
+	filter did not work when configured to use unlimited memory
+	(which is not a recommended setting). Patrik Rak @ein.cz.
+
+19991125
+
+	Bugfix: postconf didn't have an umask(022) call at the
+	beginning (problem experienced by Matthias Andree).
+
+19991126
+
+	Bugfix: TXT records now have string lengths before text
+	(Mark Martinec @ nsc.ijs.si).
