@@ -653,11 +653,20 @@ extern int var_idle_limit;
 
  /*
   * Any subsystem: default amount of time a mail subsystem keeps an internal
-  * IPC connection before closing it.
+  * IPC connection before closing it because it is idle for too much time.
   */
 #define VAR_IPC_IDLE		"ipc_idle"
 #define DEF_IPC_IDLE		"100s"
 extern int var_ipc_idle_limit;
+
+ /*
+  * Any subsystem: default amount of time a mail subsystem keeps an internal
+  * IPC connection before closing it because the connection has existed for
+  * too much time.
+  */
+#define VAR_IPC_TTL		"ipc_ttl"
+#define DEF_IPC_TTL		"1000s"
+extern int var_ipc_ttl_limit;
 
  /*
   * Any front-end subsystem: avoid running out of memory when someone sends
@@ -1313,12 +1322,31 @@ extern char *var_smtpd_exp_filter;
   * Heuristic to reject unknown local recipients at the SMTP port.
   */
 #define VAR_LOCAL_RCPT_MAPS	"local_recipient_maps"
-#define DEF_LOCAL_RCPT_MAPS	"unix:passwd.byname $alias_maps"
+#define DEF_LOCAL_RCPT_MAPS	"proxy:unix:passwd.byname $" VAR_ALIAS_MAPS
 extern char *var_local_rcpt_maps;
 
 #define VAR_LOCAL_RCPT_CODE	"unknown_local_recipient_reject_code"
 #define DEF_LOCAL_RCPT_CODE	550
 extern int var_local_rcpt_code;
+
+ /*
+  * List of pre-approved maps that are OK to open with the proxymap service.
+  */
+#define VAR_PROXYMAP_FILTER	"proxymap_filter"
+#define DEF_PROXYMAP_FILTER	"$" VAR_LOCAL_RCPT_MAPS \
+				" $" VAR_MYDEST \
+				" $" VAR_VIRT_ALIAS_MAPS \
+				" $" VAR_VIRT_ALIAS_DOMS \
+				" $" VAR_VIRT_MAILBOX_MAPS \
+				" $" VAR_VIRT_MAILBOX_DOMS \
+				" $" VAR_RELAY_RCPT_MAPS \
+				" $" VAR_RELAY_DOMAINS \
+				" $" VAR_CANONICAL_MAPS \
+				" $" VAR_SEND_CANON_MAPS \
+				" $" VAR_RCPT_CANON_MAPS \
+				" $" VAR_RELOCATED_MAPS \
+				" $" VAR_TRANSPORT_MAPS
+extern char *var_proxymap_filter;
 
  /*
   * Other.

@@ -34,12 +34,12 @@
 /*	returned.
 /* .PP
 /*	The server reply status is one of:
-/* .IP \fBVRFYSTAT_OK\fR
+/* .IP \fBVRFY_STAT_OK\fR
 /*	The request completed normally.
-/* .IP \fBVRFYSTAT_BAD\fR
+/* .IP \fBVRFY_STAT_BAD\fR
 /*	The server rejected the request (bad request name, bad
 /*	request parameter value).
-/* .IP \fBVRFYSTAT_FAIL\fR
+/* .IP \fBVRFY_STAT_FAIL\fR
 /*	The request failed.
 /* .PP
 /*	The recipient status is one of:
@@ -145,7 +145,7 @@
 #include <post_mail.h>
 #include <verify_clnt.h>
 
-/* Single server skeleton. */
+/* Server skeleton. */
 
 #include <mail_server.h>
 
@@ -490,7 +490,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     setsid();
 }
 
-/* main - pass control to the single-threaded skeleton */
+/* main - pass control to the multi-threaded skeleton */
 
 int     main(int argc, char **argv)
 {

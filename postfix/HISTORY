@@ -7628,6 +7628,27 @@ Apologies for any names omitted.
 	advanced content filtering example. Files: FILTER_README,
 	RELEASE_NOTES-2.0.
 
+20030102
+
+	Workaround: use different client instances when the same
+	map is opened with different flags. This silences warnings
+	from maps_append() when the same map is opened by
+	virtual_alias_maps and by virtual_mailbox_maps. File:
+	global/maps.c.
+
+	Feature: proxymap server for Postfix table lookups. This
+	helps to consolidate the number of open lookup tables (such
+	as MYSQL or LDAP), or to overcome chroot restrictions
+	(example: specify proxy:unix:passwd.byname to avoid the
+	need for a copy of the UNIX passwd file in chroot jails).
+	Files:  global/dict_proxy.[hc], proxymap/proxymap.c
+
+	Cleanup: multiservers such as trivial-rewrite and the new
+	proxymap server now enforce the max_use total client number
+	limit more agressively, by not accepting new connections
+	after the limit is reached.  Based on a patch by Victor
+	Duchovni, Morgan Stanley. File:  master/multi_server.c.
+
 Open problems:
 
 	Med: do not postpone rejected "MAIL FROM" size information,

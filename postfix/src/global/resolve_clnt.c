@@ -178,7 +178,9 @@ void    resolve_clnt_query(const char *addr, RESOLVE_REPLY *reply)
      */
     if (rewrite_clnt_stream == 0)
 	rewrite_clnt_stream = clnt_stream_create(MAIL_CLASS_PRIVATE,
-				   var_rewrite_service, var_ipc_idle_limit);
+						 var_rewrite_service,
+						 var_ipc_idle_limit,
+						 var_ipc_ttl_limit);
 
     for (;;) {
 	stream = clnt_stream_access(rewrite_clnt_stream);

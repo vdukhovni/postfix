@@ -47,6 +47,7 @@
 /*	char	*var_mail_release;
 /*	char	*var_mail_version;
 /*	int	var_ipc_idle_limit;
+/*	int	var_ipc_ttl_limit;
 /*	char	*var_db_type;
 /*	char	*var_hash_queue_names;
 /*	int	var_hash_queue_depth;
@@ -205,6 +206,7 @@ int     var_message_limit;
 char   *var_mail_release;
 char   *var_mail_version;
 int     var_ipc_idle_limit;
+int     var_ipc_ttl_limit;
 char   *var_db_type;
 char   *var_hash_queue_names;
 int     var_hash_queue_depth;
@@ -505,6 +507,7 @@ void    mail_params_init()
 	VAR_MAX_IDLE, DEF_MAX_IDLE, &var_idle_limit, 1, 0,
 	VAR_IPC_TIMEOUT, DEF_IPC_TIMEOUT, &var_ipc_timeout, 1, 0,
 	VAR_IPC_IDLE, DEF_IPC_IDLE, &var_ipc_idle_limit, 1, 0,
+	VAR_IPC_TTL, DEF_IPC_TTL, &var_ipc_ttl_limit, 1, 0,
 	VAR_TRIGGER_TIMEOUT, DEF_TRIGGER_TIMEOUT, &var_trigger_timeout, 1, 0,
 	VAR_FORK_DELAY, DEF_FORK_DELAY, &var_fork_delay, 1, 0,
 	VAR_FLOCK_DELAY, DEF_FLOCK_DELAY, &var_flock_delay, 1, 0,

@@ -20,7 +20,8 @@
   * External interface.
   */
 #define virtual8_maps_create(title, map_names, flags) \
-	maps_create((title), (map_names), (flags) | DICT_FLAG_NO_REGSUB)
+	maps_create((title), (map_names), \
+	(flags) | DICT_FLAG_NO_REGSUB | DICT_FLAG_NO_PROXY)
 extern const char *virtual8_maps_find(MAPS *, const char *);
 #define virtual8_maps_free(maps)	maps_free((maps))
 

@@ -133,6 +133,9 @@
 /*	For security reasons, regular expression maps are allowed but
 /*	regular expression substitution of $1 etc. is disallowed,
 /*	because that would open a security hole.
+/*
+/*	For security reasons, proxied table lookup is not allowed,
+/*	because that would open a security hole.
 /* .IP \fBvirtual_mailbox_domains\fR
 /*	The list of domains that should be delivered via the Postfix virtual
 /*	delivery agent. This uses the same syntax as the \fBmydestination\fR
@@ -156,6 +159,9 @@
 /*	For security reasons, regular expression maps are allowed but
 /*	regular expression substitution of $1 etc. is disallowed,
 /*	because that would open a security hole.
+/*
+/*	For security reasons, proxied table lookup is not allowed,
+/*	because that would open a security hole.
 /* .IP \fBvirtual_gid_maps\fR
 /*	Recipients are looked up in these maps to determine the group ID to be
 /*	used when writing to the target mailbox.
@@ -169,6 +175,9 @@
 /*
 /*	For security reasons, regular expression maps are allowed but
 /*	regular expression substitution of $1 etc. is disallowed,
+/*	because that would open a security hole.
+/*
+/*	For security reasons, proxied table lookup is not allowed,
 /*	because that would open a security hole.
 /* .SH "Locking controls"
 /* .ad

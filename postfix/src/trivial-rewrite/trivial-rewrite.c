@@ -26,6 +26,14 @@
 /* .IP \fIrecipient\fR
 /*	The envelope recipient address that is passed on to \fInexthop\fR.
 /* .RE
+/* .PP
+/*	\fBtrivial-rewrite\fR servers run under control by the Postfix master
+/*	server. Each server can handle multiple simultaneous connections.
+/*	When all servers are busy while a client connects, a new server
+/*	process is created, provided that the trivial-rewrite server
+/*	process limit is not exceeded.
+/*	Each server terminates after serving \fB$max_use\fR clients
+/*	or after \fB$max_idle\fR seconds of idle time.
 /* DEFAULT DELIVERY METHODS
 /* .ad
 /* .fi

@@ -696,8 +696,10 @@ static void pre_init(char *unused_name, char **unused_argv)
 		      VAR_MAILBOX_LIMIT, VAR_MESSAGE_LIMIT);
 	set_file_limit(var_mailbox_limit);
     }
+#define INSECURE_DICT_FLAGS (DICT_FLAG_NO_REGSUB | DICT_FLAG_NO_PROXY)
+
     alias_maps = maps_create("aliases", var_alias_maps,
-			     DICT_FLAG_LOCK | DICT_FLAG_NO_REGSUB);
+			     DICT_FLAG_LOCK | INSECURE_DICT_FLAGS);
 }
 
 /* main - pass control to the single-threaded skeleton */

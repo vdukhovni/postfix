@@ -96,7 +96,7 @@ static void verify_clnt_init(void)
     if (vrfy_clnt != 0)
 	msg_panic("verify_clnt_init: multiple initialization");
     vrfy_clnt = clnt_stream_create(MAIL_CLASS_PRIVATE, var_verify_service,
-				   var_ipc_idle_limit);
+				   var_ipc_idle_limit, var_ipc_ttl_limit);
 }
 
 /* verify_clnt_query - request address verification status */

@@ -167,6 +167,7 @@
 #include <mail_task.h>
 #include <debug_process.h>
 #include <mail_conf.h>
+#include <mail_dict.h>
 #include <timed_ipc.h>
 #include <resolve_local.h>
 #include <mail_flow.h>
@@ -391,6 +392,11 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
      * override compiled-in defaults or configured parameter values.
      */
     mail_conf_suck();
+
+    /*
+     * Register dictionaries that use higher-level interfaces and protocols.
+     */
+    mail_dict_init();
 
     /*
      * Pick up policy settings from master process. Shut up error messages to

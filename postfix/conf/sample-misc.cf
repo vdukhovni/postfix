@@ -143,13 +143,24 @@ inet_interfaces = all
 # The ipc_idle parameter bounds the idle time for internal communication
 # channels after which a client disconnects voluntarily. The purpose
 # is to allow servers to terminate voluntarily after they become
-# idle. Currently this is used by the address resolving and rewriting
-# clients.
+# idle. This is used, for example, by the address resolving and
+# rewriting clients.
 #
 # Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 # The default time unit is s (seconds).
 #
 ipc_idle = 100s
+
+# The ipc_ttl parameter bounds the active time for internal communication
+# channels after which a client disconnects voluntarily. The purpose
+# is to allow servers to terminate voluntarily after reaching their
+# client limit.  This is used, for example, by the address resolving
+# and rewriting clients.
+#
+# Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+# The default time unit is s (seconds).
+#
+ipc_ttl = 1000s
 
 # The ipc_timeout parameter specifies a timeout for I/O on internal
 # communication channels.  The purpose is to break out of deadlock

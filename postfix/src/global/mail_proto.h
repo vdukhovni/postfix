@@ -52,6 +52,7 @@
 #define MAIL_SERVICE_VERIFY	"verify"
 #define MAIL_SERVICE_TRACE	"trace"
 #define MAIL_SERVICE_RELAY	"relay"
+#define MAIL_SERVICE_PROXYMAP	"proxymap"
 
  /*
   * Well-known socket or FIFO directories. The main difference is in file
@@ -111,6 +112,9 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_TRACE_FLAGS	"trace_flags"
 #define MAIL_ATTR_ADDR_STATUS	"recipient_status"
 #define MAIL_ATTR_ACTION	"action"
+#define MAIL_ATTR_TABLE		"table"
+#define MAIL_ATTR_KEY		"key"
+#define MAIL_ATTR_VALUE		"value"
 
  /*
   * Suffixes for sender_name, sender_domain etc.

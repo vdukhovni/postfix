@@ -37,6 +37,14 @@ TRIVIAL-REWRITE(8)                             TRIVIAL-REWRITE(8)
                      The  envelope  recipient  address  that   is
                      passed on to <i>nexthop</i>.
 
+       <b>trivial-rewrite</b>  servers  run under control by the Postfix
+       master server. Each server can handle multiple  simultane-
+       ous connections.  When all servers are busy while a client
+       connects, a new server process is created,  provided  that
+       the  trivial-rewrite server process limit is not exceeded.
+       Each server terminates after serving <b>$max</b><i>_</i><b>use</b>  clients  or
+       after <b>$max</b><i>_</i><b>idle</b> seconds of idle time.
+
 <b>DEFAULT</b> <b>DELIVERY</b> <b>METHODS</b>
        By  default,  Postfix  uses  one of the following delivery
        methods.  This may be overruled with the  optional  <a href="transport.5.html">trans-</a>
