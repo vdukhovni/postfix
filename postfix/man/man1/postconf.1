@@ -38,6 +38,20 @@ Show parameter values only, not the ``name = '' label
 that normally precedes the value.
 .IP \fB-l\fR
 List the names of all supported mailbox locking methods.
+Postfix supports the following methods:
+.RS
+.IP \fBflock\fR
+A kernel-based advisory locking method for local files only.
+This locking method is available only on systems with a BSD
+compatible library.
+.IP \fBfcntl\fR
+A kernel-based advisory locking method for local and remote files.
+.IP \fBdotlock\fR
+An application-level locking method. An application locks a file
+named \fIfilename\fR by creating a file named \fIfilename\fB.lock\fR.
+The application is expected to remove its own lock file, as well as
+stale lock files that were left behind after abnormal termination.
+.RE
 .IP \fB-m\fR
 List the names of all supported lookup table types.
 .IP \fB-n\fR

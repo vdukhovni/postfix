@@ -170,7 +170,8 @@ static int attr_scan64_string(VSTREAM *fp, VSTRING *plain_buf, const char *conte
     VSTRING_RESET(base64_buf);
     while ((ch = VSTREAM_GETC(fp)) != ':' && ch != '\n') {
 	if (ch == VSTREAM_EOF) {
-	    msg_warn("premature end-of-input from %s while reading %s",
+	    msg_warn("%s on %s while reading %s",
+		vstream_ftimeout(fp) ? "timeout" : "premature end-of-input",
 		     VSTREAM_PATH(fp), context);
 	    return (-1);
 	}

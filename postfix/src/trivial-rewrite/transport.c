@@ -70,6 +70,8 @@
 
 static MAPS *transport_path;
 static int transport_match_parent_style;
+static VSTRING *wildcard_channel;
+static VSTRING *wildcard_nexthop;
 
 /* transport_init - pre-jail initialization */
 
@@ -80,6 +82,21 @@ void    transport_init(void)
     transport_path = maps_create("transport", var_transport_maps,
 				 DICT_FLAG_LOCK);
     transport_match_parent_style = match_parent_style(VAR_TRANSPORT_MAPS);
+
+}
+
+void    transport_wildcard_init(void)
+{
+    wildcard_channel = vstring_alloc(10);
+    wildcard_nexthop = vstring_alloc(10);
+    if (!transport_lookup("*", wildcard_channel, wildcard_nexthop)) {
+	vstring_free(wildcard_channel);
+	vstring_free(wildcard_nexthop);
+    }
+    if (msg_verbose) {
+	msg_info("wildcard_{chan,hop}={%s %s}",
+	      vstring_str(wildcard_channel), vstring_str(wildcard_nexthop));
+    }
 }
 
 /* transport_lookup - map a transport domain */
@@ -94,6 +111,7 @@ int     transport_lookup(const char *domain, VSTRING *channel, VSTRING *nexthop)
     char   *saved_value;
     char   *transport;
     int     found = 0;
+    int     null_found = 0;
 
 #define FULL	0
 #define PARTIAL		DICT_FLAG_FIXED
@@ -105,7 +123,9 @@ int     transport_lookup(const char *domain, VSTRING *channel, VSTRING *nexthop)
 
     /*
      * Keep stripping domain components until nothing is left or until a
-     * matching entry is found.
+     * matching entry is found.  If a NULL entry (either no RHS, or ':'),
+     * then pretend we got no match, and return.  If we really got no match,
+     * then return the wildcard transport, if any.
      * 
      * After checking the full name, check for .upper.domain, to distinguish
      * between the upper domain and it's decendants, ala sendmail and tcp
@@ -117,11 +137,17 @@ int     transport_lookup(const char *domain, VSTRING *channel, VSTRING *nexthop)
      * Specify if a key is partial or full, to avoid matching partial keys with
      * regular expressions.
      */
-    for (name = low_domain; /* void */; name = next) {
+    for (name = low_domain; /* void */ ; name = next) {
 	if ((value = maps_find(transport_path, name, maps_flag)) != 0) {
 	    saved_value = mystrdup(value);
-	    if ((host = split_at(saved_value, ':')) == 0 || *host == 0)
+	    if ((host = split_at(saved_value, ':')) == 0 || *host == 0) {
+		if (*saved_value == 0) {
+		    myfree(saved_value);
+		    null_found = 1;
+		    break;
+		}
 		host = domain;
+	    }
 	    if (*(transport = saved_value) == 0)
 		transport = var_def_transport;
 	    vstring_strcpy(channel, transport);
@@ -143,5 +169,14 @@ int     transport_lookup(const char *domain, VSTRING *channel, VSTRING *nexthop)
 	maps_flag = PARTIAL;
     }
     myfree(low_domain);
+
+    if (wildcard_channel && !null_found) {
+	vstring_strcpy(channel, vstring_str(wildcard_channel));
+	if (vstring_str(wildcard_nexthop))
+	    vstring_strcpy(nexthop, vstring_str(wildcard_nexthop));
+	else
+	    vstring_strcpy(nexthop, domain);
+	found = 1;
+    }
     return (found);
 }

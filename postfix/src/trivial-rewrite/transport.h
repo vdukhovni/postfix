@@ -17,6 +17,7 @@
   * External interface.
   */
 extern void transport_init(void);
+extern void transport_wildcard_init(void);
 extern int transport_lookup(const char *, VSTRING *, VSTRING *);
 
 /* LICENSE

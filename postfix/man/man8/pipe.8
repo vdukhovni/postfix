@@ -50,7 +50,7 @@ entry for the pipe-based delivery transport.
 .fi
 The external command attributes are given in the \fBmaster.cf\fR
 file at the end of a service definition.  The syntax is as follows:
-.IP "\fBflags=BFRhqu.>\fR (optional)"
+.IP "\fBflags=BDFRhqu.>\fR (optional)"
 Optional message processing flags. By default, a message is
 copied unchanged.
 .RS
@@ -58,6 +58,10 @@ copied unchanged.
 Append a blank line at the end of each message. This is required
 by some mail user agents that recognize "\fBFrom \fR" lines only
 when preceded by a blank line.
+.IP \fBD\fR
+Prepend a "\fBDelivered-To: \fIrecipient\fR" message header with the
+envelope recipient address. Note: for this to work, the
+\fItransport\fB_destination_recipient_limit\fR must be 1.
 .IP \fBF\fR
 Prepend a "\fBFrom \fIsender time_stamp\fR" envelope header to
 the message content.

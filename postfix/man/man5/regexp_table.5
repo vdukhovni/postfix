@@ -78,6 +78,13 @@ by whitespace.
 # These were once common in junk mail.
 /^Subject: make money fast/     REJECT
 /^To: friend@public\\.com/       REJECT
+.SH EXAMPLE BODY FILTER MAP
+.na
+.nf
+# First skip over base 64 encoded text to save CPU cycles.
+~^[[:alnum:]+/]{60,}$~          OK
+
+# Put your own body patterns here.
 .SH SEE ALSO
 .na
 .nf

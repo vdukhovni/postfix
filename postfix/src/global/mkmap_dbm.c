@@ -1,6 +1,6 @@
 /*++
 /* NAME
-/*	mkmap 3
+/*	mkmap_dbm 3
 /* SUMMARY
 /*	create or open database, DBM style
 /* SYNOPSIS

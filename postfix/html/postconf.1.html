@@ -1,5 +1,4 @@
 <html> <head> </head> <body> <pre>
-
 POSTCONF(1)                                           POSTCONF(1)
 
 <b>NAME</b>
@@ -36,7 +35,23 @@ POSTCONF(1)                                           POSTCONF(1)
               label that normally precedes the value.
 
        <b>-l</b>     List the names of  all  supported  mailbox  locking
-              methods.
+              methods.  Postfix supports the following methods:
+
+              <b>flock</b>  A  kernel-based  advisory locking method for
+                     local files only.  This  locking  method  is
+                     available only on systems with a BSD compat-
+                     ible library.
+
+              <b>fcntl</b>  A kernel-based advisory locking  method  for
+                     local and remote files.
+
+              <b>dotlock</b>
+                     An   application-level  locking  method.  An
+                     application locks a file named  <i>filename</i>  by
+                     creating  a  file  named <i>filename</i><b>.lock</b>.  The
+                     application is expected to  remove  its  own
+                     lock  file, as well as stale lock files that
+                     were left behind after abnormal termination.
 
        <b>-m</b>     List the names of all supported lookup table types.
 
@@ -59,6 +74,5 @@ POSTCONF(1)                                           POSTCONF(1)
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
 
-                                                                1
-
+                                                      POSTCONF(1)
 </pre> </body> </html>

@@ -77,6 +77,14 @@ or $(n) if they aren't followed by whitespace.
 .nf
 /^Subject: make money fast/     REJECT
 /^To: friend@public\\.com/       REJECT
+.SH EXAMPLE BODY FILTER MAP
+.na
+.nf
+# First skip over base 64 encoded text to save CPU cycles.
+# Requires PCRE version 3.
+~^[[:alnum:]+/]{60,}$~          OK
+
+# Put your own body patterns here.
 .SH SEE ALSO
 .na
 .nf

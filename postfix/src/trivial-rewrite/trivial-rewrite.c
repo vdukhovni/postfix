@@ -220,6 +220,11 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     transport_init();
 }
 
+static void post_jail_init(char *unused_name, char **unused_argv)
+{
+    transport_wildcard_init();
+}
+
 /* main - pass control to the multi-threaded skeleton code */
 
 int     main(int argc, char **argv)
@@ -241,6 +246,7 @@ int     main(int argc, char **argv)
 		      MAIL_SERVER_STR_TABLE, str_table,
 		      MAIL_SERVER_BOOL_TABLE, bool_table,
 		      MAIL_SERVER_PRE_INIT, pre_jail_init,
+		      MAIL_SERVER_POST_INIT, post_jail_init,
 		      MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		      0);
 }

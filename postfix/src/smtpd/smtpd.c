@@ -1314,6 +1314,8 @@ static SMTPD_CMD smtpd_cmd_table[] = {
     "ETRN", etrn_cmd, SMTPD_CMD_FLAG_LIMIT,
     "QUIT", quit_cmd, 0,
     "Received:", 0, SMTPD_CMD_FLAG_HEADER,
+    "Reply-To:", 0, SMTPD_CMD_FLAG_HEADER,
+    "Message-ID:", 0, SMTPD_CMD_FLAG_HEADER,
     "Subject:", 0, SMTPD_CMD_FLAG_HEADER,
     "From:", 0, SMTPD_CMD_FLAG_HEADER,
     0,

@@ -40,7 +40,7 @@
 /* .fi
 /*	The external command attributes are given in the \fBmaster.cf\fR
 /*	file at the end of a service definition.  The syntax is as follows:
-/* .IP "\fBflags=BFRhqu.>\fR (optional)"
+/* .IP "\fBflags=BDFRhqu.>\fR (optional)"
 /*	Optional message processing flags. By default, a message is
 /*	copied unchanged.
 /* .RS
@@ -48,6 +48,10 @@
 /*	Append a blank line at the end of each message. This is required
 /*	by some mail user agents that recognize "\fBFrom \fR" lines only
 /*	when preceded by a blank line.
+/* .IP \fBD\fR
+/*	Prepend a "\fBDelivered-To: \fIrecipient\fR" message header with the
+/*	envelope recipient address. Note: for this to work, the
+/*	\fItransport\fB_destination_recipient_limit\fR must be 1.
 /* .IP \fBF\fR
 /*	Prepend a "\fBFrom \fIsender time_stamp\fR" envelope header to
 /*	the message content.
@@ -580,6 +584,9 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
 		case 'R':
 		    attr->flags |= MAIL_COPY_RETURN_PATH;
 		    break;
+		case 'D':
+		    attr->flags |= MAIL_COPY_DELIVERED;
+		    break;
 		case 'h':
 		    attr->flags |= PIPE_OPT_FOLD_HOST;
 		    break;
@@ -782,6 +789,19 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
     }
 
     /*
+     * The D flag cannot be specified for multi-recipient deliveries.
+     */
+    if ((attr.flags & MAIL_COPY_DELIVERED) && (rcpt_list->len > 1)) {
+	deliver_status = eval_command_status(PIPE_STAT_DEFER, service,
+					     request, request->fp,
+					     "mailer configuration error");
+	msg_warn("pipe flag `D' requires %s_destination_recipient_limit = 1",
+		 service);
+	DELIVER_MSG_CLEANUP();
+	return (deliver_status);
+    }
+
+    /*
      * Check that this agent accepts messages this large.
      */
     if (attr.size_limit != 0 && request->data_size > attr.size_limit) {
@@ -831,6 +851,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 				  PIPE_CMD_TIME_LIMIT, conf.time_limit,
 				  PIPE_CMD_EOL, STR(attr.eol),
 				  PIPE_CMD_EXPORT, export_env->argv,
+			     PIPE_CMD_DELIVERED, rcpt_list->info[0].address,
 				  PIPE_CMD_END);
     argv_free(export_env);
 

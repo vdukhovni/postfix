@@ -379,7 +379,7 @@ UCE software can be stopped by being strict here.
 
 By default, this restriction is applied when the client sends the
 RCPT TO command. In order to have the restriction take effect
-as soon as possible, specify <b>smtpd_delay_reject = yes</b> in
+as soon as possible, specify <b>smtpd_delay_reject = no</b> in
 the Postfix <b>main.cf</b> configuration file. Doing so may cause
 unexpected results with poorly implemented client software.
 
@@ -550,7 +550,7 @@ addresses this system accepts in MAIL FROM commands.
 
 By default, this restriction is applied when the client sends the
 RCPT TO command. In order to have the restriction take effect
-as soon as possible, specify <b>smtpd_delay_reject = yes</b> in
+as soon as possible, specify <b>smtpd_delay_reject = no</b> in
 the Postfix <b>main.cf</b> configuration file. Doing so may cause
 unexpected results with poorly implemented client software.
 

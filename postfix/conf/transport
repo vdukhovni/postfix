@@ -34,7 +34,8 @@
 # 
 #        pattern result
 #               When pattern matches the  domain,  use  the  corre-
-#               sponding result.
+#               sponding result.  A pattern of `*' matches all
+#               entries.
 # 
 #        blank lines and comments
 #               Empty  lines and whitespace-only lines are ignored,
@@ -61,6 +62,16 @@
 #               parent_domain_matches_subdomains configuration set-
 #               ting.  Otherwise, a domain name matches itself  and
 #               its subdomains.
+#
+#        An empty result (`:' - default transport, default nexthop)
+#        behaves as  though the transport  map did not exist.  When
+#        combined with a wildcard (`*') entry,  this can be used to
+#        route internal mail directly, while  using a relay for all
+#        outbound  traffic.    (Note  that  you  should  _NOT_  set
+#        relayhost in this case.)
+#
+#             *                  smtp:outbound-relay.my.domain
+#             .my.domain         :
 # 
 #        Note:  transport  map entries take precedence over domains
 #        specified in the mydestination parameter. If you  use  the

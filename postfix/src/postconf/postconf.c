@@ -32,6 +32,20 @@
 /*	that normally precedes the value.
 /* .IP \fB-l\fR
 /*	List the names of all supported mailbox locking methods.
+/*	Postfix supports the following methods:
+/* .RS
+/* .IP \fBflock\fR
+/*	A kernel-based advisory locking method for local files only.
+/*	This locking method is available only on systems with a BSD
+/*	compatible library.
+/* .IP \fBfcntl\fR
+/*	A kernel-based advisory locking method for local and remote files.
+/* .IP \fBdotlock\fR
+/*	An application-level locking method. An application locks a file
+/*	named \fIfilename\fR by creating a file named \fIfilename\fB.lock\fR.
+/*	The application is expected to remove its own lock file, as well as
+/*	stale lock files that were left behind after abnormal termination.
+/* .RE
 /* .IP \fB-m\fR
 /*	List the names of all supported lookup table types.
 /* .IP \fB-n\fR
@@ -303,7 +317,7 @@ static void edit_parameters(int argc, char **argv)
 	if (strchr(cp, '\n') != 0)
 	    msg_fatal("edit accepts no multi-line input");
 	while (ISSPACE(*cp))
-            cp++;
+	    cp++;
 	if (*cp == '#')
 	    msg_fatal("edit accepts no comment input");
 	if ((err = split_nameval(cp, &edit_key, &edit_val)) != 0)
@@ -352,7 +366,7 @@ static void edit_parameters(int argc, char **argv)
     interesting = 0;
     while (vstring_get(buf, src) != VSTREAM_EOF) {
 	for (cp = STR(buf); ISSPACE(*cp) /* including newline */ ; cp++)
-             /* void */ ;
+	     /* void */ ;
 	/* Copy comment, all-whitespace, or empty line. */
 	if (*cp == '#' || *cp == 0) {
 	    vstream_fputs(STR(buf), dst);
@@ -800,7 +814,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "c:dehmlnv")) > 0) {
+    while ((ch = GETOPT(argc, argv, "c:deEhmlnv")) > 0) {
 	switch (ch) {
 	case 'c':
 	    if (setenv(CONF_ENV_PATH, optarg, 1) < 0)
@@ -812,6 +826,18 @@ int     main(int argc, char **argv)
 	case 'e':
 	    mode |= EDIT_MAIN;
 	    break;
+
+	    /*
+	     * People, this does not work unless you properly handle default
+	     * settings. For example, fast_flush_domains = $relay_domains
+	     * must not evaluate to the empty string when relay_domains is
+	     * left at its default setting of $mydestination.
+	     */
+#if 0
+	case 'E':
+	    mode |= SHOW_EVAL;
+	    break;
+#endif
 	case 'h':
 	    mode &= ~SHOW_NAME;
 	    break;

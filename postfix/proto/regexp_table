@@ -68,6 +68,11 @@
 #	# These were once common in junk mail.
 #	/^Subject: make money fast/     REJECT
 #	/^To: friend@public\\.com/	 REJECT
+# EXAMPLE BODY FILTER MAP
+#	# First skip over base 64 encoded text to save CPU cycles.
+#	~^[[:alnum:]+/]{60,}$~		OK
+#
+#	# Put your own body patterns here.
 # SEE ALSO
 #	pcre_table(5) format of PCRE tables
 # AUTHOR(S)

@@ -406,6 +406,8 @@ DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
     dict_dbm->dict.close = dict_dbm_close;
     dict_dbm->dict.lock_fd = dbm_dirfno(dbm);
     dict_dbm->dict.stat_fd = dbm_pagfno(dbm);
+    if (dict_dbm->dict.lock_fd == dict_dbm->dict.stat_fd)
+	msg_fatal("open database %s: cannot support GDBM", path);
     if (fstat(dict_dbm->dict.stat_fd, &st) < 0)
 	msg_fatal("dict_dbm_open: fstat: %m");
     dict_dbm->dict.mtime = st.st_mtime;

@@ -37,6 +37,10 @@
 
 #include <sys_defs.h>
 
+/* Global library. */
+
+#include "mail_conf.h"
+
 /* Utility library. */
 
 #include <msg.h>
@@ -58,10 +62,30 @@
 
 /* mkmap_db_open - create or open database */
 
+/*
+ * db_mpool_size" is defined in util/dict_db.c and defaults to 256K,
+ * which works well for the lookup code.
+ *
+ * We use a larger memory pool when building ".db" files.
+ * For "hash" files performance degrades rapidly unless the memory pool
+ * is O(file size).
+ *
+ * For "btree" files peformance is good with sorted input even for small
+ * memory pools, but with random input degrades rapidly unless the memory
+ * pool is O(file size).
+ */
+extern int db_mpool_size;
+
+#define VAR_MPOOL_SIZE	"db_mkmap_mpool_size"
+#define DEF_MPOOL_SIZE	16777216	/* 16MB */
+
 static MKMAP *mkmap_db_open(const char *path,
 			          DICT *(*db_open) (const char *, int, int))
 {
     MKMAP  *mkmap = (MKMAP *) mymalloc(sizeof(*mkmap));
+
+    /* Override default mpool size for map rebuilds */
+    db_mpool_size = get_mail_conf_int(VAR_MPOOL_SIZE, DEF_MPOOL_SIZE, 0, 0);
 
     /*
      * Fill in the generic members.

@@ -1,5 +1,4 @@
 <html> <head> </head> <body> <pre>
-
 PCRE_TABLE(5)                                       PCRE_TABLE(5)
 
 <b>NAME</b>
@@ -81,6 +80,13 @@ PCRE_TABLE(5)                                       PCRE_TABLE(5)
        /^Subject: make money fast/     REJECT
        /^To: friend@public\.com/       REJECT
 
+<b>EXAMPLE</b> <b>BODY</b> <b>FILTER</b> <b>MAP</b>
+       # First skip over base 64 encoded text to save CPU cycles.
+       # Requires PCRE version 3.
+       ~^[[:alnum:]+/]{60,}$~          OK
+
+       # Put your own body patterns here.
+
 <b>SEE</b> <b>ALSO</b>
        <a href="regexp_table.5.html">regexp_table(5)</a> format of POSIX regular expression tables
 
@@ -98,6 +104,5 @@ PCRE_TABLE(5)                                       PCRE_TABLE(5)
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
 
-                                                                1
-
+                                                    PCRE_TABLE(5)
 </pre> </body> </html>

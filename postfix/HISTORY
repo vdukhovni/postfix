@@ -6228,6 +6228,101 @@ Apologies for any names omitted.
 	stripping in postqueue/postqueue.c. Problem reported by
 	Victor Duchovni, Morgan Stanley.
 
+20020402
+
+	Workaround: recognize more headers that are sent instead
+	of SMTP commands. File: smtpd/smtpd.c.
+
+20020413
+
+	Feature: new pipe delivery agent "D" flag to prepend a
+	Delivered-To:  message header. This requires single recipient
+	deliveries. Based on code by Matthias Andree. File:
+	pipe/pipe.c.
+
+20020414
+
+	Portability: Postfix will no longer attempt to build with
+	gdbm support, because gdbm is broken. File:  makedefs.
+
+20020415
+
+	Cleanup: the attribute list IPC code did not distinguish
+	between "disconnect" and "timeout" while reading an attribute
+	list, making trouble shooting more difficult than necessary.
+	Files:  util/attr_scan0.c, util/attr_scan64.c.
+
+	Cleanup: install parameter defaults can now be overruled
+	from makedefs: sendmail_path, mailq_path, newaliases_path,
+	command_directory, daemon_directory. Based on code by
+	Victor Duchovni, Morgan Stanley. File: util/sys_defs.h.
+
+20020411
+
+	Cleanup: Use more robust quoting passing makedefs/Makefile
+	settings. This also simplifies the seven backslashes example
+	in the INSTALL file.  Victor Duchovni, Morgan Stanley.
+	Files: makedefs, INSTALL.
+
+20020417
+
+	Bugfix: the post-install script failed to upgrade master.cf
+	settings from private to public if the service was explicitly
+	configured as private.
+
+20020418
+
+	Documentation: added CPU saving patterns for quickly skipping
+	base 64 encoded text in message bodies.  Liviu Daia.
+	Files: {proto,conf}/pcre_table, {proto,conf}/regexp_table,
+	conf/sample_{regexp,pcre}_body.cf.
+
+20020426
+
+	Bugfix: the SMTP client forgot to quote whitespace etc.
+	in a sender/recipient address when DNS lookup was turned
+	off (disable_dns_lookups = yes). Problem experienced by
+	Chip Paswater. Files: smtp/smtp_proto.c.
+
+20020501
+
+	Feature: wildcard lookup in transport maps (lookup key
+	"*").  Code developed with Lamont Jones, HP.
+
+	Feature: a null transport:destination transport map entry
+	means proceed as if the transport map lookup failed.  Code
+	developed with Lamont Jones, HP.
+
+	Feature: more efficient use of cache memory when a process
+	opens multiple Berkeley DB tables. Files: util/dict_db.c,
+	global/mkmap_db.c. Victor Duchovni, Morgan Stanley.
+
+20020503
+
+	Cleanup: postqueue silently ignored command-line arguments
+	following -p or -f options, instead of complaining; postqueue
+	produced an incorrect error message (mail system down) when
+	the command was installed with incorrect privileges.  File:
+	postqueue/postqueue.c.
+
+	Bugfix: while reporting a domain name or IP address syntax
+	error, postqueue could dereference a dangling pointer with
+	some getopt() implementations. LaMont Jones, HP.  File:
+	postqueue/postqueue.c.
+
+	Safety: postalias and postmap now drop root privileges
+	while processing a non-root input file. Thus, the result
+	should be writable to the source file owner. Specify the
+	-o option if this is a problem. Files: postmap/postmap.c,
+	postalias/postalias.c.
+
+	Consistency: just like postmap, postalias now copies file
+	permissions from the source file when it creates a new
+	table for the first time. File: postalias/postalias.c.
+
+	Portability: run-time test to avoid GDBM trouble.  File:
+	util/dict_dbm.c.
+
 Open problems:
 
 	Low: sendmail does not store null command-line recipients.
@@ -6252,7 +6347,8 @@ Open problems:
 	Low: generic showq protocol, to allow for more intelligent
 	processing than just mailq. Maybe marry this with postsuper.
 
-	Low: default domain for appending to unqualified recipients.
+	Low: default domain for appending to unqualified recipients,
+	so that unqualified names can be delivered locally.
 
 	Low: The $process_id_directory setting is not used anywhere
 	in Postfix. Problem reported by Michael Smith, texas.net.

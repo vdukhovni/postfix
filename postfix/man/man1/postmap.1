@@ -9,7 +9,7 @@ Postfix lookup table management
 .na
 .nf
 .fi
-\fBpostmap\fR [\fB-Nfinrvw\fR] [\fB-c \fIconfig_dir\fR]
+\fBpostmap\fR [\fB-Nfinorvw\fR] [\fB-c \fIconfig_dir\fR]
 [\fB-d \fIkey\fR] [\fB-q \fIkey\fR]
 [\fIfile_type\fR:]\fIfile_name\fR ...
 .SH DESCRIPTION
@@ -75,6 +75,10 @@ a new database from the entries in \fBfile_name\fR.
 Don't include the terminating null character that terminates lookup
 keys and values. By default, Postfix does whatever is the default for
 the host operating system.
+.IP \fB-o\fR
+Do not release root privileges when processing a non-root
+input file. By default, \fBpostmap\fR drops root privileges
+and runs as the source file owner instead.
 .IP "\fB-q \fIkey\fR"
 Search the specified maps for \fIkey\fR and print the first value
 found on the standard output stream. The exit status is zero

@@ -37,3 +37,10 @@
 #	appended to the previous line (there should be no whitespace
 #	before your regular expression!)
 #
+
+# Skip over base 64 encoded blocks. This saves lots of CPU cycles.
+# Expressions by Liviu Daia, amended by Victor Duchovni.
+# Requires PCRE version 3.
+~^[[:alnum:]+/]{60,}\s*$~	OK
+
+# Your own body patterns go here.

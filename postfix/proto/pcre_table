@@ -67,6 +67,12 @@
 # EXAMPLE HEADER FILTER MAP
 #	/^Subject: make money fast/     REJECT
 #	/^To: friend@public\\.com/	 REJECT
+# EXAMPLE BODY FILTER MAP
+#	# First skip over base 64 encoded text to save CPU cycles.
+#	# Requires PCRE version 3.
+#	~^[[:alnum:]+/]{60,}$~		OK
+#
+#	# Put your own body patterns here.
 # SEE ALSO
 #	regexp_table(5) format of POSIX regular expression tables
 # AUTHOR(S)
