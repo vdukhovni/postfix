@@ -223,6 +223,11 @@ static void cleanup_rewrite_recip(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts)
 	if (cleanup_comm_canon_maps)
 	    cleanup_map11_tree(state, *tpp, cleanup_comm_canon_maps,
 			       cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
+
+	/*
+	 * Extract envelope recipients after recipient address rewriting but
+	 * before address masquerading.
+	 */
 	if (state->recip == 0 && (hdr_opts->flags & HDR_OPT_EXTRACT) != 0) {
 	    rcpt = (hdr_opts->flags & HDR_OPT_RR) ?
 		state->resent_recip : state->recipients;

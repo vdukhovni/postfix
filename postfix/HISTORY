@@ -5396,15 +5396,15 @@ Apologies for any names omitted.
 
 	Feature: specify "disable_verp_bounces = yes" to have
 	Postfix send one RFC-standard, non-VERP, bounce report for
-	multi-recipient mail, even when VERP style delivery is
+	multi-recipient mail, even when VERP style delivery was
 	requested.
 
 20010801
 
 	Bugfix: postconf was using unexpanded values internally
 	for myhostname, inet_interfaces, and mynetworks_style.
-	This broke the default mynetworks setting calculation.
-	File: postconf/postconf.c.
+	This broke the "postconf -d" mynetworks computation.  File:
+	postconf/postconf.c.
 
 20010803
 
@@ -5412,12 +5412,3 @@ Apologies for any names omitted.
 	address masquerading. The default setting is backwards
 	compatible: envelope_sender header_sender header_recipient.
 	Files: cleanup/whatever.c.
-
-20010806
-
-	Bugfix: did not address masquerade the always_bcc recipient
-	after extracting envelope recipients from message headers.
-	File: cleanup/cleanup_extracted.c.
-
-	Bugfix: did not address masquerade the envelope recipients
-	extracted from message headers.  File: cleanup/cleanup_message.c.

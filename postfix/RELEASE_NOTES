@@ -1,40 +1,54 @@
-Incompatible changes with snapshot-20010802
+Incompatible changes with snapshot-20010808
 ===========================================
 
-The default setting for the maps_rbl_domains parameter is "empty",
-because mail-abuse.org has become a subscription-based service.
+The default setting for the maps_rbl_domains parameter is now
+"empty", because mail-abuse.org has become a subscription-based
+service. The names of the RBL parameters haven't changed yet.
 
-The permit_mx_backup feature has changed. It accepts mail only when
-the primary MX hosts for the recipient match the networks that are
-specified with the new auth_permit_mx_backup configuration parameter.
-Postfix will not accept mail when permit_mx_backup is used while
-auth_permit_mx_backup is not configured.
+The permit_mx_backup feature has changed. It now accepts mail only
+when the primary MX hosts for the recipient match the networks that
+are specified with the new auth_mx_backup_networks configuration
+parameter.  Postfix refuses to accept mail when permit_mx_backup
+is used while auth_mx_backup_networks is not configured.
 
 The protocol between Postfix master and child processes has changed.
 You must stop and start Postfix in order to switch between Snapshot
-20010801 and releases that implement the older protocol.
+20010808 and releases that implement the older protocol.
 
-Major changes with snapshot-20010802
+Major changes with snapshot-20010808
 ====================================
 
 Specify "disable_verp_bounces = yes" to have Postfix send one
 RFC-standard, non-VERP, bounce report for multi-recipient mail,
-even when VERP style delivery is requested.
+even when VERP style delivery was requested. This reduces the
+explosive behavior of bounces when sending mail to a list.
 
-Fine control over address masquerading. The masquerade_classes
-parameter controls header and envelope sender and recipient addresses.
+Finer control over address masquerading. The masquerade_classes
+parameter now controls header and envelope sender and recipient
+addresses.  With earlier Postfix versions, address masquerading
+rewrote all addresses except for the envelope recipient.
+
+More rational behavior when a regexp or pcre map entry ends in
+whitespace (i.e. ignore it, instead of not recognizing REJECT).
+
+More rational behavior when multiple hosts in $inet_interfaces
+happen to have a common IP address (i.e. ignore the duplicate
+address, instead of having the Postfix master abort at startup).
 
 Variable coupling between message receiving rates and message
 delivery rates. When the message receiving rate exceeds the message
 delivery rate, an SMTP server will pause for $in_flow_delay seconds
-(default: 1) before accepting a message. This delay gives Postfix
-a chance catch up and access the disk, while still allowing new
-mail to arrive.
+before accepting a message.  This delay gives Postfix a chance
+catch up and access the disk, while still allowing new mail to
+arrive.
+
+This feature is disabled by default, because it needs further
+development. It will change but I have not enough time now.
 
 The in_flow_delay feature has effect mainly when your system is
 being flooded through a limited number of SMTP connections.  This
-is useful for mass-mailing applications, because it eliminates the
-need to hand-tune the rate for sending mail into Postfix.
+is useful for mass-mailing applications, because it can avoid the
+need to hand-tune the optimal rate for sending mail into Postfix.
 
 The in_flow_delay feature has negligible effect when mail arrives
 via many different SMTP connections. With the default limit of 50

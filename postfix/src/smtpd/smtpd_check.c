@@ -1043,8 +1043,7 @@ static int all_auth_mx_addr(char *host)
 #define TRYAGAIN       2
 
     /*
-     * Resolve this host into IP addresses, and check if thy are within
-     * auth_mx_backup_networks
+     * Verify that all host addresses are within auth_mx_backup_networks.
      */
     dns_status = dns_lookup(host, T_A, 0, &addr_list, (VSTRING *) 0, (VSTRING *) 0);
     if (dns_status != DNS_OK)
@@ -1062,7 +1061,8 @@ static int all_auth_mx_addr(char *host)
 	if (!namadr_list_match(auth_mx_networks, host, inet_ntoa(addr))) {
 
 	    /*
-	     * Reject: IP address not listed in auth_mx_backup_networks.
+	     * Reject: at least one IP address is not listed in
+	     * auth_mx_backup_networks.
 	     */
 	    if (msg_verbose)
 		msg_info("%s: address %s does not match %s",
@@ -1242,7 +1242,7 @@ static int permit_auth_mx_backup(SMTPD_STATE *state, const char *recipient)
 	msg_warn("in the %s/sample-smtpd.cf configuration file.",
 		 var_config_dir);
 	longjmp(smtpd_check_buf, smtpd_check_reject(state, MAIL_ERROR_SOFTWARE,
-					"%d <%s>: Configuration error in %s",
+				       "%d <%s>: Configuration error in %s",
 						    451, recipient,
 						    VAR_AUTH_MX_NETWORKS));
     }

@@ -165,6 +165,12 @@ static void cleanup_extracted_process(CLEANUP_STATE *state, int type, char *buf,
 		argv_add(rcpt, STR(clean_addr), (char *) 0);
 	    }
 	    argv_terminate(rcpt);
+
+	    /*
+	     * Recipients extracted from message headers already have
+	     * undergone recipient address rewriting (see cleanup_message.c),
+	     * but still may need address masquerading.
+	     */
 	    for (cpp = rcpt->argv; CLEANUP_OUT_OK(state) && *cpp; cpp++) {
 		if (cleanup_masq_domains
 		    && (cleanup_masq_flags & CLEANUP_MASQ_FLAG_ENV_RCPT)) {
