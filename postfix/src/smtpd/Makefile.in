@@ -13,7 +13,8 @@ CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 TESTPROG= smtpd_token smtpd_check
 PROG	= smtpd
 INC_DIR	= ../../include
-LIBS	= ../../lib/libmaster.a ../../lib/libglobal.a ../../lib/libdns.a ../../lib/libutil.a
+LIBS	= ../../lib/libmaster.a ../../lib/libtls.a ../../lib/libdns.a \
+	../../lib/libglobal.a ../../lib/libutil.a
 
 .c.o:;	$(CC) $(CFLAGS) -c $*.c
 
@@ -158,6 +159,7 @@ smtpd.o: ../../include/valid_mailhost_addr.h
 smtpd.o: ../../include/mail_server.h
 smtpd.o: smtpd_token.h
 smtpd.o: smtpd.h
+smtpd.o: ../../include/tls.h
 smtpd.o: smtpd_check.h
 smtpd.o: smtpd_chat.h
 smtpd.o: smtpd_sasl_proto.h
@@ -187,6 +189,7 @@ smtpd_chat.o: ../../include/mail_error.h
 smtpd_chat.o: ../../include/name_mask.h
 smtpd_chat.o: smtpd.h
 smtpd_chat.o: ../../include/mail_stream.h
+smtpd_chat.o: ../../include/tls.h
 smtpd_chat.o: smtpd_chat.h
 smtpd_check.o: smtpd_check.c
 smtpd_check.o: ../../include/sys_defs.h
@@ -244,6 +247,7 @@ smtpd_check.o: ../../include/is_header.h
 smtpd_check.o: ../../include/valid_mailhost_addr.h
 smtpd_check.o: smtpd.h
 smtpd_check.o: ../../include/mail_stream.h
+smtpd_check.o: ../../include/tls.h
 smtpd_check.o: smtpd_sasl_glue.h
 smtpd_check.o: smtpd_check.h
 smtpd_peer.o: smtpd_peer.c
@@ -265,6 +269,7 @@ smtpd_peer.o: ../../include/valid_hostname.h
 smtpd_peer.o: smtpd.h
 smtpd_peer.o: ../../include/argv.h
 smtpd_peer.o: ../../include/mail_stream.h
+smtpd_peer.o: ../../include/tls.h
 smtpd_proxy.o: smtpd_proxy.c
 smtpd_proxy.o: ../../include/sys_defs.h
 smtpd_proxy.o: ../../include/msg.h
@@ -286,6 +291,7 @@ smtpd_proxy.o: ../../include/attr.h
 smtpd_proxy.o: smtpd.h
 smtpd_proxy.o: ../../include/argv.h
 smtpd_proxy.o: ../../include/mail_stream.h
+smtpd_proxy.o: ../../include/tls.h
 smtpd_proxy.o: smtpd_proxy.h
 smtpd_sasl_glue.o: smtpd_sasl_glue.c
 smtpd_sasl_glue.o: ../../include/sys_defs.h
@@ -303,6 +309,7 @@ smtpd_sasl_glue.o: ../../include/vstream.h
 smtpd_sasl_glue.o: smtpd.h
 smtpd_sasl_glue.o: ../../include/argv.h
 smtpd_sasl_glue.o: ../../include/mail_stream.h
+smtpd_sasl_glue.o: ../../include/tls.h
 smtpd_sasl_glue.o: smtpd_sasl_glue.h
 smtpd_sasl_glue.o: smtpd_chat.h
 smtpd_sasl_proto.o: smtpd_sasl_proto.c
@@ -322,6 +329,7 @@ smtpd_sasl_proto.o: ../../include/name_mask.h
 smtpd_sasl_proto.o: smtpd.h
 smtpd_sasl_proto.o: ../../include/argv.h
 smtpd_sasl_proto.o: ../../include/mail_stream.h
+smtpd_sasl_proto.o: ../../include/tls.h
 smtpd_sasl_proto.o: smtpd_token.h
 smtpd_sasl_proto.o: smtpd_chat.h
 smtpd_sasl_proto.o: smtpd_sasl_proto.h
@@ -344,6 +352,7 @@ smtpd_state.o: smtpd.h
 smtpd_state.o: ../../include/vstring.h
 smtpd_state.o: ../../include/argv.h
 smtpd_state.o: ../../include/mail_stream.h
+smtpd_state.o: ../../include/tls.h
 smtpd_state.o: smtpd_chat.h
 smtpd_state.o: smtpd_sasl_glue.h
 smtpd_token.o: smtpd_token.c
@@ -366,3 +375,4 @@ smtpd_xforward.o: smtpd.h
 smtpd_xforward.o: ../../include/vstring.h
 smtpd_xforward.o: ../../include/argv.h
 smtpd_xforward.o: ../../include/mail_stream.h
+smtpd_xforward.o: ../../include/tls.h

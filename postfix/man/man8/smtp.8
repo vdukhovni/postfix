@@ -61,6 +61,7 @@ RFC 2046 (MIME: Media Types)
 RFC 2554 (AUTH command)
 RFC 2821 (SMTP protocol)
 RFC 2920 (SMTP Pipelining)
+RFC 3207 (STARTTLS command)
 .SH DIAGNOSTICS
 .ad
 .fi
@@ -178,6 +179,66 @@ Available in Postfix version 2.2 and later:
 .IP "\fBsmtp_sasl_mechanism_filter (empty)\fR"
 If non-empty, a Postfix SMTP client filter for the remote SMTP
 server's list of offered SASL mechanisms.
+.SH "STARTTLS SUPPORT CONTROLS"
+.na
+.nf
+.ad
+.fi
+Detailed information about STARTTLS configuration may be found
+in the TLS_README document.
+.IP "\fBsmtp_use_tls (no)\fR"
+Opportunistic mode: use TLS when a remote SMTP server announces
+STARTTLS support, otherwise send the mail in the clear.
+.IP "\fBsmtp_enforce_tls (no)\fR"
+Enforcement mode: require that remote SMTP servers use TLS
+encryption, and never send mail in the clear.
+.IP "\fBsmtp_sasl_tls_security_options ($smtp_sasl_security_options)\fR"
+The SASL authentication security options that the Postfix SMTP
+client uses for TLS encrypted SMTP sessions.
+.IP "\fBsmtp_starttls_timeout (300s)\fR"
+Time limit for Postfix SMTP client write and read operations
+during TLS startup and shutdown handshake procedures.
+.IP "\fBsmtp_tls_CAfile (empty)\fR"
+The file with the certificate of the certification authority
+(CA) that issued the Postfix SMTP client certificate.
+.IP "\fBsmtp_tls_CApath (empty)\fR"
+Directory with PEM format certificate authority certificates
+that the Postfix SMTP client uses to verify a remote SMTP server
+certificate.
+.IP "\fBsmtp_tls_cert_file (empty)\fR"
+File with the Postfix SMTP client RSA certificate in PEM format.
+.IP "\fBsmtp_tls_cipherlist (empty)\fR"
+Controls the Postfix SMTP client TLS cipher selection scheme.
+.IP "\fBsmtp_tls_dcert_file (empty)\fR"
+File with the Postfix SMTP client DSA certificate in PEM format.
+.IP "\fBsmtp_tls_dkey_file ($smtp_tls_dcert_file)\fR"
+File with the Postfix SMTP client DSA private key in PEM format.
+.IP "\fBsmtp_tls_enforce_peername (yes)\fR"
+When TLS encryption is enforced, require that the remote SMTP
+server hostname matches the information in the remote SMTP server
+certificate.
+.IP "\fBsmtp_tls_key_file ($smtp_tls_cert_file)\fR"
+File with the Postfix SMTP client RSA private key in PEM format.
+.IP "\fBsmtp_tls_loglevel (0)\fR"
+Enable additional Postfix SMTP client logging of TLS activity.
+.IP "\fBsmtp_tls_note_starttls_offer (no)\fR"
+Log the hostname of a remote SMTP server that offers STARTTLS,
+when TLS is not already enabled for that server.
+.IP "\fBsmtp_tls_per_site (empty)\fR"
+Optional lookup tables with the Postfix SMTP client TLS usage
+policy by next-hop domain name and by remote SMTP server hostname.
+.IP "\fBsmtp_tls_scert_verifydepth (5)\fR"
+The verification depth for remote SMTP server certificates.
+.IP "\fBsmtp_tls_session_cache_database (empty)\fR"
+Name of the file containing the optional Postfix SMTP client
+TLS session cache.
+.IP "\fBsmtp_tls_session_cache_timeout (3600s)\fR"
+The expiration time of Postfix SMTP client TLS session cache
+information.
+.IP "\fBtls_daemon_random_bytes (32)\fR"
+The number of pseudo-random bytes that an smtp(8) or smtpd(8)
+process requests from the tlsmgr(8) server in order to seed its
+internal pseudo random number generator (PRNG).
 .SH "RESOURCE AND RATE CONTROLS"
 .na
 .nf
@@ -327,6 +388,7 @@ scache(8), connection cache server
 postconf(5), configuration parameters
 master(5), generic daemon options
 master(8), process manager
+tlsmgr(8), TLS session and PRNG management
 syslogd(8), system logging
 .SH "README FILES"
 .na
@@ -338,6 +400,7 @@ Use "\fBpostconf readme_directory\fR" or
 .na
 .nf
 SASL_README, Postfix SASL howto
+TLS_README, Postfix STARTTLS howto
 .SH "LICENSE"
 .na
 .nf
@@ -363,3 +426,10 @@ CV1 4LY, United Kingdom.
 Connection caching in cooperation with:
 Victor Duchovni
 Morgan Stanley
+
+TLS support originally by:
+Lutz Jaenicke
+BTU Cottbus
+Allgemeine Elektrotechnik
+Universitaetsplatz 3-4
+D-03044 Cottbus, Germany

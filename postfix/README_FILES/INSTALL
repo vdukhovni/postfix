@@ -168,10 +168,11 @@ support for extensions:
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ |
     |SASL authentication               |SASL_README |Postfix 1.0 |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ |
+    |STARTTLS session encryption       |TLS_README  |Postfix 2.2 |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ |
 
-Note: support for TLS (encrypted SMTP sessions and certificate based
-authentication) and for IP version 6 is still separate from Postfix but is
-expected to be merged soon.
+Note: IP version 6 support is compiled into Postfix on operating systems that
+have IPv6 support. See the IPV6_README file for details.
 
 44..44 -- OOvveerrrriiddiinngg bbuuiilltt--iinn ppaarraammeetteerr ddeeffaauulltt sseettttiinnggss
 

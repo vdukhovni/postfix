@@ -55,6 +55,40 @@ Postfix will simply use IP version 4 just like it did before. See
 the IPV6_README document for what systems are supported, and how
 to turn on IPv6 in main.cf.
 
+Incompatible changes with snapshot Postfix-2.2-20041210+TLS
+===========================================================
+
+Postfix version 2.2 TLS support is based on the Postfix/TLS patch
+by Lutz Jaenicke, but differs in a few minor ways.
+
+- main.cf: Use btree instead of sdbm for TLS session cache databases.
+
+  Session caches are now accessed only by the tlsmgr(8) process,
+  so there are no more concurrency issues. Although Postfix still
+  has an sdbm client, the sdbm library (1000 lines of code) is no
+  longer included with Postfix/TLS.
+
+  TLS session caches can use any database that can store objects
+  of several kbytes or more, and that implements the sequence
+  operation. In most cases, btree databases should be adequate.
+
+  NOTE: You cannot use dbm databases. TLS session objects are too
+  large.
+
+- master.cf: Specify unix instead of fifo as the tlsmgr service type.
+
+  The smtp(8) and smtpd(8) processes now use a client-server protocol
+  in order to access the tlsmgr(8)'s pseudo-random number generation
+  (PRNG) pool, and in order to access the TLS session cache databases.
+  Such a protocol cannot be run across fifos.
+
+Major changes with snapshot Postfix-2.2-20041210+TLS
+=====================================================
+
+TLS support based on the Postfix/TLS patch by Lutz Jaenicke.  This
+is not compiled in by default. To build Postfix with TLS support,
+see the TLS_README document.
+
 Major changes with snapshot Postfix-2.2-20041218
 ================================================
 

@@ -34,6 +34,13 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	TLS support originally by:
+/*	Lutz Jaenicke
+/*	BTU Cottbus
+/*	Allgemeine Elektrotechnik
+/*	Universitaetsplatz 3-4
+/*	D-03044 Cottbus, Germany
 /*--*/
 
 /* System library. */
@@ -116,6 +123,13 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
     state->instance = vstring_alloc(10);
     state->seqno = 0;
     state->rewrite_context = 0;
+#ifdef USE_TLS
+    state->tls_use_tls = 0;
+    state->tls_enforce_tls = 0;
+    state->tls_auth_only = 0;
+    state->tls_context = 0;
+    state->tls_info = tls_info_zero;
+#endif
 
 #ifdef USE_SASL_AUTH
     if (SMTPD_STAND_ALONE(state))

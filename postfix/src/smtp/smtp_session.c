@@ -31,6 +31,10 @@
 /*	and initializes it with the given stream and destination, host name
 /*	and address information.  The host name and address strings are
 /*	copied. The port is in network byte order.
+/*	When TLS is enabled, smtp_session_alloc() looks up the
+/*	per-site TLS policies for TLS enforcement and certificate
+/*	verification.  The resulting policy is stored into the
+/*	SMTP_SESSION object.
 /*
 /*	smtp_session_free() destroys an SMTP_SESSION structure and its
 /*	members, making memory available for reuse. It will handle the
@@ -78,12 +82,24 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	TLS support originally by:
+/*	Lutz Jaenicke
+/*	BTU Cottbus
+/*	Allgemeine Elektrotechnik
+/*	Universitaetsplatz 3-4
+/*	D-03044 Cottbus, Germany
 /*--*/
 
 /* System library. */
 
 #include <sys_defs.h>
 #include <stdlib.h>
+#include <string.h>
+
+#ifdef STRCASECMP_IN_STRINGS_H
+#include <strings.h>
+#endif
 
 /* Utility library. */
 
@@ -97,6 +113,7 @@
 #include <mime_state.h>
 #include <debug_peer.h>
 #include <mail_params.h>
+#include <maps.h>
 
 /* Application-specific. */
 
@@ -106,6 +123,74 @@
 
 /*#define msg_verbose 1*/
 
+#ifdef USE_TLS
+
+ /*
+  * Per-site policies can override main.cf settings.
+  * 
+  * XXX 200412 This does not work as some people may expect. A policy that
+  * specifies "use TLS" in a policy file while TLS is turned off in main.cf
+  * cannot work, because there is no OpenSSL context for creating sessions
+  * (that context exists only if TLS is enabled via main.cf settings; the
+  * OpenSSL context is created at process initialization time and cannot be
+  * created on the fly).
+  */
+typedef struct {
+    int     dont_use;			/* don't use TLS */
+    int     use;			/* useless, see above */
+    int     enforce;			/* must always use TLS */
+    int     enforce_peername;		/* must verify certificate name */
+} SMTP_TLS_SITE_POLICY;
+
+static MAPS *tls_per_site;		/* lookup table(s) */
+
+/* smtp_tls_list_init - initialize per-site policy lists */
+
+void    smtp_tls_list_init(void)
+{
+    tls_per_site = maps_create(VAR_SMTP_TLS_PER_SITE, var_smtp_tls_per_site,
+			       DICT_FLAG_LOCK);
+}
+
+/* smtp_tls_site_policy - look up per-site TLS policy */
+
+static void smtp_tls_site_policy(SMTP_TLS_SITE_POLICY *policy,
+				         const char *site_name,
+				         const char *site_class)
+{
+    const char *lookup;
+    char   *lookup_key;
+
+    /*
+     * Initialize the default policy.
+     */
+    policy->dont_use = 0;
+    policy->use = 0;
+    policy->enforce = 0;
+    policy->enforce_peername = 0;
+
+    /*
+     * Look up a non-default policy.
+     */
+    lookup_key = lowercase(mystrdup(site_name));
+    if ((lookup = maps_find(tls_per_site, lookup_key, 0)) != 0) {
+	if (!strcasecmp(lookup, "NONE"))
+	    policy->dont_use = 1;
+	else if (!strcasecmp(lookup, "MAY"))
+	    policy->use = 1;
+	else if (!strcasecmp(lookup, "MUST"))
+	    policy->enforce = policy->enforce_peername = 1;
+	else if (!strcasecmp(lookup, "MUST_NOPEERMATCH"))
+	    policy->enforce = 1;
+	else
+	    msg_warn("Table %s: ignoring unknown TLS policy '%s' for %s %s",
+		     var_smtp_tls_per_site, lookup, site_class, site_name);
+    }
+    myfree(lookup_key);
+}
+
+#endif
+
 /* smtp_session_alloc - allocate and initialize SMTP_SESSION structure */
 
 SMTP_SESSION *smtp_session_alloc(VSTREAM *stream, const char *dest,
@@ -113,6 +198,12 @@ SMTP_SESSION *smtp_session_alloc(VSTREAM *stream, const char *dest,
 				         unsigned port, int flags)
 {
     SMTP_SESSION *session;
+
+#ifdef USE_TLS
+    SMTP_TLS_SITE_POLICY host_policy;
+    SMTP_TLS_SITE_POLICY rcpt_policy;
+
+#endif
 
     session = (SMTP_SESSION *) mymalloc(sizeof(*session));
     session->stream = stream;
@@ -144,6 +235,46 @@ SMTP_SESSION *smtp_session_alloc(VSTREAM *stream, const char *dest,
     smtp_sasl_connect(session);
 #endif
 
+#ifdef USE_TLS
+    session->tls_use_tls = session->tls_enforce_tls = 0;
+    session->tls_enforce_peername = 0;
+    session->tls_context = 0;
+    session->tls_info = tls_info_zero;
+
+    /*
+     * Override the main.cf TLS policy with an optional per-site policy.
+     */
+    if (smtp_tls_ctx != 0) {
+	smtp_tls_site_policy(&host_policy, host, "receiving host");
+	smtp_tls_site_policy(&rcpt_policy, dest, "recipient domain");
+
+	/*
+	 * Set up TLS enforcement for this session.
+	 */
+	if ((var_smtp_enforce_tls && !host_policy.dont_use && !rcpt_policy.dont_use)
+	    || host_policy.enforce || rcpt_policy.enforce)
+	    session->tls_enforce_tls = session->tls_use_tls = 1;
+
+	/*
+	 * Set up peername checking for this session.
+	 * 
+	 * We want to make sure that a MUST* entry in the tls_per_site table
+	 * always has precedence. MUST always must lead to a peername check,
+	 * MUST_NOPEERMATCH must always disable it. Only when no explicit
+	 * setting has been found, the default will be used. There is the
+	 * case left, that both "host" and "recipient" settings conflict. In
+	 * this case, the "host" setting wins.
+	 */
+	if (host_policy.enforce && host_policy.enforce_peername)
+	    session->tls_enforce_peername = 1;
+	else if (rcpt_policy.enforce && rcpt_policy.enforce_peername)
+	    session->tls_enforce_peername = 1;
+	else if (var_smtp_enforce_tls && var_smtp_tls_enforce_peername)
+	    session->tls_enforce_peername = 1;
+	else if ((var_smtp_use_tls && !host_policy.dont_use && !rcpt_policy.dont_use) || host_policy.use || rcpt_policy.use)
+	    session->tls_use_tls = 1;
+    }
+#endif
     debug_peer_check(host, addr);
     return (session);
 }
@@ -152,6 +283,15 @@ SMTP_SESSION *smtp_session_alloc(VSTREAM *stream, const char *dest,
 
 void    smtp_session_free(SMTP_SESSION *session)
 {
+#ifdef USE_TLS
+    if (session->stream) {
+	vstream_fflush(session->stream);
+	if (session->tls_context)
+	    tls_client_stop(smtp_tls_ctx, session->stream,
+			    var_smtp_starttls_tmout, 0,
+			    &(session->tls_info));
+    }
+#endif
     if (session->stream)
 	vstream_fclose(session->stream);
     myfree(session->dest);

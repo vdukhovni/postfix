@@ -86,7 +86,7 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	resolve_local rewrite_clnt stream2rec string_list tok822_parse \
 	quote_821_local mail_conf_time mime_state strip_addr \
 	virtual8_maps verify_clnt xtext anvil_clnt scache ehlo_mask \
-	valid_mailhost_addr
+	valid_mailhost_addr own_inet_addr
 
 LIBS	= ../../lib/libutil.a
 LIB_DIR	= ../../lib
@@ -261,6 +261,9 @@ ehlo_mask: ehlo_mask.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
 valid_mailhost_addr: valid_mailhost_addr.c $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
+
+own_inet_addr: own_inet_addr.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
 tests: tok822_test mime_test mime_nest mime_8bit mime_dom mime_trunc \

@@ -63,6 +63,8 @@ verify.o: ../../include/vstream.h
 verify.o: ../../include/vbuf.h
 verify.o: ../../include/argv.h
 verify.o: ../../include/split_at.h
+verify.o: ../../include/stringops.h
+verify.o: ../../include/vstring.h
 verify.o: ../../include/mail_conf.h
 verify.o: ../../include/mail_params.h
 verify.o: ../../include/mail_proto.h
@@ -72,6 +74,5 @@ verify.o: ../../include/post_mail.h
 verify.o: ../../include/cleanup_user.h
 verify.o: ../../include/verify_clnt.h
 verify.o: ../../include/deliver_request.h
-verify.o: ../../include/vstring.h
 verify.o: ../../include/recipient_list.h
 verify.o: ../../include/mail_server.h

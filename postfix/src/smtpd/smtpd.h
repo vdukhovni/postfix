@@ -34,6 +34,13 @@
 #include <mail_stream.h>
 
  /*
+  * Postfix TLS library.
+  */
+#ifdef USE_TLS
+#include <tls.h>
+#endif
+
+ /*
   * Variables that keep track of conversation state. There is only one SMTP
   * conversation at a time, so the state variables can be made global. And
   * some of this has to be global anyway, so that the run-time error handler
@@ -142,6 +149,18 @@ typedef struct SMTPD_STATE {
      * XFORWARD server state.
      */
     SMTPD_XFORWARD_ATTR xforward;	/* up-stream logging info */
+
+    /*
+     * TLS related state.
+     */
+#ifdef USE_TLS
+    int     tls_use_tls;		/* can use TLS */
+    int     tls_enforce_tls;		/* must use TLS */
+    int     tls_auth_only;		/* use SASL over TLS only */
+    TLScontext_t *tls_context;		/* TLS session state */
+    tls_info_t tls_info;		/* legacy */
+#endif
+
 } SMTPD_STATE;
 
 #define SMTPD_STATE_XFORWARD_INIT  (1<<0)	/* xforward preset done */
@@ -269,4 +288,11 @@ extern int smtpd_input_transp_mask;
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	TLS support originally by:
+/*	Lutz Jaenicke
+/*	BTU Cottbus
+/*	Allgemeine Elektrotechnik
+/*	Universitaetsplatz 3-4
+/*	D-03044 Cottbus, Germany
 /*--*/

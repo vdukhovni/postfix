@@ -353,6 +353,9 @@ extern int opterr;
 #ifndef NO_CLOSEFROM
 # define HAS_CLOSEFROM
 #endif
+#ifndef NO_DEV_URANDOM
+# define HAS_DEV_URANDOM
+#endif
 
 /*
  * Allow build environment to override paths.

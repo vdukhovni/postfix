@@ -42,6 +42,9 @@
 /*	These routines operate silently unless the gripe parameter
 /*	specifies a non-zero value. The macros DO_GRIPE and DONT_GRIPE
 /*	provide suitable constants.
+/* BUGS
+/*	valid_hostmumble() does not guarantee that string lengths
+/*	fit the buffer sizes defined in myaddrinfo(3h).
 /* DIAGNOSTICS
 /*	All functions return zero if they disagree with the input.
 /* SEE ALSO

@@ -49,6 +49,7 @@ RFC 1985 (ETRN command)
 RFC 2554 (AUTH command)
 RFC 2821 (SMTP protocol)
 RFC 2920 (SMTP Pipelining)
+RFC 3207 (STARTTLS command)
 .SH DIAGNOSTICS
 .ad
 .fi
@@ -210,6 +211,78 @@ Optional lookup table with the SASL login names that own sender
 Available in Postfix version 2.1 and later:
 .IP "\fBsmtpd_sasl_exceptions_networks (empty)\fR"
 What SMTP clients Postfix will not offer AUTH support to.
+.SH "STARTTLS SUPPORT CONTROLS"
+.na
+.nf
+.ad
+.fi
+Detailed information about STARTTLS configuration may be
+found in the TLS_README document.
+.IP "\fBsmtpd_use_tls (no)\fR"
+Opportunistic mode: announce STARTTLS support to SMTP clients,
+but do not require that clients use TLS encryption.
+.IP "\fBsmtpd_enforce_tls (no)\fR"
+Enforcement mode: announce STARTTLS support to SMTP clients,
+and require that clients use TLS encryption.
+.IP "\fBsmtpd_sasl_tls_security_options ($smtpd_sasl_security_options)\fR"
+The SASL authentication security options that the Postfix SMTP
+server uses for TLS encrypted SMTP sessions.
+.IP "\fBsmtpd_starttls_timeout (300s)\fR"
+The time limit for Postfix SMTP server write and read operations
+during TLS startup and shutdown handshake procedures.
+.IP "\fBsmtpd_tls_CAfile (empty)\fR"
+The file with the certificate of the certification authority
+(CA) that issued the Postfix SMTP server certificate.
+.IP "\fBsmtpd_tls_CAfile (empty)\fR"
+The file with the certificate of the certification authority
+(CA) that issued the Postfix SMTP server certificate.
+.IP "\fBsmtpd_tls_ask_ccert (no)\fR"
+Ask a remote SMTP client for a client certificate.
+.IP "\fBsmtpd_tls_auth_only (no)\fR"
+When TLS encryption is optional in the Postfix SMTP server, do
+not announce or accept SASL authentication over unencrypted
+connections.
+.IP "\fBsmtpd_tls_ccert_verifydepth (5)\fR"
+The verification depth for remote SMTP client certificates.
+.IP "\fBsmtpd_tls_cert_file (empty)\fR"
+File with the Postfix SMTP server RSA certificate in PEM format.
+.IP "\fBsmtpd_tls_cipherlist (empty)\fR"
+Controls the Postfix SMTP server TLS cipher selection scheme.
+.IP "\fBsmtpd_tls_dcert_file (empty)\fR"
+File with the Postfix SMTP server DSA certificate in PEM format.
+.IP "\fBsmtpd_tls_dh1024_param_file (empty)\fR"
+File with DH parameters that the Postfix SMTP server should
+use with EDH ciphers.
+.IP "\fBsmtpd_tls_dh512_param_file (empty)\fR"
+File with DH parameters that the Postfix SMTP server should
+use with EDH ciphers.
+.IP "\fBsmtpd_tls_dkey_file ($smtpd_tls_dcert_file)\fR"
+File with the Postfix SMTP server DSA private key in PEM format.
+.IP "\fBsmtpd_tls_key_file ($smtpd_tls_cert_file)\fR"
+File with the Postfix SMTP server RSA private key in PEM format.
+.IP "\fBsmtpd_tls_loglevel (0)\fR"
+Enable additional Postfix SMTP server logging of TLS activity.
+.IP "\fBsmtpd_tls_received_header (no)\fR"
+Request that the Postfix SMTP server produces Received:  message
+headers that include information about the protocol and cipher used,
+as well as the client CommonName and client certificate issuer
+CommonName.
+.IP "\fBsmtpd_tls_req_ccert (no)\fR"
+When TLS encryption is enforced, require a remote SMTP client
+certificate in order to allow TLS connections to proceed.
+.IP "\fBsmtpd_tls_session_cache_database (empty)\fR"
+Name of the file containing the optional Postfix SMTP server
+TLS session cache.
+.IP "\fBsmtpd_tls_session_cache_timeout (3600s)\fR"
+The expiration time of Postfix SMTP server TLS session cache
+information.
+.IP "\fBsmtpd_tls_wrappermode (no)\fR"
+Run the Postfix SMTP server in the non-standard "wrapper" mode,
+instead of using the STARTTLS command.
+.IP "\fBtls_daemon_random_bytes (32)\fR"
+The number of pseudo-random bytes that an smtp(8) or smtpd(8)
+process requests from the tlsmgr(8) server in order to seed its
+internal pseudo random number generator (PRNG).
 .SH "VERP SUPPORT CONTROLS"
 .na
 .nf
@@ -654,6 +727,7 @@ terminate the session with a 221 code.
 .nf
 anvil(8), connection/rate limiting
 cleanup(8), message canonicalization
+tlsmgr(8), TLS session and PRNG management
 trivial-rewrite(8), address resolver
 verify(8), address verification service
 postconf(5), configuration parameters
@@ -677,6 +751,7 @@ SMTPD_ACCESS_README, built-in access policies
 SMTPD_POLICY_README, external policy server
 SMTPD_PROXY_README, external before-queue content filter
 SASL_README, Postfix SASL howto
+TLS_README, Postfix STARTTLS howto
 VERP_README, Postfix XVERP extension
 XCLIENT_README, Postfix XCLIENT extension
 XFORWARD_README, Postfix XFORWARD extension
@@ -693,3 +768,10 @@ Wietse Venema
 IBM T.J. Watson Research
 P.O. Box 704
 Yorktown Heights, NY 10598, USA
+
+TLS support originally by:
+Lutz Jaenicke
+BTU Cottbus
+Allgemeine Elektrotechnik
+Universitaetsplatz 3-4
+D-03044 Cottbus, Germany

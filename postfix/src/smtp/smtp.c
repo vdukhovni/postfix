@@ -51,6 +51,7 @@
 /*	RFC 2554 (AUTH command)
 /*	RFC 2821 (SMTP protocol)
 /*	RFC 2920 (SMTP Pipelining)
+/*	RFC 3207 (STARTTLS command)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /*	Corrupted message files are marked so that the queue manager can
@@ -154,6 +155,64 @@
 /* .IP "\fBsmtp_sasl_mechanism_filter (empty)\fR"
 /*	If non-empty, a Postfix SMTP client filter for the remote SMTP
 /*	server's list of offered SASL mechanisms.
+/* STARTTLS SUPPORT CONTROLS
+/* .ad
+/* .fi
+/*	Detailed information about STARTTLS configuration may be found
+/*	in the TLS_README document.
+/* .IP "\fBsmtp_use_tls (no)\fR"
+/*	Opportunistic mode: use TLS when a remote SMTP server announces
+/*	STARTTLS support, otherwise send the mail in the clear.
+/* .IP "\fBsmtp_enforce_tls (no)\fR"
+/*	Enforcement mode: require that remote SMTP servers use TLS
+/*	encryption, and never send mail in the clear.
+/* .IP "\fBsmtp_sasl_tls_security_options ($smtp_sasl_security_options)\fR"
+/*	The SASL authentication security options that the Postfix SMTP
+/*	client uses for TLS encrypted SMTP sessions.
+/* .IP "\fBsmtp_starttls_timeout (300s)\fR"
+/*	Time limit for Postfix SMTP client write and read operations
+/*	during TLS startup and shutdown handshake procedures.
+/* .IP "\fBsmtp_tls_CAfile (empty)\fR"
+/*	The file with the certificate of the certification authority
+/*	(CA) that issued the Postfix SMTP client certificate.
+/* .IP "\fBsmtp_tls_CApath (empty)\fR"
+/*	Directory with PEM format certificate authority certificates
+/*	that the Postfix SMTP client uses to verify a remote SMTP server
+/*	certificate.
+/* .IP "\fBsmtp_tls_cert_file (empty)\fR"
+/*	File with the Postfix SMTP client RSA certificate in PEM format.
+/* .IP "\fBsmtp_tls_cipherlist (empty)\fR"
+/*	Controls the Postfix SMTP client TLS cipher selection scheme.
+/* .IP "\fBsmtp_tls_dcert_file (empty)\fR"
+/*	File with the Postfix SMTP client DSA certificate in PEM format.
+/* .IP "\fBsmtp_tls_dkey_file ($smtp_tls_dcert_file)\fR"
+/*	File with the Postfix SMTP client DSA private key in PEM format.
+/* .IP "\fBsmtp_tls_enforce_peername (yes)\fR"
+/*	When TLS encryption is enforced, require that the remote SMTP
+/*	server hostname matches the information in the remote SMTP server
+/*	certificate.
+/* .IP "\fBsmtp_tls_key_file ($smtp_tls_cert_file)\fR"
+/*	File with the Postfix SMTP client RSA private key in PEM format.
+/* .IP "\fBsmtp_tls_loglevel (0)\fR"
+/*	Enable additional Postfix SMTP client logging of TLS activity.
+/* .IP "\fBsmtp_tls_note_starttls_offer (no)\fR"
+/*	Log the hostname of a remote SMTP server that offers STARTTLS,
+/*	when TLS is not already enabled for that server.
+/* .IP "\fBsmtp_tls_per_site (empty)\fR"
+/*	Optional lookup tables with the Postfix SMTP client TLS usage
+/*	policy by next-hop domain name and by remote SMTP server hostname.
+/* .IP "\fBsmtp_tls_scert_verifydepth (5)\fR"
+/*	The verification depth for remote SMTP server certificates.
+/* .IP "\fBsmtp_tls_session_cache_database (empty)\fR"
+/*	Name of the file containing the optional Postfix SMTP client
+/*	TLS session cache.
+/* .IP "\fBsmtp_tls_session_cache_timeout (3600s)\fR"
+/*	The expiration time of Postfix SMTP client TLS session cache
+/*	information.
+/* .IP "\fBtls_daemon_random_bytes (32)\fR"
+/*	The number of pseudo-random bytes that an smtp(8) or smtpd(8)
+/*	process requests from the tlsmgr(8) server in order to seed its
+/*	internal pseudo random number generator (PRNG).
 /* RESOURCE AND RATE CONTROLS
 /* .ad
 /* .fi
@@ -295,6 +354,7 @@
 /*	postconf(5), configuration parameters
 /*	master(5), generic daemon options
 /*	master(8), process manager
+/*	tlsmgr(8), TLS session and PRNG management
 /*	syslogd(8), system logging
 /* README FILES
 /* .ad
@@ -304,6 +364,7 @@
 /* .na
 /* .nf
 /*	SASL_README, Postfix SASL howto
+/*	TLS_README, Postfix STARTTLS howto
 /* LICENSE
 /* .ad
 /* .fi
@@ -325,6 +386,13 @@
 /*	Connection caching in cooperation with:
 /*	Victor Duchovni
 /*	Morgan Stanley
+/*
+/*	TLS support originally by:
+/*	Lutz Jaenicke
+/*	BTU Cottbus
+/*	Allgemeine Elektrotechnik
+/*	Universitaetsplatz 3-4
+/*	D-03044 Cottbus, Germany
 /*--*/
 
 /* System library. */
@@ -411,6 +479,17 @@ bool    var_smtp_cache_demand;
 char   *var_smtp_ehlo_dis_words;
 char   *var_smtp_ehlo_dis_maps;
 
+bool    var_smtp_use_tls;
+bool    var_smtp_enforce_tls;
+char   *var_smtp_tls_per_site;
+#ifdef USE_TLS
+int     var_smtp_starttls_tmout;
+char   *var_smtp_sasl_tls_opts;
+bool    var_smtp_tls_enforce_peername;
+int     var_smtp_tls_scert_vd;
+bool    var_smtp_tls_note_starttls_offer;
+#endif
+
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
   * the connection management routines.
@@ -420,6 +499,15 @@ int     smtp_host_lookup_mask;
 STRING_LIST *smtp_cache_dest;
 SCACHE *smtp_scache;
 MAPS   *smtp_ehlo_dis_maps;
+
+#ifdef USE_TLS
+
+ /*
+  * OpenSSL client state.
+  */
+SSL_CTX *smtp_tls_ctx;
+
+#endif
 
 /* deliver_message - deliver message with extreme prejudice */
 
@@ -551,6 +639,17 @@ static void pre_init(char *unused_name, char **unused_argv)
 	msg_warn("%s is true, but SASL support is not compiled in",
 		 VAR_SMTP_SASL_ENABLE);
 #endif
+    /*
+     * Initialize the TLS data before entering the chroot jail
+     */
+    if (var_smtp_use_tls || var_smtp_enforce_tls || var_smtp_tls_per_site[0]) {
+#ifdef USE_TLS
+	smtp_tls_ctx = tls_client_init(var_smtp_tls_scert_vd);
+	smtp_tls_list_init();
+#else
+	msg_warn("TLS has been selected, but TLS support is not compiled in");
+#endif
+    }
 
     /*
      * Flush client.
@@ -605,6 +704,9 @@ int     main(int argc, char **argv)
 	VAR_ERROR_RCPT, DEF_ERROR_RCPT, &var_error_rcpt, 1, 0,
 	VAR_SMTP_SASL_PASSWD, DEF_SMTP_SASL_PASSWD, &var_smtp_sasl_passwd, 0, 0,
 	VAR_SMTP_SASL_OPTS, DEF_SMTP_SASL_OPTS, &var_smtp_sasl_opts, 0, 0,
+#ifdef USE_TLS
+	VAR_SMTP_SASL_TLS_OPTS, DEF_SMTP_SASL_TLS_OPTS, &var_smtp_sasl_tls_opts, 0, 0,
+#endif
 	VAR_SMTP_SASL_MECHS, DEF_SMTP_SASL_MECHS, &var_smtp_sasl_mechs, 0, 0,
 	VAR_SMTP_BIND_ADDR, DEF_SMTP_BIND_ADDR, &var_smtp_bind_addr, 0, 0,
 	VAR_SMTP_BIND_ADDR6, DEF_SMTP_BIND_ADDR6, &var_smtp_bind_addr6, 0, 0,
@@ -614,6 +716,7 @@ int     main(int argc, char **argv)
 	VAR_SCACHE_SERVICE, DEF_SCACHE_SERVICE, &var_scache_service, 1, 0,
 	VAR_SMTP_EHLO_DIS_WORDS, DEF_SMTP_EHLO_DIS_WORDS, &var_smtp_ehlo_dis_words, 0, 0,
 	VAR_SMTP_EHLO_DIS_MAPS, DEF_SMTP_EHLO_DIS_MAPS, &var_smtp_ehlo_dis_maps, 0, 0,
+	VAR_SMTP_TLS_PER_SITE, DEF_SMTP_TLS_PER_SITE, &var_smtp_tls_per_site, 0, 0,
 	0,
     };
     static CONFIG_TIME_TABLE time_table[] = {
@@ -630,6 +733,9 @@ int     main(int argc, char **argv)
 	VAR_SMTP_PIX_THRESH, DEF_SMTP_PIX_THRESH, &var_smtp_pix_thresh, 0, 0,
 	VAR_SMTP_PIX_DELAY, DEF_SMTP_PIX_DELAY, &var_smtp_pix_delay, 1, 0,
 	VAR_SMTP_CACHE_CONN, DEF_SMTP_CACHE_CONN, &var_smtp_cache_conn, 1, 0,
+#ifdef USE_TLS
+	VAR_SMTP_STARTTLS_TMOUT, DEF_SMTP_STARTTLS_TMOUT, &var_smtp_starttls_tmout, 1, 0,
+#endif
 	0,
     };
     static CONFIG_INT_TABLE int_table[] = {
@@ -637,6 +743,9 @@ int     main(int argc, char **argv)
 	VAR_SMTP_MXADDR_LIMIT, DEF_SMTP_MXADDR_LIMIT, &var_smtp_mxaddr_limit, 0, 0,
 	VAR_SMTP_MXSESS_LIMIT, DEF_SMTP_MXSESS_LIMIT, &var_smtp_mxsess_limit, 0, 0,
 	VAR_SMTP_REUSE_LIMIT, DEF_SMTP_REUSE_LIMIT, &var_smtp_reuse_limit, 1, 0,
+#ifdef USE_TLS
+	VAR_SMTP_TLS_SCERT_VD, DEF_SMTP_TLS_SCERT_VD, &var_smtp_tls_scert_vd, 0, 0,
+#endif
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {
@@ -651,6 +760,13 @@ int     main(int argc, char **argv)
 	VAR_SMTP_DEFER_MXADDR, DEF_SMTP_DEFER_MXADDR, &var_smtp_defer_mxaddr,
 	VAR_SMTP_SEND_XFORWARD, DEF_SMTP_SEND_XFORWARD, &var_smtp_send_xforward,
 	VAR_SMTP_CACHE_DEMAND, DEF_SMTP_CACHE_DEMAND, &var_smtp_cache_demand,
+	VAR_SMTP_USE_TLS, DEF_SMTP_USE_TLS, &var_smtp_use_tls,
+	VAR_SMTP_ENFORCE_TLS, DEF_SMTP_ENFORCE_TLS, &var_smtp_enforce_tls,
+#ifdef USE_TLS
+	VAR_SMTP_TLS_ENFORCE_PN, DEF_SMTP_TLS_ENFORCE_PN, &var_smtp_tls_enforce_peername,
+	VAR_SMTP_TLS_NOTEOFFER, DEF_SMTP_TLS_NOTEOFFER, &var_smtp_tls_note_starttls_offer,
+#endif
+
 	0,
     };
 

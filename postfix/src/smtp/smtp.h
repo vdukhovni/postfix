@@ -33,6 +33,13 @@
 #include <maps.h>
 
  /*
+  * Postfix TLS library.
+  */
+#ifdef USE_TLS
+#include <tls.h>
+#endif
+
+ /*
   * State information associated with each SMTP delivery request.
   * Session-specific state is stored separately.
   */
@@ -123,6 +130,7 @@ typedef struct SMTP_STATE {
   * Misc flags.
   */
 #define SMTP_MISC_FLAG_LOOP_DETECT	(1<<0)
+#define	SMTP_MISC_FLAG_IN_STARTTLS	(1<<1)
 
 #define SMTP_MISC_FLAG_DEFAULT		SMTP_MISC_FLAG_LOOP_DETECT
 
@@ -145,6 +153,12 @@ extern SCACHE *smtp_scache;		/* connection cache instance */
 extern STRING_LIST *smtp_cache_dest;	/* cached destinations */
 
 extern MAPS *smtp_ehlo_dis_maps;	/* ehlo keyword filter */
+
+#ifdef USE_TLS
+
+extern SSL_CTX *smtp_tls_ctx;		/* client-side TLS engine */
+
+#endif
 
  /*
   * smtp_session.c
@@ -183,6 +197,17 @@ typedef struct SMTP_SESSION {
     sasl_callback_t *sasl_callbacks;	/* stateful callbacks */
 #endif
 
+    /*
+     * TLS related state.
+     */
+#ifdef USE_TLS
+    int     tls_use_tls;		/* can do TLS */
+    int     tls_enforce_tls;		/* must do TLS */
+    int     tls_enforce_peername;	/* cert must match */
+    TLScontext_t *tls_context;		/* TLS session state */
+    tls_info_t tls_info;		/* legacy */
+#endif
+
 } SMTP_SESSION;
 
 extern SMTP_SESSION *smtp_session_alloc(VSTREAM *, const char *,
@@ -193,6 +218,11 @@ extern SMTP_SESSION *smtp_session_activate(int, VSTRING *, VSTRING *);
 
 #define SMTP_SESS_FLAG_NONE	0	/* no options */
 #define SMTP_SESS_FLAG_CACHE	(1<<0)	/* enable session caching */
+
+#ifdef USE_TLS
+extern void smtp_tls_list_init(void);
+
+#endif
 
  /*
   * smtp_connect.c
@@ -293,4 +323,11 @@ extern void smtp_state_free(SMTP_STATE *);
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	TLS support originally by:
+/*	Lutz Jaenicke
+/*	BTU Cottbus
+/*	Allgemeine Elektrotechnik
+/*	Universitaetsplatz 3-4
+/*	D-03044 Cottbus, Germany
 /*--*/

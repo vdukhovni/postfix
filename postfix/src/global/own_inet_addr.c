@@ -7,7 +7,7 @@
 /*	#include <own_inet_addr.h>
 /*
 /*	int	own_inet_addr(addr)
-/*	struct in_addr *addr;
+/*	struct sockaddr *addr;
 /*
 /*	INET_ADDR_LIST *own_inet_addr_list()
 /*
@@ -265,3 +265,38 @@ INET_ADDR_LIST *proxy_inet_addr_list(void)
 
     return (&proxy_list);
 }
+
+#ifdef TEST
+#include <inet_proto.h>
+
+static void inet_addr_list_print(INET_ADDR_LIST *list)
+{
+    MAI_HOSTADDR_STR hostaddr;
+    struct sockaddr_storage *sa;
+
+    for (sa = list->addrs; sa < list->addrs + list->used; sa++) {
+	SOCKADDR_TO_HOSTADDR(SOCK_ADDR_PTR(sa), SOCK_ADDR_LEN(sa),
+			     &hostaddr, (MAI_SERVPORT_STR *) 0, 0);
+	msg_info("%s", hostaddr.buf);
+    }
+}
+
+char   *var_inet_interfaces;
+
+int     main(int argc, char **argv)
+{
+    INET_PROTO_INFO *proto_info;
+    INET_ADDR_LIST *list;
+
+    if (argc != 3)
+	msg_fatal("usage: %s protocols interface_list (e.g. \"all all\")",
+		  argv[0]);
+    msg_verbose = 10;
+    proto_info = inet_proto_init(argv[0], argv[1]);
+    var_inet_interfaces = argv[2];
+    list = own_inet_addr_list();
+    inet_addr_list_print(list);
+    return (0);
+}
+
+#endif

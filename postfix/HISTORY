@@ -9663,7 +9663,7 @@ Apologies for any names omitted.
 	Portability: avoid postmap/postalias test file name clashes
 	on Windows.  Ian Lance Taylor (of Taylor UUCP fame).
 
-20030823
+20040823
 
 	Bugfix: vstream_popen() did not close the child pipe
 	after failure to fork(). File: util/vstream_popen.c.
@@ -9815,6 +9815,12 @@ Apologies for any names omitted.
 	Robustness: extra sanity checks. Files: util/dict_db.c,
 	util/dict_dbm.c, dict_nis.c.
 
+20041025
+
+	Initial merge of Lutz Jaenicke's TLS patch. Initial rewrite
+	of tlsmgr to eliminate some code duplication and to postpone
+	calls into OpenSSL until after dropping privileges.
+
 20041030
 
 	Compatibility: "session cache" renamed to "connection cache"
@@ -9877,11 +9883,35 @@ Apologies for any names omitted.
 	Victor Duchovni for Solaris 2.5.1, but we play safe and
 	enable it unconditionally.
 
+20041120
+
+	The TLS support routines are moved to a "tls" directory,
+	and are published via the "libtls.a" object library.
+
 20041122
 
 	Infrastructure: support for binary attribute values
 	(ATTR_TYPE_DATA) in Postfix IPC messages. Files:
 	util/attr_scan*c, util/attr_print*c.
+
+20041123-20041205
+
+	TLS support: via a process of gradual transformation,
+	decomposed Lutz Jaenicke's pfixtls.c into separate modules
+	for clients, servers, certificate verification, session
+	caching, and PRNG management. Global variables were eliminated
+	so that the code now supports multiple client and/or server
+	contexts in the same process.  Files:  tls/*.[hc].
+
+20041205
+
+	TLS support: eliminated shared access (and locking) of the
+	TLS PRNG exchange file and TLS session caches. Instead,
+	Postfix uses a client-server protocol, and the tlsmgr
+	becomes the sole mediator. This eliminated the need for
+	1000+ lines of SDBM support, and eliminated the need for
+	running a persistent tlsmgr process on systems don't enable
+	TLS in main.cf.
 
 20041124
 
@@ -9911,21 +9941,14 @@ Apologies for any names omitted.
 	sequence operator support: hash, btree, dbm, and sdbm.
 	Files:  postmap/postmap.c, postalias/postalias.c.
 
-20041210
-
-	Back-ports of minor cosmetic changes in comments, in order
-	to keep differences minimal with respect to the TLS-enabled
-	version.
-
-	Client SDBM module, from the TLS-enabled version. Files:
-	util/dict_sdbm.[hc].
-
-	Hexadecimal encode/decode routines, from the TLS-enabled
-	version. Files:  util/hext_code.[hc].
-
 20041212
 
 	Solaris 10/ix86 chroot setup script update by J.D. Bronson.
+
+	TLS support: cosmetic changes to comments and messages;
+	completed the code for the master -> tlsmgr trigger handshake,
+	so that the master no longer complains about trigger
+	responses timing out.
 
 20041213
 
@@ -9968,6 +9991,12 @@ Apologies for any names omitted.
 	"postcat -o" now prints queue file record offsets; this is
 	useful for debugging. File: postcat/postcat.c.
 
+	NON-PRODUCTION Bugfix: (bug introduced while adopting the
+	Postfix/TLS patch):  the new TLS certification call-back
+	routine expects that the peer hostname is in
+	tlscontext->peername_save, but the TLS server code never
+	updated this field.  File:  tls/tls_server.c.
+
 20041218
 
 	Feature: selective suppression of SMTP extensions (pipelining,
@@ -9986,12 +10015,32 @@ Apologies for any names omitted.
 
 20041220
 
+	NON-PRODUCTION Bugfix: (bug introduced while adopting
+	Postfix/TLS patch):  don't call smtp_flush() after return
+	from vstream_setjmp(), we'll call you.  File: smtpd/smtpd.c.
+
 	Dummy VSTREAM read-write routines. Files: util/dummy_read.c,
 	util/dummy_write.c.
 
 20041221
 
+	Fixes for TLS_README by Victor Duchovni. File:
+	proto/TLS_README.html.
+
+	NON-PRODUCTION Bugfix: (bug introduced while adopting
+	Postfix/TLS patch).  The client code had become too similar
+	to the server implementation, and also required a host
+	certificate and key. Fix by Victor Duchovni. File:
+	tls/tls_client.c.
+
+20041221
+
 	Bugfix: further postcat corner cases.
+
+20041223
+
+	Cosmetic: don't log disconnect events as I/O errors.
+	File: tls/tls_bio_ops.c.
 
 20041221-9
 
@@ -10096,9 +10145,7 @@ Apologies for any names omitted.
 	of the new internal APIs.
 
 	Performance: reduced start-up delay by moving warning-only
-	startup checks into the background; they now start after
-	one minute to allow the system to finish booting. File:
-	conf/postfix-script.
+	startup checks into the background. File: conf/postfix-script.
 
 20050115
 
@@ -10135,7 +10182,16 @@ Apologies for any names omitted.
 
 20050117
 
+	Performance: reduced start-up delay by moving warning-only
+	startup checks into the background; they now start after
+	one minute to allow the system to finish booting. File:
+	conf/postfix-script.
+
 	Milestone: first non-non-production snapshot with IPv6.
+
+20050119
+
+	Milestone: first non-non-production snapshot with TLS.
 
 Open problems:
 
@@ -10164,6 +10220,13 @@ Open problems:
 
 	Low: cap bounce queue life time with regular queue life
 	time.
+
+	Med: the TLS certificate verification depth parameters
+	never worked.
+
+	Med: eliminate the tls_info data structure.
+
+	Low: something to alias sdbm:name into btree:name?
 
 	Med: implement ${name[?:]value} in main.cf or update the
 	postconf(5) manual.

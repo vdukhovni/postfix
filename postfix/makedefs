@@ -23,6 +23,20 @@
 # .IP \fBCCARGS=\fIcompiler_arguments\fR
 #	Specifies non-default compiler arguments, for example, a non-default
 #	\fIinclude\fR directory.
+#	The following directives are special:
+# .RS
+# .IP "\fB-DUSE_TLS\fR (default)"
+#	Build with TLS (transport level security) support. This
+#	requires that OpenSSL is installed.
+# .IP \fB-DNO_TLS\fR
+#	Do not build with TLS support.
+# .IP \fB-DHAS_PCRE\fR
+#	Build with PCRE (Perl-compatible regular expression) support.
+#	By default, PCRE support is enabled when the \fBpcre-config\fR
+#	utility is installed.
+# .IP \fB-DNO_PCRE\fR
+#	Do not build with PCRE support.
+# .RE
 # .IP \fBDEBUG=\fIdebug_level\fR
 #	Specifies a non-default debugging level. The default is \fB-g\fR.
 #	Specify \fBDEBUG=\fR to turn off debugging.
@@ -143,9 +157,9 @@ case "$SYSTEM.$RELEASE" in
 		case $RELEASE in
 		    5.[0-7]) CCARGS="$CCARGS -DNO_IPV6";;
 		esac
-		# Solaris 9 added closefrom()
+		# Solaris 9 added closefrom() and /dev/*random
 		case $RELEASE in
-		    5.[0-8]) CCARGS="$CCARGS -DNO_CLOSEFROM";;
+		    5.[0-8]) CCARGS="$CCARGS -DNO_CLOSEFROM -DNO_DEV_URANDOM";;
 		esac
 		# Work around broken str*casecmp(). Do it all here instead
 		# of having half the solution in the sys_defs.h file.
@@ -326,6 +340,20 @@ Rhapsody.5*|Darwin.*)
 		;;
 	   *)	error "Unknown system type: $SYSTEM $RELEASE";;
 esac
+
+#
+# OpenSSL has no configuration query utility, but we don't try to
+# guess. We assume includes in /usr/include/openssl and libraries in
+# /usr/lib, or in their /usr/local equivalents. If the OpenSSL files
+# are in a non-standard place, their locations need to be specified.
+#
+#case "$CCARGS" in
+# *-DUSE_TLS*)	;;
+#  *-DNO_TLS*)	;;
+#           *)	CCARGS="$CCARGS -DUSE_TLS"
+#		AUXLIBS="$AUXLIBS -lssl -lcrypto"
+#		;;
+#esac
 
 #
 # PCRE 3.x has a pcre-config utility so we don't have to guess.

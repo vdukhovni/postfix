@@ -629,6 +629,15 @@ discard	  unix	-	-	n	-	-	discard
 EOF
     }
 
+    # Add missing tlsmgr service to master.cf.
+
+    grep '^tlsmgr.*tlsmgr' $config_directory/master.cf >/dev/null || {
+	echo Editing $config_directory/master.cf, adding missing entry for tlsmgr service
+	cat >>$config_directory/master.cf <<EOF || exit 1
+tlsmgr    unix  -       -       n       1000?   1       tlsmgr
+EOF
+    }
+
     # Report (but do not remove) obsolete files.
 
     test -n "$obsolete" && {

@@ -569,6 +569,34 @@ extern bool var_stat_home_dir;
 #define DEF_DUP_FILTER_LIMIT	1000
 extern int var_dup_filter_limit;
 
+#define VAR_TLS_RAND_EXCH_NAME	"tls_random_exchange_name"
+#define DEF_TLS_RAND_EXCH_NAME	"${config_directory}/prng_exch"
+extern char *var_tls_rand_exch_name;
+
+#define VAR_TLS_RAND_SOURCE	"tls_random_source"
+#ifdef HAS_DEV_URANDOM
+#define DEF_TLS_RAND_SOURCE	"dev:/dev/urandom"
+#else
+#define DEF_TLS_RAND_SOURCE	""
+#endif
+extern char *var_tls_rand_source;
+
+#define VAR_TLS_RAND_BYTES	"tls_random_bytes"
+#define DEF_TLS_RAND_BYTES	32
+extern int var_tls_rand_bytes;
+
+#define VAR_TLS_DAEMON_RAND_BYTES	"tls_daemon_random_bytes"
+#define DEF_TLS_DAEMON_RAND_BYTES	32
+extern int var_tls_daemon_rand_bytes;
+
+#define VAR_TLS_RESEED_PERIOD	"tls_random_reseed_period"
+#define DEF_TLS_RESEED_PERIOD	"3600s"
+extern int var_tls_reseed_period;
+
+#define VAR_TLS_PRNG_UPD_PERIOD	"tls_random_prng_update_period"
+#define DEF_TLS_PRNG_UPD_PERIOD "3600s"
+extern int var_tls_prng_upd_period;
+
  /*
   * Queue manager: relocated databases.
   */
@@ -845,6 +873,10 @@ extern int var_smtp_helo_tmout;
 #define DEF_SMTP_XFWD_TMOUT	"300s"
 extern int var_smtp_xfwd_tmout;
 
+#define VAR_SMTP_STARTTLS_TMOUT	"smtp_starttls_timeout"
+#define DEF_SMTP_STARTTLS_TMOUT	"300s"
+extern int var_smtp_starttls_tmout;
+
 #define VAR_SMTP_MAIL_TMOUT	"smtp_mail_timeout"
 #define DEF_SMTP_MAIL_TMOUT	"300s"
 extern int var_smtp_mail_tmout;
@@ -950,6 +982,10 @@ extern char *var_smtpd_banner;
 #define DEF_SMTPD_TMOUT		"300s"
 extern int var_smtpd_tmout;
 
+#define VAR_SMTPD_STARTTLS_TMOUT "smtpd_starttls_timeout"
+#define DEF_SMTPD_STARTTLS_TMOUT "300s"
+extern int var_smtpd_starttls_tmout;
+
 #define VAR_SMTPD_RCPT_LIMIT	"smtpd_recipient_limit"
 #define DEF_SMTPD_RCPT_LIMIT	1000
 extern int var_smtpd_rcpt_limit;
@@ -986,6 +1022,150 @@ extern char *var_smtpd_noop_cmds;
 #define DEF_SMTPD_FORBID_CMDS	"CONNECT GET POST"
 extern char *var_smtpd_forbid_cmds;
 
+#define VAR_SMTPD_TLS_WRAPPER	"smtpd_tls_wrappermode"
+#define DEF_SMTPD_TLS_WRAPPER	0
+extern bool var_smtpd_tls_wrappermode;
+
+#define VAR_SMTPD_USE_TLS	"smtpd_use_tls"
+#define DEF_SMTPD_USE_TLS	0
+extern bool var_smtpd_use_tls;
+
+#define VAR_SMTPD_ENFORCE_TLS	"smtpd_enforce_tls"
+#define DEF_SMTPD_ENFORCE_TLS	0
+extern bool var_smtpd_enforce_tls;
+
+#define VAR_SMTPD_TLS_AUTH_ONLY	"smtpd_tls_auth_only"
+#define DEF_SMTPD_TLS_AUTH_ONLY 0
+extern bool var_smtpd_tls_auth_only;
+
+#define VAR_SMTPD_TLS_ACERT	"smtpd_tls_ask_ccert"
+#define DEF_SMTPD_TLS_ACERT	0
+extern bool var_smtpd_tls_ask_ccert;
+
+#define VAR_SMTPD_TLS_RCERT	"smtpd_tls_req_ccert"
+#define DEF_SMTPD_TLS_RCERT	0
+extern bool var_smtpd_tls_req_ccert;
+
+#define VAR_SMTPD_TLS_CCERT_VD	"smtpd_tls_ccert_verifydepth"
+#define DEF_SMTPD_TLS_CCERT_VD	5
+extern int var_smtpd_tls_ccert_vd;
+
+#define VAR_SMTPD_TLS_CERT_FILE	"smtpd_tls_cert_file"
+#define DEF_SMTPD_TLS_CERT_FILE	""
+extern char *var_smtpd_tls_cert_file;
+
+#define VAR_SMTPD_TLS_KEY_FILE	"smtpd_tls_key_file"
+#define DEF_SMTPD_TLS_KEY_FILE	"$smtpd_tls_cert_file"
+extern char *var_smtpd_tls_key_file;
+
+#define VAR_SMTPD_TLS_DCERT_FILE "smtpd_tls_dcert_file"
+#define DEF_SMTPD_TLS_DCERT_FILE ""
+extern char *var_smtpd_tls_dcert_file;
+
+#define VAR_SMTPD_TLS_DKEY_FILE	"smtpd_tls_dkey_file"
+#define DEF_SMTPD_TLS_DKEY_FILE	"$smtpd_tls_dcert_file"
+extern char *var_smtpd_tls_dkey_file;
+
+#define VAR_SMTPD_TLS_CA_FILE	"smtpd_tls_CAfile"
+#define DEF_SMTPD_TLS_CA_FILE	""
+extern char *var_smtpd_tls_CAfile;
+
+#define VAR_SMTPD_TLS_CA_PATH	"smtpd_tls_CApath"
+#define DEF_SMTPD_TLS_CA_PATH	""
+extern char *var_smtpd_tls_CApath;
+
+#define VAR_SMTPD_TLS_CLIST	"smtpd_tls_cipherlist"
+#define DEF_SMTPD_TLS_CLIST	""
+extern char *var_smtpd_tls_cipherlist;
+
+#define VAR_SMTPD_TLS_512_FILE	"smtpd_tls_dh512_param_file"
+#define DEF_SMTPD_TLS_512_FILE	""
+extern char *var_smtpd_tls_dh512_param_file;
+
+#define VAR_SMTPD_TLS_1024_FILE	"smtpd_tls_dh1024_param_file"
+#define DEF_SMTPD_TLS_1024_FILE	""
+extern char *var_smtpd_tls_dh1024_param_file;
+
+#define VAR_SMTPD_TLS_LOGLEVEL	"smtpd_tls_loglevel"
+#define DEF_SMTPD_TLS_LOGLEVEL	0
+extern int var_smtpd_tls_loglevel;
+
+#define VAR_SMTPD_TLS_RECHEAD	"smtpd_tls_received_header"
+#define DEF_SMTPD_TLS_RECHEAD	0
+extern bool var_smtpd_tls_received_header;
+
+#define VAR_SMTPD_TLS_SCACHE_DB	"smtpd_tls_session_cache_database"
+#define DEF_SMTPD_TLS_SCACHE_DB	""
+extern char *var_smtpd_tls_scache_db;
+
+#define VAR_SMTPD_TLS_SCACHTIME	"smtpd_tls_session_cache_timeout"
+#define DEF_SMTPD_TLS_SCACHTIME	"3600s"
+extern int var_smtpd_tls_scache_timeout;
+
+#define VAR_SMTP_TLS_PER_SITE	"smtp_tls_per_site"
+#define DEF_SMTP_TLS_PER_SITE	""
+extern char *var_smtp_tls_per_site;
+
+#define VAR_SMTP_USE_TLS	"smtp_use_tls"
+#define DEF_SMTP_USE_TLS	0
+extern bool var_smtp_use_tls;
+
+#define VAR_SMTP_ENFORCE_TLS	"smtp_enforce_tls"
+#define DEF_SMTP_ENFORCE_TLS	0
+extern bool var_smtp_enforce_tls;
+
+#define VAR_SMTP_TLS_ENFORCE_PN	"smtp_tls_enforce_peername"
+#define DEF_SMTP_TLS_ENFORCE_PN	1
+extern bool var_smtp_tls_enforce_peername;
+
+#define VAR_SMTP_TLS_SCERT_VD	"smtp_tls_scert_verifydepth"
+#define DEF_SMTP_TLS_SCERT_VD	5
+extern int var_smtp_tls_scert_vd;
+
+#define VAR_SMTP_TLS_CERT_FILE	"smtp_tls_cert_file"
+#define DEF_SMTP_TLS_CERT_FILE	""
+extern char *var_smtp_tls_cert_file;
+
+#define VAR_SMTP_TLS_KEY_FILE	"smtp_tls_key_file"
+#define DEF_SMTP_TLS_KEY_FILE	"$smtp_tls_cert_file"
+extern char *var_smtp_tls_key_file;
+
+#define VAR_SMTP_TLS_DCERT_FILE "smtp_tls_dcert_file"
+#define DEF_SMTP_TLS_DCERT_FILE ""
+extern char *var_smtp_tls_dcert_file;
+
+#define VAR_SMTP_TLS_DKEY_FILE	"smtp_tls_dkey_file"
+#define DEF_SMTP_TLS_DKEY_FILE	"$smtp_tls_dcert_file"
+extern char *var_smtp_tls_dkey_file;
+
+#define VAR_SMTP_TLS_CA_FILE	"smtp_tls_CAfile"
+#define DEF_SMTP_TLS_CA_FILE	""
+extern char *var_smtp_tls_CAfile;
+
+#define VAR_SMTP_TLS_CA_PATH	"smtp_tls_CApath"
+#define DEF_SMTP_TLS_CA_PATH	""
+extern char *var_smtp_tls_CApath;
+
+#define VAR_SMTP_TLS_CLIST	"smtp_tls_cipherlist"
+#define DEF_SMTP_TLS_CLIST	""
+extern char *var_smtp_tls_cipherlist;
+
+#define VAR_SMTP_TLS_LOGLEVEL	"smtp_tls_loglevel"
+#define DEF_SMTP_TLS_LOGLEVEL	0
+extern int var_smtp_tls_loglevel;
+
+#define VAR_SMTP_TLS_NOTEOFFER	"smtp_tls_note_starttls_offer"
+#define DEF_SMTP_TLS_NOTEOFFER	0
+extern bool var_smtp_tls_note_starttls_offer;
+
+#define VAR_SMTP_TLS_SCACHE_DB	"smtp_tls_session_cache_database"
+#define DEF_SMTP_TLS_SCACHE_DB	""
+extern char *var_smtp_tls_scache_db;
+
+#define VAR_SMTP_TLS_SCACHTIME	"smtp_tls_session_cache_timeout"
+#define DEF_SMTP_TLS_SCACHTIME	"3600s"
+extern int var_smtp_tls_scache_timeout;
+
  /*
   * SASL authentication support, SMTP server side.
   */
@@ -1000,6 +1180,10 @@ extern char *var_smtpd_sasl_opts;
 #define VAR_SMTPD_SASL_APPNAME	"smtpd_sasl_application_name"
 #define DEF_SMTPD_SASL_APPNAME	"smtpd"
 extern char *var_smtpd_sasl_appname;
+
+#define VAR_SMTPD_SASL_TLS_OPTS	"smtpd_sasl_tls_security_options"
+#define DEF_SMTPD_SASL_TLS_OPTS	"$smtpd_sasl_security_options"
+extern char *var_smtpd_sasl_tls_opts;
 
 #define VAR_SMTPD_SASL_REALM	"smtpd_sasl_local_domain"
 #define DEF_SMTPD_SASL_REALM	""
@@ -1037,6 +1221,10 @@ extern char *var_smtp_sasl_opts;
 #define VAR_SMTP_SASL_MECHS	"smtp_sasl_mechanism_filter"
 #define DEF_SMTP_SASL_MECHS	""
 extern char *var_smtp_sasl_mechs;
+
+#define VAR_SMTP_SASL_TLS_OPTS	"smtp_sasl_tls_security_options"
+#define DEF_SMTP_SASL_TLS_OPTS	"$var_smtp_sasl_opts"
+extern char *var_smtp_sasl_tls_opts;
 
  /*
   * LMTP server. The soft error limit determines how many errors an LMTP
@@ -1323,6 +1511,10 @@ extern char *var_relay_rcpt_maps;
 #define DEF_RELAY_RCPT_CODE	550
 extern int var_relay_rcpt_code;
 
+#define VAR_RELAY_CCERTS	"relay_clientcerts"
+#define DEF_RELAY_CCERTS	""
+extern char *var_smtpd_relay_ccerts;
+
 #define VAR_CLIENT_CHECKS	"smtpd_client_restrictions"
 #define DEF_CLIENT_CHECKS	""
 extern char *var_client_checks;
@@ -1445,6 +1637,8 @@ extern int var_mul_rcpt_code;
 #define PERMIT_AUTH_DEST	"permit_auth_destination"
 #define REJECT_UNAUTH_DEST	"reject_unauth_destination"
 #define CHECK_RELAY_DOMAINS	"check_relay_domains"
+#define PERMIT_TLS_CLIENTCERTS	"permit_tls_clientcerts"
+#define PERMIT_TLS_ALL_CLIENTCERTS	"permit_tls_all_clientcerts"
 #define VAR_RELAY_CODE		"relay_domains_reject_code"
 #define DEF_RELAY_CODE		554
 extern int var_relay_code;

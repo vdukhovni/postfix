@@ -200,6 +200,7 @@
 /*	smtp(8), Postfix SMTP client
 /*	smtpd(8), Postfix SMTP server
 /*	spawn(8), run non-Postfix server
+/*	tlsmgr(8), Postfix TLS cache and randomness manager
 /*	trivial-rewrite(8), Postfix address rewriting
 /*	verify(8), Postfix address verification
 /*	virtual(8), Postfix virtual delivery agent

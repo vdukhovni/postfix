@@ -42,6 +42,7 @@
 #define MAIL_SERVICE_LOCAL	"local"
 #define MAIL_SERVICE_PICKUP	"pickup"
 #define MAIL_SERVICE_QUEUE	"qmgr"
+#define MAIL_SERVICE_TLSMGR	"tlsmgr"
 #define MAIL_SERVICE_RESOLVE	"resolve"
 #define MAIL_SERVICE_REWRITE	"rewrite"
 #define MAIL_SERVICE_VIRTUAL	"virtual"

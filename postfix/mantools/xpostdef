@@ -58,6 +58,7 @@ queue_directory
 readme_directory
 sendmail_path
 smtpd_expansion_filter
+tls_random_source
 virtual_mailbox_lock
 EOF
 

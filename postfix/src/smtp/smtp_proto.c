@@ -21,6 +21,7 @@
 /*	This module implements the client side of the SMTP protocol.
 /*
 /*	smtp_helo() performs the initial handshake with the SMTP server.
+/*	When TLS is enabled, this includes STARTTLS negotiations.
 /*
 /*	smtp_xfer() sends message envelope information followed by the
 /*	message data, and finishes the SMTP conversation. These operations
@@ -76,6 +77,13 @@
 /*	Connection caching in cooperation with:
 /*	Victor Duchovni
 /*	Morgan Stanley
+/*
+/*	TLS support originally by:
+/*	Lutz Jaenicke
+/*	BTU Cottbus
+/*	Allgemeine Elektrotechnik
+/*	Universitaetsplatz 3-4
+/*	D-03044 Cottbus, Germany
 /*--*/
 
 /* System library. */
@@ -209,7 +217,7 @@ char   *xfer_request[SMTP_STATE_LAST] = {
 
 /* smtp_helo - perform initial handshake with SMTP server */
 
-int     smtp_helo(SMTP_STATE *state, int misc_flags)
+int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
 {
     char   *myname = "smtp_helo";
     SMTP_SESSION *session = state->session;
@@ -232,60 +240,81 @@ int     smtp_helo(SMTP_STATE *state, int misc_flags)
     const char *ehlo_words;
     int     discard_mask;
 
-    /*
-     * Prepare for disaster.
-     */
-    smtp_timeout_setup(state->session->stream, var_smtp_helo_tmout);
-    if ((except = vstream_setjmp(state->session->stream)) != 0)
-	return (smtp_stream_except(state, except,
-				   "receiving the initial SMTP greeting"));
+#ifdef USE_TLS
+    static int smtp_start_tls(SMTP_STATE *, int);
+    int     saved_features = session->features;
+
+#endif
 
     /*
-     * Read and parse the server's SMTP greeting banner.
+     * If not recursing after STARTTLS, examine the server greeting banner
+     * and decide if we are going to send EHLO as the next command.
      */
-    switch ((resp = smtp_chat_resp(session))->code / 100) {
-    case 2:
-	break;
-    case 5:
-	if (var_smtp_skip_5xx_greeting)
-	    resp->code = 400;
-    default:
-	return (smtp_site_fail(state, resp->code,
-			       "host %s refused to talk to me: %s",
-			       session->namaddr,
-			       translit(resp->str, "\n", " ")));
-    }
+    if ((misc_flags & SMTP_MISC_FLAG_IN_STARTTLS) == 0) {
 
-    /*
-     * XXX Some PIX firewall versions require flush before ".<CR><LF>" so it
-     * does not span a packet boundary. This hurts performance so it is not
-     * on by default.
-     */
-    if (resp->str[strspn(resp->str, "20 *\t\n")] == 0)
-	session->features |= SMTP_FEATURE_MAYBEPIX;
+	/*
+	 * Prepare for disaster.
+	 */
+	smtp_timeout_setup(state->session->stream, var_smtp_helo_tmout);
+	if ((except = vstream_setjmp(state->session->stream)) != 0)
+	    return (smtp_stream_except(state, except,
+				    "receiving the initial SMTP greeting"));
 
-    /*
-     * See if we are talking to ourself. This should not be possible with the
-     * way we implement DNS lookups. However, people are known to sometimes
-     * screw up the naming service. And, mailer loops are still possible when
-     * our own mailer routing tables are mis-configured.
-     */
-    words = resp->str;
-    (void) mystrtok(&words, "- \t\n");
-    for (n = 0; (word = mystrtok(&words, " \t\n")) != 0; n++) {
-	if (n == 0 && strcasecmp(word, var_myhostname) == 0) {
-	    if (misc_flags & SMTP_MISC_FLAG_LOOP_DETECT)
-		msg_warn("host %s greeted me with my own hostname %s",
-			 session->namaddr, var_myhostname);
-	} else if (strcasecmp(word, "ESMTP") == 0)
+	/*
+	 * Read and parse the server's SMTP greeting banner.
+	 */
+	switch ((resp = smtp_chat_resp(session))->code / 100) {
+	case 2:
+	    break;
+	case 5:
+	    if (var_smtp_skip_5xx_greeting)
+		resp->code = 400;
+	default:
+	    return (smtp_site_fail(state, resp->code,
+				   "host %s refused to talk to me: %s",
+				   session->namaddr,
+				   translit(resp->str, "\n", " ")));
+	}
+
+	/*
+	 * XXX Some PIX firewall versions require flush before ".<CR><LF>" so
+	 * it does not span a packet boundary. This hurts performance so it
+	 * is not on by default.
+	 */
+	if (resp->str[strspn(resp->str, "20 *\t\n")] == 0)
+	    session->features |= SMTP_FEATURE_MAYBEPIX;
+
+	/*
+	 * See if we are talking to ourself. This should not be possible with
+	 * the way we implement DNS lookups. However, people are known to
+	 * sometimes screw up the naming service. And, mailer loops are still
+	 * possible when our own mailer routing tables are mis-configured.
+	 */
+	words = resp->str;
+	(void) mystrtok(&words, "- \t\n");
+	for (n = 0; (word = mystrtok(&words, " \t\n")) != 0; n++) {
+	    if (n == 0 && strcasecmp(word, var_myhostname) == 0) {
+		if (misc_flags & SMTP_MISC_FLAG_LOOP_DETECT)
+		    msg_warn("host %s greeted me with my own hostname %s",
+			     session->namaddr, var_myhostname);
+	    } else if (strcasecmp(word, "ESMTP") == 0)
+		session->features |= SMTP_FEATURE_ESMTP;
+	}
+	if (var_smtp_always_ehlo
+	    && (session->features & SMTP_FEATURE_MAYBEPIX) == 0)
 	    session->features |= SMTP_FEATURE_ESMTP;
+	if (var_smtp_never_ehlo
+	    || (session->features & SMTP_FEATURE_MAYBEPIX) != 0)
+	    session->features &= ~SMTP_FEATURE_ESMTP;
     }
-    if (var_smtp_always_ehlo
-	&& (session->features & SMTP_FEATURE_MAYBEPIX) == 0)
+
+    /*
+     * If recursing after STARTTLS, there is no server greeting banner.
+     * Always send EHLO as the next command.
+     */
+    else {
 	session->features |= SMTP_FEATURE_ESMTP;
-    if (var_smtp_never_ehlo
-	|| (session->features & SMTP_FEATURE_MAYBEPIX) != 0)
-	session->features &= ~SMTP_FEATURE_ESMTP;
+    }
 
     /*
      * Return the compliment. Fall back to SMTP if our ESMTP recognition
@@ -352,6 +381,11 @@ int     smtp_helo(SMTP_STATE *state, int misc_flags)
 			    session->size_limit = off_cvt_string(word);
 		    }
 		}
+#ifdef USE_TLS
+	    } else if (strcasecmp(word, "STARTTLS") == 0) {
+		if ((discard_mask & EHLO_MASK_STARTTLS) == 0)
+		    session->features |= SMTP_FEATURE_STARTTLS;
+#endif
 #ifdef USE_SASL_AUTH
 	    } else if (var_smtp_sasl_enable && strcasecmp(word, "AUTH") == 0) {
 		if ((discard_mask & EHLO_MASK_AUTH) == 0)
@@ -385,6 +419,9 @@ int     smtp_helo(SMTP_STATE *state, int misc_flags)
      * we are reading in the responses. In addition to TCP buffering we have
      * to be aware of application-level buffering by the vstream module,
      * which is limited to a couple kbytes.
+     * 
+     * XXX No need to do this before and after STARTTLS, but it's not a big deal
+     * if we do.
      */
     if (session->features & SMTP_FEATURE_PIPELINING) {
 	optlen = sizeof(session->sndbufsize);
@@ -406,6 +443,97 @@ int     smtp_helo(SMTP_STATE *state, int misc_flags)
 	session->sndbufsize = 0;
     }
 
+#ifdef USE_TLS
+
+    /*
+     * Skip this part if we already sent STARTTLS.
+     */
+    if ((misc_flags & SMTP_MISC_FLAG_IN_STARTTLS) == 0) {
+
+	/*
+	 * Optionally log unused STARTTLS opportunities.
+	 */
+	if ((session->features & SMTP_FEATURE_STARTTLS) &&
+	    (var_smtp_tls_note_starttls_offer) &&
+	    (!(session->tls_enforce_tls || session->tls_use_tls)))
+	    msg_info("Host offered STARTTLS: [%s]", session->host);
+
+	/*
+	 * Decide whether or not to send STARTTLS.
+	 */
+	if ((session->features & SMTP_FEATURE_STARTTLS) != 0
+	    && smtp_tls_ctx != 0
+	    && (session->tls_use_tls || session->tls_enforce_tls)) {
+
+	    /*
+	     * Prepare for disaster.
+	     */
+	    smtp_timeout_setup(state->session->stream, var_smtp_starttls_tmout);
+	    if ((except = vstream_setjmp(state->session->stream)) != 0)
+		return (smtp_stream_except(state, except,
+					"receiving the STARTTLS response"));
+
+	    /*
+	     * Send STARTTLS. Recurse when the server accepts STARTTLS, after
+	     * resetting the SASL and EHLO features lists.
+	     * 
+	     * XXX Reset the SASL mechanism list to avoid spurious warnings. We
+	     * need a routine to reset the list instead of groping data here.
+	     * 
+	     * XXX Should not there be an smtp_sasl_tls_security_options feature
+	     * to allow different mechanisms across TLS tunnels than across
+	     * plain-text connections?
+	     */
+	    smtp_chat_cmd(session, "STARTTLS");
+	    if ((resp = smtp_chat_resp(session))->code / 100 == 2) {
+#ifdef USE_SASL_AUTH
+		if (session->sasl_mechanism_list) {
+		    myfree(session->sasl_mechanism_list);
+		    session->sasl_mechanism_list = 0;
+		}
+#endif
+		session->features = saved_features;
+		misc_flags |= SMTP_MISC_FLAG_IN_STARTTLS;
+		return (smtp_start_tls(state, misc_flags));
+	    }
+
+	    /*
+	     * Give up if we must use TLS but the server rejects STARTTLS
+	     * although support for it was announced in the EHLO response.
+	     */
+	    session->features &= ~SMTP_FEATURE_STARTTLS;
+	    if (session->tls_enforce_tls)
+		return (smtp_site_fail(state, resp->code,
+		    "TLS is required, but host %s refused to start TLS: %s",
+				       session->namaddr,
+				       translit(resp->str, "\n", " ")));
+	    /* Else try to continue in plain-text mode. */
+	}
+
+	/*
+	 * Give up if we must use TLS but can't for various reasons.
+	 * 
+	 * 200412 Be sure to provide the default clause at the bottom of this
+	 * block. When TLS is required we must never, ever, end up in
+	 * plain-text mode.
+	 */
+	if (session->tls_enforce_tls) {
+	    if (!(session->features & SMTP_FEATURE_STARTTLS)) {
+		return (smtp_site_fail(state, 450,
+			  "TLS is required, but was not offered by host %s",
+				       session->namaddr));
+	    } else if (smtp_tls_ctx == 0) {
+		return (smtp_site_fail(state, 450,
+		     "TLS is required, but our TLS engine is unavailable"));
+	    } else {
+		msg_warn("%s: TLS is required but unavailable, don't know why",
+			 myname);
+		return (smtp_site_fail(state, 450,
+				     "TLS is required, but not available"));
+	    }
+	}
+    }
+#endif
 #ifdef USE_SASL_AUTH
     if (var_smtp_sasl_enable && (session->features & SMTP_FEATURE_AUTH))
 	return (smtp_sasl_helo_login(state));
@@ -413,6 +541,102 @@ int     smtp_helo(SMTP_STATE *state, int misc_flags)
 
     return (0);
 }
+
+#ifdef USE_TLS
+
+/* smtp_start_tls - turn on TLS and recurse into the HELO dialog */
+
+static int smtp_start_tls(SMTP_STATE *state, int misc_flags)
+{
+    SMTP_SESSION *session = state->session;
+
+    /*
+     * Turn off SMTP connection caching. When the TLS handshake succeeds, we
+     * can't reuse the SMTP connection. Reason: we can't turn off TLS in one
+     * process, save the connection to the cache which is shared with all
+     * SMTP clients, migrate the connection to another SMTP client, and
+     * resume TLS there. When the TLS handshake fails, we can't reuse the
+     * SMTP connection either, because the conversation is in an unknown
+     * state.
+     */
+    session->reuse_count = 0;
+
+    /*
+     * The actual TLS handshake may succeed, but tls_client_start() may fail
+     * anyway, for example because server certificate verification is
+     * required but failed, or because enforce_peername is required but the
+     * names listed in the server certificate don't match the peer hostname.
+     * 
+     * XXX When tls_client_start() fails then we don't know what state the SMTP
+     * connection is in, so we give up on this connection even if we are not
+     * required to use TLS.
+     * 
+     * XXX Other tests for specific combinations of required/failed behavior
+     * follow below AFTER the tls_client_start() call. These tests should be
+     * done inside tls_client_start() or its call-backs, to keep the SMTP
+     * client code clean (as it is in the SMTP server).
+     */
+    session->tls_context =
+	tls_client_start(smtp_tls_ctx, session->stream,
+			 var_smtp_starttls_tmout,
+			 session->tls_enforce_peername,
+			 session->host,
+			 &(session->tls_info));
+    if (session->tls_context == 0)
+	return (smtp_site_fail(state, 450,
+			       "Cannot start TLS: handshake failure"));
+
+    /*
+     * Give up when TLS is required, we can parse the server certificate's
+     * CommonName field, but server certificate verification failed.
+     * 
+     * In enforce_peername state, the handshake would already have been
+     * terminated by the certificate verification call-back routine, so the
+     * check here is for logging only.
+     * 
+     * XXX It appears that the CommonName field is used as an indicator that a
+     * server certificate is available. If the latter is what we want, then
+     * we should test for that instead.
+     */
+    if (session->tls_info.peer_CN != NULL) {
+	if (!session->tls_info.peer_verified) {
+	    msg_info("Server certificate could not be verified");
+	    if (session->tls_enforce_tls) {
+		tls_client_stop(smtp_tls_ctx, session->stream,
+				var_smtp_starttls_tmout, 1,
+				&(session->tls_info));
+		return (smtp_site_fail(state, 450,
+			  "TLS failure: Cannot verify server certificate"));
+	    }
+	}
+    }
+
+    /*
+     * Give up when TLS is required but no server certificate is available
+     * (or we could not parse the certificate's CommonName) field.
+     * 
+     * XXX The test below is not accurate: the server hostname verification may
+     * use the dNSNames instead of the CommonName. We really should be
+     * testing if a certificate is available.
+     */
+    else {
+	if (session->tls_enforce_tls) {
+	    tls_client_stop(smtp_tls_ctx, session->stream,
+			    var_smtp_starttls_tmout, 1,
+			    &(session->tls_info));
+	    return (smtp_site_fail(state, 450,
+			     "TLS failure: Cannot verify server hostname"));
+	}
+    }
+
+    /*
+     * At this point we have to re-negotiate the "EHLO" to reget the
+     * feature-list.
+     */
+    return (smtp_helo(state, misc_flags));
+}
+
+#endif
 
 /* smtp_text_out - output one header/body record */
 
