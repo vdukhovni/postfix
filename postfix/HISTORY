@@ -4114,3 +4114,25 @@ Apologies for any names omitted.
 
 	Robustness: make_dirs() now continues when a missing
 	directory is created by another process.
+
+20000726
+
+	Robustness: added watchdog_pat() routine to keep the watchdog
+	quiet if a client stays connected for a lot of time. Files:
+	util/watchdog.[hc], smtpd/smtpd.c.
+
+20000729
+
+	Robustness: if relayhost is specified but the host does
+	not exist, defer mail instead of bouncing it (which would
+	lose the mail if the bounce would have to be delivered to
+	that same non-existent relayhost). Problem reported by
+	Chris Cooper @ maths.ox.ac.uk.
+
+20000821
+
+	Feature: added -r (replace) option to postalias and postmap.
+
+	Cleanup: smtpd now replies with 555 when the client sends
+	unrecognized RCPT TO parameters, as required by RFC 1869
+	(problem report by Robert Norris @ its.monash.edu.au).

@@ -320,10 +320,10 @@ QMGR_TRANSPORT *qmgr_transport_create(const char *name)
      */
     transport->dest_concurrency_limit =
 	get_mail_conf_int2(name, _DEST_CON_LIMIT,
-			var_dest_con_limit, 0, 0);
+			   var_dest_con_limit, 0, 0);
     transport->recipient_limit =
 	get_mail_conf_int2(name, _DEST_RCPT_LIMIT,
-			var_dest_rcpt_limit, 0, 0);
+			   var_dest_rcpt_limit, 0, 0);
 
     if (transport->dest_concurrency_limit == 0
 	|| transport->dest_concurrency_limit >= var_init_dest_concurrency)
@@ -332,18 +332,18 @@ QMGR_TRANSPORT *qmgr_transport_create(const char *name)
 	transport->init_dest_concurrency = transport->dest_concurrency_limit;
 
     transport->slot_cost = get_mail_conf_int2(name, _DELIVERY_SLOT_COST,
-                        var_delivery_slot_cost, 0, 0);
+					      var_delivery_slot_cost, 0, 0);
     transport->slot_loan = get_mail_conf_int2(name, _DELIVERY_SLOT_LOAN,
-                        var_delivery_slot_loan, 0, 0);
+					      var_delivery_slot_loan, 0, 0);
     transport->slot_loan_factor =
-        100 - get_mail_conf_int2(name, _DELIVERY_SLOT_DISCOUNT,
-                        var_delivery_slot_discount, 0, 100);
+	100 - get_mail_conf_int2(name, _DELIVERY_SLOT_DISCOUNT,
+				 var_delivery_slot_discount, 0, 100);
     transport->min_slots = get_mail_conf_int2(name, _MIN_DELIVERY_SLOTS,
-                        var_min_delivery_slots, 0, 0);
+					      var_min_delivery_slots, 0, 0);
     transport->rcpt_unused = get_mail_conf_int2(name, _XPORT_RCPT_LIMIT,
-                        var_xport_rcpt_limit, 0, 0);
+						var_xport_rcpt_limit, 0, 0);
     transport->rcpt_per_stack = get_mail_conf_int2(name, _STACK_RCPT_LIMIT,
-                        var_stack_rcpt_limit, 0, 0);
+						var_stack_rcpt_limit, 0, 0);
 
     transport->queue_byname = htable_create(0);
     QMGR_LIST_INIT(transport->queue_list);

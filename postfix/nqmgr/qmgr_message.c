@@ -51,7 +51,7 @@
 /*	structure members. A null result means that the file could not be
 /*	read or that the file contained incorrect information. Recipient
 /*	limit imposed this time is based on the position of the message
-/*	job(s) on corresponding job list(s).
+/*	job(s) on corresponding transport job list(s).
 /*
 /*	qmgr_message_free() destroys an in-core message structure and makes
 /*	the resources available for reuse. It is an error to destroy
@@ -83,7 +83,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <string.h>
-#include <stdio.h>      /* sscanf() */
+#include <stdio.h>			/* sscanf() */
 
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>
@@ -197,34 +197,36 @@ static int qmgr_message_open(QMGR_MESSAGE *message)
     return (0);
 }
 
-/* qmgr_message_oldstyle_scan - extract required information from old style queue file */
+/* qmgr_message_oldstyle_scan - extract required information from an old style queue file */
 
 static void qmgr_message_oldstyle_scan(QMGR_MESSAGE *message)
 {
     VSTRING *buf;
-    long    orig_offset, curr_offset, extra_offset;
+    long    orig_offset,
+            curr_offset,
+            extra_offset;
     int     rec_type;
-    char    *start;
+    char   *start;
 
     /*
      * Initialize. No early returns or we have a memory leak.
      */
     buf = vstring_alloc(100);
     if ((orig_offset = vstream_ftell(message->fp)) < 0)
-        msg_fatal("vstream_ftell %s: %m", VSTREAM_PATH(message->fp));
+	msg_fatal("vstream_ftell %s: %m", VSTREAM_PATH(message->fp));
 
     /*
-     * Rewind to the very begining to make sure we see all records.
+     * Rewind to the very beginning to make sure we see all records.
      */
     if (vstream_fseek(message->fp, 0, SEEK_SET) < 0)
-        msg_fatal("seek file %s: %m", VSTREAM_PATH(message->fp));
+	msg_fatal("seek file %s: %m", VSTREAM_PATH(message->fp));
 
     /*
-     * Scan through the old style queue file. Count the total number
-     * of recipients and find the data/extra sections offsets.
-     * Note that the new queue files require that data_size equals
-     * extra_offset - data_offset, so we set data_size to this as well
-     * and ignore the size record itself completely.
+     * Scan through the old style queue file. Count the total number of
+     * recipients and find the data/extra sections offsets. Note that the new
+     * queue files require that data_size equals extra_offset - data_offset,
+     * so we set data_size to this as well and ignore the size record itself
+     * completely.
      */
     message->rcpt_unread = 0;
     do {
@@ -239,18 +241,18 @@ static void qmgr_message_oldstyle_scan(QMGR_MESSAGE *message)
 		msg_fatal("vstream_ftell %s: %m", VSTREAM_PATH(message->fp));
 	    if ((extra_offset = atol(start)) <= curr_offset)
 		msg_fatal("bad extra offset %s file %s",
-			 start, VSTREAM_PATH(message->fp));
+			  start, VSTREAM_PATH(message->fp));
 	    if (vstream_fseek(message->fp, extra_offset, SEEK_SET) < 0)
 		msg_fatal("seek file %s: %m", VSTREAM_PATH(message->fp));
-            message->data_size = extra_offset - message->data_offset;
+	    message->data_size = extra_offset - message->data_offset;
 	}
     } while (rec_type > 0 && rec_type != REC_TYPE_END);
-    
+
     /*
      * Clean up.
      */
     if (vstream_fseek(message->fp, orig_offset, SEEK_SET) < 0)
-        msg_fatal("seek file %s: %m", VSTREAM_PATH(message->fp));
+	msg_fatal("seek file %s: %m", VSTREAM_PATH(message->fp));
     vstring_free(buf);
 
     /*
@@ -281,15 +283,15 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
     /*
      * If we re-open this file, skip over on-file recipient records that we
      * already looked at, and reset the in-core recipient address list.
-     *
-     * For the first time, the message recipient limit is calculated from
-     * the global recipient limit. This is to avoid reading little recipients
+     * 
+     * For the first time, the message recipient limit is calculated from the
+     * global recipient limit. This is to avoid reading little recipients
      * when the active queue is near empty. When the queue becomes full, only
      * the necessary amount is read in core. Such priming is necessary
      * because there are no message jobs yet.
-     *
+     * 
      * For the next time, the recipient limit is based solely on the message
-     * jobs' positions in the job queues and/or job stacks.
+     * jobs' positions in the job lists and/or job stacks.
      */
     if (message->rcpt_offset) {
 	if (message->rcpt_list.len)
@@ -298,11 +300,10 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	    msg_fatal("seek file %s: %m", VSTREAM_PATH(message->fp));
 	message->rcpt_offset = 0;
 	recipient_limit = message->rcpt_limit - message->rcpt_count;
-    }
-    else {
-        recipient_limit = var_qmgr_rcpt_limit - qmgr_recipient_count;
-        if (recipient_limit < message->rcpt_limit)
-            recipient_limit = message->rcpt_limit;
+    } else {
+	recipient_limit = var_qmgr_rcpt_limit - qmgr_recipient_count;
+	if (recipient_limit < message->rcpt_limit)
+	    recipient_limit = message->rcpt_limit;
     }
 
     /*
@@ -312,49 +313,50 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
      * may appear before or after the message content, so we keep reading
      * from the queue file until we have enough recipients (rcpt_offset != 0)
      * and until we know where the message content starts (data_offset != 0).
-     *
+     * 
      * Note that the total recipient count record is accurate only for fresh
-     * queue files. After some of the recipients are marked as done and
-     * the queue file is deferred, it can be used as upper bound estimate
-     * only. Fortunately, this poses no major problem on the scheduling
-     * algorithm, as the only impact is that the already deferred messages
-     * are not chosen by qmgr_job_candidate() as often as they could.
+     * queue files. After some of the recipients are marked as done and the
+     * queue file is deferred, it can be used as upper bound estimate only.
+     * Fortunately, this poses no major problem on the scheduling algorithm,
+     * as the only impact is that the already deferred messages are not
+     * chosen by qmgr_job_candidate() as often as they could.
      */
     do {
 	if ((curr_offset = vstream_ftell(message->fp)) < 0)
 	    msg_fatal("vstream_ftell %s: %m", VSTREAM_PATH(message->fp));
-        if (curr_offset == message->data_offset && curr_offset > 0) {
-            extra_offset = curr_offset + message->data_size;
-            if (extra_offset <= curr_offset)
+	if (curr_offset == message->data_offset && curr_offset > 0) {
+	    extra_offset = curr_offset + message->data_size;
+	    if (extra_offset <= curr_offset)
 		msg_fatal("bad extra offset %ld file %s",
-			 extra_offset, VSTREAM_PATH(message->fp));
-            if (vstream_fseek(message->fp, extra_offset, SEEK_SET) < 0)
-                msg_fatal("seek file %s: %m", VSTREAM_PATH(message->fp));
-            curr_offset = extra_offset;
-        }
+			  extra_offset, VSTREAM_PATH(message->fp));
+	    if (vstream_fseek(message->fp, extra_offset, SEEK_SET) < 0)
+		msg_fatal("seek file %s: %m", VSTREAM_PATH(message->fp));
+	    curr_offset = extra_offset;
+	}
 	rec_type = rec_get(message->fp, buf, 0);
 	start = vstring_str(buf);
 	if (rec_type == REC_TYPE_SIZE) {
 	    if (message->data_size == 0) {
-	    	switch (sscanf(start, "%ld %ld %d", &message->data_size,
-	    	                &message->data_offset, &message->rcpt_unread))
-        	{
-                case 1:
-                    /*
-                     * Gather data_size, data_offset and rcpt_unread values
-                     * from the old style queue file.
-                     */
-                    qmgr_message_oldstyle_scan(message);
-                    break;
-                case 3:
-                    /*
-                     * No extra work for new style queue files.
-                     */
-                    break;
-                default:
-                    msg_fatal("%s: weird size record", message->queue_id);
-                    break;
-	    	}
+		switch (sscanf(start, "%ld %ld %d", &message->data_size,
+			    &message->data_offset, &message->rcpt_unread)) {
+		case 1:
+
+		    /*
+		     * Gather data_size, data_offset and rcpt_unread values
+		     * from the old style queue file.
+		     */
+		    qmgr_message_oldstyle_scan(message);
+		    break;
+		case 3:
+
+		    /*
+		     * No extra work for new style queue files.
+		     */
+		    break;
+		default:
+		    msg_fatal("%s: weird size record", message->queue_id);
+		    break;
+		}
 	    }
 	} else if (rec_type == REC_TYPE_TIME) {
 	    if (message->arrival_time == 0)
@@ -366,12 +368,13 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	    if (message->sender == 0) {
 		message->sender = mystrdup(start);
 		opened(message->queue_id, message->sender,
-		       message->data_size, "queue %s", message->queue_name);
+		       message->data_size, message->rcpt_unread,
+		       "queue %s", message->queue_name);
 	    }
 	} else if (rec_type == REC_TYPE_DONE) {
 	    if (curr_offset > message->unread_offset) {
-	        message->unread_offset = curr_offset;
-	        message->rcpt_unread--;
+		message->unread_offset = curr_offset;
+		message->rcpt_unread--;
 	    }
 	} else if (rec_type == REC_TYPE_RCPT) {
 	    if (message->rcpt_list.len < recipient_limit) {
@@ -432,9 +435,9 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
      */
     if (message->rcpt_unread < 0
 	|| (message->rcpt_offset == 0 && message->rcpt_unread != 0)) {
-    	msg_warn("%s: rcpt count mismatch (%d)",
-    			message->queue_id, message->rcpt_unread);
-    	message->rcpt_unread = 0;
+	msg_warn("%s: rcpt count mismatch (%d)",
+		 message->queue_id, message->rcpt_unread);
+	message->rcpt_unread = 0;
     }
     if (message->arrival_time == 0
 	|| message->sender == 0
@@ -777,13 +780,12 @@ static void qmgr_message_assign(QMGR_MESSAGE *message)
 		|| !LIMIT_OK(queue->transport->recipient_limit,
 			     entry->rcpt_list.len)) {
 		if (job == 0 || queue->transport != job->transport) {
-		    /* FIXME: randomly rotate the peer list of previous job */
 		    job = qmgr_job_obtain(message, queue->transport);
 		    peer = 0;
 		}
 		if (peer == 0 || queue != peer->queue) {
 		    if ((peer = qmgr_peer_find(job, queue)) == 0)
-		        peer = qmgr_peer_create(job, queue);
+			peer = qmgr_peer_create(job, queue);
 		}
 		entry = qmgr_entry_create(peer, message);
 		job->read_entries++;
@@ -803,9 +805,9 @@ static void qmgr_message_assign(QMGR_MESSAGE *message)
 static void qmgr_message_move_limits(QMGR_MESSAGE *message)
 {
     QMGR_JOB *job;
-    
+
     for (job = message->job_list.next; job; job = job->message_peers.next)
-        qmgr_job_move_limits(job);
+	qmgr_job_move_limits(job);
 }
 
 /* qmgr_message_free - release memory for in-core message structure */
@@ -813,12 +815,13 @@ static void qmgr_message_move_limits(QMGR_MESSAGE *message)
 void    qmgr_message_free(QMGR_MESSAGE *message)
 {
     QMGR_JOB *job;
+
     if (message->refcount != 0)
 	msg_panic("qmgr_message_free: reference len: %d", message->refcount);
     if (message->fp)
 	msg_panic("qmgr_message_free: queue file is open");
     while ((job = message->job_list.next) != 0)
-        qmgr_job_free(job);
+	qmgr_job_free(job);
     myfree(message->queue_id);
     myfree(message->queue_name);
     if (message->sender)
@@ -887,8 +890,8 @@ QMGR_MESSAGE *qmgr_message_alloc(const char *queue_name, const char *queue_id,
 	qmgr_message_sort(message);
 	qmgr_message_assign(message);
 	qmgr_message_close(message);
-	if(message->rcpt_offset == 0)
-            qmgr_message_move_limits(message);
+	if (message->rcpt_offset == 0)
+	    qmgr_message_move_limits(message);
 	return (message);
     }
 }
@@ -923,8 +926,8 @@ QMGR_MESSAGE *qmgr_message_realloc(QMGR_MESSAGE *message)
 	qmgr_message_sort(message);
 	qmgr_message_assign(message);
 	qmgr_message_close(message);
-	if(message->rcpt_offset == 0)
-            qmgr_message_move_limits(message);
+	if (message->rcpt_offset == 0)
+	    qmgr_message_move_limits(message);
 	return (message);
     }
 }

@@ -199,6 +199,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
     long    save_offset = message->rcpt_offset;	/* save a flag */
     char   *start;
     struct stat st;
+    int     nrcpt;
 
     /*
      * Initialize. No early returns or we have a memory leak.
@@ -244,7 +245,8 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	start = vstring_str(buf);
 	if (rec_type == REC_TYPE_SIZE) {
 	    if (message->data_size == 0)
-		message->data_size = atol(start);
+		sscanf(start, "%ld %ld %d",
+		       &message->data_size, &message->data_offset, &nrcpt);
 	} else if (rec_type == REC_TYPE_TIME) {
 	    if (message->arrival_time == 0)
 		message->arrival_time = atol(start);
@@ -258,7 +260,8 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	    if (message->sender == 0) {
 		message->sender = mystrdup(start);
 		opened(message->queue_id, message->sender,
-		       message->data_size, "queue %s", message->queue_name);
+		       message->data_size, nrcpt,
+		       "queue %s", message->queue_name);
 	    }
 	} else if (rec_type == REC_TYPE_RCPT) {
 #define FUDGE(x)	((x) * (var_qmgr_fudge / 100.0))

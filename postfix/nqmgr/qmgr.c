@@ -83,8 +83,8 @@
 /*	maintaining a short-term, in-memory list of unreachable destinations.
 /* .IP "\fBpreemptive message scheduling\fR"
 /*	The queue manager attempts to minimize the average per-recipient delay
-/*	while still assuring equality of average per-message delays, using
-/*	sophisticated preemptive message scheduling.
+/*	while still preserving the correct per-message delays, using
+/*	a sophisticated preemptive message scheduling.
 /* TRIGGERS
 /* .ad
 /* .fi
@@ -180,7 +180,7 @@
 /*	recipients that the preempting messages can have.
 /* .IP \fItransport\fB_extra_recipient_limit\fR
 /*	Limit on the number of in-memory recipients which all preempting
-/*	messages delivered by transport \fItransport\fR can have.
+/*	messages delivered by the transport \fItransport\fR can have.
 /* .SH "Timing controls"
 /* .ad
 /* .fi
@@ -245,7 +245,7 @@
 /* .IP "\fItransport\fB_delivery_slot_discount\fR (valid range: 0..100)"
 /* .IP \fItransport\fB_delivery_slot_loan\fR
 /*	These parameters speed up the moment when a message preemption can happen.
-/*	Instead of waiting till the full amount of delivery slots
+/*	Instead of waiting until the full amount of delivery slots
 /*	required is available, the preemption can happen when
 /*	\fItransport\fB_delivery_slot_discount\fR percent of the required
 /*	amount plus \fItransport\fB_delivery_slot_loan\fR still remains to
@@ -327,9 +327,6 @@ char   *var_relocated_maps;
 char   *var_virtual_maps;
 char   *var_defer_xports;
 bool    var_allow_min_user;
-int     var_qmgr_hog;                   /* XXX */
-int     var_qmgr_fudge;                 /* XXX */
-int     var_local_rcpt_lim;		/* XXX */
 
 static QMGR_SCAN *qmgr_incoming;
 static QMGR_SCAN *qmgr_deferred;
@@ -435,9 +432,8 @@ static int qmgr_loop(char *unused_name, char **unused_argv)
 
     /*
      * Let some new blood into the active queue when the queue size is
-     * smaller than some configurable limit, and when the number of in-core
-     * recipients does not exceed some configurable limit. When the system is
-     * under heavy load, favor new mail over old mail.
+     * smaller than some configurable limit. When the system is under heavy
+     * load, favor new mail over old mail.
      */
     if (qmgr_message_count < var_qmgr_active_limit)
 	if ((in_path = qmgr_scan_next(qmgr_incoming)) != 0)
@@ -513,7 +509,7 @@ int     main(int argc, char **argv)
 	VAR_QUEUE_RUN_DELAY, DEF_QUEUE_RUN_DELAY, &var_queue_run_delay, 1, 0,
 	VAR_MIN_BACKOFF_TIME, DEF_MIN_BACKOFF_TIME, &var_min_backoff_time, 1, 0,
 	VAR_MAX_BACKOFF_TIME, DEF_MAX_BACKOFF_TIME, &var_max_backoff_time, 1, 0,
-	VAR_MAX_QUEUE_TIME, DEF_MAX_QUEUE_TIME, &var_max_queue_time, 1, 0,
+	VAR_MAX_QUEUE_TIME, DEF_MAX_QUEUE_TIME, &var_max_queue_time, 1, 1000,
 	VAR_QMGR_ACT_LIMIT, DEF_QMGR_ACT_LIMIT, &var_qmgr_active_limit, 1, 0,
 	VAR_QMGR_RCPT_LIMIT, DEF_QMGR_RCPT_LIMIT, &var_qmgr_rcpt_limit, 0, 0,
 	VAR_QMGR_MSG_RCPT_LIMIT, DEF_QMGR_MSG_RCPT_LIMIT, &var_qmgr_msg_rcpt_limit, 1, 0,
@@ -527,9 +523,6 @@ int     main(int argc, char **argv)
 	VAR_XPORT_RETRY_TIME, DEF_XPORT_RETRY_TIME, &var_transport_retry_time, 1, 0,
 	VAR_DEST_CON_LIMIT, DEF_DEST_CON_LIMIT, &var_dest_con_limit, 0, 0,
 	VAR_DEST_RCPT_LIMIT, DEF_DEST_RCPT_LIMIT, &var_dest_rcpt_limit, 0, 0,
-	VAR_QMGR_HOG, DEF_QMGR_HOG, &var_qmgr_hog, 10, 100,
-	VAR_QMGR_FUDGE, DEF_QMGR_FUDGE, &var_qmgr_fudge, 10, 100,
-	VAR_LOCAL_RCPT_LIMIT, DEF_LOCAL_RCPT_LIMIT, &var_local_rcpt_lim, 0, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {

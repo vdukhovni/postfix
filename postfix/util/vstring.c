@@ -1,4 +1,4 @@
-/*
+/*++
 /* NAME
 /*	vstring 3
 /* SUMMARY
@@ -105,11 +105,11 @@
 /*	The function takes a VSTRING pointer and a list of zero
 /*	or more (name,value) pairs. The expected valye type of the
 /*	value depends on the specified name. The name codes are:
-/* .IP VSTRING_CTL_MAXLEN (int)
+/* .IP "VSTRING_CTL_MAXLEN (int)"
 /*	Specifies a hard upper limit on a string's length. When the
 /*	length would be exceeded, the program simulates a memory
 /*	allocation problem (i.e. it terminates through msg_fatal()).
-/* .IP VSTRING_CTL_END (no value)
+/* .IP "VSTRING_CTL_END (no value)"
 /*	Specifies the end of the argument list. Forgetting to terminate
 /*	the argument list may cause the program to crash.
 /* .PP

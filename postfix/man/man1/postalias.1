@@ -9,7 +9,7 @@ Postfix alias database maintenance
 .na
 .nf
 .fi
-\fBpostalias\fR [\fB-Ninvw\fR] [\fB-c \fIconfig_dir\fR]
+\fBpostalias\fR [\fB-Ninrvw\fR] [\fB-c \fIconfig_dir\fR]
 [\fB-d \fIkey\fR] [\fB-q \fIkey\fR]
 [\fIfile_type\fR:]\fIfile_name\fR ...
 .SH DESCRIPTION
@@ -48,6 +48,9 @@ the host operating system.
 Search the specified maps for \fIkey\fR and print the first value
 found on the standard output stream. The exit status is non-zero
 if the requested information was not found.
+.IP \fB-r\fR
+When updating a table, do not warn about duplicate entries; silently
+replace them.
 .IP \fB-v\fR
 Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 options make the software increasingly verbose.

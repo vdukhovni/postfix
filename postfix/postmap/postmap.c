@@ -5,7 +5,7 @@
 /*	Postfix lookup table management
 /* SYNOPSIS
 /* .fi
-/*	\fBpostmap\fR [\fB-Ninvw\fR] [\fB-c \fIconfig_dir\fR] [\fB-d \fIkey\fR]
+/*	\fBpostmap\fR [\fB-Ninrvw\fR] [\fB-c \fIconfig_dir\fR] [\fB-d \fIkey\fR]
 /*		[\fB-q \fIkey\fR] [\fIfile_type\fR:]\fIfile_name\fR ...
 /* DESCRIPTION
 /*	The \fBpostmap\fR command creates or queries one or more Postfix
@@ -60,6 +60,9 @@
 /*	Search the specified maps for \fIkey\fR and print the first value
 /*	found on the standard output stream. The exit status is non-zero
 /*	if the requested information was not found.
+/* .IP \fB-r\fR
+/*	When updating a table, do not warn about duplicate entries; silently
+/*	replace them.
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
@@ -285,7 +288,7 @@ static int postmap_delete(const char *map_type, const char *map_name,
 
 static NORETURN usage(char *myname)
 {
-    msg_fatal("usage: %s [-Ninvw] [-c config_dir] [-d key] [-q key] [map_type:]file...",
+    msg_fatal("usage: %s [-Ninrvw] [-c config_dir] [-d key] [-q key] [map_type:]file...",
 	      myname);
 }
 
@@ -335,7 +338,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "Nc:d:inq:vw")) > 0) {
+    while ((ch = GETOPT(argc, argv, "Nc:d:inq:rvw")) > 0) {
 	switch (ch) {
 	default:
 	    usage(argv[0]);
@@ -365,11 +368,15 @@ int     main(int argc, char **argv)
 		msg_fatal("specify only one of -q or -d");
 	    query = optarg;
 	    break;
+	case 'r':
+	    dict_flags &= ~(DICT_FLAG_DUP_WARN | DICT_FLAG_DUP_IGNORE);
+	    dict_flags |= DICT_FLAG_DUP_REPLACE;
+	    break;
 	case 'v':
 	    msg_verbose++;
 	    break;
 	case 'w':
-	    dict_flags &= ~DICT_FLAG_DUP_WARN;
+	    dict_flags &= ~(DICT_FLAG_DUP_WARN | DICT_FLAG_DUP_REPLACE);
 	    dict_flags |= DICT_FLAG_DUP_IGNORE;
 	    break;
 	}

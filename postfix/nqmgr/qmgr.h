@@ -28,7 +28,7 @@ typedef struct QMGR_QUEUE QMGR_QUEUE;
 typedef struct QMGR_ENTRY QMGR_ENTRY;
 typedef struct QMGR_MESSAGE QMGR_MESSAGE;
 typedef struct QMGR_JOB QMGR_JOB;
-typedef struct QMGR_PEER QMGR_PEER ;
+typedef struct QMGR_PEER QMGR_PEER;
 typedef struct QMGR_TRANSPORT_LIST QMGR_TRANSPORT_LIST;
 typedef struct QMGR_QUEUE_LIST QMGR_QUEUE_LIST;
 typedef struct QMGR_ENTRY_LIST QMGR_ENTRY_LIST;
@@ -121,20 +121,27 @@ struct QMGR_TRANSPORT {
     int     dest_concurrency_limit;	/* concurrency per domain */
     int     init_dest_concurrency;	/* init. per-domain concurrency */
     int     recipient_limit;		/* recipients per transaction */
-    int     rcpt_per_stack;             /* slots reserved for job on 1st stack level */
-    int     rcpt_unused;                /* available in-core slots */
-    int     slot_cost;                  /* cost of new preemption slot (# selected entries) */
-    int     slot_loan;                  /* preemption boost offset and factor, see */
-    int     slot_loan_factor;           /* qmgr_job_preempt() for more info */
-    int     min_slots;                  /* when preemption can take effect at all */
+    int     rcpt_per_stack;		/* extra slots reserved for jobs on
+					 * the job stack */
+    int     rcpt_unused;		/* available in-core recipient slots */
+    int     slot_cost;			/* cost of new preemption slot (#
+					 * selected entries) */
+    int     slot_loan;			/* preemption boost offset and
+					 * factor, see */
+    int     slot_loan_factor;		/* qmgr_job_preempt() for more info */
+    int     min_slots;			/* when preemption can take effect at
+					 * all */
     struct HTABLE *queue_byname;	/* queues indexed by domain */
     QMGR_QUEUE_LIST queue_list;		/* queues, round robin order */
-    struct HTABLE  *job_byname;         /* jobs indexed by queue id */
-    QMGR_JOB_LIST   job_list;           /* list of message jobs (1 per message) */
-    QMGR_JOB_LIST   job_stack;          /* job stack for tracking preemption */
-    QMGR_JOB *job_next_unread;          /* next job with unread recipients */
-    QMGR_JOB *candidate_cache;		/* cached result from qmgr_job_candidate() */
-    time_t    candidate_cache_time;	/* when candidate_cache was last updated */
+    struct HTABLE *job_byname;		/* jobs indexed by queue id */
+    QMGR_JOB_LIST job_list;		/* list of message jobs (1 per
+					 * message) */
+    QMGR_JOB_LIST job_stack;		/* job stack for tracking preemption */
+    QMGR_JOB *job_next_unread;		/* next job with unread recipients */
+    QMGR_JOB *candidate_cache;		/* cached result from
+					 * qmgr_job_candidate() */
+    time_t  candidate_cache_time;	/* when candidate_cache was last
+					 * updated */
     QMGR_TRANSPORT_LIST peers;		/* linkage */
     char   *reason;			/* why unavailable */
 };
@@ -217,7 +224,7 @@ struct QMGR_ENTRY {
     QMGR_MESSAGE *message;		/* message info */
     QMGR_RCPT_LIST rcpt_list;		/* as many as it takes */
     QMGR_QUEUE *queue;			/* parent linkage */
-    QMGR_PEER  *peer;			/* parent linkage */
+    QMGR_PEER *peer;			/* parent linkage */
     QMGR_ENTRY_LIST queue_peers;	/* per queue neighbor entries */
     QMGR_ENTRY_LIST peer_peers;		/* per peer neighbor entries */
 };
@@ -240,7 +247,8 @@ struct QMGR_MESSAGE {
     int     refcount;			/* queue entries */
     int     single_rcpt;		/* send one rcpt at a time */
     long    arrival_time;		/* time when queued */
-    time_t  queued_time;		/* time when moved to the active queue */
+    time_t  queued_time;		/* time when moved to the active
+					 * queue */
     long    warn_offset;		/* warning bounce flag offset */
     time_t  warn_time;			/* time next warning to be sent */
     long    data_offset;		/* data seek offset */
@@ -254,10 +262,11 @@ struct QMGR_MESSAGE {
     long    rcpt_offset;		/* more recipients here */
     long    unread_offset;		/* more unread recipients here */
     QMGR_RCPT_LIST rcpt_list;		/* complete addresses */
-    int     rcpt_count;                 /* used recipient slots */
-    int     rcpt_limit;                 /* maximum read in-core */
-    int     rcpt_unread;                /* # of recipients left in queue file */
-    QMGR_JOB_LIST  job_list;            /* jobs delivering this message (1 per transport) */
+    int     rcpt_count;			/* used recipient slots */
+    int     rcpt_limit;			/* maximum read in-core */
+    int     rcpt_unread;		/* # of recipients left in queue file */
+    QMGR_JOB_LIST job_list;		/* jobs delivering this message (1
+					 * per transport) */
 };
 
 #define QMGR_MESSAGE_LOCKED	((QMGR_MESSAGE *) 1)
@@ -274,39 +283,44 @@ extern QMGR_MESSAGE *qmgr_message_realloc(QMGR_MESSAGE *);
 
  /*
   * Sometimes it's required to access the transport queues and entries on per
-  * message basis. That's what the QMGR_JOB structure is for - it groups all per
-  * message information within each transport using a list of QMGR_PEER structures.
-  * These structures in turn correspond with per message QMGR_QUEUE structure
-  * and list all per message QMGR_ENTRY structures.
+  * message basis. That's what the QMGR_JOB structure is for - it groups all
+  * per message information within each transport using a list of QMGR_PEER
+  * structures. These structures in turn correspond with per message
+  * QMGR_QUEUE structure and list all per message QMGR_ENTRY structures.
   */
 struct QMGR_PEER_LIST {
-    QMGR_PEER  *next;
-    QMGR_PEER  *prev;
+    QMGR_PEER *next;
+    QMGR_PEER *prev;
 };
 
 struct QMGR_JOB {
-    QMGR_MESSAGE   *message;            /* message delivered by this job */
-    QMGR_TRANSPORT *transport;          /* transport this job belongs to */
-    QMGR_JOB_LIST   message_peers;      /* per message neighbor linkage */
-    QMGR_JOB_LIST   transport_peers;    /* per transport neighbor linkage */
-    QMGR_JOB_LIST   stack_peers;        /* transport stack linkage */
-    int             stack_level;        /* job stack nesting level (-1 -> retired) */
-    struct HTABLE  *peer_byname;        /* message job peers, indexed by domain */
-    QMGR_PEER_LIST  peer_list;          /* list of message job peers */
-    int             slots_used;         /* slots used during preemption */
-    int             slots_available;    /* slots available for preemption (* slot_cost) */
-    int             selected_entries;   /* # of entries selected for delivery so far */
-    int             read_entries;       /* # of entries read in-core so far */
-    int             rcpt_count;         /* used recipient slots */
-    int             rcpt_limit;         /* available recipient slots */
+    QMGR_MESSAGE *message;		/* message delivered by this job */
+    QMGR_TRANSPORT *transport;		/* transport this job belongs to */
+    QMGR_JOB_LIST message_peers;	/* per message neighbor linkage */
+    QMGR_JOB_LIST transport_peers;	/* per transport neighbor linkage */
+    QMGR_JOB_LIST stack_peers;		/* transport stack linkage */
+    int     stack_level;		/* job stack nesting level (-1 ->
+					 * retired) */
+    struct HTABLE *peer_byname;		/* message job peers, indexed by
+					 * domain */
+    QMGR_PEER_LIST peer_list;		/* list of message job peers */
+    int     slots_used;			/* slots used during preemption */
+    int     slots_available;		/* slots available for preemption (*
+					 * slot_cost) */
+    int     selected_entries;		/* # of entries selected for delivery
+					 * so far */
+    int     read_entries;		/* # of entries read in-core so far */
+    int     rcpt_count;			/* used recipient slots */
+    int     rcpt_limit;			/* available recipient slots */
 };
 
 struct QMGR_PEER {
-    QMGR_JOB       *job;                /* job handling this peer */
-    QMGR_QUEUE     *queue;              /* queue corresponding with this peer */
-    int             refcount;           /* peer entries */
-    QMGR_ENTRY_LIST entry_list;         /* todo message entries queued for this peer */
-    QMGR_PEER_LIST  peers;              /* neighbor linkage */
+    QMGR_JOB *job;			/* job handling this peer */
+    QMGR_QUEUE *queue;			/* queue corresponding with this peer */
+    int     refcount;			/* peer entries */
+    QMGR_ENTRY_LIST entry_list;		/* todo message entries queued for
+					 * this peer */
+    QMGR_PEER_LIST peers;		/* neighbor linkage */
 };
 
 extern QMGR_ENTRY *qmgr_job_entry_select(QMGR_TRANSPORT *);

@@ -105,7 +105,7 @@
 # .ti +5
 #	\fB\&.foo.org      error:mail for *.foo.org is not deliverable\fR
 #
-#	This causes all mail for \fIuser\fR@\fIanything\fBfoo.org\fR
+#	This causes all mail for \fIuser\fR@\fIanything\fB.foo.org\fR
 #	to be bounced.
 # REGULAR EXPRESSION TABLES
 # .ad

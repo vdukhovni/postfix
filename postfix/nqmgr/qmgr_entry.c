@@ -94,19 +94,19 @@
 
 /* qmgr_entry_select - select queue entry for delivery */
 
-QMGR_ENTRY *qmgr_entry_select(QMGR_PEER *peer)
+QMGR_ENTRY *qmgr_entry_select(QMGR_PEER * peer)
 {
     QMGR_ENTRY *entry;
     QMGR_QUEUE *queue;
 
     if ((entry = peer->entry_list.next) != 0) {
-        queue = entry->queue;
+	queue = entry->queue;
 	QMGR_LIST_UNLINK(queue->todo, QMGR_ENTRY *, entry, queue_peers);
 	queue->todo_refcount--;
 	QMGR_LIST_APPEND(queue->busy, entry, queue_peers);
 	queue->busy_refcount++;
 	QMGR_LIST_UNLINK(peer->entry_list, QMGR_ENTRY *, entry, peer_peers);
-        peer->job->selected_entries++;
+	peer->job->selected_entries++;
     }
     return (entry);
 }
@@ -133,7 +133,8 @@ void    qmgr_entry_done(QMGR_ENTRY *entry, int which)
     QMGR_QUEUE *queue = entry->queue;
     QMGR_MESSAGE *message = entry->message;
     QMGR_PEER *peer = entry->peer;
-    QMGR_JOB *sponsor, *job = peer->job;
+    QMGR_JOB *sponsor,
+           *job = peer->job;
 
     /*
      * Take this entry off the in-core queue.
@@ -145,6 +146,7 @@ void    qmgr_entry_done(QMGR_ENTRY *entry, int which)
 	queue->busy_refcount--;
     } else if (which == QMGR_QUEUE_TODO) {
 	QMGR_LIST_UNLINK(peer->entry_list, QMGR_ENTRY *, entry, peer_peers);
+	job->selected_entries++;
 	QMGR_LIST_UNLINK(queue->todo, QMGR_ENTRY *, entry, queue_peers);
 	queue->todo_refcount--;
     } else {
@@ -162,27 +164,28 @@ void    qmgr_entry_done(QMGR_ENTRY *entry, int which)
     myfree((char *) entry);
 
     /*
-     * Make sure that transport of any retired or finishing jobs that
-     * donated recipient slots to this job's message gets them back first.
-     * Then, if possible, pass the remaining unused recipient slots to the
-     * next job in the queue.
+     * Make sure that the transport of any retired or finishing job that
+     * donated recipient slots to this message gets them back first. Then, if
+     * possible, pass the remaining unused recipient slots to the next job in
+     * the job list.
      */
     for (sponsor = message->job_list.next; sponsor; sponsor = sponsor->message_peers.next) {
-        if (sponsor->rcpt_count >= sponsor->rcpt_limit || sponsor == job)
-            continue;
-        if (sponsor->stack_level < 0 || message->rcpt_offset == 0)
-            qmgr_job_move_limits(sponsor);
+	if (sponsor->rcpt_count >= sponsor->rcpt_limit || sponsor == job)
+	    continue;
+	if (sponsor->stack_level < 0 || message->rcpt_offset == 0)
+	    qmgr_job_move_limits(sponsor);
     }
     if (message->rcpt_offset == 0) {
-        qmgr_job_move_limits(job);
+	qmgr_job_move_limits(job);
     }
- 
+
     /*
-     * When there are no more entries for this peer, discard the peer structure.
+     * When there are no more entries for this peer, discard the peer
+     * structure.
      */
-   peer->refcount--;
-   if (peer->refcount == 0)
-       qmgr_peer_free(peer);
+    peer->refcount--;
+    if (peer->refcount == 0)
+	qmgr_peer_free(peer);
 
     /*
      * When the in-core queue for this site is empty and when this site is
@@ -208,7 +211,7 @@ void    qmgr_entry_done(QMGR_ENTRY *entry, int which)
 
 /* qmgr_entry_create - create queue todo entry */
 
-QMGR_ENTRY *qmgr_entry_create(QMGR_PEER *peer, QMGR_MESSAGE *message)
+QMGR_ENTRY *qmgr_entry_create(QMGR_PEER * peer, QMGR_MESSAGE *message)
 {
     QMGR_ENTRY *entry;
     QMGR_QUEUE *queue = peer->queue;
@@ -226,7 +229,7 @@ QMGR_ENTRY *qmgr_entry_create(QMGR_PEER *peer, QMGR_MESSAGE *message)
     message->refcount++;
     entry->peer = peer;
     QMGR_LIST_APPEND(peer->entry_list, entry, peer_peers);
-    peer->refcount++ ;
+    peer->refcount++;
     entry->queue = queue;
     QMGR_LIST_APPEND(queue->todo, entry, queue_peers);
     queue->todo_refcount++;

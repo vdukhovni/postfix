@@ -6,10 +6,11 @@
 /* SYNOPSIS
 /*	#include <opened.h>
 /*
-/*	void	opened(queue_id, sender, size, format, ...)
+/*	void	opened(queue_id, sender, size, nrcpt, format, ...)
 /*	const char *queue_id;
 /*	const char *sender;
 /*	long	size;
+/*	int	nrcpt;
 /*	const char *format;
 /* DESCRIPTION
 /*	opened() logs that a message was successfully delivered.
@@ -23,6 +24,8 @@
 /*	Sender address.
 /* .IP size
 /*	Message content size.
+/* .IP nrcpt
+/*	Number of recipients.
 /* .IP format
 /*	Format of optional text.
 /* DIAGNOSTICS
@@ -58,25 +61,28 @@
 
 /* opened - log that a message was opened */
 
-void    opened(const char *queue_id, const char *sender, long size, const char *fmt,...)
+void    opened(const char *queue_id, const char *sender, long size, int nrcpt,
+	               const char *fmt,...)
 {
     va_list ap;
 
     va_start(ap, fmt);
-    vopened(queue_id, sender, size, fmt, ap);
+    vopened(queue_id, sender, size, nrcpt, fmt, ap);
     va_end(ap);
 }
 
-/* opened - log that a message was opened */
+/* vopened - log that a message was opened */
 
-void    vopened(const char *queue_id, const char *sender, long size, const char *fmt, va_list ap)
+void    vopened(const char *queue_id, const char *sender, long size, int nrcpt,
+		        const char *fmt, va_list ap)
 {
     VSTRING *text = vstring_alloc(100);
 
 #define TEXT (vstring_str(text))
 
     vstring_vsprintf(text, fmt, ap);
-    msg_info("%s: from=<%s>, size=%ld%s%s%s",
-	 queue_id, sender, size, *TEXT ? " (" : "", TEXT, *TEXT ? ")" : "");
+    msg_info("%s: from=<%s>, size=%ld, nrcpt=%d%s%s%s",
+	     queue_id, sender, size, nrcpt,
+	     *TEXT ? " (" : "", TEXT, *TEXT ? ")" : "");
     vstring_free(text);
 }

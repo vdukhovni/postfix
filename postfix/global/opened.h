@@ -19,9 +19,10 @@
  /*
   * External interface.
   */
-extern void PRINTFLIKE(4, 5) opened(const char *, const char *, long,
+extern void PRINTFLIKE(5, 6) opened(const char *, const char *, long, int,
 				            const char *,...);
-extern void vopened(const char *, const char *, long, const char *, va_list);
+extern void vopened(const char *, const char *, long, int,
+		            const char *, va_list);
 
 /* LICENSE
 /* .ad
