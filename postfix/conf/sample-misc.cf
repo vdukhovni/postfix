@@ -362,6 +362,22 @@ relayhost =
 #relocated_maps = hash:/etc/postfix/relocated
 relocated_maps =
 
+# The resolve_dequoted_address parameter controls how Postfix
+# resolves addresses.
+#
+# By default, the Postfix address resolver does not quote the address
+# localpart as per RFC 822, so that additional @ or % or ! operators
+# remain visible. This behavior is safe but it is also technically
+# incorrect.
+#
+# If you specify "resolve_dequoted_address = no", then the Postfix
+# resolver will not know about additional @ etc. operators in the
+# address localpart. This opens opportunities for obscure mail relay
+# attacks with user@domain@domain addresses when Postfix provides
+# backup MX service for Sendmail systems.
+#
+resolve_dequoted_address = no
+
 # The syslog_facility parameter controls where Postfix logging is
 # sent by the syslog daemon. Specify a logging facility as defined
 # in syslog.conf(5). The default logging facility is "mail".

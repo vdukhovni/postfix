@@ -12,6 +12,28 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfix as a patch release.
 
+Incompatible changes with Postfix version 1.1.9 (released 20020513)
+===================================================================
+
+The Postfix SMTP server by default no longer accepts mail for
+user@domain@postfix-style.virtual.domain, to close a relaying
+loophole with postfix-style virtual domains that have @domain.name
+catch-all patterns. 
+
+To allow such addresses, specify "resolve_dequoted_address = no"
+in main.cf (quote the address localpart as per RFC 822, and don't
+look for @ or % or !  characters inside the address localpart).
+However, this opens opportunities for obscure mail relay attacks
+when Postfix provides backup MX service for Sendmail systems.
+
+The appearance of user@domain1@domain2 addresses has changed.  In
+mail headers, such addresses are now properly quoted as
+"user@domain1"@domain2. As a side effect, this quoted form is now
+also expected on the left-hand side of virtual and canonical lookup
+tables, but only by some of the Postfix components.  For now, it
+is better not to use user@domain1@domain2 address forms on the
+left-hand side of lookup tables.
+
 Incompatible changes with Postfix version 1.1.6 (released 20020326)
 ===================================================================
 

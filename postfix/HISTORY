@@ -6249,6 +6249,58 @@ Apologies for any names omitted.
 	Portability: run-time test to avoid GDBM trouble.  File:
 	util/dict_dbm.c.
 
+20020508
+
+	Bugfix: close user@domain@postfix-style.virtual.domain
+	source routing relaying loophole involving postfix-style
+	virtual domains with @virtual.domain catch-all patterns.
+	Problem reported by Victor Duchovny. File:  smtpd/smtpd_check.c.
+
+	Bugfix: mail_addr_map() used the "wrong" @ character in
+	addresses with multiple @. Victor Duchovny. File:
+	global/mail_addr_map.c.
+
+	Bugfix: for address localpart quoting, now quote @ as a
+	special character everywhere, except when resolving addresses.
+	Previously, the @ was nowhere quoted as a special character,
+	not even in SMTP commands.  Files:  global/quote_82[12]_local.c
+	and some clients.
+
+20020509
+
+	Safety: don't allow an OK access rule lookup result for
+	user@domain@postfix-style.virtual.domain. Suggested by
+	Victor Duchovny, Morgan Stanley. File: smtpd/smtpd_check.c.
+
+	Bugfix: quote unquoted address localparts that need quoting.
+	Files: global/tok822_parse.c, global/quote_82[12]_local.c.
+
+20020512
+
+	Cleanup: the SMTP client logged and bounced the CNAME
+	expanded recipient address, and thereby complicated trouble
+	shooting.  File:  src/smtp_proto.c.
+
+	Bugfix: the SMTP and LMTP clients bounced the quoted
+	recipient address, resulting in too much quoting in bounce
+	reports.  Files:  src/smtp_proto.c, lmtp/lmtp_proto.c.
+
+20020513
+
+	Bugfix: the LDAP client used the "wrong" @ character in
+	addresses with multiple @. LaMont Jones, HP. File:
+	util/dict_ldap.c.
+
+	Compatibility: forwards "postqueue -r" compatibility with
+	the additional queue file records that are stored by snapshot
+	20050512.
+
+	Cleanup: specify "resolve_dequoted_address = no" to prevent
+	Postfix from looking inside quotes for extra @ etc. characters
+	when resolving an address. This behavior is technically
+	more correct, but it opens a mail relay loophole with "user
+	@domain"@domain when relaying mail to a Sendmail system.
+
 Open problems:
 
 	Low: sendmail does not store null command-line recipients.

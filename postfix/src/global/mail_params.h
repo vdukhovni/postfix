@@ -1415,6 +1415,17 @@ extern int var_fault_inj_code;
 #define DEF_README_DIR			"no"
 #endif
 
+ /*
+  * Safety: resolve the unquoted address (technically incorrect), instead of
+  * resolving the quoted address (technically incorrect). This prevents mail
+  * relay loopholes with "user@domain"@domain when you're relaying mail for a
+  * Sendmail system or when receiving mail for a local virtual domain with an
+  * @domain catch-all rule.
+  */
+#define VAR_RESOLVE_DEQUOTED		"resolve_dequoted_address"
+#define DEF_RESOLVE_DEQUOTED		1
+extern bool var_resolve_dequoted;
+
 /* LICENSE
 /* .ad
 /* .fi

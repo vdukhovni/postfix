@@ -1062,6 +1062,8 @@ stat_as.o: sys_defs.h
 stat_as.o: msg.h
 stat_as.o: set_eugid.h
 stat_as.o: stat_as.h
+strcasecmp.o: strcasecmp.c
+strcasecmp.o: sys_defs.h
 stream_connect.o: stream_connect.c
 stream_connect.o: sys_defs.h
 stream_connect.o: msg.h
