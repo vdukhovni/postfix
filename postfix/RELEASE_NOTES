@@ -24,6 +24,15 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix version 2.0.5 (released 20030301)
+===================================================================
+
+The smtpd_hard_error_limit and smtpd_soft_error_limit values now
+behave as documented, that is, smtpd_hard_error_limit=1 causes
+Postfix to disconnect upon the first client error. Previously,
+there was an off-by-one error causing Postfix to change behavior
+after smtpd_hard/soft_error_limit+1 errors.
+
 Incompatible changes with Postfix version 2.0.4 (released 20030219)
 ===================================================================
 

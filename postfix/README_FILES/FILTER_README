@@ -343,9 +343,9 @@ new parameter:
 # cleanup service (defined further below).
 #
 smtp      inet  n       -       n       -       -       smtpd
-    -o cleanup_service=pre-cleanup
+    -o cleanup_service_name=pre-cleanup
 pickup    fifo  n       -       n       60      1       pickup
-    -o cleanup_service=pre-cleanup
+    -o cleanup_service_name=pre-cleanup
 #
 # ------------------------------------------------------------------
 #

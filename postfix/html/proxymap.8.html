@@ -29,10 +29,10 @@ PROXYMAP(8)                                           PROXYMAP(8)
               tions" errors. The solution:
 
               virtual_alias_maps =
-                  proxy:mysql:/etc/postfix/virtual.cf
+                  proxy:mysql:/etc/postfix/virtual_alias.cf
 
               The total number of connections is limited  by  the
-              number of proxymap server server processes.
+              number of proxymap server processes.
 
        The proxymap server implements the following requests:
 

@@ -7656,6 +7656,25 @@ Apologies for any names omitted.
 	did not eliminate virtual expansion duplicates with the
 	same original recipient. File: cleanup/cleanup_out_recipient.c.
 
+20030223
+
+	Bugfix: smtpd_hard/soft_error_limit off-by-one error, so
+	that the real limit was one larger than the specified value.
+	File: smtpd/smtpd.c, smtpd/smtpd_chat.c.
+
+20030226
+
+	Safety: proxymap server defense against potential deadlock
+	when some library routine wants to open a proxied table.
+	Instead, proxymap opens the requested table directly. File:
+	proxymap/proxymap.c.
+
+20030227
+
+	Bugfix: added mynetworks to the list of proxy_read_maps
+	parameter settings that are pre-authorized to use proxied
+	table lookups.  File: global/mail_params.h.
+
 Open problems:
 
 	Low: after successful delivery, per-queue window += 1/window,

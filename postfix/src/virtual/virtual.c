@@ -14,7 +14,7 @@
 /*
 /*	This delivery agent only delivers mail.  Other features such as
 /*	mail forwarding, out-of-office notifications, etc., must be
-/*	configured via virtual maps or via similar lookup mechanisms.
+/*	configured via virtual_alias maps or via similar lookup mechanisms.
 /* MAILBOX LOCATION
 /* .ad
 /* .fi

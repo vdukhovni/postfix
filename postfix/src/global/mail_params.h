@@ -1317,7 +1317,8 @@ extern int var_local_rcpt_code;
                                 " $" VAR_SEND_CANON_MAPS \
                                 " $" VAR_RCPT_CANON_MAPS \
                                 " $" VAR_RELOCATED_MAPS \
-                                " $" VAR_TRANSPORT_MAPS
+                                " $" VAR_TRANSPORT_MAPS \
+				" $" VAR_MYNETWORKS
 extern char *var_proxy_read_maps;
 
  /*
