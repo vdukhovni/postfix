@@ -93,8 +93,8 @@ having to execute "postfix reload", in order to force Postfix to use the new
 information. Each time you do "postfix reload" Postfix loses a lot of
 performance.
 
-  * If you change a network databases such as LDAP, NIS or SQL, there is no
-    need to execute "postfix reload". The LDAP, NIS or SQL server takes care of
+  * If you change a network database such as LDAP, NIS or SQL, there is no need
+    to execute "postfix reload". The LDAP, NIS or SQL server takes care of
     read/write access conflicts and gives the new data to Postfix once that
     data is available.
 
@@ -125,7 +125,7 @@ is because commands such as postmap(1) or postalias(1) overwrite existing
 files. If the update fails in the middle then you have no usable database, and
 Postfix will stop working.
 
-With multi-file databases such as DBM that there is no simple solution. With
+With multi-file databases such as DBM, there is no simple solution. With
 Berkeley DB and other "one file" databases, it is possible to add some extra
 robustness by using "mv" to REPLACE an existing database file instead of
 overwriting it:
@@ -178,8 +178,8 @@ To find out what database types your Postfix system supports, use the "postconf
         the postmap(1) or postalias(1) command. The lookup table name as used
         in "btree:table" is the database file name without the ".db" suffix.
     cciiddrr
-        A table that associates values with class independent routing (CIDR)
-        patterns. The table format is described in cidr_table(5).
+        A table that associates values with Classless Inter-Domain Routing
+        (CIDR) patterns. The table format is described in cidr_table(5).
     ddbbmm
         An indexed file type based on hashing. This is available only on
         systems with support for DBM databases. Database files are created with
@@ -199,14 +199,14 @@ To find out what database types your Postfix system supports, use the "postconf
         Perform lookups using the LDAP protocol. Configuration details are
         given in the ldap_table(5).
     mmyyssqqll (read-only)
-        Perform MySQL database lookup. Configuration details are given in
+        Perform MySQL database lookups. Configuration details are given in
         mysql_table(5).
     ppccrree (read-only)
         A lookup table based on Perl Compatible Regular Expressions. The file
         format is described in pcre_table(5). The lookup table name as used in
         "pcre:table" is the name of the regular expression file.
     ppggssqqll (read-only)
-        Perform PostgreSQL database lookup. Configuration details are given in
+        Perform PostgreSQL database lookups. Configuration details are given in
         pgsql_table(5).
     pprrooxxyy (read-only)
         Access information via the Postfix proxymap(8) service. The lookup

@@ -90,18 +90,18 @@ always discarded.  </p>
     <td bgcolor="#f0f0ff" align="center" valign="middle"> Internet
     </td>
 
-    <td align="center" valign="middle"> -&gt; </td>
+    <td align="center" valign="middle"> <tt> -&gt; </tt> </td>
 
 	<td bgcolor="#f0f0ff" align="center" valign="middle"> <a
 	href="smtpd.8.html">Postfix<br> SMTP<br> server</a> </td>
 
-    <td align="center" valign="middle"> &lt;-&gt; </td>
+    <td align="center" valign="middle"> <tt> &lt;-&gt; </tt> </td>
 
 	<td bgcolor="#f0f0ff" align="center" valign="middle"> <a
 	href="verify.8.html">Postfix<br> verify<br> server</a>
 	</td>
 
-    <td align="center" valign="middle"> &lt;-&gt; </td>
+    <td align="center" valign="middle"> <tt> &lt;-&gt; </tt> </td>
 
     <td bgcolor="#f0f0ff" align="center" valign="middle">
     Address<br> verification<br> database </td>
@@ -114,13 +114,13 @@ always discarded.  </p>
 
     <td> </td>
 
-    <td align="center" valign="middle"> |<br> probe<br>
-    messages<br> v </td>
+    <td align="center" valign="middle"> <tt> |</tt><br> probe<br>
+    messages<br> <tt> v </tt> </td>
 
     <td> </td>
 
     <td align="center" valign="middle"> ^<br> delivery<br>
-    status<br> |</td>
+    status<br> <tt> | </tt> </td>
 
     <td> </td>
 
@@ -137,7 +137,7 @@ always discarded.  </p>
     <td  bgcolor="#f0f0ff" align="center" valign="middle"> Postfix<br>
     queue </td>
 
-    <td align="center" valign="middle"> -&gt; </td>
+    <td align="center" valign="middle"> <tt> -&gt; </tt> </td>
 
     <td bgcolor="#f0f0ff" align="center" valign="middle"> Postfix<br>
     delivery<br> agents </td>
@@ -363,7 +363,7 @@ stop". </p>
 <p> NOTE: Do not put this file in a file system that may run out
 of space.  When the address verification table gets corrupted the
 world comes to an end and YOU will have to MANUALLY fix things as
-described in the next section. Meanwhile you will not receive mail
+described in the next section. Meanwhile, you will not receive mail
 via SMTP. </p>
 
 <p> The <a href="verify.8.html">verify(8)</a> daemon process will create a new database when

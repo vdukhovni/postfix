@@ -2289,10 +2289,9 @@ parameters:
 
 </dl>
 
-<p>
-Specify a list of names and/or name=value pairs, separated by
-whitespace or comma.
-</p>
+<p> Specify a list of names and/or name=value pairs, separated by
+whitespace or comma. The name=value form is supported with
+Postfix 2.1 and later.  </p>
 
 
 </DD>
@@ -4545,6 +4544,8 @@ via the relay message delivery transport. This limit is enforced
 by the queue manager. The message delivery transport name is the
 first field in the entry in the master.cf file.  </p>
 
+<p> This feature is available in Postfix version 2.0 and later. </p>
+
 
 </DD>
 
@@ -4559,6 +4560,8 @@ the entry in the master.cf file.  </p>
 <p> Setting this parameter to a value of 1 changes the meaning of
 <a href="postconf.5.html#relay_destination_concurrency_limit">relay_destination_concurrency_limit</a> from concurrency per domain
 into concurrency per recipient.  </p>
+
+<p> This feature is available in Postfix version 2.0 and later. </p>
 
 
 </DD>

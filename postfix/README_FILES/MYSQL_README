@@ -35,7 +35,7 @@ mysqlclient library (and libm) to AUXLIBS, for example:
         'CCARGS=-DHAS_MYSQL -I/usr/local/mysql/include' \
         'AUXLIBS=-L/usr/local/mysql/lib -lmysqlclient -lz -lm'
 
-then, just run 'make'. This requires libz, the compression library. Older mysql
+Then, just run 'make'. This requires libz, the compression library. Older mysql
 implementations build without libz.
 
 UUssiinngg MMyySSQQLL ttaabblleess

@@ -21,7 +21,7 @@
 
 <p> Postfix uses databases of various kinds to store and look up
 information. Postfix databases are specified as "type:name".
-Berkeley DB implements the Postfix database type of "hash" and
+Berkeley DB implements the Postfix database type "hash" and
 "btree".  The name of a Postfix Berkeley DB database is the name
 of the database file without the ".db" suffix. Berkeley DB databases
 are maintained with the postmap(1) command.  </p>
@@ -63,7 +63,7 @@ library, or Postfix itself ends up using the wrong version. </p>
 <p>The more recent Berkeley DB versions have a compile-time switch,
 "--with-uniquename", which renames the symbols so that multiple
 versions of Berkeley DB can co-exist in the same application.
-Although wasteful this may be the only way to keep things from
+Although wasteful, this may be the only way to keep things from
 falling apart. </p>
 
 <p> To build Postfix after you installed the Berkeley DB from

@@ -44,7 +44,7 @@
 $config_directory:d:root:-:755:u
 $daemon_directory:d:root:-:755:u
 $queue_directory:d:root:-:755:uc
-$sample_directory:d:root:-:755
+$sample_directory:d:root:-:755:o
 $readme_directory:d:root:-:755
 $html_directory:d:root:-:755
 $queue_directory/active:d:$mail_owner:-:700:ucr

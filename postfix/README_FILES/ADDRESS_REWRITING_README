@@ -124,8 +124,8 @@ Address manipulations when mail is delivered via the local(8) delivery agent:
   * Local per-user .forward files
   * Local catch-all address
 
-The remainder of this document present each address manipulation step in more
-detail, with specific examples or pointers to documentation with examples.
+The remainder of this document presents each address manipulation step in more
+detail, with specific examples or with pointers to documentation with examples.
 
 RReewwrriittee aaddddrreesssseess ttoo ssttaannddaarrdd ffoorrmm
 
@@ -369,7 +369,7 @@ listed in this table, the message is returned to the sender with an informative
 message.
 
 The relocated(5) database is searched after transport(5) table lookups, in
-anticipation of transport(5) tables that can one recipient address by a
+anticipation of transport(5) tables that can replace one recipient address by a
 different one.
 
 Lookups of relocated users are disabled by default. To enable, edit the
@@ -504,7 +504,9 @@ notifications.
 
 As an example, below is the delivery report that is produced with the command
 "sendmail -bv postfix-users@postfix.org". The first part of the report contains
-human-readable text:
+human-readable text. In this case, mail would be delivered via mail.cloud9.net,
+and the SMTP server replies with "250 Ok". Other reports may show delivery to
+mailbox, or delivery to non-Postfix command.
 
     Content-Description: Notification
     Content-Type: text/plain
@@ -519,9 +521,16 @@ human-readable text:
     Ok
 
 The second part of the report is in machine-readable form, and includes the
-envelope sender (wietse@porcupine.org) and recipient (postfix-
-users@postfix.org) addresses. If the recipient address was changed by Postfix
-address rewriting then Postfix also includes the original recipient address.
+following information:
+
+  * The envelope sender address (wietse@porcupine.org).
+  * The envelope recipient address (postfix-users@postfix.org). If the
+    recipient address was changed by Postfix then Postfix also includes the
+    original recipient address.
+  * The delivery status.
+
+Some details are still preliminary and will change as Postfix implements the
+DSN (delivery status notification) standards.
 
     Content-Description: Delivery report
     Content-Type: message/delivery-status

@@ -12,6 +12,14 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshot names change only in the release date, and do not
 include a patchlevel.
 
+Incompatible changes with Postfix 2.1 Release Candidate 4
+=========================================================
+
+The non-delivery report has changed. The "sorry" message now includes
+the original recipient address, when that address is different from
+the final recipient address.  This makes it easier to diagnose some
+mail delivery problems that happen after mail forwarding.
+
 Incompatible changes with Postfix 2.1 Release Candidate 2
 =========================================================
 
@@ -48,6 +56,9 @@ installing a new Postfix system.
 The postmap and postalias commands now report errors to syslogd in
 addition to reporting them to the standard error output. This makes
 logfile analysis easier.
+
+Support for a WARN feature in SMTPD access tables, just like
+the WARN feature in header/body_checks.
 
 Incompatible changes with Postfix 2.1 Release Candidate 1
 =========================================================

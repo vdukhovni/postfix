@@ -210,9 +210,9 @@ See the VIRTUAL_README file for how to configure Postfix for
 hosted domains. </p>
 
 <p> You can specify zero or more domain names, "/file/name" patterns
-and/or "type:name" lookup tables (such as hash:, btree:, nis:, ldap:,
+and/or "type:table" lookup tables (such as hash:, btree:, nis:, ldap:,
 or mysql:), separated by whitespace and/or commas.  A "/file/name"
-pattern is replaced by its contents; "type:name" requests that a
+pattern is replaced by its contents; "type:table" requests that a
 table lookup is done and merely tests for existence: the lookup
 result is ignored.  </p>
 
@@ -274,7 +274,7 @@ then your default mynetworks setting may be too friendly. </p>
 </blockquote>
 
 <p> You can specify the trusted networks in the main.cf file, or
-you can let Postfix let the work for you. The default is to let
+you can let Postfix do the work for you. The default is to let
 Postfix do the work. The result depends on the mynetworks_style
 parameter value.
 
@@ -342,7 +342,7 @@ via a provider who does not allow direct mail to the Internet.  In
 those cases you need to configure Postfix to deliver mail indirectly
 via a relay host. </p>
 
-<p> Examples (use only one): </p>
+<p> Examples (specify only one of the following): </p>
 
 <blockquote>
 <pre>
@@ -457,8 +457,8 @@ addresses</a> </h2>
 address translator (NAT) or proxy. This means that systems on the
 Internet connect to the address of the NAT or proxy, instead of
 connecting to the network address of the mail server. The NAT or
-proxy forwards the connection to network address of the mail server,
-but Postfix does not know this.  </p>
+proxy forwards the connection to the network address of the mail
+server, but Postfix does not know this.  </p>
 
 <p> If you run a Postfix server behind a proxy or NAT, you need to
 configure the proxy_interfaces parameter and specify all the external
@@ -607,7 +607,7 @@ for the myhostname parameter. </p>
 <h2><a name="mydomain"> My own domain name</a> </h2>
 
 <p> The mydomain parameter specifies the parent domain of
-$myhostname.  By default it is derived from  $myhostname
+$myhostname.  By default, it is derived from  $myhostname
 by stripping off the first part (unless the result would be a
 top-level domain). </p>
 

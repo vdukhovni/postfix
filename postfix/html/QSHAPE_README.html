@@ -122,7 +122,7 @@ minutes old and 12 older than 1280 minutes (1440 minutes in a day).
 
 </ul>
 
-<p> By default qshape shows statistics for the union of both the
+<p> By default, qshape shows statistics for the union of both the
 <a href="QSHAPE_README.html#incoming_queue">incoming</a> and <a href="QSHAPE_README.html#active_queue">active queues</a> which are the most relevant queues to
 look at when analyzing performance. </p>
 
@@ -264,7 +264,7 @@ dictionary attack bounces</a></h2>
 <p> This is from a server where recipient validation is not yet
 available for some of the <a href="VIRTUAL_README.html#canonical">hosted domains</a>. Dictionary attacks on
 the unvalidated domains result in bounce backscatter. The bounces
-dominate the queue, but with proper tuning to do not saturate the
+dominate the queue, but with proper tuning they do not saturate the
 <a href="QSHAPE_README.html#incoming_queue">incoming</a> or <a href="QSHAPE_README.html#active_queue">active queues</a>. The high volume of deferred mail is not
 a direct cause for alarm. </p>
 
@@ -344,9 +344,9 @@ queue is full. The incoming was growing rapidly. </p>
 
 <p> With the trouble destinations clearly identified, the administrator
 quickly found and fixed the problem. It is substantially harder to
-gleam the same information from the logs. While a careful reading
-of <a href="mailq.1.html">mailq(1)</a> output should given similar results, it is much harder
-to gauge the magnitude of the problem from looking at the queue
+glean the same information from the logs. While a careful reading
+of <a href="mailq.1.html">mailq(1)</a> output should yield similar results, it is much harder
+to gauge the magnitude of the problem by looking at the queue
 one message at a time. </p>
 
 <h2><a name="backlog">Example 4: High volume destination backlog</a></h2>
@@ -375,7 +375,7 @@ and continues to grow. </p>
 
 <p> If the high volume destination is not down, but is instead
 slow, one might see similar congestion in the <a href="QSHAPE_README.html#active_queue">active queue</a>. Active
-queue congestion is a greater cause for alarm, one might need to
+queue congestion is a greater cause for alarm; one might need to
 take measures to ensure that the mail is deferred instead or even
 add an <a href="access.5.html">access(5)</a> rule asking the sender to try again later. </p>
 
@@ -479,12 +479,11 @@ behavior. </p>
 <h3> <a name="maildrop_queue"> The "maildrop" queue </a> </h3>
 
 <p> Messages that have been submitted via the Postfix <a href="sendmail.1.html">sendmail(1)</a>
-command,
-but not yet brought in the main Postfix queue by the <a href="pickup.8.html">pickup(8)</a>
-service await processing the "<a href="QSHAPE_README.html#maildrop_queue">maildrop" queue</a>. Messages can be
-added to the "<a href="QSHAPE_README.html#maildrop_queue">maildrop" queue</a> even when the Postfix system is not
-running. They will begin to be processed once Postfix is started.
-</p>
+command, but not yet brought into the main Postfix queue by the
+<a href="pickup.8.html">pickup(8)</a> service, await processing in the "<a href="QSHAPE_README.html#maildrop_queue">maildrop" queue</a>. Messages
+can be added to the "<a href="QSHAPE_README.html#maildrop_queue">maildrop" queue</a> even when the Postfix system
+is not running. They will begin to be processed once Postfix is
+started.  </p>
 
 <p> The "<a href="QSHAPE_README.html#maildrop_queue">maildrop" queue</a> is drained by the single threaded <a href="pickup.8.html">pickup(8)</a>
 service scanning the queue directory periodically or when notified
@@ -515,7 +514,7 @@ disk I/O latency (+ CPU if not negligible) of the cleanup service.
 
 <p> Congestion in this queue is indicative of an excessive local
 message submission rate or perhaps excessive CPU consumption in
-the <a href="cleanup.8.html">cleanup(8)</a> service due to excessive "<a href="postconf.5.html#body_checks">body_checks</a>". </p>
+the <a href="cleanup.8.html">cleanup(8)</a> service due to excessive <a href="postconf.5.html#body_checks">body_checks</a>. </p>
 
 <p> Note, that once the <a href="QSHAPE_README.html#active_queue">active queue</a> is full, the cleanup service
 will attempt to slow down message injection by pausing $<a href="postconf.5.html#in_flow_delay">in_flow_delay</a>
@@ -535,7 +534,7 @@ Try to keep the volume of local mail injection to a moderate level.
 
 <p> The "postsuper -r" command can place selected messages into
 the "<a href="QSHAPE_README.html#maildrop_queue">maildrop" queue</a> for reprocessing. This is most useful for
-resetting any stale <a href="postconf.5.html#content_filter">content_filter</a> settings. Requeing a large number
+resetting any stale <a href="postconf.5.html#content_filter">content_filter</a> settings. Requeuing a large number
 of messages using "postsuper -r" can clearly cause a spike in the
 size of the "<a href="QSHAPE_README.html#maildrop_queue">maildrop" queue</a>. </p>
 
@@ -551,11 +550,11 @@ can be used to manually release messages into the "<a href="QSHAPE_README.html#d
 </p>
 
 <p> Messages can potentially stay in the "<a href="QSHAPE_README.html#hold_queue">hold" queue</a> for a time
-in excess of normal maximal queue lifetime (after which undelivered
+exceeding the normal maximal queue lifetime (after which undelivered
 messages are bounced back to the sender). If such "old" messages
 need to be released from the "<a href="QSHAPE_README.html#hold_queue">hold" queue</a>, they should typically
 be moved into the "<a href="QSHAPE_README.html#maildrop_queue">maildrop" queue</a>, so that the message gets a new
-timestamp and is given more than 1 opportunity to be delivered.
+timestamp and is given more than one opportunity to be delivered.
 Messages that are "young" can be moved directly into the "deferred"
 queue. </p>
 
@@ -571,12 +570,12 @@ created owned by the "postfix" user with an access bitmask (or
 mode) of 0600. Once a queue file is ready for further processing
 the <a href="cleanup.8.html">cleanup(8)</a> service changes the queue file mode to 0700 and
 notifies the queue manager of new mail arrival. The queue manager
-ignores incomplete queue files whose mode is 0600, these are still
-being written by cleanup.  </p>
+ignores incomplete queue files whose mode is 0600, as these are
+still being written by cleanup.  </p>
 
 <p> The queue manager scans the <a href="QSHAPE_README.html#incoming_queue">incoming queue</a> bringing any new
 mail into the "<a href="QSHAPE_README.html#active_queue">active" queue</a> if the active queue resource limits
-have not been exceeded. By default the <a href="QSHAPE_README.html#active_queue">active queue</a> accommodates
+have not been exceeded. By default, the <a href="QSHAPE_README.html#active_queue">active queue</a> accommodates
 at most 20000 messages. Once the <a href="QSHAPE_README.html#active_queue">active queue</a> message limit is
 reached, the queue manager stops scanning the incoming (and deferred,
 see below) queue.  </p>
@@ -617,11 +616,11 @@ trivial-rewrite service is using a fast transport lookup mechanism.
 
 <h3> <a name="active_queue"> The "active" queue </a> </h3>
 
-<p> The queue manager is a delivery agent scheduler, it works to
+<p> The queue manager is a delivery agent scheduler; it works to
 ensure fast and fair delivery of mail to all destinations within
 designated resource limits.  </p>
 
-<p> The <a href="QSHAPE_README.html#active_queue">active queue</a> is somewhat analogous to an operating systems
+<p> The <a href="QSHAPE_README.html#active_queue">active queue</a> is somewhat analogous to an operating system's
 process run queue. Messages in the <a href="QSHAPE_README.html#active_queue">active queue</a> are ready to be
 sent (runnable), but are not necessarily in the process of being
 sent (running).  </p>
@@ -638,9 +637,9 @@ the queue manager to do global scheduling, allocating available
 delivery agent processes to an appropriate message in the active
 queue.  </p>
 
-<p> Within the <a href="QSHAPE_README.html#active_queue">active queue</a> (multi-recipient) messages are broken
+<p> Within the <a href="QSHAPE_README.html#active_queue">active queue</a>, (multi-recipient) messages are broken
 up into groups of recipients that share the same transport/nexthop
-combination, the group size is capped by the transport's recipient
+combination; the group size is capped by the transport's recipient
 concurrency limit.  </p>
 
 <p> Multiple recipient groups (from one or more messages) are queued
@@ -650,7 +649,7 @@ of simultaneous delivery attempts for each nexthop. Transports with
 a recipient concurrency limit of 1 are special: these are grouped
 by the actual recipient address rather than the nexthop, thereby
 enabling per-recipient concurrency limits rather than per-domain
-concurrency limits. Per recipient-limits are appropriate when
+concurrency limits. Per-recipient limits are appropriate when
 performing final delivery to mailboxes rather than when relaying
 to a remote server.  </p>
 
@@ -672,8 +671,8 @@ deliveries.  </p>
 
 <p> For high volume sites a key tuning parameter is the number of
 "smtp" delivery agents allocated to the "smtp" and "relay" transports.
-High volume sites tend to send to many different destinations many
-of which may be down or slow. So a good fraction of the available
+High volume sites tend to send to many different destinations, many
+of which may be down or slow, so a good fraction of the available
 delivery agents will be blocked waiting for slow sites. Also mail
 destined across the globe will incur large SMTP command-response
 latencies, so high message throughput can only be achieved with
@@ -690,18 +689,18 @@ a high average latency. If the number of outbound SMTP connections
 is draining slowly and the system and network are not loaded, raise
 the "smtp" and/or "relay" process limits!  </p>
 
-<p> Especially for the "relay" transport consider lower SMTP
+<p> Especially for the "relay" transport, consider lower SMTP
 connection timeouts (1-5 seconds) and higher than default destination
 concurrency limits. Compute the expected latency when 1 out of N
 of the MX hosts for a high volume site is down and not responding,
-make sure that the configured concurrency divided by this latency
-exceeds the required steady-state message rate. If the destination
-is managed by you, consider load-balancers in front of groups of
-MX hosts, load balancers have higher uptime and will be able to
-hide individual MX host failures.  </p>
+and make sure that the configured concurrency divided by this
+latency exceeds the required steady-state message rate. If the
+destination is managed by you, consider load balancers in front of
+groups of MX hosts. Load balancers have higher uptime and will be
+able to hide individual MX host failures.  </p>
 
-<p> If necessary dedicate and tune custom transports for high volume
-destinations.  </p>
+<p> If necessary, dedicate and tune custom transports for high
+volume destinations.  </p>
 
 <p> Another common cause of congestion is unwarranted flushing of
 the entire <a href="QSHAPE_README.html#deferred_queue">deferred queue</a>. The deferred queue holds messages that
@@ -716,12 +715,12 @@ recently become deliverable (e.g. <a href="postconf.5.html#relayhost">relayhost<
 <p> Note that whenever the queue manager is restarted, there may
 already be messages in the <a href="QSHAPE_README.html#active_queue">active queue</a> directory, but the "real"
 <a href="QSHAPE_README.html#active_queue">active queue</a> in memory is empty. In order to recover the in-memory
-state, the queue manager moves all the active directory messages
+state, the queue manager moves all the <a href="QSHAPE_README.html#active_queue">active queue</a> messages
 back into the <a href="QSHAPE_README.html#incoming_queue">incoming queue</a>, and then uses its normal incoming
 queue scan to refill the <a href="QSHAPE_README.html#active_queue">active queue</a>. The process of moving all
 the messages back and forth, redoing transport table (<a href="trivial-rewrite.8.html">trivial-rewrite(8)</a>
 resolve service) lookups, and re-importing the messages back into
-memory is expensive. At all costs avoid frequent restarts of the
+memory is expensive. At all costs, avoid frequent restarts of the
 queue manager.  </p>
 
 <h3> <a name="deferred_queue"> The "deferred" queue </a> </h3>
@@ -732,12 +731,12 @@ might succeed later), the message is placed in the <a href="QSHAPE_README.html#d
 </p>
 
 <p> The queue manager scans the <a href="QSHAPE_README.html#deferred_queue">deferred queue</a> periodically. The
-scan interval is controlled by the "<a href="postconf.5.html#queue_run_delay">queue_run_delay</a>" parameter.
+scan interval is controlled by the <a href="postconf.5.html#queue_run_delay">queue_run_delay</a> parameter.
 While a <a href="QSHAPE_README.html#deferred_queue">deferred queue</a> scan is in progress, if an <a href="QSHAPE_README.html#incoming_queue">incoming queue</a>
 scan is also in progress (ideally these are brief since the incoming
 queue should be short), the queue manager alternates between bringing
 a new "incoming" message and a new "deferred" message into the
-queue.  This "round-robin" strategy prevent starvation of either
+queue.  This "round-robin" strategy prevents starvation of either
 the <a href="QSHAPE_README.html#incoming_queue">incoming</a> or the <a href="QSHAPE_README.html#deferred_queue">deferred queues</a>.  </p>
 
 <p> Each <a href="QSHAPE_README.html#deferred_queue">deferred queue</a> scan only brings a fraction of the deferred
@@ -763,18 +762,18 @@ the quantity of previously deferred mail in the <a href="QSHAPE_README.html#acti
 
 <p> One common cause of large <a href="QSHAPE_README.html#deferred_queue">deferred queues</a> is failure to validate
 recipients at the SMTP input stage. Since spammers routinely launch
-dictionary attacks from unrepliable sender addresses the bounces
+dictionary attacks from unrepliable sender addresses, the bounces
 for invalid recipient addresses clog the <a href="QSHAPE_README.html#deferred_queue">deferred queue</a> (and at
-high volumes proportionally the <a href="QSHAPE_README.html#active_queue">active queue</a>). Recipient validation
-is *strongly* recommended through use of the <a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a>
+high volumes proportionally clog the <a href="QSHAPE_README.html#active_queue">active queue</a>). Recipient
+validation is strongly recommended through use of the <a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a>
 and <a href="postconf.5.html#relay_recipient_maps">relay_recipient_maps</a> parameters.  </p>
 
 <p> When a host with lots of deferred mail is down for some time,
 it is possible for the entire <a href="QSHAPE_README.html#deferred_queue">deferred queue</a> to reach its retry
 time simultaneously. This can lead to a very full <a href="QSHAPE_README.html#active_queue">active queue</a> once
 the host comes back up. The phenomenon can repeat approximately
-every maximal backoff time seconds if the messages are again deferred
-after a brief burst of congestion. Ideally in the future Postfix
+every <a href="postconf.5.html#maximal_backoff_time">maximal_backoff_time</a> seconds if the messages are again deferred
+after a brief burst of congestion. Ideally, in the future Postfix
 will add a random offset to the retry time (or use a combination
 of strategies) to reduce the chances of repeated complete deferred
 queue flushes.  </p>

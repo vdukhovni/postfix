@@ -121,13 +121,13 @@ trivial-<br>rewrite(8)<br>(resolve)</a> </td>
 
 <td colspan="2"> </td>
 
-<td align="center"><table><tr><td align="center">^<br>|</td><td
-align="center">|<br>v</td></tr></table>
+<td align="center"><table><tr><td align="center"> ^<br> <tt> |
+</tt> </td><td align="center"> <tt> |<br>v </tt> </td></tr></table>
 
 <td colspan="5"> </td>
 
-<td align="center"><table><tr><td align="center">^<br>|</td><td
-align="center">|<br>v</td></tr></table>
+<td align="center"><table><tr><td align="center"> ^<br> <tt> |
+</tt> </td><td align="center"> <tt> |<br>v </tt> </td></tr></table>
 
 <td colspan="2"> </td>
 
@@ -138,26 +138,30 @@ align="center">|<br>v</td></tr></table>
 <td bgcolor="#f0f0ff" align="center" valign="middle"> smtpd(8)
 </td>
 
-<td rowspan="3" align="center" valign="middle"> &gt;- </td>
+<td rowspan="3" align="center" valign="middle"> <tt> &gt;- </tt>
+</td>
 
 <td rowspan="3" bgcolor="#f0f0ff" align="center"> cleanup(8) </td>
 
-<td rowspan="3" align="center" valign="middle"> -&gt; </td>
+<td rowspan="3" align="center" valign="middle"> <tt> -&gt; </tt>
+</td>
 
 <td rowspan="3" bgcolor="#f0f0ff" align="center"> <a
 href="QSHAPE_README.html#incoming_queue"> incoming </a> </td>
 
-<td rowspan="3" align="center" valign="middle"> -&gt; </td>
+<td rowspan="3" align="center" valign="middle"> <tt> -&gt; </tt>
+</td>
 
 <td rowspan="3" bgcolor="#f0f0ff" align="center"> <a
 href="QSHAPE_README.html#active_queue"> active </a> </td>
 
-<td rowspan="3" align="center" valign="middle"> -&gt; </td>
+<td rowspan="3" align="center" valign="middle"> <tt> -&gt; </tt>
+</td>
 
-<td rowspan="3" bgcolor="#f0f0ff" align="center">
-qmgr(8) </td>
+<td rowspan="3" bgcolor="#f0f0ff" align="center"> qmgr(8) </td>
 
-<td rowspan="3" align="center" valign="middle"> -&lt; </td>
+<td rowspan="3" align="center" valign="middle"> <tt> -&lt; </tt>
+</td>
 
 <td bgcolor="#f0f0ff" align="center" valign="middle">
 smtp(8) </td>
@@ -175,9 +179,11 @@ qmqpd(8) </td>
 
 <tr>
 
-<td bgcolor="#f0f0ff" align="center" valign="middle"> pickup(8) </td>
+<td bgcolor="#f0f0ff" align="center" valign="middle"> pickup(8)
+</td>
 
-<td bgcolor="#f0f0ff" align="center" valign="middle"> local(8) </td> 
+<td bgcolor="#f0f0ff" align="center" valign="middle"> local(8)
+</td>
 
 </tr>
 
@@ -185,12 +191,12 @@ qmqpd(8) </td>
 
 <td colspan="2"> </td>
 
-<td align="center">^<br>|</td>
+<td align="center"> ^<br> <tt> | </tt> </td>
 
 <td colspan="3"> </td>
 
-<td align="center"><table><tr><td align="center">^<br>|</td><td
-align="center">|<br>v</td></tr></table>
+<td align="center"><table><tr><td align="center"> ^<br> <tt> |
+</tt> </td><td align="center"> <tt> |<br>v </tt> </td></tr></table>
 
 <td colspan="4"> </td>
 
@@ -283,8 +289,8 @@ delivery agent: </p>
 
 </ul>
 
-<p> The remainder of this document present each address manipulation
-step in more detail, with specific examples or pointers to
+<p> The remainder of this document presents each address manipulation
+step in more detail, with specific examples or with pointers to
 documentation with examples. </p>
 
 <h2> <a name="standard"> Rewrite addresses to standard form</a> </h2>
@@ -611,7 +617,7 @@ informative message.  </p>
 
 <p> The relocated(5) database is searched after transport(5)
 table lookups, in anticipation of transport(5) tables that
-can one recipient address by a different one. </p>
+can replace one recipient address by a different one. </p>
 
 <p> Lookups of relocated users are disabled by default. To enable,
 edit the relocated_maps parameter in the main.cf file and specify
@@ -789,9 +795,12 @@ interact with users directly, the result is sent as mail to the
 sender of the test message. The format of these reports is practically
 identical to that of ordinary non-delivery notifications. </p>
 
-<p> As an example, below is the delivery report that is
-produced with the command "sendmail -bv postfix-users@postfix.org".
-The first part of the report contains human-readable text: </p>
+<p> As an example, below is the delivery report that is produced
+with the command "sendmail -bv postfix-users@postfix.org".  The
+first part of the report contains human-readable text. In this
+case, mail would be delivered via mail.cloud9.net, and the SMTP
+server replies with "250 Ok". Other reports may show delivery
+to mailbox, or delivery to non-Postfix command. </p>
 
 <blockquote>
 <pre>
@@ -809,10 +818,22 @@ Enclosed is the mail delivery report that you requested.
 </blockquote>
 
 <p> The second part of the report is in machine-readable form, and
-includes the envelope sender (wietse@porcupine.org) and recipient
-(postfix-users@postfix.org) addresses. If the recipient address
-was changed by Postfix address rewriting then Postfix also includes
-the original recipient address. </p>
+includes the following information: </p>
+
+<ul>
+
+<li> The envelope sender address (wietse@porcupine.org).
+
+<li> The envelope recipient address (postfix-users@postfix.org).
+If the recipient address was changed by Postfix then Postfix also
+includes the original recipient address.
+
+<li> The delivery status.
+
+</ul>
+
+<p> Some details are still preliminary and will change as Postfix
+implements the DSN (delivery status notification) standards. </p>
 
 <blockquote>
 <pre>

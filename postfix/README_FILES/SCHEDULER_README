@@ -6,9 +6,10 @@ WWhhaatt tthhiiss ffiillee iiss aabboouutt
 
 This is the beginning of documentation for the clever queue manager scheduling
 algorithm by Patrik Rak. For a long time, this code was made available under
-the name "nqmgr" (new queue manager), as an optional module. As of Postfix 2.1
-this is the default queue manager, which is always called "qmgr". The old queue
-manager will for some time will be available under the name of "oqmgr".
+the name "nqmgr(8)" (new queue manager), as an optional module. As of Postfix
+2.1 this is the default queue manager, which is always called "qmgr(8)". The
+old queue manager will for some time will be available under the name of "oqmgr
+(8)".
 
 WWhhyy tthhee oolldd PPoossttffiixx qquueeuuee mmaannaaggeerr wwaass rreeppllaacceedd
 
@@ -37,12 +38,12 @@ HHooww tthhee qquueeuuee mmaannaaggeerr sscchheedduulle
 The following text is from Patrik Rak and should be read together with the
 postconf(5) manual that describes each configuration parameter in detail.
 
-From user's point of view, qmgr and nqmgr are both the same, except for how
-next message is chosen when delivery agent becomes available. You already know
-that qmgr uses round-robin by destination while nqmgr uses simple FIFO, except
-for some preemptive magic. The postconf(5) manual documents all the knobs the
-user can use to control this preemptive magic - there is nothing else to the
-preemption than the quite simple conditions described below.
+From user's point of view, oqmgr(8) and qmgr(8) are both the same, except for
+how next message is chosen when delivery agent becomes available. You already
+know that oqmgr(8) uses round-robin by destination while qmgr(8) uses simple
+FIFO, except for some preemptive magic. The postconf(5) manual documents all
+the knobs the user can use to control this preemptive magic - there is nothing
+else to the preemption than the quite simple conditions described below.
 
 As for programmer-level documentation, this will have to be extracted from all
 those emails we have exchanged with Wietse [rats! I hoped that Patrik would do
@@ -59,8 +60,8 @@ user's view are:
     recipients. The program itself works with jobs (one message is split among
     several jobs, one per each transport needed to deliver the message) and
     queue entries (each entry may group several recipients for same
-    destination). Then there is the peer structure introduced by nqmgr which is
-    simply per-job analog of the queue structure.
+    destination). Then there is the peer structure introduced by qmgr(8) which
+    is simply per-job analog of the queue structure.
 
  2. Dealing with concurrency limits: The actual implementation is complicated
     by the fact that the messages (resp. jobs) may not be delivered in the

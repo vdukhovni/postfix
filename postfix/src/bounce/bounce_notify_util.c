@@ -462,9 +462,9 @@ int     bounce_boilerplate(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
     post_mail_fputs(bounce, "");
     if (bounce_info->flush == BOUNCE_MSG_FAIL) {
 	post_mail_fputs(bounce,
-	       "I'm sorry to have to inform you that the message returned");
+	       "I'm sorry to have to inform you that your message could not be");
 	post_mail_fputs(bounce,
-	       "below could not be delivered to one or more destinations.");
+	       "be delivered to one or more recipients. It's attached below.");
     } else if (bounce_info->flush == BOUNCE_MSG_WARN) {
 	post_mail_fputs(bounce,
 			"####################################################################");
@@ -491,8 +491,8 @@ int     bounce_boilerplate(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 	post_mail_fputs(bounce, "");
 	post_mail_fprintf(bounce,
 	       "If you do so, please include this problem report. You can");
-	post_mail_fprintf(bounce,
-		   "delete your own text from the message returned below.");
+        post_mail_fprintf(bounce,
+                   "delete your own text from the attached returned message.");
     }
     post_mail_fputs(bounce, "");
     post_mail_fprintf(bounce, "\t\t\tThe %s program", var_mail_name);
@@ -537,8 +537,16 @@ int     bounce_recipient_log(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
      * program.
      */
     post_mail_fputs(bounce, "");
-    bounce_print_wrap(bounce, bounce_info, "<%s>: %s",
-	 bounce_info->log_handle->recipient, bounce_info->log_handle->text);
+    if (bounce_info->log_handle->orig_rcpt) {
+	bounce_print_wrap(bounce, bounce_info, "<%s> (expanded from <%s>): %s",
+			  bounce_info->log_handle->recipient,
+			  bounce_info->log_handle->orig_rcpt,
+			  bounce_info->log_handle->text);
+    } else {
+	bounce_print_wrap(bounce, bounce_info, "<%s>: %s",
+			  bounce_info->log_handle->recipient,
+			  bounce_info->log_handle->text);
+    }
     return (vstream_ferror(bounce));
 }
 

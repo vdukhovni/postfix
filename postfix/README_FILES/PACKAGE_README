@@ -16,11 +16,11 @@ configure. Listing all 300+ in main.cf defeats the purpose. It is an invitation
 for hobbyists to make random changes without understanding what they do, and
 gets them into endless trouble.
 
-GGeenneerraall ddiissttrriibbuuttiioonnss:: pplleeaassee iinncclluuddee tthhee RREEAADDMMEE ffiilleess
+GGeenneerraall ddiissttrriibbuuttiioonnss:: pplleeaassee iinncclluuddee RREEAADDMMEE oorr HHTTMMLL ffiilleess
 
-Please provide the README files. They are referenced by the Postfix manual
-pages and by other files. Without the README files, Postfix will be difficult
-if not impossible to configure.
+Please provide the applicable README or HTML files. They are referenced by the
+Postfix manual pages and by other files. Without README or HTML files, Postfix
+will be difficult if not impossible to configure.
 
 PPoossttffiixx IInnssttaallllaattiioonn ppaarraammeetteerrss
 
@@ -39,7 +39,7 @@ You can build a pre-built Postfix package as an unprivileged user.
 
 First compile Postfix. After successful compilation, execute:
 
-    % sh postfix-install
+     % sh postfix-install
 
 You will be prompted for installation parameters. Specify an install_root
 directory other than /. The mail_owner and setgid_group installation parameter
@@ -49,7 +49,8 @@ the package is unpacked and installed on the destination machine.
 If you want to fully automate this process, specify all the non-default
 installation parameters on the command line:
 
-    % sh postfix-install -non-interactive install_root=/some/where ...
+     % sh postfix-install -non-interactive
+    install_root=/some/where ...
 
 BBeeggiinn SSeeccuurriittyy AAlleerrtt
 

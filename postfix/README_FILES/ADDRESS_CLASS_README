@@ -51,7 +51,7 @@ The local domain class.
     VIRTUAL_README file.
 
   * Domain names are listed with the mydestination parameter. This domain class
-    also includes mail for user[ipaddress] when the IP address is listed with
+    also includes mail for user@[ipaddress] when the IP address is listed with
     the inet_interfaces or proxy_interfaces parameters.
 
   * Valid recipient addresses are listed with the local_recipient_maps
@@ -104,7 +104,7 @@ The relay domain class.
 
   * Purpose: mail forwarding to remote destinations that list your system as
     primary or backup MX host. For a discussion of the basic configuration
-    details, see BASIC_CONFIGURATION_README.html document. For a discussion of
+    details, see the BASIC_CONFIGURATION_README document. For a discussion of
     the difference between canonical domains, hosted domains and other domains,
     see the VIRTUAL_README file.
 
@@ -112,7 +112,7 @@ The relay domain class.
 
   * Valid recipient addresses are listed with the relay_recipient_maps
     parameter. The Postfix SMTP server rejects invalid recipients with "User
-    unknown in relay recipients table". If this parameter value is empty, the
+    unknown in relay recipient table". If this parameter value is empty, the
     Postfix SMTP server accepts all recipients for domains listed with the
     relay_domains parameter.
 
@@ -124,9 +124,9 @@ The default domain class.
 
   * Purpose: mail forwarding to the Internet on behalf of authorized clients.
     For a discussion of the basic configuration details, see the
-    BASIC_CONFIGURATION_README.html file. For a discussion of the difference
-    between canonical domains, hosted domains and other domains, see the
-    VIRTUAL_README file.
+    BASIC_CONFIGURATION_README file. For a discussion of the difference between
+    canonical domains, hosted domains and other domains, see the VIRTUAL_README
+    file.
 
   * This class has no destination domain table.
 

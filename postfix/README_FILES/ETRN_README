@@ -70,7 +70,7 @@ $fast_flush_domains parameter and that have syntactically valid domain names.
 
 When Postfix receives a request to "deliver mail for a domain now", the flush
 (8) daemon moves all deferred queue files that are listed for that domain to
-the incoming queue, and requests that the queue manager delivers them. In order
+the incoming queue, and requests that the queue manager deliver them. In order
 to force delivery, the queue manager temporarily ignores the lists of
 undeliverable destinations: the volatile in-memory list of dead domains, and
 the list of message delivery transports specified with the defer_transports

@@ -13,27 +13,33 @@
 #	\fBdbm\fR or \fBdb\fR format.
 #
 #	Alternatively, lookup tables can be specified as LDAP databases.
+#
 #	In order to use LDAP lookups, define an LDAP source as a lookup
 #	table in main.cf, for example:
 # .ti +4
-#	alias_maps = ldap:/etc/ldap-aliases.cf
+#	alias_maps = ldap:/etc/postfix/ldap-aliases.cf
 #
 #	The file /etc/postfix/ldap-aliases.cf has the same format as
 #	the Postfix main.cf file, and can specify the parameters
 #	described below. An example is given at the end of this manual.
+#
+#	This configuration method is available with Postfix version
+#	2.1 and later.  See the section "BACKWARDS COMPATIBILITY"
+#	below for older Postfix versions.
 #
 #	For details about LDAP SSL and STARTTLS, see the section
 #	on SSL and STARTTLS below.
 # BACKWARDS COMPATIBILITY
 # .ad
 # .fi
-#	For backwards compatibility LDAP parameters can also be defined
-#	in main.cf.  In order to do that, specify as LDAP source a name
-#	that doesn't begin with a slash or a dot.  The LDAP parameters
-#	will then be accessible as the name you've given the source in
-#	its definition, an underscore, and the name of the parameter.
-#	For example, if the map is specified as "ldap:\fIldapsource\fR",
-#	the "server_host" parameter below would be defined in main.cf as
+#	For backwards compatibility with Postfix version 2.0 and earlier,
+#	LDAP parameters can also be defined in main.cf.  Specify
+#	as LDAP source a name that doesn't begin with a slash or
+#	a dot.  The LDAP parameters will then be accessible as the
+#	name you've given the source in its definition, an underscore,
+#	and the name of the parameter.  For example, if the map is
+#	specified as "ldap:\fIldapsource\fR", the "server_host"
+#	parameter below would be defined in main.cf as
 #	"\fIldapsource\fR_server_host".
 #
 #	Note: with this form, the passwords for the LDAP sources are
@@ -376,9 +382,9 @@
 # .ti +4
 #	alias_maps = hash:/etc/aliases,
 # .ti +8
-#	ldap:/etc/ldap-aliases.cf
+#	ldap:/etc/postfix/ldap-aliases.cf
 #
-#	and in ldap:/etc/ldap-aliases.cf you have:
+#	and in ldap:/etc/postfix/ldap-aliases.cf you have:
 # .in +4
 #	server_host = ldap.my.com
 # .br

@@ -233,7 +233,7 @@ If your /var file system has sufficient space, try:
 
 NOTE: Do not put this file in a file system that may run out of space. When the
 address verification table gets corrupted the world comes to an end and YOU
-will have to MANUALLY fix things as described in the next section. Meanwhile
+will have to MANUALLY fix things as described in the next section. Meanwhile,
 you will not receive mail via SMTP.
 
 The verify(8) daemon process will create a new database when none exists, and

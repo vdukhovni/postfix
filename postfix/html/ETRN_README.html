@@ -111,12 +111,12 @@ parameter and that have syntactically valid domain names.  </p>
 <td bgcolor="#f0f0ff" align="center" valign="middle"> Postfix<br>
 delivery<br> agent</td>
 
-<td> -(domain, queue ID)-&gt; </td>
+<td> <tt>-</tt>(domain, queue ID)<tt>-&gt;</tt> </td>
 
 <td bgcolor="#f0f0ff" align="center" valign="middle"> Postfix<br> 
 flush<br> daemon</td>
 
-<td> -(queue ID)-&gt; </td>
+<td> <tt>-</tt>(queue ID)<tt>-&gt;</tt> </td>
 
 <td bgcolor="#f0f0ff" align="center" valign="middle"> One logfile <br>
 per eligible<br> domain </td>
@@ -130,7 +130,7 @@ per eligible<br> domain </td>
 <p> When Postfix receives a request to "deliver mail for a domain
 now", the <a href="flush.8.html">flush(8)</a> daemon moves all <a href="QSHAPE_README.html#deferred_queue">deferred queue</a> files that are
 listed for that domain to the <a href="QSHAPE_README.html#incoming_queue">incoming queue</a>, and requests that
-the queue manager delivers them. In order to force delivery, the
+the queue manager deliver them. In order to force delivery, the
 queue manager temporarily ignores the lists of undeliverable
 destinations:  the volatile in-memory list of dead domains, and
 the list of message delivery transports specified with the

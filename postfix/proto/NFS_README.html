@@ -35,7 +35,7 @@ problem is in NFS and affects other MTAs as well. </p>
 you cannot share Postfix queues among multiple Postfix instances.
 </p>
 
-<p> In order to have mailbox locking over NFS you have to configure
+<p> In order to have mailbox locking over NFS, you have to configure
 everything to use fcntl() locks for mailbox access (or switch to
 maildir style, which needs no application-level lock controls).
 </p>

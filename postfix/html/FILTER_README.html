@@ -39,22 +39,22 @@ willing to run in parallel.  </p>
         <td bgcolor="#f0f0ff" align="center" valign="middle">
         Network or<br> local users </td>
 
-    <td align="center" valign="middle"> -&gt; </td>
+    <td align="center" valign="middle"> <tt> -&gt; </tt> </td>
 
         <td bgcolor="#f0f0ff" align="center" valign="middle">
         Postfix<br> queue </td>
 
-    <td align="center" valign="middle"> -&gt; </td>
+    <td align="center" valign="middle"> <tt> -&gt; </tt> </td>
 
         <td bgcolor="#f0f0ff" align="center" valign="middle">
         <b>Content<br> filter</b> </td>
 
-    <td align="center" valign="middle"> -&gt; </td>
+    <td align="center" valign="middle"> <tt> -&gt; </tt> </td>
 
         <td bgcolor="#f0f0ff" align="center" valign="middle">
         Postfix<br> queue </td>
 
-    <td align="center" valign="middle"> -&gt; </td>
+    <td align="center" valign="middle"> <tt> -&gt; </tt> </td>
 
         <td bgcolor="#f0f0ff" align="center" valign="middle">
         Network or<br> local mailbox </td>
@@ -144,29 +144,31 @@ document for an introduction to the Postfix architecture. </p>
 
         <td align="center" valign="top"> Unfiltered<br> <br> </td>
 
-    <td align="center" valign="top"> -&gt;<br> <br> </td>
+    <td align="center" valign="top"> <tt> -&gt;</tt><br> <br> </td>
 
        <td bgcolor="#f0f0ff" align="center" valign="middle">
        <a href="smtpd.8.html">smtpd(8)</a><br> <br> <a href="pickup.8.html">pickup(8)</a> </td>
 
-   <td align="center" valign="middle"> &gt;- </td>
+   <td align="center" valign="middle"> <tt> &gt;- </tt> </td>
 
        <td bgcolor="#f0f0ff" align="center" valign="middle">
        <a href="cleanup.8.html">cleanup(8)</a> </td>
 
-   <td align="center" valign="middle"> -&gt; </td>
+   <td align="center" valign="middle"> <tt> -&gt; </tt> </td>
 
        <td bgcolor="#f0f0ff" align="center" valign="middle">
        <a href="qmgr.8.html">qmgr(8)</a><br> Postfix <br> queue </td>
 
-   <td align="center" valign="middle"> -&lt; </td>
+   <td align="center" valign="middle"> <tt> -&lt; </tt> </td>
 
        <td bgcolor="#f0f0ff" align="center" valign="middle">
        <a href="local.8.html">local(8)</a><br> <a href="smtp.8.html">smtp(8)</a><br> <a href="pipe.8.html">pipe(8)</a> </td>
 
-   <td align="center" valign="top"> -&gt;<br> -&gt;<br> </td>
+   <td align="center" valign="top"> <tt> -&gt;</tt><br> <tt>
+   -&gt;</tt><br> </td>
 
-       <td align="center" valign="top"> Filtered<br> Filtered<br> </td>
+       <td align="center" valign="top"> Filtered<br> Filtered<br>
+       </td>
 
 </tr>
 
@@ -174,11 +176,11 @@ document for an introduction to the Postfix architecture. </p>
 
    <td colspan="2"> </td>
 
-       <td align="center" valign="middle"> ^<br> | </td>
+       <td align="center" valign="middle"> ^<br> <tt> | </tt> </td>
 
    <td colspan="5"> </td>
 
-       <td align="center" valign="middle"> |<br> v </td>
+       <td align="center" valign="middle"> <tt> |<br> v </tt> </td>
 
    <td colspan="2"> </td>
 
@@ -192,17 +194,17 @@ document for an introduction to the Postfix architecture. </p>
 	<a href="QSHAPE_README.html#maildrop_queue"> maildrop <br>
 	queue </a> </td>
 
-   <td align="center" valign="middle"> &lt;- </td>
+   <td align="center" valign="middle"> <tt> &lt;- </tt> </td>
 
 	<td bgcolor="#f0f0ff" align="center" valign="middle">Postfix<br>
 	<a href="postdrop.1.html">postdrop(1)</a> </td>
 
-   <td align="center" valign="middle"> &lt;- </td>
+   <td align="center" valign="middle"> <tt> &lt;- </tt> </td>
 
 	<td bgcolor="#f0f0ff" align="center" valign="middle">Postfix<br>
 	<a href="sendmail.1.html">sendmail(1)</a> </td>
 
-   <td align="center" valign="middle"> &lt;- </td>
+   <td align="center" valign="middle"> <tt> &lt;- </tt> </td>
 
 	<td bgcolor="#f0f0ff" align="center" valign="middle">Content
 	<br> filter </td>
@@ -221,7 +223,7 @@ document for an introduction to the Postfix architecture. </p>
 <pre>
  1 #!/bin/sh
  2 
- 3 # Simple shell-based filter. If is meant to be invoked as follows:
+ 3 # Simple shell-based filter. It is meant to be invoked as follows:
  4 #       /path/to/script -f sender recipients...
  5 
  6 # Localize these.
@@ -415,27 +417,29 @@ document for an introduction to the Postfix architecture. </p>
        <td align="center" valign="middle"> Unfiltered<br> <br>
        Unfiltered</td>
 
-    <td align="center" valign="middle"> -&gt;<br> <br> -&gt; </td>
+    <td align="center" valign="middle"> <tt> -&gt;</tt><br> <br>
+    <tt> -&gt; </tt> </td>
 
        <td bgcolor="#f0f0ff" align="center" valign="middle">
        <a href="smtpd.8.html">smtpd(8)</a><br> <br> <a href="pickup.8.html">pickup(8)</a> </td>
 
-   <td align="center" valign="middle"> &gt;- </td>
+   <td align="center" valign="middle"> <tt> &gt;- </tt> </td>
 
        <td bgcolor="#f0f0ff" align="center" valign="middle">
        <a href="cleanup.8.html">cleanup(8)</a> </td>
 
-   <td align="center" valign="middle"> -&gt; </td>
+   <td align="center" valign="middle"> <tt> -&gt; </tt> </td>
 
        <td bgcolor="#f0f0ff" align="center" valign="middle">
        <a href="qmgr.8.html">qmgr(8)</a><br> Postfix <br> queue </td>
 
-   <td align="center" valign="middle"> -&lt; </td>
+   <td align="center" valign="middle"> <tt> -&lt; </tt> </td>
 
        <td bgcolor="#f0f0ff" align="center" valign="middle">
        <a href="smtp.8.html">smtp(8)</a><br> <br> <a href="local.8.html">local(8)</a> </td>
 
-   <td align="center" valign="middle"> -&gt;<br> <br> -&gt;</td>
+   <td align="center" valign="middle"> <tt> -&gt;</tt><br> <br>
+   <tt> -&gt; </tt></td>
 
        <td align="center" valign="middle"> Filtered<br> <br>
        Filtered</td>
@@ -446,11 +450,11 @@ document for an introduction to the Postfix architecture. </p>
 
    <td colspan="4"> </td>
 
-       <td align="center" valign="middle"> ^<br> | </td>
+       <td align="center" valign="middle"> ^<br> <tt> | </tt> </td>
 
    <td> </td>
 
-       <td align="center" valign="middle"> |<br> v </td>
+       <td align="center" valign="middle"> <tt> |<br> v </tt> </td>
 
    <td colspan="4"> </td>
 
@@ -476,11 +480,11 @@ document for an introduction to the Postfix architecture. </p>
 
    <td colspan="4"> </td>
 
-       <td align="center" valign="middle"> ^<br> | </td>
+       <td align="center" valign="middle"> ^<br> <tt> | </tt> </td>
 
    <td> </td>
 
-       <td align="center" valign="middle"> |<br> v </td>
+       <td align="center" valign="middle"> <tt> |<br> v </tt> </td>
 
    <td colspan="4"> </td>
 
@@ -688,10 +692,10 @@ main.cf: </p>
 override main.cf settings. They turn off junk mail controls that
 would only waste time here.
 
-<li> <p> With "-o <a href="postconf.5.html#smtpd_authorized_xforward_hosts">smtpd_authorized_xforward_hosts</a>=<a href="postconf.5.html#mynetworks">mynetworks</a>=127.0.0.0/8",
+<li> <p> With "-o <a href="postconf.5.html#smtpd_authorized_xforward_hosts">smtpd_authorized_xforward_hosts</a>=127.0.0.0/8",
 the scan transport will try to forward the original client name
 and IP address to the after-filter smtpd process, so that filtered
-mail is logged with the real client name IP address.  See
+mail is logged with the real client name and IP address.  See
 <a href="XFORWARD_README.html">XFORWARD_README</a> and <a href="smtpd.8.html">smtpd(8)</a>. </p>
 
 </ul>
@@ -758,7 +762,7 @@ in the main.cf file. </p>
 <h2><a name="domain_dependent">Different filters for different
 domains</a></h2>
 
-<p> If you are MX service provider and want to apply different
+<p> If you are an MX service provider and want to apply different
 content filters for different domains, you can configure ONE Postfix
 instance with multiple SMTP server IP addresses in master.cf. Each
 address provides a different content filter service. </p>

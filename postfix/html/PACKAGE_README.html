@@ -23,7 +23,8 @@
 own Postfix distribution for internal use, and for those who maintain
 Postfix distributions for general use.  </p>
 
-<h2>General distributions: please provide a small default main.cf file</h2>
+<h2>General distributions: please provide a small default main.cf
+file</h2>
 
 <p> The installed main.cf file must be small. PLEASE resist the
 temptation to list all 300+ parameters in the main.cf file.  Postfix
@@ -32,11 +33,12 @@ defeats the purpose. It is an invitation for hobbyists to make
 random changes without understanding what they do, and gets them
 into endless trouble.  </p>
 
-<h2>General distributions: please include the README files</h2>
+<h2>General distributions: please include README or HTML files</h2>
 
-<p> Please provide the README files. They are referenced by the
-Postfix manual pages and by other files.  Without the README files,
-Postfix will be difficult if not impossible to configure. </p>
+<p> Please provide the applicable README or HTML files. They are
+referenced by the Postfix manual pages and by other files.  Without
+README or HTML files, Postfix will be difficult if not impossible
+to configure. </p>
 
 <h2>Postfix Installation parameters</h2>
 
@@ -46,7 +48,8 @@ details.  Most parameters have system-dependent default settings
 that are configurable at compile time, as described in the <a href="INSTALL.html">INSTALL</a>
 file. </p>
 
-<h2>Preparing a pre-built package for distribution to other systems</h2>
+<h2>Preparing a pre-built package for distribution to other
+systems</h2>
 
 <p> You can build a Postfix package on a machine that does not have
 Postfix installed on it. All you need is Postfix source code and
@@ -56,13 +59,10 @@ a compilation environment that is compatible with the target system.
 <p> You can build a pre-built Postfix package as an unprivileged
 user. </p>
 
-<p> First compile Postfix. After successful compilation, execute: </p>
+<p> First compile Postfix. After successful compilation, execute:
+</p>
 
-<blockquote>
-<pre>
-% sh postfix-install
-</pre>
-</blockquote>
+<blockquote> <pre> % sh postfix-install </pre> </blockquote>
 
 <p> You will be prompted for installation parameters.  Specify an
 install_root directory other than /.  The <a href="postconf.5.html#mail_owner">mail_owner</a> and <a href="postconf.5.html#setgid_group">setgid_group</a>
@@ -73,11 +73,8 @@ installed on the destination machine. </p>
 <p> If you want to fully automate this process, specify all the
 non-default installation parameters on the command line: </p>
 
-<blockquote>
-<pre>
-% sh postfix-install -non-interactive install_root=/some/where ...
-</pre>
-</blockquote>
+<blockquote> <pre> % sh postfix-install -non-interactive
+install_root=/some/where ...  </pre> </blockquote>
 
 <h2>Begin Security Alert</h2>
 
@@ -91,16 +88,14 @@ user. </b> </p>
 
 <h2>End Security Alert</h2>
 
-<p> Thus, to tar up the pre-built package, take the following steps: </p>
+<p> Thus, to tar up the pre-built package, take the following steps:
+</p>
 
-<blockquote>
-<pre>
+<blockquote> <pre>
 % cd INSTALL_ROOT
 % rm -f SOMEWHERE/outputfile
 % find . \! -type d -print | xargs tar cf SOMEWHERE/outputfile
-% gzip SOMEWHERE/outputfile
-</pre>
-</blockquote>
+% gzip SOMEWHERE/outputfile </pre> </blockquote>
 
 <p>This way you will not include any directories that might cause
 trouble upon extraction. </p>
@@ -109,12 +104,12 @@ trouble upon extraction. </p>
 
 <ul>
 
-<li> <p> To unpack a pre-built Postfix package, execute the equivalent of: </p>
+<li> <p> To unpack a pre-built Postfix package, execute the equivalent
+of: </p>
 
 <pre>
 # umask 022
-# gzip -d &lt;outputfile.tar.gz | (cd / ; tar xvpf -)
-</pre>
+# gzip -d &lt;outputfile.tar.gz | (cd / ; tar xvpf -) </pre>
 
 <p> The umask command is necessary for getting the correct permissions
 on non-Postfix directories that need to be created in the process.

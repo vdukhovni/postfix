@@ -56,7 +56,7 @@ built-in content inspection works: </p>
 
 <tr>
 
-    <td colspan="4"> <td align="center">|<br>v</td>
+    <td colspan="4"> <td align="center"> <tt> |<br>v </tt></td>
 
 </tr>
 
@@ -65,23 +65,23 @@ built-in content inspection works: </p>
         <td bgcolor="#f0f0ff" align="center" valign="middle">
         Network or<br> local users </td>
 
-    <td align="center" valign="middle"> -&gt; </td>
+    <td align="center" valign="middle"> <tt> -&gt; </tt> </td>
 
         <td bgcolor="#f0f0ff" align="center" valign="middle">
 
         <b> Built-in<br> filter</b> </td>
 
-    <td align="center" valign="middle"> -&gt; </td>
+    <td align="center" valign="middle"> <tt> -&gt; </tt> </td>
 
         <td bgcolor="#f0f0ff" align="center" valign="middle">
         Postfix<br> queue </td>
 
-    <td align="center" valign="middle"> -&gt; </td>
+    <td align="center" valign="middle"> <tt> -&gt; </tt> </td>
 
 	<td bgcolor="#f0f0ff" align="center" valign="middle">
 	Delivery<br> agents </td>
 
-    <td align="center" valign="middle"> -&gt; </td>
+    <td align="center" valign="middle"> <tt> -&gt; </tt> </td>
 
 	<td bgcolor="#f0f0ff" align="center" valign="middle">
 	Network or<br> local mailbox </td>
@@ -90,8 +90,8 @@ built-in content inspection works: </p>
 
 <tr>
 
-    <td colspan="4"> <td align="center"> ^<br> |</td> <td> </td>
-    <td align="center">|<br>v</td>
+    <td colspan="4"> <td align="center"> ^<br> <tt> | </tt> </td>
+    <td> </td> <td align="center"> <tt> |<br>v </tt> </td>
 
 </tr>
 
@@ -108,11 +108,11 @@ built-in content inspection works: </p>
 
 <p> The picture makes clear that the filter works while Postfix is
 receiving new mail.  This means that Postfix can reject mail from
-the network without having to return undeliverable mail the originator
-address (which is often spoofed anyway). However, this ability
-comes at a price:  if mail inspection takes too much time, then
-the remote client will time out, and the client may send the same
-message repeatedly. </p>
+the network without having to return undeliverable mail to the
+originator address (which is often spoofed anyway). However, this
+ability comes at a price:  if mail inspection takes too much time,
+then the remote client will time out, and the client may send the
+same message repeatedly. </p>
 
 <p>Topics covered by this document: </p>
 
@@ -147,23 +147,25 @@ shown, because they can be produced by many Postfix daemon processes.
 <tr> <td colspan="2"> </td> <td bgcolor="#f0f0ff" align="center"
 valign="middle"> <a href="bounce.8.html">bounce(8)</a><br> (undeliverable) </td> </tr>
 
-<tr> <td bgcolor="#f0f0ff" align="center" valign="middle">
-<b> <a href="smtpd.8.html">smtpd(8)</a><br> (network)</b> </td> <td align="left" valign="bottom">
-\ </td> <td align="center" valign="middle">|<br>v</td> </tr>
+<tr> <td bgcolor="#f0f0ff" align="center" valign="middle"> <b>
+<a href="smtpd.8.html">smtpd(8)</a><br> (network)</b> </td> <td align="left" valign="bottom">
+<tt> \ </tt> </td> <td align="center" valign="middle"> <tt> |<br>v
+</tt> </td> </tr>
 
 <tr> <td> </td> <td> </td> </tr>
 
 <tr> <td bgcolor="#f0f0ff" align="center" valign="middle"> <b>
 <a href="qmqpd.8.html">qmqpd(8)</a><br> (network)</b> </td> <td align="center" valign="middle">
--\<br>-/ </td> <td bgcolor="#f0f0ff" align="center" valign="middle">
-<a href="cleanup.8.html">cleanup(8)</a> </td> <td align="center" valign="middle"> -&gt; </td>
-<td bgcolor="#f0f0ff" align="center" valign="middle"> <a
-href="QSHAPE_README.html#incoming_queue"> incoming<br> queue </a>
-</td> </tr>
+<tt> -\<br>-/ </tt> </td> <td bgcolor="#f0f0ff" align="center"
+valign="middle"> <a href="cleanup.8.html">cleanup(8)</a> </td> <td align="center" valign="middle">
+<tt> -&gt; </tt> </td> <td bgcolor="#f0f0ff" align="center"
+valign="middle"> <a href="QSHAPE_README.html#incoming_queue">
+incoming<br> queue </a> </td> </tr>
 
-<tr> <td bgcolor="#f0f0ff" align="center" valign="middle">
-<b> <a href="pickup.8.html">pickup(8)</a><br> (local)</b> </td> <td align="left" valign="top">
-/ </td> <td align="center" valign="middle">^<br>|</td> </tr>
+<tr> <td bgcolor="#f0f0ff" align="center" valign="middle"> <b>
+<a href="pickup.8.html">pickup(8)</a><br> (local)</b> </td> <td align="left" valign="top"> <tt>
+/ </tt> </td> <td align="center" valign="middle"> ^<br> <tt> |
+</tt> </td> </tr>
 
 <tr> <td colspan="2"> </td> <td bgcolor="#f0f0ff" align="center"
 valign="middle"> <a href="local.8.html">local(8)</a><br> (forwarded) </td> </tr>
@@ -311,7 +313,7 @@ $msg = MIME::Lite-&gt;new(
     Date     =&gt; `date`,
     Type     =&gt; 'text/plain',
     Encoding =&gt; 'base64',
-    Path     =&gt;'/tmp/pflogg',
+    Path     =&gt; '/tmp/pflogg',
 );
 
 $msg-&gt;send;
@@ -345,6 +347,10 @@ Such rules slow down all mail and complicate Postfix maintenance.
 </p>
 
 <h2><a name="remote_only">Configuring header/body checks for mail from outside users only</a></h2>
+
+<p> The following information applies to Postfix 2.1. Earlier
+Postfix versions do not support the <a href="postconf.5.html#receive_override_options">receive_override_options</a> feature.
+</p>
 
 <p> The easiest approach is to configure ONE Postfix instance with
 multiple SMTP server IP addresses in master.cf: </p>
@@ -384,6 +390,10 @@ header/body filtering turned on via main.cf. </p>
 </ul>
 
 <h2><a name="domain_except">Configuring header/body checks for mail to some domains only</a></h2>
+
+<p> The following information applies to Postfix 2.1. Earlier
+Postfix versions do not support the <a href="postconf.5.html#receive_override_options">receive_override_options</a> feature.
+</p>
 
 <p> If you are MX service provider and want to apply disable
 head/body checks for some domains, you can configure ONE Postfix

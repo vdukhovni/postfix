@@ -9182,7 +9182,7 @@ Apologies for any names omitted.
 
 	Bugfix: bad address syntax was passed to transport map
 	lookups.  Problem reported by Andrei Koulik. File:
-	trivial-rewrite/resolve.c.
+	util/match_ops.c, trivial-rewrite/resolve.c.
 
 20040324
 
@@ -9300,6 +9300,27 @@ Apologies for any names omitted.
 
 	Bugfix: sub-level Makefiles no longer turned on the extra
 	compiler warnings. Files: Makefile.in.*, makedefs.*.
+
+20040415
+
+	Bugfix: the LMTP client attempted to reuse a connection
+	after timeout, causing protocol synchronization errors.
+	Reported by Rob Mueller. File: lmtp/lmtp.c.
+
+20040416
+
+	Cleanup: non-delivery reports now include the original
+	recipient information. File: bounce/bounce_notify_util.c.
+
+20040415-18
+
+	Typos: many documentation fixes by Rob Foehl.
+
+20040418
+
+	Cleanup: "int" versus "const int" prototype mismatch between
+	the DICT sequence method prototype and possible implementations.
+	Files: util/dict_db.c, util/dict_dbm.c.
 
 Open problems:
 

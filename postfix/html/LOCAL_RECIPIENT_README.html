@@ -33,8 +33,8 @@ MAILER-DAEMON messages. </p>
 upgrade from a Postfix system that was not configured to reject
 mail for unknown local recipients. </p>
 
-<p> This document describes what steps are needed in order reject
-mail correctly. </p>
+<p> This document describes what steps are needed in order to reject
+unknown local recipients correctly. </p>
 
 <ul>
 
@@ -158,10 +158,9 @@ the table, but the value is ignored by <a href="postconf.5.html#local_recipient_
 
 </ul>
 
-<p> If you use lookup tables in NIS, LDAP, MYSQL, or PGSQL different
-format, then <a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a> does the same queries as for
-local files in <a href="postmap.1.html">postmap(1)</a> format, and expects the same results.
-</p>
+<p> If you use lookup tables based on NIS, LDAP, MYSQL, or PGSQL,
+then <a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a> does the same queries as for local files
+in <a href="postmap.1.html">postmap(1)</a> format, and expects the same results.  </p>
 
 <p> With regular expression tables, Postfix only queries with the
 full recipient address, and not with the bare username or the

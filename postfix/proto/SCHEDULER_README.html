@@ -21,10 +21,10 @@
 
 <p> This is the beginning of documentation for the clever queue
 manager scheduling algorithm by Patrik Rak. For a long time, this
-code was made available under the name "nqmgr" (new queue manager),
+code was made available under the name "nqmgr(8)" (new queue manager),
 as an optional module. As of Postfix 2.1 this is the default queue
-manager, which is always called "qmgr". The old queue manager will
-for some time will be available under the name of "oqmgr". </p>
+manager, which is always called "qmgr(8)". The old queue manager will
+for some time will be available under the name of "oqmgr(8)". </p>
 
 <h2>Why the old Postfix queue manager was replaced</h2>
 
@@ -62,10 +62,10 @@ unfortunate choices in its design. </p>
 with the postconf(5) manual that describes each configuration
 parameter in detail. </p>
 
-<p> From user's point of view, qmgr and nqmgr are both the same,
+<p> From user's point of view, oqmgr(8) and qmgr(8) are both the same,
 except for how next message is chosen when delivery agent becomes
-available.  You already know that qmgr uses round-robin by destination
-while nqmgr uses simple FIFO, except for some preemptive magic.
+available.  You already know that oqmgr(8) uses round-robin by destination
+while qmgr(8) uses simple FIFO, except for some preemptive magic.
 The postconf(5) manual documents all the knobs the user
 can use to control this preemptive magic - there is nothing else
 to the preemption than the quite simple conditions described below.
@@ -90,7 +90,7 @@ differences of the programmer's view from the user's view are: </p>
     jobs (one message is split among several jobs, one per each
     transport needed to deliver the message) and queue entries
     (each entry may group several recipients for same destination).
-    Then there is the peer structure introduced by nqmgr which is
+    Then there is the peer structure introduced by qmgr(8) which is
     simply per-job analog of the queue structure. </p>
 
     <li> <p> Dealing with concurrency limits: The actual implementation

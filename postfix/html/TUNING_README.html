@@ -24,9 +24,16 @@ Postfix Performance Tuning</h1>
 performance of Postfix systems that already work.  If your Postfix
 system is unable to receive or deliver mail, then you need to solve
 those problems first, using the <a href="DEBUG_README.html">DEBUG_README</a> document as guidance.
-Content filter performance is not covered here, either; the reader
-is referred to the respective information in the <a href="FILTER_README.html">FILTER_README</a> and
-<a href="SMTPD_PROXY_README.html">SMTPD_PROXY_README</a> documents.  </p>
+
+<p> For tuning external content filter performance, first read the
+respective information in the <a href="FILTER_README.html">FILTER_README</a> and <a href="SMTPD_PROXY_README.html">SMTPD_PROXY_README</a>
+documents. Then make sure to avoid latency in the content filter
+code. As much as possible avoid performing queries against external
+data sources with a high or highly variable delay. Your content
+filter will run with a small concurrency to avoid CPU/memory
+starvation, and if any latency creeps in, content filter throughput
+will suffer. High volume environments should avoid RBL lookups,
+complex database queries and so on. </p>
 
 <p>Topics on mail receiving performance: </p>
 
@@ -132,7 +139,7 @@ by turning off the delay: </p>
 <blockquote>
 <pre>
 /etc/postfix/main.cf:
-    # Not needed with Postfix 2.0
+    # Not needed with Postfix 2.1
     <a href="postconf.5.html#smtpd_error_sleep_time">smtpd_error_sleep_time</a> = 0
 </pre>
 </blockquote>
@@ -332,6 +339,49 @@ enough to noticeably load a system without bringing it to its knees.
 Be careful when changing this to a much larger number. </p>
 
 </ul>
+
+<p> The above default values of the concurrency limits work well
+in a broad range of situations. Knee-jerk changes to these parameters
+in the face of congestion can actually make problems worse.
+Specifically, large destination concurrencies should never be the
+default. They should be used only for transports that deliver mail
+to a small number of high volume domains.  </p>
+
+<p> A common situation where high concurrency is called for is on
+gateways relaying a high volume of mail from between the Internet
+and an intranet mail environment. Approximately half the mail
+(assuming equal volumes inbound and outbound) will be destined to
+for the internal mail hubs.  Since the internal mail hubs will be
+receiving all external mail exclusively from the gateway, it is
+reasonable to configure the gateway to make greater demands on the
+capacity of the internal SMTP servers. </p>
+
+<p> The tuning of the inbound concurrency limits need not be trial
+and error. A high volume capable mailhub should be able to easily
+handle 50 or 100 (rather than the default 20) simultaneous connections,
+especially if the gateway forwards to multiple MX hosts. When all
+MX hosts are up and accepting connections in a timely fashion,
+throughput will be high.  If any MX host is down and completely
+unresponsive, the average connection latency rises to at least 1/N
+* $smtp_connection_timeout, if there are N MX hosts. This limits
+throughput to at most the destination concurrency * N /
+$smtp_connection_timeout. </p>
+
+<p> For example, with a destination concurrency of 100 and 2 MX
+hosts, each host will handle up to 50 simultaneous connections. If
+one MX host is down and the default SMTP connection timeout is 30s,
+the throughput limit is 100 * 2 / 30 ~= 6 messages per second. This
+suggests that high volume destinations with good connectivity and
+multiple MX hosts need a lower connection timeout, values as low
+as 5s or even 1s can be used to prevent congestion when one or
+more, but not all MX hosts are down. </p>
+
+<p> If necessary, set a higher transport_destination_concurrency_limit
+(in main.cf since this is a queue manager parameter) and a lower
+smtp_connection_timeout (with a "-o" override in master.cf since
+this parameter has no per-transport name) for the relay transport
+and any transports dedicated for specific high volume destinations.
+</p>
 
 <h2><a name="rcpts">Tuning the number of recipients per delivery</a></h2>
 

@@ -76,13 +76,15 @@ this:
     /etc/postfix/header_checks:
         /^Received: +from +(porcupine\.org) +/
             reject forged client name in Received: header: $1
-        /^Received: +from +[^ ]+ +\(([^ ]+ +[he]+lo=|[he]+lo +)(porcupine\.org)\)/
+        /^Received: +from +[^ ]+ +\(([^ ]+ +[he]+lo=|[he]+lo +)
+    (porcupine\.org)\)/
             reject forged client name in Received: header: $2
 
     /etc/postfix/body_checks:
         /^[> ]*Received: +from +(porcupine\.org) /
             reject forged client name in Received: header: $1
-        /^[> ]*Received: +from +[^ ]+ +\(([^ ]+ +[he]+lo=|[he]+lo +)(porcupine\.org)\)/
+        /^[> ]*Received: +from +[^ ]+ +\(([^ ]+ +[he]+lo=|[he]+lo +)
+    (porcupine\.org)\)/
             reject forged client name in Received: header: $2
 
 Notes:

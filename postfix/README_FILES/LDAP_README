@@ -81,7 +81,7 @@ CCoonnffiigguurriinngg LLDDAAPP llooookkuuppss
 In order to use LDAP lookups, define an LDAP source as a table lookup in
 main.cf, for example:
 
-    alias_maps = hash:/etc/aliases, ldap:/etc/ldap-aliases.cf
+    alias_maps = hash:/etc/aliases, ldap:/etc/postfix/ldap-aliases.cf
 
 The file /etc/postfix/ldap-aliases.cf can specify a great number of parameters,
 including parameters that enable LDAP SSL and STARTTLS. For a complete
@@ -92,9 +92,9 @@ EExxaammppllee:: llooccaall((88)) aalliiaasseess
 Here's a basic example for using LDAP to look up local(8) aliases. Assume that
 in main.cf, you have:
 
-    alias_maps = hash:/etc/aliases, ldap:/etc/ldap-aliases.cf
+    alias_maps = hash:/etc/aliases, ldap:/etc/postfix/ldap-aliases.cf
 
-and in ldap:/etc/ldap-aliases.cf you have:
+and in ldap:/etc/postfix/ldap-aliases.cf you have:
 
     server_host = ldap.my.com
     search_base = dc=my, dc=com
@@ -109,10 +109,10 @@ treated as RFC822 addresses to which the message will be delivered.
 EExxaammppllee:: vviirrttuuaall ddoommaaiinnss//aaddddrreesssseess
 
 If you want to keep information for virtual lookups in your directory, it's
-only a little more complicated. First you need to make sure Postfix knows about
-the virtual domain. An easy way to do that is to add the domain to the
-mailacceptinggeneralid attribute of some entry in the directory. Next you'll
-want to make sure all of your virtual recipients' mailacceptinggeneralid
+only a little more complicated. First, you need to make sure Postfix knows
+about the virtual domain. An easy way to do that is to add the domain to the
+mailacceptinggeneralid attribute of some entry in the directory. Next, you'll
+want to make sure all of your virtual recipient's mailacceptinggeneralid
 attributes are fully qualified with their virtual domains. Finally, if you want
 to designate a directory entry as the default user for a virtual domain, just
 give it an additional mailacceptinggeneralid (or the equivalent in your
@@ -146,8 +146,8 @@ Normal users might simply have one mailacceptinggeneralid and maildrop, e.g.
 OOtthheerr uusseess ooff LLDDAAPP llooookkuuppss
 
 Other common uses for LDAP lookups include rewriting senders and recipients
-with Postfix' canonical lookups, for example in order to make mail leaving your
-site appear to be coming from "First.Last@site.dom" instead of
+with Postfix's canonical lookups, for example in order to make mail leaving
+your site appear to be coming from "First.Last@site.dom" instead of
 "userid@site.dom".
 
 NNootteess aanndd tthhiinnggss ttoo tthhiinnkk aabboouutt
@@ -208,7 +208,7 @@ NNootteess aanndd tthhiinnggss ttoo tthhiinnkk aabboouu
 
   * Multiple LDAP maps share the same LDAP connection if they differ only in
     their query related parameters: base, scope, query_filter, and so on. To
-    take advantage of this avoid spurious differences in the definitions of
+    take advantage of this, avoid spurious differences in the definitions of
     LDAP maps: host selection order, version, bind, tls parameters, ... should
     be the same for multiple maps whenever possible.
 

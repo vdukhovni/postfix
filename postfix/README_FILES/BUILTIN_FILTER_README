@@ -41,7 +41,7 @@ inspection works:
 
 The picture makes clear that the filter works while Postfix is receiving new
 mail. This means that Postfix can reject mail from the network without having
-to return undeliverable mail the originator address (which is often spoofed
+to return undeliverable mail to the originator address (which is often spoofed
 anyway). However, this ability comes at a price: if mail inspection takes too
 much time, then the remote client will time out, and the client may send the
 same message repeatedly.
@@ -188,7 +188,7 @@ applied to the text that is part of the mail status report.
             Date     => `date`,
             Type     => 'text/plain',
             Encoding => 'base64',
-            Path     =>'/tmp/pflogg',
+            Path     => '/tmp/pflogg',
         );
 
         $msg->send;
@@ -212,6 +212,9 @@ daily mail status reports, but this is not recommended. Such rules slow down
 all mail and complicate Postfix maintenance.
 
 CCoonnffiigguurriinngg hheeaaddeerr//bbooddyy cchheecckkss ffoorr mmaaiill ffrroomm oouuttssiiddee uusseerrss oonnllyy
+
+The following information applies to Postfix 2.1. Earlier Postfix versions do
+not support the receive_override_options feature.
 
 The easiest approach is to configure ONE Postfix instance with multiple SMTP
 server IP addresses in master.cf:
@@ -243,6 +246,9 @@ server IP addresses in master.cf:
         1.2.3.5:smtp  inet  n       -       n       -       -       smtpd
 
 CCoonnffiigguurriinngg hheeaaddeerr//bbooddyy cchheecckkss ffoorr mmaaiill ttoo ssoommee ddoommaaiinnss oonnllyy
+
+The following information applies to Postfix 2.1. Earlier Postfix versions do
+not support the receive_override_options feature.
 
 If you are MX service provider and want to apply disable head/body checks for
 some domains, you can configure ONE Postfix instance with multiple SMTP server

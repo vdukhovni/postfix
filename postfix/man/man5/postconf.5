@@ -1136,7 +1136,8 @@ Needed for debugging Postfix daemons with an X-windows debugger.
 Needed to make "\fBpostfix -c\fR" work.
 .PP
 Specify a list of names and/or name=value pairs, separated by
-whitespace or comma.
+whitespace or comma. The name=value form is supported with
+Postfix 2.1 and later.
 .SH in_flow_delay (default: 1s)
 Time to pause before accepting a new message, when the message
 arrival rate exceeds the message delivery rate. This feature is
@@ -2335,6 +2336,8 @@ The maximal number of parallel deliveries to the same destination
 via the relay message delivery transport. This limit is enforced
 by the queue manager. The message delivery transport name is the
 first field in the entry in the master.cf file.
+.PP
+This feature is available in Postfix version 2.0 and later.
 .SH relay_destination_recipient_limit (default: $default_destination_recipient_limit)
 The maximal number of recipients per delivery via the relay
 message delivery transport. This limit is enforced by the queue
@@ -2344,6 +2347,8 @@ the entry in the master.cf file.
 Setting this parameter to a value of 1 changes the meaning of
 relay_destination_concurrency_limit from concurrency per domain
 into concurrency per recipient.
+.PP
+This feature is available in Postfix version 2.0 and later.
 .SH relay_domains (default: $mydestination)
 What destination domains (and subdomains thereof) this system
 will relay mail to. Subdomain matching is controlled with the

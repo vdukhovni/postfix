@@ -203,7 +203,7 @@ USAGE="Usage: $0 [name=value] command
 # IFS=value setting permanent. But some broken standard allows it.
 
 create=; set_perms=; upgrade_perms=; upgrade_conf=; first_install_reminder=
-obsolete=
+obsolete=; keep_list=;
 
 for arg
 do
@@ -437,6 +437,8 @@ test -n "$create" && {
 	then
 	    test -r $path && obsolete="$obsolete $path"
 	    continue;
+	else
+	    keep_list="$keep_list $path"
 	fi
 	# Create missing directories with proper owner/group/mode settings.
 	if [ -n "$create" -a "$type" = "d" -a -n "$create_flag" -a ! -d "$path" ]
@@ -602,6 +604,17 @@ EOF
     }
 
     # Report (but do not remove) obsolete files/directories.
+
+    obsolete=`awk 'BEGIN {
+	n = split("'"$keep_list"'", keep_list)
+	for (i = 1; i <= n; i++)
+	    keep_hash[keep_list[i]] = 1
+	n = split("'"$obsolete"'", obsolete_list)
+	for (i = 1; i <= n; i++)
+	    if (!keep_hash[obsolete_list[i]])
+		print obsolete_list[i]
+	exit
+    }'`
 
     test -n "$obsolete" && {
 	cat <<EOF | ${FMT}

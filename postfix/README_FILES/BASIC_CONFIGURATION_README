@@ -133,10 +133,10 @@ mail for the machine itself. See the VIRTUAL_README file for how to configure
 Postfix for hosted domains.
 
 You can specify zero or more domain names, "/file/name" patterns and/or "type:
-name" lookup tables (such as hash:, btree:, nis:, ldap:, or mysql:), separated
+table" lookup tables (such as hash:, btree:, nis:, ldap:, or mysql:), separated
 by whitespace and/or commas. A "/file/name" pattern is replaced by its
-contents; "type:name" requests that a table lookup is done and merely tests for
-existence: the lookup result is ignored.
+contents; "type:table" requests that a table lookup is done and merely tests
+for existence: the lookup result is ignored.
 
 IMPORTANT: If your machine is a mail server for its entire domain, you must
 list $mydomain as well.
@@ -179,7 +179,7 @@ Examples (specify only one of the following):
         mynetworks = 127.0.0.0/8 168.100.189.2/32 (authorize local machine)
 
 You can specify the trusted networks in the main.cf file, or you can let
-Postfix let the work for you. The default is to let Postfix do the work. The
+Postfix do the work for you. The default is to let Postfix do the work. The
 result depends on the mynetworks_style parameter value.
 
   * Specify "mynetworks_style = host" when Postfix should forward mail from
@@ -231,7 +231,7 @@ firewall, or it may be connected via a provider who does not allow direct mail
 to the Internet. In those cases you need to configure Postfix to deliver mail
 indirectly via a relay host.
 
-Examples (use only one):
+Examples (specify only one of the following):
 
     /etc/postfix/main.cf:
         relayhost =                   (default: direct delivery to Internet)
@@ -319,8 +319,8 @@ PPrrooxxyy//NNAATT eexxtteerrnnaall nneettwwoorrkk aad
 Some mail servers are connected to the Internet via a network address
 translator (NAT) or proxy. This means that systems on the Internet connect to
 the address of the NAT or proxy, instead of connecting to the network address
-of the mail server. The NAT or proxy forwards the connection to network address
-of the mail server, but Postfix does not know this.
+of the mail server. The NAT or proxy forwards the connection to the network
+address of the mail server, but Postfix does not know this.
 
 If you run a Postfix server behind a proxy or NAT, you need to configure the
 proxy_interfaces parameter and specify all the external proxy or NAT addresses
@@ -435,7 +435,7 @@ Examples (specify only one of the following):
 
 MMyy oowwnn ddoommaaiinn nnaammee
 
-The mydomain parameter specifies the parent domain of $myhostname. By default
+The mydomain parameter specifies the parent domain of $myhostname. By default,
 it is derived from $myhostname by stripping off the first part (unless the
 result would be a top-level domain).
 

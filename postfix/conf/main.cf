@@ -301,6 +301,7 @@ unknown_local_recipient_reject_code = 550
 #
 #relayhost = $mydomain
 #relayhost = [gateway.my.domain]
+#relayhost = [mailserver.isp.tld]
 #relayhost = uucphost
 #relayhost = [an.ip.add.ress]
 

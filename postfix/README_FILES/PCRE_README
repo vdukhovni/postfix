@@ -21,9 +21,9 @@ the postfix-pcre package and you're done. There is no need to recompile
 Postfix.
 
 In some future, Postfix will have a plug-in interface for adding map types.
-Until then you need to compile PCRE support into Postfix.
+Until then, you need to compile PCRE support into Postfix.
 
-First of all you need the PCRE library (Perl Compatible Regular Expressions),
+First of all, you need the PCRE library (Perl Compatible Regular Expressions),
 which can be obtained from:
 
     ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/.

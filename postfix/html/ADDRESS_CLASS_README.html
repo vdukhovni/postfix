@@ -83,7 +83,7 @@ difference between <a href="VIRTUAL_README.html#canonical">canonical domains</a>
 domains, see the <a href="VIRTUAL_README.html">VIRTUAL_README</a> file. </p>
 
 <li> <p> Domain names are listed with the <a href="postconf.5.html#mydestination">mydestination</a> parameter.
-This domain class also includes mail for <i>user[ipaddress]</i>
+This domain class also includes mail for <i>user@[ipaddress]</i>
 when the IP address is listed with the <a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or
 <a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a> parameters. </p>
 
@@ -155,7 +155,7 @@ for delivery with the <a href="virtual.8.html">virtual(8)</a> delivery agent. </
 
 <li> <p> Purpose: mail forwarding to remote destinations that list
 your system as primary or backup MX host. For a discussion of the
-basic configuration details, see <a href="BASIC_CONFIGURATION_README.html">BASIC_CONFIGURATION_README</a>.html
+basic configuration details, see the <a href="BASIC_CONFIGURATION_README.html">BASIC_CONFIGURATION_README</a>
 document.  For a discussion of the difference between canonical
 domains, <a href="VIRTUAL_README.html#canonical">hosted domains</a> and other domains, see the <a href="VIRTUAL_README.html">VIRTUAL_README</a>
 file. </p>
@@ -165,7 +165,7 @@ file. </p>
 
 <li> <p> Valid recipient addresses are listed with the <a href="postconf.5.html#relay_recipient_maps">relay_recipient_maps</a>
 parameter. The Postfix SMTP server rejects invalid recipients with
-"User unknown in relay recipients table". If this parameter value
+"User unknown in relay recipient table". If this parameter value
 is empty, the Postfix SMTP server accepts all recipients for domains
 listed with the <a href="postconf.5.html#relay_domains">relay_domains</a> parameter. </p>
 
@@ -182,9 +182,9 @@ is a clone of the <a href="smtp.8.html">smtp(8)</a> delivery agent. </p>
 
 <li> <p> Purpose: mail forwarding to the Internet on behalf of
 authorized clients. For a discussion of the basic configuration
-details, see the <a href="BASIC_CONFIGURATION_README.html">BASIC_CONFIGURATION_README</a>.html file. For a
-discussion of the difference between <a href="VIRTUAL_README.html#canonical">canonical domains</a>, hosted
-domains and other domains, see the <a href="VIRTUAL_README.html">VIRTUAL_README</a> file. </p>
+details, see the <a href="BASIC_CONFIGURATION_README.html">BASIC_CONFIGURATION_README</a> file. For a discussion
+of the difference between <a href="VIRTUAL_README.html#canonical">canonical domains</a>, <a href="VIRTUAL_README.html#canonical">hosted domains</a> and
+other domains, see the <a href="VIRTUAL_README.html">VIRTUAL_README</a> file. </p>
 
 <li> <p> This class has no destination domain table. </p>
 

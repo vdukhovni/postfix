@@ -128,7 +128,7 @@ as a table lookup in main.cf, for example: </p>
 
 <blockquote>
 <pre>
-<a href="postconf.5.html#alias_maps">alias_maps</a> = hash:/etc/aliases, <a href="ldap_table.5.html">ldap</a>:/etc/ldap-aliases.cf
+<a href="postconf.5.html#alias_maps">alias_maps</a> = hash:/etc/aliases, <a href="ldap_table.5.html">ldap</a>:/etc/postfix/ldap-aliases.cf
 </pre>
 </blockquote>
 
@@ -144,11 +144,11 @@ aliases. Assume that in main.cf, you have: </p>
 
 <blockquote> 
 <pre>
-<a href="postconf.5.html#alias_maps">alias_maps</a> = hash:/etc/aliases, <a href="ldap_table.5.html">ldap</a>:/etc/ldap-aliases.cf
+<a href="postconf.5.html#alias_maps">alias_maps</a> = hash:/etc/aliases, <a href="ldap_table.5.html">ldap</a>:/etc/postfix/ldap-aliases.cf
 </pre>
 </blockquote> 
 
-<p> and in <a href="ldap_table.5.html">ldap</a>:/etc/ldap-aliases.cf you have: </p>
+<p> and in <a href="ldap_table.5.html">ldap</a>:/etc/postfix/ldap-aliases.cf you have: </p>
 
 <blockquote> 
 <pre>
@@ -168,11 +168,11 @@ as <a href="http://www.faqs.org/rfcs/rfc822.html">RFC822</a> addresses to which 
 <h2><a name="example_virtual">Example: virtual domains/addresses</a></h2>
 
 <p> If you want to keep information for virtual lookups in your
-directory, it's only a little more complicated. First you need to
+directory, it's only a little more complicated. First, you need to
 make sure Postfix knows about the virtual domain. An easy way to
 do that is to add the domain to the mailacceptinggeneralid attribute
-of some entry in the directory. Next you'll want to make sure all
-of your virtual recipients' mailacceptinggeneralid attributes are
+of some entry in the directory. Next, you'll want to make sure all
+of your virtual recipient's mailacceptinggeneralid attributes are
 fully qualified with their virtual domains. Finally, if you want
 to designate a directory entry as the default user for a virtual
 domain, just give it an additional mailacceptinggeneralid (or the
@@ -209,15 +209,15 @@ go to this entry ... </p>
 </dl>
 
 <p> Normal users might simply have one mailacceptinggeneralid and
-maildrop, e.g. "normaluser@fake.dom" and "normaluser@real.dom".
+<a href="QSHAPE_README.html#maildrop_queue">maildrop</a>, e.g. "normaluser@fake.dom" and "normaluser@real.dom".
 </p>
 
 <h2><a name="other">Other uses of LDAP lookups</a></h2>
 
 Other common uses for LDAP lookups include rewriting senders and
-recipients with Postfix' canonical lookups, for example in order to make
-mail leaving your site appear to be coming from "First.Last@site.dom"
-instead of "userid@site.dom".
+recipients with Postfix's canonical lookups, for example in order
+to make mail leaving your site appear to be coming from
+"First.Last@site.dom" instead of "userid@site.dom".
 
 <h2><a name="hmmmm">Notes and things to think about</a></h2>
 
@@ -291,7 +291,7 @@ query_filter = (&amp;(mailacceptinggeneralid=%s)(!(|(maildrop="*|*")(maildrop="*
 
 <li> <p> Multiple LDAP maps share the same LDAP connection if they differ
   only in their query related parameters: base, scope, query_filter, and
-  so on. To take advantage of this avoid spurious differences in the
+  so on. To take advantage of this, avoid spurious differences in the
   definitions of LDAP maps: host selection order, version, bind, tls
   parameters, ... should be the same for multiple maps whenever possible. </p>
 

@@ -84,23 +84,23 @@ The figure shows the main components of the Postfix mail delivery apparatus.
 Names followed by a number are Postfix commands or server programs, while
 unnumbered names inside shaded areas represent Postfix queues.
 
-                             trivial-       smtp(8)  -> Network
+                             trivial-        smtp(8)  -> Network
                             rewrite(8)
-                                        /
+                                         /
 
-                                        -   lmtp(8)  -> Network
+                                         -   lmtp(8)  -> Network
                                  ^ |
                                  | v   /
 
-    incoming ->  active  ->   qmgr(8)  --  local(8)  -> File, command
+    incoming ->  active  ->   qmgr(8)  ---  local(8)  -> File, command
 
                                        \
                    ^ |
-                   | v                  - virtual(8) -> File
+                   | v                   - virtual(8) -> File
 
-                deferred                \
+                deferred                 \
 
-                                            pipe(8)  -> Command
+                                             pipe(8)  -> Command
 
   * The queue manager (the qmgr(8) server process in the figure) is the heart
     of Postfix mail delivery. It contacts the smtp(8), lmtp(8), local(8),

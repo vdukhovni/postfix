@@ -16,7 +16,8 @@ The bad news is that it may cause mail to be rejected when you upgrade from a
 Postfix system that was not configured to reject mail for unknown local
 recipients.
 
-This document describes what steps are needed in order reject mail correctly.
+This document describes what steps are needed in order to reject unknown local
+recipients correctly.
 
   * Configuring local_recipient_maps in main.cf
   * When you need to change the local_recipient_maps setting in main.cf
@@ -99,7 +100,7 @@ the following table format:
   * You have to specify something on the right-hand side of the table, but the
     value is ignored by local_recipient_maps.
 
-If you use lookup tables in NIS, LDAP, MYSQL, or PGSQL different format, then
+If you use lookup tables based on NIS, LDAP, MYSQL, or PGSQL, then
 local_recipient_maps does the same queries as for local files in postmap(1)
 format, and expects the same results.
 

@@ -83,7 +83,7 @@ difference between canonical domains, hosted domains and other
 domains, see the VIRTUAL_README file. </p>
 
 <li> <p> Domain names are listed with the mydestination parameter.
-This domain class also includes mail for <i>user[ipaddress]</i>
+This domain class also includes mail for <i>user@[ipaddress]</i>
 when the IP address is listed with the inet_interfaces or
 proxy_interfaces parameters. </p>
 
@@ -155,7 +155,7 @@ for delivery with the virtual(8) delivery agent. </p>
 
 <li> <p> Purpose: mail forwarding to remote destinations that list
 your system as primary or backup MX host. For a discussion of the
-basic configuration details, see BASIC_CONFIGURATION_README.html
+basic configuration details, see the BASIC_CONFIGURATION_README
 document.  For a discussion of the difference between canonical
 domains, hosted domains and other domains, see the VIRTUAL_README
 file. </p>
@@ -165,7 +165,7 @@ file. </p>
 
 <li> <p> Valid recipient addresses are listed with the relay_recipient_maps
 parameter. The Postfix SMTP server rejects invalid recipients with
-"User unknown in relay recipients table". If this parameter value
+"User unknown in relay recipient table". If this parameter value
 is empty, the Postfix SMTP server accepts all recipients for domains
 listed with the relay_domains parameter. </p>
 
@@ -182,9 +182,9 @@ is a clone of the smtp(8) delivery agent. </p>
 
 <li> <p> Purpose: mail forwarding to the Internet on behalf of
 authorized clients. For a discussion of the basic configuration
-details, see the BASIC_CONFIGURATION_README.html file. For a
-discussion of the difference between canonical domains, hosted
-domains and other domains, see the VIRTUAL_README file. </p>
+details, see the BASIC_CONFIGURATION_README file. For a discussion
+of the difference between canonical domains, hosted domains and
+other domains, see the VIRTUAL_README file. </p>
 
 <li> <p> This class has no destination domain table. </p>
 

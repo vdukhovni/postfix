@@ -64,37 +64,38 @@ trivial-<br>rewrite(8)</a> </td>
 
 <tr>
 
-<td> Network </td> <td> -&gt; </td>
+<td> Network </td> <td> <tt> -&gt; </tt> </td>
 
 <td bgcolor="#f0f0ff" align="center" valign="middle"> <a href="smtpd.8.html">smtpd(8)</a>
 </td>
 
 <td> </td>
 
-<td rowspan="2" align="center"> <table> <tr> <td align="center">^<br>|</td>
-<td align="center">|<br>v</td> </tr> </table> </td>
+<td rowspan="2" align="center"> <table> <tr> <td align="center">
+^<br> <tt> | </tt> </td> <td align="center"> <tt> |<br> v </tt>
+</td> </tr> </table> </td>
 
 </tr>
 
 <tr>
 
-<td colspan="3"> </td> <td> \ </td>
+<td colspan="3"> </td> <td> <tt> \ </tt> </td>
 
 </tr>
 
 <tr>
 
-<td> Network </td> <td> -&gt; </td>
+<td> Network </td> <td> <tt> -&gt; </tt> </td>
 
 <td bgcolor="#f0f0ff" align="center" valign="middle"> <a href="qmqpd.8.html">qmqpd(8)</a>
 </td>
 
-<td> -&gt; </td>
+<td> <tt> -&gt; </tt> </td>
 
 <td bgcolor="#f0f0ff" align="center" valign="middle"> <a href="cleanup.8.html">cleanup(8)</a>
 </td>
 
-<td> -&gt; </td>
+<td> <tt> -&gt; </tt> </td>
 
 <td bgcolor="#f0f0ff" align="center" valign="middle"> <a
 href="QSHAPE_README.html#incoming_queue"> incoming </a> </td>
@@ -103,7 +104,7 @@ href="QSHAPE_README.html#incoming_queue"> incoming </a> </td>
 
 <tr>
 
-<td colspan="3"> </td> <td> / </td>
+<td colspan="3"> </td> <td> <tt> / </tt> </td>
 
 </tr>
 
@@ -114,7 +115,7 @@ href="QSHAPE_README.html#incoming_queue"> incoming </a> </td>
 <td bgcolor="#f0f0ff" align="center" valign="middle"> <a href="pickup.8.html">pickup(8)</a>
 </td>
 
-<td> &lt;- </td>
+<td> <tt> &lt;- </tt> </td>
 
 <td bgcolor="#f0f0ff" align="center" valign="middle"> <a
 href="QSHAPE_README.html#maildrop_queue"> maildrop </a> </td>
@@ -125,18 +126,18 @@ href="QSHAPE_README.html#maildrop_queue"> maildrop </a> </td>
 
 <td colspan="4" align="center"> </td>
 
-<td align="center"> ^<br> |</td>
+<td align="center"> ^<br> <tt> | </tt> </td>
 
 </tr>
 
 <tr>
 
-<td> Local </td> <td> -&gt; </td>
+<td> Local </td> <td> <tt> -&gt; </tt> </td>
 
 <td bgcolor="#f0f0ff" align="center" valign="middle"> <a href="sendmail.1.html">sendmail(1)</a>
 </td>
 
-<td> -&gt; </td>
+<td> <tt> -&gt; </tt> </td>
 
 <td bgcolor="#f0f0ff" align="center" valign="middle"> <a href="postdrop.1.html">postdrop(1)</a>
 </td>
@@ -212,13 +213,13 @@ href="trivial-rewrite.8.html"> trivial-<br> rewrite(8) </a> </td>
 
 <td bgcolor="#f0f0ff" align="center"> <a href="smtp.8.html">smtp(8)</a> </td>
 
-<td> -&gt; </td> <td> Network </td>
+<td> <tt> -&gt; </tt> </td> <td> Network </td>
 
 </tr>
 
 <tr>
 
-<td align="right"> / </td>
+<td align="right"> <tt> / </tt> </td>
 
 </tr>
 
@@ -227,19 +228,20 @@ href="trivial-rewrite.8.html"> trivial-<br> rewrite(8) </a> </td>
 <td rowspan="2" colspan="4"> </td>
 
 <td rowspan="2" align="center"> <table> <tr> <td align="center">
-^<br> |</td> <td align="center"> |<br> v</td> </tr> </table> </td>
+^<br> <tt> | </tt> </td> <td align="center"> <tt> |<br> v </tt>
+</td> </tr> </table> </td>
 
-<td align="right"> - </td>
+<td align="right"> <tt> - </tt> </td>
 
 <td bgcolor="#f0f0ff" align="center"> <a href="lmtp.8.html">lmtp(8)</a> </td>
 
-<td> -&gt; </td> <td> Network </td>
+<td> <tt> -&gt; </tt> </td> <td> Network </td>
 
 </tr>
 
 <tr>
 
-<td align="left"> / </td>
+<td align="left"> <tt> / </tt> </td>
 
 </tr>
 
@@ -248,20 +250,20 @@ href="trivial-rewrite.8.html"> trivial-<br> rewrite(8) </a> </td>
 <td bgcolor="#f0f0ff" align="center"> <a
 href="QSHAPE_README.html#incoming_queue"> incoming </a> </td>
 
-<td> -&gt; </td>
+<td> <tt> -&gt; </tt> </td>
 
 <td bgcolor="#f0f0ff" align="center"> <a
 href="QSHAPE_README.html#active_queue"> active </a> </td>
 
-<td> -&gt; </td>
+<td> <tt> -&gt; </tt> </td>
 
 <td bgcolor="#f0f0ff" align="center"> <a href="qmgr.8.html">qmgr(8)</a> </td>
 
-<td align="right"> -- </td>
+<td align="right"> <tt> --- </tt> </td>
 
 <td bgcolor="#f0f0ff" align="center"> <a href="local.8.html">local(8)</a> </td>
 
-<td> -&gt; </td> <td> File, command </td>
+<td> <tt> -&gt; </tt> </td> <td> File, command </td>
 
 </tr>
 
@@ -270,21 +272,22 @@ href="QSHAPE_README.html#active_queue"> active </a> </td>
 <td rowspan="2" colspan="2"> </td>
 
 <td rowspan="2" align="center"> <table> <tr> <td align="center">
-^<br> |</td> <td align="center"> |<br> v</td> </tr> </table> </td>
+^<br> <tt> | </tt> </td> <td align="center"> <tt> |<br> v </tt>
+</td> </tr> </table> </td>
 
 <td rowspan="2" colspan="2"> </td>
 
-<td align="left"> \</td>
+<td align="left"> <tt> \ </tt> </td>
 
 </tr>
 
 <tr>
 
-<td align="right"> - </td>
+<td align="right"> <tt> - </tt> </td>
 
 <td bgcolor="#f0f0ff" align="center"> <a href="virtual.8.html">virtual(8)</a> </td>
 
-<td> -&gt; </td> <td> File </td>
+<td> <tt> -&gt; </tt> </td> <td> File </td>
 
 </tr>
 
@@ -297,7 +300,7 @@ href="QSHAPE_README.html#deferred_queue"> deferred </a> </td>
 
 <td colspan="2"> </td>
 
-<td align="right"> \</td>
+<td align="right"> <tt> \ </tt> </td>
 
 </tr>
 
@@ -307,7 +310,7 @@ href="QSHAPE_README.html#deferred_queue"> deferred </a> </td>
 
 <td bgcolor="#f0f0ff" align="center"> <a href="pipe.8.html">pipe(8)</a> </td>
 
-<td> -&gt; </td> <td> Command </td>
+<td> <tt> -&gt; </tt> </td> <td> Command </td>
 
 </tr>
 
@@ -422,8 +425,8 @@ handling daemon processes are shown. </p>
 <tr> <td colspan="2"> </td> <td align="center" bgcolor="#f0f0ff">
 postfix-script(1) </td> </tr>
 
-<tr> <td> </td> <td> <table> <tr> <td> </td> <td> /</td> </tr> <tr>
-<td> / </td> <td> </td> </tr> </table> </td> <td align="center">
+<tr> <td> </td> <td> <table> <tr> <td> </td> <td> / </td> </tr>
+<tr> <td> / </td> <td> </td> </tr> </table> </td> <td align="center">
 |<br> |</td> <td> <table> <tr> <td> \ </td> <td> </td> </tr> <tr>
 <td> </td> <td> \ </td> </tr> </table> </td> </tr>
 
@@ -431,8 +434,8 @@ postfix-script(1) </td> </tr>
 </td> <td align="center" bgcolor="#f0f0ff"> <a href="master.8.html">master(8)</a> </td> <td>
 </td> <td align="center" bgcolor="#f0f0ff"> <a href="postlog.1.html">postlog(1)</a> </td> </tr>
 
-<tr> <td> </td> <td> <table> <tr> <td> </td> <td> /</td> </tr> <tr>
-<td> / </td> <td> </td> </tr> </table> </td> <td align="center">
+<tr> <td> </td> <td> <table> <tr> <td> </td> <td> / </td> </tr>
+<tr> <td> / </td> <td> </td> </tr> </table> </td> <td align="center">
 |<br> |</td> <td> <table> <tr> <td> \ </td> <td> </td> </tr> <tr>
 <td> </td> <td> \ </td> </tr> </table> </td> </tr>
 
@@ -450,9 +453,10 @@ provides guidance for dealing with mis-behaving SMTP clients. The
 
 <table>
 
-<tr> <td> Network </td> <td> -&gt; </td> <td align="center"
-bgcolor="#f0f0ff"> <br> <a href="smtpd.8.html">smtpd(8)</a><br><br> </td> <td> &lt;-&gt; </td> <td
-align="center" bgcolor="#f0f0ff"> <br> <a href="anvil.8.html">anvil(8)</a><br><br> </td> </tr>
+<tr> <td> Network </td> <td> <tt> -&gt; </tt> </td> <td align="center"
+bgcolor="#f0f0ff"> <br> <a href="smtpd.8.html">smtpd(8)</a><br><br> </td> <td> <tt> &lt;-&gt;
+</tt> </td> <td align="center" bgcolor="#f0f0ff"> <br> <a href="anvil.8.html">anvil(8)</a><br><br>
+</td> </tr>
 
 </table>
 
@@ -470,23 +474,24 @@ and later. See <a href="DEBUG_README.html#trace_mail"> DEBUG_README
 <table>
 
 <tr> <td align="center" bgcolor="#f0f0ff"> <a href="cleanup.8.html">cleanup(8)</a> </td> <td
-valign="middle"> -&gt; </td> <td align="center" bgcolor="#f0f0ff">
-<a href="qmgr.8.html">qmgr(8)</a><br> Postfix<br> queue </td> <td valign="middle"> -&gt;
-</td> <td align="center" bgcolor="#f0f0ff"> Delivery<br> agents</td>
-</tr>
+valign="middle"> <tt> -&gt; </tt> </td> <td align="center"
+bgcolor="#f0f0ff"> <a href="qmgr.8.html">qmgr(8)</a><br> Postfix<br> queue </td> <td
+valign="middle"> <tt> -&gt; </tt> </td> <td align="center"
+bgcolor="#f0f0ff"> Delivery<br> agents</td> </tr>
 
-<tr> <td align="center"> ^<br> | </td> <td> </td> <td align="center">
-|<br> v</td> <td> </td> <td align="center"> |<br> v</td> </tr>
+<tr> <td align="center"> ^<br> <tt> | </tt> </td> <td> </td> <td
+align="center"> <tt> |<br> v </tt> </td> <td> </td> <td align="center">
+<tt> |<br> v </tt> </td> </tr>
 
 <tr> <td align="center"> (Non-)<br> delivery<br> notice </td> <td
-valign="middle"> &lt;- </td> <td align="center" bgcolor="#f0f0ff">
-<a href="bounce.8.html">bounce(8)</a><br> <a href="defer.8.html">defer(8)</a><br> <a href="trace.8.html">trace(8)</a> </td> <td valign="middle">
-&lt;- </td> <td align="center"> Queue id,<br> recipient,<br>
-status</td> </tr>
+valign="middle"> <tt> &lt;- </tt> </td> <td align="center"
+bgcolor="#f0f0ff"> <a href="bounce.8.html">bounce(8)</a><br> <a href="defer.8.html">defer(8)</a><br> <a href="trace.8.html">trace(8)</a> </td> <td
+valign="middle"> <tt> &lt;- </tt> </td> <td align="center"> Queue
+id,<br> recipient,<br> status</td> </tr>
 
 <tr> <td colspan="2"> </td> <td align="center"> <table> <tr> <td
-align="center"> ^<br> |</td> <td align="center"> |<br> v</td> </tr>
-</table> </td> </tr>
+align="center"> ^<br> <tt> | </tt> </td> <td align="center"> <tt>
+|<br> v </tt> </td> </tr> </table> </td> </tr>
 
 <tr> <td colspan="2"> </td> <td align="center" bgcolor="#f0f0ff">
 Per- <br> message<br> logfiles </td> </tr>
@@ -510,18 +515,19 @@ delivery.  The <a href="flush.8.html">flush(8)</a> service is available with Pos
 <tr> <td colspan="4"> </td> <td align="center"> ^<br> |</td> </tr>
 
 <tr> <td align="center" bgcolor="#f0f0ff"> <a href="smtpd.8.html">smtpd(8)</a><br> <a href="sendmail.1.html">sendmail(1)</a><br>
-<a href="postqueue.1.html">postqueue(1)</a> </td> <td> - </td> <td align="center"> Destination<br>
-to flush</td> <td> -&gt; </td> <td align="center" bgcolor="#f0f0ff">
-<a href="flush.8.html">flush(8)</a> </td> <td> &lt;- </td> <td align="center"> Deferred<br>
-destination,<br> queue id </td> <td> - </td> <td align="center"
-bgcolor="#f0f0ff"> Delivery<br> agents,<br> <a href="qmgr.8.html">qmgr(8)</a> </td> </tr>
+<a href="postqueue.1.html">postqueue(1)</a> </td> <td> <tt> - </tt> </td> <td align="center">
+Destination<br> to flush</td> <td> <tt> -&gt; </tt> </td> <td
+align="center" bgcolor="#f0f0ff"> <a href="flush.8.html">flush(8)</a> </td> <td> <tt> &lt;-
+</tt> </td> <td align="center"> Deferred<br> destination,<br> queue
+id </td> <td> <tt> - </tt> </td> <td align="center" bgcolor="#f0f0ff">
+Delivery<br> agents,<br> <a href="qmgr.8.html">qmgr(8)</a> </td> </tr>
 
 <tr> <td colspan="4"> </td> <td align="center"> <table> <tr> <td
-align="center"> ^<br> |</td> <td align="center"> |<br> v </td>
-</tr> </table> </td> </tr>
+align="center"> ^<br> <tt> | </tt> </td> <td align="center"> <tt>
+|<br> v </tt>  </td> </tr> </table> </td> </tr>
 
-<tr> <td colspan="4"> </td> <td align="center"> 
-Per-dest-<br> ination<br> logs </td> </tr>
+<tr> <td colspan="4"> </td> <td align="center"> Per-dest-<br>
+ination<br> logs </td> </tr>
 
 </table>
 
@@ -536,13 +542,14 @@ and <a href="postqueue.1.html">postqueue(1)</a> commands.  </p>
 
 <table>
 
-<tr> <td> Output </td> <td> &lt;- </td> <td align="center" bgcolor="#f0f0ff">
-<a href="mailq.1.html">mailq(1)</a><br>
+<tr> <td> Output </td> <td> <tt> &lt;- </tt> </td> <td align="center"
+bgcolor="#f0f0ff"> <a href="mailq.1.html">mailq(1)</a><br>
 
 <a href="postqueue.1.html"> post-<br>queue(1) </a> <br> </td> <td>
-&lt;- </td> <td align="center" valign="middle" bgcolor="#f0f0ff">
-<a href="showq.8.html">showq(8)</a> </td> <td> &lt;-</td> <td align="center" valign="middle"
-bgcolor="#f0f0ff"> Postfix<br> queue </td> </tr>
+<tt> &lt;- </tt> </td> <td align="center" valign="middle"
+bgcolor="#f0f0ff"> <a href="showq.8.html">showq(8)</a> </td> <td> <tt> &lt;- </tt></td> <td
+align="center" valign="middle" bgcolor="#f0f0ff"> Postfix<br> queue
+</td> </tr>
 
 </table>
 
@@ -552,29 +559,31 @@ standard input, output and error streams. You can find examples of
 its use in the <a href="SMTPD_POLICY_README.html">SMTPD_POLICY_README</a> document.  </p>
 
 <li> <p> The <a href="verify.8.html">verify(8)</a> server verifies that a sender or recipient
-address is deliverable before the <a href="smtpd.8.html">smtpd(8)</a> server accepts it.  
-The <a href="verify.8.html">verify(8)</a> server injects probe messages into the Postfix queue
-and processes status updates from delivery agents and/or queue
-manager. This process is described in the <a href="ADDRESS_VERIFICATION_README.html">ADDRESS_VERIFICATION_README</a>
+address is deliverable before the <a href="smtpd.8.html">smtpd(8)</a> server accepts it.  The
+<a href="verify.8.html">verify(8)</a> server injects probe messages into the Postfix queue and
+processes status updates from delivery agents and/or queue manager.
+This process is described in the <a href="ADDRESS_VERIFICATION_README.html">ADDRESS_VERIFICATION_README</a>
 document.  The <a href="verify.8.html">verify(8)</a> service is available with Postfix version
 2.1 and later. </p>
 
 <table>
 
-<tr> <td> Network </td> <td> -&gt; </td> <td align="center"
-bgcolor="#f0f0ff"> <a href="smtpd.8.html">smtpd(8)</a> </td> <td> &lt;-&gt; </td> <td
-align="center" bgcolor="#f0f0ff"> <a href="verify.8.html">verify(8)</a> </td> <td> -&gt; </td>
-<td align="center" bgcolor="#f0f0ff"> <a href="cleanup.8.html">cleanup(8)</a> </td> <td> -&gt;
-</td> <td align="center" bgcolor="#f0f0ff"> <a href="qmgr.8.html">qmgr(8)</a><br> Postfix
-<br>queue </td> <td> -&gt; </td> <td align="center" bgcolor="#f0f0ff">
-Delivery<br> agents</td> </tr>
+<tr> <td> Network </td> <td> <tt> -&gt; </tt> </td> <td align="center"
+bgcolor="#f0f0ff"> <a href="smtpd.8.html">smtpd(8)</a> </td> <td> <tt> &lt;-&gt; </tt> </td>
+<td align="center" bgcolor="#f0f0ff"> <a href="verify.8.html">verify(8)</a> </td> <td> <tt>
+-&gt; </tt> </td> <td align="center" bgcolor="#f0f0ff"> <a href="cleanup.8.html">cleanup(8)</a>
+</td> <td> <tt> -&gt; </tt> </td> <td align="center" bgcolor="#f0f0ff">
+<a href="qmgr.8.html">qmgr(8)</a><br> Postfix <br>queue </td> <td> <tt> -&gt; </tt> </td>
+<td align="center" bgcolor="#f0f0ff"> Delivery<br> agents</td>
+</tr>
 
 <tr> <td colspan="5"> </td> <td align="right"> <table> <tr> <td>
 \ </td> <td> </td> </tr> <tr> <td> </td> <td> \ </td> </tr> </table>
-</td> <td align="center" valign="bottom"> &lt;- </td> <td
-valign="bottom"> &lt;- </td> <td align="center"> |<br> v </td> <td
-align="center"> <table> <tr> <td> </td> <td> / </td> </tr> <tr>
-<td> / </td> <td> </td> </tr> </table> </td> </tr>
+</td> <td align="center" valign="bottom"> <tt> &lt;- </tt> </td>
+<td valign="bottom"> <tt> &lt;- </tt> </td> <td align="center">
+<tt> |<br> v </tt> </td> <td align="center"> <table> <tr> <td>
+</td> <td> / </td> </tr> <tr> <td> / </td> <td> </td> </tr> </table>
+</td> </tr>
 
 </table>
 

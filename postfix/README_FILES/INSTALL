@@ -24,7 +24,7 @@ Topics covered in this document:
  2. Typographical conventions
  3. Documentation
  4. Building on a supported system
- 5. Porting Postfix to on an unsupported system
+ 5. Porting Postfix to an unsupported system
  6. Installing the software after successful compilation
  7. Configuring Postfix to send mail only
  8. Configuring Postfix to send and receive mail via virtual interface
@@ -238,7 +238,7 @@ web or to ask the postfix-users@postfix.org mailing list, but be sure to search
 the mailing list archives first. Some mailing list archives are linked from
 http://www.postfix.org/.
 
-55 -- PPoorrttiinngg PPoossttffiixx ttoo oonn aann uunnssuuppppoorrtteedd ssyysstteemm
+55 -- PPoorrttiinngg PPoossttffiixx ttoo aann uunnssuuppppoorrtteedd ssyysstteemm
 
 Each system type that Postfix knows is identified by a unique name. Examples:
 SUNOS5, FREEBSD4, and so on. When porting Postfix to a new system, the first
@@ -489,7 +489,7 @@ important files are main.cf and master.cf; these files must be owned by root.
 Giving someone else write permission to main.cf or master.cf (or to their
 parent directories) means giving root privileges to that person.
 
-In /etc/postfix/main.cf you will have to set up a minimal number of
+In /etc/postfix/main.cf, you will have to set up a minimal number of
 configuration parameters. Postfix configuration parameters resemble shell
 variables, with two important differences: the first one is that Postfix does
 not know about quotes like the UNIX shell does.
@@ -544,7 +544,7 @@ running on a virtual host interface.
 
 1100..44 -- PPrrooxxyy//NNAATT iinntteerrffaaccee aaddddrreesssseess
 
-The proxy_interfaces parameter specifies all network addresses that the Postfix
+The proxy_interfaces parameter specifies all network addresses that Postfix
 receives mail on by way of a proxy or network address translation unit. You may
 specify symbolic hostnames instead of network addresses.
 

@@ -84,7 +84,7 @@ The content filter can be a simple shell script like this:
 
      1 #!/bin/sh
      2
-     3 # Simple shell-based filter. If is meant to be invoked as follows:
+     3 # Simple shell-based filter. It is meant to be invoked as follows:
      4 #       /path/to/script -f sender recipients...
      5
      6 # Localize these.
@@ -393,10 +393,10 @@ without sending `.' on the connection that injects mail back into Postfix.
     main.cf settings. They turn off junk mail controls that would only waste
     time here.
 
-  * With "-o smtpd_authorized_xforward_hosts=mynetworks=127.0.0.0/8", the scan
-    transport will try to forward the original client name and IP address to
-    the after-filter smtpd process, so that filtered mail is logged with the
-    real client name IP address. See XFORWARD_README and smtpd(8).
+  * With "-o smtpd_authorized_xforward_hosts=127.0.0.0/8", the scan transport
+    will try to forward the original client name and IP address to the after-
+    filter smtpd process, so that filtered mail is logged with the real client
+    name and IP address. See XFORWARD_README and smtpd(8).
 
 AAddvvaanncceedd ccoonntteenntt ffiilltteerr ppeerrffoorrmmaannccee
 
@@ -448,10 +448,10 @@ After this, you can follow the same procedure as outlined in the "advanced" or
 
 DDiiffffeerreenntt ffiilltteerrss ffoorr ddiiffffeerreenntt ddoommaaiinnss
 
-If you are MX service provider and want to apply different content filters for
-different domains, you can configure ONE Postfix instance with multiple SMTP
-server IP addresses in master.cf. Each address provides a different content
-filter service.
+If you are an MX service provider and want to apply different content filters
+for different domains, you can configure ONE Postfix instance with multiple
+SMTP server IP addresses in master.cf. Each address provides a different
+content filter service.
 
     /etc/postfix.master.cf:
         # =================================================================

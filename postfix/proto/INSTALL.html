@@ -54,7 +54,7 @@ without any change to an existing Sendmail installation.
 
 <li> <a href="#4">Building on a supported system</a>
 
-<li> <a href="#5">Porting Postfix to on an unsupported system</a>
+<li> <a href="#5">Porting Postfix to an unsupported system</a>
 
 <li> <a href="#install">Installing the software after successful
 compilation </a>
@@ -364,7 +364,7 @@ to search the web or to ask the postfix-users@postfix.org mailing
 list, but be sure to search the mailing list archives first. Some
 mailing list archives are linked from http://www.postfix.org/. </p>
 
-<h2> <a name="5">5 - Porting Postfix to on an unsupported system</a> </h2>
+<h2> <a name="5">5 - Porting Postfix to an unsupported system</a> </h2>
 
 <p> Each system type that Postfix knows is identified by a unique
 name. Examples:  SUNOS5, FREEBSD4, and so on.  When porting Postfix
@@ -737,7 +737,7 @@ must be owned by root.  Giving someone else write permission to
 main.cf or master.cf (or to their parent directories) means giving
 root privileges to that person. </p>
 
-<p> In /etc/postfix/main.cf you will have to set up a minimal number
+<p> In /etc/postfix/main.cf, you will have to set up a minimal number
 of configuration parameters.  Postfix configuration parameters  
 resemble shell variables, with two important differences: the first  
 one is that Postfix does not know about quotes like the UNIX shell
@@ -816,9 +816,9 @@ example should be used when running on a virtual host interface.</p>
 <h3>10.4 - Proxy/NAT interface addresses </h3>
 
 <p> The proxy_interfaces parameter specifies all network addresses
-that the Postfix receives mail on by way of a proxy or network
-address translation unit. You may specify symbolic hostnames instead
-of network addresses. </p>
+that Postfix receives mail on by way of a proxy or network address
+translation unit. You may specify symbolic hostnames instead of
+network addresses. </p>
 
 <p> IMPORTANT: You must specify your proxy/NAT external addresses
 when your system is a backup MX host for other domains, otherwise

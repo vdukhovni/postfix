@@ -210,9 +210,9 @@ See the <a href="VIRTUAL_README.html">VIRTUAL_README</a> file for how to configu
 <a href="VIRTUAL_README.html#canonical">hosted domains</a>. </p>
 
 <p> You can specify zero or more domain names, "/file/name" patterns
-and/or "type:name" lookup tables (such as hash:, btree:, nis:, <a href="ldap_table.5.html">ldap</a>:,
+and/or "<a href="DATABASE_README.html">type:table</a>" lookup tables (such as hash:, btree:, nis:, <a href="ldap_table.5.html">ldap</a>:,
 or <a href="mysql_table.5.html">mysql</a>:), separated by whitespace and/or commas.  A "/file/name"
-pattern is replaced by its contents; "type:name" requests that a
+pattern is replaced by its contents; "<a href="DATABASE_README.html">type:table</a>" requests that a
 table lookup is done and merely tests for existence: the lookup
 result is ignored.  </p>
 
@@ -274,7 +274,7 @@ then your default <a href="postconf.5.html#mynetworks">mynetworks</a> setting ma
 </blockquote>
 
 <p> You can specify the trusted networks in the main.cf file, or
-you can let Postfix let the work for you. The default is to let
+you can let Postfix do the work for you. The default is to let
 Postfix do the work. The result depends on the <a href="postconf.5.html#mynetworks_style">mynetworks_style</a>
 parameter value.
 
@@ -342,7 +342,7 @@ via a provider who does not allow direct mail to the Internet.  In
 those cases you need to configure Postfix to deliver mail indirectly
 via a relay host. </p>
 
-<p> Examples (use only one): </p>
+<p> Examples (specify only one of the following): </p>
 
 <blockquote>
 <pre>
@@ -457,8 +457,8 @@ addresses</a> </h2>
 address translator (NAT) or proxy. This means that systems on the
 Internet connect to the address of the NAT or proxy, instead of
 connecting to the network address of the mail server. The NAT or
-proxy forwards the connection to network address of the mail server,
-but Postfix does not know this.  </p>
+proxy forwards the connection to the network address of the mail
+server, but Postfix does not know this.  </p>
 
 <p> If you run a Postfix server behind a proxy or NAT, you need to
 configure the <a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a> parameter and specify all the external
@@ -607,7 +607,7 @@ for the <a href="postconf.5.html#myhostname">myhostname</a> parameter. </p>
 <h2><a name="mydomain"> My own domain name</a> </h2>
 
 <p> The <a href="postconf.5.html#mydomain">mydomain</a> parameter specifies the parent domain of
-$<a href="postconf.5.html#myhostname">myhostname</a>.  By default it is derived from  $<a href="postconf.5.html#myhostname">myhostname</a>
+$<a href="postconf.5.html#myhostname">myhostname</a>.  By default, it is derived from  $<a href="postconf.5.html#myhostname">myhostname</a>
 by stripping off the first part (unless the result would be a
 top-level domain). </p>
 

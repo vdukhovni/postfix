@@ -149,7 +149,7 @@ you do "postfix reload" Postfix loses a lot of performance.
 
 <ul>
 
-<li> <p> If you change a network databases such as LDAP, NIS or
+<li> <p> If you change a network database such as LDAP, NIS or
 SQL, there is no need to execute "postfix reload".  The LDAP, NIS
 or SQL server takes care of read/write access conflicts and gives
 the new data to Postfix once that data is available.  </p>
@@ -190,7 +190,7 @@ because something else happens.  This is because commands such as
 fails in the middle then you have no usable database, and Postfix
 will stop working. </p>
 
-<p> With multi-file databases such as DBM that there is no simple
+<p> With multi-file databases such as DBM, there is no simple
 solution. With Berkeley DB and other "one file" databases, it is
 possible to add some extra robustness by using "mv" to REPLACE an
 existing database file instead of overwriting it:  </p>
@@ -261,8 +261,8 @@ without the ".db" suffix.  </dd>
 
 <dt> <b>cidr</b> </dt>
 
-<dd> A table that associates values with class independent routing
-(CIDR) patterns. The table format is described in <a href="cidr_table.5.html">cidr_table(5)</a>.
+<dd> A table that associates values with Classless Inter-Domain
+Routing (CIDR) patterns. The table format is described in <a href="cidr_table.5.html">cidr_table(5)</a>.
 </dd>
 
 <dt> <b>dbm</b> </dt>
@@ -294,7 +294,7 @@ are given in the <a href="ldap_table.5.html">ldap_table(5)</a>. </dd>
 
 <dt> <b>mysql</b> (read-only) </dt>
 
-<dd> Perform MySQL database lookup. Configuration details are given
+<dd> Perform MySQL database lookups. Configuration details are given
 in <a href="mysql_table.5.html">mysql_table(5)</a>. </dd>
 
 <dt> <b>pcre</b> (read-only) </dt>
@@ -306,7 +306,7 @@ file.  </dd>
 
 <dt> <b>pgsql</b> (read-only) </dt>
 
-<dd> Perform PostgreSQL database lookup.  Configuration details
+<dd> Perform PostgreSQL database lookups.  Configuration details
 are given in <a href="pgsql_table.5.html">pgsql_table(5)</a>. </dd>
 
 <dt> <b>proxy</b> (read-only) </dt>

@@ -57,7 +57,7 @@
 /*	This is available only on systems with support for Berkeley DB
 /*	databases.
 /* .IP \fBcidr\fR
-/*	A table that associates values with class independent routing
+/*	A table that associates values with Classless Inter-Domain Routing
 /*	(CIDR) patterns. This is described in \fBcidr_table\fR(5).
 /* .IP \fBdbm\fR
 /*	An indexed file type based on hashing.
