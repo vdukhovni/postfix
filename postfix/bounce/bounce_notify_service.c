@@ -91,7 +91,8 @@
 
 /* bounce_header - generate bounce message header */
 
-static int bounce_header(VSTREAM *bounce, VSTRING *buf, const char *dest, int flush)
+static int bounce_header(VSTREAM *bounce, VSTRING *buf, const char *dest,
+			         const char *boundary, int flush)
 {
 
     /*
@@ -113,14 +114,32 @@ static int bounce_header(VSTREAM *bounce, VSTRING *buf, const char *dest, int fl
 			"Subject: Delayed Mail (still being retried)");
     }
     post_mail_fprintf(bounce, "To: %s", STR(quote_822_local(buf, dest)));
+
+    /*
+     * MIME header.
+     */
+    post_mail_fprintf(bounce, "MIME-Version: 1.0");
+    post_mail_fprintf(bounce, "Content-Type: %s/%s;", "multipart", "mixed");
+    post_mail_fprintf(bounce, "\tboundary=\"%s\"", boundary);
+    post_mail_fputs(bounce, "");
+    post_mail_fputs(bounce, "This is a MIME-encapsulated message.");
     post_mail_fputs(bounce, "");
     return (vstream_ferror(bounce));
 }
 
 /* bounce_boilerplate - generate boiler-plate text */
 
-static int bounce_boilerplate(VSTREAM *bounce, VSTRING *buf, int flush)
+static int bounce_boilerplate(VSTREAM *bounce, VSTRING *buf,
+			              const char *boundary, int flush)
 {
+
+    /*
+     * MIME header.
+     */
+    post_mail_fprintf(bounce, "--%s", boundary);
+    post_mail_fprintf(bounce, "Content-Description: %s", "Notification");
+    post_mail_fprintf(bounce, "Content-Type: %s/%s", "text", "plain");
+    post_mail_fputs(bounce, "");
 
     /*
      * Print the message body with the problem report. XXX For now, we use a
@@ -166,6 +185,7 @@ static int bounce_boilerplate(VSTREAM *bounce, VSTRING *buf, int flush)
     }
     post_mail_fputs(bounce, "");
     post_mail_fprintf(bounce, "\t\t\tThe %s program", var_mail_name);
+    post_mail_fputs(bounce, "");
     return (vstream_ferror(bounce));
 }
 
@@ -180,9 +200,18 @@ static void bounce_print(const char *str, int len, int indent, char *context)
 
 /* bounce_diagnostics - send bounce log report */
 
-static int bounce_diagnostics(char *service, VSTREAM *bounce, VSTRING *buf, char *queue_id)
+static int bounce_diagnostics(char *service, VSTREAM *bounce, VSTRING *buf,
+			              char *queue_id, const char *boundary)
 {
     VSTREAM *log;
+
+    /*
+     * MIME header.
+     */
+    post_mail_fprintf(bounce, "--%s", boundary);
+    post_mail_fprintf(bounce, "Content-Description: %s", "Delivery error report");
+    post_mail_fprintf(bounce, "Content-Type: %s/%s", "text", "plain");
+    post_mail_fputs(bounce, "");
 
     /*
      * If the bounce log cannot be found, do not raise a fatal run-time
@@ -195,7 +224,6 @@ static int bounce_diagnostics(char *service, VSTREAM *bounce, VSTRING *buf, char
     if ((log = mail_queue_open(service, queue_id, O_RDONLY, 0)) == 0) {
 	if (errno != ENOENT)
 	    msg_fatal("open %s %s: %m", service, queue_id);
-	post_mail_fputs(bounce, "");
 	post_mail_fputs(bounce, "\t--- Delivery error report unavailable ---");
 	post_mail_fputs(bounce, "");
     }
@@ -211,9 +239,6 @@ static int bounce_diagnostics(char *service, VSTREAM *bounce, VSTRING *buf, char
 
 #define LENGTH	79
 #define INDENT	4
-	post_mail_fputs(bounce, "");
-	post_mail_fputs(bounce, "\t--- Delivery error report follows ---");
-	post_mail_fputs(bounce, "");
 	while (vstream_ferror(bounce) == 0 && vstring_fgets_nonl(buf, log)) {
 	    printable(STR(buf), '_');
 	    line_wrap(STR(buf), LENGTH, INDENT, bounce_print, (char *) bounce);
@@ -229,12 +254,21 @@ static int bounce_diagnostics(char *service, VSTREAM *bounce, VSTRING *buf, char
 /* bounce_original - send a copy of the original to the victim */
 
 static int bounce_original(char *service, VSTREAM *bounce, VSTRING *buf,
-		         char *queue_name, char *queue_id, int headers_only)
+			           char *queue_name, char *queue_id,
+			           const char *boundary, int headers_only)
 {
     int     status = 0;
     VSTREAM *src;
     int     rec_type;
     int     bounce_length;
+
+    /*
+     * MIME headers.
+     */
+    post_mail_fprintf(bounce, "--%s", boundary);
+    post_mail_fprintf(bounce, "Content-Description: %s", "Undelivered Message");
+    post_mail_fprintf(bounce, "Content-Type: %s/%s", "message", "rfc822");
+    post_mail_fputs(bounce, "");
 
     /*
      * If the original message cannot be found, do not raise a run-time
@@ -248,14 +282,9 @@ static int bounce_original(char *service, VSTREAM *bounce, VSTRING *buf,
 	if (errno != ENOENT)
 	    msg_fatal("open %s %s: %m", service, queue_id);
 	post_mail_fputs(bounce, "\t--- Undelivered message unavailable ---");
+	post_mail_fputs(bounce, "");
 	return (vstream_ferror(bounce));
     }
-
-    /*
-     * Append a copy of the rejected message.
-     */
-    post_mail_fputs(bounce, "\t--- Undelivered message follows ---");
-    post_mail_fputs(bounce, "");
 
     /*
      * Skip over the original message envelope records. If the envelope is
@@ -285,6 +314,7 @@ static int bounce_original(char *service, VSTREAM *bounce, VSTRING *buf,
 	    status = (REC_PUT_BUF(bounce, rec_type, buf) != rec_type);
 	}
     }
+    post_mail_fprintf(bounce, "--%s--", boundary);
     if (headers_only == 0 && rec_type != REC_TYPE_XTRA)
 	status |= mark_corrupt(src);
     if (vstream_fclose(src))
@@ -302,6 +332,13 @@ int     bounce_notify_service(char *service, char *queue_name,
     int     postmaster_status = 1;
     VSTREAM *bounce;
     int     notify_mask = name_mask(mail_error_masks, var_notify_classes);
+    VSTRING *boundary = vstring_alloc(100);
+
+    /*
+     * Unique string for multi-part message boundaries.
+     */
+    vstring_sprintf(boundary, "%s.%ld/%s",
+		    queue_id, event_time(), var_myhostname);
 
 #define NULL_SENDER		MAIL_ADDR_EMPTY	/* special address */
 #define NULL_CLEANUP_FLAGS	0
@@ -354,9 +391,12 @@ int     bounce_notify_service(char *service, char *queue_name,
 		 * reason for the bounce, and the headers of the original
 		 * message. Don't bother sending the boiler-plate text.
 		 */
-		if (!bounce_header(bounce, buf, mail_addr_postmaster(), flush)
-		 && bounce_diagnostics(service, bounce, buf, queue_id) == 0)
+		if (!bounce_header(bounce, buf, mail_addr_postmaster(),
+				   STR(boundary), flush)
+		    && bounce_diagnostics(service, bounce, buf, queue_id,
+					  STR(boundary)) == 0)
 		    bounce_original(service, bounce, buf, queue_name, queue_id,
+				    STR(boundary),
 				    flush ? BOUNCE_ALL : BOUNCE_HEADERS);
 		bounce_status = post_mail_fclose(bounce);
 	    }
@@ -376,10 +416,12 @@ int     bounce_notify_service(char *service, char *queue_name,
 	     * pretends that we are a polite mail system, the text with
 	     * reason for the bounce, and a copy of the original message.
 	     */
-	    if (bounce_header(bounce, buf, recipient, flush) == 0
-		&& bounce_boilerplate(bounce, buf, flush) == 0
-		&& bounce_diagnostics(service, bounce, buf, queue_id) == 0)
+	    if (bounce_header(bounce, buf, recipient, STR(boundary), flush) == 0
+		&& bounce_boilerplate(bounce, buf, STR(boundary), flush) == 0
+		&& bounce_diagnostics(service, bounce, buf, queue_id,
+				      STR(boundary)) == 0)
 		bounce_original(service, bounce, buf, queue_name, queue_id,
+				STR(boundary),
 				flush ? BOUNCE_ALL : BOUNCE_HEADERS);
 	    bounce_status = post_mail_fclose(bounce);
 	}
@@ -407,10 +449,12 @@ int     bounce_notify_service(char *service, char *queue_name,
 						 mail_addr_postmaster(),
 						 NULL_CLEANUP_FLAGS,
 						 "BOUNCE")) != 0) {
-		if (!bounce_header(bounce, buf, mail_addr_postmaster(), flush)
-		 && bounce_diagnostics(service, bounce, buf, queue_id) == 0)
+		if (!bounce_header(bounce, buf, mail_addr_postmaster(),
+				   STR(boundary), flush)
+		    && bounce_diagnostics(service, bounce, buf,
+					  queue_id, STR(boundary)) == 0)
 		    bounce_original(service, bounce, buf, queue_name, queue_id,
-				    BOUNCE_HEADERS);
+				    STR(boundary), BOUNCE_HEADERS);
 		postmaster_status = post_mail_fclose(bounce);
 	    }
 	    if (postmaster_status)
@@ -432,6 +476,7 @@ int     bounce_notify_service(char *service, char *queue_name,
      * Cleanup.
      */
     vstring_free(buf);
+    vstring_free(boundary);
 
     return (bounce_status);
 }

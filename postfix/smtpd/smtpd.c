@@ -497,6 +497,7 @@ static void mail_reset(SMTPD_STATE *state)
 	mail_stream_cleanup(state->dest);
 	state->dest = 0;
 	state->cleanup = 0;
+	state->err = 0;
     }
     if (state->queue_id != 0) {
 	myfree(state->queue_id);

@@ -72,6 +72,7 @@ void    mac_parse(const char *value, MAC_PARSE_FN action, char *context)
     const char *ep;			/* string end pointer */
     static char open_paren[] = "({";
     static char close_paren[] = ")}";
+    int     level;
 
 #define SKIP(start, var, cond) \
         for (var = start; *var && (cond); var++);
@@ -92,12 +93,18 @@ void    mac_parse(const char *value, MAC_PARSE_FN action, char *context)
 	    vp += 1;
 	    pp = open_paren;
 	    if (*vp == *pp || *vp == *++pp) {	/* ${x} or $(x) */
+		level = 1;
 		vp += 1;
-		SKIP(vp, ep, *ep != close_paren[pp - open_paren]);
-		if (*ep == 0)
-		    msg_fatal("incomplete macro: %s", value);
-		vstring_strncat(buf, vp, ep - vp);
-		vp = ep + 1;
+		for (ep = vp; level > 0; ep++) {
+		    if (*ep == 0)
+			msg_fatal("incomplete macro: %s", value);
+		    if (*ep == *pp)
+			level++;
+		    if (*ep == close_paren[pp - open_paren])
+			level--;
+		}
+		vstring_strncat(buf, vp, ep - vp - 1);
+		vp = ep;
 	    } else {				/* plain $x */
 		SKIP(vp, ep, ISALNUM(*ep) || *ep == '_');
 		vstring_strncat(buf, vp, ep - vp);

@@ -2511,6 +2511,29 @@ Apologies for any names omitted.
 	the extension to recipient addresses. This is more consistent
 	with the way aliases are expanded. File:  local/dotforward.c.
 
+19990404
+
+	Bugfix: after receiving mail, the SMTP server didn't reset
+	the cleanup error flag, so that multiple deliveries over
+	the same SMTP session could fail due to errors with previous
+	deliveries. Found by Lamont Jones, Hewlett-Packard.
+
+19990405
+
+	Feature: MIME-encapsulated bounces. Philip A.  Prindeville,
+	Mirapoint, Inc., USA.  File:  bounce/bounce_notify_service.c
+
+	Cleanup: vstreams now properly look at the EOF flag before
+	attempting to read, eliminating the need for typing Ctrl-D
+	twice to test programs; the EOF flag is reset after each
+	unget or seek operation.  Files: util/vstream.c, util/vbuf.c.
+
+	Feature: in preparation for configurable message headers
+	the mac_parse() routine now balances the parentheses in
+	${name} or $(name). We need this in order to support
+	conditional expressions such as ${name?text} where `text'
+	contains other ${name} expressions.
+
 Future:
 
 	Planned: must be able to list the same hash table in

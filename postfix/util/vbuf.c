@@ -134,7 +134,7 @@ int     vbuf_unget(VBUF *bp, int ch)
 	return (VBUF_EOF);
     } else {
 	bp->cnt--;
-	bp->flags &= ~VBUF_FLAG_ERR;
+	bp->flags &= ~VBUF_FLAG_EOF;
 	return (*--bp->ptr = ch);
     }
 }

@@ -595,6 +595,12 @@ static int vstream_buf_get_ready(VBUF *bp)
 	    return (VSTREAM_EOF);
 
     /*
+     * Did we receive an EOF indication?
+     */
+    if (bp->flags & VSTREAM_FLAG_EOF)
+	return (VSTREAM_EOF);
+
+    /*
      * Fill the buffer with as much data as we can handle, or with as much
      * data as is available right now, whichever is less. Update the cached
      * file seek position, if any.
@@ -766,6 +772,7 @@ long    vstream_fseek(VSTREAM *stream, long offset, int whence)
     } else {
 	bp->flags |= VSTREAM_FLAG_SEEK;
     }
+    bp->flags &= ~VSTREAM_FLAG_EOF;
     return (stream->offset);
 }
 
