@@ -27,7 +27,7 @@ SRCS	= alldig.c argv.c argv_split.c attr_print0.c attr_print64.c \
 	username.c valid_hostname.c vbuf.c vbuf_print.c vstream.c \
 	vstream_popen.c vstring.c vstring_vstream.c watchdog.c writable.c \
 	write_buf.c write_wait.c auto_clnt.c attr_clnt.c attr_scan_plain.c \
-	attr_print_plain.c sane_connect.c neuter.c
+	attr_print_plain.c sane_connect.c neuter.c name_code.c
 OBJS	= alldig.o argv.o argv_split.o attr_print0.o attr_print64.o \
 	attr_scan0.o attr_scan64.o base64_code.o basename.o binhash.o \
 	chroot_uid.o clean_env.o close_on_exec.o concatenate.o ctable.o \
@@ -56,7 +56,7 @@ OBJS	= alldig.o argv.o argv_split.o attr_print0.o attr_print64.o \
 	username.o valid_hostname.o vbuf.o vbuf_print.o vstream.o \
 	vstream_popen.o vstring.o vstring_vstream.o watchdog.o writable.o \
 	write_buf.o write_wait.o auto_clnt.o attr_clnt.o attr_scan_plain.o \
-	attr_print_plain.o sane_connect.o $(STRCASE) neuter.o
+	attr_print_plain.o sane_connect.o $(STRCASE) neuter.o name_code.o
 HDRS	= argv.h attr.h base64_code.h binhash.h chroot_uid.h clean_env.h \
 	connect.h ctable.h dict.h dict_db.h dict_dbm.h dict_env.h \
 	dict_cidr.h dict_ht.h dict_ldap.h dict_mysql.h dict_ni.h dict_nis.h \
@@ -75,7 +75,7 @@ HDRS	= argv.h attr.h base64_code.h binhash.h chroot_uid.h clean_env.h \
 	split_at.h stat_as.h stringops.h sys_defs.h timed_connect.h \
 	timed_wait.h trigger.h username.h valid_hostname.h vbuf.h \
 	vbuf_print.h vstream.h vstring.h vstring_vstream.h watchdog.h \
-	auto_clnt.h attr_clnt.h sane_connect.h
+	auto_clnt.h attr_clnt.h sane_connect.h name_code.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 DEFS	= -I. -D$(SYSTYPE)
@@ -485,8 +485,6 @@ attr_print_plain.o: mymalloc.h
 attr_print_plain.o: vstream.h
 attr_print_plain.o: vbuf.h
 attr_print_plain.o: htable.h
-attr_print_plain.o: base64_code.h
-attr_print_plain.o: vstring.h
 attr_print_plain.o: attr.h
 attr_scan0.o: attr_scan0.c
 attr_scan0.o: sys_defs.h
@@ -1028,6 +1026,9 @@ mystrtok.o: sys_defs.h
 mystrtok.o: stringops.h
 mystrtok.o: vstring.h
 mystrtok.o: vbuf.h
+name_code.o: name_code.c
+name_code.o: sys_defs.h
+name_code.o: name_code.h
 name_mask.o: name_mask.c
 name_mask.o: sys_defs.h
 name_mask.o: msg.h

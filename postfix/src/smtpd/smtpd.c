@@ -431,6 +431,7 @@
 #include <watchdog.h>
 #include <iostuff.h>
 #include <split_at.h>
+#include <name_code.h>
 
 /* Global library. */
 
@@ -1758,6 +1759,18 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     char   *arg_val;
     int     update_namaddr = 0;
     int     function;
+    int     code;
+    static NAME_CODE xclient_functions[] = {
+	XCLIENT_OVERRIDE, FUNC_OVERRIDE,
+	XCLIENT_FORWARD, FUNC_FORWARD,
+	0, -1,
+    };
+    static NAME_CODE xclient_codes[] = {
+	"OK", SMTPD_PEER_CODE_OK,
+	"PERM", SMTPD_PEER_CODE_PERM,
+	"TEMP", SMTPD_PEER_CODE_TEMP,
+	0, -1,
+    };
 
     /*
      * Sanity checks. The XCLIENT command does not override its own access
@@ -1787,18 +1800,14 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      */
     arg_val = argv[1].strval;
     printable(arg_val, '?');
-    if (STREQ(arg_val, XCLIENT_OVERRIDE)) {
-	function = FUNC_OVERRIDE;
-    } else if (STREQ(arg_val, XCLIENT_FORWARD)) {
-	function = FUNC_FORWARD;
-	if (state->xclient.used == 0)
-	    smtpd_xclient_preset(state);
-    } else {					/* error */
+    if ((function = name_code(xclient_functions, arg_val)) < 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 Bad %s function: %s",
 			 XCLIENT_CMD, arg_val);
 	return (-1);
     }
+    if (function == FUNC_FORWARD && state->xclient.used == 0)
+	smtpd_xclient_preset(state);
 
     /*
      * Iterate over all NAME=VALUE attributes. An empty value means the
@@ -1844,8 +1853,8 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    if (*raw_value && !valid_hostaddr(cooked_value, DONT_GRIPE)) {
 		if (!valid_hostname(cooked_value, DONT_GRIPE)) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
-		    smtpd_chat_reply(state, "501 Bad hostname syntax: %s",
-				     cooked_value);
+		    smtpd_chat_reply(state, "501 Bad %s syntax: %s",
+				     XCLIENT_NAME, raw_value);
 		    return (-1);
 		}
 		UPD_STR_ATTR(state, function, name, cooked_value);
@@ -1864,8 +1873,8 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    if (*raw_value) {
 		if (!valid_hostaddr(cooked_value, DONT_GRIPE)) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
-		    smtpd_chat_reply(state, "501 Bad address syntax: %s",
-				     cooked_value);
+		    smtpd_chat_reply(state, "501 Bad %s syntax: %s",
+				     XCLIENT_ADDR, raw_value);
 		    return (-1);
 		}
 		UPD_STR_ATTR(state, function, addr, cooked_value);
@@ -1880,21 +1889,18 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	 * the hostname lookup status is not OK.
 	 */
 	else if (STREQ(arg_val, XCLIENT_CODE)) {
-	    if (STREQ(cooked_value, "OK")) {
-		UPD_INT_ATTR(state, function, peer_code, SMTPD_PEER_CODE_OK);
-	    } else if (STREQ(cooked_value, "TEMP")) {
-		UPD_INT_ATTR(state, function, peer_code, SMTPD_PEER_CODE_TEMP);
-		UPD_STR_ATTR(state, function, name, CLIENT_NAME_UNKNOWN);
-		update_namaddr = 1;
-	    } else if (STREQ(cooked_value, "PERM")) {
-		UPD_INT_ATTR(state, function, peer_code, SMTPD_PEER_CODE_PERM);
-		UPD_STR_ATTR(state, function, name, CLIENT_NAME_UNKNOWN);
-		update_namaddr = 1;
-	    } else {
-		state->error_mask |= MAIL_ERROR_PROTOCOL;
-		smtpd_chat_reply(state, "501 Bad hostname status: %s",
-				 cooked_value);
-		return (-1);
+	    if (*raw_value) {
+		if ((code = name_code(xclient_codes, cooked_value)) < 0) {
+		    state->error_mask |= MAIL_ERROR_PROTOCOL;
+		    smtpd_chat_reply(state, "501 Bad %s value: %s",
+				     XCLIENT_CODE, raw_value);
+		    return (-1);
+		}
+		UPD_INT_ATTR(state, function, peer_code, code);
+		if (code != SMTPD_PEER_CODE_OK) {
+		    UPD_STR_ATTR(state, function, name, CLIENT_NAME_UNKNOWN);
+		    update_namaddr = 1;
+		}
 	    }
 	}
 
@@ -1906,8 +1912,8 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    if (*raw_value) {
 		if (strlen(cooked_value) > VALID_HOSTNAME_LEN) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
-		    smtpd_chat_reply(state, "501 Bad HELO syntax: %s",
-				     cooked_value);
+		    smtpd_chat_reply(state, "501 Bad %s syntax: %s",
+				     XCLIENT_HELO, raw_value);
 		    return (-1);
 		}
 		neuter(cooked_value, "<>()\\\";:@", '?');
@@ -1925,8 +1931,8 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    if (*raw_value) {
 		if (*cooked_value == 0 || strlen(cooked_value) > 64) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
-		    smtpd_chat_reply(state, "501 Bad protocol syntax: %s",
-				     cooked_value);
+		    smtpd_chat_reply(state, "501 Bad %s syntax: %s",
+				     XCLIENT_PROTO, raw_value);
 		    return (-1);
 		}
 		neuter(cooked_value, "[]<>()\\\";:@", '?');

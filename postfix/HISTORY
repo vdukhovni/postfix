@@ -8804,6 +8804,14 @@ Apologies for any names omitted.
 	is accepted (and thus, before a cleanup server connection
 	is available).  Files:  smtpd/{smtpd,smtpd_state,smtpd_check}.c.
 
+20031204
+
+	Bugfix: conf/post-install didn't skip non-existent obsolete
+	files.  Victor Duchovni.
+
+	Minor cleanups of the xclient error messages; xclient
+	command lookup tables. File: smtpd/smtpd.c.
+
 Open problems:
 
 	High: when virtual aliasing is turned off after content

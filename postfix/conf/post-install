@@ -425,9 +425,9 @@ test -n "$create" && {
 	case $flags in *r*) recursive="-R";; *) recursive=;; esac
 	case $flags in *o*) obsolete_flag=1;; *) obsolete_flag=;; esac
 	# Flag obsolete objects. XXX Solaris 2..9 does not have "test -e".
-	if [ -n "$obsolete_flag" -a -r $path ]
+	if [ -n "$obsolete_flag" ]
 	then
-	    obsolete="$obsolete $path"
+	    test -r $path && obsolete="$obsolete $path"
 	    continue;
 	fi
 	# Create missing directories with proper owner/group/mode settings.

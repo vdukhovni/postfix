@@ -289,6 +289,10 @@ static void anvil_remote_expire(int unused_event, char *context)
     htable_delete(anvil_remote_map, anvil_remote->ident,
 		  (void (*) (char *)) 0);
     ANVIL_REMOTE_FREE(anvil_remote);
+
+    if (msg_verbose)
+	msg_info("%s: anvil_remote_map used=%d", 
+		myname, anvil_remote_map->used);
 }
 
 /* anvil_remote_lookup - dump address status */
@@ -491,6 +495,10 @@ static void anvil_service_done(VSTREAM *client_stream, char *unused_service,
     } else if (msg_verbose)
 	msg_info("client socket not found for fd=%d",
 		 vstream_fileno(client_stream));
+
+    if (msg_verbose)
+	msg_info("%s: anvil_local_map used=%d", 
+		myname, anvil_local_map->used);
 }
 
 /* anvil_service - perform service for client */

@@ -18,7 +18,7 @@
 /*	smtpd_xclient_preset() takes the result from smtpd_xclient_init()
 /*	and sets all fields to the same "unknown" value that regular
 /*	client attributes would have.
-*/
+/*
 /*	smtpd_xclient_reset() restores the state from smtpd_xclient_init().
 /* LICENSE
 /* .ad

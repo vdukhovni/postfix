@@ -88,7 +88,6 @@
 #include <mymalloc.h>
 #include <vstream.h>
 #include <htable.h>
-#include <base64_code.h>
 #include <attr.h>
 
 #define STR(x)	vstring_str(x)
