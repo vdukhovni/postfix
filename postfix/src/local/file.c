@@ -171,7 +171,7 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
      * As the mail system, bounce, defer delivery, or report success.
      */
     if (mail_copy_status & MAIL_COPY_STAT_CORRUPT) {
-	deliver_status = DEL_STAT_CORRUPT;
+	deliver_status = DEL_STAT_DEFER;
     } else if (mail_copy_status != 0) {
 	deliver_status = (errno == EAGAIN || errno == ENOSPC || errno == ESTALE ?
 			  defer_append : bounce_append)

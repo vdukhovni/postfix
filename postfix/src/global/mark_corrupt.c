@@ -73,5 +73,5 @@ int     mark_corrupt(VSTREAM *src)
     if (saved_uid != var_owner_uid)
 	set_eugid(saved_uid, saved_gid);
 
-    return (DEL_STAT_CORRUPT);
+    return (DEL_STAT_DEFER);
 }

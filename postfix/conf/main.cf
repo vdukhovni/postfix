@@ -408,16 +408,23 @@ mail_owner = postfix
 # The controls listed here are only a very small subset. See the file
 # sample-smtpd.cf for an elaborate list of anti-UCE controls.
 
-# The header_checks parameter restricts what may appear in message
-# headers. This requires that POSIX or PCRE regular expression support
-# is built-in. Specify "/^header-name: stuff you do not want/ REJECT"
-# in the pattern file. Patterns are case-insensitive by default. Note:
-# specify only patterns ending in REJECT (reject entire message) or
-# IGNORE (silently discard this header). Patterns ending in OK are
-# mostly a waste of cycles.
+# The header_checks parameter specifies an optional table with patterns
+# that each logical message header is matched against, including
+# headers that span multiple physical lines.  Patterns are matched
+# in the specified order, and the search stops upon the first match.
+# When a pattern matches, what happens next depends on the associated
+# action that is specified in the right-hand side of the table:
 #
-#header_checks = regexp:/etc/postfix/filename
-#header_checks = pcre:/etc/postfix/filename
+# REJECT the entire message is rejected.
+# REJECT text.... The text is sent to the originator.
+# IGNORE the header line is silently discarded.
+# WARN   the header is logged (not rejected) with a warning message.
+#
+# These patterns do not apply to MIME headers in the message body.
+#
+# See also the body_checks example in the sample-filter.cf file.
+#
+#header_checks = regexp:/etc/postfix/header_checks
 
 # FAST ETRN SERVICE
 #

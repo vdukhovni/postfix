@@ -109,8 +109,22 @@ is allowed in message headers.
 <dt>Syntax:
 
 <dd>Specify a list of zero or more lookup tables. Whenever a header
-matches a table, a REJECT result means reject the message, and an
-IGNORE result means delete the header from the message.
+matches a table, the action depends on the lookup result:
+
+<p>
+
+<dl>
+
+<dt>REJECT <dd> Reject the message, and log the header.
+
+<dt>REJECT text... <dd> As above, and also send the text to
+the originator.
+
+<dt>IGNORE <dd> Delete the header from the message.
+
+<dt>WARN <dd> Log (but do not reject) the header with a warning.
+
+</dl>
 
 <p>
 
@@ -133,7 +147,7 @@ mail still to be rejected.</i>
 
 <dt>Example (header_checks):
 
-<dd> /^to: *friend@public\.com$/ REJECT
+<dd> <tt>/^to: *friend@public\.com$/ REJECT</tt>
 
 <p>
 

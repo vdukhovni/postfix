@@ -718,7 +718,7 @@ static int eval_command_status(int command_status, char *service,
 	}
 	break;
     case PIPE_STAT_CORRUPT:
-	result |= DEL_STAT_CORRUPT;
+	result |= DEL_STAT_DEFER;
 	break;
     default:
 	msg_panic("eval_command_status: bad status %d", command_status);

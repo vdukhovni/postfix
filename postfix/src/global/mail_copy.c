@@ -107,8 +107,9 @@
 #include "rec_type.h"
 #include "mail_queue.h"
 #include "mail_addr.h"
-#include "mail_copy.h"
 #include "mark_corrupt.h"
+#include "mail_params.h"
+#include "mail_copy.h"
 
 /* mail_copy - copy message with extreme prejudice */
 
@@ -192,6 +193,8 @@ int     mail_copy(const char *sender, const char *delivered,
 	prev_type = type;
     }
     if (vstream_ferror(dst) == 0) {
+	if (var_fault_inj_code == 1)
+	    type = 0;
 	if (type != REC_TYPE_XTRA)
 	    corrupt_error = mark_corrupt(src);
 	if (prev_type != REC_TYPE_NORM)
@@ -217,6 +220,14 @@ int     mail_copy(const char *sender, const char *delivered,
     if ((flags & MAIL_COPY_TOFILE) != 0)
 	write_error |= fsync(vstream_fileno(dst));
 #endif
+    if (var_fault_inj_code == 2) {
+	read_error = 1;
+	errno = ENOENT;
+    }
+    if (var_fault_inj_code == 3) {
+	write_error = 1;
+	errno = ENOENT;
+    }
 #ifndef NO_TRUNCATE
     if ((flags & MAIL_COPY_TOFILE) != 0)
 	if (corrupt_error || read_error || write_error)

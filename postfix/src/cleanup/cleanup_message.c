@@ -303,6 +303,10 @@ static void cleanup_header(CLEANUP_STATE *state)
 			 state->reason);
 	    } else if (strcasecmp(value, "IGNORE") == 0) {
 		return;
+	    } else if (strcasecmp(value, "WARN") == 0) {
+		msg_info("%s: warning: header %.200s; from=<%s> to=<%s>",
+			 state->queue_id, header, state->sender,
+			 state->recip ? state->recip : "unknown");
 	    }
 	}
     }
@@ -583,6 +587,10 @@ static void cleanup_message_body(CLEANUP_STATE *state, int type, char *buf, int 
 			     state->reason);
 		} else if (strcasecmp(value, "IGNORE") == 0) {
 		    return;
+		} else if (strcasecmp(value, "WARN") == 0) {
+		    msg_info("%s: warning: body %.200s; from=<%s> to=<%s>",
+			     state->queue_id, buf, state->sender,
+			     state->recip ? state->recip : "unknown");
 		}
 	    }
 	}

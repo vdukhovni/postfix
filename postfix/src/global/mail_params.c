@@ -71,6 +71,7 @@
 /*	char	*var_debug_peer_list;
 /*	int	var_debug_peer_level;
 /*	int	var_in_flow_delay;
+/*	int	var_fault_inj_code;
 /*
 /*	void	mail_params_init()
 /* DESCRIPTION
@@ -194,6 +195,7 @@ char   *var_import_environ;
 char   *var_export_environ;
 char   *var_debug_peer_list;
 int     var_debug_peer_level;
+int     var_fault_inj_code;
 
 /* check_myhostname - lookup hostname and validate */
 
@@ -330,6 +332,7 @@ void    mail_params_init()
 	VAR_FORK_TRIES, DEF_FORK_TRIES, &var_fork_tries, 1, 0,
 	VAR_FLOCK_TRIES, DEF_FLOCK_TRIES, &var_flock_tries, 1, 0,
 	VAR_DEBUG_PEER_LEVEL, DEF_DEBUG_PEER_LEVEL, &var_debug_peer_level, 1, 0,
+	VAR_FAULT_INJ_CODE, DEF_FAULT_INJ_CODE, &var_fault_inj_code, 0, 0,
 	0,
     };
     static CONFIG_TIME_TABLE time_defaults[] = {

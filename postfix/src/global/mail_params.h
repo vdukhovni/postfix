@@ -1346,6 +1346,13 @@ extern char *var_par_dom_match;
 
 #define SMTPD_ACCESS_MAPS		"smtpd_access_maps"
 
+ /*
+  * Run-time fault injection.
+  */
+#define VAR_FAULT_INJ_CODE		"fault_injection_code"
+#define DEF_FAULT_INJ_CODE		0
+extern int var_fault_inj_code;
+
 /* LICENSE
 /* .ad
 /* .fi

@@ -157,7 +157,7 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
      * As the mail system, bounce or defer delivery.
      */
     if (mail_copy_status & MAIL_COPY_STAT_CORRUPT) {
-	deliver_status = DEL_STAT_CORRUPT;
+	deliver_status = DEL_STAT_DEFER;
     } else if (mail_copy_status != 0) {
 	deliver_status = (errno == ENOSPC || errno == ESTALE ?
 			  defer_append : bounce_append)

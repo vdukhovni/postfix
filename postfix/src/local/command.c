@@ -196,7 +196,7 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, const char *comma
 				      "%s", vstring_str(why));
 	break;
     case PIPE_STAT_CORRUPT:
-	deliver_status = DEL_STAT_CORRUPT;
+	deliver_status = DEL_STAT_DEFER;
 	break;
     default:
 	msg_panic("%s: bad status %d", myname, cmd_status);

@@ -5702,8 +5702,23 @@ Apologies for any names omitted.
 	local/maildir.c, local/mailbox.c, local/command.c, pipe/pipe.c,
 	virtual/mailbox.c, virtual/maildir.c.
 
-	Bugfix: the bounce daemon broke in case of a non-existing
-	message queue file. File: bounce/bounce_notify_util.c.
+	Bugfix: the bounce daemon broke in the unlikely case of a
+	non-existing queue file. File: bounce/bounce_notify_util.c.
+
+20011127
+
+	Feature: added WARN command to header/body_checks files as
+	proposed by Michael Tokarev. File: cleanup/cleanup_message.c.
+
+	Bugfix: the postdrop program was broken after the change
+	of Postfix internal protocols. This broke "sendmail -bs"
+	mail submissions with "secure" maildrop directory.  Reported
+	by Craig Loomis, apo.nmsu.edu. File: postdrop/postdrop.c.
+
+	Feature: a first start at fault injection for testing
+	unlikely error scenarios (such as corrupt queue files).
+	Parameter: fault_injection_code, must be left at zero for
+	production use.
 
 Open problems:
 
@@ -5715,6 +5730,9 @@ Open problems:
 
 	Medium: smtpd access maps don't understand the recipient
 	delimiter setting.
+
+	Low: generic showq protocol, to allow for more intelligent
+	processing than just mailq. Maybe marry this with postsuper.
 
 	Low: default domain for appending to unqualified recipients.
 

@@ -306,6 +306,7 @@ int     main(int argc, char **argv)
      */
     attr_print(VSTREAM_OUT, ATTR_FLAG_NONE,
 	       ATTR_TYPE_NUM, MAIL_ATTR_STATUS, status,
+	       ATTR_TYPE_STR, MAIL_ATTR_WHY, "",
 	       ATTR_TYPE_END);
     vstream_fflush(VSTREAM_OUT);
     exit(status);

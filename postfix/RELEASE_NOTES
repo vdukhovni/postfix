@@ -1,3 +1,14 @@
+Major changes with snapshot-20011127
+====================================
+
+New parameter smtpd_noop_commands to specify a list of commands
+that the Postfix SMTP server treats as NOOP commands (no syntax
+check, no state change). This is a workaround for misbehaving
+clients that send unsupported commands such as ONEX.
+
+New header/body_check result "WARN" to make Postfix log a warning
+about a header/body line without rejecting the content.
+
 Major changes with snapshot-20011125
 ====================================
 

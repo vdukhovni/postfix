@@ -200,6 +200,10 @@ look something like this:
 
     mailbox_transport = lmtp:unix:/var/imap/socket/lmtp
 
+/etc/postfix/master.cf:
+
+    lmtp      unix  -       -       n       -       -       lmtp
+
 In this case, the Postfix local delivery agent expands aliases
 and .forward files, and delegates mailbox delivery to the Cyrus
 lmtpd server via the socket "/var/imap/socket/lmtp".
@@ -228,12 +232,12 @@ thusly:
     lmtp_sasl_auth_enable = yes
     lmtp_sasl_password_maps = hash:/etc/postfix/lmtp_sasl_pass
 
+/etc/postfix/lmtp_sasl_pass:
+    localhost.my.domain	username:password
+
 /etc/postfix/master.cf:
 
     lmtp      unix  -       -       n       -       -       lmtp
-
-/etc/postfix/lmtp_sasl_pass:
-    localhost.my.domain	username:password
 
 Instead of "hash", use the map type of your choice.  Some systems
 use "dbm" instead.  Use "postconf -m" to find out what map types

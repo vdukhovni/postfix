@@ -41,13 +41,20 @@ typedef struct DELIVER_REQUEST {
     char   *hop_status;			/* reason if unavailable */
 } DELIVER_REQUEST;
 
-#define DEL_STAT_OK		(0)	/* success including bounced */
-#define DEL_STAT_DEFER		(-1)	/* deferred */
-#define DEL_STAT_CORRUPT	(-1)	/* corrupt */
-
 #define DEL_REQ_FLAG_DEFLT	(DEL_REQ_FLAG_SUCCESS | DEL_REQ_FLAG_BOUNCE)
 #define DEL_REQ_FLAG_SUCCESS	(1<<0)	/* delete successful recipients */
 #define DEL_REQ_FLAG_BOUNCE	(1<<1)	/* unimplemented */
+
+ /*
+  * Delivery status. Note that there are only FINAL and DEFER. This is
+  * because delivery status information can be lost when a delivery agent or
+  * queue manager process terminates prematurely. The only distinctions we
+  * can rely on are "final delivery completed" and "everything else". In the
+  * absence of a definitive statement the queue manager will always have to
+  * be prepared for all possibilities.
+  */
+#define DEL_STAT_FINAL		0	/* delivered or bounced */
+#define DEL_STAT_DEFER		(-1)	/* not delivered or bounced */
 
 typedef struct VSTREAM _deliver_vstream_;
 extern DELIVER_REQUEST *deliver_request_read(_deliver_vstream_ *);

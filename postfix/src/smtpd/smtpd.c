@@ -69,9 +69,9 @@
 /*	This parameter uses the same syntax as the right-hand side of
 /*	a Postfix transport table.
 /* .IP \fBsmtpd_noop_commands\fR
-/*	List of commands that are treated as NOOP (no operation) commands
-/*	without any parameter syntax checking. This list overrides built-in
-/*	command definitions.
+/*	List of commands that are treated as NOOP (no operation) commands,
+/*	without any parameter syntax checking and without any state change.
+/*	This list overrides built-in command definitions.
 /* .SH "Authentication controls"
 /* .IP \fBenable_sasl_authentication\fR
 /*	Enable per-session authentication as per RFC 2554 (SASL).
