@@ -78,6 +78,7 @@ static void unix_trigger_event(int event, char *context)
     if (event == EVENT_TIME)
 	msg_warn("%s: read timeout for service %s", myname, up->service);
     event_disable_readwrite(up->fd);
+    event_cancel_timer(unix_trigger_event, context);
     if (close(up->fd) < 0)
 	msg_warn("%s: close %s: %m", myname, up->service);
     myfree(up->service);
@@ -114,7 +115,8 @@ int     unix_trigger(const char *service, const char *buf, int len, int timeout)
     /*
      * Write the request...
      */
-    if (write_buf(fd, buf, len, timeout) < 0)
+    if (write_buf(fd, buf, len, timeout) < 0
+	|| write_buf(fd, "", 1, timeout) < 0)
 	if (msg_verbose)
 	    msg_warn("%s: write to %s: %m", myname, service);
 
@@ -122,7 +124,7 @@ int     unix_trigger(const char *service, const char *buf, int len, int timeout)
      * Wakeup when the peer disconnects, or when we lose patience.
      */
     if (timeout > 0)
-	event_request_timer(unix_trigger_event, (char *) up, timeout);
+	event_request_timer(unix_trigger_event, (char *) up, timeout + 100);
     event_enable_read(fd, unix_trigger_event, (char *) up);
     return (0);
 }

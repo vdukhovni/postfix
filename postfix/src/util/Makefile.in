@@ -646,6 +646,8 @@ inet_trigger.o: sys_defs.h
 inet_trigger.o: msg.h
 inet_trigger.o: connect.h
 inet_trigger.o: iostuff.h
+inet_trigger.o: mymalloc.h
+inet_trigger.o: events.h
 inet_trigger.o: trigger.h
 inet_util.o: inet_util.c
 inet_util.o: sys_defs.h
@@ -834,6 +836,7 @@ safe_open.o: vstring.h
 safe_open.o: safe_open.h
 sane_accept.o: sane_accept.c
 sane_accept.o: sys_defs.h
+sane_accept.o: msg.h
 sane_accept.o: sane_accept.h
 sane_link.o: sane_link.c
 sane_link.o: sys_defs.h
@@ -925,6 +928,8 @@ stream_trigger.o: sys_defs.h
 stream_trigger.o: msg.h
 stream_trigger.o: connect.h
 stream_trigger.o: iostuff.h
+stream_trigger.o: mymalloc.h
+stream_trigger.o: events.h
 stream_trigger.o: trigger.h
 sys_compat.o: sys_compat.c
 sys_compat.o: sys_defs.h
@@ -976,6 +981,8 @@ unix_trigger.o: sys_defs.h
 unix_trigger.o: msg.h
 unix_trigger.o: connect.h
 unix_trigger.o: iostuff.h
+unix_trigger.o: mymalloc.h
+unix_trigger.o: events.h
 unix_trigger.o: trigger.h
 unsafe.o: unsafe.c
 unsafe.o: sys_defs.h

@@ -361,8 +361,8 @@ relocated_maps =
 syslog_facility = mail
 
 # The syslog_name parameter specifies the mail system name that is
-# prepended to the process name in syslog records headers, so that
-# "smtpd" becomes "postfix/smtpd".
+# prepended to the process name in syslog records, so that "smtpd"
+# becomes, for example, "postfix/smtpd".
 #
 # Beware: a non-default syslog_name setting takes effect only
 # after process initialization. Some initialization errors will be

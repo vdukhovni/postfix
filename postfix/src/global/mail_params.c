@@ -331,7 +331,7 @@ void    mail_params_init()
 	VAR_OWNREQ_SPECIAL, DEF_OWNREQ_SPECIAL, &var_ownreq_special,
 	0,
     };
-const char *cp;
+    const char *cp;
 
     /*
      * Extract syslog_facility early, so that from here on all errors are

@@ -578,6 +578,10 @@ int     main(int unused_argc, char **unused_argv)
     VSTRING *buf = vstring_alloc(100);
 
     while (readlline(buf, VSTREAM_IN, (int *) 0, READLL_KEEPNL)) {
+	while (VSTRING_LEN(buf) > 0 && vstring_end(buf)[-1] == '\n') {
+	    vstring_end(buf)[-1] = 0;
+	    vstring_truncate(buf, VSTRING_LEN(buf) - 1);
+	}
 	if (!isatty(vstream_fileno(VSTREAM_IN)))
 	    vstream_printf(">>>%s<<<\n\n", vstring_str(buf));
 	list = tok822_parse(vstring_str(buf));

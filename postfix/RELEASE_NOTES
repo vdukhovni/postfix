@@ -1,7 +1,28 @@
-Release 20010228 differs from snapshot 20010228 in that the virtual
-delivery agent and nqmgr queue manager are left out. That software
-will become part of the official release when it has not changed
-in a while.
+Incompatible changes with snapshot-20010329
+===========================================
+
+This release changes the names of the "fast ETRN" logfiles with
+delayed mail per destination. These files are maintained by the
+Postfix "fast flush" daemon. The old scheme failed with addresses
+of the form user@[ip.address] and user@a.domain.name.  In order to
+populate the new "fast ETRN" logfiles, execute the command "sendmail
+-q".  The old "fast ETRN" logfiles go away by themselves (default:
+after 7 days).
+
+Major changes with snapshot-20010329
+====================================
+
+Better support for sites that run multiple Postfix instances on
+one machine. Each instance can now be recognized by its logging
+(default:  "syslog_name = postfix"). File: global/mail_task.c.
+
+Workaround for nqmgr panic due to a race condition that was introduced
+with the asynchronous bounce client.
+
+Workaround for hostile socket implementations that discard data
+when a client closes a socket before the server reads the client
+data.  Postfix now closes the client socket in a background thread
+that waits until the server closes the socket first.
 
 Incompatible changes with snapshot-20010225
 ===========================================

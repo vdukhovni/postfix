@@ -403,6 +403,10 @@ extern int initgroups(const char *, int);
 #define MISSING_USLEEP
 #endif
 
+#if defined(IRIX6)
+#define HAS_POSIX_REGEXP
+#endif
+
  /*
   * LINUX.
   */

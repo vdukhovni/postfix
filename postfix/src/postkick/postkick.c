@@ -160,12 +160,12 @@ int     main(int argc, char **argv)
     /*
      * Kick the service.
      */
-    if (mail_trigger(class, service, request, strlen(request) + 1) < 0) {
+    if (mail_trigger(class, service, request, strlen(request)) < 0) {
 	msg_warn("Cannot contact class %s service %s - perhaps the mail system is down",
 		 class, service);
 	exit(1);
     } else {
-	event_loop(-1);
+	event_drain();
 	exit(0);
     }
 }

@@ -781,6 +781,7 @@ int     main(int argc, char **argv)
 	    message_data = mymalloc(message_length);
 	    memset(message_data, 'X', message_length);
 	    for (i = 80; i < message_length; i += 80) {
+		message_data[i - 80] = "0123456789"[(i/80) % 10];
 		message_data[i - 2] = '\r';
 		message_data[i - 1] = '\n';
 	    }

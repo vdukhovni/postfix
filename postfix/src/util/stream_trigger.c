@@ -77,6 +77,7 @@ static void stream_trigger_event(int event, char *context)
     if (event == EVENT_TIME)
 	msg_warn("%s: read timeout for service %s", myname, sp->service);
     event_disable_readwrite(sp->fd);
+    event_cancel_timer(stream_trigger_event, context);
     if (close(sp->fd) < 0)
 	msg_warn("%s: close %s: %m", myname, sp->service);
     myfree(sp->service);
@@ -113,7 +114,8 @@ int     stream_trigger(const char *service, const char *buf, int len, int timeou
     /*
      * Write the request...
      */
-    if (write_buf(fd, buf, len, timeout) < 0)
+    if (write_buf(fd, buf, len, timeout) < 0
+	|| write_buf(fd, "", 1, timeout) < 0)
 	if (msg_verbose)
 	    msg_warn("%s: write to %s: %m", myname, service);
 
@@ -121,7 +123,7 @@ int     stream_trigger(const char *service, const char *buf, int len, int timeou
      * Wakeup when the peer disconnects, or when we lose patience.
      */
     if (timeout > 0)
-	event_request_timer(stream_trigger_event, (char *) sp, timeout);
+	event_request_timer(stream_trigger_event, (char *) sp, timeout + 100);
     event_enable_read(fd, stream_trigger_event, (char *) sp);
     return (0);
 }

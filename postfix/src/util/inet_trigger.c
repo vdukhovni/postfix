@@ -16,9 +16,9 @@
 /*	a brief connection to it and by writing the contents of the
 /*	named buffer.
 /*
-/*      The connection is closed by a background thread. Some kernels
-/*      cannot handle client-side disconnect before the server has
-/*      received the message.
+/*	The connection is closed by a background thread. Some kernels
+/*	cannot handle client-side disconnect before the server has
+/*	received the message.
 /*
 /*	Arguments:
 /* .IP service
@@ -80,6 +80,7 @@ static void inet_trigger_event(int event, char *context)
     if (event == EVENT_TIME)
 	msg_warn("%s: read timeout for service %s", myname, ip->service);
     event_disable_readwrite(ip->fd);
+    event_cancel_timer(inet_trigger_event, context);
     if (close(ip->fd) < 0)
 	msg_warn("%s: close %s: %m", myname, ip->service);
     myfree(ip->service);
@@ -113,7 +114,8 @@ int     inet_trigger(const char *service, const char *buf, int len, int timeout)
     /*
      * Write the request...
      */
-    if (write_buf(fd, buf, len, timeout) < 0)
+    if (write_buf(fd, buf, len, timeout) < 0
+	|| write_buf(fd, "", 1, timeout) < 0)
 	if (msg_verbose)
 	    msg_warn("%s: write to %s: %m", myname, service);
 
@@ -121,7 +123,7 @@ int     inet_trigger(const char *service, const char *buf, int len, int timeout)
      * Wakeup when the peer disconnects, or when we lose patience.
      */
     if (timeout > 0)
-	event_request_timer(inet_trigger_event, (char *) ip, timeout);
+	event_request_timer(inet_trigger_event, (char *) ip, timeout + 100);
     event_enable_read(fd, inet_trigger_event, (char *) ip);
     return (0);
 }
