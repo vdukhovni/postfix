@@ -662,8 +662,10 @@ static void qmqpd_service(VSTREAM *stream, char *unused_service, char **argv)
 
 static void pre_accept(char *unused_name, char **unused_argv)
 {
-    if (dict_changed()) {
-	msg_info("lookup table has changed -- exiting");
+    const char *table;
+ 
+    if ((table = dict_changed_name()) != 0) {
+	msg_info("table %s has changed -- restarting", table);
 	exit(0);
     }
 }

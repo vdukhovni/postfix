@@ -5,7 +5,7 @@
 /*	Postfix lookup table management
 /* SYNOPSIS
 /* .fi
-/*	\fBpostmap\fR [\fB-Nfinorvw\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostmap\fR [\fB-Nfinoprvw\fR] [\fB-c \fIconfig_dir\fR]
 /*		[\fB-d \fIkey\fR] [\fB-q \fIkey\fR]
 /*		[\fIfile_type\fR:]\fIfile_name\fR ...
 /* DESCRIPTION
@@ -23,7 +23,9 @@
 /*	postponed, and an exclusive, advisory, lock is placed on the
 /*	entire table, in order to avoid surprises in spectator
 /*	programs.
-/*
+/* INPUT FILE FORMAT
+/* .ad
+/* .fi
 /*	The format of a lookup table input file is as follows:
 /* .IP \(bu
 /*	A table entry has the form
@@ -42,8 +44,9 @@
 /*	databases, quotes cannot be used to protect lookup keys that contain
 /*	special characters such as `#' or whitespace. The \fIkey\fR is mapped
 /*	to lowercase to make mapping lookups case insensitive.
-/*
-/*	Options:
+/* COMMAND-LINE ARGUMENTS
+/* .ad
+/* .fi
 /* .IP \fB-N\fR
 /*	Include the terminating null character that terminates lookup keys
 /*	and values. By default, Postfix does whatever is the default for
@@ -73,6 +76,10 @@
 /*	Do not release root privileges when processing a non-root
 /*	input file. By default, \fBpostmap\fR drops root privileges
 /*	and runs as the source file owner instead.
+/* .IP \fB-p\fR
+/*	Do not inherit the file access permissions from the input file
+/*	when creating a new file.  Instead, create a new file with default
+/*	access permissions (mode 0644).
 /* .IP "\fB-q \fIkey\fR"
 /*	Search the specified maps for \fIkey\fR and print the first value
 /*	found on the standard output stream. The exit status is zero
@@ -190,6 +197,7 @@
 #define STR	vstring_str
 
 #define POSTMAP_FLAG_AS_OWNER	(1<<0)	/* open dest as owner of source */
+#define POSTMAP_FLAG_SAVE_PERM	(1<<1)	/* copy access permission from source */
 
 /* postmap - create or update mapping database */
 
@@ -221,7 +229,7 @@ static void postmap(char *map_type, char *path_name, int postmap_flags,
     /*
      * Turn off group/other read permissions as indicated in the source file.
      */
-    if (S_ISREG(st.st_mode))
+    if ((postmap_flags & POSTMAP_FLAG_SAVE_PERM) && S_ISREG(st.st_mode))
 	saved_mask = umask(022 | (~st.st_mode & 077));
 
     /*
@@ -243,7 +251,7 @@ static void postmap(char *map_type, char *path_name, int postmap_flags,
     /*
      * And restore the umask, in case it matters.
      */
-    if (S_ISREG(st.st_mode))
+    if ((postmap_flags & POSTMAP_FLAG_SAVE_PERM) && S_ISREG(st.st_mode))
 	umask(saved_mask);
 
     /*
@@ -448,7 +456,7 @@ int     main(int argc, char **argv)
     int     fd;
     char   *slash;
     struct stat st;
-    int     postmap_flags = POSTMAP_FLAG_AS_OWNER;
+    int     postmap_flags = POSTMAP_FLAG_AS_OWNER | POSTMAP_FLAG_SAVE_PERM;
     int     open_flags = O_RDWR | O_CREAT | O_TRUNC;
     int     dict_flags = DICT_FLAG_DUP_WARN | DICT_FLAG_FOLD_KEY;
     char   *query = 0;
@@ -488,7 +496,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "Nc:d:finoq:rvw")) > 0) {
+    while ((ch = GETOPT(argc, argv, "Nc:d:finopq:rvw")) > 0) {
 	switch (ch) {
 	default:
 	    usage(argv[0]);
@@ -518,6 +526,9 @@ int     main(int argc, char **argv)
 	    break;
 	case 'o':
 	    postmap_flags &= ~POSTMAP_FLAG_AS_OWNER;
+	    break;
+	case 'p':
+	    postmap_flags &= ~POSTMAP_FLAG_SAVE_PERM;
 	    break;
 	case 'q':
 	    if (query || delkey)

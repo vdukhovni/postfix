@@ -47,7 +47,7 @@
 /*	void	(*action)(dict_name, dict_handle, context)
 /*	char	*context;
 /*
-/*	int	dict_changed()
+/*	const char *dict_changed_name()
 /* AUXILIARY FUNCTIONS
 /*	void	dict_load_file(dict_name, path)
 /*	const char *dict_name;
@@ -130,8 +130,9 @@
 /* .IP "char *context"
 /*	Application context from the caller.
 /* .PP
-/*	dict_changed() returns non-zero when any dictionary needs to
+/*	dict_changed_name() returns non-zero when any dictionary needs to
 /*	be re-opened because it has changed or because it was unlinked.
+/*	A non-zero result is the name of a changed dictionary.
 /*
 /*	dict_load_file() reads name-value entries from the named file.
 /*	Lines that begin with whitespace are concatenated to the preceding
@@ -493,16 +494,16 @@ void    dict_walk(DICT_WALK_ACTION action, char *ptr)
     myfree((char *) ht_info_list);
 }
 
-/* dict_changed - see if any dictionary has changed */
+/* dict_changed_name - see if any dictionary has changed */
 
-int     dict_changed(void)
+const char *dict_changed_name(void)
 {
-    char   *myname = "dict_changed";
+    char   *myname = "dict_changed_name";
     struct stat st;
     HTABLE_INFO **ht_info_list;
     HTABLE_INFO **ht;
     HTABLE_INFO *h;
-    int     status;
+    const char *status;
     DICT   *dict;
 
     ht_info_list = htable_list(dict_table);
@@ -514,8 +515,16 @@ int     dict_changed(void)
 	    msg_warn("%s: table %s: null time stamp", myname, h->key);
 	if (fstat(dict->stat_fd, &st) < 0)
 	    msg_fatal("%s: fstat: %m", myname);
-	status = (st.st_mtime != dict->mtime || st.st_nlink == 0);
+	if (st.st_mtime != dict->mtime || st.st_nlink == 0)
+	    status = h->key;
     }
     myfree((char *) ht_info_list);
     return (status);
+}
+
+/* dict_changed - backwards compatibility */
+
+int     dict_changed(void)
+{
+    return (dict_changed_name() != 0);
 }

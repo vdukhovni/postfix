@@ -395,7 +395,7 @@ int     main(int argc, char **argv)
 	    vstream_fflush(VSTREAM_OUT);
 	    continue;
 	}
-	if (dict_changed())
+	if (dict_changed_name())
 	    msg_warn("dictionary has changed");
 	key = vstring_str(unescape(keybuf, mystrtok(&bufp, " =")));
 	value = mystrtok(&bufp, " =");

@@ -5,7 +5,7 @@ POSTMAP(1)                                             POSTMAP(1)
        postmap - Postfix lookup table management
 
 <b>SYNOPSIS</b>
-       <b>postmap</b> [<b>-Nfinorvw</b>] [<b>-c</b> <i>config_dir</i>] [<b>-d</b> <i>key</i>] [<b>-q</b> <i>key</i>]
+       <b>postmap</b> [<b>-Nfinoprvw</b>] [<b>-c</b> <i>config_dir</i>] [<b>-d</b> <i>key</i>] [<b>-q</b> <i>key</i>]
        [<i>file_type</i>:]<i>file_name</i> ...
 
 <b>DESCRIPTION</b>
@@ -24,6 +24,7 @@ POSTMAP(1)                                             POSTMAP(1)
        the entire table, in order to avoid surprises in spectator
        programs.
 
+<b>INPUT</b> <b>FILE</b> <b>FORMAT</b>
        The format of a lookup table input file is as follows:
 
        <b>o</b>      A table entry has the form
@@ -45,8 +46,7 @@ POSTMAP(1)                                             POSTMAP(1)
        whitespace. The <i>key</i> is mapped to lowercase to make mapping
        lookups case insensitive.
 
-       Options:
-
+<b>COMMAND-LINE</b> <b>ARGUMENTS</b>
        <b>-N</b>     Include the terminating null character that  termi-
               nates  lookup  keys and values. By default, Postfix
               does whatever is the default for the host operating
@@ -84,25 +84,30 @@ POSTMAP(1)                                             POSTMAP(1)
               privileges  and  runs  as  the  source  file  owner
               instead.
 
-       <b>-q</b> <i>key</i> Search the specified maps for  <i>key</i>  and  print  the
-              first  value  found  on the standard output stream.
+       <b>-p</b>     Do not inherit the file access permissions from the
+              input file when creating a new file.  Instead, cre-
+              ate a new  file  with  default  access  permissions
+              (mode 0644).
+
+       <b>-q</b> <i>key</i> Search  the  specified  maps  for <i>key</i> and print the
+              first value found on the  standard  output  stream.
               The exit status is zero when the requested informa-
               tion was found.
 
               If a key value of <b>-</b> is specified, the program reads
-              key values  from  the  standard  input  stream  and
-              prints  one  line  of <i>key</i> <i>value</i> output for each key
-              that was found. The exit status  is  zero  when  at
+              key  values  from  the  standard  input  stream and
+              prints one line of <i>key</i> <i>value</i> output  for  each  key
+              that  was  found.  The  exit status is zero when at
               least one of the requested keys was found.
 
-       <b>-r</b>     When  updating a table, do not warn about duplicate
+       <b>-r</b>     When updating a table, do not warn about  duplicate
               entries; silently replace them.
 
        <b>-v</b>     Enable verbose logging for debugging purposes. Mul-
-              tiple  <b>-v</b>  options  make  the software increasingly
+              tiple <b>-v</b> options  make  the  software  increasingly
               verbose.
 
-       <b>-w</b>     When updating a table, do not warn about  duplicate
+       <b>-w</b>     When  updating a table, do not warn about duplicate
               entries; silently ignore them.
 
        Arguments:
@@ -110,28 +115,28 @@ POSTMAP(1)                                             POSTMAP(1)
        <i>file_type</i>
               The type of database to be produced.
 
-              <b>btree</b>  The  output  file  is  a  btree  file, named
-                     <i>file_name</i><b>.db</b>.  This  is  available  only  on
-                     systems with support for <b>db</b> databases.
-
-              <b>dbm</b>    The  output  consists  of  two  files, named
-                     <i>file_name</i><b>.pag</b> and  <i>file_name</i><b>.dir</b>.   This  is
-                     available  only  on systems with support for
-                     <b>dbm</b> databases.
-
-              <b>hash</b>   The output file  is  a  hashed  file,  named
+              <b>btree</b>  The output  file  is  a  btree  file,  named
                      <i>file_name</i><b>.db</b>.   This  is  available  only on
                      systems with support for <b>db</b> databases.
 
-              Use the command <b>postconf</b> <b>-m</b> to find out what  types
-              of  database your Postfix installation can support.
+              <b>dbm</b>    The output  consists  of  two  files,  named
+                     <i>file_name</i><b>.pag</b>  and  <i>file_name</i><b>.dir</b>.   This is
+                     available only on systems with  support  for
+                     <b>dbm</b> databases.
 
-              When no <i>file_type</i> is specified, the  software  uses
-              the     database    type    specified    via    the
+              <b>hash</b>   The  output  file  is  a  hashed file, named
+                     <i>file_name</i><b>.db</b>.  This  is  available  only  on
+                     systems with support for <b>db</b> databases.
+
+              Use  the command <b>postconf</b> <b>-m</b> to find out what types
+              of database your Postfix installation can  support.
+
+              When  no  <i>file_type</i> is specified, the software uses
+              the    database    type    specified    via     the
               <b>default</b><i>_</i><b>database</b><i>_</i><b>type</b> configuration parameter.
 
        <i>file_name</i>
-              The name of  the  lookup  table  source  file  when
+              The  name  of  the  lookup  table  source file when
               rebuilding a database.
 
 <b>DIAGNOSTICS</b>
@@ -139,8 +144,8 @@ POSTMAP(1)                                             POSTMAP(1)
        stream. No output means no problems. Duplicate entries are
        skipped and are flagged with a warning.
 
-       <b>postmap</b>  terminates  with zero exit status in case of suc-
-       cess (including successful <b>postmap</b> <b>-q</b> lookup)  and  termi-
+       <b>postmap</b> terminates with zero exit status in case  of  suc-
+       cess  (including  successful <b>postmap</b> <b>-q</b> lookup) and termi-
        nates with non-zero exit status in case of failure.
 
 <b>ENVIRONMENT</b>
@@ -152,20 +157,20 @@ POSTMAP(1)                                             POSTMAP(1)
 
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
        <b>default</b><i>_</i><b>database</b><i>_</i><b>type</b>
-              Default  output  database  type.  On many UNIX sys-
-              tems, the default database type is either  <b>hash</b>  or
+              Default output database type.  On  many  UNIX  sys-
+              tems,  the  default database type is either <b>hash</b> or
               <b>dbm</b>.
 
        <b>berkeley</b><i>_</i><b>db</b><i>_</i><b>create</b><i>_</i><b>buffer</b><i>_</i><b>size</b>
-              Amount  of buffer memory to be used when creating a
+              Amount of buffer memory to be used when creating  a
               Berkeley DB <b>hash</b> or <b>btree</b> lookup table.
 
        <b>berkeley</b><i>_</i><b>db</b><i>_</i><b>read</b><i>_</i><b>buffer</b><i>_</i><b>size</b>
-              Amount of buffer memory to be used when  reading  a
+              Amount  of  buffer memory to be used when reading a
               Berkeley DB <b>hash</b> or <b>btree</b> lookup table.
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>

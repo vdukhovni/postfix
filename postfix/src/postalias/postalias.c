@@ -5,7 +5,7 @@
 /*	Postfix alias database maintenance
 /* SYNOPSIS
 /* .fi
-/*	\fBpostalias\fR [\fB-Nfinorvw\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostalias\fR [\fB-Nfinoprvw\fR] [\fB-c \fIconfig_dir\fR]
 /*		[\fB-d \fIkey\fR] [\fB-q \fIkey\fR]
 /*		[\fIfile_type\fR:]\fIfile_name\fR ...
 /* DESCRIPTION
@@ -21,6 +21,9 @@
 /*	postponed, and an exclusive, advisory, lock is placed on the
 /*	entire database, in order to avoid surprises in spectator
 /*	programs.
+/*
+/*	The format of Postfix alias input files is described in
+/*	\fBaliases\fR(5).
 /*
 /*	Options:
 /* .IP \fB-N\fR
@@ -52,6 +55,10 @@
 /*	Do not release root privileges when processing a non-root
 /*	input file. By default, \fBpostalias\fR drops root privileges
 /*	and runs as the source file owner instead.
+/* .IP \fB-p\fR
+/*	Do not inherit the file access permissions from the input file
+/*	when creating a new file.  Instead, create a new file with default
+/*	access permissions (mode 0644).
 /* .IP "\fB-q \fIkey\fR"
 /*	Search the specified maps for \fIkey\fR and print the first value
 /*	found on the standard output stream. The exit status is zero
@@ -130,6 +137,7 @@
 /*	RFC 822 (ARPA Internet Text Messages)
 /* SEE ALSO
 /*	aliases(5) format of alias database input file.
+/*	local(5) Postfix local delivery agent.
 /*	sendmail(1) mail posting and compatibility interface.
 /* LICENSE
 /* .ad
@@ -178,6 +186,8 @@
 #define STR	vstring_str
 
 #define POSTALIAS_FLAG_AS_OWNER	(1<<0)	/* open dest as owner of source */
+#define POSTALIAS_FLAG_SAVE_PERM	(1<<1)	/* copy access permission
+						 * from source */
 
 /* postalias - create or update alias database */
 
@@ -215,7 +225,7 @@ static void postalias(char *map_type, char *path_name, int postalias_flags,
     /*
      * Turn off group/other read permissions as indicated in the source file.
      */
-    if (S_ISREG(st.st_mode))
+    if ((postalias_flags & POSTALIAS_FLAG_SAVE_PERM) && S_ISREG(st.st_mode))
 	saved_mask = umask(022 | (~st.st_mode & 077));
 
     /*
@@ -237,7 +247,7 @@ static void postalias(char *map_type, char *path_name, int postalias_flags,
     /*
      * And restore the umask, in case it matters.
      */
-    if (S_ISREG(st.st_mode))
+    if ((postalias_flags & POSTALIAS_FLAG_SAVE_PERM) && S_ISREG(st.st_mode))
 	umask(saved_mask);
 
     /*
@@ -498,7 +508,7 @@ int     main(int argc, char **argv)
     int     fd;
     char   *slash;
     struct stat st;
-    int     postalias_flags = POSTALIAS_FLAG_AS_OWNER;
+    int     postalias_flags = POSTALIAS_FLAG_AS_OWNER | POSTALIAS_FLAG_SAVE_PERM;
     int     open_flags = O_RDWR | O_CREAT | O_TRUNC;
     int     dict_flags = DICT_FLAG_DUP_WARN | DICT_FLAG_FOLD_KEY;
     char   *query = 0;
@@ -538,7 +548,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "Nc:d:finoq:rvw")) > 0) {
+    while ((ch = GETOPT(argc, argv, "Nc:d:finopq:rvw")) > 0) {
 	switch (ch) {
 	default:
 	    usage(argv[0]);
@@ -568,6 +578,9 @@ int     main(int argc, char **argv)
 	    break;
 	case 'o':
 	    postalias_flags &= ~POSTALIAS_FLAG_AS_OWNER;
+	    break;
+	case 'p':
+	    postalias_flags &= ~POSTALIAS_FLAG_SAVE_PERM;
 	    break;
 	case 'q':
 	    if (query || delkey)

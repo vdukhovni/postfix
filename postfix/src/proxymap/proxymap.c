@@ -27,10 +27,10 @@
 /* .sp
 /*	virtual_alias_maps =
 /* .ti +4
-/*	proxy:mysql:/etc/postfix/virtual.cf
+/*	proxy:mysql:/etc/postfix/virtual_alias.cf
 /* .sp
 /*	The total number of connections is limited by the number of
-/*	proxymap server server processes.
+/*	proxymap server processes.
 /* .PP
 /*	The proxymap server implements the following requests:
 /* .IP "\fBPROXY_REQ_OPEN\fI maptype:mapname flags\fR"
@@ -332,6 +332,18 @@ static void proxymap_service(VSTREAM *client_stream, char *unused_service,
     vstream_fflush(client_stream);
 }
 
+/* dict_proxy_open - intercept remote map request from inside library */
+
+DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
+{
+    if (msg_verbose)
+	msg_info("dict_proxy_open(%s, 0%o, 0%o) called from internal routine",
+		 map, open_flags, dict_flags);
+    while (strncmp(map, PROXY_COLON, PROXY_COLON_LEN) == 0)
+	map += PROXY_COLON_LEN;
+    return (dict_open(map, open_flags, dict_flags));
+}
+
 /* post_jail_init - initialization after privilege drop */
 
 static void post_jail_init(char *unused_name, char **unused_argv)
@@ -371,8 +383,10 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 
 static void pre_accept(char *unused_name, char **unused_argv)
 {
-    if (dict_changed()) {
-	msg_info("some lookup table has changed -- restarting");
+    const char *table;
+
+    if ((table = dict_changed_name()) != 0) {
+	msg_info("table %s has changed -- restarting", table);
 	exit(0);
     }
 }

@@ -109,6 +109,7 @@ extern void dict_open_register(const char *, DICT *(*) (const char *, int, int))
 typedef void (*DICT_WALK_ACTION) (const char *, DICT *, char *);
 extern void dict_walk(DICT_WALK_ACTION, char *);
 extern int dict_changed(void);
+extern const char *dict_changed_name(void);
 
 /* LICENSE
 /* .ad

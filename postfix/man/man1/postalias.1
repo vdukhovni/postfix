@@ -9,7 +9,7 @@ Postfix alias database maintenance
 .na
 .nf
 .fi
-\fBpostalias\fR [\fB-Nfinorvw\fR] [\fB-c \fIconfig_dir\fR]
+\fBpostalias\fR [\fB-Nfinoprvw\fR] [\fB-c \fIconfig_dir\fR]
 [\fB-d \fIkey\fR] [\fB-q \fIkey\fR]
 [\fIfile_type\fR:]\fIfile_name\fR ...
 .SH DESCRIPTION
@@ -27,6 +27,9 @@ While a database update is in progress, signal delivery is
 postponed, and an exclusive, advisory, lock is placed on the
 entire database, in order to avoid surprises in spectator
 programs.
+
+The format of Postfix alias input files is described in
+\fBaliases\fR(5).
 
 Options:
 .IP \fB-N\fR
@@ -58,6 +61,10 @@ the host operating system.
 Do not release root privileges when processing a non-root
 input file. By default, \fBpostalias\fR drops root privileges
 and runs as the source file owner instead.
+.IP \fB-p\fR
+Do not inherit the file access permissions from the input file
+when creating a new file.  Instead, create a new file with default
+access permissions (mode 0644).
 .IP "\fB-q \fIkey\fR"
 Search the specified maps for \fIkey\fR and print the first value
 found on the standard output stream. The exit status is zero
@@ -146,6 +153,7 @@ RFC 822 (ARPA Internet Text Messages)
 .na
 .nf
 aliases(5) format of alias database input file.
+local(5) Postfix local delivery agent.
 sendmail(1) mail posting and compatibility interface.
 .SH LICENSE
 .na

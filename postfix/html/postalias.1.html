@@ -5,7 +5,7 @@ POSTALIAS(1)                                         POSTALIAS(1)
        postalias - Postfix alias database maintenance
 
 <b>SYNOPSIS</b>
-       <b>postalias</b> [<b>-Nfinorvw</b>] [<b>-c</b> <i>config_dir</i>] [<b>-d</b> <i>key</i>] [<b>-q</b> <i>key</i>]
+       <b>postalias</b> [<b>-Nfinoprvw</b>] [<b>-c</b> <i>config_dir</i>] [<b>-d</b> <i>key</i>] [<b>-q</b> <i>key</i>]
        [<i>file_type</i>:]<i>file_name</i> ...
 
 <b>DESCRIPTION</b>
@@ -24,44 +24,52 @@ POSTALIAS(1)                                         POSTALIAS(1)
        the entire database, in order to avoid surprises in  spec-
        tator programs.
 
+       The  format  of  Postfix alias input files is described in
+       <a href="aliases.5.html"><b>aliases</b>(5)</a>.
+
        Options:
 
-       <b>-N</b>     Include  the terminating null character that termi-
-              nates lookup keys and values. By  default,  Postfix
+       <b>-N</b>     Include the terminating null character that  termi-
+              nates  lookup  keys and values. By default, Postfix
               does whatever is the default for the host operating
               system.
 
        <b>-c</b> <i>config_dir</i>
-              Read the <b>main.cf</b> configuration file  in  the  named
+              Read  the  <b>main.cf</b>  configuration file in the named
               directory  instead  of  the  default  configuration
               directory.
 
-       <b>-d</b> <i>key</i> Search the specified maps for <i>key</i>  and  remove  one
-              entry  per  map.   The exit status is zero when the
+       <b>-d</b> <i>key</i> Search  the  specified  maps for <i>key</i> and remove one
+              entry per map.  The exit status is  zero  when  the
               requested information was found.
 
               If a key value of <b>-</b> is specified, the program reads
               key values from the standard input stream. The exit
-              status is zero when at least one of  the  requested
+              status  is  zero when at least one of the requested
               keys was found.
 
        <b>-f</b>     Do not fold the lookup key to lower case while cre-
               ating or querying a map.
 
-       <b>-i</b>     Incremental mode. Read entries from standard  input
+       <b>-i</b>     Incremental  mode. Read entries from standard input
               and  do  not  truncate  an  existing  database.  By
-              default, <b>postalias</b> creates a new database from  the
+              default,  <b>postalias</b> creates a new database from the
               entries in <i>file_name</i>.
 
-       <b>-n</b>     Don't  include  the terminating null character that
-              terminates lookup  keys  and  values.  By  default,
-              Postfix  does  whatever is the default for the host
+       <b>-n</b>     Don't include the terminating null  character  that
+              terminates  lookup  keys  and  values.  By default,
+              Postfix does whatever is the default for  the  host
               operating system.
 
-       <b>-o</b>     Do not release root privileges  when  processing  a
-              non-root  input  file.  By default, <b>postalias</b> drops
-              root privileges and runs as the source  file  owner
+       <b>-o</b>     Do  not  release  root privileges when processing a
+              non-root input file. By  default,  <b>postalias</b>  drops
+              root  privileges  and runs as the source file owner
               instead.
+
+       <b>-p</b>     Do not inherit the file access permissions from the
+              input file when creating a new file.  Instead, cre-
+              ate a new  file  with  default  access  permissions
+              (mode 0644).
 
        <b>-q</b> <i>key</i> Search  the  specified  maps  for <i>key</i> and print the
               first value found on the  standard  output  stream.
@@ -153,6 +161,7 @@ POSTALIAS(1)                                         POSTALIAS(1)
 
 <b>SEE</b> <b>ALSO</b>
        <a href="aliases.5.html">aliases(5)</a> format of alias database input file.
+       local(5) Postfix local delivery agent.
        <a href="sendmail.1.html">sendmail(1)</a> mail posting and compatibility interface.
 
 <b>LICENSE</b>

@@ -33,10 +33,10 @@ in "too many connections" errors. The solution:
 .sp
 virtual_alias_maps =
 .ti +4
-proxy:mysql:/etc/postfix/virtual.cf
+proxy:mysql:/etc/postfix/virtual_alias.cf
 .sp
 The total number of connections is limited by the number of
-proxymap server server processes.
+proxymap server processes.
 .PP
 The proxymap server implements the following requests:
 .IP "\fBPROXY_REQ_OPEN\fI maptype:mapname flags\fR"

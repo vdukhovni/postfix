@@ -1000,6 +1000,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     int     prev_rec_type;
     int     first = 1;
     VSTRING *why = 0;
+    int     saved_err;
 
     /*
      * Sanity checks. With ESMTP command pipelining the client can send DATA
@@ -1160,12 +1161,13 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     /*
      * Cleanup. The client may send another MAIL command.
      */
+    saved_err = state->err;
     chat_reset(state, var_smtpd_hist_thrsh);
     mail_reset(state);
     rcpt_reset(state);
     if (why)
 	vstring_free(why);
-    return (state->err);
+    return (saved_err);
 }
 
 /* rset_cmd - process RSET */
@@ -1479,7 +1481,7 @@ static void smtpd_proto(SMTPD_STATE *state)
 	}
 
 	for (;;) {
-	    if (state->error_count > var_smtpd_hard_erlim) {
+	    if (state->error_count >= var_smtpd_hard_erlim) {
 		state->reason = "too many errors";
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
 		smtpd_chat_reply(state, "421 Error: too many errors");
@@ -1604,8 +1606,10 @@ static void smtpd_service(VSTREAM *stream, char *unused_service, char **argv)
 
 static void pre_accept(char *unused_name, char **unused_argv)
 {
-    if (dict_changed()) {
-	msg_info("lookup table has changed -- exiting");
+    const char *table;
+ 
+    if ((table = dict_changed_name()) != 0) {
+	msg_info("table %s has changed -- restarting", table);
 	exit(0);
     }
 }

@@ -334,10 +334,19 @@ extern int opterr;
 #define SUPPORTED
 #include <sys/types.h>
 #define MISSING_SETENV
+#define USE_PATHS_H
+#ifndef _PATH_BSHELL
 #define _PATH_BSHELL	"/bin/sh"
+#endif
+#ifndef _PATH_MAILDIR
 #define _PATH_MAILDIR   "/var/spool/mail"	/* paths.h lies */
+#endif
+#ifndef _PATH_DEFPATH
 #define _PATH_DEFPATH	"/usr/bin:/usr/ucb"
+#endif
+#ifndef _PATH_STDPATH
 #define _PATH_STDPATH	"/usr/bin:/usr/sbin:/usr/ucb"
+#endif
 #define HAS_FCNTL_LOCK
 #define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
 #define DEF_MAILBOX_LOCK "fcntl, dotlock"
@@ -349,14 +358,12 @@ extern int opterr;
 #define HAS_NIS
 #define HAS_SA_LEN
 #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
-#define RESOLVE_H_NEEDS_STDIO_H
 #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin:/usr/ucb"
-#define SOCKADDR_SIZE	size_t
-#define SOCKOPT_SIZE	size_t
+#define SOCKADDR_SIZE	socklen_t
+#define SOCKOPT_SIZE	socklen_t
 #define USE_STATVFS
 #define STATVFS_IN_SYS_STATVFS_H
-#define STRCASECMP_IN_STRINGS_H
-#define NATIVE_SENDMAIL_PATH "/usr/lib/sendmail"
+#define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
 #define NATIVE_MAILQ_PATH "/usr/sbin/mailq"
 #define NATIVE_NEWALIAS_PATH "/usr/sbin/newaliases"
 #define NATIVE_COMMAND_DIR "/usr/sbin"

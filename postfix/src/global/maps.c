@@ -104,7 +104,7 @@
 
 /* maps_create - initialize */
 
-MAPS   *maps_create(const char *title, const char *map_names, int flags)
+MAPS   *maps_create(const char *title, const char *map_names, int dict_flags)
 {
     const char *myname = "maps_create";
     char   *temp;
@@ -130,13 +130,16 @@ MAPS   *maps_create(const char *title, const char *map_names, int flags)
 	bufp = temp = mystrdup(map_names);
 	map_type_name_flags = vstring_alloc(10);
 
+#define OPEN_FLAGS	O_RDONLY
+
 	while ((map_type_name = mystrtok(&bufp, sep)) != 0) {
-	    vstring_sprintf(map_type_name_flags, "%s:%o", map_type_name, flags);
+	    vstring_sprintf(map_type_name_flags, "%s(%o,%o)",
+			    map_type_name, OPEN_FLAGS, dict_flags);
 	    if ((dict = dict_handle(vstring_str(map_type_name_flags))) == 0)
-		dict = dict_open(map_type_name, O_RDONLY, flags);
-	    if ((dict->flags & flags) != flags)
+		dict = dict_open(map_type_name, OPEN_FLAGS, dict_flags);
+	    if ((dict->flags & dict_flags) != dict_flags)
 		msg_panic("%s: map %s has flags 0%o, want flags 0%o",
-			  myname, map_type_name, dict->flags, flags);
+			  myname, map_type_name, dict->flags, dict_flags);
 	    dict_register(vstring_str(map_type_name_flags), dict);
 	    argv_add(maps->argv, vstring_str(map_type_name_flags), ARGV_END);
 	}
