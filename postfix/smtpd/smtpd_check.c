@@ -1179,61 +1179,69 @@ static int generic_checks(SMTPD_STATE *state, char *name,
     /*
      * HELO/EHLO parameter restrictions.
      */
-    if (state->helo_name) {
-	if (is_map_command(name, CHECK_HELO_ACL, cpp) && state->helo_name) {
+    if (is_map_command(name, CHECK_HELO_ACL, cpp) && state->helo_name) {
+	if (state->helo_name)
 	    *status = check_domain_access(state, **cpp, state->helo_name, FULL);
-	    return (1);
-	}
-	if (strcasecmp(name, REJECT_INVALID_HOSTNAME) == 0) {
+	return (1);
+    }
+    if (strcasecmp(name, REJECT_INVALID_HOSTNAME) == 0) {
+	if (state->helo_name) {
 	    if (*state->helo_name != '[')
 		*status = reject_invalid_hostname(state, state->helo_name);
 	    else
 		*status = reject_invalid_hostaddr(state, state->helo_name);
-	    return (1);
 	}
-	if (strcasecmp(name, REJECT_UNKNOWN_HOSTNAME) == 0) {
+	return (1);
+    }
+    if (strcasecmp(name, REJECT_UNKNOWN_HOSTNAME) == 0) {
+	if (state->helo_name) {
 	    if (*state->helo_name != '[')
 		*status = reject_unknown_hostname(state, state->helo_name);
 	    else
 		*status = reject_invalid_hostaddr(state, state->helo_name);
-	    return (1);
 	}
-	if (strcasecmp(name, PERMIT_NAKED_IP_ADDR) == 0) {
+	return (1);
+    }
+    if (strcasecmp(name, PERMIT_NAKED_IP_ADDR) == 0) {
+	if (state->helo_name) {
 	    if (state->helo_name[strspn(state->helo_name, "0123456789.")] == 0
 		&& (*status = reject_invalid_hostaddr(state, state->helo_name)) == 0)
 		*status = SMTPD_CHECK_OK;
-	    return (1);
 	}
-	if (strcasecmp(name, REJECT_NON_FQDN_HOSTNAME) == 0) {
+	return (1);
+    }
+    if (strcasecmp(name, REJECT_NON_FQDN_HOSTNAME) == 0) {
+	if (state->helo_name) {
 	    if (*state->helo_name != '[')
 		*status = reject_non_fqdn_hostname(state, state->helo_name);
 	    else
 		*status = reject_invalid_hostaddr(state, state->helo_name);
-	    return (1);
 	}
+	return (1);
     }
 
     /*
      * Sender mail address restrictions.
      */
-    if (state->sender) {
-	if (is_map_command(name, CHECK_SENDER_ACL, cpp) && state->sender) {
+    if (is_map_command(name, CHECK_SENDER_ACL, cpp) && state->sender) {
+	if (state->sender)
 	    *status = check_mail_access(state, **cpp, state->sender);
-	    return (1);
-	}
-	if (strcasecmp(name, REJECT_UNKNOWN_ADDRESS) == 0) {
+	return (1);
+    }
+    if (strcasecmp(name, REJECT_UNKNOWN_ADDRESS) == 0) {
+	if (state->sender)
 	    *status = reject_unknown_address(state, state->sender);
-	    return (1);
-	}
-	if (strcasecmp(name, REJECT_UNKNOWN_SENDDOM) == 0) {
+	return (1);
+    }
+    if (strcasecmp(name, REJECT_UNKNOWN_SENDDOM) == 0) {
+	if (state->sender)
 	    *status = reject_unknown_address(state, state->sender);
-	    return (1);
-	}
-	if (strcasecmp(name, REJECT_NON_FQDN_SENDER) == 0) {
-	    if (*state->sender)
-		*status = reject_non_fqdn_address(state, state->sender);
-	    return (1);
-	}
+	return (1);
+    }
+    if (strcasecmp(name, REJECT_NON_FQDN_SENDER) == 0) {
+	if (*state->sender)
+	    *status = reject_non_fqdn_address(state, state->sender);
+	return (1);
     }
     return (0);
 }

@@ -2710,3 +2710,9 @@ Apologies for any names omitted.
 	mailbox_command of $user, $home, $shell, $recipient,
 	$extension, $domain, and $recipient_delimiter. Files:
 	local/command.c, local/dotforward.c, local/local_expand.c.
+
+19990506
+
+	Cleanup: eliminated misleading warnings about unknown HELO
+	etc. SMTPD restrictions when the HELO etc. information is
+	not available. File: smtpd/smtpd_check.c.

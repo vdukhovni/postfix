@@ -18,18 +18,18 @@ OK
 >>> client unknown 168.100.189.13
 OK
 >>> client random.bad.domain 123.123.123.123
-./smtpd_check: reject: CONNECT from random.bad.domain[123.123.123.123]: 550 match bad.domain
-550 match bad.domain
+./smtpd_check: reject: CONNECT from random.bad.domain[123.123.123.123]: 554 match bad.domain
+554 match bad.domain
 >>> client friend.bad.domain 123.123.123.123
 OK
 >>> client bad.domain 123.123.123.123
-./smtpd_check: reject: CONNECT from bad.domain[123.123.123.123]: 550 match bad.domain
-550 match bad.domain
+./smtpd_check: reject: CONNECT from bad.domain[123.123.123.123]: 554 match bad.domain
+554 match bad.domain
 >>> client wzv.win.tue.nl 131.155.210.17
 OK
 >>> client aa.win.tue.nl 131.155.210.18
-./smtpd_check: reject: CONNECT from aa.win.tue.nl[131.155.210.18]: 550 match 131.155.210
-550 match 131.155.210
+./smtpd_check: reject: CONNECT from aa.win.tue.nl[131.155.210.18]: 554 match 131.155.210
+554 match 131.155.210
 >>> client_restrictions permit_mynetworks
 OK
 >>> #
@@ -55,8 +55,8 @@ OK
 >>> helo_restrictions permit_mynetworks,reject_unknown_client,reject_invalid_hostname,hash:./smtpd_check_access
 OK
 >>> helo random.bad.domain
-./smtpd_check: reject: HELO from foo[123.123.123.123]: 550 match bad.domain
-550 match bad.domain
+./smtpd_check: reject: HELO from foo[123.123.123.123]: 554 match bad.domain
+554 match bad.domain
 >>> helo friend.bad.domain
 OK
 >>> helo_restrictions reject_invalid_hostname,reject_unknown_hostname
@@ -97,25 +97,25 @@ OK
 >>> sender_restrictions hash:./smtpd_check_access
 OK
 >>> mail bad-sender@any.domain
-./smtpd_check: reject: MAIL from foo[123.123.123.123]: 550 match bad-sender@
-550 match bad-sender@
+./smtpd_check: reject: MAIL from foo[123.123.123.123]: 554 match bad-sender@
+554 match bad-sender@
 >>> mail bad-sender@good.domain
 OK
 >>> mail reject@this.address
-./smtpd_check: reject: MAIL from foo[123.123.123.123]: 550 match reject@this.address
-550 match reject@this.address
+./smtpd_check: reject: MAIL from foo[123.123.123.123]: 554 match reject@this.address
+554 match reject@this.address
 >>> mail Reject@this.address
-./smtpd_check: reject: MAIL from foo[123.123.123.123]: 550 match reject@this.address
-550 match reject@this.address
+./smtpd_check: reject: MAIL from foo[123.123.123.123]: 554 match reject@this.address
+554 match reject@this.address
 >>> mail foo@bad.domain
-./smtpd_check: reject: MAIL from foo[123.123.123.123]: 550 match bad.domain
-550 match bad.domain
+./smtpd_check: reject: MAIL from foo[123.123.123.123]: 554 match bad.domain
+554 match bad.domain
 >>> mail foo@Bad.domain
-./smtpd_check: reject: MAIL from foo[123.123.123.123]: 550 match bad.domain
-550 match bad.domain
+./smtpd_check: reject: MAIL from foo[123.123.123.123]: 554 match bad.domain
+554 match bad.domain
 >>> mail foo@random.bad.domain
-./smtpd_check: reject: MAIL from foo[123.123.123.123]: 550 match bad.domain
-550 match bad.domain
+./smtpd_check: reject: MAIL from foo[123.123.123.123]: 554 match bad.domain
+554 match bad.domain
 >>> mail foo@friend.bad.domain
 OK
 >>> #
@@ -135,8 +135,8 @@ OK
 >>> client foo 123.123.123.123
 OK
 >>> rcpt foo@watson.ibm.com
-./smtpd_check: reject: RCPT from foo[123.123.123.123]: 550 <foo@watson.ibm.com>: Relay access denied
-550 <foo@watson.ibm.com>: Relay access denied
+./smtpd_check: reject: RCPT from foo[123.123.123.123]: 554 <foo@watson.ibm.com>: Relay access denied
+554 <foo@watson.ibm.com>: Relay access denied
 >>> rcpt foo@porcupine.org
 OK
 >>> recipient_restrictions check_relay_domains
@@ -150,26 +150,26 @@ OK
 >>> client foo 123.123.123.123
 OK
 >>> rcpt foo@watson.ibm.com
-./smtpd_check: reject: RCPT from foo[123.123.123.123]: 550 <foo@watson.ibm.com>: Relay access denied
-550 <foo@watson.ibm.com>: Relay access denied
+./smtpd_check: reject: RCPT from foo[123.123.123.123]: 554 <foo@watson.ibm.com>: Relay access denied
+554 <foo@watson.ibm.com>: Relay access denied
 >>> rcpt foo@porcupine.org
 OK
 >>> recipient_restrictions hash:./smtpd_check_access
 OK
 >>> mail bad-sender@any.domain
-./smtpd_check: reject: MAIL from foo[123.123.123.123]: 550 match bad-sender@
-550 match bad-sender@
+./smtpd_check: reject: MAIL from foo[123.123.123.123]: 554 match bad-sender@
+554 match bad-sender@
 >>> mail bad-sender@good.domain
 OK
 >>> mail reject@this.address
-./smtpd_check: reject: MAIL from foo[123.123.123.123]: 550 match reject@this.address
-550 match reject@this.address
+./smtpd_check: reject: MAIL from foo[123.123.123.123]: 554 match reject@this.address
+554 match reject@this.address
 >>> mail foo@bad.domain
-./smtpd_check: reject: MAIL from foo[123.123.123.123]: 550 match bad.domain
-550 match bad.domain
+./smtpd_check: reject: MAIL from foo[123.123.123.123]: 554 match bad.domain
+554 match bad.domain
 >>> mail foo@random.bad.domain
-./smtpd_check: reject: MAIL from foo[123.123.123.123]: 550 match bad.domain
-550 match bad.domain
+./smtpd_check: reject: MAIL from foo[123.123.123.123]: 554 match bad.domain
+554 match bad.domain
 >>> mail foo@friend.bad.domain
 OK
 >>> #
@@ -180,8 +180,8 @@ OK
 >>> client spike.porcupine.org 168.100.189.2
 OK
 >>> client foo 127.0.0.2
-./smtpd_check: reject: CONNECT from foo[127.0.0.2]: 550 Service unavailable; [127.0.0.2] blocked using rbl.maps.vix.com
-550 Service unavailable; [127.0.0.2] blocked using rbl.maps.vix.com
+./smtpd_check: reject: CONNECT from foo[127.0.0.2]: 554 Service unavailable; [127.0.0.2] blocked using rbl.maps.vix.com
+554 Service unavailable; [127.0.0.2] blocked using rbl.maps.vix.com
 >>> #
 >>> # Hybrids
 >>> #
@@ -190,8 +190,8 @@ OK
 >>> client foo 131.155.210.17
 OK
 >>> rcpt foo@watson.ibm.com
-./smtpd_check: reject: RCPT from foo[131.155.210.17]: 550 <foo@watson.ibm.com>: Relay access denied
-550 <foo@watson.ibm.com>: Relay access denied
+./smtpd_check: reject: RCPT from foo[131.155.210.17]: 554 <foo@watson.ibm.com>: Relay access denied
+554 <foo@watson.ibm.com>: Relay access denied
 >>> recipient_restrictions check_client_access,hash:./smtpd_check_access,check_relay_domains
 OK
 >>> client foo 131.155.210.17
@@ -203,11 +203,11 @@ OK
 >>> recipient_restrictions check_helo_access,hash:./smtpd_check_access,check_relay_domains
 OK
 >>> helo bad.domain
-./smtpd_check: reject: HELO from foo[131.155.210.17]: 550 match bad.domain
-550 match bad.domain
+./smtpd_check: reject: HELO from foo[131.155.210.17]: 554 match bad.domain
+554 match bad.domain
 >>> rcpt foo@porcupine.org
-./smtpd_check: reject: RCPT from foo[131.155.210.17]: 550 match bad.domain
-550 match bad.domain
+./smtpd_check: reject: RCPT from foo[131.155.210.17]: 554 match bad.domain
+554 match bad.domain
 >>> helo 131.155.210.17
 ./smtpd_check: warning: valid_hostname: numeric hostname: 131.155.210.17
 OK
@@ -216,11 +216,11 @@ OK
 >>> recipient_restrictions check_sender_access,hash:./smtpd_check_access,check_relay_domains
 OK
 >>> mail foo@bad.domain
-./smtpd_check: reject: MAIL from foo[131.155.210.17]: 550 match bad.domain
-550 match bad.domain
+./smtpd_check: reject: MAIL from foo[131.155.210.17]: 554 match bad.domain
+554 match bad.domain
 >>> rcpt foo@porcupine.org
-./smtpd_check: reject: RCPT from foo[131.155.210.17]: 550 match bad.domain
-550 match bad.domain
+./smtpd_check: reject: RCPT from foo[131.155.210.17]: 554 match bad.domain
+554 match bad.domain
 >>> mail foo@friend.bad.domain
 OK
 >>> rcpt foo@porcupine.org
@@ -237,8 +237,8 @@ OK
 >>> rcpt wietse@wzv.win.tue.nl
 OK
 >>> rcpt wietse@trouble.org
-./smtpd_check: reject: RCPT from foo[131.155.210.17]: 550 <wietse@trouble.org> Access denied
-550 <wietse@trouble.org> Access denied
+./smtpd_check: reject: RCPT from foo[131.155.210.17]: 554 <wietse@trouble.org> Access denied
+554 <wietse@trouble.org> Access denied
 >>> rcpt wietse@porcupine.org
 OK
 >>> #
@@ -257,15 +257,15 @@ OK
 >>> mail foo@good.domain
 OK
 >>> rcpt foo@porcupine.org
-./smtpd_check: reject: RCPT from foo[131.155.210.17]: 550 match bad.domain
-550 match bad.domain
+./smtpd_check: reject: RCPT from foo[131.155.210.17]: 554 match bad.domain
+554 match bad.domain
 >>> helo good.domain
 OK
 >>> mail foo@bad.domain
 OK
 >>> rcpt foo@porcupine.org
-./smtpd_check: reject: RCPT from foo[131.155.210.17]: 550 match bad.domain
-550 match bad.domain
+./smtpd_check: reject: RCPT from foo[131.155.210.17]: 554 match bad.domain
+554 match bad.domain
 >>> #
 >>> # FQDN restrictions
 >>> #

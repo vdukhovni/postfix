@@ -1,0 +1,63 @@
+1 - Purpose of this document
+============================
+
+This document describes how to debug parts of the Postfix mail
+system, either by making the software log a lot of detail to the
+syslog daemon, or by running some daemon processes under control
+of an interactive debugger.
+
+2 - Verbose logging for specific SMTP connections
+=================================================
+
+In /etc/postfix/main.cf, list the remote site name or address in
+the "debug_peer_list" parameter. For example, in order to make the
+software log a lot of information to the syslog daemon for connections
+from or to the loopback interface:
+
+    debug_peer_list = 127.0.0.1
+
+3 - Making daemon programs more verbose
+=======================================
+
+Append one or more -v options to commands in /etc/postfix/master.cf
+and type "postfix reload". This will cause a lot of activity to be
+logged to the syslog daemon.
+
+4 - Tracing a Postfix daemon process
+====================================
+
+Some systems allow you to inspect a running process with a system
+call tracer. For example:
+
+	# trace -p process-id
+	# strace -p process-id
+	# truss -p process-id
+	# ktrace -p process-id
+
+This can give valuable information about what a process is attempting
+to do. This is as much information as you can get without running
+a debugger program, as described in the next section.
+
+5 - Running daemon programs under an interactive debugger
+=========================================================
+
+Append a -D option to the suspect command in /etc/postfix/master.cf,
+for example:
+
+    smtp      inet  n       -       n       -       -       smtpd -D
+
+Edit the debugger_command definition in /etc/postfix/main.cf so
+that it invokes the debugger of your choice, for example:
+
+    debugger_command =
+         PATH=/usr/bin:/usr/X11R6/bin
+         xxgdb $daemon_directory/$process_name $process_id & sleep 5
+
+Export XAUTHORITY so that X access control works, for example:
+
+    % setenv XAUTHORITY ~/.Xauthority
+
+Stop and start the Postfix system. 
+
+Whenever the suspect daemon process is started, a debugger window
+pops up and you can watch in detail what happens.

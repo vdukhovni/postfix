@@ -57,7 +57,7 @@
 /*	A timeout error is reported to the vstream module as an I/O error.
 /* .PP
 /*	smtp_printf() formats its arguments and writes the result to
-/*	the named stream, followed by a CR LF stream. The stream is flushed.
+/*	the named stream, followed by a CR LF pair. The stream is flushed.
 /*	Long lines of text are not broken.
 /*
 /*	smtp_get() reads the named stream up to and including
@@ -207,8 +207,8 @@ void    smtp_timeout_setup(VSTREAM *stream, int maxtime)
      * XXX The timeout etc. state is static, so a process can have at most
      * one SMTP session at a time. We could use the VSTREAM file descriptor
      * number as key into a BINHASH table with per-stream contexts. This
-     * would allow us to keep talk to multiple SMTP streams at the same time.
-     * Another possibilty is to use the file descriptor as an index into a
+     * would allow us to talk to multiple SMTP streams at the same time.
+     * Another possibility is to use the file descriptor as an index into a
      * linear table of structure pointers. In either case we would need to
      * provide an smtp_timeout_cleanup() routine to dispose of memory that is
      * no longer needed.
