@@ -110,8 +110,8 @@
 /* .IP reject_maps_rbl
 /*	Look up the reversed client network address in the real-time blackhole
 /*	DNS zones below the domains listed in the "maps_rbl_domains"
-/*	configuration parameter.  This is equivalent to using "reject_rbl"
-/*	once for each such domain.
+/*	configuration parameter.  This is equivalent to using
+/*	"reject_rbl_client" once for each such domain.
 /* .IP permit_naked_ip_address
 /*	Permit the use of a naked IP address (without enclosing [])
 /*	in HELO/EHLO commands.
@@ -2632,9 +2632,12 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    if (*(cpp[1]) == 0)
 		msg_warn("restriction %s requires domain name argument",
 			 name);
-	    else if (strcasecmp(state->name, "unknown") != 0)
-		status = reject_rbl_domain(state, *(cpp += 1), state->name,
-					   SMTPD_NAME_CLIENT);
+	    else {
+		cpp += 1;
+		if (strcasecmp(state->name, "unknown") != 0)
+		    status = reject_rbl_domain(state, *cpp, state->name,
+					       SMTPD_NAME_CLIENT);
+	    }
 	}
 
 	/*
@@ -2713,9 +2716,12 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	} else if (strcasecmp(name, REJECT_RHSBL_SENDER) == 0) {
 	    if (cpp[1] == 0)
 		msg_warn("restriction %s requires domain name argument", name);
-	    else if (state->sender && *state->sender)
-		status = reject_rbl_domain(state, *(cpp += 1), state->sender,
-					   SMTPD_NAME_SENDER);
+	    else {
+		cpp += 1;
+		if (state->sender && *state->sender)
+		    status = reject_rbl_domain(state, *cpp, state->sender,
+					       SMTPD_NAME_SENDER);
+	    }
 	}
 
 	/*
@@ -2762,9 +2768,12 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	} else if (strcasecmp(name, REJECT_RHSBL_RECIPIENT) == 0) {
 	    if (cpp[1] == 0)
 		msg_warn("restriction %s requires domain name argument", name);
-	    else if (state->recipient)
-		status = reject_rbl_domain(state, *(cpp += 1), state->recipient,
-					   SMTPD_NAME_RECIPIENT);
+	    else {
+		cpp += 1;
+		if (state->recipient)
+		    status = reject_rbl_domain(state, *cpp, state->recipient,
+					       SMTPD_NAME_RECIPIENT);
+	    }
 	}
 
 	/*

@@ -15,7 +15,7 @@ the same bugfixes as a patch release.
 Incompatible changes with Postfix snapshot 1.1.11-20020923
 ==========================================================
 
-Subtle change in ${name:result} macro expansions:  the expansion
+Subtle change in ${name?result} macro expansions:  the expansion
 no longer happens when $name is an empty string. This probably
 makes more sense than the old behavior.
 

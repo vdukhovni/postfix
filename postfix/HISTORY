@@ -7018,6 +7018,12 @@ Apologies for any names omitted.
 	The reject_rbl restriction name is still recognized for
 	compatibility with systems maintained by LaMont Jones.
 
+20020924
+
+	Bugfix: reject_rhsbl_<mumble> was broken when <mumble> was
+	unavailable, causing the restrictions parser to get out if
+	sync. Spotted by Ralf Hildebrandt.  File:  smtpd/smtpd_check.c.
+
 Open problems:
 
 	Low: smtpd should log queue ID with reject/warn/hold/discard
