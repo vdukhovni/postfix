@@ -704,7 +704,9 @@ hold_message.o: hold_message.h
 input_transp.o: input_transp.c
 input_transp.o: ../../include/sys_defs.h
 input_transp.o: ../../include/name_mask.h
+input_transp.o: ../../include/msg.h
 input_transp.o: mail_params.h
+input_transp.o: cleanup_user.h
 input_transp.o: input_transp.h
 is_header.o: is_header.c
 is_header.o: ../../include/sys_defs.h

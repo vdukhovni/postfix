@@ -10268,7 +10268,27 @@ Apologies for any names omitted.
 	command examples. Files: mantools/manlint, mantools/fixman,
 	mantools/postconf2man.
 
+20050206
+
+	Cleanup: don't count a [45]XX SMTP server greeting towards
+	the mx_session_limit setting. File: smtp/smtp_connect.c.
+
+	Feature: output address rewriting in the SMTP client. The
+	smtp_generics_maps parameter specifies an address mapping
+	that happens only when mail is delivered via SMTP. This is
+	typically used for hosts without a valid domain name, that
+	use something like localdomain.local instead.  This feature
+	can replace local mail addresses by valid Internet mail
+	addresses when mail needs to go across the Internet, but
+	not when mail is sent between accounts on the local machine.
+	Files:  smtp/smtp_proto.c, smtp/smtp_map11.c.
+
+	Cleanup: don't panic in mymalloc() when master can't find
+	any IP addresses. LaMont Jones. File: master/master_ent.c.
+
 Open problems:
+
+	Med: document generics mapping in BASIC_CONFIGURATION_README.
 
 	Med: local and remote source port and IP address for
 	smtpd policy hook.
@@ -10319,7 +10339,9 @@ Open problems:
 
 	Low: update events.c so that 1-second timer requests do
 	not suffer from rounding errors. This is needed for 1-second
-	SMTP session caching time limits.
+	SMTP session caching time limits. A 1-second interval would
+	become arbitrarily short when an event is scheduled just
+	before the current second rolls over.
 
 	Low: per-sender resolver personalities?
 

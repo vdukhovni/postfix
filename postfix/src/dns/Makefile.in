@@ -184,6 +184,8 @@ test_dns_lookup.o: ../../include/vbuf.h
 test_dns_lookup.o: ../../include/msg.h
 test_dns_lookup.o: ../../include/msg_vstream.h
 test_dns_lookup.o: ../../include/vstream.h
+test_dns_lookup.o: ../../include/mymalloc.h
+test_dns_lookup.o: ../../include/argv.h
 test_dns_lookup.o: dns.h
 test_dns_lookup.o: ../../include/sock_addr.h
 test_dns_lookup.o: ../../include/myaddrinfo.h

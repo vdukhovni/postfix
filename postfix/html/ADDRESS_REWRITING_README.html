@@ -94,6 +94,20 @@ as invalid </a>
 
 <li> <a href="#relocated"> Relocated users table </a>
 
+</ul>
+
+<li> <a href="#remote"> Address rewriting with remote delivery </a>
+
+<ul>
+
+<li> <a href="#generics"> Generic mapping for outgoing SMTP mail </a>
+
+</ul>
+
+<li> <a href="#local"> Address rewriting with local delivery </a>
+
+<ul>
+
 <li> <a href="#aliases"> Local alias database </a>
 
 <li> <a href="#forward"> Local per-user .forward files </a>
@@ -328,6 +342,10 @@ nowrap> all mail </td> <td> <a href="cleanup.8.html">cleanup(8)</a> </td> <td> <
 <tr> <td> <a href="#relocated"> Relocated users table</a> </td>
 <td nowrap> all mail </td> <td> <a href="trivial-rewrite.8.html">trivial-<br>rewrite(8)</a> </td> <td>
 <a href="postconf.5.html#relocated_maps">relocated_maps</a> </td> <td> none </td> </tr>
+
+<tr> <td> <a href="#generics"> Generics table </a> </td> <td>
+outgoing SMTP mail </td> <td> <a href="smtp.8.html">smtp(8)</a> </td> <td> <a href="postconf.5.html#smtp_generics_maps">smtp_generics_maps</a>
+</td> <td> none </td> </tr>
 
 <tr> <td> <a href="#aliases"> Local alias database</a> </td> <td>
 all mail </td> <td> <a href="local.8.html">local(8)</a> </td> <td> <a href="postconf.5.html#alias_maps">alias_maps</a> </td> <td> none
@@ -796,8 +814,17 @@ content according to the rules of the SMTP, LMTP, etc.  protocol.
 When mail cannot be delivered, it is either returned to the sender
 or moved to the <a href="QSHAPE_README.html#deferred_queue">deferred queue</a> and tried again later.  </p>
 
-<p> Address manipulations when mail is delivered via the <a href="local.8.html">local(8)</a>
-delivery agent: </p>
+<p> <a name="remote">Address</a> manipulations when mail is delivered
+via the <a href="smtp.8.html">smtp(8)</a> delivery agent: </p>
+
+<ul>
+
+<li> <a href="#generics"> Generic mapping for outgoing SMTP mail </a>
+
+</ul>
+
+<p> <a name="local">Address</a> manipulations when mail is delivered
+via the <a href="local.8.html">local(8)</a> delivery agent: </p>
 
 <ul>
 
@@ -911,6 +938,42 @@ rejected by the SMTP server with the reason "user has moved to
 otheruser@elsewhere.tld". Older Postfix versions will receive the
 mail first, and then return it to the sender as undeliverable, with
 the same reason.  </p>
+
+<h3> <a name="generics"> Generic mapping for outgoing SMTP mail </a> </h3>
+
+<p> Some hosts have no valid Internet domain name, and instead use
+a name such as <i>localdomain.local</i>. This can be a problem when
+you want to send mail over the Internet, because many mail servers
+reject mail addresses with invalid domain names. </p>
+
+<p> With the <a href="postconf.5.html#smtp_generics_maps">smtp_generics_maps</a> parameter you can specify lookup
+tables that replace local mail addresses by valid Internet addresses
+when mail leaves the machine via SMTP. This mapping replaces envelope
+and header addresses, and is non-recursive. It does not happen when
+you send mail between addresses on the local machine. </p>
+
+<p> This feature is available in Postfix version 2.2 and later.</p>
+
+<p> Example: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    <a href="postconf.5.html#smtp_generics_maps">smtp_generics_maps</a> = hash:/etc/postfix/generics
+
+/etc/postfix/generics:
+    you@localdomain.local		youraccount@yourisp.example
+    her@localdomain.local		heraccount@herisp.example
+    @localdomain.local			youraccount+local@yourisp.example
+</pre>
+</blockquote>
+
+<p> When mail is sent to a remote host via SMTP, this replaces your
+local mail address <i>you@localdomain.local</i> by your ISP mail
+address, replaces <i>her@localdomain.local</i> by her ISP mail
+address, and replaces all other local addresses by your ISP account,
+with an address extension of +<i>local</i> (this example assumes
+that the ISP supports "+" style address extensions).  </p>
 
 <h3> <a name="aliases"> Local alias database </a> </h3>
 

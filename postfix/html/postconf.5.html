@@ -4534,10 +4534,11 @@ to "<i>joe.user+foo</i>".
 
 <p>
 Specify zero or more of <b>canonical</b>, <b>virtual</b>, <b>alias</b>,
-<b>forward</b> or <b>include</b>. These cause address extension
+<b>forward</b>, <b>include</b> or <b>generics</b>. These cause
+address extension
 propagation with <a href="canonical.5.html">canonical(5)</a>, <a href="virtual.5.html">virtual(5)</a>, and <a href="aliases.5.html">aliases(5)</a> maps,
-and with <a href="local.8.html">local(8)</a> .forward and :include: file lookups, respectively.
-</p>
+with <a href="local.8.html">local(8)</a> .forward and :include: file lookups, and with <a href="smtp.8.html">smtp(8)</a>
+generics maps, respectively.  </p>
 
 <p>
 Note: enabling this feature for types other than <b>canonical</b>
@@ -5902,6 +5903,48 @@ the CommonName is checked.  The behavior may be changed with the
 will only connect to servers that support <a href="http://www.faqs.org/rfcs/rfc2487.html">RFC 2487</a> _and_ that
 provide valid server certificates.  Typical use is for clients that
 send all their email to a dedicated mailhub.  </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_generics_maps">smtp_generics_maps</a>
+(default: empty)</b></DT><DD>
+
+<p> Optional lookup tables that perform address rewriting in the
+SMTP client, typically to transform a locally valid address into
+a globally valid address when sending mail across the Internet.
+This is needed when the local machine does not have its own Internet
+domain name, but uses something like <i>localdomain.local</i>
+instead.  </p>
+
+<p> The table search order is described below. The search terminates
+when a match is found. In other words, the search is non-recursive.
+</p>
+
+<dl>
+
+<dt> <i>user@domain.tld address</i> </dt>
+
+<dd> <p> Replace <i>user@domain.tld</i> by <i>address</i>.  This
+form has the highest precedence. </p> </dd>
+
+<dt> <i>user address</i> </dt>
+
+<dd> <p> Replace <i>user@site</i> by <i>address</i> when <i>site</i> is
+equal to $<a href="postconf.5.html#myorigin">myorigin</a>, when <i>site</i> is listed in $<a href="postconf.5.html#mydestination">mydestination</a>,
+or when it matches $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>.  </p>
+</dd>
+
+<dt> <i>@domain.tld address</i> </dt>
+
+<dd> <p> Replace all other addresses in <i>domain.tld</i> by
+<i>address</i>.  This form has the lowest preference. </p> </dd>
+
+</dl>
+
+<p> In all cases <i>address</i> must specify a username and a
+domain. </p> <p> This feature is available in Postfix 2.2 and later.
+</p>
 
 
 </DD>

@@ -324,6 +324,7 @@ while (<>) {
     s;\bsmtp_data_init_timeout\b;<a href="postconf.5.html#smtp_data_init_timeout">$&</a>;g;
     s;\bsmtp_data_xfer_timeout\b;<a href="postconf.5.html#smtp_data_xfer_timeout">$&</a>;g;
     s;\bsmtp_defer_if_no_mx_address_found\b;<a href="postconf.5.html#smtp_defer_if_no_mx_address_found">$&</a>;g;
+    s;\bsmtp_generics_maps\b;<a href="postconf.5.html#smtp_generics_maps">$&</a>;g;
     s;\blmtp_destination_concurrency_limit\b;<a href="postconf.5.html#lmtp_destination_concurrency_limit">$&</a>;g;
     s;\blmtp_destination_recip[-</bB>]*\n* *[<bB>]*ient_limit\b;<a href="postconf.5.html#lmtp_destination_recipient_limit">$&</a>;g;
     s;\brelay_destination_concurrency_limit\b;<a href="postconf.5.html#relay_destination_concurrency_limit">$&</a>;g;

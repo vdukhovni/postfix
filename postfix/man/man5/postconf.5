@@ -2436,9 +2436,11 @@ joe.user\fR", the address "\fIjoe+foo@domain\fR" would rewrite
 to "\fIjoe.user+foo\fR".
 .PP
 Specify zero or more of \fBcanonical\fR, \fBvirtual\fR, \fBalias\fR,
-\fBforward\fR or \fBinclude\fR. These cause address extension
+\fBforward\fR, \fBinclude\fR or \fBgenerics\fR. These cause
+address extension
 propagation with \fBcanonical\fR(5), \fBvirtual\fR(5), and \fBaliases\fR(5) maps,
-and with \fBlocal\fR(8) .forward and :include: file lookups, respectively.
+with \fBlocal\fR(8) .forward and :include: file lookups, and with \fBsmtp\fR(8)
+generics maps, respectively.
 .PP
 Note: enabling this feature for types other than \fBcanonical\fR
 and \fBvirtual\fR is likely to cause problems when mail is forwarded
@@ -3236,6 +3238,30 @@ This option is useful only if you are definitely sure that you
 will only connect to servers that support RFC 2487 _and_ that
 provide valid server certificates.  Typical use is for clients that
 send all their email to a dedicated mailhub.
+.SH smtp_generics_maps (default: empty)
+Optional lookup tables that perform address rewriting in the
+SMTP client, typically to transform a locally valid address into
+a globally valid address when sending mail across the Internet.
+This is needed when the local machine does not have its own Internet
+domain name, but uses something like \fIlocaldomain.local\fR
+instead.
+.PP
+The table search order is described below. The search terminates
+when a match is found. In other words, the search is non-recursive.
+.IP "\fIuser@domain.tld address\fR"
+Replace \fIuser@domain.tld\fR by \fIaddress\fR.  This
+form has the highest precedence.
+.IP "\fIuser address\fR"
+Replace \fIuser@site\fR by \fIaddress\fR when \fIsite\fR is
+equal to $myorigin, when \fIsite\fR is listed in $mydestination,
+or when it matches $inet_interfaces or $proxy_interfaces.
+.IP "\fI@domain.tld address\fR"
+Replace all other addresses in \fIdomain.tld\fR by
+\fIaddress\fR.  This form has the lowest preference.
+.PP
+In all cases \fIaddress\fR must specify a username and a
+domain.
+This feature is available in Postfix 2.2 and later.
 .SH smtp_helo_name (default: $myhostname)
 The hostname to send in the SMTP EHLO or HELO command.
 .PP

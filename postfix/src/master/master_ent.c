@@ -371,6 +371,10 @@ MASTER_SERV *get_master_ent()
      * Listen socket(s). XXX We pre-allocate storage because the number of
      * sockets is frozen anyway once we build the command-line vector below.
      */
+    if (serv->listen_fd_count == 0) {
+	msg_fatal("%s: line %d: no valid IP address found: %s",
+		  VSTREAM_PATH(master_fp), master_line, name);
+    }
     serv->listen_fd = (int *) mymalloc(sizeof(int) * serv->listen_fd_count);
     for (n = 0; n < serv->listen_fd_count; n++)
 	serv->listen_fd[n] = -1;

@@ -131,6 +131,10 @@
 #include <mime_state.h>
 #include <ehlo_mask.h>
 #include <maps.h>
+#include <tok822.h>
+#include <mail_addr_map.h>
+#include <ext_prop.h>
+#include <lex_822.h>
 
 /* Application-specific. */
 
@@ -684,6 +688,23 @@ static void smtp_text_out(void *context, int rec_type,
     } while (data_left > 0);
 }
 
+/* smtp_format_out - output one header/body record */
+
+static void PRINTFLIKE(3, 4) smtp_format_out(void *, int, const char *,...);
+
+static void smtp_format_out(void *context, int rec_type, const char *fmt,...)
+{
+    static VSTRING *vp;
+    va_list ap;
+
+    if (vp == 0)
+	vp = vstring_alloc(100);
+    va_start(ap, fmt);
+    vstring_vsprintf(vp, fmt, ap);
+    va_end(ap);
+    smtp_text_out(context, rec_type, vstring_str(vp), VSTRING_LEN(vp), 0);
+}
+
 /* smtp_header_out - output one message header */
 
 static void smtp_header_out(void *context, int unused_header_class,
@@ -694,10 +715,97 @@ static void smtp_header_out(void *context, int unused_header_class,
     char   *line;
     char   *next_line;
 
+    /*
+     * This code destroys the header. We could try to avoid clobbering it,
+     * but we're not going to use the data any further.
+     */
     for (line = start; line; line = next_line) {
 	next_line = split_at(line, '\n');
 	smtp_text_out(context, REC_TYPE_NORM, line, next_line ?
 		      next_line - line - 1 : strlen(line), offset);
+    }
+}
+
+/* smtp_header_rewrite - rewrite message header before output */
+
+static void smtp_header_rewrite(void *context, int header_class,
+			             HEADER_OPTS *header_info, VSTRING *buf,
+				        off_t offset)
+{
+    SMTP_STATE *state = (SMTP_STATE *) context;
+    int     did_rewrite = 0;
+    char   *line;
+    char   *start;
+    char   *next_line;
+    char   *end_line;
+
+    /*
+     * Rewrite primary header addresses that match the smtp_generics_table.
+     * The cleanup server already enforces that all headers have proper
+     * lengths and that all addresses are in proper form, so we don't have to
+     * repeat that.
+     */
+    if (header_info && header_class == MIME_HDR_PRIMARY
+	&& (header_info->flags & (HDR_OPT_SENDER | HDR_OPT_RECIP)) != 0) {
+	TOK822 *tree;
+	TOK822 **addr_list;
+	TOK822 **tpp;
+
+	tree = tok822_parse(vstring_str(buf)
+			    + strlen(header_info->name) + 1);
+	addr_list = tok822_grep(tree, TOK822_ADDR);
+	for (tpp = addr_list; *tpp; tpp++)
+	    did_rewrite |= smtp_map11_tree(tpp[0], smtp_generics_maps,
+				    smtp_ext_prop_mask & EXT_PROP_GENERICS);
+	if (did_rewrite) {
+	    vstring_sprintf(buf, "%s: ", header_info->name);
+	    tok822_externalize(buf, tree, TOK822_STR_HEAD);
+	}
+	myfree((char *) addr_list);
+	tok822_free_tree(tree);
+    }
+
+    /*
+     * Pass through unmodified headers without reconstruction.
+     */
+    if (did_rewrite == 0) {
+	smtp_header_out(context, header_class, header_info, buf, offset);
+	return;
+    }
+
+    /*
+     * A rewritten address list contains one address per line. The code below
+     * replaces newlines by spaces, to fit as many addresses on a line as
+     * possible (without rearranging the order of addresses). Prepending
+     * white space to the beginning of lines is delegated to the output
+     * routine.
+     */
+    for (line = start = vstring_str(buf); line != 0; line = next_line) {
+	end_line = line + strcspn(line, "\n");
+	if (line > start) {
+	    if (end_line - start < 70) {	/* TAB counts as one */
+		line[-1] = ' ';
+	    } else {
+		start = line;
+	    }
+	}
+	next_line = *end_line ? end_line + 1 : 0;
+    }
+
+    /*
+     * Prepend a tab to continued header lines that went through the address
+     * rewriting machinery. Just like smtp_header_out(), this code destroys
+     * the header. We could try to avoid clobbering it, but we're not going
+     * to use the data any further.
+     */
+    for (line = start = vstring_str(buf); line != 0; line = next_line) {
+	next_line = split_at(line, '\n');
+	if (line == start || IS_SPACE_TAB(*line)) {
+	    smtp_text_out(state, REC_TYPE_NORM, line, next_line ?
+			  next_line - line - 1 : strlen(line), offset);
+	} else {
+	    smtp_format_out(state, REC_TYPE_NORM, "\t%s", line);
+	}
     }
 }
 
@@ -728,13 +836,11 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
     /*
      * Macros for readability.
      */
-#define REWRITE_ADDRESS(dst, mid, src) do { \
-	if (*(src) && var_smtp_quote_821_env) { \
-	    quote_821_local(mid, src); \
-	    smtp_unalias_addr(dst, vstring_str(mid)); \
-	} else { \
-	    vstring_strcpy(dst, src); \
-	} \
+#define REWRITE_ADDRESS(dst, src) do { \
+	vstring_strcpy(dst, src); \
+	if (*(src) && smtp_generics_maps) \
+	    smtp_map11_internal(dst, smtp_generics_maps, \
+		smtp_ext_prop_mask & EXT_PROP_GENERICS); \
     } while (0)
 
 #define QUOTE_ADDRESS(dst, src) do { \
@@ -897,7 +1003,8 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	     * Build the MAIL FROM command.
 	     */
 	case SMTP_STATE_MAIL:
-	    QUOTE_ADDRESS(session->scratch, request->sender);
+	    REWRITE_ADDRESS(session->scratch2, request->sender);
+	    QUOTE_ADDRESS(session->scratch, vstring_str(session->scratch2));
 	    vstring_sprintf(next_command, "MAIL FROM:<%s>",
 			    vstring_str(session->scratch));
 	    if (session->features & SMTP_FEATURE_SIZE)	/* RFC 1870 */
@@ -930,7 +1037,8 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	     */
 	case SMTP_STATE_RCPT:
 	    rcpt = request->rcpt_list.info + send_rcpt;
-	    QUOTE_ADDRESS(session->scratch, rcpt->address);
+	    REWRITE_ADDRESS(session->scratch2, rcpt->address);
+	    QUOTE_ADDRESS(session->scratch, vstring_str(session->scratch2));
 	    vstring_sprintf(next_command, "RCPT TO:<%s>",
 			    vstring_str(session->scratch));
 	    if ((next_rcpt = send_rcpt + 1) == SMTP_RCPT_LEFT(state))
@@ -1241,9 +1349,11 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		(var_disable_mime_oconv == 0
 		 && (session->features & SMTP_FEATURE_8BITMIME) == 0
 		 && strcmp(request->encoding, MAIL_ATTR_ENC_7BIT) != 0);
-	    if (downgrading)
+	    if (downgrading || smtp_generics_maps)
 		session->mime_state = mime_state_alloc(MIME_OPT_DOWNGRADE
 						  | MIME_OPT_REPORT_NESTING,
+						       smtp_generics_maps ?
+						       smtp_header_rewrite :
 						       smtp_header_out,
 						     (MIME_STATE_ANY_END) 0,
 						       smtp_text_out,
@@ -1263,7 +1373,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	    while ((rec_type = rec_get(state->src, session->scratch, 0)) > 0) {
 		if (rec_type != REC_TYPE_NORM && rec_type != REC_TYPE_CONT)
 		    break;
-		if (downgrading == 0) {
+		if (session->mime_state == 0) {
 		    smtp_text_out((void *) state, rec_type,
 				  vstring_str(session->scratch),
 				  VSTRING_LEN(session->scratch),

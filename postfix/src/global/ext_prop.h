@@ -19,6 +19,7 @@
 #define EXT_PROP_ALIAS		(1<<2)
 #define EXT_PROP_FORWARD	(1<<3)
 #define EXT_PROP_INCLUDE	(1<<4)
+#define EXT_PROP_GENERICS	(1<<5)
 
 extern int ext_prop_mask(const char *, const char *);
 

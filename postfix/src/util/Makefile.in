@@ -1473,6 +1473,12 @@ unix_trigger.o: trigger.h
 unsafe.o: unsafe.c
 unsafe.o: sys_defs.h
 unsafe.o: safe.h
+upass_listen.o: upass_listen.c
+upass_listen.o: sys_defs.h
+upass_listen.o: msg.h
+upass_listen.o: sane_accept.h
+upass_listen.o: listen.h
+upass_listen.o: iostuff.h
 uppercase.o: uppercase.c
 uppercase.o: sys_defs.h
 uppercase.o: stringops.h

@@ -122,6 +122,10 @@
 /*	A case insensitive list of EHLO keywords (pipelining, starttls,
 /*	auth, etc.) that the SMTP client will ignore in the EHLO response
 /*	from a remote SMTP server.
+/* .IP "\fBsmtp_generics_maps (empty)\fR"
+/*	Optional lookup tables that perform address rewriting in the
+/*	SMTP client, typically to transform a locally valid address into
+/*	a globally valid address when sending mail across the Internet.
 /* MIME PROCESSING CONTROLS
 /* .ad
 /* .fi
@@ -420,6 +424,7 @@
 #include <scache.h>
 #include <string_list.h>
 #include <maps.h>
+#include <ext_prop.h>
 
 /* Single server skeleton. */
 
@@ -490,6 +495,9 @@ int     var_smtp_tls_scert_vd;
 bool    var_smtp_tls_note_starttls_offer;
 #endif
 
+char   *var_smtp_generics_maps;
+char   *var_prop_extension;
+
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
   * the connection management routines.
@@ -499,6 +507,8 @@ int     smtp_host_lookup_mask;
 STRING_LIST *smtp_cache_dest;
 SCACHE *smtp_scache;
 MAPS   *smtp_ehlo_dis_maps;
+MAPS   *smtp_generics_maps;
+int     smtp_ext_prop_mask;
 
 #ifdef USE_TLS
 
@@ -639,6 +649,7 @@ static void pre_init(char *unused_name, char **unused_argv)
 	msg_warn("%s is true, but SASL support is not compiled in",
 		 VAR_SMTP_SASL_ENABLE);
 #endif
+
     /*
      * Initialize the TLS data before entering the chroot jail
      */
@@ -669,6 +680,17 @@ static void pre_init(char *unused_name, char **unused_argv)
 	smtp_ehlo_dis_maps = maps_create(VAR_SMTPD_EHLO_DIS_MAPS,
 					 var_smtp_ehlo_dis_maps,
 					 DICT_FLAG_LOCK);
+
+    /*
+     * Generics table.
+     */
+    if (*var_prop_extension)
+	smtp_ext_prop_mask =
+	    ext_prop_mask(VAR_PROP_EXTENSION, var_prop_extension);
+    if (*var_smtp_generics_maps)
+	smtp_generics_maps =
+	    maps_create(VAR_SMTP_GENERICS_MAPS, var_smtp_generics_maps,
+			DICT_FLAG_LOCK);
 }
 
 /* pre_accept - see if tables have changed */
@@ -717,6 +739,8 @@ int     main(int argc, char **argv)
 	VAR_SMTP_EHLO_DIS_WORDS, DEF_SMTP_EHLO_DIS_WORDS, &var_smtp_ehlo_dis_words, 0, 0,
 	VAR_SMTP_EHLO_DIS_MAPS, DEF_SMTP_EHLO_DIS_MAPS, &var_smtp_ehlo_dis_maps, 0, 0,
 	VAR_SMTP_TLS_PER_SITE, DEF_SMTP_TLS_PER_SITE, &var_smtp_tls_per_site, 0, 0,
+	VAR_PROP_EXTENSION, DEF_PROP_EXTENSION, &var_prop_extension, 0, 0,
+	VAR_SMTP_GENERICS_MAPS, DEF_SMTP_GENERICS_MAPS, &var_smtp_generics_maps, 0, 0,
 	0,
     };
     static CONFIG_TIME_TABLE time_table[] = {

@@ -1,10 +1,10 @@
 SHELL	= /bin/sh
 SRCS	= smtp.c smtp_connect.c smtp_proto.c smtp_chat.c smtp_session.c \
 	smtp_addr.c smtp_trouble.c smtp_state.c smtp_rcpt.c \
-	smtp_sasl_proto.c smtp_sasl_glue.c smtp_reuse.c
+	smtp_sasl_proto.c smtp_sasl_glue.c smtp_reuse.c smtp_map11.c
 OBJS	= smtp.o smtp_connect.o smtp_proto.o smtp_chat.o smtp_session.o \
 	smtp_addr.o smtp_trouble.o smtp_state.o smtp_rcpt.o \
-	smtp_sasl_proto.o smtp_sasl_glue.o smtp_reuse.o
+	smtp_sasl_proto.o smtp_sasl_glue.o smtp_reuse.o smtp_map11.o
 HDRS	= smtp.h smtp_sasl.h smtp_addr.h smtp_reuse.h
 TESTSRC	= 
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
@@ -82,9 +82,12 @@ smtp.o: ../../include/string_list.h
 smtp.o: ../../include/match_list.h
 smtp.o: ../../include/match_ops.h
 smtp.o: ../../include/maps.h
+smtp.o: ../../include/ext_prop.h
 smtp.o: ../../include/mail_server.h
 smtp.o: smtp.h
 smtp.o: ../../include/htable.h
+smtp.o: ../../include/tok822.h
+smtp.o: ../../include/resolve_clnt.h
 smtp.o: ../../include/tls.h
 smtp.o: smtp_sasl.h
 smtp_addr.o: smtp_addr.c
@@ -113,6 +116,8 @@ smtp_addr.o: ../../include/match_list.h
 smtp_addr.o: ../../include/match_ops.h
 smtp_addr.o: ../../include/maps.h
 smtp_addr.o: ../../include/dict.h
+smtp_addr.o: ../../include/tok822.h
+smtp_addr.o: ../../include/resolve_clnt.h
 smtp_addr.o: ../../include/tls.h
 smtp_addr.o: smtp_addr.h
 smtp_chat.o: smtp_chat.c
@@ -142,6 +147,8 @@ smtp_chat.o: ../../include/match_list.h
 smtp_chat.o: ../../include/match_ops.h
 smtp_chat.o: ../../include/maps.h
 smtp_chat.o: ../../include/dict.h
+smtp_chat.o: ../../include/tok822.h
+smtp_chat.o: ../../include/resolve_clnt.h
 smtp_chat.o: ../../include/tls.h
 smtp_connect.o: smtp_connect.c
 smtp_connect.o: ../../include/sys_defs.h
@@ -178,9 +185,35 @@ smtp_connect.o: ../../include/match_list.h
 smtp_connect.o: ../../include/match_ops.h
 smtp_connect.o: ../../include/maps.h
 smtp_connect.o: ../../include/dict.h
+smtp_connect.o: ../../include/tok822.h
+smtp_connect.o: ../../include/resolve_clnt.h
 smtp_connect.o: ../../include/tls.h
 smtp_connect.o: smtp_addr.h
 smtp_connect.o: smtp_reuse.h
+smtp_map11.o: smtp_map11.c
+smtp_map11.o: ../../include/sys_defs.h
+smtp_map11.o: ../../include/msg.h
+smtp_map11.o: ../../include/vstring.h
+smtp_map11.o: ../../include/vbuf.h
+smtp_map11.o: ../../include/dict.h
+smtp_map11.o: ../../include/vstream.h
+smtp_map11.o: ../../include/argv.h
+smtp_map11.o: ../../include/tok822.h
+smtp_map11.o: ../../include/resolve_clnt.h
+smtp_map11.o: ../../include/valid_hostname.h
+smtp_map11.o: ../../include/mail_addr_map.h
+smtp_map11.o: ../../include/maps.h
+smtp_map11.o: ../../include/quote_822_local.h
+smtp_map11.o: ../../include/quote_flags.h
+smtp_map11.o: smtp.h
+smtp_map11.o: ../../include/htable.h
+smtp_map11.o: ../../include/deliver_request.h
+smtp_map11.o: ../../include/recipient_list.h
+smtp_map11.o: ../../include/scache.h
+smtp_map11.o: ../../include/string_list.h
+smtp_map11.o: ../../include/match_list.h
+smtp_map11.o: ../../include/match_ops.h
+smtp_map11.o: ../../include/tls.h
 smtp_proto.o: smtp_proto.c
 smtp_proto.o: ../../include/sys_defs.h
 smtp_proto.o: ../../include/msg.h
@@ -214,6 +247,11 @@ smtp_proto.o: ../../include/ehlo_mask.h
 smtp_proto.o: ../../include/maps.h
 smtp_proto.o: ../../include/dict.h
 smtp_proto.o: ../../include/argv.h
+smtp_proto.o: ../../include/tok822.h
+smtp_proto.o: ../../include/resolve_clnt.h
+smtp_proto.o: ../../include/mail_addr_map.h
+smtp_proto.o: ../../include/ext_prop.h
+smtp_proto.o: ../../include/lex_822.h
 smtp_proto.o: smtp.h
 smtp_proto.o: ../../include/htable.h
 smtp_proto.o: ../../include/scache.h
@@ -241,6 +279,8 @@ smtp_rcpt.o: ../../include/match_list.h
 smtp_rcpt.o: ../../include/match_ops.h
 smtp_rcpt.o: ../../include/maps.h
 smtp_rcpt.o: ../../include/dict.h
+smtp_rcpt.o: ../../include/tok822.h
+smtp_rcpt.o: ../../include/resolve_clnt.h
 smtp_rcpt.o: ../../include/tls.h
 smtp_reuse.o: smtp_reuse.c
 smtp_reuse.o: ../../include/sys_defs.h
@@ -262,6 +302,8 @@ smtp_reuse.o: ../../include/match_list.h
 smtp_reuse.o: ../../include/match_ops.h
 smtp_reuse.o: ../../include/maps.h
 smtp_reuse.o: ../../include/dict.h
+smtp_reuse.o: ../../include/tok822.h
+smtp_reuse.o: ../../include/resolve_clnt.h
 smtp_reuse.o: ../../include/tls.h
 smtp_reuse.o: smtp_reuse.h
 smtp_reuse.o: ../../include/dns.h
@@ -289,6 +331,8 @@ smtp_sasl_glue.o: ../../include/htable.h
 smtp_sasl_glue.o: ../../include/deliver_request.h
 smtp_sasl_glue.o: ../../include/recipient_list.h
 smtp_sasl_glue.o: ../../include/scache.h
+smtp_sasl_glue.o: ../../include/tok822.h
+smtp_sasl_glue.o: ../../include/resolve_clnt.h
 smtp_sasl_glue.o: ../../include/tls.h
 smtp_sasl_glue.o: smtp_sasl.h
 smtp_sasl_proto.o: smtp_sasl_proto.c
@@ -311,6 +355,8 @@ smtp_sasl_proto.o: ../../include/match_list.h
 smtp_sasl_proto.o: ../../include/match_ops.h
 smtp_sasl_proto.o: ../../include/maps.h
 smtp_sasl_proto.o: ../../include/dict.h
+smtp_sasl_proto.o: ../../include/tok822.h
+smtp_sasl_proto.o: ../../include/resolve_clnt.h
 smtp_sasl_proto.o: ../../include/tls.h
 smtp_sasl_proto.o: smtp_sasl.h
 smtp_session.o: smtp_session.c
@@ -336,6 +382,8 @@ smtp_session.o: ../../include/scache.h
 smtp_session.o: ../../include/string_list.h
 smtp_session.o: ../../include/match_list.h
 smtp_session.o: ../../include/match_ops.h
+smtp_session.o: ../../include/tok822.h
+smtp_session.o: ../../include/resolve_clnt.h
 smtp_session.o: ../../include/tls.h
 smtp_state.o: smtp_state.c
 smtp_state.o: ../../include/sys_defs.h
@@ -355,6 +403,8 @@ smtp_state.o: ../../include/match_list.h
 smtp_state.o: ../../include/match_ops.h
 smtp_state.o: ../../include/maps.h
 smtp_state.o: ../../include/dict.h
+smtp_state.o: ../../include/tok822.h
+smtp_state.o: ../../include/resolve_clnt.h
 smtp_state.o: ../../include/tls.h
 smtp_state.o: smtp_sasl.h
 smtp_trouble.o: smtp_trouble.c
@@ -382,6 +432,8 @@ smtp_trouble.o: ../../include/match_list.h
 smtp_trouble.o: ../../include/match_ops.h
 smtp_trouble.o: ../../include/maps.h
 smtp_trouble.o: ../../include/dict.h
+smtp_trouble.o: ../../include/tok822.h
+smtp_trouble.o: ../../include/resolve_clnt.h
 smtp_trouble.o: ../../include/tls.h
 smtp_unalias.o: smtp_unalias.c
 smtp_unalias.o: ../../include/sys_defs.h
@@ -403,4 +455,6 @@ smtp_unalias.o: ../../include/match_list.h
 smtp_unalias.o: ../../include/match_ops.h
 smtp_unalias.o: ../../include/maps.h
 smtp_unalias.o: ../../include/dict.h
+smtp_unalias.o: ../../include/tok822.h
+smtp_unalias.o: ../../include/resolve_clnt.h
 smtp_unalias.o: ../../include/tls.h

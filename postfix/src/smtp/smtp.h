@@ -31,6 +31,7 @@
 #include <scache.h>
 #include <string_list.h>
 #include <maps.h>
+#include <tok822.h>
 
  /*
   * Postfix TLS library.
@@ -153,6 +154,9 @@ extern SCACHE *smtp_scache;		/* connection cache instance */
 extern STRING_LIST *smtp_cache_dest;	/* cached destinations */
 
 extern MAPS *smtp_ehlo_dis_maps;	/* ehlo keyword filter */
+
+extern MAPS *smtp_generics_maps;	/* make internal address valid */
+extern int smtp_ext_prop_mask;		/* address externsion propagation */
 
 #ifdef USE_TLS
 
@@ -313,6 +317,13 @@ extern VSTRING *smtp_unalias_addr(VSTRING *, const char *);
   */
 extern SMTP_STATE *smtp_state_alloc(void);
 extern void smtp_state_free(SMTP_STATE *);
+
+ /*
+  * smtp_map11.c
+  */
+extern int smtp_map11_external(VSTRING *, MAPS *, int);
+extern int smtp_map11_tree(TOK822 *, MAPS *, int);
+extern int smtp_map11_internal(VSTRING *, MAPS *, int);
 
 /* LICENSE
 /* .ad
