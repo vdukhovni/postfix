@@ -4,7 +4,7 @@
 .SH NAME
 virtual
 \-
-Postfix virtual mail delivery
+Postfix virtual domain mail delivery agent
 .SH SYNOPSIS
 .na
 .nf
@@ -12,18 +12,18 @@ Postfix virtual mail delivery
 .SH DESCRIPTION
 .ad
 .fi
+This daemon is designed for ISP's offering virtual mail hosting
+services. Originally based on the local delivery agent, this agent
+locates user mailboxes via map lookups of the full recipient
+address, rather than hard-coded unix password file searches of
+the local part only.
+
 The \fBvirtual\fR daemon processes delivery requests from the
 Postfix queue manager to deliver mail to virtual local recipients.
 Each delivery request specifies a queue file, a sender address,
 a domain or host to deliver to, and one or more recipients.
 This program expects to be run from the \fBmaster\fR(8) process
 manager.
-
-This daemon is designed for ISP's offering virtual mail hosting
-services. Originally based on the local delivery agent, this agent
-locates user mailboxes via map lookups of the full recipient
-address, rather than hard-coded unix password file searches of
-the local part only.
 
 The \fBvirtual\fR daemon updates queue files and marks recipients
 as finished, or it informs the queue manager that delivery should
@@ -34,10 +34,10 @@ to the \fBbounce\fR(8) or \fBdefer\fR(8) daemon as appropriate.
 .nf
 .ad
 .fi
-The default per-user mailbox is a file in the UNIX mail spool
-directory (\fB/var/mail/\fIuser\fR or \fB/var/spool/mail/\fIuser\fR);
-the location can be specified with the \fBmail_spool_directory\fR
-configuration parameter.
+The \fBvirtual\fR delivery agent can deliver to UNIX-style mailbox
+file or to qmail-style maildir files. The pathname and delivery
+mailbox style are controlled by the \fBvirtual_mailbox_base\fR
+and \fBvirtual_mailbox_maps\fR configuration parameters (see below).
 
 In the case of UNIX-style mailbox delivery,
 the \fBlocal\fR daemon prepends a "\fBFrom \fIsender time_stamp\fR"
@@ -58,8 +58,13 @@ address.
 .nf
 .ad
 .fi
-Deliveries to mailboxes are made with the rights of the receiving
-user on whose behalf the delivery is made.
+Deliveries are made with the user and group privileges that are
+listed in the tables specified with the \fBvirtual_uid_maps\fR
+and \fBvirtual_gid_maps\fR, respectively.
+
+The \fBvirtual_minimum_uid\fR parameter specifies a lower bound on
+user ID values that may be specified in \fBvirtual_uid_maps\fR. Mail
+will not be delivered when a too low UID value is found.
 .SH STANDARDS
 .na
 .nf
@@ -86,17 +91,18 @@ a configuration change.
 .ad
 .fi
 .IP \fBvirtual_mailbox_base\fR
-Specifies a path that is prepended to all mailbox paths. This is
-a safety measure to ensure an out of control map doesn't litter
-the filesystem with mailboxes. While it could be set to "/",
-this isn't recommended.
+Specifies a path that is prepended to all mailbox or maildir paths.
+This is a safety measure to ensure that an out of control map in
+\fBvirtual_mailbox_maps\fR doesn't litter the filesystem with mailboxes.
+While it could be set to "/", this setting isn't recommended.
 .IP \fBvirtual_mailbox_maps\fR
-Recipients are looked up in this map to determine the path
-to their mailbox. If the returned path ends in a slash
-("/"), maildir-style delivery is carried out, otherwise
-the path is assumed to specify a mailbox file. Note that
-\fBvirtual_mailbox_base\fR is unconditionally prepended to
-this path.
+Recipients are looked up in this map to determine the path to
+their mailbox or maildir. If the returned path ends in a slash
+("/"), maildir-style delivery is carried out, otherwise the
+path is assumed to specify a mailbox file.
+
+Note that \fBvirtual_mailbox_base\fR is unconditionally prepended
+to this path.
 .IP \fBvirtual_minimum_uid\fR
 Specifies a minimum uid that will be accepted as a return from
 a \fBvirtual_uid_maps\fR lookup. Returned values less than this
@@ -113,11 +119,14 @@ used when writing to the target mailbox.
 .IP \fBmailbox_delivery_lock\fR
 How to lock UNIX-style mailboxes: one or more of \fBflock\fR,
 \fBfcntl\fR or \fBdotlock\fR.
+
+Use the command \fBpostconf -m\fR to find out what locking methods
+are available on your system.
 .IP \fBdeliver_lock_attempts\fR
 Limit the number of attempts to acquire an exclusive lock
 on a mailbox file.
 .IP \fBdeliver_lock_delay\fR
-Time in seconds between successive attempts to acquire
+Time (default: seconds) between successive attempts to acquire
 an exclusive lock on a mailbox file.
 .IP \fBstale_lock_time\fR
 Limit the time after which a stale lockfile is removed.

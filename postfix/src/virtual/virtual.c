@@ -6,64 +6,91 @@
 /* SYNOPSIS
 /*	\fBvirtual\fR [generic Postfix daemon options]
 /* DESCRIPTION
-/*	This daemon is designed for ISP's offering virtual mail hosting
-/*	services. Originally based on the local delivery agent, this agent
-/*	locates user mailboxes via map lookups of the full recipient
-/*	address, rather than hard-coded unix password file searches of
-/*	the local part only.
+/*	The \fBvirtual\fR delivery agent is designed for virtual mail 
+/*	hosting services. Originally based on the Postfix local delivery 
+/*	agent, this agent looks up recipients with map lookups of their 
+/*	full recipient address, instead of using hard-coded unix password 
+/*	file lookups of the address local part only. 
 /*
-/*	The \fBvirtual\fR daemon processes delivery requests from the
-/*	Postfix queue manager to deliver mail to virtual local recipients.
-/*	Each delivery request specifies a queue file, a sender address,
-/*	a domain or host to deliver to, and one or more recipients.
-/*	This program expects to be run from the \fBmaster\fR(8) process
-/*	manager.
-/*
-/*	The \fBvirtual\fR daemon updates queue files and marks recipients
-/*	as finished, or it informs the queue manager that delivery should
-/*	be tried again at a later time. Delivery problem reports are sent
-/*	to the \fBbounce\fR(8) or \fBdefer\fR(8) daemon as appropriate.
-/* MAILBOX DELIVERY
+/*	This delivery agent only delivers mail.  Other features such as 
+/*	mail forwarding, out-of-office notifications, etc., must be 
+/*	configured via virtual maps or via similar lookup mechanisms.
+/* MAILBOX LOCATION
 /* .ad
 /* .fi
-/*	The \fBvirtual\fR delivery agent can deliver to UNIX-style mailbox
-/*	file or to qmail-style maildir files. The pathname and delivery
-/*	mailbox style are controlled by the $\fBvirtual_mailbox_base\fR
-/*	and \fB$virtual_mailbox_maps\fR parameters (see below).
+/*	The mailbox location is controlled by the \fBvirtual_mailbox_base\fR
+/*	and \fBvirtual_mailbox_maps\fR configuration parameters (see below).
+/*	The pathname is constructed as follows:
 /*
-/*	In the case of UNIX-style mailbox delivery,
-/*	the \fBlocal\fR daemon prepends a "\fBFrom \fIsender time_stamp\fR"
-/*	envelope header to each message, prepends a \fBDelivered-To:\fR header
-/*	with the envelope recipient address, prepends a \fBReturn-Path:\fR
-/*	header with the envelope sender address, prepends a \fB>\fR character
-/*	to lines beginning with "\fBFrom \fR", and appends an empty line.
+/* .ti +2
+/*	\fB$virtual_mailbox_base/$virtual_mailbox_maps(\fIrecipient\fB)\fR
+/*
+/*	where \fIrecipient\fR is the full recipient address.
+/* UNIX MAILBOX FORMAT
+/* .ad
+/* .fi
+/*	When the mailbox location does not end in \fB/\fR, the message
+/*	is delivered in UNIX mailbox format.   This format stores multiple
+/*	messages in one textfile.
+/*
+/*	The \fBvirtual\fR delivery agent prepends a "\fBFrom \fIsender 
+/*	time_stamp\fR" envelope header to each message, prepends a 
+/*	\fBDelivered-To:\fR message header with the envelope recipient 
+/*	address, prepends a \fBReturn-Path:\fR message header with the 
+/*	envelope sender address, prepends a \fB>\fR character to lines 
+/*	beginning with "\fBFrom \fR", and appends an empty line.
+/*
 /*	The mailbox is locked for exclusive access while delivery is in
 /*	progress. In case of problems, an attempt is made to truncate the
 /*	mailbox to its original length.
-/*
-/*	In the case of \fBmaildir\fR delivery, the local daemon prepends
-/*	a \fBDelivered-To:\fR header with the envelope recipient address
-/*	and prepends a \fBReturn-Path:\fR header with the envelope sender
-/*	address.
-/* DELIVERY RIGHTS
+/* QMAIL MAILDIR FORMAT
 /* .ad
 /* .fi
-/*	Deliveries to mailboxes are made with the UID and GID that are listed
-/*	for the recipient in the tables listed in the \fB$virtual_uid_maps\fR
-/*	and \fB$virtual_gid_maps\fR, respectively.
+/*	When the mailbox location ends in \fB/\fR, the message is delivered
+/*	in qmail \fBmaildir\fR format. This format stores one message per file.
 /*
-/*	The \fBvirtual_minimum_uid\fR parameter specifies a lower bound on
-/*	UID values that may be specified in \fB$virtual_uid_maps\fR. Mail
-/*	will not be delivered when an invalid UID is found.
+/*	The \fBvirtual\fR delivery agent daemon prepends a \fBDelivered-To:\fR 
+/*	message header with the envelope recipient address and prepends a 
+/*	\fBReturn-Path:\fR message header with the envelope sender address.
+/*
+/*	By definition, \fBmaildir\fR format does not require file locking
+/*	during mail delivery or retrieval.
+/* MAILBOX OWNERSHIP
+/* .ad
+/* .fi
+/*	Mailbox ownership is controlled by the \fBvirtual_owner_maps\fR
+/*	lookup tables. These tables can perform the following mappings:
+/* .IP "recipient	username"
+/*	The mailbox is owned by the specified UNIX user.
+/* .IP "recipient	uid:gid"
+/*	The mailbox is owned by the specified numerical user and group ID.
+/* BACKWARDS COMPATIBILITY
+/* .ad
+/* .fi
+/*	For backwards compatibility, mailbox ownership can also be specified
+/*	through separate \fBvirtual_uid_maps\fR and \fBvirtual_gid_maps\fR
+/*	tables.
+/* SAFETY
+/* .ad
+/* .fi
+/*	The \fBvirtual_minimum_uid\fR parameter imposes a lower bound on 
+/*	numerical user ID values that may be specified in any 
+/*	\fBvirtual_owner_maps\fR or \fBvirtual_uid_maps\fR.
 /* STANDARDS
 /*	RFC 822 (ARPA Internet Text Messages)
 /* DIAGNOSTICS
+/*	Mail bounces when the recipient has no mailbox or when the
+/*	recipient is over disk quota. In all other cases, mail for
+/*	an existing recipient is deferred and a warning is logged.
+/*
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /*	Corrupted message files are marked so that the queue
 /*	manager can move them to the \fBcorrupt\fR queue afterwards.
 /*
 /*	Depending on the setting of the \fBnotify_classes\fR parameter,
 /*	the postmaster is notified of bounces and of other trouble.
+/* BUGS
+/*	This delivery agent silently ignores address extensions.
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
@@ -80,7 +107,7 @@
 /*	\fBvirtual_mailbox_maps\fR doesn't litter the filesystem with mailboxes.
 /*	While it could be set to "/", this setting isn't recommended.
 /* .IP \fBvirtual_mailbox_maps\fR
-/*	Recipients are looked up in this map to determine the path to
+/*	Recipients are looked up in these maps to determine the path to
 /*	their mailbox or maildir. If the returned path ends in a slash
 /*	("/"), maildir-style delivery is carried out, otherwise the
 /*	path is assumed to specify a mailbox file.
@@ -89,28 +116,41 @@
 /*	to this path.
 /* .IP \fBvirtual_minimum_uid\fR
 /*	Specifies a minimum uid that will be accepted as a return from
-/*	a \fBvirtual_uid_maps\fR lookup. Returned values less than this
-/*	will be rejected, and the message will be deferred.
+/*	a \fBvirtual_owner_maps\fR or \fBvirtual_uid_maps\fR lookup. 
+/*	Returned values less than this will be rejected, and the message 
+/*	will be deferred.
+/* .IP \fBvirtual_owner_maps\fR
+/*	Recipients are looked up in these maps to determine the UNIX user
+/*	name of the mailbox owner, or the numerical user and group ID
+/*	in numerical \fIuid:gid\fR format.
 /* .IP \fBvirtual_uid_maps\fR
-/*	Recipients are looked up in this map to determine the UID to be
+/*	Recipients are looked up in these maps to determine the user ID to be
 /*	used when writing to the target mailbox.
+/* .sp
+/*	This feature exists for backwards compatibility; it will go away.
 /* .IP \fBvirtual_gid_maps\fR
-/*	Recipients are looked up in this map to determine the GID to be
+/*	Recipients are looked up in these maps to determine the group ID to be
 /*	used when writing to the target mailbox.
+/* .sp
+/*	This feature exists for backwards compatibility; it will go away.
 /* .SH "Locking controls"
 /* .ad
 /* .fi
 /* .IP \fBmailbox_delivery_lock\fR
 /*	How to lock UNIX-style mailboxes: one or more of \fBflock\fR,
 /*	\fBfcntl\fR or \fBdotlock\fR.
+/*
+/*	Use the command \fBpostconf -m\fR to find out what locking methods
+/*	are available on your system.
 /* .IP \fBdeliver_lock_attempts\fR
 /*	Limit the number of attempts to acquire an exclusive lock
-/*	on a mailbox file.
+/*	on a UNIX-style mailbox file.
 /* .IP \fBdeliver_lock_delay\fR
-/*	Time in seconds between successive attempts to acquire
-/*	an exclusive lock on a mailbox file.
+/*	Time (default: seconds) between successive attempts to acquire
+/*	an exclusive lock on a UNIX-style mailbox file.
 /* .IP \fBstale_lock_time\fR
-/*	Limit the time after which a stale lockfile is removed.
+/*	Limit the time after which a stale lockfile is removed (applicable
+/*	to UNIX-style mailboxes only).
 /* .SH "Resource controls"
 /* .ad
 /* .fi
@@ -125,10 +165,10 @@
 /* HISTORY
 /* .ad
 /* .fi
-/*	This agent was originally based on the local delivery
-/*	agent. Modifications mainly consisted of removing code that wasn't
-/*	applicable or wasn't safe in this context (aliases, .forwards,
-/*	program aliases).
+/*	This agent was originally based on the Postfix local delivery
+/*	agent. Modifications mainly consisted of removing code that either
+/*	was not applicable or that was not safe in this context: aliases,
+/*	~user/.forward files, delivery to "|command" or to /file/name.
 /*
 /*	The \fBDelivered-To:\fR header appears in the \fBqmail\fR system
 /*	by Daniel Bernstein.
