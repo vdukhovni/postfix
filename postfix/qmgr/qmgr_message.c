@@ -487,9 +487,9 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	/*
 	 * Bounce mail to non-existent users in virtual domains.
 	 */
-	if (!match_def_local_transport(STR(reply.transport))
-	    && qmgr_virtual != 0
-	    && (at = strrchr(recipient->address, '@')) != 0) {
+	if (qmgr_virtual != 0
+	    && (at = strrchr(recipient->address, '@')) != 0
+	    && !resolve_local(at + 1)) {
 	    domain = lowercase(mystrdup(at + 1));
 	    junk = maps_find(qmgr_virtual, domain, 0);
 	    myfree(domain);

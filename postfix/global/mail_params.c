@@ -261,7 +261,7 @@ void    mail_params_init()
 	VAR_COMMAND_DIR, DEF_COMMAND_DIR, &var_command_dir, 1, 0,
 	VAR_QUEUE_DIR, DEF_QUEUE_DIR, &var_queue_dir, 1, 0,
 	VAR_PID_DIR, DEF_PID_DIR, &var_pid_dir, 1, 0,
-	VAR_INET_INTERFACES, DEF_INET_INTERFACES, &var_inet_interfaces, 1, 0,
+	VAR_INET_INTERFACES, DEF_INET_INTERFACES, &var_inet_interfaces, 0, 0,
 	VAR_DOUBLE_BOUNCE, DEF_DOUBLE_BOUNCE, &var_double_bounce_sender, 1, 0,
 	VAR_DEFAULT_PRIVS, DEF_DEFAULT_PRIVS, &var_default_privs, 1, 0,
 	VAR_ALIAS_DB_MAP, DEF_ALIAS_DB_MAP, &var_alias_db_map, 1, 0,

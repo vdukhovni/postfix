@@ -1,5 +1,10 @@
-Incompatible changes with snapshot 19991211
+Incompatible changes with snapshot 19991216
 ===========================================
+
+- The experimental permit_recipient_map feature is gone. It was
+never part of an official release.  It is replaced by a
+"local_recipient_map" parameter that allows the SMTP server to
+reject mail for unknown local users (see below).
 
 - In an SMTPD access map, an all-numeric right-hand side now means
 OK.  This is for better cooperation with out-of-band authentication
@@ -13,8 +18,8 @@ reinstate the old behavior, specify "allow_min_user = yes" in
 main.cf.
 
 - You can no longer use virtual, canonical or aliases tables as
-SMTPD access control tables. Use the permit_recipient_map feature
-instead. The loss is compensated for (see below).
+SMTPD access control tables. Use the local_recipient_maps feature
+instead.
 
 - transport_maps entries override mydestination.  For every
 $mydestination domain that matches a transport map entry, or a
@@ -22,12 +27,26 @@ parent domain of a transport map entry, you must now add a
 corresponding "domain.name local:" entry in your transport_maps.
 See the html/faq.html sections for firewalls and intranets.
 
-Major changes with snapshot 19991211
+Major changes with snapshot 19991216
 ====================================
 
 - Updated LDAP client code (John Hensley).
 
 - Updated mysql client code (Scott Cotton).
+
+- The SMTP server now rejects mail for unknown users in virtual
+domains that are defined by Postfix virtual maps.
+
+- The SMTP server optionally rejects mail for unknown local users.
+Use "local_recipient_maps = $alias_maps, unix:passwd.byname" if
+your local mail is delivered by a UNIX-style local delivery agent.
+See example in conf/main.cf.
+
+- Use "disable_vrfy_command = yes" to disable the SMTP VRFY command.
+This prevents some forms of address harvesting.
+
+- The sendmail "-f" option now understands <user> and even understands
+forms with RFC 822-style comments.
 
 - New "qmgr_fudge_factor" parameter allows you to balance mailing
 list performance against response time for one-to-one mail.  The
@@ -50,25 +69,11 @@ regardless of what main.cf specifies.
 
 - The Postfix SMTP server now understands a wider range of illegal
 address forms in MAIL FROM and RCPT TO commands. In order to disable
-those forms, specify "strict_rfc821_envelopes = yes".
+illegal forms, specify "strict_rfc821_envelopes = yes". This also
+disables support for MAIL FROM and RCPT TO addresses without <>.
 
 - Per-client/helo/sender/recipient UCE restrictions (fully-recursive
 UCE restriction parser). See the RESTRICTION_CLASS file for details.
-
-- Block mail for most non-existent users at the SMTP port. Example:
-a non-relaying host could use the following to reject mail for
-non-existent local users and for all non-local destinations.
-
-    smtpd_recipient_restrictions =
-	reject_unknown_sender_domain
-	permit_recipient_map unix:passwd.byname
-	permit_recipient_map hash:/etc/postfix/canonical
-	permit_recipient_map hash:/etc/postfix/virtual
-	permit_recipient_map hash:/etc/aliases
-	reject
-
-I haven't figured out yet how to use this easily on hosts that must
-relay mail for other systems.
 
 - Use "postmap -q key" or "postalias -q key" for testing Postfix
 lookup tables or alias files.

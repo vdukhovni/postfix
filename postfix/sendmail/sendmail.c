@@ -311,6 +311,7 @@ static void enqueue(const char *sender, const char *full_name, char **recipients
     uid_t   uid = getuid();
     int     status;
     struct stat st;
+    int     naddr;
 
     /*
      * Initialize.
@@ -323,10 +324,20 @@ static void enqueue(const char *sender, const char *full_name, char **recipients
      * pickup would not be able to run chrooted, and it may not be desirable
      * to use login names at all.
      */
-    if (sender == 0)
+    if (sender != 0) {
+	tree = tok822_parse(sender);
+	for (naddr = 0, tp = tree; tp != 0; tp = tp->next)
+	    if (tp->type == TOK822_ADDR)
+		naddr++, tok822_internalize(buf, tp->head, TOK822_STR_DEFL);
+	tok822_free_tree(tree);
+	saved_sender = mystrdup(STR(buf));
+	if (naddr > 1)
+	    msg_warn("-f option specified malformed sender: %s", sender);
+    } else {
 	if ((sender = username()) == 0)
 	    msg_fatal("unable to find out your login name");
-    saved_sender = mystrdup(sender);
+	saved_sender = mystrdup(sender);
+    }
 
     /*
      * Open the queue file. Save the queue file name, so the run-time error

@@ -199,7 +199,8 @@ test -d $COMMAND_DIRECTORY || mkdir -p $COMMAND_DIRECTORY || exit 1
 test -d $QUEUE_DIRECTORY || mkdir -p $QUEUE_DIRECTORY || exit 1
 for path in $SENDMAIL_PATH $NEWALIASES_PATH $MAILQ_PATH
 do
-    mkdir -p `echo $path|sed 's/[^/]*[/]*$//'`
+    dir=`echo $path|sed 's/[^/]*[/]*$//'`
+    test -d $dir || mkdir -p $dir || exit 1
 done
 
 # Install files. Be careful to not copy over running programs.
@@ -285,7 +286,7 @@ no) ;;
  *) (
      cd man || exit 1
      for dir in man?
-	 do mkdir -p $MANPAGES/$dir || exit 1
+	 do test -d $MANPAGES/$dir || mkdir -p $MANPAGES/$dir || exit 1
      done
      for file in man?/*
      do

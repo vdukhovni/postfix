@@ -17,7 +17,7 @@ makefiles Makefiles:
 
 update printfck:
 	set -e; for i in $(DIRS); do \
-	 (set -e; echo "[$$i]"; cd $$i; $(MAKE) $(OPTS) $@) || exit 1; \
+	 (set -e; echo "[$$i]"; cd $$i; $(MAKE) $(OPTS) $@ MAKELEVEL=) || exit 1; \
 	done
 
 printfck: update

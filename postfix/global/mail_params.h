@@ -223,6 +223,13 @@ extern char *var_always_bcc;
 extern bool var_strict_rfc821_env;
 
  /*
+  * Standards violation: disable VRFY.
+  */
+#define VAR_DISABLE_VRFY_CMD	"disable_vrfy_command"
+#define DEF_DISABLE_VRFY_CMD	0
+extern bool var_disable_vrfy_cmd;
+
+ /*
   * trivial rewrite/resolve service: mapping tables.
   */
 #define VAR_VIRTUAL_MAPS	"virtual_maps"
@@ -819,7 +826,12 @@ extern int var_smtpd_delay_reject;
 
 #define REJECT_UNAUTH_PIPE	"reject_unauth_pipelining"
 
-#define PERMIT_RCPT_MAP		"permit_recipient_map"
+ /*
+  * Heuristic to reject most unknown recipients at the SMTP port.
+  */
+#define VAR_LOCAL_RCPT_MAPS	"local_recipient_maps"
+#define DEF_LOCAL_RCPT_MAPS	""
+extern char *var_local_rcpt_maps;
 
  /*
   * Other.

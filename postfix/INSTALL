@@ -108,7 +108,10 @@ directory of the source tree and type:
 To build with a non-default compiler, you need to specify the name
 of the compiler:
 
-    % make makefiles CC=/opt/SUNWspro/bin/cc
+    % make makefiles CC=/opt/SUNWspro/bin/cc	(Solaris)
+    % make
+
+    % make makefiles CC="/opt/ansic/bin/cc -Ae"	(HP-UX)
     % make
 
     % make makefiles CC="purify cc"

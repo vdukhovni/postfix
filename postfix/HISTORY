@@ -3369,3 +3369,44 @@ Apologies for any names omitted.
 	Bugfix: address rewriting would panic on a lone \ at the
 	end of a line where an address was expected. Jason Hoos @
 	thwack.net. File: global/rewrite_clnt.c.
+
+19991215
+
+	Bugfix: the strict RFC821 envelope address check should
+	not be applied to VRFY commands. File: smtpd/smtpd.c.
+
+	Cleanup: permit_recipient_maps is gone, because that could
+	only be used inside UCE restrictions.
+
+19991216
+
+	Feature: allow an empty inet_interfaces parameter, just
+	like an empty mydestination parameter. It's needed for a
+	true null client that delivers no mail locally at all.
+
+	Feature: "disable_vrfy_command = yes" disables some forms
+	of address harvesting used by spammers.
+
+	Workaround: added the alias map parameter definition to
+	the smtpd code.  This is a symptom of a general problem
+	with parameters that have non-empty default values:  unless
+	a program explicitly defines such a parameter, the parameter
+	defaults to the empty string when used in other parameters.
+	There's also a problem with evaluation order.
+
+	Feature: the SMTP server rejects mail for unknown users in
+	virtual domains that are defined by Postfix virtual domain
+	files. File: smtpd/smtpd_check.c.
+
+	Feature: reject mail for unknown local users at the SMTP
+	port.  The local_recipient_maps configuration parameter
+	specifies maps with all addresses that are local with
+	respect to $mydestination or $inet_interfaces. Example:
+	"local_recipient_maps = $alias_maps unix:passwd.byname".
+	This feature is disabled by default. You may have to copy
+	the passwd file into the chroot jail. File:  smtpd/smtpd_check.c.
+
+	Feature: the sendmail -f option now understands '<user>'
+	and even understands address forms with RFC 822-style
+	comments.
+	

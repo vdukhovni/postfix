@@ -79,6 +79,10 @@
 /*	Limit the number of \fBReceived:\fR message headers.
 /* .IP \fBnotify_classes\fR
 /*	List of error classes. Of special interest are:
+/* .IP \fBlocal_recipient_maps\fR
+/*	List of maps with user names that are local to \fB$myorigin\fR
+/*	or \fB$inet_interfaces\fR. If this parameter is defined,
+/*	then the SMTP server rejects mail for unknown local users.
 /* .RS
 /* .IP \fBpolicy\fR
 /*	When a client violates any policy, mail a transcript of the
@@ -290,6 +294,12 @@ char   *var_error_rcpt;
 int     var_smtpd_delay_reject;
 char   *var_rest_classes;
 int     var_strict_rfc821_env;
+bool    var_disable_vrfy_cmd;
+char   *var_canonical_maps;
+char   *var_rcpt_canon_maps;
+char   *var_virtual_maps;
+char   *var_alias_maps;
+char   *var_local_rcpt_maps;
 
  /*
   * Global state, for stand-alone mode queue file cleanup. When this is
@@ -442,7 +452,7 @@ static void mail_open_stream(SMTPD_STATE *state)
 /* extract_addr - extract address from rubble */
 
 static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
-			          int allow_empty_addr)
+			          int allow_empty_addr, int strict_rfc821)
 {
     char   *myname = "extract_addr";
     TOK822 *tree;
@@ -501,7 +511,7 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
      * Report trouble. Log a warning only if we are going to sleep+reject.
      */
     if (naddr != 1
-    || (var_strict_rfc821_env && (non_addr || *STR(arg->vstrval) != '<'))) {
+	|| (strict_rfc821 && (non_addr || *STR(arg->vstrval) != '<'))) {
 	msg_warn("Illegal address syntax from %s in %s command: %s",
 		 state->namaddr, state->where, STR(arg->vstrval));
 	err = "501 Bad address syntax";
@@ -562,7 +572,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "501 Bad address syntax");
 	return (-1);
     }
-    if ((err = extract_addr(state, argv + 2, PERMIT_EMPTY_ADDR)) != 0) {
+    if ((err = extract_addr(state, argv + 2, PERMIT_EMPTY_ADDR, var_strict_rfc821_env)) != 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
@@ -669,7 +679,7 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "501 Bad address syntax");
 	return (-1);
     }
-    if ((err = extract_addr(state, argv + 2, REJECT_EMPTY_ADDR)) != 0) {
+    if ((err = extract_addr(state, argv + 2, REJECT_EMPTY_ADDR, var_strict_rfc821_env)) != 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
@@ -681,6 +691,10 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     }
     if (SMTPD_STAND_ALONE(state) == 0
 	&& (err = smtpd_check_rcpt(state, argv[2].strval)) != 0) {
+	smtpd_chat_reply(state, "%s", err);
+	return (-1);
+    }
+    if ((err = smtpd_check_rcptmap(state, argv[2].strval)) != 0) {
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
@@ -929,6 +943,13 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * stop doing recipient restriction checks and lose the opportunity to
      * say "user unknown" at the SMTP port.
      */
+#define SLOPPY	0
+
+    if (var_disable_vrfy_cmd) {
+	state->error_mask |= MAIL_ERROR_POLICY;
+	smtpd_chat_reply(state, "502 VRFY command is disabled");
+	return (-1);
+    }
     if (argc < 2) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 Syntax: VRFY address");
@@ -936,22 +957,21 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     }
     if (argc > 2)
 	collapse_args(argc - 1, argv + 1);
-    if ((err = extract_addr(state, argv + 1, REJECT_EMPTY_ADDR)) != 0) {
+    if ((err = extract_addr(state, argv + 1, REJECT_EMPTY_ADDR, SLOPPY)) != 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
-    if (SMTPD_STAND_ALONE(state) == 0)
-	err = smtpd_check_rcpt(state, argv[1].strval);
-
-    /*
-     * End untokenize.
-     */
-    if (err != 0) {
+    if (SMTPD_STAND_ALONE(state) == 0
+	&& (err = smtpd_check_rcpt(state, argv[1].strval)) != 0) {
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
-    smtpd_chat_reply(state, "252 Send mail to find out");
+    if ((err = smtpd_check_rcptmap(state, argv[1].strval)) != 0) {
+	smtpd_chat_reply(state, "%s", err);
+	return (-1);
+    }
+    smtpd_chat_reply(state, "250 <%s>", argv[1].strval);
     return (0);
 }
 
@@ -1027,7 +1047,7 @@ static int quit_cmd(SMTPD_STATE *state, int unused_argc, SMTPD_TOKEN *unused_arg
 typedef struct SMTPD_CMD {
     char   *name;
     int     (*action) (SMTPD_STATE *, int, SMTPD_TOKEN *);
-}       SMTPD_CMD;
+} SMTPD_CMD;
 
 static SMTPD_CMD smtpd_cmd_table[] = {
     "HELO", helo_cmd,
@@ -1304,6 +1324,7 @@ int     main(int argc, char **argv)
 	VAR_HELO_REQUIRED, DEF_HELO_REQUIRED, &var_helo_required,
 	VAR_SMTPD_DELAY_REJECT, DEF_SMTPD_DELAY_REJECT, &var_smtpd_delay_reject,
 	VAR_STRICT_RFC821_ENV, DEF_STRICT_RFC821_ENV, &var_strict_rfc821_env,
+	VAR_DISABLE_VRFY_CMD, DEF_DISABLE_VRFY_CMD, &var_disable_vrfy_cmd,
 	0,
     };
     static CONFIG_STR_TABLE str_table[] = {
@@ -1320,6 +1341,11 @@ int     main(int argc, char **argv)
 	VAR_ALWAYS_BCC, DEF_ALWAYS_BCC, &var_always_bcc, 0, 0,
 	VAR_ERROR_RCPT, DEF_ERROR_RCPT, &var_error_rcpt, 1, 0,
 	VAR_REST_CLASSES, DEF_REST_CLASSES, &var_rest_classes, 0, 0,
+	VAR_LOCAL_RCPT_MAPS, DEF_LOCAL_RCPT_MAPS, &var_local_rcpt_maps, 0, 0,
+	VAR_CANONICAL_MAPS, DEF_CANONICAL_MAPS, &var_canonical_maps, 0, 0,
+	VAR_RCPT_CANON_MAPS, DEF_RCPT_CANON_MAPS, &var_rcpt_canon_maps, 0, 0,
+	VAR_VIRTUAL_MAPS, DEF_VIRTUAL_MAPS, &var_virtual_maps, 0, 0,
+	VAR_ALIAS_MAPS, DEF_ALIAS_MAPS, &var_alias_maps, 0, 0,
 	0,
     };
 
