@@ -2501,6 +2501,16 @@ Apologies for any names omitted.
 	sensitive when they should not. Patch by Lutz Jaenicke,
 	BTU Cottbus, Germany.
 
+19990402
+
+	Feature: $domain macro support in forward_path.  Philip A.
+	Prindeville, Mirapoint, Inc., USA.  File:  local/dotforward.c.
+
+	Feature: if an address extension (+foo) is explicitly
+	matched by the .forward+foo file name, do not propagate
+	the extension to recipient addresses. This is more consistent
+	with the way aliases are expanded. File:  local/dotforward.c.
+
 Future:
 
 	Planned: must be able to list the same hash table in

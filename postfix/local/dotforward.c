@@ -88,11 +88,20 @@
   * A little helper structure for message-specific context.
   */
 typedef struct {
-    int     failures;			/* $name not available */
+    int     flags;			/* see below */
     struct mypasswd *pwd;		/* recipient */
     char   *extension;			/* address extension */
+    char   *domain;			/* recipient's domain */
     VSTRING *path;			/* result */
 } FW_CONTEXT;
+
+#define FW_FLAG_FAILURE		(1<<0)	/* $name not available */
+#define FW_FLAG_HOME		(1<<1)	/* expanded $home */
+#define FW_FLAG_USER		(1<<2)	/* expanded $user */
+#define FW_FLAG_EXTENSION	(1<<3)	/* expanded $extension */
+#define FW_FLAG_DELIMITER	(1<<4)	/* expanded $recipient_delimiter */
+#define FW_FLAG_DOMAIN		(1<<5)	/* expanded $domain */
+#define FW_FLAG_OTHER		(1<<5)	/* expanded text */
 
 /* dotforward_parse_callback - callback for mac_parse */
 
@@ -101,26 +110,35 @@ static void dotforward_parse_callback(int type, VSTRING *buf, char *context)
     char   *myname = "dotforward_parse_callback";
     FW_CONTEXT *fw_context = (FW_CONTEXT *) context;
     char   *ptr;
+    int     flg;
 
-    if (fw_context->failures)
+    if (fw_context->flags & FW_FLAG_FAILURE)
 	return;
 
     /*
      * Find out what data to substitute.
      */
     if (type == MAC_PARSE_VARNAME) {
-	if (strcmp(vstring_str(buf), "home") == 0)
+	if (strcmp(vstring_str(buf), "home") == 0) {
+	    flg = FW_FLAG_HOME;
 	    ptr = fw_context->pwd->pw_dir;
-	else if (strcmp(vstring_str(buf), "user") == 0)
+	} else if (strcmp(vstring_str(buf), "user") == 0) {
+	    flg = FW_FLAG_USER;
 	    ptr = fw_context->pwd->pw_name;
-	else if (strcmp(vstring_str(buf), "extension") == 0)
+	} else if (strcmp(vstring_str(buf), "extension") == 0) {
+	    flg = FW_FLAG_EXTENSION;
 	    ptr = fw_context->extension;
-	else if (strcmp(vstring_str(buf), "recipient_delimiter") == 0)
+	} else if (strcmp(vstring_str(buf), "recipient_delimiter") == 0) {
+	    flg = FW_FLAG_DELIMITER;
 	    ptr = var_rcpt_delim;
-	else
+	} else if (strcmp(vstring_str(buf), "domain") == 0) {
+	    flg = FW_FLAG_DOMAIN;
+	    ptr = fw_context->domain;
+	} else
 	    msg_fatal("unknown macro $%s in %s", vstring_str(buf),
 		      VAR_FORWARD_PATH);
     } else {
+	flg = FW_FLAG_OTHER;
 	ptr = vstring_str(buf);
     }
 
@@ -131,8 +149,9 @@ static void dotforward_parse_callback(int type, VSTRING *buf, char *context)
 	msg_info("%s: %s = %s", myname, vstring_str(buf),
 		 ptr ? ptr : "(unavailable)");
     if (ptr == 0) {
-	fw_context->failures++;
+	fw_context->flags |= FW_FLAG_FAILURE;
     } else {
+	fw_context->flags |= flg;
 	vstring_strcat(fw_context->path, ptr);
     }
 }
@@ -154,6 +173,7 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     char   *saved_forward_path;
     char   *lhs;
     char   *next;
+    char   *domain;
     const char *forward_path;
     FW_CONTEXT fw_context;
 
@@ -239,6 +259,9 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
      * the .forward file as the user. Ignore files that aren't regular files,
      * files that are owned by the wrong user, or files that have world write
      * permission enabled.
+     * 
+     * If a forward file name includes the address extension, don't propagate
+     * the extension to the recipient addresses.
      */
 #define STR(x)	vstring_str(x)
 
@@ -247,24 +270,31 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     saved_forward_path = mystrdup(forward_path);
     next = saved_forward_path;
 
+    if ((domain = strrchr(state.msg_attr.recipient, '@')) != 0)
+	domain++;
+
     fw_context.pwd = mypwd;
     fw_context.extension = state.msg_attr.extension;
     fw_context.path = path;
+    fw_context.domain = domain;
 
     lookup_status = -1;
 
     while ((lhs = mystrtok(&next, ", \t\r\n")) != 0) {
-	fw_context.failures = 0;
+	fw_context.flags = 0;
 	VSTRING_RESET(path);
 	mac_parse(lhs, dotforward_parse_callback, (char *) &fw_context);
-	if (fw_context.failures == 0) {
+	if ((fw_context.flags & FW_FLAG_FAILURE) == 0) {
 	    lookup_status =
 		lstat_as(STR(path), &st, usr_attr.uid, usr_attr.gid);
 	    if (msg_verbose)
 		msg_info("%s: path %s status %d", myname,
 			 STR(path), lookup_status);
-	    if (lookup_status >= 0)
+	    if (lookup_status >= 0) {
+		if (fw_context.flags & FW_FLAG_EXTENSION)
+		    state.msg_attr.extension = 0;
 		break;
+	    }
 	}
     }
 
