@@ -1106,7 +1106,7 @@ static int is_map_command(char *name, char *command, char ***argp)
      */
     if (strcasecmp(name, command) != 0) {
 	return (0);
-    } else if (*argp == 0 || strchr(*(*argp += 1), ':') == 0) {
+    } else if (*(*argp + 1) == 0 || strchr(*(*argp += 1), ':') == 0) {
 	msg_warn("restriction %s requires maptype:mapname", command);
 	longjmp(smtpd_check_buf, -1);
     } else {

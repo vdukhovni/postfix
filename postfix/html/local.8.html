@@ -252,11 +252,11 @@ LOCAL(8)                                                 LOCAL(8)
        <b>alias</b><i>_</i><b>maps</b>
               List of alias databases.
 
-       <b>local</b><i>_</i><b>command</b><i>_</i><b>shell</b>
-              Shell to use for external  command  execution  (for
-              example,  /some/where/smrsh  -c).   When a shell is
-              specified, it is invoked even when the command con-
-              tains   no   shell   built-in   commands   or  meta
+       <b>forward</b><i>_</i><b>path</b>
+              Search list  for  .forward  files.   The  following
+              macros  are  recognized:  <b>$home</b>  (home  directory),
+              <b>$user</b> (login name), <b>$extension</b> (address extension),
+              <b>$recipient</b><i>_</i><b>delimiter</b> (address extension delimiter).
 
 
 
@@ -269,7 +269,12 @@ LOCAL(8)                                                 LOCAL(8)
 LOCAL(8)                                                 LOCAL(8)
 
 
-              characters.
+       <b>local</b><i>_</i><b>command</b><i>_</i><b>shell</b>
+              Shell to use for external  command  execution  (for
+              example,  /some/where/smrsh  -c).   When a shell is
+              specified, it is invoked even when the command con-
+              tains  no  shell  built-in commands or meta charac-
+              ters.
 
        <b>owner</b><i>_</i><b>request</b><i>_</i><b>special</b>
               Give special treatment to <b>owner-</b><i>xxx</i> and <i>xxx</i><b>-request</b>
@@ -319,11 +324,6 @@ LOCAL(8)                                                 LOCAL(8)
               Time  in  seconds  between  successive  attempts to
               acquire an exclusive lock.
 
-       <b>stale</b><i>_</i><b>lock</b><i>_</i><b>time</b>
-              Limit the time after which a stale lock is removed.
-
-
-
 
 
                                                                 5
@@ -334,6 +334,9 @@ LOCAL(8)                                                 LOCAL(8)
 
 LOCAL(8)                                                 LOCAL(8)
 
+
+       <b>stale</b><i>_</i><b>lock</b><i>_</i><b>time</b>
+              Limit the time after which a stale lock is removed.
 
 <b>Resource</b> <b>controls</b>
        <b>command</b><i>_</i><b>time</b><i>_</i><b>limit</b>
@@ -385,9 +388,6 @@ LOCAL(8)                                                 LOCAL(8)
        syslogd(8) system logging
        <a href="qmgr.8.html">qmgr(8)</a> queue manager
 
-<b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
-       software.
 
 
 
@@ -401,15 +401,15 @@ LOCAL(8)                                                 LOCAL(8)
 LOCAL(8)                                                 LOCAL(8)
 
 
+<b>LICENSE</b>
+       The  Secure  Mailer  license must be distributed with this
+       software.
+
 <b>AUTHOR(S)</b>
        Wietse Venema
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
 
 
 

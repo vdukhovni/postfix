@@ -12,14 +12,10 @@
 /*	int	*statusp;
 /* DESCRIPTION
 /*	deliver_dotforward() delivers a message to the destinations
-/*	listed in a recipient's $HOME/.forward file.  The result is
-/*	zero when no acceptable $HOME/.forward file was found, or when
+/*	listed in a recipient's .forward file(s) as specified through
+/*	the forward_path configuration parameter.  The result is
+/*	zero when no acceptable .forward file was found, or when
 /*	a recipient is listed in her own .forward file.
-/*
-/*	When mail is sent to an extended address (e.g., user+foo),
-/*	the address extension is appended to the .forward file name
-/*	(e.g., .forward+foo). When that file does not exist, .forward
-/*	is used instead.
 /*
 /*	Arguments:
 /* .IP state
@@ -71,6 +67,7 @@
 #include <iostuff.h>
 #include <stringops.h>
 #include <mymalloc.h>
+#include <mac_parse.h>
 
 /* Global library. */
 
@@ -78,6 +75,7 @@
 #include <bounce.h>
 #include <been_here.h>
 #include <mail_params.h>
+#include <config.h>
 
 /* Application-specific. */
 
@@ -85,6 +83,56 @@
 
 #define NO	0
 #define YES	1
+
+ /*
+  * A little helper structure for message-specific context.
+  */
+typedef struct {
+    int     failures;			/* $name not available */
+    struct mypasswd *pwd;		/* recipient */
+    char   *extension;			/* address extension */
+    VSTRING *path;			/* result */
+} FW_CONTEXT;
+
+/* dotforward_parse_callback - callback for mac_parse */
+
+static void dotforward_parse_callback(int type, VSTRING *buf, char *context)
+{
+    char   *myname = "dotforward_parse_callback";
+    FW_CONTEXT *fw_context = (FW_CONTEXT *) context;
+    char   *ptr;
+
+    /*
+     * Find out what data to substitute.
+     */
+    if (type == MAC_PARSE_VARNAME) {
+	if (strcmp(vstring_str(buf), "home") == 0)
+	    ptr = fw_context->pwd->pw_dir;
+	else if (strcmp(vstring_str(buf), "user") == 0)
+	    ptr = fw_context->pwd->pw_name;
+	else if (strcmp(vstring_str(buf), "extension") == 0)
+	    ptr = fw_context->extension;
+	else if (strcmp(vstring_str(buf), "recipient_delimiter") == 0)
+	    ptr = var_rcpt_delim;
+	else
+	    msg_fatal("unknown macro $%s in %s", vstring_str(buf),
+		      VAR_FORWARD_PATH);
+    } else {
+	ptr = vstring_str(buf);
+    }
+
+    /*
+     * Append the data, or record that the data was not available.
+     */
+    if (msg_verbose)
+	msg_info("%s: %s = %s", myname, vstring_str(buf),
+		 ptr ? ptr : "(unavailable)");
+    if (ptr == 0) {
+	fw_context->failures++;
+    } else {
+	vstring_strcat(fw_context->path, ptr);
+    }
+}
 
 /* deliver_dotforward - expand contents of .forward file */
 
@@ -100,7 +148,11 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     int     forward_found = NO;
     int     lookup_status;
     int     addr_count;
-    char   *extension;
+    char   *saved_forward_path;
+    char   *lhs;
+    char   *next;
+    const char *forward_path;
+    FW_CONTEXT fw_context;
 
     /*
      * Make verbose logging easier to understand.
@@ -108,6 +160,16 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     state.level++;
     if (msg_verbose)
 	MSG_LOG_STATE(myname, state);
+
+    /*
+     * Skip this module if per-user forwarding is disabled. XXX We need to
+     * extend the config_XXX() interface to request no expansion of $names in
+     * the given value or in the default value.
+     */
+    if ((forward_path = config_lookup(VAR_FORWARD_PATH)) == 0)
+	forward_path = DEF_FORWARD_PATH;
+    if (*forward_path == 0)
+	return (NO);
 
     /*
      * DUPLICATE/LOOP ELIMINATION
@@ -173,36 +235,36 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
      * Assume that usernames do not have file system meta characters. Open
      * the .forward file as the user. Ignore files that aren't regular files,
      * files that are owned by the wrong user, or files that have world write
-     * permission enabled. We take no special precautions to deal with home
-     * directories imported via NFS, because mailbox and .forward files
-     * should always be local to the host running the delivery process.
-     * Anything else is just asking for trouble when a server goes down
-     * (either the mailbox server or the home directory server).
-     * 
-     * With mail to user+foo, try ~/.forward+foo before ~/.forward. Ignore foo
-     * when it contains '/' or when forward+foo does not exist.
+     * permission enabled.
      */
 #define STR(x)	vstring_str(x)
 
     status = 0;
     path = vstring_alloc(100);
-    extension = state.msg_attr.extension;
-    if (extension && strchr(extension, '/')) {
-	msg_warn("%s: address with illegal extension: %s",
-		 state.msg_attr.queue_id, state.msg_attr.recipient);
-	extension = 0;
+    saved_forward_path = mystrdup(forward_path);
+    next = saved_forward_path;
+
+    fw_context.pwd = mypwd;
+    fw_context.extension = state.msg_attr.extension;
+    fw_context.path = path;
+
+    lookup_status = -1;
+
+    while ((lhs = mystrtok(&next, ", \t\r\n")) != 0) {
+	fw_context.failures = 0;
+	VSTRING_RESET(path);
+	mac_parse(lhs, dotforward_parse_callback, (char *) &fw_context);
+	if (fw_context.failures == 0) {
+	    lookup_status = lstat_as(STR(path), &st,
+				     usr_attr.uid, usr_attr.gid);
+	    if (msg_verbose)
+		msg_info("%s: path %s status %d", myname,
+			 STR(path), lookup_status);
+	    if (lookup_status >= 0)
+		break;
+	}
     }
-    if (extension != 0) {
-	vstring_sprintf(path, "%s/.forward%c%s", mypwd->pw_dir,
-			var_rcpt_delim[0], extension);
-	if ((lookup_status = lstat_as(STR(path), &st,
-				      usr_attr.uid, usr_attr.gid)) < 0)
-	    extension = 0;
-    }
-    if (extension == 0) {
-	vstring_sprintf(path, "%s/.forward", mypwd->pw_dir);
-	lookup_status = lstat_as(STR(path), &st, usr_attr.uid, usr_attr.gid);
-    }
+
     if (lookup_status >= 0) {
 	if (S_ISREG(st.st_mode) == 0) {
 	    msg_warn("file %s is not a regular file", STR(path));
@@ -228,6 +290,7 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
      * Clean up.
      */
     vstring_free(path);
+    myfree(saved_forward_path);
     mypwfree(mypwd);
 
     *statusp = status;

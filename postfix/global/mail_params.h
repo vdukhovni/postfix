@@ -306,7 +306,7 @@ extern char *var_fallback_transport;
   * Local delivery: path to per-user forwarding file.
   */
 #define VAR_FORWARD_PATH	"forward_path"
-#define DEF_FORWARD_PATH	"$home/.forward"
+#define DEF_FORWARD_PATH	"$home/.forward${recipient_delimiter}${extension},$home/.forward"
 extern char *var_forward_path;
 
 #define VAR_RCPT_DELIM		"recipient_delimiter"

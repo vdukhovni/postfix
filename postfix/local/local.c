@@ -212,6 +212,11 @@
 /* .fi
 /* .IP \fBalias_maps\fR
 /*	List of alias databases.
+/* .IP \fBforward_path\fR
+/*	Search list for .forward files.  The following macros are recognized:
+/*	\fB$home\fR (home directory), \fB$user\fR (login name),
+/*	\fB$extension\fR (address extension), \fB$recipient_delimiter\fR
+/*	(address extension delimiter).
 /* .IP \fBlocal_command_shell\fR
 /*	Shell to use for external command execution (for example,
 /*	/some/where/smrsh -c).
@@ -370,6 +375,7 @@ int     var_biff;
 char   *var_mail_spool_dir;
 char   *var_mailbox_transport;
 char   *var_fallback_transport;
+char   *var_forward_path;
 
 int     local_cmd_deliver_mask;
 int     local_file_deliver_mask;
@@ -532,6 +538,15 @@ int     main(int argc, char **argv)
     };
     static CONFIG_BOOL_TABLE bool_table[] = {
 	VAR_BIFF, DEF_BIFF, &var_biff,
+	0,
+    };
+
+    /*
+     * XXX We need to extend the config_XXX() interface to request no $name
+     * expansion in a given value or in the default value.
+     */
+    static CONFIG_STR_TABLE straight_str_table[] = {
+	VAR_FORWARD_PATH, DEF_FORWARD_PATH, &var_forward_path, 0, 0,
 	0,
     };
 

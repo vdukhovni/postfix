@@ -127,6 +127,11 @@ static int deliver_switch(LOCAL_STATE state, USER_ATTR usr_attr)
     if (*var_rcpt_delim)
 	state.msg_attr.extension =
 	    split_addr(state.msg_attr.local, *var_rcpt_delim);
+    if (state.msg_attr.extension && strchr(state.msg_attr.extension, '/')) {
+	msg_warn("%s: address with illegal extension: %s",
+		 state.msg_attr.queue_id, state.msg_attr.recipient);
+	state.msg_attr.extension = 0;
+    }
     if (state.msg_attr.extension && deliver_alias(state, usr_attr, &status))
 	return (status);
 

@@ -2413,6 +2413,17 @@ Apologies for any names omitted.
 	and would go through .forward again). Problem reported by
 	Roman Dolejsi, Prague University of Economics.
 
+19990324
+
+	Bugfix: missing map name in check_xxx_access restrictions
+	could casue a segmentation error. Lamont Jones, Hewlett-
+	Packard.
+
+	Feature: forward_path configuration parameter (default:
+	$home/.forward$recipient_delimiter$extension,$home/.forward).
+	Based on initial code by Philip A.  Prindeville, Mirapoint,
+	Inc., USA.  Files:  local/dotforward.c.
+
 Future:
 
 	Planned: must be able to list the same hash table in

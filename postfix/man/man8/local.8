@@ -240,6 +240,11 @@ a configuration change.
 .fi
 .IP \fBalias_maps\fR
 List of alias databases.
+.IP \fBforward_path\fR
+Search list for .forward files.  The following macros are recognized:
+\fB$home\fR (home directory), \fB$user\fR (login name),
+\fB$extension\fR (address extension), \fB$recipient_delimiter\fR
+(address extension delimiter).
 .IP \fBlocal_command_shell\fR
 Shell to use for external command execution (for example,
 /some/where/smrsh -c).
