@@ -691,6 +691,8 @@ recipient addresses.  </p>
 <p> Specify one or more of: envelope_sender, envelope_recipient,
 header_sender, header_recipient </p>
 
+<p> This feature is available in Postfix 2.2 and later. </p>
+
 %PARAM sender_canonical_classes envelope_sender, header_sender
 
 <p> What addresses are subject to sender_canonical_maps address
@@ -699,6 +701,8 @@ applied to envelope sender addresses, and to header sender addresses.
 </p>
 
 <p> Specify one or more of: envelope_sender, header_sender </p>
+
+<p> This feature is available in Postfix 2.2 and later. </p>
 
 %PARAM recipient_canonical_classes envelope_recipient, header_recipient
 
@@ -709,6 +713,8 @@ addresses.  </p>
 
 <p> Specify one or more of: envelope_recipient, header_recipient
 </p>
+
+<p> This feature is available in Postfix 2.2 and later. </p>
 
 %PARAM command_directory see "postconf -d" output
 
@@ -3725,6 +3731,8 @@ the client will take into consideration.  </p>
 <p> Specify mechanism names, "/file/name" patterns or "type:table"
 lookup tables. The right-hand side result from "type:table" lookups
 is ignored. </p>
+
+<p> This feature is available in Postfix 2.2 and later. </p>
 
 <p>
 Examples:

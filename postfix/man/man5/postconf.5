@@ -495,6 +495,8 @@ recipient addresses.
 .PP
 Specify one or more of: envelope_sender, envelope_recipient,
 header_sender, header_recipient
+.PP
+This feature is available in Postfix 2.2 and later.
 .SH canonical_maps (default: empty)
 Optional address mapping lookup tables for message headers and
 envelopes. The mapping is applied to both sender and recipient
@@ -2387,6 +2389,8 @@ applied to envelope recipient addresses, and to header recipient
 addresses.
 .PP
 Specify one or more of: envelope_recipient, header_recipient
+.PP
+This feature is available in Postfix 2.2 and later.
 .SH recipient_canonical_maps (default: empty)
 Optional address mapping lookup tables for envelope and header
 recipient addresses.
@@ -2649,6 +2653,8 @@ mapping.  By default, sender_canonical_maps address mapping is
 applied to envelope sender addresses, and to header sender addresses.
 .PP
 Specify one or more of: envelope_sender, header_sender
+.PP
+This feature is available in Postfix 2.2 and later.
 .SH sender_canonical_maps (default: empty)
 Optional address mapping lookup tables for envelope and header
 sender addresses.
@@ -2988,6 +2994,8 @@ the client will take into consideration.
 Specify mechanism names, "/file/name" patterns or "type:table"
 lookup tables. The right-hand side result from "type:table" lookups
 is ignored.
+.PP
+This feature is available in Postfix 2.2 and later.
 .PP
 Examples:
 .PP

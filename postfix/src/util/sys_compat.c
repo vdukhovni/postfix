@@ -249,8 +249,13 @@ int     closefrom(int lowfd)
     int     fd_limit = open_limit(0);
     int     fd;
 
-    if (lowfd > fd_limit) {
-	errno = EINVAL;
+    /*
+     * lowfrom does not have an easy to determine upper limit. A process may
+     * have files open that were inherited from a parent process with a less
+     * restrictive resource limit.
+     */
+    if (lowfd < 0) {
+	errno = EBADF;
 	return (-1);
     }
     if (fd_limit > 500)
