@@ -57,6 +57,9 @@
 /*	Reject, defer or permit the request unconditionally. This is to be used
 /*	at the end of a restriction list in order to make the default
 /*	action explicit.
+/* .IP check_policy_service
+/*	query an external policy service with client, helo, sender, recipient
+/*	and queue ID attributes.
 /* .IP reject_unknown_client
 /*	Reject the request when the client hostname could not be found.
 /*	The \fIunknown_client_reject_code\fR configuration parameter
@@ -224,6 +227,9 @@
 /*	The message would use up more than half the available queue file
 /*	system space. This is a temporary error.
 /* .PP
+/*	smtpd_check_data() enforces generic restrictions after the
+/*	client has sent the DATA command.
+/*
 /*	Arguments:
 /* .IP name
 /*	The client hostname, or \fIunknown\fR.
@@ -291,6 +297,8 @@
 #include <htable.h>
 #include <ctable.h>
 #include <mac_expand.h>
+#include <myrand.h>
+#include <attr_clnt.h>
 
 /* DNS library. */
 
@@ -416,6 +424,11 @@ static int generic_checks(SMTPD_STATE *, ARGV *, const char *, const char *, con
 static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient);
 
  /*
+  * Delegated policy.
+  */
+static ATTR_CLNT *policy_clnt;
+
+ /*
   * Reject context.
   */
 #define SMTPD_NAME_CLIENT	"Client host"
@@ -478,7 +491,8 @@ static void PRINTFLIKE(3, 4) defer_if(SMTPD_DEFER *, int, const char *,...);
   * Cached RBL lookup state.
   */
 typedef struct {
-    char   *txt;			/* TXT record or "" */
+    ARGV   *txt;			/* TXT records or NULL */
+    ARGV   *a;				/* A records */
 } SMTPD_RBL_STATE;
 
 static void *rbl_pagein(const char *, void *);
@@ -489,10 +503,10 @@ static void rbl_pageout(void *, void *);
   */
 typedef struct {
     SMTPD_STATE *state;			/* general state */
-    SMTPD_RBL_STATE *rbl_state;		/* cached RBL state */
     const char *domain;			/* query domain */
     const char *what;			/* rejected value */
     const char *class;			/* name of rejected value */
+    const char *txt;			/* randomly selected trimmed TXT rr */
 } SMTPD_RBL_EXPAND_CONTEXT;
 
 /* resolve_pagein - page in an address resolver result */
@@ -750,6 +764,15 @@ void    smtpd_check_init(void)
      */
     expand_filter = vstring_alloc(10);
     unescape(expand_filter, var_smtpd_exp_filter);
+
+    /*
+     * Delegated policy.
+     */
+    if (*var_smtpd_policy_srv)
+	policy_clnt = attr_clnt_create(var_smtpd_policy_srv,
+				       var_smtpd_policy_tmout,
+				       var_smtpd_policy_idle,
+				       var_smtpd_policy_ttl);
 }
 
 /* log_whatsup - log as much context as we have */
@@ -2357,6 +2380,9 @@ static void *rbl_pagein(const char *query, void *unused_context)
     VSTRING *why;
     int     dns_status;
     SMTPD_RBL_STATE *rbl;
+    DNS_RR *addr_list;
+    struct in_addr addr;
+    DNS_RR *rr;
 
     /*
      * Do the query. If the DNS lookup produces no definitive reply, give the
@@ -2364,8 +2390,7 @@ static void *rbl_pagein(const char *query, void *unused_context)
      * because an RBL server is unavailable.
      */
     why = vstring_alloc(10);
-    dns_status = dns_lookup(query, T_A, 0, (DNS_RR **) 0,
-			    (VSTRING *) 0, why);
+    dns_status = dns_lookup(query, T_A, 0, &addr_list, (VSTRING *) 0, why);
     if (dns_status != DNS_OK && dns_status != DNS_NOTFOUND)
 	msg_warn("%s: RBL lookup error: %s", query, STR(why));
     vstring_free(why);
@@ -2376,13 +2401,24 @@ static void *rbl_pagein(const char *query, void *unused_context)
      * Save the result. Yes, we cache negative results as well as positive
      * results.
      */
+#define RBL_TXT_LIMIT	256
+
     rbl = (SMTPD_RBL_STATE *) mymalloc(sizeof(*rbl));
     if (dns_lookup(query, T_TXT, 0, &txt_list,
 		   (VSTRING *) 0, (VSTRING *) 0) == DNS_OK) {
-	rbl->txt = mystrndup(txt_list->data, 512);
+	rbl->txt = argv_alloc(1);
+	for (rr = txt_list; rr != 0; rr = rr->next)
+	    argv_addn(rbl->txt, rr->data, rr->data_len > RBL_TXT_LIMIT ?
+		      RBL_TXT_LIMIT : rr->data_len, ARGV_END);
 	dns_rr_free(txt_list);
     } else
-	rbl->txt = mystrdup("");
+	rbl->txt = 0;
+    rbl->a = argv_alloc(1);
+    for (rr = addr_list; rr != 0; rr = rr->next) {
+	memcpy((char *) &addr.s_addr, addr_list->data, sizeof(addr.s_addr));
+	argv_add(rbl->a, inet_ntoa(addr), ARGV_END);
+    }
+    dns_rr_free(addr_list);
     return ((void *) rbl);
 }
 
@@ -2394,7 +2430,9 @@ static void rbl_pageout(void *data, void *unused_context)
 
     if (rbl != 0) {
 	if (rbl->txt)
-	    myfree(rbl->txt);
+	    argv_free(rbl->txt);
+	if (rbl->a)
+	    argv_free(rbl->a);
 	myfree((char *) rbl);
     }
 }
@@ -2405,7 +2443,6 @@ static const char *rbl_expand_lookup(const char *name, int mode,
 				             char *context)
 {
     SMTPD_RBL_EXPAND_CONTEXT *rbl_exp = (SMTPD_RBL_EXPAND_CONTEXT *) context;
-    SMTPD_RBL_STATE *rbl = rbl_exp->rbl_state;
     SMTPD_STATE *state = rbl_exp->state;
 
     if (state->expand_buf == 0)
@@ -2423,9 +2460,9 @@ static const char *rbl_expand_lookup(const char *name, int mode,
     } else if (STREQ(name, MAIL_ATTR_RBL_DOMAIN)) {
 	return (rbl_exp->domain);
     } else if (STREQ(name, MAIL_ATTR_RBL_REASON)) {
-	return (rbl->txt);
+	return (rbl_exp->txt);
     } else if (STREQ(name, MAIL_ATTR_RBL_TXT)) {/* LaMont compat */
-	return (rbl->txt);
+	return (rbl_exp->txt);
     } else if (STREQ(name, MAIL_ATTR_RBL_WHAT)) {
 	return (rbl_exp->what);
     } else if (STREQ(name, MAIL_ATTR_RBL_CLASS)) {
@@ -2459,10 +2496,20 @@ static int rbl_reject_reply(SMTPD_STATE *state, SMTPD_RBL_STATE *rbl,
     }
     why = vstring_alloc(100);
     rbl_exp.state = state;
-    rbl_exp.rbl_state = rbl;
     rbl_exp.domain = rbl_domain;
     rbl_exp.what = what;
     rbl_exp.class = reply_class;
+
+    /*
+     * XXX When presented with multiple txt records pick a random one! There
+     * is no way to pair up the A records with associated TXT records. If a
+     * client connects multiple times, it will learn the right reject reason
+     * at least some of the time.
+     */
+    rbl_exp.txt = mystrdup(rbl->txt == 0 ? "" :
+			   rbl->txt->argc == 1 ? rbl->txt->argv[0] :
+			   rbl->txt->argv[myrand() % rbl->txt->argc]);
+
     for (;;) {
 	if (template == 0)
 	    template = var_def_rbl_reply;
@@ -2483,8 +2530,21 @@ static int rbl_reject_reply(SMTPD_STATE *state, SMTPD_RBL_STATE *rbl,
      * Clean up.
      */
     vstring_free(why);
+    myfree((char *) rbl_exp.txt);
 
     return (result);
+}
+
+/* rbl_match_addr - match address list */
+
+static int rbl_match_addr(SMTPD_RBL_STATE *rbl, const char *addr)
+{
+    char  **cpp;
+
+    for (cpp = rbl->a->argv; *cpp; cpp++)
+	if (strcmp(*cpp, addr) == 0)
+	    return (1);
+    return (0);
 }
 
 /* reject_rbl_addr - reject if address in real-time blackhole list */
@@ -2497,6 +2557,7 @@ static int reject_rbl_addr(SMTPD_STATE *state, const char *rbl_domain,
     VSTRING *query;
     int     i;
     SMTPD_RBL_STATE *rbl;
+    const char *reply_addr;
 
     if (msg_verbose)
 	msg_info("%s: %s %s", myname, reply_class, addr);
@@ -2521,15 +2582,17 @@ static int reject_rbl_addr(SMTPD_STATE *state, const char *rbl_domain,
     }
     argv_free(octets);
     vstring_strcat(query, rbl_domain);
+    reply_addr = split_at(STR(query), '=');
     rbl = (SMTPD_RBL_STATE *) ctable_locate(smtpd_rbl_cache, STR(query));
-    vstring_free(query);
 
     /*
      * If the record exists, the address is blacklisted.
      */
-    if (rbl == 0) {
+    if (rbl == 0 || (reply_addr != 0 && !rbl_match_addr(rbl, reply_addr))) {
+	vstring_free(query);
 	return (SMTPD_CHECK_DUNNO);
     } else {
+	vstring_free(query);
 	return (rbl_reject_reply(state, rbl, rbl_domain, addr, reply_class));
     }
 }
@@ -2543,6 +2606,7 @@ static int reject_rbl_domain(SMTPD_STATE *state, const char *rbl_domain,
     VSTRING *query;
     SMTPD_RBL_STATE *rbl;
     const char *domain;
+    const char *reply_addr;
 
     if (msg_verbose)
 	msg_info("%s: %s %s", myname, reply_class, what);
@@ -2562,15 +2626,17 @@ static int reject_rbl_domain(SMTPD_STATE *state, const char *rbl_domain,
 
     query = vstring_alloc(100);
     vstring_sprintf(query, "%s.%s", domain, rbl_domain);
+    reply_addr = split_at(STR(query), '=');
     rbl = (SMTPD_RBL_STATE *) ctable_locate(smtpd_rbl_cache, STR(query));
-    vstring_free(query);
 
     /*
      * If the record exists, the domain is blacklisted.
      */
-    if (rbl == 0) {
+    if (rbl == 0 || (reply_addr != 0 && !rbl_match_addr(rbl, reply_addr))) {
+	vstring_free(query);
 	return (SMTPD_CHECK_DUNNO);
     } else {
+	vstring_free(query);
 	return (rbl_reject_reply(state, rbl, rbl_domain, what, reply_class));
     }
 }
@@ -2644,6 +2710,59 @@ static int reject_sender_login_mismatch(SMTPD_STATE *state, const char *sender)
 				       sender));
     }
     return (SMTPD_CHECK_DUNNO);
+}
+
+/* check_policy_service - check delegated policy service */
+
+static int check_policy_service(SMTPD_STATE *state, const char *reply_name,
+		               const char *reply_class, const char *def_acl)
+{
+    static VSTRING *action = 0;
+
+    /*
+     * Sanity check.
+     */
+    if (policy_clnt == 0) {
+	msg_warn("%s is used in %s restrictions, but no service is defined",
+		 CHECK_POLICY_SERVICE, reply_class);
+	return (SMTPD_CHECK_DUNNO);
+    }
+
+    /*
+     * Initialize.
+     */
+    if (action == 0)
+	action = vstring_alloc(10);
+
+    if (attr_clnt_request(policy_clnt,
+			  ATTR_FLAG_NONE,	/* Query attributes. */
+			  ATTR_TYPE_STR, MAIL_ATTR_CLIENT, state->namaddr,
+			  ATTR_TYPE_STR, MAIL_ATTR_CLIENT_ADDR, state->addr,
+			  ATTR_TYPE_STR, MAIL_ATTR_CLIENT_NAME, state->name,
+			  ATTR_TYPE_STR, MAIL_ATTR_HELO_NAME,
+			  state->helo_name ? state->helo_name : "",
+			  ATTR_TYPE_STR, MAIL_ATTR_SENDER,
+			  state->sender ? state->sender : "",
+			  ATTR_TYPE_STR, MAIL_ATTR_RECIP,
+			  state->recipient ? state->recipient : "",
+			  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID,
+			  state->queue_id ? state->queue_id : "",
+			  ATTR_TYPE_END,
+			  ATTR_FLAG_MISSING,	/* Reply attributes. */
+			  ATTR_TYPE_STR, MAIL_ATTR_ACTION, action,
+			  ATTR_TYPE_END) != 1) {
+	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
+				   "450 Server configuration problem"));
+    } else {
+
+	/*
+	 * XXX This produces bogus error messages when the reply is
+	 * malformed.
+	 */
+	return (check_table_result(state, var_smtpd_policy_srv, STR(action),
+				   "policy query", reply_name,
+				   reply_class, def_acl));
+    }
 }
 
 /* is_map_command - restriction has form: check_xxx_access type:name */
@@ -2747,6 +2866,9 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 			 cpp[1], REJECT_ALL);
 	} else if (strcasecmp(name, REJECT_UNAUTH_PIPE) == 0) {
 	    status = reject_unauth_pipelining(state, reply_name, reply_class);
+	} else if (strcasecmp(name, CHECK_POLICY_SERVICE) == 0) {
+	    status = check_policy_service(state, reply_name,
+					  reply_class, def_acl);
 	} else if (strcasecmp(name, DEFER_IF_PERMIT) == 0) {
 	    DEFER_IF_PERMIT2(state, MAIL_ERROR_POLICY,
 			 "450 <%s>: %s rejected: defer_if_permit requested",
@@ -3524,6 +3646,8 @@ char   *smtpd_check_data(SMTPD_STATE *state)
 
 #include <smtpd_chat.h>
 
+int     smtpd_input_transp_mask;
+
  /*
   * Dummies. These are never set.
   */
@@ -3564,6 +3688,8 @@ char   *var_smtpd_exp_filter;
 char   *var_def_rbl_reply;
 char   *var_relay_rcpt_maps;
 char   *var_verify_sender;
+char   *var_smtpd_sasl_opts;
+char   *var_smtpd_policy_srv;
 
 typedef struct {
     char   *name;
@@ -3603,6 +3729,8 @@ static STRING_TABLE string_table[] = {
     VAR_RELAY_RCPT_MAPS, DEF_RELAY_RCPT_MAPS, &var_relay_rcpt_maps,
     VAR_VERIFY_SENDER, DEF_VERIFY_SENDER, &var_verify_sender,
     VAR_MAIL_NAME, DEF_MAIL_NAME, &var_mail_name,
+    VAR_SMTPD_SASL_OPTS, DEF_SMTPD_SASL_OPTS, &var_smtpd_sasl_opts,
+    VAR_SMTPD_POLICY_SRV, DEF_SMTPD_POLICY_SRV, &var_smtpd_policy_srv, 0, 0,
     0,
 };
 
@@ -3664,6 +3792,9 @@ int     var_virt_alias_code;
 int     var_show_unk_rcpt_table;
 int     var_verify_poll_count;
 int     var_verify_poll_delay;
+int     var_smtpd_policy_tmout;
+int     var_smtpd_policy_idle;
+int     var_smtpd_policy_ttl;
 
 static INT_TABLE int_table[] = {
     "msg_verbose", 0, &msg_verbose,
@@ -3688,7 +3819,6 @@ static INT_TABLE int_table[] = {
     VAR_VIRT_MAILBOX_CODE, DEF_VIRT_MAILBOX_CODE, &var_virt_mailbox_code,
     VAR_SHOW_UNK_RCPT_TABLE, DEF_SHOW_UNK_RCPT_TABLE, &var_show_unk_rcpt_table,
     VAR_VERIFY_POLL_COUNT, DEF_VERIFY_POLL_COUNT, &var_verify_poll_count,
-    VAR_VERIFY_POLL_DELAY, DEF_VERIFY_POLL_DELAY, &var_verify_poll_delay,
     0,
 };
 
@@ -3795,7 +3925,8 @@ bool    var_smtpd_sasl_enable = 0;
 
 /* smtpd_sasl_connect - stub */
 
-void    smtpd_sasl_connect(SMTPD_STATE *state)
+void    smtpd_sasl_connect(SMTPD_STATE *state, const char *opts_name,
+			           const char *opts_var)
 {
     msg_panic("smtpd_sasl_connect was called");
 }

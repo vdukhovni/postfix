@@ -17,7 +17,7 @@ and does one of the following:
     content.
 
 2 - Reject the mail (by sending a suitable status code back to
-    Postfix) so that it is returned to sender.
+    Postfix). Postfix will return the mail to the sender.
 
 3 - Send the mail somewhere else.
 

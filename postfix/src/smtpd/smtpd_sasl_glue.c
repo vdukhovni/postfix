@@ -8,7 +8,7 @@
 /*
 /*	void	smtpd_sasl_initialize()
 /*
-/*	void	smtpd_sasl_connect(state)
+/*	void	smtpd_sasl_connect(state, sasl_opts_name, sasl_opts_var)
 /*	SMTPD_STATE *state;
 /*
 /*	char	*smtpd_sasl_authenticate(state, sasl_method, init_response)
@@ -32,7 +32,9 @@
 /*
 /*	smtpd_sasl_connect() performs per-connection initialization.
 /*	This routine should be called once at the start of every
-/*	connection.
+/*	connection. The sasl_opts_name and sasl_opts_var parameters
+/*	are the postfix configuration parameters setting the security
+/*	policy of the SASL authentication.
 /*
 /*	smtpd_sasl_authenticate() implements the authentication dialog.
 /*	The result is a null pointer in case of success, an SMTP reply
@@ -201,8 +203,6 @@ static NAME_MASK smtpd_sasl_mask[] = {
     0,
 };
 
-static int smtpd_sasl_opts;
-
 /* smtpd_sasl_initialize - per-process initialization */
 
 void    smtpd_sasl_initialize(void)
@@ -214,16 +214,12 @@ void    smtpd_sasl_initialize(void)
     if (sasl_server_init(callbacks, "smtpd") != SASL_OK)
 	msg_fatal("SASL per-process initialization failed");
 
-    /*
-     * Configuration parameters.
-     */
-    smtpd_sasl_opts = name_mask(VAR_SMTPD_SASL_OPTS, smtpd_sasl_mask,
-				var_smtpd_sasl_opts);
 }
 
 /* smtpd_sasl_connect - per-connection initialization */
 
-void    smtpd_sasl_connect(SMTPD_STATE *state)
+void    smtpd_sasl_connect(SMTPD_STATE *state, const char *sasl_opts_name,
+			           const char *sasl_opts_var)
 {
 #if SASL_VERSION_MAJOR < 2
     unsigned sasl_mechanism_count;
@@ -291,7 +287,8 @@ void    smtpd_sasl_connect(SMTPD_STATE *state)
     sec_props.min_ssf = 0;
     sec_props.max_ssf = 1;			/* don't allow real SASL
 						 * security layer */
-    sec_props.security_flags = smtpd_sasl_opts;
+    sec_props.security_flags = name_mask(sasl_opts_name, smtpd_sasl_mask,
+					 sasl_opts_var);
     sec_props.maxbufsize = 0;
     sec_props.property_names = 0;
     sec_props.property_values = 0;

@@ -8339,6 +8339,55 @@ Apologies for any names omitted.
 	and header/body checks. This eliminates the need to configure
 	multiple cleanup services in the master.cf file.
 
+20030707
+
+	Feature: context dependent SASL security options (i.e.
+	different options when TLS is enabled/disabled). Lutz
+	Jaenicke.  Files:  */*sasl_glue.[hc].
+
+20030708
+
+	Hardened the attr_scan routines for exposure to an untrusted
+	environment, in preparation of the tuple0 and tuple64
+	protocols that will be used for SMTP policy delegation.
+
+	Feature: address filter for RBL lookups, for use with
+	multi-valued RBL services. File: smtpd/smtpd_check.c.
+
+	Feature: accept_socket option to pass the spawn(8) listen
+	socket to a persistent non-Postfix process. File: spawn/spawn.c.
+
+20030709
+
+	Cleanup: use off_t instead of int for VSTREAM file offsets.
+	This was needed for mailboxes > 2GB on 32-bit systems.
+	Files: util/vstream.c, global/mail_copy.c.
+
+20030710
+
+	Support for multiple A and TXT results in RBL lookups.
+	Victor Duchovni, Morgan Stanley.  File: smtpd/smtpd_check.c.
+
+	Support for attribute-based query-reply protocols.
+	Files: util/attr_clnt.[hc], util/auto_clnt.[hc].
+
+20030711
+
+	Support for plain "name=value\n" attribute protocol.
+	Files: util/attr_{scan,print}_plain.c.
+
+	Bugfix: the LMTP session caching code did not reset the
+	EHLO server feature list when it needed to reconnect.
+	Problem found by Tobias Erbsland.
+
+20030712
+
+	Feature: delegated SMTP policy server. As an example, see
+	the greylisting server in examples/smtpd-policy.  Specify
+	"check_smtpd_policy_service" in smtpd_mumble_restrictions.
+	See SMTPD_POLICY_SERVICE_README for details.
+
+
 Open problems:
 
 	Low: smtp-source may block when sending large test messages.

@@ -174,11 +174,11 @@ static void get_service_attr(SPAWN_ATTR *attr, char *service, char **argv)
 		if (*group == 0)
 		    group = 0;
 	    if ((pwd = getpwnam(user)) == 0)
-		msg_fatal("%s: unknown username: %s", myname, user);
+		msg_fatal("unknown user name: %s", user);
 	    attr->uid = pwd->pw_uid;
 	    if (group != 0) {
 		if ((grp = getgrnam(group)) == 0)
-		    msg_fatal("%s: unknown group: %s", myname, group);
+		    msg_fatal("unknown group name: %s", group);
 		attr->gid = grp->gr_gid;
 	    } else {
 		attr->gid = pwd->pw_gid;

@@ -44,12 +44,12 @@
 /*	char	*str;
 /*	VSTREAM	*stream;
 /*
-/*	long	vstream_ftell(stream)
+/*	off_t	vstream_ftell(stream)
 /*	VSTREAM	*stream;
 /*
-/*	long	vstream_fseek(stream, offset, whence)
+/*	off_t	vstream_fseek(stream, offset, whence)
 /*	VSTREAM	*stream;
-/*	long	offset;
+/*	off_t	offset;
 /*	int	whence;
 /*
 /*	int	vstream_fflush(stream)
@@ -795,7 +795,7 @@ static int vstream_buf_space(VBUF *bp, int want)
 
 /* vstream_fseek - change I/O position */
 
-long    vstream_fseek(VSTREAM *stream, long offset, int whence)
+off_t   vstream_fseek(VSTREAM *stream, off_t offset, int whence)
 {
     char   *myname = "vstream_fseek";
     VBUF   *bp = &stream->buf;
@@ -857,7 +857,7 @@ long    vstream_fseek(VSTREAM *stream, long offset, int whence)
 
 /* vstream_ftell - return file offset */
 
-long    vstream_ftell(VSTREAM *stream)
+off_t   vstream_ftell(VSTREAM *stream)
 {
     VBUF   *bp = &stream->buf;
 
@@ -874,7 +874,7 @@ long    vstream_ftell(VSTREAM *stream)
      * the last read, write or seek operation.
      */
     if ((bp->flags & VSTREAM_FLAG_SEEK) == 0) {
-	if ((stream->offset = lseek(stream->fd, 0L, SEEK_CUR)) < 0) {
+	if ((stream->offset = lseek(stream->fd, (off_t) 0, SEEK_CUR)) < 0) {
 	    bp->flags |= VSTREAM_FLAG_NSEEK;
 	    return (-1);
 	}

@@ -119,14 +119,14 @@ extern void smtpd_state_reset(SMTPD_STATE *);
  /*
   * SMPTD peer information lookup.
   */
-void    smtpd_peer_init(SMTPD_STATE *state);
-void    smtpd_peer_reset(SMTPD_STATE *state);
+extern void smtpd_peer_init(SMTPD_STATE *state);
+extern void smtpd_peer_reset(SMTPD_STATE *state);
 
  /*
   * Transparency: before mail is queued, do we check for unknown recipients,
   * do we allow address mapping, automatic bcc, header/body checks?
   */
-int     smtpd_input_transp_mask;
+extern int smtpd_input_transp_mask;
 
 /* LICENSE
 /* .ad

@@ -24,6 +24,11 @@ client spike.porcupine.org 168.100.189.2
 rcpt rname@rdomain
 client foo 127.0.0.2
 rcpt rname@rdomain
+recipient_restrictions reject_rbl_client,relays.mail-abuse.org=127.0.0.2
+client foo 127.0.0.2
+rcpt rname@rdomain
+client foo 127.0.0.1
+rcpt rname@rdomain
 #
 # RHSBL sender domain name
 #

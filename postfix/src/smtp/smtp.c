@@ -87,7 +87,7 @@
 /*	or if a destination is unreachable.
 /* .IP \fBignore_mx_lookup_error\fR
 /*	When a name server fails to respond to an MX query, search for an
-/*	A record instead deferring mail delivery.
+/*	A record, instead of deferring mail delivery.
 /* .IP \fBinet_interfaces\fR
 /*	The network interface addresses that this mail system receives
 /*	mail on. When any of those addresses appears in the list of mail

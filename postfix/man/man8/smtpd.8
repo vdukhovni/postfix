@@ -81,6 +81,8 @@ List of commands that are treated as NOOP (no operation) commands,
 without any parameter syntax checking and without any state change.
 This list overrides built-in command definitions.
 .SH "Content inspection controls"
+Optionally, Postfix can be configured to send new mail to
+external content filter software AFTER the mail is queued.
 .IP \fBcontent_filter\fR
 The name of a mail delivery transport that filters mail and that
 either bounces mail or re-injects the result back into Postfix.
@@ -103,6 +105,22 @@ content filter.
 Disable header/body_checks. This is typically specified with the
 SMTP server \fBafter\fR an external content filter.
 .RE
+.SH "Pass-through proxy"
+.ad
+.fi
+.ad
+Optionally, the Postfix SMTP server can be configured to
+forward all mail to a proxy server, for example a real-time
+content filter, BEFORE mail is queued.
+.IP \fBsmtpd_proxy_filter\fR
+The \fIhost:port\fR of the SMTP proxy server. The \fIhost\fR
+or \fIhost:\fR portion is optional.
+.IP \fBsmtpd_proxy_timeout\fR
+Timeout for connecting to, sending to and receiving from
+the SMTP proxy server.
+.IP \fBsmtpd_proxy_ehlo\fR
+The hostname to use when sending an EHLO command to the
+SMTP proxy server.
 .SH "Authentication controls"
 .IP \fBenable_sasl_authentication\fR
 Enable per-session authentication as per RFC 2554 (SASL).
@@ -128,24 +146,6 @@ Disallow anonymous logins.
 Maps that specify the SASL login name that owns a MAIL FROM sender
 address. Used by the \fBreject_sender_login_mismatch\fR sender
 anti-spoofing restriction.
-.SH "Pass-through proxy"
-.ad
-.fi
-.ad
-Optionally, the Postfix SMTP server can be configured to
-forward all mail to a proxy server, for example a real-time
-content filter. This proxy server should support the same
-MAIL FROM and RCPT TO command syntax as Postfix, but does not
-need to support ESMTP command pipelining.
-.IP \fBsmtpd_proxy_filter\fR
-The \fIhost:port\fR of the SMTP proxy server. The \fIhost\fR
-or \fIhost:\fR portion is optional.
-.IP \fBsmtpd_proxy_timeout\fR
-Timeout for connecting to, sending to and receiving from
-the SMTP proxy server.
-.IP \fBsmtpd_proxy_ehlo\fR
-The hostname to use when sending an EHLO command to the
-SMTP proxy server.
 .SH Miscellaneous
 .ad
 .fi
@@ -247,6 +247,22 @@ Disconnect after a client has made this number of errors.
 Limit the number of times a client can issue a junk command
 such as NOOP, VRFY, ETRN or RSET in one SMTP session before
 it is penalized with tarpit delays.
+.SH "Delegated policy"
+.ad
+.fi
+.IP \fBsmtpd_policy_service_endpoint\fR
+The \fItransport\fR:\fIendpoint\fR of a server that speaks
+the delegated SMTP policy protocol. \fItransport\fR is
+either \fBinet\fR or \fBunix\fR. \fIendpoint\fR is either
+\fIhost:port\fR, \fBprivate/\fIservicename\fR or
+\fBpublic/\fIservicename\fR.
+.IP \fBsmtpd_policy_service_timeout\fR
+Time limit for connecting to, writing to and receiving from
+a delegated SMTP policy server.
+.IP \fBsmtpd_policy_service_max_idle\fR
+Time after which an unused policy service connection is closed.
+.IP \fBsmtpd_policy_service_timeout\fR
+Time after which an active policy service connection is closed.
 .SH "UCE control restrictions"
 .ad
 .fi

@@ -61,7 +61,7 @@ Turning on recipient address verification
 Recipient address verification may be useful to block mail for
 undeliverable recipients on mail relay hosts that do not have a
 copy of all the relayed recipient addresses. This prevents the mail
-queue from filling up with undeliverable and bounced SPAM.
+queue from filling up with undeliverable and bounced mail.
 
 Recipient address verification is relatively straightforward and
 there are no surprises. If a recipient probe fails, then Postfix

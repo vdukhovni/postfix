@@ -254,8 +254,8 @@ static void showq_service(VSTREAM *client, char *unused_service, char **argv)
 
     static struct queue_info queue_info[] = {
 	MAIL_QUEUE_MAILDROP, scan_dir_next,
-	MAIL_QUEUE_INCOMING, mail_scan_dir_next,
 	MAIL_QUEUE_ACTIVE, mail_scan_dir_next,
+	MAIL_QUEUE_INCOMING, mail_scan_dir_next,
 	MAIL_QUEUE_DEFERRED, mail_scan_dir_next,
 	MAIL_QUEUE_HOLD, mail_scan_dir_next,
 	0,

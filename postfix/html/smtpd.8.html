@@ -73,6 +73,9 @@ SMTPD(8)                                                 SMTPD(8)
               overrides built-in command definitions.
 
 <b>Content inspection controls</b>
+       Optionally,  Postfix can be configured to send new mail to
+       external content filter software AFTER the mail is queued.
+
        <b>content</b><i>_</i><b>filter</b>
               The  name of a mail delivery transport that filters
               mail and that either bounces mail or re-injects the
@@ -103,10 +106,27 @@ SMTPD(8)                                                 SMTPD(8)
                      cally  specified  with the SMTP server <b>after</b>
                      an external content filter.
 
+<b>Pass-through proxy</b>
+       Optionally, the Postfix SMTP server can be  configured  to
+       forward  all  mail  to a proxy server, for example a real-
+       time content filter, BEFORE mail is queued.
+
+       <b>smtpd</b><i>_</i><b>proxy</b><i>_</i><b>filter</b>
+              The <i>host:port</i> of the SMTP proxy server. The <i>host</i> or
+              <i>host:</i> portion is optional.
+
+       <b>smtpd</b><i>_</i><b>proxy</b><i>_</i><b>timeout</b>
+              Timeout for connecting to, sending to and receiving
+              from the SMTP proxy server.
+
+       <b>smtpd</b><i>_</i><b>proxy</b><i>_</i><b>ehlo</b>
+              The hostname to use when sending an EHLO command to
+              the SMTP proxy server.
+
 <b>Authentication controls</b>
        <b>enable</b><i>_</i><b>sasl</b><i>_</i><b>authentication</b>
-              Enable per-session authentication as per  <a href="http://www.faqs.org/rfcs/rfc2554.html">RFC  2554</a>
-              (SASL).   This functionality is available only when
+              Enable  per-session  authentication as per <a href="http://www.faqs.org/rfcs/rfc2554.html">RFC 2554</a>
+              (SASL).  This functionality is available only  when
               explicitly  selected  at  program  build  time  and
               explicitly enabled at runtime.
 
@@ -132,29 +152,10 @@ SMTPD(8)                                                 SMTPD(8)
                      Disallow anonymous logins.
 
        <b>smtpd</b><i>_</i><b>sender</b><i>_</i><b>login</b><i>_</i><b>maps</b>
-              Maps  that  specify the SASL login name that owns a
-              MAIL   FROM   sender   address.   Used    by    the
+              Maps that specify the SASL login name that  owns  a
+              MAIL    FROM    sender   address.   Used   by   the
               <b>reject</b><i>_</i><b>sender</b><i>_</i><b>login</b><i>_</i><b>mismatch</b>  sender  anti-spoofing
               restriction.
-
-<b>Pass-through proxy</b>
-       Optionally, the Postfix SMTP server can be  configured  to
-       forward  all  mail  to a proxy server, for example a real-
-       time content filter. This proxy server should support  the
-       same  MAIL FROM and RCPT TO command syntax as Postfix, but
-       does not need to support ESMTP command pipelining.
-
-       <b>smtpd</b><i>_</i><b>proxy</b><i>_</i><b>filter</b>
-              The <i>host:port</i> of the SMTP proxy server. The <i>host</i> or
-              <i>host:</i> portion is optional.
-
-       <b>smtpd</b><i>_</i><b>proxy</b><i>_</i><b>timeout</b>
-              Timeout for connecting to, sending to and receiving
-              from the SMTP proxy server.
-
-       <b>smtpd</b><i>_</i><b>proxy</b><i>_</i><b>ehlo</b>
-              The hostname to use when sending an EHLO command to
-              the SMTP proxy server.
 
 <b>Miscellaneous</b>
        <b>authorized</b><i>_</i><b>verp</b><i>_</i><b>clients</b>
@@ -292,6 +293,25 @@ SMTPD(8)                                                 SMTPD(8)
               command such as NOOP, VRFY, ETRN  or  RSET  in  one
               SMTP  session  before  it  is penalized with tarpit
               delays.
+
+<b>Delegated policy</b>
+       <b>smtpd</b><i>_</i><b>policy</b><i>_</i><b>service</b><i>_</i><b>endpoint</b>
+              The <i>transport</i>:<i>endpoint</i> of a server that speaks  the
+              delegated SMTP policy protocol. <i>transport</i> is either
+              <b>inet</b> or <b>unix</b>. <i>endpoint</i> is  either  <i>host:port</i>,  <b>pri-</b>
+              <b>vate/</b><i>servicename</i> or <b>public/</b><i>servicename</i>.
+
+       <b>smtpd</b><i>_</i><b>policy</b><i>_</i><b>service</b><i>_</i><b>timeout</b>
+              Time  limit  for  connecting  to,  writing  to  and
+              receiving from a delegated SMTP policy server.
+
+       <b>smtpd</b><i>_</i><b>policy</b><i>_</i><b>service</b><i>_</i><b>max</b><i>_</i><b>idle</b>
+              Time after which an unused policy  service  connec-
+              tion is closed.
+
+       <b>smtpd</b><i>_</i><b>policy</b><i>_</i><b>service</b><i>_</i><b>timeout</b>
+              Time  after  which an active policy service connec-
+              tion is closed.
 
 <b>UCE control restrictions</b>
        <b>parent</b><i>_</i><b>domain</b><i>_</i><b>matches</b><i>_</i><b>subdomains</b>

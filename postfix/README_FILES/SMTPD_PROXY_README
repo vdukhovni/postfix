@@ -111,6 +111,11 @@ process.
     smtp      inet  n       -       n       -       -       smtpd 
         -o smtpd_proxy_filter=26
     :26       inet  n       -       n       -       -       smtpd
+	-o smtpd_client_restrictions=
+	-o smtpd_helo_restrictions=
+	-o smtpd_sender_restrictions=
+	-o smtpd_recipient_restrictions=permit_mynetworks,reject
+	-o mynetworks=127.0.0.0/8
         -o receive_override_options=no_unknown_recipient_checks
 
 Note: do not specify spaces around the "=" or "," characters.

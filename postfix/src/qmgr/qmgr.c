@@ -13,9 +13,9 @@
 /*	This program expects to be run from the \fBmaster\fR(8) process
 /*	manager.
 /*
-/*	Mail addressed to the local \fBdouble-bounce\fR address is silently
-/*	discarded.  This stops potential loops caused by undeliverable
-/*	bounce notifications.
+/*	Mail addressed to the local \fBdouble-bounce\fR address is
+/*	logged and discarded.  This stops potential loops caused by
+/*	undeliverable bounce notifications.
 /* MAIL QUEUES
 /* .ad
 /* .fi

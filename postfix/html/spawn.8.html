@@ -20,7 +20,7 @@ SPAWN(8)                                                 SPAWN(8)
        This daemon expects to be run from the  <a href="master.8.html"><b>master</b>(8)</a>  process
        manager.
 
-<b>COMMAND</b> <b>ATTRIBUTE</b> <b>SYNTAX</b>
+<b>COMMAND ATTRIBUTE SYNTAX</b>
        The external command attributes are given in the <b>master.cf</b>
        file at the end of a service definition.  The syntax is as
        follows:
@@ -60,10 +60,10 @@ SPAWN(8)                                                 SPAWN(8)
        talk to the external command and thus is not vulnerable to
        data-driven attacks.
 
-<b>CONFIGURATION</b> <b>PARAMETERS</b>
+<b>CONFIGURATION PARAMETERS</b>
        The  following  <b>main.cf</b> parameters are especially relevant
        to this program. See the Postfix <b>main.cf</b> file  for  syntax
-       details  and  for  default  values. Use the <b>postfix</b> <b>reload</b>
+       details  and  for  default  values. Use the <b>postfix reload</b>
        command after a configuration change.
 
 <b>Miscellaneous</b>
@@ -75,7 +75,7 @@ SPAWN(8)                                                 SPAWN(8)
               The  process  privileges  used while not running an
               external command.
 
-<b>Resource</b> <b>control</b>
+<b>Resource control</b>
        <i>service_</i><b>command</b><i>_</i><b>time</b><i>_</i><b>limit</b>
               The amount of time the command is  allowed  to  run
               before it is killed with force. The <i>service</i> name is
@@ -83,7 +83,7 @@ SPAWN(8)                                                 SPAWN(8)
               default  time  limit  is  given  by the global <b>com-</b>
               <b>mand</b><i>_</i><b>time</b><i>_</i><b>limit</b> configuration parameter.
 
-<b>SEE</b> <b>ALSO</b>
+<b>SEE ALSO</b>
        <a href="master.8.html">master(8)</a> process manager
        syslogd(8) system logging
 

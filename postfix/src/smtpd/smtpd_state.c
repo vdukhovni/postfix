@@ -106,7 +106,7 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream)
     if (SMTPD_STAND_ALONE(state))
 	var_smtpd_sasl_enable = 0;
     if (var_smtpd_sasl_enable)
-	smtpd_sasl_connect(state);
+	smtpd_sasl_connect(state, VAR_SMTPD_SASL_OPTS, var_smtpd_sasl_opts);
 #endif
 
     /*

@@ -1850,6 +1850,27 @@ extern int var_smtpd_proxy_tmout;
 #define DEF_INPUT_TRANSP		""
 extern char *var_smtpd_input_transp;
 
+ /*
+  * SMTP server policy delegation.
+  */
+#define VAR_SMTPD_POLICY_SRV		"smtpd_policy_service_endpoint"
+#define DEF_SMTPD_POLICY_SRV		""
+extern char *var_smtpd_policy_srv;
+
+#define VAR_SMTPD_POLICY_TMOUT		"smtpd_policy_service_timeout"
+#define DEF_SMTPD_POLICY_TMOUT		"100s"
+extern int var_smtpd_policy_tmout;
+
+#define VAR_SMTPD_POLICY_IDLE		"smtpd_policy_service_max_idle"
+#define DEF_SMTPD_POLICY_IDLE		"300s"
+extern int var_smtpd_policy_idle;
+
+#define VAR_SMTPD_POLICY_TTL		"smtpd_policy_service_max_ttl"
+#define DEF_SMTPD_POLICY_TTL		"1000s"
+extern int var_smtpd_policy_ttl;
+
+#define CHECK_POLICY_SERVICE		"check_smtpd_policy_service"
+
 /* LICENSE
 /* .ad
 /* .fi

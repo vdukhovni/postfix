@@ -28,6 +28,8 @@ TCP_TABLE(5)                                         TCP_TABLE(5)
        terminated  by  the  ASCII  newline character. Request and
        reply parameters (see below) are separated by  whitespace.
 
+       Send  and receive operations must complete in 100 seconds.
+
 <b>REQUEST FORMAT</b>
        Each request specifies a command, a lookup key, and possi-
        bly a lookup result.
@@ -39,40 +41,40 @@ TCP_TABLE(5)                                         TCP_TABLE(5)
               This request is currently not implemented.
 
 <b>REPLY FORMAT</b>
-       Each reply specifies a status code and text. Replies  must
-       be  no  longer  than 4096 characters including the newline
+       Each  reply specifies a status code and text. Replies must
+       be no longer than 4096 characters  including  the  newline
        terminator.
 
        <b>500</b> SPACE <i>text</i> NEWLINE
-              In case of a lookup  request,  the  requested  data
-              does  not exist.  In case of an update request, the
+              In  case  of  a  lookup request, the requested data
+              does not exist.  In case of an update request,  the
               request  was  rejected.   The  text  describes  the
               nature of the problem.
 
        <b>400</b> SPACE <i>text</i> NEWLINE
-              This   indicates   an  error  condition.  The  text
-              describes the nature of  the  problem.  The  client
+              This  indicates  an  error  condition.   The   text
+              describes  the  nature  of  the problem. The client
               should retry the request later.
 
        <b>200</b> SPACE <i>text</i> NEWLINE
               The request was successful. In the case of a lookup
-              request, the text contains an  encoded  version  of
+              request,  the  text  contains an encoded version of
               the requested data.
 
 <b>ENCODING</b>
-       In  request  and  reply  parameters, the character %, each
+       In request and reply parameters,  the  character  %,  each
        non-printing character, and each whitespace character must
-       be  replaced  by  %XX, where XX is the corresponding ASCII
-       hexadecimal character value. The hexadecimal codes can  be
+       be replaced by %XX, where XX is  the  corresponding  ASCII
+       hexadecimal  character value. The hexadecimal codes can be
        specified in any case (upper, lower, mixed).
 
-       The  Postfix  client always encodes a request.  The server
-       may omit the encoding as long as the reply  is  guaranteed
+       The Postfix client always encodes a request.   The  server
+       may  omit  the encoding as long as the reply is guaranteed
        to not contain the % or NEWLINE character.
 
 <b>SECURITY</b>
-       Do  not  use  TCP lookup tables for security critical pur-
-       poses.  The client-server connection is not protected  and
+       Do not use TCP lookup tables for  security  critical  pur-
+       poses.   The client-server connection is not protected and
        the server is not authenticated.
 
 <b>SEE ALSO</b>
@@ -83,11 +85,11 @@ TCP_TABLE(5)                                         TCP_TABLE(5)
 <b>BUGS</b>
        Only the lookup method is currently implemented.
 
-       The  client  does  not hang up when the connection is idle
+       The client does not hang up when the  connection  is  idle
        for a long time.
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

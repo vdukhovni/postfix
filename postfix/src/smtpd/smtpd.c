@@ -67,6 +67,8 @@
 /*	without any parameter syntax checking and without any state change.
 /*	This list overrides built-in command definitions.
 /* .SH "Content inspection controls"
+/*	Optionally, Postfix can be configured to send new mail to 
+/*	external content filter software AFTER the mail is queued.
 /* .IP \fBcontent_filter\fR
 /*	The name of a mail delivery transport that filters mail and that
 /*	either bounces mail or re-injects the result back into Postfix.
@@ -89,6 +91,22 @@
 /*	Disable header/body_checks. This is typically specified with the
 /*	SMTP server \fBafter\fR an external content filter.
 /* .RE
+/* .SH "Pass-through proxy"
+/* .ad
+/* .fi
+/* .ad
+/*	Optionally, the Postfix SMTP server can be configured to
+/*	forward all mail to a proxy server, for example a real-time
+/*	content filter, BEFORE mail is queued.
+/* .IP \fBsmtpd_proxy_filter\fR
+/*	The \fIhost:port\fR of the SMTP proxy server. The \fIhost\fR
+/*	or \fIhost:\fR portion is optional.
+/* .IP \fBsmtpd_proxy_timeout\fR
+/*	Timeout for connecting to, sending to and receiving from
+/*	the SMTP proxy server.
+/* .IP \fBsmtpd_proxy_ehlo\fR
+/*	The hostname to use when sending an EHLO command to the
+/*	SMTP proxy server.
 /* .SH "Authentication controls"
 /* .IP \fBenable_sasl_authentication\fR
 /*	Enable per-session authentication as per RFC 2554 (SASL).
@@ -114,24 +132,6 @@
 /*	Maps that specify the SASL login name that owns a MAIL FROM sender
 /*	address. Used by the \fBreject_sender_login_mismatch\fR sender
 /*	anti-spoofing restriction.
-/* .SH "Pass-through proxy"
-/* .ad
-/* .fi
-/* .ad
-/*	Optionally, the Postfix SMTP server can be configured to
-/*	forward all mail to a proxy server, for example a real-time
-/*	content filter. This proxy server should support the same
-/*	MAIL FROM and RCPT TO command syntax as Postfix, but does not
-/*	need to support ESMTP command pipelining.
-/* .IP \fBsmtpd_proxy_filter\fR
-/*	The \fIhost:port\fR of the SMTP proxy server. The \fIhost\fR
-/*	or \fIhost:\fR portion is optional.
-/* .IP \fBsmtpd_proxy_timeout\fR
-/*	Timeout for connecting to, sending to and receiving from
-/*	the SMTP proxy server.
-/* .IP \fBsmtpd_proxy_ehlo\fR
-/*	The hostname to use when sending an EHLO command to the
-/*	SMTP proxy server.
 /* .SH Miscellaneous
 /* .ad
 /* .fi
@@ -233,6 +233,22 @@
 /*	Limit the number of times a client can issue a junk command
 /*	such as NOOP, VRFY, ETRN or RSET in one SMTP session before
 /*	it is penalized with tarpit delays.
+/* .SH "Delegated policy"
+/* .ad
+/* .fi
+/* .IP \fBsmtpd_policy_service_endpoint\fR
+/*	The \fItransport\fR:\fIendpoint\fR of a server that speaks
+/*	the delegated SMTP policy protocol. \fItransport\fR is
+/*	either \fBinet\fR or \fBunix\fR. \fIendpoint\fR is either
+/*	\fIhost:port\fR, \fBprivate/\fIservicename\fR or
+/*	\fBpublic/\fIservicename\fR.
+/* .IP \fBsmtpd_policy_service_timeout\fR
+/*	Time limit for connecting to, writing to and receiving from
+/*	a delegated SMTP policy server.
+/* .IP \fBsmtpd_policy_service_max_idle\fR
+/*	Time after which an unused policy service connection is closed.
+/* .IP \fBsmtpd_policy_service_timeout\fR
+/*	Time after which an active policy service connection is closed.
 /* .SH "UCE control restrictions"
 /* .ad
 /* .fi
@@ -506,6 +522,10 @@ char   *var_smtpd_proxy_filt;
 int     var_smtpd_proxy_tmout;
 char   *var_smtpd_proxy_ehlo;
 char   *var_input_transp;
+char   *var_smtpd_policy_srv;
+int     var_smtpd_policy_tmout;
+int     var_smtpd_policy_idle;
+int     var_smtpd_policy_ttl;
 
  /*
   * Silly little macros.
@@ -1860,6 +1880,9 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_ERR_SLEEP, DEF_SMTPD_ERR_SLEEP, &var_smtpd_err_sleep, 0, 0,
 	VAR_SMTPD_PROXY_TMOUT, DEF_SMTPD_PROXY_TMOUT, &var_smtpd_proxy_tmout, 1, 0,
 	VAR_VERIFY_POLL_DELAY, DEF_VERIFY_POLL_DELAY, &var_verify_poll_delay, 1, 0,
+	VAR_SMTPD_POLICY_TMOUT, DEF_SMTPD_POLICY_TMOUT, &var_smtpd_policy_tmout, 1, 0,
+	VAR_SMTPD_POLICY_IDLE, DEF_SMTPD_POLICY_IDLE, &var_smtpd_policy_idle, 1, 0,
+	VAR_SMTPD_POLICY_TTL, DEF_SMTPD_POLICY_TTL, &var_smtpd_policy_ttl, 1, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {
@@ -1905,6 +1928,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_PROXY_FILT, DEF_SMTPD_PROXY_FILT, &var_smtpd_proxy_filt, 0, 0,
 	VAR_SMTPD_PROXY_EHLO, DEF_SMTPD_PROXY_EHLO, &var_smtpd_proxy_ehlo, 0, 0,
 	VAR_INPUT_TRANSP, DEF_INPUT_TRANSP, &var_input_transp, 0, 0,
+	VAR_SMTPD_POLICY_SRV, DEF_SMTPD_POLICY_SRV, &var_smtpd_policy_srv, 0, 0,
 	0,
     };
     static CONFIG_RAW_TABLE raw_table[] = {

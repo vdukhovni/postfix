@@ -15,7 +15,7 @@
 /*		/* other fields... */
 /* .in -4
 /*	} SMTPD_STATE;
-/* SMTP-LEVEL ROUTINES
+/* 
 /*	int	smtpd_proxy_open(state, service, timeout, ehlo_name, mail_from)
 /*	SMTPD_STATE *state;
 /*	const char *service;

@@ -134,6 +134,18 @@ smtp_pix_workaround_delay_time = 10s
 # 
 smtp_pix_workaround_threshold_time = 500s
 
+# The smtp_quote_rfc821_envelope parameter controls whether the
+# Postfix SMTP client quotes addresses in MAIL FROM and RCPT TO
+# commands as required by RFC 821. This includes putting quotes around
+# an address localpart that ends in ".".
+# 
+# The default is to comply with RFC 821. If you have to send mail to
+# a broken SMTP server, configure a special SMTP client in master.cf
+# with "-o smtp_quote_rfc821_envelope=no" on the SMTP client command
+# line.
+#
+smtp_quote_rfc821_envelope = yes
+
 #
 # RATE CONTROLS
 #
