@@ -116,11 +116,12 @@
 #include <rec_type.h>
 #include <off_cvt.h>
 #include <mark_corrupt.h>
+#include <quote_821_local.h>
 
 /* Application-specific. */
 
 #include "lmtp.h"
-#include "quote_821_local.h"
+#include "lmtp_sasl.h"
 
  /*
   * Sender and receiver state. A session does not necessarily go through a
@@ -193,7 +194,7 @@ int     lmtp_lhlo(LMTP_STATE *state)
      */
     if (((resp = lmtp_chat_resp(state))->code / 100) != 2)
 	return (lmtp_site_fail(state, resp->code,
-			       "%s refused to talk to me: %s",
+			       "host %s refused to talk to me: %s",
 			 session->namaddr, translit(resp->str, "\n", " ")));
 
     /*
@@ -202,7 +203,7 @@ int     lmtp_lhlo(LMTP_STATE *state)
     lmtp_chat_cmd(state, "LHLO %s", var_myhostname);
     if ((resp = lmtp_chat_resp(state))->code / 100 != 2)
 	return (lmtp_site_fail(state, resp->code,
-			       "%s refused to talk to me: %s",
+			       "host %s refused to talk to me: %s",
 			       session->namaddr,
 			       translit(resp->str, "\n", " ")));
 
@@ -223,10 +224,19 @@ int     lmtp_lhlo(LMTP_STATE *state)
 		state->features |= LMTP_FEATURE_PIPELINING;
 	    else if (strcasecmp(word, "SIZE") == 0)
 		state->features |= LMTP_FEATURE_SIZE;
+#ifdef USE_SASL_AUTH
+	    else if (var_lmtp_sasl_enable && strcasecmp(word, "AUTH") == 0)
+		lmtp_sasl_helo_auth(state, words);
+#endif
 	}
     }
     if (msg_verbose)
 	msg_info("server features: 0x%x", state->features);
+
+#ifdef USE_SASL_AUTH
+    if (var_lmtp_sasl_enable && (state->features & SMTP_FEATURE_AUTH))
+	return (lmtp_sasl_helo_login(state));
+#endif
 
     /*
      * We use LMTP command pipelining if the server said it supported it.
@@ -463,7 +473,7 @@ static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
 		case LMTP_STATE_MAIL:
 		    if (resp->code / 100 != 2) {
 			lmtp_mesg_fail(state, resp->code,
-				       "%s said: %s", session->namaddr,
+				       "host %s said: %s", session->namaddr,
 				       translit(resp->str, "\n", " "));
 			mail_from_rejected = 1;
 		    }
@@ -487,7 +497,7 @@ static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
 			    survivors[nrcpt++] = recv_rcpt;
 			} else {
 			    lmtp_rcpt_fail(state, resp->code, rcpt,
-					   "%s said: %s", session->namaddr,
+				       "host %s said: %s", session->namaddr,
 					   translit(resp->str, "\n", " "));
 			    rcpt->offset = 0;	/* in case deferred */
 			}
@@ -505,7 +515,7 @@ static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
 		    if (resp->code / 100 != 3) {
 			if (nrcpt > 0)
 			    lmtp_mesg_fail(state, resp->code,
-					   "%s said: %s", session->namaddr,
+				       "host %s said: %s", session->namaddr,
 					   translit(resp->str, "\n", " "));
 			nrcpt = -1;
 		    }
@@ -535,7 +545,7 @@ static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
 			    }
 			} else {
 			    lmtp_rcpt_fail(state, resp->code, rcpt,
-					   "%s said: %s", session->namaddr,
+				       "host %s said: %s", session->namaddr,
 					   translit(resp->str, "\n", " "));
 			    rcpt->offset = 0;	/* in case deferred */
 			}

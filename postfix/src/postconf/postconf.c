@@ -420,7 +420,7 @@ static void set_parameters(void)
      * bool_table, int_table, str_table, and raw_table. Look up each
      * parameter name in the configuration parameter dictionary. If the
      * parameter is not set, take the default value, or take the value from
-     * in main.c, without doing $name expansions. This includes converting
+     * main.cf, without doing $name expansions. This includes converting
      * default values from numeric/boolean internal forms to external string
      * form.
      * 
@@ -789,9 +789,6 @@ int     main(int argc, char **argv)
 	    break;
 	case 'd':
 	    mode |= SHOW_DEFS;
-	    break;
-	case 'E':
-	    mode |= SHOW_EVAL;
 	    break;
 	case 'e':
 	    mode |= EDIT_MAIN;

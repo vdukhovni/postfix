@@ -71,6 +71,10 @@ a configuration change.
 .IP \fBstrict_rfc821_envelopes\fR
 Disallow non-RFC 821 style addresses in envelopes. For example,
 allow RFC822-style address forms with comments, like Sendmail does.
+.IP \fBallow_broken_auth_clients\fR
+Support older Microsoft clients that mis-implement the AUTH
+protocol, and that expect an EHLO response of "250 AUTH=list"
+instead of "250 AUTH list".
 .SH "Content inspection controls"
 .IP \fBcontent_filter\fR
 The name of a mail delivery transport that filters mail and that

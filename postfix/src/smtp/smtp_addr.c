@@ -6,9 +6,10 @@
 /* SYNOPSIS
 /*	#include "smtp_addr.h"
 /*
-/*	DNS_RR *smtp_domain_addr(name, why)
+/*	DNS_RR *smtp_domain_addr(name, why, found_myself)
 /*	char	*name;
 /*	VSTRING	*why;
+/*	int	*found_myself;
 /*
 /*	DNS_RR *smtp_host_addr(name, why)
 /*	char	*name;
@@ -279,11 +280,11 @@ static int smtp_compare_mx(DNS_RR *a, DNS_RR *b)
 
 /* smtp_domain_addr - mail exchanger address lookup */
 
-DNS_RR *smtp_domain_addr(char *name, VSTRING *why)
+DNS_RR *smtp_domain_addr(char *name, VSTRING *why, int *found_myself)
 {
     DNS_RR *mx_names;
     DNS_RR *addr_list = 0;
-    DNS_RR *self;
+    DNS_RR *self = 0;
     unsigned best_pref;
     unsigned best_found;
 
@@ -363,6 +364,7 @@ DNS_RR *smtp_domain_addr(char *name, VSTRING *why)
     /*
      * Clean up.
      */
+    *found_myself = (self != 0);
     return (addr_list);
 }
 

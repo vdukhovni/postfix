@@ -1,9 +1,14 @@
 #! /bin/sh
 
 # LINUX2 - shell script to set up a Postfix chroot jail for Linux
-# Tested on SuSE Linux 5.3 (libc5) and 6.4 (glibc2.1)
+# Tested on SuSE Linux 5.3 (libc5) and 7.0 (glibc2.1)
 
-# Copyright (c) 2000 by Matthias Andree
+# Other testers reported as working:
+#
+# 2001-01-15 Debian sid (unstable)
+#            Christian Kurz <shorty@getuid.de>
+
+# Copyright (c) 2000 - 2001 by Matthias Andree
 # Redistributable unter the MIT-style license that follows:
 # Abstract: "do whatever you want except hold somebody liable or change
 # the copyright information".
@@ -26,14 +31,29 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
+# 2000-09-29
+# v0.1: initial release
+
+# 2000-12-05
+# v0.2: copy libdb.* for libnss_db.so
+#       remove /etc/localtime in case it's a broken symlink
+#       restrict find to maxdepth 1 (faster)
+
+# $Log: LINUX2,v $
+# Revision 1.4  2001/01/15 09:36:35  emma
+# add note it was successfully tested on Debian sid
+#
+
+CP="cp -p"
+
 cond_copy() {
   # find files as per pattern in $1
   # if any, copy to directory $2
   dir=`dirname "$1"`
   pat=`basename "$1"`
-  lr=`find "$dir" -name "$pat"`
+  lr=`find "$dir" -maxdepth 1 -name "$pat"`
   if test ! -d "$2" ; then exit 1 ; fi
-  if test "x$lr" != "x" ; then cp -p $1 "$2" ; fi
+  if test "x$lr" != "x" ; then $CP $1 "$2" ; fi
 } 
 
 set -e
@@ -47,10 +67,18 @@ mkdir -p etc lib usr/lib/zoneinfo
 # find localtime (SuSE 5.3 does not have /etc/localtime)
 lt=/etc/localtime
 if test ! -f $lt ; then lt=/usr/lib/zoneinfo/localtime ; fi
+if test ! -f $lt ; then lt=/usr/share/zoneinfo/localtime ; fi
 if test ! -f $lt ; then echo "cannot find localtime" ; exit 1 ; fi
-cp -p -f $lt /etc/services /etc/resolv.conf /etc/nsswitch.conf etc
-cp -p -f /etc/host.conf /etc/hosts /etc/passwd etc
+rm -f etc/localtime
+
+# copy localtime and some other system files into the chroot's etc
+$CP -f $lt /etc/services /etc/resolv.conf /etc/nsswitch.conf etc
+$CP -f /etc/host.conf /etc/hosts /etc/passwd etc
 ln -s -f /etc/localtime usr/lib/zoneinfo
 
-cond_copy '/lib/libnss_*' lib
-cond_copy '/lib/libresolv*' lib
+# copy required libraries into the chroot
+cond_copy '/lib/libnss_*.so*' lib
+cond_copy '/lib/libresolv.so*' lib
+cond_copy '/lib/libdb.so*' lib
+
+postfix reload

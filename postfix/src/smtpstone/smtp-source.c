@@ -136,10 +136,11 @@ static const char *var_myhostname;
 static int session_count;
 static int message_count = 1;
 static struct sockaddr_in sin;
+
 #undef sun
 static struct sockaddr_un sun;
 static struct sockaddr *sa;
-static int sa_len;
+static int sa_length;
 static int recipients = 1;
 static char *defaddr;
 static char *recipient;
@@ -398,7 +399,7 @@ static void start_connect(SESSION *session)
     session->stream = vstream_fdopen(fd, O_RDWR);
     event_enable_write(fd, connect_done, (char *) session);
     smtp_timeout_setup(session->stream, var_timeout);
-    if (connect(fd, sa, sa_len) < 0 && errno != EINPROGRESS)
+    if (connect(fd, sa, sa_length) < 0 && errno != EINPROGRESS)
 	fail_connect(session);
 }
 
@@ -842,7 +843,7 @@ int     main(int argc, char **argv)
 #endif
 	memcpy(sun.sun_path, path, path_len);
 	sa = (struct sockaddr *) & sun;
-	sa_len = sizeof(sun);
+	sa_length = sizeof(sun);
     } else {
 	if (strncmp(argv[optind], "inet:", 5) == 0)
 	    argv[optind] += 5;
@@ -853,7 +854,7 @@ int     main(int argc, char **argv)
 	sin.sin_addr.s_addr = find_inet_addr(host);
 	sin.sin_port = find_inet_port(port, "tcp");
 	sa = (struct sockaddr *) & sin;
-	sa_len = sizeof(sin);
+	sa_length = sizeof(sin);
     }
 
     /*

@@ -85,7 +85,7 @@ extern void smtp_session_free(SMTP_SESSION *);
   */
 extern SMTP_SESSION *smtp_connect(char *, VSTRING *);
 extern SMTP_SESSION *smtp_connect_host(char *, unsigned, VSTRING *);
-extern SMTP_SESSION *smtp_connect_domain(char *, unsigned, VSTRING *);
+extern SMTP_SESSION *smtp_connect_domain(char *, unsigned, VSTRING *, int *);
 
  /*
   * smtp_proto.c

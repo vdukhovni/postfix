@@ -4672,13 +4672,6 @@ Apologies for any names omitted.
 	core instead if issuing an error message. This is what I
 	get for accepting code that I cannot test myself.
 
-20001220
-
-	Feature: merged in Andrew McNamara's virtual delivery agent
-	(a table-driven agent that does not require recipients to
-	have UNIX accounts, and that implements a safe subset of
-	the default local delivery agent). Files: virtual/*.
-
 20001221
 
 	Code cleanup: configuration parameters that are $name
@@ -4708,3 +4701,49 @@ Apologies for any names omitted.
 	Bugfix: soft errors in client hostname lookups would be
 	treated as hard errors. Fix by Michael Herrmann
 	(informatik.tu-muenchen.de). File: smtpd/smtpd_peer.c.
+
+20010110
+
+	Bugfix: the mkdir() EEXIST race condition workaround was
+	not complete.  Matthias Andree, Daniel Roesen.  Files:
+	global/mail_queue.c, util/make_dirs.c.
+
+20010111
+
+	Portability: IRIX 6.5.10 defines sa_len as a macro, causing
+	a name collision with a variable used by Postfix. Roberto
+	Totaro, enigma.ethz.ch. File:  smtpstone/smtp-source.c.
+
+20010116
+
+	Bugfix: REJECT by header/body_checks was flagged in smtpd
+	as a bounce, should be policy, in order to make postmaster
+	notifications more consistent. File: smtpd/smtpd.c.
+
+	Merged updated chroot setup procedure by Matthias Andree.
+	Files: examples/chroot-setup/LINUX2.
+
+20010117
+
+	Formatting: changed the seconds and days formats in the
+	"your mail is delayed" text so that it does not switch to
+	scientific notation. File: bounce/bounce_notify_util.c.
+
+20010119
+
+	Feature: SASL support for the LMTP client. Recent CYRUS
+	software requires this for Postfix over TCP sockets.
+	This was just a cloning operation.
+
+20010120
+
+	Bugfix: the 20001005 revised fallback_relay support caused
+	Postfix to send mail to the fallback even when the local
+	machine was an MX host for the final destination. Result:
+	mailer loop. Found by Laurent Wacrenier (teaser.fr).  Files:
+	smtp/smtp_connect.c, smtp/smtp_addr.c.
+
+20010121
+
+	Workaround: Lotus Domino 5.0.4 violates RFC 2554 and replies
+	to EHLO with AUTH=LOGIN. File: smtp/smtp_proto.c.

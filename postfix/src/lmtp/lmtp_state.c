@@ -53,11 +53,12 @@
 
 /* Global library. */
 
-#include <config.h>
+#include <mail_conf.h>
 
 /* Application-specific. */
 
 #include "lmtp.h"
+#include "lmtp_sasl.h"
 
 /* lmtp_state_alloc - initialize */
 
@@ -75,6 +76,9 @@ LMTP_STATE *lmtp_state_alloc(void)
     state->features = 0;
     state->history = 0;
     state->error_mask = 0;
+#ifdef USE_SASL_AUTH
+    lmtp_sasl_connect(state);
+#endif
     state->sndbufsize = 0;
     state->sndbuffree = 0;
     state->reuse = 0;
@@ -88,5 +92,8 @@ void    lmtp_state_free(LMTP_STATE *state)
     vstring_free(state->buffer);
     vstring_free(state->scratch);
     vstring_free(state->scratch2);
+#ifdef USE_SASL_AUTH
+    lmtp_sasl_cleanup(state);
+#endif
     myfree((char *) state);
 }

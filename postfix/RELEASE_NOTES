@@ -1,3 +1,6 @@
+REJECT by header/body_checks are now flagged as policy violations
+rather than bounces, for consistency in postmaster notifications.
+
 Major changes with snapshot-20001217
 ====================================
 
