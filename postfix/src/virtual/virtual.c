@@ -167,6 +167,7 @@
 /*	The limit is enforced by the Postfix queue manager.
 /* .IP \fBvirtual_mailbox_limit\fR
 /*	The maximal size in bytes of a mailbox or maildir file.
+/*	Set to zero to disable the limit.
 /* HISTORY
 /* .ad
 /* .fi
@@ -368,17 +369,18 @@ static void pre_init(char *unused_name, char **unused_argv)
 
     /*
      * Reset the file size limit from the message size limit to the mailbox
-     * size limit. XXX This still isn't accurate because the file size limit
-     * also affects delivery to command.
+     * size limit.
      * 
      * We can't have mailbox size limit smaller than the message size limit,
      * because that prohibits the delivery agent from updating the queue
      * file.
      */
-    if (var_virt_mailbox_limit < var_message_limit)
-	msg_fatal("main.cf configuration error: %s is smaller than %s",
-		  VAR_VIRT_MAILBOX_LIMIT, VAR_MESSAGE_LIMIT);
-    set_file_limit(var_virt_mailbox_limit);
+    if (var_virt_mailbox_limit) {
+	if (var_virt_mailbox_limit < var_message_limit)
+	    msg_fatal("main.cf configuration error: %s is smaller than %s",
+		      VAR_VIRT_MAILBOX_LIMIT, VAR_MESSAGE_LIMIT);
+	set_file_limit(var_virt_mailbox_limit);
+    }
 }
 
 /* main - pass control to the single-threaded skeleton */
@@ -387,7 +389,7 @@ int     main(int argc, char **argv)
 {
     static CONFIG_INT_TABLE int_table[] = {
 	VAR_VIRT_MINUID, DEF_VIRT_MINUID, &var_virt_minimum_uid, 1, 0,
-	VAR_VIRT_MAILBOX_LIMIT, DEF_VIRT_MAILBOX_LIMIT, &var_virt_mailbox_limit, 1, 0,
+	VAR_VIRT_MAILBOX_LIMIT, DEF_VIRT_MAILBOX_LIMIT, &var_virt_mailbox_limit, 0, 0,
 	0,
     };
     static CONFIG_STR_TABLE str_table[] = {

@@ -350,6 +350,7 @@
 /* .IP \fBmailbox_size_limit\fR
 /*	Limit the size of a mailbox etc. file (any file that is
 /*	written to upon delivery).
+/*	Set to zero to disable the limit.
 /* .SH "Security controls"
 /* .ad
 /* .fi
@@ -635,14 +636,20 @@ static void pre_init(char *unused_name, char **unused_argv)
      * size limit. XXX This still isn't accurate because the file size limit
      * also affects delivery to command.
      * 
+     * A file size limit protects the machine against runaway software errors.
+     * It is not suitable to enfoce mail quota, because users can get around
+     * mail quota by delivering to /file/name or to |command.
+     * 
      * We can't have mailbox size limit smaller than the message size limit,
      * because that prohibits the delivery agent from updating the queue
      * file.
      */
-    if (var_mailbox_limit < var_message_limit)
-	msg_fatal("main.cf configuration error: %s is smaller than %s",
-		  VAR_MAILBOX_LIMIT, VAR_MESSAGE_LIMIT);
-    set_file_limit(var_mailbox_limit);
+    if (var_mailbox_limit) {
+	if (var_mailbox_limit < var_message_limit)
+	    msg_fatal("main.cf configuration error: %s is smaller than %s",
+		      VAR_MAILBOX_LIMIT, VAR_MESSAGE_LIMIT);
+	set_file_limit(var_mailbox_limit);
+    }
 }
 
 /* main - pass control to the single-threaded skeleton */
@@ -655,7 +662,7 @@ int     main(int argc, char **argv)
     };
     static CONFIG_INT_TABLE int_table[] = {
 	VAR_DUP_FILTER_LIMIT, DEF_DUP_FILTER_LIMIT, &var_dup_filter_limit, 0, 0,
-	VAR_MAILBOX_LIMIT, DEF_MAILBOX_LIMIT, &var_mailbox_limit, 1, 0,
+	VAR_MAILBOX_LIMIT, DEF_MAILBOX_LIMIT, &var_mailbox_limit, 0, 0,
 	0,
     };
     static CONFIG_STR_TABLE str_table[] = {

@@ -451,9 +451,9 @@ LOCAL(8)                                                 LOCAL(8)
 
        <b>mailbox</b><i>_</i><b>size</b><i>_</i><b>limit</b>
               Limit the size of a mailbox  etc.  file  (any  file
-              that is written to upon delivery).
+              that  is written to upon delivery).  Set to zero to
+              disable the limit.
 
-<b>Security</b> <b>controls</b>
 
 
 
@@ -467,33 +467,34 @@ LOCAL(8)                                                 LOCAL(8)
 LOCAL(8)                                                 LOCAL(8)
 
 
+<b>Security</b> <b>controls</b>
        <b>allow</b><i>_</i><b>mail</b><i>_</i><b>to</b><i>_</i><b>commands</b>
-              Restrict  the  usage  of  mail delivery to external
+              Restrict the usage of  mail  delivery  to  external
               command.
 
        <b>allow</b><i>_</i><b>mail</b><i>_</i><b>to</b><i>_</i><b>files</b>
-              Restrict the usage of  mail  delivery  to  external
+              Restrict  the  usage  of  mail delivery to external
               file.
 
        <b>command</b><i>_</i><b>expansion</b><i>_</i><b>filter</b>
-              What  characters  are  allowed  to  appear in $name
-              expansions of mailbox_command.  Illegal  characters
+              What characters are  allowed  to  appear  in  $name
+              expansions  of  mailbox_command. Illegal characters
               are replaced by underscores.
 
        <b>default</b><i>_</i><b>privs</b>
-              Default  rights  for  delivery  to external file or
+              Default rights for delivery  to  external  file  or
               command.
 
        <b>forward</b><i>_</i><b>expansion</b><i>_</i><b>filter</b>
-              What characters are  allowed  to  appear  in  $name
-              expansions  of forward_path. Illegal characters are
+              What  characters  are  allowed  to  appear in $name
+              expansions of forward_path. Illegal characters  are
               replaced by underscores.
 
 <b>HISTORY</b>
-       The <b>Delivered-To:</b> header appears in the  <b>qmail</b>  system  by
+       The  <b>Delivered-To:</b>  header  appears in the <b>qmail</b> system by
        Daniel Bernstein.
 
-       The  <i>maildir</i>  structure  appears  in  the  <b>qmail</b> system by
+       The <i>maildir</i> structure  appears  in  the  <b>qmail</b>  system  by
        Daniel Bernstein.
 
 <b>SEE</b> <b>ALSO</b>
@@ -504,7 +505,7 @@ LOCAL(8)                                                 LOCAL(8)
        <a href="qmgr.8.html">qmgr(8)</a> queue manager
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>
@@ -512,7 +513,6 @@ LOCAL(8)                                                 LOCAL(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
 
 
 

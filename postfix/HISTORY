@@ -4848,3 +4848,15 @@ Apologies for any names omitted.
 	util/sane_time.[hc].
 
 	Bumped the default mailbox file size limits to 50MB.
+
+20010202
+
+	Bugfix: fixed the way the master resets the file size limit
+	to avoid problems when a Postfix daemon updates a queue
+	file.  The file size limit is now increased to INT_MAX if
+	it is smaller than INT_MAX, so that it is less likely to
+	interfere than the old setting of message_size_limit.
+
+	Feature: disable mailbox size limits for the local and
+	virtual delivery agents by setting mailbox_size_limit or
+	virtual_mailbox_limit to zero.

@@ -1,15 +1,28 @@
 Apart from bugfixes this is expected to become the first non-beta
 Postfix release.
 
+Major changes with snapshot-20010202
+====================================
+
+The mailbox file size limits for the local and virtual delivery
+agents can be disabled by setting mailbox_size_limit and/or
+virtual_mailbox_limit to zero.
+
 Incompatible changes with snapshot-20010128
 ===========================================
+
+If this release does not work for you, you can go back to a previous
+Postfix version without losing your mail, subject to the "incompatible
+changes" listed for previous Postfix releases below.
 
 REJECT in header/body_checks is now flagged as policy violation
 rather than bounce, for consistency in postmaster notifications.
 
-The mailbox size limit for local delivery is no longer controlled
-by the message_size_limit paramater, but by a separate parameter
-called mailbox_size_limit (default: 20MBytes).
+New mailbox size limit for local delivery (default: 50MBytes). This
+limit affects all file write access by the local delivery agent or
+by a process run by the local delivery agent. The purpose of this
+parameter is to act as a safety for run-away software. It cannot
+be a substitute for a file quota management system.
 
 The default RBL (real-time blackhole lists) domain examples have
 been updated from *.vix.com to *.mail-abuse.org.
@@ -27,7 +40,7 @@ agent can deliver mail for any number of domains.  See the file
 VIRTUAL_README for detailed examples. This code is still new. Once
 it stops changing it will become part of the non-beta release.
 
-Many "valid_hostname" warnings were eliminated. The complaints that
+Many "valid_hostname" warnings were eliminated. The warnings that
 were not eliminated were replaced by something more informative.
 
 SASL support (RFC 2554) for the LMTP delivery agent. This is required
