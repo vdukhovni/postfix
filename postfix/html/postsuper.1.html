@@ -84,75 +84,76 @@ POSTSUPER(1)                                         POSTSUPER(1)
 
               Note: while mail is "on hold" it  will  not  expire
               when  its  time  in  the  queue  exceeds  the <b>maxi-</b>
-              <b>mal_queue_lifetime</b> setting. It becomes  subject  to
-              expiration after it is released from "hold".
+              <b>mal_queue_lifetime</b>  or  <b>bounce_queue_lifetime</b>  set-
+              ting.  It becomes subject to expiration after it is
+              released from "hold".
 
        <b>-H</b> <i>queue</i><b>_</b><i>id</i>
               Release mail that was put "on hold".  Move one mes-
-              sage with the named queue ID from  the  named  mail
+              sage  with  the  named queue ID from the named mail
               queue(s) (default: <b>hold</b>) to the <b>deferred</b> queue.  If
-              a <i>queue</i><b>_</b><i>id</i> of <b>-</b> is  specified,  the  program  reads
+              a  <i>queue</i><b>_</b><i>id</i>  of  <b>-</b>  is specified, the program reads
               queue IDs from standard input.
 
-              Specify  <b>-H  ALL</b>  to  release  all mail that is "on
-              hold".  As a safety measure, the word <b>ALL</b>  must  be
+              Specify <b>-H ALL</b> to release  all  mail  that  is  "on
+              hold".   As  a safety measure, the word <b>ALL</b> must be
               specified in upper case.
 
-       <b>-p</b>     Purge  old temporary files that are left over after
+       <b>-p</b>     Purge old temporary files that are left over  after
               system or software crashes.
 
        <b>-r</b> <i>queue</i><b>_</b><i>id</i>
-              Requeue the message with the named  queue  ID  from
-              the  named  mail queue(s) (default: <b>hold</b>, <b>incoming</b>,
-              <b>active</b> and <b>deferred</b>).   To  requeue  multiple  mes-
-              sages,  specify  multiple  <b>-r</b> command-line options.
+              Requeue  the  message  with the named queue ID from
+              the named mail queue(s) (default:  <b>hold</b>,  <b>incoming</b>,
+              <b>active</b>  and  <b>deferred</b>).   To  requeue multiple mes-
+              sages, specify multiple  <b>-r</b>  command-line  options.
               Alternatively, if a <i>queue</i><b>_</b><i>id</i> of <b>-</b> is specified, the
               program reads queue IDs from standard input.
 
               Specify <b>-r ALL</b> to requeue all messages. As a safety
-              measure, the word <b>ALL</b> must be  specified  in  upper
+              measure,  the  word  <b>ALL</b> must be specified in upper
               case.
 
-              A  requeued message is moved to the <b>maildrop</b> queue,
-              from where it is copied by the pickup daemon  to  a
-              new  file whose name is guaranteed to match the new
+              A requeued message is moved to the <b>maildrop</b>  queue,
+              from  where  it is copied by the pickup daemon to a
+              new file whose name is guaranteed to match the  new
               queue file inode number. The new queue file is sub-
-              jected  again to mail address rewriting and substi-
+              jected again to mail address rewriting and  substi-
               tution. This is useful when rewriting rules or vir-
               tual mappings have changed.
 
-              Postfix  queue  IDs  are  reused.   There is a very
+              Postfix queue IDs are  reused.   There  is  a  very
               small possibility that <b>postsuper</b> requeues the wrong
-              message  file when it is executed while the Postfix
+              message file when it is executed while the  Postfix
               mail system is running, but no harm should be done.
 
        <b>-s</b>     Structure check and structure repair.  It is highly
-              recommended to perform this operation  once  before
+              recommended  to  perform this operation once before
               Postfix startup.
 
-              <b>o</b>      Rename  files  whose name does not match the
+              <b>o</b>      Rename files whose name does not  match  the
                      message file inode number. This operation is
-                     necessary  after restoring a mail queue from
+                     necessary after restoring a mail queue  from
                      a different machine, or from backup media.
 
               <b>o</b>      Move queue files that are in the wrong place
                      in the file system hierarchy and remove sub-
                      directories that are no longer needed.  File
-                     position  rearrangements are necessary after
+                     position rearrangements are necessary  after
                      a  change  in  the  <b>hash_queue_names</b>  and/or
                      <b>hash_queue_depth</b> configuration parameters.
 
        <b>-v</b>     Enable verbose logging for debugging purposes. Mul-
-              tiple <b>-v</b> options  make  the  software  increasingly
+              tiple  <b>-v</b>  options  make  the software increasingly
               verbose.
 
 <b>DIAGNOSTICS</b>
-       Problems  are reported to the standard error stream and to
+       Problems are reported to the standard error stream and  to
        <b>syslogd</b>.
 
-       <b>postsuper</b> reports the number of messages deleted with  <b>-d</b>,
+       <b>postsuper</b>  reports the number of messages deleted with <b>-d</b>,
        the number of messages requeued with <b>-r</b>, and the number of
-       messages whose queue file name  was  fixed  with  <b>-s</b>.  The
+       messages  whose  queue  file  name  was fixed with <b>-s</b>. The
        report is written to the standard error stream and to <b>sys-</b>
        <b>logd</b>.
 
@@ -161,22 +162,22 @@ POSTSUPER(1)                                         POSTSUPER(1)
               Directory with the <b>main.cf</b> file.
 
 <b>BUGS</b>
-       Mail that is not sanitized by Postfix (i.e.  mail  in  the
+       Mail  that  is  not sanitized by Postfix (i.e. mail in the
        <b>maildrop</b> queue) cannot be placed "on hold".
 
 <b>CONFIGURATION PARAMETERS</b>
-       See  the  Postfix  <b>main.cf</b> file for syntax details and for
+       See the Postfix <b>main.cf</b> file for syntax  details  and  for
        default values.
 
        <b>hash_queue_depth</b>
               Number of subdirectory levels for hashed queues.
 
        <b>hash_queue_names</b>
-              The names of queues that are organized into  multi-
+              The  names of queues that are organized into multi-
               ple levels of subdirectories.
 
        <b>queue_directory</b>
-              Top-level  directory  of the Postfix queue. This is
+              Top-level directory of the Postfix queue.  This  is
               also the root directory of Postfix daemons that run
               chrooted.
 
@@ -185,7 +186,7 @@ POSTSUPER(1)                                         POSTSUPER(1)
        <a href="postqueue.1.html">postqueue(1)</a> unprivileged queue operations
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>

@@ -71,9 +71,11 @@
 /*	List of commands that are treated as NOOP (no operation) commands,
 /*	without any parameter syntax checking and without any state change.
 /*	This list overrides built-in command definitions.
-/* .SH "Content inspection controls"
-/*	Optionally, Postfix can be configured to send new mail to
-/*	external content filter software AFTER the mail is queued.
+/* .SH "Content inspection after mail is queued"
+/* .ad
+/* .fi
+/*	Postfix can be configured to send new mail to an external
+/*	content filter AFTER the mail is queued.
 /* .IP \fBcontent_filter\fR
 /*	The name of a mail delivery transport that filters mail and that
 /*	either bounces mail or re-injects the result back into Postfix.
@@ -96,22 +98,20 @@
 /*	Disable header/body_checks. This is typically specified with the
 /*	SMTP server \fBafter\fR an external content filter.
 /* .RE
-/* .SH "Pass-through proxy"
+/* .SH "Content inspection before mail is queued"
 /* .ad
 /* .fi
-/* .ad
-/*	Optionally, the Postfix SMTP server can be configured to
-/*	forward all mail to a proxy server, for example a real-time
-/*	content filter, BEFORE mail is queued.
+/*	The Postfix SMTP server can be configured to forward all mail
+/*	to a real-time SMTP-based content filter BEFORE mail is queued.
 /* .IP \fBsmtpd_proxy_filter\fR
-/*	The \fIhost:port\fR of the SMTP proxy server. The \fIhost\fR
-/*	or \fIhost:\fR portion is optional.
+/*	The \fIhost:port\fR of the real-time SMTP-based content filter.
+/*	The \fIhost\fR or \fIhost:\fR portion is optional.
 /* .IP \fBsmtpd_proxy_timeout\fR
 /*	Timeout for connecting to, sending to and receiving from
-/*	the SMTP proxy server.
+/*	the real-time SMTP-based content filter.
 /* .IP \fBsmtpd_proxy_ehlo\fR
 /*	The hostname to use when sending an EHLO command to the
-/*	SMTP proxy server.
+/*	real-time SMTP-based content filter.
 /* .SH "Authentication controls"
 /* .IP \fBsmtpd_sasl_auth_enable\fR
 /*	Enable per-session authentication as per RFC 2554 (SASL).
@@ -966,12 +966,14 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
      * Report trouble. Log a warning only if we are going to sleep+reject so
      * that attackers can't flood our logfiles.
      */
-    if ((arg->strval[0] == 0 && !allow_empty_addr)
-	|| (strict_rfc821 && arg->strval[0] == '@')) {
-	msg_warn("Illegal address syntax from %s in %s command: %s",
-		 state->namaddr, state->where, STR(arg->vstrval));
-	err = "501 Bad address syntax";
-    }
+    if (err == 0)
+	if ((arg->strval[0] == 0 && !allow_empty_addr)
+	    || (strict_rfc821 && arg->strval[0] == '@')
+	    || smtpd_check_addr(STR(arg->vstrval)) != 0) {
+	    msg_warn("Illegal address syntax from %s in %s command: %s",
+		     state->namaddr, state->where, STR(arg->vstrval));
+	    err = "501 Bad address syntax";
+	}
 
     /*
      * Cleanup.
@@ -1243,6 +1245,12 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     } else if (state->cleanup == 0) {
 	mail_open_stream(state);
     }
+
+    /*
+     * Proxy the recipient. OK, so we lied. If the real-time proxy rejects
+     * the recipient then we can have a proxy connection without having
+     * accepted a recipient.
+     */
     if (state->proxy && smtpd_proxy_cmd(state, SMTPD_PROX_WANT_OK,
 					"%s", STR(state->buffer)) != 0) {
 	smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
@@ -1343,9 +1351,6 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      * Terminate the message envelope segment. Start the message content
      * segment, and prepend our own Received: header. If there is only one
      * recipient, list the recipient address.
-     * 
-     * Suppress our own Received: header in the unlikely case that we are an
-     * intermediate proxy.
      */
     if (state->cleanup) {
 	if (state->saved_filter)
@@ -1356,6 +1361,11 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	    rec_fprintf(state->cleanup, REC_TYPE_FLGS, "%d", state->saved_flags);
 	rec_fputs(state->cleanup, REC_TYPE_MESG, "");
     }
+
+    /*
+     * Suppress our own Received: header in the unlikely case that we are an
+     * intermediate proxy.
+     */
     if (!state->proxy || state->xforward.flags == 0) {
 	out_fprintf(out_stream, REC_TYPE_NORM,
 		    "Received: from %s (%s [%s])",
@@ -1389,7 +1399,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 
     /*
      * Copy the message content. If the cleanup process has a problem, keep
-     * reading until the remote stops sending, then complain. Read typed
+     * reading until the remote stops sending, then complain. Produce typed
      * records from the SMTP stream so we can handle data that spans buffers.
      * 
      * XXX Force an empty record when the queue file content begins with

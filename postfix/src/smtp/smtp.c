@@ -419,8 +419,8 @@ static void smtp_service(VSTREAM *client_stream, char *unused_service, char **ar
 static void pre_init(char *unused_name, char **unused_argv)
 {
     static NAME_MASK lookup_masks[] = {
-	SMTP_HOST_LOOKUP_DNS, SMTP_MASK_DNS,
-	SMTP_HOST_LOOKUP_NATIVE, SMTP_MASK_NATIVE,
+	SMTP_HOST_LOOKUP_DNS, SMTP_HOST_FLAG_DNS,
+	SMTP_HOST_LOOKUP_NATIVE, SMTP_HOST_FLAG_NATIVE,
 	0,
     };
 
@@ -433,7 +433,7 @@ static void pre_init(char *unused_name, char **unused_argv)
      * Select hostname lookup mechanisms.
      */
     if (var_disable_dns)
-	smtp_host_lookup_mask = SMTP_MASK_NATIVE;
+	smtp_host_lookup_mask = SMTP_HOST_FLAG_NATIVE;
     else
 	smtp_host_lookup_mask = name_mask(VAR_SMTP_HOST_LOOKUP, lookup_masks,
 					  var_smtp_host_lookup);

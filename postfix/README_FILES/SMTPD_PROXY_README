@@ -122,7 +122,7 @@ for testing, of course.
     smtp      inet  n       -       n       -       -       smtpd
         -o smtpd_proxy_filter=26
     :26       inet  n       -       n       -       -       smtpd
-	-o smtpd_authorized_xclient_hosts=127.0.0.0/8
+	-o smtpd_authorized_xforward_hosts=127.0.0.0/8
 	-o smtpd_client_restrictions=
 	-o smtpd_helo_restrictions=
 	-o smtpd_sender_restrictions=
@@ -135,7 +135,7 @@ Note: do not specify spaces around the "=" or "," characters.
 The ":26" causes Postfix to listen on the localhost address only.
 DO NOT expose the secondary SMTP server to the Internet :-)
 
-The smtpd_authorized_xclient_hosts parameter allows the before
+The smtpd_authorized_xforward_hosts parameter allows the before
 filter SMTP server to forward remote SMTP client information to
 the after-filter SMTP server, so that the after-filter Postfix
 daemons log the remote SMTP client information instead of logging

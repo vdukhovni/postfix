@@ -1,4 +1,4 @@
-<html> <head> </head> <body> <pre>
+<html> <body> <pre>
 QMGR(8)                                                   QMGR(8)
 
 <b>NAME</b>
@@ -105,25 +105,25 @@ QMGR(8)                                                   QMGR(8)
        actions  (the message is followed by the symbolic constant
        used internally by the software):
 
-       <b>D (QMGR</b><i>_</i><b>REQ</b><i>_</i><b>SCAN</b><i>_</i><b>DEFERRED)</b>
+       <b>D (QMGR_REQ_SCAN_DEFERRED)</b>
               Start a deferred queue scan.  If a  deferred  queue
               scan  is  already  in  progress,  that scan will be
               restarted as soon as it finishes.
 
-       <b>I (QMGR</b><i>_</i><b>REQ</b><i>_</i><b>SCAN</b><i>_</i><b>INCOMING)</b>
+       <b>I (QMGR_REQ_SCAN_INCOMING)</b>
               Start an incoming queue scan. If an incoming  queue
               scan  is  already  in  progress,  that scan will be
               restarted as soon as it finishes.
 
-       <b>A (QMGR</b><i>_</i><b>REQ</b><i>_</i><b>SCAN</b><i>_</i><b>ALL)</b>
+       <b>A (QMGR_REQ_SCAN_ALL)</b>
               Ignore deferred queue file time stamps. The request
               affects the next deferred queue scan.
 
-       <b>F (QMGR</b><i>_</i><b>REQ</b><i>_</i><b>FLUSH</b><i>_</i><b>DEAD)</b>
+       <b>F (QMGR_REQ_FLUSH_DEAD)</b>
               Purge  all  information  about  dead transports and
               destinations.
 
-       <b>W (TRIGGER</b><i>_</i><b>REQ</b><i>_</i><b>WAKEUP)</b>
+       <b>W (TRIGGER_REQ_WAKEUP)</b>
               Wakeup call, This is used by the master  server  to
               instantiate  servers  that  should not go away for-
               ever. The action is  to  start  an  incoming  queue
@@ -152,7 +152,7 @@ QMGR(8)                                                   QMGR(8)
        Corrupted message files are saved to the <b>corrupt</b> queue for
        further inspection.
 
-       Depending  on the setting of the <b>notify</b><i>_</i><b>classes</b> parameter,
+       Depending  on the setting of the <b>notify_classes</b> parameter,
        the postmaster is notified of bounces and of  other  trou-
        ble.
 
@@ -169,30 +169,30 @@ QMGR(8)                                                   QMGR(8)
        command after a configuration change.
 
 <b>Miscellaneous</b>
-       <b>allow</b><i>_</i><b>min</b><i>_</i><b>user</b>
+       <b>allow_min_user</b>
               Do  not  bounce recipient addresses that begin with
               '-'.
 
-       <b>queue</b><i>_</i><b>directory</b>
+       <b>queue_directory</b>
               Top-level directory of the Postfix queue.
 
 <b>Active queue controls</b>
-       <b>qmgr</b><i>_</i><b>clog</b><i>_</i><b>warn</b><i>_</i><b>time</b>
+       <b>qmgr_clog_warn_time</b>
               Minimal delay between warnings that a specific des-
               tination is clogging up the active queue. Specify 0
               to disable.
 
-       <b>qmgr</b><i>_</i><b>message</b><i>_</i><b>active</b><i>_</i><b>limit</b>
+       <b>qmgr_message_active_limit</b>
               Limit the number of messages in the active queue.
 
-       <b>qmgr</b><i>_</i><b>message</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
+       <b>qmgr_message_recipient_limit</b>
               Limit the number of in-memory recipients.
 
               This parameter also limits the size of  the  short-
               term, in-memory destination cache.
 
 <b>Timing controls</b>
-       <b>minimal</b><i>_</i><b>backoff</b><i>_</i><b>time</b>
+       <b>minimal_backoff_time</b>
               Minimal  time  in seconds between delivery attempts
               of a deferred message.
 
@@ -200,62 +200,66 @@ QMGR(8)                                                   QMGR(8)
               destination  is  kept  in the short-term, in-memory
               destination status cache.
 
-       <b>maximal</b><i>_</i><b>backoff</b><i>_</i><b>time</b>
+       <b>maximal_backoff_time</b>
               Maximal time in seconds between  delivery  attempts
               of a deferred message.
 
-       <b>maximal</b><i>_</i><b>queue</b><i>_</i><b>lifetime</b>
-              Maximal  time in days a message is queued before it
-              is sent back as undeliverable.
+       <b>maximal_queue_lifetime</b>
+              Maximal  time  (default: in days) a regular message
+              is queued before it is considered undeliverable.
 
-       <b>queue</b><i>_</i><b>run</b><i>_</i><b>delay</b>
+       <b>bounce_queue_lifetime</b>
+              Maximal time (default: in days) a bounce message is
+              queued before it is considered undeliverable.
+
+       <b>queue_run_delay</b>
               Time in seconds between deferred queue scans. Queue
               scans do not overlap.
 
-       <b>transport</b><i>_</i><b>retry</b><i>_</i><b>time</b>
-              Time  in seconds between attempts to contact a bro-
+       <b>transport_retry_time</b>
+              Time in seconds between attempts to contact a  bro-
               ken delivery transport.
 
 <b>Concurrency controls</b>
-       In the text below, <i>transport</i> is the first field in a  <b>mas-</b>
+       In  the text below, <i>transport</i> is the first field in a <b>mas-</b>
        <b>ter.cf</b> entry.
 
-       <b>qmgr</b><i>_</i><b>fudge</b><i>_</i><b>factor</b> (valid range: 10..100)
-              The  percentage  of  delivery resources that a busy
-              mail system will use up for  delivery  of  a  large
-              mailing  list  message.  With 100%, delivery of one
-              message does not begin before the previous  message
-              has  been  delivered.  This results in good perfor-
-              mance for large mailing lists, but results in  poor
-              response  time for one-to-one mail.  With less than
-              100%, response time for one-to-one  mail  improves,
-              but  large  mailing  list delivery performance suf-
+       <b>qmgr_fudge_factor</b> (valid range: 10..100)
+              The percentage of delivery resources  that  a  busy
+              mail  system  will  use  up for delivery of a large
+              mailing list message.  With 100%, delivery  of  one
+              message  does not begin before the previous message
+              has been delivered. This results  in  good  perfor-
+              mance  for large mailing lists, but results in poor
+              response time for one-to-one mail.  With less  than
+              100%,  response  time for one-to-one mail improves,
+              but large mailing list  delivery  performance  suf-
               fers. In the worst case, recipients near the begin-
-              ning  of  a  large list receive a burst of messages
-              immediately, while recipients near the end of  that
-              list  receive  that  same burst of messages a whole
+              ning of a large list receive a  burst  of  messages
+              immediately,  while recipients near the end of that
+              list receive that same burst of  messages  a  whole
               day later.
 
-       <b>initial</b><i>_</i><b>destination</b><i>_</i><b>concurrency</b>
-              Initial per-destination concurrency level for  par-
+       <b>initial_destination_concurrency</b>
+              Initial  per-destination concurrency level for par-
               allel delivery to the same destination.
 
-       <b>default</b><i>_</i><b>destination</b><i>_</i><b>concurrency</b><i>_</i><b>limit</b>
-              Default  limit on the number of parallel deliveries
+       <b>default_destination_concurrency_limit</b>
+              Default limit on the number of parallel  deliveries
               to the same destination.
 
-       <i>transport_</i><b>destination</b><i>_</i><b>concurrency</b><i>_</i><b>limit</b>
-              Limit on the number of parallel deliveries  to  the
-              same  destination,  for delivery via the named mes-
+       <i>transport</i><b>_destination_concurrency_limit</b>
+              Limit  on  the number of parallel deliveries to the
+              same destination, for delivery via the  named  mes-
               sage <i>transport</i>.
 
 <b>Recipient controls</b>
-       <b>default</b><i>_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
-              Default limit on the number of recipients per  mes-
+       <b>default_destination_recipient_limit</b>
+              Default  limit on the number of recipients per mes-
               sage transfer.
 
-       <i>transport_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
-              Limit  on  the  number  of  recipients  per message
+       <i>transport</i><b>_destination_recipient_limit</b>
+              Limit on  the  number  of  recipients  per  message
               transfer, for the named message <i>transport</i>.
 
 <b>SEE ALSO</b>
@@ -264,7 +268,7 @@ QMGR(8)                                                   QMGR(8)
        <a href="trivial-rewrite.8.html">trivial-rewrite(8)</a>, address routing
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

@@ -89,8 +89,8 @@ case.
 .sp
 Note: while mail is "on hold" it will not expire when its
 time in the queue exceeds the \fBmaximal_queue_lifetime\fR
-setting. It becomes subject to expiration after it is
-released from "hold".
+or \fBbounce_queue_lifetime\fR setting. It becomes subject to
+expiration after it is released from "hold".
 .IP "\fB-H \fIqueue_id\fR"
 Release mail that was put "on hold".
 Move one message with the named queue ID from the named

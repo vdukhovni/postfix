@@ -9,8 +9,8 @@
 /*	int	smtp_connect(state)
 /*	SMTP_STATE *state;
 /* DESCRIPTION
-/*	This module implements SMTP connection management and mail
-/*	delivery.
+/*	This module implements SMTP connection management and controls
+/*	mail delivery.
 /*
 /*	smtp_connect() attempts to establish an SMTP session with a host
 /*	that represents the destination domain, or with an optional fallback
@@ -62,7 +62,7 @@
 #endif
 
 #ifndef INADDR_NONE
-#define INADDR_NONE 0xffffff
+#define INADDR_NONE 0xffffffff
 #endif
 
 /* Utility library. */
@@ -111,14 +111,14 @@ static SMTP_SESSION *smtp_connect_addr(DNS_RR *addr, unsigned port,
     int     ch;
     unsigned long inaddr;
 
-    smtp_errno = SMTP_NONE;			/* Paranoia */
+    smtp_errno = SMTP_ERR_NONE;			/* Paranoia */
 
     /*
      * Sanity checks.
      */
     if (addr->data_len > sizeof(sin.sin_addr)) {
 	msg_warn("%s: skip address with length %d", myname, addr->data_len);
-	smtp_errno = SMTP_RETRY;
+	smtp_errno = SMTP_ERR_RETRY;
 	return (0);
     }
 
@@ -184,7 +184,7 @@ static SMTP_SESSION *smtp_connect_addr(DNS_RR *addr, unsigned port,
     if (conn_stat < 0) {
 	vstring_sprintf(why, "connect to %s[%s]: %m",
 			addr->name, inet_ntoa(sin.sin_addr));
-	smtp_errno = SMTP_RETRY;
+	smtp_errno = SMTP_ERR_RETRY;
 	close(sock);
 	return (0);
     }
@@ -195,7 +195,7 @@ static SMTP_SESSION *smtp_connect_addr(DNS_RR *addr, unsigned port,
     if (read_wait(sock, var_smtp_helo_tmout) < 0) {
 	vstring_sprintf(why, "connect to %s[%s]: read timeout",
 			addr->name, inet_ntoa(sin.sin_addr));
-	smtp_errno = SMTP_RETRY;
+	smtp_errno = SMTP_ERR_RETRY;
 	close(sock);
 	return (0);
     }
@@ -207,7 +207,7 @@ static SMTP_SESSION *smtp_connect_addr(DNS_RR *addr, unsigned port,
     if ((ch = VSTREAM_GETC(stream)) == VSTREAM_EOF) {
 	vstring_sprintf(why, "connect to %s[%s]: server dropped connection without sending the initial SMTP greeting",
 			addr->name, inet_ntoa(sin.sin_addr));
-	smtp_errno = SMTP_RETRY;
+	smtp_errno = SMTP_ERR_RETRY;
 	vstream_fclose(stream);
 	return (0);
     }
@@ -219,7 +219,7 @@ static SMTP_SESSION *smtp_connect_addr(DNS_RR *addr, unsigned port,
     if (ch == '4' && var_smtp_skip_4xx_greeting) {
 	vstring_sprintf(why, "connect to %s[%s]: server refused mail service",
 			addr->name, inet_ntoa(sin.sin_addr));
-	smtp_errno = SMTP_RETRY;
+	smtp_errno = SMTP_ERR_RETRY;
 	vstream_fclose(stream);
 	return (0);
     }
@@ -230,7 +230,7 @@ static SMTP_SESSION *smtp_connect_addr(DNS_RR *addr, unsigned port,
     if (ch == '5' && var_smtp_skip_5xx_greeting) {
 	vstring_sprintf(why, "connect to %s[%s]: server refused mail service",
 			addr->name, inet_ntoa(sin.sin_addr));
-	smtp_errno = SMTP_RETRY;
+	smtp_errno = SMTP_ERR_RETRY;
 	vstream_fclose(stream);
 	return (0);
     }
@@ -290,6 +290,7 @@ int     smtp_connect(SMTP_STATE *state)
     DNS_RR *next;
     int     addr_count;
     int     sess_count;
+    int     misc_flags = SMTP_MISC_FLAG_DEFAULT;
 
     /*
      * First try to deliver to the indicated destination, then try to deliver
@@ -336,10 +337,14 @@ int     smtp_connect(SMTP_STATE *state)
 	 */
 	if (msg_verbose)
 	    msg_info("connecting to %s port %d", host, ntohs(port));
+	if (ntohs(port) != 25)
+	    misc_flags &= ~SMTP_MISC_FLAG_LOOP_DETECT;
+	else
+	    misc_flags |= SMTP_MISC_FLAG_LOOP_DETECT;
 	if (var_disable_dns || *dest == '[') {
-	    addr_list = smtp_host_addr(host, why);
+	    addr_list = smtp_host_addr(host, misc_flags, why);
 	} else {
-	    addr_list = smtp_domain_addr(host, why);
+	    addr_list = smtp_domain_addr(host, misc_flags, why);
 	}
 	myfree(dest_buf);
 
@@ -347,20 +352,18 @@ int     smtp_connect(SMTP_STATE *state)
 	 * Don't try any backup host if mail loops to myself. That would just
 	 * make the problem worse.
 	 */
-	if (addr_list == 0 && smtp_errno == SMTP_LOOP)
+	if (addr_list == 0 && smtp_errno == SMTP_ERR_LOOP)
 	    break;
 
 	/*
-	 * Connect to an SMTP server. XXX Limit the number of addresses that
-	 * we're willing to try for a non-fallback destination.
+	 * Connect to an SMTP server.
 	 * 
 	 * At the start of an SMTP session, all recipients are unmarked. In the
 	 * course of an SMTP session, recipients are marked as KEEP (deliver
-	 * to backup mail server) or DROP (remove from recipient list). The
-	 * marking policy is configurable with the smtp_backup_on_soft_error
-	 * parameter. At the end of an SMTP session, weed out the recipient
-	 * list. Unmark any left-over recipients and try to deliver them to a
-	 * backup mail server.
+	 * to alternate mail server) or DROP (remove from recipient list). At
+	 * the end of an SMTP session, weed out the recipient list. Unmark
+	 * any left-over recipients and try to deliver them to a backup mail
+	 * server.
 	 */
 	sess_count = addr_count = 0;
 	for (addr = addr_list; SMTP_RCPT_LEFT(state) > 0 && addr; addr = next) {
@@ -373,7 +376,7 @@ int     smtp_connect(SMTP_STATE *state)
 		state->final_server = (cpp[1] == 0 && next == 0);
 		state->session->best = (addr->pref == addr_list->pref);
 		debug_peer_check(state->session->host, state->session->addr);
-		if (smtp_helo(state) == 0)
+		if (smtp_helo(state, misc_flags) == 0)
 		    smtp_xfer(state);
 		if (state->history != 0
 		    && (state->error_mask & name_mask(VAR_NOTIFY_CLASSES,
@@ -404,8 +407,8 @@ int     smtp_connect(SMTP_STATE *state)
 	default:
 	    msg_panic("smtp_connect: bad error indication %d", smtp_errno);
 
-	case SMTP_LOOP:
-	case SMTP_FAIL:
+	case SMTP_ERR_LOOP:
+	case SMTP_ERR_FAIL:
 
 	    /*
 	     * The fall-back destination did not resolve as expected, or it
@@ -413,7 +416,7 @@ int     smtp_connect(SMTP_STATE *state)
 	     */
 	    if (sites->argc > 1 && cpp > sites->argv) {
 		msg_warn("%s configuration problem", VAR_FALLBACK_RELAY);
-		smtp_errno = SMTP_RETRY;
+		smtp_errno = SMTP_ERR_RETRY;
 	    }
 
 	    /*
@@ -422,14 +425,14 @@ int     smtp_connect(SMTP_STATE *state)
 	     */
 	    else if (strcmp(sites->argv[0], var_relayhost) == 0) {
 		msg_warn("%s configuration problem", VAR_RELAYHOST);
-		smtp_errno = SMTP_RETRY;
+		smtp_errno = SMTP_ERR_RETRY;
 	    }
 
 	    /*
 	     * Mail for the next-hop destination loops back to myself. Pass
 	     * the mail to the best_mx_transport or bounce it.
 	     */
-	    else if (smtp_errno == SMTP_LOOP && *var_bestmx_transp) {
+	    else if (smtp_errno == SMTP_ERR_LOOP && *var_bestmx_transp) {
 		state->status = deliver_pass_all(MAIL_CLASS_PRIVATE,
 						 var_bestmx_transp,
 						 request);
@@ -438,14 +441,14 @@ int     smtp_connect(SMTP_STATE *state)
 	    }
 	    /* FALLTHROUGH */
 
-	case SMTP_RETRY:
+	case SMTP_ERR_RETRY:
 
 	    /*
 	     * We still need to bounce or defer some left-over recipients:
 	     * either mail loops or some backup mail server was unavailable.
 	     */
 	    state->final_server = 1;		/* XXX */
-	    smtp_site_fail(state, smtp_errno == SMTP_RETRY ? 450 : 550,
+	    smtp_site_fail(state, smtp_errno == SMTP_ERR_RETRY ? 450 : 550,
 			   "%s", vstring_str(why));
 
 	    /*

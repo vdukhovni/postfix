@@ -6,12 +6,14 @@
 /* SYNOPSIS
 /*	#include "smtp_addr.h"
 /*
-/*	DNS_RR *smtp_domain_addr(name, why)
+/*	DNS_RR *smtp_domain_addr(name, misc_flags, why)
 /*	char	*name;
+/*	int	misc_flags;
 /*	VSTRING	*why;
 /*
-/*	DNS_RR *smtp_host_addr(name, why)
+/*	DNS_RR *smtp_host_addr(name, misc_flags, why)
 /*	char	*name;
+/*	int	misc_flags;
 /*	VSTRING	*why;
 /* DESCRIPTION
 /*	This module implements Internet address lookups. By default,
@@ -173,7 +175,7 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
     /*
      * Use DNS lookup, but keep the option open to use native name service.
      */
-    if (smtp_host_lookup_mask & SMTP_MASK_DNS) {
+    if (smtp_host_lookup_mask & SMTP_HOST_FLAG_DNS) {
 	switch (dns_lookup(host, T_A, RES_DEFNAMES, &addr, (VSTRING *) 0, why)) {
 	case DNS_OK:
 	    for (rr = addr; rr; rr = rr->next)
@@ -181,15 +183,15 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
 	    addr_list = dns_rr_append(addr_list, addr);
 	    return (addr_list);
 	default:
-	    smtp_errno = SMTP_RETRY;
+	    smtp_errno = SMTP_ERR_RETRY;
 	    return (addr_list);
 	case DNS_FAIL:
-	    if (smtp_errno != SMTP_RETRY)
-		smtp_errno = SMTP_FAIL;
+	    if (smtp_errno != SMTP_ERR_RETRY)
+		smtp_errno = SMTP_ERR_FAIL;
 	    return (addr_list);
 	case DNS_NOTFOUND:
-	    if (smtp_errno != SMTP_RETRY)
-		smtp_errno = SMTP_FAIL;
+	    if (smtp_errno != SMTP_ERR_RETRY)
+		smtp_errno = SMTP_ERR_FAIL;
 	    /* maybe gethostbyname() will succeed */
 	    break;
 	}
@@ -198,18 +200,19 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
     /*
      * Use the native name service which also looks in /etc/hosts.
      */
-    if (smtp_host_lookup_mask & SMTP_MASK_NATIVE) {
+    if (smtp_host_lookup_mask & SMTP_HOST_FLAG_NATIVE) {
 	memset((char *) &fixed, 0, sizeof(fixed));
 	if ((hp = gethostbyname(host)) == 0) {
 	    vstring_sprintf(why, "%s: %s", host, HSTRERROR(h_errno));
-	    if (smtp_errno != SMTP_RETRY)
-		smtp_errno = (h_errno == TRY_AGAIN ? SMTP_RETRY : SMTP_FAIL);
+	    if (smtp_errno != SMTP_ERR_RETRY)
+		smtp_errno =
+		    (h_errno == TRY_AGAIN ? SMTP_ERR_RETRY : SMTP_ERR_FAIL);
 	} else if (hp->h_addrtype != AF_INET) {
 	    vstring_sprintf(why, "%s: host not found", host);
 	    msg_warn("%s: unknown address family %d for %s",
 		     myname, hp->h_addrtype, host);
-	    if (smtp_errno != SMTP_RETRY)
-		smtp_errno = SMTP_FAIL;
+	    if (smtp_errno != SMTP_ERR_RETRY)
+		smtp_errno = SMTP_ERR_FAIL;
 	} else {
 	    while (hp->h_addr_list[0]) {
 		addr_list = dns_rr_append(addr_list,
@@ -331,7 +334,7 @@ static int smtp_compare_pref(DNS_RR *a, DNS_RR *b)
 
 /* smtp_domain_addr - mail exchanger address lookup */
 
-DNS_RR *smtp_domain_addr(char *name, VSTRING *why)
+DNS_RR *smtp_domain_addr(char *name, int misc_flags, VSTRING *why)
 {
     DNS_RR *mx_names;
     DNS_RR *addr_list = 0;
@@ -339,7 +342,7 @@ DNS_RR *smtp_domain_addr(char *name, VSTRING *why)
     unsigned best_pref;
     unsigned best_found;
 
-    smtp_errno = SMTP_NONE;			/* Paranoia */
+    smtp_errno = SMTP_ERR_NONE;			/* Paranoia */
 
     /*
      * Preferences from DNS use 0..32767, fall-backs use 32768+.
@@ -396,14 +399,14 @@ DNS_RR *smtp_domain_addr(char *name, VSTRING *why)
      */
     switch (dns_lookup(name, T_MX, 0, &mx_names, (VSTRING *) 0, why)) {
     default:
-	smtp_errno = SMTP_RETRY;
+	smtp_errno = SMTP_ERR_RETRY;
 	if (var_ign_mx_lookup_err)
-	    addr_list = smtp_host_addr(name, why);
+	    addr_list = smtp_host_addr(name, misc_flags, why);
 	break;
     case DNS_FAIL:
-	smtp_errno = SMTP_FAIL;
+	smtp_errno = SMTP_ERR_FAIL;
 	if (var_ign_mx_lookup_err)
-	    addr_list = smtp_host_addr(name, why);
+	    addr_list = smtp_host_addr(name, misc_flags, why);
 	break;
     case DNS_OK:
 	mx_names = dns_rr_sort(mx_names, smtp_compare_pref);
@@ -412,24 +415,25 @@ DNS_RR *smtp_domain_addr(char *name, VSTRING *why)
 	dns_rr_free(mx_names);
 	if (addr_list == 0) {
 	    if (var_smtp_defer_mxaddr)
-		smtp_errno = SMTP_RETRY;
+		smtp_errno = SMTP_ERR_RETRY;
 	    msg_warn("no MX host for %s has a valid A record", name);
 	    break;
 	}
 	best_found = (addr_list ? addr_list->pref : IMPOSSIBLE_PREFERENCE);
 	if (msg_verbose)
 	    smtp_print_addr(name, addr_list);
-	if ((self = smtp_find_self(addr_list)) != 0) {
+	if ((misc_flags & SMTP_MISC_FLAG_LOOP_DETECT)
+	    && (self = smtp_find_self(addr_list)) != 0) {
 	    addr_list = smtp_truncate_self(addr_list, self->pref);
 	    if (addr_list == 0) {
 		if (best_pref != best_found) {
 		    vstring_sprintf(why, "unable to find primary relay for %s",
 				    name);
-		    smtp_errno = SMTP_RETRY;
+		    smtp_errno = SMTP_ERR_RETRY;
 		} else {
 		    vstring_sprintf(why, "mail for %s loops back to myself",
 				    name);
-		    smtp_errno = SMTP_LOOP;
+		    smtp_errno = SMTP_ERR_LOOP;
 		}
 	    }
 	}
@@ -439,7 +443,7 @@ DNS_RR *smtp_domain_addr(char *name, VSTRING *why)
 	}
 	break;
     case DNS_NOTFOUND:
-	addr_list = smtp_host_addr(name, why);
+	addr_list = smtp_host_addr(name, misc_flags, why);
 	break;
     }
 
@@ -451,11 +455,11 @@ DNS_RR *smtp_domain_addr(char *name, VSTRING *why)
 
 /* smtp_host_addr - direct host lookup */
 
-DNS_RR *smtp_host_addr(char *host, VSTRING *why)
+DNS_RR *smtp_host_addr(char *host, int misc_flags, VSTRING *why)
 {
     DNS_RR *addr_list;
 
-    smtp_errno = SMTP_NONE;			/* Paranoia */
+    smtp_errno = SMTP_ERR_NONE;			/* Paranoia */
 
     /*
      * If the host is specified by numerical address, just convert the
@@ -463,14 +467,14 @@ DNS_RR *smtp_host_addr(char *host, VSTRING *why)
      */
 #define PREF0	0
     addr_list = smtp_addr_one((DNS_RR *) 0, host, PREF0, why);
-#if 0
-    if (addr_list && smtp_find_self(addr_list) != 0) {
+    if (addr_list
+	&& (misc_flags & SMTP_MISC_FLAG_LOOP_DETECT)
+	&& smtp_find_self(addr_list) != 0) {
 	dns_rr_free(addr_list);
 	vstring_sprintf(why, "mail for %s loops back to myself", host);
-	smtp_errno = SMTP_LOOP;
+	smtp_errno = SMTP_ERR_LOOP;
 	return (0);
     }
-#endif
     if (addr_list && addr_list->next && var_smtp_rand_addr)
 	addr_list = dns_rr_shuffle(addr_list);
     if (msg_verbose)

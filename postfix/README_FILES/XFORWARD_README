@@ -12,11 +12,12 @@ remote client and/or message identifying information through the
 content filter to MTA2, so that the information could be logged as
 part of mail handling transactions.
 
-This extension is implemented as a separate command, so that it
-can be used to transmit client or message attributes incrementally.
-It is not implemented by passing additional parameters via the MAIL
+This extension is implemented as a separate command, and can be
+used to transmit client or message attributes incrementally.  It
+is not implemented by passing additional parameters via the MAIL
 FROM command, because doing so would require extending the MAIL
-FROM command length limit by another 600 or more characters.
+FROM command length limit by another 600 or more characters beyond
+the space needed by other extensions such as AUTH.
 
 Command syntax
 ==============

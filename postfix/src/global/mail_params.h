@@ -548,6 +548,10 @@ extern int var_max_backoff_time;
 #define DEF_MAX_QUEUE_TIME	"5d"
 extern int var_max_queue_time;
 
+#define VAR_DSN_QUEUE_TIME	"bounce_queue_lifetime"
+#define DEF_DSN_QUEUE_TIME	"$" VAR_MAX_QUEUE_TIME
+extern int var_dsn_queue_time;
+
 #define VAR_DELAY_WARN_TIME	"delay_warning_time"
 #define DEF_DELAY_WARN_TIME	"0h"
 extern int var_delay_warn_time;
@@ -1760,7 +1764,7 @@ extern int var_verify_pos_try;
 extern int var_verify_neg_exp;
 
 #define VAR_VERIFY_NEG_TRY		"address_verify_negative_refresh_time"
-#define DEF_VERIFY_NEG_TRY		"2h"
+#define DEF_VERIFY_NEG_TRY		"3h"
 extern int var_verify_neg_try;
 
 #define VAR_VERIFY_NEG_CACHE		"address_verify_negative_cache"

@@ -167,7 +167,7 @@ char   *xfer_request[SMTP_STATE_LAST] = {
 
 /* smtp_helo - perform initial handshake with SMTP server */
 
-int     smtp_helo(SMTP_STATE *state)
+int     smtp_helo(SMTP_STATE *state, int misc_flags)
 {
     SMTP_SESSION *session = state->session;
     DELIVER_REQUEST *request = state->request;
@@ -218,8 +218,9 @@ int     smtp_helo(SMTP_STATE *state)
     (void) mystrtok(&words, "- \t\n");
     for (n = 0; (word = mystrtok(&words, " \t\n")) != 0; n++) {
 	if (n == 0 && strcasecmp(word, var_myhostname) == 0) {
-	    msg_warn("host %s greeted me with my own hostname %s",
-		     session->namaddr, var_myhostname);
+	    if (misc_flags & SMTP_MISC_FLAG_LOOP_DETECT)
+		msg_warn("host %s greeted me with my own hostname %s",
+			 session->namaddr, var_myhostname);
 	} else if (strcasecmp(word, "ESMTP") == 0)
 	    state->features |= SMTP_FEATURE_ESMTP;
     }
@@ -283,11 +284,13 @@ int     smtp_helo(SMTP_STATE *state)
 		smtp_sasl_helo_auth(state, words);
 #endif
 	    else if (strcasecmp(word, var_myhostname) == 0) {
-		msg_warn("host %s replied to HELO/EHLO with my own hostname %s",
-			 session->namaddr, var_myhostname);
-		return (smtp_site_fail(state, session->best ? 550 : 450,
-				       "mail for %s loops back to myself",
-				       request->nexthop));
+		if (misc_flags & SMTP_MISC_FLAG_LOOP_DETECT) {
+		    msg_warn("host %s replied to HELO/EHLO with my own hostname %s",
+			     session->namaddr, var_myhostname);
+		    return (smtp_site_fail(state, session->best ? 550 : 450,
+					 "mail for %s loops back to myself",
+					   request->nexthop));
+		}
 	    }
 	}
     }

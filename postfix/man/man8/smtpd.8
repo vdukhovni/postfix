@@ -85,9 +85,11 @@ offered by an SMTP server.
 List of commands that are treated as NOOP (no operation) commands,
 without any parameter syntax checking and without any state change.
 This list overrides built-in command definitions.
-.SH "Content inspection controls"
-Optionally, Postfix can be configured to send new mail to
-external content filter software AFTER the mail is queued.
+.SH "Content inspection after mail is queued"
+.ad
+.fi
+Postfix can be configured to send new mail to an external
+content filter AFTER the mail is queued.
 .IP \fBcontent_filter\fR
 The name of a mail delivery transport that filters mail and that
 either bounces mail or re-injects the result back into Postfix.
@@ -110,22 +112,20 @@ content filter.
 Disable header/body_checks. This is typically specified with the
 SMTP server \fBafter\fR an external content filter.
 .RE
-.SH "Pass-through proxy"
+.SH "Content inspection before mail is queued"
 .ad
 .fi
-.ad
-Optionally, the Postfix SMTP server can be configured to
-forward all mail to a proxy server, for example a real-time
-content filter, BEFORE mail is queued.
+The Postfix SMTP server can be configured to forward all mail
+to a real-time SMTP-based content filter BEFORE mail is queued.
 .IP \fBsmtpd_proxy_filter\fR
-The \fIhost:port\fR of the SMTP proxy server. The \fIhost\fR
-or \fIhost:\fR portion is optional.
+The \fIhost:port\fR of the real-time SMTP-based content filter.
+The \fIhost\fR or \fIhost:\fR portion is optional.
 .IP \fBsmtpd_proxy_timeout\fR
 Timeout for connecting to, sending to and receiving from
-the SMTP proxy server.
+the real-time SMTP-based content filter.
 .IP \fBsmtpd_proxy_ehlo\fR
 The hostname to use when sending an EHLO command to the
-SMTP proxy server.
+real-time SMTP-based content filter.
 .SH "Authentication controls"
 .IP \fBsmtpd_sasl_auth_enable\fR
 Enable per-session authentication as per RFC 2554 (SASL).

@@ -36,7 +36,7 @@
 /* .IP \(bu
 /*	In the course of a delivery attempt each recipient is
 /*	marked either as DROP (remove from recipient list) or KEEP
-/*	(deliver to backup mail server). 
+/*	(deliver to alternate mail server). 
 /* .IP \(bu
 /*	After a delivery attempt any recipients marked DROP are deleted 
 /*	from the request, and the left-over recipients are unmarked.

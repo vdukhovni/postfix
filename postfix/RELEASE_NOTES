@@ -22,6 +22,17 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix snapshot 2.0.16-20031226
+==========================================================
+
+Postfix no longer allows mail addresses with bare numeric IP
+addresses (user@1.2.3.4).  The form user@[ipaddress] is still
+allowed.
+
+Bounce messages now have a separate queue life time.  This is
+controlled by the bounce_queue_lifetime parameter. The default is
+$maximal_queue_life_time.
+
 Incompatible changes with Postfix snapshot 2.0.16-20031223
 ==========================================================
 

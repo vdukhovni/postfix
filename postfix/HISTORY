@@ -8920,13 +8920,27 @@ Apologies for any names omitted.
 	Cleanup: eliminated binary hashes from anvil server. Anvil
 	client information is now stored on top of its VSTREAM.
 
+20031226
+
+	Feature: bounce_queue_lifetime parameter (default:
+	$maximal_queue_life_time) that bounds the time that
+	MAILER-DAEMON messages spend in the queue before they are
+	considered undeliverable.
+
+	Feature: disable "mail loops back to myself" protection
+	when SMTP mail is sent to a non-standard port. This makes
+	setting up content filters less painful.
+
+	Cleanup: disallow bare x.x.x.x numeric IP addresses in
+	email addresses. The form user@[x.x.x.x] is still allowed.
+
+	Cleanup: cleaned up the naming of internal symbols in the
+	SMTP client.
+
 Open problems:
 
 	Low: in the SMTP client, pass the session, request and
 	state structures as separate arguments.
-
-	Low: in the SMTP client, turn off "mail loops back to
-	myself" detection if a non-default TCP port is specified.
 
 	High: when virtual aliasing is turned off after content
 	filtering, local submissions may escape virtual aliasing.

@@ -193,8 +193,11 @@
 /*	Maximal time in seconds between delivery attempts
 /*	of a deferred message.
 /* .IP \fBmaximal_queue_lifetime\fR
-/*	Maximal time in days a message is queued
-/*	before it is sent back as undeliverable.
+/*	Maximal time (default: in days) a regular message is queued
+/*	before it is considered undeliverable.
+/* .IP \fBbounce_queue_lifetime\fR
+/*	Maximal time (default: in days) a bounce message is queued
+/*	before it is considered undeliverable.
 /* .IP \fBqueue_run_delay\fR
 /*	Time in seconds between deferred queue scans. Queue scans do
 /*	not overlap.
@@ -314,6 +317,7 @@ int     var_queue_run_delay;
 int     var_min_backoff_time;
 int     var_max_backoff_time;
 int     var_max_queue_time;
+int     var_dsn_queue_time;
 int     var_qmgr_active_limit;
 int     var_qmgr_rcpt_limit;
 int     var_qmgr_msg_rcpt_limit;
@@ -529,6 +533,7 @@ int     main(int argc, char **argv)
 	VAR_MIN_BACKOFF_TIME, DEF_MIN_BACKOFF_TIME, &var_min_backoff_time, 1, 0,
 	VAR_MAX_BACKOFF_TIME, DEF_MAX_BACKOFF_TIME, &var_max_backoff_time, 1, 0,
 	VAR_MAX_QUEUE_TIME, DEF_MAX_QUEUE_TIME, &var_max_queue_time, 0, 8640000,
+	VAR_DSN_QUEUE_TIME, DEF_DSN_QUEUE_TIME, &var_dsn_queue_time, 0, 8640000,
 	VAR_XPORT_RETRY_TIME, DEF_XPORT_RETRY_TIME, &var_transport_retry_time, 1, 0,
 	VAR_QMGR_CLOG_WARN_TIME, DEF_QMGR_CLOG_WARN_TIME, &var_qmgr_clog_warn_time, 0, 0,
 	0,

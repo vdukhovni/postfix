@@ -198,8 +198,11 @@ is kept in the short-term, in-memory destination status cache.
 Maximal time in seconds between delivery attempts
 of a deferred message.
 .IP \fBmaximal_queue_lifetime\fR
-Maximal time in days a message is queued
-before it is sent back as undeliverable.
+Maximal time (default: in days) a regular message is queued
+before it is considered undeliverable.
+.IP \fBbounce_queue_lifetime\fR
+Maximal time (default: in days) a bounce message is queued
+before it is considered undeliverable.
 .IP \fBqueue_run_delay\fR
 Time in seconds between deferred queue scans. Queue scans do
 not overlap.

@@ -9,6 +9,9 @@
 /*
 /*	void	smtpd_check_init()
 /*
+/*	int	smtpd_check_addr(address)
+/*	const char *address;
+/*
 /*	char	*smtpd_check_client(state)
 /*	SMTPD_STATE *state;
 /*
@@ -38,6 +41,9 @@
 /*
 /*	smtpd_check_init() initializes. This function should be called
 /*	once during the process life time.
+/*
+/*	smtpd_check_addr() sanity checks an email address and returns
+/*	non-zero in case of badness.
 /*
 /*	Each of the following routines scrutinizes the argument passed to
 /*	an SMTP command such as HELO, MAIL FROM, RCPT TO, or scrutinizes
@@ -3402,6 +3408,31 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
     state->recursion = saved_recursion;
 
     return (status);
+}
+
+/* smtpd_check_addr - address sanity check */
+
+int     smtpd_check_addr(const char *addr)
+{
+    const RESOLVE_REPLY *resolve_reply;
+    char   *myname = "smtpd_check_addr";
+    int     status;
+
+    if (msg_verbose)
+	msg_info("%s: addr=%s", myname, addr);
+
+    /*
+     * Catch syntax errors early on if we can, but be prepared to re-compute
+     * the result later when the cache fills up with lots of recipients, at
+     * which time errors can still happen.
+     */
+    if (addr == 0 || *addr == 0)
+	return (0);
+    resolve_reply = (const RESOLVE_REPLY *)
+	ctable_locate(smtpd_resolve_cache, addr);
+    if (resolve_reply->flags & RESOLVE_FLAG_ERROR)
+	return (-1);
+    return (0);
 }
 
 /* smtpd_check_client - validate client name or address */

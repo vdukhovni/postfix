@@ -357,7 +357,8 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
     tok822_internalize(nextrcpt, tree, TOK822_STR_DEFL);
     rcpt_domain = strrchr(STR(nextrcpt), '@') + 1;
     if (*rcpt_domain == '[' ? !valid_hostliteral(rcpt_domain, DONT_GRIPE) :
-	!valid_hostname(rcpt_domain, DONT_GRIPE))
+	(!valid_hostname(rcpt_domain, DONT_GRIPE)
+	 || valid_hostaddr(rcpt_domain, DONT_GRIPE)))
 	*flags |= RESOLVE_FLAG_ERROR;
     tok822_free_tree(tree);
     tree = 0;
@@ -412,7 +413,7 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
 #if 0
 		if (strcasecmp(rcpt_domain, var_myorigin) == 0)
 		    msg_warn("do not list $%s (%s) in %s",
-			     VAR_MYORIGIN, var_myorigin, VAR_VIRT_ALIAS_DOMS);
+			   VAR_MYORIGIN, var_myorigin, VAR_VIRT_ALIAS_DOMS);
 #endif
 	    }
 	    vstring_strcpy(channel, MAIL_SERVICE_ERROR);

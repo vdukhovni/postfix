@@ -46,6 +46,18 @@ maximal_backoff_time = 4000s
 #
 maximal_queue_lifetime = 5d
 
+# The bounce_queue_lifetime parameter specifies the maximal time
+# a bounce message is queued before it is considered undeliverable.
+# By default, this is the same as the queue life time for regular
+# mail.
+#
+# Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+# The default time unit is d (days).
+#
+# Specify 0 when mail delivery should be tried only once.
+#
+bounce_queue_lifetime = $maximal_queue_lifetime
+
 # The minimal_backoff_time parameter specifies the minimal time
 # between attempts to deliver a deferred message.  This parameter
 # also limits the time an unreachable destination is kept in the

@@ -166,15 +166,26 @@ void    resolve_clnt(const char *class, const char *addr, RESOLVE_REPLY *reply)
     /*
      * Peek at the cache.
      */
+#define IFSET(flag, text) ((reply->flags & (flag)) ? (text) : "")
+
     if (*addr && strcmp(addr, STR(last_addr)) == 0) {
 	vstring_strcpy(reply->transport, STR(last_reply.transport));
 	vstring_strcpy(reply->nexthop, STR(last_reply.nexthop));
 	vstring_strcpy(reply->recipient, STR(last_reply.recipient));
 	reply->flags = last_reply.flags;
 	if (msg_verbose)
-	    msg_info("%s: cached: `%s' -> t=`%s' h=`%s' r=`%s'",
+	    msg_info("%s: cached: `%s' -> transp=`%s' host=`%s' rcpt=`%s' flags=%s%s%s%s class=%s%s%s%s%s",
 		     myname, addr, STR(reply->transport),
-		     STR(reply->nexthop), STR(reply->recipient));
+		     STR(reply->nexthop), STR(reply->recipient),
+		     IFSET(RESOLVE_FLAG_FINAL, "final"),
+		     IFSET(RESOLVE_FLAG_ROUTED, "routed"),
+		     IFSET(RESOLVE_FLAG_ERROR, "error"),
+		     IFSET(RESOLVE_FLAG_FAIL, "fail"),
+		     IFSET(RESOLVE_CLASS_LOCAL, "local"),
+		     IFSET(RESOLVE_CLASS_ALIAS, "alias"),
+		     IFSET(RESOLVE_CLASS_VIRTUAL, "virtual"),
+		     IFSET(RESOLVE_CLASS_RELAY, "relay"),
+		     IFSET(RESOLVE_CLASS_DEFAULT, "default"));
 	return;
     }
 
@@ -208,9 +219,18 @@ void    resolve_clnt(const char *class, const char *addr, RESOLVE_REPLY *reply)
 			 var_rewrite_service);
 	} else {
 	    if (msg_verbose)
-		msg_info("%s: `%s' -> t=`%s' h=`%s' r=`%s'",
+		msg_info("%s: `%s' -> transp=`%s' host=`%s' rcpt=`%s' flags=%s%s%s%s class=%s%s%s%s%s",
 			 myname, addr, STR(reply->transport),
-			 STR(reply->nexthop), STR(reply->recipient));
+			 STR(reply->nexthop), STR(reply->recipient),
+			 IFSET(RESOLVE_FLAG_FINAL, "final"),
+			 IFSET(RESOLVE_FLAG_ROUTED, "routed"),
+			 IFSET(RESOLVE_FLAG_ERROR, "error"),
+			 IFSET(RESOLVE_FLAG_FAIL, "fail"),
+			 IFSET(RESOLVE_CLASS_LOCAL, "local"),
+			 IFSET(RESOLVE_CLASS_ALIAS, "alias"),
+			 IFSET(RESOLVE_CLASS_VIRTUAL, "virtual"),
+			 IFSET(RESOLVE_CLASS_RELAY, "relay"),
+			 IFSET(RESOLVE_CLASS_DEFAULT, "default"));
 	    if (STR(reply->transport)[0] == 0)
 		msg_warn("%s: null transport result for: <%s>", myname, addr);
 	    else if (STR(reply->recipient)[0] == 0 && *addr != 0)

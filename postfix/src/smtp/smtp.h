@@ -83,19 +83,26 @@ typedef struct SMTP_STATE {
 #define SMTP_FEATURE_XFORWARD_HELO	(1<<10)
 
  /*
+  * Misc flags.
+  */
+#define SMTP_MISC_FLAG_LOOP_DETECT	(1<<0)
+
+#define SMTP_MISC_FLAG_DEFAULT		SMTP_MISC_FLAG_LOOP_DETECT
+
+ /*
   * smtp.c
   */
 extern int smtp_errno;			/* XXX can we get rid of this? */
 
-#define SMTP_NONE	0		/* no error */
-#define SMTP_FAIL	1		/* permanent error */
-#define SMTP_RETRY	2		/* temporary error */
-#define SMTP_LOOP	3		/* MX loop */
+#define SMTP_ERR_NONE	0		/* no error */
+#define SMTP_ERR_FAIL	1		/* permanent error */
+#define SMTP_ERR_RETRY	2		/* temporary error */
+#define SMTP_ERR_LOOP	3		/* mailer loop */
 
 extern int smtp_host_lookup_mask;	/* host lookup methods to use */
 
-#define SMTP_MASK_DNS		(1<<0)
-#define SMTP_MASK_NATIVE	(1<<1)
+#define SMTP_HOST_FLAG_DNS	(1<<0)
+#define SMTP_HOST_FLAG_NATIVE	(1<<1)
 
  /*
   * smtp_session.c
@@ -119,7 +126,7 @@ extern int smtp_connect(SMTP_STATE *);
  /*
   * smtp_proto.c
   */
-extern int smtp_helo(SMTP_STATE *);
+extern int smtp_helo(SMTP_STATE *, int);
 extern int smtp_xfer(SMTP_STATE *);
 extern void smtp_quit(SMTP_STATE *);
 

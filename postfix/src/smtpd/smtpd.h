@@ -56,35 +56,39 @@ typedef struct {
 } SMTPD_XFORWARD_ATTR;
 
 typedef struct SMTPD_STATE {
-    int     err;
-    VSTREAM *client;
-    VSTRING *buffer;
-    time_t  time;
-    char   *name;
-    char   *addr;
-    char   *namaddr;
+    int     err;			/* cleanup server/queue file errors */
+    VSTREAM *client;			/* SMTP client handle */
+    VSTRING *buffer;			/* SMTP client buffer */
+    time_t  time;			/* start of MAIL FROM transaction */
+    char   *name;			/* client hostname */
+    char   *addr;			/* client host address string */
+    char   *namaddr;			/* combined name and address */
     int     peer_code;			/* 2=ok, 4=soft, 5=hard */
-    int     error_count;
-    int     error_mask;
-    int     notify_mask;
-    char   *helo_name;
-    char   *queue_id;
-    VSTREAM *cleanup;
-    MAIL_STREAM *dest;
-    int     rcpt_count;
-    char   *access_denied;
-    ARGV   *history;
-    char   *reason;
-    char   *sender;
+    int     error_count;		/* reset after DOT */
+    int     error_mask;			/* client errors */
+    int     notify_mask;		/* what to report to postmaster */
+    char   *helo_name;			/* client HELO/EHLO argument */
+    char   *queue_id;			/* from cleanup server/queue file */
+    VSTREAM *cleanup;			/* cleanup server/queue file handle */
+    MAIL_STREAM *dest;			/* another server/file handle */
+    int     rcpt_count;			/* number of accepted recipients */
+    char   *access_denied;		/* fixme */
+    ARGV   *history;			/* protocol transcript */
+    char   *reason;			/* cause of connection loss */
+    char   *sender;			/* sender address */
     char   *encoding;			/* owned by mail_cmd() */
     char   *verp_delims;		/* owned by mail_cmd() */
-    char   *recipient;
-    char   *etrn_name;
-    char   *protocol;
-    char   *where;
-    int     recursion;
-    off_t   msg_size;
-    int     junk_cmds;
+    char   *recipient;			/* recipient address */
+    char   *etrn_name;			/* client ETRN argument */
+    char   *protocol;			/* SMTP or ESMTP */
+    char   *where;			/* protocol stage */
+    int     recursion;			/* Kellerspeicherpegelanzeiger */
+    off_t   msg_size;			/* MAIL FROM message size */
+    int     junk_cmds;			/* counter */
+
+    /*
+     * SASL specific.
+     */
 #ifdef USE_SASL_AUTH
 #if SASL_VERSION_MAJOR >= 2
     const char *sasl_mechanism_list;
@@ -98,6 +102,10 @@ typedef struct SMTPD_STATE {
     VSTRING *sasl_encoded;
     VSTRING *sasl_decoded;
 #endif
+
+    /*
+     * Specific to smtpd access checks.
+     */
     int     rcptmap_checked;
     int     warn_if_reject;		/* force reject into warning */
     SMTPD_DEFER defer_if_reject;	/* force reject into deferral */
@@ -111,13 +119,17 @@ typedef struct SMTPD_STATE {
     int     saved_flags;		/* postponed hold/discard */
     VSTRING *expand_buf;		/* scratch space for $name expansion */
 
-    /* Pass-through proxy client.  */
+    /*
+     * Pass-through proxy client.
+     */
     VSTREAM *proxy;			/* proxy handle */
     VSTRING *proxy_buffer;		/* proxy query/reply buffer */
     char   *proxy_mail;			/* owned by mail_cmd() */
     int     proxy_xforward_features;	/* XFORWARD proxy state */
 
-    /* XFORWARD server state. */
+    /*
+     * XFORWARD server state.
+     */
     SMTPD_XFORWARD_ATTR xforward;	/* up-stream logging info */
 } SMTPD_STATE;
 
@@ -221,9 +233,9 @@ extern void smtpd_peer_reset(SMTPD_STATE *state);
 #define FORWARD_HELO(s)		FORWARD_CLIENT_ATTR((s), helo_name)
 #define FORWARD_IDENT(s)	FORWARD_IDENT_ATTR(s)
 
-extern void smtpd_xforward_init(SMTPD_STATE *state);
-extern void smtpd_xforward_preset(SMTPD_STATE *state);
-extern void smtpd_xforward_reset(SMTPD_STATE *state);
+extern void smtpd_xforward_init(SMTPD_STATE *);
+extern void smtpd_xforward_preset(SMTPD_STATE *);
+extern void smtpd_xforward_reset(SMTPD_STATE *);
 
  /*
   * Transparency: before mail is queued, do we check for unknown recipients,

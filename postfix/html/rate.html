@@ -307,6 +307,13 @@ immediately after the first unsuccessful delivery attempt.
 
 <p>
 
+<dt> <b>bounce_queue_lifetime</b> (default: 2 days) <dd> How
+long a bounce message stays in the queue before it is considered
+undeliverable. Specify 0 for mail that should be returned
+immediately after the first unsuccessful delivery attempt.
+
+<p>
+
 <dt> <b>minimal_backoff_time</b> (default: 1000 seconds) <dd> The
 minimal amount of time a message won't be looked at, and the minimal
 amount of time to stay away from a "dead" destination.

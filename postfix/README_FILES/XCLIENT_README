@@ -22,7 +22,7 @@ server's Received:  message header.
 style content filter applications, the filter can be simplified if
 it can delegate decisions concerning mail relay and other access
 control to the MTA. This is especially useful when the filter acts
-as a transparent proxy for SMTP commands. As in the first example,
+as a transparent proxy for SMTP commands. As in the other examples,
 this requires that the filter can override the MTA's idea of the
 SMTP client hostname, network address, and other information.
 
@@ -68,8 +68,8 @@ is not enclosed with [].
 
 The PROTO attribute specifies either SMTP or ESMTP.
 
-The HELO attribute specifies a HELO parameter value, or the value
-[UNAVAILABLE] when the information is unavailable.
+The HELO attribute specifies an SMTP HELO parameter value, or the
+value [UNAVAILABLE] when the information is unavailable.
 
 Note 1: syntactically valid NAME and HELO attributes can be up to
 255 characters long. The client must not send XCLIENT commands that
@@ -81,16 +81,15 @@ upper case, lower case or mixed case.
 Security
 ========
 
-The XCLIENT command changes audit trails and/or client access
+The XCLIENT command changes audit trails and/or SMTP client access
 permissions. Use of this command must be restricted to authorized
-clients.
-
-The XCLIENT should not override its own access control mechanism.
+SMTP clients. However, the XCLIENT command should not override its
+own access control mechanism.
 
 SMTP connection caching
 =======================
 
-SMTP connection caching makes it possible to deliver multiple
-messages within the same SMTP session. The XCLIENT attributes are
-persistent across an SMTP session, and need to be reset as appropriate
-in between deliveries.
+XCLIENT attributes persist until the end of an SMTP session.  If
+one session is used to deliver mail from different SMTP clients,
+the XCLIENT attributes need to be reset as appropriate in between
+deliveries.
