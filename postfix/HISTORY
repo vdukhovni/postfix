@@ -8937,6 +8937,11 @@ Apologies for any names omitted.
 	Cleanup: cleaned up the naming of internal symbols in the
 	SMTP client.
 
+20031231
+
+	Bugfix: stricter address syntax test broke "sendmail -bs".
+	File: smtpd/smtpd.c.
+
 Open problems:
 
 	Low: in the SMTP client, pass the session, request and
