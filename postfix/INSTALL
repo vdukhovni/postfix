@@ -55,6 +55,7 @@ If your system is supported, it is one of
     FreeBSD 2.x
     FreeBSD 3.x
     FreeBSD 4.x
+    FreeBSD 5.x
     HP-UX  9.x
     HP-UX 10.x
     HP-UX 11.x
@@ -85,6 +86,10 @@ If your system is supported, it is one of
     Ultrix 4.x
 
 or something closely resemblant.
+
+On Solaris, the "make" command and other utilities for software
+development are in /usr/ccs/bin, so you MUST have /usr/ccs/bin
+in your command search path.
 
 If at any time in the build process you get messages like: "make:
 don't know how to ..." you should be able to recover by running

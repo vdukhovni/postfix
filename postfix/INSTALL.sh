@@ -47,6 +47,7 @@ EOF
 
 compare_or_replace() {
     cmp $2 $3 >/dev/null 2>&1 || {
+	echo Updating $3...
 	rm -f $tempdir/junk || exit 1
 	cp $2 $tempdir/junk || exit 1
 	chmod $1 $tempdir/junk || exit 1
@@ -57,6 +58,7 @@ compare_or_replace() {
 
 compare_or_symlink() {
     cmp $1 $2 >/dev/null 2>&1 || {
+	echo Updating $2...
 	rm -f $tempdir/junk || exit 1
 	dest=`echo $1 | sed '
 	    s;^'$install_root';;
@@ -85,6 +87,7 @@ compare_or_symlink() {
 
 compare_or_move() {
     cmp $2 $3 >/dev/null 2>&1 || {
+	echo Updating $3...
 	mv -f $2 $3 || exit 1
 	chmod $1 $3 || exit 1
     }
@@ -105,7 +108,10 @@ config_directory=/etc/postfix
 daemon_directory=/usr/libexec/postfix
 command_directory=/usr/sbin
 queue_directory=/var/spool/postfix
-sendmail_path=/usr/sbin/sendmail
+if [ -f /usr/lib/sendmail ]
+    then sendmail_path=/usr/lib/sendmail 
+    else sendmail_path=/usr/sbin/sendmail
+fi
 newaliases_path=/usr/bin/newaliases
 mailq_path=/usr/bin/mailq
 mail_owner=postfix
@@ -329,6 +335,7 @@ no) ;;
      for file in man?/*
      do
 	 (test -f $MANPAGES/$file && cmp -s $file $MANPAGES/$file) || {
+	     echo Updating $MANPAGES/$file...
 	     rm -f $MANPAGES/$file
 	     cp $file $MANPAGES/$file || exit 1
 	     chmod 644 $MANPAGES/$file || exit 1

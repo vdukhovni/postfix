@@ -26,20 +26,22 @@
 /*	SMTPD_STATE *state;
 /* DESCRIPTION
 /*	This module contains random chunks of code that implement
-/*	the SMTP protocol interface for SASL negotiation. The goal 
+/*	the SMTP protocol interface for SASL negotiation. The goal
 /*	is to reduce clutter of the main SMTP server source code.
 /*
 /*	smtpd_sasl_auth_cmd() implements the AUTH command.
 /*
 /*	smtpd_sasl_auth_reset() cleans up after the AUTH command.
 /*
-/*	smtpd_sasl_mail_opt() implements the AUTH=sender option
-/*	to the MAIL FROM command. The result is an error response
+/*	smtpd_sasl_mail_opt() implements the SASL-specific AUTH=sender
+/*	option to the MAIL FROM command. The result is an error response
 /*	in case of problems.
 /*
-/*	smtpd_sasl_mail_log() logs the queue ID and client information.
+/*	smtpd_sasl_mail_log() logs SASL-specific information after
+/*	processing the MAIL FROM command.
 /*
-/*	smtpd_sasl_mail_reset() cleans up after the AUTH=sender option.
+/*	smtpd_sasl_mail_reset() performs cleanup for the SASL-specific
+/*	AUTH=sender option to the MAIL FROM command.
 /*
 /*	Arguments:
 /* .IP state
@@ -126,9 +128,9 @@ int     smtpd_sasl_auth_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     }
 
     /*
-     * All authentication failures shall be logged. The 5xx reply code
-     * triggers tar-pit delays in order to slow down password guessing
-     * attacks.
+     * All authentication failures shall be logged. The 5xx reply code from
+     * the SASL authentication routine triggers tar-pit delays, which help to
+     * slow down password guessing attacks.
      */
     auth_mechanism = argv[1].strval;
     initial_response = (argc == 3 ? argv[2].strval : 0);
@@ -150,10 +152,14 @@ void    smtpd_sasl_auth_reset(SMTPD_STATE *state)
     smtpd_sasl_logout(state);
 }
 
-/* smtpd_sasl_mail_opt - SASL-specific AUTH=sender option */
+/* smtpd_sasl_mail_opt - SASL-specific MAIL FROM option */
 
 char   *smtpd_sasl_mail_opt(SMTPD_STATE *state, const char *addr)
 {
+
+    /*
+     * Do not store raw RFC2554 protocol data.
+     */
     if (!var_smtpd_sasl_enable) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	return ("503 Error: authentication disabled");
@@ -171,7 +177,7 @@ char   *smtpd_sasl_mail_opt(SMTPD_STATE *state, const char *addr)
     return (0);
 }
 
-/* smtpd_sasl_mail_log - SASL-specific MAIL FROM command logging */
+/* smtpd_sasl_mail_log - SASL-specific MAIL FROM logging */
 
 void    smtpd_sasl_mail_log(SMTPD_STATE *state)
 {

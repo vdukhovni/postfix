@@ -47,6 +47,7 @@ RFC 1652 (8bit-MIME transport)
 RFC 1854 (SMTP Pipelining)
 RFC 1870 (Message Size Declaration)
 RFC 1985 (ETRN command) (partial)
+RFC 2554 (AUTH command)
 .SH DIAGNOSTICS
 .ad
 .fi
@@ -74,6 +75,11 @@ a configuration change.
 .IP \fBstrict_rfc821_envelopes\fR
 Disallow non-RFC 821 style addresses in envelopes. For example,
 allow RFC822-style address forms with comments, like Sendmail does.
+.SH "Authenication controls"
+.IP \fBenable_sasl_authentication\fR
+Enable per-session authentication as per RFC 2554 (SASL).
+This functionality is available only when explicitly selected
+at program build time and explicitly enabled at runtime.
 .SH Miscellaneous
 .ad
 .fi
@@ -139,6 +145,10 @@ When an SMTP client has made this number of errors, wait
 \fIerror_count\fR seconds before responding to any client request.
 .IP \fBsmtpd_hard_error_limit\fR
 Disconnect after a client has made this number of errors.
+.IP \fBsmtpd_junk_command_limit\fR
+Limit the number of times a client can issue a junk command
+such as NOOP, VRFY, ETRN or RSET in one SMTP session before
+it is penalized with tarpit delays.
 .SH "UCE control restrictions"
 .ad
 .fi

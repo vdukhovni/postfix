@@ -224,7 +224,7 @@ static MYSQL_RES *plmysql_query(PLMYSQL *PLDB,
 
 	/* answer already found */
 	if (res != 0 && host->stat == STATACTIVE) {
-	    msg_info("dict_mysql: closing unnecessary connection to %s", host->hostname);
+	    msg_info("dict_mysql: closing unnessary connection to %s", host->hostname);
 	    mysql_close(&(host->db));		/* also frees memory, have to
 						 * reallocate it */
 	    host->db = *((MYSQL *) mymalloc(sizeof(MYSQL)));
@@ -361,19 +361,20 @@ static MYSQL_NAME *mysqlname_parse(const char *mysqlcf_path)
     int     i;
     char   *nameval;
     char   *hosts;
+    /* the name of the dict for processing the mysql options file */
     MYSQL_NAME *name = (MYSQL_NAME *) mymalloc(sizeof(MYSQL_NAME));
     ARGV   *hosts_argv;
-
-    dict_load_file("mysql_options", mysqlcf_path);
+    
+    dict_load_file(mysqlcf_path, mysqlcf_path);
     /* mysql username lookup */
-    if ((nameval = (char *) dict_lookup("mysql_options", "user")) == NULL)
+    if ((nameval = (char *) dict_lookup(mysqlcf_path, "user")) == NULL)
 	name->username = mystrdup("");
     else
 	name->username = mystrdup(nameval);
     if (msg_verbose)
 	msg_info("mysqlname_parse(): set username to '%s'", name->username);
     /* password lookup */
-    if ((nameval = (char *) dict_lookup("mysql_options", "password")) == NULL)
+    if ((nameval = (char *) dict_lookup(mysqlcf_path, "password")) == NULL)
 	name->password = mystrdup("");
     else
 	name->password = mystrdup(nameval);
@@ -381,7 +382,7 @@ static MYSQL_NAME *mysqlname_parse(const char *mysqlcf_path)
 	msg_info("mysqlname_parse(): set password to '%s'", name->password);
 
     /* database name lookup */
-    if ((nameval = (char *) dict_lookup("mysql_options", "dbname")) == NULL)
+    if ((nameval = (char *) dict_lookup(mysqlcf_path, "dbname")) == NULL)
 	msg_fatal("%s: mysql options file does not include database name", mysqlcf_path);
     else
 	name->dbname = mystrdup(nameval);
@@ -389,7 +390,7 @@ static MYSQL_NAME *mysqlname_parse(const char *mysqlcf_path)
 	msg_info("mysqlname_parse(): set database name to '%s'", name->dbname);
 
     /* table lookup */
-    if ((nameval = (char *) dict_lookup("mysql_options", "table")) == NULL)
+    if ((nameval = (char *) dict_lookup(mysqlcf_path, "table")) == NULL)
 	msg_fatal("%s: mysql options file does not include table name", mysqlcf_path);
     else
 	name->table = mystrdup(nameval);
@@ -397,7 +398,7 @@ static MYSQL_NAME *mysqlname_parse(const char *mysqlcf_path)
 	msg_info("mysqlname_parse(): set table name to '%s'", name->table);
 
     /* select field lookup */
-    if ((nameval = (char *) dict_lookup("mysql_options", "select_field")) == NULL)
+    if ((nameval = (char *) dict_lookup(mysqlcf_path, "select_field")) == NULL)
 	msg_fatal("%s: mysql options file does not include select field", mysqlcf_path);
     else
 	name->select_field = mystrdup(nameval);
@@ -405,7 +406,7 @@ static MYSQL_NAME *mysqlname_parse(const char *mysqlcf_path)
 	msg_info("mysqlname_parse(): set select_field to '%s'", name->select_field);
 
     /* where field lookup */
-    if ((nameval = (char *) dict_lookup("mysql_options", "where_field")) == NULL)
+    if ((nameval = (char *) dict_lookup(mysqlcf_path, "where_field")) == NULL)
 	msg_fatal("%s: mysql options file does not include where field", mysqlcf_path);
     else
 	name->where_field = mystrdup(nameval);
@@ -413,7 +414,7 @@ static MYSQL_NAME *mysqlname_parse(const char *mysqlcf_path)
 	msg_info("mysqlname_parse(): set where_field to '%s'", name->where_field);
 
     /* additional conditions */
-    if ((nameval = (char *) dict_lookup("mysql_options", "additional_conditions")) == NULL)
+    if ((nameval = (char *) dict_lookup(mysqlcf_path, "additional_conditions")) == NULL)
 	name->additional_conditions = mystrdup("");
     else
 	name->additional_conditions = mystrdup(nameval);
@@ -421,7 +422,7 @@ static MYSQL_NAME *mysqlname_parse(const char *mysqlcf_path)
 	msg_info("mysqlname_parse(): set additional_conditions to '%s'", name->additional_conditions);
 
     /* mysql server hosts */
-    if ((nameval = (char *) dict_lookup("mysql_options", "hosts")) == NULL)
+    if ((nameval = (char *) dict_lookup(mysqlcf_path, "hosts")) == NULL)
 	hosts = mystrdup("");
     else
 	hosts = mystrdup(nameval);

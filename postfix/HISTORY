@@ -3758,7 +3758,7 @@ Apologies for any names omitted.
 	a file descriptor into its child process, and requires that
 	sendmail closes the descriptor, otherwise mail notification
 	will hang.  These GUI programmers never figured out that
-	the child process must close the writing ed of a pipe.
+	the child process must close the writing end of a pipe.
 	File:  sendmail/sendmail.c.
 
 20000314
@@ -3773,3 +3773,24 @@ Apologies for any names omitted.
 
 	Workaround: added -blibpath option for AIX 4.x, to close
 	hole in case postdrop needs to be set-gid.
+
+20000320
+
+	Portability: FreeBSD 5.x added to the list of supported
+	systems (Mark Huizer).
+
+20000323
+
+	Portability: INSTALL.sh looks if sendmail is in /usr/lib
+	rather than in /usr/sbin.
+
+20000326
+
+	Bugfix: settings in one mysql configuration file would act
+	as the implicit defaults for the next one, which could be
+	confusing.  Patch by Scott Cotton. File: util/dict_mysql.c.
+
+	Robustness: limit the number of "junk" commands that can
+	be issued in an SMTP session (ex.: NOOP, VRFY, ETRN, RSET).
+	Problem report by Michael Ju. Tokarev @ tls.msk.ru.  Files:
+	global/mail_params.h, smtpd/smtpd.c.

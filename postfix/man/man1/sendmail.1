@@ -24,6 +24,7 @@ For the sake of compatibility with existing applications, some
 Sendmail command-line options are recognized but silently ignored.
 
 By default, \fBsendmail\fR reads a message from standard input
+until EOF or until it reads a line with only a \fB.\fR character,
 and arranges for delivery.  \fBsendmail\fR attempts to create
 a queue file in the \fBmaildrop\fR directory. If that directory
 is not world-writable, the message is piped through the
@@ -101,8 +102,9 @@ delivery problems are sent to, unless the message contains an
 .IP "\fB-h \fIhop_count\fR (ignored)"
 Hop count limit. Use the \fBhopcount_limit\fR configuration
 parameter instead.
-.IP "\fB-i\fR (ignored)"
-Lines beginning with "." get special treatment only with \fB-bs\fR.
+.IP "\fB-i\fR"
+When reading a message from standard input, don\'t treat a line
+with only a \fB.\fR character as the end of input.
 .IP "\fB-m\fR (ignored)"
 Backwards compatibility.
 .IP "\fB-n\fR (ignored)"
@@ -115,6 +117,9 @@ details.
 .IP "\fB-o8\fR (ignored)"
 The message body type. Currently, Postfix implements
 \fBjust-send-eight\fR.
+.IP "\fB-oi\fR"
+When reading a message from standard input, don\'t treat a line
+with only a \fB.\fR character as the end of input.
 .IP "\fB-om\fR (ignored)"
 The sender is never eliminated from alias etc. expansions.
 .IP "\fB-o \fIx value\fR (ignored)"

@@ -19,6 +19,10 @@ from:
 Other SASL libraries may require some changes. All the library
 specific code is in smtp_sasl_glue.c and in smtpd_sasl_glue.c.
 
+IMPORTANT: if you install the sasl libraries as per the default,
+you will have to symlink /usr/lib/sasl -> /usr/local/lib/sasl.
+This is not my idea - complain to the sasl people.
+
 Building Postfix with SASL authentication support
 =================================================
 
@@ -48,7 +52,7 @@ mechanisms the server will support, for example:
 
     pwcheck_method:  {PAM, kerberos_v4, passwd, shadow, sasldb}
 
-/etc/sasldb is a db (dbm) database. IN order to make all this work
+/etc/sasldb is a db (dbm) database. In order to make all this work
 with chrooted operation, you may have to copy files into chroot
 jail: password files, PAM libraries, etc.
 

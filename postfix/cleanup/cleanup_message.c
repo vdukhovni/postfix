@@ -375,22 +375,6 @@ static void cleanup_missing_headers(CLEANUP_STATE *state)
 			       state->resent, vstring_str(state->temp1));
 	}
     }
-#ifdef USE_AUTH
-    /*
-     * Add client and sender identity headers if configured
-     */
-    if (cleanup_auth_client_identity && *var_cleanup_auth_client_header) {
-      	    cleanup_out_format(REC_TYPE_NORM, "%s %s@%s",
-			       var_cleanup_auth_client_header,
-			       cleanup_auth_client_identity, 
-			       var_cleanup_auth_client_header_domain);
-    }
-    if (cleanup_auth_sender_identity && *var_cleanup_auth_sender_header) {
-      	    cleanup_out_format(REC_TYPE_NORM, "%s %s",
-			       var_cleanup_auth_sender_header,
-			       cleanup_auth_sender_identity);
-    }
-#endif
 }
 
 /* cleanup_message - initialize message content segment */

@@ -61,6 +61,7 @@ typedef struct SMTPD_STATE {
     char   *where;
     int     recursion;
     off_t   msg_size;
+    int     junk_cmds;
 #ifdef USE_SASL_AUTH
     char   *sasl_mechanism_list;
     char   *sasl_method;

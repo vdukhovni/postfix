@@ -15,6 +15,10 @@
 /*	memory for buffers etc.
 /*
 /*	smtp_cleanup() destroys memory allocated by smtp_state_init().
+/* STANDARDS
+/* DIAGNOSTICS
+/* BUGS
+/* SEE ALSO
 /* LICENSE
 /* .ad
 /* .fi
@@ -74,7 +78,7 @@ void    smtp_state_free(SMTP_STATE *state)
     vstring_free(state->buffer);
     vstring_free(state->scratch);
     vstring_free(state->scratch2);
-#ifdef USE_AUTH
+#ifdef USE_SASL_AUTH
     smtp_sasl_cleanup(state);
 #endif
     myfree((char *) state);

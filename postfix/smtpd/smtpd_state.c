@@ -89,6 +89,7 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream)
     state->where = SMTPD_AFTER_CONNECT;
     state->recursion = 0;
     state->msg_size = 0;
+    state->junk_cmds = 0;
 
 #ifdef USE_SASL_AUTH
     smtpd_sasl_connect(state);

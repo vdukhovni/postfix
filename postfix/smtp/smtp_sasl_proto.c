@@ -15,7 +15,7 @@
 /* DESCRIPTION
 /*	This module contains random chunks of code that implement
 /*	the SMTP protocol interface for SASL negotiation. The goal 
-/*	is to reduce clutter of the main SMTP client source code.
+/*	is to reduce clutter in the main SMTP client source code.
 /*
 /*	smtp_sasl_helo_auth() processes the AUTH option in the
 /*	SMTP server's EHLO response.

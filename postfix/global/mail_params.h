@@ -631,11 +631,13 @@ extern int var_smtpd_hard_erlim;
 #define DEF_SMTPD_ERR_SLEEP	5
 extern int var_smtpd_err_sleep;
 
+#define VAR_SMTPD_JUNK_CMD	"smtpd_junk_command_limit"
+#define DEF_SMTPD_JUNK_CMD	1000
+extern int var_smtpd_junk_cmd_limit;
+
  /*
   * SASL authentication support.
   */
-#ifdef USE_SASL_AUTH
-
 #define VAR_SMTPD_SASL_ENABLE	"smtpd_sasl_auth_enable"
 #define DEF_SMTPD_SASL_ENABLE	0
 extern bool var_smtpd_sasl_enable;
@@ -649,8 +651,6 @@ extern bool var_smtp_sasl_enable;
 extern char *var_smtp_sasl_pwd_maps;
 
 #define PERMIT_SASL_AUTH	"permit_sasl_authenticated"
-
-#endif
 
  /*
   * Cleanup service. Header info that exceeds $header_size_limit bytes forces

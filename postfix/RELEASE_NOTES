@@ -1,13 +1,10 @@
 Incompatible changes with snapshot-20000309
 ===========================================
 
-This release is mainly to have a reference point after reorganizing
-the cleanup daemon, and before adding some major contributions from
-other people.
-
-The sendmail command now treats a `.' line as end of input, for
-the sake of compatibility. To revert to past behavior, specify the
-`-i' or `-oi' command-line flags.
+The Postfix sendmail command now treats a line with only `.' as
+the end of input, for the sake of sendmail compatibility. To disable
+this feature, specify the sendmail-compatible `-i' or `-oi' flags
+on the sendmail command line.
 
 Major changes with snapshot-20000309
 ====================================

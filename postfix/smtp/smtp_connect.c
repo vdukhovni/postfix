@@ -216,6 +216,7 @@ static SMTP_SESSION *smtp_connect_addr(DNS_RR *addr, unsigned port,
 	vstream_fclose(stream);
 	return (0);
     }
+    vstream_ungetc(stream, ch);
 
     /*
      * Skip this host if it sends a 4xx greeting.
@@ -238,7 +239,6 @@ static SMTP_SESSION *smtp_connect_addr(DNS_RR *addr, unsigned port,
 	vstream_fclose(stream);
 	return (0);
     }
-    vstream_ungetc(stream, ch);
     return (smtp_session_alloc(stream, addr->name, inet_ntoa(sin.sin_addr)));
 }
 
