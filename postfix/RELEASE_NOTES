@@ -1,3 +1,51 @@
+Incompatible changes with snapshot 19990909
+===========================================
+
+- You can not longer use virtual, canonical or aliases tables as
+SMTPD access control tables. Use the permit_address_map feature
+instead. The loss is compensated for.
+
+Major changes with snapshot 19990909
+====================================
+
+- Per-client/helo/sender/recipient UCE restrictions: you can now
+specify arbitrary restrictions on the right-hand side of SMTPD
+access tables.  The only anomaly in this scheme is that header
+checks are the same for every message.
+
+- Restriction classes allow you to conveniently group restrictions
+under one name. This is great for per-client/helo/sender/recipient
+UCE restrictions.  For example in main.cf:
+
+    smtpd_restriction_classes = restrictive, permissive
+    restrictive = reject_unknown_sender reject_unknown_client ...
+    permissive = permit
+
+Then use "restrictive" or "restrictive" on the right-hand side of
+your per-client/helo/sender/recipient SMTPD access tables.
+
+- Reject mail for non-existent local accounts. You can now use
+passwd/canonical/virtual/aliases tables for SMTPD access control.
+For example, specify in main.cf:
+
+    relay_domains = $mydestination other domains...
+    smtpd_recipient_restrictions =
+	reject_unauth_destination
+	permit_address_map unix:passwd.byname
+	permit_address_map hash:/etc/canonical
+	permit_address_map hash:/etc/postfix/virtual
+	permit_address_map hash:/etc/aliases
+	reject
+
+That should stop a lot of the mail to non-existent recipients.  It
+won't stop mail to broken aliases or to users with broken .forward
+files, though.
+
+Unfortunately, permit_address_map does not combine well with
+check_relay_domains, because that restriction ALWAYS permits mail
+for local destinations. Instead of check_relay_domains, use some
+combination of permit_mynetworks and reject_unauth_destination.
+
 Incompatible changes with postfix-19990906
 ==========================================
 
@@ -7,7 +55,7 @@ files while delivering to files specified in aliases/forward/include
 files. This is a no-op when the recipient lacks directory write
 permission.
 
-- The LDAP client code no longer looks up name containing "*"
+- The LDAP client code no longer looks up a name containing "*"
 because it could be abused.  See the LDAP_README file for how to
 restore previous behavior.
 

@@ -47,6 +47,7 @@ typedef struct SMTPD_STATE {
     char   *reason;
     char   *sender;
     char   *recipient;
+    char   *etrn_name;
     char   *protocol;
     char   *where;
 } SMTPD_STATE;

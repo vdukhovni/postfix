@@ -307,93 +307,73 @@ OK
 >>> #
 >>> # Numerical HELO checks
 >>> #
->>> msg_verbose 1
-OK
 >>> helo_restrictions permit_naked_ip_address,reject_non_fqdn_hostname
 OK
 >>> helo [1.2.3.4]
-./smtpd_check: reject_invalid_hostaddr: [1.2.3.4]
 OK
 >>> helo [321.255.255.255]
-./smtpd_check: reject_invalid_hostaddr: [321.255.255.255]
 ./smtpd_check: warning: valid_hostaddr: invalid octet value: 321.255.255.255
 ./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <[321.255.255.255]>: Helo command rejected: invalid ip address; from=<foo>
 501 <[321.255.255.255]>: Helo command rejected: invalid ip address
 >>> helo [0.255.255.255]
-./smtpd_check: reject_invalid_hostaddr: [0.255.255.255]
 ./smtpd_check: warning: valid_hostaddr: bad initial octet value: 0.255.255.255
 ./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <[0.255.255.255]>: Helo command rejected: invalid ip address; from=<foo>
 501 <[0.255.255.255]>: Helo command rejected: invalid ip address
 >>> helo [1.2.3.321]
-./smtpd_check: reject_invalid_hostaddr: [1.2.3.321]
 ./smtpd_check: warning: valid_hostaddr: invalid octet value: 1.2.3.321
 ./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <[1.2.3.321]>: Helo command rejected: invalid ip address; from=<foo>
 501 <[1.2.3.321]>: Helo command rejected: invalid ip address
 >>> helo [1.2.3]
-./smtpd_check: reject_invalid_hostaddr: [1.2.3]
 ./smtpd_check: warning: valid_hostaddr: invalid octet count: 1.2.3
 ./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <[1.2.3]>: Helo command rejected: invalid ip address; from=<foo>
 501 <[1.2.3]>: Helo command rejected: invalid ip address
 >>> helo [1.2.3.4.5]
-./smtpd_check: reject_invalid_hostaddr: [1.2.3.4.5]
 ./smtpd_check: warning: valid_hostaddr: invalid octet count: 1.2.3.4.5
 ./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <[1.2.3.4.5]>: Helo command rejected: invalid ip address; from=<foo>
 501 <[1.2.3.4.5]>: Helo command rejected: invalid ip address
 >>> helo [1..2.3.4]
-./smtpd_check: reject_invalid_hostaddr: [1..2.3.4]
 ./smtpd_check: warning: valid_hostaddr: misplaced dot: 1..2.3.4
 ./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <[1..2.3.4]>: Helo command rejected: invalid ip address; from=<foo>
 501 <[1..2.3.4]>: Helo command rejected: invalid ip address
 >>> helo [.1.2.3.4]
-./smtpd_check: reject_invalid_hostaddr: [.1.2.3.4]
 ./smtpd_check: warning: valid_hostaddr: misplaced dot: .1.2.3.4
 ./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <[.1.2.3.4]>: Helo command rejected: invalid ip address; from=<foo>
 501 <[.1.2.3.4]>: Helo command rejected: invalid ip address
 >>> helo [1.2.3.4.5.]
-./smtpd_check: reject_invalid_hostaddr: [1.2.3.4.5.]
 ./smtpd_check: warning: valid_hostaddr: misplaced dot: 1.2.3.4.5.
 ./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <[1.2.3.4.5.]>: Helo command rejected: invalid ip address; from=<foo>
 501 <[1.2.3.4.5.]>: Helo command rejected: invalid ip address
 >>> helo 1.2.3.4
-./smtpd_check: reject_invalid_hostaddr: 1.2.3.4
 OK
 >>> helo 321.255.255.255
-./smtpd_check: reject_invalid_hostaddr: 321.255.255.255
 ./smtpd_check: warning: valid_hostaddr: invalid octet value: 321.255.255.255
 ./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <321.255.255.255>: Helo command rejected: invalid ip address; from=<foo>
 501 <321.255.255.255>: Helo command rejected: invalid ip address
 >>> helo 0.255.255.255
-./smtpd_check: reject_invalid_hostaddr: 0.255.255.255
 ./smtpd_check: warning: valid_hostaddr: bad initial octet value: 0.255.255.255
 ./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <0.255.255.255>: Helo command rejected: invalid ip address; from=<foo>
 501 <0.255.255.255>: Helo command rejected: invalid ip address
 >>> helo 1.2.3.321
-./smtpd_check: reject_invalid_hostaddr: 1.2.3.321
 ./smtpd_check: warning: valid_hostaddr: invalid octet value: 1.2.3.321
 ./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <1.2.3.321>: Helo command rejected: invalid ip address; from=<foo>
 501 <1.2.3.321>: Helo command rejected: invalid ip address
 >>> helo 1.2.3
-./smtpd_check: reject_invalid_hostaddr: 1.2.3
 ./smtpd_check: warning: valid_hostaddr: invalid octet count: 1.2.3
 ./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <1.2.3>: Helo command rejected: invalid ip address; from=<foo>
 501 <1.2.3>: Helo command rejected: invalid ip address
 >>> helo 1.2.3.4.5
-./smtpd_check: reject_invalid_hostaddr: 1.2.3.4.5
 ./smtpd_check: warning: valid_hostaddr: invalid octet count: 1.2.3.4.5
 ./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <1.2.3.4.5>: Helo command rejected: invalid ip address; from=<foo>
 501 <1.2.3.4.5>: Helo command rejected: invalid ip address
 >>> helo 1..2.3.4
-./smtpd_check: reject_invalid_hostaddr: 1..2.3.4
 ./smtpd_check: warning: valid_hostaddr: misplaced dot: 1..2.3.4
 ./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <1..2.3.4>: Helo command rejected: invalid ip address; from=<foo>
 501 <1..2.3.4>: Helo command rejected: invalid ip address
 >>> helo .1.2.3.4
-./smtpd_check: reject_invalid_hostaddr: .1.2.3.4
 ./smtpd_check: warning: valid_hostaddr: misplaced dot: .1.2.3.4
 ./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <.1.2.3.4>: Helo command rejected: invalid ip address; from=<foo>
 501 <.1.2.3.4>: Helo command rejected: invalid ip address
 >>> helo 1.2.3.4.5.
-./smtpd_check: reject_invalid_hostaddr: 1.2.3.4.5.
 ./smtpd_check: warning: valid_hostaddr: misplaced dot: 1.2.3.4.5.
 ./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <1.2.3.4.5.>: Helo command rejected: invalid ip address; from=<foo>
 501 <1.2.3.4.5.>: Helo command rejected: invalid ip address

@@ -80,6 +80,9 @@
   */
 extern CLNT_STREAM *rewrite_clnt_stream;
 
+static VSTRING *last_addr;
+static RESOLVE_REPLY last_reply;
+
 /* resolve_clnt_init - initialize reply */
 
 void    resolve_clnt_init(RESOLVE_REPLY *reply)
@@ -97,6 +100,14 @@ void    resolve_clnt_query(const char *addr, RESOLVE_REPLY *reply)
     VSTREAM *stream;
 
     /*
+     * One-entry cache.
+     */
+    if (last_addr == 0) {
+	last_addr = vstring_alloc(100);
+	resolve_clnt_init(&last_reply);
+    }
+
+    /*
      * Sanity check. The result must not clobber the input because we may
      * have to retransmit the request.
      */
@@ -104,6 +115,20 @@ void    resolve_clnt_query(const char *addr, RESOLVE_REPLY *reply)
 
     if (addr == STR(reply->recipient))
 	msg_panic("%s: result clobbers input", myname);
+
+    /*
+     * Peek at the cache.
+     */
+    if (strcmp(addr, STR(last_addr)) == 0) {
+	vstring_strcpy(reply->transport, STR(last_reply.transport));
+	vstring_strcpy(reply->nexthop, STR(last_reply.nexthop));
+	vstring_strcpy(reply->recipient, STR(last_reply.recipient));
+	if (msg_verbose)
+	    msg_info("%s: cached: `%s' -> t=`%s' h=`%s' r=`%s'",
+		     myname, addr, STR(reply->transport),
+		     STR(reply->nexthop), STR(reply->recipient));
+	return;
+    }
 
     /*
      * Keep trying until we get a complete response. The resolve service is
@@ -139,6 +164,14 @@ void    resolve_clnt_query(const char *addr, RESOLVE_REPLY *reply)
 	sleep(10);				/* XXX make configurable */
 	clnt_stream_recover(rewrite_clnt_stream);
     }
+
+    /*
+     * Update the cache.
+     */
+    vstring_strcpy(last_addr, addr);
+    vstring_strcpy(last_reply.transport, STR(reply->transport));
+    vstring_strcpy(last_reply.nexthop, STR(reply->nexthop));
+    vstring_strcpy(last_reply.recipient, STR(reply->recipient));
 }
 
 /* resolve_clnt_free - destroy reply */

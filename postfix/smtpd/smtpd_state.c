@@ -95,6 +95,7 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
     state->reason = 0;
     state->sender = 0;
     state->recipient = 0;
+    state->etrn_name = 0;
     state->protocol = "SMTP";
     state->where = SMTPD_AFTER_CONNECT;
 

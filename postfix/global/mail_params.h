@@ -718,6 +718,10 @@ extern char *var_rcpt_checks;
 #define DEF_ETRN_CHECKS		""
 extern char *var_etrn_checks;
 
+#define VAR_REST_CLASSES	"smtpd_restriction_classes"
+#define DEF_REST_CLASSES	""
+extern char *var_rest_classes;
+
  /*
   * Names of specific restrictions, and the corresponding configuration
   * parameters that control the status codes sent in response to rejected
@@ -794,6 +798,8 @@ extern char *var_maps_rbl_domains;
 extern int var_smtpd_delay_reject;
 
 #define REJECT_UNAUTH_PIPE	"reject_unauth_pipelining"
+
+#define PERMIT_ADDR_MAP		"permit_address_map"
 
  /*
   * Other.

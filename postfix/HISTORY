@@ -3039,3 +3039,40 @@ Apologies for any names omitted.
 	and for upgrading Postfix. It replaces files instead of
 	overwriting them, and leaves existing configuration and
 	queue files intact.
+
+19990907
+
+	Bugfix: reject_non_fqdn_sender used the wrong test to see
+	if a sender address was given and could dump core. This
+	must have been broken ever since the UCE tests were moved
+	to the RCPT TO stage in 19990510.
+
+	Bugfix: check_sender_access was recognized as a valid
+	restriction name only if a sender had been specified.
+
+19990908
+
+	Portability: Unixware has <sysexits.h> only after sendmail
+	is installed. Changed postlock.c to use global/sys_exists.h.
+
+19990909
+
+	Performance: added one-entry cache to the address rewriting
+	client and to the address resolving client. This is because
+	UCE restrictions tend to produce the same query repeatedly.
+
+	Feature: the UCE restrictions are now fully recursive so
+	you can have per-client/helo/sender/recipient restrictions.
+	Instead of OK, REJECT or [45]xx, you can specify a sequence
+	of restrictions on the right-hand side of an SMTPD access
+	table. This means you can no longer use canonical/virtual/alias
+	maps as SMTPD access tables. But the loss is compensated for.
+
+	Feature: restriction classes, essentially a short-hand for
+	restriction lists.  These short hands are useful mostly on
+	the right-hand side of SMTPD access tables.
+
+	Feature: "permit_address_map maptype:mapname" permits a
+	recipient address when it matches the specified table.
+	Lookups are done just as with canonical/virtual maps.  With
+	this, you can also use passwd/aliases as SMTPD access maps.

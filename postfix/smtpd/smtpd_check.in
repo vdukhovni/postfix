@@ -150,7 +150,6 @@ rcpt foo
 #
 # Numerical HELO checks
 #
-msg_verbose 1
 helo_restrictions permit_naked_ip_address,reject_non_fqdn_hostname
 helo [1.2.3.4]
 helo [321.255.255.255]

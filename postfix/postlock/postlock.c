@@ -86,7 +86,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <sysexits.h>
 
 /* Utility library. */
 
@@ -102,6 +101,7 @@
 #include <dot_lockfile.h>
 #include <deliver_flock.h>
 #include <mail_conf.h>
+#include <sys_exits.h>
 
 /* Application-specific. */
 

@@ -131,6 +131,10 @@
 /* .IP \fBsmtpd_etrn_restrictions\fR
 /*	Restrict what domain names can be used in \fBETRN\fR commands,
 /*	and what clients may issue \fBETRN\fR commands.
+/* .IP \fBrestriction_classes\fR
+/*	Declares the name of zero or more parameters that contain a
+/*	list of UCE restrictions. The names of these parameters can
+/*	then be used instead of the restriction lists that they represent.
 /* .IP \fBmaps_rbl_domains\fR
 /*	List of DNS domains that publish the addresses of blacklisted
 /*	hosts.
@@ -278,6 +282,7 @@ int     var_non_fqdn_code;
 char   *var_always_bcc;
 char   *var_error_rcpt;
 int     var_smtpd_delay_reject;
+char   *var_rest_classes;
 
  /*
   * Global state, for stand-alone mode queue file cleanup. When this is
@@ -1178,6 +1183,7 @@ int     main(int argc, char **argv)
 	VAR_MAPS_RBL_DOMAINS, DEF_MAPS_RBL_DOMAINS, &var_maps_rbl_domains, 0, 0,
 	VAR_ALWAYS_BCC, DEF_ALWAYS_BCC, &var_always_bcc, 0, 0,
 	VAR_ERROR_RCPT, DEF_ERROR_RCPT, &var_error_rcpt, 1, 0,
+	VAR_REST_CLASSES, DEF_REST_CLASSES, &var_rest_classes, 0, 0,
 	0,
     };
 

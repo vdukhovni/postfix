@@ -174,7 +174,7 @@ rm -f junk
 
 # Install files. Be careful to not copy over running programs.
 
-for file in `ls libexec`
+for file in `ls libexec | grep '^[a-z]'`
 do
     compare_or_replace a+x,go-w libexec/$file $daemon_directory/$file || exit 1
 done
