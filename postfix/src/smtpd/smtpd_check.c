@@ -1844,7 +1844,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     int     status;
     const char *cmd_text;
     int     cmd_len;
-    static char def_dsn[] = "0.0.0";
+    static char def_dsn[] = "5.7.1";
     DSN_SPLIT dp;
 
     /*
@@ -2035,7 +2035,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
      * 4xx or 5xx means NO as well. smtpd_check_reject() will validate the
      * response status code.
      * 
-     * If the caller specifies an RFC 1893 enhanced status code, put it
+     * If the caller specifies an RFC 3463 enhanced status code, put it
      * immediately after the SMTP status code as described in RFC 2034.
      */
     if (cmd_len == 3 && *cmd_text

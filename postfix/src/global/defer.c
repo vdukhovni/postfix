@@ -107,7 +107,7 @@
 /* .IP entry
 /*	Message arrival time.
 /* .IP dsn
-/*	X.YY.ZZ Error detail as specified in RFC 1893.
+/*	X.YY.ZZ Error detail as specified in RFC 3463.
 /* .IP format
 /*	The reason for non-delivery.
 /* .IP ap

@@ -11,38 +11,48 @@ instead, a new snapshot is released.
 The mail_release_date configuration parameter (format: yyyymmdd)
 specifies the release date of a stable release or snapshot release.
 
-See RELEASE_NOTES-2.2 for changes introduced during the development
-of Postfix version 2.2.
+Incompatibility with Postfix 2.1 and earlier
+============================================
 
-Incompatible changes with snapshot 20050327
-===========================================
+If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
+before proceeding.
 
-local(8) and virtual(8) now handle the same errors in the same way.
-This means that local(8) will defer some mail that it older versions
-would bounce, and that virtual(8) will bounce some mail that older
-versions would defer.
+Incompatibility with snapshot 20050328
+======================================
 
-Specifically, error codes EACCES, EAGAIN, ESTALE are soft (4.2.0)
-errors, ENOSPC is a soft (4.3.0) error, EDQUOT and EFBIG are hard
-(5.2.2) errors, and everything else is a hard (5.2.0) error.
+After you upgrade from Postfix 2.2 or 2.3 you need to execute
+"postfix reload", otherwise you will keep running the old Postfix
+queue manager, which gives no special treatment to the enhanced
+status codes that it receives from Postfix delivery agents.
 
-Major changes with snapshot 20050327
+Major changes with snapshot 20050328
 ====================================
 
-This release introduces support for RFC 1893 enhanced status codes.
-For example, status code "5.1.1" means "recipient unknown". Postfix
-recognizes enhanced status codes in remote server replies, and
-generates enhanced status codes when it responds to mail delivery
-requests. This improves the communication with mail clients that
-hide error messages from users.
+This release introduces support for RFC 3463 enhanced status codes.
+For example, status code 5.1.1 means "recipient unknown". Postfix
+recognizes enhanced status codes in remote server replies, generates
+enhanced status codes while handling email, and reports enhanced
+status codes in non-delivery notifications.  This improves the user
+interaction with mail clients that hide the text of error messages
+from users.
 
-You can, but don't have to, specify RFC 1893 enhanced status codes
-in Postfix access maps or header/body_checks. Example:
+You can, but don't have to, specify RFC 3463 enhanced status codes
+in the output from commands that receive mail from a pipe. If a
+command terminates with non-zero exit status, and an enhanced status
+code is present at the beginning of the command output, then that
+status code takes precedence over the non-zero exit status.
+
+You can, but don't have to, specify RFC 3463 enhanced status codes
+in Postfix access maps, header/body_checks REJECT actions, or in
+RBL replies.  For example:
 
     REJECT 5.7.1 You can't go here from there
 
-(5.7.1 means "no authorization, message refused").  Enhanced status
-code support is also available in RBL reply templates.
+The status 5.7.1 means "no authorization, message refused", and is
+the default for access maps, header/body_checks REJECT actions, and
+for RBL replies.
 
-If you do specify an enhanced status code, Postfix will automatically
-change the first digit into a '4' or '5' as appropriate.
+If you specify your own enhanced status code, the Postfix SMTP
+server will automatically change a leading '5' digit (hard error)
+into '4' where appropriate.  This is needed, for example, with
+soft_bounce=yes.

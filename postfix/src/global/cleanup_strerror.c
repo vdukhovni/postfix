@@ -10,7 +10,7 @@
 /* .in +4
 /*	    const unsigned status;	/* cleanup status */
 /*	    const int smtp;	/* RFC 821 */
-/*	    const char *dsn;	/* RFC 1893 */
+/*	    const char *dsn;	/* RFC 3463 */
 /*	    const char *text;	/* free text */
 /* .in -4
 /*	} CLEANUP_STAT_DETAIL;

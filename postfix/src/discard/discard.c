@@ -11,7 +11,7 @@
 /*	the queue manager. Each request specifies a queue file, a sender
 /*	address, a domain or host name that is treated as the reason for
 /*	discarding the mail, and recipient information.
-/*	The reason may be prefixed with an RFC 1893-compatible detail code.
+/*	The reason may be prefixed with an RFC 3463-compatible detail code.
 /*	This program expects to be run from the \fBmaster\fR(8) process
 /*	manager.
 /*

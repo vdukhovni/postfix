@@ -8,7 +8,7 @@
 /*
 /*	typedef struct {
 /* .in +4
-/*		char dsn[...];		/* RFC 1893 */
+/*		char dsn[...];		/* RFC 3463 */
 /*		const char *text;	/* Free text */
 /* .in -4
 /*	} DSN_SPLIT;
@@ -24,7 +24,7 @@
 /*
 /*	typedef struct {
 /* .in +4
-/*		char dsn[...];		/* RFC 1893 */
+/*		char dsn[...];		/* RFC 3463 */
 /*		VSTRING *text;		/* Free text */
 /* .in -4
 /*	} DSN_VSTRING;
@@ -43,19 +43,19 @@
 /*	size_t	dsn_valid(text)
 /*	const char *text;
 /* DESCRIPTION
-/*	The functions in this module manipulate pairs of RFC 1893
+/*	The functions in this module manipulate pairs of RFC 3463
 /*	X.X.X detail codes and descriptive free text.
 /*
-/*	dsn_split() splits text into an RFC 1893 detail code and
+/*	dsn_split() splits text into an RFC 3463 detail code and
 /*	descriptive free text.  When the text does not start with
 /*	a detail code, the specified default detail code is used
 /*	instead.  Whitespace before the optional detail code or
 /*	text is skipped.  dsn_split() returns a copy of the RFC
-/*	1893 detail code, and returns a pointer to (not copy of)
+/*	3463 detail code, and returns a pointer to (not copy of)
 /*	the remainder of the text.  The result value is the first
 /*	argument.
 /*
-/*	dsn_prepend() prepends the specified default RFC 1893 detail
+/*	dsn_prepend() prepends the specified default RFC 3463 detail
 /*	code to the specified text if no detail code is present in
 /*	the text. This function produces the same result as calling
 /*	concatenate() with the results from dsn_split().  The result
@@ -63,7 +63,7 @@
 /*	detail code or text is skipped.
 /*
 /*	dsn_vstring_alloc() creates initialized storage for an RFC
-/*	1893 detail code and descriptive free text.
+/*	3463 detail code and descriptive free text.
 /*
 /*	dsn_vstring_update() updates the detail code, the descriptive
 /*	free text, or both. Specify a null pointer (or zero-length
@@ -72,19 +72,19 @@
 /*	dsn_vstring_free() recycles the storage that was allocated
 /*	by dsn_vstring_alloc() and dsn_vstring_update().
 /*
-/*	dsn_valid() returns the length of the RFC 1893 detail code
+/*	dsn_valid() returns the length of the RFC 3463 detail code
 /*	at the beginning of text, or zero. It does not skip initial
 /*	whitespace.
 /*
 /*	Arguments:
 /* .IP def_dsn
-/*	Null-terminated default RFC 1893 detail code that will be
+/*	Null-terminated default RFC 3463 detail code that will be
 /*	used when the free text does not start with one.
 /* .IP dp
 /*	Pointer to storage for copy of DSN detail code, and for
 /*	pointer to free text.
 /* .IP dsn
-/*	Null-terminated RFC 1893 detail code.
+/*	Null-terminated RFC 3463 detail code.
 /* .IP text
 /*	Null-terminated free text.
 /* .IP vp
@@ -123,7 +123,7 @@
 
 #include <dsn_util.h>
 
-/* dsn_valid - check RFC 1893 enhanced status code, return length or zero */
+/* dsn_valid - check RFC 3463 enhanced status code, return length or zero */
 
 size_t  dsn_valid(const char *text)
 {
@@ -157,7 +157,7 @@ DSN_SPLIT *dsn_split(DSN_SPLIT *dp, const char *def_dsn, const char *text)
     size_t  len;
 
     /*
-     * Look for an optional RFC 1893 enhanced status code.
+     * Look for an optional RFC 3463 enhanced status code.
      * 
      * XXX If we want to enforce that the first digit of the status code in the
      * text matches the default status code, then pipe_command() needs to be

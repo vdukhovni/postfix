@@ -25,7 +25,7 @@
 /* .IP recipient
 /*	The recipient that will not be delivered.
 /* .IP dsn
-/*	RFC 1893 detail code.
+/*	RFC 3463 detail code.
 /* .IP format
 /*	Free-format text that describes why delivery will not happen.
 /* DIAGNOSTICS

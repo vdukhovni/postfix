@@ -992,7 +992,10 @@ address, or Recipient address. </dd>
 <dt><b>$rbl_code</b></dt>
 
 <dd>The numerical SMTP response code, as specified with the
-maps_rbl_reject_code configuration parameter. </dd>
+maps_rbl_reject_code configuration parameter. Note: The numerical
+SMTP response code is required, and must appear at the start of the
+reply. With Postfix 2.3 and later this information may be followed
+by an RFC 3463 enhanced status code. </dd>
 
 <dt><b>$rbl_domain</b></dt>
 

@@ -66,6 +66,7 @@
 #include <sent.h>
 #include <mail_params.h>
 #include <dsn_util.h>
+#include <mbox_open.h>
 
 /* Application-specific. */
 
@@ -189,9 +190,11 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 	&& (errno != ENOENT
 	    || make_dirs(tmpdir, 0700) < 0
 	    || (dst = vstream_fopen(tmpfile, O_WRONLY | O_CREAT | O_EXCL, 0600)) == 0)) {
-	dsn_vstring_update(why, "5.2.0", "create maildir file %s: %m", tmpfile);
+	dsn_vstring_update(why, mbox_dsn(errno, "5.2.0"),
+			   "create maildir file %s: %m", tmpfile);
     } else if (fstat(vstream_fileno(dst), &st) < 0) {
-	dsn_vstring_update(why, "5.2.0", "create maildir file %s: %m", tmpfile);
+	dsn_vstring_update(why, mbox_dsn(errno, "5.2.0"),
+			   "create maildir file %s: %m", tmpfile);
     } else {
 	vstring_sprintf(buf, "%lu.V%lxI%lxM%lu.%s",
 			(unsigned long) starttime.tv_sec,
@@ -206,7 +209,7 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 		&& (errno != ENOENT
 		    || (make_dirs(curdir, 0700), make_dirs(newdir, 0700)) < 0
 		    || sane_link(tmpfile, newfile) < 0)) {
-		dsn_vstring_update(why, "5.2.0",
+		dsn_vstring_update(why, mbox_dsn(errno, "5.2.0"),
 				   "create maildir file %s: %m", newfile);
 		mail_copy_status = MAIL_COPY_STAT_WRITE;
 	    }

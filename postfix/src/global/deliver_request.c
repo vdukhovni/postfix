@@ -65,7 +65,7 @@
 /*	by the caller when all delivery to the destination in
 /*	\fInexthop\fR should be deferred. The value of the
 /*	\fIhop_status\fR member is the reason, with optional
-/*	RFC 1893-style detail at the beginning; it is passed
+/*	RFC 3463-style detail at the beginning; it is passed
 /*	to myfree().
 /*
 /*	deliver_request_done() reports the delivery status back to the

@@ -36,11 +36,12 @@
 /*	RFC 1869 (SMTP service extensions)
 /*	RFC 1870 (Message Size Declaration)
 /*	RFC 1985 (ETRN command)
-/*	RFC 2034 (Enhanced Error Codes)
+/*	RFC 2034 (Enhanced Status Codes)
 /*	RFC 2554 (AUTH command)
 /*	RFC 2821 (SMTP protocol)
 /*	RFC 2920 (SMTP Pipelining)
 /*	RFC 3207 (STARTTLS command)
+/*	RFC 3463 (Enhanced Status Codes)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /*
@@ -71,7 +72,7 @@
 /*	Disable the SMTP VRFY command.
 /* .IP "\fBsmtpd_noop_commands (empty)\fR"
 /*	List of commands that the Postfix SMTP server replies to with "250
-/*	2.0.0 Ok", without doing any syntax checks and without changing state.
+/*	Ok", without doing any syntax checks and without changing state.
 /* .IP "\fBstrict_rfc821_envelopes (no)\fR"
 /*	Require that addresses received in SMTP MAIL FROM and RCPT TO
 /*	commands are enclosed with <>, and that those addresses do
@@ -1045,7 +1046,7 @@ static int helo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     /*
      * RFC 2034: the text part of all 2xx, 4xx, and 5xx SMTP responses other
      * than the initial greeting and any response to HELO or EHLO are
-     * prefaced with a status code as defined in RFC 1893.
+     * prefaced with a status code as defined in RFC 3463.
      */
     if (argc < 2) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
@@ -1093,7 +1094,7 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * 
      * RFC 2034: the text part of all 2xx, 4xx, and 5xx SMTP responses other
      * than the initial greeting and any response to HELO or EHLO are
-     * prefaced with a status code as defined in RFC 1893.
+     * prefaced with a status code as defined in RFC 3463.
      */
     if (argc < 2) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
@@ -3034,7 +3035,7 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 	/*
 	 * RFC 2034: the text part of all 2xx, 4xx, and 5xx SMTP responses
 	 * other than the initial greeting and any response to HELO or EHLO
-	 * are prefaced with a status code as defined in RFC 1893.
+	 * are prefaced with a status code as defined in RFC 3463.
 	 */
 	else {
 	    smtpd_chat_reply(state, "220 %s", var_smtpd_banner);

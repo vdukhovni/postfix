@@ -9,7 +9,7 @@
 /*	typedef struct {
 /* .in +4
 /*	    int   status;	/* exit status */
-/*	    const char *dsn;	/* RFC 1893 */
+/*	    const char *dsn;	/* RFC 3463 */
 /*	    const char *text;	/* free text */
 /* .in -4
 /*	} SYS_EXITS_DETAIL;

@@ -1689,7 +1689,7 @@ extern int var_access_map_code;
 extern char *var_rbl_reply_maps;
 
 #define VAR_DEF_RBL_REPLY	"default_rbl_reply"
-#define DEF_DEF_RBL_REPLY	"$rbl_code 5.7.1 Service unavailable; $rbl_class [$rbl_what] blocked using $rbl_domain${rbl_reason?; $rbl_reason}"
+#define DEF_DEF_RBL_REPLY	"$rbl_code Service unavailable; $rbl_class [$rbl_what] blocked using $rbl_domain${rbl_reason?; $rbl_reason}"
 extern char *var_def_rbl_reply;
 
 #define REJECT_MAPS_RBL		"reject_maps_rbl"	/* backwards compat */

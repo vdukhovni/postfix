@@ -211,9 +211,18 @@
 /* .sp
 /*	This information is modified by the \fBu\fR flag for case folding.
 /* .RE
+/* STANDARDS
+/*	RFC 3463 (Enhanced status codes)
 /* DIAGNOSTICS
 /*	Command exit status codes are expected to
 /*	follow the conventions defined in <\fBsysexits.h\fR>.
+/*	Exit status 0 means normal successful completion.
+/*
+/*	Postfix version 2.3 and later support RFC 3463-style enhanced
+/*	status codes.  If a command terminates with a non-zero exit
+/*	status, and the command output begins with an enhanced
+/*	status code, this status code takes precedence over the
+/*	non-zero exit status.
 /*
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /*	Corrupted message files are marked so that the queue manager

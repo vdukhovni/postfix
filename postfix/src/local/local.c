@@ -171,6 +171,13 @@
 /*	A command is forcibly terminated if it does not complete within
 /*	\fBcommand_time_limit\fR seconds.  Command exit status codes are
 /*	expected to follow the conventions defined in <\fBsysexits.h\fR>.
+/*	Exit status 0 means normal successful completion.
+/*
+/*	Postfix version 2.3 and later support RFC 3463-style enhanced
+/*	status codes.  If a command terminates with a non-zero exit
+/*	status, and the command output begins with an enhanced
+/*	status code, this status code takes precedence over the
+/*	non-zero exit status.
 /*
 /*	A limited amount of message context is exported via environment
 /*	variables. Characters that may have special meaning to the shell
@@ -295,6 +302,7 @@
 /*	parameter.
 /* STANDARDS
 /*	RFC 822 (ARPA Internet Text Messages)
+/*	RFC 3463 (Enhanced status codes)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /*	Corrupted message files are marked so that the queue

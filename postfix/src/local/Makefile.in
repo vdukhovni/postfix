@@ -387,10 +387,12 @@ maildir.o: ../../include/mail_params.h
 maildir.o: ../../include/make_dirs.h
 maildir.o: ../../include/maps.h
 maildir.o: ../../include/mbox_conf.h
+maildir.o: ../../include/mbox_open.h
 maildir.o: ../../include/msg.h
 maildir.o: ../../include/mymalloc.h
 maildir.o: ../../include/recipient_list.h
 maildir.o: ../../include/resolve_clnt.h
+maildir.o: ../../include/safe_open.h
 maildir.o: ../../include/sane_fsops.h
 maildir.o: ../../include/sent.h
 maildir.o: ../../include/set_eugid.h

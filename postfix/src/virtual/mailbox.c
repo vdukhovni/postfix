@@ -117,7 +117,7 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
     set_eugid(usr_attr.uid, usr_attr.gid);
     mp = mbox_open(usr_attr.mailbox, O_APPEND | O_WRONLY | O_CREAT,
 		   S_IRUSR | S_IWUSR, &st, -1, -1,
-		   virtual_mbox_lock_mask, why);
+		   virtual_mbox_lock_mask, "4.2.0", why);
     if (mp != 0) {
 	if (S_ISREG(st.st_mode) == 0) {
 	    vstream_fclose(mp->fp);

@@ -186,7 +186,7 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
     set_eugid(spool_uid, spool_gid);
     mp = mbox_open(mailbox, O_APPEND | O_WRONLY | O_CREAT,
 		   S_IRUSR | S_IWUSR, &st, chown_uid, chown_gid,
-		   local_mbox_lock_mask, why);
+		   local_mbox_lock_mask, "5.2.0", why);
     if (mp != 0) {
 	if (spool_uid != usr_attr.uid || spool_gid != usr_attr.gid)
 	    set_eugid(usr_attr.uid, usr_attr.gid);

@@ -66,7 +66,7 @@
 /* .IP relay
 /*	Name of the host we're talking to.
 /* .IP dsn
-/*	X.YY.ZZ Error detail as specified in RFC 1893.
+/*	X.YY.ZZ Error detail as specified in RFC 3463.
 /* .IP entry
 /*	Message arrival time.
 /* .IP format

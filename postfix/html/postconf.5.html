@@ -1710,7 +1710,10 @@ address, or Recipient address. </dd>
 <dt><b>$rbl_code</b></dt>
 
 <dd>The numerical SMTP response code, as specified with the
-<a href="postconf.5.html#maps_rbl_reject_code">maps_rbl_reject_code</a> configuration parameter. </dd>
+<a href="postconf.5.html#maps_rbl_reject_code">maps_rbl_reject_code</a> configuration parameter. Note: The numerical
+SMTP response code is required, and must appear at the start of the
+reply. With Postfix 2.3 and later this information may be followed
+by an <a href="http://www.faqs.org/rfcs/rfc3463.html">RFC 3463</a> enhanced status code. </dd>
 
 <dt><b>$rbl_domain</b></dt>
 

@@ -161,7 +161,8 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
     set_eugid(usr_attr.uid, usr_attr.gid);
     mp = mbox_open(path, O_APPEND | O_CREAT | O_WRONLY,
 		   S_IRUSR | S_IWUSR, &st, -1, -1,
-		   local_mbox_lock_mask | MBOX_DOT_LOCK_MAY_FAIL, why);
+		   local_mbox_lock_mask | MBOX_DOT_LOCK_MAY_FAIL,
+		   "5.2.0", why);
     if (mp != 0) {
 	if (st.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH)) {
 	    vstream_fclose(mp->fp);

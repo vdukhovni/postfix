@@ -47,12 +47,13 @@
 /*	RFC 1652 (8bit-MIME transport)
 /*	RFC 1870 (Message Size Declaration)
 /*	RFC 2045 (MIME: Format of Internet Message Bodies)
-/*	RFC 2034 (Enhanced Error Codes)
+/*	RFC 2034 (Enhanced Status Codes)
 /*	RFC 2046 (MIME: Media Types)
 /*	RFC 2554 (AUTH command)
 /*	RFC 2821 (SMTP protocol)
 /*	RFC 2920 (SMTP Pipelining)
 /*	RFC 3207 (STARTTLS command)
+/*	RFC 3463 (Enhanced Status Codes)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /*	Corrupted message files are marked so that the queue manager can

@@ -16,7 +16,7 @@
 /*	output is captured for diagnostics purposes.
 /*
 /*	If the command invokes exit() with a non-zero status,
-/*	the delivery status is taken from an RFC 1893-style code
+/*	the delivery status is taken from an RFC 3463-style code
 /*	at the beginning of command output. If that information is
 /*	unavailable, the delivery status is taken from the command
 /*	exit status as per <sysexits.h>.

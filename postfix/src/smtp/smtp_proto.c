@@ -601,7 +601,7 @@ static int smtp_start_tls(SMTP_STATE *state, int misc_flags)
      */
     serverid = vstring_alloc(10);
     vstring_sprintf(serverid, "%s:%u", session->addr, ntohs(session->port));
-    if (session->helo && strcasecmp(session->host, session->helo) != 0)
+    if (session->helo != 0)
 	vstring_sprintf_append(serverid, ":%s", session->helo);
     session->tls_context =
 	tls_client_start(smtp_tls_ctx, session->stream,

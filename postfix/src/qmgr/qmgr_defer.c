@@ -47,7 +47,7 @@
 /* .IP transport
 /*	Specifies a message delivery transport.
 /* .IP dsn
-/*	X.YY.ZZ Error detail as specified in RFC 1893.
+/*	X.YY.ZZ Error detail as specified in RFC 3463.
 /* .IP reason
 /*	Free-format text that describes why delivery is deferred; this
 /*	used for logging purposes, and for updating the message-specific

@@ -929,7 +929,10 @@ The blacklisted entity type: Client host, Helo command, Sender
 address, or Recipient address.
 .IP "\fB$rbl_code\fR"
 The numerical SMTP response code, as specified with the
-maps_rbl_reject_code configuration parameter.
+maps_rbl_reject_code configuration parameter. Note: The numerical
+SMTP response code is required, and must appear at the start of the
+reply. With Postfix 2.3 and later this information may be followed
+by an RFC 3463 enhanced status code.
 .IP "\fB$rbl_domain\fR"
 The RBL domain where $rbl_what is blacklisted.
 .IP "\fB$rbl_reason\fR"

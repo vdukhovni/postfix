@@ -29,7 +29,7 @@
   * Split flat text into detail code and free text.
   */
 typedef struct {
-    char    dsn[DSN_BUFSIZE];		/* RFC 1893 X.XXX.XXX detail */
+    char    dsn[DSN_BUFSIZE];		/* RFC 3463 X.XXX.XXX detail */
     const char *text;			/* free text */
 } DSN_SPLIT;
 
@@ -50,7 +50,7 @@ extern char *dsn_prepend(const char *, const char *);
   * Easy to update pair of detail code and free text.
   */
 typedef struct {
-    char    dsn[DSN_LEN + 1];		/* RFC 1893 X.XXX.XXX detail */
+    char    dsn[DSN_LEN + 1];		/* RFC 3463 X.XXX.XXX detail */
     VSTRING *vstring;			/* free text */
 } DSN_VSTRING;
 

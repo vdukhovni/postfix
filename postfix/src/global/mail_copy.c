@@ -269,7 +269,8 @@ int     mail_copy(const char *sender,
 	dsn_vstring_update(why, TRY_AGAIN_ERROR(errno) ? "4.3.0" : "5.3.0",
 			   "error reading message: %m");
     if (why && write_error)
-	dsn_vstring_update(why, mbox_dsn(errno), "error writing message: %m");
+	dsn_vstring_update(why, mbox_dsn(errno, "5.3.0"),
+			   "error writing message: %m");
 
     /*
      * Use flag+errno description when the optional verbose description is

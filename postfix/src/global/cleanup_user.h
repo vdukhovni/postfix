@@ -71,7 +71,7 @@
 typedef struct {
     const unsigned status;		/* CLEANUP_STAT_MUMBLE */
     const int smtp;			/* RFC 821 */
-    const char *dsn;			/* RFC 1893 */
+    const char *dsn;			/* RFC 3463 */
     const char *text;			/* free text */
 } CLEANUP_STAT_DETAIL;
 

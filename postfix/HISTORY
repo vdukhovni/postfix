@@ -10487,7 +10487,7 @@ Apologies for any names omitted.
 
 20050321-27
 
-	Support for RFC 1893 enhanced status codes.  See also the
+	Support for RFC 3463 enhanced status codes.  See also the
 	ENHANCED_STATUS_README file for background.
 
 	New module to pass around (status code + text) instead of
@@ -10497,13 +10497,14 @@ Apologies for any names omitted.
 	enhanced status codes.  Files: global/sys_exits.c,
 	global/cleanup_strerror.c.
 
-	Incompatible change: centralized mapping of errno values
-	to delivery status codes after failed delivery to mailbox,
-	maildir, or file. Error codes EACCES, EAGAIN, ESTALE are
-	4.2.0 temporary errors, ENOSPC is a 4.3.0 temporary error,
-	EDQUOT and EFBIG are 5.2.2 hard errors, and everything else
-	is a 5.2.0 hard error. This means that local(8) will bounce
-	less mail, while virtual(8) will defer less mail. File:
+	Cleanup: centralized mapping of errno values to delivery
+	status codes after failed delivery to mailbox, maildir, or
+	file. Error codes EAGAIN, and ESTALE are 4.2.0 temporary
+	errors; ENOSPC is a 4.3.0 temporary error; and EDQUOT and
+	EFBIG are 5.2.2 hard errors. For backwards compatibility,
+	the result of other errors depends on the delivery agent:
+	with local(8) everything else is a 5.2.0 hard error, and
+	with virtual(8) everything else is soft 4.2.0 error.  File:
 	global/mbox_open.c.
 
 20050324
@@ -10534,12 +10535,18 @@ Apologies for any names omitted.
 
 20050327
 
-	Bugfix: the SMTP client did not ask the queue manager to
-	reduce destination concurrency after a "lost connection"
-	or "connection timed out" errror. File: smtp/smtp_trouble.c.
+	Bugfix: the SMTP and LMTP clients did not ask the queue
+	manager to reduce destination concurrency when "lost
+	connection" or "connection timed out" happened AFTER Postfix
+	received the server greeting. Files: smtp/smtp_trouble.c,
+	lmtp/lmtp-trouble.c.
 
 	Workaround: FreeBSD has incompatibly changed the output
 	format from "od", breaking regression test portability.
+
+	The TLS client session cache ID is now derived from the
+	server IP address, TCP Port, and server HELO hostname
+	if available. File: smtp/smtp_proto.c.
 
 Open problems:
 

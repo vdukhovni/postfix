@@ -127,7 +127,7 @@
 /*	Name of the host that the message could not be delivered to.
 /*	This information is used for syslogging only.
 /* .IP dsn
-/*	X.YY.ZZ Error detail as specified in RFC 1893.
+/*	X.YY.ZZ Error detail as specified in RFC 3463.
 /* .IP entry
 /*	Message arrival time.
 /* .IP orig_rcpt

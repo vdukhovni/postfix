@@ -222,7 +222,7 @@ int     main(int argc, char **argv)
     why = dsn_vstring_alloc(1);
     if ((mp = mbox_open(folder, O_APPEND | O_WRONLY | O_CREAT,
 			S_IRUSR | S_IWUSR, (struct stat *) 0,
-			-1, -1, lock_mask, why)) == 0)
+			-1, -1, lock_mask, "5.2.0", why)) == 0)
 	msg_fatal("open file %s: %s", folder, vstring_str(why->vstring));
 
     /*
