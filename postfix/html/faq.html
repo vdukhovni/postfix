@@ -668,6 +668,7 @@ to send mail only to <i>user@domain.com</i>.
     transport_maps = hash:/etc/postfix/transport
     mynetworks = 12.34.56.0/24
     smtpd_recipient_restrictions = permit_mynetworks reject_unauth_destination
+    local_transport = error:local mail delivery is disabled on this machine
 
 /etc/postfix/transport:
     domain.com   smtp:inside-gateway.domain.com   (forwards user@domain)

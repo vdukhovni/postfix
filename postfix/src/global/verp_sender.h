@@ -20,6 +20,7 @@
   * External interface.
   */
 extern VSTRING *verp_sender(VSTRING *, const char *, const char *, const char *);
+extern const char *verp_delims_verify(const char *);
 
 /* LICENSE
 /* .ad

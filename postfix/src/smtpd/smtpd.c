@@ -104,6 +104,9 @@
 /*	List of domain or network patterns. When a remote host matches
 /*	a pattern, increase the verbose logging level by the amount
 /*	specified in the \fBdebug_peer_level\fR parameter.
+/* .IP \fBdefault_verp_delimiters\fR
+/*	The default VERP delimiter characters that are used when the
+/*	XVERP command is specified without explicit delimiters.
 /* .IP \fBerror_notice_recipient\fR
 /*	Recipient of protocol/policy/resource/software error notices.
 /* .IP \fBhopcount_limit\fR
@@ -134,6 +137,8 @@
 /* .IP \fBsoft_bounce\fR
 /*	Change hard (5xx) reject responses into soft (4xx) reject responses.
 /*	This can be useful for testing purposes.
+/* .IP \fBverp_delimiter_filter\fR
+/*	The characters that Postfix accepts as VERP delimiter characters.
 /* .SH "Resource controls"
 /* .ad
 /* .fi
@@ -284,6 +289,7 @@
 #include <mail_stream.h>
 #include <mail_queue.h>
 #include <tok822.h>
+#include <verp_sender.h>
 
 /* Single-threaded server skeleton. */
 
@@ -689,14 +695,14 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    }
 #endif
 	} else if (strcasecmp(arg, VERP_CMD) == 0) {
-	    verp_delims = "";
+	    verp_delims = var_verp_delims;
 	} else if (strncasecmp(arg, VERP_CMD, VERP_CMD_LEN) == 0
 		   && arg[VERP_CMD_LEN] == '=') {
 	    verp_delims = arg + VERP_CMD_LEN + 1;
-	    if (strlen(verp_delims) != 2) {
+	    if (verp_delims_verify(verp_delims) != 0) {
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
-		smtpd_chat_reply(state, "501 Bad %s parameter: %s",
-				 VERP_CMD, arg);
+		smtpd_chat_reply(state, "501 %s needs two characters from %s",
+				 VERP_CMD, var_verp_filter);
 		return (-1);
 	    }
 	} else {

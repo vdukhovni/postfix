@@ -5322,3 +5322,28 @@ Apologies for any names omitted.
 	than -) Postfix will now recognize address extensions even
 	with owner-foo+extension addresses. This is necessary to
 	make VERP work for mailing lists.
+
+20010710
+
+	Bugfix: potential memory leak in the queue managers with
+	the new VERP delimiter record. Fix by Patrik Rak.
+
+20010711
+
+	Cleanup: you can now specify the VERP delimiter characters
+	on the sendmail(1) command line, but they are still optional.
+
+	Safety: with maildir style delivery and with hashed mailboxes
+	the system mail spool directory must not be world writable.
+
+20010713
+
+	Safety: the verp_delimiter_filter parameter (default: -=+)
+	limits what characters Postfix accepts as VERP delimiter
+	characters.
+
+20010714
+
+	Logging: the queue manager now logs a "status=expired"
+	record when it returns a message that is too old.  Files:
+	*qmgr/qmgr_active.c.

@@ -360,8 +360,8 @@ static void qmgr_active_done_2_generic(QMGR_MESSAGE *message)
      */
     if (message->flags) {
 	if (event_time() > message->arrival_time + var_max_queue_time) {
-	    if (msg_verbose)
-		msg_info("%s: too old, bouncing %s", myname, message->queue_id);
+	    msg_info("%s: from=<%s>, status=expired, returned to sender",
+		     message->queue_id, message->sender);
 	    if (message->verp_delims == 0)
 		adefer_flush(BOUNCE_FLAG_KEEP,
 			     message->queue_name,

@@ -610,6 +610,7 @@ mail_params.o: mail_version.h
 mail_params.o: mail_proto.h
 mail_params.o: ../../include/vstream.h
 mail_params.o: ../../include/iostuff.h
+mail_params.o: verp_sender.h
 mail_params.o: mail_params.h
 mail_pathname.o: mail_pathname.c
 mail_pathname.o: ../../include/sys_defs.h
@@ -1042,6 +1043,7 @@ verp_sender.o: verp_sender.c
 verp_sender.o: ../../include/sys_defs.h
 verp_sender.o: ../../include/vstring.h
 verp_sender.o: ../../include/vbuf.h
+verp_sender.o: mail_params.h
 verp_sender.o: verp_sender.h
 xtext.o: xtext.c
 xtext.o: ../../include/sys_defs.h

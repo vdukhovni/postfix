@@ -112,6 +112,7 @@
 #include <mail_addr_find.h>
 #include <opened.h>
 #include <resolve_local.h>
+#include <verp_sender.h>
 
 /* Client stubs. */
 
@@ -305,12 +306,14 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		message->warn_time = atol(start);
 	    }
 	} else if (rec_type == REC_TYPE_VERP) {
-	    if (strlen(start) != 2) {
-		msg_warn("%s: bad VERP record length: \"%s\"",
-			 message->queue_id, start);
-	    } else {
-		message->single_rcpt = 1;
-		message->verp_delims = mystrdup(start);
+	    if (message->verp_delims == 0) {
+		if (verp_delims_verify(start) != 0) {
+		    msg_warn("%s: bad VERP record content: \"%s\"",
+			     message->queue_id, start);
+		} else {
+		    message->single_rcpt = 1;
+		    message->verp_delims = mystrdup(start);
+		}
 	    }
 	}
     } while (rec_type > 0 && rec_type != REC_TYPE_END);

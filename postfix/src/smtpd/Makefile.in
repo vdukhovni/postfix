@@ -119,6 +119,7 @@ smtpd.o: ../../include/mail_stream.h
 smtpd.o: ../../include/mail_queue.h
 smtpd.o: ../../include/tok822.h
 smtpd.o: ../../include/resolve_clnt.h
+smtpd.o: ../../include/verp_sender.h
 smtpd.o: ../../include/mail_server.h
 smtpd.o: smtpd_token.h
 smtpd.o: smtpd.h

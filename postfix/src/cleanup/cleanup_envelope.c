@@ -67,6 +67,7 @@
 #include <ext_prop.h>
 #include <mail_addr.h>
 #include <canon_addr.h>
+#include <verp_sender.h>
 
 /* Application-specific. */
 
@@ -184,14 +185,12 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, 
 	    state->errs |= CLEANUP_STAT_BAD;
 	    return;
 	}
-	if (len == 0) {
-	    buf = var_verp_delim;
-	    len = strlen(buf);
-	}
-	if (len == 2) {
+	if (verp_delims_verify(buf) == 0) {
 	    cleanup_out(state, type, buf, len);
 	} else {
+	    msg_warn("%s: bad VERP delimiters: \"%s\"", state->queue_id, buf);
 	    state->errs |= CLEANUP_STAT_BAD;
+	    return;
 	}
     } else {
 	cleanup_out(state, type, buf, len);

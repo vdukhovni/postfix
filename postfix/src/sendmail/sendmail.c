@@ -78,9 +78,18 @@
 /*	Initial user submission.
 /* .IP \fB-V\fR
 /*	Variable Envelope Return Path. Given an envelope sender address
-/*	\fIprefix\fR-@\fIorigin\fR, each recipient \fIuser@domain\fR
-/*	receives mail with a personalized envelope sender address
-/*	\fIprefix\fB-\fIuser=domain\fR@\fIorigin\fR.
+/*	of the form \fIowner-listname\fR@\fIorigin\fR, each recipient
+/*	\fIuser\fR@\fIdomain\fR receives mail with a personalized envelope
+/*	sender address.
+/* .sp
+/*	By default, the personalized envelope sender address is
+/*	\fIowner-listname\fB+\fIuser\fB=\fIdomain\fR@\fIorigin\fR. The default
+/*	\fB+\fR and \fB=\fR characters are configurable with the
+/*	\fBdefault_verp_delimiters\fR configuration parameter.
+/* .IP \fB-V\fIxy\fR
+/*	As \fB-V\fR, but uses \fIx\fR and \fIy\fR as the VERP delimiter
+/*	characters, instead of the characters specified with the
+/*	\fBdefault_verp_delimiters\fR configuration parameter.
 /* .IP \fB-bd\fR
 /*	Go into daemon mode. This mode of operation is implemented by
 /*	executing the \fBpostfix start\fR command.
@@ -200,6 +209,9 @@
 /*	List of domain or network patterns. When a remote host matches
 /*	a pattern, increase the verbose logging level by the amount
 /*	specified in the \fBdebug_peer_level\fR parameter.
+/* .IP \fBdefault_verp_delimiters\fR
+/*	The VERP delimiter characters that are used when the \fB-V\fR
+/*	command line option is specified without delimiter characters.
 /* .IP \fBfast_flush_domains\fR
 /*	List of domains that will receive "fast flush" service (default: all
 /*	domains that this system is willing to relay mail to). This greatly
@@ -225,6 +237,8 @@
 /*	directory of Postfix daemons that run chrooted.
 /* .IP \fBqueue_run_delay\fR
 /*	The time between successive scans of the deferred queue.
+/* .IP \fBverp_delimiter_filter\fR
+/*	The characters that Postfix accepts as VERP delimiter characters.
 /* SEE ALSO
 /*	pickup(8) mail pickup daemon
 /*	postalias(1) maintain alias database
@@ -297,6 +311,7 @@
 #include <mail_flush.h>
 #include <mail_stream.h>
 #include <smtp_stream.h>
+#include <verp_sender.h>
 
 /* Application-specific. */
 
@@ -808,7 +823,12 @@ int     main(int argc, char **argv)
 	    optind++;
 	    continue;
 	}
-	if ((c = GETOPT(argc, argv, "B:C:F:GIN:R:UVX:b:ce:f:h:imno:p:r:q:tvx")) <= 0)
+	if (strcmp(argv[OPTIND], "-V") == 0) {
+	    verp_delims = var_verp_delims;
+	    optind++;
+	    continue;
+	}
+	if ((c = GETOPT(argc, argv, "B:C:F:GIN:R:UV:X:b:ce:f:h:imno:p:r:q:tvx")) <= 0)
 	    break;
 	switch (c) {
 	default:
@@ -832,7 +852,10 @@ int     main(int argc, char **argv)
 	case 'R':				/* DSN */
 	    break;
 	case 'V':				/* VERP */
-	    verp_delims = "";
+	    if (verp_delims_verify(optarg) != 0)
+		msg_fatal("-V option requires two characters from %s",
+			  var_verp_filter);
+	    verp_delims = optarg;
 	    break;
 	case 'b':
 	    switch (*optarg) {

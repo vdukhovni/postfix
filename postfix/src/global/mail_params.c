@@ -62,6 +62,8 @@
 /*	char	*var_fflush_domains;
 /*	char	*var_def_transport;
 /*	char	*var_mynetworks_style;
+/*	char	*var_verp_delims;
+/*	char	*var_verp_filter;
 /*
 /*	char	*var_import_environ;
 /*	char	*var_export_environ;
@@ -119,6 +121,7 @@
 #include "mail_conf.h"
 #include "mail_version.h"
 #include "mail_proto.h"
+#include "verp_sender.h"
 #include "mail_params.h"
 
  /*
@@ -180,6 +183,8 @@ char   *var_relay_domains;
 char   *var_fflush_domains;
 char   *var_def_transport;
 char   *var_mynetworks_style;
+char   *var_verp_delims;
+char   *var_verp_filter;
 
 char   *var_import_environ;
 char   *var_export_environ;
@@ -303,6 +308,8 @@ void    mail_params_init()
 	VAR_DEF_TRANSPORT, DEF_DEF_TRANSPORT, &var_def_transport, 0, 0,
 	VAR_MYNETWORKS_STYLE, DEF_MYNETWORKS_STYLE, &var_mynetworks_style, 1, 0,
 	VAR_DEBUG_PEER_LIST, DEF_DEBUG_PEER_LIST, &var_debug_peer_list, 0, 0,
+	VAR_VERP_DELIMS, DEF_VERP_DELIMS, &var_verp_delims, 2, 2,
+	VAR_VERP_FILTER, DEF_VERP_FILTER, &var_verp_filter, 1, 0,
 	0,
     };
     static CONFIG_STR_FN_TABLE function_str_defaults_2[] = {
@@ -402,4 +409,11 @@ void    mail_params_init()
      */
     if (strcasecmp(var_myhostname, var_relayhost) == 0)
 	msg_fatal("myhostname == relayhost");
+
+    /*
+     * One more sanity check.
+     */
+    if ((cp = verp_delims_verify(var_verp_delims)) != 0)
+	msg_fatal("%s or %s configuration problem: %s",
+		  VAR_VERP_DELIMS, VAR_VERP_FILTER, cp);
 }

@@ -87,3 +87,4 @@ sendmail.o: ../../include/resolve_clnt.h
 sendmail.o: ../../include/mail_flush.h
 sendmail.o: ../../include/mail_stream.h
 sendmail.o: ../../include/smtp_stream.h
+sendmail.o: ../../include/verp_sender.h

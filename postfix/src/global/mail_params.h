@@ -1275,9 +1275,13 @@ extern int var_qmqpd_err_sleep;
   * VERP, more DJB intellectual cross-pollination. However, we prefer + as
   * the default recipient delimiter.
   */
-#define VAR_VERP_DELIM			"default_verp_delimiters"
-#define DEF_VERP_DELIM			"+="
-extern char *var_verp_delim;
+#define VAR_VERP_DELIMS			"default_verp_delimiters"
+#define DEF_VERP_DELIMS			"+="
+extern char *var_verp_delims;
+
+#define VAR_VERP_FILTER			"verp_delimiter_filter"
+#define DEF_VERP_FILTER			"-=+"
+extern char *var_verp_filter;
 
 /* LICENSE
 /* .ad

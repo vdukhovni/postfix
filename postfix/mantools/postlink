@@ -48,5 +48,6 @@ exec sed '
 	s/[<bB>]*virtual[</bB>]*(5)/<a href="virtual.5.html">&<\/a>/
 	s/[<bB>]*virtual[</bB>]*(8)/<a href="virtual.8.html">&<\/a>/
 	s/\(<a href="[^"]*">\)\([<bB>]*[a-z0-9-]*[-</bB>]*\)\(\n *\)\([<bB>]*[a-z0-9-]*[</bB>]*([0-9])\)\(<\/a>\)/\1\2\5\3\1\4\5/
+	s/http:\/\/[^ ,]*/<a href="&">&<\/a>/
 	s/RFC *\([0-9]*\)/<a href="http:\/\/www.faqs.org\/rfcs\/rfc\1.html">&<\/a>/
 ' "$@"

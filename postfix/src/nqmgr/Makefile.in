@@ -138,6 +138,7 @@ qmgr_deliver.o: ../../include/mail_proto.h
 qmgr_deliver.o: ../../include/recipient_list.h
 qmgr_deliver.o: ../../include/mail_params.h
 qmgr_deliver.o: ../../include/deliver_request.h
+qmgr_deliver.o: ../../include/verp_sender.h
 qmgr_deliver.o: qmgr.h
 qmgr_deliver.o: ../../include/scan_dir.h
 qmgr_deliver.o: ../../include/maps.h
@@ -204,6 +205,7 @@ qmgr_message.o: ../../include/mail_addr_find.h
 qmgr_message.o: ../../include/maps.h
 qmgr_message.o: ../../include/opened.h
 qmgr_message.o: ../../include/resolve_local.h
+qmgr_message.o: ../../include/verp_sender.h
 qmgr_message.o: ../../include/resolve_clnt.h
 qmgr_message.o: qmgr.h
 qmgr_message.o: ../../include/scan_dir.h

@@ -1,3 +1,19 @@
+Incompatible changes with snapshot-20010714
+===========================================
+
+Postfix delivery agents now refuse to create a missing maildir or
+mail spool subdirectory when its parent directory is world writable.
+This is necessary to prevent security problems with maildirs or
+with hashed mailboxes under a world writable mail spool directory.
+
+Major changes with snapshot-20010714
+====================================
+
+No major changes. What changes were made result in more polished
+VERP (variable envelope return path) support and documentation,
+and in updated documentation on how to use Postfix QMQP with the
+ezmlm-idx mailing list manager.
+
 Incompatible changes with snapshot-20010709
 ===========================================
 

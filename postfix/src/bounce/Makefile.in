@@ -147,5 +147,6 @@ bounce_notify_verp.o: ../../include/post_mail.h
 bounce_notify_verp.o: ../../include/cleanup_user.h
 bounce_notify_verp.o: ../../include/mail_addr.h
 bounce_notify_verp.o: ../../include/mail_error.h
+bounce_notify_verp.o: ../../include/verp_sender.h
 bounce_notify_verp.o: bounce_service.h
 bounce_notify_verp.o: ../../include/bounce_log.h
