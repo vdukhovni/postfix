@@ -1,9 +1,9 @@
-This code was created by Andrew McNamara <andrew@connect.com.au>
-and adapted to snapshot 20001121 by Xavier Beaudouin. It was merged
-with mainstream Postfix for snapshot 20010128 by Wietse.
-
-See the VIRTUAL_README file for an overview of how you can host
+This document describes the Postfix virtual delivery agent. See
+the HOSTING_README file for an overview of all methods to host
 multiple domains with one Postfix system.
+
+The virtual delivery was created by Andrew McNamara and adapted by
+Xavier Beaudouin. It was merged with mainstream Postfix by Wietse.
 
 Purpose of this software
 ========================
@@ -11,16 +11,16 @@ Purpose of this software
 You can use the virtual delivery agent for mailbox delivery of some
 or all domains that are handled by a machine.
 
-This mechanism is different from virtual alias domains. Those
-are implemented by translating every recipient address into a
-different address. For that, see the virtual(5) manual page.
-
 With the virtual delivery agent, every recipient adress can have
 its own mailbox. There is no translation from recipient addresses
-into different addresses.
+into other mail addresses.
 
-This is what Andrew McNamara wrote when he made the virtual delivery
-agent available.
+This mechanism is different from virtual alias domains (described
+in virtual(5)). Those are implemented by translating every recipient
+address into a different address.
+
+This an updated version of what Andrew McNamara wrote when he made
+the virtual delivery agent available.
 
 "This code is designed for ISP's who offer virtual mail hosting.
 It looks up the user mailbox location, uid and gid via separate

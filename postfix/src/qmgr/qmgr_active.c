@@ -327,6 +327,7 @@ static void qmgr_active_done_2_generic(QMGR_MESSAGE *message)
     char   *myname = "qmgr_active_done_2_generic";
     const char *path;
     struct stat st;
+    int     status;
 
     /*
      * A delivery agent marks a queue file as corrupt by changing its
@@ -363,12 +364,16 @@ static void qmgr_active_done_2_generic(QMGR_MESSAGE *message)
      * trace information. This will block for 10 seconds when the qmgr FIFO
      * is full.
      */
-    if (message->tflags & (DEL_REQ_FLAG_EXPAND | DEL_REQ_FLAG_RECORD))
-        message->flags |= trace_flush(message->tflags,
-                                      message->queue_name,
-                                      message->queue_id,
-                                      message->encoding,
-                                      message->sender);
+    if (message->tflags & (DEL_REQ_FLAG_EXPAND | DEL_REQ_FLAG_RECORD)) {
+	status = trace_flush(message->tflags,
+			     message->queue_name,
+			     message->queue_id,
+			     message->encoding,
+			     message->sender);
+	if (status == 0 && message->tflags_offset)
+	    qmgr_message_kill_record(message, message->tflags_offset);
+	message->flags |= status;
+    }
 
     /*
      * If we get to this point we have tried all recipients for this message.

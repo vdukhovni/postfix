@@ -6,7 +6,60 @@ system, either by making the software log a lot of detail to the
 syslog daemon, or by running some daemon processes under control
 of an interactive debugger.
 
-2 - Verbose logging for specific SMTP connections
+The text assumes that the Postfix main.cf and master.cf configuration
+files are stored in directory /etc/postfix. You can use the command
+"postconf config_directory" to find out the actual location of this
+directory on your machine.
+
+2 - Try turning off chroot operation in master.cf
+=================================================
+
+A common mistake is to turn on chroot operation in the master.cf
+file without going through all the necessary steps to set up a
+chroot environment. This causes Postfix daemon processes to fail
+due to all kinds of missing files.
+
+Inspect master.cf for any chrooted processes, save a copy of the
+master.cf file, and edit the entries that have chroot operation
+turned on.  After executing the commands "postfix stop" and "postfix
+start", see if the problem has gone away. 
+
+If turning off chrooted operation made the problem go away, then
+congratulations.  Leaving Postfix running in this way is adequate
+for most sites.  If you prefer chrooted operation, see the Postfix
+INSTALL file for information about how to prepare Postfix for
+chrooted operation.
+
+3 - Look for obvious signs of trouble
+=====================================
+
+Postfix logs all failed and successful deliveries to a logfile.
+The file is usually called /var/log/maillog or /var/log/mail; the
+exact pathname is defined in the syslog.conf file.
+
+First look for errors that prevent Postfix from working at all:
+
+    % egrep '(warning|error|fatal|panic):' /some/log/file | more
+
+Note: the most important message is near the BEGINNING of the output.
+Error messages that come later are less useful.
+
+"PANIC" messages indicate a problem in the software itself that
+only a programmer can fix. Postfix cannot proceed until this is
+fixed.
+
+"FATAL" messages are the result of mssing files, incorrect permissions,
+incorrect configuration file settings. Postfix cannot proceed until
+this is fixed.
+
+"ERROR" messages report a fatal or non-fatal error condition.
+
+"WARNING" messages indicate non-fatal errors. These are problems
+that you may not be able to fix (such as a broken DNS server
+elsewhere on the network) but may also indicate local configuration
+errors that could become a problem later.
+
+4 - Verbose logging for specific SMTP connections
 =================================================
 
 In /etc/postfix/main.cf, list the remote site name or address in
@@ -18,8 +71,8 @@ from or to the loopback interface:
 
 You can specify one or more hosts, domains, addresses or net/masks.
 
-2b - Record the SMTP connection with a sniffer
-==============================================
+5 - Record the SMTP connection with a sniffer
+=============================================
 
 This example uses tcpdump. In order to record a conversation you
 need to specify a large enough buffer or else you will miss some
@@ -28,17 +81,17 @@ or all of the packet payload.
     tcpdump -w /file/name -s 2000 host hostname and port 25
 
 Run this for a while, stop with Ctrl-C when done. To view the data
-use a binary viewer, or use my tcpdumpx utility that is available
-from ftp://ftp.porcupine.org/pub/debugging.
+use a binary viewer, or ethereal, or use my tcpdumpx utility that
+is available from ftp://ftp.porcupine.org/pub/debugging.
 
-3 - Making Postfix daemon programs more verbose
+6 - Making Postfix daemon programs more verbose
 ===============================================
 
 Append one or more -v options to selected daemon definitions in
 /etc/postfix/master.cf and type "postfix reload". This will cause
 a lot of activity to be logged to the syslog daemon.
 
-4 - Manually tracing a Postfix daemon process
+7 - Manually tracing a Postfix daemon process
 =============================================
 
 Some systems allow you to inspect a running process with a system
@@ -61,7 +114,7 @@ a process is attempting to do. This is as much information as you
 can get without running an interactive debugger program, as described
 in a later section.
 
-5 - Automatically tracing a Postfix daemon process
+8 - Automatically tracing a Postfix daemon process
 ==================================================
 
 Postfix can attach a call tracer whenever a daemon process starts.
@@ -88,7 +141,7 @@ that it invokes the call tracer of your choice, for example:
 
 Type "postfix reload" and watch the logfile.
 
-6 - Running daemon programs under a debugger
+9 - Running daemon programs under a debugger
 ============================================
 
 Append a -D option to the suspect command in /etc/postfix/master.cf,
@@ -141,8 +194,8 @@ Two choices are described in detail:
    xxgdb) or a file is created (if using gdb in non-interactive
    mode).
 
-7 - Unreasonable behavior
-=========================
+10 - Unreasonable behavior
+==========================
 
 Sometimes the behavior exhibit by Postfix just does not match the
 source code. Why can a program deviate from the instructions given

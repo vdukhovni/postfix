@@ -15,7 +15,18 @@ the same bugfixes as a patch release.
 Incompatible changes with Postfix snapshot 2.0.16-2004XXXX
 ==========================================================
 
-The SMTP server no longer accept sender addresses that match a
+Queue files creates with "sendmail -v" are no longer compatible
+with earlier Postfix 2.x versions. A new record type, "killed",
+was introduced in order to avoid repeated mail delivery notification
+reports with mail that could not be delivered due to a temproary
+error condition.
+
+The format of the postfix-files file has changed. There is a new
+type for hard links. With hard or symbolic link entries, the first
+field is now the destination pathname and the "owner" field is now
+the origin pathname, while "group" and "permissions" are ignored.
+
+The SMTP server no longer accepts sender addresses that match a
 local, virtual or relay domain while the address is not listed as
 valid in the corresponding local, virtual or relay recipient table.
 This is not configurable.

@@ -64,11 +64,15 @@ command.
 
 <p>
 
+<a href="#hangup">Limiting the number of connections per client</a>
+
+<p>
+
 <a href="#slowdown">Slowing down bad clients</a>
 
 </ul>
 
-<a name="process"><h2> Process limits</h2>
+<a name="process"><h2> Process limits</h2></a>
 
 The <b>default_process_limit</b> parameter (default: 100) gives
 direct control over inbound and outbound delivery rates.  This
@@ -99,7 +103,7 @@ smtp      inet  n       -       -       -       5       smtpd
 
 </dl>
 
-<a name="destination"><h2> Destination concurrency</h2>
+<a name="destination"><h2> Destination concurrency</h2></a>
 
 So, you have this huge mailhub with tons of disk and memory, and
 have configured Postfix to run up to 1000 SMTP client processes at
@@ -154,7 +158,7 @@ A destination concurrency limit of 20 for SMTP delivery seems enough
 to noticeably load a system without bringing it to its knees. Be
 careful when changing this to a much larger number.
 
-<a name="recipients"><h2> Recipient limits</h2>
+<a name="recipients"><h2> Recipient limits</h2></a>
 
 The <b>default_destination_recipient_limit</b> parameter (default:
 50) controls how many recipients a Postfix delivery agent (<b>smtp</b>,
@@ -191,7 +195,7 @@ That's more than any reasonable SMTP client would send.  The limit
 exists just to protect the local mail system against a malicious
 or confused client.
 
-<a name="postponing"><h2> Always postponing delivery</h2>
+<a name="postponing"><h2> Always postponing delivery</h2></a>
 
 The <b>defer_transports</b> parameter allows you to specify what
 mail should always be deferred until Postfix is explicitly asked
@@ -264,7 +268,7 @@ first field changed to <b>hold</b>.
 
 </dl>
 
-<a name="backoff"><h2> Backoff from unreachable hosts</h2>
+<a name="backoff"><h2> Backoff from unreachable hosts</h2></a>
 
 When a Postfix delivery agent (<b>smtp, local, uucp,</b> etc.)
 is unable to deliver a message it may blame the message itself or
@@ -295,111 +299,148 @@ little parameters.
 
 <dl>
 
-<dt> <b>queue_run_delay</b> (default: 1000 seconds) <dd> How
-often the queue manager scans the queue for deferred mail.
+<dt> <a name="queue_run_delay"> <b>queue_run_delay</b></a> (default:
+1000 seconds) <dd> How often the queue manager scans the queue for
+deferred mail.
 
 <p>
 
-<dt> <b>maximal_queue_lifetime</b> (default: 5 days) <dd> How
-long a message stays in the queue before it is sent back as
-undeliverable. Specify 0 for mail that should be returned
-immediately after the first unsuccessful delivery attempt.
+<dt> <a name="maximal_queue_lifetime"> <b>maximal_queue_lifetime</b></a>
+(default: 5 days) <dd> How long a message stays in the queue before
+it is sent back as undeliverable. Specify 0 for mail that should
+be returned immediately after the first unsuccessful delivery
+attempt.
 
 <p>
 
-<dt> <b>bounce_queue_lifetime</b> (default: $maximal_queue_lifetime)
-<dd> How long a bounce message stays in the queue before it is
-considered undeliverable. Specify 0 for mail that should be returned
-immediately after the first unsuccessful delivery attempt.
+<dt> <a name="bounce_queue_lifetime"> <b>bounce_queue_lifetime</b></a>
+(default: $maximal_queue_lifetime) <dd> How long a bounce message
+stays in the queue before it is considered undeliverable. Specify
+0 for mail that should be returned immediately after the first
+unsuccessful delivery attempt.
 
 <p>
 
-<dt> <b>minimal_backoff_time</b> (default: 1000 seconds) <dd> The
-minimal amount of time a message won't be looked at, and the minimal
-amount of time to stay away from a "dead" destination.
+<dt> <a name="minimal_backoff_time"> <b>minimal_backoff_time</b></a>
+(default: 1000 seconds) <dd> The minimal amount of time a message
+won't be looked at, and the minimal amount of time to stay away
+from a "dead" destination.
 
 <p>
 
-<dt> <b>maximal_backoff_time</b> (default: 4000 seconds) <dd> The
-maximal amount of time a message won't be looked at after a delivery
-failure.
+<dt> <a name="maximal_backoff_time"> <b>maximal_backoff_time</b></a>
+(default: 4000 seconds) <dd> The maximal amount of time a message
+won't be looked at after a delivery failure.
 
 <p>
 
-<dt> <b>qmgr_message_recipient_limit</b> (default: 20000) <dd> The
+<dt> <a name="qmgr_message_recipient_limit">
+<b>qmgr_message_recipient_limit</b></a> (default: 20000) <dd> The
 size of many in-memory queue manager data structures.  Among others,
 this parameter limits the size of the short-term, in-memory "dead"
 list.  Destinations that don't fit the list are not added.
 
 </dl>
 
-<a name="slowdown"><h2> Slowing down bad clients</h2>
+<a name="hangup"><h2>Limiting the number of connections per client</h2></a>
 
-First of all, no defense will protect against an all-out denial of
-service attack. I just don't want to raise impossible expectations.
-But there are a few simple things one can do in order to deal with
-confused or malicious client programs.
-
-<p>
-
-Some defenses are part of a more general strategy: for example,
-how long a line of text may be before it is broken up into pieces,
-and how much text may be carried in a multi-line message header.
-See the <a href="resource.html">resource controls</a> documentation
-for details.
+First of all, no Postfix defense will protect against an all-out
+denial of service attack. I just don't want to raise impossible
+expectations.  But there are a few simple things one can do in
+order to deal with confused or malicious client programs.
 
 <p>
 
-The Postfix <a href="smtpd.8.html">SMTP server</a> increments a
-per-session error counter whenever a client request is unrecognized
-or unimplemented, or whenever a client request violates <a
-href="uce.html">UCE restrictions</a> or other reasons.  The error
-counter is reset when a message is transferred successfully.
-
-<p>
-
-As the per-session error count increases, the SMTP server changes
-behavior.  The idea is to limit the damage by slowing down the
-client. The behavior is controlled by the following parameters:
+The Postfix <a href="smtpd.8.html">SMTP server</a> can limit the
+number of connections that an SMTP client is allowed to make,
+simultaneously or within an interval of time.  The configuration
+parameters that control this are:
 
 <p>
 
 <dl>
 
-<a name="smtpd_error_sleep_time">
-
-<dt> <b>smtpd_error_sleep_time</b> (default: 1 second) <dd> When
-the per-session error count is small, the SMTP server pauses only
-when reporting a problem to a client. The purpose is to prevent
-naive clients from going into a fast <i>connect-error-disconnect</i>
-loop.
-
-<p>
-
-<a name="smtpd_soft_error_limit">
-
-<dt> <b>smtpd_soft_error_limit</b> (default: 10) <dd> When the
-per-session error count exceeds this value, the SMTP server sleeps
-<b>error_count</b> seconds before responding to a client request.
+<dt> <a name="smtpd_client_connection_count_limit">
+<b>smtpd_client_connection_count_limit</b></a> (default: 50) <dd>
+An upper bound on the number of simultaneous connections that an
+SMTP client is allowed to make. When a client exceeds the limit
+Postfix replies with a 421 status code and breaks the connection.
+To avoid wasting time, specify <b>smtpd_error_sleep_time = 0</b>.
 
 <p>
 
-<a name="smtpd_hard_error_limit">
+<dt> <a name="smtpd_client_connection_rate_limit">
+<b>smtpd_client_connection_rate_limit</b></a> (default: unlimited)
+<dd> An upper bound on the number of subsequent connections that
+an SMTP client is allowed to make per unit time. When a client
+exceeds the limit Postfix replies with a 421 status code and breaks
+the connection. To avoid wasting time, specify <b>smtpd_error_sleep_time
+= 0</b>.
 
-<dt> <b>smtpd_hard_error_limit</b> (default: 20) <dd> When
-the per-session error count exceeds this value, the SMTP server
-disconnects.
+<p>
+
+<dt> <a name="smtpd_client_connection_limit_exceptions">
+<b>smtpd_client_connection_limit_exceptions</b></a> (default:
+<b>$mynetworks</b>) <dd> A description of SMTP clients that are
+excluded from connection count and rate limits. By default,
+local or trusted clients are excluded.
+
+<p>
+
+<dt> <a name="rate_limiter_time_unit"> <b>rate_limiter_time_unit</b></a>
+(default: 60s) <dd> The time unit for computing the client connection
+and other rates.
 
 </dl>
 
+
+<a name="slowdown"><h2> Slowing down bad clients</h2></a>
+
+The Postfix <a href="smtpd.8.html">SMTP server</a> increments a
+per-session error counter whenever a client request is unrecognized
+or unimplemented, whenever a client request violates <a
+href="uce.html">UCE restrictions</a>, or for other reasons that
+cause Postfix to report an error of some kind.  The error counter
+is reset after a message is transferred successfully.
+
 <p>
 
-Unfortunately, the Postfix SMTP server does not yet know how to
-limit the number of connections <i> from the same client</i>,
-other than by limiting the total number of SMTP server processes
-(see <a href="#process">process limit</a>).  Things could be worse:
-some mailers don't even implement an SMTP server process limit.
-That's of course no excuse.  I'm still looking for a good solution.
+As the per-session error count increases, the SMTP server changes
+behavior and inserts delays before responding.  The idea is to
+limit the damage by slowing down the client. The downside is that
+this ties up Postfix resources that can no longer be used by
+legitimate clients.  Sites that are concerned about performance
+may want to turn off the delays altogether.
+
+<p>
+
+The behavior is controlled by the following parameters:
+
+<p>
+
+<dl>
+
+<dt> <a name="smtpd_error_sleep_time"> <b>smtpd_error_sleep_time</b></a>
+(default: 1 second) <dd> When the per-session error count is small,
+the SMTP server pauses only when reporting a problem to a client.
+The purpose is to prevent naive clients from going into a fast
+<i>connect-error-disconnect</i> loop.
+
+<p>
+
+<dt> <a name="smtpd_soft_error_limit"> <b>smtpd_soft_error_limit</b></a>
+(default: 10) <dd> When the per-session error count exceeds this
+value, the SMTP server sleeps <b>error_count</b> seconds before
+responding to a client request.
+
+<p>
+
+
+<dt> <a name="smtpd_hard_error_limit"> <b>smtpd_hard_error_limit</b></a>
+(default: 20) <dd> When the per-session error count exceeds this
+value, the SMTP server disconnects.
+
+</dl>
 
 <hr>
 

@@ -319,7 +319,7 @@ SMTPD(8)                                                 SMTPD(8)
 
        <b>smtpd_client_connection_rate_limit</b>
               The maximal number of  connections  per  unit  time
-              (specified with <b>connection_rate_time_unit</b>) that any
+              (specified  with  <b>rate_limiter_time_unit</b>)  that any
               client is allowed to make to this service.  When  a
               client  exceeds  the  limit, the SMTP server logs a
               warning with the client name/address and  the  ser-

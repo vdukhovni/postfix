@@ -5,7 +5,7 @@
 # parameters that control compatibility with broken software.
 
 # The broken_sasl_auth_clients controls inter-operability with SMTP
-# clients that do not recognize that Postfix supports RFC 2554 (AUTH
+# clients that implement an obsolete version of RFC 2554 (the AUTH
 # command).  Examples of such clients are MicroSoft Outlook Express
 # version 4 and MicroSoft Exchange version 5.0.
 # 
@@ -31,7 +31,8 @@ ignore_mx_lookup_error = no
 smtp_always_send_ehlo = yes
 
 # The smtp_never_send_ehlo parameter specifies that the SMTP client 
-# should never send EHLO at the start of an SMTP session.
+# should never send EHLO at the start of an SMTP session. This turns
+# off advanced features and can solve an inter-operability problem.
 #
 smtp_never_send_ehlo = no
 
@@ -51,7 +52,8 @@ smtp_skip_4xx_greeting = yes
 #
 # By default, Postfix moves on the the next mail exchanger. Specify
 # "smtp_skip_5xx_greeting = no" if Postfix should bounce the mail
-# immediately.
+# immediately. The default setting is incorrect, but it is what a
+# lot of people expect to happen.
 # 
 smtp_skip_5xx_greeting = yes
 
@@ -70,3 +72,26 @@ smtp_skip_quit_response = yes
 # By default, Postfix SMTPD allows RFC822 syntax in MAIL FROM and RCPT TO.
 #
 strict_rfc821_envelopes = no
+
+# The smtp_pix_workaround_sleep_time parameter specifies how long
+# the Postfix SMTP client pauses before sending .<CR><LF>, in order
+# to work around the PIX firewall <CR><LF>.<CR><LF> bug.
+#
+# The default delay is 10 seconds.  Choosing a too short time makes
+# this workaround ineffective while sending large messages over slow
+# network connections.
+#
+smtp_pix_workaround_delay_time = 10s
+
+# The smtp_pix_workaround_threshold_time parameter specifies how
+# long a message must be queued before the PIX firewall <CR><LF>.<CR><LF>
+# bug workaround is turned on.
+# 
+# By default, the workaround is turned off for mail that is queued
+# for less than 500 seconds. In other words, the workaround is normally
+# turned off for the first delivery attempt.
+# 
+# Specify 0 to enable the PIX firewall <CR><LF>.<CR><LF> bug workaround
+# upon the first delivery attempt.
+# 
+smtp_pix_workaround_threshold_time = 500s

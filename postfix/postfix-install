@@ -255,9 +255,10 @@ compare_or_symlink() {
 	'`
 	ln -s $link $tempdir/junk || exit 1
 	mv -f $tempdir/junk $2 || {
-	    echo $0: Error: your mv command is unable to rename symlinks. 1>&2
+	    echo $0: Error: your mv command has trouble renaming symlinks. 1>&2
 	    echo If you run Linux, upgrade to GNU fileutils-4.0 or better, 1>&2
 	    echo or choose a tempdir that is in the same file system as $2. 1>&2
+	    echo If you run FreeBSD, upgrade to version 5 or better. 1>&2
 	    exit 1
 	}
     }
@@ -523,8 +524,6 @@ DAEMON_DIRECTORY=$install_root$daemon_directory
 COMMAND_DIRECTORY=$install_root$command_directory
 QUEUE_DIRECTORY=$install_root$queue_directory
 SENDMAIL_PATH=$install_root$sendmail_path
-NEWALIASES_PATH=$install_root$newaliases_path
-MAILQ_PATH=$install_root$mailq_path
 MANPAGE_DIRECTORY=$install_root$manpage_directory
 SAMPLE_DIRECTORY=$install_root$sample_directory
 README_DIRECTORY=$install_root$readme_directory
@@ -577,6 +576,12 @@ do
 	 };;
     esac
 
+    # Save source path before it is clobbered.
+
+    case $type in
+    [hl]) eval source=$owner;;
+    esac
+
     # If installing from source code, apply special permissions or ownership.
     # If building a package, don't apply special permissions or ownership.
 
@@ -596,24 +601,23 @@ do
 	group=;;
     esac
 
-    # Create directory.
 
     case $type in
-       d) eval path=$install_root$path
-	  test "$path" = "${install_root}no" -o -d $path || {
-	      mkdir -p $path || exit 1
-	      test -z "$owner" || chown $owner $path || exit 1
-	      test -z "$group" || chgrp $group $path || exit 1
-	      chmod $mode $path || exit 1
-	  }
-	  continue;;
-    [fl]) ;;
-       *) echo $0: Error: unknown type for $path in conf/postfix-files; exit 1;;
-    esac
 
-    # Install or replace file.
+     # Create/update directory.
 
-    echo $path | (IFS=/ read prefix file; IFS="$BACKUP_IFS"
+     d) eval path=$install_root$path
+	test "$path" = "${install_root}no" -o -d $path || {
+	    mkdir -p $path || exit 1
+	    test -z "$owner" || chown $owner $path || exit 1
+	    test -z "$group" || chgrp $group $path || exit 1
+	    chmod $mode $path || exit 1
+	}
+	continue;;
+
+     # Create/update regular file.
+
+     f) echo $path | (IFS=/ read prefix file; IFS="$BACKUP_IFS"
 	case $prefix in
 	'$daemon_directory')
 	    compare_or_replace $mode "$owner" "$group" libexec/$file \
@@ -628,15 +632,6 @@ do
 	    check_parent $SENDMAIL_PATH || exit 1
 	    compare_or_replace $mode "$owner" "$group" bin/sendmail \
 		$SENDMAIL_PATH || exit 1;;
-	'$mailq_path')
-	    check_parent $MAILQ_PATH || exit 1
-	    compare_or_symlink $SENDMAIL_PATH $MAILQ_PATH || exit 1;;
-	'$nqmgr_path')
-	    compare_or_hardlink $DAEMON_DIRECTORY/qmgr \
-		$DAEMON_DIRECTORY/nqmgr || exit 1;;
-	'$newaliases_path')
-	    check_parent $NEWALIASES_PATH || exit 1
-	    compare_or_symlink $SENDMAIL_PATH $NEWALIASES_PATH || exit 1;;
 	'$manpage_directory')
 	    check_parent $MANPAGE_DIRECTORY/$file || exit 1
 	    compare_or_replace $mode "$owner" "$group" man/$file \
@@ -648,9 +643,32 @@ do
 	    test "$readme_directory" = "no" ||
 		compare_or_replace $mode "$owner" "$group" README_FILES/$file \
 		    $README_DIRECTORY/$file || exit 1;;
-	 *) echo $0: Error: unknown entry $path in conf/postfix-files; exit 1;;
-    esac) || exit 1
-done
+	 *) echo $0: Error: unknown entry $path in conf/postfix-files 1>&2
+	    exit 1;;
+	esac) || exit 1
+	continue;;
+
+     # Hard link
+
+     h) eval dest_path=$install_root$path
+	check_parent $dest_path || exit 1
+	eval source_path=$install_root$source
+	compare_or_hardlink $source_path $dest_path || exit 1
+	continue;;
+
+     # Symbolic link
+
+     l) eval dest_path=$install_root$path
+	check_parent $dest_path || exit 1
+	eval source_path=$install_root$source
+	compare_or_symlink $source_path $dest_path || exit 1
+	continue;;
+
+     *) echo $0: Error: unknown type $type for $path in conf/postfix-files 1>&2
+	exit 1;;
+    esac
+
+    done
 
 # Save the installation parameters to main.cf even when they haven't
 # changed from their current default. Defaults can change between

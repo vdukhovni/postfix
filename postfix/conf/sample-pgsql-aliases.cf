@@ -1,6 +1,5 @@
 #
 # pgsql config file for alias lookups on postfix
-# comments are ok.
 #
 
 # the user name and password to log into the pgsql server

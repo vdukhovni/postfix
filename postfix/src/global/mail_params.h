@@ -544,7 +544,7 @@ extern int var_max_backoff_time;
 extern int var_max_queue_time;
 
 #define VAR_DSN_QUEUE_TIME	"bounce_queue_lifetime"
-#define DEF_DSN_QUEUE_TIME	"$" VAR_MAX_QUEUE_TIME	/* XXX no time unit */
+#define DEF_DSN_QUEUE_TIME	"5d"
 extern int var_dsn_queue_time;
 
 #define VAR_DELAY_WARN_TIME	"delay_warning_time"
@@ -1953,7 +1953,7 @@ extern int var_smtpd_cconn_limit;
 #define DEF_SMTPD_HOGGERS		"$" VAR_MYNETWORKS
 extern char *var_smtpd_hoggers;
 
-#define VAR_ANVIL_TIME_UNIT		"client_connection_rate_time_unit"
+#define VAR_ANVIL_TIME_UNIT		"rate_limiter_time_unit"
 #define DEF_ANVIL_TIME_UNIT		"60s"
 extern int var_anvil_time_unit;
 

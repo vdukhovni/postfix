@@ -1,8 +1,8 @@
 WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
 ===============================================================
 The content filtering approach described in this document is suitable
-only for low-traffic sites. It performs poorly under high load. See
-the "Pros ans Cons" section below for details.
+only for low-traffic sites. See the "Pros ans Cons" section below
+for details.
 
 Purpose of the before-queue content filter feature
 ==================================================
@@ -39,7 +39,7 @@ of the following:
 
 The before-queue content filter functions just like the after-queue
 content filter. In many cases you can use the same content filtering
-software, with some limitations as discussed in the "Pros and Cons"
+software, within the limitations as discussed in the "Pros and Cons"
 section below.
 
 Using the SMTP pass-through proxy feature
@@ -72,6 +72,7 @@ This is configured by editing the master.cf file:
     #
     smtp      inet  n       -       n       -       20      smtpd
         -o smtpd_proxy_filter=localhost:10025
+	-o smtpd_client_connection_count_limit=10
     #
     # After-filter SMTP server. Receive mail from the content filter
     # on localhost port 10026.
@@ -94,6 +95,11 @@ the top of the master.cf file:
 - The number of SMTP sessions is reduced from the default 100 to
   only 20. This prevents a burst of mail from running your system
   into the ground with too many content filter processes.
+
+- The "-o smtpd_client_connection_count_limit=10" prevents one
+  SMTP client from using up all 20 SMTP server processes.  This
+  limit is not necessary if you receive all mail from a trusted
+  relay host.
 
 - The "-o smtpd_proxy_filter=localhost:10025" tells the before
   filter SMTP server that it should give incoming mail to the
@@ -209,20 +215,24 @@ feature set with the feature set that Postfix receives from the
 real-time content filter.
 
 - When a future Postfix version supports DSN, but the content filter
-does not announce DSN support in the EHLO reply, then the before-filter
-SMTP server would have to either 1) suppress the DSN feature in
-its EHLO announcement, or 2) duplicate all the work that needs to
-be done when delivering DSN-aware mail to a non-DSN destination.
+  does not announce DSN support in the EHLO reply, then the
+  before-filter SMTP server would have to either 1) suppress the
+  DSN feature in its EHLO announcement, or 2) duplicate all the
+  work that needs to be done when delivering DSN-aware mail to a
+  non-DSN destination.
 
 - When the content filter does not announce 8BITMIME support in
-the EHLO reply, then the before-filter SMTP server would have to
-either 1) suppress the 8BITMIME feature in its EHLO announcement,
-or 2) convert the content to quoted-printable before giving it to
-the content filter.
+  the EHLO reply, then the before-filter SMTP server would have to
+  either 1) suppress the 8BITMIME feature in its EHLO announcement,
+  or 2) convert the content to quoted-printable before giving it
+  to the content filter.
 
 - Performance: when Postfix has to suppress elements from the
-before-filter EHLO reply because they are incompatible with the
-real-time content filter, then Postfix has to connect to the content
-filter as soon as the client sends a valid EHLO command. This wastes
-a lot of resources when all the MAIL FROM or RCPT TO commands are
-rejected.
+  before-filter EHLO reply because they are incompatible with the
+  real-time content filter, then Postfix has to connect to the
+  content filter as soon as the client sends a valid EHLO command.
+  This wastes a lot of resources when all the MAIL FROM or RCPT TO
+  commands are rejected.
+
+Therefore, the Postfix SMTP server cannot be transparent with
+respect to the before-queue content filter.

@@ -1,0 +1,423 @@
+Purpose of this document
+========================
+
+This document gives an overview of how to use Postfix for hosting
+multiple Internet domains, both for final delivery on the machine
+itself and for the purpose of forwarding to destinations elsewhere.
+
+It not only describes delivery mechanisms that are already built
+into Postfix, but also gives pointers for using non-Postfix mail
+delivery software.
+
+The following topics are covered:
+
+- Preliminaries
+  - Local files versus databases
+  - Canonical versus hosted domains
+- As simple as can be: shared domains, UNIX system accounts
+- Postfix virtual alias domains: separate domains, UNIX system accounts
+- Postfix virtual mailbox domains: separate domains, non-UNIX accounts
+- Non-Postfix mailbox store: separate domains, non-UNIX accounts
+- Mail forwarding domains
+- Aliases, mailing lists, etc.
+
+Preliminaries: local files versus databases
+===========================================
+
+The examples in this text use table lookups from local files.
+These are easy to debug with the postmap "-q" command option.
+
+Example: postmap -q info@example.com hash:/etc/postfix/virtual
+
+See LDAP_README, MYSQL_README and PGSQL_README for how to replace
+local files by databases. The reader is strongly advised to make
+the system work with local files before migrating to database files,
+and to use the postmap "-q" command option to verify that database
+lookups produce the exact same results as local file lookup.
+
+Example: postmap -q info@example.com ldap:/etc/postfix/virtual.cf
+
+Preliminaries: canonical versus hosted domains
+==============================================
+
+Most Postfix systems do final email delivery for only a few domain
+names.  These include the names of the machine that Postfix runs
+on, and sometimes include their parent domain.  The remainder of
+this document will refer to these domains as the canonical domains.
+
+Besides the canonical domains, Postfix can be configured to do
+final delivery for any number of additional domains.  These domains
+are called hosted, because they are not directly associated with
+the name of the machine itself.
+
+As simple as can be: shared domains, UNIX system accounts
+=========================================================
+
+The simplest method to host an additional domain is to add the
+domain name to the domains listed in the Postfix mydestination
+configuration parameter, and to add the user names to the UNIX
+password file.
+
+This approach makes no distinction between canonical and hosted
+domains. Each username can receive mail in every domain.
+
+In the examples we will use "example.com" as the domain that is
+being hosted on the local Postfix machine.
+
+/etc/postfix/main.cf:
+    mydestination = $myhostname localhost.$mydomain ... example.com
+
+The downside of this approach is a total lack of separation: mail
+for info@my.host.name is delivered to the same UNIX system account
+as mail for info@example.com.  
+
+Another downside of listing all users in the UNIX password file is
+that administration of large numbers of users becomes inconvenient.
+
+Postfix virtual ALIAS domains: separate domains, UNIX system accounts
+=====================================================================
+
+The approach described in this section maintains separation between
+email addresses in canonical and hosted domains, while still using
+UNIX system accounts.
+
+With virtual alias domains, each hosted address is aliased to a
+UNIX system account.  The example below shows how to use this
+mechanism for the example.com domain.
+
+/etc/postfix/main.cf:
+    virtual_alias_domains = example.com ...other hosted domains...
+    virtual_alias_maps = hash:/etc/postfix/virtual
+
+/etc/postfix/virtual:
+    postmaster@example.com postmaster
+    info@example.com       joe
+    sales@example.com      jane
+    # Uncomment entry below to implement a catch-all address
+    # @example.com         jim
+    ...virtual aliases for other domains...
+
+The virtual_alias_domains setting tells Postfix that example.com
+is a so-called virtual alias domain. If you omit this setting then
+Postfix will reject mail (relay access denied) or will not be able
+to deliver it (mail for example.com loops back to myself).
+
+NEVER list a virtual alias domain name as a mydestination domain!
+
+The /etc/postfix/virtual file contains the virtual aliases. With
+the example above, mail for postmaster@example.com goes to the
+local postmaster, while mail for info@example.com goes to the UNIX
+account joe, and mail for sales@example.com goes to the UNIX account
+jane.  Mail for all other addresses in example.com is rejected with
+the error message "User unknown".
+
+The commented out entry (text after #) shows how one would implement
+a catch-all virtual alias that receives mail for every example.com
+address not listed in the virtual alias file. This is not without
+risk.  Spammers nowadays try to send mail from (or mail to) every
+possible name that they can think of. A catch-all mailbox is likely
+to receive many spam messages, and many bounces for spam messages
+that were sent in the name of anything@example.com.
+
+Execute the command "postmap /etc/postfix/virtual" after changing
+the virtual file, and execute the command "postfix reload" after
+changing the main.cf file.
+
+Note: virtual aliases can resolve to a local address or to a remote
+address, or both.  They don't have to resolve to UNIX system accounts
+on your machine.
+
+More details about the virtual alias file are given in the virtual(5)
+manual page, including multiple addresses on the right-hand side.
+
+Virtual aliasing solves one problem: it allows each domain to have
+its own info mail address. But there still is one drawback:  each
+virtual address is aliased to a UNIX system account. As you add
+more virtual addresses you also add more UNIX system accounts.
+The next section eliminates this problem.
+
+Postfix virtual MAILBOX domains: separate domains, non-UNIX accounts
+====================================================================
+
+As a system hosts more and more domains and users, it becomes
+less desirable to give everyone their own UNIX system account.
+
+With the Postfix virtual delivery agent, every recipient address
+can have its own virtual mailbox. Unlike virtual alias domains,
+there is no translation from recipient addresses into different
+addresses.
+
+The Postfix virtual delivery agent looks up the user mailbox
+pathname, uid and gid via separate tables that are searched with
+the recipient's mail address. Maildir style delivery is turned on
+by terminating the mailbox pathname with "/".
+
+If you find the idea of multiple tables bothersome, remember that
+you can migrate the information (once it works), to an SQL database.
+If you take that route, be sure to review the "local files versus
+databases" section at the top of this document.
+
+Here is an example of a virtual mailbox domain example.com:
+
+/etc/postfix/main.cf:
+    virtual_mailbox_domains = example.com ...other domains...
+    virtual_mailbox_base = /var/mail/vhosts
+    virtual_mailbox_maps = hash:/etc/postfix/vmailbox
+    virtual_minimum_uid = 100
+    virtual_uid_maps = static:5000
+    virtual_gid_maps = static:5000
+    virtual_alias_maps = hash:/etc/postfix/virtual
+
+/etc/postfix/vmailbox:
+    info@example.com    example.com/info
+    sales@example.com   example.com/sales/
+    # Comment out the entry below to implement a catch-all.
+    # @example.com      example.com/catchall
+    ...virtual mailboxes for other domains...
+
+/etc/postfix/virtual:
+    postmaster@example.com postmaster
+
+This example assumes that main.cf lists the value of myorigin in
+the mydestination parameter setting.  If that is not the case,
+specify an explicit domain name on the right-hand side of the
+virtual alias table entries.
+
+The virtual_mailbox_domains setting tells Postfix that example.com
+is a so-called virtual mailbox domain. If you omit this setting
+then Postfix will reject mail (relay access denied) or will not be
+able to deliver it (mail for example.com loops back to myself).
+
+NEVER list a virtual MAILBOX domain name as a mydestination domain!
+
+NEVER list a virtual MAILBOX domain name as a virtual ALIAS domain!
+
+The virtual_mailbox_base parameter specifies a prefix for all
+virtual mailbox pathnames. This is a safety mechanism in case
+someone makes a mistake. It prevents mail from being delivered all
+over the file system.
+
+The virtual_mailbox_maps parameter specifies the lookup table with
+mailbox (or maildir) pathnames, indexed by the virtual mail address.
+In this example, mail for info@example.com goes to the mailbox at
+/var/mail/vhosts/example.com/info while mail for sales@example.com
+goes to the maildir located at /var/mail/vhosts/example.com/sales/.
+
+The virtual_minimum_uid prevents specifies a lower bound on the
+mailbox or maildir owner's UID.  This is a safety mechanism in case
+someone makes a mistake. It prevents mail from being written to
+sensitive files.
+
+In the above example, the virtual_uid_maps and virtual_gid_maps
+parameters specify that all the virtual mailboxes are owned by a
+fixed uid and gid 5000.  If this is not what you want, specify
+lookup tables that are searched by the recipient's mail address.
+
+The commented out entry (text after #) shows how one would implement
+a catch-all virtual mailbox address. Be prepared to receive a lot
+of spam, as well as bounced spam that was sent in the name of
+anything@example.com.
+
+NEVER put a virtual MAILBOX wild-card in the virtual ALIAS file!!
+
+As you see above, it is possible to mix virtual aliases with virtual
+mailboxes. We use this feature to redirect mail for example.com's
+postmaster address to the local postmaster. You can use the same
+mechanism to redirect an addresses to a remote address.
+
+This approach maintains separation between canonical domains and
+hosted domains by listing the domain names in mydestination and
+virtual_mailbox_domains, respectively.
+
+The separation between hosted domains is maintained by listing the
+full email addresses in the virtual mailbox map.
+
+Execute the command "postmap /etc/postfix/virtual" after changing
+the virtual file, execute "postmap /etc/postfix/vmailbox" after
+changing the vmailbox file, and execute the command "postfix reload"
+after changing the main.cf file.
+
+Note: mail delivery happens with the recipient's UID/GID privileges.
+Postfix will not create mailDIRs; you must create them in advance
+before you can use them. Postfix may be able to create mailBOX
+files by itself, depending on directory write permissions, but it
+is safer to create mailBOX files ahead of time.
+
+More details about the virtual mailbox delivery agent are given
+in the file VIRTUAL_MAILBOX_README, and in the virtual(8) manual
+page.
+
+Non-Postfix mailbox store: separate domains, non-UNIX accounts
+==============================================================
+
+This is a variation on the Postfix virtual mailbox domain mechanism.
+Again, every hosted address can have its own mailbox. 
+
+While non-Postfix software is being used for final delivery, some
+Postfix concepts are still needed in order to glue everything
+together.  For additional background on this glue you may want to
+take a look at the ADDRESS_CLASS_README file.
+
+The text in this section describes what things should look like
+from Postfix's point of view. See LMTP_README or MAILDROP_README
+for specific information about Cyrus or about Courier maildrop.
+
+Here is an example for a hosted domain example.com that delivers
+to a non-Postfix delivery agent:
+
+/etc/postfix/main.cf:
+    virtual_transport = ...see below...
+    virtual_mailbox_domains = example.com ...other domains...
+    virtual_mailbox_maps = hash:/etc/postfix/vmailbox
+    virtual_alias_maps = hash:/etc/postfix/virtual
+
+/etc/postfix/vmailbox:
+    info@example.com    whatever
+    sales@example.com   whatever
+    # Comment out the entry below to implement a catch-all.
+    # You also need to configure the mailbox store to accept all addresses.
+    # @example.com      whatever
+    ...virtual mailboxes for other domains...
+
+/etc/postfix/virtual:
+    postmaster@example.com postmaster
+
+This example assumes that main.cf lists the value of myorigin in
+the mydestination parameter setting.  If that is not the case,
+specify an explicit domain name on the right-hand side of any
+virtual alias table entries.
+
+With delivery to a non-Postfix mailbox store for hosted domains,
+the virtual_transport parameter usually specifies the Postfix LMTP
+client, or the name of a master.cf entry that executes non-Postfix
+software via the pipe delivery agent.  Typical examples:
+
+    virtual_transport = lmtp:unix:/path/name (uses UNIX-domain socket)
+    virtual_transport = lmtp:hostname:port   (uses TCP socket)
+    virtual_transport = maildrop:            (uses pipe(8) to command)
+
+Postfix comes ready with support for LMTP.  And an example maildrop
+delivery method is already defined in the default Postfix master.cf
+file.
+
+In the main.cf file example above, the virtual_mailbox_domains
+setting tells Postfix that example.com is delivered via the
+virtual_transport that was discussed in the previous paragraph. If
+you omit this virtual_mailbox_domains setting then Postfix will
+either reject mail (relay access denied) or will not be able to
+deliver it (mail for example.com loops back to myself).
+
+NEVER list a virtual MAILBOX domain name as a mydestination domain!
+
+NEVER list a virtual MAILBOX domain name as a virtual ALIAS domain!
+
+The virtual_mailbox_maps parameter above specifies the lookup table
+with all valid recipient addresses. The lookup result is ignored
+by Postfix.  In the above example, info@example.com and sales@example.com
+are listed as valid addresses, and mail for anything else is rejected
+with "User unknown". If you intend to use LDAP, MySQL or PgSQL
+instead of local files, be sure to review the "local files versus
+databases" section at the top of this document!
+
+The commented out entry (text after #) shows how one would inform
+Postfix of the existence of a catch-all address. Again, the lookup
+result is ignored by Postfix.
+
+NEVER put a virtual MAILBOX wild-card in the virtual ALIAS file!!
+
+Note: if you specify a wildcard in virtual_mailbox_maps, then you
+still need to configure the non-Postfix mailbox store to receive
+mail for any address in that domain.
+
+As you see above, it is possible to mix virtual aliases with virtual
+mailboxes. We use this feature to redirect mail for example.com's
+postmaster address to the local postmaster. You can use the same
+mechanism to redirect any addresses to a local or remote address.
+
+Execute the command "postmap /etc/postfix/virtual" after changing
+the virtual file, execute "postmap /etc/postfix/vmailbox" after
+changing the vmailbox file, and execute the command "postfix reload"
+after changing the main.cf file.
+
+Mail forwarding domains
+=======================
+
+Some providers host domains that have no (or only a few) local
+mailboxes. The main purpose of these domains is to forward mail
+elsewhere.  The following example shows how to set up example.com
+as a mail forwarding domain:
+
+/etc/postfix/main.cf:
+    virtual_alias_domains = example.com ...other hosted domains...
+    virtual_alias_maps = hash:/etc/postfix/virtual
+
+/etc/postfix/virtual:
+    postmaster@example.com postmaster
+    joe@example.com        joe@somewhere
+    jane@example.com       jane@somewhere-else
+    # Uncomment entry below to implement a catch-all address
+    # @example.com         jim@yet-another-site
+    ...virtual aliases for other domains...
+
+The virtual_alias_domains setting tells Postfix that example.com
+is a so-called virtual alias domain. If you omit this setting then
+Postfix will reject mail (relay access denied) or will not be able
+to deliver it (mail for example.com loops back to myself).
+
+NEVER list a virtual alias domain name as a mydestination domain!
+
+The /etc/postfix/virtual file contains the virtual aliases. With
+the example above, mail for postmaster@example.com goes to the
+local postmaster, while mail for joe@example.com goes to the remote
+address joe@somewhere, and mail for jane@example.com goes to the
+remote address jane@somewhere-else.  Mail for all other addresses
+in example.com is rejected with the error message "User unknown".
+
+The commented out entry (text after #) shows how one would implement
+a catch-all virtual alias that receives mail for every example.com
+address not listed in the virtual alias file. This is not without
+risk.  Spammers nowadays try to send mail from (or mail to) every
+possible name that they can think of. A catch-all mailbox is likely
+to receive many spam messages, and many bounces for spam messages
+that were sent in the name of anything@example.com.
+
+Execute the command "postmap /etc/postfix/virtual" after changing
+the virtual file, and execute the command "postfix reload" after
+changing the main.cf file.
+
+More details about the virtual alias file are given in the virtual(5)
+manual page, including multiple addresses on the right-hand side.
+
+Aliases, mailing lists, etc.
+============================
+
+The examples that were given above already show how to direct mail
+for virtual postmaster addresses to a local postmaster. You can
+use the same method to direct mail for any address to a local or
+remote address.
+
+There is one major limitation:  virtual aliases and virtual mailboxes
+can't directly deliver to mailing list managers such as majordomo.
+The solution is to set up virtual aliases that direct virtual
+addresses to the local delivery agent:
+
+/etc/postfix/main.cf:
+    virtual_alias_maps = hash:/etc/postfix/virtual
+
+/etc/postfix/virtual:
+    listname-request@example.com listname-request
+    listname@example.com         listname
+    owner-listname@example.com   owner-listname
+
+/etc/aliases:
+    listname: "|/some/where/majordomo/wrapper ..."
+    owner-listname: ...
+    listname-request: ...
+
+This example assumes that main.cf lists the value of myorigin in
+the mydestination parameter setting.  If that is not the case,
+specify an explicit domain name on the right-hand side of the
+virtual alias table.
+
+More information about the Postfix local delivery agent can be
+found in the local(8) manual page.

@@ -622,8 +622,12 @@ flush_clnt.o: mail_proto.h
 flush_clnt.o: ../../include/iostuff.h
 flush_clnt.o: ../../include/attr.h
 flush_clnt.o: mail_flush.h
-flush_clnt.o: flush_clnt.h
 flush_clnt.o: mail_params.h
+flush_clnt.o: domain_list.h
+flush_clnt.o: ../../include/match_list.h
+flush_clnt.o: ../../include/match_ops.h
+flush_clnt.o: match_parent_style.h
+flush_clnt.o: flush_clnt.h
 header_opts.o: header_opts.c
 header_opts.o: ../../include/sys_defs.h
 header_opts.o: ../../include/msg.h
@@ -821,6 +825,7 @@ mail_dict.o: ../../include/vstream.h
 mail_dict.o: ../../include/vbuf.h
 mail_dict.o: ../../include/argv.h
 mail_dict.o: ../../include/msg.h
+mail_dict.o: dict_proxy.h
 mail_dict.o: dict_ldap.h
 mail_dict.o: dict_mysql.h
 mail_dict.o: dict_pgsql.h

@@ -51,6 +51,7 @@ REC_TYPE_NAME rec_type_names[] = {
     REC_TYPE_ORCP, "original_recipient",
     REC_TYPE_WARN, "warning_message_time",
     REC_TYPE_ATTR, "named_attribute",
+    REC_TYPE_KILL, "killed_record",
     REC_TYPE_MESG, "message_content",
     REC_TYPE_CONT, "unterminated_text",
     REC_TYPE_NORM, "regular_text",

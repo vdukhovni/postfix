@@ -22,7 +22,11 @@
 # File types:
 #	d=directory
 #	f=regular file
-#	l=symlink
+#	h=hard link (*)
+#	l=symbolic link (*)
+#
+# (*) With hard links and symbolic links, the owner field becomes the
+#     source pathname, while the group and permissions are ignored.
 #
 # File flags:
 #	No flag means the flag is not active.
@@ -76,7 +80,7 @@ $daemon_directory/spawn:f:root:-:755
 $daemon_directory/trivial-rewrite:f:root:-:755
 $daemon_directory/verify:f:root:-:755
 $daemon_directory/virtual:f:root:-:755
-$nqmgr_path:l:root:-:755
+$daemon_directory/nqmgr:h:$daemon_directory/qmgr
 $command_directory/postalias:f:root:-:755
 $command_directory/postcat:f:root:-:755
 $command_directory/postconf:f:root:-:755
@@ -89,8 +93,8 @@ $command_directory/postsuper:f:root:-:755
 $command_directory/postdrop:f:root:$setgid_group:2755:u
 $command_directory/postqueue:f:root:$setgid_group:2755:u
 $sendmail_path:f:root:-:755
-$newaliases_path:l:root:-:755
-$mailq_path:l:root:-:755
+$newaliases_path:l:$sendmail_path
+$mailq_path:l:$sendmail_path
 $config_directory/LICENSE:f:root:-:644
 $config_directory/access:f:root:-:644:p
 $config_directory/aliases:f:root:-:644:p
@@ -162,7 +166,7 @@ $manpage_directory/man8/verify.8:f:root:-:644
 $manpage_directory/man8/virtual.8:f:root:-:644
 $sample_directory/sample-aliases.cf:f:root:-:644
 $sample_directory/sample-auth.cf:f:root:-:644
-$sample_directory/sample-canonical.cf:f:root:-:644
+$sample_directory/sample-canonical.cf:f:root:-:644:o
 $sample_directory/sample-compatibility.cf:f:root:-:644
 $sample_directory/sample-debug.cf:f:root:-:644
 $sample_directory/sample-filter.cf:f:root:-:644
@@ -196,6 +200,7 @@ $readme_directory/DB_README:f:root:-:644
 $readme_directory/DEBUG_README:f:root:-:644
 $readme_directory/ETRN_README:f:root:-:644
 $readme_directory/FILTER_README:f:root:-:644
+$readme_directory/HOSTING_README:f:root:-:644
 $readme_directory/INSTALL:f:root:-:644
 $readme_directory/LDAP_README:f:root:-:644
 $readme_directory/LINUX_README:f:root:-:644
@@ -219,6 +224,6 @@ $readme_directory/ULTRIX_README:f:root:-:644
 $readme_directory/UUCP_README:f:root:-:644
 $readme_directory/VERP_README:f:root:-:644
 $readme_directory/VIRTUAL_MAILBOX_README:f:root:-:644
-$readme_directory/VIRTUAL_README:f:root:-:644
+$readme_directory/VIRTUAL_README:f:root:-:644:o
 $readme_directory/XCLIENT_README:f:root:-:644
 $readme_directory/XFORWARD_README:f:root:-:644

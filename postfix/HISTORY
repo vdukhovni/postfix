@@ -9011,6 +9011,37 @@ Apologies for any names omitted.
 	Safety: add warnings to postmap and postalias when table
 	lookup results in an empty string.
 
+20040110
+
+	Example: script to run qmail-local from Postfix by Ron
+	Bickers.
+
+	Change: queue minfree limit is now 1.5 * message size limit.
+	Files: smtpd/smtpd_check.c.
+
+20040115
+
+	Bugfix: allow delivery concurrency to increase even while
+	mail is deferred, as long as the delivery agent does not
+	report really serious trouble with the destination.  Files:
+	*qmgr/qmgr_deliver.c.
+
+	Bugfix: report lost connection and timeout as a serious
+	destination problem. Files: [sl]mtp/[sl]mtp_trouble.c.
+
+	Cleanup: in postfix-files, symbolic links and hard links
+	are now first-class entries with explicit mention of
+	source and destination pathnames. Files: postfix-install,
+	conf/postfix-files, conf/post-install.
+
+20040116
+
+	Cleanup: sendmail -v caused one mail delivery reports upon
+	every delivery attempt, not just the first one. The fix is
+	to "kill" a queue file record after the first delivery
+	attempt. Files:  *qmgr/qmgr_active.c, *qmgr/qmgr_message.c,
+	global/rec_type.c.
+
 Open problems:
 
 	Low: in the SMTP client, pass the session, request and

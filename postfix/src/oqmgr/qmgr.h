@@ -216,6 +216,7 @@ struct QMGR_MESSAGE {
     int     flags;			/* delivery problems */
     int     qflags;			/* queuing flags */
     int     tflags;			/* tracing flags */
+    long    tflags_offset;		/* offset for killing */
     int     rflags;			/* queue file read flags */
     VSTREAM *fp;			/* open queue file or null */
     int     refcount;			/* queue entries */
@@ -255,6 +256,7 @@ extern int qmgr_recipient_count;
 
 extern void qmgr_message_free(QMGR_MESSAGE *);
 extern void qmgr_message_update_warn(QMGR_MESSAGE *);
+extern void qmgr_message_kill_record(QMGR_MESSAGE *, long);
 extern QMGR_MESSAGE *qmgr_message_alloc(const char *, const char *, int);
 extern QMGR_MESSAGE *qmgr_message_realloc(QMGR_MESSAGE *);
 

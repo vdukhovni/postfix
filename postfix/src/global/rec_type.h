@@ -24,6 +24,9 @@
   * record group contains data records with the message content. The last
   * record group is optional; it contains information extracted from message
   * headers, such as recipients, errors-to and return-receipt.
+  * 
+  * Note: REC_TYPE_FILT and REC_TYPE_CONT are encoded with the same 'L'
+  * constant, and it  is too late to change that now.
   */
 #define REC_TYPE_SIZE	'C'		/* first record, created by cleanup */
 #define REC_TYPE_TIME	'T'		/* time stamp, required */
@@ -36,6 +39,7 @@
 #define REC_TYPE_ORCP	'O'		/* original recipient, optional */
 #define REC_TYPE_WARN	'W'		/* warning message time */
 #define REC_TYPE_ATTR	'A'		/* named attribute for extensions */
+#define REC_TYPE_KILL	'K'		/* killed record */
 
 #define REC_TYPE_RDR	'>'		/* redirect target */
 #define REC_TYPE_FLGS	'f'		/* cleanup processing flags */
@@ -61,8 +65,8 @@
   * have to read all the queue file records before starting delivery. This
   * is often the case with list mail, where such optimization is desirable.
   */
-#define REC_TYPE_ENV_RECIPIENT	"MDRO"
-#define REC_TYPE_EXT_RECIPIENT	"EDRO"
+#define REC_TYPE_ENV_RECIPIENT	"MDROK"
+#define REC_TYPE_EXT_RECIPIENT	"EDROK"
 
  /*
   * The types of records that I expect to see while processing different
@@ -78,9 +82,9 @@
   * Note: REC_TYPE_FILT and REC_TYPE_CONT are encoded with the same 'L'
   * constant, and it  is too late to change that now.
   */
-#define REC_TYPE_ENVELOPE	"MCTFILSDROWVA>"
+#define REC_TYPE_ENVELOPE	"MCTFILSDROWVA>K"
 #define REC_TYPE_CONTENT	"XLN"
-#define REC_TYPE_EXTRACT	"EDROPreAFIL>"
+#define REC_TYPE_EXTRACT	"EDROPreAFIL>K"
 
  /*
   * The subset of inputs that the postdrop command allows.

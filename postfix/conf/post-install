@@ -405,6 +405,12 @@ test -n "$create" && {
 	[$]*) ;;
 	   *) continue;;
 	esac
+	# Skip hard links and symbolic links.
+	case $type in
+	[hl]) continue;;
+	[df]) ;;
+	   *) echo unknown type $type for $path in $config_directory/postfix-files1>&2; exit 1;;
+	esac
 	# Expand $name, and canonicalize null fields.
 	for name in path owner group flags
 	do
@@ -562,6 +568,7 @@ EOF
 
     # Turn on safety nets for new features that could bounce mail that
     # would be accepted by a previous Postfix version.
+    # This safety net is also documented in LOCAL_RECIPIENT_README.
 
     unknown_local=unknown_local_recipient_reject_code
     has_lrm=`$POSTCONF -n local_recipient_maps`

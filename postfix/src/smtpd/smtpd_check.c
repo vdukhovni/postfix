@@ -2279,6 +2279,13 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
      * Check the hostnames first, then the addresses.
      */
     for (server = server_list; server != 0; server = server->next) {
+	if (msg_verbose)
+	    msg_info("%s: %s hostname check: %s",
+		     myname, dns_strtype(type), (char *) server->data);
+	if ((status = check_domain_access(state, table, (char *) server->data,
+				      FULL, &found, reply_name, reply_class,
+					  def_acl)) != 0 || found)
+	    CHECK_SERVER_RETURN(status);
 	h_errno = 0;				/* XXX */
 	if ((hp = gethostbyname((char *) server->data)) == 0) {
 	    msg_warn("Unable to look up %s host %s for %s %s: %s",
@@ -2292,13 +2299,6 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 		       hp->h_addrtype, hp->h_length, (char *) server->data);
 	    continue;				/* XXX */
 	}
-	if (msg_verbose)
-	    msg_info("%s: %s hostname check: %s",
-		     myname, dns_strtype(type), (char *) server->data);
-	if ((status = check_domain_access(state, table, (char *) server->data,
-				      FULL, &found, reply_name, reply_class,
-					  def_acl)) != 0 || found)
-	    CHECK_SERVER_RETURN(status);
 	if (msg_verbose)
 	    msg_info("%s: %s host address check: %s",
 		     myname, dns_strtype(type), (char *) server->data);

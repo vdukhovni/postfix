@@ -8,7 +8,7 @@
 # described in the respective sample-transportname.cf file.
 
 # The default_delivery_slot_cost parameter controls how often
-# is the scheduler allowed to preempt one message with another.
+# the scheduler is allowed to preempt one message with another.
 #
 # Each transport maintains so-called "available delivery slot counter" for
 # each message. One message can be preempted by another one when the other

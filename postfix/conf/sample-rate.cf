@@ -56,7 +56,7 @@ maximal_queue_lifetime = 5d
 #
 # Specify 0 when mail delivery should be tried only once.
 #
-bounce_queue_lifetime = $maximal_queue_lifetime
+bounce_queue_lifetime = 5d
 
 # The minimal_backoff_time parameter specifies the minimal time
 # between attempts to deliver a deferred message.  This parameter

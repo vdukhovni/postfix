@@ -22,6 +22,10 @@
 /*
 /*	void	qmgr_message_update_warn(message)
 /*	QMGR_MESSAGE *message;
+/*
+/*	void	qmgr_message_kill_record(message, offset)
+/*	QMGR_MESSAGE *message;
+/*	long	offset;
 /* DESCRIPTION
 /*	This module performs en-gross operations on queue messages.
 /*
@@ -60,6 +64,11 @@
 /*
 /*	qmgr_message_update_warn() takes a closed message, opens it, updates
 /*	the warning field, and closes it again.
+/*
+/*	qmgr_message_kill_record() takes a closed message, opens it, updates
+/*	the record type at the given offset to "killed", and closes the file.
+/*	A killed envelope record is ignored. Killed records are not allowed
+/*	inside the message content.
 /* DIAGNOSTICS
 /*	Warnings: malformed message file. Fatal errors: out of memory.
 /* SEE ALSO
@@ -147,6 +156,7 @@ static QMGR_MESSAGE *qmgr_message_create(const char *queue_name,
     message->flags = 0;
     message->qflags = qflags;
     message->tflags = 0;
+    message->tflags_offset = 0;
     message->rflags = QMGR_READ_FLAG_DEFAULT;
     message->fp = 0;
     message->refcount = 0;
@@ -553,6 +563,10 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	    /* Optional tracing flags. */
 	    else if (strcmp(name, MAIL_ATTR_TRACE_FLAGS) == 0) {
 		message->tflags = DEL_REQ_TRACE_FLAGS(atoi(value));
+		if (message->tflags == DEL_REQ_FLAG_RECORD)
+		    message->tflags_offset = curr_offset;
+		else
+		    message->tflags_offset = 0;
 	    }
 	    continue;
 	}
@@ -668,6 +682,19 @@ void    qmgr_message_update_warn(QMGR_MESSAGE *message)
     if (qmgr_message_open(message)
 	|| vstream_fseek(message->fp, message->warn_offset, SEEK_SET) < 0
     || rec_fprintf(message->fp, REC_TYPE_WARN, REC_TYPE_WARN_FORMAT, 0L) < 0
+	|| vstream_fflush(message->fp))
+	msg_fatal("update queue file %s: %m", VSTREAM_PATH(message->fp));
+    qmgr_message_close(message);
+}
+
+/* qmgr_message_kill_record - mark one message record as killed */
+
+void    qmgr_message_kill_record(QMGR_MESSAGE *message, long offset)
+{
+    if (offset <= 0)
+	msg_panic("qmgr_message_kill_record: bad offset 0x%lx", offset);
+    if (qmgr_message_open(message)
+	|| rec_put_type(message->fp, REC_TYPE_KILL, offset) < 0
 	|| vstream_fflush(message->fp))
 	msg_fatal("update queue file %s: %m", VSTREAM_PATH(message->fp));
     qmgr_message_close(message);

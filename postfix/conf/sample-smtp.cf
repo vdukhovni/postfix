@@ -11,9 +11,15 @@
 # The best_mx_transport parameter controls what happens when the
 # local system is listed as the best MX host for a destination. By
 # default, Postfix reports a "mail loops back to myself" error and
-# bounces the message. Specify "best_mx_transport = local" to pass
-# the mail to the local delivery agent. You can specify any transport
-# that is defined in the master.cf file.
+# returns the message as undeliverable.
+#
+# Specify, for example, "best_mx_transport = local" to pass the mail
+# to the local delivery agent. You can specify any message delivery
+# transport that is defined in the master.cf file.
+#
+# However, this feature is expensive because it ties up an SMTP client
+# process until the mail is delivered. It is better to list all hosted
+# domains in a table. Use a database is necessary.
 #
 # best_mx_transport =
 
@@ -24,15 +30,15 @@
 # By default, mail is bounced when a destination is not found, and
 # delivery is deferred if a destination is unreachable.
 #
-# In the case of SMTP, specify a domain, host, host:port, [host]:port,
-# [address] or [address]:port; the form [host] turns off MX lookups.
-# If you specify multiple SMTP destinations, Postfix will try them
-# in the specified order.
+# The fallback relays must be SMTP destinations. Specify a domain,
+# host, host:port, [host]:port, [address] or [address]:port; the form
+# [host] turns off MX lookups.  If you specify multiple SMTP
+# destinations, Postfix will try them in the specified order.
 #
 fallback_relay = 
 
 # The ignore_mx_lookup_error parameter controls what happens when a
-# name server fails to respond to an MX lookup request. By default,
+# name server does not respond to an MX lookup request. By default,
 # Postfix defers delivery and tries again after some delay. Specify
 # "ignore_mx_lookup_error = yes" to force an A record lookup instead.
 #
@@ -58,17 +64,20 @@ smtp_never_send_ehlo = no
 
 # The smtp_bind_address parameter specifies a numerical network
 # address that the client should bind to when making a connection.
-# This can be used in the main.cf file, or in the master.cf file,
+#
+# This can be specified in the main.cf file for all SMTP clients, or
+# it can be specified in the master.cf file for a specific client,
 # for example:
 # 
-# 	smtp ... smtp -o smtp_bind_address=111.222.333.444
+#   /etc/postfix/master.cf:
+# 	smtp ... smtp -o smtp_bind_address=11.22.33.44
 # 
-#smtp_bind_address=111.222.333.444
+#smtp_bind_address=11.22.33.44
 
 # The smtp_defer_if_no_mx_address_found parameter controls what
 # Postfix will do when no MX record resolves to an IP address (Postfix
 # always ignores MX records with equal or worse preference than the
-# local MTA).
+# local MTA itself).
 # 
 # The default (no) is to return the mail as undeliverable. With older
 # Postfix versions the default was to keep trying to deliver the mail
@@ -85,8 +94,8 @@ smtp_mx_address_limit = 0
 
 # The smtp_mx_session_limit parameter limits the number of SMTP
 # sessions per delivery request before giving up or delivering to a
-# fall-back relay host, ignoring IP addresses that fail to complete
-# the SMTP initial handshake.
+# fall-back relay host. This restriction ignores IP addresses that
+# fail to complete the SMTP initial handshake.
 # 
 # By default, Postfix SMTP client gives up or delivers to fall-back
 # relay after two SMTP sessions.  
@@ -96,13 +105,14 @@ smtp_mx_address_limit = 0
 smtp_mx_session_limit = 2
 
 # The smtp_send_xforward_command parameter controls whether the Postfix
-# SMTP client will send an XFORWARD command to the SMTP server, when
-# the ESMTP HELO response of the remote host indicates XFORWARD support.
-# This allows an "smtp" delivery agent, used for content filter
-# message injection, to forward the name, address, protocol and HELO
+# SMTP client will use the non-standard XFORWARD feature when it talks
+# to an SMTP server that announces XFORWARD support.
+#
+# This allows an "smtp" delivery agent, used for injecting mail into
+# a content filter, to forward the name, address, protocol and HELO
 # name of the original client to the content filter and downstream
-# queuing SMTP server. Before you change the value to yes, it is best
-# to make sure your content filter supports this command.
+# queuing SMTP server. This can produce more useful logging than
+# localhost[127.0.0.1] etc.
 # 
 smtp_send_xforward_command = no
 
@@ -119,12 +129,16 @@ smtp_send_xforward_command = no
 # in the EHLO or HELO command. 
 # 
 # The default value is the machine hostname.  Specify a hostname or
-# [ip.address].  This can be used in the main.cf file, or in the
-# master.cf file, for example:
+# [ip.address].
+#
+# This can be specified in the main.cf file for all SMTP clients, or
+# it can be specified in the master.cf file for a specific client,
+# for example:
 # 
+#   /etc/postfix/master.cf:
 # 	smtp ... smtp -o smtp_helo_name=foo.bar.com
 # 
-#smtp_helo_name = $myhostname
+smtp_helo_name = $myhostname
 
 # The smtp_skip_4xx_greeting parameter controls what happens when
 # an SMTP server greets us with a 4XX status code (go away, try
@@ -142,7 +156,8 @@ smtp_skip_4xx_greeting = yes
 #
 # By default, Postfix moves on the the next mail exchanger. Specify
 # "smtp_skip_5xx_greeting = no" if Postfix should bounce the mail 
-# immediately.
+# immediately. The default setting is incorrect, but it is what a
+# lot of people expect to happen.
 #
 smtp_skip_5xx_greeting = yes
 
@@ -193,7 +208,7 @@ smtp_quote_rfc821_envelope = yes
 
 # The smtp_destination_concurrency_limit parameter limits the number
 # of parallel deliveries to the same destination via the smtp delivery
-# agent.
+# agent. This limit is enforced by the queue manager.
 # 
 # The default limit is the default_destination_concurrency_limit
 # parameter. It is probably safer to limit the concurrency to 10.
@@ -201,7 +216,8 @@ smtp_quote_rfc821_envelope = yes
 smtp_destination_concurrency_limit = 20
 
 # The smtp_destination_recipient_limit parameter limits the number
-# of recipients per delivery via the smtp delivery agent.
+# of recipients per delivery via the smtp delivery agent. This limit
+# is enforced by the queue manager.
 # 
 # The default is taken from the default_destination_recipient_limit
 # parameter.
@@ -212,15 +228,14 @@ smtp_destination_recipient_limit = $default_destination_recipient_limit
 # when the SMTP client looks up a host.  This parameter is ignored
 # when DNS lookups are disabled.
 # 
-# The default is to use both DNS and the native naming service which
-# (also) uses /etc/hosts.
+# The default is to use DNS.
 # 
 # Specify "dns" if hosts can be found in the DNS (preferred).
-# Specify "dns, native" if some hosts are not in the DNS.
 # Specify "native" to use the native naming service only.
+# Specify "dns, native" if some hosts are not in the DNS.
 #
-#smtp_host_lookup = dns
-smtp_host_lookup = dns, native
+#smtp_host_lookup = dns, native
+smtp_host_lookup = dns
 
 #
 # TIMEOUT CONTROLS
@@ -248,9 +263,6 @@ smtp_connect_timeout = 30s
 # for sending the SMTP HELO or EHLO command, and for receiving the
 # server response.
 #
-# In case of problems the client does NOT try the next address on
-# the mail exchanger list.
-#
 # Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 # The default time unit is s (seconds).
 #
@@ -259,9 +271,6 @@ smtp_helo_timeout = 300s
 # The smtp_xforward_timeout parameter specifies the SMTP client timeout
 # for sending the SMTP XFORWARD command, and for receiving the server
 # response.
-#
-# In case of problems the client does NOT try the next address on
-# the mail exchanger list.
 #
 # Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 # The default time unit is s (seconds).
@@ -272,9 +281,6 @@ smtp_xforward_timeout = 300s
 # for sending the SMTP MAIL FROM command, and for receiving the server
 # response.
 #
-# In case of problems the client does NOT try the next address on
-# the mail exchanger list.
-#
 # Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 # The default time unit is s (seconds).
 #
@@ -283,9 +289,6 @@ smtp_mail_timeout = 300s
 # The smtp_rcpt_timeout parameter specifies the SMTP client timeout
 # for sending the SMTP RCPT TO command, and for receiving the server
 # response.
-#
-# In case of problems the client does NOT try the next address on
-# the mail exchanger list.
 #
 # Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 # The default time unit is s (seconds).
@@ -296,9 +299,6 @@ smtp_rcpt_timeout = 300s
 # timeout for sending the SMTP DATA command, and for receiving the
 # server response.
 #
-# In case of problems the client does NOT try the next address on
-# the mail exchanger list.
-#
 # Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 # The default time unit is s (seconds).
 #
@@ -308,9 +308,6 @@ smtp_data_init_timeout = 120s
 # timeout for sending the SMTP message content. When the connection
 # stalls for more than $smtp_data_xfer_timeout the SMTP client
 # terminates the transfer.
-#
-# In case of problems the client does NOT try the next address on
-# the mail exchanger list.
 #
 # Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 # The default time unit is s (seconds).
@@ -323,9 +320,6 @@ smtp_data_xfer_timeout = 180s
 # 
 # When no response is received within the deadline, a warning is
 # logged that the mail may be delivered multiple times.
-#
-# In case of problems the client does NOT try the next address on
-# the mail exchanger list.
 #
 # Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 # The default time unit is s (seconds).

@@ -6,7 +6,7 @@
 
 # The relocated_maps parameter specifies optional lookup tables with
 # new contact information for users or even domains that no longer
-# exist.
+# exist. The format is documented in relocated(5).
 # 
 # By default, this feature is disabled.
 #

@@ -26,7 +26,7 @@ command_time_limit = 1000
 # on the number of Postfix child processes that provide a given
 # service.
 #
-default_process_limit = 50
+default_process_limit = 100
 
 # The deliver_lock_attempts parameter limits the number of attempts
 # to acquire an exclusive lock on a mailbox or other file. 
@@ -112,7 +112,7 @@ qmgr_message_active_limit = 20000
 #
 qmgr_message_recipient_limit = 20000
 
-# (nqmgr only)
+# (not applicable to the oqmgr queue manager)
 # The default_recipient_limit parameter is the default value for
 # per-transport limit imposed on the number of in-memory recipients.
 # These limits take priority over the global qmgr_message_recipient_limit
@@ -121,7 +121,7 @@ qmgr_message_recipient_limit = 20000
 #
 default_recipient_limit = 10000
 
-# (nqmgr only)
+# (not applicable to the oqmgr queue manager)
 # The default_extra_recipient_limit parameter is the default value for
 # extra per-transport limit imposed on the number of in-memory recipients.
 # This extra recipient space is reserved for the cases when the scheduler
@@ -130,7 +130,7 @@ default_recipient_limit = 10000
 #
 default_extra_recipient_limit = 1000
 
-# (nqmgr only)
+# (not applicable to the oqmgr queue manager)
 # The qmgr_message_recipient_minimum parameter specifies the minimum
 # amount of in-memory recipients for any message. This takes
 # priority over any other in-memory recipient limits (i.e., global
@@ -144,10 +144,10 @@ qmgr_message_recipient_minimum = 10
 # the SMTP server to decide if it will accept any mail at all.
 #
 # By default, the SMTP server rejects MAIL FROM commands when the
-# amount of free space is less than 2*$message_size_limit.
+# amount of free space is less than 1.5*$message_size_limit.
 # 
 # To specify a higher minimum free space limit, specify a value that
-# is at least 2*$message_size_limit.
+# is at least 1.5*$message_size_limit.
 #
 queue_minfree = 0
 

@@ -250,7 +250,7 @@
 /*	name/address and the service name as configured in master.cf.
 /* .IP \fBsmtpd_client_connection_rate_limit\fR
 /*	The maximal number of connections per unit time (specified
-/*	with \fBconnection_rate_time_unit\fR) that any client
+/*	with \fBrate_limiter_time_unit\fR) that any client
 /*	is allowed to make to this service. When a client exceeds
 /*	the limit, the SMTP server logs a warning with the client
 /*	name/address and the service name as configured in master.cf.
@@ -2188,14 +2188,14 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 	    && anvil_clnt_connect(anvil_clnt, service, state->addr,
 				  &count, &crate) == ANVIL_STAT_OK) {
 	    if (var_smtpd_cconn_limit > 0 && count > var_smtpd_cconn_limit) {
-		smtpd_chat_reply(state, "450 Too many connections from %s",
+		smtpd_chat_reply(state, "421 Too many connections from %s",
 				 state->addr);
 		msg_warn("Too many connections: %d from %s for service %s",
 			 count, state->addr, service);
 		break;
 	    }
 	    if (var_smtpd_crate_limit > 0 && crate > var_smtpd_crate_limit) {
-		smtpd_chat_reply(state, "450 Too many connections from %s",
+		smtpd_chat_reply(state, "421 Too many connections from %s",
 				 state->addr);
 		msg_warn("Too frequent connections: %d from %s for service %s",
 			 crate, state->addr, service);
@@ -2428,8 +2428,8 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      */
     if (var_queue_minfree > 0
 	&& var_message_limit > 0
-	&& var_queue_minfree / 2 < var_message_limit)
-	msg_warn("%s(%lu) should be at least 2*%s(%lu)",
+	&& var_queue_minfree / 1.5 < var_message_limit)
+	msg_warn("%s(%lu) should be at least 1.5*%s(%lu)",
 		 VAR_QUEUE_MINFREE, (unsigned long) var_queue_minfree,
 		 VAR_MESSAGE_LIMIT, (unsigned long) var_message_limit);
 
