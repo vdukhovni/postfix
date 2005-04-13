@@ -15,6 +15,8 @@ LIBS	= ../../lib/libmaster.a ../../lib/libglobal.a ../../lib/libdns.a ../../lib/
 $(PROG): $(OBJS) $(LIBS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
 
+$(OBJS): ../../conf/makedefs.out
+
 Makefile: Makefile.in
 	(cat ../../conf/makedefs.out $?) >$@
 
@@ -26,17 +28,6 @@ update: ../../libexec/$(PROG)
 
 ../../libexec/$(PROG): $(PROG)
 	cp $(PROG) ../../libexec
-
-SMTPD_CHECK_OBJ = qmqpd_state.o qmqpd_peer.o
-
-qmqpd_token: qmqpd_token.c $(LIBS)
-	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIBS) $(SYSLIBS)
-
-qmqpd_check: qmqpd_check.c $(SMTPD_CHECK_OBJ) $(LIBS)
-	mv $@.o junk
-	$(CC) $(CFLAGS) -DTEST -o $@ qmqpd_check.c $(SMTPD_CHECK_OBJ) \
-		$(LIBS) $(SYSLIBS)
-	mv junk $@.o
 
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck

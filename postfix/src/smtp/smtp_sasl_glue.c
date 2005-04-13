@@ -321,6 +321,15 @@ int     smtp_sasl_passwd_lookup(SMTP_SESSION *session)
 
 void    smtp_sasl_initialize(void)
 {
+
+    /*
+     * Global callbacks. These have no per-session context.
+     */
+    static sasl_callback_t callbacks[] = {
+	{SASL_CB_LOG, &smtp_sasl_log, 0},
+	{SASL_CB_LIST_END, 0, 0}
+    };
+
 #if SASL_VERSION_MAJOR >= 2 && (SASL_VERSION_MINOR >= 2 \
     || (SASL_VERSION_MINOR == 1 && SASL_VERSION_STEP >= 19))
     int     sasl_major;
@@ -334,22 +343,17 @@ void    smtp_sasl_initialize(void)
 		      &sasl_major, &sasl_minor,
 		      &sasl_step, (int *) 0);
     if (sasl_major != SASL_VERSION_MAJOR
+#if 0
 	|| sasl_minor != SASL_VERSION_MINOR
-	|| sasl_step != SASL_VERSION_STEP)
+	|| sasl_step != SASL_VERSION_STEP
+#endif
+	)
 	msg_fatal("incorrect SASL library version. "
-		  "Postfix was built for version %d.%d.%d, "
+		  "Postfix was built with include files from version %d.%d.%d, "
 		  "but the run-time library version is %d.%d.%d",
 		  SASL_VERSION_MAJOR, SASL_VERSION_MINOR, SASL_VERSION_STEP,
 		  sasl_major, sasl_minor, sasl_step);
 #endif
-
-    /*
-     * Global callbacks. These have no per-session context.
-     */
-    static sasl_callback_t callbacks[] = {
-	{SASL_CB_LOG, &smtp_sasl_log, 0},
-	{SASL_CB_LIST_END, 0, 0}
-    };
 
     /*
      * Sanity check.
@@ -433,7 +437,7 @@ void    smtp_sasl_start(SMTP_SESSION *session, const char *sasl_opts_name,
      */
     memset(&sec_props, 0L, sizeof(sec_props));
     sec_props.min_ssf = 0;
-    sec_props.max_ssf = 1;			/* don't allow real SASL
+    sec_props.max_ssf = 0;			/* don't allow real SASL
 						 * security layer */
     sec_props.security_flags = name_mask(sasl_opts_name, smtp_sasl_sec_mask,
 					 sasl_opts_val);

@@ -175,13 +175,25 @@ static void postdrop_cleanup(void)
      * 
      * msg_xxx() does not allocate memory, so it is safe as long as the signal
      * handler can't be invoked recursively.
+     * 
+     * Assume atomic signal() updates, even when emulated with sigaction(). We
+     * use the in-kernel SIGINT handler address as an atomic variable to
+     * prevent nested postdrop_sig() calls. For this reason, main() must
+     * configure postdrop_sig() as SIGINT handler before other signal
+     * handlers are allowed to invoke postdrop_sig().
      */
-    if (postdrop_path) {
-	if (remove(postdrop_path))
-	    msg_warn("uid=%ld: remove %s: %m", (long) getuid(), postdrop_path);
-	else if (msg_verbose)
-	    msg_info("remove %s", postdrop_path);
-	postdrop_path = 0;
+    if (signal(SIGINT, SIG_IGN) != SIG_IGN) {
+	(void) signal(SIGQUIT, SIG_IGN);
+	(void) signal(SIGTERM, SIG_IGN);
+	(void) signal(SIGHUP, SIG_IGN);
+	if (postdrop_path) {
+	    if (remove(postdrop_path))
+		msg_warn("uid=%ld: remove %s: %m",
+			 (long) getuid(), postdrop_path);
+	    else if (msg_verbose)
+		msg_info("remove %s", postdrop_path);
+	    postdrop_path = 0;
+	}
     }
 }
 
@@ -189,22 +201,9 @@ static void postdrop_cleanup(void)
 
 static void postdrop_sig(int sig)
 {
-
-    /*
-     * Assume atomic signal() updates, even when emulated with sigaction().
-     * We use the in-kernel SIGINT handler address as an atomic variable to
-     * prevent nested postdrop_sig() calls. For this reason, main() must
-     * configure postdrop_sig() as SIGINT handler before other signal
-     * handlers are allowed to invoke postdrop_sig().
-     */
-    if (signal(SIGINT, SIG_IGN) != SIG_IGN) {
-	(void)signal(SIGQUIT, SIG_IGN);
-	(void)signal(SIGTERM, SIG_IGN);
-	(void)signal(SIGHUP, SIG_IGN);
-	postdrop_cleanup();
-	/* Future proofing. If you need exit() here then you broke Postfix. */
-	_exit(sig);
-    }
+    postdrop_cleanup();
+    /* Future proofing. If you need exit() here then you broke Postfix. */
+    _exit(sig);
 }
 
 /* main - the main program */
@@ -228,6 +227,7 @@ int     main(int argc, char **argv)
     char   *attr_name;
     char   *attr_value;
     const char *errstr;
+    char   *junk;
 
     /*
      * Be consistent with file permissions.
@@ -428,8 +428,9 @@ int     main(int argc, char **argv)
      * will not be deleted after we have taken responsibility for delivery.
      */
     if (postdrop_path) {
-	myfree(postdrop_path);
+	junk = postdrop_path;
 	postdrop_path = 0;
+	myfree(junk);
     }
 
     /*

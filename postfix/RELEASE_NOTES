@@ -28,7 +28,8 @@ Incompatibility with snapshot 20050328
 
 The logging format has changed. Postfix delivery agents now log the
 RFC 3463 enhanced status code as "dsn=x.y.z" where y and z can be
-up to three digits each.
+up to three digits each. See the file pfloggsum-dsn-patch for an
+update to the pfloggsum script.
 
 After you upgrade from Postfix 2.2 or 2.3 you need to execute
 "postfix reload", otherwise you will keep running the old Postfix

@@ -33,6 +33,10 @@
 /*	int	mail_stream_finish(info, why)
 /*	MAIL_STREAM *info;
 /*	VSTRING	*why;
+/*
+/*	void	mail_stream_ctl(info, op, ...)
+/*	MAIL_STREAM *info;
+/*	int	op;
 /* DESCRIPTION
 /*	This module provides a generic interface to Postfix queue file
 /*	format messages to file, to Postfix server, or to external command.
@@ -44,7 +48,8 @@
 /*	mail_stream_file() opens a mail stream to a newly-created file and
 /*	arranges for trigger delivery at finish time. This call never fails.
 /*	But it may take forever. The mode argument specifies additional
-/*	file permissions that will be OR-ed in.
+/*	file permissions that will be OR-ed in when the file is finished.
+/*	While embryonic files have mode 0600, finished files have mode 0700.
 /*
 /*	mail_stream_command() opens a mail stream to external command,
 /*	and receives queue ID information from the command. The result
@@ -66,6 +71,24 @@
 /*	The result is any of the status codes defined in <cleanup_user.h>.
 /*	It is up to the caller to remove incomplete file objects.
 /*	The why argument can be a null pointer.
+/*
+/*	mail_stream_ctl() selectively overrides information that
+/*	was specified with mail_stream_file(); none of the attributes
+/*	are applicable for other mail stream types.  The arguments
+/*	are a list of (operation, value) pairs, terminated with
+/*	MAIL_STREAM_CTL_END.  The following lists the operation
+/*	codes and the types of the corresponding value arguments.
+/* .IP "MAIL_STREAM_CTL_QUEUE (char *)"
+/*	The argument specifies an alternate destination queue. The
+/*	queue file is moved to the specified queue before the call
+/*	returns. Failure to rename the queue file results in a fatal
+/*	error.
+/* .IP "MAIL_STREAM_CTL_CLASS (char *)"
+/*	The argument specifies an alternate trigger class.
+/* .IP "MAIL_STREAM_CTL_SERVICE (char *)"
+/*	The argument specifies an alternate trigger service.
+/* .IP "MAIL_STREAM_CTL_MODE (int)"
+/*	The argument specifies an altername file mode.
 /* LICENSE
 /* .ad
 /* .fi
@@ -85,6 +108,7 @@
 #include <errno.h>
 #include <utime.h>
 #include <string.h>
+#include <stdarg.h>
 
 /* Utility library. */
 
@@ -94,6 +118,7 @@
 #include <vstream.h>
 #include <stringops.h>
 #include <argv.h>
+#include <sane_fsops.h>
 
 /* Global library. */
 
@@ -108,7 +133,9 @@
 
 static VSTRING *id_buf;
 
-#define FREE_AND_WIPE(free, arg) { if (arg) free(arg); arg = 0; }
+#define FREE_AND_WIPE(free, arg) do { if (arg) free(arg); arg = 0; } while (0)
+
+#define STR(x)	vstring_str(x)
 
 /* mail_stream_cleanup - clean up after success or failure */
 
@@ -126,7 +153,7 @@ void    mail_stream_cleanup(MAIL_STREAM *info)
 
 static int mail_stream_finish_file(MAIL_STREAM *info, VSTRING *unused_why)
 {
-    int     status = 0;
+    int     status = CLEANUP_STAT_OK;
     static char wakeup[] = {TRIGGER_REQ_WAKEUP};
     struct stat st;
     time_t  now;
@@ -135,6 +162,7 @@ static int mail_stream_finish_file(MAIL_STREAM *info, VSTRING *unused_why)
     static int incoming_fs_clock_ok = 0;
     static int incoming_clock_warned = 0;
     int     check_incoming_fs_clock;
+    int     err;
 
     /*
      * Make sure the message makes it to file. Set the execute bit when no
@@ -199,17 +227,20 @@ static int mail_stream_finish_file(MAIL_STREAM *info, VSTRING *unused_why)
      * remote file system is not recommended, if only for performance
      * reasons.
      */
-    if (info->close(info->stream))
-	status = (errno == EFBIG ? CLEANUP_STAT_SIZE : CLEANUP_STAT_WRITE);
+    err = info->close(info->stream);
     info->stream = 0;
+    if (status == CLEANUP_STAT_OK && err != 0)
+	status = (errno == EFBIG ? CLEANUP_STAT_SIZE : CLEANUP_STAT_WRITE);
 
     /*
      * Work around file system clocks that are ahead of local time.
      */
     if (path_to_reset != 0) {
-	tbuf.actime = tbuf.modtime = now;
-	if (utime(path_to_reset, &tbuf) < 0 && errno != ENOENT)
-	    msg_fatal("%s: update file time stamps: %m", info->id);
+	if (status == CLEANUP_STAT_OK) {
+	    tbuf.actime = tbuf.modtime = now;
+	    if (utime(path_to_reset, &tbuf) < 0 && errno != ENOENT)
+		msg_fatal("%s: update file time stamps: %m", info->id);
+	}
 	myfree(path_to_reset);
     }
 
@@ -217,7 +248,7 @@ static int mail_stream_finish_file(MAIL_STREAM *info, VSTRING *unused_why)
      * When all is well, notify the next service that a new message has been
      * queued.
      */
-    if (status == CLEANUP_STAT_OK)
+    if (status == CLEANUP_STAT_OK && info->class && info->service)
 	mail_trigger(info->class, info->service, wakeup, sizeof(wakeup));
 
     /*
@@ -361,5 +392,102 @@ MAIL_STREAM *mail_stream_command(const char *command)
 	info->class = 0;
 	info->service = 0;
 	return (info);
+    }
+}
+
+/* mail_stream_ctl - update file-based mail stream properties */
+
+void    mail_stream_ctl(MAIL_STREAM *info, int op,...)
+{
+    char   *myname = "mail_stream_ctl";
+    va_list ap;
+    char   *new_queue = 0;
+    char   *string_value;
+
+    /*
+     * Sanity check. None of the attributes below are applicable unless the
+     * target is a file-based stream.
+     */
+    if (info->finish != mail_stream_finish_file)
+	msg_panic("%s: attempt to update non-file stream %s",
+		  myname, info->id);
+
+    for (va_start(ap, op); op != MAIL_STREAM_CTL_END; op = va_arg(ap, int)) {
+
+	switch (op) {
+
+	    /*
+	     * Change the queue directory. We do this at the end of this
+	     * call.
+	     */
+	case MAIL_STREAM_CTL_QUEUE:
+	    if ((new_queue = va_arg(ap, char *)) == 0)
+		msg_panic("%s: NULL queue",
+			  myname);
+	    break;
+
+	    /*
+	     * Change the service that needs to be notified.
+	     */
+	case MAIL_STREAM_CTL_CLASS:
+	    FREE_AND_WIPE(myfree, info->class);
+	    if ((string_value = va_arg(ap, char *)) != 0)
+		info->class = mystrdup(string_value);
+	    break;
+
+	case MAIL_STREAM_CTL_SERVICE:
+	    FREE_AND_WIPE(myfree, info->service);
+	    if ((string_value = va_arg(ap, char *)) != 0)
+		info->service = mystrdup(string_value);
+	    break;
+
+	    /*
+	     * Change the (finished) file access mode.
+	     */
+	case MAIL_STREAM_CTL_MODE:
+	    info->mode = va_arg(ap, int);
+	    break;
+
+	default:
+	    msg_panic("%s: bad op code %d", myname, op);
+	}
+    }
+
+    /*
+     * Rename the queue file after allocating memory for new information, so
+     * that the caller can still remove an embryonic file when memory
+     * allocation fails (there is no risk of deleting the wrong file).
+     * 
+     * Wietse opposed the idea to update run-time error handler information
+     * here, because this module wasn't designed to defend against internal
+     * concurrency issues with error handlers that attempt to follow dangling
+     * pointers.
+     * 
+     * This code duplicates mail_queue_rename(), except that we need the new
+     * path to update the stream pathname.
+     */
+    if (new_queue != 0 && strcmp(info->queue, new_queue) != 0) {
+	char   *saved_queue = info->queue;
+	char   *saved_path = mystrdup(VSTREAM_PATH(info->stream));
+	VSTRING *new_path = vstring_alloc(100);
+
+	(void) mail_queue_path(new_path, new_queue, info->id);
+	info->queue = mystrdup(new_queue);
+	vstream_control(info->stream, VSTREAM_CTL_PATH, STR(new_path),
+			VSTREAM_CTL_END);
+
+	if (sane_rename(saved_path, STR(new_path)) == 0
+	    || (mail_queue_mkdirs(STR(new_path)) == 0
+		&& sane_rename(saved_path, STR(new_path)) == 0)) {
+	    if (msg_verbose)
+		msg_info("%s: placed in %s queue", info->id, info->queue);
+	} else {
+	    msg_fatal("%s: move to %s queue failed: %m", info->id,
+		      info->queue);
+	}
+
+	myfree(saved_path);
+	myfree(saved_queue);
+	vstring_free(new_path);
     }
 }

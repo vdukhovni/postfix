@@ -1493,7 +1493,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     if (argc < 3
 	|| strcasecmp(argv[1].strval, "from:") != 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "501 5.5.4 Syntax: MAIL FROM: <address>");
+	smtpd_chat_reply(state, "501 5.5.4 Syntax: MAIL FROM:<address>");
 	return (-1);
     }
 
@@ -1703,7 +1703,7 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     if (argc < 3
 	|| strcasecmp(argv[1].strval, "to:") != 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "501 5.5.4 Syntax: RCPT TO: <address>");
+	smtpd_chat_reply(state, "501 5.5.4 Syntax: RCPT TO:<address>");
 	return (-1);
     }
 

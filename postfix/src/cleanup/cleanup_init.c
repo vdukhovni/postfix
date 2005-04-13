@@ -66,6 +66,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <signal.h>
 
 /* Utility library. */
 
@@ -197,8 +198,17 @@ int     cleanup_ext_prop_mask;
 
 void    cleanup_all(void)
 {
-    if (cleanup_path && REMOVE(cleanup_path))
-	msg_warn("cleanup_all: remove %s: %m", cleanup_path);
+
+    /*
+     * msg_fatal() is safe against calling itself recursively, but signals
+     * need extra safety.
+     */
+    if (signal(SIGTERM, SIG_IGN) != SIG_IGN) {
+	if (cleanup_path && REMOVE(cleanup_path)) {
+	    msg_warn("cleanup_all: remove %s: %m", cleanup_path);
+	    cleanup_path = 0;
+	}
+    }
 }
 
 /* cleanup_pre_jail - initialize before entering the chroot jail */

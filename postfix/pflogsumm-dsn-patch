@@ -1,0 +1,23 @@
+Postfix 2.3 changes the logging format, introducing a field that
+reports the delivery status code as "dsn=x.yy.zz", where yy and zz
+can be up to three digits long. This breaks pflogsumm analysis.
+
+The patch below appeared in:
+
+    Message-ID: <4257CF98.10309@michaweb.net>
+    Date: Sat, 09 Apr 2005 14:50:32 +0200
+    From: John Fawcett <johnml@michaweb.net>
+    To: postfix-users@postfix.org
+    Subject: postfix 2.3 and pflogsumm
+
+--- pflogsumm.original	2005-04-09 12:54:44.140532258 +0200
++++ pflogsumm	2005-04-09 12:55:33.246949650 +0200
+@@ -696,7 +696,7 @@
+ 	    }
+ 	}
+ 	elsif((($addr, $relay, $delay, $status, $toRmdr) = $logRmdr =~
+-		/to=<([^>]*)>, (?:orig_to=<[^>]*>, )?relay=([^,]+), delay=([^,]+), status=(\S+)(.*)$/o) >= 4)
++		/to=<([^>]*)>, (?:orig_to=<[^>]*>, )?relay=([^,]+), delay=([^,]+), (?:dsn=\d+\.\d+\.\d+, )?status=(\S+)(.*)$/o) >= 4)
+ 	{
+ 
+ 	    if($opts{'m'} && $addr =~ /^(.*!)*([^!]+)!([^!@]+)@([^\.]+)$/o) {

@@ -10622,6 +10622,44 @@ Apologies for any names omitted.
 	world. Based on code by Branko F. Gracnar. Files:
 	smtpd/smtpd.c, and documentation.
 
+20050407
+
+	@%^!#& Thanks to inadequate SASL documentation the client
+	could negotiate a security layer where none was desired.
+	Better documentation has become available since Postfix
+	SASL support was implemented, and now Postfix needs to be
+	fixed. Files: */*_sasl_glue.c.
+
+20050409
+
+	Safety: the CDB map now logs a warning when the source file
+	is newer than the indexed file, just like the Berkeley DB
+	and DBM maps. Michael Tokarev. File: util/dict_cdb.c.
+
+20040411
+
+	Portability: put the SASL DLL Hell guard after the declarations
+	instead of before.  Reported by Marcus Grando. Files:
+	smtp/smtp_sasl_glue.c, lmtp/lmtp_sasl_glue.c.
+
+20050412
+
+	Infrastructure: change the disposition or other properties
+	of an embryonic queue file. This is currently used only to
+	place mail on hold.  After code by Victor Duchovni.  Files:
+	global/mail_stream.[hc], cleanup/cleanup_api.c.
+	
+20040513
+
+        Portability: don't mix socket message send/receive calls
+        with socket stream read/write calls. The fact that you can
+        get away with it only on some stacks implies that there is
+        no long-term guarantee. Specify -DCAN_WRITE_BEFORE_SENDING_FD
+        if you feel brave. File: util/sys_defs.h.
+
+	Robustness: re-compile all object files after the "make
+	makefiles" options have changed. Files: src/*/Makefile.in.
+
 Open problems:
 
 	Med: disable header address rewriting after XCLIENT?

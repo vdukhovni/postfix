@@ -292,6 +292,15 @@ int     lmtp_sasl_passwd_lookup(LMTP_STATE *state)
 
 void    lmtp_sasl_initialize(void)
 {
+
+    /*
+     * Global callbacks. These have no per-session context.
+     */
+    static sasl_callback_t callbacks[] = {
+	{SASL_CB_LOG, &lmtp_sasl_log, 0},
+	{SASL_CB_LIST_END, 0, 0}
+    };
+
 #if SASL_VERSION_MAJOR >= 2 && (SASL_VERSION_MINOR >= 2 \
     || (SASL_VERSION_MINOR == 1 && SASL_VERSION_STEP >= 19))
     int     sasl_major;
@@ -305,22 +314,17 @@ void    lmtp_sasl_initialize(void)
 		      &sasl_major, &sasl_minor,
 		      &sasl_step, (int *) 0);
     if (sasl_major != SASL_VERSION_MAJOR
+#if 0
 	|| sasl_minor != SASL_VERSION_MINOR
-	|| sasl_step != SASL_VERSION_STEP)
+	|| sasl_step != SASL_VERSION_STEP
+#endif
+	)
 	msg_fatal("incorrect SASL library version. "
-		  "Postfix was built for version %d.%d.%d, "
+		  "Postfix was built with include files from version %d.%d.%d, "
 		  "but the run-time library version is %d.%d.%d",
 		  SASL_VERSION_MAJOR, SASL_VERSION_MINOR, SASL_VERSION_STEP,
 		  sasl_major, sasl_minor, sasl_step);
 #endif
-
-    /*
-     * Global callbacks. These have no per-session context.
-     */
-    static sasl_callback_t callbacks[] = {
-	{SASL_CB_LOG, &lmtp_sasl_log, 0},
-	{SASL_CB_LIST_END, 0, 0}
-    };
 
     /*
      * Sanity check.

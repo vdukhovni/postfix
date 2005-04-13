@@ -2508,6 +2508,9 @@ manager and by other long-lived Postfix daemon processes.
 The maximal time between attempts to deliver a deferred message.
 </p>
 
+<p> This parameter should be set to a value greater than or equal
+to $minimal_backoff_time. See also $queue_run_delay.  </p>
+
 <p>
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
@@ -2542,6 +2545,9 @@ The minimal time between attempts to deliver a deferred message.
 This parameter also limits the time an unreachable destination is
 kept in the short-term, in-memory, destination status cache.
 </p>
+
+<p> It is recommended that this parameter be set greater than or
+equal to $queue_run_delay. See also $maximal_backoff_time.  </p>
 
 <p>
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
@@ -2981,6 +2987,9 @@ zero means there is no minimum required amount of free space.
 <p>
 The time between deferred queue scans by the queue manager.
 </p>
+
+<p> It is recommended that this parameter be set less than or equal
+to $minimal_backoff_time. See also $maximal_backoff_time.  </p>
 
 <p>
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).

@@ -12,11 +12,11 @@
 # 
 # DESCRIPTION
 #        The  optional  virtual(5)  alias  table rewrites recipient
-#        addresses for all local, virtual and remote mail  destina-
-#        tions.   This is unlike the aliases(5) table which is used
-#        only for local(8) delivery.  Virtual  aliasing  is  recur-
-#        sive,  and is implemented by the Postfix cleanup(8) daemon
-#        before mail is queued.
+#        addresses for all local, all virtual, and all remote  mail
+#        destinations.   This  is unlike the aliases(5) table which
+#        is used only for local(8) delivery.  Virtual  aliasing  is
+#        recursive,  and  is  implemented by the Postfix cleanup(8)
+#        daemon before mail is queued.
 # 
 #        The main applications of virtual aliasing are:
 # 

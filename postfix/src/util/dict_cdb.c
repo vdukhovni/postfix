@@ -190,6 +190,15 @@ static DICT *dict_cdbq_open(const char *path, int dict_flags)
     close_on_exec(fd, CLOSE_ON_EXEC);
 
     /*
+     * Warn if the source file is newer than the indexed file, except when
+     * the source file changed only seconds ago.
+     */
+    if (stat(path, &st) == 0
+ 	&& st.st_mtime > dict_cdbq->dict.mtime
+	&& st.st_mtime < time((time_t *)0) - 100)
+	msg_warn("database %s is older than source file %s", cdb_path, path);
+
+    /*
      * If undecided about appending a null byte to key and value, choose to
      * try both in query mode.
      */

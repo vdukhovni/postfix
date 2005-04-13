@@ -33,6 +33,7 @@
 /*	themselves, and that depend on retry logic in their own client.
 /* STANDARDS
 /*	RFC 822 (ARPA Internet Text Messages)
+/*	RFC 1892 (Delivery Status Notifications)
 /*	RFC 1894 (Delivery Status Notifications)
 /*	RFC 2045 (Format of Internet Message Bodies)
 /* DIAGNOSTICS

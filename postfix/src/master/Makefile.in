@@ -24,6 +24,8 @@ BIN_DIR	= ../../libexec
 
 all:	$(PROG) $(LIB)
 
+$(OBJS) $(LIB_OBJ): ../../conf/makedefs.out
+
 Makefile: Makefile.in
 	(cat ../../conf/makedefs.out $?) >$@
 

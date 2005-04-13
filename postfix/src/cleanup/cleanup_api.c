@@ -105,7 +105,7 @@
 #include <bounce.h>
 #include <mail_params.h>
 #include <mail_stream.h>
-#include <hold_message.h>
+#include <mail_flow.h>
 #include <dsn_util.h>
 
 /* Application-specific. */
@@ -218,15 +218,22 @@ int     cleanup_flush(CLEANUP_STATE *state)
      */
     if (state->errs == 0 && (state->flags & CLEANUP_FLAG_DISCARD) == 0) {
 	if ((state->flags & CLEANUP_FLAG_HOLD) != 0) {
-	    if (hold_message(state->temp1, state->queue_name, state->queue_id) < 0)
-		msg_fatal("%s: problem putting message on hold: %m",
-			  state->queue_id);
+	    mail_stream_ctl(state->handle,
+			    MAIL_STREAM_CTL_QUEUE, MAIL_QUEUE_HOLD,
+			    MAIL_STREAM_CTL_CLASS, 0,
+			    MAIL_STREAM_CTL_SERVICE, 0,
+			    MAIL_STREAM_CTL_END);
 	    junk = cleanup_path;
-	    cleanup_path = mystrdup(vstring_str(state->temp1));
+	    cleanup_path = mystrdup(VSTREAM_PATH(state->handle->stream));
 	    myfree(junk);
-	    vstream_control(state->handle->stream,
-			    VSTREAM_CTL_PATH, cleanup_path,
-			    VSTREAM_CTL_END);
+
+	    /*
+	     * XXX: When delivering to a non-incoming queue, do not consume
+	     * in_flow tokens. Unfortunately we can't move the code that
+	     * consumes tokens until after the mail is received, because that
+	     * would increase the risk of duplicate deliveries.
+	     */
+	    (void) mail_flow_put(1);
 	}
 	state->errs = mail_stream_finish(state->handle, (VSTRING *) 0);
     } else {

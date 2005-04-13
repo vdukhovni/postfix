@@ -14,6 +14,8 @@ LIBS	= ../../lib/libglobal.a ../../lib/libutil.a
 
 all:	$(PROG)
 
+$(OBJS): ../../conf/makedefs.out
+
 Makefile: Makefile.in
 	(cat ../../conf/makedefs.out $?) >$@
 

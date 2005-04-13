@@ -221,10 +221,13 @@ void    smtpd_sasl_initialize(void)
 		      &sasl_major, &sasl_minor,
 		      &sasl_step, (int *) 0);
     if (sasl_major != SASL_VERSION_MAJOR
+#if 0
 	|| sasl_minor != SASL_VERSION_MINOR
-	|| sasl_step != SASL_VERSION_STEP)
+	|| sasl_step != SASL_VERSION_STEP
+#endif
+	)
 	msg_fatal("incorrect SASL library version. "
-		  "Postfix was built for version %d.%d.%d, "
+		  "Postfix was built with include files from version %d.%d.%d, "
 		  "but the run-time library version is %d.%d.%d",
 		  SASL_VERSION_MAJOR, SASL_VERSION_MINOR, SASL_VERSION_STEP,
 		  sasl_major, sasl_minor, sasl_step);
@@ -310,7 +313,7 @@ void    smtpd_sasl_connect(SMTPD_STATE *state, const char *sasl_opts_name,
      */
     memset(&sec_props, 0, sizeof(sec_props));
     sec_props.min_ssf = 0;
-    sec_props.max_ssf = 1;			/* don't allow real SASL
+    sec_props.max_ssf = 0;			/* don't allow real SASL
 						 * security layer */
     sec_props.security_flags = name_mask(sasl_opts_name, smtpd_sasl_mask,
 					 sasl_opts_val);
