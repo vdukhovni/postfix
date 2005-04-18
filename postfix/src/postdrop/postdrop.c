@@ -165,16 +165,17 @@ static CONFIG_STR_TABLE str_table[] = {
   */
 static char *postdrop_path;
 
-/* postdrop_cleanup - callback for the runtime error handler */
+/* postdrop_sig - catch signal and clean up */
 
-static void postdrop_cleanup(void)
+static void postdrop_sig(int sig)
 {
 
     /*
      * This is the fatal error handler. Don't try to do anything fancy.
      * 
-     * msg_xxx() does not allocate memory, so it is safe as long as the signal
-     * handler can't be invoked recursively.
+     * msg_vstream does not allocate memory, but msg_syslog may indirectly in
+     * syslog(), so it should not be called from a user-triggered signal
+     * handler.
      * 
      * Assume atomic signal() updates, even when emulated with sigaction(). We
      * use the in-kernel SIGINT handler address as an atomic variable to
@@ -187,23 +188,20 @@ static void postdrop_cleanup(void)
 	(void) signal(SIGTERM, SIG_IGN);
 	(void) signal(SIGHUP, SIG_IGN);
 	if (postdrop_path) {
-	    if (remove(postdrop_path))
-		msg_warn("uid=%ld: remove %s: %m",
-			 (long) getuid(), postdrop_path);
-	    else if (msg_verbose)
-		msg_info("remove %s", postdrop_path);
+	    (void) remove(postdrop_path);
 	    postdrop_path = 0;
 	}
+	/* Future proofing. If you need exit() here then you broke Postfix. */
+	if (sig)
+	    _exit(sig);
     }
 }
 
-/* postdrop_sig - catch signal and clean up */
+/* postdrop_cleanup - callback for the runtime error handler */
 
-static void postdrop_sig(int sig)
+static void postdrop_cleanup(void)
 {
-    postdrop_cleanup();
-    /* Future proofing. If you need exit() here then you broke Postfix. */
-    _exit(sig);
+    postdrop_sig(0);
 }
 
 /* main - the main program */

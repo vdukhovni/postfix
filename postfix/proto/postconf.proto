@@ -2546,8 +2546,8 @@ This parameter also limits the time an unreachable destination is
 kept in the short-term, in-memory, destination status cache.
 </p>
 
-<p> It is recommended that this parameter be set greater than or
-equal to $queue_run_delay. See also $maximal_backoff_time.  </p>
+<p> This parameter should be set greater than or equal to
+$queue_run_delay. See also $maximal_backoff_time.  </p>
 
 <p>
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
@@ -2988,8 +2988,8 @@ zero means there is no minimum required amount of free space.
 The time between deferred queue scans by the queue manager.
 </p>
 
-<p> It is recommended that this parameter be set less than or equal
-to $minimal_backoff_time. See also $maximal_backoff_time.  </p>
+<p> This parameter should be set less than or equal to
+$minimal_backoff_time. See also $maximal_backoff_time.  </p>
 
 <p>
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).

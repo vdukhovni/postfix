@@ -10648,17 +10648,30 @@ Apologies for any names omitted.
 	of an embryonic queue file. This is currently used only to
 	place mail on hold.  After code by Victor Duchovni.  Files:
 	global/mail_stream.[hc], cleanup/cleanup_api.c.
+
+	Bugfix: while updating the cleanup_flush() infrastructure
+	eliminated a portability problem that was introduced when
+	"REJECT text" support was added. File: cleanup/cleanup.c.
 	
 20040513
 
-        Portability: don't mix socket message send/receive calls
-        with socket stream read/write calls. The fact that you can
-        get away with it only on some stacks implies that there is
-        no long-term guarantee. Specify -DCAN_WRITE_BEFORE_SENDING_FD
-        if you feel brave. File: util/sys_defs.h.
+	Portability: don't mix socket message send/receive calls
+	with socket stream read/write calls. The fact that you can
+	get away with it only on some stacks implies that there is
+	no long-term guarantee. Specify -DCAN_WRITE_BEFORE_SENDING_FD
+	if you feel brave. File: util/sys_defs.h.
 
 	Robustness: re-compile all object files after the "make
 	makefiles" options have changed. Files: src/*/Makefile.in.
+
+	Tweaking: reply with 5.3.4 when the message size exceeds
+	the mail system message_size_limit, instead of 5.2.3 which
+	is a mailbox specific status. File: smtpd/smtpd_check.c.
+
+20050417
+
+	Safety: don't call syslog from a user-triggered signal
+	handler.  File: postdrop/postdrop.c.
 
 Open problems:
 

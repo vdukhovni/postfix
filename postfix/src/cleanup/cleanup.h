@@ -134,6 +134,7 @@ extern void cleanup_control(CLEANUP_STATE *, int);
 extern int cleanup_flush(CLEANUP_STATE *);
 extern void cleanup_free(CLEANUP_STATE *);
 extern void cleanup_all(void);
+extern void cleanup_sig(int);
 extern void cleanup_pre_jail(char *, char **);
 extern void cleanup_post_jail(char *, char **);
 extern CONFIG_INT_TABLE cleanup_int_table[];

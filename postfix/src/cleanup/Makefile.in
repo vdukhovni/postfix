@@ -158,10 +158,10 @@ cleanup_api.o: ../../include/deliver_request.h
 cleanup_api.o: ../../include/dict.h
 cleanup_api.o: ../../include/dsn_util.h
 cleanup_api.o: ../../include/header_opts.h
-cleanup_api.o: ../../include/hold_message.h
 cleanup_api.o: ../../include/htable.h
 cleanup_api.o: ../../include/iostuff.h
 cleanup_api.o: ../../include/mail_conf.h
+cleanup_api.o: ../../include/mail_flow.h
 cleanup_api.o: ../../include/mail_params.h
 cleanup_api.o: ../../include/mail_proto.h
 cleanup_api.o: ../../include/mail_queue.h

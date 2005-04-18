@@ -418,14 +418,6 @@ static void cleanup_service(VSTREAM *src, char *unused_service, char **argv)
     vstring_free(buf);
 }
 
-/* cleanup_sig - cleanup after signal */
-
-static void cleanup_sig(int sig)
-{
-    cleanup_all();
-    exit(sig);
-}
-
 /* pre_accept - see if tables have changed */
 
 static void pre_accept(char *unused_name, char **unused_argv)

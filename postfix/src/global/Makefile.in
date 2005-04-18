@@ -1050,6 +1050,7 @@ mail_stream.o: ../../include/attr.h
 mail_stream.o: ../../include/iostuff.h
 mail_stream.o: ../../include/msg.h
 mail_stream.o: ../../include/mymalloc.h
+mail_stream.o: ../../include/sane_fsops.h
 mail_stream.o: ../../include/stringops.h
 mail_stream.o: ../../include/sys_defs.h
 mail_stream.o: ../../include/vbuf.h

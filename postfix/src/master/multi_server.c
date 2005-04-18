@@ -461,6 +461,7 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     char   *root_dir = 0;
     char   *user_name = 0;
     int     debug_me = 0;
+    int     daemon_mode = 1;
     char   *service_name = basename(argv[0]);
     int     delay;
     int     c;
@@ -531,10 +532,13 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
      * stderr, because no-one is going to see them.
      */
     opterr = 0;
-    while ((c = GETOPT(argc, argv, "cDi:lm:n:o:s:St:uvz")) > 0) {
+    while ((c = GETOPT(argc, argv, "cdDi:lm:n:o:s:St:uvz")) > 0) {
 	switch (c) {
 	case 'c':
 	    root_dir = "setme";
+	    break;
+	case 'd':
+	    daemon_mode = 0;
 	    break;
 	case 'D':
 	    debug_me = 1;
@@ -657,7 +661,7 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     /*
      * If not connected to stdin, stdin must not be a terminal.
      */
-    if (stream == 0 && isatty(STDIN_FILENO)) {
+    if (daemon_mode && stream == 0 && isatty(STDIN_FILENO)) {
 	msg_vstream_init(var_procname, VSTREAM_ERR);
 	msg_fatal("do not run this command by hand");
     }

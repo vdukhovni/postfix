@@ -25,6 +25,9 @@
 /*	char	*cleanup_path;
 /*
 /*	void	cleanup_all()
+/*
+/*	void	cleanup_sig(sigval)
+/*	int	sigval;
 /* DESCRIPTION
 /*	This module implements a callable interface to the cleanup service
 /*	for one-time initializations that must be done before any message
@@ -42,12 +45,14 @@
 /*
 /*	cleanup_path is either a null pointer or it is the name of a queue
 /*	file that currently is being written. This information is used
-/*	by cleanup_all() to remove incomplete files after a fatal error.
+/*	by cleanup_all() to remove incomplete files after a fatal error,
+/*	or by cleanup_sig() after arrival of a SIGTERM signal.
 /*
 /*	cleanup_all() must be called in case of fatal error, in order
-/*	to remove an incomplete queue file. Normally, as part of process
-/*	initialization, one registers a msg_cleanup() handler and a signal()
-/*	handler that both call cleanup_all() before terminating the process.
+/*	to remove an incomplete queue file.
+/*
+/*	cleanup_sig() must be called in case of SIGTERM, in order
+/*	to remove an incomplete queue file.
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* SEE ALSO
@@ -198,16 +203,25 @@ int     cleanup_ext_prop_mask;
 
 void    cleanup_all(void)
 {
+    cleanup_sig(0);
+}
+
+/* cleanup_sig - callback for the SIGTERM handler */
+
+void cleanup_sig(int sig)
+{
 
     /*
      * msg_fatal() is safe against calling itself recursively, but signals
      * need extra safety.
      */
     if (signal(SIGTERM, SIG_IGN) != SIG_IGN) {
-	if (cleanup_path && REMOVE(cleanup_path)) {
-	    msg_warn("cleanup_all: remove %s: %m", cleanup_path);
+	if (cleanup_path) {
+	    (void) REMOVE(cleanup_path);
 	    cleanup_path = 0;
 	}
+	if (sig)
+	    _exit(sig);
     }
 }
 

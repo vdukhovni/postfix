@@ -4255,7 +4255,7 @@ char   *smtpd_check_size(SMTPD_STATE *state, off_t size)
 
     if (var_message_limit > 0 && size > var_message_limit) {
 	(void) smtpd_check_reject(state, MAIL_ERROR_POLICY,
-				  552, "5.2.3",
+				  552, "5.3.4",
 				  "Message size exceeds fixed limit");
 	return (STR(error_text));
     }

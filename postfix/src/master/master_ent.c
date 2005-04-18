@@ -482,6 +482,8 @@ MASTER_SERV *get_master_ent()
     if (strcmp(basename(command), name) != 0)
 	argv_add(serv->args, "-n", name, (char *) 0);
     argv_add(serv->args, "-t", transport, (char *) 0);
+    if (master_detach == 0)
+	argv_add(serv->args, "-d", (char *) 0);
     if (msg_verbose)
 	argv_add(serv->args, "-v", (char *) 0);
     if (unprivileged)

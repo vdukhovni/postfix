@@ -93,6 +93,11 @@ typedef struct MASTER_PROC {
 #define MASTER_BUF_LEN	2048		/* logical config line length */
 
  /*
+  * master.c
+  */
+extern int master_detach;
+
+ /*
   * master_ent.c
   */
 extern void fset_master_ent(char *);
