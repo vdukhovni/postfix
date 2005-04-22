@@ -943,19 +943,31 @@ static void super(const char **queues, int action)
     argv_free(hash_queue_names);
 }
 
-/* fatal_exit - print warning if queue fix is incomplete */
-
-static void fatal_exit(void)
-{
-    if (inode_mismatch > 0 || inode_fixed > 0 || position_mismatch > 0)
-	msg_fatal("OPERATION INCOMPLETE -- RERUN COMMAND TO FIX THE QUEUE FIRST");
-}
-
 /* interrupted - signal handler */
 
-static void interrupted(int unused_sig)
+static void interrupted(int sig)
 {
-    fatal_exit();
+
+    /*
+     * This commands requires root privileges. We therefore do not worry
+     * about hostile signals, and report problems via msg_warn().
+     */
+    if (signal(SIGHUP, SIG_IGN) != SIG_IGN) {
+	(void) signal(SIGINT, SIG_IGN);
+	(void) signal(SIGQUIT, SIG_IGN);
+	(void) signal(SIGTERM, SIG_IGN);
+	if (inode_mismatch > 0 || inode_fixed > 0 || position_mismatch > 0)
+	    msg_warn("OPERATION INCOMPLETE -- RERUN COMMAND TO FIX THE QUEUE FIRST");
+	if (sig)
+	    _exit(sig);
+    }
+}
+
+/* fatal_warning - print warning if queue fix is incomplete */
+
+static void fatal_warning(void)
+{
+    interrupted(0);
 }
 
 int     main(int argc, char **argv)
@@ -1136,7 +1148,7 @@ int     main(int argc, char **argv)
     signal(SIGINT, interrupted);
     signal(SIGQUIT, interrupted);
     signal(SIGTERM, interrupted);
-    msg_cleanup(fatal_exit);
+    msg_cleanup(fatal_warning);
 
     /*
      * Sanity checks.

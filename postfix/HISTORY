@@ -10601,10 +10601,10 @@ Apologies for any names omitted.
 	the MIME processor. Files: global/mime_state.c,
 	cleanup/cleanup_message.c, smtp/smtp_proto.c.
 
-	Cleanup: updated error messages about MIME processing
-	errors in the SMTP client. These errors are no longer
-	specific to 8bit->7bit conversion; they can also happen
-	with generic address mapping. File: smtp/smtp_proto.c.
+	Cleanup: updated error messages about MIME processing errors
+	in the SMTP client. These errors are no longer specific to
+	8bit->7bit conversion; they can also happen with generic
+	address mapping. File: smtp/smtp_proto.c.
 
 	Safety: SASL 2.1.19 has a version lookup routine that we
 	can use to detect compile time / run time version mis-matches
@@ -10653,7 +10653,7 @@ Apologies for any names omitted.
 	eliminated a portability problem that was introduced when
 	"REJECT text" support was added. File: cleanup/cleanup.c.
 	
-20040513
+20050413
 
 	Portability: don't mix socket message send/receive calls
 	with socket stream read/write calls. The fact that you can
@@ -10673,6 +10673,21 @@ Apologies for any names omitted.
 	Safety: don't call syslog from a user-triggered signal
 	handler.  File: postdrop/postdrop.c.
 
+20050421
+
+	Bugfix: don't panic when the fall-back relay can't be used
+	because the local MTA is MX for the destination.  File:
+	smtp/smtp_connect.c.
+
+20050422
+
+	Bugfix: don't panic when the fall-back relay can't be used
+	because it was already tried via a cached session. Produce
+	a default excuse instead. File: smtp/smtp_connect.c.
+	
+	Bugfix: postsuper could lose an error message after reporting
+	a fatal error.  File: postsuper/postsuper.c.
+ 
 Open problems:
 
 	Med: disable header address rewriting after XCLIENT?

@@ -568,8 +568,6 @@ int     smtp_connect(SMTP_STATE *state)
 	    (*(cpp) && (cpp) >= (sites)->argv + (non_fallback_sites))
 
     for (cpp = sites->argv; SMTP_RCPT_LEFT(state) > 0 && (dest = *cpp) != 0; cpp++) {
-	if (i_am_mx && IS_FALLBACK_RELAY(cpp, sites, non_fallback_sites))
-	    break;
 	state->final_server = (cpp[1] == 0);
 
 	/*
@@ -685,7 +683,8 @@ int     smtp_connect(SMTP_STATE *state)
 	    if ((state->session = session) != 0) {
 		if (++sess_count == var_smtp_mxsess_limit)
 		    next = 0;
-		state->final_server = (cpp[1] == 0 && next == 0);
+		state->final_server = (next == 0 && (cpp[1] == 0 || (i_am_mx
+		&& IS_FALLBACK_RELAY(cpp + 1, sites, non_fallback_sites))));
 		if (addr->pref == domain_best_pref)
 		    session->features |= SMTP_FEATURE_BEST_MX;
 		if ((session->features & SMTP_FEATURE_FROM_CACHE) != 0
@@ -706,8 +705,17 @@ int     smtp_connect(SMTP_STATE *state)
      * 
      * Pay attention to what could be configuration problems, and pretend that
      * these are recoverable rather than bouncing the mail.
+     * 
+     * In case of a "no error" indication we make up an excuse; this can happen
+     * when the fall-back relay was already tried via a cached connection, so
+     * that the address list scrubber left behind an empty list.
      */
     if (SMTP_RCPT_LEFT(state) > 0) {
+	if (smtp_errno == SMTP_ERR_NONE) {
+	    dsn_vstring_update(why, "4.3.0",
+			    "server unavailable or unable to receive mail");
+	    smtp_errno = SMTP_ERR_RETRY;
+	}
 	switch (smtp_errno) {
 
 	default:
