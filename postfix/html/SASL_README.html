@@ -441,11 +441,13 @@ then get back to Postfix. </p>
 <h2><a name="client_sasl">Enabling SASL authentication in the
 Postfix SMTP client</a></h2>
 
-<p> Turn on client-side SASL authentication, and specify a table with
-per-host or per-destination username and password information.
+<p> Turn on client-side SASL authentication, and specify a table
+with per-host or per-destination username and password information.
 Postfix first looks up the server hostname; if no entry is found,
-then Postfix looks up the destination domain name (usually, the
-right-hand part of an email address). </p>
+then Postfix looks up the destination domain name. Usually, this
+is the right-hand part of an email address, but it can also be a
+hostname or address enclosed in [], with an optional ":port", as
+specified with <a href="postconf.5.html#relayhost">relayhost</a> in with <a href="postconf.5.html#transport_maps">transport_maps</a>. </p>
 
 <blockquote>
 <pre>
@@ -454,8 +456,10 @@ right-hand part of an email address). </p>
     <a href="postconf.5.html#smtp_sasl_password_maps">smtp_sasl_password_maps</a> = hash:/etc/postfix/sasl_passwd
 
 /etc/postfix/sasl_passwd:
-    foo.com             username:password
-    bar.com             username
+    foo.com                     username:password
+    bar.com                     username
+    [mail.myisp.net]            username:password
+    [mail.myisp.net]:submission username:password
 </pre>
 </blockquote>
 

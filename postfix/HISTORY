@@ -10684,10 +10684,15 @@ Apologies for any names omitted.
 	Bugfix: don't panic when the fall-back relay can't be used
 	because it was already tried via a cached session. Produce
 	a default excuse instead. File: smtp/smtp_connect.c.
-	
+
 	Bugfix: postsuper could lose an error message after reporting
 	a fatal error.  File: postsuper/postsuper.c.
- 
+
+20050426
+
+	Bugfix: simplified and improved the 20050422 fall-back relay
+	fix. File: smtp/smtp_connect.c.
+
 Open problems:
 
 	Med: disable header address rewriting after XCLIENT?

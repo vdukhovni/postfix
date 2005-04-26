@@ -297,15 +297,19 @@ EEnnaabblliinngg SSAASSLL aauutthheennttiiccaattiioonn
 Turn on client-side SASL authentication, and specify a table with per-host or
 per-destination username and password information. Postfix first looks up the
 server hostname; if no entry is found, then Postfix looks up the destination
-domain name (usually, the right-hand part of an email address).
+domain name. Usually, this is the right-hand part of an email address, but it
+can also be a hostname or address enclosed in [], with an optional ":port", as
+specified with relayhost in with transport_maps.
 
     /etc/postfix/main.cf:
         smtp_sasl_auth_enable = yes
         smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
 
     /etc/postfix/sasl_passwd:
-        foo.com             username:password
-        bar.com             username
+        foo.com                     username:password
+        bar.com                     username
+        [mail.myisp.net]            username:password
+        [mail.myisp.net]:submission username:password
 
 Note: some SMTP servers support PLAIN or LOGIN authentication only. By default,
 the Postfix SMTP client does not use authentication methods that send plaintext

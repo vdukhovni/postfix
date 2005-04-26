@@ -568,7 +568,6 @@ int     smtp_connect(SMTP_STATE *state)
 	    (*(cpp) && (cpp) >= (sites)->argv + (non_fallback_sites))
 
     for (cpp = sites->argv; SMTP_RCPT_LEFT(state) > 0 && (dest = *cpp) != 0; cpp++) {
-	state->final_server = (cpp[1] == 0);
 
 	/*
 	 * Parse the destination. Default is to use the SMTP port. Look up
@@ -593,7 +592,11 @@ int     smtp_connect(SMTP_STATE *state)
 	    /* XXX We could be an MX host for this destination... */
 	} else {
 	    addr_list = smtp_domain_addr(domain, misc_flags, why, &i_am_mx);
+	    /* If we're MX host, don't connect to non-MX backups. */
+	    if (i_am_mx)
+		cpp[1] = 0;
 	}
+	state->final_server = (cpp[1] == 0);
 
 	/*
 	 * When session caching is enabled, store the first good session for
@@ -683,8 +686,7 @@ int     smtp_connect(SMTP_STATE *state)
 	    if ((state->session = session) != 0) {
 		if (++sess_count == var_smtp_mxsess_limit)
 		    next = 0;
-		state->final_server = (next == 0 && (cpp[1] == 0 || (i_am_mx
-		&& IS_FALLBACK_RELAY(cpp + 1, sites, non_fallback_sites))));
+		state->final_server = (cpp[1] == 0 && next == 0);
 		if (addr->pref == domain_best_pref)
 		    session->features |= SMTP_FEATURE_BEST_MX;
 		if ((session->features & SMTP_FEATURE_FROM_CACHE) != 0

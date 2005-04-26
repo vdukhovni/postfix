@@ -298,6 +298,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 		msg_warn("%s: message rejected: bad rewriting context: %.100s",
 			 state->queue_id, attr_value);
 		state->errs |= CLEANUP_STAT_BAD;
+		myfree(sbuf);
 		return;
 	    }
 	}

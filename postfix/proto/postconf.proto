@@ -7616,6 +7616,8 @@ and virtual_alias_maps. </p>
 auth, etc.) that the SMTP client will ignore in the EHLO response
 from a remote SMTP server. </p>
 
+<p> This feature is available in Postfix 2.2 and later. </p>
+
 <p> Notes: </p>
 
 <ul>
@@ -7634,6 +7636,8 @@ discard EHLO keywords selectively. </p>
 auth, etc.) that the SMTP server will not send in the EHLO response
 to a remote SMTP client. </p>
 
+<p> This feature is available in Postfix 2.2 and later. </p>
+
 <p> Notes: </p>
 
 <ul>
@@ -7645,6 +7649,7 @@ this action from being logged. </p>
 to discard EHLO keywords selectively.  </p>
 
 </ul>
+
 %PARAM smtp_discard_ehlo_keyword_address_maps
 
 <p> Lookup tables, indexed by the remote SMTP server address, with
@@ -7653,6 +7658,8 @@ auth, etc.) that the SMTP client will ignore in the EHLO response
 from a remote SMTP server. See smtp_discard_ehlo_keywords for
 details. </p>
 
+<p> This feature is available in Postfix 2.2 and later. </p>
+
 %PARAM smtpd_discard_ehlo_keyword_address_maps
 
 <p> Lookup tables, indexed by the remote SMTP client address, with
@@ -7660,6 +7667,8 @@ case insensitive lists of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP server will not send in the EHLO response
 to a remote SMTP client. See smtpd_discard_ehlo_keywords for details.
 </p>
+
+<p> This feature is available in Postfix 2.2 and later. </p>
 
 %PARAM connection_cache_service scache
 
