@@ -170,16 +170,16 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
 	    addr_list = dns_rr_append(addr_list, addr);
 	    return (addr_list);
 	default:
-	    dsn_vstring_update(why, "4.4.3", "");
+	    dsn_vstring_update_dsn(why, "4.4.3");
 	    smtp_errno = SMTP_ERR_RETRY;
 	    return (addr_list);
 	case DNS_FAIL:
-	    dsn_vstring_update(why, "4.4.3", "");
+	    dsn_vstring_update_dsn(why, "4.4.3");
 	    if (smtp_errno != SMTP_ERR_RETRY)
 		smtp_errno = SMTP_ERR_FAIL;
 	    return (addr_list);
 	case DNS_NOTFOUND:
-	    dsn_vstring_update(why, "4.4.4", "");
+	    dsn_vstring_update_dsn(why, "4.4.4");
 	    if (smtp_errno != SMTP_ERR_RETRY)
 		smtp_errno = SMTP_ERR_FAIL;
 	    /* maybe native naming service will succeed */
@@ -415,13 +415,13 @@ DNS_RR *smtp_domain_addr(char *name, int misc_flags, DSN_VSTRING *why,
      */
     switch (dns_lookup(name, T_MX, 0, &mx_names, (VSTRING *) 0, why->vstring)) {
     default:
-	dsn_vstring_update(why, "4.4.3", "");
+	dsn_vstring_update_dsn(why, "4.4.3");
 	smtp_errno = SMTP_ERR_RETRY;
 	if (var_ign_mx_lookup_err)
 	    addr_list = smtp_host_addr(name, misc_flags, why);
 	break;
     case DNS_FAIL:
-	dsn_vstring_update(why, "5.4.3", "");
+	dsn_vstring_update_dsn(why, "5.4.3");
 	smtp_errno = SMTP_ERR_FAIL;
 	if (var_ign_mx_lookup_err)
 	    addr_list = smtp_host_addr(name, misc_flags, why);

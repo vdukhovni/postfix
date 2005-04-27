@@ -295,11 +295,11 @@ sample client. Only then get back to Postfix.
 EEnnaabblliinngg SSAASSLL aauutthheennttiiccaattiioonn iinn tthhee PPoossttffiixx SSMMTTPP cclliieenntt
 
 Turn on client-side SASL authentication, and specify a table with per-host or
-per-destination username and password information. Postfix first looks up the
-server hostname; if no entry is found, then Postfix looks up the destination
-domain name. Usually, this is the right-hand part of an email address, but it
-can also be a hostname or address enclosed in [], with an optional ":port", as
-specified with relayhost in with transport_maps.
+per-destination username and password information. Postfix first searches the
+table for an entry with the server hostname; if no entry is found, then Postfix
+searches the table for an entry with the next-hop destination. Usually, that is
+the right-hand part of an email address, but it can also be the information
+that is specified with the relayhost parameter or with a transport(5) table.
 
     /etc/postfix/main.cf:
         smtp_sasl_auth_enable = yes

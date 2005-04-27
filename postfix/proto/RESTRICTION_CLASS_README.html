@@ -49,7 +49,7 @@ care about these low-level details. </p>
     smtpd_recipient_restrictions = 
 	permit_mynetworks
 	reject_unauth_destination
-	hash:/etc/postfix/recipient_access
+	check_recipient_access hash:/etc/postfix/recipient_access
 
 /etc/postfix/recipient_access:
     joe@my.domain	permissive
@@ -101,7 +101,7 @@ to IP spoofing. </p>
 <pre>
 /etc/postfix/main.cf:
     smtpd_recipient_restrictions =
-        hash:/etc/postfix/access
+        check_recipient_access hash:/etc/postfix/access
         <i>...the usual stuff...</i>
 
 /etc/postfix/access:
@@ -132,7 +132,7 @@ therefore is subject to SMTP sender spoofing. </p>
 <pre>
 /etc/postfix/main.cf:
     smtpd_recipient_restrictions =
-        hash:/etc/postfix/protected_destinations
+        check_recipient_access hash:/etc/postfix/protected_destinations
         <i>...the usual stuff...</i>
 
     smtpd_restriction_classes = insiders_only

@@ -24,6 +24,7 @@ extern ARGV *argv_alloc(int);
 extern void argv_add(ARGV *,...);
 extern void argv_addn(ARGV *,...);
 extern void argv_terminate(ARGV *);
+extern void argv_truncate(ARGV *, int);
 extern ARGV *argv_free(ARGV *);
 
 extern ARGV *argv_split(const char *, const char *);

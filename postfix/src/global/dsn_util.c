@@ -52,6 +52,10 @@
 /*	const char *dsn;
 /*	const char *format;
 /*
+/*	DSN_VSTRING *dsn_vstring_update_dsn(dv, dsn)
+/*	DSN_VSTRING *dv;
+/*	const char *dsn;
+/*
 /*	void	dsn_vstring_free(dv)
 /*	DSN_VSTRING *dv;
 /*
@@ -83,6 +87,8 @@
 /*	dsn_vstring_update() updates the detail code, the descriptive
 /*	free text, or both. Specify a null pointer (or zero-length
 /*	string) for information that should not be updated.
+/*
+/*	dsn_vstring_update_dsn() pacifies the gcc compiler.
 /*
 /*	dsn_vstring_free() recycles the storage that was allocated
 /*	by dsn_vstring_alloc() and dsn_vstring_update().
@@ -259,5 +265,17 @@ DSN_VSTRING *dsn_vstring_update(DSN_VSTRING *dv, const char *dsn,
 	vstring_vsprintf(dv->vstring, format, ap);
 	va_end(ap);
     }
+    return (dv);
+}
+
+/* dsn_vstring_update_dsn - update DSN */
+
+DSN_VSTRING *dsn_vstring_update_dsn(DSN_VSTRING *dv, const char *dsn)
+{
+    size_t  len;
+
+    if ((len = dsn_valid(dsn)) == 0)
+	msg_panic("dsn_vstring_update_dsn: bad dsn: \"%s\"", dsn);
+    DSN_UPDATE(dv->dsn, dsn, len);
     return (dv);
 }

@@ -49,7 +49,7 @@ care about these low-level details. </p>
     <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> = 
 	<a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>
 	<a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>
-	hash:/etc/postfix/recipient_access
+	<a href="postconf.5.html#check_recipient_access">check_recipient_access</a> hash:/etc/postfix/recipient_access
 
 /etc/postfix/recipient_access:
     joe@my.domain	permissive
@@ -101,7 +101,7 @@ to IP spoofing. </p>
 <pre>
 /etc/postfix/main.cf:
     <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> =
-        hash:/etc/postfix/access
+        <a href="postconf.5.html#check_recipient_access">check_recipient_access</a> hash:/etc/postfix/access
         <i>...the usual stuff...</i>
 
 /etc/postfix/access:
@@ -132,7 +132,7 @@ therefore is subject to SMTP sender spoofing. </p>
 <pre>
 /etc/postfix/main.cf:
     <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> =
-        hash:/etc/postfix/protected_destinations
+        <a href="postconf.5.html#check_recipient_access">check_recipient_access</a> hash:/etc/postfix/protected_destinations
         <i>...the usual stuff...</i>
 
     <a href="postconf.5.html#smtpd_restriction_classes">smtpd_restriction_classes</a> = insiders_only

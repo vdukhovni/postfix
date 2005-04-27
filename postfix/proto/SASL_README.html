@@ -443,11 +443,12 @@ Postfix SMTP client</a></h2>
 
 <p> Turn on client-side SASL authentication, and specify a table
 with per-host or per-destination username and password information.
-Postfix first looks up the server hostname; if no entry is found,
-then Postfix looks up the destination domain name. Usually, this
-is the right-hand part of an email address, but it can also be a
-hostname or address enclosed in [], with an optional ":port", as
-specified with relayhost in with transport_maps. </p>
+Postfix first searches the table for an entry with the server
+hostname; if no entry is found, then Postfix searches the table for
+an entry with the next-hop destination.  Usually, that is the
+right-hand part of an email address, but it can also be the information
+that is specified with the relayhost parameter or with a transport(5)
+table. </p>
 
 <blockquote>
 <pre>

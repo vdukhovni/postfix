@@ -10693,6 +10693,17 @@ Apologies for any names omitted.
 	Bugfix: simplified and improved the 20050422 fall-back relay
 	fix. File: smtp/smtp_connect.c.
 
+20050427
+
+	Final solution for the 20050422 fall-back relay problem:
+	truncate the fall-back host list when the local MTA is MX
+	for some destination. Files: util/argv.c, smtp/smtp_connect.c.
+
+	Cleanup: extra dsn_vstring_update_dsn() routine to shut up
+	GCC complaints about valid code. Files: src/global/dsn_util.c,
+	src/global/mbox_open.c, src/lmtp/lmtp_addr.c, src/smtp/smtp_addr.c,
+	src/smtp/smtp_connect.c.
+
 Open problems:
 
 	Med: disable header address rewriting after XCLIENT?

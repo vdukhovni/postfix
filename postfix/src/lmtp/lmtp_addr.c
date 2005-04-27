@@ -195,15 +195,15 @@ static DNS_RR *lmtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
 	addr_list = dns_rr_append(addr_list, addr);
 	break;
     default:
-	dsn_vstring_update(why, "4.4.3", "");
+	dsn_vstring_update_dsn(why, "4.4.3");
 	lmtp_errno = LMTP_RETRY;
 	break;
     case DNS_FAIL:
-	dsn_vstring_update(why, "4.4.3", "");
+	dsn_vstring_update_dsn(why, "4.4.3");
 	lmtp_errno = LMTP_FAIL;
 	break;
     case DNS_NOTFOUND:
-	dsn_vstring_update(why, "4.4.4", "");
+	dsn_vstring_update_dsn(why, "4.4.4");
 	lmtp_errno = LMTP_FAIL;
 	break;
     }

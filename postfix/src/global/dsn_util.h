@@ -73,6 +73,7 @@ typedef struct {
 
 extern DSN_VSTRING *dsn_vstring_alloc(int);
 extern PRINTFLIKE(3, 4) DSN_VSTRING *dsn_vstring_update(DSN_VSTRING *, const char *, const char *,...);
+extern DSN_VSTRING *dsn_vstring_update_dsn(DSN_VSTRING *, const char *);
 extern void dsn_vstring_free(DSN_VSTRING *);
 
 /* LICENSE

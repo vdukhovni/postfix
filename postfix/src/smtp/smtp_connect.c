@@ -594,7 +594,7 @@ int     smtp_connect(SMTP_STATE *state)
 	    addr_list = smtp_domain_addr(domain, misc_flags, why, &i_am_mx);
 	    /* If we're MX host, don't connect to non-MX backups. */
 	    if (i_am_mx)
-		cpp[1] = 0;
+		argv_truncate(sites, cpp - sites->argv + 1);
 	}
 	state->final_server = (cpp[1] == 0);
 
@@ -732,7 +732,7 @@ int     smtp_connect(SMTP_STATE *state)
 	     */
 	    if (IS_FALLBACK_RELAY(cpp, sites, non_fallback_sites)) {
 		msg_warn("%s configuration problem", VAR_FALLBACK_RELAY);
-		dsn_vstring_update(why, "4.3.5", "");
+		dsn_vstring_update_dsn(why, "4.3.5");
 		smtp_errno = SMTP_ERR_RETRY;
 	    }
 
@@ -742,7 +742,7 @@ int     smtp_connect(SMTP_STATE *state)
 	     */
 	    else if (strcmp(sites->argv[0], var_relayhost) == 0) {
 		msg_warn("%s configuration problem", VAR_RELAYHOST);
-		dsn_vstring_update(why, "4.3.5", "");
+		dsn_vstring_update_dsn(why, "4.3.5");
 		smtp_errno = SMTP_ERR_RETRY;
 	    }
 
