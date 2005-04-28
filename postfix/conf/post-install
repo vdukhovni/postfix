@@ -638,7 +638,7 @@ EOF
 
     grep "^tlsmgr[ 	]*fifo[ 	]" \
 	$config_directory/master.cf >/dev/null && {
-	    echo Editing $config_directory/master.cf, updating the tlsmgr fifo->unix service
+	    echo Editing $config_directory/master.cf, updating the tlsmgr from fifo to unix service
 	    ed $config_directory/master.cf <<EOF || exit 1
 /^tlsmgr[ 	]*fifo[ 	]/
 s/fifo/unix/

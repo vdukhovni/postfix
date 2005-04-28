@@ -16,6 +16,8 @@ LIBS	= ../../lib/libmaster.a ../../lib/libtls.a ../../lib/libglobal.a \
 $(PROG): $(OBJS) $(LIBS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
 
+$(OBJS): ../../conf/makedefs.out
+
 Makefile: Makefile.in
 	(set -e; echo "# DO NOT EDIT"; $(OPTS) $(SHELL) ../../makedefs && cat $?) >$@
 

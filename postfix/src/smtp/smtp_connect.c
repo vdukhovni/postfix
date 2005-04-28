@@ -561,9 +561,6 @@ int     smtp_connect(SMTP_STATE *state)
 	    (*(cpp) && (cpp) >= (sites)->argv + (non_fallback_sites))
 
     for (cpp = sites->argv; SMTP_RCPT_LEFT(state) > 0 && (dest = *cpp) != 0; cpp++) {
-	if (i_am_mx && IS_FALLBACK_RELAY(cpp, sites, non_fallback_sites))
-	    break;
-	state->final_server = (cpp[1] == 0);
 
 	/*
 	 * Parse the destination. Default is to use the SMTP port. Look up
@@ -588,7 +585,11 @@ int     smtp_connect(SMTP_STATE *state)
 	    /* XXX We could be an MX host for this destination... */
 	} else {
 	    addr_list = smtp_domain_addr(domain, misc_flags, why, &i_am_mx);
+	    /* If we're MX host, don't connect to non-MX backups. */
+	    if (i_am_mx)
+		argv_truncate(sites, cpp - sites->argv + 1);
 	}
+	state->final_server = (cpp[1] == 0);
 
 	/*
 	 * When session caching is enabled, store the first good session for
@@ -699,8 +700,16 @@ int     smtp_connect(SMTP_STATE *state)
      * 
      * Pay attention to what could be configuration problems, and pretend that
      * these are recoverable rather than bouncing the mail.
+     * 
+     * In case of a "no error" indication we make up an excuse; this can happen
+     * when the fall-back relay was already tried via a cached connection, so
+     * that the address list scrubber left behind an empty list.
      */
     if (SMTP_RCPT_LEFT(state) > 0) {
+	if (smtp_errno == SMTP_ERR_NONE) {
+	    vstring_sprintf(why, "server unavailable or unable to receive mail");
+	    smtp_errno = SMTP_ERR_RETRY;
+	}
 	switch (smtp_errno) {
 
 	default:

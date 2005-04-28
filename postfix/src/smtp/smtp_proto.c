@@ -1411,8 +1411,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 					  vstring_str(session->scratch),
 					  VSTRING_LEN(session->scratch));
 		    if (mime_errs) {
-			smtp_mesg_fail(state, 554,
-				       "MIME 7-bit conversion failed: %s",
+			smtp_mesg_fail(state, 554, "%s",
 				       mime_state_error(mime_errs));
 			RETURN(0);
 		    }
@@ -1429,12 +1428,13 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		 * ending in newline via /usr/sbin/sendmail while MIME input
 		 * processing is turned off, and MIME 8bit->7bit conversion
 		 * is requested upon delivery.
+		 * 
+		 * Or some error while doing generic address mapping.
 		 */
 		mime_errs =
 		    mime_state_update(session->mime_state, rec_type, "", 0);
 		if (mime_errs) {
-		    smtp_mesg_fail(state, 554,
-				   "MIME 7-bit conversion failed: %s",
+		    smtp_mesg_fail(state, 554, "%s",
 				   mime_state_error(mime_errs));
 		    RETURN(0);
 		}

@@ -97,6 +97,8 @@ MAKES	=
 
 all: $(LIB)
 
+$(OBJS): ../../conf/makedefs.out
+
 Makefile: Makefile.in
 	(cat ../../conf/makedefs.out $?) >$@
 

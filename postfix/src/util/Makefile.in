@@ -109,6 +109,8 @@ INC_DIR	= ../../include
 
 all: $(LIB)
 
+$(OBJS): ../../conf/makedefs.out
+
 Makefile: Makefile.in
 	(cat ../../conf/makedefs.out $?) >$@
 

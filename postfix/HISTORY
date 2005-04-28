@@ -10512,3 +10512,62 @@ Apologies for any names omitted.
 	PREPEND+IGNORE. The result remains in the input stream, and
 	is subject to address rewriting and other processing where
 	applicable.  File: cleanup/cleanup_message.c.
+
+20050407
+
+	@%^!#& Thanks to inadequate SASL documentation the client
+	could negotiate a security layer where none was desired.
+	Better documentation has become available since Postfix
+	SASL support was implemented, and now Postfix needs to be
+	fixed. Files: */*_sasl_glue.c.
+
+20050402
+
+	Cleanup: updated error messages about MIME processing errors
+	in the SMTP client. These errors are no longer specific to
+	8bit->7bit conversion; they can also happen with generic
+	address mapping. File: smtp/smtp_proto.c.
+
+20050409
+
+	Safety: the CDB map now logs a warning when the source file
+	is newer than the indexed file, just like the Berkeley DB
+	and DBM maps. Michael Tokarev. File: util/dict_cdb.c.
+
+20050412
+
+	Bugfix: while updating the cleanup_flush() infrastructure
+	in the 2.3 development release, eliminated a portability
+	problem that was introduced when "REJECT text" support was
+	added. File: cleanup/cleanup.c.
+
+20050413
+
+	Portability: don't mix socket message send/receive calls
+	with socket stream read/write calls. The fact that you can
+	get away with it only on some stacks implies that there is
+	no long-term guarantee. Specify -DCAN_WRITE_BEFORE_SENDING_FD
+	if you feel brave. File: util/sys_defs.h.
+
+	Robustness: re-compile all object files after the "make
+	makefiles" options have changed. Files: src/*/Makefile.in.
+
+20050417
+
+	Safety: don't call syslog from a user-triggered signal
+	handler, and other minor fixes back-ported from the 2.3
+	development release.  File: postdrop/postdrop.c.
+
+20050422
+
+	Bugfix: postsuper could lose an error message after reporting
+	a fatal error. Fix back-ported from the 2.3 development
+	release.  File: postsuper/postsuper.c.
+
+20050427
+
+	Bugfix: don't panic when the fall-back relay can't be used
+	because the local MTA is MX for the destination, or when
+	the fall-back relay can't be used because it was already
+	tried via a cached session.  Files: util/argv.c,
+	smtp/smtp_connect.c.

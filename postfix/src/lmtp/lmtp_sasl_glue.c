@@ -377,7 +377,7 @@ void    lmtp_sasl_start(LMTP_STATE *state, const char *sasl_opts_name,
      */
     memset(&sec_props, 0L, sizeof(sec_props));
     sec_props.min_ssf = 0;
-    sec_props.max_ssf = 1;			/* don't allow real SASL
+    sec_props.max_ssf = 0;			/* don't allow real SASL
 						 * security layer */
     sec_props.security_flags = name_mask(sasl_opts_name, lmtp_sasl_sec_mask,
 					 sasl_opts_val);

@@ -1290,6 +1290,15 @@ typedef int pid_t;
 #endif
 
  /*
+  * Don't mix socket message calls with socket read/write calls. The fact
+  * that you can get away with it only on some stacks implies that there is
+  * no long-term guarantee.
+  */
+#ifndef CAN_WRITE_BEFORE_SENDING_FD
+#define CANT_WRITE_BEFORE_SENDING_FD
+#endif
+
+ /*
   * Making the ctype.h macros not more expensive than necessary. On some
   * systems, ctype.h misbehaves with non-ASCII and/or negative characters.
   */
