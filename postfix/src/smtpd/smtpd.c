@@ -1218,6 +1218,8 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 			      " " XFORWARD_NAME " " XFORWARD_ADDR
 			      " " XFORWARD_PROTO " " XFORWARD_HELO
 			      " " XFORWARD_DOMAIN);
+    if ((discard_mask & EHLO_MASK_ENHANCEDSTATUSCODES) == 0)
+	ENQUEUE_FIX_REPLY(state, reply_buf, "ENHANCEDSTATUSCODES");
     if ((discard_mask & EHLO_MASK_8BITMIME) == 0)
 	ENQUEUE_FIX_REPLY(state, reply_buf, "8BITMIME");
     smtpd_chat_reply(state, "250 %s", STR(reply_buf));

@@ -10704,6 +10704,12 @@ Apologies for any names omitted.
 	src/global/mbox_open.c, src/lmtp/lmtp_addr.c, src/smtp/smtp_addr.c,
 	src/smtp/smtp_connect.c.
 
+20050429
+
+	The Postfix SMTP server now announces ENHANCEDSTATUSCODES
+	support in the EHLO response, as described in RFC 2034.
+	File: smtpd/smtpd.c.
+
 Open problems:
 
 	Med: disable header address rewriting after XCLIENT?

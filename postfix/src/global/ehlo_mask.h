@@ -25,7 +25,8 @@
 
 #define EHLO_MASK_XCLIENT	(1<<8)	/* start of second byte */
 #define EHLO_MASK_XFORWARD	(1<<9)
-#define EHLO_MASK_SILENT	(1<<10)
+#define EHLO_MASK_ENHANCEDSTATUSCODES	(1<<10)
+#define EHLO_MASK_SILENT	(1<<15)
 
 extern int ehlo_mask(const char *);
 extern const char *str_ehlo_mask(int);
