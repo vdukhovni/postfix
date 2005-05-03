@@ -17,6 +17,19 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
+Incompatibility with snapshot 20050503
+======================================
+
+The format of some "warning:" messages in the maillog has changed
+so that they are easier to sort:
+
+- The logging now talks about "access table", instead of using three
+different expressions "access table", "access map" and "SMTPD access
+map" for the same thing.
+
+- "non-SMTP command" is now logged BEFORE the client name/address
+and the offending client input, instead of at the end.
+
 Incompatibility with snapshot 20050329
 ======================================
 

@@ -1897,11 +1897,11 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 	    return (SMTPD_CHECK_DUNNO);
 #endif
 	if (*cmd_text == 0) {
-	    msg_warn("access map %s entry \"%s\" has FILTER entry without value",
+	    msg_warn("access table %s entry \"%s\" has FILTER entry without value",
 		     table, datum);
 	    return (SMTPD_CHECK_DUNNO);
 	} else if (strchr(cmd_text, ':') == 0) {
-	    msg_warn("access map %s entry \"%s\" requires transport:destination",
+	    msg_warn("access table %s entry \"%s\" requires transport:destination",
 		     table, datum);
 	    return (SMTPD_CHECK_DUNNO);
 	} else {
@@ -1961,7 +1961,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 	    return (SMTPD_CHECK_DUNNO);
 #endif
 	if (strchr(cmd_text, '@') == 0) {
-	    msg_warn("access map %s entry \"%s\" requires user@domain target",
+	    msg_warn("access table %s entry \"%s\" requires user@domain target",
 		     table, datum);
 	    return (SMTPD_CHECK_DUNNO);
 	} else {
@@ -2013,7 +2013,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 	    return (SMTPD_CHECK_DUNNO);
 #endif
 	if (*cmd_text == 0 || is_header(cmd_text) == 0) {
-	    msg_warn("access map %s entry \"%s\" requires header: text",
+	    msg_warn("access table %s entry \"%s\" requires header: text",
 		     table, datum);
 	    return (SMTPD_CHECK_DUNNO);
 	} else {
@@ -2066,7 +2066,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
      * XXX Don't use passwd files or address rewriting maps as access tables.
      */
     if (strchr(value, ':') != 0) {
-	msg_warn("SMTPD access map %s has entry with lookup table: %s",
+	msg_warn("access table %s has entry with lookup table: %s",
 		 table, value);
 	msg_warn("do not specify lookup tables inside SMTPD access maps");
 	msg_warn("define a restriction class and specify its name instead.");
@@ -2079,7 +2079,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
      * Don't get carried away with recursion.
      */
     if (state->recursion > 100) {
-	msg_warn("SMTPD access map %s entry %s causes unreasonable recursion",
+	msg_warn("access table %s entry %s causes unreasonable recursion",
 		 table, value);
 	longjmp(smtpd_check_buf, smtpd_check_reject(state, MAIL_ERROR_SOFTWARE,
 						    451, "4.3.5",
@@ -2106,7 +2106,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 	longjmp(smtpd_check_buf, status);
     }
     if (restrictions->argc == 0) {
-	msg_warn("SMTPD access map %s entry %s has empty value",
+	msg_warn("access table %s entry %s has empty value",
 		 table, value);
 	status = SMTPD_CHECK_OK;
     } else {
@@ -4100,6 +4100,7 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient,
 			           const char *reply_class)
 {
     const RESOLVE_REPLY *reply;
+    DSN_SPLIT dp;
 
     if (msg_verbose)
 	msg_info(">>> CHECKING RECIPIENT MAPS <<<");
@@ -4141,15 +4142,17 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient,
      * unknown recipients in virtual alias domains will both resolve to
      * "error:user unknown".
      */
-    if (strcmp(STR(reply->transport), MAIL_SERVICE_ERROR) == 0)
+    if (strcmp(STR(reply->transport), MAIL_SERVICE_ERROR) == 0) {
+	dsn_split(&dp, strcmp(reply_class, SMTPD_NAME_SENDER) == 0 ?
+		  "5.1.0" : "5.1.1", STR(reply->nexthop));
 	return (smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 				   (reply->flags & RESOLVE_CLASS_ALIAS) ?
 				   var_virt_alias_code : 550,
-			       strcmp(reply_class, SMTPD_NAME_SENDER) == 0 ?
-				   "5.1.0" : "5.1.1",
+				   DSN_CODE(dp.dsn),
 				   "<%s>: %s rejected: %s",
 				   recipient, reply_class,
-				   STR(reply->nexthop)));
+				   dp.text));
+    }
 
     /*
      * Search the recipient lookup tables of the respective address class.

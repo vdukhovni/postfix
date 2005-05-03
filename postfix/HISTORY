@@ -10710,6 +10710,15 @@ Apologies for any names omitted.
 	support in the EHLO response, as described in RFC 2034.
 	File: smtpd/smtpd.c.
 
+20050503
+
+	Propagate enhanced status code from error(8) mailer to SMTP
+	server replies. File: smtpd/smtpd_check.c.
+
+	Cleanup: more consistent format of smtpd warning logging,
+	so that it is easier to sort.  Files: smtpd/smtpd.c,
+	smtpd/smtpd_check.c.
+
 Open problems:
 
 	Med: disable header address rewriting after XCLIENT?

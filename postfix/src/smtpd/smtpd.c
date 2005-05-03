@@ -3089,7 +3089,7 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 		if (is_header(argv[0].strval)
 		    || (*var_smtpd_forbid_cmds
 		 && string_list_match(smtpd_forbid_cmds, argv[0].strval))) {
-		    msg_warn("%s sent non-SMTP command: %.100s",
+		    msg_warn("non-SMTP command from %s: %.100s",
 			     state->namaddr, vstring_str(state->buffer));
 		    smtpd_chat_reply(state, "221 2.7.0 Error: I can break rules, too. Goodbye.");
 		    break;
