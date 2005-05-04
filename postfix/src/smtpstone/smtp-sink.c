@@ -36,6 +36,8 @@
 /*	Disable XCLIENT support.
 /* .IP \fB-e\fR
 /*	Do not announce ESMTP support.
+/* .IP \fB-E\fR
+/*	Do not announce ENHANCEDSTATUSCODES support.
 /* .IP "\fB-f \fIcommand,command,...\fR"
 /*	Reject the specified commands with a hard (5xx) error code.
 /*	This option implies \fB-p\fR.
@@ -65,6 +67,9 @@
 /*	RCPT, VRFY, RSET, NOOP, and QUIT. Separate command names by white
 /*	space or commas, and use quotes to protect white space from the
 /*	shell. Command names are case-insensitive.
+/* .IP "\fB-t \fItimeout\fR (default: 100)"
+/*	Limit the time for receiving a command or sending a response.
+/*	The time limit is specified in seconds.
 /* .IP \fB-v\fR
 /*	Show the SMTP conversations.
 /* .IP "\fB-w \fIdelay\fR"
@@ -145,7 +150,7 @@ typedef struct SINK_STATE {
 #define ST_CR_LF_DOT_CR		4
 #define ST_CR_LF_DOT_CR_LF	5
 
-static int var_tmout;
+static int var_tmout = 100;
 static int var_max_line_length = 2048;
 static char *var_myhostname;
 static int command_read(SINK_STATE *);
@@ -163,6 +168,7 @@ static int pretend_pix;
 static int disable_saslauth;
 static int disable_xclient;
 static int disable_xforward;
+static int disable_enh_status;
 
 /* ehlo_response - respond to EHLO command */
 
@@ -179,6 +185,8 @@ static void ehlo_response(SINK_STATE *state)
 	smtp_printf(state->stream, "250-XCLIENT NAME HELO");
     if (!disable_xforward)
 	smtp_printf(state->stream, "250-XFORWARD NAME ADDR PROTO HELO");
+    if (!disable_enh_status)
+	smtp_printf(state->stream, "250-ENHANCEDSTATUSCODES");
     smtp_printf(state->stream, "250 ");
     smtp_flush(state->stream);
 }
@@ -518,21 +526,48 @@ static int command_read(SINK_STATE *state)
     return (0);
 }
 
+/* read_timeout - handle timer event */
+
+static void read_timeout(int unused_event, char *context)
+{
+    SINK_STATE *state = (SINK_STATE *) context;
+
+    /*
+     * We don't send anything to the client, because we would have to set up
+     * an smtp_stream exception handler first. And that is just too much
+     * trouble.
+     */
+    msg_warn("read timeout");
+    disconnect(state);
+}
+
 /* read_event - handle command or data read events */
 
 static void read_event(int unused_event, char *context)
 {
     SINK_STATE *state = (SINK_STATE *) context;
 
+    /*
+     * The input reading routine not only reads input (with vstream calls)
+     * but also produces output (with smtp_stream calls). Because the output
+     * routines can raise timeout or EOF exceptions with vstream_longjmp(),
+     * the input reading routine needs to set up corresponding exception
+     * handlers with vstream_setjmp(). Guarding the input operations in the
+     * same manner is not useful: we must read input in non-blocking mode, so
+     * we never get called when the socket stays unreadable too long. And EOF
+     * is already trivial to detect with the vstream calls.
+     */
     do {
 	switch (vstream_setjmp(state->stream)) {
 
 	default:
-	    msg_panic("unknown error reading input");
+	    msg_panic("unknown read/write error");
+	    /* NOTREACHED */
 
 	case SMTP_ERR_TIME:
-	    msg_panic("attempt to read non-readable socket");
-	    /* NOTREACHED */
+	    msg_warn("write timeout");
+	    disconnect(state);
+	    return;
 
 	case SMTP_ERR_EOF:
 	    msg_warn("lost connection");
@@ -548,6 +583,12 @@ static void read_event(int unused_event, char *context)
 	    }
 	}
     } while (vstream_peek(state->stream) > 0);
+
+    /*
+     * Reset the idle timer. Wait until the next input event, or until the
+     * idle timer goes off.
+     */
+    event_request_timer(read_timeout, (char *) state, var_tmout);
 }
 
 /* disconnect - handle disconnection events */
@@ -555,10 +596,11 @@ static void read_event(int unused_event, char *context)
 static void disconnect(SINK_STATE *state)
 {
     event_disable_readwrite(vstream_fileno(state->stream));
+    event_cancel_timer(read_timeout, (char *) state);
     vstream_fclose(state->stream);
     vstring_free(state->buffer);
     myfree((char *) state);
-    if (max_count > 0 && ++counter >= max_count)
+    if (max_count > 0 && counter >= max_count)
 	exit(0);
 }
 
@@ -592,14 +634,40 @@ static void connect_event(int unused_event, char *context)
 	state->read_fn = command_read;
 	state->data_state = ST_ANY;
 	smtp_timeout_setup(state->stream, var_tmout);
-	if (pretend_pix)
-	    smtp_printf(state->stream, "220 ********");
-	else if (disable_esmtp)
-	    smtp_printf(state->stream, "220 %s", var_myhostname);
-	else
-	    smtp_printf(state->stream, "220 %s ESMTP", var_myhostname);
-	smtp_flush(state->stream);
-	event_enable_read(fd, read_event, (char *) state);
+
+	/*
+	 * We use the smtp_stream module to produce output. That module
+	 * throws an exception via vstream_longjmp() in case of a timeout or
+	 * lost connection error. Therefore we must prepare to handle these
+	 * exceptions with vstream_setjmp().
+	 */
+	switch (vstream_setjmp(state->stream)) {
+
+	default:
+	    msg_panic("unknown read/write error");
+	    /* NOTREACHED */
+
+	case SMTP_ERR_TIME:
+	    msg_warn("write timeout");
+	    disconnect(state);
+	    return;
+
+	case SMTP_ERR_EOF:
+	    msg_warn("lost connection");
+	    disconnect(state);
+	    return;
+
+	case 0:
+	    if (pretend_pix)
+		smtp_printf(state->stream, "220 ********");
+	    else if (disable_esmtp)
+		smtp_printf(state->stream, "220 %s", var_myhostname);
+	    else
+		smtp_printf(state->stream, "220 %s ESMTP", var_myhostname);
+	    smtp_flush(state->stream);
+	    event_enable_read(fd, read_event, (char *) state);
+	    event_request_timer(read_timeout, (char *) state, var_tmout);
+	}
     }
 }
 
@@ -626,7 +694,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "46acCef:Fh:Ln:pPq:r:s:vw:8")) > 0) {
+    while ((ch = GETOPT(argc, argv, "46acCeEf:Fh:Ln:pPq:r:s:t:vw:8")) > 0) {
 	switch (ch) {
 	case '4':
 	    protocols = INET_PROTO_NAME_IPV4;
@@ -646,6 +714,9 @@ int     main(int argc, char **argv)
 	    break;
 	case 'e':
 	    disable_esmtp = 1;
+	    break;
+	case 'E':
+	    disable_enh_status = 1;
 	    break;
 	case 'f':
 	    set_cmds_flags(optarg, FLAG_HARD_ERR);
@@ -682,6 +753,10 @@ int     main(int argc, char **argv)
 	case 's':
 	    openlog(basename(argv[0]), LOG_PID, LOG_MAIL);
 	    set_cmds_flags(optarg, FLAG_SYSLOG);
+	    break;
+	case 't':
+	    if ((var_tmout = atoi(optarg)) <= 0)
+		msg_fatal("bad timeout: %s", optarg);
 	    break;
 	case 'v':
 	    msg_verbose++;

@@ -42,6 +42,8 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
 
        <b>-e</b>     Do not announce ESMTP support.
 
+       <b>-E</b>     Do not announce ENHANCEDSTATUSCODES support.
+
        <b>-f</b> <i>command,command,...</i>
               Reject the specified commands  with  a  hard  (5xx)
               error code.  This option implies <b>-p</b>.
@@ -80,6 +82,10 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
               command  names  by  white  space or commas, and use
               quotes to protect white space from the shell.  Com-
               mand names are case-insensitive.
+
+       <b>-t</b> <i>timeout</i> (default: 100)
+              Limit the time for receiving a command or sending a
+              response.  The time limit is specified in  seconds.
 
        <b>-v</b>     Show the SMTP conversations.
 

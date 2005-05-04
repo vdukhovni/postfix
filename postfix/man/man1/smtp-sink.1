@@ -42,6 +42,8 @@ QUIT command is executed.
 Disable XCLIENT support.
 .IP \fB-e\fR
 Do not announce ESMTP support.
+.IP \fB-E\fR
+Do not announce ENHANCEDSTATUSCODES support.
 .IP "\fB-f \fIcommand,command,...\fR"
 Reject the specified commands with a hard (5xx) error code.
 This option implies \fB-p\fR.
@@ -71,6 +73,9 @@ Examples of commands that can be logged are HELO, EHLO, LHLO, MAIL,
 RCPT, VRFY, RSET, NOOP, and QUIT. Separate command names by white
 space or commas, and use quotes to protect white space from the
 shell. Command names are case-insensitive.
+.IP "\fB-t \fItimeout\fR (default: 100)"
+Limit the time for receiving a command or sending a response.
+The time limit is specified in seconds.
 .IP \fB-v\fR
 Show the SMTP conversations.
 .IP "\fB-w \fIdelay\fR"

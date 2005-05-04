@@ -10719,6 +10719,14 @@ Apologies for any names omitted.
 	so that it is easier to sort.  Files: smtpd/smtpd.c,
 	smtpd/smtpd_check.c.
 
+20050504
+
+	Yikes. People are exposing the smtp-sink test program to
+	hostile environments, while it was designed for controlled
+	environments. Completed the support for write timeouts,
+	added support for read timeouts, and added a missing exception
+	handler for the 220 server greeting.  File: smtpstone/smtp-sink.c.
+
 Open problems:
 
 	Med: disable header address rewriting after XCLIENT?
