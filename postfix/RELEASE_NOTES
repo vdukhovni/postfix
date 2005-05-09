@@ -67,6 +67,11 @@ The form user@[ipaddress] is still allowed.
 [Incompat 20031226] Bounce messages now have a separate queue life
 time.  This is controlled by the bounce_queue_lifetime parameter.
 
+[Incompat 20031019] The authorized_verp_clients parameter was
+renamed to smtpd_authorized_verp_clients, and the default value
+was changed to disable this feature. You now have to turn it on
+explicitly.
+
 Major changes - build environment
 ---------------------------------
 

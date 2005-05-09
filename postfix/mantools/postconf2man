@@ -31,6 +31,7 @@ while(<>) {
 	$block .= $_;
     } while(($_ = <>) && /\S/);
 
+    $block =~ s/\n\./\n\\\&./g;
     if ($block =~ /<H2>/) {
 	$block =~ s/<H2><a[^>]+>([^<]+)<\/a><\/H2>/\n.SH \1\n/g;
 	$block =~ tr/a-z/A-Z/;
@@ -68,6 +69,7 @@ while(<>) {
     $block =~ s/<br>\s*/\n.br\n/g;
     $block =~ s/&lt;/</g;
     $block =~ s/&gt;/>/g;
+    $block =~ s/&amp;/\&/g;
     $block =~ s/\s+\n/\n/g;
     $block =~ s/^\n//g;
     print $block;

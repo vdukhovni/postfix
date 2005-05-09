@@ -383,7 +383,7 @@ and changed the default to none.
 Specify a list of network/netmask patterns, separated by commas
 and/or whitespace. The mask specifies the number of bits in the
 network part of a host address. You can also specify hostnames or
-.domain names (the initial dot causes the domain to match any name
+\&.domain names (the initial dot causes the domain to match any name
 below it),  "/file/name" or "type:table" patterns.  A "/file/name"
 pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
@@ -579,7 +579,7 @@ debug_peer_list = some.domain
 The external command to execute when a Postfix daemon program is
 invoked with the -D option.
 .PP
-Use "command .. &amp; sleep 5" so that the debugger can attach before
+Use "command .. & sleep 5" so that the debugger can attach before
 the process marches on. If you use an X-based debugger, be sure to
 set up your XAUTHORITY environment variable before starting Postfix.
 .PP
@@ -590,7 +590,7 @@ Example:
 .ft C
 debugger_command =
     PATH=/usr/bin:/usr/X11R6/bin
-    xxgdb $daemon_directory/$process_name $process_id &amp; sleep 5
+    xxgdb $daemon_directory/$process_name $process_id & sleep 5
 .fi
 .ad
 .ft R
@@ -931,7 +931,8 @@ to non-Postfix processes. The TZ variable is needed for sane
 time keeping on System-V-ish systems.
 .PP
 Specify a list of names and/or name=value pairs, separated by
-whitespace or comma.
+whitespace or comma. The name=value form is supported with
+Postfix 2.1 and later.
 .PP
 Example:
 .PP
@@ -2012,7 +2013,7 @@ notify_classes = 2bounce, resource, software
 .ft R
 .SH owner_request_special (default: yes)
 Give special treatment to owner-listname and listname-request
-address localparts: don't don't split such addresses when the
+address localparts: don't split such addresses when the
 recipient_delimiter is set to "-".  This feature is useful for
 mailing lists.
 .SH parent_domain_matches_subdomains (default: see "postconf -d" output)
@@ -2903,7 +2904,7 @@ is backwards compatible with Postfix 2.0.
 Specify a list of network/netmask patterns, separated by commas
 and/or whitespace. The mask specifies the number of bits in the
 network part of a host address. You can also specify hostnames or
-.domain names (the initial dot causes the domain to match any name
+\&.domain names (the initial dot causes the domain to match any name
 below it),  "/file/name" or "type:table" patterns.  A "/file/name"
 pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
@@ -2923,7 +2924,7 @@ By default, no clients are allowed to specify XCLIENT.
 Specify a list of network/netmask patterns, separated by commas
 and/or whitespace. The mask specifies the number of bits in the
 network part of a host address. You can also specify hostnames or
-.domain names (the initial dot causes the domain to match any name
+\&.domain names (the initial dot causes the domain to match any name
 below it),  "/file/name" or "type:table" patterns.  A "/file/name"
 pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
@@ -2942,7 +2943,7 @@ By default, no clients are allowed to specify XFORWARD.
 Specify a list of network/netmask patterns, separated by commas
 and/or whitespace. The mask specifies the number of bits in the
 network part of a host address. You can also specify hostnames or
-.domain names (the initial dot causes the domain to match any name
+\&.domain names (the initial dot causes the domain to match any name
 below it),  "/file/name" or "type:table" patterns.  A "/file/name"
 pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
@@ -4263,7 +4264,7 @@ open a security hole.
 Optional lookup tables with a) names of domains for which all
 addresses are aliased to addresses in other local or remote domains,
 and b) addresses that are aliased to addresses in other local or
-remote domains.  Available before Postfix version 2.0. With Postfix 2.1
+remote domains.  Available before Postfix version 2.0. With Postfix 2.0
 and later, this is replaced by separate controls: virtual_alias_domains
 and virtual_alias_maps.
 .SH virtual_minimum_uid (default: 100)

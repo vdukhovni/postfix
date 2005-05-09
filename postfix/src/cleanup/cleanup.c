@@ -232,7 +232,7 @@
 /* .IP "\fBmyhostname (see 'postconf -d' output)\fR"
 /*	The internet hostname of this mail system.
 /* .IP "\fBmyorigin ($myhostname)\fR"
-/*	The default domain name that locally-posted mail appears to come
+/*	The domain name that locally-posted mail appears to come
 /*	from, and that locally posted mail is delivered to.
 /* .IP "\fBprocess_id (read-only)\fR"
 /*	The process ID of a Postfix command or daemon process.
@@ -322,6 +322,7 @@ static void cleanup_service(VSTREAM *src, char *unused_service, char **argv)
     CLEANUP_STATE *state;
     int     flags;
     int     type = 0;
+    int     status;
 
     /*
      * Sanity check. This service takes no command-line arguments.
@@ -387,8 +388,9 @@ static void cleanup_service(VSTREAM *src, char *unused_service, char **argv)
     /*
      * Finish this message, and report the result status to the client.
      */
+    status = cleanup_flush(state);		/* in case state is modified */
     attr_print(src, ATTR_FLAG_NONE,
-	       ATTR_TYPE_NUM, MAIL_ATTR_STATUS, cleanup_flush(state),
+	       ATTR_TYPE_NUM, MAIL_ATTR_STATUS, status,
 	       ATTR_TYPE_STR, MAIL_ATTR_WHY, state->reason ?
 	       state->reason : "",
 	       ATTR_TYPE_END);

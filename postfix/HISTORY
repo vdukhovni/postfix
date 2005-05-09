@@ -9452,3 +9452,76 @@ Apologies for any names omitted.
 	Bugfix (introduced 20020803): sent the wrong bounce message
 	type when a Delivered-To: loop was detected for a mailing
 	list alias.  Nicolas Riendeau. File: bounce_notify_util.c.
+
+20041006
+
+	Bugfix: "sendmail -bv" did not reject the -t option.  File:
+	sendmail/sendmail.c
+
+20041228
+
+	Bugfix: SMTPD_PROXY_README incorrectly claimed that ":port"
+	in master.cf causes a server to listen only on "localhost"
+	without exposing the service to the network.  Instead,
+	":port" causes a client to connect to "localhost".
+
+
+20050131
+
+	Bugfix: when extracting recipients from message headers,
+	the Postfix sendmail command produced output records longer
+	than $line_length_limit, causing postdrop to reject the
+	mail. Diagnosis by Victor Duchovni. File:  sendmail/sendmail.c.
+
+20050208
+
+	Sanity check: don't allow unlimited message size with limited
+	mailbox size. File: local/local.c, virtual/virtual.c.
+
+20050215
+
+	Bugfix: don't chmod queue files while running "postfix
+	set-permissions". This prevents mail from being labeled as
+	"corrupt" when a live Postfix system is upgraded.  Found
+	by Victor Duchovni.  File: conf/post-install.
+
+20050227
+
+	Bugfix (bug introduced 20040331): with SIGHUP ignored, the
+	postdrop signal handler would effectively ignore SIGINT,
+	SIGQUIT and SIGTERM.  Simplified the overly-conservative
+	protection against nested signals in postdrop. File:
+	postdrop/postdrop.c.
+
+20050321
+
+	Robustness: don't look for SMTP status code when there was
+	none. File: smtp/smtp_chat.c, lmtp/lmtp_chat.c.
+
+20050327
+
+	Bugfix: the SMTP and LMTP clients did not ask the queue
+	manager to reduce destination concurrency when "lost
+	connection" or "connection timed out" happened AFTER Postfix
+	received the server greeting. Files: smtp/smtp_trouble.c,
+	lmtp/lmtp-trouble.c.
+
+20050407
+
+	@%^!#& Thanks to inadequate SASL documentation the client
+	could negotiate a security layer where none was desired.
+	Better documentation has become available since Postfix
+	SASL support was implemented, and now Postfix needs to be
+	fixed. Files: */*_sasl_glue.c.
+
+20050412
+
+	Bugfix: while updating the cleanup_flush() infrastructure
+	in the 2.3 development release, eliminated a portability
+	problem that was introduced when "REJECT text" support was
+	added. File: cleanup/cleanup.c.
+
+20050417
+
+	Safety: don't call syslog from a user-triggered signal
+	handler. File: postdrop/postdrop.c.

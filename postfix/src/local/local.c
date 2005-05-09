@@ -285,7 +285,7 @@
 /*	of the "owner-aliasname" alias.
 /* .IP "\fBowner_request_special (yes)\fR"
 /*	Give special treatment to owner-listname and listname-request
-/*	address localparts: don't don't split such addresses when the
+/*	address localparts: don't split such addresses when the
 /*	recipient_delimiter is set to "-".
 /* .IP "\fBsun_mailtool_compatibility (no)\fR"
 /*	Obsolete SUN mailtool compatibility feature.
@@ -713,7 +713,7 @@ static void pre_init(char *unused_name, char **unused_argv)
      * file.
      */
     if (var_mailbox_limit) {
-	if (var_mailbox_limit < var_message_limit)
+	if (var_mailbox_limit < var_message_limit || var_message_limit == 0)
 	    msg_fatal("main.cf configuration error: %s is smaller than %s",
 		      VAR_MAILBOX_LIMIT, VAR_MESSAGE_LIMIT);
 	set_file_limit(var_mailbox_limit);

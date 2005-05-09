@@ -473,7 +473,12 @@ test -n "$create" && {
 	test -n "$set_permission" && {
 	    chown $recursive $owner $path || exit 1
 	    test -z "$group" || chgrp $recursive $group $path || exit 1
-	    chmod $recursive $mode $path || exit 1
+	    if [ "$type" = "d" -a -n "$recursive" ]
+	    then
+		find $path -type d -exec chmod $mode "{}" ";"
+	    else
+		chmod $mode $path
+	    fi || exit 1
 	}
     done
     IFS="$BACKUP_IFS"

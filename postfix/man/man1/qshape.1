@@ -29,7 +29,7 @@ Display the sender domain distribution instead of the recipient
 domain distribution.  By default the recipient distribution is
 displayed. There can be more recipients than messages, but as
 each message has only one sender, the sender distribution is a
-a message distribution.
+message distribution.
 .IP \fB-p\fR
 Generate aggregate statistics for parent domains. Top level domains
 are not shown, nor are domains with fewer than \fImin_subdomains\fR
@@ -44,7 +44,7 @@ increasing intervals. This option sets the number of intervals
 or "buckets". Each bucket has a maximum queue age that is twice
 as large as that of the previous bucket. The last bucket has no
 age limit.
-.IP "\fB-b \fIbucket_time\fR"
+.IP "\fB-t \fIbucket_time\fR"
 The age limit in minutes for the first time bucket. The default
 value is 5, meaning that the first bucket counts messages between
 0 and 5 minutes old.
@@ -52,7 +52,7 @@ value is 5, meaning that the first bucket counts messages between
 The output is right justified, with the counts for the last
 bucket shown on the 80th column, the \fIterminal_width\fR can be
 adjusted for wider screens allowing more buckets to be displayed
-with truncating the domain names on the left. When a row for a
+without truncating the domain names on the left. When a row for a
 full domain name and its counters does not fit in the specified
 number of columns, only the last 17 bytes of the domain name
 are shown with the prefix replaced by a '+' character. Truncated
@@ -79,8 +79,8 @@ default incoming and active queue distribution.
 .SH "SEE ALSO"
 .na
 .nf
-mailq(1) List all messages in the queue.
-QSHAPE_README Examples and background material.
+mailq(1), List all messages in the queue.
+QSHAPE_README, Examples and background material.
 .SH "FILES"
 .na
 .nf

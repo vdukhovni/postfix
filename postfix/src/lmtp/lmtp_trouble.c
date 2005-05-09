@@ -313,6 +313,8 @@ int     lmtp_stream_except(LMTP_STATE *state, int code, char *description)
 				      request->arrival_time,
 				      "%s", vstring_str(why));
     }
+    if (request->hop_status == 0)
+	request->hop_status = mystrdup(vstring_str(why));
 
     /*
      * Cleanup.

@@ -1096,7 +1096,8 @@ time keeping on System-V-ish systems.
 
 <p>
 Specify a list of names and/or name=value pairs, separated by
-whitespace or comma.
+whitespace or comma. The name=value form is supported with
+Postfix 2.1 and later.
 </p>
 
 <p>
@@ -5938,7 +5939,7 @@ or reject_non_fqdn_recipient restriction.
 
 <p>
 Give special treatment to owner-listname and listname-request
-address localparts: don't don't split such addresses when the
+address localparts: don't split such addresses when the
 recipient_delimiter is set to "-".  This feature is useful for
 mailing lists.
 </p>
@@ -6784,6 +6785,6 @@ parameter in the default main.cf file.  </p>
 <p> Optional lookup tables with a) names of domains for which all
 addresses are aliased to addresses in other local or remote domains,
 and b) addresses that are aliased to addresses in other local or
-remote domains.  Available before Postfix version 2.0. With Postfix 2.1
+remote domains.  Available before Postfix version 2.0. With Postfix 2.0
 and later, this is replaced by separate controls: virtual_alias_domains
 and virtual_alias_maps. </p>

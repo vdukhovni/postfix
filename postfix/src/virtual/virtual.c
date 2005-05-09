@@ -446,7 +446,7 @@ static void pre_init(char *unused_name, char **unused_argv)
      * file.
      */
     if (var_virt_mailbox_limit) {
-	if (var_virt_mailbox_limit < var_message_limit)
+	if (var_virt_mailbox_limit < var_message_limit || var_message_limit == 0)
 	    msg_fatal("main.cf configuration error: %s is smaller than %s",
 		      VAR_VIRT_MAILBOX_LIMIT, VAR_MESSAGE_LIMIT);
 	set_file_limit(var_virt_mailbox_limit);

@@ -460,7 +460,7 @@ int     bounce_boilerplate(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
     post_mail_fputs(bounce, "");
     if (bounce_info->flush == BOUNCE_MSG_FAIL) {
 	post_mail_fputs(bounce,
-	       "I'm sorry to have to inform you that your message could not be");
+	       "I'm sorry to have to inform you that your message could not");
 	post_mail_fputs(bounce,
 	       "be delivered to one or more recipients. It's attached below.");
     } else if (bounce_info->flush == BOUNCE_MSG_WARN) {

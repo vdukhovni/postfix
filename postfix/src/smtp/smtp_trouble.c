@@ -402,6 +402,9 @@ int     smtp_stream_except(SMTP_STATE *state, int code, char *description)
 					  "%s", vstring_str(why));
 	    SMTP_RCPT_DROP(state, rcpt);
 	}
+	/* XXX This assumes no fall-back relay. */
+	if (request->hop_status == 0)
+	    request->hop_status = mystrdup(vstring_str(why));
     }
 
     /*

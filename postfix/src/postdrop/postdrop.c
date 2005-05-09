@@ -158,10 +158,7 @@ static void postdrop_cleanup(void)
      * This is the fatal error handler. Don't try to do anything fancy.
      */
     if (postdrop_path) {
-	if (remove(postdrop_path))
-	    msg_warn("uid=%ld: remove %s: %m", (long) getuid(), postdrop_path);
-	else if (msg_verbose)
-	    msg_info("remove %s", postdrop_path);
+	(void) remove(postdrop_path);
 	postdrop_path = 0;
     }
 }
@@ -174,12 +171,12 @@ static void postdrop_sig(int sig)
     /*
      * Assume atomic signal() updates, even when emulated with sigaction().
      */
-    if (signal(SIGHUP, SIG_IGN) != SIG_IGN
-	&& signal(SIGINT, SIG_IGN) != SIG_IGN
-	&& signal(SIGQUIT, SIG_IGN) != SIG_IGN
-	&& signal(SIGTERM, SIG_IGN) != SIG_IGN) {
+    if (signal(SIGINT, SIG_IGN) != SIG_IGN) {
+	(void) signal(SIGQUIT, SIG_IGN);
+	(void) signal(SIGTERM, SIG_IGN);
+	(void) signal(SIGHUP, SIG_IGN);
 	postdrop_cleanup();
-	exit(sig);
+	_exit(sig);
     }
 }
 
@@ -203,6 +200,7 @@ int     main(int argc, char **argv)
     const char *error_text;
     char   *attr_name;
     char   *attr_value;
+    char   *junk;
 
     /*
      * Be consistent with file permissions.
@@ -286,11 +284,11 @@ int     main(int argc, char **argv)
     signal(SIGPIPE, SIG_IGN);
     signal(SIGXFSZ, SIG_IGN);
 
-    if (signal(SIGHUP, SIG_IGN) == SIG_DFL)
-	signal(SIGHUP, postdrop_sig);
     signal(SIGINT, postdrop_sig);
     signal(SIGQUIT, postdrop_sig);
     signal(SIGTERM, postdrop_sig);
+    if (signal(SIGHUP, SIG_IGN) == SIG_DFL)
+	signal(SIGHUP, postdrop_sig);
     msg_cleanup(postdrop_cleanup);
 
     /* End of initializations. */
@@ -389,8 +387,9 @@ int     main(int argc, char **argv)
      * will not be deleted after we have taken responsibility for delivery.
      */
     if (postdrop_path) {
-	myfree(postdrop_path);
+	junk = postdrop_path;
 	postdrop_path = 0;
+	myfree(junk);
     }
 
     /*
