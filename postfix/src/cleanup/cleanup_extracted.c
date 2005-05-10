@@ -124,10 +124,6 @@ void    cleanup_extracted_process(CLEANUP_STATE *state, int type,
 	if ((encoding = nvtable_find(state->attr, MAIL_ATTR_ENCODING)) != 0)
 	    cleanup_out_format(state, REC_TYPE_ATTR, "%s=%s",
 			       MAIL_ATTR_ENCODING, encoding);
-	if (state->return_receipt)
-	    cleanup_out_string(state, REC_TYPE_RRTO, state->return_receipt);
-	if (state->errors_to)
-	    cleanup_out_string(state, REC_TYPE_ERTO, state->errors_to);
 	state->flags |= CLEANUP_FLAG_INRCPT;
     }
 

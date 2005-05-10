@@ -222,6 +222,7 @@ int     main(int unused_argc, char **unused_argv)
 	    vstream_printf("Token value: %s\n", tok_argv[i].strval);
 	}
     }
+    vstring_free(vp);
     exit(0);
 }
 

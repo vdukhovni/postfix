@@ -33,6 +33,8 @@ Postfix is built without IPv6 support.
 .IP \fB-6\fR
 Support IPv6 only. This option is not available when
 Postfix is built without IPv6 support.
+.IP \fB-8\fR
+Do not announce 8BITMIME support.
 .IP \fB-a\fR
 Do not announce SASL authentication support.
 .IP \fB-c\fR
@@ -80,8 +82,6 @@ The time limit is specified in seconds.
 Show the SMTP conversations.
 .IP "\fB-w \fIdelay\fR"
 Wait \fIdelay\fR seconds before responding to a DATA command.
-.IP \fB-8\fR
-Do not announce 8BITMIME support.
 .IP [\fBinet:\fR][\fIhost\fR]:\fIport\fR
 Listen on network interface \fIhost\fR (default: any interface)
 TCP port \fIport\fR. Both \fIhost\fR and \fIport\fR may be

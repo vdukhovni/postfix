@@ -33,6 +33,8 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
        <b>-6</b>     Support IPv6 only. This  option  is  not  available
               when Postfix is built without IPv6 support.
 
+       <b>-8</b>     Do not announce 8BITMIME support.
+
        <b>-a</b>     Do not announce SASL authentication support.
 
        <b>-c</b>     Display  a running counter that is updated whenever
@@ -92,8 +94,6 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
        <b>-w</b> <i>delay</i>
               Wait <i>delay</i> seconds before responding to a DATA com-
               mand.
-
-       <b>-8</b>     Do not announce 8BITMIME support.
 
        [<b>inet:</b>][<i>host</i>]:<i>port</i>
               Listen on  network  interface  <i>host</i>  (default:  any

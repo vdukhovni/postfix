@@ -958,6 +958,20 @@ Expands to `text' if $name is not empty.
 Expands to `text' if $name is empty.
 .PP
 Instead of $name you can also specify ${name} or $(name).
+.PP
+Note: when an enhanced status code is specified in an RBL reply
+template, it is subject to modification.  The following transformations
+are needed when the same RBL reply template is used for client,
+helo, sender, or recipient access restrictions.
+.IP \(bu
+When rejecting a sender address, the Postfix SMTP server
+will transform a recipient DSN status (e.g., 4.1.1-4.1.6) into the
+corresponding sender DSN status, and vice versa.
+.IP \(bu
+When rejecting non-address information (such as the HELO
+command argument or the client hostname/address), the Postfix SMTP
+server will transform a sender or recipient DSN status into a generic
+non-address DSN status (e.g., 4.0.0).
 .SH default_recipient_limit (default: 10000)
 The default per-transport upper limit on the number of in-memory
 recipients.  These limits take priority over the global

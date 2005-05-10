@@ -17,6 +17,27 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
+Major changes with snapshot 20050510
+====================================
+
+This release improves usability of DSN (enhanced status codes) in
+Postfix access tables, RBL reply templates and in transport maps
+that use the error(8) delivery agent.
+
+- When the SMTP server rejects a sender address, it transforms a
+  recipient DSN status (e.g., 4.1.1-4.1.6) into the corresponding
+  sender DSN status, and vice versa.
+
+- When the SMTP server rejects non-address information (such as the
+  HELO command parameter or the client hostname/address), it
+  transforms a sender or recipient DSN status into a generic
+  non-address DSN status (e.g., 4.0.0).
+
+These transformations are needed when the same access table or RBL
+reply template are used for client, helo, sender, or recipient
+restrictions; or when the same error(8) mailer information is used
+for both senders and recipients.
+
 Incompatibility with snapshot 20050503
 ======================================
 

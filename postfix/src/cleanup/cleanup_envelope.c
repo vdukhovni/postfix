@@ -303,8 +303,8 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	    }
 	}
 	nvtable_update(state->attr, attr_name, attr_value);
-	myfree(sbuf);
 	cleanup_out(state, type, buf, len);
+	myfree(sbuf);
 	return;
     } else {
 	cleanup_out(state, type, buf, len);

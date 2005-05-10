@@ -183,5 +183,5 @@ OK
 >>> # check_sender_access specific
 >>> #
 >>> mail <>
-./smtpd_check: <queue id>: reject: MAIL from bar.duno.com[44.33.44.33]: 550 5.0.0 <>: Sender address rejected: Go away postmaster; from=<> proto=SMTP helo=<foo.duuno.com>
-550 5.0.0 <>: Sender address rejected: Go away postmaster
+./smtpd_check: <queue id>: reject: MAIL from bar.duno.com[44.33.44.33]: 550 5.7.1 <>: Sender address rejected: Go away postmaster; from=<> proto=SMTP helo=<foo.duuno.com>
+550 5.7.1 <>: Sender address rejected: Go away postmaster

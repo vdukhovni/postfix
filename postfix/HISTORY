@@ -10727,6 +10727,26 @@ Apologies for any names omitted.
 	added support for read timeouts, and added a missing exception
 	handler for the 220 server greeting.  File: smtpstone/smtp-sink.c.
 
+20050506
+
+	Cleanup: with "REJECT 4.X.Y ..." actions in header/body_checks,
+	change the SMTP server reply code from 550 into 450, instead
+	of having the SMTP server change the DSN into 5.X.Y.  File:
+	smtpd/smtpd.c.
+
+20050510
+
+	Usability: when reporting a sender address problem, transform
+	a recipient DSN status (e.g., 4.1.1-4.1.6) into the
+	corresponding sender DSN status, and vice versa; and when
+	reporting a non-address problem, transform a sender or
+	recipient DSN status into a generic non-address DSN status
+	(e.g., 4.0.0).  This transformation may be needed when the
+	same access table or RBL reply template are used for client,
+	helo, sender, or recipient restrictions; or when the same
+	error mailer information is used for senders or recipients.
+	Files: smtpd/smtpd_check.c, smtpd/smtpd_dsn_fix.[hc].
+
 Open problems:
 
 	Med: disable header address rewriting after XCLIENT?

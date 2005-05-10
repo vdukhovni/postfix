@@ -27,6 +27,8 @@
 /* .IP \fB-6\fR
 /*	Support IPv6 only. This option is not available when
 /*	Postfix is built without IPv6 support.
+/* .IP \fB-8\fR
+/*	Do not announce 8BITMIME support.
 /* .IP \fB-a\fR
 /*	Do not announce SASL authentication support.
 /* .IP \fB-c\fR
@@ -74,8 +76,6 @@
 /*	Show the SMTP conversations.
 /* .IP "\fB-w \fIdelay\fR"
 /*	Wait \fIdelay\fR seconds before responding to a DATA command.
-/* .IP \fB-8\fR
-/*	Do not announce 8BITMIME support.
 /* .IP [\fBinet:\fR][\fIhost\fR]:\fIport\fR
 /*	Listen on network interface \fIhost\fR (default: any interface)
 /*	TCP port \fIport\fR. Both \fIhost\fR and \fIport\fR may be
@@ -675,7 +675,7 @@ static void connect_event(int unused_event, char *context)
 
 static void usage(char *myname)
 {
-    msg_fatal("usage: %s [-acCeFLpPv8] [-f commands] [-h hostname] [-n count] [-q commands] [-r commands] [-s commands] [-w delay] [host]:port backlog", myname);
+    msg_fatal("usage: %s [-468acCeEFLpPv] [-f commands] [-h hostname] [-n count] [-q commands] [-r commands] [-s commands] [-w delay] [host]:port backlog", myname);
 }
 
 int     main(int argc, char **argv)
@@ -694,13 +694,16 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "46acCeEf:Fh:Ln:pPq:r:s:t:vw:8")) > 0) {
+    while ((ch = GETOPT(argc, argv, "468acCeEf:Fh:Ln:pPq:r:s:t:vw:")) > 0) {
 	switch (ch) {
 	case '4':
 	    protocols = INET_PROTO_NAME_IPV4;
 	    break;
 	case '6':
 	    protocols = INET_PROTO_NAME_IPV6;
+	    break;
+	case '8':
+	    disable_8bitmime = 1;
 	    break;
 	case 'a':
 	    disable_saslauth = 1;
@@ -764,9 +767,6 @@ int     main(int argc, char **argv)
 	case 'w':
 	    if ((fixed_delay = atoi(optarg)) <= 0)
 		usage(argv[0]);
-	    break;
-	case '8':
-	    disable_8bitmime = 1;
 	    break;
 	default:
 	    usage(argv[0]);

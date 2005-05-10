@@ -1048,6 +1048,24 @@ name, or an email address whose domain was blacklisted). </dd>
 Instead of $name you can also specify ${name} or $(name).
 </p>
 
+<p> Note: when an enhanced status code is specified in an RBL reply
+template, it is subject to modification.  The following transformations
+are needed when the same RBL reply template is used for client,
+helo, sender, or recipient access restrictions.  </p>
+
+<ul>
+
+<li> <p> When rejecting a sender address, the Postfix SMTP server
+will transform a recipient DSN status (e.g., 4.1.1-4.1.6) into the
+corresponding sender DSN status, and vice versa. </p>
+
+<li> <p> When rejecting non-address information (such as the HELO
+command argument or the client hostname/address), the Postfix SMTP
+server will transform a sender or recipient DSN status into a generic
+non-address DSN status (e.g., 4.0.0).  </p>
+
+</ul>
+
 %PARAM smtpd_expansion_filter see "postconf -d" output
 
 <p>

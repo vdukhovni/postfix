@@ -1882,6 +1882,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     int     out_error;
     char  **cpp;
     CLEANUP_STAT_DETAIL *detail;
+    int     smtp_code;
 
 #ifdef USE_TLS
     VSTRING *peer_CN;
@@ -2172,7 +2173,11 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	if (state->proxy_buffer) {
 	    smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
 	} else if (why && LEN(why) > 0) {
-	    smtpd_chat_reply(state, "%d %s", detail->smtp, STR(why));
+	    /* Allow address-specific DSN status in header/body_checks. */
+	    smtp_code = (STR(why)[0] == '5' ? (detail->smtp % 100) + 500 :
+			 STR(why)[0] == '4' ? (detail->smtp % 100) + 400 :
+			 detail->smtp);
+	    smtpd_chat_reply(state, "%d %s", smtp_code, STR(why));
 	} else {
 	    smtpd_chat_reply(state, "%d %s Error: %s",
 			     detail->smtp, detail->dsn, detail->text);

@@ -965,6 +965,7 @@ fullname.o: safe.h
 fullname.o: sys_defs.h
 fullname.o: vbuf.h
 fullname.o: vstring.h
+gccw.o: gccw.c
 get_domainname.o: get_domainname.c
 get_domainname.o: get_domainname.h
 get_domainname.o: get_hostname.h

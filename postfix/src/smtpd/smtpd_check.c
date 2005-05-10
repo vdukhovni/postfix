@@ -233,6 +233,7 @@
 #include "smtpd.h"
 #include "smtpd_sasl_glue.h"
 #include "smtpd_check.h"
+#include "smtpd_dsn_fix.h"
 
 #define RESTRICTION_SEPARATORS ", \t\r\n"
 
@@ -334,18 +335,6 @@ static int generic_checks(SMTPD_STATE *, ARGV *, const char *, const char *, con
 static int check_sender_rcpt_maps(SMTPD_STATE *, const char *);
 static int check_recipient_rcpt_maps(SMTPD_STATE *, const char *);
 static int check_rcpt_maps(SMTPD_STATE *, const char *, const char *);
-
- /*
-  * Reject context.
-  */
-#define SMTPD_NAME_CLIENT	"Client host"
-#define SMTPD_NAME_CCERT	"Client certificate"
-#define SMTPD_NAME_HELO		"Helo command"
-#define SMTPD_NAME_SENDER	"Sender address"
-#define SMTPD_NAME_RECIPIENT	"Recipient address"
-#define SMTPD_NAME_ETRN		"Etrn command"
-#define SMTPD_NAME_DATA		"Data command"
-#define SMTPD_NAME_EOD		"End-of-data"
 
  /*
   * YASLM.
@@ -1873,7 +1862,8 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     if (STREQUAL(value, "REJECT", cmd_len)) {
 	dsn_split(&dp, "5.7.1", cmd_text);
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
-				   var_access_map_code, DSN_CODE(dp.dsn),
+				   var_access_map_code,
+				   smtpd_dsn_fix(DSN_CODE(dp.dsn), reply_class),
 				   "<%s>: %s rejected: %s",
 				   reply_name, reply_class,
 				   *dp.text ? dp.text : "Access denied"));
@@ -1982,7 +1972,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     if (STREQUAL(value, DEFER_IF_PERMIT, cmd_len)) {
 	dsn_split(&dp, "4.7.1", cmd_text);
 	DEFER_IF_PERMIT3(state, MAIL_ERROR_POLICY,
-			 450, DSN_CODE(dp.dsn),
+			 450, smtpd_dsn_fix(DSN_CODE(dp.dsn), reply_class),
 			 "<%s>: %s rejected: %s",
 			 reply_name, reply_class,
 			 *dp.text ? dp.text : "Service unavailable");
@@ -1996,7 +1986,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     if (STREQUAL(value, DEFER_IF_REJECT, cmd_len)) {
 	dsn_split(&dp, "4.7.1", cmd_text);
 	DEFER_IF_REJECT3(state, MAIL_ERROR_POLICY,
-			 450, DSN_CODE(dp.dsn),
+			 450, smtpd_dsn_fix(DSN_CODE(dp.dsn), reply_class),
 			 "<%s>: %s rejected: %s",
 			 reply_name, reply_class,
 			 *dp.text ? dp.text : "Service unavailable");
@@ -2045,7 +2035,8 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 	def_dsn[0] = value[0];
 	dsn_split(&dp, def_dsn, cmd_text);
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
-				   code, DSN_CODE(dp.dsn),
+				   code,
+			       smtpd_dsn_fix(DSN_CODE(dp.dsn), reply_class),
 				   "<%s>: %s rejected: %s",
 				   reply_name, reply_class,
 				   *dp.text ? dp.text : "Access denied"));
@@ -2893,7 +2884,8 @@ static int rbl_reject_reply(SMTPD_STATE *state, SMTPD_RBL_STATE *rbl,
 	code = atoi(STR(why));
 	dsn_split(&dp, "4.7.1", STR(why) + 4);
 	result = smtpd_check_reject(state, MAIL_ERROR_POLICY,
-				    code, DSN_CODE(dp.dsn),
+				    code,
+			       smtpd_dsn_fix(DSN_CODE(dp.dsn), reply_class),
 				    "%s", *dp.text ?
 				    dp.text : "Service unavailable");
     }
@@ -4148,7 +4140,7 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient,
 	return (smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 				   (reply->flags & RESOLVE_CLASS_ALIAS) ?
 				   var_virt_alias_code : 550,
-				   DSN_CODE(dp.dsn),
+			       smtpd_dsn_fix(DSN_CODE(dp.dsn), reply_class),
 				   "<%s>: %s rejected: %s",
 				   recipient, reply_class,
 				   dp.text));
@@ -4735,6 +4727,7 @@ VSTRING *rewrite_clnt_internal(const char *context, const char *addr,
     if (*addr && strchr(addr, '@') == 0)
 	msg_fatal("%s: address rewriting is disabled", addr);
     vstring_strcpy(result, addr);
+    return (result);
 }
 
 /* resolve_clnt_query - stub */
