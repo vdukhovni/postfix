@@ -165,17 +165,35 @@ static int smtpd_sasl_log(void *unused_context, int priority,
 			          const char *message)
 {
     switch (priority) {
-	case SASL_LOG_ERR:
-	case SASL_LOG_WARN:
+    case SASL_LOG_ERR:
+    case SASL_LOG_WARN:
 	msg_warn("SASL authentication problem: %s", message);
 	break;
     case SASL_LOG_NOTE:
 	if (msg_verbose)
 	    msg_info("SASL authentication info: %s", message);
 	break;
-#if SASL_VERSION_MAJOR >= 2
+#ifdef SASL_LOG_FAIL
     case SASL_LOG_FAIL:
 	msg_warn("SASL authentication failure: %s", message);
+	break;
+#endif
+#ifdef SASL_LOG_DEBUG
+    case SASL_LOG_DEBUG:
+	if (msg_verbose > 1)
+	    msg_info("SASL authentication debug: %s", message);
+	break;
+#endif
+#ifdef SASL_LOG_TRACE
+    case SASL_LOG_TRACE:
+	if (msg_verbose > 1)
+	    msg_info("SASL authentication trace: %s", message);
+	break;
+#endif
+#ifdef SASL_LOG_PASS
+    case SASL_LOG_PASS:
+	if (msg_verbose > 1)
+	    msg_info("SASL authentication pass: %s", message);
 	break;
 #endif
     }

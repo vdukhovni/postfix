@@ -29,7 +29,7 @@
 /*	same smtpd access map entry or rbl reply template is used
 /*	for both address and non-address information.
 /* .PP
-/*	No transformation is done when reporting a non-address DSN
+/*	A non-address DSN is not transformed
 /*	when reporting sender or recipient address status information,
 /*	as there are many legitimate instances of such usage.
 /*
@@ -96,6 +96,9 @@ const char *smtpd_dsn_fix(const char *status, const char *reply_class)
     struct dsn_map *dp;
     const char *result = status;
 
+    /*
+     * Update an address-specific DSN according to what is being rejected.
+     */
     if (ISDIGIT(status[0]) && strncmp(status + 1, ".1.", 3) == 0) {
 
 	/*
@@ -134,7 +137,13 @@ const char *smtpd_dsn_fix(const char *status, const char *reply_class)
 	    msg_info("mapping DSN status %s into %s status %c%s",
 		     status, reply_class, status[0], result + 1);
 	return (result);
-    } else {
+    }
+
+    /*
+     * Don't update a non-address DSN. There are many legitimate uses for
+     * these while rejecting address or non-address information.
+     */
+    else {
 	return (status);
     }
 }

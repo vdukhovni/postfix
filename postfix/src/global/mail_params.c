@@ -310,16 +310,13 @@ static const char *check_myhostname(void)
 
     /*
      * If the local machine name is not in FQDN form, try to append the
-     * contents of $mydomain.
+     * contents of $mydomain. Use a default domain as a final workaround.
      */
     name = get_hostname();
     if ((dot = strchr(name, '.')) == 0) {
 	if ((domain = mail_conf_lookup_eval(VAR_MYDOMAIN)) == 0)
-	    msg_warn("My hostname %s is not a fully qualified name - set %s or %s in %s/%s",
-		     name, VAR_MYHOSTNAME, VAR_MYDOMAIN,
-		     var_config_dir, MAIN_CONF_FILE);
-	else
-	    name = concatenate(name, ".", domain, (char *) 0);
+	    domain = DEF_MYDOMAIN;
+	name = concatenate(name, ".", domain, (char *) 0);
     }
     return (name);
 }
@@ -331,11 +328,10 @@ static const char *check_mydomainname(void)
     char   *dot;
 
     /*
-     * Use the hostname when it is not a FQDN ("foo"), or when the hostname
-     * actually is a domain name ("foo.com").
+     * Use a default domain when the hostname is not a FQDN ("foo").
      */
-    if ((dot = strchr(var_myhostname, '.')) == 0 || strchr(dot + 1, '.') == 0)
-	return (var_myhostname);
+    if ((dot = strchr(var_myhostname, '.')) == 0)
+	return (DEF_MYDOMAIN);
     return (dot + 1);
 }
 

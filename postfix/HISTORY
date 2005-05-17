@@ -10747,7 +10747,22 @@ Apologies for any names omitted.
 	error mailer information is used for senders or recipients.
 	Files: smtpd/smtpd_check.c, smtpd/smtpd_dsn_fix.[hc].
 
+20050512
+
+	Feature: support for more SASL logging call-backs, if these
+	are defined in the compile-time environment. Files:
+	smtpd/smtpd_sasl_glue.c, smtp/smtp_sasl_glue.c.
+
+20050513
+
+	Workaround: Postfix now uses "localdomain" as the default
+	domain name when $myhostname is not in "host.domain" form.
+	Files: global/mail_params.[hc].
+
 Open problems:
+
+	Feature: need "soft-bounce before fall-back relay" for
+	SOHO type operations.
 
 	Med: disable header address rewriting after XCLIENT?
 	Introduce a better concept of original submission?

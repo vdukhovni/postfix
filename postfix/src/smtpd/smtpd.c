@@ -1832,7 +1832,7 @@ static void rcpt_reset(SMTPD_STATE *state)
     state->rcpt_overshoot = 0;
 }
 
-/* comment_sanitize - clesn up comment string */
+/* comment_sanitize - clean up comment string */
 
 static void comment_sanitize(VSTRING *comment_string)
 {

@@ -14,7 +14,7 @@ db tables	yes (compile time option)
 dbm tables	yes (compile time option)
 delivered-to	yes (configurable with prepend_delivered_header)
 dsn		almost (supports enhanced status codes and DSN format bounces)
-errors-to:	yes (disabled by default since Postfix 2.1)
+errors-to:	no (removed with Postfix 2.2)
 esmtp		yes
 etrn support	yes (per-destination log for authorized destinations only)
 fcntl locking	yes (runtime configurable)

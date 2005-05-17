@@ -218,6 +218,8 @@ int     cleanup_flush(CLEANUP_STATE *state)
      */
     if (state->errs == 0 && (state->flags & CLEANUP_FLAG_DISCARD) == 0) {
 	if ((state->flags & CLEANUP_FLAG_HOLD) != 0) {
+            myfree(state->queue_name);
+		   state->queue_name = MAIL_QUEUE_HOLD;
 	    mail_stream_ctl(state->handle,
 			    MAIL_STREAM_CTL_QUEUE, MAIL_QUEUE_HOLD,
 			    MAIL_STREAM_CTL_CLASS, 0,

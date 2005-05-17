@@ -114,6 +114,7 @@ extern char *var_mydest;
 extern char *var_myhostname;
 
 #define VAR_MYDOMAIN		"mydomain"	/* my domain name */
+#define DEF_MYDOMAIN		"localdomain"
 extern char *var_mydomain;
 
  /*
