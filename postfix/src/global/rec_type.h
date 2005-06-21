@@ -56,6 +56,11 @@
 #define REC_TYPE_PRIO	'P'		/* priority */
 #define REC_TYPE_VERP	'V'		/* VERP delimiters */
 
+#define REC_TYPE_DSN_RET	'<'	/* DSN full/hdrs */
+#define REC_TYPE_DSN_ENVID	'i'	/* DSN full/hdrs */
+#define REC_TYPE_DSN_ORCPT	'o'	/* DSN orig rcpt address */
+#define REC_TYPE_DSN_NOTIFY	'n'	/* DSN notify flags */
+
 #define REC_TYPE_END	'E'		/* terminator, required */
 
  /*
@@ -65,8 +70,8 @@
   * have to read all the queue file records before starting delivery. This
   * is often the case with list mail, where such optimization is desirable.
   */
-#define REC_TYPE_ENV_RECIPIENT	"MDROK"
-#define REC_TYPE_EXT_RECIPIENT	"EDROK"
+#define REC_TYPE_ENV_RECIPIENT	"MDROKon"
+#define REC_TYPE_EXT_RECIPIENT	"EDROKon"
 
  /*
   * The types of records that I expect to see while processing different
@@ -82,16 +87,16 @@
   * Note: REC_TYPE_FILT and REC_TYPE_CONT are encoded with the same 'L'
   * constant, and it  is too late to change that now.
   */
-#define REC_TYPE_ENVELOPE	"MCTFILSDROWVA>K"
+#define REC_TYPE_ENVELOPE	"MCTFILSDROWVA>K<ion"
 #define REC_TYPE_CONTENT	"XLN"
-#define REC_TYPE_EXTRACT	"EDROPreAFIL>K"
+#define REC_TYPE_EXTRACT	"EDROPreAFIL>Kon"
 
  /*
   * The subset of inputs that the postdrop command allows.
   */
-#define REC_TYPE_POST_ENVELOPE	"MFSRVA"
+#define REC_TYPE_POST_ENVELOPE	"MFSRVAin"
 #define REC_TYPE_POST_CONTENT	"XLN"
-#define REC_TYPE_POST_EXTRACT	"ER"
+#define REC_TYPE_POST_EXTRACT	"EAR"
 
  /*
   * The record at the start of the queue file specifies the message content

@@ -2,7 +2,7 @@
 /* NAME
 /*	dsn_util 3
 /* SUMMARY
-/*	DSN support routines
+/*	DSN status parsing routines
 /* SYNOPSIS
 /*	#include <dsn_util.h>
 /*
@@ -10,20 +10,9 @@
 /*
 /*	typedef struct { ... } DSN_BUF;
 /*
-/*	void	DSN_UPDATE(dsn_buf, dsn, len)
-/*	DSN_BUF	dsn_buf;
-/*	const char *dsn;
-/*	size_t	len;
-/*
-/*	const char *DSN_CODE(dsn_buf)
-/*	DSN_BUF	dsn_buf;
-/*
-/*	char	*DSN_CLASS(dsn_buf)
-/*	DSN_BUF	dsn_buf;
-/*
 /*	typedef struct {
 /* .in +4
-/*		DSN_BUF dsn;		/* RFC 3463 detail */
+/*		DSN_BUF dsn;		/* RFC 3463 status */
 /*		const char *text;	/* Free text */
 /* .in -4
 /*	} DSN_SPLIT;
@@ -37,96 +26,58 @@
 /*	const char *def_dsn;
 /*	const char *text;
 /*
-/*	typedef struct {
-/* .in +4
-/*		DSN_BUF dsn;		/* RFC 3463 detail */
-/*		VSTRING *text;		/* Free text */
-/* .in -4
-/*	} DSN_VSTRING;
-/*
-/*	DSN_VSTRING *dsn_vstring_alloc(len)
-/*	int	len;
-/*
-/*	DSN_VSTRING *dsn_vstring_update(dv, dsn, format, ...)
-/*	DSN_VSTRING *dv;
-/*	const char *dsn;
-/*	const char *format;
-/*
-/*	DSN_VSTRING *dsn_vstring_update_dsn(dv, dsn)
-/*	DSN_VSTRING *dv;
-/*	const char *dsn;
-/*
-/*	void	dsn_vstring_free(dv)
-/*	DSN_VSTRING *dv;
-/*
 /*	size_t	dsn_valid(text)
 /*	const char *text;
+/*
+/*	void	DSN_UPDATE(dsn_buf, dsn, len)
+/*	DSN_BUF	dsn_buf;
+/*	const char *dsn;
+/*	size_t	len;
+/*
+/*	const char *DSN_CODE(dsn_buf)
+/*	DSN_BUF dsn_buf;
+/*
+/*	char	*DSN_CLASS(dsn_buf)
+/*	DSN_BUF	dsn_buf;
 /* DESCRIPTION
 /*	The functions in this module manipulate pairs of RFC 3463
-/*	X.X.X detail codes and descriptive free text.
+/*	status codes and descriptive free text.
 /*
-/*	dsn_split() splits text into an RFC 3463 detail code and
+/*	dsn_split() splits text into an RFC 3463 status code and
 /*	descriptive free text.  When the text does not start with
-/*	a detail code, the specified default detail code is used
-/*	instead.  Whitespace before the optional detail code or
+/*	a status code, the specified default status code is used
+/*	instead.  Whitespace before the optional status code or
 /*	text is skipped.  dsn_split() returns a copy of the RFC
-/*	3463 detail code, and returns a pointer to (not copy of)
+/*	3463 status code, and returns a pointer to (not copy of)
 /*	the remainder of the text.  The result value is the first
 /*	argument.
 /*
-/*	dsn_prepend() prepends the specified default RFC 3463 detail
-/*	code to the specified text if no detail code is present in
+/*	dsn_prepend() prepends the specified default RFC 3463 status
+/*	code to the specified text if no status code is present in
 /*	the text. This function produces the same result as calling
 /*	concatenate() with the results from dsn_split().  The result
 /*	should be passed to myfree(). Whitespace before the optional
-/*	detail code or text is skipped.
+/*	status code or text is skipped.
 /*
-/*	dsn_vstring_alloc() creates initialized storage for an RFC
-/*	3463 detail code and descriptive free text.
-/*
-/*	dsn_vstring_update() updates the detail code, the descriptive
-/*	free text, or both. Specify a null pointer (or zero-length
-/*	string) for information that should not be updated.
-/*
-/*	dsn_vstring_update_dsn() pacifies the gcc compiler.
-/*
-/*	dsn_vstring_free() recycles the storage that was allocated
-/*	by dsn_vstring_alloc() and dsn_vstring_update().
-/*
-/*	DSN_UPDATE() is a helper macro to safely update an
-/*	RFC 3463 detail code.
-/*
-/*	DSN_CODE() is a helper macro to safely read an
-/*	RFC 3463 detail code.
-/*
-/*	DSN_CLASS() is a helper macro to safely read or update an
-/*	RFC 3463 detail code class (i.e. the first digit).
-/*
-/*	DSN_SIZE is the maximal length of an enhanced status
-/*	code including the null string terminator.
-/*
-/*	dsn_valid() returns the length of the RFC 3463 detail code
+/*	dsn_valid() returns the length of the RFC 3463 status code
 /*	at the beginning of text, or zero. It does not skip initial
 /*	whitespace.
 /*
 /*	Arguments:
 /* .IP def_dsn
-/*	Null-terminated default RFC 3463 detail code that will be
+/*	Null-terminated default RFC 3463 status code that will be
 /*	used when the free text does not start with one.
 /* .IP dp
-/*	Pointer to storage for copy of DSN detail code, and for
+/*	Pointer to storage for copy of DSN status code, and for
 /*	pointer to free text.
 /* .IP dsn
-/*	Null-terminated RFC 3463 detail code.
+/*	Null-terminated RFC 3463 status code.
 /* .IP text
 /*	Null-terminated free text.
-/* .IP vp
-/*	VSTRING buffer, or null pointer.
 /* SEE ALSO
 /*	msg(3) diagnostics interface
 /* DIAGNOSTICS
-/*	Panic: invalid default DSN code; invalid dsn_vstring_update()
-/*	DSN argument.
+/*	Panic: invalid default DSN code.
 /* LICENSE
 /* .ad
 /* .fi
@@ -186,6 +137,7 @@ size_t  dsn_valid(const char *text)
 
 DSN_SPLIT *dsn_split(DSN_SPLIT *dp, const char *def_dsn, const char *text)
 {
+    const char *myname = "dsn_split";
     const char *cp = text;
     size_t  len;
 
@@ -200,11 +152,14 @@ DSN_SPLIT *dsn_split(DSN_SPLIT *dp, const char *def_dsn, const char *text)
     while (ISSPACE(*cp))
 	cp++;
     if ((len = dsn_valid(cp)) > 0) {
-	DSN_UPDATE(dp->dsn, cp, len);
+	strncpy(dp->dsn.data, cp, len);
+	dp->dsn.data[len] = 0;
 	cp += len + 1;
+    } else if ((len = dsn_valid(def_dsn)) > 0) {
+	strncpy(dp->dsn.data, def_dsn, len);
+	dp->dsn.data[len] = 0;
     } else {
-	len = strlen(def_dsn);
-	DSN_UPDATE(dp->dsn, def_dsn, len);
+	msg_panic("%s: bad default status \"%s\"", myname, def_dsn);
     }
 
     /*
@@ -217,65 +172,12 @@ DSN_SPLIT *dsn_split(DSN_SPLIT *dp, const char *def_dsn, const char *text)
     return (dp);
 }
 
-/* dsn_prepend - prepend optional detail to text, result on heap */
+/* dsn_prepend - prepend optional status to text, result on heap */
 
 char   *dsn_prepend(const char *def_dsn, const char *text)
 {
     DSN_SPLIT dp;
 
     dsn_split(&dp, def_dsn, text);
-    return (concatenate(DSN_CODE(dp.dsn), " ", dp.text, (char *) 0));
-}
-
-/* dsn_vstring_alloc - create DSN+string storage */
-
-DSN_VSTRING *dsn_vstring_alloc(int len)
-{
-    DSN_VSTRING *dv;
-
-    dv = (DSN_VSTRING *) mymalloc(sizeof(*dv));
-    DSN_CLASS(dv->dsn) = 0;
-    dv->vstring = vstring_alloc(len);
-    return(dv);
-}
-
-/* dsn_vstring_free - destroy DSN+string storage */
-
-void    dsn_vstring_free(DSN_VSTRING *dv)
-{
-    vstring_free(dv->vstring);
-    myfree((char *) dv);
-}
-
-/* dsn_vstring_update - update DSN and/or text */
-
-DSN_VSTRING *dsn_vstring_update(DSN_VSTRING *dv, const char *dsn,
-					  const char *format,...)
-{
-    va_list ap;
-    size_t  len;
-
-    if (dsn && *dsn) {
-	if ((len = dsn_valid(dsn)) == 0)
-	    msg_panic("dsn_vstring_update: bad dsn: \"%s\"", dsn);
-	DSN_UPDATE(dv->dsn, dsn, len);
-    }
-    if (format && *format) {
-	va_start(ap, format);
-	vstring_vsprintf(dv->vstring, format, ap);
-	va_end(ap);
-    }
-    return (dv);
-}
-
-/* dsn_vstring_update_dsn - update DSN */
-
-DSN_VSTRING *dsn_vstring_update_dsn(DSN_VSTRING *dv, const char *dsn)
-{
-    size_t  len;
-
-    if ((len = dsn_valid(dsn)) == 0)
-	msg_panic("dsn_vstring_update_dsn: bad dsn: \"%s\"", dsn);
-    DSN_UPDATE(dv->dsn, dsn, len);
-    return (dv);
+    return (concatenate(DSN_STATUS(dp.dsn), " ", dp.text, (char *) 0));
 }

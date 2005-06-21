@@ -2351,6 +2351,11 @@ extern char *var_smtp_ehlo_dis_words;
 #define DEF_SMTP_EHLO_DIS_MAPS		""
 extern char *var_smtp_ehlo_dis_maps;
 
+ /*
+  * gcc workaround for warnings about empty or null format strings.
+  */
+extern const char null_format_string[1];
+
 /* LICENSE
 /* .ad
 /* .fi

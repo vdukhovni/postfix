@@ -356,6 +356,8 @@ static int local_deliver(DELIVER_REQUEST *rqst, char *service)
     state.msg_attr.fp = rqst->fp;
     state.msg_attr.offset = rqst->data_offset;
     state.msg_attr.sender = rqst->sender;
+    state.msg_attr.dsn_envid = rqst->dsn_envid;
+    state.msg_attr.dsn_ret = rqst->dsn_ret;
     state.msg_attr.relay = service;
     state.msg_attr.arrival_time = rqst->arrival_time;
     RESET_USER_ATTR(usr_attr, state.level);
@@ -368,15 +370,14 @@ static int local_deliver(DELIVER_REQUEST *rqst, char *service)
      * recipient. Update the per-message delivery status.
      */
     for (msg_stat = 0, rcpt = rqst->rcpt_list.info; rcpt < rcpt_end; rcpt++) {
-	state.msg_attr.orig_rcpt = rcpt->orig_addr;
-	state.msg_attr.recipient = rcpt->address;
-	state.msg_attr.rcpt_offset = rcpt->offset;
+	state.msg_attr.rcpt = *rcpt;
 	rcpt_stat = deliver_recipient(state, usr_attr);
 	if (rcpt_stat == 0 && (rqst->flags & DEL_REQ_FLAG_SUCCESS))
 	    deliver_completed(state.msg_attr.fp, rcpt->offset);
 	msg_stat |= rcpt_stat;
     }
 
+    deliver_attr_free(&state.msg_attr);
     return (msg_stat);
 }
 

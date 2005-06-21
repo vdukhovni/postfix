@@ -98,8 +98,6 @@
 #define SMTP_SCACHE_LABEL(mx_lookup_flag) \
 	((mx_lookup_flag) ? "%s:%s:%u" : "%s:[%s]:%u")
 
-#define STR(x)	vstring_str(x)
-
 /* smtp_save_session - save session under next-hop name and server address */
 
 void    smtp_save_session(SMTP_STATE *state)

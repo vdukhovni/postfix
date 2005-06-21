@@ -261,22 +261,22 @@ static void showq_reasons(VSTREAM *client, BOUNCE_LOG *bp, HTABLE *dup_filter)
 	 */
 	if (var_dup_filter_limit == 0
 	    || dup_filter->used < var_dup_filter_limit)
-	    if (htable_locate(dup_filter, bp->recipient) == 0)
-		htable_enter(dup_filter, bp->recipient, (char *) 0);
+	    if (htable_locate(dup_filter, bp->rcpt.address) == 0)
+		htable_enter(dup_filter, bp->rcpt.address, (char *) 0);
 
 	/*
 	 * Don't print the reason when the previous recipient had the same
 	 * problem.
 	 */
-	if (saved_reason == 0 || strcmp(saved_reason, bp->text) != 0) {
+	if (saved_reason == 0 || strcmp(saved_reason, bp->dsn.reason) != 0) {
 	    if (saved_reason)
 		myfree(saved_reason);
-	    saved_reason = mystrdup(bp->text);
+	    saved_reason = mystrdup(bp->dsn.reason);
 	    if ((padding = 76 - strlen(saved_reason)) < 0)
 		padding = 0;
 	    vstream_fprintf(client, "%*s(%s)\n", padding, "", saved_reason);
 	}
-	vstream_fprintf(client, STRING_FORMAT, "", "", "", bp->recipient);
+	vstream_fprintf(client, STRING_FORMAT, "", "", "", bp->rcpt.address);
     }
     if (saved_reason)
 	myfree(saved_reason);

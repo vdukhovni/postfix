@@ -26,20 +26,19 @@
 /*	int	SMTP_RCPT_LEFT(state)
 /*	SMTP_STATE *state;
 /*
-/*	void	smtp_rcpt_done(state, dsn, reply, rcpt)
+/*	void	smtp_rcpt_done(state, resp, rcpt)
 /*	SMTP_STATE *state;
-/*	const char *dsn;
-/*	const char *reply;
+/*	SMTP_RESP *resp;
 /*	RECIPIENT *rcpt;
 /* DESCRIPTION
-/*	This module implements application-specific mark and sweep 
+/*	This module implements application-specific mark and sweep
 /*	operations on recipient lists. Operation is as follows:
 /* .IP \(bu
 /*	In the course of a delivery attempt each recipient is
 /*	marked either as DROP (remove from recipient list) or KEEP
-/*	(deliver to alternate mail server). 
+/*	(deliver to alternate mail server).
 /* .IP \(bu
-/*	After a delivery attempt any recipients marked DROP are deleted 
+/*	After a delivery attempt any recipients marked DROP are deleted
 /*	from the request, and the left-over recipients are unmarked.
 /* .PP
 /*	The mark/sweep algorithm is implemented in a redundant manner,
@@ -107,16 +106,20 @@
 
 #include <sys_defs.h>
 #include <stdlib.h>			/* smtp_rcpt_cleanup  */
+#include <string.h>
 
 /* Utility  library. */
 
 #include <msg.h>
+#include <stringops.h>
+#include <mymalloc.h>
 
 /* Global library. */
 
 #include <deliver_request.h>		/* smtp_rcpt_done */
 #include <deliver_completed.h>		/* smtp_rcpt_done */
 #include <sent.h>			/* smtp_rcpt_done */
+#include <dsn_mask.h>			/* smtp_rcpt_done */
 
 /* Application-specific. */
 
@@ -124,23 +127,30 @@
 
 /* smtp_rcpt_done - mark recipient as done or else */
 
-void    smtp_rcpt_done(SMTP_STATE *state, const char *dsn,
-		               const char *reply, RECIPIENT *rcpt)
+void    smtp_rcpt_done(SMTP_STATE *state, SMTP_RESP *resp, RECIPIENT *rcpt)
 {
     DELIVER_REQUEST *request = state->request;
     SMTP_SESSION *session = state->session;
+    DSN     dsn;
     int     status;
 
     /*
      * Report success and delete the recipient from the delivery request.
-     * Defer if the success can't be reported.
+     * Defer if the success can't be reported. Don't send a DSN "SUCCESS"
+     * notification if the receiving site announced DSN support.
+     * 
+     * Note: the DSN action is ignored in case of address probes.
      */
+    if (session->features & SMTP_FEATURE_DSN)
+	rcpt->dsn_notify &= ~DSN_NOTIFY_SUCCESS;
+
+    (void) SMTP_DSN_ASSIGN(&dsn, session->host, resp->dsn,
+			   resp->str, resp->str);
+    dsn.action = "relayed";
+
     status = sent(DEL_REQ_TRACE_FLAGS(request->flags),
-		  request->queue_id, rcpt->orig_addr,
-		  rcpt->address, rcpt->offset,
-		  session->namaddr, dsn,
-		  request->arrival_time,
-		  "%s", reply);
+		  request->queue_id, request->arrival_time, rcpt,
+		  session->namaddr, &dsn);
     if (status == 0)
 	if (request->flags & DEL_REQ_FLAG_SUCCESS)
 	    deliver_completed(state->src, rcpt->offset);
@@ -152,7 +162,7 @@ void    smtp_rcpt_done(SMTP_STATE *state, const char *dsn,
 
 static int smtp_rcpt_cleanup_callback(const void *a, const void *b)
 {
-    return (((RECIPIENT *) a)->status - ((RECIPIENT *) b)->status);
+    return (((RECIPIENT *) a)->u.status - ((RECIPIENT *) b)->u.status);
 }
 
 /* smtp_rcpt_cleanup - purge completed recipients from request */
@@ -182,6 +192,6 @@ void    smtp_rcpt_cleanup(SMTP_STATE *state)
      */
     state->rcpt_left = state->rcpt_keep;
     for (rcpt = rcpt_list->info; rcpt < rcpt_list->info + state->rcpt_left; rcpt++)
-	rcpt->status = 0;
+	rcpt->u.status = 0;
     state->rcpt_drop = state->rcpt_keep = 0;
 }

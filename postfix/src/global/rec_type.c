@@ -63,6 +63,10 @@ REC_TYPE_NAME rec_type_names[] = {
     REC_TYPE_END, "message_end",
     REC_TYPE_RDR, "redirect_to",
     REC_TYPE_FLGS, "flags",
+    REC_TYPE_DSN_RET, "dsn_return_flags",
+    REC_TYPE_DSN_ENVID, "dsn_envelope_id",
+    REC_TYPE_DSN_ORCPT, "dsn_original_recipient",
+    REC_TYPE_DSN_NOTIFY, "dsn_notify_flags",
     0, 0,
 };
 

@@ -82,6 +82,7 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
     state->client = stream;
     state->service = mystrdup(service);
     state->buffer = vstring_alloc(100);
+    state->addr_buf = vstring_alloc(100);
     state->error_count = 0;
     state->error_mask = 0;
     state->notify_mask = name_mask(VAR_NOTIFY_CLASSES, mail_error_masks,
@@ -125,6 +126,13 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
     state->instance = vstring_alloc(10);
     state->seqno = 0;
     state->rewrite_context = 0;
+#if 0
+    state->ehlo_discard_mask = ~0;
+#else
+    state->ehlo_discard_mask = 0;
+#endif
+    state->dsn_envid = 0;
+    state->dsn_buf = vstring_alloc(100);
 #ifdef USE_TLS
     state->tls_use_tls = 0;
     state->tls_enforce_tls = 0;
@@ -170,6 +178,8 @@ void    smtpd_state_reset(SMTPD_STATE *state)
 	myfree(state->service);
     if (state->buffer)
 	vstring_free(state->buffer);
+    if (state->addr_buf)
+	vstring_free(state->addr_buf);
     if (state->protocol)
 	myfree(state->protocol);
     smtpd_peer_reset(state);
@@ -192,6 +202,8 @@ void    smtpd_state_reset(SMTPD_STATE *state)
 	vstring_free(state->proxy_buffer);
     if (state->instance)
 	vstring_free(state->instance);
+    if (state->dsn_buf)
+	vstring_free(state->dsn_buf);
 
 #ifdef USE_SASL_AUTH
     if (var_smtpd_sasl_enable)

@@ -67,25 +67,28 @@ int     deliver_indirect(LOCAL_STATE state)
      * can handle huge mailing lists with millions of recipients.
      */
     if (msg_verbose)
-	msg_info("deliver_indirect: %s", state.msg_attr.recipient);
-    if (been_here(state.dup_filter, "indirect %s", state.msg_attr.recipient))
+	msg_info("deliver_indirect: %s", state.msg_attr.rcpt.address);
+    if (been_here(state.dup_filter, "indirect %s",
+		  state.msg_attr.rcpt.address))
 	return (0);
 
     /*
      * Don't forward a trace-only request.
      */
-    if (DEL_REQ_TRACE_ONLY(state.request->flags))
-	return (sent(BOUNCE_FLAGS(state.request),
-		     SENT_ATTR(state.msg_attr, "2.0.0"),
-		     "forwards to %s", state.msg_attr.recipient));
+    if (DEL_REQ_TRACE_ONLY(state.request->flags)) {
+	dsb_simple(state.msg_attr.why, "2.0.0", "forwards to %s",
+		   state.msg_attr.rcpt.address);
+	return (sent(BOUNCE_FLAGS(state.request), SENT_ATTR(state.msg_attr)));
+    }
 
     /*
      * Send the address to the forwarding service. Inherit the delivered
      * attribute from the alias or from the .forward file owner.
      */
-    if (forward_append(state.msg_attr))
+    if (forward_append(state.msg_attr)) {
+	dsb_simple(state.msg_attr.why, "4.3.0", "unable to forward message");
 	return (defer_append(BOUNCE_FLAGS(state.request),
-			     BOUNCE_ATTR(state.msg_attr, "4.3.0"),
-			     "unable to forward message"));
+			     BOUNCE_ATTR(state.msg_attr)));
+    }
     return (0);
 }

@@ -2,7 +2,7 @@
 #define _USER_ACL_H_INCLUDED_
 /*++
 /* NAME
-/*	user_acl 3
+/*	user_acl 3h
 /* SUMMARY
 /*	Convert uid to username and check against given ACL.
 /* SYNOPSIS

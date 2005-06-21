@@ -19,7 +19,7 @@
 /*
 /*	int	smtp_sasl_authenticate(session, why)
 /*	SMTP_SESSION *session;
-/*	VSTRING *why;
+/*	DSN_BUF *why;
 /*
 /*	void	smtp_sasl_cleanup(session)
 /*	SMTP_SESSION *session;
@@ -190,7 +190,7 @@ static NAME_MASK smtp_sasl_sec_mask[] = {
   */
 static MAPS *smtp_sasl_passwd_map;
 
- /* 
+ /*
   * Supported SASL mechanisms.
   */
 STRING_LIST *smtp_sasl_mechs;
@@ -201,8 +201,8 @@ static int smtp_sasl_log(void *unused_context, int priority,
 			         const char *message)
 {
     switch (priority) {
-    case SASL_LOG_ERR:				/* unusual errors */
-    case SASL_LOG_WARN:			/* non-fatal warnings */
+	case SASL_LOG_ERR:		/* unusual errors */
+	case SASL_LOG_WARN:		/* non-fatal warnings */
 	msg_warn("SASL authentication problem: %s", message);
 	break;
     case SASL_LOG_NOTE:			/* other info */
@@ -319,7 +319,7 @@ int     smtp_sasl_passwd_lookup(SMTP_SESSION *session)
      * the MX hostname.
      */
     if ((value = maps_find(smtp_sasl_passwd_map, session->host, 0)) != 0
-    || (value = maps_find(smtp_sasl_passwd_map, session->dest, 0)) != 0) {
+      || (value = maps_find(smtp_sasl_passwd_map, session->dest, 0)) != 0) {
 	session->sasl_username = mystrdup(value);
 	passwd = split_at(session->sasl_username, ':');
 	session->sasl_passwd = mystrdup(passwd ? passwd : "");
@@ -368,7 +368,7 @@ void    smtp_sasl_initialize(void)
 #endif
 	)
 	msg_fatal("incorrect SASL library version. "
-		  "Postfix was built with include files from version %d.%d.%d, "
+	      "Postfix was built with include files from version %d.%d.%d, "
 		  "but the run-time library version is %d.%d.%d",
 		  SASL_VERSION_MAJOR, SASL_VERSION_MINOR, SASL_VERSION_STEP,
 		  sasl_major, sasl_minor, sasl_step);
@@ -478,7 +478,7 @@ void    smtp_sasl_start(SMTP_SESSION *session, const char *sasl_opts_name,
 
 /* smtp_sasl_authenticate - run authentication protocol */
 
-int     smtp_sasl_authenticate(SMTP_SESSION *session, VSTRING *why)
+int     smtp_sasl_authenticate(SMTP_SESSION *session, DSN_BUF *why)
 {
     char   *myname = "smtp_sasl_authenticate";
     unsigned enc_length;
@@ -515,10 +515,13 @@ int     smtp_sasl_authenticate(SMTP_SESSION *session, VSTRING *why)
 			       NO_SASL_SECRET, NO_SASL_INTERACTION,
 			       &clientout, &clientoutlen, &mechanism);
     if (result != SASL_OK && result != SASL_CONTINUE) {
-	vstring_sprintf(why, "cannot SASL authenticate to server %s: %s",
-			session->namaddr,
-			sasl_errstring(result, NO_SASL_LANGLIST,
-				       NO_SASL_OUTLANG));
+	dsb_update(why, "4.7.0", DSB_DEF_ACTION, DSB_SKIP_RMTA, DSB_DTYPE_SASL,
+		   421, sasl_errstring(result, NO_SASL_LANGLIST,
+				       NO_SASL_OUTLANG),
+		   "cannot authenticate to server %s: %s",
+		   session->namaddr,
+		   sasl_errstring(result, NO_SASL_LANGLIST,
+				  NO_SASL_OUTLANG));
 	return (-1);
     }
 
@@ -564,7 +567,9 @@ int     smtp_sasl_authenticate(SMTP_SESSION *session, VSTRING *why)
 	VSTRING_SPACE(session->sasl_decoded, serverinlen);
 	if (SASL_DECODE64(line, serverinlen, STR(session->sasl_decoded),
 			  serverinlen, &enc_length) != SASL_OK) {
-	    vstring_sprintf(why, "malformed SASL challenge from server %s",
+	    smtp_dsn_update(why, "5.7.0", DSN_BY_LOCAL_MTA,
+			    501, "501 malformed SASL challenge",
+			    "malformed SASL challenge from server %s",
 			    session->namaddr);
 	    return (-1);
 	}
@@ -608,7 +613,8 @@ int     smtp_sasl_authenticate(SMTP_SESSION *session, VSTRING *why)
      * We completed the authentication protocol.
      */
     if (resp->code / 100 != 2) {
-	vstring_sprintf(why, "SASL authentication failed; server %s said: %s",
+	smtp_dsn_update(why, session->host, resp->dsn, resp->code, resp->str,
+			"SASL authentication failed; server %s said: %s",
 			session->namaddr, resp->str);
 	return (0);
     }

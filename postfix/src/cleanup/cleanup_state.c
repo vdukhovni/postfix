@@ -56,6 +56,7 @@ CLEANUP_STATE *cleanup_state_alloc(void)
 {
     CLEANUP_STATE *state = (CLEANUP_STATE *) mymalloc(sizeof(*state));
 
+    state->attr_buf = vstring_alloc(10);
     state->temp1 = vstring_alloc(10);
     state->temp2 = vstring_alloc(10);
     state->dst = 0;
@@ -89,6 +90,10 @@ CLEANUP_STATE *cleanup_state_alloc(void)
     state->hdr_rewrite_context = MAIL_ATTR_RWR_LOCAL;
     state->filter = 0;
     state->redirect = 0;
+    state->dsn_envid = 0;
+    state->dsn_ret = 0;
+    state->dsn_notify = 0;
+    state->dsn_orcpt = 0;
     return (state);
 }
 
@@ -96,6 +101,7 @@ CLEANUP_STATE *cleanup_state_alloc(void)
 
 void    cleanup_state_free(CLEANUP_STATE *state)
 {
+    vstring_free(state->attr_buf);
     vstring_free(state->temp1);
     vstring_free(state->temp2);
     if (state->fullname)
@@ -124,5 +130,9 @@ void    cleanup_state_free(CLEANUP_STATE *state)
 	myfree(state->filter);
     if (state->redirect)
 	myfree(state->redirect);
+    if (state->dsn_envid)
+	myfree(state->dsn_envid);
+    if (state->dsn_orcpt)
+	myfree(state->dsn_orcpt);
     myfree((char *) state);
 }

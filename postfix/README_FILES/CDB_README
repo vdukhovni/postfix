@@ -53,6 +53,6 @@ After postfix has been built with cdb support, you can use "cdb" tables
 wherever you can use read-only "hash", "btree" or "dbm" tables. However, the
 "ppoossttmmaapp --ii" (incremental record insertion) and "ppoossttmmaapp --dd" (incremental
 record deletion) command-line options are not available. For the same reason
-the "cdb" map type cannot be used to store the volatile address verification
+the "cdb" map type cannot be used to store the persistent address verification
 cache for the verify(8) service.
 

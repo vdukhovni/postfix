@@ -56,7 +56,7 @@ Change to the named directory before executing the external command.
 Delivery is deferred in case of failure.
 .sp
 This feature is available as of Postfix 2.2.
-.IP "\fBeol=string\fR (optional, default: \fB\en\fR)"
+.IP "\fBeol=\fIstring\fR (optional, default: \fB\en\fR)"
 The output record delimiter. Typically one would use either
 \fB\er\en\fR or \fB\en\fR. The usual C-style backslash escape
 sequences are recognized: \fB\ea \eb \ef \en \er \et \ev
@@ -116,6 +116,33 @@ by, for example, \fBBSMTP\fR software.
 Prepend "\fB>\fR" to lines starting with "\fBFrom \fR". This is expected
 by, for example, \fBUUCP\fR software.
 .RE
+.IP "\fBnull_sender\fR=\fIreplacement\fR (default: MAILER-DAEMON)"
+Replace the null sender address, which is typically used
+for delivery status notifications, with the specified text
+when expanding the \fB$sender\fR command-line macro, and
+when generating a From_ or Return-Path: message header.
+
+If the null sender replacement text is a non-empty string
+then it is affected by the \fBq\fR flag for address quoting
+in command-line arguments.
+
+The null sender replacement text may be empty; this form
+is recommended for content filters that feed mail back into
+Postfix. The empty sender address is not affected by the
+\fBq\fR flag for address quoting in command-line arguments.
+.sp
+Caution: a null sender address is easily mis-parsed by
+naive software. For example, when the \fBpipe\fR(8) daemon
+executes a command such as:
+
+.ti +4
+command -f$sender -- $recipient
+
+the command will mis-parse the -f option value when the
+sender address is a null string.  For correct parsing,
+specify \fB$sender\fR as an argument by itself.
+.sp
+This feature is available with Postfix 2.3 and later.
 .IP "\fBsize\fR=\fIsize_limit\fR (optional)"
 Messages greater in size than this limit (in bytes) will be bounced
 back to the sender.
@@ -172,7 +199,7 @@ For example, with an address \fIuser+foo@domain\fR the mailbox is
 \fIuser+foo\fR.
 .sp
 A command-line argument that contains \fB${\fBmailbox\fR}\fR
-expands into as many command-line arguments as there are recipients.
+expands to as many command-line arguments as there are recipients.
 .sp
 This information is modified by the \fBu\fR flag for case folding.
 .IP \fB${\fBnexthop\fR}\fR
@@ -183,7 +210,7 @@ This information is modified by the \fBh\fR flag for case folding.
 This macro expands to the complete recipient address.
 .sp
 A command-line argument that contains \fB${\fBrecipient\fR}\fR
-expands into as many command-line arguments as there are recipients.
+expands to as many command-line arguments as there are recipients.
 .sp
 This information is modified by the \fBhqu\fR flags for quoting
 and case folding.
@@ -205,7 +232,10 @@ received without SASL authentication.
 .sp
 This is available in Postfix 2.2 and later.
 .IP \fB${\fBsender\fR}\fR
-This macro expands to the envelope sender address.
+This macro expands to the envelope sender address. By default,
+the null sender address expands to MAILER-DAEMON; this can
+be changed with the \fBnull_sender\fR attribute, as described
+above.
 .sp
 This information is modified by the \fBq\fR flag for quoting.
 .IP \fB${\fBsize\fR}\fR

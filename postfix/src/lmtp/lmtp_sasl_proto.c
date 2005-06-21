@@ -104,7 +104,7 @@ void    lmtp_sasl_helo_auth(LMTP_STATE *state, const char *words)
 
 int     lmtp_sasl_helo_login(LMTP_STATE *state)
 {
-    VSTRING *why = vstring_alloc(10);
+    DSN_BUF *why = dsb_create();
     int     ret = 0;
 
     /*
@@ -115,12 +115,13 @@ int     lmtp_sasl_helo_login(LMTP_STATE *state)
      */
     if (lmtp_sasl_passwd_lookup(state) != 0) {
 	lmtp_sasl_start(state, VAR_LMTP_SASL_OPTS, var_lmtp_sasl_opts);
-	if (lmtp_sasl_authenticate(state, why) <= 0)
-	    ret = lmtp_site_fail(state, "4.7.0", 450,
-				 "Authentication failed: %s",
-				 vstring_str(why));
+	if (lmtp_sasl_authenticate(state, why) <= 0) {
+	    vstring_prepend(why->reason, "Authentication failed: ",
+			    sizeof("Authentication failed: ") - 1);
+	    ret = lmtp_sess_fail(state, why);
+	}
     }
-    vstring_free(why);
+    dsb_free(why);
     return (ret);
 }
 

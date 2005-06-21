@@ -46,6 +46,8 @@
 /*	RFC 822 (ARPA Internet Text Messages)
 /*	RFC 2045 (MIME: Format of Internet Message Bodies)
 /*	RFC 2046 (MIME: Media Types)
+/*	RFC 3463 (Enhanced Status Codes)
+/*	RFC 3464 (Delivery status notifications)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* BUGS

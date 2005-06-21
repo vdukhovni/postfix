@@ -77,11 +77,24 @@
 /*	const char *src;
 /*	int	len;
 /*
+/*	char	*vstring_memchr(vp, ch)
+/*	VSTRING	*vp;
+/*	int	ch;
+/*
+/*	VSTRING	*vstring_prepend(vp, src, len)
+/*	VSTRING	*vp;
+/*	const char *src;
+/*	int	len;
+/*
 /*	VSTRING	*vstring_sprintf(vp, format, ...)
 /*	VSTRING	*vp;
 /*	const char *format;
 /*
 /*	VSTRING	*vstring_sprintf_append(vp, format, ...)
+/*	VSTRING	*vp;
+/*	const char *format;
+/*
+/*	VSTRING	*vstring_sprintf_prepend(vp, format, ...)
 /*	VSTRING	*vp;
 /*	const char *format;
 /*
@@ -193,11 +206,19 @@
 /*	\fIsrc\fP provides the data to be copied; \fIvp\fP is the
 /*	target and result value.  The result is not null-terminated.
 /*
+/*	vstring_memchr() locates a byte in a variable-length string.
+/*
+/*	vstring_prepend() prepends a buffer content to a variable-length 
+/*	string. The result is null-terminated.
+/*
 /*	vstring_sprintf() produces a formatted string according to its
 /*	\fIformat\fR argument. See vstring_vsprintf() for details.
 /*
 /*	vstring_sprintf_append() is like vstring_sprintf(), but appends
 /*	to the end of the result buffer.
+/*
+/*	vstring_sprintf_append() is like vstring_sprintf(), but prepends
+/*	to the beginning of the result buffer.
 /*
 /*	vstring_vsprintf() returns a null-terminated string according to
 /*	the \fIformat\fR argument. It understands the s, c, d, u,
@@ -437,6 +458,42 @@ VSTRING *vstring_memcat(VSTRING *vp, const char *src, int len)
     return (vp);
 }
 
+/* vstring_memchr - locate byte in buffer */
+
+char   *vstring_memchr(VSTRING *vp, int ch)
+{
+    unsigned char *cp;
+
+    for (cp = (unsigned char *) vstring_str(vp); cp < (unsigned char *) vstring_end(vp); cp++)
+	if (*cp == ch)
+	    return ((char *) cp);
+    return (0);
+}
+
+/* vstring_prepend - prepend text to string */
+
+VSTRING *vstring_prepend(VSTRING *vp, const char *buf, int len)
+{
+    int     new_len;
+
+    /*
+     * Sanity check.
+     */
+    if (len < 0)
+	msg_panic("vstring_prepend: bad length %d", len);
+
+    /*
+     * Move the existing content and copy the new content.
+     */
+    new_len = VSTRING_LEN(vp) + len;
+    VSTRING_SPACE(vp, len);
+    memmove(vstring_str(vp) + len, vstring_str(vp), VSTRING_LEN(vp));
+    memcpy(vstring_str(vp), buf, len);
+    VSTRING_AT_OFFSET(vp, new_len);
+    VSTRING_TERMINATE(vp);
+    return (vp);
+}
+
 /* vstring_export - VSTRING to bare string */
 
 char   *vstring_export(VSTRING *vp)
@@ -499,11 +556,35 @@ VSTRING *vstring_sprintf_append(VSTRING *vp, const char *format,...)
     return (vp);
 }
 
-/* vstring_vsprintf_append - append format string, vsprintf-like interface */
+/* vstring_vsprintf_append - format + append string, vsprintf-like interface */
 
 VSTRING *vstring_vsprintf_append(VSTRING *vp, const char *format, va_list ap)
 {
     vbuf_print(&vp->vbuf, format, ap);
+    VSTRING_TERMINATE(vp);
+    return (vp);
+}
+
+/* vstring_sprintf_prepend - format + prepend string, vsprintf-like interface */
+
+VSTRING *vstring_sprintf_prepend(VSTRING *vp, const char *format,  ...)
+{
+    va_list ap;
+    int     old_len = VSTRING_LEN(vp);
+    int     result_len;
+
+    /* Construct: old|new|free */
+    va_start(ap, format);
+    vp = vstring_vsprintf_append(vp, format, ap);
+    va_end(ap);
+    result_len = VSTRING_LEN(vp);
+
+    /* Construct: old|new|old|free */
+    vstring_memcat(vp, vstring_str(vp), old_len);
+
+    /* Construct: new|old|free */
+    memmove(vstring_str(vp), vstring_str(vp) + old_len, result_len);
+    VSTRING_AT_OFFSET(vp, result_len);
     VSTRING_TERMINATE(vp);
     return (vp);
 }

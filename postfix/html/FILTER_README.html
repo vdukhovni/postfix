@@ -250,9 +250,9 @@ document for an introduction to the Postfix architecture. </p>
  3 # Simple shell-based filter. It is meant to be invoked as follows:
  4 #       /path/to/script -f sender recipients...
  5 
- 6 # Localize these.
+ 6 # Localize these. The -G option does nothing before Postfix 2.3.
  7 INSPECT_DIR=/var/spool/filter
- 8 SENDMAIL="/usr/sbin/sendmail -i"
+ 8 SENDMAIL="/usr/sbin/sendmail -G -i"
  9 
 10 # Exit codes from &lt;sysexits.h&gt;
 11 EX_TEMPFAIL=75
@@ -281,6 +281,12 @@ document for an introduction to the Postfix architecture. </p>
 <p> Notes: </p>
 
 <ul>
+
+<li> <p> Line 8: The -G option does nothing before Postfix 2.3,
+otherwise it disables address rewriting of message headers. </p>
+
+<li> <p> Line 8: The -i option says don't stop reading input when
+a line contains "." only.  </p>
 
 <li> <p> Line 21: The idea is to first capture the message to
 file and then run the content through a third-party content filter

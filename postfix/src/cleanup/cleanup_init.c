@@ -23,6 +23,8 @@
 /*	char	**argv;
 /*
 /*	char	*cleanup_path;
+/*	VSTRING	*cleanup_trace_path;
+/*	VSTRING	*cleanup_bounce_path;
 /*
 /*	void	cleanup_all()
 /*
@@ -47,6 +49,12 @@
 /*	file that currently is being written. This information is used
 /*	by cleanup_all() to remove incomplete files after a fatal error,
 /*	or by cleanup_sig() after arrival of a SIGTERM signal.
+/*
+/*	cleanup_trace_path is either a null pointer or the pathname of a
+/*	trace logfile with DSN SUCCESS notifications. This information is
+/*	used to remove a trace file when the mail transaction is canceled.
+/*
+/*	cleanup_bounce_path is the same for removing a bounce logfile.
 /*
 /*	cleanup_all() must be called in case of fatal error, in order
 /*	to remove an incomplete queue file.
@@ -95,6 +103,13 @@
   * handler can clean up in case of trouble.
   */
 char   *cleanup_path;			/* queue file name */
+
+ /*
+  * Another piece of global state: pathnames of partial bounce or trace
+  * logfiles that need to be cleaned up when the cleanup request is aborted.
+  */
+VSTRING *cleanup_trace_path;
+VSTRING *cleanup_bounce_path;
 
  /*
   * Tunable parameters.
@@ -208,14 +223,25 @@ void    cleanup_all(void)
 
 /* cleanup_sig - callback for the SIGTERM handler */
 
-void cleanup_sig(int sig)
+void    cleanup_sig(int sig)
 {
 
     /*
      * msg_fatal() is safe against calling itself recursively, but signals
      * need extra safety.
+     * 
+     * XXX While running as a signal handler, can't ask the memory manager to
+     * release VSTRING storage.
      */
     if (signal(SIGTERM, SIG_IGN) != SIG_IGN) {
+	if (cleanup_trace_path) {
+	    (void) REMOVE(vstring_str(cleanup_trace_path));
+	    cleanup_trace_path = 0;
+	}
+	if (cleanup_bounce_path) {
+	    (void) REMOVE(vstring_str(cleanup_bounce_path));
+	    cleanup_bounce_path = 0;
+	}
 	if (cleanup_path) {
 	    (void) REMOVE(cleanup_path);
 	    cleanup_path = 0;

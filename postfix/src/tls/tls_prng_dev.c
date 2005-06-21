@@ -24,7 +24,7 @@
 /*	tls_prng_dev_read() reads the requested number of bytes from
 /*	the entropy device and updates the OpenSSL PRNG.
 /*
-/*	tls_prng_dev_close() closes the specified entropy device 
+/*	tls_prng_dev_close() closes the specified entropy device
 /*	and releases memory that was allocated for the handle.
 /*
 /*	Arguments:

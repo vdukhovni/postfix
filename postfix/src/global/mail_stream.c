@@ -452,6 +452,7 @@ void    mail_stream_ctl(MAIL_STREAM *info, int op,...)
 	    msg_panic("%s: bad op code %d", myname, op);
 	}
     }
+    va_end(ap);
 
     /*
      * Rename the queue file after allocating memory for new information, so

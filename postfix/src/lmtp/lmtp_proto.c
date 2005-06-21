@@ -118,7 +118,10 @@
 #include <off_cvt.h>
 #include <mark_corrupt.h>
 #include <quote_821_local.h>
+#include <quote_822_local.h>
 #include <mail_proto.h>
+#include <dsn_mask.h>
+#include <xtext.h>
 
 /* Application-specific. */
 
@@ -224,7 +227,7 @@ int     lmtp_lhlo(LMTP_STATE *state)
      * Read and parse the server's LMTP greeting banner.
      */
     if (((resp = lmtp_chat_resp(state))->code / 100) != 2)
-	return (lmtp_site_fail(state, DSN_CODE(resp->dsn), resp->code,
+	return (lmtp_site_fail(state, session->host, resp,
 			       "host %s refused to talk to me: %s",
 			 session->namaddr, translit(resp->str, "\n", " ")));
 
@@ -233,7 +236,7 @@ int     lmtp_lhlo(LMTP_STATE *state)
      */
     lmtp_chat_cmd(state, "LHLO %s", var_myhostname);
     if ((resp = lmtp_chat_resp(state))->code / 100 != 2)
-	return (lmtp_site_fail(state, DSN_CODE(resp->dsn), resp->code,
+	return (lmtp_site_fail(state, session->host, resp,
 			       "host %s refused to talk to me: %s",
 			       session->namaddr,
 			       translit(resp->str, "\n", " ")));
@@ -264,6 +267,8 @@ int     lmtp_lhlo(LMTP_STATE *state)
 	    else if (var_lmtp_sasl_enable && strcasecmp(word, "AUTH") == 0)
 		lmtp_sasl_helo_auth(state, words);
 #endif
+	    else if (strcasecmp(word, "DSN") == 0)
+		state->features |= LMTP_FEATURE_DSN;
 	}
     }
     if (msg_verbose)
@@ -447,6 +452,15 @@ static int lmtp_loop(LMTP_STATE *state, NOCLOBBER int send_state,
 		    msg_warn("%s: unknown content encoding: %s",
 			     request->queue_id, request->encoding);
 	    }
+	    if (state->features & LMTP_FEATURE_DSN) {
+		if (request->dsn_envid[0]) {
+		    vstring_sprintf_append(next_command, " ENVID=");
+		    xtext_quote_append(next_command, request->dsn_envid, "+=");
+		}
+		if (request->dsn_ret)
+		    vstring_sprintf_append(next_command, " RET=%s",
+					   dsn_ret_str(request->dsn_ret));
+	    }
 
 	    /*
 	     * We authenticate the local MTA only, but not the sender.
@@ -469,6 +483,24 @@ static int lmtp_loop(LMTP_STATE *state, NOCLOBBER int send_state,
 	    REWRITE_ADDRESS(state->scratch, rcpt->address);
 	    vstring_sprintf(next_command, "RCPT TO:<%s>",
 			    vstring_str(state->scratch));
+	    if (state->features & LMTP_FEATURE_DSN) {
+		/* XXX DSN xtext encode address value not type. */
+		if (rcpt->dsn_orcpt[0]) {
+		    xtext_quote(state->scratch, rcpt->dsn_orcpt, "+=");
+		    vstring_sprintf_append(next_command, " ORCPT=%s",
+					   vstring_str(state->scratch));
+		} else if (rcpt->orig_addr[0]) {
+		    quote_822_local(state->scratch, rcpt->orig_addr);
+		    vstring_sprintf(state->scratch2, "rfc822;%s",
+				    vstring_str(state->scratch));
+		    xtext_quote(state->scratch, vstring_str(state->scratch2), "+=");
+		    vstring_sprintf_append(next_command, " ORCPT=%s",
+					   vstring_str(state->scratch));
+		}
+		if (rcpt->dsn_notify)
+		    vstring_sprintf_append(next_command, " NOTIFY=%s",
+					   dsn_notify_str(rcpt->dsn_notify));
+	    }
 	    if ((next_rcpt = send_rcpt + 1) == request->rcpt_list.len)
 		next_state = DEL_REQ_TRACE_ONLY(request->flags) ?
 		    LMTP_STATE_RSET : LMTP_STATE_DATA;
@@ -594,8 +626,7 @@ static int lmtp_loop(LMTP_STATE *state, NOCLOBBER int send_state,
 		     */
 		case LMTP_STATE_MAIL:
 		    if (resp->code / 100 != 2) {
-			lmtp_mesg_fail(state, DSN_CODE(resp->dsn),
-				       resp->code,
+			lmtp_mesg_fail(state, session->host, resp,
 				       "host %s said: %s (in reply to %s)",
 				       session->namaddr,
 				       translit(resp->str, "\n", " "),
@@ -620,8 +651,10 @@ static int lmtp_loop(LMTP_STATE *state, NOCLOBBER int send_state,
 		case LMTP_STATE_RCPT:
 		    if (!mail_from_rejected) {
 #ifdef notdef
-			if (resp->code == 552)
+			if (resp->code == 552) {
 			    resp->code = 452;
+			    STR(resp->dsn_buf)[0] = '4';
+			}
 #endif
 			rcpt = request->rcpt_list.info + recv_rcpt;
 			if (resp->code / 100 == 2) {
@@ -631,26 +664,16 @@ static int lmtp_loop(LMTP_STATE *state, NOCLOBBER int send_state,
 					     * sizeof(int));
 			    survivors[nrcpt++] = recv_rcpt;
 			    /* If trace-only, mark the recipient done. */
-			    if (DEL_REQ_TRACE_ONLY(request->flags)
-				&& sent(DEL_REQ_TRACE_FLAGS(request->flags),
-					request->queue_id, rcpt->orig_addr,
-					rcpt->address, rcpt->offset,
-					session->namaddr,
-					DSN_CODE(resp->dsn),
-					request->arrival_time, "%s",
-				     translit(resp->str, "\n", " ")) == 0) {
-				if (request->flags & DEL_REQ_FLAG_SUCCESS)
-				    deliver_completed(state->src, rcpt->offset);
-				rcpt->offset = 0;	/* in case deferred */
+			    if (DEL_REQ_TRACE_ONLY(request->flags)) {
+				translit(resp->str, "\n", " ");
+				lmtp_rcpt_done(state, resp, rcpt);
 			    }
 			} else {
-			    lmtp_rcpt_fail(state, DSN_CODE(resp->dsn),
-					   resp->code, rcpt,
+			    lmtp_rcpt_fail(state, session->host, resp, rcpt,
 					"host %s said: %s (in reply to %s)",
 					   session->namaddr,
 					   translit(resp->str, "\n", " "),
 					   xfer_request[LMTP_STATE_RCPT]);
-			    rcpt->offset = 0;	/* in case deferred */
 			}
 		    }
 		    /* If trace-only, send RSET instead of DATA. */
@@ -667,8 +690,7 @@ static int lmtp_loop(LMTP_STATE *state, NOCLOBBER int send_state,
 		case LMTP_STATE_DATA:
 		    if (resp->code / 100 != 3) {
 			if (nrcpt > 0)
-			    lmtp_mesg_fail(state, DSN_CODE(resp->dsn),
-					   resp->code,
+			    lmtp_mesg_fail(state, session->host, resp,
 					"host %s said: %s (in reply to %s)",
 					   session->namaddr,
 					   translit(resp->str, "\n", " "),
@@ -691,27 +713,14 @@ static int lmtp_loop(LMTP_STATE *state, NOCLOBBER int send_state,
 		    if (nrcpt > 0) {
 			rcpt = request->rcpt_list.info + survivors[recv_dot];
 			if (resp->code / 100 == 2) {
-			    if (rcpt->offset) {
-				if (sent(DEL_REQ_TRACE_FLAGS(request->flags),
-					 request->queue_id, rcpt->orig_addr,
-					 rcpt->address, rcpt->offset,
-					 session->namaddr,
-					 DSN_CODE(resp->dsn),
-					 request->arrival_time,
-					 "%s", resp->str) == 0) {
-				    if (request->flags & DEL_REQ_FLAG_SUCCESS)
-					deliver_completed(state->src, rcpt->offset);
-				    rcpt->offset = 0;
-				}
-			    }
+			    if (rcpt->offset)
+				lmtp_rcpt_done(state, resp, rcpt);
 			} else {
-			    lmtp_rcpt_fail(state, DSN_CODE(resp->dsn),
-					   resp->code, rcpt,
+			    lmtp_rcpt_fail(state, session->host, resp, rcpt,
 					"host %s said: %s (in reply to %s)",
 					   session->namaddr,
 					   translit(resp->str, "\n", " "),
 					   xfer_request[LMTP_STATE_DOT]);
-			    rcpt->offset = 0;	/* in case deferred */
 			}
 		    }
 

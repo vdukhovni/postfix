@@ -106,6 +106,8 @@
 /*	int	var_oldlog_compat;
 /*
 /*	void	mail_params_init()
+/*
+/*	const	char null_format_string[1];
 /* DESCRIPTION
 /*	This module (actually the associated include file) define the names
 /*	and defaults of all mail configuration parameters.
@@ -115,6 +117,9 @@
 /*	initialized globally so as to avoid hard-to-find errors due to
 /*	missing initialization. This routine must be called early, at
 /*	least before entering a chroot jail.
+/*
+/*	null_format_string is a workaround for gcc compilers that complain
+/*	about empty or null format strings.
 /* DIAGNOSTICS
 /*	Fatal errors: out of memory; null system or domain name.
 /* LICENSE
@@ -293,6 +298,8 @@ int     var_strict_8bit_body;
 int     var_strict_encoding;
 int     var_verify_neg_cache;
 int     var_oldlog_compat;
+
+const char null_format_string[1] = "";
 
 /* check_myhostname - lookup hostname and validate */
 

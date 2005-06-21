@@ -71,6 +71,7 @@
 #include <bounce.h>
 #include <mail_addr.h>
 #include <sent.h>
+#include <deliver_pass.h>
 
 /* Application-specific. */
 
@@ -103,10 +104,11 @@ int     deliver_unknown(LOCAL_STATE state, USER_ATTR usr_attr)
      * The fall-back transport specifies a delivery machanism that handles
      * users not found in the aliases or UNIX passwd databases.
      */
-    if (*var_fallback_transport)
+    if (*var_fallback_transport) {
+	state.msg_attr.rcpt.offset = -1L;
 	return (deliver_pass(MAIL_CLASS_PRIVATE, var_fallback_transport,
-			     state.request, state.msg_attr.orig_rcpt,
-			     state.msg_attr.recipient, -1L));
+			     state.request, &state.msg_attr.rcpt));
+    }
 
     /*
      * Subject the luser_relay address to $name expansion, disable
@@ -118,7 +120,7 @@ int     deliver_unknown(LOCAL_STATE state, USER_ATTR usr_attr)
 	state.msg_attr.unmatched = 0;
 	expand_luser = vstring_alloc(100);
 	local_expand(expand_luser, var_luser_relay, &state, &usr_attr, (char *) 0);
-	status = deliver_resolve_addr(state, usr_attr, vstring_str(expand_luser));
+	status = deliver_resolve_addr(state, usr_attr, STR(expand_luser));
 	vstring_free(expand_luser);
 	return (status);
     }
@@ -132,15 +134,15 @@ int     deliver_unknown(LOCAL_STATE state, USER_ATTR usr_attr)
     if (STREQ(state.msg_attr.local, MAIL_ADDR_MAIL_DAEMON)
 	|| STREQ(state.msg_attr.local, MAIL_ADDR_POSTMASTER)) {
 	msg_warn("required alias not found: %s", state.msg_attr.local);
-	return (sent(BOUNCE_FLAGS(state.request),
-		     SENT_ATTR(state.msg_attr, "2.0.0"),
-		     "discarded"));
+	dsb_simple(state.msg_attr.why, "2.0.0", "discarded");
+	return (sent(BOUNCE_FLAGS(state.request), SENT_ATTR(state.msg_attr)));
     }
 
     /*
      * Bounce the message when no luser relay is specified.
      */
+    dsb_smtp(state.msg_attr.why, "5.1.1", 550, "550 user unknown",
+	     "unknown user: \"%s\"", state.msg_attr.local);
     return (bounce_append(BOUNCE_FLAGS(state.request),
-			  BOUNCE_ATTR(state.msg_attr, "5.1.1"),
-			  "unknown user: \"%s\"", state.msg_attr.local));
+			  BOUNCE_ATTR(state.msg_attr)));
 }

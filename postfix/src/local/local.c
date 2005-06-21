@@ -31,9 +31,9 @@
 /*	The system administrator can specify a comma/space separated list
 /*	of ~\fR/.\fBforward\fR like files through the \fBforward_path\fR
 /*	configuration parameter. Upon delivery, the local delivery agent
-/*	tries each pathname in the list until a file is found. 
+/*	tries each pathname in the list until a file is found.
 /*
-/*	Delivery via ~/.\fB.forward\fR files is done with the privileges 
+/*	Delivery via ~/.\fB.forward\fR files is done with the privileges
 /*	of the recipient.
 /*	Thus, ~/.\fBforward\fR like files must be readable by the
 /*	recipient, and their parent directory needs to have "execute"
@@ -102,8 +102,8 @@
 /*
 /*	Mailbox delivery can be delegated to an external command specified
 /*	with the \fBmailbox_command\fR configuration parameter. The command
-/*	executes with the privileges of the recipient user (exceptions: 
-/*	secondary groups are not enabled; in case of delivery as root, 
+/*	executes with the privileges of the recipient user (exceptions:
+/*	secondary groups are not enabled; in case of delivery as root,
 /*	the command executes with the privileges of \fBdefault_privs\fR).
 /*
 /*	Mailbox delivery can be delegated to alternative message transports
@@ -651,6 +651,8 @@ static int local_deliver(DELIVER_REQUEST *rqst, char *service)
     state.msg_attr.offset = rqst->data_offset;
     state.msg_attr.encoding = rqst->encoding;
     state.msg_attr.sender = rqst->sender;
+    state.msg_attr.dsn_envid = rqst->dsn_envid;
+    state.msg_attr.dsn_ret = rqst->dsn_ret;
     state.msg_attr.relay = service;
     state.msg_attr.arrival_time = rqst->arrival_time;
     state.msg_attr.request = rqst;
@@ -668,9 +670,7 @@ static int local_deliver(DELIVER_REQUEST *rqst, char *service)
     for (msg_stat = 0, rcpt = rqst->rcpt_list.info; rcpt < rcpt_end; rcpt++) {
 	state.dup_filter = been_here_init(var_dup_filter_limit, BH_FLAG_FOLD);
 	forward_init();
-	state.msg_attr.orig_rcpt = rcpt->orig_addr;
-	state.msg_attr.recipient = rcpt->address;
-	state.msg_attr.rcpt_offset = rcpt->offset;
+	state.msg_attr.rcpt = *rcpt;
 	rcpt_stat = deliver_recipient(state, usr_attr);
 	rcpt_stat |= forward_finish(rqst, state.msg_attr, rcpt_stat);
 	if (rcpt_stat == 0 && (rqst->flags & DEL_REQ_FLAG_SUCCESS))
@@ -683,6 +683,7 @@ static int local_deliver(DELIVER_REQUEST *rqst, char *service)
      * Clean up.
      */
     delivered_free(state.loop_info);
+    deliver_attr_free(&state.msg_attr);
 
     return (msg_stat);
 }

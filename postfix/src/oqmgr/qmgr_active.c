@@ -105,6 +105,7 @@
 #include <trace.h>
 #include <abounce.h>
 #include <rec_type.h>
+#include <qmgr_user.h>
 
 /* Application-specific. */
 
@@ -132,8 +133,8 @@ static void qmgr_active_corrupt(const char *queue_id)
 	msg_warn("%s: save corrupt file queue %s id %s: %m",
 		 myname, MAIL_QUEUE_ACTIVE, queue_id);
     } else {
-	msg_warn("saving corrupt file \"%s\" from queue \"%s\" to queue \"%s\"", 
-		queue_id, MAIL_QUEUE_ACTIVE, MAIL_QUEUE_CORRUPT);
+	msg_warn("saving corrupt file \"%s\" from queue \"%s\" to queue \"%s\"",
+		 queue_id, MAIL_QUEUE_ACTIVE, MAIL_QUEUE_CORRUPT);
     }
 }
 
@@ -285,7 +286,9 @@ void    qmgr_active_done(QMGR_MESSAGE *message)
 			      message->queue_name,
 			      message->queue_id,
 			      message->encoding,
-			      message->errors_to,
+			      message->sender,
+			      message->dsn_envid,
+			      message->dsn_ret,
 			      qmgr_active_done_2_bounce_flush,
 			      (char *) message);
 	    else
@@ -293,7 +296,9 @@ void    qmgr_active_done(QMGR_MESSAGE *message)
 				   message->queue_name,
 				   message->queue_id,
 				   message->encoding,
-				   message->errors_to,
+				   message->sender,
+				   message->dsn_envid,
+				   message->dsn_ret,
 				   message->verp_delims,
 				   qmgr_active_done_2_bounce_flush,
 				   (char *) message);
@@ -363,13 +368,26 @@ static void qmgr_active_done_2_generic(QMGR_MESSAGE *message)
      * As a temporary implementation, synchronously inform the sender of
      * trace information. This will block for 10 seconds when the qmgr FIFO
      * is full.
+     * 
+     * XXX With multi-recipient mail, some recipients may have NOTIFY=SUCCESS
+     * and others not. Depending on what subset of recipients are delivered,
+     * a trace file may or may not be created. Even when the last partial
+     * delivery attempt had no NOTIFY=SUCCESS recipients, a trace file may
+     * still exist from a previous partial delivery attempt. So as long as
+     * any recipient has NOTIFY=SUCCESS we have to always look for the trace
+     * file and be prepared for the file not to exist.
+     * 
+     * See also comments in bounce/bounce_notify_util.c.
      */
-    if (message->tflags & (DEL_REQ_FLAG_EXPAND | DEL_REQ_FLAG_RECORD)) {
+    if ((message->tflags & (DEL_REQ_FLAG_USR_VRFY | DEL_REQ_FLAG_RECORD))
+	|| (message->rflags & QMGR_READ_FLAG_NOTIFY_SUCCESS)) {
 	status = trace_flush(message->tflags,
 			     message->queue_name,
 			     message->queue_id,
 			     message->encoding,
-			     message->sender);
+			     message->sender,
+			     message->dsn_envid,
+			     message->dsn_ret);
 	if (status == 0 && message->tflags_offset)
 	    qmgr_message_kill_record(message, message->tflags_offset);
 	message->flags |= status;
@@ -392,7 +410,9 @@ static void qmgr_active_done_2_generic(QMGR_MESSAGE *message)
 			     message->queue_name,
 			     message->queue_id,
 			     message->encoding,
-			     message->errors_to,
+			     message->sender,
+			     message->dsn_envid,
+			     message->dsn_ret,
 			     qmgr_active_done_3_defer_flush,
 			     (char *) message);
 	    else
@@ -400,20 +420,24 @@ static void qmgr_active_done_2_generic(QMGR_MESSAGE *message)
 				  message->queue_name,
 				  message->queue_id,
 				  message->encoding,
-				  message->errors_to,
+				  message->sender,
+				  message->dsn_envid,
+				  message->dsn_ret,
 				  message->verp_delims,
 				  qmgr_active_done_3_defer_flush,
 				  (char *) message);
 	    return;
 	} else if (message->warn_time > 0
-		   && event_time() > message->warn_time) {
+		   && event_time() >= message->warn_time - 1) {
 	    if (msg_verbose)
 		msg_info("%s: sending defer warning for %s", myname, message->queue_id);
 	    adefer_warn(BOUNCE_FLAG_KEEP,
 			message->queue_name,
 			message->queue_id,
 			message->encoding,
-			message->errors_to,
+			message->sender,
+			message->dsn_envid,
+			message->dsn_ret,
 			qmgr_active_done_3_defer_warn,
 			(char *) message);
 	    return;

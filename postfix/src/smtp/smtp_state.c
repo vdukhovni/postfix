@@ -74,6 +74,8 @@ SMTP_STATE *smtp_state_alloc(void)
 	state->endp_prop = 0;
 	state->cache_used = 0;
     }
+    state->dsn_reason = 0;
+
     return (state);
 }
 
@@ -91,5 +93,8 @@ void    smtp_state_free(SMTP_STATE *state)
 	vstring_free(state->endp_prop);
     if (state->cache_used)
 	htable_free(state->cache_used, (void (*) (char *)) 0);
+    if (state->dsn_reason)
+	vstring_free(state->dsn_reason);
+
     myfree((char *) state);
 }

@@ -33,16 +33,18 @@
 /*	is a sendmail-compatible process exit status code.
 /*
 /*	sys_exits_strerror() returns a descriptive text for the
-/*	specified sendmail-compatible status code.
+/*	specified sendmail-compatible status code, or a generic
+/*	text for an unknown status code.
 /*
 /*	sys_exits_detail() returns a table entry with assorted
 /*	information about the specified sendmail-compatible status
-/*	code.
+/*	code, or a generic entry for an unknown status code.
 /*
 /*	sys_exits_softerror() returns non-zero when the specified
 /*	sendmail-compatible status code corresponds to a recoverable error.
+/*	An unknown status code is always unrecoverable.
 /* DIAGNOSTICS
-/*	Panic: invalid status code. Fatal error: out of memory.
+/*	Fatal: out of memory.
 /* LICENSE
 /* .ad
 /* .fi
@@ -61,6 +63,7 @@
 /* Utility library. */
 
 #include <msg.h>
+#include <vstring.h>
 
 /* Global library. */
 
@@ -86,38 +89,53 @@ static SYS_EXITS_DETAIL sys_exits_table[] = {
     EX_CONFIG, "5.3.5", "local configuration error",
 };
 
+static VSTRING *sys_exits_def_text = 0;
+
+static SYS_EXITS_DETAIL sys_exits_default[] = {
+    0, "5.3.0", 0,
+};
+
+/* sys_exits_fake - fake an entry for an unknown code */
+
+static SYS_EXITS_DETAIL *sys_exits_fake(int code)
+{
+    if (sys_exits_def_text == 0)
+	sys_exits_def_text = vstring_alloc(30);
+
+    vstring_sprintf(sys_exits_def_text, "unknown mail system error %d", code);
+    sys_exits_default->text = vstring_str(sys_exits_def_text);
+    return(sys_exits_default);
+}
+
 /* sys_exits_strerror - map exit status to error string */
 
 const char *sys_exits_strerror(int code)
 {
-    char   *myname = "sys_exits_strerror";
-
-    if (!SYS_EXITS_CODE(code))
-	msg_panic("%s: bad code: %d", myname, code);
-
-    return (sys_exits_table[code - EX__BASE].text);
+    if (!SYS_EXITS_CODE(code)) {
+	return (sys_exits_fake(code)->text);
+    } else {
+	return (sys_exits_table[code - EX__BASE].text);
+    }
 }
 
 /* sys_exits_detail - map exit status info table entry */
 
 SYS_EXITS_DETAIL *sys_exits_detail(int code)
 {
-    char   *myname = "sys_exits_detail";
-
-    if (!SYS_EXITS_CODE(code))
-	msg_panic("%s: bad code: %d", myname, code);
-
-    return (sys_exits_table + code - EX__BASE);
+    if (!SYS_EXITS_CODE(code)) {
+	return (sys_exits_fake(code));
+    } else {
+	return (sys_exits_table + code - EX__BASE);
+    }
 }
 
 /* sys_exits_softerror  - determine if error is transient */
 
 int     sys_exits_softerror(int code)
 {
-    char   *myname = "sys_exits_softerror";
-
-    if (!SYS_EXITS_CODE(code))
-	msg_panic("%s: bad code: %d", myname, code);
-
-    return (sys_exits_table[code - EX__BASE].dsn[0] == '4');
+    if (!SYS_EXITS_CODE(code)) {
+	return (sys_exits_default->dsn[0] == '4');
+    } else {
+	return (sys_exits_table[code - EX__BASE].dsn[0] == '4');
+    }
 }

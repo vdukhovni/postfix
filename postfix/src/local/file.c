@@ -77,8 +77,6 @@
 
 #include "local.h"
 
-#define STR	vstring_str
-
 /* deliver_file - deliver to file */
 
 int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
@@ -86,7 +84,7 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
     char   *myname = "deliver_file";
     struct stat st;
     MBOX   *mp;
-    DSN_VSTRING *why;
+    DSN_BUF *why = state.msg_attr.why;
     int     mail_copy_status = MAIL_COPY_STAT_WRITE;
     int     deliver_status;
     int     copy_flags;
@@ -111,18 +109,20 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
      * 
      * Do we allow delivery to files?
      */
-    if ((local_file_deliver_mask & state.msg_attr.exp_type) == 0)
+    if ((local_file_deliver_mask & state.msg_attr.exp_type) == 0) {
+	dsb_simple(why, "5.7.1", "mail to file is restricted");
 	return (bounce_append(BOUNCE_FLAGS(state.request),
-			      BOUNCE_ATTR(state.msg_attr, "5.7.1"),
-			      "mail to file is restricted"));
+			      BOUNCE_ATTR(state.msg_attr)));
+    }
 
     /*
      * Don't deliver trace-only requests.
      */
-    if (DEL_REQ_TRACE_ONLY(state.request->flags))
+    if (DEL_REQ_TRACE_ONLY(state.request->flags)) {
+	dsb_simple(why, "2.0.0", "delivers to file: %s", path);
 	return (sent(BOUNCE_FLAGS(state.request),
-		     SENT_ATTR(state.msg_attr, "2.0.0"),
-		     "delivers to file: %s", path));
+		     SENT_ATTR(state.msg_attr)));
+    }
 
     /*
      * DELIVERY RIGHTS
@@ -148,7 +148,6 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 		 (long) usr_attr.uid, (long) usr_attr.gid, path);
     if (vstream_fseek(state.msg_attr.fp, state.msg_attr.offset, SEEK_SET) < 0)
 	msg_fatal("seek queue file %s: %m", state.msg_attr.queue_id);
-    why = dsn_vstring_alloc(100);
 
     /*
      * As the specified user, open or create the file, lock it, and append
@@ -164,9 +163,9 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 		   local_mbox_lock_mask | MBOX_DOT_LOCK_MAY_FAIL,
 		   "5.2.0", why);
     if (mp != 0) {
-	if (st.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH)) {
+	if (S_ISREG(st.st_mode) && st.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH)) {
 	    vstream_fclose(mp->fp);
-	    dsn_vstring_update(why, "5.7.1", "destination file is executable");
+	    dsb_simple(why, "5.7.1", "file is executable");
 	} else {
 	    mail_copy_status = mail_copy(COPY_ATTR(state.msg_attr), mp->fp,
 					 S_ISREG(st.st_mode) ? copy_flags :
@@ -183,21 +182,17 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
     if (mail_copy_status & MAIL_COPY_STAT_CORRUPT) {
 	deliver_status = DEL_STAT_DEFER;
     } else if (mail_copy_status != 0) {
-	deliver_status = (DSN_CLASS(why->dsn) == '4' ?
-			  defer_append : bounce_append)
+	vstring_sprintf_prepend(why->reason,
+				"cannot append message to file %s: ", path);
+	deliver_status =
+	    (STR(why->status)[0] == '4' ?
+	     defer_append : bounce_append)
 	    (BOUNCE_FLAGS(state.request),
-	     BOUNCE_ATTR(state.msg_attr, DSN_CODE(why->dsn)),
-	     "cannot append message to destination file %s: %s",
-	     path, vstring_str(why->vstring));
+	     BOUNCE_ATTR(state.msg_attr));
     } else {
+	dsb_simple(why, "2.0.0", "delivered to file: %s", path);
 	deliver_status = sent(BOUNCE_FLAGS(state.request),
-			      SENT_ATTR(state.msg_attr, "2.0.0"),
-			      "delivered to file: %s", path);
+			      SENT_ATTR(state.msg_attr));
     }
-
-    /*
-     * Clean up.
-     */
-    dsn_vstring_free(why);
     return (deliver_status);
 }

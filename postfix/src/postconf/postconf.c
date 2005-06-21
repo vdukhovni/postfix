@@ -5,7 +5,7 @@
 /*	Postfix configuration utility
 /* SYNOPSIS
 /* .fi
-/*	\fBpostconf\fR [\fB-dhmlnv\fR] [\fB-c \fIconfig_dir\fR] 
+/*	\fBpostconf\fR [\fB-dhmlnv\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fIparameter ...\fR]
 /*
 /*	\fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]

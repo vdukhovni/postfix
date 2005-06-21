@@ -8,8 +8,8 @@
 /* DESCRIPTION
 /*	fifo_rdonly_bug creates a FIFO and opens it read only. It
 /*	then opens the FIFO for writing, writes one byte, and closes
-/*	the writing end. On Linux Redhat 4.2 and 5.0, and HP-UX 9.05 
-/*	and 10.20, select() will report that the FIFO remains readable 
+/*	the writing end. On Linux Redhat 4.2 and 5.0, and HP-UX 9.05
+/*	and 10.20, select() will report that the FIFO remains readable
 /*	even after multiple read operations.
 /* DIAGNOSTICS
 /*	Problems are reported to the standard error stream.

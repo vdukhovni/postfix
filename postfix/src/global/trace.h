@@ -12,30 +12,17 @@
 /* .nf
 
  /*
-  * System library.
-  */
-#include <time.h>
-#include <stdarg.h>
-
- /*
   * Global library.
   */
-#include <deliver_request.h>
+#include <bounce.h>
 
  /*
   * External interface.
   */
-extern int PRINTFLIKE(9, 10) trace_append(int, const char *,
-					          const char *, const char *,
-					          const char *, const char *,
-					          time_t, const char *,
-					          const char *,...);
-extern int vtrace_append(int, const char *,
-			         const char *, const char *,
-			         const char *, const char *,
-			         time_t, const char *,
-			         const char *, va_list);
-extern int trace_flush(int, const char *, const char *, const char *, const char *);
+extern int trace_append(int, const char *, time_t, RECIPIENT *,
+			        const char *, DSN *);
+extern int trace_flush(int, const char *, const char *, const char *,
+		               const char *, const char *, int);
 
 /* LICENSE
 /* .ad

@@ -32,6 +32,7 @@
   * one instance of each per message.
   */
 typedef struct CLEANUP_STATE {
+    VSTRING *attr_buf;			/* storage for named attribute */
     VSTRING *temp1;			/* scratch buffer, local use only */
     VSTRING *temp2;			/* scratch buffer, local use only */
     VSTREAM *dst;			/* current output stream */
@@ -64,6 +65,10 @@ typedef struct CLEANUP_STATE {
     char   *hdr_rewrite_context;	/* header rewrite context */
     char   *filter;			/* from header/body patterns */
     char   *redirect;			/* from header/body patterns */
+    char   *dsn_envid;			/* DSN envelope ID */
+    int     dsn_ret;			/* DSN full/hdrs */
+    int     dsn_notify;			/* DSN never/delay/fail/success */
+    char   *dsn_orcpt;			/* DSN original recipient */
 } CLEANUP_STATE;
 
  /*
@@ -119,6 +124,8 @@ extern int cleanup_ext_prop_mask;
   * run-time error.
   */
 extern char *cleanup_path;
+extern VSTRING *cleanup_trace_path;
+extern VSTRING *cleanup_bounce_path;
 
  /*
   * cleanup_state.c
@@ -201,7 +208,7 @@ extern int cleanup_masquerade_tree(TOK822 *, ARGV *);
  /*
   * cleanup_recipient.c
   */
-extern void cleanup_out_recipient(CLEANUP_STATE *, const char *, const char *);
+extern void cleanup_out_recipient(CLEANUP_STATE *, const char *, int, const char *, const char *);
 
  /*
   * cleanup_addr.c.
@@ -209,6 +216,11 @@ extern void cleanup_out_recipient(CLEANUP_STATE *, const char *, const char *);
 extern void cleanup_addr_sender(CLEANUP_STATE *, const char *);
 extern void cleanup_addr_recipient(CLEANUP_STATE *, const char *);
 extern void cleanup_addr_bcc(CLEANUP_STATE *, const char *);
+
+ /*
+  * cleanup_bounce.c.
+  */
+extern int cleanup_bounce(CLEANUP_STATE *);
 
 /* LICENSE
 /* .ad

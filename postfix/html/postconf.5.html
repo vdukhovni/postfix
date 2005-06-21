@@ -3351,7 +3351,7 @@ protocol. </dd>
 
 <dd> Append the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> when the
 client TLS certificate is successfully verified, and the client
-certificate fingerprint is listed in $relay_clientcerts.  </dd>
+certificate fingerprint is listed in $<a href="postconf.5.html#relay_clientcerts">relay_clientcerts</a>.  </dd>
 
 <dt><b> <a href="postconf.5.html#permit_tls_all_clientcerts">permit_tls_all_clientcerts</a> </b></dt>
 
@@ -5205,7 +5205,7 @@ D7:04:2F:A7:0B:8C:A5:21:FA:31:77:E1:41:8A:EE:80 lutzpc.at.home </p>
 <p> Example: </p>
 
 <pre>
-relay_clientcerts = hash:/etc/postfix/relay_clientcerts
+<a href="postconf.5.html#relay_clientcerts">relay_clientcerts</a> = hash:/etc/postfix/relay_clientcerts
 </pre>
 
 <p>For more fine-grained control, use <a href="postconf.5.html#check_ccert_access">check_ccert_access</a> to select
@@ -7247,7 +7247,7 @@ allowed to relay. This feature is available with Postfix 2.2.</dd>
 
 <dd>Permit the request when the remote SMTP client certificate is
 verified successfully, and the certificate fingerprint is listed
-in $relay_clientcerts. This feature is available with Postfix 2.2.</dd>
+in $<a href="postconf.5.html#relay_clientcerts">relay_clientcerts</a>. This feature is available with Postfix 2.2.</dd>
 <dt><b><a name="reject_rbl_client">reject_rbl_client <i>rbl_domain=d.d.d.d</i></a></b></dt>
 
 <dd>Reject the request when the reversed client network address is

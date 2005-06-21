@@ -21,32 +21,32 @@
  /*
   * bounce_append_service.c
   */
-extern int bounce_append_service(int, char *, char *, char *, char *, long, char *, char *, char *);
+extern int bounce_append_service(int, char *, char *, RECIPIENT_VAR *, DSN_VAR *);
 
  /*
   * bounce_notify_service.c
   */
-extern int bounce_notify_service(int, char *, char *, char *, char *, char *);
+extern int bounce_notify_service(int, char *, char *, char *, char *, char *, char *, int);
 
  /*
   * bounce_warn_service.c
   */
-extern int bounce_warn_service(int, char *, char *, char *, char *, char *);
+extern int bounce_warn_service(int, char *, char *, char *, char *, char *, char *, int);
 
  /*
   * bounce_trace_service.c
   */
-extern int bounce_trace_service(int, char *, char *, char *, char *, char *);
+extern int bounce_trace_service(int, char *, char *, char *, char *, char *, char *, int);
 
  /*
   * bounce_notify_verp.c
   */
-extern int bounce_notify_verp(int, char *, char *, char *, char *, char *, char *);
+extern int bounce_notify_verp(int, char *, char *, char *, char *, char *, char *, int, char *);
 
  /*
   * bounce_one_service.c
   */
-extern int bounce_one_service(int, char *, char *, char *, char *, char *, char *, long, char *, char *, char *);
+extern int bounce_one_service(int, char *, char *, char *, char *, char *, int, RECIPIENT *, DSN *);
 
  /*
   * bounce_cleanup.c
@@ -66,34 +66,42 @@ typedef struct {
     const char *queue_name;		/* incoming, etc. */
     const char *queue_id;		/* base name */
     const char *mime_encoding;		/* null or encoding */
+    const char *dsn_envid;		/* DSN envelope ID */
     const char *mime_boundary;		/* for MIME */
-    int     flush;			/* 0=defer, other=bounce */
+    int     report_type;		/* see below */
     VSTRING *buf;			/* scratch pad */
     VSTRING *sender;			/* envelope sender */
     VSTREAM *orig_fp;			/* open queue file */
     long    orig_offs;			/* start of content */
     time_t  arrival_time;		/* time of arrival */
+    long    message_size;		/* size of content */
     BOUNCE_LOG *log_handle;		/* open logfile */
     char   *mail_name;			/* $mail_name, cooked */
 } BOUNCE_INFO;
 
-extern BOUNCE_INFO *bounce_mail_init(const char *, const char *, const char *, const char *, int);
-extern BOUNCE_INFO *bounce_mail_one_init(const char *, const char *, const char *, const char *, const char *, long, const char *, const char *, const char *);
+ /* */
+
+extern BOUNCE_INFO *bounce_mail_init(const char *, const char *, const char *, const char *, const char *, int);
+extern BOUNCE_INFO *bounce_mail_one_init(const char *, const char *, const char *, const char *, RECIPIENT *, DSN *);
 extern void bounce_mail_free(BOUNCE_INFO *);
 extern int bounce_header(VSTREAM *, BOUNCE_INFO *, const char *);
 extern int bounce_boilerplate(VSTREAM *, BOUNCE_INFO *);
 extern int bounce_recipient_log(VSTREAM *, BOUNCE_INFO *);
-extern int bounce_diagnostic_log(VSTREAM *, BOUNCE_INFO *);
+extern int bounce_diagnostic_log(VSTREAM *, BOUNCE_INFO *, int);
 extern int bounce_header_dsn(VSTREAM *, BOUNCE_INFO *);
 extern int bounce_recipient_dsn(VSTREAM *, BOUNCE_INFO *);
-extern int bounce_diagnostic_dsn(VSTREAM *, BOUNCE_INFO *);
+extern int bounce_diagnostic_dsn(VSTREAM *, BOUNCE_INFO *, int);
 extern int bounce_original(VSTREAM *, BOUNCE_INFO *, int);
 extern void bounce_delrcpt(BOUNCE_INFO *);
 extern void bounce_delrcpt_one(BOUNCE_INFO *);
 
-#define BOUNCE_MSG_FAIL		0
-#define BOUNCE_MSG_WARN		1
-#define BOUNCE_MSG_STATUS	2
+ /*
+  * Report types.
+  */
+#define BOUNCE_REPORT_FAIL	0	/* undeliverable mail */
+#define BOUNCE_REPORT_WARN	1	/* delayed mail */
+#define BOUNCE_REPORT_SUCCESS	2	/* success */
+#define BOUNCE_REPORT_OTHER	3	/* other status */
 
 /* LICENSE
 /* .ad

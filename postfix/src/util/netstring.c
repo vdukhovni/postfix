@@ -304,7 +304,7 @@ void    netstring_put_multi(VSTREAM *stream,...)
 		 myname, total, data_len < 30 ? data_len : 30, data);
 	va_end(ap);
     }
-
+    
     /*
      * Send the length, content and terminator.
      */
@@ -316,8 +316,8 @@ void    netstring_put_multi(VSTREAM *stream,...)
 	    if (vstream_fwrite(stream, data, data_len) != data_len)
 		netstring_except(stream, vstream_ftimeout(stream) ?
 				 NETSTRING_ERR_TIME : NETSTRING_ERR_EOF);
-	va_end(ap);
     }
+    va_end(ap);
     vstream_fwrite(stream, ",", 1);
 }
 

@@ -13,7 +13,7 @@
 /* DESCRIPTION
 /*	dict_tcp_open() makes a TCP server accessible via the generic
 /*	dictionary operations described in dict_open(3).
-/*	The only implemented operation is dictionary lookup. This map 
+/*	The only implemented operation is dictionary lookup. This map
 /*	type can be useful for simulating a dynamic lookup table.
 /*
 /*	Map names have the form host:port.

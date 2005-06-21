@@ -68,8 +68,6 @@
 
 #include "local.h"
 
-#define STR	vstring_str
-
 /* deliver_resolve_addr - resolve and deliver */
 
 int     deliver_resolve_addr(LOCAL_STATE state, USER_ATTR usr_attr, char *addr)
@@ -118,14 +116,14 @@ int     deliver_resolve_tree(LOCAL_STATE state, USER_ATTR usr_attr, TOK822 *addr
      * First, a healthy portion of error handling.
      */
     if (reply.flags & RESOLVE_FLAG_FAIL) {
+	dsb_simple(state.msg_attr.why, "4.3.0", "address resolver failure");
 	status = defer_append(BOUNCE_FLAGS(state.request),
-			      BOUNCE_ATTR(state.msg_attr, "4.3.0"),
-			      "address resolver failure");
+			      BOUNCE_ATTR(state.msg_attr));
     } else if (reply.flags & RESOLVE_FLAG_ERROR) {
+	dsb_simple(state.msg_attr.why, "5.1.3",
+		   "bad recipient address syntax: %s", STR(reply.recipient));
 	status = bounce_append(BOUNCE_FLAGS(state.request),
-			       BOUNCE_ATTR(state.msg_attr, "5.1.3"),
-			       "bad recipient address syntax: %s",
-			       STR(reply.recipient));
+			       BOUNCE_ATTR(state.msg_attr));
     } else {
 
 	/*
@@ -146,7 +144,7 @@ int     deliver_resolve_tree(LOCAL_STATE state, USER_ATTR usr_attr, TOK822 *addr
 		VSTRING_SKIP(reply.recipient);
 	    }
 	}
-	state.msg_attr.recipient = STR(reply.recipient);
+	state.msg_attr.rcpt.address = STR(reply.recipient);
 
 	/*
 	 * Delivery to a local or non-local address. For a while there was

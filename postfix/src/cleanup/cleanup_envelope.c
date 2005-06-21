@@ -67,6 +67,8 @@
 #include <mail_params.h>
 #include <verp_sender.h>
 #include <mail_proto.h>
+#include <dsn_mask.h>
+#include <dsn_attr_map.h>
 
 /* Application-specific. */
 
@@ -93,7 +95,7 @@ void    cleanup_envelope(CLEANUP_STATE *state, int type,
 		       (REC_TYPE_SIZE_CAST1) 0,	/* content size */
 		       (REC_TYPE_SIZE_CAST2) 0,	/* content offset */
 		       (REC_TYPE_SIZE_CAST3) 0,	/* recipient count */
-		       (REC_TYPE_SIZE_CAST4) 0);/* qmgr options */
+		       (REC_TYPE_SIZE_CAST4) 0);	/* qmgr options */
 
     /*
      * Pass control to the actual envelope processing routine.
@@ -111,6 +113,9 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
     char   *attr_value;
     const char *error_text;
     int     extra_opts;
+    int     junk;
+    int     mapped_type = type;
+    const char *mapped_buf = buf;
 
     if (msg_verbose)
 	msg_info("initial envelope %c %.*s", type, len, buf);
@@ -125,6 +130,37 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	    state->flags |= extra_opts;
 	return;
     }
+
+    /*
+     * Map DSN attribute name to pseudo record type so that we don't have to
+     * pollute the queue file with records that are incompatible with past
+     * Postfix versions. Preferably, people should be able to back out from
+     * an upgrade without losing mail.
+     */
+    if (type == REC_TYPE_ATTR) {
+	vstring_strcpy(state->attr_buf, buf);
+	error_text = split_nameval(STR(state->attr_buf), &attr_name, &attr_value);
+	if (error_text != 0) {
+	    msg_warn("%s: message rejected: malformed attribute: %s: %.100s",
+		     state->queue_id, error_text, buf);
+	    state->errs |= CLEANUP_STAT_BAD;
+	    return;
+	}
+	/* Zero-length values are place holders for unavailable values. */
+	if (*attr_value == 0) {
+	    msg_warn("%s: spurious null attribute value for \"%s\" -- ignored",
+		     state->queue_id, attr_name);
+	    return;
+	}
+	if ((junk = dsn_attr_map(attr_name)) != 0) {
+	    mapped_buf = attr_value;
+	    mapped_type = junk;
+	}
+    }
+
+    /*
+     * Sanity check.
+     */
     if (strchr(REC_TYPE_ENVELOPE, type) == 0) {
 	msg_warn("%s: message rejected: unexpected record type %d in envelope",
 		 state->queue_id, type);
@@ -193,6 +229,11 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	cleanup_addr_recipient(state, buf);
 	myfree(state->orig_rcpt);
 	state->orig_rcpt = 0;
+	if (state->dsn_orcpt != 0) {
+	    myfree(state->dsn_orcpt);
+	    state->dsn_orcpt = 0;
+	}
+	state->dsn_notify = 0;
 	return;
     }
     if (type == REC_TYPE_DONE) {
@@ -200,16 +241,43 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	    myfree(state->orig_rcpt);
 	    state->orig_rcpt = 0;
 	}
+	if (state->dsn_orcpt != 0) {
+	    myfree(state->dsn_orcpt);
+	    state->dsn_orcpt = 0;
+	}
+	state->dsn_notify = 0;
 	return;
     }
-    if (state->orig_rcpt != 0) {
-	/* REC_TYPE_ORCP must be followed by REC_TYPE_RCPT or REC_TYPE DONE. */
-	msg_warn("%s: ignoring out-of-order original recipient record <%.200s>",
-		 state->queue_id, state->orig_rcpt);
-	myfree(state->orig_rcpt);
-	state->orig_rcpt = 0;
+    if (mapped_type == REC_TYPE_DSN_ORCPT) {
+	if (state->dsn_orcpt) {
+	    msg_warn("%s: ignoring out-of-order DSN original recipient record <%.200s>",
+		     state->queue_id, state->dsn_orcpt);
+	    myfree(state->dsn_orcpt);
+	}
+	state->dsn_orcpt = mystrdup(mapped_buf);
+	return;
+    }
+    if (mapped_type == REC_TYPE_DSN_NOTIFY) {
+	if (state->dsn_notify) {
+	    msg_warn("%s: ignoring out-of-order DSN notify record <%d>",
+		     state->queue_id, state->dsn_notify);
+	    state->dsn_notify = 0;
+	}
+	if (!alldig(mapped_buf) || (junk = atoi(mapped_buf)) == 0
+	    || DSN_NOTIFY_OK(junk) == 0)
+	    msg_warn("%s: ignoring malformed DSN notify record <%.200s>",
+		     state->queue_id, buf);
+	else
+	    state->qmgr_opts |=
+		QMGR_READ_FLAG_FROM_DSN(state->dsn_notify = junk);
+	return;
     }
     if (type == REC_TYPE_ORCP) {
+	if (state->orig_rcpt != 0) {
+	    msg_warn("%s: ignoring out-of-order original recipient record <%.200s>",
+		     state->queue_id, state->orig_rcpt);
+	    myfree(state->orig_rcpt);
+	}
 	state->orig_rcpt = mystrdup(buf);
 	return;
     }
@@ -255,6 +323,43 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	cleanup_addr_sender(state, buf);
 	return;
     }
+    if (mapped_type == REC_TYPE_DSN_ENVID) {
+	/* Allow only one instance. */
+	if (state->dsn_envid != 0) {
+	    msg_warn("%s: message rejected: multiple DSN envelope ID records",
+		     state->queue_id);
+	    state->errs |= CLEANUP_STAT_BAD;
+	    return;
+	}
+	if (!allprint(mapped_buf)) {
+	    msg_warn("%s: message rejected: bad DSN envelope ID record",
+		     state->queue_id);
+	    state->errs |= CLEANUP_STAT_BAD;
+	    return;
+	}
+	state->dsn_envid = mystrdup(mapped_buf);
+	cleanup_out(state, type, buf, len);
+	return;
+    }
+    if (mapped_type == REC_TYPE_DSN_RET) {
+	/* Allow only one instance. */
+	if (state->dsn_ret != 0) {
+	    msg_warn("%s: message rejected: multiple DSN RET records",
+		     state->queue_id);
+	    state->errs |= CLEANUP_STAT_BAD;
+	    return;
+	}
+	if (!alldig(mapped_buf) || (junk = atoi(mapped_buf)) == 0
+	    || DSN_RET_OK(junk) == 0) {
+	    msg_warn("%s: message rejected: bad DSN RET record <%.200s>",
+		     state->queue_id, buf);
+	    state->errs |= CLEANUP_STAT_BAD;
+	    return;
+	}
+	state->dsn_ret = junk;
+	cleanup_out(state, type, buf, len);
+	return;
+    }
     if (type == REC_TYPE_WARN) {
 	/* First instance wins. */
 	if ((state->flags & CLEANUP_FLAG_WARN_SEEN) == 0) {
@@ -264,27 +369,10 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	return;
     }
     if (type == REC_TYPE_ATTR) {
-	char   *sbuf;
-
 	if (state->attr->used >= var_qattr_count_limit) {
 	    msg_warn("%s: message rejected: attribute count exceeds limit %d",
 		     state->queue_id, var_qattr_count_limit);
 	    state->errs |= CLEANUP_STAT_BAD;
-	    return;
-	}
-	sbuf = mystrdup(buf);
-	if ((error_text = split_nameval(sbuf, &attr_name, &attr_value)) != 0) {
-	    msg_warn("%s: message rejected: malformed attribute: %s: %.100s",
-		     state->queue_id, error_text, buf);
-	    state->errs |= CLEANUP_STAT_BAD;
-	    myfree(sbuf);
-	    return;
-	}
-	/* Zero-length values are place holders for unavailable values. */
-	if (*attr_value == 0) {
-	    msg_warn("%s: spurious null attribute value for \"%s\" -- ignored",
-		     state->queue_id, attr_name);
-	    myfree(sbuf);
 	    return;
 	}
 	if (strcmp(attr_name, MAIL_ATTR_RWR_CONTEXT) == 0) {
@@ -298,13 +386,11 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 		msg_warn("%s: message rejected: bad rewriting context: %.100s",
 			 state->queue_id, attr_value);
 		state->errs |= CLEANUP_STAT_BAD;
-		myfree(sbuf);
 		return;
 	    }
 	}
 	nvtable_update(state->attr, attr_name, attr_value);
 	cleanup_out(state, type, buf, len);
-	myfree(sbuf);
 	return;
     } else {
 	cleanup_out(state, type, buf, len);

@@ -6,60 +6,35 @@
 /* SYNOPSIS
 /*	#include <log_adhoc.h>
 /*
-/*	void	log_adhoc(id, orig_rcpt, recipient, relay,
-/*				detail, entry, status, format, ...)
+/*	void	log_adhoc(id, entry, recipient, relay, dsn, status)
 /*	const char *id;
-/*	const char *orig_rcpt;
-/*	const char *recipient;
-/*	const char *relay;
-/*	const char *detail;
 /*	time_t	entry;
-/*	const char *status;
-/*	const char *format;
-/*
-/*	void	vlog_adhoc(id, orig_rcpt, recipient, relay,
-/*				detail, entry, status, format, ap)
-/*	const char *id;
-/*	const char *orig_rcpt;
-/*	const char *recipient;
+/*	RECIPIENT *recipient;
 /*	const char *relay;
-/*	const char *detail;
-/*	time_t	entry;
+/*	DSN *dsn;
 /*	const char *status;
-/*	const char *format;
-/*	va_list	ap;
 /* DESCRIPTION
 /*	This module logs delivery events in an ad-hoc manner.
 /*
 /*	log_adhoc() appends a record to the mail logfile
-/*
-/*	vlog_adhoc() implements an alternative client interface.
 /*
 /*	Arguments:
 /* .IP queue
 /*	The message queue name of the original message file.
 /* .IP id
 /*	The queue id of the original message file.
-/* .IP orig_rcpt
-/*	The original envelope recipient address. If unavailable,
-/*	specify a null string or null pointer.
+/* .IP entry
+/*	Message arrival time.
 /* .IP recipient
-/*	A recipient address that is being deferred. The domain part
-/*	of the address is marked dead (for a limited amount of time).
+/*	Recipient information. See recipient_list(3).
 /* .IP sender
 /*	The sender envelope address.
 /* .IP relay
 /*	Host we could (not) talk to.
 /* .IP status
 /*	bounced, deferred, sent, and so on.
-/* .IP detail
-/*	X.YY.ZZ Error detail as specified in RFC 3463.
-/* .IP entry
-/*	Message arrival time.
-/* .IP format
-/*	Descriptive text.
-/* .IP ap
-/*	Variable-length argument list.
+/* .IP dsn
+/*	Delivery status information. See dsn(3).
 /* BUGS
 /*	Should be replaced by routines with an attribute-value based
 /*	interface instead of an interface that uses a rigid argument list.
@@ -77,8 +52,6 @@
 /* System library. */
 
 #include <sys_defs.h>
-#include <stdlib.h>			/* 44BSD stdarg.h uses abort() */
-#include <stdarg.h>
 #include <string.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H
@@ -96,34 +69,19 @@
 
 /* log_adhoc - defer message delivery */
 
-void    log_adhoc(const char *id, const char *orig_rcpt,
-		          const char *recipient, const char *relay,
-		          const char *detail, time_t entry,
-		          const char *status, const char *fmt,...)
+void    log_adhoc(const char *id, time_t entry, RECIPIENT *recipient,
+		          const char *relay, DSN *dsn,
+		          const char *status)
 {
-    va_list ap;
-
-    va_start(ap, fmt);
-    vlog_adhoc(id, orig_rcpt, recipient, relay, detail, entry, status, fmt, ap);
-    va_end(ap);
-}
-
-/* vlog_adhoc - defer delivery of queue file */
-
-void    vlog_adhoc(const char *id, const char *orig_rcpt,
-		           const char *recipient, const char *relay,
-		           const char *detail, time_t entry, const char *status,
-		           const char *fmt, va_list ap)
-{
-    VSTRING *why = vstring_alloc(100);
     int     delay = time((time_t *) 0) - entry;
 
-    vstring_vsprintf(why, fmt, ap);
-    if (orig_rcpt && *orig_rcpt && strcasecmp(recipient, orig_rcpt) != 0)
+    if (recipient->orig_addr && *recipient->orig_addr
+	&& strcasecmp(recipient->address, recipient->orig_addr) != 0)
 	msg_info("%s: to=<%s>, orig_to=<%s>, relay=%s, delay=%d, dsn=%s, status=%s (%s)",
-	  id, recipient, orig_rcpt, relay, delay, detail, status, vstring_str(why));
+		 id, recipient->address, recipient->orig_addr, relay, delay,
+		 dsn->status, status, dsn->reason);
     else
 	msg_info("%s: to=<%s>, relay=%s, delay=%d, dsn=%s, status=%s (%s)",
-		 id, recipient, relay, delay, detail, status, vstring_str(why));
-    vstring_free(why);
+		 id, recipient->address, relay, delay, dsn->status,
+		 status, dsn->reason);
 }

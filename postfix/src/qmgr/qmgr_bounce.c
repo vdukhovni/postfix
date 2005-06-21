@@ -6,12 +6,10 @@
 /* SYNOPSIS
 /*	#include "qmgr.h"
 /*
-/*	QMGR_QUEUE *qmgr_bounce_recipient(message, recipient,
-/*					dsn, format, ...)
+/*	QMGR_QUEUE *qmgr_bounce_recipient(message, recipient, dsn)
 /*	QMGR_MESSAGE *message;
-/*	QMGR_RCPT *recipient;
-/*	const char *dsn;
-/*	const char *format;
+/*	RECIPIENT *recipient;
+/*	DSN	*dsn;
 /* DESCRIPTION
 /*	qmgr_bounce_recipient() produces a bounce log record.
 /*	Once the bounce record is written successfully, the recipient
@@ -25,9 +23,7 @@
 /* .IP recipient
 /*	The recipient that will not be delivered.
 /* .IP dsn
-/*	RFC 3463 detail code.
-/* .IP format
-/*	Free-format text that describes why delivery will not happen.
+/*	Delivery status information. See dsn(3).
 /* DIAGNOSTICS
 /*	Panic: consistency check failure. Fatal: out of memory.
 /* LICENSE
@@ -49,7 +45,6 @@
 /* System library. */
 
 #include <sys_defs.h>
-#include <stdarg.h>
 
 /* Utility library. */
 
@@ -64,18 +59,14 @@
 
 /* qmgr_bounce_recipient - bounce one message recipient */
 
-void    qmgr_bounce_recipient(QMGR_MESSAGE *message, QMGR_RCPT *recipient,
-			            const char *dsn, const char *format,...)
+void    qmgr_bounce_recipient(QMGR_MESSAGE *message, RECIPIENT *recipient,
+			              DSN *dsn)
 {
-    va_list ap;
     int     status;
 
-    va_start(ap, format);
-    status = vbounce_append(message->tflags, message->queue_id,
-			    recipient->orig_rcpt, recipient->address,
-			    recipient->offset, "none", dsn,
-			    message->arrival_time, format, ap);
-    va_end(ap);
+    status = bounce_append(message->tflags, message->queue_id,
+			   message->arrival_time, recipient,
+			   "none", dsn);
 
     if (status == 0)
 	deliver_completed(message->fp, recipient->offset);

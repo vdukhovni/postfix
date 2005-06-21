@@ -613,9 +613,9 @@ void    event_loop(int delay)
 #ifdef TEST
 
  /*
-  * Proof-of-concept test program for the event manager. Schedule a series
-of events at one-second intervals and let them happen,
-  while echoing any lines read from stdin. 
+  * Proof-of-concept test program for the event manager. Schedule a series of
+  * events at one-second intervals and let them happen, while echoing any
+  * lines read from stdin.
   */
 #include <stdio.h>
 #include <ctype.h>
@@ -639,7 +639,7 @@ static void echo(int unused_event, char *unused_context)
     printf("Result: %s", buf);
 }
 
-int main(void)
+int     main(void)
 {
     event_request_timer(timer_event, "3 first", 3);
     event_request_timer(timer_event, "3 second", 3);

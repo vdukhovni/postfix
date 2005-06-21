@@ -58,6 +58,8 @@ depend: $(MAKES)
 error.o: ../../include/bounce.h
 error.o: ../../include/deliver_completed.h
 error.o: ../../include/deliver_request.h
+error.o: ../../include/dsn.h
+error.o: ../../include/dsn_buf.h
 error.o: ../../include/dsn_util.h
 error.o: ../../include/flush_clnt.h
 error.o: ../../include/mail_queue.h
@@ -65,6 +67,7 @@ error.o: ../../include/mail_server.h
 error.o: ../../include/msg.h
 error.o: ../../include/recipient_list.h
 error.o: ../../include/sys_defs.h
+error.o: ../../include/sys_exits.h
 error.o: ../../include/vbuf.h
 error.o: ../../include/vstream.h
 error.o: ../../include/vstring.h

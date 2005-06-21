@@ -71,6 +71,8 @@
 #include <deliver_request.h>
 #include <verp_sender.h>
 #include <dsn_util.h>
+#include <dsn_buf.h>
+#include <dsb_scan.h>
 
 /* Application-specific. */
 
@@ -106,7 +108,7 @@ static int qmgr_deliver_initial_reply(VSTREAM *stream)
 
 /* qmgr_deliver_final_reply - retrieve final delivery process response */
 
-static int qmgr_deliver_final_reply(VSTREAM *stream, VSTRING *reason)
+static int qmgr_deliver_final_reply(VSTREAM *stream, DSN_BUF *dsb)
 {
     int     stat;
 
@@ -114,7 +116,7 @@ static int qmgr_deliver_final_reply(VSTREAM *stream, VSTRING *reason)
 	msg_warn("%s: premature disconnect", VSTREAM_PATH(stream));
 	return (DELIVER_STAT_CRASH);
     } else if (attr_scan(stream, ATTR_FLAG_STRICT,
-			 ATTR_TYPE_STR, MAIL_ATTR_WHY, reason,
+			 ATTR_TYPE_FUNC, dsb_scan, (void *) dsb,
 			 ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &stat,
 			 ATTR_TYPE_END) != 2) {
 	msg_warn("%s: malformed response", VSTREAM_PATH(stream));
@@ -128,8 +130,8 @@ static int qmgr_deliver_final_reply(VSTREAM *stream, VSTRING *reason)
 
 static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
 {
-    QMGR_RCPT_LIST list = entry->rcpt_list;
-    QMGR_RCPT *recipient;
+    RECIPIENT_LIST list = entry->rcpt_list;
+    RECIPIENT *recipient;
     QMGR_MESSAGE *message = entry->message;
     VSTRING *sender_buf = 0;
     char   *sender;
@@ -161,8 +163,8 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
 	       ATTR_TYPE_STR, MAIL_ATTR_NEXTHOP, entry->queue->nexthop,
 	       ATTR_TYPE_STR, MAIL_ATTR_ENCODING, message->encoding,
 	       ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
-	       ATTR_TYPE_STR, MAIL_ATTR_ERRTO, message->errors_to,
-	       ATTR_TYPE_STR, MAIL_ATTR_RRCPT, message->return_receipt,
+	       ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, message->dsn_envid,
+	       ATTR_TYPE_NUM, MAIL_ATTR_DSN_RET, message->dsn_ret,
 	       ATTR_TYPE_LONG, MAIL_ATTR_TIME, message->arrival_time,
 	       ATTR_TYPE_STR, MAIL_ATTR_CLIENT_NAME, message->client_name,
 	       ATTR_TYPE_STR, MAIL_ATTR_CLIENT_ADDR, message->client_addr,
@@ -178,7 +180,9 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
     for (recipient = list.info; recipient < list.info + list.len; recipient++)
 	attr_print(stream, ATTR_FLAG_MORE,
 		   ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, recipient->offset,
-		   ATTR_TYPE_STR, MAIL_ATTR_ORCPT, recipient->orig_rcpt,
+		   ATTR_TYPE_STR, MAIL_ATTR_DSN_ORCPT, recipient->dsn_orcpt,
+		 ATTR_TYPE_NUM, MAIL_ATTR_DSN_NOTIFY, recipient->dsn_notify,
+		   ATTR_TYPE_STR, MAIL_ATTR_ORCPT, recipient->orig_addr,
 		   ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient->address,
 		   ATTR_TYPE_END);
     attr_print(stream, ATTR_FLAG_NONE,
@@ -215,9 +219,12 @@ static void qmgr_deliver_update(int unused_event, char *context)
     QMGR_QUEUE *queue = entry->queue;
     QMGR_TRANSPORT *transport = queue->transport;
     QMGR_MESSAGE *message = entry->message;
-    VSTRING *reason = vstring_alloc(1);
+    static DSN_BUF *dsb;
     int     status;
-    DSN_SPLIT dp;
+    DSN     dsn;
+
+    if (dsb == 0)
+	dsb = dsb_create();
 
     /*
      * The message transport has responded. Stop the watchdog timer.
@@ -231,7 +238,7 @@ static void qmgr_deliver_update(int unused_event, char *context)
      * manager can log why it does not even try to schedule delivery to the
      * affected recipients.
      */
-    status = qmgr_deliver_final_reply(entry->stream, reason);
+    status = qmgr_deliver_final_reply(entry->stream, dsb);
 
     /*
      * The mail delivery process failed for some reason (although delivery
@@ -244,11 +251,13 @@ static void qmgr_deliver_update(int unused_event, char *context)
      */
     if (status == DELIVER_STAT_CRASH) {
 	message->flags |= DELIVER_STAT_DEFER;
-	qmgr_transport_throttle(transport, "4.3.0",
-				"unknown mail transport error");
+	qmgr_transport_throttle(transport,
+				DSN_SMTP(&dsn, "4.3.0",
+					 "451 unknown mail transport error",
+					 "unknown mail transport error"));
 	msg_warn("transport %s failure -- see a previous warning/fatal/panic logfile record for the problem description",
 		 transport->name);
-	qmgr_defer_transport(transport, transport->dsn, transport->reason);
+	qmgr_defer_transport(transport, &dsn);
     }
 
     /*
@@ -260,15 +269,20 @@ static void qmgr_deliver_update(int unused_event, char *context)
      * (the busy list), or we would have dangling pointers. The queue itself
      * won't go away before we dispose of the current queue entry.
      */
+#define SUSPENDED	"delivery temporarily suspended: "
+
     if (status == DELIVER_STAT_DEFER) {
 	message->flags |= DELIVER_STAT_DEFER;
-	if (VSTRING_LEN(reason)) {
-	    /* Sanitize the DSN status from delivery agent. */
-	    dsn_split(&dp, "4.0.0", printable(vstring_str(reason), '?'));
-	    qmgr_queue_throttle(queue, DSN_CODE(dp.dsn), *dp.text ?
-				dp.text : "unknown problem");
+	if (VSTRING_LEN(dsb->status)) {
+	    /* Sanitize the DSN status from the delivery agent. */
+	    if (!dsn_valid(vstring_str(dsb->status)))
+		vstring_strcpy(dsb->status, "4.0.0");
+	    if (VSTRING_LEN(dsb->reason) == 0)
+		vstring_strcpy(dsb->reason, "unknown error");
+	    vstring_prepend(dsb->reason, SUSPENDED, sizeof(SUSPENDED) - 1);
+	    qmgr_queue_throttle(queue, DSN_FROM_DSN_BUF(&dsn, dsb));
 	    if (queue->window == 0)
-		qmgr_defer_todo(queue, queue->dsn, queue->reason);
+		qmgr_defer_todo(queue, &dsn);
 	}
     }
 
@@ -276,7 +290,7 @@ static void qmgr_deliver_update(int unused_event, char *context)
      * No problems detected. Mark the transport and queue as alive. The queue
      * itself won't go away before we dispose of the current queue entry.
      */
-    if (VSTRING_LEN(reason) == 0) {
+    if (VSTRING_LEN(dsb->reason) == 0) {
 	qmgr_transport_unthrottle(transport);
 	qmgr_queue_unthrottle(queue);
     }
@@ -292,7 +306,6 @@ static void qmgr_deliver_update(int unused_event, char *context)
     entry->stream = 0;
     qmgr_deliver_concurrency--;
     qmgr_entry_done(entry, QMGR_QUEUE_BUSY);
-    vstring_free(reason);
 }
 
 /* qmgr_deliver - deliver one per-site queue entry */
@@ -300,6 +313,7 @@ static void qmgr_deliver_update(int unused_event, char *context)
 void    qmgr_deliver(QMGR_TRANSPORT *transport, VSTREAM *stream)
 {
     QMGR_ENTRY *entry;
+    DSN     dsn;
 
     /*
      * Find out if this delivery process is really available. Once elected,
@@ -309,9 +323,11 @@ void    qmgr_deliver(QMGR_TRANSPORT *transport, VSTREAM *stream)
      * while some other queue manipulation is happening.
      */
     if (qmgr_deliver_initial_reply(stream) != 0) {
-	qmgr_transport_throttle(transport, "4.3.0",
-				"mail transport unavailable");
-	qmgr_defer_transport(transport, transport->dsn, transport->reason);
+	qmgr_transport_throttle(transport,
+				DSN_SMTP(&dsn, "4.3.0",
+					 "451 mail transport unavailable",
+					 "mail transport unavailable"));
+	qmgr_defer_transport(transport, &dsn);
 	(void) vstream_fclose(stream);
 	return;
     }
@@ -336,9 +352,11 @@ void    qmgr_deliver(QMGR_TRANSPORT *transport, VSTREAM *stream)
      */
     if (qmgr_deliver_send_request(entry, stream) < 0) {
 	qmgr_entry_unselect(entry);
-	qmgr_transport_throttle(transport, "4.3.0",
-				"mail transport unavailable");
-	qmgr_defer_transport(transport, transport->dsn, transport->reason);
+	qmgr_transport_throttle(transport,
+				DSN_SMTP(&dsn, "4.3.0",
+					 "451 mail transport unavailable",
+					 "mail transport unavailable"));
+	qmgr_defer_transport(transport, &dsn);
 	/* warning: entry may be a dangling pointer here */
 	(void) vstream_fclose(stream);
 	return;

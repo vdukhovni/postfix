@@ -13,14 +13,14 @@
 
  /*
   * Version of this program. Official versions are called a.b.c, and
-  * snapshots are called a.b-yyyymmdd, where a=major release number,
-  * b=minor release number, c=patchlevel, and yyyymmdd is the release date:
+  * snapshots are called a.b-yyyymmdd, where a=major release number, b=minor
+  * release number, c=patchlevel, and yyyymmdd is the release date:
   * yyyy=year, mm=month, dd=day.
   * 
-  * Patches change the patchlevel and the release date. Snapshots change the
-  * release date only.
+  * Patches change both the patchlevel and the release date. Snapshots have no
+  * patchlevel; they change the release date only.
   */
-#define MAIL_RELEASE_DATE	"20050517"
+#define MAIL_RELEASE_DATE	"20050621"
 #define MAIL_VERSION_NUMBER	"2.3"
 
 #define VAR_MAIL_VERSION	"mail_version"

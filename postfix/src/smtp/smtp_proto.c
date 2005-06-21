@@ -6,8 +6,9 @@
 /* SYNOPSIS
 /*	#include "smtp.h"
 /*
-/*	int	smtp_helo(state)
+/*	int	smtp_helo(state, misc_flags)
 /*	SMTP_STATE *state;
+/*	int	misc_flags;
 /*
 /*	int	smtp_xfer(state)
 /*	SMTP_STATE *state;
@@ -128,6 +129,7 @@
 #include <off_cvt.h>
 #include <mark_corrupt.h>
 #include <quote_821_local.h>
+#include <quote_822_local.h>
 #include <mail_proto.h>
 #include <mime_state.h>
 #include <ehlo_mask.h>
@@ -136,6 +138,8 @@
 #include <mail_addr_map.h>
 #include <ext_prop.h>
 #include <lex_822.h>
+#include <dsn_mask.h>
+#include <xtext.h>
 
 /* Application-specific. */
 
@@ -230,6 +234,7 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
     SMTP_SESSION *session = state->session;
     DELIVER_REQUEST *request = state->request;
     SMTP_RESP *resp;
+    SMTP_RESP fake;
     int     except;
     char   *lines;
     char   *words;
@@ -272,13 +277,11 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
 	switch ((resp = smtp_chat_resp(session))->code / 100) {
 	case 2:
 	    break;
+	case 4:
 	case 5:
-	    if (var_smtp_skip_5xx_greeting) {
-		resp->code = 400;
-		DSN_CLASS(resp->dsn) = '4';
-	    }
+	    /* Handled in smtp_connect(). */
 	default:
-	    return (smtp_site_fail(state, DSN_CODE(resp->dsn), resp->code,
+	    return (smtp_site_fail(state, session->host, resp,
 				   "host %s refused to talk to me: %s",
 				   session->namaddr,
 				   translit(resp->str, "\n", " ")));
@@ -336,7 +339,7 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
     if ((session->features & SMTP_FEATURE_ESMTP) == 0) {
 	smtp_chat_cmd(session, "HELO %s", var_smtp_helo_name);
 	if ((resp = smtp_chat_resp(session))->code / 100 != 2)
-	    return (smtp_site_fail(state, DSN_CODE(resp->dsn), resp->code,
+	    return (smtp_site_fail(state, session->host, resp,
 				   "host %s refused to talk to me: %s",
 				   session->namaddr,
 				   translit(resp->str, "\n", " ")));
@@ -375,13 +378,18 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
 		    && (misc_flags & SMTP_MISC_FLAG_LOOP_DETECT) != 0) {
 		    msg_warn("host %s replied to HELO/EHLO with my own hostname %s",
 			     session->namaddr, var_myhostname);
-		    return ((session->features & SMTP_FEATURE_BEST_MX) ?
-			    smtp_site_fail(state, "5.3.5", 550,
+		    if (session->features & SMTP_FEATURE_BEST_MX)
+			return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
+					 SMTP_RESP_FAKE(&fake, 554, "5.4.6",
+							"554 Mailer loop"),
 					 "mail for %s loops back to myself",
-					   request->nexthop) :
-			    smtp_site_fail(state, "4.3.5", 450,
+					       request->nexthop));
+		    else
+			return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
+					 SMTP_RESP_FAKE(&fake, 450, "4.4.6",
+							"450 Mailer loop"),
 					 "mail for %s loops back to myself",
-					   request->nexthop));
+					       request->nexthop));
 		}
 	    } else if (strcasecmp(word, "8BITMIME") == 0) {
 		if ((discard_mask & EHLO_MASK_8BITMIME) == 0)
@@ -416,6 +424,9 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
 		if ((discard_mask & EHLO_MASK_AUTH) == 0)
 		    smtp_sasl_helo_auth(session, words);
 #endif
+	    } else if (strcasecmp(word, "DSN") == 0) {
+		if ((discard_mask & EHLO_MASK_DSN) == 0)
+		    session->features |= SMTP_FEATURE_DSN;
 	    }
 	    n++;
 	}
@@ -428,7 +439,7 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
      * We use SMTP command pipelining if the server said it supported it.
      * Since we use blocking I/O, RFC 2197 says that we should inspect the
      * TCP window size and not send more than this amount of information.
-     * Unfortunately this information is not available using the sockets
+     * Unfortunately this information is unavailable using the sockets
      * interface. However, we *can* get the TCP send buffer size on the local
      * TCP/IP stack. We should be able to fill this buffer without being
      * blocked, and then the kernel will effectively do non-blocking I/O for
@@ -520,8 +531,7 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
 	     */
 	    session->features &= ~SMTP_FEATURE_STARTTLS;
 	    if (session->tls_enforce_tls)
-		return (smtp_site_fail(state, DSN_CODE(resp->dsn),
-				       resp->code,
+		return (smtp_site_fail(state, session->host, resp,
 		    "TLS is required, but host %s refused to start TLS: %s",
 				       session->namaddr,
 				       translit(resp->str, "\n", " ")));
@@ -537,17 +547,23 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
 	 */
 	if (session->tls_enforce_tls) {
 	    if (!(session->features & SMTP_FEATURE_STARTTLS)) {
-		return (smtp_site_fail(state, "4.7.4", 450,
+		return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
+				       SMTP_RESP_FAKE(&fake, 421, "4.7.4",
+				    "421 TLS is required, but unavailable"),
 			  "TLS is required, but was not offered by host %s",
 				       session->namaddr));
 	    } else if (smtp_tls_ctx == 0) {
-		return (smtp_site_fail(state, "4.7.5", 450,
+		return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
+				       SMTP_RESP_FAKE(&fake, 421, "4.7.5",
+				    "421 TLS is required, but unavailable"),
 		     "TLS is required, but our TLS engine is unavailable"));
 	    } else {
 		msg_warn("%s: TLS is required but unavailable, don't know why",
 			 myname);
-		return (smtp_site_fail(state, "4.7.0", 450,
-				     "TLS is required, but not available"));
+		return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
+				       SMTP_RESP_FAKE(&fake, 421, "4.7.0",
+				    "421 TLS is required, but unavailable"),
+				       "TLS is required, but unavailable"));
 	    }
 	}
     }
@@ -568,6 +584,7 @@ static int smtp_start_tls(SMTP_STATE *state, int misc_flags)
 {
     SMTP_SESSION *session = state->session;
     VSTRING *serverid;
+    SMTP_RESP fake;
 
     /*
      * Turn off SMTP connection caching. When the TLS handshake succeeds, we
@@ -612,7 +629,9 @@ static int smtp_start_tls(SMTP_STATE *state, int misc_flags)
 			 &(session->tls_info));
     vstring_free(serverid);
     if (session->tls_context == 0)
-	return (smtp_site_fail(state, "4.7.5", 450,
+	return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
+			       SMTP_RESP_FAKE(&fake, 421, "4.7.5",
+					      "421 TLS handshake failure"),
 			       "Cannot start TLS: handshake failure"));
 
     /*
@@ -795,6 +814,21 @@ static void smtp_header_rewrite(void *context, int header_class,
 	}
     }
 }
+/* smtp_mime_fail - MIME problem */
+
+static void smtp_mime_fail(SMTP_STATE *state, int mime_errs)
+{
+    MIME_STATE_DETAIL *detail;
+    SMTP_RESP fake;
+    char   *text;
+
+    detail = mime_state_detail(mime_errs);
+    text = concatenate("554 ", detail->text, (char *) 0);
+    smtp_mesg_fail(state, DSN_BY_LOCAL_MTA,
+		   SMTP_RESP_FAKE(&fake, 554, detail->dsn, text),
+		   "%s", detail->text);
+    myfree(text);
+}
 
 /* smtp_loop - exercise the SMTP protocol engine */
 
@@ -819,7 +853,6 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
     NOCLOBBER int mail_from_rejected;
     NOCLOBBER int downgrading;
     int     mime_errs;
-    MIME_STATE_DETAIL *detail;
 
     /*
      * Macros for readability.
@@ -1007,6 +1040,15 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		    msg_warn("%s: unknown content encoding: %s",
 			     request->queue_id, request->encoding);
 	    }
+	    if (session->features & SMTP_FEATURE_DSN) {
+		if (request->dsn_envid[0]) {
+		    vstring_sprintf_append(next_command, " ENVID=");
+		    xtext_quote_append(next_command, request->dsn_envid, "+=");
+		}
+		if (request->dsn_ret)
+		    vstring_sprintf_append(next_command, " RET=%s",
+					   dsn_ret_str(request->dsn_ret));
+	    }
 
 	    /*
 	     * We authenticate the local MTA only, but not the sender.
@@ -1029,6 +1071,24 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	    QUOTE_ADDRESS(session->scratch, vstring_str(session->scratch2));
 	    vstring_sprintf(next_command, "RCPT TO:<%s>",
 			    vstring_str(session->scratch));
+	    if (session->features & SMTP_FEATURE_DSN) {
+		/* XXX DSN xtext encode address value not type. */
+		if (rcpt->dsn_orcpt[0]) {
+		    xtext_quote(session->scratch, rcpt->dsn_orcpt, "+=");
+		    vstring_sprintf_append(next_command, " ORCPT=%s",
+					   vstring_str(session->scratch));
+		} else if (rcpt->orig_addr[0]) {
+		    quote_822_local(session->scratch, rcpt->orig_addr);
+		    vstring_sprintf(session->scratch2, "rfc822;%s",
+				    vstring_str(session->scratch));
+		    xtext_quote(session->scratch, vstring_str(session->scratch2), "+=");
+		    vstring_sprintf_append(next_command, " ORCPT=%s",
+					   vstring_str(session->scratch));
+		}
+		if (rcpt->dsn_notify)
+		    vstring_sprintf_append(next_command, " NOTIFY=%s",
+					   dsn_notify_str(rcpt->dsn_notify));
+	    }
 	    if ((next_rcpt = send_rcpt + 1) == SMTP_RCPT_LEFT(state))
 		next_state = DEL_REQ_TRACE_ONLY(request->flags) ?
 		    SMTP_STATE_ABORT : SMTP_STATE_DATA;
@@ -1164,7 +1224,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		     */
 		case SMTP_STATE_MAIL:
 		    if (resp->code / 100 != 2) {
-			smtp_mesg_fail(state, DSN_CODE(resp->dsn), resp->code,
+			smtp_mesg_fail(state, session->host, resp,
 				       "host %s said: %s (in reply to %s)",
 				       session->namaddr,
 				       translit(resp->str, "\n", " "),
@@ -1191,19 +1251,19 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 #ifdef notdef
 			if (resp->code == 552) {
 			    resp->code = 452;
-			    DSN_CLASS(resp->dsn) = '4';
+			    resp->dsn[0] = '4';
 			}
 #endif
 			rcpt = request->rcpt_list.info + recv_rcpt;
 			if (resp->code / 100 == 2) {
 			    ++nrcpt;
 			    /* If trace-only, mark the recipient done. */
-			    if (DEL_REQ_TRACE_ONLY(request->flags))
-				smtp_rcpt_done(state, DSN_CODE(resp->dsn),
-					       resp->str, rcpt);
+			    if (DEL_REQ_TRACE_ONLY(request->flags)) {
+				translit(resp->str, "\n", " ");
+				smtp_rcpt_done(state, resp, rcpt);
+			    }
 			} else {
-			    smtp_rcpt_fail(state, DSN_CODE(resp->dsn),
-					   resp->code, rcpt,
+			    smtp_rcpt_fail(state, rcpt, session->host, resp,
 					"host %s said: %s (in reply to %s)",
 					   session->namaddr,
 					   translit(resp->str, "\n", " "),
@@ -1225,8 +1285,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		case SMTP_STATE_DATA:
 		    if (resp->code / 100 != 3) {
 			if (nrcpt > 0)
-			    smtp_mesg_fail(state, DSN_CODE(resp->dsn),
-					   resp->code,
+			    smtp_mesg_fail(state, session->host, resp,
 					"host %s said: %s (in reply to %s)",
 					   session->namaddr,
 					   translit(resp->str, "\n", " "),
@@ -1248,8 +1307,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		case SMTP_STATE_DOT:
 		    if (nrcpt > 0) {
 			if (resp->code / 100 != 2) {
-			    smtp_mesg_fail(state, DSN_CODE(resp->dsn),
-					   resp->code,
+			    smtp_mesg_fail(state, session->host, resp,
 					"host %s said: %s (in reply to %s)",
 					   session->namaddr,
 					   translit(resp->str, "\n", " "),
@@ -1257,9 +1315,10 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 			} else {
 			    for (nrcpt = 0; nrcpt < recv_rcpt; nrcpt++) {
 				rcpt = request->rcpt_list.info + nrcpt;
-				if (!SMTP_RCPT_ISMARKED(rcpt))
-				    smtp_rcpt_done(state, DSN_CODE(resp->dsn),
-						   resp->str, rcpt);
+				if (!SMTP_RCPT_ISMARKED(rcpt)) {
+				    translit(resp->str, "\n", " ");
+				    smtp_rcpt_done(state, resp, rcpt);
+				}
 			    }
 			}
 		    }
@@ -1379,9 +1438,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 					  vstring_str(session->scratch),
 					  VSTRING_LEN(session->scratch));
 		    if (mime_errs) {
-			detail = mime_state_detail(mime_errs);
-			smtp_mesg_fail(state, detail->dsn, 554, "%s",
-				       detail->text);
+			smtp_mime_fail(state, mime_errs);
 			RETURN(0);
 		    }
 		}
@@ -1403,8 +1460,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		mime_errs =
 		    mime_state_update(session->mime_state, rec_type, "", 0);
 		if (mime_errs) {
-		    detail = mime_state_detail(mime_errs);
-		    smtp_mesg_fail(state, detail->dsn, 554, "%s", detail->text);
+		    smtp_mime_fail(state, mime_errs);
 		    RETURN(0);
 		}
 	    } else if (prev_type == REC_TYPE_CONT)	/* missing newline */
@@ -1444,6 +1500,7 @@ int     smtp_xfer(SMTP_STATE *state)
 {
     DELIVER_REQUEST *request = state->request;
     SMTP_SESSION *session = state->session;
+    SMTP_RESP fake;
     int     send_state;
     int     recv_state;
     int     send_name_addr;
@@ -1456,7 +1513,7 @@ int     smtp_xfer(SMTP_STATE *state)
 		  SMTP_RCPT_LEFT(state));
     if (SMTP_RCPT_ISMARKED(request->rcpt_list.info))
 	msg_panic("smtp_xfer: bad recipient status: %d",
-		  request->rcpt_list.info->status);
+		  request->rcpt_list.info->u.status);
 
     /*
      * See if we should even try to send this message at all. This code sits
@@ -1464,7 +1521,9 @@ int     smtp_xfer(SMTP_STATE *state)
      * connection caching.
      */
     if (session->size_limit > 0 && session->size_limit < request->data_size) {
-	smtp_mesg_fail(state, "5.3.4", 552,
+	smtp_mesg_fail(state, DSN_BY_LOCAL_MTA,
+		       SMTP_RESP_FAKE(&fake, 552, "5.3.4",
+				      "552 message too large"),
 		    "message size %lu exceeds size limit %.0f of server %s",
 		       request->data_size, (double) session->size_limit,
 		       session->namaddr);

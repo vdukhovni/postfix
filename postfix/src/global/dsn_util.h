@@ -1,13 +1,13 @@
-#ifndef _DSN_SPLIT_H_INCLUDED_
-#define _DSN_SPLIT_H_INCLUDED_
+#ifndef _DSN_UTIL_H_INCLUDED_
+#define _DSN_UTIL_H_INCLUDED_
 
 /*++
 /* NAME
-/*	dsn_util 3
+/*	dsn_util 3h
 /* SUMMARY
-/*	Extract DSN detail from text
+/*	DSN status parsing routines
 /* SYNOPSIS
-/*	#include "dsn_split.h"
+/*	#include <dsn_util.h>
 /* DESCRIPTION
 /* .nf
 
@@ -33,7 +33,7 @@
   */
 typedef struct {
     char    data[DSN_SIZE];		/* NOT a public interface */
-} DSN_BUF;
+}       DSN_BUFFER;
 
 #define DSN_UPDATE(dsn_buf, dsn, len) do { \
 	if (len >= sizeof((dsn_buf).data)) \
@@ -43,7 +43,7 @@ typedef struct {
 	(dsn_buf).data[len] = 0; \
     } while (0)
 
-#define DSN_CODE(dsn_buf) ((const char *) (dsn_buf).data)
+#define DSN_STATUS(dsn_buf) ((const char *) (dsn_buf).data)
 
 #define DSN_CLASS(dsn_buf) ((dsn_buf).data[0])
 
@@ -51,7 +51,7 @@ typedef struct {
   * Split flat text into detail code and free text.
   */
 typedef struct {
-    DSN_BUF dsn;			/* RFC 3463 X.XXX.XXX detail */
+    DSN_BUFFER dsn;			/* RFC 3463 status */
     const char *text;			/* free text */
 } DSN_SPLIT;
 
@@ -62,19 +62,6 @@ extern size_t dsn_valid(const char *);
   * Create flat text from detail code and free text.
   */
 extern char *dsn_prepend(const char *, const char *);
-
- /*
-  * Easy to update pair of detail code and free text.
-  */
-typedef struct {
-    DSN_BUF dsn;			/* RFC 3463 X.XXX.XXX detail */
-    VSTRING *vstring;			/* free text */
-} DSN_VSTRING;
-
-extern DSN_VSTRING *dsn_vstring_alloc(int);
-extern PRINTFLIKE(3, 4) DSN_VSTRING *dsn_vstring_update(DSN_VSTRING *, const char *, const char *,...);
-extern DSN_VSTRING *dsn_vstring_update_dsn(DSN_VSTRING *, const char *);
-extern void dsn_vstring_free(DSN_VSTRING *);
 
 /* LICENSE
 /* .ad

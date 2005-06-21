@@ -121,8 +121,6 @@
 #include "smtp.h"
 #include "smtp_sasl.h"
 
-#define STR(x) vstring_str(x)
-
 /*#define msg_verbose 1*/
 
 #ifdef USE_TLS

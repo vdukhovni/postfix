@@ -122,6 +122,7 @@ smtpd.o: ../../include/attr_clnt.h
 smtpd.o: ../../include/cleanup_user.h
 smtpd.o: ../../include/debug_peer.h
 smtpd.o: ../../include/dict.h
+smtpd.o: ../../include/dsn_mask.h
 smtpd.o: ../../include/ehlo_mask.h
 smtpd.o: ../../include/events.h
 smtpd.o: ../../include/flush_clnt.h
@@ -167,6 +168,7 @@ smtpd.o: ../../include/vstream.h
 smtpd.o: ../../include/vstring.h
 smtpd.o: ../../include/vstring_vstream.h
 smtpd.o: ../../include/watchdog.h
+smtpd.o: ../../include/xtext.h
 smtpd.o: smtpd.c
 smtpd.o: smtpd.h
 smtpd.o: smtpd_chat.h
@@ -211,6 +213,8 @@ smtpd_check.o: ../../include/deliver_request.h
 smtpd_check.o: ../../include/dict.h
 smtpd_check.o: ../../include/dns.h
 smtpd_check.o: ../../include/domain_list.h
+smtpd_check.o: ../../include/dsn.h
+smtpd_check.o: ../../include/dsn_buf.h
 smtpd_check.o: ../../include/dsn_util.h
 smtpd_check.o: ../../include/fsspace.h
 smtpd_check.o: ../../include/htable.h

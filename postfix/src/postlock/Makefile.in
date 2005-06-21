@@ -58,6 +58,7 @@ depend: $(MAKES)
 postlock.o: ../../include/argv.h
 postlock.o: ../../include/deliver_flock.h
 postlock.o: ../../include/dot_lockfile.h
+postlock.o: ../../include/dsn_buf.h
 postlock.o: ../../include/dsn_util.h
 postlock.o: ../../include/iostuff.h
 postlock.o: ../../include/mail_conf.h

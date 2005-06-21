@@ -1122,6 +1122,7 @@ void    vstream_control(VSTREAM *stream, int name,...)
 	    msg_panic("%s: bad name %d", myname, name);
 	}
     }
+    va_end(ap);
 }
 
 /* vstream_vfprintf - formatted print engine */

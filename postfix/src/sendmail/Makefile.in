@@ -61,6 +61,9 @@ sendmail.o: ../../include/cleanup_user.h
 sendmail.o: ../../include/connect.h
 sendmail.o: ../../include/debug_process.h
 sendmail.o: ../../include/deliver_request.h
+sendmail.o: ../../include/dsn.h
+sendmail.o: ../../include/dsn_buf.h
+sendmail.o: ../../include/dsn_mask.h
 sendmail.o: ../../include/fullname.h
 sendmail.o: ../../include/header_opts.h
 sendmail.o: ../../include/iostuff.h

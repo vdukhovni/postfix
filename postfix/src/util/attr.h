@@ -31,6 +31,7 @@
 #define ATTR_TYPE_NV		3	/* Name-value table */
 #define ATTR_TYPE_LONG		4	/* Unsigned long */
 #define ATTR_TYPE_DATA		5	/* Binary data */
+#define ATTR_TYPE_FUNC		6	/* Function pointer */
 
 #define ATTR_HASH_LIMIT		1024	/* Size of hash table */
 
@@ -45,6 +46,14 @@
 #define ATTR_FLAG_STRICT	(ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA)
 #define ATTR_FLAG_ALL		(07)
 
+ /*
+Delegation for better data abstraction. */
+typedef int (*ATTR_SCAN_FN)(VSTREAM *, int, void *);
+typedef int (*ATTR_PRINT_FN)(VSTREAM *, int, void *);
+
+ /*
+  * Default to null-terminated, as opposed to base64-encoded.
+  */
 #define attr_print	attr_print0
 #define attr_vprint	attr_vprint0
 #define attr_scan	attr_scan0

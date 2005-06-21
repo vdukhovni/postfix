@@ -20,7 +20,7 @@
 /*	null-terminated string.  The result value is the result argument.
 /*
 /*	base64_decode() performs the opposite transformation. The result
-/*	value is the result argument. The result is null terminated, whether 
+/*	value is the result argument. The result is null terminated, whether
 /*	or not that makes sense.
 /* DIAGNOSTICS
 /*	base64_decode () returns a null pointer when the input contains

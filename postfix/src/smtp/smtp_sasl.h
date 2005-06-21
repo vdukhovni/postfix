@@ -15,7 +15,7 @@ extern void smtp_sasl_initialize(void);
 extern void smtp_sasl_connect(SMTP_SESSION *);
 extern int smtp_sasl_passwd_lookup(SMTP_SESSION *);
 extern void smtp_sasl_start(SMTP_SESSION *, const char *, const char *);
-extern int smtp_sasl_authenticate(SMTP_SESSION *, VSTRING *);
+extern int smtp_sasl_authenticate(SMTP_SESSION *, DSN_BUF *);
 extern void smtp_sasl_cleanup(SMTP_SESSION *);
 
 extern void smtp_sasl_helo_auth(SMTP_SESSION *, const char *);

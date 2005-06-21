@@ -11,7 +11,7 @@
  /*
   * Global library.
   */
-#include <dsn_util.h>
+#include <dsn_buf.h>
 
  /*
   * DNS library.
@@ -21,7 +21,7 @@
  /*
   * Internal interfaces.
   */
-extern DNS_RR *lmtp_host_addr(char *, DSN_VSTRING *);
+extern DNS_RR *lmtp_host_addr(char *, DSN_BUF *);
 
 /* LICENSE
 /* .ad

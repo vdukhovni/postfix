@@ -8,7 +8,7 @@
 /*
 /*	DNS_RR *lmtp_host_addr(name, why)
 /*	char	*name;
-/*	DSN_VSTRING *why;
+/*	DSN_BUF	*why;
 /* DESCRIPTION
 /*	This module implements Internet address lookups. By default,
 /*	lookups are done via the Internet domain name service (DNS).
@@ -82,7 +82,6 @@
 
 #include <mail_params.h>
 #include <own_inet_addr.h>
-#include <dsn_util.h>
 
 /* DNS library. */
 
@@ -116,7 +115,7 @@ static void lmtp_print_addr(char *what, DNS_RR *addr_list)
 /* lmtp_addr_one - address lookup for one host name */
 
 static DNS_RR *lmtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
-			             DSN_VSTRING *why)
+			             DSN_BUF *why)
 {
     char   *myname = "lmtp_addr_one";
     DNS_RR *addr = 0;
@@ -158,9 +157,11 @@ static DNS_RR *lmtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
 
     if (var_disable_dns) {
 	if ((aierr = hostname_to_sockaddr(host, (char *) 0, 0, &res0)) != 0) {
-	    dsn_vstring_update(why, DSN_NOHOST(aierr) ? "4.4.4" : "4.3.0",
-			       "unable to look up host %s: %s",
-			       host, MAI_STRERROR(aierr));
+	    lmtp_dsn_update(why, DSN_BY_LOCAL_MTA,
+			    DSN_NOHOST(aierr) ? "4.4.4" : "4.3.0",
+			    450, "450 Host not found",
+			    "unable to look up host %s: %s",
+			    host, MAI_STRERROR(aierr));
 	    lmtp_errno = (RETRY_AI_ERROR(aierr) ? LMTP_RETRY : LMTP_FAIL);
 	} else {
 	    for (found = 0, res = res0; res != 0; res = res->ai_next) {
@@ -177,7 +178,9 @@ static DNS_RR *lmtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
 	    }
 	    freeaddrinfo(res0);
 	    if (found == 0) {
-		dsn_vstring_update(why, "5.4.4", "%s: host not found", host);
+		lmtp_dsn_update(why, DSN_BY_LOCAL_MTA,
+				"5.4.4", 550, "550 Host not found",
+				"%s: host not found", host);
 		lmtp_errno = LMTP_FAIL;
 	    }
 	    return (addr_list);
@@ -187,7 +190,7 @@ static DNS_RR *lmtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
     /*
      * Append the addresses for this host to the address list.
      */
-    switch (dns_lookup_v(host, RES_DEFNAMES, &addr, (VSTRING *) 0, why->vstring,
+    switch (dns_lookup_v(host, RES_DEFNAMES, &addr, (VSTRING *) 0, why->reason,
 			 DNS_REQ_FLAG_ALL, proto_info->dns_atype_list)) {
     case DNS_OK:
 	for (rr = addr; rr; rr = rr->next)
@@ -195,15 +198,18 @@ static DNS_RR *lmtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
 	addr_list = dns_rr_append(addr_list, addr);
 	break;
     default:
-	dsn_vstring_update_dsn(why, "4.4.3");
+	lmtp_dsn_formal(why, DSN_BY_LOCAL_MTA,
+			"4.4.3", 450, "450 Host not found");
 	lmtp_errno = LMTP_RETRY;
 	break;
     case DNS_FAIL:
-	dsn_vstring_update_dsn(why, "4.4.3");
+	lmtp_dsn_formal(why, DSN_BY_LOCAL_MTA,
+			"5.4.3", 550, "550 Name server failure");
 	lmtp_errno = LMTP_FAIL;
 	break;
     case DNS_NOTFOUND:
-	dsn_vstring_update_dsn(why, "4.4.4");
+	lmtp_dsn_formal(why, DSN_BY_LOCAL_MTA,
+			"5.4.4", 550, "550 Host not found");
 	lmtp_errno = LMTP_FAIL;
 	break;
     }
@@ -212,7 +218,7 @@ static DNS_RR *lmtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
 
 /* lmtp_host_addr - direct host lookup */
 
-DNS_RR *lmtp_host_addr(char *host, DSN_VSTRING *why)
+DNS_RR *lmtp_host_addr(char *host, DSN_BUF *why)
 {
     DNS_RR *addr_list;
 

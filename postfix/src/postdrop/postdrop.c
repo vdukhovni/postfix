@@ -20,7 +20,8 @@
 /*	output. This is currently the only supported method.
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
-/*	options make the software increasingly verbose.
+/*	options make the software increasingly verbose. As of Postfix 2.3,
+/*	this option is available for the super-user only.
 /* SECURITY
 /* .ad
 /* .fi
@@ -133,6 +134,7 @@
 #include <record.h>
 #include <rec_type.h>
 #include <user_acl.h>
+#include <dsn_attr_map.h>
 
 /* Application-specific. */
 
@@ -265,7 +267,8 @@ int     main(int argc, char **argv)
 	case 'r':				/* forward compatibility */
 	    break;
 	case 'v':
-	    msg_verbose++;
+	    if (geteuid() == 0)
+		msg_verbose++;
 	    break;
 	default:
 	    msg_fatal("usage: %s [-c config_dir] [-v]", argv[0]);
@@ -393,6 +396,12 @@ int     main(int argc, char **argv)
 		 && (STREQ(attr_value, MAIL_ATTR_ENC_7BIT)
 		     || STREQ(attr_value, MAIL_ATTR_ENC_8BIT)
 		     || STREQ(attr_value, MAIL_ATTR_ENC_NONE)))
+		|| STREQ(attr_name, MAIL_ATTR_DSN_ENVID)
+		|| STREQ(attr_name, MAIL_ATTR_DSN_NOTIFY)
+		|| dsn_attr_map(attr_name)
+		|| (STREQ(attr_name, MAIL_ATTR_RWR_CONTEXT)
+		    && (STREQ(attr_value, MAIL_ATTR_RWR_LOCAL)
+			|| STREQ(attr_value, MAIL_ATTR_RWR_REMOTE)))
 		|| STREQ(attr_name, MAIL_ATTR_TRACE_FLAGS)) {	/* XXX */
 		rec_fprintf(dst->stream, REC_TYPE_ATTR, "%s=%s",
 			    attr_name, attr_value);

@@ -9,9 +9,10 @@
 /*	typedef struct {
 /* .in +4
 /*		int code;
-/*		char dsn[...];
+/*		char *dsn;
 /*		char *str;
-/*		VSTRING *buf;
+/*		VSTRING *dsn_buf;
+/*		VSTRING *str_buf;
 /* .in -4
 /*	} LMTP_RESP;
 /*
@@ -34,7 +35,7 @@
 /*	lmtp_chat_cmd() formats a command and sends it to an LMTP server.
 /*	Optionally, the command is logged.
 /*
-/*	lmtp_chat_resp() read one LMTP server response. It separates the
+/*	lmtp_chat_resp() reads one LMTP server response. It separates the
 /*	numerical status code from the text, and concatenates multi-line
 /*	responses to one string, using a newline as separator.
 /*	Optionally, the server response is logged.
@@ -49,6 +50,9 @@
 /*	or within a session to discard non-error information.
 /*	In addition, lmtp_chat_reset() resets the per-session error
 /*	status bits and flags.
+/*
+/*	lmtp_chat_fake() constructs a synthetic LMTP server response
+/*	from its arguments.
 /* DIAGNOSTICS
 /*	Fatal errors: memory allocation problem, server response exceeds
 /*	configurable limit.
@@ -113,7 +117,6 @@
 
 #include "lmtp.h"
 
-#define STR(x)	((char *) vstring_str(x))
 #define LEN	VSTRING_LEN
 
 /* lmtp_chat_reset - reset LMTP transaction log */
@@ -174,8 +177,8 @@ void    lmtp_chat_cmd(LMTP_STATE *state, char *fmt,...)
 
 LMTP_RESP *lmtp_chat_resp(LMTP_STATE *state)
 {
-    LMTP_SESSION *session = state->session;
     static LMTP_RESP rdata;
+    LMTP_SESSION *session = state->session;
     char   *cp;
     int     last_char;
     int     three_digs = 0;
@@ -184,15 +187,17 @@ LMTP_RESP *lmtp_chat_resp(LMTP_STATE *state)
     /*
      * Initialize the response data buffer.
      */
-    if (rdata.buf == 0)
-	rdata.buf = vstring_alloc(100);
+    if (rdata.str_buf == 0) {
+	rdata.dsn_buf = vstring_alloc(10);
+	rdata.str_buf = vstring_alloc(100);
+    }
 
     /*
      * Censor out non-printable characters in server responses. Concatenate
      * multi-line server responses. Separate the status code from the text.
      * Leave further parsing up to the application.
      */
-    VSTRING_RESET(rdata.buf);
+    VSTRING_RESET(rdata.str_buf);
     for (;;) {
 	last_char = smtp_get(state->buffer, session->stream, var_line_limit);
 	printable(STR(state->buffer), '?');
@@ -206,10 +211,10 @@ LMTP_RESP *lmtp_chat_resp(LMTP_STATE *state)
 	 * Defend against a denial of service attack by limiting the amount
 	 * of multi-line text that we are willing to store.
 	 */
-	if (LEN(rdata.buf) < var_line_limit) {
-	    if (VSTRING_LEN(rdata.buf))
-		VSTRING_ADDCH(rdata.buf, '\n');
-	    vstring_strcat(rdata.buf, STR(state->buffer));
+	if (LEN(rdata.str_buf) < var_line_limit) {
+	    if (VSTRING_LEN(rdata.str_buf))
+		VSTRING_ADDCH(rdata.str_buf, '\n');
+	    vstring_strcat(rdata.str_buf, STR(state->buffer));
 	    lmtp_chat_append(state, "In:  ", STR(state->buffer));
 	}
 
@@ -236,25 +241,46 @@ LMTP_RESP *lmtp_chat_resp(LMTP_STATE *state)
      * Ignore out-of-protocol enhanced status codes: codes that accompany 3XX
      * replies, or codes whose initial digit is out of sync with the reply
      * code.
+     * 
+     * XXX Potential stability problem. In order to save memory, the queue
+     * manager stores DSNs in a compact manner:
+     * 
+     * - empty strings are represented by null pointers,
+     * 
+     * - the status and reason are required to be non-empty.
+     * 
+     * Other Postfix daemons inherit this behavior, because they use the same
+     * DSN support code. This means that everything that receives DSNs must
+     * cope with null pointers for the optional DSN attributes, and that
+     * everything that provides DSN information must provide a non-empty
+     * status and reason, otherwise the DSN support code wil panic().
+     * 
+     * Thus, when the remote server sends a malformed reply (or 3XX out of
+     * context) we should not panic() in DSN_COPY() just because we don't
+     * have a status. Robustness suggests that we supply a status here, and
+     * that we leave it up to the down-stream code to override the
+     * server-supplied status in case of an error we can't detect here, such
+     * as an out-of-order server reply.
      */
-    DSN_CLASS(rdata.dsn) = 0;
+    VSTRING_TERMINATE(rdata.str_buf);
+    vstring_strcpy(rdata.dsn_buf, "5.5.0");	/* SAFETY! protocol error */
     if (three_digs != 0) {
 	rdata.code = atoi(STR(state->buffer));
 	if (strchr("245", STR(state->buffer)[0]) != 0) {
 	    for (cp = STR(state->buffer) + 4; *cp == ' '; cp++)
 		 /* void */ ;
 	    if ((len = dsn_valid(cp)) > 0 && *cp == *STR(state->buffer)) {
-		DSN_UPDATE(rdata.dsn, cp, len);
+		vstring_strncpy(rdata.dsn_buf, cp, len);
 	    } else {
-		DSN_UPDATE(rdata.dsn, "0.0.0", sizeof("0.0.0") - 1);
-		DSN_CLASS(rdata.dsn) = STR(state->buffer)[0];
+		vstring_strcpy(rdata.dsn_buf, "0.0.0");
+		STR(rdata.dsn_buf)[0] = STR(state->buffer)[0];
 	    }
 	}
     } else {
 	rdata.code = 0;
     }
-    VSTRING_TERMINATE(rdata.buf);
-    rdata.str = STR(rdata.buf);
+    rdata.dsn = STR(rdata.dsn_buf);
+    rdata.str = STR(rdata.str_buf);
     return (&rdata);
 }
 

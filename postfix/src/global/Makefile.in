@@ -25,7 +25,9 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	verify_clnt.c verp_sender.c virtual8_maps.c xtext.c scache_single.c \
 	scache_clnt.c scache_multi.c user_acl.c mkmap_cdb.c mkmap_sdbm.c \
 	ehlo_mask.c \
-	wildcard_inet_addr.c valid_mailhost_addr.c dsn_util.c
+	wildcard_inet_addr.c valid_mailhost_addr.c dsn_util.c dsn_mask.c \
+	dsn_attr_map.c dsn.c dsn_buf.c rcpt_buf.c rcpt_print.c dsn_print.c \
+	dsb_scan.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o debug_peer.o debug_process.o defer.o db_common.o \
@@ -52,7 +54,9 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	verify_clnt.o verp_sender.o virtual8_maps.o xtext.o scache_single.o \
 	scache_clnt.o scache_multi.o user_acl.o mkmap_cdb.o mkmap_sdbm.o \
 	ehlo_mask.o \
-	wildcard_inet_addr.o valid_mailhost_addr.o dsn_util.o
+	wildcard_inet_addr.o valid_mailhost_addr.o dsn_util.o dsn_mask.o \
+	dsn_attr_map.o dsn.o dsn_buf.o rcpt_buf.o rcpt_print.o dsn_print.o \
+	dsb_scan.o
 HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	canon_addr.h cfg_parser.h cleanup_user.h clnt_stream.h config.h \
 	debug_peer.h debug_process.h defer.h deliver_completed.h \
@@ -74,7 +78,9 @@ HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	string_list.h strip_addr.h sys_exits.h timed_ipc.h tok822.h \
 	trace.h verify.h verify_clnt.h verp_sender.h virtual8_maps.h \
 	xtext.h scache.h user_acl.h ehlo_mask.h db_common.h \
-	wildcard_inet_addr.h valid_mailhost_addr.h dsn_util.h
+	wildcard_inet_addr.h valid_mailhost_addr.h dsn_util.h dsn_mask.h \
+	dsn_attr_map.h dsn.h dsn_buf.h rcpt_buf.h rcpt_print.h dsn_print.h \
+	dsb_scan.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
@@ -420,6 +426,8 @@ abounce.o: abounce.c
 abounce.o: abounce.h
 abounce.o: bounce.h
 abounce.o: deliver_request.h
+abounce.o: dsn.h
+abounce.o: dsn_buf.h
 abounce.o: mail_params.h
 abounce.o: mail_proto.h
 abounce.o: recipient_list.h
@@ -458,10 +466,14 @@ bounce.o: bounce.c
 bounce.o: bounce.h
 bounce.o: defer.h
 bounce.o: deliver_request.h
+bounce.o: dsn.h
+bounce.o: dsn_buf.h
+bounce.o: dsn_print.h
 bounce.o: dsn_util.h
 bounce.o: log_adhoc.h
 bounce.o: mail_params.h
 bounce.o: mail_proto.h
+bounce.o: rcpt_print.h
 bounce.o: recipient_list.h
 bounce.o: trace.h
 bounce.o: verify.h
@@ -477,9 +489,14 @@ bounce_log.o: ../../include/vstring.h
 bounce_log.o: ../../include/vstring_vstream.h
 bounce_log.o: bounce_log.c
 bounce_log.o: bounce_log.h
+bounce_log.o: dsn.h
+bounce_log.o: dsn_buf.h
+bounce_log.o: dsn_mask.h
 bounce_log.o: mail_params.h
 bounce_log.o: mail_proto.h
 bounce_log.o: mail_queue.h
+bounce_log.o: rcpt_buf.h
+bounce_log.o: recipient_list.h
 canon_addr.o: ../../include/attr.h
 canon_addr.o: ../../include/iostuff.h
 canon_addr.o: ../../include/mymalloc.h
@@ -566,12 +583,16 @@ defer.o: bounce.h
 defer.o: defer.c
 defer.o: defer.h
 defer.o: deliver_request.h
+defer.o: dsn.h
+defer.o: dsn_buf.h
+defer.o: dsn_print.h
 defer.o: dsn_util.h
 defer.o: flush_clnt.h
 defer.o: log_adhoc.h
 defer.o: mail_params.h
 defer.o: mail_proto.h
 defer.o: mail_queue.h
+defer.o: rcpt_print.h
 defer.o: recipient_list.h
 defer.o: trace.h
 defer.o: verify.h
@@ -604,6 +625,8 @@ deliver_pass.o: ../../include/vstring.h
 deliver_pass.o: deliver_pass.c
 deliver_pass.o: deliver_pass.h
 deliver_pass.o: deliver_request.h
+deliver_pass.o: dsn.h
+deliver_pass.o: dsn_buf.h
 deliver_pass.o: mail_params.h
 deliver_pass.o: mail_proto.h
 deliver_pass.o: recipient_list.h
@@ -618,6 +641,9 @@ deliver_request.o: ../../include/vstream.h
 deliver_request.o: ../../include/vstring.h
 deliver_request.o: deliver_request.c
 deliver_request.o: deliver_request.h
+deliver_request.o: dsn.h
+deliver_request.o: dsn_buf.h
+deliver_request.o: dsn_print.h
 deliver_request.o: mail_open_ok.h
 deliver_request.o: mail_proto.h
 deliver_request.o: mail_queue.h
@@ -715,6 +741,57 @@ dot_lockfile_as.o: ../../include/vstring.h
 dot_lockfile_as.o: dot_lockfile.h
 dot_lockfile_as.o: dot_lockfile_as.c
 dot_lockfile_as.o: dot_lockfile_as.h
+dsb_scan.o: ../../include/attr.h
+dsb_scan.o: ../../include/iostuff.h
+dsb_scan.o: ../../include/sys_defs.h
+dsb_scan.o: ../../include/vbuf.h
+dsb_scan.o: ../../include/vstream.h
+dsb_scan.o: ../../include/vstring.h
+dsb_scan.o: dsb_scan.c
+dsb_scan.o: dsb_scan.h
+dsb_scan.o: dsn_buf.h
+dsb_scan.o: mail_proto.h
+dsn.o: ../../include/msg.h
+dsn.o: ../../include/mymalloc.h
+dsn.o: ../../include/sys_defs.h
+dsn.o: ../../include/vbuf.h
+dsn.o: ../../include/vstring.h
+dsn.o: dsn.c
+dsn.o: dsn.h
+dsn.o: dsn_buf.h
+dsn_attr_map.o: ../../include/attr.h
+dsn_attr_map.o: ../../include/iostuff.h
+dsn_attr_map.o: ../../include/sys_defs.h
+dsn_attr_map.o: ../../include/vbuf.h
+dsn_attr_map.o: ../../include/vstream.h
+dsn_attr_map.o: dsn_attr_map.c
+dsn_attr_map.o: dsn_attr_map.h
+dsn_attr_map.o: mail_proto.h
+dsn_attr_map.o: rec_type.h
+dsn_buf.o: ../../include/msg.h
+dsn_buf.o: ../../include/mymalloc.h
+dsn_buf.o: ../../include/sys_defs.h
+dsn_buf.o: ../../include/vbuf.h
+dsn_buf.o: ../../include/vstring.h
+dsn_buf.o: dsn_buf.c
+dsn_buf.o: dsn_buf.h
+dsn_mask.o: ../../include/msg.h
+dsn_mask.o: ../../include/name_code.h
+dsn_mask.o: ../../include/name_mask.h
+dsn_mask.o: ../../include/sys_defs.h
+dsn_mask.o: dsn_mask.c
+dsn_mask.o: dsn_mask.h
+dsn_print.o: ../../include/attr.h
+dsn_print.o: ../../include/iostuff.h
+dsn_print.o: ../../include/sys_defs.h
+dsn_print.o: ../../include/vbuf.h
+dsn_print.o: ../../include/vstream.h
+dsn_print.o: ../../include/vstring.h
+dsn_print.o: dsn.h
+dsn_print.o: dsn_buf.h
+dsn_print.o: dsn_print.c
+dsn_print.o: dsn_print.h
+dsn_print.o: mail_proto.h
 dsn_util.o: ../../include/msg.h
 dsn_util.o: ../../include/mymalloc.h
 dsn_util.o: ../../include/stringops.h
@@ -793,8 +870,11 @@ log_adhoc.o: ../../include/msg.h
 log_adhoc.o: ../../include/sys_defs.h
 log_adhoc.o: ../../include/vbuf.h
 log_adhoc.o: ../../include/vstring.h
+log_adhoc.o: dsn.h
+log_adhoc.o: dsn_buf.h
 log_adhoc.o: log_adhoc.c
 log_adhoc.o: log_adhoc.h
+log_adhoc.o: recipient_list.h
 mail_addr.o: ../../include/stringops.h
 mail_addr.o: ../../include/sys_defs.h
 mail_addr.o: ../../include/vbuf.h
@@ -930,7 +1010,7 @@ mail_copy.o: ../../include/vbuf.h
 mail_copy.o: ../../include/vstream.h
 mail_copy.o: ../../include/vstring.h
 mail_copy.o: ../../include/vstring_vstream.h
-mail_copy.o: dsn_util.h
+mail_copy.o: dsn_buf.h
 mail_copy.o: mail_addr.h
 mail_copy.o: mail_copy.c
 mail_copy.o: mail_copy.h
@@ -942,6 +1022,7 @@ mail_copy.o: quote_822_local.h
 mail_copy.o: quote_flags.h
 mail_copy.o: rec_type.h
 mail_copy.o: record.h
+mail_copy.o: sys_exits.h
 mail_date.o: ../../include/msg.h
 mail_date.o: ../../include/sys_defs.h
 mail_date.o: ../../include/vbuf.h
@@ -1103,6 +1184,8 @@ mark_corrupt.o: ../../include/vbuf.h
 mark_corrupt.o: ../../include/vstream.h
 mark_corrupt.o: ../../include/vstring.h
 mark_corrupt.o: deliver_request.h
+mark_corrupt.o: dsn.h
+mark_corrupt.o: dsn_buf.h
 mark_corrupt.o: mail_params.h
 mark_corrupt.o: mail_queue.h
 mark_corrupt.o: mark_corrupt.c
@@ -1133,7 +1216,7 @@ mbox_open.o: ../../include/vstream.h
 mbox_open.o: ../../include/vstring.h
 mbox_open.o: deliver_flock.h
 mbox_open.o: dot_lockfile.h
-mbox_open.o: dsn_util.h
+mbox_open.o: dsn_buf.h
 mbox_open.o: mbox_conf.h
 mbox_open.o: mbox_open.c
 mbox_open.o: mbox_open.h
@@ -1273,6 +1356,7 @@ pipe_command.o: ../../include/timed_wait.h
 pipe_command.o: ../../include/vbuf.h
 pipe_command.o: ../../include/vstream.h
 pipe_command.o: ../../include/vstring.h
+pipe_command.o: dsn_buf.h
 pipe_command.o: dsn_util.h
 pipe_command.o: mail_copy.h
 pipe_command.o: mail_params.h
@@ -1308,6 +1392,25 @@ quote_822_local.o: ../../include/vstring.h
 quote_822_local.o: quote_822_local.c
 quote_822_local.o: quote_822_local.h
 quote_822_local.o: quote_flags.h
+rcpt_buf.o: ../../include/attr.h
+rcpt_buf.o: ../../include/iostuff.h
+rcpt_buf.o: ../../include/mymalloc.h
+rcpt_buf.o: ../../include/sys_defs.h
+rcpt_buf.o: ../../include/vbuf.h
+rcpt_buf.o: ../../include/vstream.h
+rcpt_buf.o: ../../include/vstring.h
+rcpt_buf.o: mail_proto.h
+rcpt_buf.o: rcpt_buf.c
+rcpt_buf.o: rcpt_buf.h
+rcpt_print.o: ../../include/attr.h
+rcpt_print.o: ../../include/iostuff.h
+rcpt_print.o: ../../include/sys_defs.h
+rcpt_print.o: ../../include/vbuf.h
+rcpt_print.o: ../../include/vstream.h
+rcpt_print.o: mail_proto.h
+rcpt_print.o: rcpt_print.c
+rcpt_print.o: rcpt_print.h
+rcpt_print.o: recipient_list.h
 rec2stream.o: ../../include/sys_defs.h
 rec2stream.o: ../../include/vbuf.h
 rec2stream.o: ../../include/vstream.h
@@ -1445,6 +1548,9 @@ sent.o: ../../include/vstring.h
 sent.o: bounce.h
 sent.o: defer.h
 sent.o: deliver_request.h
+sent.o: dsn.h
+sent.o: dsn_buf.h
+sent.o: dsn_mask.h
 sent.o: dsn_util.h
 sent.o: log_adhoc.h
 sent.o: mail_params.h
@@ -1488,6 +1594,8 @@ strip_addr.o: strip_addr.c
 strip_addr.o: strip_addr.h
 sys_exits.o: ../../include/msg.h
 sys_exits.o: ../../include/sys_defs.h
+sys_exits.o: ../../include/vbuf.h
+sys_exits.o: ../../include/vstring.h
 sys_exits.o: sys_exits.c
 sys_exits.o: sys_exits.h
 timed_ipc.o: ../../include/msg.h
@@ -1556,13 +1664,16 @@ trace.o: ../../include/vstream.h
 trace.o: ../../include/vstring.h
 trace.o: bounce.h
 trace.o: deliver_request.h
+trace.o: dsn.h
+trace.o: dsn_buf.h
+trace.o: dsn_print.h
 trace.o: log_adhoc.h
 trace.o: mail_params.h
 trace.o: mail_proto.h
+trace.o: rcpt_print.h
 trace.o: recipient_list.h
 trace.o: trace.c
 trace.o: trace.h
-trace.o: verify_clnt.h
 user_acl.o: ../../include/match_list.h
 user_acl.o: ../../include/match_ops.h
 user_acl.o: ../../include/sys_defs.h
@@ -1587,6 +1698,8 @@ verify.o: ../../include/vbuf.h
 verify.o: ../../include/vstream.h
 verify.o: ../../include/vstring.h
 verify.o: deliver_request.h
+verify.o: dsn.h
+verify.o: dsn_buf.h
 verify.o: log_adhoc.h
 verify.o: mail_params.h
 verify.o: mail_proto.h
@@ -1603,6 +1716,8 @@ verify_clnt.o: ../../include/vstream.h
 verify_clnt.o: ../../include/vstring.h
 verify_clnt.o: clnt_stream.h
 verify_clnt.o: deliver_request.h
+verify_clnt.o: dsn.h
+verify_clnt.o: dsn_buf.h
 verify_clnt.o: mail_params.h
 verify_clnt.o: mail_proto.h
 verify_clnt.o: recipient_list.h

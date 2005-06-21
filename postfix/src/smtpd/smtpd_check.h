@@ -19,6 +19,7 @@ extern char *smtpd_check_client(SMTPD_STATE *);
 extern char *smtpd_check_helo(SMTPD_STATE *, char *);
 extern char *smtpd_check_mail(SMTPD_STATE *, char *);
 extern char *smtpd_check_size(SMTPD_STATE *, off_t);
+extern char *smtpd_check_queue(SMTPD_STATE *);
 extern char *smtpd_check_rcpt(SMTPD_STATE *, char *);
 extern char *smtpd_check_etrn(SMTPD_STATE *, char *);
 extern char *smtpd_check_data(SMTPD_STATE *);

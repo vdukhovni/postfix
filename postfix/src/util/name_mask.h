@@ -19,11 +19,15 @@ typedef struct {
     int     mask;
 } NAME_MASK;
 
-#define NAME_MASK_MATCH_REQ	(1<<0)
+#define NAME_MASK_FATAL	(1<<0)
 #define NAME_MASK_ANY_CASE	(1<<1)
+#define NAME_MASK_RETURN	(1<<2)
+#define NAME_MASK_COMMA		(1<<3)
+
+#define NAME_MASK_MATCH_REQ	NAME_MASK_FATAL
 
 #define NAME_MASK_NONE		0
-#define NAME_MASK_DEFAULT	(NAME_MASK_MATCH_REQ)
+#define NAME_MASK_DEFAULT	(NAME_MASK_FATAL)
 
 #define name_mask(tag, table, str) \
 	name_mask_opt((tag), (table), (str), NAME_MASK_DEFAULT)

@@ -157,6 +157,7 @@
 #include <mail_params.h>
 #include <rec_type.h>
 #include <mail_proto.h>
+#include <mail_params.h>		/* null_format_string */
 
 /* Application-specific. */
 
@@ -178,7 +179,7 @@
   */
 #define STR(x)	vstring_str(x)
 #define LEN(x)	VSTRING_LEN(x)
-#define SMTPD_PROXY_CONNECT ((char *) 0)
+#define SMTPD_PROXY_CONNECT null_format_string
 #define STREQ(x, y)	(strcmp((x), (y)) == 0)
 
 /* smtpd_xforward_flush - flush forwarding information */

@@ -256,6 +256,7 @@ extern int opterr;			/* XXX use <getopt.h> */
 #define STATFS_IN_SYS_MOUNT_H
 #define HAS_POSIX_REGEXP
 #define BROKEN_WRITE_SELECT_ON_NON_BLOCKING_PIPE
+#define NO_MSGHDR_MSG_CONTROL
 #ifndef NO_IPV6
 # define HAS_IPV6
 #endif
@@ -524,6 +525,7 @@ extern int initgroups(const char *, int);
 #define NATIVE_COMMAND_DIR "/usr/sbin"
 #define NATIVE_DAEMON_DIR "/usr/libexec/postfix"
 
+#define CANT_USE_SEND_RECV_MSG
 #endif
 
 #ifdef AIX3
@@ -558,6 +560,7 @@ extern int setegid(gid_t);
 extern int initgroups(const char *, int);
 #define NATIVE_SENDMAIL_PATH "/usr/lib/sendmail"
 
+#define CANT_USE_SEND_RECV_MSG
 #endif
 
  /*
@@ -587,6 +590,7 @@ extern int initgroups(const char *, int);
 #define USE_STATVFS
 #define STATVFS_IN_SYS_STATVFS_H
 #define BROKEN_WRITE_SELECT_ON_NON_BLOCKING_PIPE
+#define CANT_USE_SEND_RECV_MSG
 #endif
 
 #if defined(IRIX5)
@@ -594,6 +598,9 @@ extern int initgroups(const char *, int);
 #endif
 
 #if defined(IRIX6)
+#ifndef NO_IPV6
+# define HAS_IPV6
+#endif
 #define HAS_POSIX_REGEXP
 #define PIPES_CANT_FIONREAD
 #endif

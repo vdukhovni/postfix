@@ -17,12 +17,41 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
+Incompatibility with snapshot 20050615
+======================================
+
+Many internal protocols have changed. You must reload Postfix or
+else the queue manager and delivery agents will complain about
+unexpected request and reply attributes.
+
+The new DSN support conflicts with VERP support. For Sendmail
+compatibility, Postfix now uses the sendmail -V command line option
+for DSN.  In order to request VERP style delivery, you must now
+specify -XV instead of -V.  The Postfix sendmail command will
+recognize if you try to use -V for VERP-style delivery.  It will
+do the right thing and will remind you of the new syntax.
+
+The queue file format is backwards compatible (again) with Postfix
+2.2. Postfix 2.3 stores attributes that older versions will ignore.
+
+Major changes with snapshot 20050615
+====================================
+
+DSN support as described in RFC 3461 .. RFC 3464. This gives senders
+control over successful and failed delivery notifications.  DSN
+involves extra parameters to the SMTP MAIL FROM and RCPT TO commands,
+as well as extra Postfix sendmail command line options that provide
+a sub-set of the functions of those extra SMTP command parameters.
+
+See DSN_README for details. Some implementation notes are in
+DSN_NOTES, in the top-level source code directory.
+
 Major changes with snapshot 20050510
 ====================================
 
-This release improves usability of DSN (enhanced status codes) in
-Postfix access tables, RBL reply templates and in transport maps
-that use the error(8) delivery agent.
+This release improves usability of enhanced status codes in Postfix
+access tables, RBL reply templates and in transport maps that use
+the error(8) delivery agent.
 
 - When the SMTP server rejects a sender address, it transforms a
   recipient DSN status (e.g., 4.1.1-4.1.6) into the corresponding
@@ -50,6 +79,16 @@ map" for the same thing.
 
 - "non-SMTP command" is now logged BEFORE the client name/address
 and the offending client input, instead of at the end.
+
+Major change with snapshot 20050427+DSN
+=======================================
+
+This is experimental DSN support added to snapshot 20050427.  The
+code is not for production purposes; it is not fully tested, some
+names and interfaces are still rough around the edges, and it does
+not update the oqmgr so you have to use qmgr instead.  Some
+implementation notes and open issues are described in the
+DSN_SUPPORT_README file (top-level directory).
 
 Incompatibility with snapshot 20050329
 ======================================

@@ -23,7 +23,7 @@
 /*	gid_t	group;
 /*	int	lock_style;
 /*	const char *def_dsn;
-/*	DSN_VSTRING *why;
+/*	DSN_BUF	*why;
 /*
 /*	void	mbox_release(mbox)
 /*	MBOX	*mbox;
@@ -104,7 +104,7 @@
 MBOX   *mbox_open(const char *path, int flags, int mode, struct stat * st,
 		          uid_t chown_uid, gid_t chown_gid,
 		          int lock_style, const char *def_dsn,
-		          DSN_VSTRING *why)
+		          DSN_BUF *why)
 {
     struct stat local_statbuf;
     MBOX   *mp;
@@ -126,8 +126,8 @@ MBOX   *mbox_open(const char *path, int flags, int mode, struct stat * st,
     if (st == 0)
 	st = &local_statbuf;
     if ((fp = safe_open(path, flags | O_NONBLOCK, mode, st,
-			chown_uid, chown_gid, why->vstring)) == 0) {
-	dsn_vstring_update_dsn(why, mbox_dsn(errno, def_dsn));
+			chown_uid, chown_gid, why->reason)) == 0) {
+	dsb_status(why, mbox_dsn(errno, def_dsn));
 	return (0);
     }
     close_on_exec(vstream_fileno(fp), CLOSE_ON_EXEC);
@@ -148,16 +148,16 @@ MBOX   *mbox_open(const char *path, int flags, int mode, struct stat * st,
      * an unprivileged user is not supposed to be able to do.
      */
     if (S_ISREG(st->st_mode) && (lock_style & MBOX_DOT_LOCK)) {
-	if (dot_lockfile(path, why->vstring) == 0) {
+	if (dot_lockfile(path, why->reason) == 0) {
 	    locked |= MBOX_DOT_LOCK;
 	} else if (errno == EEXIST) {
-	    dsn_vstring_update_dsn(why, mbox_dsn(EAGAIN, def_dsn));
+	    dsb_status(why, mbox_dsn(EAGAIN, def_dsn));
 	    vstream_fclose(fp);
 	    return (0);
 	} else if (lock_style & MBOX_DOT_LOCK_MAY_FAIL) {
-	    msg_warn("%s", vstring_str(why->vstring));
+	    msg_warn("%s", vstring_str(why->reason));
 	} else {
-	    dsn_vstring_update_dsn(why, mbox_dsn(errno, def_dsn));
+	    dsb_status(why, mbox_dsn(errno, def_dsn));
 	    vstream_fclose(fp);
 	    return (0);
 	}
@@ -170,14 +170,14 @@ MBOX   *mbox_open(const char *path, int flags, int mode, struct stat * st,
      * problems.
      */
 #define HUNKY_DORY(lock_mask, myflock_style) ((lock_style & (lock_mask)) == 0 \
-         || deliver_flock(vstream_fileno(fp), (myflock_style), why->vstring) == 0)
+         || deliver_flock(vstream_fileno(fp), (myflock_style), why->reason) == 0)
 
     if (S_ISREG(st->st_mode)) {
 	if (HUNKY_DORY(MBOX_FLOCK_LOCK, MYFLOCK_STYLE_FLOCK)
 	    && HUNKY_DORY(MBOX_FCNTL_LOCK, MYFLOCK_STYLE_FCNTL)) {
 	    locked |= lock_style;
 	} else {
-	    dsn_vstring_update_dsn(why, mbox_dsn(errno, def_dsn));
+	    dsb_status(why, mbox_dsn(errno, def_dsn));
 	    if (locked & MBOX_DOT_LOCK)
 		dot_unlockfile(path);
 	    vstream_fclose(fp);

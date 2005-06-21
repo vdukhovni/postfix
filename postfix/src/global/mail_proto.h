@@ -193,6 +193,20 @@ extern char *mail_pathname(const char *, const char *);
 
 #define XFORWARD_UNAVAILABLE	"[UNAVAILABLE]"	/* attribute unavailable */
 
+ /*
+  * DSN support.
+  */
+#define MAIL_ATTR_DSN_STATUS	"status"/* XXX Postfix <2.3 compat */
+#define MAIL_ATTR_DSN_DTYPE	"diag_type"	/* dsn diagnostic code */
+#define MAIL_ATTR_DSN_DTEXT	"diag_text"	/* dsn diagnostic code */
+#define MAIL_ATTR_DSN_MTYPE	"mta_type"	/* dsn remote MTA */
+#define MAIL_ATTR_DSN_MNAME	"mta_mname"	/* dsn remote MTA */
+#define MAIL_ATTR_DSN_ACTION	"action"/* XXX Postfix <2.3 compat */
+#define MAIL_ATTR_DSN_ENVID	"envelope_id"	/* dsn envelope id */
+#define MAIL_ATTR_DSN_RET	"ret_flags"	/* dsn full/headers */
+#define MAIL_ATTR_DSN_NOTIFY	"notify_flags"	/* dsn notify flags */
+#define MAIL_ATTR_DSN_ORCPT	"dsn_orig_rcpt"	/* dsn original recipient */
+
 /* LICENSE
 /* .ad
 /* .fi

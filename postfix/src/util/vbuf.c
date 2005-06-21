@@ -82,15 +82,15 @@
 /*	an error.
 /*
 /*	vbuf_timeout() is a macro that returns non-zero if a timeout error
-/*	condition was detected while reading or writing the buffer. The 
+/*	condition was detected while reading or writing the buffer. The
 /*	error status can be reset by calling vbuf_clearerr().
 /*
 /*	vbuf_err() is a macro that returns non-zero if a non-EOF error
-/*	(including timeout) condition was detected while reading or writing 
+/*	(including timeout) condition was detected while reading or writing
 /*	the buffer. The error status can be reset by calling vbuf_clearerr().
 /*
 /*	vbuf_eof() is a macro that returns non-zero if an end-of-file
-/*	condition was detected while reading or writing the buffer. The error 
+/*	condition was detected while reading or writing the buffer. The error
 /*	status can be reset by calling vbuf_clearerr().
 /* APPLICATION CALLBACK SYNOPSIS
 /*	int	get_ready(bp)

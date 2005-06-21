@@ -15,6 +15,12 @@
 #include <scan_dir.h>
 
  /*
+  * Global library.
+  */
+#include <recipient_list.h>
+#include <dsn.h>
+
+ /*
   * The queue manager is built around lots of mutually-referring structures.
   * These typedefs save some typing.
   */
@@ -25,8 +31,6 @@ typedef struct QMGR_MESSAGE QMGR_MESSAGE;
 typedef struct QMGR_TRANSPORT_LIST QMGR_TRANSPORT_LIST;
 typedef struct QMGR_QUEUE_LIST QMGR_QUEUE_LIST;
 typedef struct QMGR_ENTRY_LIST QMGR_ENTRY_LIST;
-typedef struct QMGR_RCPT QMGR_RCPT;
-typedef struct QMGR_RCPT_LIST QMGR_RCPT_LIST;
 typedef struct QMGR_SCAN QMGR_SCAN;
 
  /*
@@ -111,8 +115,7 @@ struct QMGR_TRANSPORT {
     struct HTABLE *queue_byname;	/* queues indexed by domain */
     QMGR_QUEUE_LIST queue_list;		/* queues, round robin order */
     QMGR_TRANSPORT_LIST peers;		/* linkage */
-    char   *dsn;			/* why unavailable */
-    char   *reason;			/* why unavailable */
+    DSN    *dsn;			/* why unavailable */
 };
 
 #define QMGR_TRANSPORT_STAT_DEAD	(1<<1)
@@ -121,7 +124,7 @@ struct QMGR_TRANSPORT {
 typedef void (*QMGR_TRANSPORT_ALLOC_NOTIFY) (QMGR_TRANSPORT *, VSTREAM *);
 extern QMGR_TRANSPORT *qmgr_transport_select(void);
 extern void qmgr_transport_alloc(QMGR_TRANSPORT *, QMGR_TRANSPORT_ALLOC_NOTIFY);
-extern void qmgr_transport_throttle(QMGR_TRANSPORT *, const char *, const char *);
+extern void qmgr_transport_throttle(QMGR_TRANSPORT *, DSN *);
 extern void qmgr_transport_unthrottle(QMGR_TRANSPORT *);
 extern QMGR_TRANSPORT *qmgr_transport_create(const char *);
 extern QMGR_TRANSPORT *qmgr_transport_find(const char *);
@@ -152,8 +155,7 @@ struct QMGR_QUEUE {
     QMGR_ENTRY_LIST todo;		/* todo queue entries */
     QMGR_ENTRY_LIST busy;		/* messages on the wire */
     QMGR_QUEUE_LIST peers;		/* neighbor queues */
-    char   *dsn;			/* why unavailable */
-    char   *reason;			/* why unavailable */
+    DSN   *dsn;			/* why unavailable */
     time_t  clog_time_to_warn;		/* time of next warning */
 };
 
@@ -165,33 +167,9 @@ extern int qmgr_queue_count;
 extern QMGR_QUEUE *qmgr_queue_create(QMGR_TRANSPORT *, const char *, const char *);
 extern QMGR_QUEUE *qmgr_queue_select(QMGR_TRANSPORT *);
 extern void qmgr_queue_done(QMGR_QUEUE *);
-extern void qmgr_queue_throttle(QMGR_QUEUE *, const char *, const char *);
+extern void qmgr_queue_throttle(QMGR_QUEUE *, DSN *);
 extern void qmgr_queue_unthrottle(QMGR_QUEUE *);
 extern QMGR_QUEUE *qmgr_queue_find(QMGR_TRANSPORT *, const char *);
-
- /*
-  * Structure for a recipient list. Initially, it just contains recipient
-  * addresses and file offsets. After the address resolver has done its work,
-  * each recipient is accompanied by a reference to a specific queues (which
-  * implies a specific transport). This is an extended version of similar
-  * information maintained by the recipient_list(3) module.
-  */
-struct QMGR_RCPT {
-    long    offset;			/* REC_TYPE_RCPT byte */
-    char   *orig_rcpt;			/* null or original recipient */
-    char   *address;			/* complete address */
-    QMGR_QUEUE *queue;			/* resolved queue */
-};
-
-struct QMGR_RCPT_LIST {
-    QMGR_RCPT *info;
-    int     len;
-    int     avail;
-};
-
-extern void qmgr_rcpt_list_init(QMGR_RCPT_LIST *);
-extern void qmgr_rcpt_list_add(QMGR_RCPT_LIST *, long, const char *, const char *);
-extern void qmgr_rcpt_list_free(QMGR_RCPT_LIST *);
 
  /*
   * Structure of one next-hop queue entry. In order to save some copying
@@ -200,7 +178,7 @@ extern void qmgr_rcpt_list_free(QMGR_RCPT_LIST *);
 struct QMGR_ENTRY {
     VSTREAM *stream;			/* delivery process */
     QMGR_MESSAGE *message;		/* message info */
-    QMGR_RCPT_LIST rcpt_list;		/* as many as it takes */
+    RECIPIENT_LIST rcpt_list;		/* as many as it takes */
     QMGR_QUEUE *queue;			/* parent linkage */
     QMGR_ENTRY_LIST peers;		/* neighbor entries */
 };
@@ -233,9 +211,9 @@ struct QMGR_MESSAGE {
     char   *queue_id;			/* queue file */
     char   *encoding;			/* content encoding */
     char   *sender;			/* complete address */
+    char   *dsn_envid;			/* DSN envelope ID */
+    int     dsn_ret;			/* DSN headers/full */
     char   *verp_delims;		/* VERP delimiters */
-    char   *errors_to;			/* error report address */
-    char   *return_receipt;		/* confirm receipt address */
     char   *filter_xport;		/* filtering transport */
     char   *inspect_xport;		/* inspecting transport */
     char   *redirect_addr;		/* info@spammer.tld */
@@ -249,7 +227,7 @@ struct QMGR_MESSAGE {
     char   *sasl_username;		/* SASL user name */
     char   *sasl_sender;		/* SASL sender */
     char   *rewrite_context;		/* address qualification */
-    QMGR_RCPT_LIST rcpt_list;		/* complete addresses */
+    RECIPIENT_LIST rcpt_list;		/* complete addresses */
 };
 
  /*
@@ -271,15 +249,14 @@ extern QMGR_MESSAGE *qmgr_message_realloc(QMGR_MESSAGE *);
  /*
   * qmgr_defer.c
   */
-extern void qmgr_defer_transport(QMGR_TRANSPORT *, const char *, const char *);
-extern void qmgr_defer_todo(QMGR_QUEUE *, const char *, const char *);
-extern void qmgr_defer_recipient(QMGR_MESSAGE *, QMGR_RCPT *, const char *, const char *);
+extern void qmgr_defer_transport(QMGR_TRANSPORT *, DSN *);
+extern void qmgr_defer_todo(QMGR_QUEUE *, DSN *);
+extern void qmgr_defer_recipient(QMGR_MESSAGE *, RECIPIENT *, DSN *);
 
  /*
   * qmgr_bounce.c
   */
-extern void PRINTFLIKE(4, 5) qmgr_bounce_recipient(QMGR_MESSAGE *, QMGR_RCPT *,
-				            const char *, const char *,...);
+extern void qmgr_bounce_recipient(QMGR_MESSAGE *, RECIPIENT *, DSN *);
 
  /*
   * qmgr_deliver.c

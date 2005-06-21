@@ -120,9 +120,8 @@
 /*	one would request \fBA F D\fR; in order to notify the queue manager
 /*	of the arrival of new mail one would request \fBI\fR.
 /* STANDARDS
-/* .ad
-/* .fi
-/*	None. The \fBqmgr\fR(8) daemon does not interact with the outside world.
+/*	RFC 3463 (Enhanced status codes)
+/*	RFC 3464 (Delivery status notifications)
 /* SECURITY
 /* .ad
 /* .fi

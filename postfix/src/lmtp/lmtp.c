@@ -314,7 +314,7 @@ static LMTP_STATE *state = 0;
 static int deliver_message(DELIVER_REQUEST *request, char **unused_argv)
 {
     char   *myname = "deliver_message";
-    DSN_VSTRING *why;
+    DSN_BUF *why;
     int     result;
 
     if (msg_verbose)
@@ -337,7 +337,7 @@ static int deliver_message(DELIVER_REQUEST *request, char **unused_argv)
      * performed in the MAIL_SERVER_POST_INIT function (post_init).
      * 
      */
-    why = dsn_vstring_alloc(100);
+    why = dsb_create();
     state->request = request;
     state->src = request->fp;
 
@@ -398,17 +398,18 @@ static int deliver_message(DELIVER_REQUEST *request, char **unused_argv)
 
 	/*
 	 * Bounce or defer the recipients if no connection can be made.
+	 * 
+	 * XXX Unlike enhanced status codes, changing a 4xx into 5xx LMTP code
+	 * is not simply a matter of changing the initial digit. What we're
+	 * doing here is correct only under specific conditions, such as
+	 * changing 450 into 550 or vice versa.
 	 */
 	if ((state->session = lmtp_connect(request->nexthop, why)) == 0) {
-	    if (lmtp_errno == LMTP_RETRY) {
-		DSN_CLASS(why->dsn) = '4';
-		lmtp_site_fail(state, DSN_CODE(why->dsn), 450,
-			       "%s", vstring_str(why->vstring));
-	    } else {
-		DSN_CLASS(why->dsn) = '5';
-		lmtp_site_fail(state, DSN_CODE(why->dsn), 550,
-			       "%s", vstring_str(why->vstring));
-	    }
+	    if (lmtp_errno == LMTP_RETRY)
+		STR(why->status)[0] = STR(why->dtext)[0] = '4';	/* XXX */
+	    else
+		STR(why->status)[0] = STR(why->dtext)[0] = '5';	/* XXX */
+	    lmtp_sess_fail(state, why);
 	}
 
 	/*
@@ -458,7 +459,7 @@ static int deliver_message(DELIVER_REQUEST *request, char **unused_argv)
     /*
      * Clean up.
      */
-    dsn_vstring_free(why);
+    dsb_free(why);
     result = state->status;
     lmtp_chat_reset(state);
 

@@ -88,10 +88,10 @@ static const char *smtp_sasl_compat_mechs(const char *words)
      * Use server's mechanisms if no filter specified
      */
     if (smtp_sasl_mechs == 0 || *words == 0)
-    	return (words);
+	return (words);
 
     if (buf == 0)
-    	buf = vstring_alloc(10);
+	buf = vstring_alloc(10);
 
     VSTRING_RESET(buf);
     VSTRING_TERMINATE(buf);
@@ -117,8 +117,8 @@ void    smtp_sasl_helo_auth(SMTP_SESSION *session, const char *words)
     const char *mech_list = smtp_sasl_compat_mechs(words);
 
     /*
-     * XXX If the server offers no compatible authentication mechanisms,
-     * then pretend that the server doesn't support SASL authentication.
+     * XXX If the server offers no compatible authentication mechanisms, then
+     * pretend that the server doesn't support SASL authentication.
      */
     if (session->sasl_mechanism_list) {
 	if (strcasecmp(session->sasl_mechanism_list, mech_list) == 0)
@@ -133,7 +133,7 @@ void    smtp_sasl_helo_auth(SMTP_SESSION *session, const char *words)
 	session->features |= SMTP_FEATURE_AUTH;
     } else {
 	msg_warn(*words ? "%s offered no supported AUTH mechanisms: '%s'" :
-		    "%s offered null AUTH mechanism list",
+		 "%s offered null AUTH mechanism list",
 		 session->namaddr, words);
     }
 }
@@ -143,7 +143,7 @@ void    smtp_sasl_helo_auth(SMTP_SESSION *session, const char *words)
 int     smtp_sasl_helo_login(SMTP_STATE *state)
 {
     SMTP_SESSION *session = state->session;
-    VSTRING *why;
+    DSN_BUF *why;
     int     ret;
 
     /*
@@ -162,15 +162,16 @@ int     smtp_sasl_helo_login(SMTP_STATE *state)
      * error is unrecoverable from a session point of view - the session will
      * not be reused.
      */
-    why = vstring_alloc(10);
+    why = dsb_create();
     ret = 0;
     smtp_sasl_start(session, VAR_SMTP_SASL_OPTS, var_smtp_sasl_opts);
     if (smtp_sasl_authenticate(session, why) <= 0) {
-	ret = smtp_site_fail(state, "4.7.0", 450, "Authentication failed: %s",
-			     vstring_str(why));
+	vstring_prepend(why->reason, "Authentication failed: ",
+			sizeof("Authentication failed: ") - 1);
+	ret = smtp_sess_fail(state, why);
 	/* Session reuse is disabled. */
     }
-    vstring_free(why);
+    dsb_free(why);
     return (ret);
 }
 

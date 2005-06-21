@@ -81,6 +81,8 @@ LMTP_STATE *lmtp_state_alloc(void)
 #endif
     state->sndbufsize = 0;
     state->reuse = 0;
+    state->dsn_reason = 0;
+
     return (state);
 }
 
@@ -94,5 +96,8 @@ void    lmtp_state_free(LMTP_STATE *state)
 #ifdef USE_SASL_AUTH
     lmtp_sasl_cleanup(state);
 #endif
+    if (state->dsn_reason)
+	vstring_free(state->dsn_reason);
+
     myfree((char *) state);
 }

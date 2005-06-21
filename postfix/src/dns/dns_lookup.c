@@ -40,7 +40,7 @@
 /*	an invalid name is reported as a transient error.
 /*
 /*	dns_lookup_l() and dns_lookup_v() allow the user to specify
-/*	a list of resource types. 
+/*	a list of resource types.
 /* INPUTS
 /* .ad
 /* .fi

@@ -38,8 +38,7 @@
   * Functional interface.
   */
 extern int verify_clnt_query(const char *, int *, VSTRING *);
-extern int PRINTFLIKE(3, 4) verify_clnt_update(const char *, int, const char *,...);
-extern int verify_clnt_vupdate(const char *, int, const char *, va_list);
+extern int verify_clnt_update(const char *, int, const char *);
 
 /* LICENSE
 /* .ad

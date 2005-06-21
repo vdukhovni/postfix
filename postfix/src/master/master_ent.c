@@ -366,7 +366,7 @@ MASTER_SERV *get_master_ent()
 					     serv_port.buf, (char *) 0) :
 			  mystrdup(serv_port.buf));
 	    freeaddrinfo(res0);
-	} 
+	}
 	/* Canonicalize numeric or symbolic service. */
 	else if (hostaddr_to_sockaddr((char *) 0, port, 0, &res0) == 0) {
 	    SOCKADDR_TO_HOSTADDR(res0->ai_addr, res0->ai_addrlen,
@@ -375,7 +375,7 @@ MASTER_SERV *get_master_ent()
 					     serv_port.buf, (char *) 0) :
 			  mystrdup(serv_port.buf));
 	    freeaddrinfo(res0);
-	} 
+	}
 	/* Bad service name? */
 	else
 #endif

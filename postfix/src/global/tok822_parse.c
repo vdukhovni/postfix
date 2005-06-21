@@ -62,7 +62,7 @@
 /*	tok822_scan_addr() converts the external-form string in
 /*	\fIstr\fR to an address token tree. This is just string to
 /*	token list conversion; no parsing is done. This routine is
-/*	suitable for data should contain just one address and no
+/*	suitable for data that should contain just one address and no
 /*	other information.
 /*
 /*	tok822_externalize() converts a token list to external form.

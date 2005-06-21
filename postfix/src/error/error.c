@@ -120,6 +120,7 @@
 #include <deliver_completed.h>
 #include <flush_clnt.h>
 #include <dsn_util.h>
+#include <sys_exits.h>
 
 /* Single server skeleton. */
 
@@ -136,6 +137,7 @@ static int deliver_message(DELIVER_REQUEST *request)
     RECIPIENT *rcpt;
     int     nrcpt;
     DSN_SPLIT dp;
+    DSN     dsn;
 
     if (msg_verbose)
 	msg_info("deliver_message: from %s", request->sender);
@@ -168,14 +170,13 @@ static int deliver_message(DELIVER_REQUEST *request)
 #define BOUNCE_FLAGS(request) DEL_REQ_TRACE_FLAGS(request->flags)
 
     dsn_split(&dp, "5.0.0", request->nexthop);
+    (void) DSN_SIMPLE(&dsn, DSN_STATUS(dp.dsn), dp.text);
     for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
 	rcpt = request->rcpt_list.info + nrcpt;
 	if (rcpt->offset >= 0) {
 	    status = bounce_append(BOUNCE_FLAGS(request), request->queue_id,
-				   rcpt->orig_addr, rcpt->address,
-				   rcpt->offset, "none", DSN_CODE(dp.dsn),
-				   request->arrival_time,
-				   "%s", dp.text);
+				   request->arrival_time, rcpt, "none",
+				   &dsn);
 	    if (status == 0)
 		deliver_completed(src, rcpt->offset);
 	    result |= status;

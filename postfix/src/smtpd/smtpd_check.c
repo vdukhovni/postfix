@@ -39,6 +39,13 @@
 /*
 /*	char	*smtpd_check_eod(state)
 /*	SMTPD_STATE *state;
+/*
+/*	char	*smtpd_check_size(state, size)
+/*	SMTPD_STATE *state;
+/*	off_t	size;
+/*
+/*	char	*smtpd_check_queue(state)
+/*	SMTPD_STATE *state;
 /* DESCRIPTION
 /*	This module implements additional checks on SMTP client requests.
 /*	A client request is validated in the context of the session state.
@@ -101,11 +108,13 @@
 /* .PP
 /*	smtpd_check_size() checks if a message with the given size can
 /*	be received (zero means that the message size is unknown).  The
-/*	message is rejected when:
-/* .IP \(bu
-/*	The message size exceeds the non-zero bound specified with the
+/*	message is rejected when
+/*	the message size exceeds the non-zero bound specified with the
 /*	\fImessage_size_limit\fR configuration parameter. This is a
 /*	permanent error.
+/*
+/*	smtpd_check_queue() checks the available queue file system
+/*	space.  The message is rejected when:
 /* .IP \(bu
 /*	The available queue file system space is less than the amount
 /*	specified with the \fImin_queue_free\fR configuration parameter.
@@ -1863,7 +1872,8 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 	dsn_split(&dp, "5.7.1", cmd_text);
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				   var_access_map_code,
-				   smtpd_dsn_fix(DSN_CODE(dp.dsn), reply_class),
+				   smtpd_dsn_fix(DSN_STATUS(dp.dsn),
+						 reply_class),
 				   "<%s>: %s rejected: %s",
 				   reply_name, reply_class,
 				   *dp.text ? dp.text : "Access denied"));
@@ -1972,7 +1982,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     if (STREQUAL(value, DEFER_IF_PERMIT, cmd_len)) {
 	dsn_split(&dp, "4.7.1", cmd_text);
 	DEFER_IF_PERMIT3(state, MAIL_ERROR_POLICY,
-			 450, smtpd_dsn_fix(DSN_CODE(dp.dsn), reply_class),
+			 450, smtpd_dsn_fix(DSN_STATUS(dp.dsn), reply_class),
 			 "<%s>: %s rejected: %s",
 			 reply_name, reply_class,
 			 *dp.text ? dp.text : "Service unavailable");
@@ -1986,7 +1996,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     if (STREQUAL(value, DEFER_IF_REJECT, cmd_len)) {
 	dsn_split(&dp, "4.7.1", cmd_text);
 	DEFER_IF_REJECT3(state, MAIL_ERROR_POLICY,
-			 450, smtpd_dsn_fix(DSN_CODE(dp.dsn), reply_class),
+			 450, smtpd_dsn_fix(DSN_STATUS(dp.dsn), reply_class),
 			 "<%s>: %s rejected: %s",
 			 reply_name, reply_class,
 			 *dp.text ? dp.text : "Service unavailable");
@@ -2036,7 +2046,8 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 	dsn_split(&dp, def_dsn, cmd_text);
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				   code,
-			       smtpd_dsn_fix(DSN_CODE(dp.dsn), reply_class),
+				   smtpd_dsn_fix(DSN_STATUS(dp.dsn),
+						 reply_class),
 				   "<%s>: %s rejected: %s",
 				   reply_name, reply_class,
 				   *dp.text ? dp.text : "Access denied"));
@@ -2885,7 +2896,8 @@ static int rbl_reject_reply(SMTPD_STATE *state, SMTPD_RBL_STATE *rbl,
 	dsn_split(&dp, "4.7.1", STR(why) + 4);
 	result = smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				    code,
-			       smtpd_dsn_fix(DSN_CODE(dp.dsn), reply_class),
+				    smtpd_dsn_fix(DSN_STATUS(dp.dsn),
+						  reply_class),
 				    "%s", *dp.text ?
 				    dp.text : "Service unavailable");
     }
@@ -4140,7 +4152,8 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient,
 	return (smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 				   (reply->flags & RESOLVE_CLASS_ALIAS) ?
 				   var_virt_alias_code : 550,
-			       smtpd_dsn_fix(DSN_CODE(dp.dsn), reply_class),
+				   smtpd_dsn_fix(DSN_STATUS(dp.dsn),
+						 reply_class),
 				   "<%s>: %s rejected: %s",
 				   recipient, reply_class,
 				   dp.text));
@@ -4231,7 +4244,32 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient,
 
 char   *smtpd_check_size(SMTPD_STATE *state, off_t size)
 {
-    char   *myname = "smtpd_check_size";
+    int     status;
+
+    /*
+     * Return here in case of serious trouble.
+     */
+    SMTPD_CHECK_RESET();
+    if ((status = setjmp(smtpd_check_buf)) != 0)
+	return (status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
+
+    /*
+     * Check against file size limit.
+     */
+    if (var_message_limit > 0 && size > var_message_limit) {
+	(void) smtpd_check_reject(state, MAIL_ERROR_POLICY,
+				  552, "5.3.4",
+				  "Message size exceeds fixed limit");
+	return (STR(error_text));
+    }
+    return (0);
+}
+
+/* smtpd_check_queue - check queue space */
+
+char   *smtpd_check_queue(SMTPD_STATE *state)
+{
+    char   *myname = "smtpd_check_queue";
     struct fsspace fsbuf;
     int     status;
 
@@ -4248,12 +4286,6 @@ char   *smtpd_check_size(SMTPD_STATE *state, off_t size)
      */
 #define BLOCKS(x)	((x) / fsbuf.block_size)
 
-    if (var_message_limit > 0 && size > var_message_limit) {
-	(void) smtpd_check_reject(state, MAIL_ERROR_POLICY,
-				  552, "5.3.4",
-				  "Message size exceeds fixed limit");
-	return (STR(error_text));
-    }
     fsspace(".", &fsbuf);
     if (msg_verbose)
 	msg_info("%s: blocks %lu avail %lu min_free %lu msg_size_limit %lu",

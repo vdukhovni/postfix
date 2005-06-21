@@ -129,7 +129,7 @@ static const char *local_expand_lookup(const char *name, int mode, char *ptr)
     } else if (STREQ(name, "mailbox")) {
 	return (local->state->msg_attr.local);
     } else if (STREQ(name, "recipient")) {
-	return (local->state->msg_attr.recipient);
+	return (local->state->msg_attr.rcpt.address);
     } else if (STREQ(name, "extension")) {
 	if (mode == MAC_EXP_MODE_USE)
 	    local->status |= LOCAL_EXP_EXTENSION_MATCHED;

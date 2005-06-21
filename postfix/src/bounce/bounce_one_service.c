@@ -7,16 +7,17 @@
 /*	#include "bounce_service.h"
 /*
 /*	int     bounce_one_service(flags, queue_name, queue_id, encoding,
-/*					orig_sender, orig_recipient,
-/*					status, why)
+/*					orig_sender, envid, ret,
+/*					rcpt, dsn)
 /*	int	flags;
 /*	char	*queue_name;
 /*	char	*queue_id;
 /*	char	*encoding;
 /*	char	*orig_sender;
-/*	char	*orig_recipient;
-/*	char	*status;
-/*	char	*why;
+/*	char	*envid;
+/*	int	ret;
+/*	RECIPIENT *rcpt;
+/*	DSN	*dsn;
 /* DESCRIPTION
 /*	This module implements the server side of the bounce_one()
 /*	(send bounce message for one recipient) request.
@@ -31,9 +32,7 @@
 /*	with the entire undeliverable mail is sent to the postmaster,
 /*	with as sender address the double bounce address.
 /* DIAGNOSTICS
-/*	Fatal error: error opening existing file. Warnings: corrupt
-/*	message file. A corrupt message is saved to the "corrupt"
-/*	queue for further inspection.
+/*	Fatal error: error opening existing file.
 /* BUGS
 /* SEE ALSO
 /*	bounce(3) basic bounce service client interface
@@ -73,6 +72,7 @@
 #include <mail_addr.h>
 #include <mail_error.h>
 #include <bounce.h>
+#include <dsn_mask.h>
 
 /* Application-specific. */
 
@@ -84,9 +84,8 @@
 
 int     bounce_one_service(int flags, char *queue_name, char *queue_id,
 			           char *encoding, char *orig_sender,
-			           char *orig_recipient, char *recipient,
-			           long offset, char *dsn_status,
-			           char *dsn_action, char *why)
+			           char *dsn_envid, int dsn_ret,
+			           RECIPIENT *rcpt, DSN *dsn)
 {
     BOUNCE_INFO *bounce_info;
     int     bounce_status = 1;
@@ -98,15 +97,11 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
     /*
      * Initialize. Open queue file, bounce log, etc.
      */
-    bounce_info = bounce_mail_one_init(queue_name, queue_id,
-				       encoding, orig_recipient,
-				       recipient, offset, dsn_status,
-				       dsn_action, why);
+    bounce_info = bounce_mail_one_init(queue_name, queue_id, encoding,
+				       dsn_envid, rcpt, dsn);
 
 #define NULL_SENDER		MAIL_ADDR_EMPTY	/* special address */
 #define NULL_TRACE_FLAGS	0
-#define BOUNCE_HEADERS		1
-#define BOUNCE_ALL		0
 
     /*
      * The choice of bounce sender address depends on the original sender
@@ -136,13 +131,14 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
     }
 
     /*
-     * Single bounce failed. Optionally send a double bounce to postmaster.
+     * Single bounce failed. Optionally send a double bounce to postmaster,
+     * subject to notify_classes restrictions.
      */
 #define ANY_BOUNCE (MAIL_ERROR_2BOUNCE | MAIL_ERROR_BOUNCE)
-#define SKIP_IF_BOUNCE ((notify_mask & ANY_BOUNCE) == 0)
+#define SEND_POSTMASTER_ANY_BOUNCE_NOTICE (notify_mask & ANY_BOUNCE)
 
     else if (*orig_sender == 0) {
-	if (SKIP_IF_BOUNCE) {
+	if (!SEND_POSTMASTER_ANY_BOUNCE_NOTICE) {
 	    bounce_status = 0;
 	} else {
 	    if ((bounce = post_mail_fopen_nowait(mail_addr_double_bounce(),
@@ -160,43 +156,51 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
 		    && bounce_recipient_log(bounce, bounce_info) == 0
 		    && bounce_header_dsn(bounce, bounce_info) == 0
 		    && bounce_recipient_dsn(bounce, bounce_info) == 0)
-		    bounce_original(bounce, bounce_info, BOUNCE_ALL);
+		    bounce_original(bounce, bounce_info, DSN_RET_FULL);
 		bounce_status = post_mail_fclose(bounce);
 	    }
 	}
     }
 
     /*
-     * Non-bounce failed. Send a single bounce.
+     * Non-bounce failed. Send a single bounce, subject to DSN NOTIFY
+     * restrictions.
      */
     else {
-	if ((bounce = post_mail_fopen_nowait(NULL_SENDER, orig_sender,
-					     CLEANUP_FLAG_MASK_INTERNAL,
-					     NULL_TRACE_FLAGS)) != 0) {
+	if (bounce_info->log_handle->rcpt.dsn_notify != 0	/* compat */
+	&& (bounce_info->log_handle->rcpt.dsn_notify & DSN_NOTIFY_FAILURE) == 0) {
+	    bounce_status = 0;
+	} else {
+	    if ((bounce = post_mail_fopen_nowait(NULL_SENDER, orig_sender,
+						 CLEANUP_FLAG_MASK_INTERNAL,
+						 NULL_TRACE_FLAGS)) != 0) {
 
-	    /*
-	     * Send the bounce message header, some boilerplate text that
-	     * pretends that we are a polite mail system, the text with
-	     * reason for the bounce, and a copy of the original message.
-	     */
-	    if (bounce_header(bounce, bounce_info, orig_sender) == 0
-		&& bounce_boilerplate(bounce, bounce_info) == 0
-		&& bounce_recipient_log(bounce, bounce_info) == 0
-		&& bounce_header_dsn(bounce, bounce_info) == 0
-		&& bounce_recipient_dsn(bounce, bounce_info) == 0)
-		bounce_original(bounce, bounce_info, BOUNCE_ALL);
-	    bounce_status = post_mail_fclose(bounce);
+		/*
+		 * Send the bounce message header, some boilerplate text that
+		 * pretends that we are a polite mail system, the text with
+		 * reason for the bounce, and a copy of the original message.
+		 */
+		if (bounce_header(bounce, bounce_info, orig_sender) == 0
+		    && bounce_boilerplate(bounce, bounce_info) == 0
+		    && bounce_recipient_log(bounce, bounce_info) == 0
+		    && bounce_header_dsn(bounce, bounce_info) == 0
+		    && bounce_recipient_dsn(bounce, bounce_info) == 0)
+		    bounce_original(bounce, bounce_info, dsn_ret ?
+				    dsn_ret : DSN_RET_FULL);
+		bounce_status = post_mail_fclose(bounce);
+	    }
 	}
 
 	/*
-	 * Optionally, send a postmaster notice.
+	 * Optionally send a postmaster notice, subject to notify_classes
+	 * restrictions.
 	 * 
 	 * This postmaster notice is not critical, so if it fails don't
 	 * retransmit the bounce that we just generated, just log a warning.
 	 */
-#define WANT_IF_BOUNCE ((notify_mask & MAIL_ERROR_BOUNCE))
+#define SEND_POSTMASTER_SINGLE_BOUNCE_NOTICE (notify_mask & MAIL_ERROR_BOUNCE)
 
-	if (bounce_status == 0 && (WANT_IF_BOUNCE)
+	if (bounce_status == 0 && SEND_POSTMASTER_SINGLE_BOUNCE_NOTICE
 	    && strcasecmp(orig_sender, mail_addr_double_bounce()) != 0) {
 
 	    /*
@@ -214,7 +218,7 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
 		    && bounce_recipient_log(bounce, bounce_info) == 0
 		    && bounce_header_dsn(bounce, bounce_info) == 0
 		    && bounce_recipient_dsn(bounce, bounce_info) == 0)
-		    bounce_original(bounce, bounce_info, BOUNCE_HEADERS);
+		    bounce_original(bounce, bounce_info, DSN_RET_HDRS);
 		postmaster_status = post_mail_fclose(bounce);
 	    }
 	    if (postmaster_status)

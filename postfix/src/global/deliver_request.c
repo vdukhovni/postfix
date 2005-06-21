@@ -17,11 +17,9 @@
 /*		char	*nexthop;
 /*		char	*encoding;
 /*		char	*sender;
-/*		char	*errors_to;
-/*		char	*return_receipt;
 /*		long arrival_time;
 /*		RECIPIENT_LIST rcpt_list;
-/*		char	*hop_status;
+/*		DSN	*hop_status;
 /*		char	*client_name;
 /*		char	*client_addr;
 /*		char	*client_proto;
@@ -30,6 +28,8 @@
 /*		char	*sasl_username;
 /*		char	*sasl_sender;
 /*		char	*rewrite_context;
+/*		char   *dsn_envid;
+/*		int     dsn_ret;
 /* .in -5
 /*	} DELIVER_REQUEST;
 /*
@@ -61,15 +61,12 @@
 /*	The \fBDEL_REQ_FLAG_DEFLT\fR constant provides a convenient shorthand
 /*	for the most common case: delete successful and bounced recipients.
 /*
-/*	The \fIhop_status\fR structure member must be updated
-/*	by the caller when all delivery to the destination in
-/*	\fInexthop\fR should be deferred. The value of the
-/*	\fIhop_status\fR member is the reason, with optional
-/*	RFC 3463-style detail at the beginning; it is passed
-/*	to myfree().
+/*	The \fIhop_status\fR member must be updated by the caller
+/*	when all delivery to the destination in \fInexthop\fR should
+/*	be deferred. This member is passed to to dsn_free().
 /*
 /*	deliver_request_done() reports the delivery status back to the
-/*	client, including the optional \fIhop_status\fR information,
+/*	client, including the optional \fIhop_status\fR etc. information,
 /*	closes the queue file,
 /*	and destroys the DELIVER_REQUEST structure. The result is
 /*	non-zero when the status could not be reported to the client.
@@ -112,6 +109,8 @@
 #include "mail_proto.h"
 #include "mail_open_ok.h"
 #include "recipient_list.h"
+#include "dsn.h"
+#include "dsn_print.h"
 #include "deliver_request.h"
 
 /* deliver_request_initial - send initial status code */
@@ -139,19 +138,25 @@ static int deliver_request_initial(VSTREAM *stream)
 
 /* deliver_request_final - send final delivery request status */
 
-static int deliver_request_final(VSTREAM *stream, char *reason, int status)
+static int deliver_request_final(VSTREAM *stream, DELIVER_REQUEST *request,
+				         int status)
 {
+    DSN    *hop_status;
     int     err;
+    static DSN dummy_dsn = {"", "", "", "", "", "", ""};
 
     /*
      * Send the status and the optional reason.
      */
-    if (reason == 0)
-	reason = "";
+#define STRING_OR_EMPTY(s) ((s) ? (s) : "")
+
+    if ((hop_status = request->hop_status) == 0)
+	hop_status = &dummy_dsn;
     if (msg_verbose)
-	msg_info("deliver_request_final: send: \"%s\" %d", reason, status);
+	msg_info("deliver_request_final: send: \"%s\" %d",
+		 hop_status->reason, status);
     attr_print(stream, ATTR_FLAG_NONE,
-	       ATTR_TYPE_STR, MAIL_ATTR_WHY, reason,
+	       ATTR_TYPE_FUNC, dsn_print, (void *) hop_status,
 	       ATTR_TYPE_NUM, MAIL_ATTR_STATUS, status,
 	       ATTR_TYPE_END);
     if ((err = vstream_fflush(stream)) != 0)
@@ -159,11 +164,11 @@ static int deliver_request_final(VSTREAM *stream, char *reason, int status)
 	    msg_warn("send final status: %m");
 
     /*
-     * XXX Solaris UNIX-domain streams sockets are brain dead. They lose data
-     * when you close them immediately after writing to them. That is not how
-     * sockets are supposed to behave! The workaround is to wait until the
-     * receiver closes the connection. Calling VSTREAM_GETC() has the benefit
-     * of using whatever timeout is specified in the ipc_timeout parameter.
+     * With some UNIX systems, stream sockets lose data when you close them
+     * immediately after writing to them. That is not how sockets are
+     * supposed to behave! The workaround is to wait until the receiver
+     * closes the connection. Calling VSTREAM_GETC() has the benefit of using
+     * whatever timeout is specified in the ipc_timeout parameter.
      */
     (void) VSTREAM_GETC(stream);
     return (err);
@@ -180,10 +185,9 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
     static VSTRING *queue_id;
     static VSTRING *nexthop;
     static VSTRING *encoding;
+    static VSTRING *dsn_orcpt;
     static VSTRING *orig_addr;
     static VSTRING *address;
-    static VSTRING *errors_to;
-    static VSTRING *return_receipt;
     static VSTRING *client_name;
     static VSTRING *client_addr;
     static VSTRING *client_proto;
@@ -192,7 +196,10 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
     static VSTRING *sasl_username;
     static VSTRING *sasl_sender;
     static VSTRING *rewrite_context;
+    static VSTRING *dsn_envid;
     long    offset;
+    int     dsn_ret;
+    int     dsn_notify;
 
     /*
      * Initialize. For some reason I wanted to allow for multiple instances
@@ -204,10 +211,9 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 	queue_id = vstring_alloc(10);
 	nexthop = vstring_alloc(10);
 	encoding = vstring_alloc(10);
+	dsn_orcpt = vstring_alloc(10);
 	orig_addr = vstring_alloc(10);
 	address = vstring_alloc(10);
-	errors_to = vstring_alloc(10);
-	return_receipt = vstring_alloc(10);
 	client_name = vstring_alloc(10);
 	client_addr = vstring_alloc(10);
 	client_proto = vstring_alloc(10);
@@ -216,6 +222,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 	sasl_username = vstring_alloc(10);
 	sasl_sender = vstring_alloc(10);
 	rewrite_context = vstring_alloc(10);
+	dsn_envid = vstring_alloc(10);
     }
 
     /*
@@ -231,8 +238,8 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 		  ATTR_TYPE_STR, MAIL_ATTR_NEXTHOP, nexthop,
 		  ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
 		  ATTR_TYPE_STR, MAIL_ATTR_SENDER, address,
-		  ATTR_TYPE_STR, MAIL_ATTR_ERRTO, errors_to,
-		  ATTR_TYPE_STR, MAIL_ATTR_RRCPT, return_receipt,
+		  ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, dsn_envid,
+		  ATTR_TYPE_NUM, MAIL_ATTR_DSN_RET, &dsn_ret,
 		  ATTR_TYPE_LONG, MAIL_ATTR_TIME, &request->arrival_time,
 		  ATTR_TYPE_STR, MAIL_ATTR_CLIENT_NAME, client_name,
 		  ATTR_TYPE_STR, MAIL_ATTR_CLIENT_ADDR, client_addr,
@@ -255,8 +262,6 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
     request->nexthop = mystrdup(vstring_str(nexthop));
     request->encoding = mystrdup(vstring_str(encoding));
     request->sender = mystrdup(vstring_str(address));
-    request->errors_to = mystrdup(vstring_str(errors_to));
-    request->return_receipt = mystrdup(vstring_str(return_receipt));
     request->client_name = mystrdup(vstring_str(client_name));
     request->client_addr = mystrdup(vstring_str(client_addr));
     request->client_proto = mystrdup(vstring_str(client_proto));
@@ -265,6 +270,8 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
     request->sasl_username = mystrdup(vstring_str(sasl_username));
     request->sasl_sender = mystrdup(vstring_str(sasl_sender));
     request->rewrite_context = mystrdup(vstring_str(rewrite_context));
+    request->dsn_envid = mystrdup(vstring_str(dsn_envid));
+    request->dsn_ret = dsn_ret;
 
     /*
      * Extract the recipient offset and address list. Skip over any
@@ -280,13 +287,16 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 	if (offset == 0)
 	    break;
 	if (attr_scan(stream, ATTR_FLAG_MORE | ATTR_FLAG_STRICT,
+		      ATTR_TYPE_STR, MAIL_ATTR_DSN_ORCPT, dsn_orcpt,
+		      ATTR_TYPE_NUM, MAIL_ATTR_DSN_NOTIFY, &dsn_notify,
 		      ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orig_addr,
 		      ATTR_TYPE_STR, MAIL_ATTR_RECIP, address,
-		      ATTR_TYPE_END) != 2) {
+		      ATTR_TYPE_END) != 4) {
 	    msg_warn("%s: error receiving recipient attributes", myname);
 	    return (-1);
 	}
 	recipient_list_add(&request->rcpt_list, offset,
+			   vstring_str(dsn_orcpt), dsn_notify,
 			   vstring_str(orig_addr),
 			   vstring_str(address));
     }
@@ -333,11 +343,9 @@ static DELIVER_REQUEST *deliver_request_alloc(void)
     request->nexthop = 0;
     request->encoding = 0;
     request->sender = 0;
-    request->errors_to = 0;
-    request->return_receipt = 0;
     request->data_offset = 0;
     request->data_size = 0;
-    recipient_list_init(&request->rcpt_list);
+    recipient_list_init(&request->rcpt_list, RCPT_LIST_INIT_STATUS);
     request->hop_status = 0;
     request->client_name = 0;
     request->client_addr = 0;
@@ -366,13 +374,9 @@ static void deliver_request_free(DELIVER_REQUEST *request)
 	myfree(request->encoding);
     if (request->sender)
 	myfree(request->sender);
-    if (request->errors_to)
-	myfree(request->errors_to);
-    if (request->return_receipt)
-	myfree(request->return_receipt);
     recipient_list_free(&request->rcpt_list);
     if (request->hop_status)
-	myfree(request->hop_status);
+	dsn_free(request->hop_status);
     if (request->client_name)
 	myfree(request->client_name);
     if (request->client_addr)
@@ -389,6 +393,8 @@ static void deliver_request_free(DELIVER_REQUEST *request)
 	myfree(request->sasl_sender);
     if (request->rewrite_context)
 	myfree(request->rewrite_context);
+    if (request->dsn_envid)
+	myfree(request->dsn_envid);
     myfree((char *) request);
 }
 
@@ -431,7 +437,7 @@ int     deliver_request_done(VSTREAM *stream, DELIVER_REQUEST *request, int stat
 {
     int     err;
 
-    err = deliver_request_final(stream, request->hop_status, status);
+    err = deliver_request_final(stream, request, status);
     deliver_request_free(request);
     return (err);
 }

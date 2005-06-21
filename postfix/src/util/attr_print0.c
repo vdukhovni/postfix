@@ -46,7 +46,7 @@
 /* .RS
 /* .IP "ATTR_TYPE_NUM (char *, int)"
 /*	This argument is followed by an attribute name and an integer.
-/* .IP "ATTR_TYPE_NUM (char *, long)"
+/* .IP "ATTR_TYPE_LONG (char *, long)"
 /*	This argument is followed by an attribute name and a long integer.
 /* .IP "ATTR_TYPE_STR (char *, char *)"
 /*	This argument is followed by an attribute name and a null-terminated
@@ -54,6 +54,9 @@
 /* .IP "ATTR_TYPE_DATA (char *, int, char *)"
 /*	This argument is followed by an attribute name, an attribute value
 /*	length, and an attribute value pointer.
+/* .IP "ATTR_TYPE_FUNC (ATTR_PRINT_FN, void *)"
+/*	This argument is followed by a function pointer and generic data
+/*	pointer.
 /* .IP "ATTR_TYPE_HASH (HTABLE *)"
 /* .IP "ATTR_TYPE_NAMEVAL (NVTABLE *)"
 /*	The content of the table is sent as a sequence of string-valued
@@ -111,6 +114,8 @@ int     attr_vprint0(VSTREAM *fp, int flags, va_list ap)
     HTABLE_INFO **ht;
     int     len_val;
     static VSTRING *base64_buf;
+    ATTR_PRINT_FN print_fn;
+    void   *print_arg;
 
     /*
      * Sanity check.
@@ -161,6 +166,11 @@ int     attr_vprint0(VSTREAM *fp, int flags, va_list ap)
 	    vstream_fwrite(fp, STR(base64_buf), LEN(base64_buf) + 1);
 	    if (msg_verbose)
 		msg_info("send attr %s = [data %d bytes]", attr_name, len_val);
+	    break;
+	case ATTR_TYPE_FUNC:
+	    print_fn = va_arg(ap, ATTR_PRINT_FN);
+	    print_arg = va_arg(ap, void *);
+	    print_fn(fp, flags | ATTR_FLAG_MORE, print_arg);
 	    break;
 	case ATTR_TYPE_HASH:
 	    ht_info_list = htable_list(va_arg(ap, HTABLE *));

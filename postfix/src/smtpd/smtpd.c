@@ -41,6 +41,7 @@
 /*	RFC 2821 (SMTP protocol)
 /*	RFC 2920 (SMTP Pipelining)
 /*	RFC 3207 (STARTTLS command)
+/*	RFC 3461 (SMTP DSN Extension)
 /*	RFC 3463 (Enhanced Status Codes)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
@@ -795,6 +796,8 @@
 #include <ehlo_mask.h>			/* ehlo filter */
 #include <maps.h>			/* ehlo filter */
 #include <valid_mailhost_addr.h>
+#include <dsn_mask.h>
+#include <xtext.h>
 
 /* Single-threaded server skeleton. */
 
@@ -861,7 +864,7 @@ bool    var_allow_untrust_route;
 int     var_smtpd_junk_cmd_limit;
 int     var_smtpd_rcpt_overlim;
 bool    var_smtpd_sasl_enable;
-bool   var_smtpd_sasl_auth_hdr;
+bool    var_smtpd_sasl_auth_hdr;
 char   *var_smtpd_sasl_opts;
 char   *var_smtpd_sasl_appname;
 char   *var_smtpd_sasl_realm;
@@ -1090,7 +1093,6 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 {
     char   *err;
     int     discard_mask;
-    const char *ehlo_words;
     VSTRING *reply_buf;
 
     /*
@@ -1137,17 +1139,6 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     }
 
     /*
-     * Determine what server EHLO keywords to suppress, typically to avoid
-     * inter-operability problems.
-     */
-    if (ehlo_discard_maps == 0
-	|| (ehlo_words = maps_find(ehlo_discard_maps, state->addr, 0)) == 0)
-	ehlo_words = var_smtpd_ehlo_dis_words;
-    discard_mask = ehlo_mask(ehlo_words);
-    if (discard_mask && !(discard_mask & EHLO_MASK_SILENT))
-	msg_info("discarding EHLO keywords: %s", str_ehlo_mask(discard_mask));
-
-    /*
      * Build the EHLO response, suppressing features as requested. We store
      * each output line in a one-element output queue, where it sits until we
      * know if we need to prepend "250-" or "250 " to it. Each time we
@@ -1166,6 +1157,10 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply((state), "250-%s", STR(reply_buf)); \
 	vstring_sprintf((reply_buf), (fmt), (arg)); \
     } while (0)
+
+    discard_mask = state->ehlo_discard_mask;
+    if (discard_mask && !(discard_mask & EHLO_MASK_SILENT))
+	msg_info("discarding EHLO keywords: %s", str_ehlo_mask(discard_mask));
 
     reply_buf = vstring_alloc(10);
     vstring_strcpy(reply_buf, var_myhostname);
@@ -1222,6 +1217,8 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	ENQUEUE_FIX_REPLY(state, reply_buf, "ENHANCEDSTATUSCODES");
     if ((discard_mask & EHLO_MASK_8BITMIME) == 0)
 	ENQUEUE_FIX_REPLY(state, reply_buf, "8BITMIME");
+    if ((discard_mask & EHLO_MASK_DSN) == 0)
+	ENQUEUE_FIX_REPLY(state, reply_buf, "DSN");
     smtpd_chat_reply(state, "250 %s", STR(reply_buf));
 
     /*
@@ -1317,6 +1314,30 @@ static void mail_open_stream(SMTPD_STATE *state)
 			    MAIL_ATTR_SASL_SENDER, state->sasl_sender);
 	}
 #endif
+
+	/*
+	 * Record DSN related information that was received with the MAIL
+	 * FROM command.
+	 * 
+	 * RFC 3461 Section 5.2.1. If no ENVID parameter was included in the
+	 * MAIL command when the message was received, the ENVID parameter
+	 * MUST NOT be supplied when the message is relayed. Ditto for the
+	 * RET parameter.
+	 * 
+	 * In other words, we can't simply make up our default ENVID or RET
+	 * values. We have to remember whether the client sent any.
+	 * 
+	 * We store DSN information as named attribute records so that we don't
+	 * have to pollute the queue file with records that are incompatible
+	 * with past Postfix versions. Preferably, people should be able to
+	 * back out from an upgrade without losing mail.
+	 */
+	if (state->dsn_envid)
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_DSN_ENVID, state->dsn_envid);
+	if (state->dsn_ret)
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%d",
+			MAIL_ATTR_DSN_RET, state->dsn_ret);
     }
     rec_fputs(state->cleanup, REC_TYPE_FROM, state->sender);
     if (state->encoding != 0)
@@ -1420,33 +1441,35 @@ static int extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
     if (naddr > 1
 	|| (strict_rfc821 && (non_addr || *STR(arg->vstrval) != '<'))) {
 	msg_warn("Illegal address syntax from %s in %s command: %s",
-		 state->namaddr, state->where, STR(arg->vstrval));
+		 state->namaddr, state->where,
+		 printable(STR(arg->vstrval), '?'));
 	err = 1;
     }
 
     /*
-     * Overwrite the input with the extracted address. This seems bad design,
-     * but we really are not going to use the original data anymore. What we
-     * start with is quoted (external) form, and what we need is unquoted
-     * (internal form).
+     * Don't overwrite the input with the extracted address. We need the
+     * original (external) form in case the client does not send ORCPT
+     * information; and error messages are more accurate if we log the
+     * unmodified form. We need the internal form for all other purposes.
      */
     if (addr)
-	tok822_internalize(arg->vstrval, addr->head, TOK822_STR_DEFL);
+	tok822_internalize(state->addr_buf, addr->head, TOK822_STR_DEFL);
     else
-	vstring_strcpy(arg->vstrval, "");
-    arg->strval = STR(arg->vstrval);
+	vstring_strcpy(state->addr_buf, "");
 
     /*
-     * Report trouble. Log a warning only if we are going to sleep+reject so
-     * that attackers can't flood our logfiles.
+     * Report trouble. XXX Should log a warning only if we are going to
+     * sleep+reject so that attackers can't flood our logfiles. Log the
+     * original address.
      */
     if (err == 0)
-	if ((arg->strval[0] == 0 && !allow_empty_addr)
-	    || (strict_rfc821 && arg->strval[0] == '@')
+	if ((STR(state->addr_buf)[0] == 0 && !allow_empty_addr)
+	    || (strict_rfc821 && STR(state->addr_buf)[0] == '@')
 	    || (SMTPD_STAND_ALONE(state) == 0
-		&& smtpd_check_addr(STR(arg->vstrval)) != 0)) {
+		&& smtpd_check_addr(STR(state->addr_buf)) != 0)) {
 	    msg_warn("Illegal address syntax from %s in %s command: %s",
-		     state->namaddr, state->where, STR(arg->vstrval));
+		     state->namaddr, state->where,
+		     printable(STR(arg->vstrval), '?'));
 	    err = 1;
 	}
 
@@ -1455,7 +1478,8 @@ static int extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
      */
     tok822_free_tree(tree);
     if (msg_verbose)
-	msg_info("%s: result: %s", myname, STR(arg->vstrval));
+	msg_info("%s: in: %s, result: %s",
+		 myname, STR(arg->vstrval), STR(state->addr_buf));
     return (err);
 }
 
@@ -1468,8 +1492,10 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     char   *arg;
     char   *verp_delims = 0;
     int     rate;
+    int     dsn_envid = 0;
 
     state->encoding = 0;
+    state->dsn_ret = 0;
 
     /*
      * Sanity checks.
@@ -1569,20 +1595,51 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		    return (-1);
 		}
 	    }
+	} else if (strncasecmp(arg, "RET=", 4) == 0) {	/* RFC 3461 */
+	    /* Sanitized on input. */
+	    if (state->ehlo_discard_mask & EHLO_MASK_DSN) {
+		state->error_mask |= MAIL_ERROR_PROTOCOL;
+		smtpd_chat_reply(state, "501 5.7.1 DSN support is disabled");
+		return (-1);
+	    }
+	    if (state->dsn_ret
+		|| (state->dsn_ret = dsn_ret_code(arg + 4)) == 0) {
+		state->error_mask |= MAIL_ERROR_PROTOCOL;
+		smtpd_chat_reply(state,
+				 "501 5.5.4 Bad RET parameter syntax");
+		return (-1);
+	    }
+	} else if (strncasecmp(arg, "ENVID=", 6) == 0) {	/* RFC 3461 */
+	    /* Sanitized by bounce server. */
+	    if (state->ehlo_discard_mask & EHLO_MASK_DSN) {
+		state->error_mask |= MAIL_ERROR_PROTOCOL;
+		smtpd_chat_reply(state, "501 5.7.1 DSN support is disabled");
+		return (-1);
+	    }
+	    if (dsn_envid || xtext_unquote(state->dsn_buf, arg + 6) == 0) {
+		state->error_mask |= MAIL_ERROR_PROTOCOL;
+		smtpd_chat_reply(state, "501 5.5.4 Bad ENVID parameter syntax");
+		return (-1);
+	    }
+	    dsn_envid = 1;
 	} else {
 	    state->error_mask |= MAIL_ERROR_PROTOCOL;
 	    smtpd_chat_reply(state, "555 5.5.4 Unsupported option: %s", arg);
 	    return (-1);
 	}
     }
-    if (verp_delims && argv[2].strval[0] == 0) {
+    if ((err = smtpd_check_size(state, state->msg_size)) != 0) {
+	smtpd_chat_reply(state, "%s", err);
+	return (-1);
+    }
+    if (verp_delims && STR(state->addr_buf)[0] == 0) {
 	smtpd_chat_reply(state, "503 5.5.4 Error: %s requires non-null sender",
 			 VERP_CMD);
 	return (-1);
     }
     if (SMTPD_STAND_ALONE(state) == 0
 	&& var_smtpd_delay_reject == 0
-	&& (err = smtpd_check_mail(state, argv[2].strval)) != 0) {
+	&& (err = smtpd_check_mail(state, STR(state->addr_buf))) != 0) {
 	smtpd_chat_reply(state, "%s", err);
 	/* XXX Reset access map side effects. */
 	mail_reset(state);
@@ -1593,7 +1650,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * Check the queue file space, if applicable.
      */
     if (!USE_SMTPD_PROXY(state)) {
-	if ((err = smtpd_check_size(state, state->msg_size)) != 0) {
+	if ((err = smtpd_check_queue(state)) != 0) {
 	    smtpd_chat_reply(state, "%s", err);
 	    return (-1);
 	}
@@ -1603,11 +1660,13 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * No more early returns. The mail transaction is in progress.
      */
     state->time = time((time_t *) 0);
-    state->sender = mystrdup(argv[2].strval);
+    state->sender = mystrdup(STR(state->addr_buf));
     vstring_sprintf(state->instance, "%x.%lx.%x",
 		    var_pid, (unsigned long) state->time, state->seqno++);
     if (verp_delims)
 	state->verp_delims = mystrdup(verp_delims);
+    if (dsn_envid)
+	state->dsn_envid = mystrdup(STR(state->dsn_buf));
     if (USE_SMTPD_PROXY(state))
 	state->proxy_mail = mystrdup(STR(state->buffer));
     smtpd_chat_reply(state, "250 2.1.0 Ok");
@@ -1677,6 +1736,10 @@ static void mail_reset(SMTPD_STATE *state)
 	smtpd_xforward_reset(state);
     if (state->prepend)
 	state->prepend = argv_free(state->prepend);
+    if (state->dsn_envid) {
+	myfree(state->dsn_envid);
+	state->dsn_envid = 0;
+    }
 }
 
 /* rcpt_cmd - process RCPT TO command */
@@ -1687,6 +1750,10 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     int     narg;
     char   *arg;
     int     rate;
+    const char *dsn_orcpt_addr = 0;
+    const char *dsn_orcpt_type = 0;
+    int     dsn_notify = 0;
+    const char *coded_addr;
 
     /*
      * Sanity checks.
@@ -1741,7 +1808,37 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     }
     for (narg = 3; narg < argc; narg++) {
 	arg = argv[narg].strval;
-	if (1) {
+	if (strncasecmp(arg, "NOTIFY=", 7) == 0) {	/* RFC 3461 */
+	    /* Sanitized on input. */
+	    if (state->ehlo_discard_mask & EHLO_MASK_DSN) {
+		state->error_mask |= MAIL_ERROR_PROTOCOL;
+		smtpd_chat_reply(state, "501 5.7.1 DSN support is disabled");
+		return (-1);
+	    }
+	    if (dsn_notify || (dsn_notify = dsn_notify_mask(arg + 7)) == 0) {
+		state->error_mask |= MAIL_ERROR_PROTOCOL;
+		smtpd_chat_reply(state,
+			    "501 5.5.4 Error: Bad NOTIFY parameter syntax");
+		return (-1);
+	    }
+	} else if (strncasecmp(arg, "ORCPT=", 6) == 0) {	/* RFC 3461 */
+	    /* Sanitized by bounce server. */
+	    if (state->ehlo_discard_mask & EHLO_MASK_DSN) {
+		state->error_mask |= MAIL_ERROR_PROTOCOL;
+		smtpd_chat_reply(state, "501 5.7.1 DSN support is disabled");
+		return (-1);
+	    }
+	    if (dsn_orcpt_addr
+		|| (coded_addr = split_at(arg + 6, ';')) == 0
+		|| xtext_unquote(state->dsn_buf, coded_addr) == 0
+		|| *(dsn_orcpt_type = arg + 6) == 0) {
+		state->error_mask |= MAIL_ERROR_PROTOCOL;
+		smtpd_chat_reply(state,
+			     "501 5.5.4 Error: Bad ORCPT parameter syntax");
+		return (-1);
+	    }
+	    dsn_orcpt_addr = STR(state->dsn_buf);
+	} else {
 	    state->error_mask |= MAIL_ERROR_PROTOCOL;
 	    smtpd_chat_reply(state, "555 5.5.4 Unsupported option: %s", arg);
 	    return (-1);
@@ -1755,7 +1852,7 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	return (-1);
     }
     if (SMTPD_STAND_ALONE(state) == 0) {
-	if ((err = smtpd_check_rcpt(state, argv[2].strval)) != 0) {
+	if ((err = smtpd_check_rcpt(state, STR(state->addr_buf))) != 0) {
 	    smtpd_chat_reply(state, "%s", err);
 	    return (-1);
 	}
@@ -1807,12 +1904,56 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * 
      * Flush recipients to maintain a stiffer coupling with the next stage and
      * to better utilize parallelism.
+     * 
+     * RFC 3461 Section 5.2.1: If the NOTIFY parameter was not supplied for a
+     * recipient when the message was received, the NOTIFY parameter MUST NOT
+     * be supplied for that recipient when the message is relayed.
+     * 
+     * In other words, we can't simply make up our default NOTIFY value. We have
+     * to remember whether the client sent any.
+     * 
+     * RFC 3461 Section 5.2.1: If no ORCPT parameter was present when the
+     * message was received, an ORCPT parameter MAY be added to the RCPT
+     * command when the message is relayed.  If an ORCPT parameter is added
+     * by the relaying MTA, it MUST contain the recipient address from the
+     * RCPT command used when the message was received by that MTA.
+     * 
+     * In other words, it is OK to make up our own DSN original recipient when
+     * the client didn't send one. Although the RFC mentions mail relaying
+     * only, we also make up our own original recipient for the purpose of
+     * final delivery. For now, we do this here, rather than on the fly.
+     * 
+     * XXX We use REC_TYPE_ATTR for DSN-related recipient attributes even though
+     * 1) REC_TYPE_ATTR is not meant for multiple instances of the same named
+     * attribute, and 2) mixing REC_TYPE_ATTR with REC_TYPE_(not attr)
+     * requires that we map attributes with dsn_attr_map() in order to
+     * simplify the recipient record processing loops in the cleanup and qmgr
+     * servers.
+     * 
+     * Another possibility, yet to be explored, is to leave the additional
+     * recipient information in the queue file and just pass queue file
+     * offsets along with the delivery request. This is a trade off between
+     * memory allocation versus numeric conversion overhead.
+     * 
+     * Since we have no record grouping mechanism, all recipient-specific
+     * parameters must be sent to the cleanup server before the actual
+     * recipient address.
      */
     state->rcpt_count++;
     if (state->recipient == 0)
-	state->recipient = mystrdup(argv[2].strval);
+	state->recipient = mystrdup(STR(state->addr_buf));
     if (state->cleanup) {
-	rec_fputs(state->cleanup, REC_TYPE_RCPT, argv[2].strval);
+	/* Note: RFC(2)821 externalized address! */
+	if (dsn_orcpt_addr == 0) {
+	    dsn_orcpt_type = "rfc822";
+	    dsn_orcpt_addr = argv[2].strval;
+	}
+	if (dsn_notify)
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%d",
+			MAIL_ATTR_DSN_NOTIFY, dsn_notify);
+	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s;%s",
+		    MAIL_ATTR_DSN_ORCPT, dsn_orcpt_type, dsn_orcpt_addr);
+	rec_fputs(state->cleanup, REC_TYPE_RCPT, STR(state->addr_buf));
 	vstream_fflush(state->cleanup);
     }
     smtpd_chat_reply(state, "250 2.1.5 Ok");
@@ -2861,7 +3002,8 @@ static int starttls_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	smtpd_chat_reply(state, "554 5.5.1 Error: TLS already active");
 	return (-1);
     }
-    if (state->tls_use_tls == 0) {
+    if (state->tls_use_tls == 0
+	|| (state->ehlo_discard_mask & EHLO_MASK_STARTTLS)) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "502 5.5.1 Error: command not implemented");
 	return (-1);
@@ -2960,6 +3102,7 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
     SMTPD_CMD *cmdp;
     int     count;
     int     crate;
+    const char *ehlo_words;
 
     /*
      * Print a greeting banner and run the state machine. Read SMTP commands
@@ -3063,6 +3206,15 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 	else {
 	    smtpd_chat_reply(state, "220 %s", var_smtpd_banner);
 	}
+
+	/*
+	 * Determine what server ESMTP features to suppress, typically to
+	 * avoid inter-operability problems.
+	 */
+	if (ehlo_discard_maps == 0
+	|| (ehlo_words = maps_find(ehlo_discard_maps, state->addr, 0)) == 0)
+	    ehlo_words = var_smtpd_ehlo_dis_words;
+	state->ehlo_discard_mask = ehlo_mask(ehlo_words);
 
 	for (;;) {
 	    if (state->error_count >= var_smtpd_hard_erlim) {

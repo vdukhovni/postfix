@@ -77,8 +77,6 @@
 
 #include <smtp.h>
 
-#define STR		vstring_str
-
 /* smtp_map11_external - one-to-one table lookups */
 
 int     smtp_map11_external(VSTRING *addr, MAPS *maps, int propagate)

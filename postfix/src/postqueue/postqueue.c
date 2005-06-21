@@ -4,11 +4,11 @@
 /* SUMMARY
 /*	Postfix queue control
 /* SYNOPSIS
-/*	\fBpostqueue\fR [\fB-c \fIconfig_dir\fR] \fB-f\fR
+/*	\fBpostqueue\fR [\fB-v\fR] [\fB-c \fIconfig_dir\fR] \fB-f\fR
 /* .br
-/*	\fBpostqueue\fR [\fB-c \fIconfig_dir\fR] \fB-p\fR
+/*	\fBpostqueue\fR [\fB-v\fR] [\fB-c \fIconfig_dir\fR] \fB-p\fR
 /* .br
-/*	\fBpostqueue\fR [\fB-c \fIconfig_dir\fR] \fB-s \fIsite\fR
+/*	\fBpostqueue\fR [\fB-v\fR] [\fB-c \fIconfig_dir\fR] \fB-s \fIsite\fR
 /* DESCRIPTION
 /*	The \fBpostqueue\fR(1) command implements the Postfix user interface
 /*	for queue management. It implements operations that are
@@ -61,7 +61,8 @@
 /*	command, by contacting the Postfix \fBflush\fR(8) daemon.
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
-/*	options make the software increasingly verbose.
+/*	options make the software increasingly verbose. As of Postfix 2.3,
+/*	this option is available for the super-user only.
 /* SECURITY
 /* .ad
 /* .fi
@@ -438,7 +439,8 @@ int     main(int argc, char **argv)
 	    site_to_flush = optarg;
 	    break;
 	case 'v':
-	    msg_verbose++;
+	    if (geteuid() == 0)
+		msg_verbose++;
 	    break;
 	default:
 	    usage();

@@ -39,7 +39,7 @@
 /* .ad
 /* .fi
 /* .IP MAIL_CONFIG
-/*	Directory with the \fBmain.cf\fR file. 
+/*	Directory with the \fBmain.cf\fR file.
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi

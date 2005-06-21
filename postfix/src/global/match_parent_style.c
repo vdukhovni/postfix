@@ -58,7 +58,7 @@ int     match_parent_style(const char *name)
     /*
      * Initialize on the fly.
      */
-    if (match_par_dom_list == 0) 
+    if (match_par_dom_list == 0)
 	match_par_dom_list =
 	    string_list_init(MATCH_FLAG_NONE, var_par_dom_match);
 

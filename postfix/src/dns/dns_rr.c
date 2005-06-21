@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	#include <dns.h>
 /*
-/*	DNS_RR	*dns_rr_create(name, type, class, ttl, preference, 
+/*	DNS_RR	*dns_rr_create(name, type, class, ttl, preference,
 /*				data, data_len)
 /*	const char *name;
 /*	unsigned short type;

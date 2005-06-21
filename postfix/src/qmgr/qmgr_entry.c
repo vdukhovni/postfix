@@ -221,7 +221,7 @@ void    qmgr_entry_done(QMGR_ENTRY *entry, int which)
     job->rcpt_count -= entry->rcpt_list.len;
     message->rcpt_count -= entry->rcpt_list.len;
     qmgr_recipient_count -= entry->rcpt_list.len;
-    qmgr_rcpt_list_free(&entry->rcpt_list);
+    recipient_list_free(&entry->rcpt_list);
     myfree((char *) entry);
 
     /*
@@ -319,7 +319,7 @@ QMGR_ENTRY *qmgr_entry_create(QMGR_PEER *peer, QMGR_MESSAGE *message)
     entry = (QMGR_ENTRY *) mymalloc(sizeof(QMGR_ENTRY));
     entry->stream = 0;
     entry->message = message;
-    qmgr_rcpt_list_init(&entry->rcpt_list);
+    recipient_list_init(&entry->rcpt_list, RCPT_LIST_INIT_QUEUE);
     message->refcount++;
     entry->peer = peer;
     QMGR_LIST_APPEND(peer->entry_list, entry, peer_peers);

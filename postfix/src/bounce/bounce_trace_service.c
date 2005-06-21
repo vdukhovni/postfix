@@ -6,12 +6,15 @@
 /* SYNOPSIS
 /*	#include "bounce_service.h"
 /*
-/*	int     bounce_trace_service(flags, queue_name, queue_id, encoding, sender)
+/*	int     bounce_trace_service(flags, queue_name, queue_id, encoding,
+/*					sender, char *envid, int ret)
 /*	int	flags;
 /*	char	*queue_name;
 /*	char	*queue_id;
 /*	char	*encoding;
 /*	char	*sender;
+/*	char	*envid;
+/*	int	ret;
 /* DESCRIPTION
 /*	This module implements the server side of the trace_flush()
 /*	(send delivery notice) request. The logfile
@@ -24,9 +27,7 @@
 /*	When a status report is sent, the sender address is the empty
 /*	address.
 /* DIAGNOSTICS
-/*	Fatal error: error opening existing file. Warnings: corrupt
-/*	message file. A corrupt message is saved to the "corrupt"
-/*	queue for further inspection.
+/*	Fatal error: error opening existing file.
 /* BUGS
 /* SEE ALSO
 /*	bounce(3) basic bounce service client interface
@@ -65,6 +66,8 @@
 #include <post_mail.h>
 #include <mail_addr.h>
 #include <mail_error.h>
+#include <dsn_mask.h>
+#include <deliver_request.h>		/* USR_VRFY and RECORD flags */
 
 /* Application-specific. */
 
@@ -74,39 +77,88 @@
 
 /* bounce_trace_service - send a delivery status notice */
 
-int     bounce_trace_service(int unused_flags, char *service, char *queue_name,
+int     bounce_trace_service(int flags, char *service, char *queue_name,
 			             char *queue_id, char *encoding,
-			             char *recipient)
+			             char *recipient, char *dsn_envid,
+			             int unused_dsn_ret)
 {
     BOUNCE_INFO *bounce_info;
     int     bounce_status = 1;
     VSTREAM *bounce;
+    int     count;
 
     /*
      * Initialize. Open queue file, bounce log, etc.
+     * 
+     * XXX DSN The trace service produces information from the trace logfile
+     * which is used for three types of reports:
+     * 
+     * a) "what-if" reports that show what would happen without actually
+     * delivering mail (sendmail -bv).
+     * 
+     * b) A report of actual deliveries (sendmail -v).
+     * 
+     * c) DSN NOTIFY=SUCCESS reports of successful delivery ("delivered",
+     * "expanded" or "relayed").
      */
-    bounce_info = bounce_mail_init(service, queue_name, queue_id,
-				   encoding, BOUNCE_MSG_STATUS);
+#define NON_DSN_FLAGS (DEL_REQ_FLAG_USR_VRFY | DEL_REQ_FLAG_RECORD)
 
+    bounce_info = bounce_mail_init(service, queue_name, queue_id,
+				   encoding, dsn_envid,
+				   flags & NON_DSN_FLAGS ?
+				   BOUNCE_REPORT_OTHER :
+				   BOUNCE_REPORT_SUCCESS);
+
+    /*
+     * XXX With multi-recipient mail some queue file recipients may have
+     * NOTIFY=SUCCESS and others not. Depending on what subset of recipients
+     * are delivered, a trace file may or may not be created. Even when the
+     * last partial delivery attempt had no NOTIFY=SUCCESS recipients, a
+     * trace file may still exist from a previous partial delivery attempt.
+     * So as long as any recipient in the original queue file had
+     * NOTIFY=SUCCESS we have to always look for the trace file and be
+     * prepared for the file not to exist.
+     * 
+     * See also comments in qmgr/qmgr_active.c.
+     */
+    if (bounce_info->log_handle == 0) {
+	if (msg_verbose)
+	    msg_info("%s: no trace file -- not sending a notification",
+		     queue_id);
+	bounce_mail_free(bounce_info);
+	return (0);
+    }
 #define NULL_SENDER		MAIL_ADDR_EMPTY	/* special address */
 #define NULL_TRACE_FLAGS	0
-#define BOUNCE_ALL		0
 
     /*
      * Send a single bounce with a template message header, some boilerplate
      * text that pretends that we are a polite mail system, the text with
      * per-recipient status, and a copy of the original message.
+     * 
+     * XXX DSN We use the same trace file for "what-if", "verbose delivery" and
+     * "success" delivery reports. This saves file system overhead because
+     * there are fewer potential left-over files to remove up when we create
+     * a new queue file.
      */
     if ((bounce = post_mail_fopen_nowait(NULL_SENDER, recipient,
 					 CLEANUP_FLAG_MASK_INTERNAL,
 					 NULL_TRACE_FLAGS)) != 0) {
+	count = -1;
 	if (bounce_header(bounce, bounce_info, recipient) == 0
 	    && bounce_boilerplate(bounce, bounce_info) == 0
-	    && bounce_diagnostic_log(bounce, bounce_info) == 0
+	    && (count = bounce_diagnostic_log(bounce, bounce_info,
+					      DSN_NOTIFY_OVERRIDE)) > 0
 	    && bounce_header_dsn(bounce, bounce_info) == 0
-	    && bounce_diagnostic_dsn(bounce, bounce_info) == 0)
-	    bounce_original(bounce, bounce_info, BOUNCE_ALL);
-	bounce_status = post_mail_fclose(bounce);
+	    && bounce_diagnostic_dsn(bounce, bounce_info,
+				     DSN_NOTIFY_OVERRIDE) > 0) {
+	    bounce_original(bounce, bounce_info, DSN_RET_HDRS);
+	    bounce_status = post_mail_fclose(bounce);
+	} else {
+	    (void) vstream_fclose(bounce);
+	    if (count == 0)
+		bounce_status = 0;
+	}
     }
 
     /*

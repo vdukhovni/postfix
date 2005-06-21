@@ -14,7 +14,7 @@
 /*	VSTREAM	*dst;
 /*	int	flags;
 /*	const char *eol;
-/*	DSN_VSTRING *why;
+/*	DSN_BUF	*why;
 /* DESCRIPTION
 /*	mail_copy() copies a mail message from record stream to stream-lf
 /*	stream, and attempts to detect all possible I/O errors.
@@ -116,7 +116,8 @@
 #include "mail_params.h"
 #include "mail_copy.h"
 #include "mbox_open.h"
-#include "dsn_util.h"
+#include "dsn_buf.h"
+#include "sys_exits.h"
 
 /* mail_copy - copy message with extreme prejudice */
 
@@ -124,7 +125,7 @@ int     mail_copy(const char *sender,
 		          const char *orig_rcpt,
 		          const char *delivered,
 		          VSTREAM *src, VSTREAM *dst,
-		          int flags, const char *eol, DSN_VSTRING *why)
+		          int flags, const char *eol, DSN_BUF *why)
 {
     char   *myname = "mail_copy";
     VSTRING *buf;
@@ -266,11 +267,13 @@ int     mail_copy(const char *sender,
 	(errno == EAGAIN || errno == ESTALE)
 
     if (why && read_error)
-	dsn_vstring_update(why, TRY_AGAIN_ERROR(errno) ? "4.3.0" : "5.3.0",
-			   "error reading message: %m");
+	dsb_unix(why, TRY_AGAIN_ERROR(errno) ? "4.3.0" : "5.3.0",
+		 EX_IOERR, sys_exits_detail(EX_IOERR)->text,
+		 "error reading message: %m");
     if (why && write_error)
-	dsn_vstring_update(why, mbox_dsn(errno, "5.3.0"),
-			   "error writing message: %m");
+	dsb_unix(why, mbox_dsn(errno, "5.3.0"),
+		 EX_IOERR, sys_exits_detail(EX_IOERR)->text,
+		 "error writing message: %m");
 
     /*
      * Use flag+errno description when the optional verbose description is

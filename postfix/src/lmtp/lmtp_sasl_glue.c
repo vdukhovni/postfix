@@ -424,9 +424,10 @@ void    lmtp_sasl_start(LMTP_STATE *state, const char *sasl_opts_name,
 
 /* lmtp_sasl_authenticate - run authentication protocol */
 
-int     lmtp_sasl_authenticate(LMTP_STATE *state, VSTRING *why)
+int     lmtp_sasl_authenticate(LMTP_STATE *state, DSN_BUF *why)
 {
     char   *myname = "lmtp_sasl_authenticate";
+    LMTP_SESSION *session = state->session;
     unsigned enc_length;
     unsigned enc_length_out;
 
@@ -451,7 +452,7 @@ int     lmtp_sasl_authenticate(LMTP_STATE *state, VSTRING *why)
 
     if (msg_verbose)
 	msg_info("%s: %s: SASL mechanisms %s",
-	       myname, state->session->namaddr, state->sasl_mechanism_list);
+	       myname, session->namaddr, state->sasl_mechanism_list);
 
     /*
      * Start the client side authentication protocol.
@@ -461,8 +462,11 @@ int     lmtp_sasl_authenticate(LMTP_STATE *state, VSTRING *why)
 			       NO_SASL_SECRET, NO_SASL_INTERACTION,
 			       &clientout, &clientoutlen, &mechanism);
     if (result != SASL_OK && result != SASL_CONTINUE) {
-	vstring_sprintf(why, "cannot SASL authenticate to server %s: %s",
-			state->session->namaddr,
+	dsb_update(why, "4.7.0", DSB_DEF_ACTION, DSB_SKIP_RMTA, DSB_DTYPE_SASL,
+                   421, sasl_errstring(result, NO_SASL_LANGLIST,
+                                       NO_SASL_OUTLANG),
+		    "cannot SASL authenticate to server %s: %s",
+			session->namaddr,
 			sasl_errstring(result, NO_SASL_LANGLIST,
 				       NO_SASL_OUTLANG));
 	return (-1);
@@ -478,7 +482,7 @@ int     lmtp_sasl_authenticate(LMTP_STATE *state, VSTRING *why)
     if (clientoutlen > 0) {
 	if (msg_verbose)
 	    msg_info("%s: %s: uncoded initial reply: %.*s",
-		     myname, state->session->namaddr,
+		     myname, session->namaddr,
 		     (int) clientoutlen, clientout);
 	enc_length = ENCODE64_LENGTH(clientoutlen) + 1;
 	VSTRING_SPACE(state->sasl_encoded, enc_length);
@@ -510,20 +514,22 @@ int     lmtp_sasl_authenticate(LMTP_STATE *state, VSTRING *why)
 	VSTRING_SPACE(state->sasl_decoded, serverinlen);
 	if (SASL_DECODE64(line, serverinlen, STR(state->sasl_decoded),
 			  serverinlen, &enc_length) != SASL_OK) {
-	    vstring_sprintf(why, "malformed SASL challenge from server %s",
-			    state->session->namaddr);
+	    lmtp_dsn_update(why, "5.7.0", DSN_BY_LOCAL_MTA,
+                            501, "501 malformed SASL challenge",
+			    "malformed SASL challenge from server %s",
+			    session->namaddr);
 	    return (-1);
 	}
 	if (msg_verbose)
 	    msg_info("%s: %s: decoded challenge: %.*s",
-		     myname, state->session->namaddr,
+		     myname, session->namaddr,
 		     (int) enc_length, STR(state->sasl_decoded));
 	result = sasl_client_step((sasl_conn_t *) state->sasl_conn,
 				  STR(state->sasl_decoded), enc_length,
 			    NO_SASL_INTERACTION, &clientout, &clientoutlen);
 	if (result != SASL_OK && result != SASL_CONTINUE)
 	    msg_warn("SASL authentication failed to server %s: %s",
-		     state->session->namaddr,
+		     session->namaddr,
 		     sasl_errstring(result, NO_SASL_LANGLIST,
 				    NO_SASL_OUTLANG));
 
@@ -533,7 +539,7 @@ int     lmtp_sasl_authenticate(LMTP_STATE *state, VSTRING *why)
 	if (clientoutlen > 0) {
 	    if (msg_verbose)
 		msg_info("%s: %s: uncoded client response %.*s",
-			 myname, state->session->namaddr,
+			 myname, session->namaddr,
 			 (int) clientoutlen, clientout);
 	    enc_length = ENCODE64_LENGTH(clientoutlen) + 1;
 	    VSTRING_SPACE(state->sasl_encoded, enc_length);
@@ -555,8 +561,9 @@ int     lmtp_sasl_authenticate(LMTP_STATE *state, VSTRING *why)
      * We completed the authentication protocol.
      */
     if (resp->code / 100 != 2) {
-	vstring_sprintf(why, "SASL authentication failed; server %s said: %s",
-			state->session->namaddr, resp->str);
+	lmtp_dsn_update(why, session->host, resp->dsn, resp->code, resp->str,
+			"SASL authentication failed; server %s said: %s",
+			session->namaddr, resp->str);
 	return (0);
     }
     return (1);

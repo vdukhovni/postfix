@@ -91,7 +91,7 @@
 #include <own_inet_addr.h>
 #include <deliver_pass.h>
 #include <mail_error.h>
-#include <dsn_util.h>
+#include <dsn_buf.h>
 
 /* DNS library. */
 
@@ -102,8 +102,6 @@
 #include <smtp.h>
 #include <smtp_addr.h>
 #include <smtp_reuse.h>
-
-#define STR(x) vstring_str(x)
 
 /* smtp_salvage - salvage the server reply before disconnecting */
 
@@ -127,7 +125,7 @@ static VSTRING *smtp_salvage(VSTREAM *stream)
 /* smtp_connect_addr - connect to explicit address */
 
 static SMTP_SESSION *smtp_connect_addr(const char *dest, DNS_RR *addr,
-				            unsigned port, DSN_VSTRING *why,
+				               unsigned port, DSN_BUF *why,
 				               int sess_flags)
 {
     char   *myname = "smtp_connect_addr";
@@ -151,8 +149,9 @@ static SMTP_SESSION *smtp_connect_addr(const char *dest, DNS_RR *addr,
     if (dns_rr_to_sa(addr, port, sa, &salen) != 0) {
 	msg_warn("%s: skip address type %s: %m",
 		 myname, dns_strtype(addr->type));
-	dsn_vstring_update(why, "4.4.0",
-			   "network address conversion failed: %m");
+	smtp_dsn_update(why, DSN_BY_LOCAL_MTA, "4.4.0",
+			451, "451 network address conversion failed",
+			"network address conversion failed: %m");
 	smtp_errno = SMTP_ERR_RETRY;
 	return (0);
     }
@@ -241,20 +240,25 @@ static SMTP_SESSION *smtp_connect_addr(const char *dest, DNS_RR *addr,
     } else {
 	conn_stat = sane_connect(sock, sa, salen);
     }
+    /* XXX 42X Means connection error, but only 421 is defined. */
     if (conn_stat < 0) {
-	dsn_vstring_update(why, "4.4.1", "connect to %s[%s]: %m",
-			   addr->name, hostaddr.buf);
+	smtp_dsn_update(why, DSN_BY_LOCAL_MTA,
+			"4.4.1", 420, "420 Unable to connect to server",
+			"connect to %s[%s]: %m", addr->name, hostaddr.buf);
 	smtp_errno = SMTP_ERR_RETRY;
 	close(sock);
 	return (0);
     }
 
     /*
-     * Skip this host if it takes no action within some time limit.
+     * Skip this host if it takes no action within some time limit. XXX Some
+     * MTAs use 426 for to indicate a timeout error.
      */
     if (read_wait(sock, var_smtp_helo_tmout) < 0) {
-	dsn_vstring_update(why, "4.4.2", "connect to %s[%s]: read timeout",
-			   addr->name, hostaddr.buf);
+	smtp_dsn_update(why, DSN_BY_LOCAL_MTA,
+			"4.4.2", 426, "426 No response from server",
+			"connect to %s[%s]: read timeout",
+			addr->name, hostaddr.buf);
 	smtp_errno = SMTP_ERR_RETRY;
 	close(sock);
 	return (0);
@@ -265,9 +269,10 @@ static SMTP_SESSION *smtp_connect_addr(const char *dest, DNS_RR *addr,
      */
     stream = vstream_fdopen(sock, O_RDWR);
     if ((ch = VSTREAM_GETC(stream)) == VSTREAM_EOF) {
-	dsn_vstring_update(why, "4.4.0",
-			   "connect to %s[%s]: server dropped connection without sending the initial SMTP greeting",
-			   addr->name, hostaddr.buf);
+	smtp_dsn_update(why, DSN_BY_LOCAL_MTA,
+			"4.4.0", 421, "421 Lost connection",
+			"connect to %s[%s]: server dropped connection without sending the initial SMTP greeting",
+			addr->name, hostaddr.buf);
 	smtp_errno = SMTP_ERR_RETRY;
 	vstream_fclose(stream);
 	return (0);
@@ -286,9 +291,10 @@ static SMTP_SESSION *smtp_connect_addr(const char *dest, DNS_RR *addr,
     if (ch == '4' || (ch == '5' && var_smtp_skip_5xx_greeting)) {
 	VSTRING *salvage_buf = smtp_salvage(stream);
 
-	dsn_vstring_update(why, "4.3.0",
+	smtp_dsn_update(why, DSN_BY_LOCAL_MTA,
+			"4.3.0", 420, "420 Connection rejected by server",
 		      "connect to %s[%s]: server refused to talk to me: %s",
-			   addr->name, hostaddr.buf, STR(salvage_buf));
+			addr->name, hostaddr.buf, STR(salvage_buf));
 	vstring_free(salvage_buf);
 	smtp_errno = SMTP_ERR_RETRY;
 	vstream_fclose(stream);
@@ -513,7 +519,7 @@ static int smtp_reuse_session(SMTP_STATE *state, int lookup_mx,
 int     smtp_connect(SMTP_STATE *state)
 {
     DELIVER_REQUEST *request = state->request;
-    DSN_VSTRING *why = dsn_vstring_alloc(10);
+    DSN_BUF *why = dsb_create();
     char   *dest_buf;
     char   *domain;
     unsigned port;
@@ -689,12 +695,16 @@ int     smtp_connect(SMTP_STATE *state)
 		state->final_server = (cpp[1] == 0 && next == 0);
 		if (addr->pref == domain_best_pref)
 		    session->features |= SMTP_FEATURE_BEST_MX;
-		if ((session->features & SMTP_FEATURE_FROM_CACHE) != 0
-		    || smtp_helo(state, misc_flags) == 0)
+		if ((session->features & SMTP_FEATURE_FROM_CACHE) == 0
+		    && smtp_helo(state, misc_flags) != 0) {
+		    if (vstream_ferror(session->stream) == 0
+			&& vstream_feof(session->stream) == 0)
+			smtp_quit(state);
+		} else
 		    smtp_xfer(state);
 		smtp_cleanup_session(state);
 	    } else {
-		msg_info("%s (port %d)", STR(why->vstring), ntohs(port));
+		msg_info("%s (port %d)", STR(why->reason), ntohs(port));
 	    }
 	}
 	dns_rr_free(addr_list);
@@ -714,7 +724,8 @@ int     smtp_connect(SMTP_STATE *state)
      */
     if (SMTP_RCPT_LEFT(state) > 0) {
 	if (smtp_errno == SMTP_ERR_NONE) {
-	    dsn_vstring_update(why, "4.3.0",
+	    smtp_dsn_update(why, DSN_BY_LOCAL_MTA,
+			    "4.3.0", 450, "450 Server unavailable",
 			    "server unavailable or unable to receive mail");
 	    smtp_errno = SMTP_ERR_RETRY;
 	}
@@ -732,7 +743,8 @@ int     smtp_connect(SMTP_STATE *state)
 	     */
 	    if (IS_FALLBACK_RELAY(cpp, sites, non_fallback_sites)) {
 		msg_warn("%s configuration problem", VAR_FALLBACK_RELAY);
-		dsn_vstring_update_dsn(why, "4.3.5");
+		vstring_strcpy(why->status, "4.3.5");
+		/* XXX Keep the diagnostic code and MTA. */
 		smtp_errno = SMTP_ERR_RETRY;
 	    }
 
@@ -742,7 +754,8 @@ int     smtp_connect(SMTP_STATE *state)
 	     */
 	    else if (strcmp(sites->argv[0], var_relayhost) == 0) {
 		msg_warn("%s configuration problem", VAR_RELAYHOST);
-		dsn_vstring_update_dsn(why, "4.3.5");
+		vstring_strcpy(why->status, "4.3.5");
+		/* XXX Keep the diagnostic code and MTA. */
 		smtp_errno = SMTP_ERR_RETRY;
 	    }
 
@@ -764,17 +777,19 @@ int     smtp_connect(SMTP_STATE *state)
 	    /*
 	     * We still need to bounce or defer some left-over recipients:
 	     * either mail loops or some mail server was unavailable.
+	     * 
+	     * XXX Unlike enhanced status codes, changing a 4xx into 5xx SMTP
+	     * code is not simply a matter of changing the initial digit.
+	     * What we're doing here is correct only under specific
+	     * conditions, such as changing 450 into 550 or vice versa.
 	     */
 	    state->final_server = 1;		/* XXX */
-	    if (smtp_errno == SMTP_ERR_RETRY) {
-		DSN_CLASS(why->dsn) = '4';
-		smtp_site_fail(state, DSN_CODE(why->dsn), 450,
-			       "%s", STR(why->vstring));
-	    } else {
-		DSN_CLASS(why->dsn) = '5';
-		smtp_site_fail(state, DSN_CODE(why->dsn), 550,
-			       "%s", STR(why->vstring));
-	    }
+	    if (smtp_errno == SMTP_ERR_RETRY)
+		STR(why->status)[0] = STR(why->dtext)[0] = '4';	/* XXX */
+	    else
+		STR(why->status)[0] = STR(why->dtext)[0] = '5';	/* XXX */
+	    why->dcode = atoi(STR(why->dtext));	/* XXX */
+	    smtp_sess_fail(state, why);
 
 	    /*
 	     * Sanity check. Don't silently lose recipients.
@@ -791,6 +806,6 @@ int     smtp_connect(SMTP_STATE *state)
     if (HAVE_NEXTHOP_STATE(state))
 	FREE_NEXTHOP_STATE(state);
     argv_free(sites);
-    dsn_vstring_free(why);
+    dsb_free(why);
     return (state->status);
 }

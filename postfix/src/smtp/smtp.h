@@ -32,7 +32,7 @@
 #include <string_list.h>
 #include <maps.h>
 #include <tok822.h>
-#include <dsn_util.h>
+#include <dsn_buf.h>
 
  /*
   * Postfix TLS library.
@@ -81,6 +81,11 @@ typedef struct SMTP_STATE {
     int     rcpt_left;			/* recipients left over */
     int     rcpt_drop;			/* recipients marked as drop */
     int     rcpt_keep;			/* recipients marked as keep */
+
+    /*
+     * DSN Support introduced major bloat in error processing.
+     */
+    VSTRING *dsn_reason;		/* on-the-fly formatting buffer */
 } SMTP_STATE;
 
 #define SET_NEXTHOP_STATE(state, lookup_mx, domain, port) { \
@@ -115,6 +120,7 @@ typedef struct SMTP_STATE {
 #define SMTP_FEATURE_BEST_MX		(1<<12)	/* for next-hop or fall-back */
 #define SMTP_FEATURE_RSET_REJECTED	(1<<13)	/* RSET probe rejected */
 #define SMTP_FEATURE_FROM_CACHE		(1<<14)	/* cached connection */
+#define SMTP_FEATURE_DSN		(1<<15)	/* DSN supported */
 
  /*
   * Features that passivate under the endpoint.
@@ -247,10 +253,11 @@ extern int smtp_quit(SMTP_STATE *);
   * smtp_chat.c
   */
 typedef struct SMTP_RESP {		/* server response */
-    int     code;			/* status */
-    DSN_BUF dsn;			/* DSN detail */
-    char   *str;			/* text */
-    VSTRING *buf;			/* origin of text */
+    int     code;			/* SMTP code */
+    const char *dsn;			/* enhanced status */
+    char   *str;			/* full reply */
+    VSTRING *dsn_buf;			/* status buffer */
+    VSTRING *str_buf;			/* reply buffer */
 } SMTP_RESP;
 
 extern void PRINTFLIKE(2, 3) smtp_chat_cmd(SMTP_SESSION *, char *,...);
@@ -258,6 +265,12 @@ extern SMTP_RESP *smtp_chat_resp(SMTP_SESSION *);
 extern void smtp_chat_init(SMTP_SESSION *);
 extern void smtp_chat_reset(SMTP_SESSION *);
 extern void smtp_chat_notify(SMTP_SESSION *);
+
+#define SMTP_RESP_FAKE(resp, _code, _dsn, _str) \
+    ((resp)->code = (_code), \
+     (resp)->dsn = (_dsn), \
+     (resp)->str = (_str), \
+     (resp))
 
  /*
   * These operations implement a redundant mark-and-sweep algorithm that
@@ -286,29 +299,31 @@ extern void smtp_chat_notify(SMTP_SESSION *);
 	} while (0)
 
 #define SMTP_RCPT_DROP(state, rcpt) do { \
-	    (rcpt)->status = SMTP_RCPT_STATE_DROP; (state)->rcpt_drop++; \
+	    (rcpt)->u.status = SMTP_RCPT_STATE_DROP; (state)->rcpt_drop++; \
 	} while (0)
 
 #define SMTP_RCPT_KEEP(state, rcpt) do { \
-	    (rcpt)->status = SMTP_RCPT_STATE_KEEP; (state)->rcpt_keep++; \
+	    (rcpt)->u.status = SMTP_RCPT_STATE_KEEP; (state)->rcpt_keep++; \
 	} while (0)
 
-#define SMTP_RCPT_ISMARKED(rcpt) ((rcpt)->status != 0)
+#define SMTP_RCPT_ISMARKED(rcpt) ((rcpt)->u.status != 0)
 
 #define SMTP_RCPT_LEFT(state) (state)->rcpt_left
 
 extern void smtp_rcpt_cleanup(SMTP_STATE *);
-extern void smtp_rcpt_done(SMTP_STATE *, const char *, const char *, RECIPIENT *);
+extern void smtp_rcpt_done(SMTP_STATE *, SMTP_RESP *, RECIPIENT *);
 
  /*
   * smtp_trouble.c
   */
-extern int PRINTFLIKE(4, 5) smtp_site_fail(SMTP_STATE *, const char *, int,
-					           const char *,...);
-extern int PRINTFLIKE(4, 5) smtp_mesg_fail(SMTP_STATE *, const char *, int,
-					           const char *,...);
-extern void PRINTFLIKE(5, 6) smtp_rcpt_fail(SMTP_STATE *, const char *, int,
-				             RECIPIENT *, const char *,...);
+extern int smtp_sess_fail(SMTP_STATE *, DSN_BUF *);
+extern int PRINTFLIKE(4, 5) smtp_site_fail(SMTP_STATE *, const char *,
+				             SMTP_RESP *, const char *,...);
+extern int PRINTFLIKE(4, 5) smtp_mesg_fail(SMTP_STATE *, const char *,
+				             SMTP_RESP *, const char *,...);
+extern void PRINTFLIKE(5, 6) smtp_rcpt_fail(SMTP_STATE *, RECIPIENT *,
+					          const char *, SMTP_RESP *,
+					            const char *,...);
 extern int smtp_stream_except(SMTP_STATE *, int, const char *);
 
  /*
@@ -329,6 +344,31 @@ extern void smtp_state_free(SMTP_STATE *);
 extern int smtp_map11_external(VSTRING *, MAPS *, int);
 extern int smtp_map11_tree(TOK822 *, MAPS *, int);
 extern int smtp_map11_internal(VSTRING *, MAPS *, int);
+
+ /*
+  * smtp_dsn.c
+  */
+extern void PRINTFLIKE(6, 7) smtp_dsn_update(DSN_BUF *, const char *,
+					             const char *,
+					             int,
+					             const char *,
+					             const char *,...);
+extern void vsmtp_dsn_update(DSN_BUF *, const char *, const char *,
+			             int, const char *,
+			             const char *, va_list);
+extern void smtp_dsn_formal(DSN_BUF *, const char *, const char *, int,
+			            const char *);
+
+#define SMTP_DSN_ASSIGN(dsn, mta, stat, resp, why) \
+    DSN_ASSIGN((dsn), (stat), DSB_DEF_ACTION, (why), DSB_DTYPE_SMTP, (resp), \
+	(mta) ? DSB_MTYPE_DNS : DSB_MTYPE_NONE, (mta))
+
+#define DSN_BY_LOCAL_MTA	((char *) 0)	/* DSN issued by local MTA */
+
+ /*
+  * Silly little macros.
+  */
+#define STR(s) vstring_str(s)
 
 /* LICENSE
 /* .ad

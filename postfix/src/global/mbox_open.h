@@ -21,7 +21,7 @@
  /*
   * Global library.
   */
-#include <dsn_util.h>
+#include <dsn_buf.h>
 
  /*
   * External interface.
@@ -32,7 +32,7 @@ typedef struct {
     int     locked;			/* what locks were set */
 } MBOX;
 extern MBOX *mbox_open(const char *, int, int, struct stat *, uid_t, gid_t,
-		               int, const char *, DSN_VSTRING *);
+		               int, const char *, DSN_BUF *);
 extern void mbox_release(MBOX *);
 extern const char *mbox_dsn(int, const char *);
 

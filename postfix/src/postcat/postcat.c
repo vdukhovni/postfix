@@ -148,7 +148,7 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 			   asctime(localtime(&time)));
 	    break;
 	case REC_TYPE_CONT:			/* REC_TYPE_FILT collision */
-	    if (!in_message) 
+	    if (!in_message)
 		vstream_printf("%s: ", rec_type_name(rec_type));
 	    else if (msg_verbose)
 		vstream_printf("unterminated_text: ");

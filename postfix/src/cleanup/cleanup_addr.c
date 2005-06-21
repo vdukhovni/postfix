@@ -77,6 +77,7 @@
 #include <canon_addr.h>
 #include <mail_addr_find.h>
 #include <mail_proto.h>
+#include <dsn_mask.h>
 
 /* Application-specific. */
 
@@ -160,7 +161,8 @@ void    cleanup_addr_recipient(CLEANUP_STATE *state, const char *buf)
 	    && (cleanup_masq_flags & CLEANUP_MASQ_FLAG_ENV_RCPT))
 	    cleanup_masquerade_internal(clean_addr, cleanup_masq_domains);
     }
-    cleanup_out_recipient(state, state->orig_rcpt, STR(clean_addr));
+    cleanup_out_recipient(state, state->dsn_orcpt, state->dsn_notify,
+			  state->orig_rcpt, STR(clean_addr));
     if (state->recip == 0)
 	state->recip = mystrdup(STR(clean_addr));
     if ((state->flags & CLEANUP_FLAG_BCC_OK)
@@ -196,6 +198,7 @@ void    cleanup_addr_bcc(CLEANUP_STATE *state, const char *bcc)
 	    && (cleanup_masq_flags & CLEANUP_MASQ_FLAG_ENV_RCPT))
 	    cleanup_masquerade_internal(clean_addr, cleanup_masq_domains);
     }
-    cleanup_out_recipient(state, STR(clean_addr), STR(clean_addr));
+    cleanup_out_recipient(state, (char *) 0, DSN_NOTIFY_NEVER,
+			  STR(clean_addr), STR(clean_addr));
     vstring_free(clean_addr);
 }

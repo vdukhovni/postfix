@@ -1,0 +1,40 @@
+#ifndef _DSN_PRINT_H_INCLUDED_
+#define _DSN_PRINT_H_INCLUDED_
+
+/*++
+/* NAME
+/*	dsn_print 3h
+/* SUMMARY
+/*	write DSN structure to stream
+/* SYNOPSIS
+/*	#include <dsn_print.h>
+/* DESCRIPTION
+/* .nf
+
+ /*
+  * Utility library.
+  */
+#include <vstream.h>
+
+ /*
+  * Global library.
+  */
+#include <dsn.h>
+
+ /*
+  * External interface.
+  */
+extern int dsn_print(VSTREAM *, int, void *);
+
+/* LICENSE
+/* .ad
+/* .fi
+/*	The Secure Mailer license must be distributed with this software.
+/* AUTHOR(S)
+/*	Wietse Venema
+/*	IBM T.J. Watson Research
+/*	P.O. Box 704
+/*	Yorktown Heights, NY 10598, USA
+/*--*/
+
+#endif

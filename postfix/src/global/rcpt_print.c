@@ -1,0 +1,67 @@
+/*++
+/* NAME
+/*	rcpt_print
+/* SUMMARY
+/*	write RECIPIENT structure to stream
+/* SYNOPSIS
+/*	#include <rcpt_print.h>
+/*
+/*	int     rcpt_print(stream, flags, ptr)
+/*	VSTREAM *stream;
+/*	int	flags;
+/*	void	*ptr;
+/* DESCRIPTION
+/*	rcpt_print() writes the contents of a RECIPIENT structure
+/*	to the named stream using the default attribute print
+/*	routines. This function is meant to be passed as a call-back
+/*	to attr_print(),
+/*	thusly:
+/*
+/*	... ATTR_PRINT_FUNC, rcpt_print, (void *) recipient, ...
+/* DIAGNOSTICS
+/*	Fatal: out of memory.
+/* LICENSE .ad .fi
+/*	The Secure Mailer license must be distributed with this
+/*	software.
+/* AUTHOR(S)
+/*	Wietse Venema IBM T.J. Watson Research P.O. Box 704 Yorktown
+/*	Heights, NY 10598, USA
+/*--*/
+
+/* System library. */
+
+#include <sys_defs.h>
+
+/* Utility library. */
+
+#include <attr.h>
+
+/* Global library. */
+
+#include <mail_proto.h>
+#include <recipient_list.h>
+#include <rcpt_print.h>
+
+/* rcpt_print - write recipient to stream */
+
+int     rcpt_print(VSTREAM *fp, int flags, void *ptr)
+{
+    RECIPIENT *rcpt = (RECIPIENT *) ptr;
+    int     ret;
+
+#define S(s) ((s) ? (s) : "")
+
+    /*
+     * The attribute order is determined by backwards compatibility. It can 
+     * be sanitized after all the ad-hoc recipient read/write code is replaced.
+     */
+    ret =
+	attr_print(fp, flags | ATTR_FLAG_MORE,
+		   ATTR_TYPE_STR, MAIL_ATTR_ORCPT, S(rcpt->orig_addr),
+		   ATTR_TYPE_STR, MAIL_ATTR_RECIP, rcpt->address,
+		   ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, rcpt->offset,
+		   ATTR_TYPE_STR, MAIL_ATTR_DSN_ORCPT, S(rcpt->dsn_orcpt),
+		   ATTR_TYPE_NUM, MAIL_ATTR_DSN_NOTIFY, rcpt->dsn_notify,
+		   ATTR_TYPE_END);
+    return (ret);
+}

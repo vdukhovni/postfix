@@ -101,8 +101,13 @@ have no \fBFrom:\fR message header.
 Set the envelope sender address. This is the address where
 delivery problems are sent to. With Postfix versions before 2.1, the
 \fBErrors-To:\fR message header overrides the error return address.
-.IP "\fB-G\fR (ignored)"
-Gateway (relay) submission, as opposed to initial user submission.
+.IP \fB-G\fR
+Gateway (relay) submission, as opposed to initial user
+submission.  Either do not rewrite addresses at all, or
+update incomplete addresses with the domain information
+specified with \fBremote_header_rewrite_domain\fR.
+
+This option is ignored before Postfix version 2.3.
 .IP "\fB-h \fIhop_count\fR (ignored)"
 Hop count limit. Use the \fBhopcount_limit\fR configuration
 parameter instead.
@@ -117,9 +122,15 @@ The logging label. Use the \fBsyslog_name\fR configuration
 parameter instead.
 .IP "\fB-m\fR (ignored)"
 Backwards compatibility.
-.IP "\fB-N \fIdsn\fR (ignored)"
-Delivery status notification control. Currently, Postfix does
-not implement \fBDSN\fR.
+.IP "\fB-N \fIdsn\fR (default: 'delay, failure')"
+Delivery status notification control. Specify either a
+comma-separated list with one or more of \fBfailure\fR (send
+notification when delivery fails), \fBdelay\fR (send
+notification when delivery is delayed), or \fBsuccess\fR
+(send notification when the message is delivered); or specify
+\fBnever\fR (don't send any notifications at all).
+
+This feature is available in Postfix 2.3 and later.
 .IP "\fB-n\fR (ignored)"
 Backwards compatibility.
 .IP "\fB-oA\fIalias_database\fR"
@@ -174,7 +185,26 @@ With Postfix versions prior to 2.1, this option requires that
 no recipient addresses are specified on the command line.
 .IP "\fB-U\fR (ignored)"
 Initial user submission.
-.IP \fB-V\fR
+.IP "\fB-V \fIenvid\fR"
+Specify the envelope ID for notification by servers that
+support DSN.
+
+This feature is available in Postfix 2.3 and later.
+.IP "\fB-V\fR (with Postfix 2.3 use \fB-XV\fR)"
+Variable Envelope Return Path. Given an envelope sender address
+of the form \fIowner-listname\fR@\fIorigin\fR, each recipient
+\fIuser\fR@\fIdomain\fR receives mail with a personalized envelope
+sender address.
+.sp
+By default, the personalized envelope sender address is
+\fIowner-listname\fB+\fIuser\fB=\fIdomain\fR@\fIorigin\fR. The default
+\fB+\fR and \fB=\fR characters are configurable with the
+\fBdefault_verp_delimiters\fR configuration parameter.
+.IP "\fB-V\fIxy\fR (with Postfix 2.3 use \fB-XV\fIxy\fR)"
+As \fB-V\fR, but uses \fIx\fR and \fIy\fR as the VERP delimiter
+characters, instead of the characters specified with the
+\fBdefault_verp_delimiters\fR configuration parameter.
+.IP \fB-XV\fR
 Variable Envelope Return Path. Given an envelope sender address
 of the form \fIowner-listname\fR@\fIorigin\fR, each recipient
 \fIuser\fR@\fIdomain\fR receives mail with a personalized envelope
@@ -185,11 +215,13 @@ By default, the personalized envelope sender address is
 \fB+\fR and \fB=\fR characters are configurable with the
 \fBdefault_verp_delimiters\fR configuration parameter.
 .sp
-This feature is available in Postfix version 1.1 and later.
-.IP \fB-V\fIxy\fR
+This feature is available in Postfix version 2.3 and later.
+.IP \fB-XV\fIxy\fR
 As \fB-V\fR, but uses \fIx\fR and \fIy\fR as the VERP delimiter
 characters, instead of the characters specified with the
 \fBdefault_verp_delimiters\fR configuration parameter.
+.sp
+This feature is available in Postfix version 2.3 and later.
 .IP \fB-v\fR
 Send an email report of the first delivery attempt (Postfix
 versions 2.1 and later). Mail delivery
@@ -335,6 +367,10 @@ The UNIX system account that owns the Postfix queue and most Postfix
 daemon processes.
 .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 The location of the Postfix top-level queue directory.
+.IP "\fBremote_header_rewrite_domain (empty)\fR"
+Don't rewrite message headers from remote clients at all when
+this parameter is empty; otherwise, rewrite message headers and
+append the specified domain name to incomplete addresses.
 .IP "\fBsyslog_facility (mail)\fR"
 The syslog facility of Postfix logging.
 .IP "\fBsyslog_name (postfix)\fR"

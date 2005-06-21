@@ -93,6 +93,9 @@
 /*	This argument is followed by an attribute name and a VSTRING pointer.
 /* .IP "ATTR_TYPE_DATA (char *, VSTRING *)"
 /*	This argument is followed by an attribute name and a VSTRING pointer.
+/* .IP "ATTR_TYPE_FUNC (ATTR_SCAN_FN, void *)"
+/*	This argument is followed by a function pointer and a generic data
+/*	pointer.
 /* .IP "ATTR_TYPE_HASH (HTABLE *)"
 /* .IP "ATTR_TYPE_NAMEVAL (NVTABLE *)"
 /*	All further input attributes are processed as string attributes.
@@ -253,6 +256,8 @@ int     attr_vscan0(VSTREAM *fp, int flags, va_list ap)
     HTABLE *hash_table;
     int     ch;
     int     conversions;
+    ATTR_SCAN_FN scan_fn;
+    void   *scan_arg;
 
     /*
      * Sanity check.
@@ -294,7 +299,7 @@ int     attr_vscan0(VSTREAM *fp, int flags, va_list ap)
 		if (va_arg(ap, int) !=ATTR_TYPE_END)
 		    msg_panic("%s: ATTR_TYPE_HASH not followed by ATTR_TYPE_END",
 			      myname);
-	    } else {
+	    } else if (wanted_type != ATTR_TYPE_FUNC) {
 		wanted_name = va_arg(ap, char *);
 	    }
 	}
@@ -302,7 +307,7 @@ int     attr_vscan0(VSTREAM *fp, int flags, va_list ap)
 	/*
 	 * Locate the next attribute of interest in the input stream.
 	 */
-	for (;;) {
+	while (wanted_type != ATTR_TYPE_FUNC) {
 
 	    /*
 	     * Get the name of the next attribute. Hitting EOF is always bad.
@@ -370,6 +375,12 @@ int     attr_vscan0(VSTREAM *fp, int flags, va_list ap)
 	    string = va_arg(ap, VSTRING *);
 	    if ((ch = attr_scan0_data(fp, string,
 				      "input attribute value")) < 0)
+		return (-1);
+	    break;
+	case ATTR_TYPE_FUNC:
+	    scan_fn = va_arg(ap, ATTR_SCAN_FN);
+	    scan_arg = va_arg(ap, void *);
+	    if (scan_fn(fp, flags | ATTR_FLAG_MORE, scan_arg) < 0)
 		return (-1);
 	    break;
 	case ATTR_TYPE_HASH:

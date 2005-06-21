@@ -6,22 +6,26 @@
 /* SYNOPSIS
 /*	#include "lmtp.h"
 /*
-/*	int	lmtp_site_fail(state, dsn, code, format, ...)
+/*	int	lmtp_sess_fail(state, why)
+/*	SMTP_STATE *state;
+/*	DSN_BUF	*why;
+/*
+/*	int	lmtp_site_fail(state, mta_name, resp, format, ...)
 /*	LMTP_STATE *state;
-/*	const char *dsn;
-/*	int	code;
+/*	const char *mta_name;
+/*	LMTP_RESP *resp;
 /*	const char *format;
 /*
-/*	int	lmtp_mesg_fail(state, dsn, code, format, ...)
+/*	int	lmtp_mesg_fail(state, mta_name, resp, format, ...)
 /*	LMTP_STATE *state;
-/*	const char *dsn;
-/*	int	code;
+/*	const char *mta_name;
+/*	LMTP_RESP *resp;
 /*	const char *format;
 /*
-/*	void	lmtp_rcpt_fail(state, dsn, code, recipient, format, ...)
+/*	void	lmtp_rcpt_fail(state, mta_name, resp, recipient, format, ...)
 /*	LMTP_STATE *state;
-/*	const char *dsn;
-/*	int	code;
+/*	const char *mta_name;
+/*	LMTP_RESP *resp;
 /*	RECIPIENT *recipient;
 /*	const char *format;
 /*
@@ -46,8 +50,12 @@
 /*	what appear to be configuration errors - very likely, they
 /*	would suffer the same problem and just cause more trouble.
 /*
+/*	lmtp_sess_fail() takes a pre-formatted error report after
+/*	failure to complete some protocol handshake.  The policy is
+/*	as with lmtp_site_fail().
+/*
 /*	lmtp_site_fail() handles the case where the program fails to
-/*	complete the initial LMTP handshake: the server is not reachable,
+/*	complete some protocol handshake: the server is not reachable,
 /*	is not running, does not want talk to us, or we talk to ourselves.
 /*	The \fIcode\fR gives an error status code; the \fIformat\fR
 /*	argument gives a textual description.  The policy is: soft
@@ -72,6 +80,16 @@
 /*	The \fIdescription\fR argument describes at what stage of
 /*	the LMTP dialog the problem happened. The policy is to defer
 /*	delivery of all messages to the same domain. The result is non-zero.
+/*
+/*	Arguments:
+/* .IP state
+/*	LMTP client state per delivery request.
+/* .IP resp
+/*	Server response including reply code and text.
+/* .IP recipient
+/*	Undeliverable recipient address information.
+/* .IP format
+/*	Human-readable description of why mail is not deliverable.
 /* DIAGNOSTICS
 /*	Panic: unknown exception code.
 /* SEE ALSO
@@ -106,13 +124,13 @@
 #include <sys_defs.h>
 #include <stdlib.h>			/* 44BSD stdarg.h uses abort() */
 #include <stdarg.h>
+#include <string.h>
 
 /* Utility library. */
 
 #include <msg.h>
 #include <vstring.h>
 #include <stringops.h>
-#include <mymalloc.h>
 
 /* Global library. */
 
@@ -122,14 +140,15 @@
 #include <bounce.h>
 #include <defer.h>
 #include <mail_error.h>
-#include <dsn_util.h>
+#include <dsn_buf.h>
+#include <dsn.h>
 
 /* Application-specific. */
 
 #include "lmtp.h"
 
-#define LMTP_SOFT(code) (((code) / 100) == 4)
-#define LMTP_HARD(code) (((code) / 100) == 5)
+#define LMTP_THROTTLE	1
+#define LMTP_NOTHROTTLE	0
 
 /* lmtp_check_code - check response code */
 
@@ -137,7 +156,7 @@ static void lmtp_check_code(LMTP_STATE *state, int code)
 {
 
     /*
-     * The intention of this stuff is to alert the postmaster when the local
+     * The intention of this code is to alert the postmaster when the local
      * Postfix LMTP client screws up, protocol wise. RFC 821 says that x0z
      * replies "refer to syntax errors, syntactically correct commands that
      * don't fit any functional category, and unimplemented or superfluous
@@ -146,36 +165,22 @@ static void lmtp_check_code(LMTP_STATE *state, int code)
      * problem now that response codes are configured manually as part of
      * anti-UCE systems, by people who aren't aware of RFC details.
      */
-    if ((!LMTP_SOFT(code) && !LMTP_HARD(code))
+    if (code < 400 || code > 599
 	|| code == 555			/* RFC 1869, section 6.1. */
 	|| (code >= 500 && code < 510))
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 }
 
-/* lmtp_site_fail - defer site or bounce recipients */
+/* lmtp_bulk_fail - skip, defer or bounce recipients, maybe throttle queue */
 
-int     lmtp_site_fail(LMTP_STATE *state, const char *dsn,
-		               int code, const char *format,...)
+static int lmtp_bulk_fail(LMTP_STATE *state, DSN *dsn, int throttle_queue)
 {
     DELIVER_REQUEST *request = state->request;
     LMTP_SESSION *session = state->session;
     RECIPIENT *rcpt;
     int     status;
+    int     soft_error = (dsn->dtext[0] == '4');
     int     nrcpt;
-    int     soft_error = LMTP_SOFT(code);
-    va_list ap;
-    VSTRING *why = vstring_alloc(100);
-
-    /*
-     * Initialize.
-     */
-    va_start(ap, format);
-    if (code < 400 || code > 599) {
-	vstring_sprintf(why, "Protocol error: ");
-	dsn = "5.5.0";
-    }
-    vstring_vsprintf_append(why, format, ap);
-    va_end(ap);
 
     /*
      * If this is a soft error, postpone further deliveries to this domain.
@@ -187,131 +192,173 @@ int     lmtp_site_fail(LMTP_STATE *state, const char *dsn,
 	    continue;
 	status = (soft_error ? defer_append : bounce_append)
 	    (DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
-	     rcpt->orig_addr, rcpt->address, rcpt->offset,
-	     session ? session->namaddr : "none",
-	     dsn, request->arrival_time, "%s", vstring_str(why));
+	     request->arrival_time, rcpt,
+	     session ? session->namaddr : "none", dsn);
 	if (status == 0) {
 	    deliver_completed(state->src, rcpt->offset);
 	    rcpt->offset = 0;
 	}
 	state->status |= status;
     }
-    if (soft_error && request->hop_status == 0)
-	request->hop_status = dsn_prepend(dsn, vstring_str(why));
+    if (throttle_queue && soft_error && request->hop_status == 0)
+	request->hop_status = DSN_COPY(dsn);
+
+    return (-1);
+}
+
+/* lmtp_sess_fail - skip site, defer or bounce all recipients */
+
+int     lmtp_sess_fail(LMTP_STATE *state, DSN_BUF *why)
+{
+    DSN     dsn;
 
     /*
-     * Cleanup.
+     * We need to incur the expense of copying lots of strings into VSTRING
+     * buffers when the error information is collected by a routine that
+     * terminates BEFORE the error is reported. If no copies were made, the
+     * information would not be frozen in time.
      */
-    vstring_free(why);
-    return (-1);
+    return (lmtp_bulk_fail(state, DSN_FROM_DSN_BUF(&dsn, why), LMTP_THROTTLE));
+}
+
+/* vlmtp_fill_dsn - fill in temporary DSN structure */
+
+static void vlmtp_fill_dsn(LMTP_STATE *state, DSN *dsn, const char *mta_name,
+			           const char *status, const char *reply,
+			           const char *format, va_list ap)
+{
+
+    /*
+     * We can avoid the cost of copying lots of strings into VSTRING buffers
+     * when the error information is collected by the routine that terminates
+     * AFTER the error is reported. In this case, the information is already
+     * frozen in time, so we don't need to make copies.
+     */
+    if (state->dsn_reason == 0)
+	state->dsn_reason = vstring_alloc(100);
+    else
+	VSTRING_RESET(state->dsn_reason);
+    if (mta_name && reply[0] != '4' && reply[0] != '5') {
+	vstring_strcpy(state->dsn_reason, "Protocol error: ");
+	mta_name = DSN_BY_LOCAL_MTA;
+	status = "5.5.0";
+	reply = "501 Protocol error in server reply";
+    }
+    vstring_vsprintf_append(state->dsn_reason, format, ap);
+    LMTP_DSN_ASSIGN(dsn, mta_name, status, reply, STR(state->dsn_reason));
+}
+
+/* lmtp_fill_dsn - fill in temporary DSN structure */
+
+static void lmtp_fill_dsn(LMTP_STATE *state, DSN *dsn, const char *mta_name,
+			          const char *status, const char *reply,
+			          const char *format,...)
+{
+    va_list ap;
+
+    va_start(ap, format);
+    vlmtp_fill_dsn(state, dsn, mta_name, status, reply, format, ap);
+    va_end(ap);
+}
+
+/* lmtp_site_fail - defer site or bounce recipients */
+
+int     lmtp_site_fail(LMTP_STATE *state, const char *mta_name, LMTP_RESP *resp,
+		               const char *format,...)
+{
+    DSN     dsn;
+    va_list ap;
+
+    /*
+     * Initialize.
+     */
+    va_start(ap, format);
+    vlmtp_fill_dsn(state, &dsn, mta_name, resp->dsn, resp->str, format, ap);
+    va_end(ap);
+
+    if (state->session && mta_name)
+	lmtp_check_code(state, resp->code);
+
+    /*
+     * Skip, defer or bounce recipients, and throttle this queue.
+     */
+    return (lmtp_bulk_fail(state, &dsn, LMTP_THROTTLE));
 }
 
 /* lmtp_mesg_fail - defer message or bounce all recipients */
 
-int     lmtp_mesg_fail(LMTP_STATE *state, const char *dsn,
-		               int code, const char *format,...)
+int     lmtp_mesg_fail(LMTP_STATE *state, const char *mta_name, LMTP_RESP *resp,
+		               const char *format,...)
 {
-    DELIVER_REQUEST *request = state->request;
-    LMTP_SESSION *session = state->session;
-    RECIPIENT *rcpt;
-    int     status;
-    int     nrcpt;
     va_list ap;
-    VSTRING *why = vstring_alloc(100);
+    DSN     dsn;
 
     /*
      * Initialize.
      */
     va_start(ap, format);
-    if (code < 400 || code > 599) {
-	vstring_sprintf(why, "Protocol error: ");
-	dsn = "5.5.0";
-    }
-    vstring_vsprintf_append(why, format, ap);
+    vlmtp_fill_dsn(state, &dsn, mta_name, resp->dsn, resp->str, format, ap);
     va_end(ap);
 
-    /*
-     * If this is a soft error, postpone delivery of this message. Otherwise,
-     * generate a bounce record for each recipient.
-     */
-    for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
-	rcpt = request->rcpt_list.info + nrcpt;
-	if (rcpt->offset == 0)
-	    continue;
-	status = (LMTP_SOFT(code) ? defer_append : bounce_append)
-	    (DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
-	     rcpt->orig_addr, rcpt->address, rcpt->offset,
-	     session->namaddr, dsn, request->arrival_time,
-	     "%s", vstring_str(why));
-	if (status == 0) {
-	    deliver_completed(state->src, rcpt->offset);
-	    rcpt->offset = 0;
-	}
-	state->status |= status;
-    }
-    lmtp_check_code(state, code);
+    if (state->session && mta_name)
+	lmtp_check_code(state, resp->code);
 
     /*
-     * Cleanup.
+     * Skip, defer or bounce recipients, but don't throttle this queue.
      */
-    vstring_free(why);
-    return (-1);
+    return (lmtp_bulk_fail(state, &dsn, LMTP_NOTHROTTLE));
 }
 
 /* lmtp_rcpt_fail - defer or bounce recipient */
 
-void    lmtp_rcpt_fail(LMTP_STATE *state, const char *dsn, int code,
+void    lmtp_rcpt_fail(LMTP_STATE *state, const char *mta_name, LMTP_RESP *resp,
 		               RECIPIENT *rcpt, const char *format,...)
 {
     DELIVER_REQUEST *request = state->request;
     LMTP_SESSION *session = state->session;
+    int     soft_error;
     int     status;
+    DSN     dsn;
     va_list ap;
-    VSTRING *why = vstring_alloc(100);
 
     /*
      * Initialize.
      */
     va_start(ap, format);
-    if (code < 400 || code > 599) {
-	vstring_sprintf(why, "Protocol error: ");
-	dsn = "5.5.0";
-    }
-    vstring_vsprintf_append(why, format, ap);
+    vlmtp_fill_dsn(state, &dsn, mta_name, resp->dsn, resp->str, format, ap);
     va_end(ap);
+    soft_error = dsn.dtext[0] == '4';
+
+    if (state->session && mta_name)
+	lmtp_check_code(state, resp->code);
 
     /*
      * If this is a soft error, postpone delivery to this recipient.
      * Otherwise, generate a bounce record for this recipient.
      */
-    status = (LMTP_SOFT(code) ? defer_append : bounce_append)
+    status = (soft_error ? defer_append : bounce_append)
 	(DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
-	 rcpt->orig_addr, rcpt->address, rcpt->offset,
-	 session->namaddr, dsn, request->arrival_time,
-	 "%s", vstring_str(why));
+	 request->arrival_time, rcpt,
+	 session ? session->namaddr : "none", &dsn);
     if (status == 0) {
 	deliver_completed(state->src, rcpt->offset);
 	rcpt->offset = 0;
     }
-    lmtp_check_code(state, code);
     state->status |= status;
-
-    /*
-     * Cleanup.
-     */
-    vstring_free(why);
 }
 
 /* lmtp_stream_except - defer domain after I/O problem */
 
 int     lmtp_stream_except(LMTP_STATE *state, int code, const char *description)
 {
-    DELIVER_REQUEST *request = state->request;
     LMTP_SESSION *session = state->session;
-    RECIPIENT *rcpt;
-    int     nrcpt;
-    VSTRING *why = vstring_alloc(100);
-    const char *dsn;
+    DSN     dsn;
+
+    /*
+     * Sanity check.
+     */
+    if (session == 0)
+	msg_panic("lmtp_stream_except: no session");
 
     /*
      * Initialize.
@@ -320,38 +367,17 @@ int     lmtp_stream_except(LMTP_STATE *state, int code, const char *description)
     default:
 	msg_panic("lmtp_stream_except: unknown exception %d", code);
     case SMTP_ERR_EOF:
-	vstring_sprintf(why, "lost connection with %s while %s",
-			session->namaddr, description);
-	dsn = "4.4.2";
+	lmtp_fill_dsn(state, &dsn, DSN_BY_LOCAL_MTA,
+		      "4.4.2", "421 lost connection",
+		      "lost connection with %s while %s",
+		      session->namaddr, description);
 	break;
     case SMTP_ERR_TIME:
-	vstring_sprintf(why, "conversation with %s timed out while %s",
-			session->namaddr, description);
-	dsn = "4.4.2";
+	lmtp_fill_dsn(state, &dsn, DSN_BY_LOCAL_MTA,
+		      "4.4.2", "426 conversation timed out",
+		      "conversation with %s timed out while %s",
+		      session->namaddr, description);
 	break;
     }
-
-    /*
-     * At this point, the status of individual recipients remains unresolved.
-     * All we know is that we should stay away from this host for a while.
-     */
-    for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
-	rcpt = request->rcpt_list.info + nrcpt;
-	if (rcpt->offset == 0)
-	    continue;
-	state->status |= defer_append(DEL_REQ_TRACE_FLAGS(request->flags),
-				      request->queue_id,
-				      rcpt->orig_addr, rcpt->address,
-				      rcpt->offset, session->namaddr,
-				      dsn, request->arrival_time,
-				      "%s", vstring_str(why));
-    }
-    if (request->hop_status == 0)
-	request->hop_status = dsn_prepend(dsn, vstring_str(why));
-
-    /*
-     * Cleanup.
-     */
-    vstring_free(why);
-    return (-1);
+    return (lmtp_bulk_fail(state, &dsn, LMTP_THROTTLE));
 }

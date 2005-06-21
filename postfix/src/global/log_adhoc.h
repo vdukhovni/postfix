@@ -14,20 +14,19 @@
  /*
   * System library.
   */
-#include <stdarg.h>
 #include <time.h>
+
+ /*
+  * Global library.
+  */
+#include <recipient_list.h>
+#include <dsn.h>
 
  /*
   * Client interface.
   */
-extern void PRINTFLIKE(8, 9) log_adhoc(const char *, const char *,
-				               const char *, const char *,
-				               const char *, time_t,
-				            const char *, const char *,...);
-extern void vlog_adhoc(const char *, const char *,
-		               const char *, const char *,
-		               const char *, time_t, const char *,
-		               const char *, va_list);
+extern void log_adhoc(const char *, time_t, RECIPIENT *, const char *,
+		              DSN *, const char *);
 
 /* LICENSE
 /* .ad

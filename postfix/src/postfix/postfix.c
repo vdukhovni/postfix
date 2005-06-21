@@ -46,7 +46,7 @@
 /*	Re-read configuration files. Running processes terminate at their
 /*	earliest convenience.
 /* .IP "\fBset-permissions\fR \fB[\fIname\fR=\fIvalue ...\fB]\fR
-/*	Set the ownership and permissions of Postfix related files and 
+/*	Set the ownership and permissions of Postfix related files and
 /*	directories, as specified in the \fBpostfix-files\fR file.
 /* .sp
 /*	Specify \fIname\fR=\fIvalue\fR to override and update specific

@@ -16,7 +16,8 @@
 /*	#define EHLO_MASK_STARTTLS	(1<<7)
 /*	#define EHLO_MASK_XCLIENT	(1<<8)
 /*	#define EHLO_MASK_XFORWARD	(1<<9)
-/*	#define EHLO_MASK_XFORWARD	(1<<10)
+/*	#define EHLO_MASK_ENHANCEDSTATUSCODES	(1<<10)
+/*	#define EHLO_MASK_DSN		(1<<11)
 /*	#define EHLO_MASK_SILENT	(1<<15)
 /*
 /*	int	ehlo_mask(keyword_list)
@@ -73,6 +74,7 @@ static NAME_MASK ehlo_mask_table[] = {
     "XFORWARD", EHLO_MASK_XFORWARD,
     "STARTTLS", EHLO_MASK_STARTTLS,
     "ENHANCEDSTATUSCODES", EHLO_MASK_ENHANCEDSTATUSCODES,
+    "DSN", EHLO_MASK_DSN,
     "SILENT-DISCARD", EHLO_MASK_SILENT,	/* XXX In-band signaling */
     0,
 };

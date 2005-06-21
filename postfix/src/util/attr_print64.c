@@ -46,7 +46,7 @@
 /* .RS
 /* .IP "ATTR_TYPE_NUM (char *, int)"
 /*	This argument is followed by an attribute name and an integer.
-/* .IP "ATTR_TYPE_NUM (char *, long)"
+/* .IP "ATTR_TYPE_LONG (char *, long)"
 /*	This argument is followed by an attribute name and a long integer.
 /* .IP "ATTR_TYPE_STR (char *, char *)"
 /*	This argument is followed by an attribute name and a null-terminated

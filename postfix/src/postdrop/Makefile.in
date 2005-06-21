@@ -59,6 +59,7 @@ postdrop.o: ../../include/argv.h
 postdrop.o: ../../include/attr.h
 postdrop.o: ../../include/clean_env.h
 postdrop.o: ../../include/cleanup_user.h
+postdrop.o: ../../include/dsn_attr_map.h
 postdrop.o: ../../include/iostuff.h
 postdrop.o: ../../include/mail_conf.h
 postdrop.o: ../../include/mail_params.h

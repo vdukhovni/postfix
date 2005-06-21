@@ -52,7 +52,7 @@
 /*	msg_fatal() reports an unrecoverable error and terminates the program
 /*	with a non-zero exit status.
 /*
-/*	msg_fatal_status() reports an unrecoverable error and terminates the 
+/*	msg_fatal_status() reports an unrecoverable error and terminates the
 /*	program with the specified exit status.
 /*
 /*	msg_panic() reports an internal inconsistency, terminates the

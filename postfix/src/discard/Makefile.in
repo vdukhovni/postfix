@@ -58,6 +58,8 @@ depend: $(MAKES)
 discard.o: ../../include/bounce.h
 discard.o: ../../include/deliver_completed.h
 discard.o: ../../include/deliver_request.h
+discard.o: ../../include/dsn.h
+discard.o: ../../include/dsn_buf.h
 discard.o: ../../include/dsn_util.h
 discard.o: ../../include/flush_clnt.h
 discard.o: ../../include/mail_queue.h

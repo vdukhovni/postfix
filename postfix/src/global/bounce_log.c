@@ -8,13 +8,9 @@
 /*
 /*	typedef struct {
 /* .in +4
-/*	    /* public members... */
-/*	    const char *recipient;
-/*	    const char *orig_rcpt;
-/*	    long 	rcpt_offset;
-/*	    const char *dsn_status;
-/*	    const char *dsn_action;
-/*	    const char *text;
+/*	    /* Non-null: rcpt.address, dsn.{status,action,text} */
+/*	    RECIPIENT	rcpt;
+/*	    DSN		dsn;
 /* .in -4
 /*	} BOUNCE_LOG;
 /*
@@ -30,20 +26,16 @@
 /*	void	bounce_log_rewind(bp)
 /*	BOUNCE_LOG *bp;
 /*
-/*	BOUNCE_LOG *bounce_log_forge(orig_rcpt, recipient, rcpt_offset,
-/*					dsn_status, dsn_action, why)
-/*	const char *orig_rcpt;
-/*	const char *recipient;
-/*	long	rcpt_offset;
-/*	const char *dsn_status;
-/*	const char *dsn_action;
-/*	const char *why;
+/*	BOUNCE_LOG *bounce_log_forge(rcpt, dsn)
+/*	RECIPIENT *rcpt;
+/*	DSN	*dsn;
 /*
 /*	void	bounce_log_close(bp)
 /*	BOUNCE_LOG *bp;
 /* DESCRIPTION
 /*	This module implements a bounce/defer logfile API. Information
-/*	is sanitized for control and non-ASCII characters.
+/*	is sanitized for control and non-ASCII characters. Fields not
+/*	present in input are represented by empty strings.
 /*
 /*	bounce_log_open() opens the named bounce or defer logfile
 /*	and returns a handle that must be used for further access.
@@ -64,7 +56,8 @@
 /*	of problems.
 /*
 /*	bounce_log_forge() forges one recipient status record
-/*	without actually accessing a logfile.
+/*	without actually accessing a logfile. No copy is made
+/*	of strings with recipient or status information.
 /*	The result cannot be used for any logfile access operation
 /*	and must be disposed of by passing it to bounce_log_close().
 /*
@@ -83,21 +76,35 @@
 /* .IP more
 /*	File permissions, as with open(2).
 /* .PP
-/*	Results:
-/* .IP recipient
+/*	Recipient results:
+/* .IP address
 /*	The final recipient address in RFC 822 external form, or <>
 /*	in case of the null recipient address.
-/* .IP orig_rcpt
+/* .IP dsn_orcpt
+/*	Null pointer or DSN original recipient.
+/* .IP orig_addr
 /*      Null pointer or the original recipient address in RFC 822
 /*	external form.
-/* .IP rcpt_offset
-/*	Queue file offset of recipient record.
-/* .IP text
-/*	The text that explains why the recipient was undeliverable.
+/* .IP dsn_notify
+/*	Zero or DSN notify flags.
+/* .IP offset
+/*	Zero or queue file offset of recipient record.
+/* .PP
+/*	Delivery status results:
 /* .IP dsn_status
-/*	String with DSN compatible status code (digit.digit.digit).
+/*	RFC 3463-compatible enhanced status code (digit.digits.digits).
 /* .IP dsn_action
 /*	"delivered", "failed", "delayed" and so on.
+/* .IP reason
+/*	The text that explains why the recipient was undeliverable.
+/* .IP dsn_dtype
+/*	Null pointer or RFC 3464-compatible diagnostic type.
+/* .IP dsn_dtext
+/*	Null pointer or RFC 3464-compatible diagnostic text.
+/* .IP dsn_mtype
+/*	Null pointer or RFC 3464-compatible remote MTA type.
+/* .IP dsn_mname
+/*	Null pointer or RFC 3464-compatible remote MTA name.
 /* .PP
 /*	Other fields will be added as the code evolves.
 /* LICENSE
@@ -133,55 +140,24 @@
 #include <mail_params.h>
 #include <mail_proto.h>
 #include <mail_queue.h>
+#include <dsn_mask.h>
+#include <recipient_list.h>
+#include <dsn.h>
 #include <bounce_log.h>
 
 /* Application-specific. */
 
 #define STR(x)		vstring_str(x)
 
-/* bounce_log_init - initialize structure */
-
-static BOUNCE_LOG *bounce_log_init(VSTREAM *fp,
-				           VSTRING *buf,
-				           VSTRING *orcp_buf,
-				           VSTRING *rcpt_buf,
-				           long rcpt_offset,
-				           VSTRING *status_buf,
-				           const char *compat_status,
-				           VSTRING *action_buf,
-				           const char *compat_action,
-				           VSTRING *text_buf)
-{
-    BOUNCE_LOG *bp;
-
-#define SET_BUFFER(bp, buf, str) { \
-	bp->buf = buf; \
-	bp->str = (buf && STR(buf)[0] ? STR(buf) : 0); \
-    }
-
-    bp = (BOUNCE_LOG *) mymalloc(sizeof(*bp));
-    bp->fp = fp;
-    bp->buf = buf;
-    SET_BUFFER(bp, orcp_buf, orig_rcpt);
-    SET_BUFFER(bp, rcpt_buf, recipient);
-    bp->rcpt_offset = rcpt_offset;
-    SET_BUFFER(bp, status_buf, dsn_status);
-    bp->compat_status = compat_status;
-    SET_BUFFER(bp, action_buf, dsn_action);
-    bp->compat_action = compat_action;
-    SET_BUFFER(bp, text_buf, text);
-    return (bp);
-}
-
 /* bounce_log_open - open bounce read stream */
 
 BOUNCE_LOG *bounce_log_open(const char *queue_name, const char *queue_id,
 			            int flags, int mode)
 {
+    BOUNCE_LOG *bp;
     VSTREAM *fp;
 
 #define STREQ(x,y)	(strcmp((x),(y)) == 0)
-#define SAVE_TO_VSTRING(s)	vstring_strcpy(vstring_alloc(10), (s))
 
     /*
      * TODO: peek at the first byte to see if this is an old-style log
@@ -194,18 +170,19 @@ BOUNCE_LOG *bounce_log_open(const char *queue_name, const char *queue_id,
     if ((fp = mail_queue_open(queue_name, queue_id, flags, mode)) == 0) {
 	return (0);
     } else {
-	return (bounce_log_init(fp,		/* stream */
-				vstring_alloc(100),	/* buffer */
-				vstring_alloc(10),	/* orig_rcpt */
-				vstring_alloc(10),	/* recipient */
-				(long) 0,	/* offset */
-				vstring_alloc(10),	/* dsn_status */
-				STREQ(queue_name, MAIL_QUEUE_DEFER) ?
-				"4.0.0" : "5.0.0",	/* compatibility */
-				vstring_alloc(10),	/* dsn_action */
-				STREQ(queue_name, MAIL_QUEUE_DEFER) ?
-				"delayed" : "failed",	/* compatibility */
-				vstring_alloc(10)));	/* text */
+	bp = (BOUNCE_LOG *) mymalloc(sizeof(*bp));
+	bp->fp = fp;
+	bp->buf = vstring_alloc(100);
+	bp->rcpt_buf = rcpb_create();
+	bp->dsn_buf = dsb_create();
+	if (STREQ(queue_name, MAIL_QUEUE_DEFER)) {
+	    bp->compat_status = mystrdup("4.0.0");
+	    bp->compat_action = mystrdup("delayed");
+	} else {
+	    bp->compat_status = mystrdup("5.0.0");
+	    bp->compat_action = mystrdup("failed");
+	}
+	return (bp);
     }
 }
 
@@ -225,20 +202,29 @@ BOUNCE_LOG *bounce_log_read(BOUNCE_LOG *bp)
 #define FOUND	1				/* in logfile entry */
 
     /*
-     * Initialize.
+     * Initialize. See also DSN_FROM_DSN_BUF() and bounce_log_forge() for
+     * null and non-null fields.
      */
     state = START;
-    bp->recipient = "(unavailable)";
-    bp->orig_rcpt = 0;
-    bp->rcpt_offset = 0;
-    bp->dsn_status = "(unavailable)";
-    bp->dsn_action = "(unavailable)";
-    bp->text = "(unavailable)";
+    bp->rcpt.address = "(recipient address unavailable)";
+    bp->dsn.status = bp->compat_status;
+    bp->dsn.action = bp->compat_action;
+    bp->dsn.reason = "(description unavailable)";
+
+    bp->rcpt.orig_addr = 0;
+    bp->rcpt.dsn_orcpt = 0;
+    bp->rcpt.dsn_notify = 0;
+    bp->rcpt.offset = 0;
+
+    bp->dsn.dtype = 0;
+    bp->dsn.dtext = 0;
+    bp->dsn.mtype = 0;
+    bp->dsn.mname = 0;
 
     /*
-     * Support mixed logfile formats to make transitions easier. The same
-     * file can start with old-style records and end with new-style records.
-     * With backwards compatibility, we even have old format followed by new
+     * Support mixed logfile formats to make migration easier. The same file
+     * can start with old-style records and end with new-style records. With
+     * backwards compatibility, we even have old format followed by new
      * format within the same logfile entry!
      */
     while ((vstring_get_nonl(bp->buf, bp->fp) != VSTREAM_EOF)) {
@@ -272,6 +258,8 @@ BOUNCE_LOG *bounce_log_read(BOUNCE_LOG *bp)
 	    const char *err;
 	    char   *name;
 	    char   *value;
+	    long    offset;
+	    long    notify;
 
 	    /*
 	     * Split into name and value.
@@ -285,19 +273,51 @@ BOUNCE_LOG *bounce_log_read(BOUNCE_LOG *bp)
 	     * Save attribute value.
 	     */
 	    if (STREQ(name, MAIL_ATTR_RECIP)) {
-		bp->recipient = STR(vstring_strcpy(bp->rcpt_buf, *value ?
-						value : "(MAILER-DAEMON)"));
+		bp->rcpt.address =
+		    STR(vstring_strcpy(bp->rcpt_buf->address, *value ?
+				       value : "(MAILER-DAEMON)"));
 	    } else if (STREQ(name, MAIL_ATTR_ORCPT)) {
-		bp->orig_rcpt = STR(vstring_strcpy(bp->orcp_buf, *value ?
-						value : "(MAILER-DAEMON)"));
+		bp->rcpt.orig_addr =
+		    STR(vstring_strcpy(bp->rcpt_buf->orig_addr, *value ?
+				       value : "(MAILER-DAEMON)"));
+	    } else if (STREQ(name, MAIL_ATTR_DSN_ORCPT)) {
+		if (*value)
+		    bp->rcpt.dsn_orcpt =
+			STR(vstring_strcpy(bp->rcpt_buf->dsn_orcpt, value));
+	    } else if (STREQ(name, MAIL_ATTR_DSN_NOTIFY)) {
+		if ((notify = atoi(value)) > 0 && DSN_NOTIFY_OK(notify))
+		    bp->rcpt.dsn_notify = notify;
 	    } else if (STREQ(name, MAIL_ATTR_OFFSET)) {
-		bp->rcpt_offset = atol(value);
-	    } else if (STREQ(name, MAIL_ATTR_STATUS)) {
-		bp->dsn_status = STR(vstring_strcpy(bp->status_buf, value));
-	    } else if (STREQ(name, MAIL_ATTR_ACTION)) {
-		bp->dsn_action = STR(vstring_strcpy(bp->action_buf, value));
+		if ((offset = atol(value)) > 0)
+		    bp->rcpt.offset = offset;
+	    } else if (STREQ(name, MAIL_ATTR_DSN_STATUS)) {
+		if (*value)
+		    bp->dsn.status =
+			STR(vstring_strcpy(bp->dsn_buf->status, value));
+	    } else if (STREQ(name, MAIL_ATTR_DSN_ACTION)) {
+		if (*value)
+		    bp->dsn.action =
+			STR(vstring_strcpy(bp->dsn_buf->action, value));
+	    } else if (STREQ(name, MAIL_ATTR_DSN_DTYPE)) {
+		if (*value)
+		    bp->dsn.dtype =
+			STR(vstring_strcpy(bp->dsn_buf->dtype, value));
+	    } else if (STREQ(name, MAIL_ATTR_DSN_DTEXT)) {
+		if (*value)
+		    bp->dsn.dtext =
+			STR(vstring_strcpy(bp->dsn_buf->dtext, value));
+	    } else if (STREQ(name, MAIL_ATTR_DSN_MTYPE)) {
+		if (*value)
+		    bp->dsn.mtype =
+			STR(vstring_strcpy(bp->dsn_buf->mtype, value));
+	    } else if (STREQ(name, MAIL_ATTR_DSN_MNAME)) {
+		if (*value)
+		    bp->dsn.mname =
+			STR(vstring_strcpy(bp->dsn_buf->mname, value));
 	    } else if (STREQ(name, MAIL_ATTR_WHY)) {
-		bp->text = STR(vstring_strcpy(bp->text_buf, value));
+		if (*value)
+		    bp->dsn.reason =
+			STR(vstring_strcpy(bp->dsn_buf->reason, value));
 	    } else {
 		msg_warn("%s: unknown attribute name: %s, ignored",
 			 VSTREAM_PATH(bp->fp), name);
@@ -320,9 +340,9 @@ BOUNCE_LOG *bounce_log_read(BOUNCE_LOG *bp)
 	    continue;
 	}
 	*cp = 0;
-	vstring_strcpy(bp->rcpt_buf, *recipient ?
+	vstring_strcpy(bp->rcpt_buf->address, *recipient ?
 		       recipient : "(MAILER-DAEMON)");
-	bp->recipient = STR(bp->rcpt_buf);
+	bp->rcpt.address = STR(bp->rcpt_buf->address);
 
 	/*
 	 * Find the text that explains why mail was not deliverable.
@@ -330,35 +350,70 @@ BOUNCE_LOG *bounce_log_read(BOUNCE_LOG *bp)
 	text = cp + 2;
 	while (*text && ISSPACE(*text))
 	    text++;
-	vstring_strcpy(bp->text_buf, text);
-	bp->text = STR(bp->text_buf);
-
-	/*
-	 * Add compatibility status and action info, to make up for data that
-	 * was not stored in old-style bounce logfiles.
-	 */
-	bp->dsn_status = bp->compat_status;
-	bp->dsn_action = bp->compat_action;
+	vstring_strcpy(bp->dsn_buf->reason, text);
+	if (*text)
+	    bp->dsn.reason = STR(bp->dsn_buf->reason);
     }
     return (0);
 }
 
 /* bounce_log_forge - forge one recipient status record */
 
-BOUNCE_LOG *bounce_log_forge(const char *orig_rcpt, const char *recipient,
-			           long rcpt_offset, const char *dsn_status,
-			           const char *dsn_action, const char *text)
+BOUNCE_LOG *bounce_log_forge(RECIPIENT *rcpt, DSN *dsn)
 {
-    return (bounce_log_init((VSTREAM *) 0,
-			    (VSTRING *) 0,
-			    SAVE_TO_VSTRING(orig_rcpt),
-			    SAVE_TO_VSTRING(recipient),
-			    rcpt_offset,
-			    SAVE_TO_VSTRING(dsn_status),
-			    "(unavailable)",
-			    SAVE_TO_VSTRING(dsn_action),
-			    "(unavailable)",
-			    SAVE_TO_VSTRING(text)));
+    BOUNCE_LOG *bp;
+
+    /*
+     * Create a partial record. No point copying information that doesn't
+     * need to be.
+     */
+    bp = (BOUNCE_LOG *) mymalloc(sizeof(*bp));
+    bp->fp = 0;
+    bp->buf = 0;
+    bp->rcpt_buf = 0;
+    bp->dsn_buf = 0;
+    bp->compat_status = 0;
+    bp->compat_action = 0;
+
+    bp->rcpt = *rcpt;
+    bp->dsn = *dsn;
+
+    /*
+     * Finalize. See also DSN_FROM_DSN_BUF() and bounce_log_read() for null
+     * and non-null fields.
+     */
+#define NULL_OR_EMPTY(s) ((s) == 0 || *(s) == 0)
+#define EMPTY_STRING(s)	((s) != 0 && *(s) == 0)
+
+    /*
+     * Replace null pointers and empty strings by place holders.
+     */
+    if (bp->rcpt.address == 0)
+	bp->rcpt.address = "(recipient address unavailable)";
+    if (NULL_OR_EMPTY(bp->dsn.status))
+	bp->dsn.status = "(unavailable)";
+    if (NULL_OR_EMPTY(bp->dsn.action))
+	bp->dsn.action = "(unavailable)";
+    if (NULL_OR_EMPTY(bp->dsn.reason))
+	bp->dsn.reason = "(description unavailable)";
+
+    /*
+     * Replace empty strings by null pointers.
+     */
+    if (EMPTY_STRING(bp->rcpt.orig_addr))
+	bp->rcpt.orig_addr = 0;
+    if (EMPTY_STRING(bp->rcpt.dsn_orcpt))
+	bp->rcpt.dsn_orcpt = 0;
+
+    if (EMPTY_STRING(bp->dsn.dtype))
+	bp->dsn.dtype = 0;
+    if (EMPTY_STRING(bp->dsn.dtext))
+	bp->dsn.dtext = 0;
+    if (EMPTY_STRING(bp->dsn.mtype))
+	bp->dsn.mtype = 0;
+    if (EMPTY_STRING(bp->dsn.mname))
+	bp->dsn.mname = 0;
+    return (bp);
 }
 
 /* bounce_log_close - close bounce reader stream */
@@ -374,15 +429,14 @@ int     bounce_log_close(BOUNCE_LOG *bp)
     if (bp->buf)
 	vstring_free(bp->buf);
     if (bp->rcpt_buf)
-	vstring_free(bp->rcpt_buf);
-    if (bp->orcp_buf)
-	vstring_free(bp->orcp_buf);
-    if (bp->status_buf)
-	vstring_free(bp->status_buf);
-    if (bp->action_buf)
-	vstring_free(bp->action_buf);
-    if (bp->text_buf)
-	vstring_free(bp->text_buf);
+	rcpb_free(bp->rcpt_buf);
+    if (bp->dsn_buf)
+	dsb_free(bp->dsn_buf);
+    if (bp->compat_status)
+	myfree(bp->compat_status);
+    if (bp->compat_action)
+	myfree(bp->compat_action);
     myfree((char *) bp);
+
     return (ret);
 }

@@ -454,7 +454,7 @@ static void verify_query_service(VSTREAM *client_stream)
 	    post_mail_fopen_async(strcmp(var_verify_sender, "<>") == 0 ?
 				  "" : var_verify_sender, STR(addr),
 				  CLEANUP_FLAG_MASK_INTERNAL,
-				  DEL_REQ_FLAG_VERIFY,
+				  DEL_REQ_FLAG_MTA_VRFY,
 				  verify_post_mail_action,
 				  (void *) 0);
 	    if (updated != 0 || var_verify_neg_cache != 0) {

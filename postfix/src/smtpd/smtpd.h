@@ -71,6 +71,7 @@ typedef struct SMTPD_STATE {
     int     err;			/* cleanup server/queue file errors */
     VSTREAM *client;			/* SMTP client handle */
     VSTRING *buffer;			/* SMTP client buffer */
+    VSTRING *addr_buf;			/* internalized address buffer */
     char   *service;			/* for event rate control */
     time_t  time;			/* start of MAIL FROM transaction */
     char   *name;			/* client hostname */
@@ -140,6 +141,10 @@ typedef struct SMTPD_STATE {
     ARGV   *prepend;			/* prepended headers */
     VSTRING *instance;			/* policy query correlation */
     int     seqno;			/* policy query correlation */
+    int     ehlo_discard_mask;		/* suppressed EHLO features */
+    char   *dsn_envid;			/* temporary MAIL FROM state */
+    int     dsn_ret;			/* temporary MAIL FROM state */
+    VSTRING *dsn_buf;			/* scratch space for xtext expansion */
 
     /*
      * Pass-through proxy client.

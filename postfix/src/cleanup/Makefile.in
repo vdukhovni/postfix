@@ -3,12 +3,12 @@ SRCS	= cleanup.c cleanup_out.c cleanup_envelope.c cleanup_message.c \
 	cleanup_extracted.c cleanup_state.c cleanup_rewrite.c \
 	cleanup_map11.c cleanup_map1n.c cleanup_masquerade.c \
 	cleanup_out_recipient.c cleanup_init.c cleanup_api.c \
-	cleanup_addr.c
+	cleanup_addr.c cleanup_bounce.c
 OBJS	= cleanup.o cleanup_out.o cleanup_envelope.o cleanup_message.o \
 	cleanup_extracted.o cleanup_state.o cleanup_rewrite.o \
 	cleanup_map11.o cleanup_map1n.o cleanup_masquerade.o \
 	cleanup_out_recipient.o cleanup_init.o cleanup_api.o \
-	cleanup_addr.o
+	cleanup_addr.o cleanup_bounce.o
 HDRS	=
 TESTSRC	= 
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
@@ -121,6 +121,7 @@ cleanup_addr.o: ../../include/been_here.h
 cleanup_addr.o: ../../include/canon_addr.h
 cleanup_addr.o: ../../include/cleanup_user.h
 cleanup_addr.o: ../../include/dict.h
+cleanup_addr.o: ../../include/dsn_mask.h
 cleanup_addr.o: ../../include/ext_prop.h
 cleanup_addr.o: ../../include/header_opts.h
 cleanup_addr.o: ../../include/htable.h
@@ -156,7 +157,8 @@ cleanup_api.o: ../../include/bounce.h
 cleanup_api.o: ../../include/cleanup_user.h
 cleanup_api.o: ../../include/deliver_request.h
 cleanup_api.o: ../../include/dict.h
-cleanup_api.o: ../../include/dsn_util.h
+cleanup_api.o: ../../include/dsn.h
+cleanup_api.o: ../../include/dsn_buf.h
 cleanup_api.o: ../../include/header_opts.h
 cleanup_api.o: ../../include/htable.h
 cleanup_api.o: ../../include/iostuff.h
@@ -183,11 +185,54 @@ cleanup_api.o: ../../include/vstream.h
 cleanup_api.o: ../../include/vstring.h
 cleanup_api.o: cleanup.h
 cleanup_api.o: cleanup_api.c
+cleanup_bounce.o: ../../include/argv.h
+cleanup_bounce.o: ../../include/attr.h
+cleanup_bounce.o: ../../include/been_here.h
+cleanup_bounce.o: ../../include/bounce.h
+cleanup_bounce.o: ../../include/cleanup_user.h
+cleanup_bounce.o: ../../include/deliver_completed.h
+cleanup_bounce.o: ../../include/deliver_request.h
+cleanup_bounce.o: ../../include/dict.h
+cleanup_bounce.o: ../../include/dsn.h
+cleanup_bounce.o: ../../include/dsn_attr_map.h
+cleanup_bounce.o: ../../include/dsn_buf.h
+cleanup_bounce.o: ../../include/dsn_mask.h
+cleanup_bounce.o: ../../include/dsn_util.h
+cleanup_bounce.o: ../../include/header_opts.h
+cleanup_bounce.o: ../../include/htable.h
+cleanup_bounce.o: ../../include/iostuff.h
+cleanup_bounce.o: ../../include/mail_conf.h
+cleanup_bounce.o: ../../include/mail_params.h
+cleanup_bounce.o: ../../include/mail_proto.h
+cleanup_bounce.o: ../../include/mail_queue.h
+cleanup_bounce.o: ../../include/mail_stream.h
+cleanup_bounce.o: ../../include/maps.h
+cleanup_bounce.o: ../../include/match_list.h
+cleanup_bounce.o: ../../include/match_ops.h
+cleanup_bounce.o: ../../include/mime_state.h
+cleanup_bounce.o: ../../include/msg.h
+cleanup_bounce.o: ../../include/mymalloc.h
+cleanup_bounce.o: ../../include/nvtable.h
+cleanup_bounce.o: ../../include/rec_type.h
+cleanup_bounce.o: ../../include/recipient_list.h
+cleanup_bounce.o: ../../include/record.h
+cleanup_bounce.o: ../../include/resolve_clnt.h
+cleanup_bounce.o: ../../include/string_list.h
+cleanup_bounce.o: ../../include/stringops.h
+cleanup_bounce.o: ../../include/sys_defs.h
+cleanup_bounce.o: ../../include/tok822.h
+cleanup_bounce.o: ../../include/vbuf.h
+cleanup_bounce.o: ../../include/vstream.h
+cleanup_bounce.o: ../../include/vstring.h
+cleanup_bounce.o: cleanup.h
+cleanup_bounce.o: cleanup_bounce.c
 cleanup_envelope.o: ../../include/argv.h
 cleanup_envelope.o: ../../include/attr.h
 cleanup_envelope.o: ../../include/been_here.h
 cleanup_envelope.o: ../../include/cleanup_user.h
 cleanup_envelope.o: ../../include/dict.h
+cleanup_envelope.o: ../../include/dsn_attr_map.h
+cleanup_envelope.o: ../../include/dsn_mask.h
 cleanup_envelope.o: ../../include/header_opts.h
 cleanup_envelope.o: ../../include/htable.h
 cleanup_envelope.o: ../../include/iostuff.h
@@ -221,6 +266,8 @@ cleanup_extracted.o: ../../include/attr.h
 cleanup_extracted.o: ../../include/been_here.h
 cleanup_extracted.o: ../../include/cleanup_user.h
 cleanup_extracted.o: ../../include/dict.h
+cleanup_extracted.o: ../../include/dsn_attr_map.h
+cleanup_extracted.o: ../../include/dsn_mask.h
 cleanup_extracted.o: ../../include/header_opts.h
 cleanup_extracted.o: ../../include/htable.h
 cleanup_extracted.o: ../../include/iostuff.h
@@ -240,6 +287,7 @@ cleanup_extracted.o: ../../include/rec_type.h
 cleanup_extracted.o: ../../include/record.h
 cleanup_extracted.o: ../../include/resolve_clnt.h
 cleanup_extracted.o: ../../include/string_list.h
+cleanup_extracted.o: ../../include/stringops.h
 cleanup_extracted.o: ../../include/sys_defs.h
 cleanup_extracted.o: ../../include/tok822.h
 cleanup_extracted.o: ../../include/vbuf.h
@@ -427,25 +475,34 @@ cleanup_out.o: cleanup.h
 cleanup_out.o: cleanup_out.c
 cleanup_out_recipient.o: ../../include/argv.h
 cleanup_out_recipient.o: ../../include/been_here.h
+cleanup_out_recipient.o: ../../include/bounce.h
 cleanup_out_recipient.o: ../../include/cleanup_user.h
+cleanup_out_recipient.o: ../../include/deliver_request.h
 cleanup_out_recipient.o: ../../include/dict.h
+cleanup_out_recipient.o: ../../include/dsn.h
+cleanup_out_recipient.o: ../../include/dsn_buf.h
+cleanup_out_recipient.o: ../../include/dsn_mask.h
 cleanup_out_recipient.o: ../../include/ext_prop.h
 cleanup_out_recipient.o: ../../include/header_opts.h
 cleanup_out_recipient.o: ../../include/htable.h
 cleanup_out_recipient.o: ../../include/mail_conf.h
 cleanup_out_recipient.o: ../../include/mail_params.h
+cleanup_out_recipient.o: ../../include/mail_queue.h
 cleanup_out_recipient.o: ../../include/mail_stream.h
 cleanup_out_recipient.o: ../../include/maps.h
 cleanup_out_recipient.o: ../../include/match_list.h
 cleanup_out_recipient.o: ../../include/match_ops.h
 cleanup_out_recipient.o: ../../include/mime_state.h
+cleanup_out_recipient.o: ../../include/msg.h
 cleanup_out_recipient.o: ../../include/mymalloc.h
 cleanup_out_recipient.o: ../../include/nvtable.h
 cleanup_out_recipient.o: ../../include/rec_type.h
+cleanup_out_recipient.o: ../../include/recipient_list.h
 cleanup_out_recipient.o: ../../include/resolve_clnt.h
 cleanup_out_recipient.o: ../../include/string_list.h
 cleanup_out_recipient.o: ../../include/sys_defs.h
 cleanup_out_recipient.o: ../../include/tok822.h
+cleanup_out_recipient.o: ../../include/trace.h
 cleanup_out_recipient.o: ../../include/vbuf.h
 cleanup_out_recipient.o: ../../include/vstream.h
 cleanup_out_recipient.o: ../../include/vstring.h

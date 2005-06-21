@@ -61,6 +61,8 @@ verify.o: ../../include/cleanup_user.h
 verify.o: ../../include/deliver_request.h
 verify.o: ../../include/dict.h
 verify.o: ../../include/dict_ht.h
+verify.o: ../../include/dsn.h
+verify.o: ../../include/dsn_buf.h
 verify.o: ../../include/htable.h
 verify.o: ../../include/iostuff.h
 verify.o: ../../include/mail_conf.h

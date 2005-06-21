@@ -11,7 +11,7 @@
 /*	const char *pattern;
 /*
 /*	int	input_transp_cleanup(cleanup_flags, transp_mask)
-/*	int	cleanup_flags; 
+/*	int	cleanup_flags;
 /*	int	transp_mask;
 /* DESCRIPTION
 /*	This module controls how much processing happens before mail is

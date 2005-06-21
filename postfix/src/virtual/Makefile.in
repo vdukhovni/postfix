@@ -59,6 +59,8 @@ depend: $(MAKES)
 deliver_attr.o: ../../include/argv.h
 deliver_attr.o: ../../include/deliver_request.h
 deliver_attr.o: ../../include/dict.h
+deliver_attr.o: ../../include/dsn.h
+deliver_attr.o: ../../include/dsn_buf.h
 deliver_attr.o: ../../include/maps.h
 deliver_attr.o: ../../include/mbox_conf.h
 deliver_attr.o: ../../include/msg.h
@@ -74,6 +76,8 @@ mailbox.o: ../../include/bounce.h
 mailbox.o: ../../include/defer.h
 mailbox.o: ../../include/deliver_request.h
 mailbox.o: ../../include/dict.h
+mailbox.o: ../../include/dsn.h
+mailbox.o: ../../include/dsn_buf.h
 mailbox.o: ../../include/dsn_util.h
 mailbox.o: ../../include/mail_addr_find.h
 mailbox.o: ../../include/mail_copy.h
@@ -99,6 +103,8 @@ maildir.o: ../../include/bounce.h
 maildir.o: ../../include/defer.h
 maildir.o: ../../include/deliver_request.h
 maildir.o: ../../include/dict.h
+maildir.o: ../../include/dsn.h
+maildir.o: ../../include/dsn_buf.h
 maildir.o: ../../include/dsn_util.h
 maildir.o: ../../include/get_hostname.h
 maildir.o: ../../include/mail_copy.h
@@ -125,6 +131,8 @@ recipient.o: ../../include/argv.h
 recipient.o: ../../include/bounce.h
 recipient.o: ../../include/deliver_request.h
 recipient.o: ../../include/dict.h
+recipient.o: ../../include/dsn.h
+recipient.o: ../../include/dsn_buf.h
 recipient.o: ../../include/maps.h
 recipient.o: ../../include/mbox_conf.h
 recipient.o: ../../include/msg.h
@@ -141,6 +149,8 @@ unknown.o: ../../include/argv.h
 unknown.o: ../../include/bounce.h
 unknown.o: ../../include/deliver_request.h
 unknown.o: ../../include/dict.h
+unknown.o: ../../include/dsn.h
+unknown.o: ../../include/dsn_buf.h
 unknown.o: ../../include/maps.h
 unknown.o: ../../include/mbox_conf.h
 unknown.o: ../../include/msg.h
@@ -155,6 +165,8 @@ virtual.o: ../../include/argv.h
 virtual.o: ../../include/deliver_completed.h
 virtual.o: ../../include/deliver_request.h
 virtual.o: ../../include/dict.h
+virtual.o: ../../include/dsn.h
+virtual.o: ../../include/dsn_buf.h
 virtual.o: ../../include/flush_clnt.h
 virtual.o: ../../include/iostuff.h
 virtual.o: ../../include/mail_addr_find.h

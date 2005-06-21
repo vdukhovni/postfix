@@ -43,7 +43,7 @@
 /*	The timeout parameter limits the time for sending or receiving
 /*	a reply, max_idle specifies how long an idle connection is
 /*	kept open, and the max_ttl parameter bounds the time that a
-/*	connection is kept open. 
+/*	connection is kept open.
 /*	Specify zero to disable a max_idle or max_ttl limit.
 /*
 /*	attr_clnt_request() sends the specified request attributes and
@@ -54,7 +54,7 @@
 /*	attr_clnt_free() destroys a client handle and closes its connection.
 /*
 /*	attr_clnt_control() allows the user to fine tune the behavior of
-/*	the specified client. The arguments are a list of (name, value) 
+/*	the specified client. The arguments are a list of (name, value)
 /*	terminated with ATTR_CLNT_CTL_END.
 /*	The following lists the names and the types of the corresponding
 /*	value arguments.
@@ -274,4 +274,5 @@ void    attr_clnt_control(ATTR_CLNT *client, int name,...)
 	    msg_panic("%s: bad name %d", myname, name);
 	}
     }
+    va_end(ap);
 }
