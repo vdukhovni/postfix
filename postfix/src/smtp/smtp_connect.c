@@ -682,8 +682,12 @@ int     smtp_connect(SMTP_STATE *state)
 		state->final_server = (cpp[1] == 0 && next == 0);
 		if (addr->pref == domain_best_pref)
 		    session->features |= SMTP_FEATURE_BEST_MX;
-		if ((session->features & SMTP_FEATURE_FROM_CACHE) != 0
-		    || smtp_helo(state, misc_flags) == 0)
+		if ((session->features & SMTP_FEATURE_FROM_CACHE) == 0
+		    && smtp_helo(state, misc_flags) != 0) {
+		    if (vstream_ferror(session->stream) == 0
+			&& vstream_feof(session->stream) == 0)
+			smtp_quit(state);
+		} else
 		    smtp_xfer(state);
 		smtp_cleanup_session(state);
 	    } else {

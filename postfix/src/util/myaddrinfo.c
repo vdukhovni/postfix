@@ -680,6 +680,7 @@ void    myaddrinfo_control(int name,...)
 	    msg_panic("%s: bad name %d", myname, name);
 	}
     }
+    va_end(ap);
 }
 
 #ifdef EMULATE_IPV4_ADDRINFO

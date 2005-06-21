@@ -274,4 +274,5 @@ void    attr_clnt_control(ATTR_CLNT *client, int name,...)
 	    msg_panic("%s: bad name %d", myname, name);
 	}
     }
+    va_end(ap);
 }

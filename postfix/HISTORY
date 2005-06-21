@@ -10513,6 +10513,13 @@ Apologies for any names omitted.
 	is subject to address rewriting and other processing where
 	applicable.  File: cleanup/cleanup_message.c.
 
+20050402
+
+	Cleanup: updated error messages about MIME processing errors
+	in the SMTP client. These errors are no longer specific to
+	8bit->7bit conversion; they can also happen with generic
+	address mapping. File: smtp/smtp_proto.c.
+
 20050407
 
 	@%^!#& Thanks to inadequate SASL documentation the client
@@ -10520,13 +10527,6 @@ Apologies for any names omitted.
 	Better documentation has become available since Postfix
 	SASL support was implemented, and now Postfix needs to be
 	fixed. Files: */*_sasl_glue.c.
-
-20050402
-
-	Cleanup: updated error messages about MIME processing errors
-	in the SMTP client. These errors are no longer specific to
-	8bit->7bit conversion; they can also happen with generic
-	address mapping. File: smtp/smtp_proto.c.
 
 20050409
 
@@ -10571,3 +10571,41 @@ Apologies for any names omitted.
 	the fall-back relay can't be used because it was already
 	tried via a cached session.  Files: util/argv.c,
 	smtp/smtp_connect.c.
+
+20050517
+
+	Bugfix: in a DSN report, the original recipient should not
+	be xtext encoded. File: bounce/bounce_notify_util.c.
+
+20050523
+
+	Bugfix: mymalloc() panic with mistyped server host list.
+	File: global/dict_pgsql.c.
+
+20040530
+
+	Bugfix: TLS MUST_NOPEERMATCH didn't work (inherited from
+	TLS patch), and a dangling pointer in the corresponding
+	error handling. File: smtp/smtp_proto.c.
+
+20050615
+
+	Cleanup: the SMTP client now sends QUIT when the initial
+	HELO handshake fails. it still doesn't send QUIT when the
+	server greets with a [45]XX code, as that is handled in the
+	connection management code before a session context exists.
+	File: smtp/smtp_connect.c.
+
+20050616
+
+	Bugfix: missing or mis-placed va_end() macros, found in
+	Postfix 2.3 code review. Files: util/netstring.c,
+	util/myaddrinfo.c, util/attr_clnt.c, util/vstream.c.
+
+20050621
+
+	Portability: file descriptor passing is available for Tru64
+	UNIX, but AIX4 and IRIX6 will have to do without. This means
+	no SMTP connection caching for those platforms.  Albert
+	Chin.  File: util/sys_defs.h.
+

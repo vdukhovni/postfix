@@ -553,7 +553,7 @@ static void disconnect(SINK_STATE *state)
     vstream_fclose(state->stream);
     vstring_free(state->buffer);
     myfree((char *) state);
-    if (max_count > 0 && ++counter >= max_count)
+    if (max_count > 0 && counter >= max_count)
 	exit(0);
 }
 

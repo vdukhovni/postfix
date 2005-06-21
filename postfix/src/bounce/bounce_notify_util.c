@@ -613,9 +613,8 @@ int     bounce_recipient_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
     post_mail_fprintf(bounce, "Final-Recipient: rfc822; %s",
 		      bounce_info->log_handle->recipient);
     if (bounce_info->log_handle->orig_rcpt) {
-	xtext_quote(bounce_info->buf, bounce_info->log_handle->orig_rcpt, "+=");
 	post_mail_fprintf(bounce, "Original-Recipient: rfc822; %s",
-			  STR(bounce_info->buf));
+			  bounce_info->log_handle->orig_rcpt);
     }
     post_mail_fprintf(bounce, "Action: %s",
 		      bounce_info->flush == BOUNCE_MSG_FAIL ?

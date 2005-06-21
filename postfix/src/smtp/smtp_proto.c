@@ -627,10 +627,11 @@ static int smtp_start_tls(SMTP_STATE *state, int misc_flags)
     if (session->tls_info.peer_CN != NULL) {
 	if (!session->tls_info.peer_verified) {
 	    msg_info("Server certificate could not be verified");
-	    if (session->tls_enforce_tls) {
+	    if (session->tls_enforce_peername) {
 		tls_client_stop(smtp_tls_ctx, session->stream,
 				var_smtp_starttls_tmout, 1,
 				&(session->tls_info));
+		session->tls_context = 0;
 		return (smtp_site_fail(state, 450,
 			  "TLS failure: Cannot verify server certificate"));
 	    }
@@ -646,10 +647,11 @@ static int smtp_start_tls(SMTP_STATE *state, int misc_flags)
      * testing if a certificate is available.
      */
     else {
-	if (session->tls_enforce_tls) {
+	if (session->tls_enforce_peername) {
 	    tls_client_stop(smtp_tls_ctx, session->stream,
 			    var_smtp_starttls_tmout, 1,
 			    &(session->tls_info));
+	    session->tls_context = 0;
 	    return (smtp_site_fail(state, 450,
 			     "TLS failure: Cannot verify server hostname"));
 	}
