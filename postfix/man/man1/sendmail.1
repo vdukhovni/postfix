@@ -190,7 +190,7 @@ Specify the envelope ID for notification by servers that
 support DSN.
 
 This feature is available in Postfix 2.3 and later.
-.IP "\fB-V\fR (with Postfix 2.3 use \fB-XV\fR)"
+.IP "\fB-XV\fR (Postfix 2.2 and earlier: \fB-V\fR)"
 Variable Envelope Return Path. Given an envelope sender address
 of the form \fIowner-listname\fR@\fIorigin\fR, each recipient
 \fIuser\fR@\fIdomain\fR receives mail with a personalized envelope
@@ -200,28 +200,10 @@ By default, the personalized envelope sender address is
 \fIowner-listname\fB+\fIuser\fB=\fIdomain\fR@\fIorigin\fR. The default
 \fB+\fR and \fB=\fR characters are configurable with the
 \fBdefault_verp_delimiters\fR configuration parameter.
-.IP "\fB-V\fIxy\fR (with Postfix 2.3 use \fB-XV\fIxy\fR)"
-As \fB-V\fR, but uses \fIx\fR and \fIy\fR as the VERP delimiter
+.IP "\fB-XV\fIxy\fR (Postfix 2.2 and earlier: \fB-V\fIxy\fR)"
+As \fB-XV\fR, but uses \fIx\fR and \fIy\fR as the VERP delimiter
 characters, instead of the characters specified with the
 \fBdefault_verp_delimiters\fR configuration parameter.
-.IP \fB-XV\fR
-Variable Envelope Return Path. Given an envelope sender address
-of the form \fIowner-listname\fR@\fIorigin\fR, each recipient
-\fIuser\fR@\fIdomain\fR receives mail with a personalized envelope
-sender address.
-.sp
-By default, the personalized envelope sender address is
-\fIowner-listname\fB+\fIuser\fB=\fIdomain\fR@\fIorigin\fR. The default
-\fB+\fR and \fB=\fR characters are configurable with the
-\fBdefault_verp_delimiters\fR configuration parameter.
-.sp
-This feature is available in Postfix version 2.3 and later.
-.IP \fB-XV\fIxy\fR
-As \fB-V\fR, but uses \fIx\fR and \fIy\fR as the VERP delimiter
-characters, instead of the characters specified with the
-\fBdefault_verp_delimiters\fR configuration parameter.
-.sp
-This feature is available in Postfix version 2.3 and later.
 .IP \fB-v\fR
 Send an email report of the first delivery attempt (Postfix
 versions 2.1 and later). Mail delivery

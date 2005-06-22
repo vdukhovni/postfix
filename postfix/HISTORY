@@ -10905,6 +10905,24 @@ Apologies for any names omitted.
 	UNIX, but not for AIX4 and IRIX6.  Albert Chin. File:
 	util/sys_defs.h.
 
+20050622
+
+	Cleanup: the DNS lookup code now accommodates name server
+	replies longer than 4 kbytes, with a hard upper limit of
+	32kbytes. For safety reasons, the number of MX host addresses
+	that the SMTP client will try was reduced from unlimited
+	to just 5, so that Postfix won't spend forever trying to
+	connect to dozens and dozens of bogus MX hosts. Files:
+	dns/dns_lookup.c, global/mail_params.h.
+
+	Cleanup: the code that handles a 4xx or 5xx SMTP server
+	greeting was moved from the connection management module
+	to the protocol engine, for cleaner error handling.  This
+	means that the failed session now counts towards the limit
+	on the total number of SMTP sessions per domain name (default:
+	smtp_mx_session_limit = 2).  Files: smtp/smtp_connect.c,
+	smtp/smtp_proto.c.
+
 Open problems:
 
 	Laptop friendliness: make the qmgr remember when the next
@@ -10921,7 +10939,8 @@ Open problems:
 	eliminate the hack that uses one character lookahead to
 	find out if the server wants to talk to us.
 
-	Low: replace_sender/replace_recipient actions in access maps?
+	Low: replace_sender/replace_recipient actions in access
+	maps?
 
 	Feature: need "soft-bounce before fall-back relay" for SOHO
 	type operations, so they can send direct mail without having

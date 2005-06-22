@@ -6201,11 +6201,12 @@ The default time unit is s (seconds).
 </DD>
 
 <DT><b><a name="smtp_mx_address_limit">smtp_mx_address_limit</a>
-(default: 0)</b></DT><DD>
+(default: 5)</b></DT><DD>
 
 <p>
 The maximal number of MX (mail exchanger) IP addresses that can
-result from mail exchanger lookups, or zero (no limit).
+result from mail exchanger lookups, or zero (no limit). Prior to
+Postfix 2.3, this limit was disabled.
 </p>
 
 <p>

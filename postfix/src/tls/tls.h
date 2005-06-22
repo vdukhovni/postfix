@@ -116,7 +116,7 @@ extern void tls_session_stop(SSL_CTX *, VSTREAM *, int, int, tls_info_t *);
 #include <vstring.h>
 
 extern VSTRING *tls_session_passivate(SSL_SESSION *);
-extern SSL_SESSION *tls_session_activate(char *, int);
+extern SSL_SESSION *tls_session_activate(const char *, int);
 
  /*
   * tls_stream.c.

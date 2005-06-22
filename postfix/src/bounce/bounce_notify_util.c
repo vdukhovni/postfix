@@ -684,7 +684,7 @@ int     bounce_recipient_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
      * MTA can't use that same information in its own DSNs.
      * 
      * Postfix always reports an Original-Recipient field, because it is more
-     * more useful and more inconsistent.
+     * more useful and more consistent.
      */
     if (bounce_info->log_handle->rcpt.dsn_orcpt) {
 	post_mail_fprintf(bounce, "Original-Recipient: %s",

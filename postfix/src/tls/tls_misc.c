@@ -73,6 +73,7 @@
 
 #include <sys_defs.h>
 #include <ctype.h>
+#include <string.h>
 
 #ifdef USE_TLS
 

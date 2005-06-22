@@ -201,7 +201,7 @@ extern bool var_disable_dns;
 extern int var_smtp_dns_lookup;
 
 #define VAR_SMTP_MXADDR_LIMIT	"smtp_mx_address_limit"
-#define DEF_SMTP_MXADDR_LIMIT	0
+#define DEF_SMTP_MXADDR_LIMIT	5
 extern int var_smtp_mxaddr_limit;
 
 #define VAR_SMTP_MXSESS_LIMIT	"smtp_mx_session_limit"

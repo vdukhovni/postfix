@@ -3824,11 +3824,12 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 </p>
 
-%PARAM smtp_mx_address_limit 0
+%PARAM smtp_mx_address_limit 5
 
 <p>
 The maximal number of MX (mail exchanger) IP addresses that can
-result from mail exchanger lookups, or zero (no limit).
+result from mail exchanger lookups, or zero (no limit). Prior to
+Postfix 2.3, this limit was disabled.
 </p>
 
 <p>

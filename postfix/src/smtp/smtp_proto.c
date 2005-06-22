@@ -277,9 +277,10 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
 	switch ((resp = smtp_chat_resp(session))->code / 100) {
 	case 2:
 	    break;
-	case 4:
 	case 5:
-	    /* Handled in smtp_connect(). */
+	    if (var_smtp_skip_5xx_greeting)
+		STR(resp->dsn_buf)[0] = '4';
+	    /* FALLTHROUGH */
 	default:
 	    return (smtp_site_fail(state, session->host, resp,
 				   "host %s refused to talk to me: %s",

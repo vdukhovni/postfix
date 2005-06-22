@@ -142,10 +142,12 @@
  /*
   * Structure to keep track of things while decoding a name server reply.
   */
-#define DNS_REPLY_SIZE	4096		/* in case we're using TCP */
+#define DEF_DNS_REPLY_SIZE	4096		/* in case we're using TCP */
+#define MAX_DNS_REPLY_SIZE	32768		/* in case we're using TCP */
 
 typedef struct DNS_REPLY {
-    unsigned char buf[DNS_REPLY_SIZE];	/* raw reply data */
+    unsigned char *buf;			/* raw reply data */
+    size_t  buf_len;			/* reply buffer length */
     int     query_count;		/* number of queries */
     int     answer_count;		/* number of answers */
     unsigned char *query_start;		/* start of query data */
@@ -166,6 +168,14 @@ static int dns_query(const char *name, int type, int flags,
     unsigned long saved_options;
 
     /*
+     * Initialize the reply buffer.
+     */
+    if (reply->buf == 0) {
+	reply->buf = mymalloc(DEF_DNS_REPLY_SIZE);
+	reply->buf_len = DEF_DNS_REPLY_SIZE;
+    }
+
+    /*
      * Initialize the name service.
      */
     if ((_res.options & RES_INIT) == 0 && res_init() < 0) {
@@ -183,53 +193,59 @@ static int dns_query(const char *name, int type, int flags,
     if ((flags & USER_FLAGS) != flags)
 	msg_panic("dns_query: bad flags: %d", flags);
     saved_options = (_res.options & USER_FLAGS);
-    _res.options &= ~saved_options;
-    _res.options |= flags;
 
     /*
      * Perform the lookup. Claim that the information cannot be found if and
      * only if the name server told us so.
      */
-    len = res_search((char *) name, C_IN, type, reply->buf, sizeof(reply->buf));
-    _res.options &= ~flags;
-    _res.options |= saved_options;
-    if (len < 0) {
-	if (why)
-	    vstring_sprintf(why, "Host or domain name not found. "
-			    "Name service error for name=%s type=%s: %s",
+    for (;;) {
+	_res.options &= ~saved_options;
+	_res.options |= flags;
+	len = res_search((char *) name, C_IN, type, reply->buf, reply->buf_len);
+	_res.options &= ~flags;
+	_res.options |= saved_options;
+	if (len < 0) {
+	    if (why)
+		vstring_sprintf(why, "Host or domain name not found. "
+				"Name service error for name=%s type=%s: %s",
 			    name, dns_strtype(type), dns_strerror(h_errno));
-	if (msg_verbose)
-	    msg_info("dns_query: %s (%s): %s",
-		     name, dns_strtype(type), dns_strerror(h_errno));
-	switch (h_errno) {
-	case NO_RECOVERY:
-	    return (DNS_FAIL);
-	case HOST_NOT_FOUND:
-	case NO_DATA:
-	    return (DNS_NOTFOUND);
-	default:
-	    return (DNS_RETRY);
+	    if (msg_verbose)
+		msg_info("dns_query: %s (%s): %s",
+			 name, dns_strtype(type), dns_strerror(h_errno));
+	    switch (h_errno) {
+	    case NO_RECOVERY:
+		return (DNS_FAIL);
+	    case HOST_NOT_FOUND:
+	    case NO_DATA:
+		return (DNS_NOTFOUND);
+	    default:
+		return (DNS_RETRY);
+	    }
 	}
+	if (msg_verbose)
+	    msg_info("dns_query: %s (%s): OK", name, dns_strtype(type));
+
+	reply_header = (HEADER *) reply->buf;
+	if (reply_header->tc == 0 || reply->buf_len >= MAX_DNS_REPLY_SIZE)
+	    break;
+	reply->buf = myrealloc(reply->buf, 2 * reply->buf_len);
+	reply->buf_len *= 2;
     }
-    if (msg_verbose)
-	msg_info("dns_query: %s (%s): OK", name, dns_strtype(type));
 
     /*
      * Paranoia.
      */
-    if (len > sizeof(reply->buf)) {
+    if (len > reply->buf_len) {
 	msg_warn("reply length %d > buffer length %d for name=%s type=%s",
-		 len, (int) sizeof(reply->buf), name, dns_strtype(type));
-	len = sizeof(reply->buf);
+		 len, (int) reply->buf_len, name, dns_strtype(type));
+	len = reply->buf_len;
     }
 
     /*
      * Initialize the reply structure. Some structure members are filled on
      * the fly while the reply is being parsed.
      */
-    if ((reply->end = reply->buf + len) > reply->buf + sizeof(reply->buf))
-	reply->end = reply->buf + sizeof(reply->buf);
-    reply_header = (HEADER *) reply->buf;
+    reply->end = reply->buf + len;
     reply->query_start = reply->buf + sizeof(HEADER);
     reply->answer_start = 0;
     reply->query_count = ntohs(reply_header->qdcount);
@@ -525,7 +541,7 @@ int     dns_lookup(const char *name, unsigned type, unsigned flags,
 {
     char    cname[DNS_NAME_LEN];
     int     c_len = sizeof(cname);
-    DNS_REPLY reply;
+    static DNS_REPLY reply;
     int     count;
     int     status;
 

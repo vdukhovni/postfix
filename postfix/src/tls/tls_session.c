@@ -145,15 +145,15 @@ VSTRING *tls_session_passivate(SSL_SESSION *session)
 
 /* tls_session_activate - activate passivated session */
 
-SSL_SESSION *tls_session_activate(char *session_data, int session_data_len)
+SSL_SESSION *tls_session_activate(const char *session_data, int session_data_len)
 {
     SSL_SESSION *session;
-    unsigned char *ptr;
+    const unsigned char *ptr;
 
     /*
      * Activate the SSL_SESSION object.
      */
-    ptr = (unsigned char *) session_data;
+    ptr = (const unsigned char *) session_data;
     session = d2i_SSL_SESSION((SSL_SESSION **) 0, &ptr, session_data_len);
     if (!session)
 	tls_print_errors();

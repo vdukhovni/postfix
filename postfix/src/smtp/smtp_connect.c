@@ -103,25 +103,6 @@
 #include <smtp_addr.h>
 #include <smtp_reuse.h>
 
-/* smtp_salvage - salvage the server reply before disconnecting */
-
-static VSTRING *smtp_salvage(VSTREAM *stream)
-{
-    int     len = vstream_peek(stream);
-    VSTRING *buf = vstring_alloc(len);
-
-    /*
-     * We know the server replied with 4... or 5...; salvage whatever we have
-     * received in the VSTREAM buffer and sanitize any non-printable crud.
-     */
-    vstream_fread(stream, STR(buf), len);
-    VSTRING_AT_OFFSET(buf, len);		/* XXX not public interface */
-    VSTRING_TERMINATE(buf);
-    translit(STR(buf), "\r\n", "  ");
-    printable(STR(buf), '?');
-    return (buf);
-}
-
 /* smtp_connect_addr - connect to explicit address */
 
 static SMTP_SESSION *smtp_connect_addr(const char *dest, DNS_RR *addr,
@@ -252,7 +233,7 @@ static SMTP_SESSION *smtp_connect_addr(const char *dest, DNS_RR *addr,
 
     /*
      * Skip this host if it takes no action within some time limit. XXX Some
-     * MTAs use 426 for to indicate a timeout error.
+     * MTAs use 426 to indicate a timeout error.
      */
     if (read_wait(sock, var_smtp_helo_tmout) < 0) {
 	smtp_dsn_update(why, DSN_BY_LOCAL_MTA,
@@ -280,26 +261,8 @@ static SMTP_SESSION *smtp_connect_addr(const char *dest, DNS_RR *addr,
     vstream_ungetc(stream, ch);
 
     /*
-     * Skip this host if it sends a 4xx or 5xx greeting. This prevents us
-     * from counting it towards the MX session limit. Unfortunately, this
-     * also means that we have to salvage the server's response ourself so
-     * that it can be included in logging or in non-delivery reports. It does
-     * not hurt if we keep the test for a 4xx or 5xx greeting in smtp_helo().
-     * 
-     * Do not propagate the server's DSN code. We are skipping this problem!
+     * Bundle up what we have into a nice SMTP_SESSION object.
      */
-    if (ch == '4' || (ch == '5' && var_smtp_skip_5xx_greeting)) {
-	VSTRING *salvage_buf = smtp_salvage(stream);
-
-	smtp_dsn_update(why, DSN_BY_LOCAL_MTA,
-			"4.3.0", 420, "420 Connection rejected by server",
-		      "connect to %s[%s]: server refused to talk to me: %s",
-			addr->name, hostaddr.buf, STR(salvage_buf));
-	vstring_free(salvage_buf);
-	smtp_errno = SMTP_ERR_RETRY;
-	vstream_fclose(stream);
-	return (0);
-    }
     return (smtp_session_alloc(stream, dest, addr->name,
 			       hostaddr.buf, port, sess_flags));
 }

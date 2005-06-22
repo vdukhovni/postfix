@@ -256,7 +256,7 @@
 /*	receiving the server response.
 /* .PP
 /*	Available in Postfix version 2.1 and later:
-/* .IP "\fBsmtp_mx_address_limit (0)\fR"
+/* .IP "\fBsmtp_mx_address_limit (5)\fR"
 /*	The maximal number of MX (mail exchanger) IP addresses that can
 /*	result from mail exchanger lookups, or zero (no limit).
 /* .IP "\fBsmtp_mx_session_limit (2)\fR"

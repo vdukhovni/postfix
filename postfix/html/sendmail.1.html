@@ -238,7 +238,7 @@ SENDMAIL(1)                                                        SENDMAIL(1)
 
               This feature is available in Postfix 2.3 and later.
 
-       <b>-V</b> (with Postfix 2.3 use <b>-XV</b>)
+       <b>-XV</b> (Postfix 2.2 and earlier: <b>-V</b>)
               Variable Envelope Return Path.  Given  an  envelope
               sender  address  of the form <i>owner-listname</i>@<i>origin</i>,
               each recipient <i>user</i>@<i>domain</i>  receives  mail  with  a
@@ -250,33 +250,11 @@ SENDMAIL(1)                                                        SENDMAIL(1)
               the <b><a href="postconf.5.html#default_verp_delimiters">default_verp_delimiters</a></b>  configuration  parame-
               ter.
 
-       <b>-V</b><i>xy</i> (with Postfix 2.3 use <b>-XV</b><i>xy</i>)
-              As <b>-V</b>, but uses <i>x</i> and <i>y</i> as the VERP delimiter char-
-              acters, instead of the  characters  specified  with
-              the  <b><a href="postconf.5.html#default_verp_delimiters">default_verp_delimiters</a></b>  configuration parame-
-              ter.
-
-       <b>-XV</b>    Variable Envelope Return Path.  Given  an  envelope
-              sender  address  of the form <i>owner-listname</i>@<i>origin</i>,
-              each recipient <i>user</i>@<i>domain</i>  receives  mail  with  a
-              personalized envelope sender address.
-
-              By   default,   the  personalized  envelope  sender
-              address is  <i>owner-listname</i><b>+</b><i>user</i><b>=</b><i>domain</i>@<i>origin</i>.  The
-              default  <b>+</b>  and  <b>=</b> characters are configurable with
-              the <b><a href="postconf.5.html#default_verp_delimiters">default_verp_delimiters</a></b>  configuration  parame-
-              ter.
-
-              This  feature  is  available in Postfix version 2.3
-              and later.
-
-       <b>-XV</b><i>xy</i>  As <b>-V</b>, but uses <i>x</i> and <i>y</i> as the VERP delimiter char-
-              acters,  instead  of  the characters specified with
-              the <b><a href="postconf.5.html#default_verp_delimiters">default_verp_delimiters</a></b>  configuration  parame-
-              ter.
-
-              This  feature  is  available in Postfix version 2.3
-              and later.
+       <b>-XV</b><i>xy</i> (Postfix 2.2 and earlier: <b>-V</b><i>xy</i>)
+              As  <b>-XV</b>,  but  uses  <i>x</i>  and <i>y</i> as the VERP delimiter
+              characters, instead  of  the  characters  specified
+              with   the   <b><a href="postconf.5.html#default_verp_delimiters">default_verp_delimiters</a></b>  configuration
+              parameter.
 
        <b>-v</b>     Send an email report of the first delivery  attempt
               (Postfix  versions  2.1  and  later). Mail delivery
