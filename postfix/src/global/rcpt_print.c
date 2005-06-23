@@ -6,16 +6,16 @@
 /* SYNOPSIS
 /*	#include <rcpt_print.h>
 /*
-/*	int     rcpt_print(stream, flags, ptr)
+/*	int     rcpt_print(print_fn, stream, flags, ptr)
+/*	ATTR_PRINT_MASTER_FN print_fn;
 /*	VSTREAM *stream;
 /*	int	flags;
 /*	void	*ptr;
 /* DESCRIPTION
 /*	rcpt_print() writes the contents of a RECIPIENT structure
-/*	to the named stream using the default attribute print
-/*	routines. This function is meant to be passed as a call-back
-/*	to attr_print(),
-/*	thusly:
+/*	to the named stream using the specified attribute print
+/*	routine. rcpt_print() is meant to be passed as a call-back
+/*	to attr_print(), thusly:
 /*
 /*	... ATTR_PRINT_FUNC, rcpt_print, (void *) recipient, ...
 /* DIAGNOSTICS
@@ -44,7 +44,8 @@
 
 /* rcpt_print - write recipient to stream */
 
-int     rcpt_print(VSTREAM *fp, int flags, void *ptr)
+int     rcpt_print(ATTR_PRINT_MASTER_FN print_fn, VSTREAM *fp,
+		           int flags, void *ptr)
 {
     RECIPIENT *rcpt = (RECIPIENT *) ptr;
     int     ret;
@@ -52,16 +53,17 @@ int     rcpt_print(VSTREAM *fp, int flags, void *ptr)
 #define S(s) ((s) ? (s) : "")
 
     /*
-     * The attribute order is determined by backwards compatibility. It can 
-     * be sanitized after all the ad-hoc recipient read/write code is replaced.
+     * The attribute order is determined by backwards compatibility. It can
+     * be sanitized after all the ad-hoc recipient read/write code is
+     * replaced.
      */
     ret =
-	attr_print(fp, flags | ATTR_FLAG_MORE,
-		   ATTR_TYPE_STR, MAIL_ATTR_ORCPT, S(rcpt->orig_addr),
-		   ATTR_TYPE_STR, MAIL_ATTR_RECIP, rcpt->address,
-		   ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, rcpt->offset,
-		   ATTR_TYPE_STR, MAIL_ATTR_DSN_ORCPT, S(rcpt->dsn_orcpt),
-		   ATTR_TYPE_NUM, MAIL_ATTR_DSN_NOTIFY, rcpt->dsn_notify,
-		   ATTR_TYPE_END);
+	print_fn(fp, flags | ATTR_FLAG_MORE,
+		 ATTR_TYPE_STR, MAIL_ATTR_ORCPT, S(rcpt->orig_addr),
+		 ATTR_TYPE_STR, MAIL_ATTR_RECIP, rcpt->address,
+		 ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, rcpt->offset,
+		 ATTR_TYPE_STR, MAIL_ATTR_DSN_ORCPT, S(rcpt->dsn_orcpt),
+		 ATTR_TYPE_NUM, MAIL_ATTR_DSN_NOTIFY, rcpt->dsn_notify,
+		 ATTR_TYPE_END);
     return (ret);
 }

@@ -67,6 +67,7 @@
 
 #include <mail_params.h>
 #include <deliver_pass.h>
+#include <dsb_scan.h>
 
 /* deliver_pass_initial_reply - retrieve initial delivery process response */
 
@@ -130,24 +131,14 @@ static int deliver_pass_send_request(VSTREAM *stream, DELIVER_REQUEST *request,
 
 /* deliver_pass_final_reply - retrieve final delivery status response */
 
-static int deliver_pass_final_reply(VSTREAM *stream, VSTRING *dsn_status,
-				            VSTRING *reason,
-					    VSTRING *dsn_dtype,
-				            VSTRING *dsn_dtext,
-					    VSTRING *dsn_mtype,
-				            VSTRING *dsn_mname)
+static int deliver_pass_final_reply(VSTREAM *stream, DSN_BUF *dsb)
 {
     int     stat;
 
     if (attr_scan(stream, ATTR_FLAG_STRICT,
-		  ATTR_TYPE_STR, MAIL_ATTR_DSN_STATUS, dsn_status,
-		  ATTR_TYPE_STR, MAIL_ATTR_WHY, reason,
-		  ATTR_TYPE_STR, MAIL_ATTR_DSN_DTYPE, dsn_dtype,
-		  ATTR_TYPE_STR, MAIL_ATTR_DSN_DTEXT, dsn_dtext,
-		  ATTR_TYPE_STR, MAIL_ATTR_DSN_MTYPE, dsn_mtype,
-		  ATTR_TYPE_STR, MAIL_ATTR_DSN_MNAME, dsn_mname,
+		  ATTR_TYPE_FUNC, dsb_scan, (void *) dsb,
 		  ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &stat,
-		  ATTR_TYPE_END) != 7) {
+		  ATTR_TYPE_END) != 2) {
 	msg_warn("%s: malformed response", VSTREAM_PATH(stream));
 	stat = -1;
     }
@@ -161,7 +152,7 @@ int     deliver_pass(const char *class, const char *service,
 		             RECIPIENT *rcpt)
 {
     VSTREAM *stream;
-    VSTRING *junk;
+    DSN_BUF *dsb;
     int     status;
     char   *saved_service;
     char   *transport;
@@ -181,7 +172,7 @@ int     deliver_pass(const char *class, const char *service,
      * Initialize.
      */
     stream = mail_connect_wait(class, transport);
-    junk = vstring_alloc(1);
+    dsb = dsb_create();
 
     /*
      * Get the delivery process initial response. Send the queue file info
@@ -196,14 +187,13 @@ int     deliver_pass(const char *class, const char *service,
     if ((status = deliver_pass_initial_reply(stream)) == 0
 	&& (status = deliver_pass_send_request(stream, request, nexthop,
 					       rcpt)) == 0)
-	status = deliver_pass_final_reply(stream, junk, junk, junk,
-					  junk, junk, junk);
+	status = deliver_pass_final_reply(stream, dsb);
 
     /*
      * Clean up.
      */
     vstream_fclose(stream);
-    vstring_free(junk);
+    dsb_free(dsb);
     myfree(saved_service);
 
     return (status);

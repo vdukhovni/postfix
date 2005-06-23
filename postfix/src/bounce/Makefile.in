@@ -106,6 +106,7 @@ bounce_append_service.o: ../../include/vstream.h
 bounce_append_service.o: ../../include/vstring.h
 bounce_append_service.o: bounce_append_service.c
 bounce_append_service.o: bounce_service.h
+bounce_cleanup.o: ../../include/attr.h
 bounce_cleanup.o: ../../include/bounce_log.h
 bounce_cleanup.o: ../../include/dsn.h
 bounce_cleanup.o: ../../include/dsn_buf.h
@@ -120,6 +121,7 @@ bounce_cleanup.o: ../../include/vstream.h
 bounce_cleanup.o: ../../include/vstring.h
 bounce_cleanup.o: bounce_cleanup.c
 bounce_cleanup.o: bounce_service.h
+bounce_notify_service.o: ../../include/attr.h
 bounce_notify_service.o: ../../include/bounce.h
 bounce_notify_service.o: ../../include/bounce_log.h
 bounce_notify_service.o: ../../include/cleanup_user.h
@@ -178,6 +180,7 @@ bounce_notify_util.o: ../../include/vstream.h
 bounce_notify_util.o: ../../include/vstring.h
 bounce_notify_util.o: bounce_notify_util.c
 bounce_notify_util.o: bounce_service.h
+bounce_notify_verp.o: ../../include/attr.h
 bounce_notify_verp.o: ../../include/bounce.h
 bounce_notify_verp.o: ../../include/bounce_log.h
 bounce_notify_verp.o: ../../include/cleanup_user.h
@@ -201,6 +204,7 @@ bounce_notify_verp.o: ../../include/vstream.h
 bounce_notify_verp.o: ../../include/vstring.h
 bounce_notify_verp.o: bounce_notify_verp.c
 bounce_notify_verp.o: bounce_service.h
+bounce_one_service.o: ../../include/attr.h
 bounce_one_service.o: ../../include/bounce.h
 bounce_one_service.o: ../../include/bounce_log.h
 bounce_one_service.o: ../../include/cleanup_user.h
@@ -222,6 +226,7 @@ bounce_one_service.o: ../../include/vstream.h
 bounce_one_service.o: ../../include/vstring.h
 bounce_one_service.o: bounce_one_service.c
 bounce_one_service.o: bounce_service.h
+bounce_trace_service.o: ../../include/attr.h
 bounce_trace_service.o: ../../include/bounce_log.h
 bounce_trace_service.o: ../../include/cleanup_user.h
 bounce_trace_service.o: ../../include/deliver_request.h
@@ -243,6 +248,7 @@ bounce_trace_service.o: ../../include/vstream.h
 bounce_trace_service.o: ../../include/vstring.h
 bounce_trace_service.o: bounce_service.h
 bounce_trace_service.o: bounce_trace_service.c
+bounce_warn_service.o: ../../include/attr.h
 bounce_warn_service.o: ../../include/bounce_log.h
 bounce_warn_service.o: ../../include/cleanup_user.h
 bounce_warn_service.o: ../../include/dsn.h

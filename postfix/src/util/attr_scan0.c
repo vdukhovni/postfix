@@ -93,7 +93,7 @@
 /*	This argument is followed by an attribute name and a VSTRING pointer.
 /* .IP "ATTR_TYPE_DATA (char *, VSTRING *)"
 /*	This argument is followed by an attribute name and a VSTRING pointer.
-/* .IP "ATTR_TYPE_FUNC (ATTR_SCAN_FN, void *)"
+/* .IP "ATTR_TYPE_FUNC (ATTR_SCAN_SLAVE_FN, void *)"
 /*	This argument is followed by a function pointer and a generic data
 /*	pointer.
 /* .IP "ATTR_TYPE_HASH (HTABLE *)"
@@ -256,7 +256,7 @@ int     attr_vscan0(VSTREAM *fp, int flags, va_list ap)
     HTABLE *hash_table;
     int     ch;
     int     conversions;
-    ATTR_SCAN_FN scan_fn;
+    ATTR_SCAN_SLAVE_FN scan_fn;
     void   *scan_arg;
 
     /*
@@ -378,9 +378,9 @@ int     attr_vscan0(VSTREAM *fp, int flags, va_list ap)
 		return (-1);
 	    break;
 	case ATTR_TYPE_FUNC:
-	    scan_fn = va_arg(ap, ATTR_SCAN_FN);
+	    scan_fn = va_arg(ap, ATTR_SCAN_SLAVE_FN);
 	    scan_arg = va_arg(ap, void *);
-	    if (scan_fn(fp, flags | ATTR_FLAG_MORE, scan_arg) < 0)
+	    if (scan_fn(attr_scan0, fp, flags | ATTR_FLAG_MORE, scan_arg) < 0)
 		return (-1);
 	    break;
 	case ATTR_TYPE_HASH:

@@ -17,6 +17,19 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
+Incompatibility with snapshot 20050622
+======================================
+
+The Postfix SMTP client by default limits the number of MX server
+addresses to smtp_mx_address_limit=5. Previously this limit was
+disabled by default. The new limit prevents Postfix from spending
+lots of time trying to connect to lots of bogus MX servers.
+
+The Postfix SMTP error handling of [45]XX server greetings was
+cleaned up. The server reply is now properly reported. As a side
+effect, the failed session now counts towards the limit on the total
+number of sessions per domain name (default: smtp_mx_session_limit=2).
+
 Incompatibility with snapshot 20050615
 ======================================
 

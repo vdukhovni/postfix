@@ -10923,6 +10923,14 @@ Apologies for any names omitted.
 	smtp_mx_session_limit = 2).  Files: smtp/smtp_connect.c,
 	smtp/smtp_proto.c.
 
+20050623
+
+	Cleanup: generalized the delegated attribute scan/print
+	interfaces, and updated the deliver_pass module with delegated
+	attribute scan/print support. Files: util/attr_scan0.c,
+	util/attr_print0.c, global/dsb_scan.c, global/dsn_print.c,
+	global/rcpt_buf,c global/rcpt_print.c, global/deliver_pass.c.
+
 Open problems:
 
 	Laptop friendliness: make the qmgr remember when the next

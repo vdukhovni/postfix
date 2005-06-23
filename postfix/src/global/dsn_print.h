@@ -15,6 +15,7 @@
   * Utility library.
   */
 #include <vstream.h>
+#include <attr.h>
 
  /*
   * Global library.
@@ -24,7 +25,7 @@
  /*
   * External interface.
   */
-extern int dsn_print(VSTREAM *, int, void *);
+extern int dsn_print(ATTR_PRINT_MASTER_FN, VSTREAM *, int, void *);
 
 /* LICENSE
 /* .ad

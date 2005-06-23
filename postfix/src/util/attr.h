@@ -47,9 +47,12 @@
 #define ATTR_FLAG_ALL		(07)
 
  /*
-Delegation for better data abstraction. */
-typedef int (*ATTR_SCAN_FN)(VSTREAM *, int, void *);
-typedef int (*ATTR_PRINT_FN)(VSTREAM *, int, void *);
+  * Delegation for better data abstraction.
+  */
+typedef int (*ATTR_SCAN_MASTER_FN) (VSTREAM *, int, ...);
+typedef int (*ATTR_SCAN_SLAVE_FN) (ATTR_SCAN_MASTER_FN, VSTREAM *, int, void *);
+typedef int (*ATTR_PRINT_MASTER_FN) (VSTREAM *, int,...);
+typedef int (*ATTR_PRINT_SLAVE_FN) (ATTR_PRINT_MASTER_FN, VSTREAM *, int, void *);
 
  /*
   * Default to null-terminated, as opposed to base64-encoded.

@@ -15,6 +15,7 @@
   * Utility library.
   */
 #include <vstream.h>
+#include <attr.h>
 
  /*
   * Global library.
@@ -24,7 +25,7 @@
  /*
   * External interface.
   */
-extern int dsb_scan(VSTREAM *, int, void *);
+extern int dsb_scan(ATTR_SCAN_MASTER_FN, VSTREAM *, int, void *);
 
 /* LICENSE
 /* .ad

@@ -6,13 +6,14 @@
 /* SYNOPSIS
 /*	#include <dsn_print.h>
 /*
-/*	int	dsn_print(stream, flags, ptr)
+/*	int	dsn_print(print_fn, stream, flags, ptr)
+/*	ATTR_PRINT_MASTER_FN print_fn;
 /*	VSTREAM *stream;
 /*	int	flags;
 /*	void	*ptr;
 /* DESCRIPTION
 /*	dsn_print() writes a DSN structure to the named stream using
-/*	the default attribute print routines. This function is meant
+/*	the specified attribute print routine. dsn_print() is meant
 /*	to be passed as a call-back to attr_print(), thusly:
 /*
 /*	... ATTR_PRINT_FUNC, dsn_print, (void *) dsn, ...
@@ -44,7 +45,8 @@
 
 /* dsn_print - write DSN to stream */
 
-int     dsn_print(VSTREAM *fp, int flags, void *ptr)
+int     dsn_print(ATTR_PRINT_MASTER_FN print_fn, VSTREAM *fp,
+		          int flags, void *ptr)
 {
     DSN    *dsn = (DSN *) ptr;
     int     ret;
@@ -55,14 +57,14 @@ int     dsn_print(VSTREAM *fp, int flags, void *ptr)
      * The attribute order is determined by backwards compatibility. It can
      * be sanitized after all the ad-hoc DSN read/write code is replaced.
      */
-    ret = attr_print(fp, flags | ATTR_FLAG_MORE,
-		     ATTR_TYPE_STR, MAIL_ATTR_DSN_STATUS, dsn->status,
-		     ATTR_TYPE_STR, MAIL_ATTR_DSN_DTYPE, S(dsn->dtype),
-		     ATTR_TYPE_STR, MAIL_ATTR_DSN_DTEXT, S(dsn->dtext),
-		     ATTR_TYPE_STR, MAIL_ATTR_DSN_MTYPE, S(dsn->mtype),
-		     ATTR_TYPE_STR, MAIL_ATTR_DSN_MNAME, S(dsn->mname),
-		     ATTR_TYPE_STR, MAIL_ATTR_DSN_ACTION, S(dsn->action),
-		     ATTR_TYPE_STR, MAIL_ATTR_WHY, dsn->reason,
-		     ATTR_TYPE_END);
+    ret = print_fn(fp, flags | ATTR_FLAG_MORE,
+		   ATTR_TYPE_STR, MAIL_ATTR_DSN_STATUS, dsn->status,
+		   ATTR_TYPE_STR, MAIL_ATTR_DSN_DTYPE, S(dsn->dtype),
+		   ATTR_TYPE_STR, MAIL_ATTR_DSN_DTEXT, S(dsn->dtext),
+		   ATTR_TYPE_STR, MAIL_ATTR_DSN_MTYPE, S(dsn->mtype),
+		   ATTR_TYPE_STR, MAIL_ATTR_DSN_MNAME, S(dsn->mname),
+		   ATTR_TYPE_STR, MAIL_ATTR_DSN_ACTION, S(dsn->action),
+		   ATTR_TYPE_STR, MAIL_ATTR_WHY, dsn->reason,
+		   ATTR_TYPE_END);
     return (ret);
 }

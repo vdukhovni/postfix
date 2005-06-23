@@ -21,13 +21,14 @@
 /*	void	rcpb_free(rcpt)
 /*	RCPT_BUF *rcpt;
 /*
-/*	int	rcpb_scan(stream, flags, ptr)
+/*	int	rcpb_scan(scan_fn, stream, flags, ptr)
+/*	ATTR_SCAN_MASTER_FN scan_fn;
 /*	VSTREAM *stream;
 /*	int	flags;
 /*	void	*ptr;
 /* DESCRIPTION
 /*	rcpb_scan() reads a recipient buffer from the named stream
-/*	using the default attribute scan routines. This function
+/*	using the specified attribute scan routine. rcpb_scan()
 /*	is meant to be passed as a call-back to attr_scan(), thusly:
 /*
 /*	... ATTR_SCAN_FUNC, rcpb_scan, (void *) rcpt_buf, ...
@@ -91,22 +92,22 @@ void    rcpb_free(RCPT_BUF *rcpt)
 
 /* rcpb_scan - receive recipient buffer */
 
-int     rcpb_scan(VSTREAM *fp, int flags, void *ptr)
+int     rcpb_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
+		          int flags, void *ptr)
 {
     RCPT_BUF *rcpt = (RCPT_BUF *) ptr;
     int     ret;
 
     /*
-     * As with DSN, the order of attributes is determined by historical
-     * compatibility and can be fixed after all the ad-hoc read/write code is
-     * replaced.
+     * The order of attributes is determined by historical compatibility and
+     * can be fixed after all the ad-hoc read/write code is replaced.
      */
-    ret = attr_scan(fp, flags | ATTR_FLAG_MORE,
-		    ATTR_TYPE_STR, MAIL_ATTR_ORCPT, rcpt->orig_addr,
-		    ATTR_TYPE_STR, MAIL_ATTR_RECIP, rcpt->address,
-		    ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, &rcpt->offset,
-		    ATTR_TYPE_STR, MAIL_ATTR_DSN_ORCPT, rcpt->dsn_orcpt,
-		    ATTR_TYPE_NUM, MAIL_ATTR_DSN_NOTIFY, &rcpt->dsn_notify,
-		    ATTR_TYPE_END);
+    ret = scan_fn(fp, flags | ATTR_FLAG_MORE,
+		  ATTR_TYPE_STR, MAIL_ATTR_ORCPT, rcpt->orig_addr,
+		  ATTR_TYPE_STR, MAIL_ATTR_RECIP, rcpt->address,
+		  ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, &rcpt->offset,
+		  ATTR_TYPE_STR, MAIL_ATTR_DSN_ORCPT, rcpt->dsn_orcpt,
+		  ATTR_TYPE_NUM, MAIL_ATTR_DSN_NOTIFY, &rcpt->dsn_notify,
+		  ATTR_TYPE_END);
     return (ret == 5 ? 1 : -1);
 }
