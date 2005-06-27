@@ -43,6 +43,11 @@
 /* .IP "\fB-f \fIcommand,command,...\fR"
 /*	Reject the specified commands with a hard (5xx) error code.
 /*	This option implies \fB-p\fR.
+/* .sp
+/*	Examples of commands are HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
+/*	DATA, ., RSET, NOOP, and QUIT. Separate command names by
+/*	white space or commas, and use quotes to protect white space
+/*	from the shell. Command names are case-insensitive.
 /* .IP \fB-F\fR
 /*	Disable XFORWARD support.
 /* .IP "\fB-h\fI hostname\fR"
@@ -60,15 +65,26 @@
 /* .IP "\fB-q \fIcommand,command,...\fR"
 /*	Disconnect (without replying) after receiving one of the
 /*	specified commands.
+/* .sp
+/*	Examples of commands are HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
+/*	DATA, ., RSET, NOOP, and QUIT. Separate command names by
+/*	white space or commas, and use quotes to protect white space
+/*	from the shell. Command names are case-insensitive.
 /* .IP "\fB-r \fIcommand,command,...\fR"
 /*	Reject the specified commands with a soft (4xx) error code.
 /*	This option implies \fB-p\fR.
+/* .sp
+/*	Examples of commands are HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
+/*	DATA, ., RSET, NOOP, and QUIT. Separate command names by
+/*	white space or commas, and use quotes to protect white space
+/*	from the shell. Command names are case-insensitive.
 /* .IP "\fB-s \fIcommand,command,...\fR"
 /*	Log the named commands to syslogd.
-/*	Examples of commands that can be logged are HELO, EHLO, LHLO, MAIL,
-/*	RCPT, VRFY, RSET, NOOP, and QUIT. Separate command names by white
-/*	space or commas, and use quotes to protect white space from the
-/*	shell. Command names are case-insensitive.
+/* .sp
+/*	Examples of commands are HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
+/*	DATA, ., RSET, NOOP, and QUIT. Separate command names by
+/*	white space or commas, and use quotes to protect white space
+/*	from the shell. Command names are case-insensitive.
 /* .IP "\fB-t \fItimeout\fR (default: 100)"
 /*	Limit the time for receiving a command or sending a response.
 /*	The time limit is specified in seconds.
@@ -141,6 +157,7 @@ typedef struct SINK_STATE {
     int     data_state;
     int     (*read_fn) (struct SINK_STATE *);
     int     rcpts;
+    char   *push_back_ptr;
 } SINK_STATE;
 
 #define ST_ANY			0
@@ -149,6 +166,10 @@ typedef struct SINK_STATE {
 #define ST_CR_LF_DOT		3
 #define ST_CR_LF_DOT_CR		4
 #define ST_CR_LF_DOT_CR_LF	5
+
+#define PUSH_BACK_PEEK(state)		(*(state)->push_back_ptr != 0)
+#define PUSH_BACK_GET(state)		(*(state)->push_back_ptr++)
+#define PUSH_BACK_SET(state, text)	((state)->push_back_ptr = (text))
 
 static int var_tmout = 100;
 static int var_max_line_length = 2048;
@@ -169,6 +190,25 @@ static int disable_saslauth;
 static int disable_xclient;
 static int disable_xforward;
 static int disable_enh_status;
+
+#define SOFT_ERROR_RESP		"450 4.3.0 Error: command failed"
+#define HARD_ERROR_RESP		"500 5.3.0 Error: command failed"
+
+/* hard_err_resp - generic hard error response */
+
+static void hard_err_resp(SINK_STATE *state)
+{
+    smtp_printf(state->stream, HARD_ERROR_RESP);
+    smtp_flush(state->stream);
+}
+
+/* soft_err_resp - generic soft error response */
+
+static void soft_err_resp(SINK_STATE *state)
+{
+    smtp_printf(state->stream, SOFT_ERROR_RESP);
+    smtp_flush(state->stream);
+}
 
 /* ehlo_response - respond to EHLO command */
 
@@ -244,6 +284,32 @@ static void data_event(int unused_event, char *context)
     data_response(state);
 }
 
+/* dot_resp_hard - hard error response to . command */
+
+static void dot_resp_hard(SINK_STATE *state)
+{
+    if (enable_lmtp) {
+	while (state->rcpts-- > 0)	/* XXX this could block */
+	    smtp_printf(state->stream, HARD_ERROR_RESP);
+    } else {
+	smtp_printf(state->stream, HARD_ERROR_RESP);
+    }
+    smtp_flush(state->stream);
+}
+
+/* dot_resp_soft - soft error response to . command */
+
+static void dot_resp_soft(SINK_STATE *state)
+{
+    if (enable_lmtp) {
+	while (state->rcpts-- > 0)	/* XXX this could block */
+	    smtp_printf(state->stream, SOFT_ERROR_RESP);
+    } else {
+	smtp_printf(state->stream, SOFT_ERROR_RESP);
+    }
+    smtp_flush(state->stream);
+}
+
 /* dot_response - response to . command */
 
 static void dot_response(SINK_STATE *state)
@@ -312,9 +378,7 @@ static int data_read(SINK_STATE *state)
 	else
 	    state->data_state = ST_ANY;
 	if (state->data_state == ST_CR_LF_DOT_CR_LF) {
-	    if (msg_verbose)
-		msg_info(".");
-	    dot_response(state);
+	    PUSH_BACK_SET(state, ".\r\n");
 	    state->read_fn = command_read;
 	    state->data_state = ST_ANY;
 	    break;
@@ -337,6 +401,8 @@ static int data_read(SINK_STATE *state)
 typedef struct SINK_COMMAND {
     char   *name;
     void    (*response) (SINK_STATE *);
+    void    (*hard_response) (SINK_STATE *);
+    void    (*soft_response) (SINK_STATE *);
     int     flags;
 } SINK_COMMAND;
 
@@ -347,19 +413,20 @@ typedef struct SINK_COMMAND {
 #define FLAG_DISCONNECT	(1<<4)		/* disconnect */
 
 static SINK_COMMAND command_table[] = {
-    "helo", helo_response, 0,
-    "ehlo", ehlo_response, 0,
-    "lhlo", ehlo_response, 0,
-    "xclient", ok_response, FLAG_ENABLE,
-    "xforward", ok_response, FLAG_ENABLE,
-    "auth", ok_response, FLAG_ENABLE,
-    "mail", mail_response, FLAG_ENABLE,
-    "rcpt", rcpt_response, FLAG_ENABLE,
-    "data", data_response, FLAG_ENABLE,
-    "rset", ok_response, FLAG_ENABLE,
-    "noop", ok_response, FLAG_ENABLE,
-    "vrfy", ok_response, FLAG_ENABLE,
-    "quit", quit_response, FLAG_ENABLE,
+    "helo", helo_response, hard_err_resp, soft_err_resp, 0,
+    "ehlo", ehlo_response, hard_err_resp, soft_err_resp, 0,
+    "lhlo", ehlo_response, hard_err_resp, soft_err_resp, 0,
+    "xclient", ok_response, hard_err_resp, soft_err_resp, FLAG_ENABLE,
+    "xforward", ok_response, hard_err_resp, soft_err_resp, FLAG_ENABLE,
+    "auth", ok_response, hard_err_resp, soft_err_resp, FLAG_ENABLE,
+    "mail", mail_response, hard_err_resp, soft_err_resp, FLAG_ENABLE,
+    "rcpt", rcpt_response, hard_err_resp, soft_err_resp, FLAG_ENABLE,
+    "data", data_response, hard_err_resp, soft_err_resp, FLAG_ENABLE,
+    ".", dot_response, dot_resp_hard, dot_resp_soft, FLAG_ENABLE,
+    "rset", ok_response, hard_err_resp, soft_err_resp, FLAG_ENABLE,
+    "noop", ok_response, hard_err_resp, soft_err_resp, FLAG_ENABLE,
+    "vrfy", ok_response, hard_err_resp, soft_err_resp, FLAG_ENABLE,
+    "quit", quit_response, hard_err_resp, soft_err_resp, FLAG_ENABLE,
     0,
 };
 
@@ -428,8 +495,11 @@ static int command_read(SINK_STATE *state)
      * A read may result in EOF, but is never supposed to time out - a time
      * out means that we were trying to read when no data was available.
      */
+#define NEXT_CHAR(state) \
+    (PUSH_BACK_PEEK(state) ? PUSH_BACK_GET(state) : VSTREAM_GETC(state->stream))
+
     for (;;) {
-	if ((ch = VSTREAM_GETC(state->stream)) == VSTREAM_EOF)
+	if ((ch = NEXT_CHAR(state)) == VSTREAM_EOF)
 	    return (-1);
 
 	/*
@@ -467,7 +537,7 @@ static int command_read(SINK_STATE *state)
 	 * instead of peek_fd() (which uses ioctl FIONREAD). Workaround added
 	 * 20020604.
 	 */
-	if (vstream_peek(state->stream) <= 0
+	if (PUSH_BACK_PEEK(state) == 0 && vstream_peek(state->stream) <= 0
 	    && readable(vstream_fileno(state->stream)) <= 0)
 	    return (0);
     }
@@ -501,21 +571,19 @@ static int command_read(SINK_STATE *state)
 	smtp_flush(state->stream);
 	return (0);
     }
-    if (cmdp->flags & FLAG_DISCONNECT)
-	return (-1);
-    if (cmdp->flags & FLAG_HARD_ERR) {
-	smtp_printf(state->stream, "500 5.3.0 Error: command failed");
-	smtp_flush(state->stream);
-	return (0);
-    }
-    if (cmdp->flags & FLAG_SOFT_ERR) {
-	smtp_printf(state->stream, "450 4.3.0 Error: command failed");
-	smtp_flush(state->stream);
-	return (0);
-    }
     /* We use raw syslog. Sanitize data content and length. */
     if (cmdp->flags & FLAG_SYSLOG)
 	syslog(LOG_INFO, "%s %.100s", command, printable(ptr, '?'));
+    if (cmdp->flags & FLAG_DISCONNECT)
+	return (-1);
+    if (cmdp->flags & FLAG_HARD_ERR) {
+	cmdp->hard_response(state);
+	return (0);
+    }
+    if (cmdp->flags & FLAG_SOFT_ERR) {
+	cmdp->soft_response(state);
+	return (0);
+    }
     if (cmdp->response == data_response && fixed_delay > 0) {
 	event_request_timer(data_event, (char *) state, fixed_delay);
     } else {
@@ -582,7 +650,7 @@ static void read_event(int unused_event, char *context)
 		return;
 	    }
 	}
-    } while (vstream_peek(state->stream) > 0);
+    } while (PUSH_BACK_PEEK(state) != 0 || vstream_peek(state->stream) > 0);
 
     /*
      * Reset the idle timer. Wait until the next input event, or until the
@@ -633,6 +701,7 @@ static void connect_event(int unused_event, char *context)
 	state->buffer = vstring_alloc(1024);
 	state->read_fn = command_read;
 	state->data_state = ST_ANY;
+	PUSH_BACK_SET(state, "");
 	smtp_timeout_setup(state->stream, var_tmout);
 
 	/*

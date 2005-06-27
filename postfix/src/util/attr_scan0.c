@@ -95,7 +95,8 @@
 /*	This argument is followed by an attribute name and a VSTRING pointer.
 /* .IP "ATTR_TYPE_FUNC (ATTR_SCAN_SLAVE_FN, void *)"
 /*	This argument is followed by a function pointer and a generic data
-/*	pointer.
+/*	pointer. The caller-specified function returns < 0 in case of
+/*	error.
 /* .IP "ATTR_TYPE_HASH (HTABLE *)"
 /* .IP "ATTR_TYPE_NAMEVAL (NVTABLE *)"
 /*	All further input attributes are processed as string attributes.

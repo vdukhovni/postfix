@@ -45,7 +45,7 @@
 /*	characters. The formatting rules aim to make implementations in PERL
 /*	and other languages easy.
 /*
-/*      Normally, attributes must be received in the sequence as specified
+/*	Normally, attributes must be received in the sequence as specified
 /*	with the attr_scan_plain() argument list.  The input stream may
 /*	contain additional attributes at any point in the input stream,
 /*	including additional instances of requested attributes.
@@ -93,6 +93,10 @@
 /*	This argument is followed by an attribute name and a VSTRING pointer.
 /* .IP "ATTR_TYPE_DATA (char *, VSTRING *)"
 /*	This argument is followed by an attribute name and a VSTRING pointer.
+/* .IP "ATTR_TYPE_FUNC (ATTR_SCAN_SLAVE_FN, void *)"
+/*	This argument is followed by a function pointer and a generic data
+/*	pointer. The caller-specified function returns < 0 in case of
+/*	error.
 /* .IP "ATTR_TYPE_HASH (HTABLE *)"
 /* .IP "ATTR_TYPE_NAMEVAL (NVTABLE *)"
 /*	All further input attributes are processed as string attributes.
@@ -166,6 +170,7 @@ static int attr_scan_plain_string(VSTREAM *fp, VSTRING *plain_buf,
 #if 0
     extern int var_line_limit;		/* XXX */
     int     limit = var_line_limit * 4;
+
 #endif
     int     ch;
 
@@ -268,6 +273,8 @@ int     attr_vscan_plain(VSTREAM *fp, int flags, va_list ap)
     HTABLE *hash_table;
     int     ch;
     int     conversions;
+    ATTR_SCAN_SLAVE_FN scan_fn;
+    void   *scan_arg;
 
     /*
      * Sanity check.
@@ -309,7 +316,7 @@ int     attr_vscan_plain(VSTREAM *fp, int flags, va_list ap)
 		if (va_arg(ap, int) !=ATTR_TYPE_END)
 		    msg_panic("%s: ATTR_TYPE_HASH not followed by ATTR_TYPE_END",
 			      myname);
-	    } else {
+	    } else if (wanted_type != ATTR_TYPE_FUNC) {
 		wanted_name = va_arg(ap, char *);
 	    }
 	}
@@ -317,7 +324,7 @@ int     attr_vscan_plain(VSTREAM *fp, int flags, va_list ap)
 	/*
 	 * Locate the next attribute of interest in the input stream.
 	 */
-	for (;;) {
+	while (wanted_type != ATTR_TYPE_FUNC) {
 
 	    /*
 	     * Get the name of the next attribute. Hitting EOF is always bad.
@@ -361,12 +368,7 @@ int     attr_vscan_plain(VSTREAM *fp, int flags, va_list ap)
 	}
 
 	/*
-	 * Do the requested conversion. If the target attribute is a
-	 * non-array type, disallow sending a multi-valued attribute, and
-	 * disallow sending no value. If the target attribute is an array
-	 * type, allow the sender to send a zero-element array (i.e. no value
-	 * at all). XXX Need to impose a bound on the number of array
-	 * elements.
+	 * Do the requested conversion.
 	 */
 	switch (wanted_type) {
 	case ATTR_TYPE_NUM:
@@ -411,6 +413,12 @@ int     attr_vscan_plain(VSTREAM *fp, int flags, va_list ap)
 	    string = va_arg(ap, VSTRING *);
 	    if ((ch = attr_scan_plain_data(fp, string, 0,
 					   "input attribute value")) < 0)
+		return (-1);
+	    break;
+	case ATTR_TYPE_FUNC:
+	    scan_fn = va_arg(ap, ATTR_SCAN_SLAVE_FN);
+	    scan_arg = va_arg(ap, void *);
+	    if (scan_fn(attr_scan_plain, fp, flags | ATTR_FLAG_MORE, scan_arg) < 0)
 		return (-1);
 	    break;
 	case ATTR_TYPE_HASH:

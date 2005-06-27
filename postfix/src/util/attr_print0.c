@@ -56,7 +56,8 @@
 /*	length, and an attribute value pointer.
 /* .IP "ATTR_TYPE_FUNC (ATTR_PRINT_SLAVE_FN, void *)"
 /*	This argument is followed by a function pointer and generic data
-/*	pointer.
+/*	pointer. The caller-specified function returns whatever the
+/*	specified attribute printing function returns.
 /* .IP "ATTR_TYPE_HASH (HTABLE *)"
 /* .IP "ATTR_TYPE_NAMEVAL (NVTABLE *)"
 /*	The content of the table is sent as a sequence of string-valued

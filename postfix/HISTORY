@@ -10931,7 +10931,33 @@ Apologies for any names omitted.
 	util/attr_print0.c, global/dsb_scan.c, global/dsn_print.c,
 	global/rcpt_buf,c global/rcpt_print.c, global/deliver_pass.c.
 
+	Added delegated attribute scan/print function support to
+	the base64 and plain attribute I/O encodings. Files:
+	util/attr_scan_plain.c util/attr_print_plain.c.
+
+20040624
+
+	Added "." to the list commands that smtp-sink can "break"
+	(by disconnecting, or by responding with a 4XX or 5XX reply
+	code). File: smtpstone/smtp-sink.c.
+
+20040625
+
+	Safety: allow only 4.x.x and 5.x.x enhanced status codes
+	in header/body_checks REJECT actions. File:
+	cleanup/cleanup_message.c.
+
+20050627
+
+	Code cleanup: generalized the smtp-sink code that simulates
+	server errors. File: smtpstone/smtp-sink.c.
+
 Open problems:
+
+	Look for systems with XPG basename() declared in <libgen.h>,
+	and prepare for phasing out the Postfix-supplied one.
+	Beware, however, that XPG basename() takes (char *), and
+	not (const char *) because it may change its argument.
 
 	Laptop friendliness: make the qmgr remember when the next
 	deferred queue scan needs to be done, and have the pickup

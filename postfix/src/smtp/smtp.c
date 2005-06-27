@@ -389,6 +389,11 @@
 /*	Coventry,
 /*	CV1 4LY, United Kingdom.
 /*
+/*	SASL support originally by:
+/*	Till Franke
+/*	SuSE Rhein/Main AG
+/*	65760 Eschborn, Germany
+/*
 /*	Connection caching in cooperation with:
 /*	Victor Duchovni
 /*	Morgan Stanley

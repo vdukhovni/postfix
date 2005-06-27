@@ -721,6 +721,11 @@
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
 /*
+/*	SASL support originally by:
+/*	Till Franke
+/*	SuSE Rhein/Main AG
+/*	65760 Eschborn, Germany
+/*
 /*	TLS support originally by:
 /*	Lutz Jaenicke
 /*	BTU Cottbus
@@ -1435,8 +1440,12 @@ static int extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
     }
 
     /*
-     * Report trouble. Log a warning only if we are going to sleep+reject so
-     * that attackers can't flood our logfiles.
+     * Report trouble. XXX Should log a warning only if we are going to
+     * sleep+reject so that attackers can't flood our logfiles.
+     * 
+     * XXX Unfortunately, the sleep-before-reject feature had to be abandoned
+     * (at least for small error counts) because servers were DOS-ing
+     * themselves when flooded by backscatter traffic.
      */
     if (naddr > 1
 	|| (strict_rfc821 && (non_addr || *STR(arg->vstrval) != '<'))) {
@@ -1503,8 +1512,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * XXX 2821 pedantism: Section 4.1.2 says that SMTP servers that receive a
      * command in which invalid character codes have been employed, and for
      * which there are no other reasons for rejection, MUST reject that
-     * command with a 501 response. So much for the principle of "be liberal
-     * in what you accept, be strict in what you send".
+     * command with a 501 response. Postfix attempts to be 8-bit clean.
      */
     if (var_helo_required && state->helo_name == 0) {
 	state->error_mask |= MAIL_ERROR_POLICY;
@@ -2448,6 +2456,7 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "501 5.1.3 Bad recipient address syntax");
 	return (-1);
     }
+    /* Not: state->addr_buf */
     if (SMTPD_STAND_ALONE(state) == 0
 	&& (err = smtpd_check_rcpt(state, argv[1].strval)) != 0) {
 	smtpd_chat_reply(state, "%s", err);
@@ -2555,8 +2564,11 @@ static int quit_cmd(SMTPD_STATE *state, int unused_argc, SMTPD_TOKEN *unused_arg
      * When the "." and quit replies are pipelined, make sure they are
      * flushed now, to avoid repeated mail deliveries in case of a crash in
      * the "clean up before disconnect" code.
+     * 
+     * XXX When this was added in Postfix 2.1 we used vstream_fflush(). As of
+     * Postfix 2.3 we use smtp_flush() for better error reporting.
      */
-    vstream_fflush(state->client);
+    smtp_flush(state->client);
     return (0);
 }
 
@@ -2945,7 +2957,7 @@ static void chat_reset(SMTPD_STATE *state, int threshold)
 
 #ifdef USE_TLS
 
-/* smtpd_start_tls -turn on TLS or force disconnect */
+/* smtpd_start_tls - turn on TLS or force disconnect */
 
 static void smtpd_start_tls(SMTPD_STATE *state)
 {
@@ -2961,10 +2973,10 @@ static void smtpd_start_tls(SMTPD_STATE *state)
      * verification unless TLS is required.
      */
     state->tls_context =
-    tls_server_start(smtpd_tls_ctx, state->client,
-		     var_smtpd_starttls_tmout,
-		     state->name, state->addr, &(state->tls_info),
-		     (var_smtpd_tls_req_ccert && state->tls_enforce_tls));
+	tls_server_start(smtpd_tls_ctx, state->client,
+			 var_smtpd_starttls_tmout,
+			 state->name, state->addr, &(state->tls_info),
+		       (var_smtpd_tls_req_ccert && state->tls_enforce_tls));
 
     /*
      * When the TLS handshake fails, the conversation is in an unknown state.
@@ -3493,12 +3505,13 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      * recipient checks, address mapping, header_body_checks?.
      */
     smtpd_input_transp_mask =
-    input_transp_mask(VAR_INPUT_TRANSP, var_input_transp);
+	input_transp_mask(VAR_INPUT_TRANSP, var_input_transp);
 
     /*
      * Sanity checks. The queue_minfree value should be at least as large as
      * (process_limit * message_size_limit) but that is unpractical, so we
-     * arbitrarily pick a number and require twice the message size limit.
+     * arbitrarily pick a small multiple of the per-message size limit. This
+     * helps to avoid many unneeded (re)transmissions.
      */
     if (var_queue_minfree > 0
 	&& var_message_limit > 0

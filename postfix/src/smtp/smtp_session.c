@@ -355,7 +355,7 @@ int     smtp_session_passivate(SMTP_SESSION *session, VSTRING *dest_prop,
     /*
      * Append the passivated SASL attributes.
      */
-#ifdef USE_SASL
+#ifdef notdef
     if (smtp_sasl_enable)
 	smtp_sasl_passivate(endp_prop, session);
 #endif
@@ -460,7 +460,7 @@ SMTP_SESSION *smtp_session_activate(int fd, VSTRING *dest_prop,
     /*
      * Re-activate the SASL attributes.
      */
-#ifdef USE_SASL
+#ifdef notdef
     if (smtp_sasl_enable && smtp_sasl_activate(session, endp_props) < 0) {
 	vstream_fdclose(session->stream);
 	session->stream = 0;

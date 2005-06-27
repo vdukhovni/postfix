@@ -47,7 +47,7 @@
 /*	characters. The formatting rules aim to make implementations in PERL
 /*	and other languages easy.
 /*
-/*      Normally, attributes must be received in the sequence as specified with
+/*	Normally, attributes must be received in the sequence as specified with
 /*	the attr_scan64() argument list.  The input stream may contain additional
 /*	attributes at any point in the input stream, including additional
 /*	instances of requested attributes.
@@ -95,6 +95,10 @@
 /*	This argument is followed by an attribute name and a VSTRING pointer.
 /* .IP "ATTR_TYPE_DATA (char *, VSTRING *)"
 /*	This argument is followed by an attribute name and a VSTRING pointer.
+/* .IP "ATTR_TYPE_FUNC (ATTR_SCAN_SLAVE_FN, void *)"
+/*	This argument is followed by a function pointer and a generic data
+/*	pointer. The caller-specified function returns < 0 in case of
+/*	error.
 /* .IP "ATTR_TYPE_HASH (HTABLE *)"
 /* .IP "ATTR_TYPE_NAMEVAL (NVTABLE *)"
 /*	All further input attributes are processed as string attributes.
@@ -165,9 +169,11 @@
 static int attr_scan64_string(VSTREAM *fp, VSTRING *plain_buf, const char *context)
 {
     static VSTRING *base64_buf = 0;
+
 #if 0
     extern int var_line_limit;		/* XXX */
     int     limit = var_line_limit * 4;
+
 #endif
     int     ch;
 
@@ -254,6 +260,8 @@ int     attr_vscan64(VSTREAM *fp, int flags, va_list ap)
     HTABLE *hash_table;
     int     ch;
     int     conversions;
+    ATTR_SCAN_SLAVE_FN scan_fn;
+    void   *scan_arg;
 
     /*
      * Sanity check.
@@ -295,7 +303,7 @@ int     attr_vscan64(VSTREAM *fp, int flags, va_list ap)
 		if (va_arg(ap, int) !=ATTR_TYPE_END)
 		    msg_panic("%s: ATTR_TYPE_HASH not followed by ATTR_TYPE_END",
 			      myname);
-	    } else {
+	    } else if (wanted_type != ATTR_TYPE_FUNC) {
 		wanted_name = va_arg(ap, char *);
 	    }
 	}
@@ -303,7 +311,7 @@ int     attr_vscan64(VSTREAM *fp, int flags, va_list ap)
 	/*
 	 * Locate the next attribute of interest in the input stream.
 	 */
-	for (;;) {
+	while (wanted_type != ATTR_TYPE_FUNC) {
 
 	    /*
 	     * Get the name of the next attribute. Hitting EOF is always bad.
@@ -418,6 +426,12 @@ int     attr_vscan64(VSTREAM *fp, int flags, va_list ap)
 			 STR(name_buf), VSTREAM_PATH(fp));
 		return (-1);
 	    }
+	    break;
+	case ATTR_TYPE_FUNC:
+	    scan_fn = va_arg(ap, ATTR_SCAN_SLAVE_FN);
+	    scan_arg = va_arg(ap, void *);
+	    if (scan_fn(attr_scan64, fp, flags | ATTR_FLAG_MORE, scan_arg) < 0)
+		return (-1);
 	    break;
 	case ATTR_TYPE_HASH:
 	    if (ch != ':') {

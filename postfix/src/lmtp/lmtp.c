@@ -225,10 +225,15 @@
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
 /*
-/*	Alterations for LMTP by:
+/*	Modifications for LMTP by:
 /*	Philip A. Prindeville
 /*	Mirapoint, Inc.
 /*	USA.
+/*
+/*	SASL support originally by:
+/*	Till Franke
+/*	SuSE Rhein/Main AG
+/*	65760 Eschborn, Germany
 /*
 /*	Additional work on LMTP by:
 /*	Amos Gouaux

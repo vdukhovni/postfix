@@ -49,6 +49,11 @@ Do not announce ENHANCEDSTATUSCODES support.
 .IP "\fB-f \fIcommand,command,...\fR"
 Reject the specified commands with a hard (5xx) error code.
 This option implies \fB-p\fR.
+.sp
+Examples of commands are HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
+DATA, ., RSET, NOOP, and QUIT. Separate command names by
+white space or commas, and use quotes to protect white space
+from the shell. Command names are case-insensitive.
 .IP \fB-F\fR
 Disable XFORWARD support.
 .IP "\fB-h\fI hostname\fR"
@@ -66,15 +71,26 @@ a CISCO PIX system. Implies \fB-e\fR.
 .IP "\fB-q \fIcommand,command,...\fR"
 Disconnect (without replying) after receiving one of the
 specified commands.
+.sp
+Examples of commands are HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
+DATA, ., RSET, NOOP, and QUIT. Separate command names by
+white space or commas, and use quotes to protect white space
+from the shell. Command names are case-insensitive.
 .IP "\fB-r \fIcommand,command,...\fR"
 Reject the specified commands with a soft (4xx) error code.
 This option implies \fB-p\fR.
+.sp
+Examples of commands are HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
+DATA, ., RSET, NOOP, and QUIT. Separate command names by
+white space or commas, and use quotes to protect white space
+from the shell. Command names are case-insensitive.
 .IP "\fB-s \fIcommand,command,...\fR"
 Log the named commands to syslogd.
-Examples of commands that can be logged are HELO, EHLO, LHLO, MAIL,
-RCPT, VRFY, RSET, NOOP, and QUIT. Separate command names by white
-space or commas, and use quotes to protect white space from the
-shell. Command names are case-insensitive.
+.sp
+Examples of commands are HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
+DATA, ., RSET, NOOP, and QUIT. Separate command names by
+white space or commas, and use quotes to protect white space
+from the shell. Command names are case-insensitive.
 .IP "\fB-t \fItimeout\fR (default: 100)"
 Limit the time for receiving a command or sending a response.
 The time limit is specified in seconds.

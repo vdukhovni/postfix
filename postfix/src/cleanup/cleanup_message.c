@@ -315,6 +315,11 @@ static const char *cleanup_act(CLEANUP_STATE *state, char *context,
 	if (state->reason == 0) {
 	    if (*optional_text) {
 		state->reason = dsn_prepend("5.7.1", optional_text);
+		if (*state->reason != '4' && *state->reason != '5') {
+		    msg_warn("bad DSN action in %s -- need 4.x.x or 5.x.x", 
+			      optional_text);
+		    *state->reason = '4';
+		}
 	    } else {
 		detail = cleanup_stat_detail(CLEANUP_STAT_CONT);
 		state->reason = dsn_prepend(detail->dsn, detail->text);
