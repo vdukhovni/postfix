@@ -514,7 +514,7 @@ result is ignored).  Continue long lines by starting the next line
 with whitespace.
 .PP
 Note: IP version 6 address information must be specified inside
-<tt>[]</tt> in the authorized_verp_clients value, and in files
+[] in the authorized_verp_clients value, and in files
 specified with "/file/name".  IP version 6 addresses contain the
 ":" character, and would otherwise be confused with a "type:table"
 pattern.
@@ -1197,7 +1197,7 @@ is unavailable.
 In main.cf specify "relay_transport = relay",
 .IP \(bu
 In master.cf specify "-o fallback_relay =" (i.e., empty) at
-the end of the <tt>relay</tt> entry.
+the end of the relay entry.
 .IP \(bu
 In transport maps, specify "relay:\fInexthop...\fR"
 as the right-hand side for backup or primary MX domain entries.
@@ -1406,11 +1406,11 @@ The network interface addresses that this mail system receives
 mail on. Specify "all" to receive mail on all network
 interfaces (default), and "loopback-only" to receive mail
 on loopback network interfaces only (Postfix 2.2 and later).  The
-parameter also controls delivery of mail to <tt>user@[ip.address]</tt>.
+parameter also controls delivery of mail to user@[ip.address].
 .PP
 Note 1: you need to stop and start Postfix when this parameter changes.
 .PP
-Note 2: address information may be enclosed inside <tt>[]</tt>,
+Note 2: address information may be enclosed inside [],
 but this form is not recommended here.
 .PP
 When inet_interfaces specifies just one IPv4 and/or IPv6 address
@@ -2370,7 +2370,7 @@ first match.  Specify "!pattern" to exclude an address or network
 block from the list.
 .PP
 Note: IP version 6 address information must be specified inside
-<tt>[]</tt> in the mynetworks value, and in files specified with
+[] in the mynetworks value, and in files specified with
 "/file/name".  IP version 6 addresses contain the ":" character,
 and would otherwise be confused with a "type:table" pattern.
 .PP
@@ -3192,7 +3192,7 @@ automatically used as the smtp_bind_address.  This supports virtual
 IP hosting, but can be a problem on multi-homed firewalls. See the
 inet_interfaces documentation for more detail.
 .PP
-Note 2: address information may be enclosed inside <tt>[]</tt>,
+Note 2: address information may be enclosed inside [],
 but this form is not recommended here.
 .SH smtp_bind_address6 (default: empty)
 An optional numerical network address that the SMTP client should
@@ -3219,7 +3219,7 @@ automatically used as the smtp_bind_address6.  This supports virtual
 IP hosting, but can be a problem on multi-homed firewalls. See the
 inet_interfaces documentation for more detail.
 .PP
-Note 2: address information may be enclosed inside <tt>[]</tt>,
+Note 2: address information may be enclosed inside [],
 but this form is not recommended here.
 .SH smtp_connect_timeout (default: 30s)
 The SMTP client time limit for completing a TCP connection, or
@@ -3443,8 +3443,9 @@ This feature is available in Postfix 2.1 and later.
 .SH smtp_mx_session_limit (default: 2)
 The maximal number of SMTP sessions per delivery request before
 giving up or delivering to a fall-back relay host, or zero (no
-limit). This restriction ignores IP addresses that fail to complete
-the SMTP initial handshake.
+limit). This restriction ignores sessions that fail to complete the
+SMTP initial handshake (Postfix 2.2 and earlier) or that fail to
+complete the EHLO and TLS handshake (Postfix 2.3 and later).
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH smtp_never_send_ehlo (default: no)
@@ -3870,7 +3871,7 @@ result is ignored).  Continue long lines by starting the next line
 with whitespace.
 .PP
 Note: IP version 6 address information must be specified inside
-<tt>[]</tt> in the smtpd_authorized_verp_clients value, and in
+[] in the smtpd_authorized_verp_clients value, and in
 files specified with "/file/name".  IP version 6 addresses contain
 the ":" character, and would otherwise be confused with a "type:table"
 pattern.
@@ -3896,7 +3897,7 @@ result is ignored).  Continue long lines by starting the next line
 with whitespace.
 .PP
 Note: IP version 6 address information must be specified inside
-<tt>[]</tt> in the smtpd_authorized_xclient_hosts value, and in
+[] in the smtpd_authorized_xclient_hosts value, and in
 files specified with "/file/name".  IP version 6 addresses contain
 the ":" character, and would otherwise be confused with a "type:table"
 pattern.
@@ -3921,7 +3922,7 @@ result is ignored).  Continue long lines by starting the next line
 with whitespace.
 .PP
 Note: IP version 6 address information must be specified inside
-<tt>[]</tt> in the smtpd_authorized_xforward_hosts value, and in
+[] in the smtpd_authorized_xforward_hosts value, and in
 files specified with "/file/name".  IP version 6 addresses contain
 the ":" character, and would otherwise be confused with a "type:table"
 pattern.
@@ -3986,7 +3987,7 @@ list of network blocks, hostnames or .domain names (the initial
 dot causes the domain to match any name below it).
 .PP
 Note: IP version 6 address information must be specified inside
-<tt>[]</tt> in the smtpd_client_event_limit_exceptions value, and
+[] in the smtpd_client_event_limit_exceptions value, and
 in files specified with "/file/name".  IP version 6 addresses
 contain the ":" character, and would otherwise be confused with a
 "type:table" pattern.
@@ -4773,7 +4774,7 @@ matches a lookup string (the lookup result is ignored).  Continue
 long lines by starting the next line with whitespace.
 .PP
 Note: IP version 6 address information must be specified inside
-<tt>[]</tt> in the smtpd_sasl_exceptions_networks value, and in
+[] in the smtpd_sasl_exceptions_networks value, and in
 files specified with "/file/name".  IP version 6 addresses contain
 the ":" character, and would otherwise be confused with a "type:table"
 pattern.

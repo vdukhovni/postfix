@@ -547,6 +547,15 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
 	      "compiled against %d.%d.%d, run-time linked against %d.%d.%d",
 		  DB_VERSION_MAJOR, DB_VERSION_MINOR, DB_VERSION_PATCH,
 		  major_version, minor_version, patch_version);
+    if (msg_verbose) {
+	msg_info("Compiled against Berkeley DB: %d.%d.%d\n",
+		 DB_VERSION_MAJOR, DB_VERSION_MINOR, DB_VERSION_PATCH);
+	msg_info("Run-time linked against Berkeley DB: %d.%d.%d\n",
+		 major_version, minor_version, patch_version);
+    }
+#else
+    if (msg_verbose)
+	msg_info("Compiled against Berkeley DB version 1");
 #endif
 
     db_path = concatenate(path, ".db", (char *) 0);

@@ -10952,6 +10952,13 @@ Apologies for any names omitted.
 	Code cleanup: generalized the smtp-sink code that simulates
 	server errors. File: smtpstone/smtp-sink.c.
 
+20050629
+
+	Code cleanup: the smtp_mx_session_limit setting (per delivery
+	request session count limit) now ignores sessions that fail
+	to complete the TCP, SMTP, EHLO or TLS handshake (was: TCP
+	and SMTP).  File: smtp/smtp_proto.c.
+
 Open problems:
 
 	Look for systems with XPG basename() declared in <libgen.h>,

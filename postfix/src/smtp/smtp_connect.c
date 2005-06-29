@@ -653,18 +653,22 @@ int     smtp_connect(SMTP_STATE *state)
 		|| (session = smtp_reuse_addr(state, addr, port)) == 0)
 		session = smtp_connect_addr(dest, addr, port, why, sess_flags);
 	    if ((state->session = session) != 0) {
-		if (++sess_count == var_smtp_mxsess_limit)
-		    next = 0;
-		state->final_server = (cpp[1] == 0 && next == 0);
 		if (addr->pref == domain_best_pref)
 		    session->features |= SMTP_FEATURE_BEST_MX;
+		/* Don't count handshake errors towards the session limit. */
+		state->final_server = (cpp[1] == 0 && next == 0);
 		if ((session->features & SMTP_FEATURE_FROM_CACHE) == 0
 		    && smtp_helo(state, misc_flags) != 0) {
 		    if (vstream_ferror(session->stream) == 0
 			&& vstream_feof(session->stream) == 0)
 			smtp_quit(state);
-		} else
+		} else {
+		    /* Do count delivery errors towards the session limit. */
+		    if (++sess_count == var_smtp_mxsess_limit)
+			next = 0;
+		    state->final_server = (cpp[1] == 0 && next == 0);
 		    smtp_xfer(state);
+		}
 		smtp_cleanup_session(state);
 	    } else {
 		msg_info("%s (port %d)", STR(why->reason), ntohs(port));

@@ -17,6 +17,13 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
+Incompatibility with snapshot 20050627
+======================================
+
+The Postfix SMTP client no longer applies the smtp_mx_session_limit
+to non-permanent errors during the TCP, SMTP, HELO or TLS handshake.
+Previous versions did that only with TCP and SMTP handshake errors.
+
 Incompatibility with snapshot 20050622
 ======================================
 
@@ -26,9 +33,7 @@ disabled by default. The new limit prevents Postfix from spending
 lots of time trying to connect to lots of bogus MX servers.
 
 The Postfix SMTP error handling of [45]XX server greetings was
-cleaned up. The server reply is now properly reported. As a side
-effect, the failed session now counts towards the limit on the total
-number of sessions per domain name (default: smtp_mx_session_limit=2).
+cleaned up. The server reply is now properly reported. 
 
 Incompatibility with snapshot 20050615
 ======================================

@@ -63,6 +63,8 @@ while(<>) {
     $block =~ s/<li>\s*/\n.IP \\(bu\n/g;
     $block =~ s/<dt>\s*/\n.IP "/g;
     $block =~ s/\s*<\/dt>/"/g;
+    $block =~ s/<tt>\s*//g;
+    $block =~ s/\s*<\/tt>//g;
     $block =~ s/<blockquote>/\n.na\n.nf\n.in +4\n/g;
     $block =~ s/<\/blockquote>/\n.in -4\n.fi\n.ad\n/g;
     $block =~ s/\n<br>/\n.br\n/g;

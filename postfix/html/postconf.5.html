@@ -6221,8 +6221,9 @@ This feature is available in Postfix 2.1 and later.
 
 <p> The maximal number of SMTP sessions per delivery request before
 giving up or delivering to a fall-back relay host, or zero (no
-limit). This restriction ignores IP addresses that fail to complete
-the SMTP initial handshake.  </p>
+limit). This restriction ignores sessions that fail to complete the
+SMTP initial handshake (Postfix 2.2 and earlier) or that fail to
+complete the EHLO and TLS handshake (Postfix 2.3 and later).  </p>
 
 <p> This feature is available in Postfix 2.1 and later.  </p>
 

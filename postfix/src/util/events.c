@@ -17,7 +17,7 @@
 /*	int	delay;
 /*
 /*	int	event_cancel_timer(callback, context)
-/*	void	(*callback)(char *context);
+/*	void	(*callback)(int event, char *context);
 /*	char	*context;
 /*
 /*	void	event_enable_read(fd, callback, context)
@@ -63,7 +63,7 @@
 /*	The event argument is equal to EVENT_TIME.
 /*	Only one timer request can be active per (callback, context) pair.
 /*	Calling event_request_timer() with an existing (callback, context)
-/*	pair does not schedule a new event, but updates the moment of
+/*	pair does not schedule a new event, but updates the time of event
 /*	delivery. The result is the absolute time at which the timer is
 /*	scheduled to go off.
 /*
