@@ -37,8 +37,9 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
 
        <b>-a</b>     Do not announce SASL authentication support.
 
-       <b>-c</b>     Display  a running counter that is updated whenever
-              an SMTP QUIT command is executed.
+       <b>-c</b>     Display  running counters that are updated whenever
+              an SMTP session ends, a QUIT command  is  executed,
+              or when "." is received.
 
        <b>-C</b>     Disable XCLIENT support.
 
@@ -47,20 +48,20 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
        <b>-E</b>     Do not announce ENHANCEDSTATUSCODES support.
 
        <b>-f</b> <i>command,command,...</i>
-              Reject the specified commands  with  a  hard  (5xx)
+              Reject  the  specified  commands  with a hard (5xx)
               error code.  This option implies <b>-p</b>.
 
-              Examples  of  commands  are HELO, EHLO, LHLO, MAIL,
+              Examples of commands are HELO,  EHLO,  LHLO,  MAIL,
               RCPT, VRFY, DATA, ., RSET, NOOP, and QUIT. Separate
-              command  names  by  white  space or commas, and use
-              quotes to protect white space from the shell.  Com-
+              command names by white space  or  commas,  and  use
+              quotes  to protect white space from the shell. Com-
               mand names are case-insensitive.
 
        <b>-F</b>     Disable XFORWARD support.
 
        <b>-h</b> <i>hostname</i>
-              Use  <i>hostname</i>  in  the  SMTP  greeting, in the HELO
-              response, and in the  EHLO  response.  The  default
+              Use <i>hostname</i> in the  SMTP  greeting,  in  the  HELO
+              response,  and  in  the  EHLO response. The default
               hostname is "smtp-sink".
 
        <b>-L</b>     Enable LMTP instead of SMTP.
@@ -69,15 +70,25 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
               Terminate after <i>count</i> sessions. This is for testing
               purposes.
 
-       <b>-p</b>     Do not announce support for ESMTP command  pipelin-
+       <b>-p</b>     Do  not announce support for ESMTP command pipelin-
               ing.
 
-       <b>-P</b>     Change  the  server  greeting so that it appears to
+       <b>-P</b>     Change the server greeting so that  it  appears  to
               come through a CISCO PIX system. Implies <b>-e</b>.
 
        <b>-q</b> <i>command,command,...</i>
-              Disconnect (without replying) after  receiving  one
+              Disconnect  (without  replying) after receiving one
               of the specified commands.
+
+              Examples of commands are HELO,  EHLO,  LHLO,  MAIL,
+              RCPT, VRFY, DATA, ., RSET, NOOP, and QUIT. Separate
+              command names by white space  or  commas,  and  use
+              quotes  to protect white space from the shell. Com-
+              mand names are case-insensitive.
+
+       <b>-r</b> <i>command,command,...</i>
+              Reject the specified commands  with  a  soft  (4xx)
+              error code.  This option implies <b>-p</b>.
 
               Examples  of  commands  are HELO, EHLO, LHLO, MAIL,
               RCPT, VRFY, DATA, ., RSET, NOOP, and QUIT. Separate
@@ -85,28 +96,18 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
               quotes to protect white space from the shell.  Com-
               mand names are case-insensitive.
 
-       <b>-r</b> <i>command,command,...</i>
-              Reject  the  specified  commands  with a soft (4xx)
-              error code.  This option implies <b>-p</b>.
-
-              Examples of commands are HELO,  EHLO,  LHLO,  MAIL,
-              RCPT, VRFY, DATA, ., RSET, NOOP, and QUIT. Separate
-              command names by white space  or  commas,  and  use
-              quotes  to protect white space from the shell. Com-
-              mand names are case-insensitive.
-
        <b>-s</b> <i>command,command,...</i>
               Log the named commands to syslogd.
 
-              Examples of commands are HELO,  EHLO,  LHLO,  MAIL,
+              Examples  of  commands  are HELO, EHLO, LHLO, MAIL,
               RCPT, VRFY, DATA, ., RSET, NOOP, and QUIT. Separate
-              command names by white space  or  commas,  and  use
-              quotes  to protect white space from the shell. Com-
+              command  names  by  white  space or commas, and use
+              quotes to protect white space from the shell.  Com-
               mand names are case-insensitive.
 
        <b>-t</b> <i>timeout</i> (default: 100)
               Limit the time for receiving a command or sending a
-              response.   The time limit is specified in seconds.
+              response.  The time limit is specified in  seconds.
 
        <b>-v</b>     Show the SMTP conversations.
 
@@ -115,7 +116,7 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
               mand.
 
        [<b>inet:</b>][<i>host</i>]:<i>port</i>
-              Listen  on  network  interface  <i>host</i>  (default: any
+              Listen on  network  interface  <i>host</i>  (default:  any
               interface) TCP port <i>port</i>. Both <i>host</i> and <i>port</i> may be
               specified in numeric or symbolic form.
 
@@ -123,14 +124,14 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
               Listen on the UNIX-domain socket at <i>pathname</i>.
 
        <i>backlog</i>
-              The  maximum  length  the  queue of pending connec-
+              The maximum length the  queue  of  pending  connec-
               tions, as defined by the <b>listen</b>(2) system call.
 
 <b>SEE ALSO</b>
        <a href="smtp-source.1.html">smtp-source(1)</a>, SMTP/LMTP message generator
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

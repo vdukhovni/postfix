@@ -3,7 +3,7 @@
 # mengwong@pobox.com
 # Wed Dec 10 03:52:04 EST 2003
 # postfix-policyd-spf
-# version 1.03
+# version 1.06
 # see http://spf.pobox.com/
 
 use Fcntl;
@@ -15,11 +15,10 @@ use strict;
 # ----------------------------------------------------------
 
 # to use SPF, install Mail::SPF::Query from CPAN or from the SPF website at http://spf.pobox.com/downloads.html
-# then uncomment the SPF line.
 
   my @HANDLERS;
   push @HANDLERS, "testing";
-# push @HANDLERS, "sender_permitted_from"; use Mail::SPF::Query;
+  push @HANDLERS, "sender_permitted_from"; use Mail::SPF::Query;
 
 my $VERBOSE = 1;
 
@@ -72,6 +71,7 @@ my $syslog_ident    = "postfix/policy-spf";
 #
 #    smtpd_recipient_restrictions =
 #	...
+#       reject_unknown_sender_domain
 #	reject_unauth_destination
 #	check_policy_service unix:private/policy
 #	...
@@ -123,7 +123,7 @@ my $syslog_ident    = "postfix/policy-spf";
 #
 sub fatal_exit {
   syslog(err  => "fatal_exit: @_");
-  syslog(warn => "fatal_exit: @_");
+  syslog(warning => "fatal_exit: @_");
   syslog(info => "fatal_exit: @_");
   die "fatal: @_";
 }
@@ -151,7 +151,7 @@ my %attr;
 while (<STDIN>) {
   chomp;
   if (/=/)       { my ($k, $v) = split (/=/, $_, 2); $attr{$k} = $v; next }
-  elsif (length) { syslog(warn=>sprintf("warning: ignoring garbage: %.100s", $_)); next; }
+  elsif (length) { syslog(warning=>sprintf("warning: ignoring garbage: %.100s", $_)); next; }
 
   if ($VERBOSE) {
     for (sort keys %attr) {
@@ -186,9 +186,14 @@ sub sender_permitted_from {
   local %_ = @_;
   my %attr = %{ $_{attr} };
 
-  my $query = new Mail::SPF::Query (ip    =>$attr{client_address},
-				    sender=>$attr{sender},
-				    helo  =>$attr{helo_name});
+  my $query = eval { new Mail::SPF::Query (ip    =>$attr{client_address},
+					   sender=>$attr{sender},
+					   helo  =>$attr{helo_name}) };
+  if ($@) {
+    syslog(info=>"%s: Mail::SPF::Query->new(%s, %s, %s) failed: %s",
+	   $attr{queue_id}, $attr{client_address}, $attr{sender}, $attr{helo_name}, $@); 
+    return "DUNNO";
+  }
   my ($result, $smtp_comment, $header_comment) = $query->result();
 
   syslog(info=>"%s: SPF %s: smtp_comment=%s, header_comment=%s",
@@ -198,7 +203,7 @@ sub sender_permitted_from {
   elsif ($result eq "fail")  { return "REJECT " . ($smtp_comment || $header_comment); }
   elsif ($result eq "error") { return "450 temporary failure: $smtp_comment"; }
   else                       { return "DUNNO"; }
-  # unknown, softfail, and none all return DUNNO
+  # unknown, softfail, neutral and none all return DUNNO
 
   # TODO XXX: prepend Received-SPF header.  Wietse says he will add that functionality soon.
 }

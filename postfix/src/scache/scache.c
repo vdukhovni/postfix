@@ -240,7 +240,7 @@ static void scache_save_endp_service(VSTREAM *client_stream)
 	       ||
 #endif
 	       (fd = LOCAL_RECV_FD(vstream_fileno(client_stream))) < 0) {
-	msg_warn("%s: unable to receive file descriptor", myname);
+	msg_warn("%s: unable to receive file descriptor: %m", myname);
 	attr_print(client_stream, ATTR_FLAG_NONE,
 		   ATTR_TYPE_NUM, MAIL_ATTR_STATUS, SCACHE_STAT_FAIL,
 		   ATTR_TYPE_END);

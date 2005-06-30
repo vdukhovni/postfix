@@ -10935,13 +10935,13 @@ Apologies for any names omitted.
 	the base64 and plain attribute I/O encodings. Files:
 	util/attr_scan_plain.c util/attr_print_plain.c.
 
-20040624
+20050624
 
 	Added "." to the list commands that smtp-sink can "break"
 	(by disconnecting, or by responding with a 4XX or 5XX reply
 	code). File: smtpstone/smtp-sink.c.
 
-20040625
+20050625
 
 	Safety: allow only 4.x.x and 5.x.x enhanced status codes
 	in header/body_checks REJECT actions. File:
@@ -10958,6 +10958,14 @@ Apologies for any names omitted.
 	request session count limit) now ignores sessions that fail
 	to complete the TCP, SMTP, EHLO or TLS handshake (was: TCP
 	and SMTP).  File: smtp/smtp_proto.c.
+
+20050630
+
+	Updated the example spf.pl script to version 1.06.
+
+	Portability: the file descriptor passing code broke on LP64
+	systems (inherited from Stevens Network Programming).  Files:
+	util/unix_send_fd.c, util/unix_recv_fd.c.
 
 Open problems:
 

@@ -32,8 +32,9 @@
 /* .IP \fB-a\fR
 /*	Do not announce SASL authentication support.
 /* .IP \fB-c\fR
-/*	Display a running counter that is updated whenever an SMTP
-/*	QUIT command is executed.
+/*	Display running counters that are updated whenever an SMTP
+/*	session ends, a QUIT command is executed, or when "." is
+/*	received.
 /* .IP \fB-C\fR
 /*	Disable XCLIENT support.
 /* .IP \fB-e\fR
@@ -178,8 +179,10 @@ static int command_read(SINK_STATE *);
 static int data_read(SINK_STATE *);
 static void disconnect(SINK_STATE *);
 static int count;
-static int counter;
-static int max_count;
+static int sess_count;
+static int quit_count;
+static int mesg_count;
+static int max_quit_count;
 static int disable_pipelining;
 static int disable_8bitmime;
 static int fixed_delay;
@@ -193,6 +196,15 @@ static int disable_enh_status;
 
 #define SOFT_ERROR_RESP		"450 4.3.0 Error: command failed"
 #define HARD_ERROR_RESP		"500 5.3.0 Error: command failed"
+
+/* do_stats - show counters */
+
+static void do_stats(void)
+{
+    vstream_printf("sess=%d quit=%d mesg=%d\r",
+		   sess_count, quit_count, mesg_count);
+    vstream_fflush(VSTREAM_OUT);
+}
 
 /* hard_err_resp - generic hard error response */
 
@@ -329,11 +341,8 @@ static void quit_response(SINK_STATE *state)
 {
     smtp_printf(state->stream, "221 Bye");
     smtp_flush(state->stream);
-    if (count) {
-	counter++;
-	vstream_printf("%d\r", counter);
-	vstream_fflush(VSTREAM_OUT);
-    }
+    if (count)
+	quit_count++;
 }
 
 /* data_read - read data from socket */
@@ -381,6 +390,10 @@ static int data_read(SINK_STATE *state)
 	    PUSH_BACK_SET(state, ".\r\n");
 	    state->read_fn = command_read;
 	    state->data_state = ST_ANY;
+	    if (count) {
+		mesg_count++;
+		do_stats();
+	    }
 	    break;
 	}
 
@@ -665,10 +678,14 @@ static void disconnect(SINK_STATE *state)
 {
     event_disable_readwrite(vstream_fileno(state->stream));
     event_cancel_timer(read_timeout, (char *) state);
+    if (count) {
+	sess_count++;
+	do_stats();
+    }
     vstream_fclose(state->stream);
     vstring_free(state->buffer);
     myfree((char *) state);
-    if (max_count > 0 && counter >= max_count)
+    if (max_quit_count > 0 && quit_count >= max_quit_count)
 	exit(0);
 }
 
@@ -805,7 +822,7 @@ int     main(int argc, char **argv)
 	    enable_lmtp = 1;
 	    break;
 	case 'n':
-	    if ((max_count = atoi(optarg)) <= 0)
+	    if ((max_quit_count = atoi(optarg)) <= 0)
 		msg_fatal("bad count: %s", optarg);
 	    break;
 	case 'p':

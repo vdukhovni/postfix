@@ -33,7 +33,7 @@ disabled by default. The new limit prevents Postfix from spending
 lots of time trying to connect to lots of bogus MX servers.
 
 The Postfix SMTP error handling of [45]XX server greetings was
-cleaned up. The server reply is now properly reported. 
+cleaned up. The server reply is now properly reported.
 
 Incompatibility with snapshot 20050615
 ======================================

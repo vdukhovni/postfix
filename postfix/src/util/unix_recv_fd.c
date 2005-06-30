@@ -61,17 +61,18 @@ int     unix_recv_fd(int fd)
 
     /*
      * Adapted from: W. Richard Stevens, UNIX Network Programming, Volume 1,
-     * Second edition.
+     * Second edition. Except that we use CMSG_LEN instead of CMSG_SPACE, for
+     * portability to LP64 environments.
      */
 #if defined(CMSG_SPACE) && !defined(NO_MSGHDR_MSG_CONTROL)
     union {
-	struct msghdr just_for_alignment;
+	struct cmsghdr just_for_alignment;
 	char    control[CMSG_SPACE(sizeof(newfd))];
     }       control_un;
     struct cmsghdr *cmptr;
 
     msg.msg_control = control_un.control;
-    msg.msg_controllen = sizeof(control_un.control);
+    msg.msg_controllen = CMSG_LEN(sizeof(newfd));	/* Fix 200506 */
 #else
     msg.msg_accrights = (char *) &newfd;
     msg.msg_accrightslen = sizeof(newfd);
@@ -123,6 +124,8 @@ int     unix_recv_fd(int fd)
   * unix_send_fd test program) and copy its content until EOF.
   */
 #include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
 #include <split_at.h>
 #include <listen.h>
 
