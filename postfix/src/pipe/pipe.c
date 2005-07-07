@@ -134,8 +134,8 @@
 /* .sp
 /*	This feature is available with Postfix 2.3 and later.
 /* .IP "\fBsize\fR=\fIsize_limit\fR (optional)"
-/*	Messages greater in size than this limit (in bytes) will be bounced
-/*	back to the sender.
+/*	Messages greater in size than this limit (in bytes) will
+/*	be returned to the sender as undeliverable.
 /* .IP "\fBuser\fR=\fIusername\fR (required)"
 /* .IP "\fBuser\fR=\fIusername\fR:\fIgroupname\fR"
 /*	The external command is executed with the rights of the

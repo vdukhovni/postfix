@@ -157,12 +157,18 @@ will suffer grotesque delays if you do so.
     simultaneous connections (default: 50). This is half the default process
     limit.
 
+  * An SMTP client may make up to $smtpd_client_message_rate_limit message
+    delivery requests per unit time (default: no limit).
+
+  * An SMTP client may send up to $smtpd_client_recipient_rate_limit recipient
+    addresses per unit time (default: no limit).
+
   * An SMTP client may make up to $smtpd_client_connection_rate_limit
     connections per unit time (default: no limit).
 
   * These limits are not applied to SMTP clients in the networks specified with
-    $smtpd_client_connection_limit_exceptions (default: clients in $mynetworks
-    may make an unlimited number of connections).
+    $smtpd_client_event_limit_exceptions (default: clients in $mynetworks may
+    make an unlimited number of connections).
 
   * The anvil_rate_time_unit parameter specifies the time unit over which
     client connection rates are computed (default: 60s).

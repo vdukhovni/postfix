@@ -20,7 +20,8 @@
 /*	smtpd_peer_init() updates the following fields:
 /* .IP name
 /*	The client hostname. An unknown name is represented by the
-/*	string "unknown".
+/*	string "unknown". This includes names that could not be
+/*	verified with forward DNS lookups.
 /* .IP addr
 /*	Printable representation of the client address.
 /* .IP namaddr
@@ -213,6 +214,9 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 
 	    /*
 	     * Reject the hostname if it does not list the peer address.
+	     * Without further validation or qualification, such information
+	     * must not be allowed to enter the audit trail, as people would
+	     * draw false conclusions.
 	     */
 	    aierr = hostname_to_sockaddr(state->name, (char *) 0, 0, &res0);
 	    if (aierr) {
