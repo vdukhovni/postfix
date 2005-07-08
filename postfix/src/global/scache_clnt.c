@@ -220,6 +220,7 @@ static int scache_clnt_find_endp(SCACHE *scache, const char *endp_label,
 	sleep(1);				/* XXX make configurable */
 	clnt_stream_recover(sp->clnt_stream);
     }
+    return (-1);
 }
 
 /* scache_clnt_save_dest - create destination/endpoint association */
@@ -361,6 +362,7 @@ static int scache_clnt_find_dest(SCACHE *scache, const char *dest_label,
 	sleep(1);				/* XXX make configurable */
 	clnt_stream_recover(sp->clnt_stream);
     }
+    return (-1);
 }
 
 /* scache_clnt_size - dummy */

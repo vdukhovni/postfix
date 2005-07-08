@@ -10978,6 +10978,11 @@ Apologies for any names omitted.
 	closing the socket that it just sent. Files: scache/scache.c,
 	global/scache_clnt.c.
 	 
+20050708
+
+	Bugfix: missing returns in 20050706 caching disabling code.
+	File: global/scache_clnt.c.
+
 Open problems:
 
 	Look for systems with XPG basename() declared in <libgen.h>,
