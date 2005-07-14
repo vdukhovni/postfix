@@ -965,7 +965,7 @@ static int permit_mynetworks(SMTPD_STATE *state)
 
 static char *dup_if_truncate(char *name)
 {
-    int     len;
+    ssize_t len;
     char   *result;
 
     /*
@@ -990,7 +990,7 @@ static int reject_invalid_hostaddr(SMTPD_STATE *state, char *addr,
 				        char *reply_name, char *reply_class)
 {
     char   *myname = "reject_invalid_hostaddr";
-    int     len;
+    ssize_t len;
     char   *test_addr;
     int     stat;
 
@@ -2337,7 +2337,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
     if (*domain == '[') {
 	char   *saved_addr;
 	const char *bare_addr;
-	int     len;
+	ssize_t len;
 
 	if (type != T_MX)
 	    return (SMTPD_CHECK_DUNNO);

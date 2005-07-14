@@ -213,6 +213,7 @@ int     main(int argc, char **argv)
     vstring_free(buffer);
 
     maps_free(path);
+    return (0);
 }
 
 #endif

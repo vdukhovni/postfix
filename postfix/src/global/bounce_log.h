@@ -41,7 +41,7 @@ typedef struct {
     DSN     dsn;			/* delivery status */
 } BOUNCE_LOG;
 
-extern BOUNCE_LOG *bounce_log_open(const char *, const char *, int, int);
+extern BOUNCE_LOG *bounce_log_open(const char *, const char *, int, mode_t);
 extern BOUNCE_LOG *bounce_log_read(BOUNCE_LOG *);
 extern BOUNCE_LOG *bounce_log_delrcpt(BOUNCE_LOG *);
 extern BOUNCE_LOG *bounce_log_forge(RECIPIENT *, DSN *);

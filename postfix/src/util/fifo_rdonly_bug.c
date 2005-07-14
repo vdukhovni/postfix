@@ -31,6 +31,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <string.h>
 
 #define FIFO_PATH	"test-fifo"
 #define TRIGGER_DELAY	5

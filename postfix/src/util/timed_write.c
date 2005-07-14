@@ -6,10 +6,10 @@
 /* SYNOPSIS
 /*	#include <iostuff.h>
 /*
-/*	int	timed_write(fd, buf, buf_len, timeout, context)
+/*	ssize_t	timed_write(fd, buf, len, timeout, context)
 /*	int	fd;
 /*	const void *buf;
-/*	unsigned len;
+/*	size_t	len;
 /*	int	timeout;
 /*	void	*context;
 /* DESCRIPTION
@@ -21,7 +21,7 @@
 /*	File descriptor in the range 0..FD_SETSIZE.
 /* .IP buf
 /*	Write buffer pointer.
-/* .IP buf_len
+/* .IP len
 /*	Write buffer size.
 /* .IP timeout
 /*	The deadline in seconds. If this is <= 0, the deadline feature
@@ -57,10 +57,10 @@
 
 /* timed_write - write with deadline */
 
-int     timed_write(int fd, void *buf, unsigned len,
+ssize_t timed_write(int fd, void *buf, size_t len,
 		            int timeout, void *unused_context)
 {
-    int     ret;
+    ssize_t ret;
 
     /*
      * Wait for a limited amount of time for something to happen. If nothing

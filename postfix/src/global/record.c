@@ -9,13 +9,13 @@
 /*	int	rec_get(stream, buf, maxsize)
 /*	VSTREAM	*stream;
 /*	VSTRING	*buf;
-/*	int	maxsize;
+/*	ssize_t	maxsize;
 /*
 /*	int	rec_put(stream, type, data, len)
 /*	VSTREAM	*stream;
 /*	int	type;
 /*	const char *data;
-/*	int	len;
+/*	ssize_t	len;
 /* AUXILIARY FUNCTIONS
 /*	int	rec_put_type(stream, type, offset)
 /*	VSTREAM	*stream;
@@ -129,16 +129,17 @@ int     rec_put_type(VSTREAM *stream, int type, long offset)
 
 /* rec_put - store typed record */
 
-int     rec_put(VSTREAM *stream, int type, const char *data, int len)
+int     rec_put(VSTREAM *stream, int type, const char *data, ssize_t len)
 {
-    int     len_rest;
-    int     len_byte;
+    ssize_t len_rest;
+    ssize_t len_byte;
 
     if (type < 0 || type > 255)
 	msg_panic("rec_put: bad record type %d", type);
 
     if (msg_verbose > 2)
-	msg_info("rec_put: type %c len %d data %.10s", type, len, data);
+	msg_info("rec_put: type %c len %ld data %.10s",
+		 type, (long) len, data);
 
     /*
      * Write the record type, one byte.
@@ -153,7 +154,7 @@ int     rec_put(VSTREAM *stream, int type, const char *data, int len)
     len_rest = len;
     do {
 	len_byte = len_rest & 0177;
-	if (len_rest >>= 7)
+	if (len_rest >>= 7U)
 	    len_byte |= 0200;
 	if (VSTREAM_PUTC(len_byte, stream) == VSTREAM_EOF) {
 	    return (REC_TYPE_ERROR);
@@ -170,19 +171,19 @@ int     rec_put(VSTREAM *stream, int type, const char *data, int len)
 
 /* rec_get - retrieve typed record */
 
-int     rec_get(VSTREAM *stream, VSTRING *buf, int maxsize)
+int     rec_get(VSTREAM *stream, VSTRING *buf, ssize_t maxsize)
 {
     char   *myname = "rec_get";
     int     type;
-    int     len;
+    ssize_t len;
     int     len_byte;
-    int     shift;
+    unsigned shift;
 
     /*
      * Sanity check.
      */
     if (maxsize < 0)
-	msg_panic("%s: bad record size limit: %d", myname, maxsize);
+	msg_panic("%s: bad record size limit: %ld", myname, (long) maxsize);
 
     /*
      * Extract the record type.
@@ -211,8 +212,8 @@ int     rec_get(VSTREAM *stream, VSTRING *buf, int maxsize)
 	    break;
     }
     if (len < 0 || (maxsize > 0 && len > maxsize)) {
-	msg_warn("%s: illegal length %d, record type %d",
-		 VSTREAM_PATH(stream), len, type);
+	msg_warn("%s: illegal length %ld, record type %d",
+		 VSTREAM_PATH(stream), (long) len, type);
 	while (len-- > 0 && VSTREAM_GETC(stream) != VSTREAM_EOF)
 	     /* void */ ;
 	return (REC_TYPE_ERROR);
@@ -225,15 +226,15 @@ int     rec_get(VSTREAM *stream, VSTRING *buf, int maxsize)
     VSTRING_RESET(buf);
     VSTRING_SPACE(buf, len);
     if (vstream_fread(stream, vstring_str(buf), len) != len) {
-	msg_warn("%s: unexpected EOF in data, record type %d length %d",
-		 VSTREAM_PATH(stream), type, len);
+	msg_warn("%s: unexpected EOF in data, record type %d length %ld",
+		 VSTREAM_PATH(stream), type, (long) len);
 	return (REC_TYPE_ERROR);
     }
     VSTRING_AT_OFFSET(buf, len);
     VSTRING_TERMINATE(buf);
     if (msg_verbose > 2)
-	msg_info("%s: type %c len %d data %.10s", myname,
-		 type, len, vstring_str(buf));
+	msg_info("%s: type %c len %ld data %.10s", myname,
+		 type, (unsigned long) len, vstring_str(buf));
     return (type);
 }
 

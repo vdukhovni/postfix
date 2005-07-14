@@ -226,6 +226,7 @@ int main(int unused_argc, char **unused_argv)
     tls_tmp_dh_cb(0, 1, 1024);
     tls_tmp_dh_cb(0, 1, 2048);
     tls_tmp_dh_cb(0, 0, 512);
+    return (0);
 }
 
 #endif

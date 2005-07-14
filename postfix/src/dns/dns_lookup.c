@@ -344,7 +344,7 @@ static DNS_RR *dns_get_rr(DNS_REPLY *reply, unsigned char *pos,
 			          char *rr_name, DNS_FIXED *fixed)
 {
     char    temp[DNS_NAME_LEN];
-    int     data_len;
+    ssize_t data_len;
     unsigned pref = 0;
     unsigned char *src;
     unsigned char *dst;

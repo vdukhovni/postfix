@@ -34,7 +34,7 @@ typedef struct {
 extern TLS_SCACHE *tls_scache_open(const char *, const char *, int, int);
 extern void tls_scache_close(TLS_SCACHE *);
 extern int tls_scache_lookup(TLS_SCACHE *, const char *, VSTRING *);
-extern int tls_scache_update(TLS_SCACHE *, const char *, const char *, int);
+extern int tls_scache_update(TLS_SCACHE *, const char *, const char *, ssize_t);
 extern int tls_scache_delete(TLS_SCACHE *, const char *);
 extern int tls_scache_sequence(TLS_SCACHE *, int, char **, VSTRING *);
 

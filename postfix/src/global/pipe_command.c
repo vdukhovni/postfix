@@ -69,11 +69,11 @@
 /*	\fImail_copy\fR() routine.
 /* .IP "PIPE_CMD_EOL (char *)"
 /*	End-of-line delimiter. The default is to use the newline character.
-/* .IP "PIPE_CMD_UID (int)"
+/* .IP "PIPE_CMD_UID (uid_t)"
 /*	The user ID to execute the command as. The default is
 /*	the user ID corresponding to the \fIdefault_privs\fR
 /*	configuration parameter. The user ID must be non-zero.
-/* .IP "PIPE_CMD_GID (int)"
+/* .IP "PIPE_CMD_GID (gid_t)"
 /*	The group ID to execute the command as. The default is
 /*	the group ID corresponding to the \fIdefault_privs\fR
 /*	configuration parameter. The group ID must be non-zero.
@@ -234,10 +234,10 @@ static void get_pipe_args(struct pipe_args * args, va_list ap)
 	    args->command = va_arg(ap, char *);
 	    break;
 	case PIPE_CMD_UID:
-	    args->uid = va_arg(ap, int);	/* in case uid_t is short */
+	    args->uid = va_arg(ap, uid_t);	/* in case uid_t is short */
 	    break;
 	case PIPE_CMD_GID:
-	    args->gid = va_arg(ap, int);	/* in case gid_t is short */
+	    args->gid = va_arg(ap, gid_t);	/* in case gid_t is short */
 	    break;
 	case PIPE_CMD_TIME_LIMIT:
 	    pipe_command_maxtime = va_arg(ap, int);
@@ -268,7 +268,7 @@ static void get_pipe_args(struct pipe_args * args, va_list ap)
 
 /* pipe_command_write - write to command with time limit */
 
-static int pipe_command_write(int fd, void *buf, unsigned len)
+static ssize_t pipe_command_write(int fd, void *buf, ssize_t len)
 {
     int     maxtime = (pipe_command_timeout == 0) ? pipe_command_maxtime : 0;
     char   *myname = "pipe_command_write";
@@ -289,7 +289,7 @@ static int pipe_command_write(int fd, void *buf, unsigned len)
 
 /* pipe_command_read - read from command with time limit */
 
-static int pipe_command_read(int fd, void *buf, unsigned len)
+static ssize_t pipe_command_read(int fd, void *buf, ssize_t len)
 {
     int     maxtime = (pipe_command_timeout == 0) ? pipe_command_maxtime : 0;
     char   *myname = "pipe_command_read";
@@ -574,7 +574,7 @@ int     pipe_command(VSTREAM *src, DSN_BUF *why,...)
 	    else if (dsn_valid(log_buf) > 0) {
 		dsn_split(&dp, "5.3.0", log_buf);
 		dsb_unix(why, DSN_STATUS(dp.dsn), DSN_CLASS(dp.dsn) == '4' ?
-			 EX_TEMPFAIL : EX_UNAVAILABLE, dp.text, "%s", dp.text);
+		      EX_TEMPFAIL : EX_UNAVAILABLE, dp.text, "%s", dp.text);
 		return (DSN_CLASS(dp.dsn) == '4' ?
 			PIPE_STAT_DEFER : PIPE_STAT_BOUNCE);
 	    }

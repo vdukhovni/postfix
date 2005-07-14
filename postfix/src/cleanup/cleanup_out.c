@@ -13,7 +13,7 @@
 /*	CLEANUP_STATE *state;
 /*	int	type;
 /*	const char *data;
-/*	int	len;
+/*	ssize_t	len;
 /*
 /*	void	cleanup_out_string(state, type, str)
 /*	CLEANUP_STATE *state;
@@ -85,7 +85,7 @@
 
 /* cleanup_out - output one single record */
 
-void    cleanup_out(CLEANUP_STATE *state, int type, const char *string, int len)
+void    cleanup_out(CLEANUP_STATE *state, int type, const char *string, ssize_t len)
 {
     int     err = 0;
 

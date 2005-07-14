@@ -51,7 +51,7 @@
 /* .IP "ATTR_TYPE_STR (char *, char *)"
 /*	This argument is followed by an attribute name and a null-terminated
 /*	string.
-/* .IP "ATTR_TYPE_DATA (char *, int, char *)"
+/* .IP "ATTR_TYPE_DATA (char *, ssize_t, char *)"
 /*	This argument is followed by an attribute name, an attribute value
 /*	length, and a pointer to attribute value.
 /* .IP "ATTR_TYPE_FUNC (ATTR_PRINT_SLAVE_FN, void *)"
@@ -115,7 +115,7 @@ int     attr_vprint_plain(VSTREAM *fp, int flags, va_list ap)
     HTABLE_INFO **ht_info_list;
     HTABLE_INFO **ht;
     static VSTRING *base64_buf;
-    int     len_val;
+    ssize_t len_val;
     ATTR_PRINT_SLAVE_FN print_fn;
     void   *print_arg;
 
@@ -154,14 +154,15 @@ int     attr_vprint_plain(VSTREAM *fp, int flags, va_list ap)
 	    break;
 	case ATTR_TYPE_DATA:
 	    attr_name = va_arg(ap, char *);
-	    len_val = va_arg(ap, int);
+	    len_val = va_arg(ap, ssize_t);
 	    str_val = va_arg(ap, char *);
 	    if (base64_buf == 0)
 		base64_buf = vstring_alloc(10);
 	    base64_encode(base64_buf, str_val, len_val);
 	    vstream_fprintf(fp, "%s=%s\n", attr_name, STR(base64_buf));
 	    if (msg_verbose)
-		msg_info("send attr %s = [data %d bytes]", attr_name, len_val);
+		msg_info("send attr %s = [data %ld bytes]",
+			 attr_name, (long) len_val);
 	    break;
 	case ATTR_TYPE_FUNC:
 	    print_fn = va_arg(ap, ATTR_PRINT_SLAVE_FN);
@@ -218,14 +219,14 @@ int     main(int unused_argc, char **argv)
 		     ATTR_TYPE_NUM, ATTR_NAME_NUM, 4711,
 		     ATTR_TYPE_LONG, ATTR_NAME_LONG, 1234,
 		     ATTR_TYPE_STR, ATTR_NAME_STR, "whoopee",
-		     ATTR_TYPE_DATA, ATTR_NAME_DATA, strlen("whoopee"), "whoopee",
+	       ATTR_TYPE_DATA, ATTR_NAME_DATA, strlen("whoopee"), "whoopee",
 		     ATTR_TYPE_HASH, table,
 		     ATTR_TYPE_END);
     attr_print_plain(VSTREAM_OUT, ATTR_FLAG_NONE,
 		     ATTR_TYPE_NUM, ATTR_NAME_NUM, 4711,
 		     ATTR_TYPE_LONG, ATTR_NAME_LONG, 1234,
 		     ATTR_TYPE_STR, ATTR_NAME_STR, "whoopee",
-		     ATTR_TYPE_DATA, ATTR_NAME_DATA, strlen("whoopee"), "whoopee",
+	       ATTR_TYPE_DATA, ATTR_NAME_DATA, strlen("whoopee"), "whoopee",
 		     ATTR_TYPE_END);
     if (vstream_fflush(VSTREAM_OUT) != 0)
 	msg_fatal("write error: %m");

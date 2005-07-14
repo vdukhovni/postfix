@@ -10,7 +10,7 @@
 /*	CLEANUP_STATE *state;
 /*	int	type;
 /*	const char *buf;
-/*	int	len;
+/*	ssize_t	len;
 /* DESCRIPTION
 /*	This module processes message content records and copies the
 /*	result to the queue file.  It validates the input, rewrites
@@ -663,7 +663,7 @@ static void cleanup_header_done_callback(void *context)
 /* cleanup_body_callback - output one body record */
 
 static void cleanup_body_callback(void *context, int type,
-				          const char *buf, int len,
+				          const char *buf, ssize_t len,
 				          off_t offset)
 {
     CLEANUP_STATE *state = (CLEANUP_STATE *) context;
@@ -699,7 +699,7 @@ static void cleanup_body_callback(void *context, int type,
 /* cleanup_message_headerbody - process message content, header and body */
 
 static void cleanup_message_headerbody(CLEANUP_STATE *state, int type,
-				               const char *buf, int len)
+				               const char *buf, ssize_t len)
 {
     char   *myname = "cleanup_message_headerbody";
     MIME_STATE_DETAIL *detail;
@@ -763,7 +763,7 @@ static void cleanup_mime_error_callback(void *context, int err_code,
 
 /* cleanup_message - initialize message content segment */
 
-void    cleanup_message(CLEANUP_STATE *state, int type, const char *buf, int len)
+void    cleanup_message(CLEANUP_STATE *state, int type, const char *buf, ssize_t len)
 {
     char   *myname = "cleanup_message";
     int     mime_options;

@@ -81,10 +81,10 @@
 int     cleanup_masquerade_external(VSTRING *addr, ARGV *masq_domains)
 {
     char   *domain;
-    int     domain_len;
+    ssize_t domain_len;
     char  **masqp;
     char   *masq;
-    int     masq_len;
+    ssize_t masq_len;
     char   *parent;
     int     truncate;
     int     did_rewrite = 0;

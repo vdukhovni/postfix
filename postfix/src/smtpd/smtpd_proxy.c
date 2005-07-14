@@ -35,7 +35,7 @@
 /*	VSTREAM *stream;
 /*	int	rec_type;
 /*	const char *data;
-/*	int	len;
+/*	ssize_t	len;
 /*
 /*	int	smtpd_proxy_rec_fprintf(stream, rec_type, format, ...)
 /*	VSTREAM *stream;
@@ -538,7 +538,7 @@ int     smtpd_proxy_cmd(SMTPD_STATE *state, int expect, const char *fmt,...)
 /* smtpd_proxy_rec_put - send message content, rec_put() clone */
 
 int     smtpd_proxy_rec_put(VSTREAM *stream, int rec_type,
-			            const char *data, int len)
+			            const char *data, ssize_t len)
 {
     int     err;
 

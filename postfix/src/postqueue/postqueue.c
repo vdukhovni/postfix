@@ -381,7 +381,6 @@ int     main(int argc, char **argv)
     int     mode = PQ_MODE_DEFAULT;
     char   *site_to_flush = 0;
     ARGV   *import_env;
-    char   *last;
     int     bad_site;
 
     /*

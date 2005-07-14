@@ -19,8 +19,8 @@
  /*
   * External interface.
   */
-extern VSTRING *hex_encode(VSTRING *, const char *, int);
-extern VSTRING *hex_decode(VSTRING *, const char *, int);
+extern VSTRING *hex_encode(VSTRING *, const char *, ssize_t);
+extern VSTRING *hex_decode(VSTRING *, const char *, ssize_t);
 
 /* LICENSE
 /* .ad

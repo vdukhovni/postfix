@@ -592,7 +592,7 @@ TLScontext_t *tls_server_start(SSL_CTX *server_ctx, VSTREAM *stream,
 	if (X509_digest(peer, EVP_md5(), TLScontext->md, &n)) {
 	    for (j = 0; j < (int) n; j++) {
 		TLScontext->fingerprint[j * 3] =
-		    hexcodes[(TLScontext->md[j] & 0xf0) >> 4];
+		    hexcodes[(TLScontext->md[j] & 0xf0) >> 4U];
 		TLScontext->fingerprint[(j * 3) + 1] =
 		    hexcodes[(TLScontext->md[j] & 0x0f)];
 		if (j + 1 != (int) n)

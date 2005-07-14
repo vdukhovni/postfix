@@ -136,6 +136,7 @@ int     main(int unused_argc, char **unused_argv)
     }
     vstring_free(addr);
     vstring_free(result);
+    return (0);
 }
 
 #endif

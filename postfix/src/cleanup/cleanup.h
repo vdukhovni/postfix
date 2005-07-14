@@ -54,10 +54,10 @@ typedef struct CLEANUP_STATE {
     int     hop_count;			/* count of received: headers */
     char   *resent;			/* any resent- header seen */
     BH_TABLE *dups;			/* recipient dup filter */
-    void    (*action) (struct CLEANUP_STATE *, int, const char *, int);
+    void    (*action) (struct CLEANUP_STATE *, int, const char *, ssize_t);
     off_t   data_offset;		/* start of message content */
     off_t   xtra_offset;		/* start of extra segment */
-    int     rcpt_count;			/* recipient count */
+    ssize_t rcpt_count;			/* recipient count */
     char   *reason;			/* failure reason */
     NVTABLE *attr;			/* queue file attribute list */
     MIME_STATE *mime_state;		/* MIME state engine */
@@ -154,7 +154,7 @@ extern CONFIG_TIME_TABLE cleanup_time_table[];
  /*
   * cleanup_out.c
   */
-extern void cleanup_out(CLEANUP_STATE *, int, const char *, int);
+extern void cleanup_out(CLEANUP_STATE *, int, const char *, ssize_t);
 extern void cleanup_out_string(CLEANUP_STATE *, int, const char *);
 extern void PRINTFLIKE(3, 4) cleanup_out_format(CLEANUP_STATE *, int, const char *,...);
 
@@ -167,17 +167,17 @@ extern void PRINTFLIKE(3, 4) cleanup_out_format(CLEANUP_STATE *, int, const char
  /*
   * cleanup_envelope.c
   */
-extern void cleanup_envelope(CLEANUP_STATE *, int, const char *, int);
+extern void cleanup_envelope(CLEANUP_STATE *, int, const char *, ssize_t);
 
  /*
   * cleanup_message.c
   */
-extern void cleanup_message(CLEANUP_STATE *, int, const char *, int);
+extern void cleanup_message(CLEANUP_STATE *, int, const char *, ssize_t);
 
  /*
   * cleanup_extracted.c
   */
-extern void cleanup_extracted(CLEANUP_STATE *, int, const char *, int);
+extern void cleanup_extracted(CLEANUP_STATE *, int, const char *, ssize_t);
 
  /*
   * cleanup_rewrite.c

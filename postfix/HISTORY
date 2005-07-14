@@ -10980,8 +10980,45 @@ Apologies for any names omitted.
 	 
 20050708
 
-	Bugfix: missing returns in 20050706 caching disabling code.
-	File: global/scache_clnt.c.
+	Bugfix: missing returns in 20050706 caching disabling code
+	(in error handling code that never executes).  File:
+	global/scache_clnt.c.
+
+	Portability: use explicitly unsigned operands when doing
+	bit-wise shift operations on data larger than a character.
+
+20050709-14
+
+	Migration of data object sizes from int->ssize_t and
+	unsigned->size_t for better portability to LP64 and LLP64
+	systems.  Simply changing everything to size_t would be
+	dangerous. A lot of code was written assuming signed
+	arithmetic; for example, it recognizes negative lengths as
+	an indication of integer overflow.  Files: util/vbuf.[hc],
+	util/mymalloc.[hc], util/vstring.[hc], util/vstream.[hc],
+	util/timed_read.c, util/timed_write.c and functions that
+	override timed_read/write.c; in a later round updated pretty
+	much everything that contains a length of, or an offset
+	into, a buffer. This eliminates unnecessary conversions
+	back and forth between 32-bit and 64-bit integers.
+
+20050710-3
+
+	Portability: on LP64 systems, integer expressions are int,
+	but sizeof() and pointer difference expressions are larger.
+	Fixed a few discrepancies with functions that expect int:
+	util/clean_env.c, util/argv.c, util/attr_print*.c.
+
+20050711
+
+	Bugfix: don't include <> when auto-generating an ORCPT
+	address from a client RCPT TO command. File: smtpd.c.
+
+20050712
+
+	Cleanup: cleanup_out_recipient() still generated DSN records
+	that were incompatible with pre-DSN Postfix versions.  File:
+	cleanup/cleanup_out_recipient.c.
 
 Open problems:
 

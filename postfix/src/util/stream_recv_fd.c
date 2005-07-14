@@ -73,6 +73,8 @@ int     stream_recv_fd(int fd)
   * stream_send_fd test program) and copy its content until EOF.
   */
 #include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
 #include <split_at.h>
 #include <listen.h>
 

@@ -9,12 +9,12 @@
 /*	VSTRING	*base64_encode(result, in, len)
 /*	VSTRING	*result;
 /*	const char *in;
-/*	int	len;
+/*	ssize_t	len;
 /*
 /*	VSTRING	*base64_decode(result, in, len)
 /*	VSTRING	*result;
 /*	const char *in;
-/*	int	len;
+/*	ssize_t	len;
 /* DESCRIPTION
 /*	base64_encode() takes a block of len bytes and encodes it as one
 /*	null-terminated string.  The result value is the result argument.
@@ -63,10 +63,10 @@ static unsigned char to_b64[] =
 
 /* base64_encode - raw data to encoded */
 
-VSTRING *base64_encode(VSTRING *result, const char *in, int len)
+VSTRING *base64_encode(VSTRING *result, const char *in, ssize_t len)
 {
     const unsigned char *cp;
-    int     count;
+    ssize_t count;
 
     /*
      * Encode 3 -> 4.
@@ -97,11 +97,11 @@ VSTRING *base64_encode(VSTRING *result, const char *in, int len)
 
 /* base64_decode - encoded data to raw */
 
-VSTRING *base64_decode(VSTRING *result, const char *in, int len)
+VSTRING *base64_decode(VSTRING *result, const char *in, ssize_t len)
 {
     static unsigned char *un_b64 = 0;
     const unsigned char *cp;
-    int     count;
+    ssize_t count;
     unsigned int ch0;
     unsigned int ch1;
     unsigned int ch2;

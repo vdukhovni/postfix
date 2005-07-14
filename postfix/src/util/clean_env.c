@@ -56,7 +56,7 @@ void    clean_env(char **preserve_list)
     /*
      * Preserve or specify selected environment variables.
      */
-#define STRING_AND_LENGTH(x, y) (x), (y)
+#define STRING_AND_LENGTH(x, y) (x), (ssize_t) (y)
 
     save_list = argv_alloc(10);
     for (cpp = preserve_list; *cpp; cpp++)

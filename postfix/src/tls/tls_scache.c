@@ -160,11 +160,11 @@ typedef struct {
 
 static VSTRING *tls_scache_encode(TLS_SCACHE *cp, const char *cache_id,
 				          const char *session,
-				          int session_len)
+				          ssize_t session_len)
 {
     TLS_SCACHE_ENTRY *entry;
     VSTRING *hex_data;
-    int     binary_data_len;
+    ssize_t binary_data_len;
 
     /*
      * Assemble the TLS session cache entry.
@@ -187,9 +187,9 @@ static VSTRING *tls_scache_encode(TLS_SCACHE *cp, const char *cache_id,
      * Logging.
      */
     if (cp->log_level >= 3)
-	msg_info("write %s TLS cache entry %s: time=%ld [data %d bytes]",
+	msg_info("write %s TLS cache entry %s: time=%ld [data %ld bytes]",
 		 cp->cache_label, cache_id, (long) entry->timestamp,
-		 session_len);
+		 (long) session_len);
 
     /*
      * Clean up.
@@ -202,7 +202,7 @@ static VSTRING *tls_scache_encode(TLS_SCACHE *cp, const char *cache_id,
 /* tls_scache_decode - decode TLS session cache entry */
 
 static int tls_scache_decode(TLS_SCACHE *cp, const char *cache_id,
-			             const char *hex_data, int hex_data_len,
+			             const char *hex_data, ssize_t hex_data_len,
 			             VSTRING *out_session)
 {
     TLS_SCACHE_ENTRY *entry;
@@ -236,9 +236,9 @@ static int tls_scache_decode(TLS_SCACHE *cp, const char *cache_id,
      * Logging.
      */
     if (cp->log_level >= 3)
-	msg_info("read %s TLS cache entry %s: time=%ld [data %d bytes]",
+	msg_info("read %s TLS cache entry %s: time=%ld [data %ld bytes]",
 		 cp->cache_label, cache_id, (long) entry->timestamp,
-		 LEN(bin_data) - offsetof(TLS_SCACHE_ENTRY, session));
+		 (long) (LEN(bin_data) - offsetof(TLS_SCACHE_ENTRY, session)));
 
     /*
      * Other mandatory restrictions.
@@ -299,7 +299,7 @@ int     tls_scache_lookup(TLS_SCACHE *cp, const char *cache_id,
 /* tls_scache_update - save session to cache */
 
 int     tls_scache_update(TLS_SCACHE *cp, const char *cache_id,
-			          const char *buf, int len)
+			          const char *buf, ssize_t len)
 {
     VSTRING *hex_data;
 
@@ -307,8 +307,8 @@ int     tls_scache_update(TLS_SCACHE *cp, const char *cache_id,
      * Logging.
      */
     if (cp->log_level >= 3)
-	msg_info("put %s session id=%s [data %d bytes]",
-		 cp->cache_label, cache_id, len);
+	msg_info("put %s session id=%s [data %ld bytes]",
+		 cp->cache_label, cache_id, (long) len);
 
     /*
      * Encode the cache entry.

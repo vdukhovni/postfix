@@ -128,9 +128,9 @@ static unsigned htable_hash(const char *s, unsigned size)
      */
 
     while (*s) {
-	h = (h << 4) + *s++;
+	h = (h << 4U) + *s++;
 	if ((g = (h & 0xf0000000)) != 0) {
-	    h ^= (g >> 24);
+	    h ^= (g >> 24U);
 	    h ^= g;
 	}
     }
@@ -352,7 +352,7 @@ int main(int unused_argc, char **unused_argv)
      */
     hash = htable_create(10);
     while (vstring_get(buf, VSTREAM_IN) != VSTREAM_EOF)
-	htable_enter(hash, vstring_str(buf), (void *) count++);
+	htable_enter(hash, vstring_str(buf), CAST_INT_TO_CHAR_PTR(count++));
     ht_info = htable_list(hash);
     for (i = 0; i < hash->used; i++) {
 	r = myrand() % hash->used;

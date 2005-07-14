@@ -50,7 +50,7 @@
 extern int tls_mgr_seed(VSTRING *, int);
 extern int tls_mgr_policy(int *);
 extern int tls_mgr_lookup(int, const char *, VSTRING *);
-extern int tls_mgr_update(int, const char *, const char *, int);
+extern int tls_mgr_update(int, const char *, const char *, ssize_t);
 extern int tls_mgr_delete(int, const char *);
 
 /* LICENSE

@@ -88,7 +88,8 @@
 /* .IP "MAIL_STREAM_CTL_SERVICE (char *)"
 /*	The argument specifies an alternate trigger service.
 /* .IP "MAIL_STREAM_CTL_MODE (int)"
-/*	The argument specifies an altername file mode.
+/*	The argument specifies alternate permissions that override
+/*	the permissions specified with mail_stream_file().
 /* LICENSE
 /* .ad
 /* .fi

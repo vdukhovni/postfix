@@ -7,15 +7,15 @@
 /*	#include <mime_state.h>
 /*
 /*	MIME_STATE *mime_state_alloc(flags, head_out, head_end,
-/*				     body_out, body_end,
-/*				     err_print, context)
+/*					 body_out, body_end,
+/*					 err_print, context)
 /*	int	flags;
 /*	void	(*head_out)(void *ptr, int header_class,
 /*				HEADER_OPTS *header_info,
 /*				VSTRING *buf, off_t offset);
 /*	void	(*head_end)(void *ptr);
 /*	void	(*body_out)(void *ptr, int rec_type,
-/*				const char *buf, int len,
+/*				const char *buf, ssize_t len,
 /*				off_t offset);
 /*	void	(*body_end)(void *ptr);
 /*	void	(*err_print)(void *ptr, int err_flag, const char *text)
@@ -25,7 +25,7 @@
 /*	MIME_STATE *state;
 /*	int	rec_type;
 /*	const char *buf;
-/*	int	len;
+/*	ssize_t	len;
 /*
 /*	MIME_STATE *mime_state_free(state)
 /*	MIME_STATE *state;
@@ -269,7 +269,7 @@ typedef struct MIME_STACK {
     int     def_ctype;			/* default content type */
     int     def_stype;			/* default content subtype */
     char   *boundary;			/* boundary string */
-    int     bound_len;			/* boundary length */
+    ssize_t bound_len;			/* boundary length */
     struct MIME_STACK *next;		/* linkage */
 } MIME_STACK;
 
@@ -516,7 +516,7 @@ static void mime_state_content_type(MIME_STATE *state,
 				            HEADER_OPTS *header_info)
 {
     const char *cp;
-    int     tok_count;
+    ssize_t tok_count;
     int     def_ctype;
     int     def_stype;
 
@@ -665,7 +665,7 @@ static const char *mime_state_enc_name(int encoding)
 /* mime_state_downgrade - convert 8-bit data to quoted-printable */
 
 static void mime_state_downgrade(MIME_STATE *state, int rec_type,
-				         const char *text, int len)
+				         const char *text, ssize_t len)
 {
     static char hexchars[] = "0123456789ABCDEF";
     const unsigned char *cp;
@@ -723,7 +723,7 @@ static void mime_state_downgrade(MIME_STATE *state, int rec_type,
 /* mime_state_update - update MIME state machine */
 
 int     mime_state_update(MIME_STATE *state, int rec_type,
-			          const char *text, int len)
+			          const char *text, ssize_t len)
 {
     int     input_is_text = (rec_type == REC_TYPE_NORM
 			     || rec_type == REC_TYPE_CONT);
@@ -1108,7 +1108,7 @@ static void head_end(void *context)
     vstream_fprintf(stream, "HEADER END\n");
 }
 
-static void body_out(void *context, int rec_type, const char *buf, int len,
+static void body_out(void *context, int rec_type, const char *buf, ssize_t len,
 		             off_t offset)
 {
     VSTREAM *stream = (VSTREAM *) context;

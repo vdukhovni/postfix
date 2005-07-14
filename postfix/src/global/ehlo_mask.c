@@ -110,6 +110,7 @@ const char *str_ehlo_mask(int mask_bits)
  /*
   * Stand-alone test program.
   */
+#include <stdlib.h>
 #include <vstream.h>
 #include <vstring.h>
 #include <vstring_vstream.h>

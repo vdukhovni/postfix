@@ -105,6 +105,7 @@ int     main(int unused_argc, char **unused_argv)
     const char *cp = fullname();
 
     printf("%s\n", cp ? cp : "null!");
+    return (0);
 }
 
 #endif

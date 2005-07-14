@@ -7,7 +7,7 @@
 /*	#include <vstring.h>
 /*
 /*	VSTRING	*vstring_alloc(len)
-/*	int	len;
+/*	ssize_t	len;
 /*
 /*	vstring_ctl(vp, type, value, ..., VSTRING_CTL_END)
 /*	VSTRING	*vp;
@@ -19,7 +19,7 @@
 /*	char	*vstring_str(vp)
 /*	VSTRING	*vp;
 /*
-/*	VSTRING	*VSTRING_LEN(vp)
+/*	ssize_t	VSTRING_LEN(vp)
 /*	VSTRING	*vp;
 /*
 /*	char	*vstring_end(vp)
@@ -31,14 +31,14 @@
 /*
 /*	int	VSTRING_SPACE(vp, len)
 /*	VSTRING	*vp;
-/*	int	len;
+/*	ssize_t	len;
 /*
-/*	int	vstring_avail(vp)
+/*	ssize_t	vstring_avail(vp)
 /*	VSTRING	*vp;
 /*
 /*	VSTRING	*vstring_truncate(vp, len)
 /*	VSTRING	*vp;
-/*	int	len;
+/*	ssize_t	len;
 /*
 /*	void	VSTRING_RESET(vp)
 /*	VSTRING	*vp;
@@ -56,7 +56,7 @@
 /*	VSTRING	*vstring_strncpy(vp, src, len)
 /*	VSTRING	*vp;
 /*	const char *src;
-/*	int	len;
+/*	ssize_t	len;
 /*
 /*	VSTRING	*vstring_strcat(vp, src)
 /*	VSTRING	*vp;
@@ -65,17 +65,17 @@
 /*	VSTRING	*vstring_strncat(vp, src, len)
 /*	VSTRING	*vp;
 /*	const char *src;
-/*	int	len;
+/*	ssize_t	len;
 /*
 /*	VSTRING	*vstring_memcpy(vp, src, len)
 /*	VSTRING	*vp;
 /*	const char *src;
-/*	int	len;
+/*	ssize_t	len;
 /*
 /*	VSTRING	*vstring_memcat(vp, src, len)
 /*	VSTRING	*vp;
 /*	const char *src;
-/*	int	len;
+/*	ssize_t	len;
 /*
 /*	char	*vstring_memchr(vp, ch)
 /*	VSTRING	*vp;
@@ -84,7 +84,7 @@
 /*	VSTRING	*vstring_prepend(vp, src, len)
 /*	VSTRING	*vp;
 /*	const char *src;
-/*	int	len;
+/*	ssize_t	len;
 /*
 /*	VSTRING	*vstring_sprintf(vp, format, ...)
 /*	VSTRING	*vp;
@@ -128,7 +128,7 @@
 /*	The function takes a VSTRING pointer and a list of zero
 /*	or more (name,value) pairs. The expected value type
 /*	depends on the specified name. The value name codes are:
-/* .IP "VSTRING_CTL_MAXLEN (int)"
+/* .IP "VSTRING_CTL_MAXLEN (ssize_t)"
 /*	Specifies a hard upper limit on a string's length. When the
 /*	length would be exceeded, the program simulates a memory
 /*	allocation problem (i.e. it terminates through msg_fatal()).
@@ -208,7 +208,7 @@
 /*
 /*	vstring_memchr() locates a byte in a variable-length string.
 /*
-/*	vstring_prepend() prepends a buffer content to a variable-length 
+/*	vstring_prepend() prepends a buffer content to a variable-length
 /*	string. The result is null-terminated.
 /*
 /*	vstring_sprintf() produces a formatted string according to its
@@ -271,10 +271,10 @@
 
 /* vstring_extend - variable-length string buffer extension policy */
 
-static void vstring_extend(VBUF *bp, int incr)
+static void vstring_extend(VBUF *bp, ssize_t incr)
 {
-    unsigned used = bp->ptr - bp->data;
-    int     new_len;
+    size_t  used = bp->ptr - bp->data;
+    ssize_t new_len;
 
     /*
      * Note: vp->vbuf.len is the current buffer size (both on entry and on
@@ -282,8 +282,13 @@ static void vstring_extend(VBUF *bp, int incr)
      * size to avoid silly little buffer increments. With really large
      * strings we might want to abandon the length doubling strategy, and go
      * to fixed increments.
+     * 
+     * The length overflow tests here and in vstring_alloc() should protect us
+     * against all length overflow problems within vstring library routines.
      */
     new_len = bp->len + (bp->len > incr ? bp->len : incr);
+    if (new_len < 0)
+	msg_fatal("vstring_extend: length overflow");
     bp->data = (unsigned char *) myrealloc((char *) bp->data, new_len);
     bp->len = new_len;
     bp->ptr = bp->data + used;
@@ -307,12 +312,12 @@ static int vstring_buf_put_ready(VBUF *bp)
 
 /* vstring_buf_space - vbuf callback to reserve space */
 
-static int vstring_buf_space(VBUF *bp, int len)
+static int vstring_buf_space(VBUF *bp, ssize_t len)
 {
-    int     need;
+    ssize_t need;
 
     if (len < 0)
-	msg_panic("vstring_buf_space: bad length %d", len);
+	msg_panic("vstring_buf_space: bad length %ld", (long) len);
     if ((need = len - bp->cnt) > 0)
 	vstring_extend(bp, need);
     return (0);
@@ -320,12 +325,12 @@ static int vstring_buf_space(VBUF *bp, int len)
 
 /* vstring_alloc - create variable-length string */
 
-VSTRING *vstring_alloc(int len)
+VSTRING *vstring_alloc(ssize_t len)
 {
     VSTRING *vp;
 
     if (len < 1)
-	msg_panic("vstring_alloc: bad length %d", len);
+	msg_panic("vstring_alloc: bad length %ld", (long) len);
     vp = (VSTRING *) mymalloc(sizeof(*vp));
     vp->vbuf.flags = 0;
     vp->vbuf.len = 0;
@@ -363,9 +368,9 @@ void    vstring_ctl(VSTRING *vp,...)
 	default:
 	    msg_panic("vstring_ctl: unknown code: %d", code);
 	case VSTRING_CTL_MAXLEN:
-	    vp->maxlen = va_arg(ap, int);
+	    vp->maxlen = va_arg(ap, ssize_t);
 	    if (vp->maxlen < 0)
-		msg_panic("vstring_ctl: bad max length %d", vp->maxlen);
+		msg_panic("vstring_ctl: bad max length %ld", (long) vp->maxlen);
 	    break;
 	}
     }
@@ -374,10 +379,10 @@ void    vstring_ctl(VSTRING *vp,...)
 
 /* vstring_truncate - truncate string */
 
-VSTRING *vstring_truncate(VSTRING *vp, int len)
+VSTRING *vstring_truncate(VSTRING *vp, ssize_t len)
 {
     if (len < 0)
-	msg_panic("vstring_truncate: bad length %d", len);
+	msg_panic("vstring_truncate: bad length %ld", (long) len);
     if (len < VSTRING_LEN(vp))
 	VSTRING_AT_OFFSET(vp, len);
     return (vp);
@@ -399,7 +404,7 @@ VSTRING *vstring_strcpy(VSTRING *vp, const char *src)
 
 /* vstring_strncpy - copy string of limited length */
 
-VSTRING *vstring_strncpy(VSTRING *vp, const char *src, int len)
+VSTRING *vstring_strncpy(VSTRING *vp, const char *src, ssize_t len)
 {
     VSTRING_RESET(vp);
 
@@ -425,7 +430,7 @@ VSTRING *vstring_strcat(VSTRING *vp, const char *src)
 
 /* vstring_strncat - append string of limited length */
 
-VSTRING *vstring_strncat(VSTRING *vp, const char *src, int len)
+VSTRING *vstring_strncat(VSTRING *vp, const char *src, ssize_t len)
 {
     while (len-- > 0 && *src) {
 	VSTRING_ADDCH(vp, *src);
@@ -437,7 +442,7 @@ VSTRING *vstring_strncat(VSTRING *vp, const char *src, int len)
 
 /* vstring_memcpy - copy buffer of limited length */
 
-VSTRING *vstring_memcpy(VSTRING *vp, const char *src, int len)
+VSTRING *vstring_memcpy(VSTRING *vp, const char *src, ssize_t len)
 {
     VSTRING_RESET(vp);
 
@@ -449,7 +454,7 @@ VSTRING *vstring_memcpy(VSTRING *vp, const char *src, int len)
 
 /* vstring_memcat - append buffer of limited length */
 
-VSTRING *vstring_memcat(VSTRING *vp, const char *src, int len)
+VSTRING *vstring_memcat(VSTRING *vp, const char *src, ssize_t len)
 {
     VSTRING_SPACE(vp, len);
     memcpy(vstring_end(vp), src, len);
@@ -472,15 +477,15 @@ char   *vstring_memchr(VSTRING *vp, int ch)
 
 /* vstring_prepend - prepend text to string */
 
-VSTRING *vstring_prepend(VSTRING *vp, const char *buf, int len)
+VSTRING *vstring_prepend(VSTRING *vp, const char *buf, ssize_t len)
 {
-    int     new_len;
+    ssize_t new_len;
 
     /*
      * Sanity check.
      */
     if (len < 0)
-	msg_panic("vstring_prepend: bad length %d", len);
+	msg_panic("vstring_prepend: bad length %ld", (long) len);
 
     /*
      * Move the existing content and copy the new content.
@@ -511,7 +516,7 @@ char   *vstring_export(VSTRING *vp)
 VSTRING *vstring_import(char *str)
 {
     VSTRING *vp;
-    int     len;
+    ssize_t len;
 
     vp = (VSTRING *) mymalloc(sizeof(*vp));
     len = strlen(str);
@@ -567,11 +572,11 @@ VSTRING *vstring_vsprintf_append(VSTRING *vp, const char *format, va_list ap)
 
 /* vstring_sprintf_prepend - format + prepend string, vsprintf-like interface */
 
-VSTRING *vstring_sprintf_prepend(VSTRING *vp, const char *format,  ...)
+VSTRING *vstring_sprintf_prepend(VSTRING *vp, const char *format,...)
 {
     va_list ap;
-    int     old_len = VSTRING_LEN(vp);
-    int     result_len;
+    ssize_t old_len = VSTRING_LEN(vp);
+    ssize_t result_len;
 
     /* Construct: old|new|free */
     va_start(ap, format);
@@ -606,6 +611,7 @@ int     main(int argc, char **argv)
     }
     printf("argv concatenated: %s\n", vstring_str(vp));
     vstring_free(vp);
+    return (0);
 }
 
 #endif

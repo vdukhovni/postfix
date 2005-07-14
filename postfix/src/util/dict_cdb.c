@@ -194,8 +194,8 @@ static DICT *dict_cdbq_open(const char *path, int dict_flags)
      * the source file changed only seconds ago.
      */
     if (stat(path, &st) == 0
- 	&& st.st_mtime > dict_cdbq->dict.mtime
-	&& st.st_mtime < time((time_t *)0) - 100)
+	&& st.st_mtime > dict_cdbq->dict.mtime
+	&& st.st_mtime < time((time_t *) 0) - 100)
 	msg_warn("database %s is older than source file %s", cdb_path, path);
 
     /*
@@ -215,8 +215,7 @@ static DICT *dict_cdbq_open(const char *path, int dict_flags)
 static void dict_cdbm_update(DICT *dict, const char *name, const char *value)
 {
     DICT_CDBM *dict_cdbm = (DICT_CDBM *) dict;
-    unsigned ksize,
-            vsize;
+    unsigned ksize, vsize;
     int     r;
 
     ksize = strlen(name);
@@ -294,8 +293,7 @@ static DICT *dict_cdbm_open(const char *path, int dict_flags)
     char   *cdb_path;
     char   *tmp_path;
     int     fd;
-    struct stat st0,
-            st1;
+    struct stat st0, st1;
 
     cdb_path = concatenate(path, CDB_SUFFIX, (char *) 0);
     tmp_path = concatenate(path, CDB_TMP_SUFFIX, (char *) 0);
@@ -369,7 +367,7 @@ static DICT *dict_cdbm_open(const char *path, int dict_flags)
 DICT   *dict_cdb_open(const char *path, int open_flags, int dict_flags)
 {
     switch (open_flags & (O_RDONLY | O_RDWR | O_WRONLY | O_CREAT | O_TRUNC)) {
-    case O_RDONLY:				/* query mode */
+	case O_RDONLY:			/* query mode */
 	return dict_cdbq_open(path, dict_flags);
     case O_WRONLY | O_CREAT | O_TRUNC:		/* create mode */
     case O_RDWR | O_CREAT | O_TRUNC:		/* sloppiness */

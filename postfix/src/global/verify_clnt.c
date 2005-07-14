@@ -284,6 +284,7 @@ int     main(int argc, char **argv)
 	    msg_warn("unrecognized command: %s", command);
     }
     vstring_free(buffer);
+    return (0);
 }
 
 #endif

@@ -42,10 +42,10 @@
 /* .IP "SPAWN_CMD_STDERR (int)"
 /*	Each of these specifies I/O redirection of one of the standard file
 /*	descriptors for the command.
-/* .IP "SPAWN_CMD_UID (int)"
+/* .IP "SPAWN_CMD_UID (uid_t)"
 /*	The user ID to execute the command as. The value -1 is reserved
 /*	and cannot be specified.
-/* .IP "SPAWN_CMD_GID (int)"
+/* .IP "SPAWN_CMD_GID (gid_t)"
 /*	The group ID to execute the command as. The value -1 is reserved
 /*	and cannot be specified.
 /* .IP "SPAWN_CMD_TIME_LIMIT (int)"

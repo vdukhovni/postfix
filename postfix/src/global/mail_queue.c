@@ -8,13 +8,13 @@
 /*
 /*	VSTREAM	*mail_queue_enter(queue_name, mode)
 /*	const char *queue_name;
-/*	int	mode;
+/*	mode_t	mode;
 /*
 /*	VSTREAM	*mail_queue_open(queue_name, queue_id, flags, mode)
 /*	const char *queue_name;
 /*	const char *queue_id;
 /*	int	flags;
-/*	int	mode;
+/*	mode_t	mode;
 /*
 /*	char	*mail_queue_dir(buf, queue_name, queue_id)
 /*	VSTRING	*buf;
@@ -304,7 +304,7 @@ int     mail_queue_id_ok(const char *queue_id)
 
 /* mail_queue_enter - make mail queue entry with locally-unique name */
 
-VSTREAM *mail_queue_enter(const char *queue_name, int mode)
+VSTREAM *mail_queue_enter(const char *queue_name, mode_t mode)
 {
     char   *myname = "mail_queue_enter";
     static VSTRING *id_buf;
@@ -407,7 +407,7 @@ VSTREAM *mail_queue_enter(const char *queue_name, int mode)
 /* mail_queue_open - open mail queue file */
 
 VSTREAM *mail_queue_open(const char *queue_name, const char *queue_id,
-			         int flags, int mode)
+			         int flags, mode_t mode)
 {
     const char *path = mail_queue_path((VSTRING *) 0, queue_name, queue_id);
     VSTREAM *fp;

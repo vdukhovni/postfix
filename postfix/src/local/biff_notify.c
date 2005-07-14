@@ -8,7 +8,7 @@
 /*
 /*	void	biff_notify(text, len)
 /*	const char *text;
-/*	int	len;
+/*	ssize_t	len;
 /* DESCRIPTION
 /*	biff_notify() sends a \fBBIFF\fR notification request to the
 /*	\fBcomsat\fR daemon.
@@ -50,7 +50,7 @@
 
 /* biff_notify - notify recipient via the biff "protocol" */
 
-void    biff_notify(const char *text, int len)
+void    biff_notify(const char *text, ssize_t len)
 {
     static struct sockaddr_in sin;
     static int sock = -1;

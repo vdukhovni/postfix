@@ -64,7 +64,7 @@ int     inet_addr_host(INET_ADDR_LIST *addr_list, const char *hostname)
     struct addrinfo *res0;
     struct addrinfo *res;
     int     aierr;
-    int     hostnamelen;
+    ssize_t hostnamelen;
     const char *hname;
     const char *serv;
     int     initial_count = addr_list->used;
@@ -146,7 +146,8 @@ int     main(int argc, char **argv)
     if (argc < 3)
 	msg_fatal("usage: %s protocols hostname...", argv[0]);
 
-    proto_info = inet_proto_init(argv[0], *++argv);
+    proto_info = inet_proto_init(argv[0], argv[1]);
+    argv += 1;
 
     inet_addr_list_init(&list);
 

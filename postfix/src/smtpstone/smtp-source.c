@@ -277,7 +277,7 @@ static RESPONSE *response(VSTREAM *stream, VSTRING *buf)
      */
     if (rdata.buf == 0) {
 	rdata.buf = vstring_alloc(100);
-	vstring_ctl(rdata.buf, VSTRING_CTL_MAXLEN, var_line_limit, 0);
+	vstring_ctl(rdata.buf, VSTRING_CTL_MAXLEN, (ssize_t) var_line_limit, 0);
     }
 
     /*
@@ -938,7 +938,7 @@ int     main(int argc, char **argv)
      */
     if (buffer == 0) {
 	buffer = vstring_alloc(100);
-	vstring_ctl(buffer, VSTRING_CTL_MAXLEN, var_line_limit, 0);
+	vstring_ctl(buffer, VSTRING_CTL_MAXLEN, (ssize_t) var_line_limit, 0);
     }
 
     /*

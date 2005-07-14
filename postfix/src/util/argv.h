@@ -15,16 +15,16 @@
   * External interface.
   */
 typedef struct ARGV {
-    int     len;			/* number of array elements */
-    int     argc;			/* array elements in use */
+    ssize_t len;			/* number of array elements */
+    ssize_t argc;			/* array elements in use */
     char  **argv;			/* string array */
 } ARGV;
 
-extern ARGV *argv_alloc(int);
+extern ARGV *argv_alloc(ssize_t);
 extern void argv_add(ARGV *,...);
 extern void argv_addn(ARGV *,...);
 extern void argv_terminate(ARGV *);
-extern void argv_truncate(ARGV *, int);
+extern void argv_truncate(ARGV *, ssize_t);
 extern ARGV *argv_free(ARGV *);
 
 extern ARGV *argv_split(const char *, const char *);

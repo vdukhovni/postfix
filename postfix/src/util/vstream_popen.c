@@ -40,9 +40,9 @@
 /* .IP "VSTREAM_POPEN_EXPORT (char **)"
 /*	Null-terminated array of names of environment parameters
 /*	that can be exported. By default, everything is exported.
-/* .IP "VSTREAM_POPEN_UID (int)"
+/* .IP "VSTREAM_POPEN_UID (uid_t)"
 /*	The user ID to execute the command as. The user ID must be non-zero.
-/* .IP "VSTREAM_POPEN_GID (int)"
+/* .IP "VSTREAM_POPEN_GID (gid_t)"
 /*	The group ID to execute the command as. The group ID must be non-zero.
 /* .IP "VSTREAM_POPEN_SHELL (char *)"
 /*	The shell to use when executing the command specified with
@@ -156,11 +156,11 @@ static void vstream_parse_args(VSTREAM_POPEN_ARGS *args, va_list ap)
 	    break;
 	case VSTREAM_POPEN_UID:
 	    args->privileged = 1;
-	    args->uid = va_arg(ap, int);
+	    args->uid = va_arg(ap, uid_t);
 	    break;
 	case VSTREAM_POPEN_GID:
 	    args->privileged = 1;
-	    args->gid = va_arg(ap, int);
+	    args->gid = va_arg(ap, gid_t);
 	    break;
 	case VSTREAM_POPEN_ENV:
 	    args->env = va_arg(ap, char **);

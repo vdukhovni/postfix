@@ -73,16 +73,16 @@ void print(const char *str, int len, int indent, char *context)
 
 /* line_wrap - wrap long lines upon output */
 
-void    line_wrap(const char *str, int len, int indent, LINE_WRAP_FN output_fn,
+void    line_wrap(const char *str, ssize_t len, ssize_t indent, LINE_WRAP_FN output_fn,
 		          char *context)
 {
     const char *start_line;
     const char *word;
     const char *next_word;
     const char *next_space;
-    int     line_len;
-    int     curr_len;
-    int     curr_indent;
+    ssize_t line_len;
+    ssize_t curr_len;
+    ssize_t curr_indent;
 
     if (indent < 0) {
 	curr_indent = -indent;

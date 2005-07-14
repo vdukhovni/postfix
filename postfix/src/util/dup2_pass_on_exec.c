@@ -30,6 +30,8 @@
 
 #include <stdio.h>
 #include <fcntl.h>
+#include <unistd.h>
+#include <stdlib.h>
 
 #define DO(s)	if (s < 0) { perror(#s); exit(1); }
 

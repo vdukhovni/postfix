@@ -535,11 +535,11 @@ int     bounce_boilerplate(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 
 /* bounce_print - line_wrap callback */
 
-static void bounce_print(const char *str, int len, int indent, char *context)
+static void bounce_print(const char *str, ssize_t len, ssize_t indent, char *context)
 {
     VSTREAM *bounce = (VSTREAM *) context;
 
-    post_mail_fprintf(bounce, "%*s%.*s", indent, "", len, str);
+    post_mail_fprintf(bounce, "%*s%.*s", (int) indent, "", (int) len, str);
 }
 
 /* bounce_print_wrap - print and wrap a line */

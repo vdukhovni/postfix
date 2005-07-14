@@ -239,6 +239,7 @@ int     main(int argc, char **argv)
     }
     maps_free(maps);
     vstring_free(buf);
+    return (0);
 }
 
 #endif

@@ -123,6 +123,7 @@ VSTRING *unescape(VSTRING *result, const char *data)
 
 #ifdef TEST
 
+#include <stdlib.h>
 #include <vstring_vstream.h>
 
 int     main(int unused_argc, char **unused_argv)

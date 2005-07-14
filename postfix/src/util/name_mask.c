@@ -195,7 +195,7 @@ const char *str_name_mask_opt(const char *context, NAME_MASK *table,
  /*
   * Stand-alone test program.
   */
-
+#include <stdlib.h>
 #include <vstream.h>
 
 int     main(int argc, char **argv)

@@ -6,10 +6,10 @@
 /* SYNOPSIS
 /*	#include <open_lock.h>
 /*
-/*	VSTREAM	*open_lock(path, int flags, int mode, why)
+/*	VSTREAM	*open_lock(path, flags, mode, why)
 /*	const char *path;
 /*	int	flags;
-/*	int	mode;
+/*	mode_t	mode;
 /*	VSTRING *why;
 /* DESCRIPTION
 /*	This module opens or creates the named file and attempts to
@@ -55,7 +55,7 @@
 
 /* open_lock - open file and lock it for exclusive access */
 
-VSTREAM *open_lock(const char *path, int flags, int mode, VSTRING *why)
+VSTREAM *open_lock(const char *path, int flags, mode_t mode, VSTRING *why)
 {
     VSTREAM *fp;
 

@@ -480,7 +480,7 @@ static CONFIG_STR_TABLE str_table[] = {
 
 /* output_text - output partial or complete text line */
 
-static void output_text(void *context, int rec_type, const char *buf, int len,
+static void output_text(void *context, int rec_type, const char *buf, ssize_t len,
 			        off_t unused_offset)
 {
     SM_STATE *state = (SM_STATE *) context;
@@ -505,7 +505,7 @@ static void output_header(void *context, int header_class,
     char   *start;
     char   *line;
     char   *next_line;
-    int     len;
+    ssize_t len;
 
     /*
      * Parse the header line, and save copies of recipient addresses in the

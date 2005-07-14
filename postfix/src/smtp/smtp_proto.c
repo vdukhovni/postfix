@@ -647,12 +647,12 @@ static int smtp_start_tls(SMTP_STATE *state, int misc_flags)
 /* smtp_text_out - output one header/body record */
 
 static void smtp_text_out(void *context, int rec_type,
-			          const char *text, int len,
+			          const char *text, ssize_t len,
 			          off_t unused_offset)
 {
     SMTP_STATE *state = (SMTP_STATE *) context;
     SMTP_SESSION *session = state->session;
-    int     data_left;
+    ssize_t data_left;
     const char *data_start;
 
     /*

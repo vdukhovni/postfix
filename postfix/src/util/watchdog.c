@@ -245,6 +245,7 @@ int     main(int unused_argc, char **unused_argv)
 	watchdog_pat();
     } while (VSTREAM_GETCHAR() != VSTREAM_EOF);
     watchdog_destroy(wp);
+    return (0);
 }
 
 #endif

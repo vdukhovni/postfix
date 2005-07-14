@@ -257,7 +257,7 @@ int     defer_flush(int flags, const char *queue, const char *id,
  * do not flush the log */
 
 int     defer_warn(int flags, const char *queue, const char *id,
-		           const char *sender, const char *envid, int ret)
+		         const char *sender, const char *envid, int dsn_ret)
 {
     if (mail_command_client(MAIL_CLASS_PRIVATE, var_defer_service,
 			    ATTR_TYPE_NUM, MAIL_ATTR_NREQ, BOUNCE_CMD_WARN,
@@ -266,7 +266,7 @@ int     defer_warn(int flags, const char *queue, const char *id,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
 			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
 			    ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, envid,
-			    ATTR_TYPE_NUM, MAIL_ATTR_DSN_RET, ret,
+			    ATTR_TYPE_NUM, MAIL_ATTR_DSN_RET, dsn_ret,
 			    ATTR_TYPE_END) == 0) {
 	return (0);
     } else {

@@ -9,7 +9,7 @@
 /*	int	inet_trigger(service, buf, len, timeout)
 /*	char	*service;
 /*	const char *buf;
-/*	int	len;
+/*	ssize_t	len;
 /*	int	timeout;
 /* DESCRIPTION
 /*	inet_trigger() wakes up the named INET-domain server by making
@@ -90,7 +90,7 @@ static void inet_trigger_event(int event, char *context)
 
 /* inet_trigger - wakeup INET-domain server */
 
-int     inet_trigger(const char *service, const char *buf, int len, int timeout)
+int     inet_trigger(const char *service, const char *buf, ssize_t len, int timeout)
 {
     char   *myname = "inet_trigger";
     struct inet_trigger *ip;

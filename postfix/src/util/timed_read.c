@@ -6,10 +6,10 @@
 /* SYNOPSIS
 /*	#include <iostuff.h>
 /*
-/*	int	timed_read(fd, buf, buf_len, timeout, context)
+/*	ssize_t	timed_read(fd, buf, len, timeout, context)
 /*	int	fd;
 /*	void	*buf;
-/*	unsigned len;
+/*	size_t	len;
 /*	int	timeout;
 /*	void	*context;
 /* DESCRIPTION
@@ -21,7 +21,7 @@
 /*	File descriptor in the range 0..FD_SETSIZE.
 /* .IP buf
 /*	Read buffer pointer.
-/* .IP buf_len
+/* .IP len
 /*	Read buffer size.
 /* .IP timeout
 /*	The deadline in seconds. If this is <= 0, the deadline feature
@@ -57,10 +57,10 @@
 
 /* timed_read - read with deadline */
 
-int     timed_read(int fd, void *buf, unsigned len,
+ssize_t timed_read(int fd, void *buf, size_t len,
 		           int timeout, void *unused_context)
 {
-    int     ret;
+    ssize_t ret;
 
     /*
      * Wait for a limited amount of time for something to happen. If nothing

@@ -66,8 +66,8 @@
 VSTRING *verp_sender(VSTRING *buf, const char *delimiters,
 		             const char *sender, const char *recipient)
 {
-    int     send_local_len;
-    int     rcpt_local_len;
+    ssize_t send_local_len;
+    ssize_t rcpt_local_len;
     const char *cp;
 
     /*

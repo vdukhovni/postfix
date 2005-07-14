@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	#include <iostuff.h>
 /*
-/*	int	peekfd(fd)
+/*	ssize_t	peekfd(fd)
 /*	int	fd;
 /* DESCRIPTION
 /*	peekfd() attempts to find out how many bytes are available to
@@ -44,17 +44,17 @@
 
 /* peekfd - return amount of data ready to read */
 
-int     peekfd(int fd)
+ssize_t peekfd(int fd)
 {
-    int     count;
 
     /*
      * Anticipate a series of system-dependent code fragments.
      */
 #ifdef FIONREAD
+    int     count;
+
     return (ioctl(fd, FIONREAD, (char *) &count) < 0 ? -1 : count);
 #else
 #error "don't know how to look ahead"
 #endif
 }
-

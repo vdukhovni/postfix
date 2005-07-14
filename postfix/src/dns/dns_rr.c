@@ -14,7 +14,7 @@
 /*	unsigned int ttl;
 /*	unsigned preference;
 /*	const char *data;
-/*	unsigned len;
+/*	size_t data_len;
 /*
 /*	void	dns_rr_free(list)
 /*	DNS_RR	*list;
@@ -93,7 +93,7 @@
 
 DNS_RR *dns_rr_create(const char *name, ushort type, ushort class,
 		              unsigned int ttl, unsigned pref,
-		              const char *data, unsigned data_len)
+		              const char *data, size_t data_len)
 {
     DNS_RR *rr;
 
@@ -126,7 +126,7 @@ void    dns_rr_free(DNS_RR *rr)
 
 DNS_RR *dns_rr_copy(DNS_RR *src)
 {
-    int     len = sizeof(*src) + src->data_len - 1;
+    ssize_t len = sizeof(*src) + src->data_len - 1;
     DNS_RR *dst;
 
     /*

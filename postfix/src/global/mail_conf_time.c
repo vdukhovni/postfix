@@ -237,6 +237,7 @@ int     main(int unused_argc, char **unused_argv)
     vstream_printf("10 days = %d\n", days);
     vstream_printf("10 weeks = %d\n", weeks);
     vstream_fflush(VSTREAM_OUT);
+    return (0);
 }
 
 #endif

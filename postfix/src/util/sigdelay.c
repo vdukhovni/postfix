@@ -95,13 +95,14 @@ void    sigdelay(void)
 
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 static void gotsig(int sig)
 {
     printf("Got signal %d\n", sig);
 }
 
-int     main(int unused_argc, int unused_argv)
+int     main(int unused_argc, char **unused_argv)
 {
     signal(SIGINT, gotsig);
     signal(SIGQUIT, gotsig);

@@ -84,14 +84,14 @@
 static void check_mail_conf_str(const char *name, const char *strval,
 			             int min, int max)
 {
-    int     len = strlen(strval);
+    ssize_t len = strlen(strval);
 
     if (min && len < min)
-	msg_fatal("bad string length %d < %d: %s = %s",
-		  len, min, name, strval);
+	msg_fatal("bad string length %ld < %d: %s = %s",
+		  (long) len, min, name, strval);
     if (max && len > max)
-	msg_fatal("bad string length %d > %d: %s = %s",
-		  len, max, name, strval);
+	msg_fatal("bad string length %ld > %d: %s = %s",
+		  (long) len, max, name, strval);
 }
 
 /* get_mail_conf_str - evaluate string-valued configuration variable */

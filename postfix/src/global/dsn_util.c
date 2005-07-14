@@ -112,7 +112,7 @@
 size_t  dsn_valid(const char *text)
 {
     const unsigned char *cp = (unsigned char *) text;
-    int     len;
+    size_t  len;
 
     /* First portion is one digit followed by dot. */
     if ((cp[0] != '2' && cp[0] != '4' && cp[0] != '5') || cp[1] != '.')

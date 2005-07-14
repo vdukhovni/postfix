@@ -105,6 +105,7 @@ int     main(int argc, char **argv)
 		   "YES" : "NO");
     vstream_fflush(VSTREAM_OUT);
     string_list_free(list);
+    return (0);
 }
 
 #endif

@@ -19,8 +19,8 @@
  /*
   * External interface.
   */
-extern VSTRING *base64_encode(VSTRING *, const char *, int);
-extern VSTRING *base64_decode(VSTRING *, const char *, int);
+extern VSTRING *base64_encode(VSTRING *, const char *, ssize_t);
+extern VSTRING *base64_decode(VSTRING *, const char *, ssize_t);
 
 /* LICENSE
 /* .ad

@@ -72,7 +72,7 @@ VSTRING *readlline(VSTRING *buf, VSTREAM *fp, int *lineno)
 {
     int     ch;
     int     next;
-    int     start;
+    ssize_t start;
     char   *cp;
 
     VSTRING_RESET(buf);

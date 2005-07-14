@@ -27,21 +27,21 @@
   */
 typedef struct VSTRING {
     VBUF    vbuf;
-    int     maxlen;
+    ssize_t  maxlen;
 } VSTRING;
 
-extern VSTRING *vstring_alloc(int);
+extern VSTRING *vstring_alloc(ssize_t);
 extern void vstring_ctl(VSTRING *,...);
-extern VSTRING *vstring_truncate(VSTRING *, int);
+extern VSTRING *vstring_truncate(VSTRING *, ssize_t);
 extern VSTRING *vstring_free(VSTRING *);
 extern VSTRING *vstring_strcpy(VSTRING *, const char *);
-extern VSTRING *vstring_strncpy(VSTRING *, const char *, int);
+extern VSTRING *vstring_strncpy(VSTRING *, const char *, ssize_t);
 extern VSTRING *vstring_strcat(VSTRING *, const char *);
-extern VSTRING *vstring_strncat(VSTRING *, const char *, int);
-extern VSTRING *vstring_memcpy(VSTRING *, const char *, int);
-extern VSTRING *vstring_memcat(VSTRING *, const char *, int);
+extern VSTRING *vstring_strncat(VSTRING *, const char *, ssize_t);
+extern VSTRING *vstring_memcpy(VSTRING *, const char *, ssize_t);
+extern VSTRING *vstring_memcat(VSTRING *, const char *, ssize_t);
 extern char *vstring_memchr(VSTRING *, int);
-extern VSTRING *vstring_prepend(VSTRING *, const char *, int);
+extern VSTRING *vstring_prepend(VSTRING *, const char *, ssize_t);
 extern VSTRING *PRINTFLIKE(2, 3) vstring_sprintf(VSTRING *, const char *,...);
 extern VSTRING *PRINTFLIKE(2, 3) vstring_sprintf_append(VSTRING *, const char *,...);
 extern VSTRING *PRINTFLIKE(2, 3) vstring_sprintf_prepend(VSTRING *, const char *, ...);
@@ -56,7 +56,7 @@ extern VSTRING *vstring_import(char *);
   */
 #define VSTRING_SPACE(vp, len)	((vp)->vbuf.space(&(vp)->vbuf, len))
 #define vstring_str(vp)		((char *) (vp)->vbuf.data)
-#define VSTRING_LEN(vp)		((vp)->vbuf.ptr - (vp)->vbuf.data)
+#define VSTRING_LEN(vp)		((ssize_t) ((vp)->vbuf.ptr - (vp)->vbuf.data))
 #define vstring_end(vp)		((char *) (vp)->vbuf.ptr)
 #define VSTRING_TERMINATE(vp)	{ if ((vp)->vbuf.cnt <= 0) \
 					VSTRING_SPACE((vp),1); \

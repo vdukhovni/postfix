@@ -223,7 +223,7 @@ int     attr_clnt_request(ATTR_CLNT *client, int send_flags,...)
 			SKIP_ARG(ap, char *);
 			break;
 		    case ATTR_TYPE_DATA:
-			SKIP_ARG2(ap, char *, int);
+			SKIP_ARG2(ap, ssize_t, char *);
 			break;
 		    case ATTR_TYPE_NUM:
 			SKIP_ARG(ap, int);

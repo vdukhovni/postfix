@@ -31,7 +31,7 @@ typedef struct {
     VSTREAM *fp;			/* open stream or null */
     int     locked;			/* what locks were set */
 } MBOX;
-extern MBOX *mbox_open(const char *, int, int, struct stat *, uid_t, gid_t,
+extern MBOX *mbox_open(const char *, int, mode_t, struct stat *, uid_t, gid_t,
 		               int, const char *, DSN_BUF *);
 extern void mbox_release(MBOX *);
 extern const char *mbox_dsn(int, const char *);

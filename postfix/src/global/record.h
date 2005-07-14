@@ -32,8 +32,8 @@
  /*
   * Functional interface.
   */
-extern int rec_get(VSTREAM *, VSTRING *, int);
-extern int rec_put(VSTREAM *, int, const char *, int);
+extern int rec_get(VSTREAM *, VSTRING *, ssize_t);
+extern int rec_put(VSTREAM *, int, const char *, ssize_t);
 extern int rec_put_type(VSTREAM *, int, long);
 extern int PRINTFLIKE(3, 4) rec_fprintf(VSTREAM *, int, const char *,...);
 extern int rec_fputs(VSTREAM *, int, const char *);

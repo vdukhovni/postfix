@@ -43,4 +43,5 @@ int     main(void)
     while ((type = rec_streamlf_get(VSTREAM_IN, buf, 150)) > 0)
 	REC_PUT_BUF(VSTREAM_OUT, type, buf);
     vstream_fflush(VSTREAM_OUT);
+    return (0);
 }

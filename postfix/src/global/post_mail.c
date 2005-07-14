@@ -383,7 +383,7 @@ int     post_mail_buffer(VSTREAM *cleanup, const char *buf, int len)
 
 int     post_mail_fputs(VSTREAM *cleanup, const char *str)
 {
-    int     len = str ? strlen(str) : 0;
+    ssize_t len = str ? strlen(str) : 0;
 
     return (rec_put(cleanup, REC_TYPE_NORM, str, len) != REC_TYPE_NORM ?
 	    CLEANUP_STAT_WRITE : 0);

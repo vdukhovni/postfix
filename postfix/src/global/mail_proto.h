@@ -84,7 +84,7 @@ extern VSTREAM *mail_connect(const char *, const char *, int);
 extern VSTREAM *mail_connect_wait(const char *, const char *);
 extern int mail_command_client(const char *, const char *,...);
 extern int mail_command_server(VSTREAM *,...);
-extern int mail_trigger(const char *, const char *, const char *, int);
+extern int mail_trigger(const char *, const char *, const char *, ssize_t);
 extern char *mail_pathname(const char *, const char *);
 
  /*

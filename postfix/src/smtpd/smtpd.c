@@ -1759,6 +1759,7 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     char   *arg;
     int     rate;
     const char *dsn_orcpt_addr = 0;
+    ssize_t dsn_orcpt_addr_len = 0;
     const char *dsn_orcpt_type = 0;
     int     dsn_notify = 0;
     const char *coded_addr;
@@ -1846,6 +1847,7 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		return (-1);
 	    }
 	    dsn_orcpt_addr = STR(state->dsn_buf);
+	    dsn_orcpt_addr_len = LEN(state->dsn_buf);
 	} else {
 	    state->error_mask |= MAIL_ERROR_PROTOCOL;
 	    smtpd_chat_reply(state, "555 5.5.4 Unsupported option: %s", arg);
@@ -1955,12 +1957,19 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	if (dsn_orcpt_addr == 0) {
 	    dsn_orcpt_type = "rfc822";
 	    dsn_orcpt_addr = argv[2].strval;
+	    dsn_orcpt_addr_len = strlen(argv[2].strval);
+	    if (dsn_orcpt_addr[0] == '<'
+		&& dsn_orcpt_addr[dsn_orcpt_addr_len - 1] == '>') {
+		dsn_orcpt_addr += 1;
+		dsn_orcpt_addr_len -= 2;
+	    }
 	}
 	if (dsn_notify)
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%d",
 			MAIL_ATTR_DSN_NOTIFY, dsn_notify);
-	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s;%s",
-		    MAIL_ATTR_DSN_ORCPT, dsn_orcpt_type, dsn_orcpt_addr);
+	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s;%.*s",
+		    MAIL_ATTR_DSN_ORCPT, dsn_orcpt_type,
+		    (int) dsn_orcpt_addr_len, dsn_orcpt_addr);
 	rec_fputs(state->cleanup, REC_TYPE_RCPT, STR(state->addr_buf));
 	vstream_fflush(state->cleanup);
     }
@@ -2025,7 +2034,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     int     first = 1;
     VSTRING *why = 0;
     int     saved_err;
-    int     (*out_record) (VSTREAM *, int, const char *, int);
+    int     (*out_record) (VSTREAM *, int, const char *, ssize_t);
     int     (*out_fprintf) (VSTREAM *, int, const char *,...);
     VSTREAM *out_stream;
     int     out_error;
@@ -2973,10 +2982,10 @@ static void smtpd_start_tls(SMTPD_STATE *state)
      * verification unless TLS is required.
      */
     state->tls_context =
-	tls_server_start(smtpd_tls_ctx, state->client,
-			 var_smtpd_starttls_tmout,
-			 state->name, state->addr, &(state->tls_info),
-		       (var_smtpd_tls_req_ccert && state->tls_enforce_tls));
+    tls_server_start(smtpd_tls_ctx, state->client,
+		     var_smtpd_starttls_tmout,
+		     state->name, state->addr, &(state->tls_info),
+		     (var_smtpd_tls_req_ccert && state->tls_enforce_tls));
 
     /*
      * When the TLS handshake fails, the conversation is in an unknown state.
@@ -3505,7 +3514,7 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      * recipient checks, address mapping, header_body_checks?.
      */
     smtpd_input_transp_mask =
-	input_transp_mask(VAR_INPUT_TRANSP, var_input_transp);
+    input_transp_mask(VAR_INPUT_TRANSP, var_input_transp);
 
     /*
      * Sanity checks. The queue_minfree value should be at least as large as

@@ -115,9 +115,9 @@ VSTRING *hex_unquote(VSTRING *raw, const char *hex)
 
 #define BUFLEN 1024
 
-static int read_buf(VSTREAM *fp, VSTRING *buf)
+static ssize_t read_buf(VSTREAM *fp, VSTRING *buf)
 {
-    int     len;
+    ssize_t len;
 
     VSTRING_RESET(buf);
     len = vstream_fread(fp, STR(buf), vstring_avail(buf));
@@ -130,14 +130,14 @@ int     main(int unused_argc, char **unused_argv)
 {
     VSTRING *raw = vstring_alloc(BUFLEN);
     VSTRING *hex = vstring_alloc(100);
-    int     len;
+    ssize_t len;
 
     while ((len = read_buf(VSTREAM_IN, raw)) > 0) {
 	hex_quote(hex, STR(raw));
 	if (hex_unquote(raw, STR(hex)) == 0)
 	    msg_fatal("bad input: %.100s", STR(hex));
 	if (LEN(raw) != len)
-	    msg_fatal("len %d != raw len %d", len, LEN(raw));
+	    msg_fatal("len %ld != raw len %ld", len, LEN(raw));
 	if (vstream_fwrite(VSTREAM_OUT, STR(raw), LEN(raw)) != LEN(raw))
 	    msg_fatal("write error: %m");
     }

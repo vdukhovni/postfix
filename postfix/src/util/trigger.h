@@ -14,10 +14,10 @@
  /*
   * External interface.
   */
-extern int unix_trigger(const char *, const char *, int, int);
-extern int inet_trigger(const char *, const char *, int, int);
-extern int fifo_trigger(const char *, const char *, int, int);
-extern int stream_trigger(const char *, const char *, int, int);
+extern int unix_trigger(const char *, const char *, ssize_t, int);
+extern int inet_trigger(const char *, const char *, ssize_t, int);
+extern int fifo_trigger(const char *, const char *, ssize_t, int);
+extern int stream_trigger(const char *, const char *, ssize_t, int);
 
 /* LICENSE
 /* .ad

@@ -6,10 +6,10 @@
 /* SYNOPSIS
 /*	#include <iostuff.h>
 /*
-/*	int	dummy_write(fd, buf, buf_len, timeout, context)
+/*	ssize_t	dummy_write(fd, buf, buf_len, timeout, context)
 /*	int	fd;
 /*	void	*buf;
-/*	unsigned len;
+/*	size_t	len;
 /*	int	timeout;
 /*	void	*context;
 /* DESCRIPTION
@@ -52,10 +52,10 @@
 
 /* dummy_write - dummy write operation */
 
-int     dummy_write(int fd, void *unused_buf, unsigned len,
-		           int unused_timeout, void *unused_context)
+ssize_t dummy_write(int fd, void *unused_buf, size_t len,
+		            int unused_timeout, void *unused_context)
 {
     if (msg_verbose)
-	msg_info("dummy_write: fd %d, len %d", fd, len);
+	msg_info("dummy_write: fd %d, len %lu", fd, (unsigned long) len);
     return (len);
 }

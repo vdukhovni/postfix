@@ -17,7 +17,7 @@
 /*	int	cache_type;
 /*	const char *cache_id;
 /*	const char *buf;
-/*	int	len;
+/*	ssize_t	len;
 /*
 /*	int	tls_mgr_lookup(cache_type, cache_id, buf)
 /*	int	cache_type;
@@ -229,7 +229,7 @@ int     tls_mgr_lookup(int cache_type, const char *cache_id, VSTRING *buf)
 /* tls_mgr_update - save session to cache */
 
 int     tls_mgr_update(int cache_type, const char *cache_id,
-		               const char *buf, int len)
+		               const char *buf, ssize_t len)
 {
     int     status;
 
@@ -377,6 +377,7 @@ int     main(int unused_ac, char **av)
 	argv_free(argv);
 
     vstring_free(inbuf);
+    return (0);
 }
 
 #endif					/* TEST */

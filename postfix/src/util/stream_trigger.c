@@ -9,7 +9,7 @@
 /*	int	stream_trigger(service, buf, len, timeout)
 /*	const char *service;
 /*	const char *buf;
-/*	int	len;
+/*	ssize_t	len;
 /*	int	timeout;
 /* DESCRIPTION
 /*	stream_trigger() wakes up the named stream server by making
@@ -86,7 +86,7 @@ static void stream_trigger_event(int event, char *context)
 
 /* stream_trigger - wakeup stream server */
 
-int     stream_trigger(const char *service, const char *buf, int len, int timeout)
+int     stream_trigger(const char *service, const char *buf, ssize_t len, int timeout)
 {
     char   *myname = "stream_trigger";
     struct stream_trigger *sp;

@@ -9,7 +9,7 @@
 /*	int	unix_trigger(service, buf, len, timeout)
 /*	const char *service;
 /*	const char *buf;
-/*	int	len;
+/*	ssize_t	len;
 /*	int	timeout;
 /* DESCRIPTION
 /*	unix_trigger() wakes up the named UNIX-domain server by making
@@ -87,7 +87,7 @@ static void unix_trigger_event(int event, char *context)
 
 /* unix_trigger - wakeup UNIX-domain server */
 
-int     unix_trigger(const char *service, const char *buf, int len, int timeout)
+int     unix_trigger(const char *service, const char *buf, ssize_t len, int timeout)
 {
     char   *myname = "unix_trigger";
     struct unix_trigger *up;

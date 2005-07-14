@@ -24,7 +24,7 @@ static int allocated = 0;		/* environ is, or is not, allocated */
 
 /* namelength - determine length of name in "name=whatever" */
 
-static int namelength(const char *name)
+static ssize_t namelength(const char *name)
 {
     char   *equal;
 
@@ -115,7 +115,7 @@ int     setenv(const char *name, const char *value, int clobber)
 
 /* cmalloc - malloc and copy block of memory */
 
-static char *cmalloc(int new_len, char *old, int old_len)
+static char *cmalloc(ssize_t new_len, char *old, ssize_t old_len)
 {
     char   *new = malloc(new_len);
 
@@ -129,9 +129,9 @@ static char *cmalloc(int new_len, char *old, int old_len)
 static int addenv(char *nameval)
 {
     char  **envp;
-    int     n_used;			/* number of environment entries */
-    int     l_used;			/* bytes used excl. terminator */
-    int     l_need;			/* bytes needed incl. terminator */
+    ssize_t n_used;			/* number of environment entries */
+    ssize_t l_used;			/* bytes used excl. terminator */
+    ssize_t l_need;			/* bytes needed incl. terminator */
 
     for (envp = environ; envp && *envp; envp++)
 	 /* void */ ;

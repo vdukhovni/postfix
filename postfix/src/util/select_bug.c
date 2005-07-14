@@ -29,6 +29,7 @@
 #include <sys/socket.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <string.h>			/* bzero() prototype for 44BSD */
 
 /* Utility library. */
@@ -66,7 +67,7 @@ static pid_t fork_and_read_select(const char *what, int delay, int fd)
     }
 }
 
-main(int argc, char **argv)
+int     main(int argc, char **argv)
 {
     int     pair1[2];
     int     pair2[2];
@@ -90,4 +91,5 @@ main(int argc, char **argv)
 	msg_fatal("write: %m");
     while (wait((int *) 0) >= 0)
 	 /* void */ ;
+    return (0);
 }

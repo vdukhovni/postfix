@@ -83,7 +83,7 @@ typedef struct DNS_RR {
     unsigned int ttl;			/* always */
     unsigned short pref;		/* T_MX only */
     struct DNS_RR *next;		/* linkage */
-    unsigned data_len;			/* actual data size */
+    size_t data_len;			/* actual data size */
     char    data[1];			/* actually a bunch of data */
 } DNS_RR;
 
@@ -103,7 +103,7 @@ extern unsigned dns_type(const char *);
   */
 extern DNS_RR *dns_rr_create(const char *, ushort, ushort,
 			             unsigned, unsigned,
-			             const char *, unsigned);
+			             const char *, size_t);
 extern void dns_rr_free(DNS_RR *);
 extern DNS_RR *dns_rr_copy(DNS_RR *);
 extern DNS_RR *dns_rr_append(DNS_RR *, DNS_RR *);

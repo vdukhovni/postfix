@@ -10,7 +10,7 @@
 /*	int	timed_connect(fd, buf, buf_len, timeout)
 /*	int	fd;
 /*	struct sockaddr	*buf;
-/*	unsigned buf_len;
+/*	int	buf_len;
 /*	int	timeout;
 /* DESCRIPTION
 /*	timed_connect() implement a BSD socket connect() operation that is

@@ -17,7 +17,7 @@
 /*				def_dsn, why)
 /*	const char *path;
 /*	int	flags;
-/*	int	mode;
+/*	mode_t	mode;
 /*	struct stat *st;
 /*	uid_t	user;
 /*	gid_t	group;
@@ -101,7 +101,7 @@
 
 /* mbox_open - open mailbox-style file for exclusive access */
 
-MBOX   *mbox_open(const char *path, int flags, int mode, struct stat * st,
+MBOX   *mbox_open(const char *path, int flags, mode_t mode, struct stat * st,
 		          uid_t chown_uid, gid_t chown_gid,
 		          int lock_style, const char *def_dsn,
 		          DSN_BUF *why)

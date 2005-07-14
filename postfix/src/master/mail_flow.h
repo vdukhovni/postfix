@@ -14,9 +14,9 @@
  /*
   * Functional interface.
   */
-extern int mail_flow_get(int);
-extern int mail_flow_put(int);
-extern int mail_flow_count(void);
+extern ssize_t mail_flow_get(ssize_t);
+extern ssize_t mail_flow_put(ssize_t);
+extern ssize_t mail_flow_count(void);
 
 /* LICENSE
 /* .ad

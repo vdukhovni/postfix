@@ -107,8 +107,8 @@ ssize_t tls_prng_file_read(TLS_PRNG_SRC *fh, size_t len)
 {
     const char *myname = "tls_prng_file_read";
     char    buffer[8192];
-    int     to_read;
-    int     count;
+    ssize_t to_read;
+    ssize_t count;
 
     if (msg_verbose)
 	msg_info("%s: seed internal pool from file %s", myname, fh->name);

@@ -15,21 +15,21 @@
 /*
 /*	int	VBUF_SPACE(bp, len)
 /*	VBUF	*bp;
-/*	int	len;
+/*	ssize_t	len;
 /*
 /*	int	vbuf_unget(bp, ch)
 /*	VBUF	*bp;
 /*	int	ch;
 /*
-/*	int	vbuf_read(bp, buf, len)
+/*	ssize_t	vbuf_read(bp, buf, len)
 /*	VBUF	*bp;
 /*	char	*buf;
-/*	int	len;
+/*	ssize_t	len;
 /*
-/*	int	vbuf_write(bp, buf, len)
+/*	ssize_t	vbuf_write(bp, buf, len)
 /*	VBUF	*bp;
 /*	const char *buf;
-/*	int	len;
+/*	ssize_t	len;
 /*
 /*	int	vbuf_err(bp)
 /*	VBUF	*bp;
@@ -101,7 +101,7 @@
 /*
 /*	int	space(bp, len)
 /*	VBUF	*bp;
-/*	int	len;
+/*	ssize_t	len;
 /* APPLICATION CALLBACK DESCRIPTION
 /* .ad
 /* .fi
@@ -166,11 +166,11 @@ int     vbuf_put(VBUF *bp, int ch)
 
 /* vbuf_read - bulk read from buffer */
 
-int     vbuf_read(VBUF *bp, char *buf, int len)
+ssize_t vbuf_read(VBUF *bp, char *buf, ssize_t len)
 {
-    int     count;
+    ssize_t count;
     char   *cp;
-    int     n;
+    ssize_t n;
 
 #if 0
     for (count = 0; count < len; count++)
@@ -192,11 +192,11 @@ int     vbuf_read(VBUF *bp, char *buf, int len)
 
 /* vbuf_write - bulk write to buffer */
 
-int     vbuf_write(VBUF *bp, const char *buf, int len)
+ssize_t vbuf_write(VBUF *bp, const char *buf, ssize_t len)
 {
-    int     count;
+    ssize_t count;
     const char *cp;
-    int     n;
+    ssize_t n;
 
 #if 0
     for (count = 0; count < len; count++)

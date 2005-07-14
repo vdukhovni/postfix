@@ -474,6 +474,7 @@ cleanup_out.o: ../../include/vstring.h
 cleanup_out.o: cleanup.h
 cleanup_out.o: cleanup_out.c
 cleanup_out_recipient.o: ../../include/argv.h
+cleanup_out_recipient.o: ../../include/attr.h
 cleanup_out_recipient.o: ../../include/been_here.h
 cleanup_out_recipient.o: ../../include/bounce.h
 cleanup_out_recipient.o: ../../include/cleanup_user.h
@@ -485,8 +486,10 @@ cleanup_out_recipient.o: ../../include/dsn_mask.h
 cleanup_out_recipient.o: ../../include/ext_prop.h
 cleanup_out_recipient.o: ../../include/header_opts.h
 cleanup_out_recipient.o: ../../include/htable.h
+cleanup_out_recipient.o: ../../include/iostuff.h
 cleanup_out_recipient.o: ../../include/mail_conf.h
 cleanup_out_recipient.o: ../../include/mail_params.h
+cleanup_out_recipient.o: ../../include/mail_proto.h
 cleanup_out_recipient.o: ../../include/mail_queue.h
 cleanup_out_recipient.o: ../../include/mail_stream.h
 cleanup_out_recipient.o: ../../include/maps.h

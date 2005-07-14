@@ -922,7 +922,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
     char   *at;
     char  **cpp;
     char   *nexthop;
-    int     len;
+    ssize_t len;
     int     status;
     DSN     dsn;
 

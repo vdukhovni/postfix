@@ -177,6 +177,7 @@
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <stdio.h>			/* sprintf() */
 
 /* Utility library. */
 
@@ -536,7 +537,7 @@ int     sockaddr_to_hostaddr(const struct sockaddr * sa, SOCKADDR_SIZE salen,
 {
 #ifdef EMULATE_IPV4_ADDRINFO
     char    portbuf[sizeof("65535")];
-    int     len;
+    ssize_t len;
 
     /*
      * Emulated getnameinfo(3) version. The buffer length includes the space

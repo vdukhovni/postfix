@@ -102,9 +102,7 @@ static const char *dict_ni_do_lookup(char *path, char *key_prop,
 	    if (values.ni_namelist_len <= 0)
 		ni_namelist_free(&values);
 	    else {
-		unsigned int i,
-		        l,
-		        n;
+		unsigned int i, l, n;
 
 		for (i = l = 0; i < values.ni_namelist_len; i++)
 		    l += 1 + strlen(values.ni_namelist_val[i]);
@@ -174,7 +172,7 @@ DICT   *dict_ni_open(const char *path, int unused_flags, int dict_flags)
     d->dict.close = dict_ni_close;
     d->dict.flags = dict_flags | DICT_FLAG_FIXED;
 
-    return (DICT_DEBUG(&d->dict));
+    return (DICT_DEBUG (&d->dict));
 }
 
 #endif

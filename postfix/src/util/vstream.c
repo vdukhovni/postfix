@@ -9,7 +9,7 @@
 /*	VSTREAM	*vstream_fopen(path, flags, mode)
 /*	char	*path;
 /*	int	flags;
-/*	int	mode;
+/*	mode_t	mode;
 /*
 /*	VSTREAM	*vstream_fdopen(fd, flags)
 /*	int	fd;
@@ -58,15 +58,15 @@
 /*	int	vstream_fflush(stream)
 /*	VSTREAM	*stream;
 /*
-/*	int	vstream_fread(stream, buf, len)
+/*	ssize_t	vstream_fread(stream, buf, len)
 /*	VSTREAM	*stream;
 /*	char	*buf;
-/*	int	len;
+/*	ssize_t	len;
 /*
-/*	int	vstream_fwrite(stream, buf, len)
+/*	ssize_t	vstream_fwrite(stream, buf, len)
 /*	VSTREAM	*stream;
 /*	char	*buf;
-/*	int	len;
+/*	ssize_t	len;
 /*
 /*	void	vstream_control(stream, name, ...)
 /*	VSTREAM	*stream;
@@ -97,7 +97,7 @@
 /*	char	*format;
 /*	va_list	*ap;
 /*
-/*	int	vstream_peek(stream)
+/*	ssize_t	vstream_peek(stream)
 /*	VSTREAM	*stream;
 /*
 /*	int	vstream_setjmp(stream)
@@ -220,10 +220,10 @@
 /*	value) pairs, terminated with VSTREAM_CTL_END.
 /*	The following lists the names and the types of the corresponding
 /*	value arguments.
-/* .IP "VSTREAM_CTL_READ_FN (int (*)(int, void *, unsigned, int, void *))"
+/* .IP "VSTREAM_CTL_READ_FN (ssize_t (*)(int, void *, size_t, int, void *))"
 /*	The argument specifies an alternative for the timed_read(3) function,
 /*	for example, a read function that performs decryption.
-/* .IP "VSTREAM_CTL_WRITE_FN (int (*)(int, void *, unsigned, int, void *))"
+/* .IP "VSTREAM_CTL_WRITE_FN (ssize_t (*)(int, void *, size_t, int, void *))"
 /*	The argument specifies an alternative for the timed_write(3) function,
 /*	for example, a write function that performs encryption.
 /* .IP "VSTREAM_CTL_CONTEXT (char *)"
@@ -345,7 +345,7 @@
   */
 static int vstream_buf_get_ready(VBUF *);
 static int vstream_buf_put_ready(VBUF *);
-static int vstream_buf_space(VBUF *, int);
+static int vstream_buf_space(VBUF *, ssize_t);
 
  /*
   * Initialization of the three pre-defined streams. Pre-allocate a static
@@ -459,9 +459,9 @@ static void vstream_buf_init(VBUF *bp, int flags)
 
 /* vstream_buf_alloc - allocate buffer memory */
 
-static void vstream_buf_alloc(VBUF *bp, int len)
+static void vstream_buf_alloc(VBUF *bp, ssize_t len)
 {
-    int     used = bp->ptr - bp->data;
+    ssize_t used = bp->ptr - bp->data;
     char   *myname = "vstream_buf_alloc";
 
     if (len < bp->len)
@@ -494,15 +494,15 @@ static void vstream_buf_wipe(VBUF *bp)
 
 /* vstream_fflush_some - flush some buffered data */
 
-static int vstream_fflush_some(VSTREAM *stream, int to_flush)
+static int vstream_fflush_some(VSTREAM *stream, ssize_t to_flush)
 {
     char   *myname = "vstream_fflush_some";
     VBUF   *bp = &stream->buf;
-    int     used;
-    int     left_over;
+    ssize_t used;
+    ssize_t left_over;
     char   *data;
-    int     len;
-    int     n;
+    ssize_t len;
+    ssize_t n;
 
     /*
      * Sanity checks. It is illegal to flush a read-only stream. Otherwise,
@@ -527,9 +527,9 @@ static int vstream_fflush_some(VSTREAM *stream, int to_flush)
     left_over = used - to_flush;
 
     if (msg_verbose > 2 && stream != VSTREAM_ERR)
-	msg_info("%s: fd %d flush %d", myname, stream->fd, to_flush);
+	msg_info("%s: fd %d flush %ld", myname, stream->fd, (long) to_flush);
     if (to_flush < 0 || left_over < 0)
-	msg_panic("%s: bad to_flush %d", myname, to_flush);
+	msg_panic("%s: bad to_flush %ld", myname, (long) to_flush);
     if (to_flush < left_over)
 	msg_panic("%s: to_flush < left_over", myname);
     if (to_flush == 0)
@@ -552,7 +552,8 @@ static int vstream_fflush_some(VSTREAM *stream, int to_flush)
 	if (stream->timeout)
 	    stream->iotime = time((time_t *) 0);
 	if (msg_verbose > 2 && stream != VSTREAM_ERR && n != to_flush)
-	    msg_info("%s: %d flushed %d/%d", myname, stream->fd, n, to_flush);
+	    msg_info("%s: %d flushed %ld/%ld", myname, stream->fd,
+		     (long) n, (long) to_flush);
     }
     if (bp->flags & VSTREAM_FLAG_SEEK)
 	stream->offset += to_flush;
@@ -609,7 +610,7 @@ static int vstream_buf_get_ready(VBUF *bp)
 {
     VSTREAM *stream = VBUF_TO_APPL(bp, VSTREAM, buf);
     char   *myname = "vstream_buf_get_ready";
-    int     n;
+    ssize_t n;
 
     /*
      * Detect a change of I/O direction or position. If so, flush any
@@ -687,7 +688,7 @@ static int vstream_buf_get_ready(VBUF *bp)
 	if (stream->timeout)
 	    stream->iotime = time((time_t *) 0);
 	if (msg_verbose > 2)
-	    msg_info("%s: fd %d got %d", myname, stream->fd, n);
+	    msg_info("%s: fd %d got %ld", myname, stream->fd, (long) n);
 	bp->cnt = -n;
 	bp->ptr = bp->data;
 	if (bp->flags & VSTREAM_FLAG_SEEK)
@@ -744,12 +745,12 @@ static int vstream_buf_put_ready(VBUF *bp)
 
 /* vstream_buf_space - reserve space ahead of time */
 
-static int vstream_buf_space(VBUF *bp, int want)
+static int vstream_buf_space(VBUF *bp, ssize_t want)
 {
     VSTREAM *stream = VBUF_TO_APPL(bp, VSTREAM, buf);
-    int     used;
-    int     incr;
-    int     shortage;
+    ssize_t used;
+    ssize_t incr;
+    ssize_t shortage;
     char   *myname = "vstream_buf_space";
 
     /*
@@ -945,7 +946,7 @@ VSTREAM *vstream_fdopen(int fd, int flags)
 
 /* vstream_fopen - open buffered file stream */
 
-VSTREAM *vstream_fopen(const char *path, int flags, int mode)
+VSTREAM *vstream_fopen(const char *path, int flags, mode_t mode)
 {
     VSTREAM *stream;
     int     fd;
@@ -1135,7 +1136,7 @@ VSTREAM *vstream_vfprintf(VSTREAM *vp, const char *format, va_list ap)
 
 /* vstream_peek - peek at a stream */
 
-int     vstream_peek(VSTREAM *vp)
+ssize_t vstream_peek(VSTREAM *vp)
 {
     if (vp->buf.flags & VSTREAM_FLAG_READ) {
 	return (-vp->buf.cnt);

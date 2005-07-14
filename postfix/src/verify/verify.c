@@ -370,7 +370,6 @@ static void verify_query_service(VSTREAM *client_stream)
     long    probed;
     long    updated;
     char   *text;
-    VSTREAM *post;
 
     if (attr_scan(client_stream, ATTR_FLAG_STRICT,
 		  ATTR_TYPE_STR, MAIL_ATTR_ADDR, addr,

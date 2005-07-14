@@ -14,7 +14,7 @@
  /*
   * External interface.
   */
-extern void biff_notify(const char *, int);
+extern void biff_notify(const char *, ssize_t);
 
 /* LICENSE
 /* .ad

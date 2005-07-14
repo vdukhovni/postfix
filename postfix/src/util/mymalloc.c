@@ -7,11 +7,11 @@
 /*	#include <mymalloc.h>
 /*
 /*	char	*mymalloc(len)
-/*	int	len;
+/*	ssize_t	len;
 /*
 /*	char	*myrealloc(ptr, len)
 /*	char	*ptr;
-/*	int	len;
+/*	ssize_t	len;
 /*
 /*	void	myfree(ptr)
 /*	char	*ptr;
@@ -21,11 +21,11 @@
 /*
 /*	char	*mystrndup(str, len)
 /*	const char *str;
-/*	int	len;
+/*	ssize_t	len;
 /*
 /*	char	*mymemdup(ptr, len)
 /*	const char *ptr;
-/*	int	len;
+/*	ssize_t	len;
 /* DESCRIPTION
 /*	This module performs low-level memory management with error
 /*	handling. A call of these functions either succeeds or it does
@@ -89,11 +89,11 @@
   */
 typedef struct MBLOCK {
     int     signature;			/* set when block is active */
-    int     length;			/* user requested length */
+    ssize_t length;			/* user requested length */
     union {
 	ALIGN_TYPE align;
 	char    payload[1];		/* actually a bunch of bytes */
-    } u;
+    }       u;
 } MBLOCK;
 
 #define SIGNATURE	0xdead
@@ -120,13 +120,13 @@ typedef struct MBLOCK {
 
 /* mymalloc - allocate memory or bust */
 
-char   *mymalloc(int len)
+char   *mymalloc(ssize_t len)
 {
     char   *ptr;
     MBLOCK *real_ptr;
 
     if (len < 1)
-	msg_panic("mymalloc: requested length %d", len);
+	msg_panic("mymalloc: requested length %ld", (long) len);
     if ((real_ptr = (MBLOCK *) malloc(SPACE_FOR(len))) == 0)
 	msg_fatal("mymalloc: insufficient memory: %m");
     CHECK_OUT_PTR(ptr, real_ptr, len);
@@ -136,13 +136,13 @@ char   *mymalloc(int len)
 
 /* myrealloc - reallocate memory or bust */
 
-char   *myrealloc(char *ptr, int len)
+char   *myrealloc(char *ptr, ssize_t len)
 {
     MBLOCK *real_ptr;
-    int     old_len;
+    ssize_t old_len;
 
     if (len < 1)
-	msg_panic("myrealloc: requested length %d", len);
+	msg_panic("myrealloc: requested length %ld", (long) len);
     CHECK_IN_PTR(ptr, real_ptr, old_len, "myrealloc");
     if ((real_ptr = (MBLOCK *) realloc((char *) real_ptr, SPACE_FOR(len))) == 0)
 	msg_fatal("myrealloc: insufficient memory: %m");
@@ -157,7 +157,7 @@ char   *myrealloc(char *ptr, int len)
 void    myfree(char *ptr)
 {
     MBLOCK *real_ptr;
-    int     len;
+    ssize_t len;
 
     CHECK_IN_PTR(ptr, real_ptr, len, "myfree");
     memset((char *) real_ptr, FILLER, SPACE_FOR(len));
@@ -175,13 +175,15 @@ char   *mystrdup(const char *str)
 
 /* mystrndup - save substring to heap */
 
-char   *mystrndup(const char *str, int len)
+char   *mystrndup(const char *str, ssize_t len)
 {
     char   *result;
     char   *cp;
 
     if (str == 0)
 	msg_panic("mystrndup: null pointer argument");
+    if (len < 0)
+	msg_panic("mystrndup: requested length %ld", (long) len);
     if ((cp = memchr(str, 0, len)) != 0)
 	len = cp - str;
     result = memcpy(mymalloc(len + 1), str, len);
@@ -191,7 +193,7 @@ char   *mystrndup(const char *str, int len)
 
 /* mymemdup - copy memory */
 
-char   *mymemdup(const char *ptr, int len)
+char   *mymemdup(const char *ptr, ssize_t len)
 {
     if (ptr == 0)
 	msg_panic("mymemdup: null pointer argument");

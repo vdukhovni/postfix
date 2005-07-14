@@ -6,13 +6,13 @@
 /* SYNOPSIS
 /*	#include <mail_flow.h>
 /*
-/*	int	mail_flow_get(count)
-/*	int	count;
+/*	ssize_t	mail_flow_get(count)
+/*	ssize_t	count;
 /*
-/*	void	mail_flow_put(count)
-/*	int	count;
+/*	ssize_t	mail_flow_put(count)
+/*	ssize_t	count;
 /*
-/*	int	mail_flow_count()
+/*	ssize_t	mail_flow_count()
 /* DESCRIPTION
 /*	This module implements a simple flow control mechanism that
 /*	is based on tokens that are consumed by mail receiving processes
@@ -66,19 +66,19 @@
 
 /* mail_flow_get - read N tokens */
 
-int     mail_flow_get(int len)
+ssize_t mail_flow_get(ssize_t len)
 {
     char   *myname = "mail_flow_get";
     char    buf[BUFFER_SIZE];
     struct stat st;
-    int     count;
-    int     n = 0;
+    ssize_t count;
+    ssize_t n = 0;
 
     /*
      * Sanity check.
      */
     if (len <= 0)
-	msg_panic("%s: bad length %d", myname, len);
+	msg_panic("%s: bad length %ld", myname, (long) len);
 
     /*
      * Silence some wild claims.
@@ -95,24 +95,24 @@ int     mail_flow_get(int len)
 		      BUFFER_SIZE : count)) <= 0)
 	    return (-1);
     if (msg_verbose)
-	msg_info("%s: %d %d", myname, len, len - count);
+	msg_info("%s: %ld %ld", myname, (long) len, (long) (len - count));
     return (len - count);
 }
 
 /* mail_flow_put - put N tokens */
 
-int     mail_flow_put(int len)
+ssize_t mail_flow_put(ssize_t len)
 {
     char   *myname = "mail_flow_put";
     char    buf[BUFFER_SIZE];
-    int     count;
-    int     n = 0;
+    ssize_t count;
+    ssize_t n = 0;
 
     /*
      * Sanity check.
      */
     if (len <= 0)
-	msg_panic("%s: bad length %d", myname, len);
+	msg_panic("%s: bad length %ld", myname, (long) len);
 
     /*
      * Write or discard N bytes.
@@ -124,16 +124,16 @@ int     mail_flow_put(int len)
 		       BUFFER_SIZE : count)) < 0)
 	    return (-1);
     if (msg_verbose)
-	msg_info("%s: %d %d", myname, len, len - count);
+	msg_info("%s: %ld %ld", myname, (long) len, (long) (len - count));
     return (len - count);
 }
 
 /* mail_flow_count - return number of available tokens */
 
-int     mail_flow_count(void)
+ssize_t mail_flow_count(void)
 {
     char   *myname = "mail_flow_count";
-    int     count;
+    ssize_t count;
 
     if ((count = peekfd(MASTER_FLOW_READ)) < 0)
 	msg_warn("%s: %m", myname);

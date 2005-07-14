@@ -26,12 +26,12 @@
   */
 typedef struct MIME_STATE MIME_STATE;
 typedef void (*MIME_STATE_HEAD_OUT) (void *, int, HEADER_OPTS *, VSTRING *, off_t);
-typedef void (*MIME_STATE_BODY_OUT) (void *, int, const char *, int, off_t);
+typedef void (*MIME_STATE_BODY_OUT) (void *, int, const char *, ssize_t, off_t);
 typedef void (*MIME_STATE_ANY_END) (void *);
 typedef void (*MIME_STATE_ERR_PRINT) (void *, int, const char *);
 
 extern MIME_STATE *mime_state_alloc(int, MIME_STATE_HEAD_OUT, MIME_STATE_ANY_END, MIME_STATE_BODY_OUT, MIME_STATE_ANY_END, MIME_STATE_ERR_PRINT, void *);
-extern int mime_state_update(MIME_STATE *, int, const char *, int);
+extern int mime_state_update(MIME_STATE *, int, const char *, ssize_t);
 extern MIME_STATE *mime_state_free(MIME_STATE *);
 
  /*

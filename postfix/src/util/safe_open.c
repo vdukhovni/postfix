@@ -9,7 +9,7 @@
 /*	VSTREAM	*safe_open(path, flags, mode, st, user, group, why)
 /*	const char *path;
 /*	int	flags;
-/*	int	mode;
+/*	mode_t	mode;
 /*	struct stat *st;
 /*	uid_t	user;
 /*	gid_t	group;
@@ -174,7 +174,7 @@ static VSTREAM *safe_open_exist(const char *path, int flags,
 
 /* safe_open_create - create new file */
 
-static VSTREAM *safe_open_create(const char *path, int flags, int mode,
+static VSTREAM *safe_open_create(const char *path, int flags, mode_t mode,
 	            struct stat * st, uid_t user, uid_t group, VSTRING *why)
 {
     VSTREAM *fp;
@@ -222,7 +222,7 @@ static VSTREAM *safe_open_create(const char *path, int flags, int mode,
 
 /* safe_open - safely open or create file */
 
-VSTREAM *safe_open(const char *path, int flags, int mode,
+VSTREAM *safe_open(const char *path, int flags, mode_t mode,
 	            struct stat * st, uid_t user, gid_t group, VSTRING *why)
 {
     VSTREAM *fp;

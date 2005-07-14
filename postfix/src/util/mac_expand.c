@@ -116,13 +116,12 @@ typedef struct {
 
 static int mac_expand_callback(int type, VSTRING *buf, char *ptr)
 {
-    char   *myname = "mac_expand_callback";
     MAC_EXP *mc = (MAC_EXP *) ptr;
     int     lookup_mode;
     const char *text;
     char   *cp;
     int     ch;
-    int     len;
+    ssize_t len;
 
     /*
      * Sanity check.
@@ -244,6 +243,7 @@ int     mac_expand(VSTRING *result, const char *pattern, int flags,
  /*
   * This code certainly deserves a stand-alone test program.
   */
+#include <stdlib.h>
 #include <stringops.h>
 #include <htable.h>
 #include <vstream.h>

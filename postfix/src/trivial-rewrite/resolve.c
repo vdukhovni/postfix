@@ -146,7 +146,7 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
     char   *destination;
     const char *blame = 0;
     const char *rcpt_domain;
-    int     addr_len;
+    ssize_t addr_len;
     int     loop_count;
     int     loop_max;
     char   *local;

@@ -337,7 +337,7 @@ int	main(int unused_argc, char **argv)
     VSTRING *inbuf = vstring_alloc(1);
     char   *bufp;
     char   *cmd;
-    int	    cmd_len;
+    ssize_t cmd_len;
     char   *service;
     char   *addr;
     int	    count;

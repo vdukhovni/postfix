@@ -42,7 +42,7 @@ char   *concatenate(const char *arg0,...)
 {
     char   *result;
     va_list ap;
-    int     len;
+    ssize_t len;
     char   *arg;
 
     /*

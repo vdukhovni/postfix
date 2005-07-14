@@ -81,6 +81,7 @@
 #include <dsn.h>
 #include <trace.h>
 #include <mail_queue.h>			/* cleanup_trace_path */
+#include <mail_proto.h>
 
 /* Application-specific. */
 
@@ -134,10 +135,11 @@ void    cleanup_out_recipient(CLEANUP_STATE *state,
 	if (been_here(state->dups, "%s\n%d\n%s\n%s",
 		      dsn_orcpt, dsn_notify, orcpt, recip) == 0) {
 	    if (dsn_notify)
-		cleanup_out_format(state, REC_TYPE_DSN_NOTIFY, "%d",
-				   dsn_notify);
+		cleanup_out_format(state, REC_TYPE_ATTR, "%s=%d",
+				   MAIL_ATTR_DSN_NOTIFY, dsn_notify);
 	    if (*dsn_orcpt)
-		cleanup_out_string(state, REC_TYPE_DSN_ORCPT, dsn_orcpt);
+		cleanup_out_format(state, REC_TYPE_ATTR, "%s=%s",
+				   MAIL_ATTR_DSN_ORCPT, dsn_orcpt);
 	    cleanup_out_string(state, REC_TYPE_ORCP, orcpt);
 	    cleanup_out_string(state, REC_TYPE_RCPT, recip);
 	    state->rcpt_count++;
@@ -199,10 +201,11 @@ void    cleanup_out_recipient(CLEANUP_STATE *state,
 	    if (been_here(state->dups, "%s\n%d\n%s\n%s",
 			  dsn_orcpt, dsn_notify, orcpt, *cpp) == 0) {
 		if (dsn_notify)
-		    cleanup_out_format(state, REC_TYPE_DSN_NOTIFY, "%d",
-				       dsn_notify);
+		    cleanup_out_format(state, REC_TYPE_ATTR, "%s=%d",
+				       MAIL_ATTR_DSN_NOTIFY, dsn_notify);
 		if (*dsn_orcpt)
-		    cleanup_out_string(state, REC_TYPE_DSN_ORCPT, dsn_orcpt);
+		    cleanup_out_format(state, REC_TYPE_ATTR, "%s=%s",
+				       MAIL_ATTR_DSN_ORCPT, dsn_orcpt);
 		cleanup_out_string(state, REC_TYPE_ORCP, orcpt);
 		cleanup_out_string(state, REC_TYPE_RCPT, *cpp);
 		state->rcpt_count++;

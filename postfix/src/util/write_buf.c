@@ -6,10 +6,10 @@
 /* SYNOPSIS
 /*	#include <iostuff.h>
 /*
-/*	int	write_buf(fd, buf, len, timeout)
+/*	ssize_t	write_buf(fd, buf, len, timeout)
 /*	int	fd;
 /*	const char *buf;
-/*	int	len;
+/*	ssize_t	len;
 /*	int	timeout;
 /* DESCRIPTION
 /*	write_buf() writes a buffer to the named stream in as many
@@ -54,9 +54,9 @@
 
 /* write_buf - write buffer or bust */
 
-int     write_buf(int fd, const char *buf, int len, int timeout)
+ssize_t write_buf(int fd, const char *buf, ssize_t len, int timeout)
 {
-    int     count;
+    ssize_t count;
 
     while (len > 0) {
 	if (timeout > 0 && write_wait(fd, timeout) < 0)

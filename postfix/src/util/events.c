@@ -619,6 +619,7 @@ void    event_loop(int delay)
   */
 #include <stdio.h>
 #include <ctype.h>
+#include <stdlib.h>
 
 /* timer_event - display event */
 

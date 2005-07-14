@@ -14,12 +14,12 @@
  /*
   * External interface.
   */
-extern char *mymalloc(int);
-extern char *myrealloc(char *, int);
+extern char *mymalloc(ssize_t);
+extern char *myrealloc(char *, ssize_t);
 extern void myfree(char *);
 extern char *mystrdup(const char *);
-extern char *mystrndup(const char *, int len);
-extern char *mymemdup(const char *, int);
+extern char *mystrndup(const char *, ssize_t);
+extern char *mymemdup(const char *, ssize_t);
 
 /* LICENSE
 /* .ad

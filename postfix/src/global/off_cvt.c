@@ -152,6 +152,7 @@ int     main(int unused_argc, char **unused_argv)
 	vstream_fflush(VSTREAM_OUT);
     }
     vstring_free(buf);
+    return (0);
 }
 
 #endif

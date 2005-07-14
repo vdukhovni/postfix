@@ -10,7 +10,7 @@
 /*	CLEANUP_STATE *state;
 /*	int	type;
 /*	const char *buf;
-/*	int	len;
+/*	ssize_t	len;
 /* DESCRIPTION
 /*	This module processes envelope records and writes the result
 /*	to the queue file.  It validates the message structure, rewrites
@@ -77,12 +77,12 @@
 #define STR	vstring_str
 #define STREQ(x,y) (strcmp((x), (y)) == 0)
 
-static void cleanup_envelope_process(CLEANUP_STATE *, int, const char *, int);
+static void cleanup_envelope_process(CLEANUP_STATE *, int, const char *, ssize_t);
 
 /* cleanup_envelope - initialize message envelope */
 
 void    cleanup_envelope(CLEANUP_STATE *state, int type,
-			         const char *str, int len)
+			         const char *str, ssize_t len)
 {
 
     /*
@@ -107,7 +107,7 @@ void    cleanup_envelope(CLEANUP_STATE *state, int type,
 /* cleanup_envelope_process - process one envelope record */
 
 static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
-				             const char *buf, int len)
+				             const char *buf, ssize_t len)
 {
     char   *attr_name;
     char   *attr_value;
@@ -118,7 +118,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
     const char *mapped_buf = buf;
 
     if (msg_verbose)
-	msg_info("initial envelope %c %.*s", type, len, buf);
+	msg_info("initial envelope %c %.*s", type, (int) len, buf);
 
     if (type == REC_TYPE_FLGS) {
 	/* Not part of queue file format. */

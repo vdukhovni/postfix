@@ -29,7 +29,7 @@
   * Simple buffered stream. The members of this structure are not part of the
   * official interface and can change without prior notice.
   */
-typedef int (*VSTREAM_FN) (int, void *, unsigned, int, void *);
+typedef ssize_t(*VSTREAM_FN) (int, void *, size_t, int, void *);
 typedef int (*VSTREAM_WAITPID_FN) (pid_t, WAIT_STATUS_T *, int);
 
 typedef struct VSTREAM {
@@ -71,7 +71,7 @@ extern VSTREAM vstream_fstd[];		/* pre-defined streams */
 
 #define VSTREAM_BUFSIZE		4096
 
-extern VSTREAM *vstream_fopen(const char *, int, int);
+extern VSTREAM *vstream_fopen(const char *, int, mode_t);
 extern int vstream_fclose(VSTREAM *);
 extern off_t vstream_fseek(VSTREAM *, off_t, int);
 extern off_t vstream_ftell(VSTREAM *);
@@ -134,7 +134,7 @@ extern int vstream_pclose(VSTREAM *);
 
 extern VSTREAM *vstream_vfprintf(VSTREAM *, const char *, va_list);
 
-extern int vstream_peek(VSTREAM *);
+extern ssize_t vstream_peek(VSTREAM *);
 
  /*
   * Exception handling. We use pointer to jmp_buf to avoid a lot of unused

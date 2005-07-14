@@ -51,7 +51,7 @@
 /* .IP "ATTR_TYPE_STR (char *, char *)"
 /*	This argument is followed by an attribute name and a null-terminated
 /*	string.
-/* .IP "ATTR_TYPE_DATA (char *, int, char *)"
+/* .IP "ATTR_TYPE_DATA (char *, ssize_t, char *)"
 /*	This argument is followed by an attribute name, an attribute value
 /*	length, and an attribute value pointer.
 /* .IP "ATTR_TYPE_FUNC (ATTR_PRINT_SLAVE_FN, void *)"
@@ -113,7 +113,7 @@ int     attr_vprint0(VSTREAM *fp, int flags, va_list ap)
     char   *str_val;
     HTABLE_INFO **ht_info_list;
     HTABLE_INFO **ht;
-    int     len_val;
+    ssize_t len_val;
     static VSTRING *base64_buf;
     ATTR_PRINT_SLAVE_FN print_fn;
     void   *print_arg;
@@ -159,14 +159,15 @@ int     attr_vprint0(VSTREAM *fp, int flags, va_list ap)
 	case ATTR_TYPE_DATA:
 	    attr_name = va_arg(ap, char *);
 	    vstream_fwrite(fp, attr_name, strlen(attr_name) + 1);
-	    len_val = va_arg(ap, int);
+	    len_val = va_arg(ap, ssize_t);
 	    str_val = va_arg(ap, char *);
 	    if (base64_buf == 0)
 		base64_buf = vstring_alloc(10);
 	    base64_encode(base64_buf, str_val, len_val);
 	    vstream_fwrite(fp, STR(base64_buf), LEN(base64_buf) + 1);
 	    if (msg_verbose)
-		msg_info("send attr %s = [data %d bytes]", attr_name, len_val);
+		msg_info("send attr %s = [data %ld bytes]",
+			 attr_name, (long) len_val);
 	    break;
 	case ATTR_TYPE_FUNC:
 	    print_fn = va_arg(ap, ATTR_PRINT_SLAVE_FN);

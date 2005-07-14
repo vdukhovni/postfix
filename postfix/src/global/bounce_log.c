@@ -18,7 +18,7 @@
 /*	const char *queue;
 /*	const char *id;
 /*	int	flags;
-/*	int	mode;
+/*	mode_t	mode;
 /*
 /*	BOUNCE_LOG *bounce_log_read(bp)
 /*	BOUNCE_LOG *bp;
@@ -73,7 +73,7 @@
 /*	file has the same name as the original message file.
 /* .IP flags
 /*	File open flags, as with open(2).
-/* .IP more
+/* .IP mode
 /*	File permissions, as with open(2).
 /* .PP
 /*	Recipient results:
@@ -152,7 +152,7 @@
 /* bounce_log_open - open bounce read stream */
 
 BOUNCE_LOG *bounce_log_open(const char *queue_name, const char *queue_id,
-			            int flags, int mode)
+			            int flags, mode_t mode)
 {
     BOUNCE_LOG *bp;
     VSTREAM *fp;

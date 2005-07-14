@@ -235,6 +235,7 @@ int     main(int unused_argc, char **unused_argv)
     vstring_free(unquoted);
     vstring_free(quoted);
     vstring_free(raw);
+    return (0);
 }
 
 #endif

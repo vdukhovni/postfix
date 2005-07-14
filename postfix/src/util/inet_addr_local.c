@@ -604,6 +604,7 @@ int     main(int unused_argc, char **argv)
     }
     inet_addr_list_free(&addr_list);
     inet_addr_list_free(&mask_list);
+    return (0);
 }
 
 #endif

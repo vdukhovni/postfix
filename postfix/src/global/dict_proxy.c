@@ -8,7 +8,7 @@
 /*
 /*	DICT	*dict_proxy_open(map, open_flags, dict_flags)
 /*	const char *map;
-/*	int	dummy;
+/*	int	open_flags;
 /*	int	dict_flags;
 /* DESCRIPTION
 /*	dict_proxy_open() relays read-only operations through

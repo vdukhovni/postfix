@@ -196,6 +196,7 @@ int     main(void)
     vstream_fclose(fp);
     vstream_fflush(VSTREAM_OUT);
     vstring_free(vp);
+    return (0);
 }
 
 #endif

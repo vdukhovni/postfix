@@ -23,16 +23,16 @@
 /*	int	smtp_get(vp, stream, maxlen)
 /*	VSTRING	*vp;
 /*	VSTREAM *stream;
-/*	int	maxlen;
+/*	ssize_t	maxlen;
 /*
 /*	void	smtp_fputs(str, len, stream)
 /*	const char *str;
-/*	int	len;
+/*	ssize_t	len;
 /*	VSTREAM *stream;
 /*
 /*	void	smtp_fwrite(str, len, stream)
 /*	const char *str;
-/*	int	len;
+/*	ssize_t	len;
 /*	VSTREAM *stream;
 /*
 /*	void	smtp_fputc(ch, stream)
@@ -247,7 +247,7 @@ int     smtp_fgetc(VSTREAM *stream)
 
 /* smtp_get - read one line from SMTP peer */
 
-int     smtp_get(VSTRING *vp, VSTREAM *stream, int bound)
+int     smtp_get(VSTRING *vp, VSTREAM *stream, ssize_t bound)
 {
     int     last_char;
     int     next_char;
@@ -317,12 +317,12 @@ int     smtp_get(VSTRING *vp, VSTREAM *stream, int bound)
 
 /* smtp_fputs - write one line to SMTP peer */
 
-void    smtp_fputs(const char *cp, int todo, VSTREAM *stream)
+void    smtp_fputs(const char *cp, ssize_t todo, VSTREAM *stream)
 {
-    unsigned err;
+    size_t  err;
 
     if (todo < 0)
-	msg_panic("smtp_fputs: negative todo %d", todo);
+	msg_panic("smtp_fputs: negative todo %ld", (long) todo);
 
     /*
      * Do the I/O, protected against timeout.
@@ -344,12 +344,12 @@ void    smtp_fputs(const char *cp, int todo, VSTREAM *stream)
 
 /* smtp_fwrite - write one string to SMTP peer */
 
-void    smtp_fwrite(const char *cp, int todo, VSTREAM *stream)
+void    smtp_fwrite(const char *cp, ssize_t todo, VSTREAM *stream)
 {
-    unsigned err;
+    size_t  err;
 
     if (todo < 0)
-	msg_panic("smtp_fwrite: negative todo %d", todo);
+	msg_panic("smtp_fwrite: negative todo %ld", (long) todo);
 
     /*
      * Do the I/O, protected against timeout.

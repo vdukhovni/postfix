@@ -372,7 +372,7 @@ static void send_data(SESSION *session)
 			STR(message_buffer), LEN(message_buffer),
 			STR(sender_buffer), LEN(sender_buffer),
 			STR(recipient_buffer), LEN(recipient_buffer),
-			0);
+			(ssize_t) 0);
     netstring_fflush(session->stream);
 
     /*
@@ -442,6 +442,7 @@ int     main(int argc, char **argv)
     int     path_len;
     int     sessions = 1;
     int     ch;
+    ssize_t len;
     int     n;
     int     i;
     char   *buf;
@@ -587,14 +588,14 @@ int     main(int argc, char **argv)
     STR(buffer)[message_length - 1] = '\n';
     netstring_memcpy(message_buffer, STR(buffer), message_length);
 
-    n = strlen(sender);
-    sender_buffer = vstring_alloc(n);
-    netstring_memcpy(sender_buffer, sender, n);
+    len = strlen(sender);
+    sender_buffer = vstring_alloc(len);
+    netstring_memcpy(sender_buffer, sender, len);
 
     if (recipients == 1) {
-	n = strlen(recipient);
-	recipient_buffer = vstring_alloc(n);
-	netstring_memcpy(recipient_buffer, recipient, n);
+	len = strlen(recipient);
+	recipient_buffer = vstring_alloc(len);
+	netstring_memcpy(recipient_buffer, recipient, len);
     } else {
 	recipient_buffer = vstring_alloc(100);
 	for (n = 0; n < recipients; n++) {

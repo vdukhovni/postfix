@@ -228,6 +228,7 @@ int     main(int argc, char **argv)
     }
 
     myfree((char *) mypwd);
+    return (0);
 }
 
 #endif

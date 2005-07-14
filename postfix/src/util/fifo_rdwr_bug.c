@@ -32,6 +32,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define FIFO_PATH       "test-fifo"
 #define perrorexit(s)   { perror(s); exit(1); }

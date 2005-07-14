@@ -243,7 +243,7 @@ VSTRING *tok822_internalize(VSTRING *vp, TOK822 *tree, int flags)
 
 /* strip_address - strip non-address text from address expression */
 
-static void strip_address(VSTRING *vp, int start, TOK822 *addr)
+static void strip_address(VSTRING *vp, ssize_t start, TOK822 *addr)
 {
     VSTRING *tmp;
 
@@ -270,9 +270,9 @@ VSTRING *tok822_externalize(VSTRING *vp, TOK822 *tree, int flags)
 {
     VSTRING *tmp;
     TOK822 *tp;
-    int     start;
+    ssize_t start;
     TOK822 *addr;
-    int     addr_len;
+    ssize_t addr_len;
 
     /*
      * Guard against a Sendmail buffer overflow (CERT advisory CA-2003-07).

@@ -148,6 +148,7 @@
 #include <sys_defs.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 /* Utility library. */
 

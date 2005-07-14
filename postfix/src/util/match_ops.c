@@ -213,7 +213,7 @@ int     match_hostaddr(int unused_flags, const char *addr, const char *pattern)
 	if (strcasecmp(addr, pattern) == 0)
 	    return (1);
     } else {
-	int     addr_len = strlen(addr);
+	ssize_t addr_len = strlen(addr);
 
 	if (strncasecmp(addr, pattern + 1, addr_len) == 0
 	    && strcmp(pattern + 1 + addr_len, "]") == 0)

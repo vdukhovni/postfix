@@ -132,6 +132,7 @@ int     main(int argc, char **argv)
 	vstream_fflush(VSTREAM_OUT);
 	argv += 1;
     }
+    return (0);
 }
 
 #endif

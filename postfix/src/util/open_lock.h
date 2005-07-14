@@ -25,7 +25,7 @@
  /*
   * External interface.
   */
-extern VSTREAM *open_lock(const char *, int, int, VSTRING *);
+extern VSTREAM *open_lock(const char *, int, mode_t, VSTRING *);
 
 /* LICENSE
 /* .ad

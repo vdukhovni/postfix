@@ -26,7 +26,7 @@
  /*
   * External interface.
   */
-extern VSTREAM *safe_open(const char *, int, int, struct stat *, uid_t, gid_t, VSTRING *);
+extern VSTREAM *safe_open(const char *, int, mode_t, struct stat *, uid_t, gid_t, VSTRING *);
 
 /* LICENSE
 /* .ad

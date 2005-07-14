@@ -10,7 +10,7 @@
 /*	CLEANUP_STATE *state;
 /*	int	type;
 /*	const char *buf;
-/*	int	len;
+/*	ssize_t	len;
 /* DESCRIPTION
 /*	This module processes message records with information extracted
 /*	from message content, or with recipients that are stored after the
@@ -72,13 +72,13 @@
 
 #define STR(x)	vstring_str(x)
 
-static void cleanup_extracted_process(CLEANUP_STATE *, int, const char *, int);
+static void cleanup_extracted_process(CLEANUP_STATE *, int, const char *, ssize_t);
 static void cleanup_extracted_finish(CLEANUP_STATE *);
 
 /* cleanup_extracted - initialize extracted segment */
 
 void    cleanup_extracted(CLEANUP_STATE *state, int type,
-			          const char *buf, int len)
+			          const char *buf, ssize_t len)
 {
 
     /*
@@ -96,7 +96,7 @@ void    cleanup_extracted(CLEANUP_STATE *state, int type,
 /* cleanup_extracted_process - process one extracted envelope record */
 
 void    cleanup_extracted_process(CLEANUP_STATE *state, int type,
-				          const char *buf, int len)
+				          const char *buf, ssize_t len)
 {
     const char *encoding;
     const char generated_by_cleanup[] = {
@@ -109,7 +109,7 @@ void    cleanup_extracted_process(CLEANUP_STATE *state, int type,
     int     junk;
 
     if (msg_verbose)
-	msg_info("extracted envelope %c %.*s", type, len, buf);
+	msg_info("extracted envelope %c %.*s", type, (int) len, buf);
 
     if (strchr(REC_TYPE_EXTRACT, type) == 0) {
 	msg_warn("%s: message rejected: "
