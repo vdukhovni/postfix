@@ -268,7 +268,9 @@ static void get_pipe_args(struct pipe_args * args, va_list ap)
 
 /* pipe_command_write - write to command with time limit */
 
-static ssize_t pipe_command_write(int fd, void *buf, ssize_t len)
+static ssize_t pipe_command_write(int fd, void *buf, size_t len,
+				          int unused_timeout,
+				          void *unused_context)
 {
     int     maxtime = (pipe_command_timeout == 0) ? pipe_command_maxtime : 0;
     char   *myname = "pipe_command_write";
@@ -289,7 +291,9 @@ static ssize_t pipe_command_write(int fd, void *buf, ssize_t len)
 
 /* pipe_command_read - read from command with time limit */
 
-static ssize_t pipe_command_read(int fd, void *buf, ssize_t len)
+static ssize_t pipe_command_read(int fd, void *buf, ssize_t len,
+				         int unused_timeout,
+				         void *unused_context)
 {
     int     maxtime = (pipe_command_timeout == 0) ? pipe_command_maxtime : 0;
     char   *myname = "pipe_command_read";

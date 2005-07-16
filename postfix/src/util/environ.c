@@ -34,7 +34,7 @@ static ssize_t namelength(const char *name)
 
 /* findenv - given name, locate name=value */
 
-static char **findenv(const char *name, int len)
+static char **findenv(const char *name, ssize_t len)
 {
     char  **envp;
 
@@ -50,7 +50,7 @@ static char **findenv(const char *name, int len)
 
 char   *getenv(const char *name)
 {
-    int     len = namelength(name);
+    ssize_t len = namelength(name);
     char  **envp = findenv(name, len);
 
     return (envp ? *envp + len + 1 : 0);
@@ -85,7 +85,7 @@ int     setenv(const char *name, const char *value, int clobber)
 {
     char   *destination;
     char  **envp;
-    int     l_name;			/* length of name part */
+    ssize_t l_name;			/* length of name part */
     unsigned int l_nameval;		/* length of name=value */
 
     /* Permit name= and =value. */

@@ -168,6 +168,7 @@ case "$SYSTEM.$RELEASE" in
 		?*) error "Don't set LD_LIBRARY_PATH";;
 		esac
 		case "${CC}" in
+		*" "*) ;;
 		*ucb*) error "Don't use /usr/ucb/cc or ucblib";;
 		  cc*) case `which ${CC}` in
 		*ucb*) error "Don't use /usr/ucb/cc or ucblib";;
@@ -395,6 +396,9 @@ export SYSTYPE AR ARFL RANLIB SYSLIBS CC OPT DEBUG AWK OPTS
 
 # Snapshot only.
 CCARGS="$CCARGS -DSNAPSHOT"
+
+# Non-production, i.e. needs thorough testing.
+#CCARGS="$CCARGS -DNONPROD"
 
 sed 's/  / /g' <<EOF
 SYSTYPE	= $SYSTYPE

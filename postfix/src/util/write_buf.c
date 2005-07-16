@@ -56,6 +56,7 @@
 
 ssize_t write_buf(int fd, const char *buf, ssize_t len, int timeout)
 {
+    const char *start = buf;
     ssize_t count;
 
     while (len > 0) {
@@ -71,5 +72,5 @@ ssize_t write_buf(int fd, const char *buf, ssize_t len, int timeout)
 	buf += count;
 	len -= count;
     }
-    return (len);
+    return (buf - start);
 }

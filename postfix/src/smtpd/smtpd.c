@@ -2167,7 +2167,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	}
 #endif
 #ifdef USE_SASL_AUTH
-	if (var_smtpd_sasl_auth_hdr && state->sasl_username) {
+	if (var_smtpd_sasl_enable && var_smtpd_sasl_auth_hdr && state->sasl_username) {
 	    username = VSTRING_STRDUP(state->sasl_username);
 	    comment_sanitize(username);
 	    out_fprintf(out_stream, REC_TYPE_NORM,

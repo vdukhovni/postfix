@@ -24,7 +24,7 @@
 /*	TLS_SCACHE *cache;
 /*	const char *cache_id;
 /*	const char *session;
-/*	int	session_len;
+/*	ssize_t	session_len;
 /*
 /*	int	tls_scache_sequence(cache, first_next, out_cache_id,
 /*				VSTRING *out_session)

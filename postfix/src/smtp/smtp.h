@@ -51,7 +51,7 @@ typedef struct SMTP_STATE {
     DELIVER_REQUEST *request;		/* envelope info, offsets */
     struct SMTP_SESSION *session;	/* network connection */
     int     status;			/* delivery status */
-    int     space_left;			/* output length control */
+    ssize_t space_left;			/* output length control */
 
     /*
      * Connection cache support. The (nexthop_lookup_mx, nexthop_domain,

@@ -147,8 +147,8 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
     const char *blame = 0;
     const char *rcpt_domain;
     ssize_t addr_len;
-    int     loop_count;
-    int     loop_max;
+    ssize_t loop_count;
+    ssize_t loop_max;
     char   *local;
     char   *oper;
     char   *junk;
@@ -233,8 +233,8 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
 	 * disrupt the operation of an MTA.
 	 */
 	if (loop_count > loop_max) {
-	    msg_warn("resolve_addr: <%s>: giving up after %d iterations",
-		     addr, loop_count);
+	    msg_warn("resolve_addr: <%s>: giving up after %ld iterations",
+		     addr, (long) loop_count);
 	    break;
 	}
 

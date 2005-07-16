@@ -1119,12 +1119,12 @@ static int reject_unknown_hostname(SMTPD_STATE *state, char *name,
 			      RR_ADDR_TYPES, T_MX, 0);
     if (dns_status == DNS_NOTFOUND)
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
-				   var_unk_name_code, "4.1.0",
+				   var_unk_name_code, "4.7.1",
 				   "<%s>: %s rejected: Host not found",
 				   reply_name, reply_class));
     else if (dns_status != DNS_OK)
 	DEFER_IF_PERMIT2(state, MAIL_ERROR_POLICY,
-			 450, "4.1.0",
+			 450, "4.7.1",
 			 "<%s>: %s rejected: Host not found",
 			 reply_name, reply_class);
     return (SMTPD_CHECK_DUNNO);

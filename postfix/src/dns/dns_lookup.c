@@ -171,7 +171,7 @@ static int dns_query(const char *name, int type, int flags,
      * Initialize the reply buffer.
      */
     if (reply->buf == 0) {
-	reply->buf = mymalloc(DEF_DNS_REPLY_SIZE);
+	reply->buf = (unsigned char *) mymalloc(DEF_DNS_REPLY_SIZE);
 	reply->buf_len = DEF_DNS_REPLY_SIZE;
     }
 
@@ -228,7 +228,8 @@ static int dns_query(const char *name, int type, int flags,
 	reply_header = (HEADER *) reply->buf;
 	if (reply_header->tc == 0 || reply->buf_len >= MAX_DNS_REPLY_SIZE)
 	    break;
-	reply->buf = myrealloc(reply->buf, 2 * reply->buf_len);
+	reply->buf = (unsigned char *)
+	    myrealloc((char *) reply->buf, 2 * reply->buf_len);
 	reply->buf_len *= 2;
     }
 

@@ -140,11 +140,6 @@ static NAME_MASK smtp_sasl_sec_mask[] = {
 };
 
  /*
-  * Silly little macros.
-  */
-#define STR(x)	vstring_str(x)
-
- /*
   * Macros to handle API differences between SASLv1 and SASLv2. Specifics:
   * 
   * The SASL_LOG_* constants were renamed in SASLv2.

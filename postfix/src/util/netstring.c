@@ -22,7 +22,7 @@
 /*	void	netstring_put(stream, data, len)
 /*	VSTREAM *stream;
 /*	const char *data;
-/*	int	ssize_t;
+/*	ssize_t	len;
 /*
 /*	void	netstring_put_multi(stream, data, len, data, len, ..., 0)
 /*	VSTREAM *stream;
@@ -39,7 +39,7 @@
 /*	VSTRING	*netstring_memcpy(buf, data, len)
 /*	VSTRING	*buf;
 /*	const char *data;
-/*	int	ssize_t;
+/*	ssize_t	len;
 /*
 /*	VSTRING	*netstring_memcat(buf, data, len)
 /*	VSTRING	*buf;

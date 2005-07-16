@@ -319,7 +319,7 @@ int     smtp_get(VSTRING *vp, VSTREAM *stream, ssize_t bound)
 
 void    smtp_fputs(const char *cp, ssize_t todo, VSTREAM *stream)
 {
-    size_t  err;
+    ssize_t  err;
 
     if (todo < 0)
 	msg_panic("smtp_fputs: negative todo %ld", (long) todo);
@@ -346,7 +346,7 @@ void    smtp_fputs(const char *cp, ssize_t todo, VSTREAM *stream)
 
 void    smtp_fwrite(const char *cp, ssize_t todo, VSTREAM *stream)
 {
-    size_t  err;
+    ssize_t  err;
 
     if (todo < 0)
 	msg_panic("smtp_fwrite: negative todo %ld", (long) todo);

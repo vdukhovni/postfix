@@ -286,11 +286,11 @@ LMTP_RESP *lmtp_chat_resp(LMTP_STATE *state)
 
 /* print_line - line_wrap callback */
 
-static void print_line(const char *str, ssize_t len, ssize_t indent, char *context)
+static void print_line(const char *str, int len, int indent, char *context)
 {
     VSTREAM *notice = (VSTREAM *) context;
 
-    post_mail_fprintf(notice, " %*s%.*s", (int) indent, "", (int) len, str);
+    post_mail_fprintf(notice, " %*s%.*s", indent, "", len, str);
 }
 
 /* lmtp_chat_notify - notify postmaster */

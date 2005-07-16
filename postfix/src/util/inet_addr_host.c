@@ -149,20 +149,19 @@ int     main(int argc, char **argv)
     proto_info = inet_proto_init(argv[0], argv[1]);
     argv += 1;
 
-    inet_addr_list_init(&list);
-
     while (--argc && *++argv) {
+	inet_addr_list_init(&list);
 	if (inet_addr_host(&list, *argv) == 0)
 	    msg_fatal("not found: %s", *argv);
 
 	for (sa = list.addrs; sa < list.addrs + list.used; sa++) {
 	    SOCKADDR_TO_HOSTADDR(SOCK_ADDR_PTR(sa), SOCK_ADDR_LEN(sa),
 				 &hostaddr, (MAI_SERVPORT_STR *) 0, 0);
-	    vstream_printf("%s\n", hostaddr.buf);
+	    vstream_printf("%s\t%s\n", *argv, hostaddr.buf);
 	}
 	vstream_fflush(VSTREAM_OUT);
+	inet_addr_list_free(&list);
     }
-    inet_addr_list_free(&list);
     return (0);
 }
 

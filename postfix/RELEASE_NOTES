@@ -17,6 +17,40 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
+Incompatibility with snapshot 20050715
+======================================
+
+Internal interfaces have changed; this may break third-party patches
+because the text of function argument and result type definitions
+has changed.  The type of buffer lengths and offsets were changed
+from "(unsigned) int" (32 bit on 32-bit and LP64 systems) to
+"(s)size_t" (64 bit on LP64 systems, 32 bit on 32-bit systems).
+
+Otherwise, this change makes no difference on 32-bit systems. On
+LP64 systems, however, software may mis-behave 1) when Postfix is
+linked with pre-compiled code that was compiled with old Postfix
+interface definitions and 2) when compiling Postfix source that was
+modified by a third-party patch: incorrect code may be generated
+when the patch passes the wrong integer argument type in contexts
+that disable automatic argument type conversions.  Examples of such
+contexts are formatting with printf-like arguments, and invoking
+functions that write Postfix request or reply attributes across
+inter-process communication channels.  Unfortunately, gcc does not
+report "(unsigned) int" versus "(s)size_t" format string argument
+mis-matches on 32-bit systems; they can be found only on 64-bit
+systems.
+
+Major changes with snapshot 20050715 
+====================================
+
+Improved portability to LP64 systems, by converting the type of
+buffer lengths and offsets from "(unsigned) int" to "(s)size_t".
+This change has zero effect on 32-bit systems. On LP64 platforms,
+however, this change not only eliminates some obscure portability
+bugs, it also eliminates unnecessary conversions between 32/64 bit
+integer types, because many system library routines take "(s)size_t"
+arguments or return "(s)size_t" values.
+
 Incompatibility with snapshot 20050707
 ======================================
 

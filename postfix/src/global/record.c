@@ -132,7 +132,7 @@ int     rec_put_type(VSTREAM *stream, int type, long offset)
 int     rec_put(VSTREAM *stream, int type, const char *data, ssize_t len)
 {
     ssize_t len_rest;
-    ssize_t len_byte;
+    int     len_byte;
 
     if (type < 0 || type > 255)
 	msg_panic("rec_put: bad record type %d", type);
@@ -234,7 +234,7 @@ int     rec_get(VSTREAM *stream, VSTRING *buf, ssize_t maxsize)
     VSTRING_TERMINATE(buf);
     if (msg_verbose > 2)
 	msg_info("%s: type %c len %ld data %.10s", myname,
-		 type, (unsigned long) len, vstring_str(buf));
+		 type, (long) len, vstring_str(buf));
     return (type);
 }
 
