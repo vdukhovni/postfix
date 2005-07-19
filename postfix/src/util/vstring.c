@@ -19,7 +19,7 @@
 /*	char	*vstring_str(vp)
 /*	VSTRING	*vp;
 /*
-/*	VSTRING	*VSTRING_LEN(vp)
+/*	int	VSTRING_LEN(vp)
 /*	VSTRING	*vp;
 /*
 /*	char	*vstring_end(vp)

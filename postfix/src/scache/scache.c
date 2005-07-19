@@ -240,18 +240,18 @@ static void scache_save_endp_service(VSTREAM *client_stream)
 	       ||
 #endif
 	       (fd = LOCAL_RECV_FD(vstream_fileno(client_stream))) < 0) {
-	msg_warn("%s: unable to receive file descriptor", myname);
-	attr_print(client_stream, ATTR_FLAG_NONE,
-		   ATTR_TYPE_NUM, MAIL_ATTR_STATUS, SCACHE_STAT_FAIL,
-		   ATTR_TYPE_END);
+	msg_warn("%s: unable to receive file descriptor: %m", myname);
+	(void) attr_print(client_stream, ATTR_FLAG_NONE,
+			  ATTR_TYPE_NUM, MAIL_ATTR_STATUS, SCACHE_STAT_FAIL,
+			  ATTR_TYPE_END);
 	return;
     } else {
 	scache_save_endp(scache,
 			 ttl > var_scache_ttl_lim ? var_scache_ttl_lim : ttl,
 			 STR(scache_endp_label), STR(scache_endp_prop), fd);
-	attr_print(client_stream, ATTR_FLAG_NONE,
-		   ATTR_TYPE_NUM, MAIL_ATTR_STATUS, SCACHE_STAT_OK,
-		   ATTR_TYPE_END);
+	(void) attr_print(client_stream, ATTR_FLAG_NONE,
+			  ATTR_TYPE_NUM, MAIL_ATTR_STATUS, SCACHE_STAT_OK,
+			  ATTR_TYPE_END);
 	scache_size(scache, &size);
 	if (size.endp_count > scache_endp_count)
 	    scache_endp_count = size.endp_count;
@@ -297,7 +297,13 @@ static void scache_find_endp_service(VSTREAM *client_stream)
 			 ATTR_TYPE_STR, MAIL_ATTR_DUMMY, scache_dummy,
 			 ATTR_TYPE_END) != 1
 #endif
-	    || LOCAL_SEND_FD(vstream_fileno(client_stream), fd) < 0)
+	    || LOCAL_SEND_FD(vstream_fileno(client_stream), fd) < 0
+#ifdef MUST_READ_AFTER_SENDING_FD
+	    || attr_scan(client_stream, ATTR_FLAG_STRICT,
+			 ATTR_TYPE_STR, MAIL_ATTR_DUMMY, scache_dummy,
+			 ATTR_TYPE_END) != 1
+#endif
+	    )
 	    msg_warn("%s: cannot send file descriptor: %m", myname);
 	if (close(fd) < 0)
 	    msg_warn("close(%d): %m", fd);
@@ -384,7 +390,13 @@ static void scache_find_dest_service(VSTREAM *client_stream)
 			 ATTR_TYPE_STR, MAIL_ATTR_DUMMY, scache_dummy,
 			 ATTR_TYPE_END) != 1
 #endif
-	    || LOCAL_SEND_FD(vstream_fileno(client_stream), fd) < 0)
+	    || LOCAL_SEND_FD(vstream_fileno(client_stream), fd) < 0
+#ifdef MUST_READ_AFTER_SENDING_FD
+	    || attr_scan(client_stream, ATTR_FLAG_STRICT,
+			 ATTR_TYPE_STR, MAIL_ATTR_DUMMY, scache_dummy,
+			 ATTR_TYPE_END) != 1
+#endif
+	    )
 	    msg_warn("%s: cannot send file descriptor: %m", myname);
 	if (close(fd) < 0)
 	    msg_warn("close(%d): %m", fd);

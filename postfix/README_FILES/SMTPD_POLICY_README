@@ -96,7 +96,7 @@ The following is specific to SMTPD delegated policy requests:
 
   * Protocol names are ESMTP or SMTP.
 
-  * Protocol states are CONNECT, EHLO, HELO, MAIL, RCPT, DATA, END-OF-DATA,
+  * Protocol states are CONNECT, EHLO, HELO, MAIL, RCPT, DATA, END-OF-MESSAGE,
     VRFY or ETRN; these are the SMTP protocol states where the Postfix SMTP
     server makes an OK/REJECT/HOLD/etc. decision.
 

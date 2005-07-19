@@ -10609,3 +10609,33 @@ Apologies for any names omitted.
 	no SMTP connection caching for those platforms.  Albert
 	Chin.  File: util/sys_defs.h.
 
+20050630
+
+	Portability: the connection caching code broke on LP64
+	systems (inherited from Stevens Network Programming).  Files:
+	util/unix_send_fd.c, util/unix_recv_fd.c. This code is
+	back-ported from the Postfix 2.3 snapshot release.
+
+20050706
+
+	Robustness: the SMTP client now disables caching when it
+	is unable to communicate with the scache(8) connection
+	caching server, instead of looping forever and not delivering
+	mail. File: global/scache_clnt.c.  This code is back-ported
+	from the Postfix 2.3 snapshot release.
+
+	Portability: after sending a socket, the scache(8) server
+	now waits for an ACK from the connection cache client before
+	closing the socket that it just sent. Files: scache/scache.c,
+	global/scache_clnt.c. This code is back-ported from the
+	Postfix 2.3 snapshot release.
+
+20050711-3
+
+	Portability: on LP64 systems, integer expressions are int,
+	but sizeof() and pointer difference expressions are larger.
+	Point fixes for a few discrepancies with variadic functions
+	that expect int (the permanent fix is to change the receiving
+	modules, but that results in too much change, and is not
+	allowed in the stable release).  Files: tls/tls_scache.c,
+	util/clean_env.c, util/vstring.h, smtpstone/qmqp-source.c.

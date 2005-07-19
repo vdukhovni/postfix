@@ -1306,6 +1306,15 @@ typedef int pid_t;
 #endif
 
  /*
+  * FreeBSD sendmsg(2) says that after sending a file descriptor, the sender
+  * must not immediately close the descriptor, otherwise it may close the
+  * descriptor before it is actually sent.
+  */
+#ifndef DONT_WAIT_AFTER_SENDING_FD
+#define MUST_READ_AFTER_SENDING_FD
+#endif
+
+ /*
   * Making the ctype.h macros not more expensive than necessary. On some
   * systems, ctype.h misbehaves with non-ASCII and/or negative characters.
   */

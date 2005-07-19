@@ -25,6 +25,7 @@
 /*	Upper bound on the time that a connection is allowed to persist.
 /* DIAGNOSTICS
 /*	Fatal error: memory allocation problem;
+/*	warning: communication error;
 /*	panic: internal consistency failure.
 /* SEE ALSO
 /*	scache(3), generic session cache API
@@ -73,6 +74,8 @@ typedef struct {
 
 #define STR(x) vstring_str(x)
 
+#define SCACHE_MAX_TRIES	2
+
 /* scache_clnt_save_endp - save endpoint */
 
 static void scache_clnt_save_endp(SCACHE *scache, int endp_ttl,
@@ -83,6 +86,7 @@ static void scache_clnt_save_endp(SCACHE *scache, int endp_ttl,
     const char *myname = "scache_clnt_save_endp";
     VSTREAM *stream;
     int     status;
+    int     tries;
 
     if (msg_verbose)
 	msg_info("%s: endp=%s prop=%s fd=%d",
@@ -95,11 +99,11 @@ static void scache_clnt_save_endp(SCACHE *scache, int endp_ttl,
 	msg_panic("%s: bad endp_ttl: %d", myname, endp_ttl);
 
     /*
-     * Keep trying until we get a complete response. The session cache
-     * service is CPU bound and making the client asynchronous would just
-     * complicate the code.
+     * Try a few times before disabling the cache. We use synchronous calls;
+     * the session cache service is CPU bound and making the client
+     * asynchronous would just complicate the code.
      */
-    for (;;) {
+    for (tries = 0; sp->clnt_stream != 0 ; tries++) {
 	stream = clnt_stream_access(sp->clnt_stream);
 	errno = 0;
 	if (attr_print(stream, ATTR_FLAG_NONE,
@@ -121,14 +125,26 @@ static void scache_clnt_save_endp(SCACHE *scache, int endp_ttl,
 	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
 		msg_warn("problem talking to service %s: %m",
 			 VSTREAM_PATH(stream));
+	    /* Give up or recover. */
 	} else {
-	    if (close(fd) < 0)
-		msg_warn("%s: close(%d): %m", myname, fd);
+	    if (msg_verbose && status != 0)
+		msg_warn("%s: descriptor save failed with status %d",
+			 myname, status);
+	    break;
+	}
+	/* Give up or recover. */
+	if (tries >= SCACHE_MAX_TRIES - 1) {
+	    msg_warn("disabling connection caching");
+	    clnt_stream_free(sp->clnt_stream);
+	    sp->clnt_stream = 0;
 	    break;
 	}
 	sleep(1);				/* XXX make configurable */
 	clnt_stream_recover(sp->clnt_stream);
     }
+    /* Always close the descriptor before returning. */
+    if (close(fd) < 0)
+	msg_warn("%s: close(%d): %m", myname, fd);
 }
 
 /* scache_clnt_find_endp - look up cached session */
@@ -140,14 +156,15 @@ static int scache_clnt_find_endp(SCACHE *scache, const char *endp_label,
     const char *myname = "scache_clnt_find_endp";
     VSTREAM *stream;
     int     status;
+    int     tries;
     int     fd;
 
     /*
-     * Keep trying until we get a complete response. The session cache
-     * service is CPU bound and making the client asynchronous would just
-     * complicate the code.
+     * Try a few times before disabling the cache. We use synchronous calls;
+     * the session cache service is CPU bound and making the client
+     * asynchronous would just complicate the code.
      */
-    for (;;) {
+    for (tries = 0; sp->clnt_stream != 0 ; tries++) {
 	stream = clnt_stream_access(sp->clnt_stream);
 	errno = 0;
 	if (attr_print(stream, ATTR_FLAG_NONE,
@@ -158,36 +175,51 @@ static int scache_clnt_find_endp(SCACHE *scache, const char *endp_label,
 	    || attr_scan(stream, ATTR_FLAG_STRICT,
 			 ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
 			 ATTR_TYPE_STR, MAIL_ATTR_PROP, endp_prop,
-			 ATTR_TYPE_END) != 2
-	    || (status == 0
-		&& (
-#ifdef CANT_WRITE_BEFORE_SENDING_FD
-		    attr_print(stream, ATTR_FLAG_NONE,
-			       ATTR_TYPE_STR, MAIL_ATTR_DUMMY, "",
-			       ATTR_TYPE_END) != 0
-		    || vstream_fflush(stream) != 0
-		    || read_wait(vstream_fileno(stream),
-				 stream->timeout) < 0 ||	/* XXX */
-#endif
-		    (fd = LOCAL_RECV_FD(vstream_fileno(stream))) < 0))) {
+			 ATTR_TYPE_END) != 2) {
 	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
 		msg_warn("problem talking to service %s: %m",
 			 VSTREAM_PATH(stream));
+	    /* Give up or recover. */
+	} else if (status != 0) {
+	    if (msg_verbose)
+		msg_info("%s: not found: %s", myname, endp_label);
+	    return (-1);
+	} else if (
+#ifdef CANT_WRITE_BEFORE_SENDING_FD
+		   attr_print(stream, ATTR_FLAG_NONE,
+			      ATTR_TYPE_STR, MAIL_ATTR_DUMMY, "",
+			      ATTR_TYPE_END) != 0
+		   || vstream_fflush(stream) != 0
+		   || read_wait(vstream_fileno(stream),
+				stream->timeout) < 0 ||	/* XXX */
+#endif
+		   (fd = LOCAL_RECV_FD(vstream_fileno(stream))) < 0) {
+	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
+		msg_warn("problem talking to service %s: %m",
+			 VSTREAM_PATH(stream));
+	    /* Give up or recover. */
 	} else {
-	    break;
+#ifdef MUST_READ_AFTER_SENDING_FD
+	    (void) attr_print(stream, ATTR_FLAG_NONE,
+			      ATTR_TYPE_STR, MAIL_ATTR_DUMMY, "",
+			      ATTR_TYPE_END);
+	    (void) vstream_fflush(stream);
+#endif
+	    if (msg_verbose)
+		msg_info("%s: endp=%s prop=%s fd=%d",
+			 myname, endp_label, STR(endp_prop), fd);
+	    return (fd);
+	}
+	/* Give up or recover. */
+	if (tries >= SCACHE_MAX_TRIES - 1) {
+	    msg_warn("disabling connection caching");
+	    clnt_stream_free(sp->clnt_stream);
+	    sp->clnt_stream = 0;
+	    return (-1);
 	}
 	sleep(1);				/* XXX make configurable */
 	clnt_stream_recover(sp->clnt_stream);
     }
-
-    if (status == 0) {
-	if (msg_verbose)
-	    msg_info("%s: endp=%s prop=%s fd=%d",
-		     myname, endp_label, STR(endp_prop), fd);
-	return (fd);
-    }
-    if (msg_verbose)
-	msg_info("%s: not found: %s", myname, endp_label);
     return (-1);
 }
 
@@ -202,6 +234,7 @@ static void scache_clnt_save_dest(SCACHE *scache, int dest_ttl,
     const char *myname = "scache_clnt_save_dest";
     VSTREAM *stream;
     int     status;
+    int     tries;
 
     if (msg_verbose)
 	msg_info("%s: dest_label=%s dest_prop=%s endp_label=%s",
@@ -214,11 +247,11 @@ static void scache_clnt_save_dest(SCACHE *scache, int dest_ttl,
 	msg_panic("%s: bad dest_ttl: %d", myname, dest_ttl);
 
     /*
-     * Keep trying until we get a complete response. The session cache
-     * service is CPU bound and making the client asynchronous would just
-     * complicate the code.
+     * Try a few times before disabling the cache. We use synchronous calls;
+     * the session cache service is CPU bound and making the client
+     * asynchronous would just complicate the code.
      */
-    for (;;) {
+    for (tries = 0; sp->clnt_stream != 0 ; tries++) {
 	stream = clnt_stream_access(sp->clnt_stream);
 	errno = 0;
 	if (attr_print(stream, ATTR_FLAG_NONE,
@@ -235,7 +268,18 @@ static void scache_clnt_save_dest(SCACHE *scache, int dest_ttl,
 	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
 		msg_warn("problem talking to service %s: %m",
 			 VSTREAM_PATH(stream));
+	    /* Give up or recover. */
 	} else {
+	    if (msg_verbose && status != 0)
+		msg_warn("%s: destination save failed with status %d",
+			 myname, status);
+	    break;
+	}
+	/* Give up or recover. */
+	if (tries >= SCACHE_MAX_TRIES - 1) {
+	    msg_warn("disabling connection caching");
+	    clnt_stream_free(sp->clnt_stream);
+	    sp->clnt_stream = 0;
 	    break;
 	}
 	sleep(1);				/* XXX make configurable */
@@ -253,14 +297,15 @@ static int scache_clnt_find_dest(SCACHE *scache, const char *dest_label,
     const char *myname = "scache_clnt_find_dest";
     VSTREAM *stream;
     int     status;
+    int     tries;
     int     fd;
 
     /*
-     * Keep trying until we get a complete response. The session cache
-     * service is CPU bound and making the client asynchronous would just
-     * complicate the code.
+     * Try a few times before disabling the cache. We use synchronous calls;
+     * the session cache service is CPU bound and making the client
+     * asynchronous would just complicate the code.
      */
-    for (;;) {
+    for (tries = 0; sp->clnt_stream != 0 ; tries++) {
 	stream = clnt_stream_access(sp->clnt_stream);
 	errno = 0;
 	if (attr_print(stream, ATTR_FLAG_NONE,
@@ -272,37 +317,51 @@ static int scache_clnt_find_dest(SCACHE *scache, const char *dest_label,
 			 ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
 			 ATTR_TYPE_STR, MAIL_ATTR_PROP, dest_prop,
 			 ATTR_TYPE_STR, MAIL_ATTR_PROP, endp_prop,
-			 ATTR_TYPE_END) != 3
-	    || (status == 0
-		&& (
-#ifdef CANT_WRITE_BEFORE_SENDING_FD
-		    attr_print(stream, ATTR_FLAG_NONE,
-			       ATTR_TYPE_STR, MAIL_ATTR_DUMMY, "",
-			       ATTR_TYPE_END) != 0
-		    || vstream_fflush(stream) != 0
-		    || read_wait(vstream_fileno(stream),
-				 stream->timeout) < 0 ||	/* XXX */
-#endif
-		    (fd = LOCAL_RECV_FD(vstream_fileno(stream))) < 0))) {
+			 ATTR_TYPE_END) != 3) {
 	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
 		msg_warn("problem talking to service %s: %m",
 			 VSTREAM_PATH(stream));
+	    /* Give up or recover. */
+	} else if (status != 0) {
+	    if (msg_verbose)
+		msg_info("%s: not found: %s", myname, dest_label);
+	    return (-1);
+	} else if (
+#ifdef CANT_WRITE_BEFORE_SENDING_FD
+		   attr_print(stream, ATTR_FLAG_NONE,
+			      ATTR_TYPE_STR, MAIL_ATTR_DUMMY, "",
+			      ATTR_TYPE_END) != 0
+		   || vstream_fflush(stream) != 0
+		   || read_wait(vstream_fileno(stream),
+				stream->timeout) < 0 ||	/* XXX */
+#endif
+		   (fd = LOCAL_RECV_FD(vstream_fileno(stream))) < 0) {
+	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
+		msg_warn("problem talking to service %s: %m",
+			 VSTREAM_PATH(stream));
+	    /* Give up or recover. */
 	} else {
-	    break;
+#ifdef MUST_READ_AFTER_SENDING_FD
+	    (void) attr_print(stream, ATTR_FLAG_NONE,
+			      ATTR_TYPE_STR, MAIL_ATTR_DUMMY, "",
+			      ATTR_TYPE_END);
+	    (void) vstream_fflush(stream);
+#endif
+	    if (msg_verbose)
+		msg_info("%s: dest=%s dest_prop=%s endp_prop=%s fd=%d",
+		    myname, dest_label, STR(dest_prop), STR(endp_prop), fd);
+	    return (fd);
+	}
+	/* Give up or recover. */
+	if (tries >= SCACHE_MAX_TRIES - 1) {
+	    msg_warn("disabling connection caching");
+	    clnt_stream_free(sp->clnt_stream);
+	    sp->clnt_stream = 0;
+	    return (-1);
 	}
 	sleep(1);				/* XXX make configurable */
 	clnt_stream_recover(sp->clnt_stream);
     }
-
-    if (status == 0) {
-	if (msg_verbose)
-	    msg_info("%s: dest=%s dest_prop=%s endp_prop=%s fd=%d",
-		     myname, dest_label, STR(dest_prop), STR(endp_prop), fd);
-	return (fd);
-    }
-    if (msg_verbose)
-	msg_info("%s: not found: %s", myname, dest_label);
-
     return (-1);
 }
 
@@ -322,7 +381,8 @@ static void scache_clnt_free(SCACHE *scache)
 {
     SCACHE_CLNT *sp = (SCACHE_CLNT *) scache;
 
-    clnt_stream_free(sp->clnt_stream);
+    if (sp->clnt_stream)
+	clnt_stream_free(sp->clnt_stream);
 #ifdef CANT_WRITE_BEFORE_SENDING_FD
     vstring_free(sp->dummy);
 #endif
@@ -342,6 +402,7 @@ SCACHE *scache_clnt_create(const char *server, int idle_limit, int ttl_limit)
     sp->scache->size = scache_clnt_size;
     sp->scache->free = scache_clnt_free;
 
+    /* XXX Need flags to stop looping on ECONNREFUSED errors. */
     sp->clnt_stream = clnt_stream_create(MAIL_CLASS_PRIVATE, server,
 					 idle_limit, ttl_limit);
 #ifdef CANT_WRITE_BEFORE_SENDING_FD

@@ -316,7 +316,7 @@ static int tls_scache_decode(TLS_SCACHE *cp, const char *cache_id,
 		 cp->cache_label, cache_id, (long) entry->scache_db_version,
 		 (long) entry->openssl_version, (long) entry->timestamp,
 		 entry->flags,
-		 LEN(bin_data) - offsetof(TLS_SCACHE_ENTRY, session));
+	       (int) (LEN(bin_data) - offsetof(TLS_SCACHE_ENTRY, session)));
 
     /*
      * Other mandatory restrictions.

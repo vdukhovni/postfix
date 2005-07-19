@@ -372,7 +372,7 @@ static void send_data(SESSION *session)
 			STR(message_buffer), LEN(message_buffer),
 			STR(sender_buffer), LEN(sender_buffer),
 			STR(recipient_buffer), LEN(recipient_buffer),
-			0);
+			(char *) 0);
     netstring_fflush(session->stream);
 
     /*

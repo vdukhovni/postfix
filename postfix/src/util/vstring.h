@@ -53,7 +53,7 @@ extern VSTRING *vstring_import(char *);
   */
 #define VSTRING_SPACE(vp, len)	((vp)->vbuf.space(&(vp)->vbuf, len))
 #define vstring_str(vp)		((char *) (vp)->vbuf.data)
-#define VSTRING_LEN(vp)		((vp)->vbuf.ptr - (vp)->vbuf.data)
+#define VSTRING_LEN(vp)		((int) ((vp)->vbuf.ptr - (vp)->vbuf.data))
 #define vstring_end(vp)		((char *) (vp)->vbuf.ptr)
 #define VSTRING_TERMINATE(vp)	{ if ((vp)->vbuf.cnt <= 0) \
 					VSTRING_SPACE((vp),1); \
