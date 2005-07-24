@@ -21,7 +21,7 @@ Per-Client/User/etc. Access Control</h1>
 <h2>Postfix restriction classes</h2>
 
 <p> The Postfix SMTP server supports access restrictions such as
-reject_rbl_client or reject_unknown_client on the right-hand side
+reject_rbl_client or reject_unknown_client_hostname on the right-hand side
 of SMTP server access(5) tables. This allows you to implement
 different junk mail restrictions for different clients or users.
 </p>
@@ -43,7 +43,8 @@ care about these low-level details. </p>
 <pre>
 /etc/postfix/main.cf:
     smtpd_restriction_classes = restrictive, permissive
-    restrictive = reject_unknown_sender_domain reject_unknown_client ...
+    # With Postfix < 2.3 specify reject_unknown_client.
+    restrictive = reject_unknown_sender_domain reject_unknown_client_hostname ...
     permissive = permit
 
     smtpd_recipient_restrictions = 

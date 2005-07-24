@@ -285,6 +285,8 @@ static void vstring_extend(VBUF *bp, ssize_t incr)
      * 
      * The length overflow tests here and in vstring_alloc() should protect us
      * against all length overflow problems within vstring library routines.
+     * (The tests are redundant as long as mymalloc() and myrealloc() reject
+     * negative length parameters).
      */
     new_len = bp->len + (bp->len > incr ? bp->len : incr);
     if (new_len < 0)

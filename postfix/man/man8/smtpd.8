@@ -632,7 +632,7 @@ The numerical Postfix SMTP server response code when a remote SMTP
 client request is rejected by the "defer" restriction.
 .IP "\fBinvalid_hostname_reject_code (501)\fR"
 The numerical Postfix SMTP server response code when the client
-HELO or EHLO command parameter is rejected by the reject_invalid_hostname
+HELO or EHLO command parameter is rejected by the reject_invalid_helo_hostname
 restriction.
 .IP "\fBmaps_rbl_reject_code (554)\fR"
 The numerical Postfix SMTP server response code when a remote SMTP
@@ -640,7 +640,7 @@ client request is blocked by the reject_rbl_client, reject_rhsbl_client,
 reject_rhsbl_sender or reject_rhsbl_recipient restriction.
 .IP "\fBnon_fqdn_reject_code (504)\fR"
 The numerical Postfix SMTP server reply code when a client request
-is rejected by the reject_non_fqdn_hostname, reject_non_fqdn_sender
+is rejected by the reject_non_fqdn_helo_hostname, reject_non_fqdn_sender
 or reject_non_fqdn_recipient restriction.
 .IP "\fBreject_code (554)\fR"
 The numerical Postfix SMTP server response code when a remote SMTP
@@ -656,11 +656,11 @@ or reject_unknown_recipient_domain restriction.
 .IP "\fBunknown_client_reject_code (450)\fR"
 The numerical Postfix SMTP server response code when a client
 without valid address <=> name mapping is rejected by the
-reject_unknown_client restriction.
+reject_unknown_client_hostname restriction.
 .IP "\fBunknown_hostname_reject_code (450)\fR"
 The numerical Postfix SMTP server response code when the hostname
 specified with the HELO or EHLO command is rejected by the
-reject_unknown_hostname restriction.
+reject_unknown_helo_hostname restriction.
 .PP
 Available in Postfix version 2.0 and later:
 .IP "\fBdefault_rbl_reply (see 'postconf -d' output)\fR"

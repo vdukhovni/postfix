@@ -138,6 +138,8 @@ void    qmqpd_peer_init(QMQPD_STATE *state)
 		    msg_fatal("%s: cannot convert %s from string to binary: %s",
 			      myname, state->addr, MAI_STRERROR(aierr));
 		sa_len = res0->ai_addrlen;
+		if (sa_len > sizeof(ss))
+		    sa_len = sizeof(ss);
 		memcpy((char *) sa, res0->ai_addr, sa_len);
 		freeaddrinfo(res0);
 	    }

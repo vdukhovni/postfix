@@ -20,9 +20,9 @@
 /*	QMGR_TRANSPORT *transport;
 /*	const char *name;
 /*
-/*	void	qmgr_queue_throttle(queue, del_stat)
+/*	void	qmgr_queue_throttle(queue, dsn)
 /*	QMGR_QUEUE *queue;
-/*	DEL_STAT *del_stat;
+/*	DSN	*dsn;
 /*
 /*	void	qmgr_queue_unthrottle(queue)
 /*	QMGR_QUEUE *queue;

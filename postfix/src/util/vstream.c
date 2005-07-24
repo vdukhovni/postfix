@@ -65,7 +65,7 @@
 /*
 /*	ssize_t	vstream_fwrite(stream, buf, len)
 /*	VSTREAM	*stream;
-/*	char	*buf;
+/*	const char *buf;
 /*	ssize_t	len;
 /*
 /*	void	vstream_control(stream, name, ...)

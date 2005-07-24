@@ -584,7 +584,7 @@
 /*	client request is rejected by the "defer" restriction.
 /* .IP "\fBinvalid_hostname_reject_code (501)\fR"
 /*	The numerical Postfix SMTP server response code when the client
-/*	HELO or EHLO command parameter is rejected by the reject_invalid_hostname
+/*	HELO or EHLO command parameter is rejected by the reject_invalid_helo_hostname
 /*	restriction.
 /* .IP "\fBmaps_rbl_reject_code (554)\fR"
 /*	The numerical Postfix SMTP server response code when a remote SMTP
@@ -592,7 +592,7 @@
 /*	reject_rhsbl_sender or reject_rhsbl_recipient restriction.
 /* .IP "\fBnon_fqdn_reject_code (504)\fR"
 /*	The numerical Postfix SMTP server reply code when a client request
-/*	is rejected by the reject_non_fqdn_hostname, reject_non_fqdn_sender
+/*	is rejected by the reject_non_fqdn_helo_hostname, reject_non_fqdn_sender
 /*	or reject_non_fqdn_recipient restriction.
 /* .IP "\fBreject_code (554)\fR"
 /*	The numerical Postfix SMTP server response code when a remote SMTP
@@ -608,11 +608,11 @@
 /* .IP "\fBunknown_client_reject_code (450)\fR"
 /*	The numerical Postfix SMTP server response code when a client
 /*	without valid address <=> name mapping is rejected by the
-/*	reject_unknown_client restriction.
+/*	reject_unknown_client_hostname restriction.
 /* .IP "\fBunknown_hostname_reject_code (450)\fR"
 /*	The numerical Postfix SMTP server response code when the hostname
 /*	specified with the HELO or EHLO command is rejected by the
-/*	reject_unknown_hostname restriction.
+/*	reject_unknown_helo_hostname restriction.
 /* .PP
 /*	Available in Postfix version 2.0 and later:
 /* .IP "\fBdefault_rbl_reply (see 'postconf -d' output)\fR"
@@ -1211,7 +1211,9 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	if (xclient_allowed)
 	    ENQUEUE_FIX_REPLY(state, reply_buf, XCLIENT_CMD
 			      " " XCLIENT_NAME " " XCLIENT_ADDR
-			      " " XCLIENT_PROTO " " XCLIENT_HELO);
+			      " " XCLIENT_PROTO " " XCLIENT_HELO
+			      " " XCLIENT_REVERSE_NAME
+			      " " XCLIENT_FORWARD_NAME);
     if ((discard_mask & EHLO_MASK_XFORWARD) == 0)
 	if (xforward_allowed)
 	    ENQUEUE_FIX_REPLY(state, reply_buf, XFORWARD_CMD
@@ -2590,7 +2592,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     const char *bare_value;
     char   *attr_name;
     int     update_namaddr = 0;
-    int     peer_code;
+    int     name_status;
     static NAME_CODE peer_codes[] = {
 	XCLIENT_UNAVAILABLE, SMTPD_PEER_CODE_PERM,
 	XCLIENT_TEMPORARY, SMTPD_PEER_CODE_TEMP,
@@ -2646,12 +2648,13 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	printable(attr_value, '?');
 
 	/*
-	 * NAME=substitute SMTP client hostname. Also updates the client
-	 * hostname lookup status code.
+	 * NAME=substitute SMTP client hostname (and reverse/forward name, in
+	 * case of success). Also updates the client hostname lookup status
+	 * code.
 	 */
 	if (STREQ(attr_name, XCLIENT_NAME)) {
-	    peer_code = name_code(peer_codes, NAME_CODE_FLAG_NONE, attr_value);
-	    if (peer_code != SMTPD_PEER_CODE_OK) {
+	    name_status = name_code(peer_codes, NAME_CODE_FLAG_NONE, attr_value);
+	    if (name_status != SMTPD_PEER_CODE_OK) {
 		attr_value = CLIENT_NAME_UNKNOWN;
 	    } else {
 		if (!valid_hostname(attr_value, DONT_GRIPE)) {
@@ -2661,10 +2664,60 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		    return (-1);
 		}
 	    }
-	    state->peer_code = peer_code;
+	    state->name_status = name_status;
 	    UPDATE_STR(state->name, attr_value);
 	    update_namaddr = 1;
+	    if (name_status == SMTPD_PEER_CODE_OK) {
+		UPDATE_STR(state->reverse_name, attr_value);
+		state->reverse_name_status = name_status;
+#ifdef FORWARD_CLIENT_NAME
+		UPDATE_STR(state->forward_name, attr_value);
+		state->forward_name_status = name_status;
+#endif
+	    }
 	}
+
+	/*
+	 * REVERSE_NAME=substitute SMTP client reverse hostname. Also updates
+	 * the client reverse hostname lookup status code.
+	 */
+	if (STREQ(attr_name, XCLIENT_REVERSE_NAME)) {
+	    name_status = name_code(peer_codes, NAME_CODE_FLAG_NONE, attr_value);
+	    if (name_status != SMTPD_PEER_CODE_OK) {
+		attr_value = CLIENT_NAME_UNKNOWN;
+	    } else {
+		if (!valid_hostname(attr_value, DONT_GRIPE)) {
+		    state->error_mask |= MAIL_ERROR_PROTOCOL;
+		    smtpd_chat_reply(state, "501 5.5.4 Bad %s syntax: %s",
+				     XCLIENT_REVERSE_NAME, attr_value);
+		    return (-1);
+		}
+	    }
+	    state->reverse_name_status = name_status;
+	    UPDATE_STR(state->reverse_name, attr_value);
+	}
+
+	/*
+	 * FORWARD_NAME=substitute SMTP client forward hostname. Also updates
+	 * the client forward hostname lookup status code.
+	 */
+#ifdef FORWARD_CLIENT_NAME
+	if (STREQ(attr_name, XCLIENT_FORWARD_NAME)) {
+	    name_status = name_code(peer_codes, NAME_CODE_FLAG_NONE, attr_value);
+	    if (name_status != SMTPD_PEER_CODE_OK) {
+		attr_value = CLIENT_NAME_UNKNOWN;
+	    } else {
+		if (!valid_hostname(attr_value, DONT_GRIPE)) {
+		    state->error_mask |= MAIL_ERROR_PROTOCOL;
+		    smtpd_chat_reply(state, "501 5.5.4 Bad %s syntax: %s",
+				     XCLIENT_FORWARD_NAME, attr_value);
+		    return (-1);
+		}
+	    }
+	    state->forward_name_status = name_status;
+	    UPDATE_STR(state->forward_name, attr_value);
+	}
+#endif
 
 	/*
 	 * ADDR=substitute SMTP client network address.

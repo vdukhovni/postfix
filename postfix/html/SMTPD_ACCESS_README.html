@@ -172,7 +172,8 @@ described in the <a href="postconf.5.html">postconf(5)</a> manual page. </p>
     <a href="postconf.5.html#smtpd_client_restrictions">smtpd_client_restrictions</a> = <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>, reject
 
     # Don't talk to mail systems that don't know their own hostname.
-    <a href="postconf.5.html#smtpd_helo_restrictions">smtpd_helo_restrictions</a> = <a href="postconf.5.html#reject_unknown_hostname">reject_unknown_hostname</a>
+    # With Postfix < 2.3, specify <a href="postconf.5.html#reject_unknown_helo_hostname">reject_unknown_hostname</a>.
+    <a href="postconf.5.html#smtpd_helo_restrictions">smtpd_helo_restrictions</a> = <a href="postconf.5.html#reject_unknown_helo_hostname">reject_unknown_helo_hostname</a>
 
     # Don't accept mail from domains that don't exist.
     <a href="postconf.5.html#smtpd_sender_restrictions">smtpd_sender_restrictions</a> = <a href="postconf.5.html#reject_unknown_sender_domain">reject_unknown_sender_domain</a>
@@ -307,7 +308,7 @@ in too much access permission: </p>
 2     <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> = 
 3         <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>
 4         <a href="postconf.5.html#check_helo_access">check_helo_access</a> hash:/etc/postfix/helo_access
-5         <a href="postconf.5.html#reject_unknown_hostname">reject_unknown_hostname</a>
+5         <a href="postconf.5.html#reject_unknown_helo_hostname">reject_unknown_helo_hostname</a>
 6         <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>
 7 
 8 /etc/postfix/helo_access:
@@ -315,7 +316,8 @@ in too much access permission: </p>
 </pre>
 
 <p> Line 5 rejects mail from hosts that don't specify a proper
-hostname in the HELO command. Lines 4 and 9 make an exception to
+hostname in the HELO command (with Postfix < 2.3, specify
+<a href="postconf.5.html#reject_unknown_helo_hostname">reject_unknown_hostname</a>). Lines 4 and 9 make an exception to
 allow mail from some machine that announces itself with "HELO
 localhost.localdomain".  </p>
 

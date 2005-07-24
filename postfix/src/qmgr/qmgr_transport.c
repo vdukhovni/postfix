@@ -18,9 +18,9 @@
 /*	QMGR_TRANSPORT *transport;
 /*	void	(*notify)(QMGR_TRANSPORT *transport, VSTREAM *fp);
 /*
-/*	void	qmgr_transport_throttle(transport, del_stat)
+/*	void	qmgr_transport_throttle(transport, dsn)
 /*	QMGR_TRANSPORT *transport;
-/*	DEL_STAT *del_stat;
+/*	DSN	*dsn;
 /*
 /*	void	qmgr_transport_unthrottle(transport)
 /*	QMGR_TRANSPORT *transport;

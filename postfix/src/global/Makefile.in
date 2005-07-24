@@ -27,7 +27,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	ehlo_mask.c \
 	wildcard_inet_addr.c valid_mailhost_addr.c dsn_util.c dsn_mask.c \
 	dsn_attr_map.c dsn.c dsn_buf.c rcpt_buf.c rcpt_print.c dsn_print.c \
-	dsb_scan.c
+	dsb_scan.c mail_conf_long.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o debug_peer.o debug_process.o defer.o db_common.o \
@@ -56,7 +56,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	ehlo_mask.o \
 	wildcard_inet_addr.o valid_mailhost_addr.o dsn_util.o dsn_mask.o \
 	dsn_attr_map.o dsn.o dsn_buf.o rcpt_buf.o rcpt_print.o dsn_print.o \
-	dsb_scan.o
+	dsb_scan.o mail_conf_long.o
 HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	canon_addr.h cfg_parser.h cleanup_user.h clnt_stream.h config.h \
 	debug_peer.h debug_process.h defer.h deliver_completed.h \
@@ -968,6 +968,17 @@ mail_conf_int.o: ../../include/vstream.h
 mail_conf_int.o: ../../include/vstring.h
 mail_conf_int.o: mail_conf.h
 mail_conf_int.o: mail_conf_int.c
+mail_conf_long.o: ../../include/argv.h
+mail_conf_long.o: ../../include/dict.h
+mail_conf_long.o: ../../include/msg.h
+mail_conf_long.o: ../../include/mymalloc.h
+mail_conf_long.o: ../../include/stringops.h
+mail_conf_long.o: ../../include/sys_defs.h
+mail_conf_long.o: ../../include/vbuf.h
+mail_conf_long.o: ../../include/vstream.h
+mail_conf_long.o: ../../include/vstring.h
+mail_conf_long.o: mail_conf.h
+mail_conf_long.o: mail_conf_long.c
 mail_conf_raw.o: ../../include/msg.h
 mail_conf_raw.o: ../../include/mymalloc.h
 mail_conf_raw.o: ../../include/sys_defs.h

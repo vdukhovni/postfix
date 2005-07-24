@@ -159,8 +159,10 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_ENC_8BIT	"8bit"	/* 8BITMIME equivalent */
 #define MAIL_ATTR_ENC_7BIT	"7bit"	/* 7BIT equivalent */
 #define MAIL_ATTR_ENC_NONE	""	/* encoding unknown */
-#define MAIL_ATTR_CLIENT	"client"	/* client name[addr] */
+#define MAIL_ATTR_CLIENT	"client"/* client name[addr] */
 #define MAIL_ATTR_CLIENT_NAME	"client_name"	/* client hostname */
+#define MAIL_ATTR_REVERSE_CLIENT_NAME "reverse_client_name"
+#define MAIL_ATTR_FORWARD_CLIENT_NAME "forward_client_name"
 #define MAIL_ATTR_CLIENT_ADDR	"client_address"	/* client address */
 #define MAIL_ATTR_HELO_NAME	"helo_name"	/* SMTP helo name */
 #define MAIL_ATTR_PROTO_NAME	"protocol_name"	/* SMTP/ESMTP/QMQP/... */
@@ -174,6 +176,8 @@ extern char *mail_pathname(const char *, const char *);
   */
 #define XCLIENT_CMD		"XCLIENT"	/* XCLIENT command */
 #define XCLIENT_NAME		"NAME"		/* client name */
+#define XCLIENT_REVERSE_NAME	"REVERSE_NAME"	/* reverse client name */
+#define XCLIENT_FORWARD_NAME	"FORWARD_NAME"	/* forward client name */
 #define XCLIENT_ADDR		"ADDR"		/* client address */
 #define XCLIENT_PROTO		"PROTO"		/* client protocol */
 #define XCLIENT_HELO		"HELO"		/* client helo */

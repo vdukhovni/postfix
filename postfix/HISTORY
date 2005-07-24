@@ -10969,7 +10969,7 @@ Apologies for any names omitted.
 
 20050706
 
-	Robustness: the connection cache client now disables caching
+	Robustness: the SMTP client now disables connection caching
 	when it is unable to communicate with the scache(8) server,
 	instead of looping forever. File: global/scache_clnt.c.
 
@@ -11028,7 +11028,34 @@ Apologies for any names omitted.
 	Bugfix: the smtpd_sasl_authenticated_header code did not
 	check if SASL was actually enabled. File: smtpd/smtpd.c.
 
+20050720
+
+	Feature: reverse client hostname. This is set at connection
+	time with information from the SMTP client address->name
+	mapping, and can be overruled with the REVERSE_NAME attribute
+	in the XCLIENT command. File: smtpd/smtpd_peer.c.
+
+	Cleanup: renaming of several confusing restriction names:
+	reject_unknown_client -> reject_unknown_client_hostname,
+	reject_unknown_hostname -> reject_unknown_helo_hostname,
+	reject_invalid_hostname -> reject_invalid_helo_hostname,
+	and reject_non_fqdn_hostname -> reject_non_fqdn_helo_hostname.
+	The old names are still recognized and documented.  Files:
+	global/mail_params.h, smtpd/smtpd.c, smtpd/smtpd_check.c.
+
+	Feature: reject_unknown_reverse_client_hostname. This rejects
+	clients that have no address to name mapping (unlike the
+	reject_unknown_client_hostname feature which requires that
+	the address->name and name->address mappings resolve to the
+	client IP address).  Files: global/mail_params.h,
+	smtpd/smtpd_peer.c, smtpd/smtpd.c, smtpd/smtpd_check.c.
+
 Open problems:
+
+	Med: when the cleanup server bounces local mail that should
+	be content inspected, the resulting DSN should be content
+	inspected, otherwise a local user can bypass content
+	inspection.
 
 	Look for systems with XPG basename() declared in <libgen.h>,
 	and prepare for phasing out the Postfix-supplied one.

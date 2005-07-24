@@ -80,6 +80,7 @@ sender=foo@bar.tld
 recipient=bar@foo.tld
 client_address=1.2.3.4
 client_name=another.domain.tld
+reverse_client_name=another.domain.tld
 instance=123.456.7
 sasl_method=plain
 sasl_username=you
@@ -114,6 +115,11 @@ size=12345
     <li> <p> The client address is an IPv4 dotted quad in the form
     1.2.3.4 or it is an IPv6 address in the form 1:2:3::4:5:6.
     </p>
+
+    <li> <p> For a discussion of the differences between reverse
+    and verified client_name information, see the
+    reject_unknown_client_hostname discussion in the postconf(5)
+    document.  </p>
 
     <li> <p> An attribute name must not contain "=", null or newline,
     and an attribute value must not contain null or newline. </p>

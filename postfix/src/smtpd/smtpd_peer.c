@@ -17,28 +17,69 @@
 /*	Where information is unavailable, the name and/or address
 /*	are set to "unknown".
 /*
+/*	This module uses the local name service via getaddrinfo()
+/*	and getnameinfo(). It does not query the DNS directly.
+/*
 /*	smtpd_peer_init() updates the following fields:
 /* .IP name
-/*	The client hostname. An unknown name is represented by the
-/*	string "unknown". This includes names that could not be
-/*	verified with forward DNS lookups.
+/*	The verified client hostname. This name is represented by
+/*	the string "unknown" when 1) the address->name lookup failed,
+/*	2) the name->address mapping fails, or 3) the name->address
+/*	does not produce the client IP address.
+/* .IP reverse_name
+/*	The unverified client hostname as found with address->name
+/*	lookup; it is not verified for consistency with the client
+/*	IP address result from name->address lookup.
+/* .IP forward_name
+/*	The unverified client hostname as found with address->name
+/*	lookup followed by name->address lookup; it is not verified
+/*	for consistency with the result from address->name lookup.
+/*	For example, when the address->name lookup produces as
+/*	hostname an alias, the name->address lookup will produce
+/*	as hostname the expansion of that alias, so that the two
+/*	lookups produce different names.
 /* .IP addr
 /*	Printable representation of the client address.
 /* .IP namaddr
 /*	String of the form: "name[addr]".
-/* .IP peer_code
-/*	The peer_code result field specifies how the client name
+/* .IP rfc_addr
+/*      String of the form "ipv4addr" or "ipv6:ipv6addr" for use
+/*	in Received: message headers.
+/* .IP name_status
+/*	The name_status result field specifies how the name
 /*	information should be interpreted:
 /* .RS
 /* .IP 2
-/*	Both name lookup and name verification succeeded.
+/*	The address->name lookup and name->address lookup produced
+/*	the client IP address.
 /* .IP 4
-/*	The name lookup or name verification failed with a recoverable
-/*	error (no address->name mapping or no name->address mapping).
+/*	The address->name lookup or name->address lookup failed
+/*	with a recoverable error.
 /* .IP 5
-/*	The name lookup or verification failed with an unrecoverable
-/*	error (no address->name mapping, bad hostname syntax, no
-/*	name->address mapping, client address not listed for hostname).
+/*	The address->name lookup or name->address lookup failed
+/*	with an unrecoverable error, or the result did not match
+/*	the client IP address.
+/* .RE
+/* .IP reverse_name_status
+/*	The reverse_name_status result field specifies how the
+/*	reverse_name information should be interpreted:
+/* .RS .IP 2
+/*	The address->name lookup succeeded.
+/* .IP 4
+/*	The address->name lookup failed with a recoverable error.
+/* .IP 5
+/*	The address->name lookup failed with an unrecoverable error.
+/* .RE .IP forward_name_status
+/*	The forward_name_status result field specifies how the
+/*	forward_name information should be interpreted:
+/* .RS .IP 2
+/*	The address->name and name->address lookup succeeded.
+/* .IP 4
+/*	The address->name lookup or name->address failed with a
+/*	recoverable error.
+/* .IP 5
+/*	The address->name lookup or name->address failed with an
+/*	unrecoverable error.
 /* .RE
 /* .PP
 /*	smtpd_peer_reset() releases memory allocated by smtpd_peer_init().
@@ -106,9 +147,17 @@ void    smtpd_peer_init(SMTPD_STATE *state)
      */
     if (errno == ECONNRESET || errno == ECONNABORTED) {
 	state->name = mystrdup(CLIENT_NAME_UNKNOWN);
+	state->reverse_name = mystrdup(CLIENT_NAME_UNKNOWN);
+#ifdef FORWARD_CLIENT_NAME
+	state->forward_name = mystrdup(CLIENT_NAME_UNKNOWN);
+#endif
 	state->addr = mystrdup(CLIENT_ADDR_UNKNOWN);
 	state->rfc_addr = mystrdup(CLIENT_ADDR_UNKNOWN);
-	state->peer_code = SMTPD_PEER_CODE_PERM;
+	state->name_status = SMTPD_PEER_CODE_PERM;
+	state->reverse_name_status = SMTPD_PEER_CODE_PERM;
+#ifdef FORWARD_CLIENT_NAME
+	state->forward_name_status = SMTPD_PEER_CODE_PERM;
+#endif
     }
 
     /*
@@ -153,6 +202,8 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 		    msg_fatal("%s: cannot convert %s from string to binary: %s",
 			      myname, state->addr, MAI_STRERROR(aierr));
 		sa_len = res0->ai_addrlen;
+		if (sa_len > sizeof(state->sockaddr))
+		    sa_len = sizeof(state->sockaddr);
 		memcpy((char *) sa, res0->ai_addr, sa_len);
 		freeaddrinfo(res0);		/* 200412 */
 	    }
@@ -197,20 +248,32 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 #define REJECT_PEER_NAME(state, code) { \
 	myfree(state->name); \
 	state->name = mystrdup(CLIENT_NAME_UNKNOWN); \
-	state->peer_code = code; \
+	state->name_status = code; \
     }
 
 	if ((aierr = sockaddr_to_hostname(sa, sa_len, &client_name,
 					  (MAI_SERVNAME_STR *) 0, 0)) != 0) {
 	    state->name = mystrdup(CLIENT_NAME_UNKNOWN);
-	    state->peer_code = (TEMP_AI_ERROR(aierr) ?
-				SMTPD_PEER_CODE_TEMP : SMTPD_PEER_CODE_PERM);
+	    state->reverse_name = mystrdup(CLIENT_NAME_UNKNOWN);
+#ifdef FORWARD_CLIENT_NAME
+	    state->forward_name = mystrdup(CLIENT_NAME_UNKNOWN);
+#endif
+	    state->name_status = (TEMP_AI_ERROR(aierr) ?
+			       SMTPD_PEER_CODE_TEMP : SMTPD_PEER_CODE_PERM);
+	    state->reverse_name_status = (TEMP_AI_ERROR(aierr) ?
+			       SMTPD_PEER_CODE_TEMP : SMTPD_PEER_CODE_PERM);
+#ifdef FORWARD_CLIENT_NAME
+	    state->forward_name_status = (TEMP_AI_ERROR(aierr) ?
+			       SMTPD_PEER_CODE_TEMP : SMTPD_PEER_CODE_PERM);
+#endif
 	} else {
 	    struct addrinfo *res0;
 	    struct addrinfo *res;
 
 	    state->name = mystrdup(client_name.buf);
-	    state->peer_code = SMTPD_PEER_CODE_OK;
+	    state->reverse_name = mystrdup(client_name.buf);
+	    state->name_status = SMTPD_PEER_CODE_OK;
+	    state->reverse_name_status = SMTPD_PEER_CODE_OK;
 
 	    /*
 	     * Reject the hostname if it does not list the peer address.
@@ -222,9 +285,23 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 	    if (aierr) {
 		msg_warn("%s: hostname %s verification failed: %s",
 			 state->addr, state->name, MAI_STRERROR(aierr));
+#ifdef FORWARD_CLIENT_NAME
+		state->forward_name = mystrdup(CLIENT_NAME_UNKNOWN);
+		state->forward_name_status = (TEMP_AI_ERROR(aierr) ?
+			       SMTPD_PEER_CODE_TEMP : SMTPD_PEER_CODE_PERM);
+#endif
 		REJECT_PEER_NAME(state, (TEMP_AI_ERROR(aierr) ?
 			      SMTPD_PEER_CODE_TEMP : SMTPD_PEER_CODE_PERM));
 	    } else {
+#ifdef FORWARD_CLIENT_NAME
+		if (res0) {
+		    state->forward_name = mystrdup(res0->ai_canonname);
+		    state->forward_name_status = SMTPD_PEER_CODE_OK;
+		} else {
+		    state->forward_name = mystrdup(CLIENT_NAME_UNKNOWN);
+		    state->forward_name_status = SMTPD_PEER_CODE_PERM;
+		}
+#endif
 		for (res = res0; /* void */ ; res = res->ai_next) {
 		    if (res == 0) {
 			msg_warn("%s: address not listed for hostname %s",
@@ -251,9 +328,17 @@ void    smtpd_peer_init(SMTPD_STATE *state)
      */
     else {
 	state->name = mystrdup("localhost");
+	state->reverse_name = mystrdup("localhost");
+#ifdef FORWARD_CLIENT_NAME
+	state->forward_name = mystrdup("localhost");
+#endif
 	state->addr = mystrdup("127.0.0.1");	/* XXX bogus. */
 	state->rfc_addr = mystrdup("127.0.0.1");/* XXX bogus. */
-	state->peer_code = SMTPD_PEER_CODE_OK;
+	state->name_status = SMTPD_PEER_CODE_OK;
+	state->reverse_name_status = SMTPD_PEER_CODE_OK;
+#ifdef FORWARD_CLIENT_NAME
+	state->forward_name_status = SMTPD_PEER_CODE_OK;
+#endif
     }
 
     /*
@@ -268,6 +353,10 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 void    smtpd_peer_reset(SMTPD_STATE *state)
 {
     myfree(state->name);
+    myfree(state->reverse_name);
+#ifdef FORWARD_CLIENT_NAME
+    myfree(state->forward_name);
+#endif
     myfree(state->addr);
     myfree(state->namaddr);
     myfree(state->rfc_addr);

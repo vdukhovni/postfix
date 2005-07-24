@@ -1586,6 +1586,9 @@ extern int var_defer_code;
 #define SLEEP			"sleep"
 
 #define REJECT_UNKNOWN_CLIENT	"reject_unknown_client"
+#define REJECT_UNKNOWN_CLIENT_HOSTNAME "reject_unknown_client_hostname"
+#define REJECT_UNKNOWN_REVERSE_HOSTNAME "reject_unknown_reverse_client_hostname"
+#define REJECT_UNKNOWN_FORWARD_HOSTNAME "reject_unknown_forward_client_hostname"
 #define VAR_UNK_CLIENT_CODE	"unknown_client_reject_code"
 #define DEF_UNK_CLIENT_CODE	450
 extern int var_unk_client_code;
@@ -1596,16 +1599,19 @@ extern int var_unk_client_code;
 
 #define PERMIT_NAKED_IP_ADDR	"permit_naked_ip_address"
 
+#define REJECT_INVALID_HELO_HOSTNAME	"reject_invalid_helo_hostname"
 #define REJECT_INVALID_HOSTNAME	"reject_invalid_hostname"
 #define VAR_BAD_NAME_CODE	"invalid_hostname_reject_code"
 #define DEF_BAD_NAME_CODE	501	/* SYNTAX */
 extern int var_bad_name_code;
 
+#define REJECT_UNKNOWN_HELO_HOSTNAME "reject_unknown_helo_hostname"
 #define REJECT_UNKNOWN_HOSTNAME	"reject_unknown_hostname"
 #define VAR_UNK_NAME_CODE	"unknown_hostname_reject_code"
 #define DEF_UNK_NAME_CODE	450
 extern int var_unk_name_code;
 
+#define REJECT_NON_FQDN_HELO_HOSTNAME "reject_non_fqdn_helo_hostname"
 #define REJECT_NON_FQDN_HOSTNAME "reject_non_fqdn_hostname"
 #define REJECT_NON_FQDN_SENDER	"reject_non_fqdn_sender"
 #define REJECT_NON_FQDN_RCPT	"reject_non_fqdn_recipient"

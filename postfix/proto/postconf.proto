@@ -978,7 +978,19 @@ The template is subject to exactly one level of $name substitution:
 
 <dt><b>$client_name</b></dt>
 
-<dd>The client hostname or "unknown". </dd>
+<dd>The client hostname or "unknown". See reject_unknown_client_hostname
+for more details. </dd>
+
+<dt><b>$reverse_client_name</b></dt>
+
+<dd>The client hostname from address-&gt;name lookup, or "unknown".
+See reject_unknown_reverse_client_hostname for more details. </dd>
+
+#<dt><b>$forward_client_name</b></dt>
+#
+#<dd>The client hostname from address-&gt;name lookup followed by
+#name-&gt;address lookup, or "unknown".  See
+#reject_unknown_forward_client_hostname for more details. </dd>
 
 <dt><b>$helo_name</b></dt>
 
@@ -1121,8 +1133,8 @@ Do not change this unless you have a complete understanding of RFC 821.
 %PARAM defer_transports 
 
 <p>
-The names of message delivery transports that should not be delivered
-to unless someone issues "<b>sendmail -q</b>" or equivalent. Specify zero
+The names of message delivery transports that should not deliver mail
+unless someone issues "<b>sendmail -q</b>" or equivalent. Specify zero
 or more names of mail delivery transports names that appear in the
 first field of master.cf.
 </p>
@@ -1545,7 +1557,7 @@ home directory.
 </p>
 
 <p>
-Specify a pathname ending "/" for qmail-style delivery.
+Specify a pathname ending in "/" for qmail-style delivery.
 </p>
 
 <p>
@@ -1751,7 +1763,7 @@ block all mail to a site.
 
 <p>
 The numerical Postfix SMTP server response code when the client
-HELO or EHLO command parameter is rejected by the reject_invalid_hostname
+HELO or EHLO command parameter is rejected by the reject_invalid_helo_hostname
 restriction.
 </p>
 
@@ -4476,14 +4488,43 @@ any A record under <i>rbl_domain</i>. See the reject_rbl_client
 description above for additional RBL related configuration parameters.
 This feature is available in Postfix 2.0 and later.  </dd>
 
-<dt><b><a name="reject_unknown_client">reject_unknown_client</a></b></dt>
+<dt><b><a name="reject_unknown_client_hostname">reject_unknown_client_hostname</a></b> (with Postfix &lt; 2.3: reject_unknown_client)</dt>
 
-<dd>Reject the request when the client IP address has no PTR (address
-to name) record in the DNS, or when the PTR record does not have
-a matching A (name to address) record. <br> The unknown_client_reject_code
-parameter specifies the response code for rejected requests (default:
-450). The reply is always 450 in case the hostname lookup failed
-due to a temporary problem. </dd>
+<dd>Reject the request when 1) the client IP address-&gt;name mapping
+fails, 2) the name-&gt;address mapping fails, or 3) the name-&gt;address
+mapping does not match the client IP address.  <br> This is a
+stronger restriction than the reject_unknown_reverse_client_hostname
+feature, which triggers only under condition 1) above. <br> The
+unknown_client_reject_code parameter specifies the response code
+for rejected requests (default: 450). The reply is always 450 in
+case the address-&gt;name or name-&gt;address lookup failed due to
+a temporary problem. </dd>
+
+<dt><b><a name="reject_unknown_reverse_client_hostname">reject_unknown_reverse_client_hostname</a></b></dt>
+
+<dd>Reject the request when the client IP address has no address-&gt;name
+mapping. <br> This is a weaker restriction than the
+reject_unknown_client_hostname feature, which requires not only
+that the address-&gt;name and name-&gt;address mappings exist, but
+also that the two mappings reproduce the client IP address.  <br>
+The unknown_client_reject_code parameter specifies the response
+code for rejected requests (default: 450).  The reply is always 450
+in case the address-&gt;name lookup failed due to a temporary
+problem. <br> This feature is available in Postfix version 2.3 and
+later.  </dd>
+
+#<dt><b><a name="reject_unknown_forward_client_hostname">reject_unknown_forward_client_hostname</a></b></dt>
+#
+#<dd>Reject the request when the client IP address has no address-&gt;name
+#or name -&gt;address mapping. <br> This is a weaker restriction
+#than the reject_unknown_client_hostname feature, which requires not
+#only that the address-&gt;name and name-&gt;address mappings exist,
+#but also that the two mappings reproduce the client IP address.
+#<br> The unknown_client_reject_code parameter specifies the response
+#code for rejected requests (default: 450).  The reply is always 450
+#in case the address-&gt;name or name -&gt;address lookup failed due
+#to a temporary problem. <br> This feature is available in Postfix
+#version 2.3 and later.  </dd>
 
 </dl>
 
@@ -4607,7 +4648,7 @@ Example:
 </p>
 
 <pre>
-smtpd_client_restrictions = permit_mynetworks, reject_unknown_client
+smtpd_client_restrictions = permit_mynetworks, reject_unknown_client_hostname
 </pre>
 
 %CLASS smtpd-tarpit Tarpit features
@@ -4839,24 +4880,24 @@ Note: a result of "OK" is not allowed for safety reasons. Instead,
 use DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later.  </dd>
 
-<dt><b><a name="reject_invalid_hostname">reject_invalid_hostname</a></b></dt>
+<dt><b><a name="reject_invalid_helo_hostname">reject_invalid_helo_hostname</a></b> (with Postfix &lt; 2.3: reject_invalid_hostname)</dt>
 
 <dd>Reject the request when the HELO or EHLO hostname syntax is
 invalid. <br> The invalid_hostname_reject_code specifies the response
 code to rejected requests (default: 501).</dd>
 
-<dt><b><a name="reject_non_fqdn_hostname">reject_non_fqdn_hostname</a></b></dt>
+<dt><b><a name="reject_non_fqdn_helo_hostname">reject_non_fqdn_helo_hostname</a></b> (with Postfix &lt; 2.3: reject_non_fqdn_hostname)</dt>
 
 <dd>Reject the request when the HELO or EHLO hostname is not in
 fully-qualified domain form, as required by the RFC. <br> The
 non_fqdn_reject_code parameter specifies the response code to
 rejected requests (default: 504).</dd>
 
-<dt><b><a name="reject_unknown_hostname">reject_unknown_hostname</a></b></dt>
+<dt><b><a name="reject_unknown_helo_hostname">reject_unknown_helo_hostname</a></b> (with Postfix &lt; 2.3: reject_unknown_hostname)</dt>
 
-<dd>Reject the request when the HELO or EHLO hostname has no DNS
-A or MX record. <br> The unknown_hostname_reject_code specifies
-the response code to rejected requests (default: 450).</dd>
+<dd>Reject the request when the HELO or EHLO hostname has no DNS A
+or MX record. <br> The unknown_hostname_reject_code specifies the
+response code to rejected requests (default: 450). </dd>
 
 </dl>
 
@@ -4886,8 +4927,8 @@ Examples:
 </p>
 
 <pre>
-smtpd_helo_restrictions = permit_mynetworks, reject_invalid_hostname
-smtpd_helo_restrictions = permit_mynetworks, reject_unknown_hostname
+smtpd_helo_restrictions = permit_mynetworks, reject_invalid_helo_hostname
+smtpd_helo_restrictions = permit_mynetworks, reject_unknown_helo_hostname
 </pre>
 
 %PARAM smtpd_history_flush_threshold 100
@@ -5115,7 +5156,7 @@ address. <br> The unknown_address_reject_code parameter specifies
 the response code for rejected requests (default: 450).  The response
 is always 450 in case of a temporary DNS error.</dd>
 
-<dt><b><a name="reject_unlisted_recipient">reject_unlisted_recipient</a></b> (Postfix 2.0 name: check_recipient_maps)</dt>
+<dt><b><a name="reject_unlisted_recipient">reject_unlisted_recipient</a></b> (with Postfix 2.0: check_recipient_maps)</dt>
 
 <dd> Reject the request when the RCPT TO address is not listed in
 the list of valid recipients for its domain class. See the
@@ -5694,7 +5735,7 @@ Do not change this unless you have a complete understanding of RFC 821.
 <p>
 The numerical Postfix SMTP server response code when a client
 without valid address &lt;=&gt; name mapping is rejected by the
-reject_unknown_client restriction. The SMTP server always replies
+reject_unknown_client_hostname restriction. The SMTP server always replies
 with 450 when the mapping failed due to a temporary error condition.
 </p>
 
@@ -5707,7 +5748,7 @@ Do not change this unless you have a complete understanding of RFC 821.
 <p>
 The numerical Postfix SMTP server response code when the hostname
 specified with the HELO or EHLO command is rejected by the
-reject_unknown_hostname restriction.
+reject_unknown_helo_hostname restriction.
 </p>
 
 <p>
@@ -6757,7 +6798,7 @@ local(8) aliases(5) database.
 
 <p>
 The numerical Postfix SMTP server reply code when a client request
-is rejected by the reject_non_fqdn_hostname, reject_non_fqdn_sender
+is rejected by the reject_non_fqdn_helo_hostname, reject_non_fqdn_sender
 or reject_non_fqdn_recipient restriction.
 </p>
 
@@ -7798,7 +7839,7 @@ is suitable for, e.g., pop-before-smtp lookup tables. </dd>
 
 <p> Examples:  </p>
 
-<p> The Postfix < 2.2 backwards compatible setting: always rewrite
+<p> The Postfix &lt; 2.2 backwards compatible setting: always rewrite
 message headers, and always append my own domain to incomplete
 header addresses.  </p>
 

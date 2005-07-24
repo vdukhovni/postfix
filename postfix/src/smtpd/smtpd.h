@@ -74,12 +74,20 @@ typedef struct SMTPD_STATE {
     VSTRING *addr_buf;			/* internalized address buffer */
     char   *service;			/* for event rate control */
     time_t  time;			/* start of MAIL FROM transaction */
-    char   *name;			/* client hostname */
+    char   *name;			/* verified client hostname */
+    char   *reverse_name;		/* unverified client hostname */
+#ifdef FORWARD_CLIENT_NAME
+    char   *forward_name;		/* unverified client hostname */
+#endif
     char   *addr;			/* client host address string */
     char   *namaddr;			/* combined name and address */
     char   *rfc_addr;			/* address for RFC 2821 */
     struct sockaddr_storage sockaddr;	/* binary client endpoint */
-    int     peer_code;			/* 2=ok, 4=soft, 5=hard */
+    int     name_status;		/* 2=ok, 4=soft, 5=hard */
+    int     reverse_name_status;	/* 2=ok, 4=soft, 5=hard */
+#ifdef FORWARD_CLIENT_NAME
+    int     forward_name_status;	/* 2=ok, 4=soft, 5=hard */
+#endif
     int     error_count;		/* reset after DOT */
     int     error_mask;			/* client errors */
     int     notify_mask;		/* what to report to postmaster */

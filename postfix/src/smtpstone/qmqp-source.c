@@ -543,6 +543,9 @@ int     main(int argc, char **argv)
 	    msg_fatal("%s: %s", argv[optind], MAI_STRERROR(aierr));
 	myfree(buf);
 	sa = (struct sockaddr *) & ss;
+	if (res->ai_addrlen > sizeof(ss))
+	    msg_fatal("address length %d > buffer length %d",
+		      (int) res->ai_addrlen, (int) sizeof(ss));
 	memcpy((char *) sa, res->ai_addr, res->ai_addrlen);
 	sa_length = res->ai_addrlen;
 #ifdef HAS_SA_LEN

@@ -921,7 +921,11 @@ The client hostname and IP address, formatted as name[address].
 .IP "\fB$client_address\fR"
 The client IP address.
 .IP "\fB$client_name\fR"
-The client hostname or "unknown".
+The client hostname or "unknown". See reject_unknown_client_hostname
+for more details.
+.IP "\fB$reverse_client_name\fR"
+The client hostname from address->name lookup, or "unknown".
+See reject_unknown_reverse_client_hostname for more details.
 .IP "\fB$helo_name\fR"
 The hostname given in HELO or EHLO command or empty string.
 .IP "\fB$rbl_class\fR"
@@ -1016,8 +1020,8 @@ of failed delivery attempts and generates non-delivery notifications.
 .PP
 This feature is available in Postfix 2.0 and later.
 .SH defer_transports (default: empty)
-The names of message delivery transports that should not be delivered
-to unless someone issues "\fBsendmail -q\fR" or equivalent. Specify zero
+The names of message delivery transports that should not deliver mail
+unless someone issues "\fBsendmail -q\fR" or equivalent. Specify zero
 or more names of mail delivery transports names that appear in the
 first field of master.cf.
 .PP
@@ -1343,7 +1347,7 @@ This feature is available in Postfix 2.0 and later.
 Optional pathname of a mailbox file relative to a \fBlocal\fR(8) user's
 home directory.
 .PP
-Specify a pathname ending "/" for qmail-style delivery.
+Specify a pathname ending in "/" for qmail-style delivery.
 .PP
 The precedence of \fBlocal\fR(8) delivery features from high to low is:
 aliases, .forward files, mailbox_transport, mailbox_command_maps,
@@ -1504,7 +1508,7 @@ Warning: with concurrency of 1, one bad message can be enough to
 block all mail to a site.
 .SH invalid_hostname_reject_code (default: 501)
 The numerical Postfix SMTP server response code when the client
-HELO or EHLO command parameter is rejected by the reject_invalid_hostname
+HELO or EHLO command parameter is rejected by the reject_invalid_helo_hostname
 restriction.
 .PP
 Do not change this unless you have a complete understanding of RFC 821.
@@ -2434,7 +2438,7 @@ Sendmail compatibility feature that specifies the location of the
 \fBlocal\fR(8) \fBaliases\fR(5) database.
 .SH non_fqdn_reject_code (default: 504)
 The numerical Postfix SMTP server reply code when a client request
-is rejected by the reject_non_fqdn_hostname, reject_non_fqdn_sender
+is rejected by the reject_non_fqdn_helo_hostname, reject_non_fqdn_sender
 or reject_non_fqdn_recipient restriction.
 .SH notify_classes (default: resource, software)
 The list of error classes that are reported to the postmaster. The
@@ -4103,15 +4107,36 @@ the request when the reversed client network address is listed with
 any A record under \fIrbl_domain\fR. See the reject_rbl_client
 description above for additional RBL related configuration parameters.
 This feature is available in Postfix 2.0 and later.
-.IP "\fBreject_unknown_client\fR"
-Reject the request when the client IP address has no PTR (address
-to name) record in the DNS, or when the PTR record does not have
-a matching A (name to address) record.
+.IP "\fBreject_unknown_client_hostname\fR (with Postfix < 2.3: reject_unknown_client)"
+Reject the request when 1) the client IP address->name mapping
+fails, 2) the name->address mapping fails, or 3) the name->address
+mapping does not match the client IP address.
 .br
-The unknown_client_reject_code
-parameter specifies the response code for rejected requests (default:
-450). The reply is always 450 in case the hostname lookup failed
-due to a temporary problem.
+This is a
+stronger restriction than the reject_unknown_reverse_client_hostname
+feature, which triggers only under condition 1) above.
+.br
+The
+unknown_client_reject_code parameter specifies the response code
+for rejected requests (default: 450). The reply is always 450 in
+case the address->name or name->address lookup failed due to
+a temporary problem.
+.IP "\fBreject_unknown_reverse_client_hostname\fR"
+Reject the request when the client IP address has no address->name
+mapping.
+.br
+This is a weaker restriction than the
+reject_unknown_client_hostname feature, which requires not only
+that the address->name and name->address mappings exist, but
+also that the two mappings reproduce the client IP address.
+.br
+The unknown_client_reject_code parameter specifies the response
+code for rejected requests (default: 450).  The reply is always 450
+in case the address->name lookup failed due to a temporary
+problem.
+.br
+This feature is available in Postfix version 2.3 and
+later.
 .PP
 In addition, you can use any of the following
 generic restrictions.  These restrictions are applicable in
@@ -4211,7 +4236,7 @@ Example:
 .nf
 .na
 .ft C
-smtpd_client_restrictions = permit_mynetworks, reject_unknown_client
+smtpd_client_restrictions = permit_mynetworks, reject_unknown_client_hostname
 .fi
 .ad
 .ft R
@@ -4405,25 +4430,25 @@ for the HELO or EHLO hostname, and execute the corresponding action.
 Note: a result of "OK" is not allowed for safety reasons. Instead,
 use DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later.
-.IP "\fBreject_invalid_hostname\fR"
+.IP "\fBreject_invalid_helo_hostname\fR (with Postfix < 2.3: reject_invalid_hostname)"
 Reject the request when the HELO or EHLO hostname syntax is
 invalid.
 .br
 The invalid_hostname_reject_code specifies the response
 code to rejected requests (default: 501).
-.IP "\fBreject_non_fqdn_hostname\fR"
+.IP "\fBreject_non_fqdn_helo_hostname\fR (with Postfix < 2.3: reject_non_fqdn_hostname)"
 Reject the request when the HELO or EHLO hostname is not in
 fully-qualified domain form, as required by the RFC.
 .br
 The
 non_fqdn_reject_code parameter specifies the response code to
 rejected requests (default: 504).
-.IP "\fBreject_unknown_hostname\fR"
-Reject the request when the HELO or EHLO hostname has no DNS
-A or MX record.
+.IP "\fBreject_unknown_helo_hostname\fR (with Postfix < 2.3: reject_unknown_hostname)"
+Reject the request when the HELO or EHLO hostname has no DNS A
+or MX record.
 .br
-The unknown_hostname_reject_code specifies
-the response code to rejected requests (default: 450).
+The unknown_hostname_reject_code specifies the
+response code to rejected requests (default: 450).
 .PP
 Other restrictions that are valid in this context:
 .IP \(bu
@@ -4445,8 +4470,8 @@ Examples:
 .nf
 .na
 .ft C
-smtpd_helo_restrictions = permit_mynetworks, reject_invalid_hostname
-smtpd_helo_restrictions = permit_mynetworks, reject_unknown_hostname
+smtpd_helo_restrictions = permit_mynetworks, reject_invalid_helo_hostname
+smtpd_helo_restrictions = permit_mynetworks, reject_unknown_helo_hostname
 .fi
 .ad
 .ft R
@@ -4630,7 +4655,7 @@ address.
 The unknown_address_reject_code parameter specifies
 the response code for rejected requests (default: 450).  The response
 is always 450 in case of a temporary DNS error.
-.IP "\fBreject_unlisted_recipient\fR (Postfix 2.0 name: check_recipient_maps)"
+.IP "\fBreject_unlisted_recipient\fR (with Postfix 2.0: check_recipient_maps)"
 Reject the request when the RCPT TO address is not listed in
 the list of valid recipients for its domain class. See the
 smtpd_reject_unlisted_recipient parameter description for details.
@@ -5450,14 +5475,14 @@ Do not change this unless you have a complete understanding of RFC 821.
 .SH unknown_client_reject_code (default: 450)
 The numerical Postfix SMTP server response code when a client
 without valid address <=> name mapping is rejected by the
-reject_unknown_client restriction. The SMTP server always replies
+reject_unknown_client_hostname restriction. The SMTP server always replies
 with 450 when the mapping failed due to a temporary error condition.
 .PP
 Do not change this unless you have a complete understanding of RFC 821.
 .SH unknown_hostname_reject_code (default: 450)
 The numerical Postfix SMTP server response code when the hostname
 specified with the HELO or EHLO command is rejected by the
-reject_unknown_hostname restriction.
+reject_unknown_helo_hostname restriction.
 .PP
 Do not change this unless you have a complete understanding of RFC 821.
 .SH unknown_local_recipient_reject_code (default: 550)
