@@ -4648,13 +4648,15 @@ no sender-specified routing (user@elsewhere@domain).
  The relay_domains_reject_code parameter specifies the response
 code for rejected requests (default: 554).
 .IP "\fBreject_unknown_recipient_domain\fR"
-Reject the request when the RCPT TO address has no DNS A or MX
-record and Postfix is not final destination for the recipient
-address.
+Reject the request when Postfix is not final destination for
+the recipient address, and the RCPT TO address has no DNS A or MX
+record, or when it has a malformed MX record such as a record with
+a zero-length MX hostname (Postfix 2.3 and later).
 .br
-The unknown_address_reject_code parameter specifies
-the response code for rejected requests (default: 450).  The response
-is always 450 in case of a temporary DNS error.
+The
+unknown_address_reject_code parameter specifies the response code
+for rejected requests (default: 450).  The response is always 450
+in case of a temporary DNS error.
 .IP "\fBreject_unlisted_recipient\fR (with Postfix 2.0: check_recipient_maps)"
 Reject the request when the RCPT TO address is not listed in
 the list of valid recipients for its domain class. See the
@@ -4953,13 +4955,15 @@ Enforces the reject_sender_login_mismatch restriction for
 unauthenticated clients only. This feature is available in
 Postfix version 2.1 and later.
 .IP "\fBreject_unknown_sender_domain\fR"
-Reject the request when the MAIL FROM address has no DNS A or
-MX record and Postfix is not final destination for the sender
-address.
+Reject the request when Postfix is not final destination for
+the sender address, and the MAIL FROM address has no DNS A or MX
+record, or when it has a malformed MX record such as a record with
+a zero-length MX hostname (Postfix 2.3 and later).
 .br
-The unknown_address_reject_code parameter specifies
-the response code for rejected requests (default: 450).  The response
-is always 450 in case of a temporary DNS error.
+The
+unknown_address_reject_code parameter specifies the response code
+for rejected requests (default: 450).  The response is always 450
+in case of a temporary DNS error.
 .IP "\fBreject_unlisted_sender\fR"
 Reject the request when the MAIL FROM address is not listed in
 the list of valid recipients for its domain class. See the

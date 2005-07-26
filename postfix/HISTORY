@@ -11050,6 +11050,18 @@ Apologies for any names omitted.
 	client IP address).  Files: global/mail_params.h,
 	smtpd/smtpd_peer.c, smtpd/smtpd.c, smtpd/smtpd_check.c.
 
+20050726
+
+	Horror: total rewrite of DNS client error handling because
+	some misguided proposal attempts to give special meaning
+	to some syntactically invalid MX hostname lookup result.
+	Not only that, people expect sensible results with
+	reject_unknown_sender_domain etc.  Files: dns/dns_lookup.c,
+	smtp/smtp_addr.c smtpd/smtpd_check.c, lmtp/lmtp_addr.c.
+
+	Cleanup: HOLD action executes only once, to reduce noise
+	in the logfile. Files: cleanup/cleanup_message.c, smtpd/smtpd.c.
+
 Open problems:
 
 	Med: when the cleanup server bounces local mail that should

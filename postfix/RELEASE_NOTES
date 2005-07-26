@@ -17,7 +17,32 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
-Incompatibility with snapshot 20050715
+Incompatibility with snapshot 20050726
+======================================
+
+Name server replies that contain a malformed hostname are now flagged
+as permanent errors instead of transient errors. This change works
+around a questionable proposal to use syntactically invalid hostnames
+in MX records.
+
+Major changes with snapshot 20050724
+====================================
+
+SMTPD Access control based on the existence of an address->name
+mapping, with reject_unknown_reverse_client_hostname. There is
+no corresponding access table lookup feature, because the name
+is not validated in any way (except that it has proper syntax).
+
+Several confusing SMTPD access restrictions were renamed:
+
+    reject_unknown_client -> reject_unknown_client_hostname,
+    reject_unknown_hostname -> reject_unknown_helo_hostname,
+    reject_invalid_hostname -> reject_invalid_helo_hostname,
+    reject_non_fqdn_hostname -> reject_non_fqdn_helo_hostname.
+
+The old names are still recognized and documented.
+
+Incompatibility with snapshot 20050716
 ======================================
 
 Internal interfaces have changed; this may break third-party patches
@@ -40,7 +65,7 @@ report "(unsigned) int" versus "(s)size_t" format string argument
 mis-matches on 32-bit systems; they can be found only on 64-bit
 systems.
 
-Major changes with snapshot 20050715 
+Major changes with snapshot 20050716
 ====================================
 
 Improved portability to LP64 systems, by converting the type of

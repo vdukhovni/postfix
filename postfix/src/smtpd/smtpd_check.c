@@ -966,7 +966,7 @@ static int reject_unknown_client(SMTPD_STATE *state)
 
     if (state->name_status != SMTPD_PEER_CODE_OK)
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
-				   state->name_status == SMTPD_PEER_CODE_PERM ?
+				state->name_status == SMTPD_PEER_CODE_PERM ?
 				   var_unk_client_code : 450, "4.7.1",
 		    "Client host rejected: cannot find your hostname, [%s]",
 				   state->addr));
@@ -1155,18 +1155,20 @@ static int reject_unknown_hostname(SMTPD_STATE *state, char *name,
 #endif
 
     dns_status = dns_lookup_l(name, 0, (DNS_RR **) 0, (VSTRING *) 0,
-			      (VSTRING *) 0, DNS_REQ_FLAG_ANY,
+			      (VSTRING *) 0, DNS_REQ_FLAG_STOP_OK,
 			      RR_ADDR_TYPES, T_MX, 0);
-    if (dns_status == DNS_NOTFOUND)
-	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
-				   var_unk_name_code, "4.7.1",
-				   "<%s>: %s rejected: Host not found",
-				   reply_name, reply_class));
-    else if (dns_status != DNS_OK)
-	DEFER_IF_PERMIT2(state, MAIL_ERROR_POLICY,
-			 450, "4.7.1",
-			 "<%s>: %s rejected: Host not found",
-			 reply_name, reply_class);
+    if (dns_status != DNS_OK) {			/* incl. DNS_INVAL */
+	if (dns_status != DNS_RETRY)
+	    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
+				       var_unk_name_code, "4.7.1",
+				       "<%s>: %s rejected: Host not found",
+				       reply_name, reply_class));
+	else
+	    DEFER_IF_PERMIT2(state, MAIL_ERROR_POLICY,
+			     450, "4.7.1",
+			     "<%s>: %s rejected: Host not found",
+			     reply_name, reply_class);
+    }
     return (SMTPD_CHECK_DUNNO);
 }
 
@@ -1181,22 +1183,26 @@ static int reject_unknown_mailhost(SMTPD_STATE *state, const char *name,
     if (msg_verbose)
 	msg_info("%s: %s", myname, name);
 
+#define MAILHOST_LOOKUP_FLAGS	(DNS_REQ_FLAG_STOP_OK | DNS_REQ_FLAG_STOP_INVAL)
+
     dns_status = dns_lookup_l(name, 0, (DNS_RR **) 0, (VSTRING *) 0,
-			      (VSTRING *) 0, DNS_REQ_FLAG_ANY,
-			      RR_ADDR_TYPES, T_MX, 0);
-    if (dns_status == DNS_NOTFOUND)
-	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
-				   var_unk_addr_code,
+			      (VSTRING *) 0, MAILHOST_LOOKUP_FLAGS,
+			      T_MX, RR_ADDR_TYPES, 0);
+    if (dns_status != DNS_OK) {			/* incl. DNS_INVAL */
+	if (dns_status != DNS_RETRY)
+	    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
+				       var_unk_addr_code,
 			       strcmp(reply_class, SMTPD_NAME_SENDER) == 0 ?
-				   "4.1.8" : "4.1.2",
-				   "<%s>: %s rejected: Domain not found",
-				   reply_name, reply_class));
-    else if (dns_status != DNS_OK)
-	DEFER_IF_PERMIT2(state, MAIL_ERROR_POLICY,
-			 450, strcmp(reply_class, SMTPD_NAME_SENDER) == 0 ?
-			 "4.1.8" : "4.1.2",
-			 "<%s>: %s rejected: Domain not found",
-			 reply_name, reply_class);
+				       "4.1.8" : "4.1.2",
+				       "<%s>: %s rejected: Domain not found",
+				       reply_name, reply_class));
+	else
+	    DEFER_IF_PERMIT2(state, MAIL_ERROR_POLICY,
+			  450, strcmp(reply_class, SMTPD_NAME_SENDER) == 0 ?
+			     "4.1.8" : "4.1.2",
+			     "<%s>: %s rejected: Domain not found",
+			     reply_name, reply_class);
+    }
     return (SMTPD_CHECK_DUNNO);
 }
 
@@ -1395,8 +1401,8 @@ static int all_auth_mx_addr(SMTPD_STATE *state, char *host,
      * Verify that all host addresses are within permit_mx_backup_networks.
      */
     dns_status = dns_lookup_v(host, 0, &addr_list, (VSTRING *) 0, (VSTRING *) 0,
-		       DNS_REQ_FLAG_ALL, inet_proto_info()->dns_atype_list);
-    if (dns_status != DNS_OK) {
+		      DNS_REQ_FLAG_NONE, inet_proto_info()->dns_atype_list);
+    if (dns_status != DNS_OK) {			/* incl. DNS_INVAL */
 	DEFER_IF_REJECT3(state, MAIL_ERROR_POLICY,
 			 450, "4.4.4",
 	   "<%s>: %s rejected: Unable to look up host %s as mail exchanger",
@@ -1622,11 +1628,12 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
     if (dns_status == DNS_NOTFOUND)
 	return (has_my_addr(state, domain, reply_name, reply_class) ?
 		SMTPD_CHECK_OK : SMTPD_CHECK_DUNNO);
-    if (dns_status != DNS_OK) {
-	DEFER_IF_REJECT2(state, MAIL_ERROR_POLICY,
-			 450, "4.4.4",
-	  "<%s>: %s rejected: Unable to look up mail exchanger information",
-			 reply_name, reply_class);
+    if (dns_status != DNS_OK) {			/* incl. DNS_INVAL */
+	if (dns_status == DNS_RETRY)
+	    DEFER_IF_REJECT2(state, MAIL_ERROR_POLICY,
+			     450, "4.4.4",
+			     "<%s>: %s rejected: Unable to look up mail exchanger information",
+			     reply_name, reply_class);
 	return (SMTPD_CHECK_DUNNO);
     }
 
@@ -1961,7 +1968,8 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
      */
     if (STREQUAL(value, "HOLD", cmd_len)) {
 #ifndef TEST
-	if (can_delegate_action(state, table, "HOLD", reply_class) == 0)
+	if (can_delegate_action(state, table, "HOLD", reply_class) == 0
+	    || (state->saved_flags & CLEANUP_FLAG_HOLD))
 	    return (SMTPD_CHECK_DUNNO);
 #endif
 	vstring_sprintf(error_text, "<%s>: %s %s", reply_name, reply_class,
@@ -3502,7 +3510,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		forbid_whitelist(state, name, status, state->helo_name);
 	    }
 	} else if (strcasecmp(name, REJECT_NON_FQDN_HELO_HOSTNAME) == 0
-		   ||strcasecmp(name, REJECT_NON_FQDN_HOSTNAME) == 0) {
+		   || strcasecmp(name, REJECT_NON_FQDN_HOSTNAME) == 0) {
 	    if (state->helo_name) {
 		if (*state->helo_name != '[')
 		    status = reject_non_fqdn_hostname(state, state->helo_name,

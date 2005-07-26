@@ -86,7 +86,7 @@ const char *smtp_unalias_name(const char *name)
     if ((result = htable_find(cache, name)) == 0) {
 	fqdn = vstring_alloc(10);
 	if (dns_lookup_l(name, smtp_unalias_flags, (DNS_RR **) 0, fqdn,
-			     (VSTRING *) 0, DNS_REQ_FLAG_ANY, T_MX, T_A,
+			     (VSTRING *) 0, DNS_REQ_FLAG_NONE, T_MX, T_A,
 #ifdef HAS_IPV6
 			     T_AAAA,
 #endif

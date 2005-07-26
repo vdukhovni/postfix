@@ -100,7 +100,7 @@ int     main(int argc, char **argv)
     name = argv[2];
     msg_verbose = 1;
     switch (dns_lookup_v(name, RES_DEFNAMES | RES_DEBUG, &rr, fqdn, why,
-			 DNS_REQ_FLAG_ALL, types)) {
+			 DNS_REQ_FLAG_NONE, types)) {
     default:
 	msg_fatal("%s", vstring_str(why));
     case DNS_OK:

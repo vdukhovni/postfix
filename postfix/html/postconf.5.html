@@ -8132,11 +8132,13 @@ code for rejected requests (default: 554). </dd>
 
 <dt><b><a name="reject_unknown_recipient_domain">reject_unknown_recipient_domain</a></b></dt>
 
-<dd>Reject the request when the RCPT TO address has no DNS A or MX
-record and Postfix is not final destination for the recipient
-address. <br> The <a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter specifies
-the response code for rejected requests (default: 450).  The response
-is always 450 in case of a temporary DNS error.</dd>
+<dd>Reject the request when Postfix is not final destination for
+the recipient address, and the RCPT TO address has no DNS A or MX
+record, or when it has a malformed MX record such as a record with
+a zero-length MX hostname (Postfix 2.3 and later). <br> The
+<a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter specifies the response code
+for rejected requests (default: 450).  The response is always 450
+in case of a temporary DNS error.</dd>
 
 <dt><b><a name="reject_unlisted_recipient">reject_unlisted_recipient</a></b> (with Postfix 2.0: check_recipient_maps)</dt>
 
@@ -8602,11 +8604,13 @@ Postfix version 2.1 and later. </dd>
 
 <dt><b><a name="reject_unknown_sender_domain">reject_unknown_sender_domain</a></b></dt>
 
-<dd>Reject the request when the MAIL FROM address has no DNS A or
-MX record and Postfix is not final destination for the sender
-address. <br> The <a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter specifies
-the response code for rejected requests (default: 450).  The response
-is always 450 in case of a temporary DNS error. </dd>
+<dd>Reject the request when Postfix is not final destination for
+the sender address, and the MAIL FROM address has no DNS A or MX
+record, or when it has a malformed MX record such as a record with
+a zero-length MX hostname (Postfix 2.3 and later). <br> The
+<a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter specifies the response code
+for rejected requests (default: 450).  The response is always 450
+in case of a temporary DNS error.  </dd>
 
 <dt><b><a name="reject_unlisted_sender">reject_unlisted_sender</a></b></dt>
 

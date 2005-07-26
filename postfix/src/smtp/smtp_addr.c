@@ -162,7 +162,7 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
      */
     if (smtp_host_lookup_mask & SMTP_HOST_FLAG_DNS) {
 	switch (dns_lookup_v(host, RES_DEFNAMES, &addr, (VSTRING *) 0,
-			     why->reason, DNS_REQ_FLAG_ALL,
+			     why->reason, DNS_REQ_FLAG_NONE,
 			     proto_info->dns_atype_list)) {
 	case DNS_OK:
 	    for (rr = addr; rr; rr = rr->next)
@@ -180,6 +180,7 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
 	    if (smtp_errno != SMTP_ERR_RETRY)
 		smtp_errno = SMTP_ERR_FAIL;
 	    return (addr_list);
+	case DNS_INVAL:
 	case DNS_NOTFOUND:
 	    smtp_dsn_formal(why, DSN_BY_LOCAL_MTA,
 			    "5.4.4", 550, "550 Host not found");
@@ -473,6 +474,11 @@ DNS_RR *smtp_domain_addr(char *name, int misc_flags, DSN_BUF *why,
 	    addr_list = dns_rr_shuffle(addr_list);
 	    addr_list = dns_rr_sort(addr_list, smtp_compare_pref);
 	}
+	break;
+    case DNS_INVAL:
+	smtp_dsn_formal(why, DSN_BY_LOCAL_MTA,
+			"5.4.4", 550, "550 Host not found");
+	smtp_errno = SMTP_ERR_FAIL;
 	break;
     case DNS_NOTFOUND:
 	addr_list = smtp_host_addr(name, misc_flags, why);

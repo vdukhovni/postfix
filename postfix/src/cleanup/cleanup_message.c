@@ -316,8 +316,8 @@ static const char *cleanup_act(CLEANUP_STATE *state, char *context,
 	    if (*optional_text) {
 		state->reason = dsn_prepend("5.7.1", optional_text);
 		if (*state->reason != '4' && *state->reason != '5') {
-		    msg_warn("bad DSN action in %s -- need 4.x.x or 5.x.x", 
-			      optional_text);
+		    msg_warn("bad DSN action in %s -- need 4.x.x or 5.x.x",
+			     optional_text);
 		    *state->reason = '4';
 		}
 	    } else {
@@ -356,8 +356,10 @@ static const char *cleanup_act(CLEANUP_STATE *state, char *context,
 	return (buf);
     }
     if (STREQUAL(value, "HOLD", command_len)) {
-	cleanup_act_log(state, "hold", context, buf, optional_text);
-	state->flags |= CLEANUP_FLAG_HOLD;
+	if ((state->flags & CLEANUP_FLAG_HOLD) == 0) {
+	    cleanup_act_log(state, "hold", context, buf, optional_text);
+	    state->flags |= CLEANUP_FLAG_HOLD;
+	}
 	return (buf);
     }
     if (STREQUAL(value, "PREPEND", command_len)) {

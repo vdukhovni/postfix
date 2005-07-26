@@ -191,7 +191,7 @@ static DNS_RR *lmtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
      * Append the addresses for this host to the address list.
      */
     switch (dns_lookup_v(host, RES_DEFNAMES, &addr, (VSTRING *) 0, why->reason,
-			 DNS_REQ_FLAG_ALL, proto_info->dns_atype_list)) {
+			 DNS_REQ_FLAG_NONE, proto_info->dns_atype_list)) {
     case DNS_OK:
 	for (rr = addr; rr; rr = rr->next)
 	    rr->pref = pref;
@@ -207,6 +207,7 @@ static DNS_RR *lmtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
 			"5.4.3", 550, "550 Name server failure");
 	lmtp_errno = LMTP_FAIL;
 	break;
+    case DNS_INVAL:
     case DNS_NOTFOUND:
 	lmtp_dsn_formal(why, DSN_BY_LOCAL_MTA,
 			"5.4.4", 550, "550 Host not found");
