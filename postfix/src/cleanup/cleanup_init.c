@@ -24,7 +24,6 @@
 /*
 /*	char	*cleanup_path;
 /*	VSTRING	*cleanup_trace_path;
-/*	VSTRING	*cleanup_bounce_path;
 /*
 /*	void	cleanup_all()
 /*
@@ -54,8 +53,6 @@
 /*	trace logfile with DSN SUCCESS notifications. This information is
 /*	used to remove a trace file when the mail transaction is canceled.
 /*
-/*	cleanup_bounce_path is the same for removing a bounce logfile.
-/*
 /*	cleanup_all() must be called in case of fatal error, in order
 /*	to remove an incomplete queue file.
 /*
@@ -80,12 +77,14 @@
 
 #include <sys_defs.h>
 #include <signal.h>
+#include <string.h>
 
 /* Utility library. */
 
 #include <msg.h>
 #include <iostuff.h>
 #include <name_mask.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -109,7 +108,6 @@ char   *cleanup_path;			/* queue file name */
   * logfiles that need to be cleaned up when the cleanup request is aborted.
   */
 VSTRING *cleanup_trace_path;
-VSTRING *cleanup_bounce_path;
 
  /*
   * Tunable parameters.
@@ -143,6 +141,9 @@ int     var_body_check_len;		/* when to stop body scan */
 char   *var_send_bcc_maps;		/* sender auto-bcc maps */
 char   *var_rcpt_bcc_maps;		/* recipient auto-bcc maps */
 char   *var_remote_rwr_domain;		/* header-only surrogate */
+char   *var_msg_reject_chars;		/* reject these characters */
+char   *var_msg_strip_chars;		/* strip these characters */
+int     var_verp_bounce_off;		/* don't verp the bounces */
 
 CONFIG_INT_TABLE cleanup_int_table[] = {
     VAR_HOPCOUNT_LIMIT, DEF_HOPCOUNT_LIMIT, &var_hopcount_limit, 1, 0,
@@ -156,6 +157,7 @@ CONFIG_INT_TABLE cleanup_int_table[] = {
 
 CONFIG_BOOL_TABLE cleanup_bool_table[] = {
     VAR_ENABLE_ORCPT, DEF_ENABLE_ORCPT, &var_enable_orcpt,
+    VAR_VERP_BOUNCE_OFF, DEF_VERP_BOUNCE_OFF, &var_verp_bounce_off,
     0,
 };
 
@@ -186,6 +188,8 @@ CONFIG_STR_TABLE cleanup_str_table[] = {
     VAR_SEND_BCC_MAPS, DEF_SEND_BCC_MAPS, &var_send_bcc_maps, 0, 0,
     VAR_RCPT_BCC_MAPS, DEF_RCPT_BCC_MAPS, &var_rcpt_bcc_maps, 0, 0,
     VAR_REM_RWR_DOMAIN, DEF_REM_RWR_DOMAIN, &var_remote_rwr_domain, 0, 0,
+    VAR_MSG_REJECT_CHARS, DEF_MSG_REJECT_CHARS, &var_msg_reject_chars, 0, 0,
+    VAR_MSG_STRIP_CHARS, DEF_MSG_STRIP_CHARS, &var_msg_strip_chars, 0, 0,
     0,
 };
 
@@ -208,6 +212,12 @@ STRING_LIST *cleanup_masq_exceptions;
 int     cleanup_masq_flags;
 MAPS   *cleanup_send_bcc_maps;
 MAPS   *cleanup_rcpt_bcc_maps;
+
+ /*
+  * Character filters.
+  */
+VSTRING *cleanup_reject_chars;
+VSTRING *cleanup_strip_chars;
 
  /*
   * Address extension propagation restrictions.
@@ -237,10 +247,6 @@ void    cleanup_sig(int sig)
 	if (cleanup_trace_path) {
 	    (void) REMOVE(vstring_str(cleanup_trace_path));
 	    cleanup_trace_path = 0;
-	}
-	if (cleanup_bounce_path) {
-	    (void) REMOVE(vstring_str(cleanup_bounce_path));
-	    cleanup_bounce_path = 0;
 	}
 	if (cleanup_path) {
 	    (void) REMOVE(cleanup_path);
@@ -360,4 +366,17 @@ void    cleanup_post_jail(char *unused_name, char **unused_argv)
      */
     cleanup_ext_prop_mask =
 	ext_prop_mask(VAR_PROP_EXTENSION, var_prop_extension);
+
+    /*
+     * Setup the filters for characters that should be rejected, and for
+     * characters that should be removed.
+     */
+    if (*var_msg_reject_chars) {
+	cleanup_reject_chars = vstring_alloc(strlen(var_msg_reject_chars));
+	unescape(cleanup_reject_chars, var_msg_reject_chars);
+    }
+    if (*var_msg_strip_chars) {
+	cleanup_strip_chars = vstring_alloc(strlen(var_msg_strip_chars));
+	unescape(cleanup_strip_chars, var_msg_strip_chars);
+    }
 }

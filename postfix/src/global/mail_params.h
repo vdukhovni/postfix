@@ -2362,6 +2362,17 @@ extern char *var_smtp_ehlo_dis_maps;
   */
 extern const char null_format_string[1];
 
+ /*
+  * Characters to reject or strip.
+  */
+#define VAR_MSG_REJECT_CHARS		"message_reject_characters"
+#define DEF_MSG_REJECT_CHARS		""
+extern char *var_msg_reject_chars;
+
+#define VAR_MSG_STRIP_CHARS		"message_strip_characters"
+#define DEF_MSG_STRIP_CHARS		""
+extern char *var_msg_strip_chars;
+
 /* LICENSE
 /* .ad
 /* .fi

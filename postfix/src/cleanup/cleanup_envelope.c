@@ -368,6 +368,22 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	}
 	return;
     }
+    /* XXX Needed for cleanup_bounce(); sanity check usage. */
+    if (type == REC_TYPE_VERP) {
+	if (state->verp_delims == 0) {
+	    if (state->sender == 0 || state->sender[0] == 0) {
+		msg_warn("%s: ignoring VERP request for null sender",
+			 state->queue_id);
+	    } else if (verp_delims_verify(buf) != 0) {
+		msg_warn("%s: ignoring bad VERP request: \"%.100s\"",
+			 state->queue_id, buf);
+	    } else {
+		state->verp_delims = mystrdup(buf);
+		cleanup_out(state, type, buf, len);
+	    }
+	}
+	return;
+    }
     if (type == REC_TYPE_ATTR) {
 	if (state->attr->used >= var_qattr_count_limit) {
 	    msg_warn("%s: message rejected: attribute count exceeds limit %d",

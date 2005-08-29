@@ -4112,12 +4112,50 @@ Specify 0 when mail delivery should be tried only once.
 
 </DD>
 
+<DT><b><a name="message_reject_characters">message_reject_characters</a>
+(default: empty)</b></DT><DD>
+
+<p> The set of characters that Postfix will reject in message
+content.  The usual C-like escape sequences are recognized: <tt>\a
+\b \f \n \r \t \v \<i>ddd</i></tt> (up to three octal digits) and
+<tt>\\</tt>. </p>
+
+<p> Example: </p>
+
+<pre>
+<a href="postconf.5.html#message_reject_characters">message_reject_characters</a> = \0
+</pre>
+
+<p> This feature is available in Postfix 2.3 and later.  </p>
+
+
+</DD>
+
 <DT><b><a name="message_size_limit">message_size_limit</a>
 (default: 10240000)</b></DT><DD>
 
 <p>
 The maximal size in bytes of a message, including envelope information.
 </p>
+
+
+</DD>
+
+<DT><b><a name="message_strip_characters">message_strip_characters</a>
+(default: empty)</b></DT><DD>
+
+<p> The set of characters that Postfix will remove from message
+content.  The usual C-like escape sequences are recognized: <tt>\a
+\b \f \n \r \t \v \<i>ddd</i></tt> (up to three octal digits) and
+<tt>\\</tt>. </p>
+
+<p> Example: </p>
+
+<pre>
+<a href="postconf.5.html#message_strip_characters">message_strip_characters</a> = \0
+</pre>
+
+<p> This feature is available in Postfix 2.3 and later.  </p>
 
 
 </DD>
@@ -7938,11 +7976,17 @@ The proxy receives all mail from the Postfix SMTP server, and is
 supposed to give the result to another Postfix SMTP server process.
 </p>
 
-<p> Specify host:port. The host can be specified as an IP address
-or as a symbolic name; no MX lookups are done. When no host or
-host:  are specified, the local machine is assumed.  </p>
+<p> Specify "host:port" or "inet:host:port" for a TCP endpoint, or
+"unix:pathname" for a UNIX-domain endpoint. The host can be specified
+as an IP address or as a symbolic name; no MX lookups are done.
+When no "host" or "host:"  are specified, the local machine is
+assumed.  Pathname interpretation is relative to the Postfix queue
+directory.  </p>
 
 <p> This feature is available in Postfix 2.1 and later.  </p>
+
+<p> The "inet:" and "unix:" prefixes are available in Postfix 2.3
+and later.  </p>
 
 
 </DD>

@@ -126,24 +126,24 @@ void    cleanup_extracted_process(CLEANUP_STATE *state, int type,
      * an upgrade without losing mail.
      */
     if (type == REC_TYPE_ATTR) {
-        vstring_strcpy(state->attr_buf, buf);
-        error_text = split_nameval(STR(state->attr_buf), &attr_name, &attr_value);
-        if (error_text != 0) {
-            msg_warn("%s: message rejected: malformed attribute: %s: %.100s",
-                     state->queue_id, error_text, buf);
-            state->errs |= CLEANUP_STAT_BAD;
-            return;
-        }
-        /* Zero-length values are place holders for unavailable values. */
-        if (*attr_value == 0) {
-            msg_warn("%s: spurious null attribute value for \"%s\" -- ignored",
-                     state->queue_id, attr_name);
-            return;
-        }
-        if ((junk = dsn_attr_map(attr_name)) != 0) {
-            buf = attr_value;
-            type = junk;
-        }
+	vstring_strcpy(state->attr_buf, buf);
+	error_text = split_nameval(STR(state->attr_buf), &attr_name, &attr_value);
+	if (error_text != 0) {
+	    msg_warn("%s: message rejected: malformed attribute: %s: %.100s",
+		     state->queue_id, error_text, buf);
+	    state->errs |= CLEANUP_STAT_BAD;
+	    return;
+	}
+	/* Zero-length values are place holders for unavailable values. */
+	if (*attr_value == 0) {
+	    msg_warn("%s: spurious null attribute value for \"%s\" -- ignored",
+		     state->queue_id, attr_name);
+	    return;
+	}
+	if ((junk = dsn_attr_map(attr_name)) != 0) {
+	    buf = attr_value;
+	    type = junk;
+	}
     }
 
     /*
@@ -251,7 +251,7 @@ void    cleanup_extracted_process(CLEANUP_STATE *state, int type,
     }
 }
 
-/* cleanup_extracted_finish - process one extracted envelope record */
+/* cleanup_extracted_finish - complete the third message segment */
 
 void    cleanup_extracted_finish(CLEANUP_STATE *state)
 {

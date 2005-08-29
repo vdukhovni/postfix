@@ -12,7 +12,8 @@
 /*	cleanup_bounce() updates the bounce log on request by client
 /*	programs that cannot handle such problems themselves.
 /*
-/*	Upon successful completion, all error flags are reset.
+/*	Upon successful completion, all error flags are reset,
+/*	and the message is scheduled for deletion.
 /*	Otherwise, the CLEANUP_STAT_WRITE error flag is raised.
 /*
 /*	Arguments:
@@ -52,7 +53,6 @@
 #include <dsn_mask.h>
 #include <mail_queue.h>
 #include <dsn_attr_map.h>
-#include <deliver_completed.h>
 
 /* Application-specific. */
 
@@ -65,24 +65,10 @@
 static void cleanup_bounce_append(CLEANUP_STATE *state, RECIPIENT *rcpt,
 				          DSN *dsn)
 {
-    const char *myname = "cleanup_bounce_append";
-    long    last_offset;
-
-    if (cleanup_bounce_path == 0) {
-	cleanup_bounce_path = vstring_alloc(10);
-	(void) mail_queue_path(cleanup_bounce_path, MAIL_QUEUE_BOUNCE,
-			       state->queue_id);
-    }
     if (bounce_append(BOUNCE_FLAG_CLEAN, state->queue_id, state->time,
 		      rcpt, "none", dsn) != 0) {
 	msg_warn("%s: bounce logfile update error", state->queue_id);
 	state->errs |= CLEANUP_STAT_WRITE;
-    } else if (rcpt->offset > 0) {
-	if ((last_offset = vstream_ftell(state->dst)) < 0)
-	    msg_fatal("%s: vstream_ftell %s: %m", myname, cleanup_path);
-	deliver_completed(state->dst, rcpt->offset);
-	if (vstream_fseek(state->dst, last_offset, SEEK_SET) < 0)
-	    msg_fatal("%s: seek %s: %m", myname, cleanup_path);
     }
 }
 
@@ -108,6 +94,10 @@ int     cleanup_bounce(CLEANUP_STATE *state)
     int     rec_type;
     int     junk;
     long    curr_offset;
+    const char *encoding;
+    const char *dsn_envid;
+    int     dsn_ret;
+    int     bounce_err;
 
     /*
      * Parse the failure reason if one was given, otherwise use a generic
@@ -127,18 +117,19 @@ int     cleanup_bounce(CLEANUP_STATE *state)
      * Create a bounce logfile with one entry for each final recipient.
      * Degrade gracefully in case of no recipients or no queue file.
      * 
-     * We're NOT going to flush the bounce file from the cleanup server; if we
-     * need to write trace logfile records, and the trace service fails, we
-     * must be able to cancel the entire cleanup request including any trace
-     * or bounce logfiles. The queue manager will flush the bounce (and
-     * trace) logfile, possibly after it has generated its own success or
-     * failure notification records.
-     * 
      * Victor Duchovni observes that the number of recipients in the queue file
      * can potentially be very large due to virtual alias expansion. This can
      * expand the recipient count by virtual_alias_expansion_limit (default:
      * 1000) times.
+     * 
+     * After a queue file size error, purge any unwritten data (so that
+     * vstream_fseek() won't fail while trying to flush it) and reset the
+     * stream error flags to avoid false alarms.
      */
+    if (state->errs & CLEANUP_STAT_SIZE) {
+	(void) vstream_fpurge(state->dst);
+	vstream_clearerr(state->dst);
+    }
     if (vstream_fseek(state->dst, 0L, SEEK_SET) < 0)
 	msg_fatal("%s: seek %s: %m", myname, cleanup_path);
 
@@ -206,12 +197,51 @@ int     cleanup_bounce(CLEANUP_STATE *state)
     /*
      * No recipients. Yes, this can happen.
      */
-    if (rcpt == 0) {
+    if ((state->errs & CLEANUP_STAT_WRITE) == 0 && rcpt == 0) {
 	RECIPIENT_ASSIGN(&recipient, 0, "", 0, "", "unknown");
 	(void) DSN_SIMPLE(&dsn, dsn_status, dsn_text);
 	cleanup_bounce_append(state, &recipient, &dsn);
     }
     vstring_free(buf);
 
-    return (state->errs &= CLEANUP_STAT_WRITE);
+    /*
+     * Flush the bounce logfile to the sender. See also qmgr_active.c.
+     */
+    if ((state->errs & CLEANUP_STAT_WRITE) == 0) {
+	if ((encoding = nvtable_find(state->attr, MAIL_ATTR_ENCODING)) == 0)
+	    encoding = MAIL_ATTR_ENC_NONE;
+	dsn_envid = state->dsn_envid ?
+	    state->dsn_envid : "";
+	dsn_ret = (state->errs & (CLEANUP_STAT_CONT | CLEANUP_STAT_SIZE)) ?
+	    DSN_RET_HDRS : state->dsn_ret;
+
+	if (state->verp_delims == 0 || var_verp_bounce_off) {
+	    bounce_err =
+		bounce_flush(BOUNCE_FLAG_CLEAN,
+			     state->queue_name, state->queue_id,
+			     encoding, state->sender, dsn_envid,
+			     dsn_ret);
+	} else {
+	    bounce_err =
+		bounce_flush_verp(BOUNCE_FLAG_CLEAN,
+				  state->queue_name, state->queue_id,
+				  encoding, state->sender, dsn_envid,
+				  dsn_ret, state->verp_delims);
+	}
+	if (bounce_err != 0) {
+	    msg_warn("%s: bounce message failure", state->queue_id);
+	    state->errs |= CLEANUP_STAT_WRITE;
+	}
+    }
+
+    /*
+     * Schedule this message (and trace logfile) for deletion when all is
+     * well. When all is not well these files would be deleted too, but the
+     * client would get a different completion status so we have to carefully
+     * maintain the bits anyway.
+     */
+    if ((state->errs &= CLEANUP_STAT_WRITE) == 0)
+	state->flags |= CLEANUP_FLAG_DISCARD;
+
+    return (state->errs);
 }

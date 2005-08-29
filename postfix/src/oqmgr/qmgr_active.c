@@ -272,6 +272,8 @@ void    qmgr_active_done(QMGR_MESSAGE *message)
      * 
      * Bounces are sent asynchronously to avoid stalling while the cleanup
      * daemon waits for the qmgr to accept the "new mail" trigger.
+     *
+     * See also code in cleanup_bounce.c.
      */
     if (stat(mail_queue_path((VSTRING *) 0, MAIL_QUEUE_BOUNCE, message->queue_id), &st) == 0) {
 	if (st.st_size == 0) {

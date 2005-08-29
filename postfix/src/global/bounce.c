@@ -24,6 +24,17 @@
 /*	const char *dsn_envid;
 /*	int	dsn_ret;
 /*
+/*	int	bounce_flush_verp(flags, queue, id, encoding, sender,
+/*				dsn_envid, dsn_ret, verp_delims)
+/*	int	flags;
+/*	const char *queue;
+/*	const char *id;
+/*	const char *encoding;
+/*	const char *sender;
+/*	const char *dsn_envid;
+/*	int	dsn_ret;
+/*	const char *verp_delims;
+/*
 /*	int	bounce_one(flags, queue, id, encoding, sender, envid, ret,
 /*				entry, recipient, relay, dsn)
 /*	int	flags;
@@ -52,6 +63,10 @@
 /*	the specified sender, including the bounce log that was
 /*	built with bounce_append(). The bounce logfile is removed
 /*	upon successful completion.
+/*
+/*	bounce_flush_verp() is like bounce_flush(), but sends one
+/*	notification per recipient, with the failed recipient encoded
+/*	into the sender address.
 /*
 /*	bounce_one() bounces one recipient and immediately sends a
 /*	notification to the sender. This procedure does not append
@@ -101,6 +116,9 @@
 /*	Optional DSN return full/headers option.
 /* .IP dsn
 /*	Delivery status. See dsn(3). The specified action is ignored.
+/* .IP verp_delims
+/*	VERP delimiter characters, used when encoding the failed
+/*	sender into the envelope sender address.
 /* DIAGNOSTICS
 /*	In case of success, these functions log the action, and return a
 /*	zero value. Otherwise, the functions return a non-zero result,
@@ -266,6 +284,40 @@ int     bounce_flush(int flags, const char *queue, const char *id,
 			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
 			    ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, dsn_envid,
 			    ATTR_TYPE_NUM, MAIL_ATTR_DSN_RET, dsn_ret,
+			    ATTR_TYPE_END) == 0) {
+	return (0);
+    } else if ((flags & BOUNCE_FLAG_CLEAN) == 0) {
+	msg_info("%s: status=deferred (bounce failed)", id);
+	return (-1);
+    } else {
+	return (-1);
+    }
+}
+
+/* bounce_flush_verp - verpified notification */
+
+int     bounce_flush_verp(int flags, const char *queue, const char *id,
+			          const char *encoding, const char *sender,
+			          const char *dsn_envid, int dsn_ret,
+			          const char *verp_delims)
+{
+
+    /*
+     * When we're pretending that we can't bounce, don't send a bounce
+     * message.
+     */
+    if (var_soft_bounce)
+	return (-1);
+    if (mail_command_client(MAIL_CLASS_PRIVATE, var_bounce_service,
+			    ATTR_TYPE_NUM, MAIL_ATTR_NREQ, BOUNCE_CMD_VERP,
+			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
+			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue,
+			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
+			    ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
+			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
+			    ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, dsn_envid,
+			    ATTR_TYPE_NUM, MAIL_ATTR_DSN_RET, dsn_ret,
+			    ATTR_TYPE_STR, MAIL_ATTR_VERPDL, verp_delims,
 			    ATTR_TYPE_END) == 0) {
 	return (0);
     } else if ((flags & BOUNCE_FLAG_CLEAN) == 0) {

@@ -84,7 +84,7 @@ Postfix has two Sendmail-compatible command-line options for DSN support.
 
 PPoossttffiixx VVEERRPP ssuuppppoorrtt ccoommppaattiibbiilliittyy
 
-With Postfix versions before 2.3, the sendmail(1) commands uses the -V command-
+With Postfix versions before 2.3, the sendmail(1) command uses the -V command-
 line option to request VERP-style delivery. In order to request VERP style
 delivery with Postfix 2.3 and later, you must specify -XV instead of -V.
 

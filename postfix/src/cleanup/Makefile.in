@@ -190,7 +190,6 @@ cleanup_bounce.o: ../../include/attr.h
 cleanup_bounce.o: ../../include/been_here.h
 cleanup_bounce.o: ../../include/bounce.h
 cleanup_bounce.o: ../../include/cleanup_user.h
-cleanup_bounce.o: ../../include/deliver_completed.h
 cleanup_bounce.o: ../../include/deliver_request.h
 cleanup_bounce.o: ../../include/dict.h
 cleanup_bounce.o: ../../include/dsn.h
@@ -317,6 +316,7 @@ cleanup_init.o: ../../include/name_mask.h
 cleanup_init.o: ../../include/nvtable.h
 cleanup_init.o: ../../include/resolve_clnt.h
 cleanup_init.o: ../../include/string_list.h
+cleanup_init.o: ../../include/stringops.h
 cleanup_init.o: ../../include/sys_defs.h
 cleanup_init.o: ../../include/tok822.h
 cleanup_init.o: ../../include/vbuf.h

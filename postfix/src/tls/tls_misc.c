@@ -105,8 +105,8 @@ TLScontext_t *tls_alloc_context(int log_level, const char *peername)
     TLScontext_t *TLScontext;
 
     /*
-     * PORTABILITY: Do not assume that null pointers are all-zero bits.
-     * Use explicit assignments to initialize pointers.
+     * PORTABILITY: Do not assume that null pointers are all-zero bits. Use
+     * explicit assignments to initialize pointers.
      * 
      * See the C language FAQ item 5.17, or if you have time to burn,
      * http://www.google.com/search?q=zero+bit+null+pointer
@@ -287,5 +287,12 @@ long    tls_bio_dump_cb(BIO *bio, int cmd, const char *argp, int argi,
     }
     return (ret);
 }
+
+#else
+
+ /*
+  * Broken linker workaround.
+  */
+int     tls_dummy_for_broken_linkers;
 
 #endif

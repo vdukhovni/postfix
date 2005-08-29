@@ -124,7 +124,7 @@ int     bounce_notify_verp(int flags, char *service, char *queue_name,
 	 * Notify the originator, subject to DSN NOTIFY restrictions.
 	 */
 	if (bounce_info->log_handle->rcpt.dsn_notify != 0	/* compat */
-	&& (bounce_info->log_handle->rcpt.dsn_notify & DSN_NOTIFY_FAILURE) == 0) {
+	    && (bounce_info->log_handle->rcpt.dsn_notify & DSN_NOTIFY_FAILURE) == 0) {
 	    bounce_status = 0;
 	} else {
 	    verp_sender(verp_buf, verp_delims, recipient,

@@ -506,7 +506,7 @@ and changed the default to none.
 Specify a list of network/netmask patterns, separated by commas
 and/or whitespace. The mask specifies the number of bits in the
 network part of a host address. You can also specify hostnames or
-\&.domain names (the initial dot causes the domain to match any name
+\e&.domain names (the initial dot causes the domain to match any name
 below it),  "/file/name" or "type:table" patterns.  A "/file/name"
 pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
@@ -2231,8 +2231,42 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is d (days).
 .PP
 Specify 0 when mail delivery should be tried only once.
+.SH message_reject_characters (default: empty)
+The set of characters that Postfix will reject in message
+content.  The usual C-like escape sequences are recognized: \ea
+\eb \ef \en \er \et \ev \e\fIddd\fR (up to three octal digits) and
+\e\e.
+.PP
+Example:
+.PP
+.nf
+.na
+.ft C
+message_reject_characters = \e0
+.fi
+.ad
+.ft R
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH message_size_limit (default: 10240000)
 The maximal size in bytes of a message, including envelope information.
+.SH message_strip_characters (default: empty)
+The set of characters that Postfix will remove from message
+content.  The usual C-like escape sequences are recognized: \ea
+\eb \ef \en \er \et \ev \e\fIddd\fR (up to three octal digits) and
+\e\e.
+.PP
+Example:
+.PP
+.nf
+.na
+.ft C
+message_strip_characters = \e0
+.fi
+.ad
+.ft R
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH mime_boundary_length_limit (default: 2048)
 The maximal length of MIME multipart boundary strings. The MIME
 processor is unable to distinguish between boundary strings that
@@ -3867,7 +3901,7 @@ is backwards compatible with Postfix 2.0.
 Specify a list of network/netmask patterns, separated by commas
 and/or whitespace. The mask specifies the number of bits in the
 network part of a host address. You can also specify hostnames or
-\&.domain names (the initial dot causes the domain to match any name
+\e&.domain names (the initial dot causes the domain to match any name
 below it),  "/file/name" or "type:table" patterns.  A "/file/name"
 pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
@@ -3893,7 +3927,7 @@ By default, no clients are allowed to specify XCLIENT.
 Specify a list of network/netmask patterns, separated by commas
 and/or whitespace. The mask specifies the number of bits in the
 network part of a host address. You can also specify hostnames or
-\&.domain names (the initial dot causes the domain to match any name
+\e&.domain names (the initial dot causes the domain to match any name
 below it),  "/file/name" or "type:table" patterns.  A "/file/name"
 pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
@@ -3918,7 +3952,7 @@ By default, no clients are allowed to specify XFORWARD.
 Specify a list of network/netmask patterns, separated by commas
 and/or whitespace. The mask specifies the number of bits in the
 network part of a host address. You can also specify hostnames or
-\&.domain names (the initial dot causes the domain to match any name
+\e&.domain names (the initial dot causes the domain to match any name
 below it),  "/file/name" or "type:table" patterns.  A "/file/name"
 pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
@@ -4517,11 +4551,17 @@ The hostname and TCP port of the mail filtering proxy server.
 The proxy receives all mail from the Postfix SMTP server, and is
 supposed to give the result to another Postfix SMTP server process.
 .PP
-Specify host:port. The host can be specified as an IP address
-or as a symbolic name; no MX lookups are done. When no host or
-host:  are specified, the local machine is assumed.
+Specify "host:port" or "inet:host:port" for a TCP endpoint, or
+"unix:pathname" for a UNIX-domain endpoint. The host can be specified
+as an IP address or as a symbolic name; no MX lookups are done.
+When no "host" or "host:"  are specified, the local machine is
+assumed.  Pathname interpretation is relative to the Postfix queue
+directory.
 .PP
 This feature is available in Postfix 2.1 and later.
+.PP
+The "inet:" and "unix:" prefixes are available in Postfix 2.3
+and later.
 .SH smtpd_proxy_timeout (default: 100s)
 The time limit for connecting to a proxy filter and for sending or
 receiving information.  When a connection fails the client gets a
@@ -5112,7 +5152,7 @@ or smtpd_tls_cert_file.
 .PP
 A certificate supplied here must be usable as SSL server
 certificate and hence pass the "openssl verify -purpose sslserver
-\&..." test.
+\e&..." test.
 .PP
 Example:
 .PP

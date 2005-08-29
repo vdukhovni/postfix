@@ -58,6 +58,9 @@
 /*	int	vstream_fflush(stream)
 /*	VSTREAM	*stream;
 /*
+/*	int	vstream_fpurge(stream)
+/*	VSTREAM	*stream;
+/*
 /*	ssize_t	vstream_fread(stream, buf, len)
 /*	VSTREAM	*stream;
 /*	char	*buf;
@@ -209,6 +212,12 @@
 /*	opened in read-write or write-only mode.
 /*	vstream_fflush() returns 0 in case of success, VSTREAM_EOF in
 /*	case of problems. It is an error to flush a read-only stream.
+/*
+/*	vstream_fpurge() discards the contents of the stream buffer.
+/*	In the case of a double-buffered stream, it discards the
+/*	content of both the read and write buffers.
+/*	vstream_fpurge() returns 0 in case of success, VSTREAM_EOF in
+/*	case of problems.
 /*
 /*	vstream_fread() and vstream_fwrite() perform unformatted I/O
 /*	on the named stream. The result value is the number of bytes
@@ -798,6 +807,53 @@ static int vstream_buf_space(VBUF *bp, ssize_t want)
 	}
     }
     return (vstream_ferror(stream) ? VSTREAM_EOF : 0);	/* mmap() may fail */
+}
+
+/* vstream_fpurge - discard unread or unwritten content */
+
+int vstream_fpurge(VSTREAM *stream)
+{
+    const char *myname = "vstream_fpurge";
+    VBUF   *bp = &stream->buf;
+
+    /*
+     * To discard all unread contents, position the read buffer at its end,
+     * so that we skip over any unread data, and so that the next read
+     * operation will refill the buffer.
+     * 
+     * To discard all unwritten content, position the write buffer at its
+     * beginning, so that the next write operation clobbers any unwritten
+     * data.
+     */
+    switch (bp->flags & (VSTREAM_FLAG_READ_DOUBLE | VSTREAM_FLAG_WRITE)) {
+    case VSTREAM_FLAG_READ_DOUBLE:
+	VSTREAM_BUF_AT_START(&stream->write_buf);
+	/* FALLTHROUGH */
+    case VSTREAM_FLAG_READ:
+	VSTREAM_BUF_AT_END(bp);
+	break;
+    case VSTREAM_FLAG_DOUBLE:
+	VSTREAM_BUF_AT_START(&stream->write_buf);
+	VSTREAM_BUF_AT_END(&stream->read_buf);
+	break;
+    case VSTREAM_FLAG_WRITE_DOUBLE:
+	VSTREAM_BUF_AT_END(&stream->read_buf);
+	/* FALLTHROUGH */
+    case VSTREAM_FLAG_WRITE:
+	VSTREAM_BUF_AT_START(bp);
+	break;
+    case VSTREAM_FLAG_READ_DOUBLE | VSTREAM_FLAG_WRITE:
+    case VSTREAM_FLAG_READ | VSTREAM_FLAG_WRITE:
+	msg_panic("%s: read/write stream", myname);
+    }
+
+    /*
+     * Invalidate the cached file seek position.
+     */
+    bp->flags &= ~VSTREAM_FLAG_SEEK;
+    stream->offset = 0;
+
+    return (0);
 }
 
 /* vstream_fseek - change I/O position */

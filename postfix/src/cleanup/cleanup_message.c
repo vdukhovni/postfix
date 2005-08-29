@@ -293,6 +293,7 @@ static void cleanup_act_log(CLEANUP_STATE *state,
 
 #define CLEANUP_ACT_CTXT_HEADER	"header"
 #define CLEANUP_ACT_CTXT_BODY	"body"
+#define CLEANUP_ACT_CTXT_ANY	"content"
 
 /* cleanup_act - act upon a header/body match */
 
@@ -703,8 +704,51 @@ static void cleanup_body_callback(void *context, int type,
 static void cleanup_message_headerbody(CLEANUP_STATE *state, int type,
 				               const char *buf, ssize_t len)
 {
-    char   *myname = "cleanup_message_headerbody";
+    const char *myname = "cleanup_message_headerbody";
     MIME_STATE_DETAIL *detail;
+    const char *cp;
+    char    *dst;
+
+    /*
+     * Reject unwanted characters.
+     * 
+     * XXX Possible optimization: simplify the loop when the "reject" set
+     * contains only one character.
+     */
+    if ((state->flags & CLEANUP_FLAG_FILTER) && cleanup_reject_chars) {
+	for (cp = buf; cp < buf + len; cp++) {
+	    if (memchr(vstring_str(cleanup_reject_chars),
+		       *(const unsigned char *) cp,
+		       VSTRING_LEN(cleanup_reject_chars))) {
+		cleanup_act(state, CLEANUP_ACT_CTXT_ANY,
+			    buf, "REJECT disallowed character",
+			    "character reject");
+		return;
+	    }
+	}
+    }
+
+    /*
+     * Strip unwanted characters. Don't overwrite the input.
+     * 
+     * XXX Possible optimization: simplify the loop when the "strip" set
+     * contains only one character.
+     * 
+     * XXX Possible optimization: copy the input only if we really have to.
+     */
+    if ((state->flags & CLEANUP_FLAG_FILTER) && cleanup_strip_chars) {
+	VSTRING_RESET(state->stripped_buf);
+	VSTRING_SPACE(state->stripped_buf, len + 1);
+	dst = vstring_str(state->stripped_buf);
+	for (cp = buf; cp < buf + len; cp++)
+	    if (!memchr(vstring_str(cleanup_strip_chars),
+			*(const unsigned char *) cp,
+			VSTRING_LEN(cleanup_strip_chars)))
+		*dst++ = *cp;
+	*dst = 0;
+	buf = vstring_str(state->stripped_buf);
+	len = dst - buf;
+    }
 
     /*
      * Copy text record to the output.

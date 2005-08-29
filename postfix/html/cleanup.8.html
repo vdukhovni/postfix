@@ -125,6 +125,16 @@ CLEANUP(8)                                                          CLEANUP(8)
               non-MIME message headers in attached  messages,  as
               described in the <b><a href="postconf.5.html#header_checks">header_checks</a></b>(5) manual page.
 
+       Available in Postfix version 2.3 and later:
+
+       <b><a href="postconf.5.html#message_reject_characters">message_reject_characters</a> (empty)</b>
+              The  set  of characters that Postfix will reject in
+              message content.
+
+       <b><a href="postconf.5.html#message_strip_characters">message_strip_characters</a> (empty)</b>
+              The set of characters that Postfix will remove from
+              message content.
+
 <b>MIME PROCESSING CONTROLS</b>
        Available in Postfix version 2.0 and later:
 

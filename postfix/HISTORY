@@ -11062,12 +11062,60 @@ Apologies for any names omitted.
 	Cleanup: HOLD action executes only once, to reduce noise
 	in the logfile. Files: cleanup/cleanup_message.c, smtpd/smtpd.c.
 
-Open problems:
+20050806
 
-	Med: when the cleanup server bounces local mail that should
-	be content inspected, the resulting DSN should be content
-	inspected, otherwise a local user can bypass content
-	inspection.
+	Workaround: accept(2) fails with EPROTO when the client
+	already disconnected (SunOS 5.5.1). File: sane_accept.c.
+
+20050815
+
+	Workaround: old Solaris compilers can't link an archive
+	without globally visible symbols. File: tls/tls_misc.c.
+
+20050825
+
+	Feature: message_reject_characters and message_strip_characters
+	specify what characters in message content Postfix will
+	reject or remove. Based on patch by John Fawcett. Files:
+	cleanup/cleanup_message.c, cleanup/cleanup_init.c.
+
+	Safety: when the cleanup server rejects the content of mail
+	that is submitted with the Postfix sendmail command, or
+	re-queued with "postsuper -r", strip the message body from
+	the bounce message to reduce the risks from harmful content.
+	Files: cleanup/cleanup_envelope.c, cleanup/cleanup_bounce.c.
+
+	Feature: the smtpd_proxy_filter parameter value can now be
+	prefixed with "unix:" (for UNIX-domain socket) and "inet:"
+	(for TCP socket). TCP sockets are the default.  Patch by
+	Edwin Kremer. File: smtpd/smtpd_proxy.c.
+
+20050828
+
+	Bugfix: after adding DSN support, error notification was
+	broken for too large mail that was submitted with the Postfix
+	sendmail command, forwarded by the local(8) delivery agent,
+	or re-queued with "postsuper -r". The message would be saved
+	to the "corrupt" queue.
+
+	The mistake was to leave the truncated message in the
+	incoming queue and to ask the queue manager to notify the
+	sender; this was not possible because the queue manager
+	cannot (and should not) handle truncated queue files.
+
+	The fix is to have the cleanup server send the bounce
+	message, just like it did before DSN support was added.  As
+	a side effect, Postfix will no longer send DSN_SUCCESS
+	notices after virtual aliasing, when the cleanup server
+	bounces all the recipients of the message anyway.  This
+	could be called a feature.  File: cleanup/cleanup_bounce.c.
+
+	Also needed for this fix: a new vstream_fpurge() routine
+	that discards unread/written data from a VSTREAM.  It's
+	needed before cleanup_bounce() can seek to the start of the
+	queue file after a file size error. File: util/vstream.c.
+
+Open problems:
 
 	Look for systems with XPG basename() declared in <libgen.h>,
 	and prepare for phasing out the Postfix-supplied one.

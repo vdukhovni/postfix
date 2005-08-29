@@ -17,6 +17,30 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
+Incompatibility with snapshot 20050828
+======================================
+
+When a header/body_checks or message_reject_characters rule rejects
+mail that was submitted with the Postfix sendmail command (or
+re-queued with "postsuper -r"), the returned message is now limited
+to just the message headers, to avoid the risk of exposure to harmful
+content in the message body or attachments.
+
+When the cleanup server rejects the content or size of mail that
+was submitted with the Postfix sendmail command, forwarded with the
+local(8) delivery agent, or that was re-queued with "postsuper -r",
+Postfix no longer sends DSN SUCCESS notification of virtual alias
+expansions. Since all the recipients are reported as failed, the
+SUCCESS notification seems redundant.
+
+Major changes with snapshot 20050828
+====================================
+
+Configurable filters to reject or remove unwanted characters in
+email content. The message_reject_characters and message_strip_characters
+parameters understand the usual C-like escape sequences: \a \b \f
+\n \r \t \v \ddd (up to three octal digits) and \\.
+
 Incompatibility with snapshot 20050726
 ======================================
 

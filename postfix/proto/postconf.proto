@@ -4979,11 +4979,17 @@ The proxy receives all mail from the Postfix SMTP server, and is
 supposed to give the result to another Postfix SMTP server process.
 </p>
 
-<p> Specify host:port. The host can be specified as an IP address
-or as a symbolic name; no MX lookups are done. When no host or
-host:  are specified, the local machine is assumed.  </p>
+<p> Specify "host:port" or "inet:host:port" for a TCP endpoint, or
+"unix:pathname" for a UNIX-domain endpoint. The host can be specified
+as an IP address or as a symbolic name; no MX lookups are done.
+When no "host" or "host:"  are specified, the local machine is
+assumed.  Pathname interpretation is relative to the Postfix queue
+directory.  </p>
 
 <p> This feature is available in Postfix 2.1 and later.  </p>
+
+<p> The "inet:" and "unix:" prefixes are available in Postfix 2.3
+and later.  </p>
 
 %PARAM smtpd_proxy_timeout 100s
 
@@ -8505,3 +8511,33 @@ examples are shown in the ADDRESS_REWRITING_README and
 STANDARD_CONFIGURATION_README documents. </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
+
+%PARAM message_reject_characters empty
+
+<p> The set of characters that Postfix will reject in message
+content.  The usual C-like escape sequences are recognized: <tt>\a
+\b \f \n \r \t \v \<i>ddd</i></tt> (up to three octal digits) and
+<tt>\\</tt>. </p>
+
+<p> Example: </p>
+
+<pre>
+message_reject_characters = \0
+</pre>
+
+<p> This feature is available in Postfix 2.3 and later.  </p>
+
+%PARAM message_strip_characters empty
+
+<p> The set of characters that Postfix will remove from message
+content.  The usual C-like escape sequences are recognized: <tt>\a
+\b \f \n \r \t \v \<i>ddd</i></tt> (up to three octal digits) and
+<tt>\\</tt>. </p>
+
+<p> Example: </p>
+
+<pre>
+message_strip_characters = \0
+</pre>
+
+<p> This feature is available in Postfix 2.3 and later.  </p>

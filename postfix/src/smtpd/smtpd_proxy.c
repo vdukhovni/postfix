@@ -250,6 +250,8 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
 	0, 0,
     };
     CLEANUP_STAT_DETAIL *detail;
+    int     (*connect_fn) (const char *, int, int);
+    const char *endpoint;
 
     /*
      * This buffer persists beyond the end of a proxy session so we can
@@ -259,9 +261,23 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
 	state->proxy_buffer = vstring_alloc(10);
 
     /*
+     * Find connection method (default inet)
+     */
+    if (strncasecmp("unix:", service, 5) == 0) {
+	endpoint = service + 5;
+	connect_fn = unix_connect;
+    } else {
+	if (strncasecmp("inet:", service, 5) == 0)
+	    endpoint = service + 5;
+	else
+	    endpoint = service;
+	connect_fn = inet_connect;
+    }
+
+    /*
      * Connect to proxy.
      */
-    if ((fd = inet_connect(service, BLOCKING, timeout)) < 0) {
+    if ((fd = connect_fn(endpoint, BLOCKING, timeout)) < 0) {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
 	state->err |= CLEANUP_STAT_PROXY;
 	msg_warn("connect to proxy service %s: %m", service);

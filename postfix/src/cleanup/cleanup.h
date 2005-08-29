@@ -35,6 +35,7 @@ typedef struct CLEANUP_STATE {
     VSTRING *attr_buf;			/* storage for named attribute */
     VSTRING *temp1;			/* scratch buffer, local use only */
     VSTRING *temp2;			/* scratch buffer, local use only */
+    VSTRING *stripped_buf;		/* character stripped input */
     VSTREAM *dst;			/* current output stream */
     MAIL_STREAM *handle;		/* mail stream handle */
     char   *queue_name;			/* queue name */
@@ -69,6 +70,7 @@ typedef struct CLEANUP_STATE {
     int     dsn_ret;			/* DSN full/hdrs */
     int     dsn_notify;			/* DSN never/delay/fail/success */
     char   *dsn_orcpt;			/* DSN original recipient */
+    char   *verp_delims;		/* VERP delimiters (optional) */
 } CLEANUP_STATE;
 
  /*
@@ -99,6 +101,12 @@ extern MAPS *cleanup_send_bcc_maps;
 extern MAPS *cleanup_rcpt_bcc_maps;
 
  /*
+  * Character filters.
+  */
+extern VSTRING *cleanup_reject_chars;
+extern VSTRING *cleanup_strip_chars;
+
+ /*
   * Address canonicalization fine control.
   */
 #define CLEANUP_CANON_FLAG_ENV_FROM	(1<<0)	/* envelope sender */
@@ -120,7 +128,7 @@ extern MAPS *cleanup_rcpt_bcc_maps;
 extern int cleanup_ext_prop_mask;
 
  /*
-  * Saved queue file name, so the file can be removed in case of a fatal
+  * Saved queue file names, so the files can be removed in case of a fatal
   * run-time error.
   */
 extern char *cleanup_path;

@@ -100,6 +100,14 @@
 /*	Optional lookup tables for content inspection of non-MIME message
 /*	headers in attached messages, as described in the \fBheader_checks\fR(5)
 /*	manual page.
+/* .PP
+/*	Available in Postfix version 2.3 and later:
+/* .IP "\fBmessage_reject_characters (empty)\fR"
+/*	The set of characters that Postfix will reject in message
+/*	content.
+/* .IP "\fBmessage_strip_characters (empty)\fR"
+/*	The set of characters that Postfix will remove from message
+/*	content.
 /* MIME PROCESSING CONTROLS
 /* .ad
 /* .fi

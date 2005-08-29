@@ -75,6 +75,7 @@ extern VSTREAM *vstream_fopen(const char *, int, mode_t);
 extern int vstream_fclose(VSTREAM *);
 extern off_t vstream_fseek(VSTREAM *, off_t, int);
 extern off_t vstream_ftell(VSTREAM *);
+extern int vstream_fpurge(VSTREAM *);
 extern int vstream_fflush(VSTREAM *);
 extern int vstream_fputs(const char *, VSTREAM *);
 extern VSTREAM *vstream_fdopen(int, int);

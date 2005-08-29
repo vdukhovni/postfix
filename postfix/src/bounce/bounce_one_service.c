@@ -168,7 +168,7 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
      */
     else {
 	if (bounce_info->log_handle->rcpt.dsn_notify != 0	/* compat */
-	&& (bounce_info->log_handle->rcpt.dsn_notify & DSN_NOTIFY_FAILURE) == 0) {
+	    && (bounce_info->log_handle->rcpt.dsn_notify & DSN_NOTIFY_FAILURE) == 0) {
 	    bounce_status = 0;
 	} else {
 	    if ((bounce = post_mail_fopen_nowait(NULL_SENDER, orig_sender,

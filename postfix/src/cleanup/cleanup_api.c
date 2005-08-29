@@ -191,7 +191,6 @@ int     cleanup_flush(CLEANUP_STATE *state)
 {
     int     status;
     char   *junk;
-    VSTRING *bounce_junk;
     VSTRING *trace_junk;
 
     /*
@@ -205,41 +204,49 @@ int     cleanup_flush(CLEANUP_STATE *state)
     }
 
     /*
-     * If there was an error that requires us to generate a bounce message,
-     * create bounce logfile records and reset the error flag in case of
-     * success. Leave it up to the queue manager to deliver the bad news. We
-     * can't do that ourselves, because there may also be a trace file lying
-     * around (with DSN SUCCESS notifications) that also needs to be reported
-     * to the sender, and we must be able to undo the entire cleanup request
-     * including bounce and trace logfiles if some error happens.
+     * Status sanitization. Always report success when the discard flag was
+     * raised by some user-specified access rule.
+     */
+    if (state->flags & CLEANUP_FLAG_DISCARD)
+	state->errs = 0;
+
+    /*
+     * If there was an error that requires us to generate a bounce message
+     * (mail submitted with the Postfix sendmail command, mail forwarded by
+     * the local(8) delivery agent, or mail re-queued with "postsuper -r"),
+     * send a bounce notification, reset the error flags in case of success,
+     * and request deletion of the the incoming queue file and of the
+     * optional DSN SUCCESS records from virtual alias expansion.
      * 
-     * An incomplete message should never be bounced: it was canceled by the
-     * client, and may not even have an address to bounce to.
+     * XXX It would make no sense to knowingly report success after we already
+     * have bounced all recipients, especially because the information in the
+     * DSN SUCCESS notice is completely redundant compared to the information
+     * in the bounce notice (however, both may be incomplete when the queue
+     * file size would exceed the safety limit).
      * 
-     * If we are responsible for generating a bounce message, we must report
-     * success to the client unless the bounce message file could not be
-     * written (which is just as bad as not being able to write the message
-     * queue file in the first place).
+     * An alternative is to keep the DSN SUCCESS records and to delegate bounce
+     * notification to the queue manager, just like we already delegate
+     * success notification. This requires that we leave the undeliverable
+     * message in the incoming queue; versions up to 20050726 did exactly
+     * that. Unfortunately, this broke with over-size queue files, because
+     * the queue manager cannot handle incomplete queue files (and it should
+     * not try to do so).
      */
 #define CAN_BOUNCE() \
 	((state->errs & CLEANUP_STAT_MASK_CANT_BOUNCE) == 0 \
 	    && state->sender != 0 \
 	    && (state->flags & CLEANUP_FLAG_BOUNCE) != 0)
 
-    if (state->errs != 0 && (state->flags & CLEANUP_FLAG_DISCARD) == 0
-	&& CAN_BOUNCE())
+    if (state->errs != 0 && CAN_BOUNCE())
 	cleanup_bounce(state);
 
     /*
-     * If there are no errors, be very picky about queue file write errors
-     * because we are about to tell the sender that it can throw away its
-     * copy of the message.
-     * 
      * Optionally, place the message on hold, but only if the message was
-     * received successfully. This involves renaming the queue file before
-     * "finishing" it (or else the queue manager would open it for delivery)
-     * and updating our own idea of the queue file name for error recovery
-     * and for error reporting purposes.
+     * received successfully and only if it's not being discarded for other
+     * reasons. This involves renaming the queue file before "finishing" it
+     * (or else the queue manager would grab it too early) and updating our
+     * own idea of the queue file name for error recovery and for error
+     * reporting purposes.
      */
     if (state->errs == 0 && (state->flags & CLEANUP_FLAG_DISCARD) == 0) {
 	if ((state->flags & CLEANUP_FLAG_HOLD) != 0) {
@@ -265,22 +272,18 @@ int     cleanup_flush(CLEANUP_STATE *state)
 	state->errs = mail_stream_finish(state->handle, (VSTRING *) 0);
     } else {
 	mail_stream_cleanup(state->handle);
-	if ((state->flags & CLEANUP_FLAG_DISCARD) != 0)
-	    state->errs = 0;
     }
     state->handle = 0;
     state->dst = 0;
 
     /*
-     * If there was an error, remove the queue file, the optional bounce
-     * logfile with undeliverable recipients, and the optional trace file
-     * with DSN SUCCESS notifications.
+     * If there was an error, or if the message must be discarded for other
+     * reasons, remove the queue file and the optional trace file with DSN
+     * SUCCESS records from virtual alias expansion.
      */
     if (state->errs != 0 || (state->flags & CLEANUP_FLAG_DISCARD) != 0) {
 	if (cleanup_trace_path)
 	    (void) REMOVE(vstring_str(cleanup_trace_path));
-	if (cleanup_bounce_path)
-	    (void) REMOVE(vstring_str(cleanup_bounce_path));
 	if (REMOVE(cleanup_path))
 	    msg_warn("remove %s: %m", cleanup_path);
     }
@@ -292,15 +295,11 @@ int     cleanup_flush(CLEANUP_STATE *state)
      */
     trace_junk = cleanup_trace_path;
     cleanup_trace_path = 0;			/* don't delete upon error */
-    bounce_junk = cleanup_bounce_path;
-    cleanup_bounce_path = 0;			/* don't delete upon error */
     junk = cleanup_path;
     cleanup_path = 0;				/* don't delete upon error */
 
     if (trace_junk)
 	vstring_free(trace_junk);
-    if (bounce_junk)
-	vstring_free(bounce_junk);
     myfree(junk);
 
     /*

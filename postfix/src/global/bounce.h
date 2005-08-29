@@ -28,6 +28,8 @@ extern int bounce_append(int, const char *, time_t, RECIPIENT *,
 			         const char *, DSN *);
 extern int bounce_flush(int, const char *, const char *, const char *,
 			        const char *, const char *, int);
+extern int bounce_flush_verp(int, const char *, const char *, const char *,
+		             const char *, const char *, int, const char *);
 extern int bounce_one(int, const char *, const char *, const char *,
 		              const char *, const char *,
 		              int, time_t, RECIPIENT *,

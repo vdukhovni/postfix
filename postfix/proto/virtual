@@ -32,7 +32,7 @@
 # .PP
 #	Virtual aliasing is applied only to recipient
 #	envelope addresses, and does not affect message headers.
-#	Think Sendmail rule set \fBS0\fR, if you like. Use \fBcanonical\fR(5)
+#	Use \fBcanonical\fR(5)
 #	mapping to rewrite header and envelope addresses in general.
 #
 #	Normally, the \fBvirtual\fR(5) alias table is specified as a text file
