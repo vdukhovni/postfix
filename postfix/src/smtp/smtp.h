@@ -217,7 +217,6 @@ typedef struct SMTP_SESSION {
     int     tls_enforce_tls;		/* must do TLS */
     int     tls_enforce_peername;	/* cert must match */
     TLScontext_t *tls_context;		/* TLS session state */
-    tls_info_t tls_info;		/* legacy */
 #endif
 
 } SMTP_SESSION;

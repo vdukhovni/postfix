@@ -1216,13 +1216,17 @@ static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
     char   *low_name;
     const char *found;
 
-    if (state->tls_info.peer_verified && permit_all_certs) {
+    if (!state->tls_context)
+	return SMTPD_CHECK_DUNNO;
+
+    if (state->tls_context->peer_verified && permit_all_certs) {
 	if (msg_verbose)
 	    msg_info("Relaying allowed for all verified client certificates");
 	return (SMTPD_CHECK_OK);
     }
-    if (state->tls_info.peer_verified && state->tls_info.peer_fingerprint) {
-	low_name = lowercase(mystrdup(state->tls_info.peer_fingerprint));
+    if (state->tls_context->peer_verified
+	&& state->tls_context->peer_fingerprint) {
+	low_name = lowercase(mystrdup(state->tls_context->peer_fingerprint));
 	found = maps_find(relay_ccerts, low_name, DICT_FLAG_FIXED);
 	myfree(low_name);
 	if (found) {
@@ -1231,7 +1235,7 @@ static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
 	    return (SMTPD_CHECK_OK);
 	} else if (msg_verbose)
 	    msg_info("relay_clientcerts: No match for fingerprint '%s'",
-		     state->tls_info.peer_fingerprint);
+		     state->tls_context->peer_fingerprint);
     }
     return (SMTPD_CHECK_DUNNO);
 }
@@ -2496,9 +2500,13 @@ static int check_ccert_access(SMTPD_STATE *state, const char *table,
     char   *myname = "check_ccert_access";
     int     found;
 
-    if (state->tls_info.peer_verified && state->tls_info.peer_fingerprint) {
+    if (!state->tls_context)
+	return SMTPD_CHECK_DUNNO;
+
+    if (state->tls_context->peer_verified
+	&& state->tls_context->peer_fingerprint) {
 	if (msg_verbose)
-	    msg_info("%s: %s", myname, state->tls_info.peer_fingerprint);
+	    msg_info("%s: %s", myname, state->tls_context->peer_fingerprint);
 
 	/*
 	 * Regexp tables don't make sense for certificate fingerprints. That
@@ -2510,8 +2518,10 @@ static int check_ccert_access(SMTPD_STATE *state, const char *table,
 	 * client name and address are always syslogged as part of a "reject"
 	 * event.
 	 */
-	return (check_access(state, table, state->tls_info.peer_fingerprint,
-			     DICT_FLAG_NONE, &found, state->tls_info.peer_CN,
+	return (check_access(state, table,
+			     state->tls_context->peer_fingerprint,
+			     DICT_FLAG_NONE, &found,
+			     state->tls_context->peer_CN,
 			     SMTPD_NAME_CCERT, def_acl));
     }
     return (SMTPD_CHECK_DUNNO);
@@ -3228,15 +3238,15 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 			  state->sasl_sender : "",
 #endif
 #ifdef USE_TLS
+#define IF_VERIFIED(x) \
+    ((state->tls_context && \
+      state->tls_context->peer_verified && ((x) != 0)) ? (x) : "")
 			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_SUBJECT,
-			  state->tls_info.peer_verified ?
-			  state->tls_info.peer_CN : "",
+			  IF_VERIFIED(state->tls_context->peer_CN),
 			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_ISSSUER,
-			  state->tls_info.peer_verified ?
-			  state->tls_info.issuer_CN : "",
+			  IF_VERIFIED(state->tls_context->issuer_CN),
 			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_FINGERPRINT,
-			  state->tls_info.peer_verified ?
-			  state->tls_info.peer_fingerprint : "",
+			  IF_VERIFIED(state->tls_context->peer_fingerprint),
 #endif
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */

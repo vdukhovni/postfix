@@ -626,8 +626,7 @@ static int smtp_start_tls(SMTP_STATE *state, int misc_flags)
 			 var_smtp_starttls_tmout,
 			 session->tls_enforce_peername,
 			 session->host,
-			 lowercase(vstring_str(serverid)),
-			 &(session->tls_info));
+			 lowercase(vstring_str(serverid)));
     vstring_free(serverid);
     if (session->tls_context == 0)
 	return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
@@ -815,6 +814,7 @@ static void smtp_header_rewrite(void *context, int header_class,
 	}
     }
 }
+
 /* smtp_mime_fail - MIME problem */
 
 static void smtp_mime_fail(SMTP_STATE *state, int mime_errs)

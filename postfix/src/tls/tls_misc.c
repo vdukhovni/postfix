@@ -110,6 +110,8 @@ TLScontext_t *tls_alloc_context(int log_level, const char *peername)
      * 
      * See the C language FAQ item 5.17, or if you have time to burn,
      * http://www.google.com/search?q=zero+bit+null+pointer
+     * 
+     * However, it's OK to use memset() to zero integer values.
      */
     TLScontext = (TLScontext_t *) mymalloc(sizeof(TLScontext_t));
     memset((char *) TLScontext, 0, sizeof(*TLScontext));
@@ -117,6 +119,11 @@ TLScontext_t *tls_alloc_context(int log_level, const char *peername)
     TLScontext->internal_bio = 0;
     TLScontext->network_bio = 0;
     TLScontext->serverid = 0;
+    TLScontext->peer_CN = 0;
+    TLScontext->issuer_CN = 0;
+    TLScontext->peer_fingerprint = 0;
+    TLScontext->protocol = 0;
+    TLScontext->cipher_name = 0;
     TLScontext->log_level = log_level;
     TLScontext->peername = lowercase(mystrdup(peername));
 
@@ -137,10 +144,19 @@ void    tls_free_context(TLScontext_t *TLScontext)
 	SSL_free(TLScontext->con);
     if (TLScontext->network_bio)
 	BIO_free(TLScontext->network_bio);
+
     if (TLScontext->peername)
 	myfree(TLScontext->peername);
     if (TLScontext->serverid)
 	myfree(TLScontext->serverid);
+
+    if (TLScontext->peer_CN)
+	myfree(TLScontext->peer_CN);
+    if (TLScontext->issuer_CN)
+	myfree(TLScontext->issuer_CN);
+    if (TLScontext->peer_fingerprint)
+	myfree(TLScontext->peer_fingerprint);
+
     myfree((char *) TLScontext);
 }
 

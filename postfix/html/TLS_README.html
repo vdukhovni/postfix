@@ -591,7 +591,7 @@ Postfix SMTP server access control:  </p>
 <dt> <a href="postconf.5.html#permit_tls_clientcerts">permit_tls_clientcerts</a> </dt> <dd> <p> Allow the remote SMTP
 client SMTP request if the client certificate passes verification,
 and if its fingerprint is listed in the list of client certificates
-(see relay_clientcerts discussion below). </p> </dd>
+(see <a href="postconf.5.html#relay_clientcerts">relay_clientcerts</a> discussion below). </p> </dd>
 
 <dt> <a href="postconf.5.html#permit_tls_all_clientcerts">permit_tls_all_clientcerts</a> </dt> <dd> <p> Allow the remote
 client SMTP request if the client certificate passes verification.
@@ -614,7 +614,7 @@ The <a href="postconf.5.html#permit_tls_all_clientcerts">permit_tls_all_clientce
 specially created email relay server.  </p>
 
 <p> It is however recommended to stay with the <a href="postconf.5.html#permit_tls_clientcerts">permit_tls_clientcerts</a>
-feature and list all certificates via $relay_clientcerts, as
+feature and list all certificates via $<a href="postconf.5.html#relay_clientcerts">relay_clientcerts</a>, as
 <a href="postconf.5.html#permit_tls_all_clientcerts">permit_tls_all_clientcerts</a> does not permit any control when a
 certificate must no longer be used (e.g. an employee leaving). </p>
 
@@ -633,7 +633,7 @@ certificate must no longer be used (e.g. an employee leaving). </p>
 
 <p> The Postfix list manipulation routines give special treatment
 to whitespace and some other characters, making the use of certificate
-names unpractical.  Instead we use the certificate fingerprints as
+names impractical.  Instead we use the certificate fingerprints as
 they are difficult to fake but easy to use for lookup.  Postfix
 lookup tables are in the form of (key, value) pairs.  Since we only
 need the key, the value can be chosen freely, e.g.  the name of
@@ -644,7 +644,7 @@ the user or host.</p>
 <blockquote>
 <pre>
 /etc/postfix/main.cf:
-    relay_clientcerts = hash:/etc/postfix/relay_clientcerts
+    <a href="postconf.5.html#relay_clientcerts">relay_clientcerts</a> = hash:/etc/postfix/relay_clientcerts
 
 /etc/postfix/relay_clientcerts:
     D7:04:2F:A7:0B:8C:A5:21:FA:31:77:E1:41:8A:EE:80 lutzpc.at.home

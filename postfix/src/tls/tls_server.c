@@ -11,24 +11,22 @@
 /*	int	askcert;
 /*
 /*	TLScontext_t *tls_server_start(server_ctx, stream, timeout,
-/*					peername, peeraddr,
-/*					tls_info, requirecert)
+/*					peername, peeraddr, requirecert)
 /*	SSL_CTX	*server_ctx;
 /*	VSTREAM	*stream;
 /*	int	timeout;
 /*	const char *peername;
 /*	const char *peeraddr;
-/*	tls_info_t *tls_info;
 /*	int	requirecert;
 /*
-/*	void	tls_server_stop(server_ctx, stream, failure, tls_info)
+/*	void	tls_server_stop(server_ctx, stream, failure, TLScontext)
 /*	SSL_CTX	*server_ctx;
 /*	VSTREAM	*stream;
 /*	int	failure;
-/*	tls_info_t *tls_info;
+/*	TLScontext_t *TLScontext;
 /* DESCRIPTION
-/*	This module is the interface between Postfix TLS servers
-/*	and the OpenSSL library and TLS entropy and cache manager.
+/*	This module is the interface between Postfix TLS servers,
+/*	the OpenSSL library, and the TLS entropy and cache manager.
 /*
 /*	tls_server_init() is called once when the SMTP server
 /*	initializes.
@@ -36,9 +34,8 @@
 /*	so that peer-specific behavior is not possible.
 /*
 /*	tls_server_start() activates the TLS feature for the VSTREAM
-/*	passed as argument. We assume that network buffers are flushed and the
-/*	TLS handshake can begin	immediately. Information about the peer
-/*	is stored into the tls_info structure passed as argument.
+/*	passed as argument. We assume that network buffers are flushed
+/*	and the TLS handshake can begin	immediately.
 /*
 /*	tls_server_stop() sends the "close notify" alert via
 /*	SSL_shutdown() to the peer and resets all connection specific
@@ -49,34 +46,35 @@
 /*	If the failure flag is set, no SSL_shutdown() handshake is performed.
 /*
 /*	Once the TLS connection is initiated, information about the TLS
-/*	state is available via the tls_info structure:
-/* .IP tls_info->protocol
+/*	state is available via the TLScontext structure:
+/* .IP TLScontext->protocol
 /*	the protocol name (SSLv2, SSLv3, TLSv1),
-/* .IP tls_info->cipher_name
+/* .IP TLScontext->cipher_name
 /*	the cipher name (e.g. RC4/MD5),
-/* .IP tls_info->cipher_usebits
+/* .IP TLScontext->cipher_usebits
 /*	the number of bits actually used (e.g. 40),
-/* .IP tls_info->cipher_algbits
+/* .IP TLScontext->cipher_algbits
 /*	the number of bits the algorithm is based on (e.g. 128).
 /* .PP
 /*	The last two values may differ from each other when export-strength
 /*	encryption is used.
 /*
 /*	The status of the peer certificate verification is available in
-/*	tls_info->peer_verified. It is set to 1 when the certificate could
+/*	TLScontext->peer_verified. It is set to 1 when the certificate could
 /*	be verified.
 /*	If the peer offered a certificate, part of the certificate data are
 /*	available as:
-/* .IP tls_info->peer_subject
-/*	X509v3-oneline with the DN of the peer
-/* .IP tls_info->peer_CN
-/*	extracted CommonName of the peer
-/* .IP tls_info->peer_issuer
-/*	X509v3-oneline with the DN of the issuer
-/* .IP tls_info->issuer_CN
-/*	extracted CommonName of the issuer
-/* .IP tls_info->peer_fingerprint
-/*	fingerprint of the certificate
+/* .IP TLScontext->peer_CN
+/*	Extracted CommonName of the peer, or zero-length string
+/*	when information could not be extracted.
+/* .IP TLScontext->issuer_CN
+/*	Extracted CommonName of the issuer, or zero-length string
+/*	when information could not be extracted.
+/* .IP TLScontext->peer_fingerprint
+/*	Fingerprint of the certificate, or null pointer when no
+/*	certificate digest is available.
+/* .PP
+/*	Otherwise these fields are set to null pointers.
 /* LICENSE
 /* .ad
 /* .fi
@@ -450,9 +448,7 @@ SSL_CTX *tls_server_init(int unused_verifydepth, int askcert)
   */
 TLScontext_t *tls_server_start(SSL_CTX *server_ctx, VSTREAM *stream,
 			               int timeout, const char *peername,
-			               const char *peeraddr,
-			               tls_info_t *tls_info,
-			               int requirecert)
+			               const char *peeraddr, int requirecert)
 {
     int     sts;
     int     j;
@@ -461,6 +457,8 @@ TLScontext_t *tls_server_start(SSL_CTX *server_ctx, VSTREAM *stream,
     TLScontext_t *TLScontext;
     SSL_CIPHER *cipher;
     X509   *peer;
+    unsigned char md[EVP_MAX_MD_SIZE];
+    char    buf[CCERT_BUFSIZ];
 
     if (var_smtpd_tls_loglevel >= 1)
 	msg_info("setting up TLS connection from %s[%s]", peername, peeraddr);
@@ -573,66 +571,38 @@ TLScontext_t *tls_server_start(SSL_CTX *server_ctx, VSTREAM *stream,
     peer = SSL_get_peer_certificate(TLScontext->con);
     if (peer != NULL) {
 	if (SSL_get_verify_result(TLScontext->con) == X509_V_OK)
-	    tls_info->peer_verified = 1;
+	    TLScontext->peer_verified = 1;
 
-	X509_NAME_oneline(X509_get_subject_name(peer),
-			  TLScontext->peer_subject,
-			  sizeof(TLScontext->peer_subject));
-	if (var_smtpd_tls_loglevel >= 2)
-	    msg_info("subject=%s", TLScontext->peer_subject);
-	tls_info->peer_subject = TLScontext->peer_subject;
-
-	X509_NAME_oneline(X509_get_issuer_name(peer),
-			  TLScontext->peer_issuer,
-			  sizeof(TLScontext->peer_issuer));
-	if (var_smtpd_tls_loglevel >= 2)
-	    msg_info("issuer=%s", TLScontext->peer_issuer);
-	tls_info->peer_issuer = TLScontext->peer_issuer;
-
-	if (X509_digest(peer, EVP_md5(), TLScontext->md, &n)) {
+	if (var_smtpd_tls_loglevel >= 2) {
+	    X509_NAME_oneline(X509_get_subject_name(peer),
+			      buf, sizeof(buf));
+	    msg_info("subject=%s", buf);
+	    X509_NAME_oneline(X509_get_issuer_name(peer),
+			      buf, sizeof(buf));
+	    msg_info("issuer=%s", buf);
+	}
+	if (X509_digest(peer, EVP_md5(), md, &n) && n > 0) {
+	    TLScontext->peer_fingerprint = mymalloc(n * 3);
 	    for (j = 0; j < (int) n; j++) {
-		TLScontext->fingerprint[j * 3] =
-		    hexcodes[(TLScontext->md[j] & 0xf0) >> 4U];
-		TLScontext->fingerprint[(j * 3) + 1] =
-		    hexcodes[(TLScontext->md[j] & 0x0f)];
+		TLScontext->peer_fingerprint[j * 3] =
+		    hexcodes[(md[j] & 0xf0) >> 4U];
+		TLScontext->peer_fingerprint[(j * 3) + 1] =
+		    hexcodes[(md[j] & 0x0f)];
 		if (j + 1 != (int) n)
-		    TLScontext->fingerprint[(j * 3) + 2] = ':';
+		    TLScontext->peer_fingerprint[(j * 3) + 2] = ':';
 		else
-		    TLScontext->fingerprint[(j * 3) + 2] = '\0';
+		    TLScontext->peer_fingerprint[(j * 3) + 2] = '\0';
 	    }
 	    if (var_smtpd_tls_loglevel >= 1)
-		msg_info("fingerprint=%s", TLScontext->fingerprint);
-	    tls_info->peer_fingerprint = TLScontext->fingerprint;
+		msg_info("fingerprint=%s", TLScontext->peer_fingerprint);
 	}
-	TLScontext->peer_CN[0] = '\0';
-	if (!X509_NAME_get_text_by_NID(X509_get_subject_name(peer),
-				       NID_commonName, TLScontext->peer_CN,
-				       sizeof(TLScontext->peer_CN))) {
-	    msg_info("Could not parse client's subject CN");
-	    tls_print_errors();
-	}
-	tls_info->peer_CN = TLScontext->peer_CN;
-
-	TLScontext->issuer_CN[0] = '\0';
-	if (!X509_NAME_get_text_by_NID(X509_get_issuer_name(peer),
-				       NID_commonName, TLScontext->issuer_CN,
-				       sizeof(TLScontext->issuer_CN))) {
-	    msg_info("Could not parse client's issuer CN");
-	    tls_print_errors();
-	}
-	if (!TLScontext->issuer_CN[0]) {
-	    /* No issuer CN field, use Organization instead */
-	    if (!X509_NAME_get_text_by_NID(X509_get_issuer_name(peer),
-				NID_organizationName, TLScontext->issuer_CN,
-					   sizeof(TLScontext->issuer_CN))) {
-		msg_info("Could not parse client's issuer Organization");
-		tls_print_errors();
-	    }
-	}
-	tls_info->issuer_CN = TLScontext->issuer_CN;
+	if ((TLScontext->peer_CN = tls_peer_CN(peer)) == 0)
+	    TLScontext->peer_CN = mystrdup("");
+	if ((TLScontext->issuer_CN = tls_issuer_CN(peer)) == 0)
+	    TLScontext->issuer_CN = mystrdup("");
 
 	if (var_smtpd_tls_loglevel >= 1) {
-	    if (tls_info->peer_verified)
+	    if (TLScontext->peer_verified)
 		msg_info("Verified: subject_CN=%s, issuer=%s",
 			 TLScontext->peer_CN, TLScontext->issuer_CN);
 	    else
@@ -647,7 +617,7 @@ TLScontext_t *tls_server_start(SSL_CTX *server_ctx, VSTREAM *stream,
      * session peer was verified.
      */
     if (requirecert) {
-	if (!tls_info->peer_verified || !tls_info->peer_CN) {
+	if (!TLScontext->peer_verified || !TLScontext->peer_CN) {
 	    msg_info("Re-used session without peer certificate removed");
 	    uncache_session(server_ctx, TLScontext);
 	    tls_free_context(TLScontext);
@@ -658,11 +628,11 @@ TLScontext_t *tls_server_start(SSL_CTX *server_ctx, VSTREAM *stream,
     /*
      * Finally, collect information about protocol and cipher for logging
      */
-    tls_info->protocol = SSL_get_version(TLScontext->con);
+    TLScontext->protocol = SSL_get_version(TLScontext->con);
     cipher = SSL_get_current_cipher(TLScontext->con);
-    tls_info->cipher_name = SSL_CIPHER_get_name(cipher);
-    tls_info->cipher_usebits = SSL_CIPHER_get_bits(cipher,
-					       &(tls_info->cipher_algbits));
+    TLScontext->cipher_name = SSL_CIPHER_get_name(cipher);
+    TLScontext->cipher_usebits = SSL_CIPHER_get_bits(cipher,
+					     &(TLScontext->cipher_algbits));
 
     /*
      * The TLS engine is active. Switch to the tls_timed_read/write()
@@ -673,8 +643,8 @@ TLScontext_t *tls_server_start(SSL_CTX *server_ctx, VSTREAM *stream,
     if (var_smtpd_tls_loglevel >= 1)
 	msg_info("TLS connection established from %s[%s]: %s with cipher %s (%d/%d bits)",
 		 peername, peeraddr,
-		 tls_info->protocol, tls_info->cipher_name,
-		 tls_info->cipher_usebits, tls_info->cipher_algbits);
+		 TLScontext->protocol, TLScontext->cipher_name,
+		 TLScontext->cipher_usebits, TLScontext->cipher_algbits);
     tls_int_seed();
 
     return (TLScontext);

@@ -175,7 +175,6 @@ typedef struct SMTPD_STATE {
     int     tls_enforce_tls;		/* must use TLS */
     int     tls_auth_only;		/* use SASL over TLS only */
     TLScontext_t *tls_context;		/* TLS session state */
-    tls_info_t tls_info;		/* legacy */
 #endif
 
 } SMTPD_STATE;

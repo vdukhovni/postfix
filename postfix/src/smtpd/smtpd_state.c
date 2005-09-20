@@ -138,7 +138,6 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
     state->tls_enforce_tls = 0;
     state->tls_auth_only = 0;
     state->tls_context = 0;
-    state->tls_info = tls_info_zero;
 #endif
 
 #ifdef USE_SASL_AUTH

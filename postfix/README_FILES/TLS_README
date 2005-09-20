@@ -422,7 +422,7 @@ Example:
             ...
 
 The Postfix list manipulation routines give special treatment to whitespace and
-some other characters, making the use of certificate names unpractical. Instead
+some other characters, making the use of certificate names impractical. Instead
 we use the certificate fingerprints as they are difficult to fake but easy to
 use for lookup. Postfix lookup tables are in the form of (key, value) pairs.
 Since we only need the key, the value can be chosen freely, e.g. the name of

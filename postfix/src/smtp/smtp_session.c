@@ -233,7 +233,6 @@ SMTP_SESSION *smtp_session_alloc(VSTREAM *stream, const char *dest,
     session->tls_use_tls = session->tls_enforce_tls = 0;
     session->tls_enforce_peername = 0;
     session->tls_context = 0;
-    session->tls_info = tls_info_zero;
 
     /*
      * Override the main.cf TLS policy with an optional per-site policy.
@@ -282,8 +281,7 @@ void    smtp_session_free(SMTP_SESSION *session)
 	vstream_fflush(session->stream);
 	if (session->tls_context)
 	    tls_client_stop(smtp_tls_ctx, session->stream,
-			    var_smtp_starttls_tmout, 0,
-			    &(session->tls_info));
+			  var_smtp_starttls_tmout, 0, session->tls_context);
     }
 #endif
     if (session->stream)

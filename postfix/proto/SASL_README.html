@@ -37,6 +37,11 @@ authentication method, and sender address to the maillog file, and
 optionally grants mail access via the permit_sasl_authenticated
 UCE restriction. </p>
 
+<p> When sending mail, Postfix can look up the server hostname or
+destination domain (the address right-hand part) in a table, and if a
+username/password is found, it will use that username and password
+to authenticate to the server. </p>
+
 <p>This document covers the following topics: </p>
 
 <ul>
@@ -62,11 +67,6 @@ Postfix SMTP client</a></li>
 <li><a href="#credits">Credits</a>
 
 </ul>
-
-<p> When sending mail, Postfix can look up the server hostname or
-destination domain (the address right-hand part) in a table, and if a
-username/password is found, it will use that username and password
-to authenticate to the server. </p>
 
 <h2><a name="versions">What SASL versions are supported</a></h2>
 

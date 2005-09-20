@@ -35,15 +35,6 @@
  /*
   * TLS session context, also used by the VSTREAM call-back routines for SMTP
   * input/output, and by OpenSSL call-back routines for key verification.
-  * 
-  * XXX Eliminate fixed-length buffers where possible.
-  * 
-  * XXX Eliminate the tls_info structure; it is no longer needed now that the
-  * TLScontext structure is exposed to the caller. If the caller's TLScontext
-  * pointer is null, there is no TLS session. This change (plus other
-  * changes) eliminated global variables that were shared between TLS client
-  * and server code. Multiple clients and/or servers can now co-exist in the
-  * same process.
   */
 #define CCERT_BUFSIZ	256
 #define HOST_BUFSIZ  255		/* RFC 1035 */
@@ -53,63 +44,48 @@ typedef struct {
     BIO    *internal_bio;		/* postfix/TLS side of pair */
     BIO    *network_bio;		/* network side of pair */
     char   *serverid;			/* unique server identifier */
-    char    peer_subject[CCERT_BUFSIZ];
-    char    peer_issuer[CCERT_BUFSIZ];
-    char    peer_CN[CCERT_BUFSIZ];
-    char    issuer_CN[CCERT_BUFSIZ];
-    unsigned char md[EVP_MAX_MD_SIZE];
-    char    fingerprint[EVP_MAX_MD_SIZE * 3];
+    char   *peer_CN;			/* Peer Common Name */
+    char   *issuer_CN;			/* Issuer Common Name */
+    char   *peer_fingerprint;		/* ASCII fingerprint */
     char   *peername;
     int     enforce_verify_errors;
     int     enforce_CN;
     int     hostname_matched;
-    int     log_level;
-} TLScontext_t;
-
-#define TLS_BIO_BUFSIZE	8192
-
-typedef struct {
     int     peer_verified;
-    int     hostname_matched;
-    char   *peer_subject;
-    char   *peer_issuer;
-    char   *peer_fingerprint;
-    char   *peer_CN;
-    char   *issuer_CN;
     const char *protocol;
     const char *cipher_name;
     int     cipher_usebits;
     int     cipher_algbits;
-} tls_info_t;
+    int     log_level;
+} TLScontext_t;
 
-extern const tls_info_t tls_info_zero;
+#define TLS_BIO_BUFSIZE	8192
 
  /*
   * tls_client.c
   */
 extern SSL_CTX *tls_client_init(int);
 extern TLScontext_t *tls_client_start(SSL_CTX *, VSTREAM *, int, int,
-				              const char *, const char *,
-				              tls_info_t *);
+				              const char *, const char *);
 
-#define tls_client_stop(ctx , stream, timeout, failure, tls_info) \
-	tls_session_stop((ctx), (stream), (timeout), (failure), (tls_info))
+#define tls_client_stop(ctx , stream, timeout, failure, TLScontext) \
+	tls_session_stop((ctx), (stream), (timeout), (failure), (TLScontext))
 
  /*
   * tls_server.c
   */
 extern SSL_CTX *tls_server_init(int, int);
 extern TLScontext_t *tls_server_start(SSL_CTX *, VSTREAM *, int,
-				              const char *, const char *,
-				              tls_info_t *, int);
+				           const char *, const char *, int);
 
-#define tls_server_stop(ctx , stream, timeout, failure, tls_info) \
-	tls_session_stop((ctx), (stream), (timeout), (failure), (tls_info))
+#define tls_server_stop(ctx , stream, timeout, failure, TLScontext) \
+	tls_session_stop((ctx), (stream), (timeout), (failure), (TLScontext))
 
  /*
   * tls_session.c
   */
-extern void tls_session_stop(SSL_CTX *, VSTREAM *, int, int, tls_info_t *);
+extern void tls_session_stop(SSL_CTX *, VSTREAM *, int, int,
+				              TLScontext_t *);
 
 #ifdef TLS_INTERNAL
 
@@ -167,6 +143,8 @@ extern RSA *tls_tmp_rsa_cb(SSL *, int, int);
  /*
   * tls_verify.c
   */
+extern char *tls_peer_CN(X509 *);
+extern char *tls_issuer_CN(X509 *);
 extern int tls_verify_certificate_callback(int, X509_STORE_CTX *);
 
  /*

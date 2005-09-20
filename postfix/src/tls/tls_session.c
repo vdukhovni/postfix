@@ -6,12 +6,12 @@
 /* SYNOPSIS
 /*	#include <tls.h>
 /*
-/*	int	tls_session_stop(ctx, stream, timeout, failure, tls_info)
+/*	void	tls_session_stop(ctx, stream, timeout, failure, TLScontext)
 /*	SSL_CTX	*ctx;
 /*	VSTREAM	*stream;
 /*	int	timeout;
 /*	int	failure;
-/*	tls_info_t *tls_info;
+/*	TLScontext_t *TLScontext;
 /*
 /*	VSTRING	*tls_session_passivate(session)
 /*	SSL_SESSION *session;
@@ -75,16 +75,14 @@
 /* tls_session_stop - shut down the TLS connection and reset state */
 
 void    tls_session_stop(SSL_CTX *ctx, VSTREAM *stream, int timeout,
-			         int failure, tls_info_t *tls_info)
+			         int failure, TLScontext_t *TLScontext)
 {
     const char *myname = "tls_session_stop";
-    TLScontext_t *TLScontext;
     int     retval;
 
     /*
      * Sanity check.
      */
-    TLScontext = (TLScontext_t *) vstream_context(stream);
     if (TLScontext == 0)
 	msg_panic("%s: stream has no active TLS context", myname);
 
@@ -103,7 +101,6 @@ void    tls_session_stop(SSL_CTX *ctx, VSTREAM *stream, int timeout,
     }
     tls_free_context(TLScontext);
     tls_stream_stop(stream);
-    *tls_info = tls_info_zero;
 }
 
 /* tls_session_passivate - passivate SSL_SESSION object */

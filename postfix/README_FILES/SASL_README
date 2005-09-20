@@ -20,6 +20,10 @@ When receiving mail, Postfix logs the client-provided username, authentication
 method, and sender address to the maillog file, and optionally grants mail
 access via the permit_sasl_authenticated UCE restriction.
 
+When sending mail, Postfix can look up the server hostname or destination
+domain (the address right-hand part) in a table, and if a username/password is
+found, it will use that username and password to authenticate to the server.
+
 This document covers the following topics:
 
   * What SASL versions are supported
@@ -30,10 +34,6 @@ This document covers the following topics:
   * Trouble shooting the SASL internals
   * Enabling SASL authentication in the Postfix SMTP client
   * Credits
-
-When sending mail, Postfix can look up the server hostname or destination
-domain (the address right-hand part) in a table, and if a username/password is
-found, it will use that username and password to authenticate to the server.
 
 WWhhaatt SSAASSLL vveerrssiioonnss aarree ssuuppppoorrtteedd
 

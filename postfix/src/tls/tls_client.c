@@ -11,23 +11,48 @@
 /*
 /*	TLScontext_t *tls_client_start(client_ctx, stream, timeout,
 /*					enforce_peername, peername,
-/*					serverid, tls_info)
+/*					serverid)
 /*	SSL_CTX	*client_ctx;
 /*	VSTREAM	*stream;
 /*	int	timeout;
 /*	int	enforce_peername;
 /*	const char *peername;
 /*	const char *serverid;
-/*	tls_info_t *tls_info;
 /*
-/*	void	tls_client_stop(client_ctx, stream, failure, tls_info)
+/*	void	tls_client_stop(client_ctx, stream, failure, TLScontext)
 /*	SSL_CTX	*client_ctx;
 /*	VSTREAM	*stream;
 /*	int	failure;
-/*	tls_info_t *tls_info;
+/*	TLScontext_t *TLScontext;
 /* DESCRIPTION
-/*      This module is the interface between Postfix TLS clients
-/*	and the OpenSSL library and TLS entropy and cache manager.
+/*	This module is the interface between Postfix TLS clients,
+/*	the OpenSSL library and the TLS entropy and cache manager.
+/*
+/*	The SMTP client will attempt to verify the server hostname
+/*	against the names listed in the server certificate. When
+/*	a hostname match is required, the verification fails
+/*	on certificate verification or hostname mis-match errors.
+/*	When no hostname match is required, hostname verification
+/*	failures are logged but they do not affect the TLS handshake
+/*	or the SMTP session.
+/*
+/*	The rules for peer name wild-card matching differ between
+/*	RFC 2818 (HTTP over TLS) and RFC 2830 (LDAP over TLS), while
+/*	RFC RFC3207 (SMTP over TLS) does not specify a rule at all.
+/*	Postfix uses a restrictive match algorithm. One asterisk
+/*	('*') is allowed as the left-most component of a wild-card
+/*	certificate name; it matches the left-most component of
+/*	the peer hostname.
+/*
+/*	Another area where RFCs aren't always explicit is the
+/*	handling of dNSNames in peer certificates. RFC 3207 (SMTP
+/*	over TLS) does not mention dNSNames. Postfix follows the
+/*	strict rules in RFC 2818 (HTTP over TLS), section 3.1: The
+/*	Subject Alternative Name/dNSName has precedence over
+/*	CommonName.  If at least one dNSName is provided, Postfix
+/*	verifies those against the peer hostname and ignores the
+/*	CommonName, otherwise Postfix verifies the CommonName
+/*	against the peer hostname.
 /*
 /*	tls_client_init() is called once when the SMTP client
 /*	initializes.
@@ -35,12 +60,10 @@
 /*	so that peer-specific behavior is not possible.
 /*
 /*	tls_client_start() activates the TLS feature for the VSTREAM
-/*	passed as argument. We expect that network buffers are flushed and the
-/*	TLS handshake can begin	immediately. Information about the peer
-/*	is stored into the tls_info structure passed as argument.
-/*	The serverid argument specifies a string that hopefully
-/*	uniquely identifies a server. It is used as the client
-/*	session cache lookup key.
+/*	passed as argument. We expect that network buffers are flushed and
+/*	the TLS handshake can begin immediately. The serverid argument
+/*	specifies a string that hopefully uniquely identifies a server.
+/*	It is used as the client session cache lookup key.
 /*
 /*	tls_client_stop() sends the "close notify" alert via
 /*	SSL_shutdown() to the peer and resets all connection specific
@@ -51,34 +74,32 @@
 /*	If the failure flag is set, no SSL_shutdown() handshake is performed.
 /*
 /*	Once the TLS connection is initiated, information about the TLS
-/*	state is available via the tls_info structure:
-/* .IP tls_info->protocol
+/*	state is available via the TLScontext structure:
+/* .IP TLScontext->protocol
 /*	the protocol name (SSLv2, SSLv3, TLSv1),
-/* .IP tls_info->cipher_name
+/* .IP TLScontext->cipher_name
 /*	the cipher name (e.g. RC4/MD5),
-/* .IP tls_info->cipher_usebits
+/* .IP TLScontext->cipher_usebits
 /*	the number of bits actually used (e.g. 40),
-/* .IP tls_info->cipher_algbits
+/* .IP TLScontext->cipher_algbits
 /*	the number of bits the algorithm is based on (e.g. 128).
 /* .PP
 /*	The last two values may differ from each other when export-strength
 /*	encryption is used.
 /*
 /*	The status of the peer certificate verification is available in
-/*	tls_info->peer_verified. It is set to 1 when the certificate could
+/*	TLScontext->peer_verified. It is set to 1 when the certificate could
 /*	be verified.
 /*	If the peer offered a certificate, part of the certificate data are
 /*	available as:
-/* .IP tls_info->peer_subject
-/*	X509v3-oneline with the DN of the peer
-/* .IP tls_info->peer_CN
-/*	extracted CommonName of the peer
-/* .IP tls_info->peer_issuer
-/*	X509v3-oneline with the DN of the issuer
-/* .IP tls_info->issuer_CN
-/*	extracted CommonName of the issuer
-/* .IP tls_info->peer_fingerprint
-/*	fingerprint of the certificate
+/* .IP TLScontext->peer_CN
+/*	Extracted CommonName of the peer, or zero-length string if the
+/*	information could not be extracted.
+/* .IP TLScontext->issuer_CN
+/*	extracted CommonName of the issuer, or zero-length string if the
+/*	information could not be extracted.
+/* .PP
+/*	Otherwise these fields are set to null pointers.
 /* LICENSE
 /* .ad
 /* .fi
@@ -129,11 +150,6 @@
 
 #define STR	vstring_str
 #define LEN	VSTRING_LEN
-
- /*
-  * To convert binary to fingerprint.
-  */
-static const char hexcodes[] = "0123456789ABCDEF";
 
  /*
   * Do or don't we cache client sessions?
@@ -438,28 +454,28 @@ static int match_hostname(const char *pattern, const char *hostname)
 /* verify_extract_peer - verify peer name and extract peer information */
 
 static void verify_extract_peer(const char *peername, X509 * peercert,
-		             TLScontext_t *TLScontext, tls_info_t *tls_info)
+				        TLScontext_t *TLScontext)
 {
-    char    buf[1024];
     int     i;
     int     r;
-    int     hostname_matched;
-    int     dNSName_found;
+    int     hostname_matched = 0;
+    int     dNSName_found = 0;
+    int     verify_peername;
 
     STACK_OF(GENERAL_NAME) * gens;
 
-    tls_info->peer_verified =
+    TLScontext->peer_verified =
 	(SSL_get_verify_result(TLScontext->con) == X509_V_OK);
 
-    if (TLScontext->enforce_CN != 0 && tls_info->peer_verified != 0) {
+    verify_peername =
+	(TLScontext->enforce_CN != 0 && TLScontext->peer_verified != 0);
+
+    if (verify_peername) {
 
 	/*
-	 * Verify the name(s) in the peer certificate against the peer
-	 * hostname. Log peer hostname/certificate mis-matches. If a match is
-	 * required but fails, bail out with a verification error.
+	 * Verify the dNSName(s) in the peer certificate against the
+	 * peername.
 	 */
-	hostname_matched = dNSName_found = 0;
-
 	gens = X509_get_ext_d2i(peercert, NID_subject_alt_name, 0, 0);
 	if (gens) {
 	    for (i = 0, r = sk_GENERAL_NAME_num(gens); i < r; ++i) {
@@ -474,61 +490,37 @@ static void verify_extract_peer(const char *peername, X509 * peercert,
 	    }
 	    sk_GENERAL_NAME_free(gens);
 	}
-	if (dNSName_found) {
+    }
+    if (dNSName_found) {
+	if (!hostname_matched)
+	    msg_info("certificate peer name verification failed for "
+		     "%s: %d dNSNames in certificate found, "
+		     "but none match", peername, dNSName_found);
+    }
+    if ((TLScontext->peer_CN = tls_peer_CN(peercert)) == 0)
+	TLScontext->peer_CN = mystrdup("");
+
+    if ((TLScontext->issuer_CN = tls_issuer_CN(peercert)) == 0)
+	TLScontext->issuer_CN = mystrdup("");
+
+    if (!dNSName_found && verify_peername) {
+
+	/*
+	 * Verify the CommonName in the peer certificate against the
+	 * peername.
+	 */
+	if (TLScontext->peer_CN[0] != '\0') {
+	    hostname_matched = match_hostname(TLScontext->peer_CN, peername);
 	    if (!hostname_matched)
-		msg_info("certificate peer name verification failed for "
-			 "%s: %d dNSNames in certificate found, "
-			 "but none matches", peername, dNSName_found);
-	} else {
-	    buf[0] = '\0';
-	    if (!X509_NAME_get_text_by_NID(X509_get_subject_name(peercert),
-					   NID_commonName, buf,
-					   sizeof(buf))) {
-		msg_info("certificate peer name verification failed for"
-			 " %s: cannot parse subject CommonName", peername);
-		tls_print_errors();
-	    } else {
-		hostname_matched = match_hostname(buf, peername);
-		if (!hostname_matched)
-		    msg_info("certificate peer name verification failed "
-			     "for %s: CommonName mis-match: %s",
-			     peername, buf);
-	    }
-	}
-
-	TLScontext->hostname_matched = hostname_matched;
-    }
-    tls_info->hostname_matched = TLScontext->hostname_matched;
-
-    TLScontext->peer_CN[0] = '\0';
-    if (!X509_NAME_get_text_by_NID(X509_get_subject_name(peercert),
-				   NID_commonName, TLScontext->peer_CN,
-				   sizeof(TLScontext->peer_CN))) {
-	msg_info("Could not parse server's subject CN");
-	tls_print_errors();
-    }
-    tls_info->peer_CN = TLScontext->peer_CN;
-
-    TLScontext->issuer_CN[0] = '\0';
-    if (!X509_NAME_get_text_by_NID(X509_get_issuer_name(peercert),
-				   NID_commonName, TLScontext->issuer_CN,
-				   sizeof(TLScontext->issuer_CN))) {
-	msg_info("Could not parse server's issuer CN");
-	tls_print_errors();
-    }
-    if (!TLScontext->issuer_CN[0]) {
-	/* No issuer CN field, use Organization instead */
-	if (!X509_NAME_get_text_by_NID(X509_get_issuer_name(peercert),
-				NID_organizationName, TLScontext->issuer_CN,
-				       sizeof(TLScontext->issuer_CN))) {
-	    msg_info("Could not parse server's issuer Organization");
-	    tls_print_errors();
+		msg_info("certificate peer name verification failed "
+			 "for %s: CommonName mis-match: %s",
+			 peername, TLScontext->peer_CN);
 	}
     }
-    tls_info->issuer_CN = TLScontext->issuer_CN;
+    TLScontext->hostname_matched = hostname_matched;
 
     if (var_smtp_tls_loglevel >= 1) {
-	if (tls_info->peer_verified
+	if (TLScontext->peer_verified
 	    && (!TLScontext->enforce_CN || TLScontext->hostname_matched))
 	    msg_info("Verified: subject_CN=%s, issuer=%s",
 		     TLScontext->peer_CN, TLScontext->issuer_CN);
@@ -547,8 +539,7 @@ TLScontext_t *tls_client_start(SSL_CTX *client_ctx, VSTREAM *stream,
 			               int timeout,
 			               int enforce_peername,
 			               const char *peername,
-			               const char *serverid,
-			               tls_info_t *tls_info)
+			               const char *serverid)
 {
     int     sts;
     SSL_SESSION *session;
@@ -707,30 +698,30 @@ TLScontext_t *tls_client_start(SSL_CTX *client_ctx, VSTREAM *stream,
      * from the certificate for later use.
      */
     if ((peercert = SSL_get_peer_certificate(TLScontext->con)) != 0) {
-	verify_extract_peer(peername, peercert, TLScontext, tls_info);
+	verify_extract_peer(peername, peercert, TLScontext);
 	X509_free(peercert);
     }
     if (enforce_peername && !TLScontext->hostname_matched) {
 	msg_info("Server certificate could not be verified for %s:"
 		 " hostname mismatch", peername);
-	tls_client_stop(client_ctx, stream, timeout, 0, tls_info);
+	tls_client_stop(client_ctx, stream, timeout, 0, TLScontext);
 	return (0);
     }
 
     /*
      * Finally, collect information about protocol and cipher for logging
      */
-    tls_info->protocol = SSL_get_version(TLScontext->con);
+    TLScontext->protocol = SSL_get_version(TLScontext->con);
     cipher = SSL_get_current_cipher(TLScontext->con);
-    tls_info->cipher_name = SSL_CIPHER_get_name(cipher);
-    tls_info->cipher_usebits = SSL_CIPHER_get_bits(cipher,
-					       &(tls_info->cipher_algbits));
+    TLScontext->cipher_name = SSL_CIPHER_get_name(cipher);
+    TLScontext->cipher_usebits = SSL_CIPHER_get_bits(cipher,
+					     &(TLScontext->cipher_algbits));
 
     if (var_smtp_tls_loglevel >= 1)
 	msg_info("TLS connection established to %s: %s with cipher %s"
 		 " (%d/%d bits)", peername,
-		 tls_info->protocol, tls_info->cipher_name,
-		 tls_info->cipher_usebits, tls_info->cipher_algbits);
+		 TLScontext->protocol, TLScontext->cipher_name,
+		 TLScontext->cipher_usebits, TLScontext->cipher_algbits);
 
     tls_int_seed();
 

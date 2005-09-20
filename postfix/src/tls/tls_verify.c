@@ -7,10 +7,26 @@
 /*	#define TLS_INTERNAL
 /*	#include <tls.h>
 /*
+/*	char *tls_peer_CN(peercert)
+/*	X509   *peercert;
+/*
+/*	char *tls_issuer_CN(peercert)
+/*	X509   *peercert;
+/*
 /*	int	tls_verify_certificate_callback(ok, ctx)
 /*	int	ok;
 /*	X509_STORE_CTX *ctx;
 /* DESCRIPTION
+/*	tls_peer_CN() returns the text CommonName for the peer
+/*	certificate subject, or a null pointer if no CommonName was
+/*	found. The result is allocated with mymalloc() and must be
+/*	freed by the caller.
+/*
+/*	tls_issuer_CN() returns the text CommonName for the peer
+/*	certificate issuer, or a null pointer if no CommonName was
+/*	found. The result is allocated with mymalloc() and must be
+/*	freed by the caller.
+/*
 /*	tls_verify_callback() is called several times (directly or
 /*	indirectly) from crypto/x509/x509_vfy.c. It is called as
 /*	a final check, and if it returns "0", the handshake is
@@ -32,32 +48,6 @@
 /*      certificate verification failure will result in immediate
 /*	termination (return 0).
 /*
-/*	The SMTP client will attempt to verify the server hostname
-/*	against the names listed in the server certificate. When
-/*	a hostname match is required, the verification fails
-/*	on certificate verification or hostname mis-match errors.
-/*	When no hostname match is required, hostname verification
-/*	failures are logged but they do not affect the TLS handshake
-/*	or the SMTP session.
-/*
-/*	The rules for peer name wild-card matching differ between
-/*	RFC 2818 (HTTP over TLS) and RFC 2830 (LDAP over TLS), while
-/*	RFC RFC3207 (SMTP over TLS) does not specify a rule at all.
-/*	Postfix uses a restrictive match algorithm. One asterisk
-/*	('*') is allowed as the left-most component of a wild-card
-/*	certificate name; it matches the left-most component of
-/*	the peer hostname.
-/*
-/*	Another area where RFCs aren't always explicit is the
-/*	handling of dNSNames in peer certificates. RFC 3207 (SMTP
-/*	over TLS) does not mention dNSNames. Postfix follows the
-/*	strict rules in RFC 2818 (HTTP over TLS), section 3.1: The
-/*	Subject Alternative Name/dNSName has precedence over
-/*	CommonName.  If at least one dNSName is provided, Postfix
-/*	verifies those against the peer hostname and ignores the
-/*	CommonName, otherwise Postfix verifies the CommonName
-/*	against the peer hostname.
-/*
 /*	The only error condition not handled inside the OpenSSL
 /*	library is the case of a too-long certificate chain. We
 /*	test for this condition only if "ok = 1", that is, if
@@ -72,6 +62,12 @@
 /* .IP ctx
 /*	TLS client or server context. This also specifies the
 /*	TLScontext with enforcement options.
+/* DIAGNOSTICS
+/*	tls_peer_CN() and tls_issuer_CN() log a warning and return
+/*	a null pointer when 1) the requested information is not
+/*	available in the specified certificate, 2) the result
+/*	exceeds a fixed limit, or 3) the result contains null
+/*	characters.
 /* LICENSE
 /* .ad
 /* .fi
@@ -107,6 +103,7 @@
 /* Utility library. */
 
 #include <msg.h>
+#include <mymalloc.h>
 
 /* TLS library. */
 
@@ -194,6 +191,74 @@ int     tls_verify_certificate_callback(int ok, X509_STORE_CTX *ctx)
 	return (ok);
     else
 	return (1);
+}
+
+#ifndef DONT_GRIPE
+#define DONT_GRIPE 0
+#define DO_GRIPE 1
+#endif
+
+/* tls_text_name - extract certificate property value by name */
+
+static char *tls_text_name(X509_NAME *name, int nid, char *label, int gripe)
+{
+    int     len;
+    char   *text;
+
+    if ((len = X509_NAME_get_text_by_NID(name, nid, 0, 0)) < 0) {
+	if (gripe != DONT_GRIPE) {
+	    msg_warn("peer certificate has no %s", label);
+	    tls_print_errors();
+	}
+	return (0);
+    }
+
+    /*
+     * Since the peer CN is used in peer verification, take care to detect
+     * truncation due to excessive length or internal NULs.
+     */
+    if (len >= CCERT_BUFSIZ) {
+	msg_warn("peer %s too long: %d", label, (int) len);
+	return (0);
+    }
+    text = mymalloc(len + 1);
+    X509_NAME_get_text_by_NID(name, nid, text, len + 1);
+    if (strlen(text) != len) {
+	msg_warn("internal NUL in peer %s", label);
+	myfree(text);
+	text = 0;
+    }
+    return (text);
+}
+
+/* tls_peer_CN - extract peer common name from certificate */
+
+char   *tls_peer_CN(X509 *peercert)
+{
+    char   *cn;
+
+    cn = tls_text_name(X509_get_subject_name(peercert),
+		       NID_commonName, "CN", DO_GRIPE);
+    return (cn);
+}
+
+/* tls_text_name - extract issuer common name from certificate */
+
+char   *tls_issuer_CN(X509 *peer)
+{
+    X509_NAME *name;
+    char   *cn;
+
+    name = X509_get_issuer_name(peer);
+
+    /*
+     * If no issuer CN field, use Organization instead. CA certs without a CN
+     * are common, so we only complain if the organization is also missing.
+     */
+    if (!(cn = tls_text_name(name, NID_commonName, "issuer CN", DONT_GRIPE)))
+	cn = tls_text_name(name, NID_organizationName,
+			   "issuer Organization", DO_GRIPE);
+    return (cn);
 }
 
 #endif

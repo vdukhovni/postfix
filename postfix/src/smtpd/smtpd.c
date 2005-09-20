@@ -2142,15 +2142,17 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	if (var_smtpd_tls_received_header && state->tls_context) {
 	    out_fprintf(out_stream, REC_TYPE_NORM,
 			"\t(using %s with cipher %s (%d/%d bits))",
-		      state->tls_info.protocol, state->tls_info.cipher_name,
-			state->tls_info.cipher_usebits,
-			state->tls_info.cipher_algbits);
-	    if (state->tls_info.peer_CN) {
-		peer_CN = VSTRING_STRDUP(state->tls_info.peer_CN);
+			state->tls_context->protocol,
+			state->tls_context->cipher_name,
+			state->tls_context->cipher_usebits,
+			state->tls_context->cipher_algbits);
+	    if (state->tls_context->peer_CN) {
+		peer_CN = VSTRING_STRDUP(state->tls_context->peer_CN);
 		comment_sanitize(peer_CN);
-		issuer_CN = VSTRING_STRDUP(state->tls_info.issuer_CN);
+		issuer_CN = VSTRING_STRDUP(state->tls_context->issuer_CN ?
+					state->tls_context->issuer_CN : "");
 		comment_sanitize(issuer_CN);
-		if (state->tls_info.peer_verified)
+		if (state->tls_context->peer_verified)
 		    out_fprintf(out_stream, REC_TYPE_NORM,
 			"\t(Client CN \"%s\", Issuer \"%s\" (verified OK))",
 				STR(peer_CN), STR(issuer_CN));
@@ -3036,8 +3038,7 @@ static void smtpd_start_tls(SMTPD_STATE *state)
      */
     state->tls_context =
     tls_server_start(smtpd_tls_ctx, state->client,
-		     var_smtpd_starttls_tmout,
-		     state->name, state->addr, &(state->tls_info),
+		     var_smtpd_starttls_tmout, state->name, state->addr,
 		     (var_smtpd_tls_req_ccert && state->tls_enforce_tls));
 
     /*
@@ -3121,7 +3122,7 @@ static void tls_reset(SMTPD_STATE *state)
 	    failure = 1;
 	vstream_fflush(state->client);		/* NOT: smtp_flush() */
 	tls_server_stop(smtpd_tls_ctx, state->client, var_smtpd_starttls_tmout,
-			failure, &(state->tls_info));
+			failure, state->tls_context);
 	state->tls_context = 0;
     }
 }

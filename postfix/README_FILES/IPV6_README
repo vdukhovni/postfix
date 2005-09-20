@@ -13,7 +13,7 @@ The main feature of interest is that IPv6 uses 128-bit IP addresses instead of
 the 32-bit addresses used by IPv4. It can therefore accommodate a much larger
 number of hosts and networks without ugly kluges such as NAT. A side benefit of
 the much larger address space is that it makes random network scanning
-unpractical.
+impractical.
 
 Postfix uses the same SMTP protocol over IPv6 as it already uses over the older
 IPv4 network, and does AAAA record lookups in the DNS in addition to the older

@@ -1,11 +1,11 @@
 SHELL	= /bin/sh
 SRCS	= tls_prng_dev.c tls_prng_egd.c tls_prng_file.c \
 	tls_prng_exch.c tls_stream.c tls_bio_ops.c tls_misc.c tls_dh.c \
-	tls_rsa.c tls_verify.c tls_certkey.c tls_session.c tls_temp.c \
+	tls_rsa.c tls_verify.c tls_certkey.c tls_session.c \
 	tls_client.c tls_server.c tls_scache.c tls_mgr.c tls_seed.c
 OBJS	= tls_prng_dev.o tls_prng_egd.o tls_prng_file.o \
 	tls_prng_exch.o tls_stream.o tls_bio_ops.o tls_misc.o tls_dh.o \
-	tls_rsa.o tls_verify.o tls_certkey.o tls_session.o tls_temp.o \
+	tls_rsa.o tls_verify.o tls_certkey.o tls_session.o \
 	tls_client.o tls_server.o tls_scache.o tls_mgr.o tls_seed.o
 HDRS	= tls.h tls_prng.h tls_scache.h tls_mgr.h
 TESTSRC	= 
@@ -222,12 +222,6 @@ tls_stream.o: ../../include/vstream.h
 tls_stream.o: ../../include/vstring.h
 tls_stream.o: tls.h
 tls_stream.o: tls_stream.c
-tls_temp.o: ../../include/sys_defs.h
-tls_temp.o: ../../include/vbuf.h
-tls_temp.o: ../../include/vstream.h
-tls_temp.o: ../../include/vstring.h
-tls_temp.o: tls.h
-tls_temp.o: tls_temp.c
 tls_verify.o: ../../include/msg.h
 tls_verify.o: ../../include/sys_defs.h
 tls_verify.o: ../../include/vbuf.h

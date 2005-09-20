@@ -11115,6 +11115,15 @@ Apologies for any names omitted.
 	needed before cleanup_bounce() can seek to the start of the
 	queue file after a file size error. File: util/vstream.c.
 
+20050920
+
+	Cleanup: removed the legacy "tls_info" structure, factored
+	out common code for peer_CN and issuer_CN lookup, and added
+	sanity check to not verify subject common names that contain
+	nulls or that are execessively long. Patch by Victor Duchovni.
+	Files: tls_client.c, tls_server.c, tls_session.c, tls_misc.c,
+	tls_verify.c.
+	
 Open problems:
 
 	Look for systems with XPG basename() declared in <libgen.h>,
