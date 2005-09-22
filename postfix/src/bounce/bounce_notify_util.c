@@ -505,7 +505,7 @@ int     bounce_boilerplate(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 			  var_max_queue_time / 86400.0);
     } else if (bounce_info->report_type == BOUNCE_REPORT_SUCCESS) {
 	post_mail_fputs(bounce,
-			"Your message was sucessfully delivered to the destination(s) listed");
+			"Your message was successfully delivered to the destination(s) listed");
 	post_mail_fputs(bounce,
 			"below. In the case of delivery to mailbox you will receive no further");
 	post_mail_fputs(bounce,

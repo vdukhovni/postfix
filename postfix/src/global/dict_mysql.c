@@ -216,7 +216,6 @@ typedef struct {
     CFG_PARSER *parser;
     char   *query;
     char   *result_format;
-    STRING_LIST *domain;   
     void   *ctx;
     int     expansion_limit;
     char   *username;
@@ -224,6 +223,9 @@ typedef struct {
     char   *dbname;
     ARGV   *hosts;
     PLMYSQL *pldb;
+#if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40000
+    HOST   *active_host;
+#endif
 } DICT_MYSQL;
 
 #define STATACTIVE			(1<<0)
@@ -239,7 +241,8 @@ typedef struct {
 
 /* internal function declarations */
 static PLMYSQL *plmysql_init(ARGV *);
-static MYSQL_RES *plmysql_query(PLMYSQL *, const char *, char *, char *, char *);
+static MYSQL_RES *plmysql_query(DICT_MYSQL *, const char *, VSTRING *, char *,
+				char *, char *);
 static void plmysql_dealloc(PLMYSQL *);
 static void plmysql_close_host(HOST *);
 static void plmysql_down_host(HOST *);
@@ -266,16 +269,14 @@ static void dict_mysql_quote(DICT *dict, const char *name, VSTRING *result)
 	msg_panic("dict_mysql_quote: integer overflow in 2*%d+1", len);
     VSTRING_SPACE(result, buflen);
 
-    /*
-     * XXX Too expensive to find out which connection is still open at
-     * this point. Grrr!
-     */
-#if 0 && defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40000
-    mysql_real_escape_string(dict_mysql->pldb->db_hosts[i].db,
-    			     vstring_end(result), name, len);
-#else
-    mysql_escape_string(vstring_end(result), name, len);
+#if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40000
+    if (dict_mysql->active_host)
+	mysql_real_escape_string(dict_mysql->active_host->db,
+				 vstring_end(result), name, len);
+    else
 #endif
+	mysql_escape_string(vstring_end(result), name, len);
+
     VSTRING_SKIP(result);
 }
 
@@ -295,15 +296,16 @@ static const char *dict_mysql_lookup(DICT *dict, const char *name)
     int     numrows;
     int     expansion;
     const char *r;
+    db_quote_callback_t quote_func = dict_mysql_quote;
 
     dict_errno = 0;
     
     /*
      * If there is a domain list for this map, then only search for
      * addresses in domains on the list. This can significantly reduce
-     * the load on the server. Do not try "@domain" keys.
+     * the load on the server.
      */
-    if (db_common_check_domain(dict_mysql->domain, name) == 0) {
+    if (db_common_check_domain(dict_mysql->ctx, name) == 0) {
         if (msg_verbose)
 	    msg_info("%s: Skipping lookup of '%s'", myname, name);
         return (0);
@@ -320,13 +322,21 @@ static const char *dict_mysql_lookup(DICT *dict, const char *name)
 
     /*
      * Suppress the lookup if the query expansion is empty
+     *
+     * This initial expansion is outside the context of any
+     * specific host connection, we just want to check the
+     * key pre-requisites, so when quoting happens separately
+     * for each connection, we don't bother with quoting...
      */
+#if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40000
+    quote_func = 0;
+#endif
     if (!db_common_expand(dict_mysql->ctx, dict_mysql->query,
-    			  name, 0, query, dict_mysql_quote))
+    			  name, 0, query, quote_func))
         return (0);
     
     /* do the query - set dict_errno & cleanup if there's an error */
-    if ((query_res = plmysql_query(pldb, vstring_str(query),
+    if ((query_res = plmysql_query(dict_mysql, name, query,
 				   dict_mysql->dbname,
 				   dict_mysql->username,
 				   dict_mysql->password)) == 0) {
@@ -393,16 +403,12 @@ static HOST *dict_mysql_find_host(PLMYSQL *PLDB, unsigned stat, unsigned type)
     }
 
     if (count) {
-	/*
-	 * Calling myrand() can deplete the random pool.
-	 * Don't rely on the optimizer to weed out the call
-	 * when count == 1.
-	 */
-	idx = (count > 1) ? 1 + (count - 1) * (double) myrand() / RAND_MAX : 1;
+	idx = (count > 1) ?
+	    1 + count * (double) myrand() / (1.0 + RAND_MAX) : 1;
 
 	for (i = 0; i < PLDB->len_hosts; i++) {
 	    if (dict_mysql_check_stat(PLDB->db_hosts[i], stat, type, t) &&
-				      --idx == 0)
+		--idx == 0)
 		return PLDB->db_hosts[i];
 	}
     }
@@ -466,17 +472,33 @@ static void dict_mysql_event(int unused_event, char *context)
  *			close unnecessary active connections
  */
 
-static MYSQL_RES *plmysql_query(PLMYSQL *PLDB,
-				        const char *query,
+static MYSQL_RES *plmysql_query(DICT_MYSQL *dict_mysql,
+				        const char *name,
+					VSTRING *query,
 				        char *dbname,
 				        char *username,
 				        char *password)
 {
+    PLMYSQL *PLDB = dict_mysql->pldb;
     HOST   *host;
     MYSQL_RES *res = 0;
 
     while ((host = dict_mysql_get_active(PLDB, dbname, username, password)) != NULL) {
-	if (!(mysql_query(host->db, query))) {
+
+#if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40000
+	/*
+	 * The active host is used to escape strings in the
+	 * context of the active connection's character encoding.
+	 */
+	dict_mysql->active_host = host;
+	VSTRING_RESET(query);
+	VSTRING_TERMINATE(query);
+	db_common_expand(dict_mysql->ctx, dict_mysql->query,
+			 name, 0, query, dict_mysql_quote);
+	dict_mysql->active_host = 0;
+#endif
+
+	if (!(mysql_query(host->db, vstring_str(query)))) {
 	    if ((res = mysql_store_result(host->db)) == 0) {
 		msg_warn("mysql query failed: %s", mysql_error(host->db));
 		plmysql_down_host(host);
@@ -553,7 +575,6 @@ static void mysql_parse_config(DICT_MYSQL *dict_mysql, const char *mysqlcf)
     VSTRING *buf;
     int     i;
     char   *hosts;
-    char   *domain;
     
     p = dict_mysql->parser = cfg_parser_alloc(mysqlcf);
     dict_mysql->username = cfg_get_str(p, "user", "", 0, 0);
@@ -584,21 +605,16 @@ static void mysql_parse_config(DICT_MYSQL *dict_mysql, const char *mysqlcf)
     (void) db_common_parse(&dict_mysql->dict, &dict_mysql->ctx,
 			   dict_mysql->query, 1);
     (void) db_common_parse(0, &dict_mysql->ctx, dict_mysql->result_format, 0);
+    db_common_parse_domain(p, dict_mysql->ctx);
 
-    domain = cfg_get_str(p, "domain", "", 0, 0);
-    if (*domain) {
-        if (!(dict_mysql->domain = string_list_init(MATCH_FLAG_NONE, domain)))
-	    /*
-	     * The "domain" optimization skips input keys that may in fact
-	     * have unwanted matches in the database, so failure to create
-	     * the match list is fatal.
-	     */
-	    msg_fatal("%s: %s: domain match list creation using '%s' failed",
-	    	      myname, mysqlcf, domain);
-    }
+    /*
+     * Maps that use substring keys should only be used with the full
+     * input key.
+     */
+    if (db_common_dict_partial(dict_mysql->ctx))
+	dict_mysql->dict.flags |= DICT_FLAG_PATTERN;
     else
-        dict_mysql->domain = 0;
-    myfree(domain);
+	dict_mysql->dict.flags |= DICT_FLAG_FIXED;
 
     hosts = cfg_get_str(p, "hosts", "", 0, 0);
 
@@ -630,8 +646,11 @@ DICT   *dict_mysql_open(const char *name, int open_flags, int dict_flags)
 					   sizeof(DICT_MYSQL));
     dict_mysql->dict.lookup = dict_mysql_lookup;
     dict_mysql->dict.close = dict_mysql_close;
-    dict_mysql->dict.flags = dict_flags | DICT_FLAG_FIXED;
+    dict_mysql->dict.flags = dict_flags;
     mysql_parse_config(dict_mysql, name);
+#if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40000
+    dict_mysql->active_host = 0;
+#endif
     dict_mysql->pldb = plmysql_init(dict_mysql->hosts);
     if (dict_mysql->pldb == NULL)
 	msg_fatal("couldn't intialize pldb!\n");
@@ -717,8 +736,6 @@ static void dict_mysql_close(DICT *dict)
     myfree(dict_mysql->dbname);
     myfree(dict_mysql->query);
     myfree(dict_mysql->result_format);
-    if (dict_mysql->domain)
-        string_list_free(dict_mysql->domain);
     if (dict_mysql->hosts)
     	argv_free(dict_mysql->hosts);
     if (dict_mysql->ctx)

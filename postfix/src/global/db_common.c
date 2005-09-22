@@ -154,9 +154,11 @@
 #define	DB_COMMON_KEY_USER	(1 << 1)	/* Need lookup key localpart */
 #define	DB_COMMON_VALUE_DOMAIN	(1 << 2)	/* Need result domain */
 #define	DB_COMMON_VALUE_USER	(1 << 3)	/* Need result localpart */
+#define	DB_COMMON_KEY_PARTIAL	(1 << 4)	/* Key uses input substrings */
 
 typedef struct {
     DICT    *dict;
+    STRING_LIST *domain;
     int      flags;
     int      nparts;
 } DB_COMMON_CTX;
@@ -172,6 +174,7 @@ int db_common_parse(DICT *dict, void **ctxPtr, const char *format, int query)
     if (ctx == 0) {
     	ctx = (DB_COMMON_CTX *)(*ctxPtr = mymalloc(sizeof *ctx));
 	ctx->dict = dict;
+	ctx->domain = 0;
 	ctx->flags = 0;
 	ctx->nparts = 0;
     }
@@ -182,20 +185,22 @@ int db_common_parse(DICT *dict, void **ctxPtr, const char *format, int query)
 	    case '%':
 	    	break;
 	    case 'u':
-	    	ctx->flags |=
-		    query ? DB_COMMON_KEY_USER : DB_COMMON_VALUE_USER;
+	    	ctx->flags |= 
+		    query ? DB_COMMON_KEY_USER | DB_COMMON_KEY_PARTIAL
+		    	  : DB_COMMON_VALUE_USER;
 		dynamic = 1;
 		break;
 	    case 'd':
-	    	ctx->flags |=
-		    query ? DB_COMMON_KEY_DOMAIN : DB_COMMON_VALUE_DOMAIN;
+	    	ctx->flags |= 
+		    query ? DB_COMMON_KEY_DOMAIN | DB_COMMON_KEY_PARTIAL
+		    	  : DB_COMMON_VALUE_DOMAIN;
 		dynamic = 1;
 		break;
 	    case 's': case 'S':
 	    	dynamic = 1;
 	    	break;
 	    case 'U':
-	    	ctx->flags |= DB_COMMON_KEY_USER;
+	    	ctx->flags |= DB_COMMON_KEY_PARTIAL | DB_COMMON_KEY_USER;
 	    	dynamic = 1;
 		break;
 	    case '1': case '2': case '3': case '4': case '5':
@@ -204,7 +209,7 @@ int db_common_parse(DICT *dict, void **ctxPtr, const char *format, int query)
 		    ctx->nparts = *cp - '0';
 		/* FALLTHROUGH */
 	    case 'D':
-	    	ctx->flags |= DB_COMMON_KEY_DOMAIN;
+	    	ctx->flags |= DB_COMMON_KEY_PARTIAL | DB_COMMON_KEY_DOMAIN;
 	    	dynamic = 1;
 		break;
 	    default:
@@ -214,10 +219,49 @@ int db_common_parse(DICT *dict, void **ctxPtr, const char *format, int query)
     return dynamic;
 }
 
+/* db_common_parse_domain - parse domain matchlist*/
+
+void db_common_parse_domain(CFG_PARSER *parser, void *ctxPtr)
+{
+    DB_COMMON_CTX *ctx = (DB_COMMON_CTX *)ctxPtr;
+    char   *domainlist;
+    char   *myname = "db_common_parse_domain";
+
+    domainlist = cfg_get_str(parser, "domain", "", 0, 0);
+    if (*domainlist) {
+	ctx->domain = string_list_init(MATCH_FLAG_NONE, domainlist);
+	if (ctx->domain == 0)
+	    /*
+	     * The "domain" optimization skips input keys that may in fact
+	     * have unwanted matches in the database, so failure to create
+	     * the match list is fatal.
+	     */
+	    msg_fatal("%s: %s: domain match list creation using '%s' failed",
+	    	      myname, parser->name, domainlist);
+    }
+    myfree(domainlist);
+}
+
+/* db_common_dict_partial - Does query use partial lookup keys? */
+
+int db_common_dict_partial(void *ctxPtr)
+{
+#if 0	/* Breaks recipient_delimiter */
+    DB_COMMON_CTX *ctx = (DB_COMMON_CTX *)ctxPtr;
+
+    return (ctx->domain || ctx->flags & DB_COMMON_KEY_PARTIAL);
+#endif
+    return (0);
+}
+
 /* db_common_free_ctx - free parse context */
 
 void db_common_free_ctx(void *ctxPtr)
 {
+    DB_COMMON_CTX *ctx = (DB_COMMON_CTX *)ctxPtr;
+
+    if (ctx->domain)
+    	string_list_free(ctx->domain);
     myfree((char *)ctxPtr);
 }
 
@@ -401,16 +445,17 @@ int db_common_expand(void *ctxArg, const char *format, const char *value,
 
 /* db_common_check_domain - check domain list */
 
-int db_common_check_domain(STRING_LIST *domain_list, const char *addr)
+int db_common_check_domain(void *ctxPtr, const char *addr)
 {
+    DB_COMMON_CTX *ctx = (DB_COMMON_CTX *)ctxPtr;
     char   *domain;
 
-    if (domain_list) {
+    if (ctx->domain) {
 	if ((domain = strrchr(addr, '@')) != NULL)
 	    ++domain;
 	if (domain == NULL || domain == addr + 1)
 	    return (0);
-	if (match_list_match(domain_list, domain) == 0)
+	if (match_list_match(ctx->domain, domain) == 0)
 	    return (0);
     }
     return (1);

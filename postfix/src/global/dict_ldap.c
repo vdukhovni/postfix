@@ -216,7 +216,6 @@ typedef struct {
     CFG_PARSER *parser;			/* common parameter parser */
     char   *query;			/* db_common_expand() query */
     char   *result_format;		/* db_common_expand() result_format */
-    STRING_LIST *domain;		/* restrict queries to these domains */
     void   *ctx;			/* db_common_parse() context */
     int     dynamic_base;		/* Search base has substitutions? */
     int     expansion_limit;
@@ -908,7 +907,7 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
      * addresses in domains on the list. This can significantly reduce the
      * load on the LDAP server.
      */
-    if (db_common_check_domain(dict_ldap->domain, name) == 0) {
+    if (db_common_check_domain(dict_ldap->ctx, name) == 0) {
 	if (msg_verbose)
 	    msg_info("%s: Skipping lookup of '%s'", myname, name);
 	return (0);
@@ -1126,8 +1125,6 @@ static void dict_ldap_close(DICT *dict)
     cfg_parser_free(dict_ldap->parser);
     myfree(dict_ldap->server_host);
     myfree(dict_ldap->search_base);
-    if (dict_ldap->domain)
-	string_list_free(dict_ldap->domain);
     myfree(dict_ldap->query);
     if (dict_ldap->result_format)
         myfree(dict_ldap->result_format);
@@ -1157,7 +1154,6 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     char   *s;
     char   *h;
     char   *server_host;
-    char   *domainlist;
     char   *scope;
     char   *attr;
     int     tmp;
@@ -1169,7 +1165,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 					 sizeof(*dict_ldap));
     dict_ldap->dict.lookup = dict_ldap_lookup;
     dict_ldap->dict.close = dict_ldap_close;
-    dict_ldap->dict.flags = dict_flags | DICT_FLAG_FIXED;
+    dict_ldap->dict.flags = dict_flags;
 
     dict_ldap->ld = NULL;
     dict_ldap->parser = cfg_parser_alloc(ldapsource);
@@ -1285,22 +1281,6 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     dict_ldap->search_base = cfg_get_str(dict_ldap->parser, "search_base",
 					 "", 0, 0);
 
-    domainlist = cfg_get_str(dict_ldap->parser, "domain", "", 0, 0);
-    if (*domainlist) {
-	dict_ldap->domain = string_list_init(MATCH_FLAG_NONE, domainlist);
-	if (dict_ldap->domain == NULL)
-	    /*
-	     * The "domain" optimization skips input keys that may in fact
-	     * have unwanted matches in the database, so failure to create
-	     * the match list is fatal.
-	     */
-	    msg_fatal("%s: %s: domain match list creation using '%s' failed",
-	    	      myname, ldapsource, domainlist);
-    } else {
-	dict_ldap->domain = NULL;
-    }
-    myfree(domainlist);
-
     /*
      * get configured value of "timeout"; default to 10 seconds
      * 
@@ -1337,6 +1317,16 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 		 myname, ldapsource, dict_ldap->query);
     }
     (void) db_common_parse(0, &dict_ldap->ctx, dict_ldap->result_format, 0);
+    db_common_parse_domain(dict_ldap->parser, dict_ldap->ctx);
+
+    /*
+     * Maps that use substring keys should only be used with the full
+     * input key.
+     */
+    if (db_common_dict_partial(dict_ldap->ctx))
+	dict_ldap->dict.flags |= DICT_FLAG_PATTERN;
+    else
+	dict_ldap->dict.flags |= DICT_FLAG_FIXED;
 
     attr = cfg_get_str(dict_ldap->parser, "result_attribute",
 		       "maildrop", 0, 0);

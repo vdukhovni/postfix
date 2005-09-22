@@ -242,7 +242,7 @@ char   *tls_peer_CN(X509 *peercert)
     return (cn);
 }
 
-/* tls_text_name - extract issuer common name from certificate */
+/* tls_issuer_CN - extract issuer common name from certificate */
 
 char   *tls_issuer_CN(X509 *peer)
 {

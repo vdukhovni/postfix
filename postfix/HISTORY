@@ -11124,6 +11124,17 @@ Apologies for any names omitted.
 	Files: tls_client.c, tls_server.c, tls_session.c, tls_misc.c,
 	tls_verify.c.
 	
+20050922
+
+	Bugfix: the *SQL clients did not uniformly choose the
+	database host from the available pool of servers due to an
+	off-by-one error, so that the "last" available server was
+	not selected. Leandro Santi. Files: dict_mysql.c, dict_pgsql.c.
+
+	Update: common code factored out into db_common.c, and
+	adoption of Liviu Daia's connection aware MySQL quoting.
+	Files: dict_ldap.c, dict_mysql.c, dict_pgsql.c, db_common.c.
+
 Open problems:
 
 	Look for systems with XPG basename() declared in <libgen.h>,
