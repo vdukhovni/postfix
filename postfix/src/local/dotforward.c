@@ -139,7 +139,8 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
      * Set the delivered message attribute to the recipient, so that this
      * message will list the correct forwarding address.
      */
-    state.msg_attr.delivered = state.msg_attr.rcpt.address;
+    if (var_frozen_delivered == 0)
+	state.msg_attr.delivered = state.msg_attr.rcpt.address;
 
     /*
      * DELIVERY RIGHTS

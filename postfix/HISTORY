@@ -11133,7 +11133,31 @@ Apologies for any names omitted.
 
 	Update: common code factored out into db_common.c, and
 	adoption of Liviu Daia's connection aware MySQL quoting.
-	Files: dict_ldap.c, dict_mysql.c, dict_pgsql.c, db_common.c.
+	Patch by Victor Duchovni.  Files: dict_ldap.c, dict_mysql.c,
+	dict_pgsql.c, db_common.c.
+
+20050923
+
+	Safety: don't update the local(8) delivery agent's idea of
+	the Delivered-To: address while expanding aliases or .forward
+	files. When an alias or .forward file changes the Delivered-To:
+	address, it ties up one queue file and one cleanup process
+	instance while mail is being forwarded.  To get the old
+	behavior, specify "frozen_delivered_to = no".  Problem
+	reported by Michael Tokarev, but found independently by
+	others.  Files: local/local.c, local/aliases.c, local/dotforward.c,
+	local/mailbox.c, local/maildir.c.
+
+	Cleanup: while expanding a local(8) alias that has an owner
+	alias, don't reset the owner-alias information when recursing
+	into an alias that has no owner alias. This produces better
+	error reports when delivering mail to nested aliases that
+	have an owner alias only at the top level.  To get the old
+	behavior, specify "sticky_owner_alias = no".  Problem
+	reported by Victor Duchovni. File: local/alias.c.
+
+	Logging: additional SASL debug logging by Andreas Winkelmann.
+	Files: */*sasl_glue.c.
 
 Open problems:
 

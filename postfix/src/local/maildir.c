@@ -114,7 +114,8 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
      */
     if (vstream_fseek(state.msg_attr.fp, state.msg_attr.offset, SEEK_SET) < 0)
 	msg_fatal("seek message file %s: %m", VSTREAM_PATH(state.msg_attr.fp));
-    state.msg_attr.delivered = state.msg_attr.rcpt.address;
+    if (var_frozen_delivered == 0)
+	state.msg_attr.delivered = state.msg_attr.rcpt.address;
     mail_copy_status = MAIL_COPY_STAT_WRITE;
     buf = vstring_alloc(100);
 

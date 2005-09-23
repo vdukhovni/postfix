@@ -145,8 +145,6 @@ static NAME_MASK lmtp_sasl_sec_mask[] = {
 
 #if SASL_VERSION_MAJOR < 2
 /* SASL version 1.x */
-#define SASL_LOG_WARN SASL_LOG_WARNING
-#define SASL_LOG_NOTE SASL_LOG_INFO
 #define SASL_CLIENT_NEW(srv, fqdn, lport, rport, prompt, secflags, pconn) \
 	sasl_client_new(srv, fqdn, prompt, secflags, pconn)
 #define SASL_CLIENT_START(conn, mechlst, secret, prompt, clout, cllen, mech) \
@@ -177,16 +175,53 @@ static int lmtp_sasl_log(void *unused_context, int priority,
 {
     switch (priority) {
 	case SASL_LOG_ERR:		/* unusual errors */
-	case SASL_LOG_WARN:		/* non-fatal warnings */
+#ifdef SASL_LOG_WARN			/* non-fatal warnings (Cyrus-SASL v2) */
+	case SASL_LOG_WARN:
+#endif
+#ifdef SASL_LOG_WARNING			/* non-fatal warnings (Cyrus-SASL v1) */
+	case SASL_LOG_WARNING:
+#endif
 	msg_warn("SASL authentication problem: %s", message);
 	break;
-    case SASL_LOG_NOTE:			/* other info */
+#ifdef SASL_LOG_INFO
+    case SASL_LOG_INFO:			/* other info (Cyrus-SASL v1) */
 	if (msg_verbose)
 	    msg_info("SASL authentication info: %s", message);
 	break;
-#if SASL_VERSION_MAJOR >= 2
-    case SASL_LOG_FAIL:			/* authentication failures */
+#endif
+#ifdef SASL_LOG_NOTE
+    case SASL_LOG_NOTE:			/* other info (Cyrus-SASL v2) */
+	if (msg_verbose)
+	    msg_info("SASL authentication info: %s", message);
+	break;
+#endif
+#ifdef SASL_LOG_FAIL
+    case SASL_LOG_FAIL:			/* authentication failures
+						 * (Cyrus-SASL v2) */
 	msg_warn("SASL authentication failure: %s", message);
+	break;
+#endif
+#ifdef SASL_LOG_DEBUG
+    case SASL_LOG_DEBUG:			/* more verbose than LOG_NOTE
+						 * (Cyrus-SASL v2) */
+	if (msg_verbose > 1)
+	    msg_info("SASL authentication debug: %s", message);
+	break;
+#endif
+#ifdef SASL_LOG_TRACE
+    case SASL_LOG_TRACE:			/* traces of internal
+						 * protocols (Cyrus-SASL v2) */
+	if (msg_verbose > 1)
+	    msg_info("SASL authentication trace: %s", message);
+	break;
+#endif
+#ifdef SASL_LOG_PASS
+    case SASL_LOG_PASS:			/* traces of internal
+						 * protocols, including
+						 * passwords (Cyrus-SASL v2) */
+	if (msg_verbose > 1)
+	    msg_info("SASL authentication pass: %s", message);
+	break;
 #endif
     }
     return (SASL_OK);
@@ -315,7 +350,7 @@ void    lmtp_sasl_initialize(void)
 #endif
 	)
 	msg_fatal("incorrect SASL library version. "
-		  "Postfix was built with include files from version %d.%d.%d, "
+	      "Postfix was built with include files from version %d.%d.%d, "
 		  "but the run-time library version is %d.%d.%d",
 		  SASL_VERSION_MAJOR, SASL_VERSION_MINOR, SASL_VERSION_STEP,
 		  sasl_major, sasl_minor, sasl_step);
@@ -447,7 +482,7 @@ int     lmtp_sasl_authenticate(LMTP_STATE *state, DSN_BUF *why)
 
     if (msg_verbose)
 	msg_info("%s: %s: SASL mechanisms %s",
-	       myname, session->namaddr, state->sasl_mechanism_list);
+		 myname, session->namaddr, state->sasl_mechanism_list);
 
     /*
      * Start the client side authentication protocol.
@@ -458,12 +493,12 @@ int     lmtp_sasl_authenticate(LMTP_STATE *state, DSN_BUF *why)
 			       &clientout, &clientoutlen, &mechanism);
     if (result != SASL_OK && result != SASL_CONTINUE) {
 	dsb_update(why, "4.7.0", DSB_DEF_ACTION, DSB_SKIP_RMTA, DSB_DTYPE_SASL,
-                   421, sasl_errstring(result, NO_SASL_LANGLIST,
-                                       NO_SASL_OUTLANG),
-		    "cannot SASL authenticate to server %s: %s",
-			session->namaddr,
-			sasl_errstring(result, NO_SASL_LANGLIST,
-				       NO_SASL_OUTLANG));
+		   421, sasl_errstring(result, NO_SASL_LANGLIST,
+				       NO_SASL_OUTLANG),
+		   "cannot SASL authenticate to server %s: %s",
+		   session->namaddr,
+		   sasl_errstring(result, NO_SASL_LANGLIST,
+				  NO_SASL_OUTLANG));
 	return (-1);
     }
 
@@ -510,7 +545,7 @@ int     lmtp_sasl_authenticate(LMTP_STATE *state, DSN_BUF *why)
 	if (SASL_DECODE64(line, serverinlen, STR(state->sasl_decoded),
 			  serverinlen, &enc_length) != SASL_OK) {
 	    lmtp_dsn_update(why, "5.7.0", DSN_BY_LOCAL_MTA,
-                            501, "501 malformed SASL challenge",
+			    501, "501 malformed SASL challenge",
 			    "malformed SASL challenge from server %s",
 			    session->namaddr);
 	    return (-1);

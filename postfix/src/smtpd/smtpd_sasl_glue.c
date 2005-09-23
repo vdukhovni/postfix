@@ -135,8 +135,6 @@
 
 #if SASL_VERSION_MAJOR < 2
 /* SASL version 1.x */
-#define SASL_LOG_WARN SASL_LOG_WARNING
-#define SASL_LOG_NOTE SASL_LOG_INFO
 #define SASL_SERVER_NEW(srv, fqdn, rlm, lport, rport, cb, secflags, pconn) \
 	sasl_server_new(srv, fqdn, rlm, cb, secflags, pconn)
 #define SASL_SERVER_START(conn, mech, clin, clinlen, srvout, srvoutlen, err) \
@@ -165,39 +163,57 @@ static int smtpd_sasl_log(void *unused_context, int priority,
 			          const char *message)
 {
     switch (priority) {
-    case SASL_LOG_ERR:
-    case SASL_LOG_WARN:
+	case SASL_LOG_ERR:		/* unusual errors */
+#ifdef SASL_LOG_WARN			/* non-fatal warnings (Cyrus-SASL v2) */
+	case SASL_LOG_WARN:
+#endif
+#ifdef SASL_LOG_WARNING			/* non-fatal warnings (Cyrus-SASL v1) */
+	case SASL_LOG_WARNING:
+#endif
 	msg_warn("SASL authentication problem: %s", message);
 	break;
-    case SASL_LOG_NOTE:
+#ifdef SASL_LOG_INFO
+    case SASL_LOG_INFO:			/* other info (Cyrus-SASL v1) */
 	if (msg_verbose)
 	    msg_info("SASL authentication info: %s", message);
 	break;
+#endif
+#ifdef SASL_LOG_NOTE
+    case SASL_LOG_NOTE:			/* other info (Cyrus-SASL v2) */
+	if (msg_verbose)
+	    msg_info("SASL authentication info: %s", message);
+	break;
+#endif
 #ifdef SASL_LOG_FAIL
-    case SASL_LOG_FAIL:
+    case SASL_LOG_FAIL:			/* authentication failures
+						 * (Cyrus-SASL v2) */
 	msg_warn("SASL authentication failure: %s", message);
 	break;
 #endif
 #ifdef SASL_LOG_DEBUG
-    case SASL_LOG_DEBUG:
+    case SASL_LOG_DEBUG:			/* more verbose than LOG_NOTE
+						 * (Cyrus-SASL v2) */
 	if (msg_verbose > 1)
 	    msg_info("SASL authentication debug: %s", message);
 	break;
 #endif
 #ifdef SASL_LOG_TRACE
-    case SASL_LOG_TRACE:
+    case SASL_LOG_TRACE:			/* traces of internal
+						 * protocols (Cyrus-SASL v2) */
 	if (msg_verbose > 1)
 	    msg_info("SASL authentication trace: %s", message);
 	break;
 #endif
 #ifdef SASL_LOG_PASS
-    case SASL_LOG_PASS:
+    case SASL_LOG_PASS:			/* traces of internal
+						 * protocols, including
+						 * passwords (Cyrus-SASL v2) */
 	if (msg_verbose > 1)
 	    msg_info("SASL authentication pass: %s", message);
 	break;
 #endif
     }
-    return SASL_OK;
+    return (SASL_OK);
 }
 
  /*
@@ -245,7 +261,7 @@ void    smtpd_sasl_initialize(void)
 #endif
 	)
 	msg_fatal("incorrect SASL library version. "
-		  "Postfix was built with include files from version %d.%d.%d, "
+	      "Postfix was built with include files from version %d.%d.%d, "
 		  "but the run-time library version is %d.%d.%d",
 		  SASL_VERSION_MAJOR, SASL_VERSION_MINOR, SASL_VERSION_STEP,
 		  sasl_major, sasl_minor, sasl_step);

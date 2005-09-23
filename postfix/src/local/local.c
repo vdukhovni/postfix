@@ -360,6 +360,18 @@
 /*	recipient_delimiter is set to "-".
 /* .IP "\fBsun_mailtool_compatibility (no)\fR"
 /*	Obsolete SUN mailtool compatibility feature.
+/* .PP
+/*	Available in Postfix version 2.3 and later:
+/* .IP "\fBfrozen_delivered_to (yes)\fR"
+/*	Update the \fBlocal\fR(8) delivery agent's idea of the Delivered-To:
+/*	address (see prepend_delivered_header) only once, at the start of
+/*	a delivery attempt; do not update the Delivered-To: address while
+/*	expanding aliases or .forward files.
+/* .IP "\fBsticky_owner_alias (yes)\fR"
+/*	When expanding a \fBlocal\fR(8) alias that has an owner alias (see
+/*	owner-\fIname\fR discussion in \fBaliases\fR(5)), use the owner information
+/*	even when the expansion invokes a subordinate alias that has no
+/*	owner alias.
 /* DELIVERY METHOD CONTROLS
 /* .ad
 /* .fi
@@ -478,7 +490,8 @@
 /*	process terminates.
 /* .IP "\fBprepend_delivered_header (command, file, forward)\fR"
 /*	The message delivery contexts where the Postfix \fBlocal\fR(8) delivery
-/*	agent prepends a Delivered-To:  message header.
+/*	agent prepends a Delivered-To:  message header with the address
+/*	that the mail was delivered to.
 /* .IP "\fBprocess_id (read-only)\fR"
 /*	The process ID of a Postfix command or daemon process.
 /* .IP "\fBprocess_name (read-only)\fR"
@@ -606,6 +619,8 @@ int     var_stat_home_dir;
 int     var_mailtool_compat;
 char   *var_mailbox_lock;
 int     var_mailbox_limit;
+bool    var_frozen_delivered;
+bool    var_sticky_owner_alias;
 
 int     local_cmd_deliver_mask;
 int     local_file_deliver_mask;
@@ -845,6 +860,8 @@ int     main(int argc, char **argv)
 	VAR_EXP_OWN_ALIAS, DEF_EXP_OWN_ALIAS, &var_exp_own_alias,
 	VAR_STAT_HOME_DIR, DEF_STAT_HOME_DIR, &var_stat_home_dir,
 	VAR_MAILTOOL_COMPAT, DEF_MAILTOOL_COMPAT, &var_mailtool_compat,
+	VAR_FROZEN_DELIVERED, DEF_FROZEN_DELIVERED, &var_frozen_delivered,
+	VAR_STICKY_OWNER_ALIAS, DEF_STICKY_OWNER_ALIAS, &var_sticky_owner_alias,
 	0,
     };
 

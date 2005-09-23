@@ -55,38 +55,39 @@ ALIASES(5)                                                          ALIASES(5)
 
        In addition, when an alias exists for <b>owner-</b><i>name</i>, delivery
        diagnostics  are  directed  to that address, instead of to
-       the originator.  This is typically used to direct delivery
-       errors  to the owner of a mailing list, who is in a better
-       position to deal with mailing list delivery problems  than
-       the originator of the undelivered mail.
+       the originator of the message.  This is typically used  to
+       direct  delivery  errors  to  the  maintainer of a mailing
+       list, who is in a better position  to  deal  with  mailing
+       list delivery problems than the originator of the undeliv-
+       ered mail.
 
        The <i>value</i> contains one or more of the following:
 
        <i>address</i>
-              Mail  is  forwarded to <i>address</i>, which is compatible
+              Mail is forwarded to <i>address</i>, which  is  compatible
               with the <a href="http://www.faqs.org/rfcs/rfc822.html">RFC 822</a> standard.
 
        <i>/file/name</i>
-              Mail is appended to <i>/file/name</i>.  See  <a href="local.8.html"><b>local</b>(8)</a>  for
-              details  of delivery to file.  Delivery is not lim-
-              ited to regular files.  For example, to dispose  of
+              Mail  is  appended  to <i>/file/name</i>. See <a href="local.8.html"><b>local</b>(8)</a> for
+              details of delivery to file.  Delivery is not  lim-
+              ited  to regular files.  For example, to dispose of
               unwanted mail, deflect it to <b>/dev/null</b>.
 
        |<i>command</i>
-              Mail  is  piped into <i>command</i>. Commands that contain
-              special characters, such as whitespace,  should  be
-              enclosed  between  double  quotes. See <a href="local.8.html"><b>local</b>(8)</a> for
+              Mail is piped into <i>command</i>. Commands  that  contain
+              special  characters,  such as whitespace, should be
+              enclosed between double quotes.  See  <a href="local.8.html"><b>local</b>(8)</a>  for
               details of delivery to command.
 
               When the command fails, a limited amount of command
-              output  is  mailed  back  to  the sender.  The file
-              <b>/usr/include/sysexits.h</b> defines the  expected  exit
-              status  codes. For example, use <b>|"exit 67"</b> to simu-
-              late a "user  unknown"  error,  and  <b>|"exit  0"</b>  to
+              output is mailed back  to  the  sender.   The  file
+              <b>/usr/include/sysexits.h</b>  defines  the expected exit
+              status codes. For example, use <b>|"exit 67"</b> to  simu-
+              late  a  "user  unknown"  error,  and  <b>|"exit 0"</b> to
               implement an expensive black hole.
 
        <b>:include:</b><i>/file/name</i>
-              Mail  is  sent  to  the  destinations listed in the
+              Mail is sent to  the  destinations  listed  in  the
               named file.  Lines in <b>:include:</b> files have the same
               syntax as the right-hand side of alias entries.
 
@@ -98,66 +99,81 @@ ALIASES(5)                                                          ALIASES(5)
 
 <b>ADDRESS EXTENSION</b>
        When alias database search fails, and the recipient local-
-       part contains  the  optional  recipient  delimiter  (e.g.,
-       <i>user+foo</i>),  the  search  is  repeated  for  the unextended
+       part  contains  the  optional  recipient  delimiter (e.g.,
+       <i>user+foo</i>), the  search  is  repeated  for  the  unextended
        address (e.g., <i>user</i>).
 
-       The  <b><a href="postconf.5.html#propagate_unmatched_extensions">propagate_unmatched_extensions</a></b>   parameter   controls
-       whether  an  unmatched  address extension (<i>+foo</i>) is propa-
+       The   <b><a href="postconf.5.html#propagate_unmatched_extensions">propagate_unmatched_extensions</a></b>   parameter  controls
+       whether an unmatched address extension  (<i>+foo</i>)  is  propa-
        gated to the result of table lookup.
 
 <b>SECURITY</b>
-       The <a href="local.8.html"><b>local</b>(8)</a> delivery agent disallows  regular  expression
-       substitution  of $1 etc. in <b><a href="postconf.5.html#alias_maps">alias_maps</a></b>, because that would
+       The  <a href="local.8.html"><b>local</b>(8)</a>  delivery agent disallows regular expression
+       substitution of $1 etc. in <b><a href="postconf.5.html#alias_maps">alias_maps</a></b>, because that  would
        open a security hole.
 
-       The <a href="local.8.html"><b>local</b>(8)</a> delivery agent will silently ignore  requests
-       to  use  the <a href="proxymap.8.html"><b>proxymap</b>(8)</a> server within <b><a href="postconf.5.html#alias_maps">alias_maps</a></b>. Instead
-       it will open the table directly.  Before  Postfix  version
-       2.2,  the  <a href="local.8.html"><b>local</b>(8)</a>  delivery  agent will terminate with a
+       The  <a href="local.8.html"><b>local</b>(8)</a> delivery agent will silently ignore requests
+       to use the <a href="proxymap.8.html"><b>proxymap</b>(8)</a> server within  <b><a href="postconf.5.html#alias_maps">alias_maps</a></b>.  Instead
+       it  will  open the table directly.  Before Postfix version
+       2.2, the <a href="local.8.html"><b>local</b>(8)</a> delivery agent  will  terminate  with  a
        fatal error.
 
 <b>CONFIGURATION PARAMETERS</b>
-       The following <b>main.cf</b> parameters are especially  relevant.
-       The  text  below  provides  only  a parameter summary. See
+       The  following <b>main.cf</b> parameters are especially relevant.
+       The text below provides  only  a  parameter  summary.  See
        <a href="postconf.5.html"><b>postconf</b>(5)</a> for more details including examples.
 
        <b><a href="postconf.5.html#alias_database">alias_database</a></b>
-              List of alias databases that  are  updated  by  the
+              List  of  alias  databases  that are updated by the
               <a href="newaliases.1.html"><b>newaliases</b>(1)</a> command.
 
        <b><a href="postconf.5.html#alias_maps">alias_maps</a></b>
-              List  of  alias  databases  queried by the <a href="local.8.html"><b>local</b>(8)</a>
+              List of alias databases  queried  by  the  <a href="local.8.html"><b>local</b>(8)</a>
               delivery agent.
 
        <b><a href="postconf.5.html#allow_mail_to_commands">allow_mail_to_commands</a></b>
-              Restrict the usage of  mail  delivery  to  external
+              Restrict  the  usage  of  mail delivery to external
               command.
 
        <b><a href="postconf.5.html#allow_mail_to_files">allow_mail_to_files</a></b>
-              Restrict  the  usage  of  mail delivery to external
+              Restrict the usage of  mail  delivery  to  external
               file.
 
        <b><a href="postconf.5.html#expand_owner_alias">expand_owner_alias</a></b>
               When delivering to an alias that has an <b>owner-</b> com-
-              panion  alias,  set  the envelope sender address to
-              the right-hand side of  the  owner  alias,  instead
+              panion alias, set the envelope  sender  address  to
+              the  right-hand  side  of  the owner alias, instead
               using of the left-hand side address.
 
        <b><a href="postconf.5.html#propagate_unmatched_extensions">propagate_unmatched_extensions</a></b>
-              A  list  of  address rewriting or forwarding mecha-
-              nisms that propagate an address extension from  the
-              original  address  to  the  result. Specify zero or
-              more  of  <b>canonical</b>,   <b>virtual</b>,   <b>alias</b>,   <b>forward</b>,
+              A list of address rewriting  or  forwarding  mecha-
+              nisms  that propagate an address extension from the
+              original address to the  result.  Specify  zero  or
+              more   of   <b>canonical</b>,   <b>virtual</b>,  <b>alias</b>,  <b>forward</b>,
               <b>include</b>, or <b>generic</b>.
 
        <b><a href="postconf.5.html#owner_request_special">owner_request_special</a></b>
-              Give  special treatment to <b>owner-</b><i>listname</i> and <i>list-</i>
+              Give special treatment to <b>owner-</b><i>listname</i> and  <i>list-</i>
               <i>name</i><b>-request</b> addresses.
 
        <b><a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a></b>
-              Delimiter that separates  recipients  from  address
+              Delimiter  that  separates  recipients from address
               extensions.
+
+       Available in Postfix version 2.3 and later:
+
+       <b><a href="postconf.5.html#frozen_delivered_to">frozen_delivered_to</a></b>
+              Update the <a href="local.8.html">local(8)</a> delivery agent's  Delivered-To:
+              address  (see  <a href="postconf.5.html#prepend_delivered_header">prepend_delivered_header</a>) only once,
+              at the start of  a  delivery;  do  not  update  the
+              Delivered-To:  address  while  expanding aliases or
+              .forward files.
+
+       <b><a href="postconf.5.html#sticky_owner_alias">sticky_owner_alias</a></b>
+              When expanding a <a href="local.8.html">local(8)</a> alias that has  an  owner
+              alias  (see  owner-<i>name</i>  discussion above), use the
+              owner information even when the expansion invokes a
+              subordinate alias that has no owner alias.
 
 <b>STANDARDS</b>
        <a href="http://www.faqs.org/rfcs/rfc822.html">RFC 822</a> (ARPA Internet Text Messages)

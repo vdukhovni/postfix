@@ -1309,6 +1309,18 @@ forward_path =
 .fi
 .ad
 .ft R
+.SH frozen_delivered_to (default: yes)
+Update the \fBlocal\fR(8) delivery agent's idea of the Delivered-To:
+address (see prepend_delivered_header) only once, at the start of
+a delivery attempt; do not update the Delivered-To: address while
+expanding aliases or .forward files.
+.PP
+This feature is available in Postfix 2.3 and later. With older
+Postfix releases, the behavior is as if this parameter is set to
+"no". The old setting can be expensive with deeply nested aliases
+or .forward files. When an alias or .forward file changes the
+Delivered-To: address, it ties up one queue file and one cleanup
+process instance while mail is being forwarded.
 .SH hash_queue_depth (default: 1)
 The number of subdirectory levels for queue directories listed with
 the hash_queue_names parameter.
@@ -2546,7 +2558,9 @@ submissions from the Postfix maildrop queue.
 This feature is available in Postfix 2.0 and later.
 .SH prepend_delivered_header (default: command, file, forward)
 The message delivery contexts where the Postfix \fBlocal\fR(8) delivery
-agent prepends a Delivered-To:  message header.
+agent prepends a Delivered-To:  message header with the address
+that the mail was delivered to. This information is used for mail
+delivery loop detection.
 .PP
 By default, the Postfix local delivery agent prepends a Delivered-To:
 header when forwarding mail and when delivering to file (mailbox)
@@ -5335,6 +5349,16 @@ This is used for delivery to file or mailbox.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
+.SH sticky_owner_alias (default: yes)
+When expanding a \fBlocal\fR(8) alias that has an owner alias (see
+owner-\fIname\fR discussion in \fBaliases\fR(5)), use the owner information
+even when the expansion invokes a subordinate alias that has no
+owner alias.
+.PP
+This feature is available in Postfix 2.3 and later. With older
+Postfix releases, the behavior is as if this parameter is set to
+"no". The old setting provides poorer error reporting with nested
+aliases that only have an owner alias at the top level.
 .SH strict_7bit_headers (default: no)
 Reject mail with 8-bit text in message headers. This blocks mail
 from poorly written applications.

@@ -2476,6 +2476,24 @@ Examples:
 
 </DD>
 
+<DT><b><a name="frozen_delivered_to">frozen_delivered_to</a>
+(default: yes)</b></DT><DD>
+
+<p> Update the <a href="local.8.html">local(8)</a> delivery agent's idea of the Delivered-To:
+address (see <a href="postconf.5.html#prepend_delivered_header">prepend_delivered_header</a>) only once, at the start of
+a delivery attempt; do not update the Delivered-To: address while
+expanding aliases or .forward files. </p>
+
+<p> This feature is available in Postfix 2.3 and later. With older
+Postfix releases, the behavior is as if this parameter is set to
+"no". The old setting can be expensive with deeply nested aliases
+or .forward files. When an alias or .forward file changes the
+Delivered-To: address, it ties up one queue file and one cleanup
+process instance while mail is being forwarded.  </p>
+
+
+</DD>
+
 <DT><b><a name="hash_queue_depth">hash_queue_depth</a>
 (default: 1)</b></DT><DD>
 
@@ -4636,10 +4654,10 @@ This feature is available in Postfix 2.0 and later.
 <DT><b><a name="prepend_delivered_header">prepend_delivered_header</a>
 (default: command, file, forward)</b></DT><DD>
 
-<p>
-The message delivery contexts where the Postfix <a href="local.8.html">local(8)</a> delivery
-agent prepends a Delivered-To:  message header.
-</p>
+<p> The message delivery contexts where the Postfix <a href="local.8.html">local(8)</a> delivery
+agent prepends a Delivered-To:  message header with the address
+that the mail was delivered to. This information is used for mail
+delivery loop detection.  </p>
 
 <p>
 By default, the Postfix local delivery agent prepends a Delivered-To:
@@ -9129,6 +9147,22 @@ This is used for delivery to file or mailbox.
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 </p>
+
+
+</DD>
+
+<DT><b><a name="sticky_owner_alias">sticky_owner_alias</a>
+(default: yes)</b></DT><DD>
+
+<p> When expanding a <a href="local.8.html">local(8)</a> alias that has an owner alias (see
+owner-<i>name</i> discussion in <a href="aliases.5.html">aliases(5)</a>), use the owner information
+even when the expansion invokes a subordinate alias that has no
+owner alias.  </p>
+
+<p> This feature is available in Postfix 2.3 and later. With older
+Postfix releases, the behavior is as if this parameter is set to
+"no". The old setting provides poorer error reporting with nested
+aliases that only have an owner alias at the top level.  </p>
 
 
 </DD>

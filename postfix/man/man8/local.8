@@ -392,6 +392,18 @@ address localparts: don't split such addresses when the
 recipient_delimiter is set to "-".
 .IP "\fBsun_mailtool_compatibility (no)\fR"
 Obsolete SUN mailtool compatibility feature.
+.PP
+Available in Postfix version 2.3 and later:
+.IP "\fBfrozen_delivered_to (yes)\fR"
+Update the \fBlocal\fR(8) delivery agent's idea of the Delivered-To:
+address (see prepend_delivered_header) only once, at the start of
+a delivery attempt; do not update the Delivered-To: address while
+expanding aliases or .forward files.
+.IP "\fBsticky_owner_alias (yes)\fR"
+When expanding a \fBlocal\fR(8) alias that has an owner alias (see
+owner-\fIname\fR discussion in \fBaliases\fR(5)), use the owner information
+even when the expansion invokes a subordinate alias that has no
+owner alias.
 .SH "DELIVERY METHOD CONTROLS"
 .na
 .nf
@@ -520,7 +532,8 @@ The maximal number of connection requests before a Postfix daemon
 process terminates.
 .IP "\fBprepend_delivered_header (command, file, forward)\fR"
 The message delivery contexts where the Postfix \fBlocal\fR(8) delivery
-agent prepends a Delivered-To:  message header.
+agent prepends a Delivered-To:  message header with the address
+that the mail was delivered to.
 .IP "\fBprocess_id (read-only)\fR"
 The process ID of a Postfix command or daemon process.
 .IP "\fBprocess_name (read-only)\fR"

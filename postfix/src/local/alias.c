@@ -263,7 +263,8 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
 		SET_OWNER_ATTR(state.msg_attr, STR(canon_owner), state.level);
 	    } else {
 		canon_owner = 0;
-		RESET_OWNER_ATTR(state.msg_attr, state.level);
+		if (var_sticky_owner_alias == 0)
+		    RESET_OWNER_ATTR(state.msg_attr, state.level);
 	    }
 
 	    /*
@@ -272,7 +273,8 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
 	     * Set the delivered message attribute to the recipient, so that
 	     * this message will list the correct forwarding address.
 	     */
-	    state.msg_attr.delivered = state.msg_attr.rcpt.address;
+	    if (var_frozen_delivered == 0)
+		state.msg_attr.delivered = state.msg_attr.rcpt.address;
 
 	    /*
 	     * Deliver.

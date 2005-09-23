@@ -160,8 +160,6 @@ static NAME_MASK smtp_sasl_sec_mask[] = {
 
 #if SASL_VERSION_MAJOR < 2
 /* SASL version 1.x */
-#define SASL_LOG_WARN SASL_LOG_WARNING
-#define SASL_LOG_NOTE SASL_LOG_INFO
 #define SASL_CLIENT_NEW(srv, fqdn, lport, rport, prompt, secflags, pconn) \
 	sasl_client_new(srv, fqdn, prompt, secflags, pconn)
 #define SASL_CLIENT_START(conn, mechlst, secret, prompt, clout, cllen, mech) \
@@ -197,32 +195,50 @@ static int smtp_sasl_log(void *unused_context, int priority,
 {
     switch (priority) {
 	case SASL_LOG_ERR:		/* unusual errors */
-	case SASL_LOG_WARN:		/* non-fatal warnings */
+#ifdef SASL_LOG_WARN			/* non-fatal warnings (Cyrus-SASL v2) */
+	case SASL_LOG_WARN:
+#endif
+#ifdef SASL_LOG_WARNING			/* non-fatal warnings (Cyrus-SASL v1) */
+	case SASL_LOG_WARNING:
+#endif
 	msg_warn("SASL authentication problem: %s", message);
 	break;
-    case SASL_LOG_NOTE:			/* other info */
+#ifdef SASL_LOG_INFO
+    case SASL_LOG_INFO:			/* other info (Cyrus-SASL v1) */
 	if (msg_verbose)
 	    msg_info("SASL authentication info: %s", message);
 	break;
+#endif
+#ifdef SASL_LOG_NOTE
+    case SASL_LOG_NOTE:			/* other info (Cyrus-SASL v2) */
+	if (msg_verbose)
+	    msg_info("SASL authentication info: %s", message);
+	break;
+#endif
 #ifdef SASL_LOG_FAIL
-    case SASL_LOG_FAIL:			/* authentication failures */
+    case SASL_LOG_FAIL:			/* authentication failures
+						 * (Cyrus-SASL v2) */
 	msg_warn("SASL authentication failure: %s", message);
 	break;
 #endif
 #ifdef SASL_LOG_DEBUG
-    case SASL_LOG_DEBUG:
+    case SASL_LOG_DEBUG:			/* more verbose than LOG_NOTE
+						 * (Cyrus-SASL v2) */
 	if (msg_verbose > 1)
 	    msg_info("SASL authentication debug: %s", message);
 	break;
 #endif
 #ifdef SASL_LOG_TRACE
-    case SASL_LOG_TRACE:
+    case SASL_LOG_TRACE:			/* traces of internal
+						 * protocols (Cyrus-SASL v2) */
 	if (msg_verbose > 1)
 	    msg_info("SASL authentication trace: %s", message);
 	break;
 #endif
 #ifdef SASL_LOG_PASS
-    case SASL_LOG_PASS:
+    case SASL_LOG_PASS:			/* traces of internal
+						 * protocols, including
+						 * passwords (Cyrus-SASL v2) */
 	if (msg_verbose > 1)
 	    msg_info("SASL authentication pass: %s", message);
 	break;

@@ -2373,6 +2373,17 @@ extern char *var_msg_reject_chars;
 #define DEF_MSG_STRIP_CHARS		""
 extern char *var_msg_strip_chars;
 
+ /*
+  * Local forwarding complexity controls.
+  */
+#define VAR_FROZEN_DELIVERED		"frozen_delivered_to"
+#define DEF_FROZEN_DELIVERED		1
+extern bool var_frozen_delivered;
+
+#define VAR_STICKY_OWNER_ALIAS		"sticky_owner_alias"
+#define DEF_STICKY_OWNER_ALIAS		1
+extern bool var_sticky_owner_alias;
+
 /* LICENSE
 /* .ad
 /* .fi

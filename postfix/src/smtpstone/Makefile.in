@@ -106,6 +106,8 @@ qmqp-source.o: ../../include/qmqp_proto.h
 qmqp-source.o: ../../include/sane_connect.h
 qmqp-source.o: ../../include/split_at.h
 qmqp-source.o: ../../include/sys_defs.h
+qmqp-source.o: ../../include/valid_hostname.h
+qmqp-source.o: ../../include/valid_mailhost_addr.h
 qmqp-source.o: ../../include/vbuf.h
 qmqp-source.o: ../../include/vstream.h
 qmqp-source.o: ../../include/vstring.h
@@ -142,6 +144,8 @@ smtp-source.o: ../../include/sane_connect.h
 smtp-source.o: ../../include/smtp_stream.h
 smtp-source.o: ../../include/split_at.h
 smtp-source.o: ../../include/sys_defs.h
+smtp-source.o: ../../include/valid_hostname.h
+smtp-source.o: ../../include/valid_mailhost_addr.h
 smtp-source.o: ../../include/vbuf.h
 smtp-source.o: ../../include/vstream.h
 smtp-source.o: ../../include/vstring.h
