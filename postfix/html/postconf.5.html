@@ -7207,6 +7207,47 @@ Example:
 
 </DD>
 
+<DT><b><a name="smtpd_client_new_tls_session_rate_limit">smtpd_client_new_tls_session_rate_limit</a>
+(default: 0)</b></DT><DD>
+
+<p>
+The maximal number of new (i.e., uncached) TLS sessions that a
+remote SMTP client is allowed to negotiate with this service per
+time unit.  The time unit is specified with the <a href="postconf.5.html#anvil_rate_time_unit">anvil_rate_time_unit</a>
+configuration parameter.
+</p>
+
+<p>
+By default, a remote SMTP client can negotiate as many new TLS
+sessions per time unit as Postfix can accept.
+</p>
+
+<p>
+To disable this feature, specify a limit of 0. Otherwise, specify
+a limit that is at least the per-client concurrent session limit,
+or else legitimate client sessions may be rejected.
+</p>
+
+<p>
+WARNING: The purpose of this feature is to limit abuse. It must
+not be used to regulate legitimate mail traffic.
+</p>
+
+<p>
+This feature is available in Postfix 2.3 and later.
+</p>
+
+<p>
+Example:
+</p>
+
+<pre>
+<a href="postconf.5.html#smtpd_client_new_tls_session_rate_limit">smtpd_client_new_tls_session_rate_limit</a> = 100
+</pre>
+
+
+</DD>
+
 <DT><b><a name="smtpd_client_recipient_rate_limit">smtpd_client_recipient_rate_limit</a>
 (default: 0)</b></DT><DD>
 
@@ -7922,6 +7963,18 @@ This list overrides any commands built into the Postfix SMTP server.
 The lookup key to be used in SMTP <a href="access.5.html">access(5)</a> tables instead of the
 null sender address.
 </p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_peername_lookup">smtpd_peername_lookup</a>
+(default: yes)</b></DT><DD>
+
+<p> Attempt to look up the SMTP client hostname, and verify that
+the name matches the client IP address. A client name is set to
+"unknown" when it cannot be looked up or verified, or when name
+lookup is disabled.  Turning off name lookup reduces delays due to
+DNS lookup and increases the maximal inbound delivery rate. </p>
 
 
 </DD>
@@ -9147,22 +9200,6 @@ This is used for delivery to file or mailbox.
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 </p>
-
-
-</DD>
-
-<DT><b><a name="sticky_owner_alias">sticky_owner_alias</a>
-(default: yes)</b></DT><DD>
-
-<p> When expanding a <a href="local.8.html">local(8)</a> alias that has an owner alias (see
-owner-<i>name</i> discussion in <a href="aliases.5.html">aliases(5)</a>), use the owner information
-even when the expansion invokes a subordinate alias that has no
-owner alias.  </p>
-
-<p> This feature is available in Postfix 2.3 and later. With older
-Postfix releases, the behavior is as if this parameter is set to
-"no". The old setting provides poorer error reporting with nested
-aliases that only have an owner alias at the top level.  </p>
 
 
 </DD>

@@ -565,6 +565,12 @@ TLScontext_t *tls_server_start(SSL_CTX *server_ctx, VSTREAM *stream,
 	BIO_set_callback(SSL_get_rbio(TLScontext->con), 0);
 
     /*
+     * The caller may want to know if this session was reused or if a new
+     * session was negotiated.
+     */
+    TLScontext->session_reused = SSL_session_reused(TLScontext->con);
+
+    /*
      * Let's see whether a peer certificate is available and what is the
      * actual information. We want to save it for later use.
      */
@@ -618,6 +624,8 @@ TLScontext_t *tls_server_start(SSL_CTX *server_ctx, VSTREAM *stream,
      */
     if (requirecert) {
 	if (!TLScontext->peer_verified || !TLScontext->peer_CN) {
+	    if (TLScontext->session_reused == 0)
+		msg_panic("tls_server_start: peer was not verified");
 	    msg_info("Re-used session without peer certificate removed");
 	    uncache_session(server_ctx, TLScontext);
 	    tls_free_context(TLScontext);

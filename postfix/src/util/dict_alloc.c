@@ -15,7 +15,8 @@
 /*	DICT	*ptr;
 /* DESCRIPTION
 /*	dict_alloc() allocates memory for a dictionary structure of
-/*	\fIsize\fR bytes, initializes all properties to default settings,
+/*	\fIsize\fR bytes, initializes all generic dictionary
+/*	properties to default settings,
 /*	and installs default methods that do not support any operation.
 /*	The caller is supposed to override the default methods with
 /*	ones that it supports.

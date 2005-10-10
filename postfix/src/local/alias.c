@@ -263,8 +263,7 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
 		SET_OWNER_ATTR(state.msg_attr, STR(canon_owner), state.level);
 	    } else {
 		canon_owner = 0;
-		if (var_sticky_owner_alias == 0)
-		    RESET_OWNER_ATTR(state.msg_attr, state.level);
+		RESET_OWNER_ATTR(state.msg_attr, state.level);
 	    }
 
 	    /*

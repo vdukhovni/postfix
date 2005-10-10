@@ -26,12 +26,9 @@ files. With deeply nested aliases or .forward files, this can greatly
 reduce the number of queue files and cleanup process instances. To
 get the earlier behavior, specify "frozen_delivered_to = no".
 
-While expanding an alias that has an owner alias, the Postfix
-local(8) delivery agent no longer resets the owner information when
-it expands a subordinate alias that has no owner alias.  This
-produces better error reporting with nested aliases that have an
-owner alias only at the top level. To get the earlier behavior,
-specify "sticky_owner_alias = no".
+The frozen_delivered_to feature also fixes an old problem with
+duplicate deliveries to recipients that are listed in multiple
+nested aliases.
 
 Incompatibility with snapshot 20050828
 ======================================

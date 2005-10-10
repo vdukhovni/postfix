@@ -275,6 +275,7 @@ smtpd_peer.o: ../../include/argv.h
 smtpd_peer.o: ../../include/attr.h
 smtpd_peer.o: ../../include/inet_proto.h
 smtpd_peer.o: ../../include/iostuff.h
+smtpd_peer.o: ../../include/mail_params.h
 smtpd_peer.o: ../../include/mail_proto.h
 smtpd_peer.o: ../../include/mail_stream.h
 smtpd_peer.o: ../../include/msg.h

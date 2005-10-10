@@ -432,6 +432,12 @@ int     smtp_stream_except(SMTP_STATE *state, int code, const char *description)
 		      "conversation with %s timed out while %s",
 		      session->namaddr, description);
 	break;
+    case SMTP_ERR_PROTO:
+	smtp_fill_dsn(state, &dsn, DSN_BY_LOCAL_MTA,
+		      "4.5.0", "403 remote protocol error",
+		      "protocol error in reply from %s while %s",
+		      session->namaddr, description);
+	break;
     }
     return (smtp_bulk_fail(state, &dsn, SMTP_THROTTLE));
 }

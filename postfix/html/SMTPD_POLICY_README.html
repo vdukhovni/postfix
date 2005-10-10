@@ -36,7 +36,8 @@ the Postfix source code, in the directory examples/smtpd-policy.
 to Postfix. It's much easier to develop a new feature in few lines
 of Perl, than trying to do the same in C code. The difference in
 performance will be unnoticeable except in the most demanding
-environments. </p>
+environments. On active systems a policy daemon process is used
+multiple times, for up to 100 incoming SMTP connections. </p>
 
 <p> This document covers the following topics: </p>
 

@@ -11148,18 +11148,46 @@ Apologies for any names omitted.
 	others.  Files: local/local.c, local/aliases.c, local/dotforward.c,
 	local/mailbox.c, local/maildir.c.
 
-	Cleanup: while expanding a local(8) alias that has an owner
-	alias, don't reset the owner-alias information when recursing
-	into an alias that has no owner alias. This produces better
-	error reports when delivering mail to nested aliases that
-	have an owner alias only at the top level.  To get the old
-	behavior, specify "sticky_owner_alias = no".  Problem
-	reported by Victor Duchovni. File: local/alias.c.
-
 	Logging: additional SASL debug logging by Andreas Winkelmann.
 	Files: */*sasl_glue.c.
 
+20050929
+
+	Paranoia: don't ignore garbage in SMTP or LMTP server replies
+	when ESMTP command pipelining is turned on. For example,
+	after sending ".<CR><LF>QUIT<CR><LF>", Postfix could recognize
+	the server's 2XX QUIT reply as a 2XX END-OF-DATA reply after
+	garbage, causing mail to be lost. The SMTP and LMTP clients
+	now report a remote protocol error and defer delivery.
+	Files: smtp/smtp_chat.c, smtp/smtp_trouble.c, lmtp/lmtp_chat.c,
+	lmtp/lmtp_trouble.c.
+
+	Performance: specify "smtpd_peername_lookup = no" to disable
+	client hostname lookups in the SMTP server. All clients are
+	treated as "unknown". This should be used only under extreme
+	conditions where DNS lookup latencies are critical. File:
+	smtpd/smtpd_peer.c.
+
+20051010
+
+	Feature: smtpd_client_new_tls_session_rate_limit parameter
+	to limit the number of new (i.e. uncached) TLS sessions
+	that a remote SMTP client may negotiate per unit time. This
+	feature, which is off by default, can limit the CPU load
+	due to expensive crypto operations.  Files: global/anvil_clnt.c,
+	anvil/anvil.c, smtpd/smtpd.c.
+
+	Cleanup: eliminated code duplicatiom in the anvil server
+	that resulted from adding similar features one at a time.
+	File: anvil/anvil.c.
+
 Open problems:
+
+	Try to recognize that Resent- headers appear in blocks,
+	newest block first. But don't break on incorrect header
+	block organization.
+
+	Hard limits on cache sizes (anvil, specifically).
 
 	Look for systems with XPG basename() declared in <libgen.h>,
 	and prepare for phasing out the Postfix-supplied one.

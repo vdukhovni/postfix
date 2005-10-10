@@ -694,6 +694,12 @@ TLScontext_t *tls_client_start(SSL_CTX *client_ctx, VSTREAM *stream,
 	BIO_set_callback(SSL_get_rbio(TLScontext->con), 0);
 
     /*
+     * The caller may want to know if this session was reused or if a new
+     * session was negotiated.
+     */
+    TLScontext->session_reused = SSL_session_reused(TLScontext->con);
+
+    /*
      * Do peername verification if requested and extract useful information
      * from the certificate for later use.
      */

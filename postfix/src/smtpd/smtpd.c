@@ -415,6 +415,11 @@
 /*	The maximal number of lines in the Postfix SMTP server command history
 /*	before it is flushed upon receipt of EHLO, RSET, or end of DATA.
 /* .PP
+/*	Available in Postfix version 2.3 and later:
+/* .IP "\fBsmtpd_peername_lookup (yes)\fR"
+/*	Attempt to look up the SMTP client hostname, and verify that
+/*	the name matches the client IP address.
+/* .PP
 /*	The per SMTP client connection count and request rate limits are
 /*	implemented in co-operation with the \fBanvil\fR(8) service, and
 /*	are available in Postfix version 2.2 and later.
@@ -435,6 +440,11 @@
 /* .IP "\fBsmtpd_client_event_limit_exceptions ($mynetworks)\fR"
 /*	Clients that are excluded from connection count, connection rate,
 /*	or SMTP request rate restrictions.
+/* .PP
+/*	Available in Postfix version 2.3 and later:
+/* .IP "\fBsmtpd_client_new_tls_session_rate_limit (0)\fR"
+/*	The maximal number of new (i.e., uncached) TLS sessions that any
+/*	client is allowed to negotiate with this service per time unit.
 /* TARPIT CONTROLS
 /* .ad
 /* .fi
@@ -912,6 +922,7 @@ int     var_smtpd_crate_limit;
 int     var_smtpd_cconn_limit;
 int     var_smtpd_cmail_limit;
 int     var_smtpd_crcpt_limit;
+int     var_smtpd_cntls_limit;
 char   *var_smtpd_hoggers;
 char   *var_local_rwr_clients;
 char   *var_smtpd_ehlo_dis_words;
@@ -932,6 +943,8 @@ bool    var_smtpd_tls_received_header;
 char   *var_smtpd_sasl_tls_opts;
 
 #endif
+
+bool    var_smtpd_peername_lookup;
 
  /*
   * Silly little macros.
@@ -982,6 +995,7 @@ int     smtpd_input_transp_mask;
 static void helo_reset(SMTPD_STATE *);
 static void mail_reset(SMTPD_STATE *);
 static void rcpt_reset(SMTPD_STATE *);
+static void tls_reset(SMTPD_STATE *);
 static void chat_reset(SMTPD_STATE *, int);
 
  /*
@@ -3025,6 +3039,25 @@ static void chat_reset(SMTPD_STATE *state, int threshold)
 
 static void smtpd_start_tls(SMTPD_STATE *state)
 {
+    int     rate;
+
+    /*
+     * XXX The client event count/rate control must be consistent in its use
+     * of client address information in connect and disconnect events. For
+     * now we exclude xclient authorized hosts from event count/rate control.
+     */
+    if (SMTPD_STAND_ALONE(state) == 0
+	&& !xclient_allowed
+	&& anvil_clnt
+	&& var_smtpd_cntls_limit > 0
+	&& !namadr_list_match(hogger_list, state->name, state->addr)
+	&& anvil_clnt_newtls_stat(anvil_clnt, state->service, state->addr,
+				  &rate) == ANVIL_STAT_OK
+	&& rate > var_smtpd_cntls_limit) {
+	msg_warn("Refusing STARTTLS request from %s for service %s",
+		 state->namaddr, state->service);
+	vstream_longjmp(state->client, SMTP_ERR_EOF);
+    }
 
     /*
      * Wrapper mode uses a dedicated port and always requires TLS.
@@ -3037,9 +3070,30 @@ static void smtpd_start_tls(SMTPD_STATE *state)
      * verification unless TLS is required.
      */
     state->tls_context =
-    tls_server_start(smtpd_tls_ctx, state->client,
-		     var_smtpd_starttls_tmout, state->name, state->addr,
-		     (var_smtpd_tls_req_ccert && state->tls_enforce_tls));
+	tls_server_start(smtpd_tls_ctx, state->client,
+			 var_smtpd_starttls_tmout, state->name, state->addr,
+		       (var_smtpd_tls_req_ccert && state->tls_enforce_tls));
+
+    /*
+     * XXX The client event count/rate control must be consistent in its use
+     * of client address information in connect and disconnect events. For
+     * now we exclude xclient authorized hosts from event count/rate control.
+     */
+    if (state->tls_context
+	&& state->tls_context->session_reused == 0
+	&& SMTPD_STAND_ALONE(state) == 0
+	&& !xclient_allowed
+	&& anvil_clnt
+	&& var_smtpd_cntls_limit > 0
+	&& !namadr_list_match(hogger_list, state->name, state->addr)
+	&& anvil_clnt_newtls(anvil_clnt, state->service, state->addr,
+			     &rate) == ANVIL_STAT_OK
+	&& rate > var_smtpd_cntls_limit) {
+	msg_warn("Too many uncached TLS sessions: "
+		 "%d from %s for service %s",
+		 rate, state->namaddr, state->service);
+	tls_reset(state);
+    }
 
     /*
      * When the TLS handshake fails, the conversation is in an unknown state.
@@ -3587,7 +3641,8 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      * Connection rate management.
      */
     if (var_smtpd_crate_limit || var_smtpd_cconn_limit
-	|| var_smtpd_cmail_limit || var_smtpd_crcpt_limit)
+	|| var_smtpd_cmail_limit || var_smtpd_crcpt_limit
+	|| var_smtpd_cntls_limit)
 	anvil_clnt = anvil_clnt_create();
 }
 
@@ -3625,6 +3680,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_CCONN_LIMIT, DEF_SMTPD_CCONN_LIMIT, &var_smtpd_cconn_limit, 0, 0,
 	VAR_SMTPD_CMAIL_LIMIT, DEF_SMTPD_CMAIL_LIMIT, &var_smtpd_cmail_limit, 0, 0,
 	VAR_SMTPD_CRCPT_LIMIT, DEF_SMTPD_CRCPT_LIMIT, &var_smtpd_crcpt_limit, 0, 0,
+	VAR_SMTPD_CNTLS_LIMIT, DEF_SMTPD_CNTLS_LIMIT, &var_smtpd_cntls_limit, 0, 0,
 #ifdef USE_TLS
 	VAR_SMTPD_TLS_CCERT_VD, DEF_SMTPD_TLS_CCERT_VD, &var_smtpd_tls_ccert_vd, 0, 0,
 #endif
@@ -3664,6 +3720,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_TLS_RCERT, DEF_SMTPD_TLS_RCERT, &var_smtpd_tls_req_ccert,
 	VAR_SMTPD_TLS_RECHEAD, DEF_SMTPD_TLS_RECHEAD, &var_smtpd_tls_received_header,
 #endif
+	VAR_SMTPD_PEERNAME_LOOKUP, DEF_SMTPD_PEERNAME_LOOKUP, &var_smtpd_peername_lookup,
 	0,
     };
     static CONFIG_STR_TABLE str_table[] = {

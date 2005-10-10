@@ -1728,6 +1728,10 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_`\
 abcdefghijklmnopqrstuvwxyz{|}~"
 extern char *var_smtpd_exp_filter;
 
+#define VAR_SMTPD_PEERNAME_LOOKUP	"smtpd_peername_lookup"
+#define DEF_SMTPD_PEERNAME_LOOKUP	1
+extern bool var_smtpd_peername_lookup;
+
  /*
   * Heuristic to reject unknown local recipients at the SMTP port.
   */
@@ -2301,6 +2305,10 @@ extern int var_smtpd_cmail_limit;
 #define DEF_SMTPD_CRCPT_LIMIT		0
 extern int var_smtpd_crcpt_limit;
 
+#define VAR_SMTPD_CNTLS_LIMIT		"smtpd_client_new_tls_session_rate_limit"
+#define DEF_SMTPD_CNTLS_LIMIT		0
+extern int var_smtpd_cntls_limit;
+
 #define VAR_SMTPD_HOGGERS		"smtpd_client_event_limit_exceptions"
 #define DEF_SMTPD_HOGGERS		"${smtpd_client_connection_limit_exceptions:$" VAR_MYNETWORKS "}"
 extern char *var_smtpd_hoggers;
@@ -2379,10 +2387,6 @@ extern char *var_msg_strip_chars;
 #define VAR_FROZEN_DELIVERED		"frozen_delivered_to"
 #define DEF_FROZEN_DELIVERED		1
 extern bool var_frozen_delivered;
-
-#define VAR_STICKY_OWNER_ALIAS		"sticky_owner_alias"
-#define DEF_STICKY_OWNER_ALIAS		1
-extern bool var_sticky_owner_alias;
 
 /* LICENSE
 /* .ad

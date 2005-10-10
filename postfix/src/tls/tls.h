@@ -56,7 +56,8 @@ typedef struct {
     const char *cipher_name;
     int     cipher_usebits;
     int     cipher_algbits;
-    int     log_level;
+    int     log_level;			/* TLS library logging level */
+    int     session_reused;		/* this session was reused */
 } TLScontext_t;
 
 #define TLS_BIO_BUFSIZE	8192

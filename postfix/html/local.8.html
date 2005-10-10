@@ -386,13 +386,6 @@ LOCAL(8)                                                              LOCAL(8)
               attempt;  do  not  update the Delivered-To: address
               while expanding aliases or .forward files.
 
-       <b><a href="postconf.5.html#sticky_owner_alias">sticky_owner_alias</a> (yes)</b>
-              When expanding a <a href="local.8.html"><b>local</b>(8)</a> alias that has  an  owner
-              alias  (see  owner-<i>name</i>  discussion in <a href="aliases.5.html"><b>aliases</b>(5)</a>),
-              use the owner information even when  the  expansion
-              invokes  a  subordinate  alias  that  has  no owner
-              alias.
-
 <b>DELIVERY METHOD CONTROLS</b>
        The precedence of <a href="local.8.html"><b>local</b>(8)</a> delivery methods from  high  to
        low  is: aliases, .forward files, <a href="postconf.5.html#mailbox_transport">mailbox_transport</a>, <a href="postconf.5.html#mailbox_command_maps">mail</a>-

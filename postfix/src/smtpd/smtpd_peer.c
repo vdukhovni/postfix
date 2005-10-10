@@ -118,6 +118,7 @@
 
 #include <mail_proto.h>
 #include <valid_mailhost_addr.h>
+#include <mail_params.h>
 
 /* Application-specific. */
 
@@ -251,8 +252,19 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 	state->name_status = code; \
     }
 
-	if ((aierr = sockaddr_to_hostname(sa, sa_len, &client_name,
-					  (MAI_SERVNAME_STR *) 0, 0)) != 0) {
+	if (var_smtpd_peername_lookup == 0) {
+	    state->name = mystrdup(CLIENT_NAME_UNKNOWN);
+	    state->reverse_name = mystrdup(CLIENT_NAME_UNKNOWN);
+#ifdef FORWARD_CLIENT_NAME
+	    state->forward_name = mystrdup(CLIENT_NAME_UNKNOWN);
+#endif
+	    state->name_status = SMTPD_PEER_CODE_PERM;
+	    state->reverse_name_status = SMTPD_PEER_CODE_PERM;
+#ifdef FORWARD_CLIENT_NAME
+	    state->forward_name_status = SMTPD_PEER_CODE_PERM;
+#endif
+	} else if ((aierr = sockaddr_to_hostname(sa, sa_len, &client_name,
+					 (MAI_SERVNAME_STR *) 0, 0)) != 0) {
 	    state->name = mystrdup(CLIENT_NAME_UNKNOWN);
 	    state->reverse_name = mystrdup(CLIENT_NAME_UNKNOWN);
 #ifdef FORWARD_CLIENT_NAME

@@ -355,6 +355,7 @@ static DELIVER_REQUEST *deliver_request_alloc(void)
     request->sasl_username = 0;
     request->sasl_sender = 0;
     request->rewrite_context = 0;
+    request->dsn_envid = 0;
     return (request);
 }
 
