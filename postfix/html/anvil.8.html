@@ -97,14 +97,14 @@ ANVIL(8)                                                              ANVIL(8)
            <b>rate=</b><i>number</i>
 
        To retrieve new TLS session request rate information with-
-       out updating the counter information, use:
+       out updating the counter information, send:
 
            <b>request=newtls_report</b>
            <b>ident=</b><i>string</i>
 
        The <a href="anvil.8.html"><b>anvil</b>(8)</a> server answers with the  number  of  new  TLS
        session  requests  per unit time for the (service, client)
-       combination specified with <b>ident</b>.
+       combination specified with <b>ident</b>:
 
            <b>status=0</b>
            <b>rate=</b><i>number</i>

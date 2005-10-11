@@ -443,8 +443,9 @@
 /* .PP
 /*	Available in Postfix version 2.3 and later:
 /* .IP "\fBsmtpd_client_new_tls_session_rate_limit (0)\fR"
-/*	The maximal number of new (i.e., uncached) TLS sessions that any
-/*	client is allowed to negotiate with this service per time unit.
+/*	The maximal number of new (i.e., uncached) TLS sessions that a
+/*	remote SMTP client is allowed to negotiate with this service per
+/*	time unit.
 /* TARPIT CONTROLS
 /* .ad
 /* .fi
@@ -1562,8 +1563,9 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	&& anvil_clnt_mail(anvil_clnt, state->service, state->addr,
 			   &rate) == ANVIL_STAT_OK
 	&& rate > var_smtpd_cmail_limit) {
-	smtpd_chat_reply(state, "421 4.7.0 %s Error: too much mail from %s",
-			 var_myhostname, state->addr);
+	state->error_mask |= MAIL_ERROR_POLICY;
+	smtpd_chat_reply(state, "450 4.7.1 Error: too much mail from %s",
+			 state->addr);
 	msg_warn("Message delivery request rate limit exceeded: %d from %s for service %s",
 		 rate, state->namaddr, state->service);
 	return (-1);
@@ -1814,9 +1816,9 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	&& anvil_clnt_rcpt(anvil_clnt, state->service, state->addr,
 			   &rate) == ANVIL_STAT_OK
 	&& rate > var_smtpd_crcpt_limit) {
-	smtpd_chat_reply(state,
-			 "421 4.7.0 %s Error: too many recipients from %s",
-			 var_myhostname, state->addr);
+	state->error_mask |= MAIL_ERROR_POLICY;
+	smtpd_chat_reply(state, "450 4.7.1 Error: too many recipients from %s",
+			 state->addr);
 	msg_warn("Recipient address rate limit exceeded: %d from %s for service %s",
 		 rate, state->namaddr, state->service);
 	return (-1);
@@ -3042,24 +3044,6 @@ static void smtpd_start_tls(SMTPD_STATE *state)
     int     rate;
 
     /*
-     * XXX The client event count/rate control must be consistent in its use
-     * of client address information in connect and disconnect events. For
-     * now we exclude xclient authorized hosts from event count/rate control.
-     */
-    if (SMTPD_STAND_ALONE(state) == 0
-	&& !xclient_allowed
-	&& anvil_clnt
-	&& var_smtpd_cntls_limit > 0
-	&& !namadr_list_match(hogger_list, state->name, state->addr)
-	&& anvil_clnt_newtls_stat(anvil_clnt, state->service, state->addr,
-				  &rate) == ANVIL_STAT_OK
-	&& rate > var_smtpd_cntls_limit) {
-	msg_warn("Refusing STARTTLS request from %s for service %s",
-		 state->namaddr, state->service);
-	vstream_longjmp(state->client, SMTP_ERR_EOF);
-    }
-
-    /*
      * Wrapper mode uses a dedicated port and always requires TLS.
      * 
      * XXX In non-wrapper mode, it is possible to require client certificate
@@ -3079,20 +3063,24 @@ static void smtpd_start_tls(SMTPD_STATE *state)
      * of client address information in connect and disconnect events. For
      * now we exclude xclient authorized hosts from event count/rate control.
      */
-    if (state->tls_context
+    if (var_smtpd_cntls_limit > 0
+	&& state->tls_context
 	&& state->tls_context->session_reused == 0
 	&& SMTPD_STAND_ALONE(state) == 0
 	&& !xclient_allowed
 	&& anvil_clnt
-	&& var_smtpd_cntls_limit > 0
 	&& !namadr_list_match(hogger_list, state->name, state->addr)
 	&& anvil_clnt_newtls(anvil_clnt, state->service, state->addr,
 			     &rate) == ANVIL_STAT_OK
 	&& rate > var_smtpd_cntls_limit) {
-	msg_warn("Too many uncached TLS sessions: "
-		 "%d from %s for service %s",
+	state->error_mask |= MAIL_ERROR_POLICY;
+	smtpd_chat_reply(state,
+		    "421 4.7.0 %s Error: too many new TLS sessions from %s",
+			 var_myhostname, state->namaddr);
+	msg_warn("Too many new TLS sessions: %d from %s for service %s",
 		 rate, state->namaddr, state->service);
-	tls_reset(state);
+	/* XXX Use regular return to signal end of session. */
+	vstream_longjmp(state->client, SMTP_ERR_QUIET);
     }
 
     /*
@@ -3121,6 +3109,8 @@ static void smtpd_start_tls(SMTPD_STATE *state)
 
 static int starttls_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 {
+    int     rate;
+
     if (argc != 1) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 5.5.4 Syntax: STARTTLS");
@@ -3141,7 +3131,30 @@ static int starttls_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	smtpd_chat_reply(state, "454 4.3.0 TLS not available due to local problem");
 	return (-1);
     }
+
+    /*
+     * XXX The client event count/rate control must be consistent in its use
+     * of client address information in connect and disconnect events. For
+     * now we exclude xclient authorized hosts from event count/rate control.
+     */
+    if (var_smtpd_cntls_limit > 0
+	&& SMTPD_STAND_ALONE(state) == 0
+	&& !xclient_allowed
+	&& anvil_clnt
+	&& !namadr_list_match(hogger_list, state->name, state->addr)
+	&& anvil_clnt_newtls_stat(anvil_clnt, state->service, state->addr,
+				  &rate) == ANVIL_STAT_OK
+	&& rate > var_smtpd_cntls_limit) {
+	state->error_mask |= MAIL_ERROR_POLICY;
+	smtpd_chat_reply(state,
+		       "454 4.7.0 Error: too many new TLS sessions from %s",
+			 state->namaddr);
+	msg_warn("Refusing STARTTLS request from %s for service %s",
+		 state->namaddr, state->service);
+	return (-1);
+    }
     smtpd_chat_reply(state, "220 2.0.0 Ready to start TLS");
+    /* Flush before we switch the stream's read/write routines. */
     smtp_flush(state->client);
 
     /*
@@ -3271,6 +3284,9 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 	state->reason = REASON_LOST_CONNECTION;
 	break;
 
+    case SMTP_ERR_QUIET:
+	break;
+
     case 0:
 
 	/*
@@ -3278,13 +3294,28 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 	 * the STARTTLS command. This code does not return when the handshake
 	 * fails.
 	 * 
-	 * XXX We must start TLS before we can apply the connection and rate
-	 * limits, because otherwise there is no way to report transgressions
-	 * to the client.  This is unfortunate.
+	 * XXX We start TLS before we apply access control, concurrency or
+	 * connection rate limits, so that we can inform the client why
+	 * service is denied. This means we spend a lot of CPU just to tell
+	 * the client that we don't provide service. TLS wrapper mode is
+	 * obsolete, so we don't have to provide perfect support.
 	 */
 #ifdef USE_TLS
-	if (SMTPD_STAND_ALONE(state) == 0 && var_smtpd_tls_wrappermode)
+	if (SMTPD_STAND_ALONE(state) == 0 && var_smtpd_tls_wrappermode) {
+	    if (var_smtpd_cntls_limit > 0
+		&& !xclient_allowed
+		&& anvil_clnt
+		&& !namadr_list_match(hogger_list, state->name, state->addr)
+		&& anvil_clnt_newtls_stat(anvil_clnt, state->service,
+				       state->addr, &crate) == ANVIL_STAT_OK
+		&& crate > var_smtpd_cntls_limit) {
+		state->error_mask |= MAIL_ERROR_POLICY;
+		msg_warn("Refusing TLS service request from %s for service %s",
+			 state->namaddr, state->service);
+		break;
+	    }
 	    smtpd_start_tls(state);
+	}
 #endif
 
 	/*
@@ -3305,6 +3336,7 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 	    && anvil_clnt_connect(anvil_clnt, service, state->addr,
 				  &count, &crate) == ANVIL_STAT_OK) {
 	    if (var_smtpd_cconn_limit > 0 && count > var_smtpd_cconn_limit) {
+		state->error_mask |= MAIL_ERROR_POLICY;
 		smtpd_chat_reply(state, "421 4.7.0 %s Error: too many connections from %s",
 				 var_myhostname, state->addr);
 		msg_warn("Connection concurrency limit exceeded: %d from %s for service %s",

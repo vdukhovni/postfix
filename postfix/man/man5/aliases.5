@@ -153,11 +153,6 @@ Update the local(8) delivery agent's Delivered-To: address
 (see prepend_delivered_header) only once, at the start of
 a delivery; do not update the Delivered-To: address while
 expanding aliases or .forward files.
-.IP \fBsticky_owner_alias\fR
-When expanding a local(8) alias that has an owner alias
-(see owner-\fIname\fR discussion above), use the owner
-information even when the expansion invokes a subordinate
-alias that has no owner alias.
 .SH "STANDARDS"
 .na
 .nf

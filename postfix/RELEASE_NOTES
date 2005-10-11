@@ -17,7 +17,7 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
-Incompatibility with snapshot 20050923
+Incompatibility with snapshot 20051011
 ======================================
 
 The Postfix local(8) delivery agent no longer updates its idea of
@@ -26,9 +26,25 @@ files. With deeply nested aliases or .forward files, this can greatly
 reduce the number of queue files and cleanup process instances. To
 get the earlier behavior, specify "frozen_delivered_to = no".
 
-The frozen_delivered_to feature also fixes an old problem with
-duplicate deliveries to recipients that are listed in multiple
-nested aliases.
+The frozen_delivered_to feature also fixes a long-standing problem
+with multiple deliveries to recipients that are listed in multiple
+nested aliases, but does so only when only the top-level alias has
+an owner- alias, and none of the subordinate aliases.
+
+Major changes with snapshot 20051011
+====================================
+
+Optional protection against SMTP clients that hammer the server
+with too many new (i.e. uncached) SMTP-over-TLS sessions. Cached
+sessions are much less expensive in terms of CPU cycles. Use the
+smtpd_client_new_tls_session_rate_limit parameter to specify a limit
+that is at least the inbound client concurrency limit, or else you
+may deny legitimate service requests.
+
+Optional suppression of remote SMTP client hostname lookup and
+hostname verification. Specify "smtpd_peername_lookup = no" to
+eliminate DNS lookup latencies, but do so only under extreme
+conditions, as it makes Postfix logging less informative.
 
 Incompatibility with snapshot 20050828
 ======================================

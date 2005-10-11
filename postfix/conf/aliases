@@ -201,12 +201,6 @@ decode:		root
 #               Delivered-To:  address  while  expanding aliases or
 #               .forward files.
 # 
-#        sticky_owner_alias
-#               When expanding a local(8) alias that has  an  owner
-#               alias  (see  owner-name  discussion above), use the
-#               owner information even when the expansion invokes a
-#               subordinate alias that has no owner alias.
-# 
 # STANDARDS
 #        RFC 822 (ARPA Internet Text Messages)
 # 
@@ -217,12 +211,12 @@ decode:		root
 #        postconf(5), configuration parameters
 # 
 # README FILES
-#        Use  "postconf  readme_directory" or "postconf html_direc-
+#        Use "postconf readme_directory" or  "postconf  html_direc-
 #        tory" to locate this information.
 #        DATABASE_README, Postfix lookup table overview
 # 
 # LICENSE
-#        The Secure Mailer license must be  distributed  with  this
+#        The  Secure  Mailer  license must be distributed with this
 #        software.
 # 
 # AUTHOR(S)

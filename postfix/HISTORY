@@ -11177,9 +11177,19 @@ Apologies for any names omitted.
 	due to expensive crypto operations.  Files: global/anvil_clnt.c,
 	anvil/anvil.c, smtpd/smtpd.c.
 
-	Cleanup: eliminated code duplicatiom in the anvil server
-	that resulted from adding similar features one at a time.
-	File: anvil/anvil.c.
+	Cleanup: eliminated massive code duplicatiom in the anvil
+	server that resulted from adding similar features one at a
+	time.  File: anvil/anvil.c.
+
+20051011
+
+	Bugfix: raise the "policy violation" flag when a client
+	request exceeds a concurrency or rate limit.  File:
+	smtpd/smtpd.c.
+
+	Bugfix (cut-and-paste error): don't reply with 421 (too
+	many MAIL FROM or RCPT TO commands) when we aren't closing
+	the connection.  File: smtpd/smtpd.c.
 
 Open problems:
 

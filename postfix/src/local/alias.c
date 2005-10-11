@@ -260,9 +260,11 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
 		&& (owner_rhs = maps_find(alias_maps, owner, DICT_FLAG_NONE)) != 0) {
 		canon_owner = canon_addr_internal(vstring_alloc(10),
 				     var_exp_own_alias ? owner_rhs : owner);
+		/* Set envelope sender and owner attribute. */
 		SET_OWNER_ATTR(state.msg_attr, STR(canon_owner), state.level);
 	    } else {
 		canon_owner = 0;
+		/* Note: this does not reset the envelope sender. */
 		RESET_OWNER_ATTR(state.msg_attr, state.level);
 	    }
 

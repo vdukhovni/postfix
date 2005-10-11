@@ -124,7 +124,7 @@
 /* .in
 /* .PP
 /*	To retrieve new TLS session request rate information without
-/*	updating the counter information, use:
+/*	updating the counter information, send:
 /* .PP
 /* .in +4
 /*	\fBrequest=newtls_report\fR
@@ -134,7 +134,7 @@
 /* .PP
 /*	The \fBanvil\fR(8) server answers with the number of new
 /*	TLS session requests per unit time for the (service, client)
-/*	combination specified with \fBident\fR.
+/*	combination specified with \fBident\fR:
 /* .PP
 /* .in +4
 /*	\fBstatus=0\fR

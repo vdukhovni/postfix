@@ -381,7 +381,7 @@ int     lmtp_stream_except(LMTP_STATE *state, int code, const char *description)
     case SMTP_ERR_PROTO:
 	lmtp_fill_dsn(state, &dsn, DSN_BY_LOCAL_MTA,
 		      "4.5.0", "403 remote protocol error",
-		      "protocol error in reply from %s while %s",
+		      "remote protocol error in reply from %s while %s",
 		      session->namaddr, description);
 	break;
     }
