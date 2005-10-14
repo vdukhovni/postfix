@@ -11177,7 +11177,7 @@ Apologies for any names omitted.
 	due to expensive crypto operations.  Files: global/anvil_clnt.c,
 	anvil/anvil.c, smtpd/smtpd.c.
 
-	Cleanup: eliminated massive code duplicatiom in the anvil
+	Cleanup: eliminated massive code duplication in the anvil
 	server that resulted from adding similar features one at a
 	time.  File: anvil/anvil.c.
 
@@ -11191,6 +11191,37 @@ Apologies for any names omitted.
 	many MAIL FROM or RCPT TO commands) when we aren't closing
 	the connection.  File: smtpd/smtpd.c.
 
+20051012
+
+	Polishing: content of comments and sequence of code blocks
+	in the anvil server, TLS request rate error message in the
+	smtp server, and documentation, but no changes in code.
+	Files: anvil/anvil.c, smtpd/smtpd.c.
+ 
+20051013
+
+	Horror: some systems have basename() and dirname() and some
+	don't; some implementations modify their input and some
+	don't; and some implementations use a private buffer that
+	is overwritten upon the next call. Postfix will use its own
+	safer versions called sane_basename() and sane_dirname().
+	These never modify the input, and allow the caller to control
+	how memory is allocated for the result.  File:
+	util/sane_basename.c.
+
+	Feature: "sendmail -C path-to-main.cf" and "sendmail -C
+	config_directory" now do what one would expect. File:
+	sendmail/sendmail.c.
+
+	Bugfix: don't do smtpd_end_of_data_restrictions after the
+	transaction failed due to, e.g., a write error.  File:
+	smtpd/smtpd.c.
+
+	Cleanup: the SMTP server now enforces the message_size_limit
+	even when the client did not send SIZE information with the
+	MAIL FROM command.  This protects before-queue content
+	filters against over-size messages.  File: smtpd/smtpd.c.
+
 Open problems:
 
 	Try to recognize that Resent- headers appear in blocks,
@@ -11198,11 +11229,6 @@ Open problems:
 	block organization.
 
 	Hard limits on cache sizes (anvil, specifically).
-
-	Look for systems with XPG basename() declared in <libgen.h>,
-	and prepare for phasing out the Postfix-supplied one.
-	Beware, however, that XPG basename() takes (char *), and
-	not (const char *) because it may change its argument.
 
 	Laptop friendliness: make the qmgr remember when the next
 	deferred queue scan needs to be done, and have the pickup
@@ -11212,11 +11238,6 @@ Open problems:
 	an SMTP code in front of what is now reported as X-Postfix.
 	Or do we punt the issue and issue X-Postfix for all errors
 	except SMTP?
-
-	Implement smtp_greet() routine to distinguish between reject
-	before versus after sending HELO/EHLO; this is needed to
-	eliminate the hack that uses one character lookahead to
-	find out if the server wants to talk to us.
 
 	Low: replace_sender/replace_recipient actions in access
 	maps?

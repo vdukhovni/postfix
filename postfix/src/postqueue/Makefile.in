@@ -59,7 +59,6 @@ postqueue.o: ../../include/argv.h
 postqueue.o: ../../include/attr.h
 postqueue.o: ../../include/clean_env.h
 postqueue.o: ../../include/connect.h
-postqueue.o: ../../include/debug_process.h
 postqueue.o: ../../include/flush_clnt.h
 postqueue.o: ../../include/iostuff.h
 postqueue.o: ../../include/mail_conf.h

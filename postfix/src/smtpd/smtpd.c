@@ -2253,13 +2253,18 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	if (prev_rec_type != REC_TYPE_CONT && *start == '.'
 	    && (state->proxy == 0 ? (++start, --len) == 0 : len == 1))
 	    break;
-	state->act_size += len + 2;
-	if (state->err == CLEANUP_STAT_OK
-	    && out_record(out_stream, curr_rec_type, start, len) < 0)
-	    state->err = out_error;
+	if (state->err == CLEANUP_STAT_OK) {
+	    state->act_size += len + 2;
+	    if (var_message_limit > 0 && state->act_size > var_message_limit)
+		state->err = CLEANUP_STAT_SIZE;
+	    else if (out_record(out_stream, curr_rec_type, start, len) < 0)
+		state->err = out_error;
+	}
     }
     state->where = SMTPD_AFTER_DOT;
-    if (SMTPD_STAND_ALONE(state) == 0 && (err = smtpd_check_eod(state)) != 0) {
+    if (state->err == CLEANUP_STAT_OK
+	&& SMTPD_STAND_ALONE(state) == 0
+	&& (err = smtpd_check_eod(state)) != 0) {
 	smtpd_chat_reply(state, "%s", err);
 	if (state->proxy) {
 	    smtpd_proxy_close(state);
@@ -2285,8 +2290,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	    if (state->err == CLEANUP_STAT_OK &&
 		*STR(state->proxy_buffer) != '2')
 		state->err = CLEANUP_STAT_CONT;
-	} else {
-	    state->error_mask |= MAIL_ERROR_SOFTWARE;
+	} else if (state->err != CLEANUP_STAT_SIZE) {
 	    state->err |= CLEANUP_STAT_PROXY;
 	    detail = cleanup_stat_detail(CLEANUP_STAT_PROXY);
 	    vstring_sprintf(state->proxy_buffer,
@@ -3077,7 +3081,7 @@ static void smtpd_start_tls(SMTPD_STATE *state)
 	smtpd_chat_reply(state,
 		    "421 4.7.0 %s Error: too many new TLS sessions from %s",
 			 var_myhostname, state->namaddr);
-	msg_warn("Too many new TLS sessions: %d from %s for service %s",
+	msg_warn("New TLS session rate limit exceeded: %d from %s for service %s",
 		 rate, state->namaddr, state->service);
 	/* XXX Use regular return to signal end of session. */
 	vstream_longjmp(state->client, SMTP_ERR_QUIET);

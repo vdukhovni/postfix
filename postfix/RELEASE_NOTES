@@ -26,10 +26,11 @@ files. With deeply nested aliases or .forward files, this can greatly
 reduce the number of queue files and cleanup process instances. To
 get the earlier behavior, specify "frozen_delivered_to = no".
 
-The frozen_delivered_to feature also fixes a long-standing problem
-with multiple deliveries to recipients that are listed in multiple
-nested aliases, but does so only when only the top-level alias has
-an owner- alias, and none of the subordinate aliases.
+The frozen_delivered_to feature can help to alleviate a long-standing
+problem with multiple deliveries to recipients that are listed
+multiple times in a hierarchy of nested aliases. For this to work,
+only the top-level alias should have an owner- alias, and none of
+the subordinate aliases.
 
 Major changes with snapshot 20051011
 ====================================

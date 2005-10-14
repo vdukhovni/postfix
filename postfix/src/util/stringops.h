@@ -29,8 +29,11 @@ extern char *concatenate(const char *,...);
 extern char *mystrtok(char **, const char *);
 extern char *translit(char *, const char *, const char *);
 #ifndef HAVE_BASENAME
+#define basename postfix_basename
 extern char *basename(const char *);
 #endif
+extern char *sane_basename(VSTRING *, const char *);
+extern char *sane_dirname(VSTRING *, const char *);
 extern VSTRING *unescape(VSTRING *, const char *);
 extern int alldig(const char *);
 extern int allprint(const char *);

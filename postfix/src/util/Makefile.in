@@ -29,7 +29,7 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	unix_recv_fd.c unix_send_fd.c unix_trigger.c unsafe.c uppercase.c \
 	username.c valid_hostname.c vbuf.c vbuf_print.c vstream.c \
 	vstream_popen.c vstring.c vstring_vstream.c watchdog.c writable.c \
-	write_buf.c write_wait.c
+	write_buf.c write_wait.c sane_basename.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -60,7 +60,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	unix_recv_fd.o unix_send_fd.o unix_trigger.o unsafe.o uppercase.o \
 	username.o valid_hostname.o vbuf.o vbuf_print.o vstream.o \
 	vstream_popen.o vstring.o vstring_vstream.o watchdog.o writable.o \
-	write_buf.o write_wait.o
+	write_buf.o write_wait.o sane_basename.o
 HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	chroot_uid.h cidr_match.h clean_env.h connect.h ctable.h dict.h \
 	dict_cdb.h dict_cidr.h dict_db.h dict_dbm.h dict_env.h dict_ht.h \
@@ -96,7 +96,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	inet_addr_list attr_print64 attr_scan64 base64_code attr_print0 \
 	attr_scan0 host_port attr_scan_plain attr_print_plain htable \
 	unix_recv_fd unix_send_fd stream_recv_fd stream_send_fd hex_code \
-	myaddrinfo myaddrinfo4 inet_proto
+	myaddrinfo myaddrinfo4 inet_proto sane_basename
 
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
@@ -387,6 +387,11 @@ inet_proto: $(LIB)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
+sane_basename: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
 stream_test: stream_test.c $(LIB)
 	$(CC) $(CFLAGS)  -o $@ $@.c $(LIB) $(SYSLIBS)
 
@@ -432,6 +437,11 @@ inet_addr_list_test: inet_addr_list
 	./inet_addr_list `cat inet_addr_list.in` >inet_addr_list.tmp 2>&1
 	diff inet_addr_list.ref inet_addr_list.tmp
 	rm -f inet_addr_list.tmp
+
+sane_basename_test: sane_basename
+	./sane_basename <sane_basename.in >sane_basename.tmp 2>&1
+	diff sane_basename.ref sane_basename.tmp
+	rm -f sane_basename.tmp
 
 base64_code_test: base64_code
 	./base64_code
@@ -1299,6 +1309,14 @@ sane_accept.o: msg.h
 sane_accept.o: sane_accept.c
 sane_accept.o: sane_accept.h
 sane_accept.o: sys_defs.h
+sane_basename.o: msg.h
+sane_basename.o: mymalloc.c
+sane_basename.o: mymalloc.h
+sane_basename.o: sane_basename.c
+sane_basename.o: stringops.h
+sane_basename.o: sys_defs.h
+sane_basename.o: vbuf.h
+sane_basename.o: vstring.h
 sane_connect.o: msg.h
 sane_connect.o: sane_connect.c
 sane_connect.o: sane_connect.h

@@ -85,9 +85,15 @@
 /*	for testing address rewriting and routing configurations.
 /* .sp
 /*	This feature is available in Postfix version 2.1 and later.
-/* .IP "\fB-C \fIconfig_file\fR (ignored)"
-/*	The path name of the \fBsendmail.cf\fR file. Postfix configuration
-/*	files are kept in the \fB/etc/postfix\fR directory.
+/* .IP "\fB-C \fIconfig_file\fR"
+/* .IP "\fB-C \fIconfig_dir\fR"
+/*	The path name of the Postfix \fBmain.cf\fR file, or of its
+/*	parent directory. This information is ignored with Postfix
+/*	versions before 2.3.
+/*
+/*	With older Postfix versions, specify a directory pathname
+/*	with the MAIL_CONFIG environment variable to override the
+/*	location of configuration files.
 /* .IP "\fB-F \fIfull_name\fR
 /*	Set the sender full name. This is used only with messages that
 /*	have no \fBFrom:\fR message header.
@@ -901,6 +907,7 @@ int     main(int argc, char **argv)
     char   *rewrite_context = MAIL_ATTR_RWR_LOCAL;
     int     dsn_notify = 0;
     const char *dsn_envid = 0;
+    int     saved_optind;
 
     /*
      * Be consistent with file permissions.
@@ -959,8 +966,24 @@ int     main(int argc, char **argv)
     }
 
     /*
-     * Further initialization...
+     * Further initialization. Load main.cf first, so that command-line
+     * options can override main.cf settings. Pre-scan the argument list so
+     * that we load the right main.cf file.
      */
+#define GETOPT_LIST "A:B:C:F:GIL:N:O:R:UV:X:b:ce:f:h:imno:p:r:q:tvx"
+
+    saved_optind = optind;
+    while ((c = GETOPT(argc, argv, GETOPT_LIST)) > 0) {
+	VSTRING *buf = vstring_alloc(1);
+
+	if (c == 'C'
+	    && setenv(CONF_ENV_PATH,
+		   strcmp(sane_basename(buf, optarg), MAIN_CONF_FILE) == 0 ?
+		      sane_dirname(buf, optarg) : optarg, 1) < 0)
+	    msg_fatal_status(EX_UNAVAILABLE, "out of memory");
+	vstring_free(buf);
+    }
+    optind = saved_optind;
     mail_conf_read();
     get_mail_conf_str_table(str_table);
 
@@ -1024,7 +1047,7 @@ int     main(int argc, char **argv)
 	    optind++;
 	    continue;
 	}
-	if ((c = GETOPT(argc, argv, "A:B:C:F:GIL:N:O:R:UV:X:b:ce:f:h:imno:p:r:q:tvx")) <= 0)
+	if ((c = GETOPT(argc, argv, GETOPT_LIST)) <= 0)
 	    break;
 	switch (c) {
 	default:

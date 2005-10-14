@@ -107,10 +107,16 @@ SENDMAIL(1)                                                        SENDMAIL(1)
               This feature is available in  Postfix  version  2.1
               and later.
 
-       <b>-C</b> <i>config</i><b>_</b><i>file</i> (ignored)
-              The path name of the <b>sendmail.cf</b> file. Postfix con-
-              figuration  files  are  kept  in  the  <b>/etc/postfix</b>
-              directory.
+       <b>-C</b> <i>config</i><b>_</b><i>file</i>
+
+       <b>-C</b> <i>config</i><b>_</b><i>dir</i>
+              The  path  name  of the Postfix <b>main.cf</b> file, or of
+              its parent directory. This information  is  ignored
+              with Postfix versions before 2.3.
+
+              With  older  Postfix  versions, specify a directory
+              pathname with the MAIL_CONFIG environment  variable
+              to override the location of configuration files.
 
        <b>-F</b> <i>full</i><b>_</b><i>name</i>
               Set  the  sender  full name. This is used only with

@@ -249,7 +249,7 @@ int     main(int argc, char **argv)
      */
     argv[0] = "postdrop";
     msg_vstream_init(argv[0], VSTREAM_ERR);
-    msg_syslog_init(mail_task(argv[0]), LOG_PID, LOG_FACILITY);
+    msg_syslog_init(mail_task("postdrop"), LOG_PID, LOG_FACILITY);
     set_mail_conf_str(VAR_PROCNAME, var_procname = mystrdup(argv[0]));
 
     /*

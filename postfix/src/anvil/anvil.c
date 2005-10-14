@@ -276,17 +276,168 @@
 
 /* Application-specific. */
 
+ /*
+  * Configuration parameters.
+  */
 int     var_anvil_time_unit;
 int     var_anvil_stat_time;
 
  /*
-  * State.
+  * Global dynamic state.
   */
 static HTABLE *anvil_remote_map;	/* indexed by service+ remote client */
 
  /*
-  * Absent a real-time query interface, these are logged at process exit time
-  * and at regular intervals.
+  * Remote connection state, one instance for each (service, client) pair.
+  */
+typedef struct {
+    char   *ident;			/* lookup key */
+    int     count;			/* connection count */
+    int     rate;			/* connection rate */
+    int     mail;			/* message rate */
+    int     rcpt;			/* recipient rate */
+    int     ntls;			/* new TLS session rate */
+    time_t  start;			/* time of first rate sample */
+} ANVIL_REMOTE;
+
+ /*
+  * Local server state, one instance per anvil client connection. This allows
+  * us to clean up remote connection state when a local server goes away
+  * without cleaning up.
+  */
+typedef struct {
+    ANVIL_REMOTE *anvil_remote;		/* XXX should be list */
+} ANVIL_LOCAL;
+
+ /*
+  * The following operations are implemented as macros with recognizable
+  * names so that we don't lose sight of what the code is trying to do.
+  * 
+  * Related operations are defined side by side so that the code implementing
+  * them isn't pages apart.
+  */
+
+/* Create new (service, client) state. */
+
+#define ANVIL_REMOTE_FIRST_CONN(remote, id) \
+    do { \
+	(remote)->ident = mystrdup(id); \
+	(remote)->count = 1; \
+	(remote)->rate = 1; \
+	(remote)->mail = 0; \
+	(remote)->rcpt = 0; \
+	(remote)->ntls = 0; \
+	(remote)->start = event_time(); \
+    } while(0)
+
+/* Destroy unused (service, client) state. */
+
+#define ANVIL_REMOTE_FREE(remote) \
+    do { \
+	myfree((remote)->ident); \
+	myfree((char *) (remote)); \
+    } while(0)
+
+/* Reset or update rate information for existing (service, client) state. */
+
+#define ANVIL_REMOTE_RSET_RATE(remote, _start) \
+    do { \
+	(remote)->rate = 0; \
+	(remote)->mail = 0; \
+	(remote)->rcpt = 0; \
+	(remote)->ntls = 0; \
+	(remote)->start = _start; \
+    } while(0)
+
+#define ANVIL_REMOTE_INCR_RATE(remote, _what) \
+    do { \
+	time_t _now = event_time(); \
+	if ((remote)->start + var_anvil_time_unit < _now) \
+	    ANVIL_REMOTE_RSET_RATE((remote), _now); \
+	if ((remote)->_what < INT_MAX) \
+            (remote)->_what += 1; \
+    } while(0)
+
+/* Update existing (service, client) state. */
+
+#define ANVIL_REMOTE_NEXT_CONN(remote) \
+    do { \
+	ANVIL_REMOTE_INCR_RATE((remote), rate); \
+	if ((remote)->count == 0) \
+	    event_cancel_timer(anvil_remote_expire, (char *) remote); \
+	(remote)->count++; \
+    } while(0)
+
+#define ANVIL_REMOTE_INCR_MAIL(remote)	ANVIL_REMOTE_INCR_RATE((remote), mail)
+
+#define ANVIL_REMOTE_INCR_RCPT(remote)	ANVIL_REMOTE_INCR_RATE((remote), rcpt)
+
+#define ANVIL_REMOTE_INCR_NTLS(remote)	ANVIL_REMOTE_INCR_RATE((remote), ntls)
+
+/* Drop connection from (service, client) state. */
+
+#define ANVIL_REMOTE_DROP_ONE(remote) \
+    do { \
+	if ((remote) && (remote)->count > 0) { \
+	    if (--(remote)->count == 0) \
+		event_request_timer(anvil_remote_expire, (char *) remote, \
+			var_anvil_time_unit); \
+	} \
+    } while(0)
+
+/* Create local server state. */
+
+#define ANVIL_LOCAL_INIT(local) \
+    do { \
+	(local)->anvil_remote = 0; \
+    } while(0)
+
+/* Add remote connection to local server. */
+
+#define ANVIL_LOCAL_ADD_ONE(local, remote) \
+    do { \
+	/* XXX allow multiple remote clients per local server. */ \
+	if ((local)->anvil_remote) \
+	    ANVIL_REMOTE_DROP_ONE((local)->anvil_remote); \
+	(local)->anvil_remote = (remote); \
+    } while(0)
+
+/* Test if this remote connection is listed for this local server. */
+
+#define ANVIL_LOCAL_REMOTE_LINKED(local, remote) \
+    ((local)->anvil_remote == (remote))
+
+/* Drop specific remote connection from local server. */
+
+#define ANVIL_LOCAL_DROP_ONE(local, remote) \
+    do { \
+	/* XXX allow multiple remote clients per local server. */ \
+	if ((local)->anvil_remote == (remote)) \
+	    (local)->anvil_remote = 0; \
+    } while(0)
+
+/* Drop all remote connections from local server. */
+
+#define ANVIL_LOCAL_DROP_ALL(stream, local) \
+    do { \
+	 /* XXX allow multiple remote clients per local server. */ \
+	if ((local)->anvil_remote) \
+	    anvil_remote_disconnect((stream), (local)->anvil_remote->ident); \
+    } while (0)
+
+ /*
+  * Lookup table to map request names to action routines.
+  */
+typedef struct {
+    const char *name;
+    void    (*action) (VSTREAM *, const char *);
+} ANVIL_REQ_TABLE;
+
+ /*
+  * Run-time statistics for maximal connection counts and event rates. These
+  * store the peak resource usage, remote connection, and time. Absent a
+  * query interface, this information is logged at process exit time and at
+  * configurable intervals.
   */
 typedef struct {
     int     value;			/* peak value */
@@ -335,151 +486,6 @@ static time_t max_cache_time;		/* time of peak size */
 	    _max.value = 0; \
 	} \
     } while (0);
-
- /*
-  * Remote connection state, one instance for each (service, client) pair.
-  */
-typedef struct {
-    char   *ident;			/* lookup key */
-    int     count;			/* connection count */
-    int     rate;			/* connection rate */
-    int     mail;			/* message rate */
-    int     rcpt;			/* recipient rate */
-    int     ntls;			/* new TLS session rate */
-    time_t  start;			/* time of first rate sample */
-} ANVIL_REMOTE;
-
- /*
-  * Local server state, one per server instance. This allows us to clean up
-  * connection state when a local server goes away without cleaning up.
-  */
-typedef struct {
-    ANVIL_REMOTE *anvil_remote;		/* XXX should be list */
-} ANVIL_LOCAL;
-
- /*
-  * The following operations are implemented as macros with recognizable
-  * names so that we don't lose sight of what the code is trying to do.
-  * 
-  * Related operations are defined side by side so that the code implementing
-  * them isn't pages apart.
-  */
-
-/* Create new (service, client) state. */
-
-#define ANVIL_REMOTE_FIRST_CONN(remote, id) \
-    do { \
-	(remote)->ident = mystrdup(id); \
-	(remote)->count = 1; \
-	(remote)->rate = 1; \
-	(remote)->mail = 0; \
-	(remote)->rcpt = 0; \
-	(remote)->ntls = 0; \
-	(remote)->start = event_time(); \
-    } while(0)
-
-/* Destroy unused (service, client) state. */
-
-#define ANVIL_REMOTE_FREE(remote) \
-    do { \
-	myfree((remote)->ident); \
-	myfree((char *) (remote)); \
-    } while(0)
-
-/* Reset event rate counters and start of data collection interval. */
-
-#define ANVIL_REMOTE_RSET_RATE(remote, _start) \
-    do { \
-	(remote)->rate = 0; \
-	(remote)->mail = 0; \
-	(remote)->rcpt = 0; \
-	(remote)->ntls = 0; \
-	(remote)->start = _start; \
-    } while(0)
-
-/* Add connection to (service, client) state. */
-
-#define ANVIL_REMOTE_INCR_RATE(remote, _what) \
-    do { \
-	time_t _now = event_time(); \
-	if ((remote)->start + var_anvil_time_unit < _now) \
-	    ANVIL_REMOTE_RSET_RATE((remote), _now); \
-	if ((remote)->_what < INT_MAX) \
-            (remote)->_what += 1; \
-    } while(0)
-
-#define ANVIL_REMOTE_NEXT_CONN(remote) \
-    do { \
-	ANVIL_REMOTE_INCR_RATE((remote), rate); \
-	if ((remote)->count == 0) \
-	    event_cancel_timer(anvil_remote_expire, (char *) remote); \
-	(remote)->count++; \
-    } while(0)
-
-#define ANVIL_REMOTE_INCR_MAIL(remote)	ANVIL_REMOTE_INCR_RATE((remote), mail)
-
-#define ANVIL_REMOTE_INCR_RCPT(remote)	ANVIL_REMOTE_INCR_RATE((remote), rcpt)
-
-#define ANVIL_REMOTE_INCR_NTLS(remote)	ANVIL_REMOTE_INCR_RATE((remote), ntls)
-
-/* Drop connection from (service, client) state. */
-
-#define ANVIL_REMOTE_DROP_ONE(remote) \
-    do { \
-	if ((remote) && (remote)->count > 0) { \
-	    if (--(remote)->count == 0) \
-		event_request_timer(anvil_remote_expire, (char *) remote, \
-			var_anvil_time_unit); \
-	} \
-    } while(0)
-
-/* Create local server state. */
-
-#define ANVIL_LOCAL_INIT(local) \
-    do { \
-	(local)->anvil_remote = 0; \
-    } while(0)
-
-/* Add connection to local server. */
-
-#define ANVIL_LOCAL_ADD_ONE(local, remote) \
-    do { \
-	/* XXX allow multiple remote clients per local server. */ \
-	if ((local)->anvil_remote) \
-	    ANVIL_REMOTE_DROP_ONE((local)->anvil_remote); \
-	(local)->anvil_remote = (remote); \
-    } while(0)
-
-/* Test if this remote site is listed for this local client. */
-
-#define ANVIL_LOCAL_REMOTE_LINKED(local, remote) \
-    ((local)->anvil_remote == (remote))
-
-/* Drop connection from local server. */
-
-#define ANVIL_LOCAL_DROP_ONE(local, remote) \
-    do { \
-	/* XXX allow multiple remote clients per local server. */ \
-	if ((local)->anvil_remote == (remote)) \
-	    (local)->anvil_remote = 0; \
-    } while(0)
-
-/* Drop all connections from local server. */
-
-#define ANVIL_LOCAL_DROP_ALL(stream, local) \
-    do { \
-	 /* XXX allow multiple remote clients per local server. */ \
-	if ((local)->anvil_remote) \
-	    anvil_remote_disconnect((stream), (local)->anvil_remote->ident); \
-    } while (0)
-
- /*
-  * Lookup table to map request names to action routines.
-  */
-typedef struct {
-    const char *name;
-    void    (*action) (VSTREAM *, const char *);
-} ANVIL_REQ_TABLE;
 
  /*
   * Silly little macros.
@@ -587,8 +593,8 @@ static ANVIL_REMOTE *anvil_remote_conn_update(VSTREAM *client_stream, const char
     }
 
     /*
-     * Record this connection under the local client information, so that we
-     * can clean up all its connection state when the local client goes away.
+     * Record this connection under the local server information, so that we
+     * can clean up all its connection state when the local server goes away.
      */
     if ((anvil_local = (ANVIL_LOCAL *) vstream_context(client_stream)) == 0) {
 	anvil_local = (ANVIL_LOCAL *) mymalloc(sizeof(*anvil_local));
@@ -617,7 +623,7 @@ static void anvil_remote_connect(VSTREAM *client_stream, const char *ident)
     anvil_remote = anvil_remote_conn_update(client_stream, ident);
 
     /*
-     * Respond to the local client.
+     * Respond to the local server.
      */
     attr_print_plain(client_stream, ATTR_FLAG_NONE,
 		     ATTR_TYPE_NUM, ANVIL_ATTR_STATUS, ANVIL_STAT_OK,
@@ -648,7 +654,7 @@ static void anvil_remote_mail(VSTREAM *client_stream, const char *ident)
 	anvil_remote = anvil_remote_conn_update(client_stream, ident);
 
     /*
-     * Update message delivery request rate and respond to local client.
+     * Update message delivery request rate and respond to local server.
      */
     ANVIL_REMOTE_INCR_MAIL(anvil_remote);
     attr_print_plain(client_stream, ATTR_FLAG_NONE,
@@ -677,7 +683,7 @@ static void anvil_remote_rcpt(VSTREAM *client_stream, const char *ident)
 	anvil_remote = anvil_remote_conn_update(client_stream, ident);
 
     /*
-     * Update recipient address rate and respond to local client.
+     * Update recipient address rate and respond to local server.
      */
     ANVIL_REMOTE_INCR_RCPT(anvil_remote);
     attr_print_plain(client_stream, ATTR_FLAG_NONE,
@@ -706,7 +712,7 @@ static void anvil_remote_newtls(VSTREAM *client_stream, const char *ident)
 	anvil_remote = anvil_remote_conn_update(client_stream, ident);
 
     /*
-     * Update newtls rate and respond to local client.
+     * Update newtls rate and respond to local server.
      */
     ANVIL_REMOTE_INCR_NTLS(anvil_remote);
     attr_print_plain(client_stream, ATTR_FLAG_NONE,
@@ -747,7 +753,7 @@ static void anvil_remote_newtls_stat(VSTREAM *client_stream, const char *ident)
     }
 
     /*
-     * Respond to local client.
+     * Respond to local server.
      */
     attr_print_plain(client_stream, ATTR_FLAG_NONE,
 		     ATTR_TYPE_NUM, ANVIL_ATTR_STATUS, ANVIL_STAT_OK,
@@ -769,8 +775,8 @@ static void anvil_remote_disconnect(VSTREAM *client_stream, const char *ident)
 		 (unsigned long) client_stream, ident);
 
     /*
-     * Update local and remote info if this remote site is listed for this
-     * local client.
+     * Update local and remote info if this remote connection is listed for
+     * this local server.
      */
     if ((anvil_local = (ANVIL_LOCAL *) vstream_context(client_stream)) != 0
 	&& (anvil_remote =
@@ -784,7 +790,7 @@ static void anvil_remote_disconnect(VSTREAM *client_stream, const char *ident)
 		 myname, (unsigned long) anvil_local);
 
     /*
-     * Respond to the local client.
+     * Respond to the local server.
      */
     attr_print_plain(client_stream, ATTR_FLAG_NONE,
 		     ATTR_TYPE_NUM, ANVIL_ATTR_STATUS, ANVIL_STAT_OK,
@@ -805,8 +811,8 @@ static void anvil_service_done(VSTREAM *client_stream, char *unused_service,
 		 (unsigned long) client_stream);
 
     /*
-     * Look up the local client, and get rid of open remote connection state
-     * that we still have for this local client. Do not destroy remote client
+     * Look up the local server, and get rid of any remote connection state
+     * that we still have for this local server. Do not destroy remote client
      * status information before it expires.
      */
     if ((anvil_local = (ANVIL_LOCAL *) vstream_context(client_stream)) != 0) {
@@ -818,6 +824,31 @@ static void anvil_service_done(VSTREAM *client_stream, char *unused_service,
     } else if (msg_verbose)
 	msg_info("client socket not found for fd=%d",
 		 vstream_fileno(client_stream));
+}
+
+/* anvil_status_dump - log and reset extreme usage */
+
+static void anvil_status_dump(char *unused_name, char **unused_argv)
+{
+    ANVIL_MAX_RATE_REPORT(max_conn_rate, "connection");
+    ANVIL_MAX_COUNT_REPORT(max_conn_count, "connection");
+    ANVIL_MAX_RATE_REPORT(max_mail_rate, "message");
+    ANVIL_MAX_RATE_REPORT(max_rcpt_rate, "recipient");
+    ANVIL_MAX_RATE_REPORT(max_ntls_rate, "newtls");
+
+    if (max_cache_size > 0) {
+	msg_info("statistics: max cache size %d at %.15s",
+		 max_cache_size, ctime(&max_cache_time) + 4);
+	max_cache_size = 0;
+    }
+}
+
+/* anvil_status_update - log and reset extreme usage periodically */
+
+static void anvil_status_update(int unused_event, char *context)
+{
+    anvil_status_dump((char *) 0, (char **) 0);
+    event_request_timer(anvil_status_update, context, var_anvil_stat_time);
 }
 
 /* anvil_service - perform service for client */
@@ -889,8 +920,6 @@ static void anvil_service(VSTREAM *client_stream, char *unused_service, char **a
 
 /* post_jail_init - post-jail initialization */
 
-static void anvil_status_update(int, char *);
-
 static void post_jail_init(char *unused_name, char **unused_argv)
 {
 
@@ -908,31 +937,6 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      * Do not limit the number of client requests.
      */
     var_use_limit = 0;
-}
-
-/* anvil_status_dump - log and reset extreme usage */
-
-static void anvil_status_dump(char *unused_name, char **unused_argv)
-{
-    ANVIL_MAX_RATE_REPORT(max_conn_rate, "connection");
-    ANVIL_MAX_COUNT_REPORT(max_conn_count, "connection");
-    ANVIL_MAX_RATE_REPORT(max_mail_rate, "message");
-    ANVIL_MAX_RATE_REPORT(max_rcpt_rate, "recipient");
-    ANVIL_MAX_RATE_REPORT(max_ntls_rate, "newtls");
-
-    if (max_cache_size > 0) {
-	msg_info("statistics: max cache size %d at %.15s",
-		 max_cache_size, ctime(&max_cache_time) + 4);
-	max_cache_size = 0;
-    }
-}
-
-/* anvil_status_update - log and reset extreme usage periodically */
-
-static void anvil_status_update(int unused_event, char *context)
-{
-    anvil_status_dump((char *) 0, (char **) 0);
-    event_request_timer(anvil_status_update, context, var_anvil_stat_time);
 }
 
 /* main - pass control to the multi-threaded skeleton */
