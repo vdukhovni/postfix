@@ -83,7 +83,7 @@ typedef struct DELIVER_ATTR {
     const char *owner;			/* null or list owner */
     const char *delivered;		/* for loop detection */
     char   *relay;			/* relay host */
-    long    arrival_time;		/* arrival time */
+    MSG_STATS msg_stats;		/* time profile */
     int     exp_type;			/* expansion type. see below */
     char   *exp_from;			/* expanded_from */
     DELIVER_REQUEST *request;		/* the kitchen sink */
@@ -131,15 +131,15 @@ typedef struct LOCAL_STATE {
 #define BOUNCE_FLAGS(request)	DEL_REQ_TRACE_FLAGS((request)->flags)
 
 #define BOUNCE_ATTR(attr) \
-	attr.queue_id, attr.arrival_time, &attr.rcpt, attr.relay, \
+	attr.queue_id, &attr.msg_stats, &attr.rcpt, attr.relay, \
 	DSN_FROM_DSN_BUF(&attr.dsn, attr.why)
 #define BOUNCE_ONE_ATTR(attr) \
 	attr.queue_name, attr.queue_id, attr.encoding, \
 	attr.sender, attr.dsn_envid, attr.dsn_ret, \
-	attr.arrival_time, &attr.rcpt, attr.relay, \
+	&attr.msg_stats, &attr.rcpt, attr.relay, \
 	DSN_FROM_DSN_BUF(&attr.dsn, attr.why)
 #define SENT_ATTR(attr) \
-	attr.queue_id, attr.arrival_time, &attr.rcpt, attr.relay, \
+	attr.queue_id, &attr.msg_stats, &attr.rcpt, attr.relay, \
 	DSN_FROM_DSN_BUF(&attr.dsn, attr.why)
 #define OPENED_ATTR(attr) \
 	attr.queue_id, attr.sender

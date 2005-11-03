@@ -21,11 +21,12 @@
   */
 #include <recipient_list.h>
 #include <dsn.h>
+#include <msg_stats.h>
 
  /*
   * Client interface.
   */
-extern void log_adhoc(const char *, time_t, RECIPIENT *, const char *,
+extern void log_adhoc(const char *, MSG_STATS *, RECIPIENT *, const char *,
 		              DSN *, const char *);
 
 /* LICENSE

@@ -40,9 +40,7 @@ update the diagnostic text separately from the enhanced status code.
 performs or prepares for mail delivery. Instead, have that routine
 update the enhanced status code (and text) when the error happens.
 This was an issue with mailbox, maildir and file delivery.  Currently
-there remain two exceptions to this rule: mail_copy() for historical
-reasons may or may not return explicit error reports (fixing this
-requires that pipe_command() be restructured); and the maildir
+there remains one exception to this errno usage rule; the maildir
 delivery routines log a helpful warning when delivery fails with
 EACCES.  The latter happens to work because mbox_open() does not
 need to unlock the output file, so it won't clobber the errno value.

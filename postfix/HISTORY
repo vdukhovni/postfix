@@ -11222,7 +11222,92 @@ Apologies for any names omitted.
 	MAIL FROM command.  This protects before-queue content
 	filters against over-size messages.  File: smtpd/smtpd.c.
 
+20051017
+
+	Bugfix: after DSN support was added, smtp_skip_5xx_greeting
+	no longer recognized a 5xx SMTP status as a 4xx one. Found
+	by Ralf Hildebrandt. Fix: use the enhanced status code
+	instead of the SMTP reply code to choose between permanent
+	or transient errors. File: smtp/smtp_trouble.c.
+
+	Feature: smtp-sink can hard-reject, soft-reject or simply
+	drop connection requests.  File: smtpstone/smtp-sink.c.
+
+	Documentation: clarified the processing of server replies,
+	specifically the reply code and the enhanced status code,
+	in smtp_chat.c.
+
+20051024
+
+	Performance: new smtp_connection_reuse_time_limit parameter to
+	limit connection reuse by elapsed time, instead of limiting
+	the number of deliveries per connection.  Bounding by time
+	favors delivery over connections that perform well, while
+	bounding by number of deliveries allows slow connections
+	to drag down the performance.  Insight and initial
+	implementation by Victor Duchovni, Morgan Stanley. Files:
+	smtp_connect.c, smtp_session.c,
+
+	Bugfix: the next-hop logical destination information for
+	connection caching was reset only after a good non-TLS
+	connection, so that cached connections to non-TLS backup
+	servers could suck away traffic from TLS primary servers
+	(the Postfix SMTP client cannot cache an open TLS connection).
+	Found during code review. This is fixed with multi-valued
+	connection caching state: expired, cachable, non-cachable,
+	and bad.  Files: smtp_connect.c, smtp_trouble.c.
+
+	Bugfix: adding support for "sendmail -C" broke "sendmail
+	-q".  File: sendmail/sendmail.c.
+
+20051101
+
+	Migration from a single "arrival time" stamp to a structure
+	with time stamps from different stages of message delivery.
+	The first iteration merely replaces "arrival time" stamps
+	by a structure or pointer to structure, and uses only the
+	arrival time field of that structure.  This is an extensive
+	but straightforward transformation, based on example by
+	Victor Duchovni, Morgan Stanley.  Files: anything that
+	invokes bounce_append etc., the log_adhoc module, and
+	anything that sends or receives a delivery request.
+
+20051102
+
+	Completion of support for time stamps from different stages
+	of message delivery. The information is now logged as
+	"delays=a/b/c/d" where a=time before queue manager, b=time
+	in queue manager, c=connection setup time, d=message
+	transmission time. Unlike Victor's example which used time
+	differences, this implementation uses absolute times. The
+	decision of what numbers to subtract actually depends on
+	program history, so we want to do it in one place.  Files:
+	global/log_adhoc.c, smtp/smtp_connect.c, smtp/smtp_proto.c,
+	smtp/smtp_trouble.c, lmtp/lmtp_proto.c, lmtp/lmtp_trouble.c.
+
+20051103
+
+	Refinement of time stamping and delays formatting.  The
+	hand-off time is now stamped in the delivery agent, so that
+	time is properly attributed when a transport is saturated
+	or throttled.  Delays are now logged if larger than 0.01
+	second. Files: *qmgr/qmgr_deliver.c, global/deliver_request.c,
+	global/log_adhoc.c.
+
 Open problems:
+
+	Is it safe to cache a connection after it has been used
+	for more than some number of address verification probes?
+
+	The code in smtp_connect() that catches server reject and
+	disconnect errors has become redundant. Connections that
+	fail before MAIL FROM no longer count towards the MX session
+	count limit per delivery attempt.
+
+	Access map actions such as FILTER and REDIRECT don't work
+	in smtpd_end_of_data_restrictions (or anything else that
+	generates additional queue file records after the message
+	content is stored).
 
 	Try to recognize that Resent- headers appear in blocks,
 	newest block first. But don't break on incorrect header

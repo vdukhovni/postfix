@@ -129,6 +129,7 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
     RECIPIENT *recipient;
     QMGR_MESSAGE *message = entry->message;
     VSTRING *sender_buf = 0;
+    MSG_STATS stats;
     char   *sender;
     int     flags;
 
@@ -149,6 +150,7 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
     flags = message->tflags
 	| entry->queue->dflags
 	| (message->inspect_xport ? DEL_REQ_FLAG_BOUNCE : DEL_REQ_FLAG_DEFLT);
+    QMGR_MSG_STATS(&stats, message);
     attr_print(stream, ATTR_FLAG_MORE,
 	       ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
 	       ATTR_TYPE_STR, MAIL_ATTR_QUEUE, message->queue_name,
@@ -160,7 +162,7 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
 	       ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
 	       ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, message->dsn_envid,
 	       ATTR_TYPE_NUM, MAIL_ATTR_DSN_RET, message->dsn_ret,
-	       ATTR_TYPE_LONG, MAIL_ATTR_TIME, message->arrival_time,
+	       ATTR_TYPE_FUNC, msg_stats_print, (void *) &stats,
 	       ATTR_TYPE_STR, MAIL_ATTR_CLIENT_NAME, message->client_name,
 	       ATTR_TYPE_STR, MAIL_ATTR_CLIENT_ADDR, message->client_addr,
 	       ATTR_TYPE_STR, MAIL_ATTR_PROTO_NAME, message->client_proto,

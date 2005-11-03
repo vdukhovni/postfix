@@ -359,7 +359,7 @@ static int local_deliver(DELIVER_REQUEST *rqst, char *service)
     state.msg_attr.dsn_envid = rqst->dsn_envid;
     state.msg_attr.dsn_ret = rqst->dsn_ret;
     state.msg_attr.relay = service;
-    state.msg_attr.arrival_time = rqst->arrival_time;
+    state.msg_attr.msg_stats = rqst->msg_stats;
     RESET_USER_ATTR(usr_attr, state.level);
     state.request = rqst;
 

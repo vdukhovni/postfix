@@ -24,7 +24,7 @@
   * 4.4BSD and close derivatives.
   */
 #if defined(FREEBSD2) || defined(FREEBSD3) || defined(FREEBSD4) \
-    || defined(FREEBSD5) \
+    || defined(FREEBSD5) || defined(FREEBSD6) \
     || defined(BSDI2) || defined(BSDI3) || defined(BSDI4) \
     || defined(OPENBSD2) || defined(OPENBSD3) \
     || defined(NETBSD1) || defined(NETBSD2) \
@@ -275,6 +275,7 @@ extern int opterr;			/* XXX use <getopt.h> */
 #define fpos_t	long
 #define MISSING_SETENV
 #define MISSING_STRERROR
+#define MISSING_STRTOUL
 #define _PATH_MAILDIR	"/var/spool/mail"
 #define _PATH_BSHELL	"/bin/sh"
 #define _PATH_DEFPATH	"/usr/bin:/usr/ucb"

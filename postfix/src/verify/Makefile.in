@@ -70,6 +70,7 @@ verify.o: ../../include/mail_params.h
 verify.o: ../../include/mail_proto.h
 verify.o: ../../include/mail_server.h
 verify.o: ../../include/msg.h
+verify.o: ../../include/msg_stats.h
 verify.o: ../../include/mymalloc.h
 verify.o: ../../include/post_mail.h
 verify.o: ../../include/recipient_list.h

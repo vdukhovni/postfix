@@ -9,6 +9,12 @@
 /* .nf
 
  /*
+  * System library.
+  */
+#include <sys/time.h>
+#include <time.h>
+
+ /*
   * Utility library.
   */
 #include <vstream.h>
@@ -242,8 +248,9 @@ struct QMGR_MESSAGE {
     int     refcount;			/* queue entries */
     int     single_rcpt;		/* send one rcpt at a time */
     long    arrival_time;		/* time when queued */
-    time_t  queued_time;		/* time when moved to the active
-					 * queue */
+    struct timeval active_time;		/* time of entry into active queue */
+    time_t  queued_time;		/* sanitized time when moved to the
+					 * active queue */
     long    warn_offset;		/* warning bounce flag offset */
     time_t  warn_time;			/* time next warning to be sent */
     long    data_offset;		/* data seek offset */
@@ -290,6 +297,11 @@ extern void qmgr_message_update_warn(QMGR_MESSAGE *);
 extern void qmgr_message_kill_record(QMGR_MESSAGE *, long);
 extern QMGR_MESSAGE *qmgr_message_alloc(const char *, const char *, int);
 extern QMGR_MESSAGE *qmgr_message_realloc(QMGR_MESSAGE *);
+
+#define QMGR_MSG_STATS(stats, message) \
+    MSG_STATS_INIT2(stats, \
+                    incoming_arrival, message->arrival_time, \
+                    active_arrival, message->active_time)
 
  /*
   * Sometimes it's required to access the transport queues and entries on per

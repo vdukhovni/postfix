@@ -8,9 +8,9 @@
 /*
 /*	typedef struct {
 /* .in +4
-/*		int code;
-/*		char *dsn;
-/*		char *str;
+/*		int code;	/* SMTP code, not sanitized */
+/*		char *dsn;	/* enhanced status, sanitized */
+/*		char *str;	/* unmodified SMTP reply */
 /*		VSTRING *dsn_buf;
 /*		VSTRING *str_buf;
 /* .in -4
@@ -38,11 +38,37 @@
 /*	smtp_chat_cmd() formats a command and sends it to an SMTP server.
 /*	Optionally, the command is logged.
 /*
-/*	smtp_chat_resp() reads one SMTP server response. It separates the
-/*	numerical status code from the text, and concatenates multi-line
-/*	responses to one string, using a newline as separator.
-/*	Optionally, the server response is logged.
-/*
+/*	smtp_chat_resp() reads one SMTP server response. It extracts
+/*	the SMTP reply code and enhanced status code from the text,
+/*	and concatenates multi-line responses to one string, using
+/*	a newline as separator.  Optionally, the server response
+/*	is logged.
+/* .IP \(bu
+/*	Postfix never sanitizes the extracted SMTP reply code except
+/*	to ensure that it is a three-digit code. A malformed reply
+/*	results in a null extracted SMTP reply code value.
+/* .IP \(bu
+/*	Postfix always sanitizes the extracted enhanced status code.
+/*	When the server's SMTP status code is 2xx, 4xx or 5xx,
+/*	Postfix requires that the first digit of the server's
+/*	enhanced status code matches the first digit of the server's
+/*	SMTP status code.  In case of a mis-match, or when the
+/*	server specified no status code, the extracted enhanced
+/*	status code is set to 2.0.0, 4.0.0 or 5.0.0 instead.  With
+/*	SMTP reply codes other than 2xx, 4xx or 5xx, the extracted
+/*	enhanced status code is set to a default value of 5.5.0
+/*	(protocol error) for reasons outlined under the next bullet.
+/* .IP \(bu
+/*	Since the SMTP reply code may violate the protocol even
+/*	when it is correctly formatted, Postfix uses the sanitized
+/*	extracted enhanced status code to decide whether an error
+/*	condition is permanent or transient.  This means that the
+/*	caller may have to update the enhanced status code when it
+/*	discovers that a server reply violates the SMTP protocol,
+/*	even though it was correctly formatted. This happens when
+/*	the client and server get out of step due to a broken proxy
+/*	agent.
+/* .PP
 /*	smtp_chat_notify() sends a copy of the SMTP transaction log
 /*	to the postmaster for review. The postmaster notice is sent only
 /*	when delivery is possible immediately. It is an error to call

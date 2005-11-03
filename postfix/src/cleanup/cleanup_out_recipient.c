@@ -82,6 +82,7 @@
 #include <trace.h>
 #include <mail_queue.h>			/* cleanup_trace_path */
 #include <mail_proto.h>
+#include <msg_stats.h>
 
 /* Application-specific. */
 
@@ -92,12 +93,15 @@
 static void cleanup_trace_append(CLEANUP_STATE *state, RECIPIENT *rcpt,
 				         DSN *dsn)
 {
+    MSG_STATS stats;
+
     if (cleanup_trace_path == 0) {
 	cleanup_trace_path = vstring_alloc(10);
 	mail_queue_path(cleanup_trace_path, MAIL_QUEUE_TRACE,
 			state->queue_id);
     }
-    if (trace_append(BOUNCE_FLAG_CLEAN, state->queue_id, state->time,
+    if (trace_append(BOUNCE_FLAG_CLEAN, state->queue_id,
+		     CLEANUP_MSG_STATS(&stats, state),
 		     rcpt, "none", dsn) != 0) {
 	msg_warn("%s: trace logfile update error", state->queue_id);
 	state->errs |= CLEANUP_STAT_WRITE;

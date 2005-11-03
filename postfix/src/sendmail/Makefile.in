@@ -77,6 +77,7 @@ sendmail.o: ../../include/mail_stream.h
 sendmail.o: ../../include/mail_task.h
 sendmail.o: ../../include/mime_state.h
 sendmail.o: ../../include/msg.h
+sendmail.o: ../../include/msg_stats.h
 sendmail.o: ../../include/msg_syslog.h
 sendmail.o: ../../include/msg_vstream.h
 sendmail.o: ../../include/mymalloc.h

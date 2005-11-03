@@ -51,7 +51,7 @@ Do not announce ENHANCEDSTATUSCODES support.
 Reject the specified commands with a hard (5xx) error code.
 This option implies \fB-p\fR.
 .sp
-Examples of commands are HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
+Examples of commands are CONNECT, HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
 DATA, ., RSET, NOOP, and QUIT. Separate command names by
 white space or commas, and use quotes to protect white space
 from the shell. Command names are case-insensitive.
@@ -73,7 +73,7 @@ a CISCO PIX system. Implies \fB-e\fR.
 Disconnect (without replying) after receiving one of the
 specified commands.
 .sp
-Examples of commands are HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
+Examples of commands are CONNECT, HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
 DATA, ., RSET, NOOP, and QUIT. Separate command names by
 white space or commas, and use quotes to protect white space
 from the shell. Command names are case-insensitive.
@@ -81,14 +81,14 @@ from the shell. Command names are case-insensitive.
 Reject the specified commands with a soft (4xx) error code.
 This option implies \fB-p\fR.
 .sp
-Examples of commands are HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
+Examples of commands are CONNECT, HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
 DATA, ., RSET, NOOP, and QUIT. Separate command names by
 white space or commas, and use quotes to protect white space
 from the shell. Command names are case-insensitive.
 .IP "\fB-s \fIcommand,command,...\fR"
 Log the named commands to syslogd.
 .sp
-Examples of commands are HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
+Examples of commands are CONNECT, HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
 DATA, ., RSET, NOOP, and QUIT. Separate command names by
 white space or commas, and use quotes to protect white space
 from the shell. Command names are case-insensitive.

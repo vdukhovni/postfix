@@ -45,7 +45,7 @@
 /*	Reject the specified commands with a hard (5xx) error code.
 /*	This option implies \fB-p\fR.
 /* .sp
-/*	Examples of commands are HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
+/*	Examples of commands are CONNECT, HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
 /*	DATA, ., RSET, NOOP, and QUIT. Separate command names by
 /*	white space or commas, and use quotes to protect white space
 /*	from the shell. Command names are case-insensitive.
@@ -67,7 +67,7 @@
 /*	Disconnect (without replying) after receiving one of the
 /*	specified commands.
 /* .sp
-/*	Examples of commands are HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
+/*	Examples of commands are CONNECT, HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
 /*	DATA, ., RSET, NOOP, and QUIT. Separate command names by
 /*	white space or commas, and use quotes to protect white space
 /*	from the shell. Command names are case-insensitive.
@@ -75,14 +75,14 @@
 /*	Reject the specified commands with a soft (4xx) error code.
 /*	This option implies \fB-p\fR.
 /* .sp
-/*	Examples of commands are HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
+/*	Examples of commands are CONNECT, HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
 /*	DATA, ., RSET, NOOP, and QUIT. Separate command names by
 /*	white space or commas, and use quotes to protect white space
 /*	from the shell. Command names are case-insensitive.
 /* .IP "\fB-s \fIcommand,command,...\fR"
 /*	Log the named commands to syslogd.
 /* .sp
-/*	Examples of commands are HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
+/*	Examples of commands are CONNECT, HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
 /*	DATA, ., RSET, NOOP, and QUIT. Separate command names by
 /*	white space or commas, and use quotes to protect white space
 /*	from the shell. Command names are case-insensitive.
@@ -345,6 +345,19 @@ static void quit_response(SINK_STATE *state)
 	quit_count++;
 }
 
+/* conn_response - respond to connect command */
+
+static void conn_response(SINK_STATE *state)
+{
+    if (pretend_pix)
+	smtp_printf(state->stream, "220 ********");
+    else if (disable_esmtp)
+	smtp_printf(state->stream, "220 %s", var_myhostname);
+    else
+	smtp_printf(state->stream, "220 %s ESMTP", var_myhostname);
+    smtp_flush(state->stream);
+}
+
 /* data_read - read data from socket */
 
 static int data_read(SINK_STATE *state)
@@ -426,6 +439,7 @@ typedef struct SINK_COMMAND {
 #define FLAG_DISCONNECT	(1<<4)		/* disconnect */
 
 static SINK_COMMAND command_table[] = {
+    "connect", conn_response, hard_err_resp, soft_err_resp, 0,
     "helo", helo_response, hard_err_resp, soft_err_resp, 0,
     "ehlo", ehlo_response, hard_err_resp, soft_err_resp, 0,
     "lhlo", ehlo_response, hard_err_resp, soft_err_resp, 0,
@@ -483,6 +497,33 @@ static void set_cmds_flags(const char *cmds, int flags)
     while ((cmd = mystrtok(&cp, " \t\r\n,")) != 0)
 	set_cmd_flags(cmd, flags);
     myfree(saved_cmds);
+}
+
+/* command_resp - respond to command */
+
+static int command_resp(SINK_STATE *state, SINK_COMMAND *cmdp, const char *command, char *args)
+{
+    /* We use raw syslog. Sanitize data content and length. */
+    if (cmdp->flags & FLAG_SYSLOG)
+	syslog(LOG_INFO, "%s %.100s", command, printable(args, '?'));
+    if (cmdp->flags & FLAG_DISCONNECT)
+	return (-1);
+    if (cmdp->flags & FLAG_HARD_ERR) {
+	cmdp->hard_response(state);
+	return (0);
+    }
+    if (cmdp->flags & FLAG_SOFT_ERR) {
+	cmdp->soft_response(state);
+	return (0);
+    }
+    if (cmdp->response == data_response && fixed_delay > 0) {
+	event_request_timer(data_event, (char *) state, fixed_delay);
+    } else {
+	cmdp->response(state);
+	if (cmdp->response == quit_response)
+	    return (-1);
+    }
+    return (0);
 }
 
 /* command_read - talk the SMTP protocol, server side */
@@ -584,27 +625,7 @@ static int command_read(SINK_STATE *state)
 	smtp_flush(state->stream);
 	return (0);
     }
-    /* We use raw syslog. Sanitize data content and length. */
-    if (cmdp->flags & FLAG_SYSLOG)
-	syslog(LOG_INFO, "%s %.100s", command, printable(ptr, '?'));
-    if (cmdp->flags & FLAG_DISCONNECT)
-	return (-1);
-    if (cmdp->flags & FLAG_HARD_ERR) {
-	cmdp->hard_response(state);
-	return (0);
-    }
-    if (cmdp->flags & FLAG_SOFT_ERR) {
-	cmdp->soft_response(state);
-	return (0);
-    }
-    if (cmdp->response == data_response && fixed_delay > 0) {
-	event_request_timer(data_event, (char *) state, fixed_delay);
-    } else {
-	cmdp->response(state);
-	if (cmdp->response == quit_response)
-	    return (-1);
-    }
-    return (0);
+    return (command_resp(state, cmdp, command, ptr));
 }
 
 /* read_timeout - handle timer event */
@@ -744,15 +765,12 @@ static void connect_event(int unused_event, char *context)
 	    return;
 
 	case 0:
-	    if (pretend_pix)
-		smtp_printf(state->stream, "220 ********");
-	    else if (disable_esmtp)
-		smtp_printf(state->stream, "220 %s", var_myhostname);
-	    else
-		smtp_printf(state->stream, "220 %s ESMTP", var_myhostname);
-	    smtp_flush(state->stream);
-	    event_enable_read(fd, read_event, (char *) state);
-	    event_request_timer(read_timeout, (char *) state, var_tmout);
+	    if (command_resp(state, command_table, "connect", "") < 0)
+		disconnect(state);
+	    else {
+		event_enable_read(fd, read_event, (char *) state);
+		event_request_timer(read_timeout, (char *) state, var_tmout);
+	    }
 	}
     }
 }

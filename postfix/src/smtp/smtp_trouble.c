@@ -189,7 +189,7 @@ static int smtp_bulk_fail(SMTP_STATE *state, DSN *dsn, int throttle_queue)
     SMTP_SESSION *session = state->session;
     RECIPIENT *rcpt;
     int     status;
-    int     soft_error = (dsn->dtext[0] == '4');
+    int     soft_error = (dsn->status[0] == '4');
     int     nrcpt;
 
     /*
@@ -213,13 +213,30 @@ static int smtp_bulk_fail(SMTP_STATE *state, DSN *dsn, int throttle_queue)
      * the recipient for delivery to a backup server.
      */
     else {
+
+	/*
+	 * If we are still in the connection set-up phase, update the set-up
+	 * completion time here, otherwise the time spent in set-up latency
+	 * will be attributed as message transfer latency.
+	 * 
+	 * All remaining recipients have failed at this point, so we update the
+	 * delivery completion time stamp so that multiple recipient status
+	 * records show the same delay values.
+	 */
+	if (request->msg_stats.conn_setup_done.tv_sec == 0) {
+	    GETTIMEOFDAY(&request->msg_stats.conn_setup_done);
+	    request->msg_stats.deliver_done =
+		request->msg_stats.conn_setup_done;
+	} else
+	    GETTIMEOFDAY(&request->msg_stats.deliver_done);
+
 	for (nrcpt = 0; nrcpt < SMTP_RCPT_LEFT(state); nrcpt++) {
 	    rcpt = request->rcpt_list.info + nrcpt;
 	    if (SMTP_RCPT_ISMARKED(rcpt))
 		continue;
 	    status = (soft_error ? defer_append : bounce_append)
 		(DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
-		 request->arrival_time, rcpt,
+		 &request->msg_stats, rcpt,
 		 session ? session->namaddr : "none", dsn);
 	    if (status == 0)
 		deliver_completed(state->src, rcpt->offset);
@@ -234,7 +251,7 @@ static int smtp_bulk_fail(SMTP_STATE *state, DSN *dsn, int throttle_queue)
      * Don't cache this session. We can't talk to this server.
      */
     if (throttle_queue && session)
-	session->reuse_count = 0;
+	DONT_CACHE_BAD_SESSION;
 
     return (-1);
 }
@@ -366,7 +383,7 @@ void    smtp_rcpt_fail(SMTP_STATE *state, RECIPIENT *rcpt, const char *mta_name,
     va_start(ap, format);
     vsmtp_fill_dsn(state, &dsn, mta_name, resp->dsn, resp->str, format, ap);
     va_end(ap);
-    soft_error = dsn.dtext[0] == '4';
+    soft_error = dsn.status[0] == '4';
 
     if (state->session && mta_name)
 	smtp_check_code(state->session, resp->code);
@@ -392,7 +409,7 @@ void    smtp_rcpt_fail(SMTP_STATE *state, RECIPIENT *rcpt, const char *mta_name,
     else {
 	status = (soft_error ? defer_append : bounce_append)
 	    (DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
-	     request->arrival_time, rcpt,
+	     &request->msg_stats, rcpt,
 	     session ? session->namaddr : "none", &dsn);
 	if (status == 0)
 	    deliver_completed(state->src, rcpt->offset);

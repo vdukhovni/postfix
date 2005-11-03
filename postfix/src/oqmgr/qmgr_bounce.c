@@ -57,10 +57,11 @@
 void    qmgr_bounce_recipient(QMGR_MESSAGE *message, RECIPIENT *recipient,
 			              DSN *dsn)
 {
+    MSG_STATS stats;
     int     status;
 
     status = bounce_append(message->tflags, message->queue_id,
-			   message->arrival_time, recipient,
+			   QMGR_MSG_STATS(&stats, message), recipient,
 			   "none", dsn);
 
     if (status == 0)

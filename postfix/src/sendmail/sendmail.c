@@ -973,15 +973,22 @@ int     main(int argc, char **argv)
 #define GETOPT_LIST "A:B:C:F:GIL:N:O:R:UV:X:b:ce:f:h:imno:p:r:q:tvx"
 
     saved_optind = optind;
-    while ((c = GETOPT(argc, argv, GETOPT_LIST)) > 0) {
-	VSTRING *buf = vstring_alloc(1);
+    while (argv[OPTIND] != 0) {
+	if (strcmp(argv[OPTIND], "-q") == 0) {	/* not getopt compatible */
+	    optind++;
+	    continue;
+	}
+	if ((c = GETOPT(argc, argv, GETOPT_LIST)) <= 0)
+	    break;
+	if (c == 'C') {
+	    VSTRING *buf = vstring_alloc(1);
 
-	if (c == 'C'
-	    && setenv(CONF_ENV_PATH,
+	    if (setenv(CONF_ENV_PATH,
 		   strcmp(sane_basename(buf, optarg), MAIN_CONF_FILE) == 0 ?
-		      sane_dirname(buf, optarg) : optarg, 1) < 0)
-	    msg_fatal_status(EX_UNAVAILABLE, "out of memory");
-	vstring_free(buf);
+		       sane_dirname(buf, optarg) : optarg, 1) < 0)
+		msg_fatal_status(EX_UNAVAILABLE, "out of memory");
+	    vstring_free(buf);
+	}
     }
     optind = saved_optind;
     mail_conf_read();

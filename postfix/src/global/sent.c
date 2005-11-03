@@ -6,10 +6,10 @@
 /* SYNOPSIS
 /*	#include <sent.h>
 /*
-/*	int	sent(flags, queue_id, entry, recipient, relay, dsn)
+/*	int	sent(flags, queue_id, stats, recipient, relay, dsn)
 /*	int	flags;
 /*	const char *queue_id;
-/*	time_t	entry;
+/*	MSG_STATS *stats;
 /*	RECIPIENT *recipient;
 /*	const char *relay;
 /*	DSN *dsn;
@@ -38,8 +38,9 @@
 /*	the message delivery record.
 /* .RE .IP queue_id
 /*	The message queue id.
-/* .IP entry
-/*	Message arrival time.
+/* .IP stats
+/*	Time stamps from different message delivery stages
+/*	and session reuse count.
 /* .IP recipient
 /*	Recipient information. See recipient_list(3).
 /* .IP relay
@@ -95,7 +96,7 @@
 
 /* sent - log that a message was or could be sent */
 
-int     sent(int flags, const char *id, time_t entry,
+int     sent(int flags, const char *id, MSG_STATS *stats,
 	             RECIPIENT *recipient, const char *relay,
 	             DSN *dsn)
 {
@@ -116,7 +117,7 @@ int     sent(int flags, const char *id, time_t entry,
      */
     if (flags & DEL_REQ_FLAG_MTA_VRFY) {
 	my_dsn.action = "deliverable";
-	status = verify_append(id, entry, recipient, relay, &my_dsn,
+	status = verify_append(id, stats, recipient, relay, &my_dsn,
 			       DEL_RCPT_STAT_OK);
 	return (status);
     }
@@ -127,7 +128,7 @@ int     sent(int flags, const char *id, time_t entry,
      */
     if (flags & DEL_REQ_FLAG_USR_VRFY) {
 	my_dsn.action = "deliverable";
-	status = trace_append(flags, id, entry, recipient, relay, &my_dsn);
+	status = trace_append(flags, id, stats, recipient, relay, &my_dsn);
 	return (status);
     }
 
@@ -139,10 +140,10 @@ int     sent(int flags, const char *id, time_t entry,
 	    my_dsn.action = "delivered";
 
 	if (((flags & DEL_REQ_FLAG_RECORD) == 0
-	  || trace_append(flags, id, entry, recipient, relay, &my_dsn) == 0)
+	  || trace_append(flags, id, stats, recipient, relay, &my_dsn) == 0)
 	    && ((recipient->dsn_notify & DSN_NOTIFY_SUCCESS) == 0
-	|| trace_append(flags, id, entry, recipient, relay, &my_dsn) == 0)) {
-	    log_adhoc(id, entry, recipient, relay, &my_dsn, "sent");
+	|| trace_append(flags, id, stats, recipient, relay, &my_dsn) == 0)) {
+	    log_adhoc(id, stats, recipient, relay, &my_dsn, "sent");
 	    status = 0;
 	} else {
 	    VSTRING *junk = vstring_alloc(100);
@@ -151,7 +152,7 @@ int     sent(int flags, const char *id, time_t entry,
 			    id, var_trace_service);
 	    my_dsn.reason = vstring_str(junk);
 	    my_dsn.status ="4.3.0";
-	    status = defer_append(flags, id, entry, recipient, relay, &my_dsn);
+	    status = defer_append(flags, id, stats, recipient, relay, &my_dsn);
 	    vstring_free(junk);
 	}
 	return (status);

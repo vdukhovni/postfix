@@ -6,10 +6,10 @@
 /* SYNOPSIS
 /*	#include <trace.h>
 /*
-/*	int	trace_append(flags, id, entry, rcpt, relay, dsn)
+/*	int	trace_append(flags, id, stats, rcpt, relay, dsn)
 /*	int	flags;
 /*	const char *id;
-/*	time_t	entry;
+/*	MSG_STATS *stats;
 /*	RECIPIENT *rcpt;
 /*	const char *relay;
 /*	DSN	*dsn;
@@ -54,8 +54,9 @@
 /*	Optional DSN envelope ID.
 /* .IP dsn_ret
 /*	Optional DSN return full/headers option.
-/* .IP entry
-/*	Message arrival time.
+/* .IP stats
+/*	Time stamps from different message delivery stages
+/*	and session reuse count.
 /* .IP rcpt
 /*	Recipient information. See recipient_list(3).
 /* .IP relay
@@ -102,7 +103,7 @@
 
 /* trace_append - append to message delivery record */
 
-int     trace_append(int flags, const char *id, time_t entry,
+int     trace_append(int flags, const char *id, MSG_STATS *stats,
 		             RECIPIENT *rcpt, const char *relay,
 		             DSN *dsn)
 {
@@ -130,7 +131,7 @@ int     trace_append(int flags, const char *id, time_t entry,
 	req_stat = -1;
     } else {
 	if (flags & DEL_REQ_FLAG_USR_VRFY)
-	    log_adhoc(id, entry, rcpt, relay, dsn, my_dsn.action);
+	    log_adhoc(id, stats, rcpt, relay, dsn, my_dsn.action);
 	req_stat = 0;
     }
     vstring_free(why);

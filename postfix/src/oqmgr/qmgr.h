@@ -9,6 +9,12 @@
 /* .nf
 
  /*
+  * System library.
+  */
+#include <sys/time.h>
+#include <time.h>
+
+ /*
   * Utility library.
   */
 #include <vstream.h>
@@ -155,7 +161,7 @@ struct QMGR_QUEUE {
     QMGR_ENTRY_LIST todo;		/* todo queue entries */
     QMGR_ENTRY_LIST busy;		/* messages on the wire */
     QMGR_QUEUE_LIST peers;		/* neighbor queues */
-    DSN   *dsn;			/* why unavailable */
+    DSN    *dsn;			/* why unavailable */
     time_t  clog_time_to_warn;		/* time of next warning */
 };
 
@@ -204,6 +210,7 @@ struct QMGR_MESSAGE {
     int     refcount;			/* queue entries */
     int     single_rcpt;		/* send one rcpt at a time */
     long    arrival_time;		/* time when queued */
+    struct timeval active_time;		/* time of entry into active queue */
     long    warn_offset;		/* warning bounce flag offset */
     time_t  warn_time;			/* time next warning to be sent */
     long    data_offset;		/* data seek offset */
@@ -245,6 +252,11 @@ extern void qmgr_message_update_warn(QMGR_MESSAGE *);
 extern void qmgr_message_kill_record(QMGR_MESSAGE *, long);
 extern QMGR_MESSAGE *qmgr_message_alloc(const char *, const char *, int);
 extern QMGR_MESSAGE *qmgr_message_realloc(QMGR_MESSAGE *);
+
+#define QMGR_MSG_STATS(stats, message) \
+    MSG_STATS_INIT2(stats, \
+		    incoming_arrival, message->arrival_time, \
+		    active_arrival, message->active_time)
 
  /*
   * qmgr_defer.c

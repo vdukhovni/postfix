@@ -223,6 +223,7 @@ tls_stream.o: ../../include/vstring.h
 tls_stream.o: tls.h
 tls_stream.o: tls_stream.c
 tls_verify.o: ../../include/msg.h
+tls_verify.o: ../../include/mymalloc.h
 tls_verify.o: ../../include/sys_defs.h
 tls_verify.o: ../../include/vbuf.h
 tls_verify.o: ../../include/vstream.h

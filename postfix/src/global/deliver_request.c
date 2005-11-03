@@ -17,7 +17,7 @@
 /*		char	*nexthop;
 /*		char	*encoding;
 /*		char	*sender;
-/*		long arrival_time;
+/*		MSG_STATS stats;
 /*		RECIPIENT_LIST rcpt_list;
 /*		DSN	*hop_status;
 /*		char	*client_name;
@@ -240,7 +240,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 		  ATTR_TYPE_STR, MAIL_ATTR_SENDER, address,
 		  ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, dsn_envid,
 		  ATTR_TYPE_NUM, MAIL_ATTR_DSN_RET, &dsn_ret,
-		  ATTR_TYPE_LONG, MAIL_ATTR_TIME, &request->arrival_time,
+		  ATTR_TYPE_FUNC, msg_stats_scan, (void *) &request->msg_stats,
 		  ATTR_TYPE_STR, MAIL_ATTR_CLIENT_NAME, client_name,
 		  ATTR_TYPE_STR, MAIL_ATTR_CLIENT_ADDR, client_addr,
 		  ATTR_TYPE_STR, MAIL_ATTR_PROTO_NAME, client_proto,
@@ -256,6 +256,10 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
     if (mail_open_ok(vstring_str(queue_name),
 		     vstring_str(queue_id), &st, &path) == 0)
 	return (-1);
+
+    /* Don't override hand-off time after deliver_pass() delegation. */
+    if (request->msg_stats.agent_handoff.tv_sec == 0)
+	GETTIMEOFDAY(&request->msg_stats.agent_handoff);
 
     request->queue_name = mystrdup(vstring_str(queue_name));
     request->queue_id = mystrdup(vstring_str(queue_id));

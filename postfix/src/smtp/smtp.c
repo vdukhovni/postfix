@@ -274,9 +274,9 @@
 /* .IP "\fBsmtp_connection_cache_on_demand (yes)\fR"
 /*	Temporarily enable SMTP connection caching while a destination
 /*	has a high volume of mail in the active queue.
-/* .IP "\fBsmtp_connection_cache_reuse_limit (10)\fR"
-/*	When SMTP connection caching is enabled, the number of times that
-/*	an SMTP session is reused before it is closed.
+/* .IP "\fBsmtp_connection_reuse_time_limit (300s)\fR"
+/*	The amount of time during which Postfix will use an SMTP
+/*	connection repeatedly.
 /* .IP "\fBsmtp_connection_cache_time_limit (2s)\fR"
 /*	When SMTP connection caching is enabled, the amount of time that
 /*	an unused SMTP client socket is kept open before it is closed.
@@ -484,7 +484,7 @@ bool    var_smtp_send_xforward;
 int     var_smtp_mxaddr_limit;
 int     var_smtp_mxsess_limit;
 int     var_smtp_cache_conn;
-int     var_smtp_reuse_limit;
+int     var_smtp_reuse_time;
 char   *var_smtp_cache_dest;
 char   *var_scache_service;
 bool    var_smtp_cache_demand;
@@ -764,6 +764,7 @@ int     main(int argc, char **argv)
 	VAR_SMTP_PIX_THRESH, DEF_SMTP_PIX_THRESH, &var_smtp_pix_thresh, 0, 0,
 	VAR_SMTP_PIX_DELAY, DEF_SMTP_PIX_DELAY, &var_smtp_pix_delay, 1, 0,
 	VAR_SMTP_CACHE_CONN, DEF_SMTP_CACHE_CONN, &var_smtp_cache_conn, 1, 0,
+	VAR_SMTP_REUSE_TIME, DEF_SMTP_REUSE_TIME, &var_smtp_reuse_time, 1, 0,
 #ifdef USE_TLS
 	VAR_SMTP_STARTTLS_TMOUT, DEF_SMTP_STARTTLS_TMOUT, &var_smtp_starttls_tmout, 1, 0,
 #endif
@@ -773,7 +774,6 @@ int     main(int argc, char **argv)
 	VAR_SMTP_LINE_LIMIT, DEF_SMTP_LINE_LIMIT, &var_smtp_line_limit, 0, 0,
 	VAR_SMTP_MXADDR_LIMIT, DEF_SMTP_MXADDR_LIMIT, &var_smtp_mxaddr_limit, 0, 0,
 	VAR_SMTP_MXSESS_LIMIT, DEF_SMTP_MXSESS_LIMIT, &var_smtp_mxsess_limit, 0, 0,
-	VAR_SMTP_REUSE_LIMIT, DEF_SMTP_REUSE_LIMIT, &var_smtp_reuse_limit, 1, 0,
 #ifdef USE_TLS
 	VAR_SMTP_TLS_SCERT_VD, DEF_SMTP_TLS_SCERT_VD, &var_smtp_tls_scert_vd, 0, 0,
 #endif

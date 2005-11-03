@@ -121,6 +121,7 @@ static SMTP_SESSION *smtp_connect_addr(const char *dest, DNS_RR *addr,
     int     ch;
     char   *bind_addr;
     char   *bind_var;
+    time_t  start_time;
 
     smtp_errno = SMTP_ERR_NONE;			/* Paranoia */
 
@@ -212,6 +213,7 @@ static SMTP_SESSION *smtp_connect_addr(const char *dest, DNS_RR *addr,
     if (msg_verbose)
 	msg_info("%s: trying: %s[%s] port %d...",
 		 myname, addr->name, hostaddr.buf, ntohs(port));
+    start_time = time((time_t *) 0);
     if (var_smtp_conn_tmout > 0) {
 	non_blocking(sock, NON_BLOCKING);
 	conn_stat = timed_connect(sock, sa, salen, var_smtp_conn_tmout);
@@ -263,8 +265,8 @@ static SMTP_SESSION *smtp_connect_addr(const char *dest, DNS_RR *addr,
     /*
      * Bundle up what we have into a nice SMTP_SESSION object.
      */
-    return (smtp_session_alloc(stream, dest, addr->name,
-			       hostaddr.buf, port, sess_flags));
+    return (smtp_session_alloc(stream, dest, addr->name, hostaddr.buf,
+			       port, start_time, sess_flags));
 }
 
 /* smtp_parse_destination - parse destination */
@@ -308,7 +310,9 @@ static char *smtp_parse_destination(char *destination, char *def_service,
 
 static void smtp_cleanup_session(SMTP_STATE *state)
 {
+    DELIVER_REQUEST *request = state->request;
     SMTP_SESSION *session = state->session;
+    int     bad_session;
 
     /*
      * Inform the postmaster of trouble.
@@ -330,24 +334,51 @@ static void smtp_cleanup_session(SMTP_STATE *state)
      * hosts. In fact, this is the only benefit of caching logical to
      * physical bindings; caching a session under its own hostname provides
      * no performance benefit, given the way smtp_connect() works.
-     * 
-     * XXX Should not cache TLS sessions unless we are using a single-session,
-     * in-process, cache. And if we did, we should passivate VSTREAM objects
-     * in addition to passivating SMTP_SESSION objects.
      */
-    if (session->reuse_count > 0) {
+    bad_session = THIS_SESSION_IS_BAD;		/* smtp_quit() may fail */
+    if (THIS_SESSION_IS_EXPIRED)
+	smtp_quit(state);			/* also disables caching */
+    if (THIS_SESSION_IS_CACHED) {
 	smtp_save_session(state);
-	if (HAVE_NEXTHOP_STATE(state))
-	    FREE_NEXTHOP_STATE(state);
     } else {
 	smtp_session_free(session);
     }
     state->session = 0;
 
     /*
+     * If this session was good, reset the logical next-hop state, so that we
+     * won't cache connections to alternate servers under the logical
+     * next-hop destination. Otherwise we could end up skipping over the
+     * available and more preferred servers.
+     */
+    if (HAVE_NEXTHOP_STATE(state) && !bad_session)
+	FREE_NEXTHOP_STATE(state);
+
+    /*
      * Clean up the lists with todo and dropped recipients.
      */
     smtp_rcpt_cleanup(state);
+
+    /*
+     * Reset profiling info.
+     * 
+     * XXX When one delivery request results in multiple sessions, the set-up
+     * and transmission latencies of the earlier sessions will count as
+     * connection set-up time for the later sessions.
+     * 
+     * XXX On the other hand, when we first try to connect to one or more dead
+     * hosts before we reach a good host, then all that time must be counted
+     * as connection set-up time for the session with the good host.
+     * 
+     * XXX So this set-up attribution problem exists only when we actually
+     * engage in a session, spend a lot of time delivering a message, find
+     * that it fails, and then connect to an alternate host.
+     */
+    memset((char *) &request->msg_stats.conn_setup_done, 0,
+	   sizeof(request->msg_stats.conn_setup_done));
+    memset((char *) &request->msg_stats.deliver_done, 0,
+	   sizeof(request->msg_stats.deliver_done));
+    request->msg_stats.reuse_count = 0;
 }
 
 /* smtp_scrub_address_list - delete all cached addresses from list */

@@ -165,6 +165,7 @@ static QMGR_MESSAGE *qmgr_message_create(const char *queue_name,
     message->refcount = 0;
     message->single_rcpt = 0;
     message->arrival_time = 0;
+    GETTIMEOFDAY(&message->active_time);
     message->queued_time = sane_time();
     message->data_offset = 0;
     message->queue_id = mystrdup(queue_id);
@@ -925,6 +926,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
     ssize_t len;
     int     status;
     DSN     dsn;
+    MSG_STATS stats;
 
 #define STREQ(x,y)	(strcmp(x,y) == 0)
 #define STR		vstring_str
@@ -1038,7 +1040,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 			    len) == 0
 		&& !var_double_bounce_sender[len]) {
 		status = sent(message->tflags, message->queue_id,
-			      message->arrival_time, recipient,
+			      QMGR_MSG_STATS(&stats, message), recipient,
 			      "none", DSN_SIMPLE(&dsn, "2.0.0",
 			"undeliverable postmaster notification discarded"));
 		if (status == 0) {

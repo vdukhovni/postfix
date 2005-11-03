@@ -237,6 +237,7 @@ smtpd_check.o: ../../include/match_list.h
 smtpd_check.o: ../../include/match_ops.h
 smtpd_check.o: ../../include/match_parent_style.h
 smtpd_check.o: ../../include/msg.h
+smtpd_check.o: ../../include/msg_stats.h
 smtpd_check.o: ../../include/myaddrinfo.h
 smtpd_check.o: ../../include/mymalloc.h
 smtpd_check.o: ../../include/namadr_list.h

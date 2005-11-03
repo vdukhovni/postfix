@@ -87,6 +87,7 @@ qmgr.o: ../../include/vstring.h
 qmgr.o: qmgr.c
 qmgr.o: qmgr.h
 qmgr_active.o: ../../include/abounce.h
+qmgr_active.o: ../../include/attr.h
 qmgr_active.o: ../../include/bounce.h
 qmgr_active.o: ../../include/defer.h
 qmgr_active.o: ../../include/deliver_request.h
@@ -98,6 +99,7 @@ qmgr_active.o: ../../include/mail_open_ok.h
 qmgr_active.o: ../../include/mail_params.h
 qmgr_active.o: ../../include/mail_queue.h
 qmgr_active.o: ../../include/msg.h
+qmgr_active.o: ../../include/msg_stats.h
 qmgr_active.o: ../../include/mymalloc.h
 qmgr_active.o: ../../include/qmgr_user.h
 qmgr_active.o: ../../include/rec_type.h
@@ -110,11 +112,13 @@ qmgr_active.o: ../../include/vstream.h
 qmgr_active.o: ../../include/vstring.h
 qmgr_active.o: qmgr.h
 qmgr_active.o: qmgr_active.c
+qmgr_bounce.o: ../../include/attr.h
 qmgr_bounce.o: ../../include/bounce.h
 qmgr_bounce.o: ../../include/deliver_completed.h
 qmgr_bounce.o: ../../include/deliver_request.h
 qmgr_bounce.o: ../../include/dsn.h
 qmgr_bounce.o: ../../include/dsn_buf.h
+qmgr_bounce.o: ../../include/msg_stats.h
 qmgr_bounce.o: ../../include/recipient_list.h
 qmgr_bounce.o: ../../include/scan_dir.h
 qmgr_bounce.o: ../../include/sys_defs.h
@@ -123,12 +127,14 @@ qmgr_bounce.o: ../../include/vstream.h
 qmgr_bounce.o: ../../include/vstring.h
 qmgr_bounce.o: qmgr.h
 qmgr_bounce.o: qmgr_bounce.c
+qmgr_defer.o: ../../include/attr.h
 qmgr_defer.o: ../../include/bounce.h
 qmgr_defer.o: ../../include/defer.h
 qmgr_defer.o: ../../include/deliver_request.h
 qmgr_defer.o: ../../include/dsn.h
 qmgr_defer.o: ../../include/dsn_buf.h
 qmgr_defer.o: ../../include/msg.h
+qmgr_defer.o: ../../include/msg_stats.h
 qmgr_defer.o: ../../include/recipient_list.h
 qmgr_defer.o: ../../include/scan_dir.h
 qmgr_defer.o: ../../include/sys_defs.h
@@ -149,6 +155,7 @@ qmgr_deliver.o: ../../include/mail_params.h
 qmgr_deliver.o: ../../include/mail_proto.h
 qmgr_deliver.o: ../../include/mail_queue.h
 qmgr_deliver.o: ../../include/msg.h
+qmgr_deliver.o: ../../include/msg_stats.h
 qmgr_deliver.o: ../../include/recipient_list.h
 qmgr_deliver.o: ../../include/scan_dir.h
 qmgr_deliver.o: ../../include/stringops.h
@@ -171,12 +178,14 @@ qmgr_enable.o: ../../include/vstream.h
 qmgr_enable.o: ../../include/vstring.h
 qmgr_enable.o: qmgr.h
 qmgr_enable.o: qmgr_enable.c
+qmgr_entry.o: ../../include/attr.h
 qmgr_entry.o: ../../include/deliver_request.h
 qmgr_entry.o: ../../include/dsn.h
 qmgr_entry.o: ../../include/dsn_buf.h
 qmgr_entry.o: ../../include/events.h
 qmgr_entry.o: ../../include/mail_params.h
 qmgr_entry.o: ../../include/msg.h
+qmgr_entry.o: ../../include/msg_stats.h
 qmgr_entry.o: ../../include/mymalloc.h
 qmgr_entry.o: ../../include/recipient_list.h
 qmgr_entry.o: ../../include/scan_dir.h
@@ -216,6 +225,7 @@ qmgr_message.o: ../../include/mail_params.h
 qmgr_message.o: ../../include/mail_proto.h
 qmgr_message.o: ../../include/mail_queue.h
 qmgr_message.o: ../../include/msg.h
+qmgr_message.o: ../../include/msg_stats.h
 qmgr_message.o: ../../include/myflock.h
 qmgr_message.o: ../../include/mymalloc.h
 qmgr_message.o: ../../include/opened.h

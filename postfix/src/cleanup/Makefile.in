@@ -173,6 +173,7 @@ cleanup_api.o: ../../include/match_list.h
 cleanup_api.o: ../../include/match_ops.h
 cleanup_api.o: ../../include/mime_state.h
 cleanup_api.o: ../../include/msg.h
+cleanup_api.o: ../../include/msg_stats.h
 cleanup_api.o: ../../include/mymalloc.h
 cleanup_api.o: ../../include/nvtable.h
 cleanup_api.o: ../../include/recipient_list.h
@@ -210,6 +211,7 @@ cleanup_bounce.o: ../../include/match_list.h
 cleanup_bounce.o: ../../include/match_ops.h
 cleanup_bounce.o: ../../include/mime_state.h
 cleanup_bounce.o: ../../include/msg.h
+cleanup_bounce.o: ../../include/msg_stats.h
 cleanup_bounce.o: ../../include/mymalloc.h
 cleanup_bounce.o: ../../include/nvtable.h
 cleanup_bounce.o: ../../include/rec_type.h
@@ -497,6 +499,7 @@ cleanup_out_recipient.o: ../../include/match_list.h
 cleanup_out_recipient.o: ../../include/match_ops.h
 cleanup_out_recipient.o: ../../include/mime_state.h
 cleanup_out_recipient.o: ../../include/msg.h
+cleanup_out_recipient.o: ../../include/msg_stats.h
 cleanup_out_recipient.o: ../../include/mymalloc.h
 cleanup_out_recipient.o: ../../include/nvtable.h
 cleanup_out_recipient.o: ../../include/rec_type.h

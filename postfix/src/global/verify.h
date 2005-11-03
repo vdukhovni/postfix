@@ -24,7 +24,7 @@
  /*
   * External interface.
   */
-extern int verify_append(const char *, time_t, RECIPIENT *,
+extern int verify_append(const char *, MSG_STATS *, RECIPIENT *,
 			         const char *, DSN *, int);
 
 /* LICENSE

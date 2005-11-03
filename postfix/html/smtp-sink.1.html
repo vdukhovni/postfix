@@ -51,11 +51,11 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
               Reject  the  specified  commands  with a hard (5xx)
               error code.  This option implies <b>-p</b>.
 
-              Examples of commands are HELO,  EHLO,  LHLO,  MAIL,
-              RCPT, VRFY, DATA, ., RSET, NOOP, and QUIT. Separate
-              command names by white space  or  commas,  and  use
-              quotes  to protect white space from the shell. Com-
-              mand names are case-insensitive.
+              Examples of commands are CONNECT, HELO, EHLO, LHLO,
+              MAIL,  RCPT,  VRFY,  DATA, ., RSET, NOOP, and QUIT.
+              Separate command names by white  space  or  commas,
+              and  use  quotes  to  protect  white space from the
+              shell. Command names are case-insensitive.
 
        <b>-F</b>     Disable XFORWARD support.
 
@@ -80,30 +80,30 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
               Disconnect  (without  replying) after receiving one
               of the specified commands.
 
-              Examples of commands are HELO,  EHLO,  LHLO,  MAIL,
-              RCPT, VRFY, DATA, ., RSET, NOOP, and QUIT. Separate
-              command names by white space  or  commas,  and  use
-              quotes  to protect white space from the shell. Com-
-              mand names are case-insensitive.
+              Examples of commands are CONNECT, HELO, EHLO, LHLO,
+              MAIL,  RCPT,  VRFY,  DATA, ., RSET, NOOP, and QUIT.
+              Separate command names by white  space  or  commas,
+              and  use  quotes  to  protect  white space from the
+              shell. Command names are case-insensitive.
 
        <b>-r</b> <i>command,command,...</i>
               Reject the specified commands  with  a  soft  (4xx)
               error code.  This option implies <b>-p</b>.
 
-              Examples  of  commands  are HELO, EHLO, LHLO, MAIL,
-              RCPT, VRFY, DATA, ., RSET, NOOP, and QUIT. Separate
-              command  names  by  white  space or commas, and use
-              quotes to protect white space from the shell.  Com-
-              mand names are case-insensitive.
+              Examples of commands are CONNECT, HELO, EHLO, LHLO,
+              MAIL, RCPT, VRFY, DATA, ., RSET,  NOOP,  and  QUIT.
+              Separate  command  names  by white space or commas,
+              and use quotes to  protect  white  space  from  the
+              shell. Command names are case-insensitive.
 
        <b>-s</b> <i>command,command,...</i>
               Log the named commands to syslogd.
 
-              Examples  of  commands  are HELO, EHLO, LHLO, MAIL,
-              RCPT, VRFY, DATA, ., RSET, NOOP, and QUIT. Separate
-              command  names  by  white  space or commas, and use
-              quotes to protect white space from the shell.  Com-
-              mand names are case-insensitive.
+              Examples of commands are CONNECT, HELO, EHLO, LHLO,
+              MAIL, RCPT, VRFY, DATA, ., RSET,  NOOP,  and  QUIT.
+              Separate  command  names  by white space or commas,
+              and use quotes to  protect  white  space  from  the
+              shell. Command names are case-insensitive.
 
        <b>-t</b> <i>timeout</i> (default: 100)
               Limit the time for receiving a command or sending a

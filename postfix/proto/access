@@ -189,6 +189,8 @@
 #	message.
 # .sp
 #	Note: this action currently affects all recipients of the message.
+#	To discard only one recipient without discarding the entire message,
+#	use the transport(5) table to direct mail to the discard(8) service.
 # .sp
 #	This feature is available in Postfix 2.0 and later.
 # .IP \fBDUNNO\fR

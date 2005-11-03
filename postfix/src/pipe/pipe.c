@@ -893,7 +893,7 @@ static int eval_command_status(int command_status, char *service,
 	for (n = 0; n < request->rcpt_list.len; n++) {
 	    rcpt = request->rcpt_list.info + n;
 	    status = sent(DEL_REQ_TRACE_FLAGS(request->flags),
-			  request->queue_id, request->arrival_time, rcpt,
+			  request->queue_id, &request->msg_stats, rcpt,
 			  service, &dsn);
 	    if (status == 0 && (request->flags & DEL_REQ_FLAG_SUCCESS))
 		deliver_completed(src, rcpt->offset);
@@ -908,7 +908,7 @@ static int eval_command_status(int command_status, char *service,
 		rcpt = request->rcpt_list.info + n;
 		status = bounce_append(DEL_REQ_TRACE_FLAGS(request->flags),
 				       request->queue_id,
-				       request->arrival_time, rcpt,
+				       &request->msg_stats, rcpt,
 				       service, &dsn);
 		if (status == 0)
 		    deliver_completed(src, rcpt->offset);
@@ -919,7 +919,7 @@ static int eval_command_status(int command_status, char *service,
 		rcpt = request->rcpt_list.info + n;
 		result |= defer_append(DEL_REQ_TRACE_FLAGS(request->flags),
 				       request->queue_id,
-				       request->arrival_time, rcpt,
+				       &request->msg_stats, rcpt,
 				       service, &dsn);
 	    }
 	}
@@ -1029,7 +1029,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 	for (n = 0; n < request->rcpt_list.len; n++) {
 	    rcpt = request->rcpt_list.info + n;
 	    status = sent(DEL_REQ_TRACE_FLAGS(request->flags),
-			  request->queue_id, request->arrival_time,
+			  request->queue_id, &request->msg_stats,
 			  rcpt, service, DSN_FROM_DSN_BUF(&dsn, why));
 	    if (status == 0 && (request->flags & DEL_REQ_FLAG_SUCCESS))
 		deliver_completed(request->fp, rcpt->offset);

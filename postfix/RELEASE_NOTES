@@ -17,6 +17,92 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
+Incompatibility with snapshot 20051103
+======================================
+
+The queue manager protocol has changed. You need to "postfix reload"
+after "make upgrade".
+
+The logging of recipient status information has changed.  This may
+require changes to logfile processing tools.
+
+- Postfix now logs an additional attribute with detailed delay
+information (delays=a/b/c/d) as described below.
+
+- Postfix now logs an additional attribute with the connection reuse
+count (conn_use=nnn) as described below.
+
+Major changes with snapshot 20051103
+====================================
+
+This release makes a beginning with a series of new attributes in
+Postfix logfile records.
+
+- Better insight into the nature of performance bottle necks, with
+detailed logging of delays in various stages of message delivery.
+Postfix logs additional delay information as "delays=a/b/c/d" where
+a=time before queue manager, b=time in queue manager, c=connection
+setup time, d=message transmission time.
+
+- Logging of the connection reuse count when SMTP connections are
+used for more than one message delivery.  This information is needed
+because Postfix can now reuse connections hundreds of times or more,
+and can help to diagnose interoperability problems with servers
+that suffer from memory leaks or other resource leaks.
+
+Incompatibility with snapshot 20051026
+======================================
+
+The connection cache protocol for SMTP connections has changed.
+You need to "postfix reload" after "make upgrade".
+
+The smtp_connection_cache_reuse_limit parameter (which limits the
+number of deliveries per SMTP connection) is replaced by the new
+smtp_connection_reuse_time_limit parameter (the time after which a
+connection is no longer stored into the connection cache).
+
+Major changes with snapshot 20051026
+====================================
+
+This snapshot addresses a performance stability problem with remote
+SMTP servers. The problem is not specific to Postfix: it can happen
+when any MTA sends large amounts of SMTP email to a site that has
+multiple MX hosts. The insight that led to the solution, as well
+as an initial implementation, are due to Victor Duchovni.
+
+The problem starts when one of a set of MX hosts becomes slower
+than the rest.  Even though SMTP clients connect to fast and slow
+MX hosts with equal probability, the slow MX host ends up with more
+simultaneous inbound connections than the faster MX hosts, because
+the slow MX host needs more time to serve each client request.
+
+The slow MX host becomes a connection attractor.  If one MX host
+becomes N times slower than the rest, it dominates mail delivery
+latency unless there are more than N fast MX hosts to counter the
+effect. And if the number of MX hosts is smaller than N, the mail
+delivery latency becomes effectively that of the slowest MX host
+divided by the total number of MX hosts.
+
+The solution uses connection caching in a way that differs from
+Postfix 2.2.  By limiting the amount of time during which a connection
+can be used repeatedly (instead of limiting the number of deliveries
+over that connection), Postfix not only restores fairness in the
+distribution of simultaneous connections across a set of MX hosts,
+it also favors deliveries over connections that perform well, which
+is exactly what we want.
+
+The smtp_connection_reuse_time_limit feature implements the connection
+reuse time limit as discussed above.  It limits the amount of time
+after which an SMTP connection is no longer stored into the connection
+cache. The default limit, 300s, can result in a huge number of
+deliveries over a single connection.
+
+This solution will be complete when Postfix logging is updated to
+include information about the number of times that a connection was
+used. This information is needed to diagnose inter-operability
+problems with servers that exhibit bugs when they receive multiple
+messages over the same connection.
+
 Incompatibility with snapshot 20051011
 ======================================
 

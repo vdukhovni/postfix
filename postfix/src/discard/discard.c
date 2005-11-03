@@ -172,7 +172,7 @@ static int deliver_message(DELIVER_REQUEST *request)
 	rcpt = request->rcpt_list.info + nrcpt;
 	if (rcpt->offset >= 0) {
 	    status = sent(BOUNCE_FLAGS(request), request->queue_id,
-			  request->arrival_time, rcpt, "none", &dsn);
+			  &request->msg_stats, rcpt, "none", &dsn);
 	    if (status == 0 && (request->flags & DEL_REQ_FLAG_SUCCESS))
 		deliver_completed(src, rcpt->offset);
 	    result |= status;

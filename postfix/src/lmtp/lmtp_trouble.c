@@ -183,6 +183,22 @@ static int lmtp_bulk_fail(LMTP_STATE *state, DSN *dsn, int throttle_queue)
     int     nrcpt;
 
     /*
+     * If we are still in the connection set-up phase, update the set-up
+     * completion time here, otherwise the time spent in set-up latency will
+     * be attributed as message transfer latency.
+     * 
+     * All remaining recipients failed at this point, so we update the delivery
+     * completion time stamp so that multiple recipient status records show
+     * the same delay values.
+     */
+    if (request->msg_stats.conn_setup_done.tv_sec == 0) {
+	GETTIMEOFDAY(&request->msg_stats.conn_setup_done);
+	request->msg_stats.deliver_done =
+	    request->msg_stats.conn_setup_done;
+    } else
+	GETTIMEOFDAY(&request->msg_stats.deliver_done);
+
+    /*
      * If this is a soft error, postpone further deliveries to this domain.
      * Otherwise, generate a bounce record for each recipient.
      */
@@ -192,7 +208,7 @@ static int lmtp_bulk_fail(LMTP_STATE *state, DSN *dsn, int throttle_queue)
 	    continue;
 	status = (soft_error ? defer_append : bounce_append)
 	    (DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
-	     request->arrival_time, rcpt,
+	     &request->msg_stats, rcpt,
 	     session ? session->namaddr : "none", dsn);
 	if (status == 0) {
 	    deliver_completed(state->src, rcpt->offset);
@@ -338,7 +354,7 @@ void    lmtp_rcpt_fail(LMTP_STATE *state, const char *mta_name, LMTP_RESP *resp,
      */
     status = (soft_error ? defer_append : bounce_append)
 	(DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
-	 request->arrival_time, rcpt,
+	 &request->msg_stats, rcpt,
 	 session ? session->namaddr : "none", &dsn);
     if (status == 0) {
 	deliver_completed(state->src, rcpt->offset);

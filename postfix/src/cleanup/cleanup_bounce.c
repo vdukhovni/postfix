@@ -65,7 +65,10 @@
 static void cleanup_bounce_append(CLEANUP_STATE *state, RECIPIENT *rcpt,
 				          DSN *dsn)
 {
-    if (bounce_append(BOUNCE_FLAG_CLEAN, state->queue_id, state->time,
+    MSG_STATS stats;
+
+    if (bounce_append(BOUNCE_FLAG_CLEAN, state->queue_id,
+		      CLEANUP_MSG_STATS(&stats, state),
 		      rcpt, "none", dsn) != 0) {
 	msg_warn("%s: bounce logfile update error", state->queue_id);
 	state->errs |= CLEANUP_STAT_WRITE;

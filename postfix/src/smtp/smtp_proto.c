@@ -32,8 +32,8 @@
 /*	accordingly.
 /*
 /*	smtp_rset() sends a single RSET command and waits for the
-/*	response. In case of no response, or negative response, it
-/*	turns off connection caching.
+/*	response. In case of a negative reply it sets the
+/*	CANT_RSET_THIS_SESSION flag.
 /*
 /*	smtp_quit() sends a single QUIT command and waits for the
 /*	response if configured to do so. It always turns off connection
@@ -44,6 +44,12 @@
 /*	smtp_rset() and smtp_quit(), success means the ability to
 /*	perform an SMTP conversation, not necessarily the ability
 /*	to deliver mail, or the achievement of server happiness.
+/*
+/*	In case of a rejected or failed connection, a connection
+/*	is marked as "bad, do not cache". Otherwise, connection
+/*	caching may be turned off (without being marked "bad") at
+/*	the discretion of the code that implements the individual
+/*	protocol steps.
 /*
 /*	Warnings: corrupt message file. A corrupt message is marked
 /*	as "corrupt" by changing its queue file permissions.
@@ -596,7 +602,7 @@ static int smtp_start_tls(SMTP_STATE *state, int misc_flags)
      * SMTP connection either, because the conversation is in an unknown
      * state.
      */
-    session->reuse_count = 0;
+    DONT_CACHE_THIS_SESSION;
 
     /*
      * The actual TLS handshake may succeed, but tls_client_start() may fail
@@ -889,12 +895,6 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 #define SENDING_MAIL \
 	(recv_state <= SMTP_STATE_DOT)
 
-#define THIS_SESSION_IS_CACHED \
-	(session->reuse_count > 0)
-
-#define DONT_CACHE_THIS_SESSION \
-	(session->reuse_count = 0)
-
 #define CANT_RSET_THIS_SESSION \
 	(session->features |= SMTP_FEATURE_RSET_REJECTED)
 
@@ -1025,6 +1025,8 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	     * Build the MAIL FROM command.
 	     */
 	case SMTP_STATE_MAIL:
+	    request->msg_stats.reuse_count = session->reuse_count;
+	    GETTIMEOFDAY(&request->msg_stats.conn_setup_done);
 	    REWRITE_ADDRESS(session->scratch2, request->sender);
 	    QUOTE_ADDRESS(session->scratch, vstring_str(session->scratch2));
 	    vstring_sprintf(next_command, "MAIL FROM:<%s>",
@@ -1106,9 +1108,15 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 
 	    /*
 	     * Build the "." command before we have seen the DATA response.
+	     * 
+	     * Changing the connection caching state here is safe because it
+	     * affects none of the not-yet processed replies to
+	     * already-generated commands.
 	     */
 	case SMTP_STATE_DOT:
 	    vstring_strcpy(next_command, ".");
+	    if (THIS_SESSION_IS_EXPIRED)
+		DONT_CACHE_THIS_SESSION;
 	    next_state = THIS_SESSION_IS_CACHED ?
 		SMTP_STATE_LAST : SMTP_STATE_QUIT;
 	    break;
@@ -1118,9 +1126,15 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	     * when it has verified all recipients; or it is entered by the
 	     * receiver when all recipients are verified or rejected, and is
 	     * then left before the bottom of the main loop.
+	     * 
+	     * Changing the connection caching state here is safe because there
+	     * are no not-yet processed replies to already-generated
+	     * commands.
 	     */
 	case SMTP_STATE_ABORT:
 	    vstring_strcpy(next_command, "RSET");
+	    if (THIS_SESSION_IS_EXPIRED)
+		DONT_CACHE_THIS_SESSION;
 	    next_state = THIS_SESSION_IS_CACHED ?
 		SMTP_STATE_LAST : SMTP_STATE_QUIT;
 	    break;
@@ -1140,11 +1154,17 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	     * Build the QUIT command before we have seen the "." or RSET
 	     * response. This is entered as initial state from smtp_quit(),
 	     * or is reached near the end of any non-cached session.
+	     * 
+	     * Changing the connection caching state here is safe. If this
+	     * command is pipelined together with a preceding command, then
+	     * connection caching was already turned off. Do not clobber the
+	     * "bad connection" flag.
 	     */
 	case SMTP_STATE_QUIT:
 	    vstring_strcpy(next_command, "QUIT");
 	    next_state = SMTP_STATE_LAST;
-	    DONT_CACHE_THIS_SESSION;
+	    if (THIS_SESSION_IS_CACHED)
+		DONT_CACHE_THIS_SESSION;
 	    break;
 
 	    /*
@@ -1306,6 +1326,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		     * delivered.
 		     */
 		case SMTP_STATE_DOT:
+		    GETTIMEOFDAY(&request->msg_stats.deliver_done);
 		    if (nrcpt > 0) {
 			if (resp->code / 100 != 2) {
 			    smtp_mesg_fail(state, session->host, resp,
@@ -1323,17 +1344,35 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 			    }
 			}
 		    }
+
+		    /*
+		     * XXX Do not change the connection caching state here,
+		     * even if the connection caching timer expired between
+		     * generating the command and processing the reply,
+		     * otherwise the sender and receiver loops get out of
+		     * sync. The caller will call smtp_quit() if appropriate.
+		     */
 		    recv_state = (var_skip_quit_resp || THIS_SESSION_IS_CACHED ?
 				  SMTP_STATE_LAST : SMTP_STATE_QUIT);
 		    break;
 
 		    /*
-		     * Receive the RSET response, and disable session caching
-		     * in case of failure.
+		     * Receive the RSET response.
+		     * 
+		     * The SMTP_STATE_ABORT sender state is entered by the
+		     * sender when it has verified all recipients; or it is
+		     * entered by the receiver when all recipients are
+		     * verified or rejected, and is then left before the
+		     * bottom of the main loop.
+		     * 
+		     * XXX Do not change the connection caching state here, even
+		     * if the server rejected RSET or if the connection
+		     * caching timer expired between generating the command
+		     * and processing the reply, otherwise the sender and
+		     * receiver loops get out of sync. The caller will call
+		     * smtp_quit() if appropriate.
 		     */
 		case SMTP_STATE_ABORT:
-		    if (resp->code / 100 != 2)
-			DONT_CACHE_THIS_SESSION;
 		    recv_state = (var_skip_quit_resp || THIS_SESSION_IS_CACHED ?
 				  SMTP_STATE_LAST : SMTP_STATE_QUIT);
 		    break;
@@ -1377,6 +1416,8 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		send_state = recv_state = SMTP_STATE_ABORT;
 		send_rcpt = recv_rcpt = 0;
 		vstring_strcpy(next_command, "RSET");
+		if (THIS_SESSION_IS_EXPIRED)
+		    DONT_CACHE_THIS_SESSION;
 		next_state = THIS_SESSION_IS_CACHED ?
 		    SMTP_STATE_LAST : SMTP_STATE_QUIT;
 		/* XXX Also: record if non-delivering session. */
@@ -1467,7 +1508,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	    } else if (prev_type == REC_TYPE_CONT)	/* missing newline */
 		smtp_fputs("", 0, session->stream);
 	    if ((session->features & SMTP_FEATURE_MAYBEPIX) != 0
-		&& request->arrival_time < vstream_ftime(session->stream)
+		&& request->msg_stats.incoming_arrival < vstream_ftime(session->stream)
 		- var_smtp_pix_thresh) {
 		msg_info("%s: enabling PIX <CRLF>.<CRLF> workaround for %s",
 			 request->queue_id, session->namaddr);

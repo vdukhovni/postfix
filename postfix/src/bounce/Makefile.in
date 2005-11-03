@@ -75,6 +75,7 @@ bounce.o: ../../include/mail_proto.h
 bounce.o: ../../include/mail_queue.h
 bounce.o: ../../include/mail_server.h
 bounce.o: ../../include/msg.h
+bounce.o: ../../include/msg_stats.h
 bounce.o: ../../include/rcpt_buf.h
 bounce.o: ../../include/recipient_list.h
 bounce.o: ../../include/stringops.h
@@ -134,6 +135,7 @@ bounce_notify_service.o: ../../include/mail_error.h
 bounce_notify_service.o: ../../include/mail_params.h
 bounce_notify_service.o: ../../include/mail_queue.h
 bounce_notify_service.o: ../../include/msg.h
+bounce_notify_service.o: ../../include/msg_stats.h
 bounce_notify_service.o: ../../include/name_mask.h
 bounce_notify_service.o: ../../include/post_mail.h
 bounce_notify_service.o: ../../include/rcpt_buf.h
@@ -193,6 +195,7 @@ bounce_notify_verp.o: ../../include/mail_error.h
 bounce_notify_verp.o: ../../include/mail_params.h
 bounce_notify_verp.o: ../../include/mail_queue.h
 bounce_notify_verp.o: ../../include/msg.h
+bounce_notify_verp.o: ../../include/msg_stats.h
 bounce_notify_verp.o: ../../include/name_mask.h
 bounce_notify_verp.o: ../../include/post_mail.h
 bounce_notify_verp.o: ../../include/rcpt_buf.h
@@ -216,6 +219,7 @@ bounce_one_service.o: ../../include/mail_addr.h
 bounce_one_service.o: ../../include/mail_error.h
 bounce_one_service.o: ../../include/mail_params.h
 bounce_one_service.o: ../../include/msg.h
+bounce_one_service.o: ../../include/msg_stats.h
 bounce_one_service.o: ../../include/name_mask.h
 bounce_one_service.o: ../../include/post_mail.h
 bounce_one_service.o: ../../include/rcpt_buf.h
@@ -238,6 +242,7 @@ bounce_trace_service.o: ../../include/mail_error.h
 bounce_trace_service.o: ../../include/mail_params.h
 bounce_trace_service.o: ../../include/mail_queue.h
 bounce_trace_service.o: ../../include/msg.h
+bounce_trace_service.o: ../../include/msg_stats.h
 bounce_trace_service.o: ../../include/name_mask.h
 bounce_trace_service.o: ../../include/post_mail.h
 bounce_trace_service.o: ../../include/rcpt_buf.h

@@ -437,6 +437,7 @@ static int lmtp_loop(LMTP_STATE *state, NOCLOBBER int send_state,
 	     * Build the MAIL FROM command.
 	     */
 	case LMTP_STATE_MAIL:
+	    GETTIMEOFDAY(&request->msg_stats.conn_setup_done);
 	    REWRITE_ADDRESS(state->scratch, request->sender);
 	    vstring_sprintf(next_command, "MAIL FROM:<%s>",
 			    vstring_str(state->scratch));
@@ -710,6 +711,7 @@ static int lmtp_loop(LMTP_STATE *state, NOCLOBBER int send_state,
 		     * delivered.
 		     */
 		case LMTP_STATE_DOT:
+		    GETTIMEOFDAY(&request->msg_stats.deliver_done);
 		    if (nrcpt > 0) {
 			rcpt = request->rcpt_list.info + survivors[recv_dot];
 			if (resp->code / 100 == 2) {

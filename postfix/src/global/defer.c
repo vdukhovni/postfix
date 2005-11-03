@@ -6,10 +6,10 @@
 /* SYNOPSIS
 /*	#include <defer.h>
 /*
-/*	int	defer_append(flags, id, entry, rcpt, relay, dsn)
+/*	int	defer_append(flags, id, stats, rcpt, relay, dsn)
 /*	int	flags;
 /*	const char *id;
-/*	time_t	entry;
+/*	MSG_STATS *stats;
 /*	RECIPIENT *rcpt;
 /*	const char *relay;
 /*	DSN	*dsn;
@@ -80,8 +80,9 @@
 /*	The message queue name of the original message file.
 /* .IP id
 /*	The queue id of the original message file.
-/* .IP entry
-/*	Message arrival time.
+/* .IP stats
+/*	Time stamps from different message delivery stages
+/*	and session reuse count.
 /* .IP rcpt
 /*	Recipient information. See recipient_list(3).
 /* .IP relay
@@ -143,7 +144,7 @@
 
 /* defer_append - defer message delivery */
 
-int     defer_append(int flags, const char *id, time_t entry,
+int     defer_append(int flags, const char *id, MSG_STATS *stats,
 		             RECIPIENT *rcpt, const char *relay,
 		             DSN *dsn)
 {
@@ -165,7 +166,7 @@ int     defer_append(int flags, const char *id, time_t entry,
      */
     if (flags & DEL_REQ_FLAG_MTA_VRFY) {
 	my_dsn.action = "undeliverable";
-	status = verify_append(id, entry, rcpt, relay, &my_dsn,
+	status = verify_append(id, stats, rcpt, relay, &my_dsn,
 			       DEL_RCPT_STAT_DEFER);
 	return (status);
     }
@@ -176,7 +177,7 @@ int     defer_append(int flags, const char *id, time_t entry,
      */
     if (flags & DEL_REQ_FLAG_USR_VRFY) {
 	my_dsn.action = "undeliverable";
-	status = trace_append(flags, id, entry, rcpt, relay, &my_dsn);
+	status = trace_append(flags, id, stats, rcpt, relay, &my_dsn);
 	return (status);
     }
 
@@ -202,13 +203,13 @@ int     defer_append(int flags, const char *id, time_t entry,
 				ATTR_TYPE_FUNC, dsn_print, (void *) &my_dsn,
 				ATTR_TYPE_END) != 0)
 	    msg_warn("%s: %s service failure", id, var_defer_service);
-	log_adhoc(id, entry, rcpt, relay, &my_dsn, "deferred");
+	log_adhoc(id, stats, rcpt, relay, &my_dsn, "deferred");
 
 	/*
 	 * Traced delivery.
 	 */
 	if (flags & DEL_REQ_FLAG_RECORD)
-	    if (trace_append(flags, id, entry, rcpt, relay, &my_dsn) != 0)
+	    if (trace_append(flags, id, stats, rcpt, relay, &my_dsn) != 0)
 		msg_warn("%s: %s service failure", id, var_trace_service);
 
 	/*

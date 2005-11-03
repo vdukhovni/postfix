@@ -230,6 +230,12 @@ extern void cleanup_addr_bcc(CLEANUP_STATE *, const char *);
   */
 extern int cleanup_bounce(CLEANUP_STATE *);
 
+ /*
+  * MSG_STATS compatibility.
+  */
+#define CLEANUP_MSG_STATS(stats, state) \
+    MSG_STATS_INIT1(stats, incoming_arrival, state->time)
+
 /* LICENSE
 /* .ad
 /* .fi

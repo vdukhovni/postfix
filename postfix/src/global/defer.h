@@ -19,7 +19,7 @@
  /*
   * External interface.
   */
-extern int defer_append(int, const char *, time_t, RECIPIENT *,
+extern int defer_append(int, const char *, MSG_STATS *, RECIPIENT *,
 			        const char *, DSN *);
 extern int defer_flush(int, const char *, const char *, const char *,
 		               const char *, const char *, int);

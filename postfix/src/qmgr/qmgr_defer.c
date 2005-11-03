@@ -138,11 +138,12 @@ void    qmgr_defer_todo(QMGR_QUEUE *queue, DSN *dsn)
 void    qmgr_defer_recipient(QMGR_MESSAGE *message, RECIPIENT *recipient,
 			             DSN *dsn)
 {
+    MSG_STATS stats;
 
     /*
      * Update the message structure and log the message disposition.
      */
     message->flags |= defer_append(message->tflags, message->queue_id,
-				   message->arrival_time, recipient,
+				 QMGR_MSG_STATS(&stats, message), recipient,
 				   "none", dsn);
 }

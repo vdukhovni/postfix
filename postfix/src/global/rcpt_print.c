@@ -20,7 +20,9 @@
 /*	... ATTR_PRINT_FUNC, rcpt_print, (void *) recipient, ...
 /* DIAGNOSTICS
 /*	Fatal: out of memory.
-/* LICENSE .ad .fi
+/* LICENSE
+/* .ad
+/* .fi
 /*	The Secure Mailer license must be distributed with this
 /*	software.
 /* AUTHOR(S)

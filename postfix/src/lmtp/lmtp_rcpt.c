@@ -72,7 +72,7 @@ void    lmtp_rcpt_done(LMTP_STATE *state, LMTP_RESP *resp, RECIPIENT *rcpt)
 			   resp->str, resp->str);
 
     status = sent(DEL_REQ_TRACE_FLAGS(request->flags),
-		  request->queue_id, request->arrival_time, rcpt,
+		  request->queue_id, &request->msg_stats, rcpt,
 		  session->namaddr, &dsn);
     if (status == 0) {
 	if (request->flags & DEL_REQ_FLAG_SUCCESS)

@@ -302,9 +302,9 @@ destinations.
 .IP "\fBsmtp_connection_cache_on_demand (yes)\fR"
 Temporarily enable SMTP connection caching while a destination
 has a high volume of mail in the active queue.
-.IP "\fBsmtp_connection_cache_reuse_limit (10)\fR"
-When SMTP connection caching is enabled, the number of times that
-an SMTP session is reused before it is closed.
+.IP "\fBsmtp_connection_reuse_time_limit (300s)\fR"
+The amount of time during which Postfix will use an SMTP
+connection repeatedly.
 .IP "\fBsmtp_connection_cache_time_limit (2s)\fR"
 When SMTP connection caching is enabled, the amount of time that
 an unused SMTP client socket is kept open before it is closed.

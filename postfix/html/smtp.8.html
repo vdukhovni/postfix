@@ -373,58 +373,57 @@ SMTP(8)                                                                SMTP(8)
               destination has a high volume of mail in the active
               queue.
 
-       <b><a href="postconf.5.html#smtp_connection_cache_reuse_limit">smtp_connection_cache_reuse_limit</a> (10)</b>
-              When SMTP connection caching is enabled, the number
-              of times that an SMTP session is reused  before  it
-              is closed.
+       <b><a href="postconf.5.html#smtp_connection_reuse_time_limit">smtp_connection_reuse_time_limit</a> (300s)</b>
+              The amount of time during which Postfix will use an
+              SMTP connection repeatedly.
 
        <b><a href="postconf.5.html#smtp_connection_cache_time_limit">smtp_connection_cache_time_limit</a> (2s)</b>
               When SMTP connection caching is enabled, the amount
-              of time that an unused SMTP client socket  is  kept
+              of  time  that an unused SMTP client socket is kept
               open before it is closed.
 
 <b>TROUBLE SHOOTING CONTROLS</b>
        <b><a href="postconf.5.html#debug_peer_level">debug_peer_level</a> (2)</b>
-              The  increment  in  verbose  logging  level  when a
-              remote client or server matches a  pattern  in  the
+              The increment  in  verbose  logging  level  when  a
+              remote  client  or  server matches a pattern in the
               <a href="postconf.5.html#debug_peer_list">debug_peer_list</a> parameter.
 
        <b><a href="postconf.5.html#debug_peer_list">debug_peer_list</a> (empty)</b>
-              Optional  list  of remote client or server hostname
-              or network address patterns that cause the  verbose
-              logging  level  to increase by the amount specified
+              Optional list of remote client or  server  hostname
+              or  network address patterns that cause the verbose
+              logging level to increase by the  amount  specified
               in $<a href="postconf.5.html#debug_peer_level">debug_peer_level</a>.
 
        <b><a href="postconf.5.html#error_notice_recipient">error_notice_recipient</a> (postmaster)</b>
-              The recipient  of  postmaster  notifications  about
-              mail  delivery  problems that are caused by policy,
+              The  recipient  of  postmaster  notifications about
+              mail delivery problems that are caused  by  policy,
               resource, software or protocol errors.
 
        <b><a href="postconf.5.html#notify_classes">notify_classes</a> (resource, software)</b>
-              The list of error classes that are reported to  the
+              The  list of error classes that are reported to the
               postmaster.
 
 <b>MISCELLANEOUS CONTROLS</b>
        <b><a href="postconf.5.html#best_mx_transport">best_mx_transport</a> (empty)</b>
-              Where  the  Postfix SMTP client should deliver mail
+              Where the Postfix SMTP client should  deliver  mail
               when it detects a "mail loops back to myself" error
               condition.
 
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The  default  location  of  the Postfix main.cf and
+              The default location of  the  Postfix  main.cf  and
               master.cf configuration files.
 
        <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
-              How much time a Postfix daemon process may take  to
-              handle  a  request  before  it  is  terminated by a
+              How  much time a Postfix daemon process may take to
+              handle a request  before  it  is  terminated  by  a
               built-in watchdog timer.
 
        <b><a href="postconf.5.html#disable_dns_lookups">disable_dns_lookups</a> (no)</b>
-              Disable DNS lookups in the Postfix  SMTP  and  LMTP
+              Disable  DNS  lookups  in the Postfix SMTP and LMTP
               clients.
 
        <b><a href="postconf.5.html#fallback_relay">fallback_relay</a> (empty)</b>
-              Optional  list of relay hosts for SMTP destinations
+              Optional list of relay hosts for SMTP  destinations
               that can't be found or that are unreachable.
 
        <b><a href="postconf.5.html#inet_interfaces">inet_interfaces</a> (all)</b>
@@ -432,7 +431,7 @@ SMTP(8)                                                                SMTP(8)
               tem receives mail on.
 
        <b><a href="postconf.5.html#inet_protocols">inet_protocols</a> (ipv4)</b>
-              The  Internet protocols Postfix will attempt to use
+              The Internet protocols Postfix will attempt to  use
               when making or accepting connections.
 
        <b><a href="postconf.5.html#ipc_timeout">ipc_timeout</a> (3600s)</b>
@@ -440,55 +439,55 @@ SMTP(8)                                                                SMTP(8)
               over an internal communication channel.
 
        <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
-              The  maximum  amount  of  time that an idle Postfix
-              daemon process waits for the next  service  request
+              The maximum amount of time  that  an  idle  Postfix
+              daemon  process  waits for the next service request
               before exiting.
 
        <b><a href="postconf.5.html#max_use">max_use</a> (100)</b>
-              The  maximal number of connection requests before a
+              The maximal number of connection requests before  a
               Postfix daemon process terminates.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
-              The process ID  of  a  Postfix  command  or  daemon
+              The  process  ID  of  a  Postfix  command or daemon
               process.
 
        <b><a href="postconf.5.html#process_name">process_name</a> (read-only)</b>
-              The  process  name  of  a Postfix command or daemon
+              The process name of a  Postfix  command  or  daemon
               process.
 
        <b><a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a> (empty)</b>
               The network interface addresses that this mail sys-
-              tem  receives  mail on by way of a proxy or network
+              tem receives mail on by way of a proxy  or  network
               address translation unit.
 
        <b><a href="postconf.5.html#smtp_bind_address">smtp_bind_address</a> (empty)</b>
               An optional numerical network address that the SMTP
-              client  should  bind to when making an IPv4 connec-
+              client should bind to when making an  IPv4  connec-
               tion.
 
        <b><a href="postconf.5.html#smtp_bind_address6">smtp_bind_address6</a> (empty)</b>
               An optional numerical network address that the SMTP
-              client  should  bind to when making an IPv6 connec-
+              client should bind to when making an  IPv6  connec-
               tion.
 
        <b><a href="postconf.5.html#smtp_helo_name">smtp_helo_name</a> ($<a href="postconf.5.html#myhostname">myhostname</a>)</b>
-              The hostname to send in the SMTP EHLO or HELO  com-
+              The  hostname to send in the SMTP EHLO or HELO com-
               mand.
 
        <b><a href="postconf.5.html#smtp_host_lookup">smtp_host_lookup</a> (dns)</b>
-              What  mechanisms  when the SMTP client uses to look
+              What mechanisms when the SMTP client uses  to  look
               up a host's IP address.
 
        <b><a href="postconf.5.html#smtp_randomize_addresses">smtp_randomize_addresses</a> (yes)</b>
-              Randomize the order  of  equal-preference  MX  host
+              Randomize  the  order  of  equal-preference MX host
               addresses.
 
        <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (postfix)</b>
-              The  mail  system  name  that  is  prepended to the
-              process name in syslog  records,  so  that  "smtpd"
+              The mail system  name  that  is  prepended  to  the
+              process  name  in  syslog  records, so that "smtpd"
               becomes, for example, "postfix/smtpd".
 
 <b>SEE ALSO</b>
@@ -506,7 +505,7 @@ SMTP(8)                                                                SMTP(8)
        <a href="TLS_README.html">TLS_README</a>, Postfix STARTTLS howto
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

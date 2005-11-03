@@ -74,7 +74,7 @@ typedef struct DELIVER_ATTR {
     char   *user;			/* recipient lookup handle */
     const char *delivered;		/* for loop detection */
     char   *relay;			/* relay host */
-    long    arrival_time;		/* arrival time */
+    MSG_STATS msg_stats;		/* time profile */
     DSN_BUF *why;			/* delivery status */
     DSN     dsn;			/* delivery status */
 } DELIVER_ATTR;
@@ -102,10 +102,10 @@ typedef struct LOCAL_STATE {
 #define BOUNCE_FLAGS(request)	DEL_REQ_TRACE_FLAGS((request)->flags)
 
 #define BOUNCE_ATTR(attr) \
-	attr.queue_id, attr.arrival_time, &attr.rcpt, attr.relay, \
+	attr.queue_id, &attr.msg_stats, &attr.rcpt, attr.relay, \
 	DSN_FROM_DSN_BUF(&attr.dsn, attr.why)
 #define SENT_ATTR(attr) \
-	attr.queue_id, attr.arrival_time, &attr.rcpt, attr.relay, \
+	attr.queue_id, &attr.msg_stats, &attr.rcpt, attr.relay, \
 	DSN_FROM_DSN_BUF(&attr.dsn, attr.why)
 #define COPY_ATTR(attr) \
 	attr.sender, attr.rcpt.orig_addr, attr.delivered, attr.fp

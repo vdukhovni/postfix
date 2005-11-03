@@ -1309,9 +1309,6 @@ sane_accept.o: msg.h
 sane_accept.o: sane_accept.c
 sane_accept.o: sane_accept.h
 sane_accept.o: sys_defs.h
-sane_basename.o: msg.h
-sane_basename.o: mymalloc.c
-sane_basename.o: mymalloc.h
 sane_basename.o: sane_basename.c
 sane_basename.o: stringops.h
 sane_basename.o: sys_defs.h

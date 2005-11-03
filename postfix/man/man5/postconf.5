@@ -3323,15 +3323,61 @@ delivery performance.
 This feature is available in Postfix 2.2 and later.
 .SH smtp_connection_cache_reuse_limit (default: 10)
 When SMTP connection caching is enabled, the number of times that
-an SMTP session is reused before it is closed.
+an SMTP session may be reused before it is closed.
 .PP
-This feature is available in Postfix 2.2 and later.
+This feature is available in Postfix 2.2. In Postfix 2.3 it is
+replaced by $smtp_connection_reuse_time_limit.
 .SH smtp_connection_cache_time_limit (default: 2s)
 When SMTP connection caching is enabled, the amount of time that
 an unused SMTP client socket is kept open before it is closed.  Do
 not specify larger values without permission from the remote sites.
 .PP
 This feature is available in Postfix 2.2 and later.
+.SH smtp_connection_reuse_time_limit (default: 300s)
+The amount of time during which Postfix will use an SMTP
+connection repeatedly.  The timer starts when the connection is
+initiated (i.e. it includes the connect, greeting and helo latency,
+in addition to the latencies of subsequent mail delivery transactions).
+.PP
+This feature addresses a performance stability problem with
+remote SMTP servers. This problem is not specific to Postfix: it
+can happen when any MTA sends large amounts of SMTP email to a site
+that has multiple MX hosts.
+.PP
+The problem starts when one of a set of MX hosts becomes slower
+than the rest.  Even though SMTP clients connect to fast and slow
+MX hosts with equal probability, the slow MX host ends up with more
+simultaneous inbound connections than the faster MX hosts, because
+the slow MX host needs more time to serve each client request.
+.PP
+The slow MX host becomes a connection attractor.  If one MX
+host becomes N times slower than the rest, it dominates mail delivery
+latency unless there are more than N fast MX hosts to counter the
+effect. And if the number of MX hosts is smaller than N, the mail
+delivery latency becomes effectively that of the slowest MX host
+divided by the total number of MX hosts.
+.PP
+The solution uses connection caching in a way that differs from
+Postfix 2.2.  By limiting the amount of time during which a connection
+can be used repeatedly (instead of limiting the number of deliveries
+over that connection), Postfix not only restores fairness in the
+distribution of simultaneous connections across a set of MX hosts,
+it also favors deliveries over connections that perform well, which
+is exactly what we want.
+.PP
+The default reuse time limit, 300s, is comparable to the various
+smtp transaction timeouts which are fair estimates of maximum excess
+latency for a slow delivery.  Note that hosts may accept thousands
+of messages over a single connection within the default connection
+reuse time limit. This number is much larger than the default Postfix
+2.2 limit of 10 messages per cached connection. It may prove necessary
+to lower the limit to avoid interoperability issues with MTAs that
+exhibit bugs when many messages are delivered via a single connection.
+A lower reuse time limit risks losing the benefit of connection
+reuse when the average connection and mail delivery latency exceeds
+the reuse time limit.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH smtp_data_done_timeout (default: 600s)
 The SMTP client time limit for sending the SMTP ".", and for receiving
 the server response.

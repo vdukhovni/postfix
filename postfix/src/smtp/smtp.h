@@ -197,7 +197,8 @@ typedef struct SMTP_SESSION {
     int     sndbufsize;			/* PIPELINING buffer size */
     int     send_proto_helo;		/* XFORWARD support */
 
-    int     reuse_count;		/* how many uses left */
+    time_t  expire_time;		/* session reuse expiration time */
+    int     reuse_count;		/* # of times reused (for logging) */
 
 #ifdef USE_SASL_AUTH
     char   *sasl_mechanism_list;	/* server mechanism list */
@@ -221,8 +222,8 @@ typedef struct SMTP_SESSION {
 
 } SMTP_SESSION;
 
-extern SMTP_SESSION *smtp_session_alloc(VSTREAM *, const char *,
-			         const char *, const char *, unsigned, int);
+extern SMTP_SESSION *smtp_session_alloc(VSTREAM *, const char *, const char *,
+			               const char *, unsigned, time_t, int);
 extern void smtp_session_free(SMTP_SESSION *);
 extern int smtp_session_passivate(SMTP_SESSION *, VSTRING *, VSTRING *);
 extern SMTP_SESSION *smtp_session_activate(int, VSTRING *, VSTRING *);
@@ -247,6 +248,68 @@ extern int smtp_helo(SMTP_STATE *, int);
 extern int smtp_xfer(SMTP_STATE *);
 extern int smtp_rset(SMTP_STATE *);
 extern int smtp_quit(SMTP_STATE *);
+
+ /*
+  * A connection is re-usable if session->expire_time is > 0 and the
+  * expiration time has not been reached.  This is subtle because the timer
+  * can expire between sending a command and receiving the reply for that
+  * command.
+  * 
+  * But wait, there is more! When SMTP command pipelining is enabled, there are
+  * two protocol loops that execute at very different times: one loop that
+  * generates commands, and one loop that receives replies to those commands.
+  * These will be called "sender loop" and "receiver loop", respectively. At
+  * well-defined protocol synchronization points, the sender loop pauses to
+  * let the receiver loop catch up.
+  * 
+  * When we choose to reuse a connection, both the sender and receiver protocol
+  * loops end with "." (mail delivery) or "RSET" (address probe). When we
+  * choose not to reuse, both the sender and receiver protocol loops end with
+  * "QUIT". The problem is that we must make the same protocol choices in
+  * both the sender and receiver loops, even though those loops may execute
+  * at completely different times.
+  * 
+  * We "freeze" the choice in the sender loop, just before we generate "." or
+  * "RSET". The reader loop leaves the connection cachable even if the timer
+  * expires by the time the response arrives. The connection cleanup code
+  * will call smtp_quit() for connections with an expired cache expiration
+  * timer.
+  * 
+  * We could have made the programmer's life a lot simpler by not making a
+  * choice at all, and always leaving it up to the connection cleanup code to
+  * call smtp_quit() for connections with an expired cache expiration timer.
+  * 
+  * As a general principle, neither the sender loop nor the receiver loop must
+  * modify the connection caching state, if that can affect the receiver
+  * state machine for not-yet processed replies to already-generated
+  * commands. This restriction does not apply when we have to exit the
+  * protocol loops prematurely due to e.g., timeout or connection loss, so
+  * that those pending replies will never be received.
+  * 
+  * But wait, there is even more! Only the first good connection for a specific
+  * destination may be cached under both the next-hop destination name and
+  * the server address; connections to alternate servers must be cached under
+  * the server address alone. This means we must distinguish between bad
+  * connections and other reasons why connections cannot be cached.
+  */
+#define THIS_SESSION_IS_CACHED \
+	(session->expire_time > 0)
+
+#define THIS_SESSION_IS_EXPIRED \
+	(THIS_SESSION_IS_CACHED \
+	    && session->expire_time < vstream_ftime(session->stream))
+
+#define THIS_SESSION_IS_BAD \
+	(session->expire_time < 0)
+
+#define DONT_CACHE_THIS_SESSION \
+	(session->expire_time = 0)
+
+#define DONT_CACHE_BAD_SESSION \
+	(session->expire_time = -1)
+
+#define CACHE_THIS_SESSION_UNTIL(when) \
+	(session->expire_time = (when))
 
  /*
   * smtp_chat.c

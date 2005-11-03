@@ -22,6 +22,7 @@
   */
 #include <recipient_list.h>
 #include <dsn.h>
+#include <msg_stats.h>
 
  /*
   * Structure of a server mail delivery request.
@@ -36,7 +37,7 @@ typedef struct DELIVER_REQUEST {
     char   *nexthop;			/* next hop name */
     char   *encoding;			/* content encoding */
     char   *sender;			/* envelope sender */
-    long    arrival_time;		/* arrival time */
+    MSG_STATS msg_stats;		/* time profile */
     RECIPIENT_LIST rcpt_list;		/* envelope recipients */
     DSN    *hop_status;			/* DSN status */
     char   *client_name;		/* client hostname */

@@ -6,12 +6,14 @@
 /* SYNOPSIS
 /*	#include "smtp.h"
 /*
-/*	SMTP_SESSION *smtp_session_alloc(stream, dest, host, addr, port, flags)
+/*	SMTP_SESSION *smtp_session_alloc(stream, dest, host, addr,
+/*					port, start, flags)
 /*	VSTREAM *stream;
 /*	char	*dest;
 /*	char	*host;
 /*	char	*addr;
 /*	unsigned port;
+/*	time_t	start;
 /*	int	flags;
 /*
 /*	void	smtp_session_free(session)
@@ -59,6 +61,8 @@
 /*	The address of the host that we are connected to.
 /* .IP port
 /*	The remote port, network byte order.
+/* .IP start
+/*	The time when this connection was opened.
 /* .IP flags
 /*	Zero or more of the following:
 /* .RS
@@ -188,7 +192,8 @@ static void smtp_tls_site_policy(SMTP_TLS_SITE_POLICY *policy,
 
 SMTP_SESSION *smtp_session_alloc(VSTREAM *stream, const char *dest,
 				         const char *host, const char *addr,
-				         unsigned port, int flags)
+				         unsigned port, time_t start,
+				         int flags)
 {
     SMTP_SESSION *session;
 
@@ -214,16 +219,16 @@ SMTP_SESSION *smtp_session_alloc(VSTREAM *stream, const char *dest,
     session->scratch = vstring_alloc(100);
     session->scratch2 = vstring_alloc(100);
     smtp_chat_init(session);
-    session->features = 0;
     session->mime_state = 0;
 
     session->sndbufsize = 0;
     session->send_proto_helo = 0;
 
     if (flags & SMTP_SESS_FLAG_CACHE)
-	session->reuse_count = var_smtp_reuse_limit;
+	CACHE_THIS_SESSION_UNTIL(start + var_smtp_reuse_time);
     else
-	session->reuse_count = 0;
+	DONT_CACHE_THIS_SESSION;
+    session->reuse_count = 0;
 
 #ifdef USE_SASL_AUTH
     smtp_sasl_connect(session);
@@ -342,12 +347,16 @@ int     smtp_session_passivate(SMTP_SESSION *session, VSTRING *dest_prop,
      * how many non-delivering mail transactions there were during this
      * session, and perhaps other statistics, so that we don't reuse a
      * session too much.
+     * 
+     * XXX Be sure to use unsigned types in the format string. Sign characters
+     * would be rejected by the alldig() test on the reading end.
      */
-    vstring_sprintf(endp_prop, "%s\n%s\n%s\n%u\n%u\n%u\n%u",
+    vstring_sprintf(endp_prop, "%u\n%s\n%s\n%s\n%u\n%u\n%lu\n%u",
+		    session->reuse_count,
 		    session->dest, session->host,
 		    session->addr, session->port,
 		    session->features & SMTP_FEATURE_ENDPOINT_MASK,
-		    session->reuse_count,
+		    (long) session->expire_time,
 		    session->sndbufsize);
 
     /*
@@ -385,7 +394,8 @@ SMTP_SESSION *smtp_session_activate(int fd, VSTRING *dest_prop,
     const char *addr;
     unsigned port;
     unsigned features;			/* server features */
-    unsigned reuse_count;		/* how reuses left */
+    time_t  expire_time;		/* session re-use expiration time */
+    unsigned reuse_count;		/* # times reused */
     unsigned sndbufsize;		/* PIPELINING buffer size */
 
     /*
@@ -397,6 +407,11 @@ SMTP_SESSION *smtp_session_activate(int fd, VSTRING *dest_prop,
      * suitable for zero-length fields.
      */
     endp_props = STR(endp_prop);
+    if ((prop = mystrtok(&endp_props, "\n")) == 0 || !alldig(prop)) {
+	msg_warn("%s: bad cached session reuse count property", myname);
+	return (0);
+    }
+    reuse_count = atoi(prop);
     if ((dest = mystrtok(&endp_props, "\n")) == 0) {
 	msg_warn("%s: missing cached session destination property", myname);
 	return (0);
@@ -422,10 +437,14 @@ SMTP_SESSION *smtp_session_activate(int fd, VSTRING *dest_prop,
     features = atoi(prop);
 
     if ((prop = mystrtok(&endp_props, "\n")) == 0 || !alldig(prop)) {
-	msg_warn("%s: bad cached session reuse_count property", myname);
+	msg_warn("%s: bad cached session expiration time property", myname);
 	return (0);
     }
-    reuse_count = atoi(prop);
+#ifdef MISSING_STRTOUL
+    expire_time = strtol(prop, 0, 10);
+#else
+    expire_time = strtoul(prop, 0, 10);
+#endif
 
     if ((prop = mystrtok(&endp_props, "\n")) == 0 || !alldig(prop)) {
 	msg_warn("%s: bad cached session sndbufsize property", myname);
@@ -445,15 +464,19 @@ SMTP_SESSION *smtp_session_activate(int fd, VSTRING *dest_prop,
     /*
      * Allright, bundle up what we have sofar.
      */
-    session = smtp_session_alloc(vstream_fdopen(fd, O_RDWR),
-			       dest, host, addr, port, SMTP_SESS_FLAG_NONE);
+    session = smtp_session_alloc(vstream_fdopen(fd, O_RDWR), dest, host,
+			       addr, port, (time_t) 0, SMTP_SESS_FLAG_NONE);
     session->features = (features | SMTP_FEATURE_FROM_CACHE);
-    session->reuse_count = reuse_count - 1;
+    CACHE_THIS_SESSION_UNTIL(expire_time);
+    session->reuse_count = ++reuse_count;
     session->sndbufsize = sndbufsize;
 
     if (msg_verbose)
-	msg_info("%s: dest=%s host=%s addr=%s port=%u features=0x%x, reuse=%u, sndbuf=%u",
-		 myname, dest, host, addr, ntohs(port), features, reuse_count, sndbufsize);
+	msg_info("%s: dest=%s host=%s addr=%s port=%u features=0x%x, "
+		 "ttl=%ld, reuse=%d, sndbuf=%u",
+		 myname, dest, host, addr, ntohs(port), features,
+		 (long) (expire_time - time((time_t *) 0)), reuse_count,
+		 sndbufsize);
 
     /*
      * Re-activate the SASL attributes.
