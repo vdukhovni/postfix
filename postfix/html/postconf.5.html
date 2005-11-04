@@ -1902,6 +1902,34 @@ Example:
 
 </DD>
 
+<DT><b><a name="delay_logging_time_resolution">delay_logging_time_resolution</a>
+(default: 10000)</b></DT><DD>
+
+<p> The time resolution (microseconds) of the sub-second delay
+values that are logged for subsequent message delivery stages.
+Specify a power of 10 in the range from 1 to 100000. </p>
+
+<p> The format of the "delays=a/b/c/d" logging is as follows: </p>
+
+<ul>
+
+<li> a = time before the queue manager selected the queue file
+
+<li> b = time in queue manager
+
+<li> c = time in connection setup, including EHLO and TLS
+
+<li> d = time in message transfer
+
+</ul>
+
+<p>  Delay values less than <a href="postconf.5.html#delay_logging_time_resolution">delay_logging_time_resolution</a> are logged
+as "0", while delay values less than 10s are logged with at most
+two-digit precision.  </p>
+
+
+</DD>
+
 <DT><b><a name="delay_notice_recipient">delay_notice_recipient</a>
 (default: postmaster)</b></DT><DD>
 

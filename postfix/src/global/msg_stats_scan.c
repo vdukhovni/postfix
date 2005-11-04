@@ -12,9 +12,9 @@
 /*	int	flags;
 /*	void	*ptr;
 /* DESCRIPTION
-/*	msg_stats_scan() reads a MSG_STATS from the named stream using the
-/*	specified attribute scan routine. msg_stats_scan() is meant
-/*	to be passed as a call-back to attr_scan(), thusly:
+/*	msg_stats_scan() reads an MSG_STATS from the named stream
+/*	using the specified attribute scan routine. msg_stats_scan()
+/*	is meant to be passed as a call-back to attr_scan(), thusly:
 /*
 /*	... ATTR_SCAN_FUNC, msg_stats_scan, (void *) &stats, ...
 /* DIAGNOSTICS

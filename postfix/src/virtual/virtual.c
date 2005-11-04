@@ -211,6 +211,9 @@
 /* .IP "\fBdaemon_timeout (18000s)\fR"
 /*	How much time a Postfix daemon process may take to handle a
 /*	request before it is terminated by a built-in watchdog timer.
+/* .IP "\fBdelay_logging_time_resolution (10000)\fR"
+/*	The time resolution (microseconds) of the sub-second delay
+/*	values that are logged for subsequent message delivery stages.
 /* .IP "\fBipc_timeout (3600s)\fR"
 /*	The time limit for sending or receiving information over an internal
 /*	communication channel.

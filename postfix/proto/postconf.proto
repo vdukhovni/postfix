@@ -8649,3 +8649,27 @@ the name matches the client IP address. A client name is set to
 "unknown" when it cannot be looked up or verified, or when name
 lookup is disabled.  Turning off name lookup reduces delays due to
 DNS lookup and increases the maximal inbound delivery rate. </p>
+
+%PARAM delay_logging_time_resolution 10000
+
+<p> The time resolution (microseconds) of the sub-second delay
+values that are logged for subsequent message delivery stages. 
+Specify a power of 10 in the range from 1 to 100000. </p>
+
+<p> The format of the "delays=a/b/c/d" logging is as follows: </p>
+
+<ul>
+
+<li> a = time before the queue manager selected the queue file
+
+<li> b = time in queue manager
+
+<li> c = time in connection setup, including EHLO and TLS
+
+<li> d = time in message transfer
+
+</ul>
+
+<p>  Delay values less than delay_logging_time_resolution are logged
+as "0", while delay values less than 10s are logged with at most
+two-digit precision.  </p>

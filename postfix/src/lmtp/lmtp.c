@@ -174,6 +174,9 @@
 /* .IP "\fBdaemon_timeout (18000s)\fR"
 /*	How much time a Postfix daemon process may take to handle a
 /*	request before it is terminated by a built-in watchdog timer.
+/* .IP "\fBdelay_logging_time_resolution (10000)\fR"
+/*	The time resolution (microseconds) of the sub-second delay
+/*	values that are logged for subsequent message delivery stages.
 /* .IP "\fBdisable_dns_lookups (no)\fR"
 /*	Disable DNS lookups in the Postfix SMTP and LMTP clients.
 /* .IP "\fBipc_timeout (3600s)\fR"

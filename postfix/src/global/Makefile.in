@@ -882,6 +882,7 @@ log_adhoc.o: dsn.h
 log_adhoc.o: dsn_buf.h
 log_adhoc.o: log_adhoc.c
 log_adhoc.o: log_adhoc.h
+log_adhoc.o: mail_params.h
 log_adhoc.o: msg_stats.h
 log_adhoc.o: recipient_list.h
 mail_addr.o: ../../include/stringops.h

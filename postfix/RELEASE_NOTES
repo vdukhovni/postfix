@@ -42,13 +42,25 @@ Postfix logfile records.
 detailed logging of delays in various stages of message delivery.
 Postfix logs additional delay information as "delays=a/b/c/d" where
 a=time before queue manager, b=time in queue manager, c=connection
-setup time, d=message transmission time.
+setup time including HELO and TLS, d=message transmission time.
 
 - Logging of the connection reuse count when SMTP connections are
 used for more than one message delivery.  This information is needed
 because Postfix can now reuse connections hundreds of times or more,
 and can help to diagnose interoperability problems with servers
 that suffer from memory leaks or other resource leaks.
+
+At this point the Postfix logging for a recipient looks like this:
+
+    Nov  3 16:04:31 myname postfix/smtp[30840]: 19B6B2900FE:
+    to=<wietse@test.example.com>, orig_to=<wietse@test>,
+    relay=mail.example.com[1.2.3.4], conn_use=2, delay=0,
+    delays=0/0.01/0.05/0.1, dsn=2.0.0, status=sent (250 2.0.0 Ok)
+
+The following two logfile fields may or may not be present:
+
+    orig_to     This is omitted when the address did not change.
+    conn_use    This is omitted when a connection is used once.
 
 Incompatibility with snapshot 20051026
 ======================================

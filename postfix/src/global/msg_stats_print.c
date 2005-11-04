@@ -4,7 +4,7 @@
 /* SUMMARY
 /*	write MSG_STATS structure to stream
 /* SYNOPSIS
-/*	#include <msg_stats_print.h>
+/*	#include <msg_stats.h>
 /*
 /*	int	msg_stats_print(print_fn, stream, flags, ptr)
 /*	ATTR_PRINT_MASTER_FN print_fn;
@@ -12,9 +12,10 @@
 /*	int	flags;
 /*	void	*ptr;
 /* DESCRIPTION
-/*	msg_stats_print() writes a MSG_STATS structure to the named stream using
-/*	the specified attribute print routine. msg_stats_print() is meant
-/*	to be passed as a call-back to attr_print(), thusly:
+/*	msg_stats_print() writes an MSG_STATS structure to the named
+/*	stream using the specified attribute print routine.
+/*	msg_stats_print() is meant to be passed as a call-back to
+/*	attr_print(), thusly:
 /*
 /*	... ATTR_PRINT_FUNC, msg_stats_print, (void *) stats, ...
 /* DIAGNOSTICS

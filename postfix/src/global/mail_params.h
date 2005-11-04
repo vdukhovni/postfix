@@ -2388,6 +2388,15 @@ extern char *var_msg_strip_chars;
 #define DEF_FROZEN_DELIVERED		1
 extern bool var_frozen_delivered;
 
+ /*
+  * Delay logging time resolution.
+  */
+#define VAR_DELAY_RESOLUTION		"delay_logging_time_resolution"
+#define MAX_DELAY_RESOLUTION		100000
+#define DEF_DELAY_RESOLUTION		10000
+#define MIN_DELAY_RESOLUTION		1
+extern int var_delay_resolution;
+
 /* LICENSE
 /* .ad
 /* .fi

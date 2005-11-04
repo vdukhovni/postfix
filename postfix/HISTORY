@@ -11277,13 +11277,14 @@ Apologies for any names omitted.
 	Completion of support for time stamps from different stages
 	of message delivery. The information is now logged as
 	"delays=a/b/c/d" where a=time before queue manager, b=time
-	in queue manager, c=connection setup time, d=message
-	transmission time. Unlike Victor's example which used time
-	differences, this implementation uses absolute times. The
-	decision of what numbers to subtract actually depends on
-	program history, so we want to do it in one place.  Files:
-	global/log_adhoc.c, smtp/smtp_connect.c, smtp/smtp_proto.c,
-	smtp/smtp_trouble.c, lmtp/lmtp_proto.c, lmtp/lmtp_trouble.c.
+	in queue manager, c=connection setup including HELO and
+	TLS, d=message transmission time. Unlike Victor's example
+	which used time differences, this implementation uses
+	absolute times. The decision of what numbers to subtract
+	actually depends on program history, so we want to do it
+	in one place.  Files: global/log_adhoc.c, smtp/smtp_connect.c,
+	smtp/smtp_proto.c, smtp/smtp_trouble.c, lmtp/lmtp_proto.c,
+	lmtp/lmtp_trouble.c.
 
 20051103
 
@@ -11293,6 +11294,13 @@ Apologies for any names omitted.
 	or throttled.  Delays are now logged if larger than 0.01
 	second. Files: *qmgr/qmgr_deliver.c, global/deliver_request.c,
 	global/log_adhoc.c.
+
+20051104
+
+	New parameter delay_logging_time_resolution (default: 10000
+	microseconds, or 0.01 second) that controls the detail in
+	the new "delays=a/b/c/d" logging. Specify a power of 10
+	in the range from 1 to 100000. File: global/log_adhoc.c.
 
 Open problems:
 

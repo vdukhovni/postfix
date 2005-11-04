@@ -139,6 +139,7 @@ while (<>) {
     s;\bdefer_code\b;<a href="postconf.5.html#defer_code">$&</a>;g;
     s;\bdefer_service_name\b;<a href="postconf.5.html#defer_service_name">$&</a>;g;
     s;\bdefer_transports\b;<a href="postconf.5.html#defer_transports">$&</a>;g;
+    s;\bdelay_logging_time_resolution\b;<a href="postconf.5.html#delay_logging_time_resolution">$&</a>;g;
     s;\bdelay_notice_recip[-</bB>]*\n* *[<bB>]*ient\b;<a href="postconf.5.html#delay_notice_recipient">$&</a>;g;
     s;\bdelay_warning_time\b;<a href="postconf.5.html#delay_warning_time">$&</a>;g;
     s;\bdeliver_lock_attempts\b;<a href="postconf.5.html#deliver_lock_attempts">$&</a>;g;

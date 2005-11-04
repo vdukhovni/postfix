@@ -50,6 +50,9 @@
 /* .IP "\fBdaemon_timeout (18000s)\fR"
 /*	How much time a Postfix daemon process may take to handle a
 /*	request before it is terminated by a built-in watchdog timer.
+/* .IP "\fBdelay_logging_time_resolution (10000)\fR"
+/*	The time resolution (microseconds) of the sub-second delay
+/*	values that are logged for subsequent message delivery stages.
 /* .IP "\fBdouble_bounce_sender (double-bounce)\fR"
 /*	The sender address of postmaster notifications that are generated
 /*	by the mail system.

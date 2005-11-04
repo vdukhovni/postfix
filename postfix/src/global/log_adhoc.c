@@ -67,6 +67,7 @@
 /* Global library. */
 
 #include <log_adhoc.h>
+#include <mail_params.h>
 
 /* log_adhoc - ad-hoc logging */
 
@@ -163,13 +164,19 @@ void    log_adhoc(const char *id, MSG_STATS *stats, RECIPIENT *recipient,
     if (stats->reuse_count > 0)
 	vstring_sprintf_append(buf, ", conn_use=%d", stats->reuse_count + 1);
 
+#define MILLION		1000000
+#define DMILLION	((double) MILLION)
+
 #define PRETTY_FORMAT(b, x) \
     do { \
-	if ((x).tv_sec > 0 || (x).tv_usec < 10000) { \
-	    vstring_sprintf_append((b), "/%ld", (long) (x).tv_sec); \
+	if ((x).tv_sec > 9 \
+	    || ((x).tv_sec == 0 && (x).tv_usec < var_delay_resolution)) { \
+	    vstring_sprintf_append((b), "/%ld", \
+		(long) (x).tv_sec + ((x).tv_usec > (MILLION / 2))); \
 	} else { \
-	    vstring_sprintf_append((b), "/%.1g", \
-		    (x).tv_sec + (x).tv_usec / 1000000.0); \
+	    vstring_sprintf_append((b), "/%.2g", \
+		(x).tv_sec + ((x).tv_usec / var_delay_resolution) \
+		    * (var_delay_resolution / DMILLION)); \
 	} \
     } while (0)
 

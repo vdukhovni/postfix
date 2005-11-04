@@ -104,6 +104,7 @@
 /*	int     var_strict_encoding;
 /*	int     var_verify_neg_cache;
 /*	int	var_oldlog_compat;
+/*	int	var_delay_resolution;
 /*
 /*	void	mail_params_init()
 /*
@@ -298,6 +299,7 @@ int     var_strict_8bit_body;
 int     var_strict_encoding;
 int     var_verify_neg_cache;
 int     var_oldlog_compat;
+int     var_delay_resolution;
 
 const char null_format_string[1] = "";
 
@@ -561,6 +563,7 @@ void    mail_params_init()
 	VAR_SMTP_TLS_LOGLEVEL, DEF_SMTP_TLS_LOGLEVEL, &var_smtp_tls_loglevel, 0, 0,
 	VAR_TLS_DAEMON_RAND_BYTES, DEF_TLS_DAEMON_RAND_BYTES, &var_tls_daemon_rand_bytes, 1, 0,
 #endif
+	VAR_DELAY_RESOLUTION, DEF_DELAY_RESOLUTION, &var_delay_resolution, MIN_DELAY_RESOLUTION, MAX_DELAY_RESOLUTION,
 	0,
     };
     static CONFIG_TIME_TABLE time_defaults[] = {

@@ -254,8 +254,11 @@
 /*	How much time a Postfix daemon process may take to handle a
 /*	request before it is terminated by a built-in watchdog timer.
 /* .IP "\fBdefer_transports (empty)\fR"
-/*	The names of message delivery transports that should not be delivered
-/*	to unless someone issues "\fBsendmail -q\fR" or equivalent.
+/*	The names of message delivery transports that should not deliver mail
+/*	unless someone issues "\fBsendmail -q\fR" or equivalent.
+/* .IP "\fBdelay_logging_time_resolution (10000)\fR"
+/*	The time resolution (microseconds) of the sub-second delay
+/*	values that are logged for subsequent message delivery stages.
 /* .IP "\fBhelpful_warnings (yes)\fR"
 /*	Log warnings about problematic configuration settings, and provide
 /*	helpful suggestions.
