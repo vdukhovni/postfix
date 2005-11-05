@@ -65,7 +65,7 @@ CLEANUP_STATE *cleanup_state_alloc(void)
     state->handle = 0;
     state->queue_name = 0;
     state->queue_id = 0;
-    state->time = 0;
+    state->arrival_time.tv_sec = state->arrival_time.tv_usec = 0;
     state->fullname = 0;
     state->sender = 0;
     state->recip = 0;

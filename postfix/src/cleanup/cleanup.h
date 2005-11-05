@@ -9,6 +9,11 @@
 /* .nf
 
  /*
+  * System library.
+  */
+#include <sys/time.h>
+
+ /*
   * Utility library.
   */
 #include <vstring.h>
@@ -40,7 +45,7 @@ typedef struct CLEANUP_STATE {
     MAIL_STREAM *handle;		/* mail stream handle */
     char   *queue_name;			/* queue name */
     char   *queue_id;			/* queue file basename */
-    time_t  time;			/* posting time */
+    struct timeval arrival_time;	/* arrival time */
     char   *fullname;			/* envelope sender full name */
     char   *sender;			/* envelope sender address */
     char   *recip;			/* envelope recipient address */
@@ -234,7 +239,7 @@ extern int cleanup_bounce(CLEANUP_STATE *);
   * MSG_STATS compatibility.
   */
 #define CLEANUP_MSG_STATS(stats, state) \
-    MSG_STATS_INIT1(stats, incoming_arrival, state->time)
+    MSG_STATS_INIT1(stats, incoming_arrival, state->arrival_time)
 
 /* LICENSE
 /* .ad

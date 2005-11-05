@@ -91,6 +91,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <string.h>
+#include <ctype.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>
@@ -155,7 +156,7 @@ static QMGR_MESSAGE *qmgr_message_create(const char *queue_name,
     message->fp = 0;
     message->refcount = 0;
     message->single_rcpt = 0;
-    message->arrival_time = 0;
+    message->arrival_time.tv_sec = message->arrival_time.tv_usec = 0;
     GETTIMEOFDAY(&message->active_time);
     message->data_offset = 0;
     message->queue_id = mystrdup(queue_id);
@@ -532,8 +533,11 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	    continue;
 	}
 	if (rec_type == REC_TYPE_TIME) {
-	    if (message->arrival_time == 0)
-		message->arrival_time = atol(start);
+	    if (message->arrival_time.tv_sec == 0)
+		message->arrival_time.tv_sec = atol(start);
+	    while(ISDIGIT(*start))
+		start++;
+	    message->arrival_time.tv_usec = atol(start);
 	    continue;
 	}
 	if (rec_type == REC_TYPE_FILT) {
@@ -717,7 +721,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
      */
     if (rec_type <= 0) {
 	/* Already logged warning. */
-    } else if (message->arrival_time == 0) {
+    } else if (message->arrival_time.tv_sec == 0) {
 	msg_warn("%s: message rejected: missing arrival time record",
 		 message->queue_id);
     } else if (message->sender == 0) {

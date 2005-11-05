@@ -247,7 +247,7 @@ struct QMGR_MESSAGE {
     VSTREAM *fp;			/* open queue file or null */
     int     refcount;			/* queue entries */
     int     single_rcpt;		/* send one rcpt at a time */
-    long    arrival_time;		/* time when queued */
+    struct timeval arrival_time;	/* time when queued */
     struct timeval active_time;		/* time of entry into active queue */
     time_t  queued_time;		/* sanitized time when moved to the
 					 * active queue */

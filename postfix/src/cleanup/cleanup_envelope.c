@@ -44,6 +44,7 @@
 #include <sys_defs.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>
@@ -200,7 +201,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	    state->errs |= CLEANUP_STAT_BAD;
 	    return;
 	}
-	if (state->time == 0) {
+	if (state->arrival_time.tv_sec == 0) {
 	    msg_warn("%s: message rejected: missing time envelope record",
 		     state->queue_id);
 	    state->errs |= CLEANUP_STAT_BAD;
@@ -209,7 +210,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	if ((state->flags & CLEANUP_FLAG_WARN_SEEN) == 0
 	    && var_delay_warn_time > 0) {
 	    cleanup_out_format(state, REC_TYPE_WARN, REC_TYPE_WARN_FORMAT,
-			       (long) state->time + var_delay_warn_time);
+		   (long) state->arrival_time.tv_sec + var_delay_warn_time);
 	}
 	state->flags |= CLEANUP_FLAG_INRCPT;
     }
@@ -298,9 +299,12 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	return;
     if (type == REC_TYPE_TIME) {
 	/* First instance wins. */
-	if (state->time == 0) {
-	    state->time = atol(buf);
+	if (state->arrival_time.tv_sec == 0) {
+	    state->arrival_time.tv_sec = atol(buf);
 	    cleanup_out(state, type, buf, len);
+	    while (ISDIGIT(*buf))
+		buf++;
+	    state->arrival_time.tv_usec = atol(buf);
 	}
 	return;
     }

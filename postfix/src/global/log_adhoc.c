@@ -76,8 +76,8 @@ void    log_adhoc(const char *id, MSG_STATS *stats, RECIPIENT *recipient,
 		          const char *status)
 {
     static VSTRING *buf;
-    int     delay;
-    int  pdelay;			/* time before queue manager */
+    struct timeval delay;
+    struct timeval pdelay;		/* time before queue manager */
     struct timeval adelay;		/* queue manager latency */
     struct timeval sdelay;		/* connection set-up latency */
     struct timeval xdelay;		/* transmission latency */
@@ -138,12 +138,13 @@ void    log_adhoc(const char *id, MSG_STATS *stats, RECIPIENT *recipient,
 	now = stats->deliver_done;
     else
 	GETTIMEOFDAY(&now);
-    delay = now.tv_sec - stats->incoming_arrival;
+
+    DELTA(delay, now, stats->incoming_arrival);
     adelay.tv_sec = adelay.tv_usec =
 	sdelay.tv_sec = sdelay.tv_usec =
 	xdelay.tv_sec = xdelay.tv_usec = 0;
     if (stats->active_arrival.tv_sec) {
-	pdelay = stats->active_arrival.tv_sec - stats->incoming_arrival;
+	DELTA(pdelay, stats->active_arrival, stats->incoming_arrival);
 	if (stats->agent_handoff.tv_sec) {
 	    DELTA(adelay, stats->agent_handoff, stats->active_arrival);
 	    if (stats->conn_setup_done.tv_sec) {
@@ -159,31 +160,41 @@ void    log_adhoc(const char *id, MSG_STATS *stats, RECIPIENT *recipient,
 	}
     } else {
 	/* No queue manager. */
-	pdelay = now.tv_sec - stats->incoming_arrival;
+	DELTA(pdelay, now, stats->incoming_arrival);
     }
+
     if (stats->reuse_count > 0)
 	vstring_sprintf_append(buf, ", conn_use=%d", stats->reuse_count + 1);
 
+    /*
+     * XXX Eliminate dependency on floating point. Wietse insists, however,
+     * that precision be limited to avoid logfile clutter. That is, numbers
+     * less than 100 must look as if they were formatted with %.2g, not as if
+     * they were formatted with %.2f.
+     */
 #define MILLION		1000000
 #define DMILLION	((double) MILLION)
 
-#define PRETTY_FORMAT(b, x) \
+#define PRETTY_FORMAT(b, slash, x) \
     do { \
 	if ((x).tv_sec > 9 \
 	    || ((x).tv_sec == 0 && (x).tv_usec < var_delay_resolution)) { \
-	    vstring_sprintf_append((b), "/%ld", \
+	    vstring_sprintf_append((b), slash "%ld", \
 		(long) (x).tv_sec + ((x).tv_usec > (MILLION / 2))); \
 	} else { \
-	    vstring_sprintf_append((b), "/%.2g", \
-		(x).tv_sec + ((x).tv_usec / var_delay_resolution) \
-		    * (var_delay_resolution / DMILLION)); \
+	    vstring_sprintf_append((b), slash "%.2g", (x).tv_sec \
+		+ ((x).tv_usec - (x).tv_usec % var_delay_resolution) \
+		    / DMILLION); \
 	} \
     } while (0)
 
-    vstring_sprintf_append(buf, ", delay=%d, delays=%d", delay, pdelay);
-    PRETTY_FORMAT(buf, adelay);
-    PRETTY_FORMAT(buf, sdelay);
-    PRETTY_FORMAT(buf, xdelay);
+    vstring_sprintf_append(buf, ", delay=");
+    PRETTY_FORMAT(buf, "", delay);
+    vstring_sprintf_append(buf, ", delays=");
+    PRETTY_FORMAT(buf, "", pdelay);
+    PRETTY_FORMAT(buf, "/", adelay);
+    PRETTY_FORMAT(buf, "/", sdelay);
+    PRETTY_FORMAT(buf, "/", xdelay);
 
     /*
      * Finally, the delivery status.

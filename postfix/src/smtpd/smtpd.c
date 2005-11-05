@@ -757,7 +757,6 @@
 #include <stdio.h>			/* remove() */
 #include <unistd.h>
 #include <stdlib.h>
-#include <time.h>
 #include <errno.h>
 #include <ctype.h>
 #include <signal.h>
@@ -1318,7 +1317,9 @@ static void mail_open_stream(SMTPD_STATE *state)
      * attributes.
      */
     if (SMTPD_STAND_ALONE(state) == 0) {
-	rec_fprintf(state->cleanup, REC_TYPE_TIME, "%ld", (long) state->time);
+	rec_fprintf(state->cleanup, REC_TYPE_TIME, "%ld %ld",
+		    (long) state->arrival_time.tv_sec,
+		    (long) state->arrival_time.tv_usec);
 	if (*var_filter_xport)
 	    rec_fprintf(state->cleanup, REC_TYPE_FILT, "%s", var_filter_xport);
 	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
@@ -1685,10 +1686,11 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     /*
      * No more early returns. The mail transaction is in progress.
      */
-    state->time = time((time_t *) 0);
+    GETTIMEOFDAY(&state->arrival_time);
     state->sender = mystrdup(STR(state->addr_buf));
-    vstring_sprintf(state->instance, "%x.%lx.%x",
-		    var_pid, (unsigned long) state->time, state->seqno++);
+    vstring_sprintf(state->instance, "%x.%lx.%lx.%x",
+		    var_pid, (unsigned long) state->arrival_time.tv_sec,
+	       (unsigned long) state->arrival_time.tv_usec, state->seqno++);
     if (verp_delims)
 	state->verp_delims = mystrdup(verp_delims);
     if (dsn_envid)
@@ -2203,7 +2205,8 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 			state->protocol, state->queue_id);
 	    quote_822_local(state->buffer, state->recipient);
 	    out_fprintf(out_stream, REC_TYPE_NORM,
-	      "\tfor <%s>; %s", STR(state->buffer), mail_date(state->time));
+			"\tfor <%s>; %s", STR(state->buffer),
+			mail_date(state->arrival_time.tv_sec));
 	} else {
 	    out_fprintf(out_stream, REC_TYPE_NORM,
 			state->cleanup ? "\tby %s (%s) with %s id %s;" :
@@ -2211,7 +2214,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 			var_myhostname, var_mail_name,
 			state->protocol, state->queue_id);
 	    out_fprintf(out_stream, REC_TYPE_NORM,
-			"\t%s", mail_date(state->time));
+			"\t%s", mail_date(state->arrival_time.tv_sec));
 	}
 #ifdef RECEIVED_ENVELOPE_FROM
 	quote_822_local(state->buffer, state->sender);

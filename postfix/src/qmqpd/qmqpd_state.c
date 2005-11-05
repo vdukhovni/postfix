@@ -64,7 +64,7 @@ QMQPD_STATE *qmqpd_state_alloc(VSTREAM *stream)
     state->client = stream;
     state->message = vstring_alloc(1000);
     state->buf = vstring_alloc(100);
-    state->time = time((time_t *) 0);
+    GETTIMEOFDAY(&state->arrival_time);
     qmqpd_peer_init(state);
     state->queue_id = 0;
     state->cleanup = 0;

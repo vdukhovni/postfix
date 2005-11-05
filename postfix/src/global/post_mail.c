@@ -135,7 +135,7 @@
 /* System library. */
 
 #include <sys_defs.h>
-#include <time.h>
+#include <sys/time.h>
 #include <stdlib.h>			/* 44BSD stdarg.h uses abort() */
 #include <stdarg.h>
 #include <string.h>
@@ -178,8 +178,11 @@ static void post_mail_init(VSTREAM *stream, const char *sender,
 			           int cleanup_flags, int trace_flags)
 {
     VSTRING *id = vstring_alloc(100);
-    long    now = time((time_t *) 0);
-    const char *date = mail_date(now);
+    struct timeval now;
+    const char *date;
+
+    GETTIMEOFDAY(&now);
+    date = mail_date(now.tv_sec);
 
     /*
      * Negotiate with the cleanup service. Give up if we can't agree.
@@ -196,7 +199,8 @@ static void post_mail_init(VSTREAM *stream, const char *sender,
      * Generate a minimal envelope section. The cleanup service will add a
      * size record.
      */
-    rec_fprintf(stream, REC_TYPE_TIME, "%ld", (long) now);
+    rec_fprintf(stream, REC_TYPE_TIME, "%ld %ld",
+		(long) now.tv_sec, (long) now.tv_usec);
     rec_fprintf(stream, REC_TYPE_ATTR, "%s=%s",
 		MAIL_ATTR_ORIGIN, MAIL_ATTR_ORG_LOCAL);
     rec_fprintf(stream, REC_TYPE_ATTR, "%s=%d",

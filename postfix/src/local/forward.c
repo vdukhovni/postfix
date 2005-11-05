@@ -53,8 +53,8 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <sys/time.h>
 #include <unistd.h>
-#include <time.h>
 
 /* Utility library. */
 
@@ -92,7 +92,7 @@ static HTABLE *forward_dt;
 typedef struct FORWARD_INFO {
     VSTREAM *cleanup;			/* clean up service handle */
     char   *queue_id;			/* forwarded message queue id */
-    time_t  posting_time;		/* posting time */
+    struct timeval posting_time;	/* posting time */
 } FORWARD_INFO;
 
 /* forward_init - prepare for forwarding */
@@ -140,7 +140,7 @@ static FORWARD_INFO *forward_open(DELIVER_REQUEST *request, const char *sender)
     info = (FORWARD_INFO *) mymalloc(sizeof(FORWARD_INFO));
     info->cleanup = cleanup;
     info->queue_id = mystrdup(STR(buffer));
-    info->posting_time = time((time_t *) 0);
+    GETTIMEOFDAY(&info->posting_time);
 
 #define FORWARD_CLEANUP_FLAGS (CLEANUP_FLAG_BOUNCE | CLEANUP_FLAG_MASK_INTERNAL)
 
@@ -152,7 +152,9 @@ static FORWARD_INFO *forward_open(DELIVER_REQUEST *request, const char *sender)
      * Send initial message envelope information. For bounces, set the
      * designated sender: mailing list owner, posting user, whatever.
      */
-    rec_fprintf(cleanup, REC_TYPE_TIME, "%ld", (long) info->posting_time);
+    rec_fprintf(cleanup, REC_TYPE_TIME, "%ld %ld",
+		(long) info->posting_time.tv_sec,
+		(long) info->posting_time.tv_usec);
     rec_fputs(cleanup, REC_TYPE_FROM, sender);
 
     /*
@@ -257,7 +259,7 @@ static int forward_send(FORWARD_INFO *info, DELIVER_REQUEST *request,
     rec_fprintf(info->cleanup, REC_TYPE_NORM, "Received: by %s (%s)",
 		var_myhostname, var_mail_name);
     rec_fprintf(info->cleanup, REC_TYPE_NORM, "\tid %s; %s",
-		info->queue_id, mail_date(info->posting_time));
+		info->queue_id, mail_date(info->posting_time.tv_sec));
     if (local_deliver_hdr_mask & DELIVER_HDR_FWD)
 	rec_fprintf(info->cleanup, REC_TYPE_NORM, "Delivered-To: %s",
 		    lowercase(STR(buffer)));
@@ -364,4 +366,3 @@ int     forward_finish(DELIVER_REQUEST *request, DELIVER_ATTR attr, int cancel)
     forward_dt = 0;
     return (status);
 }
-

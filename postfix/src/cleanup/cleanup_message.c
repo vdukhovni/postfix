@@ -580,6 +580,7 @@ static void cleanup_header_done_callback(void *context)
     char    time_stamp[1024];		/* XXX locale dependent? */
     struct tm *tp;
     TOK822 *token;
+    time_t  tv;
 
     /*
      * Add a missing (Resent-)Message-Id: header. The message ID gives the
@@ -592,7 +593,8 @@ static void cleanup_header_done_callback(void *context)
      */
     if ((state->headers_seen & (1 << (state->resent[0] ?
 			   HDR_RESENT_MESSAGE_ID : HDR_MESSAGE_ID))) == 0) {
-	tp = gmtime(&state->time);
+	tv = state->arrival_time.tv_sec;
+	tp = gmtime(&tv);
 	strftime(time_stamp, sizeof(time_stamp), "%Y%m%d%H%M%S", tp);
 	cleanup_out_format(state, REC_TYPE_NORM, "%sMessage-Id: <%s.%s@%s>",
 		state->resent, time_stamp, state->queue_id, var_myhostname);
@@ -608,7 +610,7 @@ static void cleanup_header_done_callback(void *context)
     if ((state->headers_seen & (1 << (state->resent[0] ?
 				      HDR_RESENT_DATE : HDR_DATE))) == 0) {
 	cleanup_out_format(state, REC_TYPE_NORM, "%sDate: %s",
-			   state->resent, mail_date(state->time));
+		      state->resent, mail_date(state->arrival_time.tv_sec));
     }
 
     /*
@@ -707,7 +709,7 @@ static void cleanup_message_headerbody(CLEANUP_STATE *state, int type,
     const char *myname = "cleanup_message_headerbody";
     MIME_STATE_DETAIL *detail;
     const char *cp;
-    char    *dst;
+    char   *dst;
 
     /*
      * Reject unwanted characters.

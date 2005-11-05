@@ -53,7 +53,7 @@
   * values.
   */
 typedef struct {
-    time_t  incoming_arrival;		/* incoming queue entry */
+    struct timeval incoming_arrival;	/* incoming queue entry */
     struct timeval active_arrival;	/* active queue entry */
     struct timeval agent_handoff;	/* delivery agent hand-off */
     struct timeval conn_setup_done;	/* connection set-up done */

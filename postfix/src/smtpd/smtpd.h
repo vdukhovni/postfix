@@ -11,6 +11,7 @@
  /*
   * System library.
   */
+#include <sys/time.h>
 #include <unistd.h>
 
  /*
@@ -73,7 +74,7 @@ typedef struct SMTPD_STATE {
     VSTRING *buffer;			/* SMTP client buffer */
     VSTRING *addr_buf;			/* internalized address buffer */
     char   *service;			/* for event rate control */
-    time_t  time;			/* start of MAIL FROM transaction */
+    struct timeval arrival_time;	/* start of MAIL FROM transaction */
     char   *name;			/* verified client hostname */
     char   *reverse_name;		/* unverified client hostname */
 #ifdef FORWARD_CLIENT_NAME

@@ -252,7 +252,9 @@ static void qmqpd_open_file(QMQPD_STATE *state)
      * bloody likely, but present for the sake of consistency with all other
      * Postfix points of entrance).
      */
-    rec_fprintf(state->cleanup, REC_TYPE_TIME, "%ld", (long) state->time);
+    rec_fprintf(state->cleanup, REC_TYPE_TIME, "%ld %ld",
+		(long) state->arrival_time.tv_sec,
+		(long) state->arrival_time.tv_usec);
     if (*var_filter_xport)
 	rec_fprintf(state->cleanup, REC_TYPE_FILT, "%s", var_filter_xport);
 }
@@ -406,13 +408,15 @@ static void qmqpd_write_content(QMQPD_STATE *state)
 		    state->protocol, state->queue_id);
 	quote_822_local(state->buf, state->recipient);
 	rec_fprintf(state->cleanup, REC_TYPE_NORM,
-		 "\tfor <%s>; %s", STR(state->buf), mail_date(state->time));
+		    "\tfor <%s>; %s", STR(state->buf),
+		    mail_date(state->arrival_time.tv_sec));
     } else {
 	rec_fprintf(state->cleanup, REC_TYPE_NORM,
 		    "\tby %s (%s) with %s",
 		    var_myhostname, var_mail_name, state->protocol);
 	rec_fprintf(state->cleanup, REC_TYPE_NORM,
-		    "\tid %s; %s", state->queue_id, mail_date(state->time));
+		    "\tid %s; %s", state->queue_id,
+		    mail_date(state->arrival_time.tv_sec));
     }
 #ifdef RECEIVED_ENVELOPE_FROM
     quote_822_local(state->buf, state->sender);

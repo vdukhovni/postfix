@@ -11276,9 +11276,9 @@ Apologies for any names omitted.
 
 	Completion of support for time stamps from different stages
 	of message delivery. The information is now logged as
-	"delays=a/b/c/d" where a=time before queue manager, b=time
-	in queue manager, c=connection setup including HELO and
-	TLS, d=message transmission time. Unlike Victor's example
+	"delays=a/b/c/d" where a=time before queue manager; b=time
+	in queue manager; c=connection setup including DNS, HELO
+	and TLS; d=message transmission time. Unlike Victor's example
 	which used time differences, this implementation uses
 	absolute times. The decision of what numbers to subtract
 	actually depends on program history, so we want to do it
@@ -11302,7 +11302,24 @@ Apologies for any names omitted.
 	the new "delays=a/b/c/d" logging. Specify a power of 10
 	in the range from 1 to 100000. File: global/log_adhoc.c.
 
+20051105
+
+	All delay logging now has sub-second resolution. This means
+	updating all code that reads or updates the records that
+	specify when mail arrived, and ensuring that mail submitted
+	with older Postfix versions produces sensible results.
+	Files: global/post_mail.c, global/mail_timeofday.[hc],
+	global/log_adhoc.c, postdrop/postdrop.c, pickup/pickup.c,
+	cleanup/cleanup_envelope.c, cleanup/cleanup_message.c,
+	smtpd/smtpd.c, qmqpd/qmqpd.c, *qmgr/qmgr_message.c,
+	*qmgr/qmgr_active.c, local/forward.c.
+
 Open problems:
+
+	"postsuper -r" no longer resets the message arrival time,
+	because pickup(8) no longer overrides queue file time stamp
+	information. This can be a problem when mail "on hold" is
+	released after a long time.
 
 	Is it safe to cache a connection after it has been used
 	for more than some number of address verification probes?

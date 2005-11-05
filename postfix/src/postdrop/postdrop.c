@@ -228,6 +228,7 @@ int     main(int argc, char **argv)
     char   *attr_value;
     const char *errstr;
     char   *junk;
+    struct timeval start;
 
     /*
      * Be consistent with file permissions.
@@ -336,6 +337,11 @@ int     main(int argc, char **argv)
     /* End of initializations. */
 
     /*
+     * Don't trust the caller's time information.
+     */
+    GETTIMEOFDAY(&start);
+
+    /*
      * Create queue file. mail_stream_file() never fails. Send the queue ID
      * to the caller. Stash away a copy of the queue file name so we can
      * clean up in case of a fatal error or an interrupt.
@@ -365,6 +371,9 @@ int     main(int argc, char **argv)
     vstream_control(VSTREAM_IN, VSTREAM_CTL_PATH, "stdin", VSTREAM_CTL_END);
     buf = vstring_alloc(100);
     expected = segment_info;
+    /* Override time information from the untrusted caller. */
+    rec_fprintf(dst->stream, REC_TYPE_TIME, "%ld %ld",
+		(long) start.tv_sec, (long) start.tv_usec);
     for (;;) {
 	rec_type = rec_get(VSTREAM_IN, buf, var_line_limit);
 	if (rec_type == REC_TYPE_EOF) {		/* request cancelled */
@@ -383,6 +392,9 @@ int     main(int argc, char **argv)
 	    msg_fatal("uid=%ld: unexpected record type: %d", (long) uid, rec_type);
 	if (rec_type == **expected)
 	    expected++;
+	/* Override time information from the untrusted caller. */
+	if (rec_type == REC_TYPE_TIME)
+	    continue;
 	if (rec_type == REC_TYPE_ATTR) {
 	    if ((error_text = split_nameval(vstring_str(buf), &attr_name,
 					    &attr_value)) != 0) {

@@ -198,6 +198,7 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 {
     int     type;
     int     check_first = (*expected == REC_TYPE_CONTENT[0]);
+    int     time_seen = 0;
 
     /*
      * Limit the input record size. All front-end programs should protect the
@@ -219,12 +220,16 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 	    msg_info("%s: read %c %s", info->id, type, vstring_str(buf));
 	if (type == *expected)
 	    break;
-	if (type == REC_TYPE_FROM)
+	if (type == REC_TYPE_FROM) {
 	    if (info->sender == 0)
 		info->sender = mystrdup(vstring_str(buf));
+	    /* Compatibility with Postfix < 2.3. */
+	    if (time_seen == 0)
+		rec_fprintf(cleanup, REC_TYPE_TIME, "%ld",
+			    (long) info->st.st_mtime);
+	}
 	if (type == REC_TYPE_TIME)
-	    /* Use our own arrival time record instead. */
-	    continue;
+	    time_seen = 1;
 
 	/*
 	 * XXX Workaround: REC_TYPE_FILT (used in envelopes) == REC_TYPE_CONT
@@ -277,11 +282,6 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
 	msg_warn("%s: message has been queued for %d days",
 		 info->id, (int) (now - info->st.st_mtime) / DAY_SECONDS);
     }
-
-    /*
-     * Make sure the message has a posting-time record.
-     */
-    rec_fprintf(cleanup, REC_TYPE_TIME, "%ld", (long) info->st.st_mtime);
 
     /*
      * Add content inspection transport.

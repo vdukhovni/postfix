@@ -1508,8 +1508,8 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	    } else if (prev_type == REC_TYPE_CONT)	/* missing newline */
 		smtp_fputs("", 0, session->stream);
 	    if ((session->features & SMTP_FEATURE_MAYBEPIX) != 0
-		&& request->msg_stats.incoming_arrival < vstream_ftime(session->stream)
-		- var_smtp_pix_thresh) {
+		&& request->msg_stats.incoming_arrival.tv_sec
+		< vstream_ftime(session->stream) - var_smtp_pix_thresh) {
 		msg_info("%s: enabling PIX <CRLF>.<CRLF> workaround for %s",
 			 request->queue_id, session->namaddr);
 		smtp_flush(session->stream);	/* hurts performance */
