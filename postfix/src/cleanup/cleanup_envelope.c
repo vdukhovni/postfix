@@ -210,7 +210,8 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	if ((state->flags & CLEANUP_FLAG_WARN_SEEN) == 0
 	    && var_delay_warn_time > 0) {
 	    cleanup_out_format(state, REC_TYPE_WARN, REC_TYPE_WARN_FORMAT,
-		   (long) state->arrival_time.tv_sec + var_delay_warn_time);
+			       REC_TYPE_WARN_ARG(state->arrival_time.tv_sec
+						 + var_delay_warn_time));
 	}
 	state->flags |= CLEANUP_FLAG_INRCPT;
     }
@@ -300,11 +301,8 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
     if (type == REC_TYPE_TIME) {
 	/* First instance wins. */
 	if (state->arrival_time.tv_sec == 0) {
-	    state->arrival_time.tv_sec = atol(buf);
+	    REC_TYPE_TIME_SCAN(buf, state->arrival_time);
 	    cleanup_out(state, type, buf, len);
-	    while (ISDIGIT(*buf))
-		buf++;
-	    state->arrival_time.tv_usec = atol(buf);
 	}
 	return;
     }

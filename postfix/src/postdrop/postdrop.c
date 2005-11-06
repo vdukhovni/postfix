@@ -372,8 +372,8 @@ int     main(int argc, char **argv)
     buf = vstring_alloc(100);
     expected = segment_info;
     /* Override time information from the untrusted caller. */
-    rec_fprintf(dst->stream, REC_TYPE_TIME, "%ld %ld",
-		(long) start.tv_sec, (long) start.tv_usec);
+    rec_fprintf(dst->stream, REC_TYPE_TIME, REC_TYPE_TIME_FORMAT,
+		REC_TYPE_TIME_ARG(start));
     for (;;) {
 	rec_type = rec_get(VSTREAM_IN, buf, var_line_limit);
 	if (rec_type == REC_TYPE_EOF) {		/* request cancelled */

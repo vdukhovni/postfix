@@ -152,9 +152,8 @@ static FORWARD_INFO *forward_open(DELIVER_REQUEST *request, const char *sender)
      * Send initial message envelope information. For bounces, set the
      * designated sender: mailing list owner, posting user, whatever.
      */
-    rec_fprintf(cleanup, REC_TYPE_TIME, "%ld %ld",
-		(long) info->posting_time.tv_sec,
-		(long) info->posting_time.tv_usec);
+    rec_fprintf(cleanup, REC_TYPE_TIME, REC_TYPE_TIME_FORMAT,
+		REC_TYPE_TIME_ARG(info->posting_time));
     rec_fputs(cleanup, REC_TYPE_FROM, sender);
 
     /*

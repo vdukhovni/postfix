@@ -150,7 +150,7 @@ void    smtp_rcpt_done(SMTP_STATE *state, SMTP_RESP *resp, RECIPIENT *rcpt)
 
     status = sent(DEL_REQ_TRACE_FLAGS(request->flags),
 		  request->queue_id, &request->msg_stats, rcpt,
-		  session->namaddr, &dsn);
+		  session->namaddrport, &dsn);
     if (status == 0)
 	if (request->flags & DEL_REQ_FLAG_SUCCESS)
 	    deliver_completed(state->src, rcpt->offset);

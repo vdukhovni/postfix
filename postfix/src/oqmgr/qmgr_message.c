@@ -534,10 +534,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	}
 	if (rec_type == REC_TYPE_TIME) {
 	    if (message->arrival_time.tv_sec == 0)
-		message->arrival_time.tv_sec = atol(start);
-	    while(ISDIGIT(*start))
-		start++;
-	    message->arrival_time.tv_usec = atol(start);
+		REC_TYPE_TIME_SCAN(start, message->arrival_time);
 	    continue;
 	}
 	if (rec_type == REC_TYPE_FILT) {
@@ -647,7 +644,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	if (rec_type == REC_TYPE_WARN) {
 	    if (message->warn_offset == 0) {
 		message->warn_offset = curr_offset;
-		message->warn_time = atol(start);
+		REC_TYPE_WARN_SCAN(start, message->warn_time);
 	    }
 	    continue;
 	}
@@ -748,7 +745,8 @@ void    qmgr_message_update_warn(QMGR_MESSAGE *message)
      */
     if (qmgr_message_open(message)
 	|| vstream_fseek(message->fp, message->warn_offset, SEEK_SET) < 0
-    || rec_fprintf(message->fp, REC_TYPE_WARN, REC_TYPE_WARN_FORMAT, 0L) < 0
+	|| rec_fprintf(message->fp, REC_TYPE_WARN, REC_TYPE_WARN_FORMAT,
+		       REC_TYPE_WARN_ARG(0)) < 0
 	|| vstream_fflush(message->fp))
 	msg_fatal("update queue file %s: %m", VSTREAM_PATH(message->fp));
     qmgr_message_close(message);

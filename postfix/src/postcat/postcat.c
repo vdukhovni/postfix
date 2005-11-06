@@ -65,6 +65,7 @@
 
 #include <sys_defs.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
@@ -101,6 +102,7 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 {
     int     prev_type = 0;
     int     rec_type;
+    struct timeval tv;
     time_t  time;
     int     first = 1;
     int     ch;
@@ -142,8 +144,13 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 	    vstream_printf("%9lu ", (unsigned long) offset);
 	switch (rec_type) {
 	case REC_TYPE_TIME:
+	    REC_TYPE_TIME_SCAN(STR(buffer), tv);
+	    time = tv.tv_sec;
+	    vstream_printf("%s: %s", rec_type_name(rec_type),
+			   asctime(localtime(&time)));
+	    break;
 	case REC_TYPE_WARN:
-	    time = atol(STR(buffer));
+	    REC_TYPE_WARN_SCAN(STR(buffer), time);
 	    vstream_printf("%s: %s", rec_type_name(rec_type),
 			   asctime(localtime(&time)));
 	    break;

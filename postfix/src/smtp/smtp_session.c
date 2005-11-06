@@ -221,6 +221,10 @@ SMTP_SESSION *smtp_session_alloc(VSTREAM *stream, const char *dest,
     smtp_chat_init(session);
     session->mime_state = 0;
 
+    vstring_sprintf(session->buffer, "%s:%d",
+		    session->namaddr, ntohs(session->port));
+    session->namaddrport = mystrdup(STR(session->buffer));
+
     session->sndbufsize = 0;
     session->send_proto_helo = 0;
 
@@ -295,6 +299,7 @@ void    smtp_session_free(SMTP_SESSION *session)
     myfree(session->host);
     myfree(session->addr);
     myfree(session->namaddr);
+    myfree(session->namaddrport);
     if (session->helo)
 	myfree(session->helo);
 

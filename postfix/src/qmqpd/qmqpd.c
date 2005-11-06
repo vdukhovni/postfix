@@ -252,9 +252,8 @@ static void qmqpd_open_file(QMQPD_STATE *state)
      * bloody likely, but present for the sake of consistency with all other
      * Postfix points of entrance).
      */
-    rec_fprintf(state->cleanup, REC_TYPE_TIME, "%ld %ld",
-		(long) state->arrival_time.tv_sec,
-		(long) state->arrival_time.tv_usec);
+    rec_fprintf(state->cleanup, REC_TYPE_TIME, REC_TYPE_TIME_FORMAT,
+		REC_TYPE_TIME_ARG(state->arrival_time));
     if (*var_filter_xport)
 	rec_fprintf(state->cleanup, REC_TYPE_FILT, "%s", var_filter_xport);
 }

@@ -118,7 +118,23 @@
   * this value when there are deferred mesages in the queue is dangerous!
   */
 #define REC_TYPE_WARN_FORMAT	"%15ld"	/* warning time format */
-#define REC_TYPE_WARN_CAST	long
+#define REC_TYPE_WARN_ARG(tv)	((long) (tv))
+#define REC_TYPE_WARN_SCAN(cp, tv) ((tv) = atol(cp))
+
+ /*
+  * Time information is not updated in place, but it does have complex
+  * formatting requirements, so we centralize things here.
+  */
+#define REC_TYPE_TIME_FORMAT	"%ld %ld"
+#define REC_TYPE_TIME_ARG(tv)	(long) (tv).tv_sec, (long) (tv).tv_usec
+#define REC_TYPE_TIME_SCAN(cp, tv) \
+    do { \
+	const char *_p = cp; \
+	(tv).tv_sec = atol(_p); \
+	while (ISDIGIT(*_p)) \
+	    _p++; \
+	(tv).tv_usec = atol(_p); \
+    } while (0)
 
  /*
   * Programmatic interface.

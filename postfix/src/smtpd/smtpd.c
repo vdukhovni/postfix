@@ -1317,9 +1317,8 @@ static void mail_open_stream(SMTPD_STATE *state)
      * attributes.
      */
     if (SMTPD_STAND_ALONE(state) == 0) {
-	rec_fprintf(state->cleanup, REC_TYPE_TIME, "%ld %ld",
-		    (long) state->arrival_time.tv_sec,
-		    (long) state->arrival_time.tv_usec);
+	rec_fprintf(state->cleanup, REC_TYPE_TIME, REC_TYPE_TIME_FORMAT,
+		    REC_TYPE_TIME_ARG(state->arrival_time));
 	if (*var_filter_xport)
 	    rec_fprintf(state->cleanup, REC_TYPE_FILT, "%s", var_filter_xport);
 	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",

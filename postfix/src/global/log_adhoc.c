@@ -69,6 +69,16 @@
 #include <log_adhoc.h>
 #include <mail_params.h>
 
+ /*
+  * Don't use "struct timeval" for time differences; use explicit signed
+  * types instead. The code below relies on signed values to detect clocks
+  * jumping back.
+  */
+typedef struct {
+    int     dt_sec;			/* make sure it's signed */
+    int     dt_usec;			/* make sure it's signed */
+} DELTA_TIME;
+
 /* log_adhoc - ad-hoc logging */
 
 void    log_adhoc(const char *id, MSG_STATS *stats, RECIPIENT *recipient,
@@ -76,11 +86,11 @@ void    log_adhoc(const char *id, MSG_STATS *stats, RECIPIENT *recipient,
 		          const char *status)
 {
     static VSTRING *buf;
-    struct timeval delay;
-    struct timeval pdelay;		/* time before queue manager */
-    struct timeval adelay;		/* queue manager latency */
-    struct timeval sdelay;		/* connection set-up latency */
-    struct timeval xdelay;		/* transmission latency */
+    DELTA_TIME delay;
+    DELTA_TIME pdelay;			/* time before queue manager */
+    DELTA_TIME adelay;			/* queue manager latency */
+    DELTA_TIME sdelay;			/* connection set-up latency */
+    DELTA_TIME xdelay;			/* transmission latency */
     struct timeval now;
 
     /*
@@ -92,13 +102,16 @@ void    log_adhoc(const char *id, MSG_STATS *stats, RECIPIENT *recipient,
 	buf = vstring_alloc(100);
 
     /*
-     * First, general information that identifies the transaction.
+     * First, critical information that identifies the nature of the
+     * transaction.
      */
     vstring_sprintf(buf, "%s: to=<%s>", id, recipient->address);
     if (recipient->orig_addr && *recipient->orig_addr
 	&& strcasecmp(recipient->address, recipient->orig_addr) != 0)
 	vstring_sprintf_append(buf, ", orig_to=<%s>", recipient->orig_addr);
     vstring_sprintf_append(buf, ", relay=%s", relay);
+    if (stats->reuse_count > 0)
+	vstring_sprintf_append(buf, ", conn_use=%d", stats->reuse_count + 1);
 
     /*
      * Next, performance statistics.
@@ -119,35 +132,37 @@ void    log_adhoc(const char *id, MSG_STATS *stats, RECIPIENT *recipient,
      * 
      * Don't compute the sdelay (connection setup latency) if there is no time
      * stamp for connection setup completion.
-     * 
-     * Instead of floating point, use integer math where practical.
      */
 #define DELTA(x, y, z) \
     do { \
-	(x).tv_sec = (y).tv_sec - (z).tv_sec; \
-	(x).tv_usec = (y).tv_usec - (z).tv_usec; \
-	if ((x).tv_usec < 0) { \
-	    (x).tv_usec += 1000000; \
-	    (x).tv_sec -= 1; \
+	(x).dt_sec = (y).tv_sec - (z).tv_sec; \
+	(x).dt_usec = (y).tv_usec - (z).tv_usec; \
+	if ((x).dt_usec < 0) { \
+	    (x).dt_usec += 1000000; \
+	    (x).dt_sec -= 1; \
 	} \
-	if ((x).tv_sec < 0) \
-	    (x).tv_sec = (x).tv_usec = 0; \
+	if ((x).dt_sec < 0) \
+	    (x).dt_sec = (x).dt_usec = 0; \
     } while (0)
 
-    if (stats->deliver_done.tv_sec)
+#define DELTA_ZERO(x) ((x).dt_sec = (x).dt_usec = 0)
+
+#define TIME_STAMPED(x) ((x).tv_sec > 0)
+
+    if (TIME_STAMPED(stats->deliver_done))
 	now = stats->deliver_done;
     else
 	GETTIMEOFDAY(&now);
 
     DELTA(delay, now, stats->incoming_arrival);
-    adelay.tv_sec = adelay.tv_usec =
-	sdelay.tv_sec = sdelay.tv_usec =
-	xdelay.tv_sec = xdelay.tv_usec = 0;
-    if (stats->active_arrival.tv_sec) {
+    DELTA_ZERO(adelay);
+    DELTA_ZERO(sdelay);
+    DELTA_ZERO(xdelay);
+    if (TIME_STAMPED(stats->active_arrival)) {
 	DELTA(pdelay, stats->active_arrival, stats->incoming_arrival);
-	if (stats->agent_handoff.tv_sec) {
+	if (TIME_STAMPED(stats->agent_handoff)) {
 	    DELTA(adelay, stats->agent_handoff, stats->active_arrival);
-	    if (stats->conn_setup_done.tv_sec) {
+	    if (TIME_STAMPED(stats->conn_setup_done)) {
 		DELTA(sdelay, stats->conn_setup_done, stats->agent_handoff);
 		DELTA(xdelay, now, stats->conn_setup_done);
 	    } else {
@@ -163,35 +178,31 @@ void    log_adhoc(const char *id, MSG_STATS *stats, RECIPIENT *recipient,
 	DELTA(pdelay, now, stats->incoming_arrival);
     }
 
-    if (stats->reuse_count > 0)
-	vstring_sprintf_append(buf, ", conn_use=%d", stats->reuse_count + 1);
-
     /*
      * XXX Eliminate dependency on floating point. Wietse insists, however,
      * that precision be limited to avoid logfile clutter. That is, numbers
      * less than 100 must look as if they were formatted with %.2g, not as if
-     * they were formatted with %.2f.
+     * they were formatted with %.2f, and numbers of 10 and up must have no
+     * sub-second detail at all.
      */
 #define MILLION		1000000
 #define DMILLION	((double) MILLION)
 
-#define PRETTY_FORMAT(b, slash, x) \
+#define PRETTY_FORMAT(b, text, x) \
     do { \
-	if ((x).tv_sec > 9 \
-	    || ((x).tv_sec == 0 && (x).tv_usec < var_delay_resolution)) { \
-	    vstring_sprintf_append((b), slash "%ld", \
-		(long) (x).tv_sec + ((x).tv_usec > (MILLION / 2))); \
+	if ((x).dt_sec > 9 \
+	    || ((x).dt_sec == 0 && (x).dt_usec < var_delay_resolution)) { \
+	    vstring_sprintf_append((b), text "%ld", \
+		(long) (x).dt_sec + ((x).dt_usec > (MILLION / 2))); \
 	} else { \
-	    vstring_sprintf_append((b), slash "%.2g", (x).tv_sec \
-		+ ((x).tv_usec - (x).tv_usec % var_delay_resolution) \
+	    vstring_sprintf_append((b), text "%.2g", (x).dt_sec \
+		+ ((x).dt_usec - (x).dt_usec % var_delay_resolution) \
 		    / DMILLION); \
 	} \
     } while (0)
 
-    vstring_sprintf_append(buf, ", delay=");
-    PRETTY_FORMAT(buf, "", delay);
-    vstring_sprintf_append(buf, ", delays=");
-    PRETTY_FORMAT(buf, "", pdelay);
+    PRETTY_FORMAT(buf, ", delay=", delay);
+    PRETTY_FORMAT(buf, ", delays=", pdelay);
     PRETTY_FORMAT(buf, "/", adelay);
     PRETTY_FORMAT(buf, "/", sdelay);
     PRETTY_FORMAT(buf, "/", xdelay);

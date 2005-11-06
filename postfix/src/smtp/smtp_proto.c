@@ -384,7 +384,7 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
 		if (strcasecmp(word, var_myhostname) == 0
 		    && (misc_flags & SMTP_MISC_FLAG_LOOP_DETECT) != 0) {
 		    msg_warn("host %s replied to HELO/EHLO with my own hostname %s",
-			     session->namaddr, var_myhostname);
+			     session->namaddrport, var_myhostname);
 		    if (session->features & SMTP_FEATURE_BEST_MX)
 			return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 					 SMTP_RESP_FAKE(&fake, 554, "5.4.6",
@@ -415,7 +415,7 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
 		    if ((word = mystrtok(&words, " \t")) != 0) {
 			if (!alldig(word))
 			    msg_warn("bad EHLO SIZE limit \"%s\" from %s",
-				     word, session->namaddr);
+				     word, session->namaddrport);
 			else
 			    session->size_limit = off_cvt_string(word);
 		    }
@@ -1220,7 +1220,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		case SMTP_STATE_XFORWARD_NAME_ADDR:
 		    if (resp->code / 100 != 2)
 			msg_warn("host %s said: %s (in reply to %s)",
-				 session->namaddr,
+				 session->namaddrport,
 				 translit(resp->str, "\n", " "),
 			       xfer_request[SMTP_STATE_XFORWARD_NAME_ADDR]);
 		    if (session->send_proto_helo)
@@ -1232,7 +1232,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		case SMTP_STATE_XFORWARD_PROTO_HELO:
 		    if (resp->code / 100 != 2)
 			msg_warn("host %s said: %s (in reply to %s)",
-				 session->namaddr,
+				 session->namaddrport,
 				 translit(resp->str, "\n", " "),
 			      xfer_request[SMTP_STATE_XFORWARD_PROTO_HELO]);
 		    recv_state = SMTP_STATE_MAIL;
@@ -1511,7 +1511,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		&& request->msg_stats.incoming_arrival.tv_sec
 		< vstream_ftime(session->stream) - var_smtp_pix_thresh) {
 		msg_info("%s: enabling PIX <CRLF>.<CRLF> workaround for %s",
-			 request->queue_id, session->namaddr);
+			 request->queue_id, session->namaddrport);
 		smtp_flush(session->stream);	/* hurts performance */
 		sleep(var_smtp_pix_delay);	/* not to mention this */
 	    }

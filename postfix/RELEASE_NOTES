@@ -17,6 +17,12 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
+Incompatibility with snapshot 20051106
+======================================
+
+The relay=... logging has changed and now includes the remote SMTP
+server port number as hostname[hostaddr]:port.
+
 Incompatibility with snapshot 20051105
 ======================================
 
@@ -54,8 +60,9 @@ Postfix logfile records.
 - Better insight into the nature of performance bottle necks, with
 detailed logging of delays in various stages of message delivery.
 Postfix logs additional delay information as "delays=a/b/c/d" where
-a=time before queue manager; b=time in queue manager; c=connection
-setup time including DNS, HELO and TLS; d=message transmission time.
+a=time before queue manager, including message transmission; b=time
+in queue manager; c=connection setup time including DNS, HELO and
+TLS; d=message transmission time.
 
 - Logging of the connection reuse count when SMTP connections are
 used for more than one message delivery.  This information is needed

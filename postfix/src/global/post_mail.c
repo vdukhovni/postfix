@@ -199,8 +199,8 @@ static void post_mail_init(VSTREAM *stream, const char *sender,
      * Generate a minimal envelope section. The cleanup service will add a
      * size record.
      */
-    rec_fprintf(stream, REC_TYPE_TIME, "%ld %ld",
-		(long) now.tv_sec, (long) now.tv_usec);
+    rec_fprintf(stream, REC_TYPE_TIME, REC_TYPE_TIME_FORMAT,
+		REC_TYPE_TIME_ARG(now));
     rec_fprintf(stream, REC_TYPE_ATTR, "%s=%s",
 		MAIL_ATTR_ORIGIN, MAIL_ATTR_ORG_LOCAL);
     rec_fprintf(stream, REC_TYPE_ATTR, "%s=%d",
