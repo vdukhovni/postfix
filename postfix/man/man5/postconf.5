@@ -1034,10 +1034,14 @@ defer_transports = smtp
 .fi
 .ad
 .ft R
-.SH delay_logging_time_resolution (default: 10000)
-The time resolution (microseconds) of the sub-second delay
-values that are logged for subsequent message delivery stages.
-Specify a power of 10 in the range from 1 to 100000.
+.SH delay_logging_resolution_limit (default: 2)
+The maximal number of digits after the decimal point when logging
+sub-second delay values.  Specify a number in the range 0..6.
+.PP
+Large delay values are rounded off to an integral number seconds;
+delay values below the delay_logging_resolution_limit are logged
+as "0", and small delay values are logged with at most two-digit
+precision.
 .PP
 The format of the "delays=a/b/c/d" logging is as follows:
 .IP \(bu
@@ -1049,9 +1053,7 @@ c = time in connection setup, including DNS, EHLO and TLS
 .IP \(bu
 d = time in message transmission
 .PP
-Delay values less than delay_logging_time_resolution are logged
-as "0", while delay values less than 10s are logged with at most
-two-digit precision.
+This feature is available in Postfix 2.3 and later.
 .SH delay_notice_recipient (default: postmaster)
 The recipient of postmaster notifications with the message headers
 of mail that cannot be delivered within $delay_warning_time time

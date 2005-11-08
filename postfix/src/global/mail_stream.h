@@ -12,6 +12,11 @@
 /* .nf
 
  /*
+  * System library.
+  */
+#include <sys/time.h>
+
+ /*
   * Utility library.
   */
 #include <vstream.h>
@@ -34,6 +39,7 @@ struct MAIL_STREAM {
     char   *class;			/* trigger class */
     char   *service;			/* trigger service */
     int     mode;			/* additional permissions */
+    struct timeval ctime;		/* creation time */
 };
 
 #define MAIL_STREAM_CTL_END	0	/* Terminator */

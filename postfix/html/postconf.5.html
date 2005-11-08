@@ -1902,12 +1902,16 @@ Example:
 
 </DD>
 
-<DT><b><a name="delay_logging_time_resolution">delay_logging_time_resolution</a>
-(default: 10000)</b></DT><DD>
+<DT><b><a name="delay_logging_resolution_limit">delay_logging_resolution_limit</a>
+(default: 2)</b></DT><DD>
 
-<p> The time resolution (microseconds) of the sub-second delay
-values that are logged for subsequent message delivery stages.
-Specify a power of 10 in the range from 1 to 100000. </p>
+<p> The maximal number of digits after the decimal point when logging
+sub-second delay values.  Specify a number in the range 0..6.  </p>
+
+<p> Large delay values are rounded off to an integral number seconds;
+delay values below the <a href="postconf.5.html#delay_logging_resolution_limit">delay_logging_resolution_limit</a> are logged
+as "0", and small delay values are logged with at most two-digit
+precision.  </p>
 
 <p> The format of the "delays=a/b/c/d" logging is as follows: </p>
 
@@ -1923,9 +1927,7 @@ Specify a power of 10 in the range from 1 to 100000. </p>
 
 </ul>
 
-<p>  Delay values less than <a href="postconf.5.html#delay_logging_time_resolution">delay_logging_time_resolution</a> are logged
-as "0", while delay values less than 10s are logged with at most
-two-digit precision.  </p>
+<p> This feature is available in Postfix 2.3 and later.  </p>
 
 
 </DD>

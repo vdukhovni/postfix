@@ -11301,6 +11301,7 @@ Apologies for any names omitted.
 	microseconds, or 0.01 second) that controls the detail in
 	the new "delays=a/b/c/d" logging. Specify a power of 10
 	in the range from 1 to 100000. File: global/log_adhoc.c.
+	Parameter renamed 20051108.
 
 20051105
 
@@ -11314,7 +11315,7 @@ Apologies for any names omitted.
 	smtpd/smtpd.c, qmqpd/qmqpd.c, *qmgr/qmgr_message.c,
 	*qmgr/qmgr_active.c, local/forward.c.
 
-20061106
+20051106
 
 	The SMTP client logs the remote server port in the form of
 	relay=hostname[hostaddr]:port to the local maillog file.
@@ -11326,6 +11327,20 @@ Apologies for any names omitted.
 	Cleanup: encapsulated queue file time read/write operations
 	with a few simple macros, to make future changes in time
 	representation less painful.
+
+20051108
+
+	Cleanup: eliminated floating point operations from the
+	ad-hoc delay logging code. Files: util/format_tv.[hc],
+	global/log_adhoc.c.
+
+	The delay logging resolution is now controlled with the
+	delay_logging_resolution_limit parameter, which specifies
+	the maximal number of digits after the decimal point.
+
+	Bugfix: under unlikely conditions two messages could get
+	the same message ID. Found by Victor. Files: global/mail_stream.c,
+	global/mail_queue.c.
 
 Open problems:
 

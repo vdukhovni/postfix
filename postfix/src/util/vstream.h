@@ -14,6 +14,7 @@
  /*
   * System library.
   */
+#include <sys/time.h>
 #include <time.h>
 #include <fcntl.h>
 #include <stdarg.h>
@@ -48,7 +49,7 @@ typedef struct VSTREAM {
     VSTREAM_WAITPID_FN waitpid_fn;	/* vstream_popen/close() */
     int     timeout;			/* read/write timout */
     jmp_buf *jbuf;			/* exception handling */
-    time_t  iotime;			/* time of last fill/flush */
+    struct timeval iotime;		/* time of last fill/flush */
 } VSTREAM;
 
 extern VSTREAM vstream_fstd[];		/* pre-defined streams */
@@ -99,7 +100,8 @@ extern int vstream_fdclose(VSTREAM *);
 #define vstream_ftimeout(vp)	vbuf_timeout(&(vp)->buf)
 #define vstream_clearerr(vp)	vbuf_clearerr(&(vp)->buf)
 #define VSTREAM_PATH(vp)	((vp)->path ? (vp)->path : "unknown_stream")
-#define vstream_ftime(vp)	((vp)->iotime)
+#define vstream_ftime(vp)	((time_t) ((vp)->iotime.tv_sec))
+#define vstream_ftimeval(vp)	((vp)->iotime)
 
 extern void vstream_control(VSTREAM *, int,...);
 

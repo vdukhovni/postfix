@@ -112,6 +112,9 @@
 /*
 /*	time_t	vstream_ftime(stream)
 /*	VSTREAM	*stream;
+/*
+/*	struct timeval vstream_ftimeval(stream)
+/*	VSTREAM	*stream;
 /* DESCRIPTION
 /*	The \fIvstream\fR module implements light-weight buffered I/O
 /*	similar to the standard I/O routines.
@@ -306,6 +309,9 @@
 /*	fill operation, or the last buffer flush operation for the specified
 /*	stream. This information is maintained only when stream timeouts are
 /*	enabled.
+/*
+/*	vstream_ftimeval() is like vstream_ftime() but returns more
+/*	detail.
 /* DIAGNOSTICS
 /*	Panics: interface violations. Fatal errors: out of memory.
 /* SEE ALSO
@@ -559,7 +565,7 @@ static int vstream_fflush_some(VSTREAM *stream, ssize_t to_flush)
 	    return (VSTREAM_EOF);
 	}
 	if (stream->timeout)
-	    stream->iotime = time((time_t *) 0);
+	    GETTIMEOFDAY(&stream->iotime);
 	if (msg_verbose > 2 && stream != VSTREAM_ERR && n != to_flush)
 	    msg_info("%s: %d flushed %ld/%ld", myname, stream->fd,
 		     (long) n, (long) to_flush);
@@ -695,7 +701,7 @@ static int vstream_buf_get_ready(VBUF *bp)
 	return (VSTREAM_EOF);
     default:
 	if (stream->timeout)
-	    stream->iotime = time((time_t *) 0);
+	    GETTIMEOFDAY(&stream->iotime);
 	if (msg_verbose > 2)
 	    msg_info("%s: fd %d got %ld", myname, stream->fd, (long) n);
 	bp->cnt = -n;
@@ -996,7 +1002,7 @@ VSTREAM *vstream_fdopen(int fd, int flags)
     stream->timeout = 0;
     stream->context = 0;
     stream->jbuf = 0;
-    stream->iotime = 0;
+    stream->iotime.tv_sec = stream->iotime.tv_usec = 0;
     return (stream);
 }
 
@@ -1168,7 +1174,7 @@ void    vstream_control(VSTREAM *stream, int name,...)
 	    break;
 	case VSTREAM_CTL_TIMEOUT:
 	    if (stream->timeout == 0)
-		stream->iotime = time((time_t *) 0);
+		GETTIMEOFDAY(&stream->iotime);
 	    stream->timeout = va_arg(ap, int);
 	    break;
 	case VSTREAM_CTL_EXCEPT:

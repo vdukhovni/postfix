@@ -8650,11 +8650,15 @@ the name matches the client IP address. A client name is set to
 lookup is disabled.  Turning off name lookup reduces delays due to
 DNS lookup and increases the maximal inbound delivery rate. </p>
 
-%PARAM delay_logging_time_resolution 10000
+%PARAM delay_logging_resolution_limit 2
 
-<p> The time resolution (microseconds) of the sub-second delay
-values that are logged for subsequent message delivery stages.
-Specify a power of 10 in the range from 1 to 100000. </p>
+<p> The maximal number of digits after the decimal point when logging
+sub-second delay values.  Specify a number in the range 0..6.  </p>
+
+<p> Large delay values are rounded off to an integral number seconds;
+delay values below the delay_logging_resolution_limit are logged
+as "0", and small delay values are logged with at most two-digit
+precision.  </p>
 
 <p> The format of the "delays=a/b/c/d" logging is as follows: </p>
 
@@ -8670,6 +8674,4 @@ Specify a power of 10 in the range from 1 to 100000. </p>
 
 </ul>
 
-<p>  Delay values less than delay_logging_time_resolution are logged
-as "0", while delay values less than 10s are logged with at most
-two-digit precision.  </p>
+<p> This feature is available in Postfix 2.3 and later.  </p>

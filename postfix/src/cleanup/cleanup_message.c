@@ -590,10 +590,16 @@ static void cleanup_header_done_callback(void *context)
      * 
      * XXX It is the queue ID non-inode bits that prevent messages from getting
      * the same Message-Id within the same second.
+     * 
+     * XXX An arbitrary amount of time may pass between the start of the mail
+     * transaction and the creation of a queue file. Since we guarantee queue
+     * ID uniqueness only within a second, we must ensure that the time in
+     * the message ID matches the queue ID creation time, if we use the queue
+     * ID in the message ID.
      */
     if ((state->headers_seen & (1 << (state->resent[0] ?
 			   HDR_RESENT_MESSAGE_ID : HDR_MESSAGE_ID))) == 0) {
-	tv = state->arrival_time.tv_sec;
+	tv = state->handle->ctime.tv_sec;
 	tp = gmtime(&tv);
 	strftime(time_stamp, sizeof(time_stamp), "%Y%m%d%H%M%S", tp);
 	cleanup_out_format(state, REC_TYPE_NORM, "%sMessage-Id: <%s.%s@%s>",

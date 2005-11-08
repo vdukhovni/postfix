@@ -29,7 +29,7 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	unix_recv_fd.c unix_send_fd.c unix_trigger.c unsafe.c uppercase.c \
 	username.c valid_hostname.c vbuf.c vbuf_print.c vstream.c \
 	vstream_popen.c vstring.c vstring_vstream.c watchdog.c writable.c \
-	write_buf.c write_wait.c sane_basename.c
+	write_buf.c write_wait.c sane_basename.c format_tv.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -60,7 +60,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	unix_recv_fd.o unix_send_fd.o unix_trigger.o unsafe.o uppercase.o \
 	username.o valid_hostname.o vbuf.o vbuf_print.o vstream.o \
 	vstream_popen.o vstring.o vstring_vstream.o watchdog.o writable.o \
-	write_buf.o write_wait.o sane_basename.o
+	write_buf.o write_wait.o sane_basename.o format_tv.o
 HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	chroot_uid.h cidr_match.h clean_env.h connect.h ctable.h dict.h \
 	dict_cdb.h dict_cidr.h dict_db.h dict_dbm.h dict_env.h dict_ht.h \
@@ -79,7 +79,7 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	sigdelay.h sock_addr.h spawn_command.h split_at.h stat_as.h \
 	stringops.h sys_defs.h timed_connect.h timed_wait.h trigger.h \
 	username.h valid_hostname.h vbuf.h vbuf_print.h vstream.h vstring.h \
-	vstring_vstream.h watchdog.h
+	vstring_vstream.h watchdog.h format_tv.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 DEFS	= -I. -D$(SYSTYPE)
@@ -96,7 +96,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	inet_addr_list attr_print64 attr_scan64 base64_code attr_print0 \
 	attr_scan0 host_port attr_scan_plain attr_print_plain htable \
 	unix_recv_fd unix_send_fd stream_recv_fd stream_send_fd hex_code \
-	myaddrinfo myaddrinfo4 inet_proto sane_basename
+	myaddrinfo myaddrinfo4 inet_proto sane_basename format_tv
 
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
@@ -401,11 +401,16 @@ gcctest: gccw.c gccw.ref
 	diff gccw.ref gccw.tmp
 	rm -f gccw.o gccw.tmp
 
+format_tv: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
 tests: valid_hostname_test mac_expand_test dict_test unescape_test \
 	hex_quote_test ctable_test inet_addr_list_test base64_code_test \
 	attr_scan64_test attr_scan0_test dict_pcre_test host_port_test \
 	dict_cidr_test attr_scan_plain_test htable_test hex_code_test \
-	myaddrinfo_test
+	myaddrinfo_test format_tv_test
 
 valid_hostname_test: valid_hostname valid_hostname.in valid_hostname.ref
 	./valid_hostname <valid_hostname.in 2>valid_hostname.tmp
@@ -511,6 +516,11 @@ myaddrinfo4_test: myaddrinfo4 myaddrinfo4.ref myaddrinfo4.ref2
 	./myaddrinfo4 all null.porcupine.org 10.0.0.0 >myaddrinfo4.tmp 2>&1
 	diff myaddrinfo4.ref2 myaddrinfo4.tmp
 	rm -f myaddrinfo4.tmp
+
+format_tv_test: format_tv format_tv.in format_tv.ref
+	./format_tv <format_tv.in >format_tv.tmp
+	diff format_tv.ref format_tv.tmp
+	rm -f format_tv.tmp
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \
@@ -966,6 +976,12 @@ find_inet.o: stringops.h
 find_inet.o: sys_defs.h
 find_inet.o: vbuf.h
 find_inet.o: vstring.h
+format_tv.o: format_tv.c
+format_tv.o: format_tv.h
+format_tv.o: msg.h
+format_tv.o: sys_defs.h
+format_tv.o: vbuf.h
+format_tv.o: vstring.h
 fsspace.o: fsspace.c
 fsspace.o: fsspace.h
 fsspace.o: msg.h

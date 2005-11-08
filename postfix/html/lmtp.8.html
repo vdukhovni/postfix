@@ -217,13 +217,12 @@ LMTP(8)                                                                LMTP(8)
               handle  a  request  before  it  is  terminated by a
               built-in watchdog timer.
 
-       <b><a href="postconf.5.html#delay_logging_time_resolution">delay_logging_time_resolution</a> (10000)</b>
-              The time resolution (microseconds) of the  sub-sec-
-              ond  delay  values  that  are logged for subsequent
-              message delivery stages.
+       <b><a href="postconf.5.html#delay_logging_resolution_limit">delay_logging_resolution_limit</a> (2)</b>
+              The maximal number  of  digits  after  the  decimal
+              point when logging sub-second delay values.
 
        <b><a href="postconf.5.html#disable_dns_lookups">disable_dns_lookups</a> (no)</b>
-              Disable DNS lookups in the Postfix  SMTP  and  LMTP
+              Disable  DNS  lookups  in the Postfix SMTP and LMTP
               clients.
 
        <b><a href="postconf.5.html#ipc_timeout">ipc_timeout</a> (3600s)</b>
@@ -231,36 +230,36 @@ LMTP(8)                                                                LMTP(8)
               over an internal communication channel.
 
        <b><a href="postconf.5.html#lmtp_tcp_port">lmtp_tcp_port</a> (24)</b>
-              The default TCP port that the Postfix  LMTP  client
+              The  default  TCP port that the Postfix LMTP client
               connects to.
 
        <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
-              The  maximum  amount  of  time that an idle Postfix
-              daemon process waits for the next  service  request
+              The maximum amount of time  that  an  idle  Postfix
+              daemon  process  waits for the next service request
               before exiting.
 
        <b><a href="postconf.5.html#max_use">max_use</a> (100)</b>
-              The  maximal number of connection requests before a
+              The maximal number of connection requests before  a
               Postfix daemon process terminates.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
-              The process ID  of  a  Postfix  command  or  daemon
+              The  process  ID  of  a  Postfix  command or daemon
               process.
 
        <b><a href="postconf.5.html#process_name">process_name</a> (read-only)</b>
-              The  process  name  of  a Postfix command or daemon
+              The process name of a  Postfix  command  or  daemon
               process.
 
        <b><a href="postconf.5.html#queue_directory">queue_directory</a> (see 'postconf -d' output)</b>
-              The location of the Postfix top-level queue  direc-
+              The  location of the Postfix top-level queue direc-
               tory.
 
        <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (postfix)</b>
-              The  mail  system  name  that  is  prepended to the
-              process name in syslog  records,  so  that  "smtpd"
+              The mail system  name  that  is  prepended  to  the
+              process  name  in  syslog  records, so that "smtpd"
               becomes, for example, "postfix/smtpd".
 
 <b>SEE ALSO</b>
@@ -277,7 +276,7 @@ LMTP(8)                                                                LMTP(8)
        <a href="VIRTUAL_README.html">VIRTUAL_README</a>, virtual delivery agent howto
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

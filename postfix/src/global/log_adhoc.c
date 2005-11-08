@@ -63,6 +63,7 @@
 
 #include <msg.h>
 #include <vstring.h>
+#include <format_tv.h>
 
 /* Global library. */
 
@@ -179,26 +180,14 @@ void    log_adhoc(const char *id, MSG_STATS *stats, RECIPIENT *recipient,
     }
 
     /*
-     * XXX Eliminate dependency on floating point. Wietse insists, however,
-     * that precision be limited to avoid logfile clutter. That is, numbers
-     * less than 100 must look as if they were formatted with %.2g, not as if
-     * they were formatted with %.2f, and numbers of 10 and up must have no
-     * sub-second detail at all.
+     * Round off large time values to an integral number of seconds, and
+     * display small numbers with only two digits as long as we stay above
+     * the time resolution.
      */
-#define MILLION		1000000
-#define DMILLION	((double) MILLION)
-
 #define PRETTY_FORMAT(b, text, x) \
     do { \
-	if ((x).dt_sec > 9 \
-	    || ((x).dt_sec == 0 && (x).dt_usec < var_delay_resolution)) { \
-	    vstring_sprintf_append((b), text "%ld", \
-		(long) (x).dt_sec + ((x).dt_usec > (MILLION / 2))); \
-	} else { \
-	    vstring_sprintf_append((b), text "%.2g", (x).dt_sec \
-		+ ((x).dt_usec - (x).dt_usec % var_delay_resolution) \
-		    / DMILLION); \
-	} \
+	vstring_strcat((b), text); \
+	format_tv((b), (x).dt_sec, (x).dt_usec, 2, var_delay_max_res); \
     } while (0)
 
     PRETTY_FORMAT(buf, ", delay=", delay);

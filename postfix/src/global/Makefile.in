@@ -824,6 +824,7 @@ is_header.o: ../../include/sys_defs.h
 is_header.o: is_header.c
 is_header.o: is_header.h
 log_adhoc.o: ../../include/attr.h
+log_adhoc.o: ../../include/format_tv.h
 log_adhoc.o: ../../include/msg.h
 log_adhoc.o: ../../include/sys_defs.h
 log_adhoc.o: ../../include/vbuf.h
