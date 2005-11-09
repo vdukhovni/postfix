@@ -149,16 +149,10 @@ void    smtpd_peer_init(SMTPD_STATE *state)
     if (errno == ECONNRESET || errno == ECONNABORTED) {
 	state->name = mystrdup(CLIENT_NAME_UNKNOWN);
 	state->reverse_name = mystrdup(CLIENT_NAME_UNKNOWN);
-#ifdef FORWARD_CLIENT_NAME
-	state->forward_name = mystrdup(CLIENT_NAME_UNKNOWN);
-#endif
 	state->addr = mystrdup(CLIENT_ADDR_UNKNOWN);
 	state->rfc_addr = mystrdup(CLIENT_ADDR_UNKNOWN);
 	state->name_status = SMTPD_PEER_CODE_PERM;
 	state->reverse_name_status = SMTPD_PEER_CODE_PERM;
-#ifdef FORWARD_CLIENT_NAME
-	state->forward_name_status = SMTPD_PEER_CODE_PERM;
-#endif
     }
 
     /*
@@ -255,29 +249,16 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 	if (var_smtpd_peername_lookup == 0) {
 	    state->name = mystrdup(CLIENT_NAME_UNKNOWN);
 	    state->reverse_name = mystrdup(CLIENT_NAME_UNKNOWN);
-#ifdef FORWARD_CLIENT_NAME
-	    state->forward_name = mystrdup(CLIENT_NAME_UNKNOWN);
-#endif
 	    state->name_status = SMTPD_PEER_CODE_PERM;
 	    state->reverse_name_status = SMTPD_PEER_CODE_PERM;
-#ifdef FORWARD_CLIENT_NAME
-	    state->forward_name_status = SMTPD_PEER_CODE_PERM;
-#endif
 	} else if ((aierr = sockaddr_to_hostname(sa, sa_len, &client_name,
 					 (MAI_SERVNAME_STR *) 0, 0)) != 0) {
 	    state->name = mystrdup(CLIENT_NAME_UNKNOWN);
 	    state->reverse_name = mystrdup(CLIENT_NAME_UNKNOWN);
-#ifdef FORWARD_CLIENT_NAME
-	    state->forward_name = mystrdup(CLIENT_NAME_UNKNOWN);
-#endif
 	    state->name_status = (TEMP_AI_ERROR(aierr) ?
 			       SMTPD_PEER_CODE_TEMP : SMTPD_PEER_CODE_PERM);
 	    state->reverse_name_status = (TEMP_AI_ERROR(aierr) ?
 			       SMTPD_PEER_CODE_TEMP : SMTPD_PEER_CODE_PERM);
-#ifdef FORWARD_CLIENT_NAME
-	    state->forward_name_status = (TEMP_AI_ERROR(aierr) ?
-			       SMTPD_PEER_CODE_TEMP : SMTPD_PEER_CODE_PERM);
-#endif
 	} else {
 	    struct addrinfo *res0;
 	    struct addrinfo *res;
@@ -297,23 +278,9 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 	    if (aierr) {
 		msg_warn("%s: hostname %s verification failed: %s",
 			 state->addr, state->name, MAI_STRERROR(aierr));
-#ifdef FORWARD_CLIENT_NAME
-		state->forward_name = mystrdup(CLIENT_NAME_UNKNOWN);
-		state->forward_name_status = (TEMP_AI_ERROR(aierr) ?
-			       SMTPD_PEER_CODE_TEMP : SMTPD_PEER_CODE_PERM);
-#endif
 		REJECT_PEER_NAME(state, (TEMP_AI_ERROR(aierr) ?
 			      SMTPD_PEER_CODE_TEMP : SMTPD_PEER_CODE_PERM));
 	    } else {
-#ifdef FORWARD_CLIENT_NAME
-		if (res0) {
-		    state->forward_name = mystrdup(res0->ai_canonname);
-		    state->forward_name_status = SMTPD_PEER_CODE_OK;
-		} else {
-		    state->forward_name = mystrdup(CLIENT_NAME_UNKNOWN);
-		    state->forward_name_status = SMTPD_PEER_CODE_PERM;
-		}
-#endif
 		for (res = res0; /* void */ ; res = res->ai_next) {
 		    if (res == 0) {
 			msg_warn("%s: address not listed for hostname %s",
@@ -341,16 +308,10 @@ void    smtpd_peer_init(SMTPD_STATE *state)
     else {
 	state->name = mystrdup("localhost");
 	state->reverse_name = mystrdup("localhost");
-#ifdef FORWARD_CLIENT_NAME
-	state->forward_name = mystrdup("localhost");
-#endif
 	state->addr = mystrdup("127.0.0.1");	/* XXX bogus. */
 	state->rfc_addr = mystrdup("127.0.0.1");/* XXX bogus. */
 	state->name_status = SMTPD_PEER_CODE_OK;
 	state->reverse_name_status = SMTPD_PEER_CODE_OK;
-#ifdef FORWARD_CLIENT_NAME
-	state->forward_name_status = SMTPD_PEER_CODE_OK;
-#endif
     }
 
     /*
@@ -366,9 +327,6 @@ void    smtpd_peer_reset(SMTPD_STATE *state)
 {
     myfree(state->name);
     myfree(state->reverse_name);
-#ifdef FORWARD_CLIENT_NAME
-    myfree(state->forward_name);
-#endif
     myfree(state->addr);
     myfree(state->namaddr);
     myfree(state->rfc_addr);

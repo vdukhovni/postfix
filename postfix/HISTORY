@@ -11342,6 +11342,17 @@ Apologies for any names omitted.
 	the same message ID. Found by Victor. Files: global/mail_stream.c,
 	global/mail_queue.c.
 
+20051109
+
+	qshape.pl updated for extra microsecond time field in Postfix
+	queue files.
+
+	Cleanup: removed obsolete code that handles rejected/dropped
+	connections before the HELO handshake. File: smtp/smtp_connect.c.
+
+	Bugfix: XCLIENT broke when reverse hostname support was added.
+	Fix by Tomoyuki Sakurai. File: smtpd/smtpd.c.
+
 Open problems:
 
 	"postsuper -r" no longer resets the message arrival time,
@@ -11351,11 +11362,6 @@ Open problems:
 
 	Is it safe to cache a connection after it has been used
 	for more than some number of address verification probes?
-
-	The code in smtp_connect() that catches server reject and
-	disconnect errors has become redundant. Connections that
-	fail before MAIL FROM no longer count towards the MX session
-	count limit per delivery attempt.
 
 	Access map actions such as FILTER and REDIRECT don't work
 	in smtpd_end_of_data_restrictions (or anything else that

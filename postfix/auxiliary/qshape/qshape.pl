@@ -204,7 +204,7 @@ sub qenv {
 	$dlen = $1 if ($d =~ /^\s*(\d+)\s+\d+\s+\d+/);
 	($r, $l, $d) = rec_get($h);
 	return unless (defined $r && $r eq "T");
-	$t = $d;
+	($t) = split(/\s+/, $d);
     } elsif ($r eq "S" || $r eq "F") {
 	# For embryonic queue files in the "maildrop" directory the first
 	# record is either a REC_TYPE_FULL (F) followed by REC_TYPE_FROM

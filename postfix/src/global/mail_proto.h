@@ -177,7 +177,9 @@ extern char *mail_pathname(const char *, const char *);
 #define XCLIENT_CMD		"XCLIENT"	/* XCLIENT command */
 #define XCLIENT_NAME		"NAME"		/* client name */
 #define XCLIENT_REVERSE_NAME	"REVERSE_NAME"	/* reverse client name */
+#ifdef FORWARD_CLIENT_NAME
 #define XCLIENT_FORWARD_NAME	"FORWARD_NAME"	/* forward client name */
+#endif
 #define XCLIENT_ADDR		"ADDR"		/* client address */
 #define XCLIENT_PROTO		"PROTO"		/* client protocol */
 #define XCLIENT_HELO		"HELO"		/* client helo */

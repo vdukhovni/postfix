@@ -1226,8 +1226,7 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    ENQUEUE_FIX_REPLY(state, reply_buf, XCLIENT_CMD
 			      " " XCLIENT_NAME " " XCLIENT_ADDR
 			      " " XCLIENT_PROTO " " XCLIENT_HELO
-			      " " XCLIENT_REVERSE_NAME
-			      " " XCLIENT_FORWARD_NAME);
+			      " " XCLIENT_REVERSE_NAME);
     if ((discard_mask & EHLO_MASK_XFORWARD) == 0)
 	if (xforward_allowed)
 	    ENQUEUE_FIX_REPLY(state, reply_buf, XFORWARD_CMD
@@ -2694,10 +2693,6 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    if (name_status == SMTPD_PEER_CODE_OK) {
 		UPDATE_STR(state->reverse_name, attr_value);
 		state->reverse_name_status = name_status;
-#ifdef FORWARD_CLIENT_NAME
-		UPDATE_STR(state->forward_name, attr_value);
-		state->forward_name_status = name_status;
-#endif
 	    }
 	}
 
@@ -2705,7 +2700,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	 * REVERSE_NAME=substitute SMTP client reverse hostname. Also updates
 	 * the client reverse hostname lookup status code.
 	 */
-	if (STREQ(attr_name, XCLIENT_REVERSE_NAME)) {
+	else if (STREQ(attr_name, XCLIENT_REVERSE_NAME)) {
 	    name_status = name_code(peer_codes, NAME_CODE_FLAG_NONE, attr_value);
 	    if (name_status != SMTPD_PEER_CODE_OK) {
 		attr_value = CLIENT_NAME_UNKNOWN;
@@ -2720,28 +2715,6 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    state->reverse_name_status = name_status;
 	    UPDATE_STR(state->reverse_name, attr_value);
 	}
-
-	/*
-	 * FORWARD_NAME=substitute SMTP client forward hostname. Also updates
-	 * the client forward hostname lookup status code.
-	 */
-#ifdef FORWARD_CLIENT_NAME
-	if (STREQ(attr_name, XCLIENT_FORWARD_NAME)) {
-	    name_status = name_code(peer_codes, NAME_CODE_FLAG_NONE, attr_value);
-	    if (name_status != SMTPD_PEER_CODE_OK) {
-		attr_value = CLIENT_NAME_UNKNOWN;
-	    } else {
-		if (!valid_hostname(attr_value, DONT_GRIPE)) {
-		    state->error_mask |= MAIL_ERROR_PROTOCOL;
-		    smtpd_chat_reply(state, "501 5.5.4 Bad %s syntax: %s",
-				     XCLIENT_FORWARD_NAME, attr_value);
-		    return (-1);
-		}
-	    }
-	    state->forward_name_status = name_status;
-	    UPDATE_STR(state->forward_name, attr_value);
-	}
-#endif
 
 	/*
 	 * ADDR=substitute SMTP client network address.

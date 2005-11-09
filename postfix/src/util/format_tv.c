@@ -2,43 +2,46 @@
 /* NAME
 /*	format_tv 3
 /* SUMMARY
-/*	format time value with limited precision
+/*	format time value with sane precision
 /* SYNOPSIS
 /*	#include <format_tv.h>
 /*
-/*	VSTRING	*format_tv(buffer, sec, usec, width, max_pos)
+/*	VSTRING	*format_tv(buffer, sec, usec, sig_dig, max_dig)
 /*	VSTRING	*buffer;
 /*	int	sec;
 /*	int	usec;
-/*	int	width;
-/*	int	max_pos;
+/*	int	sig_dig;
+/*	int	max_dig;
 /* DESCRIPTION
-/*	format_tv() formats the specified time while suppressing
-/*	irrelevant digits in the output.  Large numbers are always
-/*	rounded up to an integral number of seconds. Small numbers
-/*	are produced with a limited number of digits, provided that
-/*	those digits don't exceed the limit on the number of positions
-/*	after the decimal point. Trailing zeros are always omitted
-/*	from the output.
+/*	format_tv() formats the specified time as a floating-point
+/*	number while suppressing irrelevant digits in the output.
+/*	Large numbers are always rounded up to an integral number
+/*	of seconds. Small numbers are produced with a limited number
+/*	of significant digits, provided that the result does not
+/*	exceed the limit on the total number of digits after the
+/*	decimal point.  Trailing zeros are always omitted from the
+/*	output.
 /*
 /*	Arguments:
 /* .IP buffer
-/*	Buffer to which the result is appended.
+/*	The buffer to which the result is appended.
 /* .IP sec
 /*	The seconds portion of the time value.
 /* .IP usec
 /*	The microseconds portion of the time value.
-/* .IP width
-/*	The maximal number of digits to produce when formatting
-/*	small numbers. Trailing nulls are always omitted.  Specify
+/* .IP sig_dig
+/*	The maximal number of significant digits when formatting
+/*	small numbers. Leading nulls don't count as significant,
+/*	and trailing nulls are not included in the output.  Specify
 /*	a number in the range 1..6.
-/* .IP max_pos
-/*	The maximal number of positions after the decimal point.
+/* .IP max_dig
+/*	The maximal number of all digits after the decimal point.
 /*	Specify a number in the range 0..6.
 /* LICENSE
-/* .ad
-/* .fi
-/*	The Secure Mailer license must be distributed with this software.
+/* .ad 
+/* fi
+/*	The Secure Mailer license must be distributed with this
+/*	software.
 /* AUTHOR(S)
 /*	Wietse Venema
 /*	IBM T.J. Watson Research
@@ -59,7 +62,8 @@
 
 /* format_tv - print time with limited precision */
 
-VSTRING *format_tv(VSTRING *buf, int sec, int usec, int width, int max)
+VSTRING *format_tv(VSTRING *buf, int sec, int usec,
+		           int sig_dig, int max_dig)
 {
     static int pow10[] = {1, 10, 100, 1000, 10000, 100000, 1000000};
     int     n;
@@ -70,14 +74,14 @@ VSTRING *format_tv(VSTRING *buf, int sec, int usec, int width, int max)
     /*
      * Sanity check.
      */
-    if (max < 0 || max > 6)
-	msg_panic("format_tv: bad max decimal count %d", max);
+    if (max_dig < 0 || max_dig > 6)
+	msg_panic("format_tv: bad maximum decimal count %d", max_dig);
     if (sec < 0 || usec < 0 || usec > MILLION)
 	msg_panic("format_tv: bad time %ds %dus", sec, usec);
-    if (width < 1 || width > 6)
-	msg_panic("format_tv: bad width %d", width);
-    ures = MILLION / pow10[max];
-    wid = pow10[width];
+    if (sig_dig < 1 || sig_dig > 6)
+	msg_panic("format_tv: bad significant decimal count %d", sig_dig);
+    ures = MILLION / pow10[max_dig];
+    wid = pow10[sig_dig];
 
     /*
      * Adjust the resolution to suppress irrelevant digits.
@@ -132,19 +136,19 @@ int     main(int argc, char **argv)
     double  tval;
     int     sec;
     int     usec;
-    int     width;
-    int     max_pos;
+    int     sig_dig;
+    int     max_dig;
 
     while (vstring_get_nonl(in, VSTREAM_IN) > 0) {
 	vstream_printf(">> %s\n", vstring_str(in));
 	if (vstring_str(in)[0] == 0 || vstring_str(in)[0] == '#')
 	    continue;
-	if (sscanf(vstring_str(in), "%lf %d %d", &tval, &width, &max_pos) != 3)
+	if (sscanf(vstring_str(in), "%lf %d %d", &tval, &sig_dig, &max_dig) != 3)
 	    msg_fatal("bad input: %s", vstring_str(in));
 	sec = (int) tval;			/* raw seconds */
 	usec = (tval - sec) * MILLION;		/* raw microseconds */
 	VSTRING_RESET(out);
-	format_tv(out, sec, usec, width, max_pos);
+	format_tv(out, sec, usec, sig_dig, max_dig);
 	vstream_printf("%s\n", vstring_str(out));
 	vstream_fflush(VSTREAM_OUT);
     }

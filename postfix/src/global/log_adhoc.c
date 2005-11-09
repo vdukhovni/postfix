@@ -87,7 +87,7 @@ void    log_adhoc(const char *id, MSG_STATS *stats, RECIPIENT *recipient,
 		          const char *status)
 {
     static VSTRING *buf;
-    DELTA_TIME delay;
+    DELTA_TIME delay;			/* end-to-end delay */
     DELTA_TIME pdelay;			/* time before queue manager */
     DELTA_TIME adelay;			/* queue manager latency */
     DELTA_TIME sdelay;			/* connection set-up latency */
@@ -96,8 +96,8 @@ void    log_adhoc(const char *id, MSG_STATS *stats, RECIPIENT *recipient,
 
     /*
      * Alas, we need an intermediate buffer for the pre-formatted result.
-     * There are several optional fields, and we want to tweak some
-     * formatting depending on delay values.
+     * There are several optional fields, and the delay fields are formatted
+     * in a manner that is not supported by vstring_sprintf().
      */
     if (buf == 0)
 	buf = vstring_alloc(100);
@@ -167,7 +167,7 @@ void    log_adhoc(const char *id, MSG_STATS *stats, RECIPIENT *recipient,
 		DELTA(sdelay, stats->conn_setup_done, stats->agent_handoff);
 		DELTA(xdelay, now, stats->conn_setup_done);
 	    } else {
-		/* Non-network delivery agent. */
+		/* No network client. */
 		DELTA(xdelay, now, stats->agent_handoff);
 	    }
 	} else {
@@ -181,13 +181,14 @@ void    log_adhoc(const char *id, MSG_STATS *stats, RECIPIENT *recipient,
 
     /*
      * Round off large time values to an integral number of seconds, and
-     * display small numbers with only two digits as long as we stay above
-     * the time resolution.
+     * display small numbers with only two significant digits, as long as
+     * they do not exceed the time resolution.
      */
+#define SIG_DIGS	2
 #define PRETTY_FORMAT(b, text, x) \
     do { \
 	vstring_strcat((b), text); \
-	format_tv((b), (x).dt_sec, (x).dt_usec, 2, var_delay_max_res); \
+	format_tv((b), (x).dt_sec, (x).dt_usec, SIG_DIGS, var_delay_max_res); \
     } while (0)
 
     PRETTY_FORMAT(buf, ", delay=", delay);

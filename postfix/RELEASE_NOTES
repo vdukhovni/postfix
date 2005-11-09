@@ -26,8 +26,11 @@ server port number as hostname[hostaddr]:port.
 Incompatibility with snapshot 20051105
 ======================================
 
+qshape needs to be updated. See the file qshape-microsecond-patch.
+
 All delay logging now has sub-second resolution, including the
 over-all "delay=nnn" logging.
+
 At this point the Postfix logging for a recipient looks like this:
 
     Nov  3 16:04:31 myname postfix/smtp[30840]: 19B6B2900FE:
@@ -38,6 +41,9 @@ At this point the Postfix logging for a recipient looks like this:
 
 Incompatibility with snapshot 20051103
 ======================================
+
+pflogsumm needs to be updated. See the pflogsumm-conn-delays-dsn-patch
+file.
 
 The queue manager protocol has changed. You need to "postfix reload"
 after "make upgrade".
@@ -55,7 +61,7 @@ Major changes with snapshot 20051103
 ====================================
 
 This release makes a beginning with a series of new attributes in
-Postfix logfile records.
+Postfix logfile records. 
 
 - Better insight into the nature of performance bottle necks, with
 detailed logging of delays in various stages of message delivery.

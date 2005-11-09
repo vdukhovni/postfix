@@ -933,28 +933,6 @@ static int reject_unknown_reverse_name(SMTPD_STATE *state)
     return (SMTPD_CHECK_DUNNO);
 }
 
-#ifdef FORWARD_CLIENT_NAME
-
-/* reject_unknown_forward_name - fail if reverse client hostname is unknown */
-
-static int reject_unknown_forward_name(SMTPD_STATE *state)
-{
-    char   *myname = "reject_unknown_forward_name";
-
-    if (msg_verbose)
-	msg_info("%s: %s", myname, state->forward_name);
-
-    if (state->forward_name_status != SMTPD_PEER_CODE_OK)
-	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
-			state->forward_name_status == SMTPD_PEER_CODE_PERM ?
-				   var_unk_client_code : 450, "4.7.1",
-	    "Client host rejected: cannot find your forward hostname, [%s]",
-				   state->addr));
-    return (SMTPD_CHECK_DUNNO);
-}
-
-#endif
-
 /* reject_unknown_client - fail if client hostname is unknown */
 
 static int reject_unknown_client(SMTPD_STATE *state)
@@ -2760,10 +2738,6 @@ static const char *smtpd_expand_lookup(const char *name, int unused_mode,
 	return (state->name);
     } else if (STREQ(name, MAIL_ATTR_REVERSE_CLIENT_NAME)) {
 	return (state->reverse_name);
-#ifdef FORWARD_CLIENT_NAME
-    } else if (STREQ(name, MAIL_ATTR_FORWARD_CLIENT_NAME)) {
-	return (state->forward_name);
-#endif
     } else if (STREQ(name, MAIL_ATTR_HELO_NAME)) {
 	return (state->helo_name ? state->helo_name : "");
     } else if (STREQN(name, MAIL_ATTR_SENDER, CONST_LEN(MAIL_ATTR_SENDER))) {
@@ -3209,10 +3183,6 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 			  ATTR_TYPE_STR, MAIL_ATTR_CLIENT_NAME, state->name,
 			  ATTR_TYPE_STR, MAIL_ATTR_REVERSE_CLIENT_NAME,
 			  state->reverse_name,
-#ifdef FORWARD_CLIENT_NAME
-			  ATTR_TYPE_STR, MAIL_ATTR_FORWARD_CLIENT_NAME,
-			  state->forward_name,
-#endif
 			  ATTR_TYPE_STR, MAIL_ATTR_HELO_NAME,
 			  state->helo_name ? state->helo_name : "",
 			  ATTR_TYPE_STR, MAIL_ATTR_SENDER,
@@ -3431,10 +3401,6 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    status = reject_unknown_client(state);
 	} else if (strcasecmp(name, REJECT_UNKNOWN_REVERSE_HOSTNAME) == 0) {
 	    status = reject_unknown_reverse_name(state);
-#ifdef FORWARD_CLIENT_NAME
-	} else if (strcasecmp(name, REJECT_UNKNOWN_FORWARD_HOSTNAME) == 0) {
-	    status = reject_unknown_forward_name(state);
-#endif
 	} else if (strcasecmp(name, PERMIT_INET_INTERFACES) == 0) {
 	    status = permit_inet_interfaces(state);
 	} else if (strcasecmp(name, PERMIT_MYNETWORKS) == 0) {
@@ -4954,23 +4920,14 @@ int     main(int argc, char **argv)
 		state.where = "CONNECT";
 		UPDATE_STRING(state.name, args->argv[1]);
 		UPDATE_STRING(state.reverse_name, args->argv[1]);
-#ifdef FORWARD_CLIENT_NAME
-		UPDATE_STRING(state.forward_name, args->argv[1]);
-#endif
 		UPDATE_STRING(state.addr, args->argv[2]);
 		if (args->argc == 4)
 		    state.name_status =
 			state.reverse_name_status =
-#ifdef FORWARD_CLIENT_NAME
-			state.forward_name_status =
-#endif
 			atoi(args->argv[3]);
 		else
 		    state.name_status =
 			state.reverse_name_status =
-#ifdef FORWARD_CLIENT_NAME
-			state.forward_name_status =
-#endif
 			SMTPD_PEER_CODE_OK;
 		if (state.namaddr)
 		    myfree(state.namaddr);

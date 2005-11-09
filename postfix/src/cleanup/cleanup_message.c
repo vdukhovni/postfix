@@ -594,8 +594,8 @@ static void cleanup_header_done_callback(void *context)
      * XXX An arbitrary amount of time may pass between the start of the mail
      * transaction and the creation of a queue file. Since we guarantee queue
      * ID uniqueness only within a second, we must ensure that the time in
-     * the message ID matches the queue ID creation time, if we use the queue
-     * ID in the message ID.
+     * the message ID matches the queue ID creation time, as long as we use
+     * the queue ID in the message ID.
      */
     if ((state->headers_seen & (1 << (state->resent[0] ?
 			   HDR_RESENT_MESSAGE_ID : HDR_MESSAGE_ID))) == 0) {

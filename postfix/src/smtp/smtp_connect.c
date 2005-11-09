@@ -234,6 +234,14 @@ static SMTP_SESSION *smtp_connect_addr(const char *dest, DNS_RR *addr,
     }
 
     /*
+     * Following code is obsolete now that the SMTP client will connect to
+     * alternate hosts when a session fails before "MAIL FROM".
+     */
+#if 1
+    stream = vstream_fdopen(sock, O_RDWR);
+#else
+
+    /*
      * Skip this host if it takes no action within some time limit. XXX Some
      * MTAs use 426 to indicate a timeout error.
      */
@@ -261,6 +269,7 @@ static SMTP_SESSION *smtp_connect_addr(const char *dest, DNS_RR *addr,
 	return (0);
     }
     vstream_ungetc(stream, ch);
+#endif
 
     /*
      * Bundle up what we have into a nice SMTP_SESSION object.
