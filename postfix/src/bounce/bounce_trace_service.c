@@ -106,8 +106,8 @@ int     bounce_trace_service(int flags, char *service, char *queue_name,
     bounce_info = bounce_mail_init(service, queue_name, queue_id,
 				   encoding, dsn_envid,
 				   flags & NON_DSN_FLAGS ?
-				   BOUNCE_REPORT_OTHER :
-				   BOUNCE_REPORT_SUCCESS);
+				   VERIFY_TEMPLATE() :
+				   SUCCESS_TEMPLATE());
 
     /*
      * XXX With multi-recipient mail some queue file recipients may have

@@ -104,14 +104,15 @@ $config_directory/LICENSE:f:root:-:644
 $config_directory/TLS_LICENSE:f:root:-:644
 $config_directory/access:f:root:-:644:p
 $config_directory/aliases:f:root:-:644:p
+$config_directory/bounce.cf.default:f:root:-:644
 $config_directory/canonical:f:root:-:644:p
 $config_directory/cidr_table:f:root:-:644:o
-$config_directory/generics:f:root:-:644:o
 $config_directory/generic:f:root:-:644:p
+$config_directory/generics:f:root:-:644:o
 $config_directory/header_checks:f:root:-:644:p
 $config_directory/install.cf:f:root:-:644:o
-$config_directory/main.cf:f:root:-:644:p
 $config_directory/main.cf.default:f:root:-:644
+$config_directory/main.cf:f:root:-:644:p
 $config_directory/makedefs.out:f:root:-:644
 $config_directory/master.cf:f:root:-:644:p
 $config_directory/pcre_table:f:root:-:644:o

@@ -11338,9 +11338,11 @@ Apologies for any names omitted.
 	delay_logging_resolution_limit parameter, which specifies
 	the maximal number of digits after the decimal point.
 
-	Bugfix: under unlikely conditions two messages could get
-	the same message ID. Found by Victor. Files: global/mail_stream.c,
-	global/mail_queue.c.
+	Bugfix: two messages could get the same message ID due to
+	a race condition. This time window was increased when queue
+	file creation was postponed from MAIL FROM until the first
+	accepted RCPT TO.  The window is closed again. Found by
+	Victor. Files: global/mail_stream.c, global/mail_queue.c.
 
 20051109
 
@@ -11352,6 +11354,27 @@ Apologies for any names omitted.
 
 	Bugfix: XCLIENT broke when reverse hostname support was added.
 	Fix by Tomoyuki Sakurai. File: smtpd/smtpd.c.
+
+20051110
+
+	Workaround: don't set the delay warning timer for messages
+	from inside or from outside that have the null sender as
+	recipient. This was a waste of time, because the warning
+	would always be discarded.  File: cleanup/cleanup_envelope.c.
+
+	Feature: the built-in mail delivery status notification
+	text is now implemented by built-in templates. Files:
+	bounce/bounce_template.c, bounce/bounce_notify_util.c.
+
+20051112
+
+	Feature (grumble): configurable bounce message templates
+	based on contribution by Nicolas Riendeau. I kept the general
+	format of his templates, but placed them together in one
+	file to reduce process initialization overhead. Files:
+	bounce/bounce_template.c, bounce/dict_ml.c (to be moved to
+	library if useful enough). A sample bounce message template
+	file is installed as $config_directory/bounce.cf.default.
 
 Open problems:
 

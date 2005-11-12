@@ -1,16 +1,19 @@
 SHELL	= /bin/sh
 SRCS	= bounce.c bounce_append_service.c bounce_notify_service.c \
 	bounce_cleanup.c bounce_notify_util.c bounce_notify_verp.c \
-	bounce_one_service.c bounce_warn_service.c bounce_trace_service.c
+	bounce_one_service.c bounce_warn_service.c bounce_trace_service.c \
+	bounce_template.c dict_ml.c
 OBJS	= bounce.o bounce_append_service.o bounce_notify_service.o \
 	bounce_cleanup.o bounce_notify_util.o bounce_notify_verp.o \
-	bounce_one_service.o bounce_warn_service.o bounce_trace_service.o
+	bounce_one_service.o bounce_warn_service.o bounce_trace_service.o \
+	bounce_template.o dict_ml.o
 HDRS	= 
 TESTSRC	= 
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 TESTPROG=
 PROG	= bounce
+SAMPLES	= ../../conf/bounce.cf.default
 INC_DIR	= ../../include
 LIBS	= ../../lib/libmaster.a ../../lib/libglobal.a ../../lib/libutil.a
 
@@ -19,6 +22,10 @@ LIBS	= ../../lib/libmaster.a ../../lib/libglobal.a ../../lib/libutil.a
 $(PROG):	$(OBJS) $(LIBS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
 
+../../conf/bounce.cf.default: $(PROG) fix-template.pl
+	rm -f $@
+	./$(PROG) -Szn default | perl fix-template.pl >$@
+
 $(OBJS): ../../conf/makedefs.out
 
 Makefile: Makefile.in
@@ -26,9 +33,9 @@ Makefile: Makefile.in
 
 test:	$(TESTPROG)
 
-tests:	test
+tests:	update template_test
 
-update: ../../libexec/$(PROG)
+update: ../../libexec/$(PROG) $(SAMPLES)
 
 ../../libexec/$(PROG): $(PROG)
 	cp $(PROG) ../../libexec
@@ -49,6 +56,11 @@ clean:
 	rm -rf printfck
 
 tidy:	clean
+
+template_test:
+	./bounce -Szn default >junk
+	./bounce -Szn actual -o bounce_template_file=`pwd`/junk | diff junk -
+	rm -f junk
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \
@@ -230,6 +242,34 @@ bounce_one_service.o: ../../include/vstream.h
 bounce_one_service.o: ../../include/vstring.h
 bounce_one_service.o: bounce_one_service.c
 bounce_one_service.o: bounce_service.h
+bounce_template.o: ../../include/argv.h
+bounce_template.o: ../../include/attr.h
+bounce_template.o: ../../include/bounce_log.h
+bounce_template.o: ../../include/cleanup_user.h
+bounce_template.o: ../../include/dict.h
+bounce_template.o: ../../include/dsn.h
+bounce_template.o: ../../include/dsn_buf.h
+bounce_template.o: ../../include/iostuff.h
+bounce_template.o: ../../include/is_header.h
+bounce_template.o: ../../include/mac_expand.h
+bounce_template.o: ../../include/mac_parse.h
+bounce_template.o: ../../include/mail_addr.h
+bounce_template.o: ../../include/mail_conf.h
+bounce_template.o: ../../include/mail_params.h
+bounce_template.o: ../../include/mail_proto.h
+bounce_template.o: ../../include/msg.h
+bounce_template.o: ../../include/mymalloc.h
+bounce_template.o: ../../include/post_mail.h
+bounce_template.o: ../../include/rcpt_buf.h
+bounce_template.o: ../../include/recipient_list.h
+bounce_template.o: ../../include/stringops.h
+bounce_template.o: ../../include/sys_defs.h
+bounce_template.o: ../../include/vbuf.h
+bounce_template.o: ../../include/vstream.h
+bounce_template.o: ../../include/vstring.h
+bounce_template.o: bounce_service.h
+bounce_template.o: bounce_template.c
+bounce_template.o: dict_ml.h
 bounce_trace_service.o: ../../include/attr.h
 bounce_trace_service.o: ../../include/bounce_log.h
 bounce_trace_service.o: ../../include/cleanup_user.h
@@ -274,3 +314,15 @@ bounce_warn_service.o: ../../include/vstream.h
 bounce_warn_service.o: ../../include/vstring.h
 bounce_warn_service.o: bounce_service.h
 bounce_warn_service.o: bounce_warn_service.c
+dict_ml.o: ../../include/argv.h
+dict_ml.o: ../../include/dict.h
+dict_ml.o: ../../include/iostuff.h
+dict_ml.o: ../../include/msg.h
+dict_ml.o: ../../include/stringops.h
+dict_ml.o: ../../include/sys_defs.h
+dict_ml.o: ../../include/vbuf.h
+dict_ml.o: ../../include/vstream.h
+dict_ml.o: ../../include/vstring.h
+dict_ml.o: ../../include/vstring_vstream.h
+dict_ml.o: dict_ml.c
+dict_ml.o: dict_ml.h

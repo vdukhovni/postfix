@@ -7,14 +7,14 @@
 #               (yes)   (yes)   (yes)   (never) (100)
 # ==========================================================================
 smtp      inet  n       -       n       -       -       smtpd
-#submission inet n      -       n       -       -       smtpd
-#	-o smtpd_etrn_restrictions=reject
-#	-o smtpd_client_restrictions=permit_sasl_authenticated,reject
-#smtps    inet  n       -       n       -       -       smtpd
-#  -o smtpd_tls_wrappermode=yes -o smtpd_sasl_auth_enable=yes
-#submission   inet    n       -       n       -       -       smtpd
-#  -o smtpd_etrn_restrictions=reject
-#  -o smtpd_enforce_tls=yes -o smtpd_sasl_auth_enable=yes
+#submission inet n       -       n       -       -       smtpd
+#  -o smtpd_enforce_tls=yes
+#  -o smtpd_sasl_auth_enable=yes
+#  -o smtpd_client_restrictions=permit_sasl_authenticated,reject
+#smtps     inet  n       -       n       -       -       smtpd
+#  -o smtpd_tls_wrappermode=yes
+#  -o smtpd_sasl_auth_enable=yes
+#  -o smtpd_client_restrictions=permit_sasl_authenticated,reject
 #628      inet  n       -       n       -       -       qmqpd
 pickup    fifo  n       -       n       60      1       pickup
 cleanup   unix  n       -       n       -       0       cleanup

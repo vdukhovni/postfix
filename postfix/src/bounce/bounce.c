@@ -61,6 +61,8 @@
 /* .IP "\fBbounce_size_limit (50000)\fR"
 /*	The maximal amount of original message text that is sent in a
 /*	non-delivery notification.
+/* .IP "\fBbounce_template_file (empty)\fR"
+/*	Pathname of a configuration file with bounce message templates.
 /* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 /*	The default location of the Postfix main.cf and master.cf
 /*	configuration files.
@@ -168,6 +170,7 @@ char   *var_notify_classes;
 char   *var_bounce_rcpt;
 char   *var_2bounce_rcpt;
 char   *var_delay_rcpt;
+char   *var_bounce_tmpl;
 
  /*
   * We're single threaded, so we can avoid some memory allocation overhead.
@@ -442,6 +445,16 @@ static void bounce_service(VSTREAM *client, char *service_name, char **argv)
 	msg_fatal("malformed service name: %s", service_name);
 
     /*
+     * Special case: dump the built-in templates. This is not part of the
+     * public interface.
+     */
+    if (strcmp(service_name, "default") == 0) {
+	bounce_template_dump_default(VSTREAM_OUT);
+	vstream_fflush(VSTREAM_OUT);
+	exit(0);
+    }
+
+    /*
      * Read and validate the first parameter of the client request. Let the
      * request-specific protocol routines take care of the remainder.
      */
@@ -490,6 +503,29 @@ static void bounce_service(VSTREAM *client, char *service_name, char **argv)
     }
 }
 
+/* pre_jail_init - pre-jail initialization */
+
+static void pre_jail_init(char *service_name, char **unused_argv)
+{
+
+    /*
+     * Load the alternate message files (if specified) before entering the ch
+     * root jail.
+     */
+    if (*var_bounce_tmpl)
+	bounce_template_load(var_bounce_tmpl);
+
+    /*
+     * Special case: dump the actual templates. This is not part of the
+     * public interface.
+     */
+    if (strcmp(service_name, "actual") == 0) {
+	bounce_template_dump_actual(VSTREAM_OUT);
+	vstream_fflush(VSTREAM_OUT);
+	exit(0);
+    }
+}
+
 /* post_jail_init - initialize after entering chroot jail */
 
 static void post_jail_init(char *unused_name, char **unused_argv)
@@ -527,6 +563,7 @@ int     main(int argc, char **argv)
 	VAR_BOUNCE_RCPT, DEF_BOUNCE_RCPT, &var_bounce_rcpt, 1, 0,
 	VAR_2BOUNCE_RCPT, DEF_2BOUNCE_RCPT, &var_2bounce_rcpt, 1, 0,
 	VAR_DELAY_RCPT, DEF_DELAY_RCPT, &var_delay_rcpt, 1, 0,
+	VAR_BOUNCE_TMPL, DEF_BOUNCE_TMPL, &var_bounce_tmpl, 0, 0,
 	0,
     };
 
@@ -537,6 +574,7 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_INT_TABLE, int_table,
 		       MAIL_SERVER_STR_TABLE, str_table,
 		       MAIL_SERVER_TIME_TABLE, time_table,
+		       MAIL_SERVER_PRE_INIT, pre_jail_init,
 		       MAIL_SERVER_POST_INIT, post_jail_init,
 		       MAIL_SERVER_UNLIMITED,
 		       0);

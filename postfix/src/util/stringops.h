@@ -37,6 +37,8 @@ extern char *sane_dirname(VSTRING *, const char *);
 extern VSTRING *unescape(VSTRING *, const char *);
 extern int alldig(const char *);
 extern int allprint(const char *);
+extern int allspace(const char *);
+extern int allascii(const char *);
 extern const char *split_nameval(char *, char **, char **);
 
 /* LICENSE

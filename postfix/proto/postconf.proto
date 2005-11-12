@@ -8675,3 +8675,11 @@ precision.  </p>
 </ul>
 
 <p> This feature is available in Postfix 2.3 and later.  </p>
+
+%PARAM bounce_template_file empty
+
+<p> Pathname of a configuration file with bounce message templates.
+</p>
+
+<p> This feature is available in Postfix 2.3 and later.  </p>
+

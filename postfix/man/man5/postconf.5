@@ -599,6 +599,10 @@ The maximal amount of original message text that is sent in a
 non-delivery notification. Specify a byte count. If you increase
 this limit, then you should increase the mime_nesting_limit value
 proportionally.
+.SH bounce_template_file (default: empty)
+Pathname of a configuration file with bounce message templates.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH broken_sasl_auth_clients (default: no)
 Enable inter-operability with SMTP clients that implement an obsolete
 version of the AUTH command (RFC 2554). Examples of such clients

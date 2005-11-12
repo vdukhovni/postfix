@@ -55,7 +55,7 @@
 /*
 /*	void	dict_load_fp(dict_name, fp)
 /*	const char *dict_name;
-/*	FILE	*fp;
+/*	VSTREAM	*fp;
 /* DESCRIPTION
 /*	This module maintains a collection of name-value dictionaries.
 /*	Each dictionary has its own name and has its own methods to read

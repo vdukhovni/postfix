@@ -74,7 +74,7 @@ tidy:	clean
 	    *.bak */*.bak */*/*.bak \
 	    make.err */make.err */*/make.err \
 	    *.gmon */*.gmon */*/*.gmon \
-	    conf/main.cf.default
+	    conf/main.cf.default conf/bounce.cf.default
 	find . -type s -print | xargs rm -f
 	find . -type d -print | xargs chmod 755
 	find . -type f -print | xargs chmod a+r

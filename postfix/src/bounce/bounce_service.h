@@ -59,6 +59,65 @@ extern void bounce_cleanup_unregister(void);
 #define bounce_cleanup_registered() (bounce_cleanup_path != 0)
 
  /*
+  * bounce_template.c
+  */
+typedef struct {
+    const char *class;			/* template type */
+    const char *charset;		/* character set */
+    const char *encoding;		/* 7bit or 8bit */
+    const char *from;			/* originator */
+    const char *subject;		/* general subject line */
+    const char *postmaster_subject;	/* postmaster subject line */
+    const char **message_text;		/* message text */
+} BOUNCE_TEMPLATE;
+
+extern void bounce_template_load(const char *);
+extern void bounce_template_expand(VSTREAM *, const BOUNCE_TEMPLATE *);
+extern const BOUNCE_TEMPLATE *bounce_template_find(const char *, const BOUNCE_TEMPLATE *);
+extern void bounce_template_dump_default(VSTREAM *);
+extern void bounce_template_dump_actual(VSTREAM *);
+
+#define BOUNCE_TEMPLATE_DICT	"bounce_templates"
+#define BOUNCE_TMPL_DICT_FAIL	"fail_template"
+#define BOUNCE_TMPL_DICT_DELAY	"delay_template"
+#define BOUNCE_TMPL_DICT_SUCCESS "success_template"
+#define BOUNCE_TMPL_DICT_VERIFY	"verify_template"
+
+#define FAIL_TEMPLATE() \
+    (bounce_fail_template ? bounce_fail_template : \
+	(bounce_fail_template = \
+	    bounce_template_find(BOUNCE_TMPL_DICT_FAIL, \
+		&def_bounce_fail_template)))
+
+#define DELAY_TEMPLATE() \
+    (bounce_delay_template ? bounce_delay_template : \
+	(bounce_delay_template = \
+	    bounce_template_find(BOUNCE_TMPL_DICT_DELAY, \
+		&def_bounce_delay_template)))
+
+#define SUCCESS_TEMPLATE() \
+    (bounce_success_template ? bounce_success_template : \
+	(bounce_success_template = \
+	    bounce_template_find(BOUNCE_TMPL_DICT_SUCCESS, \
+		&def_bounce_success_template)))
+
+#define VERIFY_TEMPLATE() \
+    (bounce_verify_template ? bounce_verify_template : \
+	(bounce_verify_template = \
+	    bounce_template_find(BOUNCE_TMPL_DICT_VERIFY, \
+		&def_bounce_verify_template)))
+
+extern const BOUNCE_TEMPLATE *bounce_fail_template;
+extern const BOUNCE_TEMPLATE *bounce_delay_template;
+extern const BOUNCE_TEMPLATE *bounce_success_template;
+extern const BOUNCE_TEMPLATE *bounce_verify_template;
+
+extern const BOUNCE_TEMPLATE def_bounce_fail_template;
+extern const BOUNCE_TEMPLATE def_bounce_delay_template;
+extern const BOUNCE_TEMPLATE def_bounce_success_template;
+extern const BOUNCE_TEMPLATE def_bounce_verify_template;
+
+ /*
   * bounce_notify_util.c
   */
 typedef struct {
@@ -68,7 +127,7 @@ typedef struct {
     const char *mime_encoding;		/* null or encoding */
     const char *dsn_envid;		/* DSN envelope ID */
     const char *mime_boundary;		/* for MIME */
-    int     report_type;		/* see below */
+    const BOUNCE_TEMPLATE *template;	/* see above */
     VSTRING *buf;			/* scratch pad */
     VSTRING *sender;			/* envelope sender */
     VSTREAM *orig_fp;			/* open queue file */
@@ -81,7 +140,7 @@ typedef struct {
 
  /* */
 
-extern BOUNCE_INFO *bounce_mail_init(const char *, const char *, const char *, const char *, const char *, int);
+extern BOUNCE_INFO *bounce_mail_init(const char *, const char *, const char *, const char *, const char *, const BOUNCE_TEMPLATE *);
 extern BOUNCE_INFO *bounce_mail_one_init(const char *, const char *, const char *, const char *, RECIPIENT *, DSN *);
 extern void bounce_mail_free(BOUNCE_INFO *);
 extern int bounce_header(VSTREAM *, BOUNCE_INFO *, const char *);
@@ -94,14 +153,6 @@ extern int bounce_diagnostic_dsn(VSTREAM *, BOUNCE_INFO *, int);
 extern int bounce_original(VSTREAM *, BOUNCE_INFO *, int);
 extern void bounce_delrcpt(BOUNCE_INFO *);
 extern void bounce_delrcpt_one(BOUNCE_INFO *);
-
- /*
-  * Report types.
-  */
-#define BOUNCE_REPORT_FAIL	0	/* undeliverable mail */
-#define BOUNCE_REPORT_WARN	1	/* delayed mail */
-#define BOUNCE_REPORT_SUCCESS	2	/* success */
-#define BOUNCE_REPORT_OTHER	3	/* other status */
 
 /* LICENSE
 /* .ad

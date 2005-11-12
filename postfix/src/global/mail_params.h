@@ -2397,6 +2397,13 @@ extern bool var_frozen_delivered;
 #define MIN_DELAY_MAX_RES		0
 extern int var_delay_max_res;
 
+ /*
+  * Bounce message templates.
+  */
+#define VAR_BOUNCE_TMPL			"bounce_template_file"
+#define DEF_BOUNCE_TMPL			""
+extern char *var_bounce_tmpl;
+
 /* LICENSE
 /* .ad
 /* .fi

@@ -207,7 +207,13 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	    state->errs |= CLEANUP_STAT_BAD;
 	    return;
 	}
+
+	/*
+	 * XXX This works by accident, because the sender is recorded at the
+	 * beginning of the envelope segment.
+	 */
 	if ((state->flags & CLEANUP_FLAG_WARN_SEEN) == 0
+	    && state->sender && *state->sender
 	    && var_delay_warn_time > 0) {
 	    cleanup_out_format(state, REC_TYPE_WARN, REC_TYPE_WARN_FORMAT,
 			       REC_TYPE_WARN_ARG(state->arrival_time.tv_sec

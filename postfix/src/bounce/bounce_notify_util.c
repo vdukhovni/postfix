@@ -13,13 +13,13 @@
 /*	} BOUNCE_INFO;
 /*
 /*	BOUNCE_INFO *bounce_mail_init(service, queue_name, queue_id,
-/*					encoding, dsn_envid, report_type)
+/*					encoding, dsn_envid, template)
 /*	const char *service;
 /*	const char *queue_name;
 /*	const char *queue_id;
 /*	const char *encoding;
 /*	const char *dsn_envid;
-/*	int	report_type;
+/*	const BOUNCE_TEMPLATE *template;
 /*
 /*	BOUNCE_INFO *bounce_mail_one_init(queue_name, queue_id, encoding,
 /*					dsn_envid, dsn_notify, rcpt, dsn)
@@ -83,14 +83,11 @@
 /*	bounce_mail_init() bundles up its argument and attempts to
 /*	open the corresponding logfile and message file. A BOUNCE_INFO
 /*	structure contains all the necessary information about an
-/*	undeliverable message. The report type is BOUNCE_REPORT_WARN
-/*	for delayed mail, BOUNCE_REPORT_FAIL for undeliverable mail,
-/*	BOUNCE_REPORT_SUCCESS for "success" delivery notification,
-/*	or BOUNCE_REPORT_OTHER for other status reports.
+/*	undeliverable message.
 /*
 /*	bounce_mail_one_init() provides the same function for only
 /*	one recipient that is not read from bounce logfile. It
-/*	assumes a report type of BOUNCE_REPORT_FAIL.
+/*	assumes a template type of FAIL_TEMPLATE().
 /*
 /*	bounce_mail_free() releases memory allocated by bounce_mail_init()
 /*	and closes any files opened by bounce_mail_init().
@@ -211,7 +208,7 @@ static BOUNCE_INFO *bounce_mail_alloc(const char *service,
 				              const char *queue_id,
 				              const char *encoding,
 				              const char *dsn_envid,
-				              int report_type,
+				              const BOUNCE_TEMPLATE *template,
 				              BOUNCE_LOG *log_handle)
 {
     BOUNCE_INFO *bounce_info;
@@ -239,7 +236,7 @@ static BOUNCE_INFO *bounce_mail_alloc(const char *service,
 	bounce_info->dsn_envid = dsn_envid;
     else
 	bounce_info->dsn_envid = 0;
-    bounce_info->report_type = report_type;
+    bounce_info->template = template;
     bounce_info->buf = vstring_alloc(100);
     bounce_info->sender = vstring_alloc(100);
     bounce_info->arrival_time = 0;
@@ -327,7 +324,7 @@ BOUNCE_INFO *bounce_mail_init(const char *service,
 			              const char *queue_id,
 			              const char *encoding,
 			              const char *dsn_envid,
-			              int report_type)
+			              const BOUNCE_TEMPLATE *template)
 {
     BOUNCE_INFO *bounce_info;
     BOUNCE_LOG *log_handle;
@@ -344,7 +341,7 @@ BOUNCE_INFO *bounce_mail_init(const char *service,
 	&& errno != ENOENT)
 	msg_fatal("open %s %s: %m", service, queue_id);
     bounce_info = bounce_mail_alloc(service, queue_name, queue_id, encoding,
-				    dsn_envid, report_type, log_handle);
+				    dsn_envid, template, log_handle);
     return (bounce_info);
 }
 
@@ -366,7 +363,7 @@ BOUNCE_INFO *bounce_mail_one_init(const char *queue_name,
      */
     log_handle = bounce_log_forge(rcpt, dsn);
     bounce_info = bounce_mail_alloc("none", queue_name, queue_id, encoding,
-				 dsn_envid, BOUNCE_REPORT_FAIL, log_handle);
+				    dsn_envid, FAIL_TEMPLATE(), log_handle);
     return (bounce_info);
 }
 
@@ -393,6 +390,7 @@ void    bounce_mail_free(BOUNCE_INFO *bounce_info)
 int     bounce_header(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
 		              const char *dest)
 {
+    int     postmaster_copy;
 
     /*
      * Print a minimal bounce header. The cleanup service will add other
@@ -400,44 +398,21 @@ int     bounce_header(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
      */
 #define STREQ(a, b) (strcasecmp((a), (b)) == 0)
 
-    post_mail_fprintf(bounce, "From: %s (Mail Delivery System)",
-		      MAIL_ADDR_MAIL_DAEMON);
+    /*
+     * XXX This should be caller specified.
+     */
+    postmaster_copy =
+	(bounce_info->template->postmaster_subject != 0
+	 && (dest == var_bounce_rcpt || dest == var_2bounce_rcpt
+	     || dest == var_delay_rcpt));
 
     /*
-     * Non-delivery subject line.
+     * Generic headers.
      */
-    if (bounce_info->report_type == BOUNCE_REPORT_FAIL) {
-	post_mail_fputs(bounce, dest == var_bounce_rcpt
-		     || dest == var_2bounce_rcpt || dest == var_delay_rcpt ?
-			"Subject: Postmaster Copy: Undelivered Mail" :
-			"Subject: Undelivered Mail Returned to Sender");
-    }
-
-    /*
-     * Delayed mail subject line.
-     */
-    else if (bounce_info->report_type == BOUNCE_REPORT_WARN) {
-	post_mail_fputs(bounce, dest == var_bounce_rcpt
-		     || dest == var_2bounce_rcpt || dest == var_delay_rcpt ?
-			"Subject: Postmaster Warning: Delayed Mail" :
-			"Subject: Delayed Mail (still being retried)");
-    }
-
-    /*
-     * DSN SUCCESS report.
-     */
-    else if (bounce_info->report_type == BOUNCE_REPORT_SUCCESS) {
-	post_mail_fputs(bounce,
-			"Subject: Successful Mail Delivery Report");
-    }
-
-    /*
-     * Address verification report, verbose delivery report.
-     */
-    else {
-	post_mail_fputs(bounce, "Subject: Mail Delivery Status Report");
-    }
-
+    post_mail_fprintf(bounce, "From: %s", bounce_info->template->from);
+    post_mail_fprintf(bounce, "Subject: %s", postmaster_copy ?
+		      bounce_info->template->postmaster_subject :
+		      bounce_info->template->subject);
     post_mail_fprintf(bounce, "To: %s",
 		      STR(quote_822_local(bounce_info->buf, dest)));
 
@@ -460,7 +435,8 @@ int     bounce_header(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
     post_mail_fputs(bounce, "");
     post_mail_fprintf(bounce, "--%s", bounce_info->mime_boundary);
     post_mail_fprintf(bounce, "Content-Description: %s", "Notification");
-    post_mail_fprintf(bounce, "Content-Type: %s", "text/plain");
+    post_mail_fprintf(bounce, "Content-Type: %s; charset=%s",
+		      "text/plain", bounce_info->template->charset);
     post_mail_fputs(bounce, "");
 
     return (vstream_ferror(bounce));
@@ -472,64 +448,9 @@ int     bounce_boilerplate(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 {
 
     /*
-     * Print the message body with the problem report. XXX For now, we use a
-     * fixed bounce template. We could use a site-specific parametrized
-     * template with ${name} macros and we could do wonderful things such as
-     * word wrapping to make the text look nicer. No matter how hard we would
-     * try, receiving bounced mail will always suck.
+     * Print the boiler-plate text.
      */
-#define UNDELIVERED(type) \
-	((type) == BOUNCE_REPORT_FAIL || (type) == BOUNCE_REPORT_WARN)
-
-    post_mail_fprintf(bounce, "This is the %s program at host %s.",
-		      var_mail_name, var_myhostname);
-    post_mail_fputs(bounce, "");
-    if (bounce_info->report_type == BOUNCE_REPORT_FAIL) {
-	post_mail_fputs(bounce,
-	     "I'm sorry to have to inform you that your message could not");
-	post_mail_fputs(bounce,
-	    "be delivered to one or more recipients. It's attached below.");
-    } else if (bounce_info->report_type == BOUNCE_REPORT_WARN) {
-	post_mail_fputs(bounce,
-			"####################################################################");
-	post_mail_fputs(bounce,
-			"# THIS IS A WARNING ONLY.  YOU DO NOT NEED TO RESEND YOUR MESSAGE. #");
-	post_mail_fputs(bounce,
-			"####################################################################");
-	post_mail_fputs(bounce, "");
-	post_mail_fprintf(bounce,
-		      "Your message could not be delivered for %.1f hours.",
-			  var_delay_warn_time / 3600.0);
-	post_mail_fprintf(bounce,
-			  "It will be retried until it is %.1f days old.",
-			  var_max_queue_time / 86400.0);
-    } else if (bounce_info->report_type == BOUNCE_REPORT_SUCCESS) {
-	post_mail_fputs(bounce,
-			"Your message was successfully delivered to the destination(s) listed");
-	post_mail_fputs(bounce,
-			"below. In the case of delivery to mailbox you will receive no further");
-	post_mail_fputs(bounce,
-	    "notifications. In the case of other deliveries you may still");
-	post_mail_fputs(bounce,
-			"receive notifications of mail delivery errors.");
-
-    } else {
-	post_mail_fputs(bounce,
-		"Enclosed is the mail delivery report that you requested.");
-    }
-    if (UNDELIVERED(bounce_info->report_type)) {
-	post_mail_fputs(bounce, "");
-	post_mail_fprintf(bounce,
-			  "For further assistance, please send mail to <%s>",
-			  MAIL_ADDR_POSTMASTER);
-	post_mail_fputs(bounce, "");
-	post_mail_fprintf(bounce,
-	       "If you do so, please include this problem report. You can");
-	post_mail_fprintf(bounce,
-		"delete your own text from the attached returned message.");
-    }
-    post_mail_fputs(bounce, "");
-    post_mail_fprintf(bounce, "\t\t\tThe %s program", var_mail_name);
+    bounce_template_expand(bounce, bounce_info->template);
     return (vstream_ferror(bounce));
 }
 
@@ -602,7 +523,7 @@ int     bounce_diagnostic_log(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
      */
     if (bounce_info->log_handle == 0
 	|| bounce_log_rewind(bounce_info->log_handle)) {
-	if (bounce_info->report_type == BOUNCE_REPORT_FAIL) {
+	if (bounce_info->template == FAIL_TEMPLATE()) {
 	    post_mail_fputs(bounce, "\t--- Delivery report unavailable ---");
 	    count = 1;				/* XXX don't abort */
 	}
@@ -694,7 +615,7 @@ int     bounce_recipient_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 			  bounce_info->log_handle->rcpt.orig_addr);
     }
     post_mail_fprintf(bounce, "Action: %s",
-		      bounce_info->report_type == BOUNCE_REPORT_FAIL ?
+		      bounce_info->template == FAIL_TEMPLATE() ?
 		      "failed" : bounce_info->log_handle->dsn.action);
     post_mail_fprintf(bounce, "Status: %s",
 		      bounce_info->log_handle->dsn.status);
@@ -716,7 +637,7 @@ int     bounce_recipient_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
     post_mail_fprintf(bounce, "Last-Attempt-Date: %s",
 		      bounce_info->log_handle->log_time);
 #endif
-    if (bounce_info->report_type == BOUNCE_REPORT_WARN)
+    if (bounce_info->template == DELAY_TEMPLATE())
 	post_mail_fprintf(bounce, "Will-Retry-Until: %s",
 		 mail_date(bounce_info->arrival_time + var_max_queue_time));
     return (vstream_ferror(bounce));
@@ -740,7 +661,7 @@ int     bounce_diagnostic_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
      */
     if (bounce_info->log_handle == 0
 	|| bounce_log_rewind(bounce_info->log_handle)) {
-	if (bounce_info->report_type == BOUNCE_REPORT_FAIL)
+	if (bounce_info->template == FAIL_TEMPLATE())
 	    count = 1;				/* XXX don't abort */
     } else {
 	while (bounce_log_read(bounce_info->log_handle) != 0) {
@@ -776,10 +697,13 @@ int     bounce_original(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
     /*
      * MIME headers.
      */
+#define UNDELIVERED(template) \
+        ((template) == FAIL_TEMPLATE() || (template) == DELAY_TEMPLATE())
+
     post_mail_fputs(bounce, "");
     post_mail_fprintf(bounce, "--%s", bounce_info->mime_boundary);
     post_mail_fprintf(bounce, "Content-Description: %s%s",
-		      UNDELIVERED(bounce_info->report_type) ?
+		      UNDELIVERED(bounce_info->template) ?
 		      "Undelivered " : "",
 		      headers_only == DSN_RET_HDRS ?
 		      "Message Headers" : "Message");

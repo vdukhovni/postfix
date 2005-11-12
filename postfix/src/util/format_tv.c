@@ -109,7 +109,7 @@ VSTRING *format_tv(VSTRING *buf, int sec, int usec,
     }
 
     /*
-     * Format the number. Truncate thrash below the resolution.
+     * Format the number. Truncate trailing null and thrash below resolution.
      */
     vstring_sprintf_append(buf, "%d", sec);
     if (usec >= ures) {

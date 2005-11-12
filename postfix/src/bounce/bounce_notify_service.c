@@ -127,7 +127,7 @@ int     bounce_notify_service(int flags, char *service, char *queue_name,
      * notification is enabled.
      */
     bounce_info = bounce_mail_init(service, queue_name, queue_id,
-				   encoding, dsn_envid, BOUNCE_REPORT_FAIL);
+				   encoding, dsn_envid, FAIL_TEMPLATE());
 
 #define NULL_SENDER		MAIL_ADDR_EMPTY	/* special address */
 #define NULL_TRACE_FLAGS	0
