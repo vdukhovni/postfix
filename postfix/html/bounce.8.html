@@ -7,19 +7,18 @@
 BOUNCE(8)                                                            BOUNCE(8)
 
 <b>NAME</b>
-       bounce - Postfix message bounce or defer daemon
+       bounce - Postfix delivery status reports
 
 <b>SYNOPSIS</b>
        <b>bounce</b> [generic Postfix daemon options]
 
 <b>DESCRIPTION</b>
        The  <a href="bounce.8.html"><b>bounce</b>(8)</a> daemon maintains per-message log files with
-       non-delivery status information. Each log  file  is  named
-       after  the  queue file that it corresponds to, and is kept
-       in a queue subdirectory named after the  service  name  in
-       the  <b>master.cf</b> file (either <b>bounce</b>, <b>defer</b> or <b>trace</b>).  This
-       program expects to be run from the <a href="master.8.html"><b>master</b>(8)</a> process  man-
-       ager.
+       delivery status information. Each log file is named  after
+       the  queue  file  that it corresponds to, and is kept in a
+       queue subdirectory named after the  service  name  in  the
+       <b>master.cf</b> file (either <b>bounce</b>, <b>defer</b> or <b>trace</b>).  This pro-
+       gram expects to be run from the <a href="master.8.html"><b>master</b>(8)</a> process manager.
 
        The  <a href="bounce.8.html"><b>bounce</b>(8)</a>  daemon  processes  two  types  of  service
        requests:
@@ -78,7 +77,7 @@ BOUNCE(8)                                                            BOUNCE(8)
               The maximal amount of original message text that is
               sent in a non-delivery notification.
 
-       <b>bounce_template_file (empty)</b>
+       <b><a href="postconf.5.html#bounce_template_file">bounce_template_file</a> (empty)</b>
               Pathname  of  a configuration file with bounce mes-
               sage templates.
 
@@ -152,6 +151,7 @@ BOUNCE(8)                                                            BOUNCE(8)
        /var/spool/postfix/trace/* delivery status records
 
 <b>SEE ALSO</b>
+       <a href="bounce.5.html">bounce(5)</a>, bounce message template format
        <a href="qmgr.8.html">qmgr(8)</a>, queue manager
        <a href="postconf.5.html">postconf(5)</a>, configuration parameters
        <a href="master.5.html">master(5)</a>, generic daemon options

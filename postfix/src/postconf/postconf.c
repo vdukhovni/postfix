@@ -10,13 +10,26 @@
 /*
 /*	\fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fIparameter=value ...\fR]
+/*
+/*	\fBpostconf\fR [\fB-btv\fR] [\fB-c \fIconfig_dir\fR] [\fItemplate_file\fR]
 /* DESCRIPTION
-/*	The \fBpostconf\fR(1) command prints the actual value of
-/*	\fIparameter\fR (all known parameters by default) one
-/*	parameter per line, changes its value, or prints other
-/*	information about the Postfix mail system.
+/*	The \fBpostconf\fR(1) command displays the actual values
+/*	of configuration parameters, changes configuration parameter
+/*	values, or displays other configuration information about
+/*	the Postfix mail system.
 /*
 /*	Options:
+/* .IP "\fB-b\fR [\fItemplate_file\fR]"
+/*	Display the message text that appears at the beginning of
+/*	delivery status notification (DSN) messages, with $\fBname\fR
+/*	expressions replaced by actual values.  To override the
+/*	built-in message text, specify a template file at the end
+/*	of the command line, or specify a template file in main.cf
+/*	with the \fBbounce_template_file\fR parameter.
+/*	To force selection of the built-in message text templates,
+/*	specify an empty template file name (in shell language: "").
+/*
+/*	This feature is available with Postfix 2.3 and later.
 /* .IP "\fB-c \fIconfig_dir\fR"
 /*	The \fBmain.cf\fR configuration file is in the named directory
 /*	instead of the default configuration directory.
@@ -117,11 +130,21 @@
 /*	The result is a group file entry in \fBgroup\fR(5) format.
 /* .RE
 /* .RE
-/* .sp
+/* .IP
 /*	Other table types may exist depending on how Postfix was built.
 /* .IP \fB-n\fR
 /*	Print parameter settings that are not left at their built-in
 /*	default value, because they are explicitly specified in main.cf.
+/* .IP "\fB-t\fR [\fItemplate_file\fR]"
+/*	Display the templates for delivery status notification (DSN)
+/*	messages. To override the built-in templates, specify a
+/*	template file at the end of the command line, or specify a
+/*	template file in main.cf with the \fBbounce_template_file\fR
+/*	parameter.  To force selection of the built-in templates,
+/*	specify an empty template file name (in shell language:
+/*	"").
+/*
+/*	This feature is available with Postfix 2.3 and later.
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
@@ -143,9 +166,12 @@
 /* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 /*	The default location of the Postfix main.cf and master.cf
 /*	configuration files.
+/* .IP "\fBbounce_template_file (empty)\fR"
+/*	Pathname of a configuration file with bounce message templates.
 /* FILES
 /*	/etc/postfix/main.cf, Postfix configuration parameters
 /* SEE ALSO
+/*	bounce(5), bouce template file format
 /*	postconf(5), configuration parameters
 /* README FILES
 /* .ad
@@ -201,6 +227,7 @@
 #include <vstring_vstream.h>
 #include <myflock.h>
 #include <inet_proto.h>
+#include <argv.h>
 
 /* Global library. */
 
@@ -212,6 +239,7 @@
 #include <mail_params.h>
 #include <mail_addr.h>
 #include <mbox_conf.h>
+#include <mail_run.h>
 
  /*
   * What we're supposed to be doing.
@@ -900,6 +928,7 @@ int     main(int argc, char **argv)
     int     fd;
     struct stat st;
     int     junk;
+    ARGV   *ext_argv = 0;
 
     /*
      * Be consistent with file permissions.
@@ -924,8 +953,14 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "c:deEhmlnv")) > 0) {
+    while ((ch = GETOPT(argc, argv, "bc:deEhmlntv")) > 0) {
 	switch (ch) {
+	case 'b':
+	    if (ext_argv)
+		msg_fatal("specify one of -b and -t");
+	    ext_argv = argv_alloc(2);
+	    argv_add(ext_argv, "bounce", "-SVnexpand_templates", (char *) 0);
+	    break;
 	case 'c':
 	    if (setenv(CONF_ENV_PATH, optarg, 1) < 0)
 		msg_fatal("out of memory");
@@ -960,11 +995,17 @@ int     main(int argc, char **argv)
 	case 'n':
 	    mode |= SHOW_NONDEF;
 	    break;
+	case 't':
+	    if (ext_argv)
+		msg_fatal("specify one of -b and -t");
+	    ext_argv = argv_alloc(2);
+	    argv_add(ext_argv, "bounce", "-SVndump_templates", (char *) 0);
+	    break;
 	case 'v':
 	    msg_verbose++;
 	    break;
 	default:
-	    msg_fatal("usage: %s [-c config_dir] [-d (defaults)] [-e (edit)] [-h (no names)] [-l (lock types)] [-m (map types)] [-n (non-defaults)] [-v] [name...]", argv[0]);
+	    msg_fatal("usage: %s [-b (bounce templates)] [-c config_dir] [-d (defaults)] [-e (edit)] [-h (no names)] [-l (lock types)] [-m (map types)] [-n (non-defaults)] [-v] [name...]", argv[0]);
 	}
     }
 
@@ -972,9 +1013,31 @@ int     main(int argc, char **argv)
      * Sanity check.
      */
     junk = (mode & (SHOW_DEFS | SHOW_NONDEF | SHOW_MAPS | SHOW_LOCKS | EDIT_MAIN));
-    if (junk != 0 && junk != SHOW_DEFS && junk != SHOW_NONDEF
-	&& junk != SHOW_MAPS && junk != SHOW_LOCKS && junk != EDIT_MAIN)
-	msg_fatal("specify one of -d, -e, -m, -l and -n");
+    if (junk != 0 && ((junk != SHOW_DEFS && junk != SHOW_NONDEF
+	    && junk != SHOW_MAPS && junk != SHOW_LOCKS && junk != EDIT_MAIN)
+		      || ext_argv != 0))
+	msg_fatal("specify one of -b, -d, -e, -m, -l and -n");
+
+    /*
+     * Display bounce template information and exit.
+     */
+    if (ext_argv) {
+	if (argv[optind]) {
+	    if (argv[optind + 1])
+		msg_fatal("options -b and -t require at most one template file");
+	    argv_add(ext_argv, "-o",
+		     concatenate(VAR_BOUNCE_TMPL, "=",
+				 argv[optind], (char *) 0),
+		     (char *) 0);
+	}
+	/* Grr... */
+	argv_add(ext_argv, "-o",
+		 concatenate(VAR_QUEUE_DIR, "=", ".", (char *) 0),
+		 (char *) 0);
+	mail_conf_read();
+	mail_run_replace(var_daemon_dir, ext_argv->argv);
+	/* NOTREACHED */
+    }
 
     /*
      * If showing map types, show them and exit

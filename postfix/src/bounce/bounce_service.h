@@ -62,26 +62,32 @@ extern void bounce_cleanup_unregister(void);
   * bounce_template.c
   */
 typedef struct {
-    const char *class;			/* template type */
-    const char *charset;		/* character set */
-    const char *encoding;		/* 7bit or 8bit */
-    const char *from;			/* originator */
-    const char *subject;		/* general subject line */
-    const char *postmaster_subject;	/* postmaster subject line */
-    const char **message_text;		/* message text */
+    const char *class;			/* for diagnostics (fixed) */
+    const char *charset;		/* character set (configurable) */
+    const char *mime_encoding;		/* 7bit or 8bit (derived) */
+    const char *from;			/* originator (configurable) */
+    const char *subject;		/* general subject (configurable) */
+    const char *postmaster_subject;	/* postmaster subject (configurable) */
+    const char **message_text;		/* message text (configurable) */
 } BOUNCE_TEMPLATE;
 
+typedef int (*BOUNCE_OUT_FN)(VSTREAM *, const char *);
 extern void bounce_template_load(const char *);
-extern void bounce_template_expand(VSTREAM *, const BOUNCE_TEMPLATE *);
+extern void bounce_template_expand(BOUNCE_OUT_FN, VSTREAM *, const BOUNCE_TEMPLATE *);
 extern const BOUNCE_TEMPLATE *bounce_template_find(const char *, const BOUNCE_TEMPLATE *);
-extern void bounce_template_dump_default(VSTREAM *);
-extern void bounce_template_dump_actual(VSTREAM *);
+extern void bounce_template_dump_all(VSTREAM *);
+extern void bounce_template_expand_all(VSTREAM *);
+
+#define BOUNCE_TMPL_CLASS_FAIL	"failure"
+#define BOUNCE_TMPL_CLASS_DELAY	"delay"
+#define BOUNCE_TMPL_CLASS_SUCCESS "success"
+#define BOUNCE_TMPL_CLASS_VERIFY "verify"
 
 #define BOUNCE_TEMPLATE_DICT	"bounce_templates"
-#define BOUNCE_TMPL_DICT_FAIL	"fail_template"
-#define BOUNCE_TMPL_DICT_DELAY	"delay_template"
-#define BOUNCE_TMPL_DICT_SUCCESS "success_template"
-#define BOUNCE_TMPL_DICT_VERIFY	"verify_template"
+#define BOUNCE_TMPL_DICT_FAIL	(BOUNCE_TMPL_CLASS_FAIL "_template")
+#define BOUNCE_TMPL_DICT_DELAY	(BOUNCE_TMPL_CLASS_DELAY "_template")
+#define BOUNCE_TMPL_DICT_SUCCESS (BOUNCE_TMPL_CLASS_SUCCESS "_template")
+#define BOUNCE_TMPL_DICT_VERIFY	(BOUNCE_TMPL_CLASS_VERIFY "_template")
 
 #define FAIL_TEMPLATE() \
     (bounce_fail_template ? bounce_fail_template : \
@@ -107,6 +113,15 @@ extern void bounce_template_dump_actual(VSTREAM *);
 	    bounce_template_find(BOUNCE_TMPL_DICT_VERIFY, \
 		&def_bounce_verify_template)))
 
+#define IS_FAIL_TEMPLATE(t)	((t) == bounce_fail_template)
+#define IS_DELAY_TEMPLATE(t)	((t) == bounce_delay_template)
+#define IS_SUCCESS_TEMPLATE(t)	((t) == bounce_success_template)
+#define IS_VERIFY_TEMPLATE(t)	((t) == bounce_verify_template)
+
+ /*
+  * The following are not part of the bounce_template() interface. Use the
+  * above macros instead.
+  */
 extern const BOUNCE_TEMPLATE *bounce_fail_template;
 extern const BOUNCE_TEMPLATE *bounce_delay_template;
 extern const BOUNCE_TEMPLATE *bounce_success_template;

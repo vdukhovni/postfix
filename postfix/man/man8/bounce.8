@@ -4,7 +4,7 @@
 .SH NAME
 bounce
 \-
-Postfix message bounce or defer daemon
+Postfix delivery status reports
 .SH "SYNOPSIS"
 .na
 .nf
@@ -13,7 +13,7 @@ Postfix message bounce or defer daemon
 .ad
 .fi
 The \fBbounce\fR(8) daemon maintains per-message log files with
-non-delivery status information. Each log file is named after the
+delivery status information. Each log file is named after the
 queue file that it corresponds to, and is kept in a queue subdirectory
 named after the service name in the \fBmaster.cf\fR file (either
 \fBbounce\fR, \fBdefer\fR or \fBtrace\fR).
@@ -125,6 +125,7 @@ records, so that "smtpd" becomes, for example, "postfix/smtpd".
 .SH "SEE ALSO"
 .na
 .nf
+bounce(5), bounce message template format
 qmgr(8), queue manager
 postconf(5), configuration parameters
 master(5), generic daemon options

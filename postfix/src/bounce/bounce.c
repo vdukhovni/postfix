@@ -2,12 +2,12 @@
 /* NAME
 /*	bounce 8
 /* SUMMARY
-/*	Postfix message bounce or defer daemon
+/*	Postfix delivery status reports
 /* SYNOPSIS
 /*	\fBbounce\fR [generic Postfix daemon options]
 /* DESCRIPTION
 /*	The \fBbounce\fR(8) daemon maintains per-message log files with
-/*	non-delivery status information. Each log file is named after the
+/*	delivery status information. Each log file is named after the
 /*	queue file that it corresponds to, and is kept in a queue subdirectory
 /*	named after the service name in the \fBmaster.cf\fR file (either
 /*	\fBbounce\fR, \fBdefer\fR or \fBtrace\fR).
@@ -109,6 +109,7 @@
 /*	/var/spool/postfix/defer/* non-delivery records
 /*	/var/spool/postfix/trace/* delivery status records
 /* SEE ALSO
+/*	bounce(5), bounce message template format
 /*	qmgr(8), queue manager
 /*	postconf(5), configuration parameters
 /*	master(5), generic daemon options
@@ -129,6 +130,7 @@
 
 #include <sys_defs.h>
 #include <string.h>
+#include <stdlib.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>
@@ -445,16 +447,6 @@ static void bounce_service(VSTREAM *client, char *service_name, char **argv)
 	msg_fatal("malformed service name: %s", service_name);
 
     /*
-     * Special case: dump the built-in templates. This is not part of the
-     * public interface.
-     */
-    if (strcmp(service_name, "default") == 0) {
-	bounce_template_dump_default(VSTREAM_OUT);
-	vstream_fflush(VSTREAM_OUT);
-	exit(0);
-    }
-
-    /*
      * Read and validate the first parameter of the client request. Let the
      * request-specific protocol routines take care of the remainder.
      */
@@ -516,11 +508,16 @@ static void pre_jail_init(char *service_name, char **unused_argv)
 	bounce_template_load(var_bounce_tmpl);
 
     /*
-     * Special case: dump the actual templates. This is not part of the
-     * public interface.
+     * Special case: dump bounce templates. This is not part of the
+     * master(5) public interface.
      */
-    if (strcmp(service_name, "actual") == 0) {
-	bounce_template_dump_actual(VSTREAM_OUT);
+    if (strcmp(service_name, "dump_templates") == 0) {
+	bounce_template_dump_all(VSTREAM_OUT);
+	vstream_fflush(VSTREAM_OUT);
+	exit(0);
+    }
+    if (strcmp(service_name, "expand_templates") == 0) {
+	bounce_template_expand_all(VSTREAM_OUT);
 	vstream_fflush(VSTREAM_OUT);
 	exit(0);
     }

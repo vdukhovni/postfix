@@ -14,13 +14,30 @@ POSTCONF(1)                                                        POSTCONF(1)
 
        <b>postconf</b> [<b>-ev</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>parameter=value ...</i>]
 
+       <b>postconf</b> [<b>-btv</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>template</i><b>_</b><i>file</i>]
+
 <b>DESCRIPTION</b>
-       The <a href="postconf.1.html"><b>postconf</b>(1)</a> command prints the actual value of <i>parame-</i>
-       <i>ter</i> (all known parameters by default)  one  parameter  per
-       line, changes its value, or prints other information about
+       The <a href="postconf.1.html"><b>postconf</b>(1)</a> command displays the actual values of con-
+       figuration  parameters,  changes  configuration  parameter
+       values,  or displays other configuration information about
        the Postfix mail system.
 
        Options:
+
+       <b>-b</b> [<i>template</i><b>_</b><i>file</i>]
+              Display the message text that appears at the begin-
+              ning  of  delivery  status  notification (DSN) mes-
+              sages, with $<b>name</b> expressions  replaced  by  actual
+              values.   To  override  the  built-in message text,
+              specify a template file at the end of  the  command
+              line,  or  specify  a template file in main.cf with
+              the  <b><a href="postconf.5.html#bounce_template_file">bounce_template_file</a></b>  parameter.    To   force
+              selection  of  the built-in message text templates,
+              specify an empty template file name (in shell  lan-
+              guage: "").
+
+              This  feature  is  available  with  Postfix 2.3 and
+              later.
 
        <b>-c</b> <i>config</i><b>_</b><i>dir</i>
               The <b>main.cf</b> configuration  file  is  in  the  named
@@ -151,15 +168,27 @@ POSTCONF(1)                                                        POSTCONF(1)
                             is  a  group  file  entry in <b>group</b>(5)
                             format.
 
-       Other table types may exist depending on how  Postfix  was
-       built.
+              Other table types may exist depending on how  Post-
+              fix was built.
 
        <b>-n</b>     Print parameter settings that are not left at their
               built-in default value, because they are explicitly
               specified in main.cf.
 
+       <b>-t</b> [<i>template</i><b>_</b><i>file</i>]
+              Display the templates for delivery status notifica-
+              tion (DSN) messages. To override the built-in  tem-
+              plates,  specify  a template file at the end of the
+              command line, or specify a template file in main.cf
+              with  the <b><a href="postconf.5.html#bounce_template_file">bounce_template_file</a></b> parameter.  To force
+              selection of the  built-in  templates,  specify  an
+              empty template file name (in shell language: "").
+
+              This  feature  is  available  with  Postfix 2.3 and
+              later.
+
        <b>-v</b>     Enable verbose logging for debugging purposes. Mul-
-              tiple <b>-v</b> options  make  the  software  increasingly
+              tiple  <b>-v</b>  options  make  the software increasingly
               verbose.
 
 <b>DIAGNOSTICS</b>
@@ -170,20 +199,25 @@ POSTCONF(1)                                                        POSTCONF(1)
               Directory with Postfix configuration files.
 
 <b>CONFIGURATION PARAMETERS</b>
-       The  following  <b>main.cf</b> parameters are especially relevant
+       The following <b>main.cf</b> parameters are  especially  relevant
        to this program.
 
-       The text below provides  only  a  parameter  summary.  See
+       The  text  below  provides  only  a parameter summary. See
        <a href="postconf.5.html"><b>postconf</b>(5)</a> for more details including examples.
 
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The  default  location  of  the Postfix main.cf and
+              The default location of  the  Postfix  main.cf  and
               master.cf configuration files.
+
+       <b><a href="postconf.5.html#bounce_template_file">bounce_template_file</a> (empty)</b>
+              Pathname  of  a configuration file with bounce mes-
+              sage templates.
 
 <b>FILES</b>
        /etc/postfix/main.cf, Postfix configuration parameters
 
 <b>SEE ALSO</b>
+       <a href="bounce.5.html">bounce(5)</a>, bouce template file format
        <a href="postconf.5.html">postconf(5)</a>, configuration parameters
 
 <b>README FILES</b>

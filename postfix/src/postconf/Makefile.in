@@ -81,6 +81,7 @@ postconf.o: ../../include/mail_conf.h
 postconf.o: ../../include/mail_dict.h
 postconf.o: ../../include/mail_params.h
 postconf.o: ../../include/mail_proto.h
+postconf.o: ../../include/mail_run.h
 postconf.o: ../../include/mail_version.h
 postconf.o: ../../include/mbox_conf.h
 postconf.o: ../../include/msg.h

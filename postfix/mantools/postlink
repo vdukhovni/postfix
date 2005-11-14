@@ -106,6 +106,7 @@ while (<>) {
     s;\bbounce_queue_lifetime\b;<a href="postconf.5.html#bounce_queue_lifetime">$&</a>;g;
     s;\bbounce_service_name\b;<a href="postconf.5.html#bounce_service_name">$&</a>;g;
     s;\bbounce_size_limit\b;<a href="postconf.5.html#bounce_size_limit">$&</a>;g;
+    s;\bbounce_template_file\b;<a href="postconf.5.html#bounce_template_file">$&</a>;g;
     s;\bbroken_sasl_auth_clients\b;<a href="postconf.5.html#broken_sasl_auth_clients">$&</a>;g;
     s;\bcanonical_classes\b;<a href="postconf.5.html#canonical_classes">$&</a>;g;
     s;\bcanonical_maps\b;<a href="postconf.5.html#canonical_maps">$&</a>;g;
@@ -141,7 +142,7 @@ while (<>) {
     s;\bdefer_transports\b;<a href="postconf.5.html#defer_transports">$&</a>;g;
     s;\bdelay_logging_resolution_limit\b;<a href="postconf.5.html#delay_logging_resolution_limit">$&</a>;g;
     s;\bdelay_notice_recip[-</bB>]*\n* *[<bB>]*ient\b;<a href="postconf.5.html#delay_notice_recipient">$&</a>;g;
-    s;\bdelay_warning_time\b;<a href="postconf.5.html#delay_warning_time">$&</a>;g;
+    s;\bdelay_warn[-</bB>]*\n*[ <bB>]*ing_time\b;<a href="postconf.5.html#delay_warning_time">$&</a>;g;
     s;\bdeliver_lock_attempts\b;<a href="postconf.5.html#deliver_lock_attempts">$&</a>;g;
     s;\bdeliver_lock_delay\b;<a href="postconf.5.html#deliver_lock_delay">$&</a>;g;
     s;\bdisable_dns_lookups\b;<a href="postconf.5.html#disable_dns_lookups">$&</a>;g;
@@ -234,7 +235,7 @@ while (<>) {
     s;\bmax_idle\b;<a href="postconf.5.html#max_idle">$&</a>;g;
     s;\bmax_use\b;<a href="postconf.5.html#max_use">$&</a>;g;
     s;\bmaxi[-</bB>]*\n*[ <bB>]*mal_backoff_time\b;<a href="postconf.5.html#maximal_backoff_time">$&</a>;g;
-    s;\bmaxi[-</bB>]*\n*[ <bB>]*mal_queue_lifetime\b;<a href="postconf.5.html#maximal_queue_lifetime">$&</a>;g;
+    s;\bmaxi[-</bB>]*\n*[ <bB>]*mal_queue_life[-</bB>]*\n*[ <bB>]*time\b;<a href="postconf.5.html#maximal_queue_lifetime">$&</a>;g;
     s;\bmessage_reject_characters\b;<a href="postconf.5.html#message_reject_characters">$&</a>;g;
     s;\bmessage_size_limit\b;<a href="postconf.5.html#message_size_limit">$&</a>;g;
     s;\bmessage_strip_characters\b;<a href="postconf.5.html#message_strip_characters">$&</a>;g;
@@ -544,7 +545,7 @@ while (<>) {
     s/[<bB>]*newaliases[<\/bB>]*\(1\)/<a href="newaliases.1.html">$&<\/a>/g;
     s/[<bB>]*postalias[<\/bB>]*\(1\)/<a href="postalias.1.html">$&<\/a>/g;
     s/[<bB>]*postcat[<\/bB>]*\(1\)/<a href="postcat.1.html">$&<\/a>/g;
-    s/[<bB>]*postconf[<\/bB>]*\(1\)/<a href="postconf.1.html">$&<\/a>/g;
+    s/[<bB>]*post[-<\/bB>]*\n*[ <bB>]*conf[<\/bB>]*\(1\)/<a href="postconf.1.html">$&<\/a>/g;
     s/[<bB>]*postdrop[<\/bB>]*\(1\)/<a href="postdrop.1.html">$&<\/a>/g;
     s/[<bB>]*postfix[<\/bB>]*\(1\)/<a href="postfix.1.html">$&<\/a>/g;
     s/[<bB>]*postkick[<\/bB>]*\(1\)/<a href="postkick.1.html">$&<\/a>/g;
@@ -561,6 +562,7 @@ while (<>) {
     s/[<bB>]*qshape[<\/bB>]*\(1\)/<a href="qshape.1.html">$&<\/a>/g;
     s/[<bB>]*access[<\/bB>]*\(5\)/<a href="access.5.html">$&<\/a>/g;
     s/[<bB>]*aliases[<\/bB>]*\(5\)/<a href="aliases.5.html">$&<\/a>/g;
+    s/[<bB>]*bounce[<\/bB>]*\(5\)/<a href="bounce.5.html">$&<\/a>/g;
     s/[<bB>]*canonical[<\/bB>]*\(5\)/<a href="canonical.5.html">$&<\/a>/g;
     s/[<bB>]*gener[-<\/bB>]*\n* *[<bB>]*ic[<\/bB>]*\(5\)/<a href="generic.5.html">$&<\/a>/g;
     s/[<bB>]*ldap[<\/bBiI>]*_[<\/iIbB>]*ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="ldap_table.5.html">$&<\/a>/g;

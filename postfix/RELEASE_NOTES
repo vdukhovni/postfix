@@ -17,6 +17,35 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
+Major changes with snapshot 20051113
+====================================
+
+Configurable bounce messages, based on a format that was developed
+by Nicolas Riendeau. The file with templates is specified with the
+bounce_template_file parameter. Details are in the bounce(5) manual
+page, and examples of the built-in templates can be found in a file
+bounce.cf.default in the Postfix configuration directory. The
+template for the default bounce message looks like this:
+
+    failure_template = <<EOF
+    Charset: us-ascii
+    From: MAILER-DAEMON (Mail Delivery System)
+    Subject: Undelivered Mail Returned to Sender
+    Postmaster-Subject: Postmaster Copy: Undelivered Mail
+
+    This is the $mail_name program at host $myhostname.
+
+    I'm sorry to have to inform you that your message could not
+    be delivered to one or more recipients. It's attached below.
+
+    For further assistance, please send mail to <postmaster>
+
+    If you do so, please include this problem report. You can
+    delete your own text from the attached returned message.
+
+                            The $mail_name program
+    EOF
+
 Incompatibility with snapshot 20051106
 ======================================
 

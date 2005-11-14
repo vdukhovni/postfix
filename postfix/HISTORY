@@ -11368,13 +11368,31 @@ Apologies for any names omitted.
 
 20051112
 
-	Feature (grumble): configurable bounce message templates
-	based on contribution by Nicolas Riendeau. I kept the general
-	format of his templates, but placed them together in one
-	file to reduce process initialization overhead. Files:
-	bounce/bounce_template.c, bounce/dict_ml.c (to be moved to
-	library if useful enough). A sample bounce message template
-	file is installed as $config_directory/bounce.cf.default.
+	Feature: configurable bounce message templates based on
+	contribution by Nicolas Riendeau. I kept the general format
+	of his templates, but placed them together in one file to
+	reduce process initialization overhead (most requests to
+	the bounce daemon are not for sending bounce messages).
+	Files: bounce/bounce_template.c, bounce/dict_ml.c (to be
+	moved to library if useful enough). A sample bounce message
+	template file is installed as $config_directory/bounce.cf.default.
+
+20051113
+
+	Feature: "postconf -b filename" to preview the non-default
+	bounce message templates with $name expansions in the text.
+	The actual work is of course done by the bounce daemon.
+
+20051114
+
+	Feature: -V option to make Postfix daemons to log to stderr.
+	This is used when a daemon is invoked in stand-alone mode
+	by a (non-daemon) command.
+
+	Feature: "postconf -t" displays DSN templates, headers and
+	all; use postconf -t ''" to view built-ins.
+
+	Cleanup: renamed fail_template into failure_template.
 
 Open problems:
 

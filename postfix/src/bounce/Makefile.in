@@ -22,9 +22,12 @@ LIBS	= ../../lib/libmaster.a ../../lib/libglobal.a ../../lib/libutil.a
 $(PROG):	$(OBJS) $(LIBS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
 
-../../conf/bounce.cf.default: $(PROG) fix-template.pl
+# Avoid dependency on installed Postfix.
+../../conf/bounce.cf.default: $(PROG) annotate.pl
 	rm -f $@
-	./$(PROG) -Szn default | perl fix-template.pl >$@
+	echo queue_directory=. >main.cf
+	MAIL_CONFIG=. ./$(PROG) -SVzndump_templates | perl annotate.pl >$@
+	rm -f main.cf
 
 $(OBJS): ../../conf/makedefs.out
 
@@ -52,15 +55,18 @@ lint:
 	lint $(DEFS) $(SRCS) $(LINTFIX)
 
 clean:
-	rm -f *.o *core $(PROG) $(TESTPROG) junk 
+	rm -f *.o *core $(PROG) $(TESTPROG) junk main.cf
 	rm -rf printfck
 
 tidy:	clean
 
-template_test:
-	./bounce -Szn default >junk
-	./bounce -Szn actual -o bounce_template_file=`pwd`/junk | diff junk -
-	rm -f junk
+# Avoid dependency on installed Postfix.
+template_test: $(PROG)
+	echo queue_directory=. >main.cf
+	MAIL_CONFIG=. ./$(PROG) -SVzndump_templates >junk
+	MAIL_CONFIG=. ./$(PROG) -SVzndump_templates \
+	    -o bounce_template_file=junk | diff junk -
+	rm -f junk main.cf
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \

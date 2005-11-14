@@ -8679,7 +8679,15 @@ precision.  </p>
 %PARAM bounce_template_file empty
 
 <p> Pathname of a configuration file with bounce message templates.
-</p>
+These override the bounce(8) server built-in templates of delivery
+status notification (DSN) messages for undeliverable mail, for
+delayed mail, for successful delivery, or for mail delivery
+verification. </p>
+
+<p> Template message body text may contain $name references to
+Postfix configuration parameters. The result of $name expansion can
+be previewed with "<b>postconf -b <i>file_name</i></b>" before the file
+is placed into the Postfix configuration directory.  </p>
 
 <p> This feature is available in Postfix 2.3 and later.  </p>
 

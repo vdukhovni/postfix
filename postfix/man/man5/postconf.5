@@ -601,6 +601,15 @@ this limit, then you should increase the mime_nesting_limit value
 proportionally.
 .SH bounce_template_file (default: empty)
 Pathname of a configuration file with bounce message templates.
+These override the \fBbounce\fR(8) server built-in templates of delivery
+status notification (DSN) messages for undeliverable mail, for
+delayed mail, for successful delivery, or for mail delivery
+verification.
+.PP
+Template message body text may contain $name references to
+Postfix configuration parameters. The result of $name expansion can
+be previewed with "\fBpostconf -b \fIfile_name\fR\fR" before the file
+is placed into the Postfix configuration directory.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH broken_sasl_auth_clients (default: no)

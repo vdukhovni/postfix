@@ -150,6 +150,7 @@
 
 #include <msg.h>
 #include <msg_syslog.h>
+#include <msg_vstream.h>
 #include <chroot_uid.h>
 #include <vstring.h>
 #include <vstream.h>
@@ -397,6 +398,7 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
     WATCHDOG *watchdog;
     char   *oval;
     char   *generation;
+    int     msg_vstream_needed = 0;
 
     /*
      * Process environment options as early as we can.
@@ -448,7 +450,7 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
      * stderr, because no-one is going to see them.
      */
     opterr = 0;
-    while ((c = GETOPT(argc, argv, "cdDi:lm:n:o:s:St:uvz")) > 0) {
+    while ((c = GETOPT(argc, argv, "cdDi:lm:n:o:s:St:uvVz")) > 0) {
 	switch (c) {
 	case 'c':
 	    root_dir = "setme";
@@ -491,6 +493,10 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
 	    break;
 	case 'v':
 	    msg_verbose++;
+	    break;
+	case 'V':
+	    if (++msg_vstream_needed == 1)
+		msg_vstream_init(mail_task(var_procname), VSTREAM_ERR);
 	    break;
 	case 'z':
 	    zerolimit = 1;
@@ -546,12 +552,12 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
 	    single_server_in_flow_delay = 1;
 	    break;
 	case MAIL_SERVER_SOLITARY:
-	    if (!alone)
+	    if (stream == 0 && !alone)
 		msg_fatal("service %s requires a process limit of 1",
 			  service_name);
 	    break;
 	case MAIL_SERVER_UNLIMITED:
-	    if (!zerolimit)
+	    if (stream == 0 && !zerolimit)
 		msg_fatal("service %s requires a process limit of 0",
 			  service_name);
 	    break;

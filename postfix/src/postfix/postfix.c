@@ -165,6 +165,7 @@
 /*	sendmail(1), Sendmail compatibility interface
 /*
 /*	Postfix configuration:
+/*	bounce(5), Postfix bounce message templates
 /*	master(5), Postfix master.cf file syntax
 /*	postconf(5), Postfix main.cf file syntax
 /*

@@ -21,10 +21,10 @@
 /*	VSTREAM	*stream;
 /*	BOUNCE_TEMPLATE *template;
 /* AUXILIARY FUNCTIONS
-/*	void	bounce_template_dump_default(stream)
+/*	void	bounce_template_dump_all(stream)
 /*	VSTREAM	*stream;
 /*
-/*	void	bounce_template_dump_actual(stream)
+/*	void	bounce_template_expand_all(stream)
 /*	VSTREAM	*stream;
 /* DESCRIPTION
 /*	This module implements the built-in and external bounce
@@ -49,6 +49,10 @@
 /*	to the specified stream. This can be used to verify that
 /*	the bounce server correctly reads its own bounce_template_dump_default()
 /*	output.
+/*
+/*	bounce_template_expand_actual() expands the template message
+/*	text and dumps the result to the specified stream. This can
+/*	be used to verify that templates produce the desired text.
 /* DIAGNOSTICS
 /*	Fatal error: error opening template file, out of memory,
 /*	undefined macro name in template.
@@ -102,7 +106,7 @@
 static const char *def_bounce_fail_body[];
 
 const BOUNCE_TEMPLATE def_bounce_fail_template = {
-    "fail",
+    BOUNCE_TMPL_CLASS_FAIL,
     "us-ascii",
     MAIL_ATTR_ENC_7BIT,
     MAIL_ADDR_MAIL_DAEMON " (Mail Delivery System)",
@@ -132,7 +136,7 @@ static const char *def_bounce_fail_body[] = {
 static const char *def_bounce_delay_body[];
 
 const BOUNCE_TEMPLATE def_bounce_delay_template = {
-    "delay",
+    BOUNCE_TMPL_CLASS_DELAY,
     "us-ascii",
     MAIL_ATTR_ENC_7BIT,
     MAIL_ADDR_MAIL_DAEMON " (Mail Delivery System)",
@@ -167,7 +171,7 @@ static const char *def_bounce_delay_body[] = {
 static const char *def_bounce_success_body[];
 
 const BOUNCE_TEMPLATE def_bounce_success_template = {
-    "success",
+    BOUNCE_TMPL_CLASS_SUCCESS,
     "us-ascii",
     MAIL_ATTR_ENC_7BIT,
     MAIL_ADDR_MAIL_DAEMON " (Mail Delivery System)",
@@ -195,7 +199,7 @@ static const char *def_bounce_success_body[] = {
 static const char *def_bounce_verify_body[];
 
 const BOUNCE_TEMPLATE def_bounce_verify_template = {
-    "verify",
+    BOUNCE_TMPL_CLASS_VERIFY,
     "us-ascii",
     MAIL_ATTR_ENC_7BIT,
     MAIL_ADDR_MAIL_DAEMON " (Mail Delivery System)",
@@ -318,17 +322,21 @@ static const char *bounce_template_lookup(const char *key, int unused_mode,
 		if (strcmp(key + bp->param_name_len + 1, bd->suffix) == 0) {
 		    result = bp->value[0] / bd->divisor;
 		    if (result > 999 && bd->divisor < 86400) {
-			msg_warn("excessive result \"%d\" in %s bounce "
+			msg_warn("%s: excessive result \"%d\" in %s "
 				 "template conversion of parameter \"%s\"",
+			  *var_bounce_tmpl ? var_bounce_tmpl : "[built-in]",
 				 result, template->class, key);
 			msg_warn("please increase time unit \"%s\" of \"%s\" "
-				 "in bounce template file", bd->suffix, key);
-		    } else if (result == 0 && bd->divisor > 1) {
-			msg_warn("zero result in %s bounce template "
+				 "in %s template", bd->suffix, key,
+				 template->class);
+		    } else if (result == 0 && bp->value[0] && bd->divisor > 1) {
+			msg_warn("%s: zero result in %s template "
 				 "conversion of parameter \"%s\"",
+			  *var_bounce_tmpl ? var_bounce_tmpl : "[built-in]",
 				 template->class, key);
 			msg_warn("please reduce time unit \"%s\" of \"%s\" "
-				 "in bounce template file", bd->suffix, key);
+				 "in %s template", bd->suffix, key,
+				 template->class);
 		    }
 		    if (buf == 0)
 			buf = vstring_alloc(10);
@@ -336,7 +344,8 @@ static const char *bounce_template_lookup(const char *key, int unused_mode,
 		    return (STR(buf));
 		}
 	    }
-	    msg_fatal("unrecognized suffix \"%s\" in template parameter \"%s\"",
+	    msg_fatal("%s: unrecognized suffix \"%s\" in parameter \"%s\"",
+		      *var_bounce_tmpl ? var_bounce_tmpl : "[built-in]",
 		      key + bp->param_name_len + 1, key);
 	}
     }
@@ -345,7 +354,8 @@ static const char *bounce_template_lookup(const char *key, int unused_mode,
 
 /* bounce_template_expand - expand template body */
 
-void    bounce_template_expand(VSTREAM *stream, const BOUNCE_TEMPLATE *template)
+void    bounce_template_expand(BOUNCE_OUT_FN out_fn, VSTREAM *stream,
+			               const BOUNCE_TEMPLATE *template)
 {
     VSTRING *buf = vstring_alloc(100);
     const char **cpp;
@@ -358,12 +368,14 @@ void    bounce_template_expand(VSTREAM *stream, const BOUNCE_TEMPLATE *template)
 	stat = mac_expand(buf, *cpp, MAC_EXP_FLAG_NONE, filter,
 			  bounce_template_lookup, (char *) template);
 	if (stat & MAC_PARSE_ERROR)
-	    msg_fatal("bad $name syntax in %s template: %s",
+	    msg_fatal("%s: bad $name syntax in %s template: %s",
+		      *var_bounce_tmpl ? var_bounce_tmpl : "[built-in]",
 		      template->class, *cpp);
 	if (stat & MAC_PARSE_UNDEF)
-	    msg_fatal("undefined $name in %s template: %s",
+	    msg_fatal("%s: undefined $name in %s template: %s",
+		      *var_bounce_tmpl ? var_bounce_tmpl : "[built-in]",
 		      template->class, *cpp);
-	post_mail_fputs(stream, STR(buf));
+	out_fn(stream, STR(buf));
     }
     vstring_free(buf);
 }
@@ -423,19 +435,22 @@ const BOUNCE_TEMPLATE *bounce_template_find(const char *template_name,
      */
 #define GETLINE(line, buf) \
 	(((line) = (buf)) ? ((buf) = split_at((buf), '\n'), (line)) : 0)
-/*#define GETLINE(line, buf) (line = mystrtok(&buf, "\n"))*/
 
     while ((GETLINE(cp, tval)) != 0 && (hlen = is_header(cp)) > 0) {
 	for (hval = cp + hlen; *hval && (*hval == ':' || ISSPACE(*hval)); hval++)
 	    *hval = 0;
 	if (*hval == 0) {
-	    msg_warn("empty \"%s\" header value in %s template "
-		     "-- ignoring this template", cp, template_name);
+	    msg_warn("%s: empty \"%s\" header value in %s template "
+		     "-- ignoring this template",
+		     *var_bounce_tmpl ? var_bounce_tmpl : "[built-in]",
+		     cp, template_name);
 	    CLEANUP_AND_RETURN(def_template);
 	}
 	if (!allascii(hval)) {
-	    msg_warn("non-ASCII \"%s\" header value in %s template "
-		     "-- ignoring this template", cp, template_name);
+	    msg_warn("%s: non-ASCII \"%s\" header value in %s template "
+		     "-- ignoring this template",
+		     *var_bounce_tmpl ? var_bounce_tmpl : "[built-in]",
+		     cp, template_name);
 	    CLEANUP_AND_RETURN(def_template);
 	}
 	if (strcasecmp("charset", cp) == 0) {
@@ -446,14 +461,18 @@ const BOUNCE_TEMPLATE *bounce_template_find(const char *template_name,
 	    tp->subject = hval;
 	} else if (strcasecmp("postmaster-subject", cp) == 0) {
 	    if (tp->postmaster_subject == 0) {
-		msg_warn("\"%s\" header label in %s template is not applicable "
-			 "-- ignoring this template", cp, template_name);
+		msg_warn("%s: inapplicable \"%s\" header label in %s template "
+			 "-- ignoring this template",
+			 *var_bounce_tmpl ? var_bounce_tmpl : "[built-in]",
+			 cp, template_name);
 		CLEANUP_AND_RETURN(def_template);
 	    }
 	    tp->postmaster_subject = hval;
 	} else {
-	    msg_warn("unknown \"%s\" header label in %s template "
-		     "-- ignoring this template", cp, template_name);
+	    msg_warn("%s: unknown \"%s\" header label in %s template "
+		     "-- ignoring this template",
+		     *var_bounce_tmpl ? var_bounce_tmpl : "[built-in]",
+		     cp, template_name);
 	    CLEANUP_AND_RETURN(def_template);
 	}
     }
@@ -464,8 +483,10 @@ const BOUNCE_TEMPLATE *bounce_template_find(const char *template_name,
     while (cp && (*cp == 0 || allspace(cp)))
 	(void) GETLINE(cp, tval);
     if (cp == 0) {
-	msg_warn("missing message text in %s template "
-		 "-- ignoring this template", template_name);
+	msg_warn("%s: missing message text in %s template "
+		 "-- ignoring this template",
+		 *var_bounce_tmpl ? var_bounce_tmpl : "[built-in]",
+		 template_name);
 	CLEANUP_AND_RETURN(def_template);
     }
 
@@ -477,12 +498,14 @@ const BOUNCE_TEMPLATE *bounce_template_find(const char *template_name,
 
     if (NON_ASCII(cp) || NON_ASCII(tval)) {
 	if (strcasecmp(tp->charset, "us-ascii") == 0) {
-	    msg_warn("8-bit message text in %s template", template_name);
+	    msg_warn("%s: 8-bit message text in %s template",
+		     *var_bounce_tmpl ? var_bounce_tmpl : "[built-in]",
+		     template_name);
 	    msg_warn("please specify a charset value other than us-ascii");
 	    msg_warn("-- ignoring this template for now");
 	    CLEANUP_AND_RETURN(def_template);
 	}
-	tp->encoding = MAIL_ATTR_ENC_8BIT;
+	tp->mime_encoding = MAIL_ATTR_ENC_8BIT;
     }
 
     /*
@@ -526,22 +549,44 @@ static void print_template(VSTREAM *stream, const BOUNCE_TEMPLATE *tp)
     vstream_fflush(stream);
 }
 
-/* bounce_template_dump_actual - dump actual templates to stream */
+/* bounce_template_dump_all - dump bounce templates to stream */
 
-void    bounce_template_dump_actual(VSTREAM *stream)
+void    bounce_template_dump_all(VSTREAM *stream)
 {
     print_template(VSTREAM_OUT, FAIL_TEMPLATE());
+    vstream_fprintf(stream, "\n");
     print_template(VSTREAM_OUT, DELAY_TEMPLATE());
+    vstream_fprintf(stream, "\n");
     print_template(VSTREAM_OUT, SUCCESS_TEMPLATE());
+    vstream_fprintf(stream, "\n");
     print_template(VSTREAM_OUT, VERIFY_TEMPLATE());
 }
 
-/* bounce_template_dump_default - dump built-in templates to stream */
+/* bounce_plain_out - output line as plain text */
 
-void    bounce_template_dump_default(VSTREAM *stream)
+static int bounce_plain_out(VSTREAM *stream, const char *text)
 {
-    print_template(VSTREAM_OUT, &def_bounce_fail_template);
-    print_template(VSTREAM_OUT, &def_bounce_delay_template);
-    print_template(VSTREAM_OUT, &def_bounce_success_template);
-    print_template(VSTREAM_OUT, &def_bounce_verify_template);
+    vstream_fprintf(stream, "%s\n", text);
+    return (0);
+}
+
+/* bounce_template_expand_all - dump expanded template text to stream */
+
+void    bounce_template_expand_all(VSTREAM *stream)
+{
+    const BOUNCE_TEMPLATE *tp;
+
+    tp = FAIL_TEMPLATE();
+    vstream_fprintf(VSTREAM_OUT, "expanded_%s_text = <<EOF\n", tp->class);
+    bounce_template_expand(bounce_plain_out, VSTREAM_OUT, tp);
+    tp = DELAY_TEMPLATE();
+    vstream_fprintf(VSTREAM_OUT, "EOF\n\nexpanded_%s_text = <<EOF\n", tp->class);
+    bounce_template_expand(bounce_plain_out, VSTREAM_OUT, tp);
+    tp = SUCCESS_TEMPLATE();
+    vstream_fprintf(VSTREAM_OUT, "EOF\n\nexpanded_%s_text = <<EOF\n", tp->class);
+    bounce_template_expand(bounce_plain_out, VSTREAM_OUT, tp);
+    tp = VERIFY_TEMPLATE();
+    vstream_fprintf(VSTREAM_OUT, "EOF\n\nexpanded_%s_text = <<EOF\n", tp->class);
+    bounce_template_expand(bounce_plain_out, VSTREAM_OUT, tp);
+    vstream_fprintf(VSTREAM_OUT, "EOF\n");
 }
