@@ -7,7 +7,7 @@
 /*	#include "bounce_service.h"
 /*
 /*	int     bounce_trace_service(flags, queue_name, queue_id, encoding,
-/*					sender, char *envid, int ret)
+/*					sender, char *envid, int ret, templates)
 /*	int	flags;
 /*	char	*queue_name;
 /*	char	*queue_id;
@@ -15,6 +15,7 @@
 /*	char	*sender;
 /*	char	*envid;
 /*	int	ret;
+/*	BOUNCE_TEMPLATES *templates;
 /* DESCRIPTION
 /*	This module implements the server side of the trace_flush()
 /*	(send delivery notice) request. The logfile
@@ -80,7 +81,8 @@
 int     bounce_trace_service(int flags, char *service, char *queue_name,
 			             char *queue_id, char *encoding,
 			             char *recipient, char *dsn_envid,
-			             int unused_dsn_ret)
+			             int unused_dsn_ret,
+			             BOUNCE_TEMPLATES *ts)
 {
     BOUNCE_INFO *bounce_info;
     int     bounce_status = 1;
@@ -106,8 +108,7 @@ int     bounce_trace_service(int flags, char *service, char *queue_name,
     bounce_info = bounce_mail_init(service, queue_name, queue_id,
 				   encoding, dsn_envid,
 				   flags & NON_DSN_FLAGS ?
-				   VERIFY_TEMPLATE() :
-				   SUCCESS_TEMPLATE());
+				   ts->verify : ts->success);
 
     /*
      * XXX With multi-recipient mail some queue file recipients may have
@@ -145,7 +146,8 @@ int     bounce_trace_service(int flags, char *service, char *queue_name,
 					 CLEANUP_FLAG_MASK_INTERNAL,
 					 NULL_TRACE_FLAGS)) != 0) {
 	count = -1;
-	if (bounce_header(bounce, bounce_info, recipient) == 0
+	if (bounce_header(bounce, bounce_info, recipient,
+			  NO_POSTMASTER_COPY) == 0
 	    && bounce_boilerplate(bounce, bounce_info) == 0
 	    && (count = bounce_diagnostic_log(bounce, bounce_info,
 					      DSN_NOTIFY_OVERRIDE)) > 0

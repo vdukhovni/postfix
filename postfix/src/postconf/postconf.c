@@ -171,7 +171,7 @@
 /* FILES
 /*	/etc/postfix/main.cf, Postfix configuration parameters
 /* SEE ALSO
-/*	bounce(5), bouce template file format
+/*	bounce(5), bounce template file format
 /*	postconf(5), configuration parameters
 /* README FILES
 /* .ad

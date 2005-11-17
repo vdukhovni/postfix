@@ -8,7 +8,7 @@
 /*
 /*	int     bounce_one_service(flags, queue_name, queue_id, encoding,
 /*					orig_sender, envid, ret,
-/*					rcpt, dsn)
+/*					rcpt, dsn, templates)
 /*	int	flags;
 /*	char	*queue_name;
 /*	char	*queue_id;
@@ -18,6 +18,7 @@
 /*	int	ret;
 /*	RECIPIENT *rcpt;
 /*	DSN	*dsn;
+/*	BOUNCE_TEMPLATES *templates;
 /* DESCRIPTION
 /*	This module implements the server side of the bounce_one()
 /*	(send bounce message for one recipient) request.
@@ -85,7 +86,8 @@
 int     bounce_one_service(int flags, char *queue_name, char *queue_id,
 			           char *encoding, char *orig_sender,
 			           char *dsn_envid, int dsn_ret,
-			           RECIPIENT *rcpt, DSN *dsn)
+			           RECIPIENT *rcpt, DSN *dsn,
+			           BOUNCE_TEMPLATES *ts)
 {
     BOUNCE_INFO *bounce_info;
     int     bounce_status = 1;
@@ -98,7 +100,7 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
      * Initialize. Open queue file, bounce log, etc.
      */
     bounce_info = bounce_mail_one_init(queue_name, queue_id, encoding,
-				       dsn_envid, rcpt, dsn);
+				       dsn_envid, rcpt, dsn, ts->failure);
 
 #define NULL_SENDER		MAIL_ADDR_EMPTY	/* special address */
 #define NULL_TRACE_FLAGS	0
@@ -152,7 +154,8 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
 		 * reason for the bounce, and the headers of the original
 		 * message. Don't bother sending the boiler-plate text.
 		 */
-		if (!bounce_header(bounce, bounce_info, var_2bounce_rcpt)
+		if (!bounce_header(bounce, bounce_info, var_2bounce_rcpt,
+				   POSTMASTER_COPY)
 		    && bounce_recipient_log(bounce, bounce_info) == 0
 		    && bounce_header_dsn(bounce, bounce_info) == 0
 		    && bounce_recipient_dsn(bounce, bounce_info) == 0)
@@ -180,7 +183,8 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
 		 * pretends that we are a polite mail system, the text with
 		 * reason for the bounce, and a copy of the original message.
 		 */
-		if (bounce_header(bounce, bounce_info, orig_sender) == 0
+		if (bounce_header(bounce, bounce_info, orig_sender,
+				  NO_POSTMASTER_COPY) == 0
 		    && bounce_boilerplate(bounce, bounce_info) == 0
 		    && bounce_recipient_log(bounce, bounce_info) == 0
 		    && bounce_header_dsn(bounce, bounce_info) == 0
@@ -214,7 +218,8 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
 						 var_bounce_rcpt,
 						 CLEANUP_FLAG_MASK_INTERNAL,
 						 NULL_TRACE_FLAGS)) != 0) {
-		if (bounce_header(bounce, bounce_info, var_bounce_rcpt) == 0
+		if (bounce_header(bounce, bounce_info, var_bounce_rcpt,
+				  POSTMASTER_COPY) == 0
 		    && bounce_recipient_log(bounce, bounce_info) == 0
 		    && bounce_header_dsn(bounce, bounce_info) == 0
 		    && bounce_recipient_dsn(bounce, bounce_info) == 0)

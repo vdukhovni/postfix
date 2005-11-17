@@ -19,6 +19,11 @@
 #include <bounce_log.h>
 
  /*
+  * Application-specific.
+  */
+#include <bounce_template.h>
+
+ /*
   * bounce_append_service.c
   */
 extern int bounce_append_service(int, char *, char *, RECIPIENT_VAR *, DSN_VAR *);
@@ -26,27 +31,27 @@ extern int bounce_append_service(int, char *, char *, RECIPIENT_VAR *, DSN_VAR *
  /*
   * bounce_notify_service.c
   */
-extern int bounce_notify_service(int, char *, char *, char *, char *, char *, char *, int);
+extern int bounce_notify_service(int, char *, char *, char *, char *, char *, char *, int, BOUNCE_TEMPLATES *);
 
  /*
   * bounce_warn_service.c
   */
-extern int bounce_warn_service(int, char *, char *, char *, char *, char *, char *, int);
+extern int bounce_warn_service(int, char *, char *, char *, char *, char *, char *, int, BOUNCE_TEMPLATES *);
 
  /*
   * bounce_trace_service.c
   */
-extern int bounce_trace_service(int, char *, char *, char *, char *, char *, char *, int);
+extern int bounce_trace_service(int, char *, char *, char *, char *, char *, char *, int, BOUNCE_TEMPLATES *);
 
  /*
   * bounce_notify_verp.c
   */
-extern int bounce_notify_verp(int, char *, char *, char *, char *, char *, char *, int, char *);
+extern int bounce_notify_verp(int, char *, char *, char *, char *, char *, char *, int, char *, BOUNCE_TEMPLATES *);
 
  /*
   * bounce_one_service.c
   */
-extern int bounce_one_service(int, char *, char *, char *, char *, char *, int, RECIPIENT *, DSN *);
+extern int bounce_one_service(int, char *, char *, char *, char *, char *, int, RECIPIENT *, DSN *, BOUNCE_TEMPLATES *);
 
  /*
   * bounce_cleanup.c
@@ -59,80 +64,6 @@ extern void bounce_cleanup_unregister(void);
 #define bounce_cleanup_registered() (bounce_cleanup_path != 0)
 
  /*
-  * bounce_template.c
-  */
-typedef struct {
-    const char *class;			/* for diagnostics (fixed) */
-    const char *charset;		/* character set (configurable) */
-    const char *mime_encoding;		/* 7bit or 8bit (derived) */
-    const char *from;			/* originator (configurable) */
-    const char *subject;		/* general subject (configurable) */
-    const char *postmaster_subject;	/* postmaster subject (configurable) */
-    const char **message_text;		/* message text (configurable) */
-} BOUNCE_TEMPLATE;
-
-typedef int (*BOUNCE_OUT_FN)(VSTREAM *, const char *);
-extern void bounce_template_load(const char *);
-extern void bounce_template_expand(BOUNCE_OUT_FN, VSTREAM *, const BOUNCE_TEMPLATE *);
-extern const BOUNCE_TEMPLATE *bounce_template_find(const char *, const BOUNCE_TEMPLATE *);
-extern void bounce_template_dump_all(VSTREAM *);
-extern void bounce_template_expand_all(VSTREAM *);
-
-#define BOUNCE_TMPL_CLASS_FAIL	"failure"
-#define BOUNCE_TMPL_CLASS_DELAY	"delay"
-#define BOUNCE_TMPL_CLASS_SUCCESS "success"
-#define BOUNCE_TMPL_CLASS_VERIFY "verify"
-
-#define BOUNCE_TEMPLATE_DICT	"bounce_templates"
-#define BOUNCE_TMPL_DICT_FAIL	(BOUNCE_TMPL_CLASS_FAIL "_template")
-#define BOUNCE_TMPL_DICT_DELAY	(BOUNCE_TMPL_CLASS_DELAY "_template")
-#define BOUNCE_TMPL_DICT_SUCCESS (BOUNCE_TMPL_CLASS_SUCCESS "_template")
-#define BOUNCE_TMPL_DICT_VERIFY	(BOUNCE_TMPL_CLASS_VERIFY "_template")
-
-#define FAIL_TEMPLATE() \
-    (bounce_fail_template ? bounce_fail_template : \
-	(bounce_fail_template = \
-	    bounce_template_find(BOUNCE_TMPL_DICT_FAIL, \
-		&def_bounce_fail_template)))
-
-#define DELAY_TEMPLATE() \
-    (bounce_delay_template ? bounce_delay_template : \
-	(bounce_delay_template = \
-	    bounce_template_find(BOUNCE_TMPL_DICT_DELAY, \
-		&def_bounce_delay_template)))
-
-#define SUCCESS_TEMPLATE() \
-    (bounce_success_template ? bounce_success_template : \
-	(bounce_success_template = \
-	    bounce_template_find(BOUNCE_TMPL_DICT_SUCCESS, \
-		&def_bounce_success_template)))
-
-#define VERIFY_TEMPLATE() \
-    (bounce_verify_template ? bounce_verify_template : \
-	(bounce_verify_template = \
-	    bounce_template_find(BOUNCE_TMPL_DICT_VERIFY, \
-		&def_bounce_verify_template)))
-
-#define IS_FAIL_TEMPLATE(t)	((t) == bounce_fail_template)
-#define IS_DELAY_TEMPLATE(t)	((t) == bounce_delay_template)
-#define IS_SUCCESS_TEMPLATE(t)	((t) == bounce_success_template)
-#define IS_VERIFY_TEMPLATE(t)	((t) == bounce_verify_template)
-
- /*
-  * The following are not part of the bounce_template() interface. Use the
-  * above macros instead.
-  */
-extern const BOUNCE_TEMPLATE *bounce_fail_template;
-extern const BOUNCE_TEMPLATE *bounce_delay_template;
-extern const BOUNCE_TEMPLATE *bounce_success_template;
-extern const BOUNCE_TEMPLATE *bounce_verify_template;
-
-extern const BOUNCE_TEMPLATE def_bounce_fail_template;
-extern const BOUNCE_TEMPLATE def_bounce_delay_template;
-extern const BOUNCE_TEMPLATE def_bounce_success_template;
-extern const BOUNCE_TEMPLATE def_bounce_verify_template;
-
- /*
   * bounce_notify_util.c
   */
 typedef struct {
@@ -142,7 +73,7 @@ typedef struct {
     const char *mime_encoding;		/* null or encoding */
     const char *dsn_envid;		/* DSN envelope ID */
     const char *mime_boundary;		/* for MIME */
-    const BOUNCE_TEMPLATE *template;	/* see above */
+    BOUNCE_TEMPLATE *template;		/* bounce message template */
     VSTRING *buf;			/* scratch pad */
     VSTRING *sender;			/* envelope sender */
     VSTREAM *orig_fp;			/* open queue file */
@@ -155,10 +86,10 @@ typedef struct {
 
  /* */
 
-extern BOUNCE_INFO *bounce_mail_init(const char *, const char *, const char *, const char *, const char *, const BOUNCE_TEMPLATE *);
-extern BOUNCE_INFO *bounce_mail_one_init(const char *, const char *, const char *, const char *, RECIPIENT *, DSN *);
+extern BOUNCE_INFO *bounce_mail_init(const char *, const char *, const char *, const char *, const char *, BOUNCE_TEMPLATE *);
+extern BOUNCE_INFO *bounce_mail_one_init(const char *, const char *, const char *, const char *, RECIPIENT *, DSN *, BOUNCE_TEMPLATE *);
 extern void bounce_mail_free(BOUNCE_INFO *);
-extern int bounce_header(VSTREAM *, BOUNCE_INFO *, const char *);
+extern int bounce_header(VSTREAM *, BOUNCE_INFO *, const char *, int);
 extern int bounce_boilerplate(VSTREAM *, BOUNCE_INFO *);
 extern int bounce_recipient_log(VSTREAM *, BOUNCE_INFO *);
 extern int bounce_diagnostic_log(VSTREAM *, BOUNCE_INFO *, int);

@@ -142,6 +142,7 @@
 #include <vstring.h>
 #include <vstream.h>
 #include <stringops.h>
+#include <load_file.h>
 
 /* Global library. */
 
@@ -160,7 +161,7 @@
 
 /* Application-specific. */
 
-#include "bounce_service.h"
+#include <bounce_service.h>
 
  /*
   * Tunables.
@@ -185,6 +186,11 @@ static VSTRING *sender;
 static VSTRING *dsn_envid;
 static VSTRING *verp_delims;
 static DSN_BUF *dsn_buf;
+
+ /*
+  * Templates.
+  */
+BOUNCE_TEMPLATES *bounce_templates;
 
 #define STR vstring_str
 
@@ -247,7 +253,8 @@ static int bounce_append_proto(char *service_name, VSTREAM *client)
 
 static int bounce_notify_proto(char *service_name, VSTREAM *client,
 			        int (*service) (int, char *, char *, char *,
-				               char *, char *, char *, int))
+					        char *, char *, char *, int,
+						        BOUNCE_TEMPLATES *))
 {
     char   *myname = "bounce_notify_proto";
     int     flags;
@@ -294,7 +301,8 @@ static int bounce_notify_proto(char *service_name, VSTREAM *client,
      */
     return (service(flags, service_name, STR(queue_name),
 		    STR(queue_id), STR(encoding),
-		    STR(sender), STR(dsn_envid), dsn_ret));
+		    STR(sender), STR(dsn_envid), dsn_ret,
+		    bounce_templates));
 }
 
 /* bounce_verp_proto - bounce_notify server protocol, VERP style */
@@ -356,12 +364,13 @@ static int bounce_verp_proto(char *service_name, VSTREAM *client)
 	msg_warn("request to send VERP-style notification of bounced mail");
 	return (bounce_notify_service(flags, service_name, STR(queue_name),
 				      STR(queue_id), STR(encoding),
-				      STR(sender), STR(dsn_envid), dsn_ret));
+				      STR(sender), STR(dsn_envid), dsn_ret,
+				      bounce_templates));
     } else
 	return (bounce_notify_verp(flags, service_name, STR(queue_name),
 				   STR(queue_id), STR(encoding),
 				   STR(sender), STR(dsn_envid), dsn_ret,
-				   STR(verp_delims)));
+				   STR(verp_delims), bounce_templates));
 }
 
 /* bounce_one_proto - bounce_one server protocol */
@@ -427,7 +436,7 @@ static int bounce_one_proto(char *service_name, VSTREAM *client)
      */
     return (bounce_one_service(flags, STR(queue_name), STR(queue_id),
 			       STR(encoding), STR(sender), STR(dsn_envid),
-			       dsn_ret, &rcpt, &dsn));
+			       dsn_ret, &rcpt, &dsn, bounce_templates));
 }
 
 /* bounce_service - parse bounce command type and delegate */
@@ -495,38 +504,50 @@ static void bounce_service(VSTREAM *client, char *service_name, char **argv)
     }
 }
 
+static void load_helper(VSTREAM *stream, void *context)
+{
+    BOUNCE_TEMPLATES *templates = (BOUNCE_TEMPLATES *) context;
+
+    bounce_templates_load(stream, templates);
+}
+
 /* pre_jail_init - pre-jail initialization */
 
-static void pre_jail_init(char *service_name, char **unused_argv)
+static void pre_jail_init(char *unused_name, char **unused_argv)
 {
 
     /*
-     * Load the alternate message files (if specified) before entering the ch
-     * root jail.
+     * Bundle up a bunch of bounce template information.
      */
-    if (*var_bounce_tmpl)
-	bounce_template_load(var_bounce_tmpl);
+    bounce_templates = bounce_templates_create();
 
     /*
-     * Special case: dump bounce templates. This is not part of the
-     * master(5) public interface.
+     * Load the alternate message files (if specified) before entering the
+     * chroot jail.
      */
-    if (strcmp(service_name, "dump_templates") == 0) {
-	bounce_template_dump_all(VSTREAM_OUT);
-	vstream_fflush(VSTREAM_OUT);
-	exit(0);
-    }
-    if (strcmp(service_name, "expand_templates") == 0) {
-	bounce_template_expand_all(VSTREAM_OUT);
-	vstream_fflush(VSTREAM_OUT);
-	exit(0);
-    }
+    if (*var_bounce_tmpl)
+	load_file(var_bounce_tmpl, load_helper, (char *) bounce_templates);
 }
 
 /* post_jail_init - initialize after entering chroot jail */
 
-static void post_jail_init(char *unused_name, char **unused_argv)
+static void post_jail_init(char *service_name, char **unused_argv)
 {
+
+    /*
+     * Special case: dump bounce templates. This is not part of the master(5)
+     * public interface.
+     */
+    if (strcmp(service_name, "dump_templates") == 0) {
+	bounce_templates_dump(VSTREAM_OUT, bounce_templates);
+	vstream_fflush(VSTREAM_OUT);
+	exit(0);
+    }
+    if (strcmp(service_name, "expand_templates") == 0) {
+	bounce_templates_expand(VSTREAM_OUT, bounce_templates);
+	vstream_fflush(VSTREAM_OUT);
+	exit(0);
+    }
 
     /*
      * Initialize. We're single threaded so we can reuse some memory upon

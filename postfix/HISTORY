@@ -11394,6 +11394,12 @@ Apologies for any names omitted.
 
 	Cleanup: renamed fail_template into failure_template.
 
+20051117
+
+	Cleanup: bounce template code reorg, no functionality change.
+	Files: bounce/bounce_template.[hc], bounce/bounce_templates.c,
+	bounce/bounce_notify_util.c.
+
 Open problems:
 
 	"postsuper -r" no longer resets the message arrival time,

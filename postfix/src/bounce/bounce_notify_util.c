@@ -22,7 +22,8 @@
 /*	const BOUNCE_TEMPLATE *template;
 /*
 /*	BOUNCE_INFO *bounce_mail_one_init(queue_name, queue_id, encoding,
-/*					dsn_envid, dsn_notify, rcpt, dsn)
+/*					dsn_envid, dsn_notify, rcpt, dsn,
+/*					template)
 /*	const char *queue_name;
 /*	const char *queue_id;
 /*	const char *encoding;
@@ -30,14 +31,16 @@
 /*	const char *dsn_envid;
 /*	RECIPIENT *rcpt;
 /*	DSN	*dsn;
+/*	const BOUNCE_TEMPLATE *template;
 /*
 /*	void	bounce_mail_free(bounce_info)
 /*	BOUNCE_INFO *bounce_info;
 /*
-/*	int	bounce_header(fp, bounce_info, recipient)
+/*	int	bounce_header(fp, bounce_info, recipient, postmaster_copy)
 /*	VSTREAM *fp;
 /*	BOUNCE_INFO *bounce_info;
 /*	const char *recipient;
+/*	int	postmaster_copy;
 /*
 /*	int	bounce_boilerplate(fp, bounce_info)
 /*	VSTREAM *fp;
@@ -86,15 +89,15 @@
 /*	undeliverable message.
 /*
 /*	bounce_mail_one_init() provides the same function for only
-/*	one recipient that is not read from bounce logfile. It
-/*	assumes a template type of FAIL_TEMPLATE().
+/*	one recipient that is not read from bounce logfile.
 /*
 /*	bounce_mail_free() releases memory allocated by bounce_mail_init()
 /*	and closes any files opened by bounce_mail_init().
 /*
 /*	bounce_header() produces a standard mail header with the specified
 /*	recipient and starts a text/plain message segment for the
-/*	human-readable problem description.
+/*	human-readable problem description. postmaster_copy is either
+/*	POSTMASTER_COPY or NO_POSTMASTER_COPY.
 /*
 /*	bounce_boilerplate() produces the standard "sorry" text that
 /*	creates the illusion that mail systems are civilized.
@@ -208,7 +211,7 @@ static BOUNCE_INFO *bounce_mail_alloc(const char *service,
 				              const char *queue_id,
 				              const char *encoding,
 				              const char *dsn_envid,
-				            const BOUNCE_TEMPLATE *template,
+				              BOUNCE_TEMPLATE *template,
 				              BOUNCE_LOG *log_handle)
 {
     BOUNCE_INFO *bounce_info;
@@ -324,7 +327,7 @@ BOUNCE_INFO *bounce_mail_init(const char *service,
 			              const char *queue_id,
 			              const char *encoding,
 			              const char *dsn_envid,
-			              const BOUNCE_TEMPLATE *template)
+			              BOUNCE_TEMPLATE *template)
 {
     BOUNCE_INFO *bounce_info;
     BOUNCE_LOG *log_handle;
@@ -352,7 +355,8 @@ BOUNCE_INFO *bounce_mail_one_init(const char *queue_name,
 				          const char *encoding,
 				          const char *dsn_envid,
 				          RECIPIENT *rcpt,
-				          DSN *dsn)
+				          DSN *dsn,
+				          BOUNCE_TEMPLATE *template)
 {
     BOUNCE_INFO *bounce_info;
     BOUNCE_LOG *log_handle;
@@ -363,7 +367,7 @@ BOUNCE_INFO *bounce_mail_one_init(const char *queue_name,
      */
     log_handle = bounce_log_forge(rcpt, dsn);
     bounce_info = bounce_mail_alloc("none", queue_name, queue_id, encoding,
-				    dsn_envid, FAIL_TEMPLATE(), log_handle);
+				    dsn_envid, template, log_handle);
     return (bounce_info);
 }
 
@@ -388,10 +392,9 @@ void    bounce_mail_free(BOUNCE_INFO *bounce_info)
 /* bounce_header - generate bounce message header */
 
 int     bounce_header(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
-		              const char *dest)
+		              const char *dest, int postmaster_copy)
 {
-    const BOUNCE_TEMPLATE *template = bounce_info->template;
-    int     postmaster_copy;
+    BOUNCE_TEMPLATE *template = bounce_info->template;
 
     /*
      * Print a minimal bounce header. The cleanup service will add other
@@ -400,21 +403,11 @@ int     bounce_header(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
 #define STREQ(a, b) (strcasecmp((a), (b)) == 0)
 
     /*
-     * XXX This should be caller specified.
-     */
-    postmaster_copy =
-	(template->postmaster_subject != 0
-	 && (dest == var_bounce_rcpt || dest == var_2bounce_rcpt
-	     || dest == var_delay_rcpt));
-
-    /*
      * Generic headers.
      */
-    post_mail_fprintf(bounce, "From: %s", template->from);
-    post_mail_fprintf(bounce, "Subject: %s", postmaster_copy ?
-		      template->postmaster_subject : template->subject);
-    post_mail_fprintf(bounce, "To: %s",
-		      STR(quote_822_local(bounce_info->buf, dest)));
+    bounce_template_headers(post_mail_fprintf, bounce, template,
+			    STR(quote_822_local(bounce_info->buf, dest)),
+			    postmaster_copy);
 
     /*
      * MIME header. Use 8bit encoding when either the bounced message or the
@@ -427,7 +420,8 @@ int     bounce_header(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
     if (bounce_info->mime_encoding)
 	post_mail_fprintf(bounce, "Content-Transfer-Encoding: %s",
 		     STREQ(bounce_info->mime_encoding, MAIL_ATTR_ENC_7BIT) ?
-		      template->mime_encoding : bounce_info->mime_encoding);
+			  bounce_template_encoding(template) :
+			  bounce_info->mime_encoding);
     post_mail_fputs(bounce, "");
     post_mail_fputs(bounce, "This is a MIME-encapsulated message.");
 
@@ -438,7 +432,7 @@ int     bounce_header(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
     post_mail_fprintf(bounce, "--%s", bounce_info->mime_boundary);
     post_mail_fprintf(bounce, "Content-Description: %s", "Notification");
     post_mail_fprintf(bounce, "Content-Type: %s; charset=%s",
-		      "text/plain", template->charset);
+		      "text/plain", bounce_template_charset(template));
     post_mail_fputs(bounce, "");
 
     return (vstream_ferror(bounce));
@@ -525,7 +519,7 @@ int     bounce_diagnostic_log(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
      */
     if (bounce_info->log_handle == 0
 	|| bounce_log_rewind(bounce_info->log_handle)) {
-	if (IS_FAIL_TEMPLATE(bounce_info->template)) {
+	if (IS_FAILURE_TEMPLATE(bounce_info->template)) {
 	    post_mail_fputs(bounce, "\t--- Delivery report unavailable ---");
 	    count = 1;				/* XXX don't abort */
 	}
@@ -617,7 +611,7 @@ int     bounce_recipient_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 			  bounce_info->log_handle->rcpt.orig_addr);
     }
     post_mail_fprintf(bounce, "Action: %s",
-		      IS_FAIL_TEMPLATE(bounce_info->template) ?
+		      IS_FAILURE_TEMPLATE(bounce_info->template) ?
 		      "failed" : bounce_info->log_handle->dsn.action);
     post_mail_fprintf(bounce, "Status: %s",
 		      bounce_info->log_handle->dsn.status);
@@ -663,7 +657,7 @@ int     bounce_diagnostic_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
      */
     if (bounce_info->log_handle == 0
 	|| bounce_log_rewind(bounce_info->log_handle)) {
-	if (IS_FAIL_TEMPLATE(bounce_info->template))
+	if (IS_FAILURE_TEMPLATE(bounce_info->template))
 	    count = 1;				/* XXX don't abort */
     } else {
 	while (bounce_log_read(bounce_info->log_handle) != 0) {
@@ -700,7 +694,7 @@ int     bounce_original(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
      * MIME headers.
      */
 #define IS_UNDELIVERED_TEMPLATE(template) \
-        (IS_FAIL_TEMPLATE(template) || IS_DELAY_TEMPLATE(template))
+        (IS_FAILURE_TEMPLATE(template) || IS_DELAY_TEMPLATE(template))
 
     post_mail_fputs(bounce, "");
     post_mail_fprintf(bounce, "--%s", bounce_info->mime_boundary);

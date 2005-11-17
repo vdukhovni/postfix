@@ -7,7 +7,8 @@
 /*	#include "bounce_service.h"
 /*
 /*	int     bounce_notify_verp(flags, service, queue_name, queue_id, sender,
-/*					dsn_envid, dsn_ret, verp_delims)
+/*					dsn_envid, dsn_ret, verp_delims,
+/*					templates)
 /*	int	flags;
 /*	char	*queue_name;
 /*	char	*queue_id;
@@ -15,6 +16,7 @@
 /*	char	*dsn_envid;
 /*	int	dsn_ret;
 /*	char	*verp_delims;
+/*	BOUNCE_TEMPLATES *templates;
 /* DESCRIPTION
 /*	This module implements the server side of the bounce_notify()
 /*	(send bounce message) request. The logfile
@@ -84,7 +86,8 @@
 int     bounce_notify_verp(int flags, char *service, char *queue_name,
 			           char *queue_id, char *encoding,
 			           char *recipient, char *dsn_envid,
-			           int dsn_ret, char *verp_delims)
+			           int dsn_ret, char *verp_delims,
+			           BOUNCE_TEMPLATES *ts)
 {
     char   *myname = "bounce_notify_verp";
     BOUNCE_INFO *bounce_info;
@@ -109,7 +112,7 @@ int     bounce_notify_verp(int flags, char *service, char *queue_name,
      * Initialize. Open queue file, bounce log, etc.
      */
     bounce_info = bounce_mail_init(service, queue_name, queue_id,
-				   encoding, dsn_envid, FAIL_TEMPLATE());
+				   encoding, dsn_envid, ts->failure);
 
 #define NULL_SENDER		MAIL_ADDR_EMPTY	/* special address */
 #define NULL_TRACE_FLAGS	0
@@ -138,7 +141,8 @@ int     bounce_notify_verp(int flags, char *service, char *queue_name,
 		 * pretends that we are a polite mail system, the text with
 		 * reason for the bounce, and a copy of the original message.
 		 */
-		if (bounce_header(bounce, bounce_info, STR(verp_buf)) == 0
+		if (bounce_header(bounce, bounce_info, STR(verp_buf),
+				  NO_POSTMASTER_COPY) == 0
 		    && bounce_boilerplate(bounce, bounce_info) == 0
 		    && bounce_recipient_log(bounce, bounce_info) == 0
 		    && bounce_header_dsn(bounce, bounce_info) == 0
@@ -186,7 +190,8 @@ int     bounce_notify_verp(int flags, char *service, char *queue_name,
 						 postmaster,
 						 CLEANUP_FLAG_MASK_INTERNAL,
 						 NULL_TRACE_FLAGS)) != 0) {
-		if (bounce_header(bounce, bounce_info, postmaster) == 0
+		if (bounce_header(bounce, bounce_info, postmaster,
+				  POSTMASTER_COPY) == 0
 		    && bounce_recipient_log(bounce, bounce_info) == 0
 		    && bounce_header_dsn(bounce, bounce_info) == 0
 		    && bounce_recipient_dsn(bounce, bounce_info) == 0)

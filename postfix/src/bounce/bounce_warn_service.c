@@ -7,7 +7,7 @@
 /*	#include "bounce_service.h"
 /*
 /*	int     bounce_warn_service(flags, queue_name, queue_id, encoding,
-/*					sender, envid, dsn_ret)
+/*					sender, envid, dsn_ret, templates)
 /*	int	flags;
 /*	char	*queue_name;
 /*	char	*queue_id;
@@ -15,6 +15,7 @@
 /*	char	*sender;
 /*	char	*envid;
 /*	int	dsn_ret;
+/*	BOUNCE_TEMPLATES *ts;
 /* DESCRIPTION
 /*	This module implements the server side of the bounce_warn()
 /*	(send delay notice) request. The logfile
@@ -83,7 +84,7 @@
 int     bounce_warn_service(int unused_flags, char *service, char *queue_name,
 			            char *queue_id, char *encoding,
 			            char *recipient, char *dsn_envid,
-			            int dsn_ret)
+			            int dsn_ret, BOUNCE_TEMPLATES *ts)
 {
     BOUNCE_INFO *bounce_info;
     int     bounce_status = 1;
@@ -117,7 +118,7 @@ int     bounce_warn_service(int unused_flags, char *service, char *queue_name,
      * notify_classes restrictions.
      */
     bounce_info = bounce_mail_init(service, queue_name, queue_id,
-				   encoding, dsn_envid, DELAY_TEMPLATE());
+				   encoding, dsn_envid, ts->delay);
 
 #define NULL_SENDER		MAIL_ADDR_EMPTY	/* special address */
 #define NULL_TRACE_FLAGS	0
@@ -172,7 +173,8 @@ int     bounce_warn_service(int unused_flags, char *service, char *queue_name,
 		 * message. Don't bother sending the boiler-plate text.
 		 */
 		count = -1;
-		if (!bounce_header(bounce, bounce_info, postmaster)
+		if (!bounce_header(bounce, bounce_info, postmaster,
+				   POSTMASTER_COPY)
 		    && (count = bounce_diagnostic_log(bounce, bounce_info,
 						   DSN_NOTIFY_OVERRIDE)) > 0
 		    && bounce_header_dsn(bounce, bounce_info) == 0
@@ -204,7 +206,8 @@ int     bounce_warn_service(int unused_flags, char *service, char *queue_name,
 	     * reason for the bounce, and a copy of the original message.
 	     */
 	    count = -1;
-	    if (bounce_header(bounce, bounce_info, recipient) == 0
+	    if (bounce_header(bounce, bounce_info, recipient,
+			      NO_POSTMASTER_COPY) == 0
 		&& bounce_boilerplate(bounce, bounce_info) == 0
 		&& (count = bounce_diagnostic_log(bounce, bounce_info,
 						  DSN_NOTIFY_DELAY)) > 0
@@ -243,7 +246,8 @@ int     bounce_warn_service(int unused_flags, char *service, char *queue_name,
 						 CLEANUP_FLAG_MASK_INTERNAL,
 						 NULL_TRACE_FLAGS)) != 0) {
 		count = -1;
-		if (bounce_header(bounce, bounce_info, postmaster) == 0
+		if (bounce_header(bounce, bounce_info, postmaster,
+				  POSTMASTER_COPY) == 0
 		    && (count = bounce_diagnostic_log(bounce, bounce_info,
 						   DSN_NOTIFY_OVERRIDE)) > 0
 		    && bounce_header_dsn(bounce, bounce_info) == 0
