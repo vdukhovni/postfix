@@ -222,6 +222,15 @@ void    bounce_template_free(BOUNCE_TEMPLATE *tp)
     myfree((char *) tp);
 }
 
+/* bounce_template_reset - reset template to default */
+
+static void bounce_template_reset(BOUNCE_TEMPLATE *tp)
+{
+    myfree(tp->buffer);
+    myfree((char *) tp->origin);
+    *tp = *(tp->prototype);
+}
+
 /* bounce_template_load - override one template */
 
 void    bounce_template_load(BOUNCE_TEMPLATE *tp, const char *origin,
@@ -231,10 +240,8 @@ void    bounce_template_load(BOUNCE_TEMPLATE *tp, const char *origin,
     /*
      * Clean up after a previous call.
      */
-    if (tp->buffer) {
-	myfree(tp->buffer);
-	myfree((char *) tp->origin);
-    }
+    if (tp->buffer)
+	bounce_template_reset(tp);
 
     /*
      * Postpone the work of template parsing until it is really needed. Most
@@ -244,9 +251,6 @@ void    bounce_template_load(BOUNCE_TEMPLATE *tp, const char *origin,
 	tp->flags |= BOUNCE_TMPL_FLAG_NEW_BUFFER;
 	tp->buffer = mystrdup(buffer);
 	tp->origin = mystrdup(origin);
-    } else {
-	*tp = *(tp->prototype);
-	/* Also resets the buffer and origin fields. */
     }
 }
 
@@ -273,9 +277,8 @@ static void bounce_template_parse_buffer(BOUNCE_TEMPLATE *tp)
      * Discard the unusable template and use the default one instead.
      */
 #define CLEANUP_AND_RETURN() do { \
-	myfree(tp->buffer); \
-	myfree((char *) tp->origin); \
-	*tp = *(tp->prototype); \
+	bounce_template_reset(tp); \
+	return; \
     } while (0)
 
     /*

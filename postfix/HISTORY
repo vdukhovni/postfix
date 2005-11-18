@@ -11400,6 +11400,11 @@ Apologies for any names omitted.
 	Files: bounce/bounce_template.[hc], bounce/bounce_templates.c,
 	bounce/bounce_notify_util.c.
 
+20051118
+
+	Bugfix: new bounce template code did not return after
+	template syntax error. File: bounce/bounce_template.c
+
 Open problems:
 
 	"postsuper -r" no longer resets the message arrival time,
