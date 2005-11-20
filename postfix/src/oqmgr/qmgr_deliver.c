@@ -219,6 +219,8 @@ static void qmgr_deliver_update(int unused_event, char *context)
     static DSN_BUF *dsb;
     int     status;
     DSN     dsn;
+    RECIPIENT *recipient;
+    int     nrcpt;
 
     if (dsb == 0)
 	dsb = dsb_create();
@@ -254,6 +256,21 @@ static void qmgr_deliver_update(int unused_event, char *context)
 					 "unknown mail transport error"));
 	msg_warn("transport %s failure -- see a previous warning/fatal/panic logfile record for the problem description",
 		 transport->name);
+
+	/*
+	 * Assume the worst and write a defer logfile record for each
+	 * recipient. This omission was already present in the first queue
+	 * manager implementation of 199703, and was fixed 200511.
+	 * 
+	 * Don't move this queue entry back to the todo queue so that
+	 * qmgr_defer_transport() can update the defer log. The queue entry
+	 * is still hot, and making it cold would involve duplicating most
+	 * but not all code at the end of this routine. That's too tricky.
+	 */
+	for (nrcpt = 0; nrcpt < entry->rcpt_list.len; nrcpt++) {
+	    recipient = entry->rcpt_list.info + nrcpt;
+	    qmgr_defer_recipient(message, recipient, &dsn);
+	}
 	qmgr_defer_transport(transport, &dsn);
     }
 
@@ -287,7 +304,7 @@ static void qmgr_deliver_update(int unused_event, char *context)
      * No problems detected. Mark the transport and queue as alive. The queue
      * itself won't go away before we dispose of the current queue entry.
      */
-    if (VSTRING_LEN(dsb->reason) == 0) {
+    if (status != DELIVER_STAT_CRASH && VSTRING_LEN(dsb->reason) == 0) {
 	qmgr_transport_unthrottle(transport);
 	qmgr_queue_unthrottle(queue);
     }

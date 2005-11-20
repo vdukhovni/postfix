@@ -1515,25 +1515,15 @@ static int permit_mx_primary(SMTPD_STATE *state, DNS_RR *mx_list,
 {
     const char *myname = "permit_mx_primary";
     DNS_RR *mx;
-    unsigned int best_pref;
 
     if (msg_verbose)
 	msg_info("%s", myname);
-
-    /*
-     * Find the preference of the primary MX hosts.
-     */
-    for (best_pref = 0xffff, mx = mx_list; mx != 0; mx = mx->next)
-	if (mx->pref < best_pref)
-	    best_pref = mx->pref;
 
     /*
      * See if each best MX host has all IP addresses in
      * permit_mx_backup_networks.
      */
     for (mx = mx_list; mx != 0; mx = mx->next) {
-	if (mx->pref != best_pref)
-	    continue;
 	if (!all_auth_mx_addr(state, (char *) mx->data, reply_name, reply_class))
 	    return (NOPE);
     }
@@ -1553,8 +1543,9 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
     char   *myname = "permit_mx_backup";
     const RESOLVE_REPLY *reply;
     const char *domain;
-
     DNS_RR *mx_list;
+    DNS_RR *middle;
+    DNS_RR *rest;
     int     dns_status;
 
     if (msg_verbose)
@@ -1607,9 +1598,11 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
      */
     dns_status = dns_lookup(domain, T_MX, 0, &mx_list,
 			    (VSTRING *) 0, (VSTRING *) 0);
+#if 0
     if (dns_status == DNS_NOTFOUND)
 	return (has_my_addr(state, domain, reply_name, reply_class) ?
 		SMTPD_CHECK_OK : SMTPD_CHECK_DUNNO);
+#endif
     if (dns_status != DNS_OK) {			/* incl. DNS_INVAL */
 	if (dns_status == DNS_RETRY)
 	    DEFER_IF_REJECT2(state, MAIL_ERROR_POLICY,
@@ -1620,28 +1613,50 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
     }
 
     /*
-     * First, see if we match any of the MX host names listed.
+     * Separate MX list into primaries and backups.
      */
-    if (!i_am_mx(state, mx_list, reply_name, reply_class)) {
-	dns_rr_free(mx_list);
-	return (SMTPD_CHECK_DUNNO);
+    mx_list = dns_rr_sort(mx_list, dns_rr_compare_pref);
+    for (middle = mx_list; /* see below */ ; middle = rest) {
+	rest = middle->next; 
+	if (rest == 0)
+	    break;
+	if (rest->pref != mx_list->pref) {
+	    middle->next = 0;
+	    break;
+	}
     }
+    /* postcondition: middle->next = 0, rest may be 0. */
+
+#define PERMIT_MX_BACKUP_RETURN(x) do { \
+	middle->next = rest; \
+	dns_rr_free(mx_list); \
+	return (x); \
+   } while (0)
+
+    /*
+     * First, see if we match any of the primary MX servers.
+     */
+    if (i_am_mx(state, mx_list, reply_name, reply_class))
+	PERMIT_MX_BACKUP_RETURN(SMTPD_CHECK_DUNNO);
+
+    /*
+     * Then, see if we match any of the backup MX servers.
+     */
+    if (rest && !i_am_mx(state, rest, reply_name, reply_class))
+	PERMIT_MX_BACKUP_RETURN(SMTPD_CHECK_DUNNO);
 
     /*
      * Optionally, see if the primary MX hosts are in a restricted list of
      * networks.
      */
     if (*var_perm_mx_networks
-	&& !permit_mx_primary(state, mx_list, reply_name, reply_class)) {
-	dns_rr_free(mx_list);
-	return (SMTPD_CHECK_DUNNO);
-    }
+	&& !permit_mx_primary(state, mx_list, reply_name, reply_class))
+	PERMIT_MX_BACKUP_RETURN(SMTPD_CHECK_DUNNO);
 
     /*
      * The destination passed all requirements.
      */
-    dns_rr_free(mx_list);
-    return (SMTPD_CHECK_OK);
+    PERMIT_MX_BACKUP_RETURN(SMTPD_CHECK_OK);
 }
 
 /* reject_non_fqdn_address - fail if address is not in fqdn form */

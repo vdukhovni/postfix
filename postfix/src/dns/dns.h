@@ -86,7 +86,7 @@ typedef struct DNS_RR {
     unsigned int ttl;			/* always */
     unsigned short pref;		/* T_MX only */
     struct DNS_RR *next;		/* linkage */
-    size_t data_len;			/* actual data size */
+    size_t  data_len;			/* actual data size */
     char    data[1];			/* actually a bunch of data */
 } DNS_RR;
 
@@ -111,6 +111,7 @@ extern void dns_rr_free(DNS_RR *);
 extern DNS_RR *dns_rr_copy(DNS_RR *);
 extern DNS_RR *dns_rr_append(DNS_RR *, DNS_RR *);
 extern DNS_RR *dns_rr_sort(DNS_RR *, int (*) (DNS_RR *, DNS_RR *));
+extern int dns_rr_compare_pref(DNS_RR *, DNS_RR *);
 extern DNS_RR *dns_rr_shuffle(DNS_RR *);
 extern DNS_RR *dns_rr_remove(DNS_RR *, DNS_RR *);
 

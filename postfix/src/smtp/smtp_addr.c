@@ -338,23 +338,6 @@ static DNS_RR *smtp_truncate_self(DNS_RR *addr_list, unsigned pref)
     return (addr_list);
 }
 
-/* smtp_compare_pref - compare resource records by preference */
-
-static int smtp_compare_pref(DNS_RR *a, DNS_RR *b)
-{
-    if (a->pref != b->pref)
-	return (a->pref - b->pref);
-#ifdef HAS_IPV6
-    if (a->type == b->type)			/* 200412 */
-	return 0;
-    if (a->type == T_AAAA)
-	return (-1);
-    if (b->type == T_AAAA)
-	return (+1);
-#endif
-    return 0;
-}
-
 /* smtp_domain_addr - mail exchanger address lookup */
 
 DNS_RR *smtp_domain_addr(char *name, int misc_flags, DSN_BUF *why,
@@ -437,7 +420,7 @@ DNS_RR *smtp_domain_addr(char *name, int misc_flags, DSN_BUF *why,
 	    addr_list = smtp_host_addr(name, misc_flags, why);
 	break;
     case DNS_OK:
-	mx_names = dns_rr_sort(mx_names, smtp_compare_pref);
+	mx_names = dns_rr_sort(mx_names, dns_rr_compare_pref);
 	best_pref = (mx_names ? mx_names->pref : IMPOSSIBLE_PREFERENCE);
 	addr_list = smtp_addr_list(mx_names, why);
 	dns_rr_free(mx_names);
@@ -472,7 +455,7 @@ DNS_RR *smtp_domain_addr(char *name, int misc_flags, DSN_BUF *why,
 	}
 	if (addr_list && addr_list->next && var_smtp_rand_addr) {
 	    addr_list = dns_rr_shuffle(addr_list);
-	    addr_list = dns_rr_sort(addr_list, smtp_compare_pref);
+	    addr_list = dns_rr_sort(addr_list, dns_rr_compare_pref);
 	}
 	break;
     case DNS_INVAL:
@@ -521,7 +504,7 @@ DNS_RR *smtp_host_addr(char *host, int misc_flags, DSN_BUF *why)
 	    addr_list = dns_rr_shuffle(addr_list);
 	/* The following changes the order of equal-preference hosts. */
 	if (inet_proto_info()->ai_family_list[1] != 0)
-	    addr_list = dns_rr_sort(addr_list, smtp_compare_pref);
+	    addr_list = dns_rr_sort(addr_list, dns_rr_compare_pref);
     }
     if (msg_verbose)
 	smtp_print_addr(host, addr_list);

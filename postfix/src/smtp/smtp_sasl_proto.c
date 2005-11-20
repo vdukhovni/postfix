@@ -115,18 +115,25 @@ static const char *smtp_sasl_compat_mechs(const char *words)
 void    smtp_sasl_helo_auth(SMTP_SESSION *session, const char *words)
 {
     const char *mech_list = smtp_sasl_compat_mechs(words);
+    char   *junk;
 
     /*
      * XXX If the server offers no compatible authentication mechanisms, then
      * pretend that the server doesn't support SASL authentication.
+     * 
+     * XXX If the server offers multiple different lists, concatenate them. Let
+     * the SASL library worry about duplicates.
      */
     if (session->sasl_mechanism_list) {
-	if (strcasecmp(session->sasl_mechanism_list, mech_list) == 0)
-	    return;
-	myfree(session->sasl_mechanism_list);
-	msg_warn("%s offered AUTH option multiple times", session->namaddr);
-	session->sasl_mechanism_list = 0;
-	session->features &= ~SMTP_FEATURE_AUTH;
+	if (strcasecmp(session->sasl_mechanism_list, mech_list) != 0
+	    && strlen(mech_list) > 0
+	    && strlen(session->sasl_mechanism_list) < var_line_limit) {
+	    junk = concatenate(session->sasl_mechanism_list, " ", mech_list,
+			       (char *) 0);
+	    myfree(session->sasl_mechanism_list);
+	    session->sasl_mechanism_list = junk;
+	}
+	return;
     }
     if (strlen(mech_list) > 0) {
 	session->sasl_mechanism_list = mystrdup(mech_list);

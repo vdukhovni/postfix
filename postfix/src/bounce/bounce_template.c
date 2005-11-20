@@ -47,7 +47,9 @@
 /*	BOUNCE_TEMPLATE *template;
 /* DESCRIPTION
 /*	This module implements the built-in and external bounce
-/*	message template support.
+/*	message template support. The content of a template are
+/*	private. To access information within a template, use
+/*	the API described in this document.
 /*
 /*	bounce_template_create() creates a template, with the
 /*	specified default settings. The template defaults are not
@@ -81,7 +83,7 @@
 /*	specified stream.
 /*
 /*	The IS_MUMBLE_TEMPLATE() macros are predicates that
-/*	return when the template is of the specified type.
+/*	determine whether the template is of the specified type.
 /* DIAGNOSTICS
 /*	Fatal error: out of memory, undefined macro name in template.
 /* SEE ALSO
@@ -136,9 +138,9 @@
   * Ideally, the bounce template processor would strip the _days etc. suffix
   * from the parameter name, and use the parameter name to look up the actual
   * parameter value and its default value (the default value specifies the
-  * default time unit of that parameter (seconds, minutes, etc.), and allows
-  * us to convert the parameter string value into the corresponding number of
-  * seconds). The bounce template processor would then use the _hours etc.
+  * default time unit of that parameter (seconds, minutes, etc.)), and use
+  * this to convert the parameter string value into the corresponding number
+  * of seconds. The bounce template processor would then use the _hours etc.
   * suffix from the bounce template to divide this number by the number of
   * seconds in an hour, etc. and produce the number that is needed for the
   * template.

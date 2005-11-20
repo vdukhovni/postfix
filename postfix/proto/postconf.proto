@@ -5198,9 +5198,16 @@ system is the final destination. However, the SMTP server will not
 forward mail with addresses that have sender-specified routing
 information (example: user@elsewhere@domain).  Use the optional
 permit_mx_backup_networks parameter to require that the primary
-MX hosts match a list of network blocks. <br> Note: prior to
+MX hosts match a list of network blocks. <br> NOTE: prior to
 Postfix version 2.0, use of permit_mx_backup is not recommended;
-mail may be rejected in case of a temporary DNS lookup problem. </dd>
+mail may be rejected in case of a temporary DNS lookup problem.
+
+<br> NOTE: as of Postfix version 2.3, permit_mx_backup requires
+that the local MTA is not listed as primary MX for the recipient
+domain.  This is for safety reasons.
+
+<br> NOTE: use of permit_mx_backup is not recommended without
+restricting its use with permit_mx_backup_networks. </dd>
 
 <dt><b><a name="reject_non_fqdn_recipient">reject_non_fqdn_recipient</a></b></dt>
 

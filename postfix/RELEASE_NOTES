@@ -17,6 +17,14 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
+Incompatibility with snapshot 20051120
+======================================
+
+The permit_mx_backup feature now requires that the local MTA is not
+listed as primary MX host for the recipient domain. This prevents
+mail loop problems when someone points the primary MX record at
+Postfix.
+
 Major changes with snapshot 20051113
 ====================================
 

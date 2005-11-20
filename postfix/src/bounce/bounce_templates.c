@@ -6,6 +6,15 @@
 /* SYNOPSIS
 /*	#include <bounce_template.h>
 /*
+/*	typedef struct {
+/* .in +4
+/*		BOUNCE_TEMPLATE *failure;
+/*		BOUNCE_TEMPLATE *delay;
+/*		BOUNCE_TEMPLATE *success;
+/*		BOUNCE_TEMPLATE *verify;
+/* .in -4
+/*	} BOUNCE_TEMPLATES;
+/*
 /*	BOUNCE_TEMPLATES *bounce_templates_create(void)
 /*
 /*	void	bounce_templates_free(templates)

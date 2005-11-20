@@ -30,6 +30,10 @@
 /*	DNS_RR	*list
 /*	int	(*compar)(DNS_RR *, DNS_RR *);
 /*
+/*	int	dns_rr_compare_pref(DNS_RR *a, DNS_RR *b)
+/*	DNS_RR	*list
+/*	DNS_RR	*list
+/*
 /*	DNS_RR	*dns_rr_shuffle(list)
 /*	DNS_RR	*list;
 /*
@@ -57,6 +61,9 @@
 /*	dns_rr_sort() sorts a list of resource records into ascending
 /*	order according to a user-specified criterion. The result is the
 /*	sorted list.
+/*
+/*	dns_rr_compare_pref() is a dns_rr_sort() helper to sort records
+/*	by their MX preference.
 /*
 /*	dns_rr_shuffle() randomly permutes a list of resource records.
 /*
@@ -149,6 +156,23 @@ DNS_RR *dns_rr_append(DNS_RR *list, DNS_RR *rr)
 	list->next = dns_rr_append(list->next, rr);
     }
     return (list);
+}
+
+/* dns_rr_compare_pref - compare resource records by preference */
+
+int     dns_rr_compare_pref(DNS_RR *a, DNS_RR *b)
+{
+    if (a->pref != b->pref)
+	return (a->pref - b->pref);
+#ifdef HAS_IPV6
+    if (a->type == b->type)			/* 200412 */
+	return 0;
+    if (a->type == T_AAAA)
+	return (-1);
+    if (b->type == T_AAAA)
+	return (+1);
+#endif
+    return 0;
 }
 
 /* dns_rr_sort_callback - glue function */

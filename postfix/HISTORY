@@ -11405,6 +11405,25 @@ Apologies for any names omitted.
 	Bugfix: new bounce template code did not return after
 	template syntax error. File: bounce/bounce_template.c
 
+	Safety: permit_mx_backup now requires that the local MTA
+	is not listed as primary MX for the recipient domain. This
+	prevents mail loops when someone points the primary MX
+	record to Postfix.
+
+20051119
+
+	Workaround: some SMTP servers announce multiple but different
+	lists of SASL methods. Postfix now concatenates the lists
+	instead of logging a warning and remembering only one. File:
+	smtp/smtp_sasl_proto.c.
+
+	Bugfix: the queue manager did not write a per-recipient
+	defer logfile record when the delivery agent crashed between
+	receiving a delivery request, and reporting the delivery
+	status to the queue manager.  Found while redesigning the
+	code that handles unavailable transports or destinations.
+	Files: *qmgr/qmgr_deliver.c.
+
 Open problems:
 
 	"postsuper -r" no longer resets the message arrival time,
