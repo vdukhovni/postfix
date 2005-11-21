@@ -19,16 +19,19 @@ LIBS	= ../../lib/libmaster.a ../../lib/libglobal.a ../../lib/libutil.a
 
 .c.o:;  $(CC) $(CFLAGS) -c $*.c
 
+all:	$(PROG) ../../conf/bounce.cf.default
+
 $(PROG):	$(OBJS) $(LIBS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
 
-# Avoid dependency on installed Postfix.
-../../conf/bounce.cf.default: $(PROG) annotate.pl main.cf
+# Eliminate dependency on installed Postfix.
+../../conf/bounce.cf.default: template_test.ref annotate.pl
 	rm -f $@
-	MAIL_CONFIG=. ./$(PROG) -SVzndump_templates | perl annotate.pl >$@
+	perl annotate.pl <template_test.ref >$@
 
 main.cf:
 	echo queue_directory=. >main.cf
+	echo myhostname=example.com >>main.cf
 
 $(OBJS): ../../conf/makedefs.out
 
@@ -62,6 +65,7 @@ clean:
 tidy:	clean
 
 # Avoid dependency on installed Postfix.
+# XXX This still requires that default_privs, mail_owner etc. accounts exist.
 template_test: $(PROG) main.cf template_test.ref
 	MAIL_CONFIG=. ./$(PROG) -SVzndump_templates >template_test.tmp
 	diff template_test.ref template_test.tmp

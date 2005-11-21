@@ -1560,25 +1560,22 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
 	reject_dict_retry(state, recipient);
 
     /*
-     * If the destination is local, it is acceptable, because we are
-     * supposedly MX for our own address.
+     * For backwards compatibility, emulate permit_auth_destination. However,
+     * old permit_mx_backup implementations allow source routing with local
+     * address class.
      */
     if ((domain = strrchr(CONST_STR(reply->recipient), '@')) == 0)
 	return (SMTPD_CHECK_OK);
     domain += 1;
+#if 0
     if (reply->flags & RESOLVE_CLASS_LOCAL)
 	return (SMTPD_CHECK_OK);
-
-    /*
-     * Skip source-routed non-local or virtual mail (uncertain destination).
-     */
+#endif
     if (var_allow_untrust_route == 0 && (reply->flags & RESOLVE_FLAG_ROUTED))
 	return (SMTPD_CHECK_DUNNO);
-
-    /*
-     * The destination is local, or it is a local virtual destination.
-     */
     if (reply->flags & RESOLVE_CLASS_FINAL)
+	return (SMTPD_CHECK_OK);
+    if (reply->flags & RESOLVE_CLASS_RELAY)
 	return (SMTPD_CHECK_OK);
 
     if (msg_verbose)
@@ -1617,7 +1614,7 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
      */
     mx_list = dns_rr_sort(mx_list, dns_rr_compare_pref);
     for (middle = mx_list; /* see below */ ; middle = rest) {
-	rest = middle->next; 
+	rest = middle->next;
 	if (rest == 0)
 	    break;
 	if (rest->pref != mx_list->pref) {

@@ -5192,22 +5192,28 @@ contains no sender-specified routing (user@elsewhere@domain).
 
 <dt><b><a name="permit_mx_backup">permit_mx_backup</a></b></dt>
 
-<dd>Permit the request when the local mail system is MX host for
-the RCPT TO address. This includes the case that the local mail
-system is the final destination. However, the SMTP server will not
-forward mail with addresses that have sender-specified routing
-information (example: user@elsewhere@domain).  Use the optional
-permit_mx_backup_networks parameter to require that the primary
-MX hosts match a list of network blocks. <br> NOTE: prior to
-Postfix version 2.0, use of permit_mx_backup is not recommended;
-mail may be rejected in case of a temporary DNS lookup problem.
+<dd>Permit the request when the local mail system is backup MX for
+the RCPT TO address, or when the address is an authorized destination
+(see permit_auth_destination for definition).
 
-<br> NOTE: as of Postfix version 2.3, permit_mx_backup requires
-that the local MTA is not listed as primary MX for the recipient
-domain.  This is for safety reasons.
+<ul>
 
-<br> NOTE: use of permit_mx_backup is not recommended without
-restricting its use with permit_mx_backup_networks. </dd>
+<li> Safety: permit_mx_backup does not accept addresses that have
+sender-specified routing information (example: user@elsewhere@domain).
+
+<li> Safety: permit_mx_backup can be vulnerable to mis-use when
+access is not restricted with permit_mx_backup_networks.
+
+<li> Safety: as of Postfix version 2.3, permit_mx_backup no longer
+accepts the address when the local mail system is primary MX for
+the recipient domain.  Exception: permit_mx_backup accepts the address
+when it specifies an authorized destination (see permit_auth_destination
+for definition).
+
+<li> Limitation: mail may be rejected in case of a temporary DNS
+lookup problem with Postfix prior to version 2.0.
+
+</ul></dd>
 
 <dt><b><a name="reject_non_fqdn_recipient">reject_non_fqdn_recipient</a></b></dt>
 

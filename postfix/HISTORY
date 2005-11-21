@@ -11424,6 +11424,18 @@ Apologies for any names omitted.
 	code that handles unavailable transports or destinations.
 	Files: *qmgr/qmgr_deliver.c.
 
+20051121
+
+	Workaround: do not build the bounce.cf.default template
+	while compiling Postfix  - it breaks when the default
+	mail_owner etc. accounts don't exist.  Reported by Liviu
+	Daia.
+
+	Compatibility: added permit_auth_destination emulation to
+	the permit_mx_backup feature. This avoids surprises with
+	sites that used permit_mx_backup to authorize all their
+	incoming mail.
+
 Open problems:
 
 	"postsuper -r" no longer resets the message arrival time,
