@@ -185,6 +185,10 @@ extern char *var_masq_classes;
 #define DEF_RELAYHOST		""
 extern char *var_relayhost;
 
+#define VAR_SND_RELAY_MAPS	"sender_relayhost_maps"
+#define DEF_SND_RELAY_MAPS	""
+extern char *var_snd_relay_maps;
+
 #define VAR_FALLBACK_RELAY	"fallback_relay"
 #define DEF_FALLBACK_RELAY	""
 extern char *var_fallback_relay;
@@ -2152,6 +2156,10 @@ extern char *var_vrfy_def_xport;
 #define DEF_VRFY_RELAYHOST		"$" VAR_RELAYHOST
 extern char *var_vrfy_relayhost;
 
+#define VAR_VRFY_RELAY_MAPS		"address_verify_sender_relayhost_maps"
+#define DEF_VRFY_RELAY_MAPS		"$" VAR_SND_RELAY_MAPS
+extern char *var_vrfy_relay_maps;
+
 #define VAR_VRFY_XPORT_MAPS		"address_verify_transport_maps"
 #define DEF_VRFY_XPORT_MAPS		"$" VAR_TRANSPORT_MAPS
 extern char *var_vrfy_xport_maps;
@@ -2403,6 +2411,13 @@ extern int var_delay_max_res;
 #define VAR_BOUNCE_TMPL			"bounce_template_file"
 #define DEF_BOUNCE_TMPL			""
 extern char *var_bounce_tmpl;
+
+ /*
+  * Per-sender authentication.
+  */
+#define VAR_SMTP_SENDER_AUTH	"smtp_per_sender_authentication"
+#define DEF_SMTP_SENDER_AUTH	0
+extern bool var_smtp_sender_auth;
 
 /* LICENSE
 /* .ad

@@ -26,6 +26,7 @@
 #define RESOLVE_FLAG_ROUTED	(1<<1)	/* routed destination */
 #define RESOLVE_FLAG_ERROR	(1<<2)	/* bad destination syntax */
 #define RESOLVE_FLAG_FAIL	(1<<3)	/* request failed */
+#define RESOLVE_FLAG_SMARTHOST	(1<<4)	/* smarthost route */
 
 #define RESOLVE_CLASS_LOCAL	(1<<8)	/* mydestination/inet_interfaces */
 #define RESOLVE_CLASS_ALIAS	(1<<9)	/* virtual_alias_domains */

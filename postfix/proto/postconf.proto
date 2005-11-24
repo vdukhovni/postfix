@@ -4002,8 +4002,9 @@ smtp_sasl_auth_enable = yes
 
 <p>
 Optional SMTP client lookup tables with one username:password entry
-per remote hostname or domain.  If a remote host or domain has no
-username:password entry, then the Postfix SMTP client will not
+per remote hostname or domain (or per sender address, when per-sender
+authentication is enabled).  If no username:password entry is found,
+then the Postfix SMTP client will not
 attempt to authenticate to the remote host.
 </p>
 
@@ -7112,7 +7113,8 @@ The name of the directory with example Postfix configuration files.
 %PARAM sender_based_routing no
 
 <p>
-This parameter should not be used.
+This parameter should not be used. It was replaced by sender_relayhost_maps
+in Postfix 2.3.
 </p>
 
 %PARAM sendmail_path see "postconf -d" output
@@ -8703,4 +8705,38 @@ be previewed with "<b>postconf -b <i>file_name</i></b>" before the file
 is placed into the Postfix configuration directory.  </p>
 
 <p> This feature is available in Postfix 2.3 and later.  </p>
+
+%PARAM sender_relayhost_maps empty
+
+<p> A sender-specific override for the global relayhost parameter
+setting. The tables are searched by the sender address and by the
+sender @domain. </p>
+
+<p>
+This feature is available in Postfix 2.3 and later.
+</p>
+
+%PARAM address_verify_sender_relayhost_maps empty
+
+<p>
+Overrides the sender_relayhost_maps parameter setting for address
+verification probes.
+</p>
+
+<p>
+This feature is available in Postfix 2.3 and later.
+</p>
+
+%PARAM smtp_per_sender_authentication no
+
+<p>
+Enable per-sender authentication in the SMTP client; this is available
+only with SASL authentication, and disables SMTP connection caching
+to ensure that mail from different senders will use the appropriate
+credentials.
+</p>
+
+<p>
+This feature is available in Postfix 2.3 and later.
+</p>
 

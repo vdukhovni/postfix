@@ -30,7 +30,7 @@ typedef struct TRANSPORT_INFO {
 
 extern TRANSPORT_INFO *transport_pre_init(const char *, const char *);
 extern void transport_post_init(TRANSPORT_INFO *);
-extern int transport_lookup(TRANSPORT_INFO *, const char *, const char *, VSTRING *, VSTRING *);
+extern int transport_lookup(TRANSPORT_INFO *, int *, const char *, const char *, VSTRING *, VSTRING *);
 extern void transport_free(TRANSPORT_INFO *);
 
 /* LICENSE

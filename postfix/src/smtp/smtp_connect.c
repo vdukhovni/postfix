@@ -625,8 +625,14 @@ int     smtp_connect(SMTP_STATE *state)
 	 * Opportunistic (a.k.a. on-demand) session caching on request by the
 	 * queue manager. This is turned temporarily when a destination has a
 	 * high volume of mail in the active queue.
+	 * 
+	 * XXX Disable connection caching when per-sender credentials are
+	 * enabled. We must not send someone elses mail over an authenticated
+	 * connection, and we must not send mail that requires authentication
+	 * over a connection that wasn't authenticated.
 	 */
 	if (cpp == sites->argv
+	    && !var_smtp_sender_auth
 	    && ((var_smtp_cache_demand && (request->flags & DEL_REQ_FLAG_SCACHE) != 0)
 		|| (smtp_cache_dest && string_list_match(smtp_cache_dest, domain)))) {
 	    sess_flags |= SMTP_SESS_FLAG_CACHE;

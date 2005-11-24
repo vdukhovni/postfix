@@ -176,7 +176,8 @@ response announces XFORWARD support.
 Enable SASL authentication in the Postfix SMTP client.
 .IP "\fBsmtp_sasl_password_maps (empty)\fR"
 Optional SMTP client lookup tables with one username:password entry
-per remote hostname or domain.
+per remote hostname or domain (or per sender, when per-sender
+authentication is enabled).
 .IP "\fBsmtp_sasl_security_options (noplaintext, noanonymous)\fR"
 What authentication mechanisms the Postfix SMTP client is allowed
 to use.
@@ -185,6 +186,13 @@ Available in Postfix version 2.2 and later:
 .IP "\fBsmtp_sasl_mechanism_filter (empty)\fR"
 If non-empty, a Postfix SMTP client filter for the remote SMTP
 server's list of offered SASL mechanisms.
+.PP
+Available in Postfix version 2.3 and later:
+.IP "\fBsmtp_per_sender_authentication (no)\fR"
+Enable per-sender authentication in the SMTP client; this is available
+only with SASL authentication, and disables SMTP connection caching
+to ensure that mail from different senders will use the appropriate
+credentials.
 .SH "STARTTLS SUPPORT CONTROLS"
 .na
 .nf

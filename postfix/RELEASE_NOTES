@@ -17,6 +17,24 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
+Major changes with snapshot 20051124
+====================================
+
+This snapshot adds support for sender-dependent ISP accounts.
+
+- Per-sender relayhost support, with the sender_relayhost_maps
+  feature. The maps are searched with the sender address and with
+  the sender @domain. The result overrides the global relayhost
+  setting, but otherwise has identical behavior.
+
+  Example: sender_relayhost_maps = hash:/etc/postfix/sender_relay
+
+- Per-sender SASL authentication support. This disables SMTP
+  connection caching to ensure that mail from different senders
+  will use the correct authentication credentials.
+
+  Example: smtp_per_sender_authentication = yes
+
 Incompatibility with snapshot 20051121
 ======================================
 

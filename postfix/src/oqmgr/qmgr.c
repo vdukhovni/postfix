@@ -328,11 +328,15 @@ int     var_local_rcpt_lim;		/* XXX */
 int     var_local_con_lim;		/* XXX */
 int     var_proc_limit;
 bool    var_verp_bounce_off;
-bool    var_sender_routing;
 int     var_qmgr_clog_warn_time;
+char   *var_snd_relay_maps;
+char   *var_vrfy_relay_maps;
 
 static QMGR_SCAN *qmgr_incoming;
 static QMGR_SCAN *qmgr_deferred;
+
+MAPS   *qmgr_snd_relay_maps;
+MAPS   *qmgr_vrfy_relay_maps;
 
 /* qmgr_deferred_run_event - queue manager heartbeat */
 
@@ -484,6 +488,12 @@ static void pre_accept(char *unused_name, char **unused_argv)
 static void qmgr_pre_init(char *unused_name, char **unused_argv)
 {
     flush_init();
+    if (*var_snd_relay_maps)
+	qmgr_snd_relay_maps =
+	    maps_create(VAR_SND_RELAY_MAPS, var_snd_relay_maps, 0);
+    if (*var_vrfy_relay_maps)
+	qmgr_vrfy_relay_maps =
+	    maps_create(VAR_VRFY_RELAY_MAPS, var_vrfy_relay_maps, 0);
 }
 
 /* qmgr_post_init - post-jail initialization */
@@ -532,6 +542,8 @@ int     main(int argc, char **argv)
 {
     static CONFIG_STR_TABLE str_table[] = {
 	VAR_DEFER_XPORTS, DEF_DEFER_XPORTS, &var_defer_xports, 0, 0,
+	VAR_SND_RELAY_MAPS, DEF_SND_RELAY_MAPS, &var_snd_relay_maps, 0, 0,
+	VAR_VRFY_RELAY_MAPS, DEF_VRFY_RELAY_MAPS, &var_vrfy_relay_maps, 0, 0,
 	0,
     };
     static CONFIG_TIME_TABLE time_table[] = {
@@ -559,7 +571,6 @@ int     main(int argc, char **argv)
     static CONFIG_BOOL_TABLE bool_table[] = {
 	VAR_ALLOW_MIN_USER, DEF_ALLOW_MIN_USER, &var_allow_min_user,
 	VAR_VERP_BOUNCE_OFF, DEF_VERP_BOUNCE_OFF, &var_verp_bounce_off,
-	VAR_SENDER_ROUTING, DEF_SENDER_ROUTING, &var_sender_routing,
 	0,
     };
 

@@ -116,6 +116,7 @@
 #include <mail_params.h>
 #include <string_list.h>
 #include <maps.h>
+#include <mail_addr_find.h>
 
  /*
   * Application-specific
@@ -329,7 +330,10 @@ int     smtp_sasl_passwd_lookup(SMTP_SESSION *session)
      * but didn't canonicalize the TCP port, and did not append the port to
      * the MX hostname.
      */
-    if ((value = maps_find(smtp_sasl_passwd_map, session->host, 0)) != 0
+    if ((var_sender_auth
+	 && (value = mail_addr_find(smtp_sasl_passwd_map,
+				 state->request->sender, (char **) 0)) != 0)
+	|| (value = maps_find(smtp_sasl_passwd_map, session->host, 0)) != 0
       || (value = maps_find(smtp_sasl_passwd_map, session->dest, 0)) != 0) {
 	session->sasl_username = mystrdup(value);
 	passwd = split_at(session->sasl_username, ':');
@@ -341,8 +345,8 @@ int     smtp_sasl_passwd_lookup(SMTP_SESSION *session)
 	return (1);
     } else {
 	if (msg_verbose)
-	    msg_info("%s: host `%s' no auth info found",
-		     myname, session->host);
+	    msg_info("%s: no auth info found (sender=`%s', host=`%s')",
+		     myname, state->request->sender, session->host);
 	return (0);
     }
 }

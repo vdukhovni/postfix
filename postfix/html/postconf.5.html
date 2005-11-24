@@ -373,6 +373,21 @@ This feature is available in Postfix 2.1 and later.
 
 </DD>
 
+<DT><b><a name="address_verify_sender_relayhost_maps">address_verify_sender_relayhost_maps</a>
+(default: empty)</b></DT><DD>
+
+<p>
+Overrides the <a href="postconf.5.html#sender_relayhost_maps">sender_relayhost_maps</a> parameter setting for address
+verification probes.
+</p>
+
+<p>
+This feature is available in Postfix 2.3 and later.
+</p>
+
+
+</DD>
+
 <DT><b><a name="address_verify_service_name">address_verify_service_name</a>
 (default: verify)</b></DT><DD>
 
@@ -3539,7 +3554,7 @@ Examples:
 </DD>
 
 <DT><b><a name="local_transport">local_transport</a>
-(default: local:$<a href="postconf.5.html#myhostname">myhostname</a>)</b></DT><DD>
+(default: <a href="local.8.html">local</a>:$<a href="postconf.5.html#myhostname">myhostname</a>)</b></DT><DD>
 
 <p> The default mail delivery transport for domains that match
 $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>.  This
@@ -5645,7 +5660,8 @@ The name of the directory with example Postfix configuration files.
 (default: no)</b></DT><DD>
 
 <p>
-This parameter should not be used.
+This parameter should not be used. It was replaced by <a href="postconf.5.html#sender_relayhost_maps">sender_relayhost_maps</a>
+in Postfix 2.3.
 </p>
 
 
@@ -5752,6 +5768,20 @@ Example:
 <pre>
 <a href="postconf.5.html#sender_canonical_maps">sender_canonical_maps</a> = hash:/etc/postfix/sender_canonical
 </pre>
+
+
+</DD>
+
+<DT><b><a name="sender_relayhost_maps">sender_relayhost_maps</a>
+(default: empty)</b></DT><DD>
+
+<p> A sender-specific override for the global <a href="postconf.5.html#relayhost">relayhost</a> parameter
+setting. The tables are searched by the sender address and by the
+sender @domain. </p>
+
+<p>
+This feature is available in Postfix 2.3 and later.
+</p>
 
 
 </DD>
@@ -5946,15 +5976,15 @@ or pseudo-destinations: </p>
 
 <ul>
 
-<li> if mail is sent without a relay host: a domain name (the
+<li> if mail is sent without a <a href="postconf.5.html#relayhost">relay host</a>: a domain name (the
 right-hand side of an email address, without the [] around a numeric
 IP address),
 
-<li> if mail is sent via a relay host: a relay host name (without
+<li> if mail is sent via a <a href="postconf.5.html#relayhost">relay host</a>: a <a href="postconf.5.html#relayhost">relay host</a> name (without
 [] or non-default TCP port), as specified in main.cf or in the
 transport map,
 
-<li> a /file/name with domain names and/or relay host names as
+<li> a /file/name with domain names and/or <a href="postconf.5.html#relayhost">relay host</a> names as
 defined above,
 
 <li> a "<a href="DATABASE_README.html">type:table</a>" with domain names and/or relay hosts name on
@@ -6384,7 +6414,7 @@ This feature is available in Postfix 2.1 and later.
 (default: 2)</b></DT><DD>
 
 <p> The maximal number of SMTP sessions per delivery request before
-giving up or delivering to a fall-back relay host, or zero (no
+giving up or delivering to a fall-back <a href="postconf.5.html#relayhost">relay host</a>, or zero (no
 limit). This restriction ignores sessions that fail to complete the
 SMTP initial handshake (Postfix 2.2 and earlier) or that fail to
 complete the EHLO and TLS handshake (Postfix 2.3 and later).  </p>
@@ -6399,6 +6429,23 @@ complete the EHLO and TLS handshake (Postfix 2.3 and later).  </p>
 
 <p> Never send EHLO at the start of an SMTP session. See also the
 <a href="postconf.5.html#smtp_always_send_ehlo">smtp_always_send_ehlo</a> parameter.  </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_per_sender_authentication">smtp_per_sender_authentication</a>
+(default: no)</b></DT><DD>
+
+<p>
+Enable per-sender authentication in the SMTP client; this is available
+only with SASL authentication, and disables SMTP connection caching
+to ensure that mail from different senders will use the appropriate
+credentials.
+</p>
+
+<p>
+This feature is available in Postfix 2.3 and later.
+</p>
 
 
 </DD>
@@ -6585,8 +6632,9 @@ Examples:
 
 <p>
 Optional SMTP client lookup tables with one username:password entry
-per remote hostname or domain.  If a remote host or domain has no
-username:password entry, then the Postfix SMTP client will not
+per remote hostname or domain (or per sender address, when per-sender
+authentication is enabled).  If no username:password entry is found,
+then the Postfix SMTP client will not
 attempt to authenticate to the remote host.
 </p>
 

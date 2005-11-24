@@ -18,6 +18,7 @@
   * Global library.
   */
 #include <tok822.h>
+#include <maps.h>
 
  /*
   * Connection management.
@@ -32,7 +33,7 @@ typedef struct {
     char  **origin;			/* default origin */
     const char *domain_name;		/* name of variable */
     char  **domain;			/* default domain */
-}       RWR_CONTEXT;
+} RWR_CONTEXT;
 
 #define REW_PARAM_VALUE(x) (*(x))	/* make it easy to do it right */
 

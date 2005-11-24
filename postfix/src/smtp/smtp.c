@@ -152,7 +152,8 @@
 /*	Enable SASL authentication in the Postfix SMTP client.
 /* .IP "\fBsmtp_sasl_password_maps (empty)\fR"
 /*	Optional SMTP client lookup tables with one username:password entry
-/*	per remote hostname or domain.
+/*	per remote hostname or domain (or per sender, when per-sender
+/*	authentication is enabled).
 /* .IP "\fBsmtp_sasl_security_options (noplaintext, noanonymous)\fR"
 /*	What authentication mechanisms the Postfix SMTP client is allowed
 /*	to use.
@@ -161,6 +162,13 @@
 /* .IP "\fBsmtp_sasl_mechanism_filter (empty)\fR"
 /*	If non-empty, a Postfix SMTP client filter for the remote SMTP
 /*	server's list of offered SASL mechanisms.
+/* .PP
+/*	Available in Postfix version 2.3 and later:
+/* .IP "\fBsmtp_per_sender_authentication (no)\fR"
+/*	Enable per-sender authentication in the SMTP client; this is available
+/*	only with SASL authentication, and disables SMTP connection caching
+/*	to ensure that mail from different senders will use the appropriate
+/*	credentials.
 /* STARTTLS SUPPORT CONTROLS
 /* .ad
 /* .fi
@@ -507,6 +515,7 @@ bool    var_smtp_tls_note_starttls_offer;
 
 char   *var_smtp_generic_maps;
 char   *var_prop_extension;
+bool    var_smtp_sender_auth;
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
@@ -800,6 +809,7 @@ int     main(int argc, char **argv)
 	VAR_SMTP_TLS_ENFORCE_PN, DEF_SMTP_TLS_ENFORCE_PN, &var_smtp_tls_enforce_peername,
 	VAR_SMTP_TLS_NOTEOFFER, DEF_SMTP_TLS_NOTEOFFER, &var_smtp_tls_note_starttls_offer,
 #endif
+	VAR_SMTP_SENDER_AUTH, DEF_SMTP_SENDER_AUTH, &var_smtp_sender_auth,
 
 	0,
     };

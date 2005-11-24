@@ -59,6 +59,9 @@
 /*	The address resolved to something that has invalid syntax.
 /* .IP RESOLVE_FLAG_FAIL
 /*	The request could not be completed.
+/* .IP RESOLVE_FLAG_SMARTHOST
+/*	The client may override the next-hop host with per-sender
+/*	relay host information.
 /* .PP
 /*	In addition, the address domain class is returned by setting
 /*	one of the following flags (this is preliminary code awaiting

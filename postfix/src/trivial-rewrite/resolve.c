@@ -395,7 +395,8 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
      * highest precedence to transport associated nexthop information.
      * 
      * Otherwise, with relay or other non-local destinations, the relayhost
-     * setting overrides the destination domain name.
+     * setting overrides the recipient domain name, and the per-sender
+     * relayhost overrides both.
      * 
      * XXX Nag if the recipient domain is listed in multiple domain lists. The
      * result is implementation defined, and may break when internals change.
@@ -489,8 +490,15 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
 	    }
 
 	    /*
-	     * With off-host delivery, relayhost overrides recipient domain.
+	     * With off-host delivery, per-sender or global relayhost
+	     * override the recipient domain. The per-sender override is done
+	     * in the client, and permission to do so is is signaled with the
+	     * SMARTHOST flag. This is technically incorrect, but avoids the
+	     * need to change the resolver client protocol for something that
+	     * is irrelevant for most resolver clients, and that most Postfix
+	     * sites will never need.
 	     */
+	    *flags |= RESOLVE_FLAG_SMARTHOST;
 	    if (*RES_PARAM_VALUE(rp->relayhost))
 		vstring_strcpy(nexthop, RES_PARAM_VALUE(rp->relayhost));
 	    else
@@ -529,8 +537,10 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
      * force mail for any domain in $mydestination/${proxy,inet}_interfaces
      * to share the same queue.
      */
-    if ((destination = split_at(STR(channel), ':')) != 0 && *destination)
+    if ((destination = split_at(STR(channel), ':')) != 0 && *destination) {
 	vstring_strcpy(nexthop, destination);
+	*flags &= ~RESOLVE_FLAG_SMARTHOST;
+    }
 
     /*
      * Sanity checks.
@@ -574,7 +584,7 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
      * XXX Don't override the virtual alias class (error:User unknown) result.
      */
     if (rp->transport_info && !(*flags & RESOLVE_CLASS_ALIAS)) {
-	if (transport_lookup(rp->transport_info, STR(nextrcpt),
+	if (transport_lookup(rp->transport_info, flags, STR(nextrcpt),
 			     rcpt_domain, channel, nexthop) == 0
 	    && dict_errno != 0) {
 	    msg_warn("%s lookup failure", rp->transport_maps_name);

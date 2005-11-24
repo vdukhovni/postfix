@@ -11436,6 +11436,26 @@ Apologies for any names omitted.
 	sites that used permit_mx_backup to authorize all their
 	incoming mail.
 
+20051122
+
+	Feature: sender_relayhost_maps, lookup tables that specify
+	a per-sender override for the relayhost parameter setting.
+	This is an extended version of a patch by Mathias Hasselmann.
+	Files: trivial-rewrite/resolve.c, trivial-rewrite/transport.c,
+	*qmgr/qmgr_message.c.
+
+	Feature: address_verify_sender_relayhost_maps, for consistency
+	with the other address_verify_mumble parameters.
+
+20051124
+
+	Feature: smtp_per_sender_auth, to enable per-sender SASL
+	authentication. This disables SMTP connection caching to
+	ensure that mail from different senders will be delivered
+	with the appropriate credentials. This is an extended version
+	of a patch by Mathias Hasselmann. Files: smtp/smtp_connect.c,
+	smtp/smtp_sasl_glue.c.
+
 Open problems:
 
 	"postsuper -r" no longer resets the message arrival time,
@@ -11548,15 +11568,16 @@ Open problems:
 
 	Med: separate ulimit for delivery to command?
 
-	Med: option to open queue file early, after MAIL FROM.
-
-	Low: log xdelay (esp. for SMTP and delivery to command).
+	Med: option to open queue file early, after MAIL FROM.  This
+	would allow correlation of rejected RCPT TO requests with
+	accepted requests for the same mail transaction.
 
 	Med: silly queue file bit so that the queue manager doesn't
 	skip files when fast flush is requested while a queue scan
 	is in progress. The bit is set by the flush server and is
 	reset when the mail is deferred, so that it survives queue
-	manager restart.
+	manager restart. It's not clear, however, how one would
+	unthrottle disabled transports or queues.
 
 	Med: postsuper -r should do something with recipients in
 	bounce logfiles.

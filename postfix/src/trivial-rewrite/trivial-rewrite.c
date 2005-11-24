@@ -140,6 +140,11 @@
 /* .IP "\fBtransport_maps (empty)\fR"
 /*	Optional lookup tables with mappings from recipient address to
 /*	(message delivery transport, next-hop destination).
+/* .PP
+/*	Available in Postfix version 2.3 and later:
+/* .IP "\fBsender_relayhost_maps (empty)\fR"
+/*	A sender-specific override for the global relayhost parameter
+/*	setting.
 /* ADDRESS VERIFICATION CONTROLS
 /* .ad
 /* .fi
@@ -165,6 +170,9 @@
 /* .IP "\fBaddress_verify_relayhost ($relayhost)\fR"
 /*	Overrides the relayhost parameter setting for address verification
 /*	probes.
+/* .IP "\fBaddress_verify_sender_relayhost_maps (empty)\fR"
+/*	Overrides the sender_relayhost_maps parameter setting for address
+/*	verification probes.
 /* .IP "\fBaddress_verify_transport_maps ($transport_maps)\fR"
 /*	Overrides the transport_maps parameter setting for address verification
 /*	probes.

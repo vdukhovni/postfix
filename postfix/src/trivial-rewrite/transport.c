@@ -13,8 +13,10 @@
 /*	void	transport_post_init(info)
 /*	TRANSPORT_INFO *info;
 /*
-/*	int	transport_lookup(info, address, rcpt_domain, channel, nexthop)
+/*	int	transport_lookup(info, res_flags, address, rcpt_domain,
+/*					channel, nexthop)
 /*	TRANSPORT_INFO *info;
+/*	int	*res_flags;
 /*	const char *address;
 /*	const char *rcpt_domain;
 /*	VSTRING *channel;
@@ -35,7 +37,8 @@
 /*
 /*	transport_lookup() finds the channel and nexthop for the given
 /*	domain, and returns 1 if something was found.	Otherwise, 0
-/*	is returned.
+/*	is returned. The res_flags SMARTHOST bit is reset when the nexthop
+/*	information is updated.
 /* DIAGNOSTICS
 /*	The global \fIdict_errno\fR is non-zero when the lookup
 /*	should be tried again.
@@ -77,6 +80,7 @@
 #include <maps.h>
 #include <match_parent_style.h>
 #include <mail_proto.h>
+#include <resolve_clnt.h>
 
 /* Application-specific. */
 
@@ -128,7 +132,7 @@ void    transport_free(TRANSPORT_INFO *tp)
 
 static void update_entry(const char *new_channel, const char *new_nexthop,
 			         const char *rcpt_domain, VSTRING *channel,
-			         VSTRING *nexthop)
+			         VSTRING *nexthop, int *res_flags)
 {
 
     /*
@@ -137,8 +141,10 @@ static void update_entry(const char *new_channel, const char *new_nexthop,
      * side of ":" is the transport table equivalent of a NOOP.
      */
     if (*new_channel == 0) {			/* :[nexthop] */
-	if (*new_nexthop != 0)
+	if (*new_nexthop != 0) {
 	    vstring_strcpy(nexthop, new_nexthop);
+	    *res_flags &= ~RESOLVE_FLAG_SMARTHOST;
+	}
     }
 
     /*
@@ -153,14 +159,18 @@ static void update_entry(const char *new_channel, const char *new_nexthop,
 	    vstring_strcpy(nexthop, rcpt_domain);
 	else
 	    vstring_strcpy(nexthop, "Address is undeliverable");
+	*res_flags &= ~RESOLVE_FLAG_SMARTHOST;
     }
 }
 
 /* find_transport_entry - look up and parse transport table entry */
 
-static int find_transport_entry(TRANSPORT_INFO *tp, const char *key,
-				        const char *rcpt_domain, int flags,
-				        VSTRING *channel, VSTRING *nexthop)
+static int find_transport_entry(TRANSPORT_INFO *tp, int *res_flags,
+				        const char *key,
+				        const char *rcpt_domain,
+				        int map_flags,
+				        VSTRING *channel,
+				        VSTRING *nexthop)
 {
     char   *saved_value;
     const char *host;
@@ -179,7 +189,7 @@ static int find_transport_entry(TRANSPORT_INFO *tp, const char *key,
      * 
      * XXX Should report lookup failure status to caller instead of aborting.
      */
-    if ((value = maps_find(tp->transport_path, key, flags)) == 0)
+    if ((value = maps_find(tp->transport_path, key, map_flags)) == 0)
 	return (NOTFOUND);
 
     /*
@@ -193,7 +203,7 @@ static int find_transport_entry(TRANSPORT_INFO *tp, const char *key,
 	saved_value = mystrdup(value);
 	host = split_at(saved_value, ':');
 	update_entry(saved_value, host ? host : "", rcpt_domain,
-		     channel, nexthop);
+		     channel, nexthop, res_flags);
 	myfree(saved_value);
 	return (FOUND);
     }
@@ -205,6 +215,7 @@ static void transport_wildcard_init(TRANSPORT_INFO *tp)
 {
     VSTRING *channel = vstring_alloc(10);
     VSTRING *nexthop = vstring_alloc(10);
+    int     dummy;
 
     /*
      * Technically, the wildcard lookup pattern is redundant. A static map
@@ -220,7 +231,8 @@ static void transport_wildcard_init(TRANSPORT_INFO *tp)
 #define FULL		0
 #define PARTIAL		DICT_FLAG_FIXED
 
-    if (find_transport_entry(tp, WILDCARD, "", FULL, channel, nexthop)) {
+    if (find_transport_entry(tp, &dummy, WILDCARD, "",
+			     FULL, channel, nexthop)) {
 	tp->transport_errno = 0;
 	if (tp->wildcard_channel)
 	    vstring_free(tp->wildcard_channel);
@@ -240,7 +252,7 @@ static void transport_wildcard_init(TRANSPORT_INFO *tp)
 
 /* transport_lookup - map a transport domain */
 
-int     transport_lookup(TRANSPORT_INFO *tp, const char *addr,
+int     transport_lookup(TRANSPORT_INFO *tp, int *res_flags, const char *addr,
 			         const char *rcpt_domain,
 			         VSTRING *channel, VSTRING *nexthop)
 {
@@ -279,7 +291,8 @@ int     transport_lookup(TRANSPORT_INFO *tp, const char *addr,
     if ((ratsign = strrchr(full_addr, '@')) == 0 || ratsign[1] == 0)
 	msg_panic("transport_lookup: bad address: \"%s\"", full_addr);
 
-    if (find_transport_entry(tp, full_addr, rcpt_domain, FULL, channel, nexthop))
+    if (find_transport_entry(tp, res_flags, full_addr, rcpt_domain,
+			     FULL, channel, nexthop))
 	RETURN_FREE(FOUND);
     if (dict_errno != 0)
 	RETURN_FREE(NOTFOUND);
@@ -291,8 +304,8 @@ int     transport_lookup(TRANSPORT_INFO *tp, const char *addr,
      */
     if ((stripped_addr = strip_addr(full_addr, DISCARD_EXTENSION,
 				    *var_rcpt_delim)) != 0) {
-	found = find_transport_entry(tp, stripped_addr, rcpt_domain, PARTIAL,
-				     channel, nexthop);
+	found = find_transport_entry(tp, res_flags, stripped_addr, rcpt_domain,
+				     PARTIAL, channel, nexthop);
 
 	myfree(stripped_addr);
 	if (found)
@@ -318,7 +331,8 @@ int     transport_lookup(TRANSPORT_INFO *tp, const char *addr,
      * with regular expressions.
      */
     for (name = ratsign + 1; *name != 0; name = next) {
-	if (find_transport_entry(tp, name, rcpt_domain, PARTIAL, channel, nexthop))
+	if (find_transport_entry(tp, res_flags, name, rcpt_domain,
+				 PARTIAL, channel, nexthop))
 	    RETURN_FREE(FOUND);
 	if (dict_errno != 0)
 	    RETURN_FREE(NOTFOUND);
@@ -338,7 +352,7 @@ int     transport_lookup(TRANSPORT_INFO *tp, const char *addr,
 	RETURN_FREE(NOTFOUND);
     } else if (tp->wildcard_channel) {
 	update_entry(STR(tp->wildcard_channel), STR(tp->wildcard_nexthop),
-		     rcpt_domain, channel, nexthop);
+		     rcpt_domain, channel, nexthop, res_flags);
 	RETURN_FREE(FOUND);
     }
 
