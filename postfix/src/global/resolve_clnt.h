@@ -26,7 +26,6 @@
 #define RESOLVE_FLAG_ROUTED	(1<<1)	/* routed destination */
 #define RESOLVE_FLAG_ERROR	(1<<2)	/* bad destination syntax */
 #define RESOLVE_FLAG_FAIL	(1<<3)	/* request failed */
-#define RESOLVE_FLAG_SMARTHOST	(1<<4)	/* smarthost route */
 
 #define RESOLVE_CLASS_LOCAL	(1<<8)	/* mydestination/inet_interfaces */
 #define RESOLVE_CLASS_ALIAS	(1<<9)	/* virtual_alias_domains */
@@ -46,14 +45,23 @@ typedef struct RESOLVE_REPLY {
     VSTRING *nexthop;
     VSTRING *recipient;
     int     flags;
-}       RESOLVE_REPLY;
+} RESOLVE_REPLY;
 
 extern void resolve_clnt_init(RESOLVE_REPLY *);
-extern void resolve_clnt(const char *, const char *, RESOLVE_REPLY *);
+extern void resolve_clnt(const char *, const char *, const char *, RESOLVE_REPLY *);
 extern void resolve_clnt_free(RESOLVE_REPLY *);
 
-#define resolve_clnt_query(a, r) resolve_clnt(RESOLVE_REGULAR, (a), (r))
-#define resolve_clnt_verify(a, r) resolve_clnt(RESOLVE_VERIFY, (a), (r))
+#define RESOLVE_NULL_FROM	""
+
+#define resolve_clnt_query(a, r) \
+	resolve_clnt(RESOLVE_REGULAR, RESOLVE_NULL_FROM, (a), (r))
+#define resolve_clnt_verify(a, r) \
+	resolve_clnt(RESOLVE_VERIFY, RESOLVE_NULL_FROM, (a), (r))
+
+#define resolve_clnt_query_from(f, a, r) \
+	resolve_clnt(RESOLVE_REGULAR, (f), (a), (r))
+#define resolve_clnt_verify_from(f, a, r) \
+	resolve_clnt(RESOLVE_VERIFY, (f), (a), (r))
 
 #define RESOLVE_CLNT_ASSIGN(reply, transport, nexthop, recipient) { \
 	(reply).transport = (transport); \

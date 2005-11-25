@@ -22,7 +22,17 @@
 /*	const char *address;
 /*	RESOLVE_REPLY *reply;
 /*
+/*	void	resolve_clnt_query_from(sender, address, reply)
+/*	const char *sender;
+/*	const char *address;
+/*	RESOLVE_REPLY *reply;
+/*
 /*	void	resolve_clnt_verify(address, reply)
+/*	const char *address;
+/*	RESOLVE_REPLY *reply;
+/*
+/*	void	resolve_clnt_verify_from(sender, address, reply)
+/*	const char *sender;
 /*	const char *address;
 /*	RESOLVE_REPLY *reply;
 /*
@@ -44,6 +54,10 @@
 /*	resolve_clnt_verify() implements an alternative version that can
 /*	be used for address verification.
 /*
+/*	resolve_clnt_query_from() and resolve_clnt_verify_from()
+/*	allow the caller to supply sender context that will be used
+/*	for sender-dependent relayhost lookup.
+/*
 /*	In the resolver reply, the flags member is the bit-wise OR of
 /*	zero or more of the following:
 /* .IP RESOLVE_FLAG_FINAL
@@ -59,9 +73,6 @@
 /*	The address resolved to something that has invalid syntax.
 /* .IP RESOLVE_FLAG_FAIL
 /*	The request could not be completed.
-/* .IP RESOLVE_FLAG_SMARTHOST
-/*	The client may override the next-hop host with per-sender
-/*	relay host information.
 /* .PP
 /*	In addition, the address domain class is returned by setting
 /*	one of the following flags (this is preliminary code awaiting
@@ -131,6 +142,7 @@
 extern CLNT_STREAM *rewrite_clnt_stream;
 
 static VSTRING *last_class;
+static VSTRING *last_sender;
 static VSTRING *last_addr;
 static RESOLVE_REPLY last_reply;
 
@@ -146,7 +158,8 @@ void    resolve_clnt_init(RESOLVE_REPLY *reply)
 
 /* resolve_clnt - resolve address to (transport, next hop, recipient) */
 
-void    resolve_clnt(const char *class, const char *addr, RESOLVE_REPLY *reply)
+void    resolve_clnt(const char *class, const char *sender,
+		             const char *addr, RESOLVE_REPLY *reply)
 {
     char   *myname = "resolve_clnt";
     VSTREAM *stream;
@@ -157,6 +170,7 @@ void    resolve_clnt(const char *class, const char *addr, RESOLVE_REPLY *reply)
      */
     if (last_addr == 0) {
 	last_class = vstring_alloc(10);
+	last_sender = vstring_alloc(10);
 	last_addr = vstring_alloc(100);
 	resolve_clnt_init(&last_reply);
     }
@@ -176,14 +190,15 @@ void    resolve_clnt(const char *class, const char *addr, RESOLVE_REPLY *reply)
 #define IFSET(flag, text) ((reply->flags & (flag)) ? (text) : "")
 
     if (*addr && strcmp(addr, STR(last_addr)) == 0
-	&& strcmp(class, STR(last_class)) == 0) {
+	&& strcmp(class, STR(last_class)) == 0
+	&& strcmp(sender, STR(last_sender)) == 0) {
 	vstring_strcpy(reply->transport, STR(last_reply.transport));
 	vstring_strcpy(reply->nexthop, STR(last_reply.nexthop));
 	vstring_strcpy(reply->recipient, STR(last_reply.recipient));
 	reply->flags = last_reply.flags;
 	if (msg_verbose)
-	    msg_info("%s: cached: `%s' -> transp=`%s' host=`%s' rcpt=`%s' flags=%s%s%s%s class=%s%s%s%s%s",
-		     myname, addr, STR(reply->transport),
+	    msg_info("%s: cached: `%s' -> `%s' -> transp=`%s' host=`%s' rcpt=`%s' flags=%s%s%s%s class=%s%s%s%s%s",
+		     myname, sender, addr, STR(reply->transport),
 		     STR(reply->nexthop), STR(reply->recipient),
 		     IFSET(RESOLVE_FLAG_FINAL, "final"),
 		     IFSET(RESOLVE_FLAG_ROUTED, "routed"),
@@ -213,6 +228,7 @@ void    resolve_clnt(const char *class, const char *addr, RESOLVE_REPLY *reply)
 	errno = 0;
 	if (attr_print(stream, ATTR_FLAG_NONE,
 		       ATTR_TYPE_STR, MAIL_ATTR_REQ, class,
+		       ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
 		       ATTR_TYPE_STR, MAIL_ATTR_ADDR, addr,
 		       ATTR_TYPE_END) != 0
 	    || vstream_fflush(stream)
@@ -258,6 +274,7 @@ void    resolve_clnt(const char *class, const char *addr, RESOLVE_REPLY *reply)
      * Update the cache.
      */
     vstring_strcpy(last_class, class);
+    vstring_strcpy(last_sender, sender);
     vstring_strcpy(last_addr, addr);
     vstring_strcpy(last_reply.transport, STR(reply->transport));
     vstring_strcpy(last_reply.nexthop, STR(reply->nexthop));

@@ -35,15 +35,15 @@
 #               This  is the default for remote delivery to domains
 #               listed with relay_domains. In order  of  decreasing
 #               precedence,  the  nexthop destination is taken from
-#               relay_transport, sender_relayhost_maps,  relayhost,
-#               or from the recipient domain.
+#               relay_transport,   sender_dependent_relayhost_maps,
+#               relayhost, or from the recipient domain.
 # 
 #        default_transport (default: smtp:)
 #               This  is  the  default for remote delivery to other
 #               destinations.  In order of  decreasing  precedence,
 #               the    nexthop    destination    is    taken   from
-#               default_transport,  sender_relayhost_maps,   relay-
-#               host, or from the recipient domain.
+#               default_transport, sender_dependent_relayhost_maps,
+#               relayhost, or from the recipient domain.
 # 
 #        Normally,  the  transport(5)  table is specified as a text
 #        file that serves as input to the postmap(1) command.   The

@@ -105,7 +105,9 @@ extern TOK822 *tok822_rewrite(TOK822 *, const char *);
  /*
   * tok822_resolve.c
   */
-extern void tok822_resolve(TOK822 *, RESOLVE_REPLY *);
+#define tok822_resolve(t, r) tok822_resolve_from(RESOLVE_NULL_FROM, (t), (r))
+
+extern void tok822_resolve_from(const char *, TOK822 *, RESOLVE_REPLY *);
 
 /* LICENSE
 /* .ad

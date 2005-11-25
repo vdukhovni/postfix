@@ -36,13 +36,13 @@ destination is the recipient domain.
 This is the default for remote delivery to domains listed
 with \fBrelay_domains\fR. In order of decreasing precedence,
 the \fInexthop\fR destination is taken from \fBrelay_transport\fR,
-\fBsender_relayhost_maps\fR, \fBrelayhost\fR, or from the
+\fBsender_dependent_relayhost_maps\fR, \fBrelayhost\fR, or from the
 recipient domain.
 .IP "\fBdefault_transport (default: smtp:)\fR"
 This is the default for remote delivery to other destinations.
 In order of decreasing precedence, the \fInexthop\fR
 destination is taken from \fBdefault_transport\fR,
-\fBsender_relayhost_maps\fR, \fBrelayhost\fR, or from the
+\fBsender_dependent_relayhost_maps\fR, \fBrelayhost\fR, or from the
 recipient domain.
 .PP
 Normally, the \fBtransport\fR(5) table is specified as a text file

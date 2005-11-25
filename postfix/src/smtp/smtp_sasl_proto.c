@@ -82,7 +82,6 @@ static const char *smtp_sasl_compat_mechs(const char *words)
     char   *mech_list;
     char   *save_mech;
     char   *mech;
-    int     ret;
 
     /*
      * Use server's mechanisms if no filter specified

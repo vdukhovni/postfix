@@ -25,7 +25,6 @@
   */
 #include <recipient_list.h>
 #include <dsn.h>
-#include <maps.h>			/* Grr.. sender relay maps */
 
  /*
   * The queue manager is built around lots of mutually-referring structures.
@@ -320,12 +319,6 @@ struct QMGR_SCAN {
 extern QMGR_SCAN *qmgr_scan_create(const char *);
 extern void qmgr_scan_request(QMGR_SCAN *, int);
 extern char *qmgr_scan_next(QMGR_SCAN *);
-
- /*
-  * qmgr.c
-  */
-extern MAPS *qmgr_snd_relay_maps;
-extern MAPS *qmgr_vrfy_relay_maps;
 
 /* LICENSE
 /* .ad

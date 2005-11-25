@@ -35,7 +35,7 @@ until the address has been verified to be deliverable.  </p>
 with an unreplyable sender address.  </p>
 
 <p> The technique may also be useful to block mail for undeliverable
-recipients, for example on a mail relay host that does not have a
+recipients, for example on a mail <a href="postconf.5.html#relayhost">relay host</a> that does not have a
 list of all the valid recipient addresses. This prevents undeliverable
 junk mail from entering the queue, so that Postfix doesn't have to
 waste resources trying to send MAILER-DAEMON messages back. </p>
@@ -416,7 +416,9 @@ parameters when it delivers an address verification probe message.
 
 <p> First, the <a href="postconf.5.html#address_verify_relayhost">address_verify_relayhost</a> parameter allows you to
 override the <a href="postconf.5.html#relayhost">relayhost</a> setting, and the <a href="postconf.5.html#address_verify_transport_maps">address_verify_transport_maps</a>
-parameter allows you to override the <a href="postconf.5.html#transport_maps">transport_maps</a> setting. </p>
+parameter allows you to override the <a href="postconf.5.html#transport_maps">transport_maps</a> setting. 
+The <a href="postconf.5.html#address_verify_sender_dependent_relayhost_maps">address_verify_sender_dependent_relayhost_maps</a> parameter
+does the same for sender-dependent <a href="postconf.5.html#relayhost">relayhost</a> selection. </p>
 
 <p> Second, each address class is given its own address verification
 version of the message delivery transport, as shown in the table

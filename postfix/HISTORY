@@ -11436,25 +11436,26 @@ Apologies for any names omitted.
 	sites that used permit_mx_backup to authorize all their
 	incoming mail.
 
-20051122
+20051122-24
 
-	Feature: sender_relayhost_maps, lookup tables that specify
-	a per-sender override for the relayhost parameter setting.
-	This is an extended version of a patch by Mathias Hasselmann.
-	Files: trivial-rewrite/resolve.c, trivial-rewrite/transport.c,
+	Feature: sender_dependent_relayhost_maps, lookup tables that specify
+	a sender-dependent override for the relayhost parameter
+	setting.  The lookup is done in the trivial-rewrite server,
+	instead of the queue manager where it does not belong.
+	Files: global/resolve_clnt.c, global/tok822_resolve.c,
+	trivial-rewrite/resolve.c, trivial-rewrite/transport.c,
 	*qmgr/qmgr_message.c.
 
-	Feature: address_verify_sender_relayhost_maps, for consistency
-	with the other address_verify_mumble parameters.
+	Also: address_verify_sender_dependent_relayhost_maps for completeness.
 
 20051124
 
-	Feature: smtp_per_sender_auth, to enable per-sender SASL
-	authentication. This disables SMTP connection caching to
-	ensure that mail from different senders will be delivered
-	with the appropriate credentials. This is an extended version
-	of a patch by Mathias Hasselmann. Files: smtp/smtp_connect.c,
-	smtp/smtp_sasl_glue.c.
+	Feature: specify "smtp_sender_dependent_authentication = yes" to
+	enable sender-dependent SASL passwords. This disables SMTP
+	connection caching to ensure that mail from different senders
+	is delivered with the appropriate credentials. This is an
+	extended version of a patch by Mathias Hasselmann.  Files:
+	smtp/smtp_connect.c, smtp/smtp_sasl_glue.c.
 
 Open problems:
 

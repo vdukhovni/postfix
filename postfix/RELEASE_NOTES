@@ -17,23 +17,40 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
-Major changes with snapshot 20051124
+Incompatibility with snapshot 20051125
+======================================
+
+You MUST stop and restart Postfix, because the address resolver
+protocol has changed. If you don't stop and restart Postfix, you
+will have an endless stream of warning messages with "problem talking
+to service rewrite: Unknown error: 0" and "warning: unexpected
+attribute address in input from rewrite socket".
+
+Major changes with snapshot 20051125
 ====================================
 
 This snapshot adds support for sender-dependent ISP accounts.
 
-- Per-sender relayhost support, with the sender_relayhost_maps
-  feature. The maps are searched with the sender address and with
-  the sender @domain. The result overrides the global relayhost
-  setting, but otherwise has identical behavior.
+- Sender-dependent smarthost lookup tables.  The maps are searched
+  with the sender address and with the sender @domain.  The result
+  overrides the global relayhost setting, but otherwise has identical
+  behavior. See the postconf(5) manual page for more details.
 
-  Example: sender_relayhost_maps = hash:/etc/postfix/sender_relay
+  Example:
+    /etc/postfix/main.cf:
+	sender_dependent_relayhost_maps = hash:/etc/postfix/sender_relay
 
-- Per-sender SASL authentication support. This disables SMTP
+- Sender-dependent SASL authentication support. This disables SMTP
   connection caching to ensure that mail from different senders
-  will use the correct authentication credentials.
+  will use the correct authentication credentials. The SMTP SASL
+  password file is first searched by sender address, and then by
+  the remote domain and hostname as usual.
 
-  Example: smtp_per_sender_authentication = yes
+  Example:
+    /etc/postfix/main.cf:
+	smtp_sasl_auth_enable = yes
+	smtp_sender_dependent_authentication = yes
+	smtp_sasl_password_maps = hash:/etc/postfix/sasl_pass
 
 Incompatibility with snapshot 20051121
 ======================================

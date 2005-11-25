@@ -41,15 +41,15 @@ TRANSPORT(5)                                                      TRANSPORT(5)
               This  is the default for remote delivery to domains
               listed with <b><a href="postconf.5.html#relay_domains">relay_domains</a></b>. In order  of  decreasing
               precedence,  the  <i>nexthop</i> destination is taken from
-              <b><a href="postconf.5.html#relay_transport">relay_transport</a></b>, <b><a href="postconf.5.html#sender_relayhost_maps">sender_relayhost_maps</a></b>,  <b><a href="postconf.5.html#relayhost">relayhost</a></b>,
-              or from the recipient domain.
+              <b><a href="postconf.5.html#relay_transport">relay_transport</a></b>,   <b><a href="postconf.5.html#sender_dependent_relayhost_maps">sender_dependent_relayhost_maps</a></b>,
+              <b><a href="postconf.5.html#relayhost">relayhost</a></b>, or from the recipient domain.
 
        <b><a href="postconf.5.html#default_transport">default_transport</a> (default: <a href="smtp.8.html">smtp</a>:)</b>
               This  is  the  default for remote delivery to other
               destinations.  In order of  decreasing  precedence,
               the    <i>nexthop</i>    destination    is    taken   from
-              <b><a href="postconf.5.html#default_transport">default_transport</a></b>,  <b><a href="postconf.5.html#sender_relayhost_maps">sender_relayhost_maps</a></b>,   <b><a href="postconf.5.html#relayhost">relay</a>-</b>
-              <b><a href="postconf.5.html#relayhost">host</a></b>, or from the recipient domain.
+              <b><a href="postconf.5.html#default_transport">default_transport</a></b>, <b><a href="postconf.5.html#sender_dependent_relayhost_maps">sender_dependent_relayhost_maps</a></b>,
+              <b><a href="postconf.5.html#relayhost">relayhost</a></b>, or from the recipient domain.
 
        Normally,  the  <a href="transport.5.html"><b>transport</b>(5)</a>  table is specified as a text
        file that serves as input to the <a href="postmap.1.html"><b>postmap</b>(1)</a> command.   The
@@ -114,8 +114,8 @@ TRANSPORT(5)                                                      TRANSPORT(5)
        <i>.domain transport</i>:<i>nexthop</i>
               Deliver mail for any subdomain  of  <i>domain</i>  through
               <i>transport</i>  to  <i>nexthop</i>.  This applies only when the
-              string <b><a href="postconf.5.html#transport_maps">transport_maps</a></b> is not  listed  in  the  <b>par-</b>
-              <b>ent_domain_matches_subdomains</b>   configuration  set-
+              string <b><a href="postconf.5.html#transport_maps">transport_maps</a></b> is not  listed  in  the  <b><a href="postconf.5.html#parent_domain_matches_subdomains">par</a>-</b>
+              <b><a href="postconf.5.html#parent_domain_matches_subdomains">ent_domain_matches_subdomains</a></b>   configuration  set-
               ting.  Otherwise, a domain name matches itself  and
               its subdomains.
 

@@ -221,6 +221,7 @@ typedef struct SMTP_SESSION {
     TLScontext_t *tls_context;		/* TLS session state */
 #endif
 
+    SMTP_STATE *state;			/* back link */
 } SMTP_SESSION;
 
 extern SMTP_SESSION *smtp_session_alloc(VSTREAM *, const char *, const char *,

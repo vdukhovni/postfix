@@ -277,6 +277,7 @@ SMTP_SESSION *smtp_session_alloc(VSTREAM *stream, const char *dest,
 	    session->tls_use_tls = 1;
     }
 #endif
+    session->state = 0;
     debug_peer_check(host, addr);
     return (session);
 }

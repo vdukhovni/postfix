@@ -626,10 +626,10 @@ int     smtp_connect(SMTP_STATE *state)
 	 * queue manager. This is turned temporarily when a destination has a
 	 * high volume of mail in the active queue.
 	 * 
-	 * XXX Disable connection caching when per-sender credentials are
-	 * enabled. We must not send someone elses mail over an authenticated
-	 * connection, and we must not send mail that requires authentication
-	 * over a connection that wasn't authenticated.
+	 * XXX Disable connection caching when sender-dependent authentication
+	 * is enabled. We must not send someone elses mail over an
+	 * authenticated connection, and we must not send mail that requires
+	 * authentication over a connection that wasn't authenticated.
 	 */
 	if (cpp == sites->argv
 	    && !var_smtp_sender_auth
@@ -699,6 +699,7 @@ int     smtp_connect(SMTP_STATE *state)
 		|| (session = smtp_reuse_addr(state, addr, port)) == 0)
 		session = smtp_connect_addr(dest, addr, port, why, sess_flags);
 	    if ((state->session = session) != 0) {
+		session->state = state;
 		if (addr->pref == domain_best_pref)
 		    session->features |= SMTP_FEATURE_BEST_MX;
 		/* Don't count handshake errors towards the session limit. */

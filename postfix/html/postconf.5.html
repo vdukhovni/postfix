@@ -333,7 +333,7 @@ This feature is available in Postfix 2.1 and later.
 
 <p>
 Overrides the <a href="postconf.5.html#relayhost">relayhost</a> parameter setting for address verification
-probes.
+probes. This information can be overruled with the <a href="transport.5.html">transport(5)</a> table.
 </p>
 
 <p>
@@ -373,11 +373,11 @@ This feature is available in Postfix 2.1 and later.
 
 </DD>
 
-<DT><b><a name="address_verify_sender_relayhost_maps">address_verify_sender_relayhost_maps</a>
+<DT><b><a name="address_verify_sender_dependent_relayhost_maps">address_verify_sender_dependent_relayhost_maps</a>
 (default: empty)</b></DT><DD>
 
 <p>
-Overrides the <a href="postconf.5.html#sender_relayhost_maps">sender_relayhost_maps</a> parameter setting for address
+Overrides the <a href="postconf.5.html#sender_dependent_relayhost_maps">sender_dependent_relayhost_maps</a> parameter setting for address
 verification probes.
 </p>
 
@@ -589,7 +589,7 @@ $<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_cli
 
 </ul>
 
-<p> To get the behavior before Postfix 2.2, specify
+<p> To get the behavior before Postfix version 2.2, specify
 "<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = static:all". </p>
 
 <p>
@@ -675,7 +675,7 @@ are calculated.
 
 <p>
 This feature is implemented by the <a href="anvil.8.html">anvil(8)</a> service which is not
-part of the stable Postfix 2.1 release.
+part of the stable Postfix version 2.1 release.
 </p>
 
 <p>
@@ -741,7 +741,7 @@ $<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_cli
 
 </ul>
 
-<p> To get the behavior before Postfix 2.2, specify
+<p> To get the behavior before Postfix version 2.2, specify
 "<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = static:all". </p>
 
 
@@ -778,7 +778,7 @@ $<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_cli
 
 </ul>
 
-<p> To get the behavior before Postfix 2.2, specify
+<p> To get the behavior before Postfix version 2.2, specify
 "<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = static:all". </p>
 
 
@@ -1123,10 +1123,10 @@ proportionally.  </p>
 (default: empty)</b></DT><DD>
 
 <p> Pathname of a configuration file with bounce message templates.
-These override the <a href="bounce.8.html">bounce(8)</a> server built-in templates of delivery
-status notification (DSN) messages for undeliverable mail, for
-delayed mail, for successful delivery, or for mail delivery
-verification. </p>
+These override the built-in templates of delivery status notification
+(DSN) messages for undeliverable mail, for delayed mail, successful
+delivery, or delivery verification. The <a href="bounce.5.html">bounce(5)</a> manual page
+describes how to edit and test template files.  </p>
 
 <p> Template message body text may contain $name references to
 Postfix configuration parameters. The result of $name expansion can
@@ -1208,7 +1208,7 @@ $<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_cli
 
 </ul>
 
-<p> To get the behavior before Postfix 2.2, specify
+<p> To get the behavior before Postfix version 2.2, specify
 "<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = static:all". </p>
 
 <p>
@@ -1752,7 +1752,7 @@ address, or Recipient address. </dd>
 <dd>The numerical SMTP response code, as specified with the
 <a href="postconf.5.html#maps_rbl_reject_code">maps_rbl_reject_code</a> configuration parameter. Note: The numerical
 SMTP response code is required, and must appear at the start of the
-reply. With Postfix 2.3 and later this information may be followed
+reply. With Postfix version 2.3 and later this information may be followed
 by an <a href="http://www.faqs.org/rfcs/rfc3463.html">RFC 3463</a> enhanced status code. </dd>
 
 <dt><b>$rbl_domain</b></dt>
@@ -1845,10 +1845,14 @@ and <a href="postconf.5.html#qmgr_message_recipient_minimum">qmgr_message_recipi
 (default: smtp)</b></DT><DD>
 
 <p>
-The default mail delivery transport for domains that do not match
-$<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>, $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>,
-$<a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>, $<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a>, or $<a href="postconf.5.html#relay_domains">relay_domains</a>.
-This information can be overruled with the <a href="transport.5.html">transport(5)</a> table.
+The default mail delivery transport and next-hop destination for
+destinations that do not match $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>,
+$<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>, $<a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>, $<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a>,
+or $<a href="postconf.5.html#relay_domains">relay_domains</a>.  In order of decreasing precedence, the nexthop
+destination is taken from $<a href="postconf.5.html#default_transport">default_transport</a>,
+$<a href="postconf.5.html#sender_dependent_relayhost_maps">sender_dependent_relayhost_maps</a>, $<a href="postconf.5.html#relayhost">relayhost</a>, or from the recipient
+domain. This information can be overruled with the <a href="transport.5.html">transport(5)</a>
+table.
 </p>
 
 <p>
@@ -2168,8 +2172,8 @@ created locally as the result of configuration or software error.
 
 <p> Report mail delivery errors to the address specified with the
 non-standard Errors-To: message header, instead of the envelope
-sender address (this feature is removed with Postfix 2.2, is
-turned off by default with Postfix 2.1, and is always turned on
+sender address (this feature is removed with Postfix version 2.2, is
+turned off by default with Postfix version 2.1, and is always turned on
 with older Postfix versions).  </p>
 
 
@@ -2191,7 +2195,7 @@ duplicate elimination on the rewritten recipient address only, and
 generates empty original recipient queue file records.  </p>
 
 <p> This feature is available in Postfix 2.1 and later. With Postfix
-2.0, support for the X-Original-To message header is always turned
+version 2.0, support for the X-Original-To message header is always turned
 on. Postfix versions before 2.0 have no support for the X-Original-To
 message header.  </p>
 
@@ -2261,7 +2265,7 @@ time keeping on System-V-ish systems.
 <p>
 Specify a list of names and/or name=value pairs, separated by
 whitespace or comma. The name=value form is supported with
-Postfix 2.1 and later.
+Postfix version 2.1 and later.
 </p>
 
 <p>
@@ -2284,7 +2288,7 @@ from message headers when mail is submitted with "<b>sendmail -t</b>".
 </p>
 
 <p>
-This feature was removed in Postfix 2.1.
+This feature was removed in Postfix version 2.1.
 </p>
 
 
@@ -2747,7 +2751,7 @@ parameters:
 
 <p> Specify a list of names and/or name=value pairs, separated by
 whitespace or comma. The name=value form is supported with
-Postfix 2.1 and later.  </p>
+Postfix version 2.1 and later.  </p>
 
 
 </DD>
@@ -2779,7 +2783,7 @@ Specify 0 to disable the feature. Valid delays are 0..10.
 <p> The network interface addresses that this mail system receives
 mail on. Specify "all" to receive mail on all network
 interfaces (default), and "loopback-only" to receive mail
-on loopback network interfaces only (Postfix 2.2 and later).  The
+on loopback network interfaces only (Postfix version 2.2 and later).  The
 parameter also controls delivery of mail to <tt>user@[ip.address]</tt>.
 </p>
 
@@ -2825,9 +2829,9 @@ Examples:
 
 <pre>
 <a href="postconf.5.html#inet_interfaces">inet_interfaces</a> = all (DEFAULT)
-<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> = loopback-only (Postfix 2.2 and later)
+<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> = loopback-only (Postfix version 2.2 and later)
 <a href="postconf.5.html#inet_interfaces">inet_interfaces</a> = 127.0.0.1
-<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> = 127.0.0.1, [::1] (Postfix 2.2 and later)
+<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> = 127.0.0.1, [::1] (Postfix version 2.2 and later)
 <a href="postconf.5.html#inet_interfaces">inet_interfaces</a> = 192.168.1.2, 127.0.0.1
 </pre>
 
@@ -2843,7 +2847,7 @@ or "ipv6", separated by whitespace or commas. The form
 "all" is equivalent to "ipv4, ipv6" or "ipv4", depending
 on whether the operating system implements IPv6. </p>
 
-<p> This feature is available in Postfix version 2.2 and later. </p>
+<p> This feature is available in Postfix 2.2 and later. </p>
 
 <p> Note: you MUST stop and start Postfix after changing this
 parameter. </p>
@@ -3556,9 +3560,10 @@ Examples:
 <DT><b><a name="local_transport">local_transport</a>
 (default: <a href="local.8.html">local</a>:$<a href="postconf.5.html#myhostname">myhostname</a>)</b></DT><DD>
 
-<p> The default mail delivery transport for domains that match
-$<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>.  This
-information can be overruled with the <a href="transport.5.html">transport(5)</a> table.  </p>
+<p> The default mail delivery transport and next-hop destination
+for final delivery to domains listed with <a href="postconf.5.html#mydestination">mydestination</a>, and for
+[ipaddress] destinations that match $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>.
+This information can be overruled with the <a href="transport.5.html">transport(5)</a> table. </p>
 
 <p>
 By default, local mail is delivered to the transport called "local",
@@ -3691,7 +3696,7 @@ or daemon.  PLEASE USE A DEDICATED USER ID AND GROUP ID.
 
 <p>
 When this parameter value is changed you need to re-run "<b>postfix
-set-permissions</b>" (with Postfix 2.0 and earlier:
+set-permissions</b>" (with Postfix version 2.0 and earlier:
 "<b>/etc/postfix/post-install set-permissions</b>".
 </p>
 
@@ -3769,22 +3774,22 @@ The following environment variables are exported to the command:
 
 <dt><b>CLIENT_ADDRESS</b></dt>
 
-<dd>Remote client network address. Available in Postfix 2.2 and
+<dd>Remote client network address. Available in Postfix version 2.2 and
 later. </dd>
 
 <dt><b>CLIENT_HELO</b></dt>
 
-<dd>Remote client EHLO command parameter. Available in Postfix 2.2
+<dd>Remote client EHLO command parameter. Available in Postfix version 2.2
 and later.</dd>
 
 <dt><b>CLIENT_HOSTNAME</b></dt>
 
-<dd>Remote client hostname. Available in Postfix 2.2 and later.
+<dd>Remote client hostname. Available in Postfix version 2.2 and later.
 </dd>
 
 <dt><b>CLIENT_PROTOCOL</b></dt>
 
-<dd>Remote client protocol. Available in Postfix 2.2 and later.
+<dd>Remote client protocol. Available in Postfix version 2.2 and later.
 </dd>
 
 <dt><b>DOMAIN</b></dt>
@@ -3814,17 +3819,17 @@ and later.</dd>
 <dt><b>SASL_METHOD</b></dt>
 
 <dd>SASL authentication method specified in the remote client AUTH
-command. Available in Postfix 2.2 and later. </dd>
+command. Available in Postfix version 2.2 and later. </dd>
 
 <dt><b>SASL_SENDER</b></dt>
 
 <dd>SASL sender address specified in the remote client MAIL FROM
-command. Available in Postfix 2.2 and later. </dd>
+command. Available in Postfix version 2.2 and later. </dd>
 
 <dt><b>SASL_USER</b></dt>
 
 <dd>SASL username specified in the remote client AUTH command.
-Available in Postfix 2.2 and later.  </dd>
+Available in Postfix version 2.2 and later.  </dd>
 
 <dt><b>SENDER</b></dt>
 
@@ -4080,7 +4085,7 @@ $<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_cli
 
 </ul>
 
-<p> To get the behavior before Postfix 2.2, specify
+<p> To get the behavior before Postfix version 2.2, specify
 "<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = static:all". </p>
 
 <p>
@@ -5039,7 +5044,7 @@ server to decide if it will accept any mail at all.
 </p>
 
 <p>
-By default, the Postfix 2.1 SMTP server rejects MAIL FROM commands
+By default, the Postfix version 2.1 SMTP server rejects MAIL FROM commands
 when the amount of free space is less than 1.5*$<a href="postconf.5.html#message_size_limit">message_size_limit</a>.
 To specify a higher minimum free space limit, specify a <a href="postconf.5.html#queue_minfree">queue_minfree</a>
 value that is at least 1.5*$<a href="postconf.5.html#message_size_limit">message_size_limit</a>.
@@ -5338,7 +5343,7 @@ D7:04:2F:A7:0B:8C:A5:21:FA:31:77:E1:41:8A:EE:80 lutzpc.at.home </p>
 an appropriate <a href="access.5.html">access(5)</a> policy for each client.
 See <a href="RESTRICTION_CLASS_README.html">RESTRICTION_CLASS_README</a>.</p>
 
-<p>This feature is available with Postfix 2.2.</p>
+<p>This feature is available with Postfix version 2.2.</p>
 
 
 </DD>
@@ -5351,7 +5356,7 @@ via the relay message delivery transport. This limit is enforced
 by the queue manager. The message delivery transport name is the
 first field in the entry in the master.cf file.  </p>
 
-<p> This feature is available in Postfix version 2.0 and later. </p>
+<p> This feature is available in Postfix 2.0 and later. </p>
 
 
 </DD>
@@ -5368,7 +5373,7 @@ the entry in the master.cf file.  </p>
 <a href="postconf.5.html#relay_destination_concurrency_limit">relay_destination_concurrency_limit</a> from concurrency per domain
 into concurrency per recipient.  </p>
 
-<p> This feature is available in Postfix version 2.0 and later. </p>
+<p> This feature is available in Postfix 2.0 and later. </p>
 
 
 </DD>
@@ -5458,9 +5463,12 @@ This feature is available in Postfix 2.0 and later.
 (default: relay)</b></DT><DD>
 
 <p>
-The default mail delivery transport and next-hop information for
-domains that match the $<a href="postconf.5.html#relay_domains">relay_domains</a> parameter value. This
-information can be overruled with the <a href="transport.5.html">transport(5)</a> table.
+The default mail delivery transport and next-hop destination for
+remote delivery to domains listed with $<a href="postconf.5.html#relay_domains">relay_domains</a>. In order of
+decreasing precedence, the nexthop destination is taken from
+$<a href="postconf.5.html#relay_transport">relay_transport</a>, $<a href="postconf.5.html#sender_dependent_relayhost_maps">sender_dependent_relayhost_maps</a>, $<a href="postconf.5.html#relayhost">relayhost</a>, or
+from the recipient domain. This information can be overruled with
+the <a href="transport.5.html">transport(5)</a> table.
 </p>
 
 <p>
@@ -5486,9 +5494,10 @@ This feature is available in Postfix 2.0 and later.
 (default: empty)</b></DT><DD>
 
 <p>
-The default host to send non-local mail to when no entry is matched
-in the optional <a href="transport.5.html">transport(5)</a> table. When no <a href="postconf.5.html#relayhost">relayhost</a> is given,
-mail is routed directly to the destination.
+The next-hop destination of non-local mail; overrides non-local
+domains in recipient addresses. This information is overruled with
+<a href="postconf.5.html#relay_transport">relay_transport</a>, <a href="postconf.5.html#default_transport">default_transport</a>, <a href="postconf.5.html#sender_dependent_relayhost_maps">sender_dependent_relayhost_maps</a>
+and with the <a href="transport.5.html">transport(5)</a> table.
 </p>
 
 <p>
@@ -5619,7 +5628,7 @@ backup MX service for Sendmail systems.  </p>
 local hostname were specified, instead of rejecting the address as
 invalid.  </p>
 
-<p> This feature is available in Postfix version 2.1 and later.
+<p> This feature is available in Postfix 2.1 and later.
 Earlier versions always resolve the null domain as the local
 hostname.  </p>
 
@@ -5660,8 +5669,8 @@ The name of the directory with example Postfix configuration files.
 (default: no)</b></DT><DD>
 
 <p>
-This parameter should not be used. It was replaced by <a href="postconf.5.html#sender_relayhost_maps">sender_relayhost_maps</a>
-in Postfix 2.3.
+This parameter should not be used. It was replaced by <a href="postconf.5.html#sender_dependent_relayhost_maps">sender_dependent_relayhost_maps</a>
+in Postfix version 2.3.
 </p>
 
 
@@ -5772,12 +5781,13 @@ Example:
 
 </DD>
 
-<DT><b><a name="sender_relayhost_maps">sender_relayhost_maps</a>
+<DT><b><a name="sender_dependent_relayhost_maps">sender_dependent_relayhost_maps</a>
 (default: empty)</b></DT><DD>
 
-<p> A sender-specific override for the global <a href="postconf.5.html#relayhost">relayhost</a> parameter
+<p> A sender-dependent override for the global <a href="postconf.5.html#relayhost">relayhost</a> parameter
 setting. The tables are searched by the sender address and by the
-sender @domain. </p>
+sender @domain. This information is overruled with <a href="postconf.5.html#relay_transport">relay_transport</a>,
+<a href="postconf.5.html#default_transport">default_transport</a> and with the <a href="transport.5.html">transport(5)</a> table. </p>
 
 <p>
 This feature is available in Postfix 2.3 and later.
@@ -5820,7 +5830,7 @@ The default time unit is s (seconds).
 <p>
 The group ownership of set-gid Postfix commands and of group-writable
 Postfix directories. When this parameter value is changed you need
-to re-run "<b>postfix set-permissions</b>" (with Postfix 2.0 and
+to re-run "<b>postfix set-permissions</b>" (with Postfix version 2.0 and
 earlier: "<b>/etc/postfix/post-install set-permissions</b>".
 </p>
 
@@ -5913,7 +5923,7 @@ An optional numerical network address that the SMTP client should
 bind to when making an IPv6 connection.
 </p>
 
-<p> This feature is available in Postfix version 2.2 and later. </p>
+<p> This feature is available in Postfix 2.2 and later. </p>
 
 <p>
 This can be specified in the main.cf file for all SMTP clients, or
@@ -6068,7 +6078,7 @@ delivery latency becomes effectively that of the slowest MX host
 divided by the total number of MX hosts. </p>
 
 <p> The solution uses connection caching in a way that differs from
-Postfix 2.2.  By limiting the amount of time during which a connection
+Postfix version 2.2.  By limiting the amount of time during which a connection
 can be used repeatedly (instead of limiting the number of deliveries
 over that connection), Postfix not only restores fairness in the
 distribution of simultaneous connections across a set of MX hosts,
@@ -6080,7 +6090,7 @@ smtp transaction timeouts which are fair estimates of maximum excess
 latency for a slow delivery.  Note that hosts may accept thousands
 of messages over a single connection within the default connection
 reuse time limit. This number is much larger than the default Postfix
-2.2 limit of 10 messages per cached connection. It may prove necessary
+version 2.2 limit of 10 messages per cached connection. It may prove necessary
 to lower the limit to avoid interoperability issues with MTAs that
 exhibit bugs when many messages are delivered via a single connection.
 A lower reuse time limit risks losing the benefit of connection
@@ -6400,7 +6410,7 @@ The default time unit is s (seconds).
 <p>
 The maximal number of MX (mail exchanger) IP addresses that can
 result from mail exchanger lookups, or zero (no limit). Prior to
-Postfix 2.3, this limit was disabled by default.
+Postfix version 2.3, this limit was disabled by default.
 </p>
 
 <p>
@@ -6416,8 +6426,8 @@ This feature is available in Postfix 2.1 and later.
 <p> The maximal number of SMTP sessions per delivery request before
 giving up or delivering to a fall-back <a href="postconf.5.html#relayhost">relay host</a>, or zero (no
 limit). This restriction ignores sessions that fail to complete the
-SMTP initial handshake (Postfix 2.2 and earlier) or that fail to
-complete the EHLO and TLS handshake (Postfix 2.3 and later).  </p>
+SMTP initial handshake (Postfix version 2.2 and earlier) or that fail to
+complete the EHLO and TLS handshake (Postfix version 2.3 and later).  </p>
 
 <p> This feature is available in Postfix 2.1 and later.  </p>
 
@@ -6429,23 +6439,6 @@ complete the EHLO and TLS handshake (Postfix 2.3 and later).  </p>
 
 <p> Never send EHLO at the start of an SMTP session. See also the
 <a href="postconf.5.html#smtp_always_send_ehlo">smtp_always_send_ehlo</a> parameter.  </p>
-
-
-</DD>
-
-<DT><b><a name="smtp_per_sender_authentication">smtp_per_sender_authentication</a>
-(default: no)</b></DT><DD>
-
-<p>
-Enable per-sender authentication in the SMTP client; this is available
-only with SASL authentication, and disables SMTP connection caching
-to ensure that mail from different senders will use the appropriate
-credentials.
-</p>
-
-<p>
-This feature is available in Postfix 2.3 and later.
-</p>
 
 
 </DD>
@@ -6632,8 +6625,8 @@ Examples:
 
 <p>
 Optional SMTP client lookup tables with one username:password entry
-per remote hostname or domain (or per sender address, when per-sender
-authentication is enabled).  If no username:password entry is found,
+per remote hostname or domain, or sender address when sender-dependent
+authentication is enabled.  If no username:password entry is found,
 then the Postfix SMTP client will not
 attempt to authenticate to the remote host.
 </p>
@@ -6728,6 +6721,22 @@ This feature is available in Postfix 2.1 and later.
 
 </DD>
 
+<DT><b><a name="smtp_sender_dependent_authentication">smtp_sender_dependent_authentication</a>
+(default: no)</b></DT><DD>
+
+<p>
+Enable sender-dependent authentication in the SMTP client; this is
+available only with SASL authentication, and disables SMTP connection
+caching to ensure that mail from different senders will use the
+appropriate credentials.  </p>
+
+<p>
+This feature is available in Postfix 2.3 and later.
+</p>
+
+
+</DD>
+
 <DT><b><a name="smtp_skip_4xx_greeting">smtp_skip_4xx_greeting</a>
 (default: yes)</b></DT><DD>
 
@@ -6742,7 +6751,7 @@ By default, Postfix moves on the next mail exchanger. Specify
 immediately.
 </p>
 
-<p> This feature is available in Postfix version 2.0 and earlier.
+<p> This feature is available in Postfix 2.0 and earlier.
 Later Postfix versions always skip SMTP servers that greet with a
 4XX status code. </p>
 
@@ -7104,8 +7113,8 @@ time with a per recipient return address.  </p>
 
 <p> By default, no clients are allowed to specify XVERP.  </p>
 
-<p> This parameter was renamed with Postfix 2.1. The default value
-is backwards compatible with Postfix 2.0.  </p>
+<p> This parameter was renamed with Postfix version 2.1. The default value
+is backwards compatible with Postfix version 2.0.  </p>
 
 <p> Specify a list of network/netmask patterns, separated by commas
 and/or whitespace. The mask specifies the number of bits in the
@@ -7467,7 +7476,7 @@ client network address information.
 
 <dd>When the remote SMTP client certificate is verified successfully,
 use the client certificate fingerprint as lookup key for the specified
-<a href="access.5.html">access(5)</a> database. This feature is available with Postfix 2.2.</dd>
+<a href="access.5.html">access(5)</a> database. This feature is available with Postfix version 2.2.</dd>
 
 <dt><b><a name="check_client_access">check_client_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
@@ -7496,13 +7505,13 @@ authenticated via the <a href="http://www.faqs.org/rfcs/rfc2554.html">RFC 2554</
 verified successfully.  This option must be used only if a special
 CA issues the certificates and only this CA is listed as trusted
 CA, otherwise all clients with a recognized certificate would be
-allowed to relay. This feature is available with Postfix 2.2.</dd>
+allowed to relay. This feature is available with Postfix version 2.2.</dd>
 
 <dt><b><a name="permit_tls_clientcerts">permit_tls_clientcerts</a></b></dt>
 
 <dd>Permit the request when the remote SMTP client certificate is
 verified successfully, and the certificate fingerprint is listed
-in $<a href="postconf.5.html#relay_clientcerts">relay_clientcerts</a>. This feature is available with Postfix 2.2.</dd>
+in $<a href="postconf.5.html#relay_clientcerts">relay_clientcerts</a>. This feature is available with Postfix version 2.2.</dd>
 <dt><b><a name="reject_rbl_client">reject_rbl_client <i>rbl_domain=d.d.d.d</i></a></b></dt>
 
 <dd>Reject the request when the reversed client network address is
@@ -7548,7 +7557,7 @@ also that the two mappings reproduce the client IP address.  <br>
 The <a href="postconf.5.html#unknown_client_reject_code">unknown_client_reject_code</a> parameter specifies the response
 code for rejected requests (default: 450).  The reply is always 450
 in case the address-&gt;name lookup failed due to a temporary
-problem. <br> This feature is available in Postfix version 2.3 and
+problem. <br> This feature is available in Postfix 2.3 and
 later.  </dd>
 
 </dl>
@@ -7579,14 +7588,14 @@ the SMTP server reply code (default: 450).</dd>
 <dd>Defer the request if some later restriction would result in an
 explicit or implicit PERMIT action.  This is useful when a blacklisting
 feature fails due to a temporary problem.  This feature is available
-in Postfix 2.1 and later.  </dd>
+in Postfix version 2.1 and later.  </dd>
 
 <dt><b><a name="defer_if_reject">defer_if_reject</a></b></dt>
 
 <dd>Defer the request if some later restriction would result in a
 REJECT action.  This is useful when a whitelisting feature fails
 due to a temporary problem.  This feature is available in Postfix
-2.1 and later.  </dd>
+version 2.1 and later.  </dd>
 
 <dt><b><a name="permit">permit</a></b></dt>
 
@@ -7823,12 +7832,12 @@ key. This is intended behavior. </p>
 <DT><b><a name="smtpd_error_sleep_time">smtpd_error_sleep_time</a>
 (default: 1s)</b></DT><DD>
 
-<p>With Postfix 2.1 and later: the SMTP server response delay after
+<p>With Postfix version 2.1 and later: the SMTP server response delay after
 a client has made more than $<a href="postconf.5.html#smtpd_soft_error_limit">smtpd_soft_error_limit</a> errors, and
 fewer than $<a href="postconf.5.html#smtpd_hard_error_limit">smtpd_hard_error_limit</a> errors, without delivering mail.
 </p>
 
-<p>With Postfix 2.0 and earlier: the SMTP server delay before
+<p>With Postfix version 2.0 and earlier: the SMTP server delay before
 sending a reject (4xx or 5xx) response, when the client has made
 fewer than $<a href="postconf.5.html#smtpd_soft_error_limit">smtpd_soft_error_limit</a> errors without delivering
 mail. </p>
@@ -8388,7 +8397,7 @@ parameter specifies the response code for rejected requests (default:
 554); the <a href="postconf.5.html#default_rbl_reply">default_rbl_reply</a> parameter specifies the default server
 reply; and the <a href="postconf.5.html#rbl_reply_maps">rbl_reply_maps</a> parameter specifies tables with server
 replies indexed by <i>rbl_domain</i>.  This feature is available
-in Postfix 2.0 and later.</dd>
+in Postfix version 2.0 and later.</dd>
 
 <dt><b><a name="reject_unauth_destination">reject_unauth_destination</a></b></dt>
 
@@ -8413,12 +8422,12 @@ code for rejected requests (default: 554). </dd>
 <dd>Reject the request when Postfix is not final destination for
 the recipient address, and the RCPT TO address has no DNS A or MX
 record, or when it has a malformed MX record such as a record with
-a zero-length MX hostname (Postfix 2.3 and later). <br> The
+a zero-length MX hostname (Postfix version 2.3 and later). <br> The
 <a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter specifies the response code
 for rejected requests (default: 450).  The response is always 450
 in case of a temporary DNS error.</dd>
 
-<dt><b><a name="reject_unlisted_recipient">reject_unlisted_recipient</a></b> (with Postfix 2.0: check_recipient_maps)</dt>
+<dt><b><a name="reject_unlisted_recipient">reject_unlisted_recipient</a></b> (with Postfix version 2.0: check_recipient_maps)</dt>
 
 <dd> Reject the request when the RCPT TO address is not listed in
 the list of valid recipients for its domain class. See the
@@ -8885,7 +8894,7 @@ Postfix version 2.1 and later. </dd>
 <dd>Reject the request when Postfix is not final destination for
 the sender address, and the MAIL FROM address has no DNS A or MX
 record, or when it has a malformed MX record such as a record with
-a zero-length MX hostname (Postfix 2.3 and later). <br> The
+a zero-length MX hostname (Postfix version 2.3 and later). <br> The
 <a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter specifies the response code
 for rejected requests (default: 450).  The response is always 450
 in case of a temporary DNS error.  </dd>
@@ -9507,7 +9516,7 @@ $<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_cli
 
 </ul>
 
-<p> To get the behavior before Postfix 2.2, specify
+<p> To get the behavior before Postfix version 2.2, specify
 "<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = static:all". </p>
 
 <p>
@@ -9924,7 +9933,7 @@ in the <a href="ADDRESS_CLASS_README.html">ADDRESS_CLASS_README</a> file </p>
 
 <p>
 This feature is available in Postfix 2.0 and later. The default
-value is backwards compatible with Postfix 1.1.
+value is backwards compatible with Postfix version 1.1.
 </p>
 
 <p>
@@ -9986,7 +9995,7 @@ manipulations see the <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_
 
 <p>
 This feature is available in Postfix 2.0 and later. The default
-value is backwards compatible with Postfix 1.1.
+value is backwards compatible with Postfix version 1.1.
 </p>
 
 <p>
@@ -10124,7 +10133,7 @@ configuration parameter.  </p>
 
 <p>
 This feature is available in Postfix 2.0 and later. The default
-value is backwards compatible with Postfix 1.1.
+value is backwards compatible with Postfix version 1.1.
 </p>
 
 
@@ -10221,7 +10230,7 @@ it will open the table directly. Before Postfix version 2.2, the
 addresses are aliased to addresses in other local or remote domains,
 and b) addresses that are aliased to addresses in other local or
 remote domains.  Available before Postfix version 2.0. With Postfix
-2.0 and later, this is replaced by separate controls: <a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>
+version 2.0 and later, this is replaced by separate controls: <a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>
 and <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>. </p>
 
 
@@ -10244,9 +10253,9 @@ deferred.
 (default: virtual)</b></DT><DD>
 
 <p>
-The default mail delivery transport for domains that match the
-$<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a> parameter value. This information can
-be overruled with the <a href="transport.5.html">transport(5)</a> table.
+The default mail delivery transport and next-hop destination for
+final delivery to domains listed with <a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a>.
+This information can be overruled with the <a href="transport.5.html">transport(5)</a> table.
 </p>
 
 <p>

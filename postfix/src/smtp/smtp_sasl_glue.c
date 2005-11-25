@@ -308,6 +308,7 @@ static int smtp_sasl_get_passwd(sasl_conn_t *conn, void *context,
 int     smtp_sasl_passwd_lookup(SMTP_SESSION *session)
 {
     char   *myname = "smtp_sasl_passwd_lookup";
+    SMTP_STATE *state = session->state;
     const char *value;
     char   *passwd;
 
@@ -330,7 +331,7 @@ int     smtp_sasl_passwd_lookup(SMTP_SESSION *session)
      * but didn't canonicalize the TCP port, and did not append the port to
      * the MX hostname.
      */
-    if ((var_sender_auth
+    if ((var_smtp_sender_auth && state->request->sender[0]
 	 && (value = mail_addr_find(smtp_sasl_passwd_map,
 				 state->request->sender, (char **) 0)) != 0)
 	|| (value = maps_find(smtp_sasl_passwd_map, session->host, 0)) != 0

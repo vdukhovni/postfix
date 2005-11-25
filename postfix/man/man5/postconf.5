@@ -172,7 +172,7 @@ verification probes.
 This feature is available in Postfix 2.1 and later.
 .SH address_verify_relayhost (default: $relayhost)
 Overrides the relayhost parameter setting for address verification
-probes.
+probes. This information can be overruled with the \fBtransport\fR(5) table.
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH address_verify_sender (default: postmaster)
@@ -197,8 +197,8 @@ address_verify_sender = postmaster@my.domain
 .ft R
 .PP
 This feature is available in Postfix 2.1 and later.
-.SH address_verify_sender_relayhost_maps (default: empty)
-Overrides the sender_relayhost_maps parameter setting for address
+.SH address_verify_sender_dependent_relayhost_maps (default: empty)
+Overrides the sender_dependent_relayhost_maps parameter setting for address
 verification probes.
 .PP
 This feature is available in Postfix 2.3 and later.
@@ -322,7 +322,7 @@ $local_header_rewrite_clients,
 The message is received from the network, and the
 remote_header_rewrite_domain parameter specifies a non-empty value.
 .PP
-To get the behavior before Postfix 2.2, specify
+To get the behavior before Postfix version 2.2, specify
 "local_header_rewrite_clients = static:all".
 .PP
 Example:
@@ -369,7 +369,7 @@ The time unit over which client connection rates and other rates
 are calculated.
 .PP
 This feature is implemented by the \fBanvil\fR(8) service which is not
-part of the stable Postfix 2.1 release.
+part of the stable Postfix version 2.1 release.
 .PP
 The default interval is relatively short. Because of the high
 frequency of updates, the \fBanvil\fR(8) server uses volatile memory
@@ -404,7 +404,7 @@ $local_header_rewrite_clients,
 The message is received from the network, and the
 remote_header_rewrite_domain parameter specifies a non-empty value.
 .PP
-To get the behavior before Postfix 2.2, specify
+To get the behavior before Postfix version 2.2, specify
 "local_header_rewrite_clients = static:all".
 .SH append_dot_mydomain (default: yes)
 With locally submitted mail, append the string ".$mydomain" to
@@ -427,7 +427,7 @@ $local_header_rewrite_clients,
 The message is received from the network, and the
 remote_header_rewrite_domain parameter specifies a non-empty value.
 .PP
-To get the behavior before Postfix 2.2, specify
+To get the behavior before Postfix version 2.2, specify
 "local_header_rewrite_clients = static:all".
 .SH application_event_drain_time (default: 100s)
 How long the \fBpostkick\fR(1) command waits for a request to enter the
@@ -606,10 +606,10 @@ this limit, then you should increase the mime_nesting_limit value
 proportionally.
 .SH bounce_template_file (default: empty)
 Pathname of a configuration file with bounce message templates.
-These override the \fBbounce\fR(8) server built-in templates of delivery
-status notification (DSN) messages for undeliverable mail, for
-delayed mail, for successful delivery, or for mail delivery
-verification.
+These override the built-in templates of delivery status notification
+(DSN) messages for undeliverable mail, for delayed mail, successful
+delivery, or delivery verification. The \fBbounce\fR(5) manual page
+describes how to edit and test template files.
 .PP
 Template message body text may contain $name references to
 Postfix configuration parameters. The result of $name expansion can
@@ -661,7 +661,7 @@ $local_header_rewrite_clients,
 The message is received from the network, and the
 remote_header_rewrite_domain parameter specifies a non-empty value.
 .PP
-To get the behavior before Postfix 2.2, specify
+To get the behavior before Postfix version 2.2, specify
 "local_header_rewrite_clients = static:all".
 .PP
 Examples:
@@ -953,7 +953,7 @@ address, or Recipient address.
 The numerical SMTP response code, as specified with the
 maps_rbl_reject_code configuration parameter. Note: The numerical
 SMTP response code is required, and must appear at the start of the
-reply. With Postfix 2.3 and later this information may be followed
+reply. With Postfix version 2.3 and later this information may be followed
 by an RFC 3463 enhanced status code.
 .IP "\fB$rbl_domain\fR"
 The RBL domain where $rbl_what is blacklisted.
@@ -1001,10 +1001,14 @@ qmgr_message_recipient_limit after the message has been assigned
 to the respective transports.  See also default_extra_recipient_limit
 and qmgr_message_recipient_minimum.
 .SH default_transport (default: smtp)
-The default mail delivery transport for domains that do not match
-$mydestination, $inet_interfaces, $proxy_interfaces,
-$virtual_alias_domains, $virtual_mailbox_domains, or $relay_domains.
-This information can be overruled with the \fBtransport\fR(5) table.
+The default mail delivery transport and next-hop destination for
+destinations that do not match $mydestination, $inet_interfaces,
+$proxy_interfaces, $virtual_alias_domains, $virtual_mailbox_domains,
+or $relay_domains.  In order of decreasing precedence, the nexthop
+destination is taken from $default_transport,
+$sender_dependent_relayhost_maps, $relayhost, or from the recipient
+domain. This information can be overruled with the \fBtransport\fR(5)
+table.
 .PP
 Specify a string of the form \fItransport:nexthop\fR, where \fItransport\fR
 is the name of a mail delivery transport defined in master.cf.
@@ -1155,8 +1159,8 @@ created locally as the result of configuration or software error.
 .SH enable_errors_to (default: no)
 Report mail delivery errors to the address specified with the
 non-standard Errors-To: message header, instead of the envelope
-sender address (this feature is removed with Postfix 2.2, is
-turned off by default with Postfix 2.1, and is always turned on
+sender address (this feature is removed with Postfix version 2.2, is
+turned off by default with Postfix version 2.1, and is always turned on
 with older Postfix versions).
 .SH enable_original_recipient (default: yes)
 Enable support for the X-Original-To message header. This header
@@ -1172,7 +1176,7 @@ duplicate elimination on the rewritten recipient address only, and
 generates empty original recipient queue file records.
 .PP
 This feature is available in Postfix 2.1 and later. With Postfix
-2.0, support for the X-Original-To message header is always turned
+version 2.0, support for the X-Original-To message header is always turned
 on. Postfix versions before 2.0 have no support for the X-Original-To
 message header.
 .SH error_notice_recipient (default: postmaster)
@@ -1203,7 +1207,7 @@ time keeping on System-V-ish systems.
 .PP
 Specify a list of names and/or name=value pairs, separated by
 whitespace or comma. The name=value form is supported with
-Postfix 2.1 and later.
+Postfix version 2.1 and later.
 .PP
 Example:
 .PP
@@ -1218,7 +1222,7 @@ export_environment = TZ PATH=/bin:/usr/bin
 The maximal number of recipient addresses that Postfix will extract
 from message headers when mail is submitted with "\fBsendmail -t\fR".
 .PP
-This feature was removed in Postfix 2.1.
+This feature was removed in Postfix version 2.1.
 .SH fallback_relay (default: empty)
 Optional list of relay hosts for SMTP destinations that can't be
 found or that are unreachable.
@@ -1444,7 +1448,7 @@ Needed to make "\fBpostfix -c\fR" work.
 .PP
 Specify a list of names and/or name=value pairs, separated by
 whitespace or comma. The name=value form is supported with
-Postfix 2.1 and later.
+Postfix version 2.1 and later.
 .SH in_flow_delay (default: 1s)
 Time to pause before accepting a new message, when the message
 arrival rate exceeds the message delivery rate. This feature is
@@ -1459,7 +1463,7 @@ Specify 0 to disable the feature. Valid delays are 0..10.
 The network interface addresses that this mail system receives
 mail on. Specify "all" to receive mail on all network
 interfaces (default), and "loopback-only" to receive mail
-on loopback network interfaces only (Postfix 2.2 and later).  The
+on loopback network interfaces only (Postfix version 2.2 and later).  The
 parameter also controls delivery of mail to user@[ip.address].
 .PP
 Note 1: you need to stop and start Postfix when this parameter changes.
@@ -1498,9 +1502,9 @@ Examples:
 .na
 .ft C
 inet_interfaces = all (DEFAULT)
-inet_interfaces = loopback-only (Postfix 2.2 and later)
+inet_interfaces = loopback-only (Postfix version 2.2 and later)
 inet_interfaces = 127.0.0.1
-inet_interfaces = 127.0.0.1, [::1] (Postfix 2.2 and later)
+inet_interfaces = 127.0.0.1, [::1] (Postfix version 2.2 and later)
 inet_interfaces = 192.168.1.2, 127.0.0.1
 .fi
 .ad
@@ -1512,7 +1516,7 @@ or "ipv6", separated by whitespace or commas. The form
 "all" is equivalent to "ipv4, ipv6" or "ipv4", depending
 on whether the operating system implements IPv6.
 .PP
-This feature is available in Postfix version 2.2 and later.
+This feature is available in Postfix 2.2 and later.
 .PP
 Note: you MUST stop and start Postfix after changing this
 parameter.
@@ -1934,9 +1938,10 @@ local_recipient_maps =
 .ad
 .ft R
 .SH local_transport (default: local:$myhostname)
-The default mail delivery transport for domains that match
-$mydestination, $inet_interfaces or $proxy_interfaces.  This
-information can be overruled with the \fBtransport\fR(5) table.
+The default mail delivery transport and next-hop destination
+for final delivery to domains listed with mydestination, and for
+[ipaddress] destinations that match $inet_interfaces or $proxy_interfaces.
+This information can be overruled with the \fBtransport\fR(5) table.
 .PP
 By default, local mail is delivered to the transport called "local",
 which is just the name of a service that is defined the master.cf file.
@@ -2008,7 +2013,7 @@ or processes on the system.  In particular, don't specify nobody
 or daemon.  PLEASE USE A DEDICATED USER ID AND GROUP ID.
 .PP
 When this parameter value is changed you need to re-run "\fBpostfix
-set-permissions\fR" (with Postfix 2.0 and earlier:
+set-permissions\fR" (with Postfix version 2.0 and earlier:
 "\fB/etc/postfix/post-install set-permissions\fR".
 .SH mail_release_date (default: see "postconf -d" output)
 The Postfix release date, in "YYYYMMDD" format.
@@ -2047,15 +2052,15 @@ aliased to a real user and 2) don't log in as root, use "su" instead.
 .PP
 The following environment variables are exported to the command:
 .IP "\fBCLIENT_ADDRESS\fR"
-Remote client network address. Available in Postfix 2.2 and
+Remote client network address. Available in Postfix version 2.2 and
 later.
 .IP "\fBCLIENT_HELO\fR"
-Remote client EHLO command parameter. Available in Postfix 2.2
+Remote client EHLO command parameter. Available in Postfix version 2.2
 and later.
 .IP "\fBCLIENT_HOSTNAME\fR"
-Remote client hostname. Available in Postfix 2.2 and later.
+Remote client hostname. Available in Postfix version 2.2 and later.
 .IP "\fBCLIENT_PROTOCOL\fR"
-Remote client protocol. Available in Postfix 2.2 and later.
+Remote client protocol. Available in Postfix version 2.2 and later.
 .IP "\fBDOMAIN\fR"
 The domain part of the recipient address.
 .IP "\fBEXTENSION\fR"
@@ -2070,13 +2075,13 @@ The recipient's username.
 The full recipient address.
 .IP "\fBSASL_METHOD\fR"
 SASL authentication method specified in the remote client AUTH
-command. Available in Postfix 2.2 and later.
+command. Available in Postfix version 2.2 and later.
 .IP "\fBSASL_SENDER\fR"
 SASL sender address specified in the remote client MAIL FROM
-command. Available in Postfix 2.2 and later.
+command. Available in Postfix version 2.2 and later.
 .IP "\fBSASL_USER\fR"
 SASL username specified in the remote client AUTH command.
-Available in Postfix 2.2 and later.
+Available in Postfix version 2.2 and later.
 .IP "\fBSENDER\fR"
 The full sender address.
 .IP "\fBSHELL\fR"
@@ -2218,7 +2223,7 @@ $local_header_rewrite_clients,
 The message is received from the network, and the
 remote_header_rewrite_domain parameter specifies a non-empty value.
 .PP
-To get the behavior before Postfix 2.2, specify
+To get the behavior before Postfix version 2.2, specify
 "local_header_rewrite_clients = static:all".
 .PP
 Example:
@@ -2759,7 +2764,7 @@ The minimal amount of free space in bytes in the queue file system
 that is needed to receive mail.  This is currently used by the SMTP
 server to decide if it will accept any mail at all.
 .PP
-By default, the Postfix 2.1 SMTP server rejects MAIL FROM commands
+By default, the Postfix version 2.1 SMTP server rejects MAIL FROM commands
 when the amount of free space is less than 1.5*$message_size_limit.
 To specify a higher minimum free space limit, specify a queue_minfree
 value that is at least 1.5*$message_size_limit.
@@ -2947,14 +2952,14 @@ For more fine-grained control, use check_ccert_access to select
 an appropriate \fBaccess\fR(5) policy for each client.
 See RESTRICTION_CLASS_README.
 .PP
-This feature is available with Postfix 2.2.
+This feature is available with Postfix version 2.2.
 .SH relay_destination_concurrency_limit (default: $default_destination_concurrency_limit)
 The maximal number of parallel deliveries to the same destination
 via the relay message delivery transport. This limit is enforced
 by the queue manager. The message delivery transport name is the
 first field in the entry in the master.cf file.
 .PP
-This feature is available in Postfix version 2.0 and later.
+This feature is available in Postfix 2.0 and later.
 .SH relay_destination_recipient_limit (default: $default_destination_recipient_limit)
 The maximal number of recipients per delivery via the relay
 message delivery transport. This limit is enforced by the queue
@@ -2965,7 +2970,7 @@ Setting this parameter to a value of 1 changes the meaning of
 relay_destination_concurrency_limit from concurrency per domain
 into concurrency per recipient.
 .PP
-This feature is available in Postfix version 2.0 and later.
+This feature is available in Postfix 2.0 and later.
 .SH relay_domains (default: $mydestination)
 What destination domains (and subdomains thereof) this system
 will relay mail to. Subdomain matching is controlled with the
@@ -3022,9 +3027,12 @@ relay_recipient_maps = hash:/etc/postfix/relay_recipients
 .PP
 This feature is available in Postfix 2.0 and later.
 .SH relay_transport (default: relay)
-The default mail delivery transport and next-hop information for
-domains that match the $relay_domains parameter value. This
-information can be overruled with the \fBtransport\fR(5) table.
+The default mail delivery transport and next-hop destination for
+remote delivery to domains listed with $relay_domains. In order of
+decreasing precedence, the nexthop destination is taken from
+$relay_transport, $sender_dependent_relayhost_maps, $relayhost, or
+from the recipient domain. This information can be overruled with
+the \fBtransport\fR(5) table.
 .PP
 Specify a string of the form \fItransport:nexthop\fR, where \fItransport\fR
 is the name of a mail delivery transport defined in master.cf.
@@ -3036,9 +3044,10 @@ file.
 .PP
 This feature is available in Postfix 2.0 and later.
 .SH relayhost (default: empty)
-The default host to send non-local mail to when no entry is matched
-in the optional \fBtransport\fR(5) table. When no relayhost is given,
-mail is routed directly to the destination.
+The next-hop destination of non-local mail; overrides non-local
+domains in recipient addresses. This information is overruled with
+relay_transport, default_transport, sender_dependent_relayhost_maps
+and with the \fBtransport\fR(5) table.
 .PP
 On an intranet, specify the organizational domain name. If your
 internal DNS uses no MX records, specify the name of the intranet
@@ -3138,7 +3147,7 @@ Resolve an address that ends in the "@" null domain as if the
 local hostname were specified, instead of rejecting the address as
 invalid.
 .PP
-This feature is available in Postfix version 2.1 and later.
+This feature is available in Postfix 2.1 and later.
 Earlier versions always resolve the null domain as the local
 hostname.
 .PP
@@ -3154,8 +3163,8 @@ This feature is available in Postfix 2.0 and later.
 .SH sample_directory (default: /etc/postfix)
 The name of the directory with example Postfix configuration files.
 .SH sender_based_routing (default: no)
-This parameter should not be used. It was replaced by sender_relayhost_maps
-in Postfix 2.3.
+This parameter should not be used. It was replaced by sender_dependent_relayhost_maps
+in Postfix version 2.3.
 .SH sender_bcc_maps (default: empty)
 Optional BCC (blind carbon-copy) address lookup tables, indexed
 by sender address.  The BCC address (multiple results are not
@@ -3228,10 +3237,11 @@ sender_canonical_maps = hash:/etc/postfix/sender_canonical
 .fi
 .ad
 .ft R
-.SH sender_relayhost_maps (default: empty)
-A sender-specific override for the global relayhost parameter
+.SH sender_dependent_relayhost_maps (default: empty)
+A sender-dependent override for the global relayhost parameter
 setting. The tables are searched by the sender address and by the
-sender @domain.
+sender @domain. This information is overruled with relay_transport,
+default_transport and with the \fBtransport\fR(5) table.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH sendmail_path (default: see "postconf -d" output)
@@ -3247,7 +3257,7 @@ The default time unit is s (seconds).
 .SH setgid_group (default: postdrop)
 The group ownership of set-gid Postfix commands and of group-writable
 Postfix directories. When this parameter value is changed you need
-to re-run "\fBpostfix set-permissions\fR" (with Postfix 2.0 and
+to re-run "\fBpostfix set-permissions\fR" (with Postfix version 2.0 and
 earlier: "\fB/etc/postfix/post-install set-permissions\fR".
 .SH show_user_unknown_table_name (default: yes)
 Display the name of the recipient table in the "User unknown"
@@ -3295,7 +3305,7 @@ but this form is not recommended here.
 An optional numerical network address that the SMTP client should
 bind to when making an IPv6 connection.
 .PP
-This feature is available in Postfix version 2.2 and later.
+This feature is available in Postfix 2.2 and later.
 .PP
 This can be specified in the main.cf file for all SMTP clients, or
 it can be specified in the master.cf file for a specific client,
@@ -3403,7 +3413,7 @@ delivery latency becomes effectively that of the slowest MX host
 divided by the total number of MX hosts.
 .PP
 The solution uses connection caching in a way that differs from
-Postfix 2.2.  By limiting the amount of time during which a connection
+Postfix version 2.2.  By limiting the amount of time during which a connection
 can be used repeatedly (instead of limiting the number of deliveries
 over that connection), Postfix not only restores fairness in the
 distribution of simultaneous connections across a set of MX hosts,
@@ -3415,7 +3425,7 @@ smtp transaction timeouts which are fair estimates of maximum excess
 latency for a slow delivery.  Note that hosts may accept thousands
 of messages over a single connection within the default connection
 reuse time limit. This number is much larger than the default Postfix
-2.2 limit of 10 messages per cached connection. It may prove necessary
+version 2.2 limit of 10 messages per cached connection. It may prove necessary
 to lower the limit to avoid interoperability issues with MTAs that
 exhibit bugs when many messages are delivered via a single connection.
 A lower reuse time limit risks losing the benefit of connection
@@ -3580,27 +3590,20 @@ The default time unit is s (seconds).
 .SH smtp_mx_address_limit (default: 5)
 The maximal number of MX (mail exchanger) IP addresses that can
 result from mail exchanger lookups, or zero (no limit). Prior to
-Postfix 2.3, this limit was disabled by default.
+Postfix version 2.3, this limit was disabled by default.
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH smtp_mx_session_limit (default: 2)
 The maximal number of SMTP sessions per delivery request before
 giving up or delivering to a fall-back relay host, or zero (no
 limit). This restriction ignores sessions that fail to complete the
-SMTP initial handshake (Postfix 2.2 and earlier) or that fail to
-complete the EHLO and TLS handshake (Postfix 2.3 and later).
+SMTP initial handshake (Postfix version 2.2 and earlier) or that fail to
+complete the EHLO and TLS handshake (Postfix version 2.3 and later).
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH smtp_never_send_ehlo (default: no)
 Never send EHLO at the start of an SMTP session. See also the
 smtp_always_send_ehlo parameter.
-.SH smtp_per_sender_authentication (default: no)
-Enable per-sender authentication in the SMTP client; this is available
-only with SASL authentication, and disables SMTP connection caching
-to ensure that mail from different senders will use the appropriate
-credentials.
-.PP
-This feature is available in Postfix 2.3 and later.
 .SH smtp_pix_workaround_delay_time (default: 10s)
 How long the Postfix SMTP client pauses before sending
 ".<CR><LF>" in order to work around the PIX firewall
@@ -3703,8 +3706,8 @@ smtp_sasl_mechanism_filter = !gssapi, !login, static:rest
 .ft R
 .SH smtp_sasl_password_maps (default: empty)
 Optional SMTP client lookup tables with one username:password entry
-per remote hostname or domain (or per sender address, when per-sender
-authentication is enabled).  If no username:password entry is found,
+per remote hostname or domain, or sender address when sender-dependent
+authentication is enabled.  If no username:password entry is found,
 then the Postfix SMTP client will not
 attempt to authenticate to the remote host.
 .PP
@@ -3751,6 +3754,13 @@ queuing SMTP server. This can produce more useful logging than
 localhost[127.0.0.1] etc.
 .PP
 This feature is available in Postfix 2.1 and later.
+.SH smtp_sender_dependent_authentication (default: no)
+Enable sender-dependent authentication in the SMTP client; this is
+available only with SASL authentication, and disables SMTP connection
+caching to ensure that mail from different senders will use the
+appropriate credentials.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH smtp_skip_4xx_greeting (default: yes)
 Skip SMTP servers that greet with a 4XX status code (go away, try
 again later).
@@ -3759,7 +3769,7 @@ By default, Postfix moves on the next mail exchanger. Specify
 "smtp_skip_4xx_greeting = no" if Postfix should defer delivery
 immediately.
 .PP
-This feature is available in Postfix version 2.0 and earlier.
+This feature is available in Postfix 2.0 and earlier.
 Later Postfix versions always skip SMTP servers that greet with a
 4XX status code.
 .SH smtp_skip_5xx_greeting (default: yes)
@@ -4008,8 +4018,8 @@ time with a per recipient return address.
 .PP
 By default, no clients are allowed to specify XVERP.
 .PP
-This parameter was renamed with Postfix 2.1. The default value
-is backwards compatible with Postfix 2.0.
+This parameter was renamed with Postfix version 2.1. The default value
+is backwards compatible with Postfix version 2.0.
 .PP
 Specify a list of network/netmask patterns, separated by commas
 and/or whitespace. The mask specifies the number of bits in the
@@ -4237,7 +4247,7 @@ client network address information.
 .IP "\fBcheck_ccert_access \fItype:table\fR\fR"
 When the remote SMTP client certificate is verified successfully,
 use the client certificate fingerprint as lookup key for the specified
-\fBaccess\fR(5) database. This feature is available with Postfix 2.2.
+\fBaccess\fR(5) database. This feature is available with Postfix version 2.2.
 .IP "\fBcheck_client_access \fItype:table\fR\fR"
 Search the specified access database for the client hostname,
 parent domains, client IP address, or networks obtained by stripping
@@ -4256,11 +4266,11 @@ Permit the request when the remote SMTP client certificate is
 verified successfully.  This option must be used only if a special
 CA issues the certificates and only this CA is listed as trusted
 CA, otherwise all clients with a recognized certificate would be
-allowed to relay. This feature is available with Postfix 2.2.
+allowed to relay. This feature is available with Postfix version 2.2.
 .IP "\fBpermit_tls_clientcerts\fR"
 Permit the request when the remote SMTP client certificate is
 verified successfully, and the certificate fingerprint is listed
-in $relay_clientcerts. This feature is available with Postfix 2.2.
+in $relay_clientcerts. This feature is available with Postfix version 2.2.
 .IP "\fBreject_rbl_client \fIrbl_domain=d.d.d.d\fR\fR"
 Reject the request when the reversed client network address is
 listed with the A record "\fId.d.d.d\fR" under \fIrbl_domain\fR
@@ -4309,7 +4319,7 @@ code for rejected requests (default: 450).  The reply is always 450
 in case the address->name lookup failed due to a temporary
 problem.
 .br
-This feature is available in Postfix version 2.3 and
+This feature is available in Postfix 2.3 and
 later.
 .PP
 In addition, you can use any of the following
@@ -4330,12 +4340,12 @@ the SMTP server reply code (default: 450).
 Defer the request if some later restriction would result in an
 explicit or implicit PERMIT action.  This is useful when a blacklisting
 feature fails due to a temporary problem.  This feature is available
-in Postfix 2.1 and later.
+in Postfix version 2.1 and later.
 .IP "\fBdefer_if_reject\fR"
 Defer the request if some later restriction would result in a
 REJECT action.  This is useful when a whitelisting feature fails
 due to a temporary problem.  This feature is available in Postfix
-2.1 and later.
+version 2.1 and later.
 .IP "\fBpermit\fR"
 Permit the request. This restriction is useful at the end of
 a restriction list, to make the default policy explicit.
@@ -4499,11 +4509,11 @@ Note 2: when invoked via "\fBsendmail -bs\fR", Postfix will never offer
 STARTTLS due to insufficient privileges to access the server private
 key. This is intended behavior.
 .SH smtpd_error_sleep_time (default: 1s)
-With Postfix 2.1 and later: the SMTP server response delay after
+With Postfix version 2.1 and later: the SMTP server response delay after
 a client has made more than $smtpd_soft_error_limit errors, and
 fewer than $smtpd_hard_error_limit errors, without delivering mail.
 .PP
-With Postfix 2.0 and earlier: the SMTP server delay before
+With Postfix version 2.0 and earlier: the SMTP server delay before
 sending a reject (4xx or 5xx) response, when the client has made
 fewer than $smtpd_soft_error_limit errors without delivering
 mail.
@@ -4826,7 +4836,7 @@ parameter specifies the response code for rejected requests (default:
 554); the default_rbl_reply parameter specifies the default server
 reply; and the rbl_reply_maps parameter specifies tables with server
 replies indexed by \fIrbl_domain\fR.  This feature is available
-in Postfix 2.0 and later.
+in Postfix version 2.0 and later.
 .IP "\fBreject_unauth_destination\fR"
 Reject the request unless one of the following is true:
 .IP \(bu
@@ -4844,13 +4854,13 @@ code for rejected requests (default: 554).
 Reject the request when Postfix is not final destination for
 the recipient address, and the RCPT TO address has no DNS A or MX
 record, or when it has a malformed MX record such as a record with
-a zero-length MX hostname (Postfix 2.3 and later).
+a zero-length MX hostname (Postfix version 2.3 and later).
 .br
 The
 unknown_address_reject_code parameter specifies the response code
 for rejected requests (default: 450).  The response is always 450
 in case of a temporary DNS error.
-.IP "\fBreject_unlisted_recipient\fR (with Postfix 2.0: check_recipient_maps)"
+.IP "\fBreject_unlisted_recipient\fR (with Postfix version 2.0: check_recipient_maps)"
 Reject the request when the RCPT TO address is not listed in
 the list of valid recipients for its domain class. See the
 smtpd_reject_unlisted_recipient parameter description for details.
@@ -5151,7 +5161,7 @@ Postfix version 2.1 and later.
 Reject the request when Postfix is not final destination for
 the sender address, and the MAIL FROM address has no DNS A or MX
 record, or when it has a malformed MX record such as a record with
-a zero-length MX hostname (Postfix 2.3 and later).
+a zero-length MX hostname (Postfix version 2.3 and later).
 .br
 The
 unknown_address_reject_code parameter specifies the response code
@@ -5552,7 +5562,7 @@ $local_header_rewrite_clients,
 The message is received from the network, and the
 remote_header_rewrite_domain parameter specifies a non-empty value.
 .PP
-To get the behavior before Postfix 2.2, specify
+To get the behavior before Postfix version 2.2, specify
 "local_header_rewrite_clients = static:all".
 .PP
 Example:
@@ -5756,7 +5766,7 @@ non-existent recipients. See also the virtual alias domain class
 in the ADDRESS_CLASS_README file
 .PP
 This feature is available in Postfix 2.0 and later. The default
-value is backwards compatible with Postfix 1.1.
+value is backwards compatible with Postfix version 1.1.
 .PP
 The default value is $virtual_alias_maps so that you can keep all
 information about virtual alias domains in one place.  If you have
@@ -5796,7 +5806,7 @@ are documented in \fBvirtual\fR(5). For an overview of Postfix address
 manipulations see the ADDRESS_REWRITING_README document.
 .PP
 This feature is available in Postfix 2.0 and later. The default
-value is backwards compatible with Postfix 1.1.
+value is backwards compatible with Postfix version 1.1.
 .PP
 If you use this feature with indexed files, run "\fBpostmap
 /etc/postfix/virtual\fR" after changing the file.
@@ -5882,7 +5892,7 @@ This parameter expects the same syntax as the mydestination
 configuration parameter.
 .PP
 This feature is available in Postfix 2.0 and later. The default
-value is backwards compatible with Postfix 1.1.
+value is backwards compatible with Postfix version 1.1.
 .SH virtual_mailbox_limit (default: 51200000)
 The maximal size in bytes of an individual mailbox or maildir file,
 or zero (no limit).
@@ -5932,7 +5942,7 @@ Optional lookup tables with a) names of domains for which all
 addresses are aliased to addresses in other local or remote domains,
 and b) addresses that are aliased to addresses in other local or
 remote domains.  Available before Postfix version 2.0. With Postfix
-2.0 and later, this is replaced by separate controls: virtual_alias_domains
+version 2.0 and later, this is replaced by separate controls: virtual_alias_domains
 and virtual_alias_maps.
 .SH virtual_minimum_uid (default: 100)
 The minimum user ID value that the \fBvirtual\fR(8) delivery agent accepts
@@ -5940,9 +5950,9 @@ as a result from $virtual_uid_maps table lookup.  Returned
 values less than this will be rejected, and the message will be
 deferred.
 .SH virtual_transport (default: virtual)
-The default mail delivery transport for domains that match the
-$virtual_mailbox_domains parameter value. This information can
-be overruled with the \fBtransport\fR(5) table.
+The default mail delivery transport and next-hop destination for
+final delivery to domains listed with virtual_mailbox_domains.
+This information can be overruled with the \fBtransport\fR(5) table.
 .PP
 Specify a string of the form \fItransport:nexthop\fR, where \fItransport\fR
 is the name of a mail delivery transport defined in master.cf.

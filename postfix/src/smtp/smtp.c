@@ -152,8 +152,8 @@
 /*	Enable SASL authentication in the Postfix SMTP client.
 /* .IP "\fBsmtp_sasl_password_maps (empty)\fR"
 /*	Optional SMTP client lookup tables with one username:password entry
-/*	per remote hostname or domain (or per sender, when per-sender
-/*	authentication is enabled).
+/*	per remote hostname or domain, or sender address when sender-dependent
+/*	authentication is enabled.
 /* .IP "\fBsmtp_sasl_security_options (noplaintext, noanonymous)\fR"
 /*	What authentication mechanisms the Postfix SMTP client is allowed
 /*	to use.
@@ -164,11 +164,11 @@
 /*	server's list of offered SASL mechanisms.
 /* .PP
 /*	Available in Postfix version 2.3 and later:
-/* .IP "\fBsmtp_per_sender_authentication (no)\fR"
-/*	Enable per-sender authentication in the SMTP client; this is available
-/*	only with SASL authentication, and disables SMTP connection caching
-/*	to ensure that mail from different senders will use the appropriate
-/*	credentials.
+/* .IP "\fBsmtp_sender_dependent_authentication (no)\fR"
+/*	Enable sender-dependent authentication in the SMTP client; this is
+/*	available only with SASL authentication, and disables SMTP connection
+/*	caching to ensure that mail from different senders will use the
+/*	appropriate credentials.
 /* STARTTLS SUPPORT CONTROLS
 /* .ad
 /* .fi
@@ -505,12 +505,14 @@ char   *var_smtp_ehlo_dis_maps;
 bool    var_smtp_use_tls;
 bool    var_smtp_enforce_tls;
 char   *var_smtp_tls_per_site;
+
 #ifdef USE_TLS
 int     var_smtp_starttls_tmout;
 char   *var_smtp_sasl_tls_opts;
 bool    var_smtp_tls_enforce_peername;
 int     var_smtp_tls_scert_vd;
 bool    var_smtp_tls_note_starttls_offer;
+
 #endif
 
 char   *var_smtp_generic_maps;

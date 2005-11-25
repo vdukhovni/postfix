@@ -134,7 +134,7 @@ static MAPS *relocated_maps;
 
 /* resolve_addr - resolve address according to rule set */
 
-static void resolve_addr(RES_CONTEXT *rp, char *addr,
+static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 			         VSTRING *channel, VSTRING *nexthop,
 			         VSTRING *nextrcpt, int *flags)
 {
@@ -152,6 +152,7 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
     char   *local;
     char   *oper;
     char   *junk;
+    const char *relay;
 
     *flags = 0;
     vstring_strcpy(channel, "CHANNEL NOT UPDATED");
@@ -395,7 +396,7 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
      * highest precedence to transport associated nexthop information.
      * 
      * Otherwise, with relay or other non-local destinations, the relayhost
-     * setting overrides the recipient domain name, and the per-sender
+     * setting overrides the recipient domain name, and the sender-dependent
      * relayhost overrides both.
      * 
      * XXX Nag if the recipient domain is listed in multiple domain lists. The
@@ -490,16 +491,14 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
 	    }
 
 	    /*
-	     * With off-host delivery, per-sender or global relayhost
-	     * override the recipient domain. The per-sender override is done
-	     * in the client, and permission to do so is is signaled with the
-	     * SMARTHOST flag. This is technically incorrect, but avoids the
-	     * need to change the resolver client protocol for something that
-	     * is irrelevant for most resolver clients, and that most Postfix
-	     * sites will never need.
+	     * With off-host delivery, sender-dependent or global relayhost
+	     * override the recipient domain.
 	     */
-	    *flags |= RESOLVE_FLAG_SMARTHOST;
-	    if (*RES_PARAM_VALUE(rp->relayhost))
+	    if (rp->snd_relay_info && *sender
+		&& (relay = mail_addr_find(rp->snd_relay_info, sender,
+					   (char **) 0)) != 0)
+		vstring_strcpy(nexthop, relay);
+	    else if (*RES_PARAM_VALUE(rp->relayhost))
 		vstring_strcpy(nexthop, RES_PARAM_VALUE(rp->relayhost));
 	    else
 		vstring_strcpy(nexthop, rcpt_domain);
@@ -537,10 +536,8 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
      * force mail for any domain in $mydestination/${proxy,inet}_interfaces
      * to share the same queue.
      */
-    if ((destination = split_at(STR(channel), ':')) != 0 && *destination) {
+    if ((destination = split_at(STR(channel), ':')) != 0 && *destination)
 	vstring_strcpy(nexthop, destination);
-	*flags &= ~RESOLVE_FLAG_SMARTHOST;
-    }
 
     /*
      * Sanity checks.
@@ -584,7 +581,7 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
      * XXX Don't override the virtual alias class (error:User unknown) result.
      */
     if (rp->transport_info && !(*flags & RESOLVE_CLASS_ALIAS)) {
-	if (transport_lookup(rp->transport_info, flags, STR(nextrcpt),
+	if (transport_lookup(rp->transport_info, STR(nextrcpt),
 			     rcpt_domain, channel, nexthop) == 0
 	    && dict_errno != 0) {
 	    msg_warn("%s lookup failure", rp->transport_maps_name);
@@ -630,6 +627,7 @@ static VSTRING *channel;
 static VSTRING *nexthop;
 static VSTRING *nextrcpt;
 static VSTRING *query;
+static VSTRING *sender;
 
 /* resolve_proto - read request and send reply */
 
@@ -638,15 +636,17 @@ int     resolve_proto(RES_CONTEXT *context, VSTREAM *stream)
     int     flags;
 
     if (attr_scan(stream, ATTR_FLAG_STRICT,
+		  ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
 		  ATTR_TYPE_STR, MAIL_ATTR_ADDR, query,
-		  ATTR_TYPE_END) != 1)
+		  ATTR_TYPE_END) != 2)
 	return (-1);
 
-    resolve_addr(context, STR(query),
+    resolve_addr(context, STR(sender), STR(query),
 		 channel, nexthop, nextrcpt, &flags);
 
     if (msg_verbose)
-	msg_info("%s -> (`%s' `%s' `%s' `%d')", STR(query), STR(channel),
+	msg_info("`%s' -> `%s' -> (`%s' `%s' `%s' `%d')",
+		 STR(sender), STR(query), STR(channel),
 		 STR(nexthop), STR(nextrcpt), flags);
 
     attr_print(stream, ATTR_FLAG_NONE,
@@ -668,6 +668,7 @@ int     resolve_proto(RES_CONTEXT *context, VSTREAM *stream)
 
 void    resolve_init(void)
 {
+    sender = vstring_alloc(100);
     query = vstring_alloc(100);
     channel = vstring_alloc(100);
     nexthop = vstring_alloc(100);

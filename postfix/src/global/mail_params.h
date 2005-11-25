@@ -185,7 +185,7 @@ extern char *var_masq_classes;
 #define DEF_RELAYHOST		""
 extern char *var_relayhost;
 
-#define VAR_SND_RELAY_MAPS	"sender_relayhost_maps"
+#define VAR_SND_RELAY_MAPS	"sender_dependent_relayhost_maps"
 #define DEF_SND_RELAY_MAPS	""
 extern char *var_snd_relay_maps;
 
@@ -2156,7 +2156,7 @@ extern char *var_vrfy_def_xport;
 #define DEF_VRFY_RELAYHOST		"$" VAR_RELAYHOST
 extern char *var_vrfy_relayhost;
 
-#define VAR_VRFY_RELAY_MAPS		"address_verify_sender_relayhost_maps"
+#define VAR_VRFY_RELAY_MAPS		"address_verify_sender_dependent_relayhost_maps"
 #define DEF_VRFY_RELAY_MAPS		"$" VAR_SND_RELAY_MAPS
 extern char *var_vrfy_relay_maps;
 
@@ -2413,9 +2413,9 @@ extern int var_delay_max_res;
 extern char *var_bounce_tmpl;
 
  /*
-  * Per-sender authentication.
+  * Sender-dependent authentication.
   */
-#define VAR_SMTP_SENDER_AUTH	"smtp_per_sender_authentication"
+#define VAR_SMTP_SENDER_AUTH	"smtp_sender_dependent_authentication"
 #define DEF_SMTP_SENDER_AUTH	0
 extern bool var_smtp_sender_auth;
 

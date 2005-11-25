@@ -36,10 +36,10 @@ TRIVIAL-REWRITE(8)                                          TRIVIAL-REWRITE(8)
                      the <a href="ADDRESS_CLASS_README.html#local_domain_class">local domain</a> to spam from poorly written
                      remote clients.
 
-       <b>resolve</b> <i>address</i>
-              Resolve an address to a (<i>transport</i>, <i>nexthop</i>, <i>recip-</i>
-              <i>ient</i>, <i>flags</i>) quadruple. The meaning of the  results
-              is as follows:
+       <b>resolve</b> <i>sender address</i>
+              Resolve  the  address  to  a  (<i>transport</i>,  <i>nexthop</i>,
+              <i>recipient</i>, <i>flags</i>) quadruple.  The  meaning  of  the
+              results is as follows:
 
               <i>transport</i>
                      The delivery agent to use. This is the first
@@ -57,8 +57,8 @@ TRIVIAL-REWRITE(8)                                          TRIVIAL-REWRITE(8)
                      requires  relaying,  whether the address has
                      problems, and whether the request failed.
 
-       <b>verify</b> <i>address</i>
-              Resolve an address for  address  verification  pur-
+       <b>verify</b> <i>sender address</i>
+              Resolve the address for address  verification  pur-
               poses.
 
 <b>SERVER PROCESS MANAGEMENT</b>
@@ -145,36 +145,38 @@ TRIVIAL-REWRITE(8)                                          TRIVIAL-REWRITE(8)
        <a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a> or <a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>.
 
        <b><a href="postconf.5.html#local_transport">local_transport</a> (<a href="local.8.html">local</a>:$<a href="postconf.5.html#myhostname">myhostname</a>)</b>
-              The  default  mail  delivery  transport for domains
-              that  match  $<a href="postconf.5.html#mydestination">mydestination</a>,  $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>   or
-              $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>.
+              The  default  mail  delivery transport and next-hop
+              destination for final delivery  to  domains  listed
+              with  <a href="postconf.5.html#mydestination">mydestination</a>,  and  for [ipaddress] destina-
+              tions that match $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or  $<a href="postconf.5.html#proxy_interfaces">proxy_inter</a>-
+              <a href="postconf.5.html#proxy_interfaces">faces</a>.
 
        <b><a href="postconf.5.html#virtual_transport">virtual_transport</a> (virtual)</b>
-              The  default  mail  delivery  transport for domains
-              that match the  $<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a>  parameter
-              value.
+              The  default  mail  delivery transport and next-hop
+              destination for final delivery  to  domains  listed
+              with <a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a>.
 
        <b><a href="postconf.5.html#relay_transport">relay_transport</a> (relay)</b>
               The  default  mail  delivery transport and next-hop
-              information   for   domains    that    match    the
-              $<a href="postconf.5.html#relay_domains">relay_domains</a> parameter value.
+              destination for remote delivery to  domains  listed
+              with $<a href="postconf.5.html#relay_domains">relay_domains</a>.
 
        <b><a href="postconf.5.html#default_transport">default_transport</a> (smtp)</b>
-              The  default  mail  delivery  transport for domains
-              that do not match $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>,
-              $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>,   $<a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>,  $<a href="postconf.5.html#virtual_mailbox_domains">vir</a>-
-              <a href="postconf.5.html#virtual_mailbox_domains">tual_mailbox_domains</a>, or $<a href="postconf.5.html#relay_domains">relay_domains</a>.
+              The  default  mail  delivery transport and next-hop
+              destination for  destinations  that  do  not  match
+              $<a href="postconf.5.html#mydestination">mydestination</a>,   $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>,   $<a href="postconf.5.html#proxy_interfaces">proxy_inter</a>-
+              <a href="postconf.5.html#proxy_interfaces">faces</a>,    $<a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>,    $<a href="postconf.5.html#virtual_mailbox_domains">virtual_mail-
+              box_domains</a>, or $<a href="postconf.5.html#relay_domains">relay_domains</a>.
 
-       <b><a href="postconf.5.html#parent_domain_matches_subdomains">parent_domain_matches_subdomains</a> (see 'postconf  -d'  out-</b>
+       <b><a href="postconf.5.html#parent_domain_matches_subdomains">parent_domain_matches_subdomains</a>  (see  'postconf -d' out-</b>
        <b>put)</b>
               What   Postfix   features   match   subdomains   of
               "domain.tld" automatically, instead of requiring an
               explicit ".domain.tld" pattern.
 
        <b><a href="postconf.5.html#relayhost">relayhost</a> (empty)</b>
-              The default host to send non-local mail to when  no
-              entry  is  matched in the optional <a href="transport.5.html"><b>transport</b>(5)</a> ta-
-              ble.
+              The  next-hop  destination of non-local mail; over-
+              rides non-<a href="ADDRESS_CLASS_README.html#local_domain_class">local domains</a> in recipient addresses.
 
        <b><a href="postconf.5.html#transport_maps">transport_maps</a> (empty)</b>
               Optional lookup tables with mappings from recipient
@@ -183,9 +185,9 @@ TRIVIAL-REWRITE(8)                                          TRIVIAL-REWRITE(8)
 
        Available in Postfix version 2.3 and later:
 
-       <b><a href="postconf.5.html#sender_relayhost_maps">sender_relayhost_maps</a> (empty)</b>
-              A sender-specific override for the global <a href="postconf.5.html#relayhost">relayhost</a>
-              parameter setting.
+       <b><a href="postconf.5.html#sender_dependent_relayhost_maps">sender_dependent_relayhost_maps</a> (empty)</b>
+              A sender-dependent override for the  global  <a href="postconf.5.html#relayhost">relay</a>-
+              <a href="postconf.5.html#relayhost">host</a> parameter setting.
 
 <b>ADDRESS VERIFICATION CONTROLS</b>
        Postfix   version  2.1  introduces  sender  and  recipient
@@ -216,26 +218,28 @@ TRIVIAL-REWRITE(8)                                          TRIVIAL-REWRITE(8)
               Overrides   the  <a href="postconf.5.html#relayhost">relayhost</a>  parameter  setting  for
               address verification probes.
 
-       <b><a href="postconf.5.html#address_verify_sender_relayhost_maps">address_verify_sender_relayhost_maps</a> (empty)</b>
-              Overrides the <a href="postconf.5.html#sender_relayhost_maps">sender_relayhost_maps</a> parameter  set-
-              ting for address verification probes.
-
        <b><a href="postconf.5.html#address_verify_transport_maps">address_verify_transport_maps</a> ($<a href="postconf.5.html#transport_maps">transport_maps</a>)</b>
-              Overrides  the <a href="postconf.5.html#transport_maps">transport_maps</a> parameter setting for
+              Overrides the <a href="postconf.5.html#transport_maps">transport_maps</a> parameter setting  for
               address verification probes.
+
+       Available in Postfix version 2.3 and later:
+
+       <b><a href="postconf.5.html#address_verify_sender_dependent_relayhost_maps">address_verify_sender_dependent_relayhost_maps</a> (empty)</b>
+              Overrides    the    <a href="postconf.5.html#sender_dependent_relayhost_maps">sender_dependent_relayhost_maps</a>
+              parameter setting for address verification  probes.
 
 <b>MISCELLANEOUS CONTROLS</b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The default location of  the  Postfix  main.cf  and
+              The  default  location  of  the Postfix main.cf and
               master.cf configuration files.
 
        <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
-              How  much time a Postfix daemon process may take to
-              handle a request  before  it  is  terminated  by  a
+              How much time a Postfix daemon process may take  to
+              handle  a  request  before  it  is  terminated by a
               built-in watchdog timer.
 
        <b><a href="postconf.5.html#empty_address_recipient">empty_address_recipient</a> (MAILER-DAEMON)</b>
-              The   recipient  of  mail  addressed  to  the  null
+              The  recipient  of  mail  addressed  to  the   null
               address.
 
        <b><a href="postconf.5.html#ipc_timeout">ipc_timeout</a> (3600s)</b>
@@ -243,12 +247,12 @@ TRIVIAL-REWRITE(8)                                          TRIVIAL-REWRITE(8)
               over an internal communication channel.
 
        <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
-              The  maximum  amount  of  time that an idle Postfix
-              daemon process waits for the next  service  request
+              The maximum amount of time  that  an  idle  Postfix
+              daemon  process  waits for the next service request
               before exiting.
 
        <b><a href="postconf.5.html#max_use">max_use</a> (100)</b>
-              The  maximal number of connection requests before a
+              The maximal number of connection requests before  a
               Postfix daemon process terminates.
 
        <b><a href="postconf.5.html#relocated_maps">relocated_maps</a> (empty)</b>
@@ -256,33 +260,33 @@ TRIVIAL-REWRITE(8)                                          TRIVIAL-REWRITE(8)
               for users or domains that no longer exist.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
-              The  process  ID  of  a  Postfix  command or daemon
+              The process ID  of  a  Postfix  command  or  daemon
               process.
 
        <b><a href="postconf.5.html#process_name">process_name</a> (read-only)</b>
-              The process name of a  Postfix  command  or  daemon
+              The  process  name  of  a Postfix command or daemon
               process.
 
        <b><a href="postconf.5.html#queue_directory">queue_directory</a> (see 'postconf -d' output)</b>
-              The  location of the Postfix top-level queue direc-
+              The location of the Postfix top-level queue  direc-
               tory.
 
        <b><a href="postconf.5.html#show_user_unknown_table_name">show_user_unknown_table_name</a> (yes)</b>
-              Display the name of  the  recipient  table  in  the
+              Display  the  name  of  the  recipient table in the
               "User unknown" responses.
 
        <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (postfix)</b>
-              The  mail  system  name  that  is  prepended to the
-              process name in syslog  records,  so  that  "smtpd"
+              The mail system  name  that  is  prepended  to  the
+              process  name  in  syslog  records, so that "smtpd"
               becomes, for example, "postfix/smtpd".
 
        Available in Postfix version 2.0 and later:
 
        <b><a href="postconf.5.html#helpful_warnings">helpful_warnings</a> (yes)</b>
-              Log  warnings  about problematic configuration set-
+              Log warnings about problematic  configuration  set-
               tings, and provide helpful suggestions.
 
 <b>SEE ALSO</b>
@@ -297,7 +301,7 @@ TRIVIAL-REWRITE(8)                                          TRIVIAL-REWRITE(8)
        <a href="ADDRESS_VERIFICATION_README.html">ADDRESS_VERIFICATION_README</a>, Postfix address verification
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>

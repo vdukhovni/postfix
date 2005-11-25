@@ -126,7 +126,6 @@
 #include <split_addr.h>
 #include <dsn_mask.h>
 #include <dsn_attr_map.h>
-#include <mail_addr_find.h>
 
 /* Client stubs. */
 
@@ -845,23 +844,14 @@ static void qmgr_message_sort(QMGR_MESSAGE *message)
 /* qmgr_resolve_one - resolve or skip one recipient */
 
 static int qmgr_resolve_one(QMGR_MESSAGE *message, RECIPIENT *recipient,
-			            const char *addr, RESOLVE_REPLY *reply,
-			            int do_snd_relay_maps)
+			            const char *addr, RESOLVE_REPLY *reply)
 {
-    MAPS   *snd_relay_maps;
-    const char *smarthost;
     DSN     dsn;
 
-#define NO_SENDER_RELAY_MAPS	0
-#define DO_SENDER_RELAY_MAPS	1
-
-    if ((message->tflags & DEL_REQ_FLAG_MTA_VRFY) == 0) {
-	snd_relay_maps = qmgr_snd_relay_maps;
-	resolve_clnt_query(addr, reply);
-    } else {
-	snd_relay_maps = qmgr_vrfy_relay_maps;
-	resolve_clnt_verify(addr, reply);
-    }
+    if ((message->tflags & DEL_REQ_FLAG_MTA_VRFY) == 0)
+	resolve_clnt_query_from(message->sender, addr, reply);
+    else
+	resolve_clnt_verify_from(message->sender, addr, reply);
     if (reply->flags & RESOLVE_FLAG_FAIL) {
 	qmgr_defer_recipient(message, recipient,
 			     DSN_SMTP(&dsn, "4.3.0",
@@ -875,31 +865,6 @@ static int qmgr_resolve_one(QMGR_MESSAGE *message, RECIPIENT *recipient,
 				       "bad address syntax"));
 	return (-1);
     } else {
-
-	/*
-	 * The next-hop destination may be replaced by the per-sender relay
-	 * host.
-	 * 
-	 * XXX This violates the principle that qmgr does no map lookups. Map
-	 * changes require process restart which is bad for queue manager
-	 * performance.
-	 */
-	if ((reply->flags & RESOLVE_FLAG_SMARTHOST) && do_snd_relay_maps
-	    && message->sender[0] && snd_relay_maps) {
-	    if ((smarthost = mail_addr_find(snd_relay_maps, message->sender,
-					    (char **) 0)) != 0) {
-		if (msg_verbose)
-		    msg_info("using smart host %s for sender %s",
-			     smarthost, message->sender);
-		vstring_strcpy(reply->nexthop, smarthost);
-	    } else if (dict_errno != 0) {
-		qmgr_defer_recipient(message, recipient,
-				     DSN_SMTP(&dsn, "4.3.0",
-					      "451 address resolver failure",
-					      "address resolver failure"));
-		return (-1);
-	    }
-	}
 	return (0);
     }
 }
@@ -945,8 +910,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 				  reply.recipient);
 	    RECIPIENT_UPDATE(recipient->address, STR(reply.recipient));
 	    if (qmgr_resolve_one(message, recipient,
-				 recipient->address, &reply,
-				 NO_SENDER_RELAY_MAPS) < 0)
+				 recipient->address, &reply) < 0)
 		continue;
 	    if (!STREQ(recipient->address, STR(reply.recipient)))
 		RECIPIENT_UPDATE(recipient->address, STR(reply.recipient));
@@ -971,8 +935,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 */
 	else {
 	    if (qmgr_resolve_one(message, recipient,
-				 recipient->address, &reply,
-				 DO_SENDER_RELAY_MAPS) < 0)
+				 recipient->address, &reply) < 0)
 		continue;
 	    if (!STREQ(recipient->address, STR(reply.recipient)))
 		RECIPIENT_UPDATE(recipient->address, STR(reply.recipient));

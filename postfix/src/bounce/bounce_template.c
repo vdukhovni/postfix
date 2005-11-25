@@ -407,6 +407,7 @@ static const char *bounce_template_lookup(const char *key, int unused_mode,
 				 tp->origin, tp->class, key);
 			msg_warn("please reduce time unit \"%s\" of \"%s\" "
 			      "in %s template", bd->suffix, key, tp->class);
+			msg_warn("for instructions see the bounce(5) manual");
 		    }
 		    if (buf == 0)
 			buf = vstring_alloc(10);

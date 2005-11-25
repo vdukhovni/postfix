@@ -188,9 +188,9 @@ SMTP(8)                                                                SMTP(8)
 
        <b><a href="postconf.5.html#smtp_sasl_password_maps">smtp_sasl_password_maps</a> (empty)</b>
               Optional SMTP client lookup tables with  one  user-
-              name:password  entry  per remote hostname or domain
-              (or per sender, when per-sender  authentication  is
-              enabled).
+              name:password  entry per remote hostname or domain,
+              or sender address when sender-dependent authentica-
+              tion is enabled.
 
        <b><a href="postconf.5.html#smtp_sasl_security_options">smtp_sasl_security_options</a> (noplaintext, noanonymous)</b>
               What  authentication  mechanisms  the  Postfix SMTP
@@ -205,8 +205,8 @@ SMTP(8)                                                                SMTP(8)
 
        Available in Postfix version 2.3 and later:
 
-       <b><a href="postconf.5.html#smtp_per_sender_authentication">smtp_per_sender_authentication</a> (no)</b>
-              Enable  per-sender  authentication  in   the   SMTP
+       <b><a href="postconf.5.html#smtp_sender_dependent_authentication">smtp_sender_dependent_authentication</a> (no)</b>
+              Enable sender-dependent authentication in the  SMTP
               client;  this is available only with SASL authenti-
               cation, and disables  SMTP  connection  caching  to
               ensure  that  mail  from different senders will use
