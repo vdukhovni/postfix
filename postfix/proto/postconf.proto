@@ -7714,7 +7714,7 @@ deferred.
 
 <p>
 The default mail delivery transport and next-hop destination for
-final delivery to domains listed with virtual_mailbox_domains.
+final delivery to domains listed with $virtual_mailbox_domains.
 This information can be overruled with the transport(5) table.
 </p>
 

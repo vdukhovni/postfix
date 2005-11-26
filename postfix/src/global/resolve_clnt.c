@@ -244,8 +244,8 @@ void    resolve_clnt(const char *class, const char *sender,
 			 var_rewrite_service);
 	} else {
 	    if (msg_verbose)
-		msg_info("%s: `%s' -> transp=`%s' host=`%s' rcpt=`%s' flags=%s%s%s%s class=%s%s%s%s%s",
-			 myname, addr, STR(reply->transport),
+		msg_info("%s: `%s' -> `%s' -> transp=`%s' host=`%s' rcpt=`%s' flags=%s%s%s%s class=%s%s%s%s%s",
+			 myname, sender, addr, STR(reply->transport),
 			 STR(reply->nexthop), STR(reply->recipient),
 			 IFSET(RESOLVE_FLAG_FINAL, "final"),
 			 IFSET(RESOLVE_FLAG_ROUTED, "routed"),

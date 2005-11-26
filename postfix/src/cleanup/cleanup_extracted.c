@@ -237,6 +237,10 @@ void    cleanup_extracted_process(CLEANUP_STATE *state, int type,
 
     /*
      * Extracted envelope non-recipient record processing.
+     * 
+     * XXX We currently cannot have FILTER, REDIRECT etc. action records after
+     * the message content, as that would break the use of "postsuper -r" to
+     * reset such information. See also smtpd/smtpd_check.c.
      */
     if (state->flags & CLEANUP_FLAG_INRCPT)
 	/* Tell qmgr that recipient records are mixed with other information. */

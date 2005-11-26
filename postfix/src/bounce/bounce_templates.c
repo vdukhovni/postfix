@@ -41,7 +41,7 @@
 /*	bounce_templates_free() destroys a bounce template group.
 /*
 /*	bounce_templates_load() reads zero or more bounce templates
-/*	from the specified file.
+/*	from the specified file to override built-in templates.
 /*
 /*	bounce_templates_expand() expands $name macros and writes
 /*	the text portions of the specified bounce template group

@@ -221,26 +221,32 @@
 #               transport(5) table to direct mail to the discard(8)
 #               service.
 # 
+#               Note:  this  action  currently  does  not  work  in
+#               smtpd_end_of_data_restrictions.
+# 
 #               This feature is available in Postfix 2.0 and later.
 # 
-#        DUNNO  Pretend that the lookup key  was  not  found.  This
-#               prevents  Postfix  from  trying  substrings  of the
-#               lookup key (such as a subdomain name, or a  network
+#        DUNNO  Pretend  that  the  lookup  key was not found. This
+#               prevents Postfix  from  trying  substrings  of  the
+#               lookup  key (such as a subdomain name, or a network
 #               address subnetwork).
 # 
 #               This feature is available in Postfix 2.0 and later.
 # 
 #        FILTER transport:destination
-#               After the message is queued, send the  entire  mes-
+#               After  the  message is queued, send the entire mes-
 #               sage through the specified external content filter.
-#               The transport:destination syntax  is  described  in
-#               the  transport(5)  manual  page.   More information
-#               about external content filters is  in  the  Postfix
+#               The  transport:destination  syntax  is described in
+#               the transport(5)  manual  page.   More  information
+#               about  external  content  filters is in the Postfix
 #               FILTER_README file.
 # 
-#               Note:   this  action  overrides  the  main.cf  con-
+#               Note:  this  action  overrides  the  main.cf   con-
 #               tent_filter  setting,  and  currently  affects  all
 #               recipients of the message.
+# 
+#               Note:  this  action  currently  does  not  work  in
+#               smtpd_end_of_data_restrictions.
 # 
 #               This feature is available in Postfix 2.0 and later.
 # 
@@ -262,26 +268,32 @@
 #               Note: this action currently affects all  recipients
 #               of the message.
 # 
+#               Note:  this  action  currently  does  not  work  in
+#               smtpd_end_of_data_restrictions.
+# 
 #               This feature is available in Postfix 2.0 and later.
 # 
 #        PREPEND headername: headervalue
-#               Prepend the specified message header  to  the  mes-
+#               Prepend  the  specified  message header to the mes-
 #               sage.  When this action is used multiple times, the
-#               first prepended header appears  before  the  second
+#               first  prepended  header  appears before the second
 #               etc. prepended header.
 # 
-#               Note:  this action does not support multi-line mes-
+#               Note: this action does not support multi-line  mes-
 #               sage headers.
 # 
 #               This feature is available in Postfix 2.1 and later.
 # 
 #        REDIRECT user@domain
-#               After  the  message  is queued, send the message to
+#               After the message is queued, send  the  message  to
 #               the  specified  address  instead  of  the  intended
 #               recipient(s).
 # 
-#               Note:  this action overrides the FILTER action, and
+#               Note: this action overrides the FILTER action,  and
 #               currently affects all recipients of the message.
+# 
+#               Note:  this  action  currently  does  not  work  in
+#               smtpd_end_of_data_restrictions.
 # 
 #               This feature is available in Postfix 2.1 and later.
 # 

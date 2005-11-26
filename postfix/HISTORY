@@ -11342,7 +11342,8 @@ Apologies for any names omitted.
 	a race condition. This time window was increased when queue
 	file creation was postponed from MAIL FROM until the first
 	accepted RCPT TO.  The window is closed again. Found by
-	Victor. Files: global/mail_stream.c, global/mail_queue.c.
+	Victor. Files: global/mail_stream.c, global/mail_queue.c,
+	cleanup/cleanup_message.c.
 
 20051109
 
@@ -11457,6 +11458,14 @@ Apologies for any names omitted.
 	extended version of a patch by Mathias Hasselmann.  Files:
 	smtp/smtp_connect.c, smtp/smtp_sasl_glue.c.
 
+20051126
+
+	Workaround: log warning when REDIRECT or FILTER are used
+	in smtpd_end_of_data_restrictions. File: smtpd/smtpd_check.c.
+
+	Log warning when REDIRECT or FILTER are used in
+	smtpd_etrn_restrictions. File: smtpd/smtpd_check.c.
+
 Open problems:
 
 	"postsuper -r" no longer resets the message arrival time,
@@ -11464,8 +11473,8 @@ Open problems:
 	information. This can be a problem when mail "on hold" is
 	released after a long time.
 
-	Is it safe to cache a connection after it has been used
-	for more than some number of address verification probes?
+	Is it safe to cache a connection after it has been used for
+	more than some number of address verification probes?
 
 	Access map actions such as FILTER and REDIRECT don't work
 	in smtpd_end_of_data_restrictions (or anything else that
@@ -11546,8 +11555,6 @@ Open problems:
 	become arbitrarily short when an event is scheduled just
 	before the current second rolls over.
 
-	Low: per-sender resolver personalities?
-
 	Low: configurable internal/system locking method.
 
 	Low: make sure CCARGS -I options come at the end.
@@ -11560,7 +11567,7 @@ Open problems:
 
 	Low: noise filter: allow smtp(8) to retry immediately if
 	all MXes return a quick ECONNRESET or 4xx reply during the
-	initial handshake.
+	initial handshake. Retry once? How many times?
 
 	Low: make post-install a "postfix-only script" so it can
 	take data from the environment instead of main.cf.
@@ -11581,7 +11588,9 @@ Open problems:
 	unthrottle disabled transports or queues.
 
 	Med: postsuper -r should do something with recipients in
-	bounce logfiles.
+	bounce logfiles, to make sure the sender will be notified.
+	To be perfectly safe, no process other than the queue manager
+	should move a queue file from the active queue.
 
 	Low: postsuper re-run after renaming files, but only a
 	limited number of times.

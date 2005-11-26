@@ -1835,6 +1835,26 @@ static int can_delegate_action(SMTPD_STATE *state, const char *table,
 		 table, VAR_SMTPD_PROXY_FILT, action);
 	return (0);
     }
+
+    /*
+     * XXX We currently cannot have FILTER, REDIRECT etc. action records
+     * after the message content, as that would break the use of "postsuper
+     * -r" to reset such information. See cleanup/cleanup_extracted.c.
+     */
+    if (strcmp(state->where, SMTPD_AFTER_DOT) == 0) {
+	msg_warn("access table %s: action %s is unavailable in %s",
+		 table, action, VAR_EOD_CHECKS);
+	return (0);
+    }
+
+    /*
+     * ETRN does not receive mail so we can't store queue file records.
+     */
+    if (strcmp(state->where, "ETRN") == 0) {
+	msg_warn("access table %s: action %s is unavailable in %s",
+		 table, action, VAR_ETRN_CHECKS);
+	return (0);
+    }
     return (not_in_client_helo(state, table, action, reply_class));
 }
 

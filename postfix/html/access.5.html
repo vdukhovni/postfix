@@ -227,26 +227,32 @@ ACCESS(5)                                                            ACCESS(5)
               <a href="transport.5.html">transport(5)</a> table to direct mail to the <a href="discard.8.html">discard(8)</a>
               service.
 
+              Note:  this  action  currently  does  not  work  in
+              <b><a href="postconf.5.html#smtpd_end_of_data_restrictions">smtpd_end_of_data_restrictions</a></b>.
+
               This feature is available in Postfix 2.0 and later.
 
-       <b>DUNNO</b>  Pretend that the lookup key  was  not  found.  This
-              prevents  Postfix  from  trying  substrings  of the
-              lookup key (such as a subdomain name, or a  network
+       <b>DUNNO</b>  Pretend  that  the  lookup  key was not found. This
+              prevents Postfix  from  trying  substrings  of  the
+              lookup  key (such as a subdomain name, or a network
               address subnetwork).
 
               This feature is available in Postfix 2.0 and later.
 
        <b>FILTER</b> <i>transport:destination</i>
-              After the message is queued, send the  entire  mes-
+              After  the  message is queued, send the entire mes-
               sage through the specified external content filter.
-              The <i>transport:destination</i> syntax  is  described  in
-              the  <a href="transport.5.html"><b>transport</b>(5)</a>  manual  page.   More information
-              about external content filters is  in  the  Postfix
+              The  <i>transport:destination</i>  syntax  is described in
+              the <a href="transport.5.html"><b>transport</b>(5)</a>  manual  page.   More  information
+              about  external  content  filters is in the Postfix
               <a href="FILTER_README.html">FILTER_README</a> file.
 
-              Note:   this  action  overrides  the  <b>main.cf  <a href="postconf.5.html#content_filter">con</a>-</b>
+              Note:  this  action  overrides  the  <b>main.cf   <a href="postconf.5.html#content_filter">con</a>-</b>
               <b><a href="postconf.5.html#content_filter">tent_filter</a></b>  setting,  and  currently  affects  all
               recipients of the message.
+
+              Note:  this  action  currently  does  not  work  in
+              <b><a href="postconf.5.html#smtpd_end_of_data_restrictions">smtpd_end_of_data_restrictions</a></b>.
 
               This feature is available in Postfix 2.0 and later.
 
@@ -268,26 +274,32 @@ ACCESS(5)                                                            ACCESS(5)
               Note: this action currently affects all  recipients
               of the message.
 
+              Note:  this  action  currently  does  not  work  in
+              <b><a href="postconf.5.html#smtpd_end_of_data_restrictions">smtpd_end_of_data_restrictions</a></b>.
+
               This feature is available in Postfix 2.0 and later.
 
        <b>PREPEND</b> <i>headername: headervalue</i>
-              Prepend the specified message header  to  the  mes-
+              Prepend  the  specified  message header to the mes-
               sage.  When this action is used multiple times, the
-              first prepended header appears  before  the  second
+              first  prepended  header  appears before the second
               etc. prepended header.
 
-              Note:  this action does not support multi-line mes-
+              Note: this action does not support multi-line  mes-
               sage headers.
 
               This feature is available in Postfix 2.1 and later.
 
        <b>REDIRECT</b> <i>user@domain</i>
-              After  the  message  is queued, send the message to
+              After the message is queued, send  the  message  to
               the  specified  address  instead  of  the  intended
               recipient(s).
 
-              Note:  this action overrides the FILTER action, and
+              Note: this action overrides the FILTER action,  and
               currently affects all recipients of the message.
+
+              Note:  this  action  currently  does  not  work  in
+              <b><a href="postconf.5.html#smtpd_end_of_data_restrictions">smtpd_end_of_data_restrictions</a></b>.
 
               This feature is available in Postfix 2.1 and later.
 

@@ -12,7 +12,8 @@
 /*	void	bounce_template_free(template)
 /*	BOUNCE_TEMPLATE *template;
 /*
-/*	void	bounce_template_load(stream, buffer, origin)
+/*	void	bounce_template_load(template, stream, buffer, origin)
+/*	BOUNCE_TEMPLATE *template;
 /*	VSTREAM	*stream;
 /*	const char *buffer;
 /*	const char *origin;
@@ -57,8 +58,8 @@
 /*
 /*	bounce_template_free() destroys a bounce message template.
 /*
-/*	bounce_template_load() reads a bounce template from the
-/*	specified buffer with the specified origin. The buffer and
+/*	bounce_template_load() overrides a bounce template with the
+/*	specified buffer from the specified origin. The buffer and
 /*	origin are copied. Specify a null buffer and origin pointer
 /*	to reset the template to the defaults specified with
 /*	bounce_template_create().
@@ -340,7 +341,7 @@ static void bounce_template_parse_buffer(BOUNCE_TEMPLATE *tp)
 
     /*
      * Is this 7bit or 8bit text? If the character set is US-ASCII, then
-     * don't allow 8bit text.
+     * don't allow 8bit text. Don't assume 8bit when charset was changed.
      */
 #define NON_ASCII(p) (*(p) && !allascii((p)))
 
@@ -401,6 +402,7 @@ static const char *bounce_template_lookup(const char *key, int unused_mode,
 				 tp->origin, result, tp->class, key);
 			msg_warn("please increase time unit \"%s\" of \"%s\" "
 			      "in %s template", bd->suffix, key, tp->class);
+			msg_warn("for instructions see the bounce(5) manual");
 		    } else if (result == 0 && bp->value[0] && bd->divisor > 1) {
 			msg_warn("%s: zero result in %s template "
 				 "conversion of parameter \"%s\"",
