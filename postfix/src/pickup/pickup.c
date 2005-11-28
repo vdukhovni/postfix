@@ -124,6 +124,7 @@
 #include <set_ugid.h>
 #include <safe_open.h>
 #include <watchdog.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -139,6 +140,7 @@
 #include <rec_type.h>
 #include <lex_822.h>
 #include <input_transp.h>
+#include <dsn_attr_map.h>
 
 /* Single-threaded server skeleton. */
 
@@ -199,6 +201,8 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
     int     type;
     int     check_first = (*expected == REC_TYPE_CONTENT[0]);
     int     time_seen = 0;
+    char   *attr_name;
+    char   *attr_value;
 
     /*
      * Limit the input record size. All front-end programs should protect the
@@ -235,9 +239,28 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 	 * XXX Workaround: REC_TYPE_FILT (used in envelopes) == REC_TYPE_CONT
 	 * (used in message content).
 	 */
-	if (type == REC_TYPE_FILT && *expected != REC_TYPE_CONTENT[0])
-	    /* Use our own content filter settings instead. */
-	    continue;
+	if (*expected != REC_TYPE_CONTENT[0]) {
+	    if (type == REC_TYPE_FILT)
+		/* Discard FILTER record after "postsuper -r". */
+		continue;
+	    if (type == REC_TYPE_RDR)
+		/* Discard REDIRECT record after "postsuper -r". */
+		continue;
+	}
+	if (*expected == REC_TYPE_EXTRACT[0]) {
+	    if (type == REC_TYPE_RRTO)
+		/* Discard return-receipt record after "postsuper -r". */
+		continue;
+	    if (type == REC_TYPE_ERTO)
+		/* Discard errors-to record after "postsuper -r". */
+		continue;
+	    if (type == REC_TYPE_ATTR
+		&& split_nameval(vstring_str(buf),
+				 &attr_name, &attr_value) == 0
+		&& dsn_attr_map(attr_name) == 0)
+		/* Discard other/header/body action after "postsuper -r". */
+		continue;
+	}
 
 	/*
 	 * XXX Force an empty record when the queue file content begins with

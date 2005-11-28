@@ -221,7 +221,7 @@
 #               transport(5) table to direct mail to the discard(8)
 #               service.
 # 
-#               Note:  this  action  currently  does  not  work  in
+#               Note:  this  action  does  not  work in Postfix 2.2
 #               smtpd_end_of_data_restrictions.
 # 
 #               This feature is available in Postfix 2.0 and later.
@@ -245,7 +245,7 @@
 #               tent_filter  setting,  and  currently  affects  all
 #               recipients of the message.
 # 
-#               Note:  this  action  currently  does  not  work  in
+#               Note: this action does  not  work  in  Postfix  2.2
 #               smtpd_end_of_data_restrictions.
 # 
 #               This feature is available in Postfix 2.0 and later.
@@ -268,7 +268,7 @@
 #               Note: this action currently affects all  recipients
 #               of the message.
 # 
-#               Note:  this  action  currently  does  not  work  in
+#               Note:  this  action  does  not  work in Postfix 2.2
 #               smtpd_end_of_data_restrictions.
 # 
 #               This feature is available in Postfix 2.0 and later.
@@ -282,6 +282,10 @@
 #               Note: this action does not support multi-line  mes-
 #               sage headers.
 # 
+#               Note:  this  action must be used before the message
+#               content  is  received;  it  cannot   be   used   in
+#               smtpd_end_of_data_restrictions.
+# 
 #               This feature is available in Postfix 2.1 and later.
 # 
 #        REDIRECT user@domain
@@ -292,7 +296,7 @@
 #               Note: this action overrides the FILTER action,  and
 #               currently affects all recipients of the message.
 # 
-#               Note:  this  action  currently  does  not  work  in
+#               Note:  this  action  does  not  work in Postfix 2.2
 #               smtpd_end_of_data_restrictions.
 # 
 #               This feature is available in Postfix 2.1 and later.

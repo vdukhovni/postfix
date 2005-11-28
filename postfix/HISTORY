@@ -11466,6 +11466,15 @@ Apologies for any names omitted.
 	Log warning when REDIRECT or FILTER are used in
 	smtpd_etrn_restrictions. File: smtpd/smtpd_check.c.
 
+20051128
+
+	Bugfix: moved code around from one place to another to make
+	REDIRECT, FILTER, HOLD and DISCARD access(5) table actions
+	work in smtpd_end_of_data_restrictions.  PREPEND will not
+	be fixed; it must be specified before the message content
+	is received.  Files: smtpd/smtpd.c, smtpd/smtpd_check.c,
+	cleanup/cleanup_extracted.c, pickup/pickup.c.
+
 Open problems:
 
 	"postsuper -r" no longer resets the message arrival time,

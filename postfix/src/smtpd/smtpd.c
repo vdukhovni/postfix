@@ -455,7 +455,7 @@
 /*	that counts the number of errors within an SMTP session that a
 /*	client makes without delivering mail.
 /* .IP "\fBsmtpd_error_sleep_time (1s)\fR"
-/*	With Postfix 2.1 and later: the SMTP server response delay after
+/*	With Postfix version 2.1 and later: the SMTP server response delay after
 /*	a client has made more than $smtpd_soft_error_limit errors, and
 /*	fewer than $smtpd_hard_error_limit errors, without delivering mail.
 /* .IP "\fBsmtpd_soft_error_limit (10)\fR"
@@ -2117,19 +2117,15 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     }
 
     /*
-     * Flush out any access table actions that are delegated to the cleanup
-     * server, and that may trigger before we accept the first valid
-     * recipient.
+     * Flush out a first batch of access table actions that are delegated to
+     * the cleanup server, and that may trigger before we accept the first
+     * valid recipient. There will be more after end-of-data.
      * 
      * Terminate the message envelope segment. Start the message content
      * segment, and prepend our own Received: header. If there is only one
      * recipient, list the recipient address.
      */
     if (state->cleanup) {
-	if (state->saved_filter)
-	    rec_fprintf(state->cleanup, REC_TYPE_FILT, "%s", state->saved_filter);
-	if (state->saved_redirect)
-	    rec_fprintf(state->cleanup, REC_TYPE_RDR, "%s", state->saved_redirect);
 	if (state->saved_flags)
 	    rec_fprintf(state->cleanup, REC_TYPE_FLGS, "%d", state->saved_flags);
 	rec_fputs(state->cleanup, REC_TYPE_MESG, "");
@@ -2301,13 +2297,28 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     }
 
     /*
-     * Send the end-of-segment markers and finish the queue file record
-     * stream.
+     * Flush out access table actions that are delegated to the cleanup
+     * server. There is similar code at the beginning of the DATA command.
+     * 
+     * Send the end-of-segment markers and finish the queue file record stream.
      */
     else {
+	if (state->err == CLEANUP_STAT_OK) {
+	    rec_fputs(state->cleanup, REC_TYPE_XTRA, "");
+	    if (state->saved_filter)
+		rec_fprintf(state->cleanup, REC_TYPE_FILT, "%s",
+			    state->saved_filter);
+	    if (state->saved_redirect)
+		rec_fprintf(state->cleanup, REC_TYPE_RDR, "%s",
+			    state->saved_redirect);
+	    if (state->saved_flags)
+		rec_fprintf(state->cleanup, REC_TYPE_FLGS, "%d",
+			    state->saved_flags);
+	    if (vstream_ferror(state->cleanup))
+		state->err = CLEANUP_STAT_WRITE;
+	}
 	if (state->err == CLEANUP_STAT_OK)
-	    if (rec_fputs(state->cleanup, REC_TYPE_XTRA, "") < 0
-		|| rec_fputs(state->cleanup, REC_TYPE_END, "") < 0
+	    if (rec_fputs(state->cleanup, REC_TYPE_END, "") < 0
 		|| vstream_fflush(state->cleanup))
 		state->err = CLEANUP_STAT_WRITE;
 	if (state->err == 0) {

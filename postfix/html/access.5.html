@@ -227,7 +227,7 @@ ACCESS(5)                                                            ACCESS(5)
               <a href="transport.5.html">transport(5)</a> table to direct mail to the <a href="discard.8.html">discard(8)</a>
               service.
 
-              Note:  this  action  currently  does  not  work  in
+              Note:  this  action  does  not  work in Postfix 2.2
               <b><a href="postconf.5.html#smtpd_end_of_data_restrictions">smtpd_end_of_data_restrictions</a></b>.
 
               This feature is available in Postfix 2.0 and later.
@@ -251,7 +251,7 @@ ACCESS(5)                                                            ACCESS(5)
               <b><a href="postconf.5.html#content_filter">tent_filter</a></b>  setting,  and  currently  affects  all
               recipients of the message.
 
-              Note:  this  action  currently  does  not  work  in
+              Note: this action does  not  work  in  Postfix  2.2
               <b><a href="postconf.5.html#smtpd_end_of_data_restrictions">smtpd_end_of_data_restrictions</a></b>.
 
               This feature is available in Postfix 2.0 and later.
@@ -274,7 +274,7 @@ ACCESS(5)                                                            ACCESS(5)
               Note: this action currently affects all  recipients
               of the message.
 
-              Note:  this  action  currently  does  not  work  in
+              Note:  this  action  does  not  work in Postfix 2.2
               <b><a href="postconf.5.html#smtpd_end_of_data_restrictions">smtpd_end_of_data_restrictions</a></b>.
 
               This feature is available in Postfix 2.0 and later.
@@ -288,6 +288,10 @@ ACCESS(5)                                                            ACCESS(5)
               Note: this action does not support multi-line  mes-
               sage headers.
 
+              Note:  this  action must be used before the message
+              content  is  received;  it  cannot   be   used   in
+              <b><a href="postconf.5.html#smtpd_end_of_data_restrictions">smtpd_end_of_data_restrictions</a></b>.
+
               This feature is available in Postfix 2.1 and later.
 
        <b>REDIRECT</b> <i>user@domain</i>
@@ -298,7 +302,7 @@ ACCESS(5)                                                            ACCESS(5)
               Note: this action overrides the FILTER action,  and
               currently affects all recipients of the message.
 
-              Note:  this  action  currently  does  not  work  in
+              Note:  this  action  does  not  work in Postfix 2.2
               <b><a href="postconf.5.html#smtpd_end_of_data_restrictions">smtpd_end_of_data_restrictions</a></b>.
 
               This feature is available in Postfix 2.1 and later.

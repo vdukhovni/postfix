@@ -123,7 +123,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 
     if (type == REC_TYPE_FLGS) {
 	/* Not part of queue file format. */
-	extra_opts = atol(buf);
+	extra_opts = atoi(buf);
 	if (extra_opts & ~CLEANUP_FLAG_MASK_EXTRA)
 	    msg_warn("%s: ignoring bad extra flags: 0x%x",
 		     state->queue_id, extra_opts);

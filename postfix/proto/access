@@ -192,7 +192,7 @@
 #	To discard only one recipient without discarding the entire message,
 #	use the transport(5) table to direct mail to the discard(8) service.
 # .sp
-#	Note: this action currently does not work in
+#	Note: this action does not work in Postfix 2.2
 #	\fBsmtpd_end_of_data_restrictions\fR.
 # .sp
 #	This feature is available in Postfix 2.0 and later.
@@ -212,7 +212,7 @@
 #	Note: this action overrides the \fBmain.cf content_filter\fR setting,
 #	and currently affects all recipients of the message.
 # .sp
-#	Note: this action currently does not work in
+#	Note: this action does not work in Postfix 2.2
 #	\fBsmtpd_end_of_data_restrictions\fR.
 # .sp
 #	This feature is available in Postfix 2.0 and later.
@@ -232,7 +232,7 @@
 # .sp
 #	Note: this action currently affects all recipients of the message.
 # .sp
-#	Note: this action currently does not work in
+#	Note: this action does not work in Postfix 2.2
 #	\fBsmtpd_end_of_data_restrictions\fR.
 # .sp
 #	This feature is available in Postfix 2.0 and later.
@@ -243,6 +243,9 @@
 # .sp
 #	Note: this action does not support multi-line message headers.
 # .sp
+#	Note: this action must be used before the message content
+#	is received; it cannot be used in \fBsmtpd_end_of_data_restrictions\fR.
+# .sp
 #	This feature is available in Postfix 2.1 and later.
 # .IP "\fBREDIRECT \fIuser@domain\fR"
 #	After the message is queued, send the message to the specified
@@ -251,7 +254,7 @@
 #	Note: this action overrides the FILTER action, and currently affects
 #	all recipients of the message.
 # .sp
-#	Note: this action currently does not work in
+#	Note: this action does not work in Postfix 2.2
 #	\fBsmtpd_end_of_data_restrictions\fR.
 # .sp
 #	This feature is available in Postfix 2.1 and later.

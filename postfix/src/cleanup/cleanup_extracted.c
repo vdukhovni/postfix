@@ -99,17 +99,25 @@ void    cleanup_extracted_process(CLEANUP_STATE *state, int type,
 				          const char *buf, ssize_t len)
 {
     const char *encoding;
-    const char generated_by_cleanup[] = {
-	REC_TYPE_FILT, REC_TYPE_RDR, REC_TYPE_ATTR,
-	REC_TYPE_RRTO, REC_TYPE_ERTO, 0,
-    };
     char   *attr_name;
     char   *attr_value;
     const char *error_text;
+    int     extra_opts;
     int     junk;
 
     if (msg_verbose)
 	msg_info("extracted envelope %c %.*s", type, (int) len, buf);
+
+    if (type == REC_TYPE_FLGS) {
+	/* Not part of queue file format. */
+	extra_opts = atoi(buf);
+	if (extra_opts & ~CLEANUP_FLAG_MASK_EXTRA)
+	    msg_warn("%s: ignoring bad extra flags: 0x%x",
+		     state->queue_id, extra_opts);
+	else
+	    state->flags |= extra_opts;
+	return;
+    }
 
     if (strchr(REC_TYPE_EXTRACT, type) == 0) {
 	msg_warn("%s: message rejected: "
@@ -237,22 +245,12 @@ void    cleanup_extracted_process(CLEANUP_STATE *state, int type,
 
     /*
      * Extracted envelope non-recipient record processing.
-     * 
-     * XXX We currently cannot have FILTER, REDIRECT etc. action records after
-     * the message content, as that would break the use of "postsuper -r" to
-     * reset such information. See also smtpd/smtpd_check.c.
      */
     if (state->flags & CLEANUP_FLAG_INRCPT)
 	/* Tell qmgr that recipient records are mixed with other information. */
 	state->qmgr_opts |= QMGR_READ_FLAG_MIXED_RCPT_OTHER;
-    if (strchr(generated_by_cleanup, type) != 0) {
-	/* Use our own header/body info instead. */
-	return;
-    } else {
-	/* Pass on other non-recipient record. */
-	cleanup_out(state, type, buf, len);
-	return;
-    }
+    cleanup_out(state, type, buf, len);
+    return;
 }
 
 /* cleanup_extracted_finish - complete the third message segment */
