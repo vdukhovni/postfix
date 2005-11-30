@@ -245,7 +245,21 @@ SMTP_RESP *smtp_chat_resp(SMTP_SESSION *session)
 	    if (*cp == ' ' || *cp == 0)
 		break;
 	}
+
+	/*
+	 * XXX Do not ignore garbage when ESMTP command pipelining is turned
+	 * on. After sending ".<CR><LF>QUIT<CR><LF>", Postfix might recognize
+	 * the server's 2XX QUIT reply as a 2XX END-OF-DATA reply after
+	 * garbage, causing mail to be lost. Instead, make a long jump so
+	 * that all recipients of multi-recipient mail get consistent
+	 * treatment.
+	 */
 	session->error_mask |= MAIL_ERROR_PROTOCOL;
+	if (session->features & SMTP_FEATURE_PIPELINING) {
+	    msg_warn("non-SMTP response from %s: %s",
+		     session->namaddr, STR(session->buffer));
+	    vstream_longjmp(session->stream, SMTP_ERR_PROTO);
+	}
     }
     if (three_digs != 0)
 	rdata.code = atoi(STR(session->buffer));

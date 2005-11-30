@@ -296,6 +296,10 @@ int     lmtp_stream_except(LMTP_STATE *state, int code, char *description)
 	vstring_sprintf(why, "conversation with %s timed out while %s",
 			session->namaddr, description);
 	break;
+    case SMTP_ERR_PROTO:
+	vstring_sprintf(why, "remote protocol error in reply from %s while %s",
+			session->namaddr, description);
+	break;
     }
 
     /*

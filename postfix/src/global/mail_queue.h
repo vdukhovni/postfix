@@ -12,6 +12,11 @@
 /* .nf
 
  /*
+  * System library.
+  */
+#include <sys/time.h>
+
+ /*
   * Utility library.
   */
 #include <vstring.h>
@@ -37,7 +42,7 @@
 #define MAIL_QUEUE_STAT_READY	(S_IRUSR | S_IWUSR | S_IXUSR)
 #define MAIL_QUEUE_STAT_CORRUPT	(S_IRUSR)
 
-extern struct VSTREAM *mail_queue_enter(const char *, int);
+extern struct VSTREAM *mail_queue_enter(const char *, int, struct timeval *);
 extern struct VSTREAM *mail_queue_open(const char *, const char *, int, int);
 extern int mail_queue_rename(const char *, const char *, const char *);
 extern int mail_queue_remove(const char *, const char *);

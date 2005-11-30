@@ -19,6 +19,9 @@
 #ifdef RESOLVE_H_NEEDS_STDIO_H
 #include <stdio.h>
 #endif
+#ifdef RESOLVE_H_NEEDS_NAMESER8_COMPAT_H
+#include <nameser8_compat.h>
+#endif
 #include <resolv.h>
 
  /*
