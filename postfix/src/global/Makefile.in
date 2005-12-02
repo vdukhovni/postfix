@@ -27,7 +27,8 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	ehlo_mask.c \
 	wildcard_inet_addr.c valid_mailhost_addr.c dsn_util.c dsn_mask.c \
 	dsn_attr_map.c dsn.c dsn_buf.c rcpt_buf.c rcpt_print.c dsn_print.c \
-	dsb_scan.c mail_conf_long.c msg_stats_print.c msg_stats_scan.c
+	dsb_scan.c mail_conf_long.c msg_stats_print.c msg_stats_scan.c \
+	conv_time.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o debug_peer.o debug_process.o defer.o db_common.o \
@@ -56,7 +57,8 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	ehlo_mask.o \
 	wildcard_inet_addr.o valid_mailhost_addr.o dsn_util.o dsn_mask.o \
 	dsn_attr_map.o dsn.o dsn_buf.o rcpt_buf.o rcpt_print.o dsn_print.o \
-	dsb_scan.o mail_conf_long.o msg_stats_print.o msg_stats_scan.o
+	dsb_scan.o mail_conf_long.o msg_stats_print.o msg_stats_scan.o \
+	conv_time.o
 HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	canon_addr.h cfg_parser.h cleanup_user.h clnt_stream.h config.h \
 	debug_peer.h debug_process.h defer.h deliver_completed.h \
@@ -80,7 +82,7 @@ HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	xtext.h scache.h user_acl.h ehlo_mask.h db_common.h \
 	wildcard_inet_addr.h valid_mailhost_addr.h dsn_util.h dsn_mask.h \
 	dsn_attr_map.h dsn.h dsn_buf.h rcpt_buf.h rcpt_print.h dsn_print.h \
-	dsb_scan.h msg_stats.h
+	dsb_scan.h msg_stats.h conv_time.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
@@ -545,6 +547,10 @@ clnt_stream.o: clnt_stream.c
 clnt_stream.o: clnt_stream.h
 clnt_stream.o: mail_params.h
 clnt_stream.o: mail_proto.h
+conv_time.o: ../../include/msg.h
+conv_time.o: ../../include/sys_defs.h
+conv_time.o: conv_time.c
+conv_time.o: conv_time.h
 db_common.o: ../../include/argv.h
 db_common.o: ../../include/dict.h
 db_common.o: ../../include/match_list.h
@@ -654,12 +660,61 @@ deliver_request.o: mail_proto.h
 deliver_request.o: mail_queue.h
 deliver_request.o: msg_stats.h
 deliver_request.o: recipient_list.h
+dict_ldap.o: ../../include/argv.h
+dict_ldap.o: ../../include/binhash.h
+dict_ldap.o: ../../include/dict.h
+dict_ldap.o: ../../include/match_list.h
+dict_ldap.o: ../../include/match_ops.h
+dict_ldap.o: ../../include/msg.h
+dict_ldap.o: ../../include/mymalloc.h
+dict_ldap.o: ../../include/stringops.h
 dict_ldap.o: ../../include/sys_defs.h
+dict_ldap.o: ../../include/vbuf.h
+dict_ldap.o: ../../include/vstream.h
+dict_ldap.o: ../../include/vstring.h
+dict_ldap.o: cfg_parser.h
+dict_ldap.o: db_common.h
 dict_ldap.o: dict_ldap.c
+dict_ldap.o: dict_ldap.h
+dict_ldap.o: string_list.h
+dict_mysql.o: ../../include/argv.h
+dict_mysql.o: ../../include/dict.h
+dict_mysql.o: ../../include/events.h
+dict_mysql.o: ../../include/find_inet.h
+dict_mysql.o: ../../include/match_list.h
+dict_mysql.o: ../../include/match_ops.h
+dict_mysql.o: ../../include/msg.h
+dict_mysql.o: ../../include/mymalloc.h
+dict_mysql.o: ../../include/myrand.h
+dict_mysql.o: ../../include/split_at.h
 dict_mysql.o: ../../include/sys_defs.h
+dict_mysql.o: ../../include/vbuf.h
+dict_mysql.o: ../../include/vstream.h
+dict_mysql.o: ../../include/vstring.h
+dict_mysql.o: cfg_parser.h
+dict_mysql.o: db_common.h
 dict_mysql.o: dict_mysql.c
+dict_mysql.o: dict_mysql.h
+dict_mysql.o: string_list.h
+dict_pgsql.o: ../../include/argv.h
+dict_pgsql.o: ../../include/dict.h
+dict_pgsql.o: ../../include/events.h
+dict_pgsql.o: ../../include/find_inet.h
+dict_pgsql.o: ../../include/match_list.h
+dict_pgsql.o: ../../include/match_ops.h
+dict_pgsql.o: ../../include/msg.h
+dict_pgsql.o: ../../include/mymalloc.h
+dict_pgsql.o: ../../include/myrand.h
+dict_pgsql.o: ../../include/split_at.h
 dict_pgsql.o: ../../include/sys_defs.h
+dict_pgsql.o: ../../include/vbuf.h
+dict_pgsql.o: ../../include/vstream.h
+dict_pgsql.o: ../../include/vstring.h
+dict_pgsql.o: cfg_parser.h
+dict_pgsql.o: db_common.h
 dict_pgsql.o: dict_pgsql.c
+dict_pgsql.o: dict_pgsql.h
+dict_pgsql.o: string_list.h
 dict_proxy.o: ../../include/argv.h
 dict_proxy.o: ../../include/attr.h
 dict_proxy.o: ../../include/dict.h
@@ -959,6 +1014,7 @@ mail_conf_time.o: ../../include/sys_defs.h
 mail_conf_time.o: ../../include/vbuf.h
 mail_conf_time.o: ../../include/vstream.h
 mail_conf_time.o: ../../include/vstring.h
+mail_conf_time.o: conv_time.h
 mail_conf_time.o: mail_conf.h
 mail_conf_time.o: mail_conf_time.c
 mail_connect.o: ../../include/attr.h

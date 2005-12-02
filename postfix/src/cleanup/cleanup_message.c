@@ -81,6 +81,7 @@
 #include <mime_state.h>
 #include <lex_822.h>
 #include <dsn_util.h>
+#include <conv_time.h>
 
 /* Application-specific. */
 
@@ -304,6 +305,11 @@ static const char *cleanup_act(CLEANUP_STATE *state, char *context,
     const char *optional_text = value + strcspn(value, " \t");
     int     command_len = optional_text - value;
 
+#ifdef DELAY_ACTION
+    int     defer_delay;
+
+#endif
+
     while (*optional_text && ISSPACE(*optional_text))
 	optional_text++;
 
@@ -357,12 +363,36 @@ static const char *cleanup_act(CLEANUP_STATE *state, char *context,
 	return (buf);
     }
     if (STREQUAL(value, "HOLD", command_len)) {
-	if ((state->flags & CLEANUP_FLAG_HOLD) == 0) {
+	if ((state->flags & (CLEANUP_FLAG_HOLD | CLEANUP_FLAG_DISCARD)) == 0) {
 	    cleanup_act_log(state, "hold", context, buf, optional_text);
 	    state->flags |= CLEANUP_FLAG_HOLD;
 	}
 	return (buf);
     }
+
+    /*
+     * The DELAY feature is disabled because it has too many problems. 1) It
+     * does not work on some remote file systems; 2) mail will be delivered
+     * anyway with "sendmail -q" etc.; 3) while the mail is queued it bogs
+     * down the deferred queue scan with huge amounts of useless disk I/O
+     * operations.
+     */
+#ifdef DELAY_ACTION
+    if (STREQUAL(value, "DELAY", command_len)) {
+	if ((state->flags & (CLEANUP_FLAG_HOLD | CLEANUP_FLAG_DISCARD)) == 0) {
+	    if (*optional_text == 0) {
+		msg_warn("missing DELAY argument in %s map", map_class);
+	    } else if (conv_time(optional_text, &defer_delay, 's') == 0) {
+		msg_warn("ignoring bad DELAY argument %s in %s map",
+			 optional_text, map_class);
+	    } else {
+		cleanup_act_log(state, "delay", context, buf, optional_text);
+		state->defer_delay = defer_delay;
+	    }
+	}
+	return (buf);
+    }
+#endif
     if (STREQUAL(value, "PREPEND", command_len)) {
 	if (*optional_text == 0) {
 	    msg_warn("PREPEND action without text in %s map", map_class);
@@ -641,7 +671,7 @@ static void cleanup_header_done_callback(void *context)
     /*
      * XXX 2821: Appendix B: The return address in the MAIL command SHOULD,
      * if possible, be derived from the system's identity for the submitting
-     * (local) user, and the "From:" header field otherwise.  If there is a
+     * (local) user, and the "From:" header field otherwise. If there is a
      * system identity available, it SHOULD also be copied to the Sender
      * header field if it is different from the address in the From header
      * field.  (Any Sender field that was already there SHOULD be removed.)

@@ -148,11 +148,11 @@
 # REJECT ACTIONS
 # .ad
 # .fi
-#       Postfix version 2.3 and later support enhanced status codes.
-#       When no code is specified at the beginning of the \fItext\fR
-#       below, Postfix inserts a default enhanced status code of "5.7.1"
-#       in the case of reject actions, and "4.7.1" in the case of
-#       defer actions. See "ENHANCED STATUS CODES" below.
+#	Postfix version 2.3 and later support enhanced status codes.
+#	When no code is specified at the beginning of the \fItext\fR
+#	below, Postfix inserts a default enhanced status code of "5.7.1"
+#	in the case of reject actions, and "4.7.1" in the case of
+#	defer actions. See "ENHANCED STATUS CODES" below.
 # .IP "\fB4\fINN text\fR"
 # .IP "\fB5\fINN text\fR"
 #	Reject the address etc. that matches the pattern, and respond with
@@ -183,6 +183,33 @@
 # .IP \fIrestriction...\fR
 #	Apply the named UCE restriction(s) (\fBpermit\fR, \fBreject\fR,
 #	\fBreject_unauth_destination\fR, and so on).
+# \" .IP "\fBDELAY \fItime\fR"
+# \"	Place the message into the deferred queue, and delay the
+# \"	initial delivery attempt by \fItime\fR. The time value may
+# \"	be followed by a one-character suffix that specifies the
+# \"	time unit: s (seconds), m (minutes), h (hours), d (days),
+# \"	w (weeks).  The default time unit is s (seconds).
+# \" .sp
+# \"	Limitations:
+# \" .RS
+# \" .IP \(bu
+# \"	This action affects all the recipients of the message.
+# \" .IP \(bu
+# \"	The delay value has no effect with remote file systems that
+# \"	don't correctly emulate UNIX local file system semantics.
+# \"	In that case, the delay will be half of $queue_run_delay
+# \"	on average.
+# \" .IP \(bu
+# \"	Mail will still be delivered with "sendmail -q", "postfix
+# \"	flush" or "postqueue -f".
+# \" .IP \(bu
+# \"	Delayed mail increases the amount of disk I/O during deferred
+# \"	queue scans. When large amounts of mail are queued for
+# \"	delayed delivery it may be preferable to use the HOLD feature
+# \"	instead.
+# \" .RE
+# \" .IP
+# \"	This feature is available in Postfix 2.3 and later.
 # .IP "\fBDISCARD \fIoptional text...\fR
 #	Claim successful delivery and silently discard the message.
 #	Log the optional text if specified, otherwise log a generic

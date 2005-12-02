@@ -43,6 +43,7 @@
 
 #define REC_TYPE_RDR	'>'		/* redirect target */
 #define REC_TYPE_FLGS	'f'		/* cleanup processing flags */
+#define REC_TYPE_DELAY	'd'		/* cleanup delay upon arrival */
 
 #define REC_TYPE_MESG	'M'		/* start message records */
 

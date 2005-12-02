@@ -1742,6 +1742,9 @@ static void mail_reset(SMTPD_STATE *state)
 	state->saved_redirect = 0;
     }
     state->saved_flags = 0;
+#ifdef DELAY_ACTION
+    state->saved_delay = 0;
+#endif
 #ifdef USE_SASL_AUTH
     if (var_smtpd_sasl_enable)
 	smtpd_sasl_mail_reset(state);
@@ -2314,6 +2317,11 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	    if (state->saved_flags)
 		rec_fprintf(state->cleanup, REC_TYPE_FLGS, "%d",
 			    state->saved_flags);
+#ifdef DELAY_ACTION
+	    if (state->saved_delay)
+		rec_fprintf(state->cleanup, REC_TYPE_DELAY, "%d",
+			    state->saved_delay);
+#endif
 	    if (vstream_ferror(state->cleanup))
 		state->err = CLEANUP_STAT_WRITE;
 	}

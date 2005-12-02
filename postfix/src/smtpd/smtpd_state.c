@@ -123,6 +123,9 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
     state->saved_filter = 0;
     state->saved_redirect = 0;
     state->saved_flags = 0;
+#ifdef DELAY_ACTION
+    state->saved_delay = 0;
+#endif
     state->instance = vstring_alloc(10);
     state->seqno = 0;
     state->rewrite_context = 0;

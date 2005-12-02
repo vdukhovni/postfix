@@ -140,6 +140,9 @@ typedef struct SMTPD_STATE {
     char   *saved_filter;		/* postponed filter action */
     char   *saved_redirect;		/* postponed redirect action */
     int     saved_flags;		/* postponed hold/discard */
+#ifdef DELAY_ACTION
+    int     saved_delay;		/* postponed deferred delay */
+#endif
     VSTRING *expand_buf;		/* scratch space for $name expansion */
     ARGV   *prepend;			/* prepended headers */
     VSTRING *instance;			/* policy query correlation */

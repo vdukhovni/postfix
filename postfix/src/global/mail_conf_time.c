@@ -82,46 +82,20 @@
 
 /* Global library. */
 
+#include "conv_time.h"
 #include "mail_conf.h"
-
-#define MINUTE	(60)
-#define HOUR	(60 * MINUTE)
-#define DAY	(24 * HOUR)
-#define WEEK	(7 * DAY)
 
 /* convert_mail_conf_time - look up and convert integer parameter value */
 
 static int convert_mail_conf_time(const char *name, int *intval, int def_unit)
 {
     const char *strval;
-    char    unit;
-    char    junk;
 
     if ((strval = mail_conf_lookup_eval(name)) == 0)
 	return (0);
-
-    switch (sscanf(strval, "%d%c%c", intval, &unit, &junk)) {
-    case 1:
-	unit = def_unit;
-    case 2:
-	switch (unit) {
-	case 'w':
-	    *intval *= WEEK;
-	    return (1);
-	case 'd':
-	    *intval *= DAY;
-	    return (1);
-	case 'h':
-	    *intval *= HOUR;
-	    return (1);
-	case 'm':
-	    *intval *= MINUTE;
-	    return (1);
-	case 's':
-	    return (1);
-	}
-    }
-    msg_fatal("parameter %s: bad time unit: %s", name, strval);
+    if (conv_time(strval, intval, def_unit) == 0)
+	msg_fatal("parameter %s: bad time unit: %s", name, strval);
+    return (1);
 }
 
 /* check_mail_conf_time - validate integer value */

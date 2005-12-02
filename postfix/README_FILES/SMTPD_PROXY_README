@@ -141,7 +141,12 @@ master.cf file:
 
   * The "-o smtpd_proxy_filter=127.0.0.1:10025" tells the before filter SMTP
     server that it should give incoming mail to the content filter that listens
-    on localhost port 10025.
+    on localhost TCP port 10025.
+
+  * Postfix 2.3 supports both TCP and UNIX-domain filters. The above filter
+    could be specified as "inet:127.0.0.1:10025". To specify a UNIX-domain
+    filter, specify "unix:pathame". A relative pathname is interpreted relative
+    to the Postfix queue directory.
 
 The after-filter SMTP server is a new master.cf entry:
 

@@ -76,6 +76,9 @@ typedef struct CLEANUP_STATE {
     int     dsn_notify;			/* DSN never/delay/fail/success */
     char   *dsn_orcpt;			/* DSN original recipient */
     char   *verp_delims;		/* VERP delimiters (optional) */
+#ifdef DELAY_ACTION
+    int     defer_delay;		/* deferred delivery */
+#endif
 } CLEANUP_STATE;
 
  /*

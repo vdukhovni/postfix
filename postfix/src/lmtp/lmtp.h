@@ -69,6 +69,7 @@ typedef struct LMTP_STATE {
 #define LMTP_FEATURE_XFORWARD_HELO (1<<9)
 #define LMTP_FEATURE_XFORWARD_DOMAIN (1<<10)
 #define LMTP_FEATURE_DSN 	(1<<11)
+#define LMTP_FEATURE_RSET_REJECTED (1<<12)
 
  /*
   * lmtp.c

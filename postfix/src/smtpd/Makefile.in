@@ -208,6 +208,7 @@ smtpd_check.o: ../../include/argv.h
 smtpd_check.o: ../../include/attr.h
 smtpd_check.o: ../../include/attr_clnt.h
 smtpd_check.o: ../../include/cleanup_user.h
+smtpd_check.o: ../../include/conv_time.h
 smtpd_check.o: ../../include/ctable.h
 smtpd_check.o: ../../include/deliver_request.h
 smtpd_check.o: ../../include/dict.h

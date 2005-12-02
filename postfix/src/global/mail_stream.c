@@ -91,6 +91,11 @@
 /* .IP "MAIL_STREAM_CTL_MODE (int)"
 /*	The argument specifies alternate permissions that override
 /*	the permissions specified with mail_stream_file().
+/* .IP "MAIL_STREAM_CTL_DELAY (int)"
+/*	Attempt to postpone initial delivery by advancing the queue
+/*	file modification time stamp by this amount.  This has
+/*	effect only within the deferred mail queue.
+/*	This feature may have no effect with remote file systems.
 /* LICENSE
 /* .ad
 /* .fi
@@ -186,11 +191,34 @@ static int mail_stream_finish_file(MAIL_STREAM *info, VSTRING *unused_why)
      * This clock drift detection code may not work with file systems that work
      * on a local copy of the file and that update the server only after the
      * file is closed.
+     * 
+     * Optionally set a cooldown time.
+     * 
+     * XXX: We assume that utime() does control the file modification time even
+     * when followed by an fchmod(), fsync(), close() sequence. This may fail
+     * with remote file systems when fsync() actually updates the file. Even
+     * then, we still delay the average message by 1/2 of the
+     * queue_run_delay.
+     * 
+     * XXX: Victor does not like running utime() after the close(), since this
+     * creates a race even with local filesystems. But Wietse is not
+     * confident that utime() before fsync() and close() will work reliably
+     * with remote file systems.
      */
     check_incoming_fs_clock =
 	(!incoming_fs_clock_ok && !strcmp(info->queue, MAIL_QUEUE_INCOMING));
 
+#ifdef DELAY_ACTION
+    if (strcmp(info->queue, MAIL_QUEUE_DEFERRED) != 0)
+	info->delay = 0;
+    if (info->delay > 0)
+	tbuf.actime = tbuf.modtime = time(&now) + info->delay;
+#endif
+
     if (vstream_fflush(info->stream)
+#ifdef DELAY_ACTION
+	|| (info->delay > 0 && utime(VSTREAM_PATH(info->stream), &tbuf))
+#endif
 	|| fchmod(vstream_fileno(info->stream), 0700 | info->mode)
 #ifdef HAS_FSYNC
 	|| fsync(vstream_fileno(info->stream))
@@ -314,6 +342,9 @@ MAIL_STREAM *mail_stream_file(const char *queue, const char *class,
     info->class = mystrdup(class);
     info->service = mystrdup(service);
     info->mode = mode;
+#ifdef DELAY_ACTION
+    info->delay = 0;
+#endif
     info->ctime = tv;
     return (info);
 }
@@ -451,6 +482,16 @@ void    mail_stream_ctl(MAIL_STREAM *info, int op,...)
 	case MAIL_STREAM_CTL_MODE:
 	    info->mode = va_arg(ap, int);
 	    break;
+
+	    /*
+	     * Advance the (finished) file modification time.
+	     */
+#ifdef DELAY_ACTION
+	case MAIL_STREAM_CTL_DELAY:
+	    if ((info->delay = va_arg(ap, int)) < 0)
+		msg_panic("%s: bad delay time %d", myname, info->delay);
+	    break;
+#endif
 
 	default:
 	    msg_panic("%s: bad op code %d", myname, op);

@@ -118,6 +118,11 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
     int     mapped_type = type;
     const char *mapped_buf = buf;
 
+#ifdef DELAY_ACTION
+    int     defer_delay;
+
+#endif
+
     if (msg_verbose)
 	msg_info("initial envelope %c %.*s", type, (int) len, buf);
 
@@ -131,6 +136,18 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	    state->flags |= extra_opts;
 	return;
     }
+
+#ifdef DELAY_ACTION
+    if (type == REC_TYPE_DELAY) {
+	/* Not part of queue file format. */
+	defer_delay = atoi(buf);
+	if (defer_delay <= 0)
+	    msg_warn("%s: ignoring bad delay time: %s", state->queue_id, buf);
+	else
+	    state->defer_delay = defer_delay;
+	return;
+    }
+#endif
 
     /*
      * Map DSN attribute name to pseudo record type so that we don't have to

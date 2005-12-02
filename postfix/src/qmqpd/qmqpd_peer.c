@@ -62,6 +62,7 @@
 
 #include <mail_proto.h>
 #include <valid_mailhost_addr.h>
+#include <mail_params.h>
 
 /* Application-specific. */
 
@@ -105,6 +106,17 @@ void    qmqpd_peer_init(QMQPD_STATE *state)
 	MAI_HOSTADDR_STR client_addr;
 	int     aierr;
 	char   *colonp;
+
+	/*
+	 * Sorry, but there are some things that we just cannot do while
+	 * connected to the network.
+	 */
+	if (geteuid() != var_owner_uid || getuid() != var_owner_uid) {
+	    msg_error("incorrect QMQP server privileges: uid=%lu euid=%lu",
+		      (unsigned long) getuid(), (unsigned long) geteuid());
+	    msg_fatal("the Postfix QMQP server must run with $%s privileges",
+		      VAR_MAIL_OWNER);
+	}
 
 	/*
 	 * Convert the client address to printable form.

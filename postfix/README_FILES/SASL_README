@@ -127,6 +127,12 @@ In /usr/local/lib/sasl/smtpd.conf (SASL version 1.5.5) or /usr/local/lib/sasl2/
 smtpd.conf (SASL version 2.1.1) you need to specify how the server should
 validate client passwords.
 
+Note: some Postfix distributions are modified and look for the smtpd.conf file
+in /etc/postfix.
+
+Note: some Cyrus SASL distributions are modified and look for the smtpd.conf
+file in /etc/sasl2.
+
 In order to authenticate against the UNIX password database, try:
 
 (SASL version 1.5.5)

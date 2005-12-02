@@ -17,6 +17,14 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
+Incompatibility with snapshot 20051202
+======================================
+
+The Postfix SMTP daemon will not receive mail from the network if
+it isn't running with postfix mail_owner privileges.  This prevents
+surprises when, for example, "sendmail -bs" is configured to run
+as root from xinetd.
+
 Incompatibility with snapshot 20051125
 ======================================
 

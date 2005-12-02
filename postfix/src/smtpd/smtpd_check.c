@@ -236,6 +236,7 @@
 #include <rewrite_clnt.h>
 #include <valid_mailhost_addr.h>
 #include <dsn_util.h>
+#include <conv_time.h>
 
 /* Application-specific. */
 
@@ -1895,6 +1896,11 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     static char def_dsn[] = "5.7.1";
     DSN_SPLIT dp;
 
+#ifdef DELAY_ACTION
+    int     defer_delay;
+
+#endif
+
     /*
      * Parse into command and text. Do not change the input.
      */
@@ -1983,6 +1989,41 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 #endif
 	return (SMTPD_CHECK_DUNNO);
     }
+
+    /*
+     * DELAY means deliver later. But we may still change our mind, and
+     * reject/discard the message for other reasons.
+     * 
+     * This feature is deleted because it has too many problems. 1) It does not
+     * work on some remote file systems; 2) mail will be delivered anyway
+     * with "sendmail -q" etc.; 3) while the mail is queued it bogs down the
+     * deferred queue scan with huge amounts of useless disk I/O operations.
+     */
+#ifdef DELAY_ACTION
+    if (STREQUAL(value, "DELAY", cmd_len)) {
+#ifndef TEST
+	if (can_delegate_action(state, table, "DELAY", reply_class) == 0)
+	    return (SMTPD_CHECK_DUNNO);
+#endif
+	if (*cmd_text == 0) {
+	    msg_warn("access table %s entry \"%s\" has DELAY entry without value",
+		     table, datum);
+	    return (SMTPD_CHECK_DUNNO);
+	}
+	if (conv_time(cmd_text, &defer_delay, 's') == 0) {
+	    msg_warn("access table %s entry \"%s\" has invalid DELAY argument \"%s\"",
+		     table, datum, cmd_text);
+	    return (SMTPD_CHECK_DUNNO);
+	}
+	vstring_sprintf(error_text, "<%s>: %s %s", reply_name, reply_class,
+			*cmd_text ? cmd_text : "triggers DELAY action");
+	log_whatsup(state, "delay", STR(error_text));
+#ifndef TEST
+	state->saved_delay = defer_delay;
+#endif
+	return (SMTPD_CHECK_DUNNO);
+    }
+#endif
 
     /*
      * DISCARD means silently discard and claim successful delivery.
@@ -3157,7 +3198,6 @@ static int reject_auth_sender_login_mismatch(SMTPD_STATE *state, const char *sen
 static int reject_unauth_sender_login_mismatch(SMTPD_STATE *state, const char *sender)
 {
     const RESOLVE_REPLY *reply;
-    const char *login = 0;
 
     /*
      * Reject if the client is not logged in and the sender address has an

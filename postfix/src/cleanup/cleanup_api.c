@@ -249,13 +249,25 @@ int     cleanup_flush(CLEANUP_STATE *state)
      * reporting purposes.
      */
     if (state->errs == 0 && (state->flags & CLEANUP_FLAG_DISCARD) == 0) {
-	if ((state->flags & CLEANUP_FLAG_HOLD) != 0) {
+	if ((state->flags & CLEANUP_FLAG_HOLD) != 0
+#ifdef DELAY_ACTION
+	    || state->defer_delay > 0
+#endif
+	    ) {
 	    myfree(state->queue_name);
+#ifdef DELAY_ACTION
+	    state->queue_name = mystrdup((state->flags & CLEANUP_FLAG_HOLD) ?
+				     MAIL_QUEUE_HOLD : MAIL_QUEUE_DEFERRED);
+#else
 	    state->queue_name = mystrdup(MAIL_QUEUE_HOLD);
+#endif
 	    mail_stream_ctl(state->handle,
-			    MAIL_STREAM_CTL_QUEUE, MAIL_QUEUE_HOLD,
+			    MAIL_STREAM_CTL_QUEUE, state->queue_name,
 			    MAIL_STREAM_CTL_CLASS, 0,
 			    MAIL_STREAM_CTL_SERVICE, 0,
+#ifdef DELAY_ACTION
+			    MAIL_STREAM_CTL_DELAY, state->defer_delay,
+#endif
 			    MAIL_STREAM_CTL_END);
 	    junk = cleanup_path;
 	    cleanup_path = mystrdup(VSTREAM_PATH(state->handle->stream));

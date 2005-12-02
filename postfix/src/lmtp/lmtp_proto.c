@@ -31,6 +31,7 @@
 /*	accordingly.
 /*
 /*	lmtp_rset() sends a lone RSET command and waits for the response.
+/*	In case of a negative reply it sets the CANT_RSET_THIS_SESSION flag.
 /*
 /*	lmtp_quit() sends a lone QUIT command and waits for the response
 /*	only if waiting for QUIT replies is enabled.
@@ -358,6 +359,9 @@ static int lmtp_loop(LMTP_STATE *state, NOCLOBBER int send_state,
 
 #define SENDING_MAIL \
 	(recv_state <= LMTP_STATE_DOT)
+
+#define CANT_RSET_THIS_SESSION \
+	(state->features |= LMTP_FEATURE_RSET_REJECTED)
 
     /*
      * Pipelining support requires two loops: one loop for sending and one
@@ -751,6 +755,8 @@ static int lmtp_loop(LMTP_STATE *state, NOCLOBBER int send_state,
 		     * Ignore the RSET response.
 		     */
 		case LMTP_STATE_RSET:
+		    if (resp->code / 100 != 2)
+			CANT_RSET_THIS_SESSION;
 		    recv_state = LMTP_STATE_LAST;
 		    break;
 

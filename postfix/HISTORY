@@ -11447,24 +11447,25 @@ Apologies for any names omitted.
 	trivial-rewrite/resolve.c, trivial-rewrite/transport.c,
 	*qmgr/qmgr_message.c.
 
-	Also: address_verify_sender_dependent_relayhost_maps for completeness.
+	Also: address_verify_sender_dependent_relayhost_maps for
+	completeness.
 
 20051124
 
-	Feature: specify "smtp_sender_dependent_authentication = yes" to
-	enable sender-dependent SASL passwords. This disables SMTP
-	connection caching to ensure that mail from different senders
-	is delivered with the appropriate credentials. This is an
-	extended version of a patch by Mathias Hasselmann.  Files:
-	smtp/smtp_connect.c, smtp/smtp_sasl_glue.c.
+	Feature: specify "smtp_sender_dependent_authentication =
+	yes" to enable sender-dependent SASL passwords. This disables
+	SMTP connection caching to ensure that mail from different
+	senders is delivered with the appropriate credentials. This
+	is an extended version of a patch by Mathias Hasselmann.
+	Files: smtp/smtp_connect.c, smtp/smtp_sasl_glue.c.
 
 20051126
 
 	Workaround: log warning when REDIRECT or FILTER are used
 	in smtpd_end_of_data_restrictions. File: smtpd/smtpd_check.c.
 
-	Log warning when REDIRECT or FILTER are used in
-	smtpd_etrn_restrictions. File: smtpd/smtpd_check.c.
+	Log warning when REDIRECT, FILTER, HOLD and DISCARD are
+	used in smtpd_etrn_restrictions. File: smtpd/smtpd_check.c.
 
 20051128
 
@@ -11474,6 +11475,22 @@ Apologies for any names omitted.
 	be fixed; it must be specified before the message content
 	is received.  Files: smtpd/smtpd.c, smtpd/smtpd_check.c,
 	cleanup/cleanup_extracted.c, pickup/pickup.c.
+
+	Safety: abort if the SMTP or QMQP server runs with non-postfix
+	privileges while it's connected to the network.  Files:
+	smtpd/smtpd_peer.c, qmqpd/qmqpd_peer.c.
+
+20051201
+
+	Bugfix: the LMTP client would reuse a session after negative
+	reply to the RSET command (which may happen when client and
+	server somehow get out of sync). Problem found by Christian
+	Theune.  Files: lmtp/lmtp.c, lmtp/lmtp_proto.c.
+
+20051202
+
+	Bugfix: the 20051128 code move for "smtpd_end_of_data_restrictions"
+	broke "postsuper -r".
 
 Open problems:
 

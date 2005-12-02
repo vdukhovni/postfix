@@ -203,6 +203,8 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
     int     time_seen = 0;
     char   *attr_name;
     char   *attr_value;
+    char   *saved_attr;
+    int     skip_attr;
 
     /*
      * Limit the input record size. All front-end programs should protect the
@@ -254,12 +256,16 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 	    if (type == REC_TYPE_ERTO)
 		/* Discard errors-to record after "postsuper -r". */
 		continue;
-	    if (type == REC_TYPE_ATTR
-		&& split_nameval(vstring_str(buf),
-				 &attr_name, &attr_value) == 0
-		&& dsn_attr_map(attr_name) == 0)
+	    if (type == REC_TYPE_ATTR) {
+		saved_attr = mystrdup(vstring_str(buf));
+		skip_attr = (split_nameval(saved_attr,
+					   &attr_name, &attr_value) == 0
+			     && dsn_attr_map(attr_name) == 0);
+		myfree(saved_attr);
 		/* Discard other/header/body action after "postsuper -r". */
-		continue;
+		if (skip_attr)
+		    continue;
+	    }
 	}
 
 	/*

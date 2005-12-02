@@ -242,7 +242,7 @@ LMTP_RESP *lmtp_chat_resp(LMTP_STATE *state)
 	 */
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	if (state->features & LMTP_FEATURE_PIPELINING) {
-	    msg_warn("non-SMTP response from %s: %s",
+	    msg_warn("non-LMTP response from %s: %.100s",
 		     session->namaddr, STR(state->buffer));
 	    vstream_longjmp(session->stream, SMTP_ERR_PROTO);
 	}

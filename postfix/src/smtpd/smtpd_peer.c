@@ -166,6 +166,17 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 	char   *colonp;
 
 	/*
+	 * Sorry, but there are some things that we just cannot do while
+	 * connected to the network.
+	 */
+	if (geteuid() != var_owner_uid || getuid() != var_owner_uid) {
+	    msg_error("incorrect SMTP server privileges: uid=%lu euid=%lu",
+		      (unsigned long) getuid(), (unsigned long) geteuid());
+	    msg_fatal("the Postfix SMTP server must run with $%s privileges",
+		      VAR_MAIL_OWNER);
+	}
+
+	/*
 	 * Convert the client address to printable form.
 	 */
 	if ((aierr = sockaddr_to_hostaddr(sa, sa_len, &client_addr,

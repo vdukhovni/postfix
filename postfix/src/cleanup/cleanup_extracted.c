@@ -105,6 +105,11 @@ void    cleanup_extracted_process(CLEANUP_STATE *state, int type,
     int     extra_opts;
     int     junk;
 
+#ifdef DELAY_ACTION
+    int     defer_delay;
+
+#endif
+
     if (msg_verbose)
 	msg_info("extracted envelope %c %.*s", type, (int) len, buf);
 
@@ -118,6 +123,18 @@ void    cleanup_extracted_process(CLEANUP_STATE *state, int type,
 	    state->flags |= extra_opts;
 	return;
     }
+
+#ifdef DELAY_ACTION
+    if (type == REC_TYPE_DELAY) {
+	/* Not part of queue file format. */
+	defer_delay = atoi(buf);
+	if (defer_delay <= 0)
+	    msg_warn("%s: ignoring bad delay time: %s", state->queue_id, buf);
+	else
+	    state->defer_delay = defer_delay;
+	return;
+    }
+#endif
 
     if (strchr(REC_TYPE_EXTRACT, type) == 0) {
 	msg_warn("%s: message rejected: "
