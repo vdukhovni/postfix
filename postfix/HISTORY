@@ -10730,3 +10730,25 @@ Apologies for any names omitted.
 	be fixed; it must be specified before the message content
 	is received.  Files: smtpd/smtpd.c, smtpd/smtpd_check.c,
 	cleanup/cleanup_extracted.c, pickup/pickup.c.
+
+20051201
+
+	Bugfix: the LMTP client would reuse a session after negative
+	reply to the RSET command (which may happen when client and
+	server somehow get out of sync). Problem found by Christian
+	Theune.  Files: lmtp/lmtp.c, lmtp/lmtp_proto.c.
+
+20051207
+
+	Bugfix: race condition in the connection caching protocol,
+	causing the SMTP delivery agent to hang after delivering
+	mail, while trying to save a connection. Introduced with
+	Postfix 2.2.5.  Files: scache/scache.c.
+
+20051208
+
+	Bugfix: the best_mx_transport, mailbox_transport and
+	fallback_transport features did not write a per-recipient
+	defer logfile record when the target delivery agent was
+	broken.  This the analog of queue manager bugfix 20051119.
+	Files: global/deliver_pass.c.

@@ -422,6 +422,7 @@ static void scache_service(VSTREAM *client_stream, char *unused_service,
      * dedicated to the scache service. All connection-management stuff is
      * handled by the common code in multi_server.c.
      */
+do {
     if (attr_scan(client_stream,
 		  ATTR_FLAG_MORE | ATTR_FLAG_STRICT,
 		  ATTR_TYPE_STR, MAIL_ATTR_REQ, scache_request,
@@ -442,6 +443,7 @@ static void scache_service(VSTREAM *client_stream, char *unused_service,
 		       ATTR_TYPE_END);
 	}
     }
+} while (vstream_peek(client_stream) > 0);
     vstream_fflush(client_stream);
 }
 
