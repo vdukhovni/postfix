@@ -331,7 +331,8 @@ int     smtp_sasl_passwd_lookup(SMTP_SESSION *session)
      * but didn't canonicalize the TCP port, and did not append the port to
      * the MX hostname.
      */
-    if ((var_smtp_sender_auth && state->request->sender[0]
+    if (((state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) == 0
+	 && var_smtp_sender_auth && state->request->sender[0]
 	 && (value = mail_addr_find(smtp_sasl_passwd_map,
 				 state->request->sender, (char **) 0)) != 0)
 	|| (value = maps_find(smtp_sasl_passwd_map, session->host, 0)) != 0
@@ -460,7 +461,7 @@ void    smtp_sasl_start(SMTP_SESSION *session, const char *sasl_opts_name,
 #define NULL_SERVER_ADDR	((char *) 0)
 #define NULL_CLIENT_ADDR	((char *) 0)
 
-    if (SASL_CLIENT_NEW("smtp", session->host,
+    if (SASL_CLIENT_NEW(var_procname, session->host,
 			NULL_CLIENT_ADDR, NULL_SERVER_ADDR,
 			session->sasl_callbacks, NULL_SECFLAGS,
 			(sasl_conn_t **) &session->sasl_conn) != SASL_OK)

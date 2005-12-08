@@ -11492,6 +11492,57 @@ Apologies for any names omitted.
 	Bugfix: the 20051128 code move for "smtpd_end_of_data_restrictions"
 	broke "postsuper -r".
 
+20051202-3
+
+	Cleanup: the SMTP client now also implements the LMTP
+	protocol.  Files: smtp/smtp.c, smtp/smtp_connect.c,
+	smtp/smtp_proto.c, smtp/smtp_dsn.c, smtp_state.c,
+	smtp_sasl_glue.c.
+
+	As before, the LMTP behavior is controlled with parameters
+	named lmtp_xxx instead of smtp_xxx.  However there are now
+	a lot more lmtp_xxx parameters :-) With few exceptions, all
+	SMTP features are now also available with LMTP. The exceptions
+	are related to the HELO and EHLO commands, which exist in
+	SMTP only. There are equivalent LHLO command parameters
+	where it makes sense.
+
+20051206
+
+	SMTP+LMTP client connection management code rewritten to
+	support UNIX-domain socket connections.
+
+20051207
+
+	Bugfix: race condition in the connection caching protocol,
+	found while adding connection caching for UNIX-domain sockets
+	(used for LMTP delivery).  This was introduced with the
+	20050706 workaround, and may the same problem that Jussi
+	Silvennoinen experienced (in Postfix 2.2.6) with SMTP after
+	an upgrade.  Files: scache/scache.c.
+
+	Bugfix: smtp-sink and qmqp-sink didn't ignore SIGPIPE.
+
+20051208
+
+	Robustness: reduced timeouts in the connection caching
+	client, so that a malfunctioning service does not prevent
+	mail delivery. This uses similar code that already exists
+	for the anvil(8) client and the tlsmgr(8) client. Files:
+	global/scache_clnt.c, smtp/smtp.c.
+
+	To make reduced connection caching client timeouts possible,
+	connection management was moved from the attr_clnt(3) module
+	to the auto_clnt(3) module where it belongs. The auto_clnt(3)
+	module is now a full alternative for the clnt_stream(3)
+	module. Files: util/auto_clnt.c, util/attr_clnt.c.
+
+	Bugfix: the best_mx_transport, mailbox_transport and
+	fallback_transport features did not write a per-recipient
+	defer logfile record when the target delivery agent was
+	broken.  This the analog of queue manager bugfix 20051119.
+	Files: global/deliver_pass.c.
+	
 Open problems:
 
 	"postsuper -r" no longer resets the message arrival time,

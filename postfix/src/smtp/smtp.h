@@ -46,6 +46,7 @@
   * Session-specific state is stored separately.
   */
 typedef struct SMTP_STATE {
+    int     misc_flags;			/* processing flags, see below */
     VSTREAM *src;			/* queue file stream */
     const char *service;		/* transport name */
     DELIVER_REQUEST *request;		/* envelope info, offsets */
@@ -139,8 +140,7 @@ typedef struct SMTP_STATE {
   */
 #define SMTP_MISC_FLAG_LOOP_DETECT	(1<<0)
 #define	SMTP_MISC_FLAG_IN_STARTTLS	(1<<1)
-
-#define SMTP_MISC_FLAG_DEFAULT		SMTP_MISC_FLAG_LOOP_DETECT
+#define SMTP_MISC_FLAG_USE_LMTP		(1<<2)
 
  /*
   * smtp.c
@@ -246,7 +246,7 @@ extern int smtp_connect(SMTP_STATE *);
  /*
   * smtp_proto.c
   */
-extern int smtp_helo(SMTP_STATE *, int);
+extern int smtp_helo(SMTP_STATE *);
 extern int smtp_xfer(SMTP_STATE *);
 extern int smtp_rset(SMTP_STATE *);
 extern int smtp_quit(SMTP_STATE *);

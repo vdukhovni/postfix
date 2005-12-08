@@ -4,7 +4,7 @@
 .SH NAME
 smtp
 \-
-Postfix SMTP client
+Postfix SMTP+LMTP client
 .SH "SYNOPSIS"
 .na
 .nf
@@ -12,42 +12,78 @@ Postfix SMTP client
 .SH DESCRIPTION
 .ad
 .fi
-The Postfix SMTP client processes message delivery requests from
+The Postfix SMTP+LMTP client implements the SMTP and LMTP mail
+delivery protocols. It processes message delivery requests from
 the queue manager. Each request specifies a queue file, a sender
 address, a domain or host to deliver to, and recipient information.
 This program expects to be run from the \fBmaster\fR(8) process
 manager.
 
-The SMTP client updates the queue file and marks recipients
+The SMTP+LMTP client updates the queue file and marks recipients
 as finished, or it informs the queue manager that delivery should
 be tried again at a later time. Delivery status reports are sent
 to the \fBbounce\fR(8), \fBdefer\fR(8) or \fBtrace\fR(8) daemon as
 appropriate.
 
-The SMTP client looks up a list of mail exchanger addresses for
+The SMTP+LMTP client looks up a list of mail exchanger addresses for
 the destination host, sorts the list by preference, and connects
 to each listed address until it finds a server that responds.
 
 When a server is not reachable, or when mail delivery fails due
-to a recoverable error condition, the SMTP client will try to
+to a recoverable error condition, the SMTP+LMTP client will try to
 deliver the mail to an alternate host.
 
 After a successful mail transaction, a connection may be saved
 to the \fBscache\fR(8) connection cache server, so that it
-may be used by any SMTP client for a subsequent transaction.
+may be used by any SMTP+LMTP client for a subsequent transaction.
 
 By default, connection caching is enabled temporarily for
 destinations that have a high volume of mail in the active
 queue. Session caching can be enabled permanently for
 specific destinations.
+.SH "SMTP DESTINATION SYNTAX"
+.na
+.nf
+.ad
+.fi
+SMTP destinations have the following form:
+.IP "\fIdomainname\fR, \fIdomainname\fR:\fIport\fR"
+Look up the mail exchangers for the specified domain.
+.IP "[\fIhostname\fR], [\fIhostname\fR]:\fIport\fR"
+Look up the address of the specified host.
+.IP "[\fIaddress\fR], [\fIaddress\fR]:\fIport\fR"
+Connect to the host at the specified address. An IPv6
+address must be formatted as [\fBipv6\fR:\fIaddress\fR].
+.PP
+In all the above cases, when no port is specified, look up
+the port defined as \fBsmtp\fR in \fBservices\fR(4).
+.SH "LMTP DESTINATION SYNTAX"
+.na
+.nf
+.ad
+.fi
+LMTP destinations have the following form:
+.IP \fBunix\fR:\fIpathname\fR
+Connect to the local UNIX-domain server that is bound to the specified
+\fIpathname\fR. If the process runs chrooted, an absolute pathname
+is interpreted relative to the Postfix queue directory.
+.IP "\fBinet\fR:\fIhostname\fR, \fBinet\fB:\fIhostname\fR:\fIport\fR"
+.IP "\fBinet\fR:[\fIaddress\fR], \fBinet\fR:[\fIaddress\fR]:\fIport\fR"
+Connect to the specified TCP port on the specified local or
+remote host. If no port is specified, connect to the port defined as
+\fBlmtp\fR in \fBservices\fR(4).
+If no such service is found, the \fBlmtp_tcp_port\fR configuration
+parameter (default value of 24) will be used.
+.PP
 .SH "SECURITY"
 .na
 .nf
 .ad
 .fi
-The SMTP client is moderately security-sensitive. It talks to SMTP
-servers and to DNS servers on the network. The SMTP client can be
-run chrooted at fixed low privilege.
+The SMTP+LMTP client is moderately security-sensitive. It
+talks to SMTP or LMTP servers and to DNS servers on the
+network. The SMTP+LMTP client can be run chrooted at fixed
+low privilege.
 .SH "STANDARDS"
 .na
 .nf
@@ -56,8 +92,9 @@ RFC 822 (ARPA Internet Text Messages)
 RFC 1651 (SMTP service extensions)
 RFC 1652 (8bit-MIME transport)
 RFC 1870 (Message Size Declaration)
-RFC 2045 (MIME: Format of Internet Message Bodies)
+RFC 2033 (LMTP protocol)
 RFC 2034 (Enhanced Status Codes)
+RFC 2045 (MIME: Format of Internet Message Bodies)
 RFC 2046 (MIME: Media Types)
 RFC 2554 (AUTH command)
 RFC 2821 (SMTP protocol)
@@ -77,17 +114,23 @@ other trouble.
 .SH BUGS
 .ad
 .fi
-SMTP connection caching does not work with TLS. The necessary
+SMTP and LMTP connection caching does not work with TLS. The necessary
 support for TLS object passivation and re-activation does not
 exist without closing the session, which defeats the purpose.
 
-SMTP connection caching assumes that SASL credentials are valid for
-all destinations that map onto the same IP address and TCP port.
+SMTP and LMTP connection caching assumes that SASL credentials
+are valid for all destinations that map onto the same IP
+address and TCP port.
 .SH "CONFIGURATION PARAMETERS"
 .na
 .nf
 .ad
 .fi
+Most smtp_\fIxxx\fR configuration parameters have an
+lmtp_\fIxxx\fR "ghost" parameter for the equivalent LMTP
+feature. This document describes only those LMTP-related
+parameters that aren't simply "ghost" parameters.
+
 Changes to \fBmain.cf\fR are picked up automatically, as \fBsmtp\fR(8)
 processes run for only a limited amount of time. Use the command
 "\fBpostfix reload\fR" to speed up a change.
@@ -146,6 +189,17 @@ from a remote SMTP server.
 Optional lookup tables that perform address rewriting in the
 SMTP client, typically to transform a locally valid address into
 a globally valid address when sending mail across the Internet.
+.PP
+Available in Postfix version 2.3 and later:
+.IP "\fBlmtp_discard_lhlo_keyword_address_maps (empty)\fR"
+Lookup tables, indexed by the remote LMTP server address, with
+case insensitive lists of LHLO keywords (pipelining, starttls,
+auth, etc.) that the LMTP client will ignore in the LHLO response
+from a remote LMTP server.
+.IP "\fBlmtp_discard_lhlo_keywords ($myhostname)\fR"
+A case insensitive list of LHLO keywords (pipelining, starttls,
+auth, etc.) that the LMTP client will ignore in the LHLO response
+from a remote LMTP server.
 .SH "MIME PROCESSING CONTROLS"
 .na
 .nf
@@ -270,6 +324,9 @@ zero (use the operating system built-in time limit).
 .IP "\fBsmtp_helo_timeout (300s)\fR"
 The SMTP client time limit for sending the HELO or EHLO command,
 and for receiving the initial server response.
+.IP "\fBlmtp_lhlo_timeout (300s)\fR"
+The LMTP client time limit for sending the LHLO command, and
+for receiving the initial server response.
 .IP "\fBsmtp_xforward_timeout (300s)\fR"
 The SMTP client time limit for sending the XFORWARD command, and
 for receiving the server response.
@@ -316,6 +373,11 @@ connection repeatedly.
 .IP "\fBsmtp_connection_cache_time_limit (2s)\fR"
 When SMTP connection caching is enabled, the amount of time that
 an unused SMTP client socket is kept open before it is closed.
+.PP
+Available in Postfix version 2.3 and later:
+.IP "\fBconnection_cache_protocol_timeout (5s)\fR"
+Time limit for connection cache connect, send or receive
+operations.
 .SH "TROUBLE SHOOTING CONTROLS"
 .na
 .nf
@@ -353,9 +415,6 @@ The maximal number of digits after the decimal point when logging
 sub-second delay values.
 .IP "\fBdisable_dns_lookups (no)\fR"
 Disable DNS lookups in the Postfix SMTP and LMTP clients.
-.IP "\fBfallback_relay (empty)\fR"
-Optional list of relay hosts for SMTP destinations that can't be
-found or that are unreachable.
 .IP "\fBinet_interfaces (all)\fR"
 The network interface addresses that this mail system receives
 mail on.
@@ -365,6 +424,8 @@ or accepting connections.
 .IP "\fBipc_timeout (3600s)\fR"
 The time limit for sending or receiving information over an internal
 communication channel.
+.IP "\fBlmtp_tcp_port (24)\fR"
+The default TCP port that the Postfix LMTP client connects to.
 .IP "\fBmax_idle (100s)\fR"
 The maximum amount of time that an idle Postfix daemon process
 waits for the next service request before exiting.
@@ -386,6 +447,8 @@ An optional numerical network address that the SMTP client should
 bind to when making an IPv6 connection.
 .IP "\fBsmtp_helo_name ($myhostname)\fR"
 The hostname to send in the SMTP EHLO or HELO command.
+.IP "\fBlmtp_lhlo_name ($myhostname)\fR"
+The hostname to send in the LMTP LHLO command.
 .IP "\fBsmtp_host_lookup (dns)\fR"
 What mechanisms when the SMTP client uses to look up a host's IP
 address.
@@ -396,6 +459,16 @@ The syslog facility of Postfix logging.
 .IP "\fBsyslog_name (postfix)\fR"
 The mail system name that is prepended to the process name in syslog
 records, so that "smtpd" becomes, for example, "postfix/smtpd".
+.PP
+Available with Postfix 2.2 and earlier:
+.IP "\fBfallback_relay (empty)\fR"
+Optional list of relay hosts for SMTP destinations that can't be
+found or that are unreachable.
+.PP
+Available with Postfix 2.3 and later:
+.IP "\fBsmtp_fallback_relay ($fallback_relay)\fR"
+Optional list of relay hosts for SMTP destinations that can't be
+found or that are unreachable.
 .SH "SEE ALSO"
 .na
 .nf

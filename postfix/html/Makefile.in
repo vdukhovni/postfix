@@ -68,9 +68,9 @@ scache.8.html: ../src/scache/scache.c
 	PATH=../mantools:$$PATH; \
 	srctoman $? | $(AWK) | nroff -man | uniq | $(MAN2HTML) | postlink >$@
 
-lmtp.8.html: ../src/lmtp/lmtp.c
-	PATH=../mantools:$$PATH; \
-	srctoman $? | $(AWK) | nroff -man | uniq | $(MAN2HTML) | postlink >$@
+lmtp.8.html: smtp.8.html
+	rm -f $@
+	ln -s $? $@
 
 local.8.html: ../src/local/local.c
 	PATH=../mantools:$$PATH; \
@@ -192,7 +192,6 @@ sendmail.1.html: ../src/sendmail/sendmail.c
 	srctoman $? | $(AWK) | nroff -man | uniq | $(MAN2HTML) | postlink >$@
 
 mailq.1.html: sendmail.1.html
-	PATH=../mantools:$$PATH; \
 	rm -f $@
 	ln -s $? $@
 

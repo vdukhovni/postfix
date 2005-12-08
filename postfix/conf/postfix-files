@@ -67,7 +67,7 @@ $daemon_directory/cleanup:f:root:-:755
 $daemon_directory/discard:f:root:-:755
 $daemon_directory/error:f:root:-:755
 $daemon_directory/flush:f:root:-:755
-$daemon_directory/lmtp:f:root:-:755
+#$daemon_directory/lmtp:f:root:-:755
 $daemon_directory/local:f:root:-:755
 $daemon_directory/master:f:root:-:755
 $daemon_directory/oqmgr:f:root:-:755
@@ -86,6 +86,7 @@ $daemon_directory/trivial-rewrite:f:root:-:755
 $daemon_directory/verify:f:root:-:755
 $daemon_directory/virtual:f:root:-:755
 $daemon_directory/nqmgr:h:$daemon_directory/qmgr
+$daemon_directory/lmtp:h:$daemon_directory/smtp
 $command_directory/postalias:f:root:-:755
 $command_directory/postcat:f:root:-:755
 $command_directory/postconf:f:root:-:755

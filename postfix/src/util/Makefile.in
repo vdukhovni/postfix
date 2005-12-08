@@ -570,12 +570,10 @@ attr_clnt.o: attr.h
 attr_clnt.o: attr_clnt.c
 attr_clnt.o: attr_clnt.h
 attr_clnt.o: auto_clnt.h
-attr_clnt.o: connect.h
 attr_clnt.o: htable.h
 attr_clnt.o: iostuff.h
 attr_clnt.o: msg.h
 attr_clnt.o: mymalloc.h
-attr_clnt.o: split_at.h
 attr_clnt.o: sys_defs.h
 attr_clnt.o: vbuf.h
 attr_clnt.o: vstream.h
@@ -642,10 +640,12 @@ attr_scan_plain.o: vstream.h
 attr_scan_plain.o: vstring.h
 auto_clnt.o: auto_clnt.c
 auto_clnt.o: auto_clnt.h
+auto_clnt.o: connect.h
 auto_clnt.o: events.h
 auto_clnt.o: iostuff.h
 auto_clnt.o: msg.h
 auto_clnt.o: mymalloc.h
+auto_clnt.o: split_at.h
 auto_clnt.o: sys_defs.h
 auto_clnt.o: vbuf.h
 auto_clnt.o: vstream.h

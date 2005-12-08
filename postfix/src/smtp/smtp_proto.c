@@ -2,13 +2,12 @@
 /* NAME
 /*	smtp_proto 3
 /* SUMMARY
-/*	client SMTP protocol
+/*	client SMTP/LMTP protocol
 /* SYNOPSIS
 /*	#include "smtp.h"
 /*
-/*	int	smtp_helo(state, misc_flags)
+/*	int	smtp_helo(state)
 /*	SMTP_STATE *state;
-/*	int	misc_flags;
 /*
 /*	int	smtp_xfer(state)
 /*	SMTP_STATE *state;
@@ -19,6 +18,7 @@
 /*	int	smtp_quit(state)
 /*	SMTP_STATE *state;
 /* DESCRIPTION
+/*	In the subsequent text, SMTP implies LMTP.
 /*	This module implements the client side of the SMTP protocol.
 /*
 /*	smtp_helo() performs the initial handshake with the SMTP server.
@@ -230,11 +230,11 @@ char   *xfer_request[SMTP_STATE_LAST] = {
     "QUIT command",
 };
 
-static int smtp_start_tls(SMTP_STATE *, int);
+static int smtp_start_tls(SMTP_STATE *);
 
 /* smtp_helo - perform initial handshake with SMTP server */
 
-int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
+int     smtp_helo(SMTP_STATE *state)
 {
     char   *myname = "smtp_helo";
     SMTP_SESSION *session = state->session;
@@ -267,7 +267,7 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
      * If not recursing after STARTTLS, examine the server greeting banner
      * and decide if we are going to send EHLO as the next command.
      */
-    if ((misc_flags & SMTP_MISC_FLAG_IN_STARTTLS) == 0) {
+    if ((state->misc_flags & SMTP_MISC_FLAG_IN_STARTTLS) == 0) {
 
 	/*
 	 * Prepare for disaster.
@@ -275,7 +275,7 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
 	smtp_timeout_setup(state->session->stream, var_smtp_helo_tmout);
 	if ((except = vstream_setjmp(state->session->stream)) != 0)
 	    return (smtp_stream_except(state, except,
-				    "receiving the initial SMTP greeting"));
+				  "receiving the initial server greeting"));
 
 	/*
 	 * Read and parse the server's SMTP greeting banner.
@@ -312,18 +312,22 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
 	(void) mystrtok(&words, "- \t\n");
 	for (n = 0; (word = mystrtok(&words, " \t\n")) != 0; n++) {
 	    if (n == 0 && strcasecmp(word, var_myhostname) == 0) {
-		if (misc_flags & SMTP_MISC_FLAG_LOOP_DETECT)
+		if (state->misc_flags & SMTP_MISC_FLAG_LOOP_DETECT)
 		    msg_warn("host %s greeted me with my own hostname %s",
 			     session->namaddr, var_myhostname);
 	    } else if (strcasecmp(word, "ESMTP") == 0)
 		session->features |= SMTP_FEATURE_ESMTP;
 	}
-	if (var_smtp_always_ehlo
-	    && (session->features & SMTP_FEATURE_MAYBEPIX) == 0)
+	if ((state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) == 0) {
+	    if (var_smtp_always_ehlo
+		&& (session->features & SMTP_FEATURE_MAYBEPIX) == 0)
+		session->features |= SMTP_FEATURE_ESMTP;
+	    if (var_smtp_never_ehlo
+		|| (session->features & SMTP_FEATURE_MAYBEPIX) != 0)
+		session->features &= ~SMTP_FEATURE_ESMTP;
+	} else {
 	    session->features |= SMTP_FEATURE_ESMTP;
-	if (var_smtp_never_ehlo
-	    || (session->features & SMTP_FEATURE_MAYBEPIX) != 0)
-	    session->features &= ~SMTP_FEATURE_ESMTP;
+	}
     }
 
     /*
@@ -338,19 +342,28 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
      * Return the compliment. Fall back to SMTP if our ESMTP recognition
      * heuristic failed.
      */
-    if (session->features & SMTP_FEATURE_ESMTP) {
-	smtp_chat_cmd(session, "EHLO %s", var_smtp_helo_name);
-	if ((resp = smtp_chat_resp(session))->code / 100 != 2)
-	    session->features &= ~SMTP_FEATURE_ESMTP;
-    }
-    if ((session->features & SMTP_FEATURE_ESMTP) == 0) {
-	smtp_chat_cmd(session, "HELO %s", var_smtp_helo_name);
+    if ((state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) == 0) {
+	if (session->features & SMTP_FEATURE_ESMTP) {
+	    smtp_chat_cmd(session, "EHLO %s", var_smtp_helo_name);
+	    if ((resp = smtp_chat_resp(session))->code / 100 != 2)
+		session->features &= ~SMTP_FEATURE_ESMTP;
+	}
+	if ((session->features & SMTP_FEATURE_ESMTP) == 0) {
+	    smtp_chat_cmd(session, "HELO %s", var_smtp_helo_name);
+	    if ((resp = smtp_chat_resp(session))->code / 100 != 2)
+		return (smtp_site_fail(state, session->host, resp,
+				       "host %s refused to talk to me: %s",
+				       session->namaddr,
+				       translit(resp->str, "\n", " ")));
+	    return (0);
+	}
+    } else {
+	smtp_chat_cmd(session, "LHLO %s", var_smtp_helo_name);
 	if ((resp = smtp_chat_resp(session))->code / 100 != 2)
 	    return (smtp_site_fail(state, session->host, resp,
 				   "host %s refused to talk to me: %s",
 				   session->namaddr,
 				   translit(resp->str, "\n", " ")));
-	return (0);
     }
 
     /*
@@ -382,7 +395,7 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
 		    myfree(session->helo);
 		session->helo = lowercase(mystrdup(word));
 		if (strcasecmp(word, var_myhostname) == 0
-		    && (misc_flags & SMTP_MISC_FLAG_LOOP_DETECT) != 0) {
+		 && (state->misc_flags & SMTP_MISC_FLAG_LOOP_DETECT) != 0) {
 		    msg_warn("host %s replied to HELO/EHLO with my own hostname %s",
 			     session->namaddrport, var_myhostname);
 		    if (session->features & SMTP_FEATURE_BEST_MX)
@@ -483,7 +496,7 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
     /*
      * Skip this part if we already sent STARTTLS.
      */
-    if ((misc_flags & SMTP_MISC_FLAG_IN_STARTTLS) == 0) {
+    if ((state->misc_flags & SMTP_MISC_FLAG_IN_STARTTLS) == 0) {
 
 	/*
 	 * Optionally log unused STARTTLS opportunities.
@@ -528,8 +541,8 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
 		}
 #endif
 		session->features = saved_features;
-		misc_flags |= SMTP_MISC_FLAG_IN_STARTTLS;
-		return (smtp_start_tls(state, misc_flags));
+		state->misc_flags |= SMTP_MISC_FLAG_IN_STARTTLS;
+		return (smtp_start_tls(state));
 	    }
 
 	    /*
@@ -587,7 +600,7 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
 
 /* smtp_start_tls - turn on TLS and recurse into the HELO dialog */
 
-static int smtp_start_tls(SMTP_STATE *state, int misc_flags)
+static int smtp_start_tls(SMTP_STATE *state)
 {
     SMTP_SESSION *session = state->session;
     VSTRING *serverid;
@@ -644,7 +657,7 @@ static int smtp_start_tls(SMTP_STATE *state, int misc_flags)
      * At this point we have to re-negotiate the "EHLO" to reget the
      * feature-list.
      */
-    return (smtp_helo(state, misc_flags));
+    return (smtp_helo(state));
 }
 
 #endif
@@ -848,11 +861,13 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
     SMTP_RESP *resp;
     RECIPIENT *rcpt;
     VSTRING *next_command = vstring_alloc(100);
+    int    *NOCLOBBER survivors = 0;
     NOCLOBBER int next_state;
     NOCLOBBER int next_rcpt;
     NOCLOBBER int send_rcpt;
     NOCLOBBER int recv_rcpt;
     NOCLOBBER int nrcpt;
+    NOCLOBBER int recv_done;
     int     except;
     int     rec_type;
     NOCLOBBER int prev_type = 0;
@@ -881,6 +896,8 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 
 #define RETURN(x) do { \
 	vstring_free(next_command); \
+	if (survivors) \
+	    myfree((char *) survivors); \
 	if (session->mime_state) \
 	    session->mime_state = mime_state_free(session->mime_state); \
 	return (x); \
@@ -929,7 +946,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
      * SMTP dialog with RSET and QUIT.
      */
     nrcpt = 0;
-    next_rcpt = send_rcpt = recv_rcpt = 0;
+    next_rcpt = send_rcpt = recv_rcpt = recv_done = 0;
     mail_from_rejected = 0;
 
     /*
@@ -1277,6 +1294,13 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 #endif
 			rcpt = request->rcpt_list.info + recv_rcpt;
 			if (resp->code / 100 == 2) {
+			    if (state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) {
+				if (survivors == 0)
+				    survivors = (int *)
+					mymalloc(request->rcpt_list.len
+						 * sizeof(int));
+				survivors[nrcpt] = recv_rcpt;
+			    }
 			    ++nrcpt;
 			    /* If trace-only, mark the recipient done. */
 			    if (DEL_REQ_TRACE_ONLY(request->flags)) {
@@ -1327,22 +1351,51 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		     */
 		case SMTP_STATE_DOT:
 		    GETTIMEOFDAY(&request->msg_stats.deliver_done);
-		    if (nrcpt > 0) {
-			if (resp->code / 100 != 2) {
-			    smtp_mesg_fail(state, session->host, resp,
+		    if ((state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) == 0) {
+			if (nrcpt > 0) {
+			    if (resp->code / 100 != 2) {
+				smtp_mesg_fail(state, session->host, resp,
 					"host %s said: %s (in reply to %s)",
-					   session->namaddr,
-					   translit(resp->str, "\n", " "),
-					   xfer_request[SMTP_STATE_DOT]);
-			} else {
-			    for (nrcpt = 0; nrcpt < recv_rcpt; nrcpt++) {
-				rcpt = request->rcpt_list.info + nrcpt;
-				if (!SMTP_RCPT_ISMARKED(rcpt)) {
-				    translit(resp->str, "\n", " ");
-				    smtp_rcpt_done(state, resp, rcpt);
+					       session->namaddr,
+					     translit(resp->str, "\n", " "),
+					       xfer_request[SMTP_STATE_DOT]);
+			    } else {
+				for (nrcpt = 0; nrcpt < recv_rcpt; nrcpt++) {
+				    rcpt = request->rcpt_list.info + nrcpt;
+				    if (!SMTP_RCPT_ISMARKED(rcpt)) {
+					translit(resp->str, "\n", " ");
+					smtp_rcpt_done(state, resp, rcpt);
+				    }
 				}
 			    }
 			}
+		    }
+
+		    /*
+		     * With LMTP we have one response per accepted RCPT TO
+		     * command. Stay in the SMTP_STATE_DOT state until we
+		     * have collected all responses.
+		     */
+		    else {
+			if (nrcpt > 0) {
+			    rcpt = request->rcpt_list.info
+				+ survivors[recv_done++];
+			    if (resp->code / 100 != 2) {
+				smtp_rcpt_fail(state, rcpt, session->host, resp,
+					"host %s said: %s (in reply to %s)",
+					       session->namaddr,
+					     translit(resp->str, "\n", " "),
+					       xfer_request[SMTP_STATE_DOT]);
+			    } else {
+				translit(resp->str, "\n", " ");
+				smtp_rcpt_done(state, resp, rcpt);
+			    }
+			}
+			if (msg_verbose)
+			    msg_info("%s: got %d of %d end-of-data replies",
+				     myname, recv_done, nrcpt);
+			if (recv_done < nrcpt)
+			    break;
 		    }
 
 		    /*

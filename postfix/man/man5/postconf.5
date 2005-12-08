@@ -496,6 +496,16 @@ a "type:table" lookup table is matched when a name matches a lookup key
 (the lookup result is ignored).  Continue long lines by starting the
 next line with whitespace.
 .PP
+Example:
+.PP
+.nf
+.na
+.ft C
+authorized_submit_users = !www, static:all
+.fi
+.ad
+.ft R
+.PP
 This feature is available in Postfix 2.2 and later.
 .SH authorized_verp_clients (default: $mynetworks)
 What SMTP clients are allowed to specify the XVERP command.
@@ -741,6 +751,11 @@ With Postfix command that run with set-gid privileges, a
 config_directory override requires either root privileges, or it
 requires that the directory is listed with the alternate_config_directories
 parameter in the default main.cf file.
+.SH connection_cache_protocol_timeout (default: 5s)
+Time limit for connection cache connect, send or receive
+operations.  The time limit is enforced in the client.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH connection_cache_service (default: scache)
 The name of the \fBscache\fR(8) connection cache service.  This service
 maintains a limited pool of cached sessions.
@@ -1225,17 +1240,19 @@ from message headers when mail is submitted with "\fBsendmail -t\fR".
 This feature was removed in Postfix version 2.1.
 .SH fallback_relay (default: empty)
 Optional list of relay hosts for SMTP destinations that can't be
-found or that are unreachable.
+found or that are unreachable. With Postfix 2.3 this parameter
+is renamed to smtp_fallback_relay.
 .PP
 By default, mail is returned to the sender when a destination is
-not found, and delivery is deferred if a destination is unreachable.
+not found, and delivery is deferred when a destination is unreachable.
 .PP
 The fallback relays must be SMTP destinations. Specify a domain,
 host, host:port, [host]:port, [address] or [address]:port; the form
 [host] turns off MX lookups.  If you specify multiple SMTP
 destinations, Postfix will try them in the specified order.
 .PP
-Note: do not use the fallback_relay feature when relaying mail
+Note: before Postfix 2.2, do not use the fallback_relay feature
+when relaying mail
 for a backup or primary MX domain. Mail would loop between the
 Postfix MX host and the fallback_relay host when the final destination
 is unavailable.
@@ -1248,7 +1265,8 @@ the end of the relay entry.
 In transport maps, specify "relay:\fInexthop...\fR"
 as the right-hand side for backup or primary MX domain entries.
 .PP
-These are default settings in Postfix version 2.2 and later.
+Postfix version 2.2 and later will not use the fallback_relay feature
+for destinations that it is MX host for.
 .SH fallback_transport (default: empty)
 Optional message delivery transport that the \fBlocal\fR(8) delivery
 agent should use for names that are not found in the \fBaliases\fR(5)
@@ -1595,6 +1613,16 @@ This feature is available in Postfix 2.1 and later.
 .SH line_length_limit (default: 2048)
 Upon input, long lines are chopped up into pieces of at most
 this length; upon delivery, long lines are reconstructed.
+.SH lmtp_bind_address (default: empty)
+The LMTP-specific version of the smtp_bind_address configuration
+parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
+.SH lmtp_bind_address6 (default: empty)
+The LMTP-specific version of the smtp_bind_address6 configuration
+parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH lmtp_cache_connection (default: yes)
 Keep Postfix LMTP client connections open for up to $max_idle
 seconds. When the LMTP client receives a request for the same
@@ -1640,6 +1668,21 @@ lmtp_connect_timeout = 30s
 .fi
 .ad
 .ft R
+.SH lmtp_connection_cache_destinations (default: empty)
+The LMTP-specific version of the smtp_connection_cache_destinations
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
+.SH lmtp_connection_cache_on_demand (default: yes)
+The LMTP-specific version of the smtp_connection_cache_on_demand
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
+.SH lmtp_connection_reuse_time_limit (default: 300s)
+The LMTP-specific version of the smtp_connection_reuse_time_limit
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH lmtp_data_done_timeout (default: 600s)
 The LMTP client time limit for sending the LMTP ".", and for
 receiving the server response.  When no response is received within
@@ -1661,6 +1704,11 @@ the LMTP client terminates the transfer.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
+.SH lmtp_defer_if_no_mx_address_found (default: no)
+The LMTP-specific version of the smtp_defer_if_no_mx_address_found
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH lmtp_destination_concurrency_limit (default: $default_destination_concurrency_limit)
 The maximal number of parallel deliveries to the same destination
 via the lmtp message delivery transport. This limit is enforced by
@@ -1675,27 +1723,116 @@ the entry in the master.cf file.
 Setting this parameter to a value of 1 changes the meaning of
 lmtp_destination_concurrency_limit from concurrency per domain into
 concurrency per recipient.
-.SH lmtp_lhlo_timeout (default: 300s)
-The LMTP client time limit for receiving the LMTP greeting
-banner.  When the server drops the connection without sending a
-greeting banner, or when it sends no greeting banner within the
-deadline, the LMTP client tries the next address on the mail
-exchanger list.
+.SH lmtp_discard_lhlo_keyword_address_maps (default: empty)
+Lookup tables, indexed by the remote LMTP server address, with
+case insensitive lists of LHLO keywords (pipelining, starttls,
+auth, etc.) that the LMTP client will ignore in the LHLO response
+from a remote LMTP server. See lmtp_discard_lhlo_keywords for
+details.
 .PP
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
+This feature is available in Postfix 2.3 and later.
+.SH lmtp_discard_lhlo_keywords (default: $myhostname)
+A case insensitive list of LHLO keywords (pipelining, starttls,
+auth, etc.) that the LMTP client will ignore in the LHLO response
+from a remote LMTP server.
+.PP
+This feature is available in Postfix 2.3 and later.
+.PP
+Notes:
+.IP \(bu
+Specify the \fBsilent-discard\fR pseudo keyword to prevent
+this action from being logged.
+.IP \(bu
+Use the lmtp_discard_lhlo_keyword_address_maps feature to
+discard LHLO keywords selectively.
+.SH lmtp_enforce_tls (default: no)
+The LMTP-specific version of the smtp_enforce_tls configuration
+parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
+.SH lmtp_generic_maps (default: empty)
+The LMTP-specific version of the smtp_generic_maps configuration
+parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
+.SH lmtp_host_lookup (default: dns)
+The LMTP-specific version of the smtp_host_lookup configuration
+parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
+.SH lmtp_lhlo_name (default: $myhostname)
+The hostname to send in the LMTP LHLO command.
+.PP
+The default value is the machine hostname.  Specify a hostname or
+[ip.add.re.ss].
+.PP
+This information can be specified in the main.cf file for all LMTP
+clients, or it can be specified in the master.cf file for a specific
+client, for example:
+.PP
+.nf
+.na
+.ft C
+  /etc/postfix/master.cf:
+        mylmtp ... lmtp -o lmtp_lhlo_name=foo.bar.com
+.fi
+.ad
+.ft R
+.PP
+This feature is available in Postfix 2.3 and later.
+.SH lmtp_lhlo_timeout (default: 300s)
+The LMTP client time limit for sending the LHLO command, and
+for receiving the initial server response.
+.PP
+Time units: s (seconds), m (minutes), h (hours), d (days), w
+(weeks).  The default time unit is s (seconds).
+.SH lmtp_line_length_limit (default: 990)
+The LMTP-specific version of the smtp_line_length_limit
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH lmtp_mail_timeout (default: 300s)
 The LMTP client time limit for sending the MAIL FROM command, and
 for receiving the server response.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
+.SH lmtp_mx_address_limit (default: 5)
+The LMTP-specific version of the smtp_mx_address_limit configuration
+parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
+.SH lmtp_mx_session_limit (default: 2)
+The LMTP-specific version of the smtp_mx_session_limit configuration
+parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
+.SH lmtp_pix_workaround_delay_time (default: 10s)
+The LMTP-specific version of the smtp_pix_workaround_delay_time
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
+.SH lmtp_pix_workaround_threshold_time (default: 500s)
+The LMTP-specific version of the smtp_pix_workaround_threshold_time
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH lmtp_quit_timeout (default: 300s)
 The LMTP client time limit for sending the QUIT command, and for
 receiving the server response.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
+.SH lmtp_quote_rfc821_envelope (default: yes)
+The LMTP-specific version of the smtp_quote_rfc821_envelope
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
+.SH lmtp_randomize_addresses (default: yes)
+The LMTP-specific version of the smtp_randomize_addresses
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH lmtp_rcpt_timeout (default: 300s)
 The LMTP client time limit for sending the RCPT TO command, and
 for receiving the server response.
@@ -1712,6 +1849,11 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 .SH lmtp_sasl_auth_enable (default: no)
 Enable SASL authentication in the Postfix LMTP client.
+.SH lmtp_sasl_mechanism_filter (default: empty)
+The LMTP-specific version of the smtp_sasl_mechanism_filter
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH lmtp_sasl_password_maps (default: empty)
 Optional LMTP client lookup tables with one username:password entry
 per host or domain.  If a remote host or domain has no username:password
@@ -1741,6 +1883,11 @@ lmtp_sasl_security_options = noplaintext
 .fi
 .ad
 .ft R
+.SH lmtp_sasl_tls_security_options (default: $var_lmtp_sasl_opts)
+The LMTP-specific version of the smtp_sasl_tls_security_options
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH lmtp_send_xforward_command (default: no)
 Send an XFORWARD command to the LMTP server when the LMTP LHLO
 server response announces XFORWARD support.  This allows an \fBlmtp\fR(8)
@@ -1751,10 +1898,50 @@ Before you change the value to yes, it is best to make sure that
 your content filter supports this command.
 .PP
 This feature is available in Postfix 2.1 and later.
+.SH lmtp_sender_dependent_authentication (default: no)
+The LMTP-specific version of the smtp_sender_dependent_authentication
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
+.SH lmtp_skip_5xx_greeting (default: yes)
+The LMTP-specific version of the smtp_skip_5xx_greeting
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH lmtp_skip_quit_response (default: no)
 Wait for the response to the LMTP QUIT command.
+.SH lmtp_starttls_timeout (default: 300s)
+The LMTP-specific version of the smtp_starttls_timeout configuration
+parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH lmtp_tcp_port (default: 24)
 The default TCP port that the Postfix LMTP client connects to.
+.SH lmtp_tls_enforce_peername (default: yes)
+The LMTP-specific version of the smtp_tls_enforce_peername
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
+.SH lmtp_tls_note_starttls_offer (default: no)
+The LMTP-specific version of the smtp_tls_note_starttls_offer
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
+.SH lmtp_tls_per_site (default: empty)
+The LMTP-specific version of the smtp_tls_per_site configuration
+parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
+.SH lmtp_tls_scert_verifydepth (default: 5)
+The LMTP-specific version of the smtp_tls_scert_verifydepth
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
+.SH lmtp_use_tls (default: no)
+The LMTP-specific version of the smtp_use_tls configuration
+parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH lmtp_xforward_timeout (default: 300s)
 The LMTP client time limit for sending the XFORWARD command, and
 for receiving the server response.
@@ -3240,7 +3427,7 @@ sender_canonical_maps = hash:/etc/postfix/sender_canonical
 .SH sender_dependent_relayhost_maps (default: empty)
 A sender-dependent override for the global relayhost parameter
 setting. The tables are searched by the sender address and by the
-sender @domain. This information is overruled with relay_transport,
+@domain. This information is overruled with relay_transport,
 default_transport and with the \fBtransport\fR(5) table.
 .PP
 This feature is available in Postfix 2.3 and later.
@@ -3357,6 +3544,9 @@ IP address),
 if mail is sent via a relay host: a relay host name (without
 [] or non-default TCP port), as specified in main.cf or in the
 transport map,
+.IP \(bu
+if mail is sent via a UNIX-domain socket: a pathname (without
+the unix: prefix),
 .IP \(bu
 a /file/name with domain names and/or relay host names as
 defined above,
@@ -3520,6 +3710,22 @@ This option is useful only if you are definitely sure that you
 will only connect to servers that support RFC 2487 _and_ that
 provide valid server certificates.  Typical use is for clients that
 send all their email to a dedicated mailhub.
+.SH smtp_fallback_relay (default: $fallback_relay)
+Optional list of relay hosts for SMTP destinations that can't be
+found or that are unreachable. With Postfix 2.2 and earlier this
+parameter is called fallback_relay.
+.PP
+By default, mail is returned to the sender when a destination is
+not found, and delivery is deferred when a destination is unreachable.
+.PP
+The fallback relays must be SMTP destinations. Specify a domain,
+host, host:port, [host]:port, [address] or [address]:port; the form
+[host] turns off MX lookups.  If you specify multiple SMTP
+destinations, Postfix will try them in the specified order.
+.PP
+To prevent mailer loops between MX hosts and fall-back hosts,
+Postfix version 2.3 and later will not use the smtp_fallback_relay
+feature for destinations that it is MX host for.
 .SH smtp_generic_maps (default: empty)
 Optional lookup tables that perform address rewriting in the
 SMTP client, typically to transform a locally valid address into

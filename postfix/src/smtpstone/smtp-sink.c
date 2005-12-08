@@ -791,6 +791,11 @@ int     main(int argc, char **argv)
     INET_PROTO_INFO *proto_info;
 
     /*
+     * Fix 20051207.
+     */
+    signal(SIGPIPE, SIG_IGN);
+
+    /*
      * Initialize diagnostics.
      */
     msg_vstream_init(argv[0], VSTREAM_ERR);

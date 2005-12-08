@@ -17,7 +17,7 @@
 /*		char	*nexthop;
 /*		char	*encoding;
 /*		char	*sender;
-/*		MSG_STATS stats;
+/*		MSG_STATS msg_stats;
 /*		RECIPIENT_LIST rcpt_list;
 /*		DSN	*hop_status;
 /*		char	*client_name;
@@ -240,7 +240,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 		  ATTR_TYPE_STR, MAIL_ATTR_SENDER, address,
 		  ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, dsn_envid,
 		  ATTR_TYPE_NUM, MAIL_ATTR_DSN_RET, &dsn_ret,
-		  ATTR_TYPE_FUNC, msg_stats_scan, (void *) &request->msg_stats,
+	       ATTR_TYPE_FUNC, msg_stats_scan, (void *) &request->msg_stats,
 		  ATTR_TYPE_STR, MAIL_ATTR_CLIENT_NAME, client_name,
 		  ATTR_TYPE_STR, MAIL_ATTR_CLIENT_ADDR, client_addr,
 		  ATTR_TYPE_STR, MAIL_ATTR_PROTO_NAME, client_proto,
@@ -303,6 +303,11 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 			   vstring_str(dsn_orcpt), dsn_notify,
 			   vstring_str(orig_addr),
 			   vstring_str(address));
+    }
+    if (request->rcpt_list.len <= 0) {
+	msg_warn("%s: no recipients in delivery request for destination %s",
+		 request->queue_id, request->nexthop);
+	return (-1);
     }
 
     /*

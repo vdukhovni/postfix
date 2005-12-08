@@ -1238,15 +1238,16 @@ Example:
 export_environment = TZ PATH=/bin:/usr/bin
 </pre>
 
-%PARAM fallback_relay 
+%PARAM smtp_fallback_relay $fallback_relay
 
 <p>
 Optional list of relay hosts for SMTP destinations that can't be
-found or that are unreachable.  </p>
+found or that are unreachable. With Postfix 2.2 and earlier this
+parameter is called fallback_relay.  </p>
 
 <p>
 By default, mail is returned to the sender when a destination is
-not found, and delivery is deferred if a destination is unreachable.
+not found, and delivery is deferred when a destination is unreachable.
 </p>
 
 <p> The fallback relays must be SMTP destinations. Specify a domain,
@@ -1254,7 +1255,29 @@ host, host:port, [host]:port, [address] or [address]:port; the form
 [host] turns off MX lookups.  If you specify multiple SMTP
 destinations, Postfix will try them in the specified order.  </p>
 
-<p> Note: do not use the fallback_relay feature when relaying mail
+<p> To prevent mailer loops between MX hosts and fall-back hosts,
+Postfix version 2.3 and later will not use the smtp_fallback_relay
+feature for destinations that it is MX host for. </p>
+
+%PARAM fallback_relay 
+
+<p>
+Optional list of relay hosts for SMTP destinations that can't be
+found or that are unreachable. With Postfix 2.3 this parameter
+is renamed to smtp_fallback_relay. </p>
+
+<p>
+By default, mail is returned to the sender when a destination is
+not found, and delivery is deferred when a destination is unreachable.
+</p>
+
+<p> The fallback relays must be SMTP destinations. Specify a domain,
+host, host:port, [host]:port, [address] or [address]:port; the form
+[host] turns off MX lookups.  If you specify multiple SMTP
+destinations, Postfix will try them in the specified order.  </p>
+
+<p> Note: before Postfix 2.2, do not use the fallback_relay feature
+when relaying mail
 for a backup or primary MX domain. Mail would loop between the
 Postfix MX host and the fallback_relay host when the final destination
 is unavailable. </p>
@@ -1271,7 +1294,8 @@ as the right-hand side for backup or primary MX domain entries.
 
 </ul>
 
-<p> These are default settings in Postfix version 2.2 and later.
+<p> Postfix version 2.2 and later will not use the fallback_relay feature
+for destinations that it is MX host for.
 </p>
 
 %PARAM fast_flush_domains $relay_domains
@@ -3613,6 +3637,9 @@ IP address),
 <li> if mail is sent via a relay host: a relay host name (without
 [] or non-default TCP port), as specified in main.cf or in the
 transport map,
+
+<li> if mail is sent via a UNIX-domain socket: a pathname (without
+the unix: prefix),
 
 <li> a /file/name with domain names and/or relay host names as
 defined above,
@@ -6256,6 +6283,14 @@ a "type:table" lookup table is matched when a name matches a lookup key
 next line with whitespace.  </p>
 
 <p>
+Example:
+</p>
+
+<pre>
+authorized_submit_users = !www, static:all
+</pre>
+
+<p>
 This feature is available in Postfix 2.2 and later.
 </p>
 
@@ -8719,7 +8754,7 @@ is placed into the Postfix configuration directory.  </p>
 
 <p> A sender-dependent override for the global relayhost parameter
 setting. The tables are searched by the sender address and by the
-sender @domain. This information is overruled with relay_transport,
+@domain. This information is overruled with relay_transport,
 default_transport and with the transport(5) table. </p>
 
 <p>
@@ -8749,3 +8784,255 @@ appropriate credentials.  </p>
 This feature is available in Postfix 2.3 and later.
 </p>
 
+%PARAM lmtp_lhlo_name $myhostname
+
+<p>
+The hostname to send in the LMTP LHLO command.
+</p>
+
+<p>
+The default value is the machine hostname.  Specify a hostname or
+[ip.add.re.ss].
+</p>
+
+<p>
+This information can be specified in the main.cf file for all LMTP
+clients, or it can be specified in the master.cf file for a specific
+client, for example:
+</p>
+
+<pre>
+  /etc/postfix/master.cf:
+        mylmtp ... lmtp -o lmtp_lhlo_name=foo.bar.com
+</pre>
+
+<p>
+This feature is available in Postfix 2.3 and later.
+</p>
+
+%PARAM lmtp_discard_lhlo_keyword_address_maps
+
+<p> Lookup tables, indexed by the remote LMTP server address, with
+case insensitive lists of LHLO keywords (pipelining, starttls,
+auth, etc.) that the LMTP client will ignore in the LHLO response
+from a remote LMTP server. See lmtp_discard_lhlo_keywords for
+details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_discard_lhlo_keywords $myhostname
+
+<p> A case insensitive list of LHLO keywords (pipelining, starttls,
+auth, etc.) that the LMTP client will ignore in the LHLO response
+from a remote LMTP server. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+<p> Notes: </p>
+
+<ul>
+
+<li> <p> Specify the <b>silent-discard</b> pseudo keyword to prevent
+this action from being logged. </p>
+
+<li> <p> Use the lmtp_discard_lhlo_keyword_address_maps feature to
+discard LHLO keywords selectively. </p>
+
+</ul>
+
+%PARAM lmtp_lhlo_timeout 300s
+
+<p> The LMTP client time limit for sending the LHLO command, and
+for receiving the initial server response. </p>
+
+<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
+(weeks).  The default time unit is s (seconds).  </p>
+
+%PARAM lmtp_sasl_tls_security_options $var_lmtp_sasl_opts
+
+<p> The LMTP-specific version of the smtp_sasl_tls_security_options
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_sasl_mechanism_filter
+
+<p> The LMTP-specific version of the smtp_sasl_mechanism_filter
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_bind_address
+
+<p> The LMTP-specific version of the smtp_bind_address configuration
+parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_bind_address6
+
+<p> The LMTP-specific version of the smtp_bind_address6 configuration
+parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_host_lookup dns
+
+<p> The LMTP-specific version of the smtp_host_lookup configuration
+parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_connection_cache_destinations
+
+<p> The LMTP-specific version of the smtp_connection_cache_destinations
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_tls_per_site
+
+<p> The LMTP-specific version of the smtp_tls_per_site configuration
+parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_generic_maps
+
+<p> The LMTP-specific version of the smtp_generic_maps configuration
+parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_pix_workaround_threshold_time 500s
+
+<p> The LMTP-specific version of the smtp_pix_workaround_threshold_time
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_pix_workaround_delay_time 10s
+
+<p> The LMTP-specific version of the smtp_pix_workaround_delay_time
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_connection_reuse_time_limit 300s
+
+<p> The LMTP-specific version of the smtp_connection_reuse_time_limit
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_starttls_timeout 300s
+
+<p> The LMTP-specific version of the smtp_starttls_timeout configuration
+parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_line_length_limit 990
+
+<p> The LMTP-specific version of the smtp_line_length_limit
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_mx_address_limit 5
+
+<p> The LMTP-specific version of the smtp_mx_address_limit configuration
+parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_mx_session_limit 2
+
+<p> The LMTP-specific version of the smtp_mx_session_limit configuration
+parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_tls_scert_verifydepth 5
+
+<p> The LMTP-specific version of the smtp_tls_scert_verifydepth
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_skip_5xx_greeting yes
+
+<p> The LMTP-specific version of the smtp_skip_5xx_greeting
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_randomize_addresses yes
+
+<p> The LMTP-specific version of the smtp_randomize_addresses
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_quote_rfc821_envelope yes
+
+<p> The LMTP-specific version of the smtp_quote_rfc821_envelope
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_defer_if_no_mx_address_found no
+
+<p> The LMTP-specific version of the smtp_defer_if_no_mx_address_found
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_connection_cache_on_demand yes
+
+<p> The LMTP-specific version of the smtp_connection_cache_on_demand
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_use_tls no
+
+<p> The LMTP-specific version of the smtp_use_tls configuration
+parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_enforce_tls no
+
+<p> The LMTP-specific version of the smtp_enforce_tls configuration
+parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_tls_enforce_peername yes
+
+<p> The LMTP-specific version of the smtp_tls_enforce_peername
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_tls_note_starttls_offer no
+
+<p> The LMTP-specific version of the smtp_tls_note_starttls_offer
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_sender_dependent_authentication no
+
+<p> The LMTP-specific version of the smtp_sender_dependent_authentication
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM connection_cache_protocol_timeout 5s
+
+<p> Time limit for connection cache connect, send or receive
+operations.  The time limit is enforced in the client. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>

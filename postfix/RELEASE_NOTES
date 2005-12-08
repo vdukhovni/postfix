@@ -17,6 +17,27 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
+Incompatibility with snapshot 20051208
+======================================
+
+The fallback_relay feature is renamed to smtp_fallback_relay, to
+make clear that the combined SMTP+LMTP client uses this setting
+only for SMTP deliveries. The old name still works.
+
+The LMTP client now reports the server as "myhostname[/path/name]".
+With the real server hostname in delivery status reports, the
+information will be more useful.
+
+Major changes with snapshot 20051208
+====================================
+
+The SMTP client now implements the LMTP protocol.  Most but not all
+smtp_xxx parameters have an lmtp_xxx "ghost" parameter.  This means
+there are lot of new LMTP features, including support for TLS and
+for the shared connection cache. There are no lmtp_xxx "ghost"
+parameters for the HELO or EHLO commands, because those commands
+exist only in SMTP.
+
 Incompatibility with snapshot 20051202
 ======================================
 

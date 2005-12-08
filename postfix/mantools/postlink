@@ -313,6 +313,7 @@ while (<>) {
 
     s;\bconnection_cache_service\b;<a href="postconf.5.html#connection_cache_service">$&</a>;g;
     s;\bconnection_cache_status_update_time\b;<a href="postconf.5.html#connection_cache_status_update_time">$&</a>;g;
+    s;\bconnection_cache_protocol_timeout\b;<a href="postconf.5.html#connection_cache_protocol_timeout">$&</a>;g;
     s;\bconnection_cache_ttl_limit\b;<a href="postconf.5.html#connection_cache_ttl_limit">$&</a>;g;
 
     s;\bshow_user_unknown_table_name\b;<a href="postconf.5.html#show_user_unknown_table_name">$&</a>;g;

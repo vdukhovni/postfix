@@ -69,6 +69,9 @@
 #include <deliver_pass.h>
 #include <dsb_scan.h>
 
+#define DELIVER_PASS_DEFER	1
+#define DELIVER_PASS_UNKNOWN	2
+
 /* deliver_pass_initial_reply - retrieve initial delivery process response */
 
 static int deliver_pass_initial_reply(VSTREAM *stream)
@@ -140,9 +143,10 @@ static int deliver_pass_final_reply(VSTREAM *stream, DSN_BUF *dsb)
 		  ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &stat,
 		  ATTR_TYPE_END) != 2) {
 	msg_warn("%s: malformed response", VSTREAM_PATH(stream));
-	stat = -1;
+	return (DELIVER_PASS_UNKNOWN);
+    } else {
+	return (stat ? DELIVER_PASS_DEFER : 0);
     }
-    return (stat);
 }
 
 /* deliver_pass - deliver one per-site queue entry */
@@ -153,6 +157,7 @@ int     deliver_pass(const char *class, const char *service,
 {
     VSTREAM *stream;
     DSN_BUF *dsb;
+    DSN     dsn;
     int     status;
     char   *saved_service;
     char   *transport;
@@ -184,10 +189,23 @@ int     deliver_pass(const char *class, const char *service,
      * XXX Can't pass back hop status info because the problem is with a
      * different transport.
      */
-    if ((status = deliver_pass_initial_reply(stream)) == 0
-	&& (status = deliver_pass_send_request(stream, request, nexthop,
-					       rcpt)) == 0)
-	status = deliver_pass_final_reply(stream, dsb);
+    if (deliver_pass_initial_reply(stream) != 0
+	|| deliver_pass_send_request(stream, request, nexthop, rcpt) != 0) {
+	DSN_SMTP(&dsn, "4.3.0",
+		 "451 mail transport unavailable",
+		 "mail transport unavailable");
+	status = defer_append(DEL_REQ_TRACE_FLAGS(request->flags),
+			      request->queue_id, &request->msg_stats,
+			      rcpt, "none", &dsn);
+    } else if ((status = deliver_pass_final_reply(stream, dsb))
+	       == DELIVER_PASS_UNKNOWN) {
+	DSN_SMTP(&dsn, "4.3.0",
+		 "451 unknown mail transport error",
+		 "unknown mail transport error");
+	status = defer_append(DEL_REQ_TRACE_FLAGS(request->flags),
+			      request->queue_id, &request->msg_stats,
+			      rcpt, "none", &dsn);
+    }
 
     /*
      * Clean up.

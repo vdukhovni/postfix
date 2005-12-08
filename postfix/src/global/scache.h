@@ -110,7 +110,7 @@ struct SCACHE {
 };
 
 extern SCACHE *scache_single_create(void);
-extern SCACHE *scache_clnt_create(const char *, int, int);
+extern SCACHE *scache_clnt_create(const char *, int, int, int);
 extern SCACHE *scache_multi_create(void);
 
 #define scache_save_endp(scache, ttl, endp_label, endp_prop, fd) \

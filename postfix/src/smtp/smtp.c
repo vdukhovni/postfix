@@ -2,52 +2,85 @@
 /* NAME
 /*	smtp 8
 /* SUMMARY
-/*	Postfix SMTP client
+/*	Postfix SMTP+LMTP client
 /* SYNOPSIS
 /*	\fBsmtp\fR [generic Postfix daemon options]
 /* DESCRIPTION
-/*	The Postfix SMTP client processes message delivery requests from
+/*	The Postfix SMTP+LMTP client implements the SMTP and LMTP mail
+/*	delivery protocols. It processes message delivery requests from
 /*	the queue manager. Each request specifies a queue file, a sender
 /*	address, a domain or host to deliver to, and recipient information.
 /*	This program expects to be run from the \fBmaster\fR(8) process
 /*	manager.
 /*
-/*	The SMTP client updates the queue file and marks recipients
+/*	The SMTP+LMTP client updates the queue file and marks recipients
 /*	as finished, or it informs the queue manager that delivery should
 /*	be tried again at a later time. Delivery status reports are sent
 /*	to the \fBbounce\fR(8), \fBdefer\fR(8) or \fBtrace\fR(8) daemon as
 /*	appropriate.
 /*
-/*	The SMTP client looks up a list of mail exchanger addresses for
+/*	The SMTP+LMTP client looks up a list of mail exchanger addresses for
 /*	the destination host, sorts the list by preference, and connects
 /*	to each listed address until it finds a server that responds.
 /*
 /*	When a server is not reachable, or when mail delivery fails due
-/*	to a recoverable error condition, the SMTP client will try to
+/*	to a recoverable error condition, the SMTP+LMTP client will try to
 /*	deliver the mail to an alternate host.
 /*
 /*	After a successful mail transaction, a connection may be saved
 /*	to the \fBscache\fR(8) connection cache server, so that it
-/*	may be used by any SMTP client for a subsequent transaction.
+/*	may be used by any SMTP+LMTP client for a subsequent transaction.
 /*
 /*	By default, connection caching is enabled temporarily for
 /*	destinations that have a high volume of mail in the active
 /*	queue. Session caching can be enabled permanently for
 /*	specific destinations.
+/* SMTP DESTINATION SYNTAX
+/* .ad
+/* .fi
+/*	SMTP destinations have the following form:
+/* .IP "\fIdomainname\fR, \fIdomainname\fR:\fIport\fR"
+/*	Look up the mail exchangers for the specified domain.
+/* .IP "[\fIhostname\fR], [\fIhostname\fR]:\fIport\fR"
+/*	Look up the address of the specified host.
+/* .IP "[\fIaddress\fR], [\fIaddress\fR]:\fIport\fR"
+/*	Connect to the host at the specified address. An IPv6
+/*	address must be formatted as [\fBipv6\fR:\fIaddress\fR].
+/* .PP
+/*	In all the above cases, when no port is specified, look up
+/*	the port defined as \fBsmtp\fR in \fBservices\fR(4).
+/* LMTP DESTINATION SYNTAX
+/* .ad
+/* .fi
+/*      LMTP destinations have the following form:
+/* .IP \fBunix\fR:\fIpathname\fR
+/*      Connect to the local UNIX-domain server that is bound to the specified
+/*      \fIpathname\fR. If the process runs chrooted, an absolute pathname
+/*      is interpreted relative to the Postfix queue directory.
+/* .IP "\fBinet\fR:\fIhostname\fR, \fBinet\fB:\fIhostname\fR:\fIport\fR"
+/* .IP "\fBinet\fR:[\fIaddress\fR], \fBinet\fR:[\fIaddress\fR]:\fIport\fR"
+/*      Connect to the specified TCP port on the specified local or
+/*      remote host. If no port is specified, connect to the port defined as
+/*      \fBlmtp\fR in \fBservices\fR(4).
+/*      If no such service is found, the \fBlmtp_tcp_port\fR configuration
+/*      parameter (default value of 24) will be used.
+/* .PP
 /* SECURITY
 /* .ad
 /* .fi
-/*	The SMTP client is moderately security-sensitive. It talks to SMTP
-/*	servers and to DNS servers on the network. The SMTP client can be
-/*	run chrooted at fixed low privilege.
+/*	The SMTP+LMTP client is moderately security-sensitive. It
+/*	talks to SMTP or LMTP servers and to DNS servers on the
+/*	network. The SMTP+LMTP client can be run chrooted at fixed
+/*	low privilege.
 /* STANDARDS
 /*	RFC 821 (SMTP protocol)
 /*	RFC 822 (ARPA Internet Text Messages)
 /*	RFC 1651 (SMTP service extensions)
 /*	RFC 1652 (8bit-MIME transport)
 /*	RFC 1870 (Message Size Declaration)
-/*	RFC 2045 (MIME: Format of Internet Message Bodies)
+/*	RFC 2033 (LMTP protocol)
 /*	RFC 2034 (Enhanced Status Codes)
+/*	RFC 2045 (MIME: Format of Internet Message Bodies)
 /*	RFC 2046 (MIME: Media Types)
 /*	RFC 2554 (AUTH command)
 /*	RFC 2821 (SMTP protocol)
@@ -63,15 +96,21 @@
 /*	the postmaster is notified of bounces, protocol problems, and of
 /*	other trouble.
 /* BUGS
-/*	SMTP connection caching does not work with TLS. The necessary
+/*	SMTP and LMTP connection caching does not work with TLS. The necessary
 /*	support for TLS object passivation and re-activation does not
 /*	exist without closing the session, which defeats the purpose.
 /*
-/*	SMTP connection caching assumes that SASL credentials are valid for
-/*	all destinations that map onto the same IP address and TCP port.
+/*	SMTP and LMTP connection caching assumes that SASL credentials
+/*	are valid for all destinations that map onto the same IP
+/*	address and TCP port.
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
+/*	Most smtp_\fIxxx\fR configuration parameters have an
+/*	lmtp_\fIxxx\fR "ghost" parameter for the equivalent LMTP
+/*	feature. This document describes only those LMTP-related
+/*	parameters that aren't simply "ghost" parameters.
+/*
 /*	Changes to \fBmain.cf\fR are picked up automatically, as \fBsmtp\fR(8)
 /*	processes run for only a limited amount of time. Use the command
 /*	"\fBpostfix reload\fR" to speed up a change.
@@ -128,6 +167,17 @@
 /*	Optional lookup tables that perform address rewriting in the
 /*	SMTP client, typically to transform a locally valid address into
 /*	a globally valid address when sending mail across the Internet.
+/* .PP
+/*	Available in Postfix version 2.3 and later:
+/* .IP "\fBlmtp_discard_lhlo_keyword_address_maps (empty)\fR"
+/*	Lookup tables, indexed by the remote LMTP server address, with
+/*	case insensitive lists of LHLO keywords (pipelining, starttls,
+/*	auth, etc.) that the LMTP client will ignore in the LHLO response
+/*	from a remote LMTP server.
+/* .IP "\fBlmtp_discard_lhlo_keywords ($myhostname)\fR"
+/*	A case insensitive list of LHLO keywords (pipelining, starttls,
+/*	auth, etc.) that the LMTP client will ignore in the LHLO response
+/*	from a remote LMTP server.
 /* MIME PROCESSING CONTROLS
 /* .ad
 /* .fi
@@ -242,6 +292,9 @@
 /* .IP "\fBsmtp_helo_timeout (300s)\fR"
 /*	The SMTP client time limit for sending the HELO or EHLO command,
 /*	and for receiving the initial server response.
+/* .IP "\fBlmtp_lhlo_timeout (300s)\fR"
+/*	The LMTP client time limit for sending the LHLO command, and
+/*	for receiving the initial server response.
 /* .IP "\fBsmtp_xforward_timeout (300s)\fR"
 /*	The SMTP client time limit for sending the XFORWARD command, and
 /*	for receiving the server response.
@@ -288,6 +341,11 @@
 /* .IP "\fBsmtp_connection_cache_time_limit (2s)\fR"
 /*	When SMTP connection caching is enabled, the amount of time that
 /*	an unused SMTP client socket is kept open before it is closed.
+/* .PP
+/*	Available in Postfix version 2.3 and later:
+/* .IP "\fBconnection_cache_protocol_timeout (5s)\fR"
+/*	Time limit for connection cache connect, send or receive
+/*	operations.
 /* TROUBLE SHOOTING CONTROLS
 /* .ad
 /* .fi
@@ -321,9 +379,6 @@
 /*	sub-second delay values.
 /* .IP "\fBdisable_dns_lookups (no)\fR"
 /*	Disable DNS lookups in the Postfix SMTP and LMTP clients.
-/* .IP "\fBfallback_relay (empty)\fR"
-/*	Optional list of relay hosts for SMTP destinations that can't be
-/*	found or that are unreachable.
 /* .IP "\fBinet_interfaces (all)\fR"
 /*	The network interface addresses that this mail system receives
 /*	mail on.
@@ -333,6 +388,8 @@
 /* .IP "\fBipc_timeout (3600s)\fR"
 /*	The time limit for sending or receiving information over an internal
 /*	communication channel.
+/* .IP "\fBlmtp_tcp_port (24)\fR"
+/*	The default TCP port that the Postfix LMTP client connects to.
 /* .IP "\fBmax_idle (100s)\fR"
 /*	The maximum amount of time that an idle Postfix daemon process
 /*	waits for the next service request before exiting.
@@ -354,6 +411,8 @@
 /*	bind to when making an IPv6 connection.
 /* .IP "\fBsmtp_helo_name ($myhostname)\fR"
 /*	The hostname to send in the SMTP EHLO or HELO command.
+/* .IP "\fBlmtp_lhlo_name ($myhostname)\fR"
+/*	The hostname to send in the LMTP LHLO command.
 /* .IP "\fBsmtp_host_lookup (dns)\fR"
 /*	What mechanisms when the SMTP client uses to look up a host's IP
 /*	address.
@@ -364,6 +423,16 @@
 /* .IP "\fBsyslog_name (postfix)\fR"
 /*	The mail system name that is prepended to the process name in syslog
 /*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
+/* .PP
+/*	Available with Postfix 2.2 and earlier:
+/* .IP "\fBfallback_relay (empty)\fR"
+/*	Optional list of relay hosts for SMTP destinations that can't be
+/*	found or that are unreachable.
+/* .PP
+/*	Available with Postfix 2.3 and later:
+/* .IP "\fBsmtp_fallback_relay ($fallback_relay)\fR"
+/*	Optional list of relay hosts for SMTP destinations that can't be
+/*	found or that are unreachable.
 /* SEE ALSO
 /*	qmgr(8), queue manager
 /*	bounce(8), delivery status reports
@@ -425,6 +494,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <dict.h>
+#include <stringops.h>
 
 /* Utility library. */
 
@@ -518,6 +588,8 @@ bool    var_smtp_tls_note_starttls_offer;
 char   *var_smtp_generic_maps;
 char   *var_prop_extension;
 bool    var_smtp_sender_auth;
+char   *var_lmtp_tcp_port;
+int     var_scache_proto_tmout;
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
@@ -645,6 +717,7 @@ static void post_init(char *unused_name, char **unused_argv)
 	smtp_scache = scache_multi_create();
 #else
 	smtp_scache = scache_clnt_create(var_scache_service,
+					 var_scache_proto_tmout,
 					 var_ipc_idle_limit,
 					 var_ipc_ttl_limit);
 #endif
@@ -740,87 +813,27 @@ static void pre_exit(void)
 
 int     main(int argc, char **argv)
 {
-    static CONFIG_STR_TABLE str_table[] = {
-	VAR_NOTIFY_CLASSES, DEF_NOTIFY_CLASSES, &var_notify_classes, 0, 0,
-	VAR_FALLBACK_RELAY, DEF_FALLBACK_RELAY, &var_fallback_relay, 0, 0,
-	VAR_BESTMX_TRANSP, DEF_BESTMX_TRANSP, &var_bestmx_transp, 0, 0,
-	VAR_ERROR_RCPT, DEF_ERROR_RCPT, &var_error_rcpt, 1, 0,
-	VAR_SMTP_SASL_PASSWD, DEF_SMTP_SASL_PASSWD, &var_smtp_sasl_passwd, 0, 0,
-	VAR_SMTP_SASL_OPTS, DEF_SMTP_SASL_OPTS, &var_smtp_sasl_opts, 0, 0,
-#ifdef USE_TLS
-	VAR_SMTP_SASL_TLS_OPTS, DEF_SMTP_SASL_TLS_OPTS, &var_smtp_sasl_tls_opts, 0, 0,
-#endif
-	VAR_SMTP_SASL_MECHS, DEF_SMTP_SASL_MECHS, &var_smtp_sasl_mechs, 0, 0,
-	VAR_SMTP_BIND_ADDR, DEF_SMTP_BIND_ADDR, &var_smtp_bind_addr, 0, 0,
-	VAR_SMTP_BIND_ADDR6, DEF_SMTP_BIND_ADDR6, &var_smtp_bind_addr6, 0, 0,
-	VAR_SMTP_HELO_NAME, DEF_SMTP_HELO_NAME, &var_smtp_helo_name, 1, 0,
-	VAR_SMTP_HOST_LOOKUP, DEF_SMTP_HOST_LOOKUP, &var_smtp_host_lookup, 1, 0,
-	VAR_SMTP_CACHE_DEST, DEF_SMTP_CACHE_DEST, &var_smtp_cache_dest, 0, 0,
-	VAR_SCACHE_SERVICE, DEF_SCACHE_SERVICE, &var_scache_service, 1, 0,
-	VAR_SMTP_EHLO_DIS_WORDS, DEF_SMTP_EHLO_DIS_WORDS, &var_smtp_ehlo_dis_words, 0, 0,
-	VAR_SMTP_EHLO_DIS_MAPS, DEF_SMTP_EHLO_DIS_MAPS, &var_smtp_ehlo_dis_maps, 0, 0,
-	VAR_SMTP_TLS_PER_SITE, DEF_SMTP_TLS_PER_SITE, &var_smtp_tls_per_site, 0, 0,
-	VAR_PROP_EXTENSION, DEF_PROP_EXTENSION, &var_prop_extension, 0, 0,
-	VAR_SMTP_GENERIC_MAPS, DEF_SMTP_GENERIC_MAPS, &var_smtp_generic_maps, 0, 0,
-	0,
-    };
-    static CONFIG_TIME_TABLE time_table[] = {
-	VAR_SMTP_CONN_TMOUT, DEF_SMTP_CONN_TMOUT, &var_smtp_conn_tmout, 0, 0,
-	VAR_SMTP_HELO_TMOUT, DEF_SMTP_HELO_TMOUT, &var_smtp_helo_tmout, 1, 0,
-	VAR_SMTP_XFWD_TMOUT, DEF_SMTP_XFWD_TMOUT, &var_smtp_xfwd_tmout, 1, 0,
-	VAR_SMTP_MAIL_TMOUT, DEF_SMTP_MAIL_TMOUT, &var_smtp_mail_tmout, 1, 0,
-	VAR_SMTP_RCPT_TMOUT, DEF_SMTP_RCPT_TMOUT, &var_smtp_rcpt_tmout, 1, 0,
-	VAR_SMTP_DATA0_TMOUT, DEF_SMTP_DATA0_TMOUT, &var_smtp_data0_tmout, 1, 0,
-	VAR_SMTP_DATA1_TMOUT, DEF_SMTP_DATA1_TMOUT, &var_smtp_data1_tmout, 1, 0,
-	VAR_SMTP_DATA2_TMOUT, DEF_SMTP_DATA2_TMOUT, &var_smtp_data2_tmout, 1, 0,
-	VAR_SMTP_RSET_TMOUT, DEF_SMTP_RSET_TMOUT, &var_smtp_rset_tmout, 1, 0,
-	VAR_SMTP_QUIT_TMOUT, DEF_SMTP_QUIT_TMOUT, &var_smtp_quit_tmout, 1, 0,
-	VAR_SMTP_PIX_THRESH, DEF_SMTP_PIX_THRESH, &var_smtp_pix_thresh, 0, 0,
-	VAR_SMTP_PIX_DELAY, DEF_SMTP_PIX_DELAY, &var_smtp_pix_delay, 1, 0,
-	VAR_SMTP_CACHE_CONN, DEF_SMTP_CACHE_CONN, &var_smtp_cache_conn, 1, 0,
-	VAR_SMTP_REUSE_TIME, DEF_SMTP_REUSE_TIME, &var_smtp_reuse_time, 1, 0,
-#ifdef USE_TLS
-	VAR_SMTP_STARTTLS_TMOUT, DEF_SMTP_STARTTLS_TMOUT, &var_smtp_starttls_tmout, 1, 0,
-#endif
-	0,
-    };
-    static CONFIG_INT_TABLE int_table[] = {
-	VAR_SMTP_LINE_LIMIT, DEF_SMTP_LINE_LIMIT, &var_smtp_line_limit, 0, 0,
-	VAR_SMTP_MXADDR_LIMIT, DEF_SMTP_MXADDR_LIMIT, &var_smtp_mxaddr_limit, 0, 0,
-	VAR_SMTP_MXSESS_LIMIT, DEF_SMTP_MXSESS_LIMIT, &var_smtp_mxsess_limit, 0, 0,
-#ifdef USE_TLS
-	VAR_SMTP_TLS_SCERT_VD, DEF_SMTP_TLS_SCERT_VD, &var_smtp_tls_scert_vd, 0, 0,
-#endif
-	0,
-    };
-    static CONFIG_BOOL_TABLE bool_table[] = {
-	VAR_SMTP_SKIP_5XX, DEF_SMTP_SKIP_5XX, &var_smtp_skip_5xx_greeting,
-	VAR_IGN_MX_LOOKUP_ERR, DEF_IGN_MX_LOOKUP_ERR, &var_ign_mx_lookup_err,
-	VAR_SKIP_QUIT_RESP, DEF_SKIP_QUIT_RESP, &var_skip_quit_resp,
-	VAR_SMTP_ALWAYS_EHLO, DEF_SMTP_ALWAYS_EHLO, &var_smtp_always_ehlo,
-	VAR_SMTP_NEVER_EHLO, DEF_SMTP_NEVER_EHLO, &var_smtp_never_ehlo,
-	VAR_SMTP_SASL_ENABLE, DEF_SMTP_SASL_ENABLE, &var_smtp_sasl_enable,
-	VAR_SMTP_RAND_ADDR, DEF_SMTP_RAND_ADDR, &var_smtp_rand_addr,
-	VAR_SMTP_QUOTE_821_ENV, DEF_SMTP_QUOTE_821_ENV, &var_smtp_quote_821_env,
-	VAR_SMTP_DEFER_MXADDR, DEF_SMTP_DEFER_MXADDR, &var_smtp_defer_mxaddr,
-	VAR_SMTP_SEND_XFORWARD, DEF_SMTP_SEND_XFORWARD, &var_smtp_send_xforward,
-	VAR_SMTP_CACHE_DEMAND, DEF_SMTP_CACHE_DEMAND, &var_smtp_cache_demand,
-	VAR_SMTP_USE_TLS, DEF_SMTP_USE_TLS, &var_smtp_use_tls,
-	VAR_SMTP_ENFORCE_TLS, DEF_SMTP_ENFORCE_TLS, &var_smtp_enforce_tls,
-#ifdef USE_TLS
-	VAR_SMTP_TLS_ENFORCE_PN, DEF_SMTP_TLS_ENFORCE_PN, &var_smtp_tls_enforce_peername,
-	VAR_SMTP_TLS_NOTEOFFER, DEF_SMTP_TLS_NOTEOFFER, &var_smtp_tls_note_starttls_offer,
-#endif
-	VAR_SMTP_SENDER_AUTH, DEF_SMTP_SENDER_AUTH, &var_smtp_sender_auth,
+#include "smtp_params.c"
+#include "lmtp_params.c"
+    int     smtp_mode;
 
-	0,
-    };
+    /*
+     * XXX At this point, var_procname etc. are not initialized.
+     */
+    smtp_mode = (strcmp(sane_basename((VSTRING *) 0, argv[0]), "smtp") == 0);
 
+    /*
+     * Initialize with the LMTP or SMTP parameter name space.
+     */
     single_server_main(argc, argv, smtp_service,
-		       MAIL_SERVER_TIME_TABLE, time_table,
-		       MAIL_SERVER_INT_TABLE, int_table,
-		       MAIL_SERVER_STR_TABLE, str_table,
-		       MAIL_SERVER_BOOL_TABLE, bool_table,
+		       MAIL_SERVER_TIME_TABLE, smtp_mode ?
+		       smtp_time_table : lmtp_time_table,
+		       MAIL_SERVER_INT_TABLE, smtp_mode ?
+		       smtp_int_table : lmtp_int_table,
+		       MAIL_SERVER_STR_TABLE, smtp_mode ?
+		       smtp_str_table : lmtp_str_table,
+		       MAIL_SERVER_BOOL_TABLE, smtp_mode ?
+		       smtp_bool_table : lmtp_bool_table,
 		       MAIL_SERVER_PRE_INIT, pre_init,
 		       MAIL_SERVER_POST_INIT, post_init,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,

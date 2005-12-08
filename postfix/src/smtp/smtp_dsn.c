@@ -104,6 +104,7 @@
 /* Global library. */
 
 #include <dsn_buf.h>
+#include <mail_params.h>
 
 /* Application-specific. */
 
@@ -132,7 +133,7 @@ void    vsmtp_dsn_update(DSN_BUF *why, const char *mta_name,
 {
     dsb_formal(why, status, DSB_DEF_ACTION,
 	       mta_name ? DSB_MTYPE_DNS : DSB_MTYPE_NONE,
-	       mta_name, DSB_DTYPE_SMTP, code, reply);
+	       mta_name, var_procname, code, reply);
     vstring_vsprintf(why->reason, format, ap);
 }
 
@@ -144,5 +145,5 @@ void    smtp_dsn_formal(DSN_BUF *why, const char *mta_name,
 {
     dsb_formal(why, status, DSB_DEF_ACTION,
 	       mta_name ? DSB_MTYPE_DNS : DSB_MTYPE_NONE,
-	       mta_name, DSB_DTYPE_SMTP, code, reply);
+	       mta_name, var_procname, code, reply);
 }

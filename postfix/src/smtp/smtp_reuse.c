@@ -18,7 +18,7 @@
 /*
 /*	SMTP_SESSION *smtp_reuse_addr(state, addr, port)
 /*	SMTP_STATE *state;
-/*	DNS_RR	*addr;
+/*	const char *addr;
 /*	unsigned port;
 /* DESCRIPTION
 /*	This module implements the SMTP client specific interface to
@@ -46,7 +46,7 @@
 /* .IP domain
 /*	Domain name or bare numerical address.
 /* .IP addr
-/*	The remote server name and address.
+/*	The remote server address as printable text.
 /* .IP port
 /*	The remote server port, network byte order.
 /* LICENSE
@@ -221,9 +221,9 @@ SMTP_SESSION *smtp_reuse_domain(SMTP_STATE *state, int lookup_mx,
 
 /* smtp_reuse_addr - reuse session cached under numerical address */
 
-SMTP_SESSION *smtp_reuse_addr(SMTP_STATE *state, DNS_RR *addr, unsigned port)
+SMTP_SESSION *smtp_reuse_addr(SMTP_STATE *state, const char *addr,
+			              unsigned port)
 {
-    MAI_HOSTADDR_STR hostaddr;
     SMTP_SESSION *session;
     int     fd;
 
@@ -234,10 +234,8 @@ SMTP_SESSION *smtp_reuse_addr(SMTP_STATE *state, DNS_RR *addr, unsigned port)
      * Note: if the label needs to be made more specific (with e.g., SASL login
      * information), just append the text with vstring_sprintf_append().
      */
-    if (dns_rr_to_pa(addr, &hostaddr) == 0)
-	return (0);
     vstring_sprintf(state->endp_label, SMTP_SCACHE_LABEL(NO_MX_LOOKUP),
-		    state->service, hostaddr.buf, ntohs(port));
+		    state->service, addr, ntohs(port));
     if ((fd = scache_find_endp(smtp_scache, STR(state->endp_label),
 			       state->endp_prop)) < 0)
 	return (0);

@@ -210,7 +210,6 @@ cleanup(8), canonicalize and enqueue message
 discard(8), Postfix discard delivery agent
 error(8), Postfix error delivery agent
 flush(8), Postfix fast ETRN service
-lmtp(8), Postfix LMTP client
 local(8), Postfix local delivery agent
 master(8), Postfix master daemon
 oqmgr(8), old Postfix queue manager
@@ -221,7 +220,7 @@ qmgr(8), Postfix queue manager
 qmqpd(8), Postfix QMQP server
 scache(8), Postfix connection cache manager
 showq(8), list Postfix mail queue
-smtp(8), Postfix SMTP client
+smtp(8), lmtp(8), Postfix SMTP+LMTP client
 smtpd(8), Postfix SMTP server
 spawn(8), run non-Postfix server
 tlsmgr(8), Postfix TLS cache and randomness manager
@@ -259,3 +258,18 @@ Wietse Venema
 IBM T.J. Watson Research
 P.O. Box 704
 Yorktown Heights, NY 10598, USA
+
+SASL support originally by:
+Till Franke
+SuSE Rhein/Main AG
+65760 Eschborn, Germany
+
+LMTP support originally by:
+Philip A. Prindeville
+Mirapoint, Inc.
+USA.
+
+Amos Gouaux
+University of Texas at Dallas
+P.O. Box 830688, MC34
+Richardson, TX 75083, USA

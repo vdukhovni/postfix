@@ -21,7 +21,7 @@
   */
 typedef struct AUTO_CLNT AUTO_CLNT;
 
-extern AUTO_CLNT *auto_clnt_create(int, int, VSTREAM *(*) (void *), void *);
+extern AUTO_CLNT *auto_clnt_create(const char *, int, int, int);
 extern VSTREAM *auto_clnt_access(AUTO_CLNT *);
 extern void auto_clnt_recover(AUTO_CLNT *);
 extern void auto_clnt_free(AUTO_CLNT *);

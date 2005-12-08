@@ -1559,14 +1559,15 @@ scache.o: ../../include/vstring_vstream.h
 scache.o: scache.c
 scache.o: scache.h
 scache_clnt.o: ../../include/attr.h
+scache_clnt.o: ../../include/auto_clnt.h
 scache_clnt.o: ../../include/iostuff.h
 scache_clnt.o: ../../include/msg.h
 scache_clnt.o: ../../include/mymalloc.h
+scache_clnt.o: ../../include/stringops.h
 scache_clnt.o: ../../include/sys_defs.h
 scache_clnt.o: ../../include/vbuf.h
 scache_clnt.o: ../../include/vstream.h
 scache_clnt.o: ../../include/vstring.h
-scache_clnt.o: clnt_stream.h
 scache_clnt.o: mail_params.h
 scache_clnt.o: mail_proto.h
 scache_clnt.o: scache.h

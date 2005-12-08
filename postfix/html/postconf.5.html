@@ -894,6 +894,14 @@ a "<a href="DATABASE_README.html">type:table</a>" lookup table is matched when a
 next line with whitespace.  </p>
 
 <p>
+Example:
+</p>
+
+<pre>
+<a href="postconf.5.html#authorized_submit_users">authorized_submit_users</a> = !www, static:all
+</pre>
+
+<p>
 This feature is available in Postfix 2.2 and later.
 </p>
 
@@ -1364,6 +1372,17 @@ and commands). </p>
 <a href="postconf.5.html#config_directory">config_directory</a> override requires either root privileges, or it
 requires that the directory is listed with the <a href="postconf.5.html#alternate_config_directories">alternate_config_directories</a>
 parameter in the default main.cf file.  </p>
+
+
+</DD>
+
+<DT><b><a name="connection_cache_protocol_timeout">connection_cache_protocol_timeout</a>
+(default: 5s)</b></DT><DD>
+
+<p> Time limit for connection cache connect, send or receive
+operations.  The time limit is enforced in the client. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
 
 
 </DD>
@@ -2299,11 +2318,12 @@ This feature was removed in Postfix version 2.1.
 
 <p>
 Optional list of relay hosts for SMTP destinations that can't be
-found or that are unreachable.  </p>
+found or that are unreachable. With Postfix 2.3 this parameter
+is renamed to smtp_fallback_relay. </p>
 
 <p>
 By default, mail is returned to the sender when a destination is
-not found, and delivery is deferred if a destination is unreachable.
+not found, and delivery is deferred when a destination is unreachable.
 </p>
 
 <p> The fallback relays must be SMTP destinations. Specify a domain,
@@ -2311,7 +2331,8 @@ host, host:port, [host]:port, [address] or [address]:port; the form
 [host] turns off MX lookups.  If you specify multiple SMTP
 destinations, Postfix will try them in the specified order.  </p>
 
-<p> Note: do not use the <a href="postconf.5.html#fallback_relay">fallback_relay</a> feature when relaying mail
+<p> Note: before Postfix 2.2, do not use the <a href="postconf.5.html#fallback_relay">fallback_relay</a> feature
+when relaying mail
 for a backup or primary MX domain. Mail would loop between the
 Postfix MX host and the <a href="postconf.5.html#fallback_relay">fallback_relay</a> host when the final destination
 is unavailable. </p>
@@ -2328,7 +2349,8 @@ as the right-hand side for backup or primary MX domain entries.
 
 </ul>
 
-<p> These are default settings in Postfix version 2.2 and later.
+<p> Postfix version 2.2 and later will not use the <a href="postconf.5.html#fallback_relay">fallback_relay</a> feature
+for destinations that it is MX host for.
 </p>
 
 
@@ -2986,6 +3008,28 @@ this length; upon delivery, long lines are reconstructed.  </p>
 
 </DD>
 
+<DT><b><a name="lmtp_bind_address">lmtp_bind_address</a>
+(default: empty)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_bind_address">smtp_bind_address</a> configuration
+parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_bind_address6">lmtp_bind_address6</a>
+(default: empty)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_bind_address6">smtp_bind_address6</a> configuration
+parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_cache_connection">lmtp_cache_connection</a>
 (default: yes)</b></DT><DD>
 
@@ -3053,6 +3097,39 @@ Example:
 
 </DD>
 
+<DT><b><a name="lmtp_connection_cache_destinations">lmtp_connection_cache_destinations</a>
+(default: empty)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_connection_cache_destinations">smtp_connection_cache_destinations</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_connection_cache_on_demand">lmtp_connection_cache_on_demand</a>
+(default: yes)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_connection_cache_on_demand">smtp_connection_cache_on_demand</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_connection_reuse_time_limit">lmtp_connection_reuse_time_limit</a>
+(default: 300s)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_connection_reuse_time_limit">smtp_connection_reuse_time_limit</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_data_done_timeout">lmtp_data_done_timeout</a>
 (default: 600s)</b></DT><DD>
 
@@ -3102,6 +3179,17 @@ The default time unit is s (seconds).
 
 </DD>
 
+<DT><b><a name="lmtp_defer_if_no_mx_address_found">lmtp_defer_if_no_mx_address_found</a>
+(default: no)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_defer_if_no_mx_address_found">smtp_defer_if_no_mx_address_found</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_destination_concurrency_limit">lmtp_destination_concurrency_limit</a>
 (default: $<a href="postconf.5.html#default_destination_concurrency_limit">default_destination_concurrency_limit</a>)</b></DT><DD>
 
@@ -3128,19 +3216,126 @@ concurrency per recipient.  </p>
 
 </DD>
 
+<DT><b><a name="lmtp_discard_lhlo_keyword_address_maps">lmtp_discard_lhlo_keyword_address_maps</a>
+(default: empty)</b></DT><DD>
+
+<p> Lookup tables, indexed by the remote LMTP server address, with
+case insensitive lists of LHLO keywords (pipelining, starttls,
+auth, etc.) that the LMTP client will ignore in the LHLO response
+from a remote LMTP server. See lmtp_discard_lhlo_keywords for
+details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_discard_lhlo_keywords">lmtp_discard_lhlo_keywords</a>
+(default: $<a href="postconf.5.html#myhostname">myhostname</a>)</b></DT><DD>
+
+<p> A case insensitive list of LHLO keywords (pipelining, starttls,
+auth, etc.) that the LMTP client will ignore in the LHLO response
+from a remote LMTP server. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+<p> Notes: </p>
+
+<ul>
+
+<li> <p> Specify the <b>silent-discard</b> pseudo keyword to prevent
+this action from being logged. </p>
+
+<li> <p> Use the lmtp_discard_lhlo_keyword_address_maps feature to
+discard LHLO keywords selectively. </p>
+
+</ul>
+
+
+</DD>
+
+<DT><b><a name="lmtp_enforce_tls">lmtp_enforce_tls</a>
+(default: no)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a> configuration
+parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_generic_maps">lmtp_generic_maps</a>
+(default: empty)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_generic_maps">smtp_generic_maps</a> configuration
+parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_host_lookup">lmtp_host_lookup</a>
+(default: dns)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_host_lookup">smtp_host_lookup</a> configuration
+parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_lhlo_name">lmtp_lhlo_name</a>
+(default: $<a href="postconf.5.html#myhostname">myhostname</a>)</b></DT><DD>
+
+<p>
+The hostname to send in the LMTP LHLO command.
+</p>
+
+<p>
+The default value is the machine hostname.  Specify a hostname or
+[ip.add.re.ss].
+</p>
+
+<p>
+This information can be specified in the main.cf file for all LMTP
+clients, or it can be specified in the master.cf file for a specific
+client, for example:
+</p>
+
+<pre>
+  /etc/postfix/master.cf:
+        mylmtp ... lmtp -o lmtp_lhlo_name=foo.bar.com
+</pre>
+
+<p>
+This feature is available in Postfix 2.3 and later.
+</p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_lhlo_timeout">lmtp_lhlo_timeout</a>
 (default: 300s)</b></DT><DD>
 
-<p> The LMTP client time limit for receiving the LMTP greeting
-banner.  When the server drops the connection without sending a
-greeting banner, or when it sends no greeting banner within the
-deadline, the LMTP client tries the next address on the mail
-exchanger list.  </p>
+<p> The LMTP client time limit for sending the LHLO command, and
+for receiving the initial server response. </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
+(weeks).  The default time unit is s (seconds).  </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_line_length_limit">lmtp_line_length_limit</a>
+(default: 990)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_line_length_limit">smtp_line_length_limit</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
 
 
 </DD>
@@ -3161,6 +3356,50 @@ The default time unit is s (seconds).
 
 </DD>
 
+<DT><b><a name="lmtp_mx_address_limit">lmtp_mx_address_limit</a>
+(default: 5)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_mx_address_limit">smtp_mx_address_limit</a> configuration
+parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_mx_session_limit">lmtp_mx_session_limit</a>
+(default: 2)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_mx_session_limit">smtp_mx_session_limit</a> configuration
+parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_pix_workaround_delay_time">lmtp_pix_workaround_delay_time</a>
+(default: 10s)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_pix_workaround_delay_time">smtp_pix_workaround_delay_time</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_pix_workaround_threshold_time">lmtp_pix_workaround_threshold_time</a>
+(default: 500s)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_pix_workaround_threshold_time">smtp_pix_workaround_threshold_time</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_quit_timeout">lmtp_quit_timeout</a>
 (default: 300s)</b></DT><DD>
 
@@ -3173,6 +3412,28 @@ receiving the server response.
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_quote_rfc821_envelope">lmtp_quote_rfc821_envelope</a>
+(default: yes)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_quote_rfc821_envelope">smtp_quote_rfc821_envelope</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_randomize_addresses">lmtp_randomize_addresses</a>
+(default: yes)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_randomize_addresses">smtp_randomize_addresses</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
 
 
 </DD>
@@ -3215,6 +3476,17 @@ The default time unit is s (seconds).
 <p>
 Enable SASL authentication in the Postfix LMTP client.
 </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_sasl_mechanism_filter">lmtp_sasl_mechanism_filter</a>
+(default: empty)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_sasl_mechanism_filter">smtp_sasl_mechanism_filter</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
 
 
 </DD>
@@ -3274,6 +3546,17 @@ Example:
 
 </DD>
 
+<DT><b><a name="lmtp_sasl_tls_security_options">lmtp_sasl_tls_security_options</a>
+(default: $var_lmtp_sasl_opts)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_sasl_tls_security_options">smtp_sasl_tls_security_options</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_send_xforward_command">lmtp_send_xforward_command</a>
 (default: no)</b></DT><DD>
 
@@ -3294,6 +3577,28 @@ This feature is available in Postfix 2.1 and later.
 
 </DD>
 
+<DT><b><a name="lmtp_sender_dependent_authentication">lmtp_sender_dependent_authentication</a>
+(default: no)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_sender_dependent_authentication">smtp_sender_dependent_authentication</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_skip_5xx_greeting">lmtp_skip_5xx_greeting</a>
+(default: yes)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_skip_5xx_greeting">smtp_skip_5xx_greeting</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_skip_quit_response">lmtp_skip_quit_response</a>
 (default: no)</b></DT><DD>
 
@@ -3304,12 +3609,78 @@ Wait for the response to the LMTP QUIT command.
 
 </DD>
 
+<DT><b><a name="lmtp_starttls_timeout">lmtp_starttls_timeout</a>
+(default: 300s)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_starttls_timeout">smtp_starttls_timeout</a> configuration
+parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_tcp_port">lmtp_tcp_port</a>
 (default: 24)</b></DT><DD>
 
 <p>
 The default TCP port that the Postfix LMTP client connects to.
 </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_tls_enforce_peername">lmtp_tls_enforce_peername</a>
+(default: yes)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_tls_note_starttls_offer">lmtp_tls_note_starttls_offer</a>
+(default: no)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_tls_note_starttls_offer">smtp_tls_note_starttls_offer</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_tls_per_site">lmtp_tls_per_site</a>
+(default: empty)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a> configuration
+parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_tls_scert_verifydepth">lmtp_tls_scert_verifydepth</a>
+(default: 5)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_tls_scert_verifydepth">smtp_tls_scert_verifydepth</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_use_tls">lmtp_use_tls</a>
+(default: no)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a> configuration
+parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
 
 
 </DD>
@@ -5786,7 +6157,7 @@ Example:
 
 <p> A sender-dependent override for the global <a href="postconf.5.html#relayhost">relayhost</a> parameter
 setting. The tables are searched by the sender address and by the
-sender @domain. This information is overruled with <a href="postconf.5.html#relay_transport">relay_transport</a>,
+@domain. This information is overruled with <a href="postconf.5.html#relay_transport">relay_transport</a>,
 <a href="postconf.5.html#default_transport">default_transport</a> and with the <a href="transport.5.html">transport(5)</a> table. </p>
 
 <p>
@@ -5993,6 +6364,9 @@ IP address),
 <li> if mail is sent via a <a href="postconf.5.html#relayhost">relay host</a>: a <a href="postconf.5.html#relayhost">relay host</a> name (without
 [] or non-default TCP port), as specified in main.cf or in the
 transport map,
+
+<li> if mail is sent via a UNIX-domain socket: a pathname (without
+the unix: prefix),
 
 <li> a /file/name with domain names and/or <a href="postconf.5.html#relayhost">relay host</a> names as
 defined above,
@@ -6265,6 +6639,31 @@ the CommonName is checked.  The behavior may be changed with the
 will only connect to servers that support <a href="http://www.faqs.org/rfcs/rfc2487.html">RFC 2487</a> _and_ that
 provide valid server certificates.  Typical use is for clients that
 send all their email to a dedicated mailhub.  </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_fallback_relay">smtp_fallback_relay</a>
+(default: $<a href="postconf.5.html#fallback_relay">fallback_relay</a>)</b></DT><DD>
+
+<p>
+Optional list of relay hosts for SMTP destinations that can't be
+found or that are unreachable. With Postfix 2.2 and earlier this
+parameter is called <a href="postconf.5.html#fallback_relay">fallback_relay</a>.  </p>
+
+<p>
+By default, mail is returned to the sender when a destination is
+not found, and delivery is deferred when a destination is unreachable.
+</p>
+
+<p> The fallback relays must be SMTP destinations. Specify a domain,
+host, host:port, [host]:port, [address] or [address]:port; the form
+[host] turns off MX lookups.  If you specify multiple SMTP
+destinations, Postfix will try them in the specified order.  </p>
+
+<p> To prevent mailer loops between MX hosts and fall-back hosts,
+Postfix version 2.3 and later will not use the smtp_fallback_relay
+feature for destinations that it is MX host for. </p>
 
 
 </DD>

@@ -77,10 +77,8 @@ man8/local.8: ../src/local/local.c
 	    (cmp -s junk $? || mv junk $?)
 	../mantools/srctoman $? >$@
 
-man8/lmtp.8: ../src/lmtp/lmtp.c
-	../mantools/fixman ../proto/postconf.proto $? >junk && \
-	    (cmp -s junk $? || mv junk $?)
-	../mantools/srctoman $? >$@
+man8/lmtp.8:
+	echo .so man8/smtp.8 >$@
 
 man8/master.8: ../src/master/master.c
 	../mantools/fixman ../proto/postconf.proto $? >junk && \

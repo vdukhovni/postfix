@@ -4,7 +4,7 @@
 /* SUMMARY
 /*	connect to UNIX-domain listener
 /* SYNOPSIS
-/*	#include <unix_connect.h>
+/*	#include <connect.h>
 /*
 /*	int	unix_connect(addr, block_mode, timeout)
 /*	const char *addr;
