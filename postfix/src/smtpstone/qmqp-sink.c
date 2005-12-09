@@ -56,6 +56,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <signal.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>

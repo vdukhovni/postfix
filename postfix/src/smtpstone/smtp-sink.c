@@ -125,6 +125,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <syslog.h>
+#include <signal.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>
