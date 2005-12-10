@@ -11543,6 +11543,12 @@ Apologies for any names omitted.
 	broken.  This the analog of queue manager bugfix 20051119.
 	Files: global/deliver_pass.c.
 	
+20051210
+
+	Cleanup: simplified the SMTP/LMTP connection management
+	logic for address list and fallback relay processing.
+	Still need to simplify deferred recipient handling.
+
 Open problems:
 
 	"postsuper -r" no longer resets the message arrival time,

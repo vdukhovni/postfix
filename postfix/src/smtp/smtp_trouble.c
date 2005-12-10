@@ -197,7 +197,7 @@ static int smtp_bulk_fail(SMTP_STATE *state, DSN *dsn, int throttle_queue)
      * delivery to a backup server. Just log something informative to show
      * why we're skipping this host.
      */
-    if (soft_error && state->final_server == 0) {
+    if (soft_error && (state->misc_flags & SMTP_MISC_FLAG_FINAL_SERVER) == 0) {
 	msg_info("%s: %s", request->queue_id, dsn->reason);
 	for (nrcpt = 0; nrcpt < SMTP_RCPT_LEFT(state); nrcpt++) {
 	    rcpt = request->rcpt_list.info + nrcpt;
@@ -393,7 +393,7 @@ void    smtp_rcpt_fail(SMTP_STATE *state, RECIPIENT *rcpt, const char *mta_name,
      * for trying other mail servers. Just log something informative to show
      * why we're skipping this recipient now.
      */
-    if (soft_error && state->final_server == 0) {
+    if (soft_error && (state->misc_flags & SMTP_MISC_FLAG_FINAL_SERVER) == 0) {
 	msg_info("%s: %s", request->queue_id, dsn.reason);
 	SMTP_RCPT_KEEP(state, rcpt);
     }

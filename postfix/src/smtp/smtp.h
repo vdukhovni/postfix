@@ -78,7 +78,6 @@ typedef struct SMTP_STATE {
      * There is some redundancy for sanity checking. At the end of an SMTP
      * session all recipients should be marked one way or the other.
      */
-    int     final_server;		/* final mail server */
     int     rcpt_left;			/* recipients left over */
     int     rcpt_drop;			/* recipients marked as drop */
     int     rcpt_keep;			/* recipients marked as keep */
@@ -141,6 +140,10 @@ typedef struct SMTP_STATE {
 #define SMTP_MISC_FLAG_LOOP_DETECT	(1<<0)
 #define	SMTP_MISC_FLAG_IN_STARTTLS	(1<<1)
 #define SMTP_MISC_FLAG_USE_LMTP		(1<<2)
+#define SMTP_MISC_FLAG_FIRST_NEXTHOP	(1<<3)
+#define SMTP_MISC_FLAG_FINAL_NEXTHOP	(1<<4)
+#define SMTP_MISC_FLAG_FINAL_SERVER	(1<<5)
+#define SMTP_MISC_FLAG_CONN_CACHE	(1<<6)
 
  /*
   * smtp.c
@@ -229,9 +232,6 @@ extern SMTP_SESSION *smtp_session_alloc(VSTREAM *, const char *, const char *,
 extern void smtp_session_free(SMTP_SESSION *);
 extern int smtp_session_passivate(SMTP_SESSION *, VSTRING *, VSTRING *);
 extern SMTP_SESSION *smtp_session_activate(int, VSTRING *, VSTRING *);
-
-#define SMTP_SESS_FLAG_NONE	0	/* no options */
-#define SMTP_SESS_FLAG_CACHE	(1<<0)	/* enable session caching */
 
 #ifdef USE_TLS
 extern void smtp_tls_list_init(void);

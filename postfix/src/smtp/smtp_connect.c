@@ -476,7 +476,6 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path,
 			               DSN_BUF *why)
 {
     DELIVER_REQUEST *request = state->request;
-    int     sess_flags = SMTP_SESS_FLAG_NONE;
     SMTP_SESSION *session;
 
     /*
@@ -497,23 +496,22 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path,
 	 || (smtp_cache_dest && string_list_match(smtp_cache_dest, dest))))
 
     if (CAN_ENABLE_CONN_CACHE(request, path))
-	sess_flags |= SMTP_SESS_FLAG_CACHE;
+	state->misc_flags |= SMTP_MISC_FLAG_CONN_CACHE;
 
     /*
      * XXX We assume that the session->addr member refers to a copy of the
      * UNIX-domain pathname, so that smtp_save_session() will cache the
      * connection using the pathname as the physical endpoint name.
      */
-#define NO_MX	0
 #define NO_PORT	0
 
-    if ((sess_flags & SMTP_SESS_FLAG_CACHE) == 0
+    if ((state->misc_flags & SMTP_MISC_FLAG_CONN_CACHE) == 0
 	|| (session = smtp_reuse_addr(state, path, NO_PORT)) == 0)
-	session = smtp_connect_unix(path, why, sess_flags);
+	session = smtp_connect_unix(path, why, state->misc_flags);
     if ((state->session = session) != 0) {
 	session->state = state;
 	/* All delivery errors bounce or defer. */
-	state->final_server = 1;
+	state->misc_flags |= SMTP_MISC_FLAG_FINAL_SERVER;
 	if ((session->features & SMTP_FEATURE_FROM_CACHE) == 0
 	    && smtp_helo(state) != 0) {
 	    if (vstream_ferror(session->stream) == 0
@@ -609,7 +607,6 @@ static int smtp_reuse_session(SMTP_STATE *state, int lookup_mx,
     int     session_count = 0;
     DNS_RR *addr;
     DNS_RR *next;
-    int     saved_final_server = state->final_server;
     MAI_HOSTADDR_STR hostaddr;
     SMTP_SESSION *session;
 
@@ -624,7 +621,9 @@ static int smtp_reuse_session(SMTP_STATE *state, int lookup_mx,
     && (session = smtp_reuse_domain(state, lookup_mx, domain, port)) != 0) {
 	session_count = 1;
 	smtp_update_addr_list(addr_list, session->addr, session_count);
-	state->final_server = (saved_final_server && *addr_list == 0);
+	if ((state->misc_flags & SMTP_MISC_FLAG_FINAL_NEXTHOP)
+	    && *addr_list == 0)
+	    state->misc_flags |= SMTP_MISC_FLAG_FINAL_SERVER;
 	smtp_xfer(state);
 	smtp_cleanup_session(state);
     }
@@ -647,7 +646,9 @@ static int smtp_reuse_session(SMTP_STATE *state, int lookup_mx,
 	    smtp_update_addr_list(addr_list, session->addr, session_count);
 	    if (*addr_list == 0)
 		next = 0;
-	    state->final_server = (saved_final_server && next == 0);
+	    if ((state->misc_flags & SMTP_MISC_FLAG_FINAL_NEXTHOP)
+		&& next == 0)
+		state->misc_flags |= SMTP_MISC_FLAG_FINAL_SERVER;
 	    smtp_xfer(state);
 	    smtp_cleanup_session(state);
 	}
@@ -658,16 +659,13 @@ static int smtp_reuse_session(SMTP_STATE *state, int lookup_mx,
 /* smtp_connect_remote - establish remote connection */
 
 static void smtp_connect_remote(SMTP_STATE *state, const char *nexthop,
-				        DSN_BUF *why)
+				        char *def_service, DSN_BUF *why)
 {
     DELIVER_REQUEST *request = state->request;
-    char   *def_service;
     ARGV   *sites;
     char   *dest;
     char  **cpp;
-    int     sess_flags = SMTP_SESS_FLAG_NONE;
     int     non_fallback_sites;
-    int     saved_misc_flags = state->misc_flags;
 
     /*
      * First try to deliver to the indicated destination, then try to deliver
@@ -681,12 +679,8 @@ static void smtp_connect_remote(SMTP_STATE *state, const char *nexthop,
     if (sites->argc == 0)
 	msg_panic("null destination: \"%s\"", request->nexthop);
     non_fallback_sites = sites->argc;
-    if ((state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) == 0) {
+    if ((state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) == 0)
 	argv_split_append(sites, var_fallback_relay, ", \t\r\n");
-	def_service = "smtp";			/* XXX ##IPPORT_SMTP? */
-    } else {
-	def_service = var_lmtp_tcp_port;
-    }
 
     /*
      * Don't give up after a hard host lookup error until we have tried the
@@ -707,7 +701,9 @@ static void smtp_connect_remote(SMTP_STATE *state, const char *nexthop,
 #define IS_FALLBACK_RELAY(cpp, sites, non_fallback_sites) \
 	    (*(cpp) && (cpp) >= (sites)->argv + (non_fallback_sites))
 
-    for (cpp = sites->argv; SMTP_RCPT_LEFT(state) > 0 && (dest = *cpp) != 0; cpp++) {
+    for (cpp = sites->argv, (state->misc_flags |= SMTP_MISC_FLAG_FIRST_NEXTHOP);
+	 SMTP_RCPT_LEFT(state) > 0 && (dest = *cpp) != 0;
+	 cpp++, (state->misc_flags &= ~SMTP_MISC_FLAG_FIRST_NEXTHOP)) {
 	char   *dest_buf;
 	char   *domain;
 	unsigned port;
@@ -721,7 +717,8 @@ static void smtp_connect_remote(SMTP_STATE *state, const char *nexthop,
 	unsigned domain_best_pref;
 	MAI_HOSTADDR_STR hostaddr;
 
-	state->misc_flags = saved_misc_flags;
+	if (cpp[1] == 0)
+	    state->misc_flags |= SMTP_MISC_FLAG_FINAL_NEXTHOP;
 
 	/*
 	 * Parse the destination. Default is to use the SMTP port. Look up
@@ -739,6 +736,8 @@ static void smtp_connect_remote(SMTP_STATE *state, const char *nexthop,
 	if ((state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) == 0) {
 	    if (ntohs(port) == IPPORT_SMTP)
 		state->misc_flags |= SMTP_MISC_FLAG_LOOP_DETECT;
+	    else
+		state->misc_flags &= ~SMTP_MISC_FLAG_LOOP_DETECT;
 	    lookup_mx = (var_disable_dns == 0 && *dest != '[');
 	} else
 	    lookup_mx = 0;
@@ -752,17 +751,15 @@ static void smtp_connect_remote(SMTP_STATE *state, const char *nexthop,
 					 why, &i_am_mx);
 	    /* If we're MX host, don't connect to non-MX backups. */
 	    if (i_am_mx)
-		argv_truncate(sites, cpp - sites->argv + 1);
+		state->misc_flags |= SMTP_MISC_FLAG_FINAL_NEXTHOP;
 	}
 
 	/*
-	 * Don't try any backup host if mail loops to myself. That would just
+	 * Don't try fall-back hosts if mail loops to myself. That would just
 	 * make the problem worse.
 	 */
-	if (addr_list == 0 && smtp_errno == SMTP_ERR_LOOP) {
-	    myfree(dest_buf);
-	    break;
-	}
+	if (addr_list == 0 && smtp_errno == SMTP_ERR_LOOP)
+	    state->misc_flags |= SMTP_MISC_FLAG_FINAL_NEXTHOP;
 
 	/*
 	 * No early loop exit or we have a memory leak with dest_buf.
@@ -794,8 +791,9 @@ static void smtp_connect_remote(SMTP_STATE *state, const char *nexthop,
 	 * authenticated connection, and we must not send mail that requires
 	 * authentication over a connection that wasn't authenticated.
 	 */
-	if (cpp == sites->argv && CAN_ENABLE_CONN_CACHE(request, domain)) {
-	    sess_flags |= SMTP_SESS_FLAG_CACHE;
+	if (addr_list && (state->misc_flags & SMTP_MISC_FLAG_FIRST_NEXTHOP)
+	    && CAN_ENABLE_CONN_CACHE(request, domain)) {
+	    state->misc_flags |= SMTP_MISC_FLAG_CONN_CACHE;
 	    SET_NEXTHOP_STATE(state, lookup_mx, domain, port);
 	}
 
@@ -809,11 +807,9 @@ static void smtp_connect_remote(SMTP_STATE *state, const char *nexthop,
 	 * fall-back destination. smtp_reuse_session() will truncate the
 	 * address list when either limit is reached.
 	 */
-	if (addr_list && (sess_flags & SMTP_SESS_FLAG_CACHE) != 0) {
+	if (addr_list && state->misc_flags & SMTP_MISC_FLAG_CONN_CACHE) {
 	    if (state->cache_used->used > 0)
 		smtp_scrub_addr_list(state->cache_used, &addr_list);
-	    /* Count delivery errors towards the session limit. */
-	    state->final_server = (cpp[1] == 0);
 	    sess_count = addr_count =
 		smtp_reuse_session(state, lookup_mx, domain, port,
 				   &addr_list, domain_best_pref);
@@ -842,17 +838,20 @@ static void smtp_connect_remote(SMTP_STATE *state, const char *nexthop,
 	    next = addr->next;
 	    if (++addr_count == var_smtp_mxaddr_limit)
 		next = 0;
-	    if ((sess_flags & SMTP_SESS_FLAG_CACHE) == 0
+	    if ((state->misc_flags & SMTP_MISC_FLAG_CONN_CACHE) == 0
 		|| addr->pref == domain_best_pref
 		|| dns_rr_to_pa(addr, &hostaddr) == 0
 		|| !(session = smtp_reuse_addr(state, hostaddr.buf, port)))
-		session = smtp_connect_addr(dest, addr, port, why, sess_flags);
+		session = smtp_connect_addr(dest, addr, port, why,
+					    state->misc_flags);
 	    if ((state->session = session) != 0) {
 		session->state = state;
 		if (addr->pref == domain_best_pref)
 		    session->features |= SMTP_FEATURE_BEST_MX;
 		/* Don't count handshake errors towards the session limit. */
-		state->final_server = (cpp[1] == 0 && next == 0);
+		if ((state->misc_flags & SMTP_MISC_FLAG_FINAL_NEXTHOP)
+		    && next == 0)
+		    state->misc_flags |= SMTP_MISC_FLAG_FINAL_SERVER;
 		if ((session->features & SMTP_FEATURE_FROM_CACHE) == 0
 		    && smtp_helo(state) != 0) {
 		    if (vstream_ferror(session->stream) == 0
@@ -862,7 +861,9 @@ static void smtp_connect_remote(SMTP_STATE *state, const char *nexthop,
 		    /* Do count delivery errors towards the session limit. */
 		    if (++sess_count == var_smtp_mxsess_limit)
 			next = 0;
-		    state->final_server = (cpp[1] == 0 && next == 0);
+		    if ((state->misc_flags & SMTP_MISC_FLAG_FINAL_NEXTHOP)
+			&& next == 0)
+			state->misc_flags |= SMTP_MISC_FLAG_FINAL_SERVER;
 		    smtp_xfer(state);
 		}
 		smtp_cleanup_session(state);
@@ -872,6 +873,8 @@ static void smtp_connect_remote(SMTP_STATE *state, const char *nexthop,
 	}
 	dns_rr_free(addr_list);
 	myfree(dest_buf);
+	if (state->misc_flags & SMTP_MISC_FLAG_FINAL_NEXTHOP)
+	    break;
     }
 
     /*
@@ -962,6 +965,8 @@ int     smtp_connect(SMTP_STATE *state)
      * destination to address list, and whether to stop before we reach the
      * end of that list.
      */
+#define DEF_LMTP_SERVICE	var_lmtp_tcp_port
+#define DEF_SMTP_SERVICE	"smtp"
 
     /*
      * With LMTP we have direct-to-host delivery only. The destination may
@@ -973,7 +978,7 @@ int     smtp_connect(SMTP_STATE *state)
 	} else {
 	    if (strncmp(destination, "inet:", 5) == 0)
 		destination += 5;
-	    smtp_connect_remote(state, destination, why);
+	    smtp_connect_remote(state, destination, DEF_LMTP_SERVICE, why);
 	}
     }
 
@@ -986,12 +991,19 @@ int     smtp_connect(SMTP_STATE *state)
      * Postfix configurations that have a host with such a name.
      */
     else {
-	smtp_connect_remote(state, destination, why);
+	smtp_connect_remote(state, destination, DEF_SMTP_SERVICE, why);
     }
 
     /*
      * We still need to bounce or defer some left-over recipients: either
      * (SMTP) mail loops or some server was unavailable.
+     * 
+     * We could avoid this (and the "final server" complexity) by keeping one
+     * DSN structure per recipient in memory, by updating those in-memory
+     * structures with each delivery attempt, and by always flushing all
+     * deferred recipients at the end. We'd probably still want to bounce
+     * recipients immediately, so we'd end up with another chunk of code for
+     * defer logging only.
      * 
      * XXX Unlike enhanced status codes, changing a 4xx into 5xx SMTP code is
      * not simply a matter of changing the initial digit. What we're doing
@@ -999,7 +1011,7 @@ int     smtp_connect(SMTP_STATE *state)
      * into 550 or vice versa.
      */
     if (SMTP_RCPT_LEFT(state) > 0) {
-	state->final_server = 1;		/* XXX */
+	state->misc_flags |= SMTP_MISC_FLAG_FINAL_SERVER;	/* XXX */
 	if (smtp_errno == SMTP_ERR_RETRY)
 	    STR(why->status)[0] = STR(why->dtext)[0] = '4';	/* XXX */
 	else

@@ -66,11 +66,9 @@
 /* .IP flags
 /*	Zero or more of the following:
 /* .RS
-/* .IP SMTP_SESS_FLAG_CACHE
+/* .IP SMTP_MISC_FLAG_CONN_CACHE
 /*	Enable session caching.
 /* .RE
-/* .IP
-/*	The manifest constant SMTP_SESS_FLAG_NONE requests no options.
 /* .IP dest_prop
 /*	Destination specific session properties: the server is the
 /*	best MX host for the current logical destination.
@@ -221,14 +219,17 @@ SMTP_SESSION *smtp_session_alloc(VSTREAM *stream, const char *dest,
     smtp_chat_init(session);
     session->mime_state = 0;
 
-    vstring_sprintf(session->buffer, "%s:%d",
-		    session->namaddr, ntohs(session->port));
-    session->namaddrport = mystrdup(STR(session->buffer));
+    if (session->port) {
+	vstring_sprintf(session->buffer, "%s:%d",
+			session->namaddr, ntohs(session->port));
+	session->namaddrport = mystrdup(STR(session->buffer));
+    } else
+	session->namaddrport = mystrdup(session->namaddr);
 
     session->sndbufsize = 0;
     session->send_proto_helo = 0;
 
-    if (flags & SMTP_SESS_FLAG_CACHE)
+    if (flags & SMTP_MISC_FLAG_CONN_CACHE)
 	CACHE_THIS_SESSION_UNTIL(start + var_smtp_reuse_time);
     else
 	DONT_CACHE_THIS_SESSION;
@@ -470,8 +471,10 @@ SMTP_SESSION *smtp_session_activate(int fd, VSTRING *dest_prop,
     /*
      * Allright, bundle up what we have sofar.
      */
+#define NO_FLAGS	0
+
     session = smtp_session_alloc(vstream_fdopen(fd, O_RDWR), dest, host,
-			       addr, port, (time_t) 0, SMTP_SESS_FLAG_NONE);
+				 addr, port, (time_t) 0, NO_FLAGS);
     session->features = (features | SMTP_FEATURE_FROM_CACHE);
     CACHE_THIS_SESSION_UNTIL(expire_time);
     session->reuse_count = ++reuse_count;
