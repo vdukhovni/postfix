@@ -260,8 +260,17 @@ int     smtp_helo(SMTP_STATE *state)
 
 #ifdef USE_TLS
     int     saved_features = session->features;
+    int     tls_helo_status;
 
 #endif
+    const char *NOCLOBBER where;
+
+    /*
+     * Prepare for disaster.
+     */
+    smtp_timeout_setup(state->session->stream, var_smtp_helo_tmout);
+    if ((except = vstream_setjmp(state->session->stream)) != 0)
+	return (smtp_stream_except(state, except, where));
 
     /*
      * If not recursing after STARTTLS, examine the server greeting banner
@@ -270,16 +279,9 @@ int     smtp_helo(SMTP_STATE *state)
     if ((state->misc_flags & SMTP_MISC_FLAG_IN_STARTTLS) == 0) {
 
 	/*
-	 * Prepare for disaster.
-	 */
-	smtp_timeout_setup(state->session->stream, var_smtp_helo_tmout);
-	if ((except = vstream_setjmp(state->session->stream)) != 0)
-	    return (smtp_stream_except(state, except,
-				  "receiving the initial server greeting"));
-
-	/*
 	 * Read and parse the server's SMTP greeting banner.
 	 */
+	where = "receiving the initial server greeting";
 	switch ((resp = smtp_chat_resp(session))->code / 100) {
 	case 2:
 	    break;
@@ -343,12 +345,14 @@ int     smtp_helo(SMTP_STATE *state)
      * heuristic failed.
      */
     if ((state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) == 0) {
+	where = "performing the EHLO handshake";
 	if (session->features & SMTP_FEATURE_ESMTP) {
 	    smtp_chat_cmd(session, "EHLO %s", var_smtp_helo_name);
 	    if ((resp = smtp_chat_resp(session))->code / 100 != 2)
 		session->features &= ~SMTP_FEATURE_ESMTP;
 	}
 	if ((session->features & SMTP_FEATURE_ESMTP) == 0) {
+	    where = "performing the HELO handshake";
 	    smtp_chat_cmd(session, "HELO %s", var_smtp_helo_name);
 	    if ((resp = smtp_chat_resp(session))->code / 100 != 2)
 		return (smtp_site_fail(state, session->host, resp,
@@ -358,6 +362,7 @@ int     smtp_helo(SMTP_STATE *state)
 	    return (0);
 	}
     } else {
+	where = "performing the LHLO handshake";
 	smtp_chat_cmd(session, "LHLO %s", var_smtp_helo_name);
 	if ((resp = smtp_chat_resp(session))->code / 100 != 2)
 	    return (smtp_site_fail(state, session->host, resp,
@@ -541,8 +546,11 @@ int     smtp_helo(SMTP_STATE *state)
 		}
 #endif
 		session->features = saved_features;
+		/* XXX Mix-up of per-session and per-request flags. */
 		state->misc_flags |= SMTP_MISC_FLAG_IN_STARTTLS;
-		return (smtp_start_tls(state));
+		tls_helo_status = smtp_start_tls(state);
+		state->misc_flags &= ~SMTP_MISC_FLAG_IN_STARTTLS;
+		return (tls_helo_status);
 	    }
 
 	    /*

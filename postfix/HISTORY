@@ -11549,6 +11549,16 @@ Apologies for any names omitted.
 	logic for address list and fallback relay processing.
 	Still need to simplify deferred recipient handling.
 
+20051210
+
+	Bugfix: after a failed TLS session, the 20051210 SMTP client
+	code cleanup broke sessions with backup servers, causing the
+	client to get out of step with the backup server.  This in
+	turn exposed a one-year old missing exception handling
+	context in the EHLO handstake after sending STARTTLS. Victim
+	was Ralf Hildebrandt, detectives Victor Duchovni and Wietse.
+	File: smtp/smtp_proto.c.
+
 Open problems:
 
 	"postsuper -r" no longer resets the message arrival time,
