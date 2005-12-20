@@ -33,6 +33,7 @@
 #include <sys_defs.h>			/* includes <sys/types.h> */
 #include <sys/socket.h>
 #include <sys/uio.h>
+#include <string.h>
 
 /* Utility library. */
 
@@ -71,6 +72,7 @@ int     unix_recv_fd(int fd)
     }       control_un;
     struct cmsghdr *cmptr;
 
+    memset((char *) &msg, 0, sizeof(msg));
     msg.msg_control = control_un.control;
     msg.msg_controllen = CMSG_LEN(sizeof(newfd));	/* Fix 200506 */
 #else

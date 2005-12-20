@@ -129,17 +129,17 @@
 void    smtpd_peer_init(SMTPD_STATE *state)
 {
     char   *myname = "smtpd_peer_init";
-    SOCKADDR_SIZE sa_len;
+    SOCKADDR_SIZE sa_length;
     struct sockaddr *sa;
     INET_PROTO_INFO *proto_info = inet_proto_info();
 
     sa = (struct sockaddr *) & (state->sockaddr);
-    sa_len = sizeof(state->sockaddr);
+    sa_length = sizeof(state->sockaddr);
 
     /*
      * Look up the peer address information.
      */
-    if (getpeername(vstream_fileno(state->client), sa, &sa_len) >= 0) {
+    if (getpeername(vstream_fileno(state->client), sa, &sa_length) >= 0) {
 	errno = 0;
     }
 
@@ -179,7 +179,7 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 	/*
 	 * Convert the client address to printable form.
 	 */
-	if ((aierr = sockaddr_to_hostaddr(sa, sa_len, &client_addr,
+	if ((aierr = sockaddr_to_hostaddr(sa, sa_length, &client_addr,
 					  (MAI_SERVPORT_STR *) 0, 0)) != 0)
 	    msg_fatal("%s: cannot convert client address to string: %s",
 		      myname, MAI_STRERROR(aierr));
@@ -207,10 +207,10 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 		if (aierr)
 		    msg_fatal("%s: cannot convert %s from string to binary: %s",
 			      myname, state->addr, MAI_STRERROR(aierr));
-		sa_len = res0->ai_addrlen;
-		if (sa_len > sizeof(state->sockaddr))
-		    sa_len = sizeof(state->sockaddr);
-		memcpy((char *) sa, res0->ai_addr, sa_len);
+		sa_length = res0->ai_addrlen;
+		if (sa_length > sizeof(state->sockaddr))
+		    sa_length = sizeof(state->sockaddr);
+		memcpy((char *) sa, res0->ai_addr, sa_length);
 		freeaddrinfo(res0);		/* 200412 */
 	    }
 
@@ -262,7 +262,7 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 	    state->reverse_name = mystrdup(CLIENT_NAME_UNKNOWN);
 	    state->name_status = SMTPD_PEER_CODE_PERM;
 	    state->reverse_name_status = SMTPD_PEER_CODE_PERM;
-	} else if ((aierr = sockaddr_to_hostname(sa, sa_len, &client_name,
+	} else if ((aierr = sockaddr_to_hostname(sa, sa_length, &client_name,
 					 (MAI_SERVNAME_STR *) 0, 0)) != 0) {
 	    state->name = mystrdup(CLIENT_NAME_UNKNOWN);
 	    state->reverse_name = mystrdup(CLIENT_NAME_UNKNOWN);

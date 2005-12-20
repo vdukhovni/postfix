@@ -14,7 +14,7 @@ TESTPROG= smtpd_token smtpd_check
 PROG	= smtpd
 INC_DIR	= ../../include
 LIBS	= ../../lib/libmaster.a ../../lib/libtls.a ../../lib/libdns.a \
-	../../lib/libglobal.a ../../lib/libutil.a
+	../../lib/libxsasl.a ../../lib/libglobal.a ../../lib/libutil.a
 
 .c.o:;	$(CC) $(CFLAGS) -c $*.c
 
@@ -321,20 +321,16 @@ smtpd_proxy.o: smtpd_proxy.h
 smtpd_sasl_glue.o: ../../include/argv.h
 smtpd_sasl_glue.o: ../../include/mail_params.h
 smtpd_sasl_glue.o: ../../include/mail_stream.h
-smtpd_sasl_glue.o: ../../include/match_list.h
-smtpd_sasl_glue.o: ../../include/match_ops.h
 smtpd_sasl_glue.o: ../../include/msg.h
 smtpd_sasl_glue.o: ../../include/myaddrinfo.h
 smtpd_sasl_glue.o: ../../include/mymalloc.h
-smtpd_sasl_glue.o: ../../include/namadr_list.h
-smtpd_sasl_glue.o: ../../include/name_mask.h
-smtpd_sasl_glue.o: ../../include/smtp_stream.h
 smtpd_sasl_glue.o: ../../include/stringops.h
 smtpd_sasl_glue.o: ../../include/sys_defs.h
 smtpd_sasl_glue.o: ../../include/tls.h
 smtpd_sasl_glue.o: ../../include/vbuf.h
 smtpd_sasl_glue.o: ../../include/vstream.h
 smtpd_sasl_glue.o: ../../include/vstring.h
+smtpd_sasl_glue.o: ../../include/xsasl.h
 smtpd_sasl_glue.o: smtpd.h
 smtpd_sasl_glue.o: smtpd_chat.h
 smtpd_sasl_glue.o: smtpd_sasl_glue.c

@@ -105,10 +105,11 @@
 
 VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 {
+    const char *myname = "vbuf_print";
     static VSTRING *fmt;		/* format specifier */
     unsigned char *cp;
-    unsigned width;			/* field width */
-    unsigned prec;			/* numerical precision */
+    int     width;			/* width and numerical precision */
+    int     prec;			/* are signed for overflow defense */
     unsigned long_flag;			/* long or plain integer */
     int     ch;
     char   *s;
@@ -160,6 +161,10 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 		    VSTRING_ADDCH(fmt, ch);
 		}
 	    }
+	    if (width < 0) {
+		msg_warn("%s: bad width %d in %.50s", myname, width, format);
+		width = 0;
+	    }
 	    if (*cp == '.')			/* width/precision separator */
 		VSTRING_ADDCH(fmt, *cp++);
 	    if (*cp == '*') {			/* dynamic precision */
@@ -171,6 +176,10 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 		    prec = prec * 10 + ch - '0';
 		    VSTRING_ADDCH(fmt, ch);
 		}
+	    }
+	    if (prec < 0) {
+		msg_warn("%s: bad precision %d in %.50s", myname, prec, format);
+		prec = 0;
 	    }
 	    if ((long_flag = (*cp == 'l')) != 0)/* long whatever */
 		VSTRING_ADDCH(fmt, *cp++);

@@ -2319,7 +2319,7 @@ This feature was removed in Postfix version 2.1.
 <p>
 Optional list of relay hosts for SMTP destinations that can't be
 found or that are unreachable. With Postfix 2.3 this parameter
-is renamed to smtp_fallback_relay. </p>
+is renamed to <a href="postconf.5.html#smtp_fallback_relay">smtp_fallback_relay</a>. </p>
 
 <p>
 By default, mail is returned to the sender when a destination is
@@ -3222,7 +3222,7 @@ concurrency per recipient.  </p>
 <p> Lookup tables, indexed by the remote LMTP server address, with
 case insensitive lists of LHLO keywords (pipelining, starttls,
 auth, etc.) that the LMTP client will ignore in the LHLO response
-from a remote LMTP server. See lmtp_discard_lhlo_keywords for
+from a remote LMTP server. See <a href="postconf.5.html#lmtp_discard_lhlo_keywords">lmtp_discard_lhlo_keywords</a> for
 details. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
@@ -3246,7 +3246,7 @@ from a remote LMTP server. </p>
 <li> <p> Specify the <b>silent-discard</b> pseudo keyword to prevent
 this action from being logged. </p>
 
-<li> <p> Use the lmtp_discard_lhlo_keyword_address_maps feature to
+<li> <p> Use the <a href="postconf.5.html#lmtp_discard_lhlo_keyword_address_maps">lmtp_discard_lhlo_keyword_address_maps</a> feature to
 discard LHLO keywords selectively. </p>
 
 </ul>
@@ -3307,7 +3307,7 @@ client, for example:
 
 <pre>
   /etc/postfix/master.cf:
-        mylmtp ... lmtp -o lmtp_lhlo_name=foo.bar.com
+        mylmtp ... lmtp -o <a href="postconf.5.html#lmtp_lhloname">lmtp_lhlo_name</a>=foo.bar.com
 </pre>
 
 <p>
@@ -3504,14 +3504,28 @@ to the remote host.
 
 </DD>
 
+<DT><b><a name="lmtp_sasl_path">lmtp_sasl_path</a>
+(default: empty)</b></DT><DD>
+
+<p> Implementation-specific information that is passed through to
+the SASL plug-in implementation that is selected with
+<b><a href="postconf.5.html#lmtp_sasl_type">lmtp_sasl_type</a></b>.  Typically this specifies the name of a
+configuration file or rendez-vous point. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_sasl_security_options">lmtp_sasl_security_options</a>
 (default: noplaintext, noanonymous)</b></DT><DD>
 
-<p>
-What authentication mechanisms the Postfix LMTP client is allowed
-to use. The list of available authentication mechanisms is system
-dependent.
-</p>
+<p> SASL security options; as of Postfix 2.3 the list of available
+features depends on the SASL client implementation that is selected
+with <b><a href="postconf.5.html#lmtp_sasl_type">lmtp_sasl_type</a></b>.  </p>
+
+<p> The following security features are defined for the <b>cyrus</b>
+client SASL implementation: </p>
 
 <dl>
 
@@ -3551,6 +3565,18 @@ Example:
 
 <p> The LMTP-specific version of the <a href="postconf.5.html#smtp_sasl_tls_security_options">smtp_sasl_tls_security_options</a>
 configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_sasl_type">lmtp_sasl_type</a>
+(default: cyrus)</b></DT><DD>
+
+<p> The SASL plug-in type that the Postfix LMTP client should use
+for authentication.  The available types are listed with the
+"<b>postconf -A</b>" command. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -5087,6 +5113,19 @@ submissions from the Postfix <a href="QSHAPE_README.html#maildrop_queue">maildro
 <p>
 This feature is available in Postfix 2.0 and later.
 </p>
+
+
+</DD>
+
+<DT><b><a name="plaintext_session_reject_code">plaintext_session_reject_code</a>
+(default: 450)</b></DT><DD>
+
+<p>
+The numerical Postfix SMTP server response code when a request
+is rejected by the <b><a href="postconf.5.html#reject_plaintext_session">reject_plaintext_session</a></b> restriction.
+</p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
 
 
 </DD>
@@ -6662,7 +6701,7 @@ host, host:port, [host]:port, [address] or [address]:port; the form
 destinations, Postfix will try them in the specified order.  </p>
 
 <p> To prevent mailer loops between MX hosts and fall-back hosts,
-Postfix version 2.3 and later will not use the smtp_fallback_relay
+Postfix version 2.3 and later will not use the <a href="postconf.5.html#smtp_fallback_relay">smtp_fallback_relay</a>
 feature for destinations that it is MX host for. </p>
 
 
@@ -7038,14 +7077,28 @@ chroot jail, so you can leave the password file in /etc/postfix.
 
 </DD>
 
+<DT><b><a name="smtp_sasl_path">smtp_sasl_path</a>
+(default: empty)</b></DT><DD>
+
+<p> Implementation-specific information that is passed through to
+the SASL plug-in implementation that is selected with
+<b><a href="postconf.5.html#smtp_sasl_type">smtp_sasl_type</a></b>.  Typically this specifies the name of a
+configuration file or rendez-vous point. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="smtp_sasl_security_options">smtp_sasl_security_options</a>
 (default: noplaintext, noanonymous)</b></DT><DD>
 
-<p>
-What authentication mechanisms the Postfix SMTP client is allowed
-to use. The list of available authentication mechanisms is system
-dependent.
-</p>
+<p> SASL security options; as of Postfix 2.3 the list of available
+features depends on the SASL client implementation that is selected
+with <b><a href="postconf.5.html#smtp_sasl_type">smtp_sasl_type</a></b>.  </p>
+
+<p> The following security features are defined for the <b>cyrus</b>
+client SASL implementation: </p>
 
 <p>
 Specify zero or more of the following:
@@ -7093,6 +7146,18 @@ Example:
 
 <p> The SASL authentication security options that the Postfix SMTP
 client uses for TLS encrypted SMTP sessions. </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_sasl_type">smtp_sasl_type</a>
+(default: cyrus)</b></DT><DD>
+
+<p> The SASL plug-in type that the Postfix SMTP client should use
+for authentication.  The available types are listed with the
+"<b>postconf -A</b>" command. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
 
 
 </DD>
@@ -8015,6 +8080,16 @@ Use at the RCPT stage will only reject the second etc.  recipient.
 The <a href="postconf.5.html#multi_recipient_bounce_reject_code">multi_recipient_bounce_reject_code</a> parameter specifies the
 response code for rejected requests (default:  550).  This feature
 is available in Postfix 2.1 and later. </dd>
+
+<dt><b><a name="reject_plaintext_session">reject_plaintext_session</a></b></dt>
+
+<dd>Reject the request when the connection is not encrypted. This
+restriction should not be used before the client has had a chance
+to negotiate encryption with the AUTH or STARTTLS commands.
+<br>
+The <a href="postconf.5.html#plaintext_session_reject_code">plaintext_session_reject_code</a> parameter specifies the response
+code for rejected requests (default:  450).  This feature is available
+in Postfix 2.3 and later. </dd>
 
 <dt><b><a name="reject_unauth_pipelining">reject_unauth_pipelining</a></b></dt>
 
@@ -9088,8 +9163,28 @@ Examples:
 
 </DD>
 
+<DT><b><a name="smtpd_sasl_path">smtpd_sasl_path</a>
+(default: smtpd)</b></DT><DD>
+
+<p> Implementation-specific information that is passed through to
+the SASL plug-in implementation that is selected with
+<b><a href="postconf.5.html#smtpd_sasl_type">smtpd_sasl_type</a></b>.  Typically this specifies the name of a
+configuration file or rendez-vous point. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="smtpd_sasl_security_options">smtpd_sasl_security_options</a>
 (default: noanonymous)</b></DT><DD>
+
+<p> SASL security options; as of Postfix 2.3 the list of available
+features depends on the SASL server implementation that is selected
+with <b><a href="postconf.5.html#smtpd_sasl_type">smtpd_sasl_type</a></b>.  </p>
+
+<p> The following security features are defined for the <b>cyrus</b>
+server SASL implementation: </p>
 
 <p>
 Restrict what authentication mechanisms the Postfix SMTP server
@@ -9156,6 +9251,18 @@ Example:
 
 <p> The SASL authentication security options that the Postfix SMTP
 server uses for TLS encrypted SMTP sessions. </p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_sasl_type">smtpd_sasl_type</a>
+(default: cyrus)</b></DT><DD>
+
+<p> The SASL plug-in type that the Postfix SMTP server should use
+for authentication. The available types are listed with the
+"<b>postconf -a</b>" command. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
 
 
 </DD>

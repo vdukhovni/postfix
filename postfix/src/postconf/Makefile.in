@@ -11,7 +11,7 @@ MAKES	= bool_table.h bool_vars.h int_table.h int_vars.h str_table.h \
 PROG	= postconf
 SAMPLES	= ../../conf/main.cf.default
 INC_DIR	= ../../include
-LIBS	= ../../lib/libglobal.a ../../lib/libutil.a
+LIBS	= ../../lib/libxsasl.a ../../lib/libglobal.a ../../lib/libutil.a
 
 .c.o:;	$(CC) $(CFLAGS) -c $*.c
 
@@ -97,6 +97,7 @@ postconf.o: ../../include/vbuf.h
 postconf.o: ../../include/vstream.h
 postconf.o: ../../include/vstring.h
 postconf.o: ../../include/vstring_vstream.h
+postconf.o: ../../include/xsasl.h
 postconf.o: auto_table.h
 postconf.o: auto_vars.h
 postconf.o: bool_table.h

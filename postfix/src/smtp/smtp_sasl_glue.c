@@ -1,6 +1,6 @@
 /*++
 /* NAME
-/*	smtp_sasl 3
+/*	smtp_sasl_glue 3
 /* SUMMARY
 /*	Postfix SASL interface for SMTP client
 /* SYNOPSIS
@@ -54,7 +54,7 @@
 /*	case of unsuccessful authentication, > 0 in case of success.
 /*	The why argument is updated with a reason for failure.
 /*	This routine must be called only when smtp_sasl_passwd_lookup()
-/*	suceeds.
+/*	succeeds.
 /*
 /*	smtp_sasl_cleanup() cleans up. It must be called at the
 /*	end of every SMTP session that uses SASL authentication.
@@ -97,9 +97,6 @@
 #include <sys_defs.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef STRCASECMP_IN_STRINGS_H
-#include <strings.h>
-#endif
 
  /*
   * Utility library
@@ -108,7 +105,6 @@
 #include <mymalloc.h>
 #include <stringops.h>
 #include <split_at.h>
-#include <name_mask.h>
 
  /*
   * Global library
@@ -119,65 +115,17 @@
 #include <mail_addr_find.h>
 
  /*
+  * XSASL library.
+  */
+#include <xsasl.h>
+
+ /*
   * Application-specific
   */
 #include "smtp.h"
 #include "smtp_sasl.h"
 
 #ifdef USE_SASL_AUTH
-
- /*
-  * Authentication security options.
-  */
-static NAME_MASK smtp_sasl_sec_mask[] = {
-    "noplaintext", SASL_SEC_NOPLAINTEXT,
-    "noactive", SASL_SEC_NOACTIVE,
-    "nodictionary", SASL_SEC_NODICTIONARY,
-    "noanonymous", SASL_SEC_NOANONYMOUS,
-#if SASL_VERSION_MAJOR >= 2
-    "mutual_auth", SASL_SEC_MUTUAL_AUTH,
-#endif
-    0,
-};
-
- /*
-  * Macros to handle API differences between SASLv1 and SASLv2. Specifics:
-  * 
-  * The SASL_LOG_* constants were renamed in SASLv2.
-  * 
-  * SASLv2's sasl_client_new takes two new parameters to specify local and
-  * remote IP addresses for auth mechs that use them.
-  * 
-  * SASLv2's sasl_client_start function no longer takes the secret parameter.
-  * 
-  * SASLv2's sasl_decode64 function takes an extra parameter for the length of
-  * the output buffer.
-  * 
-  * The other major change is that SASLv2 now takes more responsibility for
-  * deallocating memory that it allocates internally.  Thus, some of the
-  * function parameters are now 'const', to make sure we don't try to free
-  * them too.  This is dealt with in the code later on.
-  */
-
-#if SASL_VERSION_MAJOR < 2
-/* SASL version 1.x */
-#define SASL_CLIENT_NEW(srv, fqdn, lport, rport, prompt, secflags, pconn) \
-	sasl_client_new(srv, fqdn, prompt, secflags, pconn)
-#define SASL_CLIENT_START(conn, mechlst, secret, prompt, clout, cllen, mech) \
-	sasl_client_start(conn, mechlst, secret, prompt, clout, cllen, mech)
-#define SASL_DECODE64(in, inlen, out, outmaxlen, outlen) \
-	sasl_decode64(in, inlen, out, outlen)
-#endif
-
-#if SASL_VERSION_MAJOR >= 2
-/* SASL version > 2.x */
-#define SASL_CLIENT_NEW(srv, fqdn, lport, rport, prompt, secflags, pconn) \
-	sasl_client_new(srv, fqdn, lport, rport, prompt, secflags, pconn)
-#define SASL_CLIENT_START(conn, mechlst, secret, prompt, clout, cllen, mech) \
-	sasl_client_start(conn, mechlst, prompt, clout, cllen, mech)
-#define SASL_DECODE64(in, inlen, out, outmaxlen, outlen) \
-	sasl_decode64(in, inlen, out, outmaxlen, outlen)
-#endif
 
  /*
   * Per-host login/password information.
@@ -189,119 +137,10 @@ static MAPS *smtp_sasl_passwd_map;
   */
 STRING_LIST *smtp_sasl_mechs;
 
-/* smtp_sasl_log - logging call-back routine */
-
-static int smtp_sasl_log(void *unused_context, int priority,
-			         const char *message)
-{
-    switch (priority) {
-	case SASL_LOG_ERR:		/* unusual errors */
-#ifdef SASL_LOG_WARN			/* non-fatal warnings (Cyrus-SASL v2) */
-	case SASL_LOG_WARN:
-#endif
-#ifdef SASL_LOG_WARNING			/* non-fatal warnings (Cyrus-SASL v1) */
-	case SASL_LOG_WARNING:
-#endif
-	msg_warn("SASL authentication problem: %s", message);
-	break;
-#ifdef SASL_LOG_INFO
-    case SASL_LOG_INFO:			/* other info (Cyrus-SASL v1) */
-	if (msg_verbose)
-	    msg_info("SASL authentication info: %s", message);
-	break;
-#endif
-#ifdef SASL_LOG_NOTE
-    case SASL_LOG_NOTE:			/* other info (Cyrus-SASL v2) */
-	if (msg_verbose)
-	    msg_info("SASL authentication info: %s", message);
-	break;
-#endif
-#ifdef SASL_LOG_FAIL
-    case SASL_LOG_FAIL:			/* authentication failures
-						 * (Cyrus-SASL v2) */
-	msg_warn("SASL authentication failure: %s", message);
-	break;
-#endif
-#ifdef SASL_LOG_DEBUG
-    case SASL_LOG_DEBUG:			/* more verbose than LOG_NOTE
-						 * (Cyrus-SASL v2) */
-	if (msg_verbose > 1)
-	    msg_info("SASL authentication debug: %s", message);
-	break;
-#endif
-#ifdef SASL_LOG_TRACE
-    case SASL_LOG_TRACE:			/* traces of internal
-						 * protocols (Cyrus-SASL v2) */
-	if (msg_verbose > 1)
-	    msg_info("SASL authentication trace: %s", message);
-	break;
-#endif
-#ifdef SASL_LOG_PASS
-    case SASL_LOG_PASS:			/* traces of internal
-						 * protocols, including
-						 * passwords (Cyrus-SASL v2) */
-	if (msg_verbose > 1)
-	    msg_info("SASL authentication pass: %s", message);
-	break;
-#endif
-    }
-    return (SASL_OK);
-}
-
-/* smtp_sasl_get_user - username lookup call-back routine */
-
-static int smtp_sasl_get_user(void *context, int unused_id, const char **result,
-			              unsigned *len)
-{
-    char   *myname = "smtp_sasl_get_user";
-    SMTP_SESSION *session = (SMTP_SESSION *) context;
-
-    if (msg_verbose)
-	msg_info("%s: %s", myname, session->sasl_username);
-
-    /*
-     * Sanity check.
-     */
-    if (session->sasl_passwd == 0)
-	msg_panic("%s: no username looked up", myname);
-
-    *result = session->sasl_username;
-    if (len)
-	*len = strlen(session->sasl_username);
-    return (SASL_OK);
-}
-
-/* smtp_sasl_get_passwd - password lookup call-back routine */
-
-static int smtp_sasl_get_passwd(sasl_conn_t *conn, void *context,
-				        int id, sasl_secret_t **psecret)
-{
-    char   *myname = "smtp_sasl_get_passwd";
-    SMTP_SESSION *session = (SMTP_SESSION *) context;
-    int     len;
-
-    if (msg_verbose)
-	msg_info("%s: %s", myname, session->sasl_passwd);
-
-    /*
-     * Sanity check.
-     */
-    if (!conn || !psecret || id != SASL_CB_PASS)
-	return (SASL_BADPARAM);
-    if (session->sasl_passwd == 0)
-	msg_panic("%s: no password looked up", myname);
-
-    /*
-     * Convert the password into a counted string.
-     */
-    len = strlen(session->sasl_passwd);
-    if ((*psecret = (sasl_secret_t *) malloc(sizeof(sasl_secret_t) + len)) == 0)
-	return (SASL_NOMEM);
-    (*psecret)->len = len;
-    memcpy((*psecret)->data, session->sasl_passwd, len + 1);
-
-    return (SASL_OK);
-}
+ /*
+  * SASL implementation handle.
+  */
+static XSASL_CLIENT_IMPL *smtp_sasl_impl;
 
 /* smtp_sasl_passwd_lookup - password lookup routine */
 
@@ -359,42 +198,9 @@ void    smtp_sasl_initialize(void)
 {
 
     /*
-     * Global callbacks. These have no per-session context.
-     */
-    static sasl_callback_t callbacks[] = {
-	{SASL_CB_LOG, &smtp_sasl_log, 0},
-	{SASL_CB_LIST_END, 0, 0}
-    };
-
-#if SASL_VERSION_MAJOR >= 2 && (SASL_VERSION_MINOR >= 2 \
-    || (SASL_VERSION_MINOR == 1 && SASL_VERSION_STEP >= 19))
-    int     sasl_major;
-    int     sasl_minor;
-    int     sasl_step;
-
-    /*
-     * DLL hell guard.
-     */
-    sasl_version_info((const char **) 0, (const char **) 0,
-		      &sasl_major, &sasl_minor,
-		      &sasl_step, (int *) 0);
-    if (sasl_major != SASL_VERSION_MAJOR
-#if 0
-	|| sasl_minor != SASL_VERSION_MINOR
-	|| sasl_step != SASL_VERSION_STEP
-#endif
-	)
-	msg_fatal("incorrect SASL library version. "
-	      "Postfix was built with include files from version %d.%d.%d, "
-		  "but the run-time library version is %d.%d.%d",
-		  SASL_VERSION_MAJOR, SASL_VERSION_MINOR, SASL_VERSION_STEP,
-		  sasl_major, sasl_minor, sasl_step);
-#endif
-
-    /*
      * Sanity check.
      */
-    if (smtp_sasl_passwd_map)
+    if (smtp_sasl_passwd_map || smtp_sasl_impl)
 	msg_panic("smtp_sasl_initialize: repeated call");
     if (*var_smtp_sasl_passwd == 0)
 	msg_fatal("specify a password table via the `%s' configuration parameter",
@@ -406,7 +212,8 @@ void    smtp_sasl_initialize(void)
      */
     smtp_sasl_passwd_map = maps_create("smtp_sasl_passwd",
 				       var_smtp_sasl_passwd, DICT_FLAG_LOCK);
-    if (sasl_client_init(callbacks) != SASL_OK)
+    if ((smtp_sasl_impl = xsasl_client_init(var_smtp_sasl_type,
+					    var_smtp_sasl_path)) == 0)
 	msg_fatal("SASL library initialization");
 
     /*
@@ -421,13 +228,16 @@ void    smtp_sasl_initialize(void)
 
 void    smtp_sasl_connect(SMTP_SESSION *session)
 {
+
+    /*
+     * This initialization happens whenever we instantiate an SMTP session
+     * object. We don't instantiate a SASL client until we actually need one.
+     */
     session->sasl_mechanism_list = 0;
     session->sasl_username = 0;
     session->sasl_passwd = 0;
-    session->sasl_conn = 0;
-    session->sasl_encoded = 0;
-    session->sasl_decoded = 0;
-    session->sasl_callbacks = 0;
+    session->sasl_client = 0;
+    session->sasl_reply = 0;
 }
 
 /* smtp_sasl_start - per-session SASL initialization */
@@ -435,62 +245,13 @@ void    smtp_sasl_connect(SMTP_SESSION *session)
 void    smtp_sasl_start(SMTP_SESSION *session, const char *sasl_opts_name,
 			        const char *sasl_opts_val)
 {
-    static sasl_callback_t callbacks[] = {
-	{SASL_CB_USER, &smtp_sasl_get_user, 0},
-	{SASL_CB_AUTHNAME, &smtp_sasl_get_user, 0},
-	{SASL_CB_PASS, &smtp_sasl_get_passwd, 0},
-	{SASL_CB_LIST_END, 0, 0}
-    };
-    sasl_callback_t *cp;
-    sasl_security_properties_t sec_props;
-
     if (msg_verbose)
 	msg_info("starting new SASL client");
-
-    /*
-     * Per-session initialization. Provide each session with its own callback
-     * context.
-     */
-#define NULL_SECFLAGS		0
-
-    session->sasl_callbacks = (sasl_callback_t *) mymalloc(sizeof(callbacks));
-    memcpy((char *) session->sasl_callbacks, callbacks, sizeof(callbacks));
-    for (cp = session->sasl_callbacks; cp->id != SASL_CB_LIST_END; cp++)
-	cp->context = (void *) session;
-
-#define NULL_SERVER_ADDR	((char *) 0)
-#define NULL_CLIENT_ADDR	((char *) 0)
-
-    if (SASL_CLIENT_NEW(var_procname, session->host,
-			NULL_CLIENT_ADDR, NULL_SERVER_ADDR,
-			session->sasl_callbacks, NULL_SECFLAGS,
-			(sasl_conn_t **) &session->sasl_conn) != SASL_OK)
-	msg_fatal("per-session SASL client initialization");
-
-    /*
-     * Per-session security properties. XXX This routine is not sufficiently
-     * documented. What is the purpose of all this?
-     */
-    memset(&sec_props, 0L, sizeof(sec_props));
-    sec_props.min_ssf = 0;
-    sec_props.max_ssf = 0;			/* don't allow real SASL
-						 * security layer */
-    sec_props.security_flags = name_mask(sasl_opts_name, smtp_sasl_sec_mask,
-					 sasl_opts_val);
-    sec_props.maxbufsize = 0;
-    sec_props.property_names = 0;
-    sec_props.property_values = 0;
-    if (sasl_setprop(session->sasl_conn, SASL_SEC_PROPS,
-		     &sec_props) != SASL_OK)
-	msg_fatal("set per-session SASL security properties");
-
-    /*
-     * We use long-lived conversion buffers rather than local variables in
-     * order to avoid memory leaks in case of read/write timeout or I/O
-     * error.
-     */
-    session->sasl_encoded = vstring_alloc(10);
-    session->sasl_decoded = vstring_alloc(10);
+    if ((session->sasl_client =
+	 xsasl_client_create(smtp_sasl_impl, session->stream, var_procname,
+			     session->host, sasl_opts_val)) == 0)
+	msg_fatal("SASL per-connection initialization failed");
+    session->sasl_reply = vstring_alloc(20);
 }
 
 /* smtp_sasl_authenticate - run authentication protocol */
@@ -498,27 +259,16 @@ void    smtp_sasl_start(SMTP_SESSION *session, const char *sasl_opts_name,
 int     smtp_sasl_authenticate(SMTP_SESSION *session, DSN_BUF *why)
 {
     char   *myname = "smtp_sasl_authenticate";
-    unsigned enc_length;
-    unsigned enc_length_out;
-
-#if SASL_VERSION_MAJOR >= 2
-    const char *clientout;
-
-#else
-    char   *clientout;
-
-#endif
-    unsigned clientoutlen;
-    unsigned serverinlen;
     SMTP_RESP *resp;
     const char *mechanism;
     int     result;
     char   *line;
 
-#define NO_SASL_SECRET		0
-#define NO_SASL_INTERACTION	0
-#define NO_SASL_LANGLIST	((const char *) 0)
-#define NO_SASL_OUTLANG		((const char **) 0)
+    /*
+     * Sanity check.
+     */
+    if (session->sasl_mechanism_list == 0)
+	msg_panic("%s: no mechanism list", myname);
 
     if (msg_verbose)
 	msg_info("%s: %s: SASL mechanisms %s",
@@ -527,18 +277,16 @@ int     smtp_sasl_authenticate(SMTP_SESSION *session, DSN_BUF *why)
     /*
      * Start the client side authentication protocol.
      */
-    result = SASL_CLIENT_START((sasl_conn_t *) session->sasl_conn,
-			       session->sasl_mechanism_list,
-			       NO_SASL_SECRET, NO_SASL_INTERACTION,
-			       &clientout, &clientoutlen, &mechanism);
-    if (result != SASL_OK && result != SASL_CONTINUE) {
+    result = xsasl_client_first(session->sasl_client,
+				session->sasl_mechanism_list,
+				session->sasl_username,
+				session->sasl_passwd,
+				&mechanism, session->sasl_reply);
+    if (result != XSASL_AUTH_OK) {
 	dsb_update(why, "4.7.0", DSB_DEF_ACTION, DSB_SKIP_RMTA, DSB_DTYPE_SASL,
-		   421, sasl_errstring(result, NO_SASL_LANGLIST,
-				       NO_SASL_OUTLANG),
+		   421, STR(session->sasl_reply),
 		   "cannot authenticate to server %s: %s",
-		   session->namaddr,
-		   sasl_errstring(result, NO_SASL_LANGLIST,
-				  NO_SASL_OUTLANG));
+		   session->namaddr, STR(session->sasl_reply));
 	return (-1);
     }
 
@@ -547,24 +295,9 @@ int     smtp_sasl_authenticate(SMTP_SESSION *session, DSN_BUF *why)
      * sasl_encode64() produces four bytes for each complete or incomplete
      * triple of input bytes. Allocate an extra byte for string termination.
      */
-#define ENCODE64_LENGTH(n)	((((n) + 2) / 3) * 4)
-
-    if (clientoutlen > 0) {
-	if (msg_verbose)
-	    msg_info("%s: %s: uncoded initial reply: %.*s",
-		   myname, session->namaddr, (int) clientoutlen, clientout);
-	enc_length = ENCODE64_LENGTH(clientoutlen) + 1;
-	VSTRING_SPACE(session->sasl_encoded, enc_length);
-	if (sasl_encode64(clientout, clientoutlen,
-			  STR(session->sasl_encoded), enc_length,
-			  &enc_length_out) != SASL_OK)
-	    msg_panic("%s: sasl_encode64 botch", myname);
-#if SASL_VERSION_MAJOR < 2
-	/* SASL version 1 doesn't free memory that it allocates. */
-	free(clientout);
-#endif
+    if (LEN(session->sasl_reply) > 0) {
 	smtp_chat_cmd(session, "AUTH %s %s", mechanism,
-		      STR(session->sasl_encoded));
+		      STR(session->sasl_reply));
     } else {
 	smtp_chat_cmd(session, "AUTH %s", mechanism);
     }
@@ -580,50 +313,21 @@ int     smtp_sasl_authenticate(SMTP_SESSION *session, DSN_BUF *why)
 	 */
 	line = resp->str;
 	(void) mystrtok(&line, "- \t\n");	/* skip over result code */
-	serverinlen = strlen(line);
-	VSTRING_SPACE(session->sasl_decoded, serverinlen);
-	if (SASL_DECODE64(line, serverinlen, STR(session->sasl_decoded),
-			  serverinlen, &enc_length) != SASL_OK) {
-	    smtp_dsn_update(why, "5.7.0", DSN_BY_LOCAL_MTA,
-			    501, "501 malformed SASL challenge",
-			    "malformed SASL challenge from server %s",
-			    session->namaddr);
-	    return (-1);
+	result = xsasl_client_next(session->sasl_client, line,
+				   session->sasl_reply);
+	if (result != XSASL_AUTH_OK) {
+	    dsb_update(why, "4.7.0", DSB_DEF_ACTION,	/* Fix 200512 */
+		       DSB_SKIP_RMTA, DSB_DTYPE_SASL,
+		       421, STR(session->sasl_reply),
+		       "cannot authenticate to server %s: %s",
+		       session->namaddr, STR(session->sasl_reply));
+	    return (-1);			/* Fix 200512 */
 	}
-	if (msg_verbose)
-	    msg_info("%s: %s: decoded challenge: %.*s",
-		     myname, session->namaddr, (int) enc_length,
-		     STR(session->sasl_decoded));
-	result = sasl_client_step((sasl_conn_t *) session->sasl_conn,
-				  STR(session->sasl_decoded), enc_length,
-			    NO_SASL_INTERACTION, &clientout, &clientoutlen);
-	if (result != SASL_OK && result != SASL_CONTINUE)
-	    msg_warn("SASL authentication failed to server %s: %s",
-		  session->namaddr, sasl_errstring(result, NO_SASL_LANGLIST,
-						   NO_SASL_OUTLANG));
 
 	/*
 	 * Send a client response.
 	 */
-	if (clientoutlen > 0) {
-	    if (msg_verbose)
-		msg_info("%s: %s: uncoded client response %.*s",
-			 myname, session->namaddr,
-			 (int) clientoutlen, clientout);
-	    enc_length = ENCODE64_LENGTH(clientoutlen) + 1;
-	    VSTRING_SPACE(session->sasl_encoded, enc_length);
-	    if (sasl_encode64(clientout, clientoutlen,
-			      STR(session->sasl_encoded), enc_length,
-			      &enc_length_out) != SASL_OK)
-		msg_panic("%s: sasl_encode64 botch", myname);
-#if SASL_VERSION_MAJOR < 2
-	    /* SASL version 1 doesn't free memory that it allocates. */
-	    free(clientout);
-#endif
-	} else {
-	    vstring_strcat(session->sasl_encoded, "");
-	}
-	smtp_chat_cmd(session, "%s", STR(session->sasl_encoded));
+	smtp_chat_cmd(session, "%s", STR(session->sasl_reply));
     }
 
     /*
@@ -655,22 +359,15 @@ void    smtp_sasl_cleanup(SMTP_SESSION *session)
 	myfree(session->sasl_mechanism_list);
 	session->sasl_mechanism_list = 0;
     }
-    if (session->sasl_conn) {
+    if (session->sasl_client) {
 	if (msg_verbose)
 	    msg_info("disposing SASL state information");
-	sasl_dispose(&session->sasl_conn);
+	xsasl_client_free(session->sasl_client);
+	session->sasl_client = 0;
     }
-    if (session->sasl_callbacks) {
-	myfree((char *) session->sasl_callbacks);
-	session->sasl_callbacks = 0;
-    }
-    if (session->sasl_encoded) {
-	vstring_free(session->sasl_encoded);
-	session->sasl_encoded = 0;
-    }
-    if (session->sasl_decoded) {
-	vstring_free(session->sasl_decoded);
-	session->sasl_decoded = 0;
+    if (session->sasl_reply) {
+	vstring_free(session->sasl_reply);
+	session->sasl_reply = 0;
     }
 }
 

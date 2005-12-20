@@ -9,8 +9,10 @@ Postfix configuration utility
 .na
 .nf
 .fi
-\fBpostconf\fR [\fB-dhmlnv\fR] [\fB-c \fIconfig_dir\fR]
+\fBpostconf\fR [\fB-dhnv\fR] [\fB-c \fIconfig_dir\fR]
 [\fIparameter ...\fR]
+
+\fBpostconf\fR [\fB-aAmlv\fR] [\fB-c \fIconfig_dir\fR]
 
 \fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
 [\fIparameter=value ...\fR]
@@ -25,6 +27,18 @@ values, or displays other configuration information about
 the Postfix mail system.
 
 Options:
+.IP \fB-a\fR
+List the available SASL server plug-in types.  The SASL
+plug-in type is selected with the \fBsmtpd_sasl_type\fR
+configuration parameter.
+
+This feature is available with Postfix 2.3 and later.
+.IP \fB-A\fR
+List the available SASL client plug-in types.  The SASL
+plug-in type is selected with the \fBsmtp_sasl_type\fR or
+\fBlmtp_sasl_type\fR configuration parameters.
+
+This feature is available with Postfix 2.3 and later.
 .IP "\fB-b\fR [\fItemplate_file\fR]"
 Display the message text that appears at the beginning of
 delivery status notification (DSN) messages, with $\fBname\fR

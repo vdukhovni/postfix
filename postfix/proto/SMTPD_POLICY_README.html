@@ -83,13 +83,18 @@ client_address=1.2.3.4
 client_name=another.domain.tld
 reverse_client_name=another.domain.tld
 instance=123.456.7
+<b>Postfix version 2.2 and later:</b>
 sasl_method=plain
 sasl_username=you
 sasl_sender=
+size=12345
 ccert_subject=solaris9.porcupine.org
 ccert_issuer=Wietse Venema
 ccert_fingerprint=C2:9D:F4:87:71:73:73:D9:18:E7:C2:F3:C1:DA:6E:04
-size=12345
+<b>Postfix version 2.3 and later:</b>
+encryption_protocol=TLSv1/SSLv3
+encryption_cipher=DHE-RSA-AES256-SHA
+encryption_keysize=256
 [empty line]
 </pre>
 </blockquote>
@@ -137,11 +142,18 @@ size=12345
 
     <li> <p> The "sasl_*" attributes (Postfix 2.2 and later) specify
     information about how the client was authenticated via SASL.
+    These attributes are empty in case of no SASL authentication.
     </p>
 
     <li> <p> The "ccert_*" attributes (Postfix 2.2 and later) specify
     information about how the client was authenticated via TLS.
+    These attributes are empty in case of no certificate authentication.
     </p>
+
+    <li> <p> The "encryption_*" attributes (Postfix 2.3 and later)
+    specify information about how the connection is encrypted. With
+    plaintext connections the protocol and cypher attributes are
+    empty and the keysize is zero.  </p>
 
 </ul>
 

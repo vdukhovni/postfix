@@ -153,10 +153,6 @@
 #include <ctype.h>
 #include <stdarg.h>
 
-#ifdef STRCASECMP_IN_STRINGS_H
-#include <strings.h>
-#endif
-
 /* Utility library. */
 
 #include <msg.h>

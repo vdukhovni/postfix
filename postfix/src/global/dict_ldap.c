@@ -169,6 +169,10 @@
 #include <ctype.h>
 #include <unistd.h>
 
+#ifdef STRCASECMP_IN_STRINGS_H
+#include <strings.h>
+#endif
+
  /*
   * Older APIs have weird memory freeing behavior.
   */

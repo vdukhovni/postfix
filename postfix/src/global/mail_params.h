@@ -1246,12 +1246,12 @@ extern bool var_smtpd_sasl_auth_hdr;
 #define DEF_SMTPD_SASL_OPTS	"noanonymous"
 extern char *var_smtpd_sasl_opts;
 
-#define VAR_SMTPD_SASL_APPNAME	"smtpd_sasl_application_name"
-#define DEF_SMTPD_SASL_APPNAME	"smtpd"
-extern char *var_smtpd_sasl_appname;
+#define VAR_SMTPD_SASL_PATH	"smtpd_sasl_path"
+#define DEF_SMTPD_SASL_PATH	"smtpd"
+extern char *var_smtpd_sasl_path;
 
 #define VAR_SMTPD_SASL_TLS_OPTS	"smtpd_sasl_tls_security_options"
-#define DEF_SMTPD_SASL_TLS_OPTS	"$smtpd_sasl_security_options"
+#define DEF_SMTPD_SASL_TLS_OPTS	"$" VAR_SMTPD_SASL_OPTS
 extern char *var_smtpd_sasl_tls_opts;
 
 #define VAR_SMTPD_SASL_REALM	"smtpd_sasl_local_domain"
@@ -1261,6 +1261,14 @@ extern char *var_smtpd_sasl_realm;
 #define VAR_SMTPD_SASL_EXCEPTIONS_NETWORKS	"smtpd_sasl_exceptions_networks"
 #define DEF_SMTPD_SASL_EXCEPTIONS_NETWORKS	""
 extern char *var_smtpd_sasl_exceptions_networks;
+
+#ifndef DEF_SERVER_SASL_TYPE
+#define DEF_SERVER_SASL_TYPE	"cyrus"
+#endif
+
+#define VAR_SMTPD_SASL_TYPE	"smtpd_sasl_type"
+#define DEF_SMTPD_SASL_TYPE	DEF_SERVER_SASL_TYPE
+extern char *var_smtpd_sasl_type;
 
 #define VAR_SMTPD_SND_AUTH_MAPS	"smtpd_sender_login_maps"
 #define DEF_SMTPD_SND_AUTH_MAPS	""
@@ -1287,16 +1295,30 @@ extern char *var_smtp_sasl_passwd;
 #define DEF_SMTP_SASL_OPTS	"noplaintext, noanonymous"
 extern char *var_smtp_sasl_opts;
 
+#define VAR_SMTP_SASL_PATH	"smtp_sasl_path"
+#define DEF_SMTP_SASL_PATH	""
+extern char *var_smtp_sasl_path;
+
 #define VAR_SMTP_SASL_MECHS	"smtp_sasl_mechanism_filter"
 #define DEF_SMTP_SASL_MECHS	""
 #define VAR_LMTP_SASL_MECHS	"lmtp_sasl_mechanism_filter"
 #define DEF_LMTP_SASL_MECHS	""
 extern char *var_smtp_sasl_mechs;
 
+#ifndef DEF_CLIENT_SASL_TYPE
+#define DEF_CLIENT_SASL_TYPE	"cyrus"
+#endif
+
+#define VAR_SMTP_SASL_TYPE	"smtp_sasl_type"
+#define DEF_SMTP_SASL_TYPE	DEF_CLIENT_SASL_TYPE
+#define VAR_LMTP_SASL_TYPE	"lmtp_sasl_type"
+#define DEF_LMTP_SASL_TYPE	DEF_CLIENT_SASL_TYPE
+extern char *var_smtp_sasl_type;
+
 #define VAR_SMTP_SASL_TLS_OPTS	"smtp_sasl_tls_security_options"
-#define DEF_SMTP_SASL_TLS_OPTS	"$var_smtp_sasl_opts"
+#define DEF_SMTP_SASL_TLS_OPTS	"$" VAR_SMTP_SASL_OPTS
 #define VAR_LMTP_SASL_TLS_OPTS	"lmtp_sasl_tls_security_options"
-#define DEF_LMTP_SASL_TLS_OPTS	"$var_lmtp_sasl_opts"
+#define DEF_LMTP_SASL_TLS_OPTS	"$" VAR_LMTP_SASL_OPTS
 extern char *var_smtp_sasl_tls_opts;
 
  /*
@@ -1361,6 +1383,10 @@ extern char *var_lmtp_sasl_passwd;
 #define VAR_LMTP_SASL_OPTS	"lmtp_sasl_security_options"
 #define DEF_LMTP_SASL_OPTS	"noplaintext, noanonymous"
 extern char *var_lmtp_sasl_opts;
+
+#define VAR_LMTP_SASL_PATH	"lmtp_sasl_path"
+#define DEF_LMTP_SASL_PATH	""
+extern char *var_lmtp_sasl_path;
 
  /*
   * SASL-based relay etc. control.
@@ -1648,6 +1674,11 @@ extern int var_defer_code;
 #define DEFER_IF_REJECT		"defer_if_reject"
 
 #define SLEEP			"sleep"
+
+#define REJECT_PLAINTEXT_SESSION "reject_plaintext_session"
+#define VAR_PLAINTEXT_CODE	"plaintext_reject_code"
+#define DEF_PLAINTEXT_CODE	450
+extern int var_plaintext_code;
 
 #define REJECT_UNKNOWN_CLIENT	"reject_unknown_client"
 #define REJECT_UNKNOWN_CLIENT_HOSTNAME "reject_unknown_client_hostname"

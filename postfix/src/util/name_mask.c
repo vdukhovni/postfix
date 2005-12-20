@@ -64,8 +64,8 @@
 /* .IP NAME_MASK_RETURN
 /*	Require that all names listed in \fIname\fR exist in \fItable\fR,
 /*	and that all bits listed in \fImask\fR exist in \fItable\fR.
-/*	Return 0 (name_mask()) or a null pointer (str_name_mask())
-/*	if this condition is not met.
+/*	Log a warning, and return 0 (name_mask()) or a null pointer
+/*	(str_name_mask()) if this condition is not met.
 /* .IP NAME_MASK_ANY_CASE
 /*	Enable case-insensitive matching.
 /*	This feature is not enabled by default when calling name_mask();
@@ -137,8 +137,11 @@ int     name_mask_opt(const char *context, NAME_MASK *table, const char *names,
 		if (flags & NAME_MASK_FATAL)
 		    msg_fatal("unknown %s value \"%s\" in \"%s\"",
 			      context, name, names);
-		if (flags & NAME_MASK_RETURN)
+		if (flags & NAME_MASK_RETURN) {
+		    msg_warn("unknown %s value \"%s\" in \"%s\"",
+			     context, name, names);
 		    return (0);
+		}
 		break;
 	    }
 	    if (lookup(name, np->name) == 0) {
@@ -174,8 +177,11 @@ const char *str_name_mask_opt(const char *context, NAME_MASK *table,
 	    if (flags & NAME_MASK_FATAL)
 		msg_fatal("%s: invalid %s bit in mask: 0x%x",
 			  myname, context, mask);
-	    if (flags & NAME_MASK_RETURN)
+	    if (flags & NAME_MASK_RETURN) {
+		msg_warn("%s: invalid %s bit in mask: 0x%x",
+			 myname, context, mask);
 		return (0);
+	    }
 	    break;
 	}
 	if (mask & np->mask) {

@@ -1859,10 +1859,20 @@ Optional LMTP client lookup tables with one username:password entry
 per host or domain.  If a remote host or domain has no username:password
 entry, then the Postfix LMTP client will not attempt to authenticate
 to the remote host.
+.SH lmtp_sasl_path (default: empty)
+Implementation-specific information that is passed through to
+the SASL plug-in implementation that is selected with
+\fBlmtp_sasl_type\fR.  Typically this specifies the name of a
+configuration file or rendez-vous point.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH lmtp_sasl_security_options (default: noplaintext, noanonymous)
-What authentication mechanisms the Postfix LMTP client is allowed
-to use. The list of available authentication mechanisms is system
-dependent.
+SASL security options; as of Postfix 2.3 the list of available
+features depends on the SASL client implementation that is selected
+with \fBlmtp_sasl_type\fR.
+.PP
+The following security features are defined for the \fBcyrus\fR
+client SASL implementation:
 .IP "\fBnoplaintext\fR"
 Disallow authentication methods that use plaintext passwords.
 .IP "\fBnoactive\fR"
@@ -1886,6 +1896,12 @@ lmtp_sasl_security_options = noplaintext
 .SH lmtp_sasl_tls_security_options (default: $var_lmtp_sasl_opts)
 The LMTP-specific version of the smtp_sasl_tls_security_options
 configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
+.SH lmtp_sasl_type (default: cyrus)
+The SASL plug-in type that the Postfix LMTP client should use
+for authentication.  The available types are listed with the
+"\fBpostconf -A\fR" command.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH lmtp_send_xforward_command (default: no)
@@ -2786,6 +2802,11 @@ The name of the \fBpickup\fR(8) service. This service picks up local mail
 submissions from the Postfix maildrop queue.
 .PP
 This feature is available in Postfix 2.0 and later.
+.SH plaintext_session_reject_code (default: 450)
+The numerical Postfix SMTP server response code when a request
+is rejected by the \fBreject_plaintext_session\fR restriction.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH prepend_delivered_header (default: command, file, forward)
 The message delivery contexts where the Postfix \fBlocal\fR(8) delivery
 agent prepends a Delivered-To:  message header with the address
@@ -3919,10 +3940,20 @@ attempt to authenticate to the remote host.
 .PP
 The Postfix SMTP client opens the lookup table before going to
 chroot jail, so you can leave the password file in /etc/postfix.
+.SH smtp_sasl_path (default: empty)
+Implementation-specific information that is passed through to
+the SASL plug-in implementation that is selected with
+\fBsmtp_sasl_type\fR.  Typically this specifies the name of a
+configuration file or rendez-vous point.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH smtp_sasl_security_options (default: noplaintext, noanonymous)
-What authentication mechanisms the Postfix SMTP client is allowed
-to use. The list of available authentication mechanisms is system
-dependent.
+SASL security options; as of Postfix 2.3 the list of available
+features depends on the SASL client implementation that is selected
+with \fBsmtp_sasl_type\fR.
+.PP
+The following security features are defined for the \fBcyrus\fR
+client SASL implementation:
 .PP
 Specify zero or more of the following:
 .IP "\fBnoplaintext\fR"
@@ -3949,6 +3980,12 @@ smtp_sasl_security_options = noplaintext
 .SH smtp_sasl_tls_security_options (default: $smtp_sasl_security_options)
 The SASL authentication security options that the Postfix SMTP
 client uses for TLS encrypted SMTP sessions.
+.SH smtp_sasl_type (default: cyrus)
+The SASL plug-in type that the Postfix SMTP client should use
+for authentication.  The available types are listed with the
+"\fBpostconf -A\fR" command.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH smtp_send_xforward_command (default: no)
 Send the non-standard XFORWARD command when the Postfix SMTP server EHLO
 response announces XFORWARD support.
@@ -4570,6 +4607,14 @@ Use at the RCPT stage will only reject the second etc.  recipient.
 The multi_recipient_bounce_reject_code parameter specifies the
 response code for rejected requests (default:  550).  This feature
 is available in Postfix 2.1 and later.
+.IP "\fBreject_plaintext_session\fR"
+Reject the request when the connection is not encrypted. This
+restriction should not be used before the client has had a chance
+to negotiate encryption with the AUTH or STARTTLS commands.
+.br
+The plaintext_session_reject_code parameter specifies the response
+code for rejected requests (default:  450).  This feature is available
+in Postfix 2.3 and later.
 .IP "\fBreject_unauth_pipelining\fR"
 Reject the request when the client sends SMTP commands ahead
 of time where it is not allowed, or when the client sends SMTP
@@ -5241,7 +5286,21 @@ smtpd_sasl_local_domain = $myhostname
 .fi
 .ad
 .ft R
+.SH smtpd_sasl_path (default: smtpd)
+Implementation-specific information that is passed through to
+the SASL plug-in implementation that is selected with
+\fBsmtpd_sasl_type\fR.  Typically this specifies the name of a
+configuration file or rendez-vous point.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH smtpd_sasl_security_options (default: noanonymous)
+SASL security options; as of Postfix 2.3 the list of available
+features depends on the SASL server implementation that is selected
+with \fBsmtpd_sasl_type\fR.
+.PP
+The following security features are defined for the \fBcyrus\fR
+server SASL implementation:
+.PP
 Restrict what authentication mechanisms the Postfix SMTP server
 will offer to the client.  The list of available authentication
 mechanisms is system dependent.
@@ -5281,6 +5340,12 @@ smtpd_sasl_security_options = noanonymous, noplaintext
 .SH smtpd_sasl_tls_security_options (default: $smtpd_sasl_security_options)
 The SASL authentication security options that the Postfix SMTP
 server uses for TLS encrypted SMTP sessions.
+.SH smtpd_sasl_type (default: cyrus)
+The SASL plug-in type that the Postfix SMTP server should use
+for authentication. The available types are listed with the
+"\fBpostconf -a\fR" command.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH smtpd_sender_login_maps (default: empty)
 Optional lookup table with the SASL login names that own sender
 (MAIL FROM) addresses.

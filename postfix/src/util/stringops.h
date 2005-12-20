@@ -35,6 +35,7 @@ extern char *basename(const char *);
 extern char *sane_basename(VSTRING *, const char *);
 extern char *sane_dirname(VSTRING *, const char *);
 extern VSTRING *unescape(VSTRING *, const char *);
+extern VSTRING *escape(VSTRING *, const char *, ssize_t);
 extern int alldig(const char *);
 extern int allprint(const char *);
 extern int allspace(const char *);

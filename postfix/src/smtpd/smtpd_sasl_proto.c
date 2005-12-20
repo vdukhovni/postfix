@@ -5,7 +5,7 @@
 /*	Postfix SMTP protocol support for SASL authentication
 /* SYNOPSIS
 /*	#include "smtpd.h"
-/*	#include "smtpd_sasl.h"
+/*	#include "smtpd_sasl_proto.h"
 /*
 /*	void	smtpd_sasl_auth_cmd(state, argc, argv)
 /*	SMTPD_STATE *state;
@@ -34,9 +34,19 @@
 /*	the SMTP protocol interface for SASL negotiation. The goal
 /*	is to reduce clutter of the main SMTP server source code.
 /*
-/*	smtpd_sasl_auth_cmd() implements the AUTH command.
-/*
+/*	smtpd_sasl_auth_cmd() implements the AUTH command and updates
+/*	the following state structure members:
+/* .IP sasl_method
+/*	The authentication method that was successfully applied.
+/*	This member is a null pointer in the absence of successful
+/*	authentication.
+/* .IP sasl_username
+/*	The username that was successfully authenticated.
+/*	This member is a null pointer in the absence of successful
+/*	authentication.
+/* .PP
 /*	smtpd_sasl_auth_reset() cleans up after the AUTH command.
+/*	This is required before smtpd_sasl_auth_cmd() can be used again.
 /*
 /*	smtpd_sasl_mail_opt() implements the SASL-specific AUTH=sender
 /*	option to the MAIL FROM command. The result is an error response
@@ -96,6 +106,10 @@
 #include <sys_defs.h>
 #include <string.h>
 
+#ifdef STRCASECMP_IN_STRINGS_H
+#include <strings.h>
+#endif
+
 /* Utility library. */
 
 #include <msg.h>
@@ -124,7 +138,6 @@ int     smtpd_sasl_auth_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 {
     char   *auth_mechanism;
     char   *initial_response;
-    char   *err;
 
     if (var_helo_required && state->helo_name == 0) {
 	state->error_mask |= MAIL_ERROR_POLICY;
@@ -161,15 +174,7 @@ int     smtpd_sasl_auth_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      */
     auth_mechanism = argv[1].strval;
     initial_response = (argc == 3 ? argv[2].strval : 0);
-    err = smtpd_sasl_authenticate(state, auth_mechanism, initial_response);
-    if (err != 0) {
-	msg_warn("%s[%s]: SASL %s authentication failed",
-		 state->name, state->addr, auth_mechanism);
-	smtpd_chat_reply(state, "%s", err);
-	return (-1);
-    }
-    smtpd_chat_reply(state, "235 2.0.0 Authentication successful");
-    return (0);
+    return (smtpd_sasl_authenticate(state, auth_mechanism, initial_response));
 }
 
 /* smtpd_sasl_auth_reset - clean up after AUTH command */

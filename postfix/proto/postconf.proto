@@ -4048,11 +4048,12 @@ chroot jail, so you can leave the password file in /etc/postfix.
 
 %PARAM smtp_sasl_security_options noplaintext, noanonymous
 
-<p>
-What authentication mechanisms the Postfix SMTP client is allowed
-to use. The list of available authentication mechanisms is system
-dependent.
-</p>
+<p> SASL security options; as of Postfix 2.3 the list of available
+features depends on the SASL client implementation that is selected
+with <b>smtp_sasl_type</b>.  </p>
+
+<p> The following security features are defined for the <b>cyrus</b>
+client SASL implementation: </p>
 
 <p>
 Specify zero or more of the following:
@@ -4702,6 +4703,16 @@ Use at the RCPT stage will only reject the second etc.  recipient.
 The multi_recipient_bounce_reject_code parameter specifies the
 response code for rejected requests (default:  550).  This feature
 is available in Postfix 2.1 and later. </dd>
+
+<dt><b><a name="reject_plaintext_session">reject_plaintext_session</a></b></dt>
+
+<dd>Reject the request when the connection is not encrypted. This
+restriction should not be used before the client has had a chance
+to negotiate encryption with the AUTH or STARTTLS commands.
+<br>
+The plaintext_session_reject_code parameter specifies the response
+code for rejected requests (default:  450).  This feature is available
+in Postfix 2.3 and later. </dd>
 
 <dt><b><a name="reject_unauth_pipelining">reject_unauth_pipelining</a></b></dt>
 
@@ -5446,6 +5457,13 @@ smtpd_sasl_local_domain = $myhostname
 </pre>
 
 %PARAM smtpd_sasl_security_options noanonymous
+
+<p> SASL security options; as of Postfix 2.3 the list of available
+features depends on the SASL server implementation that is selected
+with <b>smtpd_sasl_type</b>.  </p>
+
+<p> The following security features are defined for the <b>cyrus</b>
+server SASL implementation: </p>
 
 <p>
 Restrict what authentication mechanisms the Postfix SMTP server
@@ -6746,11 +6764,12 @@ to the remote host.
 
 %PARAM lmtp_sasl_security_options noplaintext, noanonymous
 
-<p>
-What authentication mechanisms the Postfix LMTP client is allowed
-to use. The list of available authentication mechanisms is system
-dependent.
-</p>
+<p> SASL security options; as of Postfix 2.3 the list of available
+features depends on the SASL client implementation that is selected
+with <b>lmtp_sasl_type</b>.  </p>
+
+<p> The following security features are defined for the <b>cyrus</b>
+client SASL implementation: </p>
 
 <dl>
 
@@ -9034,5 +9053,66 @@ configuration parameter.  See there for details. </p>
 
 <p> Time limit for connection cache connect, send or receive
 operations.  The time limit is enforced in the client. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM smtpd_sasl_type cyrus
+
+<p> The SASL plug-in type that the Postfix SMTP server should use
+for authentication. The available types are listed with the
+"<b>postconf -a</b>" command. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM smtp_sasl_type cyrus
+
+<p> The SASL plug-in type that the Postfix SMTP client should use
+for authentication.  The available types are listed with the    
+"<b>postconf -A</b>" command. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+%PARAM lmtp_sasl_type cyrus
+
+<p> The SASL plug-in type that the Postfix LMTP client should use
+for authentication.  The available types are listed with the    
+"<b>postconf -A</b>" command. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM smtpd_sasl_path smtpd
+
+<p> Implementation-specific information that is passed through to
+the SASL plug-in implementation that is selected with
+<b>smtpd_sasl_type</b>.  Typically this specifies the name of a
+configuration file or rendez-vous point. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM smtp_sasl_path
+
+<p> Implementation-specific information that is passed through to
+the SASL plug-in implementation that is selected with
+<b>smtp_sasl_type</b>.  Typically this specifies the name of a
+configuration file or rendez-vous point. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_sasl_path
+
+<p> Implementation-specific information that is passed through to
+the SASL plug-in implementation that is selected with
+<b>lmtp_sasl_type</b>.  Typically this specifies the name of a
+configuration file or rendez-vous point. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM plaintext_session_reject_code 450
+
+<p>
+The numerical Postfix SMTP server response code when a request
+is rejected by the <b>reject_plaintext_session</b> restriction.
+</p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>

@@ -11549,7 +11549,7 @@ Apologies for any names omitted.
 	logic for address list and fallback relay processing.
 	Still need to simplify deferred recipient handling.
 
-20051210
+20051212
 
 	Bugfix: after a failed TLS session, the 20051210 SMTP client
 	code cleanup broke sessions with backup servers, causing the
@@ -11559,7 +11559,70 @@ Apologies for any names omitted.
 	was Ralf Hildebrandt, detectives Victor Duchovni and Wietse.
 	File: smtp/smtp_proto.c.
 
+20051213 
+
+	Bugfix: *SQL, proxy and LDAP map types were not defined in
+	user-land commands such as postqueue. Leandro Santi. File:
+	postqueue/postqueue.c.
+
+20051212-14
+
+	Server-side plug-in interface for SASL authentication. This
+	uses Cyrus SASL by default, so nothing has changed except
+	error messages may be more informative.  Files:
+	smtpd/smtpd_sasl_proto.c smtpd/smtpd_sasl_glue.c,
+	xsasl/xsasl_server.[hc], xsasl/cyrus_server.[hc]
+	xsasl/cyrus_strerror.c, xsasl/cyrus_log.c, xsasl/cyrus_security.c.
+
+20051215
+
+	Portability: IRIX 6.5.28 defines sa_len as a macro, so it
+	can't be used as a variable identifier. Zach McDanel. Files:
+	dns/dns_rr_to_sa.c, smtpd/smtpd_peer.c, qmqpd/qmqpd_peer.c.
+
+20051216
+
+	Cleanup: removed some scar tissue that was introduced with
+	server-side SASL plug-in support. Files: smtpd_sasl_proto.c,
+	smtpd_sasl_glue.c.
+
+	Client-side plug-in interface for SASL authentication. This
+	uses Cyrus SASL by default, so nothing has changed except
+	error messages may be more informative.  Files: smtp_sasl_glue.c,
+	xsasl/xsasl_client.[hc], xsasl/cyrus_client.[hc].
+
+20051217
+
+	Bugfix: when a SASL client password is required by a specific
+	server, defer delivery when no server-announced mechanism
+	survives the smtp_sasl_mechanism_filter, instead of ignoring
+	the SASL announcement and trying to deliver the mail over
+	an unauthenticated connection and risking that mail will
+	be rejected.  File: smtp/smtp_sasl_proto.c, smtp/smtp_proto.c.
+
+	Portability: zero the "struct msg" just in case. Both purify
+	(Linux) and valgrind (FreeBSD) complain about uninitialized
+	bits.  Files: util/unix_{send,recv}_fd.c.
+
+20051219
+
+	Cleanup: generic smtpd_sasl_path, smtp_sasl_path and
+	lmtp_sasl_path configuration parameters; simplified the
+	SASL plug-in API, and made initial provisions for SASL
+	session encryption. Files: xsasl/*.[hc].
+
+	Feature: "postconf -a" lists the available SASL server
+	plug-in types, and "postconf -A" does the same for the
+	client.  Files: postconf.c, xsasl_{client,server}.c.
+
+	Feature: new SMTPD policy attributes "encryption_protocol",
+	"encryption_cypher" and "encryption_keysize", to distinguish
+	plaintext from encrypted connections.
+
 Open problems:
+
+	Reject numeric domains only when strict envelope syntax is
+	turned on.
 
 	"postsuper -r" no longer resets the message arrival time,
 	because pickup(8) no longer overrides queue file time stamp

@@ -17,6 +17,42 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
+Incompatibility with snapshot 20051220
+======================================
+
+The Postfix-with-Cyrus-SASL build procedure has changed. You now
+need to specify -DUSE_CYRUS_SASL in addition to -DUSE_SASL_AUTH or
+else you end up without any Cyrus SASL support. The error messages
+are:
+
+    unsupported SASL server implementation: cyrus
+    unsupported SASL client implementation: cyrus
+
+Major changes with snapshot 20051220
+====================================
+
+Plug-in support for SASL authentication in the SMTP server and in
+the SMTP+LMTP client. With this, Postfix can support multiple SASL
+implementations without source code patches.  Some distributors may
+even make SASL support a run-time linking option, just like they
+do with Postfix lookup tables.
+
+Hints and tips for plug-in developers are in the xsasl/README file.
+
+For backwards compatibility the default plug-in type is Cyrus SASL,
+so everything should behave like it did before. Some error messages
+are slightly different, but these are generally improvements.
+
+The "postconf -a" command shows what plug-in implementations are
+available for the SMTP server, and "postconf -A" does the same for
+the SMTP+LMTP client.  Plug-in implementations are selected with
+the smtpd_sasl_type, smtp_sasl_type and lmtp_sasl_type configuration
+parameters.
+
+Other new configuration parameters are smtpd_sasl_path, smtp_sasl_path
+and lmtp_sasl_path. These are better left alone; they are introduced
+for the convenience of other SASL implementations.
+
 Incompatibility with snapshot 20051208
 ======================================
 

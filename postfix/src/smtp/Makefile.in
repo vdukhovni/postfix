@@ -15,7 +15,7 @@ TESTPROG= smtp_unalias smtp_map11
 PROG	= smtp
 INC_DIR	= ../../include
 LIBS	= ../../lib/libmaster.a ../../lib/libtls.a ../../lib/libdns.a \
-	../../lib/libglobal.a ../../lib/libutil.a
+	../../lib/libxsasl.a ../../lib/libglobal.a ../../lib/libutil.a
 
 .c.o:;	$(CC) $(CFLAGS) -c $*.c
 
@@ -38,7 +38,7 @@ update: ../../libexec/$(PROG)
 
 smtp.o:	smtp.c smtp_params.c lmtp_params.c
 
-lmtp_params.c: smtp_params.c $(INC_DIR)/mail_params.h
+lmtp_params.c: smtp_params.c
 	egrep -v -f smtp-only smtp_params.c | \
 	    sed 's/SMTP/LMTP/g; s/smtp_\([a-z]*_table\)/lmtp_\1/' >$@
 
@@ -412,7 +412,6 @@ smtp_sasl_glue.o: ../../include/match_ops.h
 smtp_sasl_glue.o: ../../include/msg.h
 smtp_sasl_glue.o: ../../include/msg_stats.h
 smtp_sasl_glue.o: ../../include/mymalloc.h
-smtp_sasl_glue.o: ../../include/name_mask.h
 smtp_sasl_glue.o: ../../include/recipient_list.h
 smtp_sasl_glue.o: ../../include/resolve_clnt.h
 smtp_sasl_glue.o: ../../include/scache.h
@@ -425,6 +424,7 @@ smtp_sasl_glue.o: ../../include/tok822.h
 smtp_sasl_glue.o: ../../include/vbuf.h
 smtp_sasl_glue.o: ../../include/vstream.h
 smtp_sasl_glue.o: ../../include/vstring.h
+smtp_sasl_glue.o: ../../include/xsasl.h
 smtp_sasl_glue.o: smtp.h
 smtp_sasl_glue.o: smtp_sasl.h
 smtp_sasl_glue.o: smtp_sasl_glue.c

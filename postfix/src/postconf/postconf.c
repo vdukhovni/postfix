@@ -5,8 +5,10 @@
 /*	Postfix configuration utility
 /* SYNOPSIS
 /* .fi
-/*	\fBpostconf\fR [\fB-dhmlnv\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR [\fB-dhnv\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fIparameter ...\fR]
+/*
+/*	\fBpostconf\fR [\fB-aAmlv\fR] [\fB-c \fIconfig_dir\fR]
 /*
 /*	\fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fIparameter=value ...\fR]
@@ -19,6 +21,18 @@
 /*	the Postfix mail system.
 /*
 /*	Options:
+/* .IP \fB-a\fR
+/*	List the available SASL server plug-in types.  The SASL
+/*	plug-in type is selected with the \fBsmtpd_sasl_type\fR
+/*	configuration parameter.
+/*
+/*	This feature is available with Postfix 2.3 and later.
+/* .IP \fB-A\fR
+/*	List the available SASL client plug-in types.  The SASL
+/*	plug-in type is selected with the \fBsmtp_sasl_type\fR or
+/*	\fBlmtp_sasl_type\fR configuration parameters.
+/*
+/*	This feature is available with Postfix 2.3 and later.
 /* .IP "\fB-b\fR [\fItemplate_file\fR]"
 /*	Display the message text that appears at the beginning of
 /*	delivery status notification (DSN) messages, with $\fBname\fR
@@ -203,10 +217,6 @@
 #include <unistd.h>
 #include <ctype.h>
 
-#ifdef STRCASECMP_IN_STRINGS_H
-#include <strings.h>
-#endif
-
 #ifdef USE_PATHS_H
 #include <paths.h>
 #endif
@@ -241,6 +251,10 @@
 #include <mbox_conf.h>
 #include <mail_run.h>
 
+/* XSASL library. */
+
+#include <xsasl.h>
+
  /*
   * What we're supposed to be doing.
   */
@@ -251,6 +265,8 @@
 #define EDIT_MAIN	(1<<4)		/* edit main.cf */
 #define SHOW_LOCKS	(1<<5)		/* show mailbox lock methods */
 #define SHOW_EVAL	(1<<6)		/* expand right-hand sides */
+#define SHOW_SASL_SERV	(1<<7)		/* show server auth plugin types */
+#define SHOW_SASL_CLNT	(1<<7)		/* show client auth plugin types */
 
  /*
   * Lookup table for in-core parameter info.
@@ -878,13 +894,27 @@ static void show_maps(void)
 
 static void show_locks(void)
 {
-    ARGV   *maps_argv;
+    ARGV   *locks_argv;
     int     i;
 
-    maps_argv = mbox_lock_names();
-    for (i = 0; i < maps_argv->argc; i++)
-	vstream_printf("%s\n", maps_argv->argv[i]);
-    argv_free(maps_argv);
+    locks_argv = mbox_lock_names();
+    for (i = 0; i < locks_argv->argc; i++)
+	vstream_printf("%s\n", locks_argv->argv[i]);
+    argv_free(locks_argv);
+}
+
+/* show_sasl - show SASL plug-in types */
+
+static void show_sasl(int what)
+{
+    ARGV   *sasl_argv;
+    int     i;
+
+    sasl_argv = (what & SHOW_SASL_SERV) ? xsasl_server_types() :
+	xsasl_client_types();
+    for (i = 0; i < sasl_argv->argc; i++)
+	vstream_printf("%s\n", sasl_argv->argv[i]);
+    argv_free(sasl_argv);
 }
 
 /* show_parameters - show parameter info */
@@ -953,8 +983,14 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "bc:deEhmlntv")) > 0) {
+    while ((ch = GETOPT(argc, argv, "aAbc:deEhmlntv")) > 0) {
 	switch (ch) {
+	case 'a':
+	    mode |= SHOW_SASL_SERV;
+	    break;
+	case 'A':
+	    mode |= SHOW_SASL_CLNT;
+	    break;
 	case 'b':
 	    if (ext_argv)
 		msg_fatal("specify one of -b and -t");
@@ -1005,18 +1041,19 @@ int     main(int argc, char **argv)
 	    msg_verbose++;
 	    break;
 	default:
-	    msg_fatal("usage: %s [-b (bounce templates)] [-c config_dir] [-d (defaults)] [-e (edit)] [-h (no names)] [-l (lock types)] [-m (map types)] [-n (non-defaults)] [-v] [name...]", argv[0]);
+	    msg_fatal("usage: %s [-a (server SASL types)] [-A (client SASL types)] [-b (bounce templates)] [-c config_dir] [-d (defaults)] [-e (edit)] [-h (no names)] [-l (lock types)] [-m (map types)] [-n (non-defaults)] [-v] [name...]", argv[0]);
 	}
     }
 
     /*
      * Sanity check.
      */
-    junk = (mode & (SHOW_DEFS | SHOW_NONDEF | SHOW_MAPS | SHOW_LOCKS | EDIT_MAIN));
+    junk = (mode & (SHOW_DEFS | SHOW_NONDEF | SHOW_MAPS | SHOW_LOCKS | EDIT_MAIN | SHOW_SASL_SERV | SHOW_SASL_CLNT));
     if (junk != 0 && ((junk != SHOW_DEFS && junk != SHOW_NONDEF
-	    && junk != SHOW_MAPS && junk != SHOW_LOCKS && junk != EDIT_MAIN)
+	     && junk != SHOW_MAPS && junk != SHOW_LOCKS && junk != EDIT_MAIN
+		       && junk != SHOW_SASL_SERV && junk != SHOW_SASL_CLNT)
 		      || ext_argv != 0))
-	msg_fatal("specify one of -b, -d, -e, -m, -l and -n");
+	msg_fatal("specify one of -a, -A, -b, -d, -e, -m, -l and -n");
 
     /*
      * Display bounce template information and exit.
@@ -1052,6 +1089,15 @@ int     main(int argc, char **argv)
      */
     else if (mode & SHOW_LOCKS) {
 	show_locks();
+    }
+
+    /*
+     * If showing SASL plug-in types, show them and exit
+     */
+    else if (mode & SHOW_SASL_SERV) {
+	show_sasl(SHOW_SASL_SERV);
+    } else if (mode & SHOW_SASL_CLNT) {
+	show_sasl(SHOW_SASL_CLNT);
     }
 
     /*

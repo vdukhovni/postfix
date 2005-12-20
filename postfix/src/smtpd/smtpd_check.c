@@ -952,6 +952,24 @@ static int reject_unknown_client(SMTPD_STATE *state)
     return (SMTPD_CHECK_DUNNO);
 }
 
+/* reject_plaintext_session - fail if session is not encrypted */
+
+static int reject_plaintext_session(SMTPD_STATE *state)
+{
+#ifdef USE_TLS
+    char   *myname = "reject_plaintext_session";
+
+    if (msg_verbose)
+	msg_info("%s: %s %s", myname, state->name, state->addr);
+
+    if (state->tls_context == 0)
+	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
+				   var_plaintext_code, "4.7.1",
+				   "Session encryption is required"));
+#endif
+    return (SMTPD_CHECK_DUNNO);
+}
+
 /* permit_inet_interfaces - succeed if client my own address */
 
 static int permit_inet_interfaces(SMTPD_STATE *state)
@@ -3283,6 +3301,13 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 			  IF_VERIFIED(state->tls_context->issuer_CN),
 			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_FINGERPRINT,
 			  IF_VERIFIED(state->tls_context->peer_fingerprint),
+#define IF_ENCRYPTED(x) ((state->tls_context && ((x) != 0)) ? (x) : "")
+			  ATTR_TYPE_STR, MAIL_ATTR_CRYPTO_PROTOCOL,
+			  IF_ENCRYPTED(state->tls_context->protocol),
+			  ATTR_TYPE_STR, MAIL_ATTR_CRYPTO_CYPHER,
+			  IF_ENCRYPTED(state->tls_context->cipher_name),
+			  ATTR_TYPE_NUM, MAIL_ATTR_CRYPTO_KEYSIZE,
+			  state->tls_context->cipher_usebits,
 #endif
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
@@ -3456,6 +3481,10 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 					   "Server configuration error"));
 	    } else
 		sleep(atoi(*++cpp));
+#endif
+#ifdef USE_TLS
+	} else if (strcasecmp(name, REJECT_PLAINTEXT_SESSION) == 0) {
+	    status = reject_plaintext_session(state);
 #endif
 	}
 

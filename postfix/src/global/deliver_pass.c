@@ -68,6 +68,7 @@
 #include <mail_params.h>
 #include <deliver_pass.h>
 #include <dsb_scan.h>
+#include <defer.h>
 
 #define DELIVER_PASS_DEFER	1
 #define DELIVER_PASS_UNKNOWN	2

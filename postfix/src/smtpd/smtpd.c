@@ -174,13 +174,12 @@
 /*	version of the AUTH command (RFC 2554).
 /* .IP "\fBsmtpd_sasl_auth_enable (no)\fR"
 /*	Enable SASL authentication in the Postfix SMTP server.
-/* .IP "\fBsmtpd_sasl_application_name (smtpd)\fR"
-/*	The application name used for SASL server initialization.
 /* .IP "\fBsmtpd_sasl_local_domain (empty)\fR"
 /*	The name of the local SASL authentication realm.
 /* .IP "\fBsmtpd_sasl_security_options (noanonymous)\fR"
-/*	Restrict what authentication mechanisms the Postfix SMTP server
-/*	will offer to the client.
+/*	SASL security options; as of Postfix 2.3 the list of available
+/*	features depends on the SASL server implementation that is selected
+/*	with \fBsmtpd_sasl_type\fR.
 /* .IP "\fBsmtpd_sender_login_maps (empty)\fR"
 /*	Optional lookup table with the SASL login names that own sender
 /*	(MAIL FROM) addresses.
@@ -193,6 +192,13 @@
 /* .IP "\fBsmtpd_sasl_authenticated_header (no)\fR"
 /*	Report the SASL authenticated user name in the \fBsmtpd\fR(8) Received
 /*	message header.
+/* .IP "\fBsmtpd_sasl_path (smtpd)\fR"
+/*	Implementation-specific information that is passed through to
+/*	the SASL plug-in implementation that is selected with
+/*	\fBsmtpd_sasl_type\fR.
+/* .IP "\fBsmtpd_sasl_type (cyrus)\fR"
+/*	The SASL plug-in type that the Postfix SMTP server should use
+/*	for authentication.
 /* STARTTLS SUPPORT CONTROLS
 /* .ad
 /* .fi
@@ -605,6 +611,9 @@
 /*	The numerical Postfix SMTP server reply code when a client request
 /*	is rejected by the reject_non_fqdn_helo_hostname, reject_non_fqdn_sender
 /*	or reject_non_fqdn_recipient restriction.
+/* .IP "\fBplaintext_reject_code (450)\fR"
+/*	The numerical Postfix SMTP server response code when a request
+/*	is rejected by the \fBreject_plaintext_session\fR restriction.
 /* .IP "\fBreject_code (554)\fR"
 /*	The numerical Postfix SMTP server response code when a remote SMTP
 /*	client request is rejected by the "reject" restriction.
@@ -881,9 +890,10 @@ int     var_smtpd_rcpt_overlim;
 bool    var_smtpd_sasl_enable;
 bool    var_smtpd_sasl_auth_hdr;
 char   *var_smtpd_sasl_opts;
-char   *var_smtpd_sasl_appname;
+char   *var_smtpd_sasl_path;
 char   *var_smtpd_sasl_realm;
 char   *var_smtpd_sasl_exceptions_networks;
+char   *var_smtpd_sasl_type;
 char   *var_filter_xport;
 bool    var_broken_auth_clients;
 char   *var_perm_mx_networks;
@@ -945,6 +955,7 @@ char   *var_smtpd_sasl_tls_opts;
 #endif
 
 bool    var_smtpd_peername_lookup;
+int     var_plaintext_code;
 
  /*
   * Silly little macros.
@@ -3705,6 +3716,7 @@ int     main(int argc, char **argv)
 	VAR_VIRT_ALIAS_CODE, DEF_VIRT_ALIAS_CODE, &var_virt_alias_code, 0, 0,
 	VAR_VIRT_MAILBOX_CODE, DEF_VIRT_MAILBOX_CODE, &var_virt_mailbox_code, 0, 0,
 	VAR_RELAY_RCPT_CODE, DEF_RELAY_RCPT_CODE, &var_relay_rcpt_code, 0, 0,
+	VAR_PLAINTEXT_CODE, DEF_PLAINTEXT_CODE, &var_plaintext_code, 0, 0,
 	VAR_VERIFY_POLL_COUNT, DEF_VERIFY_POLL_COUNT, &var_verify_poll_count, 1, 0,
 	VAR_SMTPD_CRATE_LIMIT, DEF_SMTPD_CRATE_LIMIT, &var_smtpd_crate_limit, 0, 0,
 	VAR_SMTPD_CCONN_LIMIT, DEF_SMTPD_CCONN_LIMIT, &var_smtpd_cconn_limit, 0, 0,
@@ -3774,7 +3786,7 @@ int     main(int argc, char **argv)
 	VAR_ALIAS_MAPS, DEF_ALIAS_MAPS, &var_alias_maps, 0, 0,
 	VAR_LOCAL_RCPT_MAPS, DEF_LOCAL_RCPT_MAPS, &var_local_rcpt_maps, 0, 0,
 	VAR_SMTPD_SASL_OPTS, DEF_SMTPD_SASL_OPTS, &var_smtpd_sasl_opts, 0, 0,
-	VAR_SMTPD_SASL_APPNAME, DEF_SMTPD_SASL_APPNAME, &var_smtpd_sasl_appname, 1, 0,
+	VAR_SMTPD_SASL_PATH, DEF_SMTPD_SASL_PATH, &var_smtpd_sasl_path, 1, 0,
 	VAR_SMTPD_SASL_REALM, DEF_SMTPD_SASL_REALM, &var_smtpd_sasl_realm, 0, 0,
 	VAR_SMTPD_SASL_EXCEPTIONS_NETWORKS, DEF_SMTPD_SASL_EXCEPTIONS_NETWORKS, &var_smtpd_sasl_exceptions_networks, 0, 0,
 	VAR_FILTER_XPORT, DEF_FILTER_XPORT, &var_filter_xport, 0, 0,
@@ -3799,6 +3811,7 @@ int     main(int argc, char **argv)
 	VAR_RELAY_CCERTS, DEF_RELAY_CCERTS, &var_smtpd_relay_ccerts, 0, 0,
 	VAR_SMTPD_SASL_TLS_OPTS, DEF_SMTPD_SASL_TLS_OPTS, &var_smtpd_sasl_tls_opts, 0, 0,
 #endif
+	VAR_SMTPD_SASL_TYPE, DEF_SMTPD_SASL_TYPE, &var_smtpd_sasl_type, 1, 0,
 	0,
     };
     static CONFIG_RAW_TABLE raw_table[] = {

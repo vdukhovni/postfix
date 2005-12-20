@@ -4,10 +4,12 @@
 	VAR_ERROR_RCPT, DEF_ERROR_RCPT, &var_error_rcpt, 1, 0,
 	VAR_LMTP_SASL_PASSWD, DEF_LMTP_SASL_PASSWD, &var_smtp_sasl_passwd, 0, 0,
 	VAR_LMTP_SASL_OPTS, DEF_LMTP_SASL_OPTS, &var_smtp_sasl_opts, 0, 0,
+	VAR_LMTP_SASL_PATH, DEF_LMTP_SASL_PATH, &var_smtp_sasl_path, 0, 0,
 #ifdef USE_TLS
 	VAR_LMTP_SASL_TLS_OPTS, DEF_LMTP_SASL_TLS_OPTS, &var_smtp_sasl_tls_opts, 0, 0,
 #endif
 	VAR_LMTP_SASL_MECHS, DEF_LMTP_SASL_MECHS, &var_smtp_sasl_mechs, 0, 0,
+	VAR_LMTP_SASL_TYPE, DEF_LMTP_SASL_TYPE, &var_smtp_sasl_type, 1, 0,
 	VAR_LMTP_BIND_ADDR, DEF_LMTP_BIND_ADDR, &var_smtp_bind_addr, 0, 0,
 	VAR_LMTP_BIND_ADDR6, DEF_LMTP_BIND_ADDR6, &var_smtp_bind_addr6, 0, 0,
 	VAR_LMTP_HELO_NAME, DEF_LMTP_HELO_NAME, &var_smtp_helo_name, 1, 0,

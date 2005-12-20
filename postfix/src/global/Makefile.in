@@ -631,6 +631,8 @@ deliver_pass.o: ../../include/sys_defs.h
 deliver_pass.o: ../../include/vbuf.h
 deliver_pass.o: ../../include/vstream.h
 deliver_pass.o: ../../include/vstring.h
+deliver_pass.o: bounce.h
+deliver_pass.o: defer.h
 deliver_pass.o: deliver_pass.c
 deliver_pass.o: deliver_pass.h
 deliver_pass.o: deliver_request.h

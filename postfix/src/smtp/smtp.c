@@ -39,16 +39,19 @@
 /* .ad
 /* .fi
 /*	SMTP destinations have the following form:
-/* .IP "\fIdomainname\fR, \fIdomainname\fR:\fIport\fR"
-/*	Look up the mail exchangers for the specified domain.
-/* .IP "[\fIhostname\fR], [\fIhostname\fR]:\fIport\fR"
-/*	Look up the address of the specified host.
-/* .IP "[\fIaddress\fR], [\fIaddress\fR]:\fIport\fR"
-/*	Connect to the host at the specified address. An IPv6
-/*	address must be formatted as [\fBipv6\fR:\fIaddress\fR].
-/* .PP
-/*	In all the above cases, when no port is specified, look up
-/*	the port defined as \fBsmtp\fR in \fBservices\fR(4).
+/* .IP \fIdomainname\fR
+/* .IP \fIdomainname\fR:\fIport\fR
+/*	Look up the mail exchangers for the specified domain, and
+/*	connect to the specified port (default: \fBsmtp\fR).
+/* .IP [\fIhostname\fR]
+/* .IP [\fIhostname\fR]:\fIport\fR
+/*	Look up the address(es) of the specified host, and connect to
+/*	the specified port (default: \fBsmtp\fR).
+/* .IP [\fIaddress\fR]
+/* .IP [\fIaddress\fR]:\fIport\fR
+/*	Connect to the host at the specified address, and connect
+/*	to the specified port (default: \fBsmtp\fR). An IPv6 address
+/*	must be formatted as [\fBipv6\fR:\fIaddress\fR].
 /* LMTP DESTINATION SYNTAX
 /* .ad
 /* .fi
@@ -57,13 +60,16 @@
 /*      Connect to the local UNIX-domain server that is bound to the specified
 /*      \fIpathname\fR. If the process runs chrooted, an absolute pathname
 /*      is interpreted relative to the Postfix queue directory.
-/* .IP "\fBinet\fR:\fIhostname\fR, \fBinet\fB:\fIhostname\fR:\fIport\fR"
-/* .IP "\fBinet\fR:[\fIaddress\fR], \fBinet\fR:[\fIaddress\fR]:\fIport\fR"
+/* .IP \fBinet\fR:\fIhostname\fR
+/* .IP \fBinet\fB:\fIhostname\fR:\fIport\fR
+/* .IP \fBinet\fR:[\fIaddress\fR]
+/* .IP \fBinet\fR:[\fIaddress\fR]:\fIport\fR
 /*      Connect to the specified TCP port on the specified local or
 /*      remote host. If no port is specified, connect to the port defined as
 /*      \fBlmtp\fR in \fBservices\fR(4).
 /*      If no such service is found, the \fBlmtp_tcp_port\fR configuration
 /*      parameter (default value of 24) will be used.
+/*	An IPv6 address must be formatted as [\fBipv6\fR:\fIaddress\fR].
 /* .PP
 /* SECURITY
 /* .ad
@@ -106,6 +112,12 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
+/*	Before Postfix version 2.3, the LMTP client is a separate
+/*	program that implements only a subset of the functionality
+/*	available with SMTP: there is no support for TLS, and
+/*	connections are cached in-process, making it ineffective
+/*	when the client is used for multiple domains.
+/*
 /*	Most smtp_\fIxxx\fR configuration parameters have an
 /*	lmtp_\fIxxx\fR "ghost" parameter for the equivalent LMTP
 /*	feature. This document describes only those LMTP-related
@@ -205,8 +217,9 @@
 /*	per remote hostname or domain, or sender address when sender-dependent
 /*	authentication is enabled.
 /* .IP "\fBsmtp_sasl_security_options (noplaintext, noanonymous)\fR"
-/*	What authentication mechanisms the Postfix SMTP client is allowed
-/*	to use.
+/*	SASL security options; as of Postfix 2.3 the list of available
+/*	features depends on the SASL client implementation that is selected
+/*	with \fBsmtp_sasl_type\fR.
 /* .PP
 /*	Available in Postfix version 2.2 and later:
 /* .IP "\fBsmtp_sasl_mechanism_filter (empty)\fR"
@@ -219,6 +232,13 @@
 /*	available only with SASL authentication, and disables SMTP connection
 /*	caching to ensure that mail from different senders will use the
 /*	appropriate credentials.
+/* .IP "\fBsmtp_sasl_path (empty)\fR"
+/*	Implementation-specific information that is passed through to
+/*	the SASL plug-in implementation that is selected with
+/*	\fBsmtp_sasl_type\fR.
+/* .IP "\fBsmtp_sasl_type (cyrus)\fR"
+/*	The SASL plug-in type that the Postfix SMTP client should use
+/*	for authentication.
 /* STARTTLS SUPPORT CONTROLS
 /* .ad
 /* .fi
@@ -327,6 +347,11 @@
 /* .IP "\fBsmtp_rset_timeout (20s)\fR"
 /*	The SMTP client time limit for sending the RSET command, and
 /*	for receiving the server response.
+/* .PP
+/*	Available in Postfix version 2.2 and earlier:
+/* .IP "\fBlmtp_cache_connection (yes)\fR"
+/*	Keep Postfix LMTP client connections open for up to $max_idle
+/*	seconds.
 /* .PP
 /*	Available in Postfix version 2.2 and later:
 /* .IP "\fBsmtp_connection_cache_destinations (empty)\fR"
@@ -548,9 +573,11 @@ char   *var_error_rcpt;
 int     var_smtp_always_ehlo;
 int     var_smtp_never_ehlo;
 char   *var_smtp_sasl_opts;
+char   *var_smtp_sasl_path;
 char   *var_smtp_sasl_passwd;
 bool    var_smtp_sasl_enable;
 char   *var_smtp_sasl_mechs;
+char   *var_smtp_sasl_type;
 char   *var_smtp_bind_addr;
 char   *var_smtp_bind_addr6;
 bool    var_smtp_rand_addr;
@@ -799,16 +826,6 @@ static void pre_accept(char *unused_name, char **unused_argv)
     }
 }
 
-/* pre_exit - pre-exit cleanup */
-
-static void pre_exit(void)
-{
-#ifdef USE_SASL_AUTH
-    if (var_smtp_sasl_enable)
-	sasl_done();
-#endif
-}
-
 /* main - pass control to the single-threaded skeleton */
 
 int     main(int argc, char **argv)
@@ -837,6 +854,5 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_PRE_INIT, pre_init,
 		       MAIL_SERVER_POST_INIT, post_init,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
-		       MAIL_SERVER_EXIT, pre_exit,
 		       0);
 }

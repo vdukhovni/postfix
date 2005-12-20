@@ -15,14 +15,6 @@
 #include <unistd.h>
 
  /*
-  * SASL library.
-  */
-#ifdef USE_SASL_AUTH
-#include <sasl.h>
-#include <saslutil.h>
-#endif
-
- /*
   * Utility library.
   */
 #include <vstream.h>
@@ -112,17 +104,12 @@ typedef struct SMTPD_STATE {
      * SASL specific.
      */
 #ifdef USE_SASL_AUTH
-#if SASL_VERSION_MAJOR >= 2
-    const char *sasl_mechanism_list;
-#else
+    struct XSASL_SERVER *sasl_server;
+    VSTRING *sasl_reply;
     char   *sasl_mechanism_list;
-#endif
     char   *sasl_method;
     char   *sasl_username;
     char   *sasl_sender;
-    sasl_conn_t *sasl_conn;
-    VSTRING *sasl_encoded;
-    VSTRING *sasl_decoded;
 #endif
 
     /*

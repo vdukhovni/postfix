@@ -172,6 +172,10 @@
 #include <time.h>
 #include <mysql.h>
 
+#ifdef STRCASECMP_IN_STRINGS_H
+#include <strings.h>
+#endif
+
 /* Utility library. */
 
 #include "dict.h"

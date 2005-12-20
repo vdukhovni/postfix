@@ -133,8 +133,6 @@
 
 #include "smtp.h"
 
-#define LEN	VSTRING_LEN
-
 /* smtp_chat_init - initialize SMTP transaction log */
 
 void    smtp_chat_init(SMTP_SESSION *session)
@@ -288,7 +286,9 @@ SMTP_RESP *smtp_chat_resp(SMTP_SESSION *session)
 	 */
 	session->error_mask |= MAIL_ERROR_PROTOCOL;
 	if (session->features & SMTP_FEATURE_PIPELINING) {
-	    msg_warn("non-SMTP response from %s: %s",
+	    msg_warn("non-%s response from %s: %s",
+		     (session->state->misc_flags &
+		      SMTP_MISC_FLAG_USE_LMTP) ? "LMTP" : "ESMTP",
 		     session->namaddr, STR(session->buffer));
 	    vstream_longjmp(session->stream, SMTP_ERR_PROTO);
 	}
@@ -391,8 +391,11 @@ void    smtp_chat_notify(SMTP_SESSION *session)
     post_mail_fprintf(notice, "From: %s (Mail Delivery System)",
 		      mail_addr_mail_daemon());
     post_mail_fprintf(notice, "To: %s (Postmaster)", var_error_rcpt);
-    post_mail_fprintf(notice, "Subject: %s SMTP client: errors from %s",
-		      var_mail_name, session->namaddr);
+    post_mail_fprintf(notice, "Subject: %s %s client: errors from %s",
+		      var_mail_name,
+		      (session->state->misc_flags &
+		       SMTP_MISC_FLAG_USE_LMTP) ? "LMTP" : "SMTP",
+		      session->namaddr);
     post_mail_fputs(notice, "");
     post_mail_fprintf(notice, "Unexpected response from %s.", session->namaddr);
     post_mail_fputs(notice, "");

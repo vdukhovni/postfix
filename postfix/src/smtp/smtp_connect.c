@@ -342,7 +342,8 @@ static SMTP_SESSION *smtp_connect_sock(int sock, struct sockaddr * sa,
     if ((ch = VSTREAM_GETC(stream)) == VSTREAM_EOF) {
 	smtp_dsn_update(why, DSN_BY_LOCAL_MTA,
 			"4.4.0", 421, "421 Lost connection",
-			"connect to %s[%s]: server dropped connection without sending the initial SMTP greeting",
+			"connect to %s[%s]: server dropped connection"
+			" without sending the initial greeting",
 			addr->name, hostaddr.buf);
 	smtp_errno = SMTP_ERR_RETRY;
 	vstream_fclose(stream);
@@ -378,7 +379,7 @@ static char *smtp_parse_destination(char *destination, char *def_service,
      * destination argument so the parsing can be destructive.
      */
     if ((err = host_port(buf, hostp, (char *) 0, &service, def_service)) != 0)
-	msg_fatal("%s in SMTP server description: %s", err, destination);
+	msg_fatal("%s in server description: %s", err, destination);
 
     /*
      * Convert service to port number, network byte order.

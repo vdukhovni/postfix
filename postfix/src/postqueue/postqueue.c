@@ -451,6 +451,7 @@ int     main(int argc, char **argv)
      * Further initialization...
      */
     mail_conf_read();
+    mail_dict_init();				/* proxy, sql, ldap */
     get_mail_conf_str_table(str_table);
 
     /*

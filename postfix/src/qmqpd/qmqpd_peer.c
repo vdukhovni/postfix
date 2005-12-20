@@ -75,16 +75,16 @@ void    qmqpd_peer_init(QMQPD_STATE *state)
     char   *myname = "qmqpd_peer_init";
     struct sockaddr_storage ss;
     struct sockaddr *sa;
-    SOCKADDR_SIZE sa_len;
+    SOCKADDR_SIZE sa_length;
     INET_PROTO_INFO *proto_info = inet_proto_info();
 
     sa = (struct sockaddr *) & ss;
-    sa_len = sizeof(ss);
+    sa_length = sizeof(ss);
 
     /*
      * Look up the peer address information.
      */
-    if (getpeername(vstream_fileno(state->client), sa, &sa_len) >= 0) {
+    if (getpeername(vstream_fileno(state->client), sa, &sa_length) >= 0) {
 	errno = 0;
     }
 
@@ -121,7 +121,7 @@ void    qmqpd_peer_init(QMQPD_STATE *state)
 	/*
 	 * Convert the client address to printable form.
 	 */
-	if ((aierr = sockaddr_to_hostaddr(sa, sa_len, &client_addr,
+	if ((aierr = sockaddr_to_hostaddr(sa, sa_length, &client_addr,
 					  (MAI_SERVPORT_STR *) 0, 0)) != 0)
 	    msg_fatal("%s: cannot convert client address to string: %s",
 		      myname, MAI_STRERROR(aierr));
@@ -149,10 +149,10 @@ void    qmqpd_peer_init(QMQPD_STATE *state)
 		if (aierr)
 		    msg_fatal("%s: cannot convert %s from string to binary: %s",
 			      myname, state->addr, MAI_STRERROR(aierr));
-		sa_len = res0->ai_addrlen;
-		if (sa_len > sizeof(ss))
-		    sa_len = sizeof(ss);
-		memcpy((char *) sa, res0->ai_addr, sa_len);
+		sa_length = res0->ai_addrlen;
+		if (sa_length > sizeof(ss))
+		    sa_length = sizeof(ss);
+		memcpy((char *) sa, res0->ai_addr, sa_length);
 		freeaddrinfo(res0);
 	    }
 
@@ -195,7 +195,7 @@ void    qmqpd_peer_init(QMQPD_STATE *state)
 	state->name = mystrdup(CLIENT_NAME_UNKNOWN); \
     }
 
-	if ((aierr = sockaddr_to_hostname(sa, sa_len, &client_name,
+	if ((aierr = sockaddr_to_hostname(sa, sa_length, &client_name,
 					  (MAI_SERVNAME_STR *) 0, 0)) != 0) {
 	    state->name = mystrdup(CLIENT_NAME_UNKNOWN);
 	} else {

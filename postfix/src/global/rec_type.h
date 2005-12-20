@@ -12,6 +12,12 @@
 /* .nf
 
  /*
+  * System library.
+  */
+#include <ctype.h>
+#include <stdlib.h>
+
+ /*
   * Diagnostic codes, not real record lookup results.
   */
 #define REC_TYPE_EOF	-1		/* no record */

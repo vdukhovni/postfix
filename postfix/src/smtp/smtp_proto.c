@@ -490,7 +490,9 @@ int     smtp_helo(SMTP_STATE *state)
 		msg_fatal("%s: setsockopt: %m", myname);
 	}
 	if (msg_verbose)
-	    msg_info("Using ESMTP PIPELINING, TCP send buffer size is %d",
+	    msg_info("Using %s PIPELINING, TCP send buffer size is %d",
+		     (state->misc_flags &
+		      SMTP_MISC_FLAG_USE_LMTP) ? "LMTP" : "ESMTP",
 		     session->sndbufsize);
     } else {
 	session->sndbufsize = 0;
@@ -597,8 +599,18 @@ int     smtp_helo(SMTP_STATE *state)
     }
 #endif
 #ifdef USE_SASL_AUTH
-    if (var_smtp_sasl_enable && (session->features & SMTP_FEATURE_AUTH))
-	return (smtp_sasl_helo_login(state));
+    if (var_smtp_sasl_enable && (session->features & SMTP_FEATURE_AUTH)) {
+	if (session->sasl_mechanism_list != 0)
+	    return (smtp_sasl_helo_login(state));
+	else
+	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
+				   SMTP_RESP_FAKE(&fake, 421, "4.7.0",
+					  "421 SASL authentication failed: "
+		  "server offered no compatible authentication mechanisms"),
+				   "SASL authentication failed: "
+		"server %s offered no compatible authentication mechanisms",
+				   session->namaddr));
+    }
 #endif
 
     return (0);

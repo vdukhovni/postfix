@@ -51,13 +51,18 @@ a delegated SMTPD access policy request:
     client_name=another.domain.tld
     reverse_client_name=another.domain.tld
     instance=123.456.7
+    PPoossttffiixx vveerrssiioonn 22..22 aanndd llaatteerr::
     sasl_method=plain
     sasl_username=you
     sasl_sender=
+    size=12345
     ccert_subject=solaris9.porcupine.org
     ccert_issuer=Wietse Venema
     ccert_fingerprint=C2:9D:F4:87:71:73:73:D9:18:E7:C2:F3:C1:DA:6E:04
-    size=12345
+    PPoossttffiixx vveerrssiioonn 22..33 aanndd llaatteerr::
+    encryption_protocol=TLSv1/SSLv3
+    encryption_cipher=DHE-RSA-AES256-SHA
+    encryption_keysize=256
     [empty line]
 
 Notes:
@@ -93,10 +98,16 @@ Notes:
     sends the END-OF-DATA command.
 
   * The "sasl_*" attributes (Postfix 2.2 and later) specify information about
-    how the client was authenticated via SASL.
+    how the client was authenticated via SASL. These attributes are empty in
+    case of no SASL authentication.
 
   * The "ccert_*" attributes (Postfix 2.2 and later) specify information about
-    how the client was authenticated via TLS.
+    how the client was authenticated via TLS. These attributes are empty in
+    case of no certificate authentication.
+
+  * The "encryption_*" attributes (Postfix 2.3 and later) specify information
+    about how the connection is encrypted. With plaintext connections the
+    protocol and cypher attributes are empty and the keysize is zero.
 
 The following is specific to SMTPD delegated policy requests:
 

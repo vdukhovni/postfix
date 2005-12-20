@@ -136,12 +136,12 @@ void    smtp_sasl_helo_auth(SMTP_SESSION *session, const char *words)
     }
     if (strlen(mech_list) > 0) {
 	session->sasl_mechanism_list = mystrdup(mech_list);
-	session->features |= SMTP_FEATURE_AUTH;
     } else {
 	msg_warn(*words ? "%s offered no supported AUTH mechanisms: '%s'" :
 		 "%s offered null AUTH mechanism list",
 		 session->namaddr, words);
     }
+    session->features |= SMTP_FEATURE_AUTH;
 }
 
 /* smtp_sasl_helo_login - perform SASL login */

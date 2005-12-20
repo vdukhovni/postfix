@@ -9,14 +9,6 @@
 /* .nf
 
  /*
-  * SASL library.
-  */
-#ifdef USE_SASL_AUTH
-#include <sasl.h>
-#include <saslutil.h>
-#endif
-
- /*
   * Utility library.
   */
 #include <vstream.h>
@@ -208,10 +200,8 @@ typedef struct SMTP_SESSION {
     char   *sasl_mechanism_list;	/* server mechanism list */
     char   *sasl_username;		/* client username */
     char   *sasl_passwd;		/* client password */
-    sasl_conn_t *sasl_conn;		/* SASL internal state */
-    VSTRING *sasl_encoded;		/* encoding buffer */
-    VSTRING *sasl_decoded;		/* decoding buffer */
-    sasl_callback_t *sasl_callbacks;	/* stateful callbacks */
+    struct XSASL_CLIENT *sasl_client;	/* SASL internal state */
+    VSTRING *sasl_reply;		/* client response */
 #endif
 
     /*
@@ -433,6 +423,7 @@ extern void smtp_dsn_formal(DSN_BUF *, const char *, const char *, int,
   * Silly little macros.
   */
 #define STR(s) vstring_str(s)
+#define LEN(s) VSTRING_LEN(s)
 
 /* LICENSE
 /* .ad
