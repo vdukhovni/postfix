@@ -107,7 +107,7 @@ Notes:
 
   * The "encryption_*" attributes (Postfix 2.3 and later) specify information
     about how the connection is encrypted. With plaintext connections the
-    protocol and cypher attributes are empty and the keysize is zero.
+    protocol and cipher attributes are empty and the keysize is zero.
 
 The following is specific to SMTPD delegated policy requests:
 

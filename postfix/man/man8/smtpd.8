@@ -19,11 +19,15 @@ daemon, and is placed into the \fBincoming\fR queue as one
 single queue file.  For this mode of operation, the program
 expects to be run from the \fBmaster\fR(8) process manager.
 
-Alternatively, the SMTP server takes an established
-connection on standard input and deposits messages directly
-into the \fBmaildrop\fR queue. In this so-called stand-alone
-mode, the SMTP server can accept mail even while the mail
-system is not running.
+Alternatively, the SMTP server be can run in stand-alone
+mode; this is traditionally obtained with "\fBsendmail
+-bs\fR".  When the SMTP server runs stand-alone with non
+$\fBmail_owner\fR privileges, it receives mail even while
+the mail system is not running, deposits messages directly
+into the \fBmaildrop\fR queue, and disables the SMTP server's
+access policies. As of Postfix version 2.3, the SMTP server
+refuses to receive mail from the network when it runs with
+non $\fBmail_owner\fR privileges.
 
 The SMTP server implements a variety of policies for connection
 requests, and for parameters given to \fBHELO, ETRN, MAIL FROM, VRFY\fR

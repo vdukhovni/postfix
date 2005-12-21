@@ -462,6 +462,8 @@ static int xsasl_cyrus_server_auth_response(int sasl_status,
 		      myname, xsasl_cyrus_strerror(sasl_status));
 	return (XSASL_AUTH_MORE);
     } else {
+	if (sasl_status == SASL_NOUSER)		/* privacy */
+	    sasl_status = SASL_BADAUTH;
 	vstring_strcpy(reply, xsasl_cyrus_strerror(sasl_status));
 	return (XSASL_AUTH_FAIL);
     }

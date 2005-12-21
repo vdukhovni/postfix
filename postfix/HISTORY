@@ -11616,8 +11616,14 @@ Apologies for any names omitted.
 	client.  Files: postconf.c, xsasl_{client,server}.c.
 
 	Feature: new SMTPD policy attributes "encryption_protocol",
-	"encryption_cypher" and "encryption_keysize", to distinguish
+	"encryption_cipher" and "encryption_keysize", to distinguish
 	plaintext from encrypted connections.
+
+20051221
+
+	Privacy: the new Cyrus SASL server plug-in replaces "no
+	user" errors by "authentication failed" errors.  File:
+	xsasl/xsasl_cyrus_server.c.
 
 Open problems:
 

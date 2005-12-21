@@ -488,7 +488,8 @@ static int ial_procnet_ifinet6(INET_ADDR_LIST *addr_list,
 	    inet_addr_list_append(addr_list, SOCK_ADDR_PTR(&addr));
 
 	    memset((char *) &mask.sin6_addr, ~0, sizeof(mask.sin6_addr));
-	    mask_addr((char *) &mask.sin6_addr, sizeof(mask.sin6_addr), plen);
+	    mask_addr((unsigned char *) &mask.sin6_addr,
+		      sizeof(mask.sin6_addr), plen);
 	    inet_addr_list_append(mask_list, SOCK_ADDR_PTR(&mask));
 	}
 	vstring_free(addrbuf);

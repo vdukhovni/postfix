@@ -135,7 +135,7 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_CCERT_ISSSUER	"ccert_issuer"
 #define MAIL_ATTR_CCERT_FINGERPRINT "ccert_fingerprint"
 #define MAIL_ATTR_CRYPTO_PROTOCOL "encryption_protocol"
-#define MAIL_ATTR_CRYPTO_CYPHER	"encryption_cipher"
+#define MAIL_ATTR_CRYPTO_CIPHER	"encryption_cipher"
 #define MAIL_ATTR_CRYPTO_KEYSIZE "encryption_keysize"
 
  /*

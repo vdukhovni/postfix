@@ -90,7 +90,7 @@ To add your own SASL implementation, say, FOOBAR:
 - Create the Postfix makefiles from the top-level directory:
 
   % make makefiles CCARGS='-DUSE_SASL_AUTH -DUSE_FOOBAR_SASL \
-      -DDEF_CLIENT_SASL_TYPE=\"foobar\" -DDEF_SERVER_TYPE=\"foobar\" \
+      -DDEF_CLIENT_SASL_TYPE=\"foobar\" -DDEF_SERVER_SASL_TYPE=\"foobar\" \
       -I/some/where/include' AUXLIBS='-L/some/where/lib -lfoobar'
 
   Yes, you can have different default SASL implementation types for

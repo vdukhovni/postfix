@@ -3304,7 +3304,7 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 #define IF_ENCRYPTED(x) ((state->tls_context && ((x) != 0)) ? (x) : "")
 			  ATTR_TYPE_STR, MAIL_ATTR_CRYPTO_PROTOCOL,
 			  IF_ENCRYPTED(state->tls_context->protocol),
-			  ATTR_TYPE_STR, MAIL_ATTR_CRYPTO_CYPHER,
+			  ATTR_TYPE_STR, MAIL_ATTR_CRYPTO_CIPHER,
 			  IF_ENCRYPTED(state->tls_context->cipher_name),
 			  ATTR_TYPE_NUM, MAIL_ATTR_CRYPTO_KEYSIZE,
 			  state->tls_context->cipher_usebits,
