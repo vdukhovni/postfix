@@ -349,8 +349,9 @@ static int valid_rr_name(const char *name, const char *location,
 
 /* dns_get_rr - extract resource record from name server reply */
 
-static int dns_get_rr(DNS_RR **list, DNS_REPLY *reply, unsigned char *pos,
-		              char *rr_name, DNS_FIXED *fixed)
+static int dns_get_rr(DNS_RR **list, const char *orig_name, DNS_REPLY *reply,
+		              unsigned char *pos, char *rr_name,
+		              DNS_FIXED *fixed)
 {
     char    temp[DNS_NAME_LEN];
     ssize_t data_len;
@@ -423,8 +424,8 @@ static int dns_get_rr(DNS_RR **list, DNS_REPLY *reply, unsigned char *pos,
 	*dst = 0;
 	break;
     }
-    *list = dns_rr_create(rr_name, fixed->type, fixed->class, fixed->ttl,
-			  pref, temp, data_len);
+    *list = dns_rr_create(orig_name, rr_name, fixed->type, fixed->class,
+			  fixed->ttl, pref, temp, data_len);
     return (DNS_OK);
 }
 
@@ -444,7 +445,7 @@ static int dns_get_alias(DNS_REPLY *reply, unsigned char *pos,
 
 /* dns_get_answer - extract answers from name server reply */
 
-static int dns_get_answer(DNS_REPLY *reply, int type,
+static int dns_get_answer(const char *orig_name, DNS_REPLY *reply, int type,
 	             DNS_RR **rrlist, VSTRING *fqdn, char *cname, int c_len)
 {
     char    rr_name[DNS_NAME_LEN];
@@ -518,7 +519,8 @@ static int dns_get_answer(DNS_REPLY *reply, int type,
 	    CORRUPT(DNS_RETRY);
 	if (type == fixed.type || type == T_ANY) {	/* requested type */
 	    if (rrlist) {
-		if ((status = dns_get_rr(&rr, reply, pos, rr_name, &fixed)) == DNS_OK) {
+		if ((status = dns_get_rr(&rr, orig_name, reply, pos, rr_name,
+					 &fixed)) == DNS_OK) {
 		    resource_found++;
 		    *rrlist = dns_rr_append(*rrlist, rr);
 		} else if (not_found_status != DNS_RETRY)
@@ -556,6 +558,7 @@ int     dns_lookup(const char *name, unsigned type, unsigned flags,
     static DNS_REPLY reply;
     int     count;
     int     status;
+    const char *orig_name = name;
 
     /*
      * DJBDNS produces a bogus A record when given a numerical hostname.
@@ -597,7 +600,8 @@ int     dns_lookup(const char *name, unsigned type, unsigned flags,
 	 * Extract resource records of the requested type. Pick up CNAME
 	 * information just in case the requested data is not found.
 	 */
-	status = dns_get_answer(&reply, type, rrlist, fqdn, cname, c_len);
+	status = dns_get_answer(orig_name, &reply, type, rrlist, fqdn,
+				cname, c_len);
 	switch (status) {
 	default:
 	    if (why)

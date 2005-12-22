@@ -30,15 +30,30 @@ Options:
 .IP \fB-a\fR
 List the available SASL server plug-in types.  The SASL
 plug-in type is selected with the \fBsmtpd_sasl_type\fR
-configuration parameter.
+configuration parameter by specifying one of the names
+listed below.
 
 This feature is available with Postfix 2.3 and later.
+.RS
+.IP \fBcyrus\fR
+This server plug-in is available when Postfix is built with
+Cyrus SASL support.
+.IP \fBdovecot\fR
+This server plug-in requires the Dovecot authentication
+server.
+.RE
 .IP \fB-A\fR
 List the available SASL client plug-in types.  The SASL
 plug-in type is selected with the \fBsmtp_sasl_type\fR or
-\fBlmtp_sasl_type\fR configuration parameters.
+\fBlmtp_sasl_type\fR configuration parameters by specifying
+one of the names listed below.
 
 This feature is available with Postfix 2.3 and later.
+.RS
+.IP \fBcyrus\fR
+This client plug-in is available when Postfix is built with
+Cyrus SASL support.
+.RE
 .IP "\fB-b\fR [\fItemplate_file\fR]"
 Display the message text that appears at the beginning of
 delivery status notification (DSN) messages, with $\fBname\fR

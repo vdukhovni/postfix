@@ -371,6 +371,7 @@ while (<>) {
     s;\brelay_destination_concurrency_limit\b;<a href="postconf.5.html#relay_destination_concurrency_limit">$&</a>;g;
     s;\brelay_destination_recip[-</bB>]*\n* *[<bB>]*ient_limit\b;<a href="postconf.5.html#relay_destination_recipient_limit">$&</a>;g;
     s;\bresolve_null_domain\b;<a href="postconf.5.html#resolve_null_domain">$&</a>;g;
+    s;\bresolve_numeric_domain\b;<a href="postconf.5.html#resolve_numeric_domain">$&</a>;g;
     s;\bsmtp_destination_concurrency_limit\b;<a href="postconf.5.html#smtp_destination_concurrency_limit">$&</a>;g;
     s;\bsmtp_destination_recip[-</bB>]*\n* *[<bB>]*ient_limit\b;<a href="postconf.5.html#smtp_destination_recipient_limit">$&</a>;g;
     s;\bvir[-</bB>]*\n*[ <bB>]*tual_destination_concurrency_limit\b;<a href="postconf.5.html#virtual_destination_concurrency_limit">$&</a>;g;

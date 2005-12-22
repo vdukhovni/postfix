@@ -41,6 +41,7 @@ extern VSTRING *vstring_strncat(VSTRING *, const char *, ssize_t);
 extern VSTRING *vstring_memcpy(VSTRING *, const char *, ssize_t);
 extern VSTRING *vstring_memcat(VSTRING *, const char *, ssize_t);
 extern char *vstring_memchr(VSTRING *, int);
+extern VSTRING *vstring_insert(VSTRING *, ssize_t, const char *, ssize_t);
 extern VSTRING *vstring_prepend(VSTRING *, const char *, ssize_t);
 extern VSTRING *PRINTFLIKE(2, 3) vstring_sprintf(VSTRING *, const char *,...);
 extern VSTRING *PRINTFLIKE(2, 3) vstring_sprintf_append(VSTRING *, const char *,...);

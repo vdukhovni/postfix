@@ -3362,6 +3362,11 @@ hostname.
 The Postfix SMTP server uses this feature to reject mail from
 or to addresses that end in the "@" null domain, and from addresses
 that rewrite into a form that ends in the "@" null domain.
+.SH resolve_numeric_domain (default: no)
+Resolve "user@ipaddress" as "user@[ipaddress]", instead of
+rejecting the address as invalid.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH rewrite_service_name (default: rewrite)
 The name of the address rewriting service. This service rewrites
 addresses to standard form and resolves them to a (delivery method,

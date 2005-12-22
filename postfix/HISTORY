@@ -11625,10 +11625,39 @@ Apologies for any names omitted.
 	user" errors by "authentication failed" errors.  File:
 	xsasl/xsasl_cyrus_server.c.
 
-Open problems:
+	Safety: the Postfix SMTP client no longer uses CNAME expanded
+	hostnames for logging, SASL password lookup, TLS policy
+	decisions, or TLS certificate verification.  Instead it
+	uses the name of the recipient domain, or the host or domain
+	name specified in Postfix configuration files. Of course
+	this won't prevent cheating with hostnames that appear in
+	MX lookup results. To avoid that you will have to suppress
+	MX lookups with explicit [hostname] entries in transport
+	maps. Files: dns/dns_lookup.c, dns/dns_rr.c.
 
-	Reject numeric domains only when strict envelope syntax is
-	turned on.
+20051222
+
+	Feature: Dovecot SASL authentication (server side) plug-in
+	by Timo Sirainen. This builds without external library
+	dependencies and is therefore compiled in by default.
+	Files: xsasl/xsasl_dovecot_server.[hc].
+
+	Safety: set the default LANG=C, instead of deleting LANG
+	from the environment and assuming the right thing will
+	happen. File: global/mail_params.h.
+
+	Safety: always add the ISASCII() requirement to the ISXXX()
+	macros, because they are used for protocol and policy
+	enforcement.  File: util/sys_defs.h.
+
+	Bugfix: null pointer in the 20051219 policy delegation
+	crypto attributes.  File: smtpd/smtpd_check.c.
+
+	Compatibility: "resolve_numeric_domain = yes" will accept
+	addresses with numeric domains instead of rejecting them as
+	invalid. Files: trivial-rewrite/resolve.c, util/vstring.c.
+
+Open problems:
 
 	"postsuper -r" no longer resets the message arrival time,
 	because pickup(8) no longer overrides queue file time stamp

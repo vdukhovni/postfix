@@ -1926,11 +1926,11 @@ extern int var_fflush_refresh;
   * and what Postfix exports to the external world.
   */
 #define VAR_IMPORT_ENVIRON		"import_environment"
-#define DEF_IMPORT_ENVIRON		"MAIL_CONFIG MAIL_DEBUG MAIL_LOGTAG TZ XAUTHORITY DISPLAY"
+#define DEF_IMPORT_ENVIRON		"MAIL_CONFIG MAIL_DEBUG MAIL_LOGTAG TZ XAUTHORITY DISPLAY LANG=C"
 extern char *var_import_environ;
 
 #define VAR_EXPORT_ENVIRON		"export_environment"
-#define DEF_EXPORT_ENVIRON		"TZ MAIL_CONFIG"
+#define DEF_EXPORT_ENVIRON		"TZ MAIL_CONFIG LANG"
 extern char *var_export_environ;
 
  /*
@@ -2123,6 +2123,10 @@ extern bool var_resolve_dequoted;
 #define VAR_RESOLVE_NULLDOM		"resolve_null_domain"
 #define DEF_RESOLVE_NULLDOM		0
 extern bool var_resolve_nulldom;
+
+#define VAR_RESOLVE_NUM_DOM		"resolve_numeric_domain"
+#define DEF_RESOLVE_NUM_DOM		0
+extern bool var_resolve_num_dom;
 
  /*
   * Service names. The transport (TCP, FIFO or UNIX-domain) type is frozen

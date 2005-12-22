@@ -28,9 +28,12 @@ search its SASL password table by the sender email address.
 This document covers the following topics:
 
   * What SASL versions are supported
+  * Building Postfix with Dovecot SASL support
   * Building the Cyrus SASL library
   * Building Postfix with Cyrus SASL support
   * Enabling SASL authentication in the Postfix SMTP server
+  * Dovecot SASL configuration for the Postfix SMTP server
+  * Cyrus SASL configuration for the Postfix SMTP server
   * Testing SASL authentication in the Postfix SMTP server
   * Trouble shooting the SASL internals
   * Enabling SASL authentication in the Postfix SMTP client
@@ -38,10 +41,45 @@ This document covers the following topics:
 
 WWhhaatt SSAASSLL vveerrssiioonnss aarree ssuuppppoorrtteedd
 
-This document describes Postfix with Cyrus SASL version 1 and Cyrus SASL
-version 2. Postfix version 2.3 introduces has a plug-in mechanism for other
-SASL implementations. Support for other implementations is currently not part
-of the Postfix distribution and will be described elsewhere.
+This document describes Postfix with the following SASL implementations:
+
+  * Cyrus SASL version 1 (client and server).
+
+  * Cyrus SASL version 2 (client and server).
+
+  * Dovecot protocol version 1 (server only, Postfix version 2.3 and later)
+
+Postfix version 2.3 introduces a plug-in mechanism that provides support for
+multiple SASL implementations. To find out what implementations are built into
+Postfix, use the following commands:
+
+    % postconf -a (SASL support in the SMTP server)
+    % postconf -A (SASL support in the SMTP+LMTP client)
+
+Needless to say, these commands are not available in Postfix versions before
+2.3.
+
+BBuuiillddiinngg PPoossttffiixx wwiitthh DDoovveeccoott SSAASSLL ssuuppppoorrtt
+
+Dovecot is available via http://www.dovecot.org/. It uses its own daemon
+process for authentication. Building Postfix with Dovecot SASL support is
+relatively easy, because there is no need to link extra libraries into Postfix.
+
+To generate the necessary Makefiles, execute the following in the Postfix top-
+level directory:
+
+% make makefiles CCARGS='-DUSE_SASL_AUTH -DDEF_SASL_SERVER=\"dovecot\"'
+
+Notes:
+
+  * The "-DDEF_SASL_SERVER" stuff is not necessary; it just makes Postfix
+    configuration a little more convenient because you don't have to specify
+    the SASL plug-in type in the Postfix main.cf file.
+
+  * If you also want support for LDAP or TLS, you will have to merge their
+    CCARGS and AUXLIBS into the above command line.
+
+  * After this, proceed with "make" as described in the INSTALL document.
 
 BBuuiillddiinngg tthhee CCyyrruuss SSAASSLL lliibbrraarryy
 
@@ -115,6 +153,36 @@ and later):
         smtpd_sasl_authenticated_header = yes
 
 Note: the SASL login names will be shared with the entire world.
+
+DDoovveeccoott SSAASSLL ccoonnffiigguurraattiioonn ffoorr tthhee PPoossttffiixx SSMMTTPP sseerrvveerr
+
+On the Postfix side you need to specify the location of the Dovecot
+authentication daemon socket. We use a pathname relative to the Postfix queue
+directory, so that it will work whether or not Postfix runs chrooted:
+
+    /etc/postfix/main.cf:
+        smtpd_sasl_type = dovecot
+        smtpd_sasl_path = private/auth
+
+On the Dovecot side you also need to specify the Dovecot authentication daemon
+socket. In this case we specify an absolute pathname. In the example we assume
+that the Postfix queue is under /var/spool/postfix/.
+
+    /some/where/dovecot.conf:
+        auth default {
+          ..
+          socket listen {
+    	client {
+    	  path = /var/spool/postfix/private/auth
+    	  mode = 0666
+    	}
+          }
+        }
+
+See the Dovecot documentation for how to configure the Dovecot authentication
+server.
+
+CCyyrruuss SSAASSLL ccoonnffiigguurraattiioonn ffoorr tthhee PPoossttffiixx SSMMTTPP sseerrvveerr
 
 In /usr/local/lib/sasl/smtpd.conf (Cyrus SASL version 1.5.5) or /usr/local/lib/
 sasl2/smtpd.conf (Cyrus SASL version 2.1.1) you need to specify how the server
@@ -374,4 +442,6 @@ CCrreeddiittss
     reject_unauthenticated_sender_login_mismatch, and revised the docs.
   * Wietse made another iteration through the code to add plug-in support for
     multiple implementations.
+  * The Dovecot plug-in was originally implemented by Timo Sirainen of
+    Procontrol, Finland.
 

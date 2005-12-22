@@ -1322,12 +1322,12 @@ typedef int pid_t;
 #endif
 
  /*
-  * Making the ctype.h macros not more expensive than necessary. On some
-  * systems, ctype.h misbehaves with non-ASCII and/or negative characters.
+  * Safety. On some systems, ctype.h misbehaves with non-ASCII or negative
+  * characters. More importantly, Postfix uses the ISXXX() macros to ensure
+  * protocol compliance, so we have to rule out non-ASCII characters.
   */
-#define _UCHAR_(c)	((unsigned char)(c))
-#ifdef UNSAFE_CTYPE
 #define ISASCII(c)	isascii(_UCHAR_(c))
+#define _UCHAR_(c)	((unsigned char)(c))
 #define ISALNUM(c)	(ISASCII(c) && isalnum(c))
 #define ISALPHA(c)	(ISASCII(c) && isalpha(c))
 #define ISCNTRL(c)	(ISASCII(c) && iscntrl(c))
@@ -1340,21 +1340,6 @@ typedef int pid_t;
 #define ISUPPER(c)	(ISASCII(c) && isupper(c))
 #define TOLOWER(c)	(ISUPPER(c) ? tolower(c) : (c))
 #define TOUPPER(c)	(ISLOWER(c) ? toupper(c) : (c))
-#else
-#define ISASCII(c)	isascii(_UCHAR_(c))
-#define ISALNUM(c)	isalnum(_UCHAR_(c))
-#define ISALPHA(c)	isalpha(_UCHAR_(c))
-#define ISCNTRL(c)	iscntrl(_UCHAR_(c))
-#define ISDIGIT(c)	isdigit(_UCHAR_(c))
-#define ISGRAPH(c)	isgraph(_UCHAR_(c))
-#define ISLOWER(c)	islower(_UCHAR_(c))
-#define ISPRINT(c)	isprint(_UCHAR_(c))
-#define ISPUNCT(c)	ispunct(_UCHAR_(c))
-#define ISSPACE(c)	isspace(_UCHAR_(c))
-#define ISUPPER(c)	isupper(_UCHAR_(c))
-#define TOLOWER(c)	tolower(_UCHAR_(c))
-#define TOUPPER(c)	toupper(_UCHAR_(c))
-#endif
 
  /*
   * Scaffolding. I don't want to lose messages while the program is under

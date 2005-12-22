@@ -2484,7 +2484,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 			    (VSTRING *) 0, (VSTRING *) 0);
     if (dns_status == DNS_NOTFOUND && h_errno == NO_DATA) {
 	if (type == T_MX) {
-	    server_list = dns_rr_create(domain, type, C_IN, 0, 0,
+	    server_list = dns_rr_create(domain, domain, type, C_IN, 0, 0,
 					domain, strlen(domain) + 1);
 	    dns_status = DNS_OK;
 	} else if (type == T_NS) {
@@ -3301,13 +3301,13 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 			  IF_VERIFIED(state->tls_context->issuer_CN),
 			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_FINGERPRINT,
 			  IF_VERIFIED(state->tls_context->peer_fingerprint),
-#define IF_ENCRYPTED(x) ((state->tls_context && ((x) != 0)) ? (x) : "")
+#define IF_ENCRYPTED(x, y) ((state->tls_context && ((x) != 0)) ? (x) : (y))
 			  ATTR_TYPE_STR, MAIL_ATTR_CRYPTO_PROTOCOL,
-			  IF_ENCRYPTED(state->tls_context->protocol),
+			  IF_ENCRYPTED(state->tls_context->protocol, ""),
 			  ATTR_TYPE_STR, MAIL_ATTR_CRYPTO_CIPHER,
-			  IF_ENCRYPTED(state->tls_context->cipher_name),
+			  IF_ENCRYPTED(state->tls_context->cipher_name, ""),
 			  ATTR_TYPE_NUM, MAIL_ATTR_CRYPTO_KEYSIZE,
-			  state->tls_context->cipher_usebits,
+			  IF_ENCRYPTED(state->tls_context->cipher_usebits, 0),
 #endif
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */

@@ -185,6 +185,7 @@
 
 #include <xsasl.h>
 #include <xsasl_cyrus.h>
+#include <xsasl_dovecot.h>
 
  /*
   * Lookup table for available SASL server implementations.
@@ -196,9 +197,12 @@ typedef struct {
 
 static XSASL_SERVER_IMPL_INFO server_impl_info[] = {
 #ifdef XSASL_TYPE_CYRUS
-    XSASL_TYPE_CYRUS, xsasl_cyrus_server_init,
+    {XSASL_TYPE_CYRUS, xsasl_cyrus_server_init},
 #endif
-    0,
+#ifdef XSASL_TYPE_DOVECOT
+    {XSASL_TYPE_DOVECOT, xsasl_dovecot_server_init},
+#endif
+    {0, 0}
 };
 
 /* xsasl_server_init - look up server implementation by name */

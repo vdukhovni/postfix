@@ -81,6 +81,12 @@
 /*	VSTRING	*vp;
 /*	int	ch;
 /*
+/*	VSTRING	*vstring_insert(vp, start, src, len)
+/*	VSTRING	*vp;
+/*	ssize_t	start;
+/*	const char *src;
+/*	ssize_t	len;
+/*
 /*	VSTRING	*vstring_prepend(vp, src, len)
 /*	VSTRING	*vp;
 /*	const char *src;
@@ -207,6 +213,10 @@
 /*	target and result value.  The result is not null-terminated.
 /*
 /*	vstring_memchr() locates a byte in a variable-length string.
+/*
+/*	vstring_insert() inserts a buffer content into a variable-length
+/*	string at the specified start position. The result is
+/*	null-terminated.
 /*
 /*	vstring_prepend() prepends a buffer content to a variable-length
 /*	string. The result is null-terminated.
@@ -475,6 +485,34 @@ char   *vstring_memchr(VSTRING *vp, int ch)
 	if (*cp == ch)
 	    return ((char *) cp);
     return (0);
+}
+
+/* vstring_insert - insert text into string */
+
+VSTRING *vstring_insert(VSTRING *vp, ssize_t start, const char *buf, ssize_t len)
+{
+    const char *myname = "vstring_insert";
+    ssize_t new_len;
+
+    /*
+     * Sanity check.
+     */
+    if (start < 0 || start >= VSTRING_LEN(vp))
+	msg_panic("vstring_insert: bad start %ld", (long) start);
+    if (len < 0)
+	msg_panic("vstring_insert: bad length %ld", (long) len);
+
+    /*
+     * Move the existing content and copy the new content.
+     */
+    new_len = VSTRING_LEN(vp) + len;
+    VSTRING_SPACE(vp, len);
+    memmove(vstring_str(vp) + start + len, vstring_str(vp) + start,
+	    VSTRING_LEN(vp) - start);
+    memcpy(vstring_str(vp) + start, buf, len);
+    VSTRING_AT_OFFSET(vp, new_len);
+    VSTRING_TERMINATE(vp);
+    return (vp);
 }
 
 /* vstring_prepend - prepend text to string */

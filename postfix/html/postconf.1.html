@@ -28,87 +28,99 @@ POSTCONF(1)                                                        POSTCONF(1)
 
        <b>-a</b>     List the available SASL server plug-in types.   The
               SASL    plug-in   type   is   selected   with   the
-              <b><a href="postconf.5.html#smtpd_sasl_type">smtpd_sasl_type</a></b> configuration parameter.
+              <b><a href="postconf.5.html#smtpd_sasl_type">smtpd_sasl_type</a></b> configuration parameter by specify-
+              ing one of the names listed below.
+
+              This  feature  is  available  with  Postfix 2.3 and
+              later.
+
+              <b>cyrus</b>  This server plug-in is available when  Post-
+                     fix is built with Cyrus SASL support.
+
+              <b>dovecot</b>
+                     This  server  plug-in  requires  the Dovecot
+                     authentication server.
+
+       <b>-A</b>     List the available SASL client plug-in types.   The
+              SASL    plug-in   type   is   selected   with   the
+              <b><a href="postconf.5.html#smtp_sasl_type">smtp_sasl_type</a></b>  or   <b><a href="postconf.5.html#lmtp_sasl_type">lmtp_sasl_type</a></b>   configuration
+              parameters  by  specifying  one of the names listed
+              below.
 
               This feature is  available  with  Postfix  2.3  and
               later.
 
-       <b>-A</b>     List  the available SASL client plug-in types.  The
-              SASL   plug-in   type   is   selected   with    the
-              <b><a href="postconf.5.html#smtp_sasl_type">smtp_sasl_type</a></b>   or   <b><a href="postconf.5.html#lmtp_sasl_type">lmtp_sasl_type</a></b>  configuration
-              parameters.
-
-              This feature is  available  with  Postfix  2.3  and
-              later.
+              <b>cyrus</b>  This  client plug-in is available when Post-
+                     fix is built with Cyrus SASL support.
 
        <b>-b</b> [<i>template</i><b>_</b><i>file</i>]
               Display the message text that appears at the begin-
-              ning of delivery  status  notification  (DSN)  mes-
-              sages,  with  $<b>name</b>  expressions replaced by actual
-              values.  To override  the  built-in  message  text,
-              specify  a  template file at the end of the command
-              line, or specify a template file  in  main.cf  with
-              the   <b><a href="postconf.5.html#bounce_template_file">bounce_template_file</a></b>   parameter.   To  force
-              selection of the built-in message  text  templates,
-              specify  an empty template file name (in shell lan-
+              ning  of  delivery  status  notification (DSN) mes-
+              sages, with $<b>name</b> expressions  replaced  by  actual
+              values.   To  override  the  built-in message text,
+              specify a template file at the end of  the  command
+              line,  or  specify  a template file in main.cf with
+              the  <b><a href="postconf.5.html#bounce_template_file">bounce_template_file</a></b>  parameter.    To   force
+              selection  of  the built-in message text templates,
+              specify an empty template file name (in shell  lan-
               guage: "").
 
-              This feature is  available  with  Postfix  2.3  and
+              This  feature  is  available  with  Postfix 2.3 and
               later.
 
        <b>-c</b> <i>config</i><b>_</b><i>dir</i>
-              The  <b>main.cf</b>  configuration  file  is  in the named
+              The <b>main.cf</b> configuration  file  is  in  the  named
               directory  instead  of  the  default  configuration
               directory.
 
-       <b>-d</b>     Print  default parameter settings instead of actual
+       <b>-d</b>     Print default parameter settings instead of  actual
               settings.
 
-       <b>-e</b>     Edit the <b>main.cf</b> configuration file.  The  file  is
+       <b>-e</b>     Edit  the  <b>main.cf</b>  configuration file. The file is
               copied to a temporary file then renamed into place.
-              Parameters and values are specified on the  command
-              line.   Use   quotes  in  order  to  protect  shell
+              Parameters  and values are specified on the command
+              line.  Use  quotes  in  order  to   protect   shell
               metacharacters and whitespace.
 
-       <b>-h</b>     Show parameter values only, not  the  ``name  =  ''
+       <b>-h</b>     Show  parameter  values  only,  not the ``name = ''
               label that normally precedes the value.
 
-       <b>-l</b>     List  the  names  of  all supported mailbox locking
+       <b>-l</b>     List the names of  all  supported  mailbox  locking
               methods.  Postfix supports the following methods:
 
-              <b>flock</b>  A kernel-based advisory locking  method  for
-                     local  files  only.   This locking method is
-                     available on systems with a  BSD  compatible
+              <b>flock</b>  A  kernel-based  advisory locking method for
+                     local files only.  This  locking  method  is
+                     available  on  systems with a BSD compatible
                      library.
 
-              <b>fcntl</b>  A  kernel-based  advisory locking method for
+              <b>fcntl</b>  A kernel-based advisory locking  method  for
                      local and remote files.
 
               <b>dotlock</b>
-                     An  application-level  locking  method.   An
-                     application  locks  a file named <i>filename</i> by
-                     creating a file  named  <i>filename</i><b>.lock</b>.   The
-                     application  is  expected  to remove its own
-                     lock file, as well as stale lock files  that
+                     An   application-level  locking  method.  An
+                     application locks a file named  <i>filename</i>  by
+                     creating  a  file  named <i>filename</i><b>.lock</b>.  The
+                     application is expected to  remove  its  own
+                     lock  file, as well as stale lock files that
                      were left behind after abnormal termination.
 
        <b>-m</b>     List the names of all supported lookup table types.
-              In  Postfix  configuration files, lookup tables are
-              specified as <i>type</i><b>:</b><i>name</i>, where <i>type</i> is  one  of  the
-              types  listed  below. The table <i>name</i> syntax depends
-              on the lookup table type as described in the  <a href="DATABASE_README.html">DATA</a>-
+              In Postfix configuration files, lookup  tables  are
+              specified  as  <i>type</i><b>:</b><i>name</i>,  where <i>type</i> is one of the
+              types listed below. The table <i>name</i>  syntax  depends
+              on  the lookup table type as described in the <a href="DATABASE_README.html">DATA</a>-
               <a href="DATABASE_README.html">BASE_README</a> document.
 
-              <b>btree</b>  A  sorted, balanced tree structure.  This is
+              <b>btree</b>  A sorted, balanced tree structure.  This  is
                      available on systems with support for Berke-
                      ley DB databases.
 
-              <b>cdb</b>    A  read-optimized  structure with no support
-                     for incremental updates.  This is  available
+              <b>cdb</b>    A read-optimized structure with  no  support
+                     for  incremental updates.  This is available
                      on systems with support for CDB databases.
 
-              <b>cidr</b>   A  table  that associates values with Class-
-                     less Inter-Domain Routing  (CIDR)  patterns.
+              <b>cidr</b>   A table that associates values  with  Class-
+                     less  Inter-Domain  Routing (CIDR) patterns.
                      This is described in <a href="cidr_table.5.html"><b>cidr_table</b>(5)</a>.
 
               <b>dbm</b>    An indexed file type based on hashing.  This
@@ -117,75 +129,75 @@ POSTCONF(1)                                                        POSTCONF(1)
 
               <b>environ</b>
                      The  UNIX  process  environment  array.  The
-                     lookup key is the variable name.  Originally
-                     implemented  for  testing,  someone may find
+                     lookup  key is the variable name. Originally
+                     implemented for testing,  someone  may  find
                      this useful someday.
 
               <b>hash</b>   An indexed file type based on hashing.  This
-                     is  available  on  systems  with support for
+                     is available on  systems  with  support  for
                      Berkeley DB databases.
 
               <b>ldap</b> (read-only)
-                     Perform lookups  using  the  LDAP  protocol.
+                     Perform  lookups  using  the  LDAP protocol.
                      This is described in <a href="ldap_table.5.html"><b>ldap_table</b>(5)</a>.
 
               <b>mysql</b> (read-only)
-                     Perform  lookups  using  the MYSQL protocol.
+                     Perform lookups using  the  MYSQL  protocol.
                      This is described in <a href="mysql_table.5.html"><b>mysql_table</b>(5)</a>.
 
               <b>pcre</b> (read-only)
                      A lookup table based on Perl Compatible Reg-
-                     ular   Expressions.   The   file  format  is
+                     ular  Expressions.  The   file   format   is
                      described in <a href="pcre_table.5.html"><b>pcre_table</b>(5)</a>.
 
               <b>pgsql</b> (read-only)
-                     Perform lookups using the PostgreSQL  proto-
+                     Perform  lookups using the PostgreSQL proto-
                      col. This is described in <a href="pgsql_table.5.html"><b>pgsql_table</b>(5)</a>.
 
               <b>proxy</b> (read-only)
-                     A  lookup  table that is implemented via the
-                     Postfix <a href="proxymap.8.html"><b>proxymap</b>(8)</a> service. The table  name
+                     A lookup table that is implemented  via  the
+                     Postfix  <a href="proxymap.8.html"><b>proxymap</b>(8)</a> service. The table name
                      syntax is <i>type</i><b>:</b><i>name</i>.
 
               <b>regexp</b> (read-only)
                      A lookup table based on regular expressions.
-                     The file format is described  in  <a href="regexp_table.5.html"><b>regexp_ta-</b></a>
+                     The  file  format is described in <a href="regexp_table.5.html"><b>regexp_ta-</b></a>
                      <a href="regexp_table.5.html"><b>ble</b>(5)</a>.
 
               <b>sdbm</b>   An indexed file type based on hashing.  This
-                     is available on  systems  with  support  for
+                     is  available  on  systems  with support for
                      SDBM databases.
 
               <b>static</b> (read-only)
-                     A  table  that  always  returns  its name as
-                     lookup result.  For  example,  <b>static:foobar</b>
-                     always  returns  the string <b>foobar</b> as lookup
+                     A table that  always  returns  its  name  as
+                     lookup  result.  For  example, <b>static:foobar</b>
+                     always returns the string <b>foobar</b>  as  lookup
                      result.
 
               <b>tcp</b> (read-only)
                      Perform lookups using a simple request-reply
-                     protocol  that is described in <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.
-                     This feature is not  included  with  Postfix
+                     protocol that is described in  <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.
+                     This  feature  is  not included with Postfix
                      2.2.
 
               <b>unix</b> (read-only)
-                     A  limited way to query the UNIX authentica-
+                     A limited way to query the UNIX  authentica-
                      tion  database.  The  following  tables  are
                      implemented:
 
                      <b>unix:passwd.byname</b>
-                            The  table is the UNIX password data-
-                            base. The key is a login  name.   The
-                            result  is  a  password file entry in
+                            The table is the UNIX password  data-
+                            base.  The  key is a login name.  The
+                            result is a password  file  entry  in
                             <b>passwd</b>(5) format.
 
                      <b>unix:group.byname</b>
                             The table is the UNIX group database.
-                            The  key is a group name.  The result
-                            is a group  file  entry  in  <b>group</b>(5)
+                            The key is a group name.  The  result
+                            is  a  group  file  entry in <b>group</b>(5)
                             format.
 
-              Other  table types may exist depending on how Post-
+              Other table types may exist depending on how  Post-
               fix was built.
 
        <b>-n</b>     Print parameter settings that are not left at their
@@ -194,18 +206,18 @@ POSTCONF(1)                                                        POSTCONF(1)
 
        <b>-t</b> [<i>template</i><b>_</b><i>file</i>]
               Display the templates for delivery status notifica-
-              tion  (DSN) messages. To override the built-in tem-
-              plates, specify a template file at the end  of  the
+              tion (DSN) messages. To override the built-in  tem-
+              plates,  specify  a template file at the end of the
               command line, or specify a template file in main.cf
-              with the <b><a href="postconf.5.html#bounce_template_file">bounce_template_file</a></b> parameter.  To  force
-              selection  of  the  built-in  templates, specify an
+              with  the <b><a href="postconf.5.html#bounce_template_file">bounce_template_file</a></b> parameter.  To force
+              selection of the  built-in  templates,  specify  an
               empty template file name (in shell language: "").
 
-              This feature is  available  with  Postfix  2.3  and
+              This  feature  is  available  with  Postfix 2.3 and
               later.
 
        <b>-v</b>     Enable verbose logging for debugging purposes. Mul-
-              tiple <b>-v</b> options  make  the  software  increasingly
+              tiple  <b>-v</b>  options  make  the software increasingly
               verbose.
 
 <b>DIAGNOSTICS</b>
@@ -216,18 +228,18 @@ POSTCONF(1)                                                        POSTCONF(1)
               Directory with Postfix configuration files.
 
 <b>CONFIGURATION PARAMETERS</b>
-       The  following  <b>main.cf</b> parameters are especially relevant
+       The following <b>main.cf</b> parameters are  especially  relevant
        to this program.
 
-       The text below provides  only  a  parameter  summary.  See
+       The  text  below  provides  only  a parameter summary. See
        <a href="postconf.5.html"><b>postconf</b>(5)</a> for more details including examples.
 
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The  default  location  of  the Postfix main.cf and
+              The default location of  the  Postfix  main.cf  and
               master.cf configuration files.
 
        <b><a href="postconf.5.html#bounce_template_file">bounce_template_file</a> (empty)</b>
-              Pathname of a configuration file with  bounce  mes-
+              Pathname  of  a configuration file with bounce mes-
               sage templates.
 
 <b>FILES</b>
@@ -241,7 +253,7 @@ POSTCONF(1)                                                        POSTCONF(1)
        <a href="DATABASE_README.html">DATABASE_README</a>, Postfix lookup table overview
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

@@ -9116,3 +9116,10 @@ is rejected by the <b>reject_plaintext_session</b> restriction.
 </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM resolve_numeric_domain no
+
+<p> Resolve "user@ipaddress" as "user@[ipaddress]", instead of
+rejecting the address as invalid.  </p>
+
+<p> This feature is available in Postfix 2.3 and later.

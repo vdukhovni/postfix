@@ -87,6 +87,9 @@
 /*	Resolve an address that ends in the "@" null domain as if the
 /*	local hostname were specified, instead of rejecting the address as
 /*	invalid.
+/* .IP "\fBresolve_numeric_domain (no)\fR"
+/*	Resolve "user@ipaddress" as "user@[ipaddress]", instead of
+/*	rejecting the address as invalid.
 /* ADDRESS REWRITING CONTROLS
 /* .ad
 /* .fi
@@ -311,6 +314,7 @@ int     var_show_unk_rcpt_table;
 int     var_resolve_nulldom;
 char   *var_remote_rwr_domain;
 char   *var_snd_relay_maps;
+int     var_resolve_num_dom;
 
  /*
   * Shadow personality for address verification.
@@ -557,6 +561,7 @@ int     main(int argc, char **argv)
 	VAR_RESOLVE_DEQUOTED, DEF_RESOLVE_DEQUOTED, &var_resolve_dequoted,
 	VAR_SHOW_UNK_RCPT_TABLE, DEF_SHOW_UNK_RCPT_TABLE, &var_show_unk_rcpt_table,
 	VAR_RESOLVE_NULLDOM, DEF_RESOLVE_NULLDOM, &var_resolve_nulldom,
+	VAR_RESOLVE_NUM_DOM, DEF_RESOLVE_NUM_DOM, &var_resolve_num_dom,
 	0,
     };
 

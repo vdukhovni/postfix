@@ -144,29 +144,32 @@ VSTRING *escape(VSTRING *result, const char *data, ssize_t len)
 		VSTRING_ADDCH(result, ch);
 		continue;
 	    } else if (ch == '\a') {		/* \a -> audible bell */
-		vstring_strcat(result, "\a");
+		vstring_strcat(result, "\\a");
 		continue;
 	    } else if (ch == '\b') {		/* \b -> backspace */
-		vstring_strcat(result, "\b");
+		vstring_strcat(result, "\\b");
 		continue;
 	    } else if (ch == '\f') {		/* \f -> formfeed */
-		vstring_strcat(result, "\f");
+		vstring_strcat(result, "\\f");
 		continue;
 	    } else if (ch == '\n') {		/* \n -> newline */
-		vstring_strcat(result, "\n");
+		vstring_strcat(result, "\\n");
 		continue;
 	    } else if (ch == '\r') {		/* \r -> carriagereturn */
-		vstring_strcat(result, "\r");
+		vstring_strcat(result, "\\r");
 		continue;
 	    } else if (ch == '\t') {		/* \t -> horizontal tab */
-		vstring_strcat(result, "\t");
+		vstring_strcat(result, "\\t");
 		continue;
 	    } else if (ch == '\v') {		/* \v -> vertical tab */
-		vstring_strcat(result, "\v");
+		vstring_strcat(result, "\\v");
 		continue;
 	    }
 	}
-	vstring_sprintf_append(result, "\\%03d", ch);
+	if (ISDIGIT(*UCHAR(data)))
+	    vstring_sprintf_append(result, "\\%03d", ch);
+	else
+	    vstring_sprintf_append(result, "\\%d", ch);
     }
     VSTRING_TERMINATE(result);
     return (result);
@@ -175,16 +178,29 @@ VSTRING *escape(VSTRING *result, const char *data, ssize_t len)
 #ifdef TEST
 
 #include <stdlib.h>
+#include <string.h>
+#include <msg.h>
 #include <vstring_vstream.h>
 
-int     main(int unused_argc, char **unused_argv)
+int     main(int argc, char **argv)
 {
     VSTRING *in = vstring_alloc(10);
     VSTRING *out = vstring_alloc(10);
+    int     un_escape = 1;
 
-    while (vstring_fgets_nonl(in, VSTREAM_IN)) {
-	unescape(out, vstring_str(in));
-	vstream_fwrite(VSTREAM_OUT, vstring_str(out), VSTRING_LEN(out));
+    if (argc > 2 || (un_escape = strcmp(argv[1], "-e")) != 0)
+	msg_fatal("usage: %s [-e (escape)]", argv[0]);
+
+    if (un_escape) {
+	while (vstring_fgets_nonl(in, VSTREAM_IN)) {
+	    unescape(out, vstring_str(in));
+	    vstream_fwrite(VSTREAM_OUT, vstring_str(out), VSTRING_LEN(out));
+	}
+    } else {
+	while (vstring_fgets(in, VSTREAM_IN)) {
+	    escape(out, vstring_str(in), VSTRING_LEN(in));
+	    vstream_fwrite(VSTREAM_OUT, vstring_str(out), VSTRING_LEN(out));
+	}
     }
     vstream_fflush(VSTREAM_OUT);
     exit(0);

@@ -366,9 +366,20 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
      */
     tok822_internalize(nextrcpt, tree, TOK822_STR_DEFL);
     rcpt_domain = strrchr(STR(nextrcpt), '@') + 1;
-    if (*rcpt_domain == '[' ? !valid_mailhost_literal(rcpt_domain, DONT_GRIPE) :
-	!valid_hostname(rcpt_domain, DONT_GRIPE))
-	*flags |= RESOLVE_FLAG_ERROR;
+    if (*rcpt_domain == '[') {
+	if (!valid_mailhost_literal(rcpt_domain, DONT_GRIPE))
+	    *flags |= RESOLVE_FLAG_ERROR;
+    } else if (!valid_hostname(rcpt_domain, DONT_GRIPE)) {
+	if (var_resolve_num_dom && valid_hostaddr(rcpt_domain, DONT_GRIPE)) {
+	    vstring_insert(nextrcpt, rcpt_domain - STR(nextrcpt), "[", 1);
+	    vstring_strcat(nextrcpt, "]");
+	    rcpt_domain = strrchr(STR(nextrcpt), '@') + 1;
+	    if (resolve_local(rcpt_domain))	/* XXX */
+		domain = 0;
+	} else {
+	    *flags |= RESOLVE_FLAG_ERROR;
+	}
+    }
     tok822_free_tree(tree);
     tree = 0;
 
