@@ -7,7 +7,8 @@ WWAARRNNIINNGG
 People who go to the trouble of installing Postfix may have the expectation
 that Postfix is more secure than some other mailers. The Cyrus SASL library is
 a lot of code. With this, Postfix becomes as secure as other mail systems that
-use the Cyrus SASL library.
+use the Cyrus SASL library. Dovecot provides an alternative that may be worth
+considering.
 
 HHooww PPoossttffiixx uusseess SSAASSLL aauutthheennttiiccaattiioonn iinnffoorrmmaattiioonn
 
@@ -27,7 +28,7 @@ search its SASL password table by the sender email address.
 
 This document covers the following topics:
 
-  * What SASL versions are supported
+  * What SASL implementations are supported
   * Building Postfix with Dovecot SASL support
   * Building the Cyrus SASL library
   * Building Postfix with Cyrus SASL support
@@ -39,7 +40,7 @@ This document covers the following topics:
   * Enabling SASL authentication in the Postfix SMTP client
   * Credits
 
-WWhhaatt SSAASSLL vveerrssiioonnss aarree ssuuppppoorrtteedd
+WWhhaatt SSAASSLL iimmpplleemmeennttaattiioonnss aarree ssuuppppoorrtteedd
 
 This document describes Postfix with the following SASL implementations:
 
@@ -56,19 +57,23 @@ Postfix, use the following commands:
     % postconf -a (SASL support in the SMTP server)
     % postconf -A (SASL support in the SMTP+LMTP client)
 
-Needless to say, these commands are not available in Postfix versions before
-2.3.
+Needless to say, these commands are not available in earlier Postfix versions.
 
 BBuuiillddiinngg PPoossttffiixx wwiitthh DDoovveeccoott SSAASSLL ssuuppppoorrtt
 
-Dovecot is available via http://www.dovecot.org/. It uses its own daemon
-process for authentication. Building Postfix with Dovecot SASL support is
-relatively easy, because there is no need to link extra libraries into Postfix.
+Dovecot SASL support is available in Postfix 2.3 and later. The Dovecot source
+code is available via http://www.dovecot.org/. At the time of writing, only
+server-side SASL support is available, so you can't use it to authenticate to
+your network provider's server. Dovecot uses its own daemon process for
+authentication. This keeps the Postfix build process simple, because there is
+no need to link extra libraries into Postfix.
 
 To generate the necessary Makefiles, execute the following in the Postfix top-
 level directory:
 
-% make makefiles CCARGS='-DUSE_SASL_AUTH -DDEF_SASL_SERVER=\"dovecot\"'
+    % make makefiles CCARGS='-DUSE_SASL_AUTH -DDEF_SASL_SERVER=\"dovecot\"'
+
+After this, proceed with "make" as described in the INSTALL document.
 
 Notes:
 
@@ -78,8 +83,6 @@ Notes:
 
   * If you also want support for LDAP or TLS, you will have to merge their
     CCARGS and AUXLIBS into the above command line.
-
-  * After this, proceed with "make" as described in the INSTALL document.
 
 BBuuiillddiinngg tthhee CCyyrruuss SSAASSLL lliibbrraarryy
 
@@ -98,9 +101,8 @@ SASL LOGIN authentication method. To enable this authentication method, specify
 
 BBuuiillddiinngg PPoossttffiixx wwiitthh CCyyrruuss SSAASSLL ssuuppppoorrtt
 
-To build Postfix with SASL authentication support, the following assumes that
-the Cyrus SASL include files are in /usr/local/include, and that the Cyrus SASL
-libraries are in /usr/local/lib.
+The following assumes that the Cyrus SASL include files are in /usr/local/
+include, and that the Cyrus SASL libraries are in /usr/local/lib.
 
 On some systems this generates the necessary Makefile definitions:
 
@@ -154,11 +156,20 @@ and later):
 
 Note: the SASL login names will be shared with the entire world.
 
+Older Microsoft SMTP client software implements a non-standard version of the
+AUTH protocol syntax, and expects that the SMTP server replies to EHLO with
+"250 AUTH=stuff" instead of "250 AUTH stuff". To accommodate such clients (in
+addition to conformant clients) use the following:
+
+    /etc/postfix/main.cf:
+        broken_sasl_auth_clients = yes
+
 DDoovveeccoott SSAASSLL ccoonnffiigguurraattiioonn ffoorr tthhee PPoossttffiixx SSMMTTPP sseerrvveerr
 
-On the Postfix side you need to specify the location of the Dovecot
-authentication daemon socket. We use a pathname relative to the Postfix queue
-directory, so that it will work whether or not Postfix runs chrooted:
+Dovecot SASL support is available in Postfix 2.3 and later. On the Postfix side
+you need to specify the location of the Dovecot authentication daemon socket.
+We use a pathname relative to the Postfix queue directory, so that it will work
+whether or not Postfix runs chrooted:
 
     /etc/postfix/main.cf:
         smtpd_sasl_type = dovecot
@@ -172,15 +183,15 @@ that the Postfix queue is under /var/spool/postfix/.
         auth default {
           ..
           socket listen {
-    	client {
-    	  path = /var/spool/postfix/private/auth
-    	  mode = 0666
-    	}
+            client {
+              path = /var/spool/postfix/private/auth
+              mode = 0666
+            }
           }
         }
 
-See the Dovecot documentation for how to configure the Dovecot authentication
-server.
+See the Dovecot documentation for how to configure and operate the Dovecot
+authentication server.
 
 CCyyrruuss SSAASSLL ccoonnffiigguurraattiioonn ffoorr tthhee PPoossttffiixx SSMMTTPP sseerrvveerr
 
@@ -314,21 +325,15 @@ authentication.
 To run software chrooted with SASL support is an interesting exercise. It
 probably is not worth the trouble.
 
-Older Microsoft SMTP client software implements a non-standard version of the
-AUTH protocol syntax, and expects that the SMTP server replies to EHLO with
-"250 AUTH=stuff" instead of "250 AUTH stuff". To accommodate such clients in
-addition to conformant clients, set "broken_sasl_auth_clients = yes" in the
-main.cf file.
-
 TTeessttiinngg SSAASSLL aauutthheennttiiccaattiioonn iinn tthhee PPoossttffiixx SSMMTTPP sseerrvveerr
 
 To test the server side, connect to the SMTP server, and you should be able to
 have a conversation as shown below. Information sent by the client is shown in
 bold font.
 
-    220 server.host.tld ESMTP Postfix
-    EEHHLLOO cclliieenntt..hhoosstt..ttlldd
-    250-server.host.tld
+    220 server.example.com ESMTP Postfix
+    EEHHLLOO cclliieenntt..eexxaammppllee..ccoomm
+    250-server.example.com
     250-PIPELINING
     250-SIZE 10240000
     250-ETRN
@@ -352,9 +357,9 @@ of the following commands:
 The mmencode command is part of the metamail software. MIME::Base64 is
 available from http://www.cpan.org/.
 
-When posting logs of the SASL negotiations to public lists, please keep in mind
-that username/password information is trivial to recover from the base64-
-encoded form.
+Caution: when posting logs of the SASL negotiations to public lists, please
+keep in mind that username/password information is trivial to recover from the
+base64-encoded form.
 
 TTrroouubbllee sshhoooottiinngg tthhee SSAASSLL iinntteerrnnaallss
 
@@ -381,6 +386,7 @@ that is specified with the relayhost parameter or with a transport(5) table.
     /etc/postfix/main.cf:
         smtp_sasl_auth_enable = yes
         smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
+        smtp_sasl_type = cyrus
 
     /etc/postfix/sasl_passwd:
         foo.com                     username:password
@@ -442,6 +448,6 @@ CCrreeddiittss
     reject_unauthenticated_sender_login_mismatch, and revised the docs.
   * Wietse made another iteration through the code to add plug-in support for
     multiple implementations.
-  * The Dovecot plug-in was originally implemented by Timo Sirainen of
-    Procontrol, Finland.
+  * The Dovecot SMTP server plug-in was originally implemented by Timo Sirainen
+    of Procontrol, Finland.
 

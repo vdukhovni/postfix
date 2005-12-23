@@ -11,6 +11,14 @@
 /*	This module implements the Dovecot SASL server-side authentication
 /*	plug-in.
 /*
+/* .IP server_type
+/*	The plug-in type that was specified to xsasl_server_init().
+/*	The argument is ignored, because the Dovecot plug-in
+/*	implements only one plug-in type.
+/* .IP path_info
+/*	The location of the Dovecot authentication server's UNIX-domain
+/*	socket. Note: the Dovecot plug-in uses late binding, therefore
+/*	all connect operations are done with Postfix privileges.
 /* DIAGNOSTICS
 /*	Fatal: out of memory.
 /*
@@ -69,6 +77,12 @@
 #define AUTH_PROTOCOL_MINOR_VERSION 0
 
  /*
+  * Encorce read/write time limits, so that we can produce accurate
+  * diagnostics instead of getting killed by the watchdog timer.
+  */
+#define AUTH_TIMEOUT	10
+
+ /*
   * Class variables.
   */
 typedef struct {
@@ -108,6 +122,8 @@ static int xsasl_dovecot_server_next(XSASL_SERVER *, const char *, VSTRING *);
 static const char *xsasl_dovecot_server_get_mechanism_list(XSASL_SERVER *);
 static const char *xsasl_dovecot_server_get_username(XSASL_SERVER *);
 
+/* xsasl_dovecot_server_connect - initial auth server handshake */
+ 
 static int xsasl_dovecot_server_connect(XSASL_DOVECOT_SERVER_IMPL *xp)
 {
     const char *myname = "xsasl_dovecot_server_connect";
@@ -120,13 +136,15 @@ static int xsasl_dovecot_server_connect(XSASL_DOVECOT_SERVER_IMPL *xp)
     if (msg_verbose)
 	msg_info("%s: Connecting", myname);
 
-    if ((fd = unix_connect(xp->socket_path, BLOCKING, 0)) < 0) {
+    if ((fd = unix_connect(xp->socket_path, BLOCKING, AUTH_TIMEOUT)) < 0) {
 	msg_warn("SASL: Connect to %s failed: %m", xp->socket_path);
 	return (-1);
     }
     sasl_stream = vstream_fdopen(fd, O_RDWR);
-    vstream_control(sasl_stream, VSTREAM_CTL_PATH,
-		    xp->socket_path, VSTREAM_CTL_END);
+    vstream_control(sasl_stream,
+		    VSTREAM_CTL_PATH, xp->socket_path,
+		    VSTREAM_CTL_TIMEOUT, AUTH_TIMEOUT,
+		    VSTREAM_CTL_END);
 
     vstream_fprintf(sasl_stream,
 		    "VERSION\t%u\t%u\n"
@@ -191,6 +209,8 @@ static int xsasl_dovecot_server_connect(XSASL_DOVECOT_SERVER_IMPL *xp)
 	msg_info("%s: Mechanisms: %s", myname, xp->mechanism_list);
     return (0);
 }
+
+/* xsasl_dovecot_server_disconnect - dispose of server connection state */
 
 static void xsasl_dovecot_server_disconnect(XSASL_DOVECOT_SERVER_IMPL *xp)
 {

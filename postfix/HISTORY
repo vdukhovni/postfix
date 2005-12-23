@@ -11657,6 +11657,9 @@ Apologies for any names omitted.
 	addresses with numeric domains instead of rejecting them as
 	invalid. Files: trivial-rewrite/resolve.c, util/vstring.c.
 
+	Bugfix: 20051219 "postconf -A" produced "postconf -a" output.
+	Andreas Winkelmann.
+
 Open problems:
 
 	"postsuper -r" no longer resets the message arrival time,

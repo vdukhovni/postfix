@@ -92,21 +92,6 @@
  /*
   * The fail template is for permanent failure.
   */
-static const char *def_bounce_failure_body[];
-
-static const BOUNCE_TEMPLATE def_bounce_failure_template = {
-    0,
-    BOUNCE_TMPL_CLASS_FAILURE,
-    "[built-in]",
-    "us-ascii",
-    MAIL_ATTR_ENC_7BIT,
-    MAIL_ADDR_MAIL_DAEMON " (Mail Delivery System)",
-    "Undelivered Mail Returned to Sender",
-    "Postmaster Copy: Undelivered Mail",
-    def_bounce_failure_body,
-    &def_bounce_failure_template,
-};
-
 static const char *def_bounce_failure_body[] = {
     "This is the $mail_name program at host $myhostname.",
     "",
@@ -122,24 +107,22 @@ static const char *def_bounce_failure_body[] = {
     0,
 };
 
- /*
-  * The delay template is for delayed mail notifications.
-  */
-static const char *def_bounce_delay_body[];
-
-static const BOUNCE_TEMPLATE def_bounce_delay_template = {
+static const BOUNCE_TEMPLATE def_bounce_failure_template = {
     0,
-    BOUNCE_TMPL_CLASS_DELAY,
+    BOUNCE_TMPL_CLASS_FAILURE,
     "[built-in]",
     "us-ascii",
     MAIL_ATTR_ENC_7BIT,
     MAIL_ADDR_MAIL_DAEMON " (Mail Delivery System)",
-    "Delayed Mail (still being retried)",
-    "Postmaster Warning: Delayed Mail",
-    def_bounce_delay_body,
-    &def_bounce_delay_template
+    "Undelivered Mail Returned to Sender",
+    "Postmaster Copy: Undelivered Mail",
+    def_bounce_failure_body,
+    &def_bounce_failure_template,
 };
 
+ /*
+  * The delay template is for delayed mail notifications.
+  */
 static const char *def_bounce_delay_body[] = {
     "This is the $mail_name program at host $myhostname.",
     "",
@@ -160,11 +143,34 @@ static const char *def_bounce_delay_body[] = {
     0,
 };
 
+static const BOUNCE_TEMPLATE def_bounce_delay_template = {
+    0,
+    BOUNCE_TMPL_CLASS_DELAY,
+    "[built-in]",
+    "us-ascii",
+    MAIL_ATTR_ENC_7BIT,
+    MAIL_ADDR_MAIL_DAEMON " (Mail Delivery System)",
+    "Delayed Mail (still being retried)",
+    "Postmaster Warning: Delayed Mail",
+    def_bounce_delay_body,
+    &def_bounce_delay_template
+};
+
  /*
   * The success template is for "delivered", "expanded" and "relayed" success
   * notifications.
   */
-static const char *def_bounce_success_body[];
+static const char *def_bounce_success_body[] = {
+    "This is the $mail_name program at host $myhostname.",
+    "",
+    "Your message was successfully delivered to the destination(s)",
+    "listed below. If the message was delivered to mailbox you will",
+    "receive no further notifications. Otherwise you may still receive",
+    "notifications of mail delivery errors from other systems.",
+    "",
+    "                   The $mail_name program",
+    0,
+};
 
 static const BOUNCE_TEMPLATE def_bounce_success_template = {
     0,
@@ -179,23 +185,18 @@ static const BOUNCE_TEMPLATE def_bounce_success_template = {
     &def_bounce_success_template,
 };
 
-static const char *def_bounce_success_body[] = {
-    "This is the $mail_name program at host $myhostname.",
-    "",
-    "Your message was successfully delivered to the destination(s)",
-    "listed below. If the message was delivered to mailbox you will",
-    "receive no further notifications. Otherwise you may still receive",
-    "notifications of mail delivery errors from other systems.",
-    "",
-    "                   The $mail_name program",
-    0,
-};
-
  /*
   * The "verify" template is for verbose delivery (sendmail -v) and for
   * address verification (sendmail -bv).
   */
-static const char *def_bounce_verify_body[];
+static const char *def_bounce_verify_body[] = {
+    "This is the $mail_name program at host $myhostname.",
+    "",
+    "Enclosed is the mail delivery report that you requested.",
+    "",
+    "                   The $mail_name program",
+    0,
+};
 
 static const BOUNCE_TEMPLATE def_bounce_verify_template = {
     0,
@@ -208,15 +209,6 @@ static const BOUNCE_TEMPLATE def_bounce_verify_template = {
     0,
     def_bounce_verify_body,
     &def_bounce_verify_template,
-};
-
-static const char *def_bounce_verify_body[] = {
-    "This is the $mail_name program at host $myhostname.",
-    "",
-    "Enclosed is the mail delivery report that you requested.",
-    "",
-    "                   The $mail_name program",
-    0,
 };
 
  /*

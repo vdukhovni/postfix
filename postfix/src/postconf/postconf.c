@@ -26,8 +26,6 @@
 /*	plug-in type is selected with the \fBsmtpd_sasl_type\fR
 /*	configuration parameter by specifying one of the names
 /*	listed below.
-/*
-/*	This feature is available with Postfix 2.3 and later.
 /* .RS
 /* .IP \fBcyrus\fR
 /*	This server plug-in is available when Postfix is built with
@@ -36,18 +34,20 @@
 /*	This server plug-in requires the Dovecot authentication
 /*	server.
 /* .RE
+/* .IP
+/*	This feature is available with Postfix 2.3 and later.
 /* .IP \fB-A\fR
 /*	List the available SASL client plug-in types.  The SASL
 /*	plug-in type is selected with the \fBsmtp_sasl_type\fR or
 /*	\fBlmtp_sasl_type\fR configuration parameters by specifying
 /*	one of the names listed below.
-/*
-/*	This feature is available with Postfix 2.3 and later.
 /* .RS
 /* .IP \fBcyrus\fR
 /*	This client plug-in is available when Postfix is built with
 /*	Cyrus SASL support.
 /* .RE
+/* .IP
+/*	This feature is available with Postfix 2.3 and later.
 /* .IP "\fB-b\fR [\fItemplate_file\fR]"
 /*	Display the message text that appears at the beginning of
 /*	delivery status notification (DSN) messages, with $\fBname\fR
@@ -281,7 +281,7 @@
 #define SHOW_LOCKS	(1<<5)		/* show mailbox lock methods */
 #define SHOW_EVAL	(1<<6)		/* expand right-hand sides */
 #define SHOW_SASL_SERV	(1<<7)		/* show server auth plugin types */
-#define SHOW_SASL_CLNT	(1<<7)		/* show client auth plugin types */
+#define SHOW_SASL_CLNT	(1<<8)		/* show client auth plugin types */
 
  /*
   * Lookup table for in-core parameter info.
