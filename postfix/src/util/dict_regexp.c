@@ -110,6 +110,7 @@ typedef struct {
     DICT    dict;			/* generic members */
     regmatch_t *pmatch;			/* matched substring info */
     DICT_REGEXP_RULE *head;		/* first rule */
+    VSTRING *expansion_buf;		/* lookup result */
 } DICT_REGEXP;
 
  /*
@@ -122,10 +123,9 @@ typedef struct {
   * Context for $number expansion callback.
   */
 typedef struct {
-    DICT_REGEXP *dict_regexp;		/* the dictionary entry */
+    DICT_REGEXP *dict_regexp;		/* the dictionary handle */
     DICT_REGEXP_MATCH_RULE *match_rule;	/* the rule we matched */
     const char *lookup_string;		/* matched text */
-    VSTRING *expansion_buf;		/* buffer for $number expansion */
 } DICT_REGEXP_EXPAND_CONTEXT;
 
  /*
@@ -135,6 +135,7 @@ typedef struct {
     const char *mapname;		/* name of regexp map */
     int     lineno;			/* where in file */
     size_t  max_sub;			/* largest $number seen */
+    char   *literal;			/* constant result, $$ -> $ */
 } DICT_REGEXP_PRESCAN_CONTEXT;
 
  /*
@@ -168,7 +169,7 @@ static int dict_regexp_expand(int type, VSTRING *buf, char *ptr)
 	pmatch = dict_regexp->pmatch + n;
 	if (pmatch->rm_so < 0 || pmatch->rm_so == pmatch->rm_eo)
 	    return (MAC_PARSE_UNDEF);		/* empty or not matched */
-	vstring_strncat(ctxt->expansion_buf,
+	vstring_strncat(dict_regexp->expansion_buf,
 			ctxt->lookup_string + pmatch->rm_so,
 			pmatch->rm_eo - pmatch->rm_so);
 	return (MAC_PARSE_OK);
@@ -178,7 +179,7 @@ static int dict_regexp_expand(int type, VSTRING *buf, char *ptr)
      * Straight text - duplicate with no substitution.
      */
     else {
-	vstring_strcat(ctxt->expansion_buf, vstring_str(buf));
+	vstring_strcat(dict_regexp->expansion_buf, vstring_str(buf));
 	return (MAC_PARSE_OK);
     }
 }
@@ -212,7 +213,6 @@ static const char *dict_regexp_lookup(DICT *dict, const char *lookup_string)
     DICT_REGEXP_IF_RULE *if_rule;
     DICT_REGEXP_MATCH_RULE *match_rule;
     DICT_REGEXP_EXPAND_CONTEXT expand_context;
-    static VSTRING *expansion_buf;
     int     error;
     int     nesting = 0;
 
@@ -256,7 +256,8 @@ static const char *dict_regexp_lookup(DICT *dict, const char *lookup_string)
 
 	    /*
 	     * Skip $number substitutions when the replacement text contains
-	     * no $number strings (as learned during the pre-scan).
+	     * no $number strings, as learned during the compile time
+	     * pre-scan. The pre-scan already replaced $$ by $.
 	     */
 	    if (match_rule->max_sub == 0)
 		return (match_rule->replacement);
@@ -267,10 +268,9 @@ static const char *dict_regexp_lookup(DICT *dict, const char *lookup_string)
 	     * expansion errors at this point mean something impossible has
 	     * happened.
 	     */
-	    if (!expansion_buf)
-		expansion_buf = vstring_alloc(10);
-	    VSTRING_RESET(expansion_buf);
-	    expand_context.expansion_buf = expansion_buf;
+	    if (!dict_regexp->expansion_buf)
+		dict_regexp->expansion_buf = vstring_alloc(10);
+	    VSTRING_RESET(dict_regexp->expansion_buf);
 	    expand_context.lookup_string = lookup_string;
 	    expand_context.match_rule = match_rule;
 	    expand_context.dict_regexp = dict_regexp;
@@ -279,8 +279,8 @@ static const char *dict_regexp_lookup(DICT *dict, const char *lookup_string)
 			  (char *) &expand_context) & MAC_PARSE_ERROR)
 		msg_panic("regexp map %s, line %d: bad replacement syntax",
 			  dict->name, rule->lineno);
-	    VSTRING_TERMINATE(expansion_buf);
-	    return (vstring_str(expansion_buf));
+	    VSTRING_TERMINATE(dict_regexp->expansion_buf);
+	    return (vstring_str(dict_regexp->expansion_buf));
 
 	    /*
 	     * Conditional.
@@ -349,6 +349,8 @@ static void dict_regexp_close(DICT *dict)
     }
     if (dict_regexp->pmatch)
 	myfree((char *) dict_regexp->pmatch);
+    if (dict_regexp->expansion_buf)
+	vstring_free(dict_regexp->expansion_buf);
     dict_free(dict);
 }
 
@@ -467,15 +469,34 @@ static int dict_regexp_prescan(int type, VSTRING *buf, char *context)
     DICT_REGEXP_PRESCAN_CONTEXT *ctxt = (DICT_REGEXP_PRESCAN_CONTEXT *) context;
     size_t  n;
 
+    /*
+     * Keep a copy of literal text (with $$ already replaced by $) if and
+     * only if the replacement text contains no $number expression. This way
+     * we can avoid having to scan the replacement text at lookup time.
+     */
     if (type == MAC_PARSE_VARNAME) {
+	if (ctxt->literal) {
+	    myfree(ctxt->literal);
+	    ctxt->literal = 0;
+	}
 	if (!alldig(vstring_str(buf))) {
 	    msg_warn("regexp map %s, line %d: non-numeric replacement index \"%s\"",
 		     ctxt->mapname, ctxt->lineno, vstring_str(buf));
 	    return (MAC_PARSE_ERROR);
 	}
 	n = atoi(vstring_str(buf));
+	if (n < 1) {
+	    msg_warn("regexp map %s, line %d: out-of-range replacement index \"%s\"",
+		     ctxt->mapname, ctxt->lineno, vstring_str(buf));
+	    return (MAC_PARSE_ERROR);
+	}
 	if (n > ctxt->max_sub)
 	    ctxt->max_sub = n;
+    } else if (type == MAC_PARSE_LITERAL && ctxt->max_sub == 0) {
+	if (ctxt->literal)
+	    msg_panic("regexp map %s, line %d: multiple literals but no $number",
+		      ctxt->mapname, ctxt->lineno);
+	ctxt->literal = mystrdup(vstring_str(buf));
     }
     return (MAC_PARSE_OK);
 }
@@ -532,7 +553,7 @@ static DICT_REGEXP_RULE *dict_regexp_parseline(const char *mapname, int lineno,
 	DICT_REGEXP_PATTERN first_pat;
 	DICT_REGEXP_PATTERN second_pat;
 	DICT_REGEXP_PRESCAN_CONTEXT prescan_context;
-	regex_t *first_exp;
+	regex_t *first_exp = 0;
 	regex_t *second_exp;
 	DICT_REGEXP_MATCH_RULE *match_rule;
 
@@ -563,12 +584,26 @@ static DICT_REGEXP_RULE *dict_regexp_parseline(const char *mapname, int lineno,
 	prescan_context.mapname = mapname;
 	prescan_context.lineno = lineno;
 	prescan_context.max_sub = 0;
+	prescan_context.literal = 0;
+
+	/*
+	 * The optimizer will eliminate code duplication and/or dead code.
+	 */
+#define CREATE_MATCHOP_ERROR_RETURN(rval) do { \
+	if (first_exp) { \
+	    regfree(first_exp); \
+	    myfree((char *) first_exp); \
+	} \
+	if (prescan_context.literal) \
+	    myfree(prescan_context.literal); \
+	return (rval); \
+    } while (0)
 
 	if (mac_parse(p, dict_regexp_prescan, (char *) &prescan_context)
 	    & MAC_PARSE_ERROR) {
 	    msg_warn("regexp map %s, line %d: bad replacement syntax: "
 		     "skipping this rule", mapname, lineno);
-	    return (0);
+	    CREATE_MATCHOP_ERROR_RETURN(0);
 	}
 
 	/*
@@ -577,36 +612,33 @@ static DICT_REGEXP_RULE *dict_regexp_parseline(const char *mapname, int lineno,
 	 * result string, or when the highest numbered substring is less than
 	 * the total number of () subpatterns.
 	 */
-#define FREE_EXPR_AND_RETURN(expr, rval) \
-	{ regfree(expr); myfree((char *) (expr)); return (rval); }
-
-	if (prescan_context.max_sub == 0 || first_pat.match == 0) {
+	if (prescan_context.max_sub == 0) 
 	    first_pat.options |= REG_NOSUB;
-	} else if (dict_flags & DICT_FLAG_NO_REGSUB) {
+	if (prescan_context.max_sub > 0 && first_pat.match == 0) {
+	    msg_warn("regexp map %s, line %d: $number found in negative match "
+		   "replacement text: skipping this rule", mapname, lineno);
+	    CREATE_MATCHOP_ERROR_RETURN(0);
+	} 
+	if (prescan_context.max_sub > 0 && (dict_flags & DICT_FLAG_NO_REGSUB)) {
 	    msg_warn("regexp map %s, line %d: "
 		     "regular expression substitution is not allowed: "
 		     "skipping this rule", mapname, lineno);
-	    return (0);
+	    CREATE_MATCHOP_ERROR_RETURN(0);
 	}
 	if ((first_exp = dict_regexp_compile_pat(mapname, lineno,
 						 &first_pat)) == 0)
-	    return (0);
-	if (prescan_context.max_sub > 0 && first_pat.match == 0) {
-	    msg_warn("regexp map %s, line %d: $number found in negative match replacement text: "
-		     "skipping this rule", mapname, lineno);
-	    FREE_EXPR_AND_RETURN(first_exp, 0);
-	}
+	    CREATE_MATCHOP_ERROR_RETURN(0);
 	if (prescan_context.max_sub > first_exp->re_nsub) {
 	    msg_warn("regexp map %s, line %d: out of range replacement index \"%d\": "
 		     "skipping this rule", mapname, lineno,
 		     (int) prescan_context.max_sub);
-	    FREE_EXPR_AND_RETURN(first_exp, 0);
+	    CREATE_MATCHOP_ERROR_RETURN(0);
 	}
 	if (second_pat.regexp != 0) {
 	    second_pat.options |= REG_NOSUB;
 	    if ((second_exp = dict_regexp_compile_pat(mapname, lineno,
 						      &second_pat)) == 0)
-		FREE_EXPR_AND_RETURN(first_exp, 0);
+		CREATE_MATCHOP_ERROR_RETURN(0);
 	} else {
 	    second_exp = 0;
 	}
@@ -615,11 +647,13 @@ static DICT_REGEXP_RULE *dict_regexp_parseline(const char *mapname, int lineno,
 				   sizeof(DICT_REGEXP_MATCH_RULE));
 	match_rule->first_exp = first_exp;
 	match_rule->first_match = first_pat.match;
-	match_rule->max_sub =
-	    (prescan_context.max_sub > 0 ? prescan_context.max_sub + 1 : 0);
+	match_rule->max_sub = prescan_context.max_sub;
 	match_rule->second_exp = second_exp;
 	match_rule->second_match = second_pat.match;
-	match_rule->replacement = mystrdup(p);
+	if (prescan_context.literal)
+	    match_rule->replacement = prescan_context.literal;
+	else
+	    match_rule->replacement = mystrdup(p);
 	return ((DICT_REGEXP_RULE *) match_rule);
     }
 
@@ -706,6 +740,7 @@ DICT   *dict_regexp_open(const char *mapname, int unused_flags, int dict_flags)
     dict_regexp->dict.flags = dict_flags | DICT_FLAG_PATTERN;
     dict_regexp->head = 0;
     dict_regexp->pmatch = 0;
+    dict_regexp->expansion_buf = 0;
 
     /*
      * Parse the regexp table.

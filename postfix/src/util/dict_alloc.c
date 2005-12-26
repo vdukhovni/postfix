@@ -9,7 +9,7 @@
 /*	DICT	*dict_alloc(dict_type, dict_name, size)
 /*	const char *dict_type;
 /*	const char *dict_name;
-/*	int	size;
+/*	ssize_t	size;
 /*
 /*	void	dict_free(dict)
 /*	DICT	*ptr;
@@ -105,7 +105,7 @@ static void dict_default_close(DICT *dict)
 
 /* dict_alloc - allocate dictionary object, initialize super-class */
 
-DICT   *dict_alloc(const char *dict_type, const char *dict_name, int size)
+DICT   *dict_alloc(const char *dict_type, const char *dict_name, ssize_t size)
 {
     DICT   *dict = (DICT *) mymalloc(size);
 

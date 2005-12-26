@@ -300,7 +300,7 @@ XSASL_CLIENT *xsasl_cyrus_client_create(XSASL_CLIENT_IMPL *unused_impl,
     int     sasl_status;
 
     /*
-     * The optimizer will eliminate duplication and/or dead code.
+     * The optimizer will eliminate code duplication and/or dead code.
      */
 #define XSASL_CYRUS_CLIENT_CREATE_ERROR_RETURN(x) \
     do { \

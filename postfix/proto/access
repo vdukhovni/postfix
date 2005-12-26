@@ -219,9 +219,6 @@
 #	To discard only one recipient without discarding the entire message,
 #	use the transport(5) table to direct mail to the discard(8) service.
 # .sp
-#	Note: this action does not work in Postfix 2.2
-#	\fBsmtpd_end_of_data_restrictions\fR.
-# .sp
 #	This feature is available in Postfix 2.0 and later.
 # .IP \fBDUNNO\fR
 #	Pretend that the lookup key was not found. This
@@ -239,9 +236,6 @@
 #	Note: this action overrides the \fBmain.cf content_filter\fR setting,
 #	and currently affects all recipients of the message.
 # .sp
-#	Note: this action does not work in Postfix 2.2
-#	\fBsmtpd_end_of_data_restrictions\fR.
-# .sp
 #	This feature is available in Postfix 2.0 and later.
 # .IP "\fBHOLD \fIoptional text...\fR"
 #	Place the message on the \fBhold\fR queue, where it will sit
@@ -258,9 +252,6 @@
 #	or \fB$bounce_queue_lifetime\fR, or longer.
 # .sp
 #	Note: this action currently affects all recipients of the message.
-# .sp
-#	Note: this action does not work in Postfix 2.2
-#	\fBsmtpd_end_of_data_restrictions\fR.
 # .sp
 #	This feature is available in Postfix 2.0 and later.
 # .IP "\fBPREPEND \fIheadername: headervalue\fR"
@@ -280,9 +271,6 @@
 # .sp
 #	Note: this action overrides the FILTER action, and currently affects
 #	all recipients of the message.
-# .sp
-#	Note: this action does not work in Postfix 2.2
-#	\fBsmtpd_end_of_data_restrictions\fR.
 # .sp
 #	This feature is available in Postfix 2.1 and later.
 # .IP "\fBWARN \fIoptional text...\fR

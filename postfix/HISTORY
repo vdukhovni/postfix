@@ -11660,6 +11660,23 @@ Apologies for any names omitted.
 	Bugfix: 20051219 "postconf -A" produced "postconf -a" output.
 	Andreas Winkelmann.
 
+20051225
+
+	Bugfix: the regexp map cleverly avoided scanning constant
+	lookup results for non-existent $number expressions, but
+	failed to subject those results to the necessary $$ -> $
+	replacement. Files: util/dict_regexp.c.
+
+	Performance: the pcre map did not optimize constant lookup
+	results; they were always scanned for non-existent $number
+	expressions.  File: util/dict_pcre.c.
+
+	This round of edits eliminates architectural differences
+	between the pcre and regexp table implementations.  The
+	remaining difference is that regexp tables still support
+	the obsolete "/pattern1/!/pattern2/ action" syntax, for
+	backwards compatibility with Postfix 2.0 and earlier.
+
 Open problems:
 
 	"postsuper -r" no longer resets the message arrival time,
@@ -11669,11 +11686,6 @@ Open problems:
 
 	Is it safe to cache a connection after it has been used for
 	more than some number of address verification probes?
-
-	Access map actions such as FILTER and REDIRECT don't work
-	in smtpd_end_of_data_restrictions (or anything else that
-	generates additional queue file records after the message
-	content is stored).
 
 	Try to recognize that Resent- headers appear in blocks,
 	newest block first. But don't break on incorrect header

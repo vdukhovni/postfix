@@ -40,7 +40,7 @@ typedef struct DICT {
     time_t  mtime;			/* mod time at open */
 } DICT;
 
-extern DICT *dict_alloc(const char *, const char *, int);
+extern DICT *dict_alloc(const char *, const char *, ssize_t);
 extern void dict_free(DICT *);
 
 extern DICT *dict_debug(DICT *);

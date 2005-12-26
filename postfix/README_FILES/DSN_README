@@ -10,7 +10,9 @@ delivery notifications.
 
 Specifically, DSN support gives an email sender the ability to specify:
 
-  * What notifications are sent: success, failure, delay, or none.
+  * What notifications are sent: success, failure, delay, or none. Normally,
+    Postfix informs the sender only mail when delivery is delayed or when
+    delivery fails.
 
   * What content is returned in case of failure: only the message headers, or
     the full message.
@@ -37,9 +39,11 @@ Unfortunately, disallowing "success" notification requests requires disallowing
 other DSN requests as well. The RFCs do not offer the option to negotiate
 feature subsets.
 
-This is not as bad as it sounds. Remote senders with DSN support will still be
-informed that their mail reached your Postfix gateway successfully; they just
-will not get successful delivery notices from your internal systems.
+This is not as bad as it sounds. When you turn off DSN for remote inbound mail,
+remote senders with DSN support will still be informed that their mail reached
+your Postfix gateway successfully; they just will not get successful delivery
+notices from your internal systems. Remote senders lose very little: they can
+no longer specify how Postfix should report delayed or failed delivery.
 
 Use the smtpd_discard_ehlo_keyword_address_maps feature if you wish to allow
 DSN requests from trusted clients but not from random strangers (see below for

@@ -262,7 +262,7 @@ static XSASL_SERVER *xsasl_cyrus_server_create(XSASL_SERVER_IMPL *unused_impl,
 		 myname, service, realm ? realm : "(null)");
 
     /*
-     * The optimizer will eliminate duplication and/or dead code.
+     * The optimizer will eliminate code duplication and/or dead code.
      */
 #define XSASL_CYRUS_SERVER_CREATE_ERROR_RETURN(x) \
     do { \
