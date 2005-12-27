@@ -550,7 +550,6 @@ int     sockaddr_to_hostaddr(const struct sockaddr * sa, SOCKADDR_SIZE salen,
     if (hostaddr != 0) {
 	if (inet_ntop(AF_INET, (void *) &(SOCK_ADDR_IN_ADDR(sa)),
 		      hostaddr->buf, sizeof(hostaddr->buf)) == 0)
-	    errno = ENOSPC;
 	    return (EAI_SYSTEM);
     }
     if (portnum != 0) {

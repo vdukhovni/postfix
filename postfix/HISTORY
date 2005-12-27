@@ -11677,6 +11677,19 @@ Apologies for any names omitted.
 	the obsolete "/pattern1/!/pattern2/ action" syntax, for
 	backwards compatibility with Postfix 2.0 and earlier.
 
+20051227
+
+	Bugfix: the 20051222 ISASCII paranoia broke the strcasecmp()
+	workaround for Solaris. File: util/strcasecmp.c.
+
+	Bitrot: SunOS4 pre-dates size_t, ssize_t, getsid().  File:
+	src/util/sys_defs.h. The SunOS4 tests had been suspended
+	due to what turned out to be a broken AUI-to-UTP transceiver.
+
+	Bugfix: the 20061226 cosmetic change broke non-IPV6 support
+	(example: sockaddr_to_hostaddr: Unknown error: success).
+	File: util/myaddrinfo.c.
+
 Open problems:
 
 	"postsuper -r" no longer resets the message arrival time,

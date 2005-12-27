@@ -156,7 +156,7 @@ OPENSTEP 4.x <br>
 OSF1.V3 - OSF1.V5 (Digital UNIX) <br>
 Reliant UNIX 5.x <br>
 Rhapsody 5.x <br>
-SunOS 4.1.4 (February 2005) <br>
+SunOS 4.1.4 (December 2005) <br>
 SunOS 5.4 - 5.9 (Solaris 2.4..9) <br>
 Ultrix 4.x (well, that was long ago) <br>
 </p>
@@ -877,7 +877,7 @@ a hard-coded hostname.  </p>
 <p> The form enclosed with <tt>[]</tt> eliminates DNS MX lookups. </p>
 
 <p> By default, the SMTP client will do DNS lookups even when you
-specify a relay host. If your machine has no access to a DNS server,
+specify a <a href="postconf.5.html#relayhost">relay host</a>. If your machine has no access to a DNS server,
 turn off SMTP client DNS lookups like this: </p>
 
 <blockquote>

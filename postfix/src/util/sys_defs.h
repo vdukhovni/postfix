@@ -307,6 +307,9 @@ extern int opterr;
 #define NATIVE_DAEMON_DIR "/usr/libexec/postfix"
 #define STRCASECMP_IN_STRINGS_H
 #define OCTAL_TO_UNSIGNED(res, str) sscanf((str), "%o", &(res))
+#define size_t	unsigned
+#define ssize_t	int
+#define getsid	getpgrp
 #endif
 
  /*
