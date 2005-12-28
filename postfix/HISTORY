@@ -11690,6 +11690,23 @@ Apologies for any names omitted.
 	(example: sockaddr_to_hostaddr: Unknown error: success).
 	File: util/myaddrinfo.c.
 
+20051228
+
+	Workaround: don't pipeline the DOT+QUIT commands in the
+	SMTP client. The 20050929 paranoia about malformed server
+	replies eliminated a rare occurrence of "lost mail" with
+	sites that mis-implement DOT+QUIT pipelining. However, we
+	now have a larger occurrence of repeated deliveries to sites
+	with different implementation errors.  
+
+	The default "smtp_pipeline_dot_quit = never" setting
+	eliminates the repeated deliveries at the cost of a small
+	performance loss with normal deliveries.  Other settings
+	are "always" (always pipeline the DOT+QUIT commands, when
+	pipelining is enabled) and "newmail" (pipeline DOT+QUIT
+	only when mail is newer than $minimal_backoff_time).
+	Files: smtp/smtp_proto.c, smtp/smtp.c.
+
 Open problems:
 
 	"postsuper -r" no longer resets the message arrival time,

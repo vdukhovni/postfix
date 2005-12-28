@@ -165,6 +165,10 @@ Defer mail delivery when no MX record resolves to an IP address.
 .IP "\fBsmtp_line_length_limit (990)\fR"
 The maximal length of message header and body lines that Postfix
 will send via SMTP.
+.IP "\fBsmtp_pipeline_dot_quit (never)\fR"
+When ESMTP command pipelining is enabled, whether or not the
+SMTP client will send the QUIT command before it has received the
+server's END-OF-DATA reply.
 .IP "\fBsmtp_pix_workaround_delay_time (10s)\fR"
 How long the Postfix SMTP client pauses before sending
 ".<CR><LF>" in order to work around the PIX firewall
@@ -190,9 +194,9 @@ again later).
 Available in Postfix version 2.2 and later:
 .IP "\fBsmtp_discard_ehlo_keyword_address_maps (empty)\fR"
 Lookup tables, indexed by the remote SMTP server address, with
-case insensitive lists of EHLO keywords (pipelining, starttls,
-auth, etc.) that the SMTP client will ignore in the EHLO response
-from a remote SMTP server.
+case insensitive lists of EHLO keywords (pipelining, starttls, auth,
+etc.) that the SMTP client will ignore in the EHLO response from a
+remote SMTP server.
 .IP "\fBsmtp_discard_ehlo_keywords (empty)\fR"
 A case insensitive list of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP client will ignore in the EHLO response

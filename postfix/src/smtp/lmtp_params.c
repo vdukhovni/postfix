@@ -22,6 +22,7 @@
 	VAR_PROP_EXTENSION, DEF_PROP_EXTENSION, &var_prop_extension, 0, 0,
 	VAR_LMTP_GENERIC_MAPS, DEF_LMTP_GENERIC_MAPS, &var_smtp_generic_maps, 0, 0,
 	VAR_LMTP_TCP_PORT, DEF_LMTP_TCP_PORT, &var_lmtp_tcp_port, 0, 0,
+	VAR_LMTP_PIPE_DOT_QUIT, DEF_LMTP_PIPE_DOT_QUIT, &var_smtp_pipe_dot_quit, 1, 0,
 	0,
     };
     static CONFIG_TIME_TABLE lmtp_time_table[] = {
@@ -43,6 +44,7 @@
 	VAR_LMTP_STARTTLS_TMOUT, DEF_LMTP_STARTTLS_TMOUT, &var_smtp_starttls_tmout, 1, 0,
 #endif
 	VAR_SCACHE_PROTO_TMOUT, DEF_SCACHE_PROTO_TMOUT, &var_scache_proto_tmout, 1, 0,
+	VAR_MIN_BACKOFF_TIME, DEF_MIN_BACKOFF_TIME, &var_min_backoff_time, 1, 0,
 	0,
     };
     static CONFIG_INT_TABLE lmtp_int_table[] = {

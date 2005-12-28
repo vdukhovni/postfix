@@ -17,6 +17,20 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
+Incompatibility with snapshot 20051228
+======================================
+
+New parameter "smtp_pipeline_dot_quit" (default: "never") to work
+around broken servers and firewalls.  After one documented case of
+lost mail, as of 20050929 Postfix is more paranoid about malformed
+SMTP server replies. Unfortuately this results in repeated delivery
+attempts with other broken systems.  To avoid this, the SMTP+LMTP
+client no longer pipelines the DOT+QUIT commands by default. Instead
+of "never" you can specify "always" (self-evident) or "newmail"
+(pipeline DOT+QUIT only when mail is newer than $minimal_backoff_time,
+so that the number of duplicate deliveries is limited).  More details
+are in the postconf(5) manual.
+
 Major changes with snapshot 20051222
 ====================================
 

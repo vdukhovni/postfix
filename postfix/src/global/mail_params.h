@@ -1006,6 +1006,16 @@ extern int var_smtp_pix_thresh;
 #define DEF_LMTP_PIX_DELAY	"10s"
 extern int var_smtp_pix_delay;
 
+#define SMTP_PIPE_DOT_QUIT_NEVER	"never"
+#define SMTP_PIPE_DOT_QUIT_NEWMAIL	"newmail"
+#define SMTP_PIPE_DOT_QUIT_ALWAYS	"always"
+
+#define VAR_SMTP_PIPE_DOT_QUIT	"smtp_pipeline_dot_quit"
+#define DEF_SMTP_PIPE_DOT_QUIT	SMTP_PIPE_DOT_QUIT_NEVER
+#define VAR_LMTP_PIPE_DOT_QUIT	"lmtp_pipeline_dot_quit"
+#define DEF_LMTP_PIPE_DOT_QUIT	SMTP_PIPE_DOT_QUIT_NEVER
+extern char *var_smtp_pipe_dot_quit;
+
 #define VAR_SMTP_DEFER_MXADDR	"smtp_defer_if_no_mx_address_found"
 #define DEF_SMTP_DEFER_MXADDR	0
 #define VAR_LMTP_DEFER_MXADDR	"lmtp_defer_if_no_mx_address_found"

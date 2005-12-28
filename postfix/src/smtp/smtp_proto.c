@@ -926,8 +926,16 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 #define SENDER_IS_AHEAD \
 	(recv_state < send_state || recv_rcpt != send_rcpt)
 
+#define DONT_PIPELINE_DOT_QUIT \
+	(smtp_pipe_dot_quit == SMTP_PIPE_DOT_QUIT_CODE_NEVER \
+	 || (smtp_pipe_dot_quit == SMTP_PIPE_DOT_QUIT_CODE_NEWMAIL \
+	     && request->msg_stats.incoming_arrival.tv_sec \
+		< vstream_ftime(session->stream) - var_min_backoff_time))
+
 #define SENDER_IN_WAIT_STATE \
-	(send_state == SMTP_STATE_DOT || send_state == SMTP_STATE_LAST)
+	(send_state == SMTP_STATE_DOT || send_state == SMTP_STATE_LAST \
+	 || (recv_state == SMTP_STATE_DOT && send_state == SMTP_STATE_QUIT \
+	     && DONT_PIPELINE_DOT_QUIT))
 
 #define SENDING_MAIL \
 	(recv_state <= SMTP_STATE_DOT)
@@ -1144,7 +1152,8 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	    break;
 
 	    /*
-	     * Build the "." command before we have seen the DATA response.
+	     * Build the "." command after we have seen the DATA response
+	     * (DATA is a protocol synchronization point).
 	     * 
 	     * Changing the connection caching state here is safe because it
 	     * affects none of the not-yet processed replies to

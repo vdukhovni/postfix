@@ -289,7 +289,7 @@ SMTP_RESP *smtp_chat_resp(SMTP_SESSION *session)
 	    msg_warn("non-%s response from %s: %s",
 		     (session->state->misc_flags &
 		      SMTP_MISC_FLAG_USE_LMTP) ? "LMTP" : "ESMTP",
-		     session->namaddr, STR(session->buffer));
+		     session->namaddrport, STR(session->buffer));
 	    vstream_longjmp(session->stream, SMTP_ERR_PROTO);
 	}
     }

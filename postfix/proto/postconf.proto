@@ -8837,7 +8837,7 @@ case insensitive lists of LHLO keywords (pipelining, starttls,
 auth, etc.) that the LMTP client will ignore in the LHLO response
 from a remote LMTP server. See lmtp_discard_lhlo_keywords for
 details. The table is not indexed by hostname for consistency with
-smtpd_discard_ehlo_keyword_address_map </p>
+smtpd_discard_ehlo_keyword_address_maps. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -9125,3 +9125,43 @@ is rejected by the <b>reject_plaintext_session</b> restriction.
 rejecting the address as invalid.  </p>
 
 <p> This feature is available in Postfix 2.3 and later.
+
+%PARAM smtp_pipeline_dot_quit never
+
+<p> When ESMTP command pipelining is enabled, whether or not the
+SMTP client will send the QUIT command before it has received the
+server's END-OF-DATA reply. </p>
+
+<p> Specify one of the following: </p>
+
+<dl>
+
+<dt> <b>always</b> </dt> <dd> Always pipeline the END-OF-DATA and
+QUIT commands.  With servers or firewalls that mis-implement
+END-OF-DATA + QUIT pipelining, mail will be delivered repeatedly
+until it expires in the queue.  </dd>
+
+<dt> <b>never</b> </dt> <dd> Wait for the server's END-OF-DATA reply
+before sending the QUIT command. This avoids repeated delivery
+attempts with servers and firewalls that mis-implement END-OF-DATA
++ QUIT pipelining, at the cost of a small performance loss with
+sites that correctly implement SMTP. </dd>
+
+<dt> <b>newmail</b> </dt> <dd> Pipeline the END-OF-DATA and QUIT
+commands only when mail is newer than $minimal_backoff_time.  This
+limits the number of repeated deliveries with servers and firewalls
+that mis-implement END-OF-DATA + QUIT pipelining, while avoiding
+the performance loss associated with the "never" setting for normal
+deliveries.  </dd>
+
+</dl>
+
+<p> Note: when smtp_fallback_relay is used, the "always" and "newmail"
+settings become identical in practice. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_pipeline_dot_quit never
+
+<p> The LMTP-specific version of the smtp_pipeline_dot_quit
+configuration parameter.  See there for details. </p>

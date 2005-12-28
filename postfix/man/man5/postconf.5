@@ -1729,7 +1729,7 @@ case insensitive lists of LHLO keywords (pipelining, starttls,
 auth, etc.) that the LMTP client will ignore in the LHLO response
 from a remote LMTP server. See lmtp_discard_lhlo_keywords for
 details. The table is not indexed by hostname for consistency with
-smtpd_discard_ehlo_keyword_address_map
+smtpd_discard_ehlo_keyword_address_maps.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH lmtp_discard_lhlo_keywords (default: $myhostname)
@@ -1808,6 +1808,9 @@ The LMTP-specific version of the smtp_mx_session_limit configuration
 parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH lmtp_pipeline_dot_quit (default: never)
+The LMTP-specific version of the smtp_pipeline_dot_quit
+configuration parameter.  See there for details.
 .SH lmtp_pix_workaround_delay_time (default: 10s)
 The LMTP-specific version of the smtp_pix_workaround_delay_time
 configuration parameter.  See there for details.
@@ -3838,6 +3841,35 @@ This feature is available in Postfix 2.1 and later.
 .SH smtp_never_send_ehlo (default: no)
 Never send EHLO at the start of an SMTP session. See also the
 smtp_always_send_ehlo parameter.
+.SH smtp_pipeline_dot_quit (default: never)
+When ESMTP command pipelining is enabled, whether or not the
+SMTP client will send the QUIT command before it has received the
+server's END-OF-DATA reply.
+.PP
+Specify one of the following:
+.IP "\fBalways\fR"
+Always pipeline the END-OF-DATA and
+QUIT commands.  With servers or firewalls that mis-implement
+END-OF-DATA + QUIT pipelining, mail will be delivered repeatedly
+until it expires in the queue.
+.IP "\fBnever\fR"
+Wait for the server's END-OF-DATA reply
+before sending the QUIT command. This avoids repeated delivery
+attempts with servers and firewalls that mis-implement END-OF-DATA
++ QUIT pipelining, at the cost of a small performance loss with
+sites that correctly implement SMTP.
+.IP "\fBnewmail\fR"
+Pipeline the END-OF-DATA and QUIT
+commands only when mail is newer than $minimal_backoff_time.  This
+limits the number of repeated deliveries with servers and firewalls
+that mis-implement END-OF-DATA + QUIT pipelining, while avoiding
+the performance loss associated with the "never" setting for normal
+deliveries.
+.PP
+Note: when smtp_fallback_relay is used, the "always" and "newmail"
+settings become identical in practice.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH smtp_pix_workaround_delay_time (default: 10s)
 How long the Postfix SMTP client pauses before sending
 ".<CR><LF>" in order to work around the PIX firewall
