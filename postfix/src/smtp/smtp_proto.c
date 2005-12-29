@@ -926,16 +926,11 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 #define SENDER_IS_AHEAD \
 	(recv_state < send_state || recv_rcpt != send_rcpt)
 
-#define DONT_PIPELINE_DOT_QUIT \
-	(smtp_pipe_dot_quit == SMTP_PIPE_DOT_QUIT_CODE_NEVER \
-	 || (smtp_pipe_dot_quit == SMTP_PIPE_DOT_QUIT_CODE_NEWMAIL \
-	     && request->msg_stats.incoming_arrival.tv_sec \
-		< vstream_ftime(session->stream) - var_min_backoff_time))
-
 #define SENDER_IN_WAIT_STATE \
 	(send_state == SMTP_STATE_DOT || send_state == SMTP_STATE_LAST \
 	 || (recv_state == SMTP_STATE_DOT && send_state == SMTP_STATE_QUIT \
-	     && DONT_PIPELINE_DOT_QUIT))
+	     && request->msg_stats.incoming_arrival.tv_sec \
+		<= vstream_ftime(session->stream) - var_smtp_dotq_thresh))
 
 #define SENDING_MAIL \
 	(recv_state <= SMTP_STATE_DOT)
@@ -1591,7 +1586,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		smtp_fputs("", 0, session->stream);
 	    if ((session->features & SMTP_FEATURE_MAYBEPIX) != 0
 		&& request->msg_stats.incoming_arrival.tv_sec
-		< vstream_ftime(session->stream) - var_smtp_pix_thresh) {
+		<= vstream_ftime(session->stream) - var_smtp_pix_thresh) {
 		msg_info("%s: enabling PIX <CRLF>.<CRLF> workaround for %s",
 			 request->queue_id, session->namaddrport);
 		smtp_flush(session->stream);	/* hurts performance */

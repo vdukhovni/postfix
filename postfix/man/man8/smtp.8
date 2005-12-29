@@ -162,13 +162,14 @@ Always send EHLO at the start of an SMTP session.
 Never send EHLO at the start of an SMTP session.
 .IP "\fBsmtp_defer_if_no_mx_address_found (no)\fR"
 Defer mail delivery when no MX record resolves to an IP address.
+.IP "\fBsmtp_dot_quit_workaround_threshold_time (3000s)\fR"
+How long a message must be queued before the "." + QUIT bug
+workaround is turned on for all deliveries; this limits the
+number of repeated deliveries with servers or firewalls that
+mis-implement END-OF-DATA + QUIT pipelining.
 .IP "\fBsmtp_line_length_limit (990)\fR"
 The maximal length of message header and body lines that Postfix
 will send via SMTP.
-.IP "\fBsmtp_pipeline_dot_quit (never)\fR"
-When ESMTP command pipelining is enabled, whether or not the
-SMTP client will send the QUIT command before it has received the
-server's END-OF-DATA reply.
 .IP "\fBsmtp_pix_workaround_delay_time (10s)\fR"
 How long the Postfix SMTP client pauses before sending
 ".<CR><LF>" in order to work around the PIX firewall
@@ -176,7 +177,7 @@ How long the Postfix SMTP client pauses before sending
 .IP "\fBsmtp_pix_workaround_threshold_time (500s)\fR"
 How long a message must be queued before the PIX firewall
 "<CR><LF>.<CR><LF>" bug workaround is turned
-on.
+on for delivery through firewalls with "smtp fixup" mode turned on.
 .IP "\fBsmtp_quote_rfc821_envelope (yes)\fR"
 Quote addresses in SMTP MAIL FROM and RCPT TO commands as required
 by RFC 821.

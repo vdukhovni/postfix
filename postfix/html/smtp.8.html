@@ -166,25 +166,27 @@ SMTP(8)                                                                SMTP(8)
               Defer  mail  delivery when no MX record resolves to
               an IP address.
 
+       <b><a href="postconf.5.html#smtp_dot_quit_workaround_threshold_time">smtp_dot_quit_workaround_threshold_time</a> (3000s)</b>
+              How long a message must be queued before the "."  +
+              QUIT  bug  workaround is turned on for all deliver-
+              ies; this limits the number of repeated  deliveries
+              with  servers  or firewalls that mis-implement END-
+              OF-DATA + QUIT pipelining.
+
        <b><a href="postconf.5.html#smtp_line_length_limit">smtp_line_length_limit</a> (990)</b>
               The maximal length of message header and body lines
               that Postfix will send via SMTP.
 
-       <b><a href="postconf.5.html#smtp_pipeline_dot_quit">smtp_pipeline_dot_quit</a> (never)</b>
-              When  ESMTP  command pipelining is enabled, whether
-              or not the SMTP client will send the  QUIT  command
-              before  it  has  received  the server's END-OF-DATA
-              reply.
-
        <b><a href="postconf.5.html#smtp_pix_workaround_delay_time">smtp_pix_workaround_delay_time</a> (10s)</b>
-              How long the  Postfix  SMTP  client  pauses  before
+              How  long  the  Postfix  SMTP  client pauses before
               sending ".&lt;CR&gt;&lt;LF&gt;" in order to work around the PIX
               firewall "&lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;" bug.
 
        <b><a href="postconf.5.html#smtp_pix_workaround_threshold_time">smtp_pix_workaround_threshold_time</a> (500s)</b>
-              How long a message must be queued  before  the  PIX
-              firewall   "&lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;"  bug  workaround  is
-              turned on.
+              How  long  a  message must be queued before the PIX
+              firewall  "&lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;"  bug  workaround   is
+              turned on for delivery through firewalls with "smtp
+              fixup" mode turned on.
 
        <b><a href="postconf.5.html#smtp_quote_rfc821_envelope">smtp_quote_rfc821_envelope</a> (yes)</b>
               Quote addresses in SMTP MAIL FROM and RCPT TO  com-

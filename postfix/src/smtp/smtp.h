@@ -166,13 +166,6 @@ extern SSL_CTX *smtp_tls_ctx;		/* client-side TLS engine */
 
 #endif
 
-#define SMTP_PIPE_DOT_QUIT_CODE_ERROR	0
-#define SMTP_PIPE_DOT_QUIT_CODE_NEVER	1
-#define SMTP_PIPE_DOT_QUIT_CODE_NEWMAIL	2
-#define SMTP_PIPE_DOT_QUIT_CODE_ALWAYS	3
-
-extern int smtp_pipe_dot_quit;
-
  /*
   * smtp_session.c
   */

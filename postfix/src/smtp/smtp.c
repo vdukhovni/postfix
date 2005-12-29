@@ -140,13 +140,14 @@
 /*	Never send EHLO at the start of an SMTP session.
 /* .IP "\fBsmtp_defer_if_no_mx_address_found (no)\fR"
 /*	Defer mail delivery when no MX record resolves to an IP address.
+/* .IP "\fBsmtp_dot_quit_workaround_threshold_time (3000s)\fR"
+/*	How long a message must be queued before the "." + QUIT bug
+/*	workaround is turned on for all deliveries; this limits the
+/*	number of repeated deliveries with servers or firewalls that
+/*	mis-implement END-OF-DATA + QUIT pipelining.
 /* .IP "\fBsmtp_line_length_limit (990)\fR"
 /*	The maximal length of message header and body lines that Postfix
 /*	will send via SMTP.
-/* .IP "\fBsmtp_pipeline_dot_quit (never)\fR"
-/*	When ESMTP command pipelining is enabled, whether or not the
-/*	SMTP client will send the QUIT command before it has received the
-/*	server's END-OF-DATA reply.
 /* .IP "\fBsmtp_pix_workaround_delay_time (10s)\fR"
 /*	How long the Postfix SMTP client pauses before sending
 /*	".<CR><LF>" in order to work around the PIX firewall
@@ -154,7 +155,7 @@
 /* .IP "\fBsmtp_pix_workaround_threshold_time (500s)\fR"
 /*	How long a message must be queued before the PIX firewall
 /*	"<CR><LF>.<CR><LF>" bug workaround is turned
-/*	on.
+/*	on for delivery through firewalls with "smtp fixup" mode turned on.
 /* .IP "\fBsmtp_quote_rfc821_envelope (yes)\fR"
 /*	Quote addresses in SMTP MAIL FROM and RCPT TO commands as required
 /*	by RFC 821.
@@ -530,7 +531,6 @@
 #include <msg.h>
 #include <mymalloc.h>
 #include <name_mask.h>
-#include <name_code.h>
 
 /* Global library. */
 
@@ -622,8 +622,12 @@ char   *var_prop_extension;
 bool    var_smtp_sender_auth;
 char   *var_lmtp_tcp_port;
 int     var_scache_proto_tmout;
-char   *var_smtp_pipe_dot_quit;
+int     var_smtp_dotq_thresh;
+
+/* Workaround for "smtp_dot_quit_workaround_threshold_time = $name". */
 int     var_min_backoff_time;
+int     var_max_backoff_time;
+int     var_max_queue_time;
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
@@ -636,7 +640,6 @@ SCACHE *smtp_scache;
 MAPS   *smtp_ehlo_dis_maps;
 MAPS   *smtp_generic_maps;
 int     smtp_ext_prop_mask;
-int     smtp_pipe_dot_quit;
 
 #ifdef USE_TLS
 
@@ -730,12 +733,6 @@ static void post_init(char *unused_name, char **unused_argv)
 	SMTP_HOST_LOOKUP_NATIVE, SMTP_HOST_FLAG_NATIVE,
 	0,
     };
-    static NAME_CODE pipe_dot_quit_codes[] = {
-	SMTP_PIPE_DOT_QUIT_NEVER, SMTP_PIPE_DOT_QUIT_CODE_NEVER,
-	SMTP_PIPE_DOT_QUIT_NEWMAIL, SMTP_PIPE_DOT_QUIT_CODE_NEWMAIL,
-	SMTP_PIPE_DOT_QUIT_ALWAYS, SMTP_PIPE_DOT_QUIT_CODE_ALWAYS,
-	0, SMTP_PIPE_DOT_QUIT_CODE_ERROR,
-    };
 
     /*
      * Select hostname lookup mechanisms.
@@ -762,16 +759,6 @@ static void post_init(char *unused_name, char **unused_argv)
 					 var_ipc_idle_limit,
 					 var_ipc_ttl_limit);
 #endif
-
-    /*
-     * Initialize dot-quit pipelining workaround.
-     */
-    smtp_pipe_dot_quit = name_code(pipe_dot_quit_codes,
-				   NAME_CODE_FLAG_NONE,
-				   var_smtp_pipe_dot_quit);
-    if (smtp_pipe_dot_quit == SMTP_PIPE_DOT_QUIT_CODE_ERROR)
-	msg_fatal("unknown %s value: %s", VAR_SMTP_PIPE_DOT_QUIT,
-		  var_smtp_pipe_dot_quit);
 }
 
 /* pre_init - pre-jail initialization */

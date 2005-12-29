@@ -3255,6 +3255,15 @@ discard LHLO keywords selectively. </p>
 
 </DD>
 
+<DT><b><a name="lmtp_dot_quit_workaround_threshold_time">lmtp_dot_quit_workaround_threshold_time</a>
+(default: 3000s)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_dot_quit_workaround_threshold_time">smtp_dot_quit_workaround_threshold_time</a>
+configuration parameter.  See there for details. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_enforce_tls">lmtp_enforce_tls</a>
 (default: no)</b></DT><DD>
 
@@ -3375,15 +3384,6 @@ parameter.  See there for details. </p>
 parameter.  See there for details. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
-
-
-</DD>
-
-<DT><b><a name="lmtp_pipeline_dot_quit">lmtp_pipeline_dot_quit</a>
-(default: never)</b></DT><DD>
-
-<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_pipeline_dot_quit">smtp_pipeline_dot_quit</a>
-configuration parameter.  See there for details. </p>
 
 
 </DD>
@@ -6680,6 +6680,39 @@ discard EHLO keywords selectively. </p>
 
 </DD>
 
+<DT><b><a name="smtp_dot_quit_workaround_threshold_time">smtp_dot_quit_workaround_threshold_time</a>
+(default: 3000s)</b></DT><DD>
+
+<p> How long a message must be queued before the "." + QUIT bug
+workaround is turned on for all deliveries; this limits the
+number of repeated deliveries with servers or firewalls that
+mis-implement END-OF-DATA + QUIT pipelining. </p>
+
+<p> When the workaround is turned on, the Postfix SMTP client will
+not send the QUIT command until it has received the server's
+END-OF-DATA reply.  This workaround incurs a small performance loss
+with delivery to sites that correctly implement SMTP command
+pipelining.  </p>
+
+<p> By default, the workaround is turned off for mail that is queued
+for less than 3000 seconds. In other words, the workaround is
+normally turned off for the first few delivery attempts of personal
+mail and of small mailing lists.  </p>
+
+<p> Specify 0 to enable this workaround upon the first delivery
+attempt, and specify a large value such as $<a href="postconf.5.html#maximal_queue_lifetime">maximal_queue_lifetime</a>
+to disable the workaround for practically all delivery attempts.
+</p>
+
+<p> Note: when the <a href="postconf.5.html#smtp_fallback_relay">smtp_fallback_relay</a> feature is used, there will
+be no second delivery attempt, and the workaround may have no effect.
+</p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="smtp_enforce_tls">smtp_enforce_tls</a>
 (default: no)</b></DT><DD>
 
@@ -6903,45 +6936,6 @@ complete the EHLO and TLS handshake (Postfix version 2.3 and later).  </p>
 
 </DD>
 
-<DT><b><a name="smtp_pipeline_dot_quit">smtp_pipeline_dot_quit</a>
-(default: never)</b></DT><DD>
-
-<p> When ESMTP command pipelining is enabled, whether or not the
-SMTP client will send the QUIT command before it has received the
-server's END-OF-DATA reply. </p>
-
-<p> Specify one of the following: </p>
-
-<dl>
-
-<dt> <b>always</b> </dt> <dd> Always pipeline the END-OF-DATA and
-QUIT commands.  With servers or firewalls that mis-implement
-END-OF-DATA + QUIT pipelining, mail will be delivered repeatedly
-until it expires in the queue.  </dd>
-
-<dt> <b>never</b> </dt> <dd> Wait for the server's END-OF-DATA reply
-before sending the QUIT command. This avoids repeated delivery
-attempts with servers and firewalls that mis-implement END-OF-DATA
-+ QUIT pipelining, at the cost of a small performance loss with
-sites that correctly implement SMTP. </dd>
-
-<dt> <b>newmail</b> </dt> <dd> Pipeline the END-OF-DATA and QUIT
-commands only when mail is newer than $<a href="postconf.5.html#minimal_backoff_time">minimal_backoff_time</a>.  This
-limits the number of repeated deliveries with servers and firewalls
-that mis-implement END-OF-DATA + QUIT pipelining, while avoiding
-the performance loss associated with the "never" setting for normal
-deliveries.  </dd>
-
-</dl>
-
-<p> Note: when <a href="postconf.5.html#smtp_fallback_relay">smtp_fallback_relay</a> is used, the "always" and "newmail"
-settings become identical in practice. </p>
-
-<p> This feature is available in Postfix 2.3 and later. </p>
-
-
-</DD>
-
 <DT><b><a name="smtp_pix_workaround_delay_time">smtp_pix_workaround_delay_time</a>
 (default: 10s)</b></DT><DD>
 
@@ -6965,7 +6959,7 @@ sending large messages over slow network connections.
 <p>
 How long a message must be queued before the PIX firewall
 "&lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;" bug workaround is turned
-on.
+on for delivery through firewalls with "smtp fixup" mode turned on.
 </p>
 
 <p>

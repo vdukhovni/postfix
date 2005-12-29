@@ -290,6 +290,9 @@ SMTP_RESP *smtp_chat_resp(SMTP_SESSION *session)
 		     (session->state->misc_flags &
 		      SMTP_MISC_FLAG_USE_LMTP) ? "LMTP" : "ESMTP",
 		     session->namaddrport, STR(session->buffer));
+	    msg_warn("consider turning off pipelining selectively with %s",
+		     (session->state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) ?
+		     VAR_LMTP_EHLO_DIS_WORDS : VAR_SMTP_EHLO_DIS_MAPS);
 	    vstream_longjmp(session->stream, SMTP_ERR_PROTO);
 	}
     }
