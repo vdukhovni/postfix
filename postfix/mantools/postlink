@@ -161,8 +161,9 @@ while (<>) {
     s;\berror_service_name\b;<a href="postconf.5.html#error_service_name">$&</a>;g;
     s;\bexpand_owner_alias\b;<a href="postconf.5.html#expand_owner_alias">$&</a>;g;
     s;\bexport_environment\b;<a href="postconf.5.html#export_environment">$&</a>;g;
-    s;\bfallback_relay\b;<a href="postconf.5.html#fallback_relay">$&</a>;g;
-    s;\bfallback_transport\b;<a href="postconf.5.html#fallback_transport">$&</a>;g;
+    s;\bfall[-</bB>]*\n* *[<bB>]*back_relay\b;<a href="postconf.5.html#fallback_relay">$&</a>;g;
+    s;\bfall[-</bB>]*\n* *[<bB>]*back_transport\b;<a href="postconf.5.html#fallback_transport">$&</a>;g;
+    s;\bfall[-</bB>]*\n* *[<bB>]*back_transport_maps\b;<a href="postconf.5.html#fallback_transport_maps">$&</a>;g;
     s;\bfast_flush_domains\b;<a href="postconf.5.html#fast_flush_domains">$&</a>;g;
     s;\bfast_flush_purge_time\b;<a href="postconf.5.html#fast_flush_purge_time">$&</a>;g;
     s;\bfast_flush_refresh_time\b;<a href="postconf.5.html#fast_flush_refresh_time">$&</a>;g;
@@ -252,11 +253,12 @@ while (<>) {
     s;\bmail_release_date\b;<a href="postconf.5.html#mail_release_date">$&</a>;g;
     s;\bmail_spool_direc[-</bB>]*\n* *[<bB>]*tory\b;<a href="postconf.5.html#mail_spool_directory">$&</a>;g;
     s;\bmail_version\b;<a href="postconf.5.html#mail_version">$&</a>;g;
-    s;\bmail[-</bB>]*\n* *[<bB>]*box_command\b;<a href="postconf.5.html#mailbox_command">$&</a>;g;
-    s;\bmail[-</bB>]*\n* *[<bB>]*box_command_maps\b;<a href="postconf.5.html#mailbox_command_maps">$&</a>;g;
+    s;\bmail[-</bB>]*\n* *[<bB>]*box_com[-</bB>]*\n* *[<bB>]*mand\b;<a href="postconf.5.html#mailbox_command">$&</a>;g;
+    s;\bmail[-</bB>]*\n* *[<bB>]*box_com[-</bB>]*\n* *[<bB>]*mand_maps\b;<a href="postconf.5.html#mailbox_command_maps">$&</a>;g;
     s;\bmail[-</bB>]*\n* *[<bB>]*box_deliv[-</Bb>]*\n* *[<Bb>]*ery_lock\b;<a href="postconf.5.html#mailbox_delivery_lock">$&</a>;g;
     s;\bmail[-</bB>]*\n* *[<bB>]*box_size_limit\b;<a href="postconf.5.html#mailbox_size_limit">$&</a>;g;
     s;\bmail[-</bB>]*\n* *[<bB>]*box_transport\b;<a href="postconf.5.html#mailbox_transport">$&</a>;g;
+    s;\bmail[-</bB>]*\n* *[<bB>]*box_transport_maps\b;<a href="postconf.5.html#mailbox_transport_maps">$&</a>;g;
     s;\bmailq_path\b;<a href="postconf.5.html#mailq_path">$&</a>;g;
     s;\bmanpage_directory\b;<a href="postconf.5.html#manpage_directory">$&</a>;g;
     s;\bmaps_rbl_domains\b;<a href="postconf.5.html#maps_rbl_domains">$&</a>;g;
@@ -387,7 +389,6 @@ while (<>) {
     s;\bsmtp_mx_session_limit\b;<a href="postconf.5.html#smtp_mx_session_limit">$&</a>;g;
     s;\bsmtp_never_send_ehlo\b;<a href="postconf.5.html#smtp_never_send_ehlo">$&</a>;g;
     s;\bsmtp_sender_depen[-</bB>]*\n*[ <bB>]*dent_authentication\b;<a href="postconf.5.html#smtp_sender_dependent_authentication">$&</a>;g;
-    s;\bsmtp_dot_quit_workaround_threshold_time\b;<a href="postconf.5.html#smtp_dot_quit_workaround_threshold_time">$&</a>;g;
     s;\bsmtp_pix_workaround_delay_time\b;<a href="postconf.5.html#smtp_pix_workaround_delay_time">$&</a>;g;
     s;\bsmtp_pix_workaround_threshold_time\b;<a href="postconf.5.html#smtp_pix_workaround_threshold_time">$&</a>;g;
     s;\bsmtp_quit_timeout\b;<a href="postconf.5.html#smtp_quit_timeout">$&</a>;g;
@@ -626,6 +627,9 @@ while (<>) {
     s/[<bB>]*tcp_ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="tcp_table.5.html">$&<\/a>/g;
     s/[<bB>]*body_checks[<\/bB>]*\(5\)/<a href="header_checks.5.html">$&<\/a>/g;
     s/[<bB>]*header_checks[<\/bB>]*\(5\)/<a href="header_checks.5.html">$&<\/a>/g;
+
+    s/[<bB>]*main\.cf[<\/bB>]*/<a href="postconf.5.html">$&<\/a>/g;
+    s/[<bB>]*master\.cf[<\/bB>]*/<a href="master.5.html">$&<\/a>/g;
 
     # Hyperlink README document names
 

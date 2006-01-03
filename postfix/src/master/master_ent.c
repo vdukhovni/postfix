@@ -86,6 +86,7 @@
 #include <inet_addr_list.h>
 #include <host_port.h>
 #include <inet_addr_host.h>
+#include <sock_addr.h>
 
 /* Global library. */
 
@@ -281,8 +282,14 @@ MASTER_SERV *get_master_ent()
     serv->flags = 0;
 
     /*
+     * All servers busy warning timer.
+     */
+    serv->busy_warn_time = 0;
+
+    /*
      * Service name. Syntax is transport-specific.
      */
+    serv->ext_name = mystrdup(cp);
     name = cp;
 
     /*
@@ -294,7 +301,7 @@ MASTER_SERV *get_master_ent()
     if (STR_SAME(transport, MASTER_XPORT_NAME_INET)) {
 	if (!STR_SAME(saved_interfaces, var_inet_interfaces)) {
 	    msg_warn("service %s: ignoring %s change",
-		     name, VAR_INET_INTERFACES);
+		     serv->ext_name, VAR_INET_INTERFACES);
 	    msg_warn("to change %s, stop and start Postfix",
 		     VAR_INET_INTERFACES);
 	}
@@ -323,16 +330,27 @@ MASTER_SERV *get_master_ent()
 	    serv->listen_fd_count = MASTER_INET_ADDRLIST(serv)->used;
 	}
 	MASTER_INET_PORT(serv) = mystrdup(port);
+	for (n = 0; /* see below */ ; n++) {
+	    if (n >= MASTER_INET_ADDRLIST(serv)->used) {
+		serv->flags |= MASTER_FLAG_LOCAL_ONLY;
+		break;
+	    }
+	    if (!sock_addr_in_loopback(SOCK_ADDR_PTR(MASTER_INET_ADDRLIST(serv)->addrs + n)))
+		break;
+	}
     } else if (STR_SAME(transport, MASTER_XPORT_NAME_UNIX)) {
 	serv->type = MASTER_SERV_TYPE_UNIX;
 	serv->listen_fd_count = 1;
+	serv->flags |= MASTER_FLAG_LOCAL_ONLY;
     } else if (STR_SAME(transport, MASTER_XPORT_NAME_FIFO)) {
 	serv->type = MASTER_SERV_TYPE_FIFO;
 	serv->listen_fd_count = 1;
+	serv->flags |= MASTER_FLAG_LOCAL_ONLY;
 #ifdef MASTER_SERV_TYPE_PASS
     } else if (STR_SAME(transport, MASTER_XPORT_NAME_PASS)) {
 	serv->type = MASTER_SERV_TYPE_PASS;
 	serv->listen_fd_count = 1;
+	/* If this is a connection screener, remote clients are likely. */
 #endif
     } else {
 	fatal_with_context("bad transport type: %s", transport);
@@ -354,7 +372,11 @@ MASTER_SERV *get_master_ent()
 
 	if (private)
 	    fatal_with_context("inet service cannot be private");
-#ifdef SNAPSHOT
+
+	/*
+	 * Canonicalize endpoint names so that we correctly handle "reload"
+	 * requests after someone changes "25" into "smtp" or vice versa.
+	 */
 	if (*host == 0)
 	    host = 0;
 	/* Canonicalize numeric host and numeric or symbolic service. */
@@ -378,7 +400,6 @@ MASTER_SERV *get_master_ent()
 	}
 	/* Bad service name? */
 	else
-#endif
 	    serv->name = mystrdup(name);
 	myfree(atmp);
     } else if (serv->type == MASTER_SERV_TYPE_UNIX) {
@@ -552,6 +573,7 @@ void    free_master_ent(MASTER_SERV *serv)
     }
     if (serv->type == MASTER_SERV_TYPE_INET)
 	myfree(MASTER_INET_PORT(serv));
+    myfree(serv->ext_name);
     myfree(serv->name);
     myfree(serv->path);
     argv_free(serv->args);

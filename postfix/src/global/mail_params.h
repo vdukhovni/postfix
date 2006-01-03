@@ -491,9 +491,17 @@ extern char *var_mailbox_cmd_maps;
 #define DEF_MAILBOX_TRANSP	""
 extern char *var_mailbox_transport;
 
+#define VAR_MBOX_TRANSP_MAPS	"mailbox_transport_maps"
+#define DEF_MBOX_TRANSP_MAPS	""
+extern char *var_mbox_transp_maps;
+
 #define VAR_FALLBACK_TRANSP	"fallback_transport"
 #define DEF_FALLBACK_TRANSP	""
 extern char *var_fallback_transport;
+
+#define VAR_FBCK_TRANSP_MAPS	"fallback_transport_maps"
+#define DEF_FBCK_TRANSP_MAPS	""
+extern char *var_fbck_transp_maps;
 
  /*
   * Local delivery: path to per-user forwarding file.
@@ -1005,12 +1013,6 @@ extern int var_smtp_pix_thresh;
 #define VAR_LMTP_PIX_DELAY	"lmtp_pix_workaround_delay_time"
 #define DEF_LMTP_PIX_DELAY	"10s"
 extern int var_smtp_pix_delay;
-
-#define VAR_SMTP_DOTQ_THRESH	"smtp_dot_quit_workaround_threshold"
-#define DEF_SMTP_DOTQ_THRESH	"3000s"
-#define VAR_LMTP_DOTQ_THRESH	"lmtp_dot_quit_workaround_threshold"
-#define DEF_LMTP_DOTQ_THRESH	"3000s"
-extern int var_smtp_dotq_thresh;
 
 #define VAR_SMTP_DEFER_MXADDR	"smtp_defer_if_no_mx_address_found"
 #define DEF_SMTP_DEFER_MXADDR	0

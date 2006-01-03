@@ -162,11 +162,6 @@ Always send EHLO at the start of an SMTP session.
 Never send EHLO at the start of an SMTP session.
 .IP "\fBsmtp_defer_if_no_mx_address_found (no)\fR"
 Defer mail delivery when no MX record resolves to an IP address.
-.IP "\fBsmtp_dot_quit_workaround_threshold_time (3000s)\fR"
-How long a message must be queued before the "." + QUIT bug
-workaround is turned on for all deliveries; this limits the
-number of repeated deliveries with servers or firewalls that
-mis-implement END-OF-DATA + QUIT pipelining.
 .IP "\fBsmtp_line_length_limit (990)\fR"
 The maximal length of message header and body lines that Postfix
 will send via SMTP.

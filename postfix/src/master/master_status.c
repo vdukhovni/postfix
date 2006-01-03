@@ -89,8 +89,8 @@ static void master_status_event(int event, char *context)
 	/* NOTREACHED */
 
     default:
-	msg_warn("service %s: child (pid %d) sent partial status update (%d bytes)",
-		 serv->name, stat.pid, n);
+	msg_warn("service %s(%s): child (pid %d) sent partial status update (%d bytes)",
+		 serv->ext_name, serv->name, stat.pid, n);
 	return;
 
     case sizeof(stat):

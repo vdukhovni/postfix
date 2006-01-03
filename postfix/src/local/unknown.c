@@ -84,6 +84,8 @@ int     deliver_unknown(LOCAL_STATE state, USER_ATTR usr_attr)
     char   *myname = "deliver_unknown";
     int     status;
     VSTRING *expand_luser;
+    static MAPS *transp_maps;
+    const char *map_transport;
 
     /*
      * Make verbose logging easier to understand.
@@ -104,6 +106,15 @@ int     deliver_unknown(LOCAL_STATE state, USER_ATTR usr_attr)
      * The fall-back transport specifies a delivery machanism that handles
      * users not found in the aliases or UNIX passwd databases.
      */
+    if (*var_fbck_transp_maps && transp_maps == 0)
+	transp_maps = maps_create(VAR_FBCK_TRANSP_MAPS, var_fbck_transp_maps,
+				  DICT_FLAG_LOCK);
+    if (*var_fbck_transp_maps
+	&& (map_transport = maps_find(transp_maps, state.msg_attr.user,
+				      DICT_FLAG_FIXED)) != 0) {
+	return (deliver_pass(MAIL_CLASS_PRIVATE, map_transport,
+			     state.request, &state.msg_attr.rcpt));
+    }
     if (*var_fallback_transport) {
 	state.msg_attr.rcpt.offset = -1L;
 	return (deliver_pass(MAIL_CLASS_PRIVATE, var_fallback_transport,

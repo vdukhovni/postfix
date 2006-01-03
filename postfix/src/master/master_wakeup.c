@@ -139,7 +139,8 @@ static void master_wakeup_timer_event(int unused_event, char *context)
 	    msg_panic("%s: unknown service type: %d", myname, serv->type);
 	}
 	if (status < 0)
-	    msg_warn("%s: service %s: %m", myname, serv->name);
+	    msg_warn("%s: service %s(%s): %m",
+		     myname, serv->ext_name, serv->name);
     }
 
     /*

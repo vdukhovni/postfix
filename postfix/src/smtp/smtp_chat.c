@@ -144,7 +144,6 @@ void    smtp_chat_init(SMTP_SESSION *session)
 
 void    smtp_chat_reset(SMTP_SESSION *session)
 {
-
     if (session->history) {
 	argv_free(session->history);
 	session->history = 0;
@@ -277,23 +276,44 @@ SMTP_RESP *smtp_chat_resp(SMTP_SESSION *session)
 	}
 
 	/*
-	 * XXX Do not ignore garbage when ESMTP command pipelining is turned
-	 * on. After sending ".<CR><LF>QUIT<CR><LF>", Postfix might recognize
-	 * the server's 2XX QUIT reply as a 2XX END-OF-DATA reply after
-	 * garbage, causing mail to be lost. Instead, make a long jump so
-	 * that all recipients of multi-recipient mail get consistent
-	 * treatment.
+	 * XXX Do not simply ignore garbage in the server reply when ESMTP
+	 * command pipelining is turned on.  For example, after sending
+	 * ".<CR><LF>QUIT<CR><LF>" and receiving garbage followed by a
+	 * legitimate 2XX reply, Postfix recognizes the server's QUIT reply
+	 * as the END-OF-DATA reply after garbage, causing mail to be lost.
+	 * 
+	 * Without the ability to store per-domain status information in queue
+	 * files, automatic workarounds are problematic:
+	 * 
+	 * - Automatically deferring delivery creates a "repeated delivery"
+	 * problem when garbage arrives after the DATA stage. Without the
+	 * workaround, Postfix delivers only once.
+	 * 
+	 * - Automatically deferring delivery creates a "no delivery" problem
+	 * when the garbage arrives before the DATA stage. Without the
+	 * workaround, mail might still get through.
+	 * 
+	 * - Automatically turning off pipelining for delayed mail affects
+	 * deliveries to correctly implemented servers, and may also affect
+	 * delivery of large mailing lists.
+	 * 
+	 * So we leave the decision with the administrator, but we don't force
+	 * them to take action, like we would with automatic deferral.  If
+	 * loss of mail is not acceptable then they can turn off pipelining
+	 * for specific sites, or they can turn off pipelining globally when
+	 * they find that there are just too many broken sites.
 	 */
 	session->error_mask |= MAIL_ERROR_PROTOCOL;
 	if (session->features & SMTP_FEATURE_PIPELINING) {
-	    msg_warn("non-%s response from %s: %s",
-		     (session->state->misc_flags &
-		      SMTP_MISC_FLAG_USE_LMTP) ? "LMTP" : "ESMTP",
-		     session->namaddrport, STR(session->buffer));
-	    msg_warn("consider turning off pipelining selectively with %s",
+	    msg_warn("non-%s response from %s: %.100s",
 		     (session->state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) ?
-		     VAR_LMTP_EHLO_DIS_WORDS : VAR_SMTP_EHLO_DIS_MAPS);
-	    vstream_longjmp(session->stream, SMTP_ERR_PROTO);
+		     "LMTP" : "ESMTP", session->namaddrport,
+		     STR(session->buffer));
+	    if (var_helpful_warnings)
+		msg_warn("to prevent loss of mail, turn off command pipelining "
+			 "for %s with the %s parameter", session->addr,
+		    (session->state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) ?
+			 VAR_LMTP_EHLO_DIS_MAPS : VAR_SMTP_EHLO_DIS_MAPS);
 	}
     }
 

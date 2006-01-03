@@ -1004,7 +1004,7 @@ the Postfix SMTP client returns such mail as undeliverable.
 Specify, for example, "<a href="postconf.5.html#best_mx_transport">best_mx_transport</a> = local" to pass the mail
 from the SMTP client to the <a href="local.8.html">local(8)</a> delivery agent. You can specify
 any message delivery "transport" or "transport:nexthop" that is
-defined in the master.cf file. See the <a href="transport.5.html">transport(5)</a> manual page
+defined in the <a href="master.5.html">master.cf</a> file. See the <a href="transport.5.html">transport(5)</a> manual page
 for the syntax and meaning of "transport" or "transport:nexthop".
 </p>
 
@@ -1030,7 +1030,7 @@ notification with the UNIX command "<a href="postconf.5.html#biff">biff</a> y".
 <p>
 For compatibility reasons this feature is on by default.  On systems
 with lots of interactive users, the <a href="postconf.5.html#biff">biff</a> service can be a performance
-drain.  Specify "<a href="postconf.5.html#biff">biff</a> = no" in main.cf to disable.
+drain.  Specify "<a href="postconf.5.html#biff">biff</a> = no" in <a href="postconf.5.html">main.cf</a> to disable.
 </p>
 
 
@@ -1355,7 +1355,7 @@ global <a href="postconf.5.html#ipc_timeout">ipc_timeout</a> parameter as well.
 <DT><b><a name="config_directory">config_directory</a>
 (default: see "postconf -d" output)</b></DT><DD>
 
-<p> The default location of the Postfix main.cf and master.cf
+<p> The default location of the Postfix <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a>
 configuration files. This can be overruled via the following
 mechanisms: </p>
 
@@ -1371,7 +1371,7 @@ and commands). </p>
 <p> With Postfix command that run with set-gid privileges, a
 <a href="postconf.5.html#config_directory">config_directory</a> override requires either root privileges, or it
 requires that the directory is listed with the <a href="postconf.5.html#alternate_config_directories">alternate_config_directories</a>
-parameter in the default main.cf file.  </p>
+parameter in the default <a href="postconf.5.html">main.cf</a> file.  </p>
 
 
 </DD>
@@ -1714,7 +1714,7 @@ PRIVILEGED USER OR THE POSTFIX OWNER</b>.
 <p>
 The default maximal number of Postfix child processes that provide
 a given service. This limit can be overruled for specific services
-in the master.cf file.
+in the <a href="master.5.html">master.cf</a> file.
 </p>
 
 
@@ -1876,7 +1876,7 @@ table.
 
 <p>
 Specify a string of the form <i>transport:nexthop</i>, where <i>transport</i>
-is the name of a mail delivery transport defined in master.cf.
+is the name of a mail delivery transport defined in <a href="master.5.html">master.cf</a>.
 The <i>:nexthop</i> part is optional.  For more details see the
 <a href="transport.5.html">transport(5)</a> manual page.
 </p>
@@ -1945,7 +1945,7 @@ This feature is available in Postfix 2.0 and later.
 The names of message delivery transports that should not deliver mail
 unless someone issues "<b>sendmail -q</b>" or equivalent. Specify zero
 or more names of mail delivery transports names that appear in the
-first field of master.cf.
+first field of <a href="master.5.html">master.cf</a>.
 </p>
 
 <p>
@@ -2339,9 +2339,9 @@ is unavailable. </p>
 
 <ul>
 
-<li> In main.cf specify "<a href="postconf.5.html#relay_transport">relay_transport</a> = relay",
+<li> In <a href="postconf.5.html">main.cf</a> specify "<a href="postconf.5.html#relay_transport">relay_transport</a> = relay",
 
-<li> In master.cf specify "-o <a href="postconf.5.html#fallback_relay">fallback_relay</a> =" (i.e., empty) at
+<li> In <a href="master.5.html">master.cf</a> specify "-o <a href="postconf.5.html#fallback_relay">fallback_relay</a> =" (i.e., empty) at
 the end of the <tt>relay</tt> entry.
 
 <li> In transport maps, specify "relay:<i>nexthop...</i>"
@@ -2362,8 +2362,30 @@ for destinations that it is MX host for.
 <p>
 Optional message delivery transport that the <a href="local.8.html">local(8)</a> delivery
 agent should use for names that are not found in the <a href="aliases.5.html">aliases(5)</a>
-database or in the UNIX passwd database.
+or UNIX password database.
 </p>
+
+<p> The precedence of <a href="local.8.html">local(8)</a> delivery features from high to low
+is: aliases, .forward files, <a href="postconf.5.html#mailbox_transport_maps">mailbox_transport_maps</a>, <a href="postconf.5.html#mailbox_transport">mailbox_transport</a>,
+<a href="postconf.5.html#mailbox_command_maps">mailbox_command_maps</a>, <a href="postconf.5.html#mailbox_command">mailbox_command</a>, <a href="postconf.5.html#home_mailbox">home_mailbox</a>, <a href="postconf.5.html#mail_spool_directory">mail_spool_directory</a>,
+<a href="postconf.5.html#fallback_transport_maps">fallback_transport_maps</a>, <a href="postconf.5.html#fallback_transport">fallback_transport</a> and <a href="postconf.5.html#luser_relay">luser_relay</a>.  </p>
+
+
+</DD>
+
+<DT><b><a name="fallback_transport_maps">fallback_transport_maps</a>
+(default: empty)</b></DT><DD>
+
+<p> Optional lookup tables with per-recipient message delivery
+transports for recipients that the <a href="local.8.html">local(8)</a> delivery agent could
+not find in the <a href="aliases.5.html">aliases(5)</a> or UNIX password database. </p>
+
+<p> The precedence of <a href="local.8.html">local(8)</a> delivery features from high to low
+is: aliases, .forward files, <a href="postconf.5.html#mailbox_transport_maps">mailbox_transport_maps</a>, <a href="postconf.5.html#mailbox_transport">mailbox_transport</a>,
+<a href="postconf.5.html#mailbox_command_maps">mailbox_command_maps</a>, <a href="postconf.5.html#mailbox_command">mailbox_command</a>, <a href="postconf.5.html#home_mailbox">home_mailbox</a>, <a href="postconf.5.html#mail_spool_directory">mail_spool_directory</a>,
+<a href="postconf.5.html#fallback_transport_maps">fallback_transport_maps</a>, <a href="postconf.5.html#fallback_transport">fallback_transport</a> and <a href="postconf.5.html#luser_relay">luser_relay</a>.  </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
 
 
 </DD>
@@ -2684,12 +2706,10 @@ home directory.
 Specify a pathname ending in "/" for qmail-style delivery.
 </p>
 
-<p>
-The precedence of <a href="local.8.html">local(8)</a> delivery features from high to low is:
-aliases, .forward files, <a href="postconf.5.html#mailbox_transport">mailbox_transport</a>, <a href="postconf.5.html#mailbox_command_maps">mailbox_command_maps</a>,
-<a href="postconf.5.html#mailbox_command">mailbox_command</a>, <a href="postconf.5.html#home_mailbox">home_mailbox</a>, <a href="postconf.5.html#mail_spool_directory">mail_spool_directory</a>, <a href="postconf.5.html#fallback_transport">fallback_transport</a>
-and <a href="postconf.5.html#luser_relay">luser_relay</a>.
-</p>
+<p> The precedence of <a href="local.8.html">local(8)</a> delivery features from high to low
+is: aliases, .forward files, <a href="postconf.5.html#mailbox_transport_maps">mailbox_transport_maps</a>, <a href="postconf.5.html#mailbox_transport">mailbox_transport</a>,
+<a href="postconf.5.html#mailbox_command_maps">mailbox_command_maps</a>, <a href="postconf.5.html#mailbox_command">mailbox_command</a>, <a href="postconf.5.html#home_mailbox">home_mailbox</a>, <a href="postconf.5.html#mail_spool_directory">mail_spool_directory</a>,
+<a href="postconf.5.html#fallback_transport_maps">fallback_transport_maps</a>, <a href="postconf.5.html#fallback_transport">fallback_transport</a> and <a href="postconf.5.html#luser_relay">luser_relay</a>.  </p>
 
 <p>
 Examples:
@@ -2832,7 +2852,7 @@ for IPv6. </p>
 <p>
 A better solution for multi-homed firewalls is to leave <a href="postconf.5.html#inet_interfaces">inet_interfaces</a>
 at the default value and instead use explicit IP addresses in
-the master.cf SMTP server definitions.  This preserves the SMTP client's
+the <a href="master.5.html">master.cf</a> SMTP server definitions.  This preserves the SMTP client's
 loop detection, by ensuring that each side of the firewall knows that the
 other IP address is still the same host. Setting $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> to a
 single IPv4 and/or IPV6 address is primarily useful with virtual
@@ -3196,7 +3216,7 @@ configuration parameter.  See there for details. </p>
 <p> The maximal number of parallel deliveries to the same destination
 via the lmtp message delivery transport. This limit is enforced by
 the queue manager. The message delivery transport name is the first
-field in the entry in the master.cf file.  </p>
+field in the entry in the <a href="master.5.html">master.cf</a> file.  </p>
 
 
 </DD>
@@ -3207,7 +3227,7 @@ field in the entry in the master.cf file.  </p>
 <p> The maximal number of recipients per delivery via the lmtp
 message delivery transport. This limit is enforced by the queue
 manager. The message delivery transport name is the first field in
-the entry in the master.cf file.  </p>
+the entry in the <a href="master.5.html">master.cf</a> file.  </p>
 
 <p> Setting this parameter to a value of 1 changes the meaning of
 <a href="postconf.5.html#lmtp_destination_concurrency_limit">lmtp_destination_concurrency_limit</a> from concurrency per domain into
@@ -3251,15 +3271,6 @@ this action from being logged. </p>
 discard LHLO keywords selectively. </p>
 
 </ul>
-
-
-</DD>
-
-<DT><b><a name="lmtp_dot_quit_workaround_threshold_time">lmtp_dot_quit_workaround_threshold_time</a>
-(default: 3000s)</b></DT><DD>
-
-<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_dot_quit_workaround_threshold_time">smtp_dot_quit_workaround_threshold_time</a>
-configuration parameter.  See there for details. </p>
 
 
 </DD>
@@ -3310,13 +3321,13 @@ The default value is the machine hostname.  Specify a hostname or
 </p>
 
 <p>
-This information can be specified in the main.cf file for all LMTP
-clients, or it can be specified in the master.cf file for a specific
+This information can be specified in the <a href="postconf.5.html">main.cf</a> file for all LMTP
+clients, or it can be specified in the <a href="master.5.html">master.cf</a> file for a specific
 client, for example:
 </p>
 
 <pre>
-  /etc/postfix/master.cf:
+  /etc/postfix/<a href="master.5.html">master.cf</a>:
         mylmtp ... lmtp -o <a href="postconf.5.html#lmtp_lhloname">lmtp_lhlo_name</a>=foo.bar.com
 </pre>
 
@@ -3783,7 +3794,7 @@ delivery transport to the same recipient (when
 parallel deliveries to the same <a href="ADDRESS_CLASS_README.html#local_domain_class">local domain</a> (when
 "<a href="postconf.5.html#local_destination_recipient_limit">local_destination_recipient_limit</a> &gt; 1"). This limit is enforced by
 the queue manager. The message delivery transport name is the first
-field in the entry in the master.cf file. </p>
+field in the entry in the <a href="master.5.html">master.cf</a> file. </p>
 
 <p> A low limit of 2 is recommended, just in case someone has an
 expensive shell command in a .forward file or in an alias (e.g.,
@@ -3799,7 +3810,7 @@ the same time.  </p>
 <p> The maximal number of recipients per message delivery via the
 local mail delivery transport. This limit is enforced by the queue
 manager. The message delivery transport name is the first field in
-the entry in the master.cf file. </p>
+the entry in the <a href="master.5.html">master.cf</a> file. </p>
 
 <p> Setting this parameter to a value &gt; 1 changes the meaning of
 <a href="postconf.5.html#local_destination_concurrency_limit">local_destination_concurrency_limit</a> from concurrency per recipient
@@ -3933,9 +3944,9 @@ delivery agent for local delivery. You need to update the
 
 <ul>
 
-<li>You redefine the local delivery agent in master.cf.
+<li>You redefine the local delivery agent in <a href="master.5.html">master.cf</a>.
 
-<li>You redefine the "<a href="postconf.5.html#local_transport">local_transport</a>" setting in main.cf.
+<li>You redefine the "<a href="postconf.5.html#local_transport">local_transport</a>" setting in <a href="postconf.5.html">main.cf</a>.
 
 <li>You use the "<a href="postconf.5.html#luser_relay">luser_relay</a>", "<a href="postconf.5.html#mailbox_transport">mailbox_transport</a>", or "<a href="postconf.5.html#fallback_transport">fallback_transport</a>"
 feature of the Postfix <a href="local.8.html">local(8)</a> delivery agent.
@@ -3974,12 +3985,12 @@ This information can be overruled with the <a href="transport.5.html">transport(
 
 <p>
 By default, local mail is delivered to the transport called "local",
-which is just the name of a service that is defined the master.cf file.
+which is just the name of a service that is defined the <a href="master.5.html">master.cf</a> file.
 </p>
 
 <p>
 Specify a string of the form <i>transport:nexthop</i>, where <i>transport</i>
-is the name of a mail delivery transport defined in master.cf.
+is the name of a mail delivery transport defined in <a href="master.5.html">master.cf</a>.
 The <i>:nexthop</i> part is optional.  For more details see the
 <a href="transport.5.html">transport(5)</a> manual page.
 </p>
@@ -4062,7 +4073,7 @@ Note: <a href="postconf.5.html#luser_relay">luser_relay</a> works only for the P
 <p>
 Note: if you use this feature for accounts not in the UNIX password
 file, then you must specify "<a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a> =" (i.e. empty)
-in the main.cf file, otherwise the Postfix SMTP server will reject mail
+in the <a href="postconf.5.html">main.cf</a> file, otherwise the Postfix SMTP server will reject mail
 for non-UNIX accounts with "User unknown in local recipient table".
 </p>
 
@@ -4271,12 +4282,10 @@ system-wide, you must set up an alias that forwards mail for root
 to a real user.
 </p>
 
-<p>
-The precedence of <a href="local.8.html">local(8)</a> delivery features from high to low is:
-aliases, .forward files, <a href="postconf.5.html#mailbox_transport">mailbox_transport</a>, <a href="postconf.5.html#mailbox_command_maps">mailbox_command_maps</a>,
-<a href="postconf.5.html#mailbox_command">mailbox_command</a>, <a href="postconf.5.html#home_mailbox">home_mailbox</a>, <a href="postconf.5.html#mail_spool_directory">mail_spool_directory</a>, <a href="postconf.5.html#fallback_transport">fallback_transport</a>
-and <a href="postconf.5.html#luser_relay">luser_relay</a>.
-</p>
+<p> The precedence of <a href="local.8.html">local(8)</a> delivery features from high to low
+is: aliases, .forward files, <a href="postconf.5.html#mailbox_transport_maps">mailbox_transport_maps</a>, <a href="postconf.5.html#mailbox_transport">mailbox_transport</a>,
+<a href="postconf.5.html#mailbox_command_maps">mailbox_command_maps</a>, <a href="postconf.5.html#mailbox_command">mailbox_command</a>, <a href="postconf.5.html#home_mailbox">home_mailbox</a>, <a href="postconf.5.html#mail_spool_directory">mail_spool_directory</a>,
+<a href="postconf.5.html#fallback_transport_maps">fallback_transport_maps</a>, <a href="postconf.5.html#fallback_transport">fallback_transport</a> and <a href="postconf.5.html#luser_relay">luser_relay</a>.  </p>
 
 <p>
 Examples:
@@ -4300,12 +4309,10 @@ Optional lookup tables with per-recipient external commands to use
 for <a href="local.8.html">local(8)</a> mailbox delivery.  Behavior is as with <a href="postconf.5.html#mailbox_command">mailbox_command</a>.
 </p>
 
-<p>
-The precedence of <a href="local.8.html">local(8)</a> delivery features from high to low is:
-aliases, .forward files, <a href="postconf.5.html#mailbox_transport">mailbox_transport</a>, <a href="postconf.5.html#mailbox_command_maps">mailbox_command_maps</a>,
-<a href="postconf.5.html#mailbox_command">mailbox_command</a>, <a href="postconf.5.html#home_mailbox">home_mailbox</a>, <a href="postconf.5.html#mail_spool_directory">mail_spool_directory</a>, <a href="postconf.5.html#fallback_transport">fallback_transport</a>
-and <a href="postconf.5.html#luser_relay">luser_relay</a>.
-</p>
+<p> The precedence of <a href="local.8.html">local(8)</a> delivery features from high to low
+is: aliases, .forward files, <a href="postconf.5.html#mailbox_transport_maps">mailbox_transport_maps</a>, <a href="postconf.5.html#mailbox_transport">mailbox_transport</a>,
+<a href="postconf.5.html#mailbox_command_maps">mailbox_command_maps</a>, <a href="postconf.5.html#mailbox_command">mailbox_command</a>, <a href="postconf.5.html#home_mailbox">home_mailbox</a>, <a href="postconf.5.html#mail_spool_directory">mail_spool_directory</a>,
+<a href="postconf.5.html#fallback_transport_maps">fallback_transport_maps</a>, <a href="postconf.5.html#fallback_transport">fallback_transport</a> and <a href="postconf.5.html#luser_relay">luser_relay</a>.  </p>
 
 
 </DD>
@@ -4361,12 +4368,27 @@ agent should use for mailbox delivery to all local recipients,
 whether or not they are found in the UNIX passwd database.
 </p>
 
-<p>
-The precedence of <a href="local.8.html">local(8)</a> delivery features from high to low is:
-aliases, .forward files, <a href="postconf.5.html#mailbox_transport">mailbox_transport</a>, <a href="postconf.5.html#mailbox_command_maps">mailbox_command_maps</a>,
-<a href="postconf.5.html#mailbox_command">mailbox_command</a>, <a href="postconf.5.html#home_mailbox">home_mailbox</a>, <a href="postconf.5.html#mail_spool_directory">mail_spool_directory</a>, <a href="postconf.5.html#fallback_transport">fallback_transport</a>
-and <a href="postconf.5.html#luser_relay">luser_relay</a>.
-</p>
+<p> The precedence of <a href="local.8.html">local(8)</a> delivery features from high to low
+is: aliases, .forward files, <a href="postconf.5.html#mailbox_transport_maps">mailbox_transport_maps</a>, <a href="postconf.5.html#mailbox_transport">mailbox_transport</a>,
+<a href="postconf.5.html#mailbox_command_maps">mailbox_command_maps</a>, <a href="postconf.5.html#mailbox_command">mailbox_command</a>, <a href="postconf.5.html#home_mailbox">home_mailbox</a>, <a href="postconf.5.html#mail_spool_directory">mail_spool_directory</a>,
+<a href="postconf.5.html#fallback_transport_maps">fallback_transport_maps</a>, <a href="postconf.5.html#fallback_transport">fallback_transport</a> and <a href="postconf.5.html#luser_relay">luser_relay</a>.  </p>
+
+
+</DD>
+
+<DT><b><a name="mailbox_transport_maps">mailbox_transport_maps</a>
+(default: empty)</b></DT><DD>
+
+<p> Optional lookup tables with per-recipient message delivery
+transports to use for <a href="local.8.html">local(8)</a> mailbox delivery, whether or not the
+recipients are found in the UNIX passwd database. </p>
+
+<p> The precedence of <a href="local.8.html">local(8)</a> delivery features from high to low
+is: aliases, .forward files, <a href="postconf.5.html#mailbox_transport_maps">mailbox_transport_maps</a>, <a href="postconf.5.html#mailbox_transport">mailbox_transport</a>,
+<a href="postconf.5.html#mailbox_command_maps">mailbox_command_maps</a>, <a href="postconf.5.html#mailbox_command">mailbox_command</a>, <a href="postconf.5.html#home_mailbox">home_mailbox</a>, <a href="postconf.5.html#mail_spool_directory">mail_spool_directory</a>,
+<a href="postconf.5.html#fallback_transport_maps">fallback_transport_maps</a>, <a href="postconf.5.html#fallback_transport">fallback_transport</a> and <a href="postconf.5.html#luser_relay">luser_relay</a>.  </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
 
 
 </DD>
@@ -5545,11 +5567,11 @@ configure or operate a specific Postfix subsystem or feature.
 
 <p> Enable or disable recipient validation, built-in content
 filtering, or address mapping. Typically, these are specified in
-master.cf as command-line arguments for the <a href="smtpd.8.html">smtpd(8)</a>, <a href="qmqpd.8.html">qmqpd(8)</a> or
+<a href="master.5.html">master.cf</a> as command-line arguments for the <a href="smtpd.8.html">smtpd(8)</a>, <a href="qmqpd.8.html">qmqpd(8)</a> or
 <a href="pickup.8.html">pickup(8)</a> daemons. </p>
 
 <p> Specify zero or more of the following options.  The options
-override main.cf settings and are either implemented by <a href="smtpd.8.html">smtpd(8)</a>,
+override <a href="postconf.5.html">main.cf</a> settings and are either implemented by <a href="smtpd.8.html">smtpd(8)</a>,
 <a href="qmqpd.8.html">qmqpd(8)</a>, or <a href="pickup.8.html">pickup(8)</a> themselves, or they are forwarded to the
 cleanup server.  </p>
 
@@ -5577,8 +5599,8 @@ an external content filter. </dd>
 
 <p>
 Note: when the "BEFORE content filter" <a href="postconf.5.html#receive_override_options">receive_override_options</a>
-setting is specified in the main.cf file, specify the "AFTER content
-filter" <a href="postconf.5.html#receive_override_options">receive_override_options</a> setting in master.cf (and vice
+setting is specified in the <a href="postconf.5.html">main.cf</a> file, specify the "AFTER content
+filter" <a href="postconf.5.html#receive_override_options">receive_override_options</a> setting in <a href="master.5.html">master.cf</a> (and vice
 versa).
 </p>
 
@@ -5774,7 +5796,7 @@ See <a href="RESTRICTION_CLASS_README.html">RESTRICTION_CLASS_README</a>.</p>
 <p> The maximal number of parallel deliveries to the same destination
 via the relay message delivery transport. This limit is enforced
 by the queue manager. The message delivery transport name is the
-first field in the entry in the master.cf file.  </p>
+first field in the entry in the <a href="master.5.html">master.cf</a> file.  </p>
 
 <p> This feature is available in Postfix 2.0 and later. </p>
 
@@ -5787,7 +5809,7 @@ first field in the entry in the master.cf file.  </p>
 <p> The maximal number of recipients per delivery via the relay
 message delivery transport. This limit is enforced by the queue
 manager. The message delivery transport name is the first field in
-the entry in the master.cf file.  </p>
+the entry in the <a href="master.5.html">master.cf</a> file.  </p>
 
 <p> Setting this parameter to a value of 1 changes the meaning of
 <a href="postconf.5.html#relay_destination_concurrency_limit">relay_destination_concurrency_limit</a> from concurrency per domain
@@ -5893,7 +5915,7 @@ the <a href="transport.5.html">transport(5)</a> table.
 
 <p>
 Specify a string of the form <i>transport:nexthop</i>, where <i>transport</i>
-is the name of a mail delivery transport defined in master.cf.
+is the name of a mail delivery transport defined in <a href="master.5.html">master.cf</a>.
 The <i>:nexthop</i> part is optional.  For more details see the
 <a href="transport.5.html">transport(5)</a> manual page.
 </p>
@@ -6324,13 +6346,13 @@ bind to when making an IPv4 connection.
 </p>
 
 <p>
-This can be specified in the main.cf file for all SMTP clients, or
-it can be specified in the master.cf file for a specific client,
+This can be specified in the <a href="postconf.5.html">main.cf</a> file for all SMTP clients, or
+it can be specified in the <a href="master.5.html">master.cf</a> file for a specific client,
 for example:
 </p>
 
 <pre>
-  /etc/postfix/master.cf:
+  /etc/postfix/<a href="master.5.html">master.cf</a>:
         smtp ... smtp -o <a href="postconf.5.html#smtp_bind_address">smtp_bind_address</a>=11.22.33.44
 </pre>
 
@@ -6357,13 +6379,13 @@ bind to when making an IPv6 connection.
 <p> This feature is available in Postfix 2.2 and later. </p>
 
 <p>
-This can be specified in the main.cf file for all SMTP clients, or
-it can be specified in the master.cf file for a specific client,
+This can be specified in the <a href="postconf.5.html">main.cf</a> file for all SMTP clients, or
+it can be specified in the <a href="master.5.html">master.cf</a> file for a specific client,
 for example:
 </p>
 
 <pre>
-  /etc/postfix/master.cf:
+  /etc/postfix/<a href="master.5.html">master.cf</a>:
         smtp ... smtp -o <a href="postconf.5.html#smtp_bind_address6">smtp_bind_address6</a>=1:2:3:4:5:6:7:8
 </pre>
 
@@ -6422,7 +6444,7 @@ right-hand side of an email address, without the [] around a numeric
 IP address),
 
 <li> if mail is sent via a <a href="postconf.5.html#relayhost">relay host</a>: a <a href="postconf.5.html#relayhost">relay host</a> name (without
-[] or non-default TCP port), as specified in main.cf or in the
+[] or non-default TCP port), as specified in <a href="postconf.5.html">main.cf</a> or in the
 transport map,
 
 <li> if mail is sent via a UNIX-domain socket: a pathname (without
@@ -6621,7 +6643,7 @@ This feature is available in Postfix 2.1 and later.
 <p> The maximal number of parallel deliveries to the same destination
 via the smtp message delivery transport. This limit is enforced by
 the queue manager. The message delivery transport name is the first
-field in the entry in the master.cf file.  </p>
+field in the entry in the <a href="master.5.html">master.cf</a> file.  </p>
 
 
 </DD>
@@ -6632,7 +6654,7 @@ field in the entry in the master.cf file.  </p>
 <p> The maximal number of recipients per delivery via the smtp
 message delivery transport. This limit is enforced by the queue
 manager. The message delivery transport name is the first field in
-the entry in the master.cf file.  </p>
+the entry in the <a href="master.5.html">master.cf</a> file.  </p>
 
 <p> Setting this parameter to a value of 1 changes the meaning of
 <a href="postconf.5.html#smtp_destination_concurrency_limit">smtp_destination_concurrency_limit</a> from concurrency per domain
@@ -6676,39 +6698,6 @@ this action from being logged. </p>
 discard EHLO keywords selectively. </p>
 
 </ul>
-
-
-</DD>
-
-<DT><b><a name="smtp_dot_quit_workaround_threshold_time">smtp_dot_quit_workaround_threshold_time</a>
-(default: 3000s)</b></DT><DD>
-
-<p> How long a message must be queued before the "." + QUIT bug
-workaround is turned on for all deliveries; this limits the
-number of repeated deliveries with servers or firewalls that
-mis-implement END-OF-DATA + QUIT pipelining. </p>
-
-<p> When the workaround is turned on, the Postfix SMTP client will
-not send the QUIT command until it has received the server's
-END-OF-DATA reply.  This workaround incurs a small performance loss
-with delivery to sites that correctly implement SMTP command
-pipelining.  </p>
-
-<p> By default, the workaround is turned off for mail that is queued
-for less than 3000 seconds. In other words, the workaround is
-normally turned off for the first few delivery attempts of personal
-mail and of small mailing lists.  </p>
-
-<p> Specify 0 to enable this workaround upon the first delivery
-attempt, and specify a large value such as $<a href="postconf.5.html#maximal_queue_lifetime">maximal_queue_lifetime</a>
-to disable the workaround for practically all delivery attempts.
-</p>
-
-<p> Note: when the <a href="postconf.5.html#smtp_fallback_relay">smtp_fallback_relay</a> feature is used, there will
-be no second delivery attempt, and the workaround may have no effect.
-</p>
-
-<p> This feature is available in Postfix 2.3 and later. </p>
 
 
 </DD>
@@ -6794,13 +6783,13 @@ The default value is the machine hostname.  Specify a hostname or
 </p>
 
 <p>
-This information can be specified in the main.cf file for all SMTP
-clients, or it can be specified in the master.cf file for a specific
+This information can be specified in the <a href="postconf.5.html">main.cf</a> file for all SMTP
+clients, or it can be specified in the <a href="master.5.html">master.cf</a> file for a specific
 client, for example:
 </p>
 
 <pre>
-  /etc/postfix/master.cf:
+  /etc/postfix/<a href="master.5.html">master.cf</a>:
         mysmtp ... smtp -o <a href="postconf.5.html#smtp_helo_name">smtp_helo_name</a>=foo.bar.com
 </pre>
 
@@ -7004,11 +6993,11 @@ that ends in ".".
 
 <p>
 The default is to comply with <a href="http://www.faqs.org/rfcs/rfc821.html">RFC 821</a>. If you have to send mail to
-a broken SMTP server, configure a special SMTP client in master.cf:
+a broken SMTP server, configure a special SMTP client in <a href="master.5.html">master.cf</a>:
 </p>
 
 <pre>
-    /etc/postfix/master.cf:
+    /etc/postfix/<a href="master.5.html">master.cf</a>:
         broken-smtp . . . smtp -o <a href="postconf.5.html#smtp_quote_rfc821_envelope">smtp_quote_rfc821_envelope</a>=no
 </pre>
 
@@ -8173,7 +8162,7 @@ the next restriction in the list, if any. This may stop zombie
 mail when used as:
 
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtpd_client_restrictions">smtpd_client_restrictions</a> =
         sleep 1, <a href="postconf.5.html#reject_unauth_pipelining">reject_unauth_pipelining</a>
     <a href="postconf.5.html#smtpd_delay_reject">smtpd_delay_reject</a> = no
@@ -9879,7 +9868,7 @@ $<a href="postconf.5.html#smtpd_tls_session_cache_timeout">smtpd_tls_session_cac
 instead of using the STARTTLS command. </p>
 
 <p> If you want to support this service, enable a special port in
-master.cf, and specify "-o <a href="postconf.5.html#smtpd_tls_wrappermode">smtpd_tls_wrappermode</a>=yes" on the SMTP
+<a href="master.5.html">master.cf</a>, and specify "-o <a href="postconf.5.html#smtpd_tls_wrappermode">smtpd_tls_wrappermode</a>=yes" on the SMTP
 server's command line. Port 465 (smtps) was once chosen for this
 purpose. </p>
 
@@ -10104,7 +10093,7 @@ Warning: a non-default <a href="postconf.5.html#syslog_facility">syslog_facility
 after a Postfix process has completed initialization.  Errors during
 process initialization will be logged with the default facility.
 Examples are errors while parsing the command line arguments, and
-errors while accessing the Postfix main.cf configuration file.
+errors while accessing the Postfix <a href="postconf.5.html">main.cf</a> configuration file.
 </p>
 
 
@@ -10123,7 +10112,7 @@ Warning: a non-default <a href="postconf.5.html#syslog_name">syslog_name</a> set
 a Postfix process has completed initialization. Errors during
 process initialization will be logged with the default name. Examples
 are errors while parsing the command line arguments, and errors
-while accessing the Postfix main.cf configuration file.
+while accessing the Postfix <a href="postconf.5.html">main.cf</a> configuration file.
 </p>
 
 
@@ -10600,7 +10589,7 @@ This feature is available in Postfix 2.1 and later.
 <p> The maximal number of parallel deliveries to the same destination
 via the virtual message delivery transport. This limit is enforced
 by the queue manager. The message delivery transport name is the
-first field in the entry in the master.cf file.  </p>
+first field in the entry in the <a href="master.5.html">master.cf</a> file.  </p>
 
 
 </DD>
@@ -10611,7 +10600,7 @@ first field in the entry in the master.cf file.  </p>
 <p> The maximal number of recipients per delivery via the virtual
 message delivery transport. This limit is enforced by the queue
 manager. The message delivery transport name is the first field in
-the entry in the master.cf file.  </p>
+the entry in the <a href="master.5.html">master.cf</a> file.  </p>
 
 <p> Setting this parameter to a value of 1 changes the meaning of
 <a href="postconf.5.html#virtual_destination_concurrency_limit">virtual_destination_concurrency_limit</a> from concurrency per domain
@@ -10821,7 +10810,7 @@ This information can be overruled with the <a href="transport.5.html">transport(
 
 <p>
 Specify a string of the form <i>transport:nexthop</i>, where <i>transport</i>
-is the name of a mail delivery transport defined in master.cf.
+is the name of a mail delivery transport defined in <a href="master.5.html">master.cf</a>.
 The <i>:nexthop</i> part is optional.  For more details see the
 <a href="transport.5.html">transport(5)</a> manual page.
 </p>

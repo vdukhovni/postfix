@@ -927,10 +927,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	(recv_state < send_state || recv_rcpt != send_rcpt)
 
 #define SENDER_IN_WAIT_STATE \
-	(send_state == SMTP_STATE_DOT || send_state == SMTP_STATE_LAST \
-	 || (recv_state == SMTP_STATE_DOT && send_state == SMTP_STATE_QUIT \
-	     && request->msg_stats.incoming_arrival.tv_sec \
-		<= vstream_ftime(session->stream) - var_smtp_dotq_thresh))
+	(send_state == SMTP_STATE_DOT || send_state == SMTP_STATE_LAST)
 
 #define SENDING_MAIL \
 	(recv_state <= SMTP_STATE_DOT)

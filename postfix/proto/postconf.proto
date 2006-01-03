@@ -1588,12 +1588,10 @@ home directory.
 Specify a pathname ending in "/" for qmail-style delivery.
 </p>
 
-<p>
-The precedence of local(8) delivery features from high to low is:
-aliases, .forward files, mailbox_transport, mailbox_command_maps,
-mailbox_command, home_mailbox, mail_spool_directory, fallback_transport
-and luser_relay.
-</p>
+<p> The precedence of local(8) delivery features from high to low
+is: aliases, .forward files, mailbox_transport_maps, mailbox_transport,
+mailbox_command_maps, mailbox_command, home_mailbox, mail_spool_directory,
+fallback_transport_maps, fallback_transport and luser_relay.  </p>
 
 <p>
 Examples:
@@ -2389,12 +2387,10 @@ system-wide, you must set up an alias that forwards mail for root
 to a real user.
 </p>
 
-<p>
-The precedence of local(8) delivery features from high to low is:
-aliases, .forward files, mailbox_transport, mailbox_command_maps,
-mailbox_command, home_mailbox, mail_spool_directory, fallback_transport
-and luser_relay.
-</p>
+<p> The precedence of local(8) delivery features from high to low
+is: aliases, .forward files, mailbox_transport_maps, mailbox_transport,
+mailbox_command_maps, mailbox_command, home_mailbox, mail_spool_directory,
+fallback_transport_maps, fallback_transport and luser_relay.  </p>
 
 <p>
 Examples:
@@ -6659,8 +6655,13 @@ sender address to the name of the "owner-aliasname" alias.
 <p>
 Optional message delivery transport that the local(8) delivery
 agent should use for names that are not found in the aliases(5)
-database or in the UNIX passwd database.
+or UNIX password database.
 </p>
+ 
+<p> The precedence of local(8) delivery features from high to low
+is: aliases, .forward files, mailbox_transport_maps, mailbox_transport,
+mailbox_command_maps, mailbox_command, home_mailbox, mail_spool_directory,
+fallback_transport_maps, fallback_transport and luser_relay.  </p>
 
 %PARAM fault_injection_code 0
 
@@ -6820,12 +6821,10 @@ Optional lookup tables with per-recipient external commands to use
 for local(8) mailbox delivery.  Behavior is as with mailbox_command.
 </p>
 
-<p>
-The precedence of local(8) delivery features from high to low is:
-aliases, .forward files, mailbox_transport, mailbox_command_maps,
-mailbox_command, home_mailbox, mail_spool_directory, fallback_transport
-and luser_relay.
-</p>
+<p> The precedence of local(8) delivery features from high to low
+is: aliases, .forward files, mailbox_transport_maps, mailbox_transport,
+mailbox_command_maps, mailbox_command, home_mailbox, mail_spool_directory,
+fallback_transport_maps, fallback_transport and luser_relay.  </p>
 
 %PARAM mailbox_delivery_lock see "postconf -d" output
 
@@ -6857,12 +6856,10 @@ agent should use for mailbox delivery to all local recipients,
 whether or not they are found in the UNIX passwd database.
 </p>
 
-<p>
-The precedence of local(8) delivery features from high to low is:
-aliases, .forward files, mailbox_transport, mailbox_command_maps,
-mailbox_command, home_mailbox, mail_spool_directory, fallback_transport
-and luser_relay.
-</p>
+<p> The precedence of local(8) delivery features from high to low
+is: aliases, .forward files, mailbox_transport_maps, mailbox_transport,
+mailbox_command_maps, mailbox_command, home_mailbox, mail_spool_directory,
+fallback_transport_maps, fallback_transport and luser_relay.  </p>
 
 %PARAM mailq_path see "postconf -d" output
 
@@ -9126,36 +9123,28 @@ rejecting the address as invalid.  </p>
 
 <p> This feature is available in Postfix 2.3 and later.
 
-%PARAM smtp_dot_quit_workaround_threshold_time 3000s
+%PARAM mailbox_transport_maps
 
-<p> How long a message must be queued before the "." + QUIT bug
-workaround is turned on for all deliveries; this limits the
-number of repeated deliveries with servers or firewalls that
-mis-implement END-OF-DATA + QUIT pipelining. </p>
-
-<p> When the workaround is turned on, the Postfix SMTP client will
-not send the QUIT command until it has received the server's
-END-OF-DATA reply.  This workaround incurs a small performance loss
-with delivery to sites that correctly implement SMTP command
-pipelining.  </p>
-
-<p> By default, the workaround is turned off for mail that is queued
-for less than 3000 seconds. In other words, the workaround is
-normally turned off for the first few delivery attempts of personal
-mail and of small mailing lists.  </p>
-
-<p> Specify 0 to enable this workaround upon the first delivery
-attempt, and specify a large value such as $maximal_queue_lifetime
-to disable the workaround for practically all delivery attempts.
-</p>
-
-<p> Note: when the smtp_fallback_relay feature is used, there will
-be no second delivery attempt, and the workaround may have no effect.
-</p>
-
+<p> Optional lookup tables with per-recipient message delivery
+transports to use for local(8) mailbox delivery, whether or not the
+recipients are found in the UNIX passwd database. </p>
+ 
+<p> The precedence of local(8) delivery features from high to low
+is: aliases, .forward files, mailbox_transport_maps, mailbox_transport,
+mailbox_command_maps, mailbox_command, home_mailbox, mail_spool_directory,
+fallback_transport_maps, fallback_transport and luser_relay.  </p>
+ 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
-%PARAM lmtp_dot_quit_workaround_threshold_time 3000s
+%PARAM fallback_transport_maps
 
-<p> The LMTP-specific version of the smtp_dot_quit_workaround_threshold_time
-configuration parameter.  See there for details. </p>
+<p> Optional lookup tables with per-recipient message delivery
+transports for recipients that the local(8) delivery agent could
+not find in the aliases(5) or UNIX password database. </p>
+ 
+<p> The precedence of local(8) delivery features from high to low
+is: aliases, .forward files, mailbox_transport_maps, mailbox_transport,
+mailbox_command_maps, mailbox_command, home_mailbox, mail_spool_directory,
+fallback_transport_maps, fallback_transport and luser_relay.  </p>
+ 
+<p> This feature is available in Postfix 2.3 and later. </p>

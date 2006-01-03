@@ -101,18 +101,23 @@
 /*	ending in \fB/\fR for \fBqmail\fR-compatible \fBmaildir\fR delivery.
 /*
 /*	Mailbox delivery can be delegated to an external command specified
-/*	with the \fBmailbox_command\fR configuration parameter. The command
+/*	with the \fBmailbox_command_maps\fR and \fBmailbox_command\fR
+/*	configuration parameters. The command
 /*	executes with the privileges of the recipient user (exceptions:
 /*	secondary groups are not enabled; in case of delivery as root,
 /*	the command executes with the privileges of \fBdefault_privs\fR).
 /*
 /*	Mailbox delivery can be delegated to alternative message transports
 /*	specified in the \fBmaster.cf\fR file.
-/*	The \fBmailbox_transport\fR configuration parameter specifies a
+/*	The \fBmailbox_transport_maps\fR and \fBmailbox_transport\fR
+/*	configuration parameters specify an optional
 /*	message transport that is to be used for all local recipients,
 /*	regardless of whether they are found in the UNIX passwd database.
-/*	The \fBfallback_transport\fR parameter specifies a message transport
-/*	for recipients that are not found in the UNIX passwd database.
+/*	The \fBfallback_transport_maps\fR and
+/*	\fBfallback_transport\fR parameters specify an optional
+/*	message transport
+/*	for recipients that are not found in the aliases(5) or UNIX
+/*	passwd database.
 /*
 /*	In the case of UNIX-style mailbox delivery,
 /*	the \fBlocal\fR(8) daemon prepends a "\fBFrom \fIsender time_stamp\fR"
@@ -371,14 +376,19 @@
 /* .ad
 /* .fi
 /*	The precedence of \fBlocal\fR(8) delivery methods from high to low is:
-/*	aliases, .forward files, mailbox_transport, mailbox_command_maps,
-/*	mailbox_command, home_mailbox, mail_spool_directory, fallback_transport
-/*	and luser_relay.
+/*	aliases, .forward files, mailbox_transport_maps,
+/*	mailbox_transport, mailbox_command_maps, mailbox_command,
+/*	home_mailbox, mail_spool_directory, fallback_transport_maps,
+/*	fallback_transport, and luser_relay.
 /* .IP "\fBalias_maps (see 'postconf -d' output)\fR"
 /*	The alias databases that are used for \fBlocal\fR(8) delivery.
 /* .IP "\fBforward_path (see 'postconf -d' output)\fR"
 /*	The \fBlocal\fR(8) delivery agent search list for finding a .forward
 /*	file with user-specified delivery methods.
+/* .IP "\fBmailbox_transport_maps (empty)\fR"
+/*	Optional lookup tables with per-recipient message delivery
+/*	transports to use for \fBlocal\fR(8) mailbox delivery, whether or not the
+/*	recipients are found in the UNIX passwd database.
 /* .IP "\fBmailbox_transport (empty)\fR"
 /*	Optional message delivery transport that the \fBlocal\fR(8) delivery
 /*	agent should use for mailbox delivery to all local recipients,
@@ -394,10 +404,14 @@
 /*	home directory.
 /* .IP "\fBmail_spool_directory (see 'postconf -d' output)\fR"
 /*	The directory where \fBlocal\fR(8) UNIX-style mailboxes are kept.
+/* .IP "\fBfallback_transport_maps (empty)\fR"
+/*	Optional lookup tables with per-recipient message delivery
+/*	transports for recipients that the \fBlocal\fR(8) delivery agent could
+/*	not find in the \fBaliases\fR(5) or UNIX password database.
 /* .IP "\fBfallback_transport (empty)\fR"
 /*	Optional message delivery transport that the \fBlocal\fR(8) delivery
 /*	agent should use for names that are not found in the \fBaliases\fR(5)
-/*	database or in the UNIX passwd database.
+/*	or UNIX password database.
 /* .IP "\fBluser_relay (empty)\fR"
 /*	Optional catch-all destination for unknown \fBlocal\fR(8) recipients.
 /* .PP
@@ -604,7 +618,9 @@ char   *var_luser_relay;
 int     var_biff;
 char   *var_mail_spool_dir;
 char   *var_mailbox_transport;
+char   *var_mbox_transp_maps;
 char   *var_fallback_transport;
+char   *var_fbck_transp_maps;
 char   *var_exec_directory;
 char   *var_exec_exp_filter;
 char   *var_forward_path;
@@ -843,13 +859,16 @@ int     main(int argc, char **argv)
 	VAR_LOCAL_CMD_SHELL, DEF_LOCAL_CMD_SHELL, &var_local_cmd_shell, 0, 0,
 	VAR_MAIL_SPOOL_DIR, DEF_MAIL_SPOOL_DIR, &var_mail_spool_dir, 0, 0,
 	VAR_MAILBOX_TRANSP, DEF_MAILBOX_TRANSP, &var_mailbox_transport, 0, 0,
+	VAR_MBOX_TRANSP_MAPS, DEF_MBOX_TRANSP_MAPS, &var_mbox_transp_maps, 0, 0,
 	VAR_FALLBACK_TRANSP, DEF_FALLBACK_TRANSP, &var_fallback_transport, 0, 0,
+	VAR_FBCK_TRANSP_MAPS, DEF_FBCK_TRANSP_MAPS, &var_fbck_transp_maps, 0, 0,
 	VAR_CMD_EXP_FILTER, DEF_CMD_EXP_FILTER, &var_cmd_exp_filter, 1, 0,
 	VAR_FWD_EXP_FILTER, DEF_FWD_EXP_FILTER, &var_fwd_exp_filter, 1, 0,
 	VAR_EXEC_EXP_FILTER, DEF_EXEC_EXP_FILTER, &var_exec_exp_filter, 1, 0,
 	VAR_PROP_EXTENSION, DEF_PROP_EXTENSION, &var_prop_extension, 0, 0,
 	VAR_DELIVER_HDR, DEF_DELIVER_HDR, &var_deliver_hdr, 0, 0,
 	VAR_MAILBOX_LOCK, DEF_MAILBOX_LOCK, &var_mailbox_lock, 1, 0,
+	VAR_MAILBOX_CMD_MAPS, DEF_MAILBOX_CMD_MAPS, &var_mailbox_cmd_maps, 0, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {
@@ -866,7 +885,6 @@ int     main(int argc, char **argv)
 	VAR_EXEC_DIRECTORY, DEF_EXEC_DIRECTORY, &var_exec_directory, 0, 0,
 	VAR_FORWARD_PATH, DEF_FORWARD_PATH, &var_forward_path, 0, 0,
 	VAR_MAILBOX_COMMAND, DEF_MAILBOX_COMMAND, &var_mailbox_command, 0, 0,
-	VAR_MAILBOX_CMD_MAPS, DEF_MAILBOX_CMD_MAPS, &var_mailbox_cmd_maps, 0, 0,
 	VAR_LUSER_RELAY, DEF_LUSER_RELAY, &var_luser_relay, 0, 0,
 	0,
     };

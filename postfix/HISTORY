@@ -11702,6 +11702,31 @@ Apologies for any names omitted.
 	smtp_dot_quit_workaround_threshold_time parameter.  Files:
 	smtp/smtp_proto.c, smtp/smtp.c.
 
+	Feature: mailbox_transport_maps and fallback_transport_maps
+	to search delivery transports by recipient name. Files:
+	local/mailbox.c, local/unknown.c.
+
+	Feature: the master daemon now logs a warning when all
+	servers are busy that may accept remote connections, and
+	suggests to either increase the process count or to reduce
+	the service time per client.  Files: master/master_ent.c,
+	master/master_avail.c.
+
+20051231
+
+	Bugfix: the anvil server would terminate after "max_idle"
+	seconds, even when this was less than the anvil_rate_time_unit
+	interval. File: anvil/anvil.c.
+
+20060102
+
+	Deleted the 20051229 dot-quit bug workaround.  Automatically
+	deferring delivery created "no delivery" and "repeated
+	delivery" problems; and automatically turning off pipelining
+	for delayed mail was a bad workaround for a bad workaround.
+	The administrator still has the option to turn off pipelining
+	by hand if loss of mail is a concern.
+
 Open problems:
 
 	"postsuper -r" no longer resets the message arrival time,

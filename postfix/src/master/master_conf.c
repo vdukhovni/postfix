@@ -131,6 +131,7 @@ void    master_config(void)
 	    serv->wakeup_time = entry->wakeup_time;
 	    serv->max_proc = entry->max_proc;
 	    serv->throttle_delay = entry->throttle_delay;
+	    SWAP(char *, serv->ext_name, entry->ext_name);
 	    SWAP(char *, serv->path, entry->path);
 	    SWAP(ARGV *, serv->args, entry->args);
 	    master_restart_service(serv);

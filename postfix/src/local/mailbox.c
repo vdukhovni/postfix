@@ -245,6 +245,8 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     int     status;
     struct mypasswd *mbox_pwd;
     char   *path;
+    static MAPS *transp_maps;
+    const char *map_transport;
     static MAPS *cmd_maps;
     const char *map_command;
 
@@ -266,6 +268,17 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     /*
      * Delegate mailbox delivery to another message transport.
      */
+    if (*var_mbox_transp_maps && transp_maps == 0)
+	transp_maps = maps_create(VAR_MBOX_TRANSP_MAPS, var_mbox_transp_maps,
+				  DICT_FLAG_LOCK);
+    if (*var_mbox_transp_maps
+	&& (map_transport = maps_find(transp_maps, state.msg_attr.user,
+				      DICT_FLAG_FIXED)) != 0) {
+	state.msg_attr.rcpt.offset = -1L;
+	*statusp = deliver_pass(MAIL_CLASS_PRIVATE, map_transport,
+				state.request, &state.msg_attr.rcpt);
+	return (YES);
+    }
     if (*var_mailbox_transport) {
 	state.msg_attr.rcpt.offset = -1L;
 	*statusp = deliver_pass(MAIL_CLASS_PRIVATE, var_mailbox_transport,

@@ -44,10 +44,6 @@
 	VAR_SMTP_STARTTLS_TMOUT, DEF_SMTP_STARTTLS_TMOUT, &var_smtp_starttls_tmout, 1, 0,
 #endif
 	VAR_SCACHE_PROTO_TMOUT, DEF_SCACHE_PROTO_TMOUT, &var_scache_proto_tmout, 1, 0,
-	VAR_MIN_BACKOFF_TIME, DEF_MIN_BACKOFF_TIME, &var_min_backoff_time, 1, 0,
-	VAR_MAX_BACKOFF_TIME, DEF_MAX_BACKOFF_TIME, &var_max_backoff_time, 1, 0,
-	VAR_MAX_QUEUE_TIME, DEF_MAX_QUEUE_TIME, &var_max_queue_time, 0, 0,
-	VAR_SMTP_DOTQ_THRESH, DEF_SMTP_DOTQ_THRESH, &var_smtp_dotq_thresh, 0, 0,
 	0,
     };
     static CONFIG_INT_TABLE smtp_int_table[] = {

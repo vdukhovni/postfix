@@ -252,7 +252,7 @@ document for an introduction to the Postfix architecture. </p>
  5 
  6 # Localize these. The -G option does nothing before Postfix 2.3.
  7 INSPECT_DIR=/var/spool/filter
- 8 SENDMAIL="/usr/sbin/sendmail -G -i"
+ 8 SENDMAIL="/usr/sbin/sendmail -G -i" # NEVER NEVER NEVER use "-t" here.
  9 
 10 # Exit codes from &lt;sysexits.h&gt;
 11 EX_TEMPFAIL=75
@@ -287,6 +287,10 @@ otherwise it disables address rewriting of message headers. </p>
 
 <li> <p> Line 8: The -i option says don't stop reading input when
 a line contains "." only.  </p>
+
+<li> <p> Line 8: NEVER NEVER NEVER use the "-t" command-line option
+here. It will mis-deliver mail, like sending mailing list mail back
+to the mailing list. </p>
 
 <li> <p> Line 21: The idea is to first capture the message to
 file and then run the content through a third-party content filter
@@ -623,7 +627,8 @@ gobble up a lot of system resources, so you don't want to have too
 much of it running at the same time. </p>
 
 <li> <p> With "-o smtp_send_xforward_command=yes", the scan transport
-will try to forward the original client name and IP address to the
+will try to forward the original client name and IP address 
+through the content filter to the
 after-filter smtpd process, so that filtered mail is logged with
 the real client name IP address. See smtp(8) and XFORWARD_README
 for more information. </p>

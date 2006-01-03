@@ -93,6 +93,7 @@ static void master_avail_event(int event, char *context)
 void    master_avail_listen(MASTER_SERV *serv)
 {
     char   *myname = "master_avail_listen";
+    time_t  now;
     int     n;
 
     /*
@@ -104,14 +105,22 @@ void    master_avail_listen(MASTER_SERV *serv)
     if (msg_verbose)
 	msg_info("%s: avail %d total %d max %d", myname,
 		 serv->avail_proc, serv->total_proc, serv->max_proc);
-    if (serv->avail_proc < 1
-	&& MASTER_LIMIT_OK(serv->max_proc, serv->total_proc)
-	&& !MASTER_THROTTLED(serv)) {
-	if (msg_verbose)
-	    msg_info("%s: enable events %s", myname, serv->name);
-	for (n = 0; n < serv->listen_fd_count; n++)
-	    event_enable_read(serv->listen_fd[n], master_avail_event,
-			      (char *) serv);
+    if (serv->avail_proc < 1 && !MASTER_THROTTLED(serv)) {
+	if (MASTER_LIMIT_OK(serv->max_proc, serv->total_proc)) {
+	    if (msg_verbose)
+		msg_info("%s: enable events %s", myname, serv->name);
+	    for (n = 0; n < serv->listen_fd_count; n++)
+		event_enable_read(serv->listen_fd[n], master_avail_event,
+				  (char *) serv);
+	} else if ((serv->flags & MASTER_FLAG_LOCAL_ONLY) == 0
+		   && (now = event_time()) - serv->busy_warn_time > 1000) {
+	    serv->busy_warn_time = now;
+	    msg_warn("service \"%s\" (%s) has reached its process limit \"%d\": "
+		     "new clients may experience noticeable delays",
+		     serv->ext_name, serv->name, serv->max_proc);
+	    msg_warn("to avoid this condition, increase the process count "
+		     "in master.cf or reduce the service time per client");
+	}
     }
 }
 

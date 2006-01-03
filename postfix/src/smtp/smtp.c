@@ -140,11 +140,6 @@
 /*	Never send EHLO at the start of an SMTP session.
 /* .IP "\fBsmtp_defer_if_no_mx_address_found (no)\fR"
 /*	Defer mail delivery when no MX record resolves to an IP address.
-/* .IP "\fBsmtp_dot_quit_workaround_threshold_time (3000s)\fR"
-/*	How long a message must be queued before the "." + QUIT bug
-/*	workaround is turned on for all deliveries; this limits the
-/*	number of repeated deliveries with servers or firewalls that
-/*	mis-implement END-OF-DATA + QUIT pipelining.
 /* .IP "\fBsmtp_line_length_limit (990)\fR"
 /*	The maximal length of message header and body lines that Postfix
 /*	will send via SMTP.
@@ -622,12 +617,6 @@ char   *var_prop_extension;
 bool    var_smtp_sender_auth;
 char   *var_lmtp_tcp_port;
 int     var_scache_proto_tmout;
-int     var_smtp_dotq_thresh;
-
-/* Workaround for "smtp_dot_quit_workaround_threshold_time = $name". */
-int     var_min_backoff_time;
-int     var_max_backoff_time;
-int     var_max_queue_time;
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by

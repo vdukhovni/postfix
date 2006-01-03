@@ -937,6 +937,12 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      * Do not limit the number of client requests.
      */
     var_use_limit = 0;
+
+    /*
+     * Don't exit before the sampling interval ends.
+     */
+    if (var_idle_limit < var_anvil_time_unit)
+	var_idle_limit = var_anvil_time_unit;
 }
 
 /* main - pass control to the multi-threaded skeleton */
