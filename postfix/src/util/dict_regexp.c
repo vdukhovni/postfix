@@ -257,9 +257,18 @@ static const char *dict_regexp_lookup(DICT *dict, const char *lookup_string)
 	    /*
 	     * Skip $number substitutions when the replacement text contains
 	     * no $number strings (as learned during the pre-scan).
+	     * 
+	     * XXX This is incorrect. Replacement text without $number
+	     * expressions may still require $$ -> $ replacement. Fixing this
+	     * requires that we save the result after pre-scanning the
+	     * replacement text. This change is too invasive for a stable
+	     * release. Since this optimization does not exist in the PCRE
+	     * module, we forego it here too.
 	     */
+#if 0
 	    if (match_rule->max_sub == 0)
 		return (match_rule->replacement);
+#endif
 
 	    /*
 	     * Perform $number substitutions on the replacement text. We
