@@ -46,22 +46,6 @@ typedef struct RECIPIENT {
     myfree((char *) (ptr)); (ptr) = mystrdup(new); \
 } while (0)
 
- /*
-  * Same without const poisning.
-  */
-typedef struct RECIPIENT_VAR {
-    long    offset;			/* REC_TYPE_RCPT byte */
-    char   *dsn_orcpt;			/* DSN original recipient */
-    int     dsn_notify;			/* DSN notify flags */
-    char   *orig_addr;			/* null or original recipient */
-    char   *address;			/* complete address */
-    union {				/* Application specific. */
-	int     status;			/* SMTP client */
-	struct QMGR_QUEUE *queue;	/* Queue manager */
-	char   *addr_type;		/* DSN */
-    } u;
-} RECIPIENT_VAR;
-
 typedef struct RECIPIENT_LIST {
     RECIPIENT *info;
     int     len;

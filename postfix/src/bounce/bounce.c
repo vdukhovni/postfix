@@ -194,14 +194,14 @@ BOUNCE_TEMPLATES *bounce_templates;
 
 #define STR vstring_str
 
+#define VS_NEUTER(s) printable(vstring_str(s), '?')
+
 /* bounce_append_proto - bounce_append server protocol */
 
 static int bounce_append_proto(char *service_name, VSTREAM *client)
 {
     char   *myname = "bounce_append_proto";
     int     flags;
-    RECIPIENT_VAR rcpt;
-    DSN_VAR dsn;
 
     /*
      * Read and validate the client request.
@@ -215,17 +215,31 @@ static int bounce_append_proto(char *service_name, VSTREAM *client)
 	msg_warn("malformed request");
 	return (-1);
     }
+
+    /*
+     * Sanitize input.
+     */
     if (mail_queue_id_ok(STR(queue_id)) == 0) {
 	msg_warn("malformed queue id: %s", printable(STR(queue_id), '?'));
 	return (-1);
     }
-    (void) RECIPIENT_FROM_RCPT_BUF(&rcpt, rcpt_buf);
-    (void) DSN_FROM_DSN_BUF(&dsn, dsn_buf);
+    VS_NEUTER(rcpt_buf->address);
+    VS_NEUTER(rcpt_buf->orig_addr);
+    VS_NEUTER(rcpt_buf->dsn_orcpt);
+    VS_NEUTER(dsn_buf->status);
+    VS_NEUTER(dsn_buf->action);
+    VS_NEUTER(dsn_buf->reason);
+    VS_NEUTER(dsn_buf->dtype);
+    VS_NEUTER(dsn_buf->dtext);
+    VS_NEUTER(dsn_buf->mtype);
+    VS_NEUTER(dsn_buf->mname);
+    (void) RECIPIENT_FROM_RCPT_BUF(rcpt_buf);
+    (void) DSN_FROM_DSN_BUF(dsn_buf);
 
     /*
-     * Beware: some dsn or rcpt fields may be null; access dsn_buf and
-     * rcpt_buf instead. See DSN_FROM_DSN_BUF(), RECIPIENT_FROM_RCPT_BUF(),
-     * and bounce_log(3).
+     * Beware: some DSN or RECIPIENT fields may be null; access dsn_buf and
+     * rcpt_buf buffers instead. See DSN_FROM_DSN_BUF() and
+     * RECIPIENT_FROM_RCPT_BUF().
      */
     if (msg_verbose)
 	msg_info("%s: flags=0x%x service=%s id=%s org_to=%s to=%s off=%ld dsn_org=%s, notif=0x%x stat=%s act=%s why=%s",
@@ -246,7 +260,7 @@ static int bounce_append_proto(char *service_name, VSTREAM *client)
      * Execute the request.
      */
     return (bounce_append_service(flags, service_name, STR(queue_id),
-				  &rcpt, &dsn));
+				  &rcpt_buf->rcpt, &dsn_buf->dsn));
 }
 
 /* bounce_notify_proto - bounce_notify server protocol */
@@ -275,6 +289,10 @@ static int bounce_notify_proto(char *service_name, VSTREAM *client,
 	msg_warn("malformed request");
 	return (-1);
     }
+
+    /*
+     * Sanitize input.
+     */
     if (mail_queue_name_ok(STR(queue_name)) == 0) {
 	msg_warn("malformed queue name: %s", printable(STR(queue_name), '?'));
 	return (-1);
@@ -329,6 +347,10 @@ static int bounce_verp_proto(char *service_name, VSTREAM *client)
 	msg_warn("malformed request");
 	return (-1);
     }
+
+    /*
+     * Sanitize input.
+     */
     if (mail_queue_name_ok(STR(queue_name)) == 0) {
 	msg_warn("malformed queue name: %s", printable(STR(queue_name), '?'));
 	return (-1);
@@ -380,8 +402,6 @@ static int bounce_one_proto(char *service_name, VSTREAM *client)
     char   *myname = "bounce_one_proto";
     int     flags;
     int     dsn_ret;
-    RECIPIENT rcpt;
-    DSN     dsn;
 
     /*
      * Read and validate the client request.
@@ -400,6 +420,10 @@ static int bounce_one_proto(char *service_name, VSTREAM *client)
 	msg_warn("malformed request");
 	return (-1);
     }
+
+    /*
+     * Sanitize input.
+     */
     if (strcmp(service_name, MAIL_SERVICE_BOUNCE) != 0) {
 	msg_warn("wrong service name \"%s\" for one-recipient bouncing",
 		 service_name);
@@ -414,13 +438,23 @@ static int bounce_one_proto(char *service_name, VSTREAM *client)
 	return (-1);
     }
     printable(STR(dsn_envid), '?');
-    (void) RECIPIENT_FROM_RCPT_BUF(&rcpt, rcpt_buf);
-    (void) DSN_FROM_DSN_BUF(&dsn, dsn_buf);
+    VS_NEUTER(rcpt_buf->address);
+    VS_NEUTER(rcpt_buf->orig_addr);
+    VS_NEUTER(rcpt_buf->dsn_orcpt);
+    VS_NEUTER(dsn_buf->status);
+    VS_NEUTER(dsn_buf->action);
+    VS_NEUTER(dsn_buf->reason);
+    VS_NEUTER(dsn_buf->dtype);
+    VS_NEUTER(dsn_buf->dtext);
+    VS_NEUTER(dsn_buf->mtype);
+    VS_NEUTER(dsn_buf->mname);
+    (void) RECIPIENT_FROM_RCPT_BUF(rcpt_buf);
+    (void) DSN_FROM_DSN_BUF(dsn_buf);
 
     /*
-     * Beware: some dsn or rcpt fields may be null; access dsn_buf and
-     * rcpt_buf instead. See DSN_FROM_DSN_BUF(), RECIPIENT_FROM_RCPT_BUF(),
-     * and bounce_log(3).
+     * Beware: some DSN or RECIPIENT fields may be null; access dsn_buf and
+     * rcpt_buf buffers instead. See DSN_FROM_DSN_BUF() and
+     * RECIPIENT_FROM_RCPT_BUF().
      */
     if (msg_verbose)
 	msg_info("%s: flags=0x%x queue=%s id=%s encoding=%s sender=%s envid=%s dsn_ret=0x%x orig_to=%s to=%s off=%ld dsn_orig=%s notif=0x%x stat=%s act=%s why=%s",
@@ -436,7 +470,7 @@ static int bounce_one_proto(char *service_name, VSTREAM *client)
      */
     return (bounce_one_service(flags, STR(queue_name), STR(queue_id),
 			       STR(encoding), STR(sender), STR(dsn_envid),
-			       dsn_ret, &rcpt, &dsn, bounce_templates));
+			     dsn_ret, rcpt_buf, dsn_buf, bounce_templates));
 }
 
 /* bounce_service - parse bounce command type and delegate */
@@ -536,7 +570,9 @@ static void post_jail_init(char *service_name, char **unused_argv)
 
     /*
      * Special case: dump bounce templates. This is not part of the master(5)
-     * public interface.
+     * public interface. This internal interface is used by the postconf
+     * command. It was implemented before bounce templates were isolated
+     * into modules that could have been called directly.
      */
     if (strcmp(service_name, "dump_templates") == 0) {
 	bounce_templates_dump(VSTREAM_OUT, bounce_templates);

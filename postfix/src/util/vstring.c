@@ -491,7 +491,6 @@ char   *vstring_memchr(VSTRING *vp, int ch)
 
 VSTRING *vstring_insert(VSTRING *vp, ssize_t start, const char *buf, ssize_t len)
 {
-    const char *myname = "vstring_insert";
     ssize_t new_len;
 
     /*

@@ -268,11 +268,11 @@ int     mail_copy(const char *sender,
 
     if (why && read_error)
 	dsb_unix(why, TRY_AGAIN_ERROR(errno) ? "4.3.0" : "5.3.0",
-		 EX_IOERR, sys_exits_detail(EX_IOERR)->text,
+		 sys_exits_detail(EX_IOERR)->text,
 		 "error reading message: %m");
     if (why && write_error)
 	dsb_unix(why, mbox_dsn(errno, "5.3.0"),
-		 EX_IOERR, sys_exits_detail(EX_IOERR)->text,
+		 sys_exits_detail(EX_IOERR)->text,
 		 "error writing message: %m");
 
     /*

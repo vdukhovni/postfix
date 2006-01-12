@@ -1666,6 +1666,11 @@ command.
 Most of these limitations will be removed after Postfix implements
 a connection cache that is shared among multiple LMTP client
 programs.
+.SH lmtp_cname_overrides_servername (default: yes)
+The LMTP-specific version of the smtp_cname_overrides_servername
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH lmtp_connect_timeout (default: 0s)
 The LMTP client time limit for completing a TCP connection, or
 zero (use the operating system built-in time limit).  When no
@@ -1910,9 +1915,15 @@ lmtp_sasl_security_options = noplaintext
 .fi
 .ad
 .ft R
-.SH lmtp_sasl_tls_security_options (default: $var_lmtp_sasl_opts)
+.SH lmtp_sasl_tls_security_options (default: $lmtp_sasl_security_options)
 The LMTP-specific version of the smtp_sasl_tls_security_options
 configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
+.SH lmtp_sasl_tls_verified_security_options (default: $lmtp_sasl_tls_security_options)
+The LMTP-specific version of the
+smtp_sasl_tls_verified_security_options configuration parameter.
+See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH lmtp_sasl_type (default: cyrus)
@@ -3569,6 +3580,16 @@ inet_interfaces documentation for more detail.
 .PP
 Note 2: address information may be enclosed inside [],
 but this form is not recommended here.
+.SH smtp_cname_overrides_servername (default: version dependent)
+Allow DNS CNAME records to override the servername that the
+Postfix SMTP client uses for logging, SASL password lookup, TLS
+policy decisions, or TLS certificate verification. The value "no"
+hardens Postfix smtp_tls_per_site hostname-based policies against
+false hostname information in DNS CNAME records, and makes SASL
+password file lookups more predictable. This is the default setting
+as of Postfix 2.3.
+.PP
+This feature is available in Postfix 2.2.9 and later.
 .SH smtp_connect_timeout (default: 30s)
 The SMTP client time limit for completing a TCP connection, or
 zero (use the operating system built-in time limit).
@@ -4014,6 +4035,12 @@ smtp_sasl_security_options = noplaintext
 .SH smtp_sasl_tls_security_options (default: $smtp_sasl_security_options)
 The SASL authentication security options that the Postfix SMTP
 client uses for TLS encrypted SMTP sessions.
+.SH smtp_sasl_tls_verified_security_options (default: $smtp_sasl_tls_security_options)
+The SASL authentication security options that the Postfix SMTP
+client uses for TLS encrypted SMTP sessions with a verified server
+certificate.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH smtp_sasl_type (default: cyrus)
 The SASL plug-in type that the Postfix SMTP client should use
 for authentication.  The available types are listed with the
@@ -4239,12 +4266,32 @@ not require that the remote SMTP server hostname matches the
 information in the remote SMTP server certificate, or that the
 server certificate was issued by a trusted CA.
 .PP
-Special hint for enforcement mode:  since no secure DNS lookup
-mechanism is available, the recommended setup is:  specify local
-\fBtransport\fR(5) table entries for sensitive domains with explicit
-smtp:[mailhost] destinations (since you can assure security of this
-table unlike DNS), then specify MUST for these mail hosts in the
-smtp_tls_per_site table.
+Special hints for enforcement mode:  since no secure DNS lookup
+mechanism is available, the recommended setup is:
+.IP "Postfix 2.2.9"
+.IP \(bu
+Specify "smtp_cname_overrides_servername = no". This avoids
+false hostname information in DNS CNAME records that could bypass
+a hostname-based TLS usage policy.
+.IP \(bu
+Specify local \fBtransport\fR(5) table entries for sensitive domains
+with explicit smtp:[mailhost] destinations. This avoids false
+hostname information in DNS MX records that could bypass a
+hostname-based TLS usage policy.
+.IP \(bu
+Specify MUST for these mail hosts in the smtp_tls_per_site
+table.
+.IP "Postfix < 2.2.9"
+.IP \(bu
+Specify local \fBtransport\fR(5) table entries for sensitive domains
+with explicit smtp:[mailhost] destinations. This avoids false
+hostname information in DNS MX records that could bypass a
+hostname-based TLS usage policy, but cannot avoid false hostname
+information in DNS CNAME records.
+.IP \(bu
+Specify MUST for these mail hosts in the smtp_tls_per_site
+table.
+.PP
 .SH smtp_tls_scert_verifydepth (default: 5)
 The verification depth for remote SMTP server certificates. A
 depth of 1 is sufficient, if the certificate is directly issued by

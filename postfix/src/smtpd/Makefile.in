@@ -215,7 +215,6 @@ smtpd_check.o: ../../include/dict.h
 smtpd_check.o: ../../include/dns.h
 smtpd_check.o: ../../include/domain_list.h
 smtpd_check.o: ../../include/dsn.h
-smtpd_check.o: ../../include/dsn_buf.h
 smtpd_check.o: ../../include/dsn_util.h
 smtpd_check.o: ../../include/fsspace.h
 smtpd_check.o: ../../include/htable.h

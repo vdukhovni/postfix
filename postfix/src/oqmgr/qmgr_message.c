@@ -854,15 +854,13 @@ static int qmgr_resolve_one(QMGR_MESSAGE *message, RECIPIENT *recipient,
 	resolve_clnt_verify_from(message->sender, addr, reply);
     if (reply->flags & RESOLVE_FLAG_FAIL) {
 	qmgr_defer_recipient(message, recipient,
-			     DSN_SMTP(&dsn, "4.3.0",
-				      "451 address resolver failure",
-				      "address resolver failure"));
+			     DSN_SIMPLE(&dsn, "4.3.0",
+					"address resolver failure"));
 	return (-1);
     } else if (reply->flags & RESOLVE_FLAG_ERROR) {
 	qmgr_bounce_recipient(message, recipient,
-			      DSN_SMTP(&dsn, "5.1.3",
-				       "553 bad address syntax",
-				       "bad address syntax"));
+			      DSN_SIMPLE(&dsn, "5.1.3",
+					 "bad address syntax"));
 	return (-1);
     } else {
 	return (0);
@@ -948,9 +946,8 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 */
 	if (recipient->address[0] == 0) {
 	    qmgr_bounce_recipient(message, recipient,
-				  DSN_SMTP(&dsn, "5.1.3",
-					   "553 null recipient address",
-					   "null recipient address"));
+				  DSN_SIMPLE(&dsn, "5.1.3",
+					     "null recipient address"));
 	    continue;
 	}
 
@@ -967,9 +964,8 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 */
 	if (var_allow_min_user == 0 && recipient->address[0] == '-') {
 	    qmgr_bounce_recipient(message, recipient,
-				  DSN_SMTP(&dsn, "5.1.3",
-					   "553 bad address syntax",
-					   "bad address syntax"));
+				  DSN_SIMPLE(&dsn, "5.1.3",
+					     "bad address syntax"));
 	    continue;
 	}
 
@@ -1015,9 +1011,8 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 		    break;
 	    if (*cpp) {
 		qmgr_defer_recipient(message, recipient,
-				     DSN_SMTP(&dsn, "4.3.2",
-					      "450 delivery suspended",
-					      "deferred transport"));
+				     DSN_SIMPLE(&dsn, "4.3.2",
+						"deferred transport"));
 		continue;
 	    }
 	}

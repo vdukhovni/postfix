@@ -48,16 +48,7 @@
 /*	when DNS lookups are explicitly disabled.
 /*
 /*	All routines either return a DNS_RR pointer, or return a null
-/*	pointer and set the \fIsmtp_errno\fR global variable accordingly:
-/* .IP SMTP_ERR_RETRY
-/*	The request failed due to a soft error, and should be retried later.
-/* .IP SMTP_ERR_FAIL
-/*	The request attempt failed due to a hard error.
-/* .IP SMTP_ERR_LOOP
-/*	The local machine is the best mail exchanger.
-/* .PP
-/*	In addition, a description of the problem is made available
-/*	via the \fIwhy\fR argument.
+/*	pointer and update the \fIwhy\fR argument accordingly.
 /* LICENSE
 /* .ad
 /* .fi
@@ -120,7 +111,7 @@ static void smtp_print_addr(char *what, DNS_RR *addr_list)
 	    msg_warn("skipping record type %s: %m", dns_strtype(addr->type));
 	} else {
 	    msg_info("pref %4d host %s/%s",
-		     addr->pref, addr->name,
+		     addr->pref, SMTP_HNAME(addr),
 		     hostaddr.buf);
 	}
     }
@@ -170,22 +161,14 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
 	    addr_list = dns_rr_append(addr_list, addr);
 	    return (addr_list);
 	default:
-	    smtp_dsn_formal(why, DSN_BY_LOCAL_MTA,
-			    "4.4.3", 450, "450 Host not found");
-	    smtp_errno = SMTP_ERR_RETRY;
+	    dsb_status(why, "4.4.3");
 	    return (addr_list);
 	case DNS_FAIL:
-	    smtp_dsn_formal(why, DSN_BY_LOCAL_MTA,
-			    "5.4.3", 550, "550 Name server failure");
-	    if (smtp_errno != SMTP_ERR_RETRY)
-		smtp_errno = SMTP_ERR_FAIL;
+	    dsb_status(why, SMTP_HAS_SOFT_DSN(why) ? "4.4.3" : "5.4.3");
 	    return (addr_list);
 	case DNS_INVAL:
 	case DNS_NOTFOUND:
-	    smtp_dsn_formal(why, DSN_BY_LOCAL_MTA,
-			    "5.4.4", 550, "550 Host not found");
-	    if (smtp_errno != SMTP_ERR_RETRY)
-		smtp_errno = SMTP_ERR_FAIL;
+	    dsb_status(why, SMTP_HAS_SOFT_DSN(why) ? "4.4.4" : "5.4.4");
 	    /* maybe native naming service will succeed */
 	    break;
 	}
@@ -206,14 +189,11 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
 
     if (smtp_host_lookup_mask & SMTP_HOST_FLAG_NATIVE) {
 	if ((aierr = hostname_to_sockaddr(host, (char *) 0, 0, &res0)) != 0) {
-	    smtp_dsn_update(why, DSN_BY_LOCAL_MTA,
-			    DSN_NOHOST(aierr) ? "4.4.4" : "4.3.0",
-			    450, "450 Host not found",
-			    "unable to look up host %s: %s",
-			    host, MAI_STRERROR(aierr));
-	    if (smtp_errno != SMTP_ERR_RETRY)
-		smtp_errno =
-		    (RETRY_AI_ERROR(aierr) ? SMTP_ERR_RETRY : SMTP_ERR_FAIL);
+	    dsb_simple(why, (SMTP_HAS_SOFT_DSN(why) || RETRY_AI_ERROR(aierr)) ?
+		       (DSN_NOHOST(aierr) ? "4.4.4" : "4.3.0") :
+		       (DSN_NOHOST(aierr) ? "5.4.4" : "5.3.0"),
+		       "unable to look up host %s: %s",
+		       host, MAI_STRERROR(aierr));
 	} else {
 	    for (found = 0, res = res0; res != 0; res = res->ai_next) {
 		if (strchr((char *) proto_info->sa_family_list, res->ai_family) == 0) {
@@ -229,11 +209,8 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
 	    }
 	    freeaddrinfo(res0);
 	    if (found == 0) {
-		smtp_dsn_update(why, DSN_BY_LOCAL_MTA,
-				"5.4.4", 550, "550 Host not found",
-				"%s: host not found", host);
-		if (smtp_errno != SMTP_ERR_RETRY)
-		    smtp_errno = SMTP_ERR_FAIL;
+		dsb_simple(why, SMTP_HAS_SOFT_DSN(why) ? "4.4.4" : "5.4.4",
+			   "%s: host not found", host);
 	    }
 	    return (addr_list);
 	}
@@ -257,10 +234,11 @@ static DNS_RR *smtp_addr_list(DNS_RR *mx_names, DSN_BUF *why)
      * with DNS lookups (except if we're backup MX, and all the better MX
      * hosts can't be found).
      * 
-     * XXX 2821: update smtp_errno (0->FAIL upon unrecoverable lookup error,
-     * any->RETRY upon temporary lookup error) so that we can correctly
-     * handle the case of no resolvable MX host. Currently this is always
-     * treated as a soft error. RFC 2821 wants a more precise response.
+     * XXX 2821: update the error status (0->FAIL upon unrecoverable lookup
+     * error, any->RETRY upon temporary lookup error) so that we can
+     * correctly handle the case of no resolvable MX host. Currently this is
+     * always treated as a soft error. RFC 2821 wants a more precise
+     * response.
      */
     for (rr = mx_names; rr; rr = rr->next) {
 	if (rr->type != T_MX)
@@ -349,7 +327,7 @@ DNS_RR *smtp_domain_addr(char *name, int misc_flags, DSN_BUF *why,
     unsigned best_pref;
     unsigned best_found;
 
-    smtp_errno = SMTP_ERR_NONE;			/* Paranoia */
+    dsb_reset(why);				/* Paranoia */
 
     /*
      * Preferences from DNS use 0..32767, fall-backs use 32768+.
@@ -406,16 +384,12 @@ DNS_RR *smtp_domain_addr(char *name, int misc_flags, DSN_BUF *why,
      */
     switch (dns_lookup(name, T_MX, 0, &mx_names, (VSTRING *) 0, why->reason)) {
     default:
-	smtp_dsn_formal(why, DSN_BY_LOCAL_MTA,
-			"4.4.3", 450, "450 Host not found");
-	smtp_errno = SMTP_ERR_RETRY;
+	dsb_status(why, "4.4.3");
 	if (var_ign_mx_lookup_err)
 	    addr_list = smtp_host_addr(name, misc_flags, why);
 	break;
     case DNS_FAIL:
-	smtp_dsn_formal(why, DSN_BY_LOCAL_MTA,
-			"5.4.3", 550, "550 Name server failure");
-	smtp_errno = SMTP_ERR_FAIL;
+	dsb_status(why, "5.4.3");
 	if (var_ign_mx_lookup_err)
 	    addr_list = smtp_host_addr(name, misc_flags, why);
 	break;
@@ -425,9 +399,15 @@ DNS_RR *smtp_domain_addr(char *name, int misc_flags, DSN_BUF *why,
 	addr_list = smtp_addr_list(mx_names, why);
 	dns_rr_free(mx_names);
 	if (addr_list == 0) {
-	    /* DSN and text does not change. */
-	    if (var_smtp_defer_mxaddr)
-		smtp_errno = SMTP_ERR_RETRY;
+	    /* Text does not change. */
+	    if (var_smtp_defer_mxaddr) {
+		/* Don't clobber the null terminator. */
+		if (SMTP_HAS_HARD_DSN(why))
+		    SMTP_SET_SOFT_DSN(why);	/* XXX */
+		/* Require some error status. */
+		else if (!SMTP_HAS_SOFT_DSN(why))
+		    msg_panic("smtp_domain_addr: bad status");
+	    }
 	    msg_warn("no MX host for %s has a valid address record", name);
 	    break;
 	}
@@ -439,17 +419,11 @@ DNS_RR *smtp_domain_addr(char *name, int misc_flags, DSN_BUF *why,
 	    addr_list = smtp_truncate_self(addr_list, self->pref);
 	    if (addr_list == 0) {
 		if (best_pref != best_found) {
-		    smtp_dsn_update(why, DSN_BY_LOCAL_MTA,
-				    "4.4.4", 450, "450 Host not found",
-				    "unable to find primary relay for %s",
-				    name);
-		    smtp_errno = SMTP_ERR_RETRY;
+		    dsb_simple(why, "4.4.4",
+			       "unable to find primary relay for %s", name);
 		} else {
-		    smtp_dsn_update(why, DSN_BY_LOCAL_MTA,
-				    "5.4.6", 550, "550 Mailer loop",
-				    "mail for %s loops back to myself",
-				    name);
-		    smtp_errno = SMTP_ERR_LOOP;
+		    dsb_simple(why, "5.4.6", "mail for %s loops back to myself",
+			       name);
 		}
 	    }
 	}
@@ -459,9 +433,7 @@ DNS_RR *smtp_domain_addr(char *name, int misc_flags, DSN_BUF *why,
 	}
 	break;
     case DNS_INVAL:
-	smtp_dsn_formal(why, DSN_BY_LOCAL_MTA,
-			"5.4.4", 550, "550 Host not found");
-	smtp_errno = SMTP_ERR_FAIL;
+	dsb_status(why, "5.4.4");
 	break;
     case DNS_NOTFOUND:
 	addr_list = smtp_host_addr(name, misc_flags, why);
@@ -481,7 +453,7 @@ DNS_RR *smtp_host_addr(char *host, int misc_flags, DSN_BUF *why)
 {
     DNS_RR *addr_list;
 
-    smtp_errno = SMTP_ERR_NONE;			/* Paranoia */
+    dsb_reset(why);				/* Paranoia */
 
     /*
      * If the host is specified by numerical address, just convert the
@@ -493,10 +465,7 @@ DNS_RR *smtp_host_addr(char *host, int misc_flags, DSN_BUF *why)
 	&& (misc_flags & SMTP_MISC_FLAG_LOOP_DETECT)
 	&& smtp_find_self(addr_list) != 0) {
 	dns_rr_free(addr_list);
-	smtp_dsn_update(why, DSN_BY_LOCAL_MTA,
-			"5.4.6", 550, "550 Mailer loop",
-			"mail for %s loops back to myself", host);
-	smtp_errno = SMTP_ERR_LOOP;
+	dsb_simple(why, "5.4.6", "mail for %s loops back to myself", host);
 	return (0);
     }
     if (addr_list && addr_list->next) {

@@ -20,6 +20,7 @@
   * Global library.
   */
 #include <deliver_request.h>
+#include <dsn_buf.h>
 
  /*
   * Client interface.

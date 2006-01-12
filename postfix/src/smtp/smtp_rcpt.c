@@ -131,7 +131,7 @@ void    smtp_rcpt_done(SMTP_STATE *state, SMTP_RESP *resp, RECIPIENT *rcpt)
 {
     DELIVER_REQUEST *request = state->request;
     SMTP_SESSION *session = state->session;
-    DSN     dsn;
+    DSN_BUF *why = state->why;
     int     status;
 
     /*
@@ -144,13 +144,12 @@ void    smtp_rcpt_done(SMTP_STATE *state, SMTP_RESP *resp, RECIPIENT *rcpt)
     if (session->features & SMTP_FEATURE_DSN)
 	rcpt->dsn_notify &= ~DSN_NOTIFY_SUCCESS;
 
-    (void) SMTP_DSN_ASSIGN(&dsn, session->host, resp->dsn,
-			   resp->str, resp->str);
-    dsn.action = "relayed";
+    dsb_update(why, resp->dsn, "relayed", DSB_MTYPE_DNS, session->host,
+	       DSB_DTYPE_SMTP, resp->str, "%s", resp->str);
 
     status = sent(DEL_REQ_TRACE_FLAGS(request->flags),
 		  request->queue_id, &request->msg_stats, rcpt,
-		  session->namaddrport, &dsn);
+		  session->namaddrport, DSN_FROM_DSN_BUF(why));
     if (status == 0)
 	if (request->flags & DEL_REQ_FLAG_SUCCESS)
 	    deliver_completed(state->src, rcpt->offset);

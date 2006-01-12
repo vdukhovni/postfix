@@ -294,9 +294,8 @@ void    qmgr_transport_alloc(QMGR_TRANSPORT *transport, QMGR_TRANSPORT_ALLOC_NOT
     if ((stream = mail_connect(MAIL_CLASS_PRIVATE, transport->name, BLOCK_MODE)) == 0) {
 	msg_warn("connect to transport %s: %m", transport->name);
 	qmgr_transport_throttle(transport,
-				DSN_SMTP(&dsn, "4.3.0",
-					 "451 mail transport unavailable",
-					 "mail transport unavailable"));
+				DSN_SIMPLE(&dsn, "4.3.0",
+					   "mail transport unavailable"));
 	return;
     }
     alloc = (QMGR_TRANSPORT_ALLOC *) mymalloc(sizeof(*alloc));

@@ -204,6 +204,9 @@ ssize_t netstring_get_length(VSTREAM *stream)
 	    if (!ISDIGIT(ch))
 		netstring_except(stream, NETSTRING_ERR_FORMAT);
 	    len = len * 10 + ch - '0';
+	    /* vstream_fread() would read zero bytes. Reject input anyway. */
+	    if (len < 0)
+		netstring_except(stream, NETSTRING_ERR_SIZE);
 	    break;
 	}
     }

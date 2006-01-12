@@ -33,7 +33,7 @@
   */
 typedef struct {
     char    data[DSN_SIZE];		/* NOT a public interface */
-}       DSN_BUFFER;
+} DSN_STAT;
 
 #define DSN_UPDATE(dsn_buf, dsn, len) do { \
 	if (len >= sizeof((dsn_buf).data)) \
@@ -51,7 +51,7 @@ typedef struct {
   * Split flat text into detail code and free text.
   */
 typedef struct {
-    DSN_BUFFER dsn;			/* RFC 3463 status */
+    DSN_STAT dsn;			/* RFC 3463 status */
     const char *text;			/* free text */
 } DSN_SPLIT;
 

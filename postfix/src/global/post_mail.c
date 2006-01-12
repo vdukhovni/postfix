@@ -6,26 +6,30 @@
 /* SYNOPSIS
 /*	#include <post_mail.h>
 /*
-/*	VSTREAM	*post_mail_fopen(sender, recipient, cleanup_flags, trace_flags)
+/*	VSTREAM	*post_mail_fopen(sender, recipient, cleanup_flags, trace_flags,
+/*		queue_id)
 /*	const char *sender;
 /*	const char *recipient;
 /*	int	cleanup_flags;
 /*	int	trace_flags;
+/*	VSTRING *queue_id;
 /*
 /*	VSTREAM	*post_mail_fopen_nowait(sender, recipient,
-/*					cleanup_flags, trace_flags)
+/*					cleanup_flags, trace_flags, queue_id)
 /*	const char *sender;
 /*	const char *recipient;
 /*	int	cleanup_flags;
 /*	int	trace_flags;
+/*	VSTRING *queue_id;
 /*
 /*	void	post_mail_fopen_async(sender, recipient,
 /*					cleanup_flags, trace_flags,
-/*					notify, context)
+/*					queue_id, notify, context)
 /*	const char *sender;
 /*	const char *recipient;
 /*	int	cleanup_flags;
 /*	int	trace_flags;
+/*	VSTRING *queue_id;
 /*	void	(*notify)(VSTREAM *stream, char *context);
 /*	char	*context;
 /*
@@ -96,8 +100,9 @@
 /*	\fB<cleanup_user.h>\fR.
 /* .IP trace_flags
 /*	Message tracing flags as specified in \fB<deliver_request.h>\fR.
-/* .IP via
-/*	The name of the service responsible for posting this message.
+/* .IP queue_id
+/*	Null pointer, or pointer to buffer that receives the queue
+/*	ID of the new message.
 /* .IP stream
 /*	A stream opened by mail_post_fopen().
 /* .IP notify
@@ -169,15 +174,17 @@ typedef struct {
     POST_MAIL_NOTIFY notify;
     void   *context;
     VSTREAM *stream;
+    VSTRING *queue_id;
 } POST_MAIL_STATE;
 
 /* post_mail_init - initial negotiations */
 
 static void post_mail_init(VSTREAM *stream, const char *sender,
 			           const char *recipient,
-			           int cleanup_flags, int trace_flags)
+			           int cleanup_flags, int trace_flags,
+			           VSTRING *queue_id)
 {
-    VSTRING *id = vstring_alloc(100);
+    VSTRING *id = queue_id ? queue_id : vstring_alloc(100);
     struct timeval now;
     const char *date;
 
@@ -217,31 +224,36 @@ static void post_mail_init(VSTREAM *stream, const char *sender,
 		      var_myhostname, var_mail_name);
     post_mail_fprintf(stream, "\tid %s; %s", vstring_str(id), date);
     post_mail_fprintf(stream, "Date: %s", date);
-    vstring_free(id);
+    if (queue_id == 0)
+	vstring_free(id);
 }
 
 /* post_mail_fopen - prepare for posting a message */
 
 VSTREAM *post_mail_fopen(const char *sender, const char *recipient,
-			         int cleanup_flags, int trace_flags)
+			         int cleanup_flags, int trace_flags,
+			         VSTRING *queue_id)
 {
     VSTREAM *stream;
 
     stream = mail_connect_wait(MAIL_CLASS_PUBLIC, var_cleanup_service);
-    post_mail_init(stream, sender, recipient, cleanup_flags, trace_flags);
+    post_mail_init(stream, sender, recipient, cleanup_flags, trace_flags,
+		   queue_id);
     return (stream);
 }
 
 /* post_mail_fopen_nowait - prepare for posting a message */
 
 VSTREAM *post_mail_fopen_nowait(const char *sender, const char *recipient,
-				        int cleanup_flags, int trace_flags)
+				        int cleanup_flags, int trace_flags,
+				        VSTRING *queue_id)
 {
     VSTREAM *stream;
 
     if ((stream = mail_connect(MAIL_CLASS_PUBLIC, var_cleanup_service,
 			       BLOCKING)) != 0)
-	post_mail_init(stream, sender, recipient, cleanup_flags, trace_flags);
+	post_mail_init(stream, sender, recipient, cleanup_flags, trace_flags,
+		       queue_id);
     return (stream);
 }
 
@@ -281,7 +293,7 @@ static void post_mail_open_event(int event, char *context)
 	event_disable_readwrite(vstream_fileno(state->stream));
 	post_mail_init(state->stream, state->sender,
 		       state->recipient, state->cleanup_flags,
-		       state->trace_flags);
+		       state->trace_flags, state->queue_id);
 	myfree(state->sender);
 	myfree(state->recipient);
 	state->notify(state->stream, state->context);
@@ -332,6 +344,7 @@ static void post_mail_open_event(int event, char *context)
 
 void    post_mail_fopen_async(const char *sender, const char *recipient,
 			              int cleanup_flags, int trace_flags,
+			              VSTRING *queue_id,
 			              void (*notify) (VSTREAM *, void *),
 			              void *context)
 {
@@ -347,6 +360,7 @@ void    post_mail_fopen_async(const char *sender, const char *recipient,
     state->notify = notify;
     state->context = context;
     state->stream = stream;
+    state->queue_id = queue_id;
 
     /*
      * To keep interfaces as simple as possible we report all errors via the

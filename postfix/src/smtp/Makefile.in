@@ -1,12 +1,10 @@
 SHELL	= /bin/sh
 SRCS	= smtp.c smtp_connect.c smtp_proto.c smtp_chat.c smtp_session.c \
 	smtp_addr.c smtp_trouble.c smtp_state.c smtp_rcpt.c \
-	smtp_sasl_proto.c smtp_sasl_glue.c smtp_reuse.c smtp_map11.c \
-	smtp_dsn.c
+	smtp_sasl_proto.c smtp_sasl_glue.c smtp_reuse.c smtp_map11.c
 OBJS	= smtp.o smtp_connect.o smtp_proto.o smtp_chat.o smtp_session.o \
 	smtp_addr.o smtp_trouble.o smtp_state.o smtp_rcpt.o \
-	smtp_sasl_proto.o smtp_sasl_glue.o smtp_reuse.o smtp_map11.o \
-	smtp_dsn.o
+	smtp_sasl_proto.o smtp_sasl_glue.o smtp_reuse.o smtp_map11.o
 HDRS	= smtp.h smtp_sasl.h smtp_addr.h smtp_reuse.h
 TESTSRC	= 
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
@@ -234,30 +232,6 @@ smtp_connect.o: smtp.h
 smtp_connect.o: smtp_addr.h
 smtp_connect.o: smtp_connect.c
 smtp_connect.o: smtp_reuse.h
-smtp_dsn.o: ../../include/argv.h
-smtp_dsn.o: ../../include/attr.h
-smtp_dsn.o: ../../include/deliver_request.h
-smtp_dsn.o: ../../include/dict.h
-smtp_dsn.o: ../../include/dsn.h
-smtp_dsn.o: ../../include/dsn_buf.h
-smtp_dsn.o: ../../include/htable.h
-smtp_dsn.o: ../../include/mail_params.h
-smtp_dsn.o: ../../include/maps.h
-smtp_dsn.o: ../../include/match_list.h
-smtp_dsn.o: ../../include/match_ops.h
-smtp_dsn.o: ../../include/msg_stats.h
-smtp_dsn.o: ../../include/recipient_list.h
-smtp_dsn.o: ../../include/resolve_clnt.h
-smtp_dsn.o: ../../include/scache.h
-smtp_dsn.o: ../../include/string_list.h
-smtp_dsn.o: ../../include/sys_defs.h
-smtp_dsn.o: ../../include/tls.h
-smtp_dsn.o: ../../include/tok822.h
-smtp_dsn.o: ../../include/vbuf.h
-smtp_dsn.o: ../../include/vstream.h
-smtp_dsn.o: ../../include/vstring.h
-smtp_dsn.o: smtp.h
-smtp_dsn.o: smtp_dsn.c
 smtp_map11.o: ../../include/argv.h
 smtp_map11.o: ../../include/attr.h
 smtp_map11.o: ../../include/deliver_request.h

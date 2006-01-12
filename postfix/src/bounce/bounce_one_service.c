@@ -8,7 +8,7 @@
 /*
 /*	int     bounce_one_service(flags, queue_name, queue_id, encoding,
 /*					orig_sender, envid, ret,
-/*					rcpt, dsn, templates)
+/*					rcpt_buf, dsn_buf, templates)
 /*	int	flags;
 /*	char	*queue_name;
 /*	char	*queue_id;
@@ -16,8 +16,8 @@
 /*	char	*orig_sender;
 /*	char	*envid;
 /*	int	ret;
-/*	RECIPIENT *rcpt;
-/*	DSN	*dsn;
+/*	RCPT_BUF *rcpt_buf;
+/*	DSN_BUF	*dsn_buf;
 /*	BOUNCE_TEMPLATES *templates;
 /* DESCRIPTION
 /*	This module implements the server side of the bounce_one()
@@ -86,7 +86,7 @@
 int     bounce_one_service(int flags, char *queue_name, char *queue_id,
 			           char *encoding, char *orig_sender,
 			           char *dsn_envid, int dsn_ret,
-			           RECIPIENT *rcpt, DSN *dsn,
+			           RCPT_BUF *rcpt_buf, DSN_BUF *dsn_buf,
 			           BOUNCE_TEMPLATES *ts)
 {
     BOUNCE_INFO *bounce_info;
@@ -95,12 +95,14 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
     VSTREAM *bounce;
     int     notify_mask = name_mask(VAR_NOTIFY_CLASSES, mail_error_masks,
 				    var_notify_classes);
+    VSTRING *new_id = vstring_alloc(10);
 
     /*
      * Initialize. Open queue file, bounce log, etc.
      */
     bounce_info = bounce_mail_one_init(queue_name, queue_id, encoding,
-				       dsn_envid, rcpt, dsn, ts->failure);
+				       dsn_envid, rcpt_buf, dsn_buf,
+				       ts->failure);
 
 #define NULL_SENDER		MAIL_ADDR_EMPTY	/* special address */
 #define NULL_TRACE_FLAGS	0
@@ -146,7 +148,8 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
 	    if ((bounce = post_mail_fopen_nowait(mail_addr_double_bounce(),
 						 var_2bounce_rcpt,
 						 CLEANUP_FLAG_MASK_INTERNAL,
-						 NULL_TRACE_FLAGS)) != 0) {
+						 NULL_TRACE_FLAGS,
+						 new_id)) != 0) {
 
 		/*
 		 * Double bounce to Postmaster. This is the last opportunity
@@ -161,6 +164,9 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
 		    && bounce_recipient_dsn(bounce, bounce_info) == 0)
 		    bounce_original(bounce, bounce_info, DSN_RET_FULL);
 		bounce_status = post_mail_fclose(bounce);
+		if (bounce_status == 0)
+		    msg_info("%s: postmaster non-delivery notification: %s",
+			     queue_id, STR(new_id));
 	    }
 	}
     }
@@ -170,13 +176,16 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
      * restrictions.
      */
     else {
-	if (bounce_info->log_handle->rcpt.dsn_notify != 0	/* compat */
-	    && (bounce_info->log_handle->rcpt.dsn_notify & DSN_NOTIFY_FAILURE) == 0) {
+	RECIPIENT *rcpt = &bounce_info->rcpt_buf->rcpt;
+
+	if (rcpt->dsn_notify != 0		/* compat */
+	    && (rcpt->dsn_notify & DSN_NOTIFY_FAILURE) == 0) {
 	    bounce_status = 0;
 	} else {
 	    if ((bounce = post_mail_fopen_nowait(NULL_SENDER, orig_sender,
 						 CLEANUP_FLAG_MASK_INTERNAL,
-						 NULL_TRACE_FLAGS)) != 0) {
+						 NULL_TRACE_FLAGS,
+						 new_id)) != 0) {
 
 		/*
 		 * Send the bounce message header, some boilerplate text that
@@ -192,6 +201,9 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
 		    bounce_original(bounce, bounce_info, dsn_ret ?
 				    dsn_ret : DSN_RET_FULL);
 		bounce_status = post_mail_fclose(bounce);
+		if (bounce_status == 0)
+		    msg_info("%s: sender non-delivery notification: %s",
+			     queue_id, STR(new_id));
 	    }
 	}
 
@@ -217,7 +229,8 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
 	    if ((bounce = post_mail_fopen_nowait(mail_addr_double_bounce(),
 						 var_bounce_rcpt,
 						 CLEANUP_FLAG_MASK_INTERNAL,
-						 NULL_TRACE_FLAGS)) != 0) {
+						 NULL_TRACE_FLAGS,
+						 new_id)) != 0) {
 		if (bounce_header(bounce, bounce_info, var_bounce_rcpt,
 				  POSTMASTER_COPY) == 0
 		    && bounce_recipient_log(bounce, bounce_info) == 0
@@ -225,10 +238,13 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
 		    && bounce_recipient_dsn(bounce, bounce_info) == 0)
 		    bounce_original(bounce, bounce_info, DSN_RET_HDRS);
 		postmaster_status = post_mail_fclose(bounce);
+		if (postmaster_status == 0)
+		    msg_info("%s: postmaster non-delivery notification: %s",
+			     queue_id, STR(new_id));
 	    }
 	    if (postmaster_status)
-		msg_warn("postmaster notice failed while bouncing to %s",
-			 orig_sender);
+		msg_warn("%s: postmaster notice failed while bouncing to %s",
+			 queue_id, orig_sender);
 	}
     }
 
@@ -242,6 +258,7 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
      * Cleanup.
      */
     bounce_mail_free(bounce_info);
+    vstring_free(new_id);
 
     return (bounce_status);
 }

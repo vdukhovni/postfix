@@ -92,6 +92,7 @@ int     bounce_notify_service(int flags, char *service, char *queue_name,
     VSTREAM *bounce;
     int     notify_mask = name_mask(VAR_NOTIFY_CLASSES, mail_error_masks,
 				    var_notify_classes);
+    VSTRING *new_id = vstring_alloc(10);
     char   *postmaster;
     int     count;
 
@@ -174,7 +175,8 @@ int     bounce_notify_service(int flags, char *service, char *queue_name,
 	    if ((bounce = post_mail_fopen_nowait(mail_addr_double_bounce(),
 						 postmaster,
 						 CLEANUP_FLAG_MASK_INTERNAL,
-						 NULL_TRACE_FLAGS)) != 0) {
+						 NULL_TRACE_FLAGS,
+						 new_id)) != 0) {
 
 		/*
 		 * Double bounce to Postmaster. This is the last opportunity
@@ -192,6 +194,9 @@ int     bounce_notify_service(int flags, char *service, char *queue_name,
 					     DSN_NOTIFY_OVERRIDE) > 0) {
 		    bounce_original(bounce, bounce_info, DSN_RET_FULL);
 		    bounce_status = post_mail_fclose(bounce);
+		    if (bounce_status == 0)
+			msg_info("%s: postmaster non-delivery notification: %s",
+				 queue_id, STR(new_id));
 		} else {
 		    /* No applicable recipients found - cancel this notice. */
 		    (void) vstream_fclose(bounce);
@@ -209,7 +214,8 @@ int     bounce_notify_service(int flags, char *service, char *queue_name,
     else {
 	if ((bounce = post_mail_fopen_nowait(NULL_SENDER, recipient,
 					     CLEANUP_FLAG_MASK_INTERNAL,
-					     NULL_TRACE_FLAGS)) != 0) {
+					     NULL_TRACE_FLAGS,
+					     new_id)) != 0) {
 
 	    /*
 	     * Send the bounce message header, some boilerplate text that
@@ -228,6 +234,9 @@ int     bounce_notify_service(int flags, char *service, char *queue_name,
 		bounce_original(bounce, bounce_info, dsn_ret ?
 				dsn_ret : DSN_RET_FULL);
 		bounce_status = post_mail_fclose(bounce);
+		if (bounce_status == 0)
+		    msg_info("%s: sender non-delivery notification: %s",
+			     queue_id, STR(new_id));
 	    } else {
 		/* No applicable recipients found - cancel this notice. */
 		(void) vstream_fclose(bounce);
@@ -259,7 +268,8 @@ int     bounce_notify_service(int flags, char *service, char *queue_name,
 	    if ((bounce = post_mail_fopen_nowait(mail_addr_double_bounce(),
 						 postmaster,
 						 CLEANUP_FLAG_MASK_INTERNAL,
-						 NULL_TRACE_FLAGS)) != 0) {
+						 NULL_TRACE_FLAGS,
+						 new_id)) != 0) {
 		count = -1;
 		if (bounce_header(bounce, bounce_info, postmaster,
 				  POSTMASTER_COPY) == 0
@@ -270,6 +280,9 @@ int     bounce_notify_service(int flags, char *service, char *queue_name,
 					     DSN_NOTIFY_OVERRIDE) > 0) {
 		    bounce_original(bounce, bounce_info, DSN_RET_HDRS);
 		    postmaster_status = post_mail_fclose(bounce);
+		    if (postmaster_status == 0)
+			msg_info("%s: postmaster non-delivery notification: %s",
+				 queue_id, STR(new_id));
 		} else {
 		    /* No applicable recipients found - cancel this notice. */
 		    (void) vstream_fclose(bounce);
@@ -278,8 +291,8 @@ int     bounce_notify_service(int flags, char *service, char *queue_name,
 		}
 	    }
 	    if (postmaster_status)
-		msg_warn("postmaster notice failed while bouncing to %s",
-			 recipient);
+		msg_warn("%s: postmaster notice failed while bouncing to %s",
+			 queue_id, recipient);
 	}
     }
 
@@ -302,6 +315,7 @@ int     bounce_notify_service(int flags, char *service, char *queue_name,
      * Cleanup.
      */
     bounce_mail_free(bounce_info);
+    vstring_free(new_id);
 
     return (bounce_status);
 }

@@ -7,6 +7,7 @@
 	VAR_LMTP_SASL_PATH, DEF_LMTP_SASL_PATH, &var_smtp_sasl_path, 0, 0,
 #ifdef USE_TLS
 	VAR_LMTP_SASL_TLS_OPTS, DEF_LMTP_SASL_TLS_OPTS, &var_smtp_sasl_tls_opts, 0, 0,
+	VAR_LMTP_SASL_TLSV_OPTS, DEF_LMTP_SASL_TLSV_OPTS, &var_smtp_sasl_tlsv_opts, 0, 0,
 #endif
 	VAR_LMTP_SASL_MECHS, DEF_LMTP_SASL_MECHS, &var_smtp_sasl_mechs, 0, 0,
 	VAR_LMTP_SASL_TYPE, DEF_LMTP_SASL_TYPE, &var_smtp_sasl_type, 1, 0,
@@ -70,5 +71,6 @@
 	VAR_LMTP_TLS_NOTEOFFER, DEF_LMTP_TLS_NOTEOFFER, &var_smtp_tls_note_starttls_offer,
 #endif
 	VAR_LMTP_SENDER_AUTH, DEF_LMTP_SENDER_AUTH, &var_smtp_sender_auth,
+	VAR_LMTP_CNAME_OVERR, DEF_LMTP_CNAME_OVERR, &var_smtp_cname_overr,
 	0,
     };

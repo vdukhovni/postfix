@@ -52,8 +52,6 @@ int     rcpt_print(ATTR_PRINT_MASTER_FN print_fn, VSTREAM *fp,
     RECIPIENT *rcpt = (RECIPIENT *) ptr;
     int     ret;
 
-#define S(s) ((s) ? (s) : "")
-
     /*
      * The attribute order is determined by backwards compatibility. It can
      * be sanitized after all the ad-hoc recipient read/write code is
@@ -61,10 +59,10 @@ int     rcpt_print(ATTR_PRINT_MASTER_FN print_fn, VSTREAM *fp,
      */
     ret =
 	print_fn(fp, flags | ATTR_FLAG_MORE,
-		 ATTR_TYPE_STR, MAIL_ATTR_ORCPT, S(rcpt->orig_addr),
+		 ATTR_TYPE_STR, MAIL_ATTR_ORCPT, rcpt->orig_addr,
 		 ATTR_TYPE_STR, MAIL_ATTR_RECIP, rcpt->address,
 		 ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, rcpt->offset,
-		 ATTR_TYPE_STR, MAIL_ATTR_DSN_ORCPT, S(rcpt->dsn_orcpt),
+		 ATTR_TYPE_STR, MAIL_ATTR_DSN_ORCPT, rcpt->dsn_orcpt,
 		 ATTR_TYPE_NUM, MAIL_ATTR_DSN_NOTIFY, rcpt->dsn_notify,
 		 ATTR_TYPE_END);
     return (ret);

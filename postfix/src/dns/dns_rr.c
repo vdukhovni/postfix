@@ -6,9 +6,9 @@
 /* SYNOPSIS
 /*	#include <dns.h>
 /*
-/*	DNS_RR	*dns_rr_create(name, rname, type, class, ttl, preference,
+/*	DNS_RR	*dns_rr_create(qname, rname, type, class, ttl, preference,
 /*				data, data_len)
-/*	const char *name;
+/*	const char *qname;
 /*	const char *rname;
 /*	unsigned short type;
 /*	unsigned short class;
@@ -46,7 +46,7 @@
 /*	information, and maintain lists of DNS resource records.
 /*
 /*	dns_rr_create() creates and initializes one resource record.
-/*	The \fIname\fR field specifies the query name.
+/*	The \fIqname\fR field specifies the query name.
 /*	The \fIrname\fR field specifies the reply name.
 /*	\fIpreference\fR is used for MX records; \fIdata\fR is a null
 /*	pointer or specifies optional resource-specific data;
@@ -59,6 +59,7 @@
 /*
 /*	dns_rr_append() appends a resource record to a (list of) resource
 /*	record(s).
+/*	A null input list is explicitly allowed.
 /*
 /*	dns_rr_sort() sorts a list of resource records into ascending
 /*	order according to a user-specified criterion. The result is the
@@ -71,6 +72,7 @@
 /*
 /*	dns_rr_remove() removes the specified record from the specified list.
 /*	The updated list is the result value.
+/*	The record MUST be a list member.
 /* LICENSE
 /* .ad
 /* .fi
@@ -100,7 +102,7 @@
 
 /* dns_rr_create - fill in resource record structure */
 
-DNS_RR *dns_rr_create(const char *name, const char *rname,
+DNS_RR *dns_rr_create(const char *qname, const char *rname,
 		              ushort type, ushort class,
 		              unsigned int ttl, unsigned pref,
 		              const char *data, size_t data_len)
@@ -108,7 +110,7 @@ DNS_RR *dns_rr_create(const char *name, const char *rname,
     DNS_RR *rr;
 
     rr = (DNS_RR *) mymalloc(sizeof(*rr) + data_len - 1);
-    rr->name = mystrdup(name);
+    rr->qname = mystrdup(qname);
     rr->rname = mystrdup(rname);
     rr->type = type;
     rr->class = class;
@@ -128,7 +130,7 @@ void    dns_rr_free(DNS_RR *rr)
     if (rr) {
 	if (rr->next)
 	    dns_rr_free(rr->next);
-	myfree(rr->name);
+	myfree(rr->qname);
 	myfree(rr->rname);
 	myfree((char *) rr);
     }
@@ -146,7 +148,7 @@ DNS_RR *dns_rr_copy(DNS_RR *src)
      */
     dst = (DNS_RR *) mymalloc(len);
     memcpy((char *) dst, (char *) src, len);
-    dst->name = mystrdup(src->name);
+    dst->qname = mystrdup(src->qname);
     dst->rname = mystrdup(src->rname);
     dst->next = 0;
     return (dst);

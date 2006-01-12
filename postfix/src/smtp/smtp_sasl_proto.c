@@ -149,7 +149,7 @@ void    smtp_sasl_helo_auth(SMTP_SESSION *session, const char *words)
 int     smtp_sasl_helo_login(SMTP_STATE *state)
 {
     SMTP_SESSION *session = state->session;
-    DSN_BUF *why;
+    DSN_BUF *why = state->why;
     int     ret;
 
     /*
@@ -168,16 +168,28 @@ int     smtp_sasl_helo_login(SMTP_STATE *state)
      * error is unrecoverable from a session point of view - the session will
      * not be reused.
      */
-    why = dsb_create();
     ret = 0;
-    smtp_sasl_start(session, VAR_SMTP_SASL_OPTS, var_smtp_sasl_opts);
-    if (smtp_sasl_authenticate(session, why) <= 0) {
-	vstring_prepend(why->reason, "Authentication failed: ",
-			sizeof("Authentication failed: ") - 1);
-	ret = smtp_sess_fail(state, why);
+    if (session->sasl_mechanism_list == 0) {
+	dsb_simple(why, "4.7.0", "SASL authentication failed: "
+		"server %s offered no compatible authentication mechanisms for this type of connection security",
+		   session->namaddr);
+	ret = smtp_sess_fail(state);
 	/* Session reuse is disabled. */
+    } else {
+	if (session->tls_context == 0)
+	    smtp_sasl_start(session, VAR_SMTP_SASL_OPTS, 
+		var_smtp_sasl_opts);
+	else if (session->tls_context->peer_verified == 0)
+	    smtp_sasl_start(session, VAR_SMTP_SASL_TLS_OPTS, 
+		var_smtp_sasl_tls_opts);
+	else
+	    smtp_sasl_start(session, VAR_SMTP_SASL_TLSV_OPTS, 
+		var_smtp_sasl_tlsv_opts);
+	if (smtp_sasl_authenticate(session, why) <= 0) {
+	    ret = smtp_sess_fail(state);
+	    /* Session reuse is disabled. */
+	}
     }
-    dsb_free(why);
     return (ret);
 }
 

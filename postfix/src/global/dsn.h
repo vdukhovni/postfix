@@ -12,11 +12,6 @@
 /* .nf
 
  /*
-  * Global library.
-  */
-#include <dsn_buf.h>
-
- /*
   * External interface.
   */
 typedef struct {
@@ -28,19 +23,6 @@ typedef struct {
     const char *mtype;			/* Null / RFC 3464 MTA type */
     const char *mname;			/* Null / RFC 3464 remote MTA */
 } DSN;
-
- /*
-  * Ditto, without const poisoning.
-  */
-typedef struct {
-    char   *status;			/* RFC 3463 status */
-    char   *action;			/* Null / RFC 3464 action */
-    char   *reason;			/* descriptive reason */
-    char   *dtype;			/* Null / RFC 3464 diagnostic type */
-    char   *dtext;			/* Null / RFC 3464 diagnostic code */
-    char   *mtype;			/* Null / RFC 3464 MTA type */
-    char   *mname;			/* Null / RFC 3464 remote MTA */
-} DSN_VAR;
 
 extern DSN *dsn_create(const char *, const char *, const char *, const char *,
 		               const char *, const char *, const char *);
@@ -58,54 +40,35 @@ extern void dsn_free(DSN *);
 
 #define DSN_SIMPLE(dsn, _status, _reason) \
     (((dsn)->status = (_status)), \
-     ((dsn)->action = 0), \
+     ((dsn)->action = DSN_NO_ACTION), \
      ((dsn)->reason = (_reason)), \
-     ((dsn)->dtype = 0), \
-     ((dsn)->dtext = 0), \
-     ((dsn)->mtype = 0), \
-     ((dsn)->mname = 0), \
+     ((dsn)->dtype = DSN_NO_DTYPE), \
+     ((dsn)->dtext = DSN_NO_DTEXT), \
+     ((dsn)->mtype = DSN_NO_MTYPE), \
+     ((dsn)->mname = DSN_NO_MNAME), \
      (dsn))
 
-#define DSN_SMTP(dsn, _status, _dtext, _reason) \
-    (((dsn)->status = (_status)), \
-     ((dsn)->action = 0), \
-     ((dsn)->reason = (_reason)), \
-     ((dsn)->dtype = DSB_DTYPE_SMTP), \
-     ((dsn)->dtext = _dtext), \
-     ((dsn)->mtype = 0), \
-     ((dsn)->mname = 0), \
-     (dsn))
-
-#define DSN_NO_DTYPE	0
-#define DSN_NO_DTEXT	0
-#define DSN_NO_MTYPE	0
-#define DSN_NO_MNAME	0
+#define DSN_NO_ACTION	""
+#define DSN_NO_DTYPE	""
+#define DSN_NO_DTEXT	""
+#define DSN_NO_MTYPE	""
+#define DSN_NO_MNAME	""
 
  /*
-  * In order to save space in the queue manager, some DSN fields may be null
-  * pointers so that we don't waste memory making copies of empty strings. In
-  * addition, sanity requires that the status and reason are never null or
+  * Early implementations represented unavailable information with null
+  * pointers. This resulted in code that is hard to maintain. We now use
+  * empty strings instead. This does not waste precious memory as long as we
+  * can represent empty strings efficiently by collapsing them.
+  * 
+  * The only restriction left is that the status and reason are never null or
   * empty; this is enforced by dsn_create() which is invoked by DSN_COPY().
-  * This complicates the bounce_log(3) and bounce(8) daemons, as well as the
-  * server reply parsing code in the smtp(8) and lmtp(8) clients. They must
-  * be able to cope with null pointers, and they must never supply empty
-  * strings for the required fields.
+  * This complicates the server reply parsing code in the smtp(8) and lmtp(8)
+  * clients. they must never supply empty strings for these required fields.
   */
 #define DSN_COPY(dsn) \
     dsn_create((dsn)->status, (dsn)->action, (dsn)->reason, \
 	(dsn)->dtype, (dsn)->dtext, \
 	(dsn)->mtype, (dsn)->mname)
-
-#define DSN_STRING_OR_NULL(s) ((s)[0] ? (s) : 0)
-
-#define DSN_FROM_DSN_BUF(dsn, dsb) \
-    DSN_ASSIGN((dsn), vstring_str((dsb)->status), \
-	DSN_STRING_OR_NULL(vstring_str((dsb)->action)), \
-	vstring_str((dsb)->reason), \
-	DSN_STRING_OR_NULL(vstring_str((dsb)->dtype)), \
-	DSN_STRING_OR_NULL(vstring_str((dsb)->dtext)), \
-	DSN_STRING_OR_NULL(vstring_str((dsb)->mtype)), \
-	DSN_STRING_OR_NULL(vstring_str((dsb)->mname)))
 
 /* LICENSE
 /* .ad

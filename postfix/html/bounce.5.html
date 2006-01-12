@@ -48,10 +48,10 @@ BOUNCE(5)                                                            BOUNCE(5)
        appear in the delayed mail notification text.
 
        Once the result is satisfactory, copy the template to  the
-       Postfix  configuration  directory  and  specify in main.cf
+       Postfix  configuration  directory  and  specify in <a href="postconf.5.html">main.cf</a>
        something like:
 
-       /etc/postfix/main.cf:
+       /etc/postfix/<a href="postconf.5.html">main.cf</a>:
                <a href="postconf.5.html#bounce_template_file">bounce_template_file</a> = /etc/postfix/bounce.cf
 
 <b>TEMPLATE FILE FORMAT</b>
@@ -68,33 +68,41 @@ BOUNCE(5)                                                            BOUNCE(5)
        with the shell or with  Perl  (<i>template</i><b>_</b><i>name</i>  <b>=</b>  &lt;&lt;<b>'EOF'</b>).
        Here is an example:
 
-         # The failure template is used for undeliverable mail.
+           # The failure template is used for undeliverable mail.
 
-         failure_template = &lt;&lt;EOF
-         Charset: us-ascii
-         From: MAILER-DAEMON (Mail Delivery System)
-         Subject: Undelivered Mail Returned to Sender
-         Postmaster-Subject: Postmaster Copy: Undelivered Mail
+           failure_template = &lt;&lt;EOF
+           Charset: us-ascii
+           From: MAILER-DAEMON (Mail Delivery System)
+           Subject: Undelivered Mail Returned to Sender
+           Postmaster-Subject: Postmaster Copy: Undelivered Mail
 
-         This is the $<a href="postconf.5.html#mail_name">mail_name</a> program at host $<a href="postconf.5.html#myhostname">myhostname</a>.
+           This is the $<a href="postconf.5.html#mail_name">mail_name</a> program at host $<a href="postconf.5.html#myhostname">myhostname</a>.
 
-         I'm sorry to have to inform you that your message could not
-         be delivered to one or more recipients. It's attached below.
+           I'm sorry to have to inform you that your message could not
+           be delivered to one or more recipients. It's attached below.
 
-         For further assistance, please send mail to &lt;postmaster&gt;
+           For further assistance, please send mail to &lt;postmaster&gt;
 
-         If you do so, please include this problem report. You can
-         delete your own text from the attached returned message.
+           If you do so, please include this problem report. You can
+           delete your own text from the attached returned message.
 
-                                        The $<a href="postconf.5.html#mail_name">mail_name</a> program
-         EOF
+                                          The $<a href="postconf.5.html#mail_name">mail_name</a> program
+           EOF
 
-       No  special meaning is given to the backslash character or
-       to leading whitespace; these are always taken literally.
+       The usage and specification of bounce templates is subject
+       to the following restrictions:
 
-       Outside the &lt;&lt;  context,  lines  beginning  with  "#"  are
-       ignored,  as  are  empty  lines,  and  lines consisting of
-       whitespace only.
+       <b>o</b>      No special meaning is given to the backslash  char-
+              acter  or  to  leading whitespace; these are always
+              taken literally.
+
+       <b>o</b>      Inside the &lt;&lt; context, the "$"  character  is  spe-
+              cial. To produce a "$" character as output, specify
+              "$$".
+
+       <b>o</b>      Outside the &lt;&lt; context, lines  beginning  with  "#"
+              are ignored, as are empty lines, and lines consist-
+              ing of whitespace only.
 
        Examples of  all  templates  can  be  found  in  the  file
        <b>bounce.cf.default</b>  in the Postfix configuration directory.
@@ -137,7 +145,7 @@ BOUNCE(5)                                                            BOUNCE(5)
        <b>o</b>      Template  message  headers  must  not span multiple
               lines.
 
-       <b>o</b>      Template message headers must not  contain  main.cf
+       <b>o</b>      Template message headers must not  contain  <a href="postconf.5.html">main.cf</a>
               $parameters.
 
        <b>o</b>      Template message headers must contain ASCII charac-
@@ -146,8 +154,8 @@ BOUNCE(5)                                                            BOUNCE(5)
 <b>TEMPLATE MESSAGE TEXT FORMAT</b>
        The second portion of a bounce template consists  of  mes-
        sage  text.  As  the above example shows, template message
-       text may contain main.cf $parameters. Besides the  parame-
-       ters that are defined in main.cf, the following parameters
+       text may contain <a href="postconf.5.html">main.cf</a> $parameters. Besides the  parame-
+       ters that are defined in <a href="postconf.5.html">main.cf</a>, the following parameters
        are treated specially depending  on  the  suffix  that  is
        appended to their name.
 

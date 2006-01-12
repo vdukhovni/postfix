@@ -12,7 +12,7 @@
 /*
 /*	typedef struct {
 /* .in +4
-/*		DSN_BUF dsn;		/* RFC 3463 status */
+/*		DSN_STAT dsn;		/* RFC 3463 status */
 /*		const char *text;	/* Free text */
 /* .in -4
 /*	} DSN_SPLIT;

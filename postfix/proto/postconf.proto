@@ -8538,12 +8538,47 @@ server certificate was issued by a trusted CA. </dd>
 
 </dl>
 
-<p> Special hint for enforcement mode:  since no secure DNS lookup
-mechanism is available, the recommended setup is:  specify local
-transport(5) table entries for sensitive domains with explicit
-smtp:[mailhost] destinations (since you can assure security of this
-table unlike DNS), then specify MUST for these mail hosts in the
-smtp_tls_per_site table. </p>
+<p> Special hints for enforcement mode:  since no secure DNS lookup
+mechanism is available, the recommended setup is:  </p>
+
+<dl>
+
+<dt> Postfix 2.2.9 </dt>
+
+<dd> <ul>
+
+<li> Specify "smtp_cname_overrides_servername = no". This avoids
+false hostname information in DNS CNAME records that could bypass
+a hostname-based TLS usage policy.
+
+<li> Specify local transport(5) table entries for sensitive domains
+with explicit smtp:[mailhost] destinations. This avoids false
+hostname information in DNS MX records that could bypass a
+hostname-based TLS usage policy.
+
+<li> Specify MUST for these mail hosts in the smtp_tls_per_site
+table.
+
+</ul> </dd>
+
+<dt> Postfix &lt; 2.2.9 </dt>
+
+<dd> <ul>
+
+<li> Specify local transport(5) table entries for sensitive domains
+with explicit smtp:[mailhost] destinations. This avoids false
+hostname information in DNS MX records that could bypass a
+hostname-based TLS usage policy, but cannot avoid false hostname
+information in DNS CNAME records.
+
+<li> Specify MUST for these mail hosts in the smtp_tls_per_site
+table.
+
+</ul> </dd>
+
+</dl>
+
+<p> </p>
 
 %PARAM smtp_tls_scert_verifydepth 5
 
@@ -8866,7 +8901,7 @@ for receiving the initial server response. </p>
 <p> Time units: s (seconds), m (minutes), h (hours), d (days), w
 (weeks).  The default time unit is s (seconds).  </p>
 
-%PARAM lmtp_sasl_tls_security_options $var_lmtp_sasl_opts
+%PARAM lmtp_sasl_tls_security_options $lmtp_sasl_security_options
 
 <p> The LMTP-specific version of the smtp_sasl_tls_security_options
 configuration parameter.  See there for details. </p>
@@ -9147,4 +9182,39 @@ is: aliases, .forward files, mailbox_transport_maps, mailbox_transport,
 mailbox_command_maps, mailbox_command, home_mailbox, mail_spool_directory,
 fallback_transport_maps, fallback_transport and luser_relay.  </p>
  
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM smtp_cname_overrides_servername version dependent
+
+<p> Allow DNS CNAME records to override the servername that the
+Postfix SMTP client uses for logging, SASL password lookup, TLS
+policy decisions, or TLS certificate verification. The value "no"
+hardens Postfix smtp_tls_per_site hostname-based policies against
+false hostname information in DNS CNAME records, and makes SASL
+password file lookups more predictable. This is the default setting
+as of Postfix 2.3. </p>
+
+<p> This feature is available in Postfix 2.2.9 and later. </p>
+
+%PARAM lmtp_cname_overrides_servername yes
+
+<p> The LMTP-specific version of the smtp_cname_overrides_servername
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM smtp_sasl_tls_verified_security_options $smtp_sasl_tls_security_options
+
+<p> The SASL authentication security options that the Postfix SMTP
+client uses for TLS encrypted SMTP sessions with a verified server
+certificate. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_sasl_tls_verified_security_options $lmtp_sasl_tls_security_options
+
+<p> The LMTP-specific version of the
+smtp_sasl_tls_verified_security_options configuration parameter.
+See there for details. </p>
+
 <p> This feature is available in Postfix 2.3 and later. </p>

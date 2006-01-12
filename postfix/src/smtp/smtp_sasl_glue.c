@@ -283,8 +283,9 @@ int     smtp_sasl_authenticate(SMTP_SESSION *session, DSN_BUF *why)
 				session->sasl_passwd,
 				&mechanism, session->sasl_reply);
     if (result != XSASL_AUTH_OK) {
-	dsb_update(why, "4.7.0", DSB_DEF_ACTION, DSB_SKIP_RMTA, DSB_DTYPE_SASL,
-		   421, STR(session->sasl_reply),
+	dsb_update(why, "4.7.0", DSB_DEF_ACTION, DSB_SKIP_RMTA,
+		   DSB_DTYPE_SASL, STR(session->sasl_reply),
+		   "SASL authentication failed; "
 		   "cannot authenticate to server %s: %s",
 		   session->namaddr, STR(session->sasl_reply));
 	return (-1);
@@ -317,8 +318,8 @@ int     smtp_sasl_authenticate(SMTP_SESSION *session, DSN_BUF *why)
 				   session->sasl_reply);
 	if (result != XSASL_AUTH_OK) {
 	    dsb_update(why, "4.7.0", DSB_DEF_ACTION,	/* Fix 200512 */
-		       DSB_SKIP_RMTA, DSB_DTYPE_SASL,
-		       421, STR(session->sasl_reply),
+		    DSB_SKIP_RMTA, DSB_DTYPE_SASL, STR(session->sasl_reply),
+		       "SASL authentication failed; "
 		       "cannot authenticate to server %s: %s",
 		       session->namaddr, STR(session->sasl_reply));
 	    return (-1);			/* Fix 200512 */
@@ -334,9 +335,11 @@ int     smtp_sasl_authenticate(SMTP_SESSION *session, DSN_BUF *why)
      * We completed the authentication protocol.
      */
     if (resp->code / 100 != 2) {
-	smtp_dsn_update(why, session->host, resp->dsn, resp->code, resp->str,
-			"SASL authentication failed; server %s said: %s",
-			session->namaddr, resp->str);
+	dsb_update(why, resp->dsn, DSB_DEF_ACTION,
+		   DSB_MTYPE_DNS, session->host,
+		   var_procname, resp->str,
+		   "SASL authentication failed; server %s said: %s",
+		   session->namaddr, resp->str);
 	return (0);
     }
     return (1);

@@ -10,8 +10,8 @@
 /*	int	flags;
 /*	char	*service;
 /*	char	*queue_id;
-/*	RECIPIENT_VAR *rcpt;
-/*	DSN_VAR	*dsn;
+/*	RECIPIENT *rcpt;
+/*	DSN	*dsn;
 /* DESCRIPTION
 /*	This module implements the server side of the bounce_append()
 /*	(append bounce log) request. This routine either succeeds or
@@ -67,7 +67,7 @@
 /* bounce_append_service - append bounce log */
 
 int     bounce_append_service(int unused_flags, char *service, char *queue_id,
-			              RECIPIENT_VAR *rcpt, DSN_VAR *dsn)
+			              RECIPIENT *rcpt, DSN *dsn)
 {
     VSTRING *in_buf = vstring_alloc(100);
     VSTREAM *log;
@@ -113,49 +113,41 @@ int     bounce_append_service(int unused_flags, char *service, char *queue_id,
 	msg_fatal("seek file %s %s: %m", service, queue_id);
 
 #define NOT_NULL_EMPTY(s) ((s) != 0 && *(s) != 0)
-#define ST_NEUTER(s) printable((s), '?')
-#define VS_NEUTER(s) printable(vstring_str(s), '?')
+#define STR(x) vstring_str(x)
 
     vstream_fputs("\n", log);
     if (var_oldlog_compat) {
 	vstream_fprintf(log, "<%s>: %s\n", *rcpt->address == 0 ? "" :
-			VS_NEUTER(quote_822_local(in_buf, rcpt->address)),
-			ST_NEUTER(dsn->reason));
+			STR(quote_822_local(in_buf, rcpt->address)),
+			dsn->reason);
     }
     vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_RECIP, *rcpt->address ?
-		  VS_NEUTER(quote_822_local(in_buf, rcpt->address)) : "<>");
+		  STR(quote_822_local(in_buf, rcpt->address)) : "<>");
     if (NOT_NULL_EMPTY(rcpt->orig_addr)
 	&& strcasecmp(rcpt->address, rcpt->orig_addr) != 0)
 	vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_ORCPT,
-			VS_NEUTER(quote_822_local(in_buf, rcpt->orig_addr)));
+			STR(quote_822_local(in_buf, rcpt->orig_addr)));
     if (rcpt->offset > 0)
 	vstream_fprintf(log, "%s=%ld\n", MAIL_ATTR_OFFSET, rcpt->offset);
     if (NOT_NULL_EMPTY(rcpt->dsn_orcpt))
-	vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_DSN_ORCPT,
-			ST_NEUTER(rcpt->dsn_orcpt));
+	vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_DSN_ORCPT, rcpt->dsn_orcpt);
     if (rcpt->dsn_notify != 0)
 	vstream_fprintf(log, "%s=%d\n", MAIL_ATTR_DSN_NOTIFY, rcpt->dsn_notify);
 
     if (NOT_NULL_EMPTY(dsn->status))
-	vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_DSN_STATUS,
-			ST_NEUTER(dsn->status));
+	vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_DSN_STATUS, dsn->status);
     if (NOT_NULL_EMPTY(dsn->action))
-	vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_DSN_ACTION,
-			ST_NEUTER(dsn->action));
+	vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_DSN_ACTION, dsn->action);
     if (NOT_NULL_EMPTY(dsn->dtype) && NOT_NULL_EMPTY(dsn->dtext)) {
-	vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_DSN_DTYPE,
-			ST_NEUTER(dsn->dtype));
-	vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_DSN_DTEXT,
-			ST_NEUTER(dsn->dtext));
+	vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_DSN_DTYPE, dsn->dtype);
+	vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_DSN_DTEXT, dsn->dtext);
     }
     if (NOT_NULL_EMPTY(dsn->mtype) && NOT_NULL_EMPTY(dsn->mname)) {
-	vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_DSN_MTYPE,
-			ST_NEUTER(dsn->mtype));
-	vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_DSN_MNAME,
-			ST_NEUTER(dsn->mname));
+	vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_DSN_MTYPE, dsn->mtype);
+	vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_DSN_MNAME, dsn->mname);
     }
     if (NOT_NULL_EMPTY(dsn->reason))
-	vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_WHY, ST_NEUTER(dsn->reason));
+	vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_WHY, dsn->reason);
     vstream_fputs("\n", log);
 
     if (vstream_fflush(log) != 0 || fsync(vstream_fileno(log)) < 0) {

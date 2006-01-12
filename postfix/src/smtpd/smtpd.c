@@ -40,7 +40,6 @@
 /*	RFC 1869 (SMTP service extensions)
 /*	RFC 1870 (Message Size Declaration)
 /*	RFC 1985 (ETRN command)
-/*	RFC 2034 (Enhanced Status Codes)
 /*	RFC 2554 (AUTH command)
 /*	RFC 2821 (SMTP protocol)
 /*	RFC 2920 (SMTP Pipelining)
@@ -98,9 +97,9 @@
 /*	Available in Postfix version 2.2 and later:
 /* .IP "\fBsmtpd_discard_ehlo_keyword_address_maps (empty)\fR"
 /*	Lookup tables, indexed by the remote SMTP client address, with
-/*	case insensitive lists of EHLO keywords (pipelining, starttls,
-/*	auth, etc.) that the SMTP server will not send in the EHLO response
-/*	to a remote SMTP client.
+/*	case insensitive lists of EHLO keywords (pipelining, starttls, auth,
+/*	etc.) that the SMTP server will not send in the EHLO response to a
+/*	remote SMTP client.
 /* .IP "\fBsmtpd_discard_ehlo_keywords (empty)\fR"
 /*	A case insensitive list of EHLO keywords (pipelining, starttls,
 /*	auth, etc.) that the SMTP server will not send in the EHLO response

@@ -69,6 +69,7 @@
 #include <deliver_pass.h>
 #include <dsb_scan.h>
 #include <defer.h>
+#include <rcpt_print.h>
 
 #define DELIVER_PASS_DEFER	1
 #define DELIVER_PASS_UNKNOWN	2
@@ -116,12 +117,10 @@ static int deliver_pass_send_request(VSTREAM *stream, DELIVER_REQUEST *request,
 	     ATTR_TYPE_STR, MAIL_ATTR_SASL_USERNAME, request->sasl_username,
 	       ATTR_TYPE_STR, MAIL_ATTR_SASL_SENDER, request->sasl_sender,
 	     ATTR_TYPE_STR, MAIL_ATTR_RWR_CONTEXT, request->rewrite_context,
-	       ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, rcpt->offset,
-	       ATTR_TYPE_STR, MAIL_ATTR_DSN_ORCPT, rcpt->dsn_orcpt,
-	       ATTR_TYPE_NUM, MAIL_ATTR_DSN_NOTIFY, rcpt->dsn_notify,
-	       ATTR_TYPE_STR, MAIL_ATTR_ORCPT, rcpt->orig_addr,
-	       ATTR_TYPE_STR, MAIL_ATTR_RECIP, rcpt->address,
-	       ATTR_TYPE_NUM, MAIL_ATTR_OFFSET, 0,
+	       ATTR_TYPE_NUM, MAIL_ATTR_RCPT_COUNT, 1,
+	       ATTR_TYPE_END);
+    attr_print(stream, ATTR_FLAG_NONE,
+	       ATTR_TYPE_FUNC, rcpt_print, (void *) rcpt,
 	       ATTR_TYPE_END);
 
     if (vstream_fflush(stream)) {
@@ -192,17 +191,13 @@ int     deliver_pass(const char *class, const char *service,
      */
     if (deliver_pass_initial_reply(stream) != 0
 	|| deliver_pass_send_request(stream, request, nexthop, rcpt) != 0) {
-	DSN_SMTP(&dsn, "4.3.0",
-		 "451 mail transport unavailable",
-		 "mail transport unavailable");
+	(void) DSN_SIMPLE(&dsn, "4.3.0", "mail transport unavailable");
 	status = defer_append(DEL_REQ_TRACE_FLAGS(request->flags),
 			      request->queue_id, &request->msg_stats,
 			      rcpt, "none", &dsn);
     } else if ((status = deliver_pass_final_reply(stream, dsb))
 	       == DELIVER_PASS_UNKNOWN) {
-	DSN_SMTP(&dsn, "4.3.0",
-		 "451 unknown mail transport error",
-		 "unknown mail transport error");
+	(void) DSN_SIMPLE(&dsn, "4.3.0", "unknown mail transport error");
 	status = defer_append(DEL_REQ_TRACE_FLAGS(request->flags),
 			      request->queue_id, &request->msg_stats,
 			      rcpt, "none", &dsn);
@@ -227,6 +222,11 @@ int     deliver_pass_all(const char *class, const char *service,
     RECIPIENT *rcpt;
     int     status = 0;
 
+    /*
+     * XXX We should find out if the target transport can handle
+     * multi-recipient requests. Unfortunately such code is hard to test,
+     * rarely used, and therefore will be buggy.
+     */
     list = &request->rcpt_list;
     for (rcpt = list->info; rcpt < list->info + list->len; rcpt++)
 	status |= deliver_pass(class, service, request, rcpt);

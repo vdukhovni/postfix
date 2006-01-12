@@ -24,8 +24,8 @@
 /* .ad
 /* .fi
 /*	Some external commands cannot handle more than one recipient
-/*	per delivery request. Examples of such transports are pagers,
-/*	fax machines, and so on.
+/*	per delivery request. Examples of such transports are pagers
+/*	or fax machines.
 /*
 /*	To prevent Postfix from sending multiple recipients per delivery
 /*	request, specify
@@ -882,7 +882,6 @@ static int eval_command_status(int command_status, char *service,
     int     status;
     int     result = 0;
     int     n;
-    DSN     dsn;
 
     /*
      * Depending on the result, bounce or defer the message, and mark the
@@ -892,12 +891,12 @@ static int eval_command_status(int command_status, char *service,
     case PIPE_STAT_OK:
 	dsb_update(why, "2.0.0", "relayed", DSB_SKIP_RMTA, DSB_SKIP_REPLY,
 		   "delivered via %s service", service);
-	(void) DSN_FROM_DSN_BUF(&dsn, why);
+	(void) DSN_FROM_DSN_BUF(why);
 	for (n = 0; n < request->rcpt_list.len; n++) {
 	    rcpt = request->rcpt_list.info + n;
 	    status = sent(DEL_REQ_TRACE_FLAGS(request->flags),
 			  request->queue_id, &request->msg_stats, rcpt,
-			  service, &dsn);
+			  service, &why->dsn);
 	    if (status == 0 && (request->flags & DEL_REQ_FLAG_SUCCESS))
 		deliver_completed(src, rcpt->offset);
 	    result |= status;
@@ -905,14 +904,14 @@ static int eval_command_status(int command_status, char *service,
 	break;
     case PIPE_STAT_BOUNCE:
     case PIPE_STAT_DEFER:
-	(void) DSN_FROM_DSN_BUF(&dsn, why);
+	(void) DSN_FROM_DSN_BUF(why);
 	if (STR(why->status)[0] != '4') {
 	    for (n = 0; n < request->rcpt_list.len; n++) {
 		rcpt = request->rcpt_list.info + n;
 		status = bounce_append(DEL_REQ_TRACE_FLAGS(request->flags),
 				       request->queue_id,
 				       &request->msg_stats, rcpt,
-				       service, &dsn);
+				       service, &why->dsn);
 		if (status == 0)
 		    deliver_completed(src, rcpt->offset);
 		result |= status;
@@ -923,7 +922,7 @@ static int eval_command_status(int command_status, char *service,
 		result |= defer_append(DEL_REQ_TRACE_FLAGS(request->flags),
 				       request->queue_id,
 				       &request->msg_stats, rcpt,
-				       service, &dsn);
+				       service, &why->dsn);
 	    }
 	}
 	break;
@@ -948,7 +947,6 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
     static PIPE_ATTR attr;
     RECIPIENT_LIST *rcpt_list = &request->rcpt_list;
     DSN_BUF *why = dsb_create();
-    DSN     dsn;
     VSTRING *buf;
     ARGV   *expanded_argv = 0;
     int     deliver_status;
@@ -1029,11 +1027,12 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 
 	deliver_status = 0;
 	dsb_simple(why, "2.0.0", "delivers to command: %s", attr.command[0]);
+	(void) DSN_FROM_DSN_BUF(why);
 	for (n = 0; n < request->rcpt_list.len; n++) {
 	    rcpt = request->rcpt_list.info + n;
 	    status = sent(DEL_REQ_TRACE_FLAGS(request->flags),
 			  request->queue_id, &request->msg_stats,
-			  rcpt, service, DSN_FROM_DSN_BUF(&dsn, why));
+			  rcpt, service, &why->dsn);
 	    if (status == 0 && (request->flags & DEL_REQ_FLAG_SUCCESS))
 		deliver_completed(request->fp, rcpt->offset);
 	    deliver_status |= status;

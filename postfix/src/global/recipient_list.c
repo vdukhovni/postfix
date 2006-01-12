@@ -15,9 +15,9 @@
 /*		char   *address;
 /*		union {
 /* .in +4
-/*		int	status;
-/*		struct QMGR_QUEUE *queue;
-/*		char	*addr_type;
+/*			int	status;
+/*			struct QMGR_QUEUE *queue;
+/*			char	*addr_type;
 /* .in -4
 /*		}
 /* .in -4

@@ -130,7 +130,7 @@ static const char *def_bounce_delay_body[] = {
     "# THIS IS A WARNING ONLY.  YOU DO NOT NEED TO RESEND YOUR MESSAGE. #",
     "####################################################################",
     "",
-    "Your message could not be delivered for $delay_warning_time_hours hour(s)."
+    "Your message could not be delivered for more than $delay_warning_time_hours hour(s)."
     ,
     "It will be retried until it is $maximal_queue_lifetime_days day(s) old.",
     "",

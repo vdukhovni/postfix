@@ -19,9 +19,15 @@
 #include <attr.h>
 
  /*
+  * Global library.
+  */
+#include <recipient_list.h>
+
+ /*
   * External interface.
   */
 typedef struct {
+    RECIPIENT rcpt;			/* convenience */
     VSTRING *address;			/* final recipient */
     VSTRING *orig_addr;			/* original recipient */
     VSTRING *dsn_orcpt;			/* dsn original recipient */
@@ -30,16 +36,17 @@ typedef struct {
 } RCPT_BUF;
 
 extern RCPT_BUF *rcpb_create(void);
+extern void rcpb_reset(RCPT_BUF *);
 extern void rcpb_free(RCPT_BUF *);
 extern int rcpb_scan(ATTR_SCAN_MASTER_FN, VSTREAM *, int, void *);
 
-#define RECIPIENT_FROM_RCPT_BUF(rcpt, buf) \
-    ((rcpt)->address = vstring_str((buf)->address), \
-     (rcpt)->orig_addr = vstring_str((buf)->orig_addr), \
-     (rcpt)->dsn_orcpt = vstring_str((buf)->dsn_orcpt), \
-     (rcpt)->dsn_notify = (buf)->dsn_notify, \
-     (rcpt)->offset = (buf)->offset, \
-     (rcpt))
+#define RECIPIENT_FROM_RCPT_BUF(buf) \
+    ((buf)->rcpt.address = vstring_str((buf)->address), \
+     (buf)->rcpt.orig_addr = vstring_str((buf)->orig_addr), \
+     (buf)->rcpt.dsn_orcpt = vstring_str((buf)->dsn_orcpt), \
+     (buf)->rcpt.dsn_notify = (buf)->dsn_notify, \
+     (buf)->rcpt.offset = (buf)->offset, \
+     &(buf)->rcpt)
 
 /* LICENSE
 /* .ad

@@ -126,17 +126,14 @@ static SMTP_SESSION *smtp_connect_unix(const char *addr,
     int     len = strlen(addr);
     int     sock;
 
-    smtp_errno = SMTP_ERR_NONE;			/* Paranoia */
+    dsb_reset(why);				/* Paranoia */
 
     /*
      * Sanity checks.
      */
     if (len >= (int) sizeof(sock_un.sun_path)) {
 	msg_warn("unix-domain name too long: %s", addr);
-	smtp_dsn_update(why, DSN_BY_LOCAL_MTA, "4.3.5",
-			450, "450 Mail server configuration error",
-			"Server configuration error");
-	smtp_errno = SMTP_ERR_RETRY;
+	dsb_simple(why, "4.3.5", "Server configuration error");
 	return (0);
     }
 
@@ -182,7 +179,7 @@ static SMTP_SESSION *smtp_connect_addr(const char *destination, DNS_RR *addr,
     char   *bind_addr;
     char   *bind_var;
 
-    smtp_errno = SMTP_ERR_NONE;			/* Paranoia */
+    dsb_reset(why);				/* Paranoia */
 
     /*
      * Sanity checks.
@@ -190,10 +187,7 @@ static SMTP_SESSION *smtp_connect_addr(const char *destination, DNS_RR *addr,
     if (dns_rr_to_sa(addr, port, sa, &salen) != 0) {
 	msg_warn("%s: skip address type %s: %m",
 		 myname, dns_strtype(addr->type));
-	smtp_dsn_update(why, DSN_BY_LOCAL_MTA, "4.4.0",
-			451, "451 network address conversion failed",
-			"network address conversion failed: %m");
-	smtp_errno = SMTP_ERR_RETRY;
+	dsb_simple(why, "4.4.0", "network address conversion failed: %m");
 	return (0);
     }
 
@@ -271,9 +265,9 @@ static SMTP_SESSION *smtp_connect_addr(const char *destination, DNS_RR *addr,
     SOCKADDR_TO_HOSTADDR(sa, salen, &hostaddr, (MAI_SERVPORT_STR *) 0, 0);
     if (msg_verbose)
 	msg_info("%s: trying: %s[%s] port %d...",
-		 myname, addr->name, hostaddr.buf, ntohs(port));
+		 myname, SMTP_HNAME(addr), hostaddr.buf, ntohs(port));
 
-    return (smtp_connect_sock(sock, sa, salen, addr->name, hostaddr.buf,
+    return (smtp_connect_sock(sock, sa, salen, SMTP_HNAME(addr), hostaddr.buf,
 			      port, destination, why, sess_flags));
 }
 
@@ -290,7 +284,6 @@ static SMTP_SESSION *smtp_connect_sock(int sock, struct sockaddr * sa,
     int     conn_stat;
     int     saved_errno;
     VSTREAM *stream;
-    int     ch;
     time_t  start_time;
 
     start_time = time((time_t *) 0);
@@ -303,54 +296,12 @@ static SMTP_SESSION *smtp_connect_sock(int sock, struct sockaddr * sa,
     } else {
 	conn_stat = sane_connect(sock, sa, salen);
     }
-    /* XXX 42X Means connection error, but only 421 is defined. */
     if (conn_stat < 0) {
-	smtp_dsn_update(why, DSN_BY_LOCAL_MTA,
-			"4.4.1", 420, "420 Unable to connect to server",
-			"connect to %s[%s]: %m", name, addr);
-	smtp_errno = SMTP_ERR_RETRY;
+	dsb_simple(why, "4.4.1", "connect to %s[%s]: %m", name, addr);
 	close(sock);
 	return (0);
     }
-
-    /*
-     * Following code is obsolete now that the SMTP client will connect to
-     * alternate hosts when a session fails before "MAIL FROM".
-     */
-#if 1
     stream = vstream_fdopen(sock, O_RDWR);
-#else
-
-    /*
-     * Skip this host if it takes no action within some time limit. XXX Some
-     * MTAs use 426 to indicate a timeout error.
-     */
-    if (read_wait(sock, var_smtp_helo_tmout) < 0) {
-	smtp_dsn_update(why, DSN_BY_LOCAL_MTA,
-			"4.4.2", 426, "426 No response from server",
-			"connect to %s[%s]: read timeout",
-			addr->name, hostaddr.buf);
-	smtp_errno = SMTP_ERR_RETRY;
-	close(sock);
-	return (0);
-    }
-
-    /*
-     * Skip this host if it disconnects without talking to us.
-     */
-    stream = vstream_fdopen(sock, O_RDWR);
-    if ((ch = VSTREAM_GETC(stream)) == VSTREAM_EOF) {
-	smtp_dsn_update(why, DSN_BY_LOCAL_MTA,
-			"4.4.0", 421, "421 Lost connection",
-			"connect to %s[%s]: server dropped connection"
-			" without sending the initial greeting",
-			addr->name, hostaddr.buf);
-	smtp_errno = SMTP_ERR_RETRY;
-	vstream_fclose(stream);
-	return (0);
-    }
-    vstream_ungetc(stream, ch);
-#endif
 
     /*
      * Bundle up what we have into a nice SMTP_SESSION object.
@@ -473,11 +424,11 @@ static void smtp_cleanup_session(SMTP_STATE *state)
 
 /* smtp_connect_local - connect to local server */
 
-static void smtp_connect_local(SMTP_STATE *state, const char *path,
-			               DSN_BUF *why)
+static void smtp_connect_local(SMTP_STATE *state, const char *path)
 {
     DELIVER_REQUEST *request = state->request;
     SMTP_SESSION *session;
+    DSN_BUF *why = state->why;
 
     /*
      * It's too painful to weave this code into the SMTP connection
@@ -660,13 +611,14 @@ static int smtp_reuse_session(SMTP_STATE *state, int lookup_mx,
 /* smtp_connect_remote - establish remote connection */
 
 static void smtp_connect_remote(SMTP_STATE *state, const char *nexthop,
-				        char *def_service, DSN_BUF *why)
+				        char *def_service)
 {
     DELIVER_REQUEST *request = state->request;
     ARGV   *sites;
     char   *dest;
     char  **cpp;
     int     non_fallback_sites;
+    DSN_BUF *why = state->why;
 
     /*
      * First try to deliver to the indicated destination, then try to deliver
@@ -759,7 +711,7 @@ static void smtp_connect_remote(SMTP_STATE *state, const char *nexthop,
 	 * Don't try fall-back hosts if mail loops to myself. That would just
 	 * make the problem worse.
 	 */
-	if (addr_list == 0 && smtp_errno == SMTP_ERR_LOOP)
+	if (addr_list == 0 && SMTP_HAS_LOOP_DSN(why))
 	    state->misc_flags |= SMTP_MISC_FLAG_FINAL_NEXTHOP;
 
 	/*
@@ -885,23 +837,22 @@ static void smtp_connect_remote(SMTP_STATE *state, const char *nexthop,
     if (SMTP_RCPT_LEFT(state) > 0) {
 
 	/*
-	 * In case of a "no error" indication we make up an excuse; this can
-	 * happen when the fall-back relay was already tried via a cached
-	 * connection, so that the address list scrubber left behind an empty
-	 * list.
+	 * In case of a "no error" indication we make up an excuse: we did
+	 * find the host address, but we did not attempt to connect to it.
+	 * This can happen when the fall-back relay was already tried via a
+	 * cached connection, so that the address list scrubber left behind
+	 * an empty list.
 	 */
-	if (smtp_errno == SMTP_ERR_NONE) {
-	    smtp_dsn_update(why, DSN_BY_LOCAL_MTA,
-			    "4.3.0", 450, "450 Server unavailable",
-			    "server unavailable or unable to receive mail");
-	    smtp_errno = SMTP_ERR_RETRY;
+	if (!SMTP_HAS_DSN(why)) {
+	    dsb_simple(why, "4.3.0",
+		       "server unavailable or unable to receive mail");
 	}
 
 	/*
 	 * Pay attention to what could be configuration problems, and pretend
 	 * that these are recoverable rather than bouncing the mail.
 	 */
-	else if (smtp_errno != SMTP_ERR_RETRY
+	else if (!SMTP_HAS_SOFT_DSN(why)
 		 && (state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) == 0) {
 
 	    /*
@@ -912,7 +863,6 @@ static void smtp_connect_remote(SMTP_STATE *state, const char *nexthop,
 		msg_warn("%s configuration problem", VAR_SMTP_FALLBACK);
 		vstring_strcpy(why->status, "4.3.5");
 		/* XXX Keep the diagnostic code and MTA. */
-		smtp_errno = SMTP_ERR_RETRY;
 	    }
 
 	    /*
@@ -923,18 +873,17 @@ static void smtp_connect_remote(SMTP_STATE *state, const char *nexthop,
 		msg_warn("%s configuration problem", VAR_RELAYHOST);
 		vstring_strcpy(why->status, "4.3.5");
 		/* XXX Keep the diagnostic code and MTA. */
-		smtp_errno = SMTP_ERR_RETRY;
 	    }
 
 	    /*
 	     * Mail for the next-hop destination loops back to myself. Pass
 	     * the mail to the best_mx_transport or bounce it.
 	     */
-	    else if (smtp_errno == SMTP_ERR_LOOP && *var_bestmx_transp) {
+	    else if (SMTP_HAS_LOOP_DSN(why) && *var_bestmx_transp) {
+		dsb_reset(why);			/* XXX */
 		state->status = deliver_pass_all(MAIL_CLASS_PRIVATE,
 						 var_bestmx_transp,
 						 request);
-		smtp_errno = 0;			/* XXX */
 		SMTP_RCPT_LEFT(state) = 0;	/* XXX */
 	    }
 	}
@@ -953,7 +902,6 @@ static void smtp_connect_remote(SMTP_STATE *state, const char *nexthop,
 int     smtp_connect(SMTP_STATE *state)
 {
     DELIVER_REQUEST *request = state->request;
-    DSN_BUF *why = dsb_create();
     char   *destination = request->nexthop;
 
     /*
@@ -975,11 +923,11 @@ int     smtp_connect(SMTP_STATE *state)
      */
     if (state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) {
 	if (strncmp(destination, "unix:", 5) == 0) {
-	    smtp_connect_local(state, destination + 5, why);
+	    smtp_connect_local(state, destination + 5);
 	} else {
 	    if (strncmp(destination, "inet:", 5) == 0)
 		destination += 5;
-	    smtp_connect_remote(state, destination, DEF_LMTP_SERVICE, why);
+	    smtp_connect_remote(state, destination, DEF_LMTP_SERVICE);
 	}
     }
 
@@ -992,7 +940,7 @@ int     smtp_connect(SMTP_STATE *state)
      * Postfix configurations that have a host with such a name.
      */
     else {
-	smtp_connect_remote(state, destination, DEF_SMTP_SERVICE, why);
+	smtp_connect_remote(state, destination, DEF_SMTP_SERVICE);
     }
 
     /*
@@ -1005,20 +953,10 @@ int     smtp_connect(SMTP_STATE *state)
      * deferred recipients at the end. We'd probably still want to bounce
      * recipients immediately, so we'd end up with another chunk of code for
      * defer logging only.
-     * 
-     * XXX Unlike enhanced status codes, changing a 4xx into 5xx SMTP code is
-     * not simply a matter of changing the initial digit. What we're doing
-     * here is correct only under specific conditions, such as changing 450
-     * into 550 or vice versa.
      */
     if (SMTP_RCPT_LEFT(state) > 0) {
 	state->misc_flags |= SMTP_MISC_FLAG_FINAL_SERVER;	/* XXX */
-	if (smtp_errno == SMTP_ERR_RETRY)
-	    STR(why->status)[0] = STR(why->dtext)[0] = '4';	/* XXX */
-	else
-	    STR(why->status)[0] = STR(why->dtext)[0] = '5';	/* XXX */
-	why->dcode = atoi(STR(why->dtext));	/* XXX */
-	smtp_sess_fail(state, why);
+	smtp_sess_fail(state);
 
 	/*
 	 * Sanity check. Don't silently lose recipients.
@@ -1027,6 +965,5 @@ int     smtp_connect(SMTP_STATE *state)
 	if (SMTP_RCPT_LEFT(state) > 0)
 	    msg_panic("smtp_connect: left-over recipients");
     }
-    dsb_free(why);
     return (state->status);
 }

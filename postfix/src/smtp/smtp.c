@@ -85,7 +85,6 @@
 /*	RFC 1652 (8bit-MIME transport)
 /*	RFC 1870 (Message Size Declaration)
 /*	RFC 2033 (LMTP protocol)
-/*	RFC 2034 (Enhanced Status Codes)
 /*	RFC 2045 (MIME: Format of Internet Message Bodies)
 /*	RFC 2046 (MIME: Media Types)
 /*	RFC 2554 (AUTH command)
@@ -179,6 +178,12 @@
 /*	Optional lookup tables that perform address rewriting in the
 /*	SMTP client, typically to transform a locally valid address into
 /*	a globally valid address when sending mail across the Internet.
+/* .PP
+/*	Available in Postfix version 2.2.9 and later:
+/* .IP "\fBsmtp_cname_overrides_servername (version dependent)\fR"
+/*	Allow DNS CNAME records to override the servername that the
+/*	Postfix SMTP client uses for logging, SASL password lookup, TLS
+/*	policy decisions, or TLS certificate verification.
 /* .PP
 /*	Available in Postfix version 2.3 and later:
 /* .IP "\fBlmtp_discard_lhlo_keyword_address_maps (empty)\fR"
@@ -297,6 +302,12 @@
 /*	The number of pseudo-random bytes that an \fBsmtp\fR(8) or \fBsmtpd\fR(8)
 /*	process requests from the \fBtlsmgr\fR(8) server in order to seed its
 /*	internal pseudo random number generator (PRNG).
+/* .PP
+/*	Available in Postfix version 2.3 and later:
+/* .IP "\fBsmtp_sasl_tls_verified_security_options ($smtp_sasl_tls_security_options)\fR"
+/*	The SASL authentication security options that the Postfix SMTP
+/*	client uses for TLS encrypted SMTP sessions with a verified server
+/*	certificate.
 /* RESOURCE AND RATE CONTROLS
 /* .ad
 /* .fi
@@ -606,6 +617,7 @@ char   *var_smtp_tls_per_site;
 #ifdef USE_TLS
 int     var_smtp_starttls_tmout;
 char   *var_smtp_sasl_tls_opts;
+char   *var_smtp_sasl_tlsv_opts;
 bool    var_smtp_tls_enforce_peername;
 int     var_smtp_tls_scert_vd;
 bool    var_smtp_tls_note_starttls_offer;
@@ -617,12 +629,11 @@ char   *var_prop_extension;
 bool    var_smtp_sender_auth;
 char   *var_lmtp_tcp_port;
 int     var_scache_proto_tmout;
+bool    var_smtp_cname_overr;
 
  /*
-  * Global variables. smtp_errno is set by the address lookup routines and by
-  * the connection management routines.
+  * Global variables.
   */
-int     smtp_errno;
 int     smtp_host_lookup_mask;
 STRING_LIST *smtp_cache_dest;
 SCACHE *smtp_scache;

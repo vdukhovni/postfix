@@ -22,15 +22,15 @@
 /*	const BOUNCE_TEMPLATE *template;
 /*
 /*	BOUNCE_INFO *bounce_mail_one_init(queue_name, queue_id, encoding,
-/*					dsn_envid, dsn_notify, rcpt, dsn,
-/*					template)
+/*					dsn_envid, dsn_notify, rcpt_buf,
+/*					dsn_buf, template)
 /*	const char *queue_name;
 /*	const char *queue_id;
 /*	const char *encoding;
 /*	int	dsn_notify;
 /*	const char *dsn_envid;
-/*	RECIPIENT *rcpt;
-/*	DSN	*dsn;
+/*	RCPT_BUF *rcpt_buf;
+/*	DSN_BUF	*dsn_buf;
 /*	const BOUNCE_TEMPLATE *template;
 /*
 /*	void	bounce_mail_free(bounce_info)
@@ -160,6 +160,7 @@
 #include <sys_defs.h>
 #include <sys/stat.h>
 #include <stdlib.h>
+#include <stdio.h>			/* sscanf() */
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
@@ -211,6 +212,8 @@ static BOUNCE_INFO *bounce_mail_alloc(const char *service,
 				              const char *queue_id,
 				              const char *encoding,
 				              const char *dsn_envid,
+				              RCPT_BUF *rcpt_buf,
+				              DSN_BUF *dsn_buf,
 				              BOUNCE_TEMPLATE *template,
 				              BOUNCE_LOG *log_handle)
 {
@@ -218,7 +221,7 @@ static BOUNCE_INFO *bounce_mail_alloc(const char *service,
     int     rec_type;
 
     /*
-     * Bundle up a bunch of parameters and initialize information. that will
+     * Bundle up a bunch of parameters and initialize information that will
      * be discovered on the fly.
      */
     bounce_info = (BOUNCE_INFO *) mymalloc(sizeof(*bounce_info));
@@ -245,6 +248,8 @@ static BOUNCE_INFO *bounce_mail_alloc(const char *service,
     bounce_info->arrival_time = 0;
     bounce_info->orig_offs = 0;
     bounce_info->message_size = 0;
+    bounce_info->rcpt_buf = rcpt_buf;
+    bounce_info->dsn_buf = dsn_buf;
     bounce_info->log_handle = log_handle;
 
     /*
@@ -278,9 +283,9 @@ static BOUNCE_INFO *bounce_mail_alloc(const char *service,
 	msg_fatal("open %s %s: %m", service, queue_id);
 
     /*
-     * Skip over the original message envelope records. If the envelope is
-     * corrupted just send whatever we can (remember this is a best effort,
-     * it does not have to be perfect).
+     * Get time/size/sender information from the original message envelope
+     * records. If the envelope is corrupted just send whatever we can
+     * (remember this is a best effort, it does not have to be perfect).
      * 
      * Lock the file for shared use, so that queue manager leaves it alone after
      * restarting.
@@ -294,20 +299,44 @@ static BOUNCE_INFO *bounce_mail_alloc(const char *service,
 		      VSTREAM_PATH(bounce_info->orig_fp));
 	while ((rec_type = rec_get(bounce_info->orig_fp,
 				   bounce_info->buf, 0)) > 0) {
+
+	    /*
+	     * Postfix version dependent: data offset in SIZE record.
+	     */
 	    if (rec_type == REC_TYPE_SIZE) {
-		if (bounce_info->message_size == 0
-		    && (bounce_info->message_size = atol(STR(bounce_info->buf))) < 0)
+		if (bounce_info->message_size == 0)
+		    sscanf(STR(bounce_info->buf), "%ld %ld",
+			   &bounce_info->message_size,
+			   &bounce_info->orig_offs);
+		if (bounce_info->message_size < 0)
 		    bounce_info->message_size = 0;
-	    } else if (rec_type == REC_TYPE_TIME) {
+		if (bounce_info->orig_offs < 0)
+		    bounce_info->orig_offs = 0;
+	    }
+
+	    /*
+	     * Information for the Arrival-Date: attribute.
+	     */
+	    else if (rec_type == REC_TYPE_TIME) {
 		if (bounce_info->arrival_time == 0
 		    && (bounce_info->arrival_time = atol(STR(bounce_info->buf))) < 0)
 		    bounce_info->arrival_time = 0;
-	    } else if (rec_type == REC_TYPE_FROM) {
+	    }
+
+	    /*
+	     * Information for the X-Postfix-Sender: attribute.
+	     */
+	    else if (rec_type == REC_TYPE_FROM) {
 		quote_822_local_flags(bounce_info->sender,
 				      VSTRING_LEN(bounce_info->buf) ?
 				      STR(bounce_info->buf) :
 				      mail_addr_mail_daemon(), 0);
-	    } else if (rec_type == REC_TYPE_MESG) {
+	    }
+
+	    /*
+	     * Backwards compatibility: no data offset in SIZE record.
+	     */
+	    else if (rec_type == REC_TYPE_MESG) {
 		/* XXX Future: sender+recipient after message content. */
 		if (VSTRING_LEN(bounce_info->sender) == 0)
 		    msg_warn("%s: no sender before message content record",
@@ -315,6 +344,10 @@ static BOUNCE_INFO *bounce_mail_alloc(const char *service,
 		bounce_info->orig_offs = vstream_ftell(bounce_info->orig_fp);
 		break;
 	    }
+	    if (bounce_info->orig_offs > 0
+		&& bounce_info->arrival_time > 0
+		&& VSTRING_LEN(bounce_info->sender) > 0)
+		break;
 	}
     }
     return (bounce_info);
@@ -331,6 +364,8 @@ BOUNCE_INFO *bounce_mail_init(const char *service,
 {
     BOUNCE_INFO *bounce_info;
     BOUNCE_LOG *log_handle;
+    RCPT_BUF *rcpt_buf;
+    DSN_BUF *dsn_buf;
 
     /*
      * Initialize the bounce_info structure. If the bounce log cannot be
@@ -340,11 +375,18 @@ BOUNCE_INFO *bounce_mail_init(const char *service,
      * job. But if the system IS running out of resources, raise a fatal
      * run-time error and force a backoff.
      */
-    if ((log_handle = bounce_log_open(service, queue_id, O_RDONLY, 0)) == 0
-	&& errno != ENOENT)
-	msg_fatal("open %s %s: %m", service, queue_id);
+    if ((log_handle = bounce_log_open(service, queue_id, O_RDONLY, 0)) == 0) {
+	if (errno != ENOENT)
+	    msg_fatal("open %s %s: %m", service, queue_id);
+	rcpt_buf = 0;
+	dsn_buf = 0;
+    } else {
+	rcpt_buf = rcpb_create();
+	dsn_buf = dsb_create();
+    }
     bounce_info = bounce_mail_alloc(service, queue_name, queue_id, encoding,
-				    dsn_envid, template, log_handle);
+				    dsn_envid, rcpt_buf, dsn_buf,
+				    template, log_handle);
     return (bounce_info);
 }
 
@@ -354,20 +396,18 @@ BOUNCE_INFO *bounce_mail_one_init(const char *queue_name,
 				          const char *queue_id,
 				          const char *encoding,
 				          const char *dsn_envid,
-				          RECIPIENT *rcpt,
-				          DSN *dsn,
+				          RCPT_BUF *rcpt_buf,
+				          DSN_BUF *dsn_buf,
 				          BOUNCE_TEMPLATE *template)
 {
     BOUNCE_INFO *bounce_info;
-    BOUNCE_LOG *log_handle;
 
     /*
-     * Initialize the bounce_info structure. Forge a logfile record for just
-     * one recipient.
+     * Initialize the bounce_info structure for just one recipient.
      */
-    log_handle = bounce_log_forge(rcpt, dsn);
     bounce_info = bounce_mail_alloc("none", queue_name, queue_id, encoding,
-				    dsn_envid, template, log_handle);
+				    dsn_envid, rcpt_buf, dsn_buf, template,
+				    (BOUNCE_LOG *) 0);
     return (bounce_info);
 }
 
@@ -375,9 +415,13 @@ BOUNCE_INFO *bounce_mail_one_init(const char *queue_name,
 
 void    bounce_mail_free(BOUNCE_INFO *bounce_info)
 {
-    if (bounce_info->log_handle && bounce_log_close(bounce_info->log_handle))
-	msg_warn("%s: read bounce log %s: %m",
-		 bounce_info->queue_id, bounce_info->queue_id);
+    if (bounce_info->log_handle) {
+	if (bounce_log_close(bounce_info->log_handle))
+	    msg_warn("%s: read bounce log %s: %m",
+		     bounce_info->queue_id, bounce_info->queue_id);
+	rcpb_free(bounce_info->rcpt_buf);
+	dsb_free(bounce_info->dsn_buf);
+    }
     if (bounce_info->orig_fp && vstream_fclose(bounce_info->orig_fp))
 	msg_warn("%s: read message file %s %s: %m",
 		 bounce_info->queue_id, bounce_info->queue_name,
@@ -480,6 +524,8 @@ static void bounce_print_wrap(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
 
 int     bounce_recipient_log(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 {
+    RECIPIENT *rcpt = &bounce_info->rcpt_buf->rcpt;
+    DSN    *dsn = &bounce_info->dsn_buf->dsn;
 
     /*
      * Mask control and non-ASCII characters (done in bounce_log_read()),
@@ -487,16 +533,15 @@ int     bounce_recipient_log(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
      * piped into other programs. Sort of like TCP Wrapper's safe_finger
      * program.
      */
+#define NON_NULL_EMPTY(s) ((s) && *(s))
+
     post_mail_fputs(bounce, "");
-    if (bounce_info->log_handle->rcpt.orig_addr) {
+    if (NON_NULL_EMPTY(rcpt->orig_addr)) {
 	bounce_print_wrap(bounce, bounce_info, "<%s> (expanded from <%s>): %s",
-			  bounce_info->log_handle->rcpt.address,
-			  bounce_info->log_handle->rcpt.orig_addr,
-			  bounce_info->log_handle->dsn.reason);
+			  rcpt->address, rcpt->orig_addr, dsn->reason);
     } else {
 	bounce_print_wrap(bounce, bounce_info, "<%s>: %s",
-			  bounce_info->log_handle->rcpt.address,
-			  bounce_info->log_handle->dsn.reason);
+			  rcpt->address, dsn->reason);
     }
     return (vstream_ferror(bounce));
 }
@@ -506,6 +551,7 @@ int     bounce_recipient_log(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 int     bounce_diagnostic_log(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
 			              int notify_filter)
 {
+    RECIPIENT *rcpt = &bounce_info->rcpt_buf->rcpt;
     int     count = 0;
 
     /*
@@ -520,13 +566,15 @@ int     bounce_diagnostic_log(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
     if (bounce_info->log_handle == 0
 	|| bounce_log_rewind(bounce_info->log_handle)) {
 	if (IS_FAILURE_TEMPLATE(bounce_info->template)) {
+	    post_mail_fputs(bounce, "");
 	    post_mail_fputs(bounce, "\t--- Delivery report unavailable ---");
 	    count = 1;				/* XXX don't abort */
 	}
     } else {
-	while (bounce_log_read(bounce_info->log_handle) != 0) {
-	    if (bounce_info->log_handle->rcpt.dsn_notify == 0	/* compat */
-	    || (bounce_info->log_handle->rcpt.dsn_notify & notify_filter)) {
+	while (bounce_log_read(bounce_info->log_handle, bounce_info->rcpt_buf,
+			       bounce_info->dsn_buf) != 0) {
+	    if (rcpt->dsn_notify == 0		/* compat */
+		|| (rcpt->dsn_notify & notify_filter)) {
 		count++;
 		if (bounce_recipient_log(bounce, bounce_info) != 0)
 		    break;
@@ -561,7 +609,7 @@ int     bounce_header_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 #if 0
     post_mail_fprintf(bounce, "Received-From-MTA: dns; %s", "whatever");
 #endif
-    if (bounce_info->dsn_envid) {
+    if (NON_NULL_EMPTY(bounce_info->dsn_envid)) {
 	post_mail_fprintf(bounce, "Original-Envelope-Id: %s",
 			  bounce_info->dsn_envid);
     }
@@ -580,9 +628,11 @@ int     bounce_header_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 
 int     bounce_recipient_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 {
+    RECIPIENT *rcpt = &bounce_info->rcpt_buf->rcpt;
+    DSN    *dsn = &bounce_info->dsn_buf->dsn;
+
     post_mail_fputs(bounce, "");
-    post_mail_fprintf(bounce, "Final-Recipient: rfc822; %s",
-		      bounce_info->log_handle->rcpt.address);
+    post_mail_fprintf(bounce, "Final-Recipient: rfc822; %s", rcpt->address);
 
     /*
      * XXX DSN
@@ -603,35 +653,29 @@ int     bounce_recipient_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
      * Postfix always reports an Original-Recipient field, because it is more
      * more useful and more consistent.
      */
-    if (bounce_info->log_handle->rcpt.dsn_orcpt) {
-	post_mail_fprintf(bounce, "Original-Recipient: %s",
-			  bounce_info->log_handle->rcpt.dsn_orcpt);
-    } else if (bounce_info->log_handle->rcpt.orig_addr) {
+    if (NON_NULL_EMPTY(rcpt->dsn_orcpt)) {
+	post_mail_fprintf(bounce, "Original-Recipient: %s", rcpt->dsn_orcpt);
+    } else if (NON_NULL_EMPTY(rcpt->orig_addr)) {
 	post_mail_fprintf(bounce, "Original-Recipient: rfc822; %s",
-			  bounce_info->log_handle->rcpt.orig_addr);
+			  rcpt->orig_addr);
     }
     post_mail_fprintf(bounce, "Action: %s",
 		      IS_FAILURE_TEMPLATE(bounce_info->template) ?
-		      "failed" : bounce_info->log_handle->dsn.action);
-    post_mail_fprintf(bounce, "Status: %s",
-		      bounce_info->log_handle->dsn.status);
-    if (bounce_info->log_handle->dsn.mtype
-	&& bounce_info->log_handle->dsn.mname)
+		      "failed" : dsn->action);
+    post_mail_fprintf(bounce, "Status: %s", dsn->status);
+    if (NON_NULL_EMPTY(dsn->mtype) && NON_NULL_EMPTY(dsn->mname))
 	bounce_print_wrap(bounce, bounce_info, "Remote-MTA: %s; %s",
-			  bounce_info->log_handle->dsn.mtype,
-			  bounce_info->log_handle->dsn.mname);
-    if (bounce_info->log_handle->dsn.dtype
-	&& bounce_info->log_handle->dsn.dtext)
+			  dsn->mtype, dsn->mname);
+    if (NON_NULL_EMPTY(dsn->dtype) && NON_NULL_EMPTY(dsn->dtext))
 	bounce_print_wrap(bounce, bounce_info, "Diagnostic-Code: %s; %s",
-			  bounce_info->log_handle->dsn.dtype,
-			  bounce_info->log_handle->dsn.dtext);
+			  dsn->dtype, dsn->dtext);
     else
 	bounce_print_wrap(bounce, bounce_info, "Diagnostic-Code: X-%s; %s",
-			  bounce_info->mail_name,
-			  bounce_info->log_handle->dsn.reason);
+			  bounce_info->mail_name, dsn->reason);
 #if 0
-    post_mail_fprintf(bounce, "Last-Attempt-Date: %s",
-		      bounce_info->log_handle->log_time);
+    if (dsn->time > 0)
+	post_mail_fprintf(bounce, "Last-Attempt-Date: %s",
+			  mail_date(dsn->time));
 #endif
     if (IS_DELAY_TEMPLATE(bounce_info->template))
 	post_mail_fprintf(bounce, "Will-Retry-Until: %s",
@@ -644,6 +688,7 @@ int     bounce_recipient_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 int     bounce_diagnostic_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
 			              int notify_filter)
 {
+    RECIPIENT *rcpt = &bounce_info->rcpt_buf->rcpt;
     int     count = 0;
 
     /*
@@ -660,9 +705,10 @@ int     bounce_diagnostic_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
 	if (IS_FAILURE_TEMPLATE(bounce_info->template))
 	    count = 1;				/* XXX don't abort */
     } else {
-	while (bounce_log_read(bounce_info->log_handle) != 0) {
-	    if (bounce_info->log_handle->rcpt.dsn_notify == 0	/* compat */
-	    || (bounce_info->log_handle->rcpt.dsn_notify & notify_filter)) {
+	while (bounce_log_read(bounce_info->log_handle, bounce_info->rcpt_buf,
+			       bounce_info->dsn_buf) != 0) {
+	    if (rcpt->dsn_notify == 0		/* compat */
+		|| (rcpt->dsn_notify & notify_filter)) {
 		count++;
 		if (bounce_recipient_dsn(bounce, bounce_info) != 0)
 		    break;
@@ -752,22 +798,23 @@ int     bounce_original(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
 
 void    bounce_delrcpt(BOUNCE_INFO *bounce_info)
 {
+    RECIPIENT *rcpt = &bounce_info->rcpt_buf->rcpt;
+
     if (bounce_info->orig_fp != 0
 	&& bounce_info->log_handle != 0
 	&& bounce_log_rewind(bounce_info->log_handle) == 0)
-	while (bounce_log_read(bounce_info->log_handle) != 0)
-	    if (bounce_info->log_handle->rcpt.offset > 0)
-		deliver_completed(bounce_info->orig_fp,
-				  bounce_info->log_handle->rcpt.offset);
+	while (bounce_log_read(bounce_info->log_handle, bounce_info->rcpt_buf,
+			       bounce_info->dsn_buf) != 0)
+	    if (rcpt->offset > 0)
+		deliver_completed(bounce_info->orig_fp, rcpt->offset);
 }
 
 /* bounce_delrcpt_one - delete one recipient from original queue file */
 
 void    bounce_delrcpt_one(BOUNCE_INFO *bounce_info)
 {
-    if (bounce_info->orig_fp != 0
-	&& bounce_info->log_handle != 0
-	&& bounce_info->log_handle->rcpt.offset > 0)
-	deliver_completed(bounce_info->orig_fp,
-			  bounce_info->log_handle->rcpt.offset);
+    RECIPIENT *rcpt = &bounce_info->rcpt_buf->rcpt;
+
+    if (bounce_info->orig_fp != 0 && rcpt->offset > 0)
+	deliver_completed(bounce_info->orig_fp, rcpt->offset);
 }

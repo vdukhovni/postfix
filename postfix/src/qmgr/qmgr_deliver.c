@@ -73,6 +73,7 @@
 #include <dsn_util.h>
 #include <dsn_buf.h>
 #include <dsb_scan.h>
+#include <rcpt_print.h>
 
 /* Application-specific. */
 
@@ -155,8 +156,8 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
     flags = message->tflags
 	| entry->queue->dflags
 	| (message->inspect_xport ? DEL_REQ_FLAG_BOUNCE : DEL_REQ_FLAG_DEFLT);
-    QMGR_MSG_STATS(&stats, message);
-    attr_print(stream, ATTR_FLAG_MORE,
+    (void) QMGR_MSG_STATS(&stats, message);
+    attr_print(stream, ATTR_FLAG_NONE,
 	       ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
 	       ATTR_TYPE_STR, MAIL_ATTR_QUEUE, message->queue_name,
 	       ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, message->queue_id,
@@ -176,20 +177,14 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
 	     ATTR_TYPE_STR, MAIL_ATTR_SASL_USERNAME, message->sasl_username,
 	       ATTR_TYPE_STR, MAIL_ATTR_SASL_SENDER, message->sasl_sender,
 	     ATTR_TYPE_STR, MAIL_ATTR_RWR_CONTEXT, message->rewrite_context,
+	       ATTR_TYPE_NUM, MAIL_ATTR_RCPT_COUNT, list.len,
 	       ATTR_TYPE_END);
     if (sender_buf != 0)
 	vstring_free(sender_buf);
     for (recipient = list.info; recipient < list.info + list.len; recipient++)
-	attr_print(stream, ATTR_FLAG_MORE,
-		   ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, recipient->offset,
-		   ATTR_TYPE_STR, MAIL_ATTR_DSN_ORCPT, recipient->dsn_orcpt,
-		 ATTR_TYPE_NUM, MAIL_ATTR_DSN_NOTIFY, recipient->dsn_notify,
-		   ATTR_TYPE_STR, MAIL_ATTR_ORCPT, recipient->orig_addr,
-		   ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient->address,
+	attr_print(stream, ATTR_FLAG_NONE,
+		   ATTR_TYPE_FUNC, rcpt_print, (void *) recipient,
 		   ATTR_TYPE_END);
-    attr_print(stream, ATTR_FLAG_NONE,
-	       ATTR_TYPE_NUM, MAIL_ATTR_OFFSET, 0,
-	       ATTR_TYPE_END);
     if (vstream_fflush(stream) != 0) {
 	msg_warn("write to process (%s): %m", entry->queue->transport->name);
 	return (-1);
@@ -223,7 +218,6 @@ static void qmgr_deliver_update(int unused_event, char *context)
     QMGR_MESSAGE *message = entry->message;
     static DSN_BUF *dsb;
     int     status;
-    DSN     dsn;
     RECIPIENT *recipient;
     int     nrcpt;
 
@@ -256,9 +250,8 @@ static void qmgr_deliver_update(int unused_event, char *context)
     if (status == DELIVER_STAT_CRASH) {
 	message->flags |= DELIVER_STAT_DEFER;
 	qmgr_transport_throttle(transport,
-				DSN_SMTP(&dsn, "4.3.0",
-					 "451 unknown mail transport error",
-					 "unknown mail transport error"));
+				DSN_SIMPLE(&dsb->dsn, "4.3.0",
+					   "unknown mail transport error"));
 	msg_warn("transport %s failure -- see a previous warning/fatal/panic logfile record for the problem description",
 		 transport->name);
 
@@ -274,9 +267,9 @@ static void qmgr_deliver_update(int unused_event, char *context)
 	 */
 	for (nrcpt = 0; nrcpt < entry->rcpt_list.len; nrcpt++) {
 	    recipient = entry->rcpt_list.info + nrcpt;
-	    qmgr_defer_recipient(message, recipient, &dsn);
+	    qmgr_defer_recipient(message, recipient, &dsb->dsn);
 	}
-	qmgr_defer_transport(transport, &dsn);
+	qmgr_defer_transport(transport, &dsb->dsn);
     }
 
     /*
@@ -287,21 +280,23 @@ static void qmgr_deliver_update(int unused_event, char *context)
      * (the todo list); stay away from queue entries that have been selected
      * (the busy list), or we would have dangling pointers. The queue itself
      * won't go away before we dispose of the current queue entry.
+     *
+     * XXX Caution: DSN_COPY() will panic on empty status or reason.
      */
 #define SUSPENDED	"delivery temporarily suspended: "
 
     if (status == DELIVER_STAT_DEFER) {
 	message->flags |= DELIVER_STAT_DEFER;
 	if (VSTRING_LEN(dsb->status)) {
-	    /* Sanitize the DSN status from the delivery agent. */
+	    /* Sanitize the DSN status/reason from the delivery agent. */
 	    if (!dsn_valid(vstring_str(dsb->status)))
 		vstring_strcpy(dsb->status, "4.0.0");
 	    if (VSTRING_LEN(dsb->reason) == 0)
 		vstring_strcpy(dsb->reason, "unknown error");
 	    vstring_prepend(dsb->reason, SUSPENDED, sizeof(SUSPENDED) - 1);
-	    qmgr_queue_throttle(queue, DSN_FROM_DSN_BUF(&dsn, dsb));
+	    qmgr_queue_throttle(queue, DSN_FROM_DSN_BUF(dsb));
 	    if (queue->window == 0)
-		qmgr_defer_todo(queue, &dsn);
+		qmgr_defer_todo(queue, &dsb->dsn);
 	}
     }
 
@@ -343,9 +338,8 @@ void    qmgr_deliver(QMGR_TRANSPORT *transport, VSTREAM *stream)
      */
     if (qmgr_deliver_initial_reply(stream) != 0) {
 	qmgr_transport_throttle(transport,
-				DSN_SMTP(&dsn, "4.3.0",
-					 "451 mail transport unavailable",
-					 "mail transport unavailable"));
+				DSN_SIMPLE(&dsn, "4.3.0",
+					   "mail transport unavailable"));
 	qmgr_defer_transport(transport, &dsn);
 	(void) vstream_fclose(stream);
 	return;
@@ -372,9 +366,8 @@ void    qmgr_deliver(QMGR_TRANSPORT *transport, VSTREAM *stream)
     if (qmgr_deliver_send_request(entry, stream) < 0) {
 	qmgr_entry_unselect(entry);
 	qmgr_transport_throttle(transport,
-				DSN_SMTP(&dsn, "4.3.0",
-					 "451 mail transport unavailable",
-					 "mail transport unavailable"));
+				DSN_SIMPLE(&dsn, "4.3.0",
+					   "mail transport unavailable"));
 	qmgr_defer_transport(transport, &dsn);
 	/* warning: entry may be a dangling pointer here */
 	(void) vstream_fclose(stream);

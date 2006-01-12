@@ -97,7 +97,8 @@ int     bounce_notify_verp(int flags, char *service, char *queue_name,
     int     notify_mask = name_mask(VAR_NOTIFY_CLASSES, mail_error_masks,
 				    var_notify_classes);
     char   *postmaster;
-    VSTRING *verp_buf = vstring_alloc(100);
+    VSTRING *verp_buf;
+    VSTRING *new_id;
 
     /*
      * Sanity checks. We must be called only for undeliverable non-bounce
@@ -114,6 +115,27 @@ int     bounce_notify_verp(int flags, char *service, char *queue_name,
     bounce_info = bounce_mail_init(service, queue_name, queue_id,
 				   encoding, dsn_envid, ts->failure);
 
+    /*
+     * If we have no recipient list then we can't send VERP replies. Send
+     * *something* anyway so that the mail is not lost in a black hole.
+     */
+    if (bounce_info->log_handle == 0) {
+	DSN_BUF *dsn_buf = dsb_create();
+	RCPT_BUF *rcpt_buf = rcpb_create();
+
+	dsb_simple(dsn_buf, "5.0.0", "(error report unavailable)");
+	(void) DSN_FROM_DSN_BUF(dsn_buf);
+	vstring_strcpy(rcpt_buf->address, "(recipient address unavailable)");
+	(void) RECIPIENT_FROM_RCPT_BUF(rcpt_buf);
+	bounce_status = bounce_one_service(flags, queue_name, queue_id,
+					   encoding, recipient, dsn_envid,
+					   dsn_ret, rcpt_buf, dsn_buf, ts);
+	rcpb_free(rcpt_buf);
+	dsb_free(dsn_buf);
+	bounce_mail_free(bounce_info);
+	return (bounce_status);
+    }
+
 #define NULL_SENDER		MAIL_ADDR_EMPTY	/* special address */
 #define NULL_TRACE_FLAGS	0
 
@@ -121,20 +143,24 @@ int     bounce_notify_verp(int flags, char *service, char *queue_name,
      * A non-bounce message was returned. Send a single bounce, one per
      * recipient.
      */
-    while (bounce_log_read(bounce_info->log_handle) != 0) {
+    verp_buf = vstring_alloc(100);
+    new_id = vstring_alloc(10);
+    while (bounce_log_read(bounce_info->log_handle, bounce_info->rcpt_buf,
+			   bounce_info->dsn_buf) != 0) {
+	RECIPIENT *rcpt = &bounce_info->rcpt_buf->rcpt;
 
 	/*
 	 * Notify the originator, subject to DSN NOTIFY restrictions.
 	 */
-	if (bounce_info->log_handle->rcpt.dsn_notify != 0	/* compat */
-	    && (bounce_info->log_handle->rcpt.dsn_notify & DSN_NOTIFY_FAILURE) == 0) {
+	if (rcpt->dsn_notify != 0		/* compat */
+	    && (rcpt->dsn_notify & DSN_NOTIFY_FAILURE) == 0) {
 	    bounce_status = 0;
 	} else {
-	    verp_sender(verp_buf, verp_delims, recipient,
-			bounce_info->log_handle->rcpt.address);
+	    verp_sender(verp_buf, verp_delims, recipient, rcpt->address);
 	    if ((bounce = post_mail_fopen_nowait(NULL_SENDER, STR(verp_buf),
 						 CLEANUP_FLAG_MASK_INTERNAL,
-						 NULL_TRACE_FLAGS)) != 0) {
+						 NULL_TRACE_FLAGS,
+						 new_id)) != 0) {
 
 		/*
 		 * Send the bounce message header, some boilerplate text that
@@ -150,6 +176,9 @@ int     bounce_notify_verp(int flags, char *service, char *queue_name,
 		    bounce_original(bounce, bounce_info, dsn_ret ?
 				    dsn_ret : DSN_RET_FULL);
 		bounce_status = post_mail_fclose(bounce);
+		if (bounce_status == 0)
+		    msg_info("%s: sender non-delivery notification: %s",
+			     queue_id, STR(new_id));
 	    } else
 		bounce_status = 1;
 
@@ -189,7 +218,8 @@ int     bounce_notify_verp(int flags, char *service, char *queue_name,
 	    if ((bounce = post_mail_fopen_nowait(mail_addr_double_bounce(),
 						 postmaster,
 						 CLEANUP_FLAG_MASK_INTERNAL,
-						 NULL_TRACE_FLAGS)) != 0) {
+						 NULL_TRACE_FLAGS,
+						 new_id)) != 0) {
 		if (bounce_header(bounce, bounce_info, postmaster,
 				  POSTMASTER_COPY) == 0
 		    && bounce_recipient_log(bounce, bounce_info) == 0
@@ -197,12 +227,15 @@ int     bounce_notify_verp(int flags, char *service, char *queue_name,
 		    && bounce_recipient_dsn(bounce, bounce_info) == 0)
 		    bounce_original(bounce, bounce_info, DSN_RET_HDRS);
 		postmaster_status = post_mail_fclose(bounce);
+		if (postmaster_status == 0)
+		    msg_info("%s: postmaster non-delivery notification: %s",
+			     queue_id, STR(new_id));
 	    } else
 		postmaster_status = 1;
 
 	    if (postmaster_status)
-		msg_warn("postmaster notice failed while bouncing to %s",
-			 recipient);
+		msg_warn("%s: postmaster notice failed while bouncing to %s",
+			 queue_id, recipient);
 	}
     }
 
@@ -220,6 +253,7 @@ int     bounce_notify_verp(int flags, char *service, char *queue_name,
      */
     bounce_mail_free(bounce_info);
     vstring_free(verp_buf);
+    vstring_free(new_id);
 
     return (bounce_status);
 }

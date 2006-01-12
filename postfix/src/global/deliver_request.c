@@ -112,6 +112,7 @@
 #include "dsn.h"
 #include "dsn_print.h"
 #include "deliver_request.h"
+#include "rcpt_buf.h"
 
 /* deliver_request_initial - send initial status code */
 
@@ -143,13 +144,12 @@ static int deliver_request_final(VSTREAM *stream, DELIVER_REQUEST *request,
 {
     DSN    *hop_status;
     int     err;
+    /* XXX This DSN structure initialization bypasses integrity checks. */
     static DSN dummy_dsn = {"", "", "", "", "", "", ""};
 
     /*
      * Send the status and the optional reason.
      */
-#define STRING_OR_EMPTY(s) ((s) ? (s) : "")
-
     if ((hop_status = request->hop_status) == 0)
 	hop_status = &dummy_dsn;
     if (msg_verbose)
@@ -185,8 +185,6 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
     static VSTRING *queue_id;
     static VSTRING *nexthop;
     static VSTRING *encoding;
-    static VSTRING *dsn_orcpt;
-    static VSTRING *orig_addr;
     static VSTRING *address;
     static VSTRING *client_name;
     static VSTRING *client_addr;
@@ -197,9 +195,9 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
     static VSTRING *sasl_sender;
     static VSTRING *rewrite_context;
     static VSTRING *dsn_envid;
-    long    offset;
+    static RCPT_BUF *rcpt_buf;
+    int     rcpt_count;
     int     dsn_ret;
-    int     dsn_notify;
 
     /*
      * Initialize. For some reason I wanted to allow for multiple instances
@@ -211,9 +209,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 	queue_id = vstring_alloc(10);
 	nexthop = vstring_alloc(10);
 	encoding = vstring_alloc(10);
-	dsn_orcpt = vstring_alloc(10);
-	orig_addr = vstring_alloc(10);
-	address = vstring_alloc(10);
+        address = vstring_alloc(10);
 	client_name = vstring_alloc(10);
 	client_addr = vstring_alloc(10);
 	client_proto = vstring_alloc(10);
@@ -223,13 +219,14 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 	sasl_sender = vstring_alloc(10);
 	rewrite_context = vstring_alloc(10);
 	dsn_envid = vstring_alloc(10);
+	rcpt_buf = rcpb_create();
     }
 
     /*
      * Extract the queue file name, data offset, and sender address. Abort
      * the conversation when they send bad information.
      */
-    if (attr_scan(stream, ATTR_FLAG_STRICT | ATTR_FLAG_MORE,
+    if (attr_scan(stream, ATTR_FLAG_STRICT,
 		  ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &request->flags,
 		  ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
 		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
@@ -249,7 +246,8 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 		  ATTR_TYPE_STR, MAIL_ATTR_SASL_USERNAME, sasl_username,
 		  ATTR_TYPE_STR, MAIL_ATTR_SASL_SENDER, sasl_sender,
 		  ATTR_TYPE_STR, MAIL_ATTR_RWR_CONTEXT, rewrite_context,
-		  ATTR_TYPE_END) != 19) {
+		  ATTR_TYPE_NUM, MAIL_ATTR_RCPT_COUNT, &rcpt_count,
+		  ATTR_TYPE_END) != 20) {
 	msg_warn("%s: error receiving common attributes", myname);
 	return (-1);
     }
@@ -281,28 +279,18 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
      * Extract the recipient offset and address list. Skip over any
      * attributes from the sender that we do not understand.
      */
-    for (;;) {
-	if (attr_scan(stream, ATTR_FLAG_MORE | ATTR_FLAG_STRICT,
-		      ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, &offset,
+    while (rcpt_count-- > 0) {
+	if (attr_scan(stream, ATTR_FLAG_STRICT,
+		      ATTR_TYPE_FUNC, rcpb_scan, (void *) rcpt_buf,
 		      ATTR_TYPE_END) != 1) {
-	    msg_warn("%s: error receiving offset attribute", myname);
-	    return (-1);
-	}
-	if (offset == 0)
-	    break;
-	if (attr_scan(stream, ATTR_FLAG_MORE | ATTR_FLAG_STRICT,
-		      ATTR_TYPE_STR, MAIL_ATTR_DSN_ORCPT, dsn_orcpt,
-		      ATTR_TYPE_NUM, MAIL_ATTR_DSN_NOTIFY, &dsn_notify,
-		      ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orig_addr,
-		      ATTR_TYPE_STR, MAIL_ATTR_RECIP, address,
-		      ATTR_TYPE_END) != 4) {
 	    msg_warn("%s: error receiving recipient attributes", myname);
 	    return (-1);
 	}
-	recipient_list_add(&request->rcpt_list, offset,
-			   vstring_str(dsn_orcpt), dsn_notify,
-			   vstring_str(orig_addr),
-			   vstring_str(address));
+	recipient_list_add(&request->rcpt_list, rcpt_buf->offset,
+			   vstring_str(rcpt_buf->dsn_orcpt),
+			   rcpt_buf->dsn_notify,
+			   vstring_str(rcpt_buf->orig_addr),
+			   vstring_str(rcpt_buf->address));
     }
     if (request->rcpt_list.len <= 0) {
 	msg_warn("%s: no recipients in delivery request for destination %s",

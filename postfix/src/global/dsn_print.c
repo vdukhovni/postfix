@@ -51,19 +51,17 @@ int     dsn_print(ATTR_PRINT_MASTER_FN print_fn, VSTREAM *fp,
     DSN    *dsn = (DSN *) ptr;
     int     ret;
 
-#define S(s) ((s) ? (s) : "")
-
     /*
      * The attribute order is determined by backwards compatibility. It can
      * be sanitized after all the ad-hoc DSN read/write code is replaced.
      */
     ret = print_fn(fp, flags | ATTR_FLAG_MORE,
 		   ATTR_TYPE_STR, MAIL_ATTR_DSN_STATUS, dsn->status,
-		   ATTR_TYPE_STR, MAIL_ATTR_DSN_DTYPE, S(dsn->dtype),
-		   ATTR_TYPE_STR, MAIL_ATTR_DSN_DTEXT, S(dsn->dtext),
-		   ATTR_TYPE_STR, MAIL_ATTR_DSN_MTYPE, S(dsn->mtype),
-		   ATTR_TYPE_STR, MAIL_ATTR_DSN_MNAME, S(dsn->mname),
-		   ATTR_TYPE_STR, MAIL_ATTR_DSN_ACTION, S(dsn->action),
+		   ATTR_TYPE_STR, MAIL_ATTR_DSN_DTYPE, dsn->dtype,
+		   ATTR_TYPE_STR, MAIL_ATTR_DSN_DTEXT, dsn->dtext,
+		   ATTR_TYPE_STR, MAIL_ATTR_DSN_MTYPE, dsn->mtype,
+		   ATTR_TYPE_STR, MAIL_ATTR_DSN_MNAME, dsn->mname,
+		   ATTR_TYPE_STR, MAIL_ATTR_DSN_ACTION, dsn->action,
 		   ATTR_TYPE_STR, MAIL_ATTR_WHY, dsn->reason,
 		   ATTR_TYPE_END);
     return (ret);

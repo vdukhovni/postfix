@@ -427,7 +427,7 @@ int     pipe_command(VSTREAM *src, DSN_BUF *why,...)
 	 */
     case -1:
 	msg_warn("fork: %m");
-	dsb_unix(why, "4.3.0", EX_OSERR, sys_exits_detail(EX_OSERR)->text,
+	dsb_unix(why, "4.3.0", sys_exits_detail(EX_OSERR)->text,
 		 "Delivery failed: %m");
 	return (PIPE_STAT_DEFER);
 
@@ -553,7 +553,7 @@ int     pipe_command(VSTREAM *src, DSN_BUF *why,...)
 				      args.uid, args.gid) < 0)
 	    msg_fatal("wait: %m");
 	if (pipe_command_timeout) {
-	    dsb_unix(why, "5.3.0", EX_SOFTWARE, log_len ?
+	    dsb_unix(why, "5.3.0", log_len ?
 		     log_buf : sys_exits_detail(EX_SOFTWARE)->text,
 		     "Command time limit exceeded: \"%s\"%s%s",
 		     args.command,
@@ -567,7 +567,7 @@ int     pipe_command(VSTREAM *src, DSN_BUF *why,...)
 	 */
 	if (!NORMAL_EXIT_STATUS(wait_status)) {
 	    if (WIFSIGNALED(wait_status)) {
-		dsb_unix(why, "5.3.0", EX_SOFTWARE, log_len ?
+		dsb_unix(why, "5.3.0", log_len ?
 			 log_buf : sys_exits_detail(EX_SOFTWARE)->text,
 			 "Command died with signal %d: \"%s\"%s%s",
 			 WTERMSIG(wait_status), args.command,
@@ -577,15 +577,14 @@ int     pipe_command(VSTREAM *src, DSN_BUF *why,...)
 	    /* Use "D.S.N text" command output. XXX What diagnostic code? */
 	    else if (dsn_valid(log_buf) > 0) {
 		dsn_split(&dp, "5.3.0", log_buf);
-		dsb_unix(why, DSN_STATUS(dp.dsn), DSN_CLASS(dp.dsn) == '4' ?
-		      EX_TEMPFAIL : EX_UNAVAILABLE, dp.text, "%s", dp.text);
+		dsb_unix(why, DSN_STATUS(dp.dsn), dp.text, "%s", dp.text);
 		return (DSN_CLASS(dp.dsn) == '4' ?
 			PIPE_STAT_DEFER : PIPE_STAT_BOUNCE);
 	    }
 	    /* Use <sysexits.h> compatible exit status. */
 	    else if (SYS_EXITS_CODE(WEXITSTATUS(wait_status))) {
 		sp = sys_exits_detail(WEXITSTATUS(wait_status));
-		dsb_unix(why, sp->dsn, WEXITSTATUS(wait_status),
+		dsb_unix(why, sp->dsn,
 			 log_len ? log_buf : sp->text, "%s%s%s", sp->text,
 			 log_len ? ". Command output: " : "", log_buf);
 		return (sp->dsn[0] == '4' ?
@@ -594,7 +593,7 @@ int     pipe_command(VSTREAM *src, DSN_BUF *why,...)
 	    /* No "D.S.N text" or <sysexits.h> compatible status. Fake it. */
 	    else {
 		sp = sys_exits_detail(WEXITSTATUS(wait_status));
-		dsb_unix(why, sp->dsn, WEXITSTATUS(wait_status),
+		dsb_unix(why, sp->dsn,
 			 log_len ? log_buf : sp->text,
 			 "Command died with status %d: \"%s\"%s%s",
 			 WEXITSTATUS(wait_status), args.command,

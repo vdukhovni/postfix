@@ -65,7 +65,7 @@
 #	it in quotes as with the shell or with Perl (\fItemplate_name\fB
 #	= <<'EOF'\fR). Here is an example:
 #
-# .in +2
+# .in +4
 # .nf
 # .na
 #	# The failure template is used for undeliverable mail.
@@ -89,16 +89,22 @@
 # .ti +12
 #	                   The $mail_name program
 #	EOF
-# .in -2
+# .in -4
 # .ad
 # .fi
-#
+# .PP
+#	The usage and specification of bounce templates is
+#	subject to the following restrictions:
+# .IP \(bu
 #	No special meaning is given to the backslash character or
 #	to leading whitespace; these are always taken literally.
-#
+# .IP \(bu
+#	Inside the << context, the "$" character is special. To
+#	produce a "$" character as output, specify "$$".
+# .IP \(bu
 #	Outside the << context, lines beginning with "#" are ignored,
 #	as are empty lines, and lines consisting of whitespace only.
-#
+# .PP
 #	Examples of all templates can be found in the file
 #	\fBbounce.cf.default\fR in the Postfix configuration
 #	directory.

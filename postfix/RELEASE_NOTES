@@ -17,6 +17,23 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
+Incompatibility with snapshot 20060112
+======================================
+
+The queue manager delivery request protocol has changed. You must
+reload Postfix when upgrading. If you omit this step, delivery
+agents complain with "warning: unexpected attribute original_recipient"
+and mail will not be delivered.
+
+The Postfix SMTP/LMTP client by default no longer allows DNS CNAME
+records to override the server hostname that is used for logging,
+SASL password lookup, TLS policy selection and TLS server certificate
+verification. Specify "smtp_cname_overrides_servername = no" to get
+the old behavior.
+
+Postfix DSN reports no longer make up their own surrogate SMTP
+replies for errors that were not reported by a remote SMTP server.
+
 Incompatibility with snapshot 20060103
 ======================================
 

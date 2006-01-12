@@ -88,7 +88,6 @@ typedef struct DELIVER_ATTR {
     char   *exp_from;			/* expanded_from */
     DELIVER_REQUEST *request;		/* the kitchen sink */
     DSN_BUF *why;			/* delivery status */
-    DSN     dsn;			/* delivery status */
 } DELIVER_ATTR;
 
 extern void deliver_attr_init(DELIVER_ATTR *);
@@ -132,15 +131,15 @@ typedef struct LOCAL_STATE {
 
 #define BOUNCE_ATTR(attr) \
 	attr.queue_id, &attr.msg_stats, &attr.rcpt, attr.relay, \
-	DSN_FROM_DSN_BUF(&attr.dsn, attr.why)
+	DSN_FROM_DSN_BUF(attr.why)
 #define BOUNCE_ONE_ATTR(attr) \
 	attr.queue_name, attr.queue_id, attr.encoding, \
 	attr.sender, attr.dsn_envid, attr.dsn_ret, \
 	&attr.msg_stats, &attr.rcpt, attr.relay, \
-	DSN_FROM_DSN_BUF(&attr.dsn, attr.why)
+	DSN_FROM_DSN_BUF(attr.why)
 #define SENT_ATTR(attr) \
 	attr.queue_id, &attr.msg_stats, &attr.rcpt, attr.relay, \
-	DSN_FROM_DSN_BUF(&attr.dsn, attr.why)
+	DSN_FROM_DSN_BUF(attr.why)
 #define OPENED_ATTR(attr) \
 	attr.queue_id, attr.sender
 #define COPY_ATTR(attr) \

@@ -3093,6 +3093,17 @@ programs.
 
 </DD>
 
+<DT><b><a name="lmtp_cname_overrides_servername">lmtp_cname_overrides_servername</a>
+(default: yes)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_cname_overrides_servername">smtp_cname_overrides_servername</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_connect_timeout">lmtp_connect_timeout</a>
 (default: 0s)</b></DT><DD>
 
@@ -3582,10 +3593,22 @@ Example:
 </DD>
 
 <DT><b><a name="lmtp_sasl_tls_security_options">lmtp_sasl_tls_security_options</a>
-(default: $var_lmtp_sasl_opts)</b></DT><DD>
+(default: $<a href="postconf.5.html#lmtp_sasl_security_options">lmtp_sasl_security_options</a>)</b></DT><DD>
 
 <p> The LMTP-specific version of the <a href="postconf.5.html#smtp_sasl_tls_security_options">smtp_sasl_tls_security_options</a>
 configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_sasl_tls_verified_security_options">lmtp_sasl_tls_verified_security_options</a>
+(default: $<a href="postconf.5.html#lmtp_sasl_tls_security_options">lmtp_sasl_tls_security_options</a>)</b></DT><DD>
+
+<p> The LMTP-specific version of the
+<a href="postconf.5.html#smtp_sasl_tls_verified_security_options">smtp_sasl_tls_verified_security_options</a> configuration parameter.
+See there for details. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -6401,6 +6424,22 @@ but this form is not recommended here. </p>
 
 </DD>
 
+<DT><b><a name="smtp_cname_overrides_servername">smtp_cname_overrides_servername</a>
+(default: version dependent)</b></DT><DD>
+
+<p> Allow DNS CNAME records to override the servername that the
+Postfix SMTP client uses for logging, SASL password lookup, TLS
+policy decisions, or TLS certificate verification. The value "no"
+hardens Postfix <a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a> hostname-based policies against
+false hostname information in DNS CNAME records, and makes SASL
+password file lookups more predictable. This is the default setting
+as of Postfix 2.3. </p>
+
+<p> This feature is available in Postfix 2.2.9 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="smtp_connect_timeout">smtp_connect_timeout</a>
 (default: 30s)</b></DT><DD>
 
@@ -7194,6 +7233,18 @@ client uses for TLS encrypted SMTP sessions. </p>
 
 </DD>
 
+<DT><b><a name="smtp_sasl_tls_verified_security_options">smtp_sasl_tls_verified_security_options</a>
+(default: $<a href="postconf.5.html#smtp_sasl_tls_security_options">smtp_sasl_tls_security_options</a>)</b></DT><DD>
+
+<p> The SASL authentication security options that the Postfix SMTP
+client uses for TLS encrypted SMTP sessions with a verified server
+certificate. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="smtp_sasl_type">smtp_sasl_type</a>
 (default: cyrus)</b></DT><DD>
 
@@ -7527,12 +7578,47 @@ server certificate was issued by a trusted CA. </dd>
 
 </dl>
 
-<p> Special hint for enforcement mode:  since no secure DNS lookup
-mechanism is available, the recommended setup is:  specify local
-<a href="transport.5.html">transport(5)</a> table entries for sensitive domains with explicit
-<a href="smtp.8.html">smtp</a>:[mailhost] destinations (since you can assure security of this
-table unlike DNS), then specify MUST for these mail hosts in the
-<a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a> table. </p>
+<p> Special hints for enforcement mode:  since no secure DNS lookup
+mechanism is available, the recommended setup is:  </p>
+
+<dl>
+
+<dt> Postfix 2.2.9 </dt>
+
+<dd> <ul>
+
+<li> Specify "<a href="postconf.5.html#smtp_cname_overrides_servername">smtp_cname_overrides_servername</a> = no". This avoids
+false hostname information in DNS CNAME records that could bypass
+a hostname-based TLS usage policy.
+
+<li> Specify local <a href="transport.5.html">transport(5)</a> table entries for sensitive domains
+with explicit <a href="smtp.8.html">smtp</a>:[mailhost] destinations. This avoids false
+hostname information in DNS MX records that could bypass a
+hostname-based TLS usage policy.
+
+<li> Specify MUST for these mail hosts in the <a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a>
+table.
+
+</ul> </dd>
+
+<dt> Postfix &lt; 2.2.9 </dt>
+
+<dd> <ul>
+
+<li> Specify local <a href="transport.5.html">transport(5)</a> table entries for sensitive domains
+with explicit <a href="smtp.8.html">smtp</a>:[mailhost] destinations. This avoids false
+hostname information in DNS MX records that could bypass a
+hostname-based TLS usage policy, but cannot avoid false hostname
+information in DNS CNAME records.
+
+<li> Specify MUST for these mail hosts in the <a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a>
+table.
+
+</ul> </dd>
+
+</dl>
+
+<p> </p>
 
 
 </DD>

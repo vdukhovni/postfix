@@ -47,7 +47,7 @@
 /* msg_stats_print - write MSG_STATS to stream */
 
 int     msg_stats_print(ATTR_PRINT_MASTER_FN print_fn, VSTREAM *fp,
-		          int flags, void *ptr)
+			        int flags, void *ptr)
 {
     int     ret;
 

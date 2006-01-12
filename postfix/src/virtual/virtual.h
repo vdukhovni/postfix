@@ -76,7 +76,6 @@ typedef struct DELIVER_ATTR {
     char   *relay;			/* relay host */
     MSG_STATS msg_stats;		/* time profile */
     DSN_BUF *why;			/* delivery status */
-    DSN     dsn;			/* delivery status */
 } DELIVER_ATTR;
 
 extern void deliver_attr_init(DELIVER_ATTR *);
@@ -103,10 +102,10 @@ typedef struct LOCAL_STATE {
 
 #define BOUNCE_ATTR(attr) \
 	attr.queue_id, &attr.msg_stats, &attr.rcpt, attr.relay, \
-	DSN_FROM_DSN_BUF(&attr.dsn, attr.why)
+	DSN_FROM_DSN_BUF(attr.why)
 #define SENT_ATTR(attr) \
 	attr.queue_id, &attr.msg_stats, &attr.rcpt, attr.relay, \
-	DSN_FROM_DSN_BUF(&attr.dsn, attr.why)
+	DSN_FROM_DSN_BUF(attr.why)
 #define COPY_ATTR(attr) \
 	attr.sender, attr.rcpt.orig_addr, attr.delivered, attr.fp
 

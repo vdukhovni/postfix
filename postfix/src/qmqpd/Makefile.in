@@ -91,6 +91,7 @@ qmqpd.o: qmqpd.h
 qmqpd_peer.o: ../../include/attr.h
 qmqpd_peer.o: ../../include/inet_proto.h
 qmqpd_peer.o: ../../include/iostuff.h
+qmqpd_peer.o: ../../include/mail_params.h
 qmqpd_peer.o: ../../include/mail_proto.h
 qmqpd_peer.o: ../../include/mail_stream.h
 qmqpd_peer.o: ../../include/msg.h

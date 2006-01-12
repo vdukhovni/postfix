@@ -199,6 +199,7 @@ while (<>) {
     s;\blmtp_discard_lhlo_keyword_address_maps\b;<a href="postconf.5.html#lmtp_discard_lhlo_keyword_address_maps">$&</a>;g;
     s;\blmtp_discard_lhlo_keywords\b;<a href="postconf.5.html#lmtp_discard_lhlo_keywords">$&</a>;g;
     s;\blmtp_sasl_tls_security_options\b;<a href="postconf.5.html#lmtp_sasl_tls_security_options">$&</a>;g;
+    s;\blmtp_sasl_tls_verified_security_options\b;<a href="postconf.5.html#lmtp_sasl_tls_verified_security_options">$&</a>;g;
     s;\blmtp_sasl_mechanism_filter\b;<a href="postconf.5.html#lmtp_sasl_mechanism_filter">$&</a>;g;
     s;\blmtp_host_lookup\b;<a href="postconf.5.html#lmtp_host_lookup">$&</a>;g;
     s;\blmtp_connection_cache_destinations\b;<a href="postconf.5.html#lmtp_connection_cache_destinations">$&</a>;g;
@@ -355,6 +356,7 @@ while (<>) {
     s;\bsmtp_always_send_ehlo\b;<a href="postconf.5.html#smtp_always_send_ehlo">$&</a>;g;
     s;\bsmtp_bind_address\b;<a href="postconf.5.html#smtp_bind_address">$&</a>;g;
     s;\bsmtp_bind_address6\b;<a href="postconf.5.html#smtp_bind_address6">$&</a>;g;
+    s;\bsmtp_cname_overrides_servername\b;<a href="postconf.5.html#smtp_cname_overrides_servername">$&</a>;g;
     s;\bsmtp_connect_timeout\b;<a href="postconf.5.html#smtp_connect_timeout">$&</a>;g;
 
     s;\bsmtp_connection_cache_on_demand\b;<a href="postconf.5.html#smtp_connection_cache_on_demand">$&</a>;g;
@@ -499,8 +501,8 @@ while (<>) {
 
     s;\bsmtp_enforce_tls\b;<a href="postconf.5.html#smtp_enforce_tls">$&</a>;g;
     s;\bsmtp_fallback_relay\b;<a href="postconf.5.html#smtp_fallback_relay">$&</a>;g;
-    s;\bsmtp_sasl_tls_security_options\b;<a href="postconf.5.html#smtp_sasl_tls_security_options">$&</a>;g;
-    s;\bsmtp_sasl_tls_verified_security_options\b;<a href="postconf.5.html#smtp_sasl_tls_verified_security_options">$&</a>;g;
+    s;\bsmtp_[-</Bb>]*\n* *[<Bb>]*sasl_[-</Bb>]*\n* *[<Bb>]*tls_[-</Bb>]*\n* *[<Bb>]*secu[-</Bb>]*\n* *[<Bb>]*rity_options\b;<a href="postconf.5.html#smtp_sasl_tls_security_options">$&</a>;g;
+    s;\bsmtp_sasl_tls_verified_secu[-</Bb>]*\n* *[<Bb>]*rity_options\b;<a href="postconf.5.html#smtp_sasl_tls_verified_security_options">$&</a>;g;
     s;\bsmtp_sasl_type\b;<a href="postconf.5.html#smtp_sasl_type">$&</a>;g;
     s;\bsmtp_starttls_timeout\b;<a href="postconf.5.html#smtp_starttls_timeout">$&</a>;g;
     s;\bsmtp_tls_CAfile\b;<a href="postconf.5.html#smtp_tls_CAfile">$&</a>;g;

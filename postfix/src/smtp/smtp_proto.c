@@ -405,14 +405,12 @@ int     smtp_helo(SMTP_STATE *state)
 			     session->namaddrport, var_myhostname);
 		    if (session->features & SMTP_FEATURE_BEST_MX)
 			return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
-					 SMTP_RESP_FAKE(&fake, 554, "5.4.6",
-							"554 Mailer loop"),
+					     SMTP_RESP_FAKE(&fake, "5.4.6"),
 					 "mail for %s loops back to myself",
 					       request->nexthop));
 		    else
 			return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
-					 SMTP_RESP_FAKE(&fake, 450, "4.4.6",
-							"450 Mailer loop"),
+					     SMTP_RESP_FAKE(&fake, "4.4.6"),
 					 "mail for %s loops back to myself",
 					       request->nexthop));
 		}
@@ -542,10 +540,8 @@ int     smtp_helo(SMTP_STATE *state)
 	    smtp_chat_cmd(session, "STARTTLS");
 	    if ((resp = smtp_chat_resp(session))->code / 100 == 2) {
 #ifdef USE_SASL_AUTH
-		if (session->sasl_mechanism_list) {
-		    myfree(session->sasl_mechanism_list);
-		    session->sasl_mechanism_list = 0;
-		}
+		if (session->features & SMTP_FEATURE_AUTH)
+		    smtp_sasl_cleanup(session);
 #endif
 		session->features = saved_features;
 		/* XXX Mix-up of per-session and per-request flags. */
@@ -578,39 +574,26 @@ int     smtp_helo(SMTP_STATE *state)
 	if (session->tls_enforce_tls) {
 	    if (!(session->features & SMTP_FEATURE_STARTTLS)) {
 		return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
-				       SMTP_RESP_FAKE(&fake, 421, "4.7.4",
-				    "421 TLS is required, but unavailable"),
+				       SMTP_RESP_FAKE(&fake, "4.7.4"),
 			  "TLS is required, but was not offered by host %s",
 				       session->namaddr));
 	    } else if (smtp_tls_ctx == 0) {
 		return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
-				       SMTP_RESP_FAKE(&fake, 421, "4.7.5",
-				    "421 TLS is required, but unavailable"),
+				       SMTP_RESP_FAKE(&fake, "4.7.5"),
 		     "TLS is required, but our TLS engine is unavailable"));
 	    } else {
 		msg_warn("%s: TLS is required but unavailable, don't know why",
 			 myname);
 		return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
-				       SMTP_RESP_FAKE(&fake, 421, "4.7.0",
-				    "421 TLS is required, but unavailable"),
+				       SMTP_RESP_FAKE(&fake, "4.7.0"),
 				       "TLS is required, but unavailable"));
 	    }
 	}
     }
 #endif
 #ifdef USE_SASL_AUTH
-    if (var_smtp_sasl_enable && (session->features & SMTP_FEATURE_AUTH)) {
-	if (session->sasl_mechanism_list != 0)
-	    return (smtp_sasl_helo_login(state));
-	else
-	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
-				   SMTP_RESP_FAKE(&fake, 421, "4.7.0",
-					  "421 SASL authentication failed: "
-		  "server offered no compatible authentication mechanisms"),
-				   "SASL authentication failed: "
-		"server %s offered no compatible authentication mechanisms",
-				   session->namaddr));
-    }
+    if (var_smtp_sasl_enable && (session->features & SMTP_FEATURE_AUTH))
+	return (smtp_sasl_helo_login(state));
 #endif
 
     return (0);
@@ -669,8 +652,7 @@ static int smtp_start_tls(SMTP_STATE *state)
     vstring_free(serverid);
     if (session->tls_context == 0)
 	return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
-			       SMTP_RESP_FAKE(&fake, 421, "4.7.5",
-					      "421 TLS handshake failure"),
+			       SMTP_RESP_FAKE(&fake, "4.7.5"),
 			       "Cannot start TLS: handshake failure"));
 
     /*
@@ -860,14 +842,11 @@ static void smtp_mime_fail(SMTP_STATE *state, int mime_errs)
 {
     MIME_STATE_DETAIL *detail;
     SMTP_RESP fake;
-    char   *text;
 
     detail = mime_state_detail(mime_errs);
-    text = concatenate("554 ", detail->text, (char *) 0);
     smtp_mesg_fail(state, DSN_BY_LOCAL_MTA,
-		   SMTP_RESP_FAKE(&fake, 554, detail->dsn, text),
+		   SMTP_RESP_FAKE(&fake, detail->dsn),
 		   "%s", detail->text);
-    myfree(text);
 }
 
 /* smtp_loop - exercise the SMTP protocol engine */
@@ -1638,8 +1617,7 @@ int     smtp_xfer(SMTP_STATE *state)
      */
     if (session->size_limit > 0 && session->size_limit < request->data_size) {
 	smtp_mesg_fail(state, DSN_BY_LOCAL_MTA,
-		       SMTP_RESP_FAKE(&fake, 552, "5.3.4",
-				      "552 message too large"),
+		       SMTP_RESP_FAKE(&fake, "5.3.4"),
 		    "message size %lu exceeds size limit %.0f of server %s",
 		       request->data_size, (double) session->size_limit,
 		       session->namaddr);

@@ -83,6 +83,7 @@ int     bounce_trace_service(int flags, char *service, char *queue_name,
     BOUNCE_INFO *bounce_info;
     int     bounce_status = 1;
     VSTREAM *bounce;
+    VSTRING *new_id = vstring_alloc(10);
     int     count;
 
     /*
@@ -140,7 +141,8 @@ int     bounce_trace_service(int flags, char *service, char *queue_name,
      */
     if ((bounce = post_mail_fopen_nowait(NULL_SENDER, recipient,
 					 CLEANUP_FLAG_MASK_INTERNAL,
-					 NULL_TRACE_FLAGS)) != 0) {
+					 NULL_TRACE_FLAGS,
+					 new_id)) != 0) {
 	count = -1;
 	if (bounce_header(bounce, bounce_info, recipient,
 			  NO_POSTMASTER_COPY) == 0
@@ -152,6 +154,9 @@ int     bounce_trace_service(int flags, char *service, char *queue_name,
 				     DSN_NOTIFY_OVERRIDE) > 0) {
 	    bounce_original(bounce, bounce_info, DSN_RET_HDRS);
 	    bounce_status = post_mail_fclose(bounce);
+	    if (bounce_status == 0)
+		msg_info("%s: sender delivery status notification: %s",
+			 queue_id, STR(new_id));
 	} else {
 	    (void) vstream_fclose(bounce);
 	    if (count == 0)
@@ -171,6 +176,7 @@ int     bounce_trace_service(int flags, char *service, char *queue_name,
      * Cleanup.
      */
     bounce_mail_free(bounce_info);
+    vstring_free(new_id);
 
     return (bounce_status);
 }

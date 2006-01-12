@@ -152,8 +152,8 @@ int     deliver_unknown(LOCAL_STATE state, USER_ATTR usr_attr)
     /*
      * Bounce the message when no luser relay is specified.
      */
-    dsb_smtp(state.msg_attr.why, "5.1.1", 550, "550 user unknown",
-	     "unknown user: \"%s\"", state.msg_attr.local);
+    dsb_simple(state.msg_attr.why, "5.1.1",
+	       "unknown user: \"%s\"", state.msg_attr.local);
     return (bounce_append(BOUNCE_FLAGS(state.request),
 			  BOUNCE_ATTR(state.msg_attr)));
 }

@@ -1329,6 +1329,12 @@ extern char *var_smtp_sasl_type;
 #define DEF_LMTP_SASL_TLS_OPTS	"$" VAR_LMTP_SASL_OPTS
 extern char *var_smtp_sasl_tls_opts;
 
+#define VAR_SMTP_SASL_TLSV_OPTS	"smtp_sasl_tls_verified_security_options"
+#define DEF_SMTP_SASL_TLSV_OPTS	"$" VAR_SMTP_SASL_TLS_OPTS
+#define VAR_LMTP_SASL_TLSV_OPTS	"lmtp_sasl_tls_verified_security_options"
+#define DEF_LMTP_SASL_TLSV_OPTS	"$" VAR_LMTP_SASL_TLS_OPTS
+extern char *var_smtp_sasl_tlsv_opts;
+
  /*
   * LMTP server. The soft error limit determines how many errors an LMTP
   * client may make before we start to slow down; the hard error limit
@@ -2531,6 +2537,15 @@ extern char *var_bounce_tmpl;
 #define VAR_LMTP_SENDER_AUTH	"lmtp_sender_dependent_authentication"
 #define DEF_LMTP_SENDER_AUTH	0
 extern bool var_smtp_sender_auth;
+
+ /*
+  * Allow CNAME lookup result to override the server hostname.
+  */
+#define VAR_SMTP_CNAME_OVERR		"smtp_cname_overrides_servername"
+#define DEF_SMTP_CNAME_OVERR		0
+#define VAR_LMTP_CNAME_OVERR		"lmtp_cname_overrides_servername"
+#define DEF_LMTP_CNAME_OVERR		0
+extern bool var_smtp_cname_overr;
 
 /* LICENSE
 /* .ad

@@ -11692,6 +11692,8 @@ Apologies for any names omitted.
 
 20051229
 
+	The following workaround was removed 20060103.
+
 	Workaround: when mail is still queued after 3000 seconds,
 	the SMTP client no longer pipelines the DOT+QUIT commands.
 	The 20050929 paranoia about malformed server replies
@@ -11727,7 +11729,107 @@ Apologies for any names omitted.
 	The administrator still has the option to turn off pipelining
 	by hand if loss of mail is a concern.
 
+20060103
+
+	Bugfix: the 20051217 fix (when a SASL client password is
+	found, defer delivery when no server-announced mechanism
+	survives the smtp_sasl_mechanism_filter) did the mechanism
+	test too early, so that it could trip up with deliveries
+	to servers that we don't have a SASL password for.  Files:
+	smtp/smtp_sasl_proto.c, smtp/smtp_proto.c.
+
+20060104
+
+	Safety: new "smtp_cname_overrides_servername" parameter.
+	The default value ("no") is NOT backwards compatible. This
+	avoids surprises with the hostname that is used for logging,
+	SASL password lookup, TLS policy decisions, or TLS certificate
+	verification.  The change makes the 20051221 behavior more
+	configurable.  Files: smtp/smtp_addr.c, smtp/smtp_connect.c,
+	proto/postconf.proto.
+
+20060105
+
+	Cleanup: removed the unused DSN "code" attribute; removed
+	surrogate SMTP replies for errors that were not reported
+	by a remote SMTP server, making several DSN-related functions
+	and macros redundant; cleaned up some bizarre code for DSN
+	attribute memory management in the SMTP client.
+
+20060106
+
+	Cleanup: eliminated the global smtp_errno variable, which
+	had become redundant after introducing DSN support. Files:
+	smtp/smtp_addr.c, smtp/smtp_connect.c.
+
+20060107
+
+	Cleanup: removed more bizarre code for DSN attribute memory
+	management in the queue manager, bounce server, and in
+	delivery agents.
+
+20060109
+
+	Bugfix: smtp_sasl_tls_opts was unimplemented. File:
+	smtp/smtp_sasl_proto.c.
+
+	Cleanup: more bounce logfile code cleanup.  Files:
+	global/bounce_log.c, bounce/bounce_notify_util.c,
+	bounce/bounce.c, bounce/bounce_notify_verp.c,
+	bounce/bounce_one_service.c, showq/showq.c
+
+20060110
+
+	Cleanup: more bounce logfile code cleanup.  Files:
+	global/bounce_log.c, bounce/bounce_notify_util.c.
+
+	Bugfix: the VERP bouncer never handled the case of a missing
+	bounce logfile. Found while doing more logfile code cleanup.
+	File: bounce/bounce_notify_verp.c.
+
+	Feature: smtp_sasl_tls_verified_security_options for
+	connections where the server certificate passed verification.
+	The default value is $smtp_sasl_tls_security_options, which
+	in turn defaults to $smtp_sasl_security_options.
+
+20060111
+
+	Optimization: mystrdup() and mystrndup() now return a pointer
+	to a fixed read-only memory location instead of allocating
+	memory for zero-length null-terminated strings.  This saves
+	lots of memory for unused recipient attributes. If this
+	change causes problems (for example, you have an ancient
+	sscanf() implementation that writes to its input) then
+	compile Postfix with -DNO_SHARED_EMPTY_STRINGS.
+
+	Cleanup: eliminated null pointer members in DSN structures.
+	Instead we now use the optimized mystrdup() for empty
+	strings. For safety sake we keep the tests for null pointers
+	in input, but we always produce empty strings on output.
+	Files: global/dsn.c, global/dsn.h, global/dsn_buf.h,
+	global/dsn_print.c.
+
+	Cleanup: eliminated ad-hoc code for passing recipients in
+	the queue manager delivery request protocol. Postfix now
+	uses proper object activation/passivation instead. Files:
+	*qmgr/qmgr_deliver.c, global/deliver_request.c,
+	global/deliver_pass.c.
+
+20060112
+
+	Feature: to simplify debugging the bounce server logs the
+	old and new queue ID when notifying the sender or postmaster.
+	Files: global/post_mail.c, bounce/bounce_notify_service.c,
+	bounce/bounce_one_service.c, bounce/bounce_notify_verp.c,
+	bounce/bounce_warn_service.c, bounce/bounce_trace_service.c.
+
 Open problems:
+
+	Privacy: remove local command/pathname details from remote
+	delivery status reports, and log them via local msg_warn().
+
+	Remove defer(8) and trace(8) references and man pages. These
+	are services not program names.
 
 	"postsuper -r" no longer resets the message arrival time,
 	because pickup(8) no longer overrides queue file time stamp

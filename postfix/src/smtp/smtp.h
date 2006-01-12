@@ -9,6 +9,11 @@
 /* .nf
 
  /*
+  * System library.
+  */
+#include <string.h>
+
+ /*
   * Utility library.
   */
 #include <vstream.h>
@@ -77,7 +82,7 @@ typedef struct SMTP_STATE {
     /*
      * DSN Support introduced major bloat in error processing.
      */
-    VSTRING *dsn_reason;		/* on-the-fly formatting buffer */
+    DSN_BUF *why;			/* on-the-fly formatting buffer */
 } SMTP_STATE;
 
 #define SET_NEXTHOP_STATE(state, lookup_mx, domain, port) { \
@@ -140,12 +145,14 @@ typedef struct SMTP_STATE {
  /*
   * smtp.c
   */
-extern int smtp_errno;			/* XXX can we get rid of this? */
+#define SMTP_HAS_DSN(why)	(STR((why)->status)[0] != 0)
+#define SMTP_HAS_SOFT_DSN(why)	(STR((why)->status)[0] == '4')
+#define SMTP_HAS_HARD_DSN(why)	(STR((why)->status)[0] == '5')
+#define SMTP_HAS_LOOP_DSN(why) \
+    (SMTP_HAS_DSN(why) && strcmp(STR((why)->status) + 1, ".4.6") == 0)
 
-#define SMTP_ERR_NONE	0		/* no error */
-#define SMTP_ERR_FAIL	1		/* permanent error */
-#define SMTP_ERR_RETRY	2		/* temporary error */
-#define SMTP_ERR_LOOP	3		/* mailer loop */
+#define SMTP_SET_SOFT_DSN(why)	(STR((why)->status)[0] = '4')
+#define SMTP_SET_HARD_DSN(why)	(STR((why)->status)[0] = '5')
 
 extern int smtp_host_lookup_mask;	/* host lookup methods to use */
 
@@ -227,6 +234,11 @@ extern SMTP_SESSION *smtp_session_activate(int, VSTRING *, VSTRING *);
 extern void smtp_tls_list_init(void);
 
 #endif
+
+ /*
+  * What's in a name?
+  */
+#define SMTP_HNAME(rr) (var_smtp_cname_overr ? (rr)->rname : (rr)->qname)
 
  /*
   * smtp_connect.c
@@ -320,11 +332,13 @@ extern void smtp_chat_init(SMTP_SESSION *);
 extern void smtp_chat_reset(SMTP_SESSION *);
 extern void smtp_chat_notify(SMTP_SESSION *);
 
-#define SMTP_RESP_FAKE(resp, _code, _dsn, _str) \
-    ((resp)->code = (_code), \
+#define SMTP_RESP_FAKE(resp, _dsn) \
+    ((resp)->code = 0, \
      (resp)->dsn = (_dsn), \
-     (resp)->str = (_str), \
+     (resp)->str = DSN_BY_LOCAL_MTA, \
      (resp))
+
+#define DSN_BY_LOCAL_MTA	((char *) 0)	/* DSN issued by local MTA */
 
  /*
   * These operations implement a redundant mark-and-sweep algorithm that
@@ -370,7 +384,7 @@ extern void smtp_rcpt_done(SMTP_STATE *, SMTP_RESP *, RECIPIENT *);
  /*
   * smtp_trouble.c
   */
-extern int smtp_sess_fail(SMTP_STATE *, DSN_BUF *);
+extern int smtp_sess_fail(SMTP_STATE *);
 extern int PRINTFLIKE(4, 5) smtp_site_fail(SMTP_STATE *, const char *,
 				             SMTP_RESP *, const char *,...);
 extern int PRINTFLIKE(4, 5) smtp_mesg_fail(SMTP_STATE *, const char *,
@@ -398,26 +412,6 @@ extern void smtp_state_free(SMTP_STATE *);
 extern int smtp_map11_external(VSTRING *, MAPS *, int);
 extern int smtp_map11_tree(TOK822 *, MAPS *, int);
 extern int smtp_map11_internal(VSTRING *, MAPS *, int);
-
- /*
-  * smtp_dsn.c
-  */
-extern void PRINTFLIKE(6, 7) smtp_dsn_update(DSN_BUF *, const char *,
-					             const char *,
-					             int,
-					             const char *,
-					             const char *,...);
-extern void vsmtp_dsn_update(DSN_BUF *, const char *, const char *,
-			             int, const char *,
-			             const char *, va_list);
-extern void smtp_dsn_formal(DSN_BUF *, const char *, const char *, int,
-			            const char *);
-
-#define SMTP_DSN_ASSIGN(dsn, mta, stat, resp, why) \
-    DSN_ASSIGN((dsn), (stat), DSB_DEF_ACTION, (why), DSB_DTYPE_SMTP, (resp), \
-	(mta) ? DSB_MTYPE_DNS : DSB_MTYPE_NONE, (mta))
-
-#define DSN_BY_LOCAL_MTA	((char *) 0)	/* DSN issued by local MTA */
 
  /*
   * Silly little macros.
