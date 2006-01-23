@@ -12,6 +12,11 @@
 /* .nf
 
  /*
+  * Utility library.
+  */
+#include <vstring.h>
+
+ /*
   * External interface.
   */
 typedef struct {
@@ -23,6 +28,7 @@ typedef struct {
 #define NAME_MASK_ANY_CASE	(1<<1)
 #define NAME_MASK_RETURN	(1<<2)
 #define NAME_MASK_COMMA		(1<<3)
+#define NAME_MASK_PIPE		(1<<4)
 
 #define NAME_MASK_MATCH_REQ	NAME_MASK_FATAL
 
@@ -32,10 +38,10 @@ typedef struct {
 #define name_mask(tag, table, str) \
 	name_mask_opt((tag), (table), (str), NAME_MASK_DEFAULT)
 #define str_name_mask(tag, table, mask) \
-	str_name_mask_opt((tag), (table), (mask), NAME_MASK_DEFAULT)
+	str_name_mask_opt(((VSTRING *) 0), (tag), (table), (mask), NAME_MASK_DEFAULT)
 
 extern int name_mask_opt(const char *, NAME_MASK *, const char *, int);
-extern const char *str_name_mask_opt(const char *, NAME_MASK *, int, int);
+extern const char *str_name_mask_opt(VSTRING *, const char *, NAME_MASK *, int, int);
 
 /* LICENSE
 /* .ad

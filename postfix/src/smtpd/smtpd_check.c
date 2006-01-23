@@ -224,7 +224,6 @@
 #include <mail_addr_find.h>
 #include <match_parent_style.h>
 #include <strip_addr.h>
-#include <virtual8_maps.h>
 #include <cleanup_user.h>
 #include <record.h>
 #include <rec_type.h>
@@ -510,7 +509,8 @@ static ARGV *smtpd_check_parse(int flags, const char *checks)
 	    policy_client_register(name);
 	else if ((flags & SMTPD_CHECK_PARSE_MAPS)
 		 && strchr(name, ':') && dict_handle(name) == 0) {
-	    dict_register(name, dict_open(name, O_RDONLY, DICT_FLAG_LOCK));
+	    dict_register(name, dict_open(name, O_RDONLY, DICT_FLAG_LOCK
+					  | DICT_FLAG_FOLD_FIX));
 	}
 	last = name;
     }
@@ -605,25 +605,25 @@ void    smtpd_check_init(void)
 			 var_perm_mx_networks);
 #ifdef USE_TLS
     relay_ccerts = maps_create(VAR_RELAY_CCERTS, var_smtpd_relay_ccerts,
-			       DICT_FLAG_LOCK);
+			       DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
 #endif
 
     /*
      * Pre-parse and pre-open the recipient maps.
      */
     local_rcpt_maps = maps_create(VAR_LOCAL_RCPT_MAPS, var_local_rcpt_maps,
-				  DICT_FLAG_LOCK);
+				  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
     rcpt_canon_maps = maps_create(VAR_RCPT_CANON_MAPS, var_rcpt_canon_maps,
-				  DICT_FLAG_LOCK);
+				  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
     canonical_maps = maps_create(VAR_CANONICAL_MAPS, var_canonical_maps,
-				 DICT_FLAG_LOCK);
+				 DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
     virt_alias_maps = maps_create(VAR_VIRT_ALIAS_MAPS, var_virt_alias_maps,
-				  DICT_FLAG_LOCK);
-    virt_mailbox_maps = virtual8_maps_create(VAR_VIRT_MAILBOX_MAPS,
-					     var_virt_mailbox_maps,
-					     DICT_FLAG_LOCK);
+				  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+    virt_mailbox_maps = maps_create(VAR_VIRT_MAILBOX_MAPS,
+				    var_virt_mailbox_maps,
+				    DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
     relay_rcpt_maps = maps_create(VAR_RELAY_RCPT_MAPS, var_relay_rcpt_maps,
-				  DICT_FLAG_LOCK);
+				  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
 
 #ifdef TEST
     virt_alias_doms = string_list_init(MATCH_FLAG_NONE, var_virt_alias_doms);
@@ -636,14 +636,14 @@ void    smtpd_check_init(void)
      * Templates for RBL rejection replies.
      */
     rbl_reply_maps = maps_create(VAR_RBL_REPLY_MAPS, var_rbl_reply_maps,
-				 DICT_FLAG_LOCK);
+				 DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
 
     /*
      * Sender to login name mapping.
      */
     smtpd_sender_login_maps = maps_create(VAR_SMTPD_SND_AUTH_MAPS,
 					  var_smtpd_snd_auth_maps,
-					  DICT_FLAG_LOCK);
+				       DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
 
     /*
      * error_text is used for returning error responses.
@@ -1210,7 +1210,6 @@ static int permit_auth_destination(SMTPD_STATE *state, char *recipient);
 #ifdef USE_TLS
 static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
 {
-    char   *low_name;
     const char *found;
 
     if (!state->tls_context)
@@ -1223,9 +1222,8 @@ static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
     }
     if (state->tls_context->peer_verified
 	&& state->tls_context->peer_fingerprint) {
-	low_name = lowercase(mystrdup(state->tls_context->peer_fingerprint));
-	found = maps_find(relay_ccerts, low_name, DICT_FLAG_FIXED);
-	myfree(low_name);
+	found = maps_find(relay_ccerts, state->tls_context->peer_fingerprint,
+			  DICT_FLAG_NONE);
 	if (found) {
 	    if (msg_verbose)
 		msg_info("Relaying allowed for certified client: %s", found);
@@ -1369,7 +1367,7 @@ static int reject_unauth_pipelining(SMTPD_STATE *state,
 	&& (vstream_peek(state->client) > 0
 	    || peekfd(vstream_fileno(state->client)) > 0)
 	&& (strcasecmp(state->protocol, MAIL_PROTO_ESMTP) != 0
-	    || strcasecmp(state->where, "DATA") == 0)) {
+	    || strcasecmp(state->where, SMTPD_CMD_DATA) == 0)) {
 	return (smtpd_check_reject(state, MAIL_ERROR_PROTOCOL,
 				   503, "5.5.0",
 	       "<%s>: %s rejected: Improper use of SMTP command pipelining",
@@ -1794,7 +1792,7 @@ static int reject_unverified_address(SMTPD_STATE *state, const char *addr,
 	msg_warn("%s service failure", var_verify_service);
 	DEFER_IF_PERMIT2(state, MAIL_ERROR_POLICY,
 			 450, strcmp(reply_class, SMTPD_NAME_SENDER) == 0 ?
-			 "4.1.0" : "4.1.1",
+			 SND_DSN : "4.1.1",
 			 "<%s>: %s rejected: address verification problem",
 			 reply_name, reply_class);
 	rqst_status = SMTPD_CHECK_DUNNO;
@@ -1808,7 +1806,7 @@ static int reject_unverified_address(SMTPD_STATE *state, const char *addr,
 	case DEL_RCPT_STAT_DEFER:
 	    DEFER_IF_PERMIT3(state, MAIL_ERROR_POLICY,
 			  450, strcmp(reply_class, SMTPD_NAME_SENDER) == 0 ?
-			     "4.1.0" : "4.1.1",
+			     SND_DSN : "4.1.1",
 			     "<%s>: %s rejected: unverified address: %.250s",
 			     reply_name, reply_class, STR(why));
 	    rqst_status = SMTPD_CHECK_DUNNO;
@@ -1824,7 +1822,7 @@ static int reject_unverified_address(SMTPD_STATE *state, const char *addr,
 		    smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				       unv_addr_code,
 			       strcmp(reply_class, SMTPD_NAME_SENDER) == 0 ?
-				       "4.1.0" : "4.1.1",
+				       SND_DSN : "4.1.1",
 			     "<%s>: %s rejected: undeliverable address: %s",
 				       reply_name, reply_class, STR(why));
 	    break;
@@ -1858,7 +1856,7 @@ static int can_delegate_action(SMTPD_STATE *state, const char *table,
     /*
      * ETRN does not receive mail so we can't store queue file records.
      */
-    if (strcmp(state->where, "ETRN") == 0) {
+    if (strcmp(state->where, SMTPD_CMD_ETRN) == 0) {
 	msg_warn("access table %s: action %s is unavailable in %s",
 		 table, action, VAR_ETRN_CHECKS);
 	return (0);
@@ -2241,11 +2239,11 @@ static int check_access(SMTPD_STATE *state, const char *table, const char *name,
 			        const char *reply_class, const char *def_acl)
 {
     char   *myname = "check_access";
-    char   *low_name = lowercase(mystrdup(name));
     const char *value;
     DICT   *dict;
 
-#define CHK_ACCESS_RETURN(x,y) { *found = y; myfree(low_name); return(x); }
+#define CHK_ACCESS_RETURN(x,y) \
+	{ *found = y; return(x); }
 #define FULL	0
 #define PARTIAL	DICT_FLAG_FIXED
 #define FOUND	1
@@ -2257,7 +2255,7 @@ static int check_access(SMTPD_STATE *state, const char *table, const char *name,
     if ((dict = dict_handle(table)) == 0)
 	msg_panic("%s: dictionary not found: %s", myname, table);
     if (flags == 0 || (flags & dict->flags) != 0) {
-	if ((value = dict_get(dict, low_name)) != 0)
+	if ((value = dict_get(dict, name)) != 0)
 	    CHK_ACCESS_RETURN(check_table_result(state, table, value, name,
 						 reply_name, reply_class,
 						 def_acl), FOUND);
@@ -2276,9 +2274,8 @@ static int check_domain_access(SMTPD_STATE *state, const char *table,
 			               const char *def_acl)
 {
     char   *myname = "check_domain_access";
-    char   *low_domain = lowercase(mystrdup(domain));
-    char   *name;
-    char   *next;
+    const char *name;
+    const char *next;
     const char *value;
     DICT   *dict;
     int     maybe_numerical = 1;
@@ -2293,11 +2290,11 @@ static int check_domain_access(SMTPD_STATE *state, const char *table,
      * key, because Berkeley DB cannot deal with it. [Victor Duchovni, Morgan
      * Stanley].
      */
-#define CHK_DOMAIN_RETURN(x,y) { *found = y; myfree(low_domain); return(x); }
+#define CHK_DOMAIN_RETURN(x,y) { *found = y; return(x); }
 
     if ((dict = dict_handle(table)) == 0)
 	msg_panic("%s: dictionary not found: %s", myname, table);
-    for (name = low_domain; *name != 0; name = next) {
+    for (name = domain; *name != 0; name = next) {
 	if (flags == 0 || (flags & dict->flags) != 0) {
 	    if ((value = dict_get(dict, name)) != 0)
 		CHK_DOMAIN_RETURN(check_table_result(state, table, value,
@@ -2965,7 +2962,6 @@ static int rbl_reject_reply(SMTPD_STATE *state, SMTPD_RBL_STATE *rbl,
     const char *myname = "rbl_reject_reply";
     VSTRING *why = 0;
     const char *template = 0;
-    char   *low_name;
     SMTPD_RBL_EXPAND_CONTEXT rbl_exp;
     int     result;
     DSN_SPLIT dp;
@@ -2975,9 +2971,7 @@ static int rbl_reject_reply(SMTPD_STATE *state, SMTPD_RBL_STATE *rbl,
      * Use the server-specific reply template or use the default one.
      */
     if (*var_rbl_reply_maps) {
-	low_name = lowercase(mystrdup(rbl_domain));
-	template = maps_find(rbl_reply_maps, low_name, 0);
-	myfree(low_name);
+	template = maps_find(rbl_reply_maps, rbl_domain, DICT_FLAG_NONE);
     }
     why = vstring_alloc(100);
     rbl_exp.state = state;
@@ -3273,6 +3267,10 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 			  state->sender ? state->sender : "",
 			  ATTR_TYPE_STR, MAIL_ATTR_RECIP,
 			  state->recipient ? state->recipient : "",
+			  ATTR_TYPE_INT, MAIL_ATTR_RCPT_COUNT,
+			  ((strcasecmp(state->where, SMTPD_CMD_DATA) == 0) ||
+			 (strcasecmp(state->where, SMTPD_AFTER_DOT) == 0)) ?
+			  state->rcpt_count : 0,
 			  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID,
 			  state->queue_id ? state->queue_id : "",
 			  ATTR_TYPE_STR, MAIL_ATTR_INSTANCE,
@@ -3306,8 +3304,8 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 			  IF_ENCRYPTED(state->tls_context->protocol, ""),
 			  ATTR_TYPE_STR, MAIL_ATTR_CRYPTO_CIPHER,
 			  IF_ENCRYPTED(state->tls_context->cipher_name, ""),
-			  ATTR_TYPE_NUM, MAIL_ATTR_CRYPTO_KEYSIZE,
-			  IF_ENCRYPTED(state->tls_context->cipher_usebits, 0),
+			  ATTR_TYPE_INT, MAIL_ATTR_CRYPTO_KEYSIZE,
+			IF_ENCRYPTED(state->tls_context->cipher_usebits, 0),
 #endif
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
@@ -3751,7 +3749,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		status = check_recipient_rcpt_maps(state, state->recipient);
 	} else if (strcasecmp(name, REJECT_MUL_RCPT_BOUNCE) == 0) {
 	    if (state->sender && *state->sender == 0 && state->rcpt_count
-		> (strcmp(state->where, "DATA") ? 0 : 1))
+		> (strcmp(state->where, SMTPD_CMD_DATA) ? 0 : 1))
 		status = smtpd_check_reject(state, MAIL_ERROR_POLICY,
 					    var_mul_rcpt_code, "5.5.3",
 				"<%s>: %s rejected: Multi-recipient bounce",
@@ -4303,9 +4301,9 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient,
     /*
      * Search the recipient lookup tables of the respective address class.
      * 
-     * XXX Use the less expensive maps_find() (case is already folded) instead
-     * of the baroque mail_addr_find(). But then we have to strip the domain
-     * and deal with address extensions ourselves.
+     * XXX Use the less expensive maps_find() (built-in case folding) instead of
+     * the baroque mail_addr_find(). But then we have to strip the domain and
+     * deal with address extensions ourselves.
      * 
      * XXX But that would break sites that use the virtual delivery agent for
      * local delivery, because the virtual delivery agent requires
@@ -4481,7 +4479,7 @@ char   *smtpd_check_data(SMTPD_STATE *state)
     status = setjmp(smtpd_check_buf);
     if (status == 0 && data_restrctions->argc)
 	status = generic_checks(state, data_restrctions,
-				"DATA", SMTPD_NAME_DATA, NO_DEF_ACL);
+				SMTPD_CMD_DATA, SMTPD_NAME_DATA, NO_DEF_ACL);
 
     /*
      * Force permission into deferral when some earlier temporary error may
@@ -4532,7 +4530,7 @@ char   *smtpd_check_eod(SMTPD_STATE *state)
     status = setjmp(smtpd_check_buf);
     if (status == 0 && eod_restrictions->argc)
 	status = generic_checks(state, eod_restrictions,
-				"END-OF-DATA", SMTPD_NAME_EOD, NO_DEF_ACL);
+				SMTPD_CMD_EOD, SMTPD_NAME_EOD, NO_DEF_ACL);
 
     /*
      * Force permission into deferral when some earlier temporary error may
@@ -4728,6 +4726,8 @@ int     var_smtpd_policy_idle;
 int     var_smtpd_policy_ttl;
 int     var_smtpd_rej_unl_from;
 int     var_smtpd_rej_unl_rcpt;
+int     var_plaintext_code;
+bool    var_smtpd_peername_lookup;
 
 static INT_TABLE int_table[] = {
     "msg_verbose", 0, &msg_verbose,
@@ -4754,6 +4754,8 @@ static INT_TABLE int_table[] = {
     VAR_VERIFY_POLL_COUNT, DEF_VERIFY_POLL_COUNT, &var_verify_poll_count,
     VAR_SMTPD_REJ_UNL_FROM, DEF_SMTPD_REJ_UNL_FROM, &var_smtpd_rej_unl_from,
     VAR_SMTPD_REJ_UNL_RCPT, DEF_SMTPD_REJ_UNL_RCPT, &var_smtpd_rej_unl_rcpt,
+    VAR_PLAINTEXT_CODE, DEF_PLAINTEXT_CODE, &var_plaintext_code,
+    VAR_SMTPD_PEERNAME_LOOKUP, DEF_SMTPD_PEERNAME_LOOKUP, &var_smtpd_peername_lookup,
     0,
 };
 
@@ -4905,7 +4907,8 @@ VSTRING *rewrite_clnt_internal(const char *context, const char *addr,
 
 /* resolve_clnt_query - stub */
 
-void    resolve_clnt(const char *class, const char *addr, RESOLVE_REPLY *reply)
+void    resolve_clnt(const char *class, const char *unused_sender, const char *addr,
+		             RESOLVE_REPLY *reply)
 {
     const char *domain;
 
@@ -5020,6 +5023,10 @@ int     main(int argc, char **argv)
 		    state.name_status =
 			state.reverse_name_status =
 			atoi(args->argv[3]);
+		else if (strcmp(state.name, "unknown") == 0)
+		    state.name_status =
+			state.reverse_name_status =
+			SMTPD_PEER_CODE_TEMP;
 		else
 		    state.name_status =
 			state.reverse_name_status =
@@ -5046,7 +5053,8 @@ int     main(int argc, char **argv)
 	    if (strcasecmp(args->argv[0], VAR_VIRT_ALIAS_MAPS) == 0) {
 		UPDATE_STRING(var_virt_alias_maps, args->argv[1]);
 		UPDATE_MAPS(virt_alias_maps, VAR_VIRT_ALIAS_MAPS,
-			    var_virt_alias_maps, DICT_FLAG_LOCK);
+			    var_virt_alias_maps, DICT_FLAG_LOCK
+			    | DICT_FLAG_FOLD_FIX);
 		resp = 0;
 		break;
 	    }
@@ -5059,7 +5067,8 @@ int     main(int argc, char **argv)
 	    if (strcasecmp(args->argv[0], VAR_VIRT_MAILBOX_MAPS) == 0) {
 		UPDATE_STRING(var_virt_mailbox_maps, args->argv[1]);
 		UPDATE_MAPS(virt_mailbox_maps, VAR_VIRT_MAILBOX_MAPS,
-			    var_virt_mailbox_maps, DICT_FLAG_LOCK);
+			    var_virt_mailbox_maps, DICT_FLAG_LOCK
+			    | DICT_FLAG_FOLD_FIX);
 		resp = 0;
 		break;
 	    }
@@ -5072,28 +5081,32 @@ int     main(int argc, char **argv)
 	    if (strcasecmp(args->argv[0], VAR_LOCAL_RCPT_MAPS) == 0) {
 		UPDATE_STRING(var_local_rcpt_maps, args->argv[1]);
 		UPDATE_MAPS(local_rcpt_maps, VAR_LOCAL_RCPT_MAPS,
-			    var_local_rcpt_maps, DICT_FLAG_LOCK);
+			    var_local_rcpt_maps, DICT_FLAG_LOCK
+			    | DICT_FLAG_FOLD_FIX);
 		resp = 0;
 		break;
 	    }
 	    if (strcasecmp(args->argv[0], VAR_RELAY_RCPT_MAPS) == 0) {
 		UPDATE_STRING(var_relay_rcpt_maps, args->argv[1]);
 		UPDATE_MAPS(relay_rcpt_maps, VAR_RELAY_RCPT_MAPS,
-			    var_relay_rcpt_maps, DICT_FLAG_LOCK);
+			    var_relay_rcpt_maps, DICT_FLAG_LOCK
+			    | DICT_FLAG_FOLD_FIX);
 		resp = 0;
 		break;
 	    }
 	    if (strcasecmp(args->argv[0], VAR_CANONICAL_MAPS) == 0) {
 		UPDATE_STRING(var_canonical_maps, args->argv[1]);
 		UPDATE_MAPS(canonical_maps, VAR_CANONICAL_MAPS,
-			    var_canonical_maps, DICT_FLAG_LOCK);
+			    var_canonical_maps, DICT_FLAG_LOCK
+			    | DICT_FLAG_FOLD_FIX);
 		resp = 0;
 		break;
 	    }
 	    if (strcasecmp(args->argv[0], VAR_RBL_REPLY_MAPS) == 0) {
 		UPDATE_STRING(var_rbl_reply_maps, args->argv[1]);
 		UPDATE_MAPS(rbl_reply_maps, VAR_RBL_REPLY_MAPS,
-			    var_rbl_reply_maps, DICT_FLAG_LOCK);
+			    var_rbl_reply_maps, DICT_FLAG_LOCK
+			    | DICT_FLAG_FOLD_FIX);
 		resp = 0;
 		break;
 	    }

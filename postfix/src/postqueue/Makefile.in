@@ -62,6 +62,7 @@ postqueue.o: ../../include/connect.h
 postqueue.o: ../../include/flush_clnt.h
 postqueue.o: ../../include/iostuff.h
 postqueue.o: ../../include/mail_conf.h
+postqueue.o: ../../include/mail_dict.h
 postqueue.o: ../../include/mail_flush.h
 postqueue.o: ../../include/mail_params.h
 postqueue.o: ../../include/mail_proto.h

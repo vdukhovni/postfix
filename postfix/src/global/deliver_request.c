@@ -129,7 +129,7 @@ static int deliver_request_initial(VSTREAM *stream)
     if (msg_verbose)
 	msg_info("deliver_request_initial: send initial status");
     attr_print(stream, ATTR_FLAG_NONE,
-	       ATTR_TYPE_NUM, MAIL_ATTR_STATUS, 0,
+	       ATTR_TYPE_INT, MAIL_ATTR_STATUS, 0,
 	       ATTR_TYPE_END);
     if ((err = vstream_fflush(stream)) != 0)
 	if (msg_verbose)
@@ -157,7 +157,7 @@ static int deliver_request_final(VSTREAM *stream, DELIVER_REQUEST *request,
 		 hop_status->reason, status);
     attr_print(stream, ATTR_FLAG_NONE,
 	       ATTR_TYPE_FUNC, dsn_print, (void *) hop_status,
-	       ATTR_TYPE_NUM, MAIL_ATTR_STATUS, status,
+	       ATTR_TYPE_INT, MAIL_ATTR_STATUS, status,
 	       ATTR_TYPE_END);
     if ((err = vstream_fflush(stream)) != 0)
 	if (msg_verbose)
@@ -227,7 +227,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
      * the conversation when they send bad information.
      */
     if (attr_scan(stream, ATTR_FLAG_STRICT,
-		  ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &request->flags,
+		  ATTR_TYPE_INT, MAIL_ATTR_FLAGS, &request->flags,
 		  ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
 		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
 		  ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, &request->data_offset,
@@ -236,7 +236,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 		  ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
 		  ATTR_TYPE_STR, MAIL_ATTR_SENDER, address,
 		  ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, dsn_envid,
-		  ATTR_TYPE_NUM, MAIL_ATTR_DSN_RET, &dsn_ret,
+		  ATTR_TYPE_INT, MAIL_ATTR_DSN_RET, &dsn_ret,
 	       ATTR_TYPE_FUNC, msg_stats_scan, (void *) &request->msg_stats,
 		  ATTR_TYPE_STR, MAIL_ATTR_CLIENT_NAME, client_name,
 		  ATTR_TYPE_STR, MAIL_ATTR_CLIENT_ADDR, client_addr,
@@ -246,7 +246,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 		  ATTR_TYPE_STR, MAIL_ATTR_SASL_USERNAME, sasl_username,
 		  ATTR_TYPE_STR, MAIL_ATTR_SASL_SENDER, sasl_sender,
 		  ATTR_TYPE_STR, MAIL_ATTR_RWR_CONTEXT, rewrite_context,
-		  ATTR_TYPE_NUM, MAIL_ATTR_RCPT_COUNT, &rcpt_count,
+		  ATTR_TYPE_INT, MAIL_ATTR_RCPT_COUNT, &rcpt_count,
 		  ATTR_TYPE_END) != 20) {
 	msg_warn("%s: error receiving common attributes", myname);
 	return (-1);

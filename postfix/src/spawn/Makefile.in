@@ -69,4 +69,5 @@ spawn.o: ../../include/sys_defs.h
 spawn.o: ../../include/timed_wait.h
 spawn.o: ../../include/vbuf.h
 spawn.o: ../../include/vstream.h
+spawn.o: ../../include/vstring.h
 spawn.o: spawn.c

@@ -85,7 +85,7 @@
 /* .IP type
 /*	The type argument determines the arguments that follow.
 /* .RS
-/* .IP "ATTR_TYPE_NUM (char *, int *)"
+/* .IP "ATTR_TYPE_INT (char *, int *)"
 /*	This argument is followed by an attribute name and an integer pointer.
 /* .IP "ATTR_TYPE_LONG (char *, long *)"
 /*	This argument is followed by an attribute name and a long pointer.
@@ -354,7 +354,7 @@ int     attr_vscan0(VSTREAM *fp, int flags, va_list ap)
 	 * Do the requested conversion.
 	 */
 	switch (wanted_type) {
-	case ATTR_TYPE_NUM:
+	case ATTR_TYPE_INT:
 	    number = va_arg(ap, unsigned int *);
 	    if ((ch = attr_scan0_number(fp, number, str_buf,
 					"input attribute value")) < 0)
@@ -447,13 +447,13 @@ int     main(int unused_argc, char **used_argv)
     msg_vstream_init(used_argv[0], VSTREAM_ERR);
     if ((ret = attr_scan0(VSTREAM_IN,
 			  ATTR_FLAG_STRICT,
-			  ATTR_TYPE_NUM, ATTR_NAME_NUM, &int_val,
+			  ATTR_TYPE_INT, ATTR_NAME_INT, &int_val,
 			  ATTR_TYPE_LONG, ATTR_NAME_LONG, &long_val,
 			  ATTR_TYPE_STR, ATTR_NAME_STR, str_val,
 			  ATTR_TYPE_DATA, ATTR_NAME_DATA, data_val,
 			  ATTR_TYPE_HASH, table,
 			  ATTR_TYPE_END)) > 4) {
-	vstream_printf("%s %d\n", ATTR_NAME_NUM, int_val);
+	vstream_printf("%s %d\n", ATTR_NAME_INT, int_val);
 	vstream_printf("%s %ld\n", ATTR_NAME_LONG, long_val);
 	vstream_printf("%s %s\n", ATTR_NAME_STR, STR(str_val));
 	vstream_printf("%s %s\n", ATTR_NAME_DATA, STR(str_val));
@@ -466,12 +466,12 @@ int     main(int unused_argc, char **used_argv)
     }
     if ((ret = attr_scan0(VSTREAM_IN,
 			  ATTR_FLAG_STRICT,
-			  ATTR_TYPE_NUM, ATTR_NAME_NUM, &int_val,
+			  ATTR_TYPE_INT, ATTR_NAME_INT, &int_val,
 			  ATTR_TYPE_LONG, ATTR_NAME_LONG, &long_val,
 			  ATTR_TYPE_STR, ATTR_NAME_STR, str_val,
 			  ATTR_TYPE_DATA, ATTR_NAME_DATA, data_val,
 			  ATTR_TYPE_END)) == 4) {
-	vstream_printf("%s %d\n", ATTR_NAME_NUM, int_val);
+	vstream_printf("%s %d\n", ATTR_NAME_INT, int_val);
 	vstream_printf("%s %ld\n", ATTR_NAME_LONG, long_val);
 	vstream_printf("%s %s\n", ATTR_NAME_STR, STR(str_val));
 	vstream_printf("%s %s\n", ATTR_NAME_DATA, STR(data_val));

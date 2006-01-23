@@ -187,6 +187,26 @@ extern void smtpd_state_reset(SMTPD_STATE *);
 #define SMTPD_AFTER_DOT		"END-OF-MESSAGE"
 
  /*
+  * Other stages. These are sometimes used to change the way information is
+  * logged or what information will be available for access control.
+  */
+#define SMTPD_CMD_HELO		"HELO"
+#define SMTPD_CMD_EHLO		"EHLO"
+#define SMTPD_CMD_STARTTLS	"STARTTLS"
+#define SMTPD_CMD_AUTH		"AUTH"
+#define SMTPD_CMD_MAIL		"MAIL"
+#define SMTPD_CMD_RCPT		"RCPT"
+#define SMTPD_CMD_DATA		"DATA"
+#define SMTPD_CMD_EOD		SMTPD_AFTER_DOT	/* XXX Was: END-OF-DATA */
+#define SMTPD_CMD_RSET		"RSET"
+#define SMTPD_CMD_NOOP		"NOOP"
+#define SMTPD_CMD_VRFY		"VRFY"
+#define SMTPD_CMD_ETRN		"ETRN"
+#define SMTPD_CMD_QUIT		"QUIT"
+#define SMTPD_CMD_XCLIENT	"XCLIENT"
+#define SMTPD_CMD_XFORWARD	"XFORWARD"
+
+ /*
   * Representation of unknown client information within smtpd processes. This
   * is not the representation that Postfix uses in queue files, in queue
   * manager delivery requests, or in XCLIENT/XFORWARD commands!

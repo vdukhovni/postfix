@@ -25,7 +25,8 @@
   * Attribute types. See attr_scan(3) for documentation.
   */
 #define ATTR_TYPE_END		0	/* end of data */
-#define ATTR_TYPE_NUM		1	/* Unsigned integer */
+#define ATTR_TYPE_INT		1	/* Unsigned integer */
+#define ATTR_TYPE_NUM		ATTR_TYPE_INT
 #define ATTR_TYPE_STR		2	/* Character string */
 #define ATTR_TYPE_HASH		3	/* Hash table */
 #define ATTR_TYPE_NV		3	/* Name-value table */
@@ -104,7 +105,7 @@ extern int attr_vscan_plain(VSTREAM *, int, va_list);
   * routines.
   */
 #ifdef TEST
-#define ATTR_NAME_NUM		"number"
+#define ATTR_NAME_INT		"number"
 #define ATTR_NAME_STR		"string"
 #define ATTR_NAME_LONG		"long_number"
 #define ATTR_NAME_DATA		"data"

@@ -199,13 +199,50 @@ int     tls_verify_certificate_callback(int ok, X509_STORE_CTX *ctx)
 static char *tls_text_name(X509_NAME *name, int nid, char *label, int gripe)
 {
     int     len;
-    char   *text;
+    int     pos;
+    X509_NAME_ENTRY *entry;
+    ASN1_STRING *entry_str;
+    unsigned char *tmp;
+    char   *result;
 
-    if ((len = X509_NAME_get_text_by_NID(name, nid, 0, 0)) < 0) {
+    if (name == 0
+    	|| (pos = X509_NAME_get_index_by_NID(name, nid, -1)) < 0) {
 	if (gripe != DONT_GRIPE) {
 	    msg_warn("peer certificate has no %s", label);
 	    tls_print_errors();
 	}
+	return (0);
+    }
+
+#if 0
+    /*
+     * If the match is required unambiguous, insist that that no
+     * other values be present.
+     */
+    if (unique == UNIQUE && X509_NAME_get_index_by_NID(name, nid, pos) >= 0) {
+	msg_warn("multiple %ss in peer certificate", label);
+	return (0);
+    }
+#endif
+
+    if ((entry = X509_NAME_get_entry(name, pos)) == 0) {
+	/* This should not happen */
+	msg_warn("error reading peer certificate %s entry", label);
+	tls_print_errors();
+	return (0);
+    }
+
+    if ((entry_str = X509_NAME_ENTRY_get_data(entry)) == 0) {
+	/* This should not happen */
+	msg_warn("error reading peer certificate %s data", label);
+	tls_print_errors();
+	return (0);
+    }
+
+    if ((len = ASN1_STRING_to_UTF8(&tmp, entry_str)) < 0) {
+	/* This should not happen */
+	msg_warn("error decoding peer certificate %s data", label);
+	tls_print_errors();
 	return (0);
     }
 
@@ -214,17 +251,24 @@ static char *tls_text_name(X509_NAME *name, int nid, char *label, int gripe)
      * truncation due to excessive length or internal NULs.
      */
     if (len >= CCERT_BUFSIZ) {
+	OPENSSL_free(tmp);
 	msg_warn("peer %s too long: %d", label, (int) len);
 	return (0);
     }
-    text = mymalloc(len + 1);
-    X509_NAME_get_text_by_NID(name, nid, text, len + 1);
-    if (strlen(text) != len) {
+
+    /*
+     * Standard UTF8 does not encode NUL as 0b11000000, that is
+     * a Java "feature". So we need to check for embedded NULs.
+     */
+    if (strlen(tmp) != len) {
 	msg_warn("internal NUL in peer %s", label);
-	myfree(text);
-	text = 0;
+	OPENSSL_free(tmp);
+	return (0);
     }
-    return (text);
+
+    result = mystrdup(tmp);
+    OPENSSL_free(tmp);
+    return (result);
 }
 
 /* tls_peer_CN - extract peer common name from certificate */
@@ -234,7 +278,7 @@ char   *tls_peer_CN(X509 *peercert)
     char   *cn;
 
     cn = tls_text_name(X509_get_subject_name(peercert),
-		       NID_commonName, "CN", DO_GRIPE);
+		       NID_commonName, "subject CN", DO_GRIPE);
     return (cn);
 }
 

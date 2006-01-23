@@ -13,7 +13,8 @@
 /* DESCRIPTION
 /*	mail_addr_find() searches the specified maps for an entry with as
 /*	key the specified address, and derivations from that address.
-/*	The search is case insensitive.
+/*	It is up to the caller to specify its case sensitivity
+/*	preferences when it opens the maps.
 /*	The result is overwritten upon each call.
 /*
 /*	An address that is in the form \fIuser\fR matches itself.
@@ -103,7 +104,7 @@ const char *mail_addr_find(MAPS *path, const char *address, char **extp)
     /*
      * Initialize.
      */
-    full_key = lowercase(mystrdup(address));
+    full_key = mystrdup(address);
     if (*var_rcpt_delim == 0) {
 	bare_key = saved_ext = 0;
     } else {
@@ -199,7 +200,7 @@ int     main(int argc, char **argv)
      * Initialize.
      */
     mail_conf_read();
-    path = maps_create(argv[0], argv[1], DICT_FLAG_LOCK);
+    path = maps_create(argv[0], argv[1], DICT_FLAG_LOCK  | DICT_FLAG_FOLD_FIX);
     while (vstring_fgets_nonl(buffer, VSTREAM_IN)) {
 	extent = 0;
 	result = mail_addr_find(path, STR(buffer), &extent);

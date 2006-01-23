@@ -364,6 +364,9 @@ int main(int unused_argc, char **unused_argv)
 	htable_delete(hash, ht[0]->key, (void (*) (char *)) 0);
     if (hash->used > 0)
 	msg_panic("%d entries not deleted", hash->used);
+    myfree((char *) ht_info);
+    htable_free(hash, (void (*) (char *)) 0);
+    vstring_free(buf);
     return (0);
 }
 

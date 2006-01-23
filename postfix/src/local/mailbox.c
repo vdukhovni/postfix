@@ -270,10 +270,10 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
      */
     if (*var_mbox_transp_maps && transp_maps == 0)
 	transp_maps = maps_create(VAR_MBOX_TRANSP_MAPS, var_mbox_transp_maps,
-				  DICT_FLAG_LOCK);
+				  DICT_FLAG_LOCK | DICT_FLAG_NO_REGSUB);
     if (*var_mbox_transp_maps
 	&& (map_transport = maps_find(transp_maps, state.msg_attr.user,
-				      DICT_FLAG_FIXED)) != 0) {
+				      DICT_FLAG_NONE)) != 0) {
 	state.msg_attr.rcpt.offset = -1L;
 	*statusp = deliver_pass(MAIL_CLASS_PRIVATE, map_transport,
 				state.request, &state.msg_attr.rcpt);
@@ -310,11 +310,11 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 
     if (*var_mailbox_cmd_maps && cmd_maps == 0)
 	cmd_maps = maps_create(VAR_MAILBOX_CMD_MAPS, var_mailbox_cmd_maps,
-			       DICT_FLAG_LOCK);
+			       DICT_FLAG_LOCK | DICT_FLAG_PARANOID);
 
     if (*var_mailbox_cmd_maps
 	&& (map_command = maps_find(cmd_maps, state.msg_attr.user,
-				    DICT_FLAG_FIXED)) != 0) {
+				    DICT_FLAG_NONE)) != 0) {
 	status = deliver_command(state, usr_attr, map_command);
     } else if (*var_mailbox_command) {
 	status = deliver_command(state, usr_attr, var_mailbox_command);

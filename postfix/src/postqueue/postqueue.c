@@ -190,6 +190,7 @@
 #include <smtp_stream.h>
 #include <user_acl.h>
 #include <valid_mailhost_addr.h>
+#include <mail_dict.h>
 
 /* Application-specific. */
 

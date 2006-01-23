@@ -49,11 +49,11 @@ OK
 >>> client foo 123.123.123.123
 OK
 >>> helo foo.
-./smtpd_check: <queue id>: reject: HELO from foo[123.123.123.123]: 450 4.1.0 <foo.>: Helo command rejected: Host not found; proto=SMTP helo=<foo.>
-450 4.1.0 <foo.>: Helo command rejected: Host not found
+./smtpd_check: <queue id>: reject: HELO from foo[123.123.123.123]: 450 4.7.1 <foo.>: Helo command rejected: Host not found; proto=SMTP helo=<foo.>
+450 4.7.1 <foo.>: Helo command rejected: Host not found
 >>> helo foo
-./smtpd_check: <queue id>: reject: HELO from foo[123.123.123.123]: 450 4.1.0 <foo>: Helo command rejected: Host not found; proto=SMTP helo=<foo>
-450 4.1.0 <foo>: Helo command rejected: Host not found
+./smtpd_check: <queue id>: reject: HELO from foo[123.123.123.123]: 450 4.7.1 <foo>: Helo command rejected: Host not found; proto=SMTP helo=<foo>
+450 4.7.1 <foo>: Helo command rejected: Host not found
 >>> helo spike.porcupine.org
 ./smtpd_check: <queue id>: reject: HELO from foo[123.123.123.123]: 554 5.7.1 <spike.porcupine.org>: Helo command rejected: name server spike.porcupine.org; proto=SMTP helo=<spike.porcupine.org>
 554 5.7.1 <spike.porcupine.org>: Helo command rejected: name server spike.porcupine.org
@@ -67,8 +67,8 @@ OK
 >>> helo_restrictions reject_invalid_hostname,reject_unknown_hostname
 OK
 >>> helo 123.123.123.123
-./smtpd_check: <queue id>: reject: HELO from foo[123.123.123.123]: 450 4.1.0 <123.123.123.123>: Helo command rejected: Host not found; proto=SMTP helo=<123.123.123.123>
-450 4.1.0 <123.123.123.123>: Helo command rejected: Host not found
+./smtpd_check: <queue id>: reject: HELO from foo[123.123.123.123]: 450 4.7.1 <123.123.123.123>: Helo command rejected: Host not found; proto=SMTP helo=<123.123.123.123>
+450 4.7.1 <123.123.123.123>: Helo command rejected: Host not found
 >>> helo [123.123.123.123]
 OK
 >>> helo [::]

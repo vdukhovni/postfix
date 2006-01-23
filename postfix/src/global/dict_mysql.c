@@ -187,6 +187,7 @@
 #include "find_inet.h"
 #include "myrand.h"
 #include "events.h"
+#include "stringops.h"
 
 /* Global library. */
 
@@ -303,7 +304,15 @@ static const char *dict_mysql_lookup(DICT *dict, const char *name)
     db_quote_callback_t quote_func = dict_mysql_quote;
 
     dict_errno = 0;
-    
+
+    /*
+     * Optionally fold the key.
+     */
+    if (dict->fold_buf) {
+	vstring_strcpy(dict->fold_buf, name);
+	name = lowercase(vstring_str(dict->fold_buf));
+    }
+
     /*
      * If there is a domain list for this map, then only search for
      * addresses in domains on the list. This can significantly reduce
@@ -619,6 +628,8 @@ static void mysql_parse_config(DICT_MYSQL *dict_mysql, const char *mysqlcf)
 	dict_mysql->dict.flags |= DICT_FLAG_PATTERN;
     else
 	dict_mysql->dict.flags |= DICT_FLAG_FIXED;
+    if (dict_mysql->dict.flags & DICT_FLAG_FOLD_FIX)
+	dict_mysql->dict.fold_buf = vstring_alloc(10);
 
     hosts = cfg_get_str(p, "hosts", "", 0, 0);
 
@@ -744,6 +755,8 @@ static void dict_mysql_close(DICT *dict)
     	argv_free(dict_mysql->hosts);
     if (dict_mysql->ctx)
 	db_common_free_ctx(dict_mysql->ctx);
+    if (dict->fold_buf)
+	vstring_free(dict->fold_buf);
     dict_free(dict);
 }
 

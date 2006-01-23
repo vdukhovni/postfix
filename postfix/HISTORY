@@ -11823,13 +11823,122 @@ Apologies for any names omitted.
 	bounce/bounce_one_service.c, bounce/bounce_notify_verp.c,
 	bounce/bounce_warn_service.c, bounce/bounce_trace_service.c.
 
+	Fudge: when translating recipient DSN codes into sender DSN
+	codes, map sender address problems that have no DSN code
+	to *.1.7 (Bad sender's mailbox address syntax) instead of
+	*.1.0 (Other address status) because that loses the distinction
+	between sender and recipient. File: smtpd/smtpd_dsn_fix.c.
+
+20060113
+
+	Cleanup: preserve upper case information of address localpart
+	or extension when mapping one address to another with
+	non-regexp/pcre tables.  Files: global/mail_addr_find.c,
+	global/maps_find.c.
+
+20060115
+
+	Bugfix: don't ignore the per-site policy when SSL library
+	initialization fails. Introduced after adopting the TLS
+	patch. File: smtp/smtp_session.c.
+
+20060117
+
+	Safety: daemon processes that need no privileges now insist
+	that they are configured to run without privileges.  Files:
+	master/single_server.c, master/multi_server.c,
+	master/trigger_server.c.
+
+	Cleanup: preserve upper case information of address localpart
+	or extension when mapping addresses via regexp/pcre tables.
+	This requires that Postfix does not case fold the search
+	string when searching regexp or pcre tables, so that $number
+	substitutions produce the expected result.
+
+	In order to get a consistent handling of table operations,
+	the search string case folding logic was moved from the
+	application to the individual lookup table modules; the
+	application specifies its case folding preference when it
+	opens a table, and the table folds the search or update
+	string as needed.
+
+	Files: everything that opens a map or multiple maps (to
+	specify the case folding preference), and everything that
+	contained ad-hoc code to lowercase search strings (which
+	is no longer needed).
+
+	Bugfix: as a side effect of this revision of all code that
+	opens tables, the postmap/postalias -n/-N options are no
+	longer silently ignored when the -q (query) and -d (delete)
+	options are specified.  Files: postmap/postmap.c,
+	postalias/postalias.c.
+
+	Cleanup: smtp_sasl_passwd_maps lookup keys are folded to
+	lowercase before searching tables such as btree:, dbm: or
+	hash: that have fixed-case fields. File: smtp/smtp_sasl_glue.c.
+
+	Bugfix: per-sender relayhost maps were not locked for shared
+	access.
+
+20060119
+
+	Cleanup: don't look up parent domain substrings in regexp/pcre
+	like tables while searching a hostname in a domain/namaddr_list.
+	File: util/match_ops.c.
+
+20060120
+
+	Cleanup: multiple boolean variables were replaced by a
+	single TLS enforcement level (none, may, encrypt, verify).
+	With Victor Duchovni. Files: smtp_session.c, smtp_proto.c,
+	smtp.h.
+
+	Cleanup: the SMTP per-site policy table was re-implemented
+	in terms of enforcement levels instead of multiple boolean
+	variables. This greatly simplified the code and led to the
+	elimination of non-intuitive behavior as documented next.
+	With Victor Duchovni. Files: smtp_session.c, smtp.h.
+
+	Bugfix: a per-site MUST_NOPEERMATCH policy could not override
+	a main.cf MUST (with peer match) policy.
+
+	Bugfix: a combined TLS per-site (host, next-hop) policy of
+	(NONE, MAY) would change the strongest main.cf MUST policy
+	into NONE, while it changed all weaker main.cf policies
+	into MAY.  The result is now NONE for all main.cf policy
+	settings.
+
+20060123
+
+	Feature: recipient_count attribute in SMTPD policy protocol.
+	This is available only in the DATA and END-OF-MESSAGE stage.
+	Based on code by Guo Black. Files: smtpd_check.c.
+
+	Cleanup: renamed MUMBLE_NUM to MUMBLE_INT to make type
+	discrepancies more explicit.
+
+	Bugfix: change 20051208 broke when a connection could not
+	be established. File: util/auto_clnt.c.
+
 Open problems:
+
+	Centralize main.cf parameter input so that defaults work
+	consistently.
+
+	In second-line servers such as proxymap and trivial-rewrite,
+	set the max_idle time limit to a relatively small value so
+	that processes will refresh more often.
+
+	After the 20051222 ISASCII paranoia, lowercase() lowercases
+	ASCII text only.
 
 	Privacy: remove local command/pathname details from remote
 	delivery status reports, and log them via local msg_warn().
 
 	Remove defer(8) and trace(8) references and man pages. These
 	are services not program names.
+
+	dsb_formal -> dsb_form_all, dsb_status -> dsb_form_status
 
 	"postsuper -r" no longer resets the message arrival time,
 	because pickup(8) no longer overrides queue file time stamp
@@ -11848,11 +11957,6 @@ Open problems:
 	Laptop friendliness: make the qmgr remember when the next
 	deferred queue scan needs to be done, and have the pickup
 	server stat() the maildrop directory before searching it.
-
-	Mapping from errno to diagnostic text. Or do we just slap
-	an SMTP code in front of what is now reported as X-Postfix.
-	Or do we punt the issue and issue X-Postfix for all errors
-	except SMTP?
 
 	Low: replace_sender/replace_recipient actions in access
 	maps?
@@ -11897,8 +12001,6 @@ Open problems:
 
 	Med: the TLS certificate verification depth parameters never
 	worked.
-
-	Med: eliminate the tls_info data structure.
 
 	Low: reject HELO with any domain name or IP address that
 	this MTA is the final destination for.

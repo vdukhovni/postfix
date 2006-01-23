@@ -182,7 +182,7 @@ static int dict_pcre_expand(int type, VSTRING *buf, char *ptr)
 			  dict_pcre->dict.name, match_rule->rule.lineno);
 	    else
 		msg_fatal("regexp %s, line %d: pcre_get_substring error: %d",
-		    dict_pcre->dict.name, match_rule->rule.lineno, ret);
+			dict_pcre->dict.name, match_rule->rule.lineno, ret);
 	}
 	if (*pp == 0) {
 	    myfree((char *) pp);
@@ -207,7 +207,7 @@ static int dict_pcre_expand(int type, VSTRING *buf, char *ptr)
 static void dict_pcre_exec_error(const char *mapname, int lineno, int errval)
 {
     switch (errval) {
-    case 0:
+	case 0:
 	msg_warn("pcre map %s, line %d: too many (...)",
 		 mapname, lineno);
 	return;
@@ -262,6 +262,13 @@ static const char *dict_pcre_lookup(DICT *dict, const char *lookup_string)
     if (msg_verbose)
 	msg_info("dict_pcre_lookup: %s: %s", dict->name, lookup_string);
 
+    /*
+     * Optionally fold the key.
+     */
+    if (dict->fold_buf) {
+	vstring_strcpy(dict->fold_buf, lookup_string);
+	lookup_string = lowercase(vstring_str(dict->fold_buf));
+    }
     for (rule = dict_pcre->head; rule; rule = rule->next) {
 
 	/*
@@ -399,6 +406,8 @@ static void dict_pcre_close(DICT *dict)
     }
     if (dict_pcre->expansion_buf)
 	vstring_free(dict_pcre->expansion_buf);
+    if (dict->fold_buf)
+	vstring_free(dict->fold_buf);
     dict_free(dict);
 }
 
@@ -662,9 +671,9 @@ static DICT_PCRE_RULE *dict_pcre_parse_rule(const char *mapname, int lineno,
 				 sizeof(DICT_PCRE_MATCH_RULE));
 	match_rule->match = regexp.match;
 	match_rule->max_sub = prescan_context.max_sub;
-        if (prescan_context.literal)
-            match_rule->replacement = prescan_context.literal;
-        else
+	if (prescan_context.literal)
+	    match_rule->replacement = prescan_context.literal;
+	else
 	    match_rule->replacement = mystrdup(p);
 	match_rule->pattern = engine.pattern;
 	match_rule->hints = engine.hints;
@@ -780,6 +789,8 @@ DICT   *dict_pcre_open(const char *mapname, int unused_flags, int dict_flags)
     dict_pcre->dict.lookup = dict_pcre_lookup;
     dict_pcre->dict.close = dict_pcre_close;
     dict_pcre->dict.flags = dict_flags | DICT_FLAG_PATTERN;
+    if (dict_flags & DICT_FLAG_FOLD_MUL)
+	dict_pcre->dict.fold_buf = vstring_alloc(10);
     dict_pcre->head = 0;
     dict_pcre->expansion_buf = 0;
 

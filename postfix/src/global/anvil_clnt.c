@@ -192,12 +192,12 @@ int     anvil_clnt_lookup(ANVIL_CLNT *anvil_clnt, const char *service,
 			  ATTR_TYPE_STR, ANVIL_ATTR_IDENT, ident,
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
-			  ATTR_TYPE_NUM, ANVIL_ATTR_STATUS, &status,
-			  ATTR_TYPE_NUM, ANVIL_ATTR_COUNT, count,
-			  ATTR_TYPE_NUM, ANVIL_ATTR_RATE, rate,
-			  ATTR_TYPE_NUM, ANVIL_ATTR_MAIL, msgs,
-			  ATTR_TYPE_NUM, ANVIL_ATTR_RCPT, rcpts,
-			  ATTR_TYPE_NUM, ANVIL_ATTR_NTLS, newtls,
+			  ATTR_TYPE_INT, ANVIL_ATTR_STATUS, &status,
+			  ATTR_TYPE_INT, ANVIL_ATTR_COUNT, count,
+			  ATTR_TYPE_INT, ANVIL_ATTR_RATE, rate,
+			  ATTR_TYPE_INT, ANVIL_ATTR_MAIL, msgs,
+			  ATTR_TYPE_INT, ANVIL_ATTR_RCPT, rcpts,
+			  ATTR_TYPE_INT, ANVIL_ATTR_NTLS, newtls,
 			  ATTR_TYPE_END) != 6)
 	status = ANVIL_STAT_FAIL;
     else if (status != ANVIL_STAT_OK)
@@ -220,9 +220,9 @@ int     anvil_clnt_connect(ANVIL_CLNT *anvil_clnt, const char *service,
 			  ATTR_TYPE_STR, ANVIL_ATTR_IDENT, ident,
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
-			  ATTR_TYPE_NUM, ANVIL_ATTR_STATUS, &status,
-			  ATTR_TYPE_NUM, ANVIL_ATTR_COUNT, count,
-			  ATTR_TYPE_NUM, ANVIL_ATTR_RATE, rate,
+			  ATTR_TYPE_INT, ANVIL_ATTR_STATUS, &status,
+			  ATTR_TYPE_INT, ANVIL_ATTR_COUNT, count,
+			  ATTR_TYPE_INT, ANVIL_ATTR_RATE, rate,
 			  ATTR_TYPE_END) != 3)
 	status = ANVIL_STAT_FAIL;
     else if (status != ANVIL_STAT_OK)
@@ -245,8 +245,8 @@ int     anvil_clnt_mail(ANVIL_CLNT *anvil_clnt, const char *service,
 			  ATTR_TYPE_STR, ANVIL_ATTR_IDENT, ident,
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
-			  ATTR_TYPE_NUM, ANVIL_ATTR_STATUS, &status,
-			  ATTR_TYPE_NUM, ANVIL_ATTR_RATE, msgs,
+			  ATTR_TYPE_INT, ANVIL_ATTR_STATUS, &status,
+			  ATTR_TYPE_INT, ANVIL_ATTR_RATE, msgs,
 			  ATTR_TYPE_END) != 2)
 	status = ANVIL_STAT_FAIL;
     else if (status != ANVIL_STAT_OK)
@@ -269,8 +269,8 @@ int     anvil_clnt_rcpt(ANVIL_CLNT *anvil_clnt, const char *service,
 			  ATTR_TYPE_STR, ANVIL_ATTR_IDENT, ident,
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
-			  ATTR_TYPE_NUM, ANVIL_ATTR_STATUS, &status,
-			  ATTR_TYPE_NUM, ANVIL_ATTR_RATE, rcpts,
+			  ATTR_TYPE_INT, ANVIL_ATTR_STATUS, &status,
+			  ATTR_TYPE_INT, ANVIL_ATTR_RATE, rcpts,
 			  ATTR_TYPE_END) != 2)
 	status = ANVIL_STAT_FAIL;
     else if (status != ANVIL_STAT_OK)
@@ -293,8 +293,8 @@ int     anvil_clnt_newtls(ANVIL_CLNT *anvil_clnt, const char *service,
 			  ATTR_TYPE_STR, ANVIL_ATTR_IDENT, ident,
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
-			  ATTR_TYPE_NUM, ANVIL_ATTR_STATUS, &status,
-			  ATTR_TYPE_NUM, ANVIL_ATTR_RATE, newtls,
+			  ATTR_TYPE_INT, ANVIL_ATTR_STATUS, &status,
+			  ATTR_TYPE_INT, ANVIL_ATTR_RATE, newtls,
 			  ATTR_TYPE_END) != 2)
 	status = ANVIL_STAT_FAIL;
     else if (status != ANVIL_STAT_OK)
@@ -317,8 +317,8 @@ int     anvil_clnt_newtls_stat(ANVIL_CLNT *anvil_clnt, const char *service,
 			  ATTR_TYPE_STR, ANVIL_ATTR_IDENT, ident,
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
-			  ATTR_TYPE_NUM, ANVIL_ATTR_STATUS, &status,
-			  ATTR_TYPE_NUM, ANVIL_ATTR_RATE, newtls,
+			  ATTR_TYPE_INT, ANVIL_ATTR_STATUS, &status,
+			  ATTR_TYPE_INT, ANVIL_ATTR_RATE, newtls,
 			  ATTR_TYPE_END) != 2)
 	status = ANVIL_STAT_FAIL;
     else if (status != ANVIL_STAT_OK)
@@ -341,7 +341,7 @@ int     anvil_clnt_disconnect(ANVIL_CLNT *anvil_clnt, const char *service,
 			  ATTR_TYPE_STR, ANVIL_ATTR_IDENT, ident,
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
-			  ATTR_TYPE_NUM, ANVIL_ATTR_STATUS, &status,
+			  ATTR_TYPE_INT, ANVIL_ATTR_STATUS, &status,
 			  ATTR_TYPE_END) != 1)
 	status = ANVIL_STAT_FAIL;
     else if (status != ANVIL_STAT_OK)

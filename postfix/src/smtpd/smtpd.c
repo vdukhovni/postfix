@@ -1208,13 +1208,13 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     }
     if ((discard_mask & EHLO_MASK_VRFY) == 0)
 	if (var_disable_vrfy_cmd == 0)
-	    ENQUEUE_FIX_REPLY(state, reply_buf, "VRFY");
+	    ENQUEUE_FIX_REPLY(state, reply_buf, SMTPD_CMD_VRFY);
     if ((discard_mask & EHLO_MASK_ETRN) == 0)
-	ENQUEUE_FIX_REPLY(state, reply_buf, "ETRN");
+	ENQUEUE_FIX_REPLY(state, reply_buf, SMTPD_CMD_ETRN);
 #ifdef USE_TLS
     if ((discard_mask & EHLO_MASK_STARTTLS) == 0)
 	if ((state->tls_use_tls || state->tls_enforce_tls) && (!state->tls_context))
-	    ENQUEUE_FIX_REPLY(state, reply_buf, "STARTTLS");
+	    ENQUEUE_FIX_REPLY(state, reply_buf, SMTPD_CMD_STARTTLS);
 #endif
 #ifdef USE_SASL_AUTH
     if ((discard_mask & EHLO_MASK_AUTH) == 0) {
@@ -1303,7 +1303,7 @@ static void mail_open_stream(SMTPD_STATE *state)
 					  var_cleanup_service);
 	if (state->dest == 0
 	    || attr_print(state->dest->stream, ATTR_FLAG_NONE,
-			  ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, cleanup_flags,
+			  ATTR_TYPE_INT, MAIL_ATTR_FLAGS, cleanup_flags,
 			  ATTR_TYPE_END) != 0)
 	    msg_fatal("unable to connect to the %s %s service",
 		      MAIL_CLASS_PUBLIC, var_cleanup_service);
@@ -1772,7 +1772,7 @@ static void mail_reset(SMTPD_STATE *state)
      * waiting for a reply, it just increases latency.
      */
     if (state->proxy) {
-	(void) smtpd_proxy_cmd(state, SMTPD_PROX_WANT_NONE, "QUIT");
+	(void) smtpd_proxy_cmd(state, SMTPD_PROX_WANT_NONE, SMTPD_CMD_QUIT);
 	smtpd_proxy_close(state);
     }
     if (state->xforward.flags)
@@ -3223,24 +3223,24 @@ typedef struct SMTPD_CMD {
 #define SMTPD_CMD_FLAG_PRE_TLS	(1<<1)	/* allow before STARTTLS */
 
 static SMTPD_CMD smtpd_cmd_table[] = {
-    "HELO", helo_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_PRE_TLS,
-    "EHLO", ehlo_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_PRE_TLS,
+    SMTPD_CMD_HELO, helo_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_PRE_TLS,
+    SMTPD_CMD_EHLO, ehlo_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_PRE_TLS,
 #ifdef USE_TLS
-    "STARTTLS", starttls_cmd, SMTPD_CMD_FLAG_PRE_TLS,
+    SMTPD_CMD_STARTTLS, starttls_cmd, SMTPD_CMD_FLAG_PRE_TLS,
 #endif
 #ifdef USE_SASL_AUTH
-    "AUTH", smtpd_sasl_auth_cmd, 0,
+    SMTPD_CMD_AUTH, smtpd_sasl_auth_cmd, 0,
 #endif
-    "MAIL", mail_cmd, 0,
-    "RCPT", rcpt_cmd, 0,
-    "DATA", data_cmd, 0,
-    "RSET", rset_cmd, SMTPD_CMD_FLAG_LIMIT,
-    "NOOP", noop_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_PRE_TLS,
-    "VRFY", vrfy_cmd, SMTPD_CMD_FLAG_LIMIT,
-    "ETRN", etrn_cmd, SMTPD_CMD_FLAG_LIMIT,
-    "QUIT", quit_cmd, SMTPD_CMD_FLAG_PRE_TLS,
-    "XCLIENT", xclient_cmd, SMTPD_CMD_FLAG_LIMIT,
-    "XFORWARD", xforward_cmd, SMTPD_CMD_FLAG_LIMIT,
+    SMTPD_CMD_MAIL, mail_cmd, 0,
+    SMTPD_CMD_RCPT, rcpt_cmd, 0,
+    SMTPD_CMD_DATA, data_cmd, 0,
+    SMTPD_CMD_RSET, rset_cmd, SMTPD_CMD_FLAG_LIMIT,
+    SMTPD_CMD_NOOP, noop_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_PRE_TLS,
+    SMTPD_CMD_VRFY, vrfy_cmd, SMTPD_CMD_FLAG_LIMIT,
+    SMTPD_CMD_ETRN, etrn_cmd, SMTPD_CMD_FLAG_LIMIT,
+    SMTPD_CMD_QUIT, quit_cmd, SMTPD_CMD_FLAG_PRE_TLS,
+    SMTPD_CMD_XCLIENT, xclient_cmd, SMTPD_CMD_FLAG_LIMIT,
+    SMTPD_CMD_XFORWARD, xforward_cmd, SMTPD_CMD_FLAG_LIMIT,
     0,
 };
 

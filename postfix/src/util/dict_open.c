@@ -80,6 +80,17 @@
 /* .IP DICT_FLAG_LOCK
 /*	With maps where this is appropriate, acquire an exclusive lock
 /*	before writing, and acquire a shared lock before reading.
+/* .IP DICT_FLAG_FOLD_FIX
+/*	With databases whose lookup fields are fixed-case strings,
+/*	fold the search key to lower case before accessing the
+/*	database.  This includes hash:, cdb:, dbm:. nis:, ldap:,
+/*	*sql.
+/* .IP DICT_FLAG_FOLD_MUL
+/*	With databases where one lookup field can match both upper
+/*	and lower case, fold the search key to lower case before
+/*	accessing the database. This includes regexp: and pcre:
+/* .IP DICT_FLAG_FOLD_ANY
+/*	Short-hand for (DICT_FLAG_FOLD_FIX | DICT_FLAG_FOLD_MUL).
 /* .IP DICT_FLAG_SYNC_UPDATE
 /*	With file-based maps, flush I/O buffers to file after each update.
 /*	Thus feature is not supported with some file-based dictionaries.
@@ -371,7 +382,7 @@ ARGV   *dict_mapnames()
 
 static NORETURN usage(char *myname)
 {
-    msg_fatal("usage: %s type:file read|write|create", myname);
+    msg_fatal("usage: %s type:file read|write|create [fold]", myname);
 }
 
 int     main(int argc, char **argv)
@@ -386,6 +397,7 @@ int     main(int argc, char **argv)
     const char *key;
     const char *value;
     int     ch;
+    int     dict_flags = DICT_FLAG_LOCK | DICT_FLAG_DUP_REPLACE;
 
     signal(SIGPIPE, SIG_IGN);
 
@@ -400,7 +412,7 @@ int     main(int argc, char **argv)
 	}
     }
     optind = OPTIND;
-    if (argc - optind != 2)
+    if (argc - optind < 2 || argc - optind > 3)
 	usage(argv[0]);
     if (strcasecmp(argv[optind + 1], "create") == 0)
 	open_flags = O_CREAT | O_RDWR | O_TRUNC;
@@ -410,8 +422,10 @@ int     main(int argc, char **argv)
 	open_flags = O_RDONLY;
     else
 	msg_fatal("unknown access mode: %s", argv[2]);
+    if (argv[optind + 2] && strcasecmp(argv[optind + 2], "fold") == 0)
+	dict_flags |= DICT_FLAG_FOLD_ANY;
     dict_name = argv[optind];
-    dict = dict_open(dict_name, open_flags, DICT_FLAG_LOCK | DICT_FLAG_DUP_REPLACE);
+    dict = dict_open(dict_name, open_flags, dict_flags);
     dict_register(dict_name, dict);
     while (vstring_fgets_nonl(inbuf, VSTREAM_IN)) {
 	bufp = vstring_str(inbuf);

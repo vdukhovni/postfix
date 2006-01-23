@@ -293,7 +293,7 @@ while (<>) {
     s;\bpar[-</bB>]*\n* *[<bB>]*ent_domain_matches_subdomains\b;<a href="postconf.5.html#parent_domain_matches_subdomains">$&</a>;g;
     s;\bpermit_mx_backup_networks\b;<a href="postconf.5.html#permit_mx_backup_networks">$&</a>;g;
     s;\bpickup_service_name\b;<a href="postconf.5.html#pickup_service_name">$&</a>;g;
-    s;\bplaintext_session_reject_code\b;<a href="postconf.5.html#plaintext_session_reject_code">$&</a>;g;
+    s;\bplaintext_reject_code\b;<a href="postconf.5.html#plaintext_reject_code">$&</a>;g;
     s;\bprepend_delivered_header\b;<a href="postconf.5.html#prepend_delivered_header">$&</a>;g;
     s;\bprocess_id\b;<a href="postconf.5.html#process_id">$&</a>;g;
     s;\bprocess_id_directory\b;<a href="postconf.5.html#process_id_directory">$&</a>;g;

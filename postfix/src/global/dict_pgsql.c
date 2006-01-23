@@ -167,6 +167,7 @@
 #include "find_inet.h"
 #include "myrand.h"
 #include "events.h"
+#include "stringops.h"
 
 /* Global library. */
 
@@ -302,6 +303,15 @@ static const char *dict_pgsql_lookup(DICT *dict, const char *name)
     INIT_VSTR(result, 10);
 
     dict_errno = 0;
+
+    /*
+     * Optionally fold the key.
+     */
+    if (dict->fold_buf) {
+	vstring_strcpy(dict->fold_buf, name);
+	name = lowercase(vstring_str(dict->fold_buf));
+    }
+
     /*
      * If there is a domain list for this map, then only search for
      * addresses in domains on the list. This can significantly reduce
@@ -585,6 +595,8 @@ static void pgsql_parse_config(DICT_PGSQL *dict_pgsql, const char *pgsqlcf)
 	dict_pgsql->dict.flags |= DICT_FLAG_PATTERN;
     else
 	dict_pgsql->dict.flags |= DICT_FLAG_FIXED;
+    if (dict_pgsql->dict.flags & DICT_FLAG_FOLD_FIX)
+	dict_pgsql->dict.fold_buf = vstring_alloc(10);
 
     hosts = cfg_get_str(p, "hosts", "", 0, 0);
 
@@ -691,6 +703,8 @@ static void dict_pgsql_close(DICT *dict)
     	argv_free(dict_pgsql->hosts);
     if (dict_pgsql->ctx)
 	db_common_free_ctx(dict_pgsql->ctx);
+    if (dict->fold_buf)
+	vstring_free(dict->fold_buf);
     dict_free(dict);
 }
 

@@ -91,6 +91,14 @@ static const char *dict_dbm_lookup(DICT *dict, const char *name)
     dict_errno = 0;
 
     /*
+     * Optionally fold the key.
+     */
+    if (dict->fold_buf) {
+	vstring_strcpy(dict->fold_buf, name);
+	name = lowercase(vstring_str(dict->fold_buf));
+    }
+
+    /*
      * Acquire an exclusive lock.
      */
     if ((dict->flags & DICT_FLAG_LOCK)
@@ -149,6 +157,14 @@ static void dict_dbm_update(DICT *dict, const char *name, const char *value)
      */
     if ((dict->flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
 	msg_panic("dict_dbm_update: no DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL flag");
+
+    /*
+     * Optionally fold the key.
+     */
+    if (dict->fold_buf) {
+	vstring_strcpy(dict->fold_buf, name);
+	name = lowercase(vstring_str(dict->fold_buf));
+    }
 
     dbm_key.dptr = (void *) name;
     dbm_value.dptr = (void *) value;
@@ -219,6 +235,14 @@ static int dict_dbm_delete(DICT *dict, const char *name)
      */
     if ((dict->flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
 	msg_panic("dict_dbm_delete: no DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL flag");
+
+    /*
+     * Optionally fold the key.
+     */
+    if (dict->fold_buf) {
+	vstring_strcpy(dict->fold_buf, name);
+	name = lowercase(vstring_str(dict->fold_buf));
+    }
 
     /*
      * Acquire an exclusive lock.
@@ -362,6 +386,8 @@ static void dict_dbm_close(DICT *dict)
 	vstring_free(dict_dbm->key_buf);
     if (dict_dbm->val_buf)
 	vstring_free(dict_dbm->val_buf);
+    if (dict->fold_buf)
+	vstring_free(dict->fold_buf);
     dict_free(dict);
 }
 
@@ -431,6 +457,8 @@ DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
     dict_dbm->dict.flags = dict_flags | DICT_FLAG_FIXED;
     if ((dict_flags & (DICT_FLAG_TRY0NULL | DICT_FLAG_TRY1NULL)) == 0)
 	dict_dbm->dict.flags |= (DICT_FLAG_TRY0NULL | DICT_FLAG_TRY1NULL);
+    if (dict_flags & DICT_FLAG_FOLD_FIX)
+	dict_dbm->dict.fold_buf = vstring_alloc(10);
     dict_dbm->dbm = dbm;
     dict_dbm->key_buf = 0;
     dict_dbm->val_buf = 0;

@@ -235,8 +235,8 @@ int     bounce_append(int flags, const char *id, MSG_STATS *stats,
 
 	if (mail_command_client(MAIL_CLASS_PRIVATE, var_soft_bounce ?
 				var_defer_service : var_bounce_service,
-			   ATTR_TYPE_NUM, MAIL_ATTR_NREQ, BOUNCE_CMD_APPEND,
-				ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
+			   ATTR_TYPE_INT, MAIL_ATTR_NREQ, BOUNCE_CMD_APPEND,
+				ATTR_TYPE_INT, MAIL_ATTR_FLAGS, flags,
 				ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
 				ATTR_TYPE_FUNC, rcpt_print, (void *) rcpt,
 				ATTR_TYPE_FUNC, dsn_print, (void *) &my_dsn,
@@ -277,14 +277,14 @@ int     bounce_flush(int flags, const char *queue, const char *id,
     if (var_soft_bounce)
 	return (-1);
     if (mail_command_client(MAIL_CLASS_PRIVATE, var_bounce_service,
-			    ATTR_TYPE_NUM, MAIL_ATTR_NREQ, BOUNCE_CMD_FLUSH,
-			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
+			    ATTR_TYPE_INT, MAIL_ATTR_NREQ, BOUNCE_CMD_FLUSH,
+			    ATTR_TYPE_INT, MAIL_ATTR_FLAGS, flags,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
 			    ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
 			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
 			    ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, dsn_envid,
-			    ATTR_TYPE_NUM, MAIL_ATTR_DSN_RET, dsn_ret,
+			    ATTR_TYPE_INT, MAIL_ATTR_DSN_RET, dsn_ret,
 			    ATTR_TYPE_END) == 0) {
 	return (0);
     } else if ((flags & BOUNCE_FLAG_CLEAN) == 0) {
@@ -310,14 +310,14 @@ int     bounce_flush_verp(int flags, const char *queue, const char *id,
     if (var_soft_bounce)
 	return (-1);
     if (mail_command_client(MAIL_CLASS_PRIVATE, var_bounce_service,
-			    ATTR_TYPE_NUM, MAIL_ATTR_NREQ, BOUNCE_CMD_VERP,
-			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
+			    ATTR_TYPE_INT, MAIL_ATTR_NREQ, BOUNCE_CMD_VERP,
+			    ATTR_TYPE_INT, MAIL_ATTR_FLAGS, flags,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
 			    ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
 			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
 			    ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, dsn_envid,
-			    ATTR_TYPE_NUM, MAIL_ATTR_DSN_RET, dsn_ret,
+			    ATTR_TYPE_INT, MAIL_ATTR_DSN_RET, dsn_ret,
 			    ATTR_TYPE_STR, MAIL_ATTR_VERPDL, verp_delims,
 			    ATTR_TYPE_END) == 0) {
 	return (0);
@@ -391,14 +391,14 @@ int     bounce_one(int flags, const char *queue, const char *id,
 	my_dsn.action = "failed";
 
 	if (mail_command_client(MAIL_CLASS_PRIVATE, var_bounce_service,
-			      ATTR_TYPE_NUM, MAIL_ATTR_NREQ, BOUNCE_CMD_ONE,
-				ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
+			      ATTR_TYPE_INT, MAIL_ATTR_NREQ, BOUNCE_CMD_ONE,
+				ATTR_TYPE_INT, MAIL_ATTR_FLAGS, flags,
 				ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue,
 				ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
 				ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
 				ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
 			      ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, dsn_envid,
-				ATTR_TYPE_NUM, MAIL_ATTR_DSN_RET, dsn_ret,
+				ATTR_TYPE_INT, MAIL_ATTR_DSN_RET, dsn_ret,
 				ATTR_TYPE_FUNC, rcpt_print, (void *) rcpt,
 				ATTR_TYPE_FUNC, dsn_print, (void *) &my_dsn,
 				ATTR_TYPE_END) == 0

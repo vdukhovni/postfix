@@ -506,11 +506,15 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     if (*RES_PARAM_VALUE(resolve_regular.snd_relay_maps))
 	resolve_regular.snd_relay_info =
 	    maps_create(resolve_regular.snd_relay_maps_name,
-			RES_PARAM_VALUE(resolve_regular.snd_relay_maps), 0);
+			RES_PARAM_VALUE(resolve_regular.snd_relay_maps),
+			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+			| DICT_FLAG_NO_REGSUB);
     if (*RES_PARAM_VALUE(resolve_verify.snd_relay_maps))
 	resolve_verify.snd_relay_info =
 	    maps_create(resolve_verify.snd_relay_maps_name,
-			RES_PARAM_VALUE(resolve_verify.snd_relay_maps), 0);
+			RES_PARAM_VALUE(resolve_verify.snd_relay_maps),
+			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+			| DICT_FLAG_NO_REGSUB);
 }
 
 /* post_jail_init - initialize after entering chroot jail */

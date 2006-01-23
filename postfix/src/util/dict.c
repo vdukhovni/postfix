@@ -56,6 +56,9 @@
 /*	void	dict_load_fp(dict_name, fp)
 /*	const char *dict_name;
 /*	VSTREAM	*fp;
+/*
+/*	const char *dict_flags_str(dict_flags)
+/*	int	dict_flags;
 /* DESCRIPTION
 /*	This module maintains a collection of name-value dictionaries.
 /*	Each dictionary has its own name and has its own methods to read
@@ -141,6 +144,10 @@
 /*
 /*	dict_load_fp() reads name-value entries from an open stream.
 /*	It has the same semantics as the dict_load_file() function.
+/*
+/*	dict_flags_str() returns a printable representation of the
+/*	specified dictionary flags. The result is overwritten upon
+/*	each call.
 /* SEE ALSO
 /*	htable(3)
 /* BUGS
@@ -186,6 +193,7 @@
 #include "mac_expand.h"
 #include "stringops.h"
 #include "iostuff.h"
+#include "name_mask.h"
 #include "dict.h"
 #include "dict_ht.h"
 
@@ -506,4 +514,38 @@ const char *dict_changed_name(void)
 int     dict_changed(void)
 {
     return (dict_changed_name() != 0);
+}
+
+ /*
+  * Mapping between flag names and flag values.
+  */
+static NAME_MASK dict_mask[] = {
+    "warn_dup", (1 << 0),		/* if file, warn about dups */
+    "ignore_dup", (1 << 1),		/* if file, ignore dups */
+    "try0null", (1 << 2),		/* do not append 0 to key/value */
+    "try1null", (1 << 3),		/* append 0 to key/value */
+    "fixed", (1 << 4),			/* fixed key map */
+    "pattern", (1 << 5),		/* keys are patterns */
+    "lock", (1 << 6),			/* lock before access */
+    "replace", (1 << 7),		/* if file, replace dups */
+    "sync_update", (1 << 8),		/* if file, sync updates */
+    "debug", (1 << 9),			/* log access */
+    "no_regsub", (1 << 11),		/* disallow regexp substitution */
+    "no_proxy", (1 << 12),		/* disallow proxy mapping */
+    "no_unauth", (1 << 13),		/* disallow unauthenticated data */
+    "fold_fix", (1 << 14),		/* case-fold with fixed-case key map */
+    "fold_mul", (1 << 15),		/* case-fold with multi-case key map */
+};
+
+/* dict_flags_str - convert mask to string for debugging purposes */
+
+const char *dict_flags_str(int dict_flags)
+{
+    static VSTRING *buf = 0;
+
+    if (buf == 0)
+	buf = vstring_alloc(1);
+
+    return (str_name_mask_opt(buf, "dictionary flags", dict_mask, dict_flags,
+			      NAME_MASK_RETURN | NAME_MASK_PIPE));
 }

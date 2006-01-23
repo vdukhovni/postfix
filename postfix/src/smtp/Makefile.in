@@ -9,7 +9,7 @@ HDRS	= smtp.h smtp_sasl.h smtp_addr.h smtp_reuse.h
 TESTSRC	= 
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
-TESTPROG= smtp_unalias smtp_map11
+TESTPROG= smtp_unalias smtp_map11 legacy levels
 PROG	= smtp
 INC_DIR	= ../../include
 LIBS	= ../../lib/libmaster.a ../../lib/libtls.a ../../lib/libdns.a \
@@ -62,6 +62,12 @@ smtp_unalias: smtp_unalias.c $(LIBS)
 
 smtp_map11: smtp_map11.c $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIBS) $(SYSLIBS)
+
+legacy:	legacy.c $(LIBS)
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIBS)
+
+levels: levels.c $(LIBS)
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIBS)
 
 # This needs trivial-rewrite service and myorigin==mydomain
 smtp_map11_test: smtp_map11 map11_map smtp_map11.ref

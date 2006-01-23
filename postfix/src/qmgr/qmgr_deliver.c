@@ -98,7 +98,7 @@ static int qmgr_deliver_initial_reply(VSTREAM *stream)
 	msg_warn("%s: premature disconnect", VSTREAM_PATH(stream));
 	return (DELIVER_STAT_CRASH);
     } else if (attr_scan(stream, ATTR_FLAG_STRICT,
-			 ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &stat,
+			 ATTR_TYPE_INT, MAIL_ATTR_STATUS, &stat,
 			 ATTR_TYPE_END) != 1) {
 	msg_warn("%s: malformed response", VSTREAM_PATH(stream));
 	return (DELIVER_STAT_CRASH);
@@ -118,7 +118,7 @@ static int qmgr_deliver_final_reply(VSTREAM *stream, DSN_BUF *dsb)
 	return (DELIVER_STAT_CRASH);
     } else if (attr_scan(stream, ATTR_FLAG_STRICT,
 			 ATTR_TYPE_FUNC, dsb_scan, (void *) dsb,
-			 ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &stat,
+			 ATTR_TYPE_INT, MAIL_ATTR_STATUS, &stat,
 			 ATTR_TYPE_END) != 2) {
 	msg_warn("%s: malformed response", VSTREAM_PATH(stream));
 	return (DELIVER_STAT_CRASH);
@@ -158,7 +158,7 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
 	| (message->inspect_xport ? DEL_REQ_FLAG_BOUNCE : DEL_REQ_FLAG_DEFLT);
     (void) QMGR_MSG_STATS(&stats, message);
     attr_print(stream, ATTR_FLAG_NONE,
-	       ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
+	       ATTR_TYPE_INT, MAIL_ATTR_FLAGS, flags,
 	       ATTR_TYPE_STR, MAIL_ATTR_QUEUE, message->queue_name,
 	       ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, message->queue_id,
 	       ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, message->data_offset,
@@ -167,7 +167,7 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
 	       ATTR_TYPE_STR, MAIL_ATTR_ENCODING, message->encoding,
 	       ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
 	       ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, message->dsn_envid,
-	       ATTR_TYPE_NUM, MAIL_ATTR_DSN_RET, message->dsn_ret,
+	       ATTR_TYPE_INT, MAIL_ATTR_DSN_RET, message->dsn_ret,
 	       ATTR_TYPE_FUNC, msg_stats_print, (void *) &stats,
 	       ATTR_TYPE_STR, MAIL_ATTR_CLIENT_NAME, message->client_name,
 	       ATTR_TYPE_STR, MAIL_ATTR_CLIENT_ADDR, message->client_addr,
@@ -177,7 +177,7 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
 	     ATTR_TYPE_STR, MAIL_ATTR_SASL_USERNAME, message->sasl_username,
 	       ATTR_TYPE_STR, MAIL_ATTR_SASL_SENDER, message->sasl_sender,
 	     ATTR_TYPE_STR, MAIL_ATTR_RWR_CONTEXT, message->rewrite_context,
-	       ATTR_TYPE_NUM, MAIL_ATTR_RCPT_COUNT, list.len,
+	       ATTR_TYPE_INT, MAIL_ATTR_RCPT_COUNT, list.len,
 	       ATTR_TYPE_END);
     if (sender_buf != 0)
 	vstring_free(sender_buf);

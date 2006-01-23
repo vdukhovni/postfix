@@ -233,11 +233,11 @@ void    resolve_clnt(const char *class, const char *sender,
 		       ATTR_TYPE_END) != 0
 	    || vstream_fflush(stream)
 	    || attr_scan(stream, ATTR_FLAG_STRICT,
-			 ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &server_flags,
+			 ATTR_TYPE_INT, MAIL_ATTR_FLAGS, &server_flags,
 		       ATTR_TYPE_STR, MAIL_ATTR_TRANSPORT, reply->transport,
 			 ATTR_TYPE_STR, MAIL_ATTR_NEXTHOP, reply->nexthop,
 			 ATTR_TYPE_STR, MAIL_ATTR_RECIP, reply->recipient,
-			 ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &reply->flags,
+			 ATTR_TYPE_INT, MAIL_ATTR_FLAGS, &reply->flags,
 			 ATTR_TYPE_END) != 5) {
 	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
 		msg_warn("problem talking to service %s: %m",

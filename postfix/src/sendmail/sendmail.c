@@ -91,7 +91,7 @@
 /*	parent directory. This information is ignored with Postfix
 /*	versions before 2.3.
 /*
-/*	With older Postfix versions, specify a directory pathname
+/*	With all Postfix versions, you can specify a directory pathname
 /*	with the MAIL_CONFIG environment variable to override the
 /*	location of configuration files.
 /* .IP "\fB-F \fIfull_name\fR
@@ -321,8 +321,8 @@
 /* .IP "\fBenable_errors_to (no)\fR"
 /*	Report mail delivery errors to the address specified with the
 /*	non-standard Errors-To: message header, instead of the envelope
-/*	sender address (this feature is removed with Postfix 2.2, is
-/*	turned off by default with Postfix 2.1, and is always turned on
+/*	sender address (this feature is removed with Postfix version 2.2, is
+/*	turned off by default with Postfix version 2.1, and is always turned on
 /*	with older Postfix versions).
 /* .IP "\fBmail_owner (postfix)\fR"
 /*	The UNIX system account that owns the Postfix queue and most Postfix

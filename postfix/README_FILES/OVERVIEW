@@ -210,12 +210,11 @@ queues.
 
     Network -> smtpd(8) <-> anvil(8)
 
-  * The bounce(8) server implements the bounce, defer and trace services, which
-    maintain separate directory trees with per-message logfiles. This
-    information is used to send delivery or non-delivery notifications to the
-    sender.
+  * The bounce(8), defer(8) and trace(8) servers each maintain their own queue
+    directory trees with per-message logfiles. This information is used to send
+    delivery or non-delivery notifications to the sender.
 
-    The trace service implements support for the Postfix "sendmail -bv" and
+    The trace(8) service implements support for the Postfix "sendmail -bv" and
     "sendmail -v" commands which produce reports about how Postfix delivers
     mail, and is available with Postfix version 2.1 and later. See DEBUG_README
     for examples.
@@ -228,8 +227,8 @@ queues.
           |             v            v
 
       (Non-)      bounce(8)    Queue id,
-     delivery  <-   defer   <- recipient,
-      notice        trace        status
+     delivery  <- defer(8)  <- recipient,
+      notice      trace(8)       status
 
                       ^ |
                       | v

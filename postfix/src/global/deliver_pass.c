@@ -81,7 +81,7 @@ static int deliver_pass_initial_reply(VSTREAM *stream)
     int     stat;
 
     if (attr_scan(stream, ATTR_FLAG_STRICT,
-		  ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &stat,
+		  ATTR_TYPE_INT, MAIL_ATTR_STATUS, &stat,
 		  ATTR_TYPE_END) != 1) {
 	msg_warn("%s: malformed response", VSTREAM_PATH(stream));
 	stat = -1;
@@ -98,7 +98,7 @@ static int deliver_pass_send_request(VSTREAM *stream, DELIVER_REQUEST *request,
     int     stat;
 
     attr_print(stream, ATTR_FLAG_NONE,
-	       ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, request->flags,
+	       ATTR_TYPE_INT, MAIL_ATTR_FLAGS, request->flags,
 	       ATTR_TYPE_STR, MAIL_ATTR_QUEUE, request->queue_name,
 	       ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, request->queue_id,
 	       ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, request->data_offset,
@@ -107,7 +107,7 @@ static int deliver_pass_send_request(VSTREAM *stream, DELIVER_REQUEST *request,
 	       ATTR_TYPE_STR, MAIL_ATTR_ENCODING, request->encoding,
 	       ATTR_TYPE_STR, MAIL_ATTR_SENDER, request->sender,
 	       ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, request->dsn_envid,
-	       ATTR_TYPE_NUM, MAIL_ATTR_DSN_RET, request->dsn_ret,
+	       ATTR_TYPE_INT, MAIL_ATTR_DSN_RET, request->dsn_ret,
 	       ATTR_TYPE_FUNC, msg_stats_print, (void *) &request->msg_stats,
 	       ATTR_TYPE_STR, MAIL_ATTR_CLIENT_NAME, request->client_name,
 	       ATTR_TYPE_STR, MAIL_ATTR_CLIENT_ADDR, request->client_addr,
@@ -117,7 +117,7 @@ static int deliver_pass_send_request(VSTREAM *stream, DELIVER_REQUEST *request,
 	     ATTR_TYPE_STR, MAIL_ATTR_SASL_USERNAME, request->sasl_username,
 	       ATTR_TYPE_STR, MAIL_ATTR_SASL_SENDER, request->sasl_sender,
 	     ATTR_TYPE_STR, MAIL_ATTR_RWR_CONTEXT, request->rewrite_context,
-	       ATTR_TYPE_NUM, MAIL_ATTR_RCPT_COUNT, 1,
+	       ATTR_TYPE_INT, MAIL_ATTR_RCPT_COUNT, 1,
 	       ATTR_TYPE_END);
     attr_print(stream, ATTR_FLAG_NONE,
 	       ATTR_TYPE_FUNC, rcpt_print, (void *) rcpt,
@@ -140,7 +140,7 @@ static int deliver_pass_final_reply(VSTREAM *stream, DSN_BUF *dsb)
 
     if (attr_scan(stream, ATTR_FLAG_STRICT,
 		  ATTR_TYPE_FUNC, dsb_scan, (void *) dsb,
-		  ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &stat,
+		  ATTR_TYPE_INT, MAIL_ATTR_STATUS, &stat,
 		  ATTR_TYPE_END) != 2) {
 	msg_warn("%s: malformed response", VSTREAM_PATH(stream));
 	return (DELIVER_PASS_UNKNOWN);

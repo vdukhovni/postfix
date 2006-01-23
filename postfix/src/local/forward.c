@@ -145,7 +145,7 @@ static FORWARD_INFO *forward_open(DELIVER_REQUEST *request, const char *sender)
 #define FORWARD_CLEANUP_FLAGS (CLEANUP_FLAG_BOUNCE | CLEANUP_FLAG_MASK_INTERNAL)
 
     attr_print(cleanup, ATTR_FLAG_NONE,
-	       ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, FORWARD_CLEANUP_FLAGS,
+	       ATTR_TYPE_INT, MAIL_ATTR_FLAGS, FORWARD_CLEANUP_FLAGS,
 	       ATTR_TYPE_END);
 
     /*
@@ -292,7 +292,7 @@ static int forward_send(FORWARD_INFO *info, DELIVER_REQUEST *request,
     if (status == 0)
 	if (vstream_fflush(info->cleanup)
 	    || attr_scan(info->cleanup, ATTR_FLAG_MISSING,
-			 ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
+			 ATTR_TYPE_INT, MAIL_ATTR_STATUS, &status,
 			 ATTR_TYPE_END) != 1)
 	    status = 1;
 

@@ -132,11 +132,12 @@ static ARGV *match_list_parse(ARGV *list, char *string)
 	    if (buf == 0)
 		buf = vstring_alloc(10);
 #define OPEN_FLAGS	O_RDONLY
-#define DICT_FLAGS	DICT_FLAG_LOCK
+#define DICT_FLAGS	(DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX)
 #define STR(x)		vstring_str(x)
 	    for (map_type_name = pattern; *map_type_name == '!'; map_type_name++)
 		 /* void */ ;
-	    vstring_sprintf(buf, "%s(%o,%o)", pattern, OPEN_FLAGS, DICT_FLAGS);
+	    vstring_sprintf(buf, "%s(%o,%s)", pattern, OPEN_FLAGS,
+			    dict_flags_str(DICT_FLAGS));
 	    map_type_name_flags = STR(buf) + (map_type_name - pattern);
 	    if (dict_handle(map_type_name_flags) == 0)
 		dict_register(map_type_name_flags,

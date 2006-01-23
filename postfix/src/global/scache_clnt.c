@@ -112,7 +112,7 @@ static void scache_clnt_save_endp(SCACHE *scache, int endp_ttl,
 	    errno = 0;
 	    if (attr_print(stream, ATTR_FLAG_NONE,
 			 ATTR_TYPE_STR, MAIL_ATTR_REQ, SCACHE_REQ_SAVE_ENDP,
-			   ATTR_TYPE_NUM, MAIL_ATTR_TTL, endp_ttl,
+			   ATTR_TYPE_INT, MAIL_ATTR_TTL, endp_ttl,
 			   ATTR_TYPE_STR, MAIL_ATTR_LABEL, endp_label,
 			   ATTR_TYPE_STR, MAIL_ATTR_PROP, endp_prop,
 			   ATTR_TYPE_END) != 0
@@ -124,7 +124,7 @@ static void scache_clnt_save_endp(SCACHE *scache, int endp_ttl,
 #endif
 		|| LOCAL_SEND_FD(vstream_fileno(stream), fd) < 0
 		|| attr_scan(stream, ATTR_FLAG_STRICT,
-			     ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
+			     ATTR_TYPE_INT, MAIL_ATTR_STATUS, &status,
 			     ATTR_TYPE_END) != 1) {
 		if (msg_verbose || (errno != EPIPE && errno != ENOENT))
 		    msg_warn("problem talking to service %s: %m",
@@ -178,7 +178,7 @@ static int scache_clnt_find_endp(SCACHE *scache, const char *endp_label,
 			   ATTR_TYPE_END) != 0
 		|| vstream_fflush(stream)
 		|| attr_scan(stream, ATTR_FLAG_STRICT,
-			     ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
+			     ATTR_TYPE_INT, MAIL_ATTR_STATUS, &status,
 			     ATTR_TYPE_STR, MAIL_ATTR_PROP, endp_prop,
 			     ATTR_TYPE_END) != 2) {
 		if (msg_verbose || (errno != EPIPE && errno != ENOENT))
@@ -262,14 +262,14 @@ static void scache_clnt_save_dest(SCACHE *scache, int dest_ttl,
 	    errno = 0;
 	    if (attr_print(stream, ATTR_FLAG_NONE,
 			 ATTR_TYPE_STR, MAIL_ATTR_REQ, SCACHE_REQ_SAVE_DEST,
-			   ATTR_TYPE_NUM, MAIL_ATTR_TTL, dest_ttl,
+			   ATTR_TYPE_INT, MAIL_ATTR_TTL, dest_ttl,
 			   ATTR_TYPE_STR, MAIL_ATTR_LABEL, dest_label,
 			   ATTR_TYPE_STR, MAIL_ATTR_PROP, dest_prop,
 			   ATTR_TYPE_STR, MAIL_ATTR_LABEL, endp_label,
 			   ATTR_TYPE_END) != 0
 		|| vstream_fflush(stream)
 		|| attr_scan(stream, ATTR_FLAG_STRICT,
-			     ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
+			     ATTR_TYPE_INT, MAIL_ATTR_STATUS, &status,
 			     ATTR_TYPE_END) != 1) {
 		if (msg_verbose || (errno != EPIPE && errno != ENOENT))
 		    msg_warn("problem talking to service %s: %m",
@@ -321,7 +321,7 @@ static int scache_clnt_find_dest(SCACHE *scache, const char *dest_label,
 			   ATTR_TYPE_END) != 0
 		|| vstream_fflush(stream)
 		|| attr_scan(stream, ATTR_FLAG_STRICT,
-			     ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
+			     ATTR_TYPE_INT, MAIL_ATTR_STATUS, &status,
 			     ATTR_TYPE_STR, MAIL_ATTR_PROP, dest_prop,
 			     ATTR_TYPE_STR, MAIL_ATTR_PROP, endp_prop,
 			     ATTR_TYPE_END) != 3) {

@@ -24,13 +24,13 @@
 /*	locking. Dictionaries are opened read-only, and in-memory
 /*	dictionary instances are shared.
 /*
-/*	Lookups are case sensitive.
-/*
 /*	maps_create() takes list of type:name pairs and opens the
 /*	named dictionaries.
 /*	The result is a handle that must be specified along with all
 /*	other maps_xxx() operations.
 /*	See dict_open(3) for a description of flags.
+/*	This includes the flags that specify preferences for search
+/*	string case folding.
 /*
 /*	maps_find() searches the specified list of dictionaries
 /*	in the specified order for the named key. The result is in
@@ -49,6 +49,10 @@
 /* .IP map_names
 /*	Null-terminated string with type:name dictionary specifications,
 /*	separated by whitespace or commas.
+/* .IP flags
+/*	With maps_create(), flags that are passed to dict_open().
+/*	With maps_find(), flags that control searching behavior
+/*	as documented above.
 /* .IP maps
 /*	A result from maps_create().
 /* .IP key
@@ -133,8 +137,9 @@ MAPS   *maps_create(const char *title, const char *map_names, int dict_flags)
 #define OPEN_FLAGS	O_RDONLY
 
 	while ((map_type_name = mystrtok(&bufp, sep)) != 0) {
-	    vstring_sprintf(map_type_name_flags, "%s(%o,%o)",
-			    map_type_name, OPEN_FLAGS, dict_flags);
+	    vstring_sprintf(map_type_name_flags, "%s(%o,%s)",
+			    map_type_name, OPEN_FLAGS,
+			    dict_flags_str(dict_flags));
 	    if ((dict = dict_handle(vstring_str(map_type_name_flags))) == 0)
 		dict = dict_open(map_type_name, OPEN_FLAGS, dict_flags);
 	    if ((dict->flags & dict_flags) != dict_flags)

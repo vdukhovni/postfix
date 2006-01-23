@@ -44,7 +44,7 @@
 /* .IP type
 /*	The type determines the arguments that follow.
 /* .RS
-/* .IP "ATTR_TYPE_NUM (char *, int)"
+/* .IP "ATTR_TYPE_INT (char *, int)"
 /*	This argument is followed by an attribute name and an integer.
 /* .IP "ATTR_TYPE_LONG (char *, long)"
 /*	This argument is followed by an attribute name and a long integer.
@@ -164,7 +164,7 @@ int     attr_vprint64(VSTREAM *fp, int flags, va_list ap)
      */
     while ((attr_type = va_arg(ap, int)) != ATTR_TYPE_END) {
 	switch (attr_type) {
-	case ATTR_TYPE_NUM:
+	case ATTR_TYPE_INT:
 	    attr_name = va_arg(ap, char *);
 	    attr_print64_str(fp, attr_name, strlen(attr_name));
 	    int_val = va_arg(ap, int);
@@ -261,14 +261,14 @@ int     main(int unused_argc, char **argv)
     htable_enter(table, "foo-name", mystrdup("foo-value"));
     htable_enter(table, "bar-name", mystrdup("bar-value"));
     attr_print64(VSTREAM_OUT, ATTR_FLAG_NONE,
-		 ATTR_TYPE_NUM, ATTR_NAME_NUM, 4711,
+		 ATTR_TYPE_INT, ATTR_NAME_INT, 4711,
 		 ATTR_TYPE_LONG, ATTR_NAME_LONG, 1234,
 		 ATTR_TYPE_STR, ATTR_NAME_STR, "whoopee",
 	       ATTR_TYPE_DATA, ATTR_NAME_DATA, strlen("whoopee"), "whoopee",
 		 ATTR_TYPE_HASH, table,
 		 ATTR_TYPE_END);
     attr_print64(VSTREAM_OUT, ATTR_FLAG_NONE,
-		 ATTR_TYPE_NUM, ATTR_NAME_NUM, 4711,
+		 ATTR_TYPE_INT, ATTR_NAME_INT, 4711,
 		 ATTR_TYPE_LONG, ATTR_NAME_LONG, 1234,
 		 ATTR_TYPE_STR, ATTR_NAME_STR, "whoopee",
 	       ATTR_TYPE_DATA, ATTR_NAME_DATA, strlen("whoopee"), "whoopee",

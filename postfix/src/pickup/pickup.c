@@ -380,7 +380,7 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
      */
     rec_fputs(cleanup, REC_TYPE_END, "");
     if (attr_scan(cleanup, ATTR_FLAG_MISSING,
-		  ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
+		  ATTR_TYPE_INT, MAIL_ATTR_STATUS, &status,
 		  ATTR_TYPE_END) != 1)
 	return (cleanup_service_error(info, CLEANUP_STAT_WRITE));
 
@@ -445,7 +445,7 @@ static int pickup_file(PICKUP_INFO *info)
 		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, buf,
 		  ATTR_TYPE_END) != 1
 	|| attr_print(cleanup, ATTR_FLAG_NONE,
-		      ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, cleanup_flags,
+		      ATTR_TYPE_INT, MAIL_ATTR_FLAGS, cleanup_flags,
 		      ATTR_TYPE_END) != 0) {
 	status = KEEP_MESSAGE_FILE;
     } else {

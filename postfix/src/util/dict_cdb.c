@@ -57,6 +57,7 @@
 #include "stringops.h"
 #include "iostuff.h"
 #include "myflock.h"
+#include "stringops.h"
 #include "dict.h"
 #include "dict_cdb.h"
 
@@ -105,6 +106,14 @@ static const char *dict_cdbq_lookup(DICT *dict, const char *name)
     dict_errno = 0;
 
     /* CDB is constant, so do not try to acquire a lock. */
+
+    /*
+     * Optionally fold the key.
+     */
+    if (dict->fold_buf) {
+	vstring_strcpy(dict->fold_buf, name);
+	name = lowercase(vstring_str(dict->fold_buf));
+    }
 
     /*
      * See if this CDB file was written with one null byte appended to key
@@ -156,6 +165,8 @@ static void dict_cdbq_close(DICT *dict)
 
     cdb_free(&dict_cdbq->cdb);
     close(dict->stat_fd);
+    if (dict->fold_buf)
+	vstring_free(dict->fold_buf);
     dict_free(dict);
 }
 
@@ -205,6 +216,8 @@ static DICT *dict_cdbq_open(const char *path, int dict_flags)
     if ((dict_flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
 	dict_flags |= DICT_FLAG_TRY0NULL | DICT_FLAG_TRY1NULL;
     dict_cdbq->dict.flags = dict_flags | DICT_FLAG_FIXED;
+    if (dict_flags & DICT_FLAG_FOLD_FIX)
+	dict_cdbq->dict.fold_buf = vstring_alloc(10);
 
     myfree(cdb_path);
     return (&dict_cdbq->dict);
@@ -217,6 +230,14 @@ static void dict_cdbm_update(DICT *dict, const char *name, const char *value)
     DICT_CDBM *dict_cdbm = (DICT_CDBM *) dict;
     unsigned ksize, vsize;
     int     r;
+
+    /*
+     * Optionally fold the key.
+     */
+    if (dict->fold_buf) {
+	vstring_strcpy(dict->fold_buf, name);
+	name = lowercase(vstring_str(dict->fold_buf));
+    }
 
     ksize = strlen(name);
     vsize = strlen(value);
@@ -282,6 +303,8 @@ static void dict_cdbm_close(DICT *dict)
 	msg_fatal("close database %s: %m", dict_cdbm->cdb_path);
     myfree(dict_cdbm->cdb_path);
     myfree(dict_cdbm->tmp_path);
+    if (dict->fold_buf)
+	vstring_free(dict->fold_buf);
     dict_free(dict);
 }
 
@@ -358,6 +381,8 @@ static DICT *dict_cdbm_open(const char *path, int dict_flags)
 	     && (dict_flags & DICT_FLAG_TRY0NULL))
 	dict_flags &= ~DICT_FLAG_TRY0NULL;
     dict_cdbm->dict.flags = dict_flags | DICT_FLAG_FIXED;
+    if (dict_flags & DICT_FLAG_FOLD_FIX)
+	dict_cdbm->dict.fold_buf = vstring_alloc(10);
 
     return (&dict_cdbm->dict);
 }

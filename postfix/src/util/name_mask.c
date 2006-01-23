@@ -22,7 +22,8 @@
 /*	const char *names;
 /*	int	flags;
 /*
-/*	const char *str_name_mask_opt(context, table, mask, flags)
+/*	const char *str_name_mask_opt(buf, context, table, mask, flags)
+/*	VSTRING	*buf;
 /*	const char *context;
 /*	NAME_MASK *table;
 /*	int	mask;
@@ -41,6 +42,8 @@
 /*	with additional fine control.
 /*
 /*	Arguments:
+/* .IP buf
+/*	Null pointer or pointer to buffer storage.
 /* .IP context
 /*	What kind of names and
 /*	masks are being manipulated, in order to make error messages
@@ -72,6 +75,8 @@
 /*	it has no effect with str_name_mask().
 /* .IP NAME_MASK_COMMA
 /*	Use comma instead of space when converting a mask to string.
+/* .IP NAME_MASK_PIPE
+/*	Use "|" instead of space when converting a mask to string.
 /* .RE
 /*	The value NAME_MASK_NONE explicitly requests no features,
 /*	and NAME_MASK_DEFAULT enables the default options.
@@ -158,18 +163,22 @@ int     name_mask_opt(const char *context, NAME_MASK *table, const char *names,
 
 /* str_name_mask_opt - mask to string */
 
-const char *str_name_mask_opt(const char *context, NAME_MASK *table,
+const char *str_name_mask_opt(VSTRING *buf, const char *context,
+			              NAME_MASK *table,
 			              int mask, int flags)
 {
     char   *myname = "name_mask";
     NAME_MASK *np;
     int     len;
-    static VSTRING *buf = 0;
-    int     delim = (flags & NAME_MASK_COMMA ? ',' : ' ');
+    static VSTRING *my_buf = 0;
+    int     delim = (flags & NAME_MASK_COMMA ? ',' :
+		     (flags & NAME_MASK_PIPE ? '|' : ' '));
 
-    if (buf == 0)
-	buf = vstring_alloc(1);
-
+    if (buf == 0) {
+	if (my_buf == 0)
+	    my_buf = vstring_alloc(1);
+	buf = my_buf;
+    }
     VSTRING_RESET(buf);
 
     for (np = table; mask != 0; np++) {
@@ -219,7 +228,8 @@ int     main(int argc, char **argv)
     while (--argc && *++argv) {
 	mask = name_mask("test", table, *argv);
 	vstream_printf("%s -> 0x%x -> %s\n",
-		       *argv, mask, str_name_mask("mask_test", table, mask));
+		       *argv, mask, str_name_mask((VSTRING *) 0, "mask_test",
+						  table, mask));
 	vstream_fflush(VSTREAM_OUT);
     }
     vstring_free(buf);

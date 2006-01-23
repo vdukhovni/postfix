@@ -164,10 +164,10 @@ int     tls_mgr_seed(VSTRING *buf, int len)
     if (attr_clnt_request(tls_mgr,
 			  ATTR_FLAG_NONE,	/* Request attributes */
 			  ATTR_TYPE_STR, TLS_MGR_ATTR_REQ, TLS_MGR_REQ_SEED,
-			  ATTR_TYPE_NUM, TLS_MGR_ATTR_SIZE, len,
+			  ATTR_TYPE_INT, TLS_MGR_ATTR_SIZE, len,
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes */
-			  ATTR_TYPE_NUM, TLS_MGR_ATTR_STATUS, &status,
+			  ATTR_TYPE_INT, TLS_MGR_ATTR_STATUS, &status,
 			  ATTR_TYPE_DATA, TLS_MGR_ATTR_SEED, buf,
 			  ATTR_TYPE_END) != 2)
 	status = TLS_MGR_STAT_FAIL;
@@ -194,8 +194,8 @@ int     tls_mgr_policy(int *policy)
 			ATTR_TYPE_STR, TLS_MGR_ATTR_REQ, TLS_MGR_REQ_POLICY,
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes */
-			  ATTR_TYPE_NUM, TLS_MGR_ATTR_STATUS, &status,
-			  ATTR_TYPE_NUM, TLS_MGR_ATTR_POLICY, policy,
+			  ATTR_TYPE_INT, TLS_MGR_ATTR_STATUS, &status,
+			  ATTR_TYPE_INT, TLS_MGR_ATTR_POLICY, policy,
 			  ATTR_TYPE_END) != 2)
 	status = TLS_MGR_STAT_FAIL;
     return (status);
@@ -219,11 +219,11 @@ int     tls_mgr_lookup(int cache_type, const char *cache_id, VSTRING *buf)
     if (attr_clnt_request(tls_mgr,
 			  ATTR_FLAG_NONE,	/* Request */
 			ATTR_TYPE_STR, TLS_MGR_ATTR_REQ, TLS_MGR_REQ_LOOKUP,
-			  ATTR_TYPE_NUM, TLS_MGR_ATTR_CACHE_TYPE, cache_type,
+			  ATTR_TYPE_INT, TLS_MGR_ATTR_CACHE_TYPE, cache_type,
 			  ATTR_TYPE_STR, TLS_MGR_ATTR_CACHE_ID, cache_id,
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply */
-			  ATTR_TYPE_NUM, TLS_MGR_ATTR_STATUS, &status,
+			  ATTR_TYPE_INT, TLS_MGR_ATTR_STATUS, &status,
 			  ATTR_TYPE_DATA, TLS_MGR_ATTR_SESSION, buf,
 			  ATTR_TYPE_END) != 2)
 	status = TLS_MGR_STAT_FAIL;
@@ -249,12 +249,12 @@ int     tls_mgr_update(int cache_type, const char *cache_id,
     if (attr_clnt_request(tls_mgr,
 			  ATTR_FLAG_NONE,	/* Request */
 			ATTR_TYPE_STR, TLS_MGR_ATTR_REQ, TLS_MGR_REQ_UPDATE,
-			  ATTR_TYPE_NUM, TLS_MGR_ATTR_CACHE_TYPE, cache_type,
+			  ATTR_TYPE_INT, TLS_MGR_ATTR_CACHE_TYPE, cache_type,
 			  ATTR_TYPE_STR, TLS_MGR_ATTR_CACHE_ID, cache_id,
 			  ATTR_TYPE_DATA, TLS_MGR_ATTR_SESSION, len, buf,
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply */
-			  ATTR_TYPE_NUM, TLS_MGR_ATTR_STATUS, &status,
+			  ATTR_TYPE_INT, TLS_MGR_ATTR_STATUS, &status,
 			  ATTR_TYPE_END) != 1)
 	status = TLS_MGR_STAT_FAIL;
     return (status);
@@ -278,11 +278,11 @@ int     tls_mgr_delete(int cache_type, const char *cache_id)
     if (attr_clnt_request(tls_mgr,
 			  ATTR_FLAG_NONE,	/* Request */
 			ATTR_TYPE_STR, TLS_MGR_ATTR_REQ, TLS_MGR_REQ_DELETE,
-			  ATTR_TYPE_NUM, TLS_MGR_ATTR_CACHE_TYPE, cache_type,
+			  ATTR_TYPE_INT, TLS_MGR_ATTR_CACHE_TYPE, cache_type,
 			  ATTR_TYPE_STR, TLS_MGR_ATTR_CACHE_ID, cache_id,
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply */
-			  ATTR_TYPE_NUM, TLS_MGR_ATTR_STATUS, &status,
+			  ATTR_TYPE_INT, TLS_MGR_ATTR_STATUS, &status,
 			  ATTR_TYPE_END) != 1)
 	status = TLS_MGR_STAT_FAIL;
     return (status);

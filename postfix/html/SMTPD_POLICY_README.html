@@ -79,6 +79,7 @@ helo_name=some.domain.tld
 queue_id=8045F2AB23
 sender=foo@bar.tld
 recipient=bar@foo.tld
+recipient_count=0
 client_address=1.2.3.4
 client_name=another.domain.tld
 reverse_client_name=another.domain.tld
@@ -115,8 +116,19 @@ encryption_keysize=256
     </p>
 
     <li> <p> When an attribute value is unavailable, the client
-    either does not send the attribute, or sends the attribute with
-    an empty value ("name="). </p>
+    either does not send the attribute, sends the attribute with
+    an empty value ("name="), or sends a zero value ("name=0") in
+    the case of a numerical attribute. </p>
+
+    <li> <p> The "recipient" attribute is available only in the
+    "RCPT TO" stage, and in the "DATA" and "END-OF-MESSAGE" stages
+    when Postfix accepted only one recipient for the current message.
+    </p>
+
+    <li> <p> The "recipient_count" attribute (Postfix 2.3 and later)
+    is non-zero only in the "DATA" and "END-OF-MESSAGE" stages. It
+    specifies the number of recipients that Postfix accepted for
+    the current message.  </p>
 
     <li> <p> The client address is an IPv4 dotted quad in the form
     1.2.3.4 or it is an IPv6 address in the form 1:2:3::4:5:6.
@@ -217,11 +229,11 @@ daemon, you would use something like this: </p>
 
 <blockquote>
 <pre>
- 1 /etc/postfix/master.cf:
+ 1 /etc/postfix/<a href="master.5.html">master.cf</a>:
  2     policy  unix  -       n       n       -       -       spawn
  3       user=nobody argv=/some/where/policy-server
  4 
- 5 /etc/postfix/main.cf:
+ 5 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
  6     <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> =
  7         ... 
  8         <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a> 
@@ -239,8 +251,8 @@ daemon, you would use something like this: </p>
 its child process after 1000 seconds.  This is too short for a
 policy daemon that may run for as long as an SMTP client is connected
 to an SMTP server process. The default time limit is overruled in
-main.cf with an explicit "policy_time_limit" setting.  The name of
-the parameter is the name of the master.cf entry ("policy")
+<a href="postconf.5.html">main.cf</a> with an explicit "policy_time_limit" setting.  The name of
+the parameter is the name of the <a href="master.5.html">master.cf</a> entry ("policy")
 concatenated with the "_time_limit" suffix.  </p>
 
 <li> <p> Lines 8, 9: always specify "<a href="postconf.5.html#check_policy_service">check_policy_service</a>" AFTER
@@ -254,11 +266,11 @@ TCP sockets instead: </p>
 
 <blockquote>
 <pre>
- 1 /etc/postfix/master.cf:
+ 1 /etc/postfix/<a href="master.5.html">master.cf</a>:
  2     127.0.0.1:9998  inet  n       n       n       -       -       spawn
  3       user=nobody argv=/some/where/policy-server
  4 
- 5 /etc/postfix/main.cf:
+ 5 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
  6     <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> =
  7         ... 
  8         <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a> 
@@ -320,7 +332,7 @@ $greylist_delay=60;
 
 <p> The /var/mta directory (or whatever you choose) should be
 writable by "nobody", or by whatever username you configure below
-in master.cf for the policy service. </p>
+in <a href="master.5.html">master.cf</a> for the policy service. </p>
 
 <p> Example: </p>
 
@@ -346,11 +358,11 @@ processes only: </p>
 
 <blockquote>
 <pre>
-1 /etc/postfix/master.cf:
+1 /etc/postfix/<a href="master.5.html">master.cf</a>:
 2     policy  unix  -       n       n       -       -       spawn
 3       user=nobody argv=/usr/bin/perl /usr/libexec/postfix/greylist.pl
 4 
-5 /etc/postfix/main.cf:
+5 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
 6      policy_time_limit = 3600
 </pre>
 </blockquote>
@@ -366,8 +378,8 @@ each request and reply. </p>
 its child process after 1000 seconds.  This is too short for a
 policy daemon that may run for as long as an SMTP client is connected
 to an SMTP server process. The default time limit is overruled in
-main.cf with an explicit "policy_time_limit" setting.  The name of
-the parameter is the name of the master.cf entry ("policy")
+<a href="postconf.5.html">main.cf</a> with an explicit "policy_time_limit" setting.  The name of
+the parameter is the name of the <a href="master.5.html">master.cf</a> entry ("policy")
 concatenated with the "_time_limit" suffix.  </p>
 
 </ul>
@@ -378,11 +390,11 @@ client/server configuration</a>" section above.  </p>
 
 <blockquote>
 <pre>
-1 /etc/postfix/master.cf:
+1 /etc/postfix/<a href="master.5.html">master.cf</a>:
 2     127.0.0.1:9998  inet  n       n       n       -       -       spawn
 3       user=nobody argv=/usr/bin/perl /usr/libexec/postfix/greylist.pl
 4 
-5 /etc/postfix/main.cf:
+5 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
 6      127.0.0.1:9998_time_limit = 3600
 </pre>
 </blockquote>
@@ -400,7 +412,7 @@ forged MAIL FROM domains could be found at
 
 <blockquote>
 <pre>
- 1 /etc/postfix/main.cf:
+ 1 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
  2     <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> =
  3         <a href="postconf.5.html#reject_unlisted_recipient">reject_unlisted_recipient</a>
  4         ...
@@ -450,7 +462,7 @@ database relatively quickly. </p>
 
 <blockquote>
 <pre>
- 1 /etc/postfix/main.cf:
+ 1 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
  2     <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> =
  3         <a href="postconf.5.html#reject_unlisted_recipient">reject_unlisted_recipient</a>
  4         ...

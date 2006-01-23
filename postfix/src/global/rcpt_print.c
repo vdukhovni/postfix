@@ -63,7 +63,7 @@ int     rcpt_print(ATTR_PRINT_MASTER_FN print_fn, VSTREAM *fp,
 		 ATTR_TYPE_STR, MAIL_ATTR_RECIP, rcpt->address,
 		 ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, rcpt->offset,
 		 ATTR_TYPE_STR, MAIL_ATTR_DSN_ORCPT, rcpt->dsn_orcpt,
-		 ATTR_TYPE_NUM, MAIL_ATTR_DSN_NOTIFY, rcpt->dsn_notify,
+		 ATTR_TYPE_INT, MAIL_ATTR_DSN_NOTIFY, rcpt->dsn_notify,
 		 ATTR_TYPE_END);
     return (ret);
 }

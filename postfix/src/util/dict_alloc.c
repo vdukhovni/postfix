@@ -100,7 +100,7 @@ static int dict_default_sequence(DICT *dict, int unused_function,
 static void dict_default_close(DICT *dict)
 {
     msg_fatal("%s table %s: close operation is not supported",
-              dict->type, dict->name);
+	      dict->type, dict->name);
 }
 
 /* dict_alloc - allocate dictionary object, initialize super-class */
@@ -120,6 +120,7 @@ DICT   *dict_alloc(const char *dict_type, const char *dict_name, ssize_t size)
     dict->lock_fd = -1;
     dict->stat_fd = -1;
     dict->mtime = 0;
+    dict->fold_buf = 0;
     return dict;
 }
 

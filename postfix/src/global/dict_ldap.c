@@ -907,6 +907,14 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	msg_info("%s: In dict_ldap_lookup", myname);
 
     /*
+     * Optionally fold the key.
+     */
+    if (dict->fold_buf) {
+	vstring_strcpy(dict->fold_buf, name);
+	name = lowercase(vstring_str(dict->fold_buf));
+    }
+
+    /*
      * If they specified a domain list for this map, then only search for
      * addresses in domains on the list. This can significantly reduce the
      * load on the LDAP server.
@@ -1145,6 +1153,8 @@ static void dict_ldap_close(DICT *dict)
     myfree(dict_ldap->tls_random_file);
     myfree(dict_ldap->tls_cipher_suite);
 #endif
+    if (dict->fold_buf)
+	vstring_free(dict->fold_buf);
     dict_free(dict);
 }
 
@@ -1331,6 +1341,8 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 	dict_ldap->dict.flags |= DICT_FLAG_PATTERN;
     else
 	dict_ldap->dict.flags |= DICT_FLAG_FIXED;
+    if (dict_flags & DICT_FLAG_FOLD_FIX)
+	dict_ldap->dict.fold_buf = vstring_alloc(10);
 
     attr = cfg_get_str(dict_ldap->parser, "result_attribute",
 		       "maildrop", 0, 0);

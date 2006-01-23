@@ -14,8 +14,8 @@
 /*
 /*	smtp_connect() attempts to establish an SMTP/LMTP session with a host
 /*	that represents the destination domain, or with an optional fallback
-/*	relay when the destination cannot be found, or when all the
-/*	destination servers are unavailable. It skips over IP addresses
+/*	relay when {the destination cannot be found, or when all the
+/*	destination servers are unavailable}. It skips over IP addresses
 /*	that fail to complete the SMTP/LMTP handshake and tries to find
 /*	an alternate server when an SMTP/LMTP session fails to deliver.
 /*
@@ -28,7 +28,7 @@
 /*	destinations may be specified as "unix:pathname", "inet:host"
 /*	or "inet:host:port".
 /*
-/*	By default, the Internet domain name service is queried for mail
+/*	With SMTP, the Internet domain name service is queried for mail
 /*	exchanger hosts. Quote the domain name with `[' and `]' to
 /*	suppress mail exchanger lookups.
 /*

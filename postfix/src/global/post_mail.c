@@ -198,7 +198,7 @@ static void post_mail_init(VSTREAM *stream, const char *sender,
 		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
 		  ATTR_TYPE_END) != 1
 	|| attr_print(stream, ATTR_FLAG_NONE,
-		      ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, cleanup_flags,
+		      ATTR_TYPE_INT, MAIL_ATTR_FLAGS, cleanup_flags,
 		      ATTR_TYPE_END) != 0)
 	msg_fatal("unable to contact the %s service", var_cleanup_service);
 
@@ -423,7 +423,7 @@ int     post_mail_fclose(VSTREAM *cleanup)
 	rec_fputs(cleanup, REC_TYPE_END, "");
 	if (vstream_fflush(cleanup)
 	    || attr_scan(cleanup, ATTR_FLAG_MISSING,
-			 ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
+			 ATTR_TYPE_INT, MAIL_ATTR_STATUS, &status,
 			 ATTR_TYPE_END) != 1)
 	    status = CLEANUP_STAT_WRITE;
     }

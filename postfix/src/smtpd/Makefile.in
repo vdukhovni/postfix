@@ -4,7 +4,7 @@ SRCS	= smtpd.c smtpd_token.c smtpd_check.c smtpd_chat.c smtpd_state.c \
 	smtpd_xforward.c smtpd_dsn_fix.c
 OBJS	= smtpd.o smtpd_token.o smtpd_check.o smtpd_chat.o smtpd_state.o \
 	smtpd_peer.o smtpd_sasl_proto.o smtpd_sasl_glue.o smtpd_proxy.o \
-	smtpd_xforward.o smtpd_dsn_fix.c
+	smtpd_xforward.o smtpd_dsn_fix.o
 HDRS	= smtpd_token.h smtpd_check.h smtpd_chat.h smtpd_sasl_proto.h \
 	smtpd_sasl_glue.h smtpd_proxy.h smtpd_dsn_fix.h
 TESTSRC	= smtpd_token_test.c
@@ -62,7 +62,7 @@ clean:
 tidy:	clean
 
 tests: smtpd_check_test smtpd_check_test2 smtpd_acl_test smtpd_exp_test \
-	smtpd_token_test smtpd_check_test4 smtpd_check_dsn
+	smtpd_token_test smtpd_check_test4 smtpd_check_dsn_test
 
 smtpd_check_test: smtpd_check smtpd_check.in smtpd_check.ref smtpd_check_access
 	../postmap/postmap hash:smtpd_check_access
@@ -260,7 +260,6 @@ smtpd_check.o: ../../include/valid_hostname.h
 smtpd_check.o: ../../include/valid_mailhost_addr.h
 smtpd_check.o: ../../include/vbuf.h
 smtpd_check.o: ../../include/verify_clnt.h
-smtpd_check.o: ../../include/virtual8_maps.h
 smtpd_check.o: ../../include/vstream.h
 smtpd_check.o: ../../include/vstring.h
 smtpd_check.o: smtpd.h

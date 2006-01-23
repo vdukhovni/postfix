@@ -104,6 +104,8 @@ xsasl_cyrus_log.o: xsasl_cyrus_common.h
 xsasl_cyrus_log.o: xsasl_cyrus_log.c
 xsasl_cyrus_security.o: ../../include/name_mask.h
 xsasl_cyrus_security.o: ../../include/sys_defs.h
+xsasl_cyrus_security.o: ../../include/vbuf.h
+xsasl_cyrus_security.o: ../../include/vstring.h
 xsasl_cyrus_security.o: xsasl_cyrus_common.h
 xsasl_cyrus_security.o: xsasl_cyrus_security.c
 xsasl_cyrus_server.o: ../../include/argv.h

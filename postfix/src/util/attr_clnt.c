@@ -166,7 +166,7 @@ int     attr_clnt_request(ATTR_CLNT *client, int send_flags,...)
 		    case ATTR_TYPE_DATA:
 			SKIP_ARG2(ap, ssize_t, char *);
 			break;
-		    case ATTR_TYPE_NUM:
+		    case ATTR_TYPE_INT:
 			SKIP_ARG(ap, int);
 			break;
 		    case ATTR_TYPE_LONG:
@@ -190,7 +190,8 @@ int     attr_clnt_request(ATTR_CLNT *client, int send_flags,...)
 	if (++count >= 2
 	    || msg_verbose
 	    || (errno && errno != EPIPE && errno != ENOENT && errno != ECONNRESET))
-	    msg_warn("problem talking to server %s: %m", VSTREAM_PATH(stream));
+	    msg_warn("problem talking to server %s: %m",
+		     auto_clnt_name(client->auto_clnt));
 	if (count >= 2)
 	    return (-1);
 	sleep(1);				/* XXX make configurable */

@@ -79,6 +79,7 @@ helo_name=some.domain.tld
 queue_id=8045F2AB23
 sender=foo@bar.tld
 recipient=bar@foo.tld
+recipient_count=0
 client_address=1.2.3.4
 client_name=another.domain.tld
 reverse_client_name=another.domain.tld
@@ -115,8 +116,19 @@ encryption_keysize=256
     </p>
 
     <li> <p> When an attribute value is unavailable, the client
-    either does not send the attribute, or sends the attribute with
-    an empty value ("name="). </p>
+    either does not send the attribute, sends the attribute with
+    an empty value ("name="), or sends a zero value ("name=0") in
+    the case of a numerical attribute. </p>
+
+    <li> <p> The "recipient" attribute is available only in the
+    "RCPT TO" stage, and in the "DATA" and "END-OF-MESSAGE" stages
+    when Postfix accepted only one recipient for the current message.
+    </p>
+
+    <li> <p> The "recipient_count" attribute (Postfix 2.3 and later)
+    is non-zero only in the "DATA" and "END-OF-MESSAGE" stages. It
+    specifies the number of recipients that Postfix accepted for
+    the current message.  </p>
 
     <li> <p> The client address is an IPv4 dotted quad in the form
     1.2.3.4 or it is an IPv6 address in the form 1:2:3::4:5:6.

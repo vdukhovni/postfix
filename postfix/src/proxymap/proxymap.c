@@ -238,8 +238,8 @@ static DICT *proxy_map_find(const char *map_type_name, int request_flags,
     /*
      * Open one instance of a map for each combination of name+flags.
      */
-    vstring_sprintf(map_type_name_flags, "%s:%o",
-		    map_type_name, request_flags);
+    vstring_sprintf(map_type_name_flags, "%s:%s",
+		    map_type_name, dict_flags_str(request_flags));
     if ((dict = dict_handle(STR(map_type_name_flags))) == 0)
 	dict = dict_open(map_type_name, READ_OPEN_FLAGS, request_flags);
     if (dict == 0)
@@ -262,7 +262,7 @@ static void proxymap_lookup_service(VSTREAM *client_stream)
      */
     if (attr_scan(client_stream, ATTR_FLAG_STRICT,
 		  ATTR_TYPE_STR, MAIL_ATTR_TABLE, request_map,
-		  ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &request_flags,
+		  ATTR_TYPE_INT, MAIL_ATTR_FLAGS, &request_flags,
 		  ATTR_TYPE_STR, MAIL_ATTR_KEY, request_key,
 		  ATTR_TYPE_END) != 3) {
 	reply_status = PROXY_STAT_BAD;
@@ -284,7 +284,7 @@ static void proxymap_lookup_service(VSTREAM *client_stream)
      * Respond to the client.
      */
     attr_print(client_stream, ATTR_FLAG_NONE,
-	       ATTR_TYPE_NUM, MAIL_ATTR_STATUS, reply_status,
+	       ATTR_TYPE_INT, MAIL_ATTR_STATUS, reply_status,
 	       ATTR_TYPE_STR, MAIL_ATTR_VALUE, reply_value,
 	       ATTR_TYPE_END);
 }
@@ -303,7 +303,7 @@ static void proxymap_open_service(VSTREAM *client_stream)
      */
     if (attr_scan(client_stream, ATTR_FLAG_STRICT,
 		  ATTR_TYPE_STR, MAIL_ATTR_TABLE, request_map,
-		  ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &request_flags,
+		  ATTR_TYPE_INT, MAIL_ATTR_FLAGS, &request_flags,
 		  ATTR_TYPE_END) != 2) {
 	reply_status = PROXY_STAT_BAD;
 	reply_flags = 0;
@@ -319,8 +319,8 @@ static void proxymap_open_service(VSTREAM *client_stream)
      * Respond to the client.
      */
     attr_print(client_stream, ATTR_FLAG_NONE,
-	       ATTR_TYPE_NUM, MAIL_ATTR_STATUS, reply_status,
-	       ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, reply_flags,
+	       ATTR_TYPE_INT, MAIL_ATTR_STATUS, reply_status,
+	       ATTR_TYPE_INT, MAIL_ATTR_FLAGS, reply_flags,
 	       ATTR_TYPE_END);
 }
 
@@ -352,7 +352,7 @@ static void proxymap_service(VSTREAM *client_stream, char *unused_service,
 	} else {
 	    msg_warn("unrecognized request: \"%s\", ignored", STR(request));
 	    attr_print(client_stream, ATTR_FLAG_NONE,
-		       ATTR_TYPE_NUM, MAIL_ATTR_STATUS, PROXY_STAT_BAD,
+		       ATTR_TYPE_INT, MAIL_ATTR_STATUS, PROXY_STAT_BAD,
 		       ATTR_TYPE_END);
 	}
     }

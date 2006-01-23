@@ -713,6 +713,7 @@ dict.o: mac_expand.h
 dict.o: mac_parse.h
 dict.o: msg.h
 dict.o: mymalloc.h
+dict.o: name_mask.h
 dict.o: readlline.h
 dict.o: stringops.h
 dict.o: sys_defs.h
@@ -727,6 +728,7 @@ dict_alloc.o: mymalloc.h
 dict_alloc.o: sys_defs.h
 dict_alloc.o: vbuf.h
 dict_alloc.o: vstream.h
+dict_alloc.o: vstring.h
 dict_cdb.o: argv.h
 dict_cdb.o: dict.h
 dict_cdb.o: dict_cdb.c
@@ -777,6 +779,7 @@ dict_debug.o: mymalloc.h
 dict_debug.o: sys_defs.h
 dict_debug.o: vbuf.h
 dict_debug.o: vstream.h
+dict_debug.o: vstring.h
 dict_env.o: argv.h
 dict_env.o: dict.h
 dict_env.o: dict_env.c
@@ -784,9 +787,11 @@ dict_env.o: dict_env.h
 dict_env.o: msg.h
 dict_env.o: mymalloc.h
 dict_env.o: safe.h
+dict_env.o: stringops.h
 dict_env.o: sys_defs.h
 dict_env.o: vbuf.h
 dict_env.o: vstream.h
+dict_env.o: vstring.h
 dict_ht.o: argv.h
 dict_ht.o: dict.h
 dict_ht.o: dict_ht.c
@@ -796,6 +801,7 @@ dict_ht.o: mymalloc.h
 dict_ht.o: sys_defs.h
 dict_ht.o: vbuf.h
 dict_ht.o: vstream.h
+dict_ht.o: vstring.h
 dict_ni.o: dict_ni.c
 dict_ni.o: sys_defs.h
 dict_nis.o: argv.h
@@ -804,6 +810,7 @@ dict_nis.o: dict_nis.c
 dict_nis.o: dict_nis.h
 dict_nis.o: msg.h
 dict_nis.o: mymalloc.h
+dict_nis.o: stringops.h
 dict_nis.o: sys_defs.h
 dict_nis.o: vbuf.h
 dict_nis.o: vstream.h
@@ -896,6 +903,7 @@ dict_static.o: mymalloc.h
 dict_static.o: sys_defs.h
 dict_static.o: vbuf.h
 dict_static.o: vstream.h
+dict_static.o: vstring.h
 dict_tcp.o: argv.h
 dict_tcp.o: connect.h
 dict_tcp.o: dict.h
@@ -917,6 +925,7 @@ dict_unix.o: dict_unix.c
 dict_unix.o: dict_unix.h
 dict_unix.o: msg.h
 dict_unix.o: mymalloc.h
+dict_unix.o: stringops.h
 dict_unix.o: sys_defs.h
 dict_unix.o: vbuf.h
 dict_unix.o: vstream.h
@@ -1101,6 +1110,8 @@ inet_proto.o: myaddrinfo.h
 inet_proto.o: mymalloc.h
 inet_proto.o: name_mask.h
 inet_proto.o: sys_defs.h
+inet_proto.o: vbuf.h
+inet_proto.o: vstring.h
 inet_trigger.o: connect.h
 inet_trigger.o: events.h
 inet_trigger.o: inet_trigger.c

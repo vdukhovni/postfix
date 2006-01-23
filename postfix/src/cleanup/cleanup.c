@@ -74,8 +74,8 @@
 /* .IP "\fBenable_errors_to (no)\fR"
 /*	Report mail delivery errors to the address specified with the
 /*	non-standard Errors-To: message header, instead of the envelope
-/*	sender address (this feature is removed with Postfix 2.2, is
-/*	turned off by default with Postfix 2.1, and is always turned on
+/*	sender address (this feature is removed with Postfix version 2.2, is
+/*	turned off by default with Postfix version 2.1, and is always turned on
 /*	with older Postfix versions).
 /* BUILT-IN CONTENT FILTERING CONTROLS
 /* .ad
@@ -373,7 +373,7 @@ static void cleanup_service(VSTREAM *src, char *unused_service, char **argv)
 	       ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, state->queue_id,
 	       ATTR_TYPE_END);
     if (attr_scan(src, ATTR_FLAG_STRICT,
-		  ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &flags,
+		  ATTR_TYPE_INT, MAIL_ATTR_FLAGS, &flags,
 		  ATTR_TYPE_END) != 1) {
 	state->errs |= CLEANUP_STAT_BAD;
 	flags = 0;
@@ -419,7 +419,7 @@ static void cleanup_service(VSTREAM *src, char *unused_service, char **argv)
      */
     status = cleanup_flush(state);		/* in case state is modified */
     attr_print(src, ATTR_FLAG_NONE,
-	       ATTR_TYPE_NUM, MAIL_ATTR_STATUS, status,
+	       ATTR_TYPE_INT, MAIL_ATTR_STATUS, status,
 	       ATTR_TYPE_STR, MAIL_ATTR_WHY, state->reason ?
 	       state->reason : "",
 	       ATTR_TYPE_END);

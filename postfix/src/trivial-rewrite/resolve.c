@@ -661,11 +661,11 @@ int     resolve_proto(RES_CONTEXT *context, VSTREAM *stream)
 		 STR(nexthop), STR(nextrcpt), flags);
 
     attr_print(stream, ATTR_FLAG_NONE,
-	       ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, server_flags,
+	       ATTR_TYPE_INT, MAIL_ATTR_FLAGS, server_flags,
 	       ATTR_TYPE_STR, MAIL_ATTR_TRANSPORT, STR(channel),
 	       ATTR_TYPE_STR, MAIL_ATTR_NEXTHOP, STR(nexthop),
 	       ATTR_TYPE_STR, MAIL_ATTR_RECIP, STR(nextrcpt),
-	       ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
+	       ATTR_TYPE_INT, MAIL_ATTR_FLAGS, flags,
 	       ATTR_TYPE_END);
 
     if (vstream_fflush(stream) != 0) {
@@ -701,5 +701,5 @@ void    resolve_init(void)
     if (*var_relocated_maps)
 	relocated_maps =
 	    maps_create(VAR_RELOCATED_MAPS, var_relocated_maps,
-			DICT_FLAG_LOCK);
+			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
 }

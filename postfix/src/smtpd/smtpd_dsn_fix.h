@@ -21,6 +21,13 @@
 #define SMTPD_NAME_DATA		"Data command"
 #define SMTPD_NAME_EOD		"End-of-data"
 
+ /*
+  * Workaround for absence of "bad sender address" status code: use "bad
+  * sender address syntax" instead. If we were to use "4.1.0" then we would
+  * lose the critical distinction between sender and recipient problems.
+  */
+#define SND_DSN			"4.1.7"
+
 extern const char *smtpd_dsn_fix(const char *, const char *);
 
 /* LICENSE

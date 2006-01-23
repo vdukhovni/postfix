@@ -143,6 +143,22 @@ typedef struct SMTP_STATE {
 #define SMTP_MISC_FLAG_CONN_CACHE	(1<<6)
 
  /*
+  * TLS enforcement level. Actual TLS policies will be NONE or higher.
+  * 
+  * There are two pseudo levels: NOTFOUND is a sentinel value for the ease of
+  * implementation; MAY is a wild-card that indicates "anything goes".
+  * 
+  * Non pseudo levels can also be used to indicate the actual security level of
+  * a session.
+  */
+#define SMTP_TLS_LEV_NOTFOUND		(-1)	/* sentinel */
+#define SMTP_TLS_LEV_NONE		0	/* plain-text only */
+#define SMTP_TLS_LEV_MAY		1	/* wildcard */
+#define SMTP_TLS_LEV_ENCRYPT		2	/* encrypted connection */
+#define SMTP_TLS_LEV_VERIFY		3	/* certificate verified */
+#define SMTP_TLS_LEV_STRICT		4	/* "secure" verification */
+
+ /*
   * smtp.c
   */
 #define SMTP_HAS_DSN(why)	(STR((why)->status)[0] != 0)
@@ -215,9 +231,7 @@ typedef struct SMTP_SESSION {
      * TLS related state.
      */
 #ifdef USE_TLS
-    int     tls_use_tls;		/* can do TLS */
-    int     tls_enforce_tls;		/* must do TLS */
-    int     tls_enforce_peername;	/* cert must match */
+    int     tls_level;			/* TLS enforcement level */
     TLScontext_t *tls_context;		/* TLS session state */
 #endif
 

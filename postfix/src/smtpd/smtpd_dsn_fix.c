@@ -78,12 +78,12 @@ struct dsn_map {
 
 static struct dsn_map dsn_map[] = {
     /* - Sender - Recipient */
-    "1", "4.1.0", "4.1.1",		/* 4.1.1: Bad dest mbox addr */
+    "1", SND_DSN, "4.1.1",		/* 4.1.1: Bad dest mbox addr */
     "2", "4.1.8", "4.1.2",		/* 4.1.2: Bad dest system addr */
     "3", "4.1.7", "4.1.3",		/* 4.1.3: Bad dest mbox addr syntax */
-    "4", "4.1.0", "4.1.4",		/* 4.1.4: Dest mbox addr ambiguous */
+    "4", SND_DSN, "4.1.4",		/* 4.1.4: Dest mbox addr ambiguous */
     "5", "4.1.0", "4.1.5",		/* 4.1.5: Dest mbox addr valid */
-    "6", "4.1.0", "4.1.6",		/* 4.1.6: Mailbox has moved */
+    "6", SND_DSN, "4.1.6",		/* 4.1.6: Mailbox has moved */
     "7", "4.1.7", "4.1.3",		/* 4.1.7: Bad sender mbox addr syntax */
     "8", "4.1.8", "4.1.2",		/* 4.1.8: Bad sender system addr */
     0, "4.1.0", "4.1.0",		/* Default mapping */

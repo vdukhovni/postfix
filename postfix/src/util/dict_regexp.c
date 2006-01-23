@@ -221,6 +221,13 @@ static const char *dict_regexp_lookup(DICT *dict, const char *lookup_string)
     if (msg_verbose)
 	msg_info("dict_regexp_lookup: %s: %s", dict->name, lookup_string);
 
+    /*
+     * Optionally fold the key.
+     */
+    if (dict->fold_buf) {
+	vstring_strcpy(dict->fold_buf, lookup_string);
+	lookup_string = lowercase(vstring_str(dict->fold_buf));
+    }
     for (rule = dict_regexp->head; rule; rule = rule->next) {
 
 	/*
@@ -351,6 +358,8 @@ static void dict_regexp_close(DICT *dict)
 	myfree((char *) dict_regexp->pmatch);
     if (dict_regexp->expansion_buf)
 	vstring_free(dict_regexp->expansion_buf);
+    if (dict->fold_buf)
+	vstring_free(dict->fold_buf);
     dict_free(dict);
 }
 
@@ -612,13 +621,13 @@ static DICT_REGEXP_RULE *dict_regexp_parseline(const char *mapname, int lineno,
 	 * result string, or when the highest numbered substring is less than
 	 * the total number of () subpatterns.
 	 */
-	if (prescan_context.max_sub == 0) 
+	if (prescan_context.max_sub == 0)
 	    first_pat.options |= REG_NOSUB;
 	if (prescan_context.max_sub > 0 && first_pat.match == 0) {
 	    msg_warn("regexp map %s, line %d: $number found in negative match "
 		   "replacement text: skipping this rule", mapname, lineno);
 	    CREATE_MATCHOP_ERROR_RETURN(0);
-	} 
+	}
 	if (prescan_context.max_sub > 0 && (dict_flags & DICT_FLAG_NO_REGSUB)) {
 	    msg_warn("regexp map %s, line %d: "
 		     "regular expression substitution is not allowed: "
@@ -738,6 +747,8 @@ DICT   *dict_regexp_open(const char *mapname, int unused_flags, int dict_flags)
     dict_regexp->dict.lookup = dict_regexp_lookup;
     dict_regexp->dict.close = dict_regexp_close;
     dict_regexp->dict.flags = dict_flags | DICT_FLAG_PATTERN;
+    if (dict_flags & DICT_FLAG_FOLD_MUL)
+	dict_regexp->dict.fold_buf = vstring_alloc(10);
     dict_regexp->head = 0;
     dict_regexp->pmatch = 0;
     dict_regexp->expansion_buf = 0;

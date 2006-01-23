@@ -18,6 +18,9 @@
 /*	void	auto_clnt_recover(auto_clnt)
 /*	AUTO_CLNT *auto_clnt;
 /*
+/*	const char *auto_clnt_name(auto_clnt)
+/*	AUTO_CLNT *auto_clnt;
+/*
 /*	void	auto_clnt_free(auto_clnt)
 /*	AUTO_CLNT *auto_clnt;
 /* DESCRIPTION
@@ -39,6 +42,8 @@
 /*
 /*	auto_clnt_recover() recovers from a server-initiated disconnect
 /*	that happened in the middle of an I/O operation.
+/*
+/*	auto_clnt_name() returns the name of the specified client endpoint.
 /*
 /*	auto_clnt_free() destroys of the specified client endpoint.
 /*
@@ -291,6 +296,13 @@ AUTO_CLNT *auto_clnt_create(const char *service, int timeout,
     }
     myfree(transport);
     return (auto_clnt);
+}
+
+/* auto_clnt_name - return client stream name */
+
+const char *auto_clnt_name(AUTO_CLNT *auto_clnt)
+{
+    return (auto_clnt->endpoint);
 }
 
 /* auto_clnt_free - destroy client stream instance */

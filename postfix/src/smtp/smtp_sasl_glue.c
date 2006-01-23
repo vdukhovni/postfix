@@ -175,7 +175,7 @@ int     smtp_sasl_passwd_lookup(SMTP_SESSION *session)
 	 && (value = mail_addr_find(smtp_sasl_passwd_map,
 				 state->request->sender, (char **) 0)) != 0)
 	|| (value = maps_find(smtp_sasl_passwd_map, session->host, 0)) != 0
-      || (value = maps_find(smtp_sasl_passwd_map, session->dest, 0)) != 0) {
+	|| (value = maps_find(smtp_sasl_passwd_map, session->dest, 0)) != 0) {
 	session->sasl_username = mystrdup(value);
 	passwd = split_at(session->sasl_username, ':');
 	session->sasl_passwd = mystrdup(passwd ? passwd : "");
@@ -211,7 +211,8 @@ void    smtp_sasl_initialize(void)
      * shared locks for reading, just in case someone updates the table.
      */
     smtp_sasl_passwd_map = maps_create("smtp_sasl_passwd",
-				       var_smtp_sasl_passwd, DICT_FLAG_LOCK);
+				       var_smtp_sasl_passwd,
+				       DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
     if ((smtp_sasl_impl = xsasl_client_init(var_smtp_sasl_type,
 					    var_smtp_sasl_path)) == 0)
 	msg_fatal("SASL library initialization");

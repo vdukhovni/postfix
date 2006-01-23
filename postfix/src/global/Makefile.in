@@ -22,7 +22,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	sent.c smtp_stream.c split_addr.c string_list.c strip_addr.c \
 	sys_exits.c timed_ipc.c tok822_find.c tok822_node.c tok822_parse.c \
 	tok822_resolve.c tok822_rewrite.c tok822_tree.c trace.c verify.c \
-	verify_clnt.c verp_sender.c virtual8_maps.c xtext.c scache_single.c \
+	verify_clnt.c verp_sender.c xtext.c scache_single.c \
 	scache_clnt.c scache_multi.c user_acl.c mkmap_cdb.c mkmap_sdbm.c \
 	ehlo_mask.c \
 	wildcard_inet_addr.c valid_mailhost_addr.c dsn_util.c dsn_mask.c \
@@ -52,7 +52,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	sent.o smtp_stream.o split_addr.o string_list.o strip_addr.o \
 	sys_exits.o timed_ipc.o tok822_find.o tok822_node.o tok822_parse.o \
 	tok822_resolve.o tok822_rewrite.o tok822_tree.o trace.o verify.o \
-	verify_clnt.o verp_sender.o virtual8_maps.o xtext.o scache_single.o \
+	verify_clnt.o verp_sender.o xtext.o scache_single.o \
 	scache_clnt.o scache_multi.o user_acl.o mkmap_cdb.o mkmap_sdbm.o \
 	ehlo_mask.o \
 	wildcard_inet_addr.o valid_mailhost_addr.o dsn_util.o dsn_mask.o \
@@ -78,7 +78,7 @@ HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	rec_streamlf.h rec_type.h recipient_list.h record.h resolve_clnt.h \
 	resolve_local.h rewrite_clnt.h sent.h smtp_stream.h split_addr.h \
 	string_list.h strip_addr.h sys_exits.h timed_ipc.h tok822.h \
-	trace.h verify.h verify_clnt.h verp_sender.h virtual8_maps.h \
+	trace.h verify.h verify_clnt.h verp_sender.h \
 	xtext.h scache.h user_acl.h ehlo_mask.h db_common.h \
 	wildcard_inet_addr.h valid_mailhost_addr.h dsn_util.h dsn_mask.h \
 	dsn_attr_map.h dsn.h dsn_buf.h rcpt_buf.h rcpt_print.h dsn_print.h \
@@ -93,7 +93,7 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	off_cvt quote_822_local rec2stream recdump resolve_clnt \
 	resolve_local rewrite_clnt stream2rec string_list tok822_parse \
 	quote_821_local mail_conf_time mime_state strip_addr \
-	virtual8_maps verify_clnt xtext anvil_clnt scache ehlo_mask \
+	verify_clnt xtext anvil_clnt scache ehlo_mask \
 	valid_mailhost_addr own_inet_addr
 
 LIBS	= ../../lib/libutil.a
@@ -244,11 +244,6 @@ strip_addr: $(LIB) $(LIBS)
 	$(CC) -DTEST $(CFLAGS) -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 	mv junk $@.o
 
-virtual8_maps: $(LIB) $(LIBS)
-	mv $@.o junk
-	$(CC) -DTEST $(CFLAGS) -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
-	mv junk $@.o
-
 verify_clnt: $(LIB) $(LIBS)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
@@ -278,7 +273,7 @@ own_inet_addr: own_inet_addr.c $(LIB) $(LIBS)
 
 tests: tok822_test mime_test mime_nest mime_8bit mime_dom mime_trunc \
 	mime_cvt mime_cvt2 mime_cvt3 strip_addr_test tok822_limit_test \
-	virtual8_test xtext_test scache_multi_test ehlo_mask_test \
+	xtext_test scache_multi_test ehlo_mask_test \
 	namadr_list_test
 
 tok822_test: tok822_parse tok822_parse.in tok822_parse.ref
@@ -335,13 +330,6 @@ strip_addr_test: strip_addr strip_addr.ref
 	./strip_addr 2>strip_addr.tmp
 	diff strip_addr.ref strip_addr.tmp
 	rm -f strip_addr.tmp
-
-virtual8_test: virtual8_maps virtual8_map virtual8.in virtual8.ref \
-	../postmap/postmap
-	../postmap/postmap hash:virtual8_map
-	./virtual8_maps <virtual8.in hash:virtual8_map >virtual8.tmp
-	diff virtual8.ref virtual8.tmp
-	rm -f virtual8.tmp virtual8_map.db
 
 xtext_test: xtext
 	./xtext <xtext.c | od -cb >xtext.tmp
@@ -690,6 +678,7 @@ dict_mysql.o: ../../include/msg.h
 dict_mysql.o: ../../include/mymalloc.h
 dict_mysql.o: ../../include/myrand.h
 dict_mysql.o: ../../include/split_at.h
+dict_mysql.o: ../../include/stringops.h
 dict_mysql.o: ../../include/sys_defs.h
 dict_mysql.o: ../../include/vbuf.h
 dict_mysql.o: ../../include/vstream.h
@@ -709,6 +698,7 @@ dict_pgsql.o: ../../include/msg.h
 dict_pgsql.o: ../../include/mymalloc.h
 dict_pgsql.o: ../../include/myrand.h
 dict_pgsql.o: ../../include/split_at.h
+dict_pgsql.o: ../../include/stringops.h
 dict_pgsql.o: ../../include/sys_defs.h
 dict_pgsql.o: ../../include/vbuf.h
 dict_pgsql.o: ../../include/vstream.h
@@ -793,6 +783,8 @@ dsn_mask.o: ../../include/msg.h
 dsn_mask.o: ../../include/name_code.h
 dsn_mask.o: ../../include/name_mask.h
 dsn_mask.o: ../../include/sys_defs.h
+dsn_mask.o: ../../include/vbuf.h
+dsn_mask.o: ../../include/vstring.h
 dsn_mask.o: dsn_mask.c
 dsn_mask.o: dsn_mask.h
 dsn_print.o: ../../include/attr.h
@@ -814,10 +806,14 @@ dsn_util.o: dsn_util.c
 dsn_util.o: dsn_util.h
 ehlo_mask.o: ../../include/name_mask.h
 ehlo_mask.o: ../../include/sys_defs.h
+ehlo_mask.o: ../../include/vbuf.h
+ehlo_mask.o: ../../include/vstring.h
 ehlo_mask.o: ehlo_mask.c
 ehlo_mask.o: ehlo_mask.h
 ext_prop.o: ../../include/name_mask.h
 ext_prop.o: ../../include/sys_defs.h
+ext_prop.o: ../../include/vbuf.h
+ext_prop.o: ../../include/vstring.h
 ext_prop.o: ext_prop.c
 ext_prop.o: ext_prop.h
 ext_prop.o: mail_params.h
@@ -871,6 +867,8 @@ hold_message.o: mail_queue.h
 input_transp.o: ../../include/msg.h
 input_transp.o: ../../include/name_mask.h
 input_transp.o: ../../include/sys_defs.h
+input_transp.o: ../../include/vbuf.h
+input_transp.o: ../../include/vstring.h
 input_transp.o: cleanup_user.h
 input_transp.o: input_transp.c
 input_transp.o: input_transp.h
@@ -970,6 +968,7 @@ mail_conf_bool.o: ../../include/msg.h
 mail_conf_bool.o: ../../include/sys_defs.h
 mail_conf_bool.o: ../../include/vbuf.h
 mail_conf_bool.o: ../../include/vstream.h
+mail_conf_bool.o: ../../include/vstring.h
 mail_conf_bool.o: mail_conf.h
 mail_conf_bool.o: mail_conf_bool.c
 mail_conf_int.o: ../../include/argv.h
@@ -1064,6 +1063,7 @@ mail_dict.o: ../../include/msg.h
 mail_dict.o: ../../include/sys_defs.h
 mail_dict.o: ../../include/vbuf.h
 mail_dict.o: ../../include/vstream.h
+mail_dict.o: ../../include/vstring.h
 mail_dict.o: dict_ldap.h
 mail_dict.o: dict_mysql.h
 mail_dict.o: dict_pgsql.h
@@ -1072,6 +1072,8 @@ mail_dict.o: mail_dict.c
 mail_dict.o: mail_dict.h
 mail_error.o: ../../include/name_mask.h
 mail_error.o: ../../include/sys_defs.h
+mail_error.o: ../../include/vbuf.h
+mail_error.o: ../../include/vstring.h
 mail_error.o: mail_error.c
 mail_error.o: mail_error.h
 mail_flush.o: ../../include/attr.h
@@ -1231,6 +1233,8 @@ match_parent_style.o: string_list.h
 mbox_conf.o: ../../include/argv.h
 mbox_conf.o: ../../include/name_mask.h
 mbox_conf.o: ../../include/sys_defs.h
+mbox_conf.o: ../../include/vbuf.h
+mbox_conf.o: ../../include/vstring.h
 mbox_conf.o: mail_params.h
 mbox_conf.o: mbox_conf.c
 mbox_conf.o: mbox_conf.h
@@ -1271,6 +1275,7 @@ mkmap_cdb.o: ../../include/mymalloc.h
 mkmap_cdb.o: ../../include/sys_defs.h
 mkmap_cdb.o: ../../include/vbuf.h
 mkmap_cdb.o: ../../include/vstream.h
+mkmap_cdb.o: ../../include/vstring.h
 mkmap_cdb.o: mkmap.h
 mkmap_cdb.o: mkmap_cdb.c
 mkmap_db.o: ../../include/argv.h
@@ -1312,6 +1317,7 @@ mkmap_open.o: ../../include/sigdelay.h
 mkmap_open.o: ../../include/sys_defs.h
 mkmap_open.o: ../../include/vbuf.h
 mkmap_open.o: ../../include/vstream.h
+mkmap_open.o: ../../include/vstring.h
 mkmap_open.o: mkmap.h
 mkmap_open.o: mkmap_open.c
 mkmap_sdbm.o: ../../include/argv.h
@@ -1791,18 +1797,6 @@ verp_sender.o: ../../include/vstring.h
 verp_sender.o: mail_params.h
 verp_sender.o: verp_sender.c
 verp_sender.o: verp_sender.h
-virtual8_maps.o: ../../include/argv.h
-virtual8_maps.o: ../../include/dict.h
-virtual8_maps.o: ../../include/msg.h
-virtual8_maps.o: ../../include/mymalloc.h
-virtual8_maps.o: ../../include/sys_defs.h
-virtual8_maps.o: ../../include/vbuf.h
-virtual8_maps.o: ../../include/vstream.h
-virtual8_maps.o: mail_params.h
-virtual8_maps.o: maps.h
-virtual8_maps.o: strip_addr.h
-virtual8_maps.o: virtual8_maps.c
-virtual8_maps.o: virtual8_maps.h
 wildcard_inet_addr.o: ../../include/inet_addr_host.h
 wildcard_inet_addr.o: ../../include/inet_addr_list.h
 wildcard_inet_addr.o: ../../include/msg.h

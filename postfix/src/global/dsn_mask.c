@@ -117,6 +117,7 @@ int     dsn_notify_mask(const char *str)
 
 const char *dsn_notify_str(int mask)
 {
-    return (str_name_mask_opt("DSN NOTIFY command", dsn_notify_table,
-			      mask, NAME_MASK_FATAL | NAME_MASK_COMMA));
+    return (str_name_mask_opt((VSTRING *) 0, "DSN NOTIFY command",
+			      dsn_notify_table, mask,
+			      NAME_MASK_FATAL | NAME_MASK_COMMA));
 }

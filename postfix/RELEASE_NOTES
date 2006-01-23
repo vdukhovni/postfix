@@ -17,6 +17,48 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
+Incompatibility with snapshot 20060123
+======================================
+
+Postfix now preserves uppercase information while mapping addresses
+with canonical, virtual, relocated or generic maps; this happens
+even with lookups from regular expression maps. However, the local(8)
+and virtual(8) delivery agents still fold addresses to lower case.
+
+By default, Postfix now folds the search string to lowercase only
+with tables that have fixed-case lookup fields such as btree:,
+hash:, dbm:, ldap:, or *sql:. The search string is no longer case
+folded with tables whose lookup fields can match both upper or lower
+case, such as regexp:, pcre:, or cidr:.
+
+For safety reasons, Postfix no longer allows $number substitution
+in regexp: or pcre: transport tables or per-sender relayhost tables.
+
+For safety reasons, daemons that don't need privileges now insist
+that they are configured as unprivileged in master.cf.
+
+Major changes with snapshot 20060123
+====================================
+
+Postfix now does a better job at preserving upper/lower case
+information while transforming addresses.  The table lookup code
+was revised, and is now more careful about when it folds search
+strings to lower case.  As a side effect, Postfix now also does a
+better job at being case insensitive where it should, for example
+while searching per-host TLS policies or SASL passwords.
+
+Some obscure behavior was eliminated from the smtp_tls_per_site
+feature, without changes to the user interface. some Postfix internals
+had to be re-structured in preparation for a more general TLS policy
+mechanism; this required that smtp_tls_per_site be re-implemented
+from scratch.
+
+Postfix 2.3 is expected to provide a new per-site TLS policy mechanism
+that eliminates DNS spoofing attacks more effectively; the legacy
+smtp_tls_per_site feature will be kept intact for a few releases
+so that sites can upgrade Postfix without being forced to use a
+different TLS policy mechanism.
+
 Incompatibility with snapshot 20060112
 ======================================
 
@@ -28,7 +70,7 @@ and mail will not be delivered.
 The Postfix SMTP/LMTP client by default no longer allows DNS CNAME
 records to override the server hostname that is used for logging,
 SASL password lookup, TLS policy selection and TLS server certificate
-verification. Specify "smtp_cname_overrides_servername = no" to get
+verification. Specify "smtp_cname_overrides_servername = yes" to get
 the old behavior.
 
 Postfix DSN reports no longer make up their own surrogate SMTP

@@ -456,7 +456,7 @@ int     main(int argc, char **argv)
      * Send the completion status to the caller and terminate.
      */
     attr_print(VSTREAM_OUT, ATTR_FLAG_NONE,
-	       ATTR_TYPE_NUM, MAIL_ATTR_STATUS, status,
+	       ATTR_TYPE_INT, MAIL_ATTR_STATUS, status,
 	       ATTR_TYPE_STR, MAIL_ATTR_WHY, "",
 	       ATTR_TYPE_END);
     vstream_fflush(VSTREAM_OUT);

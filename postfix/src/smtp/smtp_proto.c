@@ -316,7 +316,7 @@ int     smtp_helo(SMTP_STATE *state)
 	    if (n == 0 && strcasecmp(word, var_myhostname) == 0) {
 		if (state->misc_flags & SMTP_MISC_FLAG_LOOP_DETECT)
 		    msg_warn("host %s greeted me with my own hostname %s",
-			     session->namaddr, var_myhostname);
+			     session->namaddrport, var_myhostname);
 	    } else if (strcasecmp(word, "ESMTP") == 0)
 		session->features |= SMTP_FEATURE_ESMTP;
 	}
@@ -507,16 +507,15 @@ int     smtp_helo(SMTP_STATE *state)
 	 * Optionally log unused STARTTLS opportunities.
 	 */
 	if ((session->features & SMTP_FEATURE_STARTTLS) &&
-	    (var_smtp_tls_note_starttls_offer) &&
-	    (!(session->tls_enforce_tls || session->tls_use_tls)))
+	    var_smtp_tls_note_starttls_offer &&
+	    session->tls_level <= SMTP_TLS_LEV_NONE)
 	    msg_info("Host offered STARTTLS: [%s]", session->host);
 
 	/*
 	 * Decide whether or not to send STARTTLS.
 	 */
 	if ((session->features & SMTP_FEATURE_STARTTLS) != 0
-	    && smtp_tls_ctx != 0
-	    && (session->tls_use_tls || session->tls_enforce_tls)) {
+	    && smtp_tls_ctx != 0 && session->tls_level >= SMTP_TLS_LEV_MAY) {
 
 	    /*
 	     * Prepare for disaster.
@@ -556,7 +555,7 @@ int     smtp_helo(SMTP_STATE *state)
 	     * although support for it was announced in the EHLO response.
 	     */
 	    session->features &= ~SMTP_FEATURE_STARTTLS;
-	    if (session->tls_enforce_tls)
+	    if (session->tls_level >= SMTP_TLS_LEV_ENCRYPT)
 		return (smtp_site_fail(state, session->host, resp,
 		    "TLS is required, but host %s refused to start TLS: %s",
 				       session->namaddr,
@@ -571,7 +570,7 @@ int     smtp_helo(SMTP_STATE *state)
 	 * block. When TLS is required we must never, ever, end up in
 	 * plain-text mode.
 	 */
-	if (session->tls_enforce_tls) {
+	if (session->tls_level >= SMTP_TLS_LEV_ENCRYPT) {
 	    if (!(session->features & SMTP_FEATURE_STARTTLS)) {
 		return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				       SMTP_RESP_FAKE(&fake, "4.7.4"),
@@ -646,9 +645,8 @@ static int smtp_start_tls(SMTP_STATE *state)
     session->tls_context =
 	tls_client_start(smtp_tls_ctx, session->stream,
 			 var_smtp_starttls_tmout,
-			 session->tls_enforce_peername,
-			 session->host,
-			 lowercase(vstring_str(serverid)));
+			 session->tls_level >= SMTP_TLS_LEV_VERIFY,
+			 session->host, lowercase(vstring_str(serverid)));
     vstring_free(serverid);
     if (session->tls_context == 0)
 	return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,

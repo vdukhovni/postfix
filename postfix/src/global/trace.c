@@ -121,8 +121,8 @@ int     trace_append(int flags, const char *id, MSG_STATS *stats,
     my_dsn.reason = vstring_str(why);
 
     if (mail_command_client(MAIL_CLASS_PRIVATE, var_trace_service,
-			    ATTR_TYPE_NUM, MAIL_ATTR_NREQ, BOUNCE_CMD_APPEND,
-			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
+			    ATTR_TYPE_INT, MAIL_ATTR_NREQ, BOUNCE_CMD_APPEND,
+			    ATTR_TYPE_INT, MAIL_ATTR_FLAGS, flags,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
 			    ATTR_TYPE_FUNC, rcpt_print, (void *) rcpt,
 			    ATTR_TYPE_FUNC, dsn_print, (void *) &my_dsn,
@@ -145,14 +145,14 @@ int     trace_flush(int flags, const char *queue, const char *id,
 		            const char *dsn_envid, int dsn_ret)
 {
     if (mail_command_client(MAIL_CLASS_PRIVATE, var_trace_service,
-			    ATTR_TYPE_NUM, MAIL_ATTR_NREQ, BOUNCE_CMD_TRACE,
-			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
+			    ATTR_TYPE_INT, MAIL_ATTR_NREQ, BOUNCE_CMD_TRACE,
+			    ATTR_TYPE_INT, MAIL_ATTR_FLAGS, flags,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
 			    ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
 			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
 			    ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, dsn_envid,
-			    ATTR_TYPE_NUM, MAIL_ATTR_DSN_RET, dsn_ret,
+			    ATTR_TYPE_INT, MAIL_ATTR_DSN_RET, dsn_ret,
 			    ATTR_TYPE_END) == 0) {
 	return (0);
     } else {

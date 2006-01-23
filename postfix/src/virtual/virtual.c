@@ -174,8 +174,8 @@
 /*	Postfix is final destination for the specified list of domains;
 /*	mail is delivered via the $virtual_transport mail delivery transport.
 /* .IP "\fBvirtual_transport (virtual)\fR"
-/*	The default mail delivery transport for domains that match the
-/*	$virtual_mailbox_domains parameter value.
+/*	The default mail delivery transport and next-hop destination for
+/*	final delivery to domains listed with $virtual_mailbox_domains.
 /* LOCKING CONTROLS
 /* .ad
 /* .fi
@@ -432,6 +432,9 @@ static void post_init(char *unused_name, char **unused_argv)
      */
     set_eugid(var_owner_uid, var_owner_gid);
 
+    /*
+     * No case folding needed: the recipient address is case folded.
+     */
     virtual_mailbox_maps =
 	maps_create(VAR_VIRT_MAILBOX_MAPS, var_virt_mailbox_maps,
 		    DICT_FLAG_LOCK | DICT_FLAG_PARANOID);

@@ -95,9 +95,9 @@ OK
 >>> sender_restrictions hash:./smtpd_check_access
 OK
 >>> mail user@4.1.1_dsn
-./smtpd_check: mapping DSN status 4.1.1 into Sender address status 4.1.0
-./smtpd_check: <queue id>: reject: MAIL from dummy[dummy]: 554 5.1.0 <user@4.1.1_dsn>: Sender address rejected: reject; from=<user@4.1.1_dsn> proto=SMTP helo=<4.4.0_dsn>
-554 5.1.0 <user@4.1.1_dsn>: Sender address rejected: reject
+./smtpd_check: mapping DSN status 4.1.1 into Sender address status 4.1.7
+./smtpd_check: <queue id>: reject: MAIL from dummy[dummy]: 554 5.1.7 <user@4.1.1_dsn>: Sender address rejected: reject; from=<user@4.1.1_dsn> proto=SMTP helo=<4.4.0_dsn>
+554 5.1.7 <user@4.1.1_dsn>: Sender address rejected: reject
 >>> mail user@4.1.2_dsn
 ./smtpd_check: mapping DSN status 4.1.2 into Sender address status 4.1.8
 ./smtpd_check: <queue id>: reject: MAIL from dummy[dummy]: 554 5.1.8 <user@4.1.2_dsn>: Sender address rejected: reject; from=<user@4.1.2_dsn> proto=SMTP helo=<4.4.0_dsn>
@@ -107,17 +107,17 @@ OK
 ./smtpd_check: <queue id>: reject: MAIL from dummy[dummy]: 554 5.1.7 <user@4.1.3_dsn>: Sender address rejected: reject; from=<user@4.1.3_dsn> proto=SMTP helo=<4.4.0_dsn>
 554 5.1.7 <user@4.1.3_dsn>: Sender address rejected: reject
 >>> mail user@4.1.4_dsn
-./smtpd_check: mapping DSN status 4.1.4 into Sender address status 4.1.0
-./smtpd_check: <queue id>: reject: MAIL from dummy[dummy]: 554 5.1.0 <user@4.1.4_dsn>: Sender address rejected: reject; from=<user@4.1.4_dsn> proto=SMTP helo=<4.4.0_dsn>
-554 5.1.0 <user@4.1.4_dsn>: Sender address rejected: reject
+./smtpd_check: mapping DSN status 4.1.4 into Sender address status 4.1.7
+./smtpd_check: <queue id>: reject: MAIL from dummy[dummy]: 554 5.1.7 <user@4.1.4_dsn>: Sender address rejected: reject; from=<user@4.1.4_dsn> proto=SMTP helo=<4.4.0_dsn>
+554 5.1.7 <user@4.1.4_dsn>: Sender address rejected: reject
 >>> mail user@4.1.5_dsn
 ./smtpd_check: mapping DSN status 4.1.5 into Sender address status 4.1.0
 ./smtpd_check: <queue id>: reject: MAIL from dummy[dummy]: 554 5.1.0 <user@4.1.5_dsn>: Sender address rejected: reject; from=<user@4.1.5_dsn> proto=SMTP helo=<4.4.0_dsn>
 554 5.1.0 <user@4.1.5_dsn>: Sender address rejected: reject
 >>> mail user@4.1.6_dsn
-./smtpd_check: mapping DSN status 4.1.6 into Sender address status 4.1.0
-./smtpd_check: <queue id>: reject: MAIL from dummy[dummy]: 554 5.1.0 <user@4.1.6_dsn>: Sender address rejected: reject; from=<user@4.1.6_dsn> proto=SMTP helo=<4.4.0_dsn>
-554 5.1.0 <user@4.1.6_dsn>: Sender address rejected: reject
+./smtpd_check: mapping DSN status 4.1.6 into Sender address status 4.1.7
+./smtpd_check: <queue id>: reject: MAIL from dummy[dummy]: 554 5.1.7 <user@4.1.6_dsn>: Sender address rejected: reject; from=<user@4.1.6_dsn> proto=SMTP helo=<4.4.0_dsn>
+554 5.1.7 <user@4.1.6_dsn>: Sender address rejected: reject
 >>> mail user@4.1.7_dsn
 ./smtpd_check: <queue id>: reject: MAIL from dummy[dummy]: 554 5.1.7 <user@4.1.7_dsn>: Sender address rejected: reject; from=<user@4.1.7_dsn> proto=SMTP helo=<4.4.0_dsn>
 554 5.1.7 <user@4.1.7_dsn>: Sender address rejected: reject

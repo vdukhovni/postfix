@@ -188,7 +188,7 @@ int     main(int argc, char **argv)
     VSTRING *out = vstring_alloc(10);
     int     un_escape = 1;
 
-    if (argc > 2 || (un_escape = strcmp(argv[1], "-e")) != 0)
+    if (argc > 2 || (argc > 1 && (un_escape = strcmp(argv[1], "-e"))) != 0)
 	msg_fatal("usage: %s [-e (escape)]", argv[0]);
 
     if (un_escape) {
