@@ -220,11 +220,11 @@ PERL/SMTP content filtering framework. See:
 
 </blockquote>
 
-<p> This is configured by editing the master.cf file: </p>
+<p> This is configured by editing the <a href="master.5.html">master.cf</a> file: </p>
 
 <blockquote>
 <pre>
-/etc/postfix/master.cf:
+/etc/postfix/<a href="master.5.html">master.cf</a>:
     # =============================================================
     # service type  private unpriv  chroot  wakeup  maxproc command
     #               (yes)   (yes)   (yes)   (never) (100)
@@ -256,7 +256,7 @@ PERL/SMTP content filtering framework. See:
 
 <p> The before-filter SMTP server entry is a modified version of the
 default Postfix SMTP server entry that is normally configured at
-the top of the master.cf file: </p>
+the top of the <a href="master.5.html">master.cf</a> file: </p>
 
 <ul>
 
@@ -279,13 +279,13 @@ the top of the master.cf file: </p>
 
     <li> <p> Postfix 2.3 supports both TCP and UNIX-domain filters.
     The above filter could be specified as "inet:127.0.0.1:10025".
-    To specify a UNIX-domain filter, specify "unix:<i>pathame</i>".
+    To specify a UNIX-domain filter, specify "unix:<i>pathname</i>".
     A relative pathname is interpreted relative to the Postfix queue
     directory. </p>
 
 </ul>
 
-<p> The after-filter SMTP server is a new master.cf entry: </p>
+<p> The after-filter SMTP server is a new <a href="master.5.html">master.cf</a> entry: </p>
 
 <ul>
 

@@ -1165,10 +1165,12 @@ parameter.  </p>
 <!-- legacy --> per-site TLS policies </a> </h3>
 
 <p> As long as no secure DNS lookup mechanism is available, false
-hostnames may appear in MX or CNAME responses. Even with a perfect
-match between the server hostname and the server certificate, there
-is no guarantee that Postfix is connected to the right server.  To
-avoid this loophole take the following steps: </p>
+hostnames in MX or CNAME responses can change the server hostname
+that Postfix uses for TLS policy lookup and server certificate
+verification. Even with a perfect match between the server hostname
+and the server certificate, there is no guarantee that Postfix is
+connected to the right server.  To avoid this loophole take the
+following steps: </p>
 
 <ul>
 

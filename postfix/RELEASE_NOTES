@@ -22,8 +22,9 @@ Incompatibility with snapshot 20060123
 
 Postfix now preserves uppercase information while mapping addresses
 with canonical, virtual, relocated or generic maps; this happens
-even with lookups from regular expression maps. However, the local(8)
-and virtual(8) delivery agents still fold addresses to lower case.
+even with $number substitutions in regular expression maps. However,
+the local(8) and virtual(8) delivery agents still fold addresses
+to lower case.
 
 By default, Postfix now folds the search string to lowercase only
 with tables that have fixed-case lookup fields such as btree:,
@@ -48,7 +49,7 @@ better job at being case insensitive where it should, for example
 while searching per-host TLS policies or SASL passwords.
 
 Some obscure behavior was eliminated from the smtp_tls_per_site
-feature, without changes to the user interface. some Postfix internals
+feature, without changes to the user interface. Some Postfix internals
 had to be re-structured in preparation for a more general TLS policy
 mechanism; this required that smtp_tls_per_site be re-implemented
 from scratch.

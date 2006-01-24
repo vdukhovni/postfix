@@ -1287,6 +1287,9 @@ is: aliases, .forward files, mailbox_transport_maps, mailbox_transport,
 mailbox_command_maps, mailbox_command, home_mailbox, mail_spool_directory,
 fallback_transport_maps, fallback_transport and luser_relay.
 .PP
+For safety reasons, this feature does not allow $number
+substitutions in regular expression maps.
+.PP
 This feature is available in Postfix 2.3 and later.
 .SH fast_flush_domains (default: $relay_domains)
 Optional list of destinations that are eligible for per-destination
@@ -1886,7 +1889,7 @@ to the remote host.
 Implementation-specific information that is passed through to
 the SASL plug-in implementation that is selected with
 \fBlmtp_sasl_type\fR.  Typically this specifies the name of a
-configuration file or rendez-vous point.
+configuration file or rendezvous point.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH lmtp_sasl_security_options (default: noplaintext, noanonymous)
@@ -2397,6 +2400,9 @@ The precedence of \fBlocal\fR(8) delivery features from high to low
 is: aliases, .forward files, mailbox_transport_maps, mailbox_transport,
 mailbox_command_maps, mailbox_command, home_mailbox, mail_spool_directory,
 fallback_transport_maps, fallback_transport and luser_relay.
+.PP
+For safety reasons, this feature does not allow $number
+substitutions in regular expression maps.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH mailq_path (default: see "postconf -d" output)
@@ -3496,6 +3502,9 @@ setting. The tables are searched by the sender address and by the
 @domain. This information is overruled with relay_transport,
 default_transport and with the \fBtransport\fR(5) table.
 .PP
+For safety reasons, this feature does not allow $number
+substitutions in regular expression maps.
+.PP
 This feature is available in Postfix 2.3 and later.
 .SH sendmail_path (default: see "postconf -d" output)
 A Sendmail compatibility feature that specifies the location of
@@ -4000,7 +4009,7 @@ chroot jail, so you can leave the password file in /etc/postfix.
 Implementation-specific information that is passed through to
 the SASL plug-in implementation that is selected with
 \fBsmtp_sasl_type\fR.  Typically this specifies the name of a
-configuration file or rendez-vous point.
+configuration file or rendezvous point.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH smtp_sasl_security_options (default: noplaintext, noanonymous)
@@ -5391,7 +5400,7 @@ smtpd_sasl_local_domain = $myhostname
 Implementation-specific information that is passed through to
 the SASL plug-in implementation that is selected with
 \fBsmtpd_sasl_type\fR.  Typically this specifies the name of a
-configuration file or rendez-vous point.
+configuration file or rendezvous point.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH smtpd_sasl_security_options (default: noanonymous)
@@ -6018,6 +6027,9 @@ for details.
 Specify zero or more "type:table" lookup tables.  If you use this
 feature with local files, run "\fBpostmap /etc/postfix/transport\fR"
 after making a change.
+.PP
+For safety reasons, as of Postfix 2.3 this feature does not
+allow $number substitutions in regular expression maps.
 .PP
 Examples:
 .PP

@@ -11873,6 +11873,9 @@ Apologies for any names omitted.
 	options are specified.  Files: postmap/postmap.c,
 	postalias/postalias.c.
 
+	Safety: don't allow $number substitution in transport maps
+	or sender-dependent relayhost maps.
+
 	Cleanup: smtp_sasl_passwd_maps lookup keys are folded to
 	lowercase before searching tables such as btree:, dbm: or
 	hash: that have fixed-case fields. File: smtp/smtp_sasl_glue.c.
@@ -11919,6 +11922,12 @@ Apologies for any names omitted.
 
 	Bugfix: change 20051208 broke when a connection could not
 	be established. File: util/auto_clnt.c.
+
+20060124
+
+	Bugfix: the virtual(8) delivery agent did not insist on
+	privileged operation; this broke change 20060117. File:
+	virtual/virtual.c.
 
 Open problems:
 

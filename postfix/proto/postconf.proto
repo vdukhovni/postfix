@@ -5842,6 +5842,9 @@ Specify zero or more "type:table" lookup tables.  If you use this
 feature with local files, run "<b>postmap /etc/postfix/transport</b>"
 after making a change.  </p>
 
+<p> For safety reasons, as of Postfix 2.3 this feature does not
+allow $number substitutions in regular expression maps. </p>
+
 <p>
 Examples:
 </p>
@@ -8819,6 +8822,9 @@ setting. The tables are searched by the sender address and by the
 @domain. This information is overruled with relay_transport,
 default_transport and with the transport(5) table. </p>
 
+<p> For safety reasons, this feature does not allow $number
+substitutions in regular expression maps. </p>
+
 <p>
 This feature is available in Postfix 2.3 and later.
 </p>
@@ -9130,7 +9136,7 @@ for authentication.  The available types are listed with the
 <p> Implementation-specific information that is passed through to
 the SASL plug-in implementation that is selected with
 <b>smtpd_sasl_type</b>.  Typically this specifies the name of a
-configuration file or rendez-vous point. </p>
+configuration file or rendezvous point. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -9139,7 +9145,7 @@ configuration file or rendez-vous point. </p>
 <p> Implementation-specific information that is passed through to
 the SASL plug-in implementation that is selected with
 <b>smtp_sasl_type</b>.  Typically this specifies the name of a
-configuration file or rendez-vous point. </p>
+configuration file or rendezvous point. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -9148,7 +9154,7 @@ configuration file or rendez-vous point. </p>
 <p> Implementation-specific information that is passed through to
 the SASL plug-in implementation that is selected with
 <b>lmtp_sasl_type</b>.  Typically this specifies the name of a
-configuration file or rendez-vous point. </p>
+configuration file or rendezvous point. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -9178,6 +9184,9 @@ recipients are found in the UNIX passwd database. </p>
 is: aliases, .forward files, mailbox_transport_maps, mailbox_transport,
 mailbox_command_maps, mailbox_command, home_mailbox, mail_spool_directory,
 fallback_transport_maps, fallback_transport and luser_relay.  </p>
+
+<p> For safety reasons, this feature does not allow $number
+substitutions in regular expression maps. </p>
  
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -9191,6 +9200,9 @@ not find in the aliases(5) or UNIX password database. </p>
 is: aliases, .forward files, mailbox_transport_maps, mailbox_transport,
 mailbox_command_maps, mailbox_command, home_mailbox, mail_spool_directory,
 fallback_transport_maps, fallback_transport and luser_relay.  </p>
+
+<p> For safety reasons, this feature does not allow $number
+substitutions in regular expression maps. </p>
  
 <p> This feature is available in Postfix 2.3 and later. </p>
 

@@ -784,10 +784,12 @@ summarized as follows:
 
 CClloossiinngg aa DDNNSS lloooopphhoollee wwiitthh  ppeerr--ssiittee TTLLSS ppoolliicciieess
 
-As long as no secure DNS lookup mechanism is available, false hostnames may
-appear in MX or CNAME responses. Even with a perfect match between the server
-hostname and the server certificate, there is no guarantee that Postfix is
-connected to the right server. To avoid this loophole take the following steps:
+As long as no secure DNS lookup mechanism is available, false hostnames in MX
+or CNAME responses can change the server hostname that Postfix uses for TLS
+policy lookup and server certificate verification. Even with a perfect match
+between the server hostname and the server certificate, there is no guarantee
+that Postfix is connected to the right server. To avoid this loophole take the
+following steps:
 
   * Eliminate MX lookups. Specify local transport(5) table entries for
     sensitive domains with explicit smtp:[mailhost] or smtp:[mailhost]:port

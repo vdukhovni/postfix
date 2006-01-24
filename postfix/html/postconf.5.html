@@ -2386,6 +2386,9 @@ is: aliases, .forward files, <a href="postconf.5.html#mailbox_transport_maps">ma
 <a href="postconf.5.html#mailbox_command_maps">mailbox_command_maps</a>, <a href="postconf.5.html#mailbox_command">mailbox_command</a>, <a href="postconf.5.html#home_mailbox">home_mailbox</a>, <a href="postconf.5.html#mail_spool_directory">mail_spool_directory</a>,
 <a href="postconf.5.html#fallback_transport_maps">fallback_transport_maps</a>, <a href="postconf.5.html#fallback_transport">fallback_transport</a> and <a href="postconf.5.html#luser_relay">luser_relay</a>.  </p>
 
+<p> For safety reasons, this feature does not allow $number
+substitutions in regular expression maps. </p>
+
 <p> This feature is available in Postfix 2.3 and later. </p>
 
 
@@ -3543,7 +3546,7 @@ to the remote host.
 <p> Implementation-specific information that is passed through to
 the SASL plug-in implementation that is selected with
 <b><a href="postconf.5.html#lmtp_sasl_type">lmtp_sasl_type</a></b>.  Typically this specifies the name of a
-configuration file or rendez-vous point. </p>
+configuration file or rendezvous point. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -4411,6 +4414,9 @@ recipients are found in the UNIX passwd database. </p>
 is: aliases, .forward files, <a href="postconf.5.html#mailbox_transport_maps">mailbox_transport_maps</a>, <a href="postconf.5.html#mailbox_transport">mailbox_transport</a>,
 <a href="postconf.5.html#mailbox_command_maps">mailbox_command_maps</a>, <a href="postconf.5.html#mailbox_command">mailbox_command</a>, <a href="postconf.5.html#home_mailbox">home_mailbox</a>, <a href="postconf.5.html#mail_spool_directory">mail_spool_directory</a>,
 <a href="postconf.5.html#fallback_transport_maps">fallback_transport_maps</a>, <a href="postconf.5.html#fallback_transport">fallback_transport</a> and <a href="postconf.5.html#luser_relay">luser_relay</a>.  </p>
+
+<p> For safety reasons, this feature does not allow $number
+substitutions in regular expression maps. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -6266,6 +6272,9 @@ setting. The tables are searched by the sender address and by the
 @domain. This information is overruled with <a href="postconf.5.html#relay_transport">relay_transport</a>,
 <a href="postconf.5.html#default_transport">default_transport</a> and with the <a href="transport.5.html">transport(5)</a> table. </p>
 
+<p> For safety reasons, this feature does not allow $number
+substitutions in regular expression maps. </p>
+
 <p>
 This feature is available in Postfix 2.3 and later.
 </p>
@@ -7167,7 +7176,7 @@ chroot jail, so you can leave the password file in /etc/postfix.
 <p> Implementation-specific information that is passed through to
 the SASL plug-in implementation that is selected with
 <b><a href="postconf.5.html#smtp_sasl_type">smtp_sasl_type</a></b>.  Typically this specifies the name of a
-configuration file or rendez-vous point. </p>
+configuration file or rendezvous point. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -9308,7 +9317,7 @@ Examples:
 <p> Implementation-specific information that is passed through to
 the SASL plug-in implementation that is selected with
 <b><a href="postconf.5.html#smtpd_sasl_type">smtpd_sasl_type</a></b>.  Typically this specifies the name of a
-configuration file or rendez-vous point. </p>
+configuration file or rendezvous point. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -10318,6 +10327,9 @@ for details.
 Specify zero or more "<a href="DATABASE_README.html">type:table</a>" lookup tables.  If you use this
 feature with local files, run "<b>postmap /etc/postfix/transport</b>"
 after making a change.  </p>
+
+<p> For safety reasons, as of Postfix 2.3 this feature does not
+allow $number substitutions in regular expression maps. </p>
 
 <p>
 Examples:
