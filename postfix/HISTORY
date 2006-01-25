@@ -11926,8 +11926,13 @@ Apologies for any names omitted.
 20060124
 
 	Bugfix: the virtual(8) delivery agent did not insist on
-	privileged operation; this broke change 20060117. File:
-	virtual/virtual.c.
+	privileged operation as it should; this broke change 20060117.
+	Ralf Hildebrandt.  File: virtual/virtual.c.
+
+	Bugfix: the TLS sasl security options (change 20060110)
+	should also be #ifdef USE_TLS, and not only #ifdef
+	USE_SASL_AUTH.  Such feature interference is difficult to
+	find in testing.  Liviu Daia. File: smtp/smtp_sasl_proto.c.
 
 Open problems:
 

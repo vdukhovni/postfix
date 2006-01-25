@@ -176,15 +176,19 @@ int     smtp_sasl_helo_login(SMTP_STATE *state)
 	ret = smtp_sess_fail(state);
 	/* Session reuse is disabled. */
     } else {
+#ifdef USE_TLS
 	if (session->tls_context == 0)
+#endif
 	    smtp_sasl_start(session, VAR_SMTP_SASL_OPTS, 
 		var_smtp_sasl_opts);
+#ifdef USE_TLS
 	else if (session->tls_context->peer_verified == 0)
 	    smtp_sasl_start(session, VAR_SMTP_SASL_TLS_OPTS, 
 		var_smtp_sasl_tls_opts);
 	else
 	    smtp_sasl_start(session, VAR_SMTP_SASL_TLSV_OPTS, 
 		var_smtp_sasl_tlsv_opts);
+#endif
 	if (smtp_sasl_authenticate(session, why) <= 0) {
 	    ret = smtp_sess_fail(state);
 	    /* Session reuse is disabled. */
