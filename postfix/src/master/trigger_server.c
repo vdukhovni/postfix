@@ -405,7 +405,6 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
     char   *oval;
     char   *generation;
     int     msg_vstream_needed = 0;
-    int     privileged = 0;
 
     /*
      * Process environment options as early as we can.
@@ -572,16 +571,12 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
 	    if (user_name)
 		msg_fatal("service %s requires privileged operation",
 			  service_name);
-	    privileged = 1;
 	    break;
 	default:
 	    msg_panic("%s: unknown argument type: %d", myname, key);
 	}
     }
     va_end(ap);
-
-    if (privileged == 0 && user_name == 0)
-	msg_fatal("service %s requires unprivileged operation", service_name);
 
     if (root_dir)
 	root_dir = var_queue_dir;

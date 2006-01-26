@@ -11934,7 +11934,18 @@ Apologies for any names omitted.
 	USE_SASL_AUTH.  Such feature interference is difficult to
 	find in testing.  Liviu Daia. File: smtp/smtp_sasl_proto.c.
 
+20060126
+
+	Undo: change 20060117 (unprivileged operation test) broke
+	"sendmail -bs", "postconf -b", "postconf -t", and probably
+	more. Files: master/{single,multi,trigger}_server.c.
+
 Open problems:
+
+	select->poll, kqueue, ...
+
+	Set pipelining flag at start of session and at other protocol
+	synchronization points.
 
 	Centralize main.cf parameter input so that defaults work
 	consistently.

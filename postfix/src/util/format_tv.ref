@@ -15,7 +15,7 @@
 0.0011
 >> 0.000111	2	6
 0.00011
->> 0.000011	2	6
+>> 0.0000111	2	6
 0.000011
 >> 
 >> # One digit in. Must not produce spurious digits or trailing nulls.
@@ -38,7 +38,7 @@
 0.0001
 >> 0.00001	2	6
 0.00001
->> 0.000001	2	6
+>> 0.0000011	2	6
 0.000001
 >> 
 >> # Three digits in, 2/6 digits out, rounding up.
@@ -99,7 +99,7 @@
 0.0001
 >> 0.00001	1	6
 0.00001
->> 0.000001	1	6
+>> 0.0000011	1	6
 0.000001
 >> 
 >> # Three digits in, 1/6 digits out, rounding up.
