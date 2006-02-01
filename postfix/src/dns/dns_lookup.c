@@ -456,7 +456,7 @@ static int dns_get_answer(const char *orig_name, DNS_REPLY *reply, int type,
     DNS_RR *rr;
     int     resource_found = 0;
     int     cname_found = 0;
-    int     not_found_status = DNS_RETRY;	/* can't happen */
+    int     not_found_status = DNS_NOTFOUND;	/* can't happen */
     int     status;
 
     /*

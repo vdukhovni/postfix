@@ -85,12 +85,14 @@
 /*	RFC 1652 (8bit-MIME transport)
 /*	RFC 1870 (Message Size Declaration)
 /*	RFC 2033 (LMTP protocol)
+/*	RFC 2034 (SMTP Enhanced Error Codes)
 /*	RFC 2045 (MIME: Format of Internet Message Bodies)
 /*	RFC 2046 (MIME: Media Types)
 /*	RFC 2554 (AUTH command)
 /*	RFC 2821 (SMTP protocol)
 /*	RFC 2920 (SMTP Pipelining)
 /*	RFC 3207 (STARTTLS command)
+/*	RFC 3461 (SMTP DSN Extension)
 /*	RFC 3463 (Enhanced Status Codes)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
@@ -289,7 +291,7 @@
 /*	when TLS is not already enabled for that server.
 /* .IP "\fBsmtp_tls_per_site (empty)\fR"
 /*	Optional lookup tables with the Postfix SMTP client TLS usage
-/*	policy by next-hop domain name and by remote SMTP server hostname.
+/*	policy by next-hop destination and by remote SMTP server hostname.
 /* .IP "\fBsmtp_tls_scert_verifydepth (5)\fR"
 /*	The verification depth for remote SMTP server certificates.
 /* .IP "\fBsmtp_tls_session_cache_database (empty)\fR"

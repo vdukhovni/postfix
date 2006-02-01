@@ -324,7 +324,7 @@ static void resolve(char *class, char *addr, RESOLVE_REPLY *reply)
     };
     struct RESOLVE_FLAG_TABLE *fp;
 
-    resolve_clnt(class, addr, reply);
+    resolve_clnt(class, RESOLVE_NULL_FROM, addr, reply);
     if (reply->flags & RESOLVE_FLAG_FAIL) {
 	vstream_printf("request failed\n");
     } else {

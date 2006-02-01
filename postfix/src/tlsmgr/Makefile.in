@@ -47,6 +47,8 @@ tidy:	clean
 
 tests:
 
+root_tests:
+
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \
 	set -e; for i in [a-z][a-z0-9]*.c; do \

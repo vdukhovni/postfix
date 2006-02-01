@@ -30,8 +30,6 @@ Makefile: Makefile.in
 
 test:	$(TESTPROG)
 
-tests:	test
-
 update: ../../libexec/$(PROG)
 
 ../../libexec/$(PROG): $(PROG)
@@ -60,6 +58,8 @@ cleanup_masquerade: cleanup_masquerade.o
 	mv junk cleanup_masquerade.o
 
 tests:	cleanup_masquerade_test
+
+root_tests:
 
 cleanup_masquerade_test: cleanup_masquerade cleanup_masq.ref
 	rm -f cleanup_masq.tmp

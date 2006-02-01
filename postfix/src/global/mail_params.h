@@ -646,6 +646,10 @@ extern int var_max_backoff_time;
 #define DEF_MAX_QUEUE_TIME	"5d"
 extern int var_max_queue_time;
 
+ /*
+  * XXX The default can't be $maximal_queue_lifetime, because that panics
+  * when a non-default maximal_queue_lifetime setting contains no time unit.
+  */
 #define VAR_DSN_QUEUE_TIME	"bounce_queue_lifetime"
 #define DEF_DSN_QUEUE_TIME	"5d"
 extern int var_dsn_queue_time;

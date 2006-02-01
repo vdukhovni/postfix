@@ -11844,9 +11844,9 @@ Apologies for any names omitted.
 
 20060117
 
-	Safety: daemon processes that need no privileges now insist
-	that they are configured to run without privileges.  Files:
-	master/single_server.c, master/multi_server.c,
+	[withdrawn 20060126] Safety: daemon processes that need no
+	privileges now insist that they are configured to run without
+	privileges.  Files: master/single_server.c, master/multi_server.c,
 	master/trigger_server.c.
 
 	Cleanup: preserve upper case information of address localpart
@@ -11940,15 +11940,65 @@ Apologies for any names omitted.
 	"sendmail -bs", "postconf -b", "postconf -t", and probably
 	more. Files: master/{single,multi,trigger}_server.c.
 
-Open problems:
+20060130
 
-	select->poll, kqueue, ...
+	Bugfix: an empty remote_header_rewrite_domain value caused
+	trivial-rewrite to dereference a null pointer, but only in
+	regression tests, not in production. Envelope addresses are
+	by definition rewritten in the local domain context, because
+	an address without domain is equivalent to an address in
+	the local domain; and header addresses are rewritten in the
+	remote context only when remote_header_rewrite_domain is
+	non-empty.  File: trivial-rewrite/rewrite.c.
+
+20060131
+
+	Cleanup: regression tests are now separated into "make
+	tests" for unprivileged tests, and "make root_tests" for
+	tests that require privileges to connect to the Postfix
+	internal sockets. Files Makefile.in, src/*/Makefile.in.
+
+20060201
+
+	Bugfix: despite efforts to treat malformed domain names in
+	DNS replies as hard errors (change 20050726) they were still
+	processed as soft errors. File: dns/dns_lookup.c.
+
+Open issues:
+
+	Investigate if it is feasible to eliminate cleanup(8) from
+	the path of mail that is forwarded or generated internally.
+	Good: we don't want header rewriting or content inspection.
+	Bad: we still need virtual aliasing, even when mail is
+	forwarded internally. This almost seems to imply that we
+	do virtual aliasing earlier?
+
+	Investigate what it would take to eliminate oqmgr, and to
+	make the old behavior configurable in a unified queue manager.
+	This would shave another 2.7 KLOC from the source footprint.
+
+	Document case folding strategy in different maps (access,
+	canonical, etc). Even better: make it configurable, so we
+	can blame the user when they make a mistake :-)
+
+	Eliminate the (incoming,deferred)-active rename operation.
+
+	Softbounce fallback-to-ISP for SOHO users. This requires
+	playing with with the soft_error test in the smtp_trouble.c
+	module, and a way to avoid trying direct-to-MX-backup.
+
+	select -> kqueue, epoll, /dev/poll, poll() ...
 
 	Set pipelining flag at start of session and at other protocol
 	synchronization points.
 
 	Centralize main.cf parameter input so that defaults work
 	consistently.
+
+	Fix default time unit handling so that we can have a default
+	bounce lifetime of $maximal_queue_lifetime, without causing
+	panics when a non-default maximal_queue_lifetime setting
+	includes no time unit.
 
 	In second-line servers such as proxymap and trivial-rewrite,
 	set the max_idle time limit to a relatively small value so

@@ -24,6 +24,8 @@ test:	$(TESTPROG)
 
 tests:	test
 
+root_tests:
+
 update: ../../libexec/$(PROG)
 
 ../../libexec/$(PROG): $(PROG)

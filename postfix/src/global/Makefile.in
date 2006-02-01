@@ -276,6 +276,8 @@ tests: tok822_test mime_test mime_nest mime_8bit mime_dom mime_trunc \
 	xtext_test scache_multi_test ehlo_mask_test \
 	namadr_list_test
 
+root_tests: rewrite_clnt_test resolve_clnt_test
+
 tok822_test: tok822_parse tok822_parse.in tok822_parse.ref
 	./tok822_parse <tok822_parse.in >tok822_parse.tmp 2>&1
 	diff tok822_parse.ref tok822_parse.tmp
@@ -340,17 +342,28 @@ xtext_test: xtext
 # Requires: Postfix running, root privileges
 
 rewrite_clnt_test: rewrite_clnt rewrite_clnt.in rewrite_clnt.ref
+	@set -- `id`; case "$$1" in \
+	    *"(root)") ;; \
+	    *) echo 'This test requires root privilege'; exit 1;; \
+	esac
+	@test -n "`postconf -h remote_header_rewrite_domain`" || { \
+	    echo 'This test requires non-empty remote_header_rewrite_domain'; exit 1; }
 	./rewrite_clnt <rewrite_clnt.in >rewrite_clnt.tmp
-	sed "s/MYDOMAIN/`postconf -h mydomain`/" rewrite_clnt.ref | \
-	    diff - rewrite_clnt.tmp
+	sed -e "s/MYDOMAIN/`postconf -h mydomain`/" \
+	    -e "s/INVALID_DOMAIN/`postconf -h remote_header_rewrite_domain`/" \
+		rewrite_clnt.ref | diff - rewrite_clnt.tmp
 	rm -f rewrite_clnt.tmp
 
 # Requires: Postfix, root, relayhost=$mydomain, no transport map
 
 resolve_clnt_test: resolve_clnt resolve_clnt.in resolve_clnt.ref
-	test "`postconf -h relayhost`" = '$$mydomain' || { \
+	@set -- `id`; case "$$1" in \
+	    *"(root)") ;; \
+	    *) echo 'This test requires root privilege'; exit 1;; \
+	esac
+	@test "`postconf -h relayhost`" = '$$mydomain' || { \
 	    echo 'This test requires relayhost=$$mydomain'; exit 1; }
-	test "`postconf -h transport_maps`" = "" || { \
+	@test "`postconf -h transport_maps`" = "" || { \
 	    echo 'This test requires no transport map'; exit 1; }
 	sed -e "s/MYDOMAIN/`postconf -h mydomain`/g" \
 	    -e "s/MYHOSTNAME/`postconf -h myhostname`/g" \

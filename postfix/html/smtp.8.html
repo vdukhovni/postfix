@@ -105,12 +105,14 @@ SMTP(8)                                                                SMTP(8)
        <a href="http://www.faqs.org/rfcs/rfc1652.html">RFC 1652</a> (8bit-MIME transport)
        <a href="http://www.faqs.org/rfcs/rfc1870.html">RFC 1870</a> (Message Size Declaration)
        <a href="http://www.faqs.org/rfcs/rfc2033.html">RFC 2033</a> (LMTP protocol)
+       <a href="http://www.faqs.org/rfcs/rfc2034.html">RFC 2034</a> (SMTP Enhanced Error Codes)
        <a href="http://www.faqs.org/rfcs/rfc2045.html">RFC 2045</a> (MIME: Format of Internet Message Bodies)
        <a href="http://www.faqs.org/rfcs/rfc2046.html">RFC 2046</a> (MIME: Media Types)
        <a href="http://www.faqs.org/rfcs/rfc2554.html">RFC 2554</a> (AUTH command)
        <a href="http://www.faqs.org/rfcs/rfc2821.html">RFC 2821</a> (SMTP protocol)
        <a href="http://www.faqs.org/rfcs/rfc2920.html">RFC 2920</a> (SMTP Pipelining)
        <a href="http://www.faqs.org/rfcs/rfc3207.html">RFC 3207</a> (STARTTLS command)
+       <a href="http://www.faqs.org/rfcs/rfc3461.html">RFC 3461</a> (SMTP DSN Extension)
        <a href="http://www.faqs.org/rfcs/rfc3463.html">RFC 3463</a> (Enhanced Status Codes)
 
 <b>DIAGNOSTICS</b>
@@ -378,7 +380,7 @@ SMTP(8)                                                                SMTP(8)
 
        <b><a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a> (empty)</b>
               Optional lookup tables with the Postfix SMTP client
-              TLS  usage  policy  by  next-hop domain name and by
+              TLS  usage  policy  by  next-hop destination and by
               remote SMTP server hostname.
 
        <b><a href="postconf.5.html#smtp_tls_scert_verifydepth">smtp_tls_scert_verifydepth</a> (5)</b>

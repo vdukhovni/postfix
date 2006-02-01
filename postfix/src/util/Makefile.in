@@ -414,6 +414,8 @@ tests: valid_hostname_test mac_expand_test dict_test unescape_test \
 	dict_cidr_test attr_scan_plain_test htable_test hex_code_test \
 	myaddrinfo_test format_tv_test
 
+root_tests:
+
 valid_hostname_test: valid_hostname valid_hostname.in valid_hostname.ref
 	./valid_hostname <valid_hostname.in 2>valid_hostname.tmp
 	diff valid_hostname.ref valid_hostname.tmp

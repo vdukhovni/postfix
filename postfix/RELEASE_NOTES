@@ -35,9 +35,6 @@ case, such as regexp:, pcre:, or cidr:.
 For safety reasons, Postfix no longer allows $number substitution
 in regexp: or pcre: transport tables or per-sender relayhost tables.
 
-For safety reasons, daemons that don't need privileges now insist
-that they are configured as unprivileged in master.cf.
-
 Major changes with snapshot 20060123
 ====================================
 
@@ -91,7 +88,7 @@ Major changes with snapshot 20051222
 Dovecot SASL support (SMTP server only). Details can be found
 in the SASL_README document.
 
-You can now use "resolve_numeric_address = yes" to stop Postfix
+You can now use "resolve_numeric_domain = yes" to stop Postfix
 from rejecting user@ipaddress as an invalid destination. It will
 deliver the mail to user@[ipaddress] instead.
 

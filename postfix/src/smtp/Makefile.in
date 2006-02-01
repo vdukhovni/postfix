@@ -27,7 +27,9 @@ Makefile: Makefile.in
 
 test:	$(TESTPROG)
 
-tests:	smtp_map11_test
+tests:
+
+root_tests:	smtp_map11_test
 
 update: ../../libexec/$(PROG)
 

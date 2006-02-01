@@ -28,6 +28,8 @@ test:	$(TESTPROG)
 tests:	test dns_rr_to_pa_test dns_rr_to_sa_test dns_sa_to_rr_test \
 	dns_rr_eq_sa_test
 
+root_tests:
+
 $(LIB):	$(OBJS)
 	$(AR) $(ARFL) $(LIB) $?
 	$(RANLIB) $(LIB)

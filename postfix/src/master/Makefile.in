@@ -34,7 +34,9 @@ $(PROG): $(OBJS) $(LIBS)
 
 test:	$(TESTPROG)
 
-tests:	test
+tests:
+
+root_tests:
 
 $(LIB):	$(LIB_OBJ)
 	$(AR) $(ARFL) $(LIB) $?

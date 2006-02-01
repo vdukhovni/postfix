@@ -22,7 +22,9 @@ Makefile: Makefile.in
 
 test:	$(TESTPROG)
 
-tests:	test
+tests:
+
+root_tests:
 
 update: ../../libexec/$(PROG)
 

@@ -823,6 +823,7 @@ static void smtp_connect_remote(SMTP_STATE *state, const char *nexthop,
 	    } else {
 		msg_info("%s (port %d)", STR(why->reason), ntohs(port));
 	    }
+	    /* Insert: test if we must skip the remaining MX hosts. */
 	}
 	dns_rr_free(addr_list);
 	myfree(dest_buf);

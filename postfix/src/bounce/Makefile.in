@@ -42,6 +42,8 @@ test:	$(TESTPROG)
 
 tests:	update template_test 2template_test
 
+root_tests:
+
 update: ../../libexec/$(PROG) $(SAMPLES)
 
 ../../libexec/$(PROG): $(PROG)
@@ -67,9 +69,9 @@ tidy:	clean
 # Avoid dependency on installed Postfix.
 # XXX This still requires that default_privs, mail_owner etc. accounts exist.
 template_test: $(PROG) main.cf template_test.ref
-	MAIL_CONFIG=. ./$(PROG) -SVuzndump_templates >template_test.tmp
+	MAIL_CONFIG=. ./$(PROG) -SVzndump_templates >template_test.tmp
 	diff template_test.ref template_test.tmp
-	MAIL_CONFIG=. ./$(PROG) -SVuzndump_templates \
+	MAIL_CONFIG=. ./$(PROG) -SVzndump_templates \
 	    -o bounce_template_file=template_test.ref > template_test.tmp
 	diff template_test.ref template_test.tmp
 	rm -f template_test.tmp

@@ -24,6 +24,10 @@ fsstone: fsstone.o $(LIBS)
 
 test:	$(TESTPROG)
 
+tests:
+
+root_tests:
+
 update: ../../libexec/fsstone
 
 ../../libexec/fsstone: fsstone

@@ -22,7 +22,7 @@ makefiles Makefiles:
 	done;
 	rm -f Makefile; (cat conf/makedefs.out Makefile.in) >Makefile
 
-update printfck tests:
+update printfck tests root_tests:
 	set -e; for i in $(DIRS); do \
 	 (set -e; echo "[$$i]"; cd $$i; $(MAKE) $(OPTS) $@ MAKELEVEL=) || exit 1; \
 	done

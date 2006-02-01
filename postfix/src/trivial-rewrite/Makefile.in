@@ -27,7 +27,9 @@ Makefile: Makefile.in
 
 test:	$(TESTPROG)
 
-tests:	test
+tests:
+
+root_tests:
 
 $(BIN_DIR)/$(PROG): $(PROG)
 	cp $(PROG) $@

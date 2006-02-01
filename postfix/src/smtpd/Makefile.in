@@ -64,6 +64,8 @@ tidy:	clean
 tests: smtpd_check_test smtpd_check_test2 smtpd_acl_test smtpd_exp_test \
 	smtpd_token_test smtpd_check_test4 smtpd_check_dsn_test
 
+root_tests:
+
 smtpd_check_test: smtpd_check smtpd_check.in smtpd_check.ref smtpd_check_access
 	../postmap/postmap hash:smtpd_check_access
 	./smtpd_check <smtpd_check.in >smtpd_check.tmp 2>&1
