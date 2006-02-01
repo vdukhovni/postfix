@@ -200,10 +200,10 @@ static LMTP_SESSION *lmtp_connect_addr(DNS_RR *addr, unsigned port,
     SOCKADDR_TO_HOSTADDR(sa, salen, &hostaddr, (MAI_SERVPORT_STR *) 0, 0);
     if (msg_verbose)
 	msg_info("%s: trying: %s[%s] port %d...",
-		 myname, addr->name, hostaddr.buf, ntohs(port));
+		 myname, addr->rname, hostaddr.buf, ntohs(port));
 
     return (lmtp_connect_sock(sock, sa, salen,
-			      addr->name, hostaddr.buf, destination, why));
+			      addr->rname, hostaddr.buf, destination, why));
 }
 
 /* lmtp_connect_sock - connect a socket over some transport */

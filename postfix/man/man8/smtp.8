@@ -103,6 +103,10 @@ Ignore DNS MX lookups that produce no response.
 Always send EHLO at the start of an SMTP session.
 .IP "\fBsmtp_never_send_ehlo (no)\fR"
 Never send EHLO at the start of an SMTP session.
+.IP "\fBsmtp_cname_overrides_servername (yes)\fR"
+Allow DNS CNAME records to override the servername that the
+Postfix SMTP client uses for logging, SASL password lookup, TLS
+policy decisions, or TLS certificate verification.
 .IP "\fBsmtp_defer_if_no_mx_address_found (no)\fR"
 Defer mail delivery when no MX record resolves to an IP address.
 .IP "\fBsmtp_line_length_limit (990)\fR"

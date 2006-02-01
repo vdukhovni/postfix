@@ -45,7 +45,7 @@ static void print_rr(DNS_RR *rr)
     MAI_HOSTADDR_STR host;
 
     while (rr) {
-	printf("%s: ttl: %9d ", rr->name, rr->ttl);
+	printf("%s: ttl: %9d ", rr->rname, rr->ttl);
 	switch (rr->type) {
 	case T_A:
 #ifdef T_AAAA

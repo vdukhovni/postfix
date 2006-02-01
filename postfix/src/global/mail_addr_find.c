@@ -107,7 +107,10 @@ const char *mail_addr_find(MAPS *path, const char *address, char **extp)
     if (*var_rcpt_delim == 0) {
 	bare_key = saved_ext = 0;
     } else {
-	bare_key = strip_addr(full_key, &saved_ext, *var_rcpt_delim);
+	/* Preserve case of extension. */
+	bare_key = strip_addr(address, &saved_ext, *var_rcpt_delim);
+	if (bare_key != 0)
+	    lowercase(bare_key);
     }
 
     /*

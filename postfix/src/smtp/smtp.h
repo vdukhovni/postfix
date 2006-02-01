@@ -164,6 +164,12 @@ extern SSL_CTX *smtp_tls_ctx;		/* client-side TLS engine */
 
 #endif
 
+
+ /*
+  * What's in a name?
+  */
+#define SMTP_HNAME(rr) (var_smtp_cname_overr ? (rr)->rname : (rr)->qname)
+
  /*
   * smtp_session.c
   */

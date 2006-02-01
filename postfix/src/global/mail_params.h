@@ -12,51 +12,51 @@
 /* .nf
 
  /*
-  * This is to make it easier to auto-generate tables.
-  */
+	* This is to make it easier to auto-generate tables.
+	*/
 typedef int bool;
 
  /*
-  * Name used when this mail system announces itself.
-  */
+	* Name used when this mail system announces itself.
+	*/
 #define VAR_MAIL_NAME		"mail_name"
 #define DEF_MAIL_NAME		"Postfix"
 extern char *var_mail_name;
 
  /*
-  * You want to be helped or not.
-  */
+	* You want to be helped or not.
+	*/
 #define VAR_HELPFUL_WARNINGS	"helpful_warnings"
 #define DEF_HELPFUL_WARNINGS	1
 extern bool var_helpful_warnings;
 
  /*
-  * You want to be helped or not.
-  */
+	* You want to be helped or not.
+	*/
 #define VAR_SHOW_UNK_RCPT_TABLE	"show_user_unknown_table_name"
 #define DEF_SHOW_UNK_RCPT_TABLE	1
 extern bool var_show_unk_rcpt_table;
 
  /*
-  * What problem classes should be reported to the postmaster via email.
-  * Default is bad problems only. See mail_error(3). Even when mail notices
-  * are disabled, problems are still logged to the syslog daemon.
-  */
+	* What problem classes should be reported to the postmaster via email.
+	* Default is bad problems only. See mail_error(3). Even when mail notices
+	* are disabled, problems are still logged to the syslog daemon.
+	*/
 #define VAR_NOTIFY_CLASSES	"notify_classes"
 #define DEF_NOTIFY_CLASSES	"resource, software"
 extern char *var_notify_classes;
 
  /*
-  * What do I turn <> into? Sendmail defaults to mailer-daemon.
-  */
-#define VAR_EMPTY_ADDR         "empty_address_recipient"
-#define DEF_EMPTY_ADDR         MAIL_ADDR_MAIL_DAEMON
+	* What do I turn <> into? Sendmail defaults to mailer-daemon.
+	*/
+#define VAR_EMPTY_ADDR	"empty_address_recipient"
+#define DEF_EMPTY_ADDR	MAIL_ADDR_MAIL_DAEMON
 extern char *var_empty_addr;
 
  /*
-  * Privileges used by the mail system: the owner of files and commands, and
-  * the rights to be used when running external commands.
-  */
+	* Privileges used by the mail system: the owner of files and commands, and
+	* the rights to be used when running external commands.
+	*/
 #define VAR_MAIL_OWNER		"mail_owner"
 #define DEF_MAIL_OWNER		"postfix"
 extern char *var_mail_owner;
@@ -75,8 +75,8 @@ extern uid_t var_default_uid;
 extern gid_t var_default_gid;
 
  /*
-  * Access control for local privileged operations:
-  */
+	* Access control for local privileged operations:
+	*/
 #define STATIC_ANYONE_ACL	"static:anyone"
 
 #define VAR_FLUSH_ACL		"authorized_flush_users"
@@ -92,24 +92,24 @@ extern char *var_showq_acl;
 extern char *var_submit_acl;
 
  /*
-  * What goes on the right-hand side of addresses of mail sent from this
-  * machine.
-  */
+	* What goes on the right-hand side of addresses of mail sent from this
+	* machine.
+	*/
 #define VAR_MYORIGIN		"myorigin"
 #define DEF_MYORIGIN		"$myhostname"
 extern char *var_myorigin;
 
  /*
-  * What domains I will receive mail for. Not to be confused with transit
-  * mail to other destinations.
-  */
+	* What domains I will receive mail for. Not to be confused with transit
+	* mail to other destinations.
+	*/
 #define VAR_MYDEST		"mydestination"
 #define DEF_MYDEST		"$myhostname, localhost.$mydomain, localhost"
 extern char *var_mydest;
 
  /*
-  * These are by default taken from the name service.
-  */
+	* These are by default taken from the name service.
+	*/
 #define VAR_MYHOSTNAME		"myhostname"	/* my hostname (fqdn) */
 extern char *var_myhostname;
 
@@ -117,15 +117,15 @@ extern char *var_myhostname;
 extern char *var_mydomain;
 
  /*
-  * The default local delivery transport.
-  */
+	* The default local delivery transport.
+	*/
 #define VAR_LOCAL_TRANSPORT	"local_transport"
 #define DEF_LOCAL_TRANSPORT	MAIL_SERVICE_LOCAL ":$myhostname"
 extern char *var_local_transport;
 
  /*
-  * Where to send postmaster copies of bounced mail, and other notices.
-  */
+	* Where to send postmaster copies of bounced mail, and other notices.
+	*/
 #define VAR_BOUNCE_RCPT		"bounce_notice_recipient"
 #define DEF_BOUNCE_RCPT		"postmaster"
 extern char *var_bounce_rcpt;
@@ -143,8 +143,8 @@ extern char *var_delay_rcpt;
 extern char *var_error_rcpt;
 
  /*
-  * Virtual host support. Default is to listen on all machine interfaces.
-  */
+	* Virtual host support. Default is to listen on all machine interfaces.
+	*/
 #define VAR_INET_INTERFACES	"inet_interfaces"	/* listen addresses */
 #define INET_INTERFACES_ALL	"all"
 #define INET_INTERFACES_LOCAL	"loopback-only"
@@ -156,8 +156,8 @@ extern char *var_inet_interfaces;
 extern char *var_proxy_interfaces;
 
  /*
-  * Masquerading (i.e. subdomain stripping).
-  */
+	* Masquerading (i.e. subdomain stripping).
+	*/
 #define VAR_MASQ_DOMAINS	"masquerade_domains"
 #define DEF_MASQ_DOMAINS	""
 extern char *var_masq_domains;
@@ -178,8 +178,8 @@ extern char *var_masq_exceptions;
 extern char *var_masq_classes;
 
  /*
-  * Intranet versus internet.
-  */
+	* Intranet versus internet.
+	*/
 #define VAR_RELAYHOST		"relayhost"
 #define DEF_RELAYHOST		""
 extern char *var_relayhost;
@@ -208,8 +208,8 @@ extern int var_smtp_mxaddr_limit;
 extern int var_smtp_mxsess_limit;
 
  /*
-  * Location of the mail queue directory tree.
-  */
+	* Location of the mail queue directory tree.
+	*/
 #define VAR_QUEUE_DIR	"queue_directory"
 #ifndef DEF_QUEUE_DIR
 #define DEF_QUEUE_DIR	"/var/spool/postfix"
@@ -217,8 +217,8 @@ extern int var_smtp_mxsess_limit;
 extern char *var_queue_dir;
 
  /*
-  * Location of command and daemon programs.
-  */
+	* Location of command and daemon programs.
+	*/
 #define VAR_DAEMON_DIR		"daemon_directory"
 #ifndef DEF_DAEMON_DIR
 #define DEF_DAEMON_DIR		"/usr/libexec/postfix"
@@ -232,8 +232,8 @@ extern char *var_daemon_dir;
 extern char *var_command_dir;
 
  /*
-  * Location of PID files.
-  */
+	* Location of PID files.
+	*/
 #define VAR_PID_DIR		"process_id_directory"
 #ifndef DEF_PID_DIR
 #define DEF_PID_DIR		"pid"
@@ -241,13 +241,13 @@ extern char *var_command_dir;
 extern char *var_pid_dir;
 
  /*
-  * Program startup time.
-  */
+	* Program startup time.
+	*/
 extern time_t var_starttime;
 
  /*
-  * Location of configuration files.
-  */
+	* Location of configuration files.
+	*/
 #define VAR_CONFIG_DIR		"config_directory"
 #ifndef DEF_CONFIG_DIR
 #define DEF_CONFIG_DIR		"/etc/postfix"
@@ -262,17 +262,17 @@ extern char *var_config_dirs;
 #define MASTER_CONF_FILE	"master.cf"
 
  /*
-  * Preferred type of indexed files. The DEF_DB_TYPE macro value is system
-  * dependent. It is defined in <sys_defs.h>.
-  */
+	* Preferred type of indexed files. The DEF_DB_TYPE macro value is system
+	* dependent. It is defined in <sys_defs.h>.
+	*/
 #define VAR_DB_TYPE		"default_database_type"
 extern char *var_db_type;
 
  /*
-  * What syslog facility to use. Unfortunately, something may have to be
-  * logged before parameters are read from the main.cf file. This logging
-  * will go the LOG_FACILITY facility specified below.
-  */
+	* What syslog facility to use. Unfortunately, something may have to be
+	* logged before parameters are read from the main.cf file. This logging
+	* will go the LOG_FACILITY facility specified below.
+	*/
 #define VAR_SYSLOG_FACILITY	"syslog_facility"
 extern char *var_syslog_facility;
 
@@ -285,50 +285,50 @@ extern char *var_syslog_facility;
 #endif
 
  /*
-  * Big brother: who receives a blank-carbon copy of all mail that enters
-  * this mail system.
-  */
+	* Big brother: who receives a blank-carbon copy of all mail that enters
+	* this mail system.
+	*/
 #define VAR_ALWAYS_BCC		"always_bcc"
 #define DEF_ALWAYS_BCC		""
 extern char *var_always_bcc;
 
  /*
-  * What to put in the To: header when no recipients were disclosed.
-  * 
-  * XXX 2822: When no recipient headers remain, a system should insert a Bcc:
-  * header without additional information. That is not so great given that
-  * MTAs routinely strip Bcc: headers from message headers.
-  */
+	* What to put in the To: header when no recipients were disclosed.
+	* 
+	* XXX 2822: When no recipient headers remain, a system should insert a Bcc:
+	* header without additional information. That is not so great given that
+	* MTAs routinely strip Bcc: headers from message headers.
+	*/
 #define VAR_RCPT_WITHELD	"undisclosed_recipients_header"
 #define DEF_RCPT_WITHELD	"To: undisclosed-recipients:;"
 extern char *var_rcpt_witheld;
 
  /*
-  * Standards violation: allow/permit RFC 822-style addresses in SMTP
-  * commands.
-  */
+	* Standards violation: allow/permit RFC 822-style addresses in SMTP
+	* commands.
+	*/
 #define VAR_STRICT_RFC821_ENV	"strict_rfc821_envelopes"
 #define DEF_STRICT_RFC821_ENV	0
 extern bool var_strict_rfc821_env;
 
  /*
-  * Standards violation: send "250 AUTH=list" in order to accomodate clients
-  * that implement an old version of the protocol.
-  */
+	* Standards violation: send "250 AUTH=list" in order to accomodate clients
+	* that implement an old version of the protocol.
+	*/
 #define VAR_BROKEN_AUTH_CLNTS	"broken_sasl_auth_clients"
 #define DEF_BROKEN_AUTH_CLNTS	0
 extern bool var_broken_auth_clients;
 
  /*
-  * Standards violation: disable VRFY.
-  */
+	* Standards violation: disable VRFY.
+	*/
 #define VAR_DISABLE_VRFY_CMD	"disable_vrfy_command"
 #define DEF_DISABLE_VRFY_CMD	0
 extern bool var_disable_vrfy_cmd;
 
  /*
-  * trivial rewrite/resolve service: mapping tables.
-  */
+	* trivial rewrite/resolve service: mapping tables.
+	*/
 #define VAR_VIRT_ALIAS_MAPS	"virtual_alias_maps"
 #define DEF_VIRT_ALIAS_MAPS	"$virtual_maps"	/* Compatibility! */
 extern char *var_virt_alias_maps;
@@ -392,8 +392,8 @@ extern char *var_transport_maps;
 extern char *var_def_transport;
 
  /*
-  * trivial rewrite/resolve service: rewriting controls.
-  */
+	* trivial rewrite/resolve service: rewriting controls.
+	*/
 #define VAR_SWAP_BANGPATH	"swap_bangpath"
 #define DEF_SWAP_BANGPATH	1
 extern bool var_swap_bangpath;
@@ -411,8 +411,8 @@ extern bool var_append_dot_mydomain;
 extern bool var_percent_hack;
 
  /*
-  * Local delivery: alias databases.
-  */
+	* Local delivery: alias databases.
+	*/
 #define VAR_ALIAS_MAPS		"alias_maps"
 #ifdef HAS_NIS
 #define DEF_ALIAS_MAPS		ALIAS_DB_MAP ", nis:mail.aliases"
@@ -422,15 +422,15 @@ extern bool var_percent_hack;
 extern char *var_alias_maps;
 
  /*
-  * Local delivery: to BIFF or not to BIFF.
-  */
+	* Local delivery: to BIFF or not to BIFF.
+	*/
 #define VAR_BIFF		"biff"
 #define DEF_BIFF		1
 extern bool var_biff;
 
  /*
-  * Local delivery: mail to files/commands.
-  */
+	* Local delivery: mail to files/commands.
+	*/
 #define VAR_ALLOW_COMMANDS	"allow_mail_to_commands"
 #define DEF_ALLOW_COMMANDS	"alias, forward"
 extern char *var_allow_commands;
@@ -456,8 +456,8 @@ extern char *var_alias_db_map;
 extern char *var_luser_relay;
 
  /*
-  * Local delivery: mailbox delivery.
-  */
+	* Local delivery: mailbox delivery.
+	*/
 #define VAR_MAIL_SPOOL_DIR	"mail_spool_directory"
 #define DEF_MAIL_SPOOL_DIR	_PATH_MAILDIR
 extern char *var_mail_spool_dir;
@@ -483,15 +483,15 @@ extern char *var_mailbox_transport;
 extern char *var_fallback_transport;
 
  /*
-  * Local delivery: path to per-user forwarding file.
-  */
+	* Local delivery: path to per-user forwarding file.
+	*/
 #define VAR_FORWARD_PATH	"forward_path"
 #define DEF_FORWARD_PATH	"$home/.forward${recipient_delimiter}${extension}, $home/.forward"
 extern char *var_forward_path;
 
  /*
-  * Local delivery: external command execution directory.
-  */
+	* Local delivery: external command execution directory.
+	*/
 #define VAR_EXEC_DIRECTORY	"command_execution_directory"
 #define DEF_EXEC_DIRECTORY	""
 extern char *var_exec_directory;
@@ -503,22 +503,22 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 extern char *var_exec_exp_filter;
 
  /*
-  * Mailbox locking. DEF_MAILBOX_LOCK is defined in sys_defs.h.
-  */
+	* Mailbox locking. DEF_MAILBOX_LOCK is defined in sys_defs.h.
+	*/
 #define VAR_MAILBOX_LOCK	"mailbox_delivery_lock"
 extern char *var_mailbox_lock;
 
  /*
-  * Mailbox size limit. This used to be enforced as a side effect of the way
-  * the message size limit is implemented, but that is not clean.
-  */
+	* Mailbox size limit. This used to be enforced as a side effect of the way
+	* the message size limit is implemented, but that is not clean.
+	*/
 #define VAR_MAILBOX_LIMIT	"mailbox_size_limit"
 #define DEF_MAILBOX_LIMIT	(DEF_MESSAGE_LIMIT * 5)
 extern int var_mailbox_limit;
 
  /*
-  * Miscellaneous.
-  */
+	* Miscellaneous.
+	*/
 #define VAR_PROP_EXTENSION	"propagate_unmatched_extensions"
 #define DEF_PROP_EXTENSION	"canonical, virtual"
 extern char *var_prop_extension;
@@ -544,11 +544,11 @@ extern char *var_fwd_exp_filter;
 extern char *var_deliver_hdr;
 
  /*
-  * Cleanup: enable support for X-Original-To message headers, which are
-  * needed for multi-recipient mailboxes. When this is turned on, perform
-  * duplicate elimination on (original rcpt, rewritten rcpt) pairs, and
-  * generating non-empty original recipient records in the queue file.
-  */
+	* Cleanup: enable support for X-Original-To message headers, which are
+	* needed for multi-recipient mailboxes. When this is turned on, perform
+	* duplicate elimination on (original rcpt, rewritten rcpt) pairs, and
+	* generating non-empty original recipient records in the queue file.
+	*/
 #define VAR_ENABLE_ORCPT	"enable_original_recipient"
 #define DEF_ENABLE_ORCPT	1
 extern bool var_enable_orcpt;
@@ -562,9 +562,9 @@ extern bool var_exp_own_alias;
 extern bool var_stat_home_dir;
 
  /*
-  * Queue manager: maximal size of the duplicate expansion filter. By
-  * default, we do graceful degradation with huge mailing lists.
-  */
+	* Queue manager: maximal size of the duplicate expansion filter. By
+	* default, we do graceful degradation with huge mailing lists.
+	*/
 #define VAR_DUP_FILTER_LIMIT	"duplicate_filter_limit"
 #define DEF_DUP_FILTER_LIMIT	1000
 extern int var_dup_filter_limit;
@@ -598,27 +598,27 @@ extern int var_tls_reseed_period;
 extern int var_tls_prng_upd_period;
 
  /*
-  * Queue manager: relocated databases.
-  */
+	* Queue manager: relocated databases.
+	*/
 #define VAR_RELOCATED_MAPS		"relocated_maps"
 #define DEF_RELOCATED_MAPS		""
 extern char *var_relocated_maps;
 
  /*
-  * Queue manager: after each failed attempt the backoff time (how long we
-  * won't try this host in seconds) is doubled until it reaches the maximum.
-  * MAX_QUEUE_TIME limits the amount of time a message may spend in the mail
-  * queue before it is sent back.
-  */
+	* Queue manager: after each failed attempt the backoff time (how long we
+	* won't try this host in seconds) is doubled until it reaches the maximum.
+	* MAX_QUEUE_TIME limits the amount of time a message may spend in the mail
+	* queue before it is sent back.
+	*/
 #define VAR_QUEUE_RUN_DELAY	"queue_run_delay"
-#define DEF_QUEUE_RUN_DELAY     "1000s"
+#define DEF_QUEUE_RUN_DELAY	"1000s"
 
 #define VAR_MIN_BACKOFF_TIME	"minimal_backoff_time"
-#define DEF_MIN_BACKOFF_TIME    "1000s"
+#define DEF_MIN_BACKOFF_TIME	"1000s"
 extern int var_min_backoff_time;
 
 #define VAR_MAX_BACKOFF_TIME	"maximal_backoff_time"
-#define DEF_MAX_BACKOFF_TIME    "4000s"
+#define DEF_MAX_BACKOFF_TIME	"4000s"
 extern int var_max_backoff_time;
 
 #define VAR_MAX_QUEUE_TIME	"maximal_queue_lifetime"
@@ -634,8 +634,8 @@ extern int var_dsn_queue_time;
 extern int var_delay_warn_time;
 
  /*
-  * Queue manager: various in-core message and recipient limits.
-  */
+	* Queue manager: various in-core message and recipient limits.
+	*/
 #define VAR_QMGR_ACT_LIMIT	"qmgr_message_active_limit"
 #define DEF_QMGR_ACT_LIMIT	20000
 extern int var_qmgr_active_limit;
@@ -659,8 +659,8 @@ extern int var_xport_rcpt_limit;
 extern int var_stack_rcpt_limit;
 
  /*
-  * Queue manager: default job scheduler parameters.
-  */
+	* Queue manager: default job scheduler parameters.
+	*/
 #define VAR_DELIVERY_SLOT_COST	"default_delivery_slot_cost"
 #define _DELIVERY_SLOT_COST	"_delivery_slot_cost"
 #define DEF_DELIVERY_SLOT_COST	5
@@ -686,8 +686,8 @@ extern int var_min_delivery_slots;
 extern int var_qmgr_fudge;
 
  /*
-  * Queue manager: default destination concurrency levels.
-  */
+	* Queue manager: default destination concurrency levels.
+	*/
 #define VAR_INIT_DEST_CON	"initial_destination_concurrency"
 #define DEF_INIT_DEST_CON	5
 extern int var_init_dest_concurrency;
@@ -702,8 +702,8 @@ extern int var_dest_con_limit;
 extern int var_local_con_lim;
 
  /*
-  * Queue manager: default number of recipients per transaction.
-  */
+	* Queue manager: default number of recipients per transaction.
+	*/
 #define VAR_DEST_RCPT_LIMIT	"default_destination_recipient_limit"
 #define _DEST_RCPT_LIMIT	"_destination_recipient_limit"
 #define DEF_DEST_RCPT_LIMIT	50
@@ -714,93 +714,93 @@ extern int var_dest_rcpt_limit;
 extern int var_local_rcpt_lim;
 
  /*
-  * Queue manager: default delay before retrying a dead transport.
-  */
+	* Queue manager: default delay before retrying a dead transport.
+	*/
 #define VAR_XPORT_RETRY_TIME	"transport_retry_time"
 #define DEF_XPORT_RETRY_TIME	"60s"
 extern int var_transport_retry_time;
 
  /*
-  * Queue manager: what transports to defer delivery to.
-  */
+	* Queue manager: what transports to defer delivery to.
+	*/
 #define VAR_DEFER_XPORTS	"defer_transports"
 #define DEF_DEFER_XPORTS	""
 extern char *var_defer_xports;
 
  /*
-  * Queue manager: how often to warn that a destination is clogging the
-  * active queue.
-  */
+	* Queue manager: how often to warn that a destination is clogging the
+	* active queue.
+	*/
 #define VAR_QMGR_CLOG_WARN_TIME	"qmgr_clog_warn_time"
 #define DEF_QMGR_CLOG_WARN_TIME	"300s"
 extern int var_qmgr_clog_warn_time;
 
  /*
-  * Master: default process count limit per mail subsystem.
-  */
+	* Master: default process count limit per mail subsystem.
+	*/
 #define VAR_PROC_LIMIT		"default_process_limit"
 #define DEF_PROC_LIMIT		100
 extern int var_proc_limit;
 
  /*
-  * Master: default time to wait after service is throttled.
-  */
+	* Master: default time to wait after service is throttled.
+	*/
 #define VAR_THROTTLE_TIME	"service_throttle_time"
 #define DEF_THROTTLE_TIME	"60s"
 extern int var_throttle_time;
 
  /*
-  * Any subsystem: default maximum number of clients serviced before a mail
-  * subsystem terminates (except queue manager).
-  */
+	* Any subsystem: default maximum number of clients serviced before a mail
+	* subsystem terminates (except queue manager).
+	*/
 #define VAR_MAX_USE		"max_use"
 #define DEF_MAX_USE		100
 extern int var_use_limit;
 
  /*
-  * Any subsystem: default amount of time a mail subsystem waits for a client
-  * connection (except queue manager).
-  */
+	* Any subsystem: default amount of time a mail subsystem waits for a client
+	* connection (except queue manager).
+	*/
 #define VAR_MAX_IDLE		"max_idle"
 #define DEF_MAX_IDLE		"100s"
 extern int var_idle_limit;
 
  /*
-  * Any subsystem: default amount of time a mail subsystem waits for
-  * application events to drain.
-  */
+	* Any subsystem: default amount of time a mail subsystem waits for
+	* application events to drain.
+	*/
 #define VAR_EVENT_DRAIN		"application_event_drain_time"
 #define DEF_EVENT_DRAIN		"100s"
 extern int var_event_drain;
 
  /*
-  * Any subsystem: default amount of time a mail subsystem keeps an internal
-  * IPC connection before closing it because it is idle for too much time.
-  */
+	* Any subsystem: default amount of time a mail subsystem keeps an internal
+	* IPC connection before closing it because it is idle for too much time.
+	*/
 #define VAR_IPC_IDLE		"ipc_idle"
 #define DEF_IPC_IDLE		"100s"
 extern int var_ipc_idle_limit;
 
  /*
-  * Any subsystem: default amount of time a mail subsystem keeps an internal
-  * IPC connection before closing it because the connection has existed for
-  * too much time.
-  */
+	* Any subsystem: default amount of time a mail subsystem keeps an internal
+	* IPC connection before closing it because the connection has existed for
+	* too much time.
+	*/
 #define VAR_IPC_TTL		"ipc_ttl"
 #define DEF_IPC_TTL		"1000s"
 extern int var_ipc_ttl_limit;
 
  /*
-  * Any front-end subsystem: avoid running out of memory when someone sends
-  * infinitely-long requests or replies.
-  */
+	* Any front-end subsystem: avoid running out of memory when someone sends
+	* infinitely-long requests or replies.
+	*/
 #define VAR_LINE_LIMIT		"line_length_limit"
 #define DEF_LINE_LIMIT		2048
 extern int var_line_limit;
 
  /*
-  * Specify what SMTP peers need verbose logging.
-  */
+	* Specify what SMTP peers need verbose logging.
+	*/
 #define VAR_DEBUG_PEER_LIST	"debug_peer_list"
 #define DEF_DEBUG_PEER_LIST	""
 extern char *var_debug_peer_list;
@@ -810,9 +810,9 @@ extern char *var_debug_peer_list;
 extern int var_debug_peer_level;
 
  /*
-  * Queue management: what queues are hashed behind a forest of
-  * subdirectories, and how deep the forest is.
-  */
+	* Queue management: what queues are hashed behind a forest of
+	* subdirectories, and how deep the forest is.
+	*/
 #define VAR_HASH_QUEUE_NAMES	"hash_queue_names"
 #define DEF_HASH_QUEUE_NAMES	"deferred, defer"
 extern char *var_hash_queue_names;
@@ -822,8 +822,8 @@ extern char *var_hash_queue_names;
 extern int var_hash_queue_depth;
 
  /*
-  * Multi-protocol support.
-  */
+	* Multi-protocol support.
+	*/
 #define INET_PROTO_NAME_IPV4	"ipv4"
 #define INET_PROTO_NAME_IPV6	"ipv6"
 #define INET_PROTO_NAME_ALL	"all"
@@ -831,14 +831,14 @@ extern int var_hash_queue_depth;
 extern char *var_inet_protocols;
 
  /*
-  * SMTP client. Timeouts inspired by RFC 1123. The SMTP recipient limit
-  * determines how many recipient addresses the SMTP client sends along with
-  * each message. Unfortunately, some mailers misbehave and disconnect (smap)
-  * when given more recipients than they are willing to handle.
-  * 
-  * XXX 2821: A mail system is supposed to use EHLO instead of HELO, and to fall
-  * back to HELO if EHLO is not supported.
-  */
+	* SMTP client. Timeouts inspired by RFC 1123. The SMTP recipient limit
+	* determines how many recipient addresses the SMTP client sends along with
+	* each message. Unfortunately, some mailers misbehave and disconnect (smap)
+	* when given more recipients than they are willing to handle.
+	* 
+	* XXX 2821: A mail system is supposed to use EHLO instead of HELO, and to fall
+	* back to HELO if EHLO is not supported.
+	*/
 #define VAR_BESTMX_TRANSP	"best_mx_transport"
 #define DEF_BESTMX_TRANSP	""
 extern char *var_bestmx_transp;
@@ -974,10 +974,10 @@ extern bool var_smtp_send_xforward;
 extern char *var_smtp_generic_maps;
 
  /*
-  * SMTP server. The soft error limit determines how many errors an SMTP
-  * client may make before we start to slow down; the hard error limit
-  * determines after how many client errors we disconnect.
-  */
+	* SMTP server. The soft error limit determines how many errors an SMTP
+	* client may make before we start to slow down; the hard error limit
+	* determines after how many client errors we disconnect.
+	*/
 #define VAR_SMTPD_BANNER	"smtpd_banner"
 #define DEF_SMTPD_BANNER	"$myhostname ESMTP $mail_name"
 extern char *var_smtpd_banner;
@@ -1171,8 +1171,8 @@ extern char *var_smtp_tls_scache_db;
 extern int var_smtp_tls_scache_timeout;
 
  /*
-  * SASL authentication support, SMTP server side.
-  */
+	* SASL authentication support, SMTP server side.
+	*/
 #define VAR_SMTPD_SASL_ENABLE	"smtpd_sasl_auth_enable"
 #define DEF_SMTPD_SASL_ENABLE	0
 extern bool var_smtpd_sasl_enable;
@@ -1208,8 +1208,8 @@ extern char *var_smtpd_snd_auth_maps;
 				"reject_unauthenticated_sender_login_mismatch"
 
  /*
-  * SASL authentication support, SMTP client side.
-  */
+	* SASL authentication support, SMTP client side.
+	*/
 #define VAR_SMTP_SASL_ENABLE	"smtp_sasl_auth_enable"
 #define DEF_SMTP_SASL_ENABLE	0
 extern bool var_smtp_sasl_enable;
@@ -1231,10 +1231,10 @@ extern char *var_smtp_sasl_mechs;
 extern char *var_smtp_sasl_tls_opts;
 
  /*
-  * LMTP server. The soft error limit determines how many errors an LMTP
-  * client may make before we start to slow down; the hard error limit
-  * determines after how many client errors we disconnect.
-  */
+	* LMTP server. The soft error limit determines how many errors an LMTP
+	* client may make before we start to slow down; the hard error limit
+	* determines after how many client errors we disconnect.
+	*/
 #define VAR_LMTPD_BANNER	"lmtpd_banner"
 #define DEF_LMTPD_BANNER	"$myhostname $mail_name"
 extern char *var_lmtpd_banner;
@@ -1264,8 +1264,8 @@ extern int var_lmtpd_err_sleep;
 extern int var_lmtpd_junk_cmd_limit;
 
  /*
-  * SASL authentication support, LMTP server side.
-  */
+	* SASL authentication support, LMTP server side.
+	*/
 #define VAR_LMTPD_SASL_ENABLE	"lmtpd_sasl_auth_enable"
 #define DEF_LMTPD_SASL_ENABLE	0
 extern bool var_lmtpd_sasl_enable;
@@ -1279,8 +1279,8 @@ extern char *var_lmtpd_sasl_opts;
 extern char *var_lmtpd_sasl_realm;
 
  /*
-  * SASL authentication support, LMTP client side.
-  */
+	* SASL authentication support, LMTP client side.
+	*/
 #define VAR_LMTP_SASL_ENABLE	"lmtp_sasl_auth_enable"
 #define DEF_LMTP_SASL_ENABLE	0
 extern bool var_lmtp_sasl_enable;
@@ -1294,16 +1294,16 @@ extern char *var_lmtp_sasl_passwd;
 extern char *var_lmtp_sasl_opts;
 
  /*
-  * SASL-based relay etc. control.
-  */
+	* SASL-based relay etc. control.
+	*/
 #define PERMIT_SASL_AUTH	"permit_sasl_authenticated"
 
  /*
-  * LMTP client. Timeouts inspired by RFC 1123. The LMTP recipient limit
-  * determines how many recipient addresses the LMTP client sends along with
-  * each message. Unfortunately, some mailers misbehave and disconnect (smap)
-  * when given more recipients than they are willing to handle.
-  */
+	* LMTP client. Timeouts inspired by RFC 1123. The LMTP recipient limit
+	* determines how many recipient addresses the LMTP client sends along with
+	* each message. Unfortunately, some mailers misbehave and disconnect (smap)
+	* when given more recipients than they are willing to handle.
+	*/
 #define VAR_LMTP_TCP_PORT	"lmtp_tcp_port"
 #define DEF_LMTP_TCP_PORT	24
 extern int var_lmtp_tcp_port;
@@ -1361,9 +1361,9 @@ extern int var_lmtp_quit_tmout;
 extern bool var_lmtp_send_xforward;
 
  /*
-  * Cleanup service. Header info that exceeds $header_size_limit bytes or
-  * $header_address_token_limit tokens is discarded.
-  */
+	* Cleanup service. Header info that exceeds $header_size_limit bytes or
+	* $header_address_token_limit tokens is discarded.
+	*/
 #define VAR_HOPCOUNT_LIMIT	"hopcount_limit"
 #define DEF_HOPCOUNT_LIMIT	50
 extern int var_hopcount_limit;
@@ -1385,8 +1385,8 @@ extern int var_virt_recur_limit;
 extern int var_virt_expan_limit;
 
  /*
-  * Message/queue size limits.
-  */
+	* Message/queue size limits.
+	*/
 #define VAR_MESSAGE_LIMIT	"message_size_limit"
 #define DEF_MESSAGE_LIMIT	10240000
 extern int var_message_limit;
@@ -1416,23 +1416,23 @@ extern char *var_body_checks;
 extern int var_body_check_len;
 
  /*
-  * Bounce service: truncate bounce message that exceed $bounce_size_limit.
-  */
+	* Bounce service: truncate bounce message that exceed $bounce_size_limit.
+	*/
 #define VAR_BOUNCE_LIMIT	"bounce_size_limit"
 #define DEF_BOUNCE_LIMIT	50000
 extern int var_bounce_limit;
 
  /*
-  * Bounce service: reserved sender address for double bounces. The local
-  * delivery service discards undeliverable double bounces.
-  */
+	* Bounce service: reserved sender address for double bounces. The local
+	* delivery service discards undeliverable double bounces.
+	*/
 #define VAR_DOUBLE_BOUNCE	"double_bounce_sender"
 #define DEF_DOUBLE_BOUNCE	"double-bounce"
 extern char *var_double_bounce_sender;
 
  /*
-  * When forking a process, how often to try and how long to wait.
-  */
+	* When forking a process, how often to try and how long to wait.
+	*/
 #define VAR_FORK_TRIES		"fork_attempts"
 #define DEF_FORK_TRIES		5
 extern int var_fork_tries;
@@ -1442,14 +1442,14 @@ extern int var_fork_tries;
 extern int var_fork_delay;
 
  /*
-  * When locking a mailbox, how often to try and how long to wait.
-  */
-#define VAR_FLOCK_TRIES          "deliver_lock_attempts"
-#define DEF_FLOCK_TRIES          20
+	* When locking a mailbox, how often to try and how long to wait.
+	*/
+#define VAR_FLOCK_TRIES	"deliver_lock_attempts"
+#define DEF_FLOCK_TRIES	20
 extern int var_flock_tries;
 
-#define VAR_FLOCK_DELAY          "deliver_lock_delay"
-#define DEF_FLOCK_DELAY          "1s"
+#define VAR_FLOCK_DELAY	"deliver_lock_delay"
+#define DEF_FLOCK_DELAY	"1s"
 extern int var_flock_delay;
 
 #define VAR_FLOCK_STALE		"stale_lock_time"
@@ -1461,33 +1461,33 @@ extern int var_flock_stale;
 extern int var_mailtool_compat;
 
  /*
-  * How long a daemon command may take to receive or deliver a message etc.
-  * before we assume it is wegded (should never happen).
-  */
+	* How long a daemon command may take to receive or deliver a message etc.
+	* before we assume it is wegded (should never happen).
+	*/
 #define VAR_DAEMON_TIMEOUT	"daemon_timeout"
 #define DEF_DAEMON_TIMEOUT	"18000s"
 extern int var_daemon_timeout;
 
  /*
-  * How long an intra-mail command may take before we assume the mail system
-  * is in deadlock (should never happen).
-  */
+	* How long an intra-mail command may take before we assume the mail system
+	* is in deadlock (should never happen).
+	*/
 #define VAR_IPC_TIMEOUT		"ipc_timeout"
 #define DEF_IPC_TIMEOUT		"3600s"
 extern int var_ipc_timeout;
 
  /*
-  * Time limit on intra-mail triggers.
-  */
+	* Time limit on intra-mail triggers.
+	*/
 #define VAR_TRIGGER_TIMEOUT	"trigger_timeout"
 #define DEF_TRIGGER_TIMEOUT	"10s"
 extern int var_trigger_timeout;
 
  /*
-  * SMTP server restrictions. What networks I am willing to relay from, what
-  * domains I am willing to forward mail from or to, what clients I refuse to
-  * talk to, and what domains I never want to see in the sender address.
-  */
+	* SMTP server restrictions. What networks I am willing to relay from, what
+	* domains I am willing to forward mail from or to, what clients I refuse to
+	* talk to, and what domains I never want to see in the sender address.
+	*/
 #define VAR_MYNETWORKS		"mynetworks"
 extern char *var_mynetworks;
 
@@ -1560,10 +1560,10 @@ extern char *var_rest_classes;
 extern bool var_allow_untrust_route;
 
  /*
-  * Names of specific restrictions, and the corresponding configuration
-  * parameters that control the status codes sent in response to rejected
-  * requests.
-  */
+	* Names of specific restrictions, and the corresponding configuration
+	* parameters that control the status codes sent in response to rejected
+	* requests.
+	*/
 #define PERMIT_ALL		"permit"
 #define REJECT_ALL		"reject"
 #define VAR_REJECT_CODE		"reject_code"
@@ -1718,8 +1718,8 @@ abcdefghijklmnopqrstuvwxyz{|}~"
 extern char *var_smtpd_exp_filter;
 
  /*
-  * Heuristic to reject unknown local recipients at the SMTP port.
-  */
+	* Heuristic to reject unknown local recipients at the SMTP port.
+	*/
 #define VAR_LOCAL_RCPT_MAPS	"local_recipient_maps"
 #define DEF_LOCAL_RCPT_MAPS	"proxy:unix:passwd.byname $" VAR_ALIAS_MAPS
 extern char *var_local_rcpt_maps;
@@ -1729,8 +1729,8 @@ extern char *var_local_rcpt_maps;
 extern int var_local_rcpt_code;
 
  /*
-  * List of pre-approved maps that are OK to open with the proxymap service.
-  */
+	* List of pre-approved maps that are OK to open with the proxymap service.
+	*/
 #define VAR_PROXY_READ_MAPS	"proxy_read_maps"
 #define DEF_PROXY_READ_MAPS	"$" VAR_LOCAL_RCPT_MAPS \
 				" $" VAR_MYDEST \
@@ -1749,8 +1749,8 @@ extern int var_local_rcpt_code;
 extern char *var_proxy_read_maps;
 
  /*
-  * Other.
-  */
+	* Other.
+	*/
 #define VAR_PROCNAME		"process_name"
 extern char *var_procname;
 
@@ -1760,29 +1760,29 @@ extern int var_pid;
 #define VAR_DEBUG_COMMAND	"debugger_command"
 
  /*
-  * Paranoia: save files instead of deleting them.
-  */
+	* Paranoia: save files instead of deleting them.
+	*/
 #define VAR_DONT_REMOVE		"dont_remove"
 #define DEF_DONT_REMOVE		0
 extern bool var_dont_remove;
 
  /*
-  * Paranoia: defer messages instead of bouncing them.
-  */
+	* Paranoia: defer messages instead of bouncing them.
+	*/
 #define VAR_SOFT_BOUNCE		"soft_bounce"
 #define DEF_SOFT_BOUNCE		0
 extern bool var_soft_bounce;
 
  /*
-  * Give special treatment to owner- and -request.
-  */
+	* Give special treatment to owner- and -request.
+	*/
 #define VAR_OWNREQ_SPECIAL		"owner_request_special"
 #define DEF_OWNREQ_SPECIAL		1
 extern bool var_ownreq_special;
 
  /*
-  * Allow/disallow recipient addresses starting with `-'.
-  */
+	* Allow/disallow recipient addresses starting with `-'.
+	*/
 #define VAR_ALLOW_MIN_USER		"allow_min_user"
 #define DEF_ALLOW_MIN_USER		0
 extern bool var_allow_min_user;
@@ -1790,15 +1790,15 @@ extern bool var_allow_min_user;
 extern void mail_params_init(void);
 
  /*
-  * Content inspection and filtering.
-  */
+	* Content inspection and filtering.
+	*/
 #define VAR_FILTER_XPORT		"content_filter"
 #define DEF_FILTER_XPORT		""
 extern char *var_filter_xport;
 
  /*
-  * Fast flush service support.
-  */
+	* Fast flush service support.
+	*/
 #define VAR_FFLUSH_DOMAINS		"fast_flush_domains"
 #define DEF_FFLUSH_DOMAINS		"$relay_domains"
 extern char *var_fflush_domains;
@@ -1812,9 +1812,9 @@ extern int var_fflush_purge;
 extern int var_fflush_refresh;
 
  /*
-  * Environmental management - what Postfix imports from the external world,
-  * and what Postfix exports to the external world.
-  */
+	* Environmental management - what Postfix imports from the external world,
+	* and what Postfix exports to the external world.
+	*/
 #define VAR_IMPORT_ENVIRON		"import_environment"
 #define DEF_IMPORT_ENVIRON		"MAIL_CONFIG MAIL_DEBUG MAIL_LOGTAG TZ XAUTHORITY DISPLAY"
 extern char *var_import_environ;
@@ -1824,8 +1824,8 @@ extern char *var_import_environ;
 extern char *var_export_environ;
 
  /*
-  * Tunables for the "virtual" local delivery agent
-  */
+	* Tunables for the "virtual" local delivery agent
+	*/
 #define VAR_VIRT_TRANSPORT		"virtual_transport"
 #define DEF_VIRT_TRANSPORT		MAIL_SERVICE_VIRTUAL
 extern char *var_virt_transport;
@@ -1867,15 +1867,15 @@ extern int var_virt_mailbox_limit;
 extern char *var_virt_mailbox_lock;
 
  /*
-  * Distinct logging tag for multiple Postfix instances.
-  */
+	* Distinct logging tag for multiple Postfix instances.
+	*/
 #define VAR_SYSLOG_NAME			"syslog_name"
 #define DEF_SYSLOG_NAME			"postfix"
 extern char *var_syslog_name;
 
  /*
-  * QMQPD
-  */
+	* QMQPD
+	*/
 #define VAR_QMQPD_CLIENTS		"qmqpd_authorized_clients"
 #define DEF_QMQPD_CLIENTS		""
 extern char *var_qmqpd_clients;
@@ -1889,9 +1889,9 @@ extern int var_qmqpd_timeout;
 extern int var_qmqpd_err_sleep;
 
  /*
-  * VERP, more DJB intellectual cross-pollination. However, we prefer + as
-  * the default recipient delimiter.
-  */
+	* VERP, more DJB intellectual cross-pollination. However, we prefer + as
+	* the default recipient delimiter.
+	*/
 #define VAR_VERP_DELIMS			"default_verp_delimiters"
 #define DEF_VERP_DELIMS			"+="
 extern char *var_verp_delims;
@@ -1909,28 +1909,28 @@ extern bool var_verp_bounce_off;
 extern char *var_verp_clients;
 
  /*
-  * XCLIENT, for rule testing and fetchmail like apps.
-  */
+	* XCLIENT, for rule testing and fetchmail like apps.
+	*/
 #define VAR_XCLIENT_HOSTS		"smtpd_authorized_xclient_hosts"
 #define DEF_XCLIENT_HOSTS		""
 extern char *var_xclient_hosts;
 
  /*
-  * XFORWARD, for improved post-filter logging.
-  */
+	* XFORWARD, for improved post-filter logging.
+	*/
 #define VAR_XFORWARD_HOSTS		"smtpd_authorized_xforward_hosts"
 #define DEF_XFORWARD_HOSTS		""
 extern char *var_xforward_hosts;
 
  /*
-  * Inbound mail flow control. This allows for a stiffer coupling between
-  * receiving mail and sending mail. A sending process produces one token for
-  * each message that it takes from the incoming queue; a receiving process
-  * consumes one token for each message that it adds to the incoming queue.
-  * When no token is available (Postfix receives more mail than it is able to
-  * deliver) a receiving process pauses for $in_flow_delay seconds so that
-  * the sending processes get a chance to access the disk.
-  */
+	* Inbound mail flow control. This allows for a stiffer coupling between
+	* receiving mail and sending mail. A sending process produces one token for
+	* each message that it takes from the incoming queue; a receiving process
+	* consumes one token for each message that it adds to the incoming queue.
+	* When no token is available (Postfix receives more mail than it is able to
+	* deliver) a receiving process pauses for $in_flow_delay seconds so that
+	* the sending processes get a chance to access the disk.
+	*/
 #define VAR_IN_FLOW_DELAY			"in_flow_delay"
 #ifdef PIPES_CANT_FIONREAD
 #define DEF_IN_FLOW_DELAY			"0s"
@@ -1940,8 +1940,8 @@ extern char *var_xforward_hosts;
 extern int var_in_flow_delay;
 
  /*
-  * Backwards compatibility: foo.com matches itself and names below foo.com.
-  */
+	* Backwards compatibility: foo.com matches itself and names below foo.com.
+	*/
 #define VAR_PAR_DOM_MATCH		"parent_domain_matches_subdomains"
 #define DEF_PAR_DOM_MATCH		VAR_DEBUG_PEER_LIST "," \
 					VAR_FFLUSH_DOMAINS "," \
@@ -1955,15 +1955,15 @@ extern char *var_par_dom_match;
 #define SMTPD_ACCESS_MAPS		"smtpd_access_maps"
 
  /*
-  * Run-time fault injection.
-  */
+	* Run-time fault injection.
+	*/
 #define VAR_FAULT_INJ_CODE		"fault_injection_code"
 #define DEF_FAULT_INJ_CODE		0
 extern int var_fault_inj_code;
 
  /*
-  * Install/upgrade information.
-  */
+	* Install/upgrade information.
+	*/
 #define VAR_SENDMAIL_PATH		"sendmail_path"
 #ifndef DEF_SENDMAIL_PATH
 #define DEF_SENDMAIL_PATH		"/usr/sbin/sendmail"
@@ -2000,12 +2000,12 @@ extern int var_fault_inj_code;
 #endif
 
  /*
-  * Safety: resolve the address with unquoted localpart (default, but
-  * technically incorrect), instead of resolving the address with quoted
-  * localpart (technically correct, but unsafe). The default prevents mail
-  * relay loopholes with "user@domain"@domain when relaying mail to a
-  * Sendmail system.
-  */
+	* Safety: resolve the address with unquoted localpart (default, but
+	* technically incorrect), instead of resolving the address with quoted
+	* localpart (technically correct, but unsafe). The default prevents mail
+	* relay loopholes with "user@domain"@domain when relaying mail to a
+	* Sendmail system.
+	*/
 #define VAR_RESOLVE_DEQUOTED		"resolve_dequoted_address"
 #define DEF_RESOLVE_DEQUOTED		1
 extern bool var_resolve_dequoted;
@@ -2015,12 +2015,12 @@ extern bool var_resolve_dequoted;
 extern bool var_resolve_nulldom;
 
  /*
-  * Service names. The transport (TCP, FIFO or UNIX-domain) type is frozen
-  * because you cannot simply mix them, and accessibility (private/public) is
-  * frozen for security reasons. We list only the internal services, not the
-  * externally visible SMTP server, or the delivery agents that can already
-  * be chosen via transport mappings etc.
-  */
+	* Service names. The transport (TCP, FIFO or UNIX-domain) type is frozen
+	* because you cannot simply mix them, and accessibility (private/public) is
+	* frozen for security reasons. We list only the internal services, not the
+	* externally visible SMTP server, or the delivery agents that can already
+	* be chosen via transport mappings etc.
+	*/
 #define VAR_BOUNCE_SERVICE		"bounce_service_name"
 #define DEF_BOUNCE_SERVICE		MAIL_SERVICE_BOUNCE
 extern char *var_bounce_service;
@@ -2060,8 +2060,8 @@ extern char *var_error_service;
 extern char *var_flush_service;
 
  /*
-  * Session cache service.
-  */
+	* Session cache service.
+	*/
 #define VAR_SCACHE_SERVICE		"connection_cache_service"
 #define DEF_SCACHE_SERVICE		"scache"
 extern char *var_scache_service;
@@ -2075,8 +2075,8 @@ extern int var_scache_ttl_lim;
 extern int var_scache_stat_time;
 
  /*
-  * Address verification service.
-  */
+	* Address verification service.
+	*/
 #define VAR_VERIFY_SERVICE		"address_verify_service_name"
 #define DEF_VERIFY_SERVICE		MAIL_SERVICE_VERIFY
 extern char *var_verify_service;
@@ -2142,15 +2142,15 @@ extern char *var_vrfy_relayhost;
 extern char *var_vrfy_xport_maps;
 
  /*
-  * Message delivery trace service.
-  */
+	* Message delivery trace service.
+	*/
 #define VAR_TRACE_SERVICE		"trace_service_name"
 #define DEF_TRACE_SERVICE		MAIL_SERVICE_TRACE
 extern char *var_trace_service;
 
  /*
-  * Mailbox/maildir delivery errors that cause delivery to be tried again.
-  */
+	* Mailbox/maildir delivery errors that cause delivery to be tried again.
+	*/
 #define VAR_MBX_DEFER_ERRS		"mailbox_defer_errors"
 #define DEF_MBX_DEFER_ERRS		"eagain, enospc, estale"
 extern char *var_mbx_defer_errs;
@@ -2160,8 +2160,8 @@ extern char *var_mbx_defer_errs;
 extern char *var_mdr_defer_errs;
 
  /*
-  * Berkeley DB memory pool sizes.
-  */
+	* Berkeley DB memory pool sizes.
+	*/
 #define	VAR_DB_CREATE_BUF		"berkeley_db_create_buffer_size"
 #define DEF_DB_CREATE_BUF		(16 * 1024 *1024)
 extern int var_db_create_buf;
@@ -2171,15 +2171,15 @@ extern int var_db_create_buf;
 extern int var_db_read_buf;
 
  /*
-  * Named queue file attributes.
-  */
+	* Named queue file attributes.
+	*/
 #define VAR_QATTR_COUNT_LIMIT		"queue_file_attribute_count_limit"
 #define DEF_QATTR_COUNT_LIMIT		100
 extern int var_qattr_count_limit;
 
  /*
-  * MIME support.
-  */
+	* MIME support.
+	*/
 #define VAR_MIME_MAXDEPTH		"mime_nesting_limit"
 #define DEF_MIME_MAXDEPTH		100
 extern int var_mime_maxdepth;
@@ -2213,8 +2213,8 @@ extern bool var_strict_8bit_body;
 extern bool var_strict_encoding;
 
  /*
-  * Bizarre.
-  */
+	* Bizarre.
+	*/
 #define VAR_SENDER_ROUTING		"sender_based_routing"
 #define DEF_SENDER_ROUTING		0
 extern bool var_sender_routing;
@@ -2224,15 +2224,15 @@ extern bool var_sender_routing;
 extern char *var_xport_null_key;
 
  /*
-  * Bounce service controls.
-  */
+	* Bounce service controls.
+	*/
 #define VAR_OLDLOG_COMPAT		"backwards_bounce_logfile_compatibility"
 #define DEF_OLDLOG_COMPAT		1
 extern bool var_oldlog_compat;
 
  /*
-  * SMTPD content proxy.
-  */
+	* SMTPD content proxy.
+	*/
 #define VAR_SMTPD_PROXY_FILT		"smtpd_proxy_filter"
 #define DEF_SMTPD_PROXY_FILT		""
 extern char *var_smtpd_proxy_filt;
@@ -2246,17 +2246,17 @@ extern char *var_smtpd_proxy_ehlo;
 extern int var_smtpd_proxy_tmout;
 
  /*
-  * Transparency options for mail input interfaces and for the cleanup server
-  * behind them. These should turn off stuff we don't want to happen, because
-  * the default is to do a lot of things.
-  */
+	* Transparency options for mail input interfaces and for the cleanup server
+	* behind them. These should turn off stuff we don't want to happen, because
+	* the default is to do a lot of things.
+	*/
 #define VAR_INPUT_TRANSP		"receive_override_options"
 #define DEF_INPUT_TRANSP		""
 extern char *var_smtpd_input_transp;
 
  /*
-  * SMTP server policy delegation.
-  */
+	* SMTP server policy delegation.
+	*/
 #define VAR_SMTPD_POLICY_TMOUT		"smtpd_policy_service_timeout"
 #define DEF_SMTPD_POLICY_TMOUT		"100s"
 extern int var_smtpd_policy_tmout;
@@ -2272,8 +2272,8 @@ extern int var_smtpd_policy_ttl;
 #define CHECK_POLICY_SERVICE		"check_policy_service"
 
  /*
-  * Client rate control.
-  */
+	* Client rate control.
+	*/
 #define VAR_SMTPD_CRATE_LIMIT		"smtpd_client_connection_rate_limit"
 #define DEF_SMTPD_CRATE_LIMIT		0
 extern int var_smtpd_crate_limit;
@@ -2303,8 +2303,8 @@ extern int var_anvil_time_unit;
 extern int var_anvil_stat_time;
 
  /*
-  * Temporary stop gap.
-  */
+	* Temporary stop gap.
+	*/
 #if 0
 #include <anvil_clnt.h>
 
@@ -2315,8 +2315,8 @@ extern char *var_anvil_service;
 #endif
 
  /*
-  * What domain names to assume when no valid domain context exists.
-  */
+	* What domain names to assume when no valid domain context exists.
+	*/
 #define VAR_REM_RWR_DOMAIN		"remote_header_rewrite_domain"
 #define DEF_REM_RWR_DOMAIN		""
 extern char *var_remote_rwr_domain;
@@ -2328,8 +2328,8 @@ extern char *var_remote_rwr_domain;
 extern char *var_local_rwr_clients;
 
  /*
-  * EHLO keyword filter.
-  */
+	* EHLO keyword filter.
+	*/
 #define VAR_SMTPD_EHLO_DIS_WORDS	"smtpd_discard_ehlo_keywords"
 #define DEF_SMTPD_EHLO_DIS_WORDS	""
 extern char *var_smtpd_ehlo_dis_words;
@@ -2345,6 +2345,13 @@ extern char *var_smtp_ehlo_dis_words;
 #define VAR_SMTP_EHLO_DIS_MAPS		"smtp_discard_ehlo_keyword_address_maps"
 #define DEF_SMTP_EHLO_DIS_MAPS		""
 extern char *var_smtp_ehlo_dis_maps;
+
+ /*
+  * Allow CNAME lookup result to override the server hostname.
+  */
+#define VAR_SMTP_CNAME_OVERR		"smtp_cname_overrides_servername"
+#define DEF_SMTP_CNAME_OVERR		1
+extern bool var_smtp_cname_overr;
 
 /* LICENSE
 /* .ad

@@ -80,7 +80,8 @@ typedef struct DNS_FIXED {
   * named after the things one can expect to find in a DNS resource record.
   */
 typedef struct DNS_RR {
-    char   *name;			/* name, mystrdup()ed */
+    char   *qname;			/* query name, mystrdup()ed */
+    char   *rname;			/* reply name, mystrdup()ed */
     unsigned short type;		/* T_A, T_CNAME, etc. */
     unsigned short class;		/* C_IN, etc. */
     unsigned int ttl;			/* always */
@@ -104,7 +105,8 @@ extern unsigned dns_type(const char *);
  /*
   * dns_rr.c
   */
-extern DNS_RR *dns_rr_create(const char *, ushort, ushort,
+extern DNS_RR *dns_rr_create(const char *, const char *,
+			             ushort, ushort,
 			             unsigned, unsigned,
 			             const char *, unsigned);
 extern void dns_rr_free(DNS_RR *);

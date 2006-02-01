@@ -54,12 +54,12 @@ DNS_RR *dns_sa_to_rr(const char *hostname, unsigned pref, struct sockaddr * sa)
 #define DUMMY_TTL	0
 
     if (sa->sa_family == AF_INET) {
-	return (dns_rr_create(hostname, T_A, C_IN, DUMMY_TTL, pref,
+	return (dns_rr_create(hostname, hostname, T_A, C_IN, DUMMY_TTL, pref,
 			      (char *) &SOCK_ADDR_IN_ADDR(sa),
 			      sizeof(SOCK_ADDR_IN_ADDR(sa))));
 #ifdef HAS_IPV6
     } else if (sa->sa_family == AF_INET6) {
-	return (dns_rr_create(hostname, T_AAAA, C_IN, DUMMY_TTL, pref,
+	return (dns_rr_create(hostname, hostname, T_AAAA, C_IN, DUMMY_TTL, pref,
 			      (char *) &SOCK_ADDR_IN6_ADDR(sa),
 			      sizeof(SOCK_ADDR_IN6_ADDR(sa))));
 #endif

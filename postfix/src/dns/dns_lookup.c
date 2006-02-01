@@ -97,6 +97,11 @@
 /*	The query failed; the problem is transient.
 /* .IP DNS_FAIL
 /*	The query failed.
+/*
+/*	As a workaround, this result value is also returned when
+/*	the DNS query succeeded, but the result could not be parsed,
+/*	or the result domain name did not pass the valid_hostname()
+/*	syntax test (e.g., a null MX hostname).
 /* BUGS
 /*	dns_lookup() implements a subset of all possible resource types:
 /*	CNAME, MX, A, and some records with similar formatting requirements.
@@ -324,7 +329,7 @@ static int valid_rr_name(const char *name, const char *location,
 
 /* dns_get_rr - extract resource record from name server reply */
 
-static DNS_RR *dns_get_rr(DNS_REPLY *reply, unsigned char *pos,
+static DNS_RR *dns_get_rr(const char *name, DNS_REPLY *reply, unsigned char *pos,
 			          char *rr_name, DNS_FIXED *fixed)
 {
     char    temp[DNS_NAME_LEN];
@@ -397,7 +402,7 @@ static DNS_RR *dns_get_rr(DNS_REPLY *reply, unsigned char *pos,
 	*dst = 0;
 	break;
     }
-    return (dns_rr_create(rr_name, fixed->type, fixed->class, fixed->ttl,
+    return (dns_rr_create(name, rr_name, fixed->type, fixed->class, fixed->ttl,
 			  pref, temp, data_len));
 }
 
@@ -417,7 +422,7 @@ static int dns_get_alias(DNS_REPLY *reply, unsigned char *pos,
 
 /* dns_get_answer - extract answers from name server reply */
 
-static int dns_get_answer(DNS_REPLY *reply, int type,
+static int dns_get_answer(const char *name, DNS_REPLY *reply, int type,
 	             DNS_RR **rrlist, VSTRING *fqdn, char *cname, int c_len)
 {
     char    rr_name[DNS_NAME_LEN];
@@ -490,11 +495,11 @@ static int dns_get_answer(DNS_REPLY *reply, int type,
 	    CORRUPT;
 	if (type == fixed.type || type == T_ANY) {	/* requested type */
 	    if (rrlist) {
-		if ((rr = dns_get_rr(reply, pos, rr_name, &fixed)) != 0) {
+		if ((rr = dns_get_rr(name, reply, pos, rr_name, &fixed)) != 0) {
 		    resource_found++;
 		    *rrlist = dns_rr_append(*rrlist, rr);
-		} else
-		    not_found_status = DNS_RETRY;
+		} else if (not_found_status != DNS_RETRY)
+		    not_found_status = DNS_FAIL;	/* XXX */
 	    } else
 		resource_found++;
 	} else if (fixed.type == T_CNAME) {	/* cname resource */
@@ -528,6 +533,7 @@ int     dns_lookup(const char *name, unsigned type, unsigned flags,
     DNS_REPLY reply;
     int     count;
     int     status;
+    const char *saved_name = name;
 
     /*
      * DJBDNS produces a bogus A record when given a numerical hostname.
@@ -569,7 +575,8 @@ int     dns_lookup(const char *name, unsigned type, unsigned flags,
 	 * Extract resource records of the requested type. Pick up CNAME
 	 * information just in case the requested data is not found.
 	 */
-	status = dns_get_answer(&reply, type, rrlist, fqdn, cname, c_len);
+	status = dns_get_answer(saved_name, &reply, type, rrlist, fqdn,
+				cname, c_len);
 	switch (status) {
 	default:
 	    if (why)

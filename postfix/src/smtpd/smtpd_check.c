@@ -2314,7 +2314,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 			    (VSTRING *) 0, (VSTRING *) 0);
     if (dns_status == DNS_NOTFOUND && h_errno == NO_DATA) {
 	if (type == T_MX) {
-	    server_list = dns_rr_create(domain, type, C_IN, 0, 0,
+	    server_list = dns_rr_create(domain, domain, type, C_IN, 0, 0,
 					domain, strlen(domain) + 1);
 	    dns_status = DNS_OK;
 	} else if (type == T_NS) {
@@ -4337,6 +4337,7 @@ char   *var_relay_rcpt_maps;
 char   *var_verify_sender;
 char   *var_smtpd_sasl_opts;
 char   *var_local_rwr_clients;
+char   *var_smtpd_relay_ccerts;
 
 typedef struct {
     char   *name;
@@ -4379,6 +4380,7 @@ static STRING_TABLE string_table[] = {
     VAR_MAIL_NAME, DEF_MAIL_NAME, &var_mail_name,
     VAR_SMTPD_SASL_OPTS, DEF_SMTPD_SASL_OPTS, &var_smtpd_sasl_opts,
     VAR_LOC_RWR_CLIENTS, DEF_LOC_RWR_CLIENTS, &var_local_rwr_clients,
+    VAR_RELAY_CCERTS, DEF_RELAY_CCERTS, &var_smtpd_relay_ccerts,
     0,
 };
 

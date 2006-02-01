@@ -829,6 +829,7 @@ int     main(int argc, char **argv)
 	VAR_PROP_EXTENSION, DEF_PROP_EXTENSION, &var_prop_extension, 0, 0,
 	VAR_DELIVER_HDR, DEF_DELIVER_HDR, &var_deliver_hdr, 0, 0,
 	VAR_MAILBOX_LOCK, DEF_MAILBOX_LOCK, &var_mailbox_lock, 1, 0,
+	VAR_MAILBOX_CMD_MAPS, DEF_MAILBOX_CMD_MAPS, &var_mailbox_cmd_maps, 0, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {
@@ -844,7 +845,6 @@ int     main(int argc, char **argv)
 	VAR_EXEC_DIRECTORY, DEF_EXEC_DIRECTORY, &var_exec_directory, 0, 0,
 	VAR_FORWARD_PATH, DEF_FORWARD_PATH, &var_forward_path, 0, 0,
 	VAR_MAILBOX_COMMAND, DEF_MAILBOX_COMMAND, &var_mailbox_command, 0, 0,
-	VAR_MAILBOX_CMD_MAPS, DEF_MAILBOX_CMD_MAPS, &var_mailbox_cmd_maps, 0, 0,
 	VAR_LUSER_RELAY, DEF_LUSER_RELAY, &var_luser_relay, 0, 0,
 	0,
     };
