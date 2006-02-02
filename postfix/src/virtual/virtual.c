@@ -75,6 +75,12 @@
 /*	The \fBvirtual_minimum_uid\fR parameter imposes a lower bound on
 /*	numerical user ID values that may be specified in any
 /*	\fBvirtual_uid_maps\fR.
+/* CASE FOLDING
+/* .ad
+/* .fi
+/*	All delivery decisions are made using the full recipient
+/*	address, folded to lower case. See also the next section
+/*	for a few exceptions with optional address extensions.
 /* TABLE SEARCH ORDER
 /* .ad
 /* .fi

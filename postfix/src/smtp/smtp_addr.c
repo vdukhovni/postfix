@@ -150,6 +150,9 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
 
     /*
      * Use DNS lookup, but keep the option open to use native name service.
+     * 
+     * XXX A soft error dominates past and future hard errors. Therefore we
+     * should not clobber a soft error text and status code.
      */
     if (smtp_host_lookup_mask & SMTP_HOST_FLAG_DNS) {
 	switch (dns_lookup_v(host, RES_DEFNAMES, &addr, (VSTRING *) 0,
@@ -167,6 +170,8 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
 	    dsb_status(why, SMTP_HAS_SOFT_DSN(why) ? "4.4.3" : "5.4.3");
 	    return (addr_list);
 	case DNS_INVAL:
+	    dsb_status(why, SMTP_HAS_SOFT_DSN(why) ? "4.4.4" : "5.4.4");
+	    return (addr_list);
 	case DNS_NOTFOUND:
 	    dsb_status(why, SMTP_HAS_SOFT_DSN(why) ? "4.4.4" : "5.4.4");
 	    /* maybe native naming service will succeed */
@@ -176,6 +181,9 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
 
     /*
      * Use the native name service which also looks in /etc/hosts.
+     * 
+     * XXX A soft error dominates past and future hard errors. Therefore we
+     * should not clobber a soft error text and status code.
      */
 #define RETRY_AI_ERROR(e) \
         ((e) == EAI_AGAIN || (e) == EAI_MEMORY || (e) == EAI_SYSTEM)
@@ -388,6 +396,11 @@ DNS_RR *smtp_domain_addr(char *name, int misc_flags, DSN_BUF *why,
 	if (var_ign_mx_lookup_err)
 	    addr_list = smtp_host_addr(name, misc_flags, why);
 	break;
+    case DNS_INVAL:
+	dsb_status(why, "5.4.4");
+	if (var_ign_mx_lookup_err)
+	    addr_list = smtp_host_addr(name, misc_flags, why);
+	break;
     case DNS_FAIL:
 	dsb_status(why, "5.4.3");
 	if (var_ign_mx_lookup_err)
@@ -431,9 +444,6 @@ DNS_RR *smtp_domain_addr(char *name, int misc_flags, DSN_BUF *why,
 	    addr_list = dns_rr_shuffle(addr_list);
 	    addr_list = dns_rr_sort(addr_list, dns_rr_compare_pref);
 	}
-	break;
-    case DNS_INVAL:
-	dsb_status(why, "5.4.4");
 	break;
     case DNS_NOTFOUND:
 	addr_list = smtp_host_addr(name, misc_flags, why);

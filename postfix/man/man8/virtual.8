@@ -89,6 +89,14 @@ a string with the numerical user and group ID, respectively.
 The \fBvirtual_minimum_uid\fR parameter imposes a lower bound on
 numerical user ID values that may be specified in any
 \fBvirtual_uid_maps\fR.
+.SH "CASE FOLDING"
+.na
+.nf
+.ad
+.fi
+All delivery decisions are made using the full recipient
+address, folded to lower case. See also the next section
+for a few exceptions with optional address extensions.
 .SH "TABLE SEARCH ORDER"
 .na
 .nf

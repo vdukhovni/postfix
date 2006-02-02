@@ -53,6 +53,13 @@
 #
 #	The \fBcanonical\fR(5) mapping is not to be confused with local aliasing.
 #	Use the \fBaliases\fR(5) map for that purpose.
+# CASE FOLDING
+# .ad
+# .fi
+#	The search string is folded to lowercase before database
+#	lookup. As of Postfix 2.3, the search string is not case
+#	folded with database types such as regexp: or pcre: whose
+#	lookup fields can match both upper and lower case.
 # TABLE FORMAT
 # .ad
 # .fi

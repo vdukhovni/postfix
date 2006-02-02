@@ -91,6 +91,11 @@
 #	The \fBpropagate_unmatched_extensions\fR parameter controls
 #	whether an unmatched address extension (\fI+foo\fR) is
 #	propagated to the result of table lookup.
+# CASE FOLDING
+# .ad
+# .fi
+#       The local(8) delivery agent always folds the search string
+#       to lowercase before database lookup.
 # SECURITY
 # .ad
 # .fi

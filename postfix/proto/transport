@@ -54,6 +54,13 @@
 #	can be directed to TCP-based server. In that case, the lookups are
 #	done in a slightly different way as described below under
 #	"REGULAR EXPRESSION TABLES" and "TCP-BASED TABLES".
+# CASE FOLDING
+# .ad
+# .fi
+#	The search string is folded to lowercase before database
+#	lookup. As of Postfix 2.3, the search string is not case
+#	folded with database types such as regexp: or pcre: whose
+#	lookup fields can match both upper and lower case.
 # TABLE FORMAT
 # .ad
 # .fi

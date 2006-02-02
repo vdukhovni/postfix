@@ -99,6 +99,13 @@ the search is repeated for the unextended address (e.g., \fIuser\fR).
 The \fBpropagate_unmatched_extensions\fR parameter controls
 whether an unmatched address extension (\fI+foo\fR) is
 propagated to the result of table lookup.
+.SH "CASE FOLDING"
+.na
+.nf
+.ad
+.fi
+The local(8) delivery agent always folds the search string
+to lowercase before database lookup.
 .SH "SECURITY"
 .na
 .nf

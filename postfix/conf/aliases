@@ -139,66 +139,70 @@ decode:		root
 #        whether an unmatched address extension  (+foo)  is  propa-
 #        gated to the result of table lookup.
 # 
+# CASE FOLDING
+#        The local(8) delivery agent always folds the search string
+#        to lowercase before database lookup.
+# 
 # SECURITY
-#        The  local(8)  delivery agent disallows regular expression
-#        substitution of $1 etc. in alias_maps, because that  would
+#        The local(8) delivery agent disallows  regular  expression
+#        substitution  of $1 etc. in alias_maps, because that would
 #        open a security hole.
 # 
-#        The  local(8) delivery agent will silently ignore requests
-#        to use the proxymap(8) server within  alias_maps.  Instead
-#        it  will  open the table directly.  Before Postfix version
-#        2.2, the local(8) delivery agent  will  terminate  with  a
+#        The local(8) delivery agent will silently ignore  requests
+#        to  use  the proxymap(8) server within alias_maps. Instead
+#        it will open the table directly.  Before  Postfix  version
+#        2.2,  the  local(8)  delivery  agent will terminate with a
 #        fatal error.
 # 
 # CONFIGURATION PARAMETERS
-#        The  following main.cf parameters are especially relevant.
-#        The text below provides  only  a  parameter  summary.  See
+#        The following main.cf parameters are especially  relevant.
+#        The  text  below  provides  only  a parameter summary. See
 #        postconf(5) for more details including examples.
 # 
 #        alias_database
-#               List  of  alias  databases  that are updated by the
+#               List of alias databases that  are  updated  by  the
 #               newaliases(1) command.
 # 
 #        alias_maps
-#               List of alias databases  queried  by  the  local(8)
+#               List  of  alias  databases  queried by the local(8)
 #               delivery agent.
 # 
 #        allow_mail_to_commands
-#               Restrict  the  usage  of  mail delivery to external
+#               Restrict the usage of  mail  delivery  to  external
 #               command.
 # 
 #        allow_mail_to_files
-#               Restrict the usage of  mail  delivery  to  external
+#               Restrict  the  usage  of  mail delivery to external
 #               file.
 # 
 #        expand_owner_alias
 #               When delivering to an alias that has an owner- com-
-#               panion alias, set the envelope  sender  address  to
-#               the  right-hand  side  of  the owner alias, instead
+#               panion  alias,  set  the envelope sender address to
+#               the right-hand side of  the  owner  alias,  instead
 #               using of the left-hand side address.
 # 
 #        propagate_unmatched_extensions
-#               A list of address rewriting  or  forwarding  mecha-
-#               nisms  that propagate an address extension from the
-#               original address to the  result.  Specify  zero  or
-#               more   of   canonical,   virtual,  alias,  forward,
+#               A  list  of  address rewriting or forwarding mecha-
+#               nisms that propagate an address extension from  the
+#               original  address  to  the  result. Specify zero or
+#               more  of  canonical,   virtual,   alias,   forward,
 #               include, or generic.
 # 
 #        owner_request_special
-#               Give special treatment to owner-listname and  list-
+#               Give  special treatment to owner-listname and list-
 #               name-request addresses.
 # 
 #        recipient_delimiter
-#               Delimiter  that  separates  recipients from address
+#               Delimiter that separates  recipients  from  address
 #               extensions.
 # 
 #        Available in Postfix version 2.3 and later:
 # 
 #        frozen_delivered_to
-#               Update the local(8) delivery agent's  Delivered-To:
-#               address  (see  prepend_delivered_header) only once,
-#               at the start of  a  delivery;  do  not  update  the
-#               Delivered-To:  address  while  expanding aliases or
+#               Update  the local(8) delivery agent's Delivered-To:
+#               address (see prepend_delivered_header)  only  once,
+#               at  the  start  of  a  delivery;  do not update the
+#               Delivered-To: address while  expanding  aliases  or
 #               .forward files.
 # 
 # STANDARDS
@@ -211,12 +215,12 @@ decode:		root
 #        postconf(5), configuration parameters
 # 
 # README FILES
-#        Use "postconf readme_directory" or  "postconf  html_direc-
+#        Use  "postconf  readme_directory" or "postconf html_direc-
 #        tory" to locate this information.
 #        DATABASE_README, Postfix lookup table overview
 # 
 # LICENSE
-#        The  Secure  Mailer  license must be distributed with this
+#        The Secure Mailer license must be  distributed  with  this
 #        software.
 # 
 # AUTHOR(S)

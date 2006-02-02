@@ -11902,8 +11902,9 @@ Apologies for any names omitted.
 	elimination of non-intuitive behavior as documented next.
 	With Victor Duchovni. Files: smtp_session.c, smtp.h.
 
-	Bugfix: a per-site MUST_NOPEERMATCH policy could not override
-	a main.cf MUST (with peer match) policy.
+	Bugfix: a TLS per-site MUST_NOPEERMATCH policy could not
+	override a main.cf MUST (with peer match) policy, while a
+	per-site NONE policy could.
 
 	Bugfix: a combined TLS per-site (host, next-hop) policy of
 	(NONE, MAY) would change the strongest main.cf MUST policy
@@ -11960,11 +11961,15 @@ Apologies for any names omitted.
 
 20060201
 
-	Bugfix: despite efforts to treat malformed domain names in
-	DNS replies as hard errors (change 20050726) they were still
-	processed as soft errors. File: dns/dns_lookup.c.
+	Bugfix: despite efforts to treat malformed domain names as
+	hard errors (change 20050726) they were still processed as
+	soft errors. File: dns/dns_lookup.c.
 
 Open issues:
+
+	Make the map case folding/locking options configurable, if
+	not at run-time then at least at compile time so we get
+	consistent behavior across applications.
 
 	Investigate if it is feasible to eliminate cleanup(8) from
 	the path of mail that is forwarded or generated internally.
@@ -11977,11 +11982,9 @@ Open issues:
 	make the old behavior configurable in a unified queue manager.
 	This would shave another 2.7 KLOC from the source footprint.
 
-	Document case folding strategy in different maps (access,
-	canonical, etc). Even better: make it configurable, so we
-	can blame the user when they make a mistake :-)
+	Document the case folding strategy for match_list like features.
 
-	Eliminate the (incoming,deferred)-active rename operation.
+	Eliminate the (incoming,deferred)->active rename operation.
 
 	Softbounce fallback-to-ISP for SOHO users. This requires
 	playing with with the soft_error test in the smtp_trouble.c
@@ -11989,8 +11992,10 @@ Open issues:
 
 	select -> kqueue, epoll, /dev/poll, poll() ...
 
-	Set pipelining flag at start of session and at other protocol
-	synchronization points.
+	In the SMTP server, set a "pipelining detected" flag at the
+	start of a session and at protocol synchronization points,
+	so that reject_unauth_pipelining can be specified in any
+	access rule.
 
 	Centralize main.cf parameter input so that defaults work
 	consistently.

@@ -18,6 +18,12 @@
 /*	be tried again at a later time. Delivery status reports are sent
 /*	to the \fBbounce\fR(8), \fBdefer\fR(8) or \fBtrace\fR(8) daemon as
 /*	appropriate.
+/* CASE FOLDING
+/* .ad
+/* .fi
+/*	All delivery decisions are made using the bare recipient
+/*	name (i.e. the address localpart), folded to lower case.
+/*	See also under ADDRESS EXTENSION below for a few exceptions.
 /* SYSTEM-WIDE AND USER-LEVEL ALIASING
 /* .ad
 /* .fi
