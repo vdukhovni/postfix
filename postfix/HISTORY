@@ -11965,7 +11965,19 @@ Apologies for any names omitted.
 	hard errors (change 20050726) they were still processed as
 	soft errors. File: dns/dns_lookup.c.
 
-Open issues:
+20060203
+
+	Bugfix: smtpd core dump when SASL was compiled in, turned
+	off (smtpd_sasl_auth_enable = no) and permit_sasl_authenticated
+	was specified in local_header_rewrite_clients. Victor
+	Duchovni.  File: smtpd/smtpd_check.c.
+
+	Cleanup: don't complain about useless SASL or TLS "permit"
+	restrictions when SASL or TLS aren't compiled in, but do
+	reject mail when reject_plaintext_session is specified while
+	TLS isn't compiled in. File: smtpd/smtpd_check.c.
+
+Wish list:
 
 	Make the map case folding/locking options configurable, if
 	not at run-time then at least at compile time so we get

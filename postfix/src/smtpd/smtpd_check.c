@@ -956,18 +956,17 @@ static int reject_unknown_client(SMTPD_STATE *state)
 
 static int reject_plaintext_session(SMTPD_STATE *state)
 {
-#ifdef USE_TLS
     char   *myname = "reject_plaintext_session";
 
     if (msg_verbose)
 	msg_info("%s: %s %s", myname, state->name, state->addr);
 
+#ifdef USE_TLS
     if (state->tls_context == 0)
+#endif
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				   var_plaintext_code, "4.7.1",
 				   "Session encryption is required"));
-#endif
-    return (SMTPD_CHECK_DUNNO);
 }
 
 /* permit_inet_interfaces - succeed if client my own address */
@@ -3480,10 +3479,8 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    } else
 		sleep(atoi(*++cpp));
 #endif
-#ifdef USE_TLS
 	} else if (strcasecmp(name, REJECT_PLAINTEXT_SESSION) == 0) {
 	    status = reject_plaintext_session(state);
-#endif
 	}
 
 	/*
@@ -3521,8 +3518,8 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		    status = reject_rbl_domain(state, *cpp, state->name,
 					       SMTPD_NAME_CLIENT);
 	    }
-#ifdef USE_TLS
 	} else if (is_map_command(state, name, CHECK_CCERT_ACL, &cpp)) {
+#ifdef USE_TLS
 	    status = check_ccert_access(state, *cpp, def_acl);
 #endif
 	}
@@ -3699,17 +3696,17 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		msg_warn("restriction `%s' after `%s' is ignored",
 			 cpp[1], CHECK_RELAY_DOMAINS);
 	} else if (strcasecmp(name, PERMIT_SASL_AUTH) == 0) {
-	    if (var_smtpd_sasl_enable)
 #ifdef USE_SASL_AUTH
+	    if (var_smtpd_sasl_enable)
 		status = permit_sasl_auth(state,
 					  SMTPD_CHECK_OK, SMTPD_CHECK_DUNNO);
-#else
-		msg_warn("restriction `%s' ignored: no SASL support", name);
 #endif
-#ifdef USE_TLS
 	} else if (strcasecmp(name, PERMIT_TLS_ALL_CLIENTCERTS) == 0) {
+#ifdef USE_TLS
 	    status = permit_tls_clientcerts(state, 1);
+#endif
 	} else if (strcasecmp(name, PERMIT_TLS_CLIENTCERTS) == 0) {
+#ifdef USE_TLS
 	    status = permit_tls_clientcerts(state, 0);
 #endif
 	} else if (strcasecmp(name, REJECT_UNKNOWN_RCPTDOM) == 0) {
@@ -3866,15 +3863,16 @@ void    smtpd_check_rewrite(SMTPD_STATE *state)
 		status = SMTPD_CHECK_OK;
 	} else if (strcasecmp(name, PERMIT_SASL_AUTH) == 0) {
 #ifdef USE_SASL_AUTH
-	    status = permit_sasl_auth(state, SMTPD_CHECK_OK,
-				      SMTPD_CHECK_DUNNO);
-#else
-	    status = SMTPD_CHECK_DUNNO;
+	    if (var_smtpd_sasl_enable)
+		status = permit_sasl_auth(state, SMTPD_CHECK_OK,
+					  SMTPD_CHECK_DUNNO);
 #endif
-#ifdef USE_TLS
 	} else if (strcasecmp(name, PERMIT_TLS_ALL_CLIENTCERTS) == 0) {
+#ifdef USE_TLS
 	    status = permit_tls_clientcerts(state, 1);
+#endif
 	} else if (strcasecmp(name, PERMIT_TLS_CLIENTCERTS) == 0) {
+#ifdef USE_TLS
 	    status = permit_tls_clientcerts(state, 0);
 #endif
 	} else {

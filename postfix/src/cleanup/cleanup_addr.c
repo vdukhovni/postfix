@@ -99,6 +99,9 @@ void    cleanup_addr_sender(CLEANUP_STATE *state, const char *buf)
      * for replying. Having to support both forms is error prone, therefore
      * an incomplete envelope address is rewritten to fully qualified form in
      * the local domain context.
+     * 
+     * 20000520: Replace mailer-daemon@$myorigin by the null address, to handle
+     * bounced mail traffic more robustly.
      */
     cleanup_rewrite_internal(MAIL_ATTR_RWR_LOCAL, clean_addr, buf);
     if (strncasecmp(STR(clean_addr), MAIL_ADDR_MAIL_DAEMON "@",
