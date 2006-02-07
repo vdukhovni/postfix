@@ -17,6 +17,15 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
+Incompatibility with snapshot 20060207
+======================================
+
+The Postfix SMTP server no longer complains when TLS support is not
+compiled in, but permit_tls_clientcerts, permit_tls_all_clientcerts,
+or check_ccert_access are used. These features now are effectively
+ignored.  However, the reject_plaintext_session feature is not
+ignored and will reject mail.
+
 Incompatibility with snapshot 20060123
 ======================================
 

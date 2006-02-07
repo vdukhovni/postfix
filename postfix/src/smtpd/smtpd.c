@@ -1656,7 +1656,9 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		smtpd_chat_reply(state, "501 5.7.1 DSN support is disabled");
 		return (-1);
 	    }
-	    if (dsn_envid || xtext_unquote(state->dsn_buf, arg + 6) == 0) {
+	    if (dsn_envid
+		|| xtext_unquote(state->dsn_buf, arg + 6) == 0
+		|| !allprint(STR(state->dsn_buf))) {
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
 		smtpd_chat_reply(state, "501 5.5.4 Bad ENVID parameter syntax");
 		return (-1);

@@ -473,7 +473,7 @@ static void pre_accept(char *unused_name, char **unused_argv)
 
 #endif
 
-#ifdef CHECK_TABLE_STATS_PERIODICALLY
+#ifdef SNAPSHOT
 
 static void check_table_stats(int unused_event, char *unused_context)
 {
@@ -525,9 +525,15 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 	transport_post_init(resolve_regular.transport_info);
     if (resolve_verify.transport_info)
 	transport_post_init(resolve_verify.transport_info);
-#ifdef CHECK_TABLE_STATS_PERIODICALLY
+#ifdef SNAPSHOT
     check_table_stats(0, (char *) 0);
 #endif
+
+    /*
+     * This process is called by clients that already enforce the max_idle
+     * time, so we don't have to do it another time.
+     */
+    var_idle_limit = 1;
 }
 
 /* main - pass control to the multi-threaded skeleton code */

@@ -404,6 +404,12 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 	    (void) htable_enter(proxy_read_maps, type_name, (char *) 0);
     }
     myfree(saved_filter);
+
+    /*
+     * This process is called by clients that already enforce the max_idle
+     * time, so we don't have to do it another time.
+     */
+    var_idle_limit = 1;
 }
 
 /* pre_accept - see if tables have changed */

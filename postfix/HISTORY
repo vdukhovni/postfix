@@ -11977,7 +11977,32 @@ Apologies for any names omitted.
 	reject mail when reject_plaintext_session is specified while
 	TLS isn't compiled in. File: smtpd/smtpd_check.c.
 
+20060204
+
+	Bugfix: disable content_inspection for "sendmail -bv"
+	probes.  File: *qmgr/qmgr_message.c.
+
+20060207
+
+	Robustness: place the "do we have TLS" guards within method
+	implementations, instead of putting them around method
+	invocations.  File: smtpd/smtpd_check.c.
+
+	Bugfix: duplicate the cleanup(8) DSN envelope ID syntax
+	check in smtpd(8), so that clients get better error replies.
+	File: smtpd/smtpd_check.c.
+
+	Bugfix: change 20060203 broke the reject_plaintext_session
+	feature.
+
+	The trivial-rewrite and proxymap multi-server processes now
+	terminate soon after all their clients disconnect, instead
+	of waiting for another 100 seconds. This allows the processes
+	to refresh more frequently on low-traffic systems.
+
 Wish list:
+
+	Fix XCLIENT/XFORWARD: send xtext and accept old non-xtext.
 
 	Make the map case folding/locking options configurable, if
 	not at run-time then at least at compile time so we get
@@ -12016,10 +12041,6 @@ Wish list:
 	bounce lifetime of $maximal_queue_lifetime, without causing
 	panics when a non-default maximal_queue_lifetime setting
 	includes no time unit.
-
-	In second-line servers such as proxymap and trivial-rewrite,
-	set the max_idle time limit to a relatively small value so
-	that processes will refresh more often.
 
 	After the 20051222 ISASCII paranoia, lowercase() lowercases
 	ASCII text only.
@@ -12144,6 +12165,9 @@ Wish list:
 	To be perfectly safe, no process other than the queue manager
 	should move a queue file from the active queue.
 
+	This could involve tagging a queue file, and use up another
+	permission bit.
+
 	Low: postsuper re-run after renaming files, but only a
 	limited number of times.
 
@@ -12154,9 +12178,6 @@ Wish list:
 	One possibility is to pass delivery requests to a retry(8)
 	delivery agent which is error(8) in disguise, and which
 	calls defer_append() instead of bounce_append().
-
-	Low: postmap/postalias should not try to open a bogus file
-	when given an unsupported dictionary type.
 
 	Med: find a way to log the sender address when MAIL FROM
 	is rejected due to lack of disk space.

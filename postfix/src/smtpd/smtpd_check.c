@@ -967,6 +967,7 @@ static int reject_plaintext_session(SMTPD_STATE *state)
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				   var_plaintext_code, "4.7.1",
 				   "Session encryption is required"));
+    return (SMTPD_CHECK_DUNNO);
 }
 
 /* permit_inet_interfaces - succeed if client my own address */
@@ -1206,9 +1207,9 @@ static int permit_auth_destination(SMTPD_STATE *state, char *recipient);
 
 /* permit_tls_clientcerts - OK/DUNNO for message relaying */
 
-#ifdef USE_TLS
 static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
 {
+#ifdef USE_TLS
     const char *found;
 
     if (!state->tls_context)
@@ -1231,10 +1232,9 @@ static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
 	    msg_info("relay_clientcerts: No match for fingerprint '%s'",
 		     state->tls_context->peer_fingerprint);
     }
+#endif
     return (SMTPD_CHECK_DUNNO);
 }
-
-#endif
 
 /* check_relay_domains - OK/FAIL for message relaying */
 
@@ -2551,11 +2551,11 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 
 /* check_ccert_access - access for TLS clients by certificate fingerprint */
 
-#ifdef USE_TLS
 
 static int check_ccert_access(SMTPD_STATE *state, const char *table,
 			              const char *def_acl)
 {
+#ifdef USE_TLS
     char   *myname = "check_ccert_access";
     int     found;
 
@@ -2583,10 +2583,9 @@ static int check_ccert_access(SMTPD_STATE *state, const char *table,
 			     state->tls_context->peer_CN,
 			     SMTPD_NAME_CCERT, def_acl));
     }
+#endif
     return (SMTPD_CHECK_DUNNO);
 }
-
-#endif
 
 /* check_mail_access - OK/FAIL based on mail address lookup */
 
@@ -3519,9 +3518,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 					       SMTPD_NAME_CLIENT);
 	    }
 	} else if (is_map_command(state, name, CHECK_CCERT_ACL, &cpp)) {
-#ifdef USE_TLS
 	    status = check_ccert_access(state, *cpp, def_acl);
-#endif
 	}
 
 	/*
@@ -3702,13 +3699,9 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 					  SMTPD_CHECK_OK, SMTPD_CHECK_DUNNO);
 #endif
 	} else if (strcasecmp(name, PERMIT_TLS_ALL_CLIENTCERTS) == 0) {
-#ifdef USE_TLS
 	    status = permit_tls_clientcerts(state, 1);
-#endif
 	} else if (strcasecmp(name, PERMIT_TLS_CLIENTCERTS) == 0) {
-#ifdef USE_TLS
 	    status = permit_tls_clientcerts(state, 0);
-#endif
 	} else if (strcasecmp(name, REJECT_UNKNOWN_RCPTDOM) == 0) {
 	    if (state->recipient)
 		status = reject_unknown_address(state, state->recipient,
@@ -3868,13 +3861,9 @@ void    smtpd_check_rewrite(SMTPD_STATE *state)
 					  SMTPD_CHECK_DUNNO);
 #endif
 	} else if (strcasecmp(name, PERMIT_TLS_ALL_CLIENTCERTS) == 0) {
-#ifdef USE_TLS
 	    status = permit_tls_clientcerts(state, 1);
-#endif
 	} else if (strcasecmp(name, PERMIT_TLS_CLIENTCERTS) == 0) {
-#ifdef USE_TLS
 	    status = permit_tls_clientcerts(state, 0);
-#endif
 	} else {
 	    msg_warn("parameter %s: invalid request: %s",
 		     VAR_LOC_RWR_CLIENTS, name);
