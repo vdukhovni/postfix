@@ -68,9 +68,10 @@ To build Postfix with TLS support, first we need to generate the make(1) files
 with the necessary definitions. This is done by invoking the command "make
 makefiles" in the Postfix top-level directory and with arguments as shown next.
 
-NNOOTTEE:: DDoo nnoott uussee GGnnuu TTLLSS.. IItt wwiillll ssppoonnttaanneeoouussllyy tteerrmmiinnaattee aa pprroocceessss wwiitthh eexxiitt
-ssttaattuuss ccooddee 22,, iinnsstteeaadd ooff pprrooppeerrllyy rreeppoorrttiinngg pprroobblleemmss ttoo PPoossttffiixx,, ssoo tthhaatt iitt
-ccaann lloogg tthheemm ttoo tthhee mmaaiilllloogg ffiillee..
+NNOOTTEE:: DDoo nnoott uussee GGnnuu TTLLSS.. IItt wwiillll ssppoonnttaanneeoouussllyy tteerrmmiinnaattee aa PPoossttffiixx ddaaeemmoonn
+pprroocceessss wwiitthh eexxiitt ssttaattuuss ccooddee 22,, iinnsstteeaadd ooff aalllloowwiinngg PPoossttffiixx ttoo 11)) rreeppoorrtt tthhee
+eerrrroorr ttoo tthhee mmaaiilllloogg ffiillee,, aanndd ttoo 22)) pprroovviiddee ppllaaiinntteexxtt sseerrvviiccee wwhheerree tthhiiss iiss
+aapppprroopprriiaattee..
 
   * If the OpenSSL include files (such as ssl.h) are in directory /usr/include/
     openssl, and the OpenSSL libraries (such as libssl.so and libcrypto.so) are
@@ -815,11 +816,11 @@ Example:
         # relayhost exact nexthop match
         [msa.example.net]:587       MUST
 
-        # example.org (as nexthop) has MX hosts with broken TLS.
+        # TLS should not be used with the example.org MX hosts.
         example.org                 NONE
 
-        # Except for (as host) mx1.example.org which works.
-        mx1.example.org             MAY
+        # TLS should not be used with the host smtp.example.com.
+        smtp.example.com             NONE
 
 DDiissccoovveerriinngg sseerrvveerrss tthhaatt ssuuppppoorrtt TTLLSS
 

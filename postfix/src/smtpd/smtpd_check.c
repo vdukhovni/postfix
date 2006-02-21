@@ -3467,18 +3467,16 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		msg_warn("restriction `%s' after `%s' is ignored",
 			 cpp[1], CHECK_RELAY_DOMAINS);
 	} else if (strcasecmp(name, PERMIT_SASL_AUTH) == 0) {
-	    if (var_smtpd_sasl_enable)
 #ifdef USE_SASL_AUTH
+	    if (var_smtpd_sasl_enable)
 		status = permit_sasl_auth(state,
 					  SMTPD_CHECK_OK, SMTPD_CHECK_DUNNO);
-#else
-		msg_warn("restriction `%s' ignored: no SASL support", name);
 #endif
 #ifdef USE_TLS
 	} else if (strcasecmp(name, PERMIT_TLS_ALL_CLIENTCERTS) == 0) {
-	  status = permit_tls_clientcerts(state, 1);
+	    status = permit_tls_clientcerts(state, 1);
 	} else if (strcasecmp(name, PERMIT_TLS_CLIENTCERTS) == 0) {
-	  status = permit_tls_clientcerts(state, 0);
+	    status = permit_tls_clientcerts(state, 0);
 #endif
 	} else if (strcasecmp(name, REJECT_UNKNOWN_RCPTDOM) == 0) {
 	    if (state->recipient)
@@ -3631,10 +3629,9 @@ void    smtpd_check_rewrite(SMTPD_STATE *state)
 		status = SMTPD_CHECK_OK;
 	} else if (strcasecmp(name, PERMIT_SASL_AUTH) == 0) {
 #ifdef USE_SASL_AUTH
-	    status = permit_sasl_auth(state, SMTPD_CHECK_OK,
-				      SMTPD_CHECK_DUNNO);
-#else
-	    status = SMTPD_CHECK_DUNNO;
+	    if (var_smtpd_sasl_enable)
+		status = permit_sasl_auth(state, SMTPD_CHECK_OK,
+					  SMTPD_CHECK_DUNNO);
 #endif
 #ifdef USE_TLS
 	} else if (strcasecmp(name, PERMIT_TLS_ALL_CLIENTCERTS) == 0) {
