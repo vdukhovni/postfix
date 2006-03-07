@@ -239,6 +239,7 @@ int     main(int argc, char **argv)
     }
     switch (pid) {
     case 0:
+	(void) msg_cleanup((MSG_CLEANUP_FN) 0);
 	execvp(command[0], command);
 	msg_fatal("execvp %s: %m", command[0]);
     default:

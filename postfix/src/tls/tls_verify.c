@@ -260,13 +260,13 @@ static char *tls_text_name(X509_NAME *name, int nid, char *label, int gripe)
      * Standard UTF8 does not encode NUL as 0b11000000, that is
      * a Java "feature". So we need to check for embedded NULs.
      */
-    if (strlen(tmp) != len) {
+    if (strlen((char *) tmp) != len) {
 	msg_warn("internal NUL in peer %s", label);
 	OPENSSL_free(tmp);
 	return (0);
     }
 
-    result = mystrdup(tmp);
+    result = mystrdup((char *) tmp);
     OPENSSL_free(tmp);
     return (result);
 }

@@ -65,8 +65,8 @@ typedef struct DELIVER_REQUEST {
 #define DEL_REQ_FLAG_SUCCESS	(1<<0)	/* delete successful recipients */
 #define DEL_REQ_FLAG_BOUNCE	(1<<1)	/* unimplemented */
 
-#define DEL_REQ_FLAG_MTA_VRFY	(1<<8)	/* verify recipient, don't deliver */
-#define DEL_REQ_FLAG_USR_VRFY	(1<<9)	/* verify expansion, don't deliver */
+#define DEL_REQ_FLAG_MTA_VRFY	(1<<8)	/* MTA-requested address probe */
+#define DEL_REQ_FLAG_USR_VRFY	(1<<9)	/* user-requested address probe */
 #define DEL_REQ_FLAG_RECORD	(1<<10)	/* record and deliver */
 #define DEL_REQ_FLAG_SCACHE	(1<<11)	/* opportunistic caching */
 

@@ -247,6 +247,16 @@ static DNS_RR *smtp_addr_list(DNS_RR *mx_names, DSN_BUF *why)
      * correctly handle the case of no resolvable MX host. Currently this is
      * always treated as a soft error. RFC 2821 wants a more precise
      * response.
+     * 
+     * XXX dns_lookup() enables RES_DEFNAMES. This is wrong for names found in
+     * MX records - we should not append the local domain to dot-less names.
+     * 
+     * XXX However, this is not the only problem. If we use the native name
+     * service for host lookup, then it will usually enable RES_DNSRCH which
+     * appends local domain information to all lookups. In particular,
+     * getaddrinfo() may invoke a resolver that runs in a different process
+     * (NIS server, nscd), so we can't even reliably turn this off by
+     * tweaking the in-process resolver flags.
      */
     for (rr = mx_names; rr; rr = rr->next) {
 	if (rr->type != T_MX)

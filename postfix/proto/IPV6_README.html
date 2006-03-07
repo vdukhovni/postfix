@@ -163,7 +163,7 @@ does for IPv4: </p>
 <blockquote>
 <pre>
 /etc/postfix/main.cf:
-    smtp_bind_address6 = 2001:240:5c7:0:250:56ff:fe89:1
+    smtp_bind_address6 = 2001:240:587:0:250:56ff:fe89:1
 </pre>
 </blockquote>
 
@@ -175,7 +175,7 @@ setting looks like: </p>
 <blockquote>
 <pre>
 % postconf mynetworks
-mynetworks = 127.0.0.0/8 168.100.189.0/28 [::1]/128 [fe80::]/10 [2001:240:5c7::]/64 
+mynetworks = 127.0.0.0/8 168.100.189.0/28 [::1]/128 [fe80::]/10 [2001:240:587::]/64 
 </pre>
 </blockquote>
 
@@ -187,7 +187,7 @@ information inside "<tt>[]</tt>", like this: </p>
 <blockquote>
 <pre>
 /etc/postfix/main.cf:
-    mynetworks = ...<i>IPv4 networks</i>... [::1]/128 [2001:240:5c7::]/64 ...
+    mynetworks = ...<i>IPv4 networks</i>... [::1]/128 [2001:240:587::]/64 ...
 </pre>
 </blockquote>
 
@@ -334,7 +334,7 @@ and network masks, for example: </p>
 168.100.189.2/255.255.255.224
 127.0.0.1/255.0.0.0
 fe80:1::2d0:b7ff:fe88:2ca7/ffff:ffff:ffff:ffff::
-2001:240:5c7:0:2d0:b7ff:fe88:2ca7/ffff:ffff:ffff:ffff::
+2001:240:587:0:2d0:b7ff:fe88:2ca7/ffff:ffff:ffff:ffff::
 fe80:5::1/ffff:ffff:ffff:ffff::
 ::1/ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
 </pre>

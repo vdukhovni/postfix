@@ -353,6 +353,13 @@ static int pipe_command_wait_or_kill(pid_t pid, WAIT_STATUS_T *statusp, int sig,
     return (n);
 }
 
+/* pipe_child_cleanup - child fatal error handler */
+
+static void pipe_child_cleanup(void)
+{
+    exit(EX_TEMPFAIL);
+}
+
 /* pipe_command - execute command with extreme prejudice */
 
 int     pipe_command(VSTREAM *src, DSN_BUF *why,...)
@@ -434,8 +441,13 @@ int     pipe_command(VSTREAM *src, DSN_BUF *why,...)
 	/*
 	 * Child. Run the child in a separate process group so that the
 	 * parent can kill not just the child but also its offspring.
+	 * 
+	 * Redirect fatal exits to our own fatal exit handler (never leave the
+	 * parent's handler enabled :-) so we can replace random exit status
+	 * codes by EX_TEMPFAIL.
 	 */
     case 0:
+	(void) msg_cleanup(pipe_child_cleanup);
 	set_ugid(args.uid, args.gid);
 	if (setsid() < 0)
 	    msg_warn("setsid failed: %m");
@@ -455,12 +467,10 @@ int     pipe_command(VSTREAM *src, DSN_BUF *why,...)
 	/*
 	 * Working directory plumbing.
 	 */
-	if (args.cwd && chdir(args.cwd) < 0) {
-	    msg_warn("cannot change directory to \"%s\" for uid=%lu gid=%lu: %m",
-		     args.cwd, (unsigned long) args.uid,
-		     (unsigned long) args.gid);
-	    exit(EX_TEMPFAIL);
-	}
+	if (args.cwd && chdir(args.cwd) < 0)
+	    msg_fatal("cannot change directory to \"%s\" for uid=%lu gid=%lu: %m",
+		      args.cwd, (unsigned long) args.uid,
+		      (unsigned long) args.gid);
 
 	/*
 	 * Environment plumbing. Always reset the command search path. XXX
@@ -477,6 +487,11 @@ int     pipe_command(VSTREAM *src, DSN_BUF *why,...)
 
 	/*
 	 * Process plumbing. If possible, avoid running a shell.
+	 * 
+	 * From this point we would like to handle fatal errors ourselves
+	 * (ENOMEM would probably be one of the few soft error conditions).
+	 * For that we have to update exec_command() first so it returns an
+	 * error indication instead of terminating the process.
 	 */
 	closelog();
 	if (args.argv) {

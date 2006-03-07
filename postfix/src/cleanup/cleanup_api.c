@@ -277,12 +277,20 @@ int     cleanup_flush(CLEANUP_STATE *state)
 	     * XXX: When delivering to a non-incoming queue, do not consume
 	     * in_flow tokens. Unfortunately we can't move the code that
 	     * consumes tokens until after the mail is received, because that
-	     * would increase the risk of duplicate deliveries.
+	     * would increase the risk of duplicate deliveries (RFC 1047).
 	     */
 	    (void) mail_flow_put(1);
 	}
 	state->errs = mail_stream_finish(state->handle, (VSTRING *) 0);
     } else {
+
+	/*
+	 * XXX: When discarding mail, should we consume in_flow tokens? See
+	 * also the comments above for mail that is placed on hold.
+	 */
+#if 0
+	(void) mail_flow_put(1);
+#endif
 	mail_stream_cleanup(state->handle);
     }
     state->handle = 0;

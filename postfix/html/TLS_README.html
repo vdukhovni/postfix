@@ -130,9 +130,9 @@ done by invoking the command "<tt>make makefiles</tt>" in the Postfix
 top-level directory and with arguments as shown next. </p>
 
 <p> <b> NOTE: Do not use Gnu TLS.  It will spontaneously terminate
-a process with exit status code 2, instead of properly reporting
-problems to Postfix, so that it can log them to the maillog file.
-</b> </p>
+a Postfix daemon process with exit status code 2, instead of allowing
+Postfix to 1) report the error to the maillog file, and to 2) provide
+plaintext service where this is appropriate.  </b> </p>
 
 <ul>
 
@@ -1203,11 +1203,11 @@ verification. This feature requires Postfix 2.2.9 or later.  </p>
     # <a href="postconf.5.html#relayhost">relayhost</a> exact nexthop match
     [msa.example.net]:587       MUST
 
-    # example.org (as nexthop) has MX hosts with broken TLS.
+    # TLS should not be used with the <i>example.org</i> MX hosts.
     example.org                 NONE
 
-    # Except for (as host) mx1.example.org which works.
-    mx1.example.org             MAY
+    # TLS should not be used with the host <i>smtp.example.com</i>.
+    smtp.example.com             NONE
 </pre>
 </blockquote>
 

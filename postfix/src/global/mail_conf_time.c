@@ -94,7 +94,7 @@ static int convert_mail_conf_time(const char *name, int *intval, int def_unit)
     if ((strval = mail_conf_lookup_eval(name)) == 0)
 	return (0);
     if (conv_time(strval, intval, def_unit) == 0)
-	msg_fatal("parameter %s: bad time unit: %s", name, strval);
+	msg_fatal("parameter %s: bad time value or unit: %s", name, strval);
     return (1);
 }
 

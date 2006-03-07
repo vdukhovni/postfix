@@ -92,6 +92,8 @@ int     mail_run_foreground(const char *dir, char **argv)
 	    msg_warn("fork %s: %m", path);
 	    break;
 	case 0:
+	    /* Reset the msg_cleanup() handlers in the child process. */
+	    (void) msg_cleanup((MSG_CLEANUP_FN) 0);
 	    execv(path, argv);
 	    msg_fatal("execv %s: %m", path);
 	default:
@@ -124,6 +126,8 @@ int     mail_run_background(const char *dir, char **argv)
 	    msg_warn("fork %s: %m", path);
 	    break;
 	case 0:
+	    /* Reset the msg_cleanup() handlers in the child process. */
+	    (void) msg_cleanup((MSG_CLEANUP_FN) 0);
 	    execv(path, argv);
 	    msg_fatal("execv %s: %m", path);
 	default:

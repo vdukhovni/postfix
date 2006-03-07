@@ -205,6 +205,12 @@ int db_common_parse(DICT *dict, void **ctxPtr, const char *format, int query)
 		break;
 	    case '1': case '2': case '3': case '4': case '5':
 	    case '6': case '7': case '8': case '9':
+	    	/*
+		 * Find highest %[1-9] index in query template. Input keys
+		 * will be constrained to those with at least this many
+		 * domain components. This makes the db_common_expand()
+		 * code safe from invalid inputs.
+		 */
 	    	if (ctx->nparts < *cp - '0')
 		    ctx->nparts = *cp - '0';
 		/* FALLTHROUGH */
@@ -324,7 +330,9 @@ int db_common_expand(void *ctxArg, const char *format, const char *value,
     if (ctx->nparts > 0) {
     	parts = argv_split(key ? kdomain : vdomain, ".");
 	/*
-	 * Skip domains that lack enough labels to fill-in the template.
+	 * Filter out input keys whose domains lack enough labels
+	 * to fill-in the query template. See below and also 
+	 * db_common_parse() which initializes ctx->nparts.
 	 */
 	if (parts->argc < ctx->nparts) {
 	    argv_free(parts);
@@ -418,6 +426,14 @@ int db_common_expand(void *ctxArg, const char *format, const char *value,
 
 	    case '1': case '2': case '3': case '4': case '5':
 	    case '6': case '7': case '8': case '9':
+	    	/*
+		 * Interpolate %[1-9] components into the query string.
+		 * By this point db_common_parse() has identified the
+		 * highest component index, and (see above) keys with
+		 * fewer components have been filtered out. The "parts"
+		 * ARGV is guaranteed to be initialized and hold enough
+		 * elements to satisfy the query template.
+		 */
 		QUOTE_VAL(ctx->dict, quote_func,
 			  parts->argv[parts->argc-(*cp-'0')], result);
 		break;

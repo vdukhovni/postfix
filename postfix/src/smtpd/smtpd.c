@@ -105,6 +105,9 @@
 /*	A case insensitive list of EHLO keywords (pipelining, starttls,
 /*	auth, etc.) that the SMTP server will not send in the EHLO response
 /*	to a remote SMTP client.
+/* .IP "\fBsmtpd_delay_open_until_valid_rcpt (yes)\fR"
+/*	Postpone the start of an SMTP mail transaction until a valid
+/*	RCPT TO command is received.
 /* ADDRESS REWRITING CONTROLS
 /* .ad
 /* .fi
@@ -960,6 +963,7 @@ char   *var_smtpd_sasl_tls_opts;
 
 bool    var_smtpd_peername_lookup;
 int     var_plaintext_code;
+bool    var_smtpd_delay_open;
 
  /*
   * Silly little macros.
@@ -1275,31 +1279,46 @@ static void helo_reset(SMTPD_STATE *state)
 
 /* mail_open_stream - open mail queue file or IPC stream */
 
-static void mail_open_stream(SMTPD_STATE *state)
+static int mail_open_stream(SMTPD_STATE *state)
 {
-    char   *postdrop_command;
-    int     cleanup_flags;
 
     /*
-     * XXX 2821: An SMTP server is not allowed to "clean up" mail except in
-     * the case of original submissions. Presently, Postfix always runs all
-     * mail through the cleanup server.
-     * 
-     * We could approximate the RFC as follows: Postfix rewrites mail if it
-     * comes from a source that we are willing to relay for. This way, we
-     * avoid rewriting most mail that comes from elsewhere. However, that
-     * requires moving functionality away from the cleanup daemon elsewhere,
-     * such as virtual address expansion, and header/body pattern matching.
+     * Connect to the before-queue filter when one is configured. The MAIL
+     * FROM and RCPT TO commands are forwarded as received (including DSN
+     * attributes), with the exception that the before-filter smtpd process
+     * handles all authentication, encryption, access control and relay
+     * control, and that the before-filter smtpd process does not forward
+     * blocked commands. If the after-filter smtp server does not support
+     * some of Postfix's ESMTP features, then they must be turned off in the
+     * before-filter smtpd process with the smtpd_discard_ehlo_keywords
+     * feature.
      */
+    if (state->proxy_mail) {
+	smtpd_check_rewrite(state);
+	if (smtpd_proxy_open(state, var_smtpd_proxy_filt,
+			     var_smtpd_proxy_tmout, var_smtpd_proxy_ehlo,
+			     state->proxy_mail) != 0) {
+	    smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
+	    return (-1);
+	}
+    }
 
     /*
      * If running from the master or from inetd, connect to the cleanup
      * service.
+     * 
+     * XXX 2821: An SMTP server is not allowed to "clean up" mail except in the
+     * case of original submissions.
+     * 
+     * We implement this by distinguishing between mail that we are willing to
+     * rewrite (the local rewrite context) and mail from elsewhere.
      */
-    cleanup_flags = input_transp_cleanup(CLEANUP_FLAG_MASK_EXTERNAL,
-					 smtpd_input_transp_mask);
+    else if (SMTPD_STAND_ALONE(state) == 0) {
+	int     cleanup_flags;
 
-    if (SMTPD_STAND_ALONE(state) == 0) {
+	smtpd_check_rewrite(state);
+	cleanup_flags = input_transp_cleanup(CLEANUP_FLAG_MASK_EXTERNAL,
+					     smtpd_input_transp_mask);
 	state->dest = mail_stream_service(MAIL_CLASS_PUBLIC,
 					  var_cleanup_service);
 	if (state->dest == 0
@@ -1315,6 +1334,8 @@ static void mail_open_stream(SMTPD_STATE *state)
      * XXX Make postdrop a manifest constant.
      */
     else {
+	char   *postdrop_command;
+
 	postdrop_command = concatenate(var_command_dir, "/postdrop",
 			      msg_verbose ? " -v" : (char *) 0, (char *) 0);
 	state->dest = mail_stream_command(postdrop_command);
@@ -1322,86 +1343,101 @@ static void mail_open_stream(SMTPD_STATE *state)
 	    msg_fatal("unable to execute %s", postdrop_command);
 	myfree(postdrop_command);
     }
-    state->cleanup = state->dest->stream;
-    state->queue_id = mystrdup(state->dest->id);
 
     /*
      * Record the time of arrival, the SASL-related stuff if applicable, the
      * sender envelope address, some session information, and some additional
      * attributes.
      */
-    if (SMTPD_STAND_ALONE(state) == 0) {
-	rec_fprintf(state->cleanup, REC_TYPE_TIME, REC_TYPE_TIME_FORMAT,
-		    REC_TYPE_TIME_ARG(state->arrival_time));
-	if (*var_filter_xport)
-	    rec_fprintf(state->cleanup, REC_TYPE_FILT, "%s", var_filter_xport);
-	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_RWR_CONTEXT, FORWARD_DOMAIN(state));
+    if (state->dest) {
+	state->cleanup = state->dest->stream;
+	state->queue_id = mystrdup(state->dest->id);
+	if (SMTPD_STAND_ALONE(state) == 0) {
+	    rec_fprintf(state->cleanup, REC_TYPE_TIME, REC_TYPE_TIME_FORMAT,
+			REC_TYPE_TIME_ARG(state->arrival_time));
+	    if (*var_filter_xport)
+		rec_fprintf(state->cleanup, REC_TYPE_FILT, "%s", var_filter_xport);
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_RWR_CONTEXT, FORWARD_DOMAIN(state));
 #ifdef USE_SASL_AUTH
-	if (var_smtpd_sasl_enable) {
-	    if (state->sasl_method)
-		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			    MAIL_ATTR_SASL_METHOD, state->sasl_method);
-	    if (state->sasl_username)
-		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			    MAIL_ATTR_SASL_USERNAME, state->sasl_username);
-	    if (state->sasl_sender)
-		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			    MAIL_ATTR_SASL_SENDER, state->sasl_sender);
-	}
+	    if (var_smtpd_sasl_enable) {
+		if (state->sasl_method)
+		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+				MAIL_ATTR_SASL_METHOD, state->sasl_method);
+		if (state->sasl_username)
+		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			     MAIL_ATTR_SASL_USERNAME, state->sasl_username);
+		if (state->sasl_sender)
+		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+				MAIL_ATTR_SASL_SENDER, state->sasl_sender);
+	    }
 #endif
 
-	/*
-	 * Record DSN related information that was received with the MAIL
-	 * FROM command.
-	 * 
-	 * RFC 3461 Section 5.2.1. If no ENVID parameter was included in the
-	 * MAIL command when the message was received, the ENVID parameter
-	 * MUST NOT be supplied when the message is relayed. Ditto for the
-	 * RET parameter.
-	 * 
-	 * In other words, we can't simply make up our default ENVID or RET
-	 * values. We have to remember whether the client sent any.
-	 * 
-	 * We store DSN information as named attribute records so that we don't
-	 * have to pollute the queue file with records that are incompatible
-	 * with past Postfix versions. Preferably, people should be able to
-	 * back out from an upgrade without losing mail.
-	 */
-	if (state->dsn_envid)
+	    /*
+	     * Record DSN related information that was received with the MAIL
+	     * FROM command.
+	     * 
+	     * RFC 3461 Section 5.2.1. If no ENVID parameter was included in the
+	     * MAIL command when the message was received, the ENVID
+	     * parameter MUST NOT be supplied when the message is relayed.
+	     * Ditto for the RET parameter.
+	     * 
+	     * In other words, we can't simply make up our default ENVID or RET
+	     * values. We have to remember whether the client sent any.
+	     * 
+	     * We store DSN information as named attribute records so that we
+	     * don't have to pollute the queue file with records that are
+	     * incompatible with past Postfix versions. Preferably, people
+	     * should be able to back out from an upgrade without losing
+	     * mail.
+	     */
+	    if (state->dsn_envid)
+		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			    MAIL_ATTR_DSN_ENVID, state->dsn_envid);
+	    if (state->dsn_ret)
+		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%d",
+			    MAIL_ATTR_DSN_RET, state->dsn_ret);
+	}
+	rec_fputs(state->cleanup, REC_TYPE_FROM, state->sender);
+	if (state->encoding != 0)
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			MAIL_ATTR_DSN_ENVID, state->dsn_envid);
-	if (state->dsn_ret)
-	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%d",
-			MAIL_ATTR_DSN_RET, state->dsn_ret);
+			MAIL_ATTR_ENCODING, state->encoding);
+
+	/*
+	 * Store the client attributes for logging purposes.
+	 */
+	if (SMTPD_STAND_ALONE(state) == 0) {
+	    if (IS_AVAIL_CLIENT_NAME(FORWARD_NAME(state)))
+		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			    MAIL_ATTR_CLIENT_NAME, FORWARD_NAME(state));
+	    if (IS_AVAIL_CLIENT_ADDR(FORWARD_ADDR(state)))
+		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			    MAIL_ATTR_CLIENT_ADDR, FORWARD_ADDR(state));
+	    if (IS_AVAIL_CLIENT_NAMADDR(FORWARD_NAMADDR(state)))
+		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			    MAIL_ATTR_ORIGIN, FORWARD_NAMADDR(state));
+	    if (IS_AVAIL_CLIENT_HELO(FORWARD_HELO(state)))
+		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			    MAIL_ATTR_HELO_NAME, FORWARD_HELO(state));
+	    if (IS_AVAIL_CLIENT_PROTO(FORWARD_PROTO(state)))
+		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			    MAIL_ATTR_PROTO_NAME, FORWARD_PROTO(state));
+	}
+	if (state->verp_delims)
+	    rec_fputs(state->cleanup, REC_TYPE_VERP, state->verp_delims);
     }
-    rec_fputs(state->cleanup, REC_TYPE_FROM, state->sender);
-    if (state->encoding != 0)
-	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_ENCODING, state->encoding);
 
     /*
-     * Store the client attributes for logging purposes.
+     * Log the queue ID with the message origin.
      */
-    if (SMTPD_STAND_ALONE(state) == 0) {
-	if (IS_AVAIL_CLIENT_NAME(FORWARD_NAME(state)))
-	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			MAIL_ATTR_CLIENT_NAME, FORWARD_NAME(state));
-	if (IS_AVAIL_CLIENT_ADDR(FORWARD_ADDR(state)))
-	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			MAIL_ATTR_CLIENT_ADDR, FORWARD_ADDR(state));
-	if (IS_AVAIL_CLIENT_NAMADDR(FORWARD_NAMADDR(state)))
-	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			MAIL_ATTR_ORIGIN, FORWARD_NAMADDR(state));
-	if (IS_AVAIL_CLIENT_HELO(FORWARD_HELO(state)))
-	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			MAIL_ATTR_HELO_NAME, FORWARD_HELO(state));
-	if (IS_AVAIL_CLIENT_PROTO(FORWARD_PROTO(state)))
-	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			MAIL_ATTR_PROTO_NAME, FORWARD_PROTO(state));
-    }
-    if (state->verp_delims)
-	rec_fputs(state->cleanup, REC_TYPE_VERP, state->verp_delims);
+#ifdef USE_SASL_AUTH
+    if (var_smtpd_sasl_enable)
+	smtpd_sasl_mail_log(state);
+    else
+#endif
+	msg_info("%s: client=%s", state->queue_id ?
+		 state->queue_id : "NOQUEUE", FORWARD_NAMADDR(state));
+    return (0);
 }
 
 /* extract_addr - extract address from rubble */
@@ -1712,6 +1748,8 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	state->dsn_envid = mystrdup(STR(state->dsn_buf));
     if (USE_SMTPD_PROXY(state))
 	state->proxy_mail = mystrdup(STR(state->buffer));
+    if (var_smtpd_delay_open == 0 && mail_open_stream(state) < 0)
+	return (-1);
     smtpd_chat_reply(state, "250 2.1.0 Ok");
     return (0);
 }
@@ -1910,31 +1948,8 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * Don't access the proxy, queue file, or queue file writer process until
      * we have a valid recipient address.
      */
-    if (state->proxy == 0 && state->cleanup == 0) {
-	if (!SMTPD_STAND_ALONE(state))
-	    smtpd_check_rewrite(state);
-	if (state->proxy_mail) {
-	    if (smtpd_proxy_open(state, var_smtpd_proxy_filt,
-				 var_smtpd_proxy_tmout, var_smtpd_proxy_ehlo,
-				 state->proxy_mail) != 0) {
-		smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
-		return (-1);
-	    }
-	} else {
-	    mail_open_stream(state);
-	}
-
-	/*
-	 * Log the queue ID with the message origin.
-	 */
-#ifdef USE_SASL_AUTH
-	if (var_smtpd_sasl_enable)
-	    smtpd_sasl_mail_log(state);
-	else
-#endif
-	    msg_info("%s: client=%s", state->queue_id ?
-		     state->queue_id : "NOQUEUE", FORWARD_NAMADDR(state));
-    }
+    if (state->proxy == 0 && state->cleanup == 0 && mail_open_stream(state) < 0)
+	return (-1);
 
     /*
      * Proxy the recipient. OK, so we lied. If the real-time proxy rejects
@@ -3769,6 +3784,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_TLS_RECHEAD, DEF_SMTPD_TLS_RECHEAD, &var_smtpd_tls_received_header,
 #endif
 	VAR_SMTPD_PEERNAME_LOOKUP, DEF_SMTPD_PEERNAME_LOOKUP, &var_smtpd_peername_lookup,
+	VAR_SMTPD_DELAY_OPEN, DEF_SMTPD_DELAY_OPEN, &var_smtpd_delay_open,
 	0,
     };
     static CONFIG_STR_TABLE str_table[] = {

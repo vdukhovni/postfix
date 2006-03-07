@@ -568,6 +568,7 @@ static void morph_recipient(VSTRING *buf, const char *address, int flags)
 	    *cp = '@';
 	    break;
 	}
+	/* FALLTHROUGH */
     case PIPE_OPT_FOLD_USER | PIPE_OPT_FOLD_HOST:
 	lowercase(STR(buf));
 	break;

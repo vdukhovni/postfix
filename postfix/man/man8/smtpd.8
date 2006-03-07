@@ -121,6 +121,9 @@ remote SMTP client.
 A case insensitive list of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP server will not send in the EHLO response
 to a remote SMTP client.
+.IP "\fBsmtpd_delay_open_until_valid_rcpt (yes)\fR"
+Postpone the start of an SMTP mail transaction until a valid
+RCPT TO command is received.
 .SH "ADDRESS REWRITING CONTROLS"
 .na
 .nf

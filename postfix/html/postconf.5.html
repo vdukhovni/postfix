@@ -4946,7 +4946,7 @@ and would otherwise be confused with a "<a href="DATABASE_README.html">type:tabl
 <pre>
 <a href="postconf.5.html#mynetworks">mynetworks</a> = 127.0.0.0/8 168.100.189.0/28
 <a href="postconf.5.html#mynetworks">mynetworks</a> = !192.168.0.1, 192.168.0.0/28
-<a href="postconf.5.html#mynetworks">mynetworks</a> = 127.0.0.0/8 168.100.189.0/28 [::1]/128 [2001:240:5c7::]/64
+<a href="postconf.5.html#mynetworks">mynetworks</a> = 127.0.0.0/8 168.100.189.0/28 [::1]/128 [2001:240:587::]/64
 <a href="postconf.5.html#mynetworks">mynetworks</a> = $<a href="postconf.5.html#config_directory">config_directory</a>/mynetworks
 <a href="postconf.5.html#mynetworks">mynetworks</a> = hash:/etc/postfix/network_table
 </pre>
@@ -8352,6 +8352,25 @@ Examples:
 <a href="postconf.5.html#smtpd_data_restrictions">smtpd_data_restrictions</a> = <a href="postconf.5.html#reject_unauth_pipelining">reject_unauth_pipelining</a>
 <a href="postconf.5.html#smtpd_data_restrictions">smtpd_data_restrictions</a> = <a href="postconf.5.html#reject_multi_recipient_bounce">reject_multi_recipient_bounce</a>
 </pre>
+
+
+</DD>
+
+<DT><b><a name="smtpd_delay_open_until_valid_rcpt">smtpd_delay_open_until_valid_rcpt</a>
+(default: yes)</b></DT><DD>
+
+<p> Postpone the start of an SMTP mail transaction until a valid
+RCPT TO command is received. Specify "smtpd_delay_open_until_rcpt =
+yes" to create a mail transaction as soon as the SMTP server receives
+a valid MAIL FROM command. </p>
+
+<p> Postponing the start of a mail transaction reduces the use of
+disk, CPU and memory resources. The downside is that rejected
+recipients are logged with NOQUEUE instead of a mail transaction
+ID. This complicates the logfile analysis of multi-recipient mail.
+</p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
 
 
 </DD>

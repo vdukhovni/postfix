@@ -23,11 +23,11 @@ LDAP_TABLE(5)                                                    LDAP_TABLE(5)
        databases.
 
        In order to use LDAP lookups, define an LDAP source  as  a
-       lookup table in main.cf, for example:
+       lookup table in <a href="postconf.5.html">main.cf</a>, for example:
            <a href="postconf.5.html#alias_maps">alias_maps</a> = <a href="ldap_table.5.html">ldap</a>:/etc/postfix/ldap-aliases.cf
 
        The  file /etc/postfix/ldap-aliases.cf has the same format
-       as the Postfix main.cf file, and can specify  the  parame-
+       as the Postfix <a href="postconf.5.html">main.cf</a> file, and can specify  the  parame-
        ters  described  below.  An example is given at the end of
        this manual.
 
@@ -40,24 +40,24 @@ LDAP_TABLE(5)                                                    LDAP_TABLE(5)
 
 <b>BACKWARDS COMPATIBILITY</b>
        For  backwards  compatibility with Postfix version 2.0 and
-       earlier, LDAP parameters can also be defined  in  main.cf.
+       earlier, LDAP parameters can also be defined  in  <a href="postconf.5.html">main.cf</a>.
        Specify  as  LDAP  source a name that doesn't begin with a
        slash or a dot.  The LDAP parameters will then be accessi-
        ble as the name you've given the source in its definition,
        an underscore, and the name of the parameter.   For  exam-
        ple,  if  the  map  is specified as "<a href="ldap_table.5.html">ldap</a>:<i>ldapsource</i>", the
-       "server_host" parameter below would be defined in  main.cf
+       "server_host" parameter below would be defined in  <a href="postconf.5.html">main.cf</a>
        as "<i>ldapsource</i>_server_host".
 
        Note:  with  this form, the passwords for the LDAP sources
-       are written in main.cf, which is normally  world-readable.
+       are written in <a href="postconf.5.html">main.cf</a>, which is normally  world-readable.
        Support  for this form will be removed in a future Postfix
        version.
 
        Postfix 2.2 has enhanced query interfaces  for  MySQL  and
-       PostgreSQL,  these  now include features previously avail-
-       able only in the Postfix LDAP client. This work also  cre-
-       ated  an  opportunity  for improvements in the LDAP inter-
+       PostgreSQL.   These  include features that were previously
+       available only in the Postfix LDAP client. This work  also
+       created an opportunity for improvements in the LDAP inter-
        face. The primary compatibility issue is that  <b>result_fil-</b>
        <b>ter</b> (a name that has caused some confusion as to its mean-
        ing in the past) has been renamed to  <b>result_format</b>.   For
@@ -376,9 +376,9 @@ LDAP_TABLE(5)                                                    LDAP_TABLE(5)
               you have to use this, you probably want to make the
               map configuration file readable only by the Postfix
               user.  When using the obsolete <a href="ldap_table.5.html">ldap</a>:ldapsource syn-
-              tax, with map parameters in main.cf, it is not pos-
+              tax, with map parameters in <a href="postconf.5.html">main.cf</a>, it is not pos-
               sible  to securely store the bind password. This is
-              because main.cf needs to be world readable to allow
+              because <a href="postconf.5.html">main.cf</a> needs to be world readable to allow
               local accounts to submit mail via the sendmail com-
               mand. Example:
                   bind_pw = postfixpw
@@ -469,7 +469,7 @@ LDAP_TABLE(5)                                                    LDAP_TABLE(5)
            version = 3
 
        If any of the Postfix programs querying the map is config-
-       ured  in  master.cf  to run chrooted, all the certificates
+       ured  in  <a href="master.5.html">master.cf</a>  to run chrooted, all the certificates
        and keys involved have to be copied to the chroot jail. Of
        course,  the  private  keys should only be readable by the
        user "postfix".
@@ -529,7 +529,7 @@ LDAP_TABLE(5)                                                    LDAP_TABLE(5)
 
 <b>EXAMPLE</b>
        Here's  a basic example for using LDAP to look up <a href="local.8.html">local(8)</a>
-       aliases.  Assume that in main.cf, you have:
+       aliases.  Assume that in <a href="postconf.5.html">main.cf</a>, you have:
            <a href="postconf.5.html#alias_maps">alias_maps</a> = hash:/etc/aliases,
                <a href="ldap_table.5.html">ldap</a>:/etc/postfix/ldap-aliases.cf
 

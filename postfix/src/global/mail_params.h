@@ -1167,6 +1167,10 @@ extern char *var_smtpd_tls_scache_db;
 #define DEF_SMTPD_TLS_SCACHTIME	"3600s"
 extern int var_smtpd_tls_scache_timeout;
 
+#define VAR_SMTPD_DELAY_OPEN	"smtpd_delay_open_until_valid_rcpt"
+#define DEF_SMTPD_DELAY_OPEN	1
+extern bool var_smtpd_delay_open;
+
 #define VAR_SMTP_TLS_PER_SITE	"smtp_tls_per_site"
 #define DEF_SMTP_TLS_PER_SITE	""
 #define VAR_LMTP_TLS_PER_SITE	"lmtp_tls_per_site"

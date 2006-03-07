@@ -6,9 +6,9 @@
 /* SYNOPSIS
 /*	#include <conv_time.h>
 /*
-/*	int	conv_time(strval, intval, def_unit);
+/*	int	conv_time(strval, timval, def_unit);
 /*	const char *strval;
-/*	int	*intval;
+/*	int	*timval;
 /*	int	def_unit;
 /* DESCRIPTION
 /*	conv_time() converts a numerical time value with optional
@@ -19,7 +19,7 @@
 /*	Arguments:
 /* .IP strval
 /*	Input value.
-/* .IP intval
+/* .IP timval
 /*	Result pointer.
 /* .IP def_unit
 /*	The default time unit suffix character.
@@ -40,6 +40,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <limits.h>			/* INT_MAX */
 #include <stdio.h>			/* sscanf() */
 
 /* Utility library. */
@@ -57,29 +58,49 @@
 
 /* conv_time - convert time value */
 
-int     conv_time(const char *strval, int *intval, int def_unit)
+int     conv_time(const char *strval, int *timval, int def_unit)
 {
     char    unit;
     char    junk;
+    int     intval;
 
-    switch (sscanf(strval, "%d%c%c", intval, &unit, &junk)) {
+    switch (sscanf(strval, "%d%c%c", &intval, &unit, &junk)) {
     case 1:
 	unit = def_unit;
     case 2:
+	if (intval < 0)
+	    return (0);
 	switch (unit) {
 	case 'w':
-	    *intval *= WEEK;
-	    return (1);
+	    if (intval < INT_MAX / WEEK) {
+		*timval = intval * WEEK;
+		return (1);
+	    } else {
+		return (0);
+	    }
 	case 'd':
-	    *intval *= DAY;
-	    return (1);
+	    if (intval < INT_MAX / DAY) {
+		*timval = intval * DAY;
+		return (1);
+	    } else {
+		return (0);
+	    }
 	case 'h':
-	    *intval *= HOUR;
-	    return (1);
+	    if (intval < INT_MAX / HOUR) {
+		*timval = intval * HOUR;
+		return (1);
+	    } else {
+		return (0);
+	    }
 	case 'm':
-	    *intval *= MINUTE;
-	    return (1);
+	    if (intval < INT_MAX / MINUTE) {
+		*timval = intval * MINUTE;
+		return (1);
+	    } else {
+		return (0);
+	    }
 	case 's':
+	    *timval = intval;
 	    return (1);
 	}
     }

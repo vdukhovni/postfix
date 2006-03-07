@@ -349,26 +349,31 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
     if (state->proxy_xforward_features) {
 	buf = vstring_alloc(100);
 	bad = 0;
-	if ((!(state->proxy_xforward_features & SMTPD_PROXY_XFORWARD_NAME)
-	     || !(bad = smtpd_xforward(state, buf, XFORWARD_NAME,
-				  IS_AVAIL_CLIENT_NAME(FORWARD_NAME(state)),
-				       FORWARD_NAME(state))))
-	    && (!(state->proxy_xforward_features & SMTPD_PROXY_XFORWARD_ADDR)
-		|| !(bad = smtpd_xforward(state, buf, XFORWARD_ADDR,
-				  IS_AVAIL_CLIENT_ADDR(FORWARD_ADDR(state)),
-					  FORWARD_ADDR(state))))
-	    && (!(state->proxy_xforward_features & SMTPD_PROXY_XFORWARD_HELO)
-		|| !(bad = smtpd_xforward(state, buf, XFORWARD_HELO,
-				  IS_AVAIL_CLIENT_HELO(FORWARD_HELO(state)),
-					  FORWARD_HELO(state))))
-	  && (!(state->proxy_xforward_features & SMTPD_PROXY_XFORWARD_PROTO)
-	      || !(bad = smtpd_xforward(state, buf, XFORWARD_PROTO,
-				IS_AVAIL_CLIENT_PROTO(FORWARD_PROTO(state)),
-					FORWARD_PROTO(state))))
-	 && (!(state->proxy_xforward_features & SMTPD_PROXY_XFORWARD_DOMAIN)
-	     || !(bad = smtpd_xforward(state, buf, XFORWARD_DOMAIN, 1,
+	if (state->proxy_xforward_features & SMTPD_PROXY_XFORWARD_NAME)
+	    bad = smtpd_xforward(state, buf, XFORWARD_NAME,
+				 IS_AVAIL_CLIENT_NAME(FORWARD_NAME(state)),
+				 FORWARD_NAME(state));
+	if (bad == 0
+	    && (state->proxy_xforward_features & SMTPD_PROXY_XFORWARD_ADDR))
+	    bad = smtpd_xforward(state, buf, XFORWARD_ADDR,
+				 IS_AVAIL_CLIENT_ADDR(FORWARD_ADDR(state)),
+				 FORWARD_ADDR(state));
+	if (bad == 0
+	    && (state->proxy_xforward_features & SMTPD_PROXY_XFORWARD_HELO))
+	    bad = smtpd_xforward(state, buf, XFORWARD_HELO,
+				 IS_AVAIL_CLIENT_HELO(FORWARD_HELO(state)),
+				 FORWARD_HELO(state));
+	if (bad == 0
+	    && (state->proxy_xforward_features & SMTPD_PROXY_XFORWARD_PROTO))
+	    bad = smtpd_xforward(state, buf, XFORWARD_PROTO,
+				 IS_AVAIL_CLIENT_PROTO(FORWARD_PROTO(state)),
+				 FORWARD_PROTO(state));
+	if (bad == 0
+	  && (state->proxy_xforward_features & SMTPD_PROXY_XFORWARD_DOMAIN))
+	    bad = smtpd_xforward(state, buf, XFORWARD_DOMAIN, 1,
 			 STREQ(FORWARD_DOMAIN(state), MAIL_ATTR_RWR_LOCAL) ?
-				XFORWARD_DOM_LOCAL : XFORWARD_DOM_REMOTE))))
+				 XFORWARD_DOM_LOCAL : XFORWARD_DOM_REMOTE);
+	if (bad == 0)
 	    bad = smtpd_xforward_flush(state, buf);
 	vstring_free(buf);
 	if (bad) {

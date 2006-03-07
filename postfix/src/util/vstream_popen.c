@@ -217,6 +217,7 @@ VSTREAM *vstream_popen(int flags,...)
 	(void) close(sockfd[1]);
 	return (0);
     case 0:					/* child */
+	(void) msg_cleanup((MSG_CLEANUP_FN) 0);
 	if (close(sockfd[1]))
 	    msg_warn("close: %m");
 	for (fd = 0; fd < 2; fd++)

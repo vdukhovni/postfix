@@ -2723,7 +2723,7 @@ Examples:
 .ft C
 mynetworks = 127.0.0.0/8 168.100.189.0/28
 mynetworks = !192.168.0.1, 192.168.0.0/28
-mynetworks = 127.0.0.0/8 168.100.189.0/28 [::1]/128 [2001:240:5c7::]/64
+mynetworks = 127.0.0.0/8 168.100.189.0/28 [::1]/128 [2001:240:587::]/64
 mynetworks = $config_directory/mynetworks
 mynetworks = hash:/etc/postfix/network_table
 .fi
@@ -4814,6 +4814,18 @@ smtpd_data_restrictions = reject_multi_recipient_bounce
 .fi
 .ad
 .ft R
+.SH smtpd_delay_open_until_valid_rcpt (default: yes)
+Postpone the start of an SMTP mail transaction until a valid
+RCPT TO command is received. Specify "smtpd_delay_open_until_rcpt =
+yes" to create a mail transaction as soon as the SMTP server receives
+a valid MAIL FROM command.
+.PP
+Postponing the start of a mail transaction reduces the use of
+disk, CPU and memory resources. The downside is that rejected
+recipients are logged with NOQUEUE instead of a mail transaction
+ID. This complicates the logfile analysis of multi-recipient mail.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH smtpd_delay_reject (default: yes)
 Wait until the RCPT TO command before evaluating
 $smtpd_client_restrictions, $smtpd_helo_restrictions and

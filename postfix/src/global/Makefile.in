@@ -274,7 +274,7 @@ own_inet_addr: own_inet_addr.c $(LIB) $(LIBS)
 tests: tok822_test mime_test mime_nest mime_8bit mime_dom mime_trunc \
 	mime_cvt mime_cvt2 mime_cvt3 strip_addr_test tok822_limit_test \
 	xtext_test scache_multi_test ehlo_mask_test \
-	namadr_list_test
+	namadr_list_test mail_conf_time_test
 
 root_tests: rewrite_clnt_test resolve_clnt_test
 
@@ -388,6 +388,11 @@ namadr_list_test: namadr_list namadr_list.in namadr_list.ref
 	-sh namadr_list.in >namadr_list.tmp 2>&1
 	diff namadr_list.ref namadr_list.tmp
 	rm -f namadr_list.tmp
+
+mail_conf_time_test: mail_conf_time mail_conf_time.ref
+	./mail_conf_time >mail_conf_time.tmp
+	diff mail_conf_time.ref mail_conf_time.tmp
+	rm -f mail_conf_time.tmp
 
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck

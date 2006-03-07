@@ -81,6 +81,14 @@
 /*	Some output functions may suffer from intentional or accidental
 /*	record length restrictions that are imposed by library routines
 /*	and/or by the runtime environment.
+/*
+/*	Code that spawns a child process should almost always reset
+/*	the cleanup handler. The exception is when the parent exits
+/*	immediately and the child continues.
+/*
+/*	msg_cleanup() may be unsafe in code that changes process
+/*	privileges, because the call-back routine may run with the
+/*	wrong privileges.
 /* LICENSE
 /* .ad
 /* .fi

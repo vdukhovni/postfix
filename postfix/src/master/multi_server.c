@@ -260,6 +260,7 @@ int     multi_server_drain(void)
 	return (-1);
 	/* Finish existing clients in the background, then terminate. */
     case 0:
+	(void) msg_cleanup((MSG_CLEANUP_FN) 0);
 	for (fd = MASTER_LISTEN_FD; fd < MASTER_LISTEN_FD + socket_count; fd++)
 	    event_disable_readwrite(fd);
 	var_use_limit = 1;
