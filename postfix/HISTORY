@@ -12023,7 +12023,30 @@ Apologies for any names omitted.
 	processes. See also change 20060217. Files: postlock/postlock.c,
 	master/multi_server.c, global/mail_run.c, util/vstream_popen.c.
 
+20060310
+
+	Bugfix: the MIME processor assumed that input was null
+	terminated. This broke with CRLF input to the "sendmail -t"
+	command  in Postfix 2.1 and later (see change 20030416).
+	Found by Leandro Santi.  Based on patch by Victor Duchovni.
+	Files: global/mime_state.c, global/is_header.c.
+
+20060313
+
+	Cleanup: the message arrival time (start of the receive
+	transaction) no longer controls message expiration or
+	delivery attempts.  Instead, expiration and delivery are
+	now controlled by the time when the cleanup server creates
+	a queue file.  This closes a problem that was introduced
+	with the 20051104 change that introduced higher-resolution
+	delay time keeping: as a result, "postsuper -r" could no
+	longer manipulate the mail expiration schedule, so that
+	mail "on hold" could expire too soon.
+
 Wish list:
+
+	The sendmail command should not return non-std exit status
+	after fatal error in some internal library routine.
 
 	Log DSN original recipient when rejecting mail.
 
@@ -12081,11 +12104,6 @@ Wish list:
 	are services not program names.
 
 	dsb_formal -> dsb_form_all, dsb_status -> dsb_form_status
-
-	"postsuper -r" no longer resets the message arrival time,
-	because pickup(8) no longer overrides queue file time stamp
-	information. This can be a problem when mail "on hold" is
-	released after a long time.
 
 	Is it safe to cache a connection after it has been used for
 	more than some number of address verification probes?

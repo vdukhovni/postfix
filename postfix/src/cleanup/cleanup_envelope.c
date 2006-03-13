@@ -65,7 +65,7 @@
 #include <verp_sender.h>
 #include <mail_proto.h>
 #include <dsn_mask.h>
-#include <dsn_attr_map.h>
+#include <rec_attr_map.h>
 
 /* Application-specific. */
 
@@ -132,7 +132,6 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	    state->flags |= extra_opts;
 	return;
     }
-
 #ifdef DELAY_ACTION
     if (type == REC_TYPE_DELAY) {
 	/* Not part of queue file format. */
@@ -166,7 +165,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 		     state->queue_id, attr_name);
 	    return;
 	}
-	if ((junk = dsn_attr_map(attr_name)) != 0) {
+	if ((junk = rec_attr_map(attr_name)) != 0) {
 	    mapped_buf = attr_value;
 	    mapped_type = junk;
 	}
@@ -317,12 +316,18 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
     if (type == REC_TYPE_SIZE)
 	/* Use our own SIZE record instead. */
 	return;
+    if (mapped_type == REC_TYPE_CTIME)
+	/* Use our own expiration time base record instead. */
+	return;
     if (type == REC_TYPE_TIME) {
 	/* First instance wins. */
 	if (state->arrival_time.tv_sec == 0) {
 	    REC_TYPE_TIME_SCAN(buf, state->arrival_time);
 	    cleanup_out(state, type, buf, len);
 	}
+	/* Generate our own expiration time base record. */
+	cleanup_out_format(state, REC_TYPE_ATTR, "%s=%ld",
+			   MAIL_ATTR_CREATE_TIME, (long) time((time_t *) 0));
 	return;
     }
     if (type == REC_TYPE_FULL) {

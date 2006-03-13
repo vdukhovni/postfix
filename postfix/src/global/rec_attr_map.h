@@ -1,20 +1,20 @@
-#ifndef _DSN_ATTR_MAP_H_INCLUDED_
-#define _DSN_ATTR_MAP_H_INCLUDED_
+#ifndef _REC_ATTR_MAP_H_INCLUDED_
+#define _REC_ATTR_MAP_H_INCLUDED_
 
 /*++
 /* NAME
-/*	dsn_attr_map 3h
+/*	rec_attr_map 3h
 /* SUMMARY
-/*	map named attribute to pseudo record type
+/*	map named attribute record type to pseudo record type
 /* SYNOPSIS
-/*	#include <dsn_attr_map.h>
+/*	#include <rec_attr_map.h>
 /* DESCRIPTION
 /* .nf
 
  /*
   * External interface.
   */
-extern int dsn_attr_map(const char *);
+extern int rec_attr_map(const char *);
 
 /* LICENSE
 /* .ad

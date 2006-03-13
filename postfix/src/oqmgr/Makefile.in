@@ -200,7 +200,6 @@ qmgr_message.o: ../../include/deliver_completed.h
 qmgr_message.o: ../../include/deliver_request.h
 qmgr_message.o: ../../include/dict.h
 qmgr_message.o: ../../include/dsn.h
-qmgr_message.o: ../../include/dsn_attr_map.h
 qmgr_message.o: ../../include/dsn_buf.h
 qmgr_message.o: ../../include/dsn_mask.h
 qmgr_message.o: ../../include/iostuff.h
@@ -213,6 +212,7 @@ qmgr_message.o: ../../include/myflock.h
 qmgr_message.o: ../../include/mymalloc.h
 qmgr_message.o: ../../include/opened.h
 qmgr_message.o: ../../include/qmgr_user.h
+qmgr_message.o: ../../include/rec_attr_map.h
 qmgr_message.o: ../../include/rec_type.h
 qmgr_message.o: ../../include/recipient_list.h
 qmgr_message.o: ../../include/record.h

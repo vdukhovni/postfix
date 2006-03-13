@@ -403,7 +403,7 @@ static void qmgr_active_done_2_generic(QMGR_MESSAGE *message)
      * daemon waits for the qmgr to accept the "new mail" trigger.
      */
     if (message->flags) {
-	if (event_time() >= message->arrival_time.tv_sec +
+	if (event_time() >= message->create_time +
 	    (*message->sender ? var_max_queue_time : var_dsn_queue_time)) {
 	    msg_info("%s: from=<%s>, status=expired, returned to sender",
 		     message->queue_id, message->sender);
@@ -498,8 +498,8 @@ static void qmgr_active_done_3_generic(QMGR_MESSAGE *message)
      * queue scans is finite.
      */
     if (message->flags) {
-	if (message->arrival_time.tv_sec > 0) {
-	    delay = event_time() - message->arrival_time.tv_sec;
+	if (message->create_time > 0) {
+	    delay = event_time() - message->create_time;
 	    if (delay > var_max_backoff_time)
 		delay = var_max_backoff_time;
 	    if (delay < var_min_backoff_time)

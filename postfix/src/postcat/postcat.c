@@ -79,6 +79,7 @@
 #include <vstring.h>
 #include <msg_vstream.h>
 #include <vstring_vstream.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -87,6 +88,7 @@
 #include <mail_queue.h>
 #include <mail_conf.h>
 #include <mail_params.h>
+#include <mail_proto.h>
 
 /* Application-specific. */
 
@@ -108,6 +110,9 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
     int     ch;
     off_t   offset;
     int     in_message = 0;
+    const char *error_text;
+    char   *attr_name;
+    char   *attr_value;
 
 #define TEXT_RECORD(rec_type) \
 	    (rec_type == REC_TYPE_CONT || rec_type == REC_TYPE_NORM)
@@ -182,6 +187,20 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 	case REC_TYPE_END:
 	    vstream_printf("*** MESSAGE FILE END %s ***\n", VSTREAM_PATH(fp));
 	    break;
+	case REC_TYPE_ATTR:
+	    error_text = split_nameval(STR(buffer), &attr_name, &attr_value);
+	    if (error_text != 0) {
+		msg_warn("%s: malformed attribute: %s: %.100s",
+			 VSTREAM_PATH(fp), error_text, STR(buffer));
+		break;
+	    }
+	    if (strcmp(attr_name, MAIL_ATTR_CREATE_TIME) == 0) {
+		time = atol(attr_value);
+		vstream_printf("%s: %s", MAIL_ATTR_CREATE_TIME,
+			       asctime(localtime(&time)));
+		break;
+	    }
+	    /* FALLTHROUGH */
 	default:
 	    vstream_printf("%s: %s\n", rec_type_name(rec_type), STR(buffer));
 	    break;

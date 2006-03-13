@@ -26,7 +26,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	scache_clnt.c scache_multi.c user_acl.c mkmap_cdb.c mkmap_sdbm.c \
 	ehlo_mask.c \
 	wildcard_inet_addr.c valid_mailhost_addr.c dsn_util.c dsn_mask.c \
-	dsn_attr_map.c dsn.c dsn_buf.c rcpt_buf.c rcpt_print.c dsn_print.c \
+	rec_attr_map.c dsn.c dsn_buf.c rcpt_buf.c rcpt_print.c dsn_print.c \
 	dsb_scan.c mail_conf_long.c msg_stats_print.c msg_stats_scan.c \
 	conv_time.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
@@ -56,7 +56,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	scache_clnt.o scache_multi.o user_acl.o mkmap_cdb.o mkmap_sdbm.o \
 	ehlo_mask.o \
 	wildcard_inet_addr.o valid_mailhost_addr.o dsn_util.o dsn_mask.o \
-	dsn_attr_map.o dsn.o dsn_buf.o rcpt_buf.o rcpt_print.o dsn_print.o \
+	rec_attr_map.o dsn.o dsn_buf.o rcpt_buf.o rcpt_print.o dsn_print.o \
 	dsb_scan.o mail_conf_long.o msg_stats_print.o msg_stats_scan.o \
 	conv_time.o
 HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
@@ -81,7 +81,7 @@ HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	trace.h verify.h verify_clnt.h verp_sender.h \
 	xtext.h scache.h user_acl.h ehlo_mask.h db_common.h \
 	wildcard_inet_addr.h valid_mailhost_addr.h dsn_util.h dsn_mask.h \
-	dsn_attr_map.h dsn.h dsn_buf.h rcpt_buf.h rcpt_print.h dsn_print.h \
+	rec_attr_map.h dsn.h dsn_buf.h rcpt_buf.h rcpt_print.h dsn_print.h \
 	dsb_scan.h msg_stats.h conv_time.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
@@ -780,15 +780,6 @@ dsn.o: ../../include/mymalloc.h
 dsn.o: ../../include/sys_defs.h
 dsn.o: dsn.c
 dsn.o: dsn.h
-dsn_attr_map.o: ../../include/attr.h
-dsn_attr_map.o: ../../include/iostuff.h
-dsn_attr_map.o: ../../include/sys_defs.h
-dsn_attr_map.o: ../../include/vbuf.h
-dsn_attr_map.o: ../../include/vstream.h
-dsn_attr_map.o: dsn_attr_map.c
-dsn_attr_map.o: dsn_attr_map.h
-dsn_attr_map.o: mail_proto.h
-dsn_attr_map.o: rec_type.h
 dsn_buf.o: ../../include/msg.h
 dsn_buf.o: ../../include/mymalloc.h
 dsn_buf.o: ../../include/sys_defs.h
@@ -1501,6 +1492,15 @@ rec2stream.o: rec2stream.c
 rec2stream.o: rec_streamlf.h
 rec2stream.o: rec_type.h
 rec2stream.o: record.h
+rec_attr_map.o: ../../include/attr.h
+rec_attr_map.o: ../../include/iostuff.h
+rec_attr_map.o: ../../include/sys_defs.h
+rec_attr_map.o: ../../include/vbuf.h
+rec_attr_map.o: ../../include/vstream.h
+rec_attr_map.o: mail_proto.h
+rec_attr_map.o: rec_attr_map.c
+rec_attr_map.o: rec_attr_map.h
+rec_attr_map.o: rec_type.h
 rec_streamlf.o: ../../include/sys_defs.h
 rec_streamlf.o: ../../include/vbuf.h
 rec_streamlf.o: ../../include/vstream.h

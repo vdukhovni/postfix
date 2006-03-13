@@ -1989,7 +1989,7 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * XXX We use REC_TYPE_ATTR for DSN-related recipient attributes even though
      * 1) REC_TYPE_ATTR is not meant for multiple instances of the same named
      * attribute, and 2) mixing REC_TYPE_ATTR with REC_TYPE_(not attr)
-     * requires that we map attributes with dsn_attr_map() in order to
+     * requires that we map attributes with rec_attr_map() in order to
      * simplify the recipient record processing loops in the cleanup and qmgr
      * servers.
      * 

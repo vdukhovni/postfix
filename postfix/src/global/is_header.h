@@ -13,7 +13,10 @@
 
  /* External interface. */
 
-extern int is_header(const char *);
+#define IS_HEADER_NULL_TERMINATED	(-1)
+#define is_header(str)	is_header_buf(str, IS_HEADER_NULL_TERMINATED)
+
+extern ssize_t is_header_buf(const char *, ssize_t);
 
 /* LICENSE
 /* .ad

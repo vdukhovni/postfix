@@ -35,7 +35,8 @@
   * constant, and it  is too late to change that now.
   */
 #define REC_TYPE_SIZE	'C'		/* first record, created by cleanup */
-#define REC_TYPE_TIME	'T'		/* time stamp, required */
+#define REC_TYPE_TIME	'T'		/* arrival time, required */
+#define REC_TYPE_CTIME	'c'		/* create time, optional */
 #define REC_TYPE_FULL	'F'		/* full name, optional */
 #define REC_TYPE_INSP	'I'		/* inspector transport */
 #define REC_TYPE_FILT	'L'		/* loop filter transport */
@@ -94,7 +95,7 @@
   * Note: REC_TYPE_FILT and REC_TYPE_CONT are encoded with the same 'L'
   * constant, and it  is too late to change that now.
   */
-#define REC_TYPE_ENVELOPE	"MCTFILSDROWVA>K<ion"
+#define REC_TYPE_ENVELOPE	"MCTcFILSDROWVA>K<ion"
 #define REC_TYPE_CONTENT	"XLN"
 #define REC_TYPE_EXTRACT	"EDROPreAFIL>Kon"
 

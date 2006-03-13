@@ -109,6 +109,7 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_ERRTO		"errors-to"
 #define MAIL_ATTR_RRCPT		"return-receipt"
 #define MAIL_ATTR_TIME		"time"
+#define MAIL_ATTR_CREATE_TIME	"create_time"
 #define MAIL_ATTR_RULE		"rule"
 #define MAIL_ATTR_ADDR		"address"
 #define MAIL_ATTR_TRANSPORT	"transport"

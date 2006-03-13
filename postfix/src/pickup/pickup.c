@@ -140,7 +140,7 @@
 #include <rec_type.h>
 #include <lex_822.h>
 #include <input_transp.h>
-#include <dsn_attr_map.h>
+#include <rec_attr_map.h>
 
 /* Single-threaded server skeleton. */
 
@@ -211,9 +211,6 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
      * mail system against unreasonable inputs. This also requires that we
      * limit the size of envelope records written by the local posting agent.
      * 
-     * As time stamp we use the scrutinized queue file modification time, and
-     * ignore the time stamp embedded in the queue file.
-     * 
      * Allow attribute records if the queue file is owned by the mail system
      * (postsuper -r) or if the attribute specifies the MIME body type
      * (sendmail -B).
@@ -260,7 +257,7 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 		saved_attr = mystrdup(vstring_str(buf));
 		skip_attr = (split_nameval(saved_attr,
 					   &attr_name, &attr_value) == 0
-			     && dsn_attr_map(attr_name) == 0);
+			     && rec_attr_map(attr_name) == 0);
 		myfree(saved_attr);
 		/* Discard other/header/body action after "postsuper -r". */
 		if (skip_attr)

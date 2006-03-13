@@ -64,7 +64,7 @@
 #include <mail_params.h>
 #include <mail_proto.h>
 #include <dsn_mask.h>
-#include <dsn_attr_map.h>
+#include <rec_attr_map.h>
 
 /* Application-specific. */
 
@@ -165,7 +165,7 @@ void    cleanup_extracted_process(CLEANUP_STATE *state, int type,
 		     state->queue_id, attr_name);
 	    return;
 	}
-	if ((junk = dsn_attr_map(attr_name)) != 0) {
+	if ((junk = rec_attr_map(attr_name)) != 0) {
 	    buf = attr_value;
 	    type = junk;
 	}

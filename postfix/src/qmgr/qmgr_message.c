@@ -134,7 +134,7 @@
 #include <qmgr_user.h>
 #include <split_addr.h>
 #include <dsn_mask.h>
-#include <dsn_attr_map.h>
+#include <rec_attr_map.h>
 
 /* Client stubs. */
 
@@ -166,6 +166,7 @@ static QMGR_MESSAGE *qmgr_message_create(const char *queue_name,
     message->refcount = 0;
     message->single_rcpt = 0;
     message->arrival_time.tv_sec = message->arrival_time.tv_usec = 0;
+    message->create_time = 0;
     GETTIMEOFDAY(&message->active_time);
     message->queued_time = sane_time();
     message->data_offset = 0;
@@ -419,7 +420,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		rec_type = REC_TYPE_ERROR;
 		break;
 	    }
-	    if ((n = dsn_attr_map(name)) != 0) {
+	    if ((n = rec_attr_map(name)) != 0) {
 		start = value;
 		rec_type = n;
 	    }
@@ -568,6 +569,11 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	if (rec_type == REC_TYPE_TIME) {
 	    if (message->arrival_time.tv_sec == 0)
 		REC_TYPE_TIME_SCAN(start, message->arrival_time);
+	    continue;
+	}
+	if (rec_type == REC_TYPE_CTIME) {
+	    if (message->create_time == 0)
+		message->create_time = atol(start);
 	    continue;
 	}
 	if (rec_type == REC_TYPE_FILT) {
@@ -739,6 +745,9 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	message->sasl_sender = mystrdup("");
     if (message->rewrite_context == 0)
 	message->rewrite_context = mystrdup(MAIL_ATTR_RWR_LOCAL);
+    /* Postfix < 2.3 compatibility. */
+    if (message->create_time == 0)
+	message->create_time = message->arrival_time.tv_sec;
 
     /*
      * Clean up.

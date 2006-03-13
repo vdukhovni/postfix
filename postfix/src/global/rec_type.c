@@ -42,6 +42,7 @@ REC_TYPE_NAME rec_type_names[] = {
     REC_TYPE_ERROR, "error",		/* not Postfix-specific. */
     REC_TYPE_SIZE, "message_size",
     REC_TYPE_TIME, "message_arrival_time",
+    REC_TYPE_CTIME, "queue_file_create_time",
     REC_TYPE_FULL, "sender_fullname",
     REC_TYPE_INSP, "content_inspector",
     REC_TYPE_FILT, "content_filter",

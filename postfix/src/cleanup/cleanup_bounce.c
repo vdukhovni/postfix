@@ -52,7 +52,7 @@
 #include <rec_type.h>
 #include <dsn_mask.h>
 #include <mail_queue.h>
-#include <dsn_attr_map.h>
+#include <rec_attr_map.h>
 
 /* Application-specific. */
 
@@ -147,8 +147,8 @@ int     cleanup_bounce(CLEANUP_STATE *state)
 	    if (split_nameval(STR(buf), &attr_name, &attr_value) != 0
 		|| *attr_value == 0)
 		continue;
-	    /* Map DSN attribute names to pseudo record type. */
-	    if ((junk = dsn_attr_map(attr_name)) != 0) {
+	    /* Map attribute names to pseudo record type. */
+	    if ((junk = rec_attr_map(attr_name)) != 0) {
 		start = attr_value;
 		rec_type = junk;
 	    }

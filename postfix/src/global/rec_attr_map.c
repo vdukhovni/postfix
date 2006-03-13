@@ -1,15 +1,15 @@
 /*++
 /* NAME
-/*	dsn_attr_map 3
+/*	rec_attr_map 3
 /* SUMMARY
-/*	map named attribute to pseudo record type
+/*	map named attribute record type to pseudo record type
 /* SYNOPSIS
-/*	#include <dsn_attr_map.h>
+/*	#include <rec_attr_map.h>
 /*
-/*	int	dsn_attr_map(attr_name)
+/*	int	rec_attr_map(attr_name)
 /*	const char *attr_name;
 /* DESCRIPTION
-/*	dsn_attr_map() maps the record type of a named attribute to
+/*	rec_attr_map() maps the record type of a named attribute to
 /*	a pseudo record type, if such a mapping exists. The result
 /*	is the pseudo record type in case of success, 0 on failure.
 /* LICENSE
@@ -32,11 +32,11 @@
 
 #include <mail_proto.h>
 #include <rec_type.h>
-#include <dsn_attr_map.h>
+#include <rec_attr_map.h>
 
-/* dsn_attr_map - map named attribute to pseudo record type */
+/* rec_attr_map - map named attribute to pseudo record type */
 
-int     dsn_attr_map(const char *attr_name)
+int     rec_attr_map(const char *attr_name)
 {
     if (strcmp(attr_name, MAIL_ATTR_DSN_ORCPT) == 0) {
 	return (REC_TYPE_DSN_ORCPT);
@@ -46,6 +46,8 @@ int     dsn_attr_map(const char *attr_name)
 	return (REC_TYPE_DSN_ENVID);
     } else if (strcmp(attr_name, MAIL_ATTR_DSN_RET) == 0) {
 	return (REC_TYPE_DSN_RET);
+    } else if (strcmp(attr_name, MAIL_ATTR_CREATE_TIME) == 0) {
+	return (REC_TYPE_CTIME);
     } else {
 	return (0);
     }

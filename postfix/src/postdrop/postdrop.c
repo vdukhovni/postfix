@@ -134,7 +134,7 @@
 #include <record.h>
 #include <rec_type.h>
 #include <user_acl.h>
-#include <dsn_attr_map.h>
+#include <rec_attr_map.h>
 
 /* Application-specific. */
 
@@ -410,7 +410,7 @@ int     main(int argc, char **argv)
 		     || STREQ(attr_value, MAIL_ATTR_ENC_NONE)))
 		|| STREQ(attr_name, MAIL_ATTR_DSN_ENVID)
 		|| STREQ(attr_name, MAIL_ATTR_DSN_NOTIFY)
-		|| dsn_attr_map(attr_name)
+		|| rec_attr_map(attr_name)
 		|| (STREQ(attr_name, MAIL_ATTR_RWR_CONTEXT)
 		    && (STREQ(attr_value, MAIL_ATTR_RWR_LOCAL)
 			|| STREQ(attr_value, MAIL_ATTR_RWR_REMOTE)))

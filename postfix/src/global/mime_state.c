@@ -766,7 +766,7 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 	    if (input_is_text) {
 		if (state->prev_rec_type == REC_TYPE_CONT) {
 		    if (LEN(state->output_buffer) < var_header_limit) {
-			vstring_strcat(state->output_buffer, text);
+			vstring_strncat(state->output_buffer, text, len);
 		    } else {
 			if (state->static_flags & MIME_OPT_REPORT_TRUNC_HEADER)
 			    REPORT_ERROR(state, MIME_ERR_TRUNC_HEADER,
@@ -777,7 +777,7 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 		if (IS_SPACE_TAB(*text)) {
 		    if (LEN(state->output_buffer) < var_header_limit) {
 			vstring_strcat(state->output_buffer, "\n");
-			vstring_strcat(state->output_buffer, text);
+			vstring_strncat(state->output_buffer, text, len);
 		    } else {
 			if (state->static_flags & MIME_OPT_REPORT_TRUNC_HEADER)
 			    REPORT_ERROR(state, MIME_ERR_TRUNC_HEADER,
@@ -832,18 +832,23 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 	 * clean slate.
 	 */
 	if (input_is_text) {
-	    int     header_len;
+	    ssize_t header_len;
 
 	    /*
 	     * See if this input is (the beginning of) a message header.
+	     *
 	     * Normalize obsolete "name space colon" syntax to "name colon".
 	     * Things would be too confusing otherwise.
+	     * 
+	     * Don't assume that the input is null terminated.
 	     */
-	    if ((header_len = is_header(text)) > 0) {
+	    if ((header_len = is_header_buf(text, len)) > 0) {
 		vstring_strncpy(state->output_buffer, text, header_len);
-		for (text += header_len; IS_SPACE_TAB(*text); text++)
+		for (text += header_len, len -= header_len;
+		     len > 0 && IS_SPACE_TAB(*text);
+		     text++, len--)
 		     /* void */ ;
-		vstring_strcat(state->output_buffer, text);
+		vstring_strncat(state->output_buffer, text, len);
 		SAVE_PREV_REC_TYPE_AND_RETURN_ERR_FLAGS(state, rec_type);
 	    }
 	}
@@ -914,9 +919,11 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 	 * 
 	 * XXX This changes state to MIME_STATE_NESTED and then outputs a body
 	 * line, so that the body offset is not properly reset.
+	 * 
+	 * Don't assume that the input is null terminated.
 	 */
 	if (input_is_text) {
-	    if (*text == 0) {
+	    if (len == 0) {
 		state->body_offset = 0;		/* XXX */
 		if (state->curr_ctype == MIME_CTYPE_MESSAGE) {
 		    if (state->curr_stype == MIME_STYPE_RFC822
@@ -973,6 +980,8 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 	 * string.
 	 * 
 	 * Don't look for boundary strings at the start of a continued record.
+	 * 
+	 * Don't assume that the input is null terminated.
 	 */
     case MIME_STATE_BODY:
 	if (input_is_text) {
@@ -986,12 +995,14 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 		    }
 	    }
 	    if (state->stack && state->prev_rec_type != REC_TYPE_CONT
-		&& text[0] == '-' && text[1] == '-') {
+		&& len > 2 && text[0] == '-' && text[1] == '-') {
 		for (sp = state->stack; sp != 0; sp = sp->next) {
-		    if (strncmp(text + 2, sp->boundary, sp->bound_len) == 0) {
+		    if (len >= 2 + sp->bound_len &&
+		      strncmp(text + 2, sp->boundary, sp->bound_len) == 0) {
 			while (sp != state->stack)
 			    mime_state_pop(state);
-			if (strncmp(text + 2 + sp->bound_len, "--", 2) == 0) {
+			if (len >= 4 + sp->bound_len &&
+			  strncmp(text + 2 + sp->bound_len, "--", 2) == 0) {
 			    mime_state_pop(state);
 			    SET_MIME_STATE(state, MIME_STATE_BODY,
 					 MIME_CTYPE_OTHER, MIME_STYPE_OTHER,
