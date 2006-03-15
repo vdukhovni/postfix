@@ -171,8 +171,7 @@ static int dict_pcre_expand(int type, VSTRING *buf, char *ptr)
 				 ctxt->matches, n, &pp);
 	if (ret < 0) {
 	    if (ret == PCRE_ERROR_NOSUBSTRING)
-		msg_fatal("regexp %s, line %d: replace index out of range",
-			  ctxt->mapname, ctxt->lineno);
+		return (MAC_PARSE_UNDEF);
 	    else
 		msg_fatal("regexp %s, line %d: pcre_get_substring error: %d",
 			  ctxt->mapname, ctxt->lineno, ret);
@@ -543,6 +542,7 @@ static DICT_PCRE_RULE *dict_pcre_parse_rule(const char *mapname, int lineno,
 					            int dict_flags)
 {
     char   *p;
+    int     actual_sub;
 
     p = line;
 
@@ -599,6 +599,23 @@ static DICT_PCRE_RULE *dict_pcre_parse_rule(const char *mapname, int lineno,
 	 */
 	if (dict_pcre_compile(mapname, lineno, &regexp, &engine) == 0)
 	    return (0);
+#ifdef PCRE_INFO_CAPTURECOUNT
+	if (pcre_fullinfo(engine.pattern, engine.hints,
+			  PCRE_INFO_CAPTURECOUNT,
+			  (void *) &actual_sub) != 0)
+	    msg_panic("pcre map %s, line %d: pcre_fullinfo failed",
+		      mapname, lineno);
+	if (prescan_context.max_sub > actual_sub) {
+	    msg_warn("regexp map %s, line %d: out of range replacement index \"%d\": "
+		     "skipping this rule", mapname, lineno,
+		     (int) prescan_context.max_sub);
+	    if (engine.pattern)
+		myfree((char *) engine.pattern);
+	    if (engine.hints)
+		myfree((char *) engine.hints);
+	    return (0);
+	}
+#endif
 
 	/*
 	 * Save the result.
