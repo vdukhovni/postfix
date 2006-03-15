@@ -12043,6 +12043,13 @@ Apologies for any names omitted.
 	longer manipulate the mail expiration schedule, so that
 	mail "on hold" could expire too soon.
 
+20060315
+
+	Workaround. the PCRE library reports an inappropriate error
+	code (invalid substring) when $number refers to a valid ()
+	expression that matches the null string. This caused fatal
+	run-time errors.  File: dict_pcre.c.
+
 Wish list:
 
 	The sendmail command should not return non-std exit status
