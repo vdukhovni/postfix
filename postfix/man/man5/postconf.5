@@ -1102,7 +1102,9 @@ This feature is enabled with the delay_warning_time parameter.
 The time after which the sender receives the message headers of
 mail that is still queued.
 .PP
-To enable this feature, specify a non-zero integral value.
+To enable this feature, specify a non-zero time value (an integral
+value plus an optional one-letter suffix that specifies the time
+unit).
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is h (hours).
@@ -4816,11 +4818,11 @@ smtpd_data_restrictions = reject_multi_recipient_bounce
 .ft R
 .SH smtpd_delay_open_until_valid_rcpt (default: yes)
 Postpone the start of an SMTP mail transaction until a valid
-RCPT TO command is received. Specify "smtpd_delay_open_until_rcpt =
-yes" to create a mail transaction as soon as the SMTP server receives
-a valid MAIL FROM command.
+RCPT TO command is received. Specify "no" to create a mail transaction
+as soon as the SMTP server receives a valid MAIL FROM command.
 .PP
-Postponing the start of a mail transaction reduces the use of
+With sites that reject lots of mail, the default setting reduces
+the use of
 disk, CPU and memory resources. The downside is that rejected
 recipients are logged with NOQUEUE instead of a mail transaction
 ID. This complicates the logfile analysis of multi-recipient mail.
@@ -5298,17 +5300,17 @@ access restriction is specified. This can slow down an explosion
 of forged mail from worms or viruses.
 .IP \(bu
 The sender domain matches $mydestination, $inet_interfaces or
-$proxy_interfaces, but the recipient is not listed in
+$proxy_interfaces, but the sender is not listed in
 $local_recipient_maps, and $local_recipient_maps is not null.
 .IP \(bu
-The sender domain matches $virtual_alias_domains but the recipient
+The sender domain matches $virtual_alias_domains but the sender
 is not listed in $virtual_alias_maps.
 .IP \(bu
 The sender domain matches $virtual_mailbox_domains but the
-recipient is not listed in $virtual_mailbox_maps, and $virtual_mailbox_maps
+sender is not listed in $virtual_mailbox_maps, and $virtual_mailbox_maps
 is not null.
 .IP \(bu
-The sender domain matches $relay_domains but the recipient is
+The sender domain matches $relay_domains but the sender is
 not listed in $relay_recipient_maps, and $relay_recipient_maps is
 not null.
 .PP

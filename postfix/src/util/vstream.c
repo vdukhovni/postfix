@@ -303,7 +303,8 @@
 /*	given to vstream_longjmp().
 /*
 /*	NB: non-local jumps such as vstream_longjmp() are not safe
-/*	for jumping out of any vstream routine.
+/*	for jumping out of any routine that manipulates VSTREAM data.
+/*	longjmp() like calls are best avoided in signal handlers.
 /*
 /*	vstream_ftime() returns the time of initialization, the last buffer
 /*	fill operation, or the last buffer flush operation for the specified
@@ -891,6 +892,7 @@ off_t   vstream_fseek(VSTREAM *stream, off_t offset, int whence)
 	    offset += bp->cnt;			/* subtract unread data */
 	else if (whence == SEEK_END)
 	    bp->flags &= ~VSTREAM_FLAG_SEEK;
+	/* FALLTHROUGH */
     case 0:
 	VSTREAM_BUF_AT_END(bp);
 	break;

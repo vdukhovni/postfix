@@ -809,8 +809,8 @@ following information:
     original recipient address.
   * The delivery status.
 
-Some details are still preliminary and will change as Postfix implements the
-DSN (delivery status notification) standards.
+Some details depend on Postfix version. The example below is for Postfix
+version 2.3 and later.
 
     Content-Description: Delivery report
     Content-Type: message/delivery-status
@@ -823,8 +823,8 @@ DSN (delivery status notification) standards.
     Final-Recipient: rfc822; postfix-users@postfix.org
     Action: deliverable
     Status: 2.0.0
-    Diagnostic-Code: X-Postfix; delivery via mail.cloud9.net[168.100.1.4]: 250
-    Ok
+    Remote-MTA: dns; mail.cloud9.net
+    Diagnostic-Code: smtp; 250 Ok
 
 The third part of the report contains the message that Postfix would have
 delivered, including From: and To: message headers, so that you can see any

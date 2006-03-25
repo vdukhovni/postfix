@@ -335,7 +335,7 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
     if (info->st.st_uid == var_owner_uid) {
 	msg_info("%s: uid=%d from=<%s> orig_id=%s", info->id,
 		 (int) info->st.st_uid, info->sender,
-		 ((name = strrchr(info->path, '/')) ?
+		 ((name = strrchr(info->path, '/')) != 0 ?
 		  name + 1 : info->path));
     } else {
 	msg_info("%s: uid=%d from=<%s>", info->id,

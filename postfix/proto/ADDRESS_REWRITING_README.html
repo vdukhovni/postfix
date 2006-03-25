@@ -1204,8 +1204,8 @@ includes the original recipient address.
 
 </ul>
 
-<p> Some details are still preliminary and will change as Postfix
-implements the DSN (delivery status notification) standards. </p>
+<p> Some details depend on Postfix version. The example below is
+for Postfix version 2.3 and later. </p>
 
 <blockquote>
 <pre>
@@ -1220,7 +1220,8 @@ Arrival-Date: Tue, 13 Apr 2004 19:27:43 -0400 (EDT)
 Final-Recipient: rfc822; postfix-users@postfix.org
 Action: deliverable
 Status: 2.0.0
-Diagnostic-Code: X-Postfix; delivery via mail.cloud9.net[168.100.1.4]: 250 Ok
+Remote-MTA: dns; mail.cloud9.net
+Diagnostic-Code: smtp; 250 Ok
 </pre>
 </blockquote>
 

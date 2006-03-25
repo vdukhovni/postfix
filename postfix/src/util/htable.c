@@ -140,11 +140,11 @@ static unsigned htable_hash(const char *s, unsigned size)
 /* htable_link - insert element into table */
 
 #define htable_link(table, element) { \
-     HTABLE_INFO **h = table->data + htable_hash(element->key, table->size);\
+     HTABLE_INFO **_h = table->data + htable_hash(element->key, table->size);\
     element->prev = 0; \
-    if ((element->next = *h) != 0) \
-	(*h)->prev = element; \
-    *h = element; \
+    if ((element->next = *_h) != 0) \
+	(*_h)->prev = element; \
+    *_h = element; \
     table->used++; \
 }
 

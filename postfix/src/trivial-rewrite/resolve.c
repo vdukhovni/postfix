@@ -188,8 +188,8 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
     tree = tok822_scan_addr(vstring_str(addr_buf));
 
     /*
-     * Let the optimizer replace multiple expansions of this macro by a GOTO
-     * to a single instance.
+     * The optimizer will eliminate tests that always fail, and will replace
+     * multiple expansions of this macro by a GOTO to a single instance.
      */
 #define FREE_MEMORY_AND_RETURN { \
 	if (saved_domain) \
@@ -366,6 +366,8 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
      */
     tok822_internalize(nextrcpt, tree, TOK822_STR_DEFL);
     rcpt_domain = strrchr(STR(nextrcpt), '@') + 1;
+    if (rcpt_domain == 0)
+	msg_panic("no @ in address: \"%s\"", STR(nextrcpt));
     if (*rcpt_domain == '[') {
 	if (!valid_mailhost_literal(rcpt_domain, DONT_GRIPE))
 	    *flags |= RESOLVE_FLAG_ERROR;

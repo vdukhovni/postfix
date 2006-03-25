@@ -67,6 +67,7 @@ char   *percentm(const char *str, int err)
 	    switch (ip[1]) {
 	    default:				/* leave %<any> alone */
 		VSTRING_ADDCH(vp, *ip++);
+		/* FALLTHROUGH */
 	    case '\0':				/* don't fall off end */
 		VSTRING_ADDCH(vp, *ip++);
 		break;

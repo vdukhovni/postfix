@@ -295,7 +295,7 @@ char   *tls_issuer_CN(X509 *peer)
      * If no issuer CN field, use Organization instead. CA certs without a CN
      * are common, so we only complain if the organization is also missing.
      */
-    if (!(cn = tls_text_name(name, NID_commonName, "issuer CN", DONT_GRIPE)))
+    if ((cn = tls_text_name(name, NID_commonName, "issuer CN", DONT_GRIPE)) == 0)
 	cn = tls_text_name(name, NID_organizationName,
 			   "issuer Organization", DO_GRIPE);
     return (cn);

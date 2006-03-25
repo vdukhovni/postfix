@@ -157,6 +157,7 @@ qmgr_deliver.o: ../../include/mail_proto.h
 qmgr_deliver.o: ../../include/mail_queue.h
 qmgr_deliver.o: ../../include/msg.h
 qmgr_deliver.o: ../../include/msg_stats.h
+qmgr_deliver.o: ../../include/mymalloc.h
 qmgr_deliver.o: ../../include/rcpt_print.h
 qmgr_deliver.o: ../../include/recipient_list.h
 qmgr_deliver.o: ../../include/scan_dir.h

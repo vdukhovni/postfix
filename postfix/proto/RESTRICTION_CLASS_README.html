@@ -43,7 +43,7 @@ care about these low-level details. </p>
 <pre>
 /etc/postfix/main.cf:
     smtpd_restriction_classes = restrictive, permissive
-    # With Postfix < 2.3 specify reject_unknown_client.
+    # With Postfix &lt; 2.3 specify reject_unknown_client.
     restrictive = reject_unknown_sender_domain reject_unknown_client_hostname ...
     permissive = permit
 

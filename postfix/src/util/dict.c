@@ -248,7 +248,7 @@ DICT   *dict_handle(const char *dict_name)
 {
     DICT_NODE *node;
 
-    return ((node = dict_node(dict_name)) ? node->dict : 0);
+    return ((node = dict_node(dict_name)) != 0 ? node->dict : 0);
 }
 
 /* dict_node_free - dict_unregister() callback */

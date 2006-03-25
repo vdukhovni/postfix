@@ -580,7 +580,8 @@ tables Postfix supports, use the command "<b>postconf -m</b>". </p>
 <p> Execute the command "<b>postmap /etc/postfix/transport</b>"
 whenever you change the transport table. </p>
 
-<p> NOTE: Do not use the fallback_relay feature when relaying mail 
+<p> NOTE for Postfix &lt; 2.2: Do not use the fallback_relay feature
+when relaying mail
 for a backup or primary MX domain. Mail would loop between the
 Postfix MX host and the fallback_relay host when the final destination
 is unavailable. </p>

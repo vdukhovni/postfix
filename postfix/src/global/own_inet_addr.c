@@ -68,9 +68,9 @@
 
 /* Application-specific. */
 
-static INET_ADDR_LIST addr_list;
-static INET_ADDR_LIST mask_list;
-static INET_ADDR_LIST proxy_list;
+static INET_ADDR_LIST saved_addr_list;
+static INET_ADDR_LIST saved_mask_list;
+static INET_ADDR_LIST saved_proxy_list;
 
 /* own_inet_addr_init - initialize my own address list */
 
@@ -182,11 +182,11 @@ int     own_inet_addr(struct sockaddr * addr)
 {
     int     i;
 
-    if (addr_list.used == 0)
-	own_inet_addr_init(&addr_list, &mask_list);
+    if (saved_addr_list.used == 0)
+	own_inet_addr_init(&saved_addr_list, &saved_mask_list);
 
-    for (i = 0; i < addr_list.used; i++)
-	if (SOCK_ADDR_EQ_ADDR(addr, addr_list.addrs + i))
+    for (i = 0; i < saved_addr_list.used; i++)
+	if (SOCK_ADDR_EQ_ADDR(addr, saved_addr_list.addrs + i))
 	    return (1);
     return (0);
 }
@@ -195,20 +195,20 @@ int     own_inet_addr(struct sockaddr * addr)
 
 INET_ADDR_LIST *own_inet_addr_list(void)
 {
-    if (addr_list.used == 0)
-	own_inet_addr_init(&addr_list, &mask_list);
+    if (saved_addr_list.used == 0)
+	own_inet_addr_init(&saved_addr_list, &saved_mask_list);
 
-    return (&addr_list);
+    return (&saved_addr_list);
 }
 
 /* own_inet_mask_list - return list of addresses */
 
 INET_ADDR_LIST *own_inet_mask_list(void)
 {
-    if (addr_list.used == 0)
-	own_inet_addr_init(&addr_list, &mask_list);
+    if (saved_addr_list.used == 0)
+	own_inet_addr_init(&saved_addr_list, &saved_mask_list);
 
-    return (&mask_list);
+    return (&saved_mask_list);
 }
 
 /* proxy_inet_addr_init - initialize my proxy interface list */
@@ -247,11 +247,11 @@ int     proxy_inet_addr(struct sockaddr * addr)
     if (*var_proxy_interfaces == 0)
 	return (0);
 
-    if (proxy_list.used == 0)
-	proxy_inet_addr_init(&proxy_list);
+    if (saved_proxy_list.used == 0)
+	proxy_inet_addr_init(&saved_proxy_list);
 
-    for (i = 0; i < proxy_list.used; i++)
-	if (SOCK_ADDR_EQ_ADDR(addr, proxy_list.addrs + i))
+    for (i = 0; i < saved_proxy_list.used; i++)
+	if (SOCK_ADDR_EQ_ADDR(addr, saved_proxy_list.addrs + i))
 	    return (1);
     return (0);
 }
@@ -260,10 +260,10 @@ int     proxy_inet_addr(struct sockaddr * addr)
 
 INET_ADDR_LIST *proxy_inet_addr_list(void)
 {
-    if (*var_proxy_interfaces != 0 && proxy_list.used == 0)
-	proxy_inet_addr_init(&proxy_list);
+    if (*var_proxy_interfaces != 0 && saved_proxy_list.used == 0)
+	proxy_inet_addr_init(&saved_proxy_list);
 
-    return (&proxy_list);
+    return (&saved_proxy_list);
 }
 
 #ifdef TEST

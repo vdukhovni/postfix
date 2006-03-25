@@ -6541,7 +6541,9 @@ mail that is still queued.
 </p>
 
 <p>
-To enable this feature, specify a non-zero integral value.
+To enable this feature, specify a non-zero time value (an integral
+value plus an optional one-letter suffix that specifies the time
+unit).
 </p>
 
 <p>
@@ -7429,17 +7431,17 @@ of forged mail from worms or viruses.  </p>
 <ul>
 
 <li> The sender domain matches $mydestination, $inet_interfaces or
-$proxy_interfaces, but the recipient is not listed in
+$proxy_interfaces, but the sender is not listed in
 $local_recipient_maps, and $local_recipient_maps is not null.
 
-<li> The sender domain matches $virtual_alias_domains but the recipient
+<li> The sender domain matches $virtual_alias_domains but the sender
 is not listed in $virtual_alias_maps.
 
 <li> The sender domain matches $virtual_mailbox_domains but the
-recipient is not listed in $virtual_mailbox_maps, and $virtual_mailbox_maps
+sender is not listed in $virtual_mailbox_maps, and $virtual_mailbox_maps
 is not null.
 
-<li> The sender domain matches $relay_domains but the recipient is
+<li> The sender domain matches $relay_domains but the sender is
 not listed in $relay_recipient_maps, and $relay_recipient_maps is
 not null.
 
@@ -9244,11 +9246,11 @@ See there for details. </p>
 %PARAM smtpd_delay_open_until_valid_rcpt yes
 
 <p> Postpone the start of an SMTP mail transaction until a valid
-RCPT TO command is received. Specify "smtpd_delay_open_until_rcpt =
-yes" to create a mail transaction as soon as the SMTP server receives
-a valid MAIL FROM command. </p>
+RCPT TO command is received. Specify "no" to create a mail transaction
+as soon as the SMTP server receives a valid MAIL FROM command. </p>
 
-<p> Postponing the start of a mail transaction reduces the use of
+<p> With sites that reject lots of mail, the default setting reduces
+the use of
 disk, CPU and memory resources. The downside is that rejected
 recipients are logged with NOQUEUE instead of a mail transaction
 ID. This complicates the logfile analysis of multi-recipient mail.

@@ -41,9 +41,9 @@ care about these low-level details. </p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtpd_restriction_classes">smtpd_restriction_classes</a> = restrictive, permissive
-    # With Postfix < 2.3 specify <a href="postconf.5.html#reject_unknown_client_hostname">reject_unknown_client</a>.
+    # With Postfix &lt; 2.3 specify <a href="postconf.5.html#reject_unknown_client_hostname">reject_unknown_client</a>.
     restrictive = <a href="postconf.5.html#reject_unknown_sender_domain">reject_unknown_sender_domain</a> <a href="postconf.5.html#reject_unknown_client_hostname">reject_unknown_client_hostname</a> ...
     permissive = permit
 
@@ -100,7 +100,7 @@ to IP spoofing. </p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> =
         <a href="postconf.5.html#check_recipient_access">check_recipient_access</a> hash:/etc/postfix/access
         <i>...the usual stuff...</i>
@@ -131,7 +131,7 @@ therefore is subject to SMTP sender spoofing. </p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> =
         <a href="postconf.5.html#check_recipient_access">check_recipient_access</a> hash:/etc/postfix/protected_destinations
         <i>...the usual stuff...</i>
@@ -191,7 +191,7 @@ with LDAP or SQL. </p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> =
         <a href="postconf.5.html#check_sender_access">check_sender_access</a> hash:/etc/postfix/restricted_senders
         <i>...other stuff...</i>
@@ -220,7 +220,7 @@ bypassed in several ways: </p>
 <ul>
 
 <li> <p> By sending mail via a less restrictive mail
-relay host. </p>
+<a href="postconf.5.html#relayhost">relay host</a>. </p>
 
 <li> <p> By sending mail as someone else who does have permission
 to send mail to off-site destinations. </p>

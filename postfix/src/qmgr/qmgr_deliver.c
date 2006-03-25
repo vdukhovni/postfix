@@ -61,6 +61,7 @@
 #include <events.h>
 #include <iostuff.h>
 #include <stringops.h>
+#include <mymalloc.h>
 
 /* Global library. */
 
@@ -220,6 +221,7 @@ static void qmgr_deliver_update(int unused_event, char *context)
     int     status;
     RECIPIENT *recipient;
     int     nrcpt;
+    char   *whatsup;
 
     if (dsb == 0)
 	dsb = dsb_create();
@@ -249,9 +251,17 @@ static void qmgr_deliver_update(int unused_event, char *context)
      */
     if (status == DELIVER_STAT_CRASH) {
 	message->flags |= DELIVER_STAT_DEFER;
+#if 0
+	whatsup = concatenate("unknown ", transport->name,
+			      " mail transport error", (char *) 0);
+	qmgr_transport_throttle(transport,
+				DSN_SIMPLE(&dsb->dsn, "4.3.0", whatsup));
+	myfree(whatsup);
+#else
 	qmgr_transport_throttle(transport,
 				DSN_SIMPLE(&dsb->dsn, "4.3.0",
 					   "unknown mail transport error"));
+#endif
 	msg_warn("transport %s failure -- see a previous warning/fatal/panic logfile record for the problem description",
 		 transport->name);
 
@@ -280,7 +290,7 @@ static void qmgr_deliver_update(int unused_event, char *context)
      * (the todo list); stay away from queue entries that have been selected
      * (the busy list), or we would have dangling pointers. The queue itself
      * won't go away before we dispose of the current queue entry.
-     *
+     * 
      * XXX Caution: DSN_COPY() will panic on empty status or reason.
      */
 #define SUSPENDED	"delivery temporarily suspended: "
@@ -328,6 +338,7 @@ void    qmgr_deliver(QMGR_TRANSPORT *transport, VSTREAM *stream)
 {
     QMGR_ENTRY *entry;
     DSN     dsn;
+    char   *whatsup;
 
     /*
      * Find out if this delivery process is really available. Once elected,
@@ -337,9 +348,17 @@ void    qmgr_deliver(QMGR_TRANSPORT *transport, VSTREAM *stream)
      * while some other queue manipulation is happening.
      */
     if (qmgr_deliver_initial_reply(stream) != 0) {
+#if 0
+	whatsup = concatenate(transport->name,
+			      " mail transport unavailable", (char *) 0);
+	qmgr_transport_throttle(transport,
+				DSN_SIMPLE(&dsn, "4.3.0", whatsup));
+	myfree(whatsup);
+#else
 	qmgr_transport_throttle(transport,
 				DSN_SIMPLE(&dsn, "4.3.0",
 					   "mail transport unavailable"));
+#endif
 	qmgr_defer_transport(transport, &dsn);
 	(void) vstream_fclose(stream);
 	return;
@@ -365,9 +384,17 @@ void    qmgr_deliver(QMGR_TRANSPORT *transport, VSTREAM *stream)
      */
     if (qmgr_deliver_send_request(entry, stream) < 0) {
 	qmgr_entry_unselect(entry);
+#if 0
+	whatsup = concatenate(transport->name,
+			      " mail transport unavailable", (char *) 0);
+	qmgr_transport_throttle(transport,
+				DSN_SIMPLE(&dsn, "4.3.0", whatsup));
+	myfree(whatsup);
+#else
 	qmgr_transport_throttle(transport,
 				DSN_SIMPLE(&dsn, "4.3.0",
 					   "mail transport unavailable"));
+#endif
 	qmgr_defer_transport(transport, &dsn);
 	/* warning: entry may be a dangling pointer here */
 	(void) vstream_fclose(stream);

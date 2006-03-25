@@ -1064,7 +1064,7 @@ Please differentiate when possible between:
   * Problems in the TLS code: <postfix_tls@aet.tu-cottbus.de>
   * Problems in vanilla Postfix: <postfix-users@postfix.org>
 
-CCoommppaattiibbiilliittyy wwiitthh PPoossttffiixx <<22..22 TTLLSS ssuuppppoorrtt
+CCoommppaattiibbiilliittyy wwiitthh PPoossttffiixx << 22..22 TTLLSS ssuuppppoorrtt
 
 Postfix version 2.2 TLS support is based on the Postfix/TLS patch by Lutz
 Jänicke, but differs in a few minor ways.

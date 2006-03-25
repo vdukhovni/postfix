@@ -73,9 +73,9 @@ VSTRING *verp_sender(VSTRING *buf, const char *delimiters,
     /*
      * Change prefix@origin into prefix+user=domain@origin.
      */
-    send_local_len = ((cp = strrchr(sender, '@')) ?
+    send_local_len = ((cp = strrchr(sender, '@')) != 0 ?
 		      cp - sender : strlen(sender));
-    rcpt_local_len = ((cp = strrchr(recipient, '@')) ?
+    rcpt_local_len = ((cp = strrchr(recipient, '@')) != 0 ?
 		      cp - recipient : strlen(recipient));
     vstring_strncpy(buf, sender, send_local_len);
     VSTRING_ADDCH(buf, delimiters[0] & 0xff);

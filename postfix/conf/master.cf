@@ -1,6 +1,6 @@
 #
 # Postfix master process configuration file.  For details on the format
-# of the file, see the Postfix master(5) manual page.
+# of the file, see the master(5) manual page (command: "man 5 master").
 #
 # ==========================================================================
 # service type  private unpriv  chroot  wakeup  maxproc command + args

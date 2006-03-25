@@ -316,7 +316,7 @@ static ssize_t pipe_command_read(int fd, void *buf, ssize_t len,
 
 static void kill_command(pid_t pid, int sig, uid_t kill_uid, gid_t kill_gid)
 {
-    pid_t   saved_euid = geteuid();
+    uid_t   saved_euid = geteuid();
     gid_t   saved_egid = getegid();
 
     /*

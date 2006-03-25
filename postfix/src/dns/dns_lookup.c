@@ -608,6 +608,7 @@ int     dns_lookup(const char *name, unsigned type, unsigned flags,
 		vstring_sprintf(why, "Name service error for name=%s type=%s: "
 				"Malformed or unexpected name server reply",
 				name, dns_strtype(type));
+	    /* FALLTHROUGH */
 	case DNS_OK:
 	    return (status);
 	case DNS_RECURSE:

@@ -12050,7 +12050,24 @@ Apologies for any names omitted.
 	expression that matches the null string. This caused fatal
 	run-time errors.  File: dict_pcre.c.
 
+20060324
+
+	Cleanup: eliminated name collisions between global and local
+	variables, and other forms of shadowing. Documented switch
+	fall-throughs with /* FALLTHROUGH */ where this wasn't
+	already done.  Replaced (var = expr) by (var = expr) != 0
+	where this wasn't already done.
+
+20060324
+
+	Bugfix: mis-placed parenthesis in a before-filter error
+	test. A filter timeout was mis-reported as lost connection.
+	Found in code review.  File: smtpd/smtpd_proxy.c.
+
 Wish list:
+
+	Don't send xforward attributes to every site that announces
+	xforward support.
 
 	The sendmail command should not return non-std exit status
 	after fatal error in some internal library routine.

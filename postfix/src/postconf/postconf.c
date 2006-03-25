@@ -362,7 +362,7 @@ static CONFIG_STR_FN_TABLE str_fn_table_2[] = {
  /*
   * XXX Global so that call-backs can see it.
   */
-static int mode = SHOW_NAME;
+static int cmd_mode = SHOW_NAME;
 
 /* check_myhostname - lookup hostname and validate */
 
@@ -385,7 +385,7 @@ static const char *check_myhostname(void)
      * XXX Do not complain when running as "postconf -d".
      */
     name = get_hostname();
-    if ((mode & SHOW_DEFS) == 0 && (dot = strchr(name, '.')) == 0) {
+    if ((cmd_mode & SHOW_DEFS) == 0 && (dot = strchr(name, '.')) == 0) {
 	if ((domain = mail_conf_lookup_eval(VAR_MYDOMAIN)) == 0) {
 	    msg_warn("My hostname %s is not a fully qualified name - set %s or %s in %s/main.cf",
 		     name, VAR_MYHOSTNAME, VAR_MYDOMAIN, var_config_dir);
@@ -432,20 +432,20 @@ static const char *check_mynetworks(void)
     const char *junk;
 
     if (var_inet_interfaces == 0) {
-	if ((mode & SHOW_DEFS)
-	    || !(junk = mail_conf_lookup_eval(VAR_INET_INTERFACES)))
+	if ((cmd_mode & SHOW_DEFS)
+	    || (junk = mail_conf_lookup_eval(VAR_INET_INTERFACES)) == 0)
 	    junk = DEF_INET_INTERFACES;
 	var_inet_interfaces = mystrdup(junk);
     }
     if (var_mynetworks_style == 0) {
-	if ((mode & SHOW_DEFS)
-	    || !(junk = mail_conf_lookup_eval(VAR_MYNETWORKS_STYLE)))
+	if ((cmd_mode & SHOW_DEFS)
+	    || (junk = mail_conf_lookup_eval(VAR_MYNETWORKS_STYLE)) == 0)
 	    junk = DEF_MYNETWORKS_STYLE;
 	var_mynetworks_style = mystrdup(junk);
     }
     if (var_inet_protocols == 0) {
-	if ((mode & SHOW_DEFS)
-	    || !(junk = mail_conf_lookup_eval(VAR_INET_PROTOCOLS)))
+	if ((cmd_mode & SHOW_DEFS)
+	    || (junk = mail_conf_lookup_eval(VAR_INET_PROTOCOLS)) == 0)
 	    junk = DEF_INET_PROTOCOLS;
 	var_inet_protocols = mystrdup(junk);
 	proto_info = inet_proto_init(VAR_INET_PROTOCOLS, var_inet_protocols);
@@ -1001,10 +1001,10 @@ int     main(int argc, char **argv)
     while ((ch = GETOPT(argc, argv, "aAbc:deEhmlntv")) > 0) {
 	switch (ch) {
 	case 'a':
-	    mode |= SHOW_SASL_SERV;
+	    cmd_mode |= SHOW_SASL_SERV;
 	    break;
 	case 'A':
-	    mode |= SHOW_SASL_CLNT;
+	    cmd_mode |= SHOW_SASL_CLNT;
 	    break;
 	case 'b':
 	    if (ext_argv)
@@ -1017,10 +1017,10 @@ int     main(int argc, char **argv)
 		msg_fatal("out of memory");
 	    break;
 	case 'd':
-	    mode |= SHOW_DEFS;
+	    cmd_mode |= SHOW_DEFS;
 	    break;
 	case 'e':
-	    mode |= EDIT_MAIN;
+	    cmd_mode |= EDIT_MAIN;
 	    break;
 
 	    /*
@@ -1031,20 +1031,20 @@ int     main(int argc, char **argv)
 	     */
 #if 0
 	case 'E':
-	    mode |= SHOW_EVAL;
+	    cmd_mode |= SHOW_EVAL;
 	    break;
 #endif
 	case 'h':
-	    mode &= ~SHOW_NAME;
+	    cmd_mode &= ~SHOW_NAME;
 	    break;
 	case 'l':
-	    mode |= SHOW_LOCKS;
+	    cmd_mode |= SHOW_LOCKS;
 	    break;
 	case 'm':
-	    mode |= SHOW_MAPS;
+	    cmd_mode |= SHOW_MAPS;
 	    break;
 	case 'n':
-	    mode |= SHOW_NONDEF;
+	    cmd_mode |= SHOW_NONDEF;
 	    break;
 	case 't':
 	    if (ext_argv)
@@ -1063,7 +1063,7 @@ int     main(int argc, char **argv)
     /*
      * Sanity check.
      */
-    junk = (mode & (SHOW_DEFS | SHOW_NONDEF | SHOW_MAPS | SHOW_LOCKS | EDIT_MAIN | SHOW_SASL_SERV | SHOW_SASL_CLNT));
+    junk = (cmd_mode & (SHOW_DEFS | SHOW_NONDEF | SHOW_MAPS | SHOW_LOCKS | EDIT_MAIN | SHOW_SASL_SERV | SHOW_SASL_CLNT));
     if (junk != 0 && ((junk != SHOW_DEFS && junk != SHOW_NONDEF
 	     && junk != SHOW_MAPS && junk != SHOW_LOCKS && junk != EDIT_MAIN
 		       && junk != SHOW_SASL_SERV && junk != SHOW_SASL_CLNT)
@@ -1094,7 +1094,7 @@ int     main(int argc, char **argv)
     /*
      * If showing map types, show them and exit
      */
-    if (mode & SHOW_MAPS) {
+    if (cmd_mode & SHOW_MAPS) {
 	mail_dict_init();
 	show_maps();
     }
@@ -1102,23 +1102,23 @@ int     main(int argc, char **argv)
     /*
      * If showing locking methods, show them and exit
      */
-    else if (mode & SHOW_LOCKS) {
+    else if (cmd_mode & SHOW_LOCKS) {
 	show_locks();
     }
 
     /*
      * If showing SASL plug-in types, show them and exit
      */
-    else if (mode & SHOW_SASL_SERV) {
+    else if (cmd_mode & SHOW_SASL_SERV) {
 	show_sasl(SHOW_SASL_SERV);
-    } else if (mode & SHOW_SASL_CLNT) {
+    } else if (cmd_mode & SHOW_SASL_CLNT) {
 	show_sasl(SHOW_SASL_CLNT);
     }
 
     /*
      * Edit main.cf.
      */
-    else if (mode & EDIT_MAIN) {
+    else if (cmd_mode & EDIT_MAIN) {
 	edit_parameters(argc - optind, argv + optind);
     }
 
@@ -1126,7 +1126,7 @@ int     main(int argc, char **argv)
      * If showing non-default values, read main.cf.
      */
     else {
-	if ((mode & SHOW_DEFS) == 0) {
+	if ((cmd_mode & SHOW_DEFS) == 0) {
 	    read_parameters();
 	    set_parameters();
 	}
@@ -1135,7 +1135,7 @@ int     main(int argc, char **argv)
 	 * Throw together all parameters and show the asked values.
 	 */
 	hash_parameters();
-	show_parameters(mode, argv + optind);
+	show_parameters(cmd_mode, argv + optind);
     }
     vstream_fflush(VSTREAM_OUT);
     exit(0);

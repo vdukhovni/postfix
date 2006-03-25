@@ -78,6 +78,9 @@ int     resolve_local(const char *addr)
     struct addrinfo *res0 = 0;
     ssize_t len;
 
+    /*
+     * The optimizer will eliminate tests that always fail.
+     */
 #define RETURN(x) \
     do { \
 	myfree(saved_addr); \

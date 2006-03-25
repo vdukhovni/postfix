@@ -85,7 +85,7 @@ typedef struct {
 static int var_tmout;
 static VSTRING *buffer;
 static void disconnect(SINK_STATE *);
-static int count;
+static int count_deliveries;
 static int counter;
 
 /* send_reply - finish conversation */
@@ -95,7 +95,7 @@ static void send_reply(SINK_STATE *state)
     vstring_sprintf(buffer, "%cOk", QMQP_STAT_OK);
     NETSTRING_PUT_BUF(state->stream, buffer);
     netstring_fflush(state->stream);
-    if (count) {
+    if (count_deliveries) {
 	counter++;
 	vstream_printf("%d\r", counter);
 	vstream_fflush(VSTREAM_OUT);
@@ -265,7 +265,7 @@ int     main(int argc, char **argv)
 	    protocols = INET_PROTO_NAME_IPV6;
 	    break;
 	case 'c':
-	    count++;
+	    count_deliveries++;
 	    break;
 	case 'v':
 	    msg_verbose++;

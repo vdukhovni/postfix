@@ -56,12 +56,12 @@ typedef struct QMGR_SCAN QMGR_SCAN;
 }
 
 #define QMGR_LIST_UNLINK(head, type, object, peers) { \
-    type   next = object->peers.next; \
-    type   prev = object->peers.prev; \
-    if (prev) prev->peers.next = next; \
-    else head.next = next; \
-    if (next) next->peers.prev = prev; \
-    else head.prev = prev; \
+    type   _next = object->peers.next; \
+    type   _prev = object->peers.prev; \
+    if (_prev) _prev->peers.next = _next; \
+	else head.next = _next; \
+    if (_next) _next->peers.prev = _prev; \
+	else head.prev = _prev; \
     object->peers.next = object->peers.prev = 0; \
 }
 

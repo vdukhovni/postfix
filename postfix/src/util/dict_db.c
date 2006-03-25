@@ -152,15 +152,16 @@ static int sanitize(int status)
      */
     switch (status) {
 
-	case DB_NOTFOUND:		/* get, del */
-	case DB_KEYEXIST:		/* put */
-	return (1);			/* non-fatal */
+    case DB_NOTFOUND:				/* get, del */
+    case DB_KEYEXIST:				/* put */
+	return (1);				/* non-fatal */
 
     case 0:
 	return (0);				/* success */
 
     case DB_KEYEMPTY:				/* get, others? */
 	status = EINVAL;
+	/* FALLTHROUGH */
     default:
 	errno = status;
 	return (-1);				/* fatal */

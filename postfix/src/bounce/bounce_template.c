@@ -288,7 +288,7 @@ static void bounce_template_parse_buffer(BOUNCE_TEMPLATE *tp)
      * Parse pseudo-header labels and values.
      */
 #define GETLINE(line, buf) \
-        (((line) = (buf)) ? ((buf) = split_at((buf), '\n'), (line)) : 0)
+        (((line) = (buf)) != 0 ? ((buf) = split_at((buf), '\n'), (line)) : 0)
 
     while ((GETLINE(cp, tval)) != 0 && (hlen = is_header(cp)) > 0) {
 	for (hval = cp + hlen; *hval && (*hval == ':' || ISSPACE(*hval)); hval++)

@@ -74,7 +74,7 @@
 
 /* tls_session_stop - shut down the TLS connection and reset state */
 
-void    tls_session_stop(SSL_CTX *ctx, VSTREAM *stream, int timeout,
+void    tls_session_stop(SSL_CTX *unused_ctx, VSTREAM *stream, int timeout,
 			         int failure, TLScontext_t *TLScontext)
 {
     const char *myname = "tls_session_stop";

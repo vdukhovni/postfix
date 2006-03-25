@@ -67,6 +67,7 @@ int     conv_time(const char *strval, int *timval, int def_unit)
     switch (sscanf(strval, "%d%c%c", &intval, &unit, &junk)) {
     case 1:
 	unit = def_unit;
+	/* FALLTHROUGH */
     case 2:
 	if (intval < 0)
 	    return (0);

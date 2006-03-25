@@ -424,9 +424,9 @@ To find out what lookup tables Postfix supports, use the command "ppoossttc
 Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//ttrraannssppoorrtt" whenever you change the
 transport table.
 
-NOTE: Do not use the fallback_relay feature when relaying mail for a backup or
-primary MX domain. Mail would loop between the Postfix MX host and the
-fallback_relay host when the final destination is unavailable.
+NOTE for Postfix < 2.2: Do not use the fallback_relay feature when relaying
+mail for a backup or primary MX domain. Mail would loop between the Postfix MX
+host and the fallback_relay host when the final destination is unavailable.
 
   * In main.cf specify "relay_transport = relay",
   * In master.cf specify "-o fallback_relay =" at the end of the relay entry.

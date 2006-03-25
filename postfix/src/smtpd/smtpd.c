@@ -2700,8 +2700,9 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     }
 #define STREQ(x,y)	(strcasecmp((x), (y)) == 0)
 #define UPDATE_STR(s, v) do { \
+	    const char *_v = (v); \
 	    if (s) myfree(s); \
-	    s = (v) ? mystrdup(v) : 0; \
+	    s = (_v) ? mystrdup(_v) : 0; \
 	} while(0)
 
     /*

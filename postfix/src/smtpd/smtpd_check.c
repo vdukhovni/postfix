@@ -3240,7 +3240,7 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
      * Sanity check.
      */
     if (!policy_clnt_table
-    || !(policy_clnt = (ATTR_CLNT *) htable_find(policy_clnt_table, server)))
+	|| (policy_clnt = (ATTR_CLNT *) htable_find(policy_clnt_table, server)) == 0)
 	msg_panic("check_policy_service: no client endpoint for server %s",
 		  server);
 
