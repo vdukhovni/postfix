@@ -10881,7 +10881,19 @@ Apologies for any names omitted.
 	handling, is too much change for a stable release. File:
 	sendmail/sendmail.c.
 
+20060315
+
 	Workaround: the PCRE library reports an inappropriate error
 	code (invalid substring) when $number refers to a valid ()
 	expression that matches the null string. This caused fatal
 	run-time errors.  File: dict_pcre.c.
+
+20060324
+
+	Bugfix: mis-placed parenthesis in SMTP before-filter error
+	test. A filter timeout was mis-reported as lost connection.
+	Found in code review.  File: smtpd/smtpd_proxy.c.
+
+20060403
+	Bugfix: the pipe-to-command error message was lost when the
+	command could not be executed. File: global/pipe_command.c.

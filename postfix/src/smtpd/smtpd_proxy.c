@@ -416,7 +416,7 @@ int     smtpd_proxy_cmd(SMTPD_STATE *state, int expect, const char *fmt,...)
     if (vstream_ftimeout(state->proxy)
 	|| vstream_ferror(state->proxy)
 	|| vstream_feof(state->proxy)
-	|| ((err = vstream_setjmp(state->proxy) != 0)
+	|| ((err = vstream_setjmp(state->proxy)) != 0
 	    && smtpd_proxy_rdwr_error(state->proxy, err))) {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
 	state->err |= CLEANUP_STAT_PROXY;
