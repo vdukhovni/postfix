@@ -1415,10 +1415,12 @@ own_inet_addr.o: mail_params.h
 own_inet_addr.o: own_inet_addr.c
 own_inet_addr.o: own_inet_addr.h
 pipe_command.o: ../../include/argv.h
+pipe_command.o: ../../include/chroot_uid.h
 pipe_command.o: ../../include/clean_env.h
 pipe_command.o: ../../include/exec_command.h
 pipe_command.o: ../../include/iostuff.h
 pipe_command.o: ../../include/msg.h
+pipe_command.o: ../../include/msg_vstream.h
 pipe_command.o: ../../include/set_eugid.h
 pipe_command.o: ../../include/set_ugid.h
 pipe_command.o: ../../include/stringops.h

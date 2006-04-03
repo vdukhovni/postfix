@@ -12064,6 +12064,34 @@ Apologies for any names omitted.
 	test. A filter timeout was mis-reported as lost connection.
 	Found in code review.  File: smtpd/smtpd_proxy.c.
 
+20060327
+
+	Cleanup: the SQL and LDAP clients now log a warning when
+	they skip an empty lookup result, so that humans don't have
+	to wonder why Postfix doesn't find all the database entries.
+	File: global/db_common.c.
+
+20060328
+
+	Feature: configurable chroot directive for the pipe(8)
+	delivery agent, by Przemyslaw Wegrzyn. Files:
+	global/pipe_command.c, pipe/pipe.c.
+
+	Bugfix: cut-and-paste error: lmtp_connection_cache_limit
+	was left with the name of smtp_connection_cache_limit.
+	Reported by Victor? File: src/global/mail_params.h.
+
+20060403
+
+	Cleanup: made fcntl/flock handling consistent with respect
+	to EINTR (reported by Carlo Contavalli). However, Postfix
+	is not meant to be signal safe.  Only the master daemon
+	handles signals without terminating, and it uses only a
+	small subset of Postfix library routines. File: util/myflock.c.
+
+	Bugfix: the pipe-to-command error message was lost when the
+	command could not be executed. File: global/pipe_command.c.
+
 Wish list:
 
 	Don't send xforward attributes to every site that announces

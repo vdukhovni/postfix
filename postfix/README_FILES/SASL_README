@@ -181,11 +181,17 @@ that the Postfix queue is under /var/spool/postfix/.
 
     /some/where/dovecot.conf:
         auth default {
-          ..
+          mechanisms = plain login
+          passdb pam {
+          }
+          userdb passwd {
+          }
           socket listen {
             client {
               path = /var/spool/postfix/private/auth
-              mode = 0666
+              mode = 0660
+              user = postfix
+              group = postfix
             }
           }
         }
@@ -447,7 +453,7 @@ CCrreeddiittss
     reject_authenticated_sender_login_mismatch and
     reject_unauthenticated_sender_login_mismatch, and revised the docs.
   * Wietse made another iteration through the code to add plug-in support for
-    multiple implementations.
-  * The Dovecot SMTP server plug-in was originally implemented by Timo Sirainen
-    of Procontrol, Finland.
+    multiple SASL implementations.
+  * The Dovecot SMTP server-only plug-in was originally implemented by Timo
+    Sirainen of Procontrol, Finland.
 

@@ -41,8 +41,19 @@
 /* .fi
 /*	The external command attributes are given in the \fBmaster.cf\fR
 /*	file at the end of a service definition.  The syntax is as follows:
-/* .IP "\fBdirectory=\fIpathname\fR (optional, default: \fB$queue_directory\fR)"
+/* .IP "\fBchroot=\fIpathname\fR (optional)"
+/*	Change the process root directory and working directory to
+/*	the named directory. This happens before switching to the
+/*	privileges specified with the \fBuser\fR attribute, and
+/*	before executing the optional \fBdirectory=\fIpathname\fR
+/*	directive. Delivery is deferred in case of failure.
+/* .sp
+/*	This feature is available as of Postfix 2.3.
+/* .IP "\fBdirectory=\fIpathname\fR (optional)"
 /*	Change to the named directory before executing the external command.
+/*	The directory must be accessible for the user specified with the
+/*	\fBuser\fR attribute (see below).
+/*	The default working directory is \fB$queue_directory\fR.
 /*	Delivery is deferred in case of failure.
 /* .sp
 /*	This feature is available as of Postfix 2.2.
@@ -138,7 +149,7 @@
 /*	be returned to the sender as undeliverable.
 /* .IP "\fBuser\fR=\fIusername\fR (required)"
 /* .IP "\fBuser\fR=\fIusername\fR:\fIgroupname\fR"
-/*	The external command is executed with the rights of the
+/*	Execute the external command with the rights of the
 /*	specified \fIusername\fR.  The software refuses to execute
 /*	commands with root privileges, or with the privileges of the
 /*	mail system owner. If \fIgroupname\fR is specified, the
@@ -474,6 +485,7 @@ typedef struct {
     gid_t   gid;			/* command privileges */
     int     flags;			/* mail_copy() flags */
     char   *exec_dir;			/* working directory */
+    char   *chroot_dir;			/* chroot directory */
     VSTRING *eol;			/* output record delimiter */
     VSTRING *null_sender;		/* null sender expansion */
     off_t   size_limit;			/* max size in bytes we will accept */
@@ -728,6 +740,7 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
     attr->command = 0;
     attr->flags = 0;
     attr->exec_dir = 0;
+    attr->chroot_dir = 0;
     attr->eol = vstring_strcpy(vstring_alloc(1), "\n");
     attr->null_sender = vstring_strcpy(vstring_alloc(1), MAIL_ADDR_MAIL_DAEMON);
     attr->size_limit = 0;
@@ -805,6 +818,13 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
 	 */
 	else if (strncasecmp("directory=", *argv, sizeof("directory=") - 1) == 0) {
 	    attr->exec_dir = mystrdup(*argv + sizeof("directory=") - 1);
+	}
+
+	/*
+	 * chroot=string
+	 */
+	else if (strncasecmp("chroot=", *argv, sizeof("chroot=") - 1) == 0) {
+	    attr->chroot_dir = mystrdup(*argv + sizeof("chroot=") - 1);
 	}
 
 	/*
@@ -1105,6 +1125,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 				  PIPE_CMD_EOL, STR(attr.eol),
 				  PIPE_CMD_EXPORT, export_env->argv,
 				  PIPE_CMD_CWD, attr.exec_dir,
+				  PIPE_CMD_CHROOT, attr.chroot_dir,
 			   PIPE_CMD_ORIG_RCPT, rcpt_list->info[0].orig_addr,
 			     PIPE_CMD_DELIVERED, rcpt_list->info[0].address,
 				  PIPE_CMD_END);

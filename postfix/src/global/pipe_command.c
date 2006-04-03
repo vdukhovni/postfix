@@ -44,8 +44,14 @@
 /*	The command is specified as an argument vector. This vector is
 /*	passed without further inspection to the \fIexecvp\fR() routine.
 /*	One of PIPE_CMD_COMMAND or PIPE_CMD_ARGV must be specified.
+/* .IP "PIPE_CMD_CHROOT (char *)"
+/*	Root and working directory for command execution. This takes
+/*	effect before PIPE_CMD_CWD. A null pointer means don't
+/*	change root and working directory anyway. Failure to change
+/*	directory causes mail delivery to be deferred.
 /* .IP "PIPE_CMD_CWD (char *)"
-/*	Working directory for command execution. A null pointer means
+/*	Working directory for command execution, after changing process
+/*	privileges to PIPE_CMD_UID and PIPE_CMD_GID. A null pointer means
 /*	don't change directory anyway. Failure to change directory
 /*	causes mail delivery to be deferred.
 /* .IP "PIPE_CMD_ENV (char **)"
@@ -137,6 +143,7 @@
 
 #include <msg.h>
 #include <vstream.h>
+#include <msg_vstream.h>
 #include <vstring.h>
 #include <stringops.h>
 #include <iostuff.h>
@@ -144,6 +151,7 @@
 #include <set_ugid.h>
 #include <set_eugid.h>
 #include <argv.h>
+#include <chroot_uid.h>
 
 /* Global library. */
 
@@ -172,6 +180,7 @@ struct pipe_args {
     char  **export;			/* exportable environment */
     char   *shell;			/* command shell */
     char   *cwd;			/* preferred working directory */
+    char   *chroot;			/* root directory */
 };
 
 static int pipe_command_timeout;	/* command has timed out */
@@ -200,6 +209,7 @@ static void get_pipe_args(struct pipe_args * args, va_list ap)
     args->export = 0;
     args->shell = 0;
     args->cwd = 0;
+    args->chroot = 0;
 
     pipe_command_maxtime = var_command_maxtime;
 
@@ -253,6 +263,9 @@ static void get_pipe_args(struct pipe_args * args, va_list ap)
 	    break;
 	case PIPE_CMD_CWD:
 	    args->cwd = va_arg(ap, char *);
+	    break;
+	case PIPE_CMD_CHROOT:
+	    args->chroot = va_arg(ap, char *);
 	    break;
 	default:
 	    msg_panic("%s: unknown key: %d", myname, key);
@@ -357,14 +370,22 @@ static int pipe_command_wait_or_kill(pid_t pid, WAIT_STATUS_T *statusp, int sig,
 
 static void pipe_child_cleanup(void)
 {
-    exit(EX_TEMPFAIL);
+
+    /*
+     * WARNING: don't place code here. This code may run as mail_owner, as
+     * root, or as the user/group specified with the "user" attribute. The
+     * only safe action is to terminate.
+     * 
+     * Future proofing. If you need exit() here then you broke Postfix.
+     */
+    _exit(EX_TEMPFAIL);
 }
 
 /* pipe_command - execute command with extreme prejudice */
 
 int     pipe_command(VSTREAM *src, DSN_BUF *why,...)
 {
-    char   *myname = "pipe_comand";
+    char   *myname = "pipe_command";
     va_list ap;
     VSTREAM *cmd_in_stream;
     VSTREAM *cmd_out_stream;
@@ -448,6 +469,28 @@ int     pipe_command(VSTREAM *src, DSN_BUF *why,...)
 	 */
     case 0:
 	(void) msg_cleanup(pipe_child_cleanup);
+
+	/*
+	 * In order to chroot it is necessary to switch euid back to root.
+	 * Right after chroot we call set_ugid() so all privileges will be
+	 * dropped again.
+	 * 
+	 * XXX For consistency we use chroot_uid() to change root+current
+	 * directory. However, we must not use chroot_uid() to change process
+	 * privileges (assuming a version that accepts numeric privileges).
+	 * That would create a maintenance problem, because we would have two
+	 * different code paths to set the external command's privileges.
+	 */
+	if (args.chroot) {
+	    seteuid(0);
+	    chroot_uid(args.chroot, (char *) 0);
+	}
+
+	/*
+	 * XXX If we put code before the set_ugid() call, then the code that
+	 * changes root directory must switch back to the mail_owner UID,
+	 * otherwise we'd be running with root privileges.
+	 */
 	set_ugid(args.uid, args.gid);
 	if (setsid() < 0)
 	    msg_warn("setsid failed: %m");
@@ -488,12 +531,15 @@ int     pipe_command(VSTREAM *src, DSN_BUF *why,...)
 	/*
 	 * Process plumbing. If possible, avoid running a shell.
 	 * 
-	 * From this point we would like to handle fatal errors ourselves
-	 * (ENOMEM would probably be one of the few soft error conditions).
-	 * For that we have to update exec_command() first so it returns an
-	 * error indication instead of terminating the process.
+	 * As a safety for buggy libraries, we close the syslog socket.
+	 * Otherwise we could leak a file descriptor that was created by a
+	 * privileged process.
+	 * 
+	 * XXX To avoid losing fatal error messages we open a VSTREAM and
+	 * capture the output in the parent process.
 	 */
 	closelog();
+	msg_vstream_init(var_procname, VSTREAM_ERR);
 	if (args.argv) {
 	    execvp(args.argv[0], args.argv);
 	    msg_fatal("%s: execvp %s: %m", myname, args.argv[0]);
@@ -605,7 +651,10 @@ int     pipe_command(VSTREAM *src, DSN_BUF *why,...)
 		return (sp->dsn[0] == '4' ?
 			PIPE_STAT_DEFER : PIPE_STAT_BOUNCE);
 	    }
-	    /* No "D.S.N text" or <sysexits.h> compatible status. Fake it. */
+
+	    /*
+	     * No "D.S.N text" or <sysexits.h> compatible status. Fake it.
+	     */
 	    else {
 		sp = sys_exits_detail(WEXITSTATUS(wait_status));
 		dsb_unix(why, sp->dsn,

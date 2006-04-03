@@ -107,7 +107,9 @@ int     myflock(int fd, int lock_style, int operation)
 		-1, LOCK_SH | LOCK_NB, LOCK_EX | LOCK_NB, -1
 	    };
 
-	    status = flock(fd, lock_ops[operation]);
+	    while ((status = flock(fd, lock_ops[operation])) < 0
+		   && errno == EINTR)
+		sleep(1);
 	    break;
 	}
 #endif
@@ -129,8 +131,7 @@ int     myflock(int fd, int lock_style, int operation)
 	    lock.l_type = lock_ops[operation & ~MYFLOCK_OP_NOWAIT];
 	    request = (operation & MYFLOCK_OP_NOWAIT) ? F_SETLK : F_SETLKW;
 	    while ((status = fcntl(fd, request, &lock)) < 0
-		   && request == F_SETLKW
-		 && (errno == EINTR || errno == ENOLCK || errno == EDEADLK))
+		   && errno == EINTR)
 		sleep(1);
 	    break;
 	}

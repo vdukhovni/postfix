@@ -870,7 +870,7 @@ extern char *var_bestmx_transp;
 
 #define VAR_SMTP_CACHE_CONNT	"smtp_connection_cache_time_limit"
 #define DEF_SMTP_CACHE_CONNT	"2s"
-#define VAR_LMTP_CACHE_CONNT	"smtp_connection_cache_time_limit"
+#define VAR_LMTP_CACHE_CONNT	"lmtp_connection_cache_time_limit"
 #define DEF_LMTP_CACHE_CONNT	"2s"
 extern int var_smtp_cache_conn;
 

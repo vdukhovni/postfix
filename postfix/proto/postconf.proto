@@ -9243,6 +9243,14 @@ See there for details. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
+%PARAM lmtp_connection_cache_time_limit 2s
+
+<p> The LMTP-specific version of the
+smtp_connection_cache_time_limit configuration parameter.
+See there for details. </p>
+ 
+<p> This feature is available in Postfix 2.3 and later. </p>
+
 %PARAM smtpd_delay_open_until_valid_rcpt yes
 
 <p> Postpone the start of an SMTP mail transaction until a valid

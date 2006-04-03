@@ -48,9 +48,22 @@ PIPE(8)                                                                PIPE(8)
        file at the end of a service definition.  The syntax is as
        follows:
 
-       <b>directory=</b><i>pathname</i> (optional, default: <b>$<a href="postconf.5.html#queue_directory">queue_directory</a></b>)
-              Change to the named directory before executing  the
-              external  command.  Delivery is deferred in case of
+       <b>chroot=</b><i>pathname</i> (optional)
+              Change  the  process  root  directory  and  working
+              directory  to  the  named  directory.  This happens
+              before switching to the privileges  specified  with
+              the   <b>user</b>  attribute,  and  before  executing  the
+              optional <b>directory=</b><i>pathname</i> directive. Delivery  is
+              deferred in case of failure.
+
+              This feature is available as of Postfix 2.3.
+
+       <b>directory=</b><i>pathname</i> (optional)
+              Change  to the named directory before executing the
+              external command.  The directory must be accessible
+              for the user specified with the <b>user</b> attribute (see
+              below).    The   default   working   directory   is
+              <b>$<a href="postconf.5.html#queue_directory">queue_directory</a></b>.   Delivery is deferred in case of
               failure.
 
               This feature is available as of Postfix 2.2.
@@ -162,9 +175,9 @@ PIPE(8)                                                                PIPE(8)
        <b>user</b>=<i>username</i> (required)
 
        <b>user</b>=<i>username</i>:<i>groupname</i>
-              The external command is executed with the rights of
-              the  specified  <i>username</i>.   The software refuses to
-              execute commands with root privileges, or with  the
+              Execute the external command with the rights of the
+              specified  <i>username</i>.   The software refuses to exe-
+              cute commands with root  privileges,  or  with  the
               privileges  of  the mail system owner. If <i>groupname</i>
               is specified, the corresponding group  ID  is  used
               instead of the group ID of <i>username</i>.

@@ -51,8 +51,19 @@ entry for the pipe-based delivery transport.
 .fi
 The external command attributes are given in the \fBmaster.cf\fR
 file at the end of a service definition.  The syntax is as follows:
-.IP "\fBdirectory=\fIpathname\fR (optional, default: \fB$queue_directory\fR)"
+.IP "\fBchroot=\fIpathname\fR (optional)"
+Change the process root directory and working directory to
+the named directory. This happens before switching to the
+privileges specified with the \fBuser\fR attribute, and
+before executing the optional \fBdirectory=\fIpathname\fR
+directive. Delivery is deferred in case of failure.
+.sp
+This feature is available as of Postfix 2.3.
+.IP "\fBdirectory=\fIpathname\fR (optional)"
 Change to the named directory before executing the external command.
+The directory must be accessible for the user specified with the
+\fBuser\fR attribute (see below).
+The default working directory is \fB$queue_directory\fR.
 Delivery is deferred in case of failure.
 .sp
 This feature is available as of Postfix 2.2.
@@ -148,7 +159,7 @@ Messages greater in size than this limit (in bytes) will
 be returned to the sender as undeliverable.
 .IP "\fBuser\fR=\fIusername\fR (required)"
 .IP "\fBuser\fR=\fIusername\fR:\fIgroupname\fR"
-The external command is executed with the rights of the
+Execute the external command with the rights of the
 specified \fIusername\fR.  The software refuses to execute
 commands with root privileges, or with the privileges of the
 mail system owner. If \fIgroupname\fR is specified, the

@@ -41,6 +41,7 @@
 #define PIPE_CMD_EXPORT		12	/* exportable environment */
 #define PIPE_CMD_ORIG_RCPT	13	/* mail_copy() original recipient */
 #define PIPE_CMD_CWD		14	/* working directory */
+#define PIPE_CMD_CHROOT		15	/* chroot() before exec() */
 
  /*
   * Command completion status.

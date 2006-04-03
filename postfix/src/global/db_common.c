@@ -278,7 +278,7 @@ int db_common_expand(void *ctxArg, const char *format, const char *value,
 		     db_quote_callback_t quote_func)
 {
     char   *myname = "db_common_expand";
-    DB_COMMON_CTX *ctx = (DB_COMMON_CTX *)ctxArg;
+    DB_COMMON_CTX *ctx = (DB_COMMON_CTX *) ctxArg;
     const char *vdomain = 0;
     const char *kdomain = 0;
     char   *vuser = 0;
@@ -287,18 +287,28 @@ int db_common_expand(void *ctxArg, const char *format, const char *value,
     int     i;
     const char *cp;
 
-    /* Skip NULL or empty values */
-    if (value == 0 || *value == 0)
-    	return (0);
+    /* Skip NULL values, silently. */
+    if (value == 0)
+	return (0);
 
+    /* Don't silenty skip empty query string or empty lookup results. */
+    if (*value == 0) {
+	if (key)
+	    msg_warn("table \"%s:%s\": empty lookup result for: \"%s\""
+		     " -- ignored", ctx->dict->type, ctx->dict->name, key);
+	else
+	    msg_warn("table \"%s:%s\": empty query string"
+		     " -- ignored", ctx->dict->type, ctx->dict->name);
+	return (0);
+    }
     if (key) {
-    	/* This is a result template and the input value is the result */
+	/* This is a result template and the input value is the result */
 	if (ctx->flags & (DB_COMMON_VALUE_DOMAIN | DB_COMMON_VALUE_USER))
 	    if ((vdomain = strrchr(value, '@')) != 0)
 		++vdomain;
 
-	if ((!vdomain || !*vdomain) && (ctx->flags&DB_COMMON_VALUE_DOMAIN) != 0
-	    || vdomain == value + 1 && (ctx->flags&DB_COMMON_VALUE_USER) != 0)
+	if ((!vdomain || !*vdomain) && (ctx->flags & DB_COMMON_VALUE_DOMAIN) != 0
+	|| vdomain == value + 1 && (ctx->flags & DB_COMMON_VALUE_USER) != 0)
 	    return (0);
 
 	/* The result format may use the local or domain part of the key */
@@ -307,50 +317,51 @@ int db_common_expand(void *ctxArg, const char *format, const char *value,
 		++kdomain;
 
 	/*
-	 * The key should already be checked before the query. No harm if
-	 * the query did not get optimized out, so we just issue a warning.
+	 * The key should already be checked before the query. No harm if the
+	 * query did not get optimized out, so we just issue a warning.
 	 */
-	if ((!kdomain || !*kdomain) && (ctx->flags&DB_COMMON_KEY_DOMAIN) != 0
-	    || kdomain == key + 1 && (ctx->flags & DB_COMMON_KEY_USER) != 0) {
+	if ((!kdomain || !*kdomain) && (ctx->flags & DB_COMMON_KEY_DOMAIN) != 0
+	  || kdomain == key + 1 && (ctx->flags & DB_COMMON_KEY_USER) != 0) {
 	    msg_warn("%s: %s: lookup key '%s' skipped after query", myname,
-		      ctx->dict->name, value);
+		     ctx->dict->name, value);
 	    return (0);
 	}
     } else {
-    	/* This is a query template and the input value is the lookup key */
+	/* This is a query template and the input value is the lookup key */
 	if (ctx->flags & (DB_COMMON_KEY_DOMAIN | DB_COMMON_KEY_USER))
 	    if ((vdomain = strrchr(value, '@')) != 0)
 		++vdomain;
 
-	if ((!vdomain || !*vdomain) && (ctx->flags&DB_COMMON_KEY_DOMAIN) != 0
-	    || vdomain == value + 1 && (ctx->flags & DB_COMMON_KEY_USER) != 0)
+	if ((!vdomain || !*vdomain) && (ctx->flags & DB_COMMON_KEY_DOMAIN) != 0
+	  || vdomain == value + 1 && (ctx->flags & DB_COMMON_KEY_USER) != 0)
 	    return (0);
     }
 
     if (ctx->nparts > 0) {
-    	parts = argv_split(key ? kdomain : vdomain, ".");
+	parts = argv_split(key ? kdomain : vdomain, ".");
+
 	/*
-	 * Filter out input keys whose domains lack enough labels
-	 * to fill-in the query template. See below and also 
-	 * db_common_parse() which initializes ctx->nparts.
+	 * Filter out input keys whose domains lack enough labels to fill-in
+	 * the query template. See below and also db_common_parse() which
+	 * initializes ctx->nparts.
 	 */
 	if (parts->argc < ctx->nparts) {
 	    argv_free(parts);
 	    return (0);
 	}
+
 	/*
-	 * Skip domains with leading, consecutive or trailing '.'
-	 * separators among the required labels.
+	 * Skip domains with leading, consecutive or trailing '.' separators
+	 * among the required labels.
 	 */
 	for (i = 0; i < ctx->nparts; i++)
-	    if (*parts->argv[parts->argc-i-1] == 0) {
+	    if (*parts->argv[parts->argc - i - 1] == 0) {
 		argv_free(parts);
 		return (0);
 	    }
     }
-
     if (VSTRING_LEN(result) > 0)
-    	VSTRING_ADDCH(result, ',');
+	VSTRING_ADDCH(result, ',');
 
 #define QUOTE_VAL(d, q, v, buf) do { \
 	if (q) \
@@ -360,9 +371,9 @@ int db_common_expand(void *ctxArg, const char *format, const char *value,
     } while (0)
 
     /*
-     * Replace all instances of %s with the address to look up. Replace
-     * %u with the user portion, and %d with the domain portion. "%%"
-     * expands to "%".  lowercase -> addr, uppercase -> key
+     * Replace all instances of %s with the address to look up. Replace %u
+     * with the user portion, and %d with the domain portion. "%%" expands to
+     * "%".  lowercase -> addr, uppercase -> key
      */
     for (cp = format; *cp; cp++) {
 	if (*cp == '%') {
@@ -381,8 +392,7 @@ int db_common_expand(void *ctxArg, const char *format, const char *value,
 		    if (vuser == 0)
 			vuser = mystrndup(value, vdomain - value - 1);
 		    QUOTE_VAL(ctx->dict, quote_func, vuser, result);
-		}
-		else
+		} else
 		    QUOTE_VAL(ctx->dict, quote_func, value, result);
 		break;
 
@@ -391,7 +401,7 @@ int db_common_expand(void *ctxArg, const char *format, const char *value,
 		break;
 
 	    case 'S':
-	    	if (key)
+		if (key)
 		    QUOTE_VAL(ctx->dict, quote_func, key, result);
 		else
 		    QUOTE_VAL(ctx->dict, quote_func, value, result);
@@ -403,16 +413,14 @@ int db_common_expand(void *ctxArg, const char *format, const char *value,
 			if (kuser == 0)
 			    kuser = mystrndup(key, kdomain - key - 1);
 			QUOTE_VAL(ctx->dict, quote_func, kuser, result);
-		    }
-		    else
+		    } else
 			QUOTE_VAL(ctx->dict, quote_func, key, result);
 		} else {
 		    if (vdomain) {
 			if (vuser == 0)
 			    vuser = mystrndup(value, vdomain - value - 1);
 			QUOTE_VAL(ctx->dict, quote_func, vuser, result);
-		    }
-		    else
+		    } else
 			QUOTE_VAL(ctx->dict, quote_func, value, result);
 		}
 		break;
@@ -424,18 +432,26 @@ int db_common_expand(void *ctxArg, const char *format, const char *value,
 		    QUOTE_VAL(ctx->dict, quote_func, vdomain, result);
 		break;
 
-	    case '1': case '2': case '3': case '4': case '5':
-	    case '6': case '7': case '8': case '9':
-	    	/*
-		 * Interpolate %[1-9] components into the query string.
-		 * By this point db_common_parse() has identified the
-		 * highest component index, and (see above) keys with
-		 * fewer components have been filtered out. The "parts"
-		 * ARGV is guaranteed to be initialized and hold enough
-		 * elements to satisfy the query template.
+	    case '1':
+	    case '2':
+	    case '3':
+	    case '4':
+	    case '5':
+	    case '6':
+	    case '7':
+	    case '8':
+	    case '9':
+
+		/*
+		 * Interpolate %[1-9] components into the query string. By
+		 * this point db_common_parse() has identified the highest
+		 * component index, and (see above) keys with fewer
+		 * components have been filtered out. The "parts" ARGV is
+		 * guaranteed to be initialized and hold enough elements to
+		 * satisfy the query template.
 		 */
 		QUOTE_VAL(ctx->dict, quote_func,
-			  parts->argv[parts->argc-(*cp-'0')], result);
+			  parts->argv[parts->argc - (*cp - '0')], result);
 		break;
 
 	    default:
@@ -449,11 +465,11 @@ int db_common_expand(void *ctxArg, const char *format, const char *value,
     VSTRING_TERMINATE(result);
 
     if (vuser)
-    	myfree(vuser);
+	myfree(vuser);
     if (kuser)
-    	myfree(kuser);
+	myfree(kuser);
     if (parts)
-    	argv_free(parts);
+	argv_free(parts);
 
     return (1);
 }

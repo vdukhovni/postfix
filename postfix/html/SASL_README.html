@@ -140,7 +140,7 @@ in the Postfix top-level directory: </p>
 
 <li> <p> The "-DDEF_SASL_SERVER" stuff is not necessary; it just
 makes Postfix configuration a little more convenient because you
-don't have to specify the SASL plug-in type in the Postfix main.cf
+don't have to specify the SASL plug-in type in the Postfix <a href="postconf.5.html">main.cf</a>
 file.  </p>
 
 <li> <p> If you also want support for LDAP or TLS, you will have to merge
@@ -229,7 +229,7 @@ SMTP server</a></h2>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtpd_sasl_auth_enable">smtpd_sasl_auth_enable</a> = yes
 </pre>
 </blockquote>
@@ -238,7 +238,7 @@ SMTP server</a></h2>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> = 
         <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a> <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a> ...
 </pre>
@@ -249,7 +249,7 @@ SMTP server</a></h2>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtpd_sasl_authenticated_header">smtpd_sasl_authenticated_header</a> = yes
 </pre>
 </blockquote>
@@ -265,7 +265,7 @@ clients) use the following: </p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#broken_sasl_auth_clients">broken_sasl_auth_clients</a> = yes
 </pre>
 </blockquote>
@@ -281,7 +281,7 @@ Postfix runs chrooted: </p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtpd_sasl_type">smtpd_sasl_type</a> = dovecot
     <a href="postconf.5.html#smtpd_sasl_path">smtpd_sasl_path</a> = private/auth
 </pre>
@@ -296,11 +296,17 @@ Postfix queue is under /var/spool/postfix/. </p>
 <pre>
 /some/where/dovecot.conf:
     auth default {
-      ..
+      mechanisms = plain login
+      passdb pam {
+      }
+      userdb passwd {
+      }
       socket listen {
         client {
           path = /var/spool/postfix/private/auth
-          mode = 0666
+          mode = 0660
+          user = postfix
+          group = postfix
         }
       }
     }
@@ -352,7 +358,7 @@ library for configuration can be set with: </p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     smtpd_sasl_application_name = smtpd
 </pre>
 </blockquote>
@@ -449,7 +455,7 @@ realm used by smtpd: </p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtpd_sasl_local_domain">smtpd_sasl_local_domain</a> = $<a href="postconf.5.html#myhostname">myhostname</a>
 </pre>
 </blockquote>
@@ -593,7 +599,7 @@ table. </p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtp_sasl_auth_enable">smtp_sasl_auth_enable</a> = yes
     <a href="postconf.5.html#smtp_sasl_password_maps">smtp_sasl_password_maps</a> = hash:/etc/postfix/sasl_passwd
     <a href="postconf.5.html#smtp_sasl_type">smtp_sasl_type</a> = cyrus
@@ -612,7 +618,7 @@ before it searches by destination, specify: </p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtp_sender_dependent_authentication">smtp_sender_dependent_authentication</a> = yes
     <a href="postconf.5.html#smtp_sasl_auth_enable">smtp_sasl_auth_enable</a> = yes
     <a href="postconf.5.html#smtp_sasl_password_maps">smtp_sasl_password_maps</a> = hash:/etc/postfix/sasl_passwd
@@ -634,7 +640,7 @@ for example: </p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtp_sasl_security_options">smtp_sasl_security_options</a> = noanonymous
 </pre>
 </blockquote>
@@ -652,7 +658,7 @@ into consideration:  </p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtp_sasl_mechanism_filter">smtp_sasl_mechanism_filter</a> = !gssapi, !external, static:all
 </pre>
 </blockquote>
@@ -682,9 +688,9 @@ of SuSE Rhein/Main AG.
 <a href="postconf.5.html#reject_unauthenticated_sender_login_mismatch">reject_unauthenticated_sender_login_mismatch</a>, and revised the docs.
 
 <li> Wietse made another iteration through the code to add
-plug-in support for multiple implementations.
+plug-in support for multiple SASL implementations.
 
-<li> The Dovecot SMTP server plug-in was originally implemented by
+<li> The Dovecot SMTP server-only plug-in was originally implemented by
 Timo Sirainen of Procontrol, Finland.
 
 </ul>
