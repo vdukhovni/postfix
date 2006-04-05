@@ -10897,3 +10897,26 @@ Apologies for any names omitted.
 20060403
 	Bugfix: the pipe-to-command error message was lost when the
 	command could not be executed. File: global/pipe_command.c.
+
+20060404
+
+	Bugfix in sanity check: after reading a record from the
+	address verification database, a sanity check did not reject
+	a record with all-zero time stamp fields.  Such records are
+	never written; the test is there just in case something is
+	broken, so that Postfix will not blindly march on and create
+	chaos. The sanity check tested pointer values, instead of
+	dereferencing the pointers.  Found by Coverity.  File:
+	verify/verify.c.
+
+	Bugfix in sanity check: when the maildir delivery routine
+	opens an output file it looks up the file attributes via
+	the file handle it just got.  There is a sanity check that
+	detects if the attribute lookup fails, an error that never
+	happens. The code that handles the impossible error did not
+	close the output file. This would cause a virtual or local
+	delivery agent to waste up to 100 file descriptors.  But
+	for that error to happen the system would have to be so
+	sick that you would have more serious problems than a file
+	descriptor leak.  Found by Coverity.  Files: local/maildir.c,
+	virtual/maildir.c.

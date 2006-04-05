@@ -187,7 +187,13 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr)
 	    || (dst = vstream_fopen(tmpfile, O_WRONLY | O_CREAT | O_EXCL, 0600)) == 0)) {
 	vstring_sprintf(why, "create %s: %m", tmpfile);
     } else if (fstat(vstream_fileno(dst), &st) < 0) {
-	vstring_sprintf(why, "create %s: %m", tmpfile);
+
+	/*
+	 * Coverity 200604: file descriptor leak in code that never executes.
+	 * Code replaced by msg_fatal(), as it is not worthwhile to continue
+	 * after an impossible error condition.
+	 */
+	msg_fatal("fstat %s: %m", tmpfile);
     } else {
 	vstring_sprintf(buf, "%lu.V%lxI%lxM%lu.%s",
 			(unsigned long) starttime.tv_sec,
