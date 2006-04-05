@@ -391,13 +391,23 @@ static MIME_ENCODING mime_encoding_map[] = {	/* RFC 2045 */
 #define END(x)		vstring_end(x)
 #define CU_CHAR_PTR(x)	((const unsigned char *) (x))
 
-#define REPORT_ERROR(state, err_type, text) do { \
+#define REPORT_ERROR_LEN(state, err_type, text, len) do { \
 	if ((state->err_flags & err_type) == 0) { \
 	    if (state->err_print != 0) \
-		state->err_print(state->app_context, err_type, text); \
+		state->err_print(state->app_context, err_type, text, len); \
 	    state->err_flags |= err_type; \
 	} \
     } while (0)
+
+#define REPORT_ERROR(state, err_type, text) do { \
+	const char *_text = text; \
+	ssize_t _len = strlen(text); \
+	REPORT_ERROR_LEN(state, err_type, _text, _len); \
+    } while (0)
+
+#define REPORT_ERROR_BUF(state, err_type, buf) \
+    REPORT_ERROR_LEN(state, err_type, STR(buf), LEN(buf))
+
 
  /*
   * Outputs and state changes are interleaved, so we must maintain separate
@@ -600,8 +610,8 @@ static void mime_state_content_type(MIME_STATE *state,
 		    && state->token[1].type == '=') {
 		    if (state->nesting_level > var_mime_maxdepth) {
 			if (state->static_flags & MIME_OPT_REPORT_NESTING)
-			    REPORT_ERROR(state, MIME_ERR_NESTING,
-					 STR(state->output_buffer));
+			    REPORT_ERROR_BUF(state, MIME_ERR_NESTING,
+					     state->output_buffer);
 		    } else {
 			mime_state_push(state, def_ctype, def_stype,
 					state->token[2].u.value);
@@ -769,8 +779,8 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 			vstring_strncat(state->output_buffer, text, len);
 		    } else {
 			if (state->static_flags & MIME_OPT_REPORT_TRUNC_HEADER)
-			    REPORT_ERROR(state, MIME_ERR_TRUNC_HEADER,
-					 STR(state->output_buffer));
+			    REPORT_ERROR_BUF(state, MIME_ERR_TRUNC_HEADER,
+					     state->output_buffer);
 		    }
 		    SAVE_PREV_REC_TYPE_AND_RETURN_ERR_FLAGS(state, rec_type);
 		}
@@ -780,8 +790,8 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 			vstring_strncat(state->output_buffer, text, len);
 		    } else {
 			if (state->static_flags & MIME_OPT_REPORT_TRUNC_HEADER)
-			    REPORT_ERROR(state, MIME_ERR_TRUNC_HEADER,
-					 STR(state->output_buffer));
+			    REPORT_ERROR_BUF(state, MIME_ERR_TRUNC_HEADER,
+					     state->output_buffer);
 		    }
 		    SAVE_PREV_REC_TYPE_AND_RETURN_ERR_FLAGS(state, rec_type);
 		}
@@ -811,8 +821,8 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 		    for (cp = CU_CHAR_PTR(STR(state->output_buffer));
 			 cp < CU_CHAR_PTR(END(state->output_buffer)); cp++)
 			if (*cp & 0200) {
-			    REPORT_ERROR(state, MIME_ERR_8BIT_IN_HEADER,
-					 STR(state->output_buffer));
+			    REPORT_ERROR_BUF(state, MIME_ERR_8BIT_IN_HEADER,
+					     state->output_buffer);
 			    break;
 			}
 		}
@@ -836,7 +846,7 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 
 	    /*
 	     * See if this input is (the beginning of) a message header.
-	     *
+	     * 
 	     * Normalize obsolete "name space colon" syntax to "name colon".
 	     * Things would be too confusing otherwise.
 	     * 
@@ -990,7 +1000,8 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 		&& (state->err_flags & MIME_ERR_8BIT_IN_7BIT_BODY) == 0) {
 		for (cp = CU_CHAR_PTR(text); cp < CU_CHAR_PTR(text + len); cp++)
 		    if (*cp & 0200) {
-			REPORT_ERROR(state, MIME_ERR_8BIT_IN_7BIT_BODY, text);
+			REPORT_ERROR_LEN(state, MIME_ERR_8BIT_IN_7BIT_BODY,
+					 text, len);
 			break;
 		    }
 	    }
@@ -1137,9 +1148,11 @@ static void body_end(void *context)
     vstream_fprintf(stream, "BODY END\n");
 }
 
-static void err_print(void *unused_context, int err_flag, const char *text)
+static void err_print(void *unused_context, int err_flag,
+		              const char *text, ssize_t len)
 {
-    msg_warn("%s: %.100s", mime_state_error(err_flag), text);
+    msg_warn("%s: %.*s", mime_state_error(err_flag),
+	     len < 100 ? (int) len : 100, text);
 }
 
 int     var_header_limit = 2000;

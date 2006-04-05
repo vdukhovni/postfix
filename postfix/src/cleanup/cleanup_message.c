@@ -827,7 +827,7 @@ static void cleanup_message_headerbody(CLEANUP_STATE *state, int type,
 /* cleanup_mime_error_callback - error report call-back routine */
 
 static void cleanup_mime_error_callback(void *context, int err_code,
-					        const char *text)
+				              const char *text, ssize_t len)
 {
     CLEANUP_STATE *state = (CLEANUP_STATE *) context;
     const char *origin;
@@ -839,9 +839,10 @@ static void cleanup_mime_error_callback(void *context, int err_code,
     if ((err_code & ~MIME_ERR_TRUNC_HEADER) != 0) {
 	if ((origin = nvtable_find(state->attr, MAIL_ATTR_ORIGIN)) == 0)
 	    origin = MAIL_ATTR_ORG_NONE;
-	msg_info("%s: reject: mime-error %s: %.100s from %s; from=<%s> to=<%s>",
-		 state->queue_id, mime_state_error(err_code), text, origin,
-		 state->sender, state->recip ? state->recip : "unknown");
+#define TEXT_LEN (len < 100 ? (int) len : 100)
+	msg_info("%s: reject: mime-error %s: %.*s from %s; from=<%s> to=<%s>",
+		 state->queue_id, mime_state_error(err_code), TEXT_LEN, text,
+	    origin, state->sender, state->recip ? state->recip : "unknown");
     }
 }
 
