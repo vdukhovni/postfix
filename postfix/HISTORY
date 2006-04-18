@@ -12121,6 +12121,19 @@ Apologies for any names omitted.
 	when reporting errors. Fix by Leandro Santi. Files:
 	global/mime_state.c, cleanup/cleanup_message.c.
 
+20060411
+
+	Bugfix: the SMTP server logged no warning when for some
+	reason the TLS engine was unavailable in wrappermode. Victor
+	Duchovni.  File: smtpd/smtpd.c.
+
+20060417
+
+	Cleanup: when SMTP access table lookup fails, reply with
+	4xx instead of aborting with a fatal run-time error. The
+	old behavior assumes local file access, and is inappropriate
+	with deployment of LDAP and SQL tables. File: smtpd/smtpd_check.c.
+
 Wish list:
 
 	Don't send xforward attributes to every site that announces

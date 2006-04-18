@@ -7,7 +7,7 @@
 /*	#include <vstream.h>
 /*
 /*	VSTREAM	*vstream_fopen(path, flags, mode)
-/*	char	*path;
+/*	const char *path;
 /*	int	flags;
 /*	mode_t	mode;
 /*
@@ -22,11 +22,11 @@
 /*	VSTREAM	*stream;
 /*
 /*	VSTREAM	*vstream_printf(format, ...)
-/*	char	*format;
+/*	const char *format;
 /*
 /*	VSTREAM	*vstream_fprintf(stream, format, ...)
 /*	VSTREAM	*stream;
-/*	char	*format;
+/*	const char *format;
 /*
 /*	int	VSTREAM_GETC(stream)
 /*	VSTREAM	*stream;
@@ -44,7 +44,7 @@
 /*	int	ch;
 /*
 /*	int	vstream_fputs(str, stream)
-/*	char	*str;
+/*	const char *str;
 /*	VSTREAM	*stream;
 /*
 /*	off_t	vstream_ftell(stream)
@@ -93,11 +93,11 @@
 /*	int	vstream_clearerr(stream)
 /*	VSTREAM	*stream;
 /*
-/*	char	*VSTREAM_PATH(stream)
+/*	const char *VSTREAM_PATH(stream)
 /*	VSTREAM	*stream;
 /*
 /*	char	*vstream_vfprintf(vp, format, ap)
-/*	char	*format;
+/*	const char *format;
 /*	va_list	*ap;
 /*
 /*	ssize_t	vstream_peek(stream)

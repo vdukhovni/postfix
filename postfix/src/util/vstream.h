@@ -99,7 +99,7 @@ extern int vstream_fdclose(VSTREAM *);
 #define vstream_feof(vp)	vbuf_eof(&(vp)->buf)
 #define vstream_ftimeout(vp)	vbuf_timeout(&(vp)->buf)
 #define vstream_clearerr(vp)	vbuf_clearerr(&(vp)->buf)
-#define VSTREAM_PATH(vp)	((vp)->path ? (vp)->path : "unknown_stream")
+#define VSTREAM_PATH(vp)	((vp)->path ? (const char *) (vp)->path : "unknown_stream")
 #define vstream_ftime(vp)	((time_t) ((vp)->iotime.tv_sec))
 #define vstream_ftimeval(vp)	((vp)->iotime)
 

@@ -2258,8 +2258,13 @@ static int check_access(SMTPD_STATE *state, const char *table, const char *name,
 	    CHK_ACCESS_RETURN(check_table_result(state, table, value, name,
 						 reply_name, reply_class,
 						 def_acl), FOUND);
-	if (dict_errno != 0)
-	    msg_fatal("%s: table lookup problem", table);
+	if (dict_errno != 0) {
+	    msg_warn("%s: table lookup problem", table);
+	    value = "450 4.3.0 Server configuration error";
+	    CHK_ACCESS_RETURN(check_table_result(state, table, value, name,
+						 reply_name, reply_class,
+						 def_acl), FOUND);
+	}
     }
     CHK_ACCESS_RETURN(SMTPD_CHECK_DUNNO, MISSED);
 }
@@ -2299,8 +2304,13 @@ static int check_domain_access(SMTPD_STATE *state, const char *table,
 		CHK_DOMAIN_RETURN(check_table_result(state, table, value,
 					    domain, reply_name, reply_class,
 						     def_acl), FOUND);
-	    if (dict_errno != 0)
-		msg_fatal("%s: table lookup problem", table);
+	    if (dict_errno != 0) {
+		msg_warn("%s: table lookup problem", table);
+		value = "450 4.3.0 Server configuration error";
+		CHK_DOMAIN_RETURN(check_table_result(state, table, value,
+					    domain, reply_name, reply_class,
+						     def_acl), FOUND);
+	    }
 	}
 	/* Don't apply subdomain magic to numerical hostnames. */
 	if (maybe_numerical
@@ -2353,8 +2363,13 @@ static int check_addr_access(SMTPD_STATE *state, const char *table,
 		CHK_ADDR_RETURN(check_table_result(state, table, value, address,
 						   reply_name, reply_class,
 						   def_acl), FOUND);
-	    if (dict_errno != 0)
-		msg_fatal("%s: table lookup problem", table);
+	    if (dict_errno != 0) {
+		msg_warn("%s: table lookup problem", table);
+		value = "450 4.3.0 Server configuration error";
+		CHK_ADDR_RETURN(check_table_result(state, table, value, address,
+						   reply_name, reply_class,
+						   def_acl), FOUND);
+	    }
 	}
 	flags = PARTIAL;
     } while (split_at_right(addr, delim));

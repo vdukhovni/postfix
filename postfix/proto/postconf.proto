@@ -8776,6 +8776,8 @@ the name matches the client IP address. A client name is set to
 lookup is disabled.  Turning off name lookup reduces delays due to
 DNS lookup and increases the maximal inbound delivery rate. </p>
 
+<p> This feature is available in Postfix 2.3 and later.  </p>
+
 %PARAM delay_logging_resolution_limit 2
 
 <p> The maximal number of digits after the decimal point when logging

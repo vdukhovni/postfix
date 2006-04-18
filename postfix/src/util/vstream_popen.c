@@ -38,6 +38,7 @@
 /*	list of name, value, name, value, ... elements. By default only the
 /*	command search path is initialized to _PATH_DEFPATH.
 /* .IP "VSTREAM_POPEN_EXPORT (char **)"
+/*	This argument is passed to clean_env().
 /*	Null-terminated array of names of environment parameters
 /*	that can be exported. By default, everything is exported.
 /* .IP "VSTREAM_POPEN_UID (uid_t)"

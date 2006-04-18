@@ -3333,6 +3333,13 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 	 */
 #ifdef USE_TLS
 	if (SMTPD_STAND_ALONE(state) == 0 && var_smtpd_tls_wrappermode) {
+	    if (smtpd_tls_ctx == 0) {
+		msg_warn("Wrapper-mode request dropped from %s for service %s."
+			 "TLS context initialization failed. For details see"
+			 " earlier warnings in your logs.",
+			 state->namaddr, state->service);
+		break;
+	    }
 	    if (var_smtpd_cntls_limit > 0
 		&& !xclient_allowed
 		&& anvil_clnt
