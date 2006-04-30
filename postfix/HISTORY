@@ -12134,6 +12134,20 @@ Apologies for any names omitted.
 	old behavior assumes local file access, and is inappropriate
 	with deployment of LDAP and SQL tables. File: smtpd/smtpd_check.c.
 
+20060423
+
+	Bugfix: postcat did not print the attribute value of records
+	containing a named attribute. File: postcat/postcat.c.
+
+20060430
+
+	Bugfix: dangling pointer in a function that has no caller.
+	Found by Coverity. File: tls/tls_prng_exch.c.
+
+	Bugfix: the workaround for CA-2003-07 (Sendmail) did not
+	null terminate the address before logging a warning. Reported
+	by Kris Kennaway. File: global/tok822_parse.c.
+
 Wish list:
 
 	Don't send xforward attributes to every site that announces

@@ -200,7 +200,9 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 			       asctime(localtime(&time)));
 		break;
 	    }
-	    /* FALLTHROUGH */
+	    vstream_printf("%s: %s=%s\n", rec_type_name(rec_type),
+			   attr_name, attr_value);
+	    break;
 	default:
 	    vstream_printf("%s: %s\n", rec_type_name(rec_type), STR(buffer));
 	    break;
