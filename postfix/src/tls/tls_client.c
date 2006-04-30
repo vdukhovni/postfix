@@ -272,6 +272,11 @@ SSL_CTX *tls_client_init(int unused_verifydepth)
 	msg_info("initializing the client-side TLS engine");
 
     /*
+     * Detect mismatch between compile-time headers and run-time library.
+     */
+    tls_check_version();
+
+    /*
      * Initialize the OpenSSL library by the book! To start with, we must
      * initialize the algorithms. We want cleartext error messages instead of
      * just error codes, so we load the error_strings.
@@ -310,7 +315,7 @@ SSL_CTX *tls_client_init(int unused_verifydepth)
      * defined for TLS, but we don't know what is out there. So leave things
      * completely open, as of today.
      */
-    off |= SSL_OP_ALL;				/* Work around all known bugs */
+    off |= tls_bug_bits();
     SSL_CTX_set_options(client_ctx, off);
 
     /*
@@ -457,7 +462,7 @@ static int match_hostname(const char *pattern, const char *hostname)
 
 /* verify_extract_peer - verify peer name and extract peer information */
 
-static void verify_extract_peer(const char *peername, X509 * peercert,
+static void verify_extract_peer(const char *peername, X509 *peercert,
 				        TLScontext_t *TLScontext)
 {
     int     i;

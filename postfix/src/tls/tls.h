@@ -86,7 +86,7 @@ extern TLScontext_t *tls_server_start(SSL_CTX *, VSTREAM *, int,
   * tls_session.c
   */
 extern void tls_session_stop(SSL_CTX *, VSTREAM *, int, int,
-				              TLScontext_t *);
+			             TLScontext_t *);
 
 #ifdef TLS_INTERNAL
 
@@ -164,6 +164,8 @@ extern int TLScontext_index;
 
 extern TLScontext_t *tls_alloc_context(int, const char *);
 extern void tls_free_context(TLScontext_t *);
+extern void tls_check_version(void);
+extern long tls_bug_bits(void);
 extern void tls_print_errors(void);
 extern void tls_info_callback(const SSL *, int, int);
 extern long tls_bio_dump_cb(BIO *, int, const char *, int, long, long);

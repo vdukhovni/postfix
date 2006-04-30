@@ -531,7 +531,8 @@ static void qmqpd_send_status(QMQPD_STATE *state)
 	qmqpd_reply(state, DO_LOG, QMQPD_STAT_HARD,
 		    "Error: too many hops");
     } else if ((state->err & CLEANUP_STAT_CONT) != 0) {
-	qmqpd_reply(state, DO_LOG, QMQPD_STAT_HARD,
+	qmqpd_reply(state, DO_LOG, STR(state->why_rejected)[0] == '4' ?
+		    QMQPD_STAT_RETRY : QMQPD_STAT_HARD,
 		    "Error: %s", STR(state->why_rejected));
     } else if ((state->err & CLEANUP_STAT_WRITE) != 0) {
 	qmqpd_reply(state, DO_LOG, QMQPD_STAT_RETRY,

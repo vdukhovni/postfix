@@ -12148,6 +12148,21 @@ Apologies for any names omitted.
 	null terminate the address before logging a warning. Reported
 	by Kris Kennaway. File: global/tok822_parse.c.
 
+20060516
+
+	Portability: __float80 alignment, by Albert Chin.  File:
+	util/sys_defs.h.
+
+	Workaround: don't bounce+delete a local submission after
+	it triggers a "reject 4.x.x" action in header/body_checks.
+	This means an SMTP client now sees "queue file write error"
+	instead of the text from the "reject 4.x.x text" action.
+	File: cleanup/cleanup_message.c.
+
+	Workaround: OpenSSL 0.9.8[ab] with zlib support interoperability
+	problem. Victor Duchovni. Files: tls/tls_client.c, tls/tls_misc.c,
+	tls/tls_server.c.
+
 Wish list:
 
 	Don't send xforward attributes to every site that announces

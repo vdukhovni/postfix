@@ -316,6 +316,24 @@ static const char *cleanup_act(CLEANUP_STATE *state, char *context,
 #define STREQUAL(x,y,l) (strncasecmp((x), (y), (l)) == 0 && (y)[l] == 0)
 #define CLEANUP_ACT_DROP 0
 
+    /*
+     * CLEANUP_STAT_CONT causes cleanup(8) to send bounces if
+     * CLEANUP_FLAG_BOUNCE is set, which causes pickup(8) to throw away the
+     * queue file after cleanup(8) reports success.
+     * 
+     * This is wrong in the case of temporary rejects. Another problem is that
+     * cleanup(8) clients look at the state->reason value only when
+     * CLEANUP_STAT_CONT is set.
+     * 
+     * We could kludge around this in the cleanup server by ignoring
+     * CLEANUP_FLAG_BOUNCE for temporary rejects, but that is fragile. It
+     * exposes clients to status codes that they until now never had to
+     * handle.
+     * 
+     * As a safe workaround for temporary rejects we return CLEANUP_STAT_WRITE.
+     * But we really want to report the true cause (server configuration
+     * error or otherwise).
+     */
     if (STREQUAL(value, "REJECT", command_len)) {
 	CLEANUP_STAT_DETAIL *detail;
 
@@ -332,7 +350,10 @@ static const char *cleanup_act(CLEANUP_STATE *state, char *context,
 		state->reason = dsn_prepend(detail->dsn, detail->text);
 	    }
 	}
-	state->errs |= CLEANUP_STAT_CONT;
+	if (*state->reason == '4')
+	    state->errs = CLEANUP_STAT_WRITE;
+	else
+	    state->errs |= CLEANUP_STAT_CONT;
 	state->flags &= ~CLEANUP_FLAG_FILTER;
 	cleanup_act_log(state, "reject", context, buf, state->reason);
 	return (buf);

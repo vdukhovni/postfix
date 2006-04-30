@@ -240,6 +240,11 @@ SSL_CTX *tls_server_init(int unused_verifydepth, int askcert)
 	msg_info("initializing the server-side TLS engine");
 
     /*
+     * Detect mismatch between compile-time headers and run-time library.
+     */
+    tls_check_version();
+
+    /*
      * Initialize the OpenSSL library by the book! To start with, we must
      * initialize the algorithms. We want cleartext error messages instead of
      * just error codes, so we load the error_strings.
@@ -280,7 +285,7 @@ SSL_CTX *tls_server_init(int unused_verifydepth, int askcert)
      * defined for TLS, but we also want to accept Netscape communicator
      * requests, and it only supports SSLv3.
      */
-    off |= SSL_OP_ALL;				/* Work around all known bugs */
+    off |= tls_bug_bits();
     SSL_CTX_set_options(server_ctx, off);
 
     /*

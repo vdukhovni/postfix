@@ -98,6 +98,17 @@
   */
 int     TLScontext_index = -1;
 
+ /*
+  * Parsed OpenSSL version number.
+  */
+typedef struct {
+    int     major;
+    int     minor;
+    int     micro;
+    int     patch;
+    int     status;
+} TLS_VINFO;
+
 /* tls_alloc_context - allocate TLScontext */
 
 TLScontext_t *tls_alloc_context(int log_level, const char *peername)
@@ -158,6 +169,116 @@ void    tls_free_context(TLScontext_t *TLScontext)
 	myfree(TLScontext->peer_fingerprint);
 
     myfree((char *) TLScontext);
+}
+
+static void tls_version_split(long version, TLS_VINFO *info)
+{
+
+    /*
+     * OPENSSL_VERSION_NUMBER(3):
+     * 
+     * OPENSSL_VERSION_NUMBER is a numeric release version identifier:
+     * 
+     * MMNNFFPPS: major minor fix patch status
+     * 
+     * The status nibble has one of the values 0 for development, 1 to e for
+     * betas 1 to 14, and f for release. Parsed OpenSSL version number. for
+     * example
+     * 
+     * 0x000906000 == 0.9.6 dev 0x000906023 == 0.9.6b beta 3 0x00090605f ==
+     * 0.9.6e release
+     * 
+     * Versions prior to 0.9.3 have identifiers < 0x0930.  Versions between
+     * 0.9.3 and 0.9.5 had a version identifier with this interpretation:
+     * 
+     * MMNNFFRBB major minor fix final beta/patch
+     * 
+     * for example
+     * 
+     * 0x000904100 == 0.9.4 release 0x000905000 == 0.9.5 dev
+     * 
+     * Version 0.9.5a had an interim interpretation that is like the current
+     * one, except the patch level got the highest bit set, to keep continu-
+     * ity.  The number was therefore 0x0090581f.
+     */
+
+    if (version < 0x0930) {
+	info->status = 0;
+	info->patch = version & 0x0f;
+	version >>= 4;
+	info->micro = version & 0x0f;
+	version >>= 4;
+	info->minor = version & 0x0f;
+	version >>= 4;
+	info->major = version & 0x0f;
+    } else if (version < 0x00905800L) {
+	info->patch = version & 0xff;
+	version >>= 8;
+	info->status = version & 0xf;
+	version >>= 4;
+	info->micro = version & 0xff;
+	version >>= 8;
+	info->minor = version & 0xff;
+	version >>= 8;
+	info->major = version & 0xff;
+    } else {
+	info->status = version & 0xf;
+	version >>= 4;
+	info->patch = version & 0xff;
+	version >>= 8;
+	info->micro = version & 0xff;
+	version >>= 8;
+	info->minor = version & 0xff;
+	version >>= 8;
+	info->major = version & 0xff;
+	if (version < 0x00906000L)
+	    info->patch &= ~0x80;
+    }
+}
+
+/* tls_check_version - Detect mismatch between headers and library. */
+
+void    tls_check_version(void)
+{
+    TLS_VINFO hdr_info;
+    TLS_VINFO lib_info;
+
+    tls_version_split(OPENSSL_VERSION_NUMBER, &hdr_info);
+    tls_version_split(SSLeay(), &lib_info);
+
+    if (lib_info.major != hdr_info.major
+	|| lib_info.minor != hdr_info.minor
+	|| lib_info.micro != hdr_info.micro)
+	msg_warn("run-time library vs. compile-time header version mismatch: "
+	     "OpenSSL %d.%d.%d may not be compatible with OpenSSL %d.%d.%d",
+		 lib_info.major, lib_info.minor, lib_info.micro,
+		 hdr_info.major, hdr_info.minor, hdr_info.micro);
+}
+
+/* tls_bug_bits - SSL bug compatibility bits for this OpenSSL version */
+
+long    tls_bug_bits(void)
+{
+    long    bits = SSL_OP_ALL;		/* Work around all known bugs */
+
+#if OPENSSL_VERSION_NUMBER >= 0x00908000L
+    long    lib_version = SSLeay();
+
+    /*
+     * In OpenSSL 0.9.8[ab], enabling zlib compression breaks the padding bug
+     * work-around, leading to false positives and failed connections. We may
+     * not interoperate with systems with the bug, but this better than
+     * breaking on all 0.9.8[ab] systems that have zlib support enabled.
+     */
+    if (lib_version >= 0x00908000L && lib_version <= 0x0090802fL) {
+	STACK_OF(SSL_COMP) * comp_methods;
+
+	comp_methods = SSL_COMP_get_compression_methods();
+	if (comp_methods != 0 && sk_SSL_COMP_num(comp_methods) > 0)
+	    bits &= ~SSL_OP_TLS_BLOCK_PADDING_BUG;
+    }
+#endif
+    return (bits);
 }
 
 /* tls_print_errors - print and clear the error stack */
