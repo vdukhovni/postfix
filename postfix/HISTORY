@@ -12160,8 +12160,8 @@ Apologies for any names omitted.
 	File: cleanup/cleanup_message.c.
 
 	Workaround: OpenSSL 0.9.8[ab] with zlib support interoperability
-	problem. Victor Duchovni. Files: tls/tls_client.c, tls/tls_misc.c,
-	tls/tls_server.c.
+	problem. Victor Duchovni. Files: tls/tls_client.c,
+	tls/tls_misc.c, tls/tls_server.c.
 
 Wish list:
 
