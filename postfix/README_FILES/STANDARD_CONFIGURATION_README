@@ -413,8 +413,8 @@ Important notes:
     up.domain.tld" domain. This prevents your mail queue from filling up with
     undeliverable MAILER-DAEMON messages. If you can't maintain a list of valid
     recipients then you must specify "relay_recipient_maps =" (that is, an
-    empty value), or you must specify an "@the.backed-up.domain x" wild-card in
-    the relay_recipients table.
+    empty value), or you must specify an "@the.backed-up.domain.tld x" wild-
+    card in the relay_recipients table.
 
   * Line 22: The [] forces Postfix to do no MX lookup.
 

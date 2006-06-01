@@ -4500,7 +4500,8 @@ smtpd_client_connection_rate_limit = 1000
 .ft R
 .SH smtpd_client_event_limit_exceptions (default: $mynetworks)
 Clients that are excluded from connection count, connection rate,
-or SMTP request rate restrictions.
+or SMTP request rate restrictions. See the mynetworks parameter
+description for the parameter value syntax.
 .PP
 By default, clients in trusted networks are excluded. Specify a
 list of network blocks, hostnames or .domain names (the initial

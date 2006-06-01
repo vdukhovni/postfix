@@ -62,15 +62,20 @@ clean:
 tidy:	clean
 
 tests: smtpd_check_test smtpd_check_test2 smtpd_acl_test smtpd_exp_test \
-	smtpd_token_test smtpd_check_test4 smtpd_check_dsn_test
+	smtpd_token_test smtpd_check_test4 smtpd_check_dsn_test \
+	smtpd_check_backup_test
 
 root_tests:
+
+# This requires that the DNS server can query mail-abuse.org.
 
 smtpd_check_test: smtpd_check smtpd_check.in smtpd_check.ref smtpd_check_access
 	../postmap/postmap hash:smtpd_check_access
 	./smtpd_check <smtpd_check.in >smtpd_check.tmp 2>&1
 	diff smtpd_check.ref smtpd_check.tmp
 	rm -f smtpd_check.tmp smtpd_check_access.*
+
+# This requires that the DNS server can query mail-abuse.org.
 
 smtpd_check_test2: smtpd_check smtpd_check.in2 smtpd_check.ref2 smtpd_check_access
 	../postmap/postmap hash:smtpd_check_access
@@ -90,6 +95,8 @@ smtpd_acl_test: smtpd_check smtpd_acl.in smtpd_acl.ref smtpd_check_access
 	diff smtpd_acl.ref smtpd_check.tmp
 	rm -f smtpd_check.tmp smtpd_check_access.*
 
+# This requires that the DNS server can query mail-abuse.org.
+
 smtpd_exp_test: smtpd_check smtpd_exp.in smtpd_exp.ref
 	../postmap/postmap hash:smtpd_check_access
 	./smtpd_check <smtpd_exp.in >smtpd_exp.tmp 2>&1
@@ -101,6 +108,13 @@ smtpd_check_dsn_test: smtpd_check smtpd_check_dsn.in smtpd_check_dsn.ref smtpd_c
 	./smtpd_check <smtpd_check_dsn.in >smtpd_check.tmp 2>&1
 	diff smtpd_check_dsn.ref smtpd_check.tmp
 	rm -f smtpd_check.tmp smtpd_check_access.*
+
+# This requires that 168,100.189.7 is a local or virtual interface.
+
+smtpd_check_backup_test: smtpd_check smtpd_check_backup.in smtpd_check_backup.ref
+	./smtpd_check <smtpd_check_backup.in >smtpd_check.tmp 2>&1
+	diff smtpd_check_backup.ref smtpd_check.tmp
+	rm -f smtpd_check.tmp
 
 smtpd_token_test: smtpd_token smtpd_token.in smtpd_token.ref
 	./smtpd_token <smtpd_token.in >smtpd_token.tmp 2>&1

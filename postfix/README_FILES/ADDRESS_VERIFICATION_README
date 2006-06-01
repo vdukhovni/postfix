@@ -225,7 +225,7 @@ Postfix has a bunch of parameters that control the caching of positive and
 negative results. Refer to the verify(8) manual page for details.
 
 The address_verify_map (NOTE: singular) configuration parameter specifies an
-optional persistent database for sender address verification results. If you
+optional database for sender or recipient address verification results. If you
 don't specify a file, all address verification information is lost after
 "postfix reload" or "postfix stop".
 

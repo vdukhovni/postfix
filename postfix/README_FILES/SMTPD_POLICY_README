@@ -64,6 +64,7 @@ a delegated SMTPD access policy request:
     encryption_protocol=TLSv1/SSLv3
     encryption_cipher=DHE-RSA-AES256-SHA
     encryption_keysize=256
+    etrn_domain=
     [empty line]
 
 Notes:
@@ -118,6 +119,9 @@ Notes:
   * The "encryption_*" attributes (Postfix 2.3 and later) specify information
     about how the connection is encrypted. With plaintext connections the
     protocol and cipher attributes are empty and the keysize is zero.
+
+  * The "etrn_domain" attribute is defined only in the context of the ETRN
+    command, and specifies the ETRN command parameter.
 
 The following is specific to SMTPD delegated policy requests:
 

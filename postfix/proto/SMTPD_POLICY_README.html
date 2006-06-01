@@ -96,6 +96,7 @@ ccert_fingerprint=C2:9D:F4:87:71:73:73:D9:18:E7:C2:F3:C1:DA:6E:04
 encryption_protocol=TLSv1/SSLv3
 encryption_cipher=DHE-RSA-AES256-SHA
 encryption_keysize=256
+etrn_domain=
 [empty line]
 </pre>
 </blockquote>
@@ -166,6 +167,10 @@ encryption_keysize=256
     specify information about how the connection is encrypted. With
     plaintext connections the protocol and cipher attributes are
     empty and the keysize is zero.  </p>
+
+    <li> <p> The "etrn_domain" attribute is defined only in the
+    context of the ETRN command, and specifies the ETRN command
+    parameter. </p>
 
 </ul>
 

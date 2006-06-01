@@ -12163,7 +12163,24 @@ Apologies for any names omitted.
 	problem. Victor Duchovni. Files: tls/tls_client.c,
 	tls/tls_misc.c, tls/tls_server.c.
 
+20060524
+
+	Cleanup: send ETRN command parameter when using check_policy
+	in the context of an ETRN command. Joshua Goodall. File:
+	smtpd/smtpd_check.c.
+
+20060601
+
+	Bugfix (bug introduced 20051118): permit_mx_backup authorized
+	domains without secondary MX records.  Joshua Goodall. File:
+	smtpd/smtpd_check.c.
+
 Wish list:
+
+	Find out if postfix_tls@aet.tu-cottbus.de is still appropriate,
+	and if not, update TLS_README.
+
+	Do or don't introduce unknown_reverse_client_reject_code. 
 
 	Don't send xforward attributes to every site that announces
 	xforward support.

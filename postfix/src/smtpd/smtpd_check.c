@@ -1655,7 +1655,7 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
     /*
      * Then, see if we match any of the backup MX servers.
      */
-    if (rest && !i_am_mx(state, rest, reply_name, reply_class))
+    if (rest == 0 || !i_am_mx(state, rest, reply_name, reply_class))
 	PERMIT_MX_BACKUP_RETURN(SMTPD_CHECK_DUNNO);
 
     /*
@@ -3291,6 +3291,8 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 			  ATTR_TYPE_LONG, MAIL_ATTR_SIZE,
 			  (unsigned long) (state->act_size > 0 ?
 					 state->act_size : state->msg_size),
+			  ATTR_TYPE_STR, MAIL_ATTR_ETRN_DOMAIN,
+			  state->etrn_name ? state->etrn_name : "",
 #ifdef USE_SASL_AUTH
 			  ATTR_TYPE_STR, MAIL_ATTR_SASL_METHOD,
 			  var_smtpd_sasl_enable && state->sasl_method ?

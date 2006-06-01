@@ -21,13 +21,13 @@ OK
 >>> rcpt wietse@fist.porcupine.org
 OK
 >>> rcpt wietse@porcupine.org
-./smtpd_check: <queue id>: reject: RCPT from localhost[127.0.0.1]: 554 <wietse@porcupine.org>: Recipient address rejected: Access denied; to=<wietse@porcupine.org> proto=SMTP
-554 <wietse@porcupine.org>: Recipient address rejected: Access denied
+./smtpd_check: <queue id>: reject: RCPT from localhost[127.0.0.1]: 554 5.7.1 <wietse@porcupine.org>: Recipient address rejected: Access denied; to=<wietse@porcupine.org> proto=SMTP
+554 5.7.1 <wietse@porcupine.org>: Recipient address rejected: Access denied
 >>> permit_mx_backup_networks 168.100.189.5
 OK
 >>> rcpt wietse@fist.porcupine.org
-./smtpd_check: <queue id>: reject: RCPT from localhost[127.0.0.1]: 554 <wietse@fist.porcupine.org>: Recipient address rejected: Access denied; to=<wietse@fist.porcupine.org> proto=SMTP
-554 <wietse@fist.porcupine.org>: Recipient address rejected: Access denied
+./smtpd_check: <queue id>: reject: RCPT from localhost[127.0.0.1]: 554 5.7.1 <wietse@fist.porcupine.org>: Recipient address rejected: Access denied; to=<wietse@fist.porcupine.org> proto=SMTP
+554 5.7.1 <wietse@fist.porcupine.org>: Recipient address rejected: Access denied
 >>> permit_mx_backup_networks 168.100.189.4
 OK
 >>> rcpt wietse@fist.porcupine.org

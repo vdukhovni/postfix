@@ -137,12 +137,15 @@
 /*	executes a command such as:
 /*
 /* .ti +4
-/*	command -f$sender -- $recipient
+/*	command -f$sender -- $recipient (\fIbad\fR)
 /*
 /*	the command will mis-parse the -f option value when the
 /*	sender address is a null string.  For correct parsing,
-/*	specify \fB$sender\fR as an argument by itself.
-/* .sp
+/*	specify \fB$sender\fR as an argument by itself:
+/*
+/* .ti +4
+/*	command -f $sender -- $recipient (\fIgood\fR)
+/*
 /*	This feature is available with Postfix 2.3 and later.
 /* .IP "\fBsize\fR=\fIsize_limit\fR (optional)"
 /*	Messages greater in size than this limit (in bytes) will
