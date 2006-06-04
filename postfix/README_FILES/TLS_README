@@ -1056,13 +1056,10 @@ indicates a super-user shell.
 
 RReeppoorrttiinngg pprroobblleemmss
 
-When reporting a problem, please be thorough in the report. Patches, when
-possible, are greatly appreciated too.
-
-Please differentiate when possible between:
-
-  * Problems in the TLS code: <postfix_tls@aet.tu-cottbus.de>
-  * Problems in vanilla Postfix: <postfix-users@postfix.org>
+Problems are preferably reported via <postfix-users@postfix.org>. See http://
+www.postfix.org/lists.html for subscription information. When reporting a
+problem, please be thorough in the report. Patches, when possible, are greatly
+appreciated too.
 
 CCoommppaattiibbiilliittyy wwiitthh PPoossttffiixx << 22..22 TTLLSS ssuuppppoorrtt
 

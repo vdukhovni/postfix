@@ -119,7 +119,7 @@ static VSTRING *make_821_quoted_string(VSTRING *dst, const char *local_part,
      * that need quoting when they occur in a quoted-string.
      */
     VSTRING_ADDCH(dst, '"');
-    for (cp = local_part; cp < end && (ch = *cp) != 0; cp++) {
+    for (cp = local_part; cp < end && (ch = *(unsigned char *) cp) != 0; cp++) {
 	if ((ch > 127 && !(flags & QUOTE_FLAG_8BITCLEAN))
 	    || ch == '\r' || ch == '\n' || ch == '"' || ch == '\\')
 	    VSTRING_ADDCH(dst, '\\');

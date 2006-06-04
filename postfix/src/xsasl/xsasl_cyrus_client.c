@@ -379,7 +379,7 @@ static int xsasl_cyrus_client_set_security(XSASL_CLIENT *xp,
      * Per-session security properties. XXX This routine is not sufficiently
      * documented. What is the purpose of all this?
      */
-    memset(&sec_props, 0L, sizeof(sec_props));
+    memset(&sec_props, 0, sizeof(sec_props));
     sec_props.min_ssf = 0;
     sec_props.max_ssf = 0;			/* don't allow real SASL
 						 * security layer */

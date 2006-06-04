@@ -219,7 +219,6 @@ void    master_spawn(MASTER_SERV *serv)
 
 	execvp(serv->path, serv->args->argv);
 	msg_fatal("%s: exec %s: %m", myname, serv->path);
-	exit(1);
 	/* NOTREACHED */
 
 	/*
@@ -292,10 +291,8 @@ void    master_reap_child(void)
 	if (msg_verbose)
 	    msg_info("master_reap_child: pid %d", pid);
 	if ((proc = (MASTER_PROC *) binhash_find(master_child_table,
-					(char *) &pid, sizeof(pid))) == 0) {
+					(char *) &pid, sizeof(pid))) == 0)
 	    msg_panic("master_reap: unknown pid: %d", pid);
-	    continue;
-	}
 	serv = proc->serv;
 	if (!NORMAL_EXIT_STATUS(status)) {
 	    if (WIFEXITED(status))

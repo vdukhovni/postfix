@@ -12175,10 +12175,18 @@ Apologies for any names omitted.
 	domains without secondary MX records.  Joshua Goodall. File:
 	smtpd/smtpd_check.c.
 
+20060604
+
+	Cleanup: minor fluff found with the BEAM source code analyzer.
+	Files: global/quote_821_local.c, global/quote_822_local.c,
+	master/master_spawn.c, pickup/pickup.c, util/match_ops.c,
+	util/safe_open.c, xsasl/xsasl_cyrus_client.c.
+
 Wish list:
 
-	Find out if postfix_tls@aet.tu-cottbus.de is still appropriate,
-	and if not, update TLS_README.
+	Don't lose bits when converting st_dev into maildir file
+	name. It's 64 bits on Linux. Found with the BEAM source
+	code analyzer.
 
 	Do or don't introduce unknown_reverse_client_reject_code. 
 

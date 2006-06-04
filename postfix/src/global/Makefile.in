@@ -5,7 +5,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	deliver_completed.c deliver_flock.c deliver_pass.c deliver_request.c \
 	dict_ldap.c dict_mysql.c dict_pgsql.c dict_proxy.c domain_list.c \
 	dot_lockfile.c dot_lockfile_as.c ext_prop.c file_id.c flush_clnt.c \
-	header_opts.c header_token.c hold_message.c input_transp.c \
+	header_opts.c header_token.c input_transp.c \
 	is_header.c log_adhoc.c mail_addr.c mail_addr_crunch.c \
 	mail_addr_find.c mail_addr_map.c mail_command_client.c \
 	mail_command_server.c mail_conf.c mail_conf_bool.c mail_conf_int.c \
@@ -35,7 +35,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	deliver_completed.o deliver_flock.o deliver_pass.o deliver_request.o \
 	dict_ldap.o dict_mysql.o dict_pgsql.o dict_proxy.o domain_list.o \
 	dot_lockfile.o dot_lockfile_as.o ext_prop.o file_id.o flush_clnt.o \
-	header_opts.o header_token.o hold_message.o input_transp.o \
+	header_opts.o header_token.o input_transp.o \
 	is_header.o log_adhoc.o mail_addr.o mail_addr_crunch.o \
 	mail_addr_find.o mail_addr_map.o mail_command_client.o \
 	mail_command_server.o mail_conf.o mail_conf_bool.o mail_conf_int.o \
@@ -65,7 +65,7 @@ HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	deliver_flock.h deliver_pass.h deliver_request.h dict_ldap.h \
 	dict_mysql.h dict_pgsql.h dict_proxy.h domain_list.h dot_lockfile.h \
 	dot_lockfile_as.h ext_prop.h file_id.h flush_clnt.h header_opts.h \
-	header_token.h hold_message.h input_transp.h is_header.h \
+	header_token.h input_transp.h is_header.h \
 	lex_822.h log_adhoc.h mail_addr.h mail_addr_crunch.h \
 	mail_addr_find.h mail_addr_map.h mail_conf.h mail_copy.h \
 	mail_date.h mail_dict.h mail_error.h mail_flush.h mail_open_ok.h \
@@ -862,17 +862,6 @@ header_token.o: ../../include/vstring.h
 header_token.o: header_token.c
 header_token.o: header_token.h
 header_token.o: lex_822.h
-hold_message.o: ../../include/msg.h
-hold_message.o: ../../include/sane_fsops.h
-hold_message.o: ../../include/set_eugid.h
-hold_message.o: ../../include/sys_defs.h
-hold_message.o: ../../include/vbuf.h
-hold_message.o: ../../include/vstream.h
-hold_message.o: ../../include/vstring.h
-hold_message.o: hold_message.c
-hold_message.o: hold_message.h
-hold_message.o: mail_params.h
-hold_message.o: mail_queue.h
 input_transp.o: ../../include/msg.h
 input_transp.o: ../../include/name_mask.h
 input_transp.o: ../../include/sys_defs.h

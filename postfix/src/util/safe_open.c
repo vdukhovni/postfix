@@ -189,6 +189,12 @@ static VSTREAM *safe_open_create(const char *path, int flags, mode_t mode,
     }
 
     /*
+     * Optionally look up the file attributes.
+     */
+    if (st != 0 && fstat(vstream_fileno(fp), st) < 0)
+	msg_fatal("%s: bad open file status: %m", path);
+
+    /*
      * Optionally change ownership after creating a new file. If there is a
      * problem we should not attempt to delete the file. Something else may
      * have opened the file in the mean time.
@@ -199,12 +205,6 @@ static VSTREAM *safe_open_create(const char *path, int flags, mode_t mode,
 	&& fchown(vstream_fileno(fp), user, group) < 0) {
 	msg_warn("%s: cannot change file ownership: %m", path);
     }
-
-    /*
-     * Optionally look up the file attributes.
-     */
-    if (st != 0 && fstat(vstream_fileno(fp), st) < 0)
-	msg_fatal("%s: bad open file status: %m", path);
 
     /*
      * We are almost there...

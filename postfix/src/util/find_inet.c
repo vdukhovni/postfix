@@ -85,6 +85,8 @@ int     find_inet_port(const char *service, const char *protocol)
     int     port;
 
     if (alldig(service) && (port = atoi(service)) != 0) {
+	if (port < 0 || port > 65535)
+	    msg_fatal("bad port number: %s", service);
 	return (htons(port));
     } else {
 	if ((sp = getservbyname(service, protocol)) == 0)

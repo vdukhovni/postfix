@@ -306,7 +306,7 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
 	info->st.st_mtime = now;
     } else if (info->st.st_mtime < now - DAY_SECONDS) {
 	msg_warn("%s: message has been queued for %d days",
-		 info->id, (int) (now - info->st.st_mtime) / DAY_SECONDS);
+		 info->id, (int) ((now - info->st.st_mtime) / DAY_SECONDS));
     }
 
     /*
