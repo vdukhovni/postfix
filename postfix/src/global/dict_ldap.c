@@ -351,31 +351,78 @@ static int dict_ldap_set_errno(LDAP * ld, int rc)
     return rc;
 }
 
-/*
- * We need a version of ldap_bind that times out, otherwise all
- * of Postfix can get wedged during daemon initialization.
- */
-static int dict_ldap_bind_st(DICT_LDAP *dict_ldap)
+/* dict_ldap_result - Read and parse LDAP result */
+
+static int dict_ldap_result(LDAP *ld, int msgid, int timeout, LDAPMessage **res)
 {
-    int     msgid;
-    LDAPMessage *res;
+    int     rc;
     struct timeval mytimeval;
 
-    if ((msgid = ldap_bind(dict_ldap->ld, dict_ldap->bind_dn,
-			   dict_ldap->bind_pw, LDAP_AUTH_SIMPLE)) == -1)
-	return (dict_ldap_get_errno(dict_ldap->ld));
-
-    mytimeval.tv_sec = dict_ldap->timeout;
+    mytimeval.tv_sec = timeout;
     mytimeval.tv_usec = 0;
 
-    if (ldap_result(dict_ldap->ld, msgid, 1, &mytimeval, &res) == -1)
-	return (dict_ldap_get_errno(dict_ldap->ld));
+#define GET_ALL 1
+    if (ldap_result(ld, msgid, GET_ALL, &mytimeval, res) == -1)
+	return (dict_ldap_get_errno(ld));
 
-    if (dict_ldap_get_errno(dict_ldap->ld) == LDAP_TIMEOUT) {
-	(void) ldap_abandon(dict_ldap->ld, msgid);
-	return (dict_ldap_set_errno(dict_ldap->ld, LDAP_TIMEOUT));
+    if (dict_ldap_get_errno(ld) == LDAP_TIMEOUT) {
+	(void) ldap_abandon_ext(ld, msgid, 0, 0);
+	return (dict_ldap_set_errno(ld, LDAP_TIMEOUT));
     }
-    return (ldap_result2error(dict_ldap->ld, res, 1));
+
+    return LDAP_SUCCESS;
+}
+
+/* dict_ldap_bind_st - Synchronous simple auth with timeout */
+
+static int dict_ldap_bind_st(DICT_LDAP *dict_ldap)
+{
+    int     rc;
+    int     msgid;
+    LDAPMessage *res;
+    struct berval cred;
+
+    cred.bv_val = dict_ldap->bind_pw;
+    cred.bv_len = strlen(cred.bv_val);
+    if ((rc = ldap_sasl_bind(dict_ldap->ld, dict_ldap->bind_dn,
+			     LDAP_SASL_SIMPLE, &cred,
+			     0, 0, &msgid)) != LDAP_SUCCESS)
+	return (rc);
+    if ((rc = dict_ldap_result(dict_ldap->ld, msgid, dict_ldap->timeout,
+			       &res)) != LDAP_SUCCESS)
+	return (rc);
+
+#define FREE_RESULT 1
+    return (ldap_parse_sasl_bind_result(dict_ldap->ld, res, 0, FREE_RESULT));
+}
+
+/* search_st - Synchronous search with timeout */
+
+static int search_st(LDAP *ld, char *base, int scope, char *query,
+			    char **attrs, int timeout, LDAPMessage **res)
+{
+    struct timeval mytimeval;
+    int     msgid;
+    int     rc;
+    int     err;
+
+    mytimeval.tv_sec = timeout;
+    mytimeval.tv_usec = 0;
+
+#define WANTVALS 0
+#define USE_SIZE_LIM_OPT -1		/* Any negative value will do */
+
+    if ((rc = ldap_search_ext(ld, base, scope, query, attrs, WANTVALS, 0, 0,
+			      &mytimeval, USE_SIZE_LIM_OPT,
+			      &msgid)) != LDAP_SUCCESS)
+	return rc;
+
+    if ((rc = dict_ldap_result(ld, msgid, timeout, res)) != LDAP_SUCCESS)
+	return (rc);
+
+#define DONT_FREE_RESULT 0
+    rc = ldap_parse_result(ld, *res, &err, 0, 0, 0, 0, DONT_FREE_RESULT);
+    return (err != LDAP_SUCCESS ? err : rc);
 }
 
 #ifdef LDAP_API_FEATURE_X_OPENLDAP
@@ -715,14 +762,11 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
     LDAPMessage *resloop = 0;
     LDAPMessage *entry = 0;
     BerElement *ber;
-    char  **vals;
     char   *attr;
-    char   *myname = "dict_ldap_get_values";
-    struct timeval tv;
+    struct berval **vals;
+    int     valcount;
     LDAPURLDesc *url;
-
-    tv.tv_sec = dict_ldap->timeout;
-    tv.tv_usec = 0;
+    char   *myname = "dict_ldap_get_values";
 
     if (++recursion == 1)
 	expansion = 0;
@@ -751,13 +795,15 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
 	     attr != NULL;
 	     ldap_memfree(attr), attr = ldap_next_attribute(dict_ldap->ld,
 							    entry, ber)) {
-	    vals = ldap_get_values(dict_ldap->ld, entry, attr);
+	    vals = ldap_get_values_len(dict_ldap->ld, entry, attr);
 	    if (vals == NULL) {
 		if (msg_verbose)
 		    msg_info("%s[%d]: Entry doesn't have any values for %s",
 			     myname, recursion, attr);
 		continue;
 	    }
+
+	    valcount = ldap_count_values_len(vals);
 
 	    /*
 	     * If we previously encountered an error, we still continue
@@ -768,8 +814,8 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
 	     * leaks, but it will likely be more fragile and not worth the
 	     * extra code.
 	     */
-	    if (dict_errno != 0 || vals[0] == 0) {
-		ldap_value_free(vals);
+	    if (dict_errno != 0 || valcount == 0) {
+		ldap_value_free_len(vals);
 		continue;
 	    }
 
@@ -794,9 +840,10 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
 	     */
 	    if (i < dict_ldap->num_attributes) {
 		/* Ordinary result attribute */
-		for (i = 0; vals[i] != NULL; i++) {
+		for (i = 0; i < valcount; i++) {
 		    if (db_common_expand(dict_ldap->ctx,
-					 dict_ldap->result_format, vals[i],
+					 dict_ldap->result_format,
+					 vals[i]->bv_val,
 					 name, result, 0)
 			&& dict_ldap->expansion_limit > 0
 			&& ++expansion > dict_ldap->expansion_limit) {
@@ -815,27 +862,27 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
 	    } else if (recursion < dict_ldap->recursion_limit
 		       && dict_ldap->result_attributes->argv[i]) {
 		/* Special result attribute */
-		for (i = 0; vals[i] != NULL; i++) {
-		    if (ldap_is_ldap_url(vals[i])) {
+		for (i = 0; i < valcount; i++) {
+		    if (ldap_is_ldap_url(vals[i]->bv_val)) {
 			if (msg_verbose)
 			    msg_info("%s[%d]: looking up URL %s", myname,
-				     recursion, vals[i]);
-			rc = ldap_url_parse(vals[i], &url);
+				     recursion, vals[i]->bv_val);
+			rc = ldap_url_parse(vals[i]->bv_val, &url);
 			if (rc == 0) {
-			    rc = ldap_search_st(dict_ldap->ld, url->lud_dn,
-					    url->lud_scope, url->lud_filter,
-						url->lud_attrs, 0, &tv,
-						&resloop);
+			    rc = search_st(dict_ldap->ld, url->lud_dn,
+					   url->lud_scope, url->lud_filter,
+					   url->lud_attrs, dict_ldap->timeout,
+					   &resloop);
 			    ldap_free_urldesc(url);
 			}
 		    } else {
 			if (msg_verbose)
 			    msg_info("%s[%d]: looking up DN %s",
-				     myname, recursion, vals[i]);
-			rc = ldap_search_st(dict_ldap->ld, vals[i],
-					    LDAP_SCOPE_BASE, "objectclass=*",
-					 dict_ldap->result_attributes->argv,
-					    0, &tv, &resloop);
+				     myname, recursion, vals[i]->bv_val);
+			rc = search_st(dict_ldap->ld, vals[i]->bv_val,
+				       LDAP_SCOPE_BASE, "objectclass=*",
+				       dict_ldap->result_attributes->argv,
+				       dict_ldap->timeout, &resloop);
 		    }
 		    switch (rc) {
 		    case LDAP_SUCCESS:
@@ -848,7 +895,7 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
 			 * and just didn't have any result attributes.
 			 */
 			msg_warn("%s[%d]: DN %s not found, skipping ", myname,
-				 recursion, vals[i]);
+				 recursion, vals[i]->bv_val);
 			break;
 		    default:
 			msg_warn("%s[%d]: search error %d: %s ", myname,
@@ -873,10 +920,10 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
 		       && dict_ldap->result_attributes->argv[i]) {
 		msg_warn("%s[%d]: %s: Recursion limit exceeded"
 			 " for special attribute %s=%s", myname, recursion,
-			 dict_ldap->parser->name, attr, vals[0]);
+			 dict_ldap->parser->name, attr, vals[0]->bv_val);
 		dict_errno = DICT_ERR_RETRY;
 	    }
-	    ldap_value_free(vals);
+	    ldap_value_free_len(vals);
 	}
 	if (ber)
 	    ber_free(ber, 0);
@@ -897,7 +944,6 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
     static VSTRING *base;
     static VSTRING *query;
     static VSTRING *result;
-    struct timeval tv;
     int     rc = 0;
     int     sizelimit;
 
@@ -1002,29 +1048,22 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
     }
 
     /*
-     * Prepare the query.
-     */
-    tv.tv_sec = dict_ldap->timeout;
-    tv.tv_usec = 0;
-
-    /*
      * On to the search.
      */
     if (msg_verbose)
 	msg_info("%s: %s: Searching with filter %s", myname,
 		 dict_ldap->parser->name, vstring_str(query));
 
-    rc = ldap_search_st(dict_ldap->ld, vstring_str(base),
-			dict_ldap->scope, vstring_str(query),
-			dict_ldap->result_attributes->argv,
-			0, &tv, &res);
+    rc = search_st(dict_ldap->ld, vstring_str(base), dict_ldap->scope,
+		   vstring_str(query), dict_ldap->result_attributes->argv,
+		   dict_ldap->timeout, &res);
 
     if (rc == LDAP_SERVER_DOWN) {
 	if (msg_verbose)
 	    msg_info("%s: Lost connection for LDAP source %s, reopening",
 		     myname, dict_ldap->parser->name);
 
-	ldap_unbind(dict_ldap->ld);
+	ldap_unbind_ext(dict_ldap->ld, 0, 0);
 	dict_ldap->ld = DICT_LDAP_CONN(dict_ldap)->conn_ld = 0;
 	dict_ldap_connect(dict_ldap);
 
@@ -1034,10 +1073,9 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	if (dict_errno)
 	    return (0);
 
-	rc = ldap_search_st(dict_ldap->ld, vstring_str(base),
-			    dict_ldap->scope, vstring_str(query),
-			    dict_ldap->result_attributes->argv,
-			    0, &tv, &res);
+	rc = search_st(dict_ldap->ld, vstring_str(base), dict_ldap->scope,
+		       vstring_str(query), dict_ldap->result_attributes->argv,
+		       dict_ldap->timeout, &res);
 
     }
 
@@ -1093,7 +1131,7 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	 * Tear down the connection so it gets set up from scratch on the
 	 * next lookup.
 	 */
-	ldap_unbind(dict_ldap->ld);
+	ldap_unbind_ext(dict_ldap->ld, 0, 0);
 	dict_ldap->ld = DICT_LDAP_CONN(dict_ldap)->conn_ld = 0;
 
 	/*
@@ -1130,7 +1168,7 @@ static void dict_ldap_close(DICT *dict)
 	    if (msg_verbose)
 		msg_info("%s: Closed connection handle for LDAP source %s",
 			 myname, dict_ldap->parser->name);
-	    ldap_unbind(conn->conn_ld);
+	    ldap_unbind_ext(conn->conn_ld, 0, 0);
 	}
 	binhash_delete(conn_hash, ht->key, ht->key_len, myfree);
     }

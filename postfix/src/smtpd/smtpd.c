@@ -2662,6 +2662,7 @@ static int quit_cmd(SMTPD_STATE *state, int unused_argc, SMTPD_TOKEN *unused_arg
 static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 {
     SMTPD_TOKEN *argp;
+    char   *raw_value;
     char   *attr_value;
     const char *bare_value;
     char   *attr_name;
@@ -2677,10 +2678,14 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	MAIL_PROTO_ESMTP, 2,
 	0, -1,
     };
+    int     got_helo = 0;
+    int     got_proto = 0;
 
     /*
-     * Sanity checks. The XCLIENT command does not override its own access
-     * control.
+     * Sanity checks.
+     * 
+     * XXX The XCLIENT command will override its own access control, so that
+     * connection count/rate restrictions can be correctly simulated.
      */
     if (IN_MAIL_TRANSACTION(state)) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
@@ -2706,20 +2711,39 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	} while(0)
 
     /*
+     * Initialize.
+     */
+    if (state->expand_buf == 0)
+	state->expand_buf = vstring_alloc(100);
+
+    /*
      * Iterate over all attribute=value elements.
      */
     for (argp = argv + 1; argp < argv + argc; argp++) {
 	attr_name = argp->strval;
 
-	/*
-	 * For safety's sake mask non-printable characters. We'll do more
-	 * specific censoring later.
-	 */
-	if ((attr_value = split_at(attr_name, '=')) == 0 || *attr_value == 0) {
+	if ((raw_value = split_at(attr_name, '=')) == 0 || *raw_value == 0) {
 	    state->error_mask |= MAIL_ERROR_PROTOCOL;
 	    smtpd_chat_reply(state, "501 5.5.4 Error: attribute=value expected");
 	    return (-1);
 	}
+	if (strlen(raw_value) > 255) {
+	    state->error_mask |= MAIL_ERROR_PROTOCOL;
+	    smtpd_chat_reply(state, "501 5.5.4 Error: attribute value too long");
+	    return (-1);
+	}
+
+	/*
+	 * Backwards compatibility: Postfix prior to version 2.3 does not
+	 * xtext encode attribute values.
+	 */
+	attr_value = xtext_unquote(state->expand_buf, raw_value) ?
+	    STR(state->expand_buf) : raw_value;
+
+	/*
+	 * For safety's sake mask non-printable characters. We'll do more
+	 * specific censoring later.
+	 */
 	printable(attr_value, '?');
 
 	/*
@@ -2805,6 +2829,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		neuter(attr_value, NEUTER_CHARACTERS, '?');
 	    }
 	    UPDATE_STR(state->helo_name, attr_value);
+	    got_helo = 1;
 	}
 
 	/*
@@ -2818,6 +2843,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		return (-1);
 	    }
 	    UPDATE_STR(state->protocol, uppercase(attr_value));
+	    got_proto = 1;
 	}
 
 	/*
@@ -2840,7 +2866,41 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	state->namaddr =
 	    concatenate(state->name, "[", state->addr, "]", (char *) 0);
     }
-    smtpd_chat_reply(state, "250 2.0.0 Ok");
+
+    /*
+     * XXX Compatibility: when the client issues XCLIENT then we have to go
+     * back to initial server greeting stage, otherwise we can't correctly
+     * simulate smtpd_client_restrictions (with smtpd_delay_reject=0) and
+     * Milter connect restrictions.
+     * 
+     * XXX Compatibility: for accurate simulation we must also reset the HELO
+     * information. We keep the information if it was specified in the
+     * XCLIENT command.
+     * 
+     * XXX The client connection count/rate control must be consistent in its
+     * use of client address information in connect and disconnect events. We
+     * re-evaluate xclient so that we correctly simulate connection
+     * concurrency and connection rate restrictions.
+     * 
+     * XXX Duplicated from smtpd_proto().
+     */
+    xclient_allowed =
+	namadr_list_match(xclient_hosts, state->name, state->addr);
+    /* NOT: tls_reset() */
+    if (got_helo == 0)
+	helo_reset(state);
+    if (got_proto == 0 && strcasecmp(state->protocol, MAIL_PROTO_SMTP) != 0) {
+	myfree(state->protocol);
+        state->protocol = mystrdup(MAIL_PROTO_SMTP);
+    }
+#ifdef USE_SASL_AUTH
+    if (var_smtpd_sasl_enable)
+	smtpd_sasl_auth_reset(state);
+#endif
+    chat_reset(state, 0);
+    mail_reset(state);
+    rcpt_reset(state);
+    vstream_longjmp(state->client, SMTP_ERR_NONE);
     return (0);
 }
 
@@ -2849,6 +2909,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 {
     SMTPD_TOKEN *argp;
+    char   *raw_value;
     char   *attr_value;
     const char *bare_value;
     char   *attr_name;
@@ -2898,6 +2959,8 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      */
     if (state->xforward.flags == 0)
 	smtpd_xforward_preset(state);
+    if (state->expand_buf == 0)
+	state->expand_buf = vstring_alloc(100);
 
     /*
      * Iterate over all attribute=value elements.
@@ -2905,20 +2968,28 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     for (argp = argv + 1; argp < argv + argc; argp++) {
 	attr_name = argp->strval;
 
-	/*
-	 * For safety's sake mask non-printable characters. We'll do more
-	 * specific censoring later.
-	 */
-	if ((attr_value = split_at(attr_name, '=')) == 0 || *attr_value == 0) {
+	if ((raw_value = split_at(attr_name, '=')) == 0 || *raw_value == 0) {
 	    state->error_mask |= MAIL_ERROR_PROTOCOL;
 	    smtpd_chat_reply(state, "501 5.5.4 Error: attribute=value expected");
 	    return (-1);
 	}
-	if (strlen(attr_value) > 255) {
+	if (strlen(raw_value) > 255) {
 	    state->error_mask |= MAIL_ERROR_PROTOCOL;
 	    smtpd_chat_reply(state, "501 5.5.4 Error: attribute value too long");
 	    return (-1);
 	}
+
+	/*
+	 * Backwards compatibility: Postfix prior to version 2.3 does not
+	 * xtext encode attribute values.
+	 */
+	attr_value = xtext_unquote(state->expand_buf, raw_value) ?
+	    STR(state->expand_buf) : raw_value;
+
+	/*
+	 * For safety's sake mask non-printable characters. We'll do more
+	 * specific censoring later.
+	 */
 	printable(attr_value, '?');
 
 	flag = name_code(xforward_flags, NAME_CODE_FLAG_NONE, attr_name);
@@ -3268,7 +3339,7 @@ static STRING_LIST *smtpd_forbid_cmds;
 
 /* smtpd_proto - talk the SMTP protocol */
 
-static void smtpd_proto(SMTPD_STATE *state, const char *service)
+static void smtpd_proto(SMTPD_STATE *state)
 {
     int     argc;
     SMTPD_TOKEN *argv;
@@ -3276,6 +3347,7 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
     int     count;
     int     crate;
     const char *ehlo_words;
+    int     status;
 
     /*
      * Print a greeting banner and run the state machine. Read SMTP commands
@@ -3297,7 +3369,9 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
      */
     smtp_timeout_setup(state->client, var_smtpd_tmout);
 
-    switch (vstream_setjmp(state->client)) {
+    while ((status = vstream_setjmp(state->client)) == SMTP_ERR_NONE)
+	 /* void */ ;
+    switch (status) {
 
     default:
 	msg_panic("smtpd_proto: unknown error reading from %s[%s]",
@@ -3371,21 +3445,21 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 	    && !xclient_allowed
 	    && anvil_clnt
 	    && !namadr_list_match(hogger_list, state->name, state->addr)
-	    && anvil_clnt_connect(anvil_clnt, service, state->addr,
+	    && anvil_clnt_connect(anvil_clnt, state->service, state->addr,
 				  &count, &crate) == ANVIL_STAT_OK) {
 	    if (var_smtpd_cconn_limit > 0 && count > var_smtpd_cconn_limit) {
 		state->error_mask |= MAIL_ERROR_POLICY;
 		smtpd_chat_reply(state, "421 4.7.0 %s Error: too many connections from %s",
 				 var_myhostname, state->addr);
 		msg_warn("Connection concurrency limit exceeded: %d from %s for service %s",
-			 count, state->namaddr, service);
+			 count, state->namaddr, state->service);
 		break;
 	    }
 	    if (var_smtpd_crate_limit > 0 && crate > var_smtpd_crate_limit) {
 		smtpd_chat_reply(state, "421 4.7.0 %s Error: too many connections from %s",
 				 var_myhostname, state->addr);
 		msg_warn("Connection rate limit exceeded: %d from %s for service %s",
-			 crate, state->namaddr, service);
+			 crate, state->namaddr, state->service);
 		break;
 	    }
 	}
@@ -3499,7 +3573,7 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 	&& !xclient_allowed
 	&& anvil_clnt
 	&& !namadr_list_match(hogger_list, state->name, state->addr))
-	anvil_clnt_disconnect(anvil_clnt, service, state->addr);
+	anvil_clnt_disconnect(anvil_clnt, state->service, state->addr);
 
     /*
      * Log abnormal session termination, in case postmaster notification has
@@ -3516,6 +3590,8 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
     /*
      * Cleanup whatever information the client gave us during the SMTP
      * dialog.
+     * 
+     * XXX Duplicated in xclient_cmd().
      */
 #ifdef USE_TLS
     tls_reset(state);
@@ -3596,7 +3672,7 @@ static void smtpd_service(VSTREAM *stream, char *service, char **argv)
     /*
      * Provide the SMTP service.
      */
-    smtpd_proto(&state, service);
+    smtpd_proto(&state);
 
     /*
      * After the client has gone away, clean up whatever we have set up at

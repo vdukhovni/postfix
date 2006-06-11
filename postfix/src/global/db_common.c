@@ -281,6 +281,8 @@ int db_common_expand(void *ctxArg, const char *format, const char *value,
     DB_COMMON_CTX *ctx = (DB_COMMON_CTX *) ctxArg;
     const char *vdomain = 0;
     const char *kdomain = 0;
+    const char *domain = 0;
+    int     dflag = key ? DB_COMMON_VALUE_DOMAIN : DB_COMMON_KEY_DOMAIN;
     char   *vuser = 0;
     char   *kuser = 0;
     ARGV   *parts = 0;
@@ -397,6 +399,12 @@ int db_common_expand(void *ctxArg, const char *format, const char *value,
 		break;
 
 	    case 'd':
+		if (!(ctx->flags & dflag))
+		    msg_panic("%s: %s: %s: bad query/result template context",
+			      myname, ctx->dict->name, format);
+		if (!vdomain)
+		    msg_panic("%s: %s: %s: expanding domain-less key or value",
+			      myname, ctx->dict->name, format);
 		QUOTE_VAL(ctx->dict, quote_func, vdomain, result);
 		break;
 
@@ -426,10 +434,13 @@ int db_common_expand(void *ctxArg, const char *format, const char *value,
 		break;
 
 	    case 'D':
-		if (key)
-		    QUOTE_VAL(ctx->dict, quote_func, kdomain, result);
-		else
-		    QUOTE_VAL(ctx->dict, quote_func, vdomain, result);
+		if (!(ctx->flags & DB_COMMON_KEY_DOMAIN))
+		    msg_panic("%s: %s: %s: bad query/result template context",
+			      myname, ctx->dict->name, format);
+		if ((domain = key ? kdomain : vdomain) == 0)
+		    msg_panic("%s: %s: %s: expanding domain-less key or value",
+			      myname, ctx->dict->name, format);
+		QUOTE_VAL(ctx->dict, quote_func, domain, result);
 		break;
 
 	    case '1':
@@ -450,6 +461,13 @@ int db_common_expand(void *ctxArg, const char *format, const char *value,
 		 * guaranteed to be initialized and hold enough elements to
 		 * satisfy the query template.
 		 */
+		if (!(ctx->flags & DB_COMMON_KEY_DOMAIN)
+		    || ctx->nparts < *cp - '0')
+		    msg_panic("%s: %s: %s: bad query/result template context",
+			      myname, ctx->dict->name, format);
+		if (!parts || parts->argc <  ctx->nparts)
+		    msg_panic("%s: %s: %s: key has too few domain labels",
+			      myname, ctx->dict->name, format);
 		QUOTE_VAL(ctx->dict, quote_func,
 			  parts->argv[parts->argc - (*cp - '0')], result);
 		break;

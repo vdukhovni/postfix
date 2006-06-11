@@ -1002,14 +1002,18 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	     */
 	case SMTP_STATE_XFORWARD_NAME_ADDR:
 	    vstring_strcpy(next_command, XFORWARD_CMD);
-	    if (session->features & SMTP_FEATURE_XFORWARD_NAME)
-		vstring_sprintf_append(next_command, " %s=%s",
-		   XFORWARD_NAME, DEL_REQ_ATTR_AVAIL(request->client_name) ?
-			       request->client_name : XFORWARD_UNAVAILABLE);
-	    if (session->features & SMTP_FEATURE_XFORWARD_ADDR)
-		vstring_sprintf_append(next_command, " %s=%s",
-		   XFORWARD_ADDR, DEL_REQ_ATTR_AVAIL(request->client_addr) ?
-			       request->client_addr : XFORWARD_UNAVAILABLE);
+	    if (session->features & SMTP_FEATURE_XFORWARD_NAME) {
+		vstring_strcat(next_command, " " XFORWARD_NAME "=");
+		xtext_quote_append(next_command,
+				   DEL_REQ_ATTR_AVAIL(request->client_name) ?
+			   request->client_name : XFORWARD_UNAVAILABLE, "");
+	    }
+	    if (session->features & SMTP_FEATURE_XFORWARD_ADDR) {
+		vstring_strcat(next_command, " " XFORWARD_ADDR "=");
+		xtext_quote_append(next_command,
+				   DEL_REQ_ATTR_AVAIL(request->client_addr) ?
+			   request->client_addr : XFORWARD_UNAVAILABLE, "");
+	    }
 	    if (session->send_proto_helo)
 		next_state = SMTP_STATE_XFORWARD_PROTO_HELO;
 	    else
@@ -1018,20 +1022,26 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 
 	case SMTP_STATE_XFORWARD_PROTO_HELO:
 	    vstring_strcpy(next_command, XFORWARD_CMD);
-	    if (session->features & SMTP_FEATURE_XFORWARD_PROTO)
-		vstring_sprintf_append(next_command, " %s=%s",
-		 XFORWARD_PROTO, DEL_REQ_ATTR_AVAIL(request->client_proto) ?
-			      request->client_proto : XFORWARD_UNAVAILABLE);
-	    if (session->features & SMTP_FEATURE_XFORWARD_HELO)
-		vstring_sprintf_append(next_command, " %s=%s",
-		   XFORWARD_HELO, DEL_REQ_ATTR_AVAIL(request->client_helo) ?
-			       request->client_helo : XFORWARD_UNAVAILABLE);
-	    if (session->features & SMTP_FEATURE_XFORWARD_DOMAIN)
-		vstring_sprintf_append(next_command, " %s=%s", XFORWARD_DOMAIN,
+	    if (session->features & SMTP_FEATURE_XFORWARD_PROTO) {
+		vstring_strcat(next_command, " " XFORWARD_PROTO "=");
+		xtext_quote_append(next_command,
+				 DEL_REQ_ATTR_AVAIL(request->client_proto) ?
+			  request->client_proto : XFORWARD_UNAVAILABLE, "");
+	    }
+	    if (session->features & SMTP_FEATURE_XFORWARD_HELO) {
+		vstring_strcat(next_command, " " XFORWARD_HELO "=");
+		xtext_quote_append(next_command,
+				   DEL_REQ_ATTR_AVAIL(request->client_helo) ?
+			   request->client_helo : XFORWARD_UNAVAILABLE, "");
+	    }
+	    if (session->features & SMTP_FEATURE_XFORWARD_DOMAIN) {
+		vstring_strcat(next_command, " " XFORWARD_DOMAIN "=");
+		xtext_quote_append(next_command,
 			 DEL_REQ_ATTR_AVAIL(request->rewrite_context) == 0 ?
-				       XFORWARD_UNAVAILABLE :
+				   XFORWARD_UNAVAILABLE :
 		     strcmp(request->rewrite_context, MAIL_ATTR_RWR_LOCAL) ?
-				  XFORWARD_DOM_REMOTE : XFORWARD_DOM_LOCAL);
+			      XFORWARD_DOM_REMOTE : XFORWARD_DOM_LOCAL, "");
+	    }
 	    next_state = SMTP_STATE_MAIL;
 	    break;
 

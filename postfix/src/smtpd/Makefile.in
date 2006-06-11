@@ -329,6 +329,7 @@ smtpd_proxy.o: ../../include/tls.h
 smtpd_proxy.o: ../../include/vbuf.h
 smtpd_proxy.o: ../../include/vstream.h
 smtpd_proxy.o: ../../include/vstring.h
+smtpd_proxy.o: ../../include/xtext.h
 smtpd_proxy.o: smtpd.h
 smtpd_proxy.o: smtpd_proxy.c
 smtpd_proxy.o: smtpd_proxy.h

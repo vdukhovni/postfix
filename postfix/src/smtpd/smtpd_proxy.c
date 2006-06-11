@@ -162,6 +162,7 @@
 #include <rec_type.h>
 #include <mail_proto.h>
 #include <mail_params.h>		/* null_format_string */
+#include <xtext.h>
 
 /* Application-specific. */
 
@@ -212,12 +213,20 @@ static int smtpd_xforward(SMTPD_STATE *state, VSTRING *buf, const char *name,
 #define CONSTR_LEN(s)	(sizeof(s) - 1)
 #define PAYLOAD_LIMIT	(512 - CONSTR_LEN("250 " XFORWARD_CMD "\r\n"))
 
-    /*
-     * How much space does this attribute need?
-     */
     if (!value_available)
 	value = XFORWARD_UNAVAILABLE;
-    new_len = strlen(name) + strlen(value) + 2;	/* SPACE name = value */
+
+    /*
+     * Encode the attribute value.
+     */
+    if (state->expand_buf == 0)
+	state->expand_buf = vstring_alloc(100);
+    xtext_quote(state->expand_buf, value, "");
+
+    /*
+     * How much space does this attribute need? SPACE name = value.
+     */
+    new_len = strlen(name) + strlen(STR(state->expand_buf)) + 2;
     if (new_len > PAYLOAD_LIMIT)
 	msg_warn("%s command payload %s=%.10s... exceeds SMTP protocol limit",
 		 XFORWARD_CMD, name, value);
@@ -228,7 +237,7 @@ static int smtpd_xforward(SMTPD_STATE *state, VSTRING *buf, const char *name,
     if (VSTRING_LEN(buf) > 0 && VSTRING_LEN(buf) + new_len > PAYLOAD_LIMIT)
 	if ((ret = smtpd_xforward_flush(state, buf)) < 0)
 	    return (ret);
-    vstring_sprintf_append(buf, " %s=%s", name, value);
+    vstring_sprintf_append(buf, " %s=%s", name, STR(state->expand_buf));
 
     return (0);
 }

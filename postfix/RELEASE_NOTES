@@ -17,6 +17,32 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
+Incompatibility with snapshot 20060611
+======================================
+
+The PostgreSQL client was updated after the PostgreSQL developers
+made major database API changes in response to SQL injection problems.
+This breaks support for PGSQL versions prior to 8.1.4, 8.0.8, 7.4.13,
+and 7.3.15. Support for these requires major code changes which are
+not possible in the time that is left for completing the Postfix
+2.3 stable release.
+
+The SMTP server XCLIENT implementation has changed. The SMTP server
+now resets state to the initial server greeting stage, so that it
+can accurately simulate the effect of connection-level access
+restrictions.  Without this change, XCLIENT will not work at all
+with Milter applications.
+
+The SMTP server XCLIENT and XFORWARD commands now expect that
+attributes are xtext encoded (RFC 1891). For backwards compatibility
+they will accept unencoded attribute values. The XFORWARD client
+code in the SMTP client and in the SMTPD_PROXY client will always
+encode attribute values. This change will have effect only for
+malformed hostname and helo parameter values.
+
+For more details, see the XCLIENT_README and XFORWARD_README
+documents.
+
 Incompatibility with snapshot 20060207
 ======================================
 

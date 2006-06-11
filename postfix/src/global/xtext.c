@@ -11,9 +11,10 @@
 /*	const char *unquoted;
 /*	const char *special;
 /*
-/*	VSTRING	*xtext_unquote_append(unquoted, quoted)
+/*	VSTRING	*xtext_quote_append(unquoted, quoted, special)
 /*	VSTRING	*unquoted;
 /*	const char *quoted;
+/*	const char *special;
 /*
 /*	VSTRING	*xtext_unquote(unquoted, quoted)
 /*	VSTRING	*unquoted;

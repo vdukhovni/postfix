@@ -12182,7 +12182,56 @@ Apologies for any names omitted.
 	master/master_spawn.c, pickup/pickup.c, util/match_ops.c,
 	util/safe_open.c, xsasl/xsasl_cyrus_client.c.
 
+20060606
+
+	Bugfix: qmgr panic after queue file corruption by Mailscanner.
+	Files: *qmgr/qmgr_message.c.
+
+	Bugfix: XCLIENT didn't work with smtpd_delay_reject=no
+	(problem reported by Joshua Goodall).  To make XCLIENT work
+	correctly with built-in restrictions and with Milter
+	applications, the SMTP server now jumps back to the very
+	start (the 220 phase) of an SMTP session.  File: smtpd/smtpd.c.
+
+20060610
+
+	Cleanup: XCLIENT and XFORWARD attribute values are now sent
+	as xtext encoded strings. For backwards compatibility,
+	Postfix will still accept unencoded attribute values.  Files:
+	smtpd/smtpd.c, smtpd/smtpd_proxy.c, smtp/smtp_proto.c.
+
+20060611
+
+	Robustness: additional sanity checks for common database
+	routines. Viktor Dukhovni. File: global/db_common.c.
+
+	Portability: LDAP 2.3 API support. Viktor Dukhovni. File:
+	global/dict_ldap.c.
+
+	Security: the PostgreSQL client was updated after the
+	PostgreSQL developers made major database API changes in
+	response to PostgreSQL security issues. This breaks support
+	for PGSQL versions prior to 8.1.4, 8.0.8, 7.4.13, and 7.3.15.
+	Support for these requires major code changes which are not
+	possible in the time that is left for the Postfix 2.3 stable
+	release.
+
+	Specific PostgreSQL client changes: use connection-aware
+	quoting, and more robust PQexec() result handling.  Previous
+	versions of the dict_pgsql driver didn't check the status
+	of the result pointer, and certain exceptional events can
+	be mis-interpreted as an empty result set.  Fixes by Leandro
+	Santi. File: global/dict_pgsql.c.
+
 Wish list:
+
+	With (non)delivery notifications, prepend an "Auto-Submitted:
+	auto-replied" header, as per RFC 3834.
+
+	Defer delivery when a SASL password exists but the server
+	does not offer SASL authentication, as mail might otherwise
+	be bounced. Make this configurable so people can get the
+	old behavior.
 
 	Don't lose bits when converting st_dev into maildir file
 	name. It's 64 bits on Linux. Found with the BEAM source
