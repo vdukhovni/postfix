@@ -128,6 +128,8 @@ case "$SYSTEM.$RELEASE" in
 		;;
    NetBSD.2*)	SYSTYPE=NETBSD2
 		;;
+   NetBSD.3*)	SYSTYPE=NETBSD3
+		;;
    BSD/OS.2*)	SYSTYPE=BSDI2
 		;;
    BSD/OS.3*)	SYSTYPE=BSDI3

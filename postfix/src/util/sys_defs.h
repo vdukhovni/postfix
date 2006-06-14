@@ -27,7 +27,7 @@
     || defined(FREEBSD5) || defined(FREEBSD6) \
     || defined(BSDI2) || defined(BSDI3) || defined(BSDI4) \
     || defined(OPENBSD2) || defined(OPENBSD3) \
-    || defined(NETBSD1) || defined(NETBSD2) \
+    || defined(NETBSD1) || defined(NETBSD2) || defined(NETBSD3) \
     || defined(EKKOBSD1)
 #define SUPPORTED
 #include <sys/types.h>
