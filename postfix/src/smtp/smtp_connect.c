@@ -121,7 +121,7 @@ static SMTP_SESSION *smtp_connect_unix(const char *addr,
 				               DSN_BUF *why,
 				               int sess_flags)
 {
-    char   *myname = "smtp_connect_unix";
+    const char *myname = "smtp_connect_unix";
     struct sockaddr_un sock_un;
     int     len = strlen(addr);
     int     sock;
@@ -170,7 +170,7 @@ static SMTP_SESSION *smtp_connect_addr(const char *destination, DNS_RR *addr,
 				               unsigned port, DSN_BUF *why,
 				               int sess_flags)
 {
-    char   *myname = "smtp_connect_addr";
+    const char *myname = "smtp_connect_addr";
     struct sockaddr_storage ss;		/* remote */
     struct sockaddr *sa = (struct sockaddr *) & ss;
     SOCKADDR_SIZE salen = sizeof(ss);
@@ -426,6 +426,7 @@ static void smtp_cleanup_session(SMTP_STATE *state)
 
 static void smtp_connect_local(SMTP_STATE *state, const char *path)
 {
+    const char *myname = "smtp_connect_local";
     DELIVER_REQUEST *request = state->request;
     SMTP_SESSION *session;
     DSN_BUF *why = state->why;
@@ -457,21 +458,54 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path)
      */
 #define NO_PORT	0
 
+    /*
+     * Opportunistic TLS for unix domain sockets does not make much sense,
+     * since the channel is private, mere encryption without authentication
+     * is just wasted cycles and opportunity for breakage. Since we are not
+     * willing to retry after TLS handshake failures here, we downgrade "may"
+     * no "none". Nothing is lost, and much waste is avoided.
+     * 
+     * We don't know who is authenticating whom, so if a client cert is
+     * available, "encrypt" may be a sensible policy. Otherwise, we also
+     * downgrade "encrypt" to "none", this time just to avoid waste.
+     */
     if ((state->misc_flags & SMTP_MISC_FLAG_CONN_CACHE) == 0
 	|| (session = smtp_reuse_addr(state, path, NO_PORT)) == 0)
 	session = smtp_connect_unix(path, why, state->misc_flags);
     if ((state->session = session) != 0) {
 	session->state = state;
+#ifdef USE_TLS
+	session->tls_nexthop = var_myhostname;	/* for TLS_LEV_SECURE */
+	if (session->tls_level == TLS_LEV_MAY) {
+	    msg_warn("%s: opportunistic TLS encryption is not appropriate "
+		     "for unix-domain destinations.", myname);
+	    session->tls_level = TLS_LEV_NONE;
+	}
+#endif
 	/* All delivery errors bounce or defer. */
 	state->misc_flags |= SMTP_MISC_FLAG_FINAL_SERVER;
+
+	/*
+	 * When a TLS handshake fails, the stream is marked "dead" to avoid
+	 * further I/O over a broken channel.
+	 */
 	if ((session->features & SMTP_FEATURE_FROM_CACHE) == 0
 	    && smtp_helo(state) != 0) {
-	    if (vstream_ferror(session->stream) == 0
+	    if (!THIS_SESSION_IS_DEAD
+		&& vstream_ferror(session->stream) == 0
 		&& vstream_feof(session->stream) == 0)
 		smtp_quit(state);
 	} else {
 	    smtp_xfer(state);
 	}
+
+	/*
+	 * With opportunistic TLS disabled we don't expect to be asked to
+	 * retry connections without TLS, and so we expect the final server
+	 * flag to stay on.
+	 */
+	if ((state->misc_flags & SMTP_MISC_FLAG_FINAL_SERVER) == 0)
+	    msg_panic("%s: unix-domain destination not final!", myname);
 	smtp_cleanup_session(state);
     }
 }
@@ -618,6 +652,7 @@ static void smtp_connect_remote(SMTP_STATE *state, const char *nexthop,
     char   *dest;
     char  **cpp;
     int     non_fallback_sites;
+    int     retry_plain = 0;
     DSN_BUF *why = state->why;
 
     /*
@@ -805,9 +840,36 @@ static void smtp_connect_remote(SMTP_STATE *state, const char *nexthop,
 		if ((state->misc_flags & SMTP_MISC_FLAG_FINAL_NEXTHOP)
 		    && next == 0)
 		    state->misc_flags |= SMTP_MISC_FLAG_FINAL_SERVER;
+#ifdef USE_TLS
+		/* Disable TLS when retrying after a handshake failure */
+		if (retry_plain) {
+		    if (session->tls_level >= TLS_LEV_ENCRYPT)
+			msg_panic("Plain-text retry wrong for mandatory TLS");
+		    session->tls_level = TLS_LEV_NONE;
+		    retry_plain = 0;
+		}
+		session->tls_nexthop = domain;	/* for TLS_LEV_SECURE */
+#endif
 		if ((session->features & SMTP_FEATURE_FROM_CACHE) == 0
 		    && smtp_helo(state) != 0) {
-		    if (vstream_ferror(session->stream) == 0
+#ifdef USE_TLS
+
+		    /*
+		     * When an opportunistic TLS handshake fails, try the
+		     * same address again, with TLS disabled.
+		     */
+		    if ((retry_plain = session->tls_retry_plain) != 0) {
+			--addr_count;
+			next = addr;
+		    }
+#endif
+
+		    /*
+		     * When a TLS handshake fails, the stream is marked
+		     * "dead" to avoid further I/O over a broken channel.
+		     */
+		    if (!THIS_SESSION_IS_DEAD
+			&& vstream_ferror(session->stream) == 0
 			&& vstream_feof(session->stream) == 0)
 			smtp_quit(state);
 		} else {

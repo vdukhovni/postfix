@@ -138,7 +138,7 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 			         VSTRING *channel, VSTRING *nexthop,
 			         VSTRING *nextrcpt, int *flags)
 {
-    char   *myname = "resolve_addr";
+    const char *myname = "resolve_addr";
     VSTRING *addr_buf = vstring_alloc(100);
     TOK822 *tree = 0;
     TOK822 *saved_domain = 0;

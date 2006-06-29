@@ -474,7 +474,7 @@ static int xsasl_cyrus_server_auth_response(int sasl_status,
 int     xsasl_cyrus_server_first(XSASL_SERVER *xp, const char *sasl_method,
 			          const char *init_response, VSTRING *reply)
 {
-    char   *myname = "xsasl_cyrus_server_first";
+    const char *myname = "xsasl_cyrus_server_first";
     XSASL_CYRUS_SERVER *server = (XSASL_CYRUS_SERVER *) xp;
     char   *dec_buffer;
     unsigned dec_length;
@@ -534,7 +534,7 @@ int     xsasl_cyrus_server_first(XSASL_SERVER *xp, const char *sasl_method,
 static int xsasl_cyrus_server_next(XSASL_SERVER *xp, const char *request,
 				           VSTRING *reply)
 {
-    char   *myname = "xsasl_cyrus_server_next";
+    const char *myname = "xsasl_cyrus_server_next";
     XSASL_CYRUS_SERVER *server = (XSASL_CYRUS_SERVER *) xp;
     unsigned dec_length;
     unsigned request_len;

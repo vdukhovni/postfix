@@ -77,7 +77,7 @@
 
 int     valid_hostname(const char *name, int gripe)
 {
-    char   *myname = "valid_hostname";
+    const char *myname = "valid_hostname";
     const char *cp;
     int     label_length = 0;
     int     label_count = 0;
@@ -182,7 +182,7 @@ int     valid_hostaddr(const char *addr, int gripe)
 int     valid_ipv4_hostaddr(const char *addr, int gripe)
 {
     const char *cp;
-    char   *myname = "valid_ipv4_hostaddr";
+    const char *myname = "valid_ipv4_hostaddr";
     int     in_byte = 0;
     int     byte_count = 0;
     int     byte_val = 0;

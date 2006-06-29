@@ -48,7 +48,7 @@
 /*	needed later in each call of \fIdb_common_expand\fR. A non-zero return
 /*	value indicates that data-depedent '%' expansions were found in the input
 /*	template.
-/*	
+/*
 /*	\fIdb_common_expand\fR expands the specifiers in \fIformat\fR.
 /*	When the input data lacks all fields needed for the expansion, zero
 /*	is returned and the query or result should be skipped. Otherwise
@@ -150,73 +150,81 @@
   */
 #include "db_common.h"
 
-#define	DB_COMMON_KEY_DOMAIN	(1 << 0)	/* Need lookup key domain */
-#define	DB_COMMON_KEY_USER	(1 << 1)	/* Need lookup key localpart */
-#define	DB_COMMON_VALUE_DOMAIN	(1 << 2)	/* Need result domain */
-#define	DB_COMMON_VALUE_USER	(1 << 3)	/* Need result localpart */
-#define	DB_COMMON_KEY_PARTIAL	(1 << 4)	/* Key uses input substrings */
+#define	DB_COMMON_KEY_DOMAIN	(1 << 0)/* Need lookup key domain */
+#define	DB_COMMON_KEY_USER	(1 << 1)/* Need lookup key localpart */
+#define	DB_COMMON_VALUE_DOMAIN	(1 << 2)/* Need result domain */
+#define	DB_COMMON_VALUE_USER	(1 << 3)/* Need result localpart */
+#define	DB_COMMON_KEY_PARTIAL	(1 << 4)/* Key uses input substrings */
 
 typedef struct {
-    DICT    *dict;
+    DICT   *dict;
     STRING_LIST *domain;
-    int      flags;
-    int      nparts;
-} DB_COMMON_CTX;
+    int     flags;
+    int     nparts;
+}       DB_COMMON_CTX;
 
 /* db_common_parse - validate query or result template */
 
-int db_common_parse(DICT *dict, void **ctxPtr, const char *format, int query)
+int     db_common_parse(DICT *dict, void **ctxPtr, const char *format, int query)
 {
-    DB_COMMON_CTX *ctx = (DB_COMMON_CTX *)*ctxPtr;
+    DB_COMMON_CTX *ctx = (DB_COMMON_CTX *) * ctxPtr;
     const char *cp;
     int     dynamic = 0;
 
     if (ctx == 0) {
-    	ctx = (DB_COMMON_CTX *)(*ctxPtr = mymalloc(sizeof *ctx));
+	ctx = (DB_COMMON_CTX *) (*ctxPtr = mymalloc(sizeof *ctx));
 	ctx->dict = dict;
 	ctx->domain = 0;
 	ctx->flags = 0;
 	ctx->nparts = 0;
     }
-
     for (cp = format; *cp; ++cp)
-    	if (*cp == '%')
+	if (*cp == '%')
 	    switch (*++cp) {
 	    case '%':
-	    	break;
+		break;
 	    case 'u':
-	    	ctx->flags |= 
+		ctx->flags |=
 		    query ? DB_COMMON_KEY_USER | DB_COMMON_KEY_PARTIAL
-		    	  : DB_COMMON_VALUE_USER;
+		    : DB_COMMON_VALUE_USER;
 		dynamic = 1;
 		break;
 	    case 'd':
-	    	ctx->flags |= 
+		ctx->flags |=
 		    query ? DB_COMMON_KEY_DOMAIN | DB_COMMON_KEY_PARTIAL
-		    	  : DB_COMMON_VALUE_DOMAIN;
+		    : DB_COMMON_VALUE_DOMAIN;
 		dynamic = 1;
 		break;
-	    case 's': case 'S':
-	    	dynamic = 1;
-	    	break;
-	    case 'U':
-	    	ctx->flags |= DB_COMMON_KEY_PARTIAL | DB_COMMON_KEY_USER;
-	    	dynamic = 1;
+	    case 's':
+	    case 'S':
+		dynamic = 1;
 		break;
-	    case '1': case '2': case '3': case '4': case '5':
-	    case '6': case '7': case '8': case '9':
-	    	/*
+	    case 'U':
+		ctx->flags |= DB_COMMON_KEY_PARTIAL | DB_COMMON_KEY_USER;
+		dynamic = 1;
+		break;
+	    case '1':
+	    case '2':
+	    case '3':
+	    case '4':
+	    case '5':
+	    case '6':
+	    case '7':
+	    case '8':
+	    case '9':
+
+		/*
 		 * Find highest %[1-9] index in query template. Input keys
 		 * will be constrained to those with at least this many
-		 * domain components. This makes the db_common_expand()
-		 * code safe from invalid inputs.
+		 * domain components. This makes the db_common_expand() code
+		 * safe from invalid inputs.
 		 */
-	    	if (ctx->nparts < *cp - '0')
+		if (ctx->nparts < *cp - '0')
 		    ctx->nparts = *cp - '0';
 		/* FALLTHROUGH */
 	    case 'D':
-	    	ctx->flags |= DB_COMMON_KEY_PARTIAL | DB_COMMON_KEY_DOMAIN;
-	    	dynamic = 1;
+		ctx->flags |= DB_COMMON_KEY_PARTIAL | DB_COMMON_KEY_DOMAIN;
+		dynamic = 1;
 		break;
 	    default:
 		msg_fatal("db_common_parse: %s: Invalid %s template: %s",
@@ -227,33 +235,34 @@ int db_common_parse(DICT *dict, void **ctxPtr, const char *format, int query)
 
 /* db_common_parse_domain - parse domain matchlist*/
 
-void db_common_parse_domain(CFG_PARSER *parser, void *ctxPtr)
+void    db_common_parse_domain(CFG_PARSER *parser, void *ctxPtr)
 {
-    DB_COMMON_CTX *ctx = (DB_COMMON_CTX *)ctxPtr;
+    DB_COMMON_CTX *ctx = (DB_COMMON_CTX *) ctxPtr;
     char   *domainlist;
-    char   *myname = "db_common_parse_domain";
+    const char *myname = "db_common_parse_domain";
 
     domainlist = cfg_get_str(parser, "domain", "", 0, 0);
     if (*domainlist) {
 	ctx->domain = string_list_init(MATCH_FLAG_NONE, domainlist);
 	if (ctx->domain == 0)
+
 	    /*
 	     * The "domain" optimization skips input keys that may in fact
 	     * have unwanted matches in the database, so failure to create
 	     * the match list is fatal.
 	     */
 	    msg_fatal("%s: %s: domain match list creation using '%s' failed",
-	    	      myname, parser->name, domainlist);
+		      myname, parser->name, domainlist);
     }
     myfree(domainlist);
 }
 
 /* db_common_dict_partial - Does query use partial lookup keys? */
 
-int db_common_dict_partial(void *ctxPtr)
+int     db_common_dict_partial(void *ctxPtr)
 {
-#if 0	/* Breaks recipient_delimiter */
-    DB_COMMON_CTX *ctx = (DB_COMMON_CTX *)ctxPtr;
+#if 0					/* Breaks recipient_delimiter */
+    DB_COMMON_CTX *ctx = (DB_COMMON_CTX *) ctxPtr;
 
     return (ctx->domain || ctx->flags & DB_COMMON_KEY_PARTIAL);
 #endif
@@ -262,22 +271,22 @@ int db_common_dict_partial(void *ctxPtr)
 
 /* db_common_free_ctx - free parse context */
 
-void db_common_free_ctx(void *ctxPtr)
+void    db_common_free_ctx(void *ctxPtr)
 {
-    DB_COMMON_CTX *ctx = (DB_COMMON_CTX *)ctxPtr;
+    DB_COMMON_CTX *ctx = (DB_COMMON_CTX *) ctxPtr;
 
     if (ctx->domain)
-    	string_list_free(ctx->domain);
-    myfree((char *)ctxPtr);
+	string_list_free(ctx->domain);
+    myfree((char *) ctxPtr);
 }
 
 /* db_common_expand - expand query and result templates */
 
-int db_common_expand(void *ctxArg, const char *format, const char *value,
-		     const char *key, VSTRING *result,
-		     db_quote_callback_t quote_func)
+int     db_common_expand(void *ctxArg, const char *format, const char *value,
+			         const char *key, VSTRING *result,
+			         db_quote_callback_t quote_func)
 {
-    char   *myname = "db_common_expand";
+    const char *myname = "db_common_expand";
     DB_COMMON_CTX *ctx = (DB_COMMON_CTX *) ctxArg;
     const char *vdomain = 0;
     const char *kdomain = 0;
@@ -465,7 +474,7 @@ int db_common_expand(void *ctxArg, const char *format, const char *value,
 		    || ctx->nparts < *cp - '0')
 		    msg_panic("%s: %s: %s: bad query/result template context",
 			      myname, ctx->dict->name, format);
-		if (!parts || parts->argc <  ctx->nparts)
+		if (!parts || parts->argc < ctx->nparts)
 		    msg_panic("%s: %s: %s: key has too few domain labels",
 			      myname, ctx->dict->name, format);
 		QUOTE_VAL(ctx->dict, quote_func,
@@ -495,9 +504,9 @@ int db_common_expand(void *ctxArg, const char *format, const char *value,
 
 /* db_common_check_domain - check domain list */
 
-int db_common_check_domain(void *ctxPtr, const char *addr)
+int     db_common_check_domain(void *ctxPtr, const char *addr)
 {
-    DB_COMMON_CTX *ctx = (DB_COMMON_CTX *)ctxPtr;
+    DB_COMMON_CTX *ctx = (DB_COMMON_CTX *) ctxPtr;
     char   *domain;
 
     if (ctx->domain) {
@@ -513,9 +522,9 @@ int db_common_check_domain(void *ctxPtr, const char *addr)
 
 /* db_common_sql_build_query -- build query for SQL maptypes */
 
-void db_common_sql_build_query(VSTRING *query, CFG_PARSER *parser)
+void    db_common_sql_build_query(VSTRING *query, CFG_PARSER *parser)
 {
-    char   *myname = "db_common_sql_build_query";
+    const char *myname = "db_common_sql_build_query";
     char   *table;
     char   *select_field;
     char   *where_field;
@@ -526,22 +535,22 @@ void db_common_sql_build_query(VSTRING *query, CFG_PARSER *parser)
      */
     if ((table = cfg_get_str(parser, "table", NULL, 1, 0)) == 0)
 	msg_fatal("%s: 'table' parameter not defined", myname);
-    
+
     if ((select_field = cfg_get_str(parser, "select_field", NULL, 1, 0)) == 0)
 	msg_fatal("%s: 'select_field' parameter not defined", myname);
 
     if ((where_field = cfg_get_str(parser, "where_field", NULL, 1, 0)) == 0)
-            msg_fatal("%s: 'where_field' parameter not defined", myname);
+	msg_fatal("%s: 'where_field' parameter not defined", myname);
 
     additional_conditions = cfg_get_str(parser, "additional_conditions",
-    					"", 0, 0);
+					"", 0, 0);
 
     vstring_sprintf(query, "SELECT %s FROM %s WHERE %s='%%s' %s",
-                    select_field, table, where_field,
-                    additional_conditions);
-    
+		    select_field, table, where_field,
+		    additional_conditions);
+
     myfree(table);
     myfree(select_field);
     myfree(where_field);
-    myfree(additional_conditions); 
+    myfree(additional_conditions);
 }

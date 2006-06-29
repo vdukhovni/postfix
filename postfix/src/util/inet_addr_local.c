@@ -119,7 +119,7 @@
 
 static int ial_socket(int af)
 {
-    char   *myname = "inet_addr_local[socket]";
+    const char *myname = "inet_addr_local[socket]";
     int     sock;
 
     /*
@@ -159,7 +159,7 @@ static int ial_getifaddrs(INET_ADDR_LIST *addr_list,
 			          INET_ADDR_LIST *mask_list,
 			          int af)
 {
-    char   *myname = "inet_addr_local[getifaddrs]";
+    const char *myname = "inet_addr_local[getifaddrs]";
     struct ifaddrs *ifap, *ifa;
     struct sockaddr *sa, *sam;
 
@@ -241,7 +241,7 @@ static int ial_siocglif(INET_ADDR_LIST *addr_list,
 			        INET_ADDR_LIST *mask_list,
 			        int af)
 {
-    char   *myname = "inet_addr_local[siocglif]";
+    const char *myname = "inet_addr_local[siocglif]";
     struct lifconf lifc;
     struct lifreq *lifr;
     struct lifreq *lifr_mask;
@@ -319,16 +319,16 @@ static int ial_siocglif(INET_ADDR_LIST *addr_list,
  * that recent versions of these operating systems have getifaddrs.
  */
 #if defined(_SIZEOF_ADDR_IFREQ)
-# define NEXT_INTERFACE(ifr)	((struct ifreq *) \
+#define NEXT_INTERFACE(ifr)	((struct ifreq *) \
 	((char *) ifr + _SIZEOF_ADDR_IFREQ(*ifr)))
-# define IFREQ_SIZE(ifr)	_SIZEOF_ADDR_IFREQ(*ifr)
+#define IFREQ_SIZE(ifr)	_SIZEOF_ADDR_IFREQ(*ifr)
 #elif defined(HAS_SA_LEN)
-# define NEXT_INTERFACE(ifr)	((struct ifreq *) \
+#define NEXT_INTERFACE(ifr)	((struct ifreq *) \
 	((char *) ifr + sizeof(ifr->ifr_name) + ifr->ifr_addr.sa_len))
-# define IFREQ_SIZE(ifr)	(sizeof(ifr->ifr_name) + ifr->ifr_addr.sa_len)
+#define IFREQ_SIZE(ifr)	(sizeof(ifr->ifr_name) + ifr->ifr_addr.sa_len)
 #else
-# define NEXT_INTERFACE(ifr)	(ifr + 1)
-# define IFREQ_SIZE(ifr)	sizeof(ifr[0])
+#define NEXT_INTERFACE(ifr)	(ifr + 1)
+#define IFREQ_SIZE(ifr)	sizeof(ifr[0])
 #endif
 
 /* ial_siocgif - determine IP addresses using ioctl(SIOCGIF*) */
@@ -337,7 +337,7 @@ static int ial_siocgif(INET_ADDR_LIST *addr_list,
 		               INET_ADDR_LIST *mask_list,
 		               int af)
 {
-    char   *myname = "inet_addr_local[siocgif]";
+    const char *myname = "inet_addr_local[siocgif]";
     struct in_addr addr;
     struct ifconf ifc;
     struct ifreq *ifr;
@@ -449,7 +449,7 @@ static int ial_siocgif(INET_ADDR_LIST *addr_list,
 static int ial_procnet_ifinet6(INET_ADDR_LIST *addr_list,
 			               INET_ADDR_LIST *mask_list)
 {
-    char   *myname = "inet_addr_local[procnet_ifinet6]";
+    const char *myname = "inet_addr_local[procnet_ifinet6]";
     FILE   *fp;
     char    buf[BUFSIZ];
     unsigned plen;
@@ -508,7 +508,7 @@ static int ial_procnet_ifinet6(INET_ADDR_LIST *addr_list,
 int     inet_addr_local(INET_ADDR_LIST *addr_list, INET_ADDR_LIST *mask_list,
 			        unsigned *addr_family_list)
 {
-    char   *myname = "inet_addr_local";
+    const char *myname = "inet_addr_local";
     int     initial_count = addr_list->used;
     unsigned family;
     int     count;

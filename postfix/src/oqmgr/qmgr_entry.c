@@ -94,7 +94,7 @@
 
 QMGR_ENTRY *qmgr_entry_select(QMGR_QUEUE *queue)
 {
-    char   *myname = "qmgr_entry_select";
+    const char *myname = "qmgr_entry_select";
     QMGR_ENTRY *entry;
 
     if ((entry = queue->todo.prev) != 0) {

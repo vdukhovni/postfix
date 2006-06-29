@@ -165,15 +165,24 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_ENC_8BIT	"8bit"	/* 8BITMIME equivalent */
 #define MAIL_ATTR_ENC_7BIT	"7bit"	/* 7BIT equivalent */
 #define MAIL_ATTR_ENC_NONE	""	/* encoding unknown */
-#define MAIL_ATTR_CLIENT	"client"/* client name[addr] */
-#define MAIL_ATTR_CLIENT_NAME	"client_name"	/* client hostname */
-#define MAIL_ATTR_REVERSE_CLIENT_NAME "reverse_client_name"
-#define MAIL_ATTR_FORWARD_CLIENT_NAME "forward_client_name"
-#define MAIL_ATTR_CLIENT_ADDR	"client_address"	/* client address */
-#define MAIL_ATTR_HELO_NAME	"helo_name"	/* SMTP helo name */
-#define MAIL_ATTR_PROTO_NAME	"protocol_name"	/* SMTP/ESMTP/QMQP/... */
+
+#define MAIL_ATTR_LOG_CLIENT_NAME "log_client_name"	/* client hostname */
+#define MAIL_ATTR_LOG_CLIENT_ADDR "log_client_address"	/* client address */
+#define MAIL_ATTR_LOG_HELO_NAME	"log_helo_name"	/* SMTP helo name */
+#define MAIL_ATTR_LOG_PROTO_NAME "log_protocol_name"	/* SMTP/ESMTP/QMQP */
+#define MAIL_ATTR_LOG_ORIGIN	"log_message_origin"	/* hostname[address] */
+
+#define MAIL_ATTR_ACT_CLIENT	"client"/* client name addr */
+#define MAIL_ATTR_ACT_CLIENT_NAME "client_name"	/* client name */
+#define MAIL_ATTR_ACT_CLIENT_ADDR "client_address"	/* client address */
+#define MAIL_ATTR_ACT_CLIENT_PORT "client_port"	/* client TCP port */
+#define MAIL_ATTR_ACT_CLIENT_AF	"client_address_type"	/* AF_INET etc. */
+#define MAIL_ATTR_ACT_HELO_NAME	"helo_name"	/* SMTP helo name */
+#define MAIL_ATTR_ACT_PROTO_NAME "protocol_name"	/* SMTP/ESMTP/QMQP */
+#define MAIL_ATTR_ACT_REVERSE_CLIENT_NAME "reverse_client_name"
+#define MAIL_ATTR_ACT_FORWARD_CLIENT_NAME "forward_client_name"
+
 #define MAIL_ATTR_PROTO_STATE	"protocol_state"	/* MAIL/RCPT/... */
-#define MAIL_ATTR_ORIGIN	"message_origin"	/* hostname[address] */
 #define MAIL_ATTR_ORG_NONE	"unknown"	/* origin unknown */
 #define MAIL_ATTR_ORG_LOCAL	"local"	/* local submission */
 

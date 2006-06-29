@@ -17,6 +17,102 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
+Major changes with snapshot 20060626
+====================================
+
+Both the SMTP client and server can be configured without a client
+or server certificate. An SMTP server without certificate can use
+only anonymous ciphers, and will not interoperate with most clients.
+
+The SMTP server supports anonymous ciphers when client certificates
+are not requested or required, and the administrator has not excluded
+the "aNULL" OpenSSL cipher type.
+
+The SMTP client supports anonymous ciphers when no server certificate
+is required (notably Postfix 2.3 in "opportunistic" mode) and the
+administrator has not excluded the "aNULL" OpenSSL cipher type.
+
+Instead of cipher lists you can now specify cipher grades.  The
+smtp_tls_ciphers, lmtp_tls_ciphers and smtpd_tls_ciphers parameters
+specify one of "high", "medium", "low", "export" or "null". See the
+documentation for details.
+
+Incompatibility with Postfix snapshot 20060614
+==============================================
+
+The smtp_sasl_tls_verified_security_options feature is not yet
+complete, and will therefore not appear in the stable Postfix 2.3
+release.
+
+New smtp_tls_mandatory_protocols feature used for mandatory TLS
+destinations.  The default value is "SSLv3, TLSv1". SSLv2 is by
+default no longer used with mandatory TLS.
+
+The smtp_tls_cipherlist parameter only applies when TLS is mandatory,
+it is ignored for opportunistic TLS sessions.
+
+At (lmtp|smtp|smtpd)_tls_loglevel >= 2, Postfix now also logs TLS
+session cache activity. Use level 2 and higher for debugging only,
+use levels 0 or 1 as production settings.
+
+Major changes with snapshot 20060614
+====================================
+
+New design of the TLS policy interface (minimum security levels,
+cipher and protocol selection).
+
+New smtp_tls_security_level parameter obsoletes the unnecessarily
+complex smtp_use_tls, smtp_enforce_tls and smtp_tls_enforce_peername
+parameters. Use smtp_tls_security_level instead. The old parameters
+will be removed in a future Postfix release.
+
+New smtp_tls_policy_maps feature obsoletes smtp_tls_per_site, the
+old feature is only used when smtp_tls_policy_maps is not set.  Use
+smtp_tls_policy_maps instead. This also implements parent domain
+matching for destinations that are bare domains (without enclosing
+[] or optional :port suffix). One can now set TLS policy for a
+domain and all sub-domains.
+
+New smtpd_tls_protocols parameter complements the
+smtp_tls_mandatory_protocols parameter, only recommended for MSA
+configurations, not MX hosts.
+
+The unified SMTP/LMTP client now has complete sets of configuration
+parameters for each protocol.
+
+Incompatibility with snapshot 20060611
+======================================
+
+Postfix internal protocols have has changed. You need to "postfix
+reload" or restart Postfix, otherwise the cleanup server or delivery
+agents will log "unexpected attribute" warnings and mail will not
+be delivered.
+
+Incompatibility with snapshot 20060515
+======================================
+
+Milter support introduces a three new queue file record types. Queue
+files created with this Postfix version will be understood by older
+Postfix versions ONLY if Milter support is turned off, which is
+the default.
+
+Milter support introduces new logging event types: milter-reject,
+milter-discard and milter-hold, that identify actions from Milter
+applications. This may affect logfile processing software.
+
+Major changes with snapshot 20060515
+====================================
+
+Milter (mail filter) application support, compatible with Sendmail
+version 8. This allows you to run a large number of plug-ins to
+reject unwanted mail and to sign mail with, for example, domain
+keys. All Milter functions are implemented except replacing the
+message body, which will be added later. Milters are before-queue
+filters, so they don't change the queue ID.
+
+See the MILTER_README document for a discussion of how to use Milter
+support with Postfix.
+
 Incompatibility with snapshot 20060611
 ======================================
 

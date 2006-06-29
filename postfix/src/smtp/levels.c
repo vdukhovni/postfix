@@ -25,6 +25,11 @@
 #include <stringops.h>
 
  /*
+  * TLS levels
+  */
+#include <tls.h>
+
+ /*
   * Application-specific.
   */
 #include <smtp.h>
@@ -51,18 +56,18 @@ static void smtp_tls_policy_lookup(int *site_level, const char *lookup)
     if (strcasecmp(lookup, "-")) {
 	if (!strcasecmp(lookup, "NONE")) {
 	    /* NONE overrides MAY or NOTFOUND. */
-	    if (*site_level <= SMTP_TLS_LEV_MAY)
-		*site_level = SMTP_TLS_LEV_NONE;
+	    if (*site_level <= TLS_LEV_MAY)
+		*site_level = TLS_LEV_NONE;
 	} else if (!strcasecmp(lookup, "MAY")) {
 	    /* MAY overrides NOTFOUND but not NONE. */
-	    if (*site_level < SMTP_TLS_LEV_NONE)
-		*site_level = SMTP_TLS_LEV_MAY;
+	    if (*site_level < TLS_LEV_NONE)
+		*site_level = TLS_LEV_MAY;
 	} else if (!strcasecmp(lookup, "MUST_NOPEERMATCH")) {
-	    if (*site_level < SMTP_TLS_LEV_ENCRYPT)
-		*site_level = SMTP_TLS_LEV_ENCRYPT;
+	    if (*site_level < TLS_LEV_ENCRYPT)
+		*site_level = TLS_LEV_ENCRYPT;
 	} else if (!strcasecmp(lookup, "MUST")) {
-	    if (*site_level < SMTP_TLS_LEV_VERIFY)
-		*site_level = SMTP_TLS_LEV_VERIFY;
+	    if (*site_level < TLS_LEV_VERIFY)
+		*site_level = TLS_LEV_VERIFY;
 	} else {
 	    msg_fatal("unknown TLS policy '%s'", lookup);
 	}
@@ -82,17 +87,17 @@ static int policy(const char *host, const char *dest)
      */
     if (var_smtp_enforce_tls)
 	global_level = var_smtp_tls_enforce_peername ?
-	    SMTP_TLS_LEV_VERIFY : SMTP_TLS_LEV_ENCRYPT;
+	    TLS_LEV_VERIFY : TLS_LEV_ENCRYPT;
     else
 	global_level = var_smtp_use_tls ?
-	    SMTP_TLS_LEV_MAY : SMTP_TLS_LEV_NONE;
+	    TLS_LEV_MAY : TLS_LEV_NONE;
 
     /*
      * Compute the per-site TLS enforcement level. For compatibility with the
      * original TLS patch, this algorithm is gives equal precedence to host
      * and next-hop policies.
      */
-    site_level = SMTP_TLS_LEV_NOTFOUND;
+    site_level = TLS_LEV_NOTFOUND;
 
     smtp_tls_policy_lookup(&site_level, dest);
     smtp_tls_policy_lookup(&site_level, host);
@@ -112,9 +117,9 @@ static int policy(const char *host, const char *dest)
      * consistently override wildcard policies, and (non-wildcard) per-site
      * policies consistently override global policies.
      */
-    if (site_level == SMTP_TLS_LEV_NOTFOUND
-	|| (site_level == SMTP_TLS_LEV_MAY
-	    && global_level > SMTP_TLS_LEV_MAY))
+    if (site_level == TLS_LEV_NOTFOUND
+	|| (site_level == TLS_LEV_MAY
+	    && global_level > TLS_LEV_MAY))
 	tls_level = global_level;
     else
 	tls_level = site_level;
@@ -140,13 +145,13 @@ static void set_global_policy(const char *global)
 
 static const char *print_policy(int level)
 {
-    if (level == SMTP_TLS_LEV_VERIFY)
+    if (level == TLS_LEV_VERIFY)
 	return ("must");
-    if (level == SMTP_TLS_LEV_ENCRYPT)
+    if (level == TLS_LEV_ENCRYPT)
 	return ("must_nopeermatch");
-    if (level == SMTP_TLS_LEV_MAY)
+    if (level == TLS_LEV_MAY)
 	return ("may");
-    if (level == SMTP_TLS_LEV_NONE)
+    if (level == TLS_LEV_NONE)
 	return ("none");
     msg_panic("unknown policy level %d", level);
 }

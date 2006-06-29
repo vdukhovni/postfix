@@ -127,7 +127,7 @@ int     mail_copy(const char *sender,
 		          VSTREAM *src, VSTREAM *dst,
 		          int flags, const char *eol, DSN_BUF *why)
 {
-    char   *myname = "mail_copy";
+    const char *myname = "mail_copy";
     VSTRING *buf;
     char   *bp;
     off_t   orig_length;

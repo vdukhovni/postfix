@@ -904,7 +904,7 @@ int     main(int argc, char **argv)
     char   *qtime = 0;
     const char *errstr;
     uid_t   uid;
-    char   *rewrite_context = MAIL_ATTR_RWR_LOCAL;
+    const char *rewrite_context = MAIL_ATTR_RWR_LOCAL;
     int     dsn_notify = 0;
     const char *dsn_envid = 0;
     int     saved_optind;

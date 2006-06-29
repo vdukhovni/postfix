@@ -251,12 +251,10 @@
 /* .fi
 /*	Detailed information about STARTTLS configuration may be found
 /*	in the TLS_README document.
-/* .IP "\fBsmtp_use_tls (no)\fR"
-/*	Opportunistic mode: use TLS when a remote SMTP server announces
-/*	STARTTLS support, otherwise send the mail in the clear.
-/* .IP "\fBsmtp_enforce_tls (no)\fR"
-/*	Enforcement mode: require that remote SMTP servers use TLS
-/*	encryption, and never send mail in the clear.
+/* .IP "\fBsmtp_tls_security_level (empty)\fR"
+/*	The default SMTP TLS security level for all destinations; when
+/*	a non-empty value is specified, this overrides the obsolete parameters
+/*	smtp_use_tls, smtp_enforce_tls, and smtp_tls_enforce_peername.
 /* .IP "\fBsmtp_sasl_tls_security_options ($smtp_sasl_security_options)\fR"
 /*	The SASL authentication security options that the Postfix SMTP
 /*	client uses for TLS encrypted SMTP sessions.
@@ -272,16 +270,20 @@
 /*	certificate.
 /* .IP "\fBsmtp_tls_cert_file (empty)\fR"
 /*	File with the Postfix SMTP client RSA certificate in PEM format.
-/* .IP "\fBsmtp_tls_cipherlist (empty)\fR"
-/*	Controls the Postfix SMTP client TLS cipher selection scheme.
+/* .IP "\fBsmtp_tls_mandatory_ciphers (medium)\fR"
+/*	The minimum SMTP client TLS cipher grade that is strong enough to
+/*	be used with the "encrypt" security level and higher.
+/* .IP "\fBsmtp_tls_exclude_ciphers (empty)\fR"
+/*	List of ciphers or cipher types to exclude from the SMTP client cipher
+/*	list at all security levels.
+/* .IP "\fBsmtp_tls_mandatory_exclude_ciphers (empty)\fR"
+/*	List of ciphers or cipher types to exclude from the SMTP client
+/*	cipher list at the mandatory TLS security levels: "encrypt", "verify"
+/*	and "secure".
 /* .IP "\fBsmtp_tls_dcert_file (empty)\fR"
 /*	File with the Postfix SMTP client DSA certificate in PEM format.
 /* .IP "\fBsmtp_tls_dkey_file ($smtp_tls_dcert_file)\fR"
 /*	File with the Postfix SMTP client DSA private key in PEM format.
-/* .IP "\fBsmtp_tls_enforce_peername (yes)\fR"
-/*	When TLS encryption is enforced, require that the remote SMTP
-/*	server hostname matches the information in the remote SMTP server
-/*	certificate.
 /* .IP "\fBsmtp_tls_key_file ($smtp_tls_cert_file)\fR"
 /*	File with the Postfix SMTP client RSA private key in PEM format.
 /* .IP "\fBsmtp_tls_loglevel (0)\fR"
@@ -289,27 +291,67 @@
 /* .IP "\fBsmtp_tls_note_starttls_offer (no)\fR"
 /*	Log the hostname of a remote SMTP server that offers STARTTLS,
 /*	when TLS is not already enabled for that server.
-/* .IP "\fBsmtp_tls_per_site (empty)\fR"
-/*	Optional lookup tables with the Postfix SMTP client TLS usage
-/*	policy by next-hop destination and by remote SMTP server hostname.
+/* .IP "\fBsmtp_tls_policy_maps (empty)\fR"
+/*	Optional lookup tables with the Postfix SMTP client TLS security
+/*	policy by next-hop destination; when a non-empty value is specified,
+/*	this overrides the obsolete smtp_tls_per_site parameter.
+/* .IP "\fBsmtp_tls_mandatory_protocols (SSLv3, TLSv1)\fR"
+/*	List of TLS protocol versions that are secure enough to be used
+/*	with the "encrypt" security level and higher.
 /* .IP "\fBsmtp_tls_scert_verifydepth (5)\fR"
 /*	The verification depth for remote SMTP server certificates.
+/* .IP "\fBsmtp_tls_secure_cert_match (nexthop, dot-nexthop)\fR"
+/*	The server certificate peername verification method for the
+/*	"secure" TLS security level.
 /* .IP "\fBsmtp_tls_session_cache_database (empty)\fR"
 /*	Name of the file containing the optional Postfix SMTP client
 /*	TLS session cache.
 /* .IP "\fBsmtp_tls_session_cache_timeout (3600s)\fR"
 /*	The expiration time of Postfix SMTP client TLS session cache
 /*	information.
+/* .IP "\fBsmtp_tls_verify_cert_match (hostname)\fR"
+/*	The server certificate peername verification method for the
+/*	"verify" TLS security level.
 /* .IP "\fBtls_daemon_random_bytes (32)\fR"
 /*	The number of pseudo-random bytes that an \fBsmtp\fR(8) or \fBsmtpd\fR(8)
 /*	process requests from the \fBtlsmgr\fR(8) server in order to seed its
 /*	internal pseudo random number generator (PRNG).
+/* .IP "\fBtls_high_cipherlist (!EXPORT:!LOW:!MEDIUM:ALL:+RC4:@STRENGTH)\fR"
+/*	The OpenSSL cipherlist for "HIGH" grade ciphers.
+/* .IP "\fBtls_medium_cipherlist (!EXPORT:!LOW:ALL:+RC4:@STRENGTH)\fR"
+/*	The OpenSSL cipherlist for "MEDIUM" or higher grade ciphers.
+/* .IP "\fBtls_low_cipherlist (!EXPORT:ALL:+RC4:@STRENGTH)\fR"
+/*	The OpenSSL cipherlist for "LOW" or higher grade ciphers.
+/* .IP "\fBtls_export_cipherlist (ALL:+RC4:@STRENGTH)\fR"
+/*	The OpenSSL cipherlist for "EXPORT" or higher grade ciphers.
+/* .IP "\fBtls_null_cipherlist (!aNULL:eNULL+kRSA)\fR"
+/*	The OpenSSL cipherlist for "NULL" grade ciphers that provide
+/*	authentication without encryption.
 /* .PP
-/*	Available in Postfix version 2.3 and later:
+/*	Available in Postfix version 2.4 and later:
 /* .IP "\fBsmtp_sasl_tls_verified_security_options ($smtp_sasl_tls_security_options)\fR"
 /*	The SASL authentication security options that the Postfix SMTP
 /*	client uses for TLS encrypted SMTP sessions with a verified server
 /*	certificate.
+/* OBSOLETE STARTTLS CONTROLS
+/* .ad
+/* .fi
+/*	The following configuration parameters exist for compatibility
+/*	with Postfix versions before 2.3. Support for these will
+/*	be removed in a future release.
+/* .IP "\fBsmtp_use_tls (no)\fR"
+/*	Opportunistic mode: use TLS when a remote SMTP server announces
+/*	STARTTLS support, otherwise send the mail in the clear.
+/* .IP "\fBsmtp_enforce_tls (no)\fR"
+/*	Enforcement mode: require that remote SMTP servers use TLS
+/*	encryption, and never send mail in the clear.
+/* .IP "\fBsmtp_tls_enforce_peername (yes)\fR"
+/*	When TLS encryption is enforced, require that the remote SMTP
+/*	server hostname matches the information in the remote SMTP server
+/*	certificate.
+/* .IP "\fBsmtp_tls_per_site (empty)\fR"
+/*	Optional lookup tables with the Postfix SMTP client TLS usage
+/*	policy by next-hop destination and by remote SMTP server hostname.
 /* RESOURCE AND RATE CONTROLS
 /* .ad
 /* .fi
@@ -539,6 +581,7 @@
 #include <msg.h>
 #include <mymalloc.h>
 #include <name_mask.h>
+#include <name_code.h>
 
 /* Global library. */
 
@@ -612,17 +655,33 @@ bool    var_smtp_cache_demand;
 char   *var_smtp_ehlo_dis_words;
 char   *var_smtp_ehlo_dis_maps;
 
+char   *var_smtp_tls_level;
 bool    var_smtp_use_tls;
 bool    var_smtp_enforce_tls;
 char   *var_smtp_tls_per_site;
+char   *var_smtp_tls_policy;
 
 #ifdef USE_TLS
-int     var_smtp_starttls_tmout;
 char   *var_smtp_sasl_tls_opts;
 char   *var_smtp_sasl_tlsv_opts;
+int     var_smtp_starttls_tmout;
+char   *var_smtp_tls_CAfile;
+char   *var_smtp_tls_CApath;
+char   *var_smtp_tls_cert_file;
+char   *var_smtp_tls_ciphers;
+char   *var_smtp_tls_excl_ciph;
+char   *var_smtp_tls_mand_excl;
+char   *var_smtp_tls_dcert_file;
+char   *var_smtp_tls_dkey_file;
 bool    var_smtp_tls_enforce_peername;
-int     var_smtp_tls_scert_vd;
+char   *var_smtp_tls_key_file;
+int     var_smtp_tls_loglevel;
 bool    var_smtp_tls_note_starttls_offer;
+char   *var_smtp_tls_protocols;
+char   *var_smtp_tls_sec_cmatch;
+int     var_smtp_tls_scert_vd;
+char   *var_smtp_tls_vfy_cmatch;
+int     var_tls_daemon_rand_bytes;
 
 #endif
 
@@ -651,6 +710,8 @@ int     smtp_ext_prop_mask;
 SSL_CTX *smtp_tls_ctx;
 
 #endif
+
+extern NAME_CODE smtp_tls_levels[];	/* smtp_session.c name_code table */
 
 /* deliver_message - deliver message with extreme prejudice */
 
@@ -787,9 +848,29 @@ static void pre_init(char *unused_name, char **unused_argv)
     /*
      * Initialize the TLS data before entering the chroot jail
      */
-    if (var_smtp_use_tls || var_smtp_enforce_tls || var_smtp_tls_per_site[0]) {
+    if (name_code(smtp_tls_levels, NAME_CODE_FLAG_NONE,
+		  var_smtp_tls_level) > TLS_LEV_NONE ||
+	var_smtp_use_tls || var_smtp_enforce_tls ||
+	var_smtp_tls_per_site[0] || var_smtp_tls_policy[0]) {
 #ifdef USE_TLS
-	smtp_tls_ctx = tls_client_init(var_smtp_tls_scert_vd);
+	tls_client_init_props props;
+
+	/*
+	 * We get stronger type safety and a cleaner interface by combining
+	 * the various parameters into a single tls_client_props structure.
+	 */
+	props.log_level = var_smtp_tls_loglevel;
+	props.verifydepth = var_smtp_tls_scert_vd;
+	props.cache_type = strcmp(var_procname, "smtp") == 0 ?
+	    TLS_MGR_SCACHE_SMTP : TLS_MGR_SCACHE_LMTP;
+	props.cert_file = var_smtp_tls_cert_file;
+	props.key_file = var_smtp_tls_key_file;
+	props.dcert_file = var_smtp_tls_dcert_file;
+	props.dkey_file = var_smtp_tls_dkey_file;
+	props.CAfile = var_smtp_tls_CAfile;
+	props.CApath = var_smtp_tls_CApath;
+
+	smtp_tls_ctx = tls_client_init(&props);
 	smtp_tls_list_init();
 #else
 	msg_warn("TLS has been selected, but TLS support is not compiled in");

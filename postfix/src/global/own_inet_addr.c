@@ -81,7 +81,7 @@ static void own_inet_addr_init(INET_ADDR_LIST *addr_list,
     INET_ADDR_LIST local_masks;
     char   *hosts;
     char   *host;
-    char   *sep = " \t,";
+    const char *sep = " \t,";
     char   *bufp;
     int     nvirtual;
     int     nlocal;
@@ -217,7 +217,7 @@ static void proxy_inet_addr_init(INET_ADDR_LIST *addr_list)
 {
     char   *hosts;
     char   *host;
-    char   *sep = " \t,";
+    const char *sep = " \t,";
     char   *bufp;
 
     /*

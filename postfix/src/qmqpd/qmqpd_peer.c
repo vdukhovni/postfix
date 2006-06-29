@@ -72,7 +72,7 @@
 
 void    qmqpd_peer_init(QMQPD_STATE *state)
 {
-    char   *myname = "qmqpd_peer_init";
+    const char *myname = "qmqpd_peer_init";
     struct sockaddr_storage ss;
     struct sockaddr *sa;
     SOCKADDR_SIZE sa_length;
@@ -95,6 +95,7 @@ void    qmqpd_peer_init(QMQPD_STATE *state)
 	state->name = mystrdup(CLIENT_NAME_UNKNOWN);
 	state->addr = mystrdup(CLIENT_ADDR_UNKNOWN);
 	state->rfc_addr = mystrdup(CLIENT_ADDR_UNKNOWN);
+	state->addr_family = AF_UNSPEC;
     }
 
     /*
@@ -145,6 +146,7 @@ void    qmqpd_peer_init(QMQPD_STATE *state)
 
 		state->addr = mystrdup(colonp + 1);
 		state->rfc_addr = mystrdup(colonp + 1);
+		state->addr_family = AF_INET;
 		aierr = hostaddr_to_sockaddr(state->addr, (char *) 0, 0, &res0);
 		if (aierr)
 		    msg_fatal("%s: cannot convert %s from string to binary: %s",
@@ -168,6 +170,7 @@ void    qmqpd_peer_init(QMQPD_STATE *state)
 		state->addr = mystrdup(client_addr.buf);
 		state->rfc_addr =
 		    concatenate(IPV6_COL, client_addr.buf, (char *) 0);
+		state->addr_family = sa->sa_family;
 	    }
 	}
 
@@ -179,6 +182,7 @@ void    qmqpd_peer_init(QMQPD_STATE *state)
 	{
 	    state->addr = mystrdup(client_addr.buf);
 	    state->rfc_addr = mystrdup(client_addr.buf);
+	    state->addr_family = sa->sa_family;
 	}
 
 	/*
@@ -241,6 +245,7 @@ void    qmqpd_peer_init(QMQPD_STATE *state)
 	state->name = mystrdup("localhost");
 	state->addr = mystrdup("127.0.0.1");	/* XXX bogus. */
 	state->rfc_addr = mystrdup("127.0.0.1");/* XXX bogus. */
+	state->addr_family = AF_UNSPEC;
     }
 
     /*

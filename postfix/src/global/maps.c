@@ -158,7 +158,7 @@ MAPS   *maps_create(const char *title, const char *map_names, int dict_flags)
 
 const char *maps_find(MAPS *maps, const char *name, int flags)
 {
-    char   *myname = "maps_find";
+    const char *myname = "maps_find";
     char  **map_name;
     const char *expansion;
     DICT   *dict;

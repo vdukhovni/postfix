@@ -70,7 +70,7 @@ struct unix_trigger {
 static void unix_trigger_event(int event, char *context)
 {
     struct unix_trigger *up = (struct unix_trigger *) context;
-    static char *myname = "unix_trigger_event";
+    static const char *myname = "unix_trigger_event";
 
     /*
      * Disconnect.
@@ -89,7 +89,7 @@ static void unix_trigger_event(int event, char *context)
 
 int     unix_trigger(const char *service, const char *buf, ssize_t len, int timeout)
 {
-    char   *myname = "unix_trigger";
+    const char *myname = "unix_trigger";
     struct unix_trigger *up;
     int     fd;
 

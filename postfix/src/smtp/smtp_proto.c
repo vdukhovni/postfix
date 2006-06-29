@@ -236,7 +236,7 @@ static int smtp_start_tls(SMTP_STATE *);
 
 int     smtp_helo(SMTP_STATE *state)
 {
-    char   *myname = "smtp_helo";
+    const char *myname = "smtp_helo";
     SMTP_SESSION *session = state->session;
     DELIVER_REQUEST *request = state->request;
     SMTP_RESP *resp;
@@ -398,7 +398,14 @@ int     smtp_helo(SMTP_STATE *state)
 	    if (n == 0) {
 		if (session->helo != 0)
 		    myfree(session->helo);
-		session->helo = lowercase(mystrdup(word));
+
+		/*
+		 * XXX: Keep the original case: we don't expect a single SMTP
+		 * server to randomly change the case of its helo response.
+		 * If different capitalization is detected, we should assume
+		 * disjoint TLS caches.
+		 */
+		session->helo = mystrdup(word);
 		if (strcasecmp(word, var_myhostname) == 0
 		 && (state->misc_flags & SMTP_MISC_FLAG_LOOP_DETECT) != 0) {
 		    msg_warn("host %s replied to HELO/EHLO with my own hostname %s",
@@ -508,14 +515,14 @@ int     smtp_helo(SMTP_STATE *state)
 	 */
 	if ((session->features & SMTP_FEATURE_STARTTLS) &&
 	    var_smtp_tls_note_starttls_offer &&
-	    session->tls_level <= SMTP_TLS_LEV_NONE)
+	    session->tls_level <= TLS_LEV_NONE)
 	    msg_info("Host offered STARTTLS: [%s]", session->host);
 
 	/*
 	 * Decide whether or not to send STARTTLS.
 	 */
 	if ((session->features & SMTP_FEATURE_STARTTLS) != 0
-	    && smtp_tls_ctx != 0 && session->tls_level >= SMTP_TLS_LEV_MAY) {
+	    && smtp_tls_ctx != 0 && session->tls_level >= TLS_LEV_MAY) {
 
 	    /*
 	     * Prepare for disaster.
@@ -555,7 +562,7 @@ int     smtp_helo(SMTP_STATE *state)
 	     * although support for it was announced in the EHLO response.
 	     */
 	    session->features &= ~SMTP_FEATURE_STARTTLS;
-	    if (session->tls_level >= SMTP_TLS_LEV_ENCRYPT)
+	    if (session->tls_level >= TLS_LEV_ENCRYPT)
 		return (smtp_site_fail(state, session->host, resp,
 		    "TLS is required, but host %s refused to start TLS: %s",
 				       session->namaddr,
@@ -570,7 +577,7 @@ int     smtp_helo(SMTP_STATE *state)
 	 * block. When TLS is required we must never, ever, end up in
 	 * plain-text mode.
 	 */
-	if (session->tls_level >= SMTP_TLS_LEV_ENCRYPT) {
+	if (session->tls_level >= TLS_LEV_ENCRYPT) {
 	    if (!(session->features & SMTP_FEATURE_STARTTLS)) {
 		return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				       SMTP_RESP_FAKE(&fake, "4.7.4"),
@@ -605,6 +612,7 @@ int     smtp_helo(SMTP_STATE *state)
 static int smtp_start_tls(SMTP_STATE *state)
 {
     SMTP_SESSION *session = state->session;
+    tls_client_start_props tls_props;
     VSTRING *serverid;
     SMTP_RESP fake;
 
@@ -638,20 +646,106 @@ static int smtp_start_tls(SMTP_STATE *state)
      * multiple hosts per hostname, or even multiple hosts per IP address.
      * All this without a shared TLS session cache, and they still want to
      * use TLS session caching???
+     * 
+     * The TLS session cache records the trust chain verification status of
+     * cached sessions. Different transports may have different CAfile or
+     * CApath settings, perhaps to allow authenticated connections to sites
+     * with private CA certs without trusting said private certs for other
+     * sites. So we cannot assume that a trust chain valid for one transport
+     * is valid for another. Therefore the client session id must include
+     * either the transport name or the values of CAfile and CApath. We use
+     * the transport name.
      */
     serverid = vstring_alloc(10);
-    vstring_sprintf(serverid, "%s:%u:%s", session->addr,
+    vstring_sprintf(serverid, "%s:%s:%u:%s", state->service, session->addr,
 		  ntohs(session->port), session->helo ? session->helo : "");
-    session->tls_context =
-	tls_client_start(smtp_tls_ctx, session->stream,
-			 var_smtp_starttls_tmout,
-			 session->tls_level >= SMTP_TLS_LEV_VERIFY,
-			 session->host, lowercase(vstring_str(serverid)));
+
+    /*
+     * XXX: We store only one session per lookup key. Ideally the the key
+     * maps 1-to-1 to a server TLS session cache. We use the IP address, port
+     * and ehlo response name to build a lookup key that works for split
+     * caches (that announce distinct names) behind a load balancer.
+     * 
+     * Starting with Postfix 2.3 we may have incompatible security requirements
+     * for different domains hosted on the same server (peer cache). This
+     * requires multiple sessions to be negotiated with the same peer. It
+     * would be bad to store just one session and repeatedly discard it when
+     * we encounter incompatible requirements.
+     * 
+     * This drives us to separate lookup keys for each combination of cipher and
+     * protocol requirements. While at times a stronger session may not get
+     * re-used for a delivery with weaker requirements, a multi-session cache
+     * is prohibitively complex at this time.
+     * 
+     * - Expiration code would need to selectively delete sessions from a list -
+     * Re-use code would need to decode many sessions and choose the best -
+     * Store code would needs to choose between replace and append.
+     * 
+     * Note: checking the compatibility of re-activated sessions against the
+     * cipher requirements of the session under construction requires us to
+     * store the cipher name in the session cache with the passivated session
+     * object, the name is not available when the session is revived until
+     * the handshake is complete, which is too late.
+     * 
+     * XXX: When cached ciphers are reloaded, their cipher is not available via
+     * documented APIs until the handshake completes. We need to filter out
+     * sessions that use the wrong ciphers, but may not peek at the
+     * undocumented session->cipher_id and cipher->id structure members.
+     * 
+     * Since cipherlists are typically shared by many domains, we include the
+     * cipherlist in the session cache lookup key. This avoids false
+     * positives results from the session cache.
+     * 
+     * To support mutually incompatible protocol/cipher combinations, our
+     * session key must include both the protocol and the cipherlist.
+     * 
+     * XXX: the cipherlist is case sensitive, "aDH" != "ADH". So we don't
+     * lowercase() the serverid.
+     */
+    if (session->tls_level >= TLS_LEV_ENCRYPT
+	&& session->tls_protocols != 0
+	&& session->tls_protocols != TLS_ALL_PROTOCOLS)
+	vstring_sprintf_append(serverid, "&p=%s",
+			       tls_protocol_names(VAR_SMTP_TLS_PROTO,
+						  session->tls_protocols));
+    if (session->tls_level >= TLS_LEV_ENCRYPT && session->tls_cipherlist)
+	vstring_sprintf_append(serverid, "&c=%s", session->tls_cipherlist);
+
+    tls_props.ctx = smtp_tls_ctx;
+    tls_props.stream = session->stream;
+    tls_props.log_level = var_smtp_tls_loglevel;
+    tls_props.timeout = var_smtp_starttls_tmout;
+    tls_props.tls_level = session->tls_level;
+    tls_props.nexthop = session->tls_nexthop;
+    tls_props.host = session->host;
+    tls_props.serverid = vstring_str(serverid);
+    tls_props.protocols = session->tls_protocols;
+    tls_props.cipherlist = session->tls_cipherlist;
+    tls_props.certmatch = session->tls_certmatch;
+
+    session->tls_context = tls_client_start(&tls_props);
     vstring_free(serverid);
-    if (session->tls_context == 0)
+    if (session->tls_context == 0) {
+
+	/*
+	 * We must avoid further I/O, the peer is in an undefined state.
+	 */
+	(void) vstream_fpurge(session->stream);
+	DONT_USE_DEAD_SESSION;
+
+	/*
+	 * If TLS is optional, try again, this time without TLS.
+	 * Specifically, this session is not final, don't defer any
+	 * recipients yet.
+	 */
+	if (session->tls_level == TLS_LEV_MAY) {
+	    session->tls_retry_plain = 1;
+	    state->misc_flags &= ~SMTP_MISC_FLAG_FINAL_SERVER;
+	}
 	return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 			       SMTP_RESP_FAKE(&fake, "4.7.5"),
 			       "Cannot start TLS: handshake failure"));
+    }
 
     /*
      * At this point we have to re-negotiate the "EHLO" to reget the
@@ -852,7 +946,7 @@ static void smtp_mime_fail(SMTP_STATE *state, int mime_errs)
 static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		             NOCLOBBER int recv_state)
 {
-    char   *myname = "smtp_loop";
+    const char *myname = "smtp_loop";
     DELIVER_REQUEST *request = state->request;
     SMTP_SESSION *session = state->session;
     SMTP_RESP *resp;

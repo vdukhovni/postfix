@@ -187,6 +187,8 @@ void    cleanup_addr_bcc(CLEANUP_STATE *state, const char *bcc)
      * Note: BCC addresses are supplied locally, and must be rewritten in the
      * local address rewriting context.
      */
+#define NO_DSN_ORCPT	((char *) 0)
+
     cleanup_rewrite_internal(MAIL_ATTR_RWR_LOCAL, clean_addr, bcc);
     if (state->flags & CLEANUP_FLAG_MAP_OK) {
 	if (cleanup_rcpt_canon_maps
@@ -201,7 +203,7 @@ void    cleanup_addr_bcc(CLEANUP_STATE *state, const char *bcc)
 	    && (cleanup_masq_flags & CLEANUP_MASQ_FLAG_ENV_RCPT))
 	    cleanup_masquerade_internal(clean_addr, cleanup_masq_domains);
     }
-    cleanup_out_recipient(state, (char *) 0, DSN_NOTIFY_NEVER,
+    cleanup_out_recipient(state, NO_DSN_ORCPT, DSN_NOTIFY_NEVER,
 			  STR(clean_addr), STR(clean_addr));
     vstring_free(clean_addr);
 }

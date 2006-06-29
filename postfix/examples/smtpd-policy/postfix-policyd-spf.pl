@@ -1,26 +1,25 @@
 #!/usr/bin/perl
 
-# mengwong@pobox.com
-# Wed Dec 10 03:52:04 EST 2003
 # postfix-policyd-spf
-# version 1.06
-# see http://spf.pobox.com/
+# http://www.openspf.org
+# version 1.07
+# $Id$
 
 use Fcntl;
 use Sys::Syslog qw(:DEFAULT setlogsock);
 use strict;
 
 # ----------------------------------------------------------
-# 		       configuration
+#                      configuration
 # ----------------------------------------------------------
 
-# to use SPF, install Mail::SPF::Query from CPAN or from the SPF website at http://spf.pobox.com/downloads.html
+# to use SPF, install Mail::SPF::Query from CPAN or from the SPF website at http://www.openspf.org/downloads.html
 
   my @HANDLERS;
   push @HANDLERS, "testing";
   push @HANDLERS, "sender_permitted_from"; use Mail::SPF::Query;
 
-my $VERBOSE = 1;
+my $VERBOSE = 0;
 
 my $DEFAULT_RESPONSE = "DUNNO";
 
@@ -37,7 +36,7 @@ my $syslog_priority = "info";
 my $syslog_ident    = "postfix/policy-spf";
 
 # ----------------------------------------------------------
-#		   minimal documentation
+#                  minimal documentation
 # ----------------------------------------------------------
 
 #
@@ -70,11 +69,10 @@ my $syslog_ident    = "postfix/policy-spf";
 # To use this from Postfix SMTPD, use in /etc/postfix/main.cf:
 #
 #    smtpd_recipient_restrictions =
-#	...
-#       reject_unknown_sender_domain
-#	reject_unauth_destination
-#	check_policy_service unix:private/policy
-#	...
+#       ...
+#       reject_unauth_destination
+#       check_policy_service unix:private/policy
+#       ...
 #
 # NOTE: specify check_policy_service AFTER reject_unauth_destination
 # or else your system can become an open relay.
@@ -115,16 +113,16 @@ my $syslog_ident    = "postfix/policy-spf";
 # Jul 23 18:43:29 dumbo/dumbo policyd[21171]: Attribute: sender=mengwong@newbabe.mengwong.com
 
 # ----------------------------------------------------------
-# 		       initialization
+#                      initialization
 # ----------------------------------------------------------
 
 #
 # Log an error and abort.
 #
 sub fatal_exit {
-  syslog(err  => "fatal_exit: @_");
+  syslog(err     => "fatal_exit: @_");
   syslog(warning => "fatal_exit: @_");
-  syslog(info => "fatal_exit: @_");
+  syslog(info    => "fatal_exit: @_");
   die "fatal: @_";
 }
 
@@ -141,7 +139,7 @@ setlogsock $syslog_socktype;
 openlog $syslog_ident, $syslog_options, $syslog_facility;
 
 # ----------------------------------------------------------
-# 			    main
+#                           main
 # ----------------------------------------------------------
 
 #
@@ -151,11 +149,11 @@ my %attr;
 while (<STDIN>) {
   chomp;
   if (/=/)       { my ($k, $v) = split (/=/, $_, 2); $attr{$k} = $v; next }
-  elsif (length) { syslog(warning=>sprintf("warning: ignoring garbage: %.100s", $_)); next; }
+  elsif (length) { syslog(warning => sprintf("warning: ignoring garbage: %.100s", $_)); next; }
 
   if ($VERBOSE) {
     for (sort keys %attr) {
-      syslog(debug=> "Attribute: %s=%s", $_, $attr{$_});
+      syslog(debug => "Attribute: %s=%s", $_, $attr{$_});
     }
   }
 
@@ -166,50 +164,46 @@ while (<STDIN>) {
   foreach my $handler (@HANDLERS) {
     no strict 'refs';
     my $response = $handler->(attr=>\%attr);
-    syslog(debug=> "handler %s: %s", $handler, $response);
+    syslog(debug => "handler %s: %s", $handler, $response);
     if ($response and $response !~ /^dunno/i) {
-      syslog(info=> "handler %s: %s is decisive.", $handler, $response);
+      syslog(info => "handler %s: %s is decisive.", $handler, $response);
       $action = $response; last;
     }
   }
 
-  syslog(info=> "decided action=%s", $action);
+  syslog(info => "decided action=%s", $action);
 
   print STDOUT "action=$action\n\n";
   %attr = ();
 }
 
 # ----------------------------------------------------------
-# 		      plugin: SPF
+#                     plugin: SPF
 # ----------------------------------------------------------
 sub sender_permitted_from {
   local %_ = @_;
   my %attr = %{ $_{attr} };
 
   my $query = eval { new Mail::SPF::Query (ip    =>$attr{client_address},
-					   sender=>$attr{sender},
-					   helo  =>$attr{helo_name}) };
+                                           sender=>$attr{sender},
+                                           helo  =>$attr{helo_name}) };
   if ($@) {
-    syslog(info=>"%s: Mail::SPF::Query->new(%s, %s, %s) failed: %s",
-	   $attr{queue_id}, $attr{client_address}, $attr{sender}, $attr{helo_name}, $@); 
+    syslog(info => "%s: Mail::SPF::Query->new(%s, %s, %s) failed: %s",
+           $attr{queue_id}, $attr{client_address}, $attr{sender}, $attr{helo_name}, $@); 
     return "DUNNO";
   }
   my ($result, $smtp_comment, $header_comment) = $query->result();
 
-  syslog(info=>"%s: SPF %s: smtp_comment=%s, header_comment=%s",
-	 $attr{queue_id}, $result, $smtp_comment, $header_comment); 
+  syslog(info => "%s: SPF %s: smtp_comment=%s, header_comment=%s",
+         $attr{queue_id}, $result, $smtp_comment, $header_comment); 
 
-  if    ($result eq "pass")  { return "DUNNO"; }
-  elsif ($result eq "fail")  { return "REJECT " . ($smtp_comment || $header_comment); }
-  elsif ($result eq "error") { return "450 temporary failure: $smtp_comment"; }
-  else                       { return "DUNNO"; }
-  # unknown, softfail, neutral and none all return DUNNO
-
-  # TODO XXX: prepend Received-SPF header.  Wietse says he will add that functionality soon.
+  if    ($result eq "fail")     { return "REJECT $smtp_comment"; }
+  elsif ($result eq "error")    { return "DEFER_IF_PERMIT $smtp_comment"; }
+  else                          { return "PREPEND Received-SPF: $result ($header_comment)"; }
 }
 
 # ----------------------------------------------------------
-# 		      plugin: testing
+#                     plugin: testing
 # ----------------------------------------------------------
 sub testing {
   local %_ = @_;
@@ -220,16 +214,15 @@ sub testing {
       and
       $attr{recipient} =~ /policyblock/) {
 
-    syslog(info=>"%s: testing: will block as requested",
-	   $attr{queue_id}); 
+    syslog(info => "%s: testing: will block as requested", $attr{queue_id}); 
     return "REJECT smtpd-policy blocking $attr{recipient}";
   }
   else {
-    syslog(info=>"%s: testing: stripped sender=%s, stripped rcpt=%s",
-	   $attr{queue_id},
-	   address_stripped($attr{sender}),
-	   address_stripped($attr{recipient}),
-	   ); 
+    syslog(info => "%s: testing: stripped sender=%s, stripped rcpt=%s",
+           $attr{queue_id},
+           address_stripped($attr{sender}),
+           address_stripped($attr{recipient}),
+           ); 
     
   }
   return "DUNNO";
@@ -243,4 +236,3 @@ sub address_stripped {
   }
   return $string;
 }
-

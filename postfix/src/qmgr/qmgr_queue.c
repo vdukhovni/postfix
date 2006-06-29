@@ -120,7 +120,7 @@ static void qmgr_queue_unthrottle_wrapper(int unused_event, char *context)
 
 void    qmgr_queue_unthrottle(QMGR_QUEUE *queue)
 {
-    char   *myname = "qmgr_queue_unthrottle";
+    const char *myname = "qmgr_queue_unthrottle";
     QMGR_TRANSPORT *transport = queue->transport;
 
     if (msg_verbose)
@@ -154,7 +154,7 @@ void    qmgr_queue_unthrottle(QMGR_QUEUE *queue)
 
 void    qmgr_queue_throttle(QMGR_QUEUE *queue, DSN *dsn)
 {
-    char   *myname = "qmgr_queue_throttle";
+    const char *myname = "qmgr_queue_throttle";
 
     /*
      * Sanity checks.
@@ -190,7 +190,7 @@ void    qmgr_queue_throttle(QMGR_QUEUE *queue, DSN *dsn)
 
 void    qmgr_queue_done(QMGR_QUEUE *queue)
 {
-    char   *myname = "qmgr_queue_done";
+    const char *myname = "qmgr_queue_done";
     QMGR_TRANSPORT *transport = queue->transport;
 
     /*

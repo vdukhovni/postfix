@@ -123,7 +123,7 @@ static void smtp_print_addr(char *what, DNS_RR *addr_list)
 static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
 			             DSN_BUF *why)
 {
-    char   *myname = "smtp_addr_one";
+    const char *myname = "smtp_addr_one";
     DNS_RR *addr = 0;
     DNS_RR *rr;
     int     aierr;
@@ -270,7 +270,7 @@ static DNS_RR *smtp_addr_list(DNS_RR *mx_names, DSN_BUF *why)
 
 static DNS_RR *smtp_find_self(DNS_RR *addr_list)
 {
-    char   *myname = "smtp_find_self";
+    const char *myname = "smtp_find_self";
     INET_ADDR_LIST *self;
     INET_ADDR_LIST *proxy;
     DNS_RR *addr;

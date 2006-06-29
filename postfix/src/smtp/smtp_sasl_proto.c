@@ -171,7 +171,7 @@ int     smtp_sasl_helo_login(SMTP_STATE *state)
     ret = 0;
     if (session->sasl_mechanism_list == 0) {
 	dsb_simple(why, "4.7.0", "SASL authentication failed: "
-		"server %s offered no compatible authentication mechanisms for this type of connection security",
+		   "server %s offered no compatible authentication mechanisms for this type of connection security",
 		   session->namaddr);
 	ret = smtp_sess_fail(state);
 	/* Session reuse is disabled. */
@@ -179,15 +179,17 @@ int     smtp_sasl_helo_login(SMTP_STATE *state)
 #ifdef USE_TLS
 	if (session->tls_context == 0)
 #endif
-	    smtp_sasl_start(session, VAR_SMTP_SASL_OPTS, 
-		var_smtp_sasl_opts);
+	    smtp_sasl_start(session, VAR_SMTP_SASL_OPTS,
+			    var_smtp_sasl_opts);
 #ifdef USE_TLS
-	else if (session->tls_context->peer_verified == 0)
-	    smtp_sasl_start(session, VAR_SMTP_SASL_TLS_OPTS, 
-		var_smtp_sasl_tls_opts);
+#ifdef SNAPSHOT					/* XXX: Not yet */
+	else if (session->tls_context->peer_verified)
+	    smtp_sasl_start(session, VAR_SMTP_SASL_TLSV_OPTS,
+			    var_smtp_sasl_tlsv_opts);
 	else
-	    smtp_sasl_start(session, VAR_SMTP_SASL_TLSV_OPTS, 
-		var_smtp_sasl_tlsv_opts);
+#endif
+	    smtp_sasl_start(session, VAR_SMTP_SASL_TLS_OPTS,
+			    var_smtp_sasl_tls_opts);
 #endif
 	if (smtp_sasl_authenticate(session, why) <= 0) {
 	    ret = smtp_sess_fail(state);

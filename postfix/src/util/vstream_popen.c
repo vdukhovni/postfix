@@ -124,7 +124,7 @@ typedef struct VSTREAM_POPEN_ARGS {
 
 static void vstream_parse_args(VSTREAM_POPEN_ARGS *args, va_list ap)
 {
-    char   *myname = "vstream_parse_args";
+    const char *myname = "vstream_parse_args";
     int     key;
 
     /*
@@ -192,7 +192,7 @@ static void vstream_parse_args(VSTREAM_POPEN_ARGS *args, va_list ap)
 
 VSTREAM *vstream_popen(int flags,...)
 {
-    char   *myname = "vstream_popen";
+    const char *myname = "vstream_popen";
     VSTREAM_POPEN_ARGS args;
     va_list ap;
     VSTREAM *stream;

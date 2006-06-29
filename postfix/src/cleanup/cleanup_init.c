@@ -90,6 +90,7 @@
 
 #include <mail_addr.h>
 #include <mail_params.h>
+#include <mail_version.h>		/* milter_macro_v */
 #include <ext_prop.h>
 #include <flush_clnt.h>
 
@@ -144,6 +145,21 @@ char   *var_remote_rwr_domain;		/* header-only surrogate */
 char   *var_msg_reject_chars;		/* reject these characters */
 char   *var_msg_strip_chars;		/* strip these characters */
 int     var_verp_bounce_off;		/* don't verp the bounces */
+int     var_milt_conn_time;		/* milter connect/handshake timeout */
+int     var_milt_cmd_time;		/* milter command timeout */
+int     var_milt_msg_time;		/* milter content timeout */
+char   *var_milt_protocol;		/* Sendmail 8 milter protocol */
+char   *var_milt_def_action;		/* default milter action */
+char   *var_milt_daemon_name;		/* {daemon_name} macro value */
+char   *var_milt_v;			/* {v} macro value */
+char   *var_milt_conn_macros;		/* connect macros */
+char   *var_milt_helo_macros;		/* HELO macros */
+char   *var_milt_mail_macros;		/* MAIL FROM macros */
+char   *var_milt_rcpt_macros;		/* RCPT TO macros */
+char   *var_milt_data_macros;		/* DATA macros */
+char   *var_milt_eod_macros;		/* end-of-data macros */
+char   *var_milt_unk_macros;		/* unknown command macros */
+char   *var_cleanup_milters;		/* non-SMTP mail */
 
 CONFIG_INT_TABLE cleanup_int_table[] = {
     VAR_HOPCOUNT_LIMIT, DEF_HOPCOUNT_LIMIT, &var_hopcount_limit, 1, 0,
@@ -163,6 +179,9 @@ CONFIG_BOOL_TABLE cleanup_bool_table[] = {
 
 CONFIG_TIME_TABLE cleanup_time_table[] = {
     VAR_DELAY_WARN_TIME, DEF_DELAY_WARN_TIME, &var_delay_warn_time, 0, 0,
+    VAR_MILT_CONN_TIME, DEF_MILT_CONN_TIME, &var_milt_conn_time, 1, 0,
+    VAR_MILT_CMD_TIME, DEF_MILT_CMD_TIME, &var_milt_cmd_time, 1, 0,
+    VAR_MILT_MSG_TIME, DEF_MILT_MSG_TIME, &var_milt_msg_time, 1, 0,
     0,
 };
 
@@ -190,6 +209,18 @@ CONFIG_STR_TABLE cleanup_str_table[] = {
     VAR_REM_RWR_DOMAIN, DEF_REM_RWR_DOMAIN, &var_remote_rwr_domain, 0, 0,
     VAR_MSG_REJECT_CHARS, DEF_MSG_REJECT_CHARS, &var_msg_reject_chars, 0, 0,
     VAR_MSG_STRIP_CHARS, DEF_MSG_STRIP_CHARS, &var_msg_strip_chars, 0, 0,
+    VAR_MILT_PROTOCOL, DEF_MILT_PROTOCOL, &var_milt_protocol, 1, 0,
+    VAR_MILT_DEF_ACTION, DEF_MILT_DEF_ACTION, &var_milt_def_action, 1, 0,
+    VAR_MILT_DAEMON_NAME, DEF_MILT_DAEMON_NAME, &var_milt_daemon_name, 1, 0,
+    VAR_MILT_V, DEF_MILT_V, &var_milt_v, 1, 0,
+    VAR_MILT_CONN_MACROS, DEF_MILT_CONN_MACROS, &var_milt_conn_macros, 0, 0,
+    VAR_MILT_HELO_MACROS, DEF_MILT_HELO_MACROS, &var_milt_helo_macros, 0, 0,
+    VAR_MILT_MAIL_MACROS, DEF_MILT_MAIL_MACROS, &var_milt_mail_macros, 0, 0,
+    VAR_MILT_RCPT_MACROS, DEF_MILT_RCPT_MACROS, &var_milt_rcpt_macros, 0, 0,
+    VAR_MILT_DATA_MACROS, DEF_MILT_DATA_MACROS, &var_milt_data_macros, 0, 0,
+    VAR_MILT_EOD_MACROS, DEF_MILT_EOD_MACROS, &var_milt_eod_macros, 0, 0,
+    VAR_MILT_UNK_MACROS, DEF_MILT_UNK_MACROS, &var_milt_unk_macros, 0, 0,
+    VAR_CLEANUP_MILTERS, DEF_CLEANUP_MILTERS, &var_cleanup_milters, 0, 0,
     0,
 };
 
@@ -223,6 +254,11 @@ VSTRING *cleanup_strip_chars;
   * Address extension propagation restrictions.
   */
 int     cleanup_ext_prop_mask;
+
+ /*
+  * Milter support.
+  */
+MILTERS *cleanup_milters;
 
 /* cleanup_all - callback for the runtime error handler */
 
@@ -344,6 +380,20 @@ void    cleanup_pre_jail(char *unused_name, char **unused_argv)
 	cleanup_rcpt_bcc_maps =
 	    maps_create(VAR_RCPT_BCC_MAPS, var_rcpt_bcc_maps,
 			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+    if (*var_cleanup_milters)
+	cleanup_milters = milter_create(var_cleanup_milters,
+                                      var_milt_conn_time,
+                                      var_milt_cmd_time,
+                                      var_milt_msg_time,
+                                      var_milt_protocol,
+                                      var_milt_def_action,
+                                      var_milt_conn_macros,
+                                      var_milt_helo_macros,
+                                      var_milt_mail_macros,
+                                      var_milt_rcpt_macros,
+                                      var_milt_data_macros,
+                                      var_milt_eod_macros,
+                                      var_milt_unk_macros);
 
     flush_init();
 }

@@ -51,6 +51,7 @@ static struct cleanup_flag_map cleanup_flag_map[] = {
     CLEANUP_FLAG_DISCARD, "discard_message",
     CLEANUP_FLAG_BCC_OK, "enable_automatic_bcc",
     CLEANUP_FLAG_MAP_OK, "enable_address_mapping",
+    CLEANUP_FLAG_MILTER, "enable_milters",
 };
 
 /* cleanup_strflags - map flags code to printable string */

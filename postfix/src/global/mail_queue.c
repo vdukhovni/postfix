@@ -144,7 +144,7 @@
 const char *mail_queue_dir(VSTRING *buf, const char *queue_name,
 			           const char *queue_id)
 {
-    char   *myname = "mail_queue_dir";
+    const char *myname = "mail_queue_dir";
     static VSTRING *private_buf = 0;
     static VSTRING *hash_buf = 0;
     static ARGV *hash_queue_names = 0;
@@ -218,7 +218,7 @@ const char *mail_queue_path(VSTRING *buf, const char *queue_name,
 
 int     mail_queue_mkdirs(const char *path)
 {
-    char   *myname = "mail_queue_mkdirs";
+    const char *myname = "mail_queue_mkdirs";
     char   *saved_path = mystrdup(path);
     int     ret;
 
@@ -310,7 +310,7 @@ int     mail_queue_id_ok(const char *queue_id)
 VSTREAM *mail_queue_enter(const char *queue_name, mode_t mode,
 			          struct timeval * tp)
 {
-    char   *myname = "mail_queue_enter";
+    const char *myname = "mail_queue_enter";
     static VSTRING *id_buf;
     static int pid;
     static VSTRING *path_buf;

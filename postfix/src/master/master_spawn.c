@@ -133,7 +133,7 @@ static void master_throttle(MASTER_SERV *serv)
 
 void    master_spawn(MASTER_SERV *serv)
 {
-    char   *myname = "master_spawn";
+    const char *myname = "master_spawn";
     MASTER_PROC *proc;
     MASTER_PID pid;
     int     n;
@@ -291,7 +291,7 @@ void    master_reap_child(void)
 	if (msg_verbose)
 	    msg_info("master_reap_child: pid %d", pid);
 	if ((proc = (MASTER_PROC *) binhash_find(master_child_table,
-					(char *) &pid, sizeof(pid))) == 0)
+					  (char *) &pid, sizeof(pid))) == 0)
 	    msg_panic("master_reap: unknown pid: %d", pid);
 	serv = proc->serv;
 	if (!NORMAL_EXIT_STATUS(status)) {

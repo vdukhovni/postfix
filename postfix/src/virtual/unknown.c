@@ -49,7 +49,7 @@
 
 int     deliver_unknown(LOCAL_STATE state)
 {
-    char   *myname = "deliver_unknown";
+    const char *myname = "deliver_unknown";
 
     /*
      * Make verbose logging easier to understand.

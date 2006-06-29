@@ -86,7 +86,7 @@ QMGR_PEER *qmgr_peer_create(QMGR_JOB *job, QMGR_QUEUE *queue)
 
 void    qmgr_peer_free(QMGR_PEER *peer)
 {
-    char   *myname = "qmgr_peer_free";
+    const char *myname = "qmgr_peer_free";
     QMGR_JOB *job = peer->job;
     QMGR_QUEUE *queue = peer->queue;
 

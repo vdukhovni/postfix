@@ -294,7 +294,7 @@ static int dict_sdbm_delete(DICT *dict, const char *name)
 static int dict_sdbm_sequence(DICT *dict, const int function,
 			              const char **key, const char **value)
 {
-    char   *myname = "dict_sdbm_sequence";
+    const char *myname = "dict_sdbm_sequence";
     DICT_SDBM *dict_sdbm = (DICT_SDBM *) dict;
     datum   dbm_key;
     datum   dbm_value;

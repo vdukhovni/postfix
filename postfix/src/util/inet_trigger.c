@@ -72,7 +72,7 @@ struct inet_trigger {
 static void inet_trigger_event(int event, char *context)
 {
     struct inet_trigger *ip = (struct inet_trigger *) context;
-    static char *myname = "inet_trigger_event";
+    static const char *myname = "inet_trigger_event";
 
     /*
      * Disconnect.
@@ -92,7 +92,7 @@ static void inet_trigger_event(int event, char *context)
 
 int     inet_trigger(const char *service, const char *buf, ssize_t len, int timeout)
 {
-    char   *myname = "inet_trigger";
+    const char *myname = "inet_trigger";
     struct inet_trigger *ip;
     int     fd;
 

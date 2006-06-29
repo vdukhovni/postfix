@@ -12071,6 +12071,10 @@ Apologies for any names omitted.
 	to wonder why Postfix doesn't find all the database entries.
 	File: global/db_common.c.
 
+	Moved SMTP/LMTP parameter initialization from global/mail_params.c
+	to the combined smtp/lmtp delivery agent. Added missing
+	lmtp parameters.
+
 20060328
 
 	Feature: configurable chroot directive for the pipe(8)
@@ -12080,6 +12084,15 @@ Apologies for any names omitted.
 	Bugfix: cut-and-paste error: lmtp_connection_cache_limit
 	was left with the name of smtp_connection_cache_limit.
 	Reported by Victor? File: src/global/mail_params.h.
+
+20060329
+
+	More extensible interface for TLS client/server library,
+	now passes property structures that combine all the relevant
+	parameters in one type-safe structure.
+
+	TLS session cache activity logging now takes place at TLS
+	log level 2 or greater.
 
 20060403
 
@@ -12148,10 +12161,55 @@ Apologies for any names omitted.
 	null terminate the address before logging a warning. Reported
 	by Kris Kennaway. File: global/tok822_parse.c.
 
+20060301-20060515
+
+	Sendmail 8 Milter support, distributed across the smtpd(8)
+	server for SMTP commands, and the cleanup(8) server for
+	content inspection and manipulation. The code supports all
+	requests to add/delete recipients, and to add/delete/replace
+	message headers, but does not yet support requests to replace
+	the message body.  See MILTER_README for more. Files:
+	smtpd/smtpd.c, smtpd/smtpd_milter.c, cleanup/cleanup_api.c,
+	cleanup/cleanup_envelope.c, cleanup/cleanup_extracted.c,
+	cleanup/cleanup_milter.c, milter/milter.c, milter/milter8.c.
+
+	That's 89 lines in smtpd, 1010 lines in cleanup, and 2449
+	lines of library support, comments not included.  
+
+	A simple test Milter application for use in regression tests
+	is in src/milter/test-milter.c. Queue file modifications are
+	tested with a driver at the end src/cleanup/cleanup_milter.c
+	that reads commands from a script.
+
+	To make debugging easier, uncomment the "#define msg_verbose
+	2" lines at the top of cleanup_milter.c or milter8.c. This
+	produces logging without making everything else verbose.
+
+20060510
+
+	Preliminary TLS_README and postconf(5) changes completed.
+
+	Added smtp_tls_policy_maps and smtp_tls_protocols features
+	to the smtp/lmtp client, changed smtp_tls_cipherlist to
+	only apply when TLS is mandatory.
+
+20060512
+
+	Destinations that share a common server may have distinct
+	TLS protocol and cipherlist requirements, with mandatory
+	TLS add the protocol and cipherlist values to the TLS session
+	lookup key.
+
 20060516
 
 	Portability: __float80 alignment, by Albert Chin.  File:
 	util/sys_defs.h.
+
+	Further testing of Milter support uncovered typos; a missing
+	null pointer test while cleaning up after content miltering;
+	the need for a workaround to not bounce+delete local
+	submission after it triggers a temporary reject Milter
+	action.
 
 	Workaround: don't bounce+delete a local submission after
 	it triggers a "reject 4.x.x" action in header/body_checks.
@@ -12162,6 +12220,29 @@ Apologies for any names omitted.
 	Workaround: OpenSSL 0.9.8[ab] with zlib support interoperability
 	problem. Victor Duchovni. Files: tls/tls_client.c,
 	tls/tls_misc.c, tls/tls_server.c.
+
+	Added smtpd_tls_protocols parameter to complement
+	smtp_tls_protocols.
+
+20060517
+
+	The smtp_tls_policy_maps table now implements parent domain
+	matching for destinations that are bare domains (without
+	enclosin [] or optional :port suffix). This allows one to
+	set TLS policy for a domain and all sub-domains.
+
+20060519
+
+	The same parameter can bind to different variables in
+	different daemons, ignore the variable name when eliminating
+	duplicates in extract.awk.
+
+20060523
+
+	Improved handling of smtp_tls_protocols and smtpd_tls_protocols,
+	names now processed via name_mask(3) and canonicalized prior
+	to use in the SMTP/LMTP client TLS session lookup key. Also
+	simplifies the corresponding code in the TLS driver.
 
 20060524
 
@@ -12175,6 +12256,19 @@ Apologies for any names omitted.
 	domains without secondary MX records.  Joshua Goodall. File:
 	smtpd/smtpd_check.c.
 
+20060601
+
+	Fixed default value of LMTP TLS client certificate parameters,
+	using the SMTP values as a default was wrong.
+
+20060603
+
+	Different transports may have different CAfile or CApath
+	settings. We need to add the transport name to the TLS
+	session lookup key so that sessions verified with one set
+	of trusted roots are not inadvertantly considered verified
+	for another.
+
 20060604
 
 	Cleanup: minor fluff found with the BEAM source code analyzer.
@@ -12184,6 +12278,17 @@ Apologies for any names omitted.
 
 20060606
 
+	Safety: mail receiving daemons (smtpd, qmqpd) now pass
+	actual client name/addres/helo attributes in addition to
+	the attributes used for logging (xforward). This prevents
+	Milter applications from treating qmqpd mail as if it
+	originated locally, and prevents incorrect Milter decisions
+	after "postsuper -r". Files: smtpd/smtpd.c, qmqpd/qmqpd.c,
+	cleanup/cleanup_envelope.c, cleanup/cleanup_milter.c,
+	cleanup/cleanup_state.c, global/post_mail.c, *qmgr/qmgr_message.c,
+	*qmgr/qmgr_deliver.c, global/deliver_request.c,
+	global/deliver_pass.c, local/forward.c.
+
 	Bugfix: qmgr panic after queue file corruption by Mailscanner.
 	Files: *qmgr/qmgr_message.c.
 
@@ -12192,6 +12297,16 @@ Apologies for any names omitted.
 	correctly with built-in restrictions and with Milter
 	applications, the SMTP server now jumps back to the very
 	start (the 220 phase) of an SMTP session.  File: smtpd/smtpd.c.
+
+20060606
+
+	Portability: Some systems no longer support the traditional
+	"sort +0 -2 +3".
+
+20060607
+
+	Portability: Found by BEAM static code analyzer. SSL options
+	(long) were stored as int.
 
 20060610
 
@@ -12223,21 +12338,126 @@ Apologies for any names omitted.
 	be mis-interpreted as an empty result set.  Fixes by Leandro
 	Santi. File: global/dict_pgsql.c.
 
+20060612
+
+	Changed smtp security level parsing and level to name
+	convertion to use name_code(3).
+
+	Implemented new smtp_tls_security_level parameter, to replace
+	the unnecessarily complex smtp_use_tls, smtp_enforce_tls
+	and smtp_tls_enforce_peername parameters. The main.cf
+	security level settings are now consistent with the new
+	policy table.
+
+	The smtp_sasl_tls_verified_security_options feature is not
+	yet complete, added #ifdef SNAPSHOT and changed documentation
+	to delay introduction until Postfix 2.4.
+
+20060614
+
+	Merged in Victor's work including the new TLS policy table
+	and a complete set of configuration parameters for the LMTP
+	personality of the unified SMTP/LMTP client.
+
+	Allow mandatory TLS encryption with LMTP over UNIX-domain
+	sockets.
+
+	Safety: improved code to avoid I/O on connections after the
+	TLS handshake fails.
+
+20060615
+
+	Cosmetic patch for const strings. Stefan Huehner.
+
+	Other cosmetic changes, mainly whitespace.
+
+20060616
+
+	The qshape.pl script was updated for the pointer records
+	that were introduced to support message content modification
+	by Milter applications.
+
+20060620
+
+	Feature: Substantially better cipherlist specification
+	interface and support for anonymous ciphers when certificates
+	are not needed. The primary interface in main.cf and the
+	policy table selects one of 5 grades for mandatory TLS with
+	smtp(8) or lmtp(8) or for all TLS sessions with smtpd(8).
+	The levels are "high", "medium" (or better), "low" (or
+	better), "export" (or better) and "null".  The underlying
+	definitions of these levels are configurable, but users are
+	strongly encouraged to not change those definitions.
+
+20060626
+
+	Bugfix: the Milter reply syntax checker was off by one.
+	File: milter/milter8.c.
+
+	Workaround: disable SMTP connection cache lookup by server
+	IP address when the tls_per_site policy table is enabled.
+	This is a workaround for a shortcoming in the SMTP connection
+	cache implementation, which retrieves the server hostname
+	from the cached connection. Since this server name is not
+	obtained in a secure manner, it must not be allowed to
+	control the tls_per_site policy. File: smtp/smtp_reuse.c.
+
+20060627
+
+	Cleanup: mumble_mandatory_tls_mumble parameters renamed to
+	mumble_tls_mandatory_mumble; added _mandatory_ qualifier
+	to names of parameters that affect only mandatory TLS.
+
 Wish list:
+
+	In the SMTPD policy client (encode or strip) non-printable
+	non-ASCII in (TLS or all) attributes.
+
+	run real sendmail through test-milter and check the data
+	for bit-wise compatibility with Postfix.
+
+	Are transport:nexthop null fields the same as in the case
+	of default_transport etc. parameters?
+
+	Introduce the notion of required security level into smtpd(8)
+	just like with smtp(8): if the level is specified, ignore
+	the legacy boolean parameters.
+
+	Introduce structured API for tls_server_mumble() just like
+	with smtp(8): this eliminates ever-growing lists of arguments.
+
+	Cleanup: declare smtp_tls_levels[] in a header file, probably
+	one that is owned by the Postfix TLS library instead of
+	smtp(8).  Better, encapsulate the name to code conversion
+	as a Postfix TLS library service routine.
 
 	With (non)delivery notifications, prepend an "Auto-Submitted:
 	auto-replied" header, as per RFC 3834.
 
 	Defer delivery when a SASL password exists but the server
 	does not offer SASL authentication, as mail might otherwise
-	be bounced. Make this configurable so people can get the
-	old behavior.
+	be bounced. This may become an issue now that Postfix will
+	retry in plaintext after optional TLS fails. Make this
+	configurable so people can get the old behavior.
 
 	Don't lose bits when converting st_dev into maildir file
 	name. It's 64 bits on Linux. Found with the BEAM source
 	code analyzer.
 
-	Do or don't introduce unknown_reverse_client_reject_code. 
+	Do or don't introduce unknown_reverse_client_reject_code.
+
+	mail_addr/rcpt_addr should be externalized as they are in
+	Sendmail. Likewise, addresses in add/delete requests should
+	be internalized before updating the queue file.
+
+	Check that UINT32 == in choice is ok (i.e. LP64 UNIX).
+
+	Fix milter_argv() so it does not forget how much memory it
+	has.
+
+	Tempfail when a Milter application wants content access,
+	while it is configured in an SMTP server that runs before
+	the smtpd_proxy filter.
 
 	Don't send xforward attributes to every site that announces
 	xforward support.
@@ -12265,10 +12485,11 @@ Wish list:
 
 	Investigate what it would take to eliminate oqmgr, and to
 	make the old behavior configurable in a unified queue
-	manager.
-	This would shave another 2.7 KLOC from the source footprint.
+	manager.  This would shave another 2.7 KLOC from the source
+	footprint.
 
-	Document the case folding strategy for match_list like features.
+	Document the case folding strategy for match_list like
+	features.
 
 	Eliminate the (incoming,deferred)->active rename operation.
 

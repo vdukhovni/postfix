@@ -75,7 +75,7 @@
 
 static void master_wakeup_timer_event(int unused_event, char *context)
 {
-    char   *myname = "master_wakeup_timer_event";
+    const char *myname = "master_wakeup_timer_event";
     MASTER_SERV *serv = (MASTER_SERV *) context;
     int     status;
     static char wakeup = TRIGGER_REQ_WAKEUP;
@@ -154,7 +154,7 @@ static void master_wakeup_timer_event(int unused_event, char *context)
 
 void    master_wakeup_init(MASTER_SERV *serv)
 {
-    char   *myname = "master_wakeup_init";
+    const char *myname = "master_wakeup_init";
 
     if (serv->wakeup_time == 0 || (serv->flags & MASTER_FLAG_CONDWAKE))
 	return;
@@ -168,7 +168,7 @@ void    master_wakeup_init(MASTER_SERV *serv)
 
 void    master_wakeup_cleanup(MASTER_SERV *serv)
 {
-    char   *myname = "master_wakeup_cleanup";
+    const char *myname = "master_wakeup_cleanup";
 
     /*
      * Cleanup, even when the wakeup feature has been turned off. There might

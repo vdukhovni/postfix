@@ -177,10 +177,10 @@ static FORWARD_INFO *forward_open(DELIVER_REQUEST *request, const char *sender)
 	rec_fprintf((fp), REC_TYPE_ATTR, "%s=%s", (name), (value)); \
     } while (0)
 
-    PASS_ATTR(cleanup, MAIL_ATTR_CLIENT_NAME, request->client_name);
-    PASS_ATTR(cleanup, MAIL_ATTR_CLIENT_ADDR, request->client_addr);
-    PASS_ATTR(cleanup, MAIL_ATTR_PROTO_NAME, request->client_proto);
-    PASS_ATTR(cleanup, MAIL_ATTR_HELO_NAME, request->client_helo);
+    PASS_ATTR(cleanup, MAIL_ATTR_LOG_CLIENT_NAME, request->client_name);
+    PASS_ATTR(cleanup, MAIL_ATTR_LOG_CLIENT_ADDR, request->client_addr);
+    PASS_ATTR(cleanup, MAIL_ATTR_LOG_PROTO_NAME, request->client_proto);
+    PASS_ATTR(cleanup, MAIL_ATTR_LOG_HELO_NAME, request->client_helo);
     PASS_ATTR(cleanup, MAIL_ATTR_SASL_METHOD, request->sasl_method);
     PASS_ATTR(cleanup, MAIL_ATTR_SASL_USERNAME, request->sasl_username);
     PASS_ATTR(cleanup, MAIL_ATTR_SASL_SENDER, request->sasl_sender);
@@ -243,7 +243,7 @@ int     forward_append(DELIVER_ATTR attr)
 static int forward_send(FORWARD_INFO *info, DELIVER_REQUEST *request,
 			        DELIVER_ATTR attr, char *delivered)
 {
-    char   *myname = "forward_send";
+    const char *myname = "forward_send";
     VSTRING *buffer = vstring_alloc(100);
     int     status;
     int     rec_type = 0;

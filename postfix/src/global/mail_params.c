@@ -241,33 +241,6 @@ char   *var_verp_filter;
 int     var_in_flow_delay;
 char   *var_par_dom_match;
 char   *var_config_dirs;
-#ifdef USE_TLS
-char   *var_tls_rand_exch_name;
-char   *var_smtpd_tls_cert_file;
-char   *var_smtpd_tls_key_file;
-char   *var_smtpd_tls_dcert_file;
-char   *var_smtpd_tls_dkey_file;
-char   *var_smtpd_tls_CAfile;
-char   *var_smtpd_tls_CApath;
-char   *var_smtpd_tls_cipherlist;
-char   *var_smtpd_tls_dh512_param_file;
-char   *var_smtpd_tls_dh1024_param_file;
-int     var_smtpd_tls_loglevel;
-char   *var_smtpd_tls_scache_db;
-int     var_smtpd_tls_scache_timeout;
-char   *var_smtp_tls_cert_file;
-char   *var_smtp_tls_key_file;
-char   *var_smtp_tls_dcert_file;
-char   *var_smtp_tls_dkey_file;
-char   *var_smtp_tls_CAfile;
-char   *var_smtp_tls_CApath;
-char   *var_smtp_tls_cipherlist;
-int     var_smtp_tls_loglevel;
-char   *var_smtp_tls_scache_db;
-int     var_smtp_tls_scache_timeout;
-char   *var_tls_daemon_rand_source;
-int     var_tls_daemon_rand_bytes;
-#endif
 
 char   *var_import_environ;
 char   *var_export_environ;
@@ -515,27 +488,6 @@ void    mail_params_init()
 	VAR_FLUSH_SERVICE, DEF_FLUSH_SERVICE, &var_flush_service, 1, 0,
 	VAR_VERIFY_SERVICE, DEF_VERIFY_SERVICE, &var_verify_service, 1, 0,
 	VAR_TRACE_SERVICE, DEF_TRACE_SERVICE, &var_trace_service, 1, 0,
-#ifdef USE_TLS
-	VAR_TLS_RAND_EXCH_NAME, DEF_TLS_RAND_EXCH_NAME, &var_tls_rand_exch_name, 0, 0,
-	VAR_SMTPD_TLS_CERT_FILE, DEF_SMTPD_TLS_CERT_FILE, &var_smtpd_tls_cert_file, 0, 0,
-	VAR_SMTPD_TLS_KEY_FILE, DEF_SMTPD_TLS_KEY_FILE, &var_smtpd_tls_key_file, 0, 0,
-	VAR_SMTPD_TLS_DCERT_FILE, DEF_SMTPD_TLS_DCERT_FILE, &var_smtpd_tls_dcert_file, 0, 0,
-	VAR_SMTPD_TLS_DKEY_FILE, DEF_SMTPD_TLS_DKEY_FILE, &var_smtpd_tls_dkey_file, 0, 0,
-	VAR_SMTPD_TLS_CA_FILE, DEF_SMTPD_TLS_CA_FILE, &var_smtpd_tls_CAfile, 0, 0,
-	VAR_SMTPD_TLS_CA_PATH, DEF_SMTPD_TLS_CA_PATH, &var_smtpd_tls_CApath, 0, 0,
-	VAR_SMTPD_TLS_CLIST, DEF_SMTPD_TLS_CLIST, &var_smtpd_tls_cipherlist, 0, 0,
-	VAR_SMTPD_TLS_512_FILE, DEF_SMTPD_TLS_512_FILE, &var_smtpd_tls_dh512_param_file, 0, 0,
-	VAR_SMTPD_TLS_1024_FILE, DEF_SMTPD_TLS_1024_FILE, &var_smtpd_tls_dh1024_param_file, 0, 0,
-	VAR_SMTPD_TLS_SCACHE_DB, DEF_SMTPD_TLS_SCACHE_DB, &var_smtpd_tls_scache_db, 0, 0,
-	VAR_SMTP_TLS_CERT_FILE, DEF_SMTP_TLS_CERT_FILE, &var_smtp_tls_cert_file, 0, 0,
-	VAR_SMTP_TLS_KEY_FILE, DEF_SMTP_TLS_KEY_FILE, &var_smtp_tls_key_file, 0, 0,
-	VAR_SMTP_TLS_DCERT_FILE, DEF_SMTP_TLS_DCERT_FILE, &var_smtp_tls_dcert_file, 0, 0,
-	VAR_SMTP_TLS_DKEY_FILE, DEF_SMTP_TLS_DKEY_FILE, &var_smtp_tls_dkey_file, 0, 0,
-	VAR_SMTP_TLS_CA_FILE, DEF_SMTP_TLS_CA_FILE, &var_smtp_tls_CAfile, 0, 0,
-	VAR_SMTP_TLS_CA_PATH, DEF_SMTP_TLS_CA_PATH, &var_smtp_tls_CApath, 0, 0,
-	VAR_SMTP_TLS_CLIST, DEF_SMTP_TLS_CLIST, &var_smtp_tls_cipherlist, 0, 0,
-	VAR_SMTP_TLS_SCACHE_DB, DEF_SMTP_TLS_SCACHE_DB, &var_smtp_tls_scache_db, 0, 0,
-#endif
 	0,
     };
     static CONFIG_STR_FN_TABLE function_str_defaults_2[] = {
@@ -558,11 +510,6 @@ void    mail_params_init()
 	VAR_TOKEN_LIMIT, DEF_TOKEN_LIMIT, &var_token_limit, 1, 0,
 	VAR_MIME_MAXDEPTH, DEF_MIME_MAXDEPTH, &var_mime_maxdepth, 1, 0,
 	VAR_MIME_BOUND_LEN, DEF_MIME_BOUND_LEN, &var_mime_bound_len, 1, 0,
-#ifdef USE_TLS
-	VAR_SMTPD_TLS_LOGLEVEL, DEF_SMTPD_TLS_LOGLEVEL, &var_smtpd_tls_loglevel, 0, 0,
-	VAR_SMTP_TLS_LOGLEVEL, DEF_SMTP_TLS_LOGLEVEL, &var_smtp_tls_loglevel, 0, 0,
-	VAR_TLS_DAEMON_RAND_BYTES, DEF_TLS_DAEMON_RAND_BYTES, &var_tls_daemon_rand_bytes, 1, 0,
-#endif
 	VAR_DELAY_MAX_RES, DEF_DELAY_MAX_RES, &var_delay_max_res, MIN_DELAY_MAX_RES, MAX_DELAY_MAX_RES,
 	0,
     };
@@ -576,10 +523,6 @@ void    mail_params_init()
 	VAR_FORK_DELAY, DEF_FORK_DELAY, &var_fork_delay, 1, 0,
 	VAR_FLOCK_DELAY, DEF_FLOCK_DELAY, &var_flock_delay, 1, 0,
 	VAR_FLOCK_STALE, DEF_FLOCK_STALE, &var_flock_stale, 1, 0,
-#ifdef USE_TLS
-	VAR_SMTPD_TLS_SCACHTIME, DEF_SMTPD_TLS_SCACHTIME, &var_smtpd_tls_scache_timeout, 0, 0,
-	VAR_SMTP_TLS_SCACHTIME, DEF_SMTP_TLS_SCACHTIME, &var_smtp_tls_scache_timeout, 0, 0,
-#endif
 	VAR_DAEMON_TIMEOUT, DEF_DAEMON_TIMEOUT, &var_daemon_timeout, 1, 0,
 	VAR_IN_FLOW_DELAY, DEF_IN_FLOW_DELAY, &var_in_flow_delay, 0, 10,
 	0,

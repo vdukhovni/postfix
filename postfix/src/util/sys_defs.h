@@ -32,6 +32,8 @@
 #define SUPPORTED
 #include <sys/types.h>
 #include <sys/param.h>
+#define UINT32_TYPE	unsigned int
+#define UINT16_TYPE	unsigned short
 #define USE_PATHS_H
 #define HAS_FLOCK_LOCK
 #define HAS_FCNTL_LOCK
@@ -58,7 +60,8 @@
 # define STATFS_IN_SYS_MOUNT_H
 #endif
 #define HAS_POSIX_REGEXP
-#define HAS_ST_GEN	/* struct stat contains inode generation number */
+#define HAS_ST_GEN			/* struct stat contains inode
+					 * generation number */
 #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
 #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
 #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
@@ -143,6 +146,8 @@
 #if defined(RHAPSODY5) || defined(MACOSX)
 #define SUPPORTED
 #include <sys/types.h>
+#define UINT32_TYPE	unsigned int
+#define UINT16_TYPE	unsigned short
 #define USE_PATHS_H
 #define HAS_FLOCK_LOCK
 #define HAS_FCNTL_LOCK
@@ -183,6 +188,8 @@
   */
 #ifdef ULTRIX4
 #define SUPPORTED
+#define UINT32_TYPE	unsigned int
+#define UINT16_TYPE	unsigned short
 /* Ultrix by default has only 64 descriptors per process */
 #ifndef FD_SETSIZE
 #define FD_SETSIZE	96
@@ -234,6 +241,8 @@ extern int h_errno;
 #ifdef OSF1
 #define SUPPORTED
 #include <sys/types.h>
+#define UINT32_TYPE	unsigned int
+#define UINT16_TYPE	unsigned short
 #define MISSING_SETENV
 #define USE_PATHS_H
 #define _PATH_DEFPATH "/usr/bin:/usr/ucb"
@@ -272,6 +281,8 @@ extern int opterr;			/* XXX use <getopt.h> */
 #define SUPPORTED
 #include <sys/types.h>
 #include <memory.h>
+#define UINT32_TYPE	unsigned int
+#define UINT16_TYPE	unsigned short
 #define UNSAFE_CTYPE
 #define fpos_t	long
 #define MISSING_SETENV
@@ -319,6 +330,8 @@ extern int opterr;
 #define SUPPORTED
 #define _SVID_GETTOD			/* Solaris 2.5, XSH4.2 versus SVID */
 #include <sys/types.h>
+#define UINT32_TYPE	unsigned int
+#define UINT16_TYPE	unsigned short
 #define MISSING_SETENV
 #define _PATH_MAILDIR	"/var/mail"
 #define _PATH_BSHELL	"/bin/sh"
@@ -380,6 +393,8 @@ extern int opterr;
 #ifdef UW7				/* UnixWare 7 */
 #define SUPPORTED
 #include <sys/types.h>
+#define UINT32_TYPE	unsigned int
+#define UINT16_TYPE	unsigned short
 #define _PATH_MAILDIR	"/var/mail"
 #define _PATH_BSHELL	"/bin/sh"
 #define _PATH_DEFPATH	"/usr/bin:/usr/ucb"
@@ -408,6 +423,8 @@ extern int opterr;
 #ifdef UW21				/* UnixWare 2.1.x */
 #define SUPPORTED
 #include <sys/types.h>
+#define UINT32_TYPE	unsigned int
+#define UINT16_TYPE	unsigned short
 #define _PATH_MAILDIR   "/var/mail"
 #define _PATH_BSHELL    "/bin/sh"
 #define _PATH_DEFPATH   "/usr/bin:/usr/ucb"
@@ -439,6 +456,8 @@ extern int opterr;
 #ifdef AIX5
 #define SUPPORTED
 #include <sys/types.h>
+#define UINT32_TYPE	unsigned int
+#define UINT16_TYPE	unsigned short
 #define MISSING_SETENV
 #define USE_PATHS_H
 #ifndef _PATH_BSHELL
@@ -495,6 +514,8 @@ extern int opterr;
 #ifdef AIX4
 #define SUPPORTED
 #include <sys/types.h>
+#define UINT32_TYPE	unsigned int
+#define UINT16_TYPE	unsigned short
 #define MISSING_SETENV
 #define _PATH_BSHELL	"/bin/sh"
 #define _PATH_MAILDIR   "/var/spool/mail"	/* paths.h lies */
@@ -523,6 +544,7 @@ extern time_t time(time_t *);
 extern int seteuid(uid_t);
 extern int setegid(gid_t);
 extern int initgroups(const char *, int);
+
 #endif
 #define NATIVE_SENDMAIL_PATH "/usr/lib/sendmail"
 #define NATIVE_MAILQ_PATH "/usr/sbin/mailq"
@@ -536,6 +558,8 @@ extern int initgroups(const char *, int);
 #ifdef AIX3
 #define SUPPORTED
 #include <sys/types.h>
+#define UINT32_TYPE	unsigned int
+#define UINT16_TYPE	unsigned short
 #define MISSING_SETENV
 #define _PATH_BSHELL	"/bin/sh"
 #define _PATH_MAILDIR   "/var/spool/mail"	/* paths.h lies */
@@ -563,6 +587,7 @@ extern time_t time(time_t *);
 extern int seteuid(uid_t);
 extern int setegid(gid_t);
 extern int initgroups(const char *, int);
+
 #define NATIVE_SENDMAIL_PATH "/usr/lib/sendmail"
 
 #define CANT_USE_SEND_RECV_MSG
@@ -574,6 +599,8 @@ extern int initgroups(const char *, int);
 #if defined(IRIX5) || defined(IRIX6)
 #define SUPPORTED
 #include <sys/types.h>
+#define UINT32_TYPE	unsigned int
+#define UINT16_TYPE	unsigned short
 #define MISSING_SETENV
 #define _PATH_MAILDIR	"/var/mail"
 #define _PATH_BSHELL	"/bin/sh"
@@ -616,6 +643,8 @@ extern int initgroups(const char *, int);
 #ifdef LINUX2
 #define SUPPORTED
 #include <sys/types.h>
+#define UINT32_TYPE	unsigned int
+#define UINT16_TYPE	unsigned short
 #include <features.h>
 #define USE_PATHS_H
 #define HAS_FLOCK_LOCK
@@ -663,6 +692,8 @@ extern int initgroups(const char *, int);
 #ifdef LINUX1
 #define SUPPORTED
 #include <sys/types.h>
+#define UINT32_TYPE	unsigned int
+#define UINT16_TYPE	unsigned short
 #define USE_PATHS_H
 #define HAS_FLOCK_LOCK
 #define HAS_FCNTL_LOCK
@@ -697,6 +728,8 @@ extern int initgroups(const char *, int);
 #define SUPPORTED
 #define USE_SIG_RETURN
 #include <sys/types.h>
+#define UINT32_TYPE	unsigned int
+#define UINT16_TYPE	unsigned short
 #define HAS_DBM
 #define HAS_FCNTL_LOCK
 #define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
@@ -732,6 +765,8 @@ extern int h_errno;			/* <netdb.h> imports too much stuff */
 #define SUPPORTED
 #define USE_SIG_RETURN
 #include <sys/types.h>
+#define UINT32_TYPE	unsigned int
+#define UINT16_TYPE	unsigned short
 #define HAS_DBM
 #define HAS_FCNTL_LOCK
 #define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
@@ -767,6 +802,8 @@ extern int h_errno;			/* <netdb.h> imports too much stuff */
 #define SUPPORTED
 #define USE_SIG_RETURN
 #include <sys/types.h>
+#define UINT32_TYPE	unsigned int
+#define UINT16_TYPE	unsigned short
 #define HAS_DBM
 #define HAS_FCNTL_LOCK
 #define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
@@ -805,6 +842,8 @@ extern int h_errno;
 #ifdef NEXTSTEP3
 #define SUPPORTED
 #include <sys/types.h>
+#define UINT32_TYPE	unsigned int
+#define UINT16_TYPE	unsigned short
 #define HAS_DBM
 #define HAS_FLOCK_LOCK
 #define INTERNAL_LOCK	MYFLOCK_STYLE_FLOCK
@@ -840,7 +879,7 @@ extern int h_errno;
 /* It's amazing what is all missing...	*/
 #define isascii(c)	((unsigned)(c)<=0177)
 extern int opterr;
-typedef unsigned short  mode_t;
+typedef unsigned short mode_t;
 
 #define MISSING_PID_T
 #define MISSING_STRFTIME_E
@@ -856,6 +895,8 @@ typedef unsigned short  mode_t;
 #ifdef OPENSTEP4
 #define SUPPORTED
 #include <sys/types.h>
+#define UINT32_TYPE	unsigned int
+#define UINT16_TYPE	unsigned short
 #define HAS_DBM
 #define HAS_FLOCK_LOCK
 #define INTERNAL_LOCK	MYFLOCK_STYLE_FLOCK
@@ -891,7 +932,7 @@ typedef unsigned short  mode_t;
 /* It's amazing what is all missing...	*/
 #define isascii(c)	((unsigned)(c)<=0177)
 extern int opterr;
-typedef unsigned short  mode_t;
+typedef unsigned short mode_t;
 
 #define MISSING_PID_T
 #define MISSING_STRFTIME_E
@@ -907,6 +948,8 @@ typedef unsigned short  mode_t;
 #ifdef ReliantUnix543
 #define SUPPORTED
 #include <sys/types.h>
+#define UINT32_TYPE	unsigned int
+#define UINT16_TYPE	unsigned short
 #define MISSING_SETENV
 #define _PATH_DEFPATH	"/usr/bin:/usr/ucb"
 #define _PATH_BSHELL	"/bin/sh"
@@ -935,6 +978,8 @@ extern int opterr;			/* XXX use <getopt.h> */
 #ifdef DCOSX1				/* Siemens Pyramid */
 #define SUPPORTED
 #include <sys/types.h>
+#define UINT32_TYPE	unsigned int
+#define UINT16_TYPE	unsigned short
 #define _PATH_MAILDIR	"/var/mail"
 #define _PATH_BSHELL	"/bin/sh"
 #define _PATH_DEFPATH	"/usr/bin:/usr/ucb"
@@ -967,6 +1012,8 @@ extern int opterr;			/* XXX use <getopt.h> */
 #include <sys/socket.h>
 extern int h_errno;
 
+#define UINT32_TYPE	unsigned int
+#define UINT16_TYPE	unsigned short
 #define _PATH_MAILDIR	"/usr/spool/mail"
 #define _PATH_BSHELL	"/bin/sh"
 #define _PATH_DEFPATH	"/bin:/usr/bin"
@@ -1231,11 +1278,11 @@ typedef int pid_t;
   */
 #ifndef ALIGN_TYPE
 # if defined(__hpux) && defined(__ia64)
-# define ALIGN_TYPE	__float80
+#  define ALIGN_TYPE	__float80
 # elif defined(__ia64__)
-# define ALIGN_TYPE	long double
+#  define ALIGN_TYPE	long double
 # else
-# define ALIGN_TYPE	double
+#  define ALIGN_TYPE	double
 # endif
 #endif
 
@@ -1325,6 +1372,16 @@ typedef int pid_t;
 #ifndef DONT_WAIT_AFTER_SENDING_FD
 #define MUST_READ_AFTER_SENDING_FD
 #endif
+
+ /*
+  * Hope for the best.
+  */
+#ifndef UINT32_TYPE
+#define	UINT32_TYPE uint32_t
+#define UINT16_TYPE uint16_t
+#endif
+#define UINT32_SIZE	4
+#define UINT16_SIZE	2
 
  /*
   * Safety. On some systems, ctype.h misbehaves with non-ASCII or negative

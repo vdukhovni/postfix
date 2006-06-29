@@ -76,7 +76,7 @@
 
 static void qmgr_scan_start(QMGR_SCAN *scan_info)
 {
-    char   *myname = "qmgr_scan_start";
+    const char *myname = "qmgr_scan_start";
 
     /*
      * Sanity check.

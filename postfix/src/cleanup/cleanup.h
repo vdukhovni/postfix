@@ -33,6 +33,11 @@
 #include <string_list.h>
 
  /*
+  * Milter library.
+  */
+#include <milter.h>
+
+ /*
   * These state variables are accessed by many functions, and there is only
   * one instance of each per message.
   */
@@ -41,6 +46,7 @@ typedef struct CLEANUP_STATE {
     VSTRING *temp1;			/* scratch buffer, local use only */
     VSTRING *temp2;			/* scratch buffer, local use only */
     VSTRING *stripped_buf;		/* character stripped input */
+    VSTREAM *src;			/* current input stream */
     VSTREAM *dst;			/* current output stream */
     MAIL_STREAM *handle;		/* mail stream handle */
     char   *queue_name;			/* queue name */
@@ -63,6 +69,10 @@ typedef struct CLEANUP_STATE {
     void    (*action) (struct CLEANUP_STATE *, int, const char *, ssize_t);
     off_t   data_offset;		/* start of message content */
     off_t   xtra_offset;		/* start of extra segment */
+    off_t   append_rcpt_pt_offset;	/* append recipient here */
+    off_t   append_rcpt_pt_target;	/* target of above record */
+    off_t   append_hdr_pt_offset;	/* append header here */
+    off_t   append_hdr_pt_target;	/* target of above record */
     ssize_t rcpt_count;			/* recipient count */
     char   *reason;			/* failure reason */
     NVTABLE *attr;			/* queue file attribute list */
@@ -79,6 +89,7 @@ typedef struct CLEANUP_STATE {
 #ifdef DELAY_ACTION
     int     defer_delay;		/* deferred delivery */
 #endif
+    MILTERS *milters;			/* mail filters */
 } CLEANUP_STATE;
 
  /*
@@ -115,6 +126,11 @@ extern VSTRING *cleanup_reject_chars;
 extern VSTRING *cleanup_strip_chars;
 
  /*
+  * Milters.
+  */
+extern MILTERS *cleanup_milters;
+
+ /*
   * Address canonicalization fine control.
   */
 #define CLEANUP_CANON_FLAG_ENV_FROM	(1<<0)	/* envelope sender */
@@ -146,13 +162,13 @@ extern VSTRING *cleanup_bounce_path;
  /*
   * cleanup_state.c
   */
-extern CLEANUP_STATE *cleanup_state_alloc(void);
+extern CLEANUP_STATE *cleanup_state_alloc(VSTREAM *);
 extern void cleanup_state_free(CLEANUP_STATE *);
 
  /*
   * cleanup_api.c
   */
-extern CLEANUP_STATE *cleanup_open(void);
+extern CLEANUP_STATE *cleanup_open(VSTREAM *);
 extern void cleanup_control(CLEANUP_STATE *, int);
 extern int cleanup_flush(CLEANUP_STATE *);
 extern void cleanup_free(CLEANUP_STATE *);
@@ -173,6 +189,7 @@ extern CONFIG_TIME_TABLE cleanup_time_table[];
 extern void cleanup_out(CLEANUP_STATE *, int, const char *, ssize_t);
 extern void cleanup_out_string(CLEANUP_STATE *, int, const char *);
 extern void PRINTFLIKE(3, 4) cleanup_out_format(CLEANUP_STATE *, int, const char *,...);
+extern void cleanup_out_header(CLEANUP_STATE *, VSTRING *);
 
 #define CLEANUP_OUT_BUF(s, t, b) \
 	cleanup_out((s), (t), vstring_str((b)), VSTRING_LEN((b)))
@@ -243,6 +260,19 @@ extern int cleanup_bounce(CLEANUP_STATE *);
   */
 #define CLEANUP_MSG_STATS(stats, state) \
     MSG_STATS_INIT1(stats, incoming_arrival, state->arrival_time)
+
+ /*
+  * cleanup_milter.c.
+  */
+extern void cleanup_milter_receive(CLEANUP_STATE *, int);
+extern void cleanup_milter_inspect(CLEANUP_STATE *, MILTERS *);
+extern void cleanup_milter_emul_mail(CLEANUP_STATE *, MILTERS *, const char *);
+extern void cleanup_milter_emul_rcpt(CLEANUP_STATE *, MILTERS *, const char *);
+extern void cleanup_milter_emul_data(CLEANUP_STATE *, MILTERS *);
+
+#define CLEANUP_MILTER_OK(s) \
+    (((s)->flags & CLEANUP_FLAG_MILTER) != 0 \
+	&& (s)->errs == 0 && ((s)->flags & CLEANUP_FLAG_DISCARD) == 0)
 
 /* LICENSE
 /* .ad

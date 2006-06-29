@@ -434,7 +434,7 @@ MAIL_STREAM *mail_stream_command(const char *command)
 
 void    mail_stream_ctl(MAIL_STREAM *info, int op,...)
 {
-    char   *myname = "mail_stream_ctl";
+    const char *myname = "mail_stream_ctl";
     va_list ap;
     char   *new_queue = 0;
     char   *string_value;

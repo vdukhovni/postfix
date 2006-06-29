@@ -458,7 +458,7 @@ static void multi_server_accept_inet(int unused_event, char *context)
 
 NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 {
-    char   *myname = "multi_server_main";
+    const char *myname = "multi_server_main";
     VSTREAM *stream = 0;
     char   *root_dir = 0;
     char   *user_name = 0;

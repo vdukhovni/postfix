@@ -89,7 +89,7 @@ int     bounce_notify_verp(int flags, char *service, char *queue_name,
 			           int dsn_ret, char *verp_delims,
 			           BOUNCE_TEMPLATES *ts)
 {
-    char   *myname = "bounce_notify_verp";
+    const char *myname = "bounce_notify_verp";
     BOUNCE_INFO *bounce_info;
     int     bounce_status = 0;
     int     postmaster_status;

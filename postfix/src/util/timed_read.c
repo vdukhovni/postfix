@@ -76,6 +76,9 @@ ssize_t timed_read(int fd, void *buf, size_t len,
 	    msg_warn("read() returns EAGAIN on a readable file descriptor!");
 	    msg_warn("pausing to avoid going into a tight select/read loop!");
 	    sleep(1);
+	    continue;
+	} else if (ret < 0 && errno == EINTR) {
+	    continue;
 	} else {
 	    return (ret);
 	}

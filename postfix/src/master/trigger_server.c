@@ -262,7 +262,7 @@ static void trigger_server_wakeup(int fd)
 
 static void trigger_server_accept_fifo(int unused_event, char *context)
 {
-    char   *myname = "trigger_server_accept_fifo";
+    const char *myname = "trigger_server_accept_fifo";
     int     listen_fd = CAST_CHAR_PTR_TO_INT(context);
 
     if (trigger_server_lock != 0
@@ -286,7 +286,7 @@ static void trigger_server_accept_fifo(int unused_event, char *context)
 
 static void trigger_server_accept_local(int unused_event, char *context)
 {
-    char   *myname = "trigger_server_accept_local";
+    const char *myname = "trigger_server_accept_local";
     int     listen_fd = CAST_CHAR_PTR_TO_INT(context);
     int     time_left = 0;
     int     fd;
@@ -332,7 +332,7 @@ static void trigger_server_accept_local(int unused_event, char *context)
 
 static void trigger_server_accept_pass(int unused_event, char *context)
 {
-    char   *myname = "trigger_server_accept_pass";
+    const char *myname = "trigger_server_accept_pass";
     int     listen_fd = CAST_CHAR_PTR_TO_INT(context);
     int     time_left = 0;
     int     fd;
@@ -378,7 +378,7 @@ static void trigger_server_accept_pass(int unused_event, char *context)
 
 NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,...)
 {
-    char   *myname = "trigger_server_main";
+    const char *myname = "trigger_server_main";
     char   *root_dir = 0;
     char   *user_name = 0;
     int     debug_me = 0;

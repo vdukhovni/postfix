@@ -69,7 +69,7 @@ struct stream_trigger {
 static void stream_trigger_event(int event, char *context)
 {
     struct stream_trigger *sp = (struct stream_trigger *) context;
-    static char *myname = "stream_trigger_event";
+    static const char *myname = "stream_trigger_event";
 
     /*
      * Disconnect.
@@ -88,7 +88,7 @@ static void stream_trigger_event(int event, char *context)
 
 int     stream_trigger(const char *service, const char *buf, ssize_t len, int timeout)
 {
-    char   *myname = "stream_trigger";
+    const char *myname = "stream_trigger";
     struct stream_trigger *sp;
     int     fd;
 

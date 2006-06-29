@@ -179,6 +179,7 @@ int     cleanup_bounce(CLEANUP_STATE *state)
 	    (void) DSN_SIMPLE(&dsn, dsn_status, dsn_text);
 	    cleanup_bounce_append(state, &recipient, &dsn);
 	    /* FALLTHROUGH */
+	case REC_TYPE_DRCP:			/* canceled recipient */
 	case REC_TYPE_DONE:			/* can't happen */
 	    if (orig_rcpt != 0) {
 		myfree(orig_rcpt);

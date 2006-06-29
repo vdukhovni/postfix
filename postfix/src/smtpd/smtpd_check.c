@@ -525,10 +525,10 @@ static ARGV *smtpd_check_parse(int flags, const char *checks)
 
 /* has_required - make sure required restriction is present */
 
-static int has_required(ARGV *restrictions, char **required)
+static int has_required(ARGV *restrictions, const char **required)
 {
     char  **rest;
-    char  **reqd;
+    const char **reqd;
     ARGV   *expansion;
 
     /*
@@ -551,10 +551,10 @@ static int has_required(ARGV *restrictions, char **required)
 
 /* fail_required - handle failure to use required restriction */
 
-static void fail_required(char *name, char **required)
+static void fail_required(const char *name, const char **required)
 {
-    char   *myname = "fail_required";
-    char  **reqd;
+    const char *myname = "fail_required";
+    const char **reqd;
     VSTRING *example;
 
     /*
@@ -582,7 +582,7 @@ void    smtpd_check_init(void)
     const char *name;
     const char *value;
     char   *cp;
-    static char *rcpt_required[] = {
+    static const char *rcpt_required[] = {
 	CHECK_RELAY_DOMAINS,
 	REJECT_UNAUTH_DEST,
 	REJECT_ALL,
@@ -920,7 +920,7 @@ static const char *check_mail_addr_find(SMTPD_STATE *state,
 
 static int reject_unknown_reverse_name(SMTPD_STATE *state)
 {
-    char   *myname = "reject_unknown_reverse_name";
+    const char *myname = "reject_unknown_reverse_name";
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, state->reverse_name);
@@ -938,14 +938,14 @@ static int reject_unknown_reverse_name(SMTPD_STATE *state)
 
 static int reject_unknown_client(SMTPD_STATE *state)
 {
-    char   *myname = "reject_unknown_client";
+    const char *myname = "reject_unknown_client";
 
     if (msg_verbose)
 	msg_info("%s: %s %s", myname, state->name, state->addr);
 
     if (state->name_status != SMTPD_PEER_CODE_OK)
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
-				state->name_status == SMTPD_PEER_CODE_PERM ?
+				state->name_status >= SMTPD_PEER_CODE_PERM ?
 				   var_unk_client_code : 450, "4.7.1",
 		    "Client host rejected: cannot find your hostname, [%s]",
 				   state->addr));
@@ -956,7 +956,7 @@ static int reject_unknown_client(SMTPD_STATE *state)
 
 static int reject_plaintext_session(SMTPD_STATE *state)
 {
-    char   *myname = "reject_plaintext_session";
+    const char *myname = "reject_plaintext_session";
 
     if (msg_verbose)
 	msg_info("%s: %s %s", myname, state->name, state->addr);
@@ -974,7 +974,7 @@ static int reject_plaintext_session(SMTPD_STATE *state)
 
 static int permit_inet_interfaces(SMTPD_STATE *state)
 {
-    char   *myname = "permit_inet_interfaces";
+    const char *myname = "permit_inet_interfaces";
 
     if (msg_verbose)
 	msg_info("%s: %s %s", myname, state->name, state->addr);
@@ -988,7 +988,7 @@ static int permit_inet_interfaces(SMTPD_STATE *state)
 
 static int permit_mynetworks(SMTPD_STATE *state)
 {
-    char   *myname = "permit_mynetworks";
+    const char *myname = "permit_mynetworks";
 
     if (msg_verbose)
 	msg_info("%s: %s %s", myname, state->name, state->addr);
@@ -1026,7 +1026,7 @@ static char *dup_if_truncate(char *name)
 static int reject_invalid_hostaddr(SMTPD_STATE *state, char *addr,
 				        char *reply_name, char *reply_class)
 {
-    char   *myname = "reject_invalid_hostaddr";
+    const char *myname = "reject_invalid_hostaddr";
     ssize_t len;
     char   *test_addr;
     int     stat;
@@ -1064,7 +1064,7 @@ static int reject_invalid_hostaddr(SMTPD_STATE *state, char *addr,
 static int reject_invalid_hostname(SMTPD_STATE *state, char *name,
 				        char *reply_name, char *reply_class)
 {
-    char   *myname = "reject_invalid_hostname";
+    const char *myname = "reject_invalid_hostname";
     char   *test_name;
     int     stat;
 
@@ -1102,7 +1102,7 @@ static int reject_invalid_hostname(SMTPD_STATE *state, char *name,
 static int reject_non_fqdn_hostname(SMTPD_STATE *state, char *name,
 				        char *reply_name, char *reply_class)
 {
-    char   *myname = "reject_non_fqdn_hostname";
+    const char *myname = "reject_non_fqdn_hostname";
     char   *test_name;
     int     stat;
 
@@ -1139,7 +1139,7 @@ static int reject_non_fqdn_hostname(SMTPD_STATE *state, char *name,
 static int reject_unknown_hostname(SMTPD_STATE *state, char *name,
 				        char *reply_name, char *reply_class)
 {
-    char   *myname = "reject_unknown_hostname";
+    const char *myname = "reject_unknown_hostname";
     int     dns_status;
 
     if (msg_verbose)
@@ -1174,7 +1174,7 @@ static int reject_unknown_hostname(SMTPD_STATE *state, char *name,
 static int reject_unknown_mailhost(SMTPD_STATE *state, const char *name,
 		            const char *reply_name, const char *reply_class)
 {
-    char   *myname = "reject_unknown_mailhost";
+    const char *myname = "reject_unknown_mailhost";
     int     dns_status;
 
     if (msg_verbose)
@@ -1241,7 +1241,7 @@ static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
 static int check_relay_domains(SMTPD_STATE *state, char *recipient,
 			               char *reply_name, char *reply_class)
 {
-    char   *myname = "check_relay_domains";
+    const char *myname = "check_relay_domains";
 
 #if 1
     static int once;
@@ -1282,7 +1282,7 @@ static int check_relay_domains(SMTPD_STATE *state, char *recipient,
 
 static int permit_auth_destination(SMTPD_STATE *state, char *recipient)
 {
-    char   *myname = "permit_auth_destination";
+    const char *myname = "permit_auth_destination";
     const RESOLVE_REPLY *reply;
 
     if (msg_verbose)
@@ -1331,7 +1331,7 @@ static int permit_auth_destination(SMTPD_STATE *state, char *recipient)
 
 static int reject_unauth_destination(SMTPD_STATE *state, char *recipient)
 {
-    char   *myname = "reject_unauth_destination";
+    const char *myname = "reject_unauth_destination";
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, recipient);
@@ -1356,7 +1356,7 @@ static int reject_unauth_destination(SMTPD_STATE *state, char *recipient)
 static int reject_unauth_pipelining(SMTPD_STATE *state,
 		            const char *reply_name, const char *reply_class)
 {
-    char   *myname = "reject_unauth_pipelining";
+    const char *myname = "reject_unauth_pipelining";
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, state->where);
@@ -1380,7 +1380,7 @@ static int reject_unauth_pipelining(SMTPD_STATE *state,
 static int all_auth_mx_addr(SMTPD_STATE *state, char *host,
 		            const char *reply_name, const char *reply_class)
 {
-    char   *myname = "all_auth_mx_addr";
+    const char *myname = "all_auth_mx_addr";
     MAI_HOSTADDR_STR hostaddr;
     DNS_RR *rr;
     DNS_RR *addr_list;
@@ -1438,7 +1438,7 @@ static int all_auth_mx_addr(SMTPD_STATE *state, char *host,
 static int has_my_addr(SMTPD_STATE *state, const char *host,
 		            const char *reply_name, const char *reply_class)
 {
-    char   *myname = "has_my_addr";
+    const char *myname = "has_my_addr";
     struct addrinfo *res;
     struct addrinfo *res0;
     int     aierr;
@@ -1556,7 +1556,7 @@ static int permit_mx_primary(SMTPD_STATE *state, DNS_RR *mx_list,
 static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
 		            const char *reply_name, const char *reply_class)
 {
-    char   *myname = "permit_mx_backup";
+    const char *myname = "permit_mx_backup";
     const RESOLVE_REPLY *reply;
     const char *domain;
     DNS_RR *mx_list;
@@ -1677,7 +1677,7 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
 static int reject_non_fqdn_address(SMTPD_STATE *state, char *addr,
 				        char *reply_name, char *reply_class)
 {
-    char   *myname = "reject_non_fqdn_address";
+    const char *myname = "reject_non_fqdn_address";
     char   *domain;
     char   *test_dom;
     int     stat;
@@ -1729,7 +1729,7 @@ static int reject_non_fqdn_address(SMTPD_STATE *state, char *addr,
 static int reject_unknown_address(SMTPD_STATE *state, const char *addr,
 		            const char *reply_name, const char *reply_class)
 {
-    char   *myname = "reject_unknown_address";
+    const char *myname = "reject_unknown_address";
     const RESOLVE_REPLY *reply;
     const char *domain;
 
@@ -1766,7 +1766,7 @@ static int reject_unverified_address(SMTPD_STATE *state, const char *addr,
 		            const char *reply_name, const char *reply_class,
 				             int unv_addr_code)
 {
-    char   *myname = "reject_unverified_address";
+    const char *myname = "reject_unverified_address";
     VSTRING *why = vstring_alloc(10);
     int     rqst_status;
     int     rcpt_status;
@@ -1901,7 +1901,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 			              const char *reply_class,
 			              const char *def_acl)
 {
-    char   *myname = "check_table_result";
+    const char *myname = "check_table_result";
     int     code;
     ARGV   *restrictions;
     jmp_buf savebuf;
@@ -2237,7 +2237,7 @@ static int check_access(SMTPD_STATE *state, const char *table, const char *name,
 		              int flags, int *found, const char *reply_name,
 			        const char *reply_class, const char *def_acl)
 {
-    char   *myname = "check_access";
+    const char *myname = "check_access";
     const char *value;
     DICT   *dict;
 
@@ -2260,7 +2260,7 @@ static int check_access(SMTPD_STATE *state, const char *table, const char *name,
 						 def_acl), FOUND);
 	if (dict_errno != 0) {
 	    msg_warn("%s: table lookup problem", table);
-	    value = "450 4.3.0 Server configuration error";
+	    value = "451 4.3.5 Server configuration error";
 	    CHK_ACCESS_RETURN(check_table_result(state, table, value, name,
 						 reply_name, reply_class,
 						 def_acl), FOUND);
@@ -2277,7 +2277,7 @@ static int check_domain_access(SMTPD_STATE *state, const char *table,
 			               const char *reply_class,
 			               const char *def_acl)
 {
-    char   *myname = "check_domain_access";
+    const char *myname = "check_domain_access";
     const char *name;
     const char *next;
     const char *value;
@@ -2306,7 +2306,7 @@ static int check_domain_access(SMTPD_STATE *state, const char *table,
 						     def_acl), FOUND);
 	    if (dict_errno != 0) {
 		msg_warn("%s: table lookup problem", table);
-		value = "450 4.3.0 Server configuration error";
+		value = "451 4.3.5 Server configuration error";
 		CHK_DOMAIN_RETURN(check_table_result(state, table, value,
 					    domain, reply_name, reply_class,
 						     def_acl), FOUND);
@@ -2333,7 +2333,7 @@ static int check_addr_access(SMTPD_STATE *state, const char *table,
 			             const char *reply_class,
 			             const char *def_acl)
 {
-    char   *myname = "check_addr_access";
+    const char *myname = "check_addr_access";
     char   *addr;
     const char *value;
     DICT   *dict;
@@ -2365,7 +2365,7 @@ static int check_addr_access(SMTPD_STATE *state, const char *table,
 						   def_acl), FOUND);
 	    if (dict_errno != 0) {
 		msg_warn("%s: table lookup problem", table);
-		value = "450 4.3.0 Server configuration error";
+		value = "451 4.3.5 Server configuration error";
 		CHK_ADDR_RETURN(check_table_result(state, table, value, address,
 						   reply_name, reply_class,
 						   def_acl), FOUND);
@@ -2386,7 +2386,7 @@ static int check_namadr_access(SMTPD_STATE *state, const char *table,
 			               const char *reply_class,
 			               const char *def_acl)
 {
-    char   *myname = "check_namadr_access";
+    const char *myname = "check_namadr_access";
     int     status;
 
     if (msg_verbose)
@@ -2571,7 +2571,7 @@ static int check_ccert_access(SMTPD_STATE *state, const char *table,
 			              const char *def_acl)
 {
 #ifdef USE_TLS
-    char   *myname = "check_ccert_access";
+    const char *myname = "check_ccert_access";
     int     found;
 
     if (!state->tls_context)
@@ -2610,7 +2610,7 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
 			             const char *reply_class,
 			             const char *def_acl)
 {
-    char   *myname = "check_mail_access";
+    const char *myname = "check_mail_access";
     const RESOLVE_REPLY *reply;
     const char *domain;
     int     status;
@@ -2825,15 +2825,15 @@ static const char *smtpd_expand_lookup(const char *name, int unused_mode,
      * 
      * Return NULL only for non-existent names.
      */
-    if (STREQ(name, MAIL_ATTR_CLIENT)) {
+    if (STREQ(name, MAIL_ATTR_ACT_CLIENT)) {
 	return (state->namaddr);
-    } else if (STREQ(name, MAIL_ATTR_CLIENT_ADDR)) {
+    } else if (STREQ(name, MAIL_ATTR_ACT_CLIENT_ADDR)) {
 	return (state->addr);
-    } else if (STREQ(name, MAIL_ATTR_CLIENT_NAME)) {
+    } else if (STREQ(name, MAIL_ATTR_ACT_CLIENT_NAME)) {
 	return (state->name);
-    } else if (STREQ(name, MAIL_ATTR_REVERSE_CLIENT_NAME)) {
+    } else if (STREQ(name, MAIL_ATTR_ACT_REVERSE_CLIENT_NAME)) {
 	return (state->reverse_name);
-    } else if (STREQ(name, MAIL_ATTR_HELO_NAME)) {
+    } else if (STREQ(name, MAIL_ATTR_ACT_HELO_NAME)) {
 	return (state->helo_name ? state->helo_name : "");
     } else if (STREQN(name, MAIL_ATTR_SENDER, CONST_LEN(MAIL_ATTR_SENDER))) {
 	return (smtpd_expand_addr(state->expand_buf, state->sender,
@@ -3057,7 +3057,7 @@ static int rbl_match_addr(SMTPD_RBL_STATE *rbl, const char *addr)
 static int reject_rbl_addr(SMTPD_STATE *state, const char *rbl_domain,
 			           const char *addr, const char *reply_class)
 {
-    char   *myname = "reject_rbl";
+    const char *myname = "reject_rbl";
     ARGV   *octets;
     VSTRING *query;
     int     i;
@@ -3105,7 +3105,7 @@ static int reject_rbl_addr(SMTPD_STATE *state, const char *rbl_domain,
 static int reject_rbl_domain(SMTPD_STATE *state, const char *rbl_domain,
 			          const char *what, const char *reply_class)
 {
-    char   *myname = "reject_rbl_domain";
+    const char *myname = "reject_rbl_domain";
     VSTRING *query;
     SMTPD_RBL_STATE *rbl;
     const char *domain;
@@ -3148,7 +3148,7 @@ static int reject_rbl_domain(SMTPD_STATE *state, const char *rbl_domain,
 
 static int reject_maps_rbl(SMTPD_STATE *state)
 {
-    char   *myname = "reject_maps_rbl";
+    const char *myname = "reject_maps_rbl";
     char   *saved_domains = mystrdup(var_maps_rbl_domains);
     char   *bp = saved_domains;
     char   *rbl_domain;
@@ -3269,12 +3269,12 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 			  ATTR_FLAG_NONE,	/* Query attributes. */
 			ATTR_TYPE_STR, MAIL_ATTR_REQ, "smtpd_access_policy",
 			  ATTR_TYPE_STR, MAIL_ATTR_PROTO_STATE, state->where,
-		       ATTR_TYPE_STR, MAIL_ATTR_PROTO_NAME, state->protocol,
-			  ATTR_TYPE_STR, MAIL_ATTR_CLIENT_ADDR, state->addr,
-			  ATTR_TYPE_STR, MAIL_ATTR_CLIENT_NAME, state->name,
-			  ATTR_TYPE_STR, MAIL_ATTR_REVERSE_CLIENT_NAME,
+		   ATTR_TYPE_STR, MAIL_ATTR_ACT_PROTO_NAME, state->protocol,
+		      ATTR_TYPE_STR, MAIL_ATTR_ACT_CLIENT_ADDR, state->addr,
+		      ATTR_TYPE_STR, MAIL_ATTR_ACT_CLIENT_NAME, state->name,
+			  ATTR_TYPE_STR, MAIL_ATTR_ACT_REVERSE_CLIENT_NAME,
 			  state->reverse_name,
-			  ATTR_TYPE_STR, MAIL_ATTR_HELO_NAME,
+			  ATTR_TYPE_STR, MAIL_ATTR_ACT_HELO_NAME,
 			  state->helo_name ? state->helo_name : "",
 			  ATTR_TYPE_STR, MAIL_ATTR_SENDER,
 			  state->sender ? state->sender : "",
@@ -3389,7 +3389,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 			          const char *reply_class,
 			          const char *def_acl)
 {
-    char   *myname = "generic_checks";
+    const char *myname = "generic_checks";
     char  **cpp;
     const char *name;
     int     status = 0;
@@ -3821,7 +3821,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 int     smtpd_check_addr(const char *addr)
 {
     const RESOLVE_REPLY *resolve_reply;
-    char   *myname = "smtpd_check_addr";
+    const char *myname = "smtpd_check_addr";
 
     if (msg_verbose)
 	msg_info("%s: addr=%s", myname, addr);
@@ -4412,7 +4412,7 @@ char   *smtpd_check_size(SMTPD_STATE *state, off_t size)
 
 char   *smtpd_check_queue(SMTPD_STATE *state)
 {
-    char   *myname = "smtpd_check_queue";
+    const char *myname = "smtpd_check_queue";
     struct fsspace fsbuf;
     int     status;
 
@@ -5019,7 +5019,7 @@ int     main(int argc, char **argv)
 	case 4:
 	case 3:
 	    if (strcasecmp(args->argv[0], "client") == 0) {
-		state.where = "CONNECT";
+		state.where = SMTPD_AFTER_CONNECT;
 		UPDATE_STRING(state.name, args->argv[1]);
 		UPDATE_STRING(state.reverse_name, args->argv[1]);
 		UPDATE_STRING(state.addr, args->argv[2]);

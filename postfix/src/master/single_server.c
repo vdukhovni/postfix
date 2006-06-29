@@ -374,7 +374,7 @@ static void single_server_accept_inet(int unused_event, char *context)
 
 NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
 {
-    char   *myname = "single_server_main";
+    const char *myname = "single_server_main";
     VSTREAM *stream = 0;
     char   *root_dir = 0;
     char   *user_name = 0;

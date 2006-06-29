@@ -76,7 +76,7 @@
 
 int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 {
-    char   *myname = "deliver_maildir";
+    const char *myname = "deliver_maildir";
     char   *newdir;
     char   *tmpdir;
     char   *curdir;

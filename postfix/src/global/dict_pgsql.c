@@ -320,7 +320,7 @@ static void dict_pgsql_quote(DICT *dict, const char *name, VSTRING *result)
 
 static const char *dict_pgsql_lookup(DICT *dict, const char *name)
 {
-    char   *myname = "dict_pgsql_lookup";
+    const char *myname = "dict_pgsql_lookup";
     PGSQL_RES *query_res;
     DICT_PGSQL *dict_pgsql;
     PLPGSQL *pldb;

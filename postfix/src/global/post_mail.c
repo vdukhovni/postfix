@@ -209,7 +209,7 @@ static void post_mail_init(VSTREAM *stream, const char *sender,
     rec_fprintf(stream, REC_TYPE_TIME, REC_TYPE_TIME_FORMAT,
 		REC_TYPE_TIME_ARG(now));
     rec_fprintf(stream, REC_TYPE_ATTR, "%s=%s",
-		MAIL_ATTR_ORIGIN, MAIL_ATTR_ORG_LOCAL);
+		MAIL_ATTR_LOG_ORIGIN, MAIL_ATTR_ORG_LOCAL);
     rec_fprintf(stream, REC_TYPE_ATTR, "%s=%d",
 		MAIL_ATTR_TRACE_FLAGS, trace_flags);
     rec_fputs(stream, REC_TYPE_FROM, sender);
@@ -262,7 +262,7 @@ VSTREAM *post_mail_fopen_nowait(const char *sender, const char *recipient,
 static void post_mail_open_event(int event, char *context)
 {
     POST_MAIL_STATE *state = (POST_MAIL_STATE *) context;
-    char   *myname = "post_mail_open_event";
+    const char *myname = "post_mail_open_event";
 
     switch (event) {
 

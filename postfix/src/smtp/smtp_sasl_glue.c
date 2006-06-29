@@ -146,7 +146,7 @@ static XSASL_CLIENT_IMPL *smtp_sasl_impl;
 
 int     smtp_sasl_passwd_lookup(SMTP_SESSION *session)
 {
-    char   *myname = "smtp_sasl_passwd_lookup";
+    const char *myname = "smtp_sasl_passwd_lookup";
     SMTP_STATE *state = session->state;
     const char *value;
     char   *passwd;
@@ -259,7 +259,7 @@ void    smtp_sasl_start(SMTP_SESSION *session, const char *sasl_opts_name,
 
 int     smtp_sasl_authenticate(SMTP_SESSION *session, DSN_BUF *why)
 {
-    char   *myname = "smtp_sasl_authenticate";
+    const char *myname = "smtp_sasl_authenticate";
     SMTP_RESP *resp;
     const char *mechanism;
     int     result;

@@ -82,6 +82,9 @@ ssize_t timed_write(int fd, void *buf, size_t len,
 	    msg_warn("write() returns EAGAIN on a writable file descriptor!");
 	    msg_warn("pausing to avoid going into a tight select/write loop!");
 	    sleep(1);
+	    continue;
+	} else if (ret < 0 && errno == EINTR) {
+	    continue;
 	} else {
 	    return (ret);
 	}

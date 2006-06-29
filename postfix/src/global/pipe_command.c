@@ -190,7 +190,7 @@ static int pipe_command_maxtime;	/* available time to complete */
 
 static void get_pipe_args(struct pipe_args * args, va_list ap)
 {
-    char   *myname = "get_pipe_args";
+    const char *myname = "get_pipe_args";
     int     key;
 
     /*
@@ -286,7 +286,7 @@ static ssize_t pipe_command_write(int fd, void *buf, size_t len,
 				          void *unused_context)
 {
     int     maxtime = (pipe_command_timeout == 0) ? pipe_command_maxtime : 0;
-    char   *myname = "pipe_command_write";
+    const char *myname = "pipe_command_write";
 
     /*
      * Don't wait when all available time was already used up.
@@ -309,7 +309,7 @@ static ssize_t pipe_command_read(int fd, void *buf, ssize_t len,
 				         void *unused_context)
 {
     int     maxtime = (pipe_command_timeout == 0) ? pipe_command_maxtime : 0;
-    char   *myname = "pipe_command_read";
+    const char *myname = "pipe_command_read";
 
     /*
      * Don't wait when all available time was already used up.
@@ -349,7 +349,7 @@ static int pipe_command_wait_or_kill(pid_t pid, WAIT_STATUS_T *statusp, int sig,
 				             uid_t kill_uid, gid_t kill_gid)
 {
     int     maxtime = (pipe_command_timeout == 0) ? pipe_command_maxtime : 1;
-    char   *myname = "pipe_command_wait_or_kill";
+    const char *myname = "pipe_command_wait_or_kill";
     int     n;
 
     /*
@@ -385,7 +385,7 @@ static void pipe_child_cleanup(void)
 
 int     pipe_command(VSTREAM *src, DSN_BUF *why,...)
 {
-    char   *myname = "pipe_command";
+    const char *myname = "pipe_command";
     va_list ap;
     VSTREAM *cmd_in_stream;
     VSTREAM *cmd_out_stream;

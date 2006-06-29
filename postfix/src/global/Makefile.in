@@ -1517,10 +1517,13 @@ recipient_list.o: recipient_list.c
 recipient_list.o: recipient_list.h
 record.o: ../../include/msg.h
 record.o: ../../include/mymalloc.h
+record.o: ../../include/stringops.h
 record.o: ../../include/sys_defs.h
 record.o: ../../include/vbuf.h
 record.o: ../../include/vstream.h
 record.o: ../../include/vstring.h
+record.o: off_cvt.h
+record.o: rec_type.h
 record.o: record.c
 record.o: record.h
 remove.o: ../../include/sys_defs.h

@@ -246,6 +246,7 @@ $readme_directory/LMTP_README:f:root:-:644
 $readme_directory/LOCAL_RECIPIENT_README:f:root:-:644
 $readme_directory/MACOSX_README:f:root:-:644:o
 $readme_directory/MAILDROP_README:f:root:-:644
+$readme_directory/MILTER_README:f:root:-:644
 $readme_directory/MYSQL_README:f:root:-:644
 $readme_directory/NFS_README:f:root:-:644
 $readme_directory/OVERVIEW:f:root:-:644
@@ -293,6 +294,7 @@ $html_directory/LINUX_README.html:f:root:-:644
 $html_directory/LMTP_README.html:f:root:-:644
 $html_directory/LOCAL_RECIPIENT_README.html:f:root:-:644
 $html_directory/MAILDROP_README.html:f:root:-:644
+$html_directory/MILTER_README.html:f:root:-:644
 $html_directory/MYSQL_README.html:f:root:-:644
 $html_directory/NFS_README.html:f:root:-:644
 $html_directory/OVERVIEW.html:f:root:-:644

@@ -35,6 +35,8 @@
 /*
 /*	smtp_reuse_addr() looks up a cached session by its server
 /*	address, and verifies that the session is still alive.
+/*	This operation is disabled when the legacy tls_per_site
+/*	or smtp_sasl_password_maps features are enabled.
 /*	The result is null in case of failure.
 /*
 /*	Arguments:
@@ -174,6 +176,22 @@ static SMTP_SESSION *smtp_reuse_common(SMTP_STATE *state, int fd,
     }
     state->session = session;
 
+#ifdef USE_TLS
+
+    /*
+     * Cached sessions are never TLS encrypted, so they must not be reused
+     * when TLS encryption is required.
+     */
+    if (session->tls_level >= TLS_LEV_ENCRYPT) {
+	if (msg_verbose)
+	    msg_info("%s: skipping plain-text cached session to %s",
+		     myname, label);
+	smtp_quit(state);			/* Close politely */
+	smtp_session_free(session);		/* And avoid leaks */
+	return (state->session = 0);
+    }
+#endif
+
     /*
      * Send an RSET probe to verify that the session is still good.
      */
@@ -226,6 +244,17 @@ SMTP_SESSION *smtp_reuse_addr(SMTP_STATE *state, const char *addr,
 {
     SMTP_SESSION *session;
     int     fd;
+
+    /*
+     * XXX Disable connection cache lookup by server IP address when the
+     * tls_per_site policy or smtp_sasl_password_maps features are enabled.
+     * This connection may have been created under a different hostname that
+     * resolves to the same IP address. We don't want to use the wrong SASL
+     * credentials or the wrong TLS policy.
+     */
+    if ((var_smtp_tls_per_site && *var_smtp_tls_per_site)
+	|| (var_smtp_sasl_passwd && *var_smtp_sasl_passwd))
+	return (0);
 
     /*
      * Look up the session by its IP address. This means that we have no

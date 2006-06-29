@@ -44,6 +44,7 @@
 #define REC_TYPE_DONE	'D'		/* delivered recipient, optional */
 #define REC_TYPE_RCPT	'R'		/* todo recipient, optional */
 #define REC_TYPE_ORCP	'O'		/* original recipient, optional */
+#define REC_TYPE_DRCP	'/'		/* canceled recipient, optional */
 #define REC_TYPE_WARN	'W'		/* warning message time */
 #define REC_TYPE_ATTR	'A'		/* named attribute for extensions */
 #define REC_TYPE_KILL	'K'		/* killed record */
@@ -56,12 +57,14 @@
 
 #define REC_TYPE_CONT	'L'		/* long data record */
 #define REC_TYPE_NORM	'N'		/* normal data record */
+#define REC_TYPE_DTXT	'w'		/* deleted data record */
 
 #define REC_TYPE_XTRA	'X'		/* start extracted records */
 
 #define REC_TYPE_RRTO	'r'		/* return-receipt, from headers */
 #define REC_TYPE_ERTO	'e'		/* errors-to, from headers */
 #define REC_TYPE_PRIO	'P'		/* priority */
+#define REC_TYPE_PTR	'p'		/* pointer indirection */
 #define REC_TYPE_VERP	'V'		/* VERP delimiters */
 
 #define REC_TYPE_DSN_RET	'<'	/* DSN full/hdrs */
@@ -69,17 +72,19 @@
 #define REC_TYPE_DSN_ORCPT	'o'	/* DSN orig rcpt address */
 #define REC_TYPE_DSN_NOTIFY	'n'	/* DSN notify flags */
 
+#define REC_TYPE_MILT_COUNT	'm'
+
 #define REC_TYPE_END	'E'		/* terminator, required */
 
  /*
   * What I expect to see in a "pure recipient" sequence at the end of the
   * initial or extracted envelope segments, respectively. When a queue file
   * contains pure recipient sequences only, then the queue manager will not
-  * have to read all the queue file records before starting delivery. This
-  * is often the case with list mail, where such optimization is desirable.
+  * have to read all the queue file records before starting delivery. This is
+  * often the case with list mail, where such optimization is desirable.
   */
-#define REC_TYPE_ENV_RECIPIENT	"MDROKon"
-#define REC_TYPE_EXT_RECIPIENT	"EDROKon"
+#define REC_TYPE_ENV_RECIPIENT	"MDRO/Kon"
+#define REC_TYPE_EXT_RECIPIENT	"EDRO/Kon"
 
  /*
   * The types of records that I expect to see while processing different
@@ -95,9 +100,9 @@
   * Note: REC_TYPE_FILT and REC_TYPE_CONT are encoded with the same 'L'
   * constant, and it  is too late to change that now.
   */
-#define REC_TYPE_ENVELOPE	"MCTcFILSDROWVA>K<ion"
-#define REC_TYPE_CONTENT	"XLN"
-#define REC_TYPE_EXTRACT	"EDROPreAFIL>Kon"
+#define REC_TYPE_ENVELOPE	"MCTcFILSDRO/WVA>K<ion"
+#define REC_TYPE_CONTENT	"XLNw"
+#define REC_TYPE_EXTRACT	"EDRO/PreAFIL>Kon"
 
  /*
   * The subset of inputs that the postdrop command allows.
@@ -113,6 +118,8 @@
   * text record), recipient count, and queue manager hints. These are all
   * fixed-width fields so they can be updated in place. Queue manager hints
   * are defined in qmgr_user.h
+  * 
+  * See also: REC_TYPE_PTR_FORMAT below.
   */
 #define REC_TYPE_SIZE_FORMAT	"%15ld %15ld %15ld %15ld"
 #define REC_TYPE_SIZE_CAST1	long
@@ -143,6 +150,29 @@
 	    _p++; \
 	(tv).tv_usec = atol(_p); \
     } while (0)
+
+ /*
+  * Pointer records are used to edit a queue file in place before it is
+  * committed. When a record is appended or modified, we patch it into the
+  * existing record stream with a pointer to storage in a heap after the
+  * end-of-message marker; the new content is followed by a pointer record
+  * back to the existing record stream.
+  * 
+  * We need to have a few dummy pointer records in place at strategic places
+  * (after the last recipient, after the last header) so that we can always
+  * append recipients or append/modify headers without having to move message
+  * segment terminators.
+  * 
+  * We also need to have a dummy PTR record at the end of the content, so that
+  * we can always replace the message content without having to move the
+  * end-of-message marker.
+  * 
+  * A dummy PTR record has a null argument.
+  * 
+  * See also: REC_TYPE_SIZE_FORMAT above.
+  */
+#define REC_TYPE_PTR_FORMAT	"%15ld"
+#define REC_TYPE_PTR_SIZE	15
 
  /*
   * Programmatic interface.

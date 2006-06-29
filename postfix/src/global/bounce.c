@@ -220,7 +220,7 @@ int     bounce_append(int flags, const char *id, MSG_STATS *stats,
      */
     else {
 	char   *my_status = mystrdup(my_dsn.status);
-	char   *log_status = var_soft_bounce ? "SOFTBOUNCE" : "bounced";
+	const char *log_status = var_soft_bounce ? "SOFTBOUNCE" : "bounced";
 
 	/*
 	 * Supply default action.

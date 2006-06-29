@@ -184,14 +184,24 @@ static int file_read_error(PICKUP_INFO *info, int type)
     return (REMOVE_MESSAGE_FILE);
 }
 
-/* cleanup_service_error - handle error writing to cleanup service. */
+/* cleanup_service_error_reason - handle error writing to cleanup service. */
 
-static int cleanup_service_error(PICKUP_INFO *info, int status)
+static int cleanup_service_error_reason(PICKUP_INFO *info, int status,
+					        const char *reason)
 {
-    msg_warn("%s: %s", info->path, cleanup_strerror(status));
+
+    /*
+     * XXX If the cleanup server gave a reason, then it was already logged.
+     * Don't bother logging it another time.
+     */
+    if (reason == 0)
+	msg_warn("%s: %s", info->path, cleanup_strerror(status));
     return ((status & CLEANUP_STAT_BAD) ?
 	    REMOVE_MESSAGE_FILE : KEEP_MESSAGE_FILE);
 }
+
+#define cleanup_service_error(info, status) \
+	cleanup_service_error_reason((info), (status), (char *) 0)
 
 /* copy_segment - copy a record group */
 
@@ -214,6 +224,8 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
      * Allow attribute records if the queue file is owned by the mail system
      * (postsuper -r) or if the attribute specifies the MIME body type
      * (sendmail -B).
+     * 
+     * We must allow PTR records here because of "postsuper -r".
      */
     for (;;) {
 	if ((type = rec_get(qfile, buf, var_line_limit)) < 0
@@ -378,7 +390,8 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
     rec_fputs(cleanup, REC_TYPE_END, "");
     if (attr_scan(cleanup, ATTR_FLAG_MISSING,
 		  ATTR_TYPE_INT, MAIL_ATTR_STATUS, &status,
-		  ATTR_TYPE_END) != 1)
+		  ATTR_TYPE_STR, MAIL_ATTR_WHY, buf,
+		  ATTR_TYPE_END) != 2)
 	return (cleanup_service_error(info, CLEANUP_STAT_WRITE));
 
     /*
@@ -388,7 +401,7 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
      * now and then.
      */
     if (status) {
-	return (cleanup_service_error(info, status));
+	return (cleanup_service_error_reason(info, status, vstring_str(buf)));
     } else {
 	return (REMOVE_MESSAGE_FILE);
     }

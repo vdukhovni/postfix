@@ -168,7 +168,7 @@ static void master_sigchld(int sig)
 
 static void master_sigdeath(int sig)
 {
-    char   *myname = "master_sigdeath";
+    const char *myname = "master_sigdeath";
     struct sigaction action;
     pid_t   pid = getpid();
 
@@ -207,7 +207,7 @@ static void master_sigdeath(int sig)
 
 void    master_sigsetup(void)
 {
-    char   *myname = "master_sigsetup";
+    const char *myname = "master_sigsetup";
     struct sigaction action;
     static int sigs[] = {
 	SIGINT, SIGQUIT, SIGILL, SIGBUS, SIGSEGV, SIGTERM,

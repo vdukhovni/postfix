@@ -54,7 +54,7 @@
 
 int     stream_send_fd(int fd, int sendfd)
 {
-    char   *myname = "stream_send_fd";
+    const char *myname = "stream_send_fd";
 
 #ifdef STREAM_CONNECTIONS
     if (ioctl(fd, I_SENDFD, sendfd) < 0)

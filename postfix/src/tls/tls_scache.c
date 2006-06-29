@@ -6,10 +6,10 @@
 /* SYNOPSIS
 /*	#include <tls_scache.h>
 /*
-/*	TLS_SCACHE *tls_scache_open(dbname, cache_label, log_level, timeout)
+/*	TLS_SCACHE *tls_scache_open(dbname, cache_label, verbose, timeout)
 /*	const char *dbname
 /*	const char *cache_label;
-/*	int	log_level;
+/*	int	verbose;
 /*	int	timeout;
 /*
 /*	void	tls_scache_close(cache)
@@ -72,8 +72,8 @@
 /*	The base name of the session cache file.
 /* .IP cache_label
 /*	A string that is used in logging and error messages.
-/* .IP log_level
-/*	The logging level for cache operations.
+/* .IP verbose
+/*	Do verbose logging of cache operations? (zero == no)
 /* .IP timeout
 /*	The time after wich a session cache entry is considered too old.
 /* .IP first_next
@@ -186,7 +186,7 @@ static VSTRING *tls_scache_encode(TLS_SCACHE *cp, const char *cache_id,
     /*
      * Logging.
      */
-    if (cp->log_level >= 3)
+    if (cp->verbose)
 	msg_info("write %s TLS cache entry %s: time=%ld [data %ld bytes]",
 		 cp->cache_label, cache_id, (long) entry->timestamp,
 		 (long) session_len);
@@ -202,7 +202,7 @@ static VSTRING *tls_scache_encode(TLS_SCACHE *cp, const char *cache_id,
 /* tls_scache_decode - decode TLS session cache entry */
 
 static int tls_scache_decode(TLS_SCACHE *cp, const char *cache_id,
-			             const char *hex_data, ssize_t hex_data_len,
+			         const char *hex_data, ssize_t hex_data_len,
 			             VSTRING *out_session)
 {
     TLS_SCACHE_ENTRY *entry;
@@ -235,10 +235,10 @@ static int tls_scache_decode(TLS_SCACHE *cp, const char *cache_id,
     /*
      * Logging.
      */
-    if (cp->log_level >= 3)
+    if (cp->verbose)
 	msg_info("read %s TLS cache entry %s: time=%ld [data %ld bytes]",
 		 cp->cache_label, cache_id, (long) entry->timestamp,
-		 (long) (LEN(bin_data) - offsetof(TLS_SCACHE_ENTRY, session)));
+	      (long) (LEN(bin_data) - offsetof(TLS_SCACHE_ENTRY, session)));
 
     /*
      * Other mandatory restrictions.
@@ -269,7 +269,7 @@ int     tls_scache_lookup(TLS_SCACHE *cp, const char *cache_id,
     /*
      * Logging.
      */
-    if (cp->log_level >= 3)
+    if (cp->verbose)
 	msg_info("lookup %s session id=%s", cp->cache_label, cache_id);
 
     /*
@@ -306,7 +306,7 @@ int     tls_scache_update(TLS_SCACHE *cp, const char *cache_id,
     /*
      * Logging.
      */
-    if (cp->log_level >= 3)
+    if (cp->verbose)
 	msg_info("put %s session id=%s [data %ld bytes]",
 		 cp->cache_label, cache_id, (long) len);
 
@@ -416,7 +416,7 @@ int     tls_scache_delete(TLS_SCACHE *cp, const char *cache_id)
     /*
      * Logging.
      */
-    if (cp->log_level >= 3)
+    if (cp->verbose)
 	msg_info("delete %s session id=%s", cp->cache_label, cache_id);
 
     /*
@@ -431,7 +431,7 @@ int     tls_scache_delete(TLS_SCACHE *cp, const char *cache_id)
 /* tls_scache_open - open TLS session cache file */
 
 TLS_SCACHE *tls_scache_open(const char *dbname, const char *cache_label,
-			            int log_level, int timeout)
+			            int verbose, int timeout)
 {
     TLS_SCACHE *cp;
     DICT   *dict;
@@ -439,7 +439,7 @@ TLS_SCACHE *tls_scache_open(const char *dbname, const char *cache_label,
     /*
      * Logging.
      */
-    if (log_level >= 3)
+    if (verbose)
 	msg_info("open %s TLS cache %s", cache_label, dbname);
 
     /*
@@ -479,7 +479,7 @@ TLS_SCACHE *tls_scache_open(const char *dbname, const char *cache_label,
     cp->flags = 0;
     cp->db = dict;
     cp->cache_label = mystrdup(cache_label);
-    cp->log_level = log_level;
+    cp->verbose = verbose;
     cp->timeout = timeout;
     cp->saved_cursor = 0;
 
@@ -494,7 +494,7 @@ void    tls_scache_close(TLS_SCACHE *cp)
     /*
      * Logging.
      */
-    if (cp->log_level >= 3)
+    if (cp->verbose)
 	msg_info("close %s TLS cache %s", cp->cache_label, cp->db->name);
 
     /*

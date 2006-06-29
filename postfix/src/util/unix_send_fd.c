@@ -53,7 +53,7 @@ int     unix_send_fd(int fd, int sendfd)
      * not compile with version <2 Linux libraries.
      */
 #ifdef CANT_USE_SEND_RECV_MSG
-    char   *myname = "unix_send_fd";
+    const char *myname = "unix_send_fd";
 
     msg_warn("%s: your system has no support for file descriptor passing",
 	     myname);

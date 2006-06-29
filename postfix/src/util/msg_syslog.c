@@ -67,7 +67,7 @@
 #define MSG_SYSLOG_RECLEN	2000
 
 struct facility_list {
-    char   *name;
+    const char *name;
     int     facility;
 };
 
@@ -170,8 +170,8 @@ void    msg_syslog_init(const char *name, int logopt, int facility)
     static int first_call = 1;
 
     /*
-     * XXX If this program is set-gid, then TZ must not be trusted.
-     * This scrubbing code is in the wrong place.
+     * XXX If this program is set-gid, then TZ must not be trusted. This
+     * scrubbing code is in the wrong place.
      */
     if (unsafe())
 	putenv("TZ=UTC");

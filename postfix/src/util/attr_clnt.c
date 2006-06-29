@@ -203,7 +203,7 @@ int     attr_clnt_request(ATTR_CLNT *client, int send_flags,...)
 
 void    attr_clnt_control(ATTR_CLNT *client, int name,...)
 {
-    char   *myname = "attr_clnt_control";
+    const char *myname = "attr_clnt_control";
     va_list ap;
 
     for (va_start(ap, name); name != ATTR_CLNT_CTL_END; name = va_arg(ap, int)) {

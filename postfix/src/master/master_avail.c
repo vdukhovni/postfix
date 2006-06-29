@@ -92,7 +92,7 @@ static void master_avail_event(int event, char *context)
 
 void    master_avail_listen(MASTER_SERV *serv)
 {
-    char   *myname = "master_avail_listen";
+    const char *myname = "master_avail_listen";
     time_t  now;
     int     n;
 
@@ -140,7 +140,7 @@ void    master_avail_cleanup(MASTER_SERV *serv)
 
 void    master_avail_more(MASTER_SERV *serv, MASTER_PROC *proc)
 {
-    char   *myname = "master_avail_more";
+    const char *myname = "master_avail_more";
     int     n;
 
     /*
@@ -164,7 +164,7 @@ void    master_avail_more(MASTER_SERV *serv, MASTER_PROC *proc)
 
 void    master_avail_less(MASTER_SERV *serv, MASTER_PROC *proc)
 {
-    char   *myname = "master_avail_less";
+    const char *myname = "master_avail_less";
 
     /*
      * This child is no longer available for servicing connection requests.

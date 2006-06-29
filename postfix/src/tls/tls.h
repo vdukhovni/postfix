@@ -12,6 +12,19 @@
 /* .nf
 
  /*
+  * TLS enforcement levels. Non-sentinel values also be used to indicate
+  * the actual security level of a session.
+  */
+#define TLS_LEV_NOTFOUND	-1	/* sentinel */
+#define TLS_LEV_NONE		0	/* plain-text only */
+#define TLS_LEV_MAY		1	/* wildcard */
+#define TLS_LEV_ENCRYPT		2	/* encrypted connection */
+#define TLS_LEV_VERIFY		3	/* certificate verified */
+#define TLS_LEV_SECURE		4	/* "secure" verification */
+
+#ifdef USE_TLS
+
+ /*
   * OpenSSL library.
   */
 #include <openssl/lhash.h>
@@ -31,18 +44,29 @@
   * Utility library.
   */
 #include <vstream.h>
+#include <name_mask.h>
+#include <name_code.h>
+
+#define TLS_BIO_BUFSIZE	8192
+
+ /*
+  * Names of valid tlsmgr(8) session caches.
+  */
+#define TLS_MGR_SCACHE_SMTPD	"smtpd"
+#define TLS_MGR_SCACHE_SMTP	"smtp"
+#define TLS_MGR_SCACHE_LMTP	"lmtp"
 
  /*
   * TLS session context, also used by the VSTREAM call-back routines for SMTP
   * input/output, and by OpenSSL call-back routines for key verification.
   */
 #define CCERT_BUFSIZ	256
-#define HOST_BUFSIZ  255		/* RFC 1035 */
 
 typedef struct {
     SSL    *con;
     BIO    *internal_bio;		/* postfix/TLS side of pair */
     BIO    *network_bio;		/* network side of pair */
+    char   *cache_type;			/* tlsmgr(8) cache type if enabled */
     char   *serverid;			/* unique server identifier */
     char   *peer_CN;			/* Peer Common Name */
     char   *issuer_CN;			/* Issuer Common Name */
@@ -60,14 +84,74 @@ typedef struct {
     int     session_reused;		/* this session was reused */
 } TLScontext_t;
 
-#define TLS_BIO_BUFSIZE	8192
+ /*
+  * Client protocol selection bitmask
+  */
+#define TLS_PROTOCOL_SSLv2	(1<<0)	/* SSLv2 */
+#define TLS_PROTOCOL_SSLv3	(1<<1)	/* SSLv3 */
+#define TLS_PROTOCOL_TLSv1	(1<<2)	/* TLSv1 */
+#define TLS_ALL_PROTOCOLS	\
+	( TLS_PROTOCOL_SSLv2 | TLS_PROTOCOL_SSLv3 | TLS_PROTOCOL_TLSv1 )
+
+ /*
+  * tls_misc.c
+  */
+#define TLS_CIPHER_NONE		0
+#define TLS_CIPHER_NULL		1
+#define TLS_CIPHER_EXPORT	2
+#define TLS_CIPHER_LOW		3
+#define TLS_CIPHER_MEDIUM	4
+#define TLS_CIPHER_HIGH		5
+
+extern NAME_MASK tls_protocol_table[];
+extern NAME_CODE tls_cipher_level_table[];
+
+#define tls_protocol_mask(tag, protocols) \
+    name_mask_delim_opt((tag), tls_protocol_table, (protocols), \
+		        ":" NAME_MASK_DEFAULT_DELIM, \
+		        NAME_MASK_ANY_CASE | NAME_MASK_RETURN)
+
+#define tls_protocol_names(tag, mask) \
+    str_name_mask_opt((VSTRING *)0, (tag), tls_protocol_table, (mask), \
+		      NAME_MASK_FATAL|NAME_MASK_COMMA)
+
+#define tls_cipher_level(str) \
+    name_code(tls_cipher_level_table, NAME_CODE_FLAG_NONE, (str))
+
+#define TLS_END_EXCLUDE ((char *)0)
+extern char *tls_cipher_list(int,...);
 
  /*
   * tls_client.c
   */
-extern SSL_CTX *tls_client_init(int);
-extern TLScontext_t *tls_client_start(SSL_CTX *, VSTREAM *, int, int,
-				              const char *, const char *);
+typedef struct {
+    int     log_level;
+    int     verifydepth;
+    const char *cache_type;
+    const char *cert_file;
+    const char *key_file;
+    const char *dcert_file;
+    const char *dkey_file;
+    const char *CAfile;
+    const char *CApath;
+} tls_client_init_props;
+
+typedef struct {
+    SSL_CTX *ctx;
+    VSTREAM *stream;
+    int     log_level;
+    int     timeout;
+    int     tls_level;			/* Security level */
+    char   *nexthop;			/* destination domain */
+    char   *host;			/* MX hostname */
+    char   *serverid;			/* Session cache key */
+    int     protocols;			/* Encrypt level protocols, 0 => all */
+    char   *cipherlist;			/* Encrypt level ciphers */
+    char   *certmatch;			/* Verify level match patterns */
+} tls_client_start_props;
+
+extern SSL_CTX *tls_client_init(const tls_client_init_props *);
+extern TLScontext_t *tls_client_start(const tls_client_start_props *);
 
 #define tls_client_stop(ctx , stream, timeout, failure, TLScontext) \
 	tls_session_stop((ctx), (stream), (timeout), (failure), (TLScontext))
@@ -75,8 +159,26 @@ extern TLScontext_t *tls_client_start(SSL_CTX *, VSTREAM *, int, int,
  /*
   * tls_server.c
   */
-extern SSL_CTX *tls_server_init(int, int);
-extern TLScontext_t *tls_server_start(SSL_CTX *, VSTREAM *, int,
+typedef struct {
+    int     log_level;
+    int     verifydepth;
+    const char *cache_type;
+    long    scache_timeout;
+    const char *cert_file;
+    const char *key_file;
+    const char *dcert_file;
+    const char *dkey_file;
+    const char *CAfile;
+    const char *CApath;
+    const char *cipherlist;
+    int     protocols;			/* protocols, 0 => all */
+    const char *dh1024_param_file;
+    const char *dh512_param_file;
+    int     ask_ccert;
+} tls_server_props;
+
+extern SSL_CTX *tls_server_init(const tls_server_props *);
+extern TLScontext_t *tls_server_start(SSL_CTX *, VSTREAM *, int, int,
 				           const char *, const char *, int);
 
 #define tls_server_stop(ctx , stream, timeout, failure, TLScontext) \
@@ -161,6 +263,7 @@ extern int tls_set_my_certificate_key_info(SSL_CTX *, const char *,
   * tls_misc.c
   */
 extern int TLScontext_index;
+extern int TLSscache_index;
 
 extern TLScontext_t *tls_alloc_context(int, const char *);
 extern void tls_free_context(TLScontext_t *);
@@ -176,9 +279,6 @@ extern long tls_bio_dump_cb(BIO *, int, const char *, int, long, long);
 extern void tls_int_seed(void);
 extern int tls_ext_seed(int);
 
- /*
-  * tls_temp.c, code that is going away.
-  */
 #endif					/* TLS_INTERNAL */
 
 /* LICENSE
@@ -192,4 +292,5 @@ extern int tls_ext_seed(int);
 /*      Yorktown Heights, NY 10598, USA
 /*--*/
 
+#endif					/* USE_TLS */
 #endif					/* _TLS_H_INCLUDED_ */

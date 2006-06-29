@@ -59,6 +59,7 @@
   * because cleanup_strerror() can report only one error.
   */
 static CLEANUP_STAT_DETAIL cleanup_stat_map[] = {
+    CLEANUP_STAT_DEFER, 451, "4.7.1", "service unavailable",
     CLEANUP_STAT_PROXY, 451, "4.3.0", "queue file write error",
     CLEANUP_STAT_BAD, 451, "4.3.0", "internal protocol error",
     CLEANUP_STAT_RCPT, 550, "5.1.0", "no recipients specified",

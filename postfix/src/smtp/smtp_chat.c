@@ -380,7 +380,7 @@ static void print_line(const char *str, int len, int indent, char *context)
 
 void    smtp_chat_notify(SMTP_SESSION *session)
 {
-    char   *myname = "smtp_chat_notify";
+    const char *myname = "smtp_chat_notify";
     VSTREAM *notice;
     char  **cpp;
 

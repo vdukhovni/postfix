@@ -249,7 +249,7 @@ INET_PROTO_INFO *inet_proto_init(const char *context, const char *protocols)
   */
 int     main(int argc, char **argv)
 {
-    char   *myname = argv[0];
+    const char *myname = argv[0];
     INET_PROTO_INFO *pf;
 
     if (argc < 2)

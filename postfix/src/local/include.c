@@ -78,7 +78,7 @@
 
 int     deliver_include(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 {
-    char   *myname = "deliver_include";
+    const char *myname = "deliver_include";
     struct stat st;
     struct mypasswd *file_pwd = 0;
     int     status;

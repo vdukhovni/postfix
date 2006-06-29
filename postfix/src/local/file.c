@@ -81,7 +81,7 @@
 
 int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 {
-    char   *myname = "deliver_file";
+    const char *myname = "deliver_file";
     struct stat st;
     MBOX   *mp;
     DSN_BUF *why = state.msg_attr.why;

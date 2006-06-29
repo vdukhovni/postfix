@@ -65,6 +65,8 @@ ssize_t write_buf(int fd, const char *buf, ssize_t len, int timeout)
 	if ((count = write(fd, buf, len)) < 0) {
 	    if (errno == EAGAIN && timeout > 0)
 		continue;
+	    if (errno == EINTR)
+		continue;
 	    return (-1);
 	}
 	if (count == 0)

@@ -161,7 +161,7 @@ void    resolve_clnt_init(RESOLVE_REPLY *reply)
 void    resolve_clnt(const char *class, const char *sender,
 		             const char *addr, RESOLVE_REPLY *reply)
 {
-    char   *myname = "resolve_clnt";
+    const char *myname = "resolve_clnt";
     VSTREAM *stream;
     int     server_flags;
 

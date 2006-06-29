@@ -78,6 +78,7 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
      * Initialize the state information for this connection, and fill in the
      * connection-specific fields.
      */
+    state->flags = 0;
     state->err = CLEANUP_STAT_OK;
     state->client = stream;
     state->service = mystrdup(service);
@@ -150,6 +151,9 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
 	smtpd_sasl_connect(state, VAR_SMTPD_SASL_OPTS, var_smtpd_sasl_opts);
 #endif
 
+    state->milter_argv = 0;
+    state->milter_argc = 0;
+
     /*
      * Initialize peer information.
      */
@@ -182,6 +186,8 @@ void    smtpd_state_reset(SMTPD_STATE *state)
 	vstring_free(state->buffer);
     if (state->addr_buf)
 	vstring_free(state->addr_buf);
+    if (state->access_denied)
+	myfree(state->access_denied);
     if (state->protocol)
 	myfree(state->protocol);
     smtpd_peer_reset(state);

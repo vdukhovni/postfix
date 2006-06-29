@@ -426,7 +426,7 @@ static int data_read(SINK_STATE *state)
   * The table of all SMTP commands that we can handle.
   */
 typedef struct SINK_COMMAND {
-    char   *name;
+    const char *name;
     void    (*response) (SINK_STATE *);
     void    (*hard_response) (SINK_STATE *);
     void    (*soft_response) (SINK_STATE *);

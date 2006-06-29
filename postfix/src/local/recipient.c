@@ -97,7 +97,7 @@
 
 static int deliver_switch(LOCAL_STATE state, USER_ATTR usr_attr)
 {
-    char   *myname = "deliver_switch";
+    const char *myname = "deliver_switch";
     int     status = 0;
     struct stat st;
     struct mypasswd *mypwd;
@@ -197,7 +197,7 @@ static int deliver_switch(LOCAL_STATE state, USER_ATTR usr_attr)
 
 int     deliver_recipient(LOCAL_STATE state, USER_ATTR usr_attr)
 {
-    char   *myname = "deliver_recipient";
+    const char *myname = "deliver_recipient";
     int     rcpt_stat;
 
     /*

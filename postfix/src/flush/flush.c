@@ -267,7 +267,7 @@ static int flush_policy_ok(const char *site)
 
 static int flush_add_service(const char *site, const char *queue_id)
 {
-    char   *myname = "flush_add_service";
+    const char *myname = "flush_add_service";
     VSTRING *site_path;
     int     status;
 
@@ -294,7 +294,7 @@ static int flush_add_service(const char *site, const char *queue_id)
 
 static int flush_add_path(const char *path, const char *queue_id)
 {
-    char   *myname = "flush_add_path";
+    const char *myname = "flush_add_path";
     VSTREAM *log;
 
     /*
@@ -343,7 +343,7 @@ static int flush_add_path(const char *path, const char *queue_id)
 
 static int flush_send_service(const char *site, int how)
 {
-    char   *myname = "flush_send_service";
+    const char *myname = "flush_send_service";
     VSTRING *site_path;
     int     status;
 
@@ -503,7 +503,7 @@ static int flush_send_path(const char *path, int how)
 
 static int flush_refresh_service(int max_age)
 {
-    char   *myname = "flush_refresh_service";
+    const char *myname = "flush_refresh_service";
     SCAN_DIR *scan;
     char   *site_path;
     struct stat st;

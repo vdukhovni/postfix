@@ -104,7 +104,7 @@
 
 static uid_t dict_owner(char *table)
 {
-    char   *myname = "dict_owner";
+    const char *myname = "dict_owner";
     DICT   *dict;
     struct stat st;
 
@@ -126,7 +126,7 @@ static uid_t dict_owner(char *table)
 int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
 		              char *name, int *statusp)
 {
-    char   *myname = "deliver_alias";
+    const char *myname = "deliver_alias";
     const char *alias_result;
     char   *saved_alias_result;
     char   *owner;

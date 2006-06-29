@@ -187,7 +187,7 @@ void    netstring_except(VSTREAM *stream, int exception)
 
 ssize_t netstring_get_length(VSTREAM *stream)
 {
-    char   *myname = "netstring_get_length";
+    const char *myname = "netstring_get_length";
     ssize_t len = 0;
     int     ch;
 
@@ -216,7 +216,7 @@ ssize_t netstring_get_length(VSTREAM *stream)
 
 VSTRING *netstring_get_data(VSTREAM *stream, VSTRING *buf, ssize_t len)
 {
-    char   *myname = "netstring_get_data";
+    const char *myname = "netstring_get_data";
 
     /*
      * Allocate buffer space.
@@ -267,7 +267,7 @@ VSTRING *netstring_get(VSTREAM *stream, VSTRING *buf, ssize_t limit)
 
 void    netstring_put(VSTREAM *stream, const char *data, ssize_t len)
 {
-    char   *myname = "netstring_put";
+    const char *myname = "netstring_put";
 
     if (msg_verbose > 1)
 	msg_info("%s: write netstring len %ld data %.*s",
@@ -281,7 +281,7 @@ void    netstring_put(VSTREAM *stream, const char *data, ssize_t len)
 
 void    netstring_put_multi(VSTREAM *stream,...)
 {
-    char   *myname = "netstring_put_multi";
+    const char *myname = "netstring_put_multi";
     ssize_t total;
     char   *data;
     ssize_t data_len;

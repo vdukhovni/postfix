@@ -8,7 +8,26 @@
 	VAR_SMTP_SASL_PATH, DEF_SMTP_SASL_PATH, &var_smtp_sasl_path, 0, 0,
 #ifdef USE_TLS
 	VAR_SMTP_SASL_TLS_OPTS, DEF_SMTP_SASL_TLS_OPTS, &var_smtp_sasl_tls_opts, 0, 0,
+#ifdef SNAPSHOT				/* XXX: Not yet */
 	VAR_SMTP_SASL_TLSV_OPTS, DEF_SMTP_SASL_TLSV_OPTS, &var_smtp_sasl_tlsv_opts, 0, 0,
+#endif
+	VAR_SMTP_TLS_CERT_FILE, DEF_SMTP_TLS_CERT_FILE, &var_smtp_tls_cert_file, 0, 0,
+	VAR_SMTP_TLS_KEY_FILE, DEF_SMTP_TLS_KEY_FILE, &var_smtp_tls_key_file, 0, 0,
+	VAR_SMTP_TLS_DCERT_FILE, DEF_SMTP_TLS_DCERT_FILE, &var_smtp_tls_dcert_file, 0, 0,
+	VAR_SMTP_TLS_DKEY_FILE, DEF_SMTP_TLS_DKEY_FILE, &var_smtp_tls_dkey_file, 0, 0,
+	VAR_SMTP_TLS_CA_FILE, DEF_SMTP_TLS_CA_FILE, &var_smtp_tls_CAfile, 0, 0,
+	VAR_SMTP_TLS_CA_PATH, DEF_SMTP_TLS_CA_PATH, &var_smtp_tls_CApath, 0, 0,
+	VAR_SMTP_TLS_CIPHERS, DEF_SMTP_TLS_CIPHERS, &var_smtp_tls_ciphers, 1, 0,
+	VAR_SMTP_TLS_EXCL_CIPH, DEF_SMTP_TLS_EXCL_CIPH, &var_smtp_tls_excl_ciph, 0, 0,
+	VAR_SMTP_TLS_MAND_EXCL, DEF_SMTP_TLS_MAND_EXCL, &var_smtp_tls_mand_excl, 0, 0,
+	VAR_TLS_HIGH_CLIST, DEF_TLS_HIGH_CLIST, &var_tls_high_clist, 1, 0,
+	VAR_TLS_MEDIUM_CLIST, DEF_TLS_MEDIUM_CLIST, &var_tls_medium_clist, 1, 0,
+	VAR_TLS_LOW_CLIST, DEF_TLS_LOW_CLIST, &var_tls_low_clist, 1, 0,
+	VAR_TLS_EXPORT_CLIST, DEF_TLS_EXPORT_CLIST, &var_tls_export_clist, 1, 0,
+	VAR_TLS_NULL_CLIST, DEF_TLS_NULL_CLIST, &var_tls_null_clist, 1, 0,
+	VAR_SMTP_TLS_PROTO, DEF_SMTP_TLS_PROTO, &var_smtp_tls_protocols, 0, 0,
+	VAR_SMTP_TLS_VFY_CMATCH, DEF_SMTP_TLS_VFY_CMATCH, &var_smtp_tls_vfy_cmatch, 1, 0,
+	VAR_SMTP_TLS_SEC_CMATCH, DEF_SMTP_TLS_SEC_CMATCH, &var_smtp_tls_sec_cmatch, 1, 0,
 #endif
 	VAR_SMTP_SASL_MECHS, DEF_SMTP_SASL_MECHS, &var_smtp_sasl_mechs, 0, 0,
 	VAR_SMTP_SASL_TYPE, DEF_SMTP_SASL_TYPE, &var_smtp_sasl_type, 1, 0,
@@ -21,6 +40,8 @@
 	VAR_SMTP_EHLO_DIS_WORDS, DEF_SMTP_EHLO_DIS_WORDS, &var_smtp_ehlo_dis_words, 0, 0,
 	VAR_SMTP_EHLO_DIS_MAPS, DEF_SMTP_EHLO_DIS_MAPS, &var_smtp_ehlo_dis_maps, 0, 0,
 	VAR_SMTP_TLS_PER_SITE, DEF_SMTP_TLS_PER_SITE, &var_smtp_tls_per_site, 0, 0,
+	VAR_SMTP_TLS_LEVEL, DEF_SMTP_TLS_LEVEL, &var_smtp_tls_level, 0, 0,
+	VAR_SMTP_TLS_POLICY, DEF_SMTP_TLS_POLICY, &var_smtp_tls_policy, 0, 0,
 	VAR_PROP_EXTENSION, DEF_PROP_EXTENSION, &var_prop_extension, 0, 0,
 	VAR_SMTP_GENERIC_MAPS, DEF_SMTP_GENERIC_MAPS, &var_smtp_generic_maps, 0, 0,
 	VAR_LMTP_TCP_PORT, DEF_LMTP_TCP_PORT, &var_lmtp_tcp_port, 0, 0,
@@ -53,6 +74,8 @@
 	VAR_SMTP_MXSESS_LIMIT, DEF_SMTP_MXSESS_LIMIT, &var_smtp_mxsess_limit, 0, 0,
 #ifdef USE_TLS
 	VAR_SMTP_TLS_SCERT_VD, DEF_SMTP_TLS_SCERT_VD, &var_smtp_tls_scert_vd, 0, 0,
+	VAR_SMTP_TLS_LOGLEVEL, DEF_SMTP_TLS_LOGLEVEL, &var_smtp_tls_loglevel, 0, 0,
+	VAR_TLS_DAEMON_RAND_BYTES, DEF_TLS_DAEMON_RAND_BYTES, &var_tls_daemon_rand_bytes, 1, 0,
 #endif
 	0,
     };

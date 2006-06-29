@@ -85,7 +85,7 @@
 
 int     match_string(int unused_flags, const char *string, const char *pattern)
 {
-    char   *myname = "match_string";
+    const char *myname = "match_string";
     int     match;
 
     if (msg_verbose)
@@ -120,7 +120,7 @@ int     match_string(int unused_flags, const char *string, const char *pattern)
 
 int     match_hostname(int flags, const char *name, const char *pattern)
 {
-    char   *myname = "match_hostname";
+    const char *myname = "match_hostname";
     const char *pd;
     const char *entry;
     const char *next;
@@ -187,7 +187,7 @@ int     match_hostname(int flags, const char *name, const char *pattern)
 
 int     match_hostaddr(int unused_flags, const char *addr, const char *pattern)
 {
-    char   *myname = "match_hostaddr";
+    const char *myname = "match_hostaddr";
     char   *saved_patt;
     CIDR_MATCH match_info;
     VSTRING *err;
@@ -219,7 +219,7 @@ int     match_hostaddr(int unused_flags, const char *addr, const char *pattern)
 	if (strcasecmp(addr, pattern) == 0)
 	    return (1);
     } else {
-	size_t addr_len = strlen(addr);
+	size_t  addr_len = strlen(addr);
 
 	if (strncasecmp(addr, pattern + 1, addr_len) == 0
 	    && strcmp(pattern + 1 + addr_len, "]") == 0)

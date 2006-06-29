@@ -87,31 +87,6 @@
 
 #include "cleanup.h"
 
-/* cleanup_out_header - output one header as a bunch of records */
-
-static void cleanup_out_header(CLEANUP_STATE *state, VSTRING *header_buf)
-{
-    char   *start = vstring_str(header_buf);
-    char   *line;
-    char   *next_line;
-
-    /*
-     * Prepend a tab to continued header lines that went through the address
-     * rewriting machinery. See cleanup_fold_header(state) below for the form
-     * of such header lines. NB: This code destroys the header. We could try
-     * to avoid clobbering it, but we're not going to use the data any
-     * further.
-     */
-    for (line = start; line; line = next_line) {
-	next_line = split_at(line, '\n');
-	if (line == start || IS_SPACE_TAB(*line)) {
-	    cleanup_out_string(state, REC_TYPE_NORM, line);
-	} else {
-	    cleanup_out_format(state, REC_TYPE_NORM, "\t%s", line);
-	}
-    }
-}
-
 /* cleanup_fold_header - wrap address list header */
 
 static void cleanup_fold_header(CLEANUP_STATE *state, VSTRING *header_buf)
@@ -275,7 +250,7 @@ static void cleanup_act_log(CLEANUP_STATE *state,
 {
     const char *attr;
 
-    if ((attr = nvtable_find(state->attr, MAIL_ATTR_ORIGIN)) == 0)
+    if ((attr = nvtable_find(state->attr, MAIL_ATTR_LOG_ORIGIN)) == 0)
 	attr = "unknown";
     vstring_sprintf(state->temp1, "%s: %s: %s %.200s from %s;",
 		    state->queue_id, action, class, content, attr);
@@ -283,9 +258,9 @@ static void cleanup_act_log(CLEANUP_STATE *state,
 	vstring_sprintf_append(state->temp1, " from=<%s>", state->sender);
     if (state->recip)
 	vstring_sprintf_append(state->temp1, " to=<%s>", state->recip);
-    if ((attr = nvtable_find(state->attr, MAIL_ATTR_PROTO_NAME)) != 0)
+    if ((attr = nvtable_find(state->attr, MAIL_ATTR_LOG_PROTO_NAME)) != 0)
 	vstring_sprintf_append(state->temp1, " proto=%s", attr);
-    if ((attr = nvtable_find(state->attr, MAIL_ATTR_HELO_NAME)) != 0)
+    if ((attr = nvtable_find(state->attr, MAIL_ATTR_LOG_HELO_NAME)) != 0)
 	vstring_sprintf_append(state->temp1, " helo=<%s>", attr);
     if (text && *text)
 	vstring_sprintf_append(state->temp1, ": %s", text);
@@ -317,44 +292,31 @@ static const char *cleanup_act(CLEANUP_STATE *state, char *context,
 #define CLEANUP_ACT_DROP 0
 
     /*
-     * CLEANUP_STAT_CONT causes cleanup(8) to send bounces if
-     * CLEANUP_FLAG_BOUNCE is set, which causes pickup(8) to throw away the
-     * queue file after cleanup(8) reports success.
-     * 
-     * This is wrong in the case of temporary rejects. Another problem is that
-     * cleanup(8) clients look at the state->reason value only when
-     * CLEANUP_STAT_CONT is set.
-     * 
-     * We could kludge around this in the cleanup server by ignoring
-     * CLEANUP_FLAG_BOUNCE for temporary rejects, but that is fragile. It
-     * exposes clients to status codes that they until now never had to
-     * handle.
-     * 
-     * As a safe workaround for temporary rejects we return CLEANUP_STAT_WRITE.
-     * But we really want to report the true cause (server configuration
-     * error or otherwise).
+     * CLEANUP_STAT_CONT and CLEANUP_STAT_DEFER both update the reason
+     * attribute, but CLEANUP_STAT_DEFER takes precedence. It terminates
+     * queue record processing, and prevents bounces from being sent.
      */
     if (STREQUAL(value, "REJECT", command_len)) {
 	CLEANUP_STAT_DETAIL *detail;
 
-	if (state->reason == 0) {
-	    if (*optional_text) {
-		state->reason = dsn_prepend("5.7.1", optional_text);
-		if (*state->reason != '4' && *state->reason != '5') {
-		    msg_warn("bad DSN action in %s -- need 4.x.x or 5.x.x",
-			     optional_text);
-		    *state->reason = '4';
-		}
-	    } else {
-		detail = cleanup_stat_detail(CLEANUP_STAT_CONT);
-		state->reason = dsn_prepend(detail->dsn, detail->text);
+	if (state->reason)
+	    myfree(state->reason);
+	if (*optional_text) {
+	    state->reason = dsn_prepend("5.7.1", optional_text);
+	    if (*state->reason != '4' && *state->reason != '5') {
+		msg_warn("bad DSN action in %s -- need 4.x.x or 5.x.x",
+			 optional_text);
+		*state->reason = '4';
 	    }
+	} else {
+	    detail = cleanup_stat_detail(CLEANUP_STAT_CONT);
+	    state->reason = dsn_prepend(detail->dsn, detail->text);
 	}
 	if (*state->reason == '4')
-	    state->errs = CLEANUP_STAT_WRITE;
+	    state->errs |= CLEANUP_STAT_DEFER;
 	else
 	    state->errs |= CLEANUP_STAT_CONT;
-	state->flags &= ~CLEANUP_FLAG_FILTER;
+	state->flags &= ~CLEANUP_FLAG_FILTER_ALL;
 	cleanup_act_log(state, "reject", context, buf, state->reason);
 	return (buf);
     }
@@ -380,7 +342,7 @@ static const char *cleanup_act(CLEANUP_STATE *state, char *context,
     if (STREQUAL(value, "DISCARD", command_len)) {
 	cleanup_act_log(state, "discard", context, buf, optional_text);
 	state->flags |= CLEANUP_FLAG_DISCARD;
-	state->flags &= ~CLEANUP_FLAG_FILTER;
+	state->flags &= ~CLEANUP_FLAG_FILTER_ALL;
 	return (buf);
     }
     if (STREQUAL(value, "HOLD", command_len)) {
@@ -453,7 +415,7 @@ static const char *cleanup_act(CLEANUP_STATE *state, char *context,
 		myfree(state->redirect);
 	    state->redirect = mystrdup(optional_text);
 	    cleanup_act_log(state, "redirect", context, buf, optional_text);
-	    state->flags &= ~CLEANUP_FLAG_FILTER;
+	    state->flags &= ~CLEANUP_FLAG_FILTER_ALL;
 	}
 	return (buf);
     }
@@ -627,6 +589,7 @@ static void cleanup_header_callback(void *context, int header_class,
 
 static void cleanup_header_done_callback(void *context)
 {
+    const char *myname = "cleanup_header_done_callback";
     CLEANUP_STATE *state = (CLEANUP_STATE *) context;
     char    time_stamp[1024];		/* XXX locale dependent? */
     struct tm *tp;
@@ -720,6 +683,19 @@ static void cleanup_header_done_callback(void *context)
 
     if ((state->headers_seen & VISIBLE_RCPT) == 0)
 	cleanup_out_format(state, REC_TYPE_NORM, "%s", var_rcpt_witheld);
+
+    /*
+     * Place a dummy PTR record right after the last header so that we can
+     * append headers without having to worry about clobbering the
+     * end-of-content marker.
+     */
+    if (state->milters || cleanup_milters) {
+	if ((state->append_hdr_pt_offset = vstream_ftell(state->dst)) < 0)
+	    msg_fatal("%s: vstream_ftell %s: %m", myname, cleanup_path);
+	cleanup_out_format(state, REC_TYPE_PTR, REC_TYPE_PTR_FORMAT, 0L);
+	if ((state->append_hdr_pt_target = vstream_ftell(state->dst)) < 0)
+	    msg_fatal("%s: vstream_ftell %s: %m", myname, cleanup_path);
+    }
 }
 
 /* cleanup_body_callback - output one body record */
@@ -821,6 +797,9 @@ static void cleanup_message_headerbody(CLEANUP_STATE *state, int type,
      * current file position so we can compute the message size lateron.
      */
     else if (type == REC_TYPE_XTRA) {
+	if (state->milters || cleanup_milters)
+	    /* Make room for body modification. */
+	    cleanup_out_format(state, REC_TYPE_PTR, REC_TYPE_PTR_FORMAT, 0L);
 	state->mime_errs = mime_state_update(state->mime_state, type, buf, len);
 	/* Ignore header truncation after primary message headers. */
 	state->mime_errs &= ~MIME_ERR_TRUNC_HEADER;
@@ -858,7 +837,7 @@ static void cleanup_mime_error_callback(void *context, int err_code,
      * primary message headers.
      */
     if ((err_code & ~MIME_ERR_TRUNC_HEADER) != 0) {
-	if ((origin = nvtable_find(state->attr, MAIL_ATTR_ORIGIN)) == 0)
+	if ((origin = nvtable_find(state->attr, MAIL_ATTR_LOG_ORIGIN)) == 0)
 	    origin = MAIL_ATTR_ORG_NONE;
 #define TEXT_LEN (len < 100 ? (int) len : 100)
 	msg_info("%s: reject: mime-error %s: %.*s from %s; from=<%s> to=<%s>",
@@ -871,7 +850,7 @@ static void cleanup_mime_error_callback(void *context, int err_code,
 
 void    cleanup_message(CLEANUP_STATE *state, int type, const char *buf, ssize_t len)
 {
-    char   *myname = "cleanup_message";
+    const char *myname = "cleanup_message";
     int     mime_options;
 
     /*

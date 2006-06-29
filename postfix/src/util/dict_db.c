@@ -152,9 +152,9 @@ static int sanitize(int status)
      */
     switch (status) {
 
-    case DB_NOTFOUND:				/* get, del */
-    case DB_KEYEXIST:				/* put */
-	return (1);				/* non-fatal */
+	case DB_NOTFOUND:		/* get, del */
+	case DB_KEYEXIST:		/* put */
+	return (1);			/* non-fatal */
 
     case 0:
 	return (0);				/* success */
@@ -269,7 +269,6 @@ static void dict_db_update(DICT *dict, const char *name, const char *value)
 	vstring_strcpy(dict->fold_buf, name);
 	name = lowercase(vstring_str(dict->fold_buf));
     }
-
     memset(&db_key, 0, sizeof(db_key));
     memset(&db_value, 0, sizeof(db_value));
     db_key.data = (void *) name;
@@ -354,7 +353,6 @@ static int dict_db_delete(DICT *dict, const char *name)
 	vstring_strcpy(dict->fold_buf, name);
 	name = lowercase(vstring_str(dict->fold_buf));
     }
-
     memset(&db_key, 0, sizeof(db_key));
 
     /*
@@ -408,7 +406,7 @@ static int dict_db_delete(DICT *dict, const char *name)
 static int dict_db_sequence(DICT *dict, int function,
 			            const char **key, const char **value)
 {
-    char   *myname = "dict_db_sequence";
+    const char *myname = "dict_db_sequence";
     DICT_DB *dict_db = (DICT_DB *) dict;
     DB     *db = dict_db->db;
     DBT     db_key;

@@ -84,7 +84,7 @@
 
 int     mac_parse(const char *value, MAC_PARSE_FN action, char *context)
 {
-    char   *myname = "mac_parse";
+    const char *myname = "mac_parse";
     VSTRING *buf = vstring_alloc(1);	/* result buffer */
     const char *vp;			/* value pointer */
     const char *pp;			/* open_paren pointer */

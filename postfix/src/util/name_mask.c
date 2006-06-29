@@ -22,6 +22,13 @@
 /*	const char *names;
 /*	int	flags;
 /*
+/*	int	name_mask_delim_opt(context, table, names, delim, flags)
+/*	const char *context;
+/*	NAME_MASK *table;
+/*	const char *names;
+/*	const char *delim;
+/*	int	flags;
+/*
 /*	const char *str_name_mask_opt(buf, context, table, mask, flags)
 /*	VSTRING	*buf;
 /*	const char *context;
@@ -39,7 +46,8 @@
 /*	upon each call.
 /*
 /*	name_mask_opt() and str_name_mask_opt() are extended versions
-/*	with additional fine control.
+/*	with additional fine control. name_mask_delim_opt() supports
+/*	non-default delimiter characters.
 /*
 /*	Arguments:
 /* .IP buf
@@ -57,6 +65,8 @@
 /*	A bit mask.
 /* .IP flags
 /*	Bit-wise OR of zero or more of the following:
+/* .IP delim
+/*	Delimiter characters to use instead of whitespace and commas.
 /* .RS
 /* .IP NAME_MASK_FATAL
 /*	Require that all names listed in \fIname\fR exist in \fItable\fR,
@@ -69,6 +79,9 @@
 /*	and that all bits listed in \fImask\fR exist in \fItable\fR.
 /*	Log a warning, and return 0 (name_mask()) or a null pointer
 /*	(str_name_mask()) if this condition is not met.
+/* .IP NAME_MASK_NUMBER
+/*	Require that all bits listed in \fImask\fR exist in \fItable\fR.
+/*	For unrecognized bits, print the numerical hexadecimal form.
 /* .IP NAME_MASK_ANY_CASE
 /*	Enable case-insensitive matching.
 /*	This feature is not enabled by default when calling name_mask();
@@ -114,12 +127,12 @@
 
 #define STR(x) vstring_str(x)
 
-/* name_mask_opt - compute mask corresponding to list of names */
+/* name_mask_delim_opt - compute mask corresponding to list of names */
 
-int     name_mask_opt(const char *context, NAME_MASK *table, const char *names,
-		              int flags)
+int     name_mask_delim_opt(const char *context, NAME_MASK *table,
+		            const char *names, const char *delim, int flags)
 {
-    char   *myname = "name_mask";
+    const char *myname = "name_mask";
     char   *saved_names = mystrdup(names);
     char   *bp = saved_names;
     int     result = 0;
@@ -136,7 +149,7 @@ int     name_mask_opt(const char *context, NAME_MASK *table, const char *names,
      * Break up the names string, and look up each component in the table. If
      * the name is found, merge its mask with the result.
      */
-    while ((name = mystrtok(&bp, ", \t\r\n")) != 0) {
+    while ((name = mystrtok(&bp, delim)) != 0) {
 	for (np = table; /* void */ ; np++) {
 	    if (np->name == 0) {
 		if (flags & NAME_MASK_FATAL)
@@ -167,7 +180,7 @@ const char *str_name_mask_opt(VSTRING *buf, const char *context,
 			              NAME_MASK *table,
 			              int mask, int flags)
 {
-    char   *myname = "name_mask";
+    const char *myname = "name_mask";
     NAME_MASK *np;
     int     len;
     static VSTRING *my_buf = 0;
@@ -183,13 +196,15 @@ const char *str_name_mask_opt(VSTRING *buf, const char *context,
 
     for (np = table; mask != 0; np++) {
 	if (np->name == 0) {
-	    if (flags & NAME_MASK_FATAL)
-		msg_fatal("%s: invalid %s bit in mask: 0x%x",
+	    if (flags & NAME_MASK_FATAL) {
+		msg_fatal("%s: unknown %s bit in mask: 0x%x",
 			  myname, context, mask);
-	    if (flags & NAME_MASK_RETURN) {
-		msg_warn("%s: invalid %s bit in mask: 0x%x",
+	    } else if (flags & NAME_MASK_RETURN) {
+		msg_warn("%s: unknown %s bit in mask: 0x%x",
 			 myname, context, mask);
 		return (0);
+	    } else if (flags & NAME_MASK_NUMBER) {
+		vstring_sprintf_append(buf, "0x%x%c", mask, delim);
 	    }
 	    break;
 	}

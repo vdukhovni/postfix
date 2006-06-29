@@ -104,7 +104,7 @@ static void bounce_cleanup_callback(void)
 
 void    bounce_cleanup_log(void)
 {
-    char   *myname = "bounce_cleanup_log";
+    const char *myname = "bounce_cleanup_log";
 
     /*
      * Sanity checks.
@@ -136,7 +136,7 @@ static void bounce_cleanup_sig(int sig)
 
 void    bounce_cleanup_register(char *service, char *queue_id)
 {
-    char   *myname = "bounce_cleanup_register";
+    const char *myname = "bounce_cleanup_register";
 
     /*
      * Sanity checks.
@@ -158,7 +158,7 @@ void    bounce_cleanup_register(char *service, char *queue_id)
 
 void    bounce_cleanup_unregister(void)
 {
-    char   *myname = "bounce_cleanup_unregister";
+    const char *myname = "bounce_cleanup_unregister";
 
     /*
      * Sanity checks.

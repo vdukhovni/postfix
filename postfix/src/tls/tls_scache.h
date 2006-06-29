@@ -23,8 +23,8 @@
 typedef struct {
     int     flags;			/* see below */
     DICT   *db;				/* database handle */
-    char   *cache_label;		/* "client" or "server" */
-    int     log_level;			/* smtp(d)_tls_log_level */
+    char   *cache_label;		/* "smtpd", "smtp" or "lmtp" */
+    int     verbose;			/* enable verbose logging */
     int     timeout;			/* smtp(d)_tls_session_cache_timeout */
     char   *saved_cursor;		/* cursor cache ID */
 } TLS_SCACHE;

@@ -93,7 +93,7 @@
 
 int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 {
-    char   *myname = "deliver_dotforward";
+    const char *myname = "deliver_dotforward";
     struct stat st;
     VSTRING *path;
     struct mypasswd *mypwd;

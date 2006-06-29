@@ -20,7 +20,7 @@ int     master_flow_pipe[2];
 
 void    master_flow_init(void)
 {
-    char   *myname = "master_flow_init";
+    const char *myname = "master_flow_init";
 
     if (pipe(master_flow_pipe) < 0)
 	msg_fatal("%s: pipe: %m", myname);

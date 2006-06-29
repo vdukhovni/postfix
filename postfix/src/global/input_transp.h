@@ -17,6 +17,7 @@
 #define INPUT_TRANSP_UNKNOWN_RCPT	(1<<0)
 #define INPUT_TRANSP_ADDRESS_MAPPING	(1<<1)
 #define INPUT_TRANSP_HEADER_BODY	(1<<2)
+#define INPUT_TRANSP_MILTER		(1<<3)
 
 extern int input_transp_mask(const char *, const char *);
 extern int input_transp_cleanup(int, int);

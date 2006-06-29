@@ -144,6 +144,7 @@ static int deliver_request_final(VSTREAM *stream, DELIVER_REQUEST *request,
 {
     DSN    *hop_status;
     int     err;
+
     /* XXX This DSN structure initialization bypasses integrity checks. */
     static DSN dummy_dsn = {"", "", "", "", "", "", ""};
 
@@ -178,7 +179,7 @@ static int deliver_request_final(VSTREAM *stream, DELIVER_REQUEST *request,
 
 static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 {
-    char   *myname = "deliver_request_get";
+    const char *myname = "deliver_request_get";
     const char *path;
     struct stat st;
     static VSTRING *queue_name;
@@ -209,7 +210,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 	queue_id = vstring_alloc(10);
 	nexthop = vstring_alloc(10);
 	encoding = vstring_alloc(10);
-        address = vstring_alloc(10);
+	address = vstring_alloc(10);
 	client_name = vstring_alloc(10);
 	client_addr = vstring_alloc(10);
 	client_proto = vstring_alloc(10);
@@ -238,10 +239,10 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 		  ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, dsn_envid,
 		  ATTR_TYPE_INT, MAIL_ATTR_DSN_RET, &dsn_ret,
 	       ATTR_TYPE_FUNC, msg_stats_scan, (void *) &request->msg_stats,
-		  ATTR_TYPE_STR, MAIL_ATTR_CLIENT_NAME, client_name,
-		  ATTR_TYPE_STR, MAIL_ATTR_CLIENT_ADDR, client_addr,
-		  ATTR_TYPE_STR, MAIL_ATTR_PROTO_NAME, client_proto,
-		  ATTR_TYPE_STR, MAIL_ATTR_HELO_NAME, client_helo,
+		  ATTR_TYPE_STR, MAIL_ATTR_LOG_CLIENT_NAME, client_name,
+		  ATTR_TYPE_STR, MAIL_ATTR_LOG_CLIENT_ADDR, client_addr,
+		  ATTR_TYPE_STR, MAIL_ATTR_LOG_PROTO_NAME, client_proto,
+		  ATTR_TYPE_STR, MAIL_ATTR_LOG_HELO_NAME, client_helo,
 		  ATTR_TYPE_STR, MAIL_ATTR_SASL_METHOD, sasl_method,
 		  ATTR_TYPE_STR, MAIL_ATTR_SASL_USERNAME, sasl_username,
 		  ATTR_TYPE_STR, MAIL_ATTR_SASL_SENDER, sasl_sender,

@@ -375,7 +375,8 @@ int     main(int argc, char **argv)
     rec_fprintf(dst->stream, REC_TYPE_TIME, REC_TYPE_TIME_FORMAT,
 		REC_TYPE_TIME_ARG(start));
     for (;;) {
-	rec_type = rec_get(VSTREAM_IN, buf, var_line_limit);
+	/* Don't allow PTR records. */
+	rec_type = rec_get_raw(VSTREAM_IN, buf, var_line_limit, REC_FLAG_NONE);
 	if (rec_type == REC_TYPE_EOF) {		/* request cancelled */
 	    mail_stream_cleanup(dst);
 	    if (remove(postdrop_path))

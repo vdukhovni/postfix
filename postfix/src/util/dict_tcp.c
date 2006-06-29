@@ -154,7 +154,7 @@ static void dict_tcp_disconnect(DICT_TCP *dict_tcp)
 static const char *dict_tcp_lookup(DICT *dict, const char *key)
 {
     DICT_TCP *dict_tcp = (DICT_TCP *) dict;
-    char   *myname = "dict_tcp_lookup";
+    const char *myname = "dict_tcp_lookup";
     int     tries;
     char   *start;
     int     last_ch;

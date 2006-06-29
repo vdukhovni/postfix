@@ -48,7 +48,7 @@
 
 void    rand_sleep(unsigned delay, unsigned variation)
 {
-    char   *myname = "rand_sleep";
+    const char *myname = "rand_sleep";
     unsigned usec;
 
     /*

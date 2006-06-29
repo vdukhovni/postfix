@@ -81,7 +81,7 @@
 
 int     deliver_unknown(LOCAL_STATE state, USER_ATTR usr_attr)
 {
-    char   *myname = "deliver_unknown";
+    const char *myname = "deliver_unknown";
     int     status;
     VSTRING *expand_luser;
     static MAPS *transp_maps;

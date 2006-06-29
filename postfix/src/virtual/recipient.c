@@ -56,7 +56,7 @@
 
 int     deliver_recipient(LOCAL_STATE state, USER_ATTR usr_attr)
 {
-    char   *myname = "deliver_recipient";
+    const char *myname = "deliver_recipient";
     int     rcpt_stat;
 
     /*

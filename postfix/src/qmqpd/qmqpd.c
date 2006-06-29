@@ -311,17 +311,31 @@ static void qmqpd_copy_sender(QMQPD_STATE *state)
 
 static void qmqpd_write_attributes(QMQPD_STATE *state)
 {
+
+    /*
+     * Logging attributes, also used for XFORWARD.
+     */
     if (IS_AVAIL_CLIENT_NAME(state->name))
 	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_CLIENT_NAME, state->name);
+		    MAIL_ATTR_LOG_CLIENT_NAME, state->name);
     if (IS_AVAIL_CLIENT_ADDR(state->addr))
 	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_CLIENT_ADDR, state->rfc_addr);
+		    MAIL_ATTR_LOG_CLIENT_ADDR, state->rfc_addr);
     if (IS_AVAIL_CLIENT_NAMADDR(state->namaddr))
 	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_ORIGIN, state->namaddr);
+		    MAIL_ATTR_LOG_ORIGIN, state->namaddr);
     rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		MAIL_ATTR_PROTO_NAME, state->protocol);
+		MAIL_ATTR_LOG_PROTO_NAME, state->protocol);
+
+    /*
+     * Provenance attributes for Milter policy etc.
+     */
+    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		MAIL_ATTR_ACT_CLIENT_NAME, state->name);
+    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		MAIL_ATTR_ACT_CLIENT_ADDR, state->rfc_addr);
+    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%u",
+		MAIL_ATTR_ACT_CLIENT_AF, state->addr_family);
 }
 
 /* qmqpd_copy_recipients - copy message recipients */
@@ -521,6 +535,9 @@ static void qmqpd_send_status(QMQPD_STATE *state)
     if (state->err == CLEANUP_STAT_OK) {
 	qmqpd_reply(state, DONT_LOG, QMQPD_STAT_OK,
 		    "Ok: queued as %s", state->queue_id);
+    } else if ((state->err & CLEANUP_STAT_DEFER) != 0) {
+	qmqpd_reply(state, DO_LOG, QMQPD_STAT_RETRY,
+		    "Error: %s", STR(state->why_rejected));
     } else if ((state->err & CLEANUP_STAT_BAD) != 0) {
 	qmqpd_reply(state, DO_LOG, QMQPD_STAT_RETRY,
 		    "Error: internal error %d", state->err);

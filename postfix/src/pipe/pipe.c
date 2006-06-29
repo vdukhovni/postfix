@@ -708,7 +708,7 @@ static ARGV *expand_argv(const char *service, char **argv,
 
 static void get_service_params(PIPE_PARAMS *config, char *service)
 {
-    char   *myname = "get_service_params";
+    const char *myname = "get_service_params";
 
     /*
      * Figure out the command time limit for this transport.
@@ -727,7 +727,7 @@ static void get_service_params(PIPE_PARAMS *config, char *service)
 
 static void get_service_attr(PIPE_ATTR *attr, char **argv)
 {
-    char   *myname = "get_service_attr";
+    const char *myname = "get_service_attr";
     struct passwd *pwd;
     struct group *grp;
     char   *user;			/* user name */
@@ -966,7 +966,7 @@ static int eval_command_status(int command_status, char *service,
 
 static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 {
-    char   *myname = "deliver_message";
+    const char *myname = "deliver_message";
     static PIPE_PARAMS conf;
     static PIPE_ATTR attr;
     RECIPIENT_LIST *rcpt_list = &request->rcpt_list;

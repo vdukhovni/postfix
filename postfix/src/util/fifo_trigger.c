@@ -58,7 +58,7 @@
 int     fifo_trigger(const char *service, const char *buf, ssize_t len, int timeout)
 {
     static VSTRING *why;
-    char   *myname = "fifo_trigger";
+    const char *myname = "fifo_trigger";
     VSTREAM *fp;
     int     fd;
 

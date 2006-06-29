@@ -122,7 +122,7 @@ void    fset_master_ent(char *path)
 
 void    set_master_ent()
 {
-    char   *myname = "set_master_ent";
+    const char *myname = "set_master_ent";
 
     if (master_fp != 0)
 	msg_panic("%s: configuration file still open", myname);
@@ -137,7 +137,7 @@ void    set_master_ent()
 
 void    end_master_ent()
 {
-    char   *myname = "end_master_ent";
+    const char *myname = "end_master_ent";
 
     if (master_fp == 0)
 	msg_panic("%s: configuration file not open", myname);
@@ -150,7 +150,7 @@ void    end_master_ent()
 
 static NORETURN fatal_with_context(char *format,...)
 {
-    char   *myname = "fatal_with_context";
+    const char *myname = "fatal_with_context";
     VSTRING *vp = vstring_alloc(100);
     va_list ap;
 

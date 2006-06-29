@@ -121,6 +121,7 @@
 #include <mail_params.h>
 #include <mail_proto.h>
 #include <mail_error.h>
+#include <ehlo_mask.h>
 
 /* Application-specific. */
 
@@ -138,16 +139,31 @@ int     smtpd_sasl_auth_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 {
     char   *auth_mechanism;
     char   *initial_response;
+    const char *err;
 
     if (var_helo_required && state->helo_name == 0) {
 	state->error_mask |= MAIL_ERROR_POLICY;
 	smtpd_chat_reply(state, "503 5.5.1 Error: send HELO/EHLO first");
 	return (-1);
     }
-    if (SMTPD_STAND_ALONE(state) || !var_smtpd_sasl_enable) {
+    if (SMTPD_STAND_ALONE(state) || !var_smtpd_sasl_enable
+	|| (state->ehlo_discard_mask & EHLO_MASK_AUTH)) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "503 5.5.1 Error: authentication not enabled");
 	return (-1);
+    }
+    if (smtpd_milters != 0 && (err = milter_other_event(smtpd_milters)) != 0) {
+        if (err[0] == '5') {
+            state->error_mask |= MAIL_ERROR_POLICY;
+            smtpd_chat_reply(state, "%s", err);
+            return (-1);
+        }
+        /* Sendmail compatibility: map 4xx into 454. */
+        else if (err[0] == '4') {
+            state->error_mask |= MAIL_ERROR_POLICY;
+            smtpd_chat_reply(state, "454 4.3.0 Try again later");
+            return (-1);
+        }
     }
 #ifdef USE_TLS
     if (state->tls_auth_only && !state->tls_context) {

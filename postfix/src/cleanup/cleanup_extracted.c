@@ -98,6 +98,7 @@ void    cleanup_extracted(CLEANUP_STATE *state, int type,
 void    cleanup_extracted_process(CLEANUP_STATE *state, int type,
 				          const char *buf, ssize_t len)
 {
+    const char *myname = "cleanup_extracted_process";
     const char *encoding;
     char   *attr_name;
     char   *attr_value;
@@ -123,7 +124,6 @@ void    cleanup_extracted_process(CLEANUP_STATE *state, int type,
 	    state->flags |= extra_opts;
 	return;
     }
-
 #ifdef DELAY_ACTION
     if (type == REC_TYPE_DELAY) {
 	/* Not part of queue file format. */
@@ -200,6 +200,10 @@ void    cleanup_extracted_process(CLEANUP_STATE *state, int type,
 	if (state->orig_rcpt == 0)
 	    state->orig_rcpt = mystrdup(buf);
 	cleanup_addr_recipient(state, buf);
+	if (cleanup_milters != 0
+	    && state->milters == 0
+	    && CLEANUP_MILTER_OK(state))
+	    cleanup_milter_emul_rcpt(state, cleanup_milters, buf);
 	myfree(state->orig_rcpt);
 	state->orig_rcpt = 0;
 	if (state->dsn_orcpt != 0) {
@@ -209,7 +213,7 @@ void    cleanup_extracted_process(CLEANUP_STATE *state, int type,
 	state->dsn_notify = 0;
 	return;
     }
-    if (type == REC_TYPE_DONE) {
+    if (type == REC_TYPE_DONE || type == REC_TYPE_DRCP) {
 	if (state->orig_rcpt != 0) {
 	    myfree(state->orig_rcpt);
 	    state->orig_rcpt = 0;
@@ -254,6 +258,15 @@ void    cleanup_extracted_process(CLEANUP_STATE *state, int type,
 	return;
     }
     if (type == REC_TYPE_END) {
+	/* Make room to append recipient. */
+	if ((state->milters || cleanup_milters)
+	    && state->append_rcpt_pt_offset < 0) {
+	    if ((state->append_rcpt_pt_offset = vstream_ftell(state->dst)) < 0)
+		msg_fatal("%s: vstream_ftell %s: %m:", myname, cleanup_path);
+	    cleanup_out_format(state, REC_TYPE_PTR, REC_TYPE_PTR_FORMAT, 0L);
+	    if ((state->append_rcpt_pt_target = vstream_ftell(state->dst)) < 0)
+		msg_fatal("%s: vstream_ftell %s: %m:", myname, cleanup_path);
+	}
 	state->flags &= ~CLEANUP_FLAG_INRCPT;
 	state->flags |= CLEANUP_FLAG_END_SEEN;
 	cleanup_extracted_finish(state);

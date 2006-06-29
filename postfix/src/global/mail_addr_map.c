@@ -77,7 +77,7 @@
 ARGV   *mail_addr_map(MAPS *path, const char *address, int propagate)
 {
     VSTRING *buffer = 0;
-    char   *myname = "mail_addr_map";
+    const char *myname = "mail_addr_map";
     const char *string;
     char   *ratsign;
     char   *extension = 0;

@@ -128,7 +128,7 @@
 
 void    smtpd_peer_init(SMTPD_STATE *state)
 {
-    char   *myname = "smtpd_peer_init";
+    const char *myname = "smtpd_peer_init";
     SOCKADDR_SIZE sa_length;
     struct sockaddr *sa;
     INET_PROTO_INFO *proto_info = inet_proto_info();
@@ -151,6 +151,7 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 	state->reverse_name = mystrdup(CLIENT_NAME_UNKNOWN);
 	state->addr = mystrdup(CLIENT_ADDR_UNKNOWN);
 	state->rfc_addr = mystrdup(CLIENT_ADDR_UNKNOWN);
+	state->addr_family = AF_UNSPEC;
 	state->name_status = SMTPD_PEER_CODE_PERM;
 	state->reverse_name_status = SMTPD_PEER_CODE_PERM;
     }
@@ -203,6 +204,7 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 
 		state->addr = mystrdup(colonp + 1);
 		state->rfc_addr = mystrdup(colonp + 1);
+		state->addr_family = AF_INET;
 		aierr = hostaddr_to_sockaddr(state->addr, (char *) 0, 0, &res0);
 		if (aierr)
 		    msg_fatal("%s: cannot convert %s from string to binary: %s",
@@ -226,6 +228,7 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 		state->addr = mystrdup(client_addr.buf);
 		state->rfc_addr =
 		    concatenate(IPV6_COL, client_addr.buf, (char *) 0);
+		state->addr_family = sa->sa_family;
 	    }
 	}
 
@@ -237,6 +240,7 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 	{
 	    state->addr = mystrdup(client_addr.buf);
 	    state->rfc_addr = mystrdup(client_addr.buf);
+	    state->addr_family = sa->sa_family;
 	}
 
 	/*
@@ -290,13 +294,13 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 		msg_warn("%s: hostname %s verification failed: %s",
 			 state->addr, state->name, MAI_STRERROR(aierr));
 		REJECT_PEER_NAME(state, (TEMP_AI_ERROR(aierr) ?
-			      SMTPD_PEER_CODE_TEMP : SMTPD_PEER_CODE_PERM));
+			    SMTPD_PEER_CODE_TEMP : SMTPD_PEER_CODE_FORGED));
 	    } else {
 		for (res = res0; /* void */ ; res = res->ai_next) {
 		    if (res == 0) {
 			msg_warn("%s: address not listed for hostname %s",
 				 state->addr, state->name);
-			REJECT_PEER_NAME(state, SMTPD_PEER_CODE_PERM);
+			REJECT_PEER_NAME(state, SMTPD_PEER_CODE_FORGED);
 			break;
 		    }
 		    if (strchr((char *) proto_info->sa_family_list, res->ai_family) == 0) {
@@ -321,6 +325,7 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 	state->reverse_name = mystrdup("localhost");
 	state->addr = mystrdup("127.0.0.1");	/* XXX bogus. */
 	state->rfc_addr = mystrdup("127.0.0.1");/* XXX bogus. */
+	state->addr_family = AF_UNSPEC;
 	state->name_status = SMTPD_PEER_CODE_OK;
 	state->reverse_name_status = SMTPD_PEER_CODE_OK;
     }

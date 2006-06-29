@@ -74,7 +74,7 @@
 
 static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
 {
-    char   *myname = "deliver_mailbox_file";
+    const char *myname = "deliver_mailbox_file";
     DSN_BUF *why = state.msg_attr.why;
     MBOX   *mp;
     int     mail_copy_status;
@@ -159,7 +159,7 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
 
 int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 {
-    char   *myname = "deliver_mailbox";
+    const char *myname = "deliver_mailbox";
     const char *mailbox_res;
     const char *uid_res;
     const char *gid_res;

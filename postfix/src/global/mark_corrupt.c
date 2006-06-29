@@ -46,7 +46,7 @@
 
 int     mark_corrupt(VSTREAM *src)
 {
-    char   *myname = "mark_corrupt";
+    const char *myname = "mark_corrupt";
     uid_t   saved_uid;
     gid_t   saved_gid;
 

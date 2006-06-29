@@ -688,7 +688,7 @@ that injects mail back into Postfix. </p>
     # ===================================================================
     localhost:10026 inet  n       -       n       -       10      smtpd
         -o <a href="postconf.5.html#content_filter">content_filter</a>= 
-        -o <a href="postconf.5.html#receive_override_options">receive_override_options</a>=<a href="postconf.5.html#no_unknown_recipient_checks">no_unknown_recipient_checks</a>,<a href="postconf.5.html#no_header_body_checks">no_header_body_checks</a>
+        -o <a href="postconf.5.html#receive_override_options">receive_override_options</a>=<a href="postconf.5.html#no_unknown_recipient_checks">no_unknown_recipient_checks</a>,<a href="postconf.5.html#no_header_body_checks">no_header_body_checks</a>,<a href="postconf.5.html#no_milters">no_milters</a>
         -o <a href="postconf.5.html#smtpd_helo_restrictions">smtpd_helo_restrictions</a>=
         -o <a href="postconf.5.html#smtpd_client_restrictions">smtpd_client_restrictions</a>=
         -o <a href="postconf.5.html#smtpd_sender_restrictions">smtpd_sender_restrictions</a>=
@@ -710,19 +710,27 @@ requests no content filtering for mail from the content filter.
 This is required or else mail will stay in the content filtering
 loop. </p>
 
-<li> <p> The "-o <a href="postconf.5.html#receive_override_options">receive_override_options</a>" overrides <a href="postconf.5.html">main.cf</a>
-settings. It is complementary to the options that are specified in
-<a href="postconf.5.html">main.cf</a>: </p>
+<li> <p> The "-o <a href="postconf.5.html#receive_override_options">receive_override_options</a>" overrides <a href="postconf.5.html">main.cf</a> settings
+to avoid duplicating work that was already done before the content
+filter. These options are complementary to the options that are
+specified in <a href="postconf.5.html">main.cf</a>: </p>
 
 <ul>
 
-    <li> <p> Disable attempts to find out if a recipient is unknown,
-    and disable header/body checks. This work was already done
-    before the content filter and repeating it would be wasteful.
-    </p>
+    <li> <p> We specify "<a href="postconf.5.html#no_unknown_recipient_checks">no_unknown_recipient_checks</a>" to disable
+    attempts to find out if a recipient is unknown. </p>
 
-    <li> <p> Enable virtual alias expansion, canonical mappings,
-    address masquerading, and other address mappings. </p>
+    <li> <p> We specify "<a href="postconf.5.html#no_header_body_checks">no_header_body_checks</a>" to disable header/body
+    checks.  </p>
+
+    <li> <p> We specify "<a href="postconf.5.html#no_milters">no_milters</a>" to disable Milter applications
+    (this option is available only in Postfix 2.3 and later).  </p>
+
+    <li> <p> We don't specify "no_address_mapping" here.  This
+    enables virtual alias expansion, canonical mappings, address
+    masquerading, and other address mappings after the content
+    filter. The <a href="postconf.5.html">main.cf</a> setting of "<a href="postconf.5.html#receive_override_options">receive_override_options</a>"
+    disables these mappings before the content filter.  </p>
 
 </ul>
 

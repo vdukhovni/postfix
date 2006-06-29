@@ -159,7 +159,7 @@ static int xsasl_cyrus_client_get_user(void *context, int unused_id,
 				               const char **result,
 				               unsigned *len)
 {
-    char   *myname = "xsasl_cyrus_get_user";
+    const char *myname = "xsasl_cyrus_get_user";
     XSASL_CYRUS_CLIENT *client = (XSASL_CYRUS_CLIENT *) context;
 
     if (msg_verbose)
@@ -182,7 +182,7 @@ static int xsasl_cyrus_client_get_user(void *context, int unused_id,
 static int xsasl_cyrus_client_get_passwd(sasl_conn_t *conn, void *context,
 				            int id, sasl_secret_t **psecret)
 {
-    char   *myname = "xsasl_cyrus_get_passwd";
+    const char *myname = "xsasl_cyrus_get_passwd";
     XSASL_CYRUS_CLIENT *client = (XSASL_CYRUS_CLIENT *) context;
     int     len;
 
@@ -414,7 +414,7 @@ static int xsasl_cyrus_client_first(XSASL_CLIENT *xp,
 				            const char **mechanism,
 				            VSTRING *init_resp)
 {
-    char   *myname = "xsasl_cyrus_client_first";
+    const char *myname = "xsasl_cyrus_client_first";
     XSASL_CYRUS_CLIENT *client = (XSASL_CYRUS_CLIENT *) xp;
     unsigned enc_length;
     unsigned enc_length_out;
@@ -485,7 +485,7 @@ static int xsasl_cyrus_client_first(XSASL_CLIENT *xp,
 static int xsasl_cyrus_client_next(XSASL_CLIENT *xp, const char *server_reply,
 				           VSTRING *client_reply)
 {
-    char   *myname = "xsasl_cyrus_client_next";
+    const char *myname = "xsasl_cyrus_client_next";
     XSASL_CYRUS_CLIENT *client = (XSASL_CYRUS_CLIENT *) xp;
     unsigned enc_length;
     unsigned enc_length_out;

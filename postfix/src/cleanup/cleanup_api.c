@@ -6,7 +6,8 @@
 /* SYNOPSIS
 /*	#include "cleanup.h"
 /*
-/*	CLEANUP_STATE *cleanup_open()
+/*	CLEANUP_STATE *cleanup_open(src)
+/*	VSTREAM	*src;
 /*
 /*	void	cleanup_control(state, flags)
 /*	CLEANUP_STATE *state;
@@ -44,6 +45,10 @@
 /*	It is OK to add automatic BCC recipient addresses.
 /* .IP CLEANUP_FLAG_FILTER
 /*	Enable header/body filtering. This should be enabled only with mail
+/*	that enters Postfix, not with locally forwarded mail or with bounce
+/*	messages.
+/* .IP CLEANUP_FLAG_MILTER
+/*	Enable Milter applications. This should be enabled only with mail
 /*	that enters Postfix, not with locally forwarded mail or with bounce
 /*	messages.
 /* .IP CLEANUP_FLAG_MAP_OK
@@ -107,27 +112,31 @@
 #include <mail_stream.h>
 #include <mail_flow.h>
 
+/* Milter library. */
+
+#include <milter.h>
+
 /* Application-specific. */
 
 #include "cleanup.h"
 
 /* cleanup_open - open queue file and initialize */
 
-CLEANUP_STATE *cleanup_open(void)
+CLEANUP_STATE *cleanup_open(VSTREAM *src)
 {
     CLEANUP_STATE *state;
-    static char *log_queues[] = {
+    static const char *log_queues[] = {
 	MAIL_QUEUE_DEFER,
 	MAIL_QUEUE_BOUNCE,
 	MAIL_QUEUE_TRACE,
 	0,
     };
-    char  **cpp;
+    const char **cpp;
 
     /*
      * Initialize private state.
      */
-    state = cleanup_state_alloc();
+    state = cleanup_state_alloc(src);
 
     /*
      * Open the queue file. Save the queue file name in a global variable, so
@@ -211,6 +220,21 @@ int     cleanup_flush(CLEANUP_STATE *state)
 	state->errs = 0;
 
     /*
+     * Apply external mail filter.
+     * 
+     * XXX Include test for a built-in action to tempfail this message.
+     */
+    if (CLEANUP_MILTER_OK(state)) {
+	if (state->milters)
+	    cleanup_milter_inspect(state, state->milters);
+	else if (cleanup_milters) {
+	    cleanup_milter_emul_data(state, cleanup_milters);
+	    if (CLEANUP_MILTER_OK(state))
+		cleanup_milter_inspect(state, cleanup_milters);
+	}
+    }
+
+    /*
      * If there was an error that requires us to generate a bounce message
      * (mail submitted with the Postfix sendmail command, mail forwarded by
      * the local(8) delivery agent, or mail re-queued with "postsuper -r"),
@@ -247,6 +271,8 @@ int     cleanup_flush(CLEANUP_STATE *state)
      * (or else the queue manager would grab it too early) and updating our
      * own idea of the queue file name for error recovery and for error
      * reporting purposes.
+     * 
+     * XXX Include test for a built-in action to tempfail this message.
      */
     if (state->errs == 0 && (state->flags & CLEANUP_FLAG_DISCARD) == 0) {
 	if ((state->flags & CLEANUP_FLAG_HOLD) != 0
@@ -336,5 +362,12 @@ int     cleanup_flush(CLEANUP_STATE *state)
 
 void    cleanup_free(CLEANUP_STATE *state)
 {
+
+    /*
+     * Emulate disconnect event. CLEANUP_FLAG_MILTER may be turned off after
+     * we have started.
+     */
+    if (cleanup_milters != 0 && state->milters == 0)
+	milter_disc_event(cleanup_milters);
     cleanup_state_free(state);
 }

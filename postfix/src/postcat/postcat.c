@@ -113,6 +113,7 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
     const char *error_text;
     char   *attr_name;
     char   *attr_value;
+    int     rec_flags = (msg_verbose ? REC_FLAG_NONE : REC_FLAG_DEFAULT);
 
 #define TEXT_RECORD(rec_type) \
 	    (rec_type == REC_TYPE_CONT || rec_type == REC_TYPE_NORM)
@@ -131,10 +132,10 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
     /*
      * Now look at the rest.
      */
-    for (;;) {
+    do {
 	if (flags & PC_FLAG_OFFSET)
 	    offset = vstream_ftell(fp);
-	rec_type = rec_get(fp, buffer, 0);
+	rec_type = rec_get_raw(fp, buffer, 0, rec_flags);
 	if (rec_type == REC_TYPE_ERROR)
 	    msg_fatal("record read error");
 	if (rec_type == REC_TYPE_EOF)
@@ -159,6 +160,13 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 	    vstream_printf("%s: %s", rec_type_name(rec_type),
 			   asctime(localtime(&time)));
 	    break;
+	case REC_TYPE_PTR:			/* pointer */
+	    vstream_printf("%s: ", rec_type_name(rec_type));
+	    vstream_fwrite(VSTREAM_OUT, STR(buffer), LEN(buffer));
+	    VSTREAM_PUTCHAR('\n');
+	    if (rec_goto(fp, STR(buffer)) == REC_TYPE_ERROR)
+		msg_fatal("bad pointer record, or input is not seekable");
+	    break;
 	case REC_TYPE_CONT:			/* REC_TYPE_FILT collision */
 	    if (!in_message)
 		vstream_printf("%s: ", rec_type_name(rec_type));
@@ -175,6 +183,13 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 		vstream_printf("%s: ", rec_type_name(rec_type));
 	    vstream_fwrite(VSTREAM_OUT, STR(buffer), LEN(buffer));
 	    VSTREAM_PUTCHAR('\n');
+	    break;
+	case REC_TYPE_DTXT:
+	    if (msg_verbose) {
+		vstream_printf("%s: ", rec_type_name(rec_type));
+		vstream_fwrite(VSTREAM_OUT, STR(buffer), LEN(buffer));
+		VSTREAM_PUTCHAR('\n');
+	    }
 	    break;
 	case REC_TYPE_MESG:
 	    vstream_printf("*** MESSAGE CONTENTS %s ***\n", VSTREAM_PATH(fp));
@@ -213,7 +228,7 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 	 * In case the next record is broken.
 	 */
 	vstream_fflush(VSTREAM_OUT);
-    }
+    } while (rec_type != REC_TYPE_END);
 }
 
 /* usage - explain and terminate */

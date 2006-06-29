@@ -652,7 +652,7 @@ MAPS   *alias_maps;
 
 static int local_deliver(DELIVER_REQUEST *rqst, char *service)
 {
-    char   *myname = "local_deliver";
+    const char *myname = "local_deliver";
     RECIPIENT *rcpt_end = rqst->rcpt_list.info + rqst->rcpt_list.len;
     RECIPIENT *rcpt;
     int     rcpt_stat;

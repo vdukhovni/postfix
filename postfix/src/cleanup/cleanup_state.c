@@ -6,7 +6,8 @@
 /* SYNOPSIS
 /*	#include "cleanup.h"
 /*
-/*	CLEANUP_STATE *cleanup_state_alloc(void)
+/*	CLEANUP_STATE *cleanup_state_alloc(src)
+/*	VSTREAM	*src;
 /*
 /*	void	cleanup_state_free(state)
 /*	CLEANUP_STATE *state;
@@ -46,13 +47,17 @@
 #include <mime_state.h>
 #include <mail_proto.h>
 
+/* Milter library. */
+
+#include <milter.h>
+
 /* Application-specific. */
 
 #include "cleanup.h"
 
 /* cleanup_state_alloc - initialize global state */
 
-CLEANUP_STATE *cleanup_state_alloc(void)
+CLEANUP_STATE *cleanup_state_alloc(VSTREAM *src)
 {
     CLEANUP_STATE *state = (CLEANUP_STATE *) mymalloc(sizeof(*state));
 
@@ -61,6 +66,7 @@ CLEANUP_STATE *cleanup_state_alloc(void)
     state->temp2 = vstring_alloc(10);
     if (cleanup_strip_chars)
 	state->stripped_buf = vstring_alloc(10);
+    state->src = src;
     state->dst = 0;
     state->handle = 0;
     state->queue_name = 0;
@@ -83,10 +89,14 @@ CLEANUP_STATE *cleanup_state_alloc(void)
     state->action = cleanup_envelope;
     state->data_offset = -1;
     state->xtra_offset = -1;
+    state->append_rcpt_pt_offset = -1;
+    state->append_rcpt_pt_target = -1;
+    state->append_hdr_pt_offset = -1;
+    state->append_hdr_pt_target = -1;
     state->rcpt_count = 0;
     state->reason = 0;
     state->attr = nvtable_create(10);
-    nvtable_update(state->attr, MAIL_ATTR_ORIGIN, MAIL_ATTR_ORG_LOCAL);
+    nvtable_update(state->attr, MAIL_ATTR_LOG_ORIGIN, MAIL_ATTR_ORG_LOCAL);
     state->mime_state = 0;
     state->mime_errs = 0;
     state->hdr_rewrite_context = MAIL_ATTR_RWR_LOCAL;
@@ -97,6 +107,7 @@ CLEANUP_STATE *cleanup_state_alloc(void)
     state->dsn_notify = 0;
     state->dsn_orcpt = 0;
     state->verp_delims = 0;
+    state->milters = 0;
     return (state);
 }
 
@@ -141,5 +152,7 @@ void    cleanup_state_free(CLEANUP_STATE *state)
 	myfree(state->dsn_orcpt);
     if (state->verp_delims)
 	myfree(state->verp_delims);
+    if (state->milters)
+	milter_free(state->milters);
     myfree((char *) state);
 }

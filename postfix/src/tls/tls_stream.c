@@ -70,7 +70,7 @@
 static ssize_t tls_timed_read(int fd, void *buf, size_t len, int timeout,
 			              void *context)
 {
-    char   *myname = "tls_timed_read";
+    const char *myname = "tls_timed_read";
     ssize_t ret;
     TLScontext_t *TLScontext;
 

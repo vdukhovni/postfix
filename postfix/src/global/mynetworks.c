@@ -87,7 +87,7 @@ const char *mynetworks(void)
     static VSTRING *result;
 
     if (result == 0) {
-	char   *myname = "mynetworks";
+	const char *myname = "mynetworks";
 	INET_ADDR_LIST *my_addr_list;
 	INET_ADDR_LIST *my_mask_list;
 	unsigned shift;

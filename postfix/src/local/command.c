@@ -83,7 +83,7 @@
 
 int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, const char *command)
 {
-    char   *myname = "deliver_command";
+    const char *myname = "deliver_command";
     DSN_BUF *why = state.msg_attr.why;
     int     cmd_status;
     int     deliver_status;

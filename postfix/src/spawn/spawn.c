@@ -173,7 +173,7 @@ typedef struct {
 
 static void get_service_attr(SPAWN_ATTR *attr, char *service, char **argv)
 {
-    char   *myname = "get_service_attr";
+    const char *myname = "get_service_attr";
     struct passwd *pwd;
     struct group *grp;
     char   *user;			/* user name */
@@ -265,7 +265,7 @@ static void get_service_attr(SPAWN_ATTR *attr, char *service, char **argv)
 
 static void spawn_service(VSTREAM *client_stream, char *service, char **argv)
 {
-    char   *myname = "spawn_service";
+    const char *myname = "spawn_service";
     static SPAWN_ATTR attr;
     WAIT_STATUS_T status;
     ARGV   *export_env;

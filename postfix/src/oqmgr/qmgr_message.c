@@ -440,7 +440,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	    }
 	    continue;
 	}
-	if (rec_type == REC_TYPE_DONE) {
+	if (rec_type == REC_TYPE_DONE || rec_type == REC_TYPE_DRCP) {
 	    if (message->rcpt_offset == 0) {
 		if (dsn_orcpt) {
 		    myfree(dsn_orcpt);
@@ -590,20 +590,42 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		    myfree(message->encoding);
 		message->encoding = mystrdup(value);
 	    }
+
+	    /*
+	     * Backwards compatibility. Before Postfix 2.3, the logging
+	     * attributes were called client_name, etc. Now they are called
+	     * log_client_name. etc., and client_name is used for the actual
+	     * client information. To support old queue files, we accept both
+	     * names for the purpose of logging; the new name overrides the
+	     * old one.
+	     */
+	    else if (strcmp(name, MAIL_ATTR_ACT_CLIENT_NAME) == 0) {
+		if (message->client_name == 0)
+		    message->client_name = mystrdup(value);
+	    } else if (strcmp(name, MAIL_ATTR_ACT_CLIENT_ADDR) == 0) {
+		if (message->client_addr == 0)
+		    message->client_addr = mystrdup(value);
+	    } else if (strcmp(name, MAIL_ATTR_ACT_PROTO_NAME) == 0) {
+		if (message->client_proto == 0)
+		    message->client_proto = mystrdup(value);
+	    } else if (strcmp(name, MAIL_ATTR_ACT_HELO_NAME) == 0) {
+		if (message->client_helo == 0)
+		    message->client_helo = mystrdup(value);
+	    }
 	    /* Original client attributes. */
-	    else if (strcmp(name, MAIL_ATTR_CLIENT_NAME) == 0) {
+	    else if (strcmp(name, MAIL_ATTR_LOG_CLIENT_NAME) == 0) {
 		if (message->client_name != 0)
 		    myfree(message->client_name);
 		message->client_name = mystrdup(value);
-	    } else if (strcmp(name, MAIL_ATTR_CLIENT_ADDR) == 0) {
+	    } else if (strcmp(name, MAIL_ATTR_LOG_CLIENT_ADDR) == 0) {
 		if (message->client_addr != 0)
 		    myfree(message->client_addr);
 		message->client_addr = mystrdup(value);
-	    } else if (strcmp(name, MAIL_ATTR_PROTO_NAME) == 0) {
+	    } else if (strcmp(name, MAIL_ATTR_LOG_PROTO_NAME) == 0) {
 		if (message->client_proto != 0)
 		    myfree(message->client_proto);
 		message->client_proto = mystrdup(value);
-	    } else if (strcmp(name, MAIL_ATTR_HELO_NAME) == 0) {
+	    } else if (strcmp(name, MAIL_ATTR_LOG_HELO_NAME) == 0) {
 		if (message->client_helo != 0)
 		    myfree(message->client_helo);
 		message->client_helo = mystrdup(value);
@@ -1212,7 +1234,7 @@ void    qmgr_message_free(QMGR_MESSAGE *message)
 QMGR_MESSAGE *qmgr_message_alloc(const char *queue_name, const char *queue_id,
 				         int qflags)
 {
-    char   *myname = "qmgr_message_alloc";
+    const char *myname = "qmgr_message_alloc";
     QMGR_MESSAGE *message;
 
     if (msg_verbose)
@@ -1272,7 +1294,7 @@ QMGR_MESSAGE *qmgr_message_alloc(const char *queue_name, const char *queue_id,
 
 QMGR_MESSAGE *qmgr_message_realloc(QMGR_MESSAGE *message)
 {
-    char   *myname = "qmgr_message_realloc";
+    const char *myname = "qmgr_message_realloc";
 
     /*
      * Sanity checks.

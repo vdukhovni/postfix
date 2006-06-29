@@ -322,7 +322,7 @@ static void dict_ldap_timeout(int unused_sig)
 
 static void dict_ldap_logprint(LDAP_CONST char *data)
 {
-    char   *myname = "dict_ldap_debug";
+    const char *myname = "dict_ldap_debug";
     char   *buf,
            *p;
 
@@ -428,7 +428,7 @@ static int search_st(LDAP *ld, char *base, int scope, char *query,
 #ifdef LDAP_API_FEATURE_X_OPENLDAP
 static void dict_ldap_set_tls_options(DICT_LDAP *dict_ldap)
 {
-    char   *myname = "dict_ldap_set_tls_options";
+    const char *myname = "dict_ldap_set_tls_options";
     int     rc;
 
     if (dict_ldap->start_tls || dict_ldap->ldap_ssl) {
@@ -489,7 +489,7 @@ static void dict_ldap_set_tls_options(DICT_LDAP *dict_ldap)
 /* Establish a connection to the LDAP server. */
 static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 {
-    char   *myname = "dict_ldap_connect";
+    const char *myname = "dict_ldap_connect";
     int     rc = 0;
 
 #ifdef LDAP_OPT_NETWORK_TIMEOUT
@@ -766,7 +766,7 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
     struct berval **vals;
     int     valcount;
     LDAPURLDesc *url;
-    char   *myname = "dict_ldap_get_values";
+    const char *myname = "dict_ldap_get_values";
 
     if (++recursion == 1)
 	expansion = 0;
@@ -938,7 +938,7 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
 
 static const char *dict_ldap_lookup(DICT *dict, const char *name)
 {
-    char   *myname = "dict_ldap_lookup";
+    const char *myname = "dict_ldap_lookup";
     DICT_LDAP *dict_ldap = (DICT_LDAP *) dict;
     LDAPMessage *res = 0;
     static VSTRING *base;
@@ -1158,7 +1158,7 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 
 static void dict_ldap_close(DICT *dict)
 {
-    char   *myname = "dict_ldap_close";
+    const char *myname = "dict_ldap_close";
     DICT_LDAP *dict_ldap = (DICT_LDAP *) dict;
     LDAP_CONN *conn = DICT_LDAP_CONN(dict_ldap);
     BINHASH_INFO *ht = dict_ldap->ht;
@@ -1200,7 +1200,7 @@ static void dict_ldap_close(DICT *dict)
 
 DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 {
-    char   *myname = "dict_ldap_open";
+    const char *myname = "dict_ldap_open";
     DICT_LDAP *dict_ldap;
     VSTRING *url_list;
     char   *s;

@@ -106,6 +106,7 @@ void    cleanup_envelope(CLEANUP_STATE *state, int type,
 static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 				             const char *buf, ssize_t len)
 {
+    const char *myname = "cleanup_envelope_process";
     char   *attr_name;
     char   *attr_value;
     const char *error_text;
@@ -113,6 +114,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
     int     junk;
     int     mapped_type = type;
     const char *mapped_buf = buf;
+    int     milter_count;
 
 #ifdef DELAY_ACTION
     int     defer_delay;
@@ -143,6 +145,18 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	return;
     }
 #endif
+    if (type == REC_TYPE_MILT_COUNT) {
+	/* Not part of queue file format. */
+	if (state->milters != 0) {
+	    msg_warn("%s: message rejected: too many milter instances",
+		     state->queue_id);
+	    state->errs |= CLEANUP_STAT_BAD;
+	    return;
+	}
+	if ((milter_count = atoi(buf)) > 0)
+	    cleanup_milter_receive(state, milter_count);
+	return;
+    }
 
     /*
      * Map DSN attribute name to pseudo record type so that we don't have to
@@ -247,6 +261,10 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	if (state->orig_rcpt == 0)
 	    state->orig_rcpt = mystrdup(buf);
 	cleanup_addr_recipient(state, buf);
+	if (cleanup_milters != 0
+	    && state->milters == 0
+	    && CLEANUP_MILTER_OK(state))
+	    cleanup_milter_emul_rcpt(state, cleanup_milters, buf);
 	myfree(state->orig_rcpt);
 	state->orig_rcpt = 0;
 	if (state->dsn_orcpt != 0) {
@@ -256,7 +274,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	state->dsn_notify = 0;
 	return;
     }
-    if (type == REC_TYPE_DONE) {
+    if (type == REC_TYPE_DONE || type == REC_TYPE_DRCP) {
 	if (state->orig_rcpt != 0) {
 	    myfree(state->orig_rcpt);
 	    state->orig_rcpt = 0;
@@ -303,7 +321,17 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
     }
     if (type == REC_TYPE_MESG) {
 	state->action = cleanup_message;
-	state->flags &= ~CLEANUP_FLAG_INRCPT;
+	if (state->flags & CLEANUP_FLAG_INRCPT) {
+	    if (state->milters || cleanup_milters) {
+		/* Make room to append recipient. */
+		if ((state->append_rcpt_pt_offset = vstream_ftell(state->dst)) < 0)
+		    msg_fatal("%s: vstream_ftell %s: %m:", myname, cleanup_path);
+		cleanup_out_format(state, REC_TYPE_PTR, REC_TYPE_PTR_FORMAT, 0L);
+		if ((state->append_rcpt_pt_target = vstream_ftell(state->dst)) < 0)
+		    msg_fatal("%s: vstream_ftell %s: %m:", myname, cleanup_path);
+	    }
+	    state->flags &= ~CLEANUP_FLAG_INRCPT;
+	}
 	return;
     }
 
@@ -347,6 +375,10 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	    return;
 	}
 	cleanup_addr_sender(state, buf);
+	if (cleanup_milters != 0
+	    && state->milters == 0
+	    && CLEANUP_MILTER_OK(state))
+	    cleanup_milter_emul_mail(state, cleanup_milters, buf);
 	return;
     }
     if (mapped_type == REC_TYPE_DSN_ENVID) {

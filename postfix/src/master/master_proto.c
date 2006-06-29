@@ -64,7 +64,7 @@
 
 int     master_notify(int pid, unsigned generation, int status)
 {
-    char   *myname = "master_notify";
+    const char *myname = "master_notify";
     MASTER_STATUS stat;
 
     /*

@@ -68,7 +68,7 @@
 
 ssize_t mail_flow_get(ssize_t len)
 {
-    char   *myname = "mail_flow_get";
+    const char *myname = "mail_flow_get";
     char    buf[BUFFER_SIZE];
     struct stat st;
     ssize_t count;
@@ -103,7 +103,7 @@ ssize_t mail_flow_get(ssize_t len)
 
 ssize_t mail_flow_put(ssize_t len)
 {
-    char   *myname = "mail_flow_put";
+    const char *myname = "mail_flow_put";
     char    buf[BUFFER_SIZE];
     ssize_t count;
     ssize_t n = 0;
@@ -132,7 +132,7 @@ ssize_t mail_flow_put(ssize_t len)
 
 ssize_t mail_flow_count(void)
 {
-    char   *myname = "mail_flow_count";
+    const char *myname = "mail_flow_count";
     ssize_t count;
 
     if ((count = peekfd(MASTER_FLOW_READ)) < 0)

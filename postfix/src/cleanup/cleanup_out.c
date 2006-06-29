@@ -29,6 +29,10 @@
 /*	CLEANUP_STATE *state;
 /*	int	type;
 /*	const char *format;
+/*
+/*	void	cleanup_out_header(state, buf)
+/*	CLEANUP_STATE *state;
+/*	VSTRING	*buf;
 /* DESCRIPTION
 /*	This module writes records to the output stream.
 /*
@@ -47,6 +51,10 @@
 /*
 /*	cleanup_out_format() formats its arguments and writes
 /*	the result as a record.
+/*
+/*	cleanup_out_header() outputs a multi-line header as records
+/*	of the specified type. The input is expected to be newline
+/*	separated (not newline terminated), and is modified.
 /* LICENSE
 /* .ad
 /* .fi
@@ -71,6 +79,7 @@
 #include <msg.h>
 #include <vstring.h>
 #include <vstream.h>
+#include <split_at.h>
 
 /* Global library. */
 
@@ -78,6 +87,7 @@
 #include <rec_type.h>
 #include <cleanup_user.h>
 #include <mail_params.h>
+#include <lex_822.h>
 
 /* Application-specific. */
 
@@ -104,6 +114,8 @@ void    cleanup_out(CLEANUP_STATE *state, int type, const char *string, ssize_t 
 
 #define TEXT_RECORD(t)	((t) == REC_TYPE_NORM || (t) == REC_TYPE_CONT)
 
+    if (var_line_limit <= 0)
+	msg_panic("cleanup_out: bad line length limit: %d", var_line_limit);
     do {
 	if (len > var_line_limit && TEXT_RECORD(type)) {
 	    err = rec_put(state->dst, REC_TYPE_CONT, string, var_line_limit);
@@ -147,4 +159,29 @@ void    cleanup_out_format(CLEANUP_STATE *state, int type, const char *fmt,...)
     vstring_vsprintf(vp, fmt, ap);
     va_end(ap);
     CLEANUP_OUT_BUF(state, type, vp);
+}
+
+/* cleanup_out_header - output one multi-line header as a bunch of records */
+
+void    cleanup_out_header(CLEANUP_STATE *state, VSTRING *header_buf)
+{
+    char   *start = vstring_str(header_buf);
+    char   *line;
+    char   *next_line;
+
+    /*
+     * Prepend a tab to continued header lines that went through the address
+     * rewriting machinery. See cleanup_fold_header(state) below for the form
+     * of such header lines. NB: This code destroys the header. We could try
+     * to avoid clobbering it, but we're not going to use the data any
+     * further.
+     */
+    for (line = start; line; line = next_line) {
+	next_line = split_at(line, '\n');
+	if (line == start || IS_SPACE_TAB(*line)) {
+	    cleanup_out_string(state, REC_TYPE_NORM, line);
+	} else {
+	    cleanup_out_format(state, REC_TYPE_NORM, "\t%s", line);
+	}
+    }
 }

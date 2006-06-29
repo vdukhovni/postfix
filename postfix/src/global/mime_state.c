@@ -414,15 +414,19 @@ static MIME_ENCODING mime_encoding_map[] = {	/* RFC 2045 */
   * offsets for header and body segments.
   */
 #define HEAD_OUT(ptr, info, len) do { \
-	(ptr)->head_out((ptr)->app_context, (ptr)->curr_state, \
-			(info), (ptr)->output_buffer, (ptr)->head_offset); \
-	(ptr)->head_offset += (len) + 1; \
+	if ((ptr)->head_out) { \
+	    (ptr)->head_out((ptr)->app_context, (ptr)->curr_state, \
+			    (info), (ptr)->output_buffer, (ptr)->head_offset); \
+	    (ptr)->head_offset += (len) + 1; \
+	} \
     } while(0)
 
 #define BODY_OUT(ptr, rec_type, text, len) do { \
-	(ptr)->body_out((ptr)->app_context, (rec_type), \
-			(text), (len), (ptr)->body_offset); \
-	(ptr)->body_offset += (len) + 1; \
+	if ((ptr)->body_out) { \
+	    (ptr)->body_out((ptr)->app_context, (rec_type), \
+			    (text), (len), (ptr)->body_offset); \
+	    (ptr)->body_offset += (len) + 1; \
+	} \
     } while(0)
 
 /* mime_state_push - push boundary onto stack */

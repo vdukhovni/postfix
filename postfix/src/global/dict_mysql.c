@@ -289,7 +289,7 @@ static void dict_mysql_quote(DICT *dict, const char *name, VSTRING *result)
 
 static const char *dict_mysql_lookup(DICT *dict, const char *name)
 {
-    char   *myname = "dict_mysql_lookup";
+    const char *myname = "dict_mysql_lookup";
     DICT_MYSQL *dict_mysql = (DICT_MYSQL *)dict;
     PLMYSQL *pldb = dict_mysql->pldb;
     MYSQL_RES *query_res;

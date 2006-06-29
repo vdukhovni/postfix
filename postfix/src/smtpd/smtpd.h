@@ -35,6 +35,11 @@
 #endif
 
  /*
+  * Milter library.
+  */
+#include <milter.h>
+
+ /*
   * Variables that keep track of conversation state. There is only one SMTP
   * conversation at a time, so the state variables can be made global. And
   * some of this has to be global anyway, so that the run-time error handler
@@ -61,6 +66,7 @@ typedef struct {
 } SMTPD_XFORWARD_ATTR;
 
 typedef struct SMTPD_STATE {
+    int     flags;			/* see below */
     int     err;			/* cleanup server/queue file errors */
     VSTREAM *client;			/* SMTP client handle */
     VSTRING *buffer;			/* SMTP client buffer */
@@ -72,9 +78,12 @@ typedef struct SMTPD_STATE {
     char   *addr;			/* client host address string */
     char   *namaddr;			/* combined name and address */
     char   *rfc_addr;			/* address for RFC 2821 */
+    int     addr_family;		/* address family */
     struct sockaddr_storage sockaddr;	/* binary client endpoint */
-    int     name_status;		/* 2=ok, 4=soft, 5=hard */
-    int     reverse_name_status;	/* 2=ok, 4=soft, 5=hard */
+    int     name_status;		/* 2=ok 4=soft 5=hard 6=forged */
+    int     reverse_name_status;	/* 2=ok 4=soft 5=hard */
+    int     conn_count;			/* connections from this client */
+    int     conn_rate;			/* connection rate for this client */
     int     error_count;		/* reset after DOT */
     int     error_mask;			/* client errors */
     int     notify_mask;		/* what to report to postmaster */
@@ -162,7 +171,14 @@ typedef struct SMTPD_STATE {
     TLScontext_t *tls_context;		/* TLS session state */
 #endif
 
+    /*
+     * Milter support.
+     */
+    const char **milter_argv;
+    ssize_t milter_argc;
 } SMTPD_STATE;
+
+#define SMTPD_FLAG_HANGUP	(1<<0)	/* disconnect */
 
 #define SMTPD_STATE_XFORWARD_INIT  (1<<0)	/* xforward preset done */
 #define SMTPD_STATE_XFORWARD_NAME  (1<<1)	/* client name received */
@@ -205,6 +221,7 @@ extern void smtpd_state_reset(SMTPD_STATE *);
 #define SMTPD_CMD_QUIT		"QUIT"
 #define SMTPD_CMD_XCLIENT	"XCLIENT"
 #define SMTPD_CMD_XFORWARD	"XFORWARD"
+#define SMTPD_CMD_UNKNOWN	"UNKNOWN"
 
  /*
   * Representation of unknown client information within smtpd processes. This
@@ -254,6 +271,7 @@ extern void smtpd_peer_reset(SMTPD_STATE *state);
 #define	SMTPD_PEER_CODE_OK	2
 #define SMTPD_PEER_CODE_TEMP	4
 #define SMTPD_PEER_CODE_PERM	5
+#define SMTPD_PEER_CODE_FORGED	6
 
  /*
   * Choose between normal or forwarded attributes.
@@ -299,6 +317,11 @@ extern void smtpd_xforward_reset(SMTPD_STATE *);
   * do we allow address mapping, automatic bcc, header/body checks?
   */
 extern int smtpd_input_transp_mask;
+
+ /*
+  * More Milter support.
+  */
+extern MILTERS *smtpd_milters;
 
 /* LICENSE
 /* .ad

@@ -10,22 +10,23 @@
 /*	VSTRING	*buf;
 /*	int	len;
 /*
-/*	int	tls_mgr_policy(cache_types)
-/*	int	*cache_types;
+/*	int	tls_mgr_policy(cache_type, cachable)
+/*	const char *cache_type;
+/*	int	*cachable;
 /*
 /*	int	tls_mgr_update(cache_type, cache_id, buf, len)
-/*	int	cache_type;
+/*	const char *cache_type;
 /*	const char *cache_id;
 /*	const char *buf;
 /*	ssize_t	len;
 /*
 /*	int	tls_mgr_lookup(cache_type, cache_id, buf)
-/*	int	cache_type;
+/*	const char *cache_type;
 /*	const char *cache_id;
 /*	VSTRING	*buf;
 /*
 /*	int	tls_mgr_delete(cache_type, cache_id)
-/*	int	cache_type;
+/*	const char *cache_type;
 /*	const char *cache_id;
 /* DESCRIPTION
 /*	These routines communicate with the tlsmgr(8) server for
@@ -48,16 +49,12 @@
 /*	the specified session cache.
 /*
 /*	Arguments
-/* .IP cache_types
-/*	The bit-wise OR of zero or more of the following:
-/* .RS
-/* .IP TLS_MGR_SCACHE_CLIENT
-/*	Session caching is enabled for SMTP client sessions.
-/* .IP TLS_MGR_SCACHE_SERVER
-/*	Session caching is enabled for SMTP server sessions.
-/* .RE
 /* .IP cache_type
-/*	One of TLS_MGR_SCACHE_CLIENT or TLS_MGR_SCACHE_SERVER (see above).
+/*	One of TLS_MGR_SCACHE_SMTPD, TLS_MGR_SCACHE_SMTP or
+/*	TLS_MGR_SCACHE_LMTP.
+/* .IP cachable
+/*	Pointer to int, set non-zero if the requested cache_type
+/*	is enabled.
 /* .IP cache_id
 /*	The session cache lookup key.
 /* .IP buf
@@ -176,7 +173,7 @@ int     tls_mgr_seed(VSTRING *buf, int len)
 
 /* tls_mgr_policy - request caching policy */
 
-int     tls_mgr_policy(int *policy)
+int     tls_mgr_policy(const char *cache_type, int *cachable)
 {
     int     status;
 
@@ -192,10 +189,11 @@ int     tls_mgr_policy(int *policy)
     if (attr_clnt_request(tls_mgr,
 			  ATTR_FLAG_NONE,	/* Request attributes */
 			ATTR_TYPE_STR, TLS_MGR_ATTR_REQ, TLS_MGR_REQ_POLICY,
+			  ATTR_TYPE_STR, TLS_MGR_ATTR_CACHE_TYPE, cache_type,
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes */
 			  ATTR_TYPE_INT, TLS_MGR_ATTR_STATUS, &status,
-			  ATTR_TYPE_INT, TLS_MGR_ATTR_POLICY, policy,
+			  ATTR_TYPE_INT, TLS_MGR_ATTR_CACHABLE, cachable,
 			  ATTR_TYPE_END) != 2)
 	status = TLS_MGR_STAT_FAIL;
     return (status);
@@ -203,7 +201,8 @@ int     tls_mgr_policy(int *policy)
 
 /* tls_mgr_lookup - request cached session */
 
-int     tls_mgr_lookup(int cache_type, const char *cache_id, VSTRING *buf)
+int     tls_mgr_lookup(const char *cache_type, const char *cache_id,
+		               VSTRING *buf)
 {
     int     status;
 
@@ -219,7 +218,7 @@ int     tls_mgr_lookup(int cache_type, const char *cache_id, VSTRING *buf)
     if (attr_clnt_request(tls_mgr,
 			  ATTR_FLAG_NONE,	/* Request */
 			ATTR_TYPE_STR, TLS_MGR_ATTR_REQ, TLS_MGR_REQ_LOOKUP,
-			  ATTR_TYPE_INT, TLS_MGR_ATTR_CACHE_TYPE, cache_type,
+			  ATTR_TYPE_STR, TLS_MGR_ATTR_CACHE_TYPE, cache_type,
 			  ATTR_TYPE_STR, TLS_MGR_ATTR_CACHE_ID, cache_id,
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply */
@@ -232,7 +231,7 @@ int     tls_mgr_lookup(int cache_type, const char *cache_id, VSTRING *buf)
 
 /* tls_mgr_update - save session to cache */
 
-int     tls_mgr_update(int cache_type, const char *cache_id,
+int     tls_mgr_update(const char *cache_type, const char *cache_id,
 		               const char *buf, ssize_t len)
 {
     int     status;
@@ -249,7 +248,7 @@ int     tls_mgr_update(int cache_type, const char *cache_id,
     if (attr_clnt_request(tls_mgr,
 			  ATTR_FLAG_NONE,	/* Request */
 			ATTR_TYPE_STR, TLS_MGR_ATTR_REQ, TLS_MGR_REQ_UPDATE,
-			  ATTR_TYPE_INT, TLS_MGR_ATTR_CACHE_TYPE, cache_type,
+			  ATTR_TYPE_STR, TLS_MGR_ATTR_CACHE_TYPE, cache_type,
 			  ATTR_TYPE_STR, TLS_MGR_ATTR_CACHE_ID, cache_id,
 			  ATTR_TYPE_DATA, TLS_MGR_ATTR_SESSION, len, buf,
 			  ATTR_TYPE_END,
@@ -262,7 +261,7 @@ int     tls_mgr_update(int cache_type, const char *cache_id,
 
 /* tls_mgr_delete - remove cached session */
 
-int     tls_mgr_delete(int cache_type, const char *cache_id)
+int     tls_mgr_delete(const char *cache_type, const char *cache_id)
 {
     int     status;
 
@@ -278,7 +277,7 @@ int     tls_mgr_delete(int cache_type, const char *cache_id)
     if (attr_clnt_request(tls_mgr,
 			  ATTR_FLAG_NONE,	/* Request */
 			ATTR_TYPE_STR, TLS_MGR_ATTR_REQ, TLS_MGR_REQ_DELETE,
-			  ATTR_TYPE_INT, TLS_MGR_ATTR_CACHE_TYPE, cache_type,
+			  ATTR_TYPE_STR, TLS_MGR_ATTR_CACHE_TYPE, cache_type,
 			  ATTR_TYPE_STR, TLS_MGR_ATTR_CACHE_ID, cache_id,
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply */
@@ -334,11 +333,11 @@ int     main(int unused_ac, char **av)
 #define COMMAND(argv, str, len) \
     (strcasecmp(argv->argv[0], str) == 0 && argv->argc == len)
 
-	if (COMMAND(argv, "policy", 1)) {
-	    int     cache_types;
+	if (COMMAND(argv, "policy", 2)) {
+	    int     cachable;
 
-	    status = tls_mgr_policy(&cache_types);
-	    vstream_printf("status=%d policy=0x%x\n", status, cache_types);
+	    status = tls_mgr_policy(argv[2], &cachable);
+	    vstream_printf("status=%d cachable=%d\n", status, cachable);
 	} else if (COMMAND(argv, "seed", 2)) {
 	    VSTRING *buf = vstring_alloc(10);
 	    VSTRING *hex = vstring_alloc(10);
@@ -351,29 +350,24 @@ int     main(int unused_ac, char **av)
 	    vstring_free(buf);
 	} else if (COMMAND(argv, "lookup", 3)) {
 	    VSTRING *buf = vstring_alloc(10);
-	    int     cache_type = atoi(argv->argv[1]);
 
-	    status = tls_mgr_lookup(cache_type, argv->argv[2], buf);
+	    status = tls_mgr_lookup(argv[1], argv->argv[2], buf);
 	    vstream_printf("status=%d session=%.*s\n",
 			   status, LEN(buf), STR(buf));
 	} else if (COMMAND(argv, "update", 4)) {
-	    int     cache_type = atoi(argv->argv[1]);
-
-	    status = tls_mgr_update(cache_type, argv->argv[2],
+	    status = tls_mgr_update(argv[1], argv->argv[2],
 				    argv->argv[3], strlen(argv->argv[3]));
 	    vstream_printf("status=%d\n", status);
 	} else if (COMMAND(argv, "delete", 3)) {
-	    int     cache_type = atoi(argv->argv[1]);
-
-	    status = tls_mgr_delete(cache_type, argv->argv[2]);
+	    status = tls_mgr_delete(argv[1], argv->argv[2]);
 	    vstream_printf("status=%d\n", status);
 	} else {
 	    vstream_printf("usage:\n"
 			   "seed byte_count\n"
-			   "policy\n"
-			   "lookup cache_type cache_id\n"
-			   "update cache_type cache_id session\n"
-			   "delete cache_type cache_id\n");
+			   "policy smtpd|smtp|lmtp\n"
+			   "lookup smtpd|smtp|lmtp cache_id\n"
+			   "update smtpd|smtp|lmtp cache_id session\n"
+			   "delete smtpd|smtp|lmtp cache_id\n");
 	}
 	vstream_fflush(VSTREAM_OUT);
     }

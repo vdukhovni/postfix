@@ -82,7 +82,7 @@ static int saved_level = UNUSED_SAVED_LEVEL;
 
 void    debug_peer_init(void)
 {
-    char   *myname = "debug_peer_init";
+    const char *myname = "debug_peer_init";
 
     /*
      * Sanity check.

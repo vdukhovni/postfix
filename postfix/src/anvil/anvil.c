@@ -498,7 +498,7 @@ static time_t max_cache_time;		/* time of peak size */
 static void anvil_remote_expire(int unused_event, char *context)
 {
     ANVIL_REMOTE *anvil_remote = (ANVIL_REMOTE *) context;
-    char   *myname = "anvil_remote_expire";
+    const char *myname = "anvil_remote_expire";
 
     if (msg_verbose)
 	msg_info("%s %s", myname, anvil_remote->ident);
@@ -521,7 +521,7 @@ static void anvil_remote_expire(int unused_event, char *context)
 static void anvil_remote_lookup(VSTREAM *client_stream, const char *ident)
 {
     ANVIL_REMOTE *anvil_remote;
-    char   *myname = "anvil_remote_lookup";
+    const char *myname = "anvil_remote_lookup";
 
     if (msg_verbose)
 	msg_info("%s fd=%d stream=0x%lx ident=%s",
@@ -566,7 +566,7 @@ static ANVIL_REMOTE *anvil_remote_conn_update(VSTREAM *client_stream, const char
 {
     ANVIL_REMOTE *anvil_remote;
     ANVIL_LOCAL *anvil_local;
-    char   *myname = "anvil_remote_conn_update";
+    const char *myname = "anvil_remote_conn_update";
 
     if (msg_verbose)
 	msg_info("%s fd=%d stream=0x%lx ident=%s",
@@ -767,7 +767,7 @@ static void anvil_remote_disconnect(VSTREAM *client_stream, const char *ident)
 {
     ANVIL_REMOTE *anvil_remote;
     ANVIL_LOCAL *anvil_local;
-    char   *myname = "anvil_remote_disconnect";
+    const char *myname = "anvil_remote_disconnect";
 
     if (msg_verbose)
 	msg_info("%s fd=%d stream=0x%lx ident=%s",
@@ -803,7 +803,7 @@ static void anvil_service_done(VSTREAM *client_stream, char *unused_service,
 			               char **unused_argv)
 {
     ANVIL_LOCAL *anvil_local;
-    char   *myname = "anvil_service_done";
+    const char *myname = "anvil_service_done";
 
     if (msg_verbose)
 	msg_info("%s fd=%d stream=0x%lx",

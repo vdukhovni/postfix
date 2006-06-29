@@ -116,7 +116,7 @@ static void qmgr_transport_unthrottle_wrapper(int unused_event, char *context)
 
 void    qmgr_transport_unthrottle(QMGR_TRANSPORT *transport)
 {
-    char   *myname = "qmgr_transport_unthrottle";
+    const char *myname = "qmgr_transport_unthrottle";
 
     /*
      * This routine runs after expiration of the timer set by
@@ -142,7 +142,7 @@ void    qmgr_transport_unthrottle(QMGR_TRANSPORT *transport)
 
 void    qmgr_transport_throttle(QMGR_TRANSPORT *transport, DSN *dsn)
 {
-    char   *myname = "qmgr_transport_throttle";
+    const char *myname = "qmgr_transport_throttle";
 
     /*
      * We are unable to connect to a deliver process for this type of message

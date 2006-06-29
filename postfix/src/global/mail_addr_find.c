@@ -94,7 +94,7 @@
 
 const char *mail_addr_find(MAPS *path, const char *address, char **extp)
 {
-    char   *myname = "mail_addr_find";
+    const char *myname = "mail_addr_find";
     const char *result;
     char   *ratsign = 0;
     char   *full_key;
@@ -200,7 +200,7 @@ int     main(int argc, char **argv)
      * Initialize.
      */
     mail_conf_read();
-    path = maps_create(argv[0], argv[1], DICT_FLAG_LOCK  | DICT_FLAG_FOLD_FIX);
+    path = maps_create(argv[0], argv[1], DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
     while (vstring_fgets_nonl(buffer, VSTREAM_IN)) {
 	extent = 0;
 	result = mail_addr_find(path, STR(buffer), &extent);

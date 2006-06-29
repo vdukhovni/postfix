@@ -124,7 +124,7 @@ static void qmgr_active_done_3_generic(QMGR_MESSAGE *);
 
 static void qmgr_active_corrupt(const char *queue_id)
 {
-    char   *myname = "qmgr_active_corrupt";
+    const char *myname = "qmgr_active_corrupt";
 
     if (mail_queue_rename(queue_id, MAIL_QUEUE_ACTIVE, MAIL_QUEUE_CORRUPT)) {
 	if (errno != ENOENT)
@@ -143,7 +143,7 @@ static void qmgr_active_corrupt(const char *queue_id)
 static void qmgr_active_defer(const char *queue_name, const char *queue_id,
 			              const char *dest_queue, int delay)
 {
-    char   *myname = "qmgr_active_defer";
+    const char *myname = "qmgr_active_defer";
     const char *path;
     struct utimbuf tbuf;
 
@@ -169,7 +169,7 @@ static void qmgr_active_defer(const char *queue_name, const char *queue_id,
 
 int     qmgr_active_feed(QMGR_SCAN *scan_info, const char *queue_id)
 {
-    char   *myname = "qmgr_active_feed";
+    const char *myname = "qmgr_active_feed";
     QMGR_MESSAGE *message;
     struct stat st;
     const char *path;
@@ -249,7 +249,7 @@ int     qmgr_active_feed(QMGR_SCAN *scan_info, const char *queue_id)
 
 void    qmgr_active_done(QMGR_MESSAGE *message)
 {
-    char   *myname = "qmgr_active_done";
+    const char *myname = "qmgr_active_done";
     struct stat st;
 
     if (msg_verbose)
@@ -331,7 +331,7 @@ static void qmgr_active_done_2_bounce_flush(int status, char *context)
 
 static void qmgr_active_done_2_generic(QMGR_MESSAGE *message)
 {
-    char   *myname = "qmgr_active_done_2_generic";
+    const char *myname = "qmgr_active_done_2_generic";
     const char *path;
     struct stat st;
     int     status;
@@ -483,7 +483,7 @@ static void qmgr_active_done_3_defer_flush(int status, char *context)
 
 static void qmgr_active_done_3_generic(QMGR_MESSAGE *message)
 {
-    char   *myname = "qmgr_active_done_3_generic";
+    const char *myname = "qmgr_active_done_3_generic";
     int     delay;
 
     /*

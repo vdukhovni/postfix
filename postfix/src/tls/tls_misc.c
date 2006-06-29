@@ -14,6 +14,10 @@
 /*	void	tls_free_context(TLScontext)
 /*	TLScontext_t *TLScontext;
 /*
+/*	void	tls_check_version()
+/*
+/*	long	tls_bug_bits()
+/*
 /*	void	tls_print_errors()
 /*
 /*	void    tls_info_callback(ssl, where, ret)
@@ -37,6 +41,14 @@
 /*
 /*	tls_free_context() destroys a TLScontext structure
 /*	together with OpenSSL structures that are attached to it.
+/*
+/*	tls_check_version() logs a warning when the run-time OpenSSL
+/*	library differs in its major, minor or micro number from
+/*	the compile-time OpenSSL headers.
+/*
+/*	tls_bug_bits() returns the bug compatibility mask appropriate
+/*	for the run-time library. Some of the bug work-arounds are
+/*	not appropriate for some library versions.
 /*
 /*	tls_print_errors() queries the OpenSSL error stack,
 /*	logs the error messages, and clears the error stack.
@@ -93,10 +105,43 @@
 /* Application-specific. */
 
  /*
-  * Indices to attach our own information to SSL and to SSL_SESSION objects,
-  * so that it can be accessed by call-back routines.
+  * Index to attach TLScontext pointers to SSL objects, so that they can be
+  * accessed by call-back routines.
   */
 int     TLScontext_index = -1;
+
+ /*
+  * Index to attach session cache names SSL_CTX objects.
+  */
+int     TLSscache_index = -1;
+
+ /*
+  * Protocol name <=> mask conversion.
+  */
+NAME_MASK tls_protocol_table[] = {
+    SSL_TXT_SSLV2, TLS_PROTOCOL_SSLv2,
+    SSL_TXT_SSLV3, TLS_PROTOCOL_SSLv3,
+    SSL_TXT_TLSV1, TLS_PROTOCOL_TLSv1,
+    0, 0,
+};
+
+char   *var_tls_high_clist;
+char   *var_tls_medium_clist;
+char   *var_tls_low_clist;
+char   *var_tls_export_clist;
+char   *var_tls_null_clist;
+
+ /*
+  * Ciphersuite name <=> code conversion.
+  */
+NAME_CODE tls_cipher_level_table[] = {
+    "high", TLS_CIPHER_HIGH,
+    "medium", TLS_CIPHER_MEDIUM,
+    "low", TLS_CIPHER_LOW,
+    "export", TLS_CIPHER_EXPORT,
+    "null", TLS_CIPHER_NULL,
+    0, TLS_CIPHER_NONE,
+};
 
  /*
   * Parsed OpenSSL version number.
@@ -108,6 +153,77 @@ typedef struct {
     int     patch;
     int     status;
 } TLS_VINFO;
+
+/* tls_cipher_list - Cipherlist for given grade, less exclusions */
+
+char   *tls_cipher_list(int level,...)
+{
+    const char *myname = "tls_cipher_list";
+    static VSTRING *buf;
+    va_list ap;
+    const char *exclude;
+    char   *tok;
+    char   *save;
+    char   *cp;
+
+    buf = buf ? buf : vstring_alloc(10);
+    VSTRING_RESET(buf);
+
+    switch (level) {
+    case TLS_CIPHER_HIGH:
+	vstring_strcpy(buf, var_tls_high_clist);
+	break;
+    case TLS_CIPHER_MEDIUM:
+	vstring_strcpy(buf, var_tls_medium_clist);
+	break;
+    case TLS_CIPHER_LOW:
+	vstring_strcpy(buf, var_tls_low_clist);
+	break;
+    case TLS_CIPHER_EXPORT:
+	vstring_strcpy(buf, var_tls_export_clist);
+	break;
+    case TLS_CIPHER_NULL:
+	vstring_strcpy(buf, var_tls_null_clist);
+	break;
+    case TLS_CIPHER_NONE:
+	return 0;
+    default:
+	msg_panic("%s: invalid cipher level: %d", myname, level);
+    }
+
+    if (VSTRING_LEN(buf) == 0)
+	msg_panic("%s: empty cipherlist", myname);
+
+    va_start(ap, level);
+    while ((exclude = va_arg(ap, char *)) != 0) {
+	if (*exclude == '\0')
+	    continue;
+	save = cp = mystrdup(exclude);
+	while ((tok = mystrtok(&cp, "\t\n\r ,")) != 0) {
+
+	    /*
+	     * Can't exclude ciphers that start with modifiers, or
+	     * multi-element (":" separated) ciphers.
+	     */
+	    if (strchr("!+-@", *tok)) {
+		msg_warn("%s: can't exclude '!+-@' modifiers, '%s' ignored",
+			 myname, tok);
+		continue;
+	    }
+	    if (strchr(tok, ':')) {
+		msg_warn("%s: can't exclude compound ciphers, '%s' ignored",
+			 myname, tok);
+		continue;
+	    }
+	    vstring_sprintf_append(buf, ":!%s", tok);
+	}
+	myfree(save);
+    }
+    va_end(ap);
+
+    return (vstring_str(buf));
+}
+
 
 /* tls_alloc_context - allocate TLScontext */
 
@@ -170,6 +286,8 @@ void    tls_free_context(TLScontext_t *TLScontext)
 
     myfree((char *) TLScontext);
 }
+
+/* tls_version_split - Split OpenSSL version number into major, minor, ... */
 
 static void tls_version_split(long version, TLS_VINFO *info)
 {
@@ -267,7 +385,7 @@ long    tls_bug_bits(void)
     /*
      * In OpenSSL 0.9.8[ab], enabling zlib compression breaks the padding bug
      * work-around, leading to false positives and failed connections. We may
-     * not interoperate with systems with the bug, but this better than
+     * not interoperate with systems with the bug, but this is better than
      * breaking on all 0.9.8[ab] systems that have zlib support enabled.
      */
     if (lib_version >= 0x00908000L && lib_version <= 0x0090802fL) {

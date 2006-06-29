@@ -46,7 +46,7 @@
 
 void    deliver_completed(VSTREAM *stream, long offset)
 {
-    char   *myname = "deliver_completed";
+    const char *myname = "deliver_completed";
 
     if (offset == -1)
 	return;

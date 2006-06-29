@@ -200,7 +200,7 @@ BOUNCE_TEMPLATES *bounce_templates;
 
 static int bounce_append_proto(char *service_name, VSTREAM *client)
 {
-    char   *myname = "bounce_append_proto";
+    const char *myname = "bounce_append_proto";
     int     flags;
 
     /*
@@ -270,7 +270,7 @@ static int bounce_notify_proto(char *service_name, VSTREAM *client,
 					        char *, char *, char *, int,
 						        BOUNCE_TEMPLATES *))
 {
-    char   *myname = "bounce_notify_proto";
+    const char *myname = "bounce_notify_proto";
     int     flags;
     int     dsn_ret;
 
@@ -327,7 +327,7 @@ static int bounce_notify_proto(char *service_name, VSTREAM *client,
 
 static int bounce_verp_proto(char *service_name, VSTREAM *client)
 {
-    char   *myname = "bounce_verp_proto";
+    const char *myname = "bounce_verp_proto";
     int     flags;
     int     dsn_ret;
 
@@ -399,7 +399,7 @@ static int bounce_verp_proto(char *service_name, VSTREAM *client)
 
 static int bounce_one_proto(char *service_name, VSTREAM *client)
 {
-    char   *myname = "bounce_one_proto";
+    const char *myname = "bounce_one_proto";
     int     flags;
     int     dsn_ret;
 

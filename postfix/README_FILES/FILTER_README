@@ -386,7 +386,7 @@ without sending `.' on the connection that injects mail back into Postfix.
             -o content_filter=
             -
     o
-    receive_override_options=no_unknown_recipient_checks,no_header_body_checks
+    receive_override_options=no_unknown_recipient_checks,no_header_body_checks,no_milters
             -o smtpd_helo_restrictions=
             -o smtpd_client_restrictions=
             -o smtpd_sender_restrictions=
@@ -403,15 +403,23 @@ without sending `.' on the connection that injects mail back into Postfix.
     content filtering for mail from the content filter. This is required or
     else mail will stay in the content filtering loop.
 
-  * The "-o receive_override_options" overrides main.cf settings. It is
-    complementary to the options that are specified in main.cf:
+  * The "-o receive_override_options" overrides main.cf settings to avoid
+    duplicating work that was already done before the content filter. These
+    options are complementary to the options that are specified in main.cf:
 
-      o Disable attempts to find out if a recipient is unknown, and disable
-        header/body checks. This work was already done before the content
-        filter and repeating it would be wasteful.
+      o We specify "no_unknown_recipient_checks" to disable attempts to find
+        out if a recipient is unknown.
 
-      o Enable virtual alias expansion, canonical mappings, address
-        masquerading, and other address mappings.
+      o We specify "no_header_body_checks" to disable header/body checks.
+
+      o We specify "no_milters" to disable Milter applications (this option is
+        available only in Postfix 2.3 and later).
+
+      o We don't specify "no_address_mapping" here. This enables virtual alias
+        expansion, canonical mappings, address masquerading, and other address
+        mappings after the content filter. The main.cf setting of
+        "receive_override_options" disables these mappings before the content
+        filter.
 
     These receive override options are either implemented by the SMTP server
     itself, or they are passed on to the cleanup server.

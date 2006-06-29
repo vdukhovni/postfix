@@ -313,6 +313,142 @@ SMTP(8)                                                                SMTP(8)
        Detailed  information  about STARTTLS configuration may be
        found in the <a href="TLS_README.html">TLS_README</a> document.
 
+       <b><a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> (empty)</b>
+              The default SMTP TLS security level for all  desti-
+              nations;  when a non-empty value is specified, this
+              overrides  the  obsolete  parameters  <a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a>,
+              <a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a>, and <a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a>.
+
+       <b><a href="postconf.5.html#smtp_sasl_tls_security_options">smtp_sasl_tls_security_options</a>           ($<a href="postconf.5.html#smtp_sasl_security_options">smtp_sasl_secu</a>-</b>
+       <b><a href="postconf.5.html#smtp_sasl_security_options">rity_options</a>)</b>
+              The  SASL  authentication security options that the
+              Postfix SMTP client uses  for  TLS  encrypted  SMTP
+              sessions.
+
+       <b><a href="postconf.5.html#smtp_starttls_timeout">smtp_starttls_timeout</a> (300s)</b>
+              Time  limit  for Postfix SMTP client write and read
+              operations during TLS startup  and  shutdown  hand-
+              shake procedures.
+
+       <b><a href="postconf.5.html#smtp_tls_CAfile">smtp_tls_CAfile</a> (empty)</b>
+              The  file with the certificate of the certification
+              authority (CA) that issued the Postfix SMTP  client
+              certificate.
+
+       <b><a href="postconf.5.html#smtp_tls_CApath">smtp_tls_CApath</a> (empty)</b>
+              Directory  with  PEM  format  certificate authority
+              certificates that the Postfix SMTP client  uses  to
+              verify a remote SMTP server certificate.
+
+       <b><a href="postconf.5.html#smtp_tls_cert_file">smtp_tls_cert_file</a> (empty)</b>
+              File  with  the Postfix SMTP client RSA certificate
+              in PEM format.
+
+       <b><a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> (medium)</b>
+              The minimum SMTP client TLS cipher  grade  that  is
+              strong  enough  to be used with the "encrypt" secu-
+              rity level and higher.
+
+       <b><a href="postconf.5.html#smtp_tls_exclude_ciphers">smtp_tls_exclude_ciphers</a> (empty)</b>
+              List of ciphers or cipher types to exclude from the
+              SMTP client cipher list at all security levels.
+
+       <b><a href="postconf.5.html#smtp_tls_mandatory_exclude_ciphers">smtp_tls_mandatory_exclude_ciphers</a> (empty)</b>
+              List of ciphers or cipher types to exclude from the
+              SMTP client cipher list at the mandatory TLS  secu-
+              rity levels: "encrypt", "verify" and "secure".
+
+       <b><a href="postconf.5.html#smtp_tls_dcert_file">smtp_tls_dcert_file</a> (empty)</b>
+              File  with  the Postfix SMTP client DSA certificate
+              in PEM format.
+
+       <b><a href="postconf.5.html#smtp_tls_dkey_file">smtp_tls_dkey_file</a> ($<a href="postconf.5.html#smtp_tls_dcert_file">smtp_tls_dcert_file</a>)</b>
+              File with the Postfix SMTP client DSA  private  key
+              in PEM format.
+
+       <b><a href="postconf.5.html#smtp_tls_key_file">smtp_tls_key_file</a> ($<a href="postconf.5.html#smtp_tls_cert_file">smtp_tls_cert_file</a>)</b>
+              File  with  the Postfix SMTP client RSA private key
+              in PEM format.
+
+       <b><a href="postconf.5.html#smtp_tls_loglevel">smtp_tls_loglevel</a> (0)</b>
+              Enable additional Postfix SMTP  client  logging  of
+              TLS activity.
+
+       <b><a href="postconf.5.html#smtp_tls_note_starttls_offer">smtp_tls_note_starttls_offer</a> (no)</b>
+              Log  the  hostname  of  a  remote  SMTP server that
+              offers STARTTLS, when TLS is  not  already  enabled
+              for that server.
+
+       <b><a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> (empty)</b>
+              Optional lookup tables with the Postfix SMTP client
+              TLS security policy by next-hop destination; when a
+              non-empty  value  is  specified, this overrides the
+              obsolete <a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a> parameter.
+
+       <b><a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> (SSLv3, TLSv1)</b>
+              List of  TLS  protocol  versions  that  are  secure
+              enough to be used with the "encrypt" security level
+              and higher.
+
+       <b><a href="postconf.5.html#smtp_tls_scert_verifydepth">smtp_tls_scert_verifydepth</a> (5)</b>
+              The verification depth for remote SMTP server  cer-
+              tificates.
+
+       <b><a href="postconf.5.html#smtp_tls_secure_cert_match">smtp_tls_secure_cert_match</a> (nexthop, dot-nexthop)</b>
+              The server certificate peername verification method
+              for the "secure" TLS security level.
+
+       <b><a href="postconf.5.html#smtp_tls_session_cache_database">smtp_tls_session_cache_database</a> (empty)</b>
+              Name of the file containing  the  optional  Postfix
+              SMTP client TLS session cache.
+
+       <b><a href="postconf.5.html#smtp_tls_session_cache_timeout">smtp_tls_session_cache_timeout</a> (3600s)</b>
+              The expiration time of Postfix SMTP client TLS ses-
+              sion cache information.
+
+       <b><a href="postconf.5.html#smtp_tls_verify_cert_match">smtp_tls_verify_cert_match</a> (hostname)</b>
+              The server certificate peername verification method
+              for the "verify" TLS security level.
+
+       <b><a href="postconf.5.html#tls_daemon_random_bytes">tls_daemon_random_bytes</a> (32)</b>
+              The  number  of pseudo-random bytes that an <a href="smtp.8.html"><b>smtp</b>(8)</a>
+              or <a href="smtpd.8.html"><b>smtpd</b>(8)</a> process  requests  from  the  <a href="tlsmgr.8.html"><b>tlsmgr</b>(8)</a>
+              server  in order to seed its internal pseudo random
+              number generator (PRNG).
+
+       <b><a href="postconf.5.html#tls_high_cipherlist">tls_high_cipherlist</a></b>
+       <b>(!EXPORT:!LOW:!MEDIUM:ALL:+RC4:@STRENGTH)</b>
+              The OpenSSL cipherlist for "HIGH" grade ciphers.
+
+       <b><a href="postconf.5.html#tls_medium_cipherlist">tls_medium_cipherlist</a> (!EXPORT:!LOW:ALL:+RC4:@STRENGTH)</b>
+              The OpenSSL cipherlist for "MEDIUM" or higher grade
+              ciphers.
+
+       <b><a href="postconf.5.html#tls_low_cipherlist">tls_low_cipherlist</a> (!EXPORT:ALL:+RC4:@STRENGTH)</b>
+              The  OpenSSL  cipherlist  for "LOW" or higher grade
+              ciphers.
+
+       <b><a href="postconf.5.html#tls_export_cipherlist">tls_export_cipherlist</a> (ALL:+RC4:@STRENGTH)</b>
+              The OpenSSL cipherlist for "EXPORT" or higher grade
+              ciphers.
+
+       <b><a href="postconf.5.html#tls_null_cipherlist">tls_null_cipherlist</a> (!aNULL:eNULL+kRSA)</b>
+              The  OpenSSL  cipherlist  for  "NULL" grade ciphers
+              that provide authentication without encryption.
+
+       Available in Postfix version 2.4 and later:
+
+       <b><a href="postconf.5.html#smtp_sasl_tls_verified_security_options">smtp_sasl_tls_verified_security_options</a></b>
+       <b>($<a href="postconf.5.html#smtp_sasl_tls_security_options">smtp_sasl_tls_security_options</a>)</b>
+              The SASL authentication security options  that  the
+              Postfix  SMTP  client  uses  for TLS encrypted SMTP
+              sessions with a verified server certificate.
+
+<b>OBSOLETE STARTTLS CONTROLS</b>
+       The following configuration parameters exist for  compati-
+       bility with Postfix versions before 2.3. Support for these
+       will be removed in a future release.
+
        <b><a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a> (no)</b>
               Opportunistic mode: use  TLS  when  a  remote  SMTP
               server  announces  STARTTLS support, otherwise send
@@ -323,91 +459,15 @@ SMTP(8)                                                                SMTP(8)
               use  TLS  encryption,  and  never  send mail in the
               clear.
 
-       <b><a href="postconf.5.html#smtp_sasl_tls_security_options">smtp_sasl_tls_security_options</a>           ($<a href="postconf.5.html#smtp_sasl_security_options">smtp_sasl_secu</a>-</b>
-       <b><a href="postconf.5.html#smtp_sasl_security_options">rity_options</a>)</b>
-              The SASL authentication security options  that  the
-              Postfix  SMTP  client  uses  for TLS encrypted SMTP
-              sessions.
-
-       <b><a href="postconf.5.html#smtp_starttls_timeout">smtp_starttls_timeout</a> (300s)</b>
-              Time limit for Postfix SMTP client write  and  read
-              operations  during  TLS  startup and shutdown hand-
-              shake procedures.
-
-       <b><a href="postconf.5.html#smtp_tls_CAfile">smtp_tls_CAfile</a> (empty)</b>
-              The file with the certificate of the  certification
-              authority  (CA) that issued the Postfix SMTP client
-              certificate.
-
-       <b><a href="postconf.5.html#smtp_tls_CApath">smtp_tls_CApath</a> (empty)</b>
-              Directory with  PEM  format  certificate  authority
-              certificates  that  the Postfix SMTP client uses to
-              verify a remote SMTP server certificate.
-
-       <b><a href="postconf.5.html#smtp_tls_cert_file">smtp_tls_cert_file</a> (empty)</b>
-              File with the Postfix SMTP client  RSA  certificate
-              in PEM format.
-
-       <b><a href="postconf.5.html#smtp_tls_cipherlist">smtp_tls_cipherlist</a> (empty)</b>
-              Controls  the Postfix SMTP client TLS cipher selec-
-              tion scheme.
-
-       <b><a href="postconf.5.html#smtp_tls_dcert_file">smtp_tls_dcert_file</a> (empty)</b>
-              File with the Postfix SMTP client  DSA  certificate
-              in PEM format.
-
-       <b><a href="postconf.5.html#smtp_tls_dkey_file">smtp_tls_dkey_file</a> ($<a href="postconf.5.html#smtp_tls_dcert_file">smtp_tls_dcert_file</a>)</b>
-              File  with  the Postfix SMTP client DSA private key
-              in PEM format.
-
        <b><a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a> (yes)</b>
               When TLS encryption is enforced, require  that  the
               remote SMTP server hostname matches the information
               in the remote SMTP server certificate.
 
-       <b><a href="postconf.5.html#smtp_tls_key_file">smtp_tls_key_file</a> ($<a href="postconf.5.html#smtp_tls_cert_file">smtp_tls_cert_file</a>)</b>
-              File with the Postfix SMTP client RSA  private  key
-              in PEM format.
-
-       <b><a href="postconf.5.html#smtp_tls_loglevel">smtp_tls_loglevel</a> (0)</b>
-              Enable  additional  Postfix  SMTP client logging of
-              TLS activity.
-
-       <b><a href="postconf.5.html#smtp_tls_note_starttls_offer">smtp_tls_note_starttls_offer</a> (no)</b>
-              Log the hostname  of  a  remote  SMTP  server  that
-              offers  STARTTLS,  when  TLS is not already enabled
-              for that server.
-
        <b><a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a> (empty)</b>
               Optional lookup tables with the Postfix SMTP client
               TLS  usage  policy  by  next-hop destination and by
               remote SMTP server hostname.
-
-       <b><a href="postconf.5.html#smtp_tls_scert_verifydepth">smtp_tls_scert_verifydepth</a> (5)</b>
-              The verification depth for remote SMTP server  cer-
-              tificates.
-
-       <b><a href="postconf.5.html#smtp_tls_session_cache_database">smtp_tls_session_cache_database</a> (empty)</b>
-              Name  of  the  file containing the optional Postfix
-              SMTP client TLS session cache.
-
-       <b><a href="postconf.5.html#smtp_tls_session_cache_timeout">smtp_tls_session_cache_timeout</a> (3600s)</b>
-              The expiration time of Postfix SMTP client TLS ses-
-              sion cache information.
-
-       <b><a href="postconf.5.html#tls_daemon_random_bytes">tls_daemon_random_bytes</a> (32)</b>
-              The  number  of pseudo-random bytes that an <a href="smtp.8.html"><b>smtp</b>(8)</a>
-              or <a href="smtpd.8.html"><b>smtpd</b>(8)</a> process  requests  from  the  <a href="tlsmgr.8.html"><b>tlsmgr</b>(8)</a>
-              server  in order to seed its internal pseudo random
-              number generator (PRNG).
-
-       Available in Postfix version 2.3 and later:
-
-       <b><a href="postconf.5.html#smtp_sasl_tls_verified_security_options">smtp_sasl_tls_verified_security_options</a></b>
-       <b>($<a href="postconf.5.html#smtp_sasl_tls_security_options">smtp_sasl_tls_security_options</a>)</b>
-              The SASL authentication security options  that  the
-              Postfix  SMTP  client  uses  for TLS encrypted SMTP
-              sessions with a verified server certificate.
 
 <b>RESOURCE AND RATE CONTROLS</b>
        <b><a href="postconf.5.html#smtp_destination_concurrency_limit">smtp_destination_concurrency_limit</a>      ($<a href="postconf.5.html#default_destination_concurrency_limit">default_destina</a>-</b>

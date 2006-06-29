@@ -108,8 +108,11 @@
 
 #include <msg.h>
 #include <mymalloc.h>
+#include <vstring.h>
 #include <vstream.h>
 #include <stringops.h>
+#include <valid_hostname.h>
+#include <name_code.h>
 
 /* Global library. */
 
@@ -123,36 +126,53 @@
 #include "smtp.h"
 #include "smtp_sasl.h"
 
-/*#define msg_verbose 1*/
+NAME_CODE smtp_tls_levels[] = {
+    "none", TLS_LEV_NONE,
+    "may", TLS_LEV_MAY,
+    "encrypt", TLS_LEV_ENCRYPT,
+    "verify", TLS_LEV_VERIFY,
+    "secure", TLS_LEV_SECURE,
+    0, TLS_LEV_NOTFOUND,
+};
 
 #ifdef USE_TLS
 
+static MAPS *tls_policy;		/* lookup table(s) */
 static MAPS *tls_per_site;		/* lookup table(s) */
 
 /* smtp_tls_list_init - initialize per-site policy lists */
 
 void    smtp_tls_list_init(void)
 {
-    tls_per_site = maps_create(VAR_SMTP_TLS_PER_SITE, var_smtp_tls_per_site,
-			       DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+    if (*var_smtp_tls_policy) {
+	tls_policy = maps_create(VAR_SMTP_TLS_POLICY, var_smtp_tls_policy,
+				 DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+	if (*var_smtp_tls_per_site)
+	    msg_warn("%s ignored when %s is not empty.",
+		     VAR_SMTP_TLS_PER_SITE, VAR_SMTP_TLS_POLICY);
+	return;
+    }
+    if (*var_smtp_tls_per_site) {
+	tls_per_site = maps_create(VAR_SMTP_TLS_PER_SITE, var_smtp_tls_per_site,
+				   DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+    }
 }
 
-/* smtp_tls_policy_print - printpolicy level */
+/* policy_name - printable tls policy level */
 
-static void smtp_tls_policy_print(const char *name, int level)
+static const char *policy_name(int level)
 {
-    msg_info("%s TLS level: %s", name,
-	     level == SMTP_TLS_LEV_VERIFY ? "verify" :
-	     level == SMTP_TLS_LEV_ENCRYPT ? "encrypt" :
-	     level == SMTP_TLS_LEV_MAY ? "may" :
-	     level == SMTP_TLS_LEV_NONE ? "none" :
-	     "unknown");
+    const char *name = str_name_code(smtp_tls_levels, level);
+
+    if (name == 0)
+	name = "unknown";
+    return name;
 }
 
-/* smtp_tls_policy_lookup - look up per-site TLS security level */
+/* tls_site_lookup - look up per-site TLS security level */
 
-static void smtp_tls_policy_lookup(int *site_level, const char *site_name,
-				           const char *site_class)
+static void tls_site_lookup(int *site_level, const char *site_name,
+			            const char *site_class)
 {
     const char *lookup;
 
@@ -166,18 +186,18 @@ static void smtp_tls_policy_lookup(int *site_level, const char *site_name,
     if ((lookup = maps_find(tls_per_site, site_name, 0)) != 0) {
 	if (!strcasecmp(lookup, "NONE")) {
 	    /* NONE overrides MAY or NOTFOUND. */
-	    if (*site_level <= SMTP_TLS_LEV_MAY)
-		*site_level = SMTP_TLS_LEV_NONE;
+	    if (*site_level <= TLS_LEV_MAY)
+		*site_level = TLS_LEV_NONE;
 	} else if (!strcasecmp(lookup, "MAY")) {
 	    /* MAY overrides NOTFOUND but not NONE. */
-	    if (*site_level < SMTP_TLS_LEV_NONE)
-		*site_level = SMTP_TLS_LEV_MAY;
+	    if (*site_level < TLS_LEV_NONE)
+		*site_level = TLS_LEV_MAY;
 	} else if (!strcasecmp(lookup, "MUST_NOPEERMATCH")) {
-	    if (*site_level < SMTP_TLS_LEV_ENCRYPT)
-		*site_level = SMTP_TLS_LEV_ENCRYPT;
+	    if (*site_level < TLS_LEV_ENCRYPT)
+		*site_level = TLS_LEV_ENCRYPT;
 	} else if (!strcasecmp(lookup, "MUST")) {
-	    if (*site_level < SMTP_TLS_LEV_VERIFY)
-		*site_level = SMTP_TLS_LEV_VERIFY;
+	    if (*site_level < TLS_LEV_VERIFY)
+		*site_level = TLS_LEV_VERIFY;
 	} else {
 	    msg_warn("Table %s: ignoring unknown TLS policy '%s' for %s %s",
 		     var_smtp_tls_per_site, lookup, site_class, site_name);
@@ -185,69 +205,315 @@ static void smtp_tls_policy_lookup(int *site_level, const char *site_name,
     }
 }
 
-/* smtp_tls_level_init - configure session TLS enforcement level */
+/* tls_policy_lookup_one - look up destination TLS policy */
 
-static int smtp_tls_level_init(const char *dest, const char *host)
+static int tls_policy_lookup_one(SMTP_SESSION *session,
+				         int *site_level, int *cipherlev,
+				         const char *site_name,
+				         const char *site_class)
+{
+    const char *lookup;
+    char   *policy;
+    char   *saved_policy;
+    char   *tok;
+    const char *err;
+    char   *name;
+    char   *val;
+    static VSTRING *cbuf;
+
+#undef FREE_RETURN
+#define FREE_RETURN(x) do { myfree(saved_policy); return (x); } while (0)
+
+    if ((lookup = maps_find(tls_policy, site_name, 0)) == 0)
+	return (0);
+
+    if (cbuf == 0)
+	cbuf = vstring_alloc(10);
+
+#define set_context(cbuf,  site_class, site_name) \
+    vstring_sprintf(cbuf, "TLS policy table, %s '%s'", site_class, site_name)
+#define str_context(cbuf,  site_class, site_name) \
+    vstring_str(set_context(cbuf, site_class, site_name))
+
+    saved_policy = policy = mystrdup(lookup);
+
+    if ((tok = mystrtok(&policy, "\t\n\r ,")) == 0) {
+	msg_warn("ignoring empty tls policy for %s", site_name);
+	FREE_RETURN(1);				/* No further lookups */
+    }
+    *site_level = name_code(smtp_tls_levels, NAME_CODE_FLAG_NONE, tok);
+    if (*site_level == TLS_LEV_NOTFOUND) {
+	msg_warn("%s: unknown security level '%s' ignored",
+		 str_context(cbuf, site_class, site_name), tok);
+	FREE_RETURN(1);				/* No further lookups */
+    }
+    while ((tok = mystrtok(&policy, "\t\n\r ,")) != 0) {
+	if ((err = split_nameval(tok, &name, &val)) != 0) {
+	    msg_warn("%s: malformed attribute/value pair '%s' ignored: %s",
+		     str_context(cbuf, site_class, site_name), tok, err);
+	    continue;
+	}
+	if (!strcasecmp(name, "ciphers")) {
+	    if (*site_level < TLS_LEV_ENCRYPT) {
+		msg_warn("%s: attribute '%s' ignored at security level '%s'",
+			 str_context(cbuf, site_class, site_name),
+			 name, policy_name(*site_level));
+		continue;
+	    }
+	    *cipherlev = tls_cipher_level(val);
+	    if (*cipherlev == TLS_CIPHER_NONE) {
+		msg_warn("%s: invalid %s value '%s' ignored",
+			 str_context(cbuf, site_class, site_name),
+			 name, val);
+	    }
+	    continue;
+	}
+	if (!strcasecmp(name, "protocols")) {
+	    if (*site_level < TLS_LEV_ENCRYPT) {
+		msg_warn("%s: attribute '%s' ignored at security level '%s'",
+			 str_context(cbuf, site_class, site_name),
+			 name, policy_name(*site_level));
+		continue;
+	    }
+	    if (*val == 0) {
+		msg_warn("%s: empty %s value ignored",
+			 str_context(cbuf, site_class, site_name), name);
+		continue;
+	    }
+	    vstring_sprintf(cbuf, "protocol in TLS policy table, %s '%s':",
+			    site_class, site_name);
+	    session->tls_protocols = tls_protocol_mask(vstring_str(cbuf), val);
+	    continue;
+	}
+	if (!strcasecmp(name, "match")) {
+	    if (*site_level < TLS_LEV_VERIFY) {
+		msg_warn("%s: attribute '%s' ignored at security level '%s'",
+			 str_context(cbuf, site_class, site_name),
+			 name, policy_name(*site_level));
+		continue;
+	    }
+	    if (*val == 0) {
+		msg_warn("%s: empty %s value ignored",
+			 str_context(cbuf, site_class, site_name), name);
+		continue;
+	    }
+	    session->tls_certmatch = mystrdup(val);
+	    continue;
+	}
+	msg_warn("%s: unknown attribute '%s' ignored",
+		 str_context(cbuf, site_class, site_name), name);
+    }
+
+    FREE_RETURN(1);
+}
+
+/* tls_policy_lookup - look up destination TLS policy */
+
+static void tls_policy_lookup(SMTP_SESSION *session,
+			              int *site_level, int *cipherlev,
+			              const char *site_name,
+			              const char *site_class)
+{
+
+    /*
+     * Only one lookup with [nexthop]:port, [nexthop] or nexthop:port These
+     * are never the domain part of localpart@domain, rather they are
+     * explicit nexthops from transport:nexthop, and match only the
+     * corresponding policy. Parent domain matching (below) applies only to
+     * sub-domains of the recipient domain.
+     */
+    if (!valid_hostname(site_name, DONT_GRIPE)) {
+	tls_policy_lookup_one(session, site_level, cipherlev,
+			      site_name, site_class);
+	return;
+    }
+    while (1) {
+	/* Try the given domain */
+	if (tls_policy_lookup_one(session, site_level, cipherlev,
+				  site_name, site_class))
+	    return;
+	/* Re-try with parent domain */
+	if ((site_name = strchr(site_name + 1, '.')) == 0)
+	    return;
+    }
+}
+
+/* set_cipherlist - Choose cipherlist per security level and cipher suite */
+
+static void set_cipherlist(SMTP_SESSION *session, int level, int lmtp)
+{
+    const char *cipherlist = 0;
+    const char *exclude = var_smtp_tls_excl_ciph;
+    const char *also_exclude = "";
+    const char *mand_exclude = "";
+
+    /*
+     * Use main.cf cipher level if no per-destination value specified. With
+     * mandatory encryption at least encrypt, and with mandatory verification
+     * at least authenticate!
+     */
+    switch (session->tls_level) {
+    case TLS_LEV_NONE:
+	session->tls_cipherlist = 0;
+	return;
+
+    case TLS_LEV_MAY:
+	level = TLS_CIPHER_EXPORT;		/* Interoperate! */
+	break;
+
+    case TLS_LEV_ENCRYPT:
+	also_exclude = "eNULL";
+	if (level == TLS_CIPHER_NONE)
+	    level = tls_cipher_level(var_smtp_tls_ciphers);
+	mand_exclude = var_smtp_tls_mand_excl;
+	break;
+
+    case TLS_LEV_VERIFY:
+    case TLS_LEV_SECURE:
+	also_exclude = "aNULL";
+	if (level == TLS_CIPHER_NONE)
+	    level = tls_cipher_level(var_smtp_tls_ciphers);
+	mand_exclude = var_smtp_tls_mand_excl;
+	break;
+    }
+
+    cipherlist = tls_cipher_list(level, exclude, mand_exclude, also_exclude,
+				 TLS_END_EXCLUDE);
+    if (cipherlist == 0) {
+	msg_warn("unknown '%s' value '%s' ignored, using 'medium'",
+		 lmtp ? VAR_LMTP_TLS_CIPHERS : VAR_SMTP_TLS_CIPHERS,
+		 var_smtp_tls_ciphers);
+	cipherlist = tls_cipher_list(TLS_CIPHER_MEDIUM, exclude, mand_exclude,
+				     also_exclude, TLS_END_EXCLUDE);
+	if (cipherlist == 0)
+	    msg_panic("NULL medium cipherlist");
+    }
+    session->tls_cipherlist = mystrdup(cipherlist);
+}
+
+/* session_tls_init - session TLS parameters */
+
+static void session_tls_init(SMTP_SESSION *session, const char *dest,
+			             const char *host, int flags)
 {
     int     global_level;
     int     site_level;
-    int     tls_level;
+    int     lmtp = flags & SMTP_MISC_FLAG_USE_LMTP;
+    int     cipherlev = TLS_CIPHER_NONE;
+
+    /*
+     * Initialize all TLS related session properties.
+     */
+    session->tls_context = 0;
+    session->tls_nexthop = 0;
+    session->tls_level = TLS_LEV_NONE;
+    session->tls_retry_plain = 0;
+    session->tls_protocols = 0;
+    session->tls_cipherlist = 0;
+    session->tls_certmatch = 0;
 
     /*
      * Compute the global TLS policy. This is the default policy level when
      * no per-site policy exists. It also is used to override a wild-card
      * per-site policy.
      */
-    if (var_smtp_enforce_tls)
+    if (*var_smtp_tls_level) {
+	global_level = name_code(smtp_tls_levels, NAME_CODE_FLAG_NONE,
+				 var_smtp_tls_level);
+	if (global_level == TLS_LEV_NOTFOUND) {
+	    msg_fatal("%s: unknown TLS security level '%s'",
+		      lmtp ? VAR_LMTP_TLS_LEVEL : VAR_SMTP_TLS_LEVEL,
+		      var_smtp_tls_level);
+	}
+    } else if (var_smtp_enforce_tls) {
 	global_level = var_smtp_tls_enforce_peername ?
-	    SMTP_TLS_LEV_VERIFY : SMTP_TLS_LEV_ENCRYPT;
-    else
+	    TLS_LEV_VERIFY : TLS_LEV_ENCRYPT;
+    } else {
 	global_level = var_smtp_use_tls ?
-	    SMTP_TLS_LEV_MAY : SMTP_TLS_LEV_NONE;
+	    TLS_LEV_MAY : TLS_LEV_NONE;
+    }
     if (msg_verbose)
-	smtp_tls_policy_print("global", global_level);
+	msg_info("%s TLS level: %s", "global", policy_name(global_level));
 
     /*
      * Compute the per-site TLS enforcement level. For compatibility with the
      * original TLS patch, this algorithm is gives equal precedence to host
      * and next-hop policies.
      */
-    site_level = SMTP_TLS_LEV_NOTFOUND;
+    site_level = TLS_LEV_NOTFOUND;
 
-    if (tls_per_site) {
-	smtp_tls_policy_lookup(&site_level, dest, "next-hop destination");
+    if (tls_policy) {
+	tls_policy_lookup(session, &site_level, &cipherlev,
+			  dest, "next-hop destination");
+    } else if (tls_per_site) {
+	tls_site_lookup(&site_level, dest, "next-hop destination");
 	if (strcasecmp(dest, host) != 0)
-	    smtp_tls_policy_lookup(&site_level, host, "server hostname");
+	    tls_site_lookup(&site_level, host, "server hostname");
 	if (msg_verbose)
-	    smtp_tls_policy_print("site", site_level);
+	    msg_info("%s TLS level: %s", "site", policy_name(site_level));
+
+	/*
+	 * Override a wild-card per-site policy with a more specific global
+	 * policy.
+	 * 
+	 * With the original TLS patch, 1) a per-site ENCRYPT could not override
+	 * a global VERIFY, and 2) a combined per-site (NONE+MAY) policy
+	 * produced inconsistent results: it changed a global VERIFY into
+	 * NONE, while producing MAY with all weaker global policy settings.
+	 * 
+	 * With the current implementation, a combined per-site (NONE+MAY)
+	 * consistently overrides global policy with NONE, and global policy
+	 * can override only a per-site MAY wildcard. That is, specific
+	 * policies consistently override wildcard policies, and
+	 * (non-wildcard) per-site policies consistently override global
+	 * policies.
+	 */
+	if (site_level == TLS_LEV_MAY && global_level > TLS_LEV_MAY)
+	    site_level = global_level;
     }
+    if (site_level == TLS_LEV_NOTFOUND)
+	session->tls_level = global_level;
+    else
+	session->tls_level = site_level;
 
     /*
-     * Override a wild-card per-site policy with a more specific global
-     * policy.
-     * 
-     * With the original TLS patch, 1) a per-site ENCRYPT could not override a
-     * global VERIFY, and 2) a combined per-site (NONE+MAY) policy produced
-     * inconsistent results: it changed a global VERIFY into NONE, while
-     * producing MAY with all weaker global policy settings.
-     * 
-     * With the current implementation, a combined per-site (NONE+MAY)
-     * consistently overrides global policy with NONE, and global policy can
-     * override only a per-site MAY wildcard. That is, specific policies
-     * consistently override wildcard policies, and (non-wildcard) per-site
-     * policies consistently override global policies.
+     * Use main.cf protocols setting if not set in per-destination table
      */
-    if (site_level == SMTP_TLS_LEV_NOTFOUND
-	|| (site_level == SMTP_TLS_LEV_MAY
-	    && global_level > SMTP_TLS_LEV_MAY))
-	tls_level = global_level;
-    else
-	tls_level = site_level;
+    if (session->tls_level >= TLS_LEV_ENCRYPT
+	&& session->tls_protocols == 0
+	&& *var_smtp_tls_protocols)
+	session->tls_protocols =
+	    tls_protocol_mask(VAR_SMTP_TLS_PROTO, var_smtp_tls_protocols);
 
-    if (msg_verbose && tls_per_site)
-	smtp_tls_policy_print("effective", tls_level);
+    /*
+     * Convert cipher level (if set in per-destination table, else
+     * set_cipherlist uses main.cf settings) to an OpenSSL cipherlist. The
+     * "lmtp" vs. "smtp" identity is used for error reporting.
+     */
+    set_cipherlist(session, cipherlev, lmtp);
 
-    return (tls_level);
+    /*
+     * Use main.cf cert_match setting if not set in per-destination table
+     */
+    if (session->tls_level >= TLS_LEV_ENCRYPT
+	&& session->tls_certmatch == 0) {
+	switch (session->tls_level) {
+	case TLS_LEV_ENCRYPT:
+	    break;
+	case TLS_LEV_VERIFY:
+	    session->tls_certmatch = mystrdup(var_smtp_tls_vfy_cmatch);
+	    break;
+	case TLS_LEV_SECURE:
+	    session->tls_certmatch = mystrdup(var_smtp_tls_sec_cmatch);
+	    break;
+	default:
+	    msg_panic("unexpected mandatory TLS security level: %d",
+		      session->tls_level);
+	}
+    }
+    if (msg_verbose && (tls_policy || tls_per_site))
+	msg_info("%s TLS level: %s", "effective",
+		 policy_name(session->tls_level));
 }
 
 #endif
@@ -294,6 +560,7 @@ SMTP_SESSION *smtp_session_alloc(VSTREAM *stream, const char *dest,
     else
 	DONT_CACHE_THIS_SESSION;
     session->reuse_count = 0;
+    USE_NEWBORN_SESSION;			/* He's not dead Jim! */
 
 #ifdef USE_SASL_AUTH
     smtp_sasl_connect(session);
@@ -305,8 +572,7 @@ SMTP_SESSION *smtp_session_alloc(VSTREAM *stream, const char *dest,
      * security levels are defined.
      */
 #ifdef USE_TLS
-    session->tls_context = 0;
-    session->tls_level = smtp_tls_level_init(dest, host);
+    session_tls_init(session, dest, host, flags);
 #endif
     session->state = 0;
     debug_peer_check(host, addr);
@@ -324,6 +590,10 @@ void    smtp_session_free(SMTP_SESSION *session)
 	    tls_client_stop(smtp_tls_ctx, session->stream,
 			  var_smtp_starttls_tmout, 0, session->tls_context);
     }
+    if (session->tls_cipherlist)
+	myfree(session->tls_cipherlist);
+    if (session->tls_certmatch)
+	myfree(session->tls_certmatch);
 #endif
     if (session->stream)
 	vstream_fclose(session->stream);

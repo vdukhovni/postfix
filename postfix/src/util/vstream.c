@@ -478,7 +478,7 @@ static void vstream_buf_init(VBUF *bp, int flags)
 static void vstream_buf_alloc(VBUF *bp, ssize_t len)
 {
     ssize_t used = bp->ptr - bp->data;
-    char   *myname = "vstream_buf_alloc";
+    const char *myname = "vstream_buf_alloc";
 
     if (len < bp->len)
 	msg_panic("%s: attempt to shrink buffer", myname);
@@ -512,7 +512,7 @@ static void vstream_buf_wipe(VBUF *bp)
 
 static int vstream_fflush_some(VSTREAM *stream, ssize_t to_flush)
 {
-    char   *myname = "vstream_fflush_some";
+    const char *myname = "vstream_fflush_some";
     VBUF   *bp = &stream->buf;
     ssize_t used;
     ssize_t left_over;
@@ -625,7 +625,7 @@ static int vstream_fflush_delayed(VSTREAM *stream)
 static int vstream_buf_get_ready(VBUF *bp)
 {
     VSTREAM *stream = VBUF_TO_APPL(bp, VSTREAM, buf);
-    char   *myname = "vstream_buf_get_ready";
+    const char *myname = "vstream_buf_get_ready";
     ssize_t n;
 
     /*
@@ -718,7 +718,7 @@ static int vstream_buf_get_ready(VBUF *bp)
 static int vstream_buf_put_ready(VBUF *bp)
 {
     VSTREAM *stream = VBUF_TO_APPL(bp, VSTREAM, buf);
-    char   *myname = "vstream_buf_put_ready";
+    const char *myname = "vstream_buf_put_ready";
 
     /*
      * Sanity checks. Detect a change of I/O direction or position. If so,
@@ -767,7 +767,7 @@ static int vstream_buf_space(VBUF *bp, ssize_t want)
     ssize_t used;
     ssize_t incr;
     ssize_t shortage;
-    char   *myname = "vstream_buf_space";
+    const char *myname = "vstream_buf_space";
 
     /*
      * Sanity checks. Reserving space implies writing. It is illegal to write
@@ -818,7 +818,7 @@ static int vstream_buf_space(VBUF *bp, ssize_t want)
 
 /* vstream_fpurge - discard unread or unwritten content */
 
-int vstream_fpurge(VSTREAM *stream)
+int     vstream_fpurge(VSTREAM *stream)
 {
     const char *myname = "vstream_fpurge";
     VBUF   *bp = &stream->buf;
@@ -867,7 +867,7 @@ int vstream_fpurge(VSTREAM *stream)
 
 off_t   vstream_fseek(VSTREAM *stream, off_t offset, int whence)
 {
-    char   *myname = "vstream_fseek";
+    const char *myname = "vstream_fseek";
     VBUF   *bp = &stream->buf;
 
     /*
@@ -1128,7 +1128,7 @@ int     vstream_fputs(const char *str, VSTREAM *stream)
 
 void    vstream_control(VSTREAM *stream, int name,...)
 {
-    char   *myname = "vstream_control";
+    const char *myname = "vstream_control";
     va_list ap;
 
     for (va_start(ap, name); name != VSTREAM_CTL_END; name = va_arg(ap, int)) {

@@ -1139,9 +1139,17 @@ extern char *var_smtpd_tls_CAfile;
 #define DEF_SMTPD_TLS_CA_PATH	""
 extern char *var_smtpd_tls_CApath;
 
-#define VAR_SMTPD_TLS_CLIST	"smtpd_tls_cipherlist"
-#define DEF_SMTPD_TLS_CLIST	""
-extern char *var_smtpd_tls_cipherlist;
+#define VAR_SMTPD_TLS_PROTO	"smtpd_tls_protocols"
+#define DEF_SMTPD_TLS_PROTO	""
+extern char *var_smtpd_tls_protocols;
+
+#define VAR_SMTPD_TLS_CIPHERS	"smtpd_tls_ciphers"
+#define DEF_SMTPD_TLS_CIPHERS	"export"
+extern char *var_smtpd_tls_ciphers;
+
+#define VAR_SMTPD_TLS_EXCL_CIPH  "smtpd_tls_exclude_ciphers"
+#define DEF_SMTPD_TLS_EXCL_CIPH  ""
+extern char *var_smtpd_tls_excl_ciph;
 
 #define VAR_SMTPD_TLS_512_FILE	"smtpd_tls_dh512_param_file"
 #define DEF_SMTPD_TLS_512_FILE	""
@@ -1195,6 +1203,12 @@ extern bool var_smtp_enforce_tls;
 #define DEF_LMTP_TLS_ENFORCE_PN	1
 extern bool var_smtp_tls_enforce_peername;
 
+#define VAR_SMTP_TLS_LEVEL	"smtp_tls_security_level"
+#define DEF_SMTP_TLS_LEVEL	""
+#define VAR_LMTP_TLS_LEVEL	"lmtp_tls_security_level"
+#define DEF_LMTP_TLS_LEVEL	""
+extern char *var_smtp_tls_level;
+
 #define VAR_SMTP_TLS_SCERT_VD	"smtp_tls_scert_verifydepth"
 #define DEF_SMTP_TLS_SCERT_VD	5
 #define VAR_LMTP_TLS_SCERT_VD	"lmtp_tls_scert_verifydepth"
@@ -1203,35 +1217,64 @@ extern int var_smtp_tls_scert_vd;
 
 #define VAR_SMTP_TLS_CERT_FILE	"smtp_tls_cert_file"
 #define DEF_SMTP_TLS_CERT_FILE	""
+#define VAR_LMTP_TLS_CERT_FILE	"lmtp_tls_cert_file"
+#define DEF_LMTP_TLS_CERT_FILE	""
 extern char *var_smtp_tls_cert_file;
 
 #define VAR_SMTP_TLS_KEY_FILE	"smtp_tls_key_file"
 #define DEF_SMTP_TLS_KEY_FILE	"$smtp_tls_cert_file"
+#define VAR_LMTP_TLS_KEY_FILE	"lmtp_tls_key_file"
+#define DEF_LMTP_TLS_KEY_FILE	"$lmtp_tls_cert_file"
 extern char *var_smtp_tls_key_file;
 
 #define VAR_SMTP_TLS_DCERT_FILE "smtp_tls_dcert_file"
 #define DEF_SMTP_TLS_DCERT_FILE ""
+#define VAR_LMTP_TLS_DCERT_FILE "lmtp_tls_dcert_file"
+#define DEF_LMTP_TLS_DCERT_FILE ""
 extern char *var_smtp_tls_dcert_file;
 
 #define VAR_SMTP_TLS_DKEY_FILE	"smtp_tls_dkey_file"
 #define DEF_SMTP_TLS_DKEY_FILE	"$smtp_tls_dcert_file"
+#define VAR_LMTP_TLS_DKEY_FILE	"lmtp_tls_dkey_file"
+#define DEF_LMTP_TLS_DKEY_FILE	"$lmtp_tls_dcert_file"
 extern char *var_smtp_tls_dkey_file;
 
 #define VAR_SMTP_TLS_CA_FILE	"smtp_tls_CAfile"
 #define DEF_SMTP_TLS_CA_FILE	""
+#define VAR_LMTP_TLS_CA_FILE	"lmtp_tls_CAfile"
+#define DEF_LMTP_TLS_CA_FILE	""
 extern char *var_smtp_tls_CAfile;
 
 #define VAR_SMTP_TLS_CA_PATH	"smtp_tls_CApath"
 #define DEF_SMTP_TLS_CA_PATH	""
+#define VAR_LMTP_TLS_CA_PATH	"lmtp_tls_CApath"
+#define DEF_LMTP_TLS_CA_PATH	""
 extern char *var_smtp_tls_CApath;
 
-#define VAR_SMTP_TLS_CLIST	"smtp_tls_cipherlist"
-#define DEF_SMTP_TLS_CLIST	""
-extern char *var_smtp_tls_cipherlist;
+#define VAR_SMTP_TLS_CIPHERS	"smtp_tls_mandatory_ciphers"
+#define DEF_SMTP_TLS_CIPHERS	"medium"
+#define VAR_LMTP_TLS_CIPHERS	"lmtp_tls_mandatory_ciphers"
+#define DEF_LMTP_TLS_CIPHERS	"medium"
+extern char *var_smtp_tls_ciphers;
+
+#define VAR_SMTP_TLS_EXCL_CIPH  "smtp_tls_exclude_ciphers"
+#define DEF_SMTP_TLS_EXCL_CIPH  ""
+#define VAR_LMTP_TLS_EXCL_CIPH  "lmtp_tls_exclude_ciphers"
+#define DEF_LMTP_TLS_EXCL_CIPH  ""
+extern char *var_smtp_tls_excl_ciph;
+
+#define VAR_SMTP_TLS_MAND_EXCL  "smtp_tls_mandatory_exclude_ciphers"
+#define DEF_SMTP_TLS_MAND_EXCL  ""
+#define VAR_LMTP_TLS_MAND_EXCL  "lmtp_tls_mandatory_exclude_ciphers"
+#define DEF_LMTP_TLS_MAND_EXCL  ""
+extern char *var_smtp_tls_mand_excl;
 
 #define VAR_SMTP_TLS_LOGLEVEL	"smtp_tls_loglevel"
 #define DEF_SMTP_TLS_LOGLEVEL	0
-extern int var_smtp_tls_loglevel;
+#define VAR_LMTP_TLS_LOGLEVEL	"lmtp_tls_loglevel"
+#define DEF_LMTP_TLS_LOGLEVEL	0
+extern int var_smtp_tls_loglevel;	/* In smtp(8) and tlsmgr(8) */
+extern int var_lmtp_tls_loglevel;	/* In tlsmgr(8) */
 
 #define VAR_SMTP_TLS_NOTEOFFER	"smtp_tls_note_starttls_offer"
 #define DEF_SMTP_TLS_NOTEOFFER	0
@@ -1241,11 +1284,45 @@ extern bool var_smtp_tls_note_starttls_offer;
 
 #define VAR_SMTP_TLS_SCACHE_DB	"smtp_tls_session_cache_database"
 #define DEF_SMTP_TLS_SCACHE_DB	""
+#define VAR_LMTP_TLS_SCACHE_DB	"lmtp_tls_session_cache_database"
+#define DEF_LMTP_TLS_SCACHE_DB	""
 extern char *var_smtp_tls_scache_db;
+extern char *var_lmtp_tls_scache_db;
 
 #define VAR_SMTP_TLS_SCACHTIME	"smtp_tls_session_cache_timeout"
 #define DEF_SMTP_TLS_SCACHTIME	"3600s"
+#define VAR_LMTP_TLS_SCACHTIME	"lmtp_tls_session_cache_timeout"
+#define DEF_LMTP_TLS_SCACHTIME	"3600s"
 extern int var_smtp_tls_scache_timeout;
+extern int var_lmtp_tls_scache_timeout;
+
+#define VAR_SMTP_TLS_POLICY	"smtp_tls_policy_maps"
+#define DEF_SMTP_TLS_POLICY	""
+#define VAR_LMTP_TLS_POLICY	"lmtp_tls_policy_maps"
+#define DEF_LMTP_TLS_POLICY	""
+extern char *var_smtp_tls_policy;
+
+#define VAR_SMTP_TLS_PROTO	"smtp_tls_mandatory_protocols"
+#define DEF_SMTP_TLS_PROTO	"SSLv3, TLSv1"
+#define VAR_LMTP_TLS_PROTO	"lmtp_tls_mandatory_protocols"
+#define DEF_LMTP_TLS_PROTO	"SSLv3, TLSv1"
+extern char *var_smtp_tls_protocols;
+
+#define VAR_SMTP_TLS_VFY_CMATCH	"smtp_tls_verify_cert_match"
+#define DEF_SMTP_TLS_VFY_CMATCH	"hostname"
+#define VAR_LMTP_TLS_VFY_CMATCH	"lmtp_tls_verify_cert_match"
+#define DEF_LMTP_TLS_VFY_CMATCH	"hostname"
+extern char *var_smtp_tls_vfy_cmatch;
+
+ /*
+  * There are no MX lookups for LMTP, so verify == secure
+  */
+#define VAR_SMTP_TLS_SEC_CMATCH	"smtp_tls_secure_cert_match"
+#define DEF_SMTP_TLS_SEC_CMATCH	"nexthop, dot-nexthop"
+#define VAR_LMTP_TLS_SEC_CMATCH	"lmtp_tls_secure_cert_match"
+#define DEF_LMTP_TLS_SEC_CMATCH	"nexthop"
+extern char *var_smtp_tls_sec_cmatch;
+
 
  /*
   * SASL authentication support, SMTP server side.
@@ -1337,11 +1414,14 @@ extern char *var_smtp_sasl_type;
 #define DEF_LMTP_SASL_TLS_OPTS	"$" VAR_LMTP_SASL_OPTS
 extern char *var_smtp_sasl_tls_opts;
 
+#ifdef SNAPSHOT				/* XXX: Not yet */
 #define VAR_SMTP_SASL_TLSV_OPTS	"smtp_sasl_tls_verified_security_options"
 #define DEF_SMTP_SASL_TLSV_OPTS	"$" VAR_SMTP_SASL_TLS_OPTS
 #define VAR_LMTP_SASL_TLSV_OPTS	"lmtp_sasl_tls_verified_security_options"
 #define DEF_LMTP_SASL_TLSV_OPTS	"$" VAR_LMTP_SASL_TLS_OPTS
 extern char *var_smtp_sasl_tlsv_opts;
+
+#endif
 
  /*
   * LMTP server. The soft error limit determines how many errors an LMTP
@@ -2554,6 +2634,102 @@ extern bool var_smtp_sender_auth;
 #define VAR_LMTP_CNAME_OVERR		"lmtp_cname_overrides_servername"
 #define DEF_LMTP_CNAME_OVERR		0
 extern bool var_smtp_cname_overr;
+
+ /*
+  * TLS cipherlists
+  */
+#define VAR_TLS_HIGH_CLIST	"tls_high_cipherlist"
+#define DEF_TLS_HIGH_CLIST	"!EXPORT:!LOW:!MEDIUM:ALL:+RC4:@STRENGTH"
+extern char *var_tls_high_clist;
+
+#define VAR_TLS_MEDIUM_CLIST	"tls_medium_cipherlist"
+#define DEF_TLS_MEDIUM_CLIST	"!EXPORT:!LOW:ALL:+RC4:@STRENGTH"
+extern char *var_tls_medium_clist;
+
+#define VAR_TLS_LOW_CLIST	"tls_low_cipherlist"
+#define DEF_TLS_LOW_CLIST	"!EXPORT:ALL:+RC4:@STRENGTH"
+extern char *var_tls_low_clist;
+
+#define VAR_TLS_EXPORT_CLIST	"tls_export_cipherlist"
+#define DEF_TLS_EXPORT_CLIST	"ALL:+RC4:@STRENGTH"
+extern char *var_tls_export_clist;
+
+#define VAR_TLS_NULL_CLIST	"tls_null_cipherlist"
+#define DEF_TLS_NULL_CLIST	"!aNULL:eNULL+kRSA"
+extern char *var_tls_null_clist;
+
+ /*
+  * Sendmail-style mail filter support.
+  */
+#define VAR_SMTPD_MILTERS		"smtpd_milters"
+#define DEF_SMTPD_MILTERS		""
+extern char *var_smtpd_milters;
+
+#define VAR_CLEANUP_MILTERS		"non_smtpd_milters"
+#define DEF_CLEANUP_MILTERS		""
+extern char *var_cleanup_milters;
+
+#define VAR_MILT_DEF_ACTION		"milter_default_action"
+#define DEF_MILT_DEF_ACTION		"tempfail"
+extern char *var_milt_def_action;
+
+#define VAR_MILT_CONN_MACROS		"milter_connect_macros"
+#define DEF_MILT_CONN_MACROS		"j {daemon_name} v"
+extern char *var_milt_conn_macros;
+
+#define VAR_MILT_HELO_MACROS		"milter_helo_macros"
+#define DEF_MILT_HELO_MACROS		"{tls_version} {cipher} {cipher_bits}" \
+					" {cert_subject} {cert_issuer}"
+extern char *var_milt_helo_macros;
+
+#define VAR_MILT_MAIL_MACROS		"milter_mail_macros"
+#define DEF_MILT_MAIL_MACROS		"i {auth_type} {auth_authen}" \
+					" {auth_author} {mail_addr}"
+extern char *var_milt_mail_macros;
+
+#define VAR_MILT_RCPT_MACROS		"milter_rcpt_macros"
+#define DEF_MILT_RCPT_MACROS		"i {rcpt_addr}"
+extern char *var_milt_rcpt_macros;
+
+#define VAR_MILT_DATA_MACROS		"milter_data_macros"
+#define DEF_MILT_DATA_MACROS		"i"
+extern char *var_milt_data_macros;
+
+#define VAR_MILT_UNK_MACROS		"milter_unknown_command_macros"
+#define DEF_MILT_UNK_MACROS		""
+extern char *var_milt_unk_macros;
+
+#define VAR_MILT_EOD_MACROS		"milter_end_of_data_macros"
+#define DEF_MILT_EOD_MACROS		"i"
+extern char *var_milt_eod_macros;
+
+#define VAR_MILT_CONN_TIME		"milter_connect_timeout"
+#define DEF_MILT_CONN_TIME		"30s"
+extern int var_milt_conn_time;
+
+#define VAR_MILT_CMD_TIME		"milter_command_timeout"
+#define DEF_MILT_CMD_TIME		"30s"
+extern int var_milt_cmd_time;
+
+#define VAR_MILT_MSG_TIME		"milter_content_timeout"
+#define DEF_MILT_MSG_TIME		"300s"
+extern int var_milt_msg_time;
+
+#define VAR_MILT_PROTOCOL		"milter_protocol"
+#define DEF_MILT_PROTOCOL		"2"
+extern char *var_milt_protocol;
+
+#define VAR_MILT_DEF_ACTION		"milter_default_action"
+#define DEF_MILT_DEF_ACTION		"tempfail"
+extern char *var_milt_def_action;
+
+#define VAR_MILT_DAEMON_NAME		"milter_macro_daemon_name"
+#define DEF_MILT_DAEMON_NAME		"$" VAR_MYHOSTNAME
+extern char *var_milt_daemon_name;
+
+#define VAR_MILT_V			"milter_macro_v"
+#define DEF_MILT_V			"$" VAR_MAIL_NAME " $" VAR_MAIL_VERSION
+extern char *var_milt_v;
 
 /* LICENSE
 /* .ad

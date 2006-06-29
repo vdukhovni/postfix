@@ -59,7 +59,7 @@
 
 static void master_status_event(int event, char *context)
 {
-    char   *myname = "master_status_event";
+    const char *myname = "master_status_event";
     MASTER_SERV *serv = (MASTER_SERV *) context;
     MASTER_STATUS stat;
     MASTER_PROC *proc;
@@ -149,7 +149,7 @@ static void master_status_event(int event, char *context)
 
 void    master_status_init(MASTER_SERV *serv)
 {
-    char   *myname = "master_status_init";
+    const char *myname = "master_status_init";
 
     /*
      * Sanity checks.
@@ -176,7 +176,7 @@ void    master_status_init(MASTER_SERV *serv)
 
 void    master_status_cleanup(MASTER_SERV *serv)
 {
-    char   *myname = "master_status_cleanup";
+    const char *myname = "master_status_cleanup";
 
     /*
      * Sanity checks.

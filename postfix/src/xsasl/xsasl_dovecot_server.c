@@ -367,7 +367,7 @@ static void xsasl_dovecot_parse_reply_args(XSASL_DOVECOT_SERVER *server,
 static int xsasl_dovecot_handle_reply(XSASL_DOVECOT_SERVER *server,
 				              VSTRING *reply)
 {
-    char   *myname = "xsasl_dovecot_handle_reply";
+    const char *myname = "xsasl_dovecot_handle_reply";
     char   *line, *cmd;
 
     while (vstring_get_nonl(server->sasl_line,
@@ -429,7 +429,7 @@ static int is_valid_base64(const char *data)
 int     xsasl_dovecot_server_first(XSASL_SERVER *xp, const char *sasl_method,
 			          const char *init_response, VSTRING *reply)
 {
-    char   *myname = "xsasl_dovecot_server_first";
+    const char *myname = "xsasl_dovecot_server_first";
     XSASL_DOVECOT_SERVER *server = (XSASL_DOVECOT_SERVER *) xp;
     int     i;
 

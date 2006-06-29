@@ -85,7 +85,7 @@ int     deliver_resolve_addr(LOCAL_STATE state, USER_ATTR usr_attr, char *addr)
 
 int     deliver_resolve_tree(LOCAL_STATE state, USER_ATTR usr_attr, TOK822 *addr)
 {
-    char   *myname = "deliver_resolve_tree";
+    const char *myname = "deliver_resolve_tree";
     RESOLVE_REPLY reply;
     int     status;
     ssize_t ext_len;

@@ -223,15 +223,22 @@ sub qenv {
 	return undef;
     }
     while (my ($r, $l, $d) = rec_get($h)) {
+	if ($r eq "p" && $d > 0) {
+	    seek($h, $d, 0) or return (); # follow pointer
+	}
 	if ($r eq "R") { push(@r, $d); }
 	elsif ($r eq "S") { $s = $d; }
 	elsif ($r eq "M") {
 	    last unless (defined($s));
 	    if (defined($dlen)) {
-		seek($h, $dlen, 1);
+		seek($h, $dlen, 1) or return (); # skip content
 		($r, $l, $d) = rec_get($h);
 	    } else {
-		1 while ((($r, $l, $d) = rec_get($h)) && ($r =~ /^[NL]$/));
+		while ((($r, $l, $d) = rec_get($h)) && ($r =~ /^[NLp]$/)) {
+		    if ($r eq "p" && $d > 0) {
+			seek($h, $d, 0) or return (); # follow pointer
+		    }
+		}
 	    }
 	    return unless (defined($r) && $r eq "X");
 	}

@@ -133,7 +133,7 @@
 
 static int deliver_message(DELIVER_REQUEST *request)
 {
-    char   *myname = "deliver_message";
+    const char *myname = "deliver_message";
     VSTREAM *src;
     int     result = 0;
     int     status;

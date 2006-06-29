@@ -102,7 +102,7 @@
 
 QMGR_ENTRY *qmgr_entry_select(QMGR_PEER *peer)
 {
-    char   *myname = "qmgr_entry_select";
+    const char *myname = "qmgr_entry_select";
     QMGR_ENTRY *entry;
     QMGR_QUEUE *queue;
 
