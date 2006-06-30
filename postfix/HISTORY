@@ -12408,28 +12408,38 @@ Apologies for any names omitted.
 	mumble_tls_mandatory_mumble; added _mandatory_ qualifier
 	to names of parameters that affect only mandatory TLS.
 
+20060630
+
+	Features promoted from SNAPSHOT to STABLE: the "sleep"
+	pseudo restriction; Postfix daemons now read the local
+	timezone file before chrooting; trivial-rewrite now detects
+	table changes every 10 seconds, so it restarts more timely.
+
+	Features that stay #ifdef SNAPSHOT: tcp_table,
+	lmtp_sasl_tls_verified_security_options, and
+	smtp_sasl_tls_verified_security_options.
+
+	Compatibility: Sendmail does not send its own Received:
+	header to Milter applications. Offsets in header replace
+	requests are relative to the message content as received
+	(i.e. without our own Received: header), while offsets in
+	header insert requests are relative to the message as
+	delivered (i.e. they include our own Received: header).
+	This explains why dk-filter would sign our own Received:
+	header but place the signature between our own Received:
+	header and the rest of the message, violating the draft
+	domainkeys spec.
+
 Wish list:
 
 	In the SMTPD policy client (encode or strip) non-printable
 	non-ASCII in (TLS or all) attributes.
 
-	run real sendmail through test-milter and check the data
-	for bit-wise compatibility with Postfix.
-
 	Are transport:nexthop null fields the same as in the case
 	of default_transport etc. parameters?
 
-	Introduce the notion of required security level into smtpd(8)
-	just like with smtp(8): if the level is specified, ignore
-	the legacy boolean parameters.
-
 	Introduce structured API for tls_server_mumble() just like
 	with smtp(8): this eliminates ever-growing lists of arguments.
-
-	Cleanup: declare smtp_tls_levels[] in a header file, probably
-	one that is owned by the Postfix TLS library instead of
-	smtp(8).  Better, encapsulate the name to code conversion
-	as a Postfix TLS library service routine.
 
 	With (non)delivery notifications, prepend an "Auto-Submitted:
 	auto-replied" header, as per RFC 3834.

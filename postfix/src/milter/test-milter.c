@@ -191,6 +191,18 @@ static sfsistat test_body(SMFICTX *ctx, unsigned char *data, size_t data_len)
 static sfsistat test_eom(SMFICTX *ctx)
 {
     printf("test_eom\n");
+#if 0
+    if (smfi_insheader(ctx, 1, "Received", "insert at 1") == MI_FAILURE)
+	fprintf(stderr, "smfi_insheader failed");
+#endif
+#if 0
+    if (smfi_chgheader(ctx, "Received", 1, "change received #1") == MI_FAILURE)
+	fprintf(stderr, "smfi_chgheader failed");
+#endif
+#if 0
+    if (smfi_chgheader(ctx, "date", 0, "change date #0") == MI_FAILURE)
+	fprintf(stderr, "smfi_chgheader failed");
+#endif
     return (test_reply(ctx, test_eom_reply));
 }
 
@@ -234,7 +246,7 @@ static struct smfiDesc smfilter =
 {
     "test-milter",
     SMFI_VERSION,
-    SMFIF_ADDRCPT | SMFIF_DELRCPT | SMFIF_CHGHDRS,
+    SMFIF_ADDRCPT | SMFIF_DELRCPT | SMFIF_ADDHDRS | SMFIF_CHGHDRS,
     test_connect,
     test_helo,
     test_mail,

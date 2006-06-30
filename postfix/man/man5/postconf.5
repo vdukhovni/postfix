@@ -6076,7 +6076,8 @@ controls the name of the SASL configuration file. The default value
 is \fBsmtpd\fR, corresponding to a SASL configuration file named
 \fBsmtpd.conf\fR.
 .PP
-This feature is available in Postfix 2.1 and later.
+This feature is available in Postfix 2.1 and 2.2. With Postfix 2.3
+it was renamed to smtpd_sasl_path.
 .SH smtpd_sasl_auth_enable (default: no)
 Enable SASL authentication in the Postfix SMTP server. By default,
 the Postfix SMTP server does not use authentication.
@@ -6164,7 +6165,8 @@ the SASL plug-in implementation that is selected with
 \fBsmtpd_sasl_type\fR.  Typically this specifies the name of a
 configuration file or rendezvous point.
 .PP
-This feature is available in Postfix 2.3 and later.
+This feature is available in Postfix 2.3 and later. In earlier
+releases it was called smtpd_sasl_application.
 .SH smtpd_sasl_security_options (default: noanonymous)
 SASL security options; as of Postfix 2.3 the list of available
 features depends on the SASL server implementation that is selected

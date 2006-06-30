@@ -359,7 +359,8 @@ library for configuration can be set with: </p>
 <blockquote>
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
-    smtpd_sasl_application_name = smtpd
+    smtpd_sasl_application_name = smtpd (Postfix &lt; 2.3)
+    <a href="postconf.5.html#smtpd_sasl_path">smtpd_sasl_path</a> = smtpd (Postfix 2.3 and later)
 </pre>
 </blockquote>
 
@@ -687,8 +688,9 @@ of SuSE Rhein/Main AG.
 <a href="postconf.5.html#reject_authenticated_sender_login_mismatch">reject_authenticated_sender_login_mismatch</a> and
 <a href="postconf.5.html#reject_unauthenticated_sender_login_mismatch">reject_unauthenticated_sender_login_mismatch</a>, and revised the docs.
 
-<li> Wietse made another iteration through the code to add
-plug-in support for multiple SASL implementations.
+<li> Wietse made another iteration through the code to add plug-in
+support for multiple SASL implementations, and changed
+smtpd_sasl_application_name into <a href="postconf.5.html#smtpd_sasl_path">smtpd_sasl_path</a>.
 
 <li> The Dovecot SMTP server-only plug-in was originally implemented by
 Timo Sirainen of Procontrol, Finland.

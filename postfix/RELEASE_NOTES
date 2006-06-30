@@ -33,9 +33,9 @@ is required (notably Postfix 2.3 in "opportunistic" mode) and the
 administrator has not excluded the "aNULL" OpenSSL cipher type.
 
 Instead of cipher lists you can now specify cipher grades.  The
-smtp_tls_ciphers, lmtp_tls_ciphers and smtpd_tls_ciphers parameters
-specify one of "high", "medium", "low", "export" or "null". See the
-documentation for details.
+smtp_tls_mandatory_ciphers, lmtp_tls_mandatory_ciphers and
+smtpd_tls_ciphers parameters specify one of "high", "medium", "low",
+"export" or "null". See TLS_README for details.
 
 Incompatibility with Postfix snapshot 20060614
 ==============================================

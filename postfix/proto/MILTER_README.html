@@ -295,6 +295,12 @@ unwanted mail, and to sign mail from authorized SMTP clients.  Mail
 that arrives via the Postfix smtpd(8) server is not filtered by the
 non-SMTP filters that are described in the next section. </p>
 
+<p> NOTE: Do not use the header_checks(5) IGNORE action to remove
+Postfix's own Received: message header. This causes problems with
+mail signing filters. Instead, keep Postfix's own Received: message
+header and use the header_checks(5) REPLACE action to sanitize
+information. </p>
+
 <p> You specify SMTP-only Milter applications (there can be more
 than one) with the smtpd_milters parameter.  Each Milter application
 is identified by the name of its listening socket; other Milter
@@ -344,6 +350,12 @@ non-SMTP filters can be used to filter unwanted mail, there are
 limitations as discussed later in this section.  Mail that arrives
 via the Postfix smtpd(8) server is not filtered by the non-SMTP
 filters.  </p>
+
+<p> NOTE: Do not use the header_checks(5) IGNORE action to remove
+Postfix's own Received: message header. This causes problems with
+mail signing filters. Instead, keep Postfix's own Received: message
+header and use the header_checks(5) REPLACE action to sanitize
+information. </p>
 
 <p> You specify non-SMTP Milter applications with the non_smtpd_milters
 parameter. This parameter uses the same syntax as the smtpd_milters

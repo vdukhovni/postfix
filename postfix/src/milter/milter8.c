@@ -1857,6 +1857,7 @@ static void milter8_disc_event(MILTER *m)
 typedef struct {
     MILTER8 *milter;			/* milter client */
     ARGV   *macros;			/* end-of-body macros */
+    int     hdr_count;			/* header counter */
     const char *resp;			/* milter application response */
 } MILTER_MSG_CONTEXT;
 
@@ -1871,6 +1872,23 @@ static void milter8_header(void *ptr, int unused_header_class,
     MILTER8 *milter = msg_ctx->milter;
     char   *cp;
     int     skip_reply;
+
+    /*
+     * XXX Sendmail compatibility. Don't expose our first (received) header
+     * to mail filter applications. See also cleanup_milter.c for code to
+     * ensure that header replace requests are relative to the message
+     * content as received, that is, without our own first (received) header,
+     * while header insert requests are relative to the message as delivered,
+     * that is, including our own first (received) header.
+     * 
+     * XXX But this breaks when they delete our own Received: header with
+     * header_checks before it reaches the queue file. Even then we must not
+     * expose the first header to mail filter applications, otherwise the
+     * dk-filter signature will be inserted at the wrong position. It should
+     * precede the headers that it signs.
+     */
+    if (msg_ctx->hdr_count++ == 0)
+	return;
 
     /*
      * Sendmail 8 sends multi-line headers as text separated by newline.
@@ -2029,6 +2047,7 @@ static const char *milter8_message(MILTER *m, VSTREAM *qfile,
 	}
 	msg_ctx.milter = milter;
 	msg_ctx.macros = macros;
+	msg_ctx.hdr_count = 0;
 	msg_ctx.resp = 0;
 	mime_state =
 	    mime_state_alloc(MIME_OPT_DISABLE_MIME,

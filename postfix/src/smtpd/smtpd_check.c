@@ -3484,7 +3484,6 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 			     450, "4.7.0",
 			     "<%s>: %s rejected: defer_if_reject requested",
 			     reply_name, reply_class);
-#ifdef SNAPSHOT
 	} else if (strcasecmp(name, SLEEP) == 0) {
 	    if (cpp[1] == 0 || alldig(cpp[1]) == 0) {
 		msg_warn("restriction %s must be followed by number", SLEEP);
@@ -3494,7 +3493,6 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 					   "Server configuration error"));
 	    } else
 		sleep(atoi(*++cpp));
-#endif
 	} else if (strcasecmp(name, REJECT_PLAINTEXT_SESSION) == 0) {
 	    status = reject_plaintext_session(state);
 	}

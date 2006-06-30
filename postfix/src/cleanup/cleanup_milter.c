@@ -272,7 +272,8 @@ static void cleanup_add_header(void *context, char *name, char *value)
 static off_t cleanup_find_header(CLEANUP_STATE *state, ssize_t index,
 			             const char *header_label, VSTRING *buf,
 				         int *prec_type,
-				         int allow_ptr_backup)
+				         int allow_ptr_backup,
+				         int skip_headers)
 {
     const char *myname = "cleanup_find_header";
     off_t   curr_offset;		/* offset after found record */
@@ -281,6 +282,7 @@ static off_t cleanup_find_header(CLEANUP_STATE *state, ssize_t index,
     int     rec_type;
     int     last_type;
     ssize_t len;
+    int     hdr_count = 0;
 
     if (msg_verbose)
 	msg_info("%s: index %ld name \"%s\"",
@@ -328,6 +330,28 @@ static off_t cleanup_find_header(CLEANUP_STATE *state, ssize_t index,
      * duplicate some of its logic here and in the routines that delete or
      * modify header records. To minimize the duplication we define an ugly
      * macro that is used in all code that scans for header boundaries.
+     * 
+     * XXX Sendmail compatibility (based on Sendmail 8.13.6 measurements).
+     * 
+     * - When changing Received: header #1, we change the Received: header that
+     * follows our own one; a request to change Received: header #0 is
+     * silently treated as a request to change Received: header #1.
+     * 
+     * - When changing Date: header #1, we change the first Date: header; a
+     * request to change Date: header #0 is silently treated as a request to
+     * change Date: header #1.
+     * 
+     * Thus, header change requests are relative to the content as received,
+     * that is, the content after our own Received: header. They can affect
+     * only the headers that the MTA actually exposes to mail filter
+     * applications.
+     * 
+     * - However, when inserting a header at position 0, the new header appears
+     * before our own Received: header, and when inserting at position 1, the
+     * new header appears after our own Received: header.
+     * 
+     * Thus, header insert operations are relative to the content as delivered,
+     * that is, the content including our own Received: header.
      */
 #define GET_NEXT_TEXT_OR_PTR_RECORD(rec_type, state, buf, curr_offset) \
     if ((rec_type = rec_get_raw(state->dst, buf, 0, REC_FLAG_NONE)) < 0) \
@@ -374,6 +398,8 @@ static off_t cleanup_find_header(CLEANUP_STATE *state, ssize_t index,
 	    break;
 	}
 	/* This the start of a message header. */
+	else if (hdr_count++ < skip_headers)
+	    continue;
 	else if ((header_label == 0
 		  || (strncasecmp(header_label, STR(buf), len) == 0
 		      && (IS_SPACE_TAB(STR(buf)[len])
@@ -590,12 +616,15 @@ static void cleanup_ins_header(void *context, ssize_t index,
      */
 #define NO_HEADER_NAME	((char *) 0)
 #define ALLOW_PTR_BACKUP	1
+#define SKIP_ONE_HEADER		1
+#define DONT_SKIP_HEADERS	0
 
     if (index < 1)
 	index = 1;
     old_rec_offset = cleanup_find_header(state, index, NO_HEADER_NAME,
 					 old_rec_buf, &old_rec_type,
-					 ALLOW_PTR_BACKUP);
+					 ALLOW_PTR_BACKUP,
+					 DONT_SKIP_HEADERS);
     if (old_rec_offset < 0) {
 	cleanup_add_header(context, new_hdr_name, new_hdr_value);
     } else {
@@ -658,7 +687,8 @@ static void cleanup_upd_header(void *context, ssize_t index,
     rec_buf = vstring_alloc(100);
     old_rec_offset = cleanup_find_header(state, index, new_hdr_name,
 					 rec_buf, &last_type,
-					 NO_PTR_BACKUP);
+					 NO_PTR_BACKUP,
+					 SKIP_ONE_HEADER);
     if (old_rec_offset < 0) {
 	cleanup_add_header(context, new_hdr_name, new_hdr_value);
     } else {
@@ -733,7 +763,8 @@ static void cleanup_del_header(void *context, ssize_t index, char *hdr_name)
      */
     rec_buf = vstring_alloc(100);
     header_offset = cleanup_find_header(state, index, hdr_name, rec_buf,
-					&last_type, NO_PTR_BACKUP);
+					&last_type, NO_PTR_BACKUP,
+					SKIP_ONE_HEADER);
     /* Memory usage for header offsets is limited by header_size_limit. */
     if (header_offset > 0) {
 	ssize_t off_len = 1;

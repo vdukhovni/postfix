@@ -7480,7 +7480,8 @@ is <b>smtpd</b>, corresponding to a SASL configuration file named
 </p>
 
 <p>
-This feature is available in Postfix 2.1 and later.
+This feature is available in Postfix 2.1 and 2.2. With Postfix 2.3
+it was renamed to smtpd_sasl_path.
 </p>
 
 %PARAM strict_7bit_headers no
@@ -9307,7 +9308,8 @@ the SASL plug-in implementation that is selected with
 <b>smtpd_sasl_type</b>.  Typically this specifies the name of a
 configuration file or rendezvous point. </p>
 
-<p> This feature is available in Postfix 2.3 and later. </p>
+<p> This feature is available in Postfix 2.3 and later. In earlier
+releases it was called smtpd_sasl_application. </p>
 
 %PARAM smtp_sasl_path
 
