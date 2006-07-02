@@ -65,6 +65,7 @@
 /* DIAGNOSTICS
 /*	Fatal errors: memory allocation problem.
 /*	Panic: interface violation.
+/*	state->errs is updated in case of I/O errors.
 /* LICENSE
 /* .ad
 /* .fi
@@ -81,6 +82,7 @@
 #include <sys_defs.h>
 #include <sys/socket.h>			/* AF_INET */
 #include <string.h>
+#include <errno.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>
@@ -210,9 +212,34 @@
 #define STR(x)		vstring_str(x)
 #define LEN(x)		VSTRING_LEN(x)
 
+/* cleanup_milter_set_error - set error flag from errno */
+
+static void cleanup_milter_set_error(CLEANUP_STATE *state, int err)
+{
+    if (err == EFBIG)
+	state->errs |= CLEANUP_STAT_SIZE;
+    else
+	state->errs |= CLEANUP_STAT_WRITE;
+}
+
+/* cleanup_milter_error - return dummy error description */
+
+static const char *cleanup_milter_error(CLEANUP_STATE *state, int err)
+{
+
+    /*
+     * This error text will be ignored by cleanup_milter_apply(). It exists
+     * only to maintain a consistent error reporting interface to the milter
+     * infrastructure.
+     */
+    if (err)
+	cleanup_milter_set_error(state, err);
+    return ("451 4.3.0 Server internal error");
+}
+
 /* cleanup_add_header - append message header */
 
-static void cleanup_add_header(void *context, char *name, char *value)
+static const char *cleanup_add_header(void *context, char *name, char *value)
 {
     const char *myname = "cleanup_add_header";
     CLEANUP_STATE *state = (CLEANUP_STATE *) context;
@@ -237,14 +264,18 @@ static void cleanup_add_header(void *context, char *name, char *value)
      * target of the old "header append" pointer record. This reverse pointer
      * record becomes the new "header append" pointer record.
      */
-    if ((new_hdr_offset = vstream_fseek(state->dst, (off_t) 0, SEEK_END)) < 0)
-	msg_fatal("%s: seek file %s: %m", myname, cleanup_path);
+    if ((new_hdr_offset = vstream_fseek(state->dst, (off_t) 0, SEEK_END)) < 0) {
+	msg_warn("%s: seek file %s: %m", myname, cleanup_path);
+	return (cleanup_milter_error(state, errno));
+    }
     buf = vstring_alloc(100);
     vstring_sprintf(buf, "%s: %s", name, value);
     cleanup_out_header(state, buf);
     vstring_free(buf);
-    if ((reverse_ptr_offset = vstream_ftell(state->dst)) < 0)
-	msg_fatal("%s: vstream_ftell file %s: %m", myname, cleanup_path);
+    if ((reverse_ptr_offset = vstream_ftell(state->dst)) < 0) {
+	msg_warn("%s: vstream_ftell file %s: %m", myname, cleanup_path);
+	return (cleanup_milter_error(state, errno));
+    }
     cleanup_out_format(state, REC_TYPE_PTR, REC_TYPE_PTR_FORMAT,
 		       (long) state->append_hdr_pt_target);
 
@@ -252,8 +283,10 @@ static void cleanup_add_header(void *context, char *name, char *value)
      * Pointer flipping: update the old "header append" pointer record value
      * with the location of the new header record.
      */
-    if (vstream_fseek(state->dst, state->append_hdr_pt_offset, SEEK_SET) < 0)
-	msg_fatal("%s: seek file %s: %m", myname, cleanup_path);
+    if (vstream_fseek(state->dst, state->append_hdr_pt_offset, SEEK_SET) < 0) {
+	msg_warn("%s: seek file %s: %m", myname, cleanup_path);
+	return (cleanup_milter_error(state, errno));
+    }
     cleanup_out_format(state, REC_TYPE_PTR, REC_TYPE_PTR_FORMAT,
 		       (long) new_hdr_offset);
 
@@ -265,6 +298,11 @@ static void cleanup_add_header(void *context, char *name, char *value)
      * written while Postfix received the message.
      */
     state->append_hdr_pt_offset = reverse_ptr_offset;
+
+    /*
+     * In case of error while doing record output.
+     */
+    return (CLEANUP_OUT_OK(state) ? 0 : cleanup_milter_error(state, 0));
 }
 
 /* cleanup_find_header - find specific header instance */
@@ -278,7 +316,7 @@ static off_t cleanup_find_header(CLEANUP_STATE *state, ssize_t index,
     const char *myname = "cleanup_find_header";
     off_t   curr_offset;		/* offset after found record */
     off_t   ptr_offset;			/* pointer to found record */
-    VSTRING *ptr_buf;
+    VSTRING *ptr_buf = 0;
     int     rec_type;
     int     last_type;
     ssize_t len;
@@ -353,9 +391,21 @@ static off_t cleanup_find_header(CLEANUP_STATE *state, ssize_t index,
      * Thus, header insert operations are relative to the content as delivered,
      * that is, the content including our own Received: header.
      */
-#define GET_NEXT_TEXT_OR_PTR_RECORD(rec_type, state, buf, curr_offset) \
-    if ((rec_type = rec_get_raw(state->dst, buf, 0, REC_FLAG_NONE)) < 0) \
-	msg_fatal("%s: read file %s: %m", myname, cleanup_path); \
+#define CLEANUP_FIND_HEADER_NOTFOUND	(-1)
+#define CLEANUP_FIND_HEADER_IOERROR	(-2)
+
+#define CLEANUP_FIND_HEADER_RETURN(offs) do { \
+	if (ptr_buf) \
+	    vstring_free(ptr_buf); \
+	return (offs); \
+    } while (0)
+
+#define GET_NEXT_TEXT_OR_PTR_RECORD(rec_type, state, buf, curr_offset, quit) \
+    if ((rec_type = rec_get_raw(state->dst, buf, 0, REC_FLAG_NONE)) < 0) { \
+	msg_warn("%s: read file %s: %m", myname, cleanup_path); \
+	cleanup_milter_set_error(state, errno); \
+	quit; \
+    } \
     if (msg_verbose > 1) \
 	msg_info("%s: read: %ld: %.*s", myname, (long) curr_offset, \
 		 LEN(buf) > 30 ? 30 : LEN(buf), STR(buf)); \
@@ -365,19 +415,28 @@ static off_t cleanup_find_header(CLEANUP_STATE *state, ssize_t index,
 	&& rec_type != REC_TYPE_PTR) \
 	break;
 
-    if (vstream_fseek(state->dst, state->data_offset, SEEK_SET) < 0)
-	msg_fatal("%s: seek file %s: %m", myname, cleanup_path);
-    for (ptr_buf = 0, ptr_offset = 0, last_type = 0; /* void */ ; /* void */ ) {
-	if ((curr_offset = vstream_ftell(state->dst)) < 0)
-	    msg_fatal("%s: vstream_ftell file %s: %m", myname, cleanup_path);
+    if (vstream_fseek(state->dst, state->data_offset, SEEK_SET) < 0) {
+	msg_warn("%s: seek file %s: %m", myname, cleanup_path);
+	cleanup_milter_set_error(state, errno);
+	CLEANUP_FIND_HEADER_RETURN(CLEANUP_FIND_HEADER_IOERROR);
+    }
+    for (ptr_offset = 0, last_type = 0; /* void */ ; /* void */ ) {
+	if ((curr_offset = vstream_ftell(state->dst)) < 0) {
+	    msg_warn("%s: vstream_ftell file %s: %m", myname, cleanup_path);
+	    cleanup_milter_set_error(state, errno);
+	    CLEANUP_FIND_HEADER_RETURN(CLEANUP_FIND_HEADER_IOERROR);
+	}
 	/* Caution: this macro terminates the loop at end-of-message. */
 	/* Don't do complex processing while breaking out of this loop. */
-	GET_NEXT_TEXT_OR_PTR_RECORD(rec_type, state, buf, curr_offset);
+	GET_NEXT_TEXT_OR_PTR_RECORD(rec_type, state, buf, curr_offset,
+		   CLEANUP_FIND_HEADER_RETURN(CLEANUP_FIND_HEADER_IOERROR));
 	/* Caution: don't assume ptr->header. This may be header-ptr->body. */
 	if (rec_type == REC_TYPE_PTR) {
-	    if (rec_goto(state->dst, STR(buf)) < 0)
-		msg_fatal("%s: read file %s: %m",
-			  myname, cleanup_path);
+	    if (rec_goto(state->dst, STR(buf)) < 0) {
+		msg_warn("%s: read file %s: %m", myname, cleanup_path);
+		cleanup_milter_set_error(state, errno);
+		CLEANUP_FIND_HEADER_RETURN(CLEANUP_FIND_HEADER_IOERROR);
+	    }
 	    /* Save PTR record, in case it points to the start of a header. */
 	    if (allow_ptr_backup) {
 		ptr_offset = curr_offset;
@@ -415,7 +474,7 @@ static off_t cleanup_find_header(CLEANUP_STATE *state, ssize_t index,
      * In case of failure, return negative start position.
      */
     if (index > 0) {
-	curr_offset = -1;
+	curr_offset = CLEANUP_FIND_HEADER_NOTFOUND;
     }
 
     /*
@@ -431,33 +490,36 @@ static off_t cleanup_find_header(CLEANUP_STATE *state, ssize_t index,
 	}
 	*prec_type = rec_type;
     }
-    if (ptr_buf)
-	vstring_free(ptr_buf);
 
     if (msg_verbose)
 	msg_info("%s: index %ld name %s type %d offset %ld",
 		 myname, (long) index, header_label ?
 		 header_label : "(none)", rec_type, (long) curr_offset);
 
-    return (curr_offset);
+    CLEANUP_FIND_HEADER_RETURN(curr_offset);
 }
 
 /* cleanup_patch_header - patch new header into an existing header */
 
-static void cleanup_patch_header(CLEANUP_STATE *state,
-				         const char *new_hdr_name,
-				         const char *new_hdr_value,
-				         off_t old_rec_offset,
-				         int rec_type,
-				         VSTRING *old_rec_buf,
-				         ssize_t avail_space,
-				         off_t read_offset)
+static const char *cleanup_patch_header(CLEANUP_STATE *state,
+					        const char *new_hdr_name,
+					        const char *new_hdr_value,
+					        off_t old_rec_offset,
+					        int rec_type,
+					        VSTRING *old_rec_buf,
+					        ssize_t avail_space,
+					        off_t read_offset)
 {
     const char *myname = "cleanup_patch_header";
     VSTRING *buf = vstring_alloc(100);
     off_t   new_hdr_offset;
     off_t   saved_read_offset;
     off_t   write_offset;
+
+#define CLEANUP_PATCH_HEADER_RETURN(ret) do { \
+	vstring_free(buf); \
+	return (ret); \
+    } while (0)
 
     if (msg_verbose)
 	msg_info("%s: \"%s\" \"%s\" at %ld",
@@ -498,8 +560,10 @@ static void cleanup_patch_header(CLEANUP_STATE *state,
      * Write the new header to a new location after the end of the queue
      * file.
      */
-    if ((new_hdr_offset = vstream_fseek(state->dst, (off_t) 0, SEEK_END)) < 0)
-	msg_fatal("%s: seek file %s: %m", myname, cleanup_path);
+    if ((new_hdr_offset = vstream_fseek(state->dst, (off_t) 0, SEEK_END)) < 0) {
+	msg_warn("%s: seek file %s: %m", myname, cleanup_path);
+	CLEANUP_PATCH_HEADER_RETURN(cleanup_milter_error(state, errno));
+    }
     vstring_sprintf(buf, "%s: %s", new_hdr_name, new_hdr_value);
     cleanup_out_header(state, buf);
     if (msg_verbose > 1)
@@ -526,10 +590,14 @@ static void cleanup_patch_header(CLEANUP_STATE *state,
      */
     while (rec_type != REC_TYPE_PTR && avail_space < REC_TYPE_PTR_SIZE) {
 	/* Read existing text or pointer record. */
-	if (vstream_fseek(state->dst, read_offset, SEEK_SET) < 0)
-	    msg_fatal("%s: seek file %s: %m", myname, cleanup_path);
-	if ((rec_type = rec_get_raw(state->dst, buf, 0, REC_FLAG_NONE)) < 0)
-	    msg_fatal("%s: read file %s: %m", myname, cleanup_path);
+	if (vstream_fseek(state->dst, read_offset, SEEK_SET) < 0) {
+	    msg_warn("%s: seek file %s: %m", myname, cleanup_path);
+	    CLEANUP_PATCH_HEADER_RETURN(cleanup_milter_error(state, errno));
+	}
+	if ((rec_type = rec_get_raw(state->dst, buf, 0, REC_FLAG_NONE)) < 0) {
+	    msg_warn("%s: read file %s: %m", myname, cleanup_path);
+	    CLEANUP_PATCH_HEADER_RETURN(cleanup_milter_error(state, errno));
+	}
 	if (msg_verbose > 1)
 	    msg_info("%s: %ld: read %.*s", myname, (long) read_offset,
 		     LEN(buf) > 30 ? 30 : LEN(buf), STR(buf));
@@ -538,12 +606,16 @@ static void cleanup_patch_header(CLEANUP_STATE *state,
 	    msg_panic("%s: non-text/ptr record type %d in header, file %s",
 		      myname, rec_type, cleanup_path);
 	saved_read_offset = read_offset;
-	if ((read_offset = vstream_ftell(state->dst)) < 0)
-	    msg_fatal("%s: vstream_ftell file %s: %m", myname, cleanup_path);
+	if ((read_offset = vstream_ftell(state->dst)) < 0) {
+	    msg_warn("%s: vstream_ftell file %s: %m", myname, cleanup_path);
+	    CLEANUP_PATCH_HEADER_RETURN(cleanup_milter_error(state, errno));
+	}
 	avail_space += (read_offset - saved_read_offset);
 	/* Save the text or pointer record. */
-	if ((write_offset = vstream_fseek(state->dst, (off_t) 0, SEEK_END)) < 0)
-	    msg_fatal("%s: seek file %s: %m", myname, cleanup_path);
+	if ((write_offset = vstream_fseek(state->dst, (off_t) 0, SEEK_END)) < 0) {
+	    msg_warn("%s: seek file %s: %m", myname, cleanup_path);
+	    CLEANUP_PATCH_HEADER_RETURN(cleanup_milter_error(state, errno));
+	}
 	CLEANUP_OUT_BUF(state, rec_type, buf);
 	if (msg_verbose > 1)
 	    msg_info("%s: %ld: write %.*s", myname, (long) write_offset,
@@ -570,8 +642,10 @@ static void cleanup_patch_header(CLEANUP_STATE *state,
      * the queue file before the next record. In other words, we must always
      * follow pointer records otherwise we get out of sync with the data.
      */
-    if (vstream_fseek(state->dst, old_rec_offset, SEEK_SET) < 0)
-	msg_fatal("%s: seek file %s: %m", myname, cleanup_path);
+    if (vstream_fseek(state->dst, old_rec_offset, SEEK_SET) < 0) {
+	msg_warn("%s: seek file %s: %m", myname, cleanup_path);
+	CLEANUP_PATCH_HEADER_RETURN(cleanup_milter_error(state, errno));
+    }
     cleanup_out_format(state, REC_TYPE_PTR, REC_TYPE_PTR_FORMAT,
 		       (long) new_hdr_offset);
     if (msg_verbose > 1)
@@ -579,16 +653,21 @@ static void cleanup_patch_header(CLEANUP_STATE *state,
 		 (long) new_hdr_offset);
 
     /*
+     * In case of error while doing record output.
+     */
+    CLEANUP_PATCH_HEADER_RETURN(CLEANUP_OUT_OK(state) ? 0 :
+				cleanup_milter_error(state, 0));
+
+    /*
      * Note: state->append_hdr_pt_target never changes.
      */
-    vstring_free(buf);
 }
 
 /* cleanup_ins_header - insert message header */
 
-static void cleanup_ins_header(void *context, ssize_t index,
-			               char *new_hdr_name,
-			               char *new_hdr_value)
+static const char *cleanup_ins_header(void *context, ssize_t index,
+				              char *new_hdr_name,
+				              char *new_hdr_value)
 {
     const char *myname = "cleanup_ins_header";
     CLEANUP_STATE *state = (CLEANUP_STATE *) context;
@@ -597,6 +676,12 @@ static void cleanup_ins_header(void *context, ssize_t index,
     int     old_rec_type;
     off_t   read_offset;
     ssize_t avail_space;
+    const char *ret;
+
+#define CLEANUP_INS_HEADER_RETURN(ret) do { \
+	vstring_free(old_rec_buf); \
+	return (ret); \
+    } while (0)
 
     if (msg_verbose)
 	msg_info("%s: %ld \"%s\" \"%s\"",
@@ -625,29 +710,35 @@ static void cleanup_ins_header(void *context, ssize_t index,
 					 old_rec_buf, &old_rec_type,
 					 ALLOW_PTR_BACKUP,
 					 DONT_SKIP_HEADERS);
+    if (old_rec_offset == CLEANUP_FIND_HEADER_IOERROR)
+	/* Warning and errno->error mapping are done elsewhere. */
+	CLEANUP_INS_HEADER_RETURN(cleanup_milter_error(state, 0));
     if (old_rec_offset < 0) {
-	cleanup_add_header(context, new_hdr_name, new_hdr_value);
+	CLEANUP_INS_HEADER_RETURN(cleanup_add_header(context, new_hdr_name,
+						     new_hdr_value));
     } else {
 	if (old_rec_type == REC_TYPE_PTR) {
 	    read_offset = -1;
 	    avail_space = -1;
 	} else {
-	    if ((read_offset = vstream_ftell(state->dst)) < 0)
-		msg_fatal("%s: read file %s: %m", myname, cleanup_path);
+	    if ((read_offset = vstream_ftell(state->dst)) < 0) {
+		msg_warn("%s: read file %s: %m", myname, cleanup_path);
+		CLEANUP_INS_HEADER_RETURN(cleanup_milter_error(state, errno));
+	    }
 	    avail_space = LEN(old_rec_buf);
 	}
-	cleanup_patch_header(state, new_hdr_name, new_hdr_value,
-			     old_rec_offset, old_rec_type, old_rec_buf,
-			     avail_space, read_offset);
+	ret = cleanup_patch_header(state, new_hdr_name, new_hdr_value,
+				   old_rec_offset, old_rec_type, old_rec_buf,
+				   avail_space, read_offset);
+	CLEANUP_INS_HEADER_RETURN(ret);
     }
-    vstring_free(old_rec_buf);
 }
 
 /* cleanup_upd_header - modify or append message header */
 
-static void cleanup_upd_header(void *context, ssize_t index,
-			               char *new_hdr_name,
-			               char *new_hdr_value)
+static const char *cleanup_upd_header(void *context, ssize_t index,
+				              char *new_hdr_name,
+				              char *new_hdr_value)
 {
     const char *myname = "cleanup_upd_header";
     CLEANUP_STATE *state = (CLEANUP_STATE *) context;
@@ -659,6 +750,7 @@ static void cleanup_upd_header(void *context, ssize_t index,
     int     rec_type;
     int     last_type;
     int     jumped;
+    const char *ret;
 
     if (msg_verbose)
 	msg_info("%s: %ld \"%s\" \"%s\"",
@@ -684,33 +776,54 @@ static void cleanup_upd_header(void *context, ssize_t index,
 #define DONT_SAVE_RECORD	0
 #define NO_PTR_BACKUP		0
 
+#define CLEANUP_UPD_HEADER_RETURN(ret) do { \
+	vstring_free(rec_buf); \
+	return (ret); \
+    } while (0)
+
     rec_buf = vstring_alloc(100);
     old_rec_offset = cleanup_find_header(state, index, new_hdr_name,
 					 rec_buf, &last_type,
 					 NO_PTR_BACKUP,
 					 SKIP_ONE_HEADER);
+    if (old_rec_offset == CLEANUP_FIND_HEADER_IOERROR)
+	/* Warning and errno->error mapping are done elsewhere. */
+	CLEANUP_UPD_HEADER_RETURN(cleanup_milter_error(state, 0));
     if (old_rec_offset < 0) {
-	cleanup_add_header(context, new_hdr_name, new_hdr_value);
+	CLEANUP_UPD_HEADER_RETURN(cleanup_add_header(context, new_hdr_name,
+						     new_hdr_value));
     } else {
 	/* Find the end of this header. */
 	avail_space = LEN(rec_buf);
-	if ((read_offset = vstream_ftell(state->dst)) < 0)
-	    msg_fatal("%s: read file %s: %m", myname, cleanup_path);
-	for (jumped = 0; /* void */ ; /* void */ ) {
+	if ((read_offset = vstream_ftell(state->dst)) < 0) {
+	    msg_warn("%s: read file %s: %m", myname, cleanup_path);
+	    CLEANUP_UPD_HEADER_RETURN(cleanup_milter_error(state, errno));
+	}
+	for (jumped = 0, ret = 0; ret == 0; /* void */ ) {
+	    if (CLEANUP_OUT_OK(state) == 0)
+		/* Warning and errno->error mapping are done elsewhere. */
+		CLEANUP_UPD_HEADER_RETURN(cleanup_milter_error(state, 0));
 	    saved_read_offset = read_offset;
 	    /* Caution: this macro terminates the loop at end-of-message. */
 	    /* Don't do complex processing while breaking out of this loop. */
-	    GET_NEXT_TEXT_OR_PTR_RECORD(rec_type, state, rec_buf, read_offset);
-	    if ((read_offset = vstream_ftell(state->dst)) < 0)
-		msg_fatal("%s: read file %s: %m", myname, cleanup_path);
+	    GET_NEXT_TEXT_OR_PTR_RECORD(rec_type, state, rec_buf, read_offset,
+	    /* Warning and errno->error mapping are done elsewhere. */
+		 CLEANUP_UPD_HEADER_RETURN(cleanup_milter_error(state, 0)));
+	    if ((read_offset = vstream_ftell(state->dst)) < 0) {
+		msg_warn("%s: read file %s: %m", myname, cleanup_path);
+		CLEANUP_UPD_HEADER_RETURN(cleanup_milter_error(state, errno));
+	    }
 	    if (rec_type == REC_TYPE_PTR) {
 		if (jumped == 0) {
 		    /* Enough contiguous space for writing a PTR record. */
 		    avail_space += read_offset - saved_read_offset;
 		    jumped = 1;
 		}
-		if (rec_goto(state->dst, STR(rec_buf)) < 0)
-		    msg_fatal("%s: read file %s: %m", myname, cleanup_path);
+		if (rec_goto(state->dst, STR(rec_buf)) < 0) {
+		    msg_warn("%s: read file %s: %m", myname, cleanup_path);
+		    CLEANUP_UPD_HEADER_RETURN(cleanup_milter_error(state,
+								   errno));
+		}
 		/* Don't update last_type; PTR may follow REC_TYPE_CONT. */
 		continue;
 	    }
@@ -721,16 +834,17 @@ static void cleanup_upd_header(void *context, ssize_t index,
 		avail_space += read_offset - saved_read_offset;
 	    last_type = rec_type;
 	}
-	cleanup_patch_header(state, new_hdr_name, new_hdr_value,
-			     old_rec_offset, DONT_SAVE_RECORD, (VSTRING *) 0,
-			     avail_space, saved_read_offset);
+	ret = cleanup_patch_header(state, new_hdr_name, new_hdr_value,
+			    old_rec_offset, DONT_SAVE_RECORD, (VSTRING *) 0,
+				   avail_space, saved_read_offset);
+	CLEANUP_UPD_HEADER_RETURN(ret);
     }
-    vstring_free(rec_buf);
 }
 
 /* cleanup_del_header - delete message header */
 
-static void cleanup_del_header(void *context, ssize_t index, char *hdr_name)
+static const char *cleanup_del_header(void *context, ssize_t index,
+				              char *hdr_name)
 {
     const char *myname = "cleanup_del_header";
     CLEANUP_STATE *state = (CLEANUP_STATE *) context;
@@ -765,6 +879,11 @@ static void cleanup_del_header(void *context, ssize_t index, char *hdr_name)
     header_offset = cleanup_find_header(state, index, hdr_name, rec_buf,
 					&last_type, NO_PTR_BACKUP,
 					SKIP_ONE_HEADER);
+    if (header_offset == CLEANUP_FIND_HEADER_IOERROR) {
+	vstring_free(rec_buf);
+	/* Warning and errno->error mapping are done elsewhere. */
+	return (cleanup_milter_error(state, 0));
+    }
     /* Memory usage for header offsets is limited by header_size_limit. */
     if (header_offset > 0) {
 	ssize_t off_len = 1;
@@ -772,15 +891,26 @@ static void cleanup_del_header(void *context, ssize_t index, char *hdr_name)
 	off_t  *off_list = (off_t *) mymalloc(off_len * sizeof(*off_list));
 	int     n;
 
+#define CLEANUP_DEL_HEADER_RETURN(ret) do { \
+	vstring_free(rec_buf); \
+	myfree((char *) off_list); \
+	return (ret); \
+    } while (0)
+
 	off_list[0] = header_offset;
 	for (;;) {
 	    curr_offset = vstream_ftell(state->dst);
 	    /* Caution: this macro terminates the loop at end-of-message. */
 	    /* Don't do complex processing while breaking out of this loop. */
-	    GET_NEXT_TEXT_OR_PTR_RECORD(rec_type, state, rec_buf, curr_offset);
+	    GET_NEXT_TEXT_OR_PTR_RECORD(rec_type, state, rec_buf, curr_offset,
+	    /* Warning and errno->error mapping are done elsewhere. */
+		 CLEANUP_DEL_HEADER_RETURN(cleanup_milter_error(state, 0)));
 	    if (rec_type == REC_TYPE_PTR) {
-		if (rec_goto(state->dst, STR(rec_buf)) < 0)
-		    msg_fatal("%s: read file %s: %m", myname, cleanup_path);
+		if (rec_goto(state->dst, STR(rec_buf)) < 0) {
+		    msg_warn("%s: read file %s: %m", myname, cleanup_path);
+		    CLEANUP_DEL_HEADER_RETURN(cleanup_milter_error(state,
+								   errno));
+		}
 		/* Don't update last_type; PTR may follow REC_TYPE_CONT. */
 		continue;
 	    }
@@ -797,17 +927,25 @@ static void cleanup_del_header(void *context, ssize_t index, char *hdr_name)
 	    last_type = rec_type;
 	}
 	/* Mark the header text records as deleted. */
-	for (n = 0; n < off_used; n++)
-	    if (rec_put_type(state->dst, REC_TYPE_DTXT, off_list[n]) < 0)
-		msg_fatal("%s: write file %s: %m", myname, cleanup_path);
+	for (n = 0; n < off_used; n++) {
+	    if (rec_put_type(state->dst, REC_TYPE_DTXT, off_list[n]) < 0) {
+		msg_warn("%s: write file %s: %m", myname, cleanup_path);
+		CLEANUP_DEL_HEADER_RETURN(cleanup_milter_error(state, errno));
+	    }
+	}
 	myfree((char *) off_list);
     }
     vstring_free(rec_buf);
+
+    /*
+     * In case of error while doing record output.
+     */
+    return (CLEANUP_OUT_OK(state) ? 0 : cleanup_milter_error(state, 0));
 }
 
 /* cleanup_add_rcpt - append recipient address */
 
-static void cleanup_add_rcpt(void *context, char *rcpt)
+static const char *cleanup_add_rcpt(void *context, char *rcpt)
 {
     const char *myname = "cleanup_add_rcpt";
     CLEANUP_STATE *state = (CLEANUP_STATE *) context;
@@ -841,11 +979,15 @@ static void cleanup_add_rcpt(void *context, char *rcpt)
      */
 #define NO_DSN_ORCPT	((char *) 0)
 
-    if ((new_rcpt_offset = vstream_fseek(state->dst, (off_t) 0, SEEK_END)) < 0)
-	msg_fatal("%s: seek file %s: %m", myname, cleanup_path);
+    if ((new_rcpt_offset = vstream_fseek(state->dst, (off_t) 0, SEEK_END)) < 0) {
+	msg_warn("%s: seek file %s: %m", myname, cleanup_path);
+	return (cleanup_milter_error(state, errno));
+    }
     cleanup_addr_bcc(state, rcpt);
-    if ((reverse_ptr_offset = vstream_ftell(state->dst)) < 0)
-	msg_fatal("%s: vstream_ftell file %s: %m", myname, cleanup_path);
+    if ((reverse_ptr_offset = vstream_ftell(state->dst)) < 0) {
+	msg_warn("%s: vstream_ftell file %s: %m", myname, cleanup_path);
+	return (cleanup_milter_error(state, errno));
+    }
     cleanup_out_format(state, REC_TYPE_PTR, REC_TYPE_PTR_FORMAT,
 		       (long) state->append_rcpt_pt_target);
 
@@ -853,8 +995,10 @@ static void cleanup_add_rcpt(void *context, char *rcpt)
      * Pointer flipping: update the old "recipient append" pointer record
      * value to the location of the new recipient record.
      */
-    if (vstream_fseek(state->dst, state->append_rcpt_pt_offset, SEEK_SET) < 0)
-	msg_fatal("%s: seek file %s: %m", myname, cleanup_path);
+    if (vstream_fseek(state->dst, state->append_rcpt_pt_offset, SEEK_SET) < 0) {
+	msg_warn("%s: seek file %s: %m", myname, cleanup_path);
+	return (cleanup_milter_error(state, errno));
+    }
     cleanup_out_format(state, REC_TYPE_PTR, REC_TYPE_PTR_FORMAT,
 		       (long) new_rcpt_offset);
 
@@ -866,11 +1010,16 @@ static void cleanup_add_rcpt(void *context, char *rcpt)
      * record that was written while Postfix received the message.
      */
     state->append_rcpt_pt_offset = reverse_ptr_offset;
+
+    /*
+     * In case of error while doing record output.
+     */
+    return (CLEANUP_OUT_OK(state) ? 0 : cleanup_milter_error(state, 0));
 }
 
 /* cleanup_del_rcpt - remove recipient and all its expansions */
 
-static void cleanup_del_rcpt(void *context, char *rcpt)
+static const char *cleanup_del_rcpt(void *context, char *rcpt)
 {
     const char *myname = "cleanup_del_rcpt";
     CLEANUP_STATE *state = (CLEANUP_STATE *) context;
@@ -908,26 +1057,48 @@ static void cleanup_del_rcpt(void *context, char *rcpt)
      * XXX Remove the (dsn_orcpt, dsn_notify, orcpt, recip) tuple from the
      * duplicate recipient filter.
      */
-    if (vstream_fseek(state->dst, 0L, SEEK_SET) < 0)
-	msg_fatal("%s: seek file %s: %m", myname, cleanup_path);
+    if (vstream_fseek(state->dst, 0L, SEEK_SET) < 0) {
+	msg_warn("%s: seek file %s: %m", myname, cleanup_path);
+	return (cleanup_milter_error(state, errno));
+    }
+#define CLEANUP_DEL_RCPT_RETURN(ret) do { \
+	if (orig_rcpt != 0)	\
+	    myfree(orig_rcpt); \
+	if (dsn_orcpt != 0) \
+	    myfree(dsn_orcpt); \
+	vstring_free(buf); \
+	return (ret); \
+    } while (0)
+
     buf = vstring_alloc(100);
-    while (CLEANUP_OUT_OK(state)) {
-	if ((curr_offset = vstream_ftell(state->dst)) < 0)
-	    msg_fatal("%s: vstream_ftell file %s: %m", myname, cleanup_path);
-	if ((rec_type = rec_get_raw(state->dst, buf, 0, REC_FLAG_NONE)) <= 0)
-	    msg_fatal("%s: read file %s: %m", myname, cleanup_path);
+    for (;;) {
+	if (CLEANUP_OUT_OK(state) == 0)
+	    /* Warning and errno->error mapping are done elsewhere. */
+	    CLEANUP_DEL_RCPT_RETURN(cleanup_milter_error(state, 0));
+	if ((curr_offset = vstream_ftell(state->dst)) < 0) {
+	    msg_warn("%s: vstream_ftell file %s: %m", myname, cleanup_path);
+	    CLEANUP_DEL_RCPT_RETURN(cleanup_milter_error(state, errno));
+	}
+	if ((rec_type = rec_get_raw(state->dst, buf, 0, REC_FLAG_NONE)) <= 0) {
+	    msg_warn("%s: read file %s: %m", myname, cleanup_path);
+	    CLEANUP_DEL_RCPT_RETURN(cleanup_milter_error(state, errno));
+	}
 	if (rec_type == REC_TYPE_END)
 	    break;
 	/* Skip over message content. */
 	if (rec_type == REC_TYPE_MESG) {
-	    if (vstream_fseek(state->dst, state->xtra_offset, SEEK_SET) < 0)
-		msg_fatal("%s: seek file %s: %m", myname, cleanup_path);
+	    if (vstream_fseek(state->dst, state->xtra_offset, SEEK_SET) < 0) {
+		msg_warn("%s: seek file %s: %m", myname, cleanup_path);
+		CLEANUP_DEL_RCPT_RETURN(cleanup_milter_error(state, errno));
+	    }
 	    continue;
 	}
 	start = STR(buf);
 	if (rec_type == REC_TYPE_PTR) {
-	    if (rec_goto(state->dst, start) < 0)
-		msg_fatal("%s: seek file %s: %m", myname, cleanup_path);
+	    if (rec_goto(state->dst, start) < 0) {
+		msg_warn("%s: seek file %s: %m", myname, cleanup_path);
+		CLEANUP_DEL_RCPT_RETURN(cleanup_milter_error(state, errno));
+	    }
 	    continue;
 	}
 	/* Map attribute names to pseudo record type. */
@@ -960,11 +1131,13 @@ static void cleanup_del_rcpt(void *context, char *rcpt)
 	    break;
 	case REC_TYPE_RCPT:			/* rewritten RCPT TO address */
 	    if (strcmp(orig_rcpt ? orig_rcpt : start, rcpt) == 0) {
-		if (vstream_fseek(state->dst, curr_offset, SEEK_SET) < 0)
-		    msg_fatal("%s: seek file %s: %m", myname, cleanup_path);
+		if (vstream_fseek(state->dst, curr_offset, SEEK_SET) < 0) {
+		    msg_warn("%s: seek file %s: %m", myname, cleanup_path);
+		    CLEANUP_DEL_RCPT_RETURN(cleanup_milter_error(state, errno));
+		}
 		if (REC_PUT_BUF(state->dst, REC_TYPE_DRCP, buf) < 0) {
 		    msg_warn("%s: write queue file: %m", state->queue_id);
-		    state->errs |= CLEANUP_STAT_WRITE;
+		    CLEANUP_DEL_RCPT_RETURN(cleanup_milter_error(state, errno));
 		}
 		count++;
 	    }
@@ -983,20 +1156,17 @@ static void cleanup_del_rcpt(void *context, char *rcpt)
 	    break;
 	}
     }
-    if (orig_rcpt != 0)				/* can't happen */
-	myfree(orig_rcpt);
-    if (dsn_orcpt != 0)				/* can't happen */
-	myfree(dsn_orcpt);
-    vstring_free(buf);
 
     if (msg_verbose)
 	msg_info("%s: deleted %d records for recipient \"%s\"",
 		 myname, count, rcpt);
+
+    CLEANUP_DEL_RCPT_RETURN(0);
 }
 
 /* cleanup_repl_body - replace message body */
 
-static void cleanup_repl_body(void *context, VSTRING *body)
+static const char *cleanup_repl_body(void *context, VSTRING *body)
 {
     const char *myname = "cleanup_repl_body";
 
@@ -1088,6 +1258,13 @@ static const char *cleanup_milter_apply(CLEANUP_STATE *state, const char *resp)
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, resp);
+
+    /*
+     * We don't report errors that were already reported by the content
+     * editing call-back routines. See cleanup_milter_error() above.
+     */
+    if (CLEANUP_OUT_OK(state) == 0)
+	return (0);
     switch (resp[0]) {
     case 'H':
 	/* XXX Should log the reason here. */
@@ -1293,7 +1470,8 @@ void    cleanup_milter_emul_data(CLEANUP_STATE *state, MILTERS *milters)
 #ifdef TEST
 
  /*
-  * Queue file editing driver for regression tests.
+  * Queue file editing driver for regression tests. In this case it is OK to
+  * report fatal errors after I/O errors.
   */
 #include <stdio.h>
 #include <msg_vstream.h>

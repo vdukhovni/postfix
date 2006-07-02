@@ -7,13 +7,23 @@
   * 
   * Specifies a non-default reply. The default is to always continue.
   * 
+  * -d Enable libmilter debugging.
+  * 
   * -c connect|helo|mail|rcpt|data|header|eoh|body|eom|unknown|close|abort
   * 
   * When to send the non-default reply. The default is "connect".
   * 
+  * -i "index header-label header-value"
+  * 
+  * Insert header at specified position.
+  * 
   * -p inet:port@host|unix:/path/name
   * 
   * The mail filter listen endpoint.
+  * 
+  * -r "index header-label header-value"
+  * 
+  * Replace header at specified position.
   * 
   * -C count
   * 
@@ -85,6 +95,14 @@ static struct command_map command_map[] = {
 static char *reply_code;
 static char *reply_dsn;
 static char *reply_message;
+
+static char *ins_hdr;
+static int ins_idx;
+static char *ins_val;
+
+static char *chg_hdr;
+static int chg_idx;
+static char *chg_val;
 
 static int test_reply(SMFICTX *ctx, int code)
 {
@@ -184,25 +202,20 @@ static sfsistat test_eoh(SMFICTX *ctx)
 
 static sfsistat test_body(SMFICTX *ctx, unsigned char *data, size_t data_len)
 {
-    printf("test_body %ld bytes\n", (long) data_len);
+    if (verbose == 0)
+	printf("test_body %ld bytes\n", (long) data_len);
+    else
+	printf("%*s", data_len, data);
     return (test_reply(ctx, test_body_reply));
 }
 
 static sfsistat test_eom(SMFICTX *ctx)
 {
     printf("test_eom\n");
-#if 0
-    if (smfi_insheader(ctx, 1, "Received", "insert at 1") == MI_FAILURE)
+    if (ins_hdr && smfi_insheader(ctx, ins_idx, ins_hdr, ins_val) == MI_FAILURE)
 	fprintf(stderr, "smfi_insheader failed");
-#endif
-#if 0
-    if (smfi_chgheader(ctx, "Received", 1, "change received #1") == MI_FAILURE)
+    if (chg_hdr && smfi_chgheader(ctx, chg_hdr, chg_idx, chg_val) == MI_FAILURE)
 	fprintf(stderr, "smfi_chgheader failed");
-#endif
-#if 0
-    if (smfi_chgheader(ctx, "date", 0, "change date #0") == MI_FAILURE)
-	fprintf(stderr, "smfi_chgheader failed");
-#endif
     return (test_reply(ctx, test_eom_reply));
 }
 
@@ -265,6 +278,22 @@ static struct smfiDesc smfilter =
 #endif
 };
 
+static void parse_hdr_info(const char *optarg, int *idx,
+			           char **hdr, char **value)
+{
+    int     len;
+
+    len = strlen(optarg) + 1;
+    if ((*hdr = malloc(len)) == 0 || (*value = malloc(len)) == 0) {
+	fprintf(stderr, "out of memory\n");
+	exit(1);
+    }
+    if (sscanf(optarg, "%d %s %[^\n]", idx, *hdr, *value) != 3) {
+	fprintf(stderr, "bad header info: %s\n", optarg);
+	exit(1);
+    }
+}
+
 int     main(int argc, char **argv)
 {
     char   *action = 0;
@@ -273,7 +302,7 @@ int     main(int argc, char **argv)
     int     ch;
     int     code;
 
-    while ((ch = getopt(argc, argv, "a:c:d:p:vC:")) > 0) {
+    while ((ch = getopt(argc, argv, "a:c:d:i:p:r:vC:")) > 0) {
 	switch (ch) {
 	case 'a':
 	    action = optarg;
@@ -287,11 +316,25 @@ int     main(int argc, char **argv)
 		exit(1);
 	    }
 	    break;
+	case 'i':
+	    if (ins_hdr) {
+		fprintf(stderr, "too many -i options\n");
+		exit(1);
+	    }
+	    parse_hdr_info(optarg, &ins_idx, &ins_hdr, &ins_val);
+	    break;
 	case 'p':
 	    if (smfi_setconn(optarg) == MI_FAILURE) {
 		fprintf(stderr, "smfi_setconn failed\n");
 		exit(1);
 	    }
+	    break;
+	case 'r':
+	    if (chg_hdr) {
+		fprintf(stderr, "too many -r options\n");
+		exit(1);
+	    }
+	    parse_hdr_info(optarg, &chg_idx, &chg_hdr, &chg_val);
 	    break;
 	case 'v':
 	    verbose++;
@@ -301,7 +344,13 @@ int     main(int argc, char **argv)
 	    break;
 	default:
 	    fprintf(stderr,
-		    "usage: %s [-a action] [-c command] [-C conn_count] [-d debug] -p port [-v]\n",
+		    "usage: %s [-dv] \n"
+		    "\t[-a action]              non-default action\n"
+		    "\t[-c command]             non-default action trigger\n"
+		    "\t[-i 'index label value'] insert header\n"
+		    "\t-p port                  milter application\n"
+		    "\t[-r 'index label value'] replace header\n"
+		    "\t[-C conn_count]          when to exit\n",
 		    argv[0]);
 	    exit(1);
 	}

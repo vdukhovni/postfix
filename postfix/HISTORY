@@ -12430,6 +12430,12 @@ Apologies for any names omitted.
 	header and the rest of the message, violating the draft
 	domainkeys spec.
 
+20070602
+
+	Cleanup: more graceful handling of queue file read/write
+	errors while processing milter message modification requests.
+	Files: cleanup/cleanup_milter.c, milter/milter8.c.
+
 Wish list:
 
 	In the SMTPD policy client (encode or strip) non-printable

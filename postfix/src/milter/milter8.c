@@ -19,7 +19,7 @@
 /*	MILTER	*milter8_receive(stream)
 /*	VSTREAM	*stream;
 /* DESCRIPTION
-/*	This modulde implements the MTA side of the Sendmail 8 mail
+/*	This module implements the MTA side of the Sendmail 8 mail
 /*	filter protocol.
 /*
 /*	milter8_create() creates a MILTER data structure with virtual
@@ -625,7 +625,7 @@ static int vmilter8_read_data(MILTER8 *milter, ssize_t data_len, va_list ap)
 
     /*
      * Sanity checks. We may have excess data when the sender is confused. We
-     * may have a negative count when we're confused outselves.
+     * may have a negative count when we're confused ourselves.
      */
     if (data_left > 0) {
 	msg_warn("%s: left-over data %ld bytes", myname, (long) data_left);
@@ -863,11 +863,12 @@ static const char *milter8_event(MILTER8 *milter, int event,
     const char *smfir_name;
     MILTERS *parent;
     UINT32_TYPE index;
+    const char *edit_resp;
 
 #define DONT_SKIP_REPLY	0
 
     /*
-     * Skip this event if it is not defined for my protocol version.
+     * Skip this event if it doesn't exist in the protocol that I announced.
      */
 #ifndef USE_LIBMILTER_INCLUDES
     if ((skip_event_flag & milter->np_mask) != 0) {
@@ -880,9 +881,9 @@ static const char *milter8_event(MILTER8 *milter, int event,
 #endif
 
     /*
-     * Send the macros even when the corresponding list is empty. This is not
-     * a problem because we're sending macros and event parameters in one
-     * transaction.
+     * Send the macros for this event, even when we're not reporting the
+     * event itself. This does not introduce a performance problem because
+     * we're sending macros and event parameters in one VSTREAM transaction.
      */
     if (msg_verbose) {
 	VSTRING *buf = vstring_alloc(100);
@@ -921,7 +922,8 @@ static const char *milter8_event(MILTER8 *milter, int event,
     }
 
     /*
-     * Size the command data.
+     * Compute the command data size. This is necessary because the protocol
+     * sends length before content.
      */
     va_start(ap, macros);
     data_len = vmilter8_size_data(ap);
@@ -938,8 +940,8 @@ static const char *milter8_event(MILTER8 *milter, int event,
 
     /*
      * Special feature: don't wait for one reply per header. This allows us
-     * to send multiple headers in one transaction, and improves over-all
-     * performance.
+     * to send multiple headers in one VSTREAM transaction, and improves
+     * over-all performance.
      */
     if (skip_reply) {
 	if (msg_verbose)
@@ -960,9 +962,9 @@ static const char *milter8_event(MILTER8 *milter, int event,
 	if (milter8_read_cmd(milter, &cmd, &data_size) != 0)
 	    return (milter->def_reply);
 	if (msg_verbose)
-	    msg_info("reply: %s %d",
+	    msg_info("reply: %s data %ld bytes",
 		     (smfir_name = str_name_code(smfir_table, cmd)) != 0 ?
-		     smfir_name : "unknown", data_size);
+		     smfir_name : "unknown", (long) data_size);
 	switch (cmd) {
 
 	    /*
@@ -1051,7 +1053,7 @@ static const char *milter8_event(MILTER8 *milter, int event,
 #endif
 		milter->state = MILTER8_STAT_REJECT_CON;
 		return (milter8_def_reply(milter,
-		       "451 4.7.1 Service unavailable - try again later"));
+			"451 4.7.1 Service unavailable - try again later"));
 	    } else {
 		return ("451 4.7.1 Service unavailable - try again later");
 	    }
@@ -1136,6 +1138,9 @@ static const char *milter8_event(MILTER8 *milter, int event,
 					  MILTER8_DATA_END) != 0)
 			return (milter->def_reply);
 		    parent = milter->m.parent;
+		    /* XXX Sendmail 8 compatibility. */
+		    if (index == 0)
+			index = 1;
 		    if ((ssize_t) index < 1) {
 			msg_warn("milter %s: bad change header index: %ld",
 				 milter->m.name, (long) index);
@@ -1149,12 +1154,16 @@ static const char *milter8_event(MILTER8 *milter, int event,
 			return (milter->def_reply);
 		    }
 		    if (STR(milter->body)[0])
-			parent->upd_header(parent->chg_context, (ssize_t) index,
-					   STR(milter->buf),
-					   STR(milter->body));
+			edit_resp = parent->upd_header(parent->chg_context,
+						       (ssize_t) index,
+						       STR(milter->buf),
+						       STR(milter->body));
 		    else
-			parent->del_header(parent->chg_context, (ssize_t) index,
-					   STR(milter->buf));
+			edit_resp = parent->del_header(parent->chg_context,
+						       (ssize_t) index,
+						       STR(milter->buf));
+		    if (edit_resp)
+			return (milter8_def_reply(milter, edit_resp));
 		    continue;
 #endif
 
@@ -1168,8 +1177,11 @@ static const char *milter8_event(MILTER8 *milter, int event,
 					  MILTER8_DATA_END) != 0)
 			return (milter->def_reply);
 		    parent = milter->m.parent;
-		    parent->add_header(parent->chg_context, STR(milter->buf),
-				       STR(milter->body));
+		    edit_resp = parent->add_header(parent->chg_context,
+						   STR(milter->buf),
+						   STR(milter->body));
+		    if (edit_resp)
+			return (milter8_def_reply(milter, edit_resp));
 		    continue;
 
 		    /*
@@ -1193,8 +1205,12 @@ static const char *milter8_event(MILTER8 *milter, int event,
 			return (milter->def_reply);
 		    }
 		    parent = milter->m.parent;
-		    parent->ins_header(parent->chg_context, (ssize_t) index + 1,
-				       STR(milter->buf), STR(milter->body));
+		    edit_resp = parent->ins_header(parent->chg_context,
+						   (ssize_t) index + 1,
+						   STR(milter->buf),
+						   STR(milter->body));
+		    if (edit_resp)
+			return (milter8_def_reply(milter, edit_resp));
 		    continue;
 #endif
 
@@ -1207,7 +1223,10 @@ static const char *milter8_event(MILTER8 *milter, int event,
 					  MILTER8_DATA_END) != 0)
 			return (milter->def_reply);
 		    parent = milter->m.parent;
-		    parent->add_rcpt(parent->chg_context, STR(milter->buf));
+		    edit_resp = parent->add_rcpt(parent->chg_context,
+						 STR(milter->buf));
+		    if (edit_resp)
+			return (milter8_def_reply(milter, edit_resp));
 		    continue;
 
 		    /*
@@ -1219,7 +1238,10 @@ static const char *milter8_event(MILTER8 *milter, int event,
 					  MILTER8_DATA_END) != 0)
 			return (milter->def_reply);
 		    parent = milter->m.parent;
-		    parent->del_rcpt(parent->chg_context, STR(milter->buf));
+		    edit_resp = parent->del_rcpt(parent->chg_context,
+						 STR(milter->buf));
+		    if (edit_resp)
+			return (milter8_def_reply(milter, edit_resp));
 		    continue;
 
 		    /*
@@ -1233,7 +1255,10 @@ static const char *milter8_event(MILTER8 *milter, int event,
 					  MILTER8_DATA_END) != 0)
 			return (milter->def_reply);
 		    parent = milter->m.parent;
-		    parent->repl_body(parent->chg_context, milter->body);
+		    edit_resp = parent->repl_body(parent->chg_context,
+						  milter->body);
+		    if (edit_resp)
+			return (milter8_def_reply(milter, edit_resp));
 		    continue;
 #endif
 		}

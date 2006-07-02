@@ -26,11 +26,12 @@ only anonymous ciphers, and will not interoperate with most clients.
 
 The SMTP server supports anonymous ciphers when client certificates
 are not requested or required, and the administrator has not excluded
-the "aNULL" OpenSSL cipher type.
+the "aNULL" OpenSSL cipher type with smtpd_tls_exclude_ciphers.
 
 The SMTP client supports anonymous ciphers when no server certificate
 is required (notably Postfix 2.3 in "opportunistic" mode) and the
-administrator has not excluded the "aNULL" OpenSSL cipher type.
+administrator has not excluded the "aNULL" OpenSSL cipher type with
+smtp_tls_exclude_ciphers.
 
 Instead of cipher lists you can now specify cipher grades.  The
 smtp_tls_mandatory_ciphers, lmtp_tls_mandatory_ciphers and
