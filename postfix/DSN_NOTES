@@ -10,39 +10,24 @@ Of course Postfix still produces the same "informal" error descriptions
 that it produced before (for example, the error text that appears
 in the first section of a bounce report).
 
-The Postfix LMTP/SMTP clients also report locally generated SMTP-style
-Diagnostic-Code: text (such as "420 conversation timed out") while
-taking care NOT to present these as if they are replies from the
-remote MTA (Sendmail appears to violate RFC 3464 here).
+Other error reports are not in the form of SMTP-style replies.
 
-That was the easy part. The remainder of Postfix is still somewhat
-inconsistent in the way that it creates the formal Diagnostic-Type:
-and Diagnostic-Code: information.
+- The Postfix LMTP/SMTP client generates Diagnostic-Type: X-Postfix
+for locally generated errors (host not found, connection timed out
+etc.).  It generates Diagnostic-Type: SMTP only for replies from
+an SMTP server.
 
-- The queue manager attempts to produce standard SMTP Diagnostic-Type:
-and Diagnostic-Code: information for errors that it detects. It
-also receives error information from delivery agents and reports
-that information unmodified when it decides to "temporarily suspend"
-a delivery channel.
+- The queue manager generates Diagnostic-Type: X-Postfix for errors
+that it detects. It also receives error information from delivery
+agents and reports that information unmodified when it decides to
+"temporarily suspend" a delivery channel.
 
 - The "pipe to command" code in local(8) and pipe(8) produces
 Diagnostic-Type: X-UNIX, and Diagnostic-Code: text that is taken
-from /usr/include/sysexits.h or from the command output.  This could
-be morphed into SMTP-style information, by mapping a sysexits error
-code to an SMTP error code, and combining that SMTP code with the
-sysexits.h text or command output.  The advantage of this would be
-more useful Diagnostic-Code: information.
+from /usr/include/sysexits.h or from the command output.
 
 - The code that delivers to mailbox produces Diagnostic-Type:
-X-Postfix and Diagnostic-Code: text that is the same good old Postfix
-error message that we are already familiar with. Typically these
-are errno-style reports about locking a file or appending a file.
-This information could be morphed into SMTP-style information, by
-mapping an errno error code into an SMTP error code, and combining
-that SMTP code with the Postfix-style text that we already have
-(such as text that says unable to lock mailbox, or mailbox file
-size limit exceeded).
-
-I'm not (yet) religious about banning X-UNIX and X-Postfix from the
-formal part of a delivery status report, but all these non-standard
-diagnostic codes aren't really very useful.
+X-Postfix and Diagnostic-Code: text that is the same good old
+Postfix error message that we are already familiar with. Typically
+these are errno-style reports about locking a file or appending a
+file.

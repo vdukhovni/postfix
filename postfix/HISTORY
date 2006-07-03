@@ -12436,6 +12436,15 @@ Apologies for any names omitted.
 	errors while processing milter message modification requests.
 	Files: cleanup/cleanup_milter.c, milter/milter8.c.
 
+20060703
+
+	Debugging: the Postfix milter client gives more context
+	when it experiences trouble while talking to an uncooperative
+	Milter application. File: milter/milter8.c.
+
+	Compatibility: with OpenBSD 2.7 and later, the alias file
+	is now in /etc/mail/aliases.
+
 Wish list:
 
 	In the SMTPD policy client (encode or strip) non-printable

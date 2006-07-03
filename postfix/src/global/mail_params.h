@@ -1414,14 +1414,11 @@ extern char *var_smtp_sasl_type;
 #define DEF_LMTP_SASL_TLS_OPTS	"$" VAR_LMTP_SASL_OPTS
 extern char *var_smtp_sasl_tls_opts;
 
-#ifdef SNAPSHOT				/* XXX: Not yet */
 #define VAR_SMTP_SASL_TLSV_OPTS	"smtp_sasl_tls_verified_security_options"
 #define DEF_SMTP_SASL_TLSV_OPTS	"$" VAR_SMTP_SASL_TLS_OPTS
 #define VAR_LMTP_SASL_TLSV_OPTS	"lmtp_sasl_tls_verified_security_options"
 #define DEF_LMTP_SASL_TLSV_OPTS	"$" VAR_LMTP_SASL_TLS_OPTS
 extern char *var_smtp_sasl_tlsv_opts;
-
-#endif
 
  /*
   * LMTP server. The soft error limit determines how many errors an LMTP

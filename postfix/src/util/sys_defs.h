@@ -47,6 +47,9 @@
 #if (defined(__NetBSD_Version__) && __NetBSD_Version__ >= 104250000)
 #define ALIAS_DB_MAP   "hash:/etc/mail/aliases"	/* sendmail 8.10 */
 #endif
+#if (defined(OpenBSD) && OpenBSD >= 200006)
+#define ALIAS_DB_MAP   "hash:/etc/mail/aliases"	/* OpenBSD 2.7 */
+#endif
 #ifndef ALIAS_DB_MAP
 #define ALIAS_DB_MAP	"hash:/etc/aliases"
 #endif

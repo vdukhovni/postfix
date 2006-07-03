@@ -485,13 +485,14 @@ static void milter8_close_stream(MILTER8 *milter)
     milter->state = MILTER8_STAT_CLOSED;
 }
 
-/* milter8_read_cmd - receive command code now, receive data later */
+/* milter8_read_resp - receive command code now, receive data later */
 
-static int milter8_read_cmd(MILTER8 *milter, unsigned char *command,
+static int milter8_read_resp(MILTER8 *milter, int event, unsigned char *command,
 			            ssize_t *data_len)
 {
     UINT32_TYPE len;
     ssize_t pkt_len;
+    const char *smfic_name;
     int     cmd;
 
     /*
@@ -499,7 +500,10 @@ static int milter8_read_cmd(MILTER8 *milter, unsigned char *command,
      */
     if ((vstream_fread(milter->fp, (char *) &len, UINT32_SIZE))
 	!= UINT32_SIZE) {
-	msg_warn("milter %s: can't read packet header: %m", milter->m.name);
+	smfic_name = str_name_code(smfic_table, event);
+	msg_warn("milter %s: can't read %s reply packet header: %m",
+		 milter->m.name, smfic_name != 0 ?
+		 smfic_name : "(unknown MTA event)");
 	return (milter8_comm_error(milter));
     } else if ((pkt_len = ntohl(len)) < 1) {
 	msg_warn("milter %s: bad packet length: %ld",
@@ -959,7 +963,7 @@ static const char *milter8_event(MILTER8 *milter, int event,
 #define IN_CONNECT_EVENT(e) ((e) == SMFIC_CONNECT || (e) == SMFIC_HELO)
 
     for (;;) {
-	if (milter8_read_cmd(milter, &cmd, &data_size) != 0)
+	if (milter8_read_resp(milter, event, &cmd, &data_size) != 0)
 	    return (milter->def_reply);
 	if (msg_verbose)
 	    msg_info("reply: %s data %ld bytes",
@@ -1464,9 +1468,9 @@ static void milter8_connect(MILTER8 *milter)
     /*
      * Receive the filter's response and verify that we are compatible.
      */
-    else if (milter8_read_cmd(milter, &cmd, &data_len) != 0) {
+    else if (milter8_read_resp(milter, SMFIC_OPTNEG, &cmd, &data_len) != 0) {
 	msg_warn("milter %s: read error in initial handshake", milter->m.name);
-	/* milter8_read_cmd() called milter8_comm_error() */
+	/* milter8_read_resp() called milter8_comm_error() */
     } else if (cmd != SMFIC_OPTNEG) {
 	msg_warn("milter %s: unexpected reply \"%c\" in initial handshake",
 		 milter->m.name, cmd);
