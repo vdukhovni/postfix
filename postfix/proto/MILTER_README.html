@@ -257,9 +257,12 @@ for options.  A typical command looks like this:</p>
 
 <blockquote>
 <pre>
-$ <b>/some/where/dk-filter -p inet:<i>portnumber</i>@localhost ...<i>other options</i>...</b>
+# <b>/some/where/dk-filter -u <i>userid</i> -p inet:<i>portnumber</i>@localhost ...<i>other options</i>...</b>
 </pre>
 </blockquote>
+
+<p> Please specify a <i>userid</i> value that isn't used for other
+applications (not "postfix", not "www", etc.). </p>
 
 <h2><a name="config">Configuring Postfix</a></h2>
 

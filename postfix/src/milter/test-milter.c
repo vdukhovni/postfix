@@ -106,6 +106,8 @@ static char *chg_val;
 
 static int test_reply(SMFICTX *ctx, int code)
 {
+    (void) fflush(stdout);			/* In case output redirected. */
+
     if (code == SMFIR_REPLYCODE) {
 	if (smfi_setreply(ctx, reply_code, reply_dsn, reply_message) != MI_SUCCESS)
 	    fprintf(stderr, "smfi_setreply failed\n");
@@ -205,7 +207,7 @@ static sfsistat test_body(SMFICTX *ctx, unsigned char *data, size_t data_len)
     if (verbose == 0)
 	printf("test_body %ld bytes\n", (long) data_len);
     else
-	printf("%*s", data_len, data);
+	printf("%.*s", data_len, data);
     return (test_reply(ctx, test_body_reply));
 }
 

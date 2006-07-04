@@ -125,7 +125,11 @@ RRuunnnniinngg MMiilltteerr aapppplliiccaattiioonnss
 To run a Milter application, see the documentation of the filter for options. A
 typical command looks like this:
 
-    $ //ssoommee//wwhheerree//ddkk--ffiilltteerr --pp iinneett::ppoorrttnnuummbbeerr@@llooccaallhhoosstt ......ootthheerr ooppttiioonnss......
+    # //ssoommee//wwhheerree//ddkk--ffiilltteerr --uu uusseerriidd --pp iinneett::ppoorrttnnuummbbeerr@@llooccaallhhoosstt ......ootthheerr
+    ooppttiioonnss......
+
+Please specify a userid value that isn't used for other applications (not
+"postfix", not "www", etc.).
 
 CCoonnffiigguurriinngg PPoossttffiixx
 

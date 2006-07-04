@@ -12445,6 +12445,11 @@ Apologies for any names omitted.
 	Compatibility: with OpenBSD 2.7 and later, the alias file
 	is now in /etc/mail/aliases.
 
+20060704
+
+	Bugfix: the Milter client skipped zero-length body lines.
+	File: milter/milter8.c.
+
 Wish list:
 
 	In the SMTPD policy client (encode or strip) non-printable

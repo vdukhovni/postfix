@@ -37,35 +37,32 @@
 /*	local call-back functions for macro expansion and for queue
 /*	file modification.
 /*
-/*	cleanup_milter_inspect() subjects a message to inspection
-/*	by mail filters. Each filter can accept or reject the message
-/*	and can request changes to the recipient list, to message
-/*	headers, and to replace the message body.
+/*	cleanup_milter_inspect() sends the current message headers
+/*	and body to the mail filters that were received with
+/*	cleanup_milter_receive(), or that are specified with the
+/*	cleanup_milters configuration parameter.
 /*
 /*	cleanup_milter_emul_mail() emulates connect, helo and mail
 /*	events for mail that does not arrive via the smtpd(8) server.
-/*	This pretends that mail arrives from localhost/127.0.0.1
-/*	via ESMTP.  This code reports a server configuration error
-/*	condition when the milter rejects the emulated commands.
+/*	The emulation pretends that mail arrives from localhost/127.0.0.1
+/*	via ESMTP. Milters can reject emulated connect, helo, mail
+/*	or data events, but not emulated rcpt events as described
+/*	next.
 /*
-/*	cleanup_milter_emul_rcpt() emulates an rcpt() event for
-/*	non-SMTP mail. See cleanup_milter_emul_mail() for the
-/*	handling of reject replies.
+/*	cleanup_milter_emul_rcpt() emulates an rcpt event for mail
+/*	that does not arrive via the smtpd(8) server. This reports
+/*	a server configuration error condition when the milter
+/*	rejects an emulated rcpt event.
 /*
-/*	cleanup_milter_emul_data() emulates a data event for non-SMTP
-/*	mail.  See cleanup_milter_emul_mail() for the handling of
-/*	reject replies.
+/*	cleanup_milter_emul_data() emulates a data event for mail
+/*	that does not arrive via the smtpd(8) server.  It's OK for
+/*	milters to reject emulated data events.
 /* SEE ALSO
 /*	milter(3) generic mail filter interface
-/* BUGS
-/*	Postfix prepends its own Received: header when it receives
-/*	mail from outside, or when it forwards mail internally.
-/*	This header is seen by mail filters, and is present when
-/*	mail filters edit the queue file.
 /* DIAGNOSTICS
 /*	Fatal errors: memory allocation problem.
 /*	Panic: interface violation.
-/*	state->errs is updated in case of I/O errors.
+/*	Warnings: I/O errors (state->errs is updated accordingly).
 /* LICENSE
 /* .ad
 /* .fi
@@ -226,14 +223,24 @@ static void cleanup_milter_set_error(CLEANUP_STATE *state, int err)
 
 static const char *cleanup_milter_error(CLEANUP_STATE *state, int err)
 {
+    const char *myname = "cleanup_milter_error";
 
     /*
-     * This error text will be ignored by cleanup_milter_apply(). It exists
-     * only to maintain a consistent error reporting interface to the milter
-     * infrastructure.
+     * For consistency with error reporting within the milter infrastructure,
+     * content manipulation routines return a null pointer on success, and an
+     * SMTP-like response on error.
+     * 
+     * However, when cleanup_milter_apply() receives this error response from
+     * the milter infrastructure, it ignores the text since the appropriate
+     * cleanup error flags were already set by cleanup_milter_set_error().
+     * 
+     * Specify a null error number when the "errno to error flag" mapping was
+     * already done elsewhere, possibly outside this module.
      */
     if (err)
 	cleanup_milter_set_error(state, err);
+    else if (CLEANUP_OUT_OK(state))
+	msg_panic("%s: missing errno to error flag mapping", myname);
     return ("451 4.3.0 Server internal error");
 }
 
@@ -404,7 +411,7 @@ static off_t cleanup_find_header(CLEANUP_STATE *state, ssize_t index,
     if ((rec_type = rec_get_raw(state->dst, buf, 0, REC_FLAG_NONE)) < 0) { \
 	msg_warn("%s: read file %s: %m", myname, cleanup_path); \
 	cleanup_milter_set_error(state, errno); \
-	quit; \
+	do { quit; } while (0); \
     } \
     if (msg_verbose > 1) \
 	msg_info("%s: read: %ld: %.*s", myname, (long) curr_offset, \
@@ -1055,7 +1062,8 @@ static const char *cleanup_del_rcpt(void *context, char *rcpt)
      * but to match against the expanded and rewritten recipient address.
      * 
      * XXX Remove the (dsn_orcpt, dsn_notify, orcpt, recip) tuple from the
-     * duplicate recipient filter.
+     * duplicate recipient filter. This requires that we maintain reference
+     * counts.
      */
     if (vstream_fseek(state->dst, 0L, SEEK_SET) < 0) {
 	msg_warn("%s: seek file %s: %m", myname, cleanup_path);

@@ -1997,6 +1997,12 @@ static void milter8_body(void *ptr, int rec_type,
      */
     if (msg_verbose > 1)
 	msg_info("%s: body milter %s: %.100s", myname, milter->m.name, buf);
+    /* To append \r\n, simply redirect input to another buffer. */
+    if (rec_type == REC_TYPE_NORM && todo == 0) {
+	bp = "\r\n";
+	todo = 2;
+	rec_type = REC_TYPE_EOF;
+    }
     while (todo > 0) {
 	/* Append one REC_TYPE_NORM or REC_TYPE_CONT to body chunk buffer. */
 	space = MILTER_CHUNK_SIZE - LEN(milter->body);

@@ -67,7 +67,7 @@ milter:	milter.c $(LIB) $(LIBS)
 	mv junk $@.o
 
 test-milter: test-milter.c
-	cc -o $@ $? -lmilter -lpthread
+	cc -g -o $@ $? -lmilter -lpthread
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \
