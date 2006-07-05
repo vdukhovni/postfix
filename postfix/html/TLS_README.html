@@ -1636,10 +1636,10 @@ will be used. </p>
 
 <p> The new policy table is specified via the <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>
 parameter. This lists optional lookup tables with the Postfix SMTP client
-TLS security policy by next-hop destination. It supersedes the obsolete
-<a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a> parameter. When $<a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> is not empty,
-the <a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a> parameter is ignored (a warning is written to the
-logs if it is also non-empty). </p>
+TLS security policy by next-hop destination. When $<a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>
+is not empty, the obsolete <a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a> parameter is ignored
+(a warning is written to the logs if both parameter values are
+non-empty).  </p>
 
 <p> The TLS policy table is indexed by the full next-hop destination,
 which is either the recipient domain, or the verbatim next-hop

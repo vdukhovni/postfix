@@ -331,6 +331,15 @@ extern int smtp_quit(SMTP_STATE *);
 	(session->expire_time = (when))
 
  /*
+  * Encapsulate the following so that we don't expose details of of
+  * connection management and error handling to the SMTP protocol engine.
+  */
+#define RETRY_AS_PLAINTEXT do { \
+	session->tls_retry_plain = 1; \
+	state->misc_flags &= ~SMTP_MISC_FLAG_FINAL_SERVER; \
+    } while (0)
+
+ /*
   * smtp_chat.c
   */
 typedef struct SMTP_RESP {		/* server response */

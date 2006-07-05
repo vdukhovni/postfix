@@ -856,7 +856,8 @@ static void smtp_connect_remote(SMTP_STATE *state, const char *nexthop,
 
 		    /*
 		     * When an opportunistic TLS handshake fails, try the
-		     * same address again, with TLS disabled.
+		     * same address again, with TLS disabled. See also the
+		     * RETRY_AS_PLAINTEXT macro.
 		     */
 		    if ((retry_plain = session->tls_retry_plain) != 0) {
 			--addr_count;

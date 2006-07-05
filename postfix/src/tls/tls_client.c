@@ -6,11 +6,11 @@
 /* SYNOPSIS
 /*	#include <tls.h>
 /*
-/*	SSL_CTX	*tls_client_init(props)
-/*	const tls_client_init_props *props;
+/*	SSL_CTX	*tls_client_init(init_props)
+/*	const tls_client_init_props *init_props;
 /*
-/*	TLScontext_t *tls_client_start(props)
-/*	const tls_client_start_props *props;
+/*	TLScontext_t *tls_client_start(start_props)
+/*	const tls_client_start_props *start_props;
 /*
 /*	void	tls_client_stop(client_ctx, stream, failure, TLScontext)
 /*	SSL_CTX	*client_ctx;
@@ -151,6 +151,7 @@
 
 static SSL_SESSION *load_clnt_session(TLScontext_t *TLScontext)
 {
+    const char *myname = "load_clnt_session";
     SSL_SESSION *session = 0;
     VSTRING *session_data = vstring_alloc(2048);
 
@@ -167,7 +168,8 @@ static SSL_SESSION *load_clnt_session(TLScontext_t *TLScontext)
      * server SSL context.
      */
     if (TLScontext->cache_type == 0)
-	msg_panic("null client session cache type in session lookup");
+	msg_panic("%s: null client session cache type in session lookup",
+		  myname);
 
     /*
      * Look up and activate the SSL_SESSION object. Errors are non-fatal,
@@ -195,6 +197,7 @@ static SSL_SESSION *load_clnt_session(TLScontext_t *TLScontext)
 
 static int new_client_session_cb(SSL *ssl, SSL_SESSION *session)
 {
+    const char *myname = "new_client_session_cb";
     TLScontext_t *TLScontext;
     VSTRING *session_data;
 
@@ -204,7 +207,7 @@ static int new_client_session_cb(SSL *ssl, SSL_SESSION *session)
      * null at this point.
      */
     if ((TLScontext = SSL_get_ex_data(ssl, TLScontext_index)) == 0)
-	msg_panic("null TLScontext in new session callback");
+	msg_panic("%s: null TLScontext in new session callback", myname);
 
     /*
      * We only get here if the cache_type is not empty. This callback is not
@@ -212,7 +215,8 @@ static int new_client_session_cb(SSL *ssl, SSL_SESSION *session)
      * server SSL context.
      */
     if (TLScontext->cache_type == 0)
-	msg_panic("null session cache type in new session callback");
+	msg_panic("%s: null session cache type in new session callback",
+		  myname);
 
     if (TLScontext->log_level >= 2)
 	msg_info("save session %s to %s cache",
@@ -465,6 +469,9 @@ static int match_hostname(const char *peerid, ARGV *cmatch_argv,
     int     idlen;
     int     patlen;
 
+    /*
+     * Match the peerid against each pattern until we find a match.
+     */
     for (i = 0; i < cmatch_argv->argc; ++i) {
 	sub = 0;
 	if (!strcasecmp(cmatch_argv->argv[i], "nexthop"))
@@ -483,19 +490,21 @@ static int match_hostname(const char *peerid, ARGV *cmatch_argv,
 	}
 
 	/*
-	 * Sub-domain match, peerid is any sub-domain of pattern.
+	 * Sub-domain match: peerid is any sub-domain of pattern.
 	 */
-	if (sub)
+	if (sub) {
 	    if ((idlen = strlen(peerid)) > (patlen = strlen(pattern)) + 1
 		&& peerid[idlen - patlen - 1] == '.'
 		&& !strcasecmp(peerid + (idlen - patlen), pattern))
 		return (1);
 	    else
 		continue;
+	}
 
 	/*
-	 * NOT sub-domain match, but "*.domain.tld" in peerid matches any
-	 * host.domain.tld in the pattern.
+	 * Exact match and initial "*" match. The initial "*" in a peerid
+	 * matches exactly one hostname component, under the condition that
+	 * the peerid contains multiple hostname components.
 	 */
 	if (!strcasecmp(peerid, pattern)
 	    || (peerid[0] == '*' && peerid[1] == '.' && peerid[2] != 0
@@ -509,7 +518,7 @@ static int match_hostname(const char *peerid, ARGV *cmatch_argv,
 /* verify_extract_peer - verify peer name and extract peer information */
 
 static void verify_extract_peer(const char *nexthop, const char *hname,
-				        char *certmatch, X509 *peercert,
+			              const char *certmatch, X509 *peercert,
 				        TLScontext_t *TLScontext)
 {
     int     i;
@@ -666,7 +675,7 @@ TLScontext_t *tls_client_start(const tls_client_start_props *props)
      */
     if (!BIO_new_bio_pair(&TLScontext->internal_bio, TLS_BIO_BUFSIZE,
 			  &TLScontext->network_bio, TLS_BIO_BUFSIZE)) {
-	msg_info("Could not obtain BIO_pair");
+	msg_warn("Could not obtain BIO_pair");
 	tls_print_errors();
 	tls_free_context(TLScontext);
 	return (0);

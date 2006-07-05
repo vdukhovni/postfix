@@ -327,8 +327,10 @@ int     main(int unused_ac, char **av)
 
     while (vstring_fgets_nonl(inbuf, VSTREAM_IN)) {
 	argv = argv_split(STR(inbuf), " \t\r\n");
-	if (argv->argc == 0)
+	if (argv->argc == 0) {
+	    argv_free(argv);
 	    continue;
+	}
 
 #define COMMAND(argv, str, len) \
     (strcasecmp(argv->argv[0], str) == 0 && argv->argc == len)
@@ -336,7 +338,7 @@ int     main(int unused_ac, char **av)
 	if (COMMAND(argv, "policy", 2)) {
 	    int     cachable;
 
-	    status = tls_mgr_policy(argv[2], &cachable);
+	    status = tls_mgr_policy(argv->argv[1], &cachable);
 	    vstream_printf("status=%d cachable=%d\n", status, cachable);
 	} else if (COMMAND(argv, "seed", 2)) {
 	    VSTRING *buf = vstring_alloc(10);
@@ -351,15 +353,16 @@ int     main(int unused_ac, char **av)
 	} else if (COMMAND(argv, "lookup", 3)) {
 	    VSTRING *buf = vstring_alloc(10);
 
-	    status = tls_mgr_lookup(argv[1], argv->argv[2], buf);
+	    status = tls_mgr_lookup(argv->argv[1], argv->argv[2], buf);
 	    vstream_printf("status=%d session=%.*s\n",
 			   status, LEN(buf), STR(buf));
+	    vstring_free(buf);
 	} else if (COMMAND(argv, "update", 4)) {
-	    status = tls_mgr_update(argv[1], argv->argv[2],
+	    status = tls_mgr_update(argv->argv[1], argv->argv[2],
 				    argv->argv[3], strlen(argv->argv[3]));
 	    vstream_printf("status=%d\n", status);
 	} else if (COMMAND(argv, "delete", 3)) {
-	    status = tls_mgr_delete(argv[1], argv->argv[2]);
+	    status = tls_mgr_delete(argv->argv[1], argv->argv[2]);
 	    vstream_printf("status=%d\n", status);
 	} else {
 	    vstream_printf("usage:\n"
@@ -370,9 +373,8 @@ int     main(int unused_ac, char **av)
 			   "delete smtpd|smtp|lmtp cache_id\n");
 	}
 	vstream_fflush(VSTREAM_OUT);
-    }
-    if (argv)
 	argv_free(argv);
+    }
 
     vstring_free(inbuf);
     return (0);

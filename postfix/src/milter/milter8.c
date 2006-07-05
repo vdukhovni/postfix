@@ -744,7 +744,7 @@ static int vmilter8_write_cmd(MILTER8 *milter, int command, ssize_t data_len,
     VSTRING *buf;
     const char *str;
     const char **cpp;
-    unsigned char ch;
+    char    ch;
 
     /*
      * Deliver the packet.
@@ -1281,9 +1281,9 @@ static const char *milter8_event(MILTER8 *milter, int event,
 	 * Get here when the reply was followed by data bytes that weren't
 	 * supposed to be there.
 	 */
-	msg_warn("milter %s: reply %s was followed by %d data bytes",
+	msg_warn("milter %s: reply %s was followed by %ld data bytes",
 	milter->m.name, (smfir_name = str_name_code(smfir_table, cmd)) != 0 ?
-		 smfir_name : "unknown", data_len);
+		 smfir_name : "unknown", (long) data_len);
 	milter8_comm_error(milter);
 	return (milter->def_reply);
     }

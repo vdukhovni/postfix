@@ -33,10 +33,11 @@
 /*	themselves, and that depend on retry logic in their own client.
 /* STANDARDS
 /*	RFC 822 (ARPA Internet Text Messages)
+/*	RFC 2045 (Format of Internet Message Bodies)
 /*	RFC 2822 (ARPA Internet Text Messages)
 /*	RFC 3462 (Delivery Status Notifications)
 /*	RFC 3464 (Delivery Status Notifications)
-/*	RFC 2045 (Format of Internet Message Bodies)
+/*	RFC 3834 (Auto-Submitted: message header)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* CONFIGURATION PARAMETERS

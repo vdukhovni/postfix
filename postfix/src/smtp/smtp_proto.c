@@ -679,22 +679,22 @@ static int smtp_start_tls(SMTP_STATE *state)
      * 
      * - Expiration code would need to selectively delete sessions from a list -
      * Re-use code would need to decode many sessions and choose the best -
-     * Store code would needs to choose between replace and append.
+     * Store code would need to choose between replace and append.
      * 
      * Note: checking the compatibility of re-activated sessions against the
      * cipher requirements of the session under construction requires us to
      * store the cipher name in the session cache with the passivated session
-     * object, the name is not available when the session is revived until
-     * the handshake is complete, which is too late.
+     * object. But the name is not available when the session is revived
+     * until the handshake is complete, which is too late.
      * 
-     * XXX: When cached ciphers are reloaded, their cipher is not available via
+     * XXX: When a cached session is reloaded, its cipher is not available via
      * documented APIs until the handshake completes. We need to filter out
      * sessions that use the wrong ciphers, but may not peek at the
      * undocumented session->cipher_id and cipher->id structure members.
      * 
      * Since cipherlists are typically shared by many domains, we include the
      * cipherlist in the session cache lookup key. This avoids false
-     * positives results from the session cache.
+     * positives from the TLS session cache.
      * 
      * To support mutually incompatible protocol/cipher combinations, our
      * session key must include both the protocol and the cipherlist.
@@ -738,10 +738,8 @@ static int smtp_start_tls(SMTP_STATE *state)
 	 * Specifically, this session is not final, don't defer any
 	 * recipients yet.
 	 */
-	if (session->tls_level == TLS_LEV_MAY) {
-	    session->tls_retry_plain = 1;
-	    state->misc_flags &= ~SMTP_MISC_FLAG_FINAL_SERVER;
-	}
+	if (session->tls_level == TLS_LEV_MAY)
+	    RETRY_AS_PLAINTEXT;
 	return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 			       SMTP_RESP_FAKE(&fake, "4.7.5"),
 			       "Cannot start TLS: handshake failure"));

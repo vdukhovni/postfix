@@ -454,6 +454,12 @@ int     bounce_header(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
 			    postmaster_copy);
 
     /*
+     * Auto-Submitted header, as per RFC 3834.
+     */
+    post_mail_fprintf(bounce, "Auto-Submitted: %s", postmaster_copy ?
+		      "auto-generated" : "auto-replied");
+
+    /*
      * MIME header. Use 8bit encoding when either the bounced message or the
      * template requires it.
      */

@@ -207,7 +207,7 @@ static sfsistat test_body(SMFICTX *ctx, unsigned char *data, size_t data_len)
     if (verbose == 0)
 	printf("test_body %ld bytes\n", (long) data_len);
     else
-	printf("%.*s", data_len, data);
+	printf("%.*s", (int) data_len, data);
     return (test_reply(ctx, test_body_reply));
 }
 

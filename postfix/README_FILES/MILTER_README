@@ -451,7 +451,7 @@ Milter applications make assumptions that aren't true in a Postfix environment.
 LLiimmiittaattiioonnss
 
 This section lists limitations of the Postfix Milter implementation. Some
-limitations will be removed disappear as support is extended over time. Of
+limitations will be removed as the implementation is extended over time. Of
 course the usual limitations of before-queue filtering will always apply. See
 the CONTENT_INSPECTION_README document for a discussion.
 

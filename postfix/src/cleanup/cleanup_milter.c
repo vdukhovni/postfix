@@ -415,7 +415,7 @@ static off_t cleanup_find_header(CLEANUP_STATE *state, ssize_t index,
     } \
     if (msg_verbose > 1) \
 	msg_info("%s: read: %ld: %.*s", myname, (long) curr_offset, \
-		 LEN(buf) > 30 ? 30 : LEN(buf), STR(buf)); \
+		 LEN(buf) > 30 ? 30 : (int) LEN(buf), STR(buf)); \
     if (rec_type == REC_TYPE_DTXT) \
 	continue; \
     if (rec_type != REC_TYPE_NORM && rec_type != REC_TYPE_CONT \
@@ -575,7 +575,7 @@ static const char *cleanup_patch_header(CLEANUP_STATE *state,
     cleanup_out_header(state, buf);
     if (msg_verbose > 1)
 	msg_info("%s: %ld: write %.*s", myname, (long) new_hdr_offset,
-		 LEN(buf) > 30 ? 30 : LEN(buf), STR(buf));
+		 LEN(buf) > 30 ? 30 : (int) LEN(buf), STR(buf));
 
     /*
      * Optionally, save the existing text record or pointer record that will
@@ -585,7 +585,7 @@ static const char *cleanup_patch_header(CLEANUP_STATE *state,
 	CLEANUP_OUT_BUF(state, rec_type, old_rec_buf);
 	if (msg_verbose > 1)
 	    msg_info("%s: write %.*s", myname, LEN(old_rec_buf) > 30 ?
-		     30 : LEN(old_rec_buf), STR(old_rec_buf));
+		     30 : (int) LEN(old_rec_buf), STR(old_rec_buf));
     }
 
     /*
@@ -607,7 +607,7 @@ static const char *cleanup_patch_header(CLEANUP_STATE *state,
 	}
 	if (msg_verbose > 1)
 	    msg_info("%s: %ld: read %.*s", myname, (long) read_offset,
-		     LEN(buf) > 30 ? 30 : LEN(buf), STR(buf));
+		     LEN(buf) > 30 ? 30 : (int) LEN(buf), STR(buf));
 	if (rec_type != REC_TYPE_NORM && rec_type != REC_TYPE_CONT
 	    && rec_type != REC_TYPE_PTR && rec_type != REC_TYPE_DTXT)
 	    msg_panic("%s: non-text/ptr record type %d in header, file %s",
@@ -626,7 +626,7 @@ static const char *cleanup_patch_header(CLEANUP_STATE *state,
 	CLEANUP_OUT_BUF(state, rec_type, buf);
 	if (msg_verbose > 1)
 	    msg_info("%s: %ld: write %.*s", myname, (long) write_offset,
-		     LEN(buf) > 30 ? 30 : LEN(buf), STR(buf));
+		     LEN(buf) > 30 ? 30 : (int) LEN(buf), STR(buf));
 	/* Update cached location of "append header" pointer record. */
 	if (saved_read_offset == state->append_hdr_pt_offset)
 	    state->append_hdr_pt_offset = write_offset;
