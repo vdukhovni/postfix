@@ -677,7 +677,7 @@ bool    var_smtp_tls_enforce_peername;
 char   *var_smtp_tls_key_file;
 int     var_smtp_tls_loglevel;
 bool    var_smtp_tls_note_starttls_offer;
-char   *var_smtp_tls_protocols;
+char   *var_smtp_tls_mand_proto;
 char   *var_smtp_tls_sec_cmatch;
 int     var_smtp_tls_scert_vd;
 char   *var_smtp_tls_vfy_cmatch;

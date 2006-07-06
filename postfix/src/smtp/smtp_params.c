@@ -25,7 +25,7 @@
 	VAR_TLS_LOW_CLIST, DEF_TLS_LOW_CLIST, &var_tls_low_clist, 1, 0,
 	VAR_TLS_EXPORT_CLIST, DEF_TLS_EXPORT_CLIST, &var_tls_export_clist, 1, 0,
 	VAR_TLS_NULL_CLIST, DEF_TLS_NULL_CLIST, &var_tls_null_clist, 1, 0,
-	VAR_SMTP_TLS_PROTO, DEF_SMTP_TLS_PROTO, &var_smtp_tls_protocols, 0, 0,
+	VAR_SMTP_TLS_MAND_PROTO, DEF_SMTP_TLS_MAND_PROTO, &var_smtp_tls_mand_proto, 0, 0,
 	VAR_SMTP_TLS_VFY_CMATCH, DEF_SMTP_TLS_VFY_CMATCH, &var_smtp_tls_vfy_cmatch, 1, 0,
 	VAR_SMTP_TLS_SEC_CMATCH, DEF_SMTP_TLS_SEC_CMATCH, &var_smtp_tls_sec_cmatch, 1, 0,
 #endif

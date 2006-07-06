@@ -1302,11 +1302,11 @@ extern int var_lmtp_tls_scache_timeout;
 #define DEF_LMTP_TLS_POLICY	""
 extern char *var_smtp_tls_policy;
 
-#define VAR_SMTP_TLS_PROTO	"smtp_tls_mandatory_protocols"
-#define DEF_SMTP_TLS_PROTO	"SSLv3, TLSv1"
-#define VAR_LMTP_TLS_PROTO	"lmtp_tls_mandatory_protocols"
-#define DEF_LMTP_TLS_PROTO	"SSLv3, TLSv1"
-extern char *var_smtp_tls_protocols;
+#define VAR_SMTP_TLS_MAND_PROTO	"smtp_tls_mandatory_protocols"
+#define DEF_SMTP_TLS_MAND_PROTO	"SSLv3, TLSv1"
+#define VAR_LMTP_TLS_MAND_PROTO	"lmtp_tls_mandatory_protocols"
+#define DEF_LMTP_TLS_MAND_PROTO	"SSLv3, TLSv1"
+extern char *var_smtp_tls_mand_proto;
 
 #define VAR_SMTP_TLS_VFY_CMATCH	"smtp_tls_verify_cert_match"
 #define DEF_SMTP_TLS_VFY_CMATCH	"hostname"

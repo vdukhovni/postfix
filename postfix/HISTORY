@@ -12340,8 +12340,8 @@ Apologies for any names omitted.
 
 20060612
 
-	Changed smtp security level parsing and level to name
-	convertion to use name_code(3).
+	Changed smtp security level parsing and level->name conversion
+	to use name_code(3).
 
 	Implemented new smtp_tls_security_level parameter, to replace
 	the unnecessarily complex smtp_use_tls, smtp_enforce_tls
@@ -12463,12 +12463,11 @@ Apologies for any names omitted.
 
 Wish list:
 
-	The usage of TLScontext->cache_type is not clear. It specifies
-	a TLS session cache name, but it is sometimes used as an
-	indicator whether or not TLS session caching is available.
-	In reality, that decision is made by the tlsmgr process,
-	and in response to initialization errors in a TLS server
-	or client process.
+	The usage of TLScontext->cache_type is unclear. It specifies
+	a TLS session cache type (smtpd, smtp, or lmtp), but it is
+	sometimes used as an indicator that TLS session caching is
+	unavailable.  In reality, that decision is made by not
+	registering call-back functions for cache maintenance.
 
 	Postfix TLS library code should copy any strings that it
 	receives from the application, instead of passing them

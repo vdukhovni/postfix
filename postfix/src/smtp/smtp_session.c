@@ -67,7 +67,7 @@
 /*	Zero or more of the following:
 /* .RS
 /* .IP SMTP_MISC_FLAG_CONN_CACHE
-/*	Enable session caching.
+/*	Enable SMTP or LMTP connection caching.
 /* .RE
 /* .IP dest_prop
 /*	Destination specific session properties: the server is the
@@ -160,9 +160,9 @@ void    smtp_tls_list_init(void)
 
 /* policy_name - printable tls policy level */
 
-static const char *policy_name(int level)
+static const char *policy_name(int tls_level)
 {
-    const char *name = str_name_code(smtp_tls_levels, level);
+    const char *name = str_name_code(smtp_tls_levels, tls_level);
 
     if (name == 0)
 	name = "unknown";
@@ -208,7 +208,7 @@ static void tls_site_lookup(int *site_level, const char *site_name,
 /* tls_policy_lookup_one - look up destination TLS policy */
 
 static int tls_policy_lookup_one(SMTP_SESSION *session,
-				         int *site_level, int *cipherlev,
+				         int *site_level, int *cipher_level,
 				         const char *site_name,
 				         const char *site_class)
 {
@@ -260,8 +260,8 @@ static int tls_policy_lookup_one(SMTP_SESSION *session,
 			 name, policy_name(*site_level));
 		continue;
 	    }
-	    *cipherlev = tls_cipher_level(val);
-	    if (*cipherlev == TLS_CIPHER_NONE) {
+	    *cipher_level = tls_cipher_level(val);
+	    if (*cipher_level == TLS_CIPHER_NONE) {
 		msg_warn("%s: invalid %s value '%s' ignored",
 			 str_context(cbuf, site_class, site_name),
 			 name, val);
@@ -310,7 +310,7 @@ static int tls_policy_lookup_one(SMTP_SESSION *session,
 /* tls_policy_lookup - look up destination TLS policy */
 
 static void tls_policy_lookup(SMTP_SESSION *session,
-			              int *site_level, int *cipherlev,
+			              int *site_level, int *cipher_level,
 			              const char *site_name,
 			              const char *site_class)
 {
@@ -323,13 +323,13 @@ static void tls_policy_lookup(SMTP_SESSION *session,
      * sub-domains of the recipient domain.
      */
     if (!valid_hostname(site_name, DONT_GRIPE)) {
-	tls_policy_lookup_one(session, site_level, cipherlev,
+	tls_policy_lookup_one(session, site_level, cipher_level,
 			      site_name, site_class);
 	return;
     }
     while (1) {
 	/* Try the given domain */
-	if (tls_policy_lookup_one(session, site_level, cipherlev,
+	if (tls_policy_lookup_one(session, site_level, cipher_level,
 				  site_name, site_class))
 	    return;
 	/* Re-try with parent domain */
@@ -340,7 +340,7 @@ static void tls_policy_lookup(SMTP_SESSION *session,
 
 /* set_cipherlist - Choose cipherlist per security level and cipher suite */
 
-static void set_cipherlist(SMTP_SESSION *session, int level, int lmtp)
+static void set_cipherlist(SMTP_SESSION *session, int cipher_level, int lmtp)
 {
     const char *cipherlist = 0;
     const char *exclude = var_smtp_tls_excl_ciph;
@@ -358,27 +358,27 @@ static void set_cipherlist(SMTP_SESSION *session, int level, int lmtp)
 	return;
 
     case TLS_LEV_MAY:
-	level = TLS_CIPHER_EXPORT;		/* Interoperate! */
+	cipher_level = TLS_CIPHER_EXPORT;	/* Interoperate! */
 	break;
 
     case TLS_LEV_ENCRYPT:
 	also_exclude = "eNULL";
-	if (level == TLS_CIPHER_NONE)
-	    level = tls_cipher_level(var_smtp_tls_ciphers);
+	if (cipher_level == TLS_CIPHER_NONE)
+	    cipher_level = tls_cipher_level(var_smtp_tls_ciphers);
 	mand_exclude = var_smtp_tls_mand_excl;
 	break;
 
     case TLS_LEV_VERIFY:
     case TLS_LEV_SECURE:
 	also_exclude = "aNULL";
-	if (level == TLS_CIPHER_NONE)
-	    level = tls_cipher_level(var_smtp_tls_ciphers);
+	if (cipher_level == TLS_CIPHER_NONE)
+	    cipher_level = tls_cipher_level(var_smtp_tls_ciphers);
 	mand_exclude = var_smtp_tls_mand_excl;
 	break;
     }
 
-    cipherlist = tls_cipher_list(level, exclude, mand_exclude, also_exclude,
-				 TLS_END_EXCLUDE);
+    cipherlist = tls_cipher_list(cipher_level, exclude, mand_exclude,
+				 also_exclude, TLS_END_EXCLUDE);
     if (cipherlist == 0) {
 	msg_warn("unknown '%s' value '%s' ignored, using 'medium'",
 		 lmtp ? VAR_LMTP_TLS_CIPHERS : VAR_SMTP_TLS_CIPHERS,
@@ -399,7 +399,7 @@ static void session_tls_init(SMTP_SESSION *session, const char *dest,
     int     global_level;
     int     site_level;
     int     lmtp = flags & SMTP_MISC_FLAG_USE_LMTP;
-    int     cipherlev = TLS_CIPHER_NONE;
+    int     cipher_level = TLS_CIPHER_NONE;
 
     /*
      * Initialize all TLS related session properties.
@@ -443,7 +443,7 @@ static void session_tls_init(SMTP_SESSION *session, const char *dest,
     site_level = TLS_LEV_NOTFOUND;
 
     if (tls_policy) {
-	tls_policy_lookup(session, &site_level, &cipherlev,
+	tls_policy_lookup(session, &site_level, &cipher_level,
 			  dest, "next-hop destination");
     } else if (tls_per_site) {
 	tls_site_lookup(&site_level, dest, "next-hop destination");
@@ -481,16 +481,16 @@ static void session_tls_init(SMTP_SESSION *session, const char *dest,
      */
     if (session->tls_level >= TLS_LEV_ENCRYPT
 	&& session->tls_protocols == 0
-	&& *var_smtp_tls_protocols)
+	&& *var_smtp_tls_mand_proto)
 	session->tls_protocols =
-	    tls_protocol_mask(VAR_SMTP_TLS_PROTO, var_smtp_tls_protocols);
+	    tls_protocol_mask(VAR_SMTP_TLS_MAND_PROTO, var_smtp_tls_mand_proto);
 
     /*
      * Convert cipher level (if set in per-destination table, else
      * set_cipherlist uses main.cf settings) to an OpenSSL cipherlist. The
      * "lmtp" vs. "smtp" identity is used for error reporting.
      */
-    set_cipherlist(session, cipherlev, lmtp);
+    set_cipherlist(session, cipher_level, lmtp);
 
     /*
      * Use main.cf cert_match setting if not set in per-destination table

@@ -18,8 +18,8 @@
 /*
 /*	long	tls_bug_bits()
 /*
-/*	const char *tls_cipher_list(grade, ...)
-/*	int	grade;
+/*	const char *tls_cipher_list(cipher_level, ...)
+/*	int	cipher_level;
 /*
 /*	void	tls_print_errors()
 /*
@@ -164,7 +164,7 @@ typedef struct {
 
 /* tls_cipher_list - Cipherlist for given grade, less exclusions */
 
-const char *tls_cipher_list(int grade,...)
+const char *tls_cipher_list(int cipher_level,...)
 {
     const char *myname = "tls_cipher_list";
     static VSTRING *buf;
@@ -177,7 +177,7 @@ const char *tls_cipher_list(int grade,...)
     buf = buf ? buf : vstring_alloc(10);
     VSTRING_RESET(buf);
 
-    switch (grade) {
+    switch (cipher_level) {
     case TLS_CIPHER_HIGH:
 	vstring_strcpy(buf, var_tls_high_clist);
 	break;
@@ -196,13 +196,13 @@ const char *tls_cipher_list(int grade,...)
     case TLS_CIPHER_NONE:
 	return 0;
     default:
-	msg_panic("%s: invalid cipher grade: %d", myname, grade);
+	msg_panic("%s: invalid cipher grade: %d", myname, cipher_level);
     }
 
     if (VSTRING_LEN(buf) == 0)
 	msg_panic("%s: empty cipherlist", myname);
 
-    va_start(ap, grade);
+    va_start(ap, cipher_level);
     while ((exclude = va_arg(ap, char *)) != 0) {
 	if (*exclude == '\0')
 	    continue;

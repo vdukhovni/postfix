@@ -20,8 +20,6 @@ digit when reporting failure to look up or connect to a host. For
 convenience, the SMTP client top-level code automatically changes
 the initial digit into '4' or '5' as appropriate.
 
-- The above two points also apply to the LMTP client.
-
 - In the SMTP server, don't worry about the initial enhanced status
 code digit when an smtpd_mumble_restriction rejects access. For
 convenience, the smtpd_check_reject() routine automatically changes
