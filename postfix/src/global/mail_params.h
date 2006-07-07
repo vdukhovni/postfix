@@ -1384,6 +1384,10 @@ extern bool var_smtp_sasl_enable;
 #define DEF_SMTP_SASL_PASSWD	""
 extern char *var_smtp_sasl_passwd;
 
+#define VAR_SMTP_SASL_ENFORCE	"smtp_sasl_auth_enforce"
+#define DEF_SMTP_SASL_ENFORCE	1
+extern bool var_smtp_sasl_enforce;
+
 #define VAR_SMTP_SASL_OPTS	"smtp_sasl_security_options"
 #define DEF_SMTP_SASL_OPTS	"noplaintext, noanonymous"
 extern char *var_smtp_sasl_opts;
@@ -1478,6 +1482,9 @@ extern bool var_lmtp_sasl_enable;
 #define VAR_LMTP_SASL_PASSWD	"lmtp_sasl_password_maps"
 #define DEF_LMTP_SASL_PASSWD	""
 extern char *var_lmtp_sasl_passwd;
+
+#define VAR_LMTP_SASL_ENFORCE	"lmtp_sasl_auth_enforce"
+#define DEF_LMTP_SASL_ENFORCE	1
 
 #define VAR_LMTP_SASL_OPTS	"lmtp_sasl_security_options"
 #define DEF_LMTP_SASL_OPTS	"noplaintext, noanonymous"

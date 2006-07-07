@@ -286,6 +286,7 @@ smtpd_check.o: ../../include/vbuf.h
 smtpd_check.o: ../../include/verify_clnt.h
 smtpd_check.o: ../../include/vstream.h
 smtpd_check.o: ../../include/vstring.h
+smtpd_check.o: ../../include/xtext.h
 smtpd_check.o: smtpd.h
 smtpd_check.o: smtpd_check.c
 smtpd_check.o: smtpd_check.h

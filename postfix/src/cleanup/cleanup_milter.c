@@ -1188,6 +1188,11 @@ static const char *cleanup_milter_eval(const char *name, void *ptr)
     CLEANUP_STATE *state = (CLEANUP_STATE *) ptr;
 
     /*
+     * Note: if we use XFORWARD attributes here, then consistency requires
+     * that we forward all Sendmail macros via XFORWARD.
+     */
+
+    /*
      * Canonicalize the name.
      */
     if (*name != '{') {				/* } */

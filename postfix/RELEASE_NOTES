@@ -11,20 +11,19 @@ instead, a new snapshot is released.
 The mail_release_date configuration parameter (format: yyyymmdd)
 specifies the release date of a stable release or snapshot release.
 
-Major changes - critical
-------------------------
+Critical notes
+--------------
 
 See RELEASE_NOTES_2.2 if you upgrade from Postfix 2.1 or earlier.
 
-Postfix internal protocols have has changed.  You need to "postfix
+Some Postfix internal protocols have changed.  You need to "postfix
 reload" or restart Postfix, otherwise many servers will log warning
 messages with "unexpected attribute" or "problem talking to service
 rewrite: Unknown error: 0", and mail will not be delivered.
 
-[Incompat 20060515] Milter support introduces a three new queue
-file record types. Queue files created with this Postfix version
-will be understood by older Postfix versions ONLY if Milter support
-is turned off, which is the default.
+The Sendmail-compatible Milter support introduces three new queue
+file record types. As long as you leave this feature turned off,
+you can still go back to Postfix version 2.2 without losing mail.
 
 Major changes - DNS lookups
 ---------------------------
@@ -41,18 +40,10 @@ Major changes - DSN
 This gives senders control over successful and failed delivery
 notifications.  DSN involves extra parameters to the SMTP MAIL FROM
 and RCPT TO commands, as well as extra Postfix sendmail command
-line options that provide a sub-set of the functions of those extra
-SMTP command parameters.
+line options for mail submission.
 
 See DSN_README for details. Some implementation notes are in
 implementation-notes/DSN.
-
-[Incompat 20050828] When the cleanup server rejects the content or
-size of mail that was submitted with the Postfix sendmail command,
-forwarded with the local(8) delivery agent, or that was re-queued
-with "postsuper -r", Postfix no longer sends DSN SUCCESS notification
-of virtual alias expansions. Since all the recipients are reported
-as failed, the SUCCESS notification seems redundant.
 
 [Incompat 20050615] The new DSN support conflicts with VERP support.
 For Sendmail compatibility, Postfix now uses the sendmail -V command
@@ -61,16 +52,23 @@ must now specify -XV instead of -V.  The Postfix sendmail command
 will recognize if you try to use -V for VERP-style delivery.  It
 will do the right thing and will remind you of the new syntax.
 
+[Incompat 20050828] When the cleanup server rejects the content or
+size of mail that was submitted with the Postfix sendmail command,
+that was forwarded with the local(8) delivery agent, or that was
+re-queued with "postsuper -r", Postfix no longer sends DSN SUCCESS
+notification after virtual alias expansions. Since all the recipients
+are reported as failed, the SUCCESS notification seems redundant.
+
 Major changes - LMTP client
 ---------------------------
 
-[Feature 20051208] The SMTP client now implements the LMTP protocol.
-Most but not all smtp_xxx parameters have an lmtp_xxx "ghost"
-parameter.  This means there are lot of new LMTP features, including
-support for TLS and for the shared connection cache.
+See the "SASL authentication" and "TLS" sections for changes related
+to SASL authentication and TLS support, respectively.
 
-[Feature 20060614] The unified SMTP/LMTP client now has complete
-sets of configuration parameters for each protocol.
+[Feature 20051208] The SMTP client now implements the LMTP protocol.
+Most but not all smtp_xxx parameters now have an lmtp_xxx equivalent.
+This means there are lot of new LMTP features, including support
+for TLS and for the shared connection cache.
 
 [Incompat 20051208] The LMTP client now reports the server as
 "myhostname[/path/name]".  With the real server hostname in delivery
@@ -81,19 +79,18 @@ Major changes - Milter support
 
 [Feature 20060515] Milter (mail filter) application support,
 compatible with Sendmail version 8.13.6 and earlier. This allows
-you to run a large number of plug-ins to reject unwanted mail and
-to sign mail with, for example, domain keys. All Milter functions
-are implemented except replacing the message body, which will be
-added later. Milters are before-queue filters, so they don't change
-the queue ID.
+you to run a large number of plug-ins to reject unwanted mail, and
+to sign mail with for example domain keys. All Milter functions are
+implemented except replacing the message body, which will be added
+later. Milters are before-queue filters, so they don't change the
+queue ID.
 
 See the MILTER_README document for a discussion of how to use Milter
-support with Postfix.
+support with Postfix, and limitations of the current implementation.
 
-[Incompat 20060515] Milter support introduces a three new queue
-file record types. Queue files created with this Postfix version
-will be understood by older Postfix versions ONLY if Milter support
-is turned off, which is the default.
+[Incompat 20060515] Milter support introduces three new queue file
+record types. As long as you leave this feature turned off, you can
+still go back to Postfix version 2.2 without losing mail.
 
 [Incompat 20060515] Milter support introduces new logfile event
 types: milter-reject, milter-discard and milter-hold, that identify
@@ -103,8 +100,15 @@ software.
 Major changes - SASL authentication
 -----------------------------------
 
+[Incompat 20060707] The SMTP/LMTP client now defers delivery when
+a SASL password exists but the server does not offer SASL authentication.
+Otherwise, the server could reject the mail. This may become an
+issue now that Postfix retries delivery in plaintext after an
+opportunistic TLS handshake fails. Specify "smtp_sasl_auth_enforce
+= no" to deliver mail anyway.
+
 [Feature 20051220] Plug-in support for SASL authentication in the
-SMTP server and in the SMTP+LMTP client. With this, Postfix can
+SMTP server and in the SMTP/LMTP client. With this, Postfix can
 support multiple SASL implementations without source code patches.
 Some distributors may even make SASL support a run-time linking
 option, just like they already do with Postfix lookup tables.
@@ -117,7 +121,7 @@ are slightly different, but these are generally improvements.
 
 The "postconf -a" command shows what plug-in implementations are
 available for the SMTP server, and "postconf -A" does the same for
-the SMTP+LMTP client.  Plug-in implementations are selected with
+the SMTP/LMTP client.  Plug-in implementations are selected with
 the smtpd_sasl_type, smtp_sasl_type and lmtp_sasl_type configuration
 parameters.
 
@@ -163,15 +167,13 @@ ISP accounts.
 Major changes - SMTP client
 ---------------------------
 
-[Feature 20051208] The SMTP client now implements the LMTP protocol.
-Most but not all smtp_xxx parameters have an lmtp_xxx "ghost"
-parameter.  This means there are lot of new LMTP features, including
-support for TLS and for the shared connection cache. There are no
-lmtp_xxx "ghost" parameters for the HELO or EHLO commands, because
-those commands exist only in SMTP.
+See the "SASL authentication" and "TLS" sections for changes related
+to SASL authentication and TLS support, respectively.
 
-[Feature 20060614] The unified SMTP/LMTP client now has complete
-sets of configuration parameters for each protocol.
+[Feature 20051208] The SMTP client now implements the LMTP protocol.
+Most but not all smtp_xxx parameters now have an lmtp_xxx equivalent.
+This means there are lot of new LMTP features, including support
+for TLS and for the shared connection cache.
 
 [Incompat 20060112] The Postfix SMTP/LMTP client by default no
 longer allows DNS CNAME records to override the server hostname
@@ -180,13 +182,13 @@ and TLS server certificate verification. Specify
 "smtp_cname_overrides_servername = yes" to get the old behavior.
 
 [Incompat 20060103] The Postfix SMTP/LMTP client no longer defers
-mail when it receives a malformed SMTP server reply in a session
-with command pipelining.  When helpful warnings are enabled, it
-will suggest that command pipelining be disabled for the affected
+mail delivery when it receives a malformed SMTP server reply in a
+session with command pipelining.  When helpful warnings are enabled,
+it will suggest that command pipelining be disabled for the affected
 destination.
 
 [Incompat 20051208] The fallback_relay feature is renamed to
-smtp_fallback_relay, to make clear that the combined SMTP+LMTP
+smtp_fallback_relay, to make clear that the combined SMTP/LMTP
 client uses this setting only for SMTP deliveries. The old name
 still works.
 
@@ -274,29 +276,27 @@ this limit was disabled by default. The new limit prevents Postfix
 from spending lots of time trying to connect to lots of bogus MX
 servers.
 
-[Incompat 20050622] The Postfix SMTP handling of [45]XX server
-greetings was cleaned up. The server reply is now properly reported.
-
 Major changes - SMTP server
 ---------------------------
 
-[Incompat 20060207] The Postfix SMTP server no longer complains
-when TLS support is not compiled in, but permit_tls_clientcerts,
-permit_tls_all_clientcerts, or check_ccert_access are used. These
-features now are effectively ignored.  However, the
-reject_plaintext_session feature is not ignored and will reject
-mail.
+See the "SASL authentication" and "TLS" sections for changes related
+to SASL authentication and TLS support, respectively.
 
-[Incompat 20051202] The Postfix SMTP daemon will not receive mail
-from the network if it isn't running with postfix mail_owner
+[Feature 20051222] You can now use "resolve_numeric_domain = yes"
+to stop Postfix from rejecting user@ipaddress as an invalid
+destination. It will deliver the mail to user@[ipaddress] instead.
+
+[Incompat 20051202] The Postfix SMTP server now refuses to receive
+mail from the network if it isn't running with postfix mail_owner
 privileges.  This prevents surprises when, for example, "sendmail
 -bs" is configured to run as root from xinetd.
 
-[Incompat 20051121] The permit_mx_backup feature still accepts mail
-for authorized destinations (see permit_mx_backup for definition),
-but with other destinations it requires that the local MTA is listed
-as non-primary MX. This prevents mail loop problems when someone
-points the primary MX record at Postfix.
+[Incompat 20051121] Although the permit_mx_backup feature still
+accepts mail for authorized destinations (see permit_mx_backup for
+definition), with all other destinations it now requires that the
+local MTA is listed as non-primary MX. This prevents mail loop
+problems when someone points the primary MX record at a Postfix
+system.
 
 [Feature 20051011] Optional protection against SMTP clients that
 hammer the server with too many new (i.e. uncached) SMTP-over-TLS
@@ -339,8 +339,8 @@ parameters.  The old parameters are still supported but will be
 removed in a future Postfix release.
 
 [Feature 20060614] New smtpd_tls_protocols parameter complements
-the smtp_tls_mandatory_protocols parameter, only recommended for
-MSA configurations, not MX hosts.
+the smtp_tls_mandatory_protocols parameter. This recommended for
+MSA configurations, not for MX for hosts that face the Internet.
 
 [Feature 20060626] Both the SMTP client and server can be configured
 without a client or server certificate. An SMTP server without
@@ -356,11 +356,15 @@ is required (notably Postfix 2.3 in "opportunistic" mode) and the
 administrator has not excluded the "aNULL" OpenSSL cipher type with
 smtp_tls_exclude_ciphers.
 
-[Feature 20060626] You can specify cipher grades with the
-smtp_tls_mandatory_ciphers, lmtp_tls_mandatory_ciphers and
-smtpd_tls_ciphers parameters. Specify
-one of "high", "medium", "low", "export" or "null". See TLS_README
-for details.
+[Feature 20060626] You can specify cipher grades (instead of cipher
+names) with the smtp_tls_mandatory_ciphers, lmtp_tls_mandatory_ciphers
+and smtpd_tls_ciphers parameters. Specify one of "high", "medium",
+"low", "export" or "null". See TLS_README for details.
+
+[Incompat 20060707] The SMTPD policy client now encodes the
+ccert_subject and ccert_issuer attributes as xtext. Some characters
+are represented by +XX, where XX is the two-digit hexadecimal
+representation of the character value.
 
 [Incompat 20060614] The smtp_sasl_tls_verified_security_options
 feature is not yet complete, and will therefore not appear in the
@@ -378,9 +382,9 @@ now also logs TLS session cache activity. Use level 2 and higher
 for debugging only, use levels 0 or 1 as production settings.
 
 [Incompat 20060207] The Postfix SMTP server no longer complains
-when TLS support is not compiled in, but permit_tls_clientcerts,
-permit_tls_all_clientcerts, or check_ccert_access are used. These
-features now are effectively ignored.  However, the
+when TLS support is not compiled in while permit_tls_clientcerts,
+permit_tls_all_clientcerts, or check_ccert_access are specified in
+main.cf. These features now are effectively ignored.  However, the
 reject_plaintext_session feature is not ignored and will reject
 mail.
 
@@ -388,7 +392,8 @@ mail.
 smtp_tls_per_site feature, without changes to the user interface.
 Some Postfix internals had to be re-structured in preparation for
 a more general TLS policy mechanism; this required that smtp_tls_per_site
-be re-implemented from scratch.
+be re-implemented from scratch. The obscure behavior was found
+during compatibility testing.
 
 [Feature 20051011] Optional protection against SMTP clients that
 hammer the server with too many new (i.e. uncached) SMTP-over-TLS
@@ -412,13 +417,14 @@ Major changes - XCLIENT and XFORWARD
 
 [Incompat 20060611] The SMTP server XCLIENT implementation has
 changed. The SMTP server now resets state to the initial server
-greeting stage, so that it can accurately simulate the effect of
-connection-level access restrictions.  Without this change, XCLIENT
-will not work at all with Milter applications.
+greeting stage, immediately before the EHLO/HELO greeting.  This
+was needed to correctly simulate the effect of connection-level
+access restrictions.  Without this change, XCLIENT would not work
+with Milter applications.
 
 [Incompat 20060611] The SMTP server XCLIENT and XFORWARD commands
 now expect that attributes are xtext encoded (RFC 1891). For backwards
-compatibility they will accept unencoded attribute values. The
+compatibility they will also accept unencoded attribute values. The
 XFORWARD client code in the SMTP client and in the SMTPD_PROXY
 client will always encode attribute values. This change will have
 effect only for malformed hostname and helo parameter values.
@@ -426,14 +432,18 @@ effect only for malformed hostname and helo parameter values.
 For more details, see the XCLIENT_README and XFORWARD_README
 documents.
 
-Major changes - address rewriting
----------------------------------
+Major changes - address manipulation
+------------------------------------
 
 [Incompat 20060123] Postfix now preserves uppercase information
 while mapping addresses with canonical, virtual, relocated or generic
 maps; this happens even with $number substitutions in regular
 expression maps. However, the local(8) and virtual(8) delivery
 agents still fold addresses to lower case.
+
+As a side effect, Postfix now also does a better job at being case
+insensitive where it should be, for example while searching per-host
+TLS policies or SASL passwords.
 
 By default, Postfix now folds the search string to lowercase only
 with tables that have fixed-case lookup fields such as btree:,
@@ -443,13 +453,6 @@ case, such as regexp:, pcre:, or cidr:.
 
 For safety reasons, Postfix no longer allows $number substitution
 in regexp: or pcre: transport tables or per-sender relayhost tables.
-
-[Feature 20060123] Postfix now does a better job at preserving
-upper/lower case information while transforming addresses.  The
-table lookup code was revised, and is now more careful about when
-it folds search strings to lower case.  As a side effect, Postfix
-now also does a better job at being case insensitive where it should,
-for example while searching per-host TLS policies or SASL passwords.
 
 Major changes - bounce message templates
 ----------------------------------------
@@ -481,13 +484,6 @@ this:
                             The $mail_name program
     EOF
 
-Major changes - broken SMTP clients
------------------------------------
-
-[Feature 20051222] You can now use "resolve_numeric_domain = yes"
-to stop Postfix from rejecting user@ipaddress as an invalid
-destination. It will deliver the mail to user@[ipaddress] instead.
-
 Major changes - built-in filters
 --------------------------------
 
@@ -502,55 +498,6 @@ rule rejects mail that was submitted with the Postfix sendmail
 command (or re-queued with "postsuper -r"), the returned message
 is now limited to just the message headers, to avoid the risk of
 exposure to harmful content in the message body or attachments.
-
-Major changes - connection caching
-----------------------------------
-
-[Incompat 20051026] The smtp_connection_cache_reuse_limit parameter
-(which limits the number of deliveries per SMTP connection) is
-replaced by the new smtp_connection_reuse_time_limit parameter (the
-time after which a connection is no longer stored into the connection
-cache).
-
-[Feature 20051026] This snapshot addresses a performance stability
-problem with remote SMTP servers. The problem is not specific to
-Postfix: it can happen when any MTA sends large amounts of SMTP
-email to a site that has multiple MX hosts. The insight that led
-to the solution, as well as an initial implementation, are due to
-Victor Duchovni.
-
-The problem starts when one of a set of MX hosts becomes slower
-than the rest.  Even though SMTP clients connect to fast and slow
-MX hosts with equal probability, the slow MX host ends up with more
-simultaneous inbound connections than the faster MX hosts, because
-the slow MX host needs more time to serve each client request.
-
-The slow MX host becomes a connection attractor.  If one MX host
-becomes N times slower than the rest, it dominates mail delivery
-latency unless there are more than N fast MX hosts to counter the
-effect. And if the number of MX hosts is smaller than N, the mail
-delivery latency becomes effectively that of the slowest MX host
-divided by the total number of MX hosts.
-
-The solution uses connection caching in a way that differs from
-Postfix 2.2.  By limiting the amount of time during which a connection
-can be used repeatedly (instead of limiting the number of deliveries
-over that connection), Postfix not only restores fairness in the
-distribution of simultaneous connections across a set of MX hosts,
-it also favors deliveries over connections that perform well, which
-is exactly what we want.
-
-The smtp_connection_reuse_time_limit feature implements the connection
-reuse time limit as discussed above.  It limits the amount of time
-after which an SMTP connection is no longer stored into the connection
-cache. The default limit, 300s, can result in a huge number of
-deliveries over a single connection.
-
-This solution will be complete when Postfix logging is updated to
-include information about the number of times that a connection was
-used. This information is needed to diagnose inter-operability
-problems with servers that exhibit bugs when they receive multiple
-messages over the same connection.
 
 Major changes - database support
 --------------------------------
@@ -639,17 +586,16 @@ software.
 [Incompat 20051106] The relay=... logging has changed and now
 includes the remote SMTP server port number as hostname[hostaddr]:port.
 
+[Incompat 20060112] The Postfix SMTP/LMTP client by default no
+longer allows DNS CNAME records to override the server hostname
+that is used for logging, SASL password lookup, TLS policy selection
+and TLS server certificate verification. Specify
+"smtp_cname_overrides_servername = yes" to get the old behavior.
+
 [Incompat 20051105] All delay logging now has sub-second resolution,
 including the over-all "delay=nnn" logging.  A patch is available
 for pflogsumm (pflogsumm-conn-delays-dsn-patch). The qshape script
 has been updated (auxiliary/qshape/qshape.pl).
-
-At this point the Postfix logging for a recipient looks like this:
-
-    Nov  3 16:04:31 myname postfix/smtp[30840]: 19B6B2900FE:
-    to=<wietse@test.example.com>, orig_to=<wietse@test>,
-    relay=mail.example.com[1.2.3.4], conn_use=2, delay=0.22,
-    delays=0.04/0.01/0.05/0.1, dsn=2.0.0, status=sent (250 2.0.0 Ok)
 
 [Feature 20051103] This release makes a beginning with a series of
 new attributes in Postfix logfile records.
@@ -664,8 +610,9 @@ new attributes in Postfix logfile records.
 - Logging of the connection reuse count when SMTP connections are
   used for more than one message delivery.  This information is
   needed because Postfix can now reuse connections hundreds of times
-  or more, and can help to diagnose inter-operability problems with
-  servers that suffer from memory leaks or other resource leaks.
+  or more. Logging of the connection reuse count can help to diagnose
+  inter-operability problems with servers that suffer from memory
+  leaks or other resource leaks.
 
 At this point the Postfix logging for a recipient looks like this:
 
@@ -695,6 +642,12 @@ where y and z can be up to three digits each.
 
 Major changes - performance
 ---------------------------
+
+[Incompat 20050622] The Postfix SMTP client by default limits the
+number of MX server addresses to smtp_mx_address_limit=5. Previously
+this limit was disabled by default. The new limit prevents Postfix
+from spending lots of time trying to connect to lots of bogus MX
+servers.
 
 [Feature 20051026] This snapshot addresses a performance stability
 problem with remote SMTP servers. The problem is not specific to
@@ -752,42 +705,41 @@ Major changes - portability
 ---------------------------
 
 [Incompat 20050716] Internal interfaces have changed; this may break
-third-party patches because the text of function argument and result
-type definitions has changed.  The type of buffer lengths and offsets
-were changed from "(unsigned) int" (32 bit on 32-bit and LP64
-systems) to "(s)size_t" (64 bit on LP64 systems, 32 bit on 32-bit
-systems).
+third-party patches because the types of function arguments and of
+result values have changed.  The types of buffer lengths and offsets
+were changed from "int" or "unsigned int" (32 bit on 32-bit and
+LP64 systems) to "ssize_t" or "size_t" (64 bit on LP64 systems, 32
+bit on 32-bit systems).
 
-Otherwise, this change makes no difference on 32-bit systems. On
-LP64 systems, however, software may mis-behave 1) when Postfix is
+This change makes no difference in Postfix behavior on 32-bit
+systems. On LP64 systems, however, this change not only eliminates
+some obscure portability bugs, it also eliminates unnecessary
+conversions between 32/64 bit integer types, because many system
+library routines take "(s)size_t" arguments or return "(s)size_t"
+values.
+
+This change may break software on LP64 systems 1) when Postfix is
 linked with pre-compiled code that was compiled with old Postfix
 interface definitions and 2) when compiling Postfix source that was
-modified by a third-party patch: incorrect code may be generated
+modified by a third-party patch: incorrect code will be generated
 when the patch passes the wrong integer argument type in contexts
 that disable automatic argument type conversions.  Examples of such
 contexts are formatting with printf-like arguments, and invoking
 functions that write Postfix request or reply attributes across
 inter-process communication channels.  Unfortunately, gcc does not
 report "(unsigned) int" versus "(s)size_t" format string argument
-mis-matches on 32-bit systems; they can be found only on 64-bit
+mis-matches on 32-bit systems; it reports them only on 64-bit
 systems.
-
-[Feature 20050716] Improved portability to LP64 systems, by converting
-the type of buffer lengths and offsets from "(unsigned) int" to
-"(s)size_t".  This change has zero effect on 32-bit systems. On
-LP64 platforms, however, this change not only eliminates some obscure
-portability bugs, it also eliminates unnecessary conversions between
-32/64 bit integer types, because many system library routines take
-"(s)size_t" arguments or return "(s)size_t" values.
 
 Major changes - safety
 ----------------------
 
-[Incompat 20051121] The permit_mx_backup feature still accepts mail
-for authorized destinations (see permit_mx_backup for definition),
-but with other destinations it requires that the local MTA is listed
-as non-primary MX. This prevents mail loop problems when someone
-points the primary MX record at Postfix.
+[Incompat 20051121] Although the permit_mx_backup feature still
+accepts mail for authorized destinations (see permit_mx_backup for
+definition), with all other destinations it now requires that the
+local MTA is listed as non-primary MX. This prevents mail loop
+problems when someone points the primary MX record at a Postfix
+system.
 
 [Incompat 20051011] The Postfix local(8) delivery agent no longer
 updates its idea of the Delivered-To: address while it expands
@@ -808,8 +760,17 @@ command (or re-queued with "postsuper -r"), the returned message
 is now limited to just the message headers, to avoid the risk of
 exposure to harmful content in the message body or attachments.
 
-[Incompat 20051202] The Postfix SMTP daemon will not receive mail
-from the network if it isn't running with postfix mail_owner
+[Incompat 20051202] The Postfix SMTP server now refuses to receive
+mail from the network if it isn't running with postfix mail_owner
 privileges.  This prevents surprises when, for example, "sendmail
 -bs" is configured to run as root from xinetd.
 
+[Incompat 20060123] For safety reasons, Postfix no longer allows
+$number substitution in regexp: or pcre: transport tables or
+per-sender relayhost tables.
+
+[Incompat 20060112] The Postfix SMTP/LMTP client by default no
+longer allows DNS CNAME records to override the server hostname
+that is used for logging, SASL password lookup, TLS policy selection
+and TLS server certificate verification. Specify
+"smtp_cname_overrides_servername = yes" to get the old behavior.

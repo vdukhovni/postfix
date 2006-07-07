@@ -10345,3 +10345,18 @@ configuration parameter.  See there for details. </p>
 configuration parameter.  See there for details. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM smtp_sasl_auth_enforce   yes
+
+<p> Defer mail delivery when an SMTP server does not support SASL
+authentication, while smtp_sasl_password_maps contains SASL
+login/password information for that server. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM lmtp_sasl_auth_enforce   yes
+
+<p> The LMTP-specific version of the smtp_sasl_auth_enforce
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>

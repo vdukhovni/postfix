@@ -12461,6 +12461,24 @@ Apologies for any names omitted.
 
 	Cleanup: comments, error messages, and crumbling interfaces.
 
+20060707
+
+	Workaround: apparently, Solaris gettimeofday() can return
+	out-of range microsecond values.  File: src/global/log_adhoc.c.
+
+	Robustness: the SMTPD policy client now encodes the
+	ccert_subject and ccert-issuer attributes as xtext.  Some
+	characters are replaced by +XX, where XX is the two-digit
+	hexadecimal code for the character value.  File:
+	smtpd/smtpd_check.c.
+
+	Safety: the SMTP/LMTP client now defers delivery when a
+	SASL password exists but the server does not offer SASL
+	authentication. Mail could be rejected otherwise. This
+	may become an issue now that Postfix retries delivery in
+	plaintext after an opportunistic TLS handshake fails. Specify
+	"smtp_sasl_auth_enforce = no" to deliver mail anyway.
+
 Wish list:
 
 	The usage of TLScontext->cache_type is unclear. It specifies
@@ -12474,36 +12492,26 @@ Wish list:
 	around as pointers. TLScontext->cache_type is a case in
 	point.
 
-	In the SMTPD policy client (encode or strip) non-printable
-	non-ASCII in (TLS or all) attributes.
-
 	Are transport:nexthop null fields the same as in the case
 	of default_transport etc. parameters?
 
 	Introduce structured API for tls_server_mumble() just like
 	with smtp(8): this eliminates ever-growing lists of arguments.
 
-	Defer delivery when a SASL password exists but the server
-	does not offer SASL authentication, as mail might otherwise
-	be bounced. This may become an issue now that Postfix will
-	retry in plaintext after optional TLS fails. Make this
-	configurable so people can get the old behavior.
-
 	Don't lose bits when converting st_dev into maildir file
 	name. It's 64 bits on Linux. Found with the BEAM source
-	code analyzer.
+	code analyzer. Is this really a problem, or are they just
+	using 64 bits for upwards compatibility with LP64 systems?
 
 	Do or don't introduce unknown_reverse_client_reject_code.
 
-	mail_addr/rcpt_addr should be externalized as they are in
-	Sendmail. Likewise, addresses in add/delete requests should
-	be internalized before updating the queue file.
+	In Milter events, mail_addr/rcpt_addr should be externalized
+	as they are in Sendmail. Likewise, addresses in add/delete
+	requests should be internalized before updating the queue
+	file.
 
 	Check that "UINT32 == unsigned int" choice is ok (i.e. LP64
 	UNIX).
-
-	Fix milter_argv() so it does not forget how much memory it
-	has.
 
 	Tempfail when a Milter application wants content access,
 	while it is configured in an SMTP server that runs before
@@ -12531,8 +12539,8 @@ Wish list:
 	Eliminate the (incoming,deferred)->active rename operation.
 
 	Softbounce fallback-to-ISP for SOHO users. This requires
-	playing with with the soft_error test in the smtp_trouble.c
-	module, and a way to avoid trying direct-to-backup-MX.
+	playing with the soft_error test in the smtp_trouble.c
+	module, and avoiding delivery to backup MX hosts.
 
 	select -> kqueue, epoll, /dev/poll, poll() ...
 

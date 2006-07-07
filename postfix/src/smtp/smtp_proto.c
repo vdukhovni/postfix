@@ -600,6 +600,15 @@ int     smtp_helo(SMTP_STATE *state)
 #ifdef USE_SASL_AUTH
     if (var_smtp_sasl_enable && (session->features & SMTP_FEATURE_AUTH))
 	return (smtp_sasl_helo_login(state));
+    else if (var_smtp_sasl_enable
+	     && *var_smtp_sasl_passwd
+	     && var_smtp_sasl_enforce
+	     && smtp_sasl_passwd_lookup(session) != 0)
+	return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
+			       SMTP_RESP_FAKE(&fake, "4.7.0"),
+			       "SASL login/password exists, but host %s "
+			       "does not announce SASL authentication support",
+			       session->namaddr));
 #endif
 
     return (0);

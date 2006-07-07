@@ -3530,6 +3530,17 @@ Enable SASL authentication in the Postfix LMTP client.
 
 </DD>
 
+<DT><b><a name="lmtp_sasl_auth_enforce">lmtp_sasl_auth_enforce</a>
+(default: yes)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_sasl_auth_enforce">smtp_sasl_auth_enforce</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_sasl_mechanism_filter">lmtp_sasl_mechanism_filter</a>
 (default: empty)</b></DT><DD>
 
@@ -7548,6 +7559,18 @@ Example:
 <pre>
 <a href="postconf.5.html#smtp_sasl_auth_enable">smtp_sasl_auth_enable</a> = yes
 </pre>
+
+
+</DD>
+
+<DT><b><a name="smtp_sasl_auth_enforce">smtp_sasl_auth_enforce</a>
+(default: yes)</b></DT><DD>
+
+<p> Defer mail delivery when an SMTP server does not support SASL
+authentication, while <a href="postconf.5.html#smtp_sasl_password_maps">smtp_sasl_password_maps</a> contains SASL
+login/password information for that server. </p>
+
+<p> This feature is available in Postfix 2.3 and later. </p>
 
 
 </DD>

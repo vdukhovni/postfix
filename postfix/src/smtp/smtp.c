@@ -234,6 +234,10 @@
 /*	server's list of offered SASL mechanisms.
 /* .PP
 /*	Available in Postfix version 2.3 and later:
+/* .IP "\fBsmtp_sasl_auth_enforce (yes)\fR"
+/*	Defer mail delivery when an SMTP server does not support SASL
+/*	authentication, while smtp_sasl_password_maps contains SASL
+/*	login/password information for that server.
 /* .IP "\fBsmtp_sender_dependent_authentication (no)\fR"
 /*	Enable sender-dependent authentication in the SMTP client; this is
 /*	available only with SASL authentication, and disables SMTP connection
@@ -691,6 +695,7 @@ bool    var_smtp_sender_auth;
 char   *var_lmtp_tcp_port;
 int     var_scache_proto_tmout;
 bool    var_smtp_cname_overr;
+bool    var_smtp_sasl_enforce;
 
  /*
   * Global variables.
