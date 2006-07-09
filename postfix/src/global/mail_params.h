@@ -1091,6 +1091,10 @@ extern char *var_smtpd_forbid_cmds;
 #define DEF_SMTPD_TLS_WRAPPER	0
 extern bool var_smtpd_tls_wrappermode;
 
+#define VAR_SMTPD_TLS_LEVEL	"smtpd_tls_security_level"
+#define DEF_SMTPD_TLS_LEVEL	""
+extern char *var_smtpd_tls_level;
+
 #define VAR_SMTPD_USE_TLS	"smtpd_use_tls"
 #define DEF_SMTPD_USE_TLS	0
 extern bool var_smtpd_use_tls;

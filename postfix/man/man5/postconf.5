@@ -4884,9 +4884,9 @@ example.net     secure match=example.com:.example.com
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH smtp_tls_security_level (default: empty)
-The default SMTP TLS security level for all destinations; when
-a non-empty value is specified, this overrides the obsolete parameters
-smtp_use_tls, smtp_enforce_tls, and smtp_tls_enforce_peername.
+The default SMTP TLS security level for the Postfix SMTP client;
+when a non-empty value is specified, this overrides the obsolete
+parameters smtp_use_tls, smtp_enforce_tls, and smtp_tls_enforce_peername.
 .PP
 Specify one of the following security levels:
 .IP "\fBnone\fR"
@@ -5621,19 +5621,20 @@ This feature is available in Postfix 2.2 and later.
 .PP
 See smtpd_data_restrictions for syntax details.
 .SH smtpd_enforce_tls (default: no)
-Enforcement mode: announce STARTTLS support to SMTP clients,
+Mandatory TLS: announce STARTTLS support to SMTP clients,
 and require that clients use TLS encryption.  According to RFC 2487
 this MUST NOT be applied in case of a publicly-referenced SMTP
 server.  This option is off by default and should be used only on
 dedicated servers.
 .PP
-Note 1: this mode implies "smtpd_tls_auth_only = yes".
+Note 1: "smtpd_enforce_tls = yes" implies "smtpd_tls_auth_only = yes".
 .PP
 Note 2: when invoked via "\fBsendmail -bs\fR", Postfix will never offer
 STARTTLS due to insufficient privileges to access the server private
 key. This is intended behavior.
 .PP
-This feature is available in Postfix 2.2 and later.
+This feature is available in Postfix 2.2 and later. With
+Postfix 2.3 and later use smtpd_tls_security_level instead.
 .SH smtpd_error_sleep_time (default: 1s)
 With Postfix version 2.1 and later: the SMTP server response delay after
 a client has made more than $smtpd_soft_error_limit errors, and
@@ -6470,15 +6471,15 @@ able to authenticate the server, but unless it is running Postfix 2.3 or
 similar software, it will still insist on a server certificate.
 .PP
 For servers that are \fBnot\fR public Internet MX hosts, Postfix
-2.3 supports configurations with no certificates. This entails the use
-of just the anonymous TLS ciphers, which are not supported by typical
-SMTP clients. Since such clients will not, as a rule, fall back to plain
-text after a TLS handshake failure, the server will be unable to receive
-email from TLS enabled clients. To avoid accidental configurations with
-no certificates, Postfix 2.3 enables certificate-less operation only
-when the administrator explicitly sets "smtpd_tls_cert_file = none". This
-ensures that new Postfix configurations with just "smtpd_use_tls = yes"
-added, will not accidentally run with no certificates.
+2.3 supports configurations with no certificates. This entails the
+use of just the anonymous TLS ciphers, which are not supported by
+typical SMTP clients. Since such clients will not, as a rule, fall
+back to plain text after a TLS handshake failure, the server will
+be unable to receive email from TLS enabled clients. To avoid
+accidental configurations with no certificates, Postfix 2.3 enables
+certificate-less operation only when the administrator explicitly
+sets "smtpd_tls_cert_file = none". This ensures that new Postfix
+configurations will not accidentally run with no certificates.
 .PP
 Both RSA and DSA certificates are supported.  When both types
 are present, the cipher used determines which certificate will be
@@ -6723,17 +6724,15 @@ loglevel 4 is strongly discouraged.
 .PP
 This feature is available in Postfix 2.2 and later.
 .SH smtpd_tls_protocols (default: empty)
-The list of TLS protocols supported by the server. If empty the
-default list of protocols is used (i.e. all TLS protocol versions are
-supported). Any non-empty value is interpreted as a list of protocol
-names separated by whitespace, commas or colons. The supported protocol
-names are "SSLv2", "SSLv3" and "TLSv1", and are not
-case-sensitive.
+The list of TLS protocols supported by the Postfix SMTP server.
+If the list is empty, the server supports all available TLS protocol
+versions.  A non-empty value is a list of protocol names separated
+by whitespace, commas or colons. The supported protocol names are
+"SSLv2", "SSLv3" and "TLSv1", and are not case sensitive.
 .PP
-DO NOT set this to a non-default value on an MX-host,
-as some clients may not support any of the narrower set of protocols,
-and may be unable to fallback to plaintext sessions. If you restrict
-the protocol list on an MX host, you may lose mail.
+DO NOT set this to a non-default value on an Internet MX host,
+as this may cause inter-operability problems.  If you restrict the
+protocol list on an Internet MX host, you may lose mail.
 .PP
 Example:
 .PP
@@ -6764,6 +6763,37 @@ When TLS encryption is optional, this setting is ignored with
 a warning written to the mail log.
 .PP
 This feature is available in Postfix 2.2 and later.
+.SH smtpd_tls_security_level (default: empty)
+The SMTP TLS security level for the Postfix SMTP server; when
+a non-empty value is specified, this overrides the obsolete parameters
+smtpd_use_tls and smtpd_enforce_tls. This parameter is ignored with
+"smtpd_tls_wrappermode = yes".
+.PP
+Specify one of the following security levels:
+.IP "\fBnone\fR"
+TLS will not be used.
+.IP "\fBmay\fR"
+Opportunistic TLS: announce STARTTLS support
+to SMTP clients, but do not require that clients use TLS encryption.
+.IP "\fBencrypt\fR"
+Mandatory TLS encryption: announce
+STARTTLS support to SMTP clients, and require that clients use TLS
+encryption. According to RFC 2487 this MUST NOT be applied in case
+of a publicly-referenced SMTP server. Instead, this option should
+be used only on dedicated servers.
+.PP
+Note 1: the "verify" and "secure" levels are not supported.
+The Postfix SMTP server logs a warning and uses "encrypt" instead.
+To verify SMTP client certificates, see TLS_README for a discussion
+of the smtpd_tls_ask_ccert, smtpd_tls_req_ccert, and permit_tls_clientcerts
+features.
+.PP
+Note 2: The parameter setting "smtpd_tls_security_level =
+encrypt" implies "smtpd_tls_auth_only = yes".
+.PP
+Note 3: when invoked via "sendmail -bs", Postfix will never
+offer STARTTLS due to insufficient privileges to access the server
+private key. This is intended behavior.
 .SH smtpd_tls_session_cache_database (default: empty)
 Name of the file containing the optional Postfix SMTP server
 TLS session cache. Specify a database type that supports enumeration,
@@ -6812,14 +6842,15 @@ purpose.
 .PP
 This feature is available in Postfix 2.2 and later.
 .SH smtpd_use_tls (default: no)
-Opportunistic mode: announce STARTTLS support to SMTP clients,
+Opportunistic TLS: announce STARTTLS support to SMTP clients,
 but do not require that clients use TLS encryption.
 .PP
 Note: when invoked via "\fBsendmail -bs\fR", Postfix will never offer
 STARTTLS due to insufficient privileges to access the server private
 key. This is intended behavior.
 .PP
-This feature is available in Postfix 2.2 and later.
+This feature is available in Postfix 2.2 and later. With
+Postfix 2.3 and later use smtpd_tls_security_level instead.
 .SH soft_bounce (default: no)
 Safety net to keep mail queued that would otherwise be returned to
 the sender.  This parameter disables locally-generated bounces,

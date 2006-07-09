@@ -126,15 +126,6 @@
 #include "smtp.h"
 #include "smtp_sasl.h"
 
-NAME_CODE smtp_tls_levels[] = {
-    "none", TLS_LEV_NONE,
-    "may", TLS_LEV_MAY,
-    "encrypt", TLS_LEV_ENCRYPT,
-    "verify", TLS_LEV_VERIFY,
-    "secure", TLS_LEV_SECURE,
-    0, TLS_LEV_NOTFOUND,
-};
-
 #ifdef USE_TLS
 
 static MAPS *tls_policy;		/* lookup table(s) */
@@ -162,7 +153,7 @@ void    smtp_tls_list_init(void)
 
 static const char *policy_name(int tls_level)
 {
-    const char *name = str_name_code(smtp_tls_levels, tls_level);
+    const char *name = str_tls_level(tls_level);
 
     if (name == 0)
 	name = "unknown";
@@ -241,7 +232,7 @@ static int tls_policy_lookup_one(SMTP_SESSION *session,
 	msg_warn("ignoring empty tls policy for %s", site_name);
 	FREE_RETURN(1);				/* No further lookups */
     }
-    *site_level = name_code(smtp_tls_levels, NAME_CODE_FLAG_NONE, tok);
+    *site_level = tls_level_lookup(tok);
     if (*site_level == TLS_LEV_NOTFOUND) {
 	msg_warn("%s: unknown security level '%s' ignored",
 		 str_context(cbuf, site_class, site_name), tok);
@@ -418,8 +409,7 @@ static void session_tls_init(SMTP_SESSION *session, const char *dest,
      * per-site policy.
      */
     if (*var_smtp_tls_level) {
-	global_level = name_code(smtp_tls_levels, NAME_CODE_FLAG_NONE,
-				 var_smtp_tls_level);
+	global_level = tls_level_lookup(var_smtp_tls_level);
 	if (global_level == TLS_LEV_NOTFOUND) {
 	    msg_fatal("%s: unknown TLS security level '%s'",
 		      lmtp ? VAR_LMTP_TLS_LEVEL : VAR_SMTP_TLS_LEVEL,

@@ -1886,7 +1886,8 @@ static void milter8_disc_event(MILTER *m)
 typedef struct {
     MILTER8 *milter;			/* milter client */
     ARGV   *macros;			/* end-of-body macros */
-    int     hdr_count;			/* header counter */
+    int     first_header;		/* first header */
+    int     first_body;			/* first body line */
     const char *resp;			/* milter application response */
 } MILTER_MSG_CONTEXT;
 
@@ -1916,8 +1917,10 @@ static void milter8_header(void *ptr, int unused_header_class,
      * dk-filter signature will be inserted at the wrong position. It should
      * precede the headers that it signs.
      */
-    if (msg_ctx->hdr_count++ == 0)
+    if (msg_ctx->first_header) {
+	msg_ctx->first_header = 0;
 	return;
+    }
 
     /*
      * Sendmail 8 sends multi-line headers as text separated by newline.
@@ -1981,6 +1984,14 @@ static void milter8_body(void *ptr, int rec_type,
     const char *bp = buf;
     ssize_t space;
     ssize_t count;
+
+    /*
+     * XXX Sendmail compatibility: don't expose our first body line.
+     */
+    if (msg_ctx->first_body) {
+	msg_ctx->first_body = 0;
+	return;
+    }
 
     /*
      * XXX I thought I was going to delegate all the on-the-wire formatting
@@ -2082,7 +2093,8 @@ static const char *milter8_message(MILTER *m, VSTREAM *qfile,
 	}
 	msg_ctx.milter = milter;
 	msg_ctx.macros = macros;
-	msg_ctx.hdr_count = 0;
+	msg_ctx.first_header = 1;
+	msg_ctx.first_body = 1;
 	msg_ctx.resp = 0;
 	mime_state =
 	    mime_state_alloc(MIME_OPT_DISABLE_MIME,

@@ -12,6 +12,11 @@
 /* .nf
 
  /*
+  * Utility library.
+  */
+#include <name_code.h>
+
+ /*
   * TLS enforcement levels. Non-sentinel values also be used to indicate
   * the actual security level of a session.
   */
@@ -21,6 +26,11 @@
 #define TLS_LEV_ENCRYPT		2	/* encrypted connection */
 #define TLS_LEV_VERIFY		3	/* certificate verified */
 #define TLS_LEV_SECURE		4	/* "secure" verification */
+
+extern NAME_CODE tls_level_table[];
+
+#define tls_level_lookup(s) name_code(tls_level_table, NAME_CODE_FLAG_NONE, (s))
+#define str_tls_level(l) str_name_code(tls_level_table, (l))
 
 #ifdef USE_TLS
 

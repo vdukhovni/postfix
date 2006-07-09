@@ -8457,9 +8457,10 @@ example.net     secure match=example.com:.example.com
 <DT><b><a name="smtp_tls_security_level">smtp_tls_security_level</a>
 (default: empty)</b></DT><DD>
 
-<p> The default SMTP TLS security level for all destinations; when
-a non-empty value is specified, this overrides the obsolete parameters
-<a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a>, <a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a>, and <a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a>.  </p>
+<p> The default SMTP TLS security level for the Postfix SMTP client;
+when a non-empty value is specified, this overrides the obsolete
+parameters <a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a>, <a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a>, and <a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a>.
+</p>
 
 <p> Specify one of the following security levels: </p>
 
@@ -9457,19 +9458,20 @@ applies in the context of the SMTP END-OF-DATA command. </p>
 <DT><b><a name="smtpd_enforce_tls">smtpd_enforce_tls</a>
 (default: no)</b></DT><DD>
 
-<p> Enforcement mode: announce STARTTLS support to SMTP clients,
+<p> Mandatory TLS: announce STARTTLS support to SMTP clients,
 and require that clients use TLS encryption.  According to <a href="http://www.faqs.org/rfcs/rfc2487.html">RFC 2487</a>
 this MUST NOT be applied in case of a publicly-referenced SMTP
 server.  This option is off by default and should be used only on
 dedicated servers. </p>
 
-<p> Note 1: this mode implies "<a href="postconf.5.html#smtpd_tls_auth_only">smtpd_tls_auth_only</a> = yes". </p>
+<p> Note 1: "<a href="postconf.5.html#smtpd_enforce_tls">smtpd_enforce_tls</a> = yes" implies "<a href="postconf.5.html#smtpd_tls_auth_only">smtpd_tls_auth_only</a> = yes". </p>
 
 <p> Note 2: when invoked via "<b>sendmail -bs</b>", Postfix will never offer
 STARTTLS due to insufficient privileges to access the server private
 key. This is intended behavior. </p>
 
-<p> This feature is available in Postfix 2.2 and later.  </p>
+<p> This feature is available in Postfix 2.2 and later. With
+Postfix 2.3 and later use <a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a> instead. </p>
 
 
 </DD>
@@ -10805,15 +10807,15 @@ able to authenticate the server, but unless it is running Postfix 2.3 or
 similar software, it will still insist on a server certificate. </p>
 
 <p> For servers that are <b>not</b> public Internet MX hosts, Postfix
-2.3 supports configurations with no certificates. This entails the use
-of just the anonymous TLS ciphers, which are not supported by typical
-SMTP clients. Since such clients will not, as a rule, fall back to plain
-text after a TLS handshake failure, the server will be unable to receive
-email from TLS enabled clients. To avoid accidental configurations with
-no certificates, Postfix 2.3 enables certificate-less operation only
-when the administrator explicitly sets "<a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a> = none". This
-ensures that new Postfix configurations with just "<a href="postconf.5.html#smtpd_use_tls">smtpd_use_tls</a> = yes"
-added, will not accidentally run with no certificates. </p>
+2.3 supports configurations with no certificates. This entails the
+use of just the anonymous TLS ciphers, which are not supported by
+typical SMTP clients. Since such clients will not, as a rule, fall
+back to plain text after a TLS handshake failure, the server will
+be unable to receive email from TLS enabled clients. To avoid
+accidental configurations with no certificates, Postfix 2.3 enables
+certificate-less operation only when the administrator explicitly
+sets "<a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a> = none". This ensures that new Postfix
+configurations will not accidentally run with no certificates. </p>
 
 <p> Both RSA and DSA certificates are supported.  When both types
 are present, the cipher used determines which certificate will be
@@ -11108,17 +11110,15 @@ loglevel 4 is strongly discouraged. </p>
 <DT><b><a name="smtpd_tls_protocols">smtpd_tls_protocols</a>
 (default: empty)</b></DT><DD>
 
-<p> The list of TLS protocols supported by the server. If empty the
-default list of protocols is used (i.e. all TLS protocol versions are
-supported). Any non-empty value is interpreted as a list of protocol
-names separated by whitespace, commas or colons. The supported protocol
-names are "SSLv2", "SSLv3" and "TLSv1", and are not
-case-sensitive. </p>
+<p> The list of TLS protocols supported by the Postfix SMTP server.
+If the list is empty, the server supports all available TLS protocol
+versions.  A non-empty value is a list of protocol names separated
+by whitespace, commas or colons. The supported protocol names are
+"SSLv2", "SSLv3" and "TLSv1", and are not case sensitive. </p>
 
-<p> DO NOT set this to a non-default value on an MX-host,
-as some clients may not support any of the narrower set of protocols,
-and may be unable to fallback to plaintext sessions. If you restrict
-the protocol list on an MX host, you may lose mail. </p>
+<p> DO NOT set this to a non-default value on an Internet MX host,
+as this may cause inter-operability problems.  If you restrict the
+protocol list on an Internet MX host, you may lose mail. </p>
 
 <p> Example: </p>
 
@@ -11157,6 +11157,48 @@ option implies "<a href="postconf.5.html#smtpd_tls_ask_ccert">smtpd_tls_ask_ccer
 a warning written to the mail log. </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_tls_security_level">smtpd_tls_security_level</a>
+(default: empty)</b></DT><DD>
+
+<p> The SMTP TLS security level for the Postfix SMTP server; when
+a non-empty value is specified, this overrides the obsolete parameters
+<a href="postconf.5.html#smtpd_use_tls">smtpd_use_tls</a> and <a href="postconf.5.html#smtpd_enforce_tls">smtpd_enforce_tls</a>. This parameter is ignored with
+"<a href="postconf.5.html#smtpd_tls_wrappermode">smtpd_tls_wrappermode</a> = yes".  </p>
+
+<p> Specify one of the following security levels: </p>
+
+<dl>
+
+<dt><b>none</b></dt> <dd> TLS will not be used. </dd>
+
+<dt><b>may</b></dt> <dd> Opportunistic TLS: announce STARTTLS support
+to SMTP clients, but do not require that clients use TLS encryption.
+</dd>
+
+<dt><b>encrypt</b></dt> <dd>Mandatory TLS encryption: announce
+STARTTLS support to SMTP clients, and require that clients use TLS
+encryption. According to <a href="http://www.faqs.org/rfcs/rfc2487.html">RFC 2487</a> this MUST NOT be applied in case
+of a publicly-referenced SMTP server. Instead, this option should
+be used only on dedicated servers. </dd>
+
+</dl>
+
+<p> Note 1: the "verify" and "secure" levels are not supported.
+The Postfix SMTP server logs a warning and uses "encrypt" instead.
+To verify SMTP client certificates, see <a href="TLS_README.html">TLS_README</a> for a discussion
+of the <a href="postconf.5.html#smtpd_tls_ask_ccert">smtpd_tls_ask_ccert</a>, <a href="postconf.5.html#smtpd_tls_req_ccert">smtpd_tls_req_ccert</a>, and <a href="postconf.5.html#permit_tls_clientcerts">permit_tls_clientcerts</a>
+features.  </p>
+
+<p> Note 2: The parameter setting "<a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a> =
+encrypt" implies "<a href="postconf.5.html#smtpd_tls_auth_only">smtpd_tls_auth_only</a> = yes".</p>
+
+<p> Note 3: when invoked via "sendmail -bs", Postfix will never
+offer STARTTLS due to insufficient privileges to access the server
+private key. This is intended behavior.</p>
 
 
 </DD>
@@ -11225,14 +11267,15 @@ purpose. </p>
 <DT><b><a name="smtpd_use_tls">smtpd_use_tls</a>
 (default: no)</b></DT><DD>
 
-<p> Opportunistic mode: announce STARTTLS support to SMTP clients,
+<p> Opportunistic TLS: announce STARTTLS support to SMTP clients,
 but do not require that clients use TLS encryption. </p>
 
 <p> Note: when invoked via "<b>sendmail -bs</b>", Postfix will never offer
 STARTTLS due to insufficient privileges to access the server private
 key. This is intended behavior. </p>
 
-<p> This feature is available in Postfix 2.2 and later.  </p>
+<p> This feature is available in Postfix 2.2 and later. With
+Postfix 2.3 and later use <a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a> instead. </p>
 
 
 </DD>

@@ -12479,6 +12479,20 @@ Apologies for any names omitted.
 	plaintext after an opportunistic TLS handshake fails. Specify
 	"smtp_sasl_auth_enforce = no" to deliver mail anyway.
 
+20060709
+
+	Cleanup: the new single smtpd_tls_security_level parameter
+	obsoletes the multiple smtpd_use_tls and smtpd_enforce_tls
+	parameters. This is done for consistency with the Postfix
+	SMTP client. In the Postfix SMTP server, the levels "verify"
+	and "secure" are currently not applicable, and are treated
+	as "encrypt", after logging a warning. Files: smtpd/smtpd.c,
+	tls/tls_level.c, smtp/smtp_session.c.
+
+	Compatibility: don't send the first body line to Milter
+	applications.  This also broke domain key etc. signatures
+	when verified by non-Postfix MTAs.  File: milter/milter8.c.
+
 Wish list:
 
 	The usage of TLScontext->cache_type is unclear. It specifies

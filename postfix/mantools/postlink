@@ -566,6 +566,7 @@ while (<>) {
     s;\bsmtpd_tls_dh512_param_file\b;<a href="postconf.5.html#smtpd_tls_dh512_param_file">$&</a>;g;
     s;\bsmtpd_tls_dkey_file\b;<a href="postconf.5.html#smtpd_tls_dkey_file">$&</a>;g;
     s;\bsmtpd_tls_key_file\b;<a href="postconf.5.html#smtpd_tls_key_file">$&</a>;g;
+    s;\bsmtpd_tls_security_level\b;<a href="postconf.5.html#smtpd_tls_security_level">$&</a>;g;
     s;\bsmtpd_tls_loglevel\b;<a href="postconf.5.html#smtpd_tls_loglevel">$&</a>;g;
     s;\bsmtpd_tls_protocols\b;<a href="postconf.5.html#smtpd_tls_protocols">$&</a>;g;
     s;\bsmtpd_tls_received_header\b;<a href="postconf.5.html#smtpd_tls_received_header">$&</a>;g;

@@ -1178,6 +1178,10 @@ static const char *cleanup_repl_body(void *context, VSTRING *body)
 {
     const char *myname = "cleanup_repl_body";
 
+    /*
+     * XXX Sendmail compatibility: milters don't see the first body line, so
+     * don't expect they will send one.
+     */
     msg_panic("%s: message body replace operation is not implemented", myname);
 }
 

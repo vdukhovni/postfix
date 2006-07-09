@@ -2,11 +2,13 @@ SHELL	= /bin/sh
 SRCS	= tls_prng_dev.c tls_prng_egd.c tls_prng_file.c \
 	tls_prng_exch.c tls_stream.c tls_bio_ops.c tls_misc.c tls_dh.c \
 	tls_rsa.c tls_verify.c tls_certkey.c tls_session.c \
-	tls_client.c tls_server.c tls_scache.c tls_mgr.c tls_seed.c
+	tls_client.c tls_server.c tls_scache.c tls_mgr.c tls_seed.c \
+	tls_level.c
 OBJS	= tls_prng_dev.o tls_prng_egd.o tls_prng_file.o \
 	tls_prng_exch.o tls_stream.o tls_bio_ops.o tls_misc.o tls_dh.o \
 	tls_rsa.o tls_verify.o tls_certkey.o tls_session.o \
-	tls_client.o tls_server.o tls_scache.o tls_mgr.o tls_seed.o
+	tls_client.o tls_server.o tls_scache.o tls_mgr.o tls_seed.o \
+	tls_level.o
 HDRS	= tls.h tls_prng.h tls_scache.h tls_mgr.h
 TESTSRC	= 
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
@@ -129,6 +131,14 @@ tls_dh.o: ../../include/vstream.h
 tls_dh.o: ../../include/vstring.h
 tls_dh.o: tls.h
 tls_dh.o: tls_dh.c
+tls_level.o: ../../include/name_code.h
+tls_level.o: ../../include/name_mask.h
+tls_level.o: ../../include/sys_defs.h
+tls_level.o: ../../include/vbuf.h
+tls_level.o: ../../include/vstream.h
+tls_level.o: ../../include/vstring.h
+tls_level.o: tls.h
+tls_level.o: tls_level.c
 tls_mgr.o: ../../include/attr.h
 tls_mgr.o: ../../include/attr_clnt.h
 tls_mgr.o: ../../include/iostuff.h

@@ -295,10 +295,10 @@ for authentication.
 Detailed information about STARTTLS configuration may be
 found in the TLS_README document.
 .IP "\fBsmtpd_use_tls (no)\fR"
-Opportunistic mode: announce STARTTLS support to SMTP clients,
+Opportunistic TLS: announce STARTTLS support to SMTP clients,
 but do not require that clients use TLS encryption.
 .IP "\fBsmtpd_enforce_tls (no)\fR"
-Enforcement mode: announce STARTTLS support to SMTP clients,
+Mandatory TLS: announce STARTTLS support to SMTP clients,
 and require that clients use TLS encryption.
 .IP "\fBsmtpd_sasl_tls_security_options ($smtpd_sasl_security_options)\fR"
 The SASL authentication security options that the Postfix SMTP
@@ -342,7 +342,7 @@ File with the Postfix SMTP server RSA private key in PEM format.
 .IP "\fBsmtpd_tls_loglevel (0)\fR"
 Enable additional Postfix SMTP server logging of TLS activity.
 .IP "\fBsmtpd_tls_protocols (empty)\fR"
-The list of TLS protocols supported by the server.
+The list of TLS protocols supported by the Postfix SMTP server.
 .IP "\fBsmtpd_tls_received_header (no)\fR"
 Request that the Postfix SMTP server produces Received:  message
 headers that include information about the protocol and cipher used,
@@ -364,6 +364,12 @@ instead of using the STARTTLS command.
 The number of pseudo-random bytes that an \fBsmtp\fR(8) or \fBsmtpd\fR(8)
 process requests from the \fBtlsmgr\fR(8) server in order to seed its
 internal pseudo random number generator (PRNG).
+.PP
+Available in Postfix version 2.3 and later:
+.IP "\fBsmtpd_tls_security_level (empty)\fR"
+The SMTP TLS security level for the Postfix SMTP server; when
+a non-empty value is specified, this overrides the obsolete parameters
+smtpd_use_tls and smtpd_enforce_tls.
 .IP "\fBtls_high_cipherlist (!EXPORT:!LOW:!MEDIUM:ALL:+RC4:@STRENGTH)\fR"
 The OpenSSL cipherlist for "HIGH" grade ciphers.
 .IP "\fBtls_medium_cipherlist (!EXPORT:!LOW:ALL:+RC4:@STRENGTH)\fR"

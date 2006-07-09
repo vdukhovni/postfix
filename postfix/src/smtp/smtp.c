@@ -256,9 +256,9 @@
 /*	Detailed information about STARTTLS configuration may be found
 /*	in the TLS_README document.
 /* .IP "\fBsmtp_tls_security_level (empty)\fR"
-/*	The default SMTP TLS security level for all destinations; when
-/*	a non-empty value is specified, this overrides the obsolete parameters
-/*	smtp_use_tls, smtp_enforce_tls, and smtp_tls_enforce_peername.
+/*	The default SMTP TLS security level for the Postfix SMTP client;
+/*	when a non-empty value is specified, this overrides the obsolete
+/*	parameters smtp_use_tls, smtp_enforce_tls, and smtp_tls_enforce_peername.
 /* .IP "\fBsmtp_sasl_tls_security_options ($smtp_sasl_security_options)\fR"
 /*	The SASL authentication security options that the Postfix SMTP
 /*	client uses for TLS encrypted SMTP sessions.
@@ -716,8 +716,6 @@ SSL_CTX *smtp_tls_ctx;
 
 #endif
 
-extern NAME_CODE smtp_tls_levels[];	/* smtp_session.c name_code table */
-
 /* deliver_message - deliver message with extreme prejudice */
 
 static int deliver_message(const char *service, DELIVER_REQUEST *request)
@@ -853,8 +851,7 @@ static void pre_init(char *unused_name, char **unused_argv)
     /*
      * Initialize the TLS data before entering the chroot jail
      */
-    if (name_code(smtp_tls_levels, NAME_CODE_FLAG_NONE,
-		  var_smtp_tls_level) > TLS_LEV_NONE ||
+    if (tls_level_lookup(var_smtp_tls_level) > TLS_LEV_NONE ||
 	var_smtp_use_tls || var_smtp_enforce_tls ||
 	var_smtp_tls_per_site[0] || var_smtp_tls_policy[0]) {
 #ifdef USE_TLS
