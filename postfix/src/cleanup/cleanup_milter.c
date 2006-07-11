@@ -1265,7 +1265,8 @@ void    cleanup_milter_receive(CLEANUP_STATE *state, int count)
 
 /* cleanup_milter_apply - apply Milter reponse, non-zero if rejecting */
 
-static const char *cleanup_milter_apply(CLEANUP_STATE *state, const char *resp)
+static const char *cleanup_milter_apply(CLEANUP_STATE *state, const char *event,
+					        const char *resp)
 {
     const char *myname = "cleanup_milter_apply";
     const char *action;
@@ -1337,7 +1338,9 @@ static const char *cleanup_milter_apply(CLEANUP_STATE *state, const char *resp)
     default:
 	msg_panic("%s: unexpected mail filter reply: %s", myname, resp);
     }
-    vstring_sprintf(state->temp1, "%s: %s;", state->queue_id, action);
+    vstring_sprintf(state->temp1, "%s: %s: %s from %s[%s]: %s;",
+		    state->queue_id, action, event, state->client_name,
+		    state->client_addr, text);
     if (state->sender)
 	vstring_sprintf_append(state->temp1, " from=<%s>", state->sender);
     if (state->recip)
@@ -1346,7 +1349,6 @@ static const char *cleanup_milter_apply(CLEANUP_STATE *state, const char *resp)
 	vstring_sprintf_append(state->temp1, " proto=%s", attr);
     if ((attr = nvtable_find(state->attr, MAIL_ATTR_LOG_HELO_NAME)) != 0)
 	vstring_sprintf_append(state->temp1, " helo=<%s>", attr);
-    vstring_sprintf_append(state->temp1, ": %s", text);
     msg_info("%s", vstring_str(state->temp1));
 
     return (ret);
@@ -1368,7 +1370,7 @@ void    cleanup_milter_inspect(CLEANUP_STATE *state, MILTERS *milters)
      */
     if ((resp = milter_message(milters, state->handle->stream,
 			       state->data_offset)) != 0)
-	cleanup_milter_apply(state, resp);
+	cleanup_milter_apply(state, "END-OF-MESSAGE", resp);
     if (msg_verbose)
 	msg_info("leave %s", myname);
 }
@@ -1380,8 +1382,6 @@ void    cleanup_milter_emul_mail(CLEANUP_STATE *state,
 				         const char *addr)
 {
     const char *resp;
-    const char *client_name;
-    const char *client_addr;
     const char *proto_attr;
     const char *client_port;
     int     client_af;
@@ -1404,14 +1404,15 @@ void    cleanup_milter_emul_mail(CLEANUP_STATE *state,
      */
 #define NO_CLIENT_PORT	"0"
 
-    client_name = nvtable_find(state->attr, MAIL_ATTR_ACT_CLIENT_NAME);
-    client_addr = nvtable_find(state->attr, MAIL_ATTR_ACT_CLIENT_ADDR);
+    state->client_name = nvtable_find(state->attr, MAIL_ATTR_ACT_CLIENT_NAME);
+    state->client_addr = nvtable_find(state->attr, MAIL_ATTR_ACT_CLIENT_ADDR);
+
     client_port = nvtable_find(state->attr, MAIL_ATTR_ACT_CLIENT_PORT);
     proto_attr = nvtable_find(state->attr, MAIL_ATTR_ACT_CLIENT_AF);
-    if (client_name == 0 || client_addr == 0 || proto_attr == 0
+    if (state->client_name == 0 || state->client_addr == 0 || proto_attr == 0
 	|| !alldig(proto_attr)) {
-	client_name = "localhost";
-	client_addr = "127.0.0.1";
+	state->client_name = "localhost";
+	state->client_addr = "127.0.0.1";
 	client_af = AF_INET;
     } else
 	client_af = atoi(proto_attr);
@@ -1421,18 +1422,18 @@ void    cleanup_milter_emul_mail(CLEANUP_STATE *state,
     /*
      * Emulate SMTP events.
      */
-    if ((resp = milter_conn_event(milters, client_name, client_addr,
+    if ((resp = milter_conn_event(milters, state->client_name, state->client_addr,
 				  client_port, client_af)) != 0) {
-	cleanup_milter_apply(state, resp);
+	cleanup_milter_apply(state, "CONNECT", resp);
 	return;
     }
 #define PRETEND_ESMTP	1
 
     if (CLEANUP_MILTER_OK(state)) {
 	if ((helo = nvtable_find(state->attr, MAIL_ATTR_ACT_HELO_NAME)) == 0)
-	    helo = client_name;
+	    helo = state->client_name;
 	if ((resp = milter_helo_event(milters, helo, PRETEND_ESMTP)) != 0) {
-	    cleanup_milter_apply(state, resp);
+	    cleanup_milter_apply(state, "EHLO", resp);
 	    return;
 	}
     }
@@ -1440,7 +1441,7 @@ void    cleanup_milter_emul_mail(CLEANUP_STATE *state,
 	argv[0] = addr;
 	argv[1] = 0;
 	if ((resp = milter_mail_event(milters, argv)) != 0) {
-	    cleanup_milter_apply(state, resp);
+	    cleanup_milter_apply(state, "MAIL", resp);
 	    return;
 	}
     }
@@ -1463,7 +1464,7 @@ void    cleanup_milter_emul_rcpt(CLEANUP_STATE *state,
     argv[0] = addr;
     argv[1] = 0;
     if ((resp = milter_rcpt_event(milters, argv)) != 0
-	&& cleanup_milter_apply(state, resp) != 0) {
+	&& cleanup_milter_apply(state, "RCPT", resp) != 0) {
 	msg_warn("%s: milter configuration error: can't reject recipient "
 		 "in non-smtpd(8) submission", state->queue_id);
 	msg_warn("%s: deferring delivery of this message", state->queue_id);
@@ -1481,7 +1482,7 @@ void    cleanup_milter_emul_data(CLEANUP_STATE *state, MILTERS *milters)
     const char *resp;
 
     if ((resp = milter_data_event(milters)) != 0)
-	cleanup_milter_apply(state, resp);
+	cleanup_milter_apply(state, "DATA", resp);
 }
 
 #ifdef TEST

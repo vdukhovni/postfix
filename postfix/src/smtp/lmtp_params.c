@@ -16,7 +16,7 @@
 	VAR_LMTP_TLS_DKEY_FILE, DEF_LMTP_TLS_DKEY_FILE, &var_smtp_tls_dkey_file, 0, 0,
 	VAR_LMTP_TLS_CA_FILE, DEF_LMTP_TLS_CA_FILE, &var_smtp_tls_CAfile, 0, 0,
 	VAR_LMTP_TLS_CA_PATH, DEF_LMTP_TLS_CA_PATH, &var_smtp_tls_CApath, 0, 0,
-	VAR_LMTP_TLS_CIPHERS, DEF_LMTP_TLS_CIPHERS, &var_smtp_tls_ciphers, 1, 0,
+	VAR_LMTP_TLS_MAND_CIPH, DEF_LMTP_TLS_MAND_CIPH, &var_smtp_tls_mand_ciph, 1, 0,
 	VAR_LMTP_TLS_EXCL_CIPH, DEF_LMTP_TLS_EXCL_CIPH, &var_smtp_tls_excl_ciph, 0, 0,
 	VAR_LMTP_TLS_MAND_EXCL, DEF_LMTP_TLS_MAND_EXCL, &var_smtp_tls_mand_excl, 0, 0,
 	VAR_TLS_HIGH_CLIST, DEF_TLS_HIGH_CLIST, &var_tls_high_clist, 1, 0,

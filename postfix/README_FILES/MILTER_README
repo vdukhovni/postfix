@@ -12,12 +12,12 @@ FROM, etc.) as well as mail content. All this happens before mail is queued.
 The reason for adding Milter support to Postfix is that there exists a large
 collection of applications, not only to block unwanted mail, but also to verify
 authenticity (examples: SenderID+SPF and Domain keys) or to digitally sign mail
-(example: Domain keys). Having yet another MTA-specific version of all that
+(example: Domain keys). Having yet another Postfix-specific version of all that
 software is a poor use of human and system resources.
 
 Postfix 2.3 implements all the requests of Sendmail version 8 Milter protocols
 up to version 4, except one: message body replacement. See, however, the
-limitations section at the end of this document.
+workarounds and limitations sections at the end of this document.
 
 This document provides information on the following topics:
 
@@ -185,7 +185,7 @@ The general syntax for listening sockets is as follows:
         Connect to the specified TCP port on the specified local or remote
         host. The host and port can be specified in numeric or symbolic form.
 
-        Note: Postfix syntax differs from Milter syntax which has the form
+        NOTE: Postfix syntax differs from Milter syntax which has the form
         iinneett::port@@host.
 
 NNoonn--SSMMTTPP MMiilltteerr aapppplliiccaattiioonnss
@@ -381,9 +381,18 @@ message).
 
 WWoorrkkaarroouunnddss
 
+Content filters may break domain key etc. signatures. If you use an SMTP-based
+filter as described in FILTER_README, then you should add a line to master.cf
+with "disable_mime_output_conversion = yes", as described in the advanced
+content filter example.
+
 Sendmail Milter applications were originally developed for the Sendmail version
 8 MTA, which has a different architecture than Postfix. The result is that some
 Milter applications make assumptions that aren't true in a Postfix environment.
+
+  * Some Milter applications use the "{if_addr}" macro to recognize local mail;
+    this macro does not exist in Postfix. Workaround: use the "{client_addr}"
+    macro instead.
 
   * Some Milter applications log a warning that looks like this:
 
@@ -394,12 +403,13 @@ Milter applications make assumptions that aren't true in a Postfix environment.
         X-SenderID: Sendmail Sender-ID Filter vx.y.z host.example.com <unknown-
         msgid>
 
-    This happens because the Milter application expects that the queue ID is
+    This happens because some Milter applications expect that the queue ID is
     known before the MTA accepts the MAIL FROM (sender) command. Postfix, on
-    the other hand, does not create a queue file until after Postfix accepts
-    the first valid RCPT TO (recipient) command. This queue file name must be
-    globally unique across multiple queue directories, so it cannot be chosen
-    until the file is actually created.
+    the other hand, does not choose a queue file name until after it accepts
+    the first valid RCPT TO (recipient) command. Postfix queue file names must
+    be unique across multiple directories, so the name can't be chosen before
+    the file is created. If multiple messages were to use the same queue ID
+    simultaneously, mail would be lost.
 
     To work around the ugly message header from Milter applications, we add a
     little code to the Milter source to look up the queue ID after Postfix
@@ -411,19 +421,27 @@ Milter applications make assumptions that aren't true in a Postfix environment.
       o Look up the mlfi_eom() function and add code near the top shown as bboolldd
         text below:
 
-        sic = (Context) smfi_getpriv(ctx);
-        assert(sic != NULL);
+        dfc = cc->cctx_msg;
+        assert(dfc != NULL);
 
-        //**
-        ****  DDeetteerrmmiinnee tthhee jjoobb IIDD ffoorr llooggggiinngg..
-        **//
-        iiff ((ssiicc-->>ccttxx__jjoobbiidd ==== 00 |||| ssttrrccmmpp((ssiicc-->>ccttxx__jjoobbiidd,, MMSSGGIIDDUUNNKKNNOOWWNN)) ==== 00)) {{
+        //** DDeetteerrmmiinnee tthhee jjoobb IIDD ffoorr llooggggiinngg.. **//
+        iiff ((ddffcc-->>mmccttxx__jjoobbiidd ==== 00 |||| ssttrrccmmpp((ddffcc-->>mmccttxx__jjoobbiidd,, JJOOBBIIDDUUNNKKNNOOWWNN)) ==== 00))
+        {{
                 cchhaarr **jjoobbiidd == ssmmffii__ggeettssyymmvvaall((ccttxx,, ""ii""));;
                 iiff ((jjoobbiidd !!== 00))
-                        ssiicc-->>ccttxx__jjoobbiidd == jjoobbiidd;;
+                        ddffcc-->>mmccttxx__jjoobbiidd == jjoobbiidd;;
         }}
 
-    This does not remove the WARNING message, however.
+        /* get hostname; used in the X header and in new MIME boundaries */
+
+    NOTES:
+
+      o Different mail filters use slightly different names for variables. If
+        the above code does not compile, look for the code at the start of the
+        mlfi_eoh() routine.
+
+      o This fixes only the ugly message header, but not the WARNING message.
+        Fortunately, dk-filter logs that message only once.
 
     With some Milter applications we can fix both the WARNING and the "unknown-
     msgid" by postponing the call of mlfi_eoh() (or whatever routine logs the

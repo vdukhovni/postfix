@@ -709,13 +709,13 @@ MILTERS *milter_receive(VSTREAM *stream, int count)
 	    return (0);
 	}
 	if (head == 0) {
-	    head = milter;
+	    /* Coverity: milter_free() depends on milters->milter_list. */
+	    milters->milter_list = head = milter;
 	} else {
 	    tail->next = milter;
 	}
 	tail = milter;
     }
-    milters->milter_list = head;
 
     (void) attr_print(stream, ATTR_FLAG_NONE,
 		      ATTR_TYPE_INT, MAIL_ATTR_STATUS, 0,

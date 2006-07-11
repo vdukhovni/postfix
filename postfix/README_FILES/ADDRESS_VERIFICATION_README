@@ -124,6 +124,10 @@ surprises. If a recipient probe fails, then Postfix rejects mail for the
 recipient address. If a recipient probe succeeds, then Postfix accepts mail for
 the recipient address.
 
+By default, address verification results are not saved. To avoid probing the
+same address repeatedly, you can store the result in a persistent database as
+described later.
+
     /etc/postfix/main.cf:
         smtpd_recipient_restrictions =
             permit_mynetworks

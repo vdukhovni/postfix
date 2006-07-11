@@ -170,12 +170,12 @@
 /* .IP "\fBsmtp_discard_ehlo_keyword_address_maps (empty)\fR"
 /*	Lookup tables, indexed by the remote SMTP server address, with
 /*	case insensitive lists of EHLO keywords (pipelining, starttls, auth,
-/*	etc.) that the SMTP client will ignore in the EHLO response from a
+/*	etc.) that the Postfix SMTP client will ignore in the EHLO response from a
 /*	remote SMTP server.
 /* .IP "\fBsmtp_discard_ehlo_keywords (empty)\fR"
 /*	A case insensitive list of EHLO keywords (pipelining, starttls,
-/*	auth, etc.) that the SMTP client will ignore in the EHLO response
-/*	from a remote SMTP server.
+/*	auth, etc.) that the Postfix SMTP client will ignore in the EHLO
+/*	response from a remote SMTP server.
 /* .IP "\fBsmtp_generic_maps (empty)\fR"
 /*	Optional lookup tables that perform address rewriting in the
 /*	SMTP client, typically to transform a locally valid address into
@@ -212,8 +212,8 @@
 /* .fi
 /*	Available in Postfix version 2.1 and later:
 /* .IP "\fBsmtp_send_xforward_command (no)\fR"
-/*	Send the non-standard XFORWARD command when the Postfix SMTP server EHLO
-/*	response announces XFORWARD support.
+/*	Send the non-standard XFORWARD command when the Postfix SMTP server
+/*	EHLO response announces XFORWARD support.
 /* SASL AUTHENTICATION CONTROLS
 /* .ad
 /* .fi
@@ -235,11 +235,12 @@
 /* .PP
 /*	Available in Postfix version 2.3 and later:
 /* .IP "\fBsmtp_sasl_auth_enforce (yes)\fR"
-/*	Defer mail delivery when an SMTP server does not support SASL
-/*	authentication, while smtp_sasl_password_maps contains SASL
-/*	login/password information for that server.
+/*	If sender-dependent SASL passwords are turned off, defer mail
+/*	delivery when an SMTP server does not support SASL authentication,
+/*	while smtp_sasl_password_maps contains SASL login/password information
+/*	for that server.
 /* .IP "\fBsmtp_sender_dependent_authentication (no)\fR"
-/*	Enable sender-dependent authentication in the SMTP client; this is
+/*	Enable sender-dependent authentication in the Postfix SMTP client; this is
 /*	available only with SASL authentication, and disables SMTP connection
 /*	caching to ensure that mail from different senders will use the
 /*	appropriate credentials.
@@ -275,15 +276,16 @@
 /* .IP "\fBsmtp_tls_cert_file (empty)\fR"
 /*	File with the Postfix SMTP client RSA certificate in PEM format.
 /* .IP "\fBsmtp_tls_mandatory_ciphers (medium)\fR"
-/*	The minimum SMTP client TLS cipher grade that is strong enough to
-/*	be used with the "encrypt" security level and higher.
+/*	The minimum TLS cipher grade that the Postfix SMTP client will
+/*	use with
+/*	mandatory TLS encryption.
 /* .IP "\fBsmtp_tls_exclude_ciphers (empty)\fR"
-/*	List of ciphers or cipher types to exclude from the SMTP client cipher
-/*	list at all security levels.
+/*	List of ciphers or cipher types to exclude from the Postfix
+/*	SMTP client cipher
+/*	list at all TLS security levels.
 /* .IP "\fBsmtp_tls_mandatory_exclude_ciphers (empty)\fR"
-/*	List of ciphers or cipher types to exclude from the SMTP client
-/*	cipher list at the mandatory TLS security levels: "encrypt", "verify"
-/*	and "secure".
+/*	Additional list of ciphers or cipher types to exclude from the
+/*	SMTP client cipher list at mandatory TLS security levels.
 /* .IP "\fBsmtp_tls_dcert_file (empty)\fR"
 /*	File with the Postfix SMTP client DSA certificate in PEM format.
 /* .IP "\fBsmtp_tls_dkey_file ($smtp_tls_dcert_file)\fR"
@@ -295,13 +297,6 @@
 /* .IP "\fBsmtp_tls_note_starttls_offer (no)\fR"
 /*	Log the hostname of a remote SMTP server that offers STARTTLS,
 /*	when TLS is not already enabled for that server.
-/* .IP "\fBsmtp_tls_policy_maps (empty)\fR"
-/*	Optional lookup tables with the Postfix SMTP client TLS security
-/*	policy by next-hop destination; when a non-empty value is specified,
-/*	this overrides the obsolete smtp_tls_per_site parameter.
-/* .IP "\fBsmtp_tls_mandatory_protocols (SSLv3, TLSv1)\fR"
-/*	List of TLS protocol versions that are secure enough to be used
-/*	with the "encrypt" security level and higher.
 /* .IP "\fBsmtp_tls_scert_verifydepth (5)\fR"
 /*	The verification depth for remote SMTP server certificates.
 /* .IP "\fBsmtp_tls_secure_cert_match (nexthop, dot-nexthop)\fR"
@@ -350,12 +345,15 @@
 /*	Enforcement mode: require that remote SMTP servers use TLS
 /*	encryption, and never send mail in the clear.
 /* .IP "\fBsmtp_tls_enforce_peername (yes)\fR"
-/*	When TLS encryption is enforced, require that the remote SMTP
+/*	With mandatory TLS encryption, require that the remote SMTP
 /*	server hostname matches the information in the remote SMTP server
 /*	certificate.
 /* .IP "\fBsmtp_tls_per_site (empty)\fR"
 /*	Optional lookup tables with the Postfix SMTP client TLS usage
 /*	policy by next-hop destination and by remote SMTP server hostname.
+/* .IP "\fBsmtp_tls_cipherlist (empty)\fR"
+/*	Obsolete Postfix < 2.3 control for the Postfix SMTP client TLS
+/*	cipher list.
 /* RESOURCE AND RATE CONTROLS
 /* .ad
 /* .fi
@@ -444,6 +442,10 @@
 /*	The recipient of postmaster notifications about mail delivery
 /*	problems that are caused by policy, resource, software or protocol
 /*	errors.
+/* .IP "\fBinternal_mail_filter_classes (empty)\fR"
+/*	What categories of Postfix-generated mail are subject to
+/*	before-queue content inspection by non_smtpd_milters, header_checks
+/*	and body_checks.
 /* .IP "\fBnotify_classes (resource, software)\fR"
 /*	The list of error classes that are reported to the postmaster.
 /* MISCELLANEOUS CONTROLS
@@ -488,17 +490,17 @@
 /*	The network interface addresses that this mail system receives mail
 /*	on by way of a proxy or network address translation unit.
 /* .IP "\fBsmtp_bind_address (empty)\fR"
-/*	An optional numerical network address that the SMTP client should
-/*	bind to when making an IPv4 connection.
+/*	An optional numerical network address that the Postfix SMTP client
+/*	should bind to when making an IPv4 connection.
 /* .IP "\fBsmtp_bind_address6 (empty)\fR"
-/*	An optional numerical network address that the SMTP client should
-/*	bind to when making an IPv6 connection.
+/*	An optional numerical network address that the Postfix SMTP client
+/*	should bind to when making an IPv6 connection.
 /* .IP "\fBsmtp_helo_name ($myhostname)\fR"
 /*	The hostname to send in the SMTP EHLO or HELO command.
 /* .IP "\fBlmtp_lhlo_name ($myhostname)\fR"
 /*	The hostname to send in the LMTP LHLO command.
 /* .IP "\fBsmtp_host_lookup (dns)\fR"
-/*	What mechanisms when the SMTP client uses to look up a host's IP
+/*	What mechanisms when the Postfix SMTP client uses to look up a host's IP
 /*	address.
 /* .IP "\fBsmtp_randomize_addresses (yes)\fR"
 /*	Randomize the order of equal-preference MX host addresses.
@@ -672,7 +674,7 @@ int     var_smtp_starttls_tmout;
 char   *var_smtp_tls_CAfile;
 char   *var_smtp_tls_CApath;
 char   *var_smtp_tls_cert_file;
-char   *var_smtp_tls_ciphers;
+char   *var_smtp_tls_mand_ciph;
 char   *var_smtp_tls_excl_ciph;
 char   *var_smtp_tls_mand_excl;
 char   *var_smtp_tls_dcert_file;
@@ -831,6 +833,7 @@ static void post_init(char *unused_name, char **unused_argv)
 
 static void pre_init(char *unused_name, char **unused_argv)
 {
+    int     use_tls;
 
     /*
      * Turn on per-peer debugging.
@@ -848,12 +851,15 @@ static void pre_init(char *unused_name, char **unused_argv)
 		 VAR_SMTP_SASL_ENABLE);
 #endif
 
+    if (*var_smtp_tls_level)
+	use_tls = tls_level_lookup(var_smtp_tls_level) > TLS_LEV_NONE;
+    else
+	use_tls = var_smtp_enforce_tls || var_smtp_use_tls;
+
     /*
      * Initialize the TLS data before entering the chroot jail
      */
-    if (tls_level_lookup(var_smtp_tls_level) > TLS_LEV_NONE ||
-	var_smtp_use_tls || var_smtp_enforce_tls ||
-	var_smtp_tls_per_site[0] || var_smtp_tls_policy[0]) {
+    if (use_tls || var_smtp_tls_per_site[0] || var_smtp_tls_policy[0]) {
 #ifdef USE_TLS
 	tls_client_init_props props;
 

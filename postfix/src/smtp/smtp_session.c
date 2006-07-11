@@ -355,7 +355,7 @@ static void set_cipherlist(SMTP_SESSION *session, int cipher_level, int lmtp)
     case TLS_LEV_ENCRYPT:
 	also_exclude = "eNULL";
 	if (cipher_level == TLS_CIPHER_NONE)
-	    cipher_level = tls_cipher_level(var_smtp_tls_ciphers);
+	    cipher_level = tls_cipher_level(var_smtp_tls_mand_ciph);
 	mand_exclude = var_smtp_tls_mand_excl;
 	break;
 
@@ -363,7 +363,7 @@ static void set_cipherlist(SMTP_SESSION *session, int cipher_level, int lmtp)
     case TLS_LEV_SECURE:
 	also_exclude = "aNULL";
 	if (cipher_level == TLS_CIPHER_NONE)
-	    cipher_level = tls_cipher_level(var_smtp_tls_ciphers);
+	    cipher_level = tls_cipher_level(var_smtp_tls_mand_ciph);
 	mand_exclude = var_smtp_tls_mand_excl;
 	break;
     }
@@ -372,8 +372,8 @@ static void set_cipherlist(SMTP_SESSION *session, int cipher_level, int lmtp)
 				 also_exclude, TLS_END_EXCLUDE);
     if (cipherlist == 0) {
 	msg_warn("unknown '%s' value '%s' ignored, using 'medium'",
-		 lmtp ? VAR_LMTP_TLS_CIPHERS : VAR_SMTP_TLS_CIPHERS,
-		 var_smtp_tls_ciphers);
+		 lmtp ? VAR_LMTP_TLS_MAND_CIPH : VAR_SMTP_TLS_MAND_CIPH,
+		 var_smtp_tls_mand_ciph);
 	cipherlist = tls_cipher_list(TLS_CIPHER_MEDIUM, exclude, mand_exclude,
 				     also_exclude, TLS_END_EXCLUDE);
 	if (cipherlist == 0)

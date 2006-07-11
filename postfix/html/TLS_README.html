@@ -247,7 +247,7 @@ back to plain text after a TLS handshake failure, the server will
 be unable to receive email from most TLS enabled clients. To avoid
 accidental configurations with no certificates, Postfix 2.3 enables
 certificate-less operation only when the administrator explicitly sets
-"<a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a>&nbsp;=&nbsp;none". This ensures that new Postfix
+"<a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a> = none". This ensures that new Postfix
 configurations will not accidentally run with no certificates. </p>
 
 <p> Both RSA and DSA certificates are supported. Typically you will
@@ -436,8 +436,8 @@ since the headers may be changed by intermediate servers. </p>
 
 <p> By default, TLS is disabled in the Postfix SMTP server, so no
 difference to plain Postfix is visible.  Explicitly switch it on
-with "<a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a>&nbsp;=&nbsp;may" (Postfix 2.3 and
-later) or "<a href="postconf.5.html#smtpd_use_tls">smtpd_use_tls</a>&nbsp;=&nbsp;yes" (obsolete but still
+with "<a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a> = may" (Postfix 2.3 and
+later) or "<a href="postconf.5.html#smtpd_use_tls">smtpd_use_tls</a> = yes" (obsolete but still
 supported). </p>
 
 <p> Example: </p>
@@ -463,8 +463,8 @@ private key. This is intended behavior. </p>
 <p> <a name="server_enforce">You can ENFORCE the use of TLS</a>,
 so that the Postfix SMTP server announces STARTTLS and accepts no
 mail without TLS encryption, by setting
-"<a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a>&nbsp;=&nbsp;encrypt" (Postfix 2.3 and
-later) or "<a href="postconf.5.html#smtpd_enforce_tls">smtpd_enforce_tls</a>&nbsp;=&nbsp;yes" (obsolete but still
+"<a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a> = encrypt" (Postfix 2.3 and
+later) or "<a href="postconf.5.html#smtpd_enforce_tls">smtpd_enforce_tls</a> = yes" (obsolete but still
 supported). According to <a href="http://www.faqs.org/rfcs/rfc2487.html">RFC 2487</a> this MUST NOT be applied in case
 of a publicly-referenced Postfix SMTP server.  This option is off
 by default and should only seldom be used. </p>
@@ -490,7 +490,7 @@ and OE (5.01 Mac on all ports). </p>
 
 <p> It is strictly discouraged to use this mode from <a href="postconf.5.html">main.cf</a>. If
 you want to support this service, enable a special port in <a href="master.5.html">master.cf</a>
-and specify "-o <a href="postconf.5.html#smtpd_tls_wrappermode">smtpd_tls_wrappermode</a>&nbsp;=&nbsp;yes" as an <a href="smtpd.8.html">smtpd(8)</a> command
+and specify "-o <a href="postconf.5.html#smtpd_tls_wrappermode">smtpd_tls_wrappermode</a> = yes" as an <a href="smtpd.8.html">smtpd(8)</a> command
 line option.  Port 465 (smtps) was once chosen for this feature.
 </p>
 
@@ -536,9 +536,9 @@ when the server is configured to ask for client certificates. </p>
 
 <p> When TLS is <a href="#server_enforce">enforced</a> you may also decide
 to REQUIRE a remote SMTP client certificate for all TLS connections,
-by setting "<a href="postconf.5.html#smtpd_tls_req_ccert">smtpd_tls_req_ccert</a>&nbsp;=&nbsp;yes". This feature implies
-"<a href="postconf.5.html#smtpd_tls_ask_ccert">smtpd_tls_ask_ccert</a>&nbsp;=&nbsp;yes". When TLS is not enforced,
-"<a href="postconf.5.html#smtpd_tls_req_ccert">smtpd_tls_req_ccert</a>&nbsp;=&nbsp;yes" is ignored and a warning is
+by setting "<a href="postconf.5.html#smtpd_tls_req_ccert">smtpd_tls_req_ccert</a> = yes". This feature implies
+"<a href="postconf.5.html#smtpd_tls_ask_ccert">smtpd_tls_ask_ccert</a> = yes". When TLS is not enforced,
+"<a href="postconf.5.html#smtpd_tls_req_ccert">smtpd_tls_req_ccert</a> = yes" is ignored and a warning is
 logged. </p>
 
 <p> Example: </p>
@@ -573,16 +573,16 @@ CA issues special CA which then issues the actual certificate...)
 
 <p> Sending AUTH data over an unencrypted channel poses a security
 risk.  When TLS layer encryption is required
-("<a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a>&nbsp;=&nbsp;encrypt" or the obsolete
-"<a href="postconf.5.html#smtpd_enforce_tls">smtpd_enforce_tls</a>&nbsp;=&nbsp;yes"), the Postfix SMTP server will
+("<a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a> = encrypt" or the obsolete
+"<a href="postconf.5.html#smtpd_enforce_tls">smtpd_enforce_tls</a> = yes"), the Postfix SMTP server will
 announce and accept AUTH only after the TLS layer has been activated
 with STARTTLS. When TLS layer encryption is optional
-("<a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a>&nbsp;=&nbsp;may" or the obsolete
-"<a href="postconf.5.html#smtpd_enforce_tls">smtpd_enforce_tls</a>&nbsp;=&nbsp;no"), it may however still be useful
+("<a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a> = may" or the obsolete
+"<a href="postconf.5.html#smtpd_enforce_tls">smtpd_enforce_tls</a> = no"), it may however still be useful
 to only offer AUTH when TLS is active. To maintain compatibility
 with non-TLS clients, the default is to accept AUTH without encryption.
 In order to change this behavior, set
-"<a href="postconf.5.html#smtpd_tls_auth_only">smtpd_tls_auth_only</a>&nbsp;=&nbsp;yes". </p>
+"<a href="postconf.5.html#smtpd_tls_auth_only">smtpd_tls_auth_only</a> = yes". </p>
 
 <p> Example: </p>
  
@@ -706,37 +706,45 @@ the user or host.</p>
 <h3><a name="server_cipher">Server-side cipher controls</a> </h3>
 
 <p> The description below is for Postfix 2.3; for Postfix &lt; 2.3 the
-smtpd_tls_cipherlist parameter specifies the acceptable ciphers as an
-explicit OpenSSL cipherlist. </p>
+<a href="postconf.5.html#smtpd_tls_cipherlist">smtpd_tls_cipherlist</a> parameter specifies the acceptable ciphers as an
+explicit OpenSSL cipherlist. The obsolete setting applies even when TLS
+encryption is not enforced. Use of this control on public MX hosts is
+strongly discouraged. </p>
+
+<p> With mandatory TLS encryption, the Postfix SMTP server will by
+default only use SSLv3 or TLSv1. SSLv2 is only used when TLS encryption
+is optional. This is controlled by the <a href="postconf.5.html#smtpd_tls_mandatory_protocols">smtpd_tls_mandatory_protocols</a>
+configuration parameter. </p>
 
 <p> The Postfix SMTP server supports 5 distinct cipher security levels
-as specified by the <a href="postconf.5.html#smtpd_tls_ciphers">smtpd_tls_ciphers</a> configuration parameter. The
-default value is "export" which is the only one appropriate for public
-MX hosts.  On private MX hosts or MSAs one can further restrict the
-OpenSSL cipherlist selection. </p>
+as specified by the <a href="postconf.5.html#smtpd_tls_mandatory_ciphers">smtpd_tls_mandatory_ciphers</a> configuration parameter,
+which determines the cipher grade with mandatory TLS encryption. The
+default value is "medium" which is essentially 128-bit encryption or better.
+With opportunistic TLS encryption, the minimum accepted cipher grade is
+always "export". </p>
 
 <p> By default anonymous ciphers are allowed, and automatically disabled
 when client certificates are requested. If clients are expected to always
 verify the server certificate you may want to exclude anonymous ciphers
-by setting "<a href="postconf.5.html#smtpd_tls_exclude_ciphers">smtpd_tls_exclude_ciphers</a>&nbsp;=&nbsp;aNULL".  One can't
-force a client to check the server certificate, so excluding anonymous
-ciphers is generally unnecessary. </p>
+by setting "<a href="postconf.5.html#smtpd_tls_mandatory_exclude_ciphers">smtpd_tls_mandatory_exclude_ciphers</a> = aNULL".
+One can't force a client to check the server certificate, so excluding
+anonymous ciphers is generally unnecessary. </p>
 
 <p> For a server that is not a public Internet MX host, Postfix 2.3
 supports configurations with no <a href="#server_cert_key">server
 certificates</a> that use <b>only</b> the anonymous ciphers. This is
-enabled by explicitly setting "<a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a>&nbsp;=&nbsp;none"
+enabled by explicitly setting "<a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a> = none"
 and not specifying an <a href="postconf.5.html#smtpd_tls_dcert_file">smtpd_tls_dcert_file</a>. </p>
 
-<p> Example: (MSA that requires  TLS with reasonably secure ciphers) </p>
+<p> Example: (MSA that requires  TLS with high grade ciphers) </p>
 
 <blockquote>
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a> = /etc/postfix/cert.pem
     <a href="postconf.5.html#smtpd_tls_key_file">smtpd_tls_key_file</a> = /etc/postfix/key.pem
-    <a href="postconf.5.html#smtpd_tls_ciphers">smtpd_tls_ciphers</a> = medium
-    <a href="postconf.5.html#smtpd_tls_exclude_ciphers">smtpd_tls_exclude_ciphers</a> = aNULL, MD5
+    <a href="postconf.5.html#smtpd_tls_mandatory_ciphers">smtpd_tls_mandatory_ciphers</a> = high
+    <a href="postconf.5.html#smtpd_tls_mandatory_exclude_ciphers">smtpd_tls_mandatory_exclude_ciphers</a> = aNULL, MD5
     # Postfix 2.3 and later
     <a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a> = encrypt
     # Obsolete, but still supported
@@ -1186,11 +1194,11 @@ in the sections that follow.</p>
 
 <p> At the "none" TLS security level, TLS encryption is
 disabled. This is the default security level. With Postfix 2.3 and later,
-it can be configured explicitly by setting "<a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a>&nbsp;=&nbsp;none". </p>
+it can be configured explicitly by setting "<a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = none". </p>
 
 <p> With Postfix 2.2 and earlier, or when <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> is set to
 its default (backwards compatible) empty value, the appropriate configuration
-settings are "<a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a>&nbsp;=&nbsp;no" and "<a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a>&nbsp;=&nbsp;no".
+settings are "<a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a> = no" and "<a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a> = no".
 With either approach, TLS is not used even if supported by the server.
 For LMTP, use the corresponding "lmtp_" parameters. </p>
 
@@ -1211,7 +1219,7 @@ table, specify the "NONE" keyword. </p>
 The SMTP transaction is encrypted if the STARTTLS ESMTP feature
 is supported by the server. Otherwise, messages are sent in the clear.
 With Postfix 2.3 and later, opportunistic TLS can be configured by
-setting "<a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a>&nbsp;=&nbsp;may".
+setting "<a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = may".
 
 <p> Since sending in the clear is acceptable, demanding stronger
 than default TLS security merely reduces inter-operability.  For
@@ -1222,9 +1230,9 @@ better ciphers are used. </p>
 
 <p> With Postfix 2.2 and earlier, or when <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> is
 set to its default (backwards compatible) empty value, the appropriate
-configuration settings are "<a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a>&nbsp;=&nbsp;yes" and
-"<a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a>&nbsp;=&nbsp;no".
-For LMTP use the corresponding "lmtp" parameters. </p>
+configuration settings are "<a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a> = yes" and
+"<a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a> = no".
+For LMTP use the corresponding "lmtp_" parameters. </p>
 
 <p> With opportunistic TLS, mail delivery continues even if the
 server certificate is untrusted or bears the wrong name.  Starting
@@ -1280,7 +1288,7 @@ over TLS encrypted sessions. The SMTP transaction is aborted unless
 the STARTTLS ESMTP feature is supported by the server. If no suitable
 servers are found, the message will be deferred. With Postfix 2.3
 and later, mandatory TLS encryption can be configured by setting
-"<a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a>&nbsp;=&nbsp;encrypt". Even though TLS
+"<a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = encrypt". Even though TLS
 encryption is always used, mail delivery continues if the server
 certificate is untrusted or bears the wrong name. </p>
 
@@ -1294,9 +1302,9 @@ parameters includes useful interoperability and security guidelines.
 
 <p> With Postfix 2.2 and earlier, or when <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a>
 is set to its default (backwards compatible) empty value, the
-appropriate configuration settings are "<a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a>&nbsp;=&nbsp;yes"
-and "<a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a>&nbsp;=&nbsp;no". For LMTP use the corresponding
-<i>lmtp_</i> parameters. </p>
+appropriate configuration settings are "<a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a> = yes"
+and "<a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a> = no". For LMTP use the corresponding
+"lmtp_" parameters. </p>
 
 <p> Despite the potential for eliminating passive eavesdropping attacks,
 mandatory TLS encryption is not viable as a default security level for
@@ -1407,7 +1415,7 @@ TLS encrypted sessions if the server certificate is valid (not
 expired or revoked, and signed by a trusted certificate authority)
 and if the server certificate name matches a known pattern.  Mandatory
 server certificate verification can be configured by setting
-"<a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a>&nbsp;=&nbsp;verify".  The
+"<a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = verify".  The
 <a href="postconf.5.html#smtp_tls_verify_cert_match">smtp_tls_verify_cert_match</a> parameter can override the default
 "hostname" certificate name matching strategy. Fine-tuning the
 matching strategy is generally only appropriate for <a
@@ -1415,9 +1423,9 @@ href="#client_tls_secure">secure-channel</a> destinations. </p>
 
 <p> With Postfix 2.2 and earlier, or when <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a>
 is set to its default (backwards compatible) empty value, the
-appropriate configuration settings are "<a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a>&nbsp;=&nbsp;yes" and
-"<a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a>&nbsp;=&nbsp;yes". For LMTP use the corresponding
-<i>lmtp_</i> parameters. </p>
+appropriate configuration settings are "<a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a> = yes" and
+"<a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a> = yes". For LMTP use the corresponding
+"lmtp_" parameters. </p>
 
 <p> If the server certificate chain is trusted (see <a href="postconf.5.html#smtp_tls_CAfile">smtp_tls_CAfile</a>
 and <a href="postconf.5.html#smtp_tls_CApath">smtp_tls_CApath</a>), any DNS names in the SubjectAlternativeName
@@ -1491,16 +1499,16 @@ to <i>example.com</i> recipients uses "high" grade ciphers. </p>
 <i>secure-channel</i> TLS sessions where DNS forgery resistant server
 certificate verification succeeds. If no suitable servers are found, the
 message will be deferred. With Postfix 2.3 and later, secure-channels
-can be configured by setting "<a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a>&nbsp;=&nbsp;secure".
+can be configured by setting "<a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = secure".
 The <a href="postconf.5.html#smtp_tls_secure_cert_match">smtp_tls_secure_cert_match</a> parameter can override the default
 "nexthop, dot-nexthop" certificate match strategy. </p>
 
 <p> With Postfix 2.2 and earlier, or when <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a>
 is set to its default (backwards compatible) empty value, the
-appropriate configuration settings are "<a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a>&nbsp;=&nbsp;yes"
-and "<a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a>&nbsp;=&nbsp;yes" with additional settings to
+appropriate configuration settings are "<a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a> = yes"
+and "<a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a> = yes" with additional settings to
 <a href="#client_tls_harden">harden</a> peer certificate verification
-against forged DNS data. For LMTP, use the corresponding <i>lmtp_</i>
+against forged DNS data. For LMTP, use the corresponding "lmtp_"
 parameters. </p>
 
 <p> If the server certificate chain is trusted (see <a href="postconf.5.html#smtp_tls_CAfile">smtp_tls_CAfile</a> and
@@ -1799,7 +1807,7 @@ encryption regardless of which table is used. The
 for the obsolete "MUST" keyword in the same way as for the "verify"
 level in the new policy. </p>
 
-<p> With Postfix &lt; 2.3, the obsolete smtp_tls_cipherlist parameter
+<p> With Postfix &lt; 2.3, the obsolete <a href="postconf.5.html#smtp_tls_cipherlist">smtp_tls_cipherlist</a> parameter
 is also applied for opportunistic TLS sessions, and should be used with
 care, or not at all. Setting cipherlist restrictions that are incompatible
 with a remote SMTP server render that server unreachable, TLS handshakes
@@ -1854,7 +1862,7 @@ settings. </dd>
 <dt> MAY </dt> <dd> Opportunistic TLS. This has less precedence than
 a more specific result (including "NONE") from the alternate host or
 next-hop lookup key, and has less precedence than the more specific global
-"<a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a>&nbsp;=&nbsp;yes" or "<a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a>&nbsp;=&nbsp;yes".  </dd>
+"<a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a> = yes" or "<a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a> = yes".  </dd>
 
 <dt> MUST_NOPEERMATCH </dt> <dd> Mandatory TLS encryption. This
 overrides a less secure "NONE" or a less specific "MAY" lookup result
@@ -1880,8 +1888,8 @@ policies can be summarized as follows: </p>
 <li> <p> When neither the remote SMTP server hostname nor the
 next-hop destination are found in the <a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a> table, the
 policy is based on <a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a>, <a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a> and
-<a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a>. Note: "<a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a>&nbsp;=&nbsp;yes" and
-"<a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a>&nbsp;=&nbsp;yes" imply "<a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a>&nbsp;=&nbsp;yes". </p>
+<a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a>. Note: "<a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a> = yes" and
+"<a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a> = yes" imply "<a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a> = yes". </p>
 
 <li> <p> When both hostname and next-hop destination lookups produce
 a result, the more specific per-site policy (NONE, MUST, etc)
@@ -1891,7 +1899,7 @@ policy (MUST, etc) overrides the less secure one (NONE).  </p>
 <li> <p> After the per-site policy lookups are combined, the result
 generally overrides the global policy. The exception is the less
 specific "MAY" per-site policy, which is overruled by the more
-specific global "<a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a>&nbsp;=&nbsp;yes" with server certificate
+specific global "<a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a> = yes" with server certificate
 verification as specified with the <a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a>
 parameter.  </p>
 
@@ -1929,7 +1937,7 @@ server hostname that is used for TLS policy lookup and server certificate
 verification. </p>
 
 <li> <p> Disallow CNAME hostname overrides. In <a href="postconf.5.html">main.cf</a>, specify
-"<a href="postconf.5.html#smtp_cname_overrides_servername">smtp_cname_overrides_servername</a>&nbsp;=&nbsp;no". This prevents false hostname
+"<a href="postconf.5.html#smtp_cname_overrides_servername">smtp_cname_overrides_servername</a> = no". This prevents false hostname
 information in DNS CNAME records from changing the server hostname
 that Postfix uses for TLS policy lookup and server certificate
 verification. This feature requires Postfix 2.2.9 or later.  The
@@ -2025,14 +2033,14 @@ methods. See <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps
 ciphers on a per-destination basis. </p>
 
 <p> By default anonymous ciphers are allowed, and automatically
-disabled when server certificates are verified. If you
-want to disable even at the "encrypt" security level, set
-"<a href="postconf.5.html#smtp_tls_mandatory_exclude_ciphers">smtp_tls_mandatory_exclude_ciphers</a>&nbsp;=&nbsp;aNULL",
-to disable anonymous ciphers even with opportunistic TLS, set
-"<a href="postconf.5.html#smtp_tls_exclude_ciphers">smtp_tls_exclude_ciphers</a>&nbsp;=&nbsp;aNULL". There is generally no
-need to take these measures. Anonymous ciphers save bandwidth and TLS
-session cache space, if certificates are ignored, there is little point
-in requesting them. </p>
+disabled when server certificates are verified. If you want to
+disable anonymous ciphers even at the "encrypt" security level, set
+"<a href="postconf.5.html#smtp_tls_mandatory_exclude_ciphers">smtp_tls_mandatory_exclude_ciphers</a> = aNULL"; and to
+disable anonymous ciphers even with opportunistic TLS, set
+"<a href="postconf.5.html#smtp_tls_exclude_ciphers">smtp_tls_exclude_ciphers</a> = aNULL". There is generally
+no need to take these measures. Anonymous ciphers save bandwidth
+and TLS session cache space, if certificates are ignored, there is
+little point in requesting them. </p>
 
 <p> Example: </p>
  
@@ -2336,14 +2344,14 @@ generation (PRNG) pool, and in order to access the TLS session
 cache databases. Such a protocol cannot be run across fifos. </p>
 
 <li> <p> <a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a>: the MUST_NOPEERMATCH per-site policy
-cannot override the global "<a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a>&nbsp;=&nbsp;yes" setting.
+cannot override the global "<a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a> = yes" setting.
 </p>
 
 <li> <p> <a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a>: a combined (NONE + MAY) lookup result
 for (hostname and next-hop destination) produces counter-intuitive
 results for different <a href="postconf.5.html">main.cf</a> settings.  TLS is enabled with
-"<a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a>&nbsp;=&nbsp;no", but it is disabled when both
-"<a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a>&nbsp;=&nbsp;yes" and "<a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a>&nbsp;=&nbsp;yes".
+"<a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a> = no", but it is disabled when both
+"<a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a> = yes" and "<a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a> = yes".
 </p>
 
 </ul>

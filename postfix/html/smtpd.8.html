@@ -328,88 +328,89 @@ SMTPD(8)                                                              SMTPD(8)
        Detailed  information  about STARTTLS configuration may be
        found in the <a href="TLS_README.html">TLS_README</a> document.
 
-       <b><a href="postconf.5.html#smtpd_use_tls">smtpd_use_tls</a> (no)</b>
-              Opportunistic TLS:  announce  STARTTLS  support  to
-              SMTP  clients,  but do not require that clients use
-              TLS encryption.
-
-       <b><a href="postconf.5.html#smtpd_enforce_tls">smtpd_enforce_tls</a> (no)</b>
-              Mandatory TLS: announce STARTTLS  support  to  SMTP
-              clients,  and  require that clients use TLS encryp-
-              tion.
+       <b><a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a> (empty)</b>
+              The SMTP TLS security level for  the  Postfix  SMTP
+              server;  when  a non-empty value is specified, this
+              overrides the obsolete parameters <a href="postconf.5.html#smtpd_use_tls">smtpd_use_tls</a> and
+              <a href="postconf.5.html#smtpd_enforce_tls">smtpd_enforce_tls</a>.
 
        <b><a href="postconf.5.html#smtpd_sasl_tls_security_options">smtpd_sasl_tls_security_options</a>         ($<a href="postconf.5.html#smtpd_sasl_security_options">smtpd_sasl_secu</a>-</b>
        <b><a href="postconf.5.html#smtpd_sasl_security_options">rity_options</a>)</b>
-              The SASL authentication security options  that  the
-              Postfix  SMTP  server  uses  for TLS encrypted SMTP
+              The  SASL  authentication security options that the
+              Postfix SMTP server uses  for  TLS  encrypted  SMTP
               sessions.
 
        <b><a href="postconf.5.html#smtpd_starttls_timeout">smtpd_starttls_timeout</a> (300s)</b>
-              The time limit for Postfix SMTP  server  write  and
-              read  operations  during  TLS  startup and shutdown
+              The  time  limit  for Postfix SMTP server write and
+              read operations during  TLS  startup  and  shutdown
               handshake procedures.
 
        <b><a href="postconf.5.html#smtpd_tls_CAfile">smtpd_tls_CAfile</a> (empty)</b>
-              The file with the certificate of the  certification
-              authority  (CA) that issued the Postfix SMTP server
+              The  file with the certificate of the certification
+              authority (CA) that issued the Postfix SMTP  server
               certificate.
 
        <b><a href="postconf.5.html#smtpd_tls_CAfile">smtpd_tls_CAfile</a> (empty)</b>
-              The file with the certificate of the  certification
-              authority  (CA) that issued the Postfix SMTP server
+              The  file with the certificate of the certification
+              authority (CA) that issued the Postfix SMTP  server
               certificate.
 
        <b><a href="postconf.5.html#smtpd_tls_ask_ccert">smtpd_tls_ask_ccert</a> (no)</b>
-              Ask a remote SMTP client for a client  certificate.
+              Ask  a remote SMTP client for a client certificate.
 
        <b><a href="postconf.5.html#smtpd_tls_auth_only">smtpd_tls_auth_only</a> (no)</b>
               When TLS encryption is optional in the Postfix SMTP
-              server, do not announce or accept SASL  authentica-
+              server,  do not announce or accept SASL authentica-
               tion over unencrypted connections.
 
        <b><a href="postconf.5.html#smtpd_tls_ccert_verifydepth">smtpd_tls_ccert_verifydepth</a> (5)</b>
-              The  verification depth for remote SMTP client cer-
+              The verification depth for remote SMTP client  cer-
               tificates.
 
        <b><a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a> (empty)</b>
-              File with the Postfix SMTP server  RSA  certificate
+              File  with  the Postfix SMTP server RSA certificate
               in PEM format.
-
-       <b><a href="postconf.5.html#smtpd_tls_ciphers">smtpd_tls_ciphers</a> (export)</b>
-              The  minimum  acceptable  SMTP  server  TLS  cipher
-              grade.
 
        <b><a href="postconf.5.html#smtpd_tls_exclude_ciphers">smtpd_tls_exclude_ciphers</a> (empty)</b>
               List of ciphers or cipher types to exclude from the
-              SMTP server cipher list.
+              SMTP server cipher list at all TLS security levels.
 
        <b><a href="postconf.5.html#smtpd_tls_dcert_file">smtpd_tls_dcert_file</a> (empty)</b>
-              File  with  the Postfix SMTP server DSA certificate
+              File with the Postfix SMTP server  DSA  certificate
               in PEM format.
 
        <b><a href="postconf.5.html#smtpd_tls_dh1024_param_file">smtpd_tls_dh1024_param_file</a> (empty)</b>
-              File with  DH  parameters  that  the  Postfix  SMTP
-              server should use with EDH ciphers.
-
-       <b><a href="postconf.5.html#smtpd_tls_dh512_param_file">smtpd_tls_dh512_param_file</a> (empty)</b>
               File  with  DH  parameters  that  the  Postfix SMTP
               server should use with EDH ciphers.
 
+       <b><a href="postconf.5.html#smtpd_tls_dh512_param_file">smtpd_tls_dh512_param_file</a> (empty)</b>
+              File with  DH  parameters  that  the  Postfix  SMTP
+              server should use with EDH ciphers.
+
        <b><a href="postconf.5.html#smtpd_tls_dkey_file">smtpd_tls_dkey_file</a> ($<a href="postconf.5.html#smtpd_tls_dcert_file">smtpd_tls_dcert_file</a>)</b>
-              File with the Postfix SMTP server DSA  private  key
+              File  with  the Postfix SMTP server DSA private key
               in PEM format.
 
        <b><a href="postconf.5.html#smtpd_tls_key_file">smtpd_tls_key_file</a> ($<a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a>)</b>
-              File  with  the Postfix SMTP server RSA private key
+              File with the Postfix SMTP server RSA  private  key
               in PEM format.
 
        <b><a href="postconf.5.html#smtpd_tls_loglevel">smtpd_tls_loglevel</a> (0)</b>
-              Enable additional Postfix SMTP  server  logging  of
+              Enable  additional  Postfix  SMTP server logging of
               TLS activity.
 
-       <b><a href="postconf.5.html#smtpd_tls_protocols">smtpd_tls_protocols</a> (empty)</b>
-              The  list of TLS protocols supported by the Postfix
-              SMTP server.
+       <b><a href="postconf.5.html#smtpd_tls_mandatory_ciphers">smtpd_tls_mandatory_ciphers</a> (medium)</b>
+              The minimum TLS cipher grade that the Postfix  SMTP
+              server will use with mandatory TLS encryption.
+
+       <b><a href="postconf.5.html#smtpd_tls_mandatory_exclude_ciphers">smtpd_tls_mandatory_exclude_ciphers</a> (empty)</b>
+              Additional  list  of  ciphers  or  cipher  types to
+              exclude from the SMTP server cipher list at  manda-
+              tory TLS security levels.
+
+       <b><a href="postconf.5.html#smtpd_tls_mandatory_protocols">smtpd_tls_mandatory_protocols</a> (SSLv3, TLSv1)</b>
+              The  TLS  protocols  accepted  by  the Postfix SMTP
+              server with mandatory TLS encryption.
 
        <b><a href="postconf.5.html#smtpd_tls_received_header">smtpd_tls_received_header</a> (no)</b>
               Request  that  the  Postfix  SMTP  server  produces
@@ -419,7 +420,7 @@ SMTPD(8)                                                              SMTPD(8)
               CommonName.
 
        <b><a href="postconf.5.html#smtpd_tls_req_ccert">smtpd_tls_req_ccert</a> (no)</b>
-              When TLS encryption is enforced, require  a  remote
+              With mandatory TLS  encryption,  require  a  remote
               SMTP  client certificate in order to allow TLS con-
               nections to proceed.
 
@@ -442,14 +443,6 @@ SMTPD(8)                                                              SMTPD(8)
               server in order to seed its internal pseudo  random
               number generator (PRNG).
 
-       Available in Postfix version 2.3 and later:
-
-       <b><a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a> (empty)</b>
-              The  SMTP  TLS  security level for the Postfix SMTP
-              server; when a non-empty value is  specified,  this
-              overrides the obsolete parameters <a href="postconf.5.html#smtpd_use_tls">smtpd_use_tls</a> and
-              <a href="postconf.5.html#smtpd_enforce_tls">smtpd_enforce_tls</a>.
-
        <b><a href="postconf.5.html#tls_high_cipherlist">tls_high_cipherlist</a></b>
        <b>(!EXPORT:!LOW:!MEDIUM:ALL:+RC4:@STRENGTH)</b>
               The OpenSSL cipherlist for "HIGH" grade ciphers.
@@ -459,7 +452,7 @@ SMTPD(8)                                                              SMTPD(8)
               ciphers.
 
        <b><a href="postconf.5.html#tls_low_cipherlist">tls_low_cipherlist</a> (!EXPORT:ALL:+RC4:@STRENGTH)</b>
-              The  OpenSSL  cipherlist  for "LOW" or higher grade
+              The OpenSSL cipherlist for "LOW"  or  higher  grade
               ciphers.
 
        <b><a href="postconf.5.html#tls_export_cipherlist">tls_export_cipherlist</a> (ALL:+RC4:@STRENGTH)</b>
@@ -467,8 +460,27 @@ SMTPD(8)                                                              SMTPD(8)
               ciphers.
 
        <b><a href="postconf.5.html#tls_null_cipherlist">tls_null_cipherlist</a> (!aNULL:eNULL+kRSA)</b>
-              The  OpenSSL  cipherlist  for  "NULL" grade ciphers
+              The OpenSSL cipherlist  for  "NULL"  grade  ciphers
               that provide authentication without encryption.
+
+<b>OBSOLETE STARTTLS CONTROLS</b>
+       The  following configuration parameters exist for compati-
+       bility with Postfix versions before 2.3. Support for these
+       will be removed in a future release.
+
+       <b><a href="postconf.5.html#smtpd_use_tls">smtpd_use_tls</a> (no)</b>
+              Opportunistic  TLS:  announce  STARTTLS  support to
+              SMTP clients, but do not require that  clients  use
+              TLS encryption.
+
+       <b><a href="postconf.5.html#smtpd_enforce_tls">smtpd_enforce_tls</a> (no)</b>
+              Mandatory  TLS:  announce  STARTTLS support to SMTP
+              clients, and require that clients use  TLS  encryp-
+              tion.
+
+       <b><a href="postconf.5.html#smtpd_tls_cipherlist">smtpd_tls_cipherlist</a> (empty)</b>
+              Obsolete Postfix &lt; 2.3 control for the Postfix SMTP
+              server TLS cipher list.
 
 <b>VERP SUPPORT CONTROLS</b>
        With VERP style delivery,  each  recipient  of  a  message
@@ -521,6 +533,11 @@ SMTPD(8)                                                              SMTPD(8)
               The recipient  of  postmaster  notifications  about
               mail  delivery  problems that are caused by policy,
               resource, software or protocol errors.
+
+       <b><a href="postconf.5.html#internal_mail_filter_classes">internal_mail_filter_classes</a> (empty)</b>
+              What categories of Postfix-generated mail are  sub-
+              ject   to   before-queue   content   inspection  by
+              <a href="postconf.5.html#non_smtpd_milters">non_smtpd_milters</a>, <a href="postconf.5.html#header_checks">header_checks</a> and <a href="postconf.5.html#body_checks">body_checks</a>.
 
        <b><a href="postconf.5.html#notify_classes">notify_classes</a> (resource, software)</b>
               The list of error classes that are reported to  the
@@ -677,8 +694,9 @@ SMTPD(8)                                                              SMTPD(8)
        Available in Postfix version 2.3 and later:
 
        <b><a href="postconf.5.html#smtpd_peername_lookup">smtpd_peername_lookup</a> (yes)</b>
-              Attempt to look up the SMTP  client  hostname,  and
-              verify that the name matches the client IP address.
+              Attempt to look up the Postfix  SMTP  client  host-
+              name,  and  verify that the name matches the client
+              IP address.
 
        The per SMTP client connection count and request rate lim-
        its are implemented in co-operation with the <a href="anvil.8.html"><b>anvil</b>(8)</a> ser-

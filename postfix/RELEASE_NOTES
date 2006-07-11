@@ -1,4 +1,4 @@
-The stable Postfix release is called postfix-2.2.x where 2=major
+The stable Postfix release is called postfix-2.3.x where 2=major
 release number, 3=minor release number, x=patchlevel.  The stable
 release never changes except for patches that address bugs or
 emergencies. Patches change the patchlevel and the release date.
@@ -317,9 +317,9 @@ parameters.
 [Feature 20060709] TLS security levels ("none", "may", "encrypt")
 in the Postfix SMTP server. You specify the security level with the
 smtpd_tls_security_level parameter. This overrides the multiple
-smtpd_use_tls and smtpd_enforce_tls parameters.  When a value of
-"verify" or "secure" is specified, the Postfix SMTP server logs a
-warning and uses "encrypt" instead.
+smtpd_use_tls and smtpd_enforce_tls parameters.  When one of the
+unimplemented "verify" or "secure" levels is specified, the Postfix
+SMTP server logs a warning and uses "encrypt" instead.
 
 [Feature 20060123] A new per-site TLS policy mechanism for the
 Postfix SMTP client that supports the new TLS security levels,
@@ -493,7 +493,7 @@ enhanced status codes.  For example, status code 5.1.1 means
 "recipient unknown". Postfix recognizes enhanced status codes in
 remote server replies, generates enhanced status codes while handling
 email, and reports enhanced status codes in non-delivery notifications.
-This improves the user interaction with mail clients that translate
+This improves the user experience with mail clients that translate
 enhanced status codes into text in the user's own language.
 
 You can, but don't have to, specify RFC 3463 enhanced status codes

@@ -6,28 +6,28 @@
 /* SYNOPSIS
 /*	#include <post_mail.h>
 /*
-/*	VSTREAM	*post_mail_fopen(sender, recipient, cleanup_flags, trace_flags,
+/*	VSTREAM	*post_mail_fopen(sender, recipient, filter_class, trace_flags,
 /*		queue_id)
 /*	const char *sender;
 /*	const char *recipient;
-/*	int	cleanup_flags;
+/*	int	filter_class;
 /*	int	trace_flags;
 /*	VSTRING *queue_id;
 /*
 /*	VSTREAM	*post_mail_fopen_nowait(sender, recipient,
-/*					cleanup_flags, trace_flags, queue_id)
+/*					filter_class, trace_flags, queue_id)
 /*	const char *sender;
 /*	const char *recipient;
-/*	int	cleanup_flags;
+/*	int	filter_class;
 /*	int	trace_flags;
 /*	VSTRING *queue_id;
 /*
 /*	void	post_mail_fopen_async(sender, recipient,
-/*					cleanup_flags, trace_flags,
+/*					filter_class, trace_flags,
 /*					queue_id, notify, context)
 /*	const char *sender;
 /*	const char *recipient;
-/*	int	cleanup_flags;
+/*	int	filter_class;
 /*	int	trace_flags;
 /*	VSTRING *queue_id;
 /*	void	(*notify)(VSTREAM *stream, char *context);
@@ -95,9 +95,11 @@
 /* .IP recipient
 /*	The recipient envelope address. It is up to the application
 /*	to produce To: headers.
-/* .IP cleanup_flags
-/*	The binary OR of zero or more of the options defined in
-/*	\fB<cleanup_user.h>\fR.
+/* .IP filter_class
+/*	The internal mail filtering class, as defined in
+/*	\fB<int_filt.h>\fR.  Depending on the setting of the
+/*	internal_mail_filter_classes parameter the message will or
+/*	won't be subject to content inspection.
 /* .IP trace_flags
 /*	Message tracing flags as specified in \fB<deliver_request.h>\fR.
 /* .IP queue_id
@@ -169,7 +171,7 @@
 typedef struct {
     char   *sender;
     char   *recipient;
-    int     cleanup_flags;
+    int     filter_class;
     int     trace_flags;
     POST_MAIL_NOTIFY notify;
     void   *context;
@@ -181,12 +183,14 @@ typedef struct {
 
 static void post_mail_init(VSTREAM *stream, const char *sender,
 			           const char *recipient,
-			           int cleanup_flags, int trace_flags,
+			           int filter_class, int trace_flags,
 			           VSTRING *queue_id)
 {
     VSTRING *id = queue_id ? queue_id : vstring_alloc(100);
     struct timeval now;
     const char *date;
+    int cleanup_flags =
+	int_filt_flags(filter_class) | CLEANUP_FLAG_MASK_INTERNAL;
 
     GETTIMEOFDAY(&now);
     date = mail_date(now.tv_sec);
@@ -231,13 +235,13 @@ static void post_mail_init(VSTREAM *stream, const char *sender,
 /* post_mail_fopen - prepare for posting a message */
 
 VSTREAM *post_mail_fopen(const char *sender, const char *recipient,
-			         int cleanup_flags, int trace_flags,
+			         int filter_class, int trace_flags,
 			         VSTRING *queue_id)
 {
     VSTREAM *stream;
 
     stream = mail_connect_wait(MAIL_CLASS_PUBLIC, var_cleanup_service);
-    post_mail_init(stream, sender, recipient, cleanup_flags, trace_flags,
+    post_mail_init(stream, sender, recipient, filter_class, trace_flags,
 		   queue_id);
     return (stream);
 }
@@ -245,14 +249,14 @@ VSTREAM *post_mail_fopen(const char *sender, const char *recipient,
 /* post_mail_fopen_nowait - prepare for posting a message */
 
 VSTREAM *post_mail_fopen_nowait(const char *sender, const char *recipient,
-				        int cleanup_flags, int trace_flags,
+				        int filter_class, int trace_flags,
 				        VSTRING *queue_id)
 {
     VSTREAM *stream;
 
     if ((stream = mail_connect(MAIL_CLASS_PUBLIC, var_cleanup_service,
 			       BLOCKING)) != 0)
-	post_mail_init(stream, sender, recipient, cleanup_flags, trace_flags,
+	post_mail_init(stream, sender, recipient, filter_class, trace_flags,
 		       queue_id);
     return (stream);
 }
@@ -292,7 +296,7 @@ static void post_mail_open_event(int event, char *context)
 	event_cancel_timer(post_mail_open_event, context);
 	event_disable_readwrite(vstream_fileno(state->stream));
 	post_mail_init(state->stream, state->sender,
-		       state->recipient, state->cleanup_flags,
+		       state->recipient, state->filter_class,
 		       state->trace_flags, state->queue_id);
 	myfree(state->sender);
 	myfree(state->recipient);
@@ -343,7 +347,7 @@ static void post_mail_open_event(int event, char *context)
 /* post_mail_fopen_async - prepare for posting a message */
 
 void    post_mail_fopen_async(const char *sender, const char *recipient,
-			              int cleanup_flags, int trace_flags,
+			              int filter_class, int trace_flags,
 			              VSTRING *queue_id,
 			              void (*notify) (VSTREAM *, void *),
 			              void *context)
@@ -355,7 +359,7 @@ void    post_mail_fopen_async(const char *sender, const char *recipient,
     state = (POST_MAIL_STATE *) mymalloc(sizeof(*state));
     state->sender = mystrdup(sender);
     state->recipient = mystrdup(recipient);
-    state->cleanup_flags = cleanup_flags;
+    state->filter_class = filter_class;
     state->trace_flags = trace_flags;
     state->notify = notify;
     state->context = context;

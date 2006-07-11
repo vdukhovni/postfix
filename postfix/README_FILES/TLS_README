@@ -282,8 +282,8 @@ EEnnaabblliinngg TTLLSS iinn tthhee PPoossttffiixx SSMM
 
 By default, TLS is disabled in the Postfix SMTP server, so no difference to
 plain Postfix is visible. Explicitly switch it on with
-"smtpd_tls_security_level = may" (Postfix 2.3 and later) or
-"smtpd_use_tls = yes" (obsolete but still supported).
+"smtpd_tls_security_level = may" (Postfix 2.3 and later) or "smtpd_use_tls =
+yes" (obsolete but still supported).
 
 Example:
 
@@ -484,31 +484,38 @@ SSeerrvveerr--ssiiddee cciipphheerr ccoonnttrroollss
 
 The description below is for Postfix 2.3; for Postfix < 2.3 the
 smtpd_tls_cipherlist parameter specifies the acceptable ciphers as an explicit
-OpenSSL cipherlist.
+OpenSSL cipherlist. The obsolete setting applies even when TLS encryption is
+not enforced. Use of this control on public MX hosts is strongly discouraged.
+
+With mandatory TLS encryption, the Postfix SMTP server will by default only use
+SSLv3 or TLSv1. SSLv2 is only used when TLS encryption is optional. This is
+controlled by the smtpd_tls_mandatory_protocols configuration parameter.
 
 The Postfix SMTP server supports 5 distinct cipher security levels as specified
-by the smtpd_tls_ciphers configuration parameter. The default value is "export"
-which is the only one appropriate for public MX hosts. On private MX hosts or
-MSAs one can further restrict the OpenSSL cipherlist selection.
+by the smtpd_tls_mandatory_ciphers configuration parameter, which determines
+the cipher grade with mandatory TLS encryption. The default value is "medium"
+which is essentially 128-bit encryption or better. With opportunistic TLS
+encryption, the minimum accepted cipher grade is always "export".
 
 By default anonymous ciphers are allowed, and automatically disabled when
 client certificates are requested. If clients are expected to always verify the
 server certificate you may want to exclude anonymous ciphers by setting
-"smtpd_tls_exclude_ciphers = aNULL". One can't force a client to check the
-server certificate, so excluding anonymous ciphers is generally unnecessary.
+"smtpd_tls_mandatory_exclude_ciphers = aNULL". One can't force a client to
+check the server certificate, so excluding anonymous ciphers is generally
+unnecessary.
 
 For a server that is not a public Internet MX host, Postfix 2.3 supports
 configurations with no server certificates that use oonnllyy the anonymous ciphers.
 This is enabled by explicitly setting "smtpd_tls_cert_file = none" and not
 specifying an smtpd_tls_dcert_file.
 
-Example: (MSA that requires TLS with reasonably secure ciphers)
+Example: (MSA that requires TLS with high grade ciphers)
 
     /etc/postfix/main.cf:
         smtpd_tls_cert_file = /etc/postfix/cert.pem
         smtpd_tls_key_file = /etc/postfix/key.pem
-        smtpd_tls_ciphers = medium
-        smtpd_tls_exclude_ciphers = aNULL, MD5
+        smtpd_tls_mandatory_ciphers = high
+        smtpd_tls_mandatory_exclude_ciphers = aNULL, MD5
         # Postfix 2.3 and later
         smtpd_tls_security_level = encrypt
         # Obsolete, but still supported
@@ -870,7 +877,7 @@ grade or better ciphers are used.
 With Postfix 2.2 and earlier, or when smtp_tls_security_level is set to its
 default (backwards compatible) empty value, the appropriate configuration
 settings are "smtp_use_tls = yes" and "smtp_enforce_tls = no". For LMTP use the
-corresponding "lmtp" parameters.
+corresponding "lmtp_" parameters.
 
 With opportunistic TLS, mail delivery continues even if the server certificate
 is untrusted or bears the wrong name. Starting with Postfix 2.3, when the TLS
@@ -927,7 +934,7 @@ interoperability and security guidelines.
 With Postfix 2.2 and earlier, or when smtp_tls_security_level is set to its
 default (backwards compatible) empty value, the appropriate configuration
 settings are "smtp_enforce_tls = yes" and "smtp_tls_enforce_peername = no". For
-LMTP use the corresponding lmtp_ parameters.
+LMTP use the corresponding "lmtp_" parameters.
 
 Despite the potential for eliminating passive eavesdropping attacks, mandatory
 TLS encryption is not viable as a default security level for mail delivery to
@@ -1022,7 +1029,7 @@ secure-channel destinations.
 With Postfix 2.2 and earlier, or when smtp_tls_security_level is set to its
 default (backwards compatible) empty value, the appropriate configuration
 settings are "smtp_enforce_tls = yes" and "smtp_tls_enforce_peername = yes".
-For LMTP use the corresponding lmtp_ parameters.
+For LMTP use the corresponding "lmtp_" parameters.
 
 If the server certificate chain is trusted (see smtp_tls_CAfile and
 smtp_tls_CApath), any DNS names in the SubjectAlternativeName certificate
@@ -1088,7 +1095,7 @@ With Postfix 2.2 and earlier, or when smtp_tls_security_level is set to its
 default (backwards compatible) empty value, the appropriate configuration
 settings are "smtp_enforce_tls = yes" and "smtp_tls_enforce_peername = yes"
 with additional settings to harden peer certificate verification against forged
-DNS data. For LMTP, use the corresponding lmtp_ parameters.
+DNS data. For LMTP, use the corresponding "lmtp_" parameters.
 
 If the server certificate chain is trusted (see smtp_tls_CAfile and
 smtp_tls_CApath), any DNS names in the SubjectAlternativeName certificate
@@ -1366,8 +1373,8 @@ are allowed. On the right hand side specify one of the following keywords:
     MAY
         Opportunistic TLS. This has less precedence than a more specific result
         (including "NONE") from the alternate host or next-hop lookup key, and
-        has less precedence than the more specific global
-        "smtp_enforce_tls = yes" or "smtp_tls_enforce_peername = yes".
+        has less precedence than the more specific global "smtp_enforce_tls =
+        yes" or "smtp_tls_enforce_peername = yes".
     MUST_NOPEERMATCH
         Mandatory TLS encryption. This overrides a less secure "NONE" or a less
         specific "MAY" lookup result from the alternate host or next-hop lookup
@@ -1498,9 +1505,9 @@ today's crypt-analytic methods. See smtp_tls_policy_maps for information on how
 to configure ciphers on a per-destination basis.
 
 By default anonymous ciphers are allowed, and automatically disabled when
-server certificates are verified. If you want to disable even at the "encrypt"
-security level, set "smtp_tls_mandatory_exclude_ciphers = aNULL", to disable
-anonymous ciphers even with opportunistic TLS, set
+server certificates are verified. If you want to disable anonymous ciphers even
+at the "encrypt" security level, set "smtp_tls_mandatory_exclude_ciphers =
+aNULL"; and to disable anonymous ciphers even with opportunistic TLS, set
 "smtp_tls_exclude_ciphers = aNULL". There is generally no need to take these
 measures. Anonymous ciphers save bandwidth and TLS session cache space, if
 certificates are ignored, there is little point in requesting them.

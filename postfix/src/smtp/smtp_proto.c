@@ -602,6 +602,7 @@ int     smtp_helo(SMTP_STATE *state)
 	return (smtp_sasl_helo_login(state));
     else if (var_smtp_sasl_enable
 	     && *var_smtp_sasl_passwd
+	     && !var_smtp_sender_auth
 	     && var_smtp_sasl_enforce
 	     && smtp_sasl_passwd_lookup(session) != 0)
 	return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,

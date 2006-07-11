@@ -1,13 +1,13 @@
-#ifndef _EXT_PROP_INCLUDED_
-#define _EXT_PROP_INCLUDED_
+#ifndef _INPUT_TRANSP_INCLUDED_
+#define _INPUT_TRANSP_INCLUDED_
 
 /*++
 /* NAME
-/*	ext_prop 3h
+/*	input_transp 3h
 /* SUMMARY
-/*	address extension propagation control
+/*	receive transparency control
 /* SYNOPSIS
-/*	#include <ext_prop.h>
+/*	#include <input_transp.h>
 /* DESCRIPTION
 /* .nf
 

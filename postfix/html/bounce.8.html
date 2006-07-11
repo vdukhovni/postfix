@@ -108,6 +108,11 @@ BOUNCE(8)                                                            BOUNCE(8)
               The time limit for sending or receiving information
               over an internal communication channel.
 
+       <b><a href="postconf.5.html#internal_mail_filter_classes">internal_mail_filter_classes</a> (empty)</b>
+              What categories of Postfix-generated mail are  sub-
+              ject   to   before-queue   content   inspection  by
+              <a href="postconf.5.html#non_smtpd_milters">non_smtpd_milters</a>, <a href="postconf.5.html#header_checks">header_checks</a> and <a href="postconf.5.html#body_checks">body_checks</a>.
+
        <b><a href="postconf.5.html#mail_name">mail_name</a> (Postfix)</b>
               The mail system name that is displayed in Received:
               headers,  in  the  SMTP  greeting  banner,  and  in

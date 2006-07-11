@@ -1916,6 +1916,9 @@ static void milter8_header(void *ptr, int unused_header_class,
      * expose the first header to mail filter applications, otherwise the
      * dk-filter signature will be inserted at the wrong position. It should
      * precede the headers that it signs.
+     * 
+     * XXX Sendmail compatibility. It eats the first space (not tab) after the
+     * header label and ":".
      */
     if (msg_ctx->first_header) {
 	msg_ctx->first_header = 0;
@@ -1939,8 +1942,8 @@ static void milter8_header(void *ptr, int unused_header_class,
     if (*cp != ':')
 	msg_panic("%s: header label not followed by ':'", myname);
     *cp++ = 0;
-    /* XXX Following matches mime_state.c */
-    while (*cp == ' ' || *cp == '\t')
+    /* XXX Sendmail 8.13.6 eats one space (not tab) after colon. */
+    if (*cp == ' ')
 	cp++;
 #ifdef SMFIP_NOHREPL
     skip_reply = ((milter->ev_mask & SMFIP_NOHREPL) != 0);

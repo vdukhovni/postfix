@@ -262,12 +262,10 @@
 /* .fi
 /*	Detailed information about STARTTLS configuration may be
 /*	found in the TLS_README document.
-/* .IP "\fBsmtpd_use_tls (no)\fR"
-/*	Opportunistic TLS: announce STARTTLS support to SMTP clients,
-/*	but do not require that clients use TLS encryption.
-/* .IP "\fBsmtpd_enforce_tls (no)\fR"
-/*	Mandatory TLS: announce STARTTLS support to SMTP clients,
-/*	and require that clients use TLS encryption.
+/* .IP "\fBsmtpd_tls_security_level (empty)\fR"
+/*	The SMTP TLS security level for the Postfix SMTP server; when
+/*	a non-empty value is specified, this overrides the obsolete parameters
+/*	smtpd_use_tls and smtpd_enforce_tls.
 /* .IP "\fBsmtpd_sasl_tls_security_options ($smtpd_sasl_security_options)\fR"
 /*	The SASL authentication security options that the Postfix SMTP
 /*	server uses for TLS encrypted SMTP sessions.
@@ -290,11 +288,9 @@
 /*	The verification depth for remote SMTP client certificates.
 /* .IP "\fBsmtpd_tls_cert_file (empty)\fR"
 /*	File with the Postfix SMTP server RSA certificate in PEM format.
-/* .IP "\fBsmtpd_tls_ciphers (export)\fR"
-/*	The minimum acceptable SMTP server TLS cipher grade.
 /* .IP "\fBsmtpd_tls_exclude_ciphers (empty)\fR"
 /*	List of ciphers or cipher types to exclude from the SMTP server
-/*	cipher list.
+/*	cipher list at all TLS security levels.
 /* .IP "\fBsmtpd_tls_dcert_file (empty)\fR"
 /*	File with the Postfix SMTP server DSA certificate in PEM format.
 /* .IP "\fBsmtpd_tls_dh1024_param_file (empty)\fR"
@@ -309,15 +305,23 @@
 /*	File with the Postfix SMTP server RSA private key in PEM format.
 /* .IP "\fBsmtpd_tls_loglevel (0)\fR"
 /*	Enable additional Postfix SMTP server logging of TLS activity.
-/* .IP "\fBsmtpd_tls_protocols (empty)\fR"
-/*	The list of TLS protocols supported by the Postfix SMTP server.
+/* .IP "\fBsmtpd_tls_mandatory_ciphers (medium)\fR"
+/*	The minimum TLS cipher grade that the Postfix SMTP server will
+/*	use with mandatory
+/*	TLS encryption.
+/* .IP "\fBsmtpd_tls_mandatory_exclude_ciphers (empty)\fR"
+/*	Additional list of ciphers or cipher types to exclude from the
+/*	SMTP server cipher list at mandatory TLS security levels.
+/* .IP "\fBsmtpd_tls_mandatory_protocols (SSLv3, TLSv1)\fR"
+/*	The TLS protocols accepted by the Postfix SMTP server with
+/*	mandatory TLS encryption.
 /* .IP "\fBsmtpd_tls_received_header (no)\fR"
 /*	Request that the Postfix SMTP server produces Received:  message
 /*	headers that include information about the protocol and cipher used,
 /*	as well as the client CommonName and client certificate issuer
 /*	CommonName.
 /* .IP "\fBsmtpd_tls_req_ccert (no)\fR"
-/*	When TLS encryption is enforced, require a remote SMTP client
+/*	With mandatory TLS encryption, require a remote SMTP client
 /*	certificate in order to allow TLS connections to proceed.
 /* .IP "\fBsmtpd_tls_session_cache_database (empty)\fR"
 /*	Name of the file containing the optional Postfix SMTP server
@@ -332,12 +336,6 @@
 /*	The number of pseudo-random bytes that an \fBsmtp\fR(8) or \fBsmtpd\fR(8)
 /*	process requests from the \fBtlsmgr\fR(8) server in order to seed its
 /*	internal pseudo random number generator (PRNG).
-/* .PP
-/*	Available in Postfix version 2.3 and later:
-/* .IP "\fBsmtpd_tls_security_level (empty)\fR"
-/*	The SMTP TLS security level for the Postfix SMTP server; when
-/*	a non-empty value is specified, this overrides the obsolete parameters
-/*	smtpd_use_tls and smtpd_enforce_tls.
 /* .IP "\fBtls_high_cipherlist (!EXPORT:!LOW:!MEDIUM:ALL:+RC4:@STRENGTH)\fR"
 /*	The OpenSSL cipherlist for "HIGH" grade ciphers.
 /* .IP "\fBtls_medium_cipherlist (!EXPORT:!LOW:ALL:+RC4:@STRENGTH)\fR"
@@ -349,6 +347,21 @@
 /* .IP "\fBtls_null_cipherlist (!aNULL:eNULL+kRSA)\fR"
 /*	The OpenSSL cipherlist for "NULL" grade ciphers that provide
 /*	authentication without encryption.
+/* OBSOLETE STARTTLS CONTROLS
+/* .ad
+/* .fi
+/*	The following configuration parameters exist for compatibility
+/*	with Postfix versions before 2.3. Support for these will
+/*	be removed in a future release.
+/* .IP "\fBsmtpd_use_tls (no)\fR"
+/*	Opportunistic TLS: announce STARTTLS support to SMTP clients,
+/*	but do not require that clients use TLS encryption.
+/* .IP "\fBsmtpd_enforce_tls (no)\fR"
+/*	Mandatory TLS: announce STARTTLS support to SMTP clients,
+/*	and require that clients use TLS encryption.
+/* .IP "\fBsmtpd_tls_cipherlist (empty)\fR"
+/*	Obsolete Postfix < 2.3 control for the Postfix SMTP server TLS
+/*	cipher list.
 /* VERP SUPPORT CONTROLS
 /* .ad
 /* .fi
@@ -391,6 +404,10 @@
 /*	The recipient of postmaster notifications about mail delivery
 /*	problems that are caused by policy, resource, software or protocol
 /*	errors.
+/* .IP "\fBinternal_mail_filter_classes (empty)\fR"
+/*	What categories of Postfix-generated mail are subject to
+/*	before-queue content inspection by non_smtpd_milters, header_checks
+/*	and body_checks.
 /* .IP "\fBnotify_classes (resource, software)\fR"
 /*	The list of error classes that are reported to the postmaster.
 /* .IP "\fBsoft_bounce (no)\fR"
@@ -503,7 +520,7 @@
 /* .PP
 /*	Available in Postfix version 2.3 and later:
 /* .IP "\fBsmtpd_peername_lookup (yes)\fR"
-/*	Attempt to look up the SMTP client hostname, and verify that
+/*	Attempt to look up the Postfix SMTP client hostname, and verify that
 /*	the name matches the client IP address.
 /* .PP
 /*	The per SMTP client connection count and request rate limits are
@@ -1040,15 +1057,16 @@ bool    var_smtpd_tls_ask_ccert;
 bool    var_smtpd_tls_auth_only;
 int     var_smtpd_tls_ccert_vd;
 char   *var_smtpd_tls_cert_file;
-char   *var_smtpd_tls_ciphers;
+char   *var_smtpd_tls_mand_ciph;
 char   *var_smtpd_tls_excl_ciph;
+char   *var_smtpd_tls_mand_excl;
 char   *var_smtpd_tls_dcert_file;
 char   *var_smtpd_tls_dh1024_param_file;
 char   *var_smtpd_tls_dh512_param_file;
 char   *var_smtpd_tls_dkey_file;
 char   *var_smtpd_tls_key_file;
 int     var_smtpd_tls_loglevel;
-char   *var_smtpd_tls_protocols;
+char   *var_smtpd_tls_mand_proto;
 bool    var_smtpd_tls_received_header;
 bool    var_smtpd_tls_req_ccert;
 int     var_smtpd_tls_scache_timeout;
@@ -4208,9 +4226,9 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 	    props.CApath = var_smtpd_tls_CApath;
 	    props.dh1024_param_file = var_smtpd_tls_dh1024_param_file;
 	    props.dh512_param_file = var_smtpd_tls_dh512_param_file;
-	    props.protocols = *var_smtpd_tls_protocols ?
-		tls_protocol_mask(VAR_SMTPD_TLS_PROTO,
-				  var_smtpd_tls_protocols) : 0;
+	    props.protocols = enforce_tls && *var_smtpd_tls_mand_proto ?
+		tls_protocol_mask(VAR_SMTPD_TLS_MAND_PROTO,
+				  var_smtpd_tls_mand_proto) : 0;
 	    props.ask_ccert = var_smtpd_tls_ask_ccert;
 
 	    /*
@@ -4232,19 +4250,26 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 		msg_warn("Can't require client certs unless TLS is required");
 
 	    props.cipherlist =
-		tls_cipher_list(tls_cipher_level(var_smtpd_tls_ciphers),
+	    	tls_cipher_list(enforce_tls ?
+				    tls_cipher_level(var_smtpd_tls_mand_ciph) :
+				    TLS_CIPHER_EXPORT,
 				var_smtpd_tls_excl_ciph,
 				havecert ? "" : "aRSA aDSS",
 				wantcert ? "aNULL" : "",
+				enforce_tls ?  var_smtpd_tls_mand_excl :
+				    TLS_END_EXCLUDE,
 				TLS_END_EXCLUDE);
+
 	    if (props.cipherlist == 0) {
 		msg_warn("unknown '%s' value '%s' ignored, using 'export'",
-			 VAR_SMTPD_TLS_CIPHERS, var_smtpd_tls_ciphers);
+			 VAR_SMTPD_TLS_MAND_CIPH, var_smtpd_tls_mand_ciph);
 		props.cipherlist =
 		    tls_cipher_list(TLS_CIPHER_EXPORT,
 				    var_smtpd_tls_excl_ciph,
 				    havecert ? "" : "aRSA aDSS",
 				    wantcert ? "aNULL" : "",
+				    enforce_tls ?  var_smtpd_tls_mand_excl :
+					TLS_END_EXCLUDE,
 				    TLS_END_EXCLUDE);
 	    }
 	    if (havecert || oknocert)
@@ -4470,14 +4495,15 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_TLS_DKEY_FILE, DEF_SMTPD_TLS_DKEY_FILE, &var_smtpd_tls_dkey_file, 0, 0,
 	VAR_SMTPD_TLS_CA_FILE, DEF_SMTPD_TLS_CA_FILE, &var_smtpd_tls_CAfile, 0, 0,
 	VAR_SMTPD_TLS_CA_PATH, DEF_SMTPD_TLS_CA_PATH, &var_smtpd_tls_CApath, 0, 0,
-	VAR_SMTPD_TLS_CIPHERS, DEF_SMTPD_TLS_CIPHERS, &var_smtpd_tls_ciphers, 1, 0,
+	VAR_SMTPD_TLS_MAND_CIPH, DEF_SMTPD_TLS_MAND_CIPH, &var_smtpd_tls_mand_ciph, 1, 0,
 	VAR_SMTPD_TLS_EXCL_CIPH, DEF_SMTPD_TLS_EXCL_CIPH, &var_smtpd_tls_excl_ciph, 0, 0,
+	VAR_SMTPD_TLS_MAND_EXCL, DEF_SMTPD_TLS_MAND_EXCL, &var_smtpd_tls_mand_excl, 0, 0,
 	VAR_TLS_HIGH_CLIST, DEF_TLS_HIGH_CLIST, &var_tls_high_clist, 1, 0,
 	VAR_TLS_MEDIUM_CLIST, DEF_TLS_MEDIUM_CLIST, &var_tls_medium_clist, 1, 0,
 	VAR_TLS_LOW_CLIST, DEF_TLS_LOW_CLIST, &var_tls_low_clist, 1, 0,
 	VAR_TLS_EXPORT_CLIST, DEF_TLS_EXPORT_CLIST, &var_tls_export_clist, 1, 0,
 	VAR_TLS_NULL_CLIST, DEF_TLS_NULL_CLIST, &var_tls_null_clist, 1, 0,
-	VAR_SMTPD_TLS_PROTO, DEF_SMTPD_TLS_PROTO, &var_smtpd_tls_protocols, 0, 0,
+	VAR_SMTPD_TLS_MAND_PROTO, DEF_SMTPD_TLS_MAND_PROTO, &var_smtpd_tls_mand_proto, 0, 0,
 	VAR_SMTPD_TLS_512_FILE, DEF_SMTPD_TLS_512_FILE, &var_smtpd_tls_dh512_param_file, 0, 0,
 	VAR_SMTPD_TLS_1024_FILE, DEF_SMTPD_TLS_1024_FILE, &var_smtpd_tls_dh1024_param_file, 0, 0,
 #endif
