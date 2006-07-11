@@ -211,6 +211,7 @@ smtpd_chat.o: ../../include/milter.h
 smtpd_chat.o: ../../include/msg.h
 smtpd_chat.o: ../../include/myaddrinfo.h
 smtpd_chat.o: ../../include/mymalloc.h
+smtpd_chat.o: ../../include/name_code.h
 smtpd_chat.o: ../../include/name_mask.h
 smtpd_chat.o: ../../include/post_mail.h
 smtpd_chat.o: ../../include/rec_type.h
@@ -263,6 +264,7 @@ smtpd_check.o: ../../include/msg_stats.h
 smtpd_check.o: ../../include/myaddrinfo.h
 smtpd_check.o: ../../include/mymalloc.h
 smtpd_check.o: ../../include/namadr_list.h
+smtpd_check.o: ../../include/name_code.h
 smtpd_check.o: ../../include/name_mask.h
 smtpd_check.o: ../../include/own_inet_addr.h
 smtpd_check.o: ../../include/rec_type.h
@@ -284,6 +286,7 @@ smtpd_check.o: ../../include/vbuf.h
 smtpd_check.o: ../../include/verify_clnt.h
 smtpd_check.o: ../../include/vstream.h
 smtpd_check.o: ../../include/vstring.h
+smtpd_check.o: ../../include/xtext.h
 smtpd_check.o: smtpd.h
 smtpd_check.o: smtpd_check.c
 smtpd_check.o: smtpd_check.h
@@ -298,6 +301,7 @@ smtpd_milter.o: ../../include/mail_params.h
 smtpd_milter.o: ../../include/mail_stream.h
 smtpd_milter.o: ../../include/milter.h
 smtpd_milter.o: ../../include/myaddrinfo.h
+smtpd_milter.o: ../../include/name_code.h
 smtpd_milter.o: ../../include/name_mask.h
 smtpd_milter.o: ../../include/sys_defs.h
 smtpd_milter.o: ../../include/tls.h
@@ -318,6 +322,7 @@ smtpd_peer.o: ../../include/milter.h
 smtpd_peer.o: ../../include/msg.h
 smtpd_peer.o: ../../include/myaddrinfo.h
 smtpd_peer.o: ../../include/mymalloc.h
+smtpd_peer.o: ../../include/name_code.h
 smtpd_peer.o: ../../include/name_mask.h
 smtpd_peer.o: ../../include/sock_addr.h
 smtpd_peer.o: ../../include/stringops.h
@@ -363,6 +368,7 @@ smtpd_sasl_glue.o: ../../include/milter.h
 smtpd_sasl_glue.o: ../../include/msg.h
 smtpd_sasl_glue.o: ../../include/myaddrinfo.h
 smtpd_sasl_glue.o: ../../include/mymalloc.h
+smtpd_sasl_glue.o: ../../include/name_code.h
 smtpd_sasl_glue.o: ../../include/name_mask.h
 smtpd_sasl_glue.o: ../../include/stringops.h
 smtpd_sasl_glue.o: ../../include/sys_defs.h
@@ -387,6 +393,7 @@ smtpd_sasl_proto.o: ../../include/milter.h
 smtpd_sasl_proto.o: ../../include/msg.h
 smtpd_sasl_proto.o: ../../include/myaddrinfo.h
 smtpd_sasl_proto.o: ../../include/mymalloc.h
+smtpd_sasl_proto.o: ../../include/name_code.h
 smtpd_sasl_proto.o: ../../include/name_mask.h
 smtpd_sasl_proto.o: ../../include/stringops.h
 smtpd_sasl_proto.o: ../../include/sys_defs.h
@@ -413,6 +420,7 @@ smtpd_state.o: ../../include/milter.h
 smtpd_state.o: ../../include/msg.h
 smtpd_state.o: ../../include/myaddrinfo.h
 smtpd_state.o: ../../include/mymalloc.h
+smtpd_state.o: ../../include/name_code.h
 smtpd_state.o: ../../include/name_mask.h
 smtpd_state.o: ../../include/sys_defs.h
 smtpd_state.o: ../../include/tls.h
@@ -439,6 +447,7 @@ smtpd_xforward.o: ../../include/milter.h
 smtpd_xforward.o: ../../include/msg.h
 smtpd_xforward.o: ../../include/myaddrinfo.h
 smtpd_xforward.o: ../../include/mymalloc.h
+smtpd_xforward.o: ../../include/name_code.h
 smtpd_xforward.o: ../../include/name_mask.h
 smtpd_xforward.o: ../../include/sys_defs.h
 smtpd_xforward.o: ../../include/tls.h

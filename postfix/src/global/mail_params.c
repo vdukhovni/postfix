@@ -105,6 +105,7 @@
 /*	int     var_verify_neg_cache;
 /*	int	var_oldlog_compat;
 /*	int	var_delay_max_res;
+/*	char	*var_int_filt_classes;
 /*
 /*	void	mail_params_init()
 /*
@@ -273,6 +274,7 @@ int     var_strict_encoding;
 int     var_verify_neg_cache;
 int     var_oldlog_compat;
 int     var_delay_max_res;
+char   *var_int_filt_classes;
 
 const char null_format_string[1] = "";
 
@@ -488,6 +490,7 @@ void    mail_params_init()
 	VAR_FLUSH_SERVICE, DEF_FLUSH_SERVICE, &var_flush_service, 1, 0,
 	VAR_VERIFY_SERVICE, DEF_VERIFY_SERVICE, &var_verify_service, 1, 0,
 	VAR_TRACE_SERVICE, DEF_TRACE_SERVICE, &var_trace_service, 1, 0,
+	VAR_INT_FILT_CLASSES, DEF_INT_FILT_CLASSES, &var_int_filt_classes, 0, 0,
 	0,
     };
     static CONFIG_STR_FN_TABLE function_str_defaults_2[] = {

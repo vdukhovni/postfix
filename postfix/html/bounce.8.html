@@ -43,10 +43,11 @@ BOUNCE(8)                                                            BOUNCE(8)
 
 <b>STANDARDS</b>
        <a href="http://www.faqs.org/rfcs/rfc822.html">RFC 822</a> (ARPA Internet Text Messages)
+       <a href="http://www.faqs.org/rfcs/rfc2045.html">RFC 2045</a> (Format of Internet Message Bodies)
        <a href="http://www.faqs.org/rfcs/rfc2822.html">RFC 2822</a> (ARPA Internet Text Messages)
        <a href="http://www.faqs.org/rfcs/rfc3462.html">RFC 3462</a> (Delivery Status Notifications)
        <a href="http://www.faqs.org/rfcs/rfc3464.html">RFC 3464</a> (Delivery Status Notifications)
-       <a href="http://www.faqs.org/rfcs/rfc2045.html">RFC 2045</a> (Format of Internet Message Bodies)
+       <a href="http://www.faqs.org/rfcs/rfc3834.html">RFC 3834</a> (Auto-Submitted: message header)
 
 <b>DIAGNOSTICS</b>
        Problems and transactions are logged to <b>syslogd</b>(8).
@@ -106,6 +107,11 @@ BOUNCE(8)                                                            BOUNCE(8)
        <b><a href="postconf.5.html#ipc_timeout">ipc_timeout</a> (3600s)</b>
               The time limit for sending or receiving information
               over an internal communication channel.
+
+       <b><a href="postconf.5.html#internal_mail_filter_classes">internal_mail_filter_classes</a> (empty)</b>
+              What categories of Postfix-generated mail are  sub-
+              ject   to   before-queue   content   inspection  by
+              <a href="postconf.5.html#non_smtpd_milters">non_smtpd_milters</a>, <a href="postconf.5.html#header_checks">header_checks</a> and <a href="postconf.5.html#body_checks">body_checks</a>.
 
        <b><a href="postconf.5.html#mail_name">mail_name</a> (Postfix)</b>
               The mail system name that is displayed in Received:

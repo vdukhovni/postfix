@@ -61,21 +61,21 @@ typedef struct MILTERS {
     char   *eod_macros;			/* macros for END-OF-DATA command */
     char   *unk_macros;			/* macros for unknown command */
     void   *chg_context;		/* context for queue file changes */
-    void    (*add_header) (void *, char *, char *);
-    void    (*upd_header) (void *, ssize_t, char *, char *);
-    void    (*del_header) (void *, ssize_t, char *);
-    void    (*ins_header) (void *, ssize_t, char *, char *);
-    void    (*add_rcpt) (void *, char *);
-    void    (*del_rcpt) (void *, char *);
-    void    (*repl_body) (void *, VSTRING *);
+    const char *(*add_header) (void *, char *, char *);
+    const char *(*upd_header) (void *, ssize_t, char *, char *);
+    const char *(*del_header) (void *, ssize_t, char *);
+    const char *(*ins_header) (void *, ssize_t, char *, char *);
+    const char *(*add_rcpt) (void *, char *);
+    const char *(*del_rcpt) (void *, char *);
+    const char *(*repl_body) (void *, VSTRING *);
 } MILTERS;
 
 typedef const char *(*MILTER_MAC_LOOKUP_FN) (const char *, void *);
-typedef void (*MILTER_ADD_HEADER_FN) (void *, char *, char *);
-typedef void (*MILTER_EDIT_HEADER_FN) (void *, ssize_t, char *, char *);
-typedef void (*MILTER_DEL_HEADER_FN) (void *, ssize_t, char *);
-typedef void (*MILTER_EDIT_RCPT_FN) (void *, char *);
-typedef void (*MILTER_EDIT_BODY_FN) (void *, VSTRING *);
+typedef const char *(*MILTER_ADD_HEADER_FN) (void *, char *, char *);
+typedef const char *(*MILTER_EDIT_HEADER_FN) (void *, ssize_t, char *, char *);
+typedef const char *(*MILTER_DEL_HEADER_FN) (void *, ssize_t, char *);
+typedef const char *(*MILTER_EDIT_RCPT_FN) (void *, char *);
+typedef const char *(*MILTER_EDIT_BODY_FN) (void *, VSTRING *);
 
 extern MILTERS *milter_create(const char *, int, int, int,
 			              const char *, const char *,

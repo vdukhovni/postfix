@@ -85,7 +85,7 @@
 #        regexp_table(5) or pcre_table(5). For a description of the
 #        TCP client/server table lookup protocol, see tcp_table(5).
 #        This feature is not available up to and including  Postfix
-#        version 2.2.
+#        version 2.3.
 # 
 #        Each  pattern  is  a regular expression that is applied to
 #        the entire address being looked up. Thus, user@domain mail
@@ -106,7 +106,7 @@
 #        lookups are directed to a TCP-based server. For a descrip-
 #        tion of the TCP client/server lookup protocol, see tcp_ta-
 #        ble(5).  This feature is not available up to and including
-#        Postfix version 2.2.
+#        Postfix version 2.3.
 # 
 #        Each lookup operation uses the entire address once.  Thus,
 #        user@domain mail addresses are not broken  up  into  their

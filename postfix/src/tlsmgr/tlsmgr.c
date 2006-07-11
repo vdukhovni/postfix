@@ -739,11 +739,14 @@ static void tlsmgr_pre_init(char *unused_name, char **unused_argv)
     /*
      * If nothing else works then at least this will get us a few bits of
      * entropy.
+     * 
+     * XXX This is our first call into the OpenSSL library. We should find out
+     * if this can be moved to the post-jail initialization phase, without
+     * breaking compatibility with existing installations.
      */
     GETTIMEOFDAY(&tv);
     tv.tv_sec ^= getpid();
     RAND_seed(&tv, sizeof(struct timeval));
-
 
     /*
      * Open the external entropy source. We will not be able to open it again

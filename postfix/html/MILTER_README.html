@@ -32,13 +32,14 @@ href="http://sourceforge.net/projects/sid-milter/">SenderID+SPF</a> and
 <a href="http://sourceforge.net/projects/dk-milter/">Domain keys</a>)
 or to digitally sign mail (example: <a
 href="http://sourceforge.net/projects/dk-milter/">Domain keys</a>).
-Having yet another MTA-specific version of all that software is a
-poor use of human and system resources. </p>
+Having yet another Postfix-specific version of all that software
+is a poor use of human and system resources. </p>
 
 <p> Postfix 2.3 implements all the requests of Sendmail version 8
 Milter protocols up to version 4, except one: message body replacement.
-See, however, the <a href="#limitations">limitations</a> section
-at the end of this document. </p>
+See, however, the <a href="#workarounds">workarounds</a> and <a
+href="#limitations">limitations</a> sections at the end of this
+document. </p>
 
 <p> This document provides information on the following topics: </p>
 
@@ -257,9 +258,12 @@ for options.  A typical command looks like this:</p>
 
 <blockquote>
 <pre>
-$ <b>/some/where/dk-filter -p inet:<i>portnumber</i>@localhost ...<i>other options</i>...</b>
+# <b>/some/where/dk-filter -u <i>userid</i> -p inet:<i>portnumber</i>@localhost ...<i>other options</i>...</b>
 </pre>
 </blockquote>
+
+<p> Please specify a <i>userid</i> value that isn't used for other
+applications (not "postfix", not "www", etc.). </p>
 
 <h2><a name="config">Configuring Postfix</a></h2>
 
@@ -295,6 +299,12 @@ unwanted mail, and to sign mail from authorized SMTP clients.  Mail
 that arrives via the Postfix <a href="smtpd.8.html">smtpd(8)</a> server is not filtered by the
 non-SMTP filters that are described in the next section. </p>
 
+<p> NOTE: Do not use the <a href="header_checks.5.html">header_checks(5)</a> IGNORE action to remove
+Postfix's own Received: message header. This causes problems with
+mail signing filters. Instead, keep Postfix's own Received: message
+header and use the <a href="header_checks.5.html">header_checks(5)</a> REPLACE action to sanitize
+information. </p>
+
 <p> You specify SMTP-only Milter applications (there can be more
 than one) with the <a href="postconf.5.html#smtpd_milters">smtpd_milters</a> parameter.  Each Milter application
 is identified by the name of its listening socket; other Milter
@@ -328,7 +338,7 @@ Connect to the specified TCP port on the specified local or remote
 host.  The host and port can be specified in numeric or symbolic
 form.</p>
 
-<p> Note: Postfix syntax differs from Milter syntax which has the
+<p> NOTE: Postfix syntax differs from Milter syntax which has the
 form <b>inet:</b><i>port</i><b>@</b><i>host</i>. </p>  </dd>
 
 </dl>
@@ -344,6 +354,12 @@ non-SMTP filters can be used to filter unwanted mail, there are
 limitations as discussed later in this section.  Mail that arrives
 via the Postfix <a href="smtpd.8.html">smtpd(8)</a> server is not filtered by the non-SMTP
 filters.  </p>
+
+<p> NOTE: Do not use the <a href="header_checks.5.html">header_checks(5)</a> IGNORE action to remove
+Postfix's own Received: message header. This causes problems with
+mail signing filters. Instead, keep Postfix's own Received: message
+header and use the <a href="header_checks.5.html">header_checks(5)</a> REPLACE action to sanitize
+information. </p>
 
 <p> You specify non-SMTP Milter applications with the <a href="postconf.5.html#non_smtpd_milters">non_smtpd_milters</a>
 parameter. This parameter uses the same syntax as the <a href="postconf.5.html#smtpd_milters">smtpd_milters</a>
@@ -596,12 +612,23 @@ TO </td> </tr>
 
 <h2><a name="workarounds">Workarounds</a></h2>
 
+<p> Content filters may break domain key etc. signatures. If you
+use an SMTP-based filter as described in <a href="FILTER_README.html">FILTER_README</a>, then you
+should add a line to <a href="master.5.html">master.cf</a> with "<a href="postconf.5.html#disable_mime_output_conversion">disable_mime_output_conversion</a>
+= yes", as described in the <a
+href="FILTER_README.html#advanced_filter">advanced content filter</a>
+example. </p>
+
 <p> Sendmail Milter applications were originally developed for the
 Sendmail version 8 MTA, which has a different architecture than
 Postfix.  The result is that some Milter applications make assumptions
 that aren't true in a Postfix environment. </p>
 
 <ul>
+
+<li> <p> Some Milter applications use the "<tt>{if_addr}</tt>" macro
+to recognize local mail; this macro does not exist in Postfix.
+Workaround: use the "<tt>{client_addr}</tt>" macro instead. </p>
 
 <li> <p> Some Milter applications log a warning that looks like
 this: </p>
@@ -620,13 +647,14 @@ X-SenderID: Sendmail Sender-ID Filter vx.y.z host.example.com &lt;unknown-msgid&
 </pre>
 </blockquote>
 
-<p> This happens because the Milter application expects that the
+<p> This happens because some Milter applications expect that the
 queue ID is known <i>before</i> the MTA accepts the MAIL FROM
-(sender) command.  Postfix, on the other hand, does not create a
-queue file until <i>after</i> Postfix accepts the first valid RCPT
-TO (recipient) command. This queue file name must be globally unique
-across multiple queue directories, so it cannot be chosen until the
-file is actually created. </p>
+(sender) command.  Postfix, on the other hand, does not choose a
+queue file name until <i>after</i> it accepts the first valid RCPT
+TO (recipient) command. Postfix queue file names must be unique
+across multiple directories, so the name can't be chosen before the
+file is created.  If multiple messages were to use the same queue
+ID <i>simultaneously</i>, mail would be lost.  </p>
 
 <p> To work around the ugly message header from Milter applications,
 we add a little code to the Milter source to look up the queue ID
@@ -644,21 +672,32 @@ the top shown as <b>bold</b> text below: </p>
 
 <blockquote>
 <pre>
-sic = (Context) smfi_getpriv(ctx);
-assert(sic != NULL);
+dfc = cc->cctx_msg;
+assert(dfc != NULL);
 <b>
-/*
-**  Determine the job ID for logging.
-*/
-if (sic->ctx_jobid == 0 || strcmp(sic->ctx_jobid, MSGIDUNKNOWN) == 0) {
+/* Determine the job ID for logging. */
+if (dfc->mctx_jobid == 0 || strcmp(dfc->mctx_jobid, JOBIDUNKNOWN) == 0) {
         char *jobid = smfi_getsymval(ctx, "i");
         if (jobid != 0)
-                sic->ctx_jobid = jobid;
+                dfc->mctx_jobid = jobid;
 }</b>
+
+/* get hostname; used in the X header and in new MIME boundaries */
 </pre>
 </blockquote>
 
-<p> This does not remove the WARNING message, however. </p>
+<p> NOTES: </p>
+
+<ul>
+
+<li> <p> Different mail filters use slightly different names for
+variables. If the above code does not compile, look for the code
+at the start of the <tt>mlfi_eoh()</tt> routine. </p>
+
+<li> <p> This fixes only the ugly message header, but not the WARNING
+message.  Fortunately, dk-filter logs that message only once. </p>
+
+</ul>
 
 <p> With some Milter applications we can fix both the WARNING and
 the "unknown-msgid" by postponing the call of <tt>mlfi_eoh()</tt>
@@ -699,7 +738,7 @@ will dump core when you do this. </p>
 <h2><a name="limitations">Limitations</a></h2>
 
 <p> This section lists limitations of the Postfix Milter implementation.
-Some limitations will be removed disappear as support is extended
+Some limitations will be removed as the implementation is extended
 over time. Of course the usual limitations of before-queue filtering
 will always apply. See the <a href="CONTENT_INSPECTION_README.html">CONTENT_INSPECTION_README</a> document for
 a discussion. </p>

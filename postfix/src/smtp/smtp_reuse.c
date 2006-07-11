@@ -176,12 +176,23 @@ static SMTP_SESSION *smtp_reuse_common(SMTP_STATE *state, int fd,
     }
     state->session = session;
 
-#ifdef USE_TLS
-
     /*
-     * Cached sessions are never TLS encrypted, so they must not be reused
-     * when TLS encryption is required.
+     * XXX Temporary fix.
+     * 
+     * Cached connections are always plaintext. They must never be reused when
+     * TLS encryption is required.
+     * 
+     * As long as we support the legacy smtp_tls_per_site feature, we must
+     * search the connection cache before making TLS policy decisions. This
+     * is because the policy can depend on the server name. For example, a
+     * site could have a global policy that requires encryption, with
+     * per-server exceptions that allow plaintext.
+     * 
+     * With the newer smtp_tls_policy_maps feature, the policy depends on the
+     * next-hop destination only. We can avoid unnecessary connection cache
+     * lookups, because we can compute the TLS policy much earlier.
      */
+#ifdef USE_TLS
     if (session->tls_level >= TLS_LEV_ENCRYPT) {
 	if (msg_verbose)
 	    msg_info("%s: skipping plain-text cached session to %s",

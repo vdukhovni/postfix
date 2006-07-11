@@ -21,6 +21,7 @@
   * Global library.
   */
 #include <cleanup_user.h>
+#include <int_filt.h>
 
  /*
   * External interface.

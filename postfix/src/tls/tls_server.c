@@ -145,13 +145,14 @@ static SSL_SESSION *get_server_session_cb(SSL *ssl, unsigned char *session_id,
 					          int session_id_length,
 					          int *unused_copy)
 {
+    const char *myname = "get_server_session_cb";
     TLScontext_t *TLScontext;
     VSTRING *cache_id;
     VSTRING *session_data = vstring_alloc(2048);
     SSL_SESSION *session = 0;
 
     if ((TLScontext = SSL_get_ex_data(ssl, TLScontext_index)) == 0)
-	msg_panic("null TLScontext in session lookup callback");
+	msg_panic("%s: null TLScontext in session lookup callback", myname);
 
 #define HEX_CACHE_ID(id, len) \
     hex_encode(vstring_alloc(2 * (len) + 1), (char *) (id), (len))
@@ -207,12 +208,13 @@ static void uncache_session(SSL_CTX *ctx, TLScontext_t *TLScontext)
 
 static int new_server_session_cb(SSL *ssl, SSL_SESSION *session)
 {
+    const char *myname = "new_server_session_cb";
     VSTRING *cache_id;
     TLScontext_t *TLScontext;
     VSTRING *session_data;
 
     if ((TLScontext = SSL_get_ex_data(ssl, TLScontext_index)) == 0)
-	msg_panic("null TLScontext in new session callback");
+	msg_panic("%s: null TLScontext in new session callback", myname);
 
     cache_id = HEX_CACHE_ID(session->session_id, session->session_id_length);
 
@@ -476,16 +478,16 @@ SSL_CTX *tls_server_init(const tls_server_props *props)
 	SSL_CTX_sess_set_new_cb(server_ctx, new_server_session_cb);
 
 	/*
-	 * OpenSSL ignores timed-out sessions, we need to set the internal
-	 * cache timeut at least as high as the external cache timeout. This
+	 * OpenSSL ignores timed-out sessions. We need to set the internal
+	 * cache timeout at least as high as the external cache timeout. This
 	 * applies even if no internal cache is used.
 	 */
 	SSL_CTX_set_timeout(server_ctx, props->scache_timeout);
     } else {
 
 	/*
-	 * If we have no external cache, disable all caching, no use wasting
-	 * client memory resources with sessions they are unlikely to be able
+	 * If we have no external cache, disable all caching. No use wasting
+	 * server memory resources with sessions they are unlikely to be able
 	 * to reuse.
 	 */
 	SSL_CTX_set_session_cache_mode(server_ctx, SSL_SESS_CACHE_OFF);
@@ -535,13 +537,13 @@ TLScontext_t *tls_server_start(SSL_CTX *server_ctx, VSTREAM *stream,
     TLScontext->cache_type = SSL_CTX_get_ex_data(server_ctx, TLSscache_index);
 
     if ((TLScontext->con = (SSL *) SSL_new(server_ctx)) == NULL) {
-	msg_info("Could not allocate 'TLScontext->con' with SSL_new()");
+	msg_warn("Could not allocate 'TLScontext->con' with SSL_new()");
 	tls_print_errors();
 	tls_free_context(TLScontext);
 	return (0);
     }
     if (!SSL_set_ex_data(TLScontext->con, TLScontext_index, TLScontext)) {
-	msg_info("Could not set application data for 'TLScontext->con'");
+	msg_warn("Could not set application data for 'TLScontext->con'");
 	tls_print_errors();
 	tls_free_context(TLScontext);
 	return (0);
@@ -572,7 +574,7 @@ TLScontext_t *tls_server_start(SSL_CTX *server_ctx, VSTREAM *stream,
      */
     if (!BIO_new_bio_pair(&TLScontext->internal_bio, TLS_BIO_BUFSIZE,
 			  &TLScontext->network_bio, TLS_BIO_BUFSIZE)) {
-	msg_info("Could not obtain BIO_pair");
+	msg_warn("Could not obtain BIO_pair");
 	tls_print_errors();
 	tls_free_context(TLScontext);
 	return (0);

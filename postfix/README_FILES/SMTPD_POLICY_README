@@ -58,7 +58,7 @@ a delegated SMTPD access policy request:
     sasl_sender=
     size=12345
     ccert_subject=solaris9.porcupine.org
-    ccert_issuer=Wietse Venema
+    ccert_issuer=Wietse+20Venema
     ccert_fingerprint=C2:9D:F4:87:71:73:73:D9:18:E7:C2:F3:C1:DA:6E:04
     PPoossttffiixx vveerrssiioonn 22..33 aanndd llaatteerr::
     encryption_protocol=TLSv1/SSLv3
@@ -114,7 +114,9 @@ Notes:
 
   * The "ccert_*" attributes (Postfix 2.2 and later) specify information about
     how the client was authenticated via TLS. These attributes are empty in
-    case of no certificate authentication.
+    case of no certificate authentication. As of Postfix 2.2.11 these attribute
+    values are encoded as xtext: some characters are represented by +XX, where
+    XX is the two-digit hecadecimal representation of the character value.
 
   * The "encryption_*" attributes (Postfix 2.3 and later) specify information
     about how the connection is encrypted. With plaintext connections the

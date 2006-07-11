@@ -138,6 +138,15 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 
     /*
      * Look up the peer address information.
+     * 
+     * XXX If we make local endpoint (getsockname) information available to
+     * Milter applications as {if_name} and {if_addr}, then we also must be
+     * able to provide this via the XCLIENT command for Milter testing.
+     * 
+     * XXX If support were to be added for Milter applications in down-stream
+     * MTAs, then consistency demands that we propagate a lot of Sendmail
+     * macro information via the XFORWARD command. Otherwise we could end up
+     * with a very confusing situation.
      */
     if (getpeername(vstream_fileno(state->client), sa, &sa_length) >= 0) {
 	errno = 0;

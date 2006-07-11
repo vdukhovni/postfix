@@ -236,6 +236,7 @@
 #include <valid_mailhost_addr.h>
 #include <dsn_util.h>
 #include <conv_time.h>
+#include <xtext.h>
 
 /* Application-specific. */
 
@@ -3251,6 +3252,15 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
     static VSTRING *action = 0;
     ATTR_CLNT *policy_clnt;
 
+#ifdef USE_TLS
+    VSTRING *subject_buf;
+    VSTRING *issuer_buf;
+    const char *subject;
+    const char *issuer;
+
+#endif
+    int     ret;
+
     /*
      * Sanity check.
      */
@@ -3264,6 +3274,23 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
      */
     if (action == 0)
 	action = vstring_alloc(10);
+
+#ifdef USE_TLS
+#define ENCODE_CN(coded_CN, coded_CN_buf, CN) do { \
+	if (state->tls_context == 0 \
+	    || state->tls_context->peer_verified == 0 || (CN) == 0) { \
+	    coded_CN_buf = 0; \
+	    coded_CN = ""; \
+	} else { \
+	    coded_CN_buf = vstring_alloc(strlen(CN)); \
+	    xtext_quote(coded_CN_buf, CN, ""); \
+	    coded_CN = STR(coded_CN_buf); \
+	} \
+    } while (0);
+
+    ENCODE_CN(subject, subject_buf, state->tls_context->peer_CN);
+    ENCODE_CN(issuer, issuer_buf, state->tls_context->issuer_CN);
+#endif
 
     if (attr_clnt_request(policy_clnt,
 			  ATTR_FLAG_NONE,	/* Query attributes. */
@@ -3308,10 +3335,8 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 #define IF_VERIFIED(x) \
     ((state->tls_context && \
       state->tls_context->peer_verified && ((x) != 0)) ? (x) : "")
-			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_SUBJECT,
-			  IF_VERIFIED(state->tls_context->peer_CN),
-			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_ISSSUER,
-			  IF_VERIFIED(state->tls_context->issuer_CN),
+			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_SUBJECT, subject,
+			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_ISSUER, issuer,
 			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_FINGERPRINT,
 			  IF_VERIFIED(state->tls_context->peer_fingerprint),
 #define IF_ENCRYPTED(x, y) ((state->tls_context && ((x) != 0)) ? (x) : (y))
@@ -3326,19 +3351,26 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
 			  ATTR_TYPE_STR, MAIL_ATTR_ACTION, action,
 			  ATTR_TYPE_END) != 1) {
-	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
-				   451, "4.3.5",
-				   "Server configuration problem"));
+	ret = smtpd_check_reject(state, MAIL_ERROR_POLICY,
+				 451, "4.3.5",
+				 "Server configuration problem");
     } else {
 
 	/*
 	 * XXX This produces bogus error messages when the reply is
 	 * malformed.
 	 */
-	return (check_table_result(state, server, STR(action),
-				   "policy query", reply_name,
-				   reply_class, def_acl));
+	ret = check_table_result(state, server, STR(action),
+				 "policy query", reply_name,
+				 reply_class, def_acl);
     }
+#ifdef USE_TLS
+    if (subject_buf)
+	vstring_free(subject_buf);
+    if (issuer_buf)
+	vstring_free(issuer_buf);
+#endif
+    return (ret);
 }
 
 /* is_map_command - restriction has form: check_xxx_access type:name */
@@ -3484,7 +3516,6 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 			     450, "4.7.0",
 			     "<%s>: %s rejected: defer_if_reject requested",
 			     reply_name, reply_class);
-#ifdef SNAPSHOT
 	} else if (strcasecmp(name, SLEEP) == 0) {
 	    if (cpp[1] == 0 || alldig(cpp[1]) == 0) {
 		msg_warn("restriction %s must be followed by number", SLEEP);
@@ -3494,7 +3525,6 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 					   "Server configuration error"));
 	    } else
 		sleep(atoi(*++cpp));
-#endif
 	} else if (strcasecmp(name, REJECT_PLAINTEXT_SESSION) == 0) {
 	    status = reject_plaintext_session(state);
 	}

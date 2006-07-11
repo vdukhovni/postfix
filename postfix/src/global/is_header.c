@@ -87,5 +87,6 @@ ssize_t is_header_buf(const char *str, ssize_t str_len)
 	    return ((state == IN_CHAR || state == IN_CHAR_SPACE) ? len : 0);
 	}
     }
+    /* Redundant return for future proofing. */
     return (0);
 }

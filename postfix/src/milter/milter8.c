@@ -19,7 +19,7 @@
 /*	MILTER	*milter8_receive(stream)
 /*	VSTREAM	*stream;
 /* DESCRIPTION
-/*	This modulde implements the MTA side of the Sendmail 8 mail
+/*	This module implements the MTA side of the Sendmail 8 mail
 /*	filter protocol.
 /*
 /*	milter8_create() creates a MILTER data structure with virtual
@@ -485,13 +485,14 @@ static void milter8_close_stream(MILTER8 *milter)
     milter->state = MILTER8_STAT_CLOSED;
 }
 
-/* milter8_read_cmd - receive command code now, receive data later */
+/* milter8_read_resp - receive command code now, receive data later */
 
-static int milter8_read_cmd(MILTER8 *milter, unsigned char *command,
+static int milter8_read_resp(MILTER8 *milter, int event, unsigned char *command,
 			            ssize_t *data_len)
 {
     UINT32_TYPE len;
     ssize_t pkt_len;
+    const char *smfic_name;
     int     cmd;
 
     /*
@@ -499,7 +500,10 @@ static int milter8_read_cmd(MILTER8 *milter, unsigned char *command,
      */
     if ((vstream_fread(milter->fp, (char *) &len, UINT32_SIZE))
 	!= UINT32_SIZE) {
-	msg_warn("milter %s: can't read packet header: %m", milter->m.name);
+	smfic_name = str_name_code(smfic_table, event);
+	msg_warn("milter %s: can't read %s reply packet header: %m",
+		 milter->m.name, smfic_name != 0 ?
+		 smfic_name : "(unknown MTA event)");
 	return (milter8_comm_error(milter));
     } else if ((pkt_len = ntohl(len)) < 1) {
 	msg_warn("milter %s: bad packet length: %ld",
@@ -625,7 +629,7 @@ static int vmilter8_read_data(MILTER8 *milter, ssize_t data_len, va_list ap)
 
     /*
      * Sanity checks. We may have excess data when the sender is confused. We
-     * may have a negative count when we're confused outselves.
+     * may have a negative count when we're confused ourselves.
      */
     if (data_left > 0) {
 	msg_warn("%s: left-over data %ld bytes", myname, (long) data_left);
@@ -740,7 +744,7 @@ static int vmilter8_write_cmd(MILTER8 *milter, int command, ssize_t data_len,
     VSTRING *buf;
     const char *str;
     const char **cpp;
-    unsigned char ch;
+    char    ch;
 
     /*
      * Deliver the packet.
@@ -863,11 +867,12 @@ static const char *milter8_event(MILTER8 *milter, int event,
     const char *smfir_name;
     MILTERS *parent;
     UINT32_TYPE index;
+    const char *edit_resp;
 
 #define DONT_SKIP_REPLY	0
 
     /*
-     * Skip this event if it is not defined for my protocol version.
+     * Skip this event if it doesn't exist in the protocol that I announced.
      */
 #ifndef USE_LIBMILTER_INCLUDES
     if ((skip_event_flag & milter->np_mask) != 0) {
@@ -880,9 +885,9 @@ static const char *milter8_event(MILTER8 *milter, int event,
 #endif
 
     /*
-     * Send the macros even when the corresponding list is empty. This is not
-     * a problem because we're sending macros and event parameters in one
-     * transaction.
+     * Send the macros for this event, even when we're not reporting the
+     * event itself. This does not introduce a performance problem because
+     * we're sending macros and event parameters in one VSTREAM transaction.
      */
     if (msg_verbose) {
 	VSTRING *buf = vstring_alloc(100);
@@ -921,7 +926,8 @@ static const char *milter8_event(MILTER8 *milter, int event,
     }
 
     /*
-     * Size the command data.
+     * Compute the command data size. This is necessary because the protocol
+     * sends length before content.
      */
     va_start(ap, macros);
     data_len = vmilter8_size_data(ap);
@@ -938,8 +944,8 @@ static const char *milter8_event(MILTER8 *milter, int event,
 
     /*
      * Special feature: don't wait for one reply per header. This allows us
-     * to send multiple headers in one transaction, and improves over-all
-     * performance.
+     * to send multiple headers in one VSTREAM transaction, and improves
+     * over-all performance.
      */
     if (skip_reply) {
 	if (msg_verbose)
@@ -957,12 +963,12 @@ static const char *milter8_event(MILTER8 *milter, int event,
 #define IN_CONNECT_EVENT(e) ((e) == SMFIC_CONNECT || (e) == SMFIC_HELO)
 
     for (;;) {
-	if (milter8_read_cmd(milter, &cmd, &data_size) != 0)
+	if (milter8_read_resp(milter, event, &cmd, &data_size) != 0)
 	    return (milter->def_reply);
 	if (msg_verbose)
-	    msg_info("reply: %s %d",
+	    msg_info("reply: %s data %ld bytes",
 		     (smfir_name = str_name_code(smfir_table, cmd)) != 0 ?
-		     smfir_name : "unknown", data_size);
+		     smfir_name : "unknown", (long) data_size);
 	switch (cmd) {
 
 	    /*
@@ -1051,7 +1057,7 @@ static const char *milter8_event(MILTER8 *milter, int event,
 #endif
 		milter->state = MILTER8_STAT_REJECT_CON;
 		return (milter8_def_reply(milter,
-		       "451 4.7.1 Service unavailable - try again later"));
+			"451 4.7.1 Service unavailable - try again later"));
 	    } else {
 		return ("451 4.7.1 Service unavailable - try again later");
 	    }
@@ -1136,6 +1142,9 @@ static const char *milter8_event(MILTER8 *milter, int event,
 					  MILTER8_DATA_END) != 0)
 			return (milter->def_reply);
 		    parent = milter->m.parent;
+		    /* XXX Sendmail 8 compatibility. */
+		    if (index == 0)
+			index = 1;
 		    if ((ssize_t) index < 1) {
 			msg_warn("milter %s: bad change header index: %ld",
 				 milter->m.name, (long) index);
@@ -1149,12 +1158,16 @@ static const char *milter8_event(MILTER8 *milter, int event,
 			return (milter->def_reply);
 		    }
 		    if (STR(milter->body)[0])
-			parent->upd_header(parent->chg_context, (ssize_t) index,
-					   STR(milter->buf),
-					   STR(milter->body));
+			edit_resp = parent->upd_header(parent->chg_context,
+						       (ssize_t) index,
+						       STR(milter->buf),
+						       STR(milter->body));
 		    else
-			parent->del_header(parent->chg_context, (ssize_t) index,
-					   STR(milter->buf));
+			edit_resp = parent->del_header(parent->chg_context,
+						       (ssize_t) index,
+						       STR(milter->buf));
+		    if (edit_resp)
+			return (milter8_def_reply(milter, edit_resp));
 		    continue;
 #endif
 
@@ -1168,8 +1181,11 @@ static const char *milter8_event(MILTER8 *milter, int event,
 					  MILTER8_DATA_END) != 0)
 			return (milter->def_reply);
 		    parent = milter->m.parent;
-		    parent->add_header(parent->chg_context, STR(milter->buf),
-				       STR(milter->body));
+		    edit_resp = parent->add_header(parent->chg_context,
+						   STR(milter->buf),
+						   STR(milter->body));
+		    if (edit_resp)
+			return (milter8_def_reply(milter, edit_resp));
 		    continue;
 
 		    /*
@@ -1193,8 +1209,12 @@ static const char *milter8_event(MILTER8 *milter, int event,
 			return (milter->def_reply);
 		    }
 		    parent = milter->m.parent;
-		    parent->ins_header(parent->chg_context, (ssize_t) index + 1,
-				       STR(milter->buf), STR(milter->body));
+		    edit_resp = parent->ins_header(parent->chg_context,
+						   (ssize_t) index + 1,
+						   STR(milter->buf),
+						   STR(milter->body));
+		    if (edit_resp)
+			return (milter8_def_reply(milter, edit_resp));
 		    continue;
 #endif
 
@@ -1207,7 +1227,10 @@ static const char *milter8_event(MILTER8 *milter, int event,
 					  MILTER8_DATA_END) != 0)
 			return (milter->def_reply);
 		    parent = milter->m.parent;
-		    parent->add_rcpt(parent->chg_context, STR(milter->buf));
+		    edit_resp = parent->add_rcpt(parent->chg_context,
+						 STR(milter->buf));
+		    if (edit_resp)
+			return (milter8_def_reply(milter, edit_resp));
 		    continue;
 
 		    /*
@@ -1219,7 +1242,10 @@ static const char *milter8_event(MILTER8 *milter, int event,
 					  MILTER8_DATA_END) != 0)
 			return (milter->def_reply);
 		    parent = milter->m.parent;
-		    parent->del_rcpt(parent->chg_context, STR(milter->buf));
+		    edit_resp = parent->del_rcpt(parent->chg_context,
+						 STR(milter->buf));
+		    if (edit_resp)
+			return (milter8_def_reply(milter, edit_resp));
 		    continue;
 
 		    /*
@@ -1233,7 +1259,10 @@ static const char *milter8_event(MILTER8 *milter, int event,
 					  MILTER8_DATA_END) != 0)
 			return (milter->def_reply);
 		    parent = milter->m.parent;
-		    parent->repl_body(parent->chg_context, milter->body);
+		    edit_resp = parent->repl_body(parent->chg_context,
+						  milter->body);
+		    if (edit_resp)
+			return (milter8_def_reply(milter, edit_resp));
 		    continue;
 #endif
 		}
@@ -1252,9 +1281,9 @@ static const char *milter8_event(MILTER8 *milter, int event,
 	 * Get here when the reply was followed by data bytes that weren't
 	 * supposed to be there.
 	 */
-	msg_warn("milter %s: reply %s was followed by %d data bytes",
+	msg_warn("milter %s: reply %s was followed by %ld data bytes",
 	milter->m.name, (smfir_name = str_name_code(smfir_table, cmd)) != 0 ?
-		 smfir_name : "unknown", data_len);
+		 smfir_name : "unknown", (long) data_len);
 	milter8_comm_error(milter);
 	return (milter->def_reply);
     }
@@ -1439,9 +1468,9 @@ static void milter8_connect(MILTER8 *milter)
     /*
      * Receive the filter's response and verify that we are compatible.
      */
-    else if (milter8_read_cmd(milter, &cmd, &data_len) != 0) {
+    else if (milter8_read_resp(milter, SMFIC_OPTNEG, &cmd, &data_len) != 0) {
 	msg_warn("milter %s: read error in initial handshake", milter->m.name);
-	/* milter8_read_cmd() called milter8_comm_error() */
+	/* milter8_read_resp() called milter8_comm_error() */
     } else if (cmd != SMFIC_OPTNEG) {
 	msg_warn("milter %s: unexpected reply \"%c\" in initial handshake",
 		 milter->m.name, cmd);
@@ -1857,6 +1886,8 @@ static void milter8_disc_event(MILTER *m)
 typedef struct {
     MILTER8 *milter;			/* milter client */
     ARGV   *macros;			/* end-of-body macros */
+    int     first_header;		/* first header */
+    int     first_body;			/* first body line */
     const char *resp;			/* milter application response */
 } MILTER_MSG_CONTEXT;
 
@@ -1871,6 +1902,28 @@ static void milter8_header(void *ptr, int unused_header_class,
     MILTER8 *milter = msg_ctx->milter;
     char   *cp;
     int     skip_reply;
+
+    /*
+     * XXX Sendmail compatibility. Don't expose our first (received) header
+     * to mail filter applications. See also cleanup_milter.c for code to
+     * ensure that header replace requests are relative to the message
+     * content as received, that is, without our own first (received) header,
+     * while header insert requests are relative to the message as delivered,
+     * that is, including our own first (received) header.
+     * 
+     * XXX But this breaks when they delete our own Received: header with
+     * header_checks before it reaches the queue file. Even then we must not
+     * expose the first header to mail filter applications, otherwise the
+     * dk-filter signature will be inserted at the wrong position. It should
+     * precede the headers that it signs.
+     * 
+     * XXX Sendmail compatibility. It eats the first space (not tab) after the
+     * header label and ":".
+     */
+    if (msg_ctx->first_header) {
+	msg_ctx->first_header = 0;
+	return;
+    }
 
     /*
      * Sendmail 8 sends multi-line headers as text separated by newline.
@@ -1889,8 +1942,8 @@ static void milter8_header(void *ptr, int unused_header_class,
     if (*cp != ':')
 	msg_panic("%s: header label not followed by ':'", myname);
     *cp++ = 0;
-    /* XXX Following matches mime_state.c */
-    while (*cp == ' ' || *cp == '\t')
+    /* XXX Sendmail 8.13.6 eats one space (not tab) after colon. */
+    if (*cp == ' ')
 	cp++;
 #ifdef SMFIP_NOHREPL
     skip_reply = ((milter->ev_mask & SMFIP_NOHREPL) != 0);
@@ -1936,6 +1989,14 @@ static void milter8_body(void *ptr, int rec_type,
     ssize_t count;
 
     /*
+     * XXX Sendmail compatibility: don't expose our first body line.
+     */
+    if (msg_ctx->first_body) {
+	msg_ctx->first_body = 0;
+	return;
+    }
+
+    /*
      * XXX I thought I was going to delegate all the on-the-wire formatting
      * to a common lower layer, but unfortunately it's not practical. If we
      * were to do MILTER_CHUNK_SIZE buffering in a common lower layer, then
@@ -1950,6 +2011,12 @@ static void milter8_body(void *ptr, int rec_type,
      */
     if (msg_verbose > 1)
 	msg_info("%s: body milter %s: %.100s", myname, milter->m.name, buf);
+    /* To append \r\n, simply redirect input to another buffer. */
+    if (rec_type == REC_TYPE_NORM && todo == 0) {
+	bp = "\r\n";
+	todo = 2;
+	rec_type = REC_TYPE_EOF;
+    }
     while (todo > 0) {
 	/* Append one REC_TYPE_NORM or REC_TYPE_CONT to body chunk buffer. */
 	space = MILTER_CHUNK_SIZE - LEN(milter->body);
@@ -2029,6 +2096,8 @@ static const char *milter8_message(MILTER *m, VSTREAM *qfile,
 	}
 	msg_ctx.milter = milter;
 	msg_ctx.macros = macros;
+	msg_ctx.first_header = 1;
+	msg_ctx.first_body = 1;
 	msg_ctx.resp = 0;
 	mime_state =
 	    mime_state_alloc(MIME_OPT_DISABLE_MIME,

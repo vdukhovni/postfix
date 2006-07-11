@@ -18,6 +18,9 @@
 /*
 /*	long	tls_bug_bits()
 /*
+/*	const char *tls_cipher_list(cipher_level, ...)
+/*	int	cipher_level;
+/*
 /*	void	tls_print_errors()
 /*
 /*	void    tls_info_callback(ssl, where, ret)
@@ -49,6 +52,11 @@
 /*	tls_bug_bits() returns the bug compatibility mask appropriate
 /*	for the run-time library. Some of the bug work-arounds are
 /*	not appropriate for some library versions.
+/*
+/*	tls_cipher_list() generates a cipher list from the specified
+/*	grade, minus any ciphers specified via a null-terminated
+/*	list of string-valued exclusions. The result is overwritten
+/*	upon each call.
 /*
 /*	tls_print_errors() queries the OpenSSL error stack,
 /*	logs the error messages, and clears the error stack.
@@ -156,7 +164,7 @@ typedef struct {
 
 /* tls_cipher_list - Cipherlist for given grade, less exclusions */
 
-char   *tls_cipher_list(int level,...)
+const char *tls_cipher_list(int cipher_level,...)
 {
     const char *myname = "tls_cipher_list";
     static VSTRING *buf;
@@ -169,7 +177,7 @@ char   *tls_cipher_list(int level,...)
     buf = buf ? buf : vstring_alloc(10);
     VSTRING_RESET(buf);
 
-    switch (level) {
+    switch (cipher_level) {
     case TLS_CIPHER_HIGH:
 	vstring_strcpy(buf, var_tls_high_clist);
 	break;
@@ -188,13 +196,13 @@ char   *tls_cipher_list(int level,...)
     case TLS_CIPHER_NONE:
 	return 0;
     default:
-	msg_panic("%s: invalid cipher level: %d", myname, level);
+	msg_panic("%s: invalid cipher grade: %d", myname, cipher_level);
     }
 
     if (VSTRING_LEN(buf) == 0)
 	msg_panic("%s: empty cipherlist", myname);
 
-    va_start(ap, level);
+    va_start(ap, cipher_level);
     while ((exclude = va_arg(ap, char *)) != 0) {
 	if (*exclude == '\0')
 	    continue;

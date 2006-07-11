@@ -12222,27 +12222,29 @@ Apologies for any names omitted.
 	tls/tls_misc.c, tls/tls_server.c.
 
 	Added smtpd_tls_protocols parameter to complement
-	smtp_tls_protocols.
+	smtp_tls_protocols. Victor Duchovni.
 
 20060517
 
 	The smtp_tls_policy_maps table now implements parent domain
 	matching for destinations that are bare domains (without
 	enclosin [] or optional :port suffix). This allows one to
-	set TLS policy for a domain and all sub-domains.
+	set TLS policy for a domain and all sub-domains. Victor
+	Duchovni.
 
 20060519
 
 	The same parameter can bind to different variables in
 	different daemons, ignore the variable name when eliminating
-	duplicates in extract.awk.
+	duplicates in extract.awk. Victor Duchovni.
 
 20060523
 
 	Improved handling of smtp_tls_protocols and smtpd_tls_protocols,
 	names now processed via name_mask(3) and canonicalized prior
 	to use in the SMTP/LMTP client TLS session lookup key. Also
-	simplifies the corresponding code in the TLS driver.
+	simplifies the corresponding code in the TLS driver. Victor
+	Duchovni.
 
 20060524
 
@@ -12259,7 +12261,7 @@ Apologies for any names omitted.
 20060601
 
 	Fixed default value of LMTP TLS client certificate parameters,
-	using the SMTP values as a default was wrong.
+	using the SMTP values as a default was wrong. Victor Duchovni.
 
 20060603
 
@@ -12267,7 +12269,7 @@ Apologies for any names omitted.
 	settings. We need to add the transport name to the TLS
 	session lookup key so that sessions verified with one set
 	of trusted roots are not inadvertantly considered verified
-	for another.
+	for another. Victor Duchovni.
 
 20060604
 
@@ -12301,7 +12303,7 @@ Apologies for any names omitted.
 20060606
 
 	Portability: Some systems no longer support the traditional
-	"sort +0 -2 +3".
+	"sort +0 -2 +3". Victor Duchovni.
 
 20060607
 
@@ -12340,18 +12342,18 @@ Apologies for any names omitted.
 
 20060612
 
-	Changed smtp security level parsing and level to name
-	convertion to use name_code(3).
+	Changed smtp security level parsing and level->name conversion
+	to use name_code(3). Victor Duchovni.
 
 	Implemented new smtp_tls_security_level parameter, to replace
 	the unnecessarily complex smtp_use_tls, smtp_enforce_tls
 	and smtp_tls_enforce_peername parameters. The main.cf
 	security level settings are now consistent with the new
-	policy table.
+	policy table. Victor Duchovni.
 
 	The smtp_sasl_tls_verified_security_options feature is not
 	yet complete, added #ifdef SNAPSHOT and changed documentation
-	to delay introduction until Postfix 2.4.
+	to delay introduction until Postfix 2.4. Victor Duchovni.
 
 20060614
 
@@ -12360,10 +12362,10 @@ Apologies for any names omitted.
 	personality of the unified SMTP/LMTP client.
 
 	Allow mandatory TLS encryption with LMTP over UNIX-domain
-	sockets.
+	sockets. Victor Duchovni.
 
 	Safety: improved code to avoid I/O on connections after the
-	TLS handshake fails.
+	TLS handshake fails. Victor Duchovni.
 
 20060615
 
@@ -12375,7 +12377,7 @@ Apologies for any names omitted.
 
 	The qshape.pl script was updated for the pointer records
 	that were introduced to support message content modification
-	by Milter applications.
+	by Milter applications. Victor Duchovni.
 
 20060620
 
@@ -12387,7 +12389,8 @@ Apologies for any names omitted.
 	The levels are "high", "medium" (or better), "low" (or
 	better), "export" (or better) and "null".  The underlying
 	definitions of these levels are configurable, but users are
-	strongly encouraged to not change those definitions.
+	strongly encouraged to not change those definitions. Victor
+	Duchovni.
 
 20060626
 
@@ -12408,59 +12411,166 @@ Apologies for any names omitted.
 	mumble_tls_mandatory_mumble; added _mandatory_ qualifier
 	to names of parameters that affect only mandatory TLS.
 
+20060630
+
+	Features promoted from SNAPSHOT to STABLE: the "sleep"
+	pseudo restriction; Postfix daemons now read the local
+	timezone file before chrooting; trivial-rewrite now detects
+	table changes every 10 seconds, so it restarts more timely.
+
+	Features that stay #ifdef SNAPSHOT: tcp_table,
+	lmtp_sasl_tls_verified_security_options, and
+	smtp_sasl_tls_verified_security_options.
+
+	Compatibility: Sendmail does not send its own Received:
+	header to Milter applications. Offsets in header replace
+	requests are relative to the message content as received
+	(i.e. without our own Received: header), while offsets in
+	header insert requests are relative to the message as
+	delivered (i.e. they include our own Received: header).
+	This explains why dk-filter would sign our own Received:
+	header but place the signature between our own Received:
+	header and the rest of the message, violating the draft
+	domainkeys spec.
+
+20060702
+
+	Cleanup: more graceful handling of queue file read/write
+	errors while processing milter message modification requests.
+	Files: cleanup/cleanup_milter.c, milter/milter8.c.
+
+20060703
+
+	Debugging: the Postfix milter client gives more context
+	when it experiences trouble while talking to an uncooperative
+	Milter application. File: milter/milter8.c.
+
+	Compatibility: with OpenBSD 2.7 and later, the alias file
+	is now in /etc/mail/aliases.
+
+20060704
+
+	Bugfix: the Milter client skipped zero-length body lines.
+	File: milter/milter8.c.
+
+	Feature (just this one): RFC 3834 "Auto-Submitted:" message
+	header in DSNs.  File: bounce/bounce_notify_util.c.
+
+20060705
+
+	Portability: LP64 systems required a few ssize_t->int casts
+	in debug logging statements.  Files: milter/test_milter.c,
+	cleanup/cleanup_milter.c.
+
+	Cleanup: comments, error messages, and crumbling interfaces.
+
+20060707
+
+	Workaround: apparently, Solaris gettimeofday() can return
+	out-of range microsecond values.  File: src/global/log_adhoc.c.
+
+	Robustness: the SMTPD policy client now encodes the
+	ccert_subject and ccert-issuer attributes as xtext.  Some
+	characters are replaced by +XX, where XX is the two-digit
+	hexadecimal code for the character value.  File:
+	smtpd/smtpd_check.c.
+
+	Safety: the SMTP/LMTP client now defers delivery when a
+	SASL password exists, but the server does not offer SASL
+	authentication. Mail could be rejected otherwise. This may
+	become an issue now that Postfix retries delivery in plaintext
+	after an opportunistic TLS handshake fails. Specify
+	"smtp_sasl_auth_enforce = no" to deliver mail anyway.  File:
+	smtp/smtp_proto.c. See workaround 20060711 for sender-dependent
+	SASL passwords.
+
+20060709
+
+	Cleanup: the new single smtpd_tls_security_level parameter
+	obsoletes the multiple smtpd_use_tls and smtpd_enforce_tls
+	parameters. This is done for consistency with the Postfix
+	SMTP client. In the Postfix SMTP server, the levels "verify"
+	and "secure" are currently not applicable, and are treated
+	as "encrypt", after logging a warning. Files: smtpd/smtpd.c,
+	tls/tls_level.c, smtp/smtp_session.c.
+
+	Compatibility: don't send the first (blank) body line to
+	Milter applications.  This broke domain key etc. signatures
+	when verified by non-Postfix MTAs.  File: milter/milter8.c.
+
+20060710
+
+	Cleanup: more consistency between smtpd(8) and smtp(8) TLS
+	configuration interfaces: smtpd_tls_mandatory_exclude_ciphers,
+	smtpd_tls_mandatory_ciphers, smtpd_tls_mandatory_protocols.
+	By Victor. Files:smtpd/smtpd.c.
+
+	Cleanup: to support domainkey signing of bounces and
+	Postmaster notices, enable content inspection of Postfix-
+	generated mail with the new internal_mail_filter_classes
+	feature.  This is disabled by default, because it is not
+	yet safe enough. Files: global/int_filt.[hc] and everything
+	that calls post_mail_fopen*().
+
+20060711
+
+	Cleanup: smtpd_tls_mumble -> smtpd_tls_mandatory_mumble,
+	and finer control over the Postfix SMTP server TLS ciphers,
+	all this for consistency with the same functionality in the
+	Postfix SMTP client. Victor Duchovni.
+
+	Compatibility: Sendmail's milter client handles whitespace
+	after the header label and ":" in an interesting manner.
+	It eats one space (not tab). File: milter/milter8.c.
+
+	Workaround: if sender-depedendent SASL passwords are enabled,
+	don't defer delivery when a SASL password exists but the
+	server doesn't announce SASL support. File: smtp/smtp_proto.c.
+
+	Cleanup: format of cleanup milter reject messages.  File:
+	cleanup_milter.c.
+
+	Bugfix: file/memory leak if a transfer of multiple milters
+	from smtpd to cleanup broke in the middle.  Found by Coverity.
+	File: milter/milter.c.
+
 Wish list:
 
-	In the SMTPD policy client (encode or strip) non-printable
-	non-ASCII in (TLS or all) attributes.
+	The usage of TLScontext->cache_type is unclear. It specifies
+	a TLS session cache type (smtpd, smtp, or lmtp), but it is
+	sometimes used as an indicator that TLS session caching is
+	unavailable.  In reality, that decision is made by not
+	registering call-back functions for cache maintenance.
 
-	run real sendmail through test-milter and check the data
-	for bit-wise compatibility with Postfix.
+	Postfix TLS library code should copy any strings that it
+	receives from the application, instead of passing them
+	around as pointers. TLScontext->cache_type is a case in
+	point.
 
 	Are transport:nexthop null fields the same as in the case
 	of default_transport etc. parameters?
 
-	Introduce the notion of required security level into smtpd(8)
-	just like with smtp(8): if the level is specified, ignore
-	the legacy boolean parameters.
-
 	Introduce structured API for tls_server_mumble() just like
 	with smtp(8): this eliminates ever-growing lists of arguments.
 
-	Cleanup: declare smtp_tls_levels[] in a header file, probably
-	one that is owned by the Postfix TLS library instead of
-	smtp(8).  Better, encapsulate the name to code conversion
-	as a Postfix TLS library service routine.
-
-	With (non)delivery notifications, prepend an "Auto-Submitted:
-	auto-replied" header, as per RFC 3834.
-
-	Defer delivery when a SASL password exists but the server
-	does not offer SASL authentication, as mail might otherwise
-	be bounced. This may become an issue now that Postfix will
-	retry in plaintext after optional TLS fails. Make this
-	configurable so people can get the old behavior.
-
 	Don't lose bits when converting st_dev into maildir file
 	name. It's 64 bits on Linux. Found with the BEAM source
-	code analyzer.
+	code analyzer. Is this really a problem, or are they just
+	using 64 bits for upwards compatibility with LP64 systems?
 
 	Do or don't introduce unknown_reverse_client_reject_code.
 
-	mail_addr/rcpt_addr should be externalized as they are in
-	Sendmail. Likewise, addresses in add/delete requests should
-	be internalized before updating the queue file.
+	In Milter events, mail_addr/rcpt_addr should be externalized
+	as they are in Sendmail. Likewise, addresses in add/delete
+	requests should be internalized before updating the queue
+	file.
 
-	Check that UINT32 == in choice is ok (i.e. LP64 UNIX).
-
-	Fix milter_argv() so it does not forget how much memory it
-	has.
+	Check that "UINT32 == unsigned int" choice is ok (i.e. LP64
+	UNIX).
 
 	Tempfail when a Milter application wants content access,
 	while it is configured in an SMTP server that runs before
 	the smtpd_proxy filter.
-
-	Don't send xforward attributes to every site that announces
-	xforward support.
 
 	The sendmail command should not return non-std exit status
 	after fatal error in some internal library routine.
@@ -12469,19 +12579,9 @@ Wish list:
 
 	Keep whitespace between label and ":"?
 
-	Make XCLIENT/XFORWARD future proof: send xtext and accept
-	old non-xtext.
-
 	Make the map case folding/locking options configurable, if
 	not at run-time then at least at compile time so we get
 	consistent behavior across applications.
-
-	Investigate if it is feasible to eliminate cleanup(8) from
-	the path of mail that is forwarded or generated internally.
-	Good: we don't want header rewriting or content inspection.
-	Bad: we still need virtual aliasing, even when mail is
-	forwarded internally. This almost seems to imply that we
-	do virtual aliasing earlier?
 
 	Investigate what it would take to eliminate oqmgr, and to
 	make the old behavior configurable in a unified queue
@@ -12494,8 +12594,8 @@ Wish list:
 	Eliminate the (incoming,deferred)->active rename operation.
 
 	Softbounce fallback-to-ISP for SOHO users. This requires
-	playing with with the soft_error test in the smtp_trouble.c
-	module, and a way to avoid trying direct-to-MX-backup.
+	playing with the soft_error test in the smtp_trouble.c
+	module, and avoiding delivery to backup MX hosts.
 
 	select -> kqueue, epoll, /dev/poll, poll() ...
 
@@ -12505,7 +12605,8 @@ Wish list:
 	access rule.
 
 	Centralize main.cf parameter input so that defaults work
-	consistently.
+	consistently. What about parameter names that are prefixed
+	with mail delivery transport names?
 
 	Fix default time unit handling so that we can have a default
 	bounce lifetime of $maximal_queue_lifetime, without causing
@@ -12520,8 +12621,6 @@ Wish list:
 
 	Remove defer(8) and trace(8) references and man pages. These
 	are services not program names.
-
-	dsb_formal -> dsb_form_all, dsb_status -> dsb_form_status
 
 	Is it safe to cache a connection after it has been used for
 	more than some number of address verification probes?
@@ -12538,13 +12637,6 @@ Wish list:
 
 	Low: replace_sender/replace_recipient actions in access
 	maps?
-
-	Feature: need "soft-bounce before fall-back relay" for SOHO
-	type operations, so they can send direct mail without having
-	to route everything through a provider.
-
-	Med: disable header address rewriting after XCLIENT?
-	Introduce a better concept of original submission?
 
 	Low: configurable order of local(8) delivery methods.
 
@@ -12595,8 +12687,6 @@ Wish list:
 
 	Low: configurable internal/system locking method.
 
-	Low: make sure CCARGS -I options come at the end.
-
 	Low: add INSTALL section for pre-existing Postfix systems.
 
 	Low: add INSTALL section for pre-existing RPM Postfixes.
@@ -12628,7 +12718,7 @@ Wish list:
 	Med: postsuper -r should do something with recipients in
 	bounce logfiles, to make sure the sender will be notified.
 	To be perfectly safe, no process other than the queue manager
-	should move a queue file from the active queue.
+	should move a queue file away from the active queue.
 
 	This could involve tagging a queue file, and use up another
 	permission bit.

@@ -17,7 +17,7 @@
 	VAR_SMTP_TLS_DKEY_FILE, DEF_SMTP_TLS_DKEY_FILE, &var_smtp_tls_dkey_file, 0, 0,
 	VAR_SMTP_TLS_CA_FILE, DEF_SMTP_TLS_CA_FILE, &var_smtp_tls_CAfile, 0, 0,
 	VAR_SMTP_TLS_CA_PATH, DEF_SMTP_TLS_CA_PATH, &var_smtp_tls_CApath, 0, 0,
-	VAR_SMTP_TLS_CIPHERS, DEF_SMTP_TLS_CIPHERS, &var_smtp_tls_ciphers, 1, 0,
+	VAR_SMTP_TLS_MAND_CIPH, DEF_SMTP_TLS_MAND_CIPH, &var_smtp_tls_mand_ciph, 1, 0,
 	VAR_SMTP_TLS_EXCL_CIPH, DEF_SMTP_TLS_EXCL_CIPH, &var_smtp_tls_excl_ciph, 0, 0,
 	VAR_SMTP_TLS_MAND_EXCL, DEF_SMTP_TLS_MAND_EXCL, &var_smtp_tls_mand_excl, 0, 0,
 	VAR_TLS_HIGH_CLIST, DEF_TLS_HIGH_CLIST, &var_tls_high_clist, 1, 0,
@@ -25,7 +25,7 @@
 	VAR_TLS_LOW_CLIST, DEF_TLS_LOW_CLIST, &var_tls_low_clist, 1, 0,
 	VAR_TLS_EXPORT_CLIST, DEF_TLS_EXPORT_CLIST, &var_tls_export_clist, 1, 0,
 	VAR_TLS_NULL_CLIST, DEF_TLS_NULL_CLIST, &var_tls_null_clist, 1, 0,
-	VAR_SMTP_TLS_PROTO, DEF_SMTP_TLS_PROTO, &var_smtp_tls_protocols, 0, 0,
+	VAR_SMTP_TLS_MAND_PROTO, DEF_SMTP_TLS_MAND_PROTO, &var_smtp_tls_mand_proto, 0, 0,
 	VAR_SMTP_TLS_VFY_CMATCH, DEF_SMTP_TLS_VFY_CMATCH, &var_smtp_tls_vfy_cmatch, 1, 0,
 	VAR_SMTP_TLS_SEC_CMATCH, DEF_SMTP_TLS_SEC_CMATCH, &var_smtp_tls_sec_cmatch, 1, 0,
 #endif
@@ -99,5 +99,6 @@
 #endif
 	VAR_SMTP_SENDER_AUTH, DEF_SMTP_SENDER_AUTH, &var_smtp_sender_auth,
 	VAR_SMTP_CNAME_OVERR, DEF_SMTP_CNAME_OVERR, &var_smtp_cname_overr,
+	VAR_SMTP_SASL_ENFORCE, DEF_SMTP_SASL_ENFORCE, &var_smtp_sasl_enforce,
 	0,
     };

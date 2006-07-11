@@ -90,6 +90,8 @@ typedef struct CLEANUP_STATE {
     int     defer_delay;		/* deferred delivery */
 #endif
     MILTERS *milters;			/* mail filters */
+    const char *client_name;		/* real or ersatz client */
+    const char *client_addr;		/* real or ersatz client */
 } CLEANUP_STATE;
 
  /*

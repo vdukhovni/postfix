@@ -133,14 +133,21 @@ void    log_adhoc(const char *id, MSG_STATS *stats, RECIPIENT *recipient,
      * 
      * Don't compute the sdelay (connection setup latency) if there is no time
      * stamp for connection setup completion.
+     * 
+     * XXX Apparently, Solaris gettimeofday() can return out-of-range
+     * microsecond values.
      */
 #define DELTA(x, y, z) \
     do { \
 	(x).dt_sec = (y).tv_sec - (z).tv_sec; \
 	(x).dt_usec = (y).tv_usec - (z).tv_usec; \
-	if ((x).dt_usec < 0) { \
+	while ((x).dt_usec < 0) { \
 	    (x).dt_usec += 1000000; \
 	    (x).dt_sec -= 1; \
+	} \
+	while ((x).dt_usec >= 1000000) { \
+	    (x).dt_usec -= 1000000; \
+	    (x).dt_sec += 1; \
 	} \
 	if ((x).dt_sec < 0) \
 	    (x).dt_sec = (x).dt_usec = 0; \

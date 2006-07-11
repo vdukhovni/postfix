@@ -227,7 +227,8 @@ Note: some Cyrus SASL distributions look for the smtpd.conf file in /etc/sasl2.
     configuration can be set with:
 
         /etc/postfix/main.cf:
-            smtpd_sasl_application_name = smtpd
+            smtpd_sasl_application_name = smtpd (Postfix < 2.3)
+            smtpd_sasl_path = smtpd (Postfix 2.3 and later)
 
     The pwcheck daemon is contained in the cyrus-sasl source tarball.
 
@@ -453,7 +454,8 @@ CCrreeddiittss
     reject_authenticated_sender_login_mismatch and
     reject_unauthenticated_sender_login_mismatch, and revised the docs.
   * Wietse made another iteration through the code to add plug-in support for
-    multiple SASL implementations.
+    multiple SASL implementations, and changed smtpd_sasl_application_name into
+    smtpd_sasl_path.
   * The Dovecot SMTP server-only plug-in was originally implemented by Timo
     Sirainen of Procontrol, Finland.
 

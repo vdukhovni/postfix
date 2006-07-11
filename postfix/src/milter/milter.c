@@ -37,15 +37,15 @@
 /*					ins_header, del_header, add_rcpt,
 /*					del_rcpt, repl_body, context)
 /*	MILTERS	*milters;
-/*	void	(*add_header) (void *context, char *name, char *value);
-/*	void	(*upd_header) (void *context, ssize_t index,
+/*	const char *(*add_header) (void *context, char *name, char *value);
+/*	const char *(*upd_header) (void *context, ssize_t index,
 /*				char *name, char *value);
-/*	void	(*ins_header) (void *context, ssize_t index,
+/*	const char *(*ins_header) (void *context, ssize_t index,
 /*				char *name, char *value);
-/*	void	(*del_header) (void *context, ssize_t index, char *name);
-/*	void	(*add_rcpt) (void *context, char *rcpt);
-/*	void	(*del_rcpt) (void *context, char *rcpt);
-/*	void	(*repl_body) (void *context, VSTRING *body);
+/*	const char *(*del_header) (void *context, ssize_t index, char *name);
+/*	const char *(*add_rcpt) (void *context, char *rcpt);
+/*	const char *(*del_rcpt) (void *context, char *rcpt);
+/*	const char *(*repl_body) (void *context, VSTRING *body);
 /*	void	*context;
 /*
 /*	const char *milter_conn_event(milters, client_name, client_addr,
@@ -272,13 +272,13 @@ void    milter_macro_callback(MILTERS *milters,
 /* milter_edit_callback - specify queue file edit call-back information */
 
 void    milter_edit_callback(MILTERS *milters,
-			        void (*add_header) (void *, char *, char *),
-	               void (*upd_header) (void *, ssize_t, char *, char *),
-	               void (*ins_header) (void *, ssize_t, char *, char *),
-		               void (*del_header) (void *, ssize_t, char *),
-			             void (*add_rcpt) (void *, char *),
-			             void (*del_rcpt) (void *, char *),
-			             void (*repl_body) (void *, VSTRING *),
+		         const char *(*add_header) (void *, char *, char *),
+	        const char *(*upd_header) (void *, ssize_t, char *, char *),
+	        const char *(*ins_header) (void *, ssize_t, char *, char *),
+		        const char *(*del_header) (void *, ssize_t, char *),
+			           const char *(*add_rcpt) (void *, char *),
+			           const char *(*del_rcpt) (void *, char *),
+		               const char *(*repl_body) (void *, VSTRING *),
 			             void *chg_context)
 {
     milters->add_header = add_header;
@@ -709,13 +709,13 @@ MILTERS *milter_receive(VSTREAM *stream, int count)
 	    return (0);
 	}
 	if (head == 0) {
-	    head = milter;
+	    /* Coverity: milter_free() depends on milters->milter_list. */
+	    milters->milter_list = head = milter;
 	} else {
 	    tail->next = milter;
 	}
 	tail = milter;
     }
-    milters->milter_list = head;
 
     (void) attr_print(stream, ATTR_FLAG_NONE,
 		      ATTR_TYPE_INT, MAIL_ATTR_STATUS, 0,
@@ -838,9 +838,9 @@ int     main(int argc, char **argv)
 		msg_warn("deleting existing milters");
 		milter_free(milters);
 	    }
-	    milters = milter_create(args[0], var_milt_conn_time, 
-				var_milt_cmd_time, var_milt_msg_time, 
-				var_milt_protocol, var_milt_def_action,
+	    milters = milter_create(args[0], var_milt_conn_time,
+				    var_milt_cmd_time, var_milt_msg_time,
+				    var_milt_protocol, var_milt_def_action,
 				    conn_macros, helo_macros, mail_macros,
 				    rcpt_macros, data_macros, eod_macros,
 				    unk_macros);

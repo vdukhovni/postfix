@@ -230,6 +230,10 @@ and there are no surprises. If a recipient probe fails, then Postfix
 rejects mail for the recipient address.  If a recipient probe
 succeeds, then Postfix accepts mail for the recipient address. </p>
 
+<p> By default, address verification results are not saved. To avoid
+probing the same address repeatedly, you can store the result in a
+<a href="#caching">persistent database</a> as described later.  </p>
+
 <blockquote>
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:

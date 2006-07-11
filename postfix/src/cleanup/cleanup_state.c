@@ -108,6 +108,8 @@ CLEANUP_STATE *cleanup_state_alloc(VSTREAM *src)
     state->dsn_orcpt = 0;
     state->verp_delims = 0;
     state->milters = 0;
+    state->client_name = 0;
+    state->client_addr = 0;
     return (state);
 }
 

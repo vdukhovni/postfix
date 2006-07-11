@@ -30,9 +30,7 @@
  /*
   * Postfix TLS library.
   */
-#ifdef USE_TLS
 #include <tls.h>
-#endif
 
  /*
   * Milter library.

@@ -1091,6 +1091,10 @@ extern char *var_smtpd_forbid_cmds;
 #define DEF_SMTPD_TLS_WRAPPER	0
 extern bool var_smtpd_tls_wrappermode;
 
+#define VAR_SMTPD_TLS_LEVEL	"smtpd_tls_security_level"
+#define DEF_SMTPD_TLS_LEVEL	""
+extern char *var_smtpd_tls_level;
+
 #define VAR_SMTPD_USE_TLS	"smtpd_use_tls"
 #define DEF_SMTPD_USE_TLS	0
 extern bool var_smtpd_use_tls;
@@ -1139,17 +1143,21 @@ extern char *var_smtpd_tls_CAfile;
 #define DEF_SMTPD_TLS_CA_PATH	""
 extern char *var_smtpd_tls_CApath;
 
-#define VAR_SMTPD_TLS_PROTO	"smtpd_tls_protocols"
-#define DEF_SMTPD_TLS_PROTO	""
-extern char *var_smtpd_tls_protocols;
+#define VAR_SMTPD_TLS_MAND_PROTO	"smtpd_tls_mandatory_protocols"
+#define DEF_SMTPD_TLS_MAND_PROTO	"SSLv3, TLSv1"
+extern char *var_smtpd_tls_mand_proto;
 
-#define VAR_SMTPD_TLS_CIPHERS	"smtpd_tls_ciphers"
-#define DEF_SMTPD_TLS_CIPHERS	"export"
-extern char *var_smtpd_tls_ciphers;
+#define VAR_SMTPD_TLS_MAND_CIPH	"smtpd_tls_mandatory_ciphers"
+#define DEF_SMTPD_TLS_MAND_CIPH	"medium"
+extern char *var_smtpd_tls_mand_ciph;
 
 #define VAR_SMTPD_TLS_EXCL_CIPH  "smtpd_tls_exclude_ciphers"
 #define DEF_SMTPD_TLS_EXCL_CIPH  ""
 extern char *var_smtpd_tls_excl_ciph;
+
+#define VAR_SMTPD_TLS_MAND_EXCL  "smtpd_tls_mandatory_exclude_ciphers"
+#define DEF_SMTPD_TLS_MAND_EXCL  ""
+extern char *var_smtpd_tls_mand_excl;
 
 #define VAR_SMTPD_TLS_512_FILE	"smtpd_tls_dh512_param_file"
 #define DEF_SMTPD_TLS_512_FILE	""
@@ -1251,11 +1259,11 @@ extern char *var_smtp_tls_CAfile;
 #define DEF_LMTP_TLS_CA_PATH	""
 extern char *var_smtp_tls_CApath;
 
-#define VAR_SMTP_TLS_CIPHERS	"smtp_tls_mandatory_ciphers"
-#define DEF_SMTP_TLS_CIPHERS	"medium"
-#define VAR_LMTP_TLS_CIPHERS	"lmtp_tls_mandatory_ciphers"
-#define DEF_LMTP_TLS_CIPHERS	"medium"
-extern char *var_smtp_tls_ciphers;
+#define VAR_SMTP_TLS_MAND_CIPH	"smtp_tls_mandatory_ciphers"
+#define DEF_SMTP_TLS_MAND_CIPH	"medium"
+#define VAR_LMTP_TLS_MAND_CIPH	"lmtp_tls_mandatory_ciphers"
+#define DEF_LMTP_TLS_MAND_CIPH	"medium"
+extern char *var_smtp_tls_mand_ciph;
 
 #define VAR_SMTP_TLS_EXCL_CIPH  "smtp_tls_exclude_ciphers"
 #define DEF_SMTP_TLS_EXCL_CIPH  ""
@@ -1302,11 +1310,11 @@ extern int var_lmtp_tls_scache_timeout;
 #define DEF_LMTP_TLS_POLICY	""
 extern char *var_smtp_tls_policy;
 
-#define VAR_SMTP_TLS_PROTO	"smtp_tls_mandatory_protocols"
-#define DEF_SMTP_TLS_PROTO	"SSLv3, TLSv1"
-#define VAR_LMTP_TLS_PROTO	"lmtp_tls_mandatory_protocols"
-#define DEF_LMTP_TLS_PROTO	"SSLv3, TLSv1"
-extern char *var_smtp_tls_protocols;
+#define VAR_SMTP_TLS_MAND_PROTO	"smtp_tls_mandatory_protocols"
+#define DEF_SMTP_TLS_MAND_PROTO	"SSLv3, TLSv1"
+#define VAR_LMTP_TLS_MAND_PROTO	"lmtp_tls_mandatory_protocols"
+#define DEF_LMTP_TLS_MAND_PROTO	"SSLv3, TLSv1"
+extern char *var_smtp_tls_mand_proto;
 
 #define VAR_SMTP_TLS_VFY_CMATCH	"smtp_tls_verify_cert_match"
 #define DEF_SMTP_TLS_VFY_CMATCH	"hostname"
@@ -1384,6 +1392,10 @@ extern bool var_smtp_sasl_enable;
 #define DEF_SMTP_SASL_PASSWD	""
 extern char *var_smtp_sasl_passwd;
 
+#define VAR_SMTP_SASL_ENFORCE	"smtp_sasl_auth_enforce"
+#define DEF_SMTP_SASL_ENFORCE	1
+extern bool var_smtp_sasl_enforce;
+
 #define VAR_SMTP_SASL_OPTS	"smtp_sasl_security_options"
 #define DEF_SMTP_SASL_OPTS	"noplaintext, noanonymous"
 extern char *var_smtp_sasl_opts;
@@ -1414,14 +1426,11 @@ extern char *var_smtp_sasl_type;
 #define DEF_LMTP_SASL_TLS_OPTS	"$" VAR_LMTP_SASL_OPTS
 extern char *var_smtp_sasl_tls_opts;
 
-#ifdef SNAPSHOT				/* XXX: Not yet */
 #define VAR_SMTP_SASL_TLSV_OPTS	"smtp_sasl_tls_verified_security_options"
 #define DEF_SMTP_SASL_TLSV_OPTS	"$" VAR_SMTP_SASL_TLS_OPTS
 #define VAR_LMTP_SASL_TLSV_OPTS	"lmtp_sasl_tls_verified_security_options"
 #define DEF_LMTP_SASL_TLSV_OPTS	"$" VAR_LMTP_SASL_TLS_OPTS
 extern char *var_smtp_sasl_tlsv_opts;
-
-#endif
 
  /*
   * LMTP server. The soft error limit determines how many errors an LMTP
@@ -1481,6 +1490,9 @@ extern bool var_lmtp_sasl_enable;
 #define VAR_LMTP_SASL_PASSWD	"lmtp_sasl_password_maps"
 #define DEF_LMTP_SASL_PASSWD	""
 extern char *var_lmtp_sasl_passwd;
+
+#define VAR_LMTP_SASL_ENFORCE	"lmtp_sasl_auth_enforce"
+#define DEF_LMTP_SASL_ENFORCE	1
 
 #define VAR_LMTP_SASL_OPTS	"lmtp_sasl_security_options"
 #define DEF_LMTP_SASL_OPTS	"noplaintext, noanonymous"
@@ -2730,6 +2742,14 @@ extern char *var_milt_daemon_name;
 #define VAR_MILT_V			"milter_macro_v"
 #define DEF_MILT_V			"$" VAR_MAIL_NAME " $" VAR_MAIL_VERSION
 extern char *var_milt_v;
+
+ /*
+  * What internal mail do we inspect/stamp/etc.? This is not yet safe enough
+  * to enable world-wide.
+  */
+#define VAR_INT_FILT_CLASSES		"internal_mail_filter_classes"
+#define DEF_INT_FILT_CLASSES		""
+extern char *var_int_filt_classes;
 
 /* LICENSE
 /* .ad

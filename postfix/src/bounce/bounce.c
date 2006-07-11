@@ -33,10 +33,11 @@
 /*	themselves, and that depend on retry logic in their own client.
 /* STANDARDS
 /*	RFC 822 (ARPA Internet Text Messages)
+/*	RFC 2045 (Format of Internet Message Bodies)
 /*	RFC 2822 (ARPA Internet Text Messages)
 /*	RFC 3462 (Delivery Status Notifications)
 /*	RFC 3464 (Delivery Status Notifications)
-/*	RFC 2045 (Format of Internet Message Bodies)
+/*	RFC 3834 (Auto-Submitted: message header)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* CONFIGURATION PARAMETERS
@@ -82,6 +83,10 @@
 /* .IP "\fBipc_timeout (3600s)\fR"
 /*	The time limit for sending or receiving information over an internal
 /*	communication channel.
+/* .IP "\fBinternal_mail_filter_classes (empty)\fR"
+/*	What categories of Postfix-generated mail are subject to
+/*	before-queue content inspection by non_smtpd_milters, header_checks
+/*	and body_checks.
 /* .IP "\fBmail_name (Postfix)\fR"
 /*	The mail system name that is displayed in Received: headers, in
 /*	the SMTP greeting banner, and in bounced mail.

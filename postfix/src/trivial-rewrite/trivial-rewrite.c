@@ -473,8 +473,6 @@ static void pre_accept(char *unused_name, char **unused_argv)
 
 #endif
 
-#ifdef SNAPSHOT
-
 static void check_table_stats(int unused_event, char *unused_context)
 {
     const char *table;
@@ -485,8 +483,6 @@ static void check_table_stats(int unused_event, char *unused_context)
     }
     event_request_timer(check_table_stats, (char *) 0, 10);
 }
-
-#endif
 
 /* pre_jail_init - initialize before entering chroot jail */
 
@@ -525,9 +521,7 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 	transport_post_init(resolve_regular.transport_info);
     if (resolve_verify.transport_info)
 	transport_post_init(resolve_verify.transport_info);
-#ifdef SNAPSHOT
     check_table_stats(0, (char *) 0);
-#endif
 
     /*
      * This process is called by clients that already enforce the max_idle
