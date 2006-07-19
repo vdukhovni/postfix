@@ -12534,7 +12534,51 @@ Apologies for any names omitted.
 	from smtpd to cleanup broke in the middle.  Found by Coverity.
 	File: milter/milter.c.
 
+20060716
+
+	Bugfix: "sendmail -bs" panic caused by a missing
+	SMTPD_STATE_ALONE() guard before a milter_abort() call.
+	File: smtpd/smtpd.c.
+
+	Bugfix (bug introduced with Postfix 2.2): the Postfix SMTP
+	client enforced Mandatory TLS only when talking to an ESMTP
+	server.  Victor Duchovni.  File: src/smtp/smtp_proto.c.
+
+20060718
+
+	Bugfix (bug introduced 20060711): null pointer bug when
+	rejecting SMTP mail with Milter application.  File:
+	cleanup/cleanup_milter.c.
+
+	Workaround (problem introduced in 200605/200606 TLS update):
+	the Postfix SMTP server now issues TLS session IDs even
+	when TLS session caching is turned off, otherwise MS Outlook
+	fails to deliver mail. There may also be interoperability
+	issues with other MTAs that we haven't discovered yet.
+	Specify "smtpd_tls_always_issue_session_ids = no" to disable
+	the workaround. Victor Duchovni. Files: smtpd/smtpd.c,
+	tls/tls_server.c.
+
+20060719
+
+	Cleanup: the smtp_sasl_auth_enforce feature is gone. It was
+	meant to work around a problem that was introduced with
+	plaintext fallback after a failed TLS handshake.  Unfortunately,
+	it created more problems than it solved. We now address the
+	underlying problem more directly as described next. File:
+	smtp/smtp_proto.c.
+
+	Safety: with plaintext fallback after failed TLS handshake,
+	the Postfix SMTP client defers mail if the server does not
+	support SASL over plaintext, while the Postfix SMTP client
+	would have attempted to log in with SASL after successful
+	TLS handshake.  This prevents mail from being rejected with
+	insufficient mail relay permission.  Files: smtp/smtp_connect.c,
+	smtp/smtp_session.c, smtp/smtp_proto.c.
+
 Wish list:
+
+	Add M flag (enable multi-recipient delivery) to pipe daemon.
 
 	The usage of TLScontext->cache_type is unclear. It specifies
 	a TLS session cache type (smtpd, smtp, or lmtp), but it is

@@ -239,6 +239,14 @@
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
 /*
+/*	TLS support by:
+/*	Lutz Jaenicke
+/*	Brandenburg University of Technology
+/*	Cottbus, Germany
+/*
+/*	Victor Duchovni
+/*	Morgan Stanley
+/*
 /*	SASL support originally by:
 /*	Till Franke
 /*	SuSE Rhein/Main AG

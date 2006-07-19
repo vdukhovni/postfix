@@ -1278,6 +1278,12 @@ static const char *cleanup_milter_apply(CLEANUP_STATE *state, const char *event,
 	msg_info("%s: %s", myname, resp);
 
     /*
+     * Sanity check.
+     */
+    if (state->client_name == 0)
+	msg_panic("%s: missing client info initialization", myname);
+
+    /*
      * We don't report errors that were already reported by the content
      * editing call-back routines. See cleanup_milter_error() above.
      */
@@ -1354,6 +1360,34 @@ static const char *cleanup_milter_apply(CLEANUP_STATE *state, const char *event,
     return (ret);
 }
 
+/* cleanup_milter_client_init - initialize real or ersatz client info */
+
+static void cleanup_milter_client_init(CLEANUP_STATE *state)
+{
+    const char *proto_attr;
+
+    /*
+     * Either the cleanup client specifies a name, address and protocol, or
+     * we have a local submission and pretend localhost/127.0.0.1/AF_INET.
+     */
+#define NO_CLIENT_PORT	"0"
+
+    state->client_name = nvtable_find(state->attr, MAIL_ATTR_ACT_CLIENT_NAME);
+    state->client_addr = nvtable_find(state->attr, MAIL_ATTR_ACT_CLIENT_ADDR);
+    state->client_port = nvtable_find(state->attr, MAIL_ATTR_ACT_CLIENT_PORT);
+    proto_attr = nvtable_find(state->attr, MAIL_ATTR_ACT_CLIENT_AF);
+
+    if (state->client_name == 0 || state->client_addr == 0 || proto_attr == 0
+	|| !alldig(proto_attr)) {
+	state->client_name = "localhost";
+	state->client_addr = "127.0.0.1";
+	state->client_af = AF_INET;
+    } else
+	state->client_af = atoi(proto_attr);
+    if (state->client_port == 0)
+	state->client_port = NO_CLIENT_PORT;
+}
+
 /* cleanup_milter_inspect - run message through mail filter */
 
 void    cleanup_milter_inspect(CLEANUP_STATE *state, MILTERS *milters)
@@ -1363,6 +1397,12 @@ void    cleanup_milter_inspect(CLEANUP_STATE *state, MILTERS *milters)
 
     if (msg_verbose)
 	msg_info("enter %s", myname);
+
+    /*
+     * Initialize, in case we're called via smtpd(8).
+     */
+    if (state->client_name == 0)
+	cleanup_milter_client_init(state);
 
     /*
      * Process mail filter replies. The reply format is verified by the mail
@@ -1382,9 +1422,6 @@ void    cleanup_milter_emul_mail(CLEANUP_STATE *state,
 				         const char *addr)
 {
     const char *resp;
-    const char *proto_attr;
-    const char *client_port;
-    int     client_af;
     const char *helo;
     const char *argv[2];
 
@@ -1397,33 +1434,14 @@ void    cleanup_milter_emul_mail(CLEANUP_STATE *state,
 			 cleanup_ins_header, cleanup_del_header,
 			 cleanup_add_rcpt, cleanup_del_rcpt,
 			 cleanup_repl_body, (void *) state);
-
-    /*
-     * Either the cleanup client specifies a name, address and protocol, or
-     * we have a local submission and pretend localhost/127.0.0.1/AF_INET.
-     */
-#define NO_CLIENT_PORT	"0"
-
-    state->client_name = nvtable_find(state->attr, MAIL_ATTR_ACT_CLIENT_NAME);
-    state->client_addr = nvtable_find(state->attr, MAIL_ATTR_ACT_CLIENT_ADDR);
-
-    client_port = nvtable_find(state->attr, MAIL_ATTR_ACT_CLIENT_PORT);
-    proto_attr = nvtable_find(state->attr, MAIL_ATTR_ACT_CLIENT_AF);
-    if (state->client_name == 0 || state->client_addr == 0 || proto_attr == 0
-	|| !alldig(proto_attr)) {
-	state->client_name = "localhost";
-	state->client_addr = "127.0.0.1";
-	client_af = AF_INET;
-    } else
-	client_af = atoi(proto_attr);
-    if (client_port == 0)
-	client_port = NO_CLIENT_PORT;
+    if (state->client_name == 0)
+	cleanup_milter_client_init(state);
 
     /*
      * Emulate SMTP events.
      */
     if ((resp = milter_conn_event(milters, state->client_name, state->client_addr,
-				  client_port, client_af)) != 0) {
+			      state->client_port, state->client_af)) != 0) {
 	cleanup_milter_apply(state, "CONNECT", resp);
 	return;
     }
@@ -1453,8 +1471,15 @@ void    cleanup_milter_emul_rcpt(CLEANUP_STATE *state,
 				         MILTERS *milters,
 				         const char *addr)
 {
+    const char *myname = "cleanup_milter_emul_rcpt";
     const char *resp;
     const char *argv[2];
+
+    /*
+     * Sanity check.
+     */
+    if (state->client_name == 0)
+	msg_panic("%s: missing client info initialization", myname);
 
     /*
      * CLEANUP_STAT_CONT and CLEANUP_STAT_DEFER both update the reason
@@ -1479,7 +1504,14 @@ void    cleanup_milter_emul_rcpt(CLEANUP_STATE *state,
 
 void    cleanup_milter_emul_data(CLEANUP_STATE *state, MILTERS *milters)
 {
+    const char *myname = "cleanup_milter_emul_data";
     const char *resp;
+
+    /*
+     * Sanity check.
+     */
+    if (state->client_name == 0)
+	msg_panic("%s: missing client info initialization", myname);
 
     if ((resp = milter_data_event(milters)) != 0)
 	cleanup_milter_apply(state, "DATA", resp);

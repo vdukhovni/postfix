@@ -92,6 +92,8 @@ typedef struct CLEANUP_STATE {
     MILTERS *milters;			/* mail filters */
     const char *client_name;		/* real or ersatz client */
     const char *client_addr;		/* real or ersatz client */
+    int     client_af;			/* real or ersatz client */
+    const char *client_port;		/* real or ersatz client */
 } CLEANUP_STATE;
 
  /*

@@ -1,3 +1,13 @@
+# Reject with text 
+./test-milter -C 1 -a "554 5.7.1 Rejected" -c connect -p inet:9999@127.0.0.1
+./test-milter -C 1 -a "554 5.7.1 Rejected" -c helo -p inet:9999@127.0.0.1
+./test-milter -C 1 -a "554 5.7.1 Rejected" -c mail -p inet:9999@127.0.0.1
+./test-milter -C 1 -a "554 5.7.1 Rejected" -c rcpt -p inet:9999@127.0.0.1
+./test-milter -C 1 -a "554 5.7.1 Rejected" -c header -p inet:9999@127.0.0.1
+./test-milter -C 1 -a "554 5.7.1 Rejected" -c eoh -p inet:9999@127.0.0.1
+./test-milter -C 1 -a "554 5.7.1 Rejected" -c body -p inet:9999@127.0.0.1
+./test-milter -C 1 -a "554 5.7.1 Rejected" -c eom -p inet:9999@127.0.0.1
+
 # Tempfail tests
 ./test-milter -C 1 -a tempfail -c connect -p inet:9999@127.0.0.1
 ./test-milter -C 1 -a tempfail -c helo -p inet:9999@127.0.0.1

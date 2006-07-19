@@ -613,9 +613,9 @@ TO </td> </tr>
 <h2><a name="workarounds">Workarounds</a></h2>
 
 <p> Content filters may break domain key etc. signatures. If you
-use an SMTP-based filter as described in FILTER_README, then you
-should add a line to master.cf with "disable_mime_output_conversion
-= yes", as described in the <a
+use an SMTP-based content filter, then you should add a line to
+master.cf with "-o disable_mime_output_conversion=yes" (note: no
+spaces around the "="), as described in the <a
 href="FILTER_README.html#advanced_filter">advanced content filter</a>
 example. </p>
 

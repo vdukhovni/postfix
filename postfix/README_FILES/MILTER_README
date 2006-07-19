@@ -382,9 +382,9 @@ message).
 WWoorrkkaarroouunnddss
 
 Content filters may break domain key etc. signatures. If you use an SMTP-based
-filter as described in FILTER_README, then you should add a line to master.cf
-with "disable_mime_output_conversion = yes", as described in the advanced
-content filter example.
+content filter, then you should add a line to master.cf with "-
+o disable_mime_output_conversion=yes" (note: no spaces around the "="), as
+described in the advanced content filter example.
 
 Sendmail Milter applications were originally developed for the Sendmail version
 8 MTA, which has a different architecture than Postfix. The result is that some

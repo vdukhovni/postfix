@@ -110,6 +110,8 @@ CLEANUP_STATE *cleanup_state_alloc(VSTREAM *src)
     state->milters = 0;
     state->client_name = 0;
     state->client_addr = 0;
+    state->client_af = 0;
+    state->client_port = 0;
     return (state);
 }
 

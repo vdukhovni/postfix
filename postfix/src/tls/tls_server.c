@@ -447,7 +447,7 @@ SSL_CTX *tls_server_init(const tls_server_props *props)
 	tls_print_errors();
 	cachable = 0;
     }
-    if (cachable) {
+    if (cachable || props->set_sessid) {
 
 	/*
 	 * Initialize the session cache.
@@ -474,8 +474,10 @@ SSL_CTX *tls_server_init(const tls_server_props *props)
 	SSL_CTX_set_session_cache_mode(server_ctx,
 				       SSL_SESS_CACHE_SERVER |
 				       SSL_SESS_CACHE_NO_AUTO_CLEAR);
-	SSL_CTX_sess_set_get_cb(server_ctx, get_server_session_cb);
-	SSL_CTX_sess_set_new_cb(server_ctx, new_server_session_cb);
+	if (cachable) {
+	    SSL_CTX_sess_set_get_cb(server_ctx, get_server_session_cb);
+	    SSL_CTX_sess_set_new_cb(server_ctx, new_server_session_cb);
+	}
 
 	/*
 	 * OpenSSL ignores timed-out sessions. We need to set the internal

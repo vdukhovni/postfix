@@ -490,8 +490,9 @@ and OE (5.01 Mac on all ports). </p>
 
 <p> It is strictly discouraged to use this mode from main.cf. If
 you want to support this service, enable a special port in master.cf
-and specify "-o smtpd_tls_wrappermode = yes" as an smtpd(8) command
-line option.  Port 465 (smtps) was once chosen for this feature.
+and specify "-o smtpd_tls_wrappermode=yes" (note: no space around
+the "=") as an smtpd(8) command line option.  Port 465 (smtps) was
+once chosen for this feature.
 </p>
 
 <p> Example: </p>
@@ -628,6 +629,22 @@ recommends a maximum of 24 hours.  </p>
 <pre>
 /etc/postfix/main.cf:
     smtpd_tls_session_cache_timeout = 3600s
+</pre>
+</blockquote>
+
+<p> When the Postfix SMTP server does not save TLS sessions to an
+external cache database, client-side session caching is unlikely
+to be useful.  To prevent such wastage, the Postfix SMTP server can
+be configured to not issue TLS session ids. By default the Postfix
+SMTP server always issues TLS session ids. This works around known
+interoperability issues with some MUAs, and prevents possible
+interoperability issues with other MTAs. </p>
+
+<p> Example: </p>
+
+<blockquote>
+<pre>
+    smtpd_tls_always_issue_session_ids = no
 </pre>
 </blockquote>
 
