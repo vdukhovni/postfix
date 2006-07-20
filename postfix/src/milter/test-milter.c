@@ -328,30 +328,36 @@ int     main(int argc, char **argv)
 		exit(1);
 	    }
 	    break;
-#ifdef SMFIR_INSHEADER
 	case 'i':
+#ifdef SMFIR_INSHEADER
 	    if (ins_hdr) {
 		fprintf(stderr, "too many -i options\n");
 		exit(1);
 	    }
 	    parse_hdr_info(optarg, &ins_idx, &ins_hdr, &ins_val);
-	    break;
+#else
+	    fprintf(stderr, "no libmilter support to insert header\n");
+	    exit(1);
 #endif
+	    break;
 	case 'p':
 	    if (smfi_setconn(optarg) == MI_FAILURE) {
 		fprintf(stderr, "smfi_setconn failed\n");
 		exit(1);
 	    }
 	    break;
-#ifdef SMFIR_CHGHEADER
 	case 'r':
+#ifdef SMFIR_CHGHEADER
 	    if (chg_hdr) {
 		fprintf(stderr, "too many -r options\n");
 		exit(1);
 	    }
 	    parse_hdr_info(optarg, &chg_idx, &chg_hdr, &chg_val);
-	    break;
+#else
+	    fprintf(stderr, "no libmilter support to change header\n");
+	    exit(1);
 #endif
+	    break;
 	case 'v':
 	    verbose++;
 	    break;

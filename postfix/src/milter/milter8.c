@@ -488,7 +488,7 @@ static void milter8_close_stream(MILTER8 *milter)
 /* milter8_read_resp - receive command code now, receive data later */
 
 static int milter8_read_resp(MILTER8 *milter, int event, unsigned char *command,
-			            ssize_t *data_len)
+			             ssize_t *data_len)
 {
     UINT32_TYPE len;
     ssize_t pkt_len;
@@ -963,6 +963,10 @@ static const char *milter8_event(MILTER8 *milter, int event,
 #define IN_CONNECT_EVENT(e) ((e) == SMFIC_CONNECT || (e) == SMFIC_HELO)
 
     for (;;) {
+	char   *cp;
+	char   *rp;
+	char    ch;
+
 	if (milter8_read_resp(milter, event, &cmd, &data_size) != 0)
 	    return (milter->def_reply);
 	if (msg_verbose)
@@ -1081,6 +1085,11 @@ static const char *milter8_event(MILTER8 *milter, int event,
 	     * Decision: "ddd d.d+.d+ text". This decision is final (i.e.
 	     * Sendmail 8 changes receiver state). Note: the reply may be in
 	     * multi-line SMTP format.
+	     * 
+	     * XXX Sendmail compatibility: sendmail 8 uses the reply as a format
+	     * string; therefore any '%' characters in the reply are doubled.
+	     * Postfix doesn't use replies as format strings; we replace '%%'
+	     * by '%', and remove single (i.e. invalid) '%' characters.
 	     */
 	case SMFIR_REPLYCODE:
 	    if (milter8_read_data(milter, data_size,
@@ -1096,6 +1105,15 @@ static const char *milter8_event(MILTER8 *milter, int event,
 			 milter->m.name, STR(milter->buf));
 		milter8_conf_error(milter);
 		return (milter->def_reply);
+	    }
+	    if ((rp = cp = strchr(STR(milter->buf), '%')) != 0) {
+		for (;;) {
+		    if ((ch = *cp++) == '%')
+			ch = *cp++;
+		    *rp++ = ch;
+		    if (ch == 0)
+			break;
+		}
 	    }
 	    if (IN_CONNECT_EVENT(event)) {
 #ifdef LIBMILTER_AUTO_DISCONNECT

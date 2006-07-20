@@ -1358,7 +1358,13 @@ information:
         This is simply the DNS name of the server that the Postfix SMTP client
         connects to; this name may be obtained from other DNS lookups, such as
         MX lookups or CNAME lookups. Use of the hostname lookup key is
-        discouraged; always use the next-hop destination instead.
+        discouraged; always use the next-hop destination instead. The hostname
+        lookup key may not behave as you expect when SMTP connection caching is
+        enabled (with the smtp_connection_cache_destinations or
+        smtp_connection_cache_on_demand configuration parameter). Multiple
+        hostnames may resolve to the same IP address, and the hostname from the
+        SMTP connection cache overrides the hostname that Postfix uses for TLS
+        policy lookup or server certificate verification.
     next-hop destination
         This is normally the domain portion of the recipient address, but it
         may be overridden by information from the transport(5) table, from the
@@ -1432,15 +1438,19 @@ perfect match between the server hostname and the server certificate, there is
 no guarantee that Postfix is connected to the right server. To avoid this
 loophole, take all of the following steps:
 
- 1. Use a dedicated transport for all secure-channel deliveries.
+ 1. Use a dedicated transport that does not cache SMTP connections. Otherwise,
+    the hostname from the SMTP connection cache overrides the hostname that
+    Postfix uses for TLS policy lookup and server certificate verification.
 
  2. Eliminate MX lookups. Specify local transport(5) table entries for
-    sensitive domains with explicit smtp:[mailhost] or smtp:[mailhost]:port
-    destinations (you can assure security of this table unlike DNS); in the
-    smtp_tls_per_site table, specify the value "MUST" for the key [mailhost] or
-    smtp:[mailhost]:port. This prevents false hostname information in DNS MX
-    records from changing Postfix's notion of the server hostname that is used
-    for TLS policy lookup and server certificate verification.
+    sensitive domains with explicit securetls:[mailhost] or securetls:
+    [mailhost]:port destinations (you can assure security of this table unlike
+    DNS). This prevents false hostname information in DNS MX records from
+    changing Postfix's notion of the server hostname that is used for TLS
+    policy lookup and server certificate verification. The "securetls"
+    transport is configured to enforce TLS with peername verification, and to
+    disable the SMTP connection cache which could interfere with enforcement of
+    smtp_tls_per_site policies.
 
  3. Disallow CNAME hostname overrides. In main.cf, specify
     "smtp_cname_overrides_servername = no". This prevents false hostname

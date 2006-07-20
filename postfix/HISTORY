@@ -12568,13 +12568,19 @@ Apologies for any names omitted.
 	underlying problem more directly as described next. File:
 	smtp/smtp_proto.c.
 
-	Safety: with plaintext fallback after failed TLS handshake,
-	the Postfix SMTP client defers mail if the server does not
-	support SASL over plaintext, while the Postfix SMTP client
-	would have attempted to log in with SASL after successful
-	TLS handshake.  This prevents mail from being rejected with
-	insufficient mail relay permission.  Files: smtp/smtp_connect.c,
-	smtp/smtp_session.c, smtp/smtp_proto.c.
+	Safety: don't fall back to plaintext delivery after failed
+	TLS handshake, when the Postfix SMTP client would have
+	attempted to log in with SASL after successful TLS handshake.
+	This avoids undesirable behavior regardless of whether the
+	server does support SASL over plaintext (unexpected password
+	disclosure) and whether the server doesn't support SASL
+	over plaintext (insufficient mail relay permission).  Files:
+	smtp/smtp_connect.c, smtp/smtp_session.c, smtp/smtp_proto.c.
+
+20060720
+
+	Compatibility: replace %% in milter replies by %, and strip
+	single (i.e. invalid) % characters. File: milter/milter8.c.
 
 Wish list:
 

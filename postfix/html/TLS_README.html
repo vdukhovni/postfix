@@ -1839,10 +1839,16 @@ the following information:  </p>
 <dl>
 
 <dt> remote SMTP server hostname </dt> <dd> This is simply the DNS
-name of the server that the Postfix SMTP client connects to; this name
-may be obtained from other DNS lookups, such as MX lookups or CNAME
-lookups. Use of the hostname lookup key is discouraged; always use the
-next-hop destination instead. </dd>
+name of the server that the Postfix SMTP client connects to; this
+name may be obtained from other DNS lookups, such as MX lookups or
+CNAME lookups. Use of the hostname lookup key is discouraged; always
+use the next-hop destination instead. The hostname lookup key may
+not behave as you expect when SMTP connection caching is enabled
+(with the <a href="postconf.5.html#smtp_connection_cache_destinations">smtp_connection_cache_destinations</a> or
+<a href="postconf.5.html#smtp_connection_cache_on_demand">smtp_connection_cache_on_demand</a> configuration parameter).  Multiple
+hostnames may resolve to the same IP address, and the hostname from
+the SMTP connection cache overrides the hostname that Postfix uses
+for TLS policy lookup or server certificate verification.  </dd>
 
 <dt> next-hop destination </dt> <dd> This is normally the domain portion
 of the recipient address, but it may be overridden by information from
@@ -1941,17 +1947,21 @@ steps: </p>
 
 <ol>
 
-<li> <p> Use a dedicated transport for all secure-channel deliveries. </p>
+<li> <p> Use a dedicated transport that does not cache SMTP
+connections. Otherwise, the hostname from the SMTP connection cache
+overrides the hostname that Postfix uses for TLS policy lookup and
+server certificate verification.  </p>
 
 <li> <p> Eliminate MX lookups. Specify local <a href="transport.5.html">transport(5)</a> table
-entries for sensitive domains with explicit <a href="smtp.8.html">smtp</a>:[<i>mailhost</i>]
-or <a href="smtp.8.html">smtp</a>:[<i>mailhost</i>]:<i>port</i> destinations (you can assure
-security of this table unlike DNS); in the <a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a>
-table, specify the value "MUST" for the key [<i>mailhost</i>] or
-<a href="smtp.8.html">smtp</a>:[<i>mailhost</i>]:<i>port</i>. This prevents false hostname
-information in DNS MX records from changing Postfix's notion of the
-server hostname that is used for TLS policy lookup and server certificate
-verification. </p>
+entries for sensitive domains with explicit securetls:[<i>mailhost</i>]
+or securetls:[<i>mailhost</i>]:<i>port</i> destinations (you can
+assure security of this table unlike DNS). This prevents false
+hostname information in DNS MX records from changing Postfix's
+notion of the server hostname that is used for TLS policy lookup
+and server certificate verification. The "securetls" transport is
+configured to enforce TLS with peername verification, and to disable
+the SMTP connection cache which could interfere with enforcement
+of <a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a> policies. </p>
 
 <li> <p> Disallow CNAME hostname overrides. In <a href="postconf.5.html">main.cf</a>, specify
 "<a href="postconf.5.html#smtp_cname_overrides_servername">smtp_cname_overrides_servername</a> = no". This prevents false hostname
