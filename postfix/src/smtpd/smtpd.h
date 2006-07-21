@@ -145,6 +145,7 @@ typedef struct SMTPD_STATE {
     char   *dsn_envid;			/* temporary MAIL FROM state */
     int     dsn_ret;			/* temporary MAIL FROM state */
     VSTRING *dsn_buf;			/* scratch space for xtext expansion */
+    VSTRING *dsn_orcpt_buf;		/* scratch space for ORCPT parsing */
 
     /*
      * Pass-through proxy client.

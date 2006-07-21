@@ -442,6 +442,13 @@ static int pickup_file(PICKUP_INFO *info)
      * bounces its copy of the message. because the original input file is
      * not readable by the bounce service.
      * 
+     * If mail is re-injected with "postsuper -r", disable Milter applications.
+     * If they were run before the mail was queued then there is no need to
+     * run them again. Moreover, the queue file does not contain enough
+     * information to reproduce the exact same SMTP events and Sendmail
+     * macros that Milters received when the mail originally arrived in
+     * Postfix.
+     * 
      * The actual message copying code is in a separate routine, so that it is
      * easier to implement the many possible error exits without forgetting
      * to close files, or to release memory.
@@ -449,6 +456,8 @@ static int pickup_file(PICKUP_INFO *info)
     cleanup_flags =
 	input_transp_cleanup(CLEANUP_FLAG_BOUNCE | CLEANUP_FLAG_MASK_EXTERNAL,
 			     pickup_input_transp_mask);
+    if (info->st.st_uid == var_owner_uid && (info->st.st_mode & S_IROTH) == 0)
+	cleanup_flags &= ~CLEANUP_FLAG_MILTER;
 
     cleanup = mail_connect_wait(MAIL_CLASS_PUBLIC, var_cleanup_service);
     if (attr_scan(cleanup, ATTR_FLAG_STRICT,

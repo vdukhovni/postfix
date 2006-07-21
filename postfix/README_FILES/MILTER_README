@@ -104,7 +104,7 @@ On other platforms you have two options:
     Sendmail source code instead:
 
         $ ggzzccaatt sseennddmmaaiill--xx..yy..zz..ttaarr..ggzz || ttaarr xxff --
-        $ ccdd sseennddmmaaiill--xx..yy..zz
+        $ ccdd sseennddmmaaiill--xx..yy..zz//lliibbmmiilltteerr
         $ mmaakkee
         [...lots of output omitted...]
 
@@ -315,6 +315,9 @@ workarounds section below for solutions.
     |i                   |DATA, EOM                |Queue ID                  |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |j                   |Always                   |value of myhostname       |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |_                   |Always                   |The validated client name |
+    |                    |                         |and address               |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |{auth_authen}       |MAIL, DATA, EOM          |SASL login name           |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |

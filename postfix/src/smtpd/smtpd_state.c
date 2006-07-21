@@ -137,6 +137,7 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
 #endif
     state->dsn_envid = 0;
     state->dsn_buf = vstring_alloc(100);
+    state->dsn_orcpt_buf = vstring_alloc(100);
 #ifdef USE_TLS
     state->tls_use_tls = 0;
     state->tls_enforce_tls = 0;

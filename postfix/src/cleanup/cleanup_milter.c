@@ -1215,12 +1215,21 @@ static const char *cleanup_milter_eval(const char *name, void *ptr)
     /*
      * Connect macros.
      */
+    if (strcmp(name, S8_MAC__) == 0) {
+	vstring_sprintf(state->temp1, "%s [%s]",
+			state->reverse_name, state->client_addr);
+	if (strcasecmp(state->client_name, state->reverse_name) != 0)
+	    vstring_strcat(state->temp1, " (may be forged)");
+	return (STR(state->temp1));
+    }
     if (strcmp(name, S8_MAC_J) == 0)
 	return (var_myhostname);
     if (strcmp(name, S8_MAC_CLIENT_ADDR) == 0)
-	return (nvtable_find(state->attr, MAIL_ATTR_ACT_CLIENT_ADDR));
+	return (state->client_addr);
     if (strcmp(name, S8_MAC_CLIENT_NAME) == 0)
-	return (nvtable_find(state->attr, MAIL_ATTR_ACT_CLIENT_NAME));
+	return (state->client_name);
+    if (strcmp(name, S8_MAC_CLIENT_PTR) == 0)
+	return (state->reverse_name);
 
     /*
      * MAIL FROM macros.
@@ -1373,6 +1382,8 @@ static void cleanup_milter_client_init(CLEANUP_STATE *state)
 #define NO_CLIENT_PORT	"0"
 
     state->client_name = nvtable_find(state->attr, MAIL_ATTR_ACT_CLIENT_NAME);
+    state->reverse_name =
+	nvtable_find(state->attr, MAIL_ATTR_ACT_REVERSE_CLIENT_NAME);
     state->client_addr = nvtable_find(state->attr, MAIL_ATTR_ACT_CLIENT_ADDR);
     state->client_port = nvtable_find(state->attr, MAIL_ATTR_ACT_CLIENT_PORT);
     proto_attr = nvtable_find(state->attr, MAIL_ATTR_ACT_CLIENT_AF);
@@ -1384,6 +1395,8 @@ static void cleanup_milter_client_init(CLEANUP_STATE *state)
 	state->client_af = AF_INET;
     } else
 	state->client_af = atoi(proto_attr);
+    if (state->reverse_name == 0)
+	state->reverse_name = state->client_name;
     if (state->client_port == 0)
 	state->client_port = NO_CLIENT_PORT;
 }

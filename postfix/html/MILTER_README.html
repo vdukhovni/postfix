@@ -228,7 +228,7 @@ library from Sendmail source code instead: </p>
 <blockquote>
 <pre>
 $ <b>gzcat sendmail-<i>x.y.z</i>.tar.gz | tar xf -</b>
-$ <b>cd sendmail-<i>x.y.z</i></b>
+$ <b>cd sendmail-<i>x.y.z</i>/libmilter</b>
 $ <b>make</b>
 [...<i>lots of output omitted</i>...]
 </pre>
@@ -520,6 +520,9 @@ href="#workarounds">workarounds</a> section below for solutions.
 
 <tr> <td> j </td> <td> Always </td> <td> value of <a href="postconf.5.html#myhostname">myhostname</a> </td>
 </tr>
+
+<tr> <td> _ </td> <td> Always </td> <td> The validated client name
+and address </td> </tr>
 
 <tr> <td> {auth_authen} </td> <td> MAIL, DATA, EOM </td> <td> SASL
 login name </td> </tr>

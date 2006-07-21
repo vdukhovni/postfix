@@ -1700,6 +1700,8 @@ static int mail_open_stream(SMTPD_STATE *state)
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			MAIL_ATTR_ACT_CLIENT_NAME, state->name);
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		    MAIL_ATTR_ACT_REVERSE_CLIENT_NAME, state->reverse_name);
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			MAIL_ATTR_ACT_CLIENT_ADDR, state->addr);
 	    if (state->helo_name)
 		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
@@ -2246,10 +2248,11 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		smtpd_chat_reply(state, "501 5.7.1 DSN support is disabled");
 		return (-1);
 	    }
+	    vstring_strcpy(state->dsn_orcpt_buf, arg + 6);
 	    if (dsn_orcpt_addr
-		|| (coded_addr = split_at(arg + 6, ';')) == 0
+		|| (coded_addr = split_at(STR(state->dsn_orcpt_buf), ';')) == 0
 		|| xtext_unquote(state->dsn_buf, coded_addr) == 0
-		|| *(dsn_orcpt_type = arg + 6) == 0) {
+		|| *(dsn_orcpt_type = STR(state->dsn_orcpt_buf)) == 0) {
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
 		smtpd_chat_reply(state,
 			     "501 5.5.4 Error: Bad ORCPT parameter syntax");

@@ -12582,6 +12582,25 @@ Apologies for any names omitted.
 	Compatibility: replace %% in milter replies by %, and strip
 	single (i.e. invalid) % characters. File: milter/milter8.c.
 
+	Compatibility: $_ macro support for Milter applications.
+	Files: smtpd/smtpd.c, smtpd/smtpd_milter.c,
+	cleanup/cleanup_state.c, cleanup/cleanup_milter.c.
+
+20060721
+
+	Safety: disable Milter processing after "postsuper -r".  If
+	the mail has been filtered there is no need to do it again.
+	Moreover, when mail has passed through an external content
+	filter, we don't have sufficient information to reproduce
+	the exact same SMTP events and Sendmail macros that Milters
+	received when the mail originally arrived in Postfix.  File:
+	pickup/pickup.c.
+
+	Bugfix: Milters received a truncated ORCPT=xxx parameter
+	due to destructive parsing of something that didn't have
+	to be preserved before Milter support was added to Postfix.
+	File: smtpd/smtpd.c.
+
 Wish list:
 
 	Add M flag (enable multi-recipient delivery) to pipe daemon.
