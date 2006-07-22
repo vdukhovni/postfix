@@ -213,6 +213,8 @@ void    smtpd_state_reset(SMTPD_STATE *state)
 	vstring_free(state->instance);
     if (state->dsn_buf)
 	vstring_free(state->dsn_buf);
+    if (state->dsn_orcpt_buf)
+	vstring_free(state->dsn_orcpt_buf);
 
 #ifdef USE_SASL_AUTH
     if (var_smtpd_sasl_enable)
