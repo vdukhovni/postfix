@@ -1221,7 +1221,9 @@ typedef int pid_t;
   * doubles.
   */
 #ifndef ALIGN_TYPE
-# ifdef __ia64__
+# if defined(__hpux) && defined(__ia64)
+# define ALIGN_TYPE	__float80
+# elif defined(__ia64__)
 # define ALIGN_TYPE	long double
 # else
 # define ALIGN_TYPE	double

@@ -250,6 +250,7 @@ static void strip_address(VSTRING *vp, int start, TOK822 *addr)
     /*
      * Emit plain <address>. Discard any comments or phrases.
      */
+    VSTRING_TERMINATE(vp);
     msg_warn("stripping too many comments from address: %.100s...",
 	     printable(vstring_str(vp) + start, '?'));
     vstring_truncate(vp, start);

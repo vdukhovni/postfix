@@ -2974,8 +2974,16 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 	 * to the client.  This is unfortunate.
 	 */
 #ifdef USE_TLS
-	if (SMTPD_STAND_ALONE(state) == 0 && var_smtpd_tls_wrappermode)
+	if (SMTPD_STAND_ALONE(state) == 0 && var_smtpd_tls_wrappermode) {
+	    if (smtpd_tls_ctx == 0) {
+		msg_warn("Wrapper-mode request dropped from %s for service %s."
+			 "TLS context initialization failed. For details see"
+			 " earlier warnings in your logs.",
+			 state->namaddr, state->service);
+		break;
+	    }
 	    smtpd_start_tls(state);
+	}
 #endif
 
 	/*
