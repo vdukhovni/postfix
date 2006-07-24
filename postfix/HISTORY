@@ -11008,6 +11008,7 @@ Apologies for any names omitted.
 20060716
 
 	Bugfix: the Postfix SMTP client enforced Mandatory TLS only
-	when talking to an ESMTP server. Victor Duchovni.  File:
-	src/smtp/smtp_proto.c.
+	when talking to an ESMTP server; enforcement did not happen
+	if Postfix could somehow be forced to send HELO instead of
+	EHLO. Victor Duchovni.  File: src/smtp/smtp_proto.c.
 
