@@ -359,7 +359,6 @@ int     smtp_helo(SMTP_STATE *state)
 				       "host %s refused to talk to me: %s",
 				       session->namaddr,
 				       translit(resp->str, "\n", " ")));
-	    return (0);
 	}
     } else {
 	where = "performing the LHLO handshake";
@@ -372,93 +371,106 @@ int     smtp_helo(SMTP_STATE *state)
     }
 
     /*
-     * Determine what server EHLO keywords to ignore, typically to avoid
-     * inter-operability problems.
+     * No early returns allowed, to ensure consistent handling of TLS and
+     * SASL policies.
      */
-    if (smtp_ehlo_dis_maps == 0
-	|| (ehlo_words = maps_find(smtp_ehlo_dis_maps, state->session->addr, 0)) == 0)
-	ehlo_words = var_smtp_ehlo_dis_words;
-    discard_mask = ehlo_mask(ehlo_words);
-    if (discard_mask && !(discard_mask & EHLO_MASK_SILENT))
-	msg_info("discarding EHLO keywords: %s", str_ehlo_mask(discard_mask));
+    if (session->features & SMTP_FEATURE_ESMTP) {
 
-    /*
-     * Pick up some useful features offered by the SMTP server. XXX Until we
-     * have a portable routine to convert from string to off_t with proper
-     * overflow detection, ignore the message size limit advertised by the
-     * SMTP server. Otherwise, we might do the wrong thing when the server
-     * advertises a really huge message size limit.
-     * 
-     * XXX Allow for "code (SP|-) ehlo-keyword (SP|=) ehlo-param...", because
-     * MicroSoft implemented AUTH based on an old draft.
-     */
-    lines = resp->str;
-    for (n = 0; (words = mystrtok(&lines, "\n")) != 0; /* see below */ ) {
-	if (mystrtok(&words, "- ") && (word = mystrtok(&words, " \t=")) != 0) {
-	    if (n == 0) {
-		if (session->helo != 0)
-		    myfree(session->helo);
+	/*
+	 * Determine what server EHLO keywords to ignore, typically to avoid
+	 * inter-operability problems.
+	 */
+	if (smtp_ehlo_dis_maps == 0
+	    || (ehlo_words = maps_find(smtp_ehlo_dis_maps,
+				       state->session->addr, 0)) == 0)
+	    ehlo_words = var_smtp_ehlo_dis_words;
+	discard_mask = ehlo_mask(ehlo_words);
+	if (discard_mask && !(discard_mask & EHLO_MASK_SILENT))
+	    msg_info("discarding EHLO keywords: %s",
+		     str_ehlo_mask(discard_mask));
 
-		/*
-		 * XXX: Keep the original case: we don't expect a single SMTP
-		 * server to randomly change the case of its helo response.
-		 * If different capitalization is detected, we should assume
-		 * disjoint TLS caches.
-		 */
-		session->helo = mystrdup(word);
-		if (strcasecmp(word, var_myhostname) == 0
-		 && (state->misc_flags & SMTP_MISC_FLAG_LOOP_DETECT) != 0) {
-		    msg_warn("host %s replied to HELO/EHLO with my own hostname %s",
-			     session->namaddrport, var_myhostname);
-		    if (session->features & SMTP_FEATURE_BEST_MX)
-			return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
+	/*
+	 * Pick up some useful features offered by the SMTP server. XXX Until
+	 * we have a portable routine to convert from string to off_t with
+	 * proper overflow detection, ignore the message size limit
+	 * advertised by the SMTP server. Otherwise, we might do the wrong
+	 * thing when the server advertises a really huge message size limit.
+	 * 
+	 * XXX Allow for "code (SP|-) ehlo-keyword (SP|=) ehlo-param...",
+	 * because MicroSoft implemented AUTH based on an old draft.
+	 */
+	lines = resp->str;
+	for (n = 0; (words = mystrtok(&lines, "\n")) != 0; /* see below */ ) {
+	    if (mystrtok(&words, "- ")
+		&& (word = mystrtok(&words, " \t=")) != 0) {
+		if (n == 0) {
+		    if (session->helo != 0)
+			myfree(session->helo);
+
+		    /*
+		     * XXX: Keep the original case: we don't expect a single
+		     * SMTP server to randomly change the case of its helo
+		     * response. If different capitalization is detected, we
+		     * should assume disjoint TLS caches.
+		     */
+		    session->helo = mystrdup(word);
+		    if (strcasecmp(word, var_myhostname) == 0
+			&& (state->misc_flags & SMTP_MISC_FLAG_LOOP_DETECT) != 0) {
+			msg_warn("host %s replied to HELO/EHLO"
+				 " with my own hostname %s",
+				 session->namaddrport, var_myhostname);
+			if (session->features & SMTP_FEATURE_BEST_MX)
+			    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 					     SMTP_RESP_FAKE(&fake, "5.4.6"),
 					 "mail for %s loops back to myself",
-					       request->nexthop));
-		    else
-			return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
+						   request->nexthop));
+			else
+			    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 					     SMTP_RESP_FAKE(&fake, "4.4.6"),
 					 "mail for %s loops back to myself",
-					       request->nexthop));
-		}
-	    } else if (strcasecmp(word, "8BITMIME") == 0) {
-		if ((discard_mask & EHLO_MASK_8BITMIME) == 0)
-		    session->features |= SMTP_FEATURE_8BITMIME;
-	    } else if (strcasecmp(word, "PIPELINING") == 0) {
-		if ((discard_mask & EHLO_MASK_PIPELINING) == 0)
-		    session->features |= SMTP_FEATURE_PIPELINING;
-	    } else if (strcasecmp(word, "XFORWARD") == 0) {
-		if ((discard_mask & EHLO_MASK_XFORWARD) == 0)
-		    while ((word = mystrtok(&words, " \t")) != 0)
-			session->features |= name_code(xforward_features,
-						 NAME_CODE_FLAG_NONE, word);
-	    } else if (strcasecmp(word, "SIZE") == 0) {
-		if ((discard_mask & EHLO_MASK_SIZE) == 0) {
-		    session->features |= SMTP_FEATURE_SIZE;
-		    if ((word = mystrtok(&words, " \t")) != 0) {
-			if (!alldig(word))
-			    msg_warn("bad EHLO SIZE limit \"%s\" from %s",
-				     word, session->namaddrport);
-			else
-			    session->size_limit = off_cvt_string(word);
+						   request->nexthop));
 		    }
-		}
+		} else if (strcasecmp(word, "8BITMIME") == 0) {
+		    if ((discard_mask & EHLO_MASK_8BITMIME) == 0)
+			session->features |= SMTP_FEATURE_8BITMIME;
+		} else if (strcasecmp(word, "PIPELINING") == 0) {
+		    if ((discard_mask & EHLO_MASK_PIPELINING) == 0)
+			session->features |= SMTP_FEATURE_PIPELINING;
+		} else if (strcasecmp(word, "XFORWARD") == 0) {
+		    if ((discard_mask & EHLO_MASK_XFORWARD) == 0)
+			while ((word = mystrtok(&words, " \t")) != 0)
+			    session->features |=
+				name_code(xforward_features,
+					  NAME_CODE_FLAG_NONE, word);
+		} else if (strcasecmp(word, "SIZE") == 0) {
+		    if ((discard_mask & EHLO_MASK_SIZE) == 0) {
+			session->features |= SMTP_FEATURE_SIZE;
+			if ((word = mystrtok(&words, " \t")) != 0) {
+			    if (!alldig(word))
+				msg_warn("bad EHLO SIZE limit \"%s\" from %s",
+					 word, session->namaddrport);
+			    else
+				session->size_limit = off_cvt_string(word);
+			}
+		    }
 #ifdef USE_TLS
-	    } else if (strcasecmp(word, "STARTTLS") == 0) {
-		/* Ignored later if we already sent STARTTLS. */
-		if ((discard_mask & EHLO_MASK_STARTTLS) == 0)
-		    session->features |= SMTP_FEATURE_STARTTLS;
+		} else if (strcasecmp(word, "STARTTLS") == 0) {
+		    /* Ignored later if we already sent STARTTLS. */
+		    if ((discard_mask & EHLO_MASK_STARTTLS) == 0)
+			session->features |= SMTP_FEATURE_STARTTLS;
 #endif
 #ifdef USE_SASL_AUTH
-	    } else if (var_smtp_sasl_enable && strcasecmp(word, "AUTH") == 0) {
-		if ((discard_mask & EHLO_MASK_AUTH) == 0)
-		    smtp_sasl_helo_auth(session, words);
+		} else if (var_smtp_sasl_enable
+			   && strcasecmp(word, "AUTH") == 0) {
+		    if ((discard_mask & EHLO_MASK_AUTH) == 0)
+			smtp_sasl_helo_auth(session, words);
 #endif
-	    } else if (strcasecmp(word, "DSN") == 0) {
-		if ((discard_mask & EHLO_MASK_DSN) == 0)
-		    session->features |= SMTP_FEATURE_DSN;
+		} else if (strcasecmp(word, "DSN") == 0) {
+		    if ((discard_mask & EHLO_MASK_DSN) == 0)
+			session->features |= SMTP_FEATURE_DSN;
+		}
+		n++;
 	    }
-	    n++;
 	}
     }
     if (msg_verbose)
@@ -600,16 +612,6 @@ int     smtp_helo(SMTP_STATE *state)
 #ifdef USE_SASL_AUTH
     if (var_smtp_sasl_enable && (session->features & SMTP_FEATURE_AUTH))
 	return (smtp_sasl_helo_login(state));
-    else if (var_smtp_sasl_enable
-	     && *var_smtp_sasl_passwd
-	     && !var_smtp_sender_auth
-	     && var_smtp_sasl_enforce
-	     && smtp_sasl_passwd_lookup(session) != 0)
-	return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
-			       SMTP_RESP_FAKE(&fake, "4.7.0"),
-			       "SASL login/password exists, but host %s "
-			       "does not announce SASL authentication support",
-			       session->namaddr));
 #endif
 
     return (0);
@@ -744,11 +746,22 @@ static int smtp_start_tls(SMTP_STATE *state)
 	DONT_USE_DEAD_SESSION;
 
 	/*
-	 * If TLS is optional, try again, this time without TLS.
-	 * Specifically, this session is not final, don't defer any
-	 * recipients yet.
+	 * If TLS is optional, try delivery to the same server over a
+	 * plaintext connection. Otherwise we would defer mail forever with
+	 * destinations that have no alternate MX host.
+	 * 
+	 * Don't fall back to plaintext if we were willing to use SASL-over-TLS
+	 * authentication. If the server doesn't announce SASL support over
+	 * plaintext connections, then we don't want delivery to fail with
+	 * "relay access denied".
 	 */
-	if (session->tls_level == TLS_LEV_MAY)
+	if (session->tls_level == TLS_LEV_MAY
+#ifdef USE_SASL_AUTH
+	    && !(var_smtp_sasl_enable
+		 && *var_smtp_sasl_passwd
+		 && smtp_sasl_passwd_lookup(session))
+#endif
+	    )
 	    RETRY_AS_PLAINTEXT;
 	return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 			       SMTP_RESP_FAKE(&fake, "4.7.5"),

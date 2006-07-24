@@ -175,9 +175,13 @@ int     smtp_sasl_passwd_lookup(SMTP_SESSION *session)
 	 && (value = mail_addr_find(smtp_sasl_passwd_map,
 				 state->request->sender, (char **) 0)) != 0)
 	|| (value = maps_find(smtp_sasl_passwd_map, session->host, 0)) != 0
-	|| (value = maps_find(smtp_sasl_passwd_map, session->dest, 0)) != 0) {
+      || (value = maps_find(smtp_sasl_passwd_map, session->dest, 0)) != 0) {
+	if (session->sasl_username)
+	    myfree(session->sasl_username);
 	session->sasl_username = mystrdup(value);
 	passwd = split_at(session->sasl_username, ':');
+	if (session->sasl_passwd)
+	    myfree(session->sasl_passwd);
 	session->sasl_passwd = mystrdup(passwd ? passwd : "");
 	if (msg_verbose)
 	    msg_info("%s: host `%s' user `%s' pass `%s'",

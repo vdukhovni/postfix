@@ -96,17 +96,23 @@ static char *reply_code;
 static char *reply_dsn;
 static char *reply_message;
 
+#ifdef SMFIR_INSHEADER
 static char *ins_hdr;
 static int ins_idx;
 static char *ins_val;
 
+#endif
+
+#ifdef SMFIR_CHGHEADER
 static char *chg_hdr;
 static int chg_idx;
 static char *chg_val;
 
+#endif
+
 static int test_reply(SMFICTX *ctx, int code)
 {
-    (void) fflush(stdout);			/* In case output redirected. */
+    (void) fflush(stdout);		/* In case output redirected. */
 
     if (code == SMFIR_REPLYCODE) {
 	if (smfi_setreply(ctx, reply_code, reply_dsn, reply_message) != MI_SUCCESS)
@@ -214,10 +220,14 @@ static sfsistat test_body(SMFICTX *ctx, unsigned char *data, size_t data_len)
 static sfsistat test_eom(SMFICTX *ctx)
 {
     printf("test_eom\n");
+#ifdef SMFIR_INSHEADER
     if (ins_hdr && smfi_insheader(ctx, ins_idx, ins_hdr, ins_val) == MI_FAILURE)
 	fprintf(stderr, "smfi_insheader failed");
+#endif
+#ifdef SMFIR_CHGHEADER
     if (chg_hdr && smfi_chgheader(ctx, chg_hdr, chg_idx, chg_val) == MI_FAILURE)
 	fprintf(stderr, "smfi_chgheader failed");
+#endif
     return (test_reply(ctx, test_eom_reply));
 }
 
@@ -319,11 +329,16 @@ int     main(int argc, char **argv)
 	    }
 	    break;
 	case 'i':
+#ifdef SMFIR_INSHEADER
 	    if (ins_hdr) {
 		fprintf(stderr, "too many -i options\n");
 		exit(1);
 	    }
 	    parse_hdr_info(optarg, &ins_idx, &ins_hdr, &ins_val);
+#else
+	    fprintf(stderr, "no libmilter support to insert header\n");
+	    exit(1);
+#endif
 	    break;
 	case 'p':
 	    if (smfi_setconn(optarg) == MI_FAILURE) {
@@ -332,11 +347,16 @@ int     main(int argc, char **argv)
 	    }
 	    break;
 	case 'r':
+#ifdef SMFIR_CHGHEADER
 	    if (chg_hdr) {
 		fprintf(stderr, "too many -r options\n");
 		exit(1);
 	    }
 	    parse_hdr_info(optarg, &chg_idx, &chg_hdr, &chg_val);
+#else
+	    fprintf(stderr, "no libmilter support to change header\n");
+	    exit(1);
+#endif
 	    break;
 	case 'v':
 	    verbose++;

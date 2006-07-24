@@ -95,6 +95,5 @@
 #endif
 	VAR_LMTP_SENDER_AUTH, DEF_LMTP_SENDER_AUTH, &var_smtp_sender_auth,
 	VAR_LMTP_CNAME_OVERR, DEF_LMTP_CNAME_OVERR, &var_smtp_cname_overr,
-	VAR_LMTP_SASL_ENFORCE, DEF_LMTP_SASL_ENFORCE, &var_smtp_sasl_enforce,
 	0,
     };

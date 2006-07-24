@@ -1183,6 +1183,10 @@ extern char *var_smtpd_tls_scache_db;
 #define DEF_SMTPD_TLS_SCACHTIME	"3600s"
 extern int var_smtpd_tls_scache_timeout;
 
+#define VAR_SMTPD_TLS_SET_SESSID	"smtpd_tls_always_issue_session_ids"
+#define DEF_SMTPD_TLS_SET_SESSID	1
+extern bool var_smtpd_tls_set_sessid;
+
 #define VAR_SMTPD_DELAY_OPEN	"smtpd_delay_open_until_valid_rcpt"
 #define DEF_SMTPD_DELAY_OPEN	1
 extern bool var_smtpd_delay_open;
