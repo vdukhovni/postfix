@@ -8229,13 +8229,7 @@ use <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> inst
 discouraged. Always use the full destination nexthop (enclosed in
 [] with a possible ":port" suffix). A recipient domain or MX-enabled
 transport next-hop with no port suffix may look like a bare hostname,
-but is still a suitable <i>destination</i>. The hostname lookup key
-may not behave as you expect when SMTP connection caching is enabled
-(see <a href="postconf.5.html#smtp_connection_cache_destinations">smtp_connection_cache_destinations</a> and
-<a href="postconf.5.html#smtp_connection_cache_on_demand">smtp_connection_cache_on_demand</a>). Different hostnames may resolve
-to the same IP address, and the hostname from the SMTP connection
-cache overrides the hostname that Postfix uses for TLS policy lookup
-and server certificate verification. </p>
+but is still a suitable <i>destination</i>. </p>
 
 <p> Specify a next-hop destination or server hostname on the left-hand
 side; no wildcards are allowed. The next-hop destination is either

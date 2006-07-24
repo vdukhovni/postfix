@@ -221,9 +221,7 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
      * mail system against unreasonable inputs. This also requires that we
      * limit the size of envelope records written by the local posting agent.
      * 
-     * Allow attribute records if the queue file is owned by the mail system
-     * (postsuper -r) or if the attribute specifies the MIME body type
-     * (sendmail -B).
+     * Records with named attributes are filtered by postdrop(1).
      * 
      * We must allow PTR records here because of "postsuper -r".
      */
@@ -249,6 +247,8 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 	/*
 	 * XXX Workaround: REC_TYPE_FILT (used in envelopes) == REC_TYPE_CONT
 	 * (used in message content).
+	 * 
+	 * As documented in postsuper(1), ignore content filter record.
 	 */
 	if (*expected != REC_TYPE_CONTENT[0]) {
 	    if (type == REC_TYPE_FILT)
@@ -322,7 +322,7 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
     }
 
     /*
-     * Add content inspection transport.
+     * Add content inspection transport. See also postsuper(1).
      */
     if (*var_filter_xport)
 	rec_fprintf(cleanup, REC_TYPE_FILT, "%s", var_filter_xport);
@@ -344,7 +344,10 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
      * For messages belonging to $mail_owner also log the maildrop queue id.
      * This supports message tracking for mail requeued via "postsuper -r".
      */
-    if (info->st.st_uid == var_owner_uid) {
+#define MAIL_IS_REQUEUED(info) \
+    ((info)->st.st_uid == var_owner_uid && ((info)->st.st_mode & S_IROTH) == 0)
+
+    if (MAIL_IS_REQUEUED(info)) {
 	msg_info("%s: uid=%d from=<%s> orig_id=%s", info->id,
 		 (int) info->st.st_uid, info->sender,
 		 ((name = strrchr(info->path, '/')) != 0 ?
@@ -456,7 +459,8 @@ static int pickup_file(PICKUP_INFO *info)
     cleanup_flags =
 	input_transp_cleanup(CLEANUP_FLAG_BOUNCE | CLEANUP_FLAG_MASK_EXTERNAL,
 			     pickup_input_transp_mask);
-    if (info->st.st_uid == var_owner_uid && (info->st.st_mode & S_IROTH) == 0)
+    /* As documented in postsuper(1). */
+    if (MAIL_IS_REQUEUED(info))
 	cleanup_flags &= ~CLEANUP_FLAG_MILTER;
 
     cleanup = mail_connect_wait(MAIL_CLASS_PUBLIC, var_cleanup_service);

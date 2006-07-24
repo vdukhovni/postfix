@@ -61,8 +61,8 @@ If Postfix does not implement a specific macro, people can usually
 work around it. But we should avoid inconsistency. If Postfix can
 make macro X available at Milter protocol stage Y, then it must
 also be able to make that macro available at all later Milter
-protocol stages, even those that are handled by a different Postfix
-process.
+protocol stages, even when some of those stages are handled by a
+different Postfix process.
 
 Thus, when adding Milter support for a specific Sendmail-like macro    
 to the SMTP server:
@@ -95,17 +95,11 @@ to queue file, then there is no need to Milter it again.
 
 We might want to take a similar approach with external (signing or
 blocking) content filters: don't filter mail that has already been
-filtered. Unfortunately, this is complicated by the fact that mail
-can make multiple iterations through Postfix (for example, when
-multiple external content filters are configured). Mail that was
-caught by "postsuper -r" somewhere in the middle if this trip should
-not be allowed to slip past any filters. To achieve this, we would
-have to preserve its current "content_filter" record that specifies
-what needs to be done next. This is the opposite of normal "postsuper
--r" usage, which is most often intended to remove unwanted
-"content_filter" records. We could add a postsuper command-line
-option to re-queue and preserve "content_filter" records, but is
-is unlikely that humans will ever be able to use this correctly.
+filtered, and don't filter mail that didn't need to be filtered.
+Such mail can be recognized by the absence of a "content_filter"
+record. To make the implementation efficient, the cleanup server
+would have to record the presence of a "content_filter" record in
+the queue file header.
 
 Message envelope or content modifications
 =========================================

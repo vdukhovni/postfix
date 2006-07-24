@@ -8670,13 +8670,7 @@ use smtp_tls_policy_maps instead. </p>
 discouraged. Always use the full destination nexthop (enclosed in
 [] with a possible ":port" suffix). A recipient domain or MX-enabled
 transport next-hop with no port suffix may look like a bare hostname,
-but is still a suitable <i>destination</i>. The hostname lookup key
-may not behave as you expect when SMTP connection caching is enabled
-(see smtp_connection_cache_destinations and
-smtp_connection_cache_on_demand). Different hostnames may resolve
-to the same IP address, and the hostname from the SMTP connection
-cache overrides the hostname that Postfix uses for TLS policy lookup
-and server certificate verification. </p>
+but is still a suitable <i>destination</i>. </p>
 
 <p> Specify a next-hop destination or server hostname on the left-hand
 side; no wildcards are allowed. The next-hop destination is either

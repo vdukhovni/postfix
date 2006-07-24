@@ -779,6 +779,10 @@ static const char *cleanup_upd_header(void *context, ssize_t index,
      * The lookup result will never be a pointer record.
      * 
      * Index 1 is the first matching header instance.
+     * 
+     * XXX When a header is updated repeatedly we create jumps to jumps. To
+     * eliminate this, rewrite the loop below so that we can start with the
+     * pointer record that points to the header that's being edited.
      */
 #define DONT_SAVE_RECORD	0
 #define NO_PTR_BACKUP		0
@@ -826,7 +830,8 @@ static const char *cleanup_upd_header(void *context, ssize_t index,
 		    avail_space += read_offset - saved_read_offset;
 		    jumped = 1;
 		}
-		if (rec_goto(state->dst, STR(rec_buf)) < 0) {
+		if (rec_goto(state->dst, STR(rec_buf)) < 0
+		    || (read_offset = vstream_ftell(state->dst)) < 0) {
 		    msg_warn("%s: read file %s: %m", myname, cleanup_path);
 		    CLEANUP_UPD_HEADER_RETURN(cleanup_milter_error(state,
 								   errno));
@@ -1761,7 +1766,7 @@ int     main(int unused_argc, char **argv)
 		msg_warn("bad add_header argument count: %d", argv->argc);
 	    } else {
 		flatten_args(arg_buf, argv->argv + 2);
-		cleanup_add_header(state, argv->argv[2], STR(arg_buf));
+		cleanup_add_header(state, argv->argv[1], STR(arg_buf));
 	    }
 	} else if (strcmp(argv->argv[0], "ins_header") == 0) {
 	    if (argv->argc < 3) {
