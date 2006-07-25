@@ -12612,6 +12612,16 @@ Apologies for any names omitted.
 	Postfix Milter client created a queue file that caused
 	delivery agents to loop.  File: cleanup/cleanup_milter.c.
 
+20060725
+
+	Bugfix: damaged queue file record after a Milter request
+	to modify a message header when 1) it was the last header
+	in the unmodified message, and 2) the old header was less
+	than 15 characters long.  File: cleanup/cleanup_milter.c.
+
+	Bugfix: don't panic in smtp_rcpt_cleanup() after detecting
+	a damaged queue file record. File: smtp/smtp_proto.c.
+
 Wish list:
 
 	Add M flag (enable multi-recipient delivery) to pipe daemon.

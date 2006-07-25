@@ -65,7 +65,7 @@ cleanup_milter: cleanup_milter.o $(CLEANUP_MILTER_OBJS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(CLEANUP_MILTER_OBJS) $(LIBS) $(SYSLIBS)
 	mv junk cleanup_milter.o
 
-tests:	cleanup_masquerade_test cleanup_milter_test
+tests:	cleanup_masquerade_test cleanup_milter_test cleanup_milter_test2
 
 root_tests:
 
@@ -92,6 +92,15 @@ cleanup_milter_test: cleanup_milter cleanup_milter.in1 cleanup_milter.ref1 \
 	../postcat/postcat -ov test-queue-file.tmp 2>/dev/null >cleanup_milter.tmp
 	diff cleanup_milter.ref1 cleanup_milter.tmp
 	rm -f test-queue-file.tmp cleanup_milter.tmp
+
+cleanup_milter_test2: cleanup_milter cleanup_milter.in2 cleanup_milter.ref2 \
+	test-queue-file2 ../postcat/postcat
+	cp test-queue-file2 test-queue-file2.tmp
+	chmod u+w test-queue-file2.tmp
+	./cleanup_milter <cleanup_milter.in2
+	../postcat/postcat -ov test-queue-file2.tmp 2>/dev/null >cleanup_milter.tmp
+	diff cleanup_milter.ref2 cleanup_milter.tmp
+	rm -f test-queue-file2.tmp cleanup_milter.tmp
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \

@@ -1,0 +1,10 @@
+#verbose on
+open test-queue-file2.tmp
+upd_header 1 Subject hey!
+upd_header 1 Subject hey!
+upd_header 1 Subject hey!
+add_header foo foobar
+upd_header 1 foo foobar
+upd_header 1 foo foobar
+upd_header 1 foo foobar
+close

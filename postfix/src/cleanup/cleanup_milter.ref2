@@ -1,0 +1,32 @@
+*** ENVELOPE RECORDS test-queue-file2.tmp ***
+        0 message_size:             329             181               1               0
+       65 message_arrival_time: Tue Jul 25 15:37:06 2006
+       82 create_time: Tue Jul 25 15:37:06 2006
+      106 named_attribute: rewrite_context=local
+      129 sender_fullname: Wietse Venema
+      144 sender: me@porcupine.org
+      162 pointer_record:               0
+      179 *** MESSAGE CONTENTS test-queue-file2.tmp ***
+      181 regular_text: Received: by bristle.watson.ibm.com (Postfix, from userid 0)
+      243 regular_text: 	id 034B229013F; Tue, 25 Jul 2006 15:37:06 -0400 (EDT)
+      299 regular_text: From: me@porcupine.org
+      323 regular_text: To: you@porcupine.org
+      346 regular_text: Message-Id: <20060725192735.5EC2D29013F@hades.porcupine.org>
+      408 regular_text: Date: Tue, 25 Jul 2006 15:27:19 -0400 (EDT)
+      453 pointer_record:             552
+      552 pointer_record:             584
+      584 pointer_record:             616
+      616 regular_text: Subject: hey!
+      631 pointer_record:             648
+      648 pointer_record:             678
+      678 pointer_record:             708
+      708 pointer_record:             738
+      738 regular_text: foo: foobar
+      751 pointer_record:             485
+      485 regular_text: 
+      487 regular_text: text
+      493 pointer_record:               0
+      510 *** HEADER EXTRACTED test-queue-file2.tmp ***
+      512 original_recipient: you@porcupine.org
+      531 recipient: you@porcupine.org
+      550 *** MESSAGE FILE END test-queue-file2.tmp ***
