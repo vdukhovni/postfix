@@ -1624,6 +1624,8 @@ static void usage(void)
     msg_warn("    del_rcpt addr");
 }
 
+/* flatten_args unparse partial command line */
+
 static void flatten_args(VSTRING *buf, char **argv)
 {
     char  **cpp;
@@ -1637,6 +1639,8 @@ static void flatten_args(VSTRING *buf, char **argv)
     VSTRING_TERMINATE(buf);
 }
 
+/* open_queue_file - open an unedited queue file (all-zero dummy PTRs) */
+
 static void open_queue_file(CLEANUP_STATE *state, const char *path)
 {
     VSTRING *buf = vstring_alloc(100);
@@ -1647,6 +1651,13 @@ static void open_queue_file(CLEANUP_STATE *state, const char *path)
     long    rcpt_count;
     long    qmgr_opts;
 
+    if (state->dst != 0) {
+	msg_warn("closing %s", cleanup_path);
+	vstream_fclose(state->dst);
+	state->dst = 0;
+	myfree(cleanup_path);
+	cleanup_path = 0;
+    }
     if ((state->dst = vstream_fopen(path, O_RDWR, 0)) == 0) {
 	msg_warn("open %s: %m", path);
     } else {

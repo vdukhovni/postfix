@@ -12622,7 +12622,22 @@ Apologies for any names omitted.
 	Bugfix: don't panic in smtp_rcpt_cleanup() after detecting
 	a damaged queue file record. File: smtp/smtp_proto.c.
 
+20060726
+
+	Bugfix: the 20051013 change to enforce the message size
+	limit in the SMTP server didn't work for size limits close
+	enough to INT_MAX. File: smtpd/smtpd.c.
+
+	Bugfix: after an SMTP client was rejected with "smtpd_delay_reject
+	= no", the SMTP server would panic as it generated spurious
+	Milter requests for unrecognized commands.  File: smtpd/smtpd.c.
+
 Wish list:
+
+	The type of var_message_limit should be changed from int
+	to long or better, to take advantage of LP64 architectures.
+	This also requires checking all expressions in which
+	var_message_limit appears.
 
 	Add M flag (enable multi-recipient delivery) to pipe daemon.
 
