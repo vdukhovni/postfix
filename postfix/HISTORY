@@ -12632,6 +12632,12 @@ Apologies for any names omitted.
 	= no", the SMTP server would panic as it generated spurious
 	Milter requests for unrecognized commands.  File: smtpd/smtpd.c.
 
+20060727
+
+	Cleanup: change redundant milter_abort() and milter_disc_event()
+	calls into NO-OPs.  This avoids unnecessary panic() events
+	for completely harmless conditions.  File: milter/milter8.c.
+
 Wish list:
 
 	The type of var_message_limit should be changed from int
