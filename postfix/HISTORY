@@ -12611,3 +12611,29 @@ Apologies for any names omitted.
 	Bugfix: when updating the same header multiple times, the
 	Postfix Milter client created a queue file that caused
 	delivery agents to loop.  File: cleanup/cleanup_milter.c.
+
+20060725
+
+	Bugfix: damaged queue file record after a Milter request
+	to modify a message header when 1) it was the last header
+	in the unmodified message, and 2) the old header was less
+	than 15 characters long.  File: cleanup/cleanup_milter.c.
+
+	Bugfix: don't panic in smtp_rcpt_cleanup() after detecting
+	a damaged queue file record. File: smtp/smtp_proto.c.
+
+20060726
+
+	Bugfix: the 20051013 change to enforce the message size
+	limit in the SMTP server didn't work for size limits close
+	enough to INT_MAX. File: smtpd/smtpd.c.
+
+	Bugfix: after an SMTP client was rejected with "smtpd_delay_reject
+	= no", the SMTP server would panic as it generated spurious
+	Milter requests for unrecognized commands.  File: smtpd/smtpd.c.
+
+20060727
+
+	Cleanup: change redundant milter_abort() and milter_disc_event()
+	calls into NO-OPs.  This avoids unnecessary panic() events
+	for completely harmless conditions.  File: milter/milter8.c.

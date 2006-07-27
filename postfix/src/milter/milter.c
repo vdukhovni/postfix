@@ -141,7 +141,9 @@
 /*
 /*	milter_disc_event() reports an SMTP client disconnection
 /*	event to the specified milter instances. No events can
-/*	reported after this call, not even abort() events.
+/*	reported after this call. To simplify usage, redundant calls
+/*	of this function are NO-OPs and don't raise a run-time
+/*	error.
 /*
 /*	milter_helo_event() reports a HELO or EHLO event to the
 /*	specified milter instances, after sending the macros that
@@ -178,9 +180,9 @@
 /*	by a preceding milter. This function must be called with
 /*	as argument an open Postfix queue file.
 /*
-/*	milter_abort() cancels a mail transaction in progress. This
-/*	function is safe to call anywhere between connect and
-/*	disconnect events.
+/*	milter_abort() cancels a mail transaction in progress.  To
+/*	simplify usage, redundant calls of this function are NO-OPs
+/*	and don't raise a run-time error.
 /*
 /*	milter_send() sends a list of mail filters over the specified
 /*	stream. When given a null list pointer, a "no filter"

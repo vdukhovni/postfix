@@ -2643,11 +2643,13 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	    && (state->proxy == 0 ? (++start, --len) == 0 : len == 1))
 	    break;
 	if (state->err == CLEANUP_STAT_OK) {
-	    state->act_size += len + 2;
-	    if (var_message_limit > 0 && state->act_size > var_message_limit)
+	    if (var_message_limit > 0 && var_message_limit - state->act_size < len + 2)
 		state->err = CLEANUP_STAT_SIZE;
-	    else if (out_record(out_stream, curr_rec_type, start, len) < 0)
-		state->err = out_error;
+	    else {
+		state->act_size += len + 2;
+		if (out_record(out_stream, curr_rec_type, start, len) < 0)
+		    state->err = out_error;
+	    }
 	}
     }
     state->where = SMTPD_AFTER_DOT;
@@ -3964,6 +3966,16 @@ static void smtpd_proto(SMTPD_STATE *state)
 		    smtpd_chat_reply(state, "221 2.7.0 Error: I can break rules, too. Goodbye.");
 		    break;
 		}
+	    }
+	    /* XXX We use the real client for connect access control. */
+	    if (state->access_denied && cmdp->action != quit_cmd) {
+		smtpd_chat_reply(state, "503 5.7.0 Error: access denied for %s",
+				 state->namaddr);	/* RFC 2821 Sec 3.1 */
+		state->error_count++;
+		continue;
+	    }
+	    /* state->access_denied == 0 || cmdp->action == quit_cmd */
+	    if (cmdp->name == 0) {
 		if (smtpd_milters != 0
 		    && SMTPD_STAND_ALONE(state) == 0
 		    && (err = milter_unknown_event(smtpd_milters,
@@ -3973,13 +3985,6 @@ static void smtpd_proto(SMTPD_STATE *state)
 		} else
 		    smtpd_chat_reply(state, "502 5.5.2 Error: command not recognized");
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
-		state->error_count++;
-		continue;
-	    }
-	    /* XXX We use the real client for connect access control. */
-	    if (state->access_denied && cmdp->action != quit_cmd) {
-		smtpd_chat_reply(state, "503 5.7.0 Error: access denied for %s",
-				 state->namaddr);	/* RFC 2821 Sec 3.1 */
 		state->error_count++;
 		continue;
 	    }

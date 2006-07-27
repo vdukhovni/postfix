@@ -987,6 +987,8 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
     NOCLOBBER int mail_from_rejected;
     NOCLOBBER int downgrading;
     int     mime_errs;
+    SMTP_RESP fake;
+    int     fail_status;
 
     /*
      * Macros for readability.
@@ -1696,7 +1698,12 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	    if (rec_type != REC_TYPE_XTRA) {
 		msg_warn("%s: bad record type: %d in message content",
 			 request->queue_id, rec_type);
-		RETURN(mark_corrupt(state->src));
+		fail_status = smtp_mesg_fail(state, DSN_BY_LOCAL_MTA,
+					     SMTP_RESP_FAKE(&fake, "5.3.0"),
+					     "unreadable mail queue entry");
+		if (fail_status == 0)
+		    (void) mark_corrupt(state->src);
+		RETURN(fail_status);
 	    }
 	}
 

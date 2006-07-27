@@ -1835,6 +1835,9 @@ static void milter8_abort(MILTER *m)
      * has to open a new MTA-to-filter socket for each SMTP client.
      */
     switch (milter->state) {
+    case MILTER8_STAT_CLOSED:
+    case MILTER8_STAT_READY:
+	return;
     case MILTER8_STAT_ERROR:
     case MILTER8_STAT_ACCEPT_CON:
     case MILTER8_STAT_REJECT_CON:
@@ -1869,6 +1872,9 @@ static void milter8_disc_event(MILTER *m)
      * has to open a new MTA-to-filter socket for each SMTP client.
      */
     switch (milter->state) {
+    case MILTER8_STAT_CLOSED:
+    case MILTER8_STAT_READY:
+	return;
     case MILTER8_STAT_ERROR:
 #ifdef LIBMILTER_AUTO_DISCONNECT
     case MILTER8_STAT_ACCEPT_CON:

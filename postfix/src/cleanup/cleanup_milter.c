@@ -623,7 +623,12 @@ static const char *cleanup_patch_header(CLEANUP_STATE *state,
 	    msg_warn("%s: seek file %s: %m", myname, cleanup_path);
 	    CLEANUP_PATCH_HEADER_RETURN(cleanup_milter_error(state, errno));
 	}
-	CLEANUP_OUT_BUF(state, rec_type, buf);
+	/* The saved "append header" pointer record may still contain "0". */
+	if (saved_read_offset == state->append_hdr_pt_offset)
+	    cleanup_out_format(state, REC_TYPE_PTR, REC_TYPE_PTR_FORMAT,
+			       (long) state->append_hdr_pt_target);
+	else
+	    CLEANUP_OUT_BUF(state, rec_type, buf);
 	if (msg_verbose > 1)
 	    msg_info("%s: %ld: write %.*s", myname, (long) write_offset,
 		     LEN(buf) > 30 ? 30 : (int) LEN(buf), STR(buf));
@@ -825,6 +830,9 @@ static const char *cleanup_upd_header(void *context, ssize_t index,
 		CLEANUP_UPD_HEADER_RETURN(cleanup_milter_error(state, errno));
 	    }
 	    if (rec_type == REC_TYPE_PTR) {
+		/* The "append header" pointer record content must be saved. */
+		if (saved_read_offset == state->append_hdr_pt_offset)
+		    break;
 		if (jumped == 0) {
 		    /* Enough contiguous space for writing a PTR record. */
 		    avail_space += read_offset - saved_read_offset;
