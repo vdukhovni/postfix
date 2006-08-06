@@ -1,0 +1,41 @@
+*** ENVELOPE RECORDS bug1.file.tmp ***
+message_size:             428             654               3               0
+message_arrival_time: Sat May 13 21:04:18 2006
+create_time: Sat May 13 21:04:27 2006
+named_attribute: rewrite_context=local
+sender: wietse@porcupine.org
+named_attribute: client_name=tail.porcupine.org
+named_attribute: client_address=IPv6:2001:240:587:0:2d0:b7ff:febe:ca9f
+named_attribute: message_origin=tail.porcupine.org[2001:240:587:0:2d0:b7ff:febe:ca9f]
+named_attribute: helo_name=tail.porcupine.org
+named_attribute: protocol_name=SMTP
+named_attribute: dsn_orig_rcpt=rfc822;wietse@porcupine.org
+original_recipient: wietse@porcupine.org
+recipient: wietse@porcupine.org
+named_attribute: dsn_orig_rcpt=rfc822;alias@tail.porcupine.org
+original_recipient: alias@tail.porcupine.org
+recipient: wietse@porcupine.org
+named_attribute: dsn_orig_rcpt=rfc822;alias@tail.porcupine.org
+original_recipient: alias@tail.porcupine.org
+recipient: root@porcupine.org
+*** MESSAGE CONTENTS bug1.file.tmp ***
+Received: from tail.porcupine.org (tail.porcupine.org [IPv6:2001:240:587:0:2d0:b7ff:febe:ca9f])
+	by tail.porcupine.org (Postfix) with SMTP id E0F703D1E36;
+	Sat, 13 May 2006 21:04:18 -0400 (EDT)
+X: 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+Y: 1234567
+Message-Id: <20060514010427.E0F703D1E36@tail.porcupine.org>
+Date: Sat, 13 May 2006 21:04:18 -0400 (EDT)
+From: wietse@porcupine.org
+To: undisclosed-recipients:;
+Subject: long header text
+
+text
+*** HEADER EXTRACTED bug1.file.tmp ***
+*** MESSAGE FILE END bug1.file.tmp ***

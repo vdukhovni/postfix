@@ -1,4 +1,4 @@
-*** ENVELOPE RECORDS test-queue-file.tmp ***
+*** ENVELOPE RECORDS bug1.file.tmp ***
         0 message_size:             428             654               3               0
        65 message_arrival_time: Sat May 13 21:04:18 2006
        84 create_time: Sat May 13 21:04:27 2006
@@ -14,39 +14,36 @@
       425 recipient: wietse@porcupine.org
       447 named_attribute: dsn_orig_rcpt=rfc822;alias@tail.porcupine.org
       494 original_recipient: alias@tail.porcupine.org
-      520 canceled_recipient: wietse@porcupine.org
+      520 recipient: wietse@porcupine.org
       542 named_attribute: dsn_orig_rcpt=rfc822;alias@tail.porcupine.org
       589 original_recipient: alias@tail.porcupine.org
-      615 canceled_recipient: root@porcupine.org
-      635 pointer_record:            1103
-     1103 named_attribute: notify_flags=1
-     1119 original_recipient: xxxx
-     1125 recipient: xxxx
-     1131 pointer_record:            1148
-     1148 named_attribute: notify_flags=1
-     1164 original_recipient: yyyy
-     1170 canceled_recipient: yyyy
-     1176 pointer_record:             652
-      652 *** MESSAGE CONTENTS test-queue-file.tmp ***
+      615 recipient: root@porcupine.org
+      635 pointer_record:               0
+      652 *** MESSAGE CONTENTS bug1.file.tmp ***
       654 regular_text: Received: from tail.porcupine.org (tail.porcupine.org [IPv6:2001:240:587:0:2d0:b7ff:febe:ca9f])
       751 regular_text: 	by tail.porcupine.org (Postfix) with SMTP id E0F703D1E36;
       811 regular_text: 	Sat, 13 May 2006 21:04:18 -0400 (EDT)
-      851 pointer_record:            1193
-     1193 pointer_record:            1236
-     1236 deleted_text: X2: v2
-     1244 pointer_record:            1386
-     1386 regular_text: X: X-replaced-header replacement header text
-     1432 pointer_record:            1271
-     1271 regular_text: X2: test header value 3
-     1296 regular_text: Y: 1234567
-     1308 regular_text: Message-Id: <20060514010427.E0F703D1E36@tail.porcupine.org>
-     1369 pointer_record:             954
+      851 regular_text: X: 1
+      857 regular_text:  2
+      861 regular_text:  3
+      865 regular_text:  4
+      869 regular_text:  5
+      873 regular_text:  6
+      877 regular_text:  7
+      881 regular_text: Y: 1234567
+      893 regular_text: Message-Id: <20060514010427.E0F703D1E36@tail.porcupine.org>
       954 regular_text: Date: Sat, 13 May 2006 21:04:18 -0400 (EDT)
       999 regular_text: From: wietse@porcupine.org
      1027 regular_text: To: undisclosed-recipients:;
-     1057 pointer_record:               0
+     1057 pointer_record:            1103
+     1103 pointer_record:            1147
+     1147 pointer_record:            1191
+     1191 pointer_record:            1235
+     1235 regular_text: Subject: long header text
+     1262 pointer_record:            1130
+     1130 pointer_record:            1074
      1074 regular_text: 
      1076 regular_text: text
-     1082 *** HEADER EXTRACTED test-queue-file.tmp ***
+     1082 *** HEADER EXTRACTED bug1.file.tmp ***
      1084 pointer_record:               0
-     1101 *** MESSAGE FILE END test-queue-file.tmp ***
+     1101 *** MESSAGE FILE END bug1.file.tmp ***

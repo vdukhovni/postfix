@@ -12638,6 +12638,18 @@ Apologies for any names omitted.
 	calls into NO-OPs.  This avoids unnecessary panic() events
 	for completely harmless conditions.  File: milter/milter8.c.
 
+20060805
+
+	Bugfix: #ifdef damage caused smtp_sasl_start() to be invoked
+	twice. Reported by C-J Lofstedt. File: smtp/smtp_sasl_proto.c.
+
+20060806
+
+	Postfix no longer announces its name in delivery status
+	notifications.  Users believe that Wietse provides a free
+	helpdesk service that solves all their email problems.
+	Credits to Jonathan Balester.  File: bounce/bounce_templates.c.
+
 Wish list:
 
 	The type of var_message_limit should be changed from int

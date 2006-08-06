@@ -2144,7 +2144,7 @@ static const char *milter8_message(MILTER *m, VSTREAM *qfile,
 
 	/*
 	 * XXX When the message (not MIME body part) does not end in CRLF
-	 * (i.e. the last record was REC_TYPE_CONT), do we send CRLF
+	 * (i.e. the last record was REC_TYPE_CONT), do we send a CRLF
 	 * terminator before triggering the end-of-body condition?
 	 */
 	for (;;) {

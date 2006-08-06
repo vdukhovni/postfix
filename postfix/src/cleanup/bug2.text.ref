@@ -1,0 +1,22 @@
+*** ENVELOPE RECORDS bug2.file.tmp ***
+message_size:             329             181               1               0
+message_arrival_time: Tue Jul 25 15:37:06 2006
+create_time: Tue Jul 25 15:37:06 2006
+named_attribute: rewrite_context=local
+sender_fullname: Wietse Venema
+sender: me@porcupine.org
+*** MESSAGE CONTENTS bug2.file.tmp ***
+Received: by bristle.watson.ibm.com (Postfix, from userid 0)
+	id 034B229013F; Tue, 25 Jul 2006 15:37:06 -0400 (EDT)
+From: me@porcupine.org
+To: you@porcupine.org
+Message-Id: <20060725192735.5EC2D29013F@hades.porcupine.org>
+Date: Tue, 25 Jul 2006 15:27:19 -0400 (EDT)
+Subject: hey!
+foo: foobar
+
+text
+*** HEADER EXTRACTED bug2.file.tmp ***
+original_recipient: you@porcupine.org
+recipient: you@porcupine.org
+*** MESSAGE FILE END bug2.file.tmp ***

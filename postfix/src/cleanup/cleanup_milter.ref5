@@ -1,0 +1,29 @@
+*** ENVELOPE RECORDS test-queue-file5.tmp ***
+        0 message_size:             370             221               1               0
+       65 message_arrival_time: Fri Jul 28 15:14:59 2006
+       84 create_time: Fri Jul 28 15:15:05 2006
+      108 named_attribute: rewrite_context=local
+      131 sender_fullname: Wietse Venema
+      146 sender: me@porcupine.org
+      164 original_recipient: you@porcupine.org
+      183 recipient: you@porcupine.org
+      202 pointer_record:               0
+      219 *** MESSAGE CONTENTS test-queue-file5.tmp ***
+      221 regular_text: Received: by bristle.watson.ibm.com (Postfix, from userid 1001)
+      286 regular_text: 	id 78849290593; Fri, 28 Jul 2006 15:15:05 -0400 (EDT)
+      342 pointer_record:             750
+      750 regular_text: Subject: hya
+      764 pointer_record:             705
+      705 regular_text: X: whatevershebringswesing
+      733 pointer_record:             623
+      623 regular_text: Message-Id: <20060728191505.78849290593@bristle.watson.ibm.com>
+      688 pointer_record:             434
+      434 regular_text: Date: Fri, 28 Jul 2006 15:14:59 -0400 (EDT)
+      479 regular_text: From: me@porcupine.org (Wietse Venema)
+      519 regular_text: To: undisclosed-recipients:;
+      549 pointer_record:               0
+      566 regular_text: 
+      568 regular_text: text
+      574 pointer_record:               0
+      591 *** HEADER EXTRACTED test-queue-file5.tmp ***
+      593 *** MESSAGE FILE END test-queue-file5.tmp ***

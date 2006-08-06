@@ -65,7 +65,9 @@ cleanup_milter: cleanup_milter.o $(CLEANUP_MILTER_OBJS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(CLEANUP_MILTER_OBJS) $(LIBS) $(SYSLIBS)
 	mv junk cleanup_milter.o
 
-tests:	cleanup_masquerade_test cleanup_milter_test cleanup_milter_test2
+tests:	cleanup_masquerade_test cleanup_milter_test bug_tests \
+	cleanup_milter_test2 cleanup_milter_test3 cleanup_milter_test4 \
+	cleanup_milter_test5
 
 root_tests:
 
@@ -82,10 +84,34 @@ cleanup_masquerade_test: cleanup_masquerade cleanup_masq.ref
 	diff cleanup_masq.ref cleanup_masq.tmp
 	rm -f cleanup_masq.tmp
 
+bug_tests: bug1_test bug2_test
+
+bug1_test: cleanup_milter bug1.file bug1.in bug1.ref bug1.text.ref \
+	../postcat/postcat
+	cp bug1.file bug1.file.tmp
+	chmod u+w bug1.file.tmp
+	./cleanup_milter <bug1.in
+	../postcat/postcat -ov bug1.file.tmp 2>/dev/null >bug1.tmp
+	diff bug1.ref bug1.tmp
+	../postcat/postcat bug1.file.tmp 2>/dev/null >bug1.tmp
+	diff bug1.text.ref bug1.tmp
+	rm -f bug1.file.tmp bug1.tmp
+
+bug2_test: cleanup_milter bug2.file bug2.in bug2.ref bug2.text.ref \
+	../postcat/postcat
+	cp bug2.file bug2.file.tmp
+	chmod u+w bug2.file.tmp
+	./cleanup_milter <bug2.in
+	../postcat/postcat -ov bug2.file.tmp 2>/dev/null >bug2.tmp
+	diff bug2.ref bug2.tmp
+	../postcat/postcat bug2.file.tmp 2>/dev/null >bug2.tmp
+	diff bug2.text.ref bug2.tmp
+	rm -f bug2.file.tmp bug2.tmp
+
 # Test queue file editing routines.
 
-cleanup_milter_test: cleanup_milter cleanup_milter.in1 cleanup_milter.ref1 \
-	test-queue-file ../postcat/postcat
+cleanup_milter_test: cleanup_milter test-queue-file cleanup_milter.in1 \
+	cleanup_milter.ref1 test-queue-file ../postcat/postcat
 	cp test-queue-file test-queue-file.tmp
 	chmod u+w test-queue-file.tmp
 	./cleanup_milter <cleanup_milter.in1
@@ -93,14 +119,52 @@ cleanup_milter_test: cleanup_milter cleanup_milter.in1 cleanup_milter.ref1 \
 	diff cleanup_milter.ref1 cleanup_milter.tmp
 	rm -f test-queue-file.tmp cleanup_milter.tmp
 
-cleanup_milter_test2: cleanup_milter cleanup_milter.in2 cleanup_milter.ref2 \
-	test-queue-file2 ../postcat/postcat
+cleanup_milter_test2: cleanup_milter test-queue-file2 cleanup_milter.in2 \
+	cleanup_milter.ref2 test-queue-file2 ../postcat/postcat
 	cp test-queue-file2 test-queue-file2.tmp
 	chmod u+w test-queue-file2.tmp
 	./cleanup_milter <cleanup_milter.in2
 	../postcat/postcat -ov test-queue-file2.tmp 2>/dev/null >cleanup_milter.tmp
 	diff cleanup_milter.ref2 cleanup_milter.tmp
 	rm -f test-queue-file2.tmp cleanup_milter.tmp
+
+cleanup_milter_test3: cleanup_milter test-queue-file3 cleanup_milter.in3 \
+	cleanup_milter.ref3 test-queue-file3 ../postcat/postcat
+	cp test-queue-file3 test-queue-file3.tmp
+	chmod u+w test-queue-file3.tmp
+	./cleanup_milter <cleanup_milter.in3
+	../postcat/postcat -ov test-queue-file3.tmp 2>/dev/null >cleanup_milter.tmp
+	diff cleanup_milter.ref3 cleanup_milter.tmp
+	rm -f test-queue-file3.tmp cleanup_milter.tmp
+
+cleanup_milter_test4: cleanup_milter test-queue-file4 cleanup_milter.in4a \
+	cleanup_milter.in4b cleanup_milter.in4c cleanup_milter.ref4 \
+	test-queue-file4 ../postcat/postcat
+	cp test-queue-file4 test-queue-file4.tmp
+	chmod u+w test-queue-file4.tmp
+	./cleanup_milter <cleanup_milter.in4a
+	../postcat/postcat -ov test-queue-file4.tmp 2>/dev/null >cleanup_milter.tmp
+	diff cleanup_milter.ref4 cleanup_milter.tmp
+	cp test-queue-file4 test-queue-file4.tmp
+	chmod u+w test-queue-file4.tmp
+	./cleanup_milter <cleanup_milter.in4b
+	../postcat/postcat -ov test-queue-file4.tmp 2>/dev/null >cleanup_milter.tmp
+	diff cleanup_milter.ref4 cleanup_milter.tmp
+	cp test-queue-file4 test-queue-file4.tmp
+	chmod u+w test-queue-file4.tmp
+	./cleanup_milter <cleanup_milter.in4c
+	../postcat/postcat -ov test-queue-file4.tmp 2>/dev/null >cleanup_milter.tmp
+	diff cleanup_milter.ref4 cleanup_milter.tmp
+	rm -f test-queue-file4.tmp cleanup_milter.tmp
+
+cleanup_milter_test5: cleanup_milter test-queue-file5 cleanup_milter.in5 \
+	cleanup_milter.ref5 test-queue-file5 ../postcat/postcat
+	cp test-queue-file5 test-queue-file5.tmp
+	chmod u+w test-queue-file5.tmp
+	./cleanup_milter <cleanup_milter.in5
+	../postcat/postcat -ov test-queue-file5.tmp 2>/dev/null >cleanup_milter.tmp
+	diff cleanup_milter.ref5 cleanup_milter.tmp
+	rm -f test-queue-file5.tmp cleanup_milter.tmp
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \

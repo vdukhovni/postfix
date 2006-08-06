@@ -1,0 +1,50 @@
+*** ENVELOPE RECORDS test-queue-file3.tmp ***
+        0 message_size:             329             181               1               0
+       65 message_arrival_time: Tue Jul 25 15:37:06 2006
+       82 create_time: Tue Jul 25 15:37:06 2006
+      106 named_attribute: rewrite_context=local
+      129 sender_fullname: Wietse Venema
+      144 sender: me@porcupine.org
+      162 pointer_record:             552
+      552 named_attribute: notify_flags=1
+      568 original_recipient: me@porcupine.org
+      586 canceled_recipient: me@porcupine.org
+      604 pointer_record:            1383
+     1383 named_attribute: notify_flags=1
+     1399 original_recipient: em@porcupine.org
+     1417 canceled_recipient: em@porcupine.org
+     1435 pointer_record:             179
+      179 *** MESSAGE CONTENTS test-queue-file3.tmp ***
+      181 regular_text: Received: by bristle.watson.ibm.com (Postfix, from userid 0)
+      243 regular_text: 	id 034B229013F; Tue, 25 Jul 2006 15:37:06 -0400 (EDT)
+      299 pointer_record:             834
+      834 pointer_record:            1301
+     1301 pointer_record:            1342
+     1342 pointer_record:            1452
+     1452 pointer_record:            1706
+     1706 pointer_record:            1747
+     1747 regular_text: From: me@porcupine.org
+     1771 pointer_record:            1493
+     1493 pointer_record:            1788
+     1788 pointer_record:            1828
+     1828 regular_text: To: you@porcupine.org
+     1851 pointer_record:            1533
+     1533 pointer_record:            1868
+     1868 pointer_record:            1947
+     1947 regular_text: Message-Id: <20060725192735.5EC2D29013F@hades.porcupine.org>
+     2009 pointer_record:            1612
+     1612 pointer_record:            2026
+     2026 pointer_record:            2088
+     2088 regular_text: Date: Tue, 25 Jul 2006 15:27:19 -0400 (EDT)
+     2133 pointer_record:            1674
+     1674 pointer_record:            2150
+     2150 pointer_record:            2182
+     2182 regular_text: Subject: hey!
+     2197 pointer_record:             485
+      485 regular_text: 
+      487 regular_text: text
+      493 pointer_record:               0
+      510 *** HEADER EXTRACTED test-queue-file3.tmp ***
+      512 original_recipient: you@porcupine.org
+      531 recipient: you@porcupine.org
+      550 *** MESSAGE FILE END test-queue-file3.tmp ***

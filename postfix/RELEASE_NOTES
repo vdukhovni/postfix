@@ -17,3 +17,9 @@ Incompatibility with Postfix 2.2 and earlier
 If you upgrade from Postfix 2.2 or earlier, read RELEASE_NOTES-2.3
 before proceeding.
 
+Incompatible changes with Postfix snapshot 20060806
+===================================================
+
+Postfix no longer announces its name in delivery status notifications.
+Users believe that Wietse provides a free help desk service that
+solves all their email problems.

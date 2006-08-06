@@ -23,9 +23,10 @@ Network versus local submission
 
 As of Sendmail 8.12, all mail is received via SMTP, so all mail is
 subject to Miltering (local submissions are queued in a submission
-queue and then delivered via SMTP to the main MTA). In Postfix,
-local submissions are received by the pickup server, which feeds
-the mail into the cleanup server after doing some sanity checks.
+queue and then delivered via SMTP to the main MTA, or appended to
+$HOME/dead.letter). In Postfix, local submissions are received by
+the pickup server, which feeds the mail into the cleanup server
+after doing basic sanity checks.
 
 How do we set up the Milters with SMTP mail versus local submissions?
 
