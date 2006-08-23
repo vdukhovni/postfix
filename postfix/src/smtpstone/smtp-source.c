@@ -17,6 +17,9 @@
 /*	Connections can be made to UNIX-domain and IPv4 or IPv6 servers.
 /*	IPv4 and IPv6 are the default.
 /*
+/*	Note: this is an unsupported test program. No attempt is made
+/*	to maintain compatibility between successive versions.
+/*
 /*	Arguments:
 /* .IP \fB-4\fR
 /*	Connect to the server with IPv4. This option has no effect when
@@ -510,7 +513,7 @@ static void send_helo(SESSION *session)
      * Send the standard greeting with our hostname
      */
     if ((except = vstream_setjmp(session->stream)) != 0)
-	msg_fatal("%s while sending HELO", exception_text(except));
+	msg_fatal("%s while sending %s", exception_text(except), protocol);
 
     command(session->stream, "%s %s", protocol, var_myhostname);
 
@@ -528,15 +531,16 @@ static void helo_done(int unused_event, char *context)
     SESSION *session = (SESSION *) context;
     RESPONSE *resp;
     int     except;
+    const char *protocol = (talk_lmtp ? "LHLO" : "HELO");
 
     /*
      * Get response to HELO command.
      */
     if ((except = vstream_setjmp(session->stream)) != 0)
-	msg_fatal("%s while sending HELO", exception_text(except));
+	msg_fatal("%s while sending %s", exception_text(except), protocol);
 
     if ((resp = response(session->stream, buffer))->code / 100 != 2)
-	msg_fatal("HELO rejected: %d %s", resp->code, resp->str);
+	msg_fatal("%s rejected: %d %s", protocol, resp->code, resp->str);
 
     send_mail(session);
 }

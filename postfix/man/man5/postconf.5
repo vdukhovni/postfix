@@ -3019,6 +3019,10 @@ default is to report only the most serious problems. The paranoid
 may wish to turn on the policy (UCE and mail relaying) and protocol
 error (broken mail software) reports.
 .PP
+NOTE: postmaster notifications may contain confidential information
+such as SASL passwords or message content.  It is the system
+administrator's responsibility to treat such information with care.
+.PP
 The error classes are:
 .IP "\fBbounce\fR (also implies \fB2bounce\fR)"
 Send the postmaster copies of the headers of bounced mail, and
@@ -7164,7 +7168,8 @@ message contains no To: or Cc: message header.
 .SH unknown_address_reject_code (default: 450)
 The numerical Postfix SMTP server response code when a sender or
 recipient address is rejected by the reject_unknown_sender_domain
-or reject_unknown_recipient_domain restriction.
+or reject_unknown_recipient_domain restriction.  The response is
+always 450 in case of a temporary DNS error.
 .PP
 Do not change this unless you have a complete understanding of RFC 821.
 .SH unknown_client_reject_code (default: 450)

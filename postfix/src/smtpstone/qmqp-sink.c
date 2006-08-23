@@ -19,6 +19,11 @@
 /*	UNIX-domain sockets.
 /*	IPv4 and IPv6 are the default.
 /*	This program is the complement of the \fBqmqp-source\fR(1) program.
+/*
+/*	Note: this is an unsupported test program. No attempt is made
+/*	to maintain compatibility between successive versions.
+/*
+/*	Arguments:
 /* .IP \fB-4\fR
 /*	Support IPv4 only. This option has no effect when
 /*	Postfix is built without IPv6 support.

@@ -12628,9 +12628,10 @@ Apologies for any names omitted.
 	limit in the SMTP server didn't work for size limits close
 	enough to INT_MAX. File: smtpd/smtpd.c.
 
-	Bugfix: after an SMTP client was rejected with "smtpd_delay_reject
-	= no", the SMTP server would panic as it generated spurious
-	Milter requests for unrecognized commands.  File: smtpd/smtpd.c.
+	Bugfix (introduced Postfix 2.3): after an SMTP client was
+	rejected with "smtpd_delay_reject = no", the SMTP server
+	would panic as it generated spurious Milter requests for
+	unrecognized commands.  File: smtpd/smtpd.c.
 
 20060727
 
@@ -12640,8 +12641,9 @@ Apologies for any names omitted.
 
 20060805
 
-	Bugfix: #ifdef damage caused smtp_sasl_start() to be invoked
-	twice. Reported by C-J Lofstedt. File: smtp/smtp_sasl_proto.c.
+	Bugfix (introduced Postfix 2.3): #ifdef damage caused
+	smtp_sasl_start() to be invoked twice. Reported by C-J
+	Lofstedt. File: smtp/smtp_sasl_proto.c.
 
 20060806
 
@@ -12650,7 +12652,62 @@ Apologies for any names omitted.
 	helpdesk service that solves all their email problems.
 	Credits to Jonathan Balester.  File: bounce/bounce_templates.c.
 
+20060807
+
+	Bugfix (introduced Postfix 2.2): when upgrading from Postfix
+	< 2.2 with the third-party TLS patch, the post-install
+	upgrade procedure didn't put a "?" in the existing tlsmgr
+	entry, causing tlsmgr to repeatedly start and exit when TLS
+	support was not compiled in.  File: conf/post-install.
+
+20060812
+
+	Bugfix (introduced < Postfix alpha): safety mechanism in
+	mail_date() didn't work.  Found in code review.  File:
+	global/mail_date.c.
+
+20060817
+
+	Test programs for host address->name and name->address
+	lookups to debug name service inconsistencies, typically
+	when the Postfix SMTP server claims that a hostname is
+	"unknown".  Files: auxiliary/name-addr-test/*.
+
+20060822
+
+	Added missing logging for "message to large" etc.  Files:
+	smtpd/smtpd.c, cleanup/cleanup_milter.c.
+
+20060823
+
+	Bugfix (introduced Postfix 2.2): vstream_fdclose() did not
+	flush unwritten output before disconnecting a stream from
+	its file descriptor.  File: util/vstream.c.
+
+	Bugfix (introduced Postfix 2.2): segfault when vstream_fclose()
+	attempted to flush unwritten output, after vstream_fdclose()
+	disconnected the stream from its file descriptor.  File:
+	util/vstream.c.
+
+	Feature: smtp-sink can capture mail to file, either as one
+	individual message per file, or as multiple messages per
+	file.  After an initial implementation by Weidong Cui. File:
+	smtpstone/smtp-sink.c.
+
+	Bugfix (introduced < Postfix alpha): smtp-sink did not
+	correctly recognize DOT-CR-LF immediately after DATA. File:
+	smtpstone/smtp-sink.c.
+
+	Cleanup: smtp-sink now requires that MAIL FROM, RCPT TO and
+	DATA be send in the correct order. This simplified the
+	implementation of the capture to file feature. File:
+	smtpstone/smtp-sink.c.
+
 Wish list:
+
+	Make null local-part handling configurable: either expand
+	into mailer-daemon (current bahavior) or disallow (strict
+	behavior, currently implemented only in the SMTP server).
 
 	The type of var_message_limit should be changed from int
 	to long or better, to take advantage of LP64 architectures.
