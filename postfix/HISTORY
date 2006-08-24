@@ -12703,6 +12703,11 @@ Apologies for any names omitted.
 	implementation of the capture to file feature. File:
 	smtpstone/smtp-sink.c.
 
+20050824
+
+	Portability: inside functions, GCC 4 refuses forward
+	declarations of static functions.  File: smtpstone/smtp-sink.c.
+
 Wish list:
 
 	Make null local-part handling configurable: either expand

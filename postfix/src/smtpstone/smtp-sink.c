@@ -173,19 +173,16 @@
 /*	the client sent a recognizable HELO or EHLO command before
 /*	the DATA command.
 /* .IP "\fBX-Mail-Args: \fItext\fR"
-/*	The arguments, if any, of the MAIL command that started
-/*	this mail delivery transaction. This record is present only
-/*	if the client sent a recognizable MAIL command.
+/*	The arguments of the MAIL command that started this mail
+/*	delivery transaction. This record is present exactly once.
 /* .IP "\fBX-Rcpt-Args: \fItext\fR"
-/*	The arguments, if any, of each successive RCPT command
-/*	within this mail delivery transaction. There may be zero
-/*	or more of these records. This record is present only if
-/*	the client sent a recognizable RCPT command.
+/*	The arguments of an RCPT command within this mail delivery
+/*	transaction. There is one record for each RCPT command, and
+/*	they are in the order as sent by the client.
 /* .IP "\fBReceived: \fItext\fR"
 /*	A message header for compatibility with mail processing
 /*	software. This three-line header marks the end of the headers
-/*	provided by \fBsmtp-sink\fR, and is formatted
-/*	as follows:
+/*	provided by \fBsmtp-sink\fR, and is formatted as follows:
 /* .RS
 /* .IP "\fBfrom \fIhelo\fB ([\fIaddr\fB])\fR"
 /*	The HELO or EHLO command argument and client IP address.
@@ -1087,12 +1084,12 @@ static void read_event(int unused_event, char *context)
     event_request_timer(read_timeout, (char *) state, var_tmout);
 }
 
+static void connect_event(int, char *);
+
 /* disconnect - handle disconnection events */
 
 static void disconnect(SINK_STATE *state)
 {
-    static void connect_event(int, char *);
-
     event_disable_readwrite(vstream_fileno(state->stream));
     event_cancel_timer(read_timeout, (char *) state);
     if (count) {

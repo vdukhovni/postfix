@@ -212,17 +212,15 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
               HELO or EHLO command before the DATA command.
 
        <b>X-Mail-Args:</b> <i>text</i>
-              The  arguments,  if  any,  of the MAIL command that
-              started this mail delivery transaction. This record
-              is  present  only if the client sent a recognizable
-              MAIL command.
+              The arguments of the MAIL command that started this
+              mail delivery transaction. This record  is  present
+              exactly once.
 
        <b>X-Rcpt-Args:</b> <i>text</i>
-              The arguments, if any, of each successive RCPT com-
-              mand  within  this mail delivery transaction. There
-              may be zero or more of these records.  This  record
-              is  present  only if the client sent a recognizable
-              RCPT command.
+              The  arguments  of an RCPT command within this mail
+              delivery transaction. There is one record for  each
+              RCPT  command, and they are in the order as sent by
+              the client.
 
        <b>Received:</b> <i>text</i>
               A message header for compatibility with  mail  pro-
