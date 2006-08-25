@@ -119,6 +119,10 @@ Examples of commands are CONNECT, HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
 DATA, ., RSET, NOOP, and QUIT. Separate command names by
 white space or commas, and use quotes to protect white space
 from the shell. Command names are case-insensitive.
+.IP "\fB-R \fIroot-directory\fR"
+Change the process root directory to the specified location.
+This option requires super-user privileges. See also the
+\fB-u\fR option.
 .IP "\fB-s \fIcommand,command,...\fR"
 Log the named commands to syslogd.
 .sp
@@ -137,6 +141,11 @@ character).
 .IP "\fB-t \fItimeout\fR (default: 100)"
 Limit the time for receiving a command or sending a response.
 The time limit is specified in seconds.
+.IP "\fB-u \fIusername\fR"
+Switch to the specified user privileges after opening the
+network socket and optionally changing the process root
+directory. This option is required when the process runs
+with super-user privileges. See also the \fB-R\fR option.
 .IP \fB-v\fR
 Show the SMTP conversations.
 .IP "\fB-w \fIdelay\fR"

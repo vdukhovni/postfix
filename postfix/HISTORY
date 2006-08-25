@@ -12680,14 +12680,14 @@ Apologies for any names omitted.
 
 20060823
 
-	Bugfix (introduced Postfix 2.2): vstream_fdclose() did not
-	flush unwritten output before disconnecting a stream from
-	its file descriptor.  File: util/vstream.c.
-
 	Bugfix (introduced Postfix 2.2): segfault when vstream_fclose()
 	attempted to flush unwritten output, after vstream_fdclose()
-	disconnected the stream from its file descriptor.  File:
-	util/vstream.c.
+	had already disconnected the stream from its file descriptor.
+	File: util/vstream.c.
+
+	Bugfix (introduced Postfix 2.2): vstream_fdclose() did not
+	flush unwritten output before disconnecting a stream from
+	its file descriptor(s).  File: util/vstream.c.
 
 	Feature: smtp-sink can capture mail to file, either as one
 	individual message per file, or as multiple messages per
@@ -12707,6 +12707,17 @@ Apologies for any names omitted.
 
 	Portability: inside functions, GCC 4 refuses forward
 	declarations of static functions.  File: smtpstone/smtp-sink.c.
+
+20060825
+
+	Bugfix (introduced Postfix 2.3): with headers-only mail, a
+	Milter "header insert" action corrupted the queue file. The
+	cleanup server executed some end-of-body action before the
+	end-of-header actions. File: cleanup/cleanup_message.c.
+
+	Robustness: mail delivery agents now detect loops in queue
+	files. Files with too many backward jumps are saved to the
+	"corrupt" directory.  File: global/record.c.
 
 Wish list:
 

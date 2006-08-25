@@ -113,6 +113,10 @@
 /*	DATA, ., RSET, NOOP, and QUIT. Separate command names by
 /*	white space or commas, and use quotes to protect white space
 /*	from the shell. Command names are case-insensitive.
+/* .IP "\fB-R \fIroot-directory\fR"
+/*	Change the process root directory to the specified location.
+/*	This option requires super-user privileges. See also the
+/*	\fB-u\fR option.
 /* .IP "\fB-s \fIcommand,command,...\fR"
 /*	Log the named commands to syslogd.
 /* .sp
@@ -131,6 +135,11 @@
 /* .IP "\fB-t \fItimeout\fR (default: 100)"
 /*	Limit the time for receiving a command or sending a response.
 /*	The time limit is specified in seconds.
+/* .IP "\fB-u \fIusername\fR"
+/*	Switch to the specified user privileges after opening the
+/*	network socket and optionally changing the process root
+/*	directory. This option is required when the process runs
+/*	with super-user privileges. See also the \fB-R\fR option.
 /* .IP \fB-v\fR
 /*	Show the SMTP conversations.
 /* .IP "\fB-w \fIdelay\fR"
@@ -1193,7 +1202,7 @@ static void connect_event(int unused_event, char *unused_context)
 
 static void usage(char *myname)
 {
-    msg_fatal("usage: %s [-468acCeEFLpPv] [-f commands] [-h hostname] [-m max_concurrency] [-n quit_count] [-q commands] [-r commands] [-s commands] [-w delay] [-d dump-template] [-D dump-template] [-S start-string] [host]:port backlog", myname);
+    msg_fatal("usage: %s [-468acCeEFLpPv] [-f commands] [-h hostname] [-m max_concurrency] [-n quit_count] [-q commands] [-r commands] [-s commands] [-w delay] [-d dump-template] [-D dump-template] [-R root-dir] [-S start-string] [-u user_privs] [host]:port backlog", myname);
 }
 
 int     main(int argc, char **argv)
@@ -1202,6 +1211,8 @@ int     main(int argc, char **argv)
     int     ch;
     const char *protocols = INET_PROTO_NAME_ALL;
     INET_PROTO_INFO *proto_info;
+    const char *root_dir = 0;
+    const char *user_privs = 0;
 
     /*
      * Fix 20051207.
@@ -1216,7 +1227,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "468acCeEf:Fh:Ln:m:pPq:r:s:S:t:vw:d:D:")) > 0) {
+    while ((ch = GETOPT(argc, argv, "468acCd:D:eEf:Fh:Ln:m:pPq:r:R:s:S:t:u:vw:")) > 0) {
 	switch (ch) {
 	case '4':
 	    protocols = INET_PROTO_NAME_IPV4;
@@ -1285,6 +1296,9 @@ int     main(int argc, char **argv)
 	    set_cmds_flags(optarg, FLAG_SOFT_ERR);
 	    disable_pipelining = 1;
 	    break;
+	case 'R':
+	    root_dir = optarg;
+	    break;
 	case 's':
 	    openlog(basename(argv[0]), LOG_PID, LOG_MAIL);
 	    set_cmds_flags(optarg, FLAG_SYSLOG);
@@ -1296,6 +1310,9 @@ int     main(int argc, char **argv)
 	case 't':
 	    if ((var_tmout = atoi(optarg)) <= 0)
 		msg_fatal("bad timeout: %s", optarg);
+	    break;
+	case 'u':
+	    user_privs = optarg;
 	    break;
 	case 'v':
 	    msg_verbose++;
@@ -1314,6 +1331,8 @@ int     main(int argc, char **argv)
 	usage(argv[0]);
     if (single_template && shared_template)
 	msg_fatal("use only one of -d or -D, but not both");
+    if (geteuid() == 0 && user_privs == 0)
+	msg_fatal("-u option is required if running as root");
 
     /*
      * Initialize.
@@ -1331,6 +1350,8 @@ int     main(int argc, char **argv)
 	    argv[optind] += 5;
 	sock = inet_listen(argv[optind], backlog, BLOCKING);
     }
+    if (user_privs)
+	chroot_uid(root_dir, user_privs);
 
     if (single_template)
 	mysrand((int) time((time_t *) 0));

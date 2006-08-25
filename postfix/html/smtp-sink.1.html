@@ -137,6 +137,11 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
               and use quotes to  protect  white  space  from  the
               shell. Command names are case-insensitive.
 
+       <b>-R</b> <i>root-directory</i>
+              Change  the process root directory to the specified
+              location.  This option requires  super-user  privi-
+              leges. See also the <b>-u</b> option.
+
        <b>-s</b> <i>command,command,...</i>
               Log the named commands to syslogd.
 
@@ -159,6 +164,13 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
        <b>-t</b> <i>timeout</i> (default: 100)
               Limit the time for receiving a command or sending a
               response.   The time limit is specified in seconds.
+
+       <b>-u</b> <i>username</i>
+              Switch to the specified user privileges after open-
+              ing  the network socket and optionally changing the
+              process root directory.  This  option  is  required
+              when  the  process runs with super-user privileges.
+              See also the <b>-R</b> option.
 
        <b>-v</b>     Show the SMTP conversations.
 
