@@ -12719,7 +12719,36 @@ Apologies for any names omitted.
 	files. Files with too many backward jumps are saved to the
 	"corrupt" directory.  File: global/record.c.
 
+20060831
+
+	Bugfix (introduced with initial implementation): missing
+	"dict_errno = 0" caused mis-leading error messages after
+	non-error lookup failure.  Victor Duchovni.  File:
+	util/dict_cidr.c.
+
+	Robustness: the default TLS cipher lists were changed from
+	!foo:ALL into ALL:!foo. Victor Duchovni.  Files:
+	global/mail_params.h and documentation.
+
+20060902
+
+	Bugfix (introduced Postfix 2.3): the LMTP client stripped
+	"inet": from the next-hop destination, but still used the
+	complete next-hop from the delivery request. File:
+	smtp/smtp_connect.c.
+
+20060903
+
+	Cleanup: record loop detection.  File: global/record.c.
+
 Wish list:
+
+	Either document or remove the internal_mail_filter_classes
+	feature (it's disabled by default).
+
+	Build a command-line test driver for the cleanup engine.
+	This allows us to generate arbitrary record sequences without
+	having to hijack mail from the queue.
 
 	Make null local-part handling configurable: either expand
 	into mailer-daemon (current bahavior) or disallow (strict

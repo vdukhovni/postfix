@@ -143,6 +143,12 @@
 #define SMFIR_REPLYCODE		'y'	/* reply code etc */
 #define SMFIR_QUARANTINE	'q'	/* quarantine */
 
+ /* Introduced with Sendmail 8.14. */
+#define SMFIR_ADDRCPT_PAR	'2'	/* add recipient (incl. ESMTP args) */
+#define SMFIR_CHGFROM		'e'	/* change envelope sender (from) */
+#define SMFIR_SETSYMLIST	'l'	/* set list of symbols (macros) */
+#define SMFIR_SKIP		's'	/* skip */
+
  /*
   * Commands that the filter does not want to receive, and replies that the
   * filter will not send.
@@ -154,9 +160,22 @@
 #define SMFIP_NOBODY		(1L<<4)	/* MTA should not send body */
 #define SMFIP_NOHDRS		(1L<<5)	/* MTA should not send headers */
 #define SMFIP_NOEOH		(1L<<6)	/* MTA should not send EOH */
-#define SMFIP_NOHREPL		(1L<<7)	/* filter will not reply per header */
+#define SMFIP_NR_HDR		(1L<<7)	/* filter will not reply per header */
+#define SMFIP_NOHREPL		SMFIP_NR_HDR
 #define SMFIP_NOUNKNOWN 	(1L<<8)	/* MTA should not send unknown cmd */
 #define SMFIP_NODATA		(1L<<9)	/* MTA should not send DATA */
+
+ /* Introduced with Sendmail 8.14. */
+#define SMFIP_SKIP	0x00000400L	/* MTA understands SMFIS_SKIP */
+#define SMFIP_RCPT_REJ	0x00000800L	/* MTA should send rejected RCPTs */
+#define SMFIP_NR_CONN	0x00001000L	/* No reply for connect */
+#define SMFIP_NR_HELO	0x00002000L	/* No reply for HELO */
+#define SMFIP_NR_MAIL	0x00004000L	/* No reply for MAIL */
+#define SMFIP_NR_RCPT	0x00008000L	/* No reply for RCPT */
+#define SMFIP_NR_DATA	0x00010000L	/* No reply for DATA */
+#define SMFIP_NR_UNKN	0x00020000L	/* No reply for UNKN */
+#define SMFIP_NR_EOH	0x00040000L	/* No reply for eoh */
+#define SMFIP_NR_BODY	0x00080000L	/* No reply for body chunk */
 
  /*
   * Modifications that the filter may request at the end of the message body.
