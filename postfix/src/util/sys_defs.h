@@ -513,6 +513,7 @@ extern int opterr;
 # define HAS_IPV6
 #endif
 #define BROKEN_AI_PASSIVE_NULL_HOST
+#define BROKEN_AI_NULL_SERVICE
 #endif
 
 #ifdef AIX4

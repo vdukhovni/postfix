@@ -343,9 +343,6 @@
 /* .IP "\fBsyslog_name (postfix)\fR"
 /*	The mail system name that is prepended to the process name in syslog
 /*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
-/* .IP "\fBtrigger_timeout (10s)\fR"
-/*	The time limit for sending a trigger to a Postfix daemon (for
-/*	example, the \fBpickup\fR(8) or \fBqmgr\fR(8) daemon).
 /* FILES
 /*	/var/spool/postfix, mail queue
 /*	/etc/postfix, configuration files

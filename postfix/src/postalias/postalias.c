@@ -15,12 +15,12 @@
 /*	and are expected to be suitable for the use as NIS alias maps.
 /*
 /*	If the result files do not exist they will be created with the
-/*	same group and other read permissions as the source file.
+/*	same group and other read permissions as their source file.
 /*
 /*	While a database update is in progress, signal delivery is
 /*	postponed, and an exclusive, advisory, lock is placed on the
 /*	entire database, in order to avoid surprises in spectator
-/*	programs.
+/*	processes.
 /*
 /*	The format of Postfix alias input files is described in
 /*	\fBaliases\fR(5).

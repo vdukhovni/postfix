@@ -19,7 +19,7 @@
 #	Postfix queue message distribution in time and by sender domain
 #	or recipient domain. The program needs read access to the queue
 #	directories and queue files, so it must run as the superuser or
-#	the \fBmail_owner\fR specified in \fImain.cf\fR (typically
+#	the \fBmail_owner\fR specified in \fBmain.cf\fR (typically
 #	\fBpostfix\fR).
 #
 #	Options:
@@ -73,8 +73,8 @@
 #	the incoming and active queues. To display a different set of
 #	queues, just list their directory names on the command line.
 #	Absolute paths are used as is, other paths are taken relative
-#	to the \fImain.cf\fR \fBqueue_directory\fR parameter setting.
-#	While \fImain.cf\fR supports the use of \fI$variable\fR expansion
+#	to the \fBmain.cf\fR \fBqueue_directory\fR parameter setting.
+#	While \fBmain.cf\fR supports the use of \fI$variable\fR expansion
 #	in the definition of the \fBqueue_directory\fR parameter, the
 #	\fBqshape\fR program does not. If you must use variable expansions
 #	in the \fBqueue_directory\fR setting, you must specify an explicit

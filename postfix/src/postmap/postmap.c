@@ -17,12 +17,12 @@
 /*	\fBmakemap \fIfile_type\fR \fIfile_name\fR < \fIfile_name\fR
 /*
 /*	If the result files do not exist they will be created with the
-/*	same group and other read permissions as the source file.
+/*	same group and other read permissions as their source file.
 /*
 /*	While the table update is in progress, signal delivery is
 /*	postponed, and an exclusive, advisory, lock is placed on the
 /*	entire table, in order to avoid surprises in spectator
-/*	programs.
+/*	processes.
 /* INPUT FILE FORMAT
 /* .ad
 /* .fi

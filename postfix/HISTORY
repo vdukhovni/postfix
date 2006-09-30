@@ -12741,14 +12741,33 @@ Apologies for any names omitted.
 
 	Cleanup: record loop detection.  File: global/record.c.
 
+20060929
+
+	Workaround: AIX 5.[1-3] getaddrinfo() creates socket address
+	structures with a non-zero port value. This breaks the
+	smtp_bind_address etc. features, and breaks inet_interfaces
+	settings with only one IP address.  Problem reported by
+	Hamish Marson.  Files: util/sock_addr.[hc], util/myaddrinfo.c.
+
+	Bugfix (introduced with the Postfix TLS patch): memory leak
+	in verify_extract_peer(). The OpenSSL documentation provides
+	no information on how subjectAltNames are managed.  Sam
+	Rushing, ironport.  File: tls/tls_client.c.
+
+	Bugfix (introduced with Postfix 2.2): smtp_generic_maps 
+	turned on MIME conversion. File: smtp/smtp_proto.c.
+
 Wish list:
+
+	Update FILTER_README with mailing list suggestions to tag
+	with a badness indicator and then filter down-stream.
 
 	Either document or remove the internal_mail_filter_classes
 	feature (it's disabled by default).
 
 	Build a command-line test driver for the cleanup engine.
-	This allows us to generate arbitrary record sequences without
-	having to hijack mail from the queue.
+	This allows us to test it with arbitrary record sequences
+	without having to use a live mail queue.
 
 	Make null local-part handling configurable: either expand
 	into mailer-daemon (current bahavior) or disallow (strict

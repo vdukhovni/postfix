@@ -22,13 +22,13 @@ POSTMAP(1)                                                          POSTMAP(1)
            <b>makemap</b> <i>file</i><b>_</b><i>type file</i><b>_</b><i>name</i> &lt; <i>file</i><b>_</b><i>name</i>
 
        If the result files do not exist they will be created with
-       the  same  group  and other read permissions as the source
+       the  same group and other read permissions as their source
        file.
 
        While the table update is in progress, signal delivery  is
        postponed,  and  an exclusive, advisory, lock is placed on
        the entire table, in order to avoid surprises in spectator
-       programs.
+       processes.
 
 <b>INPUT FILE FORMAT</b>
        The format of a lookup table input file is as follows:

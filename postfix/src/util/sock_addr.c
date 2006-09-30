@@ -28,6 +28,8 @@
 /*	struct sockaddr *SOCK_ADDR_PTR(ptr)
 /*	unsigned char SOCK_ADDR_FAMILY(ptr)
 /*	unsigned char SOCK_ADDR_LEN(ptr)
+/*	unsigned short SOCK_ADDR_PORT(ptr)
+/*	unsigned short *SOCK_ADDR_PORTP(ptr)
 /*
 /*	struct sockaddr_in *SOCK_ADDR_IN_PTR(ptr)
 /*	unsigned char SOCK_ADDR_IN_FAMILY(ptr)
@@ -66,7 +68,9 @@
 /*	address family and length of the real structure that hides
 /*	inside a generic sockaddr structure. On systems where struct
 /*	sockaddr has no sa_len member, SOCK_ADDR_LEN() cannot be
-/*	used as lvalue.
+/*	used as lvalue. SOCK_ADDR_PORT() returns the IPv4 or IPv6
+/*	port number, in network byte order; it must not be used as
+/*	lvalue. SOCK_ADDR_PORTP() returns a pointer to the same.
 /*
 /*	The macros SOCK_ADDR_IN{,6}_{PTR,FAMILY,PORT,ADDR}() cast
 /*	a generic pointer to a specific socket address structure

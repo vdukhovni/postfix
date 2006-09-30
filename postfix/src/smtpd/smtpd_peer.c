@@ -143,6 +143,13 @@ void    smtpd_peer_init(SMTPD_STATE *state)
      * Milter applications as {if_name} and {if_addr}, then we also must be
      * able to provide this via the XCLIENT command for Milter testing.
      * 
+     * XXX If we make local or remote port information available to policy
+     * servers or Milter applications, then we must also make this testable
+     * with the XCLIENT command, otherwise there will be confusion.
+     * 
+     * XXX If we make local or remote port information available via logging,
+     * then we must also support these attributes with the XFORWARD command.
+     * 
      * XXX If support were to be added for Milter applications in down-stream
      * MTAs, then consistency demands that we propagate a lot of Sendmail
      * macro information via the XFORWARD command. Otherwise we could end up

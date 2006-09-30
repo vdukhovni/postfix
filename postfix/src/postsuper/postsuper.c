@@ -46,8 +46,8 @@
 /* .br
 /*	\' | tr -d '*!' | postsuper -d -
 /* .sp
-/*	Specify \fB-d ALL\fR to remove all messages; for example, specify
-/*	\fB-d ALL deferred\fR to delete mail in the \fBdeferred\fR queue.
+/*	Specify "\fB-d ALL\fR" to remove all messages; for example, specify
+/*	"\fB-d ALL deferred\fR" to delete all mail in the \fBdeferred\fR queue.
 /*	As a safety measure, the word \fBALL\fR must be specified in upper
 /*	case.
 /* .sp
@@ -81,8 +81,8 @@
 /*	If a \fIqueue_id\fR of \fB-\fR is specified, the program reads
 /*	queue IDs from standard input.
 /* .sp
-/*	Specify \fB-h ALL\fR to hold all messages; for example, specify
-/*	\fB-h ALL deferred\fR to hold mail in the \fBdeferred\fR queue.
+/*	Specify "\fB-h ALL\fR" to hold all messages; for example, specify
+/*	"\fB-h ALL deferred\fR" to hold all mail in the \fBdeferred\fR queue.
 /*	As a safety measure, the word \fBALL\fR must be specified in upper
 /*	case.
 /* .sp
@@ -98,11 +98,11 @@
 /*	If a \fIqueue_id\fR of \fB-\fR is specified, the program reads
 /*	queue IDs from standard input.
 /* .sp
-/*	Note: use "\fBpostsuper -r\fR" to release mail that was kept on
+/*	Note: specify "\fBpostsuper -r\fR" to release mail that was kept on
 /*	hold for a significant fraction of \fB$maximal_queue_lifetime\fR
 /*	or \fB$bounce_queue_lifetime\fR, or longer.
 /* .sp
-/*	Specify \fB-H ALL\fR to release all mail that is "on hold".
+/*	Specify "\fB-H ALL\fR" to release all mail that is "on hold".
 /*	As a safety measure, the word \fBALL\fR must be specified in upper
 /*	case.
 /* .IP \fB-p\fR
@@ -118,7 +118,7 @@
 /*	Alternatively, if a \fIqueue_id\fR of \fB-\fR is specified,
 /*	the program reads queue IDs from standard input.
 /* .sp
-/*	Specify \fB-r ALL\fR to requeue all messages. As a safety
+/*	Specify "\fB-r ALL\fR" to requeue all messages. As a safety
 /*	measure, the word \fBALL\fR must be specified in upper case.
 /* .sp
 /*	A requeued message is moved to the \fBmaildrop\fR queue,
