@@ -12757,6 +12757,16 @@ Apologies for any names omitted.
 	Bugfix (introduced with Postfix 2.2): smtp_generic_maps 
 	turned on MIME conversion. File: smtp/smtp_proto.c.
 
+	Workaround: don't send SIZE information in the MAIL FROM
+	command when message content will be subject to 8bit ->
+	quoted-printable conversion.  File: smtp/smtp_proto.c.
+
+20061002
+
+	Compatibility: Sendmail now invokes the Milter connect
+	action with the verified hostname instead of the name
+	obtained with PTR lookup. File: smtpd/smtpd.c.
+
 Wish list:
 
 	Update FILTER_README with mailing list suggestions to tag

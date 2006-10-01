@@ -3901,7 +3901,7 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    if (smtpd_milters != 0 && SMTPD_STAND_ALONE(state) == 0) {
 		milter_macro_callback(smtpd_milters, smtpd_milter_eval,
 				      (void *) state);
-		if ((err = milter_conn_event(smtpd_milters, state->reverse_name,
+		if ((err = milter_conn_event(smtpd_milters, state->name,
 					     state->addr, XXX_NO_PORT,
 					     state->addr_family)) != 0)
 		    err = check_milter_reply(state, err);
