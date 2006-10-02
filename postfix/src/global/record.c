@@ -320,10 +320,13 @@ int     rec_goto(VSTREAM *stream, const char *buf)
 	msg_warn("%s: malformed pointer record value: %s",
 		 VSTREAM_PATH(stream), buf);
 	return (REC_TYPE_ERROR);
-    } else if (offset < saved_offset && ++reverse_count > REVERSE_JUMP_LIMIT) {
+    } else if (offset == 0) {
+	/* Dummy record. */
+	return (0);
+    } else if (offset <= saved_offset && ++reverse_count > REVERSE_JUMP_LIMIT) {
 	msg_warn("%s: too many reverse jump records", VSTREAM_PATH(stream));
 	return (REC_TYPE_ERROR);
-    } else if (offset > 0 && vstream_fseek(stream, offset, SEEK_SET) < 0) {
+    } else if (vstream_fseek(stream, offset, SEEK_SET) < 0) {
 	msg_warn("%s: seek error after pointer record: %m",
 		 VSTREAM_PATH(stream));
 	return (REC_TYPE_ERROR);

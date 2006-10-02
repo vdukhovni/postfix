@@ -282,6 +282,7 @@ static void rcpt_response(SINK_STATE *state)
 
 static void data_response(SINK_STATE *state)
 {
+    /* Not: ST_ANY. */
     state->data_state = ST_CR_LF;
     smtp_printf(state->stream, "354 End data with <CR><LF>.<CR><LF>");
     smtp_flush(state->stream);

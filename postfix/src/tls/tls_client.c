@@ -565,7 +565,7 @@ static void verify_extract_peer(const char *nexthop, const char *hname,
 			break;
 		}
 	    }
-	    sk_GENERAL_NAME_free(gens);
+	    sk_GENERAL_NAME_pop_free(gens, GENERAL_NAME_free);
 	}
     }
     if (dNSName_found) {
