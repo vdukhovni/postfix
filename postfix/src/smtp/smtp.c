@@ -149,9 +149,16 @@
 /*	".<CR><LF>" in order to work around the PIX firewall
 /*	"<CR><LF>.<CR><LF>" bug.
 /* .IP "\fBsmtp_pix_workaround_threshold_time (500s)\fR"
-/*	How long a message must be queued before the PIX firewall
-/*	"<CR><LF>.<CR><LF>" bug workaround is turned
-/*	on for delivery through firewalls with "smtp fixup" mode turned on.
+/*	How long a message must be queued before the Postfix SMTP client
+/*	turns on the PIX firewall "<CR><LF>.<CR><LF>"
+/*	bug workaround for delivery through firewalls with "smtp fixup"
+/*	mode turned on.
+/* .IP "\fBsmtp_pix_workarounds (disable_esmtp, delay_dotcrlf)\fR"
+/*	A list that specifies zero or more workarounds for CISCO PIX
+/*	firewall bugs.
+/* .IP "\fBsmtp_pix_workaround_maps (empty)\fR"
+/*	Lookup tables, indexed by the remote SMTP server address, with
+/*	per-destination workarounds for CISCO PIX firewall bugs.
 /* .IP "\fBsmtp_quote_rfc821_envelope (yes)\fR"
 /*	Quote addresses in SMTP MAIL FROM and RCPT TO commands as required
 /*	by RFC 821.
@@ -699,6 +706,8 @@ bool    var_smtp_sender_auth;
 char   *var_lmtp_tcp_port;
 int     var_scache_proto_tmout;
 bool    var_smtp_cname_overr;
+char   *var_smtp_pix_bug_words;
+char   *var_smtp_pix_bug_maps;
 
  /*
   * Global variables.
@@ -709,6 +718,7 @@ SCACHE *smtp_scache;
 MAPS   *smtp_ehlo_dis_maps;
 MAPS   *smtp_generic_maps;
 int     smtp_ext_prop_mask;
+MAPS   *smtp_pix_bug_maps;
 
 #ifdef USE_TLS
 
@@ -901,9 +911,17 @@ static void pre_init(char *unused_name, char **unused_argv)
      * EHLO keyword filter.
      */
     if (*var_smtp_ehlo_dis_maps)
-	smtp_ehlo_dis_maps = maps_create(VAR_SMTPD_EHLO_DIS_MAPS,
+	smtp_ehlo_dis_maps = maps_create(VAR_SMTP_EHLO_DIS_MAPS,
 					 var_smtp_ehlo_dis_maps,
 					 DICT_FLAG_LOCK);
+
+    /*
+     * PIX bug workarounds.
+     */
+    if (*var_smtp_pix_bug_maps)
+	smtp_pix_bug_maps = maps_create(VAR_SMTP_PIX_BUG_MAPS,
+					var_smtp_pix_bug_maps,
+					DICT_FLAG_LOCK);
 
     /*
      * Generic maps.

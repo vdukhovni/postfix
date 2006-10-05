@@ -3956,11 +3956,10 @@ smtp_always_send_ehlo parameter.  </p>
 
 %PARAM smtp_pix_workaround_threshold_time 500s
 
-<p>
-How long a message must be queued before the PIX firewall
-"&lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;" bug workaround is turned
-on for delivery through firewalls with "smtp fixup" mode turned on.
-</p>
+<p> How long a message must be queued before the Postfix SMTP client
+turns on the PIX firewall "&lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;"
+bug workaround for delivery through firewalls with "smtp fixup"
+mode turned on.  </p>
 
 <p>
 By default, the workaround is turned off for mail that is queued
@@ -7990,13 +7989,13 @@ for details of how domain names are appended to incomplete addresses.
 
 <dl>
 
-<dt> <b> permit_inet_interfaces </b></dt>
+<dt><b>permit_inet_interfaces</b></dt>
 
 <dd> Append the domain name in $myorigin or $mydomain when the
 client IP address matches $inet_interfaces. This is enabled by
 default. </dd>
 
-<dt> <b> permit_mynetworks </b></dt>
+<dt><b>permit_mynetworks</b></dt>
 
 <dd> Append the domain name in $myorigin or $mydomain when the
 client IP address matches any network or network address listed in
@@ -10422,10 +10421,10 @@ by whitespace or comma.  </p>
 
 <dl>
 
-<dt> <b> bounce </b> </dt> <dd> Inspect the content of delivery
+<dt><b>bounce</b></dt> <dd> Inspect the content of delivery
 status notifications. </dd>
 
-<dt> <b> notify </b> </dt> <dd> Inspect the content of postmaster
+<dt><b>notify</b></dt> <dd> Inspect the content of postmaster
 notifications by the smtp(8) and smtpd(8) processes. </dd>
 
 </dl>
@@ -10460,3 +10459,50 @@ with other MTAs. </p>
 </blockquote>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM smtp_pix_workarounds disable_esmtp, delay_dotcrlf
+
+<p> A list that specifies zero or more workarounds for CISCO PIX
+firewall bugs. These workarounds are implemented by the Postfix
+SMTP client. Workaround names are separated by comma or space, and
+are case insensitive.  This parameter setting can be overruled with
+per-destination smtp_pix_workaround_maps settings. </p>
+
+<dl>
+
+<dt><b>delay_dotcrlf</b><dd> Insert a delay before sending
+".&lt;CR&gt;&lt;LF&gt;" after the end of the message content.  The
+delay is subject to the smtp_pix_workaround_delay_time and
+smtp_pix_workaround_threshold_time parameter settings. </dd>
+
+<dt><b>disable_esmtp</b><dd> Disable all extended SMTP commands:
+send HELO instead of EHLO. </dd>
+
+</dl>
+
+<p> This feature is available in Postfix 2.4 and later. The default
+settings are backwards compatible with earlier Postfix versions.
+</p>
+
+%PARAM smtp_pix_workaround_maps
+
+<p> Lookup tables, indexed by the remote SMTP server address, with
+per-destination workarounds for CISCO PIX firewall bugs.  The table
+is not indexed by hostname for consistency with
+smtp_discard_ehlo_keyword_address_maps. </p>
+
+<p> This feature is available in Postfix 2.4 and later. </p>
+
+%PARAM lmtp_pix_workarounds
+
+<p> The LMTP-specific version of the smtp_pix_workaround
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.4 and later. </p>
+
+%PARAM lmtp_pix_workaround_maps
+
+<p> The LMTP-specific version of the smtp_pix_workaround_maps
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.4 and later. </p>

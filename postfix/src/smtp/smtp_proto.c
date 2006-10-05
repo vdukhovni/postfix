@@ -120,6 +120,7 @@
 #include <iostuff.h>
 #include <split_at.h>
 #include <name_code.h>
+#include <name_mask.h>
 
 /* Global library. */
 
@@ -262,6 +263,14 @@ int     smtp_helo(SMTP_STATE *state)
     SOCKOPT_SIZE optlen;
     const char *ehlo_words;
     int     discard_mask;
+    static NAME_MASK pix_bug_table[] = {
+	PIX_BUG_DISABLE_ESMTP, SMTP_FEATURE_PIX_NO_ESMTP,
+	PIX_BUG_DELAY_DOTCRLF, SMTP_FEATURE_PIX_DELAY_DOTCRLF,
+	0,
+    };
+    const char *pix_bug_words;
+    const char *pix_bug_source;
+    int     pix_bug_mask;
 
 #ifdef USE_TLS
     int     saved_features = session->features;
@@ -306,8 +315,27 @@ int     smtp_helo(SMTP_STATE *state)
 	 * it does not span a packet boundary. This hurts performance so it
 	 * is not on by default.
 	 */
-	if (resp->str[strspn(resp->str, "20 *\t\n")] == 0)
-	    session->features |= SMTP_FEATURE_MAYBEPIX;
+	if (resp->str[strspn(resp->str, "20 *\t\n")] == 0) {
+	    if (smtp_pix_bug_maps != 0
+		&& (pix_bug_words =
+		    maps_find(smtp_pix_bug_maps,
+			      state->session->addr, 0)) != 0) {
+		pix_bug_source = VAR_SMTP_PIX_BUG_MAPS;
+	    } else {
+		pix_bug_words = var_smtp_pix_bug_words;
+		pix_bug_source = VAR_SMTP_PIX_BUG_WORDS;
+	    }
+	    if (*pix_bug_words) {
+		pix_bug_mask = name_mask_opt(pix_bug_source, pix_bug_table,
+					 pix_bug_words, NAME_MASK_ANY_CASE);
+		msg_info("%s: enabling PIX workarounds: %s for %s",
+			 request->queue_id,
+			 str_name_mask("pix workaround bitmask",
+				       pix_bug_table, pix_bug_mask),
+			 session->namaddrport);
+		session->features |= pix_bug_mask;
+	    }
+	}
 
 	/*
 	 * See if we are talking to ourself. This should not be possible with
@@ -327,10 +355,10 @@ int     smtp_helo(SMTP_STATE *state)
 	}
 	if ((state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) == 0) {
 	    if (var_smtp_always_ehlo
-		&& (session->features & SMTP_FEATURE_MAYBEPIX) == 0)
+		&& (session->features & SMTP_FEATURE_PIX_NO_ESMTP) == 0)
 		session->features |= SMTP_FEATURE_ESMTP;
 	    if (var_smtp_never_ehlo
-		|| (session->features & SMTP_FEATURE_MAYBEPIX) != 0)
+		|| (session->features & SMTP_FEATURE_PIX_NO_ESMTP) != 0)
 		session->features &= ~SMTP_FEATURE_ESMTP;
 	} else {
 	    session->features |= SMTP_FEATURE_ESMTP;
@@ -1692,11 +1720,9 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		}
 	    } else if (prev_type == REC_TYPE_CONT)	/* missing newline */
 		smtp_fputs("", 0, session->stream);
-	    if ((session->features & SMTP_FEATURE_MAYBEPIX) != 0
+	    if ((session->features & SMTP_FEATURE_PIX_DELAY_DOTCRLF) != 0
 		&& request->msg_stats.incoming_arrival.tv_sec
 		<= vstream_ftime(session->stream) - var_smtp_pix_thresh) {
-		msg_info("%s: enabling PIX <CRLF>.<CRLF> workaround for %s",
-			 request->queue_id, session->namaddrport);
 		smtp_flush(session->stream);	/* hurts performance */
 		sleep(var_smtp_pix_delay);	/* not to mention this */
 	    }

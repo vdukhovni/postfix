@@ -12767,6 +12767,20 @@ Apologies for any names omitted.
 	action with the verified hostname instead of the name
 	obtained with PTR lookup. File: smtpd/smtpd.c.
 
+20061004
+
+	Cleanup: force space between mailq queueid+status and file
+	size items. File: showq/showq.c.
+
+20061005
+
+	Cleanup: make CISCO PIX bug workarounds configurable.  This
+	introduces new parameters: smtp_pix_workarounds (default:
+	disable_esmtp, delay_dotcrlf) and smtp_pix_workaround_maps
+	(workarounds indexed by server IP address).  The default
+	settings are backwards compatible. File: smtp/smtp.c,
+	smtp/smtp_proto.c.
+
 Wish list:
 
 	Update FILTER_README with mailing list suggestions to tag

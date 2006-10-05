@@ -177,10 +177,19 @@ SMTP(8)                                                                SMTP(8)
               firewall "&lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;" bug.
 
        <b><a href="postconf.5.html#smtp_pix_workaround_threshold_time">smtp_pix_workaround_threshold_time</a> (500s)</b>
-              How  long  a  message must be queued before the PIX
-              firewall  "&lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;"  bug  workaround   is
-              turned on for delivery through firewalls with "smtp
-              fixup" mode turned on.
+              How  long a message must be queued before the Post-
+              fix  SMTP  client  turns  on   the   PIX   firewall
+              "&lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;"  bug  workaround  for  delivery
+              through firewalls with "smtp fixup" mode turned on.
+
+       <b><a href="postconf.5.html#smtp_pix_workarounds">smtp_pix_workarounds</a> (disable_esmtp, delay_dotcrlf)</b>
+              A  list that specifies zero or more workarounds for
+              CISCO PIX firewall bugs.
+
+       <b><a href="postconf.5.html#smtp_pix_workaround_maps">smtp_pix_workaround_maps</a> (empty)</b>
+              Lookup tables, indexed by the  remote  SMTP  server
+              address, with per-destination workarounds for CISCO
+              PIX firewall bugs.
 
        <b><a href="postconf.5.html#smtp_quote_rfc821_envelope">smtp_quote_rfc821_envelope</a> (yes)</b>
               Quote addresses in SMTP MAIL FROM and RCPT TO  com-

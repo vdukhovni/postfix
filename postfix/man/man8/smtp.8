@@ -171,9 +171,16 @@ How long the Postfix SMTP client pauses before sending
 ".<CR><LF>" in order to work around the PIX firewall
 "<CR><LF>.<CR><LF>" bug.
 .IP "\fBsmtp_pix_workaround_threshold_time (500s)\fR"
-How long a message must be queued before the PIX firewall
-"<CR><LF>.<CR><LF>" bug workaround is turned
-on for delivery through firewalls with "smtp fixup" mode turned on.
+How long a message must be queued before the Postfix SMTP client
+turns on the PIX firewall "<CR><LF>.<CR><LF>"
+bug workaround for delivery through firewalls with "smtp fixup"
+mode turned on.
+.IP "\fBsmtp_pix_workarounds (disable_esmtp, delay_dotcrlf)\fR"
+A list that specifies zero or more workarounds for CISCO PIX
+firewall bugs.
+.IP "\fBsmtp_pix_workaround_maps (empty)\fR"
+Lookup tables, indexed by the remote SMTP server address, with
+per-destination workarounds for CISCO PIX firewall bugs.
 .IP "\fBsmtp_quote_rfc821_envelope (yes)\fR"
 Quote addresses in SMTP MAIL FROM and RCPT TO commands as required
 by RFC 821.

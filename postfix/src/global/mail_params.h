@@ -1018,6 +1018,24 @@ extern int var_smtp_pix_thresh;
 #define DEF_LMTP_PIX_DELAY	"10s"
 extern int var_smtp_pix_delay;
 
+ /*
+  * Courageous people may want to turn off PIX bug workarounds.
+  */
+#define	PIX_BUG_DISABLE_ESMTP		"disable_esmtp"
+#define	PIX_BUG_DELAY_DOTCRLF		"delay_dotcrlf"
+#define VAR_SMTP_PIX_BUG_WORDS		"smtp_pix_workarounds"
+#define DEF_SMTP_PIX_BUG_WORDS		PIX_BUG_DISABLE_ESMTP "," \
+					PIX_BUG_DELAY_DOTCRLF
+#define VAR_LMTP_PIX_BUG_WORDS		"lmtp_pix_workarounds"
+#define DEF_LMTP_PIX_BUG_WORDS		DEF_SMTP_PIX_BUG_WORDS
+extern char *var_smtp_pix_bug_words;
+
+#define VAR_SMTP_PIX_BUG_MAPS		"smtp_pix_workaround_maps"
+#define DEF_SMTP_PIX_BUG_MAPS		""
+#define VAR_LMTP_PIX_BUG_MAPS		"lmtp_pix_workaround_maps"
+#define DEF_LMTP_PIX_BUG_MAPS		""
+extern char *var_smtp_pix_bug_maps;
+
 #define VAR_SMTP_DEFER_MXADDR	"smtp_defer_if_no_mx_address_found"
 #define DEF_SMTP_DEFER_MXADDR	0
 #define VAR_LMTP_DEFER_MXADDR	"lmtp_defer_if_no_mx_address_found"

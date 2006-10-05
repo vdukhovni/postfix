@@ -1607,10 +1607,10 @@ What categories of Postfix-generated mail are subject to
 before-queue content inspection by non_smtpd_milters, header_checks
 and body_checks.  Specify zero or more of the following, separated
 by whitespace or comma.
-.IP "\fB bounce \fR"
+.IP "\fBbounce\fR"
 Inspect the content of delivery
 status notifications.
-.IP "\fB notify \fR"
+.IP "\fBnotify\fR"
 Inspect the content of postmaster
 notifications by the \fBsmtp\fR(8) and \fBsmtpd\fR(8) processes.
 .PP
@@ -1864,11 +1864,21 @@ The LMTP-specific version of the smtp_pix_workaround_delay_time
 configuration parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH lmtp_pix_workaround_maps (default: empty)
+The LMTP-specific version of the smtp_pix_workaround_maps
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.4 and later.
 .SH lmtp_pix_workaround_threshold_time (default: 500s)
 The LMTP-specific version of the smtp_pix_workaround_threshold_time
 configuration parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH lmtp_pix_workarounds (default: empty)
+The LMTP-specific version of the smtp_pix_workaround
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.4 and later.
 .SH lmtp_quit_timeout (default: 300s)
 The LMTP client time limit for sending the QUIT command, and for
 receiving the server response.
@@ -2164,11 +2174,11 @@ See the append_at_myorigin and append_dot_mydomain parameters
 for details of how domain names are appended to incomplete addresses.
 .PP
 Specify a list of zero or more of the following:
-.IP "\fB permit_inet_interfaces \fR"
+.IP "\fBpermit_inet_interfaces\fR"
 Append the domain name in $myorigin or $mydomain when the
 client IP address matches $inet_interfaces. This is enabled by
 default.
-.IP "\fB permit_mynetworks \fR"
+.IP "\fBpermit_mynetworks\fR"
 Append the domain name in $myorigin or $mydomain when the
 client IP address matches any network or network address listed in
 $mynetworks. This setting will not prevent remote mail header
@@ -4149,10 +4159,18 @@ How long the Postfix SMTP client pauses before sending
 .PP
 Choosing a too short time makes this workaround ineffective when
 sending large messages over slow network connections.
+.SH smtp_pix_workaround_maps (default: empty)
+Lookup tables, indexed by the remote SMTP server address, with
+per-destination workarounds for CISCO PIX firewall bugs.  The table
+is not indexed by hostname for consistency with
+smtp_discard_ehlo_keyword_address_maps.
+.PP
+This feature is available in Postfix 2.4 and later.
 .SH smtp_pix_workaround_threshold_time (default: 500s)
-How long a message must be queued before the PIX firewall
-"<CR><LF>.<CR><LF>" bug workaround is turned
-on for delivery through firewalls with "smtp fixup" mode turned on.
+How long a message must be queued before the Postfix SMTP client
+turns on the PIX firewall "<CR><LF>.<CR><LF>"
+bug workaround for delivery through firewalls with "smtp fixup"
+mode turned on.
 .PP
 By default, the workaround is turned off for mail that is queued
 for less than 500 seconds. In other words, the workaround is normally
@@ -4161,6 +4179,23 @@ turned off for the first delivery attempt.
 Specify 0 to enable the PIX firewall
 "<CR><LF>.<CR><LF>" bug workaround upon the
 first delivery attempt.
+.SH smtp_pix_workarounds (default: disable_esmtp, delay_dotcrlf)
+A list that specifies zero or more workarounds for CISCO PIX
+firewall bugs. These workarounds are implemented by the Postfix
+SMTP client. Workaround names are separated by comma or space, and
+are case insensitive.  This parameter setting can be overruled with
+per-destination smtp_pix_workaround_maps settings.
+.IP "\fBdelay_dotcrlf\fR
+Insert a delay before sending
+".<CR><LF>" after the end of the message content.  The
+delay is subject to the smtp_pix_workaround_delay_time and
+smtp_pix_workaround_threshold_time parameter settings.
+.IP "\fBdisable_esmtp\fR
+Disable all extended SMTP commands:
+send HELO instead of EHLO.
+.PP
+This feature is available in Postfix 2.4 and later. The default
+settings are backwards compatible with earlier Postfix versions.
 .SH smtp_quit_timeout (default: 300s)
 The SMTP client time limit for sending the QUIT command, and for
 receiving the server response.

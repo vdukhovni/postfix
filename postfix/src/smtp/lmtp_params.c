@@ -44,6 +44,8 @@
 	VAR_PROP_EXTENSION, DEF_PROP_EXTENSION, &var_prop_extension, 0, 0,
 	VAR_LMTP_GENERIC_MAPS, DEF_LMTP_GENERIC_MAPS, &var_smtp_generic_maps, 0, 0,
 	VAR_LMTP_TCP_PORT, DEF_LMTP_TCP_PORT, &var_lmtp_tcp_port, 0, 0,
+	VAR_LMTP_PIX_BUG_WORDS, DEF_LMTP_PIX_BUG_WORDS, &var_smtp_pix_bug_words, 0, 0,
+	VAR_LMTP_PIX_BUG_MAPS, DEF_LMTP_PIX_BUG_MAPS, &var_smtp_pix_bug_maps, 0, 0,
 	0,
     };
     static CONFIG_TIME_TABLE lmtp_time_table[] = {
