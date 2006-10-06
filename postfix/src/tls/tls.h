@@ -188,9 +188,19 @@ typedef struct {
     int     ask_ccert;
 } tls_server_props;
 
+typedef struct {
+    SSL_CTX *ctx;			/* SSL application context */
+    VSTREAM *stream;			/* Client stream */
+    int     log_level;			/* TLS log level */
+    int     timeout;			/* TLS handshake timeout */
+    int     requirecert;		/* Insist on client cert? */
+    char   *serverid;			/* Server instance (salt cache key) */
+    char   *peername;			/* Client name */
+    char   *peeraddr;			/* Client address */
+} tls_server_start_props;
+
 extern SSL_CTX *tls_server_init(const tls_server_props *);
-extern TLScontext_t *tls_server_start(SSL_CTX *, VSTREAM *, int, int,
-				           const char *, const char *, int);
+extern TLScontext_t *tls_server_start(const tls_server_start_props *props);
 
 #define tls_server_stop(ctx , stream, timeout, failure, TLScontext) \
 	tls_session_stop((ctx), (stream), (timeout), (failure), (TLScontext))

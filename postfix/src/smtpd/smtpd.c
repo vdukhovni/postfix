@@ -3533,6 +3533,7 @@ static void chat_reset(SMTPD_STATE *state, int threshold)
 static void smtpd_start_tls(SMTPD_STATE *state)
 {
     int     rate;
+    tls_server_start_props props;
 
     /*
      * Wrapper mode uses a dedicated port and always requires TLS.
@@ -3543,12 +3544,24 @@ static void smtpd_start_tls(SMTPD_STATE *state)
      * perform SMTP transactions when the client does not use the STARTTLS
      * command. For this reason, Postfix does not require client certificate
      * verification unless TLS is required.
+     * 
+     * XXX We append the service name to the session cache ID, so that there
+     * won't be collisions between multiple master.cf entries that use
+     * different roots of trust. This does not eliminate collisions between
+     * multiple inetd.conf entries that use different roots of trust. For a
+     * universal solution we would have to append the local IP address + port
+     * number information.
      */
-    state->tls_context =
-	tls_server_start(smtpd_tls_ctx, state->client,
-			 var_smtpd_starttls_tmout, var_smtpd_tls_loglevel,
-			 state->name, state->addr,
-		       (var_smtpd_tls_req_ccert && state->tls_enforce_tls));
+    memset((char *) &props, 0, sizeof(props));
+    props.ctx = smtpd_tls_ctx;
+    props.stream = state->client;
+    props.log_level = var_smtpd_tls_loglevel;
+    props.timeout = var_smtpd_starttls_tmout;
+    props.requirecert = (var_smtpd_tls_req_ccert && state->tls_enforce_tls);
+    props.serverid = state->service;
+    props.peername = state->name;
+    props.peeraddr = state->addr;
+    state->tls_context = tls_server_start(&props);
 
     /*
      * XXX The client event count/rate control must be consistent in its use

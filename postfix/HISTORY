@@ -12781,6 +12781,14 @@ Apologies for any names omitted.
 	settings are backwards compatible. File: smtp/smtp.c,
 	smtp/smtp_proto.c.
 
+20061006
+
+	Workaround: include the smtpd(8) service name when searching
+	the TLS session cache, to avoid cross-talk between multiple
+	master.cf entries. This does not eliminate cross-talk between
+	multiple (x)inetd.conf entries. Victor Duchovni. Files:
+	smtpd/smtpd.c, tls/tls_server.c.
+
 Wish list:
 
 	Update FILTER_README with mailing list suggestions to tag
