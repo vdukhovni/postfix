@@ -12789,7 +12789,25 @@ Apologies for any names omitted.
 	multiple (x)inetd.conf entries. Victor Duchovni. Files:
 	smtpd/smtpd.c, tls/tls_server.c.
 
+20061015
+
+	Cleanup: convert the Milter {mail_addr} and {rcpt_addr}
+	macro values to external form. File: smtpd/smtpd_milter.c.
+
+	Cleanup: the Milter {mail_addr} and {rcpt_addr} macros are
+	now available with non-SMTP mail. File: cleanup/cleanup_milter.c.
+
+	Cleanup: convert addresses in Milter recipient add/delete
+	requests to internal form.  File: cleanup/cleanup_milter.c.
+
+	Cleanup: with non-SMTP mail, convert addresses in simulated
+	MAIL FROM and RCPT TO events to external form.  File:
+	cleanup/cleanup_milter.c.
+
 Wish list:
+
+	Find out if with Sendmail, a Milter "add recipient" request
+	results in NOTIFY=NONE as Postfix does now.
 
 	Update FILTER_README with mailing list suggestions to tag
 	with a badness indicator and then filter down-stream.
@@ -12835,11 +12853,6 @@ Wish list:
 	using 64 bits for upwards compatibility with LP64 systems?
 
 	Do or don't introduce unknown_reverse_client_reject_code.
-
-	In Milter events, mail_addr/rcpt_addr should be externalized
-	as they are in Sendmail. Likewise, addresses in add/delete
-	requests should be internalized before updating the queue
-	file.
 
 	Check that "UINT32 == unsigned int" choice is ok (i.e. LP64
 	UNIX).

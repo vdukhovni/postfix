@@ -39,7 +39,7 @@
 /*	configuration parameter. Upon delivery, the local delivery agent
 /*	tries each pathname in the list until a file is found.
 /*
-/*	Delivery via ~/.\fB.forward\fR files is done with the privileges
+/*	Delivery via ~/.\fBforward\fR files is done with the privileges
 /*	of the recipient.
 /*	Thus, ~/.\fBforward\fR like files must be readable by the
 /*	recipient, and their parent directory needs to have "execute"

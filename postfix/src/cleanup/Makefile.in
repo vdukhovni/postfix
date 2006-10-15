@@ -577,6 +577,8 @@ cleanup_milter.o: ../../include/msg.h
 cleanup_milter.o: ../../include/mymalloc.h
 cleanup_milter.o: ../../include/nvtable.h
 cleanup_milter.o: ../../include/off_cvt.h
+cleanup_milter.o: ../../include/quote_821_local.h
+cleanup_milter.o: ../../include/quote_flags.h
 cleanup_milter.o: ../../include/rec_attr_map.h
 cleanup_milter.o: ../../include/rec_type.h
 cleanup_milter.o: ../../include/record.h

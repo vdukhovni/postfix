@@ -113,6 +113,8 @@ CLEANUP_STATE *cleanup_state_alloc(VSTREAM *src)
     state->client_addr = 0;
     state->client_af = 0;
     state->client_port = 0;
+    state->milter_ext_from = 0;
+    state->milter_ext_rcpt = 0;
     return (state);
 }
 
@@ -159,5 +161,9 @@ void    cleanup_state_free(CLEANUP_STATE *state)
 	myfree(state->verp_delims);
     if (state->milters)
 	milter_free(state->milters);
+    if (state->milter_ext_from)
+	vstring_free(state->milter_ext_from);
+    if (state->milter_ext_rcpt)
+	vstring_free(state->milter_ext_rcpt);
     myfree((char *) state);
 }
