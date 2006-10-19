@@ -12804,6 +12804,16 @@ Apologies for any names omitted.
 	MAIL FROM and RCPT TO events to external form.  File:
 	cleanup/cleanup_milter.c.
 
+20061017
+
+	Cleanup: removed spurious warning when the cleanup server
+	attempts to bounce mail with soft_bounce=yes. Problem
+	reported by Ralf Hildebrandt. File: cleanup/cleanup_bounce.c.
+
+	Bugfix: null pointer bug when receiving a non-protocol
+	response on a cached SMTP/LMTP connection.  Report by Brian
+	Kantor.  Fix by Victor Duchovni.  File: smtp/smtp_reuse.c.
+
 Wish list:
 
 	Find out if with Sendmail, a Milter "add recipient" request

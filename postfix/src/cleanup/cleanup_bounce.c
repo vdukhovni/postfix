@@ -67,10 +67,15 @@ static void cleanup_bounce_append(CLEANUP_STATE *state, RECIPIENT *rcpt,
 {
     MSG_STATS stats;
 
+    /*
+     * Don't log a spurious warning (for example, when soft_bounce is turned
+     * on). bounce_append() already logs a record when the logfile can't be
+     * updated. Set the write error flag, so that a maildrop queue file won't
+     * be destroyed.
+     */
     if (bounce_append(BOUNCE_FLAG_CLEAN, state->queue_id,
 		      CLEANUP_MSG_STATS(&stats, state),
 		      rcpt, "none", dsn) != 0) {
-	msg_warn("%s: bounce logfile update error", state->queue_id);
 	state->errs |= CLEANUP_STAT_WRITE;
     }
 }

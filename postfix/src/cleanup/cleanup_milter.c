@@ -1697,7 +1697,7 @@ static void usage(void)
     msg_warn("    del_rcpt addr");
 }
 
-/* flatten_args unparse partial command line */
+/* flatten_args - unparse partial command line */
 
 static void flatten_args(VSTRING *buf, char **argv)
 {
