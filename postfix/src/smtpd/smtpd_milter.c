@@ -36,6 +36,7 @@
 /* Global library. */
 
 #include <mail_params.h>
+#include <quote_821_local.h>
 
 /* Milter library. */
 
@@ -148,14 +149,33 @@ const char *smtpd_milter_eval(const char *name, void *ptr)
     if (strcmp(name, S8_MAC_AUTH_AUTHOR) == 0)
 	return (IF_SASL_ENABLED(state->sasl_sender));
 #endif
-    if (strcmp(name, S8_MAC_MAIL_ADDR) == 0)
-	return (state->sender);
+    if (strcmp(name, S8_MAC_MAIL_ADDR) == 0) {
+	if (state->sender == 0)
+	    return (0);
+	if (state->expand_buf == 0)
+	    state->expand_buf = vstring_alloc(10);
+	/* Sendmail 8.13 does not externalize the null string. */
+	if (state->sender[0])
+	    quote_821_local(state->expand_buf, state->sender);
+	else
+	    vstring_strcpy(state->expand_buf, state->sender);
+	return (STR(state->expand_buf));
+    }
 
     /*
      * RCPT TO macros.
      */
-    if (strcmp(name, S8_MAC_RCPT_ADDR) == 0)
-	return (state->recipient);
-
+    if (strcmp(name, S8_MAC_RCPT_ADDR) == 0) {
+	if (state->recipient == 0)
+	    return (0);
+	if (state->expand_buf == 0)
+	    state->expand_buf = vstring_alloc(10);
+	/* Sendmail 8.13 does not externalize the null string. */
+	if (state->recipient[0])
+	    quote_821_local(state->expand_buf, state->recipient);
+	else
+	    vstring_strcpy(state->expand_buf, state->recipient);
+	return (STR(state->expand_buf));
+    }
     return (0);
 }

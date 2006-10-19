@@ -901,7 +901,7 @@ static void pre_init(char *unused_name, char **unused_argv)
      * EHLO keyword filter.
      */
     if (*var_smtp_ehlo_dis_maps)
-	smtp_ehlo_dis_maps = maps_create(VAR_SMTPD_EHLO_DIS_MAPS,
+	smtp_ehlo_dis_maps = maps_create(VAR_SMTP_EHLO_DIS_MAPS,
 					 var_smtp_ehlo_dis_maps,
 					 DICT_FLAG_LOCK);
 

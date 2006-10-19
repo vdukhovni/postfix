@@ -12739,3 +12739,33 @@ Apologies for any names omitted.
 	Compatibility: Sendmail now invokes the Milter connect
 	action with the verified hostname instead of the name
 	obtained with PTR lookup. File: smtpd/smtpd.c.
+
+20061004
+
+	Cleanup: force space between mailq queueid+status and file
+	size items. File: showq/showq.c.
+
+20061015
+
+	Cleanup: convert the Milter {mail_addr} and {rcpt_addr}
+	macro values to external form. File: smtpd/smtpd_milter.c.
+
+	Cleanup: the Milter {mail_addr} and {rcpt_addr} macros are
+	now available with non-SMTP mail. File: cleanup/cleanup_milter.c.
+
+	Cleanup: convert addresses in Milter recipient add/delete
+	requests to internal form.  File: cleanup/cleanup_milter.c.
+
+	Cleanup: with non-SMTP mail, convert addresses in simulated
+	MAIL FROM and RCPT TO events to external form.  File:
+	cleanup/cleanup_milter.c.
+
+20061017
+
+	Cleanup: removed spurious warning when the cleanup server
+	attempts to bounce mail with soft_bounce=yes. Problem
+	reported by Ralf Hildebrandt. File: cleanup/cleanup_bounce.c.
+
+	Bugfix: null pointer bug when receiving a non-protocol
+	response on a cached SMTP/LMTP connection.  Report by Brian
+	Kantor.  Fix by Victor Duchovni.  File: smtp/smtp_reuse.c.

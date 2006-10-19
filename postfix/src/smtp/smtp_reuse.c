@@ -175,6 +175,7 @@ static SMTP_SESSION *smtp_reuse_common(SMTP_STATE *state, int fd,
 	return (0);
     }
     state->session = session;
+    session->state = state;
 
     /*
      * XXX Temporary fix.

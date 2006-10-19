@@ -95,6 +95,8 @@ typedef struct CLEANUP_STATE {
     const char *client_addr;		/* real or ersatz client */
     int     client_af;			/* real or ersatz client */
     const char *client_port;		/* real or ersatz client */
+    VSTRING *milter_ext_from;		/* externalized sender */
+    VSTRING *milter_ext_rcpt;		/* externalized recipient */
 } CLEANUP_STATE;
 
  /*

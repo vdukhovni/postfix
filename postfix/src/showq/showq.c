@@ -140,8 +140,8 @@ int     var_dup_filter_limit;
 char   *var_empty_addr;
 
 #define STRING_FORMAT	"%-10s %8s %-20s %s\n"
-#define SENDER_FORMAT	"%-11s%8ld %20.20s %s\n"
-#define DROP_FORMAT	"%-10s%c%8ld %20.20s (maildrop queue, sender UID %u)\n"
+#define SENDER_FORMAT	"%-11s %7ld %20.20s %s\n"
+#define DROP_FORMAT	"%-10s%c %7ld %20.20s (maildrop queue, sender UID %u)\n"
 
 static void showq_reasons(VSTREAM *, BOUNCE_LOG *, RCPT_BUF *, DSN_BUF *, 
 HTABLE *);
