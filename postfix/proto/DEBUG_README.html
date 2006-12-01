@@ -54,8 +54,11 @@ sniffer</a>
 <li><a href="#auto_trace">Automatically tracing a Postfix daemon
 process</a>
 
-<li><a href="#xxgdb">Running daemon programs with the interactive
-xxgdb debugger</a>
+<li><a href="#ddd">Running daemon programs with the interactive
+ddd debugger</a>
+
+<li><a href="#screen">Running daemon programs with the interactive
+gdb debugger</a>
 
 <li><a href="#gdb">Running daemon programs under a non-interactive
 debugger</a>
@@ -315,22 +318,22 @@ so that it invokes the call tracer of your choice, for example:
 
 <p> Type "<b>postfix reload</b>" and watch the logfile. </p>
 
-<h2><a name="xxgdb">Running daemon programs with the interactive
-xxgdb debugger</a></h2>
+<h2><a name="ddd">Running daemon programs with the interactive
+ddd debugger</a></h2>
 
 <p> If you have X Windows installed on the Postfix machine, then
-an interactive debugger such as <b>xxgdb</b> can be convenient.
+an interactive debugger such as <b>ddd</b> can be convenient.
 </p>
 
 <p> Edit the debugger_command definition in /etc/postfix/main.cf
-so that it invokes <b>xxgdb</b>: </p>
+so that it invokes <b>ddd</b>: </p>
 
 <blockquote>
 <pre>
 /etc/postfix/main.cf:
     debugger_command =
          PATH=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin
-         xxgdb $daemon_directory/$process_name $process_id &amp; sleep 5
+         ddd $daemon_directory/$process_name $process_id &amp; sleep 5
 </pre>
 </blockquote>
 
@@ -361,6 +364,52 @@ settings. </p>
 
 <p> Whenever the suspect daemon process is started, a debugger
 window pops up and you can watch in detail what happens. </p>
+
+<h2><a name="screen">Running daemon programs with the interactive
+gdb debugger</a></h2>
+
+<p> If you have the screen command installed on the Postfix machine, then
+you can run an interactive debugger such as <b>gdb</b> as follows. </p>
+
+<p> Edit the debugger_command definition in /etc/postfix/main.cf
+so that it runs <b>gdb</b> inside a detached <b>screen</b> session:
+</p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    debugger_command =
+        PATH=/bin:/usr/bin:/sbin:/usr/sbin; export PATH; HOME=/root;
+        export HOME; screen -e^tt -dmS $process_name gdb
+        $daemon_directory/$process_name $process_id &amp; sleep 2
+</pre>
+</blockquote>
+
+<p> Be sure that <b>gdb</b> is in the command search path. </p>
+
+<p> Append a <b>-D</b> option to the suspect daemon definition in
+/etc/postfix/master.cf, for example: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/master.cf:
+    smtp      inet  n       -       n       -       -       smtpd -D
+</pre>
+</blockquote>
+
+<p> Execute the command "<b>postfix reload</b>" and wait until a
+daemon process is started (you can see this in the maillog file).
+</p>
+
+<p> Then attach to the screen, and debug away: </p>
+
+<blockquote>
+<pre>
+# HOME=/root screen -r
+gdb) continue
+gdb) where
+</pre>
+</blockquote>
 
 <h2><a name="gdb">Running daemon programs under a non-interactive
 debugger</a></h2>

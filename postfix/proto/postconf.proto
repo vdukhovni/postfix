@@ -2543,7 +2543,8 @@ masquerade_exceptions = root
 <p>
 The maximum amount of time that an idle Postfix daemon process
 waits for the next service request before exiting.  This parameter
-is ignored by the Postfix queue manager.
+is ignored by the Postfix queue manager and by other long-lived
+Postfix daemon processes.
 </p>
 
 <p>
@@ -8998,7 +8999,7 @@ is placed into the Postfix configuration directory.  </p>
 %PARAM sender_dependent_relayhost_maps empty
 
 <p> A sender-dependent override for the global relayhost parameter
-setting. The tables are searched by the sender address and by the
+setting. The tables are searched by the envelope sender address and
 @domain. This information is overruled with relay_transport,
 default_transport and with the transport(5) table. </p>
 

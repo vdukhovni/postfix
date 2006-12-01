@@ -25,9 +25,6 @@ MAN2HTML = man2html -t "Postfix manual - `IFS=.; set \`echo $@\`; echo \"$$1($$2
 
 update:	$(DAEMONS) $(COMMANDS) $(CONFIG) $(OTHER)
 
-Makefile: Makefile.in
-	(set -e; echo "# DO NOT EDIT"; $(OPTS) $(SHELL) ../src/makedefs; cat $?) >$@
-
 clean:
 	echo clean
 

@@ -182,6 +182,13 @@
 /* .IP state
 /*	MIME parser state created with mime_state_alloc().
 /* BUGS
+/*	NOTE: when the end of headers is reached, mime_state_update()
+/*	may execute up to three call-backs before returning to the
+/*	caller: head_out(), head_end(), and body_out() or body_end().
+/*	As long as call-backs return no result, it is up to the
+/*	call-back routines to check if a previous call-back experienced
+/*	an error.
+/*
 /*	Different mail user agents treat malformed message boundary
 /*	strings in different ways. The Postfix MIME processor cannot
 /*	be bug-compatible with everything.

@@ -877,6 +877,7 @@ static const char *milter8_event(MILTER8 *milter, int event,
 				         int skip_reply,
 				         ARGV *macros,...)
 {
+    const char *myname = "milter8_event";
     va_list ap;
     ssize_t data_len;
     int     err;
@@ -889,6 +890,17 @@ static const char *milter8_event(MILTER8 *milter, int event,
     const char *edit_resp;
 
 #define DONT_SKIP_REPLY	0
+
+    /*
+     * Sanity check.
+     */
+    if (milter->fp == 0 || milter->def_reply != 0) {
+	msg_warn("%s: attempt to send event %s to milter %s after error",
+		 myname,
+		 (smfic_name = str_name_code(smfic_table, event)) != 0 ?
+		 smfic_name : "(unknown MTA event)", milter->m.name);
+	return (milter->def_reply);
+    }
 
     /*
      * Skip this event if it doesn't exist in the protocol that I announced.
@@ -1204,7 +1216,7 @@ static const char *milter8_event(MILTER8 *milter, int event,
 						       (ssize_t) index,
 						       STR(milter->buf));
 		    if (edit_resp)
-			return (milter8_def_reply(milter, edit_resp));
+			return (edit_resp);
 		    continue;
 #endif
 
@@ -1222,7 +1234,7 @@ static const char *milter8_event(MILTER8 *milter, int event,
 						   STR(milter->buf),
 						   STR(milter->body));
 		    if (edit_resp)
-			return (milter8_def_reply(milter, edit_resp));
+			return (edit_resp);
 		    continue;
 
 		    /*
@@ -1251,7 +1263,7 @@ static const char *milter8_event(MILTER8 *milter, int event,
 						   STR(milter->buf),
 						   STR(milter->body));
 		    if (edit_resp)
-			return (milter8_def_reply(milter, edit_resp));
+			return (edit_resp);
 		    continue;
 #endif
 
@@ -1267,7 +1279,7 @@ static const char *milter8_event(MILTER8 *milter, int event,
 		    edit_resp = parent->add_rcpt(parent->chg_context,
 						 STR(milter->buf));
 		    if (edit_resp)
-			return (milter8_def_reply(milter, edit_resp));
+			return (edit_resp);
 		    continue;
 
 		    /*
@@ -1282,7 +1294,7 @@ static const char *milter8_event(MILTER8 *milter, int event,
 		    edit_resp = parent->del_rcpt(parent->chg_context,
 						 STR(milter->buf));
 		    if (edit_resp)
-			return (milter8_def_reply(milter, edit_resp));
+			return (edit_resp);
 		    continue;
 
 		    /*
@@ -1299,7 +1311,7 @@ static const char *milter8_event(MILTER8 *milter, int event,
 		    edit_resp = parent->repl_body(parent->chg_context,
 						  milter->body);
 		    if (edit_resp)
-			return (milter8_def_reply(milter, edit_resp));
+			return (edit_resp);
 		    continue;
 #endif
 		}
@@ -1947,6 +1959,16 @@ static void milter8_header(void *ptr, int unused_header_class,
     int     skip_reply;
 
     /*
+     * XXX Workaround: mime_state_update() may invoke multiple call-backs
+     * before returning to the caller.
+     */
+#define MILTER8_MESSAGE_DONE(milter, msg_ctx) \
+	((milter)->state != MILTER8_STAT_MESSAGE || (msg_ctx)->resp != 0)
+
+    if (MILTER8_MESSAGE_DONE(milter, msg_ctx))
+	return;
+
+    /*
      * XXX Sendmail compatibility. Don't expose our first (received) header
      * to mail filter applications. See also cleanup_milter.c for code to
      * ensure that header replace requests are relative to the message
@@ -2009,6 +2031,8 @@ static void milter8_eoh(void *ptr)
     MILTER_MSG_CONTEXT *msg_ctx = (MILTER_MSG_CONTEXT *) ptr;
     MILTER8 *milter = msg_ctx->milter;
 
+    if (MILTER8_MESSAGE_DONE(milter, msg_ctx))
+	return;
     if (msg_verbose)
 	msg_info("%s: eoh milter %s", myname, milter->m.name);
     msg_ctx->resp =
@@ -2030,6 +2054,9 @@ static void milter8_body(void *ptr, int rec_type,
     const char *bp = buf;
     ssize_t space;
     ssize_t count;
+
+    if (MILTER8_MESSAGE_DONE(milter, msg_ctx))
+	return;
 
     /*
      * XXX Sendmail compatibility: don't expose our first body line.
@@ -2098,6 +2125,8 @@ static void milter8_eob(void *ptr)
     MILTER_MSG_CONTEXT *msg_ctx = (MILTER_MSG_CONTEXT *) ptr;
     MILTER8 *milter = msg_ctx->milter;
 
+    if (MILTER8_MESSAGE_DONE(milter, msg_ctx))
+	return;
     if (msg_verbose)
 	msg_info("%s: eob milter %s", myname, milter->m.name);
     msg_ctx->resp =
@@ -2183,9 +2212,7 @@ static const char *milter8_message(MILTER *m, VSTREAM *qfile,
 		msg_ctx.resp = "450 4.3.0 Queue file write error";
 		break;
 	    }
-	    if (msg_ctx.resp != 0)
-		break;
-	    if (milter->state != MILTER8_STAT_MESSAGE)
+	    if (MILTER8_MESSAGE_DONE(milter, &msg_ctx))
 		break;
 	    if (rec_type != REC_TYPE_NORM && rec_type != REC_TYPE_CONT)
 		break;

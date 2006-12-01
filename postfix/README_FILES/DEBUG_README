@@ -25,7 +25,8 @@ follows:
   * Making Postfix daemon programs more verbose
   * Manually tracing a Postfix daemon process
   * Automatically tracing a Postfix daemon process
-  * Running daemon programs with the interactive xxgdb debugger
+  * Running daemon programs with the interactive ddd debugger
+  * Running daemon programs with the interactive gdb debugger
   * Running daemon programs under a non-interactive debugger
   * Unreasonable behavior
   * Reporting problems to postfix-users@postfix.org
@@ -208,18 +209,18 @@ the call tracer of your choice, for example:
 
 Type "ppoossttffiixx rreellooaadd" and watch the logfile.
 
-RRuunnnniinngg ddaaeemmoonn pprrooggrraammss wwiitthh tthhee iinntteerraaccttiivvee xxxxggddbb ddeebbuuggggeerr
+RRuunnnniinngg ddaaeemmoonn pprrooggrraammss wwiitthh tthhee iinntteerraaccttiivvee dddddd ddeebbuuggggeerr
 
 If you have X Windows installed on the Postfix machine, then an interactive
-debugger such as xxxxggddbb can be convenient.
+debugger such as dddddd can be convenient.
 
 Edit the debugger_command definition in /etc/postfix/main.cf so that it invokes
-xxxxggddbb:
+dddddd:
 
     /etc/postfix/main.cf:
         debugger_command =
              PATH=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin
-             xxgdb $daemon_directory/$process_name $process_id & sleep 5
+             ddd $daemon_directory/$process_name $process_id & sleep 5
 
 Be sure that ggddbb is in the command search path, and export XXAAUUTTHHOORRIITTYY so that X
 access control works, for example:
@@ -238,6 +239,37 @@ the proper XXAAUUTTHHOORRIITTYY and DDIISSPPLLAAYY settings.
 
 Whenever the suspect daemon process is started, a debugger window pops up and
 you can watch in detail what happens.
+
+RRuunnnniinngg ddaaeemmoonn pprrooggrraammss wwiitthh tthhee iinntteerraaccttiivvee ggddbb ddeebbuuggggeerr
+
+If you have the screen command installed on the Postfix machine, then you can
+run an interactive debugger such as ggddbb as follows.
+
+Edit the debugger_command definition in /etc/postfix/main.cf so that it runs
+ggddbb inside a detached ssccrreeeenn session:
+
+    /etc/postfix/main.cf:
+        debugger_command =
+            PATH=/bin:/usr/bin:/sbin:/usr/sbin; export PATH; HOME=/root;
+            export HOME; screen -e^tt -dmS $process_name gdb
+            $daemon_directory/$process_name $process_id & sleep 2
+
+Be sure that ggddbb is in the command search path.
+
+Append a --DD option to the suspect daemon definition in /etc/postfix/master.cf,
+for example:
+
+    /etc/postfix/master.cf:
+        smtp      inet  n       -       n       -       -       smtpd -D
+
+Execute the command "ppoossttffiixx rreellooaadd" and wait until a daemon process is started
+(you can see this in the maillog file).
+
+Then attach to the screen, and debug away:
+
+    # HOME=/root screen -r
+    gdb) continue
+    gdb) where
 
 RRuunnnniinngg ddaaeemmoonn pprrooggrraammss uunnddeerr aa nnoonn--iinntteerraaccttiivvee ddeebbuuggggeerr
 

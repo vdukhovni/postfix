@@ -96,6 +96,7 @@ int     verify_clnt_query(const char *addr, int *addr_status, VSTRING *why)
 {
     VSTREAM *stream;
     int     request_status;
+    int     count = 0;
 
     /*
      * Do client-server plumbing.
@@ -109,6 +110,7 @@ int     verify_clnt_query(const char *addr, int *addr_status, VSTRING *why)
     for (;;) {
 	stream = clnt_stream_access(vrfy_clnt);
 	errno = 0;
+	count += 1;
 	if (attr_print(stream, ATTR_FLAG_NONE,
 		       ATTR_TYPE_STR, MAIL_ATTR_REQ, VRFY_REQ_QUERY,
 		       ATTR_TYPE_STR, MAIL_ATTR_ADDR, addr,
@@ -119,7 +121,7 @@ int     verify_clnt_query(const char *addr, int *addr_status, VSTRING *why)
 			 ATTR_TYPE_INT, MAIL_ATTR_ADDR_STATUS, addr_status,
 			 ATTR_TYPE_STR, MAIL_ATTR_WHY, why,
 			 ATTR_TYPE_END) != 3) {
-	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
+	    if (msg_verbose || count > 1 || (errno && errno != EPIPE && errno != ENOENT))
 		msg_warn("problem talking to service %s: %m",
 			 var_verify_service);
 	} else {

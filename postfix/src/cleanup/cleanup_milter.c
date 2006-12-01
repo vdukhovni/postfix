@@ -1805,6 +1805,7 @@ int     main(int unused_argc, char **argv)
 
     msg_vstream_init(argv[0], VSTREAM_ERR);
     var_line_limit = DEF_LINE_LIMIT;
+    var_header_limit = DEF_HEADER_LIMIT;
 
     for (;;) {
 	ARGV   *argv;

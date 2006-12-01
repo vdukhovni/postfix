@@ -38,7 +38,7 @@ recipient addresses?</a>
 <ul>
 
 <li><a href="#forged_helo">Blocking backscatter mail with forged
-HELO information</a>
+mail server information</a>
 
 <li><a href="#forged_sender">Blocking backscatter mail with forged
 sender information</a>
@@ -91,7 +91,7 @@ information that you can use to recognize and block forged mail.
 </p>
 
 <h3><a name="forged_helo">Blocking backscatter mail with forged
-HELO information</a></h3>
+mail server information</a></h3>
 
 <p> Although my email address is "wietse@porcupine.org", all my
 mail systems announce themselves with the SMTP HELO command as
@@ -127,6 +127,18 @@ Received: from host.example.com (EHLO porcupine.org) ...
 </pre>
 </blockquote>
 
+<p> Some forgeries show up in the way that a mail server reports
+itself in Received: message headers. Keeping in mind that all my
+systems have a mail server name of <i>hostname</i>.porcupine.org,
+the following is definitely a forgery:</p>
+
+<blockquote>
+<pre>
+Received: by porcupine.org ...
+Received: from host.example.com ( ... ) by porcupine.org ...
+</pre>
+</blockquote>
+
 <p> Another frequent sign of forgery is the Message-ID: header. My
 systems produce a Message-ID: of
 &lt;<i>stuff</i>@<i>hostname</i>.porcupine.org&gt;.  The following
@@ -149,18 +161,26 @@ patterns like this: </p>
     body_checks = regexp:/etc/postfix/body_checks
 
 /etc/postfix/header_checks:
+    if /^Received:/
     /^Received: +from +(porcupine\.org) +/
         reject forged client name in Received: header: $1
     /^Received: +from +[^ ]+ +\(([^ ]+ +[he]+lo=|[he]+lo +)(porcupine\.org)\)/
         reject forged client name in Received: header: $2
+    /^Received:.* +by +(porcupine\.org)[[:&gt;:]]/
+        reject forged mail server name in Received: header: $1
+    endif
     /^Message-ID:.*@(porcupine\.org)/
 	reject forged domain name in Message-ID: header: $1
 
 /etc/postfix/body_checks:
+    if /^[&gt; ]*Received:/
     /^[&gt; ]*Received: +from +(porcupine\.org) /
         reject forged client name in Received: header: $1
     /^[&gt; ]*Received: +from +[^ ]+ +\(([^ ]+ +[he]+lo=|[he]+lo +)(porcupine\.org)\)/
         reject forged client name in Received: header: $2
+    /^[&gt; ]*Received:.* +by +(porcupine\.org)[[:&gt;:]]/
+        reject forged mail server name in Received: header: $1
+    endif
     /^[&gt; ]*Message-ID:.*@(porcupine\.org)/
 	reject forged domain name in Message-ID: header: $1
 </pre>
@@ -180,6 +200,14 @@ the "<tt>\</tt>", the "<tt>.</tt>" would match any character. </p>
 <li> <p> The "<tt>\(</tt>" and "<tt>\)</tt>" match "<tt>(</tt>"
 and "<tt>)</tt>" literally. Without the "<tt>\</tt>", the "<tt>(</tt>"
 and "<tt>)</tt>" would be grouping operators.  </p>
+
+<li> <p> The "<tt>[[:&gt;:]]</tt>" matches the end of a word. On
+some systems you should specify "<tt>\&gt;</tt>" instead. For details
+see your system documentation. </p>
+
+<li> <p> The "if /pattern/" and "endif" eliminate unnecessary
+matching attempts. DO NOT indent lines starting with /pattern/
+between the "if" and "endif"! </p>
 
 </ul>
 
@@ -251,7 +279,7 @@ reality, my patterns list multiple email addresses as
 <li> <p> The "<tt>[[:&lt;:]]</tt>" and "<tt>[[:&gt;:]]</tt>" match
 the beginning and end of a word, respectively. On some systems you
 should specify "<tt>\&lt;</tt>" and "<tt>\&gt;</tt>" instead. For
-details see your system documentation.
+details see your system documentation. </p>
 
 <li> <p> The "<tt>\.</tt>" matches "<tt>.</tt>" literally. Without
 the "<tt>\</tt>", the "<tt>.</tt>" would match any character. </p>

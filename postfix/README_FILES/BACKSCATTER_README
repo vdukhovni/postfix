@@ -12,7 +12,7 @@ Topics covered in this document:
   * How do I block backscatter mail to random recipient addresses?
   * How do I block backscatter mail to real recipient addresses?
 
-      o Blocking backscatter mail with forged HELO information
+      o Blocking backscatter mail with forged mail server information
       o Blocking backscatter mail with forged sender information
       o Blocking backscatter mail with other forged information
       o Blocking backscatter mail from virus scanners
@@ -45,7 +45,7 @@ headers of the undeliverable mail in the non-delivery notification. These
 message headers contain information that you can use to recognize and block
 forged mail.
 
-BBlloocckkiinngg bbaacckkssccaatttteerr mmaaiill wwiitthh ffoorrggeedd HHEELLOO iinnffoorrmmaattiioonn
+BBlloocckkiinngg bbaacckkssccaatttteerr mmaaiill wwiitthh ffoorrggeedd mmaaiill sseerrvveerr iinnffoorrmmaattiioonn
 
 Although my email address is "wietse@porcupine.org", all my mail systems
 announce themselves with the SMTP HELO command as "hostname.porcupine.org".
@@ -67,6 +67,13 @@ result of forgery:
     Received: from host.example.com (HELO porcupine.org) ...
     Received: from host.example.com (EHLO porcupine.org) ...
 
+Some forgeries show up in the way that a mail server reports itself in
+Received: message headers. Keeping in mind that all my systems have a mail
+server name of hostname.porcupine.org, the following is definitely a forgery:
+
+    Received: by porcupine.org ...
+    Received: from host.example.com ( ... ) by porcupine.org ...
+
 Another frequent sign of forgery is the Message-ID: header. My systems produce
 a Message-ID: of <stuff@hostname.porcupine.org>. The following are forgeries,
 especially the first one:
@@ -82,20 +89,28 @@ this:
         body_checks = regexp:/etc/postfix/body_checks
 
     /etc/postfix/header_checks:
+        if /^Received:/
         /^Received: +from +(porcupine\.org) +/
             reject forged client name in Received: header: $1
         /^Received: +from +[^ ]+ +\(([^ ]+ +[he]+lo=|[he]+lo +)
     (porcupine\.org)\)/
             reject forged client name in Received: header: $2
+        /^Received:.* +by +(porcupine\.org)[[:>:]]/
+            reject forged mail server name in Received: header: $1
+        endif
         /^Message-ID:.*@(porcupine\.org)/
     	reject forged domain name in Message-ID: header: $1
 
     /etc/postfix/body_checks:
+        if /^[> ]*Received:/
         /^[> ]*Received: +from +(porcupine\.org) /
             reject forged client name in Received: header: $1
         /^[> ]*Received: +from +[^ ]+ +\(([^ ]+ +[he]+lo=|[he]+lo +)
     (porcupine\.org)\)/
             reject forged client name in Received: header: $2
+        /^[> ]*Received:.* +by +(porcupine\.org)[[:>:]]/
+            reject forged mail server name in Received: header: $1
+        endif
         /^[> ]*Message-ID:.*@(porcupine\.org)/
     	reject forged domain name in Message-ID: header: $1
 
@@ -109,6 +124,12 @@ Notes:
 
   * The "\(" and "\)" match "(" and ")" literally. Without the "\", the "(" and
     ")" would be grouping operators.
+
+  * The "[[:>:]]" matches the end of a word. On some systems you should specify
+    "\>" instead. For details see your system documentation.
+
+  * The "if /pattern/" and "endif" eliminate unnecessary matching attempts. DO
+    NOT indent lines starting with /pattern/ between the "if" and "endif"!
 
 CCaavveeaattss
 

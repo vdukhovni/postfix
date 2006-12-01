@@ -88,9 +88,6 @@ MAKEAAA	= ../mantools/makereadme
 
 update:	$(CONFIG) $(HTML) $(README) $(MAN)
 
-Makefile: Makefile.in
-	(set -e; echo "# DO NOT EDIT"; $(OPTS) $(SHELL) ../makedefs; cat $?) >$@
-
 clean:
 	:
 

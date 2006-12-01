@@ -4837,7 +4837,8 @@ Examples:
 <p>
 The maximum amount of time that an idle Postfix daemon process
 waits for the next service request before exiting.  This parameter
-is ignored by the Postfix queue manager.
+is ignored by the Postfix queue manager and by other long-lived
+Postfix daemon processes.
 </p>
 
 <p>
@@ -6751,7 +6752,7 @@ Example:
 (default: empty)</b></DT><DD>
 
 <p> A sender-dependent override for the global <a href="postconf.5.html#relayhost">relayhost</a> parameter
-setting. The tables are searched by the sender address and by the
+setting. The tables are searched by the envelope sender address and
 @domain. This information is overruled with <a href="postconf.5.html#relay_transport">relay_transport</a>,
 <a href="postconf.5.html#default_transport">default_transport</a> and with the <a href="transport.5.html">transport(5)</a> table. </p>
 
