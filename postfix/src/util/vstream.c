@@ -280,12 +280,18 @@
 /*
 /*	vstream_feof() returns non-zero when a previous operation on the
 /*	specified stream caused an end-of-file condition.
+/*	Further read requests after EOF may complete succesfully,
+/*	even when vstream_clearerr() is not called for that stream.
 /*
 /*	vstream_ferror() returns non-zero when a previous operation on the
 /*	specified stream caused a non-EOF error condition, including timeout.
+/*	After a non-EOF, non-timeout, error on a stream, no I/O request will 
+/*	complete until after vstream_clearerr() is called for that stream.
 /*
 /*	vstream_ftimeout() returns non-zero when a previous operation on the
 /*	specified stream caused a timeout error condition.
+/*	Further I/O requests after timeout may complete succesfully,
+/*	even when vstream_clearerr() is not called for that stream.
 /*
 /*	vstream_clearerr() resets the timeout, error and end-of-file indication
 /*	of the specified stream, and returns no useful result.

@@ -12862,6 +12862,22 @@ Apologies for any names omitted.
 	otherwise they are cut between line boundaries. File:
 	cleanup/cleanup_out.c.
 
+20061203
+
+	Bugfix (introduced with Postfix 2.2): with SMTP server
+	tarpit delays of smtp_rset_timeout or larger, the SMTP
+	client could get out of sync with the server while reusing
+	a connection.  The symptoms were "recipient rejected .. in
+	reply to DATA".  Fix by Victor Duchovni and Wietse.  Files:
+	smtp/smtp_proto.c, smtp/smtp_connect.c.
+
+	Robustness: the vbuf and vstream documentation claimed that
+	their *error() macros reported timeout errors, but they
+	didn't really. The implementation was fixed, and redundant
+	vstream_ftimeout() calls were removed. As a result, many
+	Postfix daemons now properly detect write timeout errors
+	on internal connections.  Files: util/vbuf.h.
+
 Wish list:
 
 	Investigate if clients of single-instance servers such as

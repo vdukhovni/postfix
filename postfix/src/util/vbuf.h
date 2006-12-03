@@ -65,7 +65,7 @@ struct VBUF {
 #define VBUF_FLAG_BAD	(VBUF_FLAG_ERR | VBUF_FLAG_EOF | VBUF_FLAG_TIMEOUT)
 #define VBUF_FLAG_FIXED	(1<<3)		/* fixed-size buffer */
 
-#define vbuf_error(v)	((v)->flags & VBUF_FLAG_ERR)
+#define vbuf_error(v)	((v)->flags & (VBUF_FLAG_ERR | VBUF_FLAG_TIMEOUT))
 #define vbuf_eof(v)	((v)->flags & VBUF_FLAG_EOF)
 #define vbuf_timeout(v)	((v)->flags & VBUF_FLAG_TIMEOUT)
 #define vbuf_clearerr(v) ((v)->flags &= ~VBUF_FLAG_BAD)

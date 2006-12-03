@@ -1041,7 +1041,11 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	} \
     } while (0)
 
+ /* Caution: changes to RETURN() also affect code outside the main loop. */
+
 #define RETURN(x) do { \
+	if (recv_state != SMTP_STATE_LAST) \
+	    DONT_CACHE_THIS_SESSION; \
 	vstring_free(next_command); \
 	if (survivors) \
 	    myfree((char *) survivors); \

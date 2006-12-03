@@ -379,7 +379,10 @@ static void smtp_cleanup_session(SMTP_STATE *state)
     bad_session = THIS_SESSION_IS_BAD;		/* smtp_quit() may fail */
     if (THIS_SESSION_IS_EXPIRED)
 	smtp_quit(state);			/* also disables caching */
-    if (THIS_SESSION_IS_CACHED) {
+    if (THIS_SESSION_IS_CACHED
+	/* Redundant tests for safety... */
+	&& vstream_ferror(session->stream) == 0
+	&& vstream_feof(session->stream) == 0) {
 	smtp_save_session(state);
     } else {
 	smtp_session_free(session);

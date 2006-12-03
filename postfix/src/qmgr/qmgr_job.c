@@ -769,7 +769,7 @@ static QMGR_PEER *qmgr_job_peer_select(QMGR_JOB *job)
      * solution, but that involves major changes.
      */
     if (message->rcpt_offset != 0
-	&& message->rcpt_limit > message->rcpt_count - 100
+	&& message->rcpt_limit > message->rcpt_count + 100
 	&& message->refcount > 0) {
 	qmgr_message_realloc(message);
     }
