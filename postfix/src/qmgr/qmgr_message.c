@@ -361,6 +361,9 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	if (recipient_limit < message->rcpt_limit)
 	    recipient_limit = message->rcpt_limit;
     }
+    /* Keep interrupt latency in check. */
+    if (recipient_limit > 5000)
+	recipient_limit = 5000;
     if (recipient_limit <= 0)
 	msg_panic("%s: no recipient slots available", message->queue_id);
 
