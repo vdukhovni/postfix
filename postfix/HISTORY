@@ -12827,3 +12827,21 @@ Apologies for any names omitted.
 	a connection.  The symptoms were "recipient rejected .. in
 	reply to DATA".  Fix by Victor Duchovni and Wietse.  File:
 	smtp/smtp_proto.c.
+
+20061207
+
+	Compatibility with Postfix < 2.3: undo the change to bounce
+	instead of defer after pipe-to-command delivery fails with
+	a signal. File: global/pipe_command.c.
+
+20061208
+
+	Workaround: apparently, some mail software removes or hides
+	"<postmaster>" in the Postfix bounce text, because it
+	processes the text as if it were HTML. This confuses users.
+	The bounce template has been updated to remove the < and
+	>. File: bounce/bounce_templates.c.
+
+	Cleanup: when smtp_generic_maps is turned on, don't parse
+	MIME structures in the message body. Victor Duchovni. File:
+	smtp/smtp_proto.c.

@@ -633,7 +633,7 @@ int     pipe_command(VSTREAM *src, DSN_BUF *why,...)
 			 "Command died with signal %d: \"%s\"%s%s",
 			 WTERMSIG(wait_status), args.command,
 			 log_len ? ". Command output: " : "", log_buf);
-		return (PIPE_STAT_BOUNCE);
+		return (PIPE_STAT_DEFER);
 	    }
 	    /* Use "D.S.N text" command output. XXX What diagnostic code? */
 	    else if (dsn_valid(log_buf) > 0) {

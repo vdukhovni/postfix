@@ -1634,7 +1634,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		session->mime_state = mime_state_alloc(downgrading ?
 						       MIME_OPT_DOWNGRADE
 						 | MIME_OPT_REPORT_NESTING :
-						    MIME_OPT_REPORT_NESTING,
+						       MIME_OPT_DISABLE_MIME,
 						       smtp_generic_maps ?
 						       smtp_header_rewrite :
 						       smtp_header_out,
