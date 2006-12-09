@@ -50,6 +50,7 @@
 #define MAIL_SERVICE_SMTPD	"smtpd"
 #define MAIL_SERVICE_SHOWQ	"showq"
 #define MAIL_SERVICE_ERROR	"error"
+#define MAIL_SERVICE_RETRY	"retry"
 #define MAIL_SERVICE_FLUSH	"flush"
 #define MAIL_SERVICE_VERIFY	"verify"
 #define MAIL_SERVICE_TRACE	"trace"

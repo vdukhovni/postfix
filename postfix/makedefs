@@ -162,9 +162,9 @@ case "$SYSTEM.$RELEASE" in
 		case $RELEASE in
 		    5.[0-7]|5.[0-7].*) CCARGS="$CCARGS -DNO_IPV6";;
 		esac
-		# Solaris 9 added closefrom() and /dev/*random
+		# Solaris 9 added closefrom(), futimesat() and /dev/*random
 		case $RELEASE in
-		    5.[0-8]|5.[0-8].*) CCARGS="$CCARGS -DNO_CLOSEFROM -DNO_DEV_URANDOM";;
+		    5.[0-8]|5.[0-8].*) CCARGS="$CCARGS -DNO_CLOSEFROM -DNO_DEV_URANDOM -DNO_FUTIMESAT";;
 		esac
 		# Work around broken str*casecmp(). Do it all here instead
 		# of having half the solution in the sys_defs.h file.

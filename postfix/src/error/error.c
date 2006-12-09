@@ -2,7 +2,7 @@
 /* NAME
 /*	error 8
 /* SUMMARY
-/*	Postfix error mail delivery agent
+/*	Postfix error/retry mail delivery agent
 /* SYNOPSIS
 /*	\fBerror\fR [generic Postfix daemon options]
 /* DESCRIPTION
@@ -15,11 +15,11 @@
 /*	This program expects to be run from the \fBmaster\fR(8) process
 /*	manager.
 /*
-/*	The \fBerror\fR(8) delivery agent bounces all recipients in the delivery
-/*	request using the "next-hop"
-/*	domain or host information as the reason for non-delivery, updates
-/*	the queue file and marks recipients as finished or informs the
-/*	queue manager that delivery should be tried again at a later time.
+/*	Depending on the service name in master.cf, \fBerror\fR
+/*	or \fBretry\fR, the server bounces or defers all recipients
+/*	in the delivery request using the "next-hop" information
+/*	as the reason for non-delivery. The \fBretry\fR service name is
+/*	supported as of Postfix 2.4.
 /*
 /*	Delivery status reports are sent to the \fBbounce\fR(8),
 /*	\fBdefer\fR(8) or \fBtrace\fR(8) daemon as appropriate.
@@ -120,10 +120,12 @@
 #include <deliver_request.h>
 #include <mail_queue.h>
 #include <bounce.h>
+#include <defer.h>
 #include <deliver_completed.h>
 #include <flush_clnt.h>
 #include <dsn_util.h>
 #include <sys_exits.h>
+#include <mail_proto.h>
 
 /* Single server skeleton. */
 
@@ -131,7 +133,9 @@
 
 /* deliver_message - deliver message with extreme prejudice */
 
-static int deliver_message(DELIVER_REQUEST *request)
+static int deliver_message(DELIVER_REQUEST *request, const char *def_dsn,
+	         int (*append) (int, const char *, MSG_STATS *, RECIPIENT *,
+				        const char *, DSN *))
 {
     const char *myname = "deliver_message";
     VSTREAM *src;
@@ -168,17 +172,17 @@ static int deliver_message(DELIVER_REQUEST *request)
 	msg_info("%s: file %s", myname, VSTREAM_PATH(src));
 
     /*
-     * Bounce all recipients.
+     * Bounce/defer/whatever all recipients.
      */
 #define BOUNCE_FLAGS(request) DEL_REQ_TRACE_FLAGS(request->flags)
 
-    dsn_split(&dp, "5.0.0", request->nexthop);
+    dsn_split(&dp, def_dsn, request->nexthop);
     (void) DSN_SIMPLE(&dsn, DSN_STATUS(dp.dsn), dp.text);
     for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
 	rcpt = request->rcpt_list.info + nrcpt;
 	if (rcpt->offset >= 0) {
-	    status = bounce_append(BOUNCE_FLAGS(request), request->queue_id,
-				   &request->msg_stats, rcpt, "none", &dsn);
+	    status = append(BOUNCE_FLAGS(request), request->queue_id,
+			    &request->msg_stats, rcpt, "none", &dsn);
 	    if (status == 0)
 		deliver_completed(src, rcpt->offset);
 	    result |= status;
@@ -196,7 +200,7 @@ static int deliver_message(DELIVER_REQUEST *request)
 
 /* error_service - perform service for client */
 
-static void error_service(VSTREAM *client_stream, char *unused_service, char **argv)
+static void error_service(VSTREAM *client_stream, char *service, char **argv)
 {
     DELIVER_REQUEST *request;
     int     status;
@@ -216,7 +220,12 @@ static void error_service(VSTREAM *client_stream, char *unused_service, char **a
      * in single_server.c.
      */
     if ((request = deliver_request_read(client_stream)) != 0) {
-	status = deliver_message(request);
+	if (strcmp(service, MAIL_SERVICE_ERROR) == 0)
+	    status = deliver_message(request, "5.0.0", bounce_append);
+	else if (strcmp(service, MAIL_SERVICE_RETRY) == 0)
+	    status = deliver_message(request, "4.0.0", defer_append);
+	else
+	    msg_fatal("bad error service name: %s", service);
 	deliver_request_done(client_stream, request, status);
     }
 }

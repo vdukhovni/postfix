@@ -89,6 +89,7 @@
 
 #if __FreeBSD_version >= 300000
 #define HAS_ISSETUGID
+#define HAS_FUTIMES
 #endif
 
 #if __FreeBSD_version >= 400000
@@ -97,6 +98,10 @@
 #endif
 
 /* OpenBSD version is year+month */
+
+#if OpenBSD >= 199805			/* XXX */
+#define HAS_FUTIMES			/* XXX maybe earlier */
+#endif
 
 #if OpenBSD >= 200000			/* XXX */
 #define HAS_ISSETUGID
@@ -131,6 +136,10 @@
 
 #if __NetBSD_Version__ >= 299000900	/* 2.99.9 */
 #define HAS_CLOSEFROM
+#endif
+
+#if (defined(__NetBSD_Version__) && __NetBSD_Version__ >= 102000000)
+#define HAS_FUTIMES
 #endif
 
 #if (defined(__NetBSD_Version__) && __NetBSD_Version__ >= 105000000) \
@@ -179,6 +188,7 @@
 # define HAS_IPV6
 # define HAVE_GETIFADDRS
 #endif
+#define HAS_FUTIMES			/* XXX Guessing */
 #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
 #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
 #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
@@ -379,6 +389,9 @@ extern int opterr;
 #endif
 #ifndef NO_DEV_URANDOM
 # define HAS_DEV_URANDOM
+#endif
+#ifndef NO_FUTIMESAT
+# define HAS_FUTIMESAT
 #endif
 
 /*
@@ -1413,6 +1426,28 @@ typedef int pid_t;
   * development.
   */
 extern int REMOVE(const char *);
+
+ /*
+  * Enter, or skip, a critical region. This is used in fatal run-time error
+  * handlers.
+  * 
+  * It is OK if a terminating signal handler hijacks control before the next
+  * statement executes. The interrupted thread will never be resumed; when
+  * the signal handler leaves the critical region, the state of the
+  * "critical" variable can safely be left in an inconsistent state. We
+  * explicitly give the critical variable global scope, to discourage the
+  * compiler from trying to do clever things.
+  */
+#define BEGIN_PROTECT_AGAINST_RECURSION_OR_TERMINATING_SIGNAL_HANDLER(name) \
+	    if (name == 0) { \
+		name = 1;
+
+ /*
+  * Leave critical region.
+  */
+#define END_PROTECT_AGAINST_RECURSION_OR_TERMINATING_SIGNAL_HANDLER(name) \
+		name = 0; \
+	    }
 
 /* LICENSE
 /* .ad

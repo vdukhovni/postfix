@@ -305,7 +305,8 @@ SMTP_RESP *smtp_chat_resp(SMTP_SESSION *session)
 	 */
 	session->error_mask |= MAIL_ERROR_PROTOCOL;
 	if (session->features & SMTP_FEATURE_PIPELINING) {
-	    msg_warn("non-%s response from %s: %.100s",
+	    msg_warn("%s: non-%s response from %s: %.100s",
+		     session->state->request->queue_id,
 		     (session->state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) ?
 		     "LMTP" : "ESMTP", session->namaddrport,
 		     STR(session->buffer));

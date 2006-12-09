@@ -135,6 +135,8 @@ extern void qmgr_transport_unthrottle(QMGR_TRANSPORT *);
 extern QMGR_TRANSPORT *qmgr_transport_create(const char *);
 extern QMGR_TRANSPORT *qmgr_transport_find(const char *);
 
+#define QMGR_TRANSPORT_THROTTLED(t) ((t)->flags & QMGR_TRANSPORT_STAT_DEAD)
+
  /*
   * Each next hop (e.g., a domain name) has its own queue of pending message
   * transactions. The "todo" queue contains messages that are to be delivered
@@ -177,6 +179,8 @@ extern void qmgr_queue_throttle(QMGR_QUEUE *, DSN *);
 extern void qmgr_queue_unthrottle(QMGR_QUEUE *);
 extern QMGR_QUEUE *qmgr_queue_find(QMGR_TRANSPORT *, const char *);
 
+#define QMGR_QUEUE_THROTTLED(q) ((q)->window <= 0)
+
  /*
   * Structure of one next-hop queue entry. In order to save some copying
   * effort we allow multiple recipients per transaction.
@@ -191,6 +195,7 @@ struct QMGR_ENTRY {
 
 extern QMGR_ENTRY *qmgr_entry_select(QMGR_QUEUE *);
 extern void qmgr_entry_unselect(QMGR_QUEUE *, QMGR_ENTRY *);
+extern void qmgr_entry_move_todo(QMGR_QUEUE *, QMGR_ENTRY *);
 extern void qmgr_entry_done(QMGR_ENTRY *, int);
 extern QMGR_ENTRY *qmgr_entry_create(QMGR_QUEUE *, QMGR_MESSAGE *);
 
@@ -320,6 +325,13 @@ struct QMGR_SCAN {
 extern QMGR_SCAN *qmgr_scan_create(const char *);
 extern void qmgr_scan_request(QMGR_SCAN *, int);
 extern char *qmgr_scan_next(QMGR_SCAN *);
+
+ /*
+  * qmgr_error.c
+  */
+extern QMGR_TRANSPORT *qmgr_error_transport(const char *);
+extern QMGR_QUEUE *qmgr_error_queue(const char *, DSN *);
+extern char *qmgr_error_nexthop(DSN *);
 
 /* LICENSE
 /* .ad

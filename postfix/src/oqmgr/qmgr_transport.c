@@ -193,7 +193,8 @@ static void qmgr_transport_event(int unused_event, char *context)
     /*
      * Disable further read events that end up calling this function.
      */
-    event_disable_readwrite(vstream_fileno(alloc->stream));
+    if (alloc->stream)
+	event_disable_readwrite(vstream_fileno(alloc->stream));
     alloc->transport->flags &= ~QMGR_TRANSPORT_STAT_BUSY;
 
     /*
@@ -259,7 +260,6 @@ void    qmgr_transport_alloc(QMGR_TRANSPORT *transport, QMGR_TRANSPORT_ALLOC_NOT
 {
     QMGR_TRANSPORT_ALLOC *alloc;
     VSTREAM *stream;
-    DSN     dsn;
 
     /*
      * Sanity checks.
@@ -286,18 +286,28 @@ void    qmgr_transport_alloc(QMGR_TRANSPORT *transport, QMGR_TRANSPORT_ALLOC_NOT
 #define EVENT_HANDLER	qmgr_transport_event
 #endif
 
+    /*
+     * When the connection to the delivery agent cannot be completed, notify
+     * the event handler so that it can throttle the transport and defer the
+     * todo queues, just like it does when communication fails *after*
+     * connection completion.
+     * 
+     * Before Postfix 2.4, the event handler was not invoked, and mail was not
+     * deferred. Because of this, mail would be stuck in the active queue
+     * after triggering a "connection refused" condition.
+     */
     if ((stream = mail_connect(MAIL_CLASS_PRIVATE, transport->name, BLOCK_MODE)) == 0) {
 	msg_warn("connect to transport %s: %m", transport->name);
-	qmgr_transport_throttle(transport,
-				DSN_SIMPLE(&dsn, "4.3.0",
-					   "mail transport unavailable"));
-	return;
     }
     alloc = (QMGR_TRANSPORT_ALLOC *) mymalloc(sizeof(*alloc));
     alloc->stream = stream;
     alloc->transport = transport;
     alloc->notify = notify;
     transport->flags |= QMGR_TRANSPORT_STAT_BUSY;
+    if (alloc->stream == 0) {
+	event_request_timer(qmgr_transport_event, (char *) alloc, 0);
+	return;
+    }
     ENABLE_EVENTS(vstream_fileno(alloc->stream), EVENT_HANDLER, (char *) alloc);
 
     /*

@@ -1848,7 +1848,7 @@ non-address DSN status (e.g., 4.0.0).  </p>
 </DD>
 
 <DT><b><a name="default_recipient_limit">default_recipient_limit</a>
-(default: 10000)</b></DT><DD>
+(default: 20000)</b></DT><DD>
 
 <p>
 The default per-transport upper limit on the number of in-memory
@@ -1856,6 +1856,34 @@ recipients.  These limits take priority over the global
 <a href="postconf.5.html#qmgr_message_recipient_limit">qmgr_message_recipient_limit</a> after the message has been assigned
 to the respective transports.  See also <a href="postconf.5.html#default_extra_recipient_limit">default_extra_recipient_limit</a>
 and <a href="postconf.5.html#qmgr_message_recipient_minimum">qmgr_message_recipient_minimum</a>.
+</p>
+
+
+</DD>
+
+<DT><b><a name="default_recipient_refill_delay">default_recipient_refill_delay</a>
+(default: 5s)</b></DT><DD>
+
+<p>
+The default per-transport maximum delay between recipients refills.
+When not all message recipients fit into the memory at once, keep loading
+more of them at least once every this many seconds.  This is used to
+make sure the recipients are refilled in timely manner even when
+$<a href="postconf.5.html#default_recipient_refill_limit">default_recipient_refill_limit</a> is too high for too slow deliveries.
+</p>
+
+
+</DD>
+
+<DT><b><a name="default_recipient_refill_limit">default_recipient_refill_limit</a>
+(default: 100)</b></DT><DD>
+
+<p>
+The default per-transport limit on the number of recipients refilled at
+once.  When not all message recipients fit into the memory at once, keep
+loading more of them in batches of at least this many at a time.  See also
+$<a href="postconf.5.html#default_recipient_refill_delay">default_recipient_refill_delay</a>, which may result in recipient batches
+lower than this when this limit is too high for too slow deliveries.
 </p>
 
 

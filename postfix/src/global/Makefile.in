@@ -1515,6 +1515,7 @@ recdump.o: rec_streamlf.h
 recdump.o: rec_type.h
 recdump.o: recdump.c
 recdump.o: record.h
+recipient_list.o: ../../include/msg.h
 recipient_list.o: ../../include/mymalloc.h
 recipient_list.o: ../../include/sys_defs.h
 recipient_list.o: recipient_list.c

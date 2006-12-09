@@ -173,7 +173,7 @@
 /*	in-memory "dead" destination status cache.
 /* .IP "\fBqmgr_message_recipient_minimum (10)\fR"
 /*	The minimal number of in-memory recipients for any message.
-/* .IP "\fBdefault_recipient_limit (10000)\fR"
+/* .IP "\fBdefault_recipient_limit (20000)\fR"
 /*	The default per-transport upper limit on the number of in-memory
 /*	recipients.
 /* .IP "\fItransport\fB_recipient_limit ($default_recipient_limit)\fR"
@@ -182,6 +182,17 @@
 /*	The default value for the extra per-transport limit imposed on the
 /*	number of in-memory recipients.
 /* .IP "\fItransport\fB_extra_recipient_limit ($default_extra_recipient_limit)\fR"
+/*	Idem, for delivery via the named message \fItransport\fR.
+/* .PP
+/*	Available in Postfix version 2.4 and later:
+/* .IP "\fBdefault_recipient_refill_limit (100)\fR"
+/*	The default per-transport limit on the number of recipients refilled at
+/*	once.
+/* .IP "\fItransport\fB_recipient_refill_limit ($default_recipient_refill_limit)\fR"
+/*	Idem, for delivery via the named message \fItransport\fR.
+/* .IP "\fBdefault_recipient_refill_delay (5s)\fR"
+/*	The default per-transport maximum delay between recipients refills.
+/* .IP "\fItransport\fB_recipient_refill_delay ($default_recipient_refill_delay)\fR"
 /*	Idem, for delivery via the named message \fItransport\fR.
 /* DELIVERY CONCURRENCY CONTROLS
 /* .ad
@@ -361,6 +372,8 @@ int     var_qmgr_rcpt_limit;
 int     var_qmgr_msg_rcpt_limit;
 int     var_xport_rcpt_limit;
 int     var_stack_rcpt_limit;
+int     var_xport_refill_limit;
+int     var_xport_refill_delay;
 int     var_delivery_slot_cost;
 int     var_delivery_slot_loan;
 int     var_delivery_slot_discount;
@@ -595,6 +608,7 @@ int     main(int argc, char **argv)
 	VAR_DSN_QUEUE_TIME, DEF_DSN_QUEUE_TIME, &var_dsn_queue_time, 0, 8640000,
 	VAR_XPORT_RETRY_TIME, DEF_XPORT_RETRY_TIME, &var_transport_retry_time, 1, 0,
 	VAR_QMGR_CLOG_WARN_TIME, DEF_QMGR_CLOG_WARN_TIME, &var_qmgr_clog_warn_time, 0, 0,
+	VAR_XPORT_REFILL_DELAY, DEF_XPORT_REFILL_DELAY, &var_xport_refill_delay, 1, 0,
 	0,
     };
     static CONFIG_INT_TABLE int_table[] = {
@@ -603,6 +617,7 @@ int     main(int argc, char **argv)
 	VAR_QMGR_MSG_RCPT_LIMIT, DEF_QMGR_MSG_RCPT_LIMIT, &var_qmgr_msg_rcpt_limit, 1, 0,
 	VAR_XPORT_RCPT_LIMIT, DEF_XPORT_RCPT_LIMIT, &var_xport_rcpt_limit, 0, 0,
 	VAR_STACK_RCPT_LIMIT, DEF_STACK_RCPT_LIMIT, &var_stack_rcpt_limit, 0, 0,
+	VAR_XPORT_REFILL_LIMIT, DEF_XPORT_REFILL_LIMIT, &var_xport_refill_limit, 1, 0,
 	VAR_DELIVERY_SLOT_COST, DEF_DELIVERY_SLOT_COST, &var_delivery_slot_cost, 0, 0,
 	VAR_DELIVERY_SLOT_LOAN, DEF_DELIVERY_SLOT_LOAN, &var_delivery_slot_loan, 0, 0,
 	VAR_DELIVERY_SLOT_DISCOUNT, DEF_DELIVERY_SLOT_DISCOUNT, &var_delivery_slot_discount, 0, 100,

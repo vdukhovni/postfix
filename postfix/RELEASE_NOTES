@@ -17,11 +17,57 @@ Incompatibility with Postfix 2.2 and earlier
 If you upgrade from Postfix 2.2 or earlier, read RELEASE_NOTES-2.3
 before proceeding.
 
+Incompatible changes with Postfix snapshot 20061209
+===================================================
+
+After upgrading Postfix you MUST execute "postfix reload", otherwise
+the queue manager may log a warnings with:
+
+    warning: connect to transport retry: Connection refused
+
+The upgrade procedure adds a new "retry" service to the master.cf
+file.  If you make the mistake of copying old Postfix configuration
+files over the new files, the queue manager may log warnings with:
+
+    warning: connect to transport retry: Connection refused
+
+To fix your master.cf file, use "postfix upgrade-configuration"
+followed by "postfix reload".
+
+Small changes were made to the default bounce message templates,
+to prevent HTML-aware software from hiding or removing "<postmaster>"
+and producing really misleading text.
+
+Major changes with Postfix snapshot 20061209
+============================================
+
+Better interoperability with non-conforming SMTP servers that reply
+and disconnect before Postfix has sent the end-of-data.
+
+Improved worst-case queue manager performance when deferring or
+bouncing lots of mail. Instead of talking to the bounce or defer
+service directly, this work is now done in the background by the
+error or retry service.  The retry service is new.
+
+Improved worst-case queue manager performance when delivering
+multi-recipient mail. The queue manager now more agressively reloads
+recipients from the queue file as soon as slots become available,
+instead of waiting for slow deliveries to complete.
+
 Incompatible changes with Postfix snapshot 20061006
 ===================================================
 
 The format of SMTP server TLS session cache lookup keys has changed.
 The lookup key now includes the master.cf service name.
+
+Major changes with Postfix snapshot 20061006
+============================================
+
+Individual CISCO PIX bug workarounds are now on/off configurable.
+This introduces new parameters: smtp_pix_workarounds (default:
+disable_esmtp, delay_dotcrlf) and smtp_pix_workaround_maps (workarounds
+indexed by server IP address).  The default settings are backwards
+compatible.
 
 Incompatible changes with Postfix snapshot 20060806
 ===================================================

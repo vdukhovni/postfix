@@ -4,7 +4,7 @@
 .SH NAME
 error
 \-
-Postfix error mail delivery agent
+Postfix error/retry mail delivery agent
 .SH "SYNOPSIS"
 .na
 .nf
@@ -21,11 +21,11 @@ The reason may be prefixed with an RFC 3463-compatible detail code.
 This program expects to be run from the \fBmaster\fR(8) process
 manager.
 
-The \fBerror\fR(8) delivery agent bounces all recipients in the delivery
-request using the "next-hop"
-domain or host information as the reason for non-delivery, updates
-the queue file and marks recipients as finished or informs the
-queue manager that delivery should be tried again at a later time.
+Depending on the service name in master.cf, \fBerror\fR
+or \fBretry\fR, the server bounces or defers all recipients
+in the delivery request using the "next-hop" information
+as the reason for non-delivery. The \fBretry\fR service name is
+supported as of Postfix 2.4.
 
 Delivery status reports are sent to the \fBbounce\fR(8),
 \fBdefer\fR(8) or \fBtrace\fR(8) daemon as appropriate.

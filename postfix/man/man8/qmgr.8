@@ -201,7 +201,7 @@ queue manager, and the maximal size of the size of the short-term,
 in-memory "dead" destination status cache.
 .IP "\fBqmgr_message_recipient_minimum (10)\fR"
 The minimal number of in-memory recipients for any message.
-.IP "\fBdefault_recipient_limit (10000)\fR"
+.IP "\fBdefault_recipient_limit (20000)\fR"
 The default per-transport upper limit on the number of in-memory
 recipients.
 .IP "\fItransport\fB_recipient_limit ($default_recipient_limit)\fR"
@@ -210,6 +210,17 @@ Idem, for delivery via the named message \fItransport\fR.
 The default value for the extra per-transport limit imposed on the
 number of in-memory recipients.
 .IP "\fItransport\fB_extra_recipient_limit ($default_extra_recipient_limit)\fR"
+Idem, for delivery via the named message \fItransport\fR.
+.PP
+Available in Postfix version 2.4 and later:
+.IP "\fBdefault_recipient_refill_limit (100)\fR"
+The default per-transport limit on the number of recipients refilled at
+once.
+.IP "\fItransport\fB_recipient_refill_limit ($default_recipient_refill_limit)\fR"
+Idem, for delivery via the named message \fItransport\fR.
+.IP "\fBdefault_recipient_refill_delay (5s)\fR"
+The default per-transport maximum delay between recipients refills.
+.IP "\fItransport\fB_recipient_refill_delay ($default_recipient_refill_delay)\fR"
 Idem, for delivery via the named message \fItransport\fR.
 .SH "DELIVERY CONCURRENCY CONTROLS"
 .na

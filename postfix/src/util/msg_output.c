@@ -25,7 +25,27 @@
 /*	const char *text;
 /* DESCRIPTION
 /*	This module implements low-level output management for the
-/*	msg(3) diagnostics interface.
+/*	msg(3) diagnostics interface. The output routines are
+/*	protected against ordinary recursive calls and against
+/*	re-entry by a signal handler.
+/*
+/*	Protection against re-entry by a signal handler requires
+/*	that:
+/* .IP \(bu
+/*	The signal handler never returns.
+/* .IP \(bu
+/*	The signal handler does not execute before msg_output()
+/*	completes initialization.
+/* .IP \(bu
+/*	Each msg_output() call-back function, and each Postfix or
+/*	system function called by that call-back function, either
+/*	protects itself against recursive calls and re-entry by a
+/*	terminating signal handler, or is called exclusively by
+/*	functions in the msg_output(3) module.
+/* .PP
+/*	When re-entrancy is detected, the requested output operation
+/*	is skipped. This prevents deadlock on Linux releases that
+/*	use mutexes within system library routines such as syslog().
 /*
 /*	msg_output() registers an output handler for the diagnostics
 /*	interface. An application can register multiple output handlers.
@@ -68,6 +88,12 @@
 #include <msg_output.h>
 
  /*
+  * Global scope, to discourage the compiler from doing smart things.
+  */
+volatile int msg_vp_lock;
+volatile int msg_txt_lock;
+
+ /*
   * Private state.
   */
 static MSG_OUTPUT_FN *msg_output_fn = 0;
@@ -78,6 +104,12 @@ static VSTRING *msg_buffer = 0;
 
 void    msg_output(MSG_OUTPUT_FN output_fn)
 {
+
+    /*
+     * Allocate all resources during initialization.
+     */
+    if (msg_buffer == 0)
+	msg_buffer = vstring_alloc(100);
 
     /*
      * We're not doing this often, so avoid complexity and allocate memory
@@ -106,10 +138,10 @@ void    msg_printf(int level, const char *format,...)
 
 void    msg_vprintf(int level, const char *format, va_list ap)
 {
-    if (msg_buffer == 0)
-	msg_buffer = vstring_alloc(100);
+    BEGIN_PROTECT_AGAINST_RECURSION_OR_TERMINATING_SIGNAL_HANDLER(msg_vp_lock);
     vstring_vsprintf(msg_buffer, percentm(format, errno), ap);
     msg_text(level, vstring_str(msg_buffer));
+    END_PROTECT_AGAINST_RECURSION_OR_TERMINATING_SIGNAL_HANDLER(msg_vp_lock);
 }
 
 /* msg_text - sanitize and log pre-formatted text */
@@ -121,13 +153,14 @@ void    msg_text(int level, const char *text)
     /*
      * Sanitize the text. Use a private copy if necessary.
      */
-    if (msg_buffer == 0)
-	msg_buffer = vstring_alloc(100);
+    BEGIN_PROTECT_AGAINST_RECURSION_OR_TERMINATING_SIGNAL_HANDLER(msg_txt_lock);
     if (text != vstring_str(msg_buffer))
 	vstring_strcpy(msg_buffer, text);
     printable(vstring_str(msg_buffer), '?');
+    /* On-the-fly initialization for debugging test programs only. */
     if (msg_output_fn_count == 0)
 	msg_vstream_init("unknown", VSTREAM_ERR);
     for (i = 0; i < msg_output_fn_count; i++)
 	msg_output_fn[i] (level, vstring_str(msg_buffer));
+    END_PROTECT_AGAINST_RECURSION_OR_TERMINATING_SIGNAL_HANDLER(msg_txt_lock);
 }

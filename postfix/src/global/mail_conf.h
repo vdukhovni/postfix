@@ -53,7 +53,7 @@ extern char *get_mail_conf_raw(const char *, const char *, int, int);
 
 extern int get_mail_conf_int2(const char *, const char *, int, int, int);
 extern long get_mail_conf_long2(const char *, const char *, long, long, long);
-extern int get_mail_conf_time2(const char *, const char *, const char *, int, int);
+extern int get_mail_conf_time2(const char *, const char *, int, int, int, int);
 
  /*
   * Lookup with function-call defaults.
@@ -73,6 +73,7 @@ extern void set_mail_conf_int(const char *, int);
 extern void set_mail_conf_long(const char *, long);
 extern void set_mail_conf_bool(const char *, int);
 extern void set_mail_conf_time(const char *, const char *);
+extern void set_mail_conf_time_int(const char *, int);
 
  /*
   * Tables that allow us to selectively copy values from the global

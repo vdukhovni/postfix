@@ -21,7 +21,16 @@ WWhhaatt iiss bbaacckkssccaatttteerr mmaaiill??
 
 When a spammer or worm sends mail with forged sender addresses, innocent sites
 are flooded with undeliverable mail notifications. This is called backscatter
-mail, and if your system is flooded then you will find out soon enough.
+mail. With Postfix, you know that you're a backscatter victim when your logfile
+goes on and on like this:
+
+    Dec  4 04:30:09 hostname postfix/smtpd[58549]: NOQUEUE: reject:
+    RCPT from xxxxxxx[x.x.x.x]: 550 5.1.1 <yyyyyy@your.domain.here>:
+    Recipient address rejected: User unknown; from=<>
+    to=<yyyyyy@your.domain.here> proto=ESMTP helo=<zzzzzz>
+
+What you see are lots of "user unknown" errors with "from=<>". These are error
+reports from MAILER-DAEMONs elsewhere on the Internet.
 
 HHooww ddoo II bblloocckk bbaacckkssccaatttteerr mmaaiill ttoo rraannddoomm rreecciippiieenntt aaddddrreesssseess??
 
@@ -36,6 +45,9 @@ waste time.
     /etc/postfix/main.cf:
         # Not needed with Postfix 2.1 and later.
         smtpd_error_sleep_time = 0
+
+        # Not needed with Postfix 2.4 and later.
+        unknown_local_recipient_reject_code = 550
 
 HHooww ddoo II bblloocckk bbaacckkssccaatttteerr mmaaiill ttoo rreeaall rreecciippiieenntt aaddddrreesssseess??
 

@@ -675,13 +675,23 @@ extern int var_qmgr_msg_rcpt_limit;
 
 #define VAR_XPORT_RCPT_LIMIT	"default_recipient_limit"
 #define _XPORT_RCPT_LIMIT	"_recipient_limit"
-#define DEF_XPORT_RCPT_LIMIT	10000
+#define DEF_XPORT_RCPT_LIMIT	20000
 extern int var_xport_rcpt_limit;
 
 #define VAR_STACK_RCPT_LIMIT	"default_extra_recipient_limit"
 #define _STACK_RCPT_LIMIT	"_extra_recipient_limit"
 #define DEF_STACK_RCPT_LIMIT	1000
 extern int var_stack_rcpt_limit;
+
+#define VAR_XPORT_REFILL_LIMIT	"default_recipient_refill_limit"
+#define _XPORT_REFILL_LIMIT	"_recipient_refill_limit"
+#define DEF_XPORT_REFILL_LIMIT	100
+extern int var_xport_refill_limit;
+
+#define VAR_XPORT_REFILL_DELAY	"default_recipient_refill_delay"
+#define _XPORT_REFILL_DELAY	"_recipient_refill_delay"
+#define DEF_XPORT_REFILL_DELAY	"5s"
+extern int var_xport_refill_delay;
 
  /*
   * Queue manager: default job scheduler parameters.

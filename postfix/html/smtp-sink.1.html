@@ -47,6 +47,13 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
 
        <b>-a</b>     Do not announce SASL authentication support.
 
+       <b>-A</b> <i>delay</i>
+              Wait  <i>delay</i>  seconds after responding to DATA, then
+              abort prematurely with a 550 reply status.  Do  not
+              read  further  input  from  the  client; this is an
+              attempt to block the client before  it  sends  ".".
+              Specify a zero delay value to abort immediately.
+
        <b>-c</b>     Display  running counters that are updated whenever
               an SMTP session ends, a QUIT command  is  executed,
               or when "." is received.

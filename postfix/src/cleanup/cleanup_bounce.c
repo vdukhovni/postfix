@@ -135,7 +135,7 @@ int     cleanup_bounce(CLEANUP_STATE *state)
      * stream error flags to avoid false alarms.
      */
     if (state->errs & CLEANUP_STAT_SIZE) {
-	(void) vstream_fpurge(state->dst);
+	(void) vstream_fpurge(state->dst, VSTREAM_PURGE_BOTH);
 	vstream_clearerr(state->dst);
     }
     if (vstream_fseek(state->dst, 0L, SEEK_SET) < 0)

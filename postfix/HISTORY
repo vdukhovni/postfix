@@ -10760,7 +10760,7 @@ Apologies for any names omitted.
 	Files: global/mail_params.[hc].
 
 ---------
-  
+
 20050415-20050615
 
 	As of 20050525, DSN support does not involve new queue file
@@ -12814,6 +12814,33 @@ Apologies for any names omitted.
 	response on a cached SMTP/LMTP connection.  Report by Brian
 	Kantor.  Fix by Victor Duchovni.  File: smtp/smtp_reuse.c.
 
+20061106
+
+	The following is implemented using snapshot 20061019 as the
+	code base.
+
+	Feature: new retry delivery agent, to avoid the synchronous
+	defer service client in the queue manager. This code is
+	co-located with the error(8) server. File: error/error.c.
+
+	Performance: the queue manager could spend too much time
+	in the synchronous defer service client, causing the watchdog
+	timer to go off.  Where possible, the queue manager now
+	bounces or defers recipients asynchronously, by routing
+	them to the error or the retry delivery agent. Code by
+	Wietse and Patrik Rak. Files: global/recipient_list.c,
+	*qmgr/qmgr_error.c, *qmgr/qmgr_defer.c, *qmgr/qmgr_entry.c,
+	*qmgr/qmgr_deliver.c, *qmgr/qmgr_message.c.
+
+	Performance: refined recipient and job grouping, and more
+	agressive early refill of in-memory recipients to prevent
+	a worst-case scenario where the queue manager became starved
+	until after the last batch of slow in-memory recipients of
+	jumbo multi-recipient mail. Code by Patrik Rak.  Files:
+	global/mail_conf_time.c, qmgr/qmgr_message.c, qmgr/qmgr.c,
+	qmgr/qmgr.h, qmgr/qmgr_entry.c, qmgr/qmgr_job.c,
+	qmgr/qmgr_message.c, qmgr/qmgr_transport.c.
+
 20061113
 
 	Bugfix: the Postfix install/upgrade procedure broke with
@@ -12837,21 +12864,15 @@ Apologies for any names omitted.
 
 20061123
 
-	Workaround: more agressive early refill of in-memory
-	recipients to prevent a worst-case scenario where the queue
-	manager became starved until after the last batch of slow
-	in-memory recipients of jumbo multi-recipient mail. Files:
-	qmgr/qmgr_job.c.
-
 	Safety: don't read more than 5000 recipients at a time, to
 	avoid spending too much time away from interrupts.  File:
 	qmgr/qmgr_message.c.
-	
+
 20061201
 
-	Workaround: don't complain in the trivial-rewrite, verify,
-	proxymap or connection cache client when the server exits
-	after the client sends its request. We still complain,
+	Workaround: don't complain with "Error 0" in the trivial-rewrite,
+	verify, proxymap or connection cache client when the server
+	exits after the client sends its request. We still complain,
 	however, when the problem persists.  Files: global/rewrite_clnt.c,
 	global/resolve_clnt.c, global/verify_clnt.c, global/scache_clnt.c,
 	global/dict_proxy.c.
@@ -12878,7 +12899,92 @@ Apologies for any names omitted.
 	Postfix daemons now properly detect write timeout errors
 	on internal connections.  Files: util/vbuf.h.
 
+	Workaround: some broken SMTP servers reply and hang up in
+	the middle of DATA. The Postfix SMTP client now stops sending
+	and tries to receive the server response. This can help to
+	avoid repeated delivery attempts. Initial implementation
+	by Wietse, later work by Victor Duchovni. Files:
+	smtp/smtp_proto.c, smtpstone/smtp-sink.c, util/vstream.c,
+	plus trivial mods for code thatr calls vstream_fpurge().
+
+20061204
+
+	Compatibility: The Postfix installation/upgrade procedure
+	no longer sets "unknown_local_recipient_code = 450" in
+	main.cf. This was a safety net for upgrades from Postfix
+	1.x. Four years later is no longer needed. File:
+	conf/post-install.
+
+	Cleanup: removed vstream_fclose() error warning in the code
+	that disconnects from a delivery agent. There is no need
+	to report errors here because they would already be reported
+	earlier.  Files: *qmgr/qmgr_deliver.c.
+
+	Robustness: "kill me after N seconds" feature to ensure
+	that a daemon process does not get stuck while preparing
+	for exit after signal arrival. File: util/killme_after.[hc],
+	util/watchdog.c, master/master_sig.c.
+
+20061206
+
+	Robustness: low-cost re-entrancy guard that allows daemons
+	to safely call msg_fatal() etc. from a signal handler,
+	without risking memory corruption, or deadlock on Redhat
+	Linux.  This works provided that the signal handler terminates
+	the process. In that special case we need not guarantee
+	after-the-fact consistency of the thread that was interrupted.
+	File: util/msg_output.c.
+
+	Robustness: replace exit() calls by _exit(). File: util/msg.c.
+
+20061207
+
+	Workaround: on systems with usable futimes() or equivalent
+	(Solaris, *BSD, MacOS, but not Linux), always explicitly
+	set the queue file last modification time stamps while
+	creating a queue file. With this, Postfix can avoid logging
+	warnings when the file system clock is ahead of the local
+	clock.  Clock skew can be a problem, because Postfix does
+	not deliver mail until the local clock catches up with the
+	queue file's last modification time stamp.  File:
+	global/mail_stream.c.
+
+	Workaround: on systems without usable futimes() or equivalent,
+	log a warning when the file system clock is more than 100
+	seconds behind the local clock. This does not cause mail
+	delivery problems, but it just looks silly in message
+	headers. File: global/mail_stream.c.
+
+	On systems without usable futimes() (Linux, and ancient
+	versions of Solaris, SunOS and *BSD) Postfix will keep using
+	the slower utime() system call to update queue file time
+	stamps when the file system clock is off with respect to
+	the local system clock.
+
+	Compatibility with Postfix < 2.3: undo the change to bounce
+	instead of defer after pipe-to-command delivery fails with
+	a signal. File: global/pipe_command.c.
+
+20061208
+
+	Workaround: apparently, some mail software removes or hides
+	"<postmaster>" in the Postfix bounce text, because it
+	processes the text as if it were HTML. This confuses users.
+	The bounce template has been updated to remove the < and
+	>.  File: bounce/bounce_templates.c.
+
+	Cleanup: when smtp_generic_maps is turned on, don't parse
+	MIME structures in the message body. Victor Duchovni. File:
+	smtp/smtp_proto.c.
+
 Wish list:
+
+	Update MILTER_README with Martinec info.
+
+	Make postcat header/body aware so people can grep headers.
+
+	Make postmap header/body aware so people can test multi-line
+	header checks.
 
 	Investigate if clients of single-instance servers such as
 	tlsmgr, verify, can close sockets earlier.
@@ -13096,12 +13202,6 @@ Wish list:
 	limited number of times.
 
 	Low: smtp-source may block when sending large test messages.
-
-	Med: make qmgr recipient bounce/defer activity asynchronous
-	or add a multi-recipient operation that reduces overhead.
-	One possibility is to pass delivery requests to a retry(8)
-	delivery agent which is error(8) in disguise, and which
-	calls defer_append() instead of bounce_append().
 
 	Med: find a way to log the sender address when MAIL FROM
 	is rejected due to lack of disk space.

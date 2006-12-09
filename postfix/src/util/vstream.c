@@ -58,8 +58,9 @@
 /*	int	vstream_fflush(stream)
 /*	VSTREAM	*stream;
 /*
-/*	int	vstream_fpurge(stream)
+/*	int	vstream_fpurge(stream, direction)
 /*	VSTREAM	*stream;
+/*	int     direction;
 /*
 /*	ssize_t	vstream_fread(stream, buf, len)
 /*	VSTREAM	*stream;
@@ -160,6 +161,7 @@
 /*
 /*	vstream_fclose() closes the named buffered stream. The result
 /*	is 0 in case of success, VSTREAM_EOF in case of problems.
+/*	vstream_fclose() reports the same errors as vstream_ferror().
 /*
 /*	vstream_fdclose() leaves the file(s) open but is otherwise
 /*	identical to vstream_fclose().
@@ -215,12 +217,15 @@
 /*	opened in read-write or write-only mode.
 /*	vstream_fflush() returns 0 in case of success, VSTREAM_EOF in
 /*	case of problems. It is an error to flush a read-only stream.
+/*	vstream_fflush() reports the same errors as vstream_ferror().
 /*
 /*	vstream_fpurge() discards the contents of the stream buffer.
-/*	In the case of a double-buffered stream, it discards the
-/*	content of both the read and write buffers.
-/*	vstream_fpurge() returns 0 in case of success, VSTREAM_EOF in
-/*	case of problems.
+/*	If direction is VSTREAM_PURGE_READ, it discards unread data,
+/*	else if direction is VSTREAM_PURGE_WRITE, it discards unwritten
+/*	data. In the case of a double-buffered stream, if direction is
+/*	VSTREAM_PURGE_BOTH, it discards the content of both the read
+/*	and write buffers. vstream_fpurge() returns 0 in case of success,
+/*	VSTREAM_EOF in case of problems.
 /*
 /*	vstream_fread() and vstream_fwrite() perform unformatted I/O
 /*	on the named stream. The result value is the number of bytes
@@ -280,18 +285,20 @@
 /*
 /*	vstream_feof() returns non-zero when a previous operation on the
 /*	specified stream caused an end-of-file condition.
-/*	Further read requests after EOF may complete succesfully,
-/*	even when vstream_clearerr() is not called for that stream.
+/*	Although further read requests after EOF may complete
+/*	succesfully, vstream_feof() will keep returning non-zero
+/*	until vstream_clearerr() is called for that stream.
 /*
 /*	vstream_ferror() returns non-zero when a previous operation on the
 /*	specified stream caused a non-EOF error condition, including timeout.
-/*	After a non-EOF, non-timeout, error on a stream, no I/O request will 
+/*	After a non-EOF, non-timeout, error on a stream, no I/O request will
 /*	complete until after vstream_clearerr() is called for that stream.
 /*
 /*	vstream_ftimeout() returns non-zero when a previous operation on the
 /*	specified stream caused a timeout error condition.
-/*	Further I/O requests after timeout may complete succesfully,
-/*	even when vstream_clearerr() is not called for that stream.
+/*	Although further I/O requests after timeout may complete
+/*	succesfully, vstream_ftimeout() will keep returning non-zero
+/*	until vstream_clearerr() is called for that stream.
 /*
 /*	vstream_clearerr() resets the timeout, error and end-of-file indication
 /*	of the specified stream, and returns no useful result.
@@ -824,10 +831,15 @@ static int vstream_buf_space(VBUF *bp, ssize_t want)
 
 /* vstream_fpurge - discard unread or unwritten content */
 
-int     vstream_fpurge(VSTREAM *stream)
+int     vstream_fpurge(VSTREAM *stream, int direction)
 {
     const char *myname = "vstream_fpurge";
     VBUF   *bp = &stream->buf;
+
+#define VSTREAM_MAYBE_PURGE_WRITE(d, b) if ((d) & VSTREAM_PURGE_WRITE) \
+	VSTREAM_BUF_AT_START((b))
+#define VSTREAM_MAYBE_PURGE_READ(d, b) if ((d) & VSTREAM_PURGE_READ) \
+	VSTREAM_BUF_AT_END((b))
 
     /*
      * To discard all unread contents, position the read buffer at its end,
@@ -840,20 +852,20 @@ int     vstream_fpurge(VSTREAM *stream)
      */
     switch (bp->flags & (VSTREAM_FLAG_READ_DOUBLE | VSTREAM_FLAG_WRITE)) {
     case VSTREAM_FLAG_READ_DOUBLE:
-	VSTREAM_BUF_AT_START(&stream->write_buf);
+	VSTREAM_MAYBE_PURGE_WRITE(direction, &stream->write_buf);
 	/* FALLTHROUGH */
     case VSTREAM_FLAG_READ:
-	VSTREAM_BUF_AT_END(bp);
+	VSTREAM_MAYBE_PURGE_READ(direction, bp);
 	break;
     case VSTREAM_FLAG_DOUBLE:
-	VSTREAM_BUF_AT_START(&stream->write_buf);
-	VSTREAM_BUF_AT_END(&stream->read_buf);
+	VSTREAM_MAYBE_PURGE_WRITE(direction, &stream->write_buf);
+	VSTREAM_MAYBE_PURGE_READ(direction, &stream->read_buf);
 	break;
     case VSTREAM_FLAG_WRITE_DOUBLE:
-	VSTREAM_BUF_AT_END(&stream->read_buf);
+	VSTREAM_MAYBE_PURGE_READ(direction, &stream->read_buf);
 	/* FALLTHROUGH */
     case VSTREAM_FLAG_WRITE:
-	VSTREAM_BUF_AT_START(bp);
+	VSTREAM_MAYBE_PURGE_WRITE(direction, bp);
 	break;
     case VSTREAM_FLAG_READ_DOUBLE | VSTREAM_FLAG_WRITE:
     case VSTREAM_FLAG_READ | VSTREAM_FLAG_WRITE:

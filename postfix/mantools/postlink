@@ -134,6 +134,8 @@ while (<>) {
     s;\bdefault_privs\b;<a href="postconf.5.html#default_privs">$&</a>;g;
     s;\bdefault_process_limit\b;<a href="postconf.5.html#default_process_limit">$&</a>;g;
     s;\bdefault_rbl_reply\b;<a href="postconf.5.html#default_rbl_reply">$&</a>;g;
+    s;\bdefault_recipient_refill_limit\b;<a href="postconf.5.html#default_recipient_refill_limit">$&</a>;g;
+    s;\bdefault_recipient_refill_delay\b;<a href="postconf.5.html#default_recipient_refill_delay">$&</a>;g;
     s;\bdefault_recip[-</bB>]*\n* *[<bB>]*ient_limit\b;<a href="postconf.5.html#default_recipient_limit">$&</a>;g;
     s;\bdefault_transport\b;<a href="postconf.5.html#default_transport">$&</a>;g;
     s;\bdefault_verp_delimiters\b;<a href="postconf.5.html#default_verp_delimiters">$&</a>;g;

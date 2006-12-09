@@ -39,6 +39,12 @@
 /*	Do not announce 8BITMIME support.
 /* .IP \fB-a\fR
 /*	Do not announce SASL authentication support.
+/* .IP "\fB-A \fIdelay\fR"
+/*	Wait \fIdelay\fR seconds after responding to DATA, then
+/*	abort prematurely with a 550 reply status.  Do not read
+/*	further input from the client; this is an attempt to block
+/*	the client before it sends ".".  Specify a zero delay value
+/*	to abort immediately.
 /* .IP \fB-c\fR
 /*	Display running counters that are updated whenever an SMTP
 /*	session ends, a QUIT command is executed, or when "." is
@@ -254,6 +260,7 @@
 #include <myaddrinfo.h>
 #include <make_dirs.h>
 #include <myrand.h>
+#include <chroot_uid.h>
 
 /* Global library. */
 
@@ -301,6 +308,8 @@ static char *var_myhostname;
 static int command_read(SINK_STATE *);
 static int data_read(SINK_STATE *);
 static void disconnect(SINK_STATE *);
+static void read_timeout(int, char *);
+static void read_event(int, char *);
 static int count;
 static int sess_count;
 static int quit_count;
@@ -319,6 +328,7 @@ static int disable_enh_status;
 static int max_client_count = DEF_MAX_CLIENT_COUNT;
 static int client_count;
 static int sock;
+static int abort_delay = -1;
 
 static char *single_template;		/* individual template */
 static char *shared_template;		/* shared template */
@@ -659,6 +669,17 @@ static void rcpt_response(SINK_STATE *state, const char *args)
     }
 }
 
+/* abort_event - delayed abort after DATA command */
+
+static void abort_event(int unused_event, char *context)
+{
+    SINK_STATE *state = (SINK_STATE *) context;
+
+    smtp_printf(state->stream, "550 This violates SMTP");
+    smtp_flush(state->stream);
+    disconnect(state);
+}
+
 /* data_response - respond to DATA command */
 
 static void data_response(SINK_STATE *state, const char *unused_args)
@@ -672,7 +693,14 @@ static void data_response(SINK_STATE *state, const char *unused_args)
     state->data_state = ST_CR_LF;
     smtp_printf(state->stream, "354 End data with <CR><LF>.<CR><LF>");
     smtp_flush(state->stream);
-    state->read_fn = data_read;
+    if (abort_delay < 0) {
+	state->read_fn = data_read;
+    } else {
+	/* Stop reading, send premature 550, and disconnect. */
+	event_disable_readwrite(vstream_fileno(state->stream));
+	event_cancel_timer(read_event, (char *) state);
+	event_request_timer(abort_event, (char *) state, abort_delay);
+    }
     if (state->dump_file)
 	mail_file_finish_header(state);
 }
@@ -684,6 +712,9 @@ static void data_event(int unused_event, char *context)
     SINK_STATE *state = (SINK_STATE *) context;
 
     data_response(state, "");
+    /* Resume input event handling after the delayed DATA response. */
+    event_enable_read(vstream_fileno(state->stream), read_event, (char *) state);
+    event_request_timer(read_timeout, (char *) state, var_tmout);
 }
 
 /* dot_resp_hard - hard error response to . command */
@@ -917,6 +948,9 @@ static int command_resp(SINK_STATE *state, SINK_COMMAND *cmdp,
 	return (0);
     }
     if (cmdp->response == data_response && fixed_delay > 0) {
+	/* Suspend input event handling while delaying the DATA response. */
+	event_disable_readwrite(vstream_fileno(state->stream));
+	event_cancel_timer(read_timeout, (char *) state);
 	event_request_timer(data_event, (char *) state, fixed_delay);
     } else {
 	cmdp->response(state, args);
@@ -1158,7 +1192,13 @@ static void connect_event(int unused_event, char *unused_context)
 	state->in_mail = 0;
 	state->rcpts = 0;
 	/* Initialize file capture attributes. */
-	state->addr_prefix = (sa.sa_family == AF_INET6 ? "ipv6:" : "");
+#ifdef AF_INET6
+	if (sa.sa_family == AF_INET6)
+	    state->addr_prefix = "ipv6:";
+	else
+#endif
+	    state->addr_prefix = "";
+
 	state->helo_args = 0;
 	state->client_proto = enable_lmtp ? "LMTP" : "SMTP";
 	state->start_time = 0;
@@ -1202,7 +1242,7 @@ static void connect_event(int unused_event, char *unused_context)
 
 static void usage(char *myname)
 {
-    msg_fatal("usage: %s [-468acCeEFLpPv] [-f commands] [-h hostname] [-m max_concurrency] [-n quit_count] [-q commands] [-r commands] [-s commands] [-w delay] [-d dump-template] [-D dump-template] [-R root-dir] [-S start-string] [-u user_privs] [host]:port backlog", myname);
+    msg_fatal("usage: %s [-468acCeEFLpPv] [-A abort_delay] [-f commands] [-h hostname] [-m max_concurrency] [-n quit_count] [-q commands] [-r commands] [-s commands] [-w delay] [-d dump-template] [-D dump-template] [-R root-dir] [-S start-string] [-u user_privs] [host]:port backlog", myname);
 }
 
 int     main(int argc, char **argv)
@@ -1227,7 +1267,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "468acCd:D:eEf:Fh:Ln:m:pPq:r:R:s:S:t:u:vw:")) > 0) {
+    while ((ch = GETOPT(argc, argv, "468aA:cCd:D:eEf:Fh:Ln:m:pPq:r:R:s:S:t:u:vw:")) > 0) {
 	switch (ch) {
 	case '4':
 	    protocols = INET_PROTO_NAME_IPV4;
@@ -1240,6 +1280,10 @@ int     main(int argc, char **argv)
 	    break;
 	case 'a':
 	    disable_saslauth = 1;
+	    break;
+	case 'A':
+	    if (!alldig(optarg) || (abort_delay = atoi(optarg)) < 0)
+		usage(argv[0]);
 	    break;
 	case 'c':
 	    count++;

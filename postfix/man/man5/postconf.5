@@ -1010,12 +1010,24 @@ When rejecting non-address information (such as the HELO
 command argument or the client hostname/address), the Postfix SMTP
 server will transform a sender or recipient DSN status into a generic
 non-address DSN status (e.g., 4.0.0).
-.SH default_recipient_limit (default: 10000)
+.SH default_recipient_limit (default: 20000)
 The default per-transport upper limit on the number of in-memory
 recipients.  These limits take priority over the global
 qmgr_message_recipient_limit after the message has been assigned
 to the respective transports.  See also default_extra_recipient_limit
 and qmgr_message_recipient_minimum.
+.SH default_recipient_refill_delay (default: 5s)
+The default per-transport maximum delay between recipients refills.
+When not all message recipients fit into the memory at once, keep loading
+more of them at least once every this many seconds.  This is used to
+make sure the recipients are refilled in timely manner even when
+$default_recipient_refill_limit is too high for too slow deliveries.
+.SH default_recipient_refill_limit (default: 100)
+The default per-transport limit on the number of recipients refilled at
+once.  When not all message recipients fit into the memory at once, keep
+loading more of them in batches of at least this many at a time.  See also
+$default_recipient_refill_delay, which may result in recipient batches
+lower than this when this limit is too high for too slow deliveries.
 .SH default_transport (default: smtp)
 The default mail delivery transport and next-hop destination for
 destinations that do not match $mydestination, $inet_interfaces,

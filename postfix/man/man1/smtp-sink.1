@@ -45,6 +45,12 @@ Postfix is built without IPv6 support.
 Do not announce 8BITMIME support.
 .IP \fB-a\fR
 Do not announce SASL authentication support.
+.IP "\fB-A \fIdelay\fR"
+Wait \fIdelay\fR seconds after responding to DATA, then
+abort prematurely with a 550 reply status.  Do not read
+further input from the client; this is an attempt to block
+the client before it sends ".".  Specify a zero delay value
+to abort immediately.
 .IP \fB-c\fR
 Display running counters that are updated whenever an SMTP
 session ends, a QUIT command is executed, or when "." is

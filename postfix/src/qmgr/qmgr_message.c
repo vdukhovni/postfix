@@ -169,6 +169,7 @@ static QMGR_MESSAGE *qmgr_message_create(const char *queue_name,
     message->create_time = 0;
     GETTIMEOFDAY(&message->active_time);
     message->queued_time = sane_time();
+    message->refill_time = 0;
     message->data_offset = 0;
     message->queue_id = mystrdup(queue_id);
     message->queue_name = mystrdup(queue_name);
@@ -366,6 +367,8 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	recipient_limit = 5000;
     if (recipient_limit <= 0)
 	msg_panic("%s: no recipient slots available", message->queue_id);
+    if (msg_verbose)
+	msg_info("%s: recipient limit %d", message->queue_id, recipient_limit);
 
     /*
      * Read envelope records. XXX Rely on the front-end programs to enforce
@@ -746,6 +749,12 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		     message->queue_id, orig_rcpt);
 	myfree(orig_rcpt);
     }
+    
+    /*
+     * Remember when we have read the last recipient batch. Note that we do
+     * it here after reading as reading might have used considerable amount of time.
+     */
+    message->refill_time = sane_time();
 
     /*
      * Avoid clumsiness elsewhere in the program. When sending data across an
@@ -924,22 +933,24 @@ static void qmgr_message_sort(QMGR_MESSAGE *message)
 static int qmgr_resolve_one(QMGR_MESSAGE *message, RECIPIENT *recipient,
 			            const char *addr, RESOLVE_REPLY *reply)
 {
-    DSN     dsn;
+#define QMGR_REDIRECT(rp, tp, np) do { \
+	(rp)->flags = 0; \
+	vstring_strcpy((rp)->transport, (tp)); \
+	vstring_strcpy((rp)->nexthop, (np)); \
+    } while (0)
 
     if ((message->tflags & DEL_REQ_FLAG_MTA_VRFY) == 0)
 	resolve_clnt_query_from(message->sender, addr, reply);
     else
 	resolve_clnt_verify_from(message->sender, addr, reply);
     if (reply->flags & RESOLVE_FLAG_FAIL) {
-	qmgr_defer_recipient(message, recipient,
-			     DSN_SIMPLE(&dsn, "4.3.0",
-					"address resolver failure"));
-	return (-1);
+	QMGR_REDIRECT(reply, MAIL_SERVICE_RETRY,
+		      "4.3.0 address resolver failure");
+	return (0);
     } else if (reply->flags & RESOLVE_FLAG_ERROR) {
-	qmgr_bounce_recipient(message, recipient,
-			      DSN_SIMPLE(&dsn, "5.1.3",
-					 "bad address syntax"));
-	return (-1);
+	QMGR_REDIRECT(reply, MAIL_SERVICE_ERROR,
+		      "5.1.3 bad address syntax");
+	return (0);
     } else {
 	return (0);
     }
@@ -963,6 +974,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
     int     status;
     DSN     dsn;
     MSG_STATS stats;
+    DSN    *saved_dsn;
 
 #define STREQ(x,y)	(strcmp(x,y) == 0)
 #define STR		vstring_str
@@ -973,8 +985,8 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
     for (recipient = list.info; recipient < list.info + list.len; recipient++) {
 
 	/*
-	 * Redirect overrides all else. But only once (per batch of
-	 * recipients). For consistency with the remainder of Postfix,
+	 * Redirect overrides all else. But only once (per entire
+	 * message). For consistency with the remainder of Postfix,
 	 * rewrite the address to canonical form before resolving it.
 	 */
 	if (message->redirect_addr) {
@@ -982,6 +994,10 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 		recipient->u.queue = 0;
 		continue;
 	    }
+
+	    message->rcpt_offset = 0;
+	    message->rcpt_unread = 0;
+
 	    rewrite_clnt_internal(REWRITE_CANON, message->redirect_addr,
 				  reply.recipient);
 	    RECIPIENT_UPDATE(recipient->address, STR(reply.recipient));
@@ -1029,10 +1045,8 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * the queue manager process does not help.
 	 */
 	if (recipient->address[0] == 0) {
-	    qmgr_bounce_recipient(message, recipient,
-				  DSN_SIMPLE(&dsn, "5.1.3",
-					     "null recipient address"));
-	    continue;
+	    QMGR_REDIRECT(&reply, MAIL_SERVICE_ERROR,
+			  "5.1.3 null recipient address");
 	}
 
 	/*
@@ -1047,10 +1061,8 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * where it cannot be bypassed.
 	 */
 	if (var_allow_min_user == 0 && recipient->address[0] == '-') {
-	    qmgr_bounce_recipient(message, recipient,
-				  DSN_SIMPLE(&dsn, "5.1.3",
-					     "bad address syntax"));
-	    continue;
+	    QMGR_REDIRECT(&reply, MAIL_SERVICE_ERROR,
+			  "5.1.3 bad address syntax");
 	}
 
 	/*
@@ -1094,10 +1106,8 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 		if (strcmp(*cpp, STR(reply.transport)) == 0)
 		    break;
 	    if (*cpp) {
-		qmgr_defer_recipient(message, recipient,
-				     DSN_SIMPLE(&dsn, "4.3.2",
-						"deferred transport"));
-		continue;
+		QMGR_REDIRECT(&reply, MAIL_SERVICE_RETRY,
+			      "4.3.2 deferred transport");
 	    }
 	}
 
@@ -1113,9 +1123,17 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	/*
 	 * This transport is dead. Defer delivery to this recipient.
 	 */
-	if ((transport->flags & QMGR_TRANSPORT_STAT_DEAD) != 0) {
-	    qmgr_defer_recipient(message, recipient, transport->dsn);
-	    continue;
+	if (QMGR_TRANSPORT_THROTTLED(transport)) {
+	    saved_dsn = transport->dsn;
+	    if ((transport = qmgr_error_transport(MAIL_SERVICE_RETRY)) != 0) {
+		nexthop = qmgr_error_nexthop(saved_dsn);
+		vstring_strcpy(reply.nexthop, nexthop);
+		myfree(nexthop);
+		queue = 0;
+	    } else {
+		qmgr_defer_recipient(message, recipient, saved_dsn);
+		continue;
+	    }
 	}
 
 	/*
@@ -1153,6 +1171,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 */
 	vstring_strcpy(queue_name, STR(reply.nexthop));
 	if (strcmp(transport->name, MAIL_SERVICE_ERROR) != 0
+	    && strcmp(transport->name, MAIL_SERVICE_RETRY) != 0
 	    && transport->recipient_limit == 1) {
 	    /* Copy the recipient localpart. */
 	    at = strrchr(STR(reply.recipient), '@');
@@ -1180,9 +1199,12 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	/*
 	 * This queue is dead. Defer delivery to this recipient.
 	 */
-	if (queue->window == 0) {
-	    qmgr_defer_recipient(message, recipient, queue->dsn);
-	    continue;
+	if (QMGR_QUEUE_THROTTLED(queue)) {
+	    saved_dsn = queue->dsn;
+	    if ((queue = qmgr_error_queue(MAIL_SERVICE_RETRY, saved_dsn)) == 0) {
+		qmgr_defer_recipient(message, recipient, saved_dsn);
+		continue;
+	    }
 	}
 
 	/*
@@ -1207,55 +1229,55 @@ static void qmgr_message_assign(QMGR_MESSAGE *message)
 
     /*
      * Try to bundle as many recipients in a delivery request as we can. When
-     * the recipient resolves to the same site and transport as the previous
+     * the recipient resolves to the same site and transport as an existing
      * recipient, do not create a new queue entry, just move that recipient
      * to the recipient list of the existing queue entry. All this provided
      * that we do not exceed the transport-specific limit on the number of
-     * recipients per transaction. Skip recipients with a dead transport or
-     * destination.
+     * recipients per transaction.
      */
 #define LIMIT_OK(limit, count) ((limit) == 0 || ((count) < (limit)))
 
     for (recipient = list.info; recipient < list.info + list.len; recipient++) {
-	if ((queue = recipient->u.queue) != 0) {
-	    if (message->single_rcpt || entry == 0 || entry->queue != queue
-		|| !LIMIT_OK(queue->transport->recipient_limit,
-			     entry->rcpt_list.len)) {
 
-		/*
-		 * Lookup or instantiate the message job if necessary.
-		 */
-		if (job == 0 || queue->transport != job->transport) {
-		    job = qmgr_job_obtain(message, queue->transport);
-		    peer = 0;
-		}
-
-		/*
-		 * Lookup or instantiate job peer if necessary.
-		 */
-		if (peer == 0 || queue != peer->queue) {
-		    if ((peer = qmgr_peer_find(job, queue)) == 0)
-			peer = qmgr_peer_create(job, queue);
-		}
-
-		/*
-		 * Create new peer entry.
-		 */
-		entry = qmgr_entry_create(peer, message);
-		job->read_entries++;
-	    }
-
-	    /*
-	     * Add the recipient to the current entry and increase all those
-	     * recipient counters accordingly.
-	     */
-	    recipient_list_add(&entry->rcpt_list, recipient->offset,
-			       recipient->dsn_orcpt, recipient->dsn_notify,
-			       recipient->orig_addr, recipient->address);
-	    job->rcpt_count++;
-	    message->rcpt_count++;
-	    qmgr_recipient_count++;
+	/*
+	 * Skip recipients with a dead transport or destination.
+	 */
+	if ((queue = recipient->u.queue) == 0)
+	    continue;
+	    
+	/*
+	 * Lookup or instantiate the message job if necessary.
+	 */
+	if (job == 0 || queue->transport != job->transport) {
+	    job = qmgr_job_obtain(message, queue->transport);
+	    peer = 0;
 	}
+
+	/*
+	 * Lookup or instantiate job peer if necessary.
+	 */
+	if (peer == 0 || queue != peer->queue)
+	    peer = qmgr_peer_obtain(job, queue);
+	
+	/*
+	 * Lookup old or instantiate new recipient entry. We try to reuse
+	 * the last existing entry whenever the recipient limit permits.
+	 */
+	entry = peer->entry_list.prev;
+	if (message->single_rcpt || entry == 0
+	    || !LIMIT_OK(queue->transport->recipient_limit, entry->rcpt_list.len))
+	    entry = qmgr_entry_create(peer, message);
+
+	/*
+	 * Add the recipient to the current entry and increase all those
+	 * recipient counters accordingly.
+	 */
+	recipient_list_add(&entry->rcpt_list, recipient->offset,
+			   recipient->dsn_orcpt, recipient->dsn_notify,
+			   recipient->orig_addr, recipient->address);
+	job->rcpt_count++;
+	message->rcpt_count++;
+	qmgr_recipient_count++;
     }
 
     /*

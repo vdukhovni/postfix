@@ -129,7 +129,7 @@ static void bounce_cleanup_sig(int sig)
      */
     if (bounce_cleanup_path)
 	(void) unlink(vstring_str(bounce_cleanup_path));
-    exit(sig);
+    _exit(sig);
 }
 
 /* bounce_cleanup_register - register logfile to clean up */
