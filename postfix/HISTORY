@@ -12977,6 +12977,13 @@ Apologies for any names omitted.
 	MIME structures in the message body. Victor Duchovni. File:
 	smtp/smtp_proto.c.
 
+20061210
+
+	Cleanup: streamline the signal handler reentrancy protections,
+	and document under what conditions these protections work,
+	with REENTRANCY sections in the relevant man pages. Files:
+	util/vbuf.c.  util/msg.c, util/msg_output.c.
+
 Wish list:
 
 	Update MILTER_README with Martinec info.

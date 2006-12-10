@@ -20,6 +20,11 @@ before proceeding.
 Incompatible changes with Postfix snapshot 20061209
 ===================================================
 
+The Postfix installation procedure no longer updates main.cf with
+"unknown_local_recipient_reject_code = 450". Four years after the
+introduction of mandatory recipient validation, this transitional
+tool is no longer neeed.
+
 After upgrading Postfix you MUST execute "postfix reload", otherwise
 the queue manager may log a warnings with:
 
@@ -35,24 +40,28 @@ To fix your master.cf file, use "postfix upgrade-configuration"
 followed by "postfix reload".
 
 Small changes were made to the default bounce message templates,
-to prevent HTML-aware software from hiding or removing "<postmaster>"
-and producing really misleading text.
+to prevent HTML-aware software from hiding or removing the text
+"<postmaster>", and producing misleading text.
 
 Major changes with Postfix snapshot 20061209
 ============================================
 
 Better interoperability with non-conforming SMTP servers that reply
-and disconnect before Postfix has sent the end-of-data.
+and disconnect before Postfix has sent the complete message content.
 
-Improved worst-case queue manager performance when deferring or
-bouncing lots of mail. Instead of talking to the bounce or defer
-service directly, this work is now done in the background by the
-error or retry service.  The retry service is new.
+Improved worst-case (old and new) queue manager performance when
+deferring or bouncing large amounts of mail. Instead of talking to
+the bounce or defer service synchronously, this work is now done
+in the background by the error or retry service.
 
-Improved worst-case queue manager performance when delivering
-multi-recipient mail. The queue manager now more agressively reloads
-recipients from the queue file as soon as slots become available,
-instead of waiting for slow deliveries to complete.
+Improved worst-case (new) queue manager performance when delivering
+multi-recipient mail. The queue manager now proactively reads
+recipients from the queue file, instead of waiting for the slowest
+deliveries to complete before reading in new recipients.  This
+introduces two parameters: default_recipient_refill_limit (how many
+recipient slots to refill at a time) and default_recipient_refill_delay
+(how long to wait between refill operations). These two parameters
+act as defaults for optional per-transport settings.
 
 Incompatible changes with Postfix snapshot 20061006
 ===================================================

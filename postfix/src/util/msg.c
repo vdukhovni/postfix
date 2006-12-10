@@ -45,25 +45,6 @@
 /*	name must have been set by calling one of the msg_XXX_init()
 /*	functions (see the SEE ALSO section).
 /*
-/*	The aforementioned logging routines are protected against
-/*	ordinary recursive calls and against re-entry by a signal
-/*	handler.
-/*
-/*	Protection against re-entry by signal handlers requires
-/*	that:
-/* .IP \(bu
-/*	The signal handler must never return. In other words, the
-/*	signal handler must either call _exit(), kill itself with
-/*	a signal, or do both.
-/* .IP \(bu
-/*	The signal handler must not execute before the msg_XXX_init()
-/*	functions complete initialization.
-/* .PP
-/*	When re-entrancy is detected, the requested logging and
-/*	optional cleanup operations are skipped. Skipping the logging
-/*	operation prevents deadlock on Linux releases that use
-/*	mutexes within system library routines such as syslog().
-/*
 /*	msg_error() reports a recoverable error and increments the error
 /*	counter. When the error count exceeds a pre-set limit (default: 13)
 /*	the program terminates by calling msg_fatal().
@@ -83,12 +64,6 @@
 /*	current function pointer. Specify a null argument to disable
 /*	this feature.
 /*
-/*	Note: each msg_cleanup() call-back function, and each Postfix
-/*	or system function called by that call-back function, either
-/*	protects itself against recursive calls and re-entry by a
-/*	terminating signal handler, or is called exclusively by
-/*	functions in the msg(3) module.
-/*
 /*	msg_error_limit() sets the error message count limit, and returns.
 /*	the old limit.
 /*
@@ -97,6 +72,40 @@
 /*	msg_verbose is a global flag that can be set to make software
 /*	more verbose about what it is doing. By default the flag is zero.
 /*	By convention, a larger value means more noise.
+/* REENTRANCY
+/* .ad
+/* .fi
+/*	The msg_info() etc. output routines are protected against
+/*	ordinary recursive calls and against re-entry by signal
+/*	handlers.
+/*
+/*	Protection against re-entry by signal handlers is subject
+/*	to the following limitations:
+/* .IP \(bu
+/*	The signal handlers must never return. In other words, the
+/*	signal handlers must do one or more of the following: call
+/*	_exit(), kill the process with a signal, and permanently block
+/*	the process.
+/* .IP \(bu
+/*	The signal handlers must invoke msg_info() etc. not until
+/*	after the msg_XXX_init() functions complete initialization,
+/*	and not until after the first formatted output to a VSTRING
+/*	or VSTREAM.
+/* .IP \(bu
+/*	Each msg_cleanup() call-back function, and each Postfix or
+/*	system function invoked by that call-back function, either
+/*	protects itself against recursive calls and re-entry by a
+/*	terminating signal handler, or is called exclusively by the
+/*	msg(3) module.
+/* .PP
+/*	When re-entrancy is detected, the requested output and
+/*	optional cleanup operations are skipped. Skipping the output
+/*	operations prevents memory corruption of VSTREAM_ERR data
+/*	structures, and prevents deadlock on Linux releases that
+/*	use mutexes within system library routines such as syslog().
+/*	This protection exists under the condition that these
+/*	specific resources are accessed exclusively via the msg_info()
+/*	etc.  functions.
 /* SEE ALSO
 /*	msg_output(3) specify diagnostics disposition
 /*	msg_stdio(3) direct diagnostics to standard I/O stream
@@ -150,7 +159,13 @@ static int msg_error_count = 0;
 static int msg_error_bound = 13;
 
  /*
-  * Global scope, to discourage the compiler from doing smart things.
+  * The msg_exiting flag prevents us from recursively reporting an error with
+  * msg_fatal*() or msg_panic(), and provides a first-level safety net for
+  * optional cleanup actions against signal handler re-entry problems. Note
+  * that msg_vprintf() implements its own guard against re-entry.
+  * 
+  * XXX We specify global scope, to discourage the compiler from doing smart
+  * things.
   */
 volatile int msg_exiting = 0;
 
@@ -160,11 +175,9 @@ void    msg_info(const char *fmt,...)
 {
     va_list ap;
 
-    BEGIN_PROTECT_AGAINST_RECURSION_OR_TERMINATING_SIGNAL_HANDLER(msg_exiting);
     va_start(ap, fmt);
     msg_vprintf(MSG_INFO, fmt, ap);
     va_end(ap);
-    END_PROTECT_AGAINST_RECURSION_OR_TERMINATING_SIGNAL_HANDLER(msg_exiting);
 }
 
 /* msg_warn - report warning message */
@@ -173,11 +186,9 @@ void    msg_warn(const char *fmt,...)
 {
     va_list ap;
 
-    BEGIN_PROTECT_AGAINST_RECURSION_OR_TERMINATING_SIGNAL_HANDLER(msg_exiting);
     va_start(ap, fmt);
     msg_vprintf(MSG_WARN, fmt, ap);
     va_end(ap);
-    END_PROTECT_AGAINST_RECURSION_OR_TERMINATING_SIGNAL_HANDLER(msg_exiting);
 }
 
 /* msg_error - report recoverable error */
@@ -186,11 +197,9 @@ void    msg_error(const char *fmt,...)
 {
     va_list ap;
 
-    BEGIN_PROTECT_AGAINST_RECURSION_OR_TERMINATING_SIGNAL_HANDLER(msg_exiting);
     va_start(ap, fmt);
     msg_vprintf(MSG_ERROR, fmt, ap);
     va_end(ap);
-    END_PROTECT_AGAINST_RECURSION_OR_TERMINATING_SIGNAL_HANDLER(msg_exiting);
     if (++msg_error_count >= msg_error_bound)
 	msg_fatal("too many errors - program terminated");
 }
@@ -201,13 +210,13 @@ NORETURN msg_fatal(const char *fmt,...)
 {
     va_list ap;
 
-    BEGIN_PROTECT_AGAINST_RECURSION_OR_TERMINATING_SIGNAL_HANDLER(msg_exiting);
-    va_start(ap, fmt);
-    msg_vprintf(MSG_FATAL, fmt, ap);
-    va_end(ap);
-    if (msg_cleanup_fn)
-	msg_cleanup_fn();
-    END_PROTECT_AGAINST_RECURSION_OR_TERMINATING_SIGNAL_HANDLER(msg_exiting);
+    if (msg_exiting++ == 0) {
+	va_start(ap, fmt);
+	msg_vprintf(MSG_FATAL, fmt, ap);
+	va_end(ap);
+	if (msg_cleanup_fn)
+	    msg_cleanup_fn();
+    }
     sleep(1);
     /* In case we're running as a signal handler. */
     _exit(1);
@@ -219,13 +228,13 @@ NORETURN msg_fatal_status(int status, const char *fmt,...)
 {
     va_list ap;
 
-    BEGIN_PROTECT_AGAINST_RECURSION_OR_TERMINATING_SIGNAL_HANDLER(msg_exiting);
-    va_start(ap, fmt);
-    msg_vprintf(MSG_FATAL, fmt, ap);
-    va_end(ap);
-    if (msg_cleanup_fn)
-	msg_cleanup_fn();
-    END_PROTECT_AGAINST_RECURSION_OR_TERMINATING_SIGNAL_HANDLER(msg_exiting);
+    if (msg_exiting++ == 0) {
+	va_start(ap, fmt);
+	msg_vprintf(MSG_FATAL, fmt, ap);
+	va_end(ap);
+	if (msg_cleanup_fn)
+	    msg_cleanup_fn();
+    }
     sleep(1);
     /* In case we're running as a signal handler. */
     _exit(status);
@@ -237,11 +246,11 @@ NORETURN msg_panic(const char *fmt,...)
 {
     va_list ap;
 
-    BEGIN_PROTECT_AGAINST_RECURSION_OR_TERMINATING_SIGNAL_HANDLER(msg_exiting);
-    va_start(ap, fmt);
-    msg_vprintf(MSG_PANIC, fmt, ap);
-    va_end(ap);
-    END_PROTECT_AGAINST_RECURSION_OR_TERMINATING_SIGNAL_HANDLER(msg_exiting);
+    if (msg_exiting++ == 0) {
+	va_start(ap, fmt);
+	msg_vprintf(MSG_PANIC, fmt, ap);
+	va_end(ap);
+    }
     sleep(1);
     abort();					/* Die! */
     /* In case we're running as a signal handler. */
