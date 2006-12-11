@@ -12845,3 +12845,20 @@ Apologies for any names omitted.
 	Cleanup: when smtp_generic_maps is turned on, don't parse
 	MIME structures in the message body. Victor Duchovni. File:
 	smtp/smtp_proto.c.
+
+20061210
+
+	Robustness: low-cost re-entrancy guard that allows daemons
+	to call msg_fatal() etc. from a signal handler, without
+	risking memory corruption, or deadlock on Redhat Linux.
+	This works provided that the signal handler never returns.
+	In that special case we need not guarantee after-the-fact
+	consistency of the interrupted process.  File: util/msg_output.c.
+
+	Robustness: replace exit() calls by _exit(). File: util/msg.c,
+	bounce/bounce_cleanup.c.
+
+	Cleanup: document under what conditions these protections
+	work, with REENTRANCY sections in the relevant man pages.
+	Files: util/vbuf.c.  util/msg.c, util/msg_output.c.
+
