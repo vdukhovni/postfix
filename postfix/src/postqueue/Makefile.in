@@ -68,6 +68,7 @@ postqueue.o: ../../include/mail_dict.h
 postqueue.o: ../../include/mail_flush.h
 postqueue.o: ../../include/mail_params.h
 postqueue.o: ../../include/mail_proto.h
+postqueue.o: ../../include/mail_queue.h
 postqueue.o: ../../include/mail_run.h
 postqueue.o: ../../include/mail_task.h
 postqueue.o: ../../include/msg.h

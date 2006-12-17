@@ -367,6 +367,8 @@ static void qmgr_trigger_event(char *buf, int len,
      * request in order. And as long as we don't have conflicting requests we
      * are free to sort them into the most suitable order.
      */
+#define QMGR_FLUSH_BEFORE	(QMGR_FLUSH_ONCE | QMGR_FLUSH_DFXP)
+
     for (i = 0; i < len; i++) {
 	if (msg_verbose)
 	    msg_info("request: %d (%c)",
@@ -380,8 +382,8 @@ static void qmgr_trigger_event(char *buf, int len,
 	    deferred_flag |= QMGR_SCAN_START;
 	    break;
 	case QMGR_REQ_FLUSH_DEAD:
-	    deferred_flag |= QMGR_FLUSH_DEAD;
-	    incoming_flag |= QMGR_FLUSH_DEAD;
+	    deferred_flag |= QMGR_FLUSH_BEFORE;
+	    incoming_flag |= QMGR_FLUSH_BEFORE;
 	    break;
 	case QMGR_REQ_SCAN_ALL:
 	    deferred_flag |= QMGR_SCAN_ALL;

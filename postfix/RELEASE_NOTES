@@ -17,6 +17,14 @@ Incompatibility with Postfix 2.2 and earlier
 If you upgrade from Postfix 2.2 or earlier, read RELEASE_NOTES-2.3
 before proceeding.
 
+Incompatible changes with Postfix snapshot 20061217
+===================================================
+
+Postfix no longer requires a domain name. It uses "localdomain" as
+the default Internet domain name when no domain is specified in
+main.cf, and when the machine hostname does not include domain name
+information.
+
 Incompatible changes with Postfix snapshot 20061209
 ===================================================
 

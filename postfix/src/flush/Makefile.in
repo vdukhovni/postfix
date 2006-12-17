@@ -78,6 +78,7 @@ flush.o: ../../include/match_ops.h
 flush.o: ../../include/match_parent_style.h
 flush.o: ../../include/msg.h
 flush.o: ../../include/myflock.h
+flush.o: ../../include/safe_open.h
 flush.o: ../../include/scan_dir.h
 flush.o: ../../include/stringops.h
 flush.o: ../../include/sys_defs.h

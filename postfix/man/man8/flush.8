@@ -36,9 +36,11 @@ This server implements the following requests:
 .IP "\fBadd\fI sitename queueid\fR"
 Inform the \fBflush\fR(8) server that the message with the specified
 queue ID is queued for the specified destination.
-.IP "\fBsend\fI sitename\fR"
+.IP "\fBsend_site\fI sitename\fR"
 Request delivery of mail that is queued for the specified
 destination.
+.IP "\fBsend_file\fI queueid\fR"
+Request delivery of the specified deferred message.
 .IP \fBrefresh\fR
 Refresh non-empty per-destination logfiles that were not read in
 \fB$fast_flush_refresh_time\fR hours, by simulating

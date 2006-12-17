@@ -1708,6 +1708,11 @@ static int mail_open_stream(SMTPD_STATE *state)
 			    MAIL_ATTR_ACT_HELO_NAME, state->helo_name);
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%u",
 			MAIL_ATTR_ACT_CLIENT_AF, state->addr_family);
+
+	    /*
+	     * Don't send client certificate down the pipeline unless it is
+	     * a) verified or b) just a fingerprint.
+	     */
 	}
 	if (state->verp_delims)
 	    rec_fputs(state->cleanup, REC_TYPE_VERP, state->verp_delims);
@@ -2994,7 +2999,7 @@ static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
-    switch (flush_send(argv[1].strval)) {
+    switch (flush_send_site(argv[1].strval)) {
     case FLUSH_STAT_OK:
 	smtpd_chat_reply(state, "250 Queuing started");
 	return (0);

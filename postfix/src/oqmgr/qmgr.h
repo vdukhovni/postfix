@@ -256,7 +256,7 @@ extern int qmgr_recipient_count;
 extern void qmgr_message_free(QMGR_MESSAGE *);
 extern void qmgr_message_update_warn(QMGR_MESSAGE *);
 extern void qmgr_message_kill_record(QMGR_MESSAGE *, long);
-extern QMGR_MESSAGE *qmgr_message_alloc(const char *, const char *, int);
+extern QMGR_MESSAGE *qmgr_message_alloc(const char *, const char *, int, mode_t);
 extern QMGR_MESSAGE *qmgr_message_realloc(QMGR_MESSAGE *);
 
 #define QMGR_MSG_STATS(stats, message) \
@@ -317,7 +317,9 @@ struct QMGR_SCAN {
   */
 #define QMGR_SCAN_START	(1<<0)		/* start now/restart when done */
 #define QMGR_SCAN_ALL	(1<<1)		/* all queue file time stamps */
-#define QMGR_FLUSH_DEAD	(1<<2)		/* all sites, all transports */
+#define QMGR_FLUSH_ONCE	(1<<2)		/* unthrottle once */
+#define QMGR_FLUSH_DFXP	(1<<3)		/* override defer_transports */
+#define QMGR_FLUSH_EACH	(1<<4)		/* unthrottle per message */
 
  /*
   * qmgr_scan.c

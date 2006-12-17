@@ -9,10 +9,11 @@
 /*	int	qmgr_message_count;
 /*	int	qmgr_recipient_count;
 /*
-/*	QMGR_MESSAGE *qmgr_message_alloc(class, name, qflags)
+/*	QMGR_MESSAGE *qmgr_message_alloc(class, name, qflags, mode)
 /*	const char *class;
 /*	const char *name;
 /*	int	qflags;
+/*	mode_t	mode;
 /*
 /*	QMGR_MESSAGE *qmgr_message_realloc(message)
 /*	QMGR_MESSAGE *message;
@@ -49,6 +50,7 @@
 /*	run through the resolver, and are assigned to destination
 /*	queues. Recipients that cannot be assigned are deferred or
 /*	bounced. Mail that has bounced twice is silently absorbed.
+/*	A non-zero mode means change the queue file permissions.
 /*
 /*	qmgr_message_realloc() resumes reading recipients from the queue
 /*	file, and updates the recipient list and \fIrcpt_offset\fR message
@@ -749,10 +751,11 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		     message->queue_id, orig_rcpt);
 	myfree(orig_rcpt);
     }
-    
+
     /*
      * Remember when we have read the last recipient batch. Note that we do
-     * it here after reading as reading might have used considerable amount of time.
+     * it here after reading as reading might have used considerable amount
+     * of time.
      */
     message->refill_time = sane_time();
 
@@ -985,16 +988,15 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
     for (recipient = list.info; recipient < list.info + list.len; recipient++) {
 
 	/*
-	 * Redirect overrides all else. But only once (per entire
-	 * message). For consistency with the remainder of Postfix,
-	 * rewrite the address to canonical form before resolving it.
+	 * Redirect overrides all else. But only once (per entire message).
+	 * For consistency with the remainder of Postfix, rewrite the address
+	 * to canonical form before resolving it.
 	 */
 	if (message->redirect_addr) {
 	    if (recipient > list.info) {
 		recipient->u.queue = 0;
 		continue;
 	    }
-
 	    message->rcpt_offset = 0;
 	    message->rcpt_unread = 0;
 
@@ -1099,7 +1101,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * Optionally defer deliveries over specific transports, unless the
 	 * restriction is lifted temporarily.
 	 */
-	if (*var_defer_xports && (message->qflags & QMGR_FLUSH_DEAD) == 0) {
+	if (*var_defer_xports && (message->qflags & QMGR_FLUSH_DFXP) == 0) {
 	    if (defer_xport_argv == 0)
 		defer_xport_argv = argv_split(var_defer_xports, " \t\r\n,");
 	    for (cpp = defer_xport_argv->argv; *cpp; cpp++)
@@ -1119,6 +1121,14 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 		transport = qmgr_transport_create(STR(reply.transport));
 	    queue = 0;
 	}
+
+	/*
+	 * This message is being flushed. If need-be unthrottle the
+	 * transport.
+	 */
+	if ((message->qflags & QMGR_FLUSH_EACH) != 0
+	    && QMGR_TRANSPORT_THROTTLED(transport))
+	    qmgr_transport_unthrottle(transport);
 
 	/*
 	 * This transport is dead. Defer delivery to this recipient.
@@ -1197,6 +1207,13 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	}
 
 	/*
+	 * This message is being flushed. If need-be unthrottle the queue.
+	 */
+	if ((message->qflags & QMGR_FLUSH_EACH) != 0
+	    && QMGR_QUEUE_THROTTLED(queue))
+	    qmgr_queue_unthrottle(queue);
+
+	/*
 	 * This queue is dead. Defer delivery to this recipient.
 	 */
 	if (QMGR_QUEUE_THROTTLED(queue)) {
@@ -1244,7 +1261,7 @@ static void qmgr_message_assign(QMGR_MESSAGE *message)
 	 */
 	if ((queue = recipient->u.queue) == 0)
 	    continue;
-	    
+
 	/*
 	 * Lookup or instantiate the message job if necessary.
 	 */
@@ -1258,10 +1275,10 @@ static void qmgr_message_assign(QMGR_MESSAGE *message)
 	 */
 	if (peer == 0 || queue != peer->queue)
 	    peer = qmgr_peer_obtain(job, queue);
-	
+
 	/*
-	 * Lookup old or instantiate new recipient entry. We try to reuse
-	 * the last existing entry whenever the recipient limit permits.
+	 * Lookup old or instantiate new recipient entry. We try to reuse the
+	 * last existing entry whenever the recipient limit permits.
 	 */
 	entry = peer->entry_list.prev;
 	if (message->single_rcpt || entry == 0
@@ -1363,7 +1380,7 @@ void    qmgr_message_free(QMGR_MESSAGE *message)
 /* qmgr_message_alloc - create in-core message structure */
 
 QMGR_MESSAGE *qmgr_message_alloc(const char *queue_name, const char *queue_id,
-				         int qflags)
+				         int qflags, mode_t mode)
 {
     const char *myname = "qmgr_message_alloc";
     QMGR_MESSAGE *message;
@@ -1397,6 +1414,13 @@ QMGR_MESSAGE *qmgr_message_alloc(const char *queue_name, const char *queue_id,
 	qmgr_message_free(message);
 	return (0);
     } else {
+
+	/*
+	 * We have validated the queue file content, so it is safe to modify
+	 * the file properties now.
+	 */
+	if (mode != 0 && fchmod(vstream_fileno(message->fp), mode) < 0)
+	    msg_fatal("fchmod %s: %m", VSTREAM_PATH(message->fp));
 
 	/*
 	 * Reset the defer log. This code should not be here, but we must

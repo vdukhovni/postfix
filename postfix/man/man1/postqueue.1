@@ -10,6 +10,8 @@ Postfix queue control
 .nf
 \fBpostqueue\fR [\fB-v\fR] [\fB-c \fIconfig_dir\fR] \fB-f\fR
 .br
+\fBpostqueue\fR [\fB-v\fR] [\fB-c \fIconfig_dir\fR] \fB-i \fIqueue_id\fR
+.br
 \fBpostqueue\fR [\fB-v\fR] [\fB-c \fIconfig_dir\fR] \fB-p\fR
 .br
 \fBpostqueue\fR [\fB-v\fR] [\fB-c \fIconfig_dir\fR] \fB-s \fIsite\fR
@@ -36,6 +38,10 @@ by contacting the Postfix \fBqmgr\fR(8) daemon.
 
 Warning: flushing undeliverable mail frequently will result in
 poor delivery performance of all other mail.
+.IP "\fB-i \fIqueue_id\fR"
+Schedule immediate delivery of mail with the specified queue ID.
+This feature uses the \fBflush\fR(8) server, and is available
+with Postfix 2.4 and later.
 .IP \fB-p\fR
 Produce a traditional sendmail-style queue listing.
 This option implements the traditional \fBmailq\fR command,

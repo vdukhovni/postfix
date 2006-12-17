@@ -110,6 +110,7 @@ this:
         /^Received:.* +by +(porcupine\.org)[[:>:]]/
             reject forged mail server name in Received: header: $1
         endif
+        /^Message-ID:.* <!&!/ DUNNO
         /^Message-ID:.*@(porcupine\.org)/
     	reject forged domain name in Message-ID: header: $1
 
@@ -123,6 +124,7 @@ this:
         /^[> ]*Received:.* +by +(porcupine\.org)[[:>:]]/
             reject forged mail server name in Received: header: $1
         endif
+        /^[> ]*Message-ID:.* <!&!/ DUNNO
         /^[> ]*Message-ID:.*@(porcupine\.org)/
     	reject forged domain name in Message-ID: header: $1
 
@@ -143,30 +145,54 @@ Notes:
   * The "if /pattern/" and "endif" eliminate unnecessary matching attempts. DO
     NOT indent lines starting with /pattern/ between the "if" and "endif"!
 
+  * The two "Message-ID:.* <!&!" rules are workarounds for some versions of
+    Outlook express, as described in the caveats section below.
+
 CCaavveeaattss
 
-Netscape Messenger (and reportedly, Mozilla) sends a HELO name that is
-identical to the sender address domain part. If you have such clients then the
-above patterns would block legitimate email.
+  * Netscape Messenger (and reportedly, Mozilla) sends a HELO name that is
+    identical to the sender address domain part. If you have such clients then
+    the above patterns would block legitimate email.
 
-My network has only one such machine, and to prevent its mail from being
-blocked I have configured it to send mail as user@hostname.porcupine.org. On
-the Postfix server, a canonical mapping translates this temporary address into
-user@porcupine.org.
+    My network has only one such machine, and to prevent its mail from being
+    blocked I have configured it to send mail as user@hostname.porcupine.org.
+    On the Postfix server, a canonical mapping translates this temporary
+    address into user@porcupine.org.
 
-    /etc/postfix/main.cf:
-        canonical_maps = hash:/etc/postfix/canonical
+        /etc/postfix/main.cf:
+            canonical_maps = hash:/etc/postfix/canonical
 
-    /etc/postfix/canonical:
-        @hostname.porcupine.org @porcupine.org
+        /etc/postfix/canonical:
+            @hostname.porcupine.org @porcupine.org
 
-This is of course practical only when you have very few systems that send HELO
-commands like this, and when you never have to send mail to a user on such a
-host.
+    This is of course practical only when you have very few systems that send
+    HELO commands like this, and when you never have to send mail to a user on
+    such a host.
 
-An alternative would be to remove the hostname from "hostname.porcupine.org"
-with address masquerading, as described in the ADDRESS_REWRITING_README
-document.
+    An alternative would be to remove the hostname from
+    "hostname.porcupine.org" with address masquerading, as described in the
+    ADDRESS_REWRITING_README document.
+
+  * Reportedly, Outlook 2003 (perhaps Outlook Express, and other versions as
+    well) present substantially different Message-ID headers depending upon
+    whether or not a DSN is requested (via Options "Request a delivery receipt
+    for this message").
+
+    When a DSN is requested, Outlook 2003 uses a Message-ID string that ends in
+    the sender's domain name:
+
+        Message-ID: <!&! ...very long string... ==@example.com>
+
+    where example.com is the domain name part of the email address specified in
+    Outlook's account settings for the user. Since many users configure their
+    email addresses as username@example.com, messages with DSN turned on will
+    trigger the REJECT action in the previous section.
+
+    If you have such clients then you can to exclude their Message-ID strings
+    with the two "Message-ID:.* <!&!" patterns that are shown in the previous
+    section. Otherwise you will not be able to use the two backscatter rules to
+    stop forged Message ID strings. Of course this workaround may break the
+    next time Outlook is changed.
 
 BBlloocckkiinngg bbaacckkssccaatttteerr mmaaiill wwiitthh ffoorrggeedd sseennddeerr iinnffoorrmmaattiioonn
 

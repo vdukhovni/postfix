@@ -168,6 +168,11 @@
 /* .IP "\fB-q\fIinterval\fR (ignored)"
 /*	The interval between queue runs. Use the \fBqueue_run_delay\fR
 /*	configuration parameter instead.
+/* .IP \fB-qI\fIqueueid\fR
+/*	Schedule immediate delivery of mail with the specified queue
+/*	ID.  This option is implemented by executing the
+/*	\fBpostqueue\fR(1) command, and is available with Postfix
+/*	version 2.4 and later.
 /* .IP \fB-qR\fIsite\fR
 /*	Schedule immediate delivery of all mail that is queued for the named
 /*	\fIsite\fR. This option accepts only \fIsite\fR names that are
@@ -885,6 +890,13 @@ static void enqueue(const int flags, const char *encoding,
     myfree(saved_sender);
 }
 
+/* tempfail - sanitize exit status after library run-time error */
+
+static void tempfail(void)
+{
+    exit(EX_TEMPFAIL);
+}
+
 /* main - the main program */
 
 int     main(int argc, char **argv)
@@ -902,6 +914,7 @@ int     main(int argc, char **argv)
     int     n;
     int     flags = SM_FLAG_DEFAULT;
     char   *site_to_flush = 0;
+    char   *id_to_flush = 0;
     char   *encoding = 0;
     char   *qtime = 0;
     const char *errstr;
@@ -952,6 +965,7 @@ int     main(int argc, char **argv)
     if ((slash = strrchr(argv[0], '/')) != 0 && slash[1])
 	argv[0] = slash + 1;
     msg_vstream_init(argv[0], VSTREAM_ERR);
+    msg_cleanup(tempfail);
     msg_syslog_init(mail_task("sendmail"), LOG_PID, LOG_FACILITY);
     set_mail_conf_str(VAR_PROCNAME, var_procname = mystrdup(argv[0]));
 
@@ -1175,6 +1189,10 @@ int     main(int argc, char **argv)
 		site_to_flush = optarg + 1;
 		if (*site_to_flush == 0)
 		    msg_fatal_status(EX_USAGE, "specify: -qRsitename");
+	    } else if (optarg[0] == 'I') {
+		id_to_flush = optarg + 1;
+		if (*id_to_flush == 0)
+		    msg_fatal_status(EX_USAGE, "specify: -qIqueueid");
 	    } else {
 		msg_fatal_status(EX_USAGE, "-q%c is not implemented",
 				 optarg[0]);
@@ -1199,6 +1217,9 @@ int     main(int argc, char **argv)
 
     if (site_to_flush && mode != SM_MODE_ENQUEUE)
 	msg_fatal_status(EX_USAGE, "-qR can be used only in delivery mode");
+
+    if (id_to_flush && mode != SM_MODE_ENQUEUE)
+	msg_fatal_status(EX_USAGE, "-qI can be used only in delivery mode");
 
     if (flags & DEL_REQ_FLAG_USR_VRFY) {
 	if (flags & SM_FLAG_XRCPT)
@@ -1228,20 +1249,32 @@ int     main(int argc, char **argv)
 	msg_panic("unknown operation mode: %d", mode);
 	/* NOTREACHED */
     case SM_MODE_ENQUEUE:
-	if (site_to_flush == 0) {
+	if (site_to_flush) {
+	    if (argv[OPTIND])
+		msg_fatal_status(EX_USAGE, "flush site requires no recipient");
+	    ext_argv = argv_alloc(2);
+	    argv_add(ext_argv, "postqueue", "-s", site_to_flush, (char *) 0);
+	    for (n = 0; n < msg_verbose; n++)
+		argv_add(ext_argv, "-v", (char *) 0);
+	    argv_terminate(ext_argv);
+	    mail_run_replace(var_command_dir, ext_argv->argv);
+	    /* NOTREACHED */
+	} else if (id_to_flush) {
+	    if (argv[OPTIND])
+		msg_fatal_status(EX_USAGE, "flush queue_id requires no recipient");
+	    ext_argv = argv_alloc(2);
+	    argv_add(ext_argv, "postqueue", "-i", id_to_flush, (char *) 0);
+	    for (n = 0; n < msg_verbose; n++)
+		argv_add(ext_argv, "-v", (char *) 0);
+	    argv_terminate(ext_argv);
+	    mail_run_replace(var_command_dir, ext_argv->argv);
+	    /* NOTREACHED */
+	} else {
 	    enqueue(flags, encoding, dsn_envid, dsn_notify,
 		    rewrite_context, sender, full_name, argv + OPTIND);
 	    exit(0);
+	    /* NOTREACHED */
 	}
-	if (argv[OPTIND])
-	    msg_fatal_status(EX_USAGE, "flush site requires no recipient");
-	ext_argv = argv_alloc(2);
-	argv_add(ext_argv, "postqueue", "-s", site_to_flush, (char *) 0);
-	for (n = 0; n < msg_verbose; n++)
-	    argv_add(ext_argv, "-v", (char *) 0);
-	argv_terminate(ext_argv);
-	mail_run_replace(var_command_dir, ext_argv->argv);
-	/* NOTREACHED */
 	break;
     case SM_MODE_MAILQ:
 	if (argv[OPTIND])

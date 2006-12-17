@@ -12935,7 +12935,8 @@ Apologies for any names omitted.
 	after-the-fact consistency of the thread that was interrupted.
 	File: util/msg_output.c.
 
-	Robustness: replace exit() calls by _exit(). File: util/msg.c.
+	Robustness: replace exit() calls by _exit(). File: util/msg.c,
+	bounce/bounce_cleanup.c.
 
 20061207
 
@@ -12982,7 +12983,47 @@ Apologies for any names omitted.
 	Cleanup: streamline the signal handler reentrancy protections,
 	and document under what conditions these protections work,
 	with REENTRANCY sections in the relevant man pages. Files:
-	util/vbuf.c.  util/msg.c, util/msg_output.c.
+	util/vbuf_print.c.  util/msg.c, util/msg_output.c.
+
+20061211
+
+	When doing server access control by the TLS client fingerprint,
+	do not require client certificate verification.  Victor
+	Duchovni.  File: smtpd/smtpd_check.c.
+
+	When the remote SMTP client certificate isn't verified,
+	don't send ccert_subject and ccert_issuer attributes in
+	check_policy_service requests. Victor Duchovni. File:
+	smtpd/smtpd_check.c.
+
+	Bugfix: the postconf command still complained about an
+	unqualified machine name, because it was not updated with
+	the 20050513 change that introduced a default "mydomain =
+	localdomain".  File: postconf/postconf.c.
+
+20061213
+
+	Bugfix: race condition in "ETRN site", "sendmail -qRsite"
+	and "postqueue -s site". When the command arrived while an
+	incoming queue scan was already in progress, mail could
+	stay deferred instead of being flushed. The fix was to
+	unthrottle the queue manager before moving files from the
+	deferred queue to the incoming queue.  Files: flush/flush.c,
+	qmgr/qmgr_scan.c.
+
+	Feature: "sendmail -qIqueueid" and "postqueue -i queueid"
+	to flush a specific queue file. Files: sendmail/sendmail.c,
+	postqueue/postqueue.c, global/flush_clnt.c, flush/flush.c.
+
+20061214
+
+	Performance: "sendmail -qIqueueid" and "postqueue -i queueid"
+	unthrottle only the necessary message delivery transports
+	and queues. The unthrottle request now is propagated to the
+	queue manager via queue file group read permission bits.
+	Based on initial implementation by Victor Duchovni.  Files:
+	flush/flush.c, *qmgr/qmgr.c, *qmgr/qmgr_scan.c,
+	*qmgr/qmgr_active.c, *qmgr/qmgr_message.c.
 
 Wish list:
 
@@ -13037,9 +13078,6 @@ Wish list:
 	Are transport:nexthop null fields the same as in the case
 	of default_transport etc. parameters?
 
-	Introduce structured API for tls_server_mumble() just like
-	with smtp(8): this eliminates ever-growing lists of arguments.
-
 	Don't lose bits when converting st_dev into maildir file
 	name. It's 64 bits on Linux. Found with the BEAM source
 	code analyzer. Is this really a problem, or are they just
@@ -13053,9 +13091,6 @@ Wish list:
 	Tempfail when a Milter application wants content access,
 	while it is configured in an SMTP server that runs before
 	the smtpd_proxy filter.
-
-	The sendmail command should not return non-std exit status
-	after fatal error in some internal library routine.
 
 	Log DSN original recipient when rejecting mail.
 
@@ -13190,20 +13225,13 @@ Wish list:
 	would allow correlation of rejected RCPT TO requests with
 	accepted requests for the same mail transaction.
 
-	Med: silly queue file bit so that the queue manager doesn't
-	skip files when fast flush is requested while a queue scan
-	is in progress. The bit is set by the flush server and is
-	reset when the mail is deferred, so that it survives queue
-	manager restart. It's not clear, however, how one would
-	unthrottle disabled transports or queues.
-
 	Med: postsuper -r should do something with recipients in
 	bounce logfiles, to make sure the sender will be notified.
 	To be perfectly safe, no process other than the queue manager
 	should move a queue file away from the active queue.
 
 	This could involve tagging a queue file, and use up another
-	permission bit.
+	permission bit (postsuper tags a "hot" file, qmgr requeues it).
 
 	Low: postsuper re-run after renaming files, but only a
 	limited number of times.
@@ -13222,7 +13250,7 @@ Wish list:
 
 	Low: have a configurable list of errno values for mailbox
 	or maildir delivery that result in deferral rather than
-	bouncing mail.
+	bouncing mail. What about "killed by signal" exits?
 
 	Low: after reorganizing configuration parameters, add flags
 	to all parameters whose value can be read from file.
