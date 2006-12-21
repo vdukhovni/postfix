@@ -39,9 +39,13 @@ by contacting the Postfix \fBqmgr\fR(8) daemon.
 Warning: flushing undeliverable mail frequently will result in
 poor delivery performance of all other mail.
 .IP "\fB-i \fIqueue_id\fR"
-Schedule immediate delivery of mail with the specified queue ID.
-This feature uses the \fBflush\fR(8) server, and is available
-with Postfix 2.4 and later.
+Schedule immediate delivery of deferred mail with the
+specified queue ID.
+
+This option implements the traditional \fBsendmail -qI\fR
+command, by contacting the \fBflush\fR(8) server.
+
+This feature is available with Postfix version 2.4 and later.
 .IP \fB-p\fR
 Produce a traditional sendmail-style queue listing.
 This option implements the traditional \fBmailq\fR command,

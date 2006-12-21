@@ -2088,7 +2088,7 @@ The default time unit is s (seconds).
 
 <p>
 Disable DNS lookups in the Postfix SMTP and LMTP clients. When
-disabled, hosts are looked up with the gethostbyname() system
+disabled, hosts are looked up with the getaddrinfo() system
 library routine which normally also looks in /etc/hosts.
 </p>
 
@@ -9247,7 +9247,7 @@ This feature is available in Postfix 2.0 and later.  </dd>
 <dd>Reject the request when the client hostname is listed with the
 A record "<i>d.d.d.d</i>" under <i>rbl_domain</i> (Postfix version
 2.1 and later only).  If no "<i>=d.d.d.d</i>" is specified, reject
-the request when the reversed client network address is listed with
+the request when the client hostname is listed with
 any A record under <i>rbl_domain</i>. See the <a href="postconf.5.html#reject_rbl_client">reject_rbl_client</a>
 description above for additional RBL related configuration parameters.
 This feature is available in Postfix 2.0 and later.  </dd>
@@ -10156,7 +10156,7 @@ rejected requests (default: 504). </dd>
 <dd>Reject the request when the RCPT TO domain is listed with the
 A record "<i>d.d.d.d</i>" under <i>rbl_domain</i> (Postfix version
 2.1 and later only).  If no "<i>=d.d.d.d</i>" is specified, reject
-the request when the reversed client network address is listed with
+the request when the RCPT TO domain is listed with
 any A record under <i>rbl_domain</i>. <br> The <a href="postconf.5.html#maps_rbl_reject_code">maps_rbl_reject_code</a>
 parameter specifies the response code for rejected requests (default:
 554); the <a href="postconf.5.html#default_rbl_reply">default_rbl_reply</a> parameter specifies the default server
@@ -10668,7 +10668,7 @@ rejected requests (default: 504). </dd>
 <dd>Reject the request when the MAIL FROM domain is listed with
 the A record "<i>d.d.d.d</i>" under <i>rbl_domain</i> (Postfix
 version 2.1 and later only).  If no "<i>=d.d.d.d</i>" is specified,
-reject the request when the reversed client network address is
+reject the request when the MAIL FROM domain is
 listed with any A record under <i>rbl_domain</i>. <br> The
 <a href="postconf.5.html#maps_rbl_reject_code">maps_rbl_reject_code</a> parameter specifies the response code for
 rejected requests (default:  554); the <a href="postconf.5.html#default_rbl_reply">default_rbl_reply</a> parameter

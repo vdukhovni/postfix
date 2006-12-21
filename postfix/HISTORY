@@ -13011,6 +13011,12 @@ Apologies for any names omitted.
 	deferred queue to the incoming queue.  Files: flush/flush.c,
 	qmgr/qmgr_scan.c.
 
+	Cleanup: the sendmail and postqueue commands no longer
+	terminate with a non-standard error status after a run-time
+	error in some Postfix internal routine (typically, some
+	essential file is not accessible, or the system is out of
+	memory). Files: sendmail/sendmail.c, postqueue/postqueue.c.
+
 	Feature: "sendmail -qIqueueid" and "postqueue -i queueid"
 	to flush a specific queue file. Files: sendmail/sendmail.c,
 	postqueue/postqueue.c, global/flush_clnt.c, flush/flush.c.
@@ -13024,6 +13030,20 @@ Apologies for any names omitted.
 	Based on initial implementation by Victor Duchovni.  Files:
 	flush/flush.c, *qmgr/qmgr.c, *qmgr/qmgr_scan.c,
 	*qmgr/qmgr_active.c, *qmgr/qmgr_message.c.
+
+20061220
+
+	Workaround: PMilter 0.95 does not deliver SMFIC_EOB+data
+	to the application as SMFIC_BODY+data followed by SMFIC_EOB.
+	To avoid compatibility problems, Postfix now sends
+	SMFIC_BODY+data followed by SMFIC_EOB.  File: milter/milter8.c.
+
+	Bugfix (introduced with Postfix 2.3): when inserting
+	Milter-generated headers at increasing positions in a
+	message, a later header could end up at a previously used
+	insertion point.  Thus, inserting headers at positions (N,
+	N+M) could work as if (N, N) had been specified. Problem
+	reported by Mark Martinec.  File: milter/milter8.c.
 
 Wish list:
 

@@ -21,9 +21,16 @@ Incompatible changes with Postfix snapshot 20061217
 ===================================================
 
 Postfix no longer requires a domain name. It uses "localdomain" as
-the default Internet domain name when no domain is specified in
-main.cf, and when the machine hostname does not include domain name
-information.
+the default Internet domain name when no domain is specified via
+main.cf or via the machine's hostname.
+
+Major changes with Postfix snapshot 20061217
+============================================
+
+More precise queue flushing with the ETRN, "postqueue -s site", and
+"sendmail -qRsite" commands, after minimization of race conditions.
+New per-queue-file flushing with "postqueue -i queueid" and "sendmail
+-qIqueueid".
 
 Incompatible changes with Postfix snapshot 20061209
 ===================================================

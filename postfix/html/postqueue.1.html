@@ -43,10 +43,14 @@ POSTQUEUE(1)                                                      POSTQUEUE(1)
               other mail.
 
        <b>-i</b> <i>queue</i><b>_</b><i>id</i>
-              Schedule immediate delivery of mail with the speci-
-              fied  queue  ID.   This  feature  uses the <a href="flush.8.html"><b>flush</b>(8)</a>
-              server, and  is  available  with  Postfix  2.4  and
-              later.
+              Schedule immediate delivery of deferred  mail  with
+              the specified queue ID.
+
+              This option implements the traditional <b>sendmail -qI</b>
+              command, by contacting the <a href="flush.8.html"><b>flush</b>(8)</a> server.
+
+              This feature is available with Postfix version  2.4
+              and later.
 
        <b>-p</b>     Produce a traditional sendmail-style queue listing.
               This option implements the traditional  <b>mailq</b>  com-

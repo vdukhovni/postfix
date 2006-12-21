@@ -33,9 +33,13 @@
 /*	Warning: flushing undeliverable mail frequently will result in
 /*	poor delivery performance of all other mail.
 /* .IP "\fB-i \fIqueue_id\fR"
-/*	Schedule immediate delivery of mail with the specified queue ID.
-/*	This feature uses the \fBflush\fR(8) server, and is available
-/*	with Postfix 2.4 and later.
+/*	Schedule immediate delivery of deferred mail with the
+/*	specified queue ID.
+/*
+/*	This option implements the traditional \fBsendmail -qI\fR
+/*	command, by contacting the \fBflush\fR(8) server.
+/*
+/*	This feature is available with Postfix version 2.4 and later.
 /* .IP \fB-p\fR
 /*	Produce a traditional sendmail-style queue listing.
 /*	This option implements the traditional \fBmailq\fR command,
@@ -216,6 +220,18 @@
 
  /*
   * Modes of operation.
+  * 
+  * XXX To support flush by recipient domain, or for destinations that have no
+  * mapping to logfile, the server has to defend against resource exhaustion
+  * attacks. A malicious user could fork off a postqueue client that starts
+  * an expensive requests and then kills the client immediately; this way she
+  * could create a high Postfix load on the system without ever exceeding her
+  * own per-user process limit. To prevent this, either the server needs to
+  * establish frequent proof of client liveliness with challenge/response, or
+  * the client needs to restrict expensive requests to privileged users only.
+  * 
+  * We don't have this problem with queue listings. The showq server detects
+  * an EPIPE error after reporting a few queue entries.
   */
 #define PQ_MODE_DEFAULT		0	/* noop */
 #define PQ_MODE_MAILQ_LIST	1	/* list mail queue */

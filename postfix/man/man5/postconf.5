@@ -1132,7 +1132,7 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 .SH disable_dns_lookups (default: no)
 Disable DNS lookups in the Postfix SMTP and LMTP clients. When
-disabled, hosts are looked up with the gethostbyname() system
+disabled, hosts are looked up with the getaddrinfo() system
 library routine which normally also looks in /etc/hosts.
 .PP
 DNS lookups are enabled by default.
@@ -5451,7 +5451,7 @@ This feature is available in Postfix 2.0 and later.
 Reject the request when the client hostname is listed with the
 A record "\fId.d.d.d\fR" under \fIrbl_domain\fR (Postfix version
 2.1 and later only).  If no "\fI=d.d.d.d\fR" is specified, reject
-the request when the reversed client network address is listed with
+the request when the client hostname is listed with
 any A record under \fIrbl_domain\fR. See the reject_rbl_client
 description above for additional RBL related configuration parameters.
 This feature is available in Postfix 2.0 and later.
@@ -6025,7 +6025,7 @@ rejected requests (default: 504).
 Reject the request when the RCPT TO domain is listed with the
 A record "\fId.d.d.d\fR" under \fIrbl_domain\fR (Postfix version
 2.1 and later only).  If no "\fI=d.d.d.d\fR" is specified, reject
-the request when the reversed client network address is listed with
+the request when the RCPT TO domain is listed with
 any A record under \fIrbl_domain\fR.
 .br
 The maps_rbl_reject_code
@@ -6359,7 +6359,7 @@ rejected requests (default: 504).
 Reject the request when the MAIL FROM domain is listed with
 the A record "\fId.d.d.d\fR" under \fIrbl_domain\fR (Postfix
 version 2.1 and later only).  If no "\fI=d.d.d.d\fR" is specified,
-reject the request when the reversed client network address is
+reject the request when the MAIL FROM domain is
 listed with any A record under \fIrbl_domain\fR.
 .br
 The

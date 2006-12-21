@@ -2097,14 +2097,14 @@ static void milter8_body(void *ptr, int rec_type,
 	vstring_memcat(milter->body, bp, count);
 	bp += count;
 	todo -= count;
-	/* Flush body chunk buffer when full. */
+	/* Flush body chunk buffer when full. See also milter8_eob(). */
 	if (LEN(milter->body) == MILTER_CHUNK_SIZE) {
 	    msg_ctx->resp =
 		milter8_event(milter, SMFIC_BODY, SMFIP_NOBODY,
 			      DONT_SKIP_REPLY, msg_ctx->macros,
 			      MILTER8_DATA_BUFFER, milter->body,
 			      MILTER8_DATA_END);
-	    if (msg_ctx->resp != 0 || milter->state != MILTER8_STAT_MESSAGE)
+	    if (MILTER8_MESSAGE_DONE(milter, msg_ctx))
 		break;
 	    VSTRING_RESET(milter->body);
 	}
@@ -2129,10 +2129,30 @@ static void milter8_eob(void *ptr)
 	return;
     if (msg_verbose)
 	msg_info("%s: eob milter %s", myname, milter->m.name);
+
+    /*
+     * Flush partial body chunk buffer. See also milter8_body().
+     * 
+     * XXX Sendmail 8 libmilter accepts SMFIC_EOB+data, and delivers it to the
+     * application as two events: SMFIC_BODY+data followed by SMFIC_EOB. This
+     * breaks with the PMilter 0.95 protocol re-implementation, which
+     * delivers the SMFIC_EOB event and ignores the data. To avoid such
+     * compatibility problems we separate the events in the client. With
+     * this, we also prepare for a future where different event types can
+     * have different macro lists.
+     */
+    if (LEN(milter->body) > 0) {
+	msg_ctx->resp =
+	    milter8_event(milter, SMFIC_BODY, SMFIP_NOBODY,
+			  DONT_SKIP_REPLY, msg_ctx->macros,
+			  MILTER8_DATA_BUFFER, milter->body,
+			  MILTER8_DATA_END);
+	if (MILTER8_MESSAGE_DONE(milter, msg_ctx))
+	    return;
+    }
     msg_ctx->resp =
 	milter8_event(msg_ctx->milter, SMFIC_BODYEOB, 0,
 		      DONT_SKIP_REPLY, msg_ctx->macros,
-		      MILTER8_DATA_BUFFER, milter->body,
 		      MILTER8_DATA_END);
 }
 
