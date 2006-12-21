@@ -3335,8 +3335,10 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 #define IF_VERIFIED(x) \
     ((state->tls_context && \
       state->tls_context->peer_verified && ((x) != 0)) ? (x) : "")
-			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_SUBJECT, subject,
-			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_ISSUER, issuer,
+			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_SUBJECT,
+			  IF_VERIFIED(subject),
+			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_ISSUER,
+			  IF_VERIFIED(issuer),
 			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_FINGERPRINT,
 			  IF_VERIFIED(state->tls_context->peer_fingerprint),
 #define IF_ENCRYPTED(x, y) ((state->tls_context && ((x) != 0)) ? (x) : (y))

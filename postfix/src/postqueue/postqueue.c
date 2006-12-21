@@ -363,6 +363,13 @@ static void flush_site(const char *site)
     }
 }
 
+/* unavailable - sanitize exit status from library run-time errors */
+
+static void unavailable(void)
+{
+    exit(EX_UNAVAILABLE);
+}
+
 /* usage - scream and die */
 
 static NORETURN usage(void)
@@ -406,6 +413,7 @@ int     main(int argc, char **argv)
     if ((slash = strrchr(argv[0], '/')) != 0 && slash[1])
 	argv[0] = slash + 1;
     msg_vstream_init(argv[0], VSTREAM_ERR);
+    msg_cleanup(unavailable);
     msg_syslog_init(mail_task("postqueue"), LOG_PID, LOG_FACILITY);
     set_mail_conf_str(VAR_PROCNAME, var_procname = mystrdup(argv[0]));
 

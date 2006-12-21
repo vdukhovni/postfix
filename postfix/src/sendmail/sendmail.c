@@ -885,6 +885,13 @@ static void enqueue(const int flags, const char *encoding,
     myfree(saved_sender);
 }
 
+/* tempfail - sanitize exit status after library run-time error */
+
+static void tempfail(void)
+{
+    exit(EX_TEMPFAIL);
+}
+
 /* main - the main program */
 
 int     main(int argc, char **argv)
@@ -952,6 +959,7 @@ int     main(int argc, char **argv)
     if ((slash = strrchr(argv[0], '/')) != 0 && slash[1])
 	argv[0] = slash + 1;
     msg_vstream_init(argv[0], VSTREAM_ERR);
+    msg_cleanup(tempfail);
     msg_syslog_init(mail_task("sendmail"), LOG_PID, LOG_FACILITY);
     set_mail_conf_str(VAR_PROCNAME, var_procname = mystrdup(argv[0]));
 
