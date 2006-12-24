@@ -570,10 +570,10 @@ static int vmilter8_read_data(MILTER8 *milter, ssize_t data_len, va_list ap)
 	    break;
 
 	    /*
-	     * Raw on-the-wire format.
+	     * Raw on-the-wire format, without explicit null terminator.
 	     */
 	case MILTER8_DATA_BUFFER:
-	    if (data_left < 1) {
+	    if (data_left < 0) {
 		msg_warn("milter %s: no data in input packet", milter->m.name);
 		return (milter8_comm_error(milter));
 	    }

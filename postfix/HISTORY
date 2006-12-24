@@ -12864,7 +12864,11 @@ Apologies for any names omitted.
 
 20061211
 
-	When the remote SMTP client certificate isn't verified,
+	Cleanup: when doing server access control by the remote TLS
+	client fingerprint, do not require client certificate
+	verification.  Victor Duchovni.  File: smtpd/smtpd_check.c.
+
+	Safety: when the remote TLS client certificate isn't verified,
 	don't send ccert_subject and ccert_issuer attributes in
 	check_policy_service requests. Victor Duchovni. File:
 	smtpd/smtpd_check.c.

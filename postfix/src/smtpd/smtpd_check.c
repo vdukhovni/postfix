@@ -1221,8 +1221,12 @@ static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
 	    msg_info("Relaying allowed for all verified client certificates");
 	return (SMTPD_CHECK_OK);
     }
-    if (state->tls_context->peer_verified
-	&& state->tls_context->peer_fingerprint) {
+
+    /*
+     * When directly checking the fingerprint, it is OK if the issuing CA is
+     * not trusted.
+     */
+    if (state->tls_context->peer_fingerprint) {
 	found = maps_find(relay_ccerts, state->tls_context->peer_fingerprint,
 			  DICT_FLAG_NONE);
 	if (found) {
@@ -2578,8 +2582,11 @@ static int check_ccert_access(SMTPD_STATE *state, const char *table,
     if (!state->tls_context)
 	return SMTPD_CHECK_DUNNO;
 
-    if (state->tls_context->peer_verified
-	&& state->tls_context->peer_fingerprint) {
+    /*
+     * When directly checking the fingerprint, it is OK if the issuing CA is
+     * not trusted.
+     */
+    if (state->tls_context->peer_fingerprint) {
 	if (msg_verbose)
 	    msg_info("%s: %s", myname, state->tls_context->peer_fingerprint);
 
@@ -3335,13 +3342,18 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 #define IF_VERIFIED(x) \
     ((state->tls_context && \
       state->tls_context->peer_verified && ((x) != 0)) ? (x) : "")
+#define IF_ENCRYPTED(x, y) ((state->tls_context && ((x) != 0)) ? (x) : (y))
 			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_SUBJECT,
 			  IF_VERIFIED(subject),
 			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_ISSUER,
 			  IF_VERIFIED(issuer),
+
+    /*
+     * When directly checking the fingerprint, it is OK if the issuing CA is
+     * not trusted.
+     */
 			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_FINGERPRINT,
-			  IF_VERIFIED(state->tls_context->peer_fingerprint),
-#define IF_ENCRYPTED(x, y) ((state->tls_context && ((x) != 0)) ? (x) : (y))
+		     IF_ENCRYPTED(state->tls_context->peer_fingerprint, ""),
 			  ATTR_TYPE_STR, MAIL_ATTR_CRYPTO_PROTOCOL,
 			  IF_ENCRYPTED(state->tls_context->protocol, ""),
 			  ATTR_TYPE_STR, MAIL_ATTR_CRYPTO_CIPHER,
