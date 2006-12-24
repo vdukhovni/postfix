@@ -12816,9 +12816,6 @@ Apologies for any names omitted.
 
 20061106
 
-	The following is implemented using snapshot 20061019 as the
-	code base.
-
 	Feature: new retry delivery agent, to avoid the synchronous
 	defer service client in the queue manager. This code is
 	co-located with the error(8) server. File: error/error.c.
@@ -12987,11 +12984,11 @@ Apologies for any names omitted.
 
 20061211
 
-	When doing server access control by the TLS client fingerprint,
-	do not require client certificate verification.  Victor
-	Duchovni.  File: smtpd/smtpd_check.c.
+	Cleanup: when doing server access control by the remote TLS
+	client fingerprint, do not require client certificate
+	verification.  Victor Duchovni.  File: smtpd/smtpd_check.c.
 
-	When the remote SMTP client certificate isn't verified,
+	Safety: when the remote TLS client certificate isn't verified,
 	don't send ccert_subject and ccert_issuer attributes in
 	check_policy_service requests. Victor Duchovni. File:
 	smtpd/smtpd_check.c.
@@ -13044,6 +13041,11 @@ Apologies for any names omitted.
 	insertion point.  Thus, inserting headers at positions (N,
 	N+M) could work as if (N, N) had been specified. Problem
 	reported by Mark Martinec.  File: milter/milter8.c.
+
+20061221
+
+	Feature: time unit suffix support in _command_time_limit.
+	Files: pipe/pipe.c, spawn/spawn.c.
 
 Wish list:
 

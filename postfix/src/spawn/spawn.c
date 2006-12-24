@@ -69,6 +69,10 @@
 /* .IP "\fItransport\fB_time_limit ($command_time_limit)\fR"
 /*	The amount of time the command is allowed to run before it is
 /*	terminated.
+/*
+/*	Postfix 2.4 and later support a suffix that specifies the 
+/*	time unit: s (seconds), m (minutes), h (hours), d (days),
+/*	w (weeks). The default time unit is seconds.
 /* MISCELLANEOUS
 /* .ad
 /* .fi
@@ -190,7 +194,7 @@ static void get_service_attr(SPAWN_ATTR *attr, char *service, char **argv)
      * Figure out the command time limit for this transport.
      */
     attr->time_limit =
-	get_mail_conf_int2(service, "_time_limit", var_command_maxtime, 1, 0);
+	get_mail_conf_time2(service, "_time_limit", var_command_maxtime, 's', 1, 0);
 
     /*
      * Iterate over the command-line attribute list.

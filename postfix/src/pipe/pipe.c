@@ -303,6 +303,10 @@
 /*	Limit the time for delivery to external command, for delivery via
 /*	the named \fItransport\fR.
 /*	The limit is enforced by the pipe delivery agent.
+/*
+/*	Postfix 2.4 and later support a suffix that specifies the
+/*	time unit: s (seconds), m (minutes), h (hours), d (days),
+/*	w (weeks). The default time unit is seconds.
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi
@@ -714,7 +718,7 @@ static void get_service_params(PIPE_PARAMS *config, char *service)
      * Figure out the command time limit for this transport.
      */
     config->time_limit =
-	get_mail_conf_int2(service, "_time_limit", var_command_maxtime, 1, 0);
+	get_mail_conf_time2(service, "_time_limit", var_command_maxtime, 's', 1, 0);
 
     /*
      * Give the poor tester a clue of what is going on.

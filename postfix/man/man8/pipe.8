@@ -323,6 +323,10 @@ The limit is enforced by the Postfix queue manager.
 Limit the time for delivery to external command, for delivery via
 the named \fItransport\fR.
 The limit is enforced by the pipe delivery agent.
+
+Postfix 2.4 and later support a suffix that specifies the
+time unit: s (seconds), m (minutes), h (hours), d (days),
+w (weeks). The default time unit is seconds.
 .SH "MISCELLANEOUS CONTROLS"
 .na
 .nf

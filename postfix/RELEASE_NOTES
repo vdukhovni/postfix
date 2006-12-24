@@ -32,6 +32,20 @@ More precise queue flushing with the ETRN, "postqueue -s site", and
 New per-queue-file flushing with "postqueue -i queueid" and "sendmail
 -qIqueueid".
 
+Incompatible changes with Postfix snapshot 20061214
+===================================================
+
+The check_smtpd_policy client sends TLS certificate attributes
+(client ccert_subject, ccert_issuer) only after successful client
+certificate verification. The reason is that the certification
+verification status itself is not available in the policy request.
+
+The check_smtpd_policy client sends TLS certificate fingerprint
+information even when the certificate itself was not verified.
+
+The remote SMTP client TLS certificate fingerprint can be used for
+access control even when the certificate itself was not verified.
+
 Incompatible changes with Postfix snapshot 20061209
 ===================================================
 
