@@ -13047,6 +13047,17 @@ Apologies for any names omitted.
 	Feature: time unit suffix support in _command_time_limit.
 	Files: pipe/pipe.c, spawn/spawn.c.
 
+20061227
+
+	Bugfix: the MX hostname syntax check was accidentally skipped
+	with reject_unknown_helo_hostname/sender_domain/recipient_domain.
+	File: smtpd/smtpd_check.c.
+
+20061229
+
+	Cleanup: use separate TLS_LEGACY_README to document the old
+	TLS user interface. This will simplify TLS_README dramatically.
+
 Wish list:
 
 	Update MILTER_README with Martinec info.

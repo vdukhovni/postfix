@@ -34,11 +34,11 @@ certificate-based authentication and encrypted sessions.  An
 encrypted session protects the information that is transmitted with
 SMTP mail or with SASL authentication.
 
-<p> Postfix version 2.2 introduces support for TLS as described in
-RFC 3207.  TLS Support for older Postfix versions was available as
-an add-on patch.  The section "<a href="#compat">Compatibility with
-Postfix &lt; 2.2 TLS support</a>" below discusses the differences
-between these implementations.  </p>
+<p> This document describes a TLS user interface that was introduced
+with Postfix version 2.3. Support for an older user interface is
+documented in TLS_LEGACY_README, which also describes the differences
+between Postfix and the third-party patch on which Postfix version
+2.2 TLS support was based.  </p>
 
 <p> Topics covered in this document: </p>
 
@@ -55,8 +55,6 @@ between these implementations.  </p>
 <li><a href="#tlsmgr_controls"> TLS manager specific settings </a>
 
 <li><a href="#problems"> Reporting problems </a>
-
-<li><a href="#compat">Compatibility with Postfix &lt; 2.2 TLS support</a>
 
 <li><a href="#credits"> Credits </a>
 
@@ -2329,52 +2327,6 @@ but don't require them from all clients. </p>
 See http://www.postfix.org/lists.html for subscription information.
 When reporting a problem, please be thorough in the report.  Patches,
 when possible, are greatly appreciated too. </p>
-
-<h2><a name="compat">Compatibility with Postfix &lt; 2.2 TLS support</a></h2>
-
-<p> Postfix version 2.2 TLS support is based on the Postfix/TLS
-patch by Lutz J&auml;nicke, but differs in a few minor ways. </p>
-
-<ul>
-
-<li> <p> main.cf: Specify "btree" instead of "sdbm" for TLS
-session cache databases. </p>
-
-<p> TLS session cache databases are now accessed only by the
-tlsmgr(8) process, so there are no more concurrency issues. Although
-Postfix has an sdbm client, the sdbm library (1000
-lines of code) is not included with Postfix. </p>
-
-<p> TLS session caches can use any database that can store objects
-of several kbytes or more, and that implements the sequence operation.
-In most cases, btree databases should be adequate.  </p>
-
-<p> NOTE:  You cannot use DBM databases. TLS session objects
-are too large. </p>
-
-<li> <p> master.cf: Specify "unix" instead of "fifo" as
-the tlsmgr service type. </p>
-
-<p> The smtp(8) and smtpd(8) processes now use a client-server
-protocol in order to access the tlsmgr(8) pseudo-random number
-generation (PRNG) pool, and in order to access the TLS session
-cache databases. Such a protocol cannot be run across fifos. </p>
-
-<li> <p> smtp_tls_per_site: the MUST_NOPEERMATCH per-site policy
-cannot override the global "smtp_tls_enforce_peername = yes" setting.
-</p>
-
-<li> <p> smtp_tls_per_site: a combined (NONE + MAY) lookup result
-for (hostname and next-hop destination) produces counter-intuitive
-results for different main.cf settings.  TLS is enabled with
-"smtp_tls_enforce_peername = no", but it is disabled when both
-"smtp_enforce_tls = yes" and "smtp_tls_enforce_peername = yes".
-</p>
-
-</ul>
-
-<p> The smtp_tls_per_site limitations were removed by the end of
-the Postfix 2.2 support cycle. </p>
 
 <h2><a name="credits">Credits </a> </h2>
 
