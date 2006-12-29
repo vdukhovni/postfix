@@ -12899,3 +12899,9 @@ Apologies for any names omitted.
 	insertion point.  Thus, inserting headers at positions (N,
 	N+M) could work as if (N, N) had been specified. Problem
 	reported by Mark Martinec.  File: milter/milter8.c.
+
+20061227
+
+	Bugfix: the MX hostname syntax check was accidentally skipped
+	with reject_unknown_helo_hostname/sender_domain/recipient_domain.
+	File: smtpd/smtpd_check.c.

@@ -1142,6 +1142,7 @@ static int reject_unknown_hostname(SMTPD_STATE *state, char *name,
 {
     const char *myname = "reject_unknown_hostname";
     int     dns_status;
+    DNS_RR *dummy;
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, name);
@@ -1152,15 +1153,20 @@ static int reject_unknown_hostname(SMTPD_STATE *state, char *name,
 #define RR_ADDR_TYPES	T_A
 #endif
 
-    dns_status = dns_lookup_l(name, 0, (DNS_RR **) 0, (VSTRING *) 0,
+    dns_status = dns_lookup_l(name, 0, &dummy, (VSTRING *) 0,
 			      (VSTRING *) 0, DNS_REQ_FLAG_STOP_OK,
 			      RR_ADDR_TYPES, T_MX, 0);
+    if (dummy)
+	dns_rr_free(dummy);
     if (dns_status != DNS_OK) {			/* incl. DNS_INVAL */
 	if (dns_status != DNS_RETRY)
 	    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				       var_unk_name_code, "4.7.1",
-				       "<%s>: %s rejected: Host not found",
-				       reply_name, reply_class));
+				       "<%s>: %s rejected: %s",
+				       reply_name, reply_class,
+				       dns_status == DNS_INVAL ?
+				       "Malformed DNS server reply" :
+				       "Host not found"));
 	else
 	    DEFER_IF_PERMIT2(state, MAIL_ERROR_POLICY,
 			     450, "4.7.1",
@@ -1177,23 +1183,29 @@ static int reject_unknown_mailhost(SMTPD_STATE *state, const char *name,
 {
     const char *myname = "reject_unknown_mailhost";
     int     dns_status;
+    DNS_RR *dummy;
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, name);
 
 #define MAILHOST_LOOKUP_FLAGS	(DNS_REQ_FLAG_STOP_OK | DNS_REQ_FLAG_STOP_INVAL)
 
-    dns_status = dns_lookup_l(name, 0, (DNS_RR **) 0, (VSTRING *) 0,
+    dns_status = dns_lookup_l(name, 0, &dummy, (VSTRING *) 0,
 			      (VSTRING *) 0, MAILHOST_LOOKUP_FLAGS,
 			      T_MX, RR_ADDR_TYPES, 0);
+    if (dummy)
+	dns_rr_free(dummy);
     if (dns_status != DNS_OK) {			/* incl. DNS_INVAL */
 	if (dns_status != DNS_RETRY)
 	    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				       var_unk_addr_code,
 			       strcmp(reply_class, SMTPD_NAME_SENDER) == 0 ?
 				       "4.1.8" : "4.1.2",
-				       "<%s>: %s rejected: Domain not found",
-				       reply_name, reply_class));
+				       "<%s>: %s rejected: %s",
+				       reply_name, reply_class,
+				       dns_status == DNS_INVAL ?
+				       "Malformed DNS server reply" :
+				       "Domain not found"));
 	else
 	    DEFER_IF_PERMIT2(state, MAIL_ERROR_POLICY,
 			  450, strcmp(reply_class, SMTPD_NAME_SENDER) == 0 ?
