@@ -12902,6 +12902,8 @@ Apologies for any names omitted.
 
 20061227
 
-	Bugfix: the MX hostname syntax check was accidentally skipped
-	with reject_unknown_helo_hostname/sender_domain/recipient_domain.
-	File: smtpd/smtpd_check.c.
+	Bugfix (introduced with Postfix 2.3): the MX hostname syntax
+	check was skipped with reject_unknown_helo_hostname and
+	reject_unknown_sender/recipient_domain, so that Postfix
+	would still accept mail from domains with a zero-length MX
+	hostname.  File: smtpd/smtpd_check.c.
