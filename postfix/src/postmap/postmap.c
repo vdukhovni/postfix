@@ -68,6 +68,10 @@
 /* .IP \fB-f\fR
 /*	Do not fold the lookup key to lower case while creating or querying
 /*	a table.
+/*
+/*	With Postfix version 2.3 and later, this option has no
+/*	effect for regular expression tables. There, case folding
+/*	is controlled by appending a flag to a pattern.
 /* .IP \fB-i\fR
 /*	Incremental mode. Read entries from standard input and do not
 /*	truncate an existing database. By default, \fBpostmap\fR(1) creates

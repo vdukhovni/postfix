@@ -237,9 +237,12 @@ static DICT *proxy_map_find(const char *map_type_name, int request_flags,
 
     /*
      * Open one instance of a map for each combination of name+flags.
+     * 
+     * Assume that a map instance can be shared among clients with different
+     * paranoia flag settings and with different map lookup flag settings.
      */
-    vstring_sprintf(map_type_name_flags, "%s:%s",
-		    map_type_name, dict_flags_str(request_flags));
+    vstring_sprintf(map_type_name_flags, "%s:%s", map_type_name,
+		    dict_flags_str(request_flags & DICT_FLAG_NP_INST_MASK));
     if ((dict = dict_handle(STR(map_type_name_flags))) == 0)
 	dict = dict_open(map_type_name, READ_OPEN_FLAGS, request_flags);
     if (dict == 0)
@@ -270,7 +273,9 @@ static void proxymap_lookup_service(VSTREAM *client_stream)
     } else if ((dict = proxy_map_find(STR(request_map), request_flags,
 				      &reply_status)) == 0) {
 	reply_value = "";
-    } else if ((reply_value = dict_get(dict, STR(request_key))) != 0) {
+    } else if (dict->flags = ((dict->flags & ~DICT_FLAG_RQST_MASK)
+			      | (request_flags & DICT_FLAG_RQST_MASK)),
+	       (reply_value = dict_get(dict, STR(request_key))) != 0) {
 	reply_status = PROXY_STAT_OK;
     } else if (dict_errno == 0) {
 	reply_status = PROXY_STAT_NOKEY;

@@ -153,7 +153,9 @@ static const char *dict_ni_lookup(DICT *dict, const char *key)
     /*
      * Optionally fold the key.
      */
-    if (dict->fold_buf) {
+    if (dict->flags & DICT_FLAG_FOLD_FIX) {
+	if (dict->fold_buf == 0)
+	    dict->fold_buf = vstring_alloc(10);
 	vstring_strcpy(dict->fold_buf, key);
 	key = lowercase(vstring_str(dict->fold_buf));
     }

@@ -250,7 +250,8 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
 		msg_fatal("%s service is not configured for table \"%s\"",
 			  MAIL_SERVICE_PROXYMAP, dict_proxy->dict.name);
 	    case PROXY_STAT_OK:
-		dict_proxy->dict.flags = dict_proxy->in_flags | server_flags;
+		dict_proxy->dict.flags = dict_proxy->in_flags
+		    | (server_flags & DICT_FLAG_IMPL_MASK);
 		return (DICT_DEBUG (&dict_proxy->dict));
 	    default:
 		msg_warn("%s open failed for table \"%s\": unexpected status %d",

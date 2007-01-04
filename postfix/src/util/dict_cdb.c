@@ -110,7 +110,9 @@ static const char *dict_cdbq_lookup(DICT *dict, const char *name)
     /*
      * Optionally fold the key.
      */
-    if (dict->fold_buf) {
+    if (dict->flags & DICT_FLAG_FOLD_FIX) {
+	if (dict->fold_buf == 0)
+	    dict->fold_buf = vstring_alloc(10);
 	vstring_strcpy(dict->fold_buf, name);
 	name = lowercase(vstring_str(dict->fold_buf));
     }
@@ -234,11 +236,12 @@ static void dict_cdbm_update(DICT *dict, const char *name, const char *value)
     /*
      * Optionally fold the key.
      */
-    if (dict->fold_buf) {
+    if (dict->flags & DICT_FLAG_FOLD_FIX) {
+	if (dict->fold_buf == 0)
+	    dict->fold_buf = vstring_alloc(10);
 	vstring_strcpy(dict->fold_buf, name);
 	name = lowercase(vstring_str(dict->fold_buf));
     }
-
     ksize = strlen(name);
     vsize = strlen(value);
 

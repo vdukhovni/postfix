@@ -48,6 +48,10 @@
 /* .IP \fB-f\fR
 /*	Do not fold the lookup key to lower case while creating or querying
 /*	a table.
+/*
+/*	With Postfix version 2.3 and later, this option has no
+/*	effect for regular expression tables. There, case folding
+/*	is controlled by appending a flag to a pattern.
 /* .IP \fB-i\fR
 /*	Incremental mode. Read entries from standard input and do not
 /*	truncate an existing database. By default, \fBpostalias\fR(1) creates
@@ -392,6 +396,7 @@ static void postalias(char *map_type, char *path_name, int postalias_flags,
     mkmap->dict->flags |= DICT_FLAG_TRY0NULL;
     vstring_sprintf(value_buffer, "%010ld", (long) time((time_t *) 0));
 #if (defined(HAS_NIS) || defined(HAS_NISPLUS))
+    mkmap->dict->flags &= ~DICT_FLAG_FOLD_FIX;
     mkmap_append(mkmap, "YP_LAST_MODIFIED", STR(value_buffer));
     mkmap_append(mkmap, "YP_MASTER_NAME", var_myhostname);
 #endif

@@ -264,7 +264,9 @@ static const char *dict_pcre_lookup(DICT *dict, const char *lookup_string)
     /*
      * Optionally fold the key.
      */
-    if (dict->fold_buf) {
+    if (dict->flags & DICT_FLAG_FOLD_MUL) {
+	if (dict->fold_buf == 0)
+	    dict->fold_buf = vstring_alloc(10);
 	vstring_strcpy(dict->fold_buf, lookup_string);
 	lookup_string = lowercase(vstring_str(dict->fold_buf));
     }
