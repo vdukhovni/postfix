@@ -12907,3 +12907,14 @@ Apologies for any names omitted.
 	reject_unknown_sender/recipient_domain, so that Postfix
 	would still accept mail from domains with a zero-length MX
 	hostname.  File: smtpd/smtpd_check.c.
+
+20070104
+
+	Bugfix (introduced Postfix 2.3): when creating an alias map
+	on a NIS-enabled system, don't case-fold the YP_MASTER_NAME
+	and YP_LAST_MODIFIED lookup keys. This requires that an
+	application can turn off case folding on the fly. This is
+	a point fix. A complete fix requires updates to other map
+	types and to the proxymap protocol, which is too much change
+	for a stable release.  Files: postalias/postalias.c,
+	util/dict_db.c, util/dict_dbm.c, util/dict_cdb.c.

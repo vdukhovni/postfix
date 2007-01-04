@@ -17,12 +17,12 @@
 /*	\fBmakemap \fIfile_type\fR \fIfile_name\fR < \fIfile_name\fR
 /*
 /*	If the result files do not exist they will be created with the
-/*	same group and other read permissions as the source file.
+/*	same group and other read permissions as their source file.
 /*
 /*	While the table update is in progress, signal delivery is
 /*	postponed, and an exclusive, advisory, lock is placed on the
 /*	entire table, in order to avoid surprises in spectator
-/*	programs.
+/*	processes.
 /* INPUT FILE FORMAT
 /* .ad
 /* .fi
@@ -68,6 +68,10 @@
 /* .IP \fB-f\fR
 /*	Do not fold the lookup key to lower case while creating or querying
 /*	a table.
+/*
+/*	With Postfix version 2.3 and later, this option has no
+/*	effect for regular expression tables. There, case folding
+/*	is controlled by appending a flag to a pattern.
 /* .IP \fB-i\fR
 /*	Incremental mode. Read entries from standard input and do not
 /*	truncate an existing database. By default, \fBpostmap\fR(1) creates
