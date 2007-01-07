@@ -13076,6 +13076,24 @@ Apologies for any names omitted.
 	that have only minor differences in dictionary open/access
 	options.
 
+20070105
+
+	Performance: pipeline of pending delivery agent connections,
+	to improve Linux/Solaris mail delivery performance by another
+	10% while going down-hill with the wind from behind. Design
+	and implementation Victor and Wietse. Files: *qmgr/qmgr.c,
+	*qmgr/qmgr.h, *qmgr/qmgr_transport.c.
+
+20070106
+
+	Cleanup: eliminate the Linux/Solaris "wait for accept()"
+	stage from the queue manager to delivery agent protocol.
+	This alone achieves 99.99% of the Linux/Solaris speed up
+	from the preceding change. The pending connection pipeline
+	takes care of the rest.  Tested on Linux kernels dating
+	back to 2.0.27 (that's more than 10 years ago).  Files:
+	*qmgr/qmgr_transport.c.
+
 Wish list:
 
 	Update BACKSCATTER_README to use PCRE because that's what I

@@ -131,6 +131,7 @@ struct QMGR_JOB_LIST {
 
 struct QMGR_TRANSPORT {
     int     flags;			/* blocked, etc. */
+    int     pending;			/* incomplete DA connections */
     char   *name;			/* transport name */
     int     dest_concurrency_limit;	/* concurrency per domain */
     int     init_dest_concurrency;	/* init. per-domain concurrency */
@@ -165,7 +166,6 @@ struct QMGR_TRANSPORT {
 };
 
 #define QMGR_TRANSPORT_STAT_DEAD	(1<<1)
-#define QMGR_TRANSPORT_STAT_BUSY	(1<<2)
 
 typedef void (*QMGR_TRANSPORT_ALLOC_NOTIFY) (QMGR_TRANSPORT *, VSTREAM *);
 extern QMGR_TRANSPORT *qmgr_transport_select(void);
@@ -175,7 +175,7 @@ extern void qmgr_transport_unthrottle(QMGR_TRANSPORT *);
 extern QMGR_TRANSPORT *qmgr_transport_create(const char *);
 extern QMGR_TRANSPORT *qmgr_transport_find(const char *);
 
-#define QMGR_TRANSPORT_THROTTLED(t) ((t)->flags & QMGR_TRANSPORT_STAT_DEAD)
+#define QMGR_TRANSPORT_THROTTLED(t)	((t)->flags & QMGR_TRANSPORT_STAT_DEAD)
 
  /*
   * Each next hop (e.g., a domain name) has its own queue of pending message

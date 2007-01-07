@@ -432,7 +432,6 @@ extern int opterr;
 #define DBM_NO_TRAILING_NULL
 #define USE_STATVFS
 #define STATVFS_IN_SYS_STATVFS_H
-#define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT
 #define STRCASECMP_IN_STRINGS_H
 #define SET_H_ERRNO(err) (set_h_errno(err))
 #endif
@@ -463,7 +462,6 @@ extern int opterr;
 #define DBM_NO_TRAILING_NULL
 #define USE_STATVFS
 #define STATVFS_IN_SYS_STATVFS_H
-#define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT
 #endif
 
  /*
@@ -679,7 +677,6 @@ extern int initgroups(const char *, int);
 #define FIONREAD_IN_TERMIOS_H
 #define USE_STATFS
 #define STATFS_IN_SYS_VFS_H
-#define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT
 #define PREPEND_PLUS_TO_OPTSTRING
 #define HAS_POSIX_REGEXP
 #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
@@ -697,7 +694,10 @@ extern int initgroups(const char *, int);
 # define _PATH_PROCNET_IFINET6 "/proc/net/if_inet6"
 #endif
 #include <linux/version.h>
-#if !defined(KERNEL_VERSION) || (LINUX_VERSION_CODE < KERNEL_VERSION(2,2,0)) \
+#if !defined(KERNEL_VERSION) 
+# define KERNEL_VERSION(a,b,c) (LINUX_VERSION_CODE + 1)
+#endif
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,2,0)) \
 	|| (__GLIBC__ < 2)
 # define CANT_USE_SEND_RECV_MSG
 # define DEF_SMTP_CACHE_DEMAND	0
@@ -727,7 +727,6 @@ extern int initgroups(const char *, int);
 #define FIONREAD_IN_TERMIOS_H		/* maybe unnecessary */
 #define USE_STATFS
 #define STATFS_IN_SYS_VFS_H
-#define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT	/* unverified */
 #define PREPEND_PLUS_TO_OPTSTRING
 #define HAS_POSIX_REGEXP
 #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
@@ -1018,7 +1017,6 @@ extern int opterr;			/* XXX use <getopt.h> */
 #define DBM_NO_TRAILING_NULL
 #define USE_STATVFS
 #define STATVFS_IN_SYS_STATVFS_H
-#define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT
 #ifndef S_ISSOCK
 #define S_ISSOCK(mode)	((mode&0xF000) == 0xC000)
 #endif
@@ -1049,7 +1047,6 @@ extern int h_errno;
 #define ROOT_PATH	"/bin:/etc:/usr/bin:/tcb/bin"
 #define USE_STATVFS
 #define STATVFS_IN_SYS_STATVFS_H
-#define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT
 #define MISSING_SETENV
 #define STRCASECMP_IN_STRINGS_H
 /* SCO5 misses just S_ISSOCK, the others are there
