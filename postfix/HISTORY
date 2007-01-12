@@ -13094,6 +13094,18 @@ Apologies for any names omitted.
 	back to 2.0.27 (that's more than 10 years ago).  Files:
 	*qmgr/qmgr_transport.c.
 
+20070112
+
+	Bugfix (introduced 20011008): with nested access restrictions,
+	possible longjump into exited stack frame after configuration
+	error or table lookup error. Victor Duchovni.  Files:
+	smtpd/smtpd_check.c.
+
+	Horrible workaround: don't insert blank line before message/*
+	starting with a mailbox From_ or =46rom_ line, and output
+	this garbage as body content, without actually switching
+	to message body state.  File: global/mime_state.c.
+
 Wish list:
 
 	Update BACKSCATTER_README to use PCRE because that's what I

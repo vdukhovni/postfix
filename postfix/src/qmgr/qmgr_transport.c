@@ -151,7 +151,9 @@ struct QMGR_TRANSPORT_ALLOC {
   * caching; the idea is that such "thinking time" is affordable only after
   * the output channels are maxed out.
   */
+#ifndef QMGR_TRANSPORT_MAX_PEND
 #define QMGR_TRANSPORT_MAX_PEND	2
+#endif
 
 /* qmgr_transport_unthrottle_wrapper - in case (char *) != (struct *) */
 

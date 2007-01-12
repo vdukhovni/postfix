@@ -966,10 +966,41 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 	    /*
 	     * Invalid input. Force output of one blank line and jump to the
 	     * body state, leaving all other state alone.
+	     * 
+	     * XXX Some broken software sends a From_ line at the start of
+	     * Message/rfc822 content, and some doubly brain-damaged software
+	     * even encodes Message/rfc822 content as quoted-printable. If we
+	     * force output of a blank line after such garbage then we are
+	     * safe: all headers that follow are permanently neutralized, but
+	     * of course the message is modified.
+	     * 
+	     * XXX If we don't force output of a blank line before garbage, we
+	     * must still inspect the text that follows garbage as message
+	     * headers. Otherwise we would introduce a trivial security hole
+	     * to slip forbidden content past Postfix header_checks.
+	     * 
+	     * XXX Because the garbage is not a valid header, we must not feed
+	     * it into call-back routines that expect valid header lines.
+	     * This code therefore falls through into the code that emits
+	     * body lines, which we already use anyway to emit the empty line
+	     * between a header and body block, and between MIME headers and
+	     * message/* headers. Using body output code for garbage output
+	     * is safe provided that rec_type is REC_TYPE_NORM and that
+	     * state->curr_domain is MIME_ENC_7BIT, so that we don't have to
+	     * worry about MIME downgrading. If any of this changes then we
+	     * have a problem.
 	     */
 	    else {
-		SET_CURR_STATE(state, MIME_STATE_BODY);
-		BODY_OUT(state, REC_TYPE_NORM, "", 0);
+		if (state->curr_state == MIME_STATE_NESTED
+		    && rec_type == REC_TYPE_NORM
+		    && len > 7
+		    && (strncmp(text + (*text == '>'), "From ", 5) == 0
+			|| strncmp(text, "=46rom ", 7) == 0)) {
+		     /* Output as body, but don't change state just yet. */ ;
+		} else {
+		    SET_CURR_STATE(state, MIME_STATE_BODY);
+		    BODY_OUT(state, REC_TYPE_NORM, "", 0);
+		}
 	    }
 	}
 

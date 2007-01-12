@@ -74,6 +74,12 @@ int     stream_connect(const char *path, int block_mode, int unused_timeout)
 	return (-1);
 
     /*
+     * This is for {unix,inet}_connect() compatibility.
+     */
+    if (block_mode == BLOCKING)
+	non_blocking(fifo, BLOCKING);
+
+    /*
      * Create a pipe, and send one pipe end to the server.
      */
     if (pipe(pair) < 0)

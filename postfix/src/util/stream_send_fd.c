@@ -58,7 +58,7 @@ int     stream_send_fd(int fd, int sendfd)
 
 #ifdef STREAM_CONNECTIONS
     if (ioctl(fd, I_SENDFD, sendfd) < 0)
-	msg_fatal("%s: send file descriptor: %m", myname);
+	msg_fatal("%s: send file descriptor %d: %m", sendfd, myname);
     return (0);
 #else
     msg_fatal("stream connections are not implemented");
