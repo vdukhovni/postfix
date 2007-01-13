@@ -150,6 +150,9 @@ void    msg_vprintf(int level, const char *format, va_list ap)
 {
     if (msg_vprintf_lock == 0) {
 	msg_vprintf_lock = 1;
+	/* On-the-fly initialization for debugging test programs only. */
+	if (msg_output_fn_count == 0)
+	    msg_vstream_init("unknown", VSTREAM_ERR);
 	/* OK if terminating signal handler hijacks control before next stmt. */
 	vstring_vsprintf(msg_buffer, percentm(format, errno), ap);
 	msg_text(level, vstring_str(msg_buffer));

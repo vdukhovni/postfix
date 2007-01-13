@@ -2245,6 +2245,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 				reply_class, def_acl);
     }
     argv_free(restrictions);
+    memcpy(ADDROF(smtpd_check_buf), ADDROF(savebuf), sizeof(smtpd_check_buf));
     return (status);
 }
 

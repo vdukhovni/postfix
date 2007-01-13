@@ -12918,3 +12918,17 @@ Apologies for any names omitted.
 	types and to the proxymap protocol, which is too much change
 	for a stable release.  Files: postalias/postalias.c,
 	util/dict_db.c, util/dict_dbm.c, util/dict_cdb.c.
+
+20070112
+
+	Bugfix (introduced 20011008): after return from a nested
+	access restriction, possible longjump into exited stack
+	frame upon configuration error or table lookup error.  Victor
+	Duchovni.  Files: smtpd/smtpd_check.c.
+
+	Workaround: don't insert header/body blank line separator
+	in malformed attachments, to avoid breaking digital signatures.
+	Switch from header to body state, for robust MIME parsing.
+	People concerned about MIME evasion can use a MIME normalizer
+	to corrupt their user's legitimate email.  File:
+	global/mime_state.c.

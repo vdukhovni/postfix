@@ -182,6 +182,13 @@
 /* .IP state
 /*	MIME parser state created with mime_state_alloc().
 /* BUGS
+/*	NOTE: when the end of headers is reached, mime_state_update()
+/*	may execute up to three call-backs before returning to the
+/*	caller: head_out(), head_end(), and body_out() or body_end().
+/*	As long as call-backs return no result, it is up to the
+/*	call-back routines to check if a previous call-back experienced
+/*	an error.
+/*
 /*	Different mail user agents treat malformed message boundary
 /*	strings in different ways. The Postfix MIME processor cannot
 /*	be bug-compatible with everything.
@@ -959,10 +966,32 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 	    /*
 	     * Invalid input. Force output of one blank line and jump to the
 	     * body state, leaving all other state alone.
+	     * 
+	     * We don't break legitimate mail by inserting a blank line
+	     * separator between primary headers and a non-empty body. Many
+	     * MTA's don't even record the presence or absence of this
+	     * separator, nor does the Milter protocol pass it on to Milter
+	     * applications.
+	     * 
+	     * XXX We don't insert a blank line separator with attachments, as
+	     * this breaks digital signatures. Postfix shall not do a worse
+	     * mail delivery job than crappy MTAs that can't even parse MIME.
+	     * But we switch to the body state anyway.
+	     * 
+	     * People who worry about MIME evasion can use a MIME normalizer,
+	     * and knowlingly corrupt legitimate email for their users.
+	     * Postfix has a different mission.
 	     */
 	    else {
+		if (msg_verbose)
+		    msg_info("garbage in %s header",
+		    state->curr_state == MIME_STATE_MULTIPART ? "multipart" :
+		       state->curr_state == MIME_STATE_PRIMARY ? "primary" :
+			 state->curr_state == MIME_STATE_NESTED ? "nested" :
+			     "other");
+		if (state->curr_state == MIME_STATE_PRIMARY)
+		    BODY_OUT(state, REC_TYPE_NORM, "", 0);
 		SET_CURR_STATE(state, MIME_STATE_BODY);
-		BODY_OUT(state, REC_TYPE_NORM, "", 0);
 	    }
 	}
 

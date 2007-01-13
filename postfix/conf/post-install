@@ -685,8 +685,9 @@ test -n "$first_install_reminder" && {
     Warning: you still need to edit myorigin/mydestination/mynetworks
     parameter settings in $config_directory/main.cf.
 
-    See also http://www.postfix.org/faq.html for information about
-    dialup sites or about sites inside a firewalled network.
+    See also http://www.postfix.org/STANDARD_CONFIGURATION_README.html
+    for information about dialup sites or about sites inside a
+    firewalled network.
 
     BTW: Check your $ALIASES file and be sure to set up aliases
     that send mail for root and postmaster to a real person, then
