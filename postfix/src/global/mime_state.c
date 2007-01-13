@@ -967,40 +967,31 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 	     * Invalid input. Force output of one blank line and jump to the
 	     * body state, leaving all other state alone.
 	     * 
-	     * XXX Some broken software sends a From_ line at the start of
-	     * Message/rfc822 content, and some doubly brain-damaged software
-	     * even encodes Message/rfc822 content as quoted-printable. If we
-	     * force output of a blank line after such garbage then we are
-	     * safe: all headers that follow are permanently neutralized, but
-	     * of course the message is modified.
+	     * We don't break legitimate mail by inserting a blank line
+	     * separator between primary headers and a non-empty body. Many
+	     * MTA's don't even record the presence or absence of this
+	     * separator, nor does the Milter protocol pass it on to Milter
+	     * applications.
 	     * 
-	     * XXX If we don't force output of a blank line before garbage, we
-	     * must still inspect the text that follows garbage as message
-	     * headers. Otherwise we would introduce a trivial security hole
-	     * to slip forbidden content past Postfix header_checks.
+	     * XXX We don't insert a blank line separator with attachments, as
+	     * this breaks digital signatures. Postfix shall not do a worse
+	     * mail delivery job than crappy MTAs that can't even parse MIME.
+	     * But we switch to the body state anyway.
 	     * 
-	     * XXX Because the garbage is not a valid header, we must not feed
-	     * it into call-back routines that expect valid header lines.
-	     * This code therefore falls through into the code that emits
-	     * body lines, which we already use anyway to emit the empty line
-	     * between a header and body block, and between MIME headers and
-	     * message/* headers. Using body output code for garbage output
-	     * is safe provided that rec_type is REC_TYPE_NORM and that
-	     * state->curr_domain is MIME_ENC_7BIT, so that we don't have to
-	     * worry about MIME downgrading. If any of this changes then we
-	     * have a problem.
+	     * People who worry about MIME evasion can use a MIME normalizer,
+	     * and knowlingly corrupt legitimate email for their users.
+	     * Postfix has a different mission.
 	     */
 	    else {
-		if (state->curr_state == MIME_STATE_NESTED
-		    && rec_type == REC_TYPE_NORM
-		    && len > 7
-		    && (strncmp(text + (*text == '>'), "From ", 5) == 0
-			|| strncmp(text, "=46rom ", 7) == 0)) {
-		     /* Output as body, but don't change state just yet. */ ;
-		} else {
-		    SET_CURR_STATE(state, MIME_STATE_BODY);
+		if (msg_verbose)
+		    msg_info("garbage in %s header",
+		    state->curr_state == MIME_STATE_MULTIPART ? "multipart" :
+		       state->curr_state == MIME_STATE_PRIMARY ? "primary" :
+			 state->curr_state == MIME_STATE_NESTED ? "nested" :
+			     "other");
+		if (state->curr_state == MIME_STATE_PRIMARY)
 		    BODY_OUT(state, REC_TYPE_NORM, "", 0);
-		}
+		SET_CURR_STATE(state, MIME_STATE_BODY);
 	    }
 	}
 

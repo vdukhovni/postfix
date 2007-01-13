@@ -27,13 +27,14 @@ MULT 44	|Content-Transfer-Encoding: quoted-printable
 MULT 72	|Content-Disposition: inline
 mime_state: warning: invalid message/* or multipart/* encoding domain: quoted-printable
 BODY N 0	|
-BODY N 1	|=46rom user@example.com Thu Jan 11 13:08:21 CET 2007
-NEST 0	|To: user@example.com
-NEST 36	|=46rom: Some One <user@example.com>
-NEST 60	|Subject: Forwarded Test
-BODY N 0	|
-BODY N 1	|Blah
-BODY N 6	|
+mime_state: garbage in nested header
+BODY N 0	|=46rom user@example.com Thu Jan 11 13:08:21 CET 2007
+BODY N 53	|To: user@example.com
+BODY N 74	|=46rom: Some One <user@example.com>
+BODY N 110	|Subject: Forwarded Test
+BODY N 134	|
+BODY N 135	|Blah
+BODY N 140	|
 BODY END
 mime_state: warning: improper message/* or multipart/* encoding domain
 mime_state: POP boundary Boundary-00=_mvhpFky0yqNhsa4

@@ -268,10 +268,12 @@ valid_mailhost_addr: valid_mailhost_addr.c $(LIB) $(LIBS)
 own_inet_addr: own_inet_addr.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
-tests: tok822_test mime_test mime_nest mime_8bit mime_dom mime_trunc \
-	mime_cvt mime_cvt2 mime_cvt3 strip_addr_test tok822_limit_test \
+tests: tok822_test mime_tests strip_addr_test tok822_limit_test \
 	xtext_test scache_multi_test ehlo_mask_test \
-	namadr_list_test mail_conf_time_test mime_garb1 mime_garb2
+	namadr_list_test mail_conf_time_test
+
+mime_tests: mime_test mime_nest mime_8bit mime_dom mime_trunc mime_cvt \
+	mime_cvt2 mime_cvt3 mime_garb1 mime_garb2 mime_garb3
 
 root_tests: rewrite_clnt_test resolve_clnt_test
 
@@ -328,6 +330,11 @@ mime_garb1: mime_state mime_garb1.in mime_garb1.ref
 mime_garb2: mime_state mime_garb2.in mime_garb2.ref
 	./mime_state <mime_garb2.in >mime_cvt.tmp
 	diff  mime_garb2.ref mime_cvt.tmp
+	rm -f mime_cvt.tmp
+
+mime_garb3: mime_state mime_garb3.in mime_garb3.ref
+	./mime_state <mime_garb3.in >mime_cvt.tmp
+	diff  mime_garb3.ref mime_cvt.tmp
 	rm -f mime_cvt.tmp
 
 tok822_limit_test: tok822_parse tok822_limit.in tok822_limit.ref

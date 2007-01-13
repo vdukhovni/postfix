@@ -13101,10 +13101,11 @@ Apologies for any names omitted.
 	error or table lookup error. Victor Duchovni.  Files:
 	smtpd/smtpd_check.c.
 
-	Horrible workaround: don't insert blank line before message/*
-	starting with a mailbox From_ or =46rom_ line, and output
-	this garbage as body content, without actually switching
-	to message body state.  File: global/mime_state.c.
+	Horrible workaround: don't insert header/body blank line
+	separator in malformed attachments. This breaks digital
+	signatures. People concerned about MIME evasion can use a
+	MIME normalizer to corrupt their user's legitimate email.
+	File: global/mime_state.c.
 
 Wish list:
 
