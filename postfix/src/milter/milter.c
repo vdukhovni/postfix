@@ -280,7 +280,7 @@ void    milter_edit_callback(MILTERS *milters,
 		        const char *(*del_header) (void *, ssize_t, char *),
 			           const char *(*add_rcpt) (void *, char *),
 			           const char *(*del_rcpt) (void *, char *),
-		               const char *(*repl_body) (void *, VSTRING *),
+		          const char *(*repl_body) (void *, int, VSTRING *),
 			             void *chg_context)
 {
     milters->add_header = add_header;

@@ -15,9 +15,10 @@ authenticity (examples: SenderID+SPF and Domain keys) or to digitally sign mail
 (example: Domain keys). Having yet another Postfix-specific version of all that
 software is a poor use of human and system resources.
 
-Postfix 2.3 implements all the requests of Sendmail version 8 Milter protocols
-up to version 4, except one: message body replacement. See, however, the
-workarounds and limitations sections at the end of this document.
+Postfix version 2.4 implements all the requests of Sendmail version 8 Milter
+protocols up to version 4, including message body replacement (body replacement
+is not available with Postfix version 2.3). See, however, the workarounds and
+limitations sections at the end of this document.
 
 This document provides information on the following topics:
 
@@ -513,7 +514,7 @@ the CONTENT_INSPECTION_README document for a discussion.
         application name: st_optionneg[134563840]: 0x3d does not fulfill action
         requirements 0x1e
 
-    The solution is (to wait for) a Postfix version that supports the missing
+    The solution is to use a Postfix version that supports the missing
     functionality.
 
   * Most Milter configuration options are global. Future Postfix versions may

@@ -121,11 +121,12 @@
   * 
   * See also: REC_TYPE_PTR_FORMAT below.
   */
-#define REC_TYPE_SIZE_FORMAT	"%15ld %15ld %15ld %15ld"
-#define REC_TYPE_SIZE_CAST1	long
-#define REC_TYPE_SIZE_CAST2	long	/* Postfix 1.0, a.k.a. 20010228 */
-#define REC_TYPE_SIZE_CAST3	long	/* Postfix 1.0, a.k.a. 20010228 */
-#define REC_TYPE_SIZE_CAST4	long	/* Postfix 2.1 */
+#define REC_TYPE_SIZE_FORMAT	"%15ld %15ld %15ld %15ld %15ld"
+#define REC_TYPE_SIZE_CAST1	long	/* Vmailer extra offs - data offs */
+#define REC_TYPE_SIZE_CAST2	long	/* Postfix 1.0 data offset */
+#define REC_TYPE_SIZE_CAST3	long	/* Postfix 1.0 recipient count */
+#define REC_TYPE_SIZE_CAST4	long	/* Postfix 2.1 qmgr flags */
+#define REC_TYPE_SIZE_CAST5	long	/* Postfix 2.4 content length */
 
  /*
   * The warn record specifies when the next warning that the message was

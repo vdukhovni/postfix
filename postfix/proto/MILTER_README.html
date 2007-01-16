@@ -35,8 +35,10 @@ href="http://sourceforge.net/projects/dk-milter/">Domain keys</a>).
 Having yet another Postfix-specific version of all that software
 is a poor use of human and system resources. </p>
 
-<p> Postfix 2.3 implements all the requests of Sendmail version 8
-Milter protocols up to version 4, except one: message body replacement.
+<p> Postfix version 2.4 implements all the requests of Sendmail
+version 8 Milter protocols up to version 4, including message body
+replacement (body replacement is not available with Postfix version
+2.3).
 See, however, the <a href="#workarounds">workarounds</a> and <a
 href="#limitations">limitations</a> sections at the end of this
 document. </p>
@@ -793,8 +795,8 @@ operation will log a warning like this: </p>
 </pre>
 </blockquote>
 
-<p> The solution is (to wait for) a Postfix version that supports
-the missing functionality.
+<p> The solution is to use a Postfix version that supports the
+missing functionality. </p>
 
 <li> <p> Most Milter configuration options are global. Future Postfix
 versions may support per-Milter timeouts, per-Milter error handling,

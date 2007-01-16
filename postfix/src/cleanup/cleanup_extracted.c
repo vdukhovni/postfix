@@ -316,16 +316,4 @@ void    cleanup_extracted_finish(CLEANUP_STATE *state)
 	}
 	return;
     }
-
-    /*
-     * Update the preliminary message size and count fields with the actual
-     * values.
-     */
-    if (vstream_fseek(state->dst, 0L, SEEK_SET) < 0)
-	msg_fatal("%s: vstream_fseek %s: %m", myname, cleanup_path);
-    cleanup_out_format(state, REC_TYPE_SIZE, REC_TYPE_SIZE_FORMAT,
-	    (REC_TYPE_SIZE_CAST1) (state->xtra_offset - state->data_offset),
-		       (REC_TYPE_SIZE_CAST2) state->data_offset,
-		       (REC_TYPE_SIZE_CAST3) state->rcpt_count,
-		       (REC_TYPE_SIZE_CAST4) state->qmgr_opts);
 }

@@ -13096,16 +13096,25 @@ Apologies for any names omitted.
 
 20070112
 
-	Bugfix (introduced 20011008): with nested access restrictions,
-	possible longjump into exited stack frame after configuration
-	error or table lookup error. Victor Duchovni.  Files:
-	smtpd/smtpd_check.c.
+	Bugfix (introduced 20011008): after return from nested
+	access restriction, possible longjump into exited stack
+	frame upon configuration error or table lookup error. Victor
+	Duchovni.  Files: smtpd/smtpd_check.c.
 
-	Horrible workaround: don't insert header/body blank line
-	separator in malformed attachments. This breaks digital
-	signatures. People concerned about MIME evasion can use a
-	MIME normalizer to corrupt their user's legitimate email.
-	File: global/mime_state.c.
+	Workaround: don't insert header/body blank line separator
+	in malformed attachments, to avoid breaking digital signatures.
+	Switch from header to body state, for robust MIME parsing.
+	People concerned about MIME evasion can use a MIME normalizer
+	to corrupt their user's legitimate email.  File:
+	global/mime_state.c.
+
+20070114
+
+	Feature: body replacement support for Milter applications.
+	Postfix 2.3 and older 2.4 versions will be able to deliver
+	body-replaced queue files, but will report the message size
+	as it was before the body was replaced.  Files: milter/milter8.c,
+	cleanup/cleanup_milter.c, cleanup/cleanup_body_region.c.
 
 Wish list:
 

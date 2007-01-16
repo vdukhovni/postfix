@@ -9,7 +9,7 @@ MAIN 95	|Content-Type: Multipart/Mixed;
   boundary="Boundary-00=_mvhpFky0yqNhsa4"
 HEADER END
 mime_state: garbage in primary header
-BODY N -1	|
+BODY N 0	|
 BODY N 0	|junk in primary header
 BODY N 23	|
 BODY N 24	|--Boundary-00=_mvhpFky0yqNhsa4

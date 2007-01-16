@@ -52,6 +52,10 @@
 /*	int	rec_goto(stream, where)
 /*	VSTREAM	*stream;
 /*	const char *where;
+/*
+/*	REC_SPACE_NEED(buflen, reclen)
+/*	ssize_t	buflen;
+/*	ssize_t	reclen;
 /* DESCRIPTION
 /*	This module reads and writes typed variable-length records.
 /*	Each record contains a 1-byte type code (0..255), a length
@@ -102,6 +106,10 @@
 /*	the file pointer to the specified location. A zero position
 /*	means do nothing. The result is REC_TYPE_ERROR in case of
 /*	failure.
+/*
+/*	REC_SPACE_NEED(buflen, reclen) converts the specified buffer
+/*	length into a record length. This macro modifies its second
+/*	argument.
 /* DIAGNOSTICS
 /*	Panics: interface violations. Fatal errors: insufficient memory.
 /*	Warnings: corrupted file.

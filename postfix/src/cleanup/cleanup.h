@@ -31,6 +31,7 @@
 #include <mail_conf.h>
 #include <mime_state.h>
 #include <string_list.h>
+#include <cleanup_user.h>
 
  /*
   * Milter library.
@@ -69,6 +70,7 @@ typedef struct CLEANUP_STATE {
     void    (*action) (struct CLEANUP_STATE *, int, const char *, ssize_t);
     off_t   data_offset;		/* start of message content */
     off_t   xtra_offset;		/* start of extra segment */
+    off_t   cont_length;		/* length including Milter edits */
     off_t   append_rcpt_pt_offset;	/* append recipient here */
     off_t   append_rcpt_pt_target;	/* target of above record */
     off_t   append_hdr_pt_offset;	/* append header here */
@@ -89,6 +91,10 @@ typedef struct CLEANUP_STATE {
 #ifdef DELAY_ACTION
     int     defer_delay;		/* deferred delivery */
 #endif
+
+    /*
+     * Miscellaneous Milter support.
+     */
     MILTERS *milters;			/* mail filters */
     const char *client_name;		/* real or ersatz client */
     const char *reverse_name;		/* real or ersatz client */
@@ -97,6 +103,13 @@ typedef struct CLEANUP_STATE {
     const char *client_port;		/* real or ersatz client */
     VSTRING *milter_ext_from;		/* externalized sender */
     VSTRING *milter_ext_rcpt;		/* externalized recipient */
+
+    /*
+     * Support for Milter body replacement requests.
+     */
+    struct CLEANUP_BODY_REGION *body_regions;
+    struct CLEANUP_BODY_REGION *curr_body_region;
+    off_t   body_write_offs;		/* body write position */
 } CLEANUP_STATE;
 
  /*
@@ -280,6 +293,20 @@ extern void cleanup_milter_emul_data(CLEANUP_STATE *, MILTERS *);
 #define CLEANUP_MILTER_OK(s) \
     (((s)->flags & CLEANUP_FLAG_MILTER) != 0 \
 	&& (s)->errs == 0 && ((s)->flags & CLEANUP_FLAG_DISCARD) == 0)
+
+ /*
+  * cleanup_body_region.c
+  */
+typedef struct CLEANUP_BODY_REGION {
+    off_t   start;			/* start of region */
+    off_t   len;			/* length or zero (open-ended) */
+    struct CLEANUP_BODY_REGION *next;
+} CLEANUP_BODY_REGION;
+
+extern int cleanup_body_region_start(CLEANUP_STATE *);
+extern int cleanup_body_region_write(CLEANUP_STATE *, int, VSTRING *);
+extern int cleanup_body_region_finish(CLEANUP_STATE *);
+extern void cleanup_body_region_free(CLEANUP_STATE *);
 
 /* LICENSE
 /* .ad

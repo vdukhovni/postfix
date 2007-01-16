@@ -139,7 +139,8 @@ struct QMGR_TRANSPORT {
     int     rcpt_per_stack;		/* extra slots reserved for jobs put
 					 * on the job stack */
     int     rcpt_unused;		/* available in-core recipient slots */
-    int     refill_limit;		/* recipient batch size for message refill */
+    int     refill_limit;		/* recipient batch size for message
+					 * refill */
     int     refill_delay;		/* delay before message refill */
     int     slot_cost;			/* cost of new preemption slot (# of
 					 * selected entries) */
@@ -259,7 +260,8 @@ struct QMGR_MESSAGE {
     struct timeval active_time;		/* time of entry into active queue */
     time_t  queued_time;		/* sanitized time when moved to the
 					 * active queue */
-    time_t  refill_time;		/* sanitized time of last message refill */
+    time_t  refill_time;		/* sanitized time of last message
+					 * refill */
     long    warn_offset;		/* warning bounce flag offset */
     time_t  warn_time;			/* time next warning to be sent */
     long    data_offset;		/* data seek offset */
@@ -273,7 +275,8 @@ struct QMGR_MESSAGE {
     char   *filter_xport;		/* filtering transport */
     char   *inspect_xport;		/* inspecting transport */
     char   *redirect_addr;		/* info@spammer.tld */
-    long    data_size;			/* message content size */
+    long    data_size;			/* data segment size */
+    long    cont_length;		/* message content length */
     long    rcpt_offset;		/* more recipients here */
     char   *client_name;		/* client hostname */
     char   *client_addr;		/* client address */

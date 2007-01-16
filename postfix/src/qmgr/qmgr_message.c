@@ -183,6 +183,7 @@ static QMGR_MESSAGE *qmgr_message_create(const char *queue_name,
     message->inspect_xport = 0;
     message->redirect_addr = 0;
     message->data_size = 0;
+    message->cont_length = 0;
     message->warn_offset = 0;
     message->warn_time = 0;
     message->rcpt_offset = 0;
@@ -547,9 +548,10 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	    continue;
 	if (rec_type == REC_TYPE_SIZE) {
 	    if (message->data_offset == 0) {
-		if ((count = sscanf(start, "%ld %ld %d %d",
+		if ((count = sscanf(start, "%ld %ld %d %d %ld",
 				 &message->data_size, &message->data_offset,
-			   &message->rcpt_unread, &message->rflags)) >= 3) {
+				    &message->rcpt_unread, &message->rflags,
+				    &message->cont_length)) >= 3) {
 		    /* Postfix >= 1.0 (a.k.a. 20010228). */
 		    if (message->data_offset <= 0 || message->data_size <= 0) {
 			msg_warn("%s: invalid size record: %.100s",
@@ -573,6 +575,15 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		    rec_type = REC_TYPE_ERROR;
 		    break;
 		}
+	    }
+	    /* Postfix < 2.4 compatibility. */
+	    if (message->cont_length == 0) {
+		message->cont_length = message->data_size;
+	    } else if (message->cont_length < 0) {
+		msg_warn("%s: invalid size record: %.100s",
+			 message->queue_id, start);
+		rec_type = REC_TYPE_ERROR;
+		break;
 	    }
 	    continue;
 	}
@@ -608,7 +619,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	    if (message->sender == 0) {
 		message->sender = mystrdup(start);
 		opened(message->queue_id, message->sender,
-		       message->data_size, message->rcpt_unread,
+		       message->cont_length, message->rcpt_unread,
 		       "queue %s", message->queue_name);
 	    }
 	    continue;

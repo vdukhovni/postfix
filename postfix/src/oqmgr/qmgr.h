@@ -230,7 +230,8 @@ struct QMGR_MESSAGE {
     char   *filter_xport;		/* filtering transport */
     char   *inspect_xport;		/* inspecting transport */
     char   *redirect_addr;		/* info@spammer.tld */
-    long    data_size;			/* message content size */
+    long    data_size;			/* data segment size */
+    long    cont_length;		/* message content length */
     long    rcpt_offset;		/* more recipients here */
     char   *client_name;		/* client hostname */
     char   *client_addr;		/* client address */

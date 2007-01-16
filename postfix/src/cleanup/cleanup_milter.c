@@ -1254,15 +1254,35 @@ static const char *cleanup_del_rcpt(void *context, char *ext_rcpt)
 
 /* cleanup_repl_body - replace message body */
 
-static const char *cleanup_repl_body(void *context, VSTRING *body)
+static const char *cleanup_repl_body(void *context, int cmd, VSTRING *buf)
 {
     const char *myname = "cleanup_repl_body";
+    CLEANUP_STATE *state = (CLEANUP_STATE *) context;
+    static VSTRING empty;
 
     /*
      * XXX Sendmail compatibility: milters don't see the first body line, so
      * don't expect they will send one.
      */
-    msg_panic("%s: message body replace operation is not implemented", myname);
+    switch (cmd) {
+    case MILTER_BODY_LINE:
+	if (cleanup_body_region_write(state, REC_TYPE_NORM, buf) < 0)
+	    return (cleanup_milter_error(state, errno));
+	break;
+    case MILTER_BODY_START:
+	VSTRING_RESET(&empty);
+	if (cleanup_body_region_start(state) < 0
+	    || cleanup_body_region_write(state, REC_TYPE_NORM, &empty) < 0)
+	    return (cleanup_milter_error(state, errno));
+	break;
+    case MILTER_BODY_END:
+	if (cleanup_body_region_finish(state) < 0)
+	    return (cleanup_milter_error(state, errno));
+	break;
+    default:
+	msg_panic("%s: bad command: %d", myname, cmd);
+    }
+    return (CLEANUP_OUT_OK(state) ? 0 : cleanup_milter_error(state, errno));
 }
 
 /* cleanup_milter_eval - expand macro */
@@ -1779,6 +1799,12 @@ static void open_queue_file(CLEANUP_STATE *state, const char *path)
 		}
 	    }
 	}
+	if (state->append_rcpt_pt_offset < 0)
+	    msg_fatal("file %s: no append recipient pointer record",
+		      cleanup_path);
+	if (state->append_hdr_pt_offset < 0)
+	    msg_fatal("file %s: no append header pointer record",
+		      cleanup_path);
 	if (msg_verbose) {
 	    msg_info("append_rcpt_pt_offset %ld append_rcpt_pt_target %ld",
 		     (long) state->append_rcpt_pt_offset,
@@ -1819,7 +1845,7 @@ int     main(int unused_argc, char **argv)
 	    vstream_printf("- ");
 	    vstream_fflush(VSTREAM_OUT);
 	}
-	if (vstring_fgets_nonl(inbuf, VSTREAM_IN) <= 0)
+	if (vstring_fgets_nonl(inbuf, VSTREAM_IN) == 0)
 	    break;
 
 	bufp = vstring_str(inbuf);
@@ -1902,6 +1928,25 @@ int     main(int unused_argc, char **argv)
 		msg_warn("bad del_rcpt argument count: %d", argv->argc);
 	    } else {
 		cleanup_del_rcpt(state, argv->argv[1]);
+	    }
+	} else if (strcmp(argv->argv[0], "replbody") == 0) {
+	    if (argv->argc != 2) {
+		msg_warn("bad replbody argument count: %d", argv->argc);
+	    } else {
+		VSTREAM *fp;
+		VSTRING *buf;
+
+		if ((fp = vstream_fopen(argv->argv[1], O_RDONLY, 0)) == 0) {
+		    msg_warn("open %s file: %m", argv->argv[1]);
+		} else {
+		    buf = vstring_alloc(100);
+		    cleanup_repl_body(state, MILTER_BODY_START, buf);
+		    while (vstring_get_nonl(buf, fp) != VSTREAM_EOF)
+			cleanup_repl_body(state, MILTER_BODY_LINE, buf);
+		    cleanup_repl_body(state, MILTER_BODY_END, buf);
+		    vstring_free(buf);
+		    vstream_fclose(fp);
+		}
 	    }
 	} else {
 	    msg_warn("bad command: %s", argv->argv[0]);

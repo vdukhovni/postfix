@@ -17,6 +17,21 @@ Incompatibility with Postfix 2.2 and earlier
 If you upgrade from Postfix 2.2 or earlier, read RELEASE_NOTES-2.3
 before proceeding.
 
+Incompatible changes with Postfix snapshot 20070116
+===================================================
+
+A new field is added to the queue file "size" record that specifies
+the message content length.  Postfix 2.3 and older Postfix 2.4
+versions will ignore this field, and will report the message size
+as it was before the body was replaced.
+
+Major changes with Postfix snapshot 20070116
+============================================
+
+Support for Milter applications that replace the message body.
+Postfix now implements all the header/body modification requests
+that are available with Sendmail 8.13.
+
 Incompatible changes with Postfix snapshot 20061217
 ===================================================
 

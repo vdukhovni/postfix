@@ -831,6 +831,7 @@ static void cleanup_message_headerbody(CLEANUP_STATE *state, int type,
 	state->mime_state = mime_state_free(state->mime_state);
 	if ((state->xtra_offset = vstream_ftell(state->dst)) < 0)
 	    msg_fatal("%s: vstream_ftell %s: %m", myname, cleanup_path);
+	state->cont_length = state->xtra_offset - state->data_offset;
 	state->action = cleanup_extracted;
     }
 
