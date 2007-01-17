@@ -171,7 +171,7 @@ int     cleanup_body_region_write(CLEANUP_STATE *state, int rec_type,
      * terminator record.
      */
     REC_SPACE_NEED(LEN(buf), rec_len);
-    if (rp->len > 0 && (used = state->body_write_offs - rp->start,
+    while (rp->len > 0 && (used = state->body_write_offs - rp->start,
 			rec_len + REC_TYPE_PTR_SIZE > rp->len - used)) {
 
 	/*
