@@ -2543,11 +2543,13 @@ By default, address masquerading makes no exceptions.
 <p>
 Specify a list of user names, "/file/name" or "type:table" patterns,
 separated by commas and/or whitespace. The list is matched left to
-right, and the search stops on the first match. Specify "!name" to
-exclude a name from the list. A "/file/name" pattern is replaced
+right, and the search stops on the first match. A "/file/name"
+pattern is replaced
 by its contents; a "type:table" lookup table is matched when a name
 matches a lookup key (the lookup result is ignored).  Continue long
-lines by starting the next line with whitespace.  </p>
+lines by starting the next line with whitespace. Specify "!pattern"
+to exclude a name from the list. The form "!/file/name" is supported
+only in Postfix version 2.4 and later.  </p>
 
 <p>
 Examples:
@@ -2777,7 +2779,8 @@ lookup string (the lookup result is ignored). </p>
 
 <p> The list is matched left to right, and the search stops on the
 first match.  Specify "!pattern" to exclude an address or network
-block from the list.  </p>
+block from the list. The form "!/file/name" is supported only
+in Postfix version 2.4 and later. </p>
 
 <p> Note: IP version 6 address information must be specified inside
 <tt>[]</tt> in the mynetworks value, and in files specified with
@@ -3007,8 +3010,9 @@ table lookup is used instead.  </p>
 
 <p>
 Patterns are separated by whitespace and/or commas. In order to
-reverse the result, precede a non-file name pattern with an
-exclamation point (!).
+reverse the result, precede a pattern with an
+exclamation point (!). The form "!/file/name" is supported only
+in Postfix version 2.4 and later.
 </p>
 
 <p>
@@ -3284,7 +3288,9 @@ or "type:table" lookup tables, separated by commas and/or whitespace.
 Continue long lines by starting the next line with whitespace. A
 "/file/name" pattern is replaced by its contents; a "type:table"
 lookup table is matched when a (parent) domain appears as lookup
-key.  </p>
+key. Specify "!pattern" to exclude a domain from the list. The form
+"!/file/name" is supported only in Postfix version 2.4 and later.
+</p>
 
 %PARAM relay_domains_reject_code 554
 
@@ -4134,7 +4140,9 @@ mechanisms the client will take into consideration.  </p>
 
 <p> Specify mechanism names, "/file/name" patterns or "type:table"
 lookup tables. The right-hand side result from "type:table" lookups
-is ignored. </p>
+is ignored. Specify "!pattern" to exclude a mechanism name from the
+list. The form "!/file/name" is supported only in Postfix version
+2.4 and later. </p>
 
 <p> This feature is available in Postfix 2.2 and later. </p>
 
@@ -4239,7 +4247,9 @@ below it),  "/file/name" or "type:table" patterns.  A "/file/name"
 pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
 result is ignored).  Continue long lines by starting the next line
-with whitespace. </p>
+with whitespace. Specify "!pattern" to exclude an address or network
+block from the list. The form "!/file/name" is supported only in
+Postfix version 2.4 and later. </p>
 
 <p> Note: IP version 6 address information must be specified inside
 <tt>[]</tt> in the authorized_verp_clients value, and in files
@@ -4266,7 +4276,9 @@ below it),  "/file/name" or "type:table" patterns.  A "/file/name"
 pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
 result is ignored).  Continue long lines by starting the next line
-with whitespace.  </p>
+with whitespace. Specify "!pattern" to exclude an address or network
+block from the list. The form "!/file/name" is supported only in
+Postfix version 2.4 and later.  </p>
 
 <p> Note: IP version 6 address information must be specified inside
 <tt>[]</tt> in the smtpd_authorized_verp_clients value, and in
@@ -4301,7 +4313,9 @@ below it),  "/file/name" or "type:table" patterns.  A "/file/name"
 pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
 result is ignored).  Continue long lines by starting the next line
-with whitespace.  </p>
+with whitespace. Specify "!pattern" to exclude an address or network
+block from the list. The form "!/file/name" is supported only in
+Postfix version 2.4 and later.  </p>
 
 <p> Note: IP version 6 address information must be specified inside
 <tt>[]</tt> in the smtpd_authorized_xclient_hosts value, and in
@@ -4335,7 +4349,9 @@ below it),  "/file/name" or "type:table" patterns.  A "/file/name"
 pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
 result is ignored).  Continue long lines by starting the next line
-with whitespace.  </p>
+with whitespace. Specify "!pattern" to exclude an address or network
+block from the list. The form "!/file/name" is supported only in
+Postfix version 2.4 and later.  </p>
 
 <p> Note: IP version 6 address information must be specified inside
 <tt>[]</tt> in the smtpd_authorized_xforward_hosts value, and in
@@ -5450,7 +5466,10 @@ network part of a host address. You can also "/file/name" or
 "type:table" patterns.  A "/file/name" pattern is replaced by its
 contents; a "type:table" lookup table is matched when a table entry
 matches a lookup string (the lookup result is ignored).  Continue
-long lines by starting the next line with whitespace.  </p>
+long lines by starting the next line with whitespace. Specify
+"!pattern" to exclude an address or network block from the list.
+The form "!/file/name" is supported only in Postfix version 2.4 and
+later.  </p>
 
 <p> Note: IP version 6 address information must be specified inside
 <tt>[]</tt> in the smtpd_sasl_exceptions_networks value, and in
@@ -6049,7 +6068,9 @@ domain names).
 "/file/name" pattern is replaced by its contents; a "type:table"
 lookup table is matched when a table entry matches a lookup string
 (the lookup result is ignored).  Continue long lines by starting
-the next line with whitespace.  </p>
+the next line with whitespace. Specify "!pattern" to exclude a host
+or domain name from the list. The form "!/file/name" is supported
+only in Postfix version 2.4 and later.  </p>
 
 <p>
 See also the VIRTUAL_README and ADDRESS_CLASS_README documents
@@ -6275,11 +6296,13 @@ password file.  </p>
 <p>
 Specify a list of user names, "/file/name" or "type:table" patterns,
 separated by commas and/or whitespace. The list is matched left to
-right, and the search stops on the first match. Specify "!name" to
-exclude a name from the list. A "/file/name" pattern is replaced
+right, and the search stops on the first match. A "/file/name"
+pattern is replaced
 by its contents; a "type:table" lookup table is matched when a name
 matches a lookup key (the lookup result is ignored).  Continue long
-lines by starting the next line with whitespace.  </p>
+lines by starting the next line with whitespace. Specify "!pattern"
+to exclude a name from the list. The form "!/file/name" is supported
+only in Postfix version 2.4 and later.  </p>
 
 <p>
 This feature is available in Postfix 2.2 and later.
@@ -6303,11 +6326,13 @@ password file.  </p>
 <p>
 Specify a list of user names, "/file/name" or "type:table" patterns,
 separated by commas and/or whitespace. The list is matched left to
-right, and the search stops on the first match. Specify "!name" to
-exclude a name from the list. A "/file/name" pattern is replaced
+right, and the search stops on the first match. A "/file/name"
+pattern is replaced
 by its contents; a "type:table" lookup table is matched when a name
 matches a lookup key (the lookup result is ignored).  Continue long
-lines by starting the next line with whitespace.  </p>
+lines by starting the next line with whitespace. Specify "!pattern"
+to exclude a user name from the list. The form "!/file/name" is
+supported only in Postfix version 2.4 and later.  </p>
 
 <p>
 This feature is available in Postfix 2.2 and later.
@@ -6331,11 +6356,13 @@ submission access to all users specify an empty list.  </p>
 <p>
 Specify a list of user names, "/file/name" or "type:table" patterns,
 separated by commas and/or whitespace. The list is matched left to right,
-and the search stops on the first match. Specify "!name" to exclude a
-name from the list. A "/file/name" pattern is replaced by its contents;
+and the search stops on the first match. A "/file/name" pattern is
+replaced by its contents;
 a "type:table" lookup table is matched when a name matches a lookup key
 (the lookup result is ignored).  Continue long lines by starting the
-next line with whitespace.  </p>
+next line with whitespace. Specify "!pattern" to exclude a user
+name from the list. The form "!/file/name" is supported only in
+Postfix version 2.4 and later.  </p>
 
 <p>
 Example:

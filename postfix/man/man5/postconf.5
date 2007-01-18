@@ -450,11 +450,13 @@ password file.
 .PP
 Specify a list of user names, "/file/name" or "type:table" patterns,
 separated by commas and/or whitespace. The list is matched left to
-right, and the search stops on the first match. Specify "!name" to
-exclude a name from the list. A "/file/name" pattern is replaced
+right, and the search stops on the first match. A "/file/name"
+pattern is replaced
 by its contents; a "type:table" lookup table is matched when a name
 matches a lookup key (the lookup result is ignored).  Continue long
-lines by starting the next line with whitespace.
+lines by starting the next line with whitespace. Specify "!pattern"
+to exclude a name from the list. The form "!/file/name" is supported
+only in Postfix version 2.4 and later.
 .PP
 This feature is available in Postfix 2.2 and later.
 .SH authorized_mailq_users (default: static:anyone)
@@ -470,11 +472,13 @@ password file.
 .PP
 Specify a list of user names, "/file/name" or "type:table" patterns,
 separated by commas and/or whitespace. The list is matched left to
-right, and the search stops on the first match. Specify "!name" to
-exclude a name from the list. A "/file/name" pattern is replaced
+right, and the search stops on the first match. A "/file/name"
+pattern is replaced
 by its contents; a "type:table" lookup table is matched when a name
 matches a lookup key (the lookup result is ignored).  Continue long
-lines by starting the next line with whitespace.
+lines by starting the next line with whitespace. Specify "!pattern"
+to exclude a user name from the list. The form "!/file/name" is
+supported only in Postfix version 2.4 and later.
 .PP
 This feature is available in Postfix 2.2 and later.
 .SH authorized_submit_users (default: static:anyone)
@@ -490,11 +494,13 @@ submission access to all users specify an empty list.
 .PP
 Specify a list of user names, "/file/name" or "type:table" patterns,
 separated by commas and/or whitespace. The list is matched left to right,
-and the search stops on the first match. Specify "!name" to exclude a
-name from the list. A "/file/name" pattern is replaced by its contents;
+and the search stops on the first match. A "/file/name" pattern is
+replaced by its contents;
 a "type:table" lookup table is matched when a name matches a lookup key
 (the lookup result is ignored).  Continue long lines by starting the
-next line with whitespace.
+next line with whitespace. Specify "!pattern" to exclude a user
+name from the list. The form "!/file/name" is supported only in
+Postfix version 2.4 and later.
 .PP
 Example:
 .PP
@@ -526,7 +532,9 @@ below it),  "/file/name" or "type:table" patterns.  A "/file/name"
 pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
 result is ignored).  Continue long lines by starting the next line
-with whitespace.
+with whitespace. Specify "!pattern" to exclude an address or network
+block from the list. The form "!/file/name" is supported only in
+Postfix version 2.4 and later.
 .PP
 Note: IP version 6 address information must be specified inside
 [] in the authorized_verp_clients value, and in files
@@ -2620,11 +2628,13 @@ By default, address masquerading makes no exceptions.
 .PP
 Specify a list of user names, "/file/name" or "type:table" patterns,
 separated by commas and/or whitespace. The list is matched left to
-right, and the search stops on the first match. Specify "!name" to
-exclude a name from the list. A "/file/name" pattern is replaced
+right, and the search stops on the first match. A "/file/name"
+pattern is replaced
 by its contents; a "type:table" lookup table is matched when a name
 matches a lookup key (the lookup result is ignored).  Continue long
-lines by starting the next line with whitespace.
+lines by starting the next line with whitespace. Specify "!pattern"
+to exclude a name from the list. The form "!/file/name" is supported
+only in Postfix version 2.4 and later.
 .PP
 Examples:
 .PP
@@ -2958,7 +2968,8 @@ lookup string (the lookup result is ignored).
 .PP
 The list is matched left to right, and the search stops on the
 first match.  Specify "!pattern" to exclude an address or network
-block from the list.
+block from the list. The form "!/file/name" is supported only
+in Postfix version 2.4 and later.
 .PP
 Note: IP version 6 address information must be specified inside
 [] in the mynetworks value, and in files specified with
@@ -3240,8 +3251,9 @@ for the file name; when a pattern is a "type:table" table specification,
 table lookup is used instead.
 .PP
 Patterns are separated by whitespace and/or commas. In order to
-reverse the result, precede a non-file name pattern with an
-exclamation point (!).
+reverse the result, precede a pattern with an
+exclamation point (!). The form "!/file/name" is supported only
+in Postfix version 2.4 and later.
 .PP
 Example:
 .PP
@@ -3513,7 +3525,8 @@ or "type:table" lookup tables, separated by commas and/or whitespace.
 Continue long lines by starting the next line with whitespace. A
 "/file/name" pattern is replaced by its contents; a "type:table"
 lookup table is matched when a (parent) domain appears as lookup
-key.
+key. Specify "!pattern" to exclude a domain from the list. The form
+"!/file/name" is supported only in Postfix version 2.4 and later.
 .SH relay_domains_reject_code (default: 554)
 The numerical Postfix SMTP server response code when a client
 request is rejected by the reject_unauth_destination recipient
@@ -4275,7 +4288,9 @@ mechanisms the client will take into consideration.
 .PP
 Specify mechanism names, "/file/name" patterns or "type:table"
 lookup tables. The right-hand side result from "type:table" lookups
-is ignored.
+is ignored. Specify "!pattern" to exclude a mechanism name from the
+list. The form "!/file/name" is supported only in Postfix version
+2.4 and later.
 .PP
 This feature is available in Postfix 2.2 and later.
 .PP
@@ -5191,7 +5206,9 @@ below it),  "/file/name" or "type:table" patterns.  A "/file/name"
 pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
 result is ignored).  Continue long lines by starting the next line
-with whitespace.
+with whitespace. Specify "!pattern" to exclude an address or network
+block from the list. The form "!/file/name" is supported only in
+Postfix version 2.4 and later.
 .PP
 Note: IP version 6 address information must be specified inside
 [] in the smtpd_authorized_verp_clients value, and in
@@ -5217,7 +5234,9 @@ below it),  "/file/name" or "type:table" patterns.  A "/file/name"
 pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
 result is ignored).  Continue long lines by starting the next line
-with whitespace.
+with whitespace. Specify "!pattern" to exclude an address or network
+block from the list. The form "!/file/name" is supported only in
+Postfix version 2.4 and later.
 .PP
 Note: IP version 6 address information must be specified inside
 [] in the smtpd_authorized_xclient_hosts value, and in
@@ -5242,7 +5261,9 @@ below it),  "/file/name" or "type:table" patterns.  A "/file/name"
 pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
 result is ignored).  Continue long lines by starting the next line
-with whitespace.
+with whitespace. Specify "!pattern" to exclude an address or network
+block from the list. The form "!/file/name" is supported only in
+Postfix version 2.4 and later.
 .PP
 Note: IP version 6 address information must be specified inside
 [] in the smtpd_authorized_xforward_hosts value, and in
@@ -6199,7 +6220,10 @@ network part of a host address. You can also "/file/name" or
 "type:table" patterns.  A "/file/name" pattern is replaced by its
 contents; a "type:table" lookup table is matched when a table entry
 matches a lookup string (the lookup result is ignored).  Continue
-long lines by starting the next line with whitespace.
+long lines by starting the next line with whitespace. Specify
+"!pattern" to exclude an address or network block from the list.
+The form "!/file/name" is supported only in Postfix version 2.4 and
+later.
 .PP
 Note: IP version 6 address information must be specified inside
 [] in the smtpd_sasl_exceptions_networks value, and in
@@ -7322,7 +7346,9 @@ Specify a list of host or domain names, "/file/name" or
 "/file/name" pattern is replaced by its contents; a "type:table"
 lookup table is matched when a table entry matches a lookup string
 (the lookup result is ignored).  Continue long lines by starting
-the next line with whitespace.
+the next line with whitespace. Specify "!pattern" to exclude a host
+or domain name from the list. The form "!/file/name" is supported
+only in Postfix version 2.4 and later.
 .PP
 See also the VIRTUAL_README and ADDRESS_CLASS_README documents
 for further information.

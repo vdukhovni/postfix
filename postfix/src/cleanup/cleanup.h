@@ -69,6 +69,7 @@ typedef struct CLEANUP_STATE {
     BH_TABLE *dups;			/* recipient dup filter */
     void    (*action) (struct CLEANUP_STATE *, int, const char *, ssize_t);
     off_t   data_offset;		/* start of message content */
+    off_t   body_offset;		/* start of body content */
     off_t   xtra_offset;		/* start of extra segment */
     off_t   cont_length;		/* length including Milter edits */
     off_t   append_rcpt_pt_offset;	/* append recipient here */
@@ -107,9 +108,9 @@ typedef struct CLEANUP_STATE {
     /*
      * Support for Milter body replacement requests.
      */
-    struct CLEANUP_BODY_REGION *body_regions;
-    struct CLEANUP_BODY_REGION *curr_body_region;
-    off_t   body_write_offs;		/* body write position */
+    struct CLEANUP_REGION *free_regions;/* unused regions */
+    struct CLEANUP_REGION *body_regions;/* regions with body content */
+    struct CLEANUP_REGION *curr_body_region;
 } CLEANUP_STATE;
 
  /*
@@ -295,18 +296,25 @@ extern void cleanup_milter_emul_data(CLEANUP_STATE *, MILTERS *);
 	&& (s)->errs == 0 && ((s)->flags & CLEANUP_FLAG_DISCARD) == 0)
 
  /*
-  * cleanup_body_region.c
+  * cleanup_body_edit.c
   */
-typedef struct CLEANUP_BODY_REGION {
+typedef struct CLEANUP_REGION {
     off_t   start;			/* start of region */
     off_t   len;			/* length or zero (open-ended) */
-    struct CLEANUP_BODY_REGION *next;
-} CLEANUP_BODY_REGION;
+    off_t   write_offs;			/* write offset */
+    struct CLEANUP_REGION *next;	/* linkage */
+} CLEANUP_REGION;
 
-extern int cleanup_body_region_start(CLEANUP_STATE *);
-extern int cleanup_body_region_write(CLEANUP_STATE *, int, VSTRING *);
-extern int cleanup_body_region_finish(CLEANUP_STATE *);
-extern void cleanup_body_region_free(CLEANUP_STATE *);
+extern void cleanup_region_init(CLEANUP_STATE *);
+extern CLEANUP_REGION *cleanup_region_open(CLEANUP_STATE *, ssize_t);
+extern void cleanup_region_close(CLEANUP_STATE *, CLEANUP_REGION *);
+extern CLEANUP_REGION *cleanup_region_return(CLEANUP_STATE *, CLEANUP_REGION *);
+extern void cleanup_region_done(CLEANUP_STATE *);
+
+extern int cleanup_body_edit_start(CLEANUP_STATE *);
+extern int cleanup_body_edit_write(CLEANUP_STATE *, int, VSTRING *);
+extern int cleanup_body_edit_finish(CLEANUP_STATE *);
+extern void cleanup_body_edit_free(CLEANUP_STATE *);
 
 /* LICENSE
 /* .ad

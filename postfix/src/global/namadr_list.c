@@ -31,8 +31,8 @@
 /*	type:name table specification, table lookup is used
 /*	instead.
 /*	Patterns are separated by whitespace and/or commas. In
-/*	order to reverse the result, precede a non-file name
-/*	pattern with an exclamation point (!).
+/*	order to reverse the result, precede a pattern with an
+/*	exclamation point (!).
 /*
 /*	A host matches a list when its name or address matches
 /*	a pattern, or when any of its parent domains matches a

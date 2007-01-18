@@ -54,7 +54,7 @@ extern int rec_goto(VSTREAM *, const char *);
 
 #define REC_SPACE_NEED(buflen, reclen) do { \
 	    ssize_t _c, _l; \
-	    for (_c = 1, _l = (buflen); _l != 0; _l >>= 7U, _c++) \
+	    for (_c = 1, _l = (buflen); (_l >>= 7U) != 0; _c++) \
 		; \
 	    (reclen) = 1 + _c + (buflen); \
 	} while (0)

@@ -13116,7 +13116,27 @@ Apologies for any names omitted.
 	as it was before the body was replaced.  Files: milter/milter8.c,
 	cleanup/cleanup_milter.c, cleanup/cleanup_body_region.c.
 
+20070117
+
+	Cleanup: reusable infrastructure for body replacement.
+	Files: cleanup/cleanup_body_edit.c, cleanup/cleanup_region.c.
+
+20070118
+
+	Bugfix: match lists didn't implement !maptype:mapname.
+	Problem reported by Paulo Pacheco. File: util/match_list.c.
+
+	Cleanup: revised the matchlist "!" support, added support
+	for !/file/name, and updated the documentation. File:
+	util/match_list.c.
+
 Wish list:
+
+	Need scache size limit.
+
+	Don't transform bare username into user@localdomain.localdomain
+	when no domain is specified via main.cf or via the machine
+	hostname.
 
 	Update BACKSCATTER_README to use PCRE because that's what I
 	am using now.

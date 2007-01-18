@@ -603,7 +603,7 @@ static const char *cleanup_patch_header(CLEANUP_STATE *state,
      * pointer record. Requirement: the message headers (and body) always end
      * in a pointer record.
      */
-    while (rec_type != REC_TYPE_PTR && avail_space < REC_TYPE_PTR_SIZE) {
+    while (rec_type != REC_TYPE_PTR && avail_space < REC_TYPE_PTR_PAYL_SIZE) {
 	/* Read existing text or pointer record. */
 	if (vstream_fseek(state->dst, read_offset, SEEK_SET) < 0) {
 	    msg_warn("%s: seek file %s: %m", myname, cleanup_path);
@@ -1266,17 +1266,17 @@ static const char *cleanup_repl_body(void *context, int cmd, VSTRING *buf)
      */
     switch (cmd) {
     case MILTER_BODY_LINE:
-	if (cleanup_body_region_write(state, REC_TYPE_NORM, buf) < 0)
+	if (cleanup_body_edit_write(state, REC_TYPE_NORM, buf) < 0)
 	    return (cleanup_milter_error(state, errno));
 	break;
     case MILTER_BODY_START:
 	VSTRING_RESET(&empty);
-	if (cleanup_body_region_start(state) < 0
-	    || cleanup_body_region_write(state, REC_TYPE_NORM, &empty) < 0)
+	if (cleanup_body_edit_start(state) < 0
+	    || cleanup_body_edit_write(state, REC_TYPE_NORM, &empty) < 0)
 	    return (cleanup_milter_error(state, errno));
 	break;
     case MILTER_BODY_END:
-	if (cleanup_body_region_finish(state) < 0)
+	if (cleanup_body_edit_finish(state) < 0)
 	    return (cleanup_milter_error(state, errno));
 	break;
     default:

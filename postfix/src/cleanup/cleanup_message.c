@@ -705,6 +705,7 @@ static void cleanup_header_done_callback(void *context)
 	cleanup_out_format(state, REC_TYPE_PTR, REC_TYPE_PTR_FORMAT, 0L);
 	if ((state->append_hdr_pt_target = vstream_ftell(state->dst)) < 0)
 	    msg_fatal("%s: vstream_ftell %s: %m", myname, cleanup_path);
+	state->body_offset = state->append_hdr_pt_target;
     }
 }
 

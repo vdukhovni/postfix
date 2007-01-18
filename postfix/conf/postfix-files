@@ -263,6 +263,7 @@ $readme_directory/SMTPD_ACCESS_README:f:root:-:644
 $readme_directory/SMTPD_POLICY_README:f:root:-:644
 $readme_directory/SMTPD_PROXY_README:f:root:-:644
 $readme_directory/STANDARD_CONFIGURATION_README:f:root:-:644
+$readme_directory/TLS_LEGACY_README:f:root:-:644
 $readme_directory/TLS_README:f:root:-:644
 $readme_directory/TUNING_README:f:root:-:644
 $readme_directory/ULTRIX_README:f:root:-:644

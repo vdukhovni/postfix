@@ -287,7 +287,6 @@ void    cleanup_extracted_process(CLEANUP_STATE *state, int type,
 
 void    cleanup_extracted_finish(CLEANUP_STATE *state)
 {
-    const char myname[] = "cleanup_extracted_finish";
 
     /*
      * On the way out, add the optional automatic BCC recipient.

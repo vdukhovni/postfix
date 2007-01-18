@@ -173,7 +173,7 @@
   * See also: REC_TYPE_SIZE_FORMAT above.
   */
 #define REC_TYPE_PTR_FORMAT	"%15ld"
-#define REC_TYPE_PTR_SIZE	15
+#define REC_TYPE_PTR_PAYL_SIZE	15	/* Payload only, excludes record header. */
 
  /*
   * Programmatic interface.
