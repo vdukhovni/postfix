@@ -99,7 +99,7 @@ struct MATCH_LIST {
 
 /* match_list_parse - parse buffer, destroy buffer */
 
-static ARGV *match_list_parse(ARGV *list, char *string, int match)
+static ARGV *match_list_parse(ARGV *list, char *string, int init_match)
 {
     const char *myname = "match_list_parse";
     VSTRING *buf = vstring_alloc(10);
@@ -109,13 +109,14 @@ static ARGV *match_list_parse(ARGV *list, char *string, int match)
     char   *start;
     char   *item;
     char   *map_type_name_flags;
+    int     match;
 
     /*
      * /filename contents are expanded in-line. To support !/filename we
      * prepend the negation operator to each item from the file.
      */
     while ((start = mystrtok(&bp, delim)) != 0) {
-	for (item = start; *item == '!'; item++)
+	for (match = init_match, item = start; *item == '!'; item++)
 	    match = !match;
 	if (*item == 0)
 	    msg_fatal("%s: no pattern after '!'", myname);

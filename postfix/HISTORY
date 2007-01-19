@@ -13123,8 +13123,8 @@ Apologies for any names omitted.
 
 20070118
 
-	Bugfix: match lists didn't implement !maptype:mapname.
-	Problem reported by Paulo Pacheco. File: util/match_list.c.
+	Bugfix: match lists didn't implement ![ipv6address].  Problem
+	reported by Paulo Pacheco. File: util/match_list.c.
 
 	Cleanup: revised the matchlist "!" support, added support
 	for !/file/name, and updated the documentation. File:
