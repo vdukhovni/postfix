@@ -74,7 +74,7 @@ milter_tests: cleanup_milter_test bug_tests \
 	cleanup_milter_test5 cleanup_milter_test6 cleanup_milter_test7 \
 	cleanup_milter_test8 cleanup_milter_test9 cleanup_milter_test10a \
 	cleanup_milter_test10b cleanup_milter_test10c cleanup_milter_test10d \
-	cleanup_milter_test10e cleanup_milter_test11
+	cleanup_milter_test10e cleanup_milter_test11 cleanup_milter_test12
 
 root_tests:
 
@@ -286,6 +286,15 @@ cleanup_milter_test11: cleanup_milter test-queue-file11 cleanup_milter.in11 \
 	../postcat/postcat -ov test-queue-file11.tmp 2>/dev/null >cleanup_milter.tmp
 	diff cleanup_milter.ref11 cleanup_milter.tmp
 	rm -f test-queue-file11.tmp cleanup_milter.tmp
+
+cleanup_milter_test12: cleanup_milter test-queue-file12 cleanup_milter.in12 \
+	cleanup_milter.ref12 ../postcat/postcat
+	cp test-queue-file12 test-queue-file12.tmp
+	chmod u+w test-queue-file12.tmp
+	./cleanup_milter <cleanup_milter.in12
+	../postcat/postcat -ov test-queue-file12.tmp 2>/dev/null >cleanup_milter.tmp
+	diff cleanup_milter.ref12 cleanup_milter.tmp
+	rm -f test-queue-file12.tmp cleanup_milter.tmp
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \

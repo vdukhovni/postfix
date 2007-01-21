@@ -1,27 +1,30 @@
 *** ENVELOPE RECORDS bug2.file.tmp ***
-        0 message_size:             329             181               1               0
-       65 message_arrival_time: Tue Jul 25 15:37:06 2006
-       82 create_time: Tue Jul 25 15:37:06 2006
-      106 named_attribute: rewrite_context=local
-      129 sender_fullname: Wietse Venema
-      144 sender: me@porcupine.org
-      162 pointer_record:               0
-      179 *** MESSAGE CONTENTS bug2.file.tmp ***
-      181 regular_text: Received: by bristle.watson.ibm.com (Postfix, from userid 0)
-      243 regular_text: 	id 034B229013F; Tue, 25 Jul 2006 15:37:06 -0400 (EDT)
-      299 regular_text: From: me@porcupine.org
-      323 regular_text: To: you@porcupine.org
-      346 regular_text: Message-Id: <20060725192735.5EC2D29013F@hades.porcupine.org>
-      408 regular_text: Date: Tue, 25 Jul 2006 15:27:19 -0400 (EDT)
-      453 pointer_record:             552
-      552 regular_text: Subject: hey!
-      567 pointer_record:             584
-      584 regular_text: foo: foobar
-      597 pointer_record:             485
-      485 regular_text: 
-      487 regular_text: text
-      493 pointer_record:               0
-      510 *** HEADER EXTRACTED bug2.file.tmp ***
-      512 original_recipient: you@porcupine.org
-      531 recipient: you@porcupine.org
-      550 *** MESSAGE FILE END bug2.file.tmp ***
+        0 message_size:             332             199               1               0             332
+       81 message_arrival_time: Sat Jan 20 20:53:54 2007
+      100 create_time: Sat Jan 20 20:53:59 2007
+      124 named_attribute: rewrite_context=local
+      147 sender_fullname: Wietse Venema
+      162 sender: me@porcupine.org
+      180 pointer_record:               0
+      197 *** MESSAGE CONTENTS bug2.file.tmp ***
+      199 regular_text: Received: by hades.porcupine.org (Postfix, from userid 1001)
+      261 regular_text: 	id B85F1290407; Sat, 20 Jan 2007 20:53:59 -0500 (EST)
+      317 regular_text: From: me@porcupine.org
+      341 regular_text: To: you@porcupine.org
+      364 regular_text: Message-Id: <20060725192735.5EC2D29013F@hades.porcupine.org>
+      426 regular_text: Date: Tue, 25 Jul 2006 15:27:19 -0400 (EDT)
+      471 pointer_record:             573
+      573 regular_text: Subject: hey!
+      588 padding: 0
+      591 pointer_record:             489
+      489 pointer_record:             608
+      608 regular_text: foo: foobar
+      621 padding:  0
+      625 pointer_record:             506
+      506 regular_text: 
+      508 regular_text: text
+      514 pointer_record:               0
+      531 *** HEADER EXTRACTED bug2.file.tmp ***
+      533 original_recipient: you@porcupine.org
+      552 recipient: you@porcupine.org
+      571 *** MESSAGE FILE END bug2.file.tmp ***

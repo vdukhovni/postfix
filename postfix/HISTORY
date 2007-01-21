@@ -13130,7 +13130,28 @@ Apologies for any names omitted.
 	for !/file/name, and updated the documentation. File:
 	util/match_list.c.
 
+20070119-21
+
+	Cleanup: pad short message headers with a filler record,
+	so that the result is never shorter than a pointer record.
+	This immensely simplified the support for Milter header
+	modification requests: three complex loops could be replaced
+	by one simpler loop.  The DTXT record type was re-purposed
+	from "deleted header text" to "short header padding", keeping
+	the change backwards compatible.  Files: cleanup/cleanup_out.c,
+	cleanup/cleanup_milter.c, global/record.c.
+
+	Cleanup: the Milter "add recipient" action always added the
+	recipient to the initial envelope segment, causing added
+	recipients to be separate from "sendmail -t" recipients.
+	This violated design, without impact on delivery (always_bcc
+	recipient are always at the end of the queue file even when
+	all other recipients are in the initial segment).  File:
+	global/rec_types.h.
+
 Wish list:
+
+	Update message content length when adding/removing headers.
 
 	Need scache size limit.
 

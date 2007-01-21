@@ -83,8 +83,8 @@
   * have to read all the queue file records before starting delivery. This is
   * often the case with list mail, where such optimization is desirable.
   */
-#define REC_TYPE_ENV_RECIPIENT	"MDRO/Kon"
-#define REC_TYPE_EXT_RECIPIENT	"EDRO/Kon"
+#define REC_TYPE_ENV_RECIPIENT	"DRO/Kon"
+#define REC_TYPE_EXT_RECIPIENT	"DRO/Kon"
 
  /*
   * The types of records that I expect to see while processing different

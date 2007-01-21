@@ -7,7 +7,7 @@ open test-queue-file.tmp
 
 add_rcpt xxxx
 add_rcpt yyyy
-del_rcpt alias@tail.porcupine.org
+del_rcpt alias@hades.porcupine.org
 del_rcpt yyyy
 
 # Insert a short header X2 at the position of a short multi-line
