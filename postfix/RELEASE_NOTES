@@ -116,6 +116,18 @@ recipient slots to refill at a time) and default_recipient_refill_delay
 (how long to wait between refill operations). These two parameters
 act as defaults for optional per-transport settings.
 
+Better support for queue file systems on file servers with drifting
+clocks. Clock skew can be a problem, because Postfix does not deliver
+mail until the local clock catches up with the queue file's last
+modification time stamp. On systems with usable futimes() or
+equivalent (Solaris, *BSD, MacOS, but not Linux), Postfix now always
+explicitly sets the queue file last modification time stamps while
+creating a queue file.  On systems without usable futimes() (Linux,
+and ancient versions of Solaris, SunOS and *BSD) Postfix keeps using
+the slower utime() system call to update queue file time stamps
+when the file system clock is off with respect to the local system
+clock, and logs a warning.
+
 Incompatible changes with Postfix snapshot 20061006
 ===================================================
 

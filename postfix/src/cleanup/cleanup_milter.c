@@ -902,9 +902,9 @@ static const char *cleanup_del_header(void *context, ssize_t index,
 
     /*
      * Overwrite the beginning of the header record with a pointer to the
-     * information that follows the header. We can't simply use
-     * cleanup_out_header() with a special record type, because there may be
-     * a PTR record in the middle of a multi-line header.
+     * information that follows the header. We can't simply overwrite the
+     * header with cleanup_out_header() and a special record type, because
+     * there may be a PTR record in the middle of a multi-line header.
      */
     if (header_offset > 0) {
 	if ((next_offset = cleanup_find_header_end(state, rec_buf, last_type)) < 0)
