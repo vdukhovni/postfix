@@ -257,6 +257,7 @@
 -TXSASL_SERVER
 -TXSASL_SERVER_IMPL
 -TXSASL_SERVER_IMPL_INFO
+-Tcipher_probe
 -Toff_t
 -Tregex_t
 -Tregmatch_t

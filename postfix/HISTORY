@@ -13149,6 +13149,12 @@ Apologies for any names omitted.
 	all other recipients are in the initial segment).  File:
 	global/rec_types.h.
 
+20070123
+
+	Workaround: OpenSSL falsely concludes that AES256 support
+	is present when only AES128 is available.  Code by Victor
+	Duchovni.  File: tls/tls_misc.c.
+
 Wish list:
 
 	Update message content length when adding/removing headers.
