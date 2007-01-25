@@ -244,6 +244,7 @@ const char *tls_cipher_list(int cipher_level,...)
     /*
      * Exclude ciphers that clueless distributions leave out of libcrypto.
      */
+#if 0
     if (exclude_unavailable == 0) {
 	exclude_unavailable = argv_alloc(1);
 	for (probe = cipher_probe_list; probe->algorithm; ++probe)
@@ -252,6 +253,7 @@ const char *tls_cipher_list(int cipher_level,...)
     }
     for (i = 0; i < exclude_unavailable->argc; ++i)
 	vstring_sprintf_append(buf, ":!%s", exclude_unavailable->argv[i]);
+#endif
 
     va_start(ap, cipher_level);
     while ((exclude = va_arg(ap, char *)) != 0) {

@@ -13155,6 +13155,11 @@ Apologies for any names omitted.
 	is present when only AES128 is available.  Code by Victor
 	Duchovni.  File: tls/tls_misc.c.
 
+20070125
+
+	Disable workaround pending completion of updated TLS]
+	support in non-production releases.
+
 Wish list:
 
 	Update message content length when adding/removing headers.
