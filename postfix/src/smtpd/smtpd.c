@@ -4226,6 +4226,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 	if (use_tls) {
 #ifdef USE_TLS
 	    tls_server_props props;
+	    ARGV   *cipher_exclusions;
 	    int     havecert;
 	    int     oknocert;
 	    int     wantcert;
@@ -4271,32 +4272,44 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 	    if (!enforce_tls && var_smtpd_tls_req_ccert)
 		msg_warn("Can't require client certs unless TLS is required");
 
-	    props.cipherlist =
-		tls_cipher_list(enforce_tls ?
-				tls_cipher_level(var_smtpd_tls_mand_ciph) :
-				TLS_CIPHER_EXPORT,
-				var_smtpd_tls_excl_ciph,
-				havecert ? "" : "aRSA aDSS",
-				wantcert ? "aNULL" : "",
-				enforce_tls ? var_smtpd_tls_mand_excl :
-				TLS_END_EXCLUDE,
-				TLS_END_EXCLUDE);
+	    if (havecert || oknocert) {
+		cipher_exclusions = argv_alloc(3);
+		argv_add(cipher_exclusions, var_smtpd_tls_excl_ciph, ARGV_END);
+		if (wantcert)
+		    argv_add(cipher_exclusions, "aNULL", ARGV_END);
 
-	    if (props.cipherlist == 0) {
-		msg_warn("unknown '%s' value '%s' ignored, using 'export'",
-			 VAR_SMTPD_TLS_MAND_CIPH, var_smtpd_tls_mand_ciph);
-		props.cipherlist =
-		    tls_cipher_list(TLS_CIPHER_EXPORT,
-				    var_smtpd_tls_excl_ciph,
-				    havecert ? "" : "aRSA aDSS",
-				    wantcert ? "aNULL" : "",
-				    enforce_tls ? var_smtpd_tls_mand_excl :
-				    TLS_END_EXCLUDE,
-				    TLS_END_EXCLUDE);
-	    }
-	    if (havecert || oknocert)
+		/*
+		 * Detect problem configurations early, a certificate-less
+		 * handshake can't use ciphers that need server certificates,
+		 * so we want to fail now while setting up the cipherlist,
+		 * not later. Also this detects any conflict between wantcert
+		 * and !havecert.
+		 */
+		if (!havecert)
+		    argv_add(cipher_exclusions, "aRSA", "aDSS", ARGV_END);
+		if (enforce_tls) {
+		    argv_add(cipher_exclusions,
+			     var_smtpd_tls_mand_excl, ARGV_END);
+
+		    /*
+		     * If the administrator set an invalid grade, use
+		     * "medium" instead. The TLS library requires a valid
+		     * setting.
+		     */
+		    props.cipher_level =
+			tls_cipher_level(var_smtpd_tls_mand_ciph);
+		    if (props.cipher_level == TLS_CIPHER_NONE) {
+			props.cipher_level = TLS_CIPHER_MEDIUM;
+			msg_warn("invalid '%s' value '%s', using 'medium'",
+				 VAR_SMTPD_TLS_MAND_CIPH,
+				 var_smtpd_tls_mand_ciph);
+		    }
+		} else
+		    props.cipher_level = TLS_CIPHER_EXPORT;
+		props.cipher_exclusions = cipher_exclusions->argv;
 		smtpd_tls_ctx = tls_server_init(&props);
-	    else if (enforce_tls)
+		argv_free(cipher_exclusions);
+	    } else if (enforce_tls)
 		msg_fatal("No server certs available. TLS can't be enabled");
 	    else
 		msg_warn("No server certs available. TLS won't be enabled");

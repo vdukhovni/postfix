@@ -718,13 +718,12 @@ TLScontext_t *tls_client_start(const tls_client_start_props *props)
      * the caller to salt the session lookup key with the cipher list, so
      * that sessions found in the cache are always acceptable.
      */
-    if (props->cipherlist != 0)
-	if (SSL_set_cipher_list(TLScontext->con, props->cipherlist) == 0) {
-	    msg_warn("Could not set cipherlist: %s", props->cipherlist);
-	    tls_print_errors();
-	    tls_free_context(TLScontext);
-	    return (0);
-	}
+    if (SSL_set_cipher_list(TLScontext->con, props->cipherlist) == 0) {
+	msg_warn("Could not set cipherlist: %s", props->cipherlist);
+	tls_print_errors();
+	tls_free_context(TLScontext);
+	return (0);
+    }
 
     /*
      * Try to load an existing session from the TLS session cache.

@@ -96,7 +96,7 @@ struct MATCH_LIST {
 };
 
 #define MATCH_DICTIONARY(pattern) \
-    ((pattern)[0] != '[' && strchr((pattern), ':') != 0)
+    ((pattern + strspn(pattern, "!"))[0] != '[' && strchr((pattern), ':') != 0)
 
 /* match_list_parse - parse buffer, destroy buffer */
 

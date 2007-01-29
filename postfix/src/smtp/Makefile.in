@@ -210,6 +210,7 @@ smtp_chat.o: ../../include/dsn.h
 smtp_chat.o: ../../include/dsn_buf.h
 smtp_chat.o: ../../include/dsn_util.h
 smtp_chat.o: ../../include/htable.h
+smtp_chat.o: ../../include/int_filt.h
 smtp_chat.o: ../../include/line_wrap.h
 smtp_chat.o: ../../include/mail_addr.h
 smtp_chat.o: ../../include/mail_error.h

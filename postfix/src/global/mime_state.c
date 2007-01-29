@@ -499,6 +499,7 @@ MIME_STATE *mime_state_alloc(int flags,
 
     /* Volatile members. */
     state->err_flags = 0;
+    state->body_offset = 0;			/* XXX */
     SET_MIME_STATE(state, MIME_STATE_PRIMARY,
 		   MIME_CTYPE_TEXT, MIME_STYPE_PLAIN,
 		   MIME_ENC_7BIT, MIME_ENC_7BIT);
@@ -938,6 +939,15 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 	 * messages. Otherwise, treat such headers as part of the "body". Set
 	 * the proper encoding information for the multipart prolog.
 	 * 
+	 * XXX We parse headers inside message/* content even when the encoding
+	 * is invalid (encoding != domain). With base64 we won't recognize
+	 * any headers, and with quoted-printable we won't recognize MIME
+	 * boundary strings, but the MIME processor will still resynchronize
+	 * when it runs into the higher-level boundary string at the end of
+	 * the message/* content. Although we will treat some headers as body
+	 * text, we will still do a better job than if we were treating the
+	 * entire message/* content as body text.
+	 * 
 	 * XXX This changes state to MIME_STATE_NESTED and then outputs a body
 	 * line, so that the body offset is not properly reset.
 	 * 
@@ -973,13 +983,14 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 	     * separator, nor does the Milter protocol pass it on to Milter
 	     * applications.
 	     * 
-	     * XXX We don't insert a blank line separator with attachments, as
-	     * this breaks digital signatures. Postfix shall not do a worse
-	     * mail delivery job than crappy MTAs that can't even parse MIME.
-	     * But we switch to the body state anyway.
+	     * XXX We don't insert a blank line separator into attachments, to
+	     * avoid breaking digital signatures. Postfix shall not do a
+	     * worse mail delivery job than MTAs that can't even parse MIME.
+	     * We switch to body state anyway, to avoid treating body text as
+	     * header text, and mis-interpreting or truncating it. The code
+	     * below for initial From_ lines is for educational purposes.
 	     * 
-	     * People who worry about MIME evasion can use a MIME normalizer,
-	     * and knowlingly corrupt legitimate email for their users.
+	     * Sites concerned about MIME evasion can use a MIME normalizer.
 	     * Postfix has a different mission.
 	     */
 	    else {
@@ -989,9 +1000,25 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 		       state->curr_state == MIME_STATE_PRIMARY ? "primary" :
 			 state->curr_state == MIME_STATE_NESTED ? "nested" :
 			     "other");
-		if (state->curr_state == MIME_STATE_PRIMARY)
+		switch (state->curr_state) {
+		case MIME_STATE_PRIMARY:
 		    BODY_OUT(state, REC_TYPE_NORM, "", 0);
-		SET_CURR_STATE(state, MIME_STATE_BODY);
+		    SET_CURR_STATE(state, MIME_STATE_BODY);
+		    break;
+#if 0
+		case MIME_STATE_NESTED:
+		    if (state->body_offset <= 1
+			&& rec_type == REC_TYPE_NORM
+			&& len > 7
+			&& (strncmp(text + (*text == '>'), "From ", 5) == 0
+			    || strncmp(text, "=46rom ", 7) == 0))
+			break;
+		    /* FALLTHROUGH */
+#endif
+		default:
+		    SET_CURR_STATE(state, MIME_STATE_BODY);
+		    break;
+		}
 	    }
 	}
 

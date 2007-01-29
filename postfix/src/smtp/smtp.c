@@ -716,6 +716,7 @@ int     smtp_ext_prop_mask;
   * OpenSSL client state.
   */
 SSL_CTX *smtp_tls_ctx;
+int     smtp_tls_mand_level;
 
 #endif
 
@@ -879,6 +880,18 @@ static void pre_init(char *unused_name, char **unused_argv)
 	props.CAfile = var_smtp_tls_CAfile;
 	props.CApath = var_smtp_tls_CApath;
 
+	/*
+	 * If the administrator set an invalid grade, use "medium" instead.
+	 * The TLS library requires a valid setting.
+	 */
+	smtp_tls_mand_level = tls_cipher_level(var_smtp_tls_mand_ciph);
+	if (smtp_tls_mand_level == TLS_CIPHER_NONE) {
+	    smtp_tls_mand_level = TLS_CIPHER_MEDIUM;
+	    msg_warn("invalid '%s' value '%s', using 'medium'",
+		     strcmp(var_procname, "smtp") == 0 ?
+		     VAR_SMTP_TLS_MAND_CIPH : VAR_LMTP_TLS_MAND_CIPH,
+		     var_smtp_tls_mand_ciph);
+	}
 	smtp_tls_ctx = tls_client_init(&props);
 	smtp_tls_list_init();
 #else

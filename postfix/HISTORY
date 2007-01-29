@@ -12927,8 +12927,16 @@ Apologies for any names omitted.
 	Duchovni.  Files: smtpd/smtpd_check.c.
 
 	Workaround: don't insert header/body blank line separator
-	in malformed attachments, to avoid breaking digital signatures.
-	Switch from header to body state, for robust MIME parsing.
-	People concerned about MIME evasion can use a MIME normalizer
-	to corrupt their user's legitimate email.  File:
-	global/mime_state.c.
+	into malformed MIME attachments, to avoid breaking digital
+	signatures.  File: global/mime_state.c.
+
+20070118
+
+	Bugfix: match lists didn't implement ![ipv6address].  Problem
+	reported by Paulo Pacheco. File: util/match_list.c.
+
+200070129
+
+	Workaround: OpenSSL falsely concludes that AES256 support
+	is present when only AES128 is available.  Code by Victor
+	Duchovni.  File: tls/tls_misc.c.
