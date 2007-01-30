@@ -56,7 +56,6 @@ extern NAME_CODE tls_level_table[];
 #include <vstream.h>
 #include <name_mask.h>
 #include <name_code.h>
-#include <argv.h>
 
 #define TLS_BIO_BUFSIZE	8192
 
@@ -129,10 +128,8 @@ extern NAME_CODE tls_cipher_level_table[];
 #define tls_cipher_level(str) \
     name_code(tls_cipher_level_table, NAME_CODE_FLAG_NONE, (str))
 
-#define TLS_CIPH_EXCL_ARRAY	1
-#define TLS_CIPH_EXCL_LIST	2
-#define TLS_CIPH_EXCL_END	((char *) 0)
-extern const char *tls_cipher_list(int, int,...);
+#define TLS_END_EXCLUDE ((char *)0)
+extern const char *tls_cipher_list(int,...);
 
  /*
   * tls_client.c
@@ -184,8 +181,7 @@ typedef struct {
     const char *dkey_file;
     const char *CAfile;
     const char *CApath;
-    int     cipher_level;		/* TLS_CIPHER_EXPORT, ... */
-    char  **cipher_exclusions;
+    const char *cipherlist;
     int     protocols;			/* protocols, 0 => all */
     const char *dh1024_param_file;
     const char *dh512_param_file;

@@ -12926,17 +12926,18 @@ Apologies for any names omitted.
 	frame upon configuration error or table lookup error.  Victor
 	Duchovni.  Files: smtpd/smtpd_check.c.
 
-	Workaround: don't insert header/body blank line separator
+	Workaround: don't insert empty-line header/body separator
 	into malformed MIME attachments, to avoid breaking digital
-	signatures.  File: global/mime_state.c.
+	signatures. This change introduces ambiguity. Postfix still
+	treats the remainder of the attachment as body content;
+	header_checks rules will not detect forbidden MIME types
+	inside a message/rfc822 attachment.  With the empty-line
+	header/body separator no longer inserted by Postfix, other
+	software may process the malformed attachment differently,
+	and thus may become exposed to forbidden MIME types.  This
+	is back-ported from Postfix 2.4. File: global/mime_state.c.
 
 20070118
 
 	Bugfix: match lists didn't implement ![ipv6address].  Problem
 	reported by Paulo Pacheco. File: util/match_list.c.
-
-200070129
-
-	Workaround: OpenSSL falsely concludes that AES256 support
-	is present when only AES128 is available.  Code by Victor
-	Duchovni.  File: tls/tls_misc.c.

@@ -249,7 +249,6 @@ SSL_CTX *tls_server_init(const tls_server_props *props)
     int     verify_flags = SSL_VERIFY_NONE;
     SSL_CTX *server_ctx;
     int     cachable;
-    const char *cipher_list;
 
     /* See skeleton at OpenSSL apps/s_server.c. */
 
@@ -329,14 +328,12 @@ SSL_CTX *tls_server_init(const tls_server_props *props)
     /*
      * Override the default cipher list with our own list.
      */
-    cipher_list = tls_cipher_list(props->cipher_level, TLS_CIPH_EXCL_ARRAY,
-				  props->cipher_exclusions);
-    if (SSL_CTX_set_cipher_list(server_ctx, cipher_list) == 0) {
-	tls_print_errors();
-	msg_warn("Invalid cipherlist: %s", cipher_list);
-	SSL_CTX_free(server_ctx);		/* 200411 */
-	return (0);
-    }
+    if (*props->cipherlist != 0)
+	if (SSL_CTX_set_cipher_list(server_ctx, props->cipherlist) == 0) {
+	    tls_print_errors();
+	    SSL_CTX_free(server_ctx);		/* 200411 */
+	    return (0);
+	}
 
     /*
      * Load the CA public key certificates for both the server cert and for

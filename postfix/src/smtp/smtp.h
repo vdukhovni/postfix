@@ -168,7 +168,6 @@ extern int smtp_ext_prop_mask;		/* address externsion propagation */
 #ifdef USE_TLS
 
 extern SSL_CTX *smtp_tls_ctx;		/* client-side TLS engine */
-extern int smtp_tls_mand_level;		/* TLS_CIPHER_EXPORT, ... */
 
 #endif
 

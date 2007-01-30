@@ -18,9 +18,8 @@
 /*
 /*	long	tls_bug_bits()
 /*
-/*	const char *tls_cipher_list(cipher_level, options, ...)
+/*	const char *tls_cipher_list(cipher_level, ...)
 /*	int	cipher_level;
-/*	int	options;
 /*
 /*	void	tls_print_errors()
 /*
@@ -57,10 +56,7 @@
 /*	tls_cipher_list() generates a cipher list from the specified
 /*	grade, minus any ciphers specified via a null-terminated
 /*	list of string-valued exclusions. The result is overwritten
-/*	upon each call. The options argument specifies how exceptions
-/*	are specified: TLS_CIPH_EXCL_ARRAY (null-terminated character
-/*	pointer array) or TLS_CIPH_EXCL_LIST (variadic parameter
-/*	list terminated with TLS_CIPH_EXCL_END).
+/*	upon each call.
 /*
 /*	tls_print_errors() queries the OpenSSL error stack,
 /*	logs the error messages, and clears the error stack.
@@ -155,41 +151,6 @@ NAME_CODE tls_cipher_level_table[] = {
     0, TLS_CIPHER_NONE,
 };
 
-typedef struct {
-    char   *algorithm;
-    char   *exclusion;
-} cipher_probe;
-
-static cipher_probe cipher_probe_list[] = {
-
-    /*
-     * Check for missing AES256, OpenSSL only checks for AES128, and then
-     * enables both, because they only have one "is AES" boolean flag in the
-     * cipher property mask. The implementation cannot distinguish between
-     * AES128 and AES256. When some O/S distributions play games with
-     * libcrypto and exclude just the AES256 ciphers, they break the OpenSSL
-     * cipherlist construction code, with clients and servers potentially
-     * negotiating unimplemented ciphers.
-     * 
-     * This problem is peculiar to AES, which is not a single cipher, but a
-     * family of related ciphers. The other OpenSSL symmetric ciphers are
-     * atomic, either implemented or not. We expect that future ciphers will
-     * either also be atomic, or will have one property bit per family member
-     * and will be filtered accurately by OpenSSL.
-     * 
-     * If all else fails, this table can be expanded :-(
-     * 
-     * XXX: the probe for AES256 is enclosed in #ifdef. OpenSSL 0.9.6 and and
-     * earlier don't have AES 256, this requires 0.9.7 or later. We recommend
-     * against use of 0.9.6, it has open issues solved in 0.9.7l and 0.9.8d,
-     * but we are not yet prepared to drop support for 0.9.6.
-     */
-#ifdef SN_aes_256_cbc
-    SN_aes_256_cbc, SSL_TXT_AES "+HIGH",
-#endif
-    0, 0,
-};
-
  /*
   * Parsed OpenSSL version number.
   */
@@ -203,19 +164,15 @@ typedef struct {
 
 /* tls_cipher_list - Cipherlist for given grade, less exclusions */
 
-const char *tls_cipher_list(int cipher_level, int options,...)
+const char *tls_cipher_list(int cipher_level,...)
 {
     const char *myname = "tls_cipher_list";
     static VSTRING *buf;
-    static ARGV *exclude_unavailable;
-    cipher_probe *probe;
-    int     i;
     va_list ap;
     const char *exclude;
     char   *tok;
     char   *save;
     char   *cp;
-    char  **ex_array = 0;
 
     buf = buf ? buf : vstring_alloc(10);
     VSTRING_RESET(buf);
@@ -236,30 +193,17 @@ const char *tls_cipher_list(int cipher_level, int options,...)
     case TLS_CIPHER_NULL:
 	vstring_strcpy(buf, var_tls_null_clist);
 	break;
+    case TLS_CIPHER_NONE:
+	return 0;
     default:
 	msg_panic("%s: invalid cipher grade: %d", myname, cipher_level);
     }
+
     if (VSTRING_LEN(buf) == 0)
 	msg_panic("%s: empty cipherlist", myname);
 
-    /*
-     * Exclude ciphers that clueless distributions leave out of libcrypto.
-     */
-    if (exclude_unavailable == 0) {
-	exclude_unavailable = argv_alloc(1);
-	for (probe = cipher_probe_list; probe->algorithm; ++probe)
-	    if (!EVP_get_cipherbyname(probe->algorithm))
-		argv_add(exclude_unavailable, probe->exclusion, (char *) 0);
-    }
-    for (i = 0; i < exclude_unavailable->argc; ++i)
-	vstring_sprintf_append(buf, ":!%s", exclude_unavailable->argv[i]);
-
-    va_start(ap, options);
-    if (options == TLS_CIPH_EXCL_ARRAY)
-	ex_array = va_arg(ap, char **);
-    else if (options != TLS_CIPH_EXCL_LIST)
-	msg_panic("%s: bad argument list option: %d", myname, options);
-    while ((exclude = ex_array ? *ex_array++ : va_arg(ap, char *)) != 0) {
+    va_start(ap, cipher_level);
+    while ((exclude = va_arg(ap, char *)) != 0) {
 	if (*exclude == '\0')
 	    continue;
 	save = cp = mystrdup(exclude);
