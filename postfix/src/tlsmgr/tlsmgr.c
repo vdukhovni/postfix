@@ -213,6 +213,7 @@
   * Tunables.
   */
 char   *var_tls_rand_source;
+int     var_tls_daemon_rand_bytes;
 int     var_tls_rand_bytes;
 int     var_tls_reseed_period;
 int     var_tls_prng_exch_period;

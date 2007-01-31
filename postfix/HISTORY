@@ -13160,6 +13160,12 @@ Apologies for any names omitted.
 	Disable workaround pending completion of updated TLS]
 	support in non-production releases.
 
+20070131
+
+	Assorted code cleanup, portability fixes/workarounds, and
+	minor updates: global/dict_ldap.c, mantools/postlink,
+	tlsmgs/tlsmgr.c, conf/master.cf. LaMont Jones.
+
 Wish list:
 
 	Update message content length when adding/removing headers.

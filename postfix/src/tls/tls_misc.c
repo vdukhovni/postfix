@@ -152,6 +152,8 @@ NAME_CODE tls_cipher_level_table[] = {
     0, TLS_CIPHER_NONE,
 };
 
+#if 0
+
 typedef struct {
     char   *algorithm;
     char   *exclusion;
@@ -187,6 +189,8 @@ static cipher_probe cipher_probe_list[] = {
     0, 0,
 };
 
+#endif
+
  /*
   * Parsed OpenSSL version number.
   */
@@ -204,9 +208,11 @@ const char *tls_cipher_list(int cipher_level,...)
 {
     const char *myname = "tls_cipher_list";
     static VSTRING *buf;
+#if 0
     static ARGV *exclude_unavailable;
     cipher_probe *probe;
     int     i;
+#endif
     va_list ap;
     const char *exclude;
     char   *tok;

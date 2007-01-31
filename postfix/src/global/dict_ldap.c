@@ -266,29 +266,30 @@ typedef struct {
 
 static void rfc2253_quote(DICT *unused, const char *name, VSTRING *result)
 {
-    unsigned char *sub = (unsigned char *)name;
-    size_t len;
+    const char *sub = name;
+    size_t  len;
 
     /*
-     * The RFC only requires quoting of a leading or trailing space,
-     * but it is harmless to quote whitespace everywhere. Similarly,
-     * we quote all '#' characters, even though only the leading '#'
-     * character requires quoting per the RFC.
+     * The RFC only requires quoting of a leading or trailing space, but it
+     * is harmless to quote whitespace everywhere. Similarly, we quote all
+     * '#' characters, even though only the leading '#' character requires
+     * quoting per the RFC.
      */
     while (*sub)
-    	if ((len = strcspn(sub, " \t\"#+,;<>\\")) > 0) {
+	if ((len = strcspn(sub, " \t\"#+,;<>\\")) > 0) {
 	    vstring_strncat(result, sub, len);
 	    sub += len;
 	} else
-	    vstring_sprintf_append(result, "\\%02X", *(sub++));
+	    vstring_sprintf_append(result, "\\%02X",
+				   *((const unsigned char *) sub++));
 }
 
 /* rfc2254_quote - Quote input key for safe inclusion in the query filter */
 
 static void rfc2254_quote(DICT *unused, const char *name, VSTRING *result)
 {
-    unsigned char *sub = (unsigned char *)name;
-    size_t len;
+    const char *sub = name;
+    size_t  len;
 
     /*
      * If any characters in the supplied address should be escaped per RFC
@@ -298,11 +299,12 @@ static void rfc2254_quote(DICT *unused, const char *name, VSTRING *result)
      * parameter and then this more comprehensive mechanism.
      */
     while (*sub)
-    	if ((len = strcspn(sub, "*()\\")) > 0) {
+	if ((len = strcspn(sub, "*()\\")) > 0) {
 	    vstring_strncat(result, sub, len);
 	    sub += len;
 	} else
-	    vstring_sprintf_append(result, "\\%02X", *(sub++));
+	    vstring_sprintf_append(result, "\\%02X",
+				   *((const unsigned char *) sub++));
 }
 
 static BINHASH *conn_hash = 0;
@@ -355,7 +357,6 @@ static int dict_ldap_set_errno(LDAP * ld, int rc)
 
 static int dict_ldap_result(LDAP *ld, int msgid, int timeout, LDAPMessage **res)
 {
-    int     rc;
     struct timeval mytimeval;
 
     mytimeval.tv_sec = timeout;
