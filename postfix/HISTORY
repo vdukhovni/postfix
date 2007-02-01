@@ -13166,6 +13166,19 @@ Apologies for any names omitted.
 	minor updates: global/dict_ldap.c, mantools/postlink,
 	tlsmgs/tlsmgr.c, conf/master.cf. LaMont Jones.
 
+20070101
+
+	Portability: GNU Hurd support for multiple kernel environments.
+	LaMont Jones. Files: util/sys_defs.h, makedefs.
+
+	Cleanup: some default settings were adjusted to better fit
+	today's environment: queue_run_delay and minimal_backoff_time
+	were reduced from 1000s to 300s, so that deliveries are
+	retried earlier after the first failure; ipc_idle was reduced
+	from 100s to 5s, so that tlsmgr and scache clients will
+	more quickly release unused file handles. Files:
+	global/mail_params.h, proto/postconf.5.html
+
 Wish list:
 
 	Update message content length when adding/removing headers.
@@ -13186,8 +13199,9 @@ Wish list:
 	Make postmap header/body aware so people can test multi-line
 	header checks.
 
-	Investigate if clients of single-instance servers such as
-	tlsmgr, verify, can close sockets earlier.
+	Eliminate Linux 1024 select() file handle bottleneck and
+	eliminate select()/poll() scaling problems by implementing
+	kqueue(2) and epoll(2) support.
 
 	REDIRECT should override original recipient info, and
 	probably override DSN as well.

@@ -632,10 +632,10 @@ extern char *var_relocated_maps;
   * queue before it is sent back.
   */
 #define VAR_QUEUE_RUN_DELAY	"queue_run_delay"
-#define DEF_QUEUE_RUN_DELAY     "1000s"
+#define DEF_QUEUE_RUN_DELAY     "300s"
 
 #define VAR_MIN_BACKOFF_TIME	"minimal_backoff_time"
-#define DEF_MIN_BACKOFF_TIME    "1000s"
+#define DEF_MIN_BACKOFF_TIME    DEF_QUEUE_RUN_DELAY
 extern int var_min_backoff_time;
 
 #define VAR_MAX_BACKOFF_TIME	"maximal_backoff_time"
@@ -813,7 +813,7 @@ extern int var_event_drain;
   * IPC connection before closing it because it is idle for too much time.
   */
 #define VAR_IPC_IDLE		"ipc_idle"
-#define DEF_IPC_IDLE		"100s"
+#define DEF_IPC_IDLE		"5s"
 extern int var_ipc_idle_limit;
 
  /*

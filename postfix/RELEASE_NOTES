@@ -17,6 +17,19 @@ Incompatibility with Postfix 2.2 and earlier
 If you upgrade from Postfix 2.2 or earlier, read RELEASE_NOTES-2.3
 before proceeding.
 
+Incompatibility with Postfix snapshot 20070201
+==============================================
+
+Some default settings have been adjusted to better match contemporary
+requirements:
+
+- queue_run_delay and minimal_backoff_time were reduced from 1000s
+to 300s so that deliveries are retried earlier after the first
+failure.
+
+- ipc_idle was reduced from 100s to 5s, so that tlsmgr and scache
+clients will more quickly release unused file handles.
+
 Major changes with Postfix snapshot 20070121
 ============================================
 

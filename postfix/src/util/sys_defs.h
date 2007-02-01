@@ -739,6 +739,69 @@ extern int initgroups(const char *, int);
 #endif
 
  /*
+  * GNU.
+  */
+#ifdef GNU0
+#define SUPPORTED
+#include <sys/types.h>
+#include <features.h>
+#define USE_PATHS_H
+#define HAS_FCNTL_LOCK
+#define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
+#define DEF_MAILBOX_LOCK "fcntl, dotlock"	/* RedHat >= 4.x */
+#define HAS_FSYNC
+#define HAS_DB
+#define DEF_DB_TYPE	"hash"
+#define ALIAS_DB_MAP	"hash:/etc/aliases"
+#define HAS_NIS
+#define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
+#define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
+#define FIONREAD_IN_TERMIOS_H
+#define USE_STATFS
+#define STATFS_IN_SYS_VFS_H
+#define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT
+#define PREPEND_PLUS_TO_OPTSTRING
+#define HAS_POSIX_REGEXP
+#define HAS_DLOPEN
+#define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
+#define NATIVE_MAILQ_PATH "/usr/bin/mailq"
+#define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
+#define NATIVE_COMMAND_DIR "/usr/sbin"
+#ifdef DEBIAN
+#define NATIVE_DAEMON_DIR	"/usr/lib/postfix"
+#ifndef DEF_MANPAGE_DIR
+#define DEF_MANPAGE_DIR		"/usr/share/man"
+#endif
+#ifndef DEF_SAMPLE_DIR
+#define DEF_SAMPLE_DIR		"/usr/share/doc/postfix/examples"
+#endif
+#ifndef DEF_README_DIR
+#define DEF_README_DIR		"/usr/share/doc/postfix"
+#endif
+#else
+#define NATIVE_DAEMON_DIR "/usr/libexec/postfix"
+#endif
+#define SOCKADDR_SIZE	socklen_t
+#define SOCKOPT_SIZE	socklen_t
+#ifdef __FreeBSD_kernel__
+# define HAS_DUPLEX_PIPE
+# define HAS_ISSETUGID
+#endif
+#ifndef NO_IPV6
+# define HAS_IPV6
+# ifdef __FreeBSD_kernel__
+#  define HAVE_GETIFADDRS
+# else
+#  define HAS_PROCNET_IFINET6
+#  define _PATH_PROCNET_IFINET6 "/proc/net/if_inet6"
+# endif
+#endif
+#define CANT_USE_SEND_RECV_MSG
+#define DEF_SMTP_CACHE_DEMAND	0
+#define HAS_DEV_URANDOM
+#endif
+
+ /*
   * HPUX11 was copied from HPUX10, but can perhaps be trimmed down a bit.
   */
 #ifdef HPUX11

@@ -3032,7 +3032,7 @@ Do not change this unless you have a complete understanding of <a href="http://w
 </DD>
 
 <DT><b><a name="ipc_idle">ipc_idle</a>
-(default: 100s)</b></DT><DD>
+(default: version dependent)</b></DT><DD>
 
 <p>
 The time after which a client closes an idle internal communication
@@ -3040,6 +3040,8 @@ channel.  The purpose is to allow servers to terminate voluntarily
 after they become idle. This is used, for example, by the address
 resolving and rewriting clients.
 </p>
+
+<p> With Postfix 2.4 the default value was reduced from 100s to 5s. </p>
 
 <p>
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
@@ -5250,13 +5252,16 @@ This feature is available in Postfix 2.0 and later.
 </DD>
 
 <DT><b><a name="minimal_backoff_time">minimal_backoff_time</a>
-(default: 1000s)</b></DT><DD>
+(default: version dependent)</b></DT><DD>
 
 <p>
 The minimal time between attempts to deliver a deferred message.
 This parameter also limits the time an unreachable destination is
 kept in the short-term, in-memory, destination status cache.
 </p>
+
+<p> With Postfix 2.4 the default value was reduced from 1000s to
+300s.  </p>
 
 <p> This parameter should be set greater than or equal to
 $<a href="postconf.5.html#queue_run_delay">queue_run_delay</a>. See also $<a href="postconf.5.html#maximal_backoff_time">maximal_backoff_time</a>.  </p>
@@ -6050,10 +6055,14 @@ zero means there is no minimum required amount of free space.
 </DD>
 
 <DT><b><a name="queue_run_delay">queue_run_delay</a>
-(default: 1000s)</b></DT><DD>
+(default: version dependent)</b></DT><DD>
 
 <p>
 The time between <a href="QSHAPE_README.html#deferred_queue">deferred queue</a> scans by the queue manager.
+</p>
+
+<p>
+With Postfix 2.4 the default value was reduced from 1000s to 300s.
 </p>
 
 <p> This parameter should be set less than or equal to

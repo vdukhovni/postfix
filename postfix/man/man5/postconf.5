@@ -1644,11 +1644,13 @@ HELO or EHLO command parameter is rejected by the reject_invalid_helo_hostname
 restriction.
 .PP
 Do not change this unless you have a complete understanding of RFC 821.
-.SH ipc_idle (default: 100s)
+.SH ipc_idle (default: version dependent)
 The time after which a client closes an idle internal communication
 channel.  The purpose is to allow servers to terminate voluntarily
 after they become idle. This is used, for example, by the address
 resolving and rewriting clients.
+.PP
+With Postfix 2.4 the default value was reduced from 100s to 5s.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
@@ -2846,10 +2848,13 @@ The maximal recursion level that the MIME processor will handle.
 Postfix refuses mail that is nested deeper than the specified limit.
 .PP
 This feature is available in Postfix 2.0 and later.
-.SH minimal_backoff_time (default: 1000s)
+.SH minimal_backoff_time (default: version dependent)
 The minimal time between attempts to deliver a deferred message.
 This parameter also limits the time an unreachable destination is
 kept in the short-term, in-memory, destination status cache.
+.PP
+With Postfix 2.4 the default value was reduced from 1000s to
+300s.
 .PP
 This parameter should be set greater than or equal to
 $queue_run_delay. See also $maximal_backoff_time.
@@ -3299,8 +3304,10 @@ value that is at least 1.5*$message_size_limit.
 .PP
 With Postfix versions 2.0 and earlier, a queue_minfree value of
 zero means there is no minimum required amount of free space.
-.SH queue_run_delay (default: 1000s)
+.SH queue_run_delay (default: version dependent)
 The time between deferred queue scans by the queue manager.
+.PP
+With Postfix 2.4 the default value was reduced from 1000s to 300s.
 .PP
 This parameter should be set less than or equal to
 $minimal_backoff_time. See also $maximal_backoff_time.
