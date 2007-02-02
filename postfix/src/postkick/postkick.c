@@ -174,7 +174,18 @@ int     main(int argc, char **argv)
 	msg_warn("Cannot contact class %s service %s - perhaps the mail system is down",
 		 class, service);
 	exit(1);
-    } else {
+    }
+
+    /*
+     * Problem: With triggers over full duplex (i.e. non-FIFO) channels, we
+     * must avoid closing the channel before the server has received the
+     * request. Otherwise some hostile kernel may throw away the request.
+     * 
+     * Solution: The trigger routine registers a read event handler that runs
+     * when the server closes the channel. The event_drain() routine waits
+     * for the event handler to run, but gives up when it takes too long.
+     */
+    else {
 	event_drain(var_event_drain);
 	exit(0);
     }
