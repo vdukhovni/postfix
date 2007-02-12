@@ -467,6 +467,7 @@ static void connect_done(int unused_event, char *context)
 	fail_connect(session);
     } else {
 	non_blocking(fd, BLOCKING);
+	/* Disable write events. */
 	event_disable_readwrite(fd);
 	event_enable_read(fd, read_banner, (char *) session);
 	dequeue_connect(session);
@@ -520,7 +521,6 @@ static void send_helo(SESSION *session)
     /*
      * Prepare for the next event.
      */
-    event_disable_readwrite(vstream_fileno(session->stream));
     event_enable_read(vstream_fileno(session->stream), helo_done, (char *) session);
 }
 
@@ -562,7 +562,6 @@ static void send_mail(SESSION *session)
     /*
      * Prepare for the next event.
      */
-    event_disable_readwrite(vstream_fileno(session->stream));
     event_enable_read(vstream_fileno(session->stream), mail_done, (char *) session);
 }
 
@@ -613,7 +612,6 @@ static void send_rcpt(int unused_event, char *context)
     /*
      * Prepare for the next event.
      */
-    event_disable_readwrite(vstream_fileno(session->stream));
     event_enable_read(vstream_fileno(session->stream), rcpt_done, (char *) session);
 }
 
@@ -660,7 +658,6 @@ static void send_data(int unused_event, char *context)
     /*
      * Prepare for the next event.
      */
-    event_disable_readwrite(vstream_fileno(session->stream));
     event_enable_read(vstream_fileno(session->stream), data_done, (char *) session);
 }
 
@@ -736,7 +733,6 @@ static void data_done(int unused_event, char *context)
     /*
      * Prepare for the next event.
      */
-    event_disable_readwrite(vstream_fileno(session->stream));
     event_enable_read(vstream_fileno(session->stream), dot_done, (char *) session);
 }
 
@@ -775,7 +771,6 @@ static void dot_done(int unused_event, char *context)
 static void send_quit(SESSION *session)
 {
     command(session->stream, "QUIT");
-    event_disable_readwrite(vstream_fileno(session->stream));
     event_enable_read(vstream_fileno(session->stream), quit_done, (char *) session);
 }
 

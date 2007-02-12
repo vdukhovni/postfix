@@ -241,9 +241,8 @@ static void qmgr_transport_event(int unused_event, char *context)
     event_cancel_timer(qmgr_transport_abort, context);
 
     /*
-     * Disable further read events that end up calling this function, turn
-     * off the Linux connect() workaround, and free up this pending
-     * connection pipeline slot.
+     * Disable further read events that end up calling this function, and
+     * free up this pending connection pipeline slot.
      */
     if (alloc->stream) {
 	event_disable_readwrite(vstream_fileno(alloc->stream));

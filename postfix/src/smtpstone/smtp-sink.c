@@ -975,6 +975,7 @@ static int command_read(SINK_STATE *state)
     static struct cmd_trans cmd_trans[] = {
 	ST_ANY, '\r', ST_CR,
 	ST_CR, '\n', ST_CR_LF,
+	0, 0, 0,
     };
     struct cmd_trans *cp;
     char   *ptr;
@@ -986,6 +987,8 @@ static int command_read(SINK_STATE *state)
 #define NEXT_CHAR(state) \
     (PUSH_BACK_PEEK(state) ? PUSH_BACK_GET(state) : VSTREAM_GETC(state->stream))
 
+    if (state->data_state == ST_CR_LF)
+	state->data_state = ST_ANY;		/* XXX */
     for (;;) {
 	if ((ch = NEXT_CHAR(state)) == VSTREAM_EOF)
 	    return (-1);
@@ -1005,7 +1008,8 @@ static int command_read(SINK_STATE *state)
 	 * first state.
 	 */
 	for (cp = cmd_trans; cp->state != state->data_state; cp++)
-	     /* void */ ;
+	    if (cp->want == 0)
+		msg_panic("command_read: unknown state: %d", state->data_state);
 	if (ch == cp->want)
 	    state->data_state = cp->next_state;
 	else if (ch == cmd_trans[0].want)

@@ -77,7 +77,10 @@
 /*	partial reads or writes.
 /*	An I/O channel cannot handle more than one request at the
 /*	same time. The application is allowed to enable an event that
-/*	is already enabled (same channel, callback and context).
+/*	is already enabled (same channel, same read or write operation,
+/*	but perhaps a different callback or context). On systems with
+/*	kernel-based event filters this is preferred usage, because
+/*	each disable and enable request would cost a system call.
 /*
 /*	The manifest constants EVENT_NULL_CONTEXT and EVENT_NULL_TYPE
 /*	provide convenient null values.
@@ -93,7 +96,7 @@
 /* .IP EVENT_WRITE
 /*	write event,
 /* .IP EVENT_XCPT
-/*	exception.
+/*	exception (actually, any event other than read or write).
 /* .RE
 /* .IP context
 /*	Application context given to event_enable_read() (event_enable_write()).
@@ -135,6 +138,7 @@
 #include <unistd.h>
 #include <stddef.h>			/* offsetof() */
 #include <string.h>			/* bzero() prototype for 44BSD */
+#include <limits.h>			/* INT_MAX */
 
 #ifdef USE_SYS_SELECT_H
 #include <sys/select.h>
@@ -148,9 +152,86 @@
 #include "ring.h"
 #include "events.h"
 
+#if (defined(USE_KQUEUE_EVENTS) && defined(USE_DEVPOLL_EVENTS)) \
+    || (defined(USE_KQUEUE_EVENTS) && defined(USE_EPOLL_EVENTS)) \
+    || (defined(USE_KQUEUE_EVENTS) && defined(USE_SELECT_EVENTS)) \
+    || (defined(USE_DEVPOLL_EVENTS) && defined(USE_EPOLL_EVENTS)) \
+    || (defined(USE_DEVPOLL_EVENTS) && defined(USE_SELECT_EVENTS)) \
+    || (defined(USE_EPOLL_EVENTS) && defined(USE_SELECT_EVENTS))
+#error "don't define multiple USE_KQUEUE/DEVPOLL/EPOLL/SELECT_EVENTS"
+#endif
+
+#if !defined(USE_KQUEUE_EVENTS) && !defined(USE_DEVPOLL_EVENTS) \
+	&& !defined(USE_EPOLL_EVENTS) && !defined(USE_SELECT_EVENTS)
+#error "define one of USE_KQUEUE/DEVPOLL/EPOLL/SELECT_EVENTS"
+#endif
+
  /*
-  * I/O events. We pre-allocate one data structure per file descriptor. XXX
-  * For now use FD_SETSIZE as defined along with the fd-set type.
+  * Traditional BSD-style select(2). Works everywhere, but has a built-in
+  * upper bound on the number of file descriptors, and that limit is hard to
+  * change on Linux. Is sometimes emulated with SYSV-style poll(2) which
+  * doesn't have the file descriptor limit, but unfortunately does not help
+  * to improve the performance of servers with lots of connections.
+  */
+#define EVENT_ALLOC_INCR		10
+
+#ifdef USE_SELECT_EVENTS
+typedef fd_set EVENT_MASK;
+
+#define EVENT_MASK_BYTE_COUNT(mask)	sizeof(*(mask))
+#define EVENT_MASK_ZERO(mask)		FD_ZERO(mask)
+#define EVENT_MASK_SET(fd, mask)	FD_SET((fd), (mask))
+#define EVENT_MASK_ISSET(fd, mask)	FD_ISSET((fd), (mask))
+#define EVENT_MASK_CLR(fd, mask)	FD_CLR((fd), (mask))
+#else
+
+ /*
+  * Kernel-based event filters (kqueue, /dev/poll, epoll). We use the
+  * following file descriptor mask structure which is expanded on the fly.
+  */
+typedef struct {
+    char   *data;			/* bit mask */
+    size_t  data_len;			/* data byte count */
+} EVENT_MASK;
+
+ /* Bits per byte, byte in vector, bit offset in byte, bytes per set. */
+#define EVENT_MASK_NBBY		(8)
+#define EVENT_MASK_FD_BYTE(fd, mask) \
+	(((unsigned char *) (mask)->data)[(fd) / EVENT_MASK_NBBY])
+#define EVENT_MASK_FD_BIT(fd)	(1 << ((fd) % EVENT_MASK_NBBY))
+#define EVENT_MASK_BYTES_NEEDED(len) \
+	(((len) + (EVENT_MASK_NBBY -1)) / EVENT_MASK_NBBY)
+#define EVENT_MASK_BYTE_COUNT(mask)	((mask)->data_len)
+
+ /* Memory management. */
+#define EVENT_MASK_ALLOC(mask, bit_len) do { \
+	size_t _byte_len = EVENT_MASK_BYTES_NEEDED(bit_len); \
+	(mask)->data = mymalloc(_byte_len); \
+	memset((mask)->data, 0, _byte_len); \
+	(mask)->data_len = _byte_len; \
+    } while (0)
+#define EVENT_MASK_REALLOC(mask, bit_len) do { \
+	size_t _byte_len = EVENT_MASK_BYTES_NEEDED(bit_len); \
+	size_t _old_len = (mask)->data_len; \
+	(mask)->data = myrealloc((mask)->data, _byte_len); \
+	memset((mask)->data + _old_len, 0, _byte_len - _old_len); \
+	(mask)->data_len = _byte_len; \
+    } while (0)
+#define EVENT_MASK_FREE(mask)	myfree((mask)->data)
+
+ /* Set operations, modeled after FD_ZERO/SET/ISSET/CLR. */
+#define EVENT_MASK_ZERO(mask) \
+	memset((mask)->data, 0, (mask)->data_len)
+#define EVENT_MASK_SET(fd, mask) \
+	(EVENT_MASK_FD_BYTE((fd), (mask)) |= EVENT_MASK_FD_BIT(fd))
+#define EVENT_MASK_ISSET(fd, mask) \
+	(EVENT_MASK_FD_BYTE((fd), (mask)) & EVENT_MASK_FD_BIT(fd))
+#define EVENT_MASK_CLR(fd, mask) \
+	(EVENT_MASK_FD_BYTE((fd), (mask)) &= ~EVENT_MASK_FD_BIT(fd))
+#endif
+
+ /*
+  * I/O events.
   */
 typedef struct EVENT_FDTABLE EVENT_FDTABLE;
 
@@ -158,12 +239,242 @@ struct EVENT_FDTABLE {
     EVENT_NOTIFY_RDWR callback;
     char   *context;
 };
-static fd_set event_rmask;		/* enabled read events */
-static fd_set event_wmask;		/* enabled write events */
-static fd_set event_xmask;		/* for bad news mostly */
-static int event_fdsize;		/* number of file descriptors */
+static EVENT_MASK event_rmask;		/* enabled read events */
+static EVENT_MASK event_wmask;		/* enabled write events */
+static EVENT_MASK event_xmask;		/* for bad news mostly */
+static int event_fdlimit;		/* per-process open file limit */
 static EVENT_FDTABLE *event_fdtable;	/* one slot per file descriptor */
-static int event_max_fd;		/* highest fd number seen */
+static int event_fdslots;		/* number of file descriptor slots */
+static int event_max_fd = -1;		/* highest fd number seen */
+
+ /*
+  * FreeBSD kqueue supports no system call to find out what descriptors are
+  * registered in the kernel-based filter. To implement our own sanity checks
+  * we maintain our own descriptor bitmask.
+  * 
+  * FreeBSD kqueue does support application context pointers. Unfortunately,
+  * changing that information would cost a system call, and some of the
+  * competitors don't support application context. To keep the implementation
+  * simple we maintain our own table with call-back information.
+  * 
+  * FreeBSD kqueue silently unregisters a descriptor from its filter when the
+  * descriptor is closed, so our information could get out of sync with the
+  * kernel. But that will never happen, because we have to meticulously
+  * unregister a file descriptor before it is closed, to avoid errors on
+  * systems that are built with USE_SELECT_EVENTS.
+  */
+#ifdef USE_KQUEUE_EVENTS
+#include <sys/event.h>
+
+ /*
+  * Some early FreeBSD implementations don't have the EV_SET macro.
+  */
+#ifndef EV_SET
+#define EV_SET(kp, id, fi, fl, ffl, da, ud) do { \
+        (kp)->ident = (id); \
+        (kp)->filter = (fi); \
+        (kp)->flags = (fl); \
+        (kp)->fflags = (ffl); \
+        (kp)->data = (da); \
+        (kp)->udata = (ud); \
+    } while(0)
+#endif
+
+ /*
+  * Macros to initialize the kernel-based filter; see event_init().
+  */
+static int event_kq;			/* handle to event filter */
+
+#define EVENT_REG_INIT_HANDLE(er, n) do { \
+	er = event_kq = kqueue(); \
+    } while (0)
+#define EVENT_REG_INIT_TEXT	"kqueue"
+
+ /*
+  * Macros to update the kernel-based filter; see event_enable_read(),
+  * event_enable_write() and event_disable_readwrite().
+  */
+#define EVENT_REG_FD_OP(er, fh, ev, op) do { \
+	struct kevent dummy; \
+	EV_SET(&dummy, (fh), (ev), (op), 0, 0, 0); \
+	(er) = kevent(event_kq, &dummy, 1, 0, 0, 0); \
+    } while (0)
+
+#define EVENT_REG_ADD_OP(e, f, ev) EVENT_REG_FD_OP((e), (f), (ev), EV_ADD)
+#define EVENT_REG_ADD_READ(e, f)   EVENT_REG_ADD_OP((e), (f), EVFILT_READ)
+#define EVENT_REG_ADD_WRITE(e, f)  EVENT_REG_ADD_OP((e), (f), EVFILT_WRITE)
+#define EVENT_REG_ADD_TEXT         "kevent EV_ADD"
+
+#define EVENT_REG_DEL_OP(e, f, ev) EVENT_REG_FD_OP((e), (f), (ev), EV_DELETE)
+#define EVENT_REG_DEL_READ(e, f)   EVENT_REG_DEL_OP((e), (f), EVFILT_READ)
+#define EVENT_REG_DEL_WRITE(e, f)  EVENT_REG_DEL_OP((e), (f), EVFILT_WRITE)
+#define EVENT_REG_DEL_TEXT         "kevent EV_DELETE"
+
+ /*
+  * Macros to retrieve event buffers from the kernel; see event_loop().
+  */
+typedef struct kevent EVENT_BUFFER;
+
+#define EVENT_BUFFER_READ(event_count, event_buf, buflen, delay) do { \
+	struct timespec ts; \
+	struct timespec *tsp; \
+	if ((delay) < 0) { \
+	    tsp = 0; \
+	} else { \
+	    tsp = &ts; \
+	    ts.tv_nsec = 0; \
+	    ts.tv_sec = (delay); \
+	} \
+	(event_count) = kevent(event_kq, (struct kevent *) 0, 0, (event_buf), \
+			  (buflen), (tsp)); \
+    } while (0)
+
+ /*
+  * Macros to process event buffers from the kernel; see event_loop().
+  */
+#define EVENT_GET_FD(bp)	((bp)->ident)
+#define EVENT_GET_TYPE(bp)	((bp)->filter)
+#define EVENT_TEST_READ(bp)	(EVENT_GET_TYPE(bp) == EVFILT_READ)
+#define EVENT_TEST_WRITE(bp)	(EVENT_GET_TYPE(bp) == EVFILT_WRITE)
+
+#endif
+
+ /*
+  * Solaris /dev/poll does not support application context, so we have to
+  * maintain our own. This has the benefit of avoiding an expensive system
+  * call just to change a call-back function or argument.
+  * 
+  * Solaris /dev/poll does have a way to query if a specific descriptor is
+  * registered. However, we maintain a descriptor mask anyway because a) it
+  * avoids having to make an expensive system call to find out if something
+  * is registered, b) some USE_MUMBLE_EVENTS implementations need a
+  * descriptor bitmask anyway and c) we use the bitmask already to implement
+  * sanity checks.
+  */
+#ifdef USE_DEVPOLL_EVENTS
+#include <sys/devpoll.h>
+#include <fcntl.h>
+
+ /*
+  * Macros to initialize the kernel-based filter; see event_init().
+  */
+static int event_pollfd;		/* handle to file descriptor set */
+
+#define EVENT_REG_INIT_HANDLE(er, n) do { \
+	er = event_pollfd = open("/dev/poll", O_RDWR); \
+    } while (0)
+#define EVENT_REG_INIT_TEXT	"open /dev/poll"
+
+ /*
+  * Macros to update the kernel-based filter; see event_enable_read(),
+  * event_enable_write() and event_disable_readwrite().
+  */
+#define EVENT_REG_FD_OP(er, fh, ev) do { \
+	struct pollfd dummy; \
+	dummy.fd = (fh); \
+	dummy.events = (ev); \
+	(er) = write(event_pollfd, (char *) &dummy, \
+	    sizeof(dummy)) != sizeof(dummy) ? -1 : 0; \
+    } while (0)
+
+#define EVENT_REG_ADD_READ(e, f)  EVENT_REG_FD_OP((e), (f), POLLIN)
+#define EVENT_REG_ADD_WRITE(e, f) EVENT_REG_FD_OP((e), (f), POLLOUT)
+#define EVENT_REG_ADD_TEXT        "write /dev/poll"
+
+#define EVENT_REG_DEL_BOTH(e, f)  EVENT_REG_FD_OP((e), (f), POLLREMOVE)
+#define EVENT_REG_DEL_TEXT        "write /dev/poll"
+
+ /*
+  * Macros to retrieve event buffers from the kernel; see event_loop().
+  */
+typedef struct pollfd EVENT_BUFFER;
+
+#define EVENT_BUFFER_READ(event_count, event_buf, buflen, delay) do { \
+	struct dvpoll dvpoll; \
+	dvpoll.dp_fds = (event_buf); \
+	dvpoll.dp_nfds = (buflen); \
+	dvpoll.dp_timeout = (delay) < 0 ? -1 : (delay) * 1000; \
+	(event_count) = ioctl(event_pollfd, DP_POLL, &dvpoll); \
+    } while (0)
+
+ /*
+  * Macros to process event buffers from the kernel; see event_loop().
+  */
+#define EVENT_GET_FD(bp)	((bp)->fd)
+#define EVENT_GET_TYPE(bp)	((bp)->revents)
+#define EVENT_TEST_READ(bp)	(EVENT_GET_TYPE(bp) & POLLIN)
+#define EVENT_TEST_WRITE(bp)	(EVENT_GET_TYPE(bp) & POLLOUT)
+
+#endif
+
+ /*
+  * Linux epoll supports no system call to find out what descriptors are
+  * registered in the kernel-based filter. To implement our own sanity checks
+  * we maintain our own descriptor bitmask.
+  * 
+  * Linux epoll does support application context pointers. Unfortunately,
+  * changing that information would cost a system call, and some of the
+  * competitors don't support application context. To keep the implementation
+  * simple we maintain our own table with call-back information.
+  * 
+  * Linux epoll silently unregisters a descriptor from its filter when the
+  * descriptor is closed, so our information could get out of sync with the
+  * kernel. But that will never happen, because we have to meticulously
+  * unregister a file descriptor before it is closed, to avoid errors on
+  */
+#ifdef USE_EPOLL_EVENTS
+#include <sys/epoll.h>
+
+ /*
+  * Macros to initialize the kernel-based filter; see event_init().
+  */
+static int event_epollfd;		/* epoll handle */
+
+#define EVENT_REG_INIT_HANDLE(er, n) do { \
+	er = event_epollfd = epoll_create(n); \
+    } while (0)
+#define EVENT_REG_INIT_TEXT	"epoll_create"
+
+ /*
+  * Macros to update the kernel-based filter; see event_enable_read(),
+  * event_enable_write() and event_disable_readwrite().
+  */
+#define EVENT_REG_FD_OP(er, fh, ev, op) do { \
+	struct epoll_event dummy; \
+	dummy.events = (ev); \
+	dummy.data.fd = (fh); \
+	(er) = epoll_ctl(event_epollfd, (op), (fh), &dummy); \
+    } while (0)
+
+#define EVENT_REG_ADD_OP(e, f, ev) EVENT_REG_FD_OP((e), (f), (ev), EPOLL_CTL_ADD)
+#define EVENT_REG_ADD_READ(e, f)   EVENT_REG_ADD_OP((e), (f), EPOLLIN)
+#define EVENT_REG_ADD_WRITE(e, f)  EVENT_REG_ADD_OP((e), (f), EPOLLOUT)
+#define EVENT_REG_ADD_TEXT         "epoll_ctl EPOLL_CTL_ADD"
+
+#define EVENT_REG_DEL_OP(e, f, ev) EVENT_REG_FD_OP((e), (f), (ev), EPOLL_CTL_DEL)
+#define EVENT_REG_DEL_READ(e, f)   EVENT_REG_DEL_OP((e), (f), EPOLLIN)
+#define EVENT_REG_DEL_WRITE(e, f)  EVENT_REG_DEL_OP((e), (f), EPOLLOUT)
+#define EVENT_REG_DEL_TEXT         "epoll_ctl(EPOLL_CTL_DEL)"
+
+ /*
+  * Macros to retrieve event buffers from the kernel; see event_loop().
+  */
+typedef struct epoll_event EVENT_BUFFER;
+
+#define EVENT_BUFFER_READ(event_count, event_buf, buflen, delay) do { \
+	(event_count) = epoll_wait(event_epollfd, (event_buf), (buflen), \
+				  (delay) < 0 ? -1 : (delay) * 1000); \
+    } while (0)
+
+ /*
+  * Macros to process event buffers from the kernel; see event_loop().
+  */
+#define EVENT_GET_FD(bp)	((bp)->data.fd)
+#define EVENT_GET_TYPE(bp)	((bp)->events)
+#define EVENT_TEST_READ(bp)	(EVENT_GET_TYPE(bp) & EPOLLIN)
+#define EVENT_TEST_WRITE(bp)	(EVENT_GET_TYPE(bp) & EPOLLOUT)
+
+#endif
 
  /*
   * Timer events. Timer requests are kept sorted, in a circular list. We use
@@ -201,21 +512,29 @@ static time_t event_present;		/* cached time of day */
 static void event_init(void)
 {
     EVENT_FDTABLE *fdp;
+    int     err;
 
     if (!EVENT_INIT_NEEDED())
 	msg_panic("event_init: repeated call");
 
     /*
-     * Initialize the file descriptor table. XXX It should be possible to
-     * adjust (or at least extend) the table size on the fly.
+     * Initialize the file descriptor masks and the call-back table. Where
+     * possible we extend these data structures on the fly. With select(2)
+     * based implementations we can only handle FD_SETSIZE open files.
      */
-    if ((event_fdsize = open_limit(FD_SETSIZE)) < 0)
+#ifdef USE_SELECT_EVENTS
+    if ((event_fdlimit = open_limit(FD_SETSIZE)) < 0)
 	msg_fatal("unable to determine open file limit");
-    if (event_fdsize < FD_SETSIZE / 2 && event_fdsize < 256)
-	msg_warn("could allocate space for only %d open files", event_fdsize);
+#else
+    if ((event_fdlimit = open_limit(INT_MAX)) < 0)
+	msg_fatal("unable to determine open file limit");
+#endif
+    if (event_fdlimit < FD_SETSIZE / 2 && event_fdlimit < 256)
+	msg_warn("could allocate space for only %d open files", event_fdlimit);
+    event_fdslots = EVENT_ALLOC_INCR;
     event_fdtable = (EVENT_FDTABLE *)
-	mymalloc(sizeof(EVENT_FDTABLE) * event_fdsize);
-    for (fdp = event_fdtable; fdp < event_fdtable + event_fdsize; fdp++) {
+	mymalloc(sizeof(EVENT_FDTABLE) * event_fdslots);
+    for (fdp = event_fdtable; fdp < event_fdtable + event_fdslots; fdp++) {
 	fdp->callback = 0;
 	fdp->context = 0;
     }
@@ -223,9 +542,22 @@ static void event_init(void)
     /*
      * Initialize the I/O event request masks.
      */
-    FD_ZERO(&event_rmask);
-    FD_ZERO(&event_wmask);
-    FD_ZERO(&event_xmask);
+#ifdef USE_SELECT_EVENTS
+    EVENT_MASK_ZERO(&event_rmask);
+    EVENT_MASK_ZERO(&event_wmask);
+    EVENT_MASK_ZERO(&event_xmask);
+#else
+    EVENT_MASK_ALLOC(&event_rmask, event_fdslots);
+    EVENT_MASK_ALLOC(&event_wmask, event_fdslots);
+    EVENT_MASK_ALLOC(&event_xmask, event_fdslots);
+
+    /*
+     * Initialize the kernel-based filter.
+     */
+    EVENT_REG_INIT_HANDLE(err, event_fdslots);
+    if (err < 0)
+	msg_fatal("%s: %m", EVENT_REG_INIT_TEXT);
+#endif
 
     /*
      * Initialize timer stuff.
@@ -238,6 +570,43 @@ static void event_init(void)
      */
     if (EVENT_INIT_NEEDED())
 	msg_panic("event_init: unable to initialize");
+}
+
+/* event_extend - make room for more descriptor slots */
+
+static void event_extend(int fd)
+{
+    const char *myname = "event_extend";
+    int     old_slots = event_fdslots;
+    int     new_slots = (event_fdslots > fd / 2 ?
+			 2 * old_slots : fd + EVENT_ALLOC_INCR);
+    EVENT_FDTABLE *fdp;
+    int     err;
+
+    if (msg_verbose > 2)
+	msg_info("%s: fd %d", myname, fd);
+    event_fdtable = (EVENT_FDTABLE *)
+	myrealloc((char *) event_fdtable, sizeof(EVENT_FDTABLE) * new_slots);
+    event_fdslots = new_slots;
+    for (fdp = event_fdtable + old_slots;
+	 fdp < event_fdtable + new_slots; fdp++) {
+	fdp->callback = 0;
+	fdp->context = 0;
+    }
+
+    /*
+     * Initialize the I/O event request masks.
+     */
+#ifndef USE_SELECT_EVENTS
+    EVENT_MASK_REALLOC(&event_rmask, new_slots);
+    EVENT_MASK_REALLOC(&event_wmask, new_slots);
+    EVENT_MASK_REALLOC(&event_xmask, new_slots);
+#endif
+#ifdef EVENT_REG_UPD_HANDLE
+    EVENT_REG_UPD_HANDLE(err, new_slots);
+    if (err < 0)
+	msg_fatal("%s: %s: %m", myname, EVENT_REG_UPD_TEXT);
+#endif
 }
 
 /* event_time - look up cached time of day */
@@ -254,18 +623,19 @@ time_t  event_time(void)
 
 void    event_drain(int time_limit)
 {
-    fd_set  zero_mask;
+    EVENT_MASK zero_mask;
     time_t  max_time;
 
     if (EVENT_INIT_NEEDED())
 	return;
 
-    FD_ZERO(&zero_mask);
+    EVENT_MASK_ZERO(&zero_mask);
     (void) time(&event_present);
     max_time = event_present + time_limit;
     while (event_present < max_time
 	   && (event_timer_head.pred != &event_timer_head
-	       || memcmp(&zero_mask, &event_xmask, sizeof(zero_mask)) != 0))
+	       || memcmp(&zero_mask, &event_xmask,
+			 EVENT_MASK_BYTE_COUNT(&zero_mask)) != 0))
 	event_loop(1);
 }
 
@@ -275,6 +645,7 @@ void    event_enable_read(int fd, EVENT_NOTIFY_RDWR callback, char *context)
 {
     const char *myname = "event_enable_read";
     EVENT_FDTABLE *fdp;
+    int     err;
 
     if (EVENT_INIT_NEEDED())
 	event_init();
@@ -282,30 +653,45 @@ void    event_enable_read(int fd, EVENT_NOTIFY_RDWR callback, char *context)
     /*
      * Sanity checks.
      */
-    if (fd < 0 || fd >= event_fdsize)
+    if (fd < 0 || fd >= event_fdlimit)
 	msg_panic("%s: bad file descriptor: %d", myname, fd);
 
     if (msg_verbose > 2)
 	msg_info("%s: fd %d", myname, fd);
 
+    if (fd >= event_fdslots)
+	event_extend(fd);
+
     /*
-     * Disallow multiple requests on the same file descriptor. Allow
-     * duplicates of the same request.
+     * Disallow mixed (i.e. read and write) requests on the same descriptor.
      */
-    fdp = event_fdtable + fd;
-    if (FD_ISSET(fd, &event_xmask)) {
-	if (FD_ISSET(fd, &event_rmask)
-	    && fdp->callback == callback
-	    && fdp->context == context)
-	    return;
-	msg_panic("%s: fd %d: multiple I/O request", myname, fd);
+    if (EVENT_MASK_ISSET(fd, &event_wmask))
+	msg_panic("%s: fd %d: read/write I/O request", myname, fd);
+
+    /*
+     * Postfix 2.4 allows multiple event_enable_read() calls on the same
+     * descriptor without requiring event_disable_readwrite() calls between
+     * them. With kernel-based filters (kqueue, /dev/poll, epoll) it's
+     * wasteful to make system calls when we change only application
+     * call-back information. It has a noticeable effect on smtp-source
+     * performance.
+     */
+    if (EVENT_MASK_ISSET(fd, &event_rmask) == 0) {
+	EVENT_MASK_SET(fd, &event_xmask);
+	EVENT_MASK_SET(fd, &event_rmask);
+	if (event_max_fd < fd)
+	    event_max_fd = fd;
+#ifndef USE_SELECT_EVENTS
+	EVENT_REG_ADD_READ(err, fd);
+	if (err < 0)
+	    msg_fatal("%s: %s: %m", myname, EVENT_REG_ADD_TEXT);
+#endif
     }
-    FD_SET(fd, &event_xmask);
-    FD_SET(fd, &event_rmask);
-    fdp->callback = callback;
-    fdp->context = context;
-    if (event_max_fd < fd)
-	event_max_fd = fd;
+    fdp = event_fdtable + fd;
+    if (fdp->callback != callback || fdp->context != context) {
+	fdp->callback = callback;
+	fdp->context = context;
+    }
 }
 
 /* event_enable_write - enable write events */
@@ -314,6 +700,7 @@ void    event_enable_write(int fd, EVENT_NOTIFY_RDWR callback, char *context)
 {
     const char *myname = "event_enable_write";
     EVENT_FDTABLE *fdp;
+    int     err;
 
     if (EVENT_INIT_NEEDED())
 	event_init();
@@ -321,30 +708,45 @@ void    event_enable_write(int fd, EVENT_NOTIFY_RDWR callback, char *context)
     /*
      * Sanity checks.
      */
-    if (fd < 0 || fd >= event_fdsize)
+    if (fd < 0 || fd >= event_fdlimit)
 	msg_panic("%s: bad file descriptor: %d", myname, fd);
 
     if (msg_verbose > 2)
 	msg_info("%s: fd %d", myname, fd);
 
+    if (fd >= event_fdslots)
+	event_extend(fd);
+
     /*
-     * Disallow multiple requests on the same file descriptor. Allow
-     * duplicates of the same request.
+     * Disallow mixed (i.e. read and write) requests on the same descriptor.
      */
-    fdp = event_fdtable + fd;
-    if (FD_ISSET(fd, &event_xmask)) {
-	if (FD_ISSET(fd, &event_wmask)
-	    && fdp->callback == callback
-	    && fdp->context == context)
-	    return;
-	msg_panic("%s: fd %d: multiple I/O request", myname, fd);
+    if (EVENT_MASK_ISSET(fd, &event_rmask))
+	msg_panic("%s: fd %d: read/write I/O request", myname, fd);
+
+    /*
+     * Postfix 2.4 allows multiple event_enable_write() calls on the same
+     * descriptor without requiring event_disable_readwrite() calls between
+     * them. With kernel-based filters (kqueue, /dev/poll, epoll) it's
+     * incredibly wasteful to make unregister and register system calls when
+     * we change only application call-back information. It has a noticeable
+     * effect on smtp-source performance.
+     */
+    if (EVENT_MASK_ISSET(fd, &event_wmask) == 0) {
+	EVENT_MASK_SET(fd, &event_xmask);
+	EVENT_MASK_SET(fd, &event_wmask);
+	if (event_max_fd < fd)
+	    event_max_fd = fd;
+#ifndef USE_SELECT_EVENTS
+	EVENT_REG_ADD_WRITE(err, fd);
+	if (err < 0)
+	    msg_fatal("%s: %s: %m", myname, EVENT_REG_ADD_TEXT);
+#endif
     }
-    FD_SET(fd, &event_xmask);
-    FD_SET(fd, &event_wmask);
-    fdp->callback = callback;
-    fdp->context = context;
-    if (event_max_fd < fd)
-	event_max_fd = fd;
+    fdp = event_fdtable + fd;
+    if (fdp->callback != callback || fdp->context != context) {
+	fdp->callback = callback;
+	fdp->context = context;
+    }
 }
 
 /* event_disable_readwrite - disable request for read or write events */
@@ -353,6 +755,7 @@ void    event_disable_readwrite(int fd)
 {
     const char *myname = "event_disable_readwrite";
     EVENT_FDTABLE *fdp;
+    int     err;
 
     if (EVENT_INIT_NEEDED())
 	event_init();
@@ -360,7 +763,7 @@ void    event_disable_readwrite(int fd)
     /*
      * Sanity checks.
      */
-    if (fd < 0 || fd >= event_fdsize)
+    if (fd < 0 || fd >= event_fdlimit)
 	msg_panic("%s: bad file descriptor: %d", myname, fd);
 
     if (msg_verbose > 2)
@@ -370,9 +773,32 @@ void    event_disable_readwrite(int fd)
      * Don't complain when there is nothing to cancel. The request may have
      * been canceled from another thread.
      */
-    FD_CLR(fd, &event_xmask);
-    FD_CLR(fd, &event_rmask);
-    FD_CLR(fd, &event_wmask);
+    if (fd >= event_fdslots)
+	return;
+#ifndef USE_SELECT_EVENTS
+#ifdef EVENT_REG_DEL_BOTH
+    /* XXX Can't seem to disable READ and WRITE events selectively. */
+    if (EVENT_MASK_ISSET(fd, &event_rmask)
+	|| EVENT_MASK_ISSET(fd, &event_wmask)) {
+	EVENT_REG_DEL_BOTH(err, fd);
+	if (err < 0)
+	    msg_fatal("%s: %s: %m", myname, EVENT_REG_DEL_TEXT);
+    }
+#else
+    if (EVENT_MASK_ISSET(fd, &event_rmask)) {
+	EVENT_REG_DEL_READ(err, fd);
+	if (err < 0)
+	    msg_fatal("%s: %s: %m", myname, EVENT_REG_DEL_TEXT);
+    } else if (EVENT_MASK_ISSET(fd, &event_wmask)) {
+	EVENT_REG_DEL_WRITE(err, fd);
+	if (err < 0)
+	    msg_fatal("%s: %s: %m", myname, EVENT_REG_DEL_TEXT);
+    }
+#endif						/* EVENT_REG_DEL_BOTH */
+#endif						/* USE_SELECT_EVENTS */
+    EVENT_MASK_CLR(fd, &event_xmask);
+    EVENT_MASK_CLR(fd, &event_rmask);
+    EVENT_MASK_CLR(fd, &event_wmask);
     fdp = event_fdtable + fd;
     fdp->callback = 0;
     fdp->context = 0;
@@ -481,11 +907,20 @@ void    event_loop(int delay)
 {
     const char *myname = "event_loop";
     static int nested;
+
+#ifdef USE_SELECT_EVENTS
     fd_set  rmask;
     fd_set  wmask;
     fd_set  xmask;
     struct timeval tv;
     struct timeval *tvp;
+
+#else
+    EVENT_BUFFER event_buf[100];
+    EVENT_BUFFER *bp;
+    int     event_count;
+
+#endif
     EVENT_TIMER *timer;
     int     fd;
     EVENT_FDTABLE *fdp;
@@ -529,6 +964,7 @@ void    event_loop(int delay)
      * Negative delay means: wait until something happens. Zero delay means:
      * poll. Positive delay means: wait at most this long.
      */
+#ifdef USE_SELECT_EVENTS
     if (select_delay < 0) {
 	tvp = 0;
     } else {
@@ -551,6 +987,16 @@ void    event_loop(int delay)
 	    msg_fatal("event_loop: select: %m");
 	return;
     }
+#else
+    EVENT_BUFFER_READ(event_count, event_buf,
+		      sizeof(event_buf) / sizeof(event_buf[0]),
+		      select_delay);
+    if (event_count < 0) {
+	if (errno != EINTR)
+	    msg_fatal("event_loop: kevent: %m");
+	return;
+    }
+#endif
 
     /*
      * Before entering the application call-back routines, make sure we
@@ -587,26 +1033,56 @@ void    event_loop(int delay)
      * wanted. We do not change the event request masks. It is up to the
      * application to determine when a read or write is complete.
      */
-    for (fd = 0, fdp = event_fdtable; fd <= event_max_fd; fd++, fdp++) {
+#ifdef USE_SELECT_EVENTS
+    for (fd = 0; fd <= event_max_fd; fd++) {
 	if (FD_ISSET(fd, &event_xmask)) {
+	    /* In case event_fdtable is updated. */
+	    fdp = event_fdtable + fd;
 	    if (FD_ISSET(fd, &xmask)) {
 		if (msg_verbose > 2)
-		    msg_info("%s: exception %d 0x%lx 0x%lx", myname,
+		    msg_info("%s: exception fd=%d act=0x%lx 0x%lx", myname,
 			     fd, (long) fdp->callback, (long) fdp->context);
 		fdp->callback(EVENT_XCPT, fdp->context);
 	    } else if (FD_ISSET(fd, &wmask)) {
 		if (msg_verbose > 2)
-		    msg_info("%s: write %d 0x%lx 0x%lx", myname,
+		    msg_info("%s: write fd=%d act=0x%lx 0x%lx", myname,
 			     fd, (long) fdp->callback, (long) fdp->context);
 		fdp->callback(EVENT_WRITE, fdp->context);
 	    } else if (FD_ISSET(fd, &rmask)) {
 		if (msg_verbose > 2)
-		    msg_info("%s: read %d 0x%lx 0x%lx", myname,
+		    msg_info("%s: read fd=%d act=0x%lx 0x%lx", myname,
 			     fd, (long) fdp->callback, (long) fdp->context);
 		fdp->callback(EVENT_READ, fdp->context);
 	    }
 	}
     }
+#else
+    for (bp = event_buf; bp < event_buf + event_count; bp++) {
+	fd = EVENT_GET_FD(bp);
+	if (fd < 0 || fd > event_max_fd)
+	    msg_panic("%s: bad file descriptor: %d", myname, fd);
+	if (EVENT_MASK_ISSET(fd, &event_xmask)) {
+	    fdp = event_fdtable + fd;
+	    if (EVENT_TEST_READ(bp)) {
+		if (msg_verbose > 2)
+		    msg_info("%s: read fd=%d act=0x%lx 0x%lx", myname,
+			     fd, (long) fdp->callback, (long) fdp->context);
+		fdp->callback(EVENT_READ, fdp->context);
+	    } else if (EVENT_TEST_WRITE(bp)) {
+		if (msg_verbose > 2)
+		    msg_info("%s: write fd=%d act=0x%lx 0x%lx", myname,
+			     fd, (long) fdp->callback,
+			     (long) fdp->context);
+		fdp->callback(EVENT_WRITE, fdp->context);
+	    } else {
+		if (msg_verbose > 2)
+		    msg_info("%s: other fd=%d act=0x%lx 0x%lx", myname,
+			     fd, (long) fdp->callback, (long) fdp->context);
+		fdp->callback(EVENT_XCPT, fdp->context);
+	    }
+	}
+    }
+#endif
     nested--;
 }
 
@@ -640,8 +1116,10 @@ static void echo(int unused_event, char *unused_context)
     printf("Result: %s", buf);
 }
 
-int     main(void)
+int     main(int argc, char **argv)
 {
+    if (argv[1])
+	msg_verbose = atoi(argv[1]);
     event_request_timer(timer_event, "3 first", 3);
     event_request_timer(timer_event, "3 second", 3);
     event_request_timer(timer_event, "4 first", 4);

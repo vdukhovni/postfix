@@ -44,6 +44,10 @@
 #include <unistd.h>
 #include <string.h>
 
+#ifdef USE_SYSV_POLL
+#include <poll.h>
+#endif
+
 #ifdef USE_SYS_SELECT_H
 #include <sys/select.h>
 #endif
@@ -57,6 +61,7 @@
 
 int     write_wait(int fd, int timeout)
 {
+#ifndef USE_SYSV_POLL
     fd_set  write_fds;
     fd_set  except_fds;
     struct timeval tv;
@@ -99,4 +104,32 @@ int     write_wait(int fd, int timeout)
 	    return (0);
 	}
     }
+#else
+
+    /*
+     * System-V poll() is optimal for polling a few descriptors.
+     */
+    struct pollfd pollfd;
+
+#define WAIT_FOR_EVENT	(-1)
+
+    pollfd.fd = fd;
+    pollfd.events = POLLOUT;
+    for (;;) {
+	switch (poll(&pollfd, 1, timeout < 0 ?
+		     WAIT_FOR_EVENT : timeout * 1000)) {
+	case -1:
+	    if (errno != EINTR)
+		msg_fatal("poll: %m");
+	    continue;
+	case 0:
+	    errno = ETIMEDOUT;
+	    return (-1);
+	default:
+	    if (pollfd.revents & POLLNVAL)
+		msg_fatal("poll: %m");
+	    return (0);
+	}
+    }
+#endif
 }

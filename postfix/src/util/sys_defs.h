@@ -151,6 +151,18 @@
 # define HAVE_GETIFADDRS
 #endif
 
+#if (defined(__FreeBSD_version) && __FreeBSD_version >= 300000) \
+    || (defined(__NetBSD_Version__) && __NetBSD_Version__ >= 103000000) \
+    || (defined(OpenBSD) && OpenBSD >= 199700)	/* OpenBSD 2.0?? */
+# define USE_SYSV_POLL
+#endif
+
+#if (defined(__FreeBSD_version) && __FreeBSD_version >= 410000) \
+    || (defined(__NetBSD_Version__) && __NetBSD_Version__ >= 200000000) \
+    || (defined(OpenBSD) && OpenBSD >= 200105)	/* OpenBSD 2.9 */
+# define USE_KQUEUE_EVENTS
+#endif
+
 #endif
 
  /*
@@ -392,6 +404,10 @@ extern int opterr;
 #endif
 #ifndef NO_FUTIMESAT
 # define HAS_FUTIMESAT
+#endif
+#define USE_SYSV_POLL
+#ifndef NO_DEVPOLL
+# define USE_DEVPOLL_EVENTS
 #endif
 
 /*
@@ -705,6 +721,10 @@ extern int initgroups(const char *, int);
 # define CANT_WRITE_BEFORE_SENDING_FD
 #endif
 #define HAS_DEV_URANDOM			/* introduced in 1.1 */
+#ifndef NO_EPOLL
+# define USE_EPOLL_EVENTS		/* introduced in 2.5 */
+#endif
+#define USE_SYSV_POLL
 #endif
 
 #ifdef LINUX1
@@ -1213,6 +1233,15 @@ extern int dup2_pass_on_exec(int oldd, int newd);
 extern const char *inet_ntop(int, const void *, char *, size_t);
 extern int inet_pton(int, const char *, void *);
 
+#endif
+
+ /*
+  * Defaults for systems without kqueue, /dev/poll or epoll support.
+  * master/multi-server.c relies on this.
+  */
+#if !defined(USE_KQUEUE_EVENTS) && !defined(USE_DEVPOLL_EVENTS) \
+    && !defined(USE_EPOLL_EVENTS)
+#define USE_SELECT_EVENTS
 #endif
 
  /*

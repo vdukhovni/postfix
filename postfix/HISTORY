@@ -13179,6 +13179,55 @@ Apologies for any names omitted.
 	more quickly release unused file handles. Files:
 	global/mail_params.h, proto/postconf.5.html
 
+20070202
+
+	Catch-up: FreeBSD kqueue support. File: util/events.c.
+
+20070205
+
+	System-V poll(2) support. This is now the preferred method
+	to test a single file descriptor on sufficiently recent
+	versions of FreeBSD, NetBSD, OpenBSD, Solaris and Linux;
+	other systems will be added as evidence becomes available
+	of usable poll(2) implementations. Files: util/read_wait.c,
+	util/write_wait.c, util/readble.c, util/writable.c.
+
+	Streamlined the event_enable_read/write implementation to
+	speed up smtp-source performance, by eliminating expensive
+	kqueue/devpoll/epoll system calls when only the application
+	call-back information changes. On FreeBSD, smtp-sink/source
+	tests now run 5% faster than with the old select(2) based
+	implementation.  File util/events.c.
+
+20070206
+
+	Catch-up: Solaris /dev/poll support. File: util/events.c.
+
+	Bugfix (introduced 20060823): initial state was not in state
+	machine, causing memory access outside the lookup table.
+	File: smtpstone/smtp-sink.c.
+
+20070210
+
+	Catch-up: Linux epoll support. File: util/events.c.
+
+20070211
+
+	Polished the kqueue/devpoll/epoll support; this is now
+	enabled by default on sufficiently recent versions of
+	FreeBSD, NetBSD, OpenBSD, Solaris and Linux; other systems
+	will be added as evidence becomes available of usable
+	implementations. File: util/events.c.
+
+20070212
+
+	Further polish: removed some typos from new code in the
+	events.c handler, undid some unnecessary changes to the
+	{read,write}{_wait,able}.c modules, and addressed Victor's
+	paranoia for multi-client servers with a thousand clients
+	while linked with third-party libraries that can't handle
+	file descriptors >= FD_SETSIZE.
+
 Wish list:
 
 	Update message content length when adding/removing headers.
@@ -13198,10 +13247,6 @@ Wish list:
 
 	Make postmap header/body aware so people can test multi-line
 	header checks.
-
-	Eliminate Linux 1024 select() file handle bottleneck and
-	eliminate select()/poll() scaling problems by implementing
-	kqueue(2) and epoll(2) support.
 
 	REDIRECT should override original recipient info, and
 	probably override DSN as well.

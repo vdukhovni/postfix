@@ -17,6 +17,18 @@ Incompatibility with Postfix 2.2 and earlier
 If you upgrade from Postfix 2.2 or earlier, read RELEASE_NOTES-2.3
 before proceeding.
 
+Major changes with Postfix snapshot 20070212-event
+==================================================
+
+Better support for systems that run thousands of Postfix processes.
+Postfix now supports FreeBSD kqueue(2), Solaris poll(7d) and Linux
+epoll(4) as more scalable alternatives to the traditional select(2)
+system call, and uses poll(2) when examining a single file descriptor
+for readability or writability. These features are supported on
+sufficiently recent versions of FreeBSD, NetBSD, OpenBSD, Solaris
+and Linux; support for other systems will be added as evidence
+becomes available that usable implementations exist.
+
 Incompatibility with Postfix snapshot 20070201
 ==============================================
 

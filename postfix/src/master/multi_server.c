@@ -149,6 +149,7 @@
 
 #include <sys_defs.h>
 #include <sys/socket.h>
+#include <sys/time.h>			/* select() */
 #include <unistd.h>
 #include <signal.h>
 #include <syslog.h>
@@ -162,6 +163,10 @@
 #include <strings.h>
 #endif
 #include <time.h>
+
+#ifdef USE_SYS_SELECT_H
+#include <sys/select.h>			/* select() */
+#endif
 
 /* Utility library. */
 
@@ -328,6 +333,20 @@ static void multi_server_wakeup(int fd)
     VSTREAM *stream;
     char   *tmp;
 
+#ifndef USE_SELECT_EVENTS
+    int     new_fd;
+
+    /*
+     * Leave some handles < FD_SETSIZE for DBMS libraries, in the unlikely
+     * case of a multi-server with a thousand clients.
+     */
+    if (fd < FD_SETSIZE / 8) {
+	if ((new_fd = fcntl(fd, F_DUPFD, FD_SETSIZE / 8)) < 0)
+	    msg_fatal("fcntl F_DUPFD: %m");
+	(void) close(fd);
+	fd = new_fd;
+    }
+#endif
     if (msg_verbose)
 	msg_info("connection established fd %d", fd);
     non_blocking(fd, BLOCKING);
