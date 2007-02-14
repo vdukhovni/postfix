@@ -71,6 +71,14 @@
 #include <sys_defs.h>
 #include <unistd.h>
 
+#include <sys/time.h>			/* FD_SETSIZE */
+#include <sys/types.h>			/* FD_SETSIZE */
+#include <unistd.h>			/* FD_SETSIZE */
+
+#ifdef USE_SYS_SELECT_H
+#include <sys/select.h>			/* FD_SETSIZE */
+#endif
+
 /* Utility library. */
 
 #include <msg.h>
@@ -333,6 +341,11 @@ void    qmgr_transport_alloc(QMGR_TRANSPORT *transport, QMGR_TRANSPORT_ALLOC_NOT
 	event_request_timer(qmgr_transport_event, (char *) alloc, 0);
 	return;
     }
+#if !defined(USE_SELECT_EVENTS) && defined(VSTREAM_CTL_DUPFD)
+    vstream_control(alloc->stream,
+		    VSTREAM_CTL_DUPFD, FD_SETSIZE / 8,
+		    VSTREAM_CTL_END);
+#endif
     event_enable_read(vstream_fileno(alloc->stream), qmgr_transport_event,
 		      (char *) alloc);
 

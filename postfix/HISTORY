@@ -13225,8 +13225,19 @@ Apologies for any names omitted.
 	events.c handler, undid some unnecessary changes to the
 	{read,write}{_wait,able}.c modules, and addressed Victor's
 	paranoia for multi-client servers with a thousand clients
-	while linked with third-party libraries that can't handle
-	file descriptors >= FD_SETSIZE.
+	while linked with library routines that can't handle file
+	descriptors >= FD_SETSIZE.
+
+	Cleanup: while debugging the new events.c handler, removed
+	an unnecessary "write after connect" call-back event. File:
+	global/post_mail.c.
+
+20070214
+
+	Robustness: in the queue manager keep a number of free file
+	descriptor slots at the low end, to work around library
+	routines that can't handle file descriptors >= FD_SETSIZE.
+	Files: *qmgr/qmgr_transport.c, util/vstream.[hc]
 
 Wish list:
 

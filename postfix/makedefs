@@ -33,6 +33,10 @@
 #	Do not build with Linux EPOLL support.
 #	By default, EPOLL support is compiled in on platforms that
 #	are known to support it.
+# .IP \fB-DNO_KQUEUE\fR
+#	Do not build with FreeBSD/NetBSD/OpenBSD KQUEUE support.
+#	By default, KQUEUE support is compiled in on platforms that
+#	are known to support it.
 # .IP \fB-DNO_IPV6\fR
 #	Do not build with IPv6 support.
 #	By default, IPv6 support is compiled in on platforms that
@@ -162,7 +166,7 @@ case "$SYSTEM.$RELEASE" in
     SunOS.5*)	SYSTYPE=SUNOS5
 		RANLIB=echo
 		SYSLIBS="-lresolv -lsocket -lnsl"
-		# Solaris 8 added usleep() and POSIX regular expressions
+		# Solaris 5 added usleep() and POSIX regular expressions
 		case $RELEASE in
 		    5.[0-4]) CCARGS="$CCARGS -DMISSING_USLEEP -DNO_POSIX_REGEXP";;
 		esac

@@ -328,6 +328,7 @@ typedef struct kevent EVENT_BUFFER;
 	(event_count) = kevent(event_kq, (struct kevent *) 0, 0, (event_buf), \
 			  (buflen), (tsp)); \
     } while (0)
+#define EVENT_BUFFER_READ_TEXT	"kevent"
 
  /*
   * Macros to process event buffers from the kernel; see event_loop().
@@ -396,6 +397,7 @@ typedef struct pollfd EVENT_BUFFER;
 	dvpoll.dp_timeout = (delay) < 0 ? -1 : (delay) * 1000; \
 	(event_count) = ioctl(event_pollfd, DP_POLL, &dvpoll); \
     } while (0)
+#define EVENT_BUFFER_READ_TEXT	"ioctl DP_POLL"
 
  /*
   * Macros to process event buffers from the kernel; see event_loop().
@@ -465,6 +467,7 @@ typedef struct epoll_event EVENT_BUFFER;
 	(event_count) = epoll_wait(event_epollfd, (event_buf), (buflen), \
 				  (delay) < 0 ? -1 : (delay) * 1000); \
     } while (0)
+#define EVENT_BUFFER_READ_TEXT	"epoll_wait"
 
  /*
   * Macros to process event buffers from the kernel; see event_loop().
@@ -918,9 +921,9 @@ void    event_loop(int delay)
 #else
     EVENT_BUFFER event_buf[100];
     EVENT_BUFFER *bp;
-    int     event_count;
 
 #endif
+    int     event_count;
     EVENT_TIMER *timer;
     int     fd;
     EVENT_FDTABLE *fdp;
@@ -982,7 +985,8 @@ void    event_loop(int delay)
     wmask = event_wmask;
     xmask = event_xmask;
 
-    if (select(event_max_fd + 1, &rmask, &wmask, &xmask, tvp) < 0) {
+    event_count = select(event_max_fd + 1, &rmask, &wmask, &xmask, tvp);
+    if (event_count < 0) {
 	if (errno != EINTR)
 	    msg_fatal("event_loop: select: %m");
 	return;
@@ -993,7 +997,7 @@ void    event_loop(int delay)
 		      select_delay);
     if (event_count < 0) {
 	if (errno != EINTR)
-	    msg_fatal("event_loop: kevent: %m");
+	    msg_fatal("event_loop: " EVENT_BUFFER_READ_TEXT ": %m");
 	return;
     }
 #endif
@@ -1034,7 +1038,7 @@ void    event_loop(int delay)
      * application to determine when a read or write is complete.
      */
 #ifdef USE_SELECT_EVENTS
-    for (fd = 0; fd <= event_max_fd; fd++) {
+    for (fd = 0; event_count > 0 && fd <= event_max_fd; fd++) {
 	if (FD_ISSET(fd, &event_xmask)) {
 	    /* In case event_fdtable is updated. */
 	    fdp = event_fdtable + fd;

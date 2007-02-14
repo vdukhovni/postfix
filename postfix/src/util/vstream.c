@@ -260,6 +260,12 @@
 /*	The argument specifies the file descriptor to be used for writing.
 /*	This feature is limited to double-buffered streams, and makes the
 /*	stream non-seekable.
+/* .IP "VSTREAM_CTL_DUPFD (int)"
+/*	The argument specifies a minimum file descriptor value. If
+/*	the actual stream's file descriptors are below the minimum,
+/*	reallocate the descriptors to the first free value greater
+/*	than or equal to the minimum. The VSTREAM_CTL_DUPFD macro
+/*	is defined only on systems with fcntl() F_DUPFD support.
 /* .IP "VSTREAM_CTL_WAITPID_FN (int (*)(pid_t, WAIT_STATUS_T *, int))"
 /*	A pointer to function that behaves like waitpid(). This information
 /*	is used by the vstream_pclose() routine.
@@ -1163,6 +1169,8 @@ void    vstream_control(VSTREAM *stream, int name,...)
 {
     const char *myname = "vstream_control";
     va_list ap;
+    int     floor;
+    int     old_fd;
 
     for (va_start(ap, name); name != VSTREAM_CTL_END; name = va_arg(ap, int)) {
 	switch (name) {
@@ -1216,6 +1224,30 @@ void    vstream_control(VSTREAM *stream, int name,...)
 	    if (stream->jbuf == 0)
 		stream->jbuf = (jmp_buf *) mymalloc(sizeof(jmp_buf));
 	    break;
+
+#ifdef VSTREAM_CTL_DUPFD
+
+#define VSTREAM_TRY_DUPFD(backup, fd, floor) do { \
+	if (((backup) = (fd)) < floor) { \
+	    if (((fd) = fcntl((backup), F_DUPFD, (floor))) < 0) \
+		msg_fatal("fcntl F_DUPFD %d: %m", (floor)); \
+	    (void) close(backup); \
+	} \
+    } while (0)
+
+	case VSTREAM_CTL_DUPFD:
+	    floor = va_arg(ap, int);
+	    if (stream->buf.flags & VSTREAM_FLAG_DOUBLE) {
+		VSTREAM_TRY_DUPFD(old_fd, stream->read_fd, floor);
+		if (stream->write_fd == old_fd)
+		    stream->write_fd = stream->read_fd;
+		else
+		    VSTREAM_TRY_DUPFD(old_fd, stream->write_fd, floor);
+	    } else {
+		VSTREAM_TRY_DUPFD(old_fd, stream->fd, floor);
+	    }
+	    break;
+#endif
 	default:
 	    msg_panic("%s: bad name %d", myname, name);
 	}

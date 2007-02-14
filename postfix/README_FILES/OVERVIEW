@@ -136,8 +136,7 @@ unnumbered names inside shaded areas represent Postfix queues.
     delivery to mailbox servers such as Cyrus. The advantage of this setup is
     that one Postfix machine can feed multiple mailbox servers over LMTP. The
     opposite is true as well: one mailbox server can be fed over LMTP by
-    multiple Postfix machines. The LMTP_README document gives examples of how
-    to use the lmtp(8) client.
+    multiple Postfix machines.
 
   * The local(8) delivery agent understands UNIX-style mailboxes, qmail-
     compatible maildir files, Sendmail-style system-wide aliases(5) databases,

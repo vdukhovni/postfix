@@ -120,6 +120,9 @@ extern void vstream_control(VSTREAM *, int,...);
 #define VSTREAM_CTL_TIMEOUT	8
 #define VSTREAM_CTL_EXCEPT	9
 #define VSTREAM_CTL_CONTEXT	10
+#ifdef F_DUPFD
+#define VSTREAM_CTL_DUPFD	11
+#endif
 
 extern VSTREAM *PRINTFLIKE(1, 2) vstream_printf(const char *,...);
 extern VSTREAM *PRINTFLIKE(2, 3) vstream_fprintf(VSTREAM *, const char *,...);

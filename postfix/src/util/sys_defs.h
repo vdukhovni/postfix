@@ -157,10 +157,12 @@
 # define USE_SYSV_POLL
 #endif
 
-#if (defined(__FreeBSD_version) && __FreeBSD_version >= 410000) \
+#ifndef NO_KQUEUE
+# if (defined(__FreeBSD_version) && __FreeBSD_version >= 410000) \
     || (defined(__NetBSD_Version__) && __NetBSD_Version__ >= 200000000) \
     || (defined(OpenBSD) && OpenBSD >= 200105)	/* OpenBSD 2.9 */
-# define USE_KQUEUE_EVENTS
+#  define USE_KQUEUE_EVENTS
+# endif
 #endif
 
 #endif

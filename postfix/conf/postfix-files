@@ -242,7 +242,6 @@ $readme_directory/INSTALL:f:root:-:644
 $readme_directory/IPV6_README:f:root:-:644
 $readme_directory/LDAP_README:f:root:-:644
 $readme_directory/LINUX_README:f:root:-:644
-$readme_directory/LMTP_README:f:root:-:644
 $readme_directory/LOCAL_RECIPIENT_README:f:root:-:644
 $readme_directory/MACOSX_README:f:root:-:644:o
 $readme_directory/MAILDROP_README:f:root:-:644
@@ -292,7 +291,6 @@ $html_directory/INSTALL.html:f:root:-:644
 $html_directory/IPV6_README.html:f:root:-:644
 $html_directory/LDAP_README.html:f:root:-:644
 $html_directory/LINUX_README.html:f:root:-:644
-$html_directory/LMTP_README.html:f:root:-:644
 $html_directory/LOCAL_RECIPIENT_README.html:f:root:-:644
 $html_directory/MAILDROP_README.html:f:root:-:644
 $html_directory/MILTER_README.html:f:root:-:644
