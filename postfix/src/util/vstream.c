@@ -297,14 +297,12 @@
 /*
 /*	vstream_ferror() returns non-zero when a previous operation on the
 /*	specified stream caused a non-EOF error condition, including timeout.
-/*	After a non-EOF, non-timeout, error on a stream, no I/O request will
+/*	After a non-EOF error on a stream, no I/O request will
 /*	complete until after vstream_clearerr() is called for that stream.
 /*
 /*	vstream_ftimeout() returns non-zero when a previous operation on the
-/*	specified stream caused a timeout error condition.
-/*	Although further I/O requests after timeout may complete
-/*	succesfully, vstream_ftimeout() will keep returning non-zero
-/*	until vstream_clearerr() is called for that stream.
+/*	specified stream caused a timeout error condition. See
+/*	vstream_ferror() for error persistence details.
 /*
 /*	vstream_clearerr() resets the timeout, error and end-of-file indication
 /*	of the specified stream, and returns no useful result.

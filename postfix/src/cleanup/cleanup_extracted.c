@@ -14,8 +14,11 @@
 /* DESCRIPTION
 /*	This module processes message records with information extracted
 /*	from message content, or with recipients that are stored after the
-/*	message content. It updates recipient records, and writes extracted
-/*	information records to the output.
+/*	message content. It updates recipient records, writes extracted
+/*	information records to the output, and writes the queue
+/*	file end marker.  The queue file is left in a state that
+/*	is suitable for Milter inspection, but the size record still
+/*	contains dummy values.
 /*
 /*	Arguments:
 /* .IP state
@@ -299,20 +302,4 @@ void    cleanup_extracted_finish(CLEANUP_STATE *state)
      * Terminate the extracted segment.
      */
     cleanup_out_string(state, REC_TYPE_END, "");
-
-    /*
-     * vstream_fseek() would flush the buffer anyway, but the code just reads
-     * better if we flush first, because it makes seek error handling more
-     * straightforward.
-     */
-    if (vstream_fflush(state->dst)) {
-	if (errno == EFBIG) {
-	    msg_warn("%s: queue file size limit exceeded", state->queue_id);
-	    state->errs |= CLEANUP_STAT_SIZE;
-	} else {
-	    msg_warn("%s: write queue file: %m", state->queue_id);
-	    state->errs |= CLEANUP_STAT_WRITE;
-	}
-	return;
-    }
 }

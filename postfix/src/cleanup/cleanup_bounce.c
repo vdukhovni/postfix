@@ -130,11 +130,11 @@ int     cleanup_bounce(CLEANUP_STATE *state)
      * expand the recipient count by virtual_alias_expansion_limit (default:
      * 1000) times.
      * 
-     * After a queue file size error, purge any unwritten data (so that
+     * After a queue file write error, purge any unwritten data (so that
      * vstream_fseek() won't fail while trying to flush it) and reset the
      * stream error flags to avoid false alarms.
      */
-    if (state->errs & CLEANUP_STAT_SIZE) {
+    if (vstream_ferror(state->dst) || vstream_fflush(state->dst)) {
 	(void) vstream_fpurge(state->dst, VSTREAM_PURGE_BOTH);
 	vstream_clearerr(state->dst);
     }

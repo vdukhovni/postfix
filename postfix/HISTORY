@@ -13239,6 +13239,15 @@ Apologies for any names omitted.
 	routines that can't handle file descriptors >= FD_SETSIZE.
 	Files: *qmgr/qmgr_transport.c, util/vstream.[hc]
 
+20070215
+
+	Bugfix (introduced 20070114 with Milter body edit support):
+	the cleanup server terminated with a fatal error when SMTP
+	mail exceeded the message size limit, instead of handling
+	it as a non-fatal error. Files: cleanup/cleanup_extracted.c,
+	cleanup/cleanup_final.c, cleanup/cleanup_bounce.c,
+	cleanup/cleanup_api.c.
+
 Wish list:
 
 	Update message content length when adding/removing headers.
