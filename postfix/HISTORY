@@ -13248,6 +13248,13 @@ Apologies for any names omitted.
 	cleanup/cleanup_final.c, cleanup/cleanup_bounce.c,
 	cleanup/cleanup_api.c.
 
+20050217
+
+	Streamline the compile time selection of event handling
+	styles, replacing multiple on/off macros by just one
+	multi-valued macro. Files: util/sys_defs.h, util/events.c,
+	master/multi_server.c, *qmgr/qmgr_transport.c.
+
 Wish list:
 
 	Update message content length when adding/removing headers.

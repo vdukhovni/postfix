@@ -341,7 +341,7 @@ void    qmgr_transport_alloc(QMGR_TRANSPORT *transport, QMGR_TRANSPORT_ALLOC_NOT
 	event_request_timer(qmgr_transport_event, (char *) alloc, 0);
 	return;
     }
-#if !defined(USE_SELECT_EVENTS) && defined(VSTREAM_CTL_DUPFD)
+#if (EVENTS_STYLE != EVENTS_STYLE_SELECT) && defined(VSTREAM_CTL_DUPFD)
     vstream_control(alloc->stream,
 		    VSTREAM_CTL_DUPFD, FD_SETSIZE / 8,
 		    VSTREAM_CTL_END);

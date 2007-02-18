@@ -161,7 +161,7 @@
 # if (defined(__FreeBSD_version) && __FreeBSD_version >= 410000) \
     || (defined(__NetBSD_Version__) && __NetBSD_Version__ >= 200000000) \
     || (defined(OpenBSD) && OpenBSD >= 200105)	/* OpenBSD 2.9 */
-#  define USE_KQUEUE_EVENTS
+#  define EVENTS_STYLE	EVENTS_STYLE_KQUEUE
 # endif
 #endif
 
@@ -409,7 +409,7 @@ extern int opterr;
 #endif
 #define USE_SYSV_POLL
 #ifndef NO_DEVPOLL
-# define USE_DEVPOLL_EVENTS
+# define EVENTS_STYLE	EVENTS_STYLE_DEVPOLL
 #endif
 
 /*
@@ -543,6 +543,7 @@ extern int opterr;
 #endif
 #define BROKEN_AI_PASSIVE_NULL_HOST
 #define BROKEN_AI_NULL_SERVICE
+#define USE_SYSV_POLL
 #endif
 
 #ifdef AIX4
@@ -724,7 +725,7 @@ extern int initgroups(const char *, int);
 #endif
 #define HAS_DEV_URANDOM			/* introduced in 1.1 */
 #ifndef NO_EPOLL
-# define USE_EPOLL_EVENTS		/* introduced in 2.5 */
+# define EVENTS_STYLE	EVENTS_STYLE_EPOLL	/* introduced in 2.5 */
 #endif
 #define USE_SYSV_POLL
 #endif
@@ -1239,12 +1240,16 @@ extern int inet_pton(int, const char *, void *);
 
  /*
   * Defaults for systems without kqueue, /dev/poll or epoll support.
-  * master/multi-server.c relies on this.
+  * master/multi-server.c and *qmgr/qmgr_transport.c depend on this.
   */
-#if !defined(USE_KQUEUE_EVENTS) && !defined(USE_DEVPOLL_EVENTS) \
-    && !defined(USE_EPOLL_EVENTS)
-#define USE_SELECT_EVENTS
+#if !defined(EVENTS_STYLE)
+#define EVENTS_STYLE	EVENTS_STYLE_SELECT
 #endif
+
+#define EVENTS_STYLE_SELECT	1	/* Traditional BSD select */
+#define EVENTS_STYLE_KQUEUE	2	/* FreeBSD kqueue */
+#define EVENTS_STYLE_DEVPOLL	3	/* Solaris /dev/poll */
+#define EVENTS_STYLE_EPOLL	4	/* Linux epoll */
 
  /*
   * Defaults for all systems.
@@ -1496,21 +1501,25 @@ typedef int pid_t;
   * Safety. On some systems, ctype.h misbehaves with non-ASCII or negative
   * characters. More importantly, Postfix uses the ISXXX() macros to ensure
   * protocol compliance, so we have to rule out non-ASCII characters.
+  * 
+  * XXX The (unsigned char) casts in isalnum() etc arguments are unnecessary
+  * because the ISASCII() guard already ensures that the values are
+  * non-negative; the casts are done anyway to shut up chatty compilers.
   */
 #define ISASCII(c)	isascii(_UCHAR_(c))
 #define _UCHAR_(c)	((unsigned char)(c))
-#define ISALNUM(c)	(ISASCII(c) && isalnum(c))
-#define ISALPHA(c)	(ISASCII(c) && isalpha(c))
-#define ISCNTRL(c)	(ISASCII(c) && iscntrl(c))
-#define ISDIGIT(c)	(ISASCII(c) && isdigit(c))
-#define ISGRAPH(c)	(ISASCII(c) && isgraph(c))
-#define ISLOWER(c)	(ISASCII(c) && islower(c))
-#define ISPRINT(c)	(ISASCII(c) && isprint(c))
-#define ISPUNCT(c)	(ISASCII(c) && ispunct(c))
-#define ISSPACE(c)	(ISASCII(c) && isspace(c))
-#define ISUPPER(c)	(ISASCII(c) && isupper(c))
-#define TOLOWER(c)	(ISUPPER(c) ? tolower(c) : (c))
-#define TOUPPER(c)	(ISLOWER(c) ? toupper(c) : (c))
+#define ISALNUM(c)	(ISASCII(c) && isalnum((unsigned char)(c)))
+#define ISALPHA(c)	(ISASCII(c) && isalpha((unsigned char)(c)))
+#define ISCNTRL(c)	(ISASCII(c) && iscntrl((unsigned char)(c)))
+#define ISDIGIT(c)	(ISASCII(c) && isdigit((unsigned char)(c)))
+#define ISGRAPH(c)	(ISASCII(c) && isgraph((unsigned char)(c)))
+#define ISLOWER(c)	(ISASCII(c) && islower((unsigned char)(c)))
+#define ISPRINT(c)	(ISASCII(c) && isprint((unsigned char)(c)))
+#define ISPUNCT(c)	(ISASCII(c) && ispunct((unsigned char)(c)))
+#define ISSPACE(c)	(ISASCII(c) && isspace((unsigned char)(c)))
+#define ISUPPER(c)	(ISASCII(c) && isupper((unsigned char)(c)))
+#define TOLOWER(c)	(ISUPPER(c) ? tolower((unsigned char)(c)) : (c))
+#define TOUPPER(c)	(ISLOWER(c) ? toupper((unsigned char)(c)) : (c))
 
  /*
   * Scaffolding. I don't want to lose messages while the program is under

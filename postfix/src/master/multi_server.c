@@ -333,7 +333,7 @@ static void multi_server_wakeup(int fd)
     VSTREAM *stream;
     char   *tmp;
 
-#ifndef USE_SELECT_EVENTS
+#if defined(F_DUPFD) && (EVENTS_STYLE != EVENTS_STYLE_SELECT)
     int     new_fd;
 
     /*

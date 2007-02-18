@@ -1241,6 +1241,8 @@ void    vstream_control(VSTREAM *stream, int name,...)
 		    stream->write_fd = stream->read_fd;
 		else
 		    VSTREAM_TRY_DUPFD(old_fd, stream->write_fd, floor);
+		stream->fd = (stream->buf.flags & VSTREAM_FLAG_READ) ?
+		    stream->read_fd : stream->write_fd;
 	    } else {
 		VSTREAM_TRY_DUPFD(old_fd, stream->fd, floor);
 	    }

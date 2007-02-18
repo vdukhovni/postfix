@@ -152,18 +152,8 @@
 #include "ring.h"
 #include "events.h"
 
-#if (defined(USE_KQUEUE_EVENTS) && defined(USE_DEVPOLL_EVENTS)) \
-    || (defined(USE_KQUEUE_EVENTS) && defined(USE_EPOLL_EVENTS)) \
-    || (defined(USE_KQUEUE_EVENTS) && defined(USE_SELECT_EVENTS)) \
-    || (defined(USE_DEVPOLL_EVENTS) && defined(USE_EPOLL_EVENTS)) \
-    || (defined(USE_DEVPOLL_EVENTS) && defined(USE_SELECT_EVENTS)) \
-    || (defined(USE_EPOLL_EVENTS) && defined(USE_SELECT_EVENTS))
-#error "don't define multiple USE_KQUEUE/DEVPOLL/EPOLL/SELECT_EVENTS"
-#endif
-
-#if !defined(USE_KQUEUE_EVENTS) && !defined(USE_DEVPOLL_EVENTS) \
-	&& !defined(USE_EPOLL_EVENTS) && !defined(USE_SELECT_EVENTS)
-#error "define one of USE_KQUEUE/DEVPOLL/EPOLL/SELECT_EVENTS"
+#if !defined(EVENTS_STYLE)
+#error "must define EVENTS_STYLE"
 #endif
 
  /*
@@ -175,7 +165,7 @@
   */
 #define EVENT_ALLOC_INCR		10
 
-#ifdef USE_SELECT_EVENTS
+#if (EVENTS_STYLE == EVENTS_STYLE_SELECT)
 typedef fd_set EVENT_MASK;
 
 #define EVENT_MASK_BYTE_COUNT(mask)	sizeof(*(mask))
@@ -261,9 +251,9 @@ static int event_max_fd = -1;		/* highest fd number seen */
   * descriptor is closed, so our information could get out of sync with the
   * kernel. But that will never happen, because we have to meticulously
   * unregister a file descriptor before it is closed, to avoid errors on
-  * systems that are built with USE_SELECT_EVENTS.
+  * systems that are built with EVENTS_STYLE == EVENTS_STYLE_SELECT.
   */
-#ifdef USE_KQUEUE_EVENTS
+#if (EVENTS_STYLE == EVENTS_STYLE_KQUEUE)
 #include <sys/event.h>
 
  /*
@@ -348,11 +338,11 @@ typedef struct kevent EVENT_BUFFER;
   * Solaris /dev/poll does have a way to query if a specific descriptor is
   * registered. However, we maintain a descriptor mask anyway because a) it
   * avoids having to make an expensive system call to find out if something
-  * is registered, b) some USE_MUMBLE_EVENTS implementations need a
+  * is registered, b) some EVENTS_STYLE_MUMBLE implementations need a
   * descriptor bitmask anyway and c) we use the bitmask already to implement
   * sanity checks.
   */
-#ifdef USE_DEVPOLL_EVENTS
+#if (EVENTS_STYLE == EVENTS_STYLE_DEVPOLL)
 #include <sys/devpoll.h>
 #include <fcntl.h>
 
@@ -424,7 +414,7 @@ typedef struct pollfd EVENT_BUFFER;
   * kernel. But that will never happen, because we have to meticulously
   * unregister a file descriptor before it is closed, to avoid errors on
   */
-#ifdef USE_EPOLL_EVENTS
+#if (EVENTS_STYLE == EVENTS_STYLE_EPOLL)
 #include <sys/epoll.h>
 
  /*
@@ -456,7 +446,7 @@ static int event_epollfd;		/* epoll handle */
 #define EVENT_REG_DEL_OP(e, f, ev) EVENT_REG_FD_OP((e), (f), (ev), EPOLL_CTL_DEL)
 #define EVENT_REG_DEL_READ(e, f)   EVENT_REG_DEL_OP((e), (f), EPOLLIN)
 #define EVENT_REG_DEL_WRITE(e, f)  EVENT_REG_DEL_OP((e), (f), EPOLLOUT)
-#define EVENT_REG_DEL_TEXT         "epoll_ctl(EPOLL_CTL_DEL)"
+#define EVENT_REG_DEL_TEXT         "epoll_ctl EPOLL_CTL_DEL"
 
  /*
   * Macros to retrieve event buffers from the kernel; see event_loop().
@@ -525,7 +515,7 @@ static void event_init(void)
      * possible we extend these data structures on the fly. With select(2)
      * based implementations we can only handle FD_SETSIZE open files.
      */
-#ifdef USE_SELECT_EVENTS
+#if (EVENTS_STYLE == EVENTS_STYLE_SELECT)
     if ((event_fdlimit = open_limit(FD_SETSIZE)) < 0)
 	msg_fatal("unable to determine open file limit");
 #else
@@ -545,7 +535,7 @@ static void event_init(void)
     /*
      * Initialize the I/O event request masks.
      */
-#ifdef USE_SELECT_EVENTS
+#if (EVENTS_STYLE == EVENTS_STYLE_SELECT)
     EVENT_MASK_ZERO(&event_rmask);
     EVENT_MASK_ZERO(&event_wmask);
     EVENT_MASK_ZERO(&event_xmask);
@@ -600,7 +590,7 @@ static void event_extend(int fd)
     /*
      * Initialize the I/O event request masks.
      */
-#ifndef USE_SELECT_EVENTS
+#if (EVENTS_STYLE != EVENTS_STYLE_SELECT)
     EVENT_MASK_REALLOC(&event_rmask, new_slots);
     EVENT_MASK_REALLOC(&event_wmask, new_slots);
     EVENT_MASK_REALLOC(&event_xmask, new_slots);
@@ -684,7 +674,7 @@ void    event_enable_read(int fd, EVENT_NOTIFY_RDWR callback, char *context)
 	EVENT_MASK_SET(fd, &event_rmask);
 	if (event_max_fd < fd)
 	    event_max_fd = fd;
-#ifndef USE_SELECT_EVENTS
+#if (EVENTS_STYLE != EVENTS_STYLE_SELECT)
 	EVENT_REG_ADD_READ(err, fd);
 	if (err < 0)
 	    msg_fatal("%s: %s: %m", myname, EVENT_REG_ADD_TEXT);
@@ -739,7 +729,7 @@ void    event_enable_write(int fd, EVENT_NOTIFY_RDWR callback, char *context)
 	EVENT_MASK_SET(fd, &event_wmask);
 	if (event_max_fd < fd)
 	    event_max_fd = fd;
-#ifndef USE_SELECT_EVENTS
+#if (EVENTS_STYLE != EVENTS_STYLE_SELECT)
 	EVENT_REG_ADD_WRITE(err, fd);
 	if (err < 0)
 	    msg_fatal("%s: %s: %m", myname, EVENT_REG_ADD_TEXT);
@@ -778,7 +768,7 @@ void    event_disable_readwrite(int fd)
      */
     if (fd >= event_fdslots)
 	return;
-#ifndef USE_SELECT_EVENTS
+#if (EVENTS_STYLE != EVENTS_STYLE_SELECT)
 #ifdef EVENT_REG_DEL_BOTH
     /* XXX Can't seem to disable READ and WRITE events selectively. */
     if (EVENT_MASK_ISSET(fd, &event_rmask)
@@ -798,7 +788,7 @@ void    event_disable_readwrite(int fd)
 	    msg_fatal("%s: %s: %m", myname, EVENT_REG_DEL_TEXT);
     }
 #endif						/* EVENT_REG_DEL_BOTH */
-#endif						/* USE_SELECT_EVENTS */
+#endif						/* != EVENTS_STYLE_SELECT */
     EVENT_MASK_CLR(fd, &event_xmask);
     EVENT_MASK_CLR(fd, &event_rmask);
     EVENT_MASK_CLR(fd, &event_wmask);
@@ -911,12 +901,13 @@ void    event_loop(int delay)
     const char *myname = "event_loop";
     static int nested;
 
-#ifdef USE_SELECT_EVENTS
+#if (EVENTS_STYLE == EVENTS_STYLE_SELECT)
     fd_set  rmask;
     fd_set  wmask;
     fd_set  xmask;
     struct timeval tv;
     struct timeval *tvp;
+    int     new_max_fd;
 
 #else
     EVENT_BUFFER event_buf[100];
@@ -967,7 +958,7 @@ void    event_loop(int delay)
      * Negative delay means: wait until something happens. Zero delay means:
      * poll. Positive delay means: wait at most this long.
      */
-#ifdef USE_SELECT_EVENTS
+#if (EVENTS_STYLE == EVENTS_STYLE_SELECT)
     if (select_delay < 0) {
 	tvp = 0;
     } else {
@@ -1037,28 +1028,32 @@ void    event_loop(int delay)
      * wanted. We do not change the event request masks. It is up to the
      * application to determine when a read or write is complete.
      */
-#ifdef USE_SELECT_EVENTS
-    for (fd = 0; event_count > 0 && fd <= event_max_fd; fd++) {
-	if (FD_ISSET(fd, &event_xmask)) {
-	    /* In case event_fdtable is updated. */
-	    fdp = event_fdtable + fd;
-	    if (FD_ISSET(fd, &xmask)) {
-		if (msg_verbose > 2)
-		    msg_info("%s: exception fd=%d act=0x%lx 0x%lx", myname,
+#if (EVENTS_STYLE == EVENTS_STYLE_SELECT)
+    if (event_count > 0) {
+	for (new_max_fd = 0, fd = 0; fd <= event_max_fd; fd++) {
+	    if (FD_ISSET(fd, &event_xmask)) {
+		new_max_fd = fd;
+		/* In case event_fdtable is updated. */
+		fdp = event_fdtable + fd;
+		if (FD_ISSET(fd, &xmask)) {
+		    if (msg_verbose > 2)
+			msg_info("%s: exception fd=%d act=0x%lx 0x%lx", myname,
 			     fd, (long) fdp->callback, (long) fdp->context);
-		fdp->callback(EVENT_XCPT, fdp->context);
-	    } else if (FD_ISSET(fd, &wmask)) {
-		if (msg_verbose > 2)
-		    msg_info("%s: write fd=%d act=0x%lx 0x%lx", myname,
+		    fdp->callback(EVENT_XCPT, fdp->context);
+		} else if (FD_ISSET(fd, &wmask)) {
+		    if (msg_verbose > 2)
+			msg_info("%s: write fd=%d act=0x%lx 0x%lx", myname,
 			     fd, (long) fdp->callback, (long) fdp->context);
-		fdp->callback(EVENT_WRITE, fdp->context);
-	    } else if (FD_ISSET(fd, &rmask)) {
-		if (msg_verbose > 2)
-		    msg_info("%s: read fd=%d act=0x%lx 0x%lx", myname,
+		    fdp->callback(EVENT_WRITE, fdp->context);
+		} else if (FD_ISSET(fd, &rmask)) {
+		    if (msg_verbose > 2)
+			msg_info("%s: read fd=%d act=0x%lx 0x%lx", myname,
 			     fd, (long) fdp->callback, (long) fdp->context);
-		fdp->callback(EVENT_READ, fdp->context);
+		    fdp->callback(EVENT_READ, fdp->context);
+		}
 	    }
 	}
+	event_max_fd = new_max_fd;
     }
 #else
     for (bp = event_buf; bp < event_buf + event_count; bp++) {
