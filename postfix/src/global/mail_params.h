@@ -2692,7 +2692,7 @@ extern char *var_tls_low_clist;
 extern char *var_tls_export_clist;
 
 #define VAR_TLS_NULL_CLIST	"tls_null_cipherlist"
-#define DEF_TLS_NULL_CLIST	"!aNULL:eNULL+kRSA"
+#define DEF_TLS_NULL_CLIST	"eNULL:!aNULL"
 extern char *var_tls_null_clist;
 
  /*

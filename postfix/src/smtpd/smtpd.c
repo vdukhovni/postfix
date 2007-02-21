@@ -354,7 +354,7 @@
 /*	The OpenSSL cipherlist for "LOW" or higher grade ciphers.
 /* .IP "\fBtls_export_cipherlist (ALL:+RC4:@STRENGTH)\fR"
 /*	The OpenSSL cipherlist for "EXPORT" or higher grade ciphers.
-/* .IP "\fBtls_null_cipherlist (!aNULL:eNULL+kRSA)\fR"
+/* .IP "\fBtls_null_cipherlist (eNULL:!aNULL)\fR"
 /*	The OpenSSL cipherlist for "NULL" grade ciphers that provide
 /*	authentication without encryption.
 /* OBSOLETE STARTTLS CONTROLS
@@ -4311,6 +4311,8 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 				    enforce_tls ? var_smtpd_tls_mand_excl :
 				    TLS_END_EXCLUDE,
 				    TLS_END_EXCLUDE);
+		if (props.cipherlist == 0)
+		    msg_panic("NULL export cipherlist");
 	    }
 	    if (havecert || oknocert)
 		smtpd_tls_ctx = tls_server_init(&props);

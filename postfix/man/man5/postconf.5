@@ -7148,7 +7148,7 @@ certificates). You are strongly encouraged to not change this
 setting.
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH tls_null_cipherlist (default: !aNULL:eNULL+kRSA)
+.SH tls_null_cipherlist (default: eNULL:!aNULL)
 The OpenSSL cipherlist for "NULL" grade ciphers that provide
 authentication without encryption. This defines the meaning of the "null"
 setting in smtpd_mandatory_tls_ciphers, smtp_tls_mandatory_ciphers and

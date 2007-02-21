@@ -10399,7 +10399,7 @@ strongly encouraged to not change this setting. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
-%PARAM tls_null_cipherlist !aNULL:eNULL+kRSA
+%PARAM tls_null_cipherlist eNULL:!aNULL
 
 <p> The OpenSSL cipherlist for "NULL" grade ciphers that provide
 authentication without encryption. This defines the meaning of the "null"

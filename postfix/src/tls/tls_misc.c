@@ -18,6 +18,10 @@
 /*
 /*	long	tls_bug_bits()
 /*
+/*	const char *tls_set_cipher_list(ssl_ctx, cipher_list)
+/*	SSL_CTX *ssl_ctx;
+/*	char	*cipher_list;
+/*
 /*	const char *tls_cipher_list(cipher_level, ...)
 /*	int	cipher_level;
 /*
@@ -52,6 +56,11 @@
 /*	tls_bug_bits() returns the bug compatibility mask appropriate
 /*	for the run-time library. Some of the bug work-arounds are
 /*	not appropriate for some library versions.
+/*
+/*	tls_set_cipher_list() updates the cipher list of the specified SSL
+/*	context. Returns the new cipherlist on success, otherwise logs a
+/*	suitable warning and returns 0. The storage for the return value
+/*	is overwritted with each call.
 /*
 /*	tls_cipher_list() generates a cipher list from the specified
 /*	grade, minus any ciphers specified via a null-terminated
@@ -152,45 +161,6 @@ NAME_CODE tls_cipher_level_table[] = {
     0, TLS_CIPHER_NONE,
 };
 
-#if 0
-
-typedef struct {
-    char   *algorithm;
-    char   *exclusion;
-} cipher_probe;
-
-static cipher_probe cipher_probe_list[] = {
-
-    /*
-     * Check for missing AES256, OpenSSL only checks for AES128, and then
-     * enables both, because they only have one "is AES" boolean flag in the
-     * cipher property mask. The implementation cannot distinguish between
-     * AES128 and AES256. When some O/S distributions play games with
-     * libcrypto and exclude just the AES256 ciphers, they break the OpenSSL
-     * cipherlist construction code, with clients and servers potentially
-     * negotiating unimplemented ciphers.
-     * 
-     * This problem is peculiar to AES, which is not a single cipher, but a
-     * family of related ciphers. The other OpenSSL symmetric ciphers are
-     * atomic, either implemented or not. We expect that future ciphers will
-     * either also be atomic, or will have one property bit per family member
-     * and will be filtered accurately by OpenSSL.
-     * 
-     * If all else fails, this table can be expanded :-(
-     * 
-     * XXX: the probe for AES256 is enclosed in #ifdef. OpenSSL 0.9.6 and and
-     * earlier don't have AES 256, this requires 0.9.7 or later. We recommend
-     * against use of 0.9.6, it has open issues solved in 0.9.7l and 0.9.8d,
-     * but we are not yet prepared to drop support for 0.9.6.
-     */
-#ifdef SN_aes_256_cbc
-    SN_aes_256_cbc, SSL_TXT_AES "+HIGH",
-#endif
-    0, 0,
-};
-
-#endif
-
  /*
   * Parsed OpenSSL version number.
   */
@@ -202,17 +172,140 @@ typedef struct {
     int     status;
 } TLS_VINFO;
 
+ /*
+  * OpenSSL adopted the cipher selection patch, so we don't expect any more
+  * broken ciphers other than AES and CAMELLIA.
+  */
+typedef struct {
+    char   *ssl_name;
+    int     alg_bits;
+    char   *evp_name;
+}       cipher_probe_t;
+
+static cipher_probe_t cipher_probes[] = {
+    "AES", 256, "AES-256-CBC",
+    "CAMELLIA", 256, "CAMELLIA-256-CBC",
+    0, 0, 0,
+};
+
+/* tls_exclude_missing - Append exclusions for missing ciphers */
+
+static void tls_exclude_missing(SSL_CTX *ctx, VSTRING *buf)
+{
+    const char *myname = "tls_exclude_missing";
+    static ARGV *exclude;		/* Cached */
+    SSL    *s = 0;
+
+    STACK_OF(SSL_CIPHER) * ciphers;
+    SSL_CIPHER *c;
+    cipher_probe_t *probe;
+    int     alg_bits;
+    int     num;
+    int     i;
+
+    /*
+     * Process a list of probes which specify:
+     * 
+     * An SSL cipher-suite name for a family of ciphers that use the same
+     * symmetric algorithm at two or more key sizes, typically 128/256 bits.
+     * 
+     * The key size (typically 256) that OpenSSL fails check, and assumes is
+     * available when another key size (typically 128) is usable.
+     * 
+     * The OpenSSL name of the symmetric algorithm associated with the SSL
+     * cipher-suite. Typically, this is MUMBLE-256-CBC, where "MUMBLE" is the
+     * name of the SSL cipher-suite that use the MUMBLE symmetric algorithm.
+     * On systems that support the required encryption algorithm, the name is
+     * listed in the output of "openssl list-cipher-algorithms".
+     * 
+     * When an encryption algorithm is not available at the given key size but
+     * the corresponding OpenSSL cipher-suite contains ciphers that have have
+     * this key size, the problem ciphers are explicitly disabled in Postfix.
+     * The list is cached in the static "exclude" array.
+     */
+    if (exclude == 0) {
+	exclude = argv_alloc(1);
+
+	/*
+	 * Iterate over the probe list
+	 */
+	for (probe = cipher_probes; probe->ssl_name; ++probe) {
+	    /* No exclusions if evp_name is a valid algorithm */
+	    if (EVP_get_cipherbyname(probe->evp_name))
+		continue;
+
+	    /*
+	     * Sadly there is no SSL_CTX_get_ciphers() interface, so we are
+	     * forced to allocate and free an SSL object. Fatal error if we
+	     * can't allocate the SSL object.
+	     */
+	    ERR_clear_error();
+	    if (s == 0 && (s = SSL_new(ctx)) == 0) {
+		tls_print_errors();
+		msg_fatal("%s: error allocating SSL object", myname);
+	    }
+
+	    /*
+	     * Cipher is not supported by libcrypto, nothing to do if also
+	     * not supported by libssl. Flush the OpenSSL error stack.
+	     * 
+	     * XXX: There may be additional places in pre-existing code where
+	     * SSL errors are generated and ignored, that require a similar
+	     * "flush". Better yet, is to always flush before calls that run
+	     * tls_print_errors() on failure.
+	     * 
+	     * Contrary to documentation, on SunOS 5.10 SSL_set_cipher_list()
+	     * returns success with no ciphers selected, when this happens
+	     * SSL_get_ciphers() produces a stack with 0 elements!
+	     */
+	    if (SSL_set_cipher_list(s, probe->ssl_name) == 0
+		|| (ciphers = SSL_get_ciphers(s)) == 0
+		|| (num = sk_SSL_CIPHER_num(ciphers)) == 0) {
+		ERR_clear_error();		/* flush any generated errors */
+		continue;
+	    }
+	    for (i = 0; i < num; ++i) {
+		c = sk_SSL_CIPHER_value(ciphers, i);
+		(void) SSL_CIPHER_get_bits(c, &alg_bits);
+		if (alg_bits == probe->alg_bits)
+		    argv_add(exclude, SSL_CIPHER_get_name(c), ARGV_END);
+	    }
+	}
+	if (s != 0)
+	    SSL_free(s);
+    }
+    for (i = 0; i < exclude->argc; ++i)
+	vstring_sprintf_append(buf, ":!%s", exclude->argv[i]);
+}
+
+/* tls_set_cipher_list - Set SSL_CTX cipher list */
+
+const char *tls_set_cipher_list(SSL_CTX *ssl_ctx, const char *spec)
+{
+    static VSTRING *buf;
+    const char *ex_spec;
+
+    if (buf == 0)
+	buf = vstring_alloc(10);
+
+    vstring_strcpy(buf, spec);
+    tls_exclude_missing(ssl_ctx, buf);
+    ex_spec = vstring_str(buf);
+
+    ERR_clear_error();
+    if (SSL_CTX_set_cipher_list(ssl_ctx, ex_spec) != 0)
+	return (ex_spec);
+
+    tls_print_errors();
+    return (0);
+}
+
 /* tls_cipher_list - Cipherlist for given grade, less exclusions */
 
 const char *tls_cipher_list(int cipher_level,...)
 {
     const char *myname = "tls_cipher_list";
     static VSTRING *buf;
-#if 0
-    static ARGV *exclude_unavailable;
-    cipher_probe *probe;
-    int     i;
-#endif
     va_list ap;
     const char *exclude;
     char   *tok;
@@ -241,44 +334,31 @@ const char *tls_cipher_list(int cipher_level,...)
     case TLS_CIPHER_NONE:
 	return 0;
     default:
+
+	/*
+	 * The caller MUST provide a valid cipher grade
+	 */
 	msg_panic("%s: invalid cipher grade: %d", myname, cipher_level);
     }
 
+    /*
+     * The base lists for each grade can't be empty.
+     */
     if (VSTRING_LEN(buf) == 0)
 	msg_panic("%s: empty cipherlist", myname);
-
-    /*
-     * Exclude ciphers that clueless distributions leave out of libcrypto.
-     */
-#if 0
-    if (exclude_unavailable == 0) {
-	exclude_unavailable = argv_alloc(1);
-	for (probe = cipher_probe_list; probe->algorithm; ++probe)
-	    if (!EVP_get_cipherbyname(probe->algorithm))
-		argv_add(exclude_unavailable, probe->exclusion, (char *) 0);
-    }
-    for (i = 0; i < exclude_unavailable->argc; ++i)
-	vstring_sprintf_append(buf, ":!%s", exclude_unavailable->argv[i]);
-#endif
 
     va_start(ap, cipher_level);
     while ((exclude = va_arg(ap, char *)) != 0) {
 	if (*exclude == '\0')
 	    continue;
 	save = cp = mystrdup(exclude);
-	while ((tok = mystrtok(&cp, "\t\n\r ,")) != 0) {
+	while ((tok = mystrtok(&cp, "\t\n\r ,:")) != 0) {
 
 	    /*
-	     * Can't exclude ciphers that start with modifiers, or
-	     * multi-element (":" separated) ciphers.
+	     * Can't exclude ciphers that start with modifiers.
 	     */
 	    if (strchr("!+-@", *tok)) {
 		msg_warn("%s: can't exclude '!+-@' modifiers, '%s' ignored",
-			 myname, tok);
-		continue;
-	    }
-	    if (strchr(tok, ':')) {
-		msg_warn("%s: can't exclude compound ciphers, '%s' ignored",
 			 myname, tok);
 		continue;
 	    }
