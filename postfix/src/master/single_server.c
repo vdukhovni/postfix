@@ -238,7 +238,8 @@ static void single_server_wakeup(int fd)
      * If the accept() succeeds, be sure to disable non-blocking I/O, because
      * the application is supposed to be single-threaded. Notice the master
      * of our (un)availability to service connection requests. Commit suicide
-     * when the master process disconnected from us.
+     * when the master process disconnected from us. Don't drop the already
+     * accepted client request after "postfix reload"; that would be rude.
      */
     if (msg_verbose)
 	msg_info("connection established");
@@ -250,7 +251,7 @@ static void single_server_wakeup(int fd)
     myfree(tmp);
     timed_ipc_setup(stream);
     if (master_notify(var_pid, single_server_generation, MASTER_STAT_TAKEN) < 0)
-	single_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
+	 /* void */ ;
     if (single_server_in_flow_delay && mail_flow_get(1) < 0)
 	doze(var_in_flow_delay * 1000000);
     single_server_service(stream, single_server_name, single_server_argv);

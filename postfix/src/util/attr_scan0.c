@@ -267,6 +267,13 @@ int     attr_vscan0(VSTREAM *fp, int flags, va_list ap)
 	msg_panic("%s: bad flags: 0x%x", myname, flags);
 
     /*
+     * EOF check.
+     */
+    if ((ch = VSTREAM_GETC(fp)) == VSTREAM_EOF)
+	return (0);
+    vstream_ungetc(fp, ch);
+
+    /*
      * Initialize.
      */
     if (str_buf == 0) {

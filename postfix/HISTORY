@@ -13267,6 +13267,25 @@ Apologies for any names omitted.
 	src/smtpd/smtpd.c, src/tls/tls.h, src/tls/tls_client.c,
 	src/tls/tls_misc.c and src/tls/tls_server.c.
 
+20070222
+
+	Workaround: delayed "postfix reload" with ancient FreeBSD4
+	kqueue implementations, causing the first external or
+	internal clients after "postfix reload" to experience a
+	quick disconnect.  Apparently, these kqueue implementations
+	do not deliver a read notification when the master closes
+	the per-service shared master/child status pipe (even when
+	there is only one child; note that the master keeps a handle
+	to both ends of each status pipe).  A child process remains
+	ignorant that the status pipe was closed until the arrival
+	of the next client request, and then terminates.  The
+	workaround is to ignore master status write errors before
+	handling a service request.  Files: master/*_server.c.
+
+	Cleanup: fix race condition that caused unnecessary "premature
+	end-of-input" warning messages when "postfix reload" was
+	issued on a busy mail server. Files: util/attr_scan*c.
+
 Wish list:
 
 	Update message content length when adding/removing headers.

@@ -242,10 +242,12 @@ static void trigger_server_wakeup(int fd)
     int     len;
 
     /*
-     * Commit suicide when the master process disconnected from us.
+     * Commit suicide when the master process disconnected from us. Don't
+     * drop the already accepted client request after "postfix reload"; that
+     * would be rude.
      */
     if (master_notify(var_pid, trigger_server_generation, MASTER_STAT_TAKEN) < 0)
-	trigger_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
+	 /* void */ ;
     if (trigger_server_in_flow_delay && mail_flow_get(1) < 0)
 	doze(var_in_flow_delay * 1000000);
     if ((len = read(fd, buf, sizeof(buf))) >= 0)

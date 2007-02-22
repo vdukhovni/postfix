@@ -302,11 +302,13 @@ static void multi_server_execute(int unused_event, char *context)
 	msg_fatal("select unlock: %m");
 
     /*
-     * Do not bother the application when the client disconnected.
+     * Do not bother the application when the client disconnected. Don't drop
+     * the already accepted client request after "postfix reload"; that would
+     * be rude.
      */
     if (peekfd(vstream_fileno(stream)) > 0) {
 	if (master_notify(var_pid, multi_server_generation, MASTER_STAT_TAKEN) < 0)
-	    multi_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
+	     /* void */ ;
 	multi_server_service(stream, multi_server_name, multi_server_argv);
 	if (master_notify(var_pid, multi_server_generation, MASTER_STAT_AVAIL) < 0)
 	    multi_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
