@@ -288,7 +288,7 @@
 /* .IP "\fBhopcount_limit (50)\fR"
 /*	The maximal number of Received:  message headers that is allowed
 /*	in the primary message headers.
-/* .IP "\fBqueue_run_delay (1000s)\fR"
+/* .IP "\fBqueue_run_delay (version dependent)\fR"
 /*	The time between deferred queue scans by the queue manager.
 /* FAST FLUSH CONTROLS
 /* .ad
@@ -1008,6 +1008,8 @@ int     main(int argc, char **argv)
     }
     optind = saved_optind;
     mail_conf_read();
+    if (strcmp(var_syslog_name, DEF_SYSLOG_NAME) != 0)
+        msg_syslog_init(mail_task("sendmail"), LOG_PID, LOG_FACILITY);
     get_mail_conf_str_table(str_table);
 
     if (chdir(var_queue_dir))

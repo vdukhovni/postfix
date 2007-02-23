@@ -13286,6 +13286,16 @@ Apologies for any names omitted.
 	end-of-input" warning messages when "postfix reload" was
 	issued on a busy mail server. Files: util/attr_scan*c.
 
+20070223
+
+	Cleanup: syslog_name now works as documented with both
+	daemons and commands (including set-gid commands).  Files:
+	global/mail_task.c postlog/postlog.c, global/mail_version.h,
+	sendmail/sendmail.c, postsuper/postsuper.c, postalias/postalias.c,
+	postmap/postmap.c, postqueue/postqueue.c, postdrop/postdrop.c,
+	master/trigger_server.c, master/single_server.c,
+	master/multi_server.c.
+
 Wish list:
 
 	Update message content length when adding/removing headers.

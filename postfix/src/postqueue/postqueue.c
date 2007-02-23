@@ -519,6 +519,8 @@ int     main(int argc, char **argv)
      * Further initialization...
      */
     mail_conf_read();
+    if (strcmp(var_syslog_name, DEF_SYSLOG_NAME) != 0)
+	msg_syslog_init(mail_task("postqueue"), LOG_PID, LOG_FACILITY);
     mail_dict_init();				/* proxy, sql, ldap */
     get_mail_conf_str_table(str_table);
 

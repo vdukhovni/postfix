@@ -197,6 +197,7 @@ int     main(int argc, char **argv)
     if (isatty(STDERR_FILENO))
 	msg_vstream_init(tag, VSTREAM_ERR);
     msg_syslog_init(tag, LOG_PID, LOG_FACILITY);
+    tag = 0;
 
     /*
      * Parse switches.
@@ -226,18 +227,26 @@ int     main(int argc, char **argv)
     }
 
     /*
-     * Re-initialize the logging, this time with the user-specified tag and
-     * severity level.
-     */
-    if (isatty(STDERR_FILENO))
-	msg_vstream_init(tag, VSTREAM_ERR);
-    msg_syslog_init(tag, log_flags, LOG_FACILITY);
-
-    /*
      * Process the main.cf file. This overrides any logging facility that was
      * specified with msg_syslog_init();
      */
     mail_conf_read();
+    if (tag == 0 && strcmp(var_syslog_name, DEF_SYSLOG_NAME) != 0) {
+	if ((slash = strrchr(argv[0], '/')) != 0 && slash[1])
+	    tag = mail_task(slash + 1);
+	else
+	    tag = mail_task(argv[0]);
+    }
+
+    /*
+     * Re-initialize the logging, this time with the tag specified in main.cf
+     * or on the command line.
+     */
+    if (tag != 0) {
+	if (isatty(STDERR_FILENO))
+	    msg_vstream_init(tag, VSTREAM_ERR);
+	msg_syslog_init(tag, LOG_PID, LOG_FACILITY);
+    }
 
     /*
      * Log the command line or log lines from standard input.

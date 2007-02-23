@@ -56,8 +56,10 @@ const char *mail_task(const char *argv0)
 	canon_name = vstring_alloc(10);
     if ((slash = strrchr(argv0, '/')) != 0 && slash[1])
 	argv0 = slash + 1;
+    /* Setenv()-ed from main.cf, or inherited from master. */
     if ((tag = safe_getenv(CONF_ENV_LOGTAG)) == 0)
-	tag = DEF_SYSLOG_NAME;
+	/* Check main.cf settings directly, in case set-gid. */
+	tag = var_syslog_name ? var_syslog_name : DEF_SYSLOG_NAME;
     vstring_sprintf(canon_name, "%s/%s", tag, argv0);
     return (vstring_str(canon_name));
 }

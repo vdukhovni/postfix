@@ -400,6 +400,7 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
     char   *oval;
     char   *generation;
     int     msg_vstream_needed = 0;
+    int     redo_syslog_init = 0;
 
     /*
      * Process environment options as early as we can.
@@ -475,9 +476,12 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
 	    service_name = optarg;
 	    break;
 	case 'o':
+	    /* XXX Use split_nameval() */
 	    if ((oval = split_at(optarg, '=')) == 0)
 		oval = "";
 	    mail_conf_update(optarg, oval);
+	    if (strcmp(optarg, VAR_SYSLOG_NAME) == 0)
+		redo_syslog_init = 1;
 	    break;
 	case 's':
 	    if ((socket_count = atoi(optarg)) <= 0)
@@ -512,6 +516,8 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
      * Initialize generic parameters.
      */
     mail_params_init();
+    if (redo_syslog_init)
+	msg_syslog_init(mail_task(var_procname), LOG_PID, LOG_FACILITY);
 
     /*
      * Application-specific initialization.
