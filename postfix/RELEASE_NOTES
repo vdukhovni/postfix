@@ -17,6 +17,14 @@ Incompatibility with Postfix 2.2 and earlier
 If you upgrade from Postfix 2.2 or earlier, read RELEASE_NOTES-2.3
 before proceeding.
 
+Incompatibility with Postfix snapshot 200702224
+===============================================
+
+As a safety measure, Postfix now by default creates mailbox dotlock
+files on all systems. This prevents problems with GNU POP3D which
+subverts kernel locking by creating a new mailbox file and deleting
+the old one.
+
 Major changes with Postfix snapshot 20070212-event
 ==================================================
 

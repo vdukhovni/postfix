@@ -2112,7 +2112,7 @@ extern char *var_virt_mailbox_base;
 extern int var_virt_mailbox_limit;
 
 #define VAR_VIRT_MAILBOX_LOCK		"virtual_mailbox_lock"
-#define DEF_VIRT_MAILBOX_LOCK		"fcntl"
+#define DEF_VIRT_MAILBOX_LOCK		"fcntl, dotlock"
 extern char *var_virt_mailbox_lock;
 
  /*

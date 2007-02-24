@@ -39,7 +39,7 @@
 #define HAS_FLOCK_LOCK
 #define HAS_FCNTL_LOCK
 #define INTERNAL_LOCK	MYFLOCK_STYLE_FLOCK
-#define DEF_MAILBOX_LOCK "flock"
+#define DEF_MAILBOX_LOCK "flock, dotlock"
 #define HAS_SUN_LEN
 #define HAS_FSYNC
 #define HAS_DB
@@ -179,7 +179,7 @@
 #define HAS_FLOCK_LOCK
 #define HAS_FCNTL_LOCK
 #define INTERNAL_LOCK	MYFLOCK_STYLE_FLOCK
-#define DEF_MAILBOX_LOCK "flock"
+#define DEF_MAILBOX_LOCK "flock, dotlock"
 #define HAS_SUN_LEN
 #define HAS_FSYNC
 #define HAS_DB
@@ -836,7 +836,7 @@ extern int initgroups(const char *, int);
 #define HAS_DBM
 #define HAS_FCNTL_LOCK
 #define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
-#define DEF_MAILBOX_LOCK "fcntl"
+#define DEF_MAILBOX_LOCK "fcntl, dotlock"
 #define HAS_FSYNC
 #define DEF_DB_TYPE	"dbm"
 #define ALIAS_DB_MAP	"dbm:/etc/mail/aliases"
@@ -873,7 +873,7 @@ extern int h_errno;			/* <netdb.h> imports too much stuff */
 #define HAS_DBM
 #define HAS_FCNTL_LOCK
 #define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
-#define DEF_MAILBOX_LOCK "fcntl"
+#define DEF_MAILBOX_LOCK "fcntl, dotlock"
 #define HAS_FSYNC
 #define DEF_DB_TYPE	"dbm"
 #define ALIAS_DB_MAP	"dbm:/etc/mail/aliases"
@@ -910,7 +910,7 @@ extern int h_errno;			/* <netdb.h> imports too much stuff */
 #define HAS_DBM
 #define HAS_FCNTL_LOCK
 #define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
-#define DEF_MAILBOX_LOCK "fcntl"
+#define DEF_MAILBOX_LOCK "fcntl, dotlock"
 #define HAS_FSYNC
 #define HAS_NIS
 #define MISSING_SETENV
@@ -950,7 +950,7 @@ extern int h_errno;
 #define HAS_DBM
 #define HAS_FLOCK_LOCK
 #define INTERNAL_LOCK	MYFLOCK_STYLE_FLOCK
-#define DEF_MAILBOX_LOCK "flock"
+#define DEF_MAILBOX_LOCK "flock, dotlock"
 #define USE_STATFS
 #define HAVE_SYS_DIR_H
 #define STATFS_IN_SYS_VFS_H
@@ -1003,7 +1003,7 @@ typedef unsigned short mode_t;
 #define HAS_DBM
 #define HAS_FLOCK_LOCK
 #define INTERNAL_LOCK	MYFLOCK_STYLE_FLOCK
-#define DEF_MAILBOX_LOCK "flock"
+#define DEF_MAILBOX_LOCK "flock, dotlock"
 #define USE_STATFS
 #define HAVE_SYS_DIR_H
 #define STATFS_IN_SYS_VFS_H

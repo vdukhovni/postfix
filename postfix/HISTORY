@@ -13296,6 +13296,15 @@ Apologies for any names omitted.
 	master/trigger_server.c, master/single_server.c,
 	master/multi_server.c.
 
+20070224
+
+	Workaround: GNU POP3D creates a new mailbox and deletes the
+	old one. Postfix now backs off and retries delivery later,
+	instead of appending mail to a deleted file.  To minimize
+	the use of this workaround, Postfix now by default creates
+	mailbox dotlock files on all systems, and creates dotlock
+	files before opening mailbox files.  Files: util/sys_defs.h.
+
 Wish list:
 
 	Update message content length when adding/removing headers.
