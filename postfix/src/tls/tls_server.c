@@ -328,12 +328,12 @@ SSL_CTX *tls_server_init(const tls_server_props *props)
     /*
      * Override the default cipher list with our own list.
      */
-    if (*props->cipherlist != 0)
-	if (SSL_CTX_set_cipher_list(server_ctx, props->cipherlist) == 0) {
-	    tls_print_errors();
-	    SSL_CTX_free(server_ctx);		/* 200411 */
-	    return (0);
-	}
+    if (tls_set_cipher_list(server_ctx, props->cipherlist) == 0) {
+	SSL_CTX_free(server_ctx);
+	msg_warn("Invalid cipherlist \"%s\": disabling TLS support",
+		 props->cipherlist);
+	return (0);				/* Already logged */
+    }
 
     /*
      * Load the CA public key certificates for both the server cert and for

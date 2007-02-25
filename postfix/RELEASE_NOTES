@@ -17,13 +17,15 @@ Incompatible changes with Postfix 2.3.7
 Postfix no longer inserts an empty-line header/body separator into
 malformed MIME attachments, to avoid breaking digital signatures.
 
-This change introduces ambiguity. Postfix still treats the remainder
-of the attachment as body content; header_checks rules will therefore
-not detect forbidden MIME types inside a message/rfc822 attachment.
+This change introduces ambiguity. As before, Postfix treats the
+remainder of the attachment as body content, and header_checks rules
+will not detect forbidden MIME types inside a malformed message/rfc822
+attachment.
 
 With the empty-line header/body separator no longer inserted by
 Postfix, other software may process the malformed attachment
-differently, and thus may become exposed to forbidden MIME types.
+differently, and thus may now become exposed to forbidden MIME types
+that they would not have been exposed to earlier.
 
 Incompatible changes with Postfix 2.3.6
 ---------------------------------------

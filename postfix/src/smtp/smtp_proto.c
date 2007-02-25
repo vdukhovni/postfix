@@ -725,7 +725,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 	vstring_sprintf_append(serverid, "&p=%s",
 			       tls_protocol_names(VAR_SMTP_TLS_MAND_PROTO,
 						  session->tls_protocols));
-    if (session->tls_level >= TLS_LEV_ENCRYPT && session->tls_cipherlist)
+    if (session->tls_level >= TLS_LEV_ENCRYPT)
 	vstring_sprintf_append(serverid, "&c=%s", session->tls_cipherlist);
 
     tls_props.ctx = smtp_tls_ctx;

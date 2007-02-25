@@ -130,6 +130,7 @@ extern NAME_CODE tls_cipher_level_table[];
 
 #define TLS_END_EXCLUDE ((char *)0)
 extern const char *tls_cipher_list(int,...);
+extern const char *tls_set_cipher_list(SSL_CTX *, const char *);
 
  /*
   * tls_client.c

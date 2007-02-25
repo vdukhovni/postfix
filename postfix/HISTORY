@@ -12928,16 +12928,36 @@ Apologies for any names omitted.
 
 	Workaround: don't insert empty-line header/body separator
 	into malformed MIME attachments, to avoid breaking digital
-	signatures. This change introduces ambiguity. Postfix still
-	treats the remainder of the attachment as body content;
-	header_checks rules will not detect forbidden MIME types
-	inside a message/rfc822 attachment.  With the empty-line
-	header/body separator no longer inserted by Postfix, other
-	software may process the malformed attachment differently,
-	and thus may become exposed to forbidden MIME types.  This
-	is back-ported from Postfix 2.4. File: global/mime_state.c.
+	signatures. This change introduces ambiguity. As before,
+	Postfix treats the remainder of the attachment as body
+	content, and header_checks rules will not detect forbidden
+	MIME types inside a malformed message/rfc822 attachment.
+	With the empty-line header/body separator no longer inserted
+	by Postfix, other software may process the malformed
+	attachment differently, and thus may now become exposed to
+	forbidden MIME types.  This is back-ported from Postfix
+	2.4. File: global/mime_state.c.
 
 20070118
 
 	Bugfix: match lists didn't implement ![ipv6address].  Problem
 	reported by Paulo Pacheco. File: util/match_list.c.
+
+20070224
+
+	Workaround: GNU POP3D creates a new mailbox and deletes the
+	old one. Postfix now backs off and retries delivery later,
+	instead of appending mail to a deleted file.  File:
+	global/mbox_open.c.
+
+20070225
+
+	Workaround: Disable SSL/TLS ciphers when the underlying
+	symmetric algorithm is not available in the OpenSSL crypto
+	library at the required bit strength. Problem observed with
+	SunOS 5.10's bundled OpenSSL 0.9.7 and AES 256. Also possible
+	with OpenSSL 0.9.8 and CAMELLIA 256. Root cause fixed in
+	upcoming OpenSSL 0.9.7m, 0.9.8e and 0.9.9 releases. Victor
+	Duchovni, Morgan Stanley. Files: src/smtp/smtp_proto.c,
+	src/smtpd/smtpd.c, src/tls/tls.h, src/tls/tls_client.c,
+	src/tls/tls_misc.c and src/tls/tls_server.c.

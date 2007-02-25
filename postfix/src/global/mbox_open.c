@@ -184,6 +184,26 @@ MBOX   *mbox_open(const char *path, int flags, mode_t mode, struct stat * st,
 	    return (0);
 	}
     }
+
+    /*
+     * Sanity check: reportedly, GNU POP3D creates a new mailbox file and
+     * deletes the old one. This does not play well with software that opens
+     * the mailbox first and then locks it.
+     * 
+     * To detect that GNU POP3D deletes the mailbox file we look at the target
+     * file hard-link count. Note that safe_open() guarantees a hard-link
+     * count of 1, so any change in this count is a sign of trouble.
+     */
+    if (S_ISREG(st->st_mode)
+	&& (fstat(vstream_fileno(fp), st) < 0 || st->st_nlink != 1)) {
+	vstring_sprintf(why->reason, "target file status changed unexpectedly");
+	dsb_status(why, mbox_dsn(EAGAIN, def_dsn));
+	msg_warn("%s: file status changed unexpectedly", path);
+	if (locked & MBOX_DOT_LOCK)
+	    dot_unlockfile(path);
+	vstream_fclose(fp);
+	return (0);
+    }
     mp = (MBOX *) mymalloc(sizeof(*mp));
     mp->path = mystrdup(path);
     mp->fp = fp;

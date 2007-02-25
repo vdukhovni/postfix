@@ -4293,6 +4293,8 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 				    enforce_tls ? var_smtpd_tls_mand_excl :
 				    TLS_END_EXCLUDE,
 				    TLS_END_EXCLUDE);
+		if (props.cipherlist == 0)
+		    msg_panic("NULL export cipherlist");
 	    }
 	    if (havecert || oknocert)
 		smtpd_tls_ctx = tls_server_init(&props);
