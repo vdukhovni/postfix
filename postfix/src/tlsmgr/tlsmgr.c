@@ -192,7 +192,6 @@
 
 #include <mail_conf.h>
 #include <mail_params.h>
-#include <mail_version.h>
 #include <tls_mgr.h>
 #include <mail_proto.h>
 
@@ -877,8 +876,6 @@ static void tlsmgr_before_exit(char *unused_service_name, char **unused_argv)
 	tls_prng_exch_update(rand_exch);
 }
 
-MAIL_VERSION_STAMP_DECLARE;
-
 /* main - the main program */
 
 int     main(int argc, char **argv)
@@ -906,11 +903,6 @@ int     main(int argc, char **argv)
 	VAR_LMTP_TLS_LOGLEVEL, DEF_LMTP_TLS_LOGLEVEL, &var_lmtp_tls_loglevel, 0, 0,
 	0,
     };
-
-    /*
-     * Fingerprint executables and core dumps.
-     */
-    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * Use the multi service skeleton, and require that no-one else is

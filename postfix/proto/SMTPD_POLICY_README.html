@@ -35,8 +35,7 @@ at http://www.openspf.org/Software.  </p>
 
 <p> Policy delegation is now the preferred method for adding policies
 to Postfix. It's much easier to develop a new feature in few lines
-of Perl, Python, Ruby, or TCL, than trying to do the same in C code.
-The difference in
+of Perl, than trying to do the same in C code. The difference in
 performance will be unnoticeable except in the most demanding
 environments. On active systems a policy daemon process is used
 multiple times, for up to $max_use incoming SMTP connections. </p>
@@ -165,7 +164,7 @@ etrn_domain=
     These attributes are empty in case of no certificate authentication.
     As of Postfix 2.2.11 these attribute values are encoded as
     xtext: some characters are represented by +XX, where XX is the
-    two-digit hexadecimal representation of the character value.
+    two-digit hecadecimal representation of the character value.
     </p>
 
     <li> <p> The "encryption_*" attributes (Postfix 2.3 and later)

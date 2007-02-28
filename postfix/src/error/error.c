@@ -9,8 +9,8 @@
 /*	The Postfix \fBerror\fR(8) delivery agent processes delivery
 /*	requests from
 /*	the queue manager. Each request specifies a queue file, a sender
-/*	address, the reason for non-delivery (specified as the
-/*	next-hop destination), and recipient information.
+/*	address, a domain or host name that is treated as the reason for
+/*	non-delivery, and recipient information.
 /*	The reason may be prefixed with an RFC 3463-compatible detail code.
 /*	This program expects to be run from the \fBmaster\fR(8) process
 /*	manager.
@@ -67,11 +67,11 @@
 /*	The time limit for sending or receiving information over an internal
 /*	communication channel.
 /* .IP "\fBmax_idle (100s)\fR"
-/*	The maximum amount of time that an idle Postfix daemon process waits
-/*	for an incoming connection before terminating voluntarily.
+/*	The maximum amount of time that an idle Postfix daemon process
+/*	waits for the next service request before exiting.
 /* .IP "\fBmax_use (100)\fR"
-/*	The maximal number of incoming connections that a Postfix daemon
-/*	process will service before terminating voluntarily.
+/*	The maximal number of connection requests before a Postfix daemon
+/*	process terminates.
 /* .IP "\fBnotify_classes (resource, software)\fR"
 /*	The list of error classes that are reported to the postmaster.
 /* .IP "\fBprocess_id (read-only)\fR"
@@ -126,7 +126,6 @@
 #include <dsn_util.h>
 #include <sys_exits.h>
 #include <mail_proto.h>
-#include <mail_version.h>
 
 /* Single server skeleton. */
 
@@ -238,18 +237,10 @@ static void pre_init(char *unused_name, char **unused_argv)
     flush_init();
 }
 
-MAIL_VERSION_STAMP_DECLARE;
-
 /* main - pass control to the single-threaded skeleton */
 
 int     main(int argc, char **argv)
 {
-
-    /*
-     * Fingerprint executables and core dumps.
-     */
-    MAIL_VERSION_STAMP_ALLOCATE;
-
     single_server_main(argc, argv, error_service,
 		       MAIL_SERVER_PRE_INIT, pre_init,
 		       0);

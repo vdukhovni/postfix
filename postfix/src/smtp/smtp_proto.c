@@ -581,11 +581,12 @@ int     smtp_helo(SMTP_STATE *state)
 	     * Send STARTTLS. Recurse when the server accepts STARTTLS, after
 	     * resetting the SASL and EHLO features lists.
 	     * 
-	     * Reset the SASL mechanism list to avoid spurious warnings.
+	     * XXX Reset the SASL mechanism list to avoid spurious warnings. We
+	     * need a routine to reset the list instead of groping data here.
 	     * 
-	     * Use the smtp_sasl_tls_security_options feature to allow SASL
-	     * mechanisms that may not be allowed with plain-text
-	     * connections.
+	     * XXX Should not there be an smtp_sasl_tls_security_options feature
+	     * to allow different mechanisms across TLS tunnels than across
+	     * plain-text connections?
 	     */
 	    smtp_chat_cmd(session, "STARTTLS");
 	    if ((resp = smtp_chat_resp(session))->code / 100 == 2) {

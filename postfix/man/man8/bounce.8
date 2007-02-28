@@ -25,9 +25,8 @@ The \fBbounce\fR(8) daemon processes two types of service requests:
 Append a recipient (non-)delivery status record to a per-message
 log file.
 .IP \(bu
-Enqueue a delivery status notification message, with a copy
-of a per-message log file and of the corresponding message.
-When the delivery status notification message is
+Enqueue a bounce message, with a copy of a per-message log file
+and of the corresponding message. When the bounce message is
 enqueued successfully, the per-message log file is deleted.
 .PP
 The software does a best notification effort. A non-delivery
@@ -104,11 +103,11 @@ and body_checks.
 The mail system name that is displayed in Received: headers, in
 the SMTP greeting banner, and in bounced mail.
 .IP "\fBmax_idle (100s)\fR"
-The maximum amount of time that an idle Postfix daemon process waits
-for an incoming connection before terminating voluntarily.
+The maximum amount of time that an idle Postfix daemon process
+waits for the next service request before exiting.
 .IP "\fBmax_use (100)\fR"
-The maximal number of incoming connections that a Postfix daemon
-process will service before terminating voluntarily.
+The maximal number of connection requests before a Postfix daemon
+process terminates.
 .IP "\fBnotify_classes (resource, software)\fR"
 The list of error classes that are reported to the postmaster.
 .IP "\fBprocess_id (read-only)\fR"

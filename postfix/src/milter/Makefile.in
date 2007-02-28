@@ -100,7 +100,6 @@ milter8.o: ../../include/connect.h
 milter8.o: ../../include/header_opts.h
 milter8.o: ../../include/iostuff.h
 milter8.o: ../../include/is_header.h
-milter8.o: ../../include/mail_params.h
 milter8.o: ../../include/mail_proto.h
 milter8.o: ../../include/mime_state.h
 milter8.o: ../../include/msg.h

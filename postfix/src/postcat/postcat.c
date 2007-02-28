@@ -88,7 +88,6 @@
 #include <mail_queue.h>
 #include <mail_conf.h>
 #include <mail_params.h>
-#include <mail_version.h>
 #include <mail_proto.h>
 
 /* Application-specific. */
@@ -240,8 +239,6 @@ static NORETURN usage(char *myname)
 	      myname);
 }
 
-MAIL_VERSION_STAMP_DECLARE;
-
 int     main(int argc, char **argv)
 {
     VSTRING *buffer;
@@ -260,11 +257,6 @@ int     main(int argc, char **argv)
     };
     char  **cpp;
     int     tries;
-
-    /*
-     * Fingerprint executables and core dumps.
-     */
-    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * To minimize confusion, make sure that the standard file descriptors

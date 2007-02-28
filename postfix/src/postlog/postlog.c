@@ -5,9 +5,8 @@
 /*	Postfix-compatible logging utility
 /* SYNOPSIS
 /* .fi
-/* .ad
 /*	\fBpostlog\fR [\fB-iv\fR] [\fB-c \fIconfig_dir\fR]
-/*	[\fB-p \fIpriority\fB] [\fB-t \fItag\fR] [\fItext...\fR]
+/*		[\fB-p \fIpriority\fB] [\fB-t \fItag\fR] [\fItext...\fR]
 /* DESCRIPTION
 /*	The \fBpostlog\fR(1) command implements a Postfix-compatible logging
 /*	interface for use in, for example, shell scripts.
@@ -98,7 +97,6 @@
 /* Global library. */
 
 #include <mail_params.h>		/* XXX right place for LOG_FACILITY? */
-#include <mail_version.h>
 #include <mail_conf.h>
 #include <mail_task.h>
 
@@ -162,8 +160,6 @@ static void log_stream(int level, VSTREAM *fp)
     vstring_free(buf);
 }
 
-MAIL_VERSION_STAMP_DECLARE;
-
 /* main - logger */
 
 int     main(int argc, char **argv)
@@ -175,11 +171,6 @@ int     main(int argc, char **argv)
     const char *tag;
     int     log_flags = 0;
     int     level = MSG_INFO;
-
-    /*
-     * Fingerprint executables and core dumps.
-     */
-    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * Be consistent with file permissions.

@@ -60,14 +60,6 @@
 /* .IP special_result_attribute
 /*	The attribute(s) of directory entries that can contain DNs or URLs.
 /*	If found, a recursive subsequent search is done using their values.
-/* .IP leaf_result_attribute
-/*	These are only returned for "leaf" LDAP entries, i.e. those that are
-/*	not "terminal" and have no values for any of the "special" result
-/*	attributes.
-/* .IP terminal_result_attribute
-/*	If found, the LDAP entry is considered a terminal LDAP object, not
-/*	subject to further direct or recursive expansion. Only the terminal
-/*	result attributes are returned.
 /* .IP scope
 /*	LDAP search scope: sub, base, or one.
 /* .IP bind
@@ -236,9 +228,7 @@ typedef struct {
     int     scope;
     char   *search_base;
     ARGV   *result_attributes;
-    int     num_terminal;		/* Number of terminal attributes. */
-    int     num_leaf;			/* Number of leaf attributes */
-    int     num_attributes;		/* Combined # of non-special attrs */
+    int     num_attributes;		/* rest of list is DN's. */
     int     bind;
     char   *bind_dn;
     char   *bind_pw;
@@ -266,16 +256,7 @@ typedef struct {
 
 #define DICT_LDAP_CONN(d) ((LDAP_CONN *)((d)->ht->value))
 
- /*
-  * Bitrot: LDAP_API 3000 and up (OpenLDAP 2.2.x) deprecated ldap_unbind()
-  */
-#if LDAP_API_VERSION >= 3000
-#define dict_ldap_unbind(ld)		ldap_unbind_ext((ld), 0, 0)
-#define dict_ldap_abandon(ld, msg)	ldap_abandon_ext((ld), (msg), 0, 0)
-#else
-#define dict_ldap_unbind(ld)		ldap_unbind(ld)
-#define dict_ldap_abandon(ld, msg)	ldap_abandon((ld), (msg))
-#endif
+
 
 /*
  * Quoting rules.
@@ -344,7 +325,8 @@ static void dict_ldap_timeout(int unused_sig)
 static void dict_ldap_logprint(LDAP_CONST char *data)
 {
     const char *myname = "dict_ldap_debug";
-    char   *buf, *p;
+    char   *buf,
+           *p;
 
     buf = mystrdup(data);
     if (*buf) {
@@ -356,7 +338,7 @@ static void dict_ldap_logprint(LDAP_CONST char *data)
     myfree(buf);
 }
 
-static int dict_ldap_get_errno(LDAP *ld)
+static int dict_ldap_get_errno(LDAP * ld)
 {
     int     rc;
 
@@ -365,7 +347,7 @@ static int dict_ldap_get_errno(LDAP *ld)
     return rc;
 }
 
-static int dict_ldap_set_errno(LDAP *ld, int rc)
+static int dict_ldap_set_errno(LDAP * ld, int rc)
 {
     (void) ldap_set_option(ld, LDAP_OPT_ERROR_NUMBER, &rc);
     return rc;
@@ -385,9 +367,10 @@ static int dict_ldap_result(LDAP *ld, int msgid, int timeout, LDAPMessage **res)
 	return (dict_ldap_get_errno(ld));
 
     if (dict_ldap_get_errno(ld) == LDAP_TIMEOUT) {
-	(void) dict_ldap_abandon(ld, msgid);
+	(void) ldap_abandon_ext(ld, msgid, 0, 0);
 	return (dict_ldap_set_errno(ld, LDAP_TIMEOUT));
     }
+
     return LDAP_SUCCESS;
 }
 
@@ -417,7 +400,7 @@ static int dict_ldap_bind_st(DICT_LDAP *dict_ldap)
 /* search_st - Synchronous search with timeout */
 
 static int search_st(LDAP *ld, char *base, int scope, char *query,
-		             char **attrs, int timeout, LDAPMessage **res)
+			    char **attrs, int timeout, LDAPMessage **res)
 {
     struct timeval mytimeval;
     int     msgid;
@@ -428,7 +411,7 @@ static int search_st(LDAP *ld, char *base, int scope, char *query,
     mytimeval.tv_usec = 0;
 
 #define WANTVALS 0
-#define USE_SIZE_LIM_OPT -1			/* Any negative value will do */
+#define USE_SIZE_LIM_OPT -1		/* Any negative value will do */
 
     if ((rc = ldap_search_ext(ld, base, scope, query, attrs, WANTVALS, 0, 0,
 			      &mytimeval, USE_SIZE_LIM_OPT,
@@ -523,7 +506,7 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 #if defined(LDAP_OPT_DEBUG_LEVEL) && defined(LBER_OPT_LOG_PRINT_FN)
     if (dict_ldap->debuglevel > 0 &&
 	ber_set_option(NULL, LBER_OPT_LOG_PRINT_FN,
-		(LDAP_CONST void *) dict_ldap_logprint) != LBER_OPT_SUCCESS)
+		     (LDAP_CONST void *) dict_ldap_logprint) != LBER_OPT_SUCCESS)
 	msg_warn("%s: Unable to set ber logprint function.", myname);
 #if defined(LBER_OPT_DEBUG_LEVEL)
     if (ber_set_option(NULL, LBER_OPT_DEBUG_LEVEL,
@@ -769,8 +752,8 @@ static void dict_ldap_conn_find(DICT_LDAP *dict_ldap)
  * This and the rest of the handling of multiple attributes, DNs and URLs
  * are thanks to LaMont Jones.
  */
-static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage *res,
-				         VSTRING *result, const char *name)
+static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
+				         VSTRING *result, const char* name)
 {
     static int recursion = 0;
     static int expansion;
@@ -785,8 +768,6 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage *res,
     int     valcount;
     LDAPURLDesc *url;
     const char *myname = "dict_ldap_get_values";
-    int     is_leaf = 1;		/* No recursion via this entry */
-    int     is_terminal = 0;		/* No expansion via this entry */
 
     if (++recursion == 1)
 	expansion = 0;
@@ -811,45 +792,10 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage *res,
 		     dict_ldap->size_limit);
 	    dict_errno = DICT_ERR_RETRY;
 	}
-
-	/*
-	 * Check for terminal attributes, these preclude expansion of all
-	 * other attributes, and DN/URI recursion. Any terminal attributes
-	 * are listed first in the attribute array.
-	 */
-	if (dict_ldap->num_terminal > 0) {
-	    for (i = 0; i < dict_ldap->num_terminal; ++i) {
-		attr = dict_ldap->result_attributes->argv[i];
-		if (!(vals = ldap_get_values_len(dict_ldap->ld, entry, attr)))
-		    continue;
-		is_terminal = (ldap_count_values_len(vals) > 0);
-		ldap_value_free_len(vals);
-		if (is_terminal)
-		    break;
-	    }
-	}
-
-	/*
-	 * Check for special attributes, these preclude expansion of
-	 * "leaf-only" attributes, and are at the end of the attribute array
-	 * after the terminal, leaf and regular attributes.
-	 */
-	if (is_terminal == 0 && dict_ldap->num_leaf > 0) {
-	    for (i = dict_ldap->num_attributes;
-		 dict_ldap->result_attributes->argv[i]; ++i) {
-		attr = dict_ldap->result_attributes->argv[i];
-		if (!(vals = ldap_get_values_len(dict_ldap->ld, entry, attr)))
-		    continue;
-		is_leaf = (ldap_count_values_len(vals) == 0);
-		ldap_value_free_len(vals);
-		if (!is_leaf)
-		    break;
-	    }
-	}
 	for (attr = ldap_first_attribute(dict_ldap->ld, entry, &ber);
-	     attr != NULL; ldap_memfree(attr),
-	     attr = ldap_next_attribute(dict_ldap->ld, entry, ber)) {
-
+	     attr != NULL;
+	     ldap_memfree(attr), attr = ldap_next_attribute(dict_ldap->ld,
+							    entry, ber)) {
 	    vals = ldap_get_values_len(dict_ldap->ld, entry, attr);
 	    if (vals == NULL) {
 		if (msg_verbose)
@@ -857,6 +803,7 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage *res,
 			     myname, recursion, attr);
 		continue;
 	    }
+
 	    valcount = ldap_count_values_len(vals);
 
 	    /*
@@ -883,47 +830,36 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage *res,
 	     * We compute the attribute type (ordinary or special) from its
 	     * index on the "result_attributes" list.
 	     */
-	    for (i = 0; dict_ldap->result_attributes->argv[i]; i++)
-		if (strcasecmp(dict_ldap->result_attributes->argv[i],
-			       attr) == 0)
+	    for (i = 0; dict_ldap->result_attributes->argv[i]; i++) {
+		if (strcasecmp(dict_ldap->result_attributes->argv[i], attr) == 0)
 		    break;
+	    }
 
 	    /*
 	     * Append each returned address to the result list, possibly
-	     * recursing (for dn or url attributes of non-terminal entries)
+	     * recursing (for dn or url attributes).
 	     */
-	    if (i < dict_ldap->num_attributes || is_terminal) {
-		if (is_terminal && i >= dict_ldap->num_terminal
-		    || !is_leaf &&
-		    i < dict_ldap->num_terminal + dict_ldap->num_leaf) {
-		    if (msg_verbose)
-			msg_info("%s[%d]: skipping %ld value(s) of %s "
-				 "attribute %s", myname, recursion, i,
-				 is_terminal ? "non-terminal" : "leaf-only",
-				 attr);
-		} else {
-		    /* Ordinary result attribute */
-		    for (i = 0; i < valcount; i++) {
-			if (db_common_expand(dict_ldap->ctx,
-					     dict_ldap->result_format,
-					     vals[i]->bv_val,
-					     name, result, 0)
-			    && dict_ldap->expansion_limit > 0
-			    && ++expansion > dict_ldap->expansion_limit) {
-			    msg_warn("%s[%d]: %s: Expansion limit exceeded "
-				     "for key: '%s'", myname, recursion,
-				     dict_ldap->parser->name, name);
-			    dict_errno = DICT_ERR_RETRY;
-			    break;
-			}
+	    if (i < dict_ldap->num_attributes) {
+		/* Ordinary result attribute */
+		for (i = 0; i < valcount; i++) {
+		    if (db_common_expand(dict_ldap->ctx,
+					 dict_ldap->result_format,
+					 vals[i]->bv_val,
+					 name, result, 0)
+			&& dict_ldap->expansion_limit > 0
+			&& ++expansion > dict_ldap->expansion_limit) {
+			msg_warn("%s[%d]: %s: Expansion limit exceeded for key: '%s'",
+				 myname, recursion, dict_ldap->parser->name, name);
+			dict_errno = DICT_ERR_RETRY;
+			break;
 		    }
-		    if (dict_errno != 0)
-			continue;
-		    if (msg_verbose)
-			msg_info("%s[%d]: search returned %ld value(s) for"
-				 " requested result attribute %s",
-				 myname, recursion, i, attr);
 		}
+		if (dict_errno != 0)
+		    continue;
+		if (msg_verbose)
+		    msg_info("%s[%d]: search returned %ld value(s) for"
+			     " requested result attribute %s",
+			     myname, recursion, i, attr);
 	    } else if (recursion < dict_ldap->recursion_limit
 		       && dict_ldap->result_attributes->argv[i]) {
 		/* Special result attribute */
@@ -936,7 +872,7 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage *res,
 			if (rc == 0) {
 			    rc = search_st(dict_ldap->ld, url->lud_dn,
 					   url->lud_scope, url->lud_filter,
-					 url->lud_attrs, dict_ldap->timeout,
+					   url->lud_attrs, dict_ldap->timeout,
 					   &resloop);
 			    ldap_free_urldesc(url);
 			}
@@ -1037,6 +973,7 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	    msg_info("%s: Skipping lookup of '%s'", myname, name);
 	return (0);
     }
+
 #define INIT_VSTR(buf, len) do { \
 	if (buf == 0) \
 	    buf = vstring_alloc(len); \
@@ -1089,27 +1026,28 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 		 myname, dict_ldap->parser->name, dict_ldap->size_limit);
 
     /*
-     * Expand the search base and query. Skip lookup when the input key lacks
-     * sufficient domain components to satisfy all the requested
-     * %-substitutions.
-     * 
-     * When the search base is not static, LDAP_NO_SUCH_OBJECT is expected and
-     * is therefore treated as a non-error: the lookup returns no results
-     * rather than a soft error.
+     * Expand the search base and query. Skip lookup when the
+     * input key lacks sufficient domain components to satisfy
+     * all the requested %-substitutions.
+     *
+     * When the search base is not static, LDAP_NO_SUCH_OBJECT is
+     * expected and is therefore treated as a non-error: the lookup
+     * returns no results rather than a soft error.
      */
     if (!db_common_expand(dict_ldap->ctx, dict_ldap->search_base,
-			  name, 0, base, rfc2253_quote)) {
-	if (msg_verbose > 1)
+    			  name, 0, base, rfc2253_quote)) {
+        if (msg_verbose > 1)
 	    msg_info("%s: %s: Empty expansion for %s", myname,
 		     dict_ldap->parser->name, dict_ldap->search_base);
-	return (0);
+        return (0);
     }
+
     if (!db_common_expand(dict_ldap->ctx, dict_ldap->query,
 			  name, 0, query, rfc2254_quote)) {
-	if (msg_verbose > 1)
+        if (msg_verbose > 1)
 	    msg_info("%s: %s: Empty expansion for %s", myname,
 		     dict_ldap->parser->name, dict_ldap->query);
-	return (0);
+        return (0);
     }
 
     /*
@@ -1128,7 +1066,7 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	    msg_info("%s: Lost connection for LDAP source %s, reopening",
 		     myname, dict_ldap->parser->name);
 
-	dict_ldap_unbind(dict_ldap->ld);
+	ldap_unbind_ext(dict_ldap->ld, 0, 0);
 	dict_ldap->ld = DICT_LDAP_CONN(dict_ldap)->conn_ld = 0;
 	dict_ldap_connect(dict_ldap);
 
@@ -1139,14 +1077,14 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	    return (0);
 
 	rc = search_st(dict_ldap->ld, vstring_str(base), dict_ldap->scope,
-		     vstring_str(query), dict_ldap->result_attributes->argv,
+		       vstring_str(query), dict_ldap->result_attributes->argv,
 		       dict_ldap->timeout, &res);
 
     }
+
     switch (rc) {
 
     case LDAP_SUCCESS:
-
 	/*
 	 * Search worked; extract the requested result_attribute.
 	 */
@@ -1171,13 +1109,12 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	break;
 
     case LDAP_NO_SUCH_OBJECT:
-
-	/*
-	 * If the search base is input key dependent, then not finding it, is
-	 * equivalent to not finding the input key. Sadly, we cannot detect
-	 * misconfiguration in this case.
+        /*
+	 * If the search base is input key dependent, then not finding it,
+	 * is equivalent to not finding the input key. Sadly, we cannot
+	 * detect misconfiguration in this case.
 	 */
-	if (dict_ldap->dynamic_base)
+    	if (dict_ldap->dynamic_base)
 	    break;
 
 	msg_warn("%s: %s: Search base '%s' not found: %d: %s",
@@ -1187,7 +1124,6 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	break;
 
     default:
-
 	/*
 	 * Rats. The search didn't work.
 	 */
@@ -1198,7 +1134,7 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	 * Tear down the connection so it gets set up from scratch on the
 	 * next lookup.
 	 */
-	dict_ldap_unbind(dict_ldap->ld);
+	ldap_unbind_ext(dict_ldap->ld, 0, 0);
 	dict_ldap->ld = DICT_LDAP_CONN(dict_ldap)->conn_ld = 0;
 
 	/*
@@ -1235,7 +1171,7 @@ static void dict_ldap_close(DICT *dict)
 	    if (msg_verbose)
 		msg_info("%s: Closed connection handle for LDAP source %s",
 			 myname, dict_ldap->parser->name);
-	    dict_ldap_unbind(conn->conn_ld);
+	    ldap_unbind_ext(conn->conn_ld, 0, 0);
 	}
 	binhash_delete(conn_hash, ht->key, ht->key_len, myfree);
     }
@@ -1244,7 +1180,7 @@ static void dict_ldap_close(DICT *dict)
     myfree(dict_ldap->search_base);
     myfree(dict_ldap->query);
     if (dict_ldap->result_format)
-	myfree(dict_ldap->result_format);
+        myfree(dict_ldap->result_format);
     argv_free(dict_ldap->result_attributes);
     myfree(dict_ldap->bind_dn);
     myfree(dict_ldap->bind_pw);
@@ -1346,11 +1282,11 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 		dict_ldap->ldap_ssl = 1;
 	    ldap_free_urldesc(url_desc);
 	    if (VSTRING_LEN(url_list) > 0)
-		VSTRING_ADDCH(url_list, ' ');
+	    	VSTRING_ADDCH(url_list, ' ');
 	    vstring_strcat(url_list, h);
 	} else {
 	    if (VSTRING_LEN(url_list) > 0)
-		VSTRING_ADDCH(url_list, ' ');
+	    	VSTRING_ADDCH(url_list, ' ');
 	    if (strrchr(h, ':'))
 		vstring_sprintf_append(url_list, "ldap://%s", h);
 	    else
@@ -1408,26 +1344,24 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
      */
     dict_ldap->timeout = cfg_get_int(dict_ldap->parser, "timeout", 10, 0, 0);
 
-#if 0						/* No benefit from changing
-						 * this to match the
-						 * MySQL/PGSQL syntax */
+#if 0	/* No benefit from changing this to match the MySQL/PGSQL syntax */
     if ((dict_ldap->query =
-	 cfg_get_str(dict_ldap->parser, "query", 0, 0, 0)) == 0)
+    	     cfg_get_str(dict_ldap->parser, "query", 0, 0, 0)) == 0)
 #endif
-	dict_ldap->query =
+        dict_ldap->query =
 	    cfg_get_str(dict_ldap->parser, "query_filter",
 			"(mailacceptinggeneralid=%s)", 0, 0);
 
     if ((dict_ldap->result_format =
-	 cfg_get_str(dict_ldap->parser, "result_format", 0, 0, 0)) == 0)
-	dict_ldap->result_format =
-	    cfg_get_str(dict_ldap->parser, "result_filter", "%s", 1, 0);
+        cfg_get_str(dict_ldap->parser, "result_format", 0, 0, 0)) == 0)
+        dict_ldap->result_format =
+                cfg_get_str(dict_ldap->parser, "result_filter", "%s", 1, 0);
 
     /*
-     * Must parse all templates before we can use db_common_expand() If data
-     * dependent substitutions are found in the search base, treat
-     * NO_SUCH_OBJECT search errors as a non-matching key, rather than a
-     * fatal run-time error.
+     * Must parse all templates before we can use db_common_expand()
+     * If data dependent substitutions are found in the search base,
+     * treat NO_SUCH_OBJECT search errors as a non-matching key, rather
+     * than a fatal run-time error.
      */
     dict_ldap->ctx = 0;
     dict_ldap->dynamic_base =
@@ -1441,8 +1375,8 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     db_common_parse_domain(dict_ldap->parser, dict_ldap->ctx);
 
     /*
-     * Maps that use substring keys should only be used with the full input
-     * key.
+     * Maps that use substring keys should only be used with the full
+     * input key.
      */
     if (db_common_dict_partial(dict_ldap->ctx))
 	dict_ldap->dict.flags |= DICT_FLAG_PATTERN;
@@ -1451,29 +1385,14 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     if (dict_flags & DICT_FLAG_FOLD_FIX)
 	dict_ldap->dict.fold_buf = vstring_alloc(10);
 
-    /* Order matters, first the terminal attributes: */
-    attr = cfg_get_str(dict_ldap->parser, "terminal_result_attribute", "", 0, 0);
+    attr = cfg_get_str(dict_ldap->parser, "result_attribute",
+		       "maildrop", 0, 0);
     dict_ldap->result_attributes = argv_split(attr, " ,\t\r\n");
-    dict_ldap->num_terminal = dict_ldap->result_attributes->argc;
-    myfree(attr);
-
-    /* Order matters, next the leaf-only attributes: */
-    attr = cfg_get_str(dict_ldap->parser, "leaf_result_attribute", "", 0, 0);
-    if (*attr)
-	argv_split_append(dict_ldap->result_attributes, attr, " ,\t\r\n");
-    dict_ldap->num_leaf =
-	dict_ldap->result_attributes->argc - dict_ldap->num_terminal;
-    myfree(attr);
-
-    /* Order matters, next the regular attributes: */
-    attr = cfg_get_str(dict_ldap->parser, "result_attribute", "maildrop", 0, 0);
-    if (*attr)
-	argv_split_append(dict_ldap->result_attributes, attr, " ,\t\r\n");
     dict_ldap->num_attributes = dict_ldap->result_attributes->argc;
     myfree(attr);
 
-    /* Order matters, finally the special attributes: */
-    attr = cfg_get_str(dict_ldap->parser, "special_result_attribute", "", 0, 0);
+    attr = cfg_get_str(dict_ldap->parser, "special_result_attribute",
+		       "", 0, 0);
     if (*attr)
 	argv_split_append(dict_ldap->result_attributes, attr, " ,\t\r\n");
     myfree(attr);

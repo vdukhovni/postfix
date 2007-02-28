@@ -266,7 +266,6 @@
 
 #include <smtp_stream.h>
 #include <mail_date.h>
-#include <mail_version.h>
 
 /* Application-specific. */
 
@@ -1250,8 +1249,6 @@ static void usage(char *myname)
     msg_fatal("usage: %s [-468acCeEFLpPv] [-A abort_delay] [-f commands] [-h hostname] [-m max_concurrency] [-n quit_count] [-q commands] [-r commands] [-s commands] [-w delay] [-d dump-template] [-D dump-template] [-R root-dir] [-S start-string] [-u user_privs] [host]:port backlog", myname);
 }
 
-MAIL_VERSION_STAMP_DECLARE;
-
 int     main(int argc, char **argv)
 {
     int     backlog;
@@ -1260,11 +1257,6 @@ int     main(int argc, char **argv)
     INET_PROTO_INFO *proto_info;
     const char *root_dir = 0;
     const char *user_privs = 0;
-
-    /*
-     * Fingerprint executables and core dumps.
-     */
-    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * Fix 20051207.

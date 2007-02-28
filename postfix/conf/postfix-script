@@ -129,10 +129,10 @@ stop)
 	}
 	$INFO stopping the Postfix mail system
 	kill `sed 1q pid/master.pid`
-	for i in 5 4 3 2 1
+	for i in 6 5 4 3 2 1
 	do
 	    $daemon_directory/master -t && exit 0
-	    $INFO waiting for the Postfix mail system to terminate
+	    $INFO waiting for the Postfix mail system to terminate  - $i
 	    sleep 1
 	done
 	$WARN stopping the Postfix mail system with force

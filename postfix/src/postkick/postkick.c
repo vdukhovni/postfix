@@ -96,15 +96,12 @@
 
 #include <mail_proto.h>
 #include <mail_params.h>
-#include <mail_version.h>
 #include <mail_conf.h>
 
 static NORETURN usage(char *myname)
 {
     msg_fatal("usage: %s [-c config_dir] [-v] class service request", myname);
 }
-
-MAIL_VERSION_STAMP_DECLARE;
 
 int     main(int argc, char **argv)
 {
@@ -115,11 +112,6 @@ int     main(int argc, char **argv)
     struct stat st;
     char   *slash;
     int     c;
-
-    /*
-     * Fingerprint executables and core dumps.
-     */
-    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * To minimize confusion, make sure that the standard file descriptors

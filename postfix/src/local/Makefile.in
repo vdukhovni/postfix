@@ -353,7 +353,6 @@ local.o: ../../include/mail_addr.h
 local.o: ../../include/mail_conf.h
 local.o: ../../include/mail_params.h
 local.o: ../../include/mail_server.h
-local.o: ../../include/mail_version.h
 local.o: ../../include/maps.h
 local.o: ../../include/mbox_conf.h
 local.o: ../../include/msg.h

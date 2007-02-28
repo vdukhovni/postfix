@@ -91,7 +91,6 @@ static const char *dict_proxy_lookup(DICT *dict, const char *key)
     VSTREAM *stream;
     int     status;
     int     count = 0;
-    int     request_flags;
 
     /*
      * The client and server live in separate processes that may start and
@@ -102,8 +101,6 @@ static const char *dict_proxy_lookup(DICT *dict, const char *key)
      */
     VSTRING_RESET(dict_proxy->result);
     VSTRING_TERMINATE(dict_proxy->result);
-    request_flags = (dict_proxy->in_flags & DICT_FLAG_RQST_MASK)
-	| (dict->flags & DICT_FLAG_RQST_MASK);
     for (;;) {
 	stream = clnt_stream_access(proxy_stream);
 	errno = 0;
@@ -111,7 +108,7 @@ static const char *dict_proxy_lookup(DICT *dict, const char *key)
 	if (attr_print(stream, ATTR_FLAG_NONE,
 		       ATTR_TYPE_STR, MAIL_ATTR_REQ, PROXY_REQ_LOOKUP,
 		       ATTR_TYPE_STR, MAIL_ATTR_TABLE, dict->name,
-		       ATTR_TYPE_INT, MAIL_ATTR_FLAGS, request_flags,
+		       ATTR_TYPE_INT, MAIL_ATTR_FLAGS, dict_proxy->in_flags,
 		       ATTR_TYPE_STR, MAIL_ATTR_KEY, key,
 		       ATTR_TYPE_END) != 0
 	    || vstream_fflush(stream)
@@ -125,7 +122,7 @@ static const char *dict_proxy_lookup(DICT *dict, const char *key)
 	    if (msg_verbose)
 		msg_info("%s: table=%s flags=%s key=%s -> status=%d result=%s",
 			 myname, dict->name,
-			 dict_flags_str(request_flags), key,
+			 dict_flags_str(dict_proxy->in_flags), key,
 			 status, STR(dict_proxy->result));
 	    switch (status) {
 	    case PROXY_STAT_BAD:

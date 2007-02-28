@@ -236,7 +236,6 @@
 #include <mail_conf.h>
 #include <mail_dict.h>
 #include <mail_params.h>
-#include <mail_version.h>
 #include <mkmap.h>
 #include <mail_task.h>
 
@@ -599,8 +598,6 @@ static NORETURN usage(char *myname)
 	      myname);
 }
 
-MAIL_VERSION_STAMP_DECLARE;
-
 int     main(int argc, char **argv)
 {
     char   *path_name;
@@ -615,11 +612,6 @@ int     main(int argc, char **argv)
     char   *delkey = 0;
     int     sequence = 0;
     int     found;
-
-    /*
-     * Fingerprint executables and core dumps.
-     */
-    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * Be consistent with file permissions.

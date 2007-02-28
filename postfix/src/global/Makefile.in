@@ -890,12 +890,10 @@ input_transp.o: cleanup_user.h
 input_transp.o: input_transp.c
 input_transp.o: input_transp.h
 input_transp.o: mail_params.h
-int_filt.o: ../../include/msg.h
 int_filt.o: ../../include/name_mask.h
 int_filt.o: ../../include/sys_defs.h
 int_filt.o: ../../include/vbuf.h
 int_filt.o: ../../include/vstring.h
-int_filt.o: cleanup_user.h
 int_filt.o: int_filt.c
 int_filt.o: int_filt.h
 int_filt.o: mail_params.h
@@ -1464,7 +1462,6 @@ post_mail.o: ../../include/vbuf.h
 post_mail.o: ../../include/vstream.h
 post_mail.o: ../../include/vstring.h
 post_mail.o: cleanup_user.h
-post_mail.o: int_filt.h
 post_mail.o: mail_date.h
 post_mail.o: mail_params.h
 post_mail.o: mail_proto.h

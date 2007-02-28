@@ -303,11 +303,11 @@
 /*	The time limit for sending or receiving information over an internal
 /*	communication channel.
 /* .IP "\fBmax_idle (100s)\fR"
-/*	The maximum amount of time that an idle Postfix daemon process waits
-/*	for an incoming connection before terminating voluntarily.
+/*	The maximum amount of time that an idle Postfix daemon process
+/*	waits for the next service request before exiting.
 /* .IP "\fBmax_use (100)\fR"
-/*	The maximal number of incoming connections that a Postfix daemon
-/*	process will service before terminating voluntarily.
+/*	The maximal number of connection requests before a Postfix daemon
+/*	process terminates.
 /* .IP "\fBmyhostname (see 'postconf -d' output)\fR"
 /*	The internet hostname of this mail system.
 /* .IP "\fBmyorigin ($myhostname)\fR"
@@ -386,7 +386,6 @@
 #include <mail_params.h>
 #include <record.h>
 #include <rec_type.h>
-#include <mail_version.h>
 
 /* Single-threaded server skeleton. */
 
@@ -503,17 +502,10 @@ static void pre_accept(char *unused_name, char **unused_argv)
     }
 }
 
-MAIL_VERSION_STAMP_DECLARE;
-
 /* main - the main program */
 
 int     main(int argc, char **argv)
 {
-
-    /*
-     * Fingerprint executables and core dumps.
-     */
-    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * Clean up an incomplete queue file in case of a fatal run-time error,

@@ -586,9 +586,18 @@ EOF
 
     # Turn on safety nets for new features that could bounce mail that
     # would be accepted by a previous Postfix version.
+    # This safety net is also documented in LOCAL_RECIPIENT_README.
 
-    # [The "unknown_local_recipient_reject_code = 450" safety net,
-    # introduced with Postfix 2.0 and deleted after Postfix 2.3.]
+#    unknown_local=unknown_local_recipient_reject_code
+#    has_lrm=`$POSTCONF -c $config_directory -n local_recipient_maps`
+#    has_lrjc=`$POSTCONF -c $config_directory -n $unknown_local`
+#
+#    if [ -z "$has_lrm" -a -z "$has_lrjc" ]
+#    then
+#	echo SAFETY: editing main.cf, setting $unknown_local=450.
+#	echo See the LOCAL_RECIPIENT_README file for details.
+#	$POSTCONF -c $config_directory -e "$unknown_local = 450" || exit 1
+#    fi
 
     # Add missing proxymap service to master.cf.
 

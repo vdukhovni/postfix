@@ -276,20 +276,10 @@ queues.
 
     When delivering mail to a destination with multiple mail servers,
     connection caching can help to skip over a non-responding server, and thus
-    dramatically speed up delivery. SMTP connection caching is available in
-    Postfix version 2.2 and later. More information about this feature is in
-    the CONNECTION_CACHE_README document.
+    dramatically speed up delivery.
 
-            /-- smtp(8) --> Internet
-
-    qmgr(8)       |  
-                  |
-            \--   | smtp(8) --> Internet
-                  |
-                  ^          
-                  |
-
-                  scache(8)
+    smtp(8)  <-> scache(8)  <-> smtp(8)
+                                    
 
   * The showq(8) servers list the Postfix queue status. This is the queue
     listing service that does the work for the mailq(1) and postqueue(1)

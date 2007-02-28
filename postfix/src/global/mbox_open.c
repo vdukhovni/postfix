@@ -161,9 +161,9 @@ MBOX   *mbox_open(const char *path, int flags, mode_t mode, struct stat * st,
      */
     if ((fp = safe_open(path, flags | O_NONBLOCK, mode, st,
 			chown_uid, chown_gid, why->reason)) == 0) {
-	dsb_status(why, mbox_dsn(errno, def_dsn));
 	if (locked & MBOX_DOT_LOCK)
 	    dot_unlockfile(path);
+	dsb_status(why, mbox_dsn(errno, def_dsn));
 	return (0);
     }
     close_on_exec(vstream_fileno(fp), CLOSE_ON_EXEC);

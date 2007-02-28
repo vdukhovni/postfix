@@ -368,8 +368,8 @@ generates itself.
 The time unit over which client connection rates and other rates
 are calculated.
 .PP
-This feature is implemented by the \fBanvil\fR(8) service which is available
-in Postfix version 2.2 and later.
+This feature is implemented by the \fBanvil\fR(8) service which is not
+part of the stable Postfix version 2.1 release.
 .PP
 The default interval is relatively short. Because of the high
 frequency of updates, the \fBanvil\fR(8) server uses volatile memory
@@ -1104,9 +1104,9 @@ precision.
 .PP
 The format of the "delays=a/b/c/d" logging is as follows:
 .IP \(bu
-a = time from message arrival to last active queue entry
+a = time before the queue manager, including message transmission
 .IP \(bu
-b = time from last active queue entry to connection setup
+b = time in queue manager
 .IP \(bu
 c = time in connection setup, including DNS, EHLO and TLS
 .IP \(bu
@@ -1530,7 +1530,7 @@ parameter also controls delivery of mail to user@[ip.address].
 Note 1: you need to stop and start Postfix when this parameter changes.
 .PP
 Note 2: address information may be enclosed inside [],
-but this form is not required here.
+but this form is not recommended here.
 .PP
 When inet_interfaces specifies just one IPv4 and/or IPv6 address
 that is not a loopback address, the Postfix SMTP client will use
@@ -1805,7 +1805,7 @@ details. The table is not indexed by hostname for consistency with
 smtpd_discard_ehlo_keyword_address_maps.
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH lmtp_discard_lhlo_keywords (default: empty)
+.SH lmtp_discard_lhlo_keywords (default: $myhostname)
 A case insensitive list of LHLO keywords (pipelining, starttls,
 auth, etc.) that the LMTP client will ignore in the LHLO response
 from a remote LMTP server.
@@ -2649,18 +2649,16 @@ masquerade_exceptions = root
 .ad
 .ft R
 .SH max_idle (default: 100s)
-The maximum amount of time that an idle Postfix daemon process waits
-for an incoming connection before terminating voluntarily.  This
-parameter
+The maximum amount of time that an idle Postfix daemon process
+waits for the next service request before exiting.  This parameter
 is ignored by the Postfix queue manager and by other long-lived
 Postfix daemon processes.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 .SH max_use (default: 100)
-The maximal number of incoming connections that a Postfix daemon
-process will service before terminating voluntarily.  This parameter
-is ignored by the Postfix queue
+The maximal number of connection requests before a Postfix daemon
+process terminates. This parameter is ignored by the Postfix queue
 manager and by other long-lived Postfix daemon processes.
 .SH maximal_backoff_time (default: 4000s)
 The maximal time between attempts to deliver a deferred message.
@@ -2850,12 +2848,13 @@ The maximal recursion level that the MIME processor will handle.
 Postfix refuses mail that is nested deeper than the specified limit.
 .PP
 This feature is available in Postfix 2.0 and later.
-.SH minimal_backoff_time (default: 300s)
-The minimal time between attempts to deliver a deferred message;
-prior to Postfix 2.4 the default value was 1000s.
-.PP
+.SH minimal_backoff_time (default: version dependent)
+The minimal time between attempts to deliver a deferred message.
 This parameter also limits the time an unreachable destination is
 kept in the short-term, in-memory, destination status cache.
+.PP
+With Postfix 2.4 the default value was reduced from 1000s to
+300s.
 .PP
 This parameter should be set greater than or equal to
 $queue_run_delay. See also $maximal_backoff_time.
@@ -3305,9 +3304,10 @@ value that is at least 1.5*$message_size_limit.
 .PP
 With Postfix versions 2.0 and earlier, a queue_minfree value of
 zero means there is no minimum required amount of free space.
-.SH queue_run_delay (default: 300s)
-The time between deferred queue scans by the queue manager;
-prior to Postfix 2.4 the default value was 1000s.
+.SH queue_run_delay (default: version dependent)
+The time between deferred queue scans by the queue manager.
+.PP
+With Postfix 2.4 the default value was reduced from 1000s to 300s.
 .PP
 This parameter should be set less than or equal to
 $minimal_backoff_time. See also $maximal_backoff_time.
@@ -3543,10 +3543,7 @@ Do not change this unless you have a complete understanding of RFC 821.
 .SH relay_recipient_maps (default: empty)
 Optional lookup tables with all valid addresses in the domains
 that match $relay_domains. Specify @domain as a wild-card for
-domains that have no valid recipient list, and become a source of
-backscatter mail: Postfix accepts spam for non-existent recipients
-and then floods innocent people with undeliverable mail.  Technically,
-tables
+domains that do not have a valid recipient list. Technically, tables
 listed with $relay_recipient_maps are used as lists: Postfix needs
 to know only if a lookup string is found or not, but it does not
 use the result from table lookup.
@@ -3850,7 +3847,7 @@ IP hosting, but can be a problem on multi-homed firewalls. See the
 inet_interfaces documentation for more detail.
 .PP
 Note 2: address information may be enclosed inside [],
-but this form is not required here.
+but this form is not recommended here.
 .SH smtp_bind_address6 (default: empty)
 An optional numerical network address that the Postfix SMTP client
 should bind to when making an IPv6 connection.

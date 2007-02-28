@@ -193,8 +193,8 @@ count and/or rate limits falsely.
 
 In this preliminary implementation, a count (or rate) limited server
 can have only one remote client at a time. If a server reports
-multiple simultaneous clients, state is kept only for the last
-reported client.
+multiple simultaneous clients, all but the last reported client
+are ignored.
 
 The \fBanvil\fR(8) server automatically discards client
 request information after it expires.  To prevent the
@@ -230,11 +230,11 @@ request before it is terminated by a built-in watchdog timer.
 The time limit for sending or receiving information over an internal
 communication channel.
 .IP "\fBmax_idle (100s)\fR"
-The maximum amount of time that an idle Postfix daemon process waits
-for an incoming connection before terminating voluntarily.
+The maximum amount of time that an idle Postfix daemon process
+waits for the next service request before exiting.
 .IP "\fBmax_use (100)\fR"
-The maximal number of incoming connections that a Postfix daemon
-process will service before terminating voluntarily.
+The maximal number of connection requests before a Postfix daemon
+process terminates.
 .IP "\fBprocess_id (read-only)\fR"
 The process ID of a Postfix command or daemon process.
 .IP "\fBprocess_name (read-only)\fR"

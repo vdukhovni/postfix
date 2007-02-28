@@ -70,7 +70,6 @@ error.o: ../../include/iostuff.h
 error.o: ../../include/mail_proto.h
 error.o: ../../include/mail_queue.h
 error.o: ../../include/mail_server.h
-error.o: ../../include/mail_version.h
 error.o: ../../include/msg.h
 error.o: ../../include/msg_stats.h
 error.o: ../../include/recipient_list.h

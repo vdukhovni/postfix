@@ -57,7 +57,7 @@
 
 #define REC_TYPE_CONT	'L'		/* long data record */
 #define REC_TYPE_NORM	'N'		/* normal data record */
-#define REC_TYPE_DTXT	'w'		/* padding (was: deleted data) */
+#define REC_TYPE_DTXT	'w'		/* deleted data record */
 
 #define REC_TYPE_XTRA	'X'		/* start extracted records */
 
@@ -82,12 +82,9 @@
   * contains pure recipient sequences only, then the queue manager will not
   * have to read all the queue file records before starting delivery. This is
   * often the case with list mail, where such optimization is desirable.
-  * 
-  * XXX These definitions include the respective segment terminators to avoid
-  * special cases in the cleanup(8) envelope and extracted record processors.
   */
-#define REC_TYPE_ENV_RECIPIENT	"MDRO/Kon"
-#define REC_TYPE_EXT_RECIPIENT	"EDRO/Kon"
+#define REC_TYPE_ENV_RECIPIENT	"DRO/Kon"
+#define REC_TYPE_EXT_RECIPIENT	"DRO/Kon"
 
  /*
   * The types of records that I expect to see while processing different

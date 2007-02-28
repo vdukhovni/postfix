@@ -319,7 +319,6 @@ cleanup.o: ../../include/mail_params.h
 cleanup.o: ../../include/mail_proto.h
 cleanup.o: ../../include/mail_server.h
 cleanup.o: ../../include/mail_stream.h
-cleanup.o: ../../include/mail_version.h
 cleanup.o: ../../include/maps.h
 cleanup.o: ../../include/match_list.h
 cleanup.o: ../../include/match_ops.h

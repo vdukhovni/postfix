@@ -33,7 +33,7 @@
 /*
 /*	By default, connection caching is enabled temporarily for
 /*	destinations that have a high volume of mail in the active
-/*	queue. Connection caching can be enabled permanently for
+/*	queue. Session caching can be enabled permanently for
 /*	specific destinations.
 /* SMTP DESTINATION SYNTAX
 /* .ad
@@ -120,9 +120,9 @@
 /*	when the client is used for multiple domains.
 /*
 /*	Most smtp_\fIxxx\fR configuration parameters have an
-/*	lmtp_\fIxxx\fR "mirror" parameter for the equivalent LMTP
+/*	lmtp_\fIxxx\fR "ghost" parameter for the equivalent LMTP
 /*	feature. This document describes only those LMTP-related
-/*	parameters that aren't simply "mirror" parameters.
+/*	parameters that aren't simply "ghost" parameters.
 /*
 /*	Changes to \fBmain.cf\fR are picked up automatically, as \fBsmtp\fR(8)
 /*	processes run for only a limited amount of time. Use the command
@@ -200,7 +200,7 @@
 /*	case insensitive lists of LHLO keywords (pipelining, starttls,
 /*	auth, etc.) that the LMTP client will ignore in the LHLO response
 /*	from a remote LMTP server.
-/* .IP "\fBlmtp_discard_lhlo_keywords (empty)\fR"
+/* .IP "\fBlmtp_discard_lhlo_keywords ($myhostname)\fR"
 /*	A case insensitive list of LHLO keywords (pipelining, starttls,
 /*	auth, etc.) that the LMTP client will ignore in the LHLO response
 /*	from a remote LMTP server.
@@ -486,11 +486,11 @@
 /* .IP "\fBlmtp_tcp_port (24)\fR"
 /*	The default TCP port that the Postfix LMTP client connects to.
 /* .IP "\fBmax_idle (100s)\fR"
-/*	The maximum amount of time that an idle Postfix daemon process waits
-/*	for an incoming connection before terminating voluntarily.
+/*	The maximum amount of time that an idle Postfix daemon process
+/*	waits for the next service request before exiting.
 /* .IP "\fBmax_use (100)\fR"
-/*	The maximal number of incoming connections that a Postfix daemon
-/*	process will service before terminating voluntarily.
+/*	The maximal number of connection requests before a Postfix daemon
+/*	process terminates.
 /* .IP "\fBprocess_id (read-only)\fR"
 /*	The process ID of a Postfix command or daemon process.
 /* .IP "\fBprocess_name (read-only)\fR"
@@ -602,7 +602,6 @@
 
 #include <deliver_request.h>
 #include <mail_params.h>
-#include <mail_version.h>
 #include <mail_conf.h>
 #include <debug_peer.h>
 #include <flush_clnt.h>
@@ -948,8 +947,6 @@ static void pre_accept(char *unused_name, char **unused_argv)
     }
 }
 
-MAIL_VERSION_STAMP_DECLARE;
-
 /* main - pass control to the single-threaded skeleton */
 
 int     main(int argc, char **argv)
@@ -957,11 +954,6 @@ int     main(int argc, char **argv)
 #include "smtp_params.c"
 #include "lmtp_params.c"
     int     smtp_mode;
-
-    /*
-     * Fingerprint executables and core dumps.
-     */
-    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * XXX At this point, var_procname etc. are not initialized.

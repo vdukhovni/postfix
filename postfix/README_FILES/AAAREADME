@@ -18,6 +18,7 @@ PPrroobblleemm ssoollvviinngg
   * QSHAPE_README: Bottleneck analysis
   * TUNING_README: Performance tuning
   * DEBUG_README: Debugging strategies
+  * Error messages (*)
 
 CCoonntteenntt iinnssppeeccttiioonn
 
@@ -49,16 +50,20 @@ LLooookkuupp ttaabblleess ((ddaattaabbaasseess))
 
 MMaaiilliinngg lliisstt ssuuppppoorrtt
 
+  * qmail/ezmlm support (*)
   * VERP_README: VERP Support
 
 SSppeecciiffiicc eennvviirroonnmmeennttss
 
   * LINUX_README: Linux issues
   * NFS_README: NFS issues
+  * ULTRIX_README: Ultrix support
 
 OOtthheerr mmaaiill ddeelliivveerryy aaggeennttss
 
+  * Cyrus (*)
   * MAILDROP_README: Maildrop
+  * LMTP (*)
 
 OOtthheerr ttooppiiccss
 
@@ -72,4 +77,7 @@ OOtthheerr ttooppiiccss
   * SCHEDULER_README: Queue Scheduler
   * XCLIENT_README: XCLIENT Command
   * XFORWARD_README: XFORWARD Command
+
+(*) These documents will be made available via http://www.postfix.org/ and
+mirror sites.
 

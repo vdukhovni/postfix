@@ -112,7 +112,6 @@
 /* Global library. */
 
 #include <mail_params.h>
-#include <mail_version.h>
 #include <dot_lockfile.h>
 #include <deliver_flock.h>
 #include <mail_conf.h>
@@ -137,8 +136,6 @@ static void fatal_exit(void)
     exit(EX_TEMPFAIL);
 }
 
-MAIL_VERSION_STAMP_DECLARE;
-
 /* main - go for it */
 
 int     main(int argc, char **argv)
@@ -155,11 +152,6 @@ int     main(int argc, char **argv)
     int     lock_mask;
     char   *lock_style = 0;
     MBOX   *mp;
-
-    /*
-     * Fingerprint executables and core dumps.
-     */
-    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * Be consistent with file permissions.

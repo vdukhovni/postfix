@@ -261,12 +261,6 @@
 /*	University of Texas at Dallas
 /*	P.O. Box 830688, MC34
 /*	Richardson, TX 75083, USA
-/*
-/*	IPv6 support originally by:
-/*	Mark Huizer, Eindhoven University, The Netherlands
-/*	Jun-ichiro 'itojun' Hagino, KAME project, Japan
-/*	The Linux PLD project
-/*	Dean Strik, Eindhoven University, The Netherlands
 /*--*/
 
 /* System library. */
@@ -297,7 +291,6 @@
 
 #include <mail_conf.h>
 #include <mail_params.h>
-#include <mail_version.h>
 
 /* Additional installation parameters. */
 
@@ -317,8 +310,6 @@ static void check_setenv(char *name, char *value)
     if (setenv(name, value, CLOBBER) < 0)
 	msg_fatal("setenv: %m");
 }
-
-MAIL_VERSION_STAMP_DECLARE;
 
 /* main - run administrative script from controlled environment */
 
@@ -340,11 +331,6 @@ int     main(int argc, char **argv)
 	VAR_HTML_DIR, DEF_HTML_DIR, &var_html_dir, 1, 0,
 	0,
     };
-
-    /*
-     * Fingerprint executables and core dumps.
-     */
-    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * Be consistent with file permissions.

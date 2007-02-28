@@ -198,8 +198,7 @@ void    cleanup_out_header(CLEANUP_STATE *state, VSTRING *header_buf)
 	}
 	if (line == start) {
 	    cleanup_out_string(state, REC_TYPE_NORM, line);
-	    if ((state->milters || cleanup_milters)
-		&& line_len < REC_TYPE_PTR_PAYL_SIZE)
+	    if (line_len < REC_TYPE_PTR_PAYL_SIZE)
 		rec_pad(state->dst, REC_TYPE_DTXT,
 			REC_TYPE_PTR_PAYL_SIZE - line_len);
 	} else if (IS_SPACE_TAB(*line)) {

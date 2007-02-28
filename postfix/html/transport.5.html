@@ -55,8 +55,8 @@ TRANSPORT(5)                                                      TRANSPORT(5)
        file that serves as input to the <a href="postmap.1.html"><b>postmap</b>(1)</a> command.   The
        result,  an  indexed file in <b>dbm</b> or <b>db</b> format, is used for
        fast searching by the mail  system.  Execute  the  command
-       "<b>postmap  /etc/postfix/transport</b>"  to  rebuild  an indexed
-       file after changing the corresponding transport table.
+       "<b>postmap  /etc/postfix/transport</b>"  in order to rebuild the
+       indexed file after changing the transport table.
 
        When the table is provided via other means  such  as  NIS,
        LDAP  or  SQL,  the  same lookups are done as for ordinary
@@ -65,9 +65,9 @@ TRANSPORT(5)                                                      TRANSPORT(5)
        Alternatively, the table can be  provided  as  a  regular-
        expression map where patterns are given as regular expres-
        sions, or lookups can be directed to TCP-based server.  In
-       those  case,  the lookups are done in a slightly different
+       that  case,  the  lookups are done in a slightly different
        way as described below under "REGULAR  EXPRESSION  TABLES"
-       or "TCP-BASED TABLES".
+       and "TCP-BASED TABLES".
 
 <b>CASE FOLDING</b>
        The  search  string is folded to lowercase before database
@@ -243,7 +243,7 @@ TRANSPORT(5)                                                      TRANSPORT(5)
        lookups are directed to a TCP-based server. For a descrip-
        tion of the TCP client/server lookup protocol, see <a href="tcp_table.5.html"><b>tcp_ta-</b></a>
        <a href="tcp_table.5.html"><b>ble</b>(5)</a>.  This feature is not available up to and including
-       Postfix version 2.4.
+       Postfix version 2.3.
 
        Each  lookup  operation  uses the entire recipient address
        once.  Thus, <i>some.domain.hierarchy</i> is not  looked  up  via

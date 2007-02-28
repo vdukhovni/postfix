@@ -253,7 +253,6 @@
 #include <mail_task.h>
 #include <mail_conf.h>
 #include <mail_params.h>
-#include <mail_version.h>
 #include <mail_queue.h>
 #include <mail_open_ok.h>
 
@@ -989,8 +988,6 @@ static void fatal_warning(void)
     interrupted(0);
 }
 
-MAIL_VERSION_STAMP_DECLARE;
-
 int     main(int argc, char **argv)
 {
     int     fd;
@@ -1033,11 +1030,6 @@ int     main(int argc, char **argv)
 	MAIL_QUEUE_HOLD,
 	0,
     };
-
-    /*
-     * Fingerprint executables and core dumps.
-     */
-    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * Be consistent with file permissions.

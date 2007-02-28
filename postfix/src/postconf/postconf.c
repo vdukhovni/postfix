@@ -960,8 +960,6 @@ static void show_parameters(int mode, char **names)
     }
 }
 
-MAIL_VERSION_STAMP_DECLARE;
-
 /* main */
 
 int     main(int argc, char **argv)
@@ -971,11 +969,6 @@ int     main(int argc, char **argv)
     struct stat st;
     int     junk;
     ARGV   *ext_argv = 0;
-
-    /*
-     * Fingerprint executables and core dumps.
-     */
-    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * Be consistent with file permissions.

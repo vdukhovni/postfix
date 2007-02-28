@@ -198,11 +198,11 @@
 /*	The time limit for sending or receiving information over an internal
 /*	communication channel.
 /* .IP "\fBmax_idle (100s)\fR"
-/*	The maximum amount of time that an idle Postfix daemon process waits
-/*	for an incoming connection before terminating voluntarily.
+/*	The maximum amount of time that an idle Postfix daemon process
+/*	waits for the next service request before exiting.
 /* .IP "\fBmax_use (100)\fR"
-/*	The maximal number of incoming connections that a Postfix daemon
-/*	process will service before terminating voluntarily.
+/*	The maximal number of connection requests before a Postfix daemon
+/*	process terminates.
 /* .IP "\fBrelocated_maps (empty)\fR"
 /*	Optional lookup tables with new contact information for users or
 /*	domains that no longer exist.
@@ -272,7 +272,6 @@
 /* Global library. */
 
 #include <mail_params.h>
-#include <mail_version.h>
 #include <mail_proto.h>
 #include <resolve_local.h>
 #include <mail_conf.h>
@@ -531,8 +530,6 @@ static void post_jail_init(char *unused_name, char **unused_argv)
     var_idle_limit = 1;
 }
 
-MAIL_VERSION_STAMP_DECLARE;
-
 /* main - pass control to the multi-threaded skeleton code */
 
 int     main(int argc, char **argv)
@@ -571,11 +568,6 @@ int     main(int argc, char **argv)
 	VAR_RESOLVE_NUM_DOM, DEF_RESOLVE_NUM_DOM, &var_resolve_num_dom,
 	0,
     };
-
-    /*
-     * Fingerprint executables and core dumps.
-     */
-    MAIL_VERSION_STAMP_ALLOCATE;
 
     multi_server_main(argc, argv, rewrite_service,
 		      MAIL_SERVER_STR_TABLE, str_table,

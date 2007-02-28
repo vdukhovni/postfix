@@ -11,6 +11,10 @@ to the customer, and delivers that mail bbyy ccoonnnneeccttiinngg t
 sseerrvveerr. The mail is not delivered via the connection that was used for sending
 ETRN.
 
+Postfix versions before 1.0 (also known as version 20010228) implemented the
+ETRN command in an inefficient manner: they simply attempted to deliver all
+queued mail. This is slow on mail servers that queue mail for many customers.
+
 As of version 1.0, Postfix has a fast ETRN implementation that does not require
 Postfix to examine every queue file. Instead, Postfix maintains a record of
 what queue files contain mail for destinations that are configured for ETRN
@@ -36,11 +40,11 @@ The following is an example SMTP session that shows how an SMTP client requests
 the ETRN service. Client commands are shown in bold font.
 
     220 my.server.tld ESMTP Postfix
-    HHEELLOO mmyy..cclliieenntt..ttlldd
+    hheelloo mmyy..cclliieenntt..ttlldd
     250 Ok
-    EETTRRNN ssoommee..ccuussttoommeerr..ddoommaaiinn
+    eettrrnn ssoommee..ccuussttoommeerr..ddoommaaiinn
     250 Queuing started
-    QQUUIITT
+    qquuiitt
     221 Bye
 
 As mentioned in the introduction, the mail is delivered by connecting to the
@@ -49,8 +53,7 @@ send the ETRN command.
 
 The Postfix operator can request delivery for a specific customer by using the
 command "sendmail -qRdestination" and, with Postfix version 1.1 and later,
-"postqueue -sdestination". Access to this feature is controlled with the
-authorized_flush_users configuration parameter (Postfix version 2.2 and later).
+"postqueue -sdestination".
 
 HHooww PPoossttffiixx ffaasstt EETTRRNN wwoorrkkss
 
@@ -82,14 +85,13 @@ service for every possible destination.
   * The flush(8) daemon maintains per-destination logfiles with queue file
     names. When a request to "deliver mail now" arrives, Postfix will attempt
     to deliver all recipients in the queue files that have mail for the
-    destination in question. This does not perform well with queue files that
-    have recipients in many different domains, such as queue files with
-    outbound mailing list traffic.
+    destination in question. This does not perform well when queue files have
+    recipients in many different domains.
 
   * The flush(8) daemon maintains per-destination logfiles only for
-    destinations listed with $fast_flush_domains. With other destinations you
-    cannot request delivery with "sendmail -qRdestination" or, with Postfix
-    version 1.1 and later, "postqueue -sdestination".
+    destinations listed with $fast_flush_domains. With other destinations it
+    not possible to trigger delivery with "sendmail -qRdestination" or, with
+    Postfix version 1.1 and later, "postqueue -sdestination".
 
   * Up to and including early versions of Postfix version 2.1, the "fast flush"
     service may not deliver some messages if the request to "deliver mail now"
@@ -97,10 +99,6 @@ service for every possible destination.
     is that the queue manager does not ignore the volatile in-memory list of
     dead domains, and the list of message delivery transports specified with
     the defer_transports configuration parameter.
-
-  * Up to and including Postfix version 2.3, the "fast flush" service may not
-    deliver some messages if the request to "deliver mail now" arrives while an
-    incoming queue scan is already in progress.
 
 CCoonnffiigguurriinngg tthhee PPoossttffiixx ffaasstt EETTRRNN sseerrvviiccee
 
@@ -202,9 +200,9 @@ client that is allowed to execute ETRN commands (by default, that's every
 client), and type the commands shown in boldface:
 
     220 my.server.tld ESMTP Postfix
-    HHEELLOO mmyy..cclliieenntt..ttlldd
+    hheelloo mmyy..cclliieenntt..ttlldd
     250 Ok
-    EETTRRNN ssoommee..ccuussttoommeerr..ddoommaaiinn
+    eettrrnn ssoommee..ccuussttoommeerr..ddoommaaiinn
     250 Queuing started
 
 where "some.customer.domain" is the name of a domain that has a non-empty
@@ -227,9 +225,9 @@ relay to (any domain listed in $relay_domains), but that has no mail queued.
 The text in bold face stands for the commands that you type:
 
     220 my.server.tld ESMTP Postfix
-    HHEELLOO mmyy..cclliieenntt..ttlldd
+    hheelloo mmyy..cclliieenntt..ttlldd
     250 Ok
-    EETTRRNN ssoommee..ootthheerr..ccuussttoommeerr..ddoommaaiinn
+    eettrrnn ssoommee..ootthheerr..ccuussttoommeerr..ddoommaaiinn
     250 Queuing started
 
 This time, the "ETRN"" command should trigger NO mail deliveries at all. If
@@ -241,9 +239,9 @@ willing to relay to. It does not matter if your server has mail queued for that
 destination.
 
     220 my.server.tld ESMTP Postfix
-    HHEELLOO mmyy..cclliieenntt..ttlldd
+    hheelloo mmyy..cclliieenntt..ttlldd
     250 Ok
-    EETTRRNN nnoott..aa..ccuussttoommeerr..ddoommaaiinn
+    eettrrnn nnoott..aa..ccuussttoommeerr..ddoommaaiinn
     459 <not.a.customer.domain>: service unavailable
 
 In this case, Postfix should reject the request as shown above.

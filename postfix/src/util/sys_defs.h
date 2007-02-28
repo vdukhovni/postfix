@@ -208,8 +208,6 @@
 #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
 #define NATIVE_COMMAND_DIR "/usr/sbin"
 #define NATIVE_DAEMON_DIR "/usr/libexec/postfix"
-#define SOCKADDR_SIZE	socklen_t
-#define SOCKOPT_SIZE	socklen_t
 #endif
 
  /*

@@ -110,7 +110,6 @@
 
 #include <mail_date.h>
 #include <qmqp_proto.h>
-#include <mail_version.h>
 
 /* Application-specific. */
 
@@ -443,8 +442,6 @@ static void usage(char *myname)
     msg_fatal("usage: %s -cv -s sess -l msglen -m msgs -C count -M myhostname -f from -t to -R delay -w delay host[:port]", myname);
 }
 
-MAIL_VERSION_STAMP_DECLARE;
-
 /* main - parse JCL and start the machine */
 
 int     main(int argc, char **argv)
@@ -465,11 +462,6 @@ int     main(int argc, char **argv)
     int     aierr;
     const char *protocols = INET_PROTO_NAME_ALL;
     INET_PROTO_INFO *proto_info;
-
-    /*
-     * Fingerprint executables and core dumps.
-     */
-    MAIL_VERSION_STAMP_ALLOCATE;
 
     signal(SIGPIPE, SIG_IGN);
     msg_vstream_init(argv[0], VSTREAM_ERR);
