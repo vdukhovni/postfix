@@ -161,5 +161,8 @@ int     inet_listen(const char *addr, int backlog, int block_mode)
 
 int     inet_accept(int fd)
 {
-    return (sane_accept(fd, (struct sockaddr *) 0, (SOCKADDR_SIZE *) 0));
+    struct sockaddr_storage ss;
+    SOCKADDR_SIZE ss_len = sizeof(ss);
+
+    return (sane_accept(fd, (struct sockaddr *) & ss, &ss_len));
 }

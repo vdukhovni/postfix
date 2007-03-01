@@ -98,7 +98,7 @@ directed to a TCP-based server. For a description of regular
 expression lookup table syntax, see \fBregexp_table\fR(5) or
 \fBpcre_table\fR(5). For a description of the TCP client/server
 table lookup protocol, see \fBtcp_table\fR(5).
-This feature is not available up to and including Postfix version 2.3.
+This feature is not available up to and including Postfix version 2.4.
 
 Each pattern is a regular expression that is applied to the entire
 address being looked up. Thus, \fIuser@domain\fR mail addresses are not
@@ -119,7 +119,7 @@ pattern can be interpolated as \fB$1\fR, \fB$2\fR and so on.
 This section describes how the table lookups change when lookups
 are directed to a TCP-based server. For a description of the TCP
 client/server lookup protocol, see \fBtcp_table\fR(5).
-This feature is not available up to and including Postfix version 2.3.
+This feature is not available up to and including Postfix version 2.4.
 
 Each lookup operation uses the entire address once.  Thus,
 \fIuser@domain\fR mail addresses are not broken up into their

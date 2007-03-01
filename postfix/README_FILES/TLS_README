@@ -673,7 +673,7 @@ Their DSA counterparts:
 
     /etc/postfix/main.cf:
         smtp_tls_dcert_file = /etc/postfix/client-dsa.pem
-        smtp_tls_dkey_file = $smtpd_tls_cert_file
+        smtp_tls_dkey_file = $smtp_tls_cert_file
 
 To verify a remote SMTP server certificate, the Postfix SMTP client needs to
 trust the certificates of the issuing certification authorities. These
@@ -693,7 +693,7 @@ files in the directory when the information is needed. Thus, the
 $smtp_tls_CApath directory needs to be accessible inside the optional chroot
 jail.
 
-The choice between $smtp_tls_CAfile and $smtpd_tls_CApath is a space/time
+The choice between $smtp_tls_CAfile and $smtp_tls_CApath is a space/time
 tradeoff. If there are many trusted CAs, the cost of preloading them all into
 memory may not pay off in reduced access time when the certificate is needed.
 

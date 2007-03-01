@@ -339,7 +339,7 @@
 #	This section describes how the table lookups change when lookups
 #	are directed to a TCP-based server. For a description of the TCP
 #	client/server lookup protocol, see \fBtcp_table\fR(5).
-#	This feature is not available up to and including Postfix version 2.3.
+#	This feature is not available up to and including Postfix version 2.4.
 #
 #	Each lookup operation uses the entire query string once.
 #	Depending on the application, that string is an entire client

@@ -13305,6 +13305,16 @@ Apologies for any names omitted.
 	mailbox dotlock files on all systems, and creates dotlock
 	files before opening mailbox files.  Files: util/sys_defs.h.
 
+20070301
+
+	Workaround: updated workaround for broken Solaris accept().
+	File: util/inet_listen.c.
+
+	Workaround: on some FreeBSD versions, accept(2) can fail
+	with a bogus EINVAL error. We now allow accept(2) to fail
+	for a limited number of times before terminating the process.
+	Files: master/single_server.c, master/multi_server.c.
+
 Wish list:
 
 	Update message content length when adding/removing headers.

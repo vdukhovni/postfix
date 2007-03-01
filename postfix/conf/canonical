@@ -156,7 +156,7 @@
 #        lookups are directed to a TCP-based server. For a descrip-
 #        tion of the TCP client/server lookup protocol, see tcp_ta-
 #        ble(5).  This feature is not available up to and including
-#        Postfix version 2.3.
+#        Postfix version 2.4.
 # 
 #        Each lookup operation uses the entire address once.  Thus,
 #        user@domain  mail  addresses  are not broken up into their
