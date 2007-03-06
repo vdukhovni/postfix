@@ -118,8 +118,8 @@
 /*	by, for example, \fBUUCP\fR software.
 /* .RE
 /* .IP "\fBnull_sender\fR=\fIreplacement\fR (default: MAILER-DAEMON)"
-/*	Replace the null sender address, which is typically used
-/*	for delivery status notifications, with the specified text
+/*	Replace the null sender address (typically used for delivery
+/*	status notifications) with the specified text
 /*	when expanding the \fB$sender\fR command-line macro, and
 /*	when generating a From_ or Return-Path: message header.
 /*

@@ -829,7 +829,7 @@ is correctly configured to supply its intermediate CA certificate). </p>
 <pre>
 /etc/postfix/main.cf:
     smtp_tls_dcert_file = /etc/postfix/client-dsa.pem
-    smtp_tls_dkey_file = $smtp_tls_cert_file
+    smtp_tls_dkey_file = $smtp_tls_dcert_file
 </pre>  
 </blockquote>
 

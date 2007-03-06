@@ -673,7 +673,7 @@ Their DSA counterparts:
 
     /etc/postfix/main.cf:
         smtp_tls_dcert_file = /etc/postfix/client-dsa.pem
-        smtp_tls_dkey_file = $smtp_tls_cert_file
+        smtp_tls_dkey_file = $smtp_tls_dcert_file
 
 To verify a remote SMTP server certificate, the Postfix SMTP client needs to
 trust the certificates of the issuing certification authorities. These

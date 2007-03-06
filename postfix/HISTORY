@@ -9851,7 +9851,7 @@ Apologies for any names omitted.
 	Bugfix: the test for "no debugger_command" was wrong.
 	Leandro Santi. File: global/debugger_command.c.
 
-20040117
+20041117
 
 	Robustness: the master-child protocol now includes a process
 	generation number besides the child process ID.  The process
@@ -13315,6 +13315,12 @@ Apologies for any names omitted.
 	for a limited number of times before terminating the process.
 	Files: master/single_server.c, master/multi_server.c.
 
+20070306
+
+	Bugfix (introduced with Postfix 2.3 Milter support): postdrop
+	reported "illegal seek" instead of "file too large".  File:
+	postdrop/postdrop.c.
+
 Wish list:
 
 	Update message content length when adding/removing headers.
@@ -13329,6 +13335,7 @@ Wish list:
 	am using now.
 
 	Update MILTER_README with Martinec info.
+	http://www.ijs.si/software/amavisd/amavisd-new-docs.html#dkim
 
 	Make postcat header/body aware so people can grep headers.
 

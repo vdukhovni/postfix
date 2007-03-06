@@ -222,7 +222,7 @@
 /* .ad
 /* .fi
 /*	By design, this program is not set-user (or group) id. However,
-/*	it must handle data from untrusted users or untrusted machines.
+/*	it must handle data from untrusted, possibly remote, users.
 /*	Thus, the usual precautions need to be taken against malicious
 /*	inputs.
 /* DIAGNOSTICS
