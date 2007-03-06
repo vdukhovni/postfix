@@ -1104,9 +1104,9 @@ precision.
 .PP
 The format of the "delays=a/b/c/d" logging is as follows:
 .IP \(bu
-a = time before the queue manager, including message transmission
+a = time from message arrival to last active queue entry
 .IP \(bu
-b = time in queue manager
+b = time from last active queue entry to connection setup
 .IP \(bu
 c = time in connection setup, including DNS, EHLO and TLS
 .IP \(bu
@@ -1805,7 +1805,7 @@ details. The table is not indexed by hostname for consistency with
 smtpd_discard_ehlo_keyword_address_maps.
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH lmtp_discard_lhlo_keywords (default: $myhostname)
+.SH lmtp_discard_lhlo_keywords (default: empty)
 A case insensitive list of LHLO keywords (pipelining, starttls,
 auth, etc.) that the LMTP client will ignore in the LHLO response
 from a remote LMTP server.
@@ -2649,16 +2649,18 @@ masquerade_exceptions = root
 .ad
 .ft R
 .SH max_idle (default: 100s)
-The maximum amount of time that an idle Postfix daemon process
-waits for the next service request before exiting.  This parameter
+The maximum amount of time that an idle Postfix daemon process waits
+for an incoming connection before terminating voluntarily.  This
+parameter
 is ignored by the Postfix queue manager and by other long-lived
 Postfix daemon processes.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 .SH max_use (default: 100)
-The maximal number of connection requests before a Postfix daemon
-process terminates. This parameter is ignored by the Postfix queue
+The maximal number of incoming connections that a Postfix daemon
+process will service before terminating voluntarily.  This parameter
+is ignored by the Postfix queue
 manager and by other long-lived Postfix daemon processes.
 .SH maximal_backoff_time (default: 4000s)
 The maximal time between attempts to deliver a deferred message.

@@ -20,8 +20,8 @@
 #        file  that serves as input to the postmap(1) command.  The
 #        result, an indexed file in dbm or db format, is  used  for
 #        fast  searching  by  the  mail system. Execute the command
-#        "postmap /etc/postfix/canonical" in order to  rebuild  the
-#        indexed file after changing the text file.
+#        "postmap /etc/postfix/canonical"  to  rebuild  an  indexed
+#        file after changing the corresponding text file.
 # 
 #        When  the  table  is provided via other means such as NIS,
 #        LDAP or SQL, the same lookups are  done  as  for  ordinary
@@ -30,9 +30,9 @@
 #        Alternatively,  the  table  can  be provided as a regular-
 #        expression map where patterns are given as regular expres-
 #        sions,  or lookups can be directed to TCP-based server. In
-#        that case, the lookups are done in  a  slightly  different
+#        those cases, the lookups are done in a slightly  different
 #        way  as  described below under "REGULAR EXPRESSION TABLES"
-#        and "TCP-BASED TABLES".
+#        or "TCP-BASED TABLES".
 # 
 #        By default the canonical(5) mapping affects  both  message
 #        header  addresses  (i.e. addresses that appear inside mes-

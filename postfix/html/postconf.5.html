@@ -2012,9 +2012,9 @@ precision.  </p>
 
 <ul>
 
-<li> a = time before the queue manager, including message transmission
+<li> a = time from message arrival to last <a href="QSHAPE_README.html#active_queue">active queue</a> entry
 
-<li> b = time in queue manager
+<li> b = time from last <a href="QSHAPE_README.html#active_queue">active queue</a> entry to connection setup
 
 <li> c = time in connection setup, including DNS, EHLO and TLS
 
@@ -3347,7 +3347,7 @@ details. The table is not indexed by hostname for consistency with
 </DD>
 
 <DT><b><a name="lmtp_discard_lhlo_keywords">lmtp_discard_lhlo_keywords</a>
-(default: $<a href="postconf.5.html#myhostname">myhostname</a>)</b></DT><DD>
+(default: empty)</b></DT><DD>
 
 <p> A case insensitive list of LHLO keywords (pipelining, starttls,
 auth, etc.) that the LMTP client will ignore in the LHLO response
@@ -4875,8 +4875,9 @@ Examples:
 (default: 100s)</b></DT><DD>
 
 <p>
-The maximum amount of time that an idle Postfix daemon process
-waits for the next service request before exiting.  This parameter
+The maximum amount of time that an idle Postfix daemon process waits
+for an incoming connection before terminating voluntarily.  This
+parameter
 is ignored by the Postfix queue manager and by other long-lived
 Postfix daemon processes.
 </p>
@@ -4893,8 +4894,9 @@ The default time unit is s (seconds).
 (default: 100)</b></DT><DD>
 
 <p>
-The maximal number of connection requests before a Postfix daemon
-process terminates. This parameter is ignored by the Postfix queue
+The maximal number of incoming connections that a Postfix daemon
+process will service before terminating voluntarily.  This parameter
+is ignored by the Postfix queue
 manager and by other long-lived Postfix daemon processes.
 </p>
 

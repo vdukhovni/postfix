@@ -2565,8 +2565,9 @@ masquerade_exceptions = root
 %PARAM max_idle 100s
 
 <p>
-The maximum amount of time that an idle Postfix daemon process
-waits for the next service request before exiting.  This parameter
+The maximum amount of time that an idle Postfix daemon process waits
+for an incoming connection before terminating voluntarily.  This
+parameter
 is ignored by the Postfix queue manager and by other long-lived
 Postfix daemon processes.
 </p>
@@ -2579,8 +2580,9 @@ The default time unit is s (seconds).
 %PARAM max_use 100
 
 <p>
-The maximal number of connection requests before a Postfix daemon
-process terminates. This parameter is ignored by the Postfix queue
+The maximal number of incoming connections that a Postfix daemon
+process will service before terminating voluntarily.  This parameter
+is ignored by the Postfix queue
 manager and by other long-lived Postfix daemon processes.
 </p>
 
@@ -9031,9 +9033,9 @@ precision.  </p>
 
 <ul>
 
-<li> a = time before the queue manager, including message transmission
+<li> a = time from message arrival to last active queue entry
 
-<li> b = time in queue manager
+<li> b = time from last active queue entry to connection setup
 
 <li> c = time in connection setup, including DNS, EHLO and TLS
 
@@ -9132,7 +9134,7 @@ smtpd_discard_ehlo_keyword_address_maps. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
-%PARAM lmtp_discard_lhlo_keywords $myhostname
+%PARAM lmtp_discard_lhlo_keywords 
 
 <p> A case insensitive list of LHLO keywords (pipelining, starttls,
 auth, etc.) that the LMTP client will ignore in the LHLO response

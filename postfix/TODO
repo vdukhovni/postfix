@@ -15,3 +15,5 @@ What needs to be done before Postfix 2.4.0 is finished:
 - Replace SPF policy server script by link to SPF website.
 
 - Remove MacOS X examples. They have not been updated.
+
+- Is "postmap -qf" still needed with regexp/pcre maps?

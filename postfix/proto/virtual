@@ -39,17 +39,17 @@
 #	that serves as input to the \fBpostmap\fR(1) command.
 #	The result, an indexed file in \fBdbm\fR or \fBdb\fR format,
 #	is used for fast searching by the mail system. Execute the command
-#	"\fBpostmap /etc/postfix/virtual\fR" in order to rebuild the indexed
-#	file after changing the text file.
+#	"\fBpostmap /etc/postfix/virtual\fR" to rebuild an indexed
+#	file after changing the corresponding text file.
 #
 #	When the table is provided via other means such as NIS, LDAP
 #	or SQL, the same lookups are done as for ordinary indexed files.
 #
 #	Alternatively, the table can be provided as a regular-expression
 #	map where patterns are given as regular expressions, or lookups
-#	can be directed to TCP-based server. In that case, the lookups are
-#	done in a slightly different way as described below under
-#	"REGULAR EXPRESSION TABLES" and "TCP-BASED TABLES".
+#	can be directed to TCP-based server. In those case, the lookups
+#	are done in a slightly different way as described below under
+#	"REGULAR EXPRESSION TABLES" or "TCP-BASED TABLES".
 # CASE FOLDING
 # .ad
 # .fi

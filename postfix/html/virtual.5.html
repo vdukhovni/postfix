@@ -48,8 +48,8 @@ VIRTUAL(5)                                                          VIRTUAL(5)
        text  file that serves as input to the <a href="postmap.1.html"><b>postmap</b>(1)</a> command.
        The result, an indexed file in <b>dbm</b> or <b>db</b> format,  is  used
        for fast searching by the mail system. Execute the command
-       "<b>postmap /etc/postfix/virtual</b>" in  order  to  rebuild  the
-       indexed file after changing the text file.
+       "<b>postmap /etc/postfix/virtual</b>" to rebuild an indexed  file
+       after changing the corresponding text file.
 
        When  the  table  is provided via other means such as NIS,
        LDAP or SQL, the same lookups are  done  as  for  ordinary
@@ -58,9 +58,9 @@ VIRTUAL(5)                                                          VIRTUAL(5)
        Alternatively,  the  table  can  be provided as a regular-
        expression map where patterns are given as regular expres-
        sions,  or lookups can be directed to TCP-based server. In
-       that case, the lookups are done in  a  slightly  different
+       those case, the lookups are done in a  slightly  different
        way  as  described below under "REGULAR EXPRESSION TABLES"
-       and "TCP-BASED TABLES".
+       or "TCP-BASED TABLES".
 
 <b>CASE FOLDING</b>
        The search string is folded to lowercase  before  database

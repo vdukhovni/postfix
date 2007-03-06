@@ -14,8 +14,8 @@
 #
 #	Alternatively, lookup tables can be specified in POSIX regular
 #	expression form. In this case, each input is compared against a
-#	list of patterns, and when a match is found the corresponding
-#	result is returned.
+#	list of patterns. When a match is found, the corresponding
+#	result is returned and the search is terminated.
 #
 #	To find out what types of lookup tables your Postfix system
 #	supports use the "\fBpostconf -m\fR" command.
