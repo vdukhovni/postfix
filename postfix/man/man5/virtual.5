@@ -103,6 +103,13 @@ mapping can be applied to non-local addresses.
 .IP "@\fIdomain address, address, ...\fR"
 Redirect mail for other users in \fIdomain\fR to \fIaddress\fR.
 This form has the lowest precedence.
+.sp
+Note: @\fIdomain\fR is a wild-card. With this form, the
+Postfix SMTP server accepts
+mail for any recipient in \fIdomain\fR, regardless of whether
+that recipient exists.  This may turn your mail system into
+a backscatter source that returns undeliverable spam to
+innocent people.
 .SH "RESULT ADDRESS REWRITING"
 .na
 .nf

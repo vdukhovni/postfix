@@ -6438,7 +6438,10 @@ Do not change this unless you have a complete understanding of <a href="http://w
 
 <p> Optional lookup tables with all valid addresses in the domains
 that match $<a href="postconf.5.html#relay_domains">relay_domains</a>. Specify @domain as a wild-card for
-domains that do not have a valid recipient list. Technically, tables
+domains that have no valid recipient list, and become a source of
+backscatter mail: Postfix accepts spam for non-existent recipients
+and then floods innocent people with undeliverable mail.  Technically,
+tables
 listed with $<a href="postconf.5.html#relay_recipient_maps">relay_recipient_maps</a> are used as lists: Postfix needs
 to know only if a lookup string is found or not, but it does not
 use the result from table lookup.  </p>

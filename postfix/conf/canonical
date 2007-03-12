@@ -53,11 +53,9 @@
 #        addresses produced by legacy mail systems.
 # 
 #        The canonical(5) mapping is not to be confused  with  vir-
-#        tual  domain support. Use the virtual(5) map for that pur-
-#        pose.
-# 
-#        The canonical(5) mapping is not to be confused with  local
-#        aliasing.  Use the aliases(5) map for that purpose.
+#        tual  alias  support or with local aliasing. To change the
+#        destination but not the headers,  use  the  virtual(5)  or
+#        aliases(5) map instead.
 # 
 # CASE FOLDING
 #        The  search  string is folded to lowercase before database
@@ -108,6 +106,13 @@
 #        @domain address
 #               Replace other addresses in domain by address.  This
 #               form has the lowest precedence.
+# 
+#               Note:  @domain  is  a  wild-card. When this form is
+#               applied to recipient addresses,  the  Postfix  SMTP
+#               server  accepts  mail  for any recipient in domain,
+#               regardless of whether that recipient exists.   This
+#               may turn your mail system into a backscatter source
+#               that returns undeliverable spam to innocent people.
 # 
 # RESULT ADDRESS REWRITING
 #        The lookup result is subject to address rewriting:

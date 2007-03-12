@@ -24,8 +24,9 @@ Postfix built-in header/body inspection
 .fi
 Postfix provides a simple built-in content inspection mechanism that
 examines incoming mail one message header or one message body line
-at a time. Each input is compared against a list of patterns, and
-when a match is found the corresponding action is executed.
+at a time. Each input is compared against a list of patterns.
+When a match is found the corresponding action is executed, and
+the matching process is repeated for the next input line.
 This feature is implemented by the Postfix \fBcleanup\fR(8) server.
 
 For examples, see the EXAMPLES section at the end of this

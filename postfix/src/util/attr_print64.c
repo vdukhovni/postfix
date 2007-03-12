@@ -22,7 +22,7 @@
 /*	attr_scan64(). The stream is not flushed.
 /*
 /*	attr_vprint64() provides an alternate interface that is convenient
-/*	for calling from within variadoc functions.
+/*	for calling from within variadic functions.
 /*
 /*	Attributes are sent in the requested order as specified with the
 /*	attr_print64() argument list. This routine satisfies the formatting

@@ -13321,6 +13321,24 @@ Apologies for any names omitted.
 	reported "illegal seek" instead of "file too large".  File:
 	postdrop/postdrop.c.
 
+20070310
+
+	Cleanup: specify "undisclosed_recipients_header =" to disable
+	Postfix's "To: undisclosed-recipients:;" header for mail
+	that lists no recipient. The To: header is not required as
+	of RFC 2822.  The undisclosed_recipients_header parameter
+	value can now be an empty string, a value that was not
+	allowed with earlier Postfix versions. With Postfix 2.5 it
+	will be empty by default. Files: cleanup/cleanup.c,
+	cleanup/cleanup_message.c.
+
+20070312
+
+	Backwards compatibility: don't pad short message header
+	records when Milter support is turned off. This maintains
+	compatibility with Postfix versions that pre-date Milter
+	support. File: cleanup/cleanup_out.c.
+
 Wish list:
 
 	Update message content length when adding/removing headers.

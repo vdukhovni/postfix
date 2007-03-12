@@ -49,10 +49,9 @@
 #	by legacy mail systems.
 #
 #	The \fBcanonical\fR(5) mapping is not to be confused with \fIvirtual
-#	domain\fR support. Use the \fBvirtual\fR(5) map for that purpose.
-#
-#	The \fBcanonical\fR(5) mapping is not to be confused with local aliasing.
-#	Use the \fBaliases\fR(5) map for that purpose.
+#	alias\fR support or with local aliasing. To change the destination
+#	but not the headers, use the \fBvirtual\fR(5) or \fBaliases\fR(5)
+#	map instead.
 # CASE FOLDING
 # .ad
 # .fi
@@ -97,6 +96,13 @@
 # .IP "@\fIdomain address\fR"
 #	Replace other addresses in \fIdomain\fR by \fIaddress\fR.
 #	This form has the lowest precedence.
+# .sp
+#	Note: @\fIdomain\fR is a wild-card. When this form is applied
+#	to recipient addresses, the Postfix SMTP server accepts
+#	mail for any recipient in \fIdomain\fR, regardless of whether
+#	that recipient exists.  This may turn your mail system into
+#	a backscatter source that returns undeliverable spam to
+#	innocent people.
 # RESULT ADDRESS REWRITING
 # .ad
 # .fi

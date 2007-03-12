@@ -59,11 +59,9 @@ CANONICAL(5)                                                      CANONICAL(5)
        addresses produced by legacy mail systems.
 
        The <a href="canonical.5.html"><b>canonical</b>(5)</a> mapping is not to be confused  with  <i>vir-</i>
-       <i>tual  domain</i> support. Use the <a href="virtual.5.html"><b>virtual</b>(5)</a> map for that pur-
-       pose.
-
-       The <a href="canonical.5.html"><b>canonical</b>(5)</a> mapping is not to be confused with  local
-       aliasing.  Use the <a href="aliases.5.html"><b>aliases</b>(5)</a> map for that purpose.
+       <i>tual  alias</i>  support or with local aliasing. To change the
+       destination but not the headers,  use  the  <a href="virtual.5.html"><b>virtual</b>(5)</a>  or
+       <a href="aliases.5.html"><b>aliases</b>(5)</a> map instead.
 
 <b>CASE FOLDING</b>
        The  search  string is folded to lowercase before database
@@ -114,6 +112,13 @@ CANONICAL(5)                                                      CANONICAL(5)
        @<i>domain address</i>
               Replace other addresses in <i>domain</i> by <i>address</i>.  This
               form has the lowest precedence.
+
+              Note:  @<i>domain</i>  is  a  wild-card. When this form is
+              applied to recipient addresses,  the  Postfix  SMTP
+              server  accepts  mail  for any recipient in <i>domain</i>,
+              regardless of whether that recipient exists.   This
+              may turn your mail system into a backscatter source
+              that returns undeliverable spam to innocent people.
 
 <b>RESULT ADDRESS REWRITING</b>
        The lookup result is subject to address rewriting:
