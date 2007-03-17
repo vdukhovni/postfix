@@ -159,6 +159,7 @@
 
 #include <mail_conf.h>
 #include <mail_params.h>
+#include <mail_version.h>
 #include <mail_proto.h>
 #include <dict_proxy.h>
 
@@ -429,6 +430,8 @@ static void pre_accept(char *unused_name, char **unused_argv)
     }
 }
 
+MAIL_VERSION_STAMP_DECLARE;
+
 /* main - pass control to the multi-threaded skeleton */
 
 int     main(int argc, char **argv)
@@ -449,6 +452,11 @@ int     main(int argc, char **argv)
 	VAR_PROXY_READ_MAPS, DEF_PROXY_READ_MAPS, &var_proxy_read_maps, 0, 0,
 	0,
     };
+
+    /*
+     * Fingerprint executables and core dumps.
+     */
+    MAIL_VERSION_STAMP_ALLOCATE;
 
     multi_server_main(argc, argv, proxymap_service,
 		      MAIL_SERVER_STR_TABLE, str_table,

@@ -400,6 +400,7 @@
 #include <recipient_list.h>
 #include <deliver_request.h>
 #include <mail_params.h>
+#include <mail_version.h>
 #include <mail_conf.h>
 #include <bounce.h>
 #include <defer.h>
@@ -1196,6 +1197,8 @@ static void pre_init(char *unused_name, char **unused_argv)
     flush_init();
 }
 
+MAIL_VERSION_STAMP_DECLARE;
+
 /* main - pass control to the single-threaded skeleton */
 
 int     main(int argc, char **argv)
@@ -1204,6 +1207,11 @@ int     main(int argc, char **argv)
 	VAR_COMMAND_MAXTIME, DEF_COMMAND_MAXTIME, &var_command_maxtime, 1, 0,
 	0,
     };
+
+    /*
+     * Fingerprint executables and core dumps.
+     */
+    MAIL_VERSION_STAMP_ALLOCATE;
 
     single_server_main(argc, argv, pipe_service,
 		       MAIL_SERVER_TIME_TABLE, time_table,

@@ -126,6 +126,7 @@
 #include <dsn_util.h>
 #include <sys_exits.h>
 #include <mail_proto.h>
+#include <mail_version.h>
 
 /* Single server skeleton. */
 
@@ -237,10 +238,18 @@ static void pre_init(char *unused_name, char **unused_argv)
     flush_init();
 }
 
+MAIL_VERSION_STAMP_DECLARE;
+
 /* main - pass control to the single-threaded skeleton */
 
 int     main(int argc, char **argv)
 {
+
+    /*
+     * Fingerprint executables and core dumps.
+     */
+    MAIL_VERSION_STAMP_ALLOCATE;
+
     single_server_main(argc, argv, error_service,
 		       MAIL_SERVER_PRE_INIT, pre_init,
 		       0);

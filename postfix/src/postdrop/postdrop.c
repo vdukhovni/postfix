@@ -126,6 +126,7 @@
 #include <mail_proto.h>
 #include <mail_queue.h>
 #include <mail_params.h>
+#include <mail_version.h>
 #include <mail_conf.h>
 #include <mail_task.h>
 #include <clean_env.h>
@@ -206,6 +207,8 @@ static void postdrop_cleanup(void)
     postdrop_sig(0);
 }
 
+MAIL_VERSION_STAMP_DECLARE;
+
 /* main - the main program */
 
 int     main(int argc, char **argv)
@@ -230,6 +233,11 @@ int     main(int argc, char **argv)
     char   *junk;
     struct timeval start;
     int     saved_errno;
+
+    /*
+     * Fingerprint executables and core dumps.
+     */
+    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * Be consistent with file permissions.

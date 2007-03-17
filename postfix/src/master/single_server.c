@@ -520,6 +520,14 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
 	msg_syslog_init(mail_task(var_procname), LOG_PID, LOG_FACILITY);
 
     /*
+     * If not connected to stdin, stdin must not be a terminal.
+     */
+    if (daemon_mode && stream == 0 && isatty(STDIN_FILENO)) {
+	msg_vstream_init(var_procname, VSTREAM_ERR);
+	msg_fatal("do not run this command by hand");
+    }
+
+    /*
      * Application-specific initialization.
      */
     va_start(ap, service);
@@ -583,14 +591,6 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
 	root_dir = var_queue_dir;
     if (user_name)
 	user_name = var_mail_owner;
-
-    /*
-     * If not connected to stdin, stdin must not be a terminal.
-     */
-    if (daemon_mode && stream == 0 && isatty(STDIN_FILENO)) {
-	msg_vstream_init(var_procname, VSTREAM_ERR);
-	msg_fatal("do not run this command by hand");
-    }
 
     /*
      * Can options be required?

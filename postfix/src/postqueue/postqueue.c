@@ -192,6 +192,7 @@
 
 #include <mail_proto.h>
 #include <mail_params.h>
+#include <mail_version.h>
 #include <mail_conf.h>
 #include <mail_task.h>
 #include <mail_run.h>
@@ -230,8 +231,8 @@
   * establish frequent proof of client liveliness with challenge/response, or
   * the client needs to restrict expensive requests to privileged users only.
   * 
-  * We don't have this problem with queue listings. The showq server detects
-  * an EPIPE error after reporting a few queue entries.
+  * We don't have this problem with queue listings. The showq server detects an
+  * EPIPE error after reporting a few queue entries.
   */
 #define PQ_MODE_DEFAULT		0	/* noop */
 #define PQ_MODE_MAILQ_LIST	1	/* list mail queue */
@@ -429,6 +430,8 @@ static NORETURN usage(void)
     msg_fatal_status(EX_USAGE, "usage: postqueue -f | postqueue -i queueid | postqueue -p | postqueue -s site");
 }
 
+MAIL_VERSION_STAMP_DECLARE;
+
 /* main - the main program */
 
 int     main(int argc, char **argv)
@@ -442,6 +445,11 @@ int     main(int argc, char **argv)
     char   *id_to_flush = 0;
     ARGV   *import_env;
     int     bad_site;
+
+    /*
+     * Fingerprint executables and core dumps.
+     */
+    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * Be consistent with file permissions.

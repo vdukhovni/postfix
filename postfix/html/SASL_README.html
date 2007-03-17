@@ -391,7 +391,7 @@ can authenticate against PAM and various other sources. To use PAM,
 start saslauthd with "-a pam". </p>
 
 <p> IMPORTANT: saslauthd usually establishes a UNIX domain socket
-in /var/run/saslauthd and waits for authentication requests. postfix
+in /var/run/saslauthd and waits for authentication requests. Postfix
 processes must have read+execute permission to this directory or
 authentication attempts will fail. </p>
 

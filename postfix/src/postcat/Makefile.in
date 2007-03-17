@@ -63,6 +63,7 @@ postcat.o: ../../include/mail_conf.h
 postcat.o: ../../include/mail_params.h
 postcat.o: ../../include/mail_proto.h
 postcat.o: ../../include/mail_queue.h
+postcat.o: ../../include/mail_version.h
 postcat.o: ../../include/msg.h
 postcat.o: ../../include/msg_vstream.h
 postcat.o: ../../include/rec_type.h

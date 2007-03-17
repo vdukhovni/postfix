@@ -272,6 +272,7 @@
 /* Global library. */
 
 #include <mail_params.h>
+#include <mail_version.h>
 #include <mail_proto.h>
 #include <resolve_local.h>
 #include <mail_conf.h>
@@ -530,6 +531,8 @@ static void post_jail_init(char *unused_name, char **unused_argv)
     var_idle_limit = 1;
 }
 
+MAIL_VERSION_STAMP_DECLARE;
+
 /* main - pass control to the multi-threaded skeleton code */
 
 int     main(int argc, char **argv)
@@ -568,6 +571,11 @@ int     main(int argc, char **argv)
 	VAR_RESOLVE_NUM_DOM, DEF_RESOLVE_NUM_DOM, &var_resolve_num_dom,
 	0,
     };
+
+    /*
+     * Fingerprint executables and core dumps.
+     */
+    MAIL_VERSION_STAMP_ALLOCATE;
 
     multi_server_main(argc, argv, rewrite_service,
 		      MAIL_SERVER_STR_TABLE, str_table,

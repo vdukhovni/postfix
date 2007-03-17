@@ -346,6 +346,7 @@
 #include <recipient_list.h>
 #include <mail_conf.h>
 #include <mail_params.h>
+#include <mail_version.h>
 #include <mail_proto.h>			/* QMGR_SCAN constants */
 #include <mail_flow.h>
 #include <flush_clnt.h>
@@ -615,6 +616,8 @@ static void qmgr_post_init(char *name, char **unused_argv)
     qmgr_deferred_run_event(0, (char *) 0);
 }
 
+MAIL_VERSION_STAMP_DECLARE;
+
 /* main - the main program */
 
 int     main(int argc, char **argv)
@@ -658,6 +661,11 @@ int     main(int argc, char **argv)
 	VAR_VERP_BOUNCE_OFF, DEF_VERP_BOUNCE_OFF, &var_verp_bounce_off,
 	0,
     };
+
+    /*
+     * Fingerprint executables and core dumps.
+     */
+    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * Use the trigger service skeleton, because no-one else should be

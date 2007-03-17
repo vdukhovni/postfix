@@ -386,6 +386,7 @@
 #include <mail_params.h>
 #include <record.h>
 #include <rec_type.h>
+#include <mail_version.h>
 
 /* Single-threaded server skeleton. */
 
@@ -502,10 +503,17 @@ static void pre_accept(char *unused_name, char **unused_argv)
     }
 }
 
+MAIL_VERSION_STAMP_DECLARE;
+
 /* main - the main program */
 
 int     main(int argc, char **argv)
 {
+
+    /*
+     * Fingerprint executables and core dumps.
+     */
+    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * Clean up an incomplete queue file in case of a fatal run-time error,

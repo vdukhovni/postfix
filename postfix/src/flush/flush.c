@@ -173,6 +173,7 @@
 /* Global library. */
 
 #include <mail_params.h>
+#include <mail_version.h>
 #include <mail_queue.h>
 #include <mail_proto.h>
 #include <mail_flush.h>
@@ -387,7 +388,7 @@ static int flush_send_service(const char *site, int how)
 /* flush_one_file - move one queue file to incoming queue */
 
 static int flush_one_file(const char *queue_id, VSTRING *queue_file,
-			            struct utimbuf * tbuf, int how)
+			          struct utimbuf * tbuf, int how)
 {
     const char *myname = "flush_one_file";
     const char *queue_name;
@@ -807,6 +808,8 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 				     var_fflush_domains);
 }
 
+MAIL_VERSION_STAMP_DECLARE;
+
 /* main - pass control to the single-threaded skeleton */
 
 int     main(int argc, char **argv)
@@ -816,6 +819,11 @@ int     main(int argc, char **argv)
 	VAR_FFLUSH_PURGE, DEF_FFLUSH_PURGE, &var_fflush_purge, 1, 0,
 	0,
     };
+
+    /*
+     * Fingerprint executables and core dumps.
+     */
+    MAIL_VERSION_STAMP_ALLOCATE;
 
     single_server_main(argc, argv, flush_service,
 		       MAIL_SERVER_TIME_TABLE, time_table,

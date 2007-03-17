@@ -209,6 +209,8 @@ static NORETURN usage(const char *me)
     msg_fatal("usage: %s [-c config_dir] [-D (debug)] [-d (don't detach from terminal)] [-e exit_time] [-t (test)] [-v]", me);
 }
 
+MAIL_VERSION_STAMP_DECLARE;
+
 /* main - main program */
 
 int     main(int argc, char **argv)
@@ -224,6 +226,11 @@ int     main(int argc, char **argv)
     VSTRING *why;
     WATCHDOG *watchdog;
     ARGV   *import_env;
+
+    /*
+     * Fingerprint executables and core dumps.
+     */
+    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * Initialize.

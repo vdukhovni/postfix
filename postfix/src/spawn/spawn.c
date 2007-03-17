@@ -70,7 +70,7 @@
 /*	The amount of time the command is allowed to run before it is
 /*	terminated.
 /*
-/*	Postfix 2.4 and later support a suffix that specifies the 
+/*	Postfix 2.4 and later support a suffix that specifies the
 /*	time unit: s (seconds), m (minutes), h (hours), d (days),
 /*	w (weeks). The default time unit is seconds.
 /* MISCELLANEOUS
@@ -147,6 +147,10 @@
 #include <split_at.h>
 #include <timed_wait.h>
 #include <set_eugid.h>
+
+/* Global library. */
+
+#include <mail_version.h>
 
 /* Single server skeleton. */
 
@@ -322,7 +326,7 @@ static void spawn_service(VSTREAM *client_stream, char *service, char **argv)
 static void pre_accept(char *unused_name, char **unused_argv)
 {
     const char *table;
- 
+
     if ((table = dict_changed_name()) != 0) {
 	msg_info("table %s has changed -- restarting", table);
 	exit(0);
@@ -336,6 +340,8 @@ static void drop_privileges(char *unused_name, char **unused_argv)
     set_eugid(var_owner_uid, var_owner_gid);
 }
 
+MAIL_VERSION_STAMP_DECLARE;
+
 /* main - pass control to the single-threaded skeleton */
 
 int     main(int argc, char **argv)
@@ -344,6 +350,11 @@ int     main(int argc, char **argv)
 	VAR_COMMAND_MAXTIME, DEF_COMMAND_MAXTIME, &var_command_maxtime, 1, 0,
 	0,
     };
+
+    /*
+     * Fingerprint executables and core dumps.
+     */
+    MAIL_VERSION_STAMP_ALLOCATE;
 
     single_server_main(argc, argv, spawn_service,
 		       MAIL_SERVER_TIME_TABLE, time_table,

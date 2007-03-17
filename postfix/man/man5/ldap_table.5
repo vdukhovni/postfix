@@ -22,6 +22,7 @@ Alternatively, lookup tables can be specified as LDAP databases.
 
 In order to use LDAP lookups, define an LDAP source as a lookup
 table in main.cf, for example:
+
 .ti +4
 alias_maps = ldap:/etc/postfix/ldap-aliases.cf
 
@@ -87,6 +88,7 @@ an arbitrary value. With LDAP databases it is not uncommon to
 return the key itself.
 
 For example, NEVER do this in a map defining $mydestination:
+
 .in +4
 query_filter = domain=*
 .br
@@ -94,6 +96,7 @@ result_attribute = domain
 .in -4
 
 Do this instead:
+
 .in +4
 query_filter = domain=%s
 .br
@@ -110,6 +113,7 @@ Postfix configuration routines understand how to deal with quoted
 strings.
 .IP "\fBserver_host (default: localhost)\fR"
 The name of the host running the LDAP server, e.g.
+
 .ti +4
 server_host = ldap.example.com
 
@@ -118,11 +122,13 @@ be possible to specify multiple servers here, with the library
 trying them in order should the first one fail. It should also
 be possible to give each server in the list a different port
 (overriding \fBserver_port\fR below), by naming them like
+
 .ti +4
 server_host = ldap.example.com:1444
 
 With OpenLDAP, a (list of) LDAP URLs can be used to specify both
 the hostname(s) and the port(s):
+
 .ti +4
 server_host = ldap://ldap.example.com:1444
 .ti +8
@@ -132,20 +138,24 @@ All LDAP URLs accepted by the OpenLDAP library are supported,
 including connections over UNIX domain sockets, and LDAP SSL
 (the last one provided that OpenLDAP was compiled with support
 for SSL):
+
 .ti +4
 server_host = ldapi://%2Fsome%2Fpath
 .ti +8
         ldaps://ldap.example.com:636
 .IP "\fBserver_port (default: 389)\fR"
 The port the LDAP server listens on, e.g.
+
 .ti +4
 server_port = 778
 .IP "\fBtimeout (default: 10 seconds)\fR"
 The number of seconds a search can take before timing out, e.g.
+
 .ti +4
 timeout = 5
 .IP "\fBsearch_base (No default; you must configure this)\fR"
 The RFC2253 base DN at which to conduct the search, e.g.
+
 .ti +4
 search_base = dc=your, dc=com
 .IP
@@ -188,6 +198,7 @@ no results.
 The RFC2254 filter used to search the directory, where \fB%s\fR
 is a substitute for the address Postfix is trying to resolve,
 e.g.
+
 .ti +4
 query_filter = (&(mail=%s)(paid_up=true))
 
@@ -297,6 +308,7 @@ keys with a *non-empty* localpart and a matching domain
 are eligible for lookup: 'user' lookups, bare domain lookups
 and "@domain" lookups are not performed. This can significantly
 reduce the query load on the LDAP server.
+
 .ti +4
 domain = postfix.org, hash:/etc/postfix/searchdomains
 
@@ -310,14 +322,16 @@ This feature is available in Postfix 1.0 and later.
 The attribute(s) Postfix will read from any directory
 entries returned by the lookup, to be resolved to an email
 address.
+
 .ti +4
 result_attribute = mailbox, maildrop
-.IP "\fBspecial_result_attribute (No default)\fR"
+.IP "\fBspecial_result_attribute (default: empty)\fR"
 The attribute(s) of directory entries that can contain DNs
 or URLs. If found, a recursive subsequent search is done
 using their values.
+
 .ti +4
-special_result_attribute = member
+special_result_attribute = memberdn
 
 DN recursion retrieves the same result_attributes as the
 main query, including the special attributes for further
@@ -326,6 +340,47 @@ that are included in the URI definition and are *also*
 listed in "result_attribute". If the URI lists any of the
 map's special result attributes, these are also retrieved
 and used recursively.
+.IP "\fBterminal_result_attribute (default: empty)\fR"
+When one or more terminal result attributes are found in an LDAP
+entry, all other result attributes are ignored and only the terminal
+result attributes are returned. This is useful for delegating expansion
+of group members to a particular host, by using an optional "maildrop"
+attribute on selected groups to route the group to a specific host,
+where the group is expanded, possibly via mailing-list manager or
+other special processing.
+
+.ti +4
+terminal_result_attribute = maildrop
+
+This feature is available with Postfix >= 2.4.
+.IP "\fBleaf_result_attribute (default: empty)\fR"
+When one or more special result attributes are found in a non-terminal
+(see above) LDAP entry, leaf result attributes are excluded from the
+expansion of that entry. This is useful when expanding groups and the
+desired mail address attribute(s) of the member objects obtained via
+DN or URI recursion are also present in the group object. To only
+return the attribute values from the leaf objects and not the
+containing group, add the attribute to the leaf_result_attribute list,
+and not the result_attribute list, which is always expanded. Note,
+the default value of "result_attribute" is not empty, you may want to
+set it explicitly empty when using "leaf_result_attribute" to expand
+the group to a list of member DN addresses. If groups have both
+member DN references AND attributes that hold multiple string valued
+rfc822 addresses, then the string attributes go in "result_attribute".
+The attributes that represent the email addresses of objects
+referenced via a DN (or LDAP URI) go in "leaf_result_attribute".
+
+.in +4
+result_attribute = memberaddr
+.br
+special_result_attribute = memberdn
+.br
+terminal_result_attribute = maildrop
+.br
+leaf_result_attribute = mail
+.in -4
+
+This feature is available with Postfix >= 2.4.
 .IP "\fBscope (default: sub)\fR"
 The LDAP search scope: \fBsub\fR, \fBbase\fR, or \fBone\fR.
 These translate into LDAP_SCOPE_SUBTREE, LDAP_SCOPE_BASE,
@@ -334,6 +389,7 @@ and LDAP_SCOPE_ONELEVEL.
 Whether or not to bind to the LDAP server. Newer LDAP
 implementations don't require clients to bind, which saves
 time. Example:
+
 .ti +4
 bind = no
 
@@ -346,6 +402,7 @@ should prevent the password from traversing the network in
 the clear.
 .IP "\fBbind_dn (default: empty)\fR"
 If you do have to bind, do it with this distinguished name. Example:
+
 .ti +4
 bind_dn = uid=postfix, dc=your, dc=com
 .IP "\fBbind_pw (default: empty)\fR"
@@ -357,6 +414,7 @@ main.cf, it is not possible to securely store the bind
 password. This is because main.cf needs to be world readable
 to allow local accounts to submit mail via the sendmail
 command. Example:
+
 .ti +4
 bind_pw = postfixpw
 .IP "\fBcache (IGNORED with a warning)\fR"
@@ -426,15 +484,18 @@ issue the STARTTLS command.
 
 LDAP SSL service can be requested by using a LDAP SSL URL
 in the server_host parameter:
+
 .ti +4
 server_host = ldaps://ldap.example.com:636
 
 STARTTLS can be turned on with the start_tls parameter:
+
 .ti +4
 start_tls = yes
 
 Both forms require LDAP protocol version 3, which has to be set
 explicitly with:
+
 .ti +4
 version = 3
 
@@ -488,21 +549,23 @@ Cipher suite to use in SSL/TLS negotiations.
 Here's a basic example for using LDAP to look up local(8)
 aliases.
 Assume that in main.cf, you have:
+
 .ti +4
 alias_maps = hash:/etc/aliases,
 .ti +8
 ldap:/etc/postfix/ldap-aliases.cf
 
 and in ldap:/etc/postfix/ldap-aliases.cf you have:
+
 .in +4
-server_host = ldap.my.com
+server_host = ldap.example.com
 .br
-search_base = dc=my, dc=com
+search_base = dc=example, dc=com
 .in -4
 
 Upon receiving mail for a local address "ldapuser" that
 isn't found in the /etc/aliases database, Postfix will
-search the LDAP server listening at port 389 on ldap.my.com.
+search the LDAP server listening at port 389 on ldap.example.com.
 It will bind anonymously, search for any directory entries
 whose mailacceptinggeneralid attribute is "ldapuser", read
 the "maildrop" attributes of those found, and build a list

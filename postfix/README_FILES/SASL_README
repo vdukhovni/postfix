@@ -254,7 +254,7 @@ Note: some Cyrus SASL distributions look for the smtpd.conf file in /etc/sasl2.
     a pam".
 
     IMPORTANT: saslauthd usually establishes a UNIX domain socket in /var/run/
-    saslauthd and waits for authentication requests. postfix processes must
+    saslauthd and waits for authentication requests. Postfix processes must
     have read+execute permission to this directory or authentication attempts
     will fail.
 

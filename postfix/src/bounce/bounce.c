@@ -154,6 +154,7 @@
 #include <mail_proto.h>
 #include <mail_queue.h>
 #include <mail_params.h>
+#include <mail_version.h>
 #include <mail_conf.h>
 #include <bounce.h>
 #include <mail_addr.h>
@@ -576,8 +577,8 @@ static void post_jail_init(char *service_name, char **unused_argv)
     /*
      * Special case: dump bounce templates. This is not part of the master(5)
      * public interface. This internal interface is used by the postconf
-     * command. It was implemented before bounce templates were isolated
-     * into modules that could have been called directly.
+     * command. It was implemented before bounce templates were isolated into
+     * modules that could have been called directly.
      */
     if (strcmp(service_name, "dump_templates") == 0) {
 	bounce_templates_dump(VSTREAM_OUT, bounce_templates);
@@ -604,6 +605,8 @@ static void post_jail_init(char *service_name, char **unused_argv)
     dsn_buf = dsb_create();
 }
 
+MAIL_VERSION_STAMP_DECLARE;
+
 /* main - the main program */
 
 int     main(int argc, char **argv)
@@ -625,6 +628,11 @@ int     main(int argc, char **argv)
 	VAR_BOUNCE_TMPL, DEF_BOUNCE_TMPL, &var_bounce_tmpl, 0, 0,
 	0,
     };
+
+    /*
+     * Fingerprint executables and core dumps.
+     */
+    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * Pass control to the single-threaded service skeleton.

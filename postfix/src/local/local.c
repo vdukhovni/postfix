@@ -595,6 +595,7 @@
 #include <mail_conf.h>
 #include <been_here.h>
 #include <mail_params.h>
+#include <mail_version.h>
 #include <ext_prop.h>
 #include <maps.h>
 #include <flush_clnt.h>
@@ -845,6 +846,8 @@ static void pre_init(char *unused_name, char **unused_argv)
     flush_init();
 }
 
+MAIL_VERSION_STAMP_DECLARE;
+
 /* main - pass control to the single-threaded skeleton */
 
 int     main(int argc, char **argv)
@@ -895,6 +898,11 @@ int     main(int argc, char **argv)
 	VAR_LUSER_RELAY, DEF_LUSER_RELAY, &var_luser_relay, 0, 0,
 	0,
     };
+
+    /*
+     * Fingerprint executables and core dumps.
+     */
+    MAIL_VERSION_STAMP_ALLOCATE;
 
     single_server_main(argc, argv, local_service,
 		       MAIL_SERVER_INT_TABLE, int_table,

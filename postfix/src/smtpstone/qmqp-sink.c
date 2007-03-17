@@ -79,6 +79,7 @@
 /* Global library. */
 
 #include <qmqp_proto.h>
+#include <mail_version.h>
 
 /* Application-specific. */
 
@@ -239,6 +240,8 @@ static void usage(char *myname)
     msg_fatal("usage: %s [-cv] [-x time] [host]:port backlog", myname);
 }
 
+MAIL_VERSION_STAMP_DECLARE;
+
 int     main(int argc, char **argv)
 {
     int     sock;
@@ -247,6 +250,11 @@ int     main(int argc, char **argv)
     int     ttl;
     const char *protocols = INET_PROTO_NAME_ALL;
     INET_PROTO_INFO *proto_info;
+
+    /*
+     * Fingerprint executables and core dumps.
+     */
+    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * Fix 20051207.

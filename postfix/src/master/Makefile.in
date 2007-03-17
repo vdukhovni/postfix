@@ -180,6 +180,7 @@ master_service.o: master.h
 master_service.o: master_service.c
 master_sig.o: ../../include/events.h
 master_sig.o: ../../include/iostuff.h
+master_sig.o: ../../include/killme_after.h
 master_sig.o: ../../include/msg.h
 master_sig.o: ../../include/posix_signals.h
 master_sig.o: ../../include/sys_defs.h

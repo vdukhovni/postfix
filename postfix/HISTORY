@@ -13339,6 +13339,33 @@ Apologies for any names omitted.
 	compatibility with Postfix versions that pre-date Milter
 	support. File: cleanup/cleanup_out.c.
 
+20070314
+
+	Bitrot: move the "don't run this daemon by hand" message
+	before other tests. Files: master/*server.c.
+
+20070315
+
+	Bitrot: New OpenLDAP APIs deprecate simplified interfaces,
+	that are the only ones available in Sun's LDAP SDK. Define
+	suitable macros that work with new OpenLDAP and Sun's code.
+	Victor Duchovni, Morgan Stanley. File: src/global/dict_ldap.c
+
+	Cleanup: new "leaf" and "terminal" result attributes support
+	fine-tuning of LDAP group expansion, and provide a solution
+	for the problem case where DN recursion returns both the
+	group address and the addresses of the member objects.
+	Victor Duchovni, Morgan Stanley.  Files: src/global/dict_ldap.c,
+	proto/LDAP_README.html, proto/ldap_table
+
+20070317
+
+	Idioten Sicherheit: stamp every executable file and every
+	core dump file with "mail_version=xxxxx". Adding version
+	stamps and checks to every IPC message is too much change
+	after code freeze, and requires too much time for testing.
+	File: src/global/mail_version.h and every main program file.
+
 Wish list:
 
 	Update message content length when adding/removing headers.

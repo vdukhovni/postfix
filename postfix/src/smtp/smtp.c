@@ -602,6 +602,7 @@
 
 #include <deliver_request.h>
 #include <mail_params.h>
+#include <mail_version.h>
 #include <mail_conf.h>
 #include <debug_peer.h>
 #include <flush_clnt.h>
@@ -947,6 +948,8 @@ static void pre_accept(char *unused_name, char **unused_argv)
     }
 }
 
+MAIL_VERSION_STAMP_DECLARE;
+
 /* main - pass control to the single-threaded skeleton */
 
 int     main(int argc, char **argv)
@@ -954,6 +957,11 @@ int     main(int argc, char **argv)
 #include "smtp_params.c"
 #include "lmtp_params.c"
     int     smtp_mode;
+
+    /*
+     * Fingerprint executables and core dumps.
+     */
+    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * XXX At this point, var_procname etc. are not initialized.

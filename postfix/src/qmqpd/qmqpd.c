@@ -165,6 +165,7 @@
 /* Global library. */
 
 #include <mail_params.h>
+#include <mail_version.h>
 #include <record.h>
 #include <rec_type.h>
 #include <mail_proto.h>
@@ -759,6 +760,8 @@ static void post_jail_init(char *unused_name, char **unused_argv)
     input_transp_mask(VAR_INPUT_TRANSP, var_input_transp);
 }
 
+MAIL_VERSION_STAMP_DECLARE;
+
 /* main - the main program */
 
 int     main(int argc, char **argv)
@@ -774,6 +777,11 @@ int     main(int argc, char **argv)
 	VAR_INPUT_TRANSP, DEF_INPUT_TRANSP, &var_input_transp, 0, 0,
 	0,
     };
+
+    /*
+     * Fingerprint executables and core dumps.
+     */
+    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * Pass control to the single-threaded service skeleton.
