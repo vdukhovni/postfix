@@ -108,7 +108,11 @@ int     sane_accept(int sock, struct sockaddr * sa, SOCKADDR_SIZE *len)
      * timer.
      */
 #if defined(BROKEN_READ_SELECT_ON_TCP_SOCKET) && defined(SO_KEEPALIVE)
-    else if (sa != 0 && sa->sa_family == AF_INET) {
+    else if (sa && (sa->sa_family == AF_INET
+#ifdef HAS_IPV6
+		    || sa->sa_family == AF_INET6
+#endif
+		    )) {
 	int     on = 1;
 
 	(void) setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE,

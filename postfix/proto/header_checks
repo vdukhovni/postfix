@@ -16,11 +16,16 @@
 # .br
 #	\fBpostmap -fq - pcre:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
 # DESCRIPTION
-#	Postfix provides a simple built-in content inspection mechanism that
-#	examines incoming mail one message header or one message body line
-#	at a time. Each input is compared against a list of patterns, and
-#	when a match is found the corresponding action is executed.
-#	This feature is implemented by the Postfix \fBcleanup\fR(8) server.
+#	The Postfix \fBcleanup\fR(8) server supports access control
+#	on the content of message headers and message body lines.
+#	See \fBaccess\fR(5) for access control on remote SMTP client
+#	information.
+#
+#	Each message header or message body line is compared against
+#	a list of patterns.
+#	When a match is found the corresponding action is executed, and
+#	the matching process is repeated for the next message header or
+#	message body line.
 #
 #	For examples, see the EXAMPLES section at the end of this
 #	manual page.
@@ -191,7 +196,8 @@
 # .sp
 #	Note: use "\fBpostsuper -r\fR" to release mail that was kept on
 #	hold for a significant fraction of \fB$maximal_queue_lifetime\fR
-#	or \fB$bounce_queue_lifetime\fR, or longer.
+#	or \fB$bounce_queue_lifetime\fR, or longer. Use "\fBpostsuper -H\fR"
+#	only for mail that will not expire within a few delivery attempts.
 # .sp
 #	Note: this action affects all recipients of the message.
 # .sp

@@ -26,11 +26,12 @@ that runs outside Postfix. </p>
 
 <p> With this policy delegation mechanism, a simple <a href="#greylist">
 greylist </a> policy can be implemented with only a dozen lines of
-Perl, as is shown at the end of this document. Another example of
-policy delegation is the SPF policy server by Meng Wong at
-http://spf.pobox.com/.  Examples of both policies can be found in
-the Postfix source code, in the directory examples/smtpd-policy.
-</p>
+Perl, as is shown at the end of this document. A complete example
+can be found in the Postfix source code, in the directory
+examples/smtpd-policy. </p>
+
+<p> Another example of policy delegation is the SPF policy server
+at http://www.openspf.org/Software.  </p>
 
 <p> Policy delegation is now the preferred method for adding policies
 to Postfix. It's much easier to develop a new feature in few lines

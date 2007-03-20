@@ -126,6 +126,7 @@
 #include <mail_proto.h>
 #include <mail_queue.h>
 #include <mail_params.h>
+#include <mail_version.h>
 #include <mail_conf.h>
 #include <mail_task.h>
 #include <clean_env.h>
@@ -206,6 +207,8 @@ static void postdrop_cleanup(void)
     postdrop_sig(0);
 }
 
+MAIL_VERSION_STAMP_DECLARE;
+
 /* main - the main program */
 
 int     main(int argc, char **argv)
@@ -229,6 +232,12 @@ int     main(int argc, char **argv)
     const char *errstr;
     char   *junk;
     struct timeval start;
+    int     saved_errno;
+
+    /*
+     * Fingerprint executables and core dumps.
+     */
+    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * Be consistent with file permissions.
@@ -427,9 +436,12 @@ int     main(int argc, char **argv)
 	    continue;
 	}
 	if (REC_PUT_BUF(dst->stream, rec_type, buf) < 0) {
-	    while ((rec_type = rec_get(VSTREAM_IN, buf, var_line_limit)) > 0
-		   && rec_type != REC_TYPE_END)
+	    /* rec_get() errors must not clobber errno. */
+	    saved_errno = errno;
+	    while (rec_get_raw(VSTREAM_IN, buf, var_line_limit,
+			       REC_FLAG_NONE) > 0)
 		 /* void */ ;
+	    errno = saved_errno;
 	    break;
 	}
 	if (rec_type == REC_TYPE_END)
@@ -441,8 +453,8 @@ int     main(int argc, char **argv)
      * Finish the file.
      */
     if ((status = mail_stream_finish(dst, (VSTRING *) 0)) != 0) {
-	postdrop_cleanup();
 	msg_warn("uid=%ld: %m", (long) uid);
+	postdrop_cleanup();
     }
 
     /*

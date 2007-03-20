@@ -141,7 +141,7 @@ Postfix version 2.0 and earlier:
 
 MMeeaassuurreess aaggaaiinnsstt cclliieennttss tthhaatt mmaakkee ttoooo mmaannyy ccoonnnneeccttiioonnss
 
-Note: this feature is not included with Postfix version 2.1.
+Note: the anvil(8) service was introduced with Postfix version 2.2.
 
 The Postfix smtpd(8) server can limit the number of simultaneous connections
 from the same SMTP client, as well as the number of connections that a client

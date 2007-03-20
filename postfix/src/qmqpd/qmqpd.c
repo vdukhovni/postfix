@@ -95,11 +95,11 @@
 /*	The time limit for sending or receiving information over an internal
 /*	communication channel.
 /* .IP "\fBmax_idle (100s)\fR"
-/*	The maximum amount of time that an idle Postfix daemon process
-/*	waits for the next service request before exiting.
+/*	The maximum amount of time that an idle Postfix daemon process waits
+/*	for an incoming connection before terminating voluntarily.
 /* .IP "\fBmax_use (100)\fR"
-/*	The maximal number of connection requests before a Postfix daemon
-/*	process terminates.
+/*	The maximal number of incoming connections that a Postfix daemon
+/*	process will service before terminating voluntarily.
 /* .IP "\fBprocess_id (read-only)\fR"
 /*	The process ID of a Postfix command or daemon process.
 /* .IP "\fBprocess_name (read-only)\fR"
@@ -165,6 +165,7 @@
 /* Global library. */
 
 #include <mail_params.h>
+#include <mail_version.h>
 #include <record.h>
 #include <rec_type.h>
 #include <mail_proto.h>
@@ -759,6 +760,8 @@ static void post_jail_init(char *unused_name, char **unused_argv)
     input_transp_mask(VAR_INPUT_TRANSP, var_input_transp);
 }
 
+MAIL_VERSION_STAMP_DECLARE;
+
 /* main - the main program */
 
 int     main(int argc, char **argv)
@@ -774,6 +777,11 @@ int     main(int argc, char **argv)
 	VAR_INPUT_TRANSP, DEF_INPUT_TRANSP, &var_input_transp, 0, 0,
 	0,
     };
+
+    /*
+     * Fingerprint executables and core dumps.
+     */
+    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * Pass control to the single-threaded service skeleton.

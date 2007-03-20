@@ -96,11 +96,11 @@
 /*	The time limit for sending or receiving information over an internal
 /*	communication channel.
 /* .IP "\fBmax_idle (100s)\fR"
-/*	The maximum amount of time that an idle Postfix daemon process
-/*	waits for the next service request before exiting.
+/*	The maximum amount of time that an idle Postfix daemon process waits
+/*	for an incoming connection before terminating voluntarily.
 /* .IP "\fBmax_use (100)\fR"
-/*	The maximal number of connection requests before a Postfix daemon
-/*	process terminates.
+/*	The maximal number of incoming connections that a Postfix daemon
+/*	process will service before terminating voluntarily.
 /* .IP "\fBparent_domain_matches_subdomains (see 'postconf -d' output)\fR"
 /*	What Postfix features match subdomains of "domain.tld" automatically,
 /*	instead of requiring an explicit ".domain.tld" pattern.
@@ -173,6 +173,7 @@
 /* Global library. */
 
 #include <mail_params.h>
+#include <mail_version.h>
 #include <mail_queue.h>
 #include <mail_proto.h>
 #include <mail_flush.h>
@@ -387,7 +388,7 @@ static int flush_send_service(const char *site, int how)
 /* flush_one_file - move one queue file to incoming queue */
 
 static int flush_one_file(const char *queue_id, VSTRING *queue_file,
-			            struct utimbuf * tbuf, int how)
+			          struct utimbuf * tbuf, int how)
 {
     const char *myname = "flush_one_file";
     const char *queue_name;
@@ -807,6 +808,8 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 				     var_fflush_domains);
 }
 
+MAIL_VERSION_STAMP_DECLARE;
+
 /* main - pass control to the single-threaded skeleton */
 
 int     main(int argc, char **argv)
@@ -816,6 +819,11 @@ int     main(int argc, char **argv)
 	VAR_FFLUSH_PURGE, DEF_FFLUSH_PURGE, &var_fflush_purge, 1, 0,
 	0,
     };
+
+    /*
+     * Fingerprint executables and core dumps.
+     */
+    MAIL_VERSION_STAMP_ALLOCATE;
 
     single_server_main(argc, argv, flush_service,
 		       MAIL_SERVER_TIME_TABLE, time_table,

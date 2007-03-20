@@ -87,11 +87,11 @@
 /*	The default maximal number of Postfix child processes that provide
 /*	a given service.
 /* .IP "\fBmax_idle (100s)\fR"
-/*	The maximum amount of time that an idle Postfix daemon process
-/*	waits for the next service request before exiting.
+/*	The maximum amount of time that an idle Postfix daemon process waits
+/*	for an incoming connection before terminating voluntarily.
 /* .IP "\fBmax_use (100)\fR"
-/*	The maximal number of connection requests before a Postfix daemon
-/*	process terminates.
+/*	The maximal number of incoming connections that a Postfix daemon
+/*	process will service before terminating voluntarily.
 /* .IP "\fBservice_throttle_time (60s)\fR"
 /*	How long the Postfix \fBmaster\fR(8) waits before forking a server that
 /*	appears to be malfunctioning.
@@ -209,6 +209,8 @@ static NORETURN usage(const char *me)
     msg_fatal("usage: %s [-c config_dir] [-D (debug)] [-d (don't detach from terminal)] [-e exit_time] [-t (test)] [-v]", me);
 }
 
+MAIL_VERSION_STAMP_DECLARE;
+
 /* main - main program */
 
 int     main(int argc, char **argv)
@@ -224,6 +226,11 @@ int     main(int argc, char **argv)
     VSTRING *why;
     WATCHDOG *watchdog;
     ARGV   *import_env;
+
+    /*
+     * Fingerprint executables and core dumps.
+     */
+    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * Initialize.

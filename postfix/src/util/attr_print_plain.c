@@ -22,7 +22,7 @@
 /*	attr_scan_plain(). The stream is not flushed.
 /*
 /*	attr_vprint_plain() provides an alternate interface that is convenient
-/*	for calling from within variadoc functions.
+/*	for calling from within variadic functions.
 /*
 /*	Attributes are sent in the requested order as specified with the
 /*	attr_print_plain() argument list. This routine satisfies the formatting

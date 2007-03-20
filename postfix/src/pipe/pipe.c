@@ -118,8 +118,8 @@
 /*	by, for example, \fBUUCP\fR software.
 /* .RE
 /* .IP "\fBnull_sender\fR=\fIreplacement\fR (default: MAILER-DAEMON)"
-/*	Replace the null sender address, which is typically used
-/*	for delivery status notifications, with the specified text
+/*	Replace the null sender address (typically used for delivery
+/*	status notifications) with the specified text
 /*	when expanding the \fB$sender\fR command-line macro, and
 /*	when generating a From_ or Return-Path: message header.
 /*
@@ -329,11 +329,11 @@
 /*	The UNIX system account that owns the Postfix queue and most Postfix
 /*	daemon processes.
 /* .IP "\fBmax_idle (100s)\fR"
-/*	The maximum amount of time that an idle Postfix daemon process
-/*	waits for the next service request before exiting.
+/*	The maximum amount of time that an idle Postfix daemon process waits
+/*	for an incoming connection before terminating voluntarily.
 /* .IP "\fBmax_use (100)\fR"
-/*	The maximal number of connection requests before a Postfix daemon
-/*	process terminates.
+/*	The maximal number of incoming connections that a Postfix daemon
+/*	process will service before terminating voluntarily.
 /* .IP "\fBprocess_id (read-only)\fR"
 /*	The process ID of a Postfix command or daemon process.
 /* .IP "\fBprocess_name (read-only)\fR"
@@ -400,6 +400,7 @@
 #include <recipient_list.h>
 #include <deliver_request.h>
 #include <mail_params.h>
+#include <mail_version.h>
 #include <mail_conf.h>
 #include <bounce.h>
 #include <defer.h>
@@ -1196,6 +1197,8 @@ static void pre_init(char *unused_name, char **unused_argv)
     flush_init();
 }
 
+MAIL_VERSION_STAMP_DECLARE;
+
 /* main - pass control to the single-threaded skeleton */
 
 int     main(int argc, char **argv)
@@ -1204,6 +1207,11 @@ int     main(int argc, char **argv)
 	VAR_COMMAND_MAXTIME, DEF_COMMAND_MAXTIME, &var_command_maxtime, 1, 0,
 	0,
     };
+
+    /*
+     * Fingerprint executables and core dumps.
+     */
+    MAIL_VERSION_STAMP_ALLOCATE;
 
     single_server_main(argc, argv, pipe_service,
 		       MAIL_SERVER_TIME_TABLE, time_table,

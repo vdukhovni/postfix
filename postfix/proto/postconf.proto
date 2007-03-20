@@ -2565,8 +2565,9 @@ masquerade_exceptions = root
 %PARAM max_idle 100s
 
 <p>
-The maximum amount of time that an idle Postfix daemon process
-waits for the next service request before exiting.  This parameter
+The maximum amount of time that an idle Postfix daemon process waits
+for an incoming connection before terminating voluntarily.  This
+parameter
 is ignored by the Postfix queue manager and by other long-lived
 Postfix daemon processes.
 </p>
@@ -2579,8 +2580,9 @@ The default time unit is s (seconds).
 %PARAM max_use 100
 
 <p>
-The maximal number of connection requests before a Postfix daemon
-process terminates. This parameter is ignored by the Postfix queue
+The maximal number of incoming connections that a Postfix daemon
+process will service before terminating voluntarily.  This parameter
+is ignored by the Postfix queue
 manager and by other long-lived Postfix daemon processes.
 </p>
 
@@ -3317,7 +3319,10 @@ Do not change this unless you have a complete understanding of RFC 821.
 
 <p> Optional lookup tables with all valid addresses in the domains
 that match $relay_domains. Specify @domain as a wild-card for
-domains that do not have a valid recipient list. Technically, tables
+domains that have no valid recipient list, and become a source of
+backscatter mail: Postfix accepts spam for non-existent recipients
+and then floods innocent people with undeliverable mail.  Technically,
+tables
 listed with $relay_recipient_maps are used as lists: Postfix needs
 to know only if a lookup string is found or not, but it does not
 use the result from table lookup.  </p>
@@ -8125,7 +8130,7 @@ system.  </p>
 %PARAM smtpd_tls_cert_file
 
 <p> File with the Postfix SMTP server RSA certificate in PEM format.
-This file may also contain the server private key. </p>
+This file may also contain the Postfix SMTP server private RSA key. </p>
 
 <p> Public Internet MX hosts without certificates signed by a "reputable"
 CA must generate, and be prepared to present to most clients, a
@@ -8159,14 +8164,13 @@ server certificate first, then the issuing CA(s).  </p>
 Create the server.pem file with "cat server_cert.pem intermediate_CA.pem
 root_CA.pem &gt; server.pem". </p>
 
-<p> If you want to accept certificates issued by these CAs yourself,
-you can also add the CA certificates to the smtpd_tls_CAfile, in
-which case it is not necessary to have them in the smtpd_tls_dcert_file
-or smtpd_tls_cert_file. </p>
+<p> If you also want to verify client certificates issued by these
+CAs, you can add the CA certificates to the smtpd_tls_CAfile, in which
+case it is not necessary to have them in the smtpd_tls_cert_file or
+smtpd_tls_dcert_file. </p>
 
-<p> A certificate supplied here must be usable as SSL server
-certificate and hence pass the "openssl verify -purpose sslserver
-..." test. </p>
+<p> A certificate supplied here must be usable as an SSL server certificate
+and hence pass the "openssl verify -purpose sslserver ..." test. </p>
 
 <p> Example: </p>
 
@@ -8179,16 +8183,18 @@ smtpd_tls_cert_file = /etc/postfix/server.pem
 %PARAM smtpd_tls_key_file $smtpd_tls_cert_file
 
 <p> File with the Postfix SMTP server RSA private key in PEM format.
-This file may be combined with the server certificate file specified
+This file may be combined with the Postfix SMTP server certificate
+file specified
 with $smtpd_tls_cert_file. </p>
 
-<p> The private key must not be encrypted. In other words, the key
-must be accessible without password. </p>
+<p> The private key must be accessible without a pass-phrase, i.e. it
+must not be encrypted, but file permissions should grant read/write
+access only to the system superuser account ("root"). </p>
 
 %PARAM smtpd_tls_dcert_file
 
 <p> File with the Postfix SMTP server DSA certificate in PEM format.
-This file may also contain the server private key. <p>
+This file may also contain the Postfix SMTP server private key. <p>
 
 <p> See the discussion under smtpd_tls_cert_file for more details.
 </p>
@@ -8204,11 +8210,12 @@ smtpd_tls_dcert_file = /etc/postfix/server-dsa.pem
 %PARAM smtpd_tls_dkey_file $smtpd_tls_dcert_file
 
 <p> File with the Postfix SMTP server DSA private key in PEM format.
-This file may be combined with the server certificate file specified
-with $smtpd_tls_dcert_file. </p>
+This file may be combined with the Postfix SMTP server DSA certificate
+file specified with $smtpd_tls_dcert_file. </p>
 
-<p> The private key must not be encrypted. In other words, the key
-must be accessible without password. </p>
+<p> The private key must be accessible without a pass-phrase, i.e. it
+must not be encrypted, but file permissions should grant read/write
+access only to the system superuser account ("root"). </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
 
@@ -8504,8 +8511,9 @@ during TLS startup and shutdown handshake procedures. </p>
 %PARAM smtp_tls_cert_file
 
 <p> File with the Postfix SMTP client RSA certificate in PEM format.
-This file may also contain the client private key, and these may
-be the same as the server certificate and key file. </p>
+This file may also contain the Postfix SMTP client private RSA key,
+and these may be the same as the Postfix SMTP server RSA certificate and key
+file. </p>
 
 <p> Do not configure client certificates unless you <b>must</b> present
 client TLS certificates to one or more servers. Client certificates are
@@ -8526,21 +8534,21 @@ parameters in main.cf if present. </p>
 
 <p> In order to verify certificates, the CA certificate (in case
 of a certificate chain, all CA certificates) must be available.
-You should add these certificates to the server certificate, the
-server certificate first, then the issuing CA(s). </p>
+You should add these certificates to the client certificate, the
+client certificate first, then the issuing CA(s). </p>
 
 <p> Example: the certificate for "client.dom.ain" was issued by
 "intermediate CA" which itself has a certificate of "root CA".
 Create the client.pem file with "cat client_cert.pem intermediate_CA.pem
 root_CA.pem &gt; client.pem". </p>
 
-<p> If you want to accept remote SMTP server certificates issued
-by these CAs yourself, you can also add the CA certificates to the
-smtp_tls_CAfile, in which case it is not necessary to have them in
-the smtp_tls_cert_file or smtp_tls_dcert_file. </p>
+<p> If you also want to verify remote SMTP server certificates issued by
+these CAs, you can also add the CA certificates to the smtp_tls_CAfile,
+in which case it is not necessary to have them in the smtp_tls_cert_file
+or smtp_tls_dcert_file. </p>
 
-<p> A certificate supplied here must be usable as SSL client certificate and
-hence pass the "openssl verify -purpose sslclient ..." test. </p>
+<p> A certificate supplied here must be usable as an SSL client certificate
+and hence pass the "openssl verify -purpose sslclient ..." test. </p>
 
 <p> Example: </p>
 
@@ -8553,11 +8561,12 @@ smtp_tls_cert_file = /etc/postfix/client.pem
 %PARAM smtp_tls_key_file $smtp_tls_cert_file
 
 <p> File with the Postfix SMTP client RSA private key in PEM format.
-This file may be combined with the client certificate file specified
-with $smtp_tls_cert_file. </p>
+This file may be combined with the Postfix SMTP client RSA certificate
+file specified with $smtp_tls_cert_file. </p>
 
-<p> The private key must not be encrypted. In other words, the key
-must be accessible without password. </p>
+<p> The private key must be accessible without a pass-phrase, i.e. it
+must not be encrypted, but file permissions should grant read/write
+access only to the system superuser account ("root"). </p>
 
 <p> Example: </p>
 
@@ -8842,18 +8851,19 @@ during TLS startup and shutdown handshake procedures. </p>
 %PARAM smtp_tls_dkey_file $smtp_tls_dcert_file
 
 <p> File with the Postfix SMTP client DSA private key in PEM format.
-The private key must not be encrypted. In other words, the key must
-be accessible without password. </p>
+This file may be combined with the Postfix SMTP client DSA certificate
+file specified with $smtp_tls_dcert_file. </p>
 
-<p> This file may be combined with the server certificate file
-specified with $smtp_tls_cert_file. </p>
+<p> The private key must be accessible without a pass-phrase, i.e. it
+must not be encrypted, but file permissions should grant read/write
+access only to the system superuser account ("root"). </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
 
 %PARAM smtp_tls_dcert_file
 
 <p> File with the Postfix SMTP client DSA certificate in PEM format.
-This file may also contain the server private key. </p>
+This file may also contain the Postfix SMTP client private DSA key. </p>
 
 <p> See the discussion under smtp_tls_cert_file for more details.
 </p>
@@ -9026,9 +9036,9 @@ precision.  </p>
 
 <ul>
 
-<li> a = time before the queue manager, including message transmission
+<li> a = time from message arrival to last active queue entry
 
-<li> b = time in queue manager
+<li> b = time from last active queue entry to connection setup
 
 <li> c = time in connection setup, including DNS, EHLO and TLS
 
@@ -9127,7 +9137,7 @@ smtpd_discard_ehlo_keyword_address_maps. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
-%PARAM lmtp_discard_lhlo_keywords $myhostname
+%PARAM lmtp_discard_lhlo_keywords 
 
 <p> A case insensitive list of LHLO keywords (pipelining, starttls,
 auth, etc.) that the LMTP client will ignore in the LHLO response

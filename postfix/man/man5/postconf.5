@@ -1104,9 +1104,9 @@ precision.
 .PP
 The format of the "delays=a/b/c/d" logging is as follows:
 .IP \(bu
-a = time before the queue manager, including message transmission
+a = time from message arrival to last active queue entry
 .IP \(bu
-b = time in queue manager
+b = time from last active queue entry to connection setup
 .IP \(bu
 c = time in connection setup, including DNS, EHLO and TLS
 .IP \(bu
@@ -1805,7 +1805,7 @@ details. The table is not indexed by hostname for consistency with
 smtpd_discard_ehlo_keyword_address_maps.
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH lmtp_discard_lhlo_keywords (default: $myhostname)
+.SH lmtp_discard_lhlo_keywords (default: empty)
 A case insensitive list of LHLO keywords (pipelining, starttls,
 auth, etc.) that the LMTP client will ignore in the LHLO response
 from a remote LMTP server.
@@ -2649,16 +2649,18 @@ masquerade_exceptions = root
 .ad
 .ft R
 .SH max_idle (default: 100s)
-The maximum amount of time that an idle Postfix daemon process
-waits for the next service request before exiting.  This parameter
+The maximum amount of time that an idle Postfix daemon process waits
+for an incoming connection before terminating voluntarily.  This
+parameter
 is ignored by the Postfix queue manager and by other long-lived
 Postfix daemon processes.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 .SH max_use (default: 100)
-The maximal number of connection requests before a Postfix daemon
-process terminates. This parameter is ignored by the Postfix queue
+The maximal number of incoming connections that a Postfix daemon
+process will service before terminating voluntarily.  This parameter
+is ignored by the Postfix queue
 manager and by other long-lived Postfix daemon processes.
 .SH maximal_backoff_time (default: 4000s)
 The maximal time between attempts to deliver a deferred message.
@@ -3543,7 +3545,10 @@ Do not change this unless you have a complete understanding of RFC 821.
 .SH relay_recipient_maps (default: empty)
 Optional lookup tables with all valid addresses in the domains
 that match $relay_domains. Specify @domain as a wild-card for
-domains that do not have a valid recipient list. Technically, tables
+domains that have no valid recipient list, and become a source of
+backscatter mail: Postfix accepts spam for non-existent recipients
+and then floods innocent people with undeliverable mail.  Technically,
+tables
 listed with $relay_recipient_maps are used as lists: Postfix needs
 to know only if a lookup string is found or not, but it does not
 use the result from table lookup.
@@ -4459,8 +4464,9 @@ smtp_tls_CApath = /etc/postfix/certs
 This feature is available in Postfix 2.2 and later.
 .SH smtp_tls_cert_file (default: empty)
 File with the Postfix SMTP client RSA certificate in PEM format.
-This file may also contain the client private key, and these may
-be the same as the server certificate and key file.
+This file may also contain the Postfix SMTP client private RSA key,
+and these may be the same as the Postfix SMTP server RSA certificate and key
+file.
 .PP
 Do not configure client certificates unless you \fBmust\fR present
 client TLS certificates to one or more servers. Client certificates are
@@ -4488,21 +4494,21 @@ parameters in main.cf if present.
 .PP
 In order to verify certificates, the CA certificate (in case
 of a certificate chain, all CA certificates) must be available.
-You should add these certificates to the server certificate, the
-server certificate first, then the issuing CA(s).
+You should add these certificates to the client certificate, the
+client certificate first, then the issuing CA(s).
 .PP
 Example: the certificate for "client.dom.ain" was issued by
 "intermediate CA" which itself has a certificate of "root CA".
 Create the client.pem file with "cat client_cert.pem intermediate_CA.pem
 root_CA.pem > client.pem".
 .PP
-If you want to accept remote SMTP server certificates issued
-by these CAs yourself, you can also add the CA certificates to the
-smtp_tls_CAfile, in which case it is not necessary to have them in
-the smtp_tls_cert_file or smtp_tls_dcert_file.
+If you also want to verify remote SMTP server certificates issued by
+these CAs, you can also add the CA certificates to the smtp_tls_CAfile,
+in which case it is not necessary to have them in the smtp_tls_cert_file
+or smtp_tls_dcert_file.
 .PP
-A certificate supplied here must be usable as SSL client certificate and
-hence pass the "openssl verify -purpose sslclient ..." test.
+A certificate supplied here must be usable as an SSL client certificate
+and hence pass the "openssl verify -purpose sslclient ..." test.
 .PP
 Example:
 .PP
@@ -4531,7 +4537,7 @@ This feature is available in Postfix version 2.2. It is not used with
 Postfix 2.3 and later; use smtp_tls_mandatory_ciphers instead.
 .SH smtp_tls_dcert_file (default: empty)
 File with the Postfix SMTP client DSA certificate in PEM format.
-This file may also contain the server private key.
+This file may also contain the Postfix SMTP client private DSA key.
 .PP
 See the discussion under smtp_tls_cert_file for more details.
 .PP
@@ -4548,11 +4554,12 @@ smtp_tls_dcert_file = /etc/postfix/client-dsa.pem
 This feature is available in Postfix 2.2 and later.
 .SH smtp_tls_dkey_file (default: $smtp_tls_dcert_file)
 File with the Postfix SMTP client DSA private key in PEM format.
-The private key must not be encrypted. In other words, the key must
-be accessible without password.
+This file may be combined with the Postfix SMTP client DSA certificate
+file specified with $smtp_tls_dcert_file.
 .PP
-This file may be combined with the server certificate file
-specified with $smtp_tls_cert_file.
+The private key must be accessible without a pass-phrase, i.e. it
+must not be encrypted, but file permissions should grant read/write
+access only to the system superuser account ("root").
 .PP
 This feature is available in Postfix 2.2 and later.
 .SH smtp_tls_enforce_peername (default: yes)
@@ -4604,11 +4611,12 @@ key exchange with RSA authentication.
 This feature is available in Postfix 2.3 and later.
 .SH smtp_tls_key_file (default: $smtp_tls_cert_file)
 File with the Postfix SMTP client RSA private key in PEM format.
-This file may be combined with the client certificate file specified
-with $smtp_tls_cert_file.
+This file may be combined with the Postfix SMTP client RSA certificate
+file specified with $smtp_tls_cert_file.
 .PP
-The private key must not be encrypted. In other words, the key
-must be accessible without password.
+The private key must be accessible without a pass-phrase, i.e. it
+must not be encrypted, but file permissions should grant read/write
+access only to the system superuser account ("root").
 .PP
 Example:
 .PP
@@ -6586,7 +6594,7 @@ root CA issues special CA which then issues the actual certificate...).
 This feature is available in Postfix 2.2 and later.
 .SH smtpd_tls_cert_file (default: empty)
 File with the Postfix SMTP server RSA certificate in PEM format.
-This file may also contain the server private key.
+This file may also contain the Postfix SMTP server private RSA key.
 .PP
 Public Internet MX hosts without certificates signed by a "reputable"
 CA must generate, and be prepared to present to most clients, a
@@ -6620,14 +6628,13 @@ Example: the certificate for "server.dom.ain" was issued by
 Create the server.pem file with "cat server_cert.pem intermediate_CA.pem
 root_CA.pem > server.pem".
 .PP
-If you want to accept certificates issued by these CAs yourself,
-you can also add the CA certificates to the smtpd_tls_CAfile, in
-which case it is not necessary to have them in the smtpd_tls_dcert_file
-or smtpd_tls_cert_file.
+If you also want to verify client certificates issued by these
+CAs, you can add the CA certificates to the smtpd_tls_CAfile, in which
+case it is not necessary to have them in the smtpd_tls_cert_file or
+smtpd_tls_dcert_file.
 .PP
-A certificate supplied here must be usable as SSL server
-certificate and hence pass the "openssl verify -purpose sslserver
-\e&..." test.
+A certificate supplied here must be usable as an SSL server certificate
+and hence pass the "openssl verify -purpose sslserver ..." test.
 .PP
 Example:
 .PP
@@ -6657,7 +6664,7 @@ This feature is available with Postfix version 2.2. It is not used with
 Postfix 2.3 and later; use smtpd_tls_mandatory_ciphers instead.
 .SH smtpd_tls_dcert_file (default: empty)
 File with the Postfix SMTP server DSA certificate in PEM format.
-This file may also contain the server private key.
+This file may also contain the Postfix SMTP server private key.
 .PP
 See the discussion under smtpd_tls_cert_file for more details.
 .PP
@@ -6723,11 +6730,12 @@ smtpd_tls_dh512_param_file = /etc/postfix/dh_512.pem
 This feature is available with Postfix version 2.2.
 .SH smtpd_tls_dkey_file (default: $smtpd_tls_dcert_file)
 File with the Postfix SMTP server DSA private key in PEM format.
-This file may be combined with the server certificate file specified
-with $smtpd_tls_dcert_file.
+This file may be combined with the Postfix SMTP server DSA certificate
+file specified with $smtpd_tls_dcert_file.
 .PP
-The private key must not be encrypted. In other words, the key
-must be accessible without password.
+The private key must be accessible without a pass-phrase, i.e. it
+must not be encrypted, but file permissions should grant read/write
+access only to the system superuser account ("root").
 .PP
 This feature is available in Postfix 2.2 and later.
 .SH smtpd_tls_exclude_ciphers (default: empty)
@@ -6763,11 +6771,13 @@ key exchange with RSA authentication.
 This feature is available in Postfix 2.3 and later.
 .SH smtpd_tls_key_file (default: $smtpd_tls_cert_file)
 File with the Postfix SMTP server RSA private key in PEM format.
-This file may be combined with the server certificate file specified
+This file may be combined with the Postfix SMTP server certificate
+file specified
 with $smtpd_tls_cert_file.
 .PP
-The private key must not be encrypted. In other words, the key
-must be accessible without password.
+The private key must be accessible without a pass-phrase, i.e. it
+must not be encrypted, but file permissions should grant read/write
+access only to the system superuser account ("root").
 .SH smtpd_tls_loglevel (default: 0)
 Enable additional Postfix SMTP server logging of TLS activity.
 Each logging level also includes the information that is logged at

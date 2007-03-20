@@ -39,7 +39,7 @@ may be used by any SMTP+LMTP client for a subsequent transaction.
 
 By default, connection caching is enabled temporarily for
 destinations that have a high volume of mail in the active
-queue. Session caching can be enabled permanently for
+queue. Connection caching can be enabled permanently for
 specific destinations.
 .SH "SMTP DESTINATION SYNTAX"
 .na
@@ -222,7 +222,7 @@ Lookup tables, indexed by the remote LMTP server address, with
 case insensitive lists of LHLO keywords (pipelining, starttls,
 auth, etc.) that the LMTP client will ignore in the LHLO response
 from a remote LMTP server.
-.IP "\fBlmtp_discard_lhlo_keywords ($myhostname)\fR"
+.IP "\fBlmtp_discard_lhlo_keywords (empty)\fR"
 A case insensitive list of LHLO keywords (pipelining, starttls,
 auth, etc.) that the LMTP client will ignore in the LHLO response
 from a remote LMTP server.
@@ -524,11 +524,11 @@ communication channel.
 .IP "\fBlmtp_tcp_port (24)\fR"
 The default TCP port that the Postfix LMTP client connects to.
 .IP "\fBmax_idle (100s)\fR"
-The maximum amount of time that an idle Postfix daemon process
-waits for the next service request before exiting.
+The maximum amount of time that an idle Postfix daemon process waits
+for an incoming connection before terminating voluntarily.
 .IP "\fBmax_use (100)\fR"
-The maximal number of connection requests before a Postfix daemon
-process terminates.
+The maximal number of incoming connections that a Postfix daemon
+process will service before terminating voluntarily.
 .IP "\fBprocess_id (read-only)\fR"
 The process ID of a Postfix command or daemon process.
 .IP "\fBprocess_name (read-only)\fR"

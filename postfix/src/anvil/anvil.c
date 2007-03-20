@@ -208,11 +208,11 @@
 /*	The time limit for sending or receiving information over an internal
 /*	communication channel.
 /* .IP "\fBmax_idle (100s)\fR"
-/*	The maximum amount of time that an idle Postfix daemon process
-/*	waits for the next service request before exiting.
+/*	The maximum amount of time that an idle Postfix daemon process waits
+/*	for an incoming connection before terminating voluntarily.
 /* .IP "\fBmax_use (100)\fR"
-/*	The maximal number of connection requests before a Postfix daemon
-/*	process terminates.
+/*	The maximal number of incoming connections that a Postfix daemon
+/*	process will service before terminating voluntarily.
 /* .IP "\fBprocess_id (read-only)\fR"
 /*	The process ID of a Postfix command or daemon process.
 /* .IP "\fBprocess_name (read-only)\fR"
@@ -267,6 +267,7 @@
 
 #include <mail_conf.h>
 #include <mail_params.h>
+#include <mail_version.h>
 #include <mail_proto.h>
 #include <anvil_clnt.h>
 
@@ -945,6 +946,8 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 	var_idle_limit = var_anvil_time_unit;
 }
 
+MAIL_VERSION_STAMP_DECLARE;
+
 /* main - pass control to the multi-threaded skeleton */
 
 int     main(int argc, char **argv)
@@ -954,6 +957,11 @@ int     main(int argc, char **argv)
 	VAR_ANVIL_STAT_TIME, DEF_ANVIL_STAT_TIME, &var_anvil_stat_time, 1, 0,
 	0,
     };
+
+    /*
+     * Fingerprint executables and core dumps.
+     */
+    MAIL_VERSION_STAMP_ALLOCATE;
 
     multi_server_main(argc, argv, anvil_service,
 		      MAIL_SERVER_TIME_TABLE, time_table,

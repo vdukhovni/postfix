@@ -186,6 +186,7 @@
 
 #include <mail_conf.h>
 #include <mail_params.h>
+#include <mail_version.h>
 #include <mail_proto.h>
 #include <post_mail.h>
 #include <verify_clnt.h>
@@ -562,6 +563,8 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     setsid();
 }
 
+MAIL_VERSION_STAMP_DECLARE;
+
 /* main - pass control to the multi-threaded skeleton */
 
 int     main(int argc, char **argv)
@@ -578,6 +581,11 @@ int     main(int argc, char **argv)
 	VAR_VERIFY_NEG_TRY, DEF_VERIFY_NEG_TRY, &var_verify_neg_try, 1, 0,
 	0,
     };
+
+    /*
+     * Fingerprint executables and core dumps.
+     */
+    MAIL_VERSION_STAMP_ALLOCATE;
 
     multi_server_main(argc, argv, verify_service,
 		      MAIL_SERVER_STR_TABLE, str_table,

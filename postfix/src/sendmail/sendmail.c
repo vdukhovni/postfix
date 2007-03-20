@@ -222,7 +222,7 @@
 /* .ad
 /* .fi
 /*	By design, this program is not set-user (or group) id. However,
-/*	it must handle data from untrusted users or untrusted machines.
+/*	it must handle data from untrusted, possibly remote, users.
 /*	Thus, the usual precautions need to be taken against malicious
 /*	inputs.
 /* DIAGNOSTICS
@@ -419,6 +419,7 @@
 #include <mail_queue.h>
 #include <mail_proto.h>
 #include <mail_params.h>
+#include <mail_version.h>
 #include <record.h>
 #include <rec_type.h>
 #include <rec_streamlf.h>
@@ -897,6 +898,8 @@ static void tempfail(void)
     exit(EX_TEMPFAIL);
 }
 
+MAIL_VERSION_STAMP_DECLARE;
+
 /* main - the main program */
 
 int     main(int argc, char **argv)
@@ -923,6 +926,11 @@ int     main(int argc, char **argv)
     int     dsn_notify = 0;
     const char *dsn_envid = 0;
     int     saved_optind;
+
+    /*
+     * Fingerprint executables and core dumps.
+     */
+    MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
      * Be consistent with file permissions.
@@ -1009,7 +1017,7 @@ int     main(int argc, char **argv)
     optind = saved_optind;
     mail_conf_read();
     if (strcmp(var_syslog_name, DEF_SYSLOG_NAME) != 0)
-        msg_syslog_init(mail_task("sendmail"), LOG_PID, LOG_FACILITY);
+	msg_syslog_init(mail_task("sendmail"), LOG_PID, LOG_FACILITY);
     get_mail_conf_str_table(str_table);
 
     if (chdir(var_queue_dir))

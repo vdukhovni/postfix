@@ -2012,9 +2012,9 @@ precision.  </p>
 
 <ul>
 
-<li> a = time before the queue manager, including message transmission
+<li> a = time from message arrival to last <a href="QSHAPE_README.html#active_queue">active queue</a> entry
 
-<li> b = time in queue manager
+<li> b = time from last <a href="QSHAPE_README.html#active_queue">active queue</a> entry to connection setup
 
 <li> c = time in connection setup, including DNS, EHLO and TLS
 
@@ -3347,7 +3347,7 @@ details. The table is not indexed by hostname for consistency with
 </DD>
 
 <DT><b><a name="lmtp_discard_lhlo_keywords">lmtp_discard_lhlo_keywords</a>
-(default: $<a href="postconf.5.html#myhostname">myhostname</a>)</b></DT><DD>
+(default: empty)</b></DT><DD>
 
 <p> A case insensitive list of LHLO keywords (pipelining, starttls,
 auth, etc.) that the LMTP client will ignore in the LHLO response
@@ -4875,8 +4875,9 @@ Examples:
 (default: 100s)</b></DT><DD>
 
 <p>
-The maximum amount of time that an idle Postfix daemon process
-waits for the next service request before exiting.  This parameter
+The maximum amount of time that an idle Postfix daemon process waits
+for an incoming connection before terminating voluntarily.  This
+parameter
 is ignored by the Postfix queue manager and by other long-lived
 Postfix daemon processes.
 </p>
@@ -4893,8 +4894,9 @@ The default time unit is s (seconds).
 (default: 100)</b></DT><DD>
 
 <p>
-The maximal number of connection requests before a Postfix daemon
-process terminates. This parameter is ignored by the Postfix queue
+The maximal number of incoming connections that a Postfix daemon
+process will service before terminating voluntarily.  This parameter
+is ignored by the Postfix queue
 manager and by other long-lived Postfix daemon processes.
 </p>
 
@@ -6436,7 +6438,10 @@ Do not change this unless you have a complete understanding of <a href="http://w
 
 <p> Optional lookup tables with all valid addresses in the domains
 that match $<a href="postconf.5.html#relay_domains">relay_domains</a>. Specify @domain as a wild-card for
-domains that do not have a valid recipient list. Technically, tables
+domains that have no valid recipient list, and become a source of
+backscatter mail: Postfix accepts spam for non-existent recipients
+and then floods innocent people with undeliverable mail.  Technically,
+tables
 listed with $<a href="postconf.5.html#relay_recipient_maps">relay_recipient_maps</a> are used as lists: Postfix needs
 to know only if a lookup string is found or not, but it does not
 use the result from table lookup.  </p>
@@ -7994,8 +7999,9 @@ must be inside the chroot jail. </p>
 (default: empty)</b></DT><DD>
 
 <p> File with the Postfix SMTP client RSA certificate in PEM format.
-This file may also contain the client private key, and these may
-be the same as the server certificate and key file. </p>
+This file may also contain the Postfix SMTP client private RSA key,
+and these may be the same as the Postfix SMTP server RSA certificate and key
+file. </p>
 
 <p> Do not configure client certificates unless you <b>must</b> present
 client TLS certificates to one or more servers. Client certificates are
@@ -8016,21 +8022,21 @@ parameters in <a href="postconf.5.html">main.cf</a> if present. </p>
 
 <p> In order to verify certificates, the CA certificate (in case
 of a certificate chain, all CA certificates) must be available.
-You should add these certificates to the server certificate, the
-server certificate first, then the issuing CA(s). </p>
+You should add these certificates to the client certificate, the
+client certificate first, then the issuing CA(s). </p>
 
 <p> Example: the certificate for "client.dom.ain" was issued by
 "intermediate CA" which itself has a certificate of "root CA".
 Create the client.pem file with "cat client_cert.pem intermediate_CA.pem
 root_CA.pem &gt; client.pem". </p>
 
-<p> If you want to accept remote SMTP server certificates issued
-by these CAs yourself, you can also add the CA certificates to the
-<a href="postconf.5.html#smtp_tls_CAfile">smtp_tls_CAfile</a>, in which case it is not necessary to have them in
-the <a href="postconf.5.html#smtp_tls_cert_file">smtp_tls_cert_file</a> or <a href="postconf.5.html#smtp_tls_dcert_file">smtp_tls_dcert_file</a>. </p>
+<p> If you also want to verify remote SMTP server certificates issued by
+these CAs, you can also add the CA certificates to the <a href="postconf.5.html#smtp_tls_CAfile">smtp_tls_CAfile</a>,
+in which case it is not necessary to have them in the <a href="postconf.5.html#smtp_tls_cert_file">smtp_tls_cert_file</a>
+or <a href="postconf.5.html#smtp_tls_dcert_file">smtp_tls_dcert_file</a>. </p>
 
-<p> A certificate supplied here must be usable as SSL client certificate and
-hence pass the "openssl verify -purpose sslclient ..." test. </p>
+<p> A certificate supplied here must be usable as an SSL client certificate
+and hence pass the "openssl verify -purpose sslclient ..." test. </p>
 
 <p> Example: </p>
 
@@ -8067,7 +8073,7 @@ Postfix 2.3 and later; use <a href="postconf.5.html#smtp_tls_mandatory_ciphers">
 (default: empty)</b></DT><DD>
 
 <p> File with the Postfix SMTP client DSA certificate in PEM format.
-This file may also contain the server private key. </p>
+This file may also contain the Postfix SMTP client private DSA key. </p>
 
 <p> See the discussion under <a href="postconf.5.html#smtp_tls_cert_file">smtp_tls_cert_file</a> for more details.
 </p>
@@ -8087,11 +8093,12 @@ This file may also contain the server private key. </p>
 (default: $<a href="postconf.5.html#smtp_tls_dcert_file">smtp_tls_dcert_file</a>)</b></DT><DD>
 
 <p> File with the Postfix SMTP client DSA private key in PEM format.
-The private key must not be encrypted. In other words, the key must
-be accessible without password. </p>
+This file may be combined with the Postfix SMTP client DSA certificate
+file specified with $<a href="postconf.5.html#smtp_tls_dcert_file">smtp_tls_dcert_file</a>. </p>
 
-<p> This file may be combined with the server certificate file
-specified with $<a href="postconf.5.html#smtp_tls_cert_file">smtp_tls_cert_file</a>. </p>
+<p> The private key must be accessible without a pass-phrase, i.e. it
+must not be encrypted, but file permissions should grant read/write
+access only to the system superuser account ("root"). </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
 
@@ -8157,11 +8164,12 @@ key exchange with RSA authentication. </p>
 (default: $<a href="postconf.5.html#smtp_tls_cert_file">smtp_tls_cert_file</a>)</b></DT><DD>
 
 <p> File with the Postfix SMTP client RSA private key in PEM format.
-This file may be combined with the client certificate file specified
-with $<a href="postconf.5.html#smtp_tls_cert_file">smtp_tls_cert_file</a>. </p>
+This file may be combined with the Postfix SMTP client RSA certificate
+file specified with $<a href="postconf.5.html#smtp_tls_cert_file">smtp_tls_cert_file</a>. </p>
 
-<p> The private key must not be encrypted. In other words, the key
-must be accessible without password. </p>
+<p> The private key must be accessible without a pass-phrase, i.e. it
+must not be encrypted, but file permissions should grant read/write
+access only to the system superuser account ("root"). </p>
 
 <p> Example: </p>
 
@@ -10966,7 +10974,7 @@ root CA issues special CA which then issues the actual certificate...).
 (default: empty)</b></DT><DD>
 
 <p> File with the Postfix SMTP server RSA certificate in PEM format.
-This file may also contain the server private key. </p>
+This file may also contain the Postfix SMTP server private RSA key. </p>
 
 <p> Public Internet MX hosts without certificates signed by a "reputable"
 CA must generate, and be prepared to present to most clients, a
@@ -11000,14 +11008,13 @@ server certificate first, then the issuing CA(s).  </p>
 Create the server.pem file with "cat server_cert.pem intermediate_CA.pem
 root_CA.pem &gt; server.pem". </p>
 
-<p> If you want to accept certificates issued by these CAs yourself,
-you can also add the CA certificates to the <a href="postconf.5.html#smtpd_tls_CAfile">smtpd_tls_CAfile</a>, in
-which case it is not necessary to have them in the <a href="postconf.5.html#smtpd_tls_dcert_file">smtpd_tls_dcert_file</a>
-or <a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a>. </p>
+<p> If you also want to verify client certificates issued by these
+CAs, you can add the CA certificates to the <a href="postconf.5.html#smtpd_tls_CAfile">smtpd_tls_CAfile</a>, in which
+case it is not necessary to have them in the <a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a> or
+<a href="postconf.5.html#smtpd_tls_dcert_file">smtpd_tls_dcert_file</a>. </p>
 
-<p> A certificate supplied here must be usable as SSL server
-certificate and hence pass the "openssl verify -purpose sslserver
-..." test. </p>
+<p> A certificate supplied here must be usable as an SSL server certificate
+and hence pass the "openssl verify -purpose sslserver ..." test. </p>
 
 <p> Example: </p>
 
@@ -11045,7 +11052,7 @@ Postfix 2.3 and later; use <a href="postconf.5.html#smtpd_tls_mandatory_ciphers"
 (default: empty)</b></DT><DD>
 
 <p> File with the Postfix SMTP server DSA certificate in PEM format.
-This file may also contain the server private key. <p>
+This file may also contain the Postfix SMTP server private key. <p>
 
 <p> See the discussion under <a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a> for more details.
 </p>
@@ -11115,11 +11122,12 @@ configuration parameter.  </p>
 (default: $<a href="postconf.5.html#smtpd_tls_dcert_file">smtpd_tls_dcert_file</a>)</b></DT><DD>
 
 <p> File with the Postfix SMTP server DSA private key in PEM format.
-This file may be combined with the server certificate file specified
-with $<a href="postconf.5.html#smtpd_tls_dcert_file">smtpd_tls_dcert_file</a>. </p>
+This file may be combined with the Postfix SMTP server DSA certificate
+file specified with $<a href="postconf.5.html#smtpd_tls_dcert_file">smtpd_tls_dcert_file</a>. </p>
 
-<p> The private key must not be encrypted. In other words, the key
-must be accessible without password. </p>
+<p> The private key must be accessible without a pass-phrase, i.e. it
+must not be encrypted, but file permissions should grant read/write
+access only to the system superuser account ("root"). </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
 
@@ -11163,11 +11171,13 @@ key exchange with RSA authentication. </p>
 (default: $<a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a>)</b></DT><DD>
 
 <p> File with the Postfix SMTP server RSA private key in PEM format.
-This file may be combined with the server certificate file specified
+This file may be combined with the Postfix SMTP server certificate
+file specified
 with $<a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a>. </p>
 
-<p> The private key must not be encrypted. In other words, the key
-must be accessible without password. </p>
+<p> The private key must be accessible without a pass-phrase, i.e. it
+must not be encrypted, but file permissions should grant read/write
+access only to the system superuser account ("root"). </p>
 
 
 </DD>
