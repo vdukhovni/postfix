@@ -19,45 +19,48 @@ HEADER_CHECKS(5)                                              HEADER_CHECKS(5)
        <b>postmap -fq - <a href="pcre_table.5.html">pcre</a>:/etc/postfix/</b><i>filename</i> &lt;<i>inputfile</i>
 
 <b>DESCRIPTION</b>
-       Postfix  provides  a  simple  built-in  content inspection
-       mechanism that examines incoming mail one  message  header
-       or one message body line at a time. Each input is compared
-       against a list of patterns.  When a  match  is  found  the
-       corresponding action is executed, and the matching process
-       is repeated for the next  input  line.   This  feature  is
-       implemented by the Postfix <a href="cleanup.8.html"><b>cleanup</b>(8)</a> server.
+       The  Postfix  <a href="cleanup.8.html"><b>cleanup</b>(8)</a> server supports access control on
+       the content of message headers  and  message  body  lines.
+       See  <a href="access.5.html"><b>access</b>(5)</a>  for  access  control on remote SMTP client
+       information.
 
-       For  examples, see the EXAMPLES section at the end of this
+       Each message header  or  message  body  line  is  compared
+       against  a  list  of  patterns.  When a match is found the
+       corresponding action is executed, and the matching process
+       is  repeated  for  the next message header or message body
+       line.
+
+       For examples, see the EXAMPLES section at the end of  this
        manual page.
 
        Postfix header or <a href="postconf.5.html#body_checks">body_checks</a> are designed to stop a flood
-       of  mail from worms or viruses; they do not decode attach-
-       ments, and they do not unzip archives. See  the  documents
-       referenced  below  in the README FILES section if you need
+       of mail from worms or viruses; they do not decode  attach-
+       ments,  and  they do not unzip archives. See the documents
+       referenced below in the README FILES section if  you  need
        more sophisticated content analysis.
 
        Postfix supports four built-in content inspection classes:
 
        <b><a href="postconf.5.html#header_checks">header_checks</a></b>
-              These   are  applied  to  initial  message  headers
-              (except for the headers  that  are  processed  with
+              These  are  applied  to  initial  message   headers
+              (except  for  the  headers  that are processed with
               <b><a href="postconf.5.html#mime_header_checks">mime_header_checks</a></b>).
 
        <b><a href="postconf.5.html#mime_header_checks">mime_header_checks</a></b> (default: <b>$<a href="postconf.5.html#header_checks">header_checks</a></b>)
-              These  are  applied to MIME related message headers
+              These are applied to MIME related  message  headers
               only.
 
               This feature is available in Postfix 2.0 and later.
 
        <b><a href="postconf.5.html#nested_header_checks">nested_header_checks</a></b> (default: <b>$<a href="postconf.5.html#header_checks">header_checks</a></b>)
-              These  are  applied  to message headers of attached
-              email messages (except for  the  headers  that  are
+              These are applied to message  headers  of  attached
+              email  messages  (except  for  the headers that are
               processed with <b><a href="postconf.5.html#mime_header_checks">mime_header_checks</a></b>).
 
               This feature is available in Postfix 2.0 and later.
 
        <b><a href="postconf.5.html#body_checks">body_checks</a></b>
-              These are applied to all other  content,  including
+              These  are  applied to all other content, including
               multi-part message boundaries.
 
               With Postfix versions before 2.0, all content after
@@ -65,73 +68,73 @@ HEADER_CHECKS(5)                                              HEADER_CHECKS(5)
               tent.
 
        Note: message headers are examined one logical header at a
-       time, even when a message  header  spans  multiple  lines.
+       time,  even  when  a  message header spans multiple lines.
        Body lines are always examined one line at a time.
 
 <b>TABLE FORMAT</b>
-       This  document  assumes  that header and <a href="postconf.5.html#body_checks">body_checks</a> rules
-       are specified in the form of  Postfix  regular  expression
-       lookup  tables.  Usually  the best performance is obtained
+       This document assumes that header  and  <a href="postconf.5.html#body_checks">body_checks</a>  rules
+       are  specified  in  the form of Postfix regular expression
+       lookup tables. Usually the best  performance  is  obtained
        with <b>pcre</b> (Perl Compatible Regular Expression) tables, but
-       the  slower  <b>regexp</b> (POSIX regular expressions) support is
-       more widely available.  Use the command "<b>postconf  -m</b>"  to
-       find  out what lookup table types your Postfix system sup-
+       the slower <b>regexp</b> (POSIX regular expressions)  support  is
+       more  widely  available.  Use the command "<b>postconf -m</b>" to
+       find out what lookup table types your Postfix system  sup-
        ports.
 
        The general format of Postfix regular expression tables is
-       given  below.   For  a  discussion  of specific pattern or
-       flags  syntax,  see  <a href="pcre_table.5.html"><b>pcre_table</b>(5)</a>   or   <a href="regexp_table.5.html"><b>regexp_table</b>(5)</a>,
+       given below.  For a  discussion  of  specific  pattern  or
+       flags   syntax,   see  <a href="pcre_table.5.html"><b>pcre_table</b>(5)</a>  or  <a href="regexp_table.5.html"><b>regexp_table</b>(5)</a>,
        respectively.
 
        <b>/</b><i>pattern</i><b>/</b><i>flags action</i>
-              When  <i>pattern</i> matches the input string, execute the
-              corresponding <i>action</i>. See below for a list of  pos-
+              When <i>pattern</i> matches the input string, execute  the
+              corresponding  <i>action</i>. See below for a list of pos-
               sible actions.
 
        <b>!/</b><i>pattern</i><b>/</b><i>flags action</i>
-              When  <i>pattern</i> does <b>not</b> match the input string, exe-
+              When <i>pattern</i> does <b>not</b> match the input string,  exe-
               cute the corresponding <i>action</i>.
 
        <b>if /</b><i>pattern</i><b>/</b><i>flags</i>
 
        <b>endif</b>  Match the input string against the patterns between
-              <b>if</b>  and <b>endif</b>, if and only if the input string also
+              <b>if</b> and <b>endif</b>, if and only if the input string  also
               matches <i>pattern</i>. The <b>if</b>..<b>endif</b> can nest.
 
-              Note: do not prepend whitespace to patterns  inside
+              Note:  do not prepend whitespace to patterns inside
               <b>if</b>..<b>endif</b>.
 
        <b>if !/</b><i>pattern</i><b>/</b><i>flags</i>
 
        <b>endif</b>  Match the input string against the patterns between
-              <b>if</b> and <b>endif</b>, if and only if the input string  does
+              <b>if</b>  and <b>endif</b>, if and only if the input string does
               <b>not</b> match <i>pattern</i>. The <b>if</b>..<b>endif</b> can nest.
 
        blank lines and comments
-              Empty  lines and whitespace-only lines are ignored,
-              as are lines whose first  non-whitespace  character
+              Empty lines and whitespace-only lines are  ignored,
+              as  are  lines whose first non-whitespace character
               is a `#'.
 
        multi-line text
-              A  pattern/action  line  starts with non-whitespace
-              text. A line that starts with whitespace  continues
+              A pattern/action line  starts  with  non-whitespace
+              text.  A line that starts with whitespace continues
               a logical line.
 
 <b>TABLE SEARCH ORDER</b>
-       For  each  line of message input, the patterns are applied
-       in the order as specified in the table. When a pattern  is
-       found  that  matches  the  input  line,  the corresponding
-       action is  executed  and  then  the  next  input  line  is
+       For each line of message input, the patterns  are  applied
+       in  the order as specified in the table. When a pattern is
+       found that  matches  the  input  line,  the  corresponding
+       action  is  executed  and  then  the  next  input  line is
        inspected.
 
 <b>TEXT SUBSTITUTION</b>
-       Substitution  of  substrings  from  the matched expression
-       into the <i>action</i> string is possible using the  conventional
-       Perl  syntax  (<b>$1</b>,  <b>$2</b>,  etc.).   The macros in the result
-       string may need to be written as  <b>${n}</b>  or  <b>$(n)</b>  if  they
+       Substitution of substrings  from  the  matched  expression
+       into  the <i>action</i> string is possible using the conventional
+       Perl syntax (<b>$1</b>, <b>$2</b>, etc.).   The  macros  in  the  result
+       string  may  need  to  be  written as <b>${n}</b> or <b>$(n)</b> if they
        aren't followed by whitespace.
 
-       Note:  since negated patterns (those preceded by <b>!</b>) return
+       Note: since negated patterns (those preceded by <b>!</b>)  return
        a result when the expression does not match, substitutions
        are not available for negated patterns.
 
@@ -140,12 +143,12 @@ HEADER_CHECKS(5)                                              HEADER_CHECKS(5)
        case for consistency with other Postfix documentation.
 
        <b>DISCARD</b> <i>optional text...</i>
-              Claim successful delivery and silently discard  the
-              message.   Log the optional text if specified, oth-
+              Claim  successful delivery and silently discard the
+              message.  Log the optional text if specified,  oth-
               erwise log a generic message.
 
-              Note:  this  action  disables  further  header   or
-              <a href="postconf.5.html#body_checks">body_checks</a>  inspection  of the current message and
+              Note:   this  action  disables  further  header  or
+              <a href="postconf.5.html#body_checks">body_checks</a> inspection of the current  message  and
               affects all recipients.  To discard only one recip-
               ient without discarding the entire message, use the
               <a href="transport.5.html">transport(5)</a> table to direct mail to the <a href="discard.8.html">discard(8)</a>
@@ -153,46 +156,47 @@ HEADER_CHECKS(5)                                              HEADER_CHECKS(5)
 
               This feature is available in Postfix 2.0 and later.
 
-       <b>DUNNO</b>  Pretend that the input line did not match any  pat-
-              tern,  and inspect the next input line. This action
+       <b>DUNNO</b>  Pretend  that the input line did not match any pat-
+              tern, and inspect the next input line. This  action
               can be used to shorten the table search.
 
-              For backwards compatibility reasons,  Postfix  also
-              accepts  <b>OK</b> but it is (and always has been) treated
+              For  backwards  compatibility reasons, Postfix also
+              accepts <b>OK</b> but it is (and always has been)  treated
               as <b>DUNNO</b>.
 
               This feature is available in Postfix 2.1 and later.
 
        <b>FILTER</b> <i>transport:destination</i>
-              Write  a  content  filter request to the queue file
-              and inspect the next input line.   After  the  com-
-              plete  message  is received it will be sent through
+              Write a content filter request to  the  queue  file
+              and  inspect  the  next input line.  After the com-
+              plete message is received it will be  sent  through
               the specified external content filter.  More infor-
-              mation  about  external  content  filters is in the
+              mation about external content  filters  is  in  the
               Postfix <a href="FILTER_README.html">FILTER_README</a> file.
 
-              Note:  this  action  overrides  the  <a href="postconf.5.html"><b>main.cf</a>   <a href="postconf.5.html#content_filter">con</a>-</b>
-              <b><a href="postconf.5.html#content_filter">tent_filter</a></b>  setting, and affects all recipients of
-              the message.  In  the  case  that  multiple  <b>FILTER</b>
+              Note:   this  action  overrides  the  <a href="postconf.5.html"><b>main.cf</a>  <a href="postconf.5.html#content_filter">con</a>-</b>
+              <b><a href="postconf.5.html#content_filter">tent_filter</a></b> setting, and affects all recipients  of
+              the  message.  In  the  case  that  multiple <b>FILTER</b>
               actions fire, only the last one is executed.
 
               This feature is available in Postfix 2.0 and later.
 
        <b>HOLD</b> <i>optional text...</i>
-              Arrange for the message to be placed  on  the  <b>hold</b>
-              queue,  and  inspect the next input line.  The mes-
-              sage remains on <b>hold</b> until someone  either  deletes
-              it  or  releases it for delivery.  Log the optional
+              Arrange  for  the  message to be placed on the <b>hold</b>
+              queue, and inspect the next input line.   The  mes-
+              sage  remains  on <b>hold</b> until someone either deletes
+              it or releases it for delivery.  Log  the  optional
               text if specified, otherwise log a generic message.
 
-              Mail  that  is  placed on hold can be examined with
-              the <a href="postcat.1.html"><b>postcat</b>(1)</a> command, and  can  be  destroyed  or
+              Mail that is placed on hold can  be  examined  with
+              the  <a href="postcat.1.html"><b>postcat</b>(1)</a>  command,  and  can be destroyed or
               released with the <a href="postsuper.1.html"><b>postsuper</b>(1)</a> command.
 
-              Note:  use  "<b>postsuper -r</b>" to release mail that was
-              kept on hold for a significant fraction  of  <b>$<a href="postconf.5.html#maximal_queue_lifetime">maxi</a>-</b>
+              Note: use "<b>postsuper -r</b>" to release mail  that  was
+              kept  on  hold for a significant fraction of <b>$<a href="postconf.5.html#maximal_queue_lifetime">maxi</a>-</b>
               <b><a href="postconf.5.html#maximal_queue_lifetime">mal_queue_lifetime</a></b>  or  <b>$<a href="postconf.5.html#bounce_queue_lifetime">bounce_queue_lifetime</a></b>,  or
-              longer.
+              longer.  Use "<b>postsuper -H</b>" only for mail that will
+              not expire within a few delivery attempts.
 
               Note: this action affects  all  recipients  of  the
               message.

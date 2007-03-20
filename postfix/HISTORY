@@ -13366,7 +13366,21 @@ Apologies for any names omitted.
 	after code freeze, and requires too much time for testing.
 	File: src/global/mail_version.h and every main program file.
 
+20070320
+
+	Bugfix (introduced between 20070120 and 20070121): the
+	cleanup server stored no "delayed mail warning" queue file
+	records with "sendmail -t", and no header_checks filter/redirect
+	records or content encoding records with other mail.  File:
+	global/rec_type.h.
+
 Wish list:
+
+	Bind all deliveries to the same local delivery process,
+	making Postfix perform as poorly as monolithic mailers,
+	but giving a possibility to eliminate duplicate deliveries.
+
+	Maybe declare loop when resolve_local(mxhost) is true?
 
 	Update message content length when adding/removing headers.
 

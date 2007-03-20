@@ -10,11 +10,12 @@
 #
 #	\fBpostmap -q - /etc/postfix/access <\fIinputfile\fR
 # DESCRIPTION
-#	The Postfix SMTP server supports access control on information
-#	about remote SMTP clients or information received in SMTP
-#	commands: host names, network addresses, envelope sender
-#	or recipient addresses.  See header_checks(5) or body_checks(5)
-#	for access control on the content of email messages.
+#	The Postfix SMTP server supports access control on remote
+#	SMTP client information: host names, network addresses, and
+#	envelope sender
+#	or recipient addresses.  See \fBheader_checks\fR(5) or
+#	\fBbody_checks\fR(5) for access control on the content of
+#	email messages.
 #
 #	Normally, the \fBaccess\fR(5) table is specified as a text file
 #	that serves as input to the \fBpostmap\fR(1) command.
@@ -259,7 +260,8 @@
 # .sp
 #	Note: use "\fBpostsuper -r\fR" to release mail that was kept on
 #	hold for a significant fraction of \fB$maximal_queue_lifetime\fR
-#	or \fB$bounce_queue_lifetime\fR, or longer.
+#	or \fB$bounce_queue_lifetime\fR, or longer. Use "\fBpostsuper -H\fR"
+#	only for mail that will not expire within a few delivery attempts.
 # .sp
 #	Note: this action currently affects all recipients of the message.
 # .sp
