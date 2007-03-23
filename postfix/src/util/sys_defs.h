@@ -208,6 +208,12 @@
 #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
 #define NATIVE_COMMAND_DIR "/usr/sbin"
 #define NATIVE_DAEMON_DIR "/usr/libexec/postfix"
+
+#ifndef NO_KQUEUE
+# define EVENTS_STYLE	EVENTS_STYLE_KQUEUE
+# define USE_SYSV_POLL
+#endif
+
 #endif
 
  /*

@@ -16,10 +16,10 @@ Postfix SMTP server access table
 .SH DESCRIPTION
 .ad
 .fi
-The Postfix SMTP server supports access control on remote
-SMTP client information: host names, network addresses, and
-envelope sender
-or recipient addresses.  See \fBheader_checks\fR(5) or
+This document describes access control on remote SMTP client
+information: host names, network addresses, and envelope
+sender or recipient addresses; it is implemented by the
+Postfix SMTP server.  See \fBheader_checks\fR(5) or
 \fBbody_checks\fR(5) for access control on the content of
 email messages.
 
@@ -239,7 +239,7 @@ syntax is described in the \fBtransport\fR(5) manual page.
 More information
 about external content filters is in the Postfix FILTER_README file.
 .sp
-Note: this action overrides the \fBmain.cf content_filter\fR setting,
+Note: this action overrides the \fBcontent_filter\fR setting,
 and currently affects all recipients of the message.
 .sp
 This feature is available in Postfix 2.0 and later.

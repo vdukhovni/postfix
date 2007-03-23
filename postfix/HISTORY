@@ -13303,7 +13303,8 @@ Apologies for any names omitted.
 	instead of appending mail to a deleted file.  To minimize
 	the use of this workaround, Postfix now by default creates
 	mailbox dotlock files on all systems, and creates dotlock
-	files before opening mailbox files.  Files: util/sys_defs.h.
+	files before opening mailbox files.  Files: util/sys_defs.h,
+	global/mbox_open.c.
 
 20070301
 
@@ -13373,6 +13374,17 @@ Apologies for any names omitted.
 	records with "sendmail -t", and no header_checks filter/redirect
 	records or content encoding records with other mail.  File:
 	global/rec_type.h.
+
+20070321
+
+	Bugfix (introduced 20070224): local(8) or virtual(8) could
+	log a misleading error message after failure to open a
+	mailbox file. File: global/mbox_open.c.
+
+	Bugfix (code should have been updated 20070104): the proxymap
+	client did not propagate changes in case folding flags.
+	Currently, nothing in Postfix uses this functionality.
+	File: global/dict_proxy.c.
 
 Wish list:
 

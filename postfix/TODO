@@ -1,23 +1,13 @@
 What needs to be done before Postfix 2.4.0 is finished:
 
-- Update MILTER_README (dkim, application patches).
-
 - Create RELEASE_NOTES_2.4.
 
 - Update BACKSCATTER_README with PCRE rules.
+
+- Otherwise done up to and including FILTER_README
 
 - Truncate wish list from HISTORY.
 
 - Spell check and double word check the proto files.
 
 - Parameter hyperlink check and HTML check the html outputs.
-
-- Replace SPF policy server script by link to SPF website.
-
-- Remove MacOS X examples. They have not been updated.
-
-- Is "postmap -qf" still needed with regexp/pcre maps?
-
-- Update TUNING_README smtpd_client_*_limit feature list (add TLS).
-
-- Update TUNING_README file descriptor tuning.

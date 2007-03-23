@@ -374,29 +374,30 @@ LDAP_TABLE(5)                                                    LDAP_TABLE(5)
 
                   terminal_result_attribute = maildrop
 
-              This feature is available with Postfix &gt;= 2.4.
+              This feature  is  available  with  Postfix  2.4  or
+              later.
 
        <b>leaf_result_attribute (default: empty)</b>
-              When one or  more  special  result  attributes  are
-              found  in  a  non-terminal  (see above) LDAP entry,
+              When  one  or  more  special  result attributes are
+              found in a non-terminal  (see  above)  LDAP  entry,
               leaf result attributes are excluded from the expan-
-              sion  of  that entry. This is useful when expanding
+              sion of that entry. This is useful  when  expanding
               groups and the desired mail address attribute(s) of
               the member objects obtained via DN or URI recursion
-              are also present  in  the  group  object.  To  only
-              return  the  attribute values from the leaf objects
-              and not the containing group, add the attribute  to
-              the   leaf_result_attribute   list,   and  not  the
-              result_attribute list, which  is  always  expanded.
-              Note,  the  default  value of "result_attribute" is
-              not empty, you may want to set it explicitly  empty
-              when  using  "leaf_result_attribute"  to expand the
-              group to a list of member DN addresses.  If  groups
-              have  both member DN references AND attributes that
-              hold multiple string valued rfc822 addresses,  then
-              the  string  attributes  go  in "result_attribute".
-              The attributes that represent the  email  addresses
-              of  objects referenced via a DN (or LDAP URI) go in
+              are  also  present  in  the  group  object. To only
+              return the attribute values from the  leaf  objects
+              and  not the containing group, add the attribute to
+              the  leaf_result_attribute  list,   and   not   the
+              result_attribute  list,  which  is always expanded.
+              Note, the default value  of  "result_attribute"  is
+              not  empty, you may want to set it explicitly empty
+              when using "leaf_result_attribute"  to  expand  the
+              group  to  a list of member DN addresses. If groups
+              have both member DN references AND attributes  that
+              hold  multiple string valued rfc822 addresses, then
+              the string  attributes  go  in  "result_attribute".
+              The  attributes  that represent the email addresses
+              of objects referenced via a DN (or LDAP URI) go  in
               "leaf_result_attribute".
 
                   result_attribute = memberaddr
@@ -404,7 +405,8 @@ LDAP_TABLE(5)                                                    LDAP_TABLE(5)
                   terminal_result_attribute = maildrop
                   leaf_result_attribute = mail
 
-              This feature is available with Postfix &gt;= 2.4.
+              This  feature  is  available  with  Postfix  2.4 or
+              later.
 
        <b>scope (default: sub)</b>
               The LDAP search scope: <b>sub</b>, <b>base</b>,  or  <b>one</b>.   These
