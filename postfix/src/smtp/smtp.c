@@ -120,9 +120,9 @@
 /*	when the client is used for multiple domains.
 /*
 /*	Most smtp_\fIxxx\fR configuration parameters have an
-/*	lmtp_\fIxxx\fR "ghost" parameter for the equivalent LMTP
+/*	lmtp_\fIxxx\fR "mirror" parameter for the equivalent LMTP
 /*	feature. This document describes only those LMTP-related
-/*	parameters that aren't simply "ghost" parameters.
+/*	parameters that aren't simply "mirror" parameters.
 /*
 /*	Changes to \fBmain.cf\fR are picked up automatically, as \fBsmtp\fR(8)
 /*	processes run for only a limited amount of time. Use the command

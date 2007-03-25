@@ -216,18 +216,38 @@ go to this entry ... </p>
 
 <h2><a name="example_group">Example: expanding LDAP groups</a></h2>
 
-<p> LDAP is frequently used to store group member information, and Postfix
-supports expanding a group's email address to the list of email addresses
-of the group members. There are a number of ways of handling LDAP groups,
-which will be illustrated via the mock LDAP entries and implied schema
-below.  This shows two group entries "agroup" and "bgroup" and four
-user entries "auser", "buser", "cuser" and "duser". The group "agroup"
-has the users "auser" (1) and "buser" (2) as members via DN references
-in the multi-valued attribute "memberdn", and direct email addresses of
-two external users "auser@example.org" (3) and "buser@example.org" (4)
-stored in the multi-valued attribute "memberaddr".  The same is true of
-"bgroup" and "cuser"/"duser" (6)/(7)/(8)/(9), but "bgroup" also has a
-"maildrop" attribute of "bgroup@mlm.example.com" (5): </p>
+<p>
+LDAP is frequently used to store group member information.  There are a
+number of ways of handling LDAP groups.  We will show a few examples in
+order of increasing complexity, but owing to the number of independent
+variables, we can only present a tiny portion of the solution space.
+We show how to:
+</p>
+
+<ol>
+
+<li> <p> query groups as lists of addresses; </p>
+
+<li> <p> query groups as lists of user objects containing addresses; </p>
+
+<li> <p> forward special lists unexpanded to a separate list server,
+for moderation or other processing; </p>
+
+<li> <p> handle complex schemas by controlling expansion and by treating
+leaf nodes specially, using features that are new in Postfix 2.4. </p>
+
+</ol>
+
+<p>
+The example LDAP entries and implied schema below show two group entries
+("agroup" and "bgroup") and four user entries ("auser", "buser", "cuser"
+and "duser"). The group "agroup" has the users "auser" (1) and "buser" (2)
+as members via DN references in the multi-valued attribute "memberdn", and
+direct email addresses of two external users "auser@example.org" (3) and
+"buser@example.org" (4) stored in the multi-valued attribute "memberaddr".
+The same is true of "bgroup" and "cuser"/"duser" (6)/(7)/(8)/(9), but
+"bgroup" also has a "maildrop" attribute of "bgroup@mlm.example.com"
+(5): </p>
 
 <blockquote> 
 <pre>
@@ -323,7 +343,7 @@ from the matching group are to be returned as a comma separated list.
 Always check tables using <a href="postmap.1.html">postmap(1)</a> with the "-q" option, before
 deploying them into production use in <a href="postconf.5.html">main.cf</a>. </p>
 
-<p> Our second use case also expands "memberdn" attributes (1), (2),
+<p> Our second use case instead expands "memberdn" attributes (1), (2),
 (6) and (7), follows the DN references and returns the "maildrop" of the
 referenced user entries. Here we use the "special_result_attribute"
 setting from <a href="ldap_table.5.html">ldap_table(5)</a> to designate the "memberdn" attribute
@@ -334,7 +354,7 @@ the group object, because result attributes are collected from both
 the group and the member DNs. In this case we choose "maildrop" and
 assume for the moment that groups never have a "maildrop" (the "bgroup"
 "maildrop" attribute is for a different use case). The returned data for
-"auser" and "buser" is from items (11) and (13) in the mock data. </p>
+"auser" and "buser" is from items (11) and (13) in the example data. </p>
 
 <blockquote> 
 <pre>
@@ -342,15 +362,15 @@ assume for the moment that groups never have a "maildrop" (the "bgroup"
         ...
         search_base = dc=example, dc=com
         query_filter = mail=%s
-        result_attribute = memberaddr, maildrop
+        result_attribute = maildrop
         special_result_attribute = memberdn
     $ postmap -q agroup@example.com <a href="ldap_table.5.html">ldap</a>:special.cf
-    auser@mailhub.example.com,buser@mailhub.example.com,auser@example.org,buser@example.org
+    auser@mailhub.example.com,buser@mailhub.example.com
 </pre>
 </blockquote> 
 
 <p> Note: if the desired member object result attribute is always also
-present in the group, you get surprising results, the expansion also
+present in the group, you get surprising results: the expansion also
 returns the address of the group. This is a known limitation of Postfix
 releases prior to 2.4, and is addressed in the new with Postfix 2.4
 "leaf_result_attribute" feature described in <a href="ldap_table.5.html">ldap_table(5)</a>. </p>
@@ -373,12 +393,12 @@ never nested members of groups that are directly expanded. </p>
         ...
         search_base = dc=example, dc=com
         query_filter = mail=%s
-        result_attribute = memberaddr, maildrop
+        result_attribute = maildrop
         special_result_attribute = memberdn
     $ postmap -q auser@example.com <a href="ldap_table.5.html">ldap</a>:no_expand.cf <a href="ldap_table.5.html">ldap</a>:expand.cf
     auser@mailhub.example.com
     $ postmap -q agroup@example.com <a href="ldap_table.5.html">ldap</a>:no_expand.cf <a href="ldap_table.5.html">ldap</a>:expand.cf
-    auser@mailhub.example.com,buser@mailhub.example.com,auser@example.org,buser@example.org
+    auser@mailhub.example.com,buser@mailhub.example.com
     $ postmap -q bgroup@example.com <a href="ldap_table.5.html">ldap</a>:no_expand.cf <a href="ldap_table.5.html">ldap</a>:expand.cf
     bgroup@mlm.example.com
 </pre>
@@ -558,6 +578,10 @@ contents, please include the applicable bits of some directory entries. </p>
 <li>Liviu Daia with further refinements from Jose Luis Tallon and
 Victor Duchovni developed the common query, result_format, domain and
 expansion_limit interface for LDAP, MySQL and PosgreSQL.</li>
+
+<li>Gunnar Wrobel provided a first implementation of a feature to
+limit LDAP search results to leaf nodes only. Victor generalized
+this into the Postfix 2.4 "leaf_result_attribute" feature. </li>
 
 </ul>
 

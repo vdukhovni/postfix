@@ -8,9 +8,9 @@ format of Postfix PCRE tables
 .SH "SYNOPSIS"
 .na
 .nf
-\fBpostmap -fq "\fIstring\fB" pcre:/etc/postfix/\fIfilename\fR
+\fBpostmap -q "\fIstring\fB" pcre:/etc/postfix/\fIfilename\fR
 
-\fBpostmap -fq - pcre:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
+\fBpostmap -q - pcre:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
 .SH DESCRIPTION
 .ad
 .fi
@@ -26,8 +26,16 @@ corresponding result is returned and the search is terminated.
 To find out what types of lookup tables your Postfix system
 supports use the "\fBpostconf -m\fR" command.
 
-To test lookup tables, use the "\fBpostmap -fq\fR" command as
+To test lookup tables, use the "\fBpostmap -q\fR" command as
 described in the SYNOPSIS above.
+.SH "COMPATIBILITY"
+.na
+.nf
+.ad
+.fi
+With Postfix version 2.2 and earlier specify "\fBpostmap
+-fq\fR" to query a table that contains case sensitive
+patterns. Patterns are case insensitive by default.
 .SH "TABLE FORMAT"
 .na
 .nf

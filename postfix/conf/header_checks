@@ -9,8 +9,8 @@
 #        nested_header_checks = pcre:/etc/postfix/nested_header_checks
 #        body_checks = pcre:/etc/postfix/body_checks
 # 
-#        postmap -fq "string" pcre:/etc/postfix/filename
-#        postmap -fq - pcre:/etc/postfix/filename <inputfile
+#        postmap -q "string" pcre:/etc/postfix/filename
+#        postmap -q - pcre:/etc/postfix/filename <inputfile
 # 
 # DESCRIPTION
 #        This  document  describes access control on the content of

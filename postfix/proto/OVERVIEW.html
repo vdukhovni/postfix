@@ -549,15 +549,30 @@ of times that a connection may be reused.  </p>
 
 <p> When delivering mail to a destination with multiple mail servers,
 connection caching can help to skip over a non-responding server,
-and thus dramatically speed up delivery.  </p>
+and thus dramatically speed up delivery. SMTP connection caching
+is available in Postfix version 2.2 and later.  More information
+about this feature is in the CONNECTION_CACHE_README document. </p>
 
 <table>
 
-<tr> <td align="center" bgcolor="#f0f0ff"> <br> smtp(8) <br>
-&nbsp; </td> <td> <tt> &lt;-&gt; </tt> </td> <td align="center"
-bgcolor="#f0f0ff"> <br> scache(8) <br> &nbsp; </td> <td> <tt>
-&lt;-&gt; </tt> </td> <td align="center" bgcolor="#f0f0ff"> <br>
-smtp(8) <br> &nbsp; </td>
+<tr> <td> </td> <td> <tt> /-- </tt> </td> <td align="center"
+colspan="3" bgcolor="#f0f0ff"> smtp(8) </td> <td colspan="2"> <tt>
+--&gt; </tt> Internet </td> </tr>
+ 
+<tr> <td align="center" bgcolor="#f0f0ff"> qmgr(8) </td> <td> </td>
+<td align="center" rowspan="3"> &nbsp; </td> <td align="center"
+rowspan="3"><tt>|<br>|<br>|<br>|<br>v</tt></td> <td> &nbsp; </td>
+</tr>
+ 
+<tr> <td> </td> <td> <tt> \-- </tt> </td> <td align="center"
+colspan="2" bgcolor="#f0f0ff"> smtp(8) </td> <td align="left"> <tt>
+--&gt; </tt> Internet </td> </tr>
+ 
+<tr> <td colspan="3"> </td> <td align="center"><tt>^<br>|</tt></td>
+<td> &nbsp; </td> </tr>
+ 
+<tr> <td colspan="3"> </td> <td align="center" colspan="3"
+bgcolor="#f0f0ff"> scache(8) </td> </tr>
 
 </table>
 

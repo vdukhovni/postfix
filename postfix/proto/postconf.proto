@@ -1706,7 +1706,7 @@ Note 1: you need to stop and start Postfix when this parameter changes.
 </p>
 
 <p> Note 2: address information may be enclosed inside <tt>[]</tt>,
-but this form is not recommended here. </p>
+but this form is not required here. </p>
 
 <p> When inet_interfaces specifies just one IPv4 and/or IPv6 address
 that is not a loopback address, the Postfix SMTP client will use
@@ -3566,7 +3566,7 @@ IP hosting, but can be a problem on multi-homed firewalls. See the
 inet_interfaces documentation for more detail. </p>
 
 <p> Note 2: address information may be enclosed inside <tt>[]</tt>,
-but this form is not recommended here. </p>
+but this form is not required here. </p>
 
 %PARAM smtp_bind_address6 
 

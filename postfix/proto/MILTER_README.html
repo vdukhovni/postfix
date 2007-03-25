@@ -667,10 +667,10 @@ ID <i>simultaneously</i>, mail would be lost).  </p>
 
 </ul>
 
-<p> Fixing the ugly header maybe as simple as upgrading to a recent
-version of the Milter application. For example, current versions
-of dkim-filter and dk-filter have code that looks up the Postfix
-queue ID at a later protocol stage. </p>
+<p> If you experience the ugly header problem, see if a recent
+version of the Milter application fixes it. For example, current
+versions of dkim-filter and dk-filter already have code that looks
+up the Postfix queue ID at a later protocol stage. </p>
 
 <p> To fix the ugly message header with sid-filter applications,
 we change the source code, so that it does the queue ID lookup after
@@ -810,8 +810,7 @@ operation will log a warning like this: </p>
 </pre>
 </blockquote>
 
-<p> The solution is to use a Postfix version that supports the
-missing functionality. </p>
+<p> The solution is to use Postfix version 2.4 or later. </p>
 
 <li> <p> Most Milter configuration options are global. Future Postfix
 versions may support per-Milter timeouts, per-Milter error handling,

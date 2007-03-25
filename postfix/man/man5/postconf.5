@@ -1530,7 +1530,7 @@ parameter also controls delivery of mail to user@[ip.address].
 Note 1: you need to stop and start Postfix when this parameter changes.
 .PP
 Note 2: address information may be enclosed inside [],
-but this form is not recommended here.
+but this form is not required here.
 .PP
 When inet_interfaces specifies just one IPv4 and/or IPv6 address
 that is not a loopback address, the Postfix SMTP client will use
@@ -3850,7 +3850,7 @@ IP hosting, but can be a problem on multi-homed firewalls. See the
 inet_interfaces documentation for more detail.
 .PP
 Note 2: address information may be enclosed inside [],
-but this form is not recommended here.
+but this form is not required here.
 .SH smtp_bind_address6 (default: empty)
 An optional numerical network address that the Postfix SMTP client
 should bind to when making an IPv6 connection.

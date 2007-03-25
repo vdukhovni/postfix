@@ -61,20 +61,16 @@ The scache(8) server, introduced with Postfix version 2.2, maintains the shared
 connection cache. With Postfix version 2.2, only the smtp(8) client has support
 to access this cache.
 
-     smtp(8)   --> Internet
-         
+            /-- smtp(8) --> Internet
 
-      |  
-      |
-      |
-      | smtp(8)  --> Internet
-      |     
-      |
-      v    ^    
-           |
+    qmgr(8)       |  
+                  |
+            \--   | smtp(8) --> Internet
+                  |
+                  ^          
+                  |
 
-    scache(8)
-         
+                  scache(8)
 
 When SMTP connection caching is enabled (see next section), the smtp(8) client
 does not disconnect after a mail transaction, but gives the connection to the

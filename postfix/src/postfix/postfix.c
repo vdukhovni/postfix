@@ -261,6 +261,12 @@
 /*	University of Texas at Dallas
 /*	P.O. Box 830688, MC34
 /*	Richardson, TX 75083, USA
+/*
+/*	IPv6 support originally by:
+/*	Mark Huizer, Eindhoven University, The Netherlands
+/*	Jun-ichiro 'itojun' Hagino, KAME project, Japan
+/*	The Linux PLD project
+/*	Dean Strik, Eindhoven University, The Netherlands
 /*--*/
 
 /* System library. */

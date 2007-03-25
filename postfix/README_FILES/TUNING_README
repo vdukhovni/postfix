@@ -145,10 +145,10 @@ Note: these features use the Postfix anvil(8) service, introduced with Postfix
 version 2.2.
 
 The Postfix smtpd(8) server can limit the number of simultaneous connections
-from the same SMTP client, as well as the number of connections that a client
-is allowed to make per unit time. These statistics are maintained by the anvil
-(8) server (translation: if anvil(8) breaks, then connection limits stop
-working).
+from the same SMTP client, as well as the connection rate and the rate of
+certain SMTP commands from the same client. These statistics are maintained by
+the anvil(8) server (translation: if anvil(8) breaks, then connection limits
+stop working).
 
 IMPORTANT: These limits must not be used to regulate legitimate traffic: mail
 will suffer grotesque delays if you do so. The limits are designed to protect

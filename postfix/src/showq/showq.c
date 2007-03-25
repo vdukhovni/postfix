@@ -26,10 +26,6 @@
 /*	outside world.
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
-/* BUGS
-/*	The \fBshowq\fR(8) daemon runs at a fixed low privilege; consequently,
-/*	it cannot extract information from queue files in the
-/*	\fBmaildrop\fR directory.
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi

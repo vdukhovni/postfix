@@ -416,9 +416,10 @@ Milter applications make assumptions that aren't true in a Postfix environment.
     the file is created; if multiple messages were to use the same queue ID
     simultaneously, mail would be lost).
 
-Fixing the ugly header maybe as simple as upgrading to a recent version of the
-Milter application. For example, current versions of dkim-filter and dk-filter
-have code that looks up the Postfix queue ID at a later protocol stage.
+If you experience the ugly header problem, see if a recent version of the
+Milter application fixes it. For example, current versions of dkim-filter and
+dk-filter already have code that looks up the Postfix queue ID at a later
+protocol stage.
 
 To fix the ugly message header with sid-filter applications, we change the
 source code, so that it does the queue ID lookup after Postfix receives the end
@@ -519,8 +520,7 @@ the CONTENT_INSPECTION_README document for a discussion.
         application name: st_optionneg[134563840]: 0x3d does not fulfill action
         requirements 0x1e
 
-    The solution is to use a Postfix version that supports the missing
-    functionality.
+    The solution is to use Postfix version 2.4 or later.
 
   * Most Milter configuration options are global. Future Postfix versions may
     support per-Milter timeouts, per-Milter error handling, etc.

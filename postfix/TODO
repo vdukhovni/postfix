@@ -4,8 +4,6 @@ What needs to be done before Postfix 2.4.0 is finished:
 
 - Update BACKSCATTER_README with PCRE rules.
 
-- Otherwise done up to and including FILTER_README
-
 - Truncate wish list from HISTORY.
 
 - Spell check and double word check the proto files.

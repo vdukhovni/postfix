@@ -19,8 +19,9 @@
 /*	Append a recipient (non-)delivery status record to a per-message
 /*	log file.
 /* .IP \(bu
-/*	Enqueue a bounce message, with a copy of a per-message log file
-/*	and of the corresponding message. When the bounce message is
+/*	Enqueue a delivery status notification message, with a copy
+/*	of a per-message log file and of the corresponding message.
+/*	When the delivery status notification message is
 /*	enqueued successfully, the per-message log file is deleted.
 /* .PP
 /*	The software does a best notification effort. A non-delivery

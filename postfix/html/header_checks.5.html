@@ -15,8 +15,8 @@ HEADER_CHECKS(5)                                              HEADER_CHECKS(5)
        <b><a href="postconf.5.html#nested_header_checks">nested_header_checks</a> = <a href="pcre_table.5.html">pcre</a>:/etc/postfix/nested_header_checks</b>
        <b><a href="postconf.5.html#body_checks">body_checks</a> = <a href="pcre_table.5.html">pcre</a>:/etc/postfix/body_checks</b>
 
-       <b>postmap -fq "</b><i>string</i><b>" <a href="pcre_table.5.html">pcre</a>:/etc/postfix/</b><i>filename</i>
-       <b>postmap -fq - <a href="pcre_table.5.html">pcre</a>:/etc/postfix/</b><i>filename</i> &lt;<i>inputfile</i>
+       <b>postmap -q "</b><i>string</i><b>" <a href="pcre_table.5.html">pcre</a>:/etc/postfix/</b><i>filename</i>
+       <b>postmap -q - <a href="pcre_table.5.html">pcre</a>:/etc/postfix/</b><i>filename</i> &lt;<i>inputfile</i>
 
 <b>DESCRIPTION</b>
        This  document  describes access control on the content of

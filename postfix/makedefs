@@ -374,14 +374,6 @@ Rhapsody.5*|Darwin.*)
 			  ;;
 		esac
 		;;
-"Mac OS".10.[0-3]*)
-		SYSTYPE=MACOSX
-		# Use the native compiler by default
-		: ${CC=cc}
-		AWK=gawk
-		CCARGS="$CCARGS -DNO_KQUEUE"
-		;;
-
 "Mac OS".10*)	SYSTYPE=MACOSX
 		# Use the native compiler by default
 		: ${CC=cc}

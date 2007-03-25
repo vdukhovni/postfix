@@ -12,9 +12,9 @@
 # .br
 #	\fBbody_checks = pcre:/etc/postfix/body_checks\fR
 # .sp
-#	\fBpostmap -fq "\fIstring\fB" pcre:/etc/postfix/\fIfilename\fR
+#	\fBpostmap -q "\fIstring\fB" pcre:/etc/postfix/\fIfilename\fR
 # .br
-#	\fBpostmap -fq - pcre:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
+#	\fBpostmap -q - pcre:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
 # DESCRIPTION
 #	This document describes access control on the content of
 #	message headers and message body lines; it is implemented

@@ -10,9 +10,9 @@ REGEXP_TABLE(5)                                                REGEXP_TABLE(5)
        regexp_table - format of Postfix regular expression tables
 
 <b>SYNOPSIS</b>
-       <b>postmap -fq "</b><i>string</i><b>" <a href="regexp_table.5.html">regexp</a>:/etc/postfix/</b><i>filename</i>
+       <b>postmap -q "</b><i>string</i><b>" <a href="regexp_table.5.html">regexp</a>:/etc/postfix/</b><i>filename</i>
 
-       <b>postmap -fq - <a href="regexp_table.5.html">regexp</a>:/etc/postfix/</b><i>filename</i> &lt;<i>inputfile</i>
+       <b>postmap -q - <a href="regexp_table.5.html">regexp</a>:/etc/postfix/</b><i>filename</i> &lt;<i>inputfile</i>
 
 <b>DESCRIPTION</b>
        The Postfix mail system uses optional tables  for  address
@@ -28,8 +28,13 @@ REGEXP_TABLE(5)                                                REGEXP_TABLE(5)
        To find out what types of lookup tables your Postfix  sys-
        tem supports use the "<b>postconf -m</b>" command.
 
-       To  test  lookup  tables, use the "<b>postmap -fq</b>" command as
+       To  test  lookup  tables,  use the "<b>postmap -q</b>" command as
        described in the SYNOPSIS above.
+
+<b>COMPATIBILITY</b>
+       With Postfix version 2.2 and earlier specify "<b>postmap -fq</b>"
+       to  query  a  table that contains case sensitive patterns.
+       Patterns are case insensitive by default.
 
 <b>TABLE FORMAT</b>
        The general form of a Postfix regular expression table is:

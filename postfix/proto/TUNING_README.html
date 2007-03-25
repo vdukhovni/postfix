@@ -228,8 +228,8 @@ seconds or $smtpd_error_sleep_time, whichever is more.  </p>
 with Postfix version 2.2. </p>
 
 <p> The Postfix smtpd(8) server can limit the number of simultaneous
-connections from the same SMTP client, as well as the number of
-connections that a client is allowed to make per unit time.
+connections from the same SMTP client, as well as the connection
+rate and the rate of certain SMTP commands from the same client.
 These statistics are maintained by the anvil(8) server (translation:
 if anvil(8) breaks, then connection limits stop working). </p>
 
