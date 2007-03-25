@@ -122,7 +122,9 @@ from filling up with MAILER-DAEMON messages.
 Recipient address verification is relatively straightforward and there are no
 surprises. If a recipient probe fails, then Postfix rejects mail for the
 recipient address. If a recipient probe succeeds, then Postfix accepts mail for
-the recipient address.
+the recipient address. However, recipient address verification probes can
+increase the load on down-stream MTAs when you're being flooded by backscatter
+bounces, or when some spammer is mounting a dictionary attack.
 
 By default, address verification results are not saved. To avoid probing the
 same address repeatedly, you can store the result in a persistent database as

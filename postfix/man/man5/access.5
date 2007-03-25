@@ -16,10 +16,10 @@ Postfix SMTP server access table
 .SH DESCRIPTION
 .ad
 .fi
-The Postfix SMTP server supports access control on remote
-SMTP client information: host names, network addresses, and
-envelope sender
-or recipient addresses.  See \fBheader_checks\fR(5) or
+This document describes access control on remote SMTP client
+information: host names, network addresses, and envelope
+sender or recipient addresses; it is implemented by the
+Postfix SMTP server.  See \fBheader_checks\fR(5) or
 \fBbody_checks\fR(5) for access control on the content of
 email messages.
 
@@ -127,9 +127,9 @@ Subnetworks are matched by repeatedly truncating the last
 match is found in the access table, or until further
 truncation is not possible.
 
-NOTE 1: The information in the access map should be in
-canonical form, with unnecessary null characters eliminated.
-Address information must not be enclosed with "[]" characters.
+NOTE 1: The access map lookup key must be in canonical form:
+do not specify unnecessary null characters, and do not
+enclose network address information with "[]" characters.
 
 NOTE 2: use the \fBcidr\fR lookup table type to specify
 network/netmask patterns. See \fBcidr_table\fR(5) for details.
@@ -150,9 +150,9 @@ NOTE 1: the truncation and comparison are done with the
 string representation of the IPv6 host address. Thus, not
 all the ":" subnetworks will be tried.
 
-NOTE 2: The information in the access map should be in
-canonical form, with unnecessary null characters eliminated.
-Address information must not be enclosed with "[]" characters.
+NOTE 2: The access map lookup key must be in canonical form:
+do not specify unnecessary null characters, and do not
+enclose network address information with "[]" characters.
 
 NOTE 3: use the \fBcidr\fR lookup table type to specify
 network/netmask patterns. See \fBcidr_table\fR(5) for details.
@@ -239,7 +239,7 @@ syntax is described in the \fBtransport\fR(5) manual page.
 More information
 about external content filters is in the Postfix FILTER_README file.
 .sp
-Note: this action overrides the \fBmain.cf content_filter\fR setting,
+Note: this action overrides the \fBcontent_filter\fR setting,
 and currently affects all recipients of the message.
 .sp
 This feature is available in Postfix 2.0 and later.

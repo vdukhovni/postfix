@@ -252,7 +252,7 @@ $readme_directory/OVERVIEW:f:root:-:644
 $readme_directory/PACKAGE_README:f:root:-:644
 $readme_directory/PCRE_README:f:root:-:644
 $readme_directory/PGSQL_README:f:root:-:644
-$readme_directory/QMQP_README:f:root:-:644
+$readme_directory/QMQP_README:f:root:-:644:o
 $readme_directory/QSHAPE_README:f:root:-:644
 $readme_directory/RELEASE_NOTES:f:root:-:644
 $readme_directory/RESTRICTION_CLASS_README:f:root:-:644
@@ -280,7 +280,7 @@ $html_directory/BUILTIN_FILTER_README.html:f:root:-:644
 $html_directory/CDB_README.html:f:root:-:644
 $html_directory/CONNECTION_CACHE_README.html:f:root:-:644
 $html_directory/CONTENT_INSPECTION_README.html:f:root:-:644
-$html_directory/CYRUS_README.html:f:root:-:644
+$html_directory/CYRUS_README.html:f:root:-:644:o
 $html_directory/DATABASE_README.html:f:root:-:644
 $html_directory/DB_README.html:f:root:-:644
 $html_directory/DEBUG_README.html:f:root:-:644
@@ -300,7 +300,7 @@ $html_directory/OVERVIEW.html:f:root:-:644
 $html_directory/PACKAGE_README.html:f:root:-:644
 $html_directory/PCRE_README.html:f:root:-:644
 $html_directory/PGSQL_README.html:f:root:-:644
-$html_directory/QMQP_README.html:f:root:-:644
+$html_directory/QMQP_README.html:f:root:-:644:o
 $html_directory/QSHAPE_README.html:f:root:-:644
 $html_directory/RESTRICTION_CLASS_README.html:f:root:-:644
 $html_directory/SASL_README.html:f:root:-:644
@@ -312,7 +312,7 @@ $html_directory/STANDARD_CONFIGURATION_README.html:f:root:-:644
 $html_directory/TLS_LEGACY_README.html:f:root:-:644
 $html_directory/TLS_README.html:f:root:-:644
 $html_directory/TUNING_README.html:f:root:-:644
-$html_directory/ULTRIX_README.html:f:root:-:644
+$html_directory/ULTRIX_README.html:f:root:-:644:o
 $html_directory/UUCP_README.html:f:root:-:644
 $html_directory/VERP_README.html:f:root:-:644
 $html_directory/VIRTUAL_README.html:f:root:-:644
@@ -325,7 +325,7 @@ $html_directory/bounce.8.html:f:root:-:644
 $html_directory/canonical.5.html:f:root:-:644
 $html_directory/cidr_table.5.html:f:root:-:644
 $html_directory/cleanup.8.html:f:root:-:644
-$html_directory/defer.8.html:f:root:-:644
+$html_directory/defer.8.html:h:$html_directory/bounce.8.html:-:644
 $html_directory/discard.8.html:f:root:-:644
 $html_directory/error.8.html:f:root:-:644
 $html_directory/flush.8.html:f:root:-:644
@@ -341,7 +341,7 @@ $html_directory/master.5.html:f:root:-:644
 $html_directory/master.8.html:f:root:-:644
 $html_directory/mysql_table.5.html:f:root:-:644
 $html_directory/nisplus_table.5.html:f:root:-:644
-$html_directory/newaliases.1.html:f:root:-:644
+$html_directory/newaliases.1.html:h:$html_directory/mailq.1.html:-:644
 $html_directory/oqmgr.8.html:f:root:-:644
 $html_directory/pcre_table.5.html:f:root:-:644
 $html_directory/pgsql_table.5.html:f:root:-:644
@@ -369,15 +369,15 @@ $html_directory/qmqp-source.1.html:f:root:-:644
 $html_directory/qmqpd.8.html:f:root:-:644
 $html_directory/regexp_table.5.html:f:root:-:644
 $html_directory/relocated.5.html:f:root:-:644
-$html_directory/sendmail.1.html:f:root:-:644
+$html_directory/sendmail.1.html:h:$html_directory/mailq.1.html:-:644
 $html_directory/showq.8.html:f:root:-:644
 $html_directory/smtp-sink.1.html:f:root:-:644
 $html_directory/smtp-source.1.html:f:root:-:644
-$html_directory/smtp.8.html:f:root:-:644
+$html_directory/smtp.8.html:h:$html_directory/lmtp.8.html:-:644
 $html_directory/smtpd.8.html:f:root:-:644
 $html_directory/spawn.8.html:f:root:-:644
 $html_directory/tcp_table.5.html:f:root:-:644
-$html_directory/trace.8.html:f:root:-:644
+$html_directory/trace.8.html:h:$html_directory/bounce.8.html:-:644
 $html_directory/transport.5.html:f:root:-:644
 $html_directory/trivial-rewrite.8.html:f:root:-:644
 $html_directory/verify.8.html:f:root:-:644

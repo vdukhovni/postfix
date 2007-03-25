@@ -173,8 +173,8 @@
 /*
 /*	In this preliminary implementation, a count (or rate) limited server
 /*	can have only one remote client at a time. If a server reports
-/*	multiple simultaneous clients, all but the last reported client
-/*	are ignored.
+/*	multiple simultaneous clients, state is kept only for the last
+/*	reported client.
 /*
 /*	The \fBanvil\fR(8) server automatically discards client
 /*	request information after it expires.  To prevent the

@@ -4,7 +4,7 @@
 .SH NAME
 header_checks
 \-
-Postfix built-in header/body inspection
+Postfix built-in content inspection
 .SH "SYNOPSIS"
 .na
 .nf
@@ -16,14 +16,15 @@ Postfix built-in header/body inspection
 .br
 \fBbody_checks = pcre:/etc/postfix/body_checks\fR
 .sp
-\fBpostmap -fq "\fIstring\fB" pcre:/etc/postfix/\fIfilename\fR
+\fBpostmap -q "\fIstring\fB" pcre:/etc/postfix/\fIfilename\fR
 .br
-\fBpostmap -fq - pcre:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
+\fBpostmap -q - pcre:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
 .SH DESCRIPTION
 .ad
 .fi
-The Postfix \fBcleanup\fR(8) server supports access control
-on the content of message headers and message body lines.
+This document describes access control on the content of
+message headers and message body lines; it is implemented
+by the Postfix cleanup(8) server before mail is queued.
 See \fBaccess\fR(5) for access control on remote SMTP client
 information.
 
@@ -92,16 +93,17 @@ execute the corresponding \fIaction\fR.
 .IP "\fBif /\fIpattern\fB/\fIflags\fR"
 .IP "\fBendif\fR"
 Match the input string against the patterns between \fBif\fR
-and \fBendif\fR, if and only if the input string also matches
-\fIpattern\fR. The \fBif\fR..\fBendif\fR can nest.
+and \fBendif\fR, if and only if the same input string also
+matches \fIpattern\fR. The \fBif\fR..\fBendif\fR can nest.
 .sp
 Note: do not prepend whitespace to patterns inside
 \fBif\fR..\fBendif\fR.
 .IP "\fBif !/\fIpattern\fB/\fIflags\fR"
 .IP "\fBendif\fR"
 Match the input string against the patterns between \fBif\fR
-and \fBendif\fR, if and only if the input string does \fBnot\fR
-match \fIpattern\fR. The \fBif\fR..\fBendif\fR can nest.
+and \fBendif\fR, if and only if the same input string does
+\fBnot\fR match \fIpattern\fR. The \fBif\fR..\fBendif\fR
+can nest.
 .IP "blank lines and comments"
 Empty lines and whitespace-only lines are ignored, as
 are lines whose first non-whitespace character is a `#'.
@@ -159,13 +161,13 @@ For backwards compatibility reasons, Postfix also accepts
 .sp
 This feature is available in Postfix 2.1 and later.
 .IP "\fBFILTER \fItransport:destination\fR"
-Write a content filter request to the queue file and
+Write a content filter request to the queue file, and
 inspect the next input line.
 After the complete message is received it will be sent through
 the specified external content filter.  More information about
 external content filters is in the Postfix FILTER_README file.
 .sp
-Note: this action overrides the \fBmain.cf content_filter\fR setting,
+Note: this action overrides the \fBcontent_filter\fR setting,
 and affects all recipients of the message. In the case that multiple
 \fBFILTER\fR actions fire, only the last one is executed.
 .sp
@@ -190,10 +192,10 @@ Note: this action affects all recipients of the message.
 .sp
 This feature is available in Postfix 2.0 and later.
 .IP \fBIGNORE\fR
-Delete the current line from the input and inspect
+Delete the current line from the input, and inspect
 the next input line.
 .IP "\fBPREPEND \fItext...\fR"
-Prepend one line with the specified text and inspect the next
+Prepend one line with the specified text, and inspect the next
 input line.
 .sp
 Notes:
@@ -215,7 +217,7 @@ This action cannot be used to prepend multi-line text.
 .IP
 This feature is available in Postfix 2.1 and later.
 .IP "\fBREDIRECT \fIuser@domain\fR"
-Write a message redirection request to the queue file and
+Write a message redirection request to the queue file, and
 inspect the next input line. After the message is queued,
 it will be sent to the specified address instead of the
 intended recipient(s).
@@ -226,7 +228,7 @@ fire, only the last one is executed.
 .sp
 This feature is available in Postfix 2.1 and later.
 .IP "\fBREPLACE \fItext...\fR"
-Replace the current line with the specified text and inspect the next
+Replace the current line with the specified text, and inspect the next
 input line.
 .sp
 This feature is available in Postfix 2.2 and later. The
@@ -257,21 +259,27 @@ text...\fR, Postfix inserts a default enhanced status code of
 "5.7.1".
 .IP "\fBWARN \fIoptional text...\fR
 Log a warning with the \fIoptional text...\fR (or log a
-generic message) and inspect the next input line. This
+generic message), and inspect the next input line. This
 action is useful for debugging and for testing a pattern
 before applying more drastic actions.
 .SH BUGS
 .ad
 .fi
 Many people overlook the main limitations of header and body_checks
-rules.  These rules operate on one logical message header or one body
-line at a time, and a decision made for one line is not carried over
-to the next line.  If text in the message body is encoded
+rules.
+.IP \(bu
+These rules operate on one logical message header or one body
+line at a time. A decision made for one line is not carried over
+to the next line.
+.IP \(bu
+If text in the message body is encoded
 (RFC 2045) then the rules have to specified for the encoded
-form.  Likewise, when message headers are encoded (RFC
+form.
+.IP \(bu
+Likewise, when message headers are encoded (RFC
 2047) then the rules need to be specified for the encoded
 form.
-
+.PP
 Message headers added by the \fBcleanup\fR(8) daemon itself
 are excluded from inspection. Examples of such message headers
 are \fBFrom:\fR, \fBTo:\fR, \fBMessage-ID:\fR, \fBDate:\fR.

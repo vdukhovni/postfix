@@ -224,7 +224,7 @@
 #	input key is \fIuser@mail.example.com\fR, then %1 is \fBcom\fR,
 #	%2 is \fBexample\fR and %3 is \fBmail\fR. If the input key is
 #	unqualified or does not have enough domain components to satisfy
-#	all the specified patterns, the saerch is suppressed and returns
+#	all the specified patterns, the search is suppressed and returns
 #	no results.
 # .IP
 #	The above %1, ..., %9 expansions are available with Postfix 2.2

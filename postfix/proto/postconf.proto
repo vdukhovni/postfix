@@ -1706,7 +1706,7 @@ Note 1: you need to stop and start Postfix when this parameter changes.
 </p>
 
 <p> Note 2: address information may be enclosed inside <tt>[]</tt>,
-but this form is not recommended here. </p>
+but this form is not required here. </p>
 
 <p> When inet_interfaces specifies just one IPv4 and/or IPv6 address
 that is not a loopback address, the Postfix SMTP client will use
@@ -2622,16 +2622,17 @@ Specify 0 when mail delivery should be tried only once.
 The maximal size in bytes of a message, including envelope information.
 </p>
 
-%PARAM minimal_backoff_time version dependent
+%PARAM minimal_backoff_time 300s
 
 <p>
-The minimal time between attempts to deliver a deferred message.
+The minimal time between attempts to deliver a deferred message;
+prior to Postfix 2.4 the default value was 1000s.
+</p>
+
+<p>
 This parameter also limits the time an unreachable destination is
 kept in the short-term, in-memory, destination status cache.
 </p>
-
-<p> With Postfix 2.4 the default value was reduced from 1000s to
-300s.  </p>
 
 <p> This parameter should be set greater than or equal to
 $queue_run_delay. See also $maximal_backoff_time.  </p>
@@ -3076,14 +3077,11 @@ With Postfix versions 2.0 and earlier, a queue_minfree value of
 zero means there is no minimum required amount of free space.
 </p>
 
-%PARAM queue_run_delay version dependent
+%PARAM queue_run_delay 300s
 
 <p>
-The time between deferred queue scans by the queue manager.
-</p>
-
-<p>
-With Postfix 2.4 the default value was reduced from 1000s to 300s.
+The time between deferred queue scans by the queue manager;
+prior to Postfix 2.4 the default value was 1000s.
 </p>
 
 <p> This parameter should be set less than or equal to
@@ -3568,7 +3566,7 @@ IP hosting, but can be a problem on multi-homed firewalls. See the
 inet_interfaces documentation for more detail. </p>
 
 <p> Note 2: address information may be enclosed inside <tt>[]</tt>,
-but this form is not recommended here. </p>
+but this form is not required here. </p>
 
 %PARAM smtp_bind_address6 
 
@@ -6491,8 +6489,8 @@ are calculated.
 </p>
 
 <p>
-This feature is implemented by the anvil(8) service which is not
-part of the stable Postfix version 2.1 release.
+This feature is implemented by the anvil(8) service which is available
+in Postfix version 2.2 and later.
 </p>
 
 <p>
@@ -9631,7 +9629,7 @@ and higher the optional "ciphers" attribute overrides the main.cf
 smtp_tls_mandatory_ciphers parameter and the optional "protocols"
 keyword overrides the main.cf smtp_tls_mandatory_protocols parameter.
 In the policy table, multiple protocols must be separated by colons,
-as attribute values may not contain whitespace or commas. </p>
+as attribute values may not contain whitespace or commas. </dd>
 
 <dt><b>verify</b></dt> <dd>Mandatory TLS verification.  At this security
 level, DNS MX lookups are trusted to be secure enough, and the name

@@ -368,8 +368,8 @@ generates itself.
 The time unit over which client connection rates and other rates
 are calculated.
 .PP
-This feature is implemented by the \fBanvil\fR(8) service which is not
-part of the stable Postfix version 2.1 release.
+This feature is implemented by the \fBanvil\fR(8) service which is available
+in Postfix version 2.2 and later.
 .PP
 The default interval is relatively short. Because of the high
 frequency of updates, the \fBanvil\fR(8) server uses volatile memory
@@ -1530,7 +1530,7 @@ parameter also controls delivery of mail to user@[ip.address].
 Note 1: you need to stop and start Postfix when this parameter changes.
 .PP
 Note 2: address information may be enclosed inside [],
-but this form is not recommended here.
+but this form is not required here.
 .PP
 When inet_interfaces specifies just one IPv4 and/or IPv6 address
 that is not a loopback address, the Postfix SMTP client will use
@@ -2850,13 +2850,12 @@ The maximal recursion level that the MIME processor will handle.
 Postfix refuses mail that is nested deeper than the specified limit.
 .PP
 This feature is available in Postfix 2.0 and later.
-.SH minimal_backoff_time (default: version dependent)
-The minimal time between attempts to deliver a deferred message.
+.SH minimal_backoff_time (default: 300s)
+The minimal time between attempts to deliver a deferred message;
+prior to Postfix 2.4 the default value was 1000s.
+.PP
 This parameter also limits the time an unreachable destination is
 kept in the short-term, in-memory, destination status cache.
-.PP
-With Postfix 2.4 the default value was reduced from 1000s to
-300s.
 .PP
 This parameter should be set greater than or equal to
 $queue_run_delay. See also $maximal_backoff_time.
@@ -3306,10 +3305,9 @@ value that is at least 1.5*$message_size_limit.
 .PP
 With Postfix versions 2.0 and earlier, a queue_minfree value of
 zero means there is no minimum required amount of free space.
-.SH queue_run_delay (default: version dependent)
-The time between deferred queue scans by the queue manager.
-.PP
-With Postfix 2.4 the default value was reduced from 1000s to 300s.
+.SH queue_run_delay (default: 300s)
+The time between deferred queue scans by the queue manager;
+prior to Postfix 2.4 the default value was 1000s.
 .PP
 This parameter should be set less than or equal to
 $minimal_backoff_time. See also $maximal_backoff_time.
@@ -3852,7 +3850,7 @@ IP hosting, but can be a problem on multi-homed firewalls. See the
 inet_interfaces documentation for more detail.
 .PP
 Note 2: address information may be enclosed inside [],
-but this form is not recommended here.
+but this form is not required here.
 .SH smtp_bind_address6 (default: empty)
 An optional numerical network address that the Postfix SMTP client
 should bind to when making an IPv6 connection.

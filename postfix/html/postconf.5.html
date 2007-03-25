@@ -674,8 +674,8 @@ are calculated.
 </p>
 
 <p>
-This feature is implemented by the <a href="anvil.8.html">anvil(8)</a> service which is not
-part of the stable Postfix version 2.1 release.
+This feature is implemented by the <a href="anvil.8.html">anvil(8)</a> service which is available
+in Postfix version 2.2 and later.
 </p>
 
 <p>
@@ -2877,7 +2877,7 @@ Note 1: you need to stop and start Postfix when this parameter changes.
 </p>
 
 <p> Note 2: address information may be enclosed inside <tt>[]</tt>,
-but this form is not recommended here. </p>
+but this form is not required here. </p>
 
 <p> When <a href="postconf.5.html#inet_interfaces">inet_interfaces</a> specifies just one IPv4 and/or IPv6 address
 that is not a loopback address, the Postfix SMTP client will use
@@ -5254,16 +5254,17 @@ This feature is available in Postfix 2.0 and later.
 </DD>
 
 <DT><b><a name="minimal_backoff_time">minimal_backoff_time</a>
-(default: version dependent)</b></DT><DD>
+(default: 300s)</b></DT><DD>
 
 <p>
-The minimal time between attempts to deliver a deferred message.
+The minimal time between attempts to deliver a deferred message;
+prior to Postfix 2.4 the default value was 1000s.
+</p>
+
+<p>
 This parameter also limits the time an unreachable destination is
 kept in the short-term, in-memory, destination status cache.
 </p>
-
-<p> With Postfix 2.4 the default value was reduced from 1000s to
-300s.  </p>
 
 <p> This parameter should be set greater than or equal to
 $<a href="postconf.5.html#queue_run_delay">queue_run_delay</a>. See also $<a href="postconf.5.html#maximal_backoff_time">maximal_backoff_time</a>.  </p>
@@ -6057,14 +6058,11 @@ zero means there is no minimum required amount of free space.
 </DD>
 
 <DT><b><a name="queue_run_delay">queue_run_delay</a>
-(default: version dependent)</b></DT><DD>
+(default: 300s)</b></DT><DD>
 
 <p>
-The time between <a href="QSHAPE_README.html#deferred_queue">deferred queue</a> scans by the queue manager.
-</p>
-
-<p>
-With Postfix 2.4 the default value was reduced from 1000s to 300s.
+The time between <a href="QSHAPE_README.html#deferred_queue">deferred queue</a> scans by the queue manager;
+prior to Postfix 2.4 the default value was 1000s.
 </p>
 
 <p> This parameter should be set less than or equal to
@@ -6936,7 +6934,7 @@ IP hosting, but can be a problem on multi-homed firewalls. See the
 <a href="postconf.5.html#inet_interfaces">inet_interfaces</a> documentation for more detail. </p>
 
 <p> Note 2: address information may be enclosed inside <tt>[]</tt>,
-but this form is not recommended here. </p>
+but this form is not required here. </p>
 
 
 </DD>
@@ -8476,7 +8474,7 @@ and higher the optional "ciphers" attribute overrides the <a href="postconf.5.ht
 <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> parameter and the optional "protocols"
 keyword overrides the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> parameter.
 In the policy table, multiple protocols must be separated by colons,
-as attribute values may not contain whitespace or commas. </p>
+as attribute values may not contain whitespace or commas. </dd>
 
 <dt><b>verify</b></dt> <dd>Mandatory TLS verification.  At this security
 level, DNS MX lookups are trusted to be secure enough, and the name

@@ -140,8 +140,8 @@ ANVIL(8)                                                              ANVIL(8)
 
        In this preliminary implementation, a count (or rate) lim-
        ited  server can have only one remote client at a time. If
-       a server reports multiple simultaneous  clients,  all  but
-       the last reported client are ignored.
+       a server reports multiple simultaneous clients,  state  is
+       kept only for the last reported client.
 
        The  <a href="anvil.8.html"><b>anvil</b>(8)</a> server automatically discards client request
        information after it expires.   To  prevent  the  <a href="anvil.8.html"><b>anvil</b>(8)</a>

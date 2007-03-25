@@ -4,9 +4,9 @@
 # SUMMARY
 #	format of Postfix regular expression tables
 # SYNOPSIS
-#	\fBpostmap -fq "\fIstring\fB" regexp:/etc/postfix/\fIfilename\fR
+#	\fBpostmap -q "\fIstring\fB" regexp:/etc/postfix/\fIfilename\fR
 #
-#	\fBpostmap -fq - regexp:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
+#	\fBpostmap -q - regexp:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
 # DESCRIPTION
 #	The Postfix mail system uses optional tables for address
 #	rewriting or mail routing. These tables are usually in
@@ -20,8 +20,14 @@
 #	To find out what types of lookup tables your Postfix system
 #	supports use the "\fBpostconf -m\fR" command.
 #
-#	To test lookup tables, use the "\fBpostmap -fq\fR" command as
-#	described in the SYNOPSIS above.
+#	To test lookup tables, use the "\fBpostmap -q\fR" command
+#	as described in the SYNOPSIS above.
+# COMPATIBILITY
+# .ad
+# .fi
+#	With Postfix version 2.2 and earlier specify "\fBpostmap
+#	-fq\fR" to query a table that contains case sensitive
+#	patterns. Patterns are case insensitive by default.
 # TABLE FORMAT
 # .ad
 # .fi

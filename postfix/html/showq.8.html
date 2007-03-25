@@ -34,11 +34,6 @@ SHOWQ(8)                                                              SHOWQ(8)
 <b>DIAGNOSTICS</b>
        Problems and transactions are logged to <b>syslogd</b>(8).
 
-<b>BUGS</b>
-       The <a href="showq.8.html"><b>showq</b>(8)</a> daemon runs at a fixed low privilege;  conse-
-       quently, it cannot extract information from queue files in
-       the <b>maildrop</b> directory.
-
 <b>CONFIGURATION PARAMETERS</b>
        Changes to <a href="postconf.5.html"><b>main.cf</b></a> are picked up automatically as <a href="showq.8.html"><b>showq</b>(8)</a>
        processes  run  for only a limited amount of time. Use the
