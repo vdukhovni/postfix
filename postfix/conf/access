@@ -382,11 +382,11 @@
 #            1.2.3   REJECT
 #            1.2.3.4 OK
 # 
-#        Execute the command "postmap /etc/postfix/access" after
+#        Execute  the  command  "postmap /etc/postfix/access" after
 #        editing the file.
 # 
 # BUGS
-#        The  table format does not understand quoting conventions.
+#        The table format does not understand quoting  conventions.
 # 
 # SEE ALSO
 #        postmap(1), Postfix lookup table manager
@@ -395,13 +395,13 @@
 #        transport(5), transport:nexthop syntax
 # 
 # README FILES
-#        Use "postconf readme_directory" or  "postconf  html_direc-
+#        Use  "postconf  readme_directory" or "postconf html_direc-
 #        tory" to locate this information.
 #        SMTPD_ACCESS_README, built-in SMTP server access control
 #        DATABASE_README, Postfix lookup table overview
 # 
 # LICENSE
-#        The  Secure  Mailer  license must be distributed with this
+#        The Secure Mailer license must be  distributed  with  this
 #        software.
 # 
 # AUTHOR(S)

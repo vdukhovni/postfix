@@ -26,8 +26,9 @@
 /*
 /*	The mailbox pathname is constructed as follows:
 /*
-/* .ti +2
-/*	\fB$virtual_mailbox_base/$virtual_mailbox_maps(\fIrecipient\fB)\fR
+/* .nf
+/*	  \fB$virtual_mailbox_base/$virtual_mailbox_maps(\fIrecipient\fB)\fR
+/* .fi
 /*
 /*	where \fIrecipient\fR is the full recipient address.
 /* UNIX MAILBOX FORMAT

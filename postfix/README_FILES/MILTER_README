@@ -443,9 +443,6 @@ NOTES:
 
   * This was tested with sid-milter-0.2.10 and sid-milter-0.2.14.
 
-  * This fixes only the ugly message header, but not the WARNING message.
-    Fortunately, sid-milter logs that message only once.
-
 To fix the ugly message header with other Milter applications, you will need to
 do something like this:
 

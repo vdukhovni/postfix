@@ -29,9 +29,10 @@
 /*
 /*	To prevent Postfix from sending multiple recipients per delivery
 /*	request, specify
-/*
-/* .ti +4
-/*	\fItransport\fB_destination_recipient_limit = 1\fR
+/* .sp
+/* .nf
+/*	    \fItransport\fB_destination_recipient_limit = 1\fR
+/* .fi
 /*
 /*	in the Postfix \fBmain.cf\fR file, where \fItransport\fR
 /*	is the name in the first column of the Postfix \fBmaster.cf\fR
@@ -135,17 +136,19 @@
 /*	Caution: a null sender address is easily mis-parsed by
 /*	naive software. For example, when the \fBpipe\fR(8) daemon
 /*	executes a command such as:
-/*
-/* .ti +4
-/*	command -f$sender -- $recipient (\fIbad\fR)
-/*
+/* .sp
+/* .nf
+/*	    command -f$sender -- $recipient (\fIbad\fR)
+/* .fi
+/* .IP
 /*	the command will mis-parse the -f option value when the
 /*	sender address is a null string.  For correct parsing,
 /*	specify \fB$sender\fR as an argument by itself:
-/*
-/* .ti +4
-/*	command -f $sender -- $recipient (\fIgood\fR)
-/*
+/* .sp
+/* .nf
+/*	    command -f $sender -- $recipient (\fIgood\fR)
+/* .fi
+/* .IP
 /*	This feature is available with Postfix 2.3 and later.
 /* .IP "\fBsize\fR=\fIsize_limit\fR (optional)"
 /*	Messages greater in size than this limit (in bytes) will

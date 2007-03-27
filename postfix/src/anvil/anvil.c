@@ -23,81 +23,74 @@
 /* .fi
 /*	To register a new connection send the following request to
 /*	the \fBanvil\fR(8) server:
-/* .PP
-/* .in +4
-/*	\fBrequest=connect\fR
-/* .br
-/*	\fBident=\fIstring\fR
-/* .in
-/* .PP
+/*
+/* .nf
+/*	    \fBrequest=connect\fR
+/*	    \fBident=\fIstring\fR
+/* .fi
+/*
 /*	The \fBanvil\fR(8) server answers with the number of
 /*	simultaneous connections and the number of connections per
 /*	unit time for the (service, client) combination specified
 /*	with \fBident\fR:
-/* .PP
-/* .in +4
-/*	\fBstatus=0\fR
-/* .br
-/*	\fBcount=\fInumber\fR
-/* .br
-/*	\fBrate=\fInumber\fR
-/* .in
-/* .PP
+/*
+/* .nf
+/*	    \fBstatus=0\fR
+/*	    \fBcount=\fInumber\fR
+/*	    \fBrate=\fInumber\fR
+/* .fi
+/*
 /*	To register a disconnect event send the following request
 /*	to the \fBanvil\fR(8) server:
-/* .PP
-/* .in +4
-/*	\fBrequest=disconnect\fR
-/* .br
-/*	\fBident=\fIstring\fR
-/* .in
-/* .PP
+/*
+/* .nf
+/*	    \fBrequest=disconnect\fR
+/*	    \fBident=\fIstring\fR
+/* .fi
+/*
 /*	The \fBanvil\fR(8) server replies with:
-/* .PP
-/* .ti +4
-/*	\fBstatus=0\fR
+/*
+/* .nf
+/*	    \fBstatus=0\fR
+/* .fi
 /* MESSAGE RATE CONTROL
 /* .ad
 /* .fi
 /*	To register a message delivery request send the following
 /*	request to the \fBanvil\fR(8) server:
-/* .PP
-/* .in +4
-/*	\fBrequest=message\fR
-/* .br
-/*	\fBident=\fIstring\fR
-/* .in
-/* .PP
+/*
+/* .nf
+/*	    \fBrequest=message\fR
+/*	    \fBident=\fIstring\fR
+/* .fi
+/*
 /*	The \fBanvil\fR(8) server answers with the number of message
 /*	delivery requests per unit time for the (service, client)
 /*	combination specified with \fBident\fR:
-/* .PP
-/* .in +4
-/*	\fBstatus=0\fR
-/* .br
-/*	\fBrate=\fInumber\fR
-/* .in
+/*
+/* .nf
+/*	    \fBstatus=0\fR
+/*	    \fBrate=\fInumber\fR
+/* .fi
 /* RECIPIENT RATE CONTROL
 /* .ad
 /* .fi
 /*	To register a recipient request send the following request
 /*	to the \fBanvil\fR(8) server:
-/* .PP
-/* .in +4
-/*	\fBrequest=recipient\fR
-/* .br
-/*	\fBident=\fIstring\fR
-/* .in
-/* .PP
+/*
+/* .nf
+/*	    \fBrequest=recipient\fR
+/*	    \fBident=\fIstring\fR
+/* .fi
+/*
 /*	The \fBanvil\fR(8) server answers with the number of recipient
 /*	addresses per unit time for the (service, client) combination
 /*	specified with \fBident\fR:
-/* .PP
-/* .in +4
-/*	\fBstatus=0\fR
-/* .br
-/*	\fBrate=\fInumber\fR
-/* .in
+/*
+/* .nf
+/*	    \fBstatus=0\fR
+/*	    \fBrate=\fInumber\fR
+/* .fi
 /* TLS SESSION NEGOTIATION RATE CONTROL
 /* .ad
 /* .fi
@@ -106,41 +99,37 @@
 /*
 /*	To register a request for a new (i.e. not cached) TLS session
 /*	send the following request to the \fBanvil\fR(8) server:
-/* .PP
-/* .in +4
-/*	\fBrequest=newtls\fR
-/* .br
-/*	\fBident=\fIstring\fR
-/* .in
-/* .PP
+/*
+/* .nf
+/*	    \fBrequest=newtls\fR
+/*	    \fBident=\fIstring\fR
+/* .fi
+/*
 /*	The \fBanvil\fR(8) server answers with the number of new
 /*	TLS session requests per unit time for the (service, client)
 /*	combination specified with \fBident\fR:
-/* .PP
-/* .in +4
-/*	\fBstatus=0\fR
-/* .br
-/*	\fBrate=\fInumber\fR
-/* .in
-/* .PP
+/*
+/* .nf
+/*	    \fBstatus=0\fR
+/*	    \fBrate=\fInumber\fR
+/* .fi
+/*
 /*	To retrieve new TLS session request rate information without
 /*	updating the counter information, send:
-/* .PP
-/* .in +4
-/*	\fBrequest=newtls_report\fR
-/* .br
-/*	\fBident=\fIstring\fR
-/* .in
-/* .PP
+/*
+/* .nf
+/*	    \fBrequest=newtls_report\fR
+/*	    \fBident=\fIstring\fR
+/* .fi
+/*
 /*	The \fBanvil\fR(8) server answers with the number of new
 /*	TLS session requests per unit time for the (service, client)
 /*	combination specified with \fBident\fR:
-/* .PP
-/* .in +4
-/*	\fBstatus=0\fR
-/* .br
-/*	\fBrate=\fInumber\fR
-/* .in
+/*
+/* .nf
+/*	    \fBstatus=0\fR
+/*	    \fBrate=\fInumber\fR
+/* .fi
 /* SECURITY
 /* .ad
 /* .fi

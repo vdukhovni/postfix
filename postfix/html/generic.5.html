@@ -161,12 +161,12 @@ GENERIC(5)                                                          GENERIC(5)
        that the ISP supports "+" style address extensions).
 
        /etc/postfix/<a href="postconf.5.html">main.cf</a>:
-               <a href="postconf.5.html#smtp_generic_maps">smtp_generic_maps</a> = hash:/etc/postfix/generic
+           <a href="postconf.5.html#smtp_generic_maps">smtp_generic_maps</a> = hash:/etc/postfix/generic
 
        /etc/postfix/generic:
-               his@localdomain.local   hisaccount@hisisp.example
-               her@localdomain.local   heraccount@herisp.example
-               @localdomain.local      hisaccount+local@hisisp.example
+           his@localdomain.local   hisaccount@hisisp.example
+           her@localdomain.local   heraccount@herisp.example
+           @localdomain.local      hisaccount+local@hisisp.example
 
        Execute  the  command "<b>postmap /etc/postfix/generic</b>" when-
        ever the table is changed.  Instead of <b>hash</b>, some  systems
