@@ -209,12 +209,13 @@ queues.
 
     Network -> smtpd(8) <-> anvil(8)
 
-  * The bounce(8), defer(8) and trace(8) servers each maintain their own queue
-    directory trees with per-message logfiles. This information is used to send
-    delivery or non-delivery notifications to the sender.
+  * The bounce(8), defer(8) and trace(8) services each maintain their own queue
+    directory trees with per-message logfiles. Postfix uses this information
+    when sending "failed", "delayed" or "success" delivery status notifications
+    to the sender.
 
-    The trace(8) service implements support for the Postfix "sendmail -bv" and
-    "sendmail -v" commands which produce reports about how Postfix delivers
+    The trace(8) service also implements support for the Postfix "sendmail -bv"
+    and "sendmail -v" commands which produce reports about how Postfix delivers
     mail, and is available with Postfix version 2.1 and later. See DEBUG_README
     for examples.
 

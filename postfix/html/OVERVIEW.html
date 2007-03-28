@@ -460,12 +460,13 @@ bgcolor="#f0f0ff"> <br> <a href="smtpd.8.html">smtpd(8)</a><br><br> </td> <td> <
 
 </table>
 
-<li> <p> The <a href="bounce.8.html">bounce(8)</a>, <a href="defer.8.html">defer(8)</a> and <a href="trace.8.html">trace(8)</a> servers each maintain
-their own queue directory trees with per-message logfiles. This
-information is used to send delivery or non-delivery notifications
-to the sender. </p>
+<li> <p> The <a href="bounce.8.html">bounce(8)</a>, <a href="defer.8.html">defer(8)</a> and <a href="trace.8.html">trace(8)</a> services each maintain
+their own queue directory trees with per-message logfiles. Postfix
+uses this information when sending "failed", "delayed" or "success"
+delivery status notifications to the sender. </p>
 
-<p> The <a href="trace.8.html">trace(8)</a> service implements support for the Postfix "sendmail
+<p> The <a href="trace.8.html">trace(8)</a> service also implements support for the Postfix
+"sendmail
 -bv" and "sendmail -v" commands which produce reports about how
 Postfix delivers mail, and is available with Postfix version 2.1
 and later. See <a href="DEBUG_README.html#trace_mail"> DEBUG_README

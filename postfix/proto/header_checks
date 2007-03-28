@@ -4,17 +4,15 @@
 # SUMMARY
 #	Postfix built-in content inspection
 # SYNOPSIS
+# .nf
 #	\fBheader_checks = pcre:/etc/postfix/header_checks\fR
-# .br
 #	\fBmime_header_checks = pcre:/etc/postfix/mime_header_checks\fR
-# .br
 #	\fBnested_header_checks = pcre:/etc/postfix/nested_header_checks\fR
-# .br
 #	\fBbody_checks = pcre:/etc/postfix/body_checks\fR
 # .sp
 #	\fBpostmap -q "\fIstring\fB" pcre:/etc/postfix/\fIfilename\fR
-# .br
 #	\fBpostmap -q - pcre:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
+# .fi
 # DESCRIPTION
 #	This document describes access control on the content of
 #	message headers and message body lines; it is implemented
@@ -60,6 +58,13 @@
 #	Note: message headers are examined one logical header at a time,
 #	even when a message header spans multiple lines. Body lines are
 #	always examined one line at a time.
+# COMPATIBILITY
+# .ad
+# .fi
+#       With Postfix version 2.2 and earlier specify "\fBpostmap
+#       -fq\fR" to query a table that contains case sensitive
+#       patterns. By default, regexp: and pcre: patterns are case
+#       insensitive.
 # TABLE FORMAT
 # .ad
 # .fi
@@ -284,7 +289,7 @@
 #	to the next line.
 # .IP \(bu
 #	If text in the message body is encoded
-#	(RFC 2045) then the rules have to specified for the encoded
+#	(RFC 2045) then the rules need to be specified for the encoded
 #	form.
 # .IP \(bu
 #	Likewise, when message headers are encoded (RFC

@@ -4,7 +4,11 @@ PPoossttffiixx BBaacckkssccaatttteerr HHoowwttoo
 
 OOvveerrvviieeww
 
-This document describes features that require Postfix version 2.0 or later.
+This document describes features that require Postfix version 2.0 or later. The
+examples use Perl Compatible Regular Expressions (Postfix pcre: tables), but
+also provide a translation to POSIX regular expressions (Postfix regexp:
+tables). PCRE is preferred primarily because the implementation is often
+faster.
 
 Topics covered in this document:
 
@@ -97,8 +101,8 @@ To block such backscatter I use header_checks and body_checks patterns like
 this:
 
     /etc/postfix/main.cf:
-        header_checks = regexp:/etc/postfix/header_checks
-        body_checks = regexp:/etc/postfix/body_checks
+        header_checks = pcre:/etc/postfix/header_checks
+        body_checks = pcre:/etc/postfix/body_checks
 
     /etc/postfix/header_checks:
         if /^Received:/
@@ -107,7 +111,7 @@ this:
         /^Received: +from +[^ ]+ +\(([^ ]+ +[he]+lo=|[he]+lo +)
     (porcupine\.org)\)/
             reject forged client name in Received: header: $2
-        /^Received:.* +by +(porcupine\.org)[[:>:]]/
+        /^Received:.* +by +(porcupine\.org)\b/
             reject forged mail server name in Received: header: $1
         endif
         /^Message-ID:.* <!&!/ DUNNO
@@ -121,7 +125,7 @@ this:
         /^[> ]*Received: +from +[^ ]+ +\(([^ ]+ +[he]+lo=|[he]+lo +)
     (porcupine\.org)\)/
             reject forged client name in Received: header: $2
-        /^[> ]*Received:.* +by +(porcupine\.org)[[:>:]]/
+        /^[> ]*Received:.* +by +(porcupine\.org)\b/
             reject forged mail server name in Received: header: $1
         endif
         /^[> ]*Message-ID:.* <!&!/ DUNNO
@@ -129,6 +133,9 @@ this:
     	reject forged domain name in Message-ID: header: $1
 
 Notes:
+
+  * The example uses pcre: tables mainly for speed; with minor modifications,
+    you can use regexp: tables as explained below.
 
   * The example is simplified for educational purposes. In reality my patterns
     list multiple domain names, as "(domain|domain|...)".
@@ -139,8 +146,9 @@ Notes:
   * The "\(" and "\)" match "(" and ")" literally. Without the "\", the "(" and
     ")" would be grouping operators.
 
-  * The "[[:>:]]" matches the end of a word. On some systems you should specify
-    "\>" instead. For details see your system documentation.
+  * The "\b" is used here to match the end of a word. If you use regexp:
+    tables, specify "[[:>:]]" (on some systems you should specify "\>" instead;
+    for details see your system documentation).
 
   * The "if /pattern/" and "endif" eliminate unnecessary matching attempts. DO
     NOT indent lines starting with /pattern/ between the "if" and "endif"!
@@ -202,25 +210,29 @@ the backscatter mail that I get claims to be sent from these addresses. Such
 mail is obviously forged and is very easy to stop.
 
     /etc/postfix/main.cf:
-        header_checks = regexp:/etc/postfix/header_checks
-        body_checks = regexp:/etc/postfix/body_checks
+        header_checks = pcre:/etc/postfix/header_checks
+        body_checks = pcre:/etc/postfix/body_checks
 
     /etc/postfix/header_checks:
-        /^(From|Return-Path):.*[[:<:]](user@domain\.tld)[[:>:]]/
+        /^(From|Return-Path):.*\b(user@domain\.tld)\b/
             reject forged sender address in $1: header: $2
 
     /etc/postfix/body_checks:
-        /^[> ]*(From|Return-Path):.*[[:<:]](user@domain\.tld)[[:>:]]/
+        /^[> ]*(From|Return-Path):.*\b(user@domain\.tld)\b/
             reject forged sender address in $1: header: $2
 
 Notes:
 
+  * The example uses pcre: tables mainly for speed; with minor modifications,
+    you can use regexp: tables as explained below.
+
   * The example is simplified for educational purposes. In reality, my patterns
     list multiple email addresses as "(user1@domain1\.tld|user2@domain2\.tld)".
 
-  * The "[[:<:]]" and "[[:>:]]" match the beginning and end of a word,
-    respectively. On some systems you should specify "\<" and "\>" instead. For
-    details see your system documentation.
+  * The two "\b" as used in "\b(user@domain\.tld)\b" match the beginning and
+    end of a word, respectively. If you use regexp: tables, specify "[[:<:]]
+    and [[:>:]]" (on some systems you should specify "\< and \>" instead; for
+    details see your system documentation).
 
   * The "\." matches "." literally. Without the "\", the "." would match any
     character.

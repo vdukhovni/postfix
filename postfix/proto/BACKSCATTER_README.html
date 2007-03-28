@@ -21,7 +21,10 @@ Backscatter Howto</h1>
 <h2>Overview </h2>
 
 This document describes features that require Postfix version 2.0
-or later.
+or later.  The examples use Perl Compatible Regular Expressions
+(Postfix pcre: tables), but also provide a translation to POSIX
+regular expressions (Postfix regexp: tables). PCRE is preferred
+primarily because the implementation is often faster.</p>
 
 <p> Topics covered in this document: </p>
 
@@ -174,8 +177,8 @@ patterns like this: </p>
 <blockquote>
 <pre>
 /etc/postfix/main.cf:
-    header_checks = regexp:/etc/postfix/header_checks
-    body_checks = regexp:/etc/postfix/body_checks
+    header_checks = pcre:/etc/postfix/header_checks
+    body_checks = pcre:/etc/postfix/body_checks
 
 /etc/postfix/header_checks:
     if /^Received:/
@@ -183,7 +186,7 @@ patterns like this: </p>
         reject forged client name in Received: header: $1
     /^Received: +from +[^ ]+ +\(([^ ]+ +[he]+lo=|[he]+lo +)(porcupine\.org)\)/
         reject forged client name in Received: header: $2
-    /^Received:.* +by +(porcupine\.org)[[:&gt;:]]/
+    /^Received:.* +by +(porcupine\.org)\b/
         reject forged mail server name in Received: header: $1
     endif
     /^Message-ID:.* &lt;!&amp;!/ DUNNO
@@ -196,7 +199,7 @@ patterns like this: </p>
         reject forged client name in Received: header: $1
     /^[&gt; ]*Received: +from +[^ ]+ +\(([^ ]+ +[he]+lo=|[he]+lo +)(porcupine\.org)\)/
         reject forged client name in Received: header: $2
-    /^[&gt; ]*Received:.* +by +(porcupine\.org)[[:&gt;:]]/
+    /^[&gt; ]*Received:.* +by +(porcupine\.org)\b/
         reject forged mail server name in Received: header: $1
     endif
     /^[&gt; ]*Message-ID:.* &lt;!&amp;!/ DUNNO
@@ -209,6 +212,9 @@ patterns like this: </p>
 
 <ul>
 
+<li> <p> The example uses pcre: tables mainly for speed; with minor
+modifications, you can use regexp: tables as explained below. </p>
+
 <li> <p> The example is simplified for educational purposes.  In
 reality my patterns list multiple domain names, as
 "<tt>(domain|domain|...)</tt>".  </p>
@@ -220,9 +226,10 @@ the "<tt>\</tt>", the "<tt>.</tt>" would match any character. </p>
 and "<tt>)</tt>" literally. Without the "<tt>\</tt>", the "<tt>(</tt>"
 and "<tt>)</tt>" would be grouping operators.  </p>
 
-<li> <p> The "<tt>[[:&gt;:]]</tt>" matches the end of a word. On
-some systems you should specify "<tt>\&gt;</tt>" instead. For details
-see your system documentation. </p>
+<li> <p> The "<tt>\b</tt>" is used here to match the end of a word.
+If you use regexp: tables, specify "<tt>[[:&gt;:]]</tt>" (on some
+systems you should specify "<tt>\&gt;</tt>" instead; for details
+see your system documentation).
 
 <li> <p> The "if /pattern/" and "endif" eliminate unnecessary
 matching attempts. DO NOT indent lines starting with /pattern/
@@ -311,15 +318,15 @@ and is very easy to stop.
 <blockquote>
 <pre>
 /etc/postfix/main.cf:
-    header_checks = regexp:/etc/postfix/header_checks
-    body_checks = regexp:/etc/postfix/body_checks
+    header_checks = pcre:/etc/postfix/header_checks
+    body_checks = pcre:/etc/postfix/body_checks
 
 /etc/postfix/header_checks:
-    /^(From|Return-Path):.*[[:&lt;:]](user@domain\.tld)[[:&gt;:]]/ 
+    /^(From|Return-Path):.*\b(user@domain\.tld)\b/ 
         reject forged sender address in $1: header: $2
 
 /etc/postfix/body_checks:
-    /^[&gt; ]*(From|Return-Path):.*[[:&lt;:]](user@domain\.tld)[[:&gt;:]]/ 
+    /^[&gt; ]*(From|Return-Path):.*\b(user@domain\.tld)\b/ 
         reject forged sender address in $1: header: $2
 </pre>
 </blockquote>
@@ -328,14 +335,18 @@ and is very easy to stop.
 
 <ul>
 
+<li> <p> The example uses pcre: tables mainly for speed; with minor
+modifications, you can use regexp: tables as explained below. </p>
+
 <li> <p> The example is simplified for educational purposes.  In
 reality, my patterns list multiple email addresses as
 "<tt>(user1@domain1\.tld|user2@domain2\.tld)</tt>".  </p>
 
-<li> <p> The "<tt>[[:&lt;:]]</tt>" and "<tt>[[:&gt;:]]</tt>" match
-the beginning and end of a word, respectively. On some systems you
-should specify "<tt>\&lt;</tt>" and "<tt>\&gt;</tt>" instead. For
-details see your system documentation. </p>
+<li> <p> The two "<tt>\b</tt>" as used in "<tt>\b(user@domain\.tld)\b</tt>"
+match the beginning and end of a word, respectively.  If you use
+regexp: tables, specify "<tt>[[:&lt;:]]</tt> and <tt>[[:&gt;:]]</tt>"
+(on some systems you should specify "<tt>\&lt;</tt> and <tt>\&gt;</tt>"
+instead; for details see your system documentation).  </p>
 
 <li> <p> The "<tt>\.</tt>" matches "<tt>.</tt>" literally. Without
 the "<tt>\</tt>", the "<tt>.</tt>" would match any character. </p>
