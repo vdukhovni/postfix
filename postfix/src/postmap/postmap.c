@@ -13,8 +13,9 @@
 /*	lookup tables, or updates an existing one. The input and output
 /*	file formats are expected to be compatible with:
 /*
-/* .ti +4
-/*	\fBmakemap \fIfile_type\fR \fIfile_name\fR < \fIfile_name\fR
+/* .nf
+/*	    \fBmakemap \fIfile_type\fR \fIfile_name\fR < \fIfile_name\fR
+/* .fi
 /*
 /*	If the result files do not exist they will be created with the
 /*	same group and other read permissions as their source file.
@@ -30,8 +31,9 @@
 /* .IP \(bu
 /*	A table entry has the form
 /* .sp
-/* .ti +5
-/*	\fIkey\fR whitespace \fIvalue\fR
+/* .nf
+/*	     \fIkey\fR whitespace \fIvalue\fR
+/* .fi
 /* .IP \(bu
 /*	Empty lines and whitespace-only lines are ignored, as
 /*	are lines whose first non-whitespace character is a `#'.

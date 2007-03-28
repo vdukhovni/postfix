@@ -113,8 +113,9 @@ Note: @\fIdomain\fR is a wild-card. When this form is applied
 to recipient addresses, the Postfix SMTP server accepts
 mail for any recipient in \fIdomain\fR, regardless of whether
 that recipient exists.  This may turn your mail system into
-a backscatter source that returns undeliverable spam to
-innocent people.
+a backscatter source: Postfix first accepts mail for
+non-existent recipients and then tries to return that mail
+as "undeliverable" to the often forged sender address.
 .SH "RESULT ADDRESS REWRITING"
 .na
 .nf

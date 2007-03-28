@@ -8,17 +8,15 @@ Postfix built-in content inspection
 .SH "SYNOPSIS"
 .na
 .nf
+.nf
 \fBheader_checks = pcre:/etc/postfix/header_checks\fR
-.br
 \fBmime_header_checks = pcre:/etc/postfix/mime_header_checks\fR
-.br
 \fBnested_header_checks = pcre:/etc/postfix/nested_header_checks\fR
-.br
 \fBbody_checks = pcre:/etc/postfix/body_checks\fR
 .sp
 \fBpostmap -q "\fIstring\fB" pcre:/etc/postfix/\fIfilename\fR
-.br
 \fBpostmap -q - pcre:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
+.fi
 .SH DESCRIPTION
 .ad
 .fi
@@ -66,6 +64,15 @@ message headers is treated as body content.
 Note: message headers are examined one logical header at a time,
 even when a message header spans multiple lines. Body lines are
 always examined one line at a time.
+.SH "COMPATIBILITY"
+.na
+.nf
+.ad
+.fi
+With Postfix version 2.2 and earlier specify "\fBpostmap
+-fq\fR" to query a table that contains case sensitive
+patterns. By default, regexp: and pcre: patterns are case
+insensitive.
 .SH "TABLE FORMAT"
 .na
 .nf
@@ -273,7 +280,7 @@ line at a time. A decision made for one line is not carried over
 to the next line.
 .IP \(bu
 If text in the message body is encoded
-(RFC 2045) then the rules have to specified for the encoded
+(RFC 2045) then the rules need to be specified for the encoded
 form.
 .IP \(bu
 Likewise, when message headers are encoded (RFC
@@ -330,14 +337,11 @@ Header pattern to block attachments with bad file name extensions.
 .na
 .nf
 /etc/postfix/main.cf:
-.ti +4
-header_checks = regexp:/etc/postfix/header_checks
+    header_checks = regexp:/etc/postfix/header_checks
 
 /etc/postfix/header_checks:
-.ti +4
-/^content-(type|disposition):.*name[[:space:]]*=.*\\.(exe|vbs)/
-.ti +8
-REJECT Bad attachment file name extension: $2
+    /^content-(type|disposition):.*name[[:space:]]*=.*\\.(exe|vbs)/
+        REJECT Bad attachment file name extension: $2
 
 .ad
 .fi
@@ -346,14 +350,11 @@ Body pattern to stop a specific HTML browser vulnerability exploit.
 .na
 .nf
 /etc/postfix/main.cf:
-.ti +4
-body_checks = regexp:/etc/postfix/body_checks
+    body_checks = regexp:/etc/postfix/body_checks
 
 /etc/postfix/body_checks:
-.ti +4
-/^<iframe src=(3D)?cid:.* height=(3D)?0 width=(3D)?0>$/
-.ti +8
-REJECT IFRAME vulnerability exploit
+    /^<iframe src=(3D)?cid:.* height=(3D)?0 width=(3D)?0>$/
+        REJECT IFRAME vulnerability exploit
 .SH "SEE ALSO"
 .na
 .nf

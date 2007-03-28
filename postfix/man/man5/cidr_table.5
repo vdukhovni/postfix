@@ -70,17 +70,16 @@ pattern is found that matches the search string.
 .SH "EXAMPLE SMTPD ACCESS MAP"
 .na
 .nf
+.nf
 /etc/postfix/main.cf:
-.ti +4
-smtpd_client_restrictions = ... cidr:/etc/postfix/client.cidr ...
+    smtpd_client_restrictions = ... cidr:/etc/postfix/client.cidr ...
 
 /etc/postfix/client.cidr:
-.in +4
-# Rule order matters. Put more specific whitelist entries
-# before more general blacklist entries.
-192.168.1.1             OK
-192.168.0.0/16          REJECT
-.in -4
+    # Rule order matters. Put more specific whitelist entries
+    # before more general blacklist entries.
+    192.168.1.1             OK
+    192.168.0.0/16          REJECT
+.fi
 .SH "SEE ALSO"
 .na
 .nf

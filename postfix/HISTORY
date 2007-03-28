@@ -13386,7 +13386,21 @@ Apologies for any names omitted.
 	Currently, nothing in Postfix uses this functionality.
 	File: global/dict_proxy.c.
 
+20070325
+
+	Bugfix: postfix-install didn't work for symlink or hardlink
+	targets, when the parent directory had a value of "no".
+
+20070326
+
+	Workaround: Eric Raymond's man page formatters don't handle
+	low-level *roff .in or .ti controls. We now use .nf and .fi
+	instead. Files: many.
+
 Wish list:
+
+	Remove defer(8) and trace(8) references and man pages. These
+	are services not program names.
 
 	Bind all deliveries to the same local delivery process,
 	making Postfix perform as poorly as monolithic mailers,
@@ -13398,15 +13412,8 @@ Wish list:
 
 	Need scache size limit.
 
-	Don't transform bare username into user@localdomain.localdomain
-	when no domain is specified via main.cf or via the machine
-	hostname.
-
 	Update BACKSCATTER_README to use PCRE because that's what I
 	am using now.
-
-	Update MILTER_README with Martinec info.
-	http://www.ijs.si/software/amavisd/amavisd-new-docs.html#dkim
 
 	Make postcat header/body aware so people can grep headers.
 
@@ -13490,8 +13497,6 @@ Wish list:
 	playing with the soft_error test in the smtp_trouble.c
 	module, and avoiding delivery to backup MX hosts.
 
-	select -> kqueue, epoll, /dev/poll, poll() ...
-
 	In the SMTP server, set a "pipelining detected" flag at the
 	start of a session and at protocol synchronization points,
 	so that reject_unauth_pipelining can be specified in any
@@ -13511,9 +13516,6 @@ Wish list:
 
 	Privacy: remove local command/pathname details from remote
 	delivery status reports, and log them via local msg_warn().
-
-	Remove defer(8) and trace(8) references and man pages. These
-	are services not program names.
 
 	Is it safe to cache a connection after it has been used for
 	more than some number of address verification probes?

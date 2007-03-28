@@ -113,8 +113,10 @@ VIRTUAL(5)                                                          VIRTUAL(5)
               Postfix SMTP server accepts mail for any  recipient
               in  <i>domain</i>,  regardless  of  whether that recipient
               exists.  This may turn  your  mail  system  into  a
-              backscatter  source that returns undeliverable spam
-              to innocent people.
+              backscatter  source: Postfix first accepts mail for
+              non-existent recipients and then  tries  to  return
+              that  mail  as  "undeliverable" to the often forged
+              sender address.
 
 <b>RESULT ADDRESS REWRITING</b>
        The lookup result is subject to address rewriting:
@@ -162,15 +164,15 @@ VIRTUAL(5)                                                          VIRTUAL(5)
        /etc/postfix/<a href="postconf.5.html">main.cf</a>:
            <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> = hash:/etc/postfix/virtual
 
-           Note:  some systems use <b>dbm</b> databases instead of <b>hash</b>.
-           See the output from "<b>postconf -m</b>" for available  data-
-           base types.
+       Note: some systems use <b>dbm</b> databases instead of <b>hash</b>.  See
+       the output  from  "<b>postconf  -m</b>"  for  available  database
+       types.
 
        /etc/postfix/<a href="virtual.8.html">virtual</a>:
-           <i>virtual-alias.domain anything</i> (right-hand content does not matter)
-           <i>postmaster@virtual-alias.domain      postmaster</i>
-           <i>user1@virtual-alias.domain   address1</i>
-           <i>user2@virtual-alias.domain   address2, address3</i>
+           <i>virtual-alias.domain     anything</i> (right-hand content does not matter)
+           <i>postmaster@virtual-alias.domain  postmaster</i>
+           <i>user1@virtual-alias.domain       address1</i>
+           <i>user2@virtual-alias.domain       address2, address3</i>
 
        The  <i>virtual-alias.domain anything</i> entry is required for a
        <a href="ADDRESS_CLASS_README.html#virtual_alias_class">virtual alias domain</a>. <b>Without this entry, mail is rejected</b>

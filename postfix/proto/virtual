@@ -96,8 +96,9 @@
 #	Postfix SMTP server accepts
 #	mail for any recipient in \fIdomain\fR, regardless of whether
 #	that recipient exists.  This may turn your mail system into
-#	a backscatter source that returns undeliverable spam to
-#	innocent people.
+#	a backscatter source: Postfix first accepts mail for
+#	non-existent recipients and then tries to return that mail
+#	as "undeliverable" to the often forged sender address.
 # RESULT ADDRESS REWRITING
 # .ad
 # .fi
@@ -144,24 +145,20 @@
 #
 #	Support for a virtual alias domain looks like:
 #
+# .nf
 #	/etc/postfix/main.cf:
-# .in +4
-#	virtual_alias_maps = hash:/etc/postfix/virtual
+#	    virtual_alias_maps = hash:/etc/postfix/virtual
+# .fi
 #
 #	Note: some systems use \fBdbm\fR databases instead of \fBhash\fR.
 #	See the output from "\fBpostconf -m\fR" for available database types.
 #
-# .ti -4
-#	/etc/postfix/virtual:
 # .nf
-# .na
-#	\fIvirtual-alias.domain	anything\fR (right-hand content does not matter)
-#	\fIpostmaster@virtual-alias.domain	postmaster\fR
-#	\fIuser1@virtual-alias.domain	address1\fR
-#	\fIuser2@virtual-alias.domain	address2, address3\fR
-# .fi
-# .in -4
-# .ad
+#	/etc/postfix/virtual:
+#	    \fIvirtual-alias.domain	anything\fR (right-hand content does not matter)
+#	    \fIpostmaster@virtual-alias.domain	postmaster\fR
+#	    \fIuser1@virtual-alias.domain	address1\fR
+#	    \fIuser2@virtual-alias.domain	address2, address3\fR
 # .fi
 # .sp
 #	The \fIvirtual-alias.domain anything\fR entry is required for a

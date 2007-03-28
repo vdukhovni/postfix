@@ -111,8 +111,10 @@
 #               applied to recipient addresses,  the  Postfix  SMTP
 #               server  accepts  mail  for any recipient in domain,
 #               regardless of whether that recipient exists.   This
-#               may turn your mail system into a backscatter source
-#               that returns undeliverable spam to innocent people.
+#               may  turn  your  mail  system  into  a  backscatter
+#               source: Postfix first accepts mail for non-existent
+#               recipients  and  then  tries to return that mail as
+#               "undeliverable" to the often forged sender address.
 # 
 # RESULT ADDRESS REWRITING
 #        The lookup result is subject to address rewriting:

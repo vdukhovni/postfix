@@ -107,8 +107,10 @@
 #               Postfix SMTP server accepts mail for any  recipient
 #               in  domain,  regardless  of  whether that recipient
 #               exists.  This may turn  your  mail  system  into  a
-#               backscatter  source that returns undeliverable spam
-#               to innocent people.
+#               backscatter  source: Postfix first accepts mail for
+#               non-existent recipients and then  tries  to  return
+#               that  mail  as  "undeliverable" to the often forged
+#               sender address.
 # 
 # RESULT ADDRESS REWRITING
 #        The lookup result is subject to address rewriting:
@@ -156,15 +158,15 @@
 #        /etc/postfix/main.cf:
 #            virtual_alias_maps = hash:/etc/postfix/virtual
 # 
-#            Note:  some systems use dbm databases instead of hash.
-#            See the output from "postconf -m" for available  data-
-#            base types.
+#        Note: some systems use dbm databases instead of hash.  See
+#        the output  from  "postconf  -m"  for  available  database
+#        types.
 # 
 #        /etc/postfix/virtual:
-#            virtual-alias.domain anything (right-hand content does not matter)
-#            postmaster@virtual-alias.domain      postmaster
-#            user1@virtual-alias.domain   address1
-#            user2@virtual-alias.domain   address2, address3
+#            virtual-alias.domain     anything (right-hand content does not matter)
+#            postmaster@virtual-alias.domain  postmaster
+#            user1@virtual-alias.domain       address1
+#            user2@virtual-alias.domain       address2, address3
 # 
 #        The  virtual-alias.domain anything entry is required for a
 #        virtual alias domain. Without this entry, mail is rejected

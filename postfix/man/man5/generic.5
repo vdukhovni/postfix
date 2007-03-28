@@ -174,16 +174,12 @@ that the ISP supports "+" style address extensions).
 .na
 .nf
 /etc/postfix/main.cf:
-.in +4
     smtp_generic_maps = hash:/etc/postfix/generic
-.in -4
 
 /etc/postfix/generic:
-.in +4
     his@localdomain.local   hisaccount@hisisp.example
     her@localdomain.local   heraccount@herisp.example
     @localdomain.local      hisaccount+local@hisisp.example
-.in -4
 
 .ad
 .fi

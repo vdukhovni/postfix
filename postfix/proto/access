@@ -362,20 +362,17 @@
 #	"\fBpostconf -m\fR" to find out what lookup tables Postfix
 #	supports on your system.
 #
-# .na
 # .nf
+# .na
 #	/etc/postfix/main.cf:
-# .in +4
-#	smtpd_client_restrictions = 
-# .in +4
-#	check_client_access hash:/etc/postfix/access
+#	    smtpd_client_restrictions = 
+#	        check_client_access hash:/etc/postfix/access
 #
-# .in -8
 #	/etc/postfix/access:
-# .in +4
-#	1.2.3   REJECT
-#	1.2.3.4 OK
-# .in -4
+#	    1.2.3   REJECT
+#	    1.2.3.4 OK
+# .fi
+# .ad
 #
 #	Execute the command "\fBpostmap /etc/postfix/access\fR" after
 #	editing the file.

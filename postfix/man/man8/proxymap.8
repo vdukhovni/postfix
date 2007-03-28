@@ -22,18 +22,20 @@ reject mail for non-existent local addresses, but it is not
 practical to maintain a copy of the passwd file in the chroot
 jail.  The solution:
 .sp
+.nf
 local_recipient_maps =
-.ti +4
-proxy:unix:passwd.byname $alias_maps
+    proxy:unix:passwd.byname $alias_maps
+.fi
 .IP \(bu
 To consolidate the number of open lookup tables by sharing
 one open table among multiple processes. For example, making
 mysql connections from every Postfix daemon process results
 in "too many connections" errors. The solution:
 .sp
+.nf
 virtual_alias_maps =
-.ti +4
-proxy:mysql:/etc/postfix/virtual_alias.cf
+    proxy:mysql:/etc/postfix/virtual_alias.cf
+.fi
 .sp
 The total number of connections is limited by the number of
 proxymap server processes.

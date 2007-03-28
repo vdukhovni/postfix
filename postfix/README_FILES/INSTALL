@@ -88,6 +88,7 @@ At some point in time, a version of Postfix was supported on:
     Linux RedHat 3.x (January 2004) - 9.x
     Linux Slackware 3.x, 4.x, 7.x
     Linux SuSE 5.x, 6.x, 7.x
+    Linux Ubuntu 4.10..7.04
     Mac OS X
     NEXTSTEP 3.x
     NetBSD 1.x
