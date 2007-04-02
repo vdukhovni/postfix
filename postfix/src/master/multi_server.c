@@ -336,14 +336,17 @@ static void multi_server_wakeup(int fd)
     char   *tmp;
 
 #if defined(F_DUPFD) && (EVENTS_STYLE != EVENTS_STYLE_SELECT)
+#ifndef THRESHOLD_FD_WORKAROUND
+#define THRESHOLD_FD_WORKAROUND 128
+#endif
     int     new_fd;
 
     /*
      * Leave some handles < FD_SETSIZE for DBMS libraries, in the unlikely
      * case of a multi-server with a thousand clients.
      */
-    if (fd < FD_SETSIZE / 8) {
-	if ((new_fd = fcntl(fd, F_DUPFD, FD_SETSIZE / 8)) < 0)
+    if (fd < THRESHOLD_FD_WORKAROUND) {
+	if ((new_fd = fcntl(fd, F_DUPFD, THRESHOLD_FD_WORKAROUND)) < 0)
 	    msg_fatal("fcntl F_DUPFD: %m");
 	(void) close(fd);
 	fd = new_fd;

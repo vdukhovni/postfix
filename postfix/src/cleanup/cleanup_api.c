@@ -297,8 +297,8 @@ int     cleanup_flush(CLEANUP_STATE *state)
 #endif
 	    mail_stream_ctl(state->handle,
 			    MAIL_STREAM_CTL_QUEUE, state->queue_name,
-			    MAIL_STREAM_CTL_CLASS, 0,
-			    MAIL_STREAM_CTL_SERVICE, 0,
+			    MAIL_STREAM_CTL_CLASS, (char *) 0,
+			    MAIL_STREAM_CTL_SERVICE, (char *) 0,
 #ifdef DELAY_ACTION
 			    MAIL_STREAM_CTL_DELAY, state->defer_delay,
 #endif
