@@ -27,8 +27,10 @@ href="#pros_cons">Pros and Cons</a>" section below for details.
 <h2>The Postfix before-queue content filter feature</h2>
 
 <p> As of version 2.1, the Postfix SMTP server can forward all
-incoming mail to a content filtering proxy server that inspects
-all mail BEFORE it is stored in the Postfix mail queue. </p>
+incoming mail to a content filtering proxy server that inspects all
+mail BEFORE it is stored in the Postfix mail queue. It is roughly
+equivalent in capabilities to the approach described in <a href="MILTER_README.html">MILTER_README</a>,
+except that the latter uses a dedicated protocol instead of SMTP.
 
 <p> The before-queue content filter is meant to be used as follows: </p>
 

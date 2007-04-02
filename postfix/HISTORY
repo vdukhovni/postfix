@@ -13396,3 +13396,22 @@ Apologies for any names omitted.
 	Workaround: Eric Raymond's man page formatters don't handle
 	low-level *roff .in or .ti controls. We now use .nf and .fi
 	instead. Files: many.
+
+20070331
+
+	Bugfix (introduced Postfix 2.3): segfault with HOLD action
+	in header/body_checks on 64-bit platforms. File:
+	cleanup/cleanup_api.c.
+
+20070402
+
+	Portability (introduced 20070325): the fix for hardlinks
+	and symlinks in postfix-install forgot to work around shells
+	where "IFS=/ command" makes the IFS setting permanent.  This
+	is allowed by some broken standard, and affects Solaris.
+	File: postfix-install.
+
+	Portability (introduced 20070212): the workaround for
+	non-existent library bugs with descriptors >= FD_SETSIZE
+	broke with "fcntl F_DUPFD: Invalid argument" on 64-bit
+	Solaris.  Files: master/multi_server.c, *qmgr/qmgr_transport.c.

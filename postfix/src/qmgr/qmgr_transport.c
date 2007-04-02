@@ -347,8 +347,11 @@ void    qmgr_transport_alloc(QMGR_TRANSPORT *transport, QMGR_TRANSPORT_ALLOC_NOT
 	return;
     }
 #if (EVENTS_STYLE != EVENTS_STYLE_SELECT) && defined(VSTREAM_CTL_DUPFD)
+#ifndef THRESHOLD_FD_WORKAROUND
+#define THRESHOLD_FD_WORKAROUND 128
+#endif
     vstream_control(alloc->stream,
-		    VSTREAM_CTL_DUPFD, FD_SETSIZE / 8,
+		    VSTREAM_CTL_DUPFD, THRESHOLD_FD_WORKAROUND,
 		    VSTREAM_CTL_END);
 #endif
     event_enable_read(vstream_fileno(alloc->stream), qmgr_transport_event,
