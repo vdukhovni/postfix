@@ -123,6 +123,7 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
     state->proxy_xforward_features = 0;
     state->saved_filter = 0;
     state->saved_redirect = 0;
+    state->saved_bcc = 0;
     state->saved_flags = 0;
 #ifdef DELAY_ACTION
     state->saved_delay = 0;

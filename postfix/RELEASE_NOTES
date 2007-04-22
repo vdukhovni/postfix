@@ -16,3 +16,12 @@ Incompatibility with Postfix 2.3 and earlier
 
 If you upgrade from Postfix 2.3 or earlier, read RELEASE_NOTES-2.4
 before proceeding.
+
+Incompatibility with Postfix snapshot 20070422
+==============================================
+
+When the pipe(8) delivery agent is configured to create the optional
+Delivered-To: header, it first checks if that same header is already
+present. If so, the mail is returned as undeliverable. This test
+should have been included with Postfix 2.0 when Delivered-To: support
+was added to the pipe(8) delivery agent.

@@ -69,6 +69,7 @@
 #include <vstring.h>
 #include <split_at.h>
 #include <dict.h>
+#include <events.h>
 
 /* Global library. */
 
@@ -99,8 +100,10 @@ TRANSPORT_INFO *transport_pre_init(const char *transport_maps_name,
     tp->transport_path = maps_create(transport_maps_name, transport_maps,
 				     DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
 				     | DICT_FLAG_NO_REGSUB);
-    tp->wildcard_channel = tp->wildcard_nexthop = 0;
+    tp->wildcard_channel = vstring_alloc(10);
+    tp->wildcard_nexthop = vstring_alloc(10);
     tp->transport_errno = 0;
+    tp->expire = 0;
     return (tp);
 }
 
@@ -204,8 +207,6 @@ static int find_transport_entry(TRANSPORT_INFO *tp, const char *key,
 
 static void transport_wildcard_init(TRANSPORT_INFO *tp)
 {
-    VSTRING *channel = vstring_alloc(10);
-    VSTRING *nexthop = vstring_alloc(10);
 
     /*
      * Technically, the wildcard lookup pattern is redundant. A static map
@@ -221,22 +222,20 @@ static void transport_wildcard_init(TRANSPORT_INFO *tp)
 #define FULL		0
 #define PARTIAL		DICT_FLAG_FIXED
 
-    if (find_transport_entry(tp, WILDCARD, "", FULL, channel, nexthop)) {
+    if (find_transport_entry(tp, WILDCARD, "", FULL,
+			     tp->wildcard_channel,
+			     tp->wildcard_nexthop)) {
 	tp->transport_errno = 0;
-	if (tp->wildcard_channel)
-	    vstring_free(tp->wildcard_channel);
-	tp->wildcard_channel = channel;
-	if (tp->wildcard_nexthop)
-	    vstring_free(tp->wildcard_nexthop);
-	tp->wildcard_nexthop = nexthop;
 	if (msg_verbose)
 	    msg_info("wildcard_{chan:hop}={%s:%s}",
-		     vstring_str(channel), vstring_str(nexthop));
+		     vstring_str(tp->wildcard_channel),
+		     vstring_str(tp->wildcard_nexthop));
     } else {
 	tp->transport_errno = dict_errno;
-	vstring_free(channel);
-	vstring_free(nexthop);
+	VSTRING_RESET(tp->wildcard_channel);
+	VSTRING_RESET(tp->wildcard_nexthop);
     }
+    tp->expire = event_time() + 30;		/* XXX make configurable */
 }
 
 /* transport_lookup - map a transport domain */
@@ -321,12 +320,12 @@ int     transport_lookup(TRANSPORT_INFO *tp, const char *addr,
     /*
      * Fall back to the wild-card entry.
      */
-    if (tp->transport_errno)
+    if (tp->transport_errno || event_time() > tp->expire)
 	transport_wildcard_init(tp);
     if (tp->transport_errno) {
 	dict_errno = tp->transport_errno;
 	return (NOTFOUND);
-    } else if (tp->wildcard_channel) {
+    } else if (tp->wildcard_channel && VSTRING_LEN(tp->wildcard_channel)) {
 	update_entry(STR(tp->wildcard_channel), STR(tp->wildcard_nexthop),
 		     rcpt_domain, channel, nexthop);
 	return (FOUND);

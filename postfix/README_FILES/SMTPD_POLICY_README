@@ -43,6 +43,7 @@ terminated by an empty line.
 Here is an example of all the attributes that the Postfix SMTP server sends in
 a delegated SMTPD access policy request:
 
+    PPoossttffiixx vveerrssiioonn 22..11 aanndd llaatteerr::
     request=smtpd_access_policy
     protocol_state=RCPT
     protocol_name=SMTP

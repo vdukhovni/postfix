@@ -225,6 +225,17 @@ ACCESS(5)                                                            ACCESS(5)
               Apply the named UCE restriction(s) (<b>permit</b>, <b>reject</b>,
               <b><a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a></b>, and so on).
 
+       <b>BCC</b> <i>user@domain</i>
+              Send  one  copy  of  the  message  to the specified
+              recipient.
+
+              If multiple BCC actions are  specified  within  the
+              same  SMTP  MAIL  transaction, only the last action
+              will be used.
+
+              This feature is not  part  of  the  stable  Postfix
+              release.
+
        <b>DISCARD</b> <i>optional text...</i>
               Claim  successful delivery and silently discard the
               message.  Log the optional text if specified,  oth-

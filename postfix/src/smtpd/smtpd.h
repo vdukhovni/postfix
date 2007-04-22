@@ -133,6 +133,7 @@ typedef struct SMTPD_STATE {
     int     discard;			/* discard message */
     char   *saved_filter;		/* postponed filter action */
     char   *saved_redirect;		/* postponed redirect action */
+    char   *saved_bcc;			/* postponed bcc action */
     int     saved_flags;		/* postponed hold/discard */
 #ifdef DELAY_ACTION
     int     saved_delay;		/* postponed deferred delay */

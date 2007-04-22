@@ -72,6 +72,7 @@
   */
 CLNT_STREAM *rewrite_clnt_stream = 0;
 
+static time_t last_expire;
 static VSTRING *last_rule;
 static VSTRING *last_addr;
 static VSTRING *last_result;
@@ -107,7 +108,8 @@ VSTRING *rewrite_clnt(const char *rule, const char *addr, VSTRING *result)
     /*
      * Peek at the cache.
      */
-    if (strcmp(addr, STR(last_addr)) == 0
+    if (event_time() < last_expire
+	&& strcmp(addr, STR(last_addr)) == 0
 	&& strcmp(rule, STR(last_rule)) == 0) {
 	vstring_strcpy(result, STR(last_result));
 	if (msg_verbose)
@@ -163,6 +165,7 @@ VSTRING *rewrite_clnt(const char *rule, const char *addr, VSTRING *result)
     vstring_strcpy(last_rule, rule);
     vstring_strcpy(last_addr, addr);
     vstring_strcpy(last_result, STR(result));
+    last_expire = event_time() + 30;		/* XXX make configurable */
 
     return (result);
 }

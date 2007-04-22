@@ -136,7 +136,8 @@ stop)
 	    sleep 1
 	done
 	$WARN stopping the Postfix mail system with force
-	kill -9 `sed 1q pid/master.pid`
+	pid=`awk '{ print $1; exit 0 } END { exit 1 }' pid/master.pid` && 
+		kill -9 -$pid
 	;;
 
 abort)

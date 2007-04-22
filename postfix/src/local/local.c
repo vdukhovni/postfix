@@ -693,7 +693,7 @@ static int local_deliver(DELIVER_REQUEST *rqst, char *service)
     state.msg_attr.request = rqst;
     RESET_OWNER_ATTR(state.msg_attr, state.level);
     RESET_USER_ATTR(usr_attr, state.level);
-    state.loop_info = delivered_init(state.msg_attr);	/* delivered-to */
+    state.loop_info = delivered_hdr_init(rqst->fp, rqst->data_offset);
     state.request = rqst;
 
     /*
@@ -717,7 +717,7 @@ static int local_deliver(DELIVER_REQUEST *rqst, char *service)
     /*
      * Clean up.
      */
-    delivered_free(state.loop_info);
+    delivered_hdr_free(state.loop_info);
     deliver_attr_free(&state.msg_attr);
 
     return (msg_stat);

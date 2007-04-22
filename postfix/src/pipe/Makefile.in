@@ -64,6 +64,7 @@ pipe.o: ../../include/canon_addr.h
 pipe.o: ../../include/defer.h
 pipe.o: ../../include/deliver_completed.h
 pipe.o: ../../include/deliver_request.h
+pipe.o: ../../include/delivered_hdr.h
 pipe.o: ../../include/dict.h
 pipe.o: ../../include/dsn.h
 pipe.o: ../../include/dsn_buf.h

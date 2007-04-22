@@ -141,6 +141,7 @@
   */
 extern CLNT_STREAM *rewrite_clnt_stream;
 
+static time_t last_expire;
 static VSTRING *last_class;
 static VSTRING *last_sender;
 static VSTRING *last_addr;
@@ -190,7 +191,8 @@ void    resolve_clnt(const char *class, const char *sender,
      */
 #define IFSET(flag, text) ((reply->flags & (flag)) ? (text) : "")
 
-    if (*addr && strcmp(addr, STR(last_addr)) == 0
+    if (event_time() < last_expire
+	&& *addr && strcmp(addr, STR(last_addr)) == 0
 	&& strcmp(class, STR(last_class)) == 0
 	&& strcmp(sender, STR(last_sender)) == 0) {
 	vstring_strcpy(reply->transport, STR(last_reply.transport));
@@ -282,6 +284,7 @@ void    resolve_clnt(const char *class, const char *sender,
     vstring_strcpy(last_reply.nexthop, STR(reply->nexthop));
     vstring_strcpy(last_reply.recipient, STR(reply->recipient));
     last_reply.flags = reply->flags;
+    last_expire = event_time() + 30;		/* XXX make configurable */
 }
 
 /* resolve_clnt_free - destroy reply */

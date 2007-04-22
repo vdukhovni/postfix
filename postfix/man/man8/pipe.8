@@ -31,9 +31,11 @@ appropriate.
 .nf
 .ad
 .fi
-Some external commands cannot handle more than one recipient
-per delivery request. Examples of such transports are pagers
-or fax machines.
+Some destinations cannot handle more than one recipient per
+delivery request. Examples are pagers or fax machines.
+In addition, multi-recipient delivery is undesirable when
+prepending a \fBDelivered-to:\fR or \fBX-Original-To:\fR
+message header.
 
 To prevent Postfix from sending multiple recipients per delivery
 request, specify
@@ -84,7 +86,13 @@ when preceded by a blank line.
 .IP \fBD\fR
 Prepend a "\fBDelivered-To: \fIrecipient\fR" message header with the
 envelope recipient address. Note: for this to work, the
-\fItransport\fB_destination_recipient_limit\fR must be 1.
+\fItransport\fB_destination_recipient_limit\fR must be 1
+(see SINGLE-RECIPIENT DELIVERY above for details).
+.sp
+This code also enforces loop detection (Postfix 2.5 and later).
+If a message already contains a \fBDelivered-To:\fR header
+with the same recipient address, then the message is
+returned as undeliverable.
 .sp
 This feature is available as of Postfix 2.0.
 .IP \fBF\fR
@@ -94,15 +102,18 @@ This is expected by, for example, \fBUUCP\fR software.
 .IP \fBO\fR
 Prepend an "\fBX-Original-To: \fIrecipient\fR" message header
 with the recipient address as given to Postfix. Note: for this to
-work, the \fItransport\fB_destination_recipient_limit\fR must be 1.
+work, the \fItransport\fB_destination_recipient_limit\fR must be 1
+(see SINGLE-RECIPIENT DELIVERY above for details).
 .sp
 This feature is available as of Postfix 2.0.
 .IP \fBR\fR
 Prepend a \fBReturn-Path:\fR message header with the envelope sender
 address.
 .IP \fBh\fR
-Fold the command-line \fB$recipient\fR domain name and \fB$nexthop\fR
-host name to lower case.
+Fold the command-line \fB$recipient\fR address domain part
+(text to the right of the right-most \fB@\fR character) to
+lower case; fold the entire command-line \fB$domain\fR and
+\fB$nexthop\fR host or domain information to lower case.
 This is recommended for delivery via \fBUUCP\fR.
 .IP \fBq\fR
 Quote white space and other special characters in the command-line
@@ -159,7 +170,7 @@ specify \fB$sender\fR as an argument by itself:
     command -f $sender -- $recipient (\fIgood\fR)
 .fi
 .IP
-This feature is available with Postfix 2.3 and later.
+This feature is available as of Postfix 2.3.
 .IP "\fBsize\fR=\fIsize_limit\fR (optional)"
 Messages greater in size than this limit (in bytes) will
 be returned to the sender as undeliverable.
@@ -201,6 +212,14 @@ This is available in Postfix 2.2 and later.
 This macro expands to the remote client protocol.
 .sp
 This is available in Postfix 2.2 and later.
+.IP \fB${\fBdomain\fR}\fR
+This macro expands to the domain portion of the recipient
+address.  For example, with an address \fIuser+foo@domain\fR
+the domain is \fIdomain\fR.
+.sp
+This information is modified by the \fBh\fR flag for case folding.
+.sp
+This is available in Postfix 2.5 and later.
 .IP \fB${\fBextension\fR}\fR
 This macro expands to the extension part of a recipient address.
 For example, with an address \fIuser+foo@domain\fR the extension is

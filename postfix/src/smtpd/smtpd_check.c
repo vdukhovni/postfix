@@ -2100,6 +2100,32 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     }
 
     /*
+     * BCC means deliver to designated recipient. But we may still
+     * change our mind, and reject/discard the message for other reasons.
+     */
+#ifdef SNAPSHOT
+    if (STREQUAL(value, "BCC", cmd_len)) {
+#ifndef TEST
+	if (can_delegate_action(state, table, "BCC", reply_class) == 0)
+	    return (SMTPD_CHECK_DUNNO);
+#endif
+	if (strchr(cmd_text, '@') == 0) {
+	    msg_warn("access table %s entry \"%s\" requires user@domain target",
+		     table, datum);
+	    return (SMTPD_CHECK_DUNNO);
+	} else {
+	    vstring_sprintf(error_text, "<%s>: %s triggers BCC %s",
+			    reply_name, reply_class, cmd_text);
+	    log_whatsup(state, "bcc", STR(error_text));
+#ifndef TEST
+	    UPDATE_STRING(state->saved_bcc, cmd_text);
+#endif
+	    return (SMTPD_CHECK_DUNNO);
+	}
+    }
+#endif
+
+    /*
      * DEFER_IF_PERMIT changes "permit" into "maybe". Use optional text or
      * generate a generic error response.
      */

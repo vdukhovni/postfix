@@ -9,6 +9,11 @@
 /* .nf
 
  /*
+  * System library.
+  */
+#include <time.h>
+
+ /*
   * Utility library.
   */
 #include <vstring.h>
@@ -26,6 +31,7 @@ typedef struct TRANSPORT_INFO {
     VSTRING *wildcard_channel;
     VSTRING *wildcard_nexthop;
     int     transport_errno;
+    time_t  expire;
 } TRANSPORT_INFO;
 
 extern TRANSPORT_INFO *transport_pre_init(const char *, const char *);

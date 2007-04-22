@@ -13400,8 +13400,8 @@ Apologies for any names omitted.
 20070331 
 
 	Bugfix (introduced Postfix 2.3): segfault with HOLD action
-	in header/body_checks on 64-bit platforms. File:
-	cleanup/cleanup_api.c.
+	in access/header_checks/body_checks on 64-bit platforms.
+	File: cleanup/cleanup_api.c.
 
 20070402
 
@@ -13416,14 +13416,58 @@ Apologies for any names omitted.
 	broke with "fcntl F_DUPFD: Invalid argument" on 64-bit
 	Solaris.  Files: master/multi_server.c, *qmgr/qmgr_transport.c.
 
+20070405
+
+	Feature: BCC access/policy action, to demonstrate that this
+	is not a good feature. The action's behavior is non-intuitive
+	and requires too much documentation to explain.  It's
+	therefore snapshot only.  File: smtpd/smtpd_check.c.
+
+20070414
+
+	Cleanup: expire cached results from addres rewriting, address
+	resolution, and from transport map lookups.  Results expire
+	after 30 seconds; short enough that it doesn't freak out
+	people who run the same test repeatedly, and long enough
+	that it doesn't upset other people with continuous streams
+	of "*" transport map lookups.  Files: global/rewrite_clnt.c,
+	global/resolve_clnt.c, trivial-rewrite/transport.c.
+
+20070421
+
+	Cleanup: on (Linux) platforms that cripple signal handlers
+	with deadlock, "postfix stop" now forcefully stops all the
+	processes in the master's process group, not just the master
+	process alone.  File: conf/postfix-script.
+
+20070422
+
+	Cleanup: the "Delivered-To:" loop detection implementation
+	was moved from the local(8) delivery agent to the library,
+	where it can also be used by other delivery agents. Files:
+	global/delivered_hdr.[hc].
+
+	Safety: the "Delivered-To:" loop detection implementation
+	keeps state for no more than 1000 "Delivered-To:" headers.
+
+	Feature: $domain command-line macro support, to get access
+	to the recipient address domain portion.  Based on code by
+	Koen Vermeer. File: pipe/pipe.c.
+
+	Cleanup: suport for "Delivered-To:" loop detection in the
+	pipe(8) delivery agent. This follows a general principle:
+	if a program creates the "Delivered-To:" header, then it
+	is also responsible for "Delivered-To:" loop detection.
+	File pipe/pipe.c.
+
 Wish list:
 
 	Remove defer(8) and trace(8) references and man pages. These
 	are services not program names.
 
 	Bind all deliveries to the same local delivery process,
-	making Postfix perform as poorly as monolithic mailers,
-	but giving a possibility to eliminate duplicate deliveries.
+	making Postfix perform as poorly as monolithic mailers, but
+	giving a possibility to eliminate duplicate deliveries.
 
 	Maybe declare loop when resolve_local(mxhost) is true?
 

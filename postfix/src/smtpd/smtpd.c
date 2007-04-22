@@ -2131,6 +2131,10 @@ static void mail_reset(SMTPD_STATE *state)
 	myfree(state->saved_redirect);
 	state->saved_redirect = 0;
     }
+    if (state->saved_bcc) {
+	myfree(state->saved_bcc);
+	state->saved_bcc = 0;
+    }
     state->saved_flags = 0;
 #ifdef DELAY_ACTION
     state->saved_delay = 0;
@@ -2712,6 +2716,12 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	    if (state->saved_redirect)
 		rec_fprintf(state->cleanup, REC_TYPE_RDR, "%s",
 			    state->saved_redirect);
+	    if (state->saved_bcc) {
+		rec_fprintf(state->cleanup, REC_TYPE_RCPT, "%s",
+			    state->saved_bcc);
+		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%d",
+			    MAIL_ATTR_DSN_NOTIFY, DSN_NOTIFY_NEVER);
+	    }
 	    if (state->saved_flags)
 		rec_fprintf(state->cleanup, REC_TYPE_FLGS, "%d",
 			    state->saved_flags);
