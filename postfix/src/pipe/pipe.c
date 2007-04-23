@@ -79,8 +79,8 @@
 /*	\fItransport\fB_destination_recipient_limit\fR must be 1
 /*	(see SINGLE-RECIPIENT DELIVERY above for details).
 /* .sp
-/*	This code also enforces loop detection (Postfix 2.5 and later).
-/*	If a message already contains a \fBDelivered-To:\fR header
+/*	The \fBD\fR flag also enforces loop detection (Postfix 2.5 and later):
+/*	if a message already contains a \fBDelivered-To:\fR header
 /*	with the same recipient address, then the message is
 /*	returned as undeliverable.
 /* .sp

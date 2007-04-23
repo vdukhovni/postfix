@@ -91,8 +91,8 @@ PIPE(8)                                                                PIPE(8)
                      <b>nation_recipient_limit</b> must be 1  (see  SIN-
                      GLE-RECIPIENT DELIVERY above for details).
 
-                     This   code  also  enforces  loop  detection
-                     (Postfix  2.5  and  later).   If  a  message
+                     The  <b>D</b>  flag  also  enforces  loop detection
+                     (Postfix  2.5  and  later):  if  a   message
                      already contains a <b>Delivered-To:</b> header with
                      the same recipient address, then the message
                      is returned as undeliverable.

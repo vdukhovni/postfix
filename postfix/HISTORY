@@ -13460,6 +13460,12 @@ Apologies for any names omitted.
 	is also responsible for "Delivered-To:" loop detection.
 	File pipe/pipe.c.
 
+20070423
+
+	The cache expiring transport map lookups did not distinguish
+	between wildcard transport map entry with an "empty" transport
+	field, or no wildcard transport map entry.
+
 Wish list:
 
 	Remove defer(8) and trace(8) references and man pages. These
