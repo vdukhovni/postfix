@@ -41,7 +41,7 @@
 # .IP "\fBif /\fIpattern\fB/\fIflags\fR"
 # .IP "\fBendif\fR"
 #	Match the input string against the patterns between \fBif\fR
-#	and \fBendif\fR, if and only if the input string also matches
+#	and \fBendif\fR, if and only if that same input string also matches
 #	\fIpattern\fR. The \fBif\fR..\fBendif\fR can nest.
 # .sp
 #	Note: do not prepend whitespace to patterns inside
@@ -51,7 +51,7 @@
 # .IP "\fBif !/\fIpattern\fB/\fIflags\fR"
 # .IP "\fBendif\fR"
 #	Match the input string against the patterns between \fBif\fR
-#	and \fBendif\fR, if and only if the input string does \fBnot\fR
+#	and \fBendif\fR, if and only if that same input string does \fBnot\fR
 #	match \fIpattern\fR. The \fBif\fR..\fBendif\fR can nest.
 # .sp
 #	Note: do not prepend whitespace to patterns inside

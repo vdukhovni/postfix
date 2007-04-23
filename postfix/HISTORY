@@ -13400,8 +13400,8 @@ Apologies for any names omitted.
 20070331
 
 	Bugfix (introduced Postfix 2.3): segfault with HOLD action
-	in header/body_checks on 64-bit platforms. File:
-	cleanup/cleanup_api.c.
+	in access/header_checks/body_checks on 64-bit platforms.
+	File: cleanup/cleanup_api.c.
 
 20070402
 
@@ -13415,3 +13415,10 @@ Apologies for any names omitted.
 	non-existent library bugs with descriptors >= FD_SETSIZE
 	broke with "fcntl F_DUPFD: Invalid argument" on 64-bit
 	Solaris.  Files: master/multi_server.c, *qmgr/qmgr_transport.c.
+
+20070421
+
+	Cleanup: on (Linux) platforms that cripple signal handlers
+	with deadlock, "postfix stop" now forcefully stops all the
+	processes in the master's process group, not just the master
+	process alone.  File: conf/postfix-script.
