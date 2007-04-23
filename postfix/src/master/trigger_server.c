@@ -313,7 +313,7 @@ static void trigger_server_accept_local(int unused_event, char *context)
 	msg_fatal("select unlock: %m");
     if (fd < 0) {
 	if (errno != EAGAIN)
-	    msg_fatal("accept connection: %m");
+	    msg_error("accept connection: %m");
 	if (time_left >= 0)
 	    event_request_timer(trigger_server_timeout, (char *) 0, time_left);
 	return;
@@ -359,7 +359,7 @@ static void trigger_server_accept_pass(int unused_event, char *context)
 	msg_fatal("select unlock: %m");
     if (fd < 0) {
 	if (errno != EAGAIN)
-	    msg_fatal("accept connection: %m");
+	    msg_error("accept connection: %m");
 	if (time_left >= 0)
 	    event_request_timer(trigger_server_timeout, (char *) 0, time_left);
 	return;

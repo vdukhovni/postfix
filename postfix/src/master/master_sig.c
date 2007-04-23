@@ -173,13 +173,6 @@ static void master_sigdeath(int sig)
     pid_t   pid = getpid();
 
     /*
-     * XXX We're running from a signal handler, and really should not call
-     * any msg() routines at all, but it would be even worse to silently
-     * terminate without informing the sysadmin.
-     */
-    msg_info("terminating on signal %d", sig);
-
-    /*
      * Terminate all processes in our process group, except ourselves.
      */
     sigemptyset(&action.sa_mask);
@@ -189,6 +182,13 @@ static void master_sigdeath(int sig)
 	msg_fatal("%s: sigaction: %m", myname);
     if (kill(-pid, SIGTERM) < 0)
 	msg_fatal("%s: kill process group: %m", myname);
+
+    /*
+     * XXX We're running from a signal handler, and really should not call
+     * any msg() routines at all, but it would be even worse to silently
+     * terminate without informing the sysadmin.
+     */
+    msg_info("terminating on signal %d", sig);
 
     /*
      * Deliver the signal to ourselves and clean up. XXX We're running as a

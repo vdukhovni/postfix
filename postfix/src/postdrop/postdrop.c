@@ -229,6 +229,7 @@ int     main(int argc, char **argv)
     const char *errstr;
     char   *junk;
     struct timeval start;
+    int     saved_errno;
 
     /*
      * Be consistent with file permissions.
@@ -425,9 +426,12 @@ int     main(int argc, char **argv)
 	    continue;
 	}
 	if (REC_PUT_BUF(dst->stream, rec_type, buf) < 0) {
-	    while ((rec_type = rec_get(VSTREAM_IN, buf, var_line_limit)) > 0
-		   && rec_type != REC_TYPE_END)
+	    /* rec_get() errors must not clobber errno. */
+	    saved_errno = errno;
+	    while (rec_get_raw(VSTREAM_IN, buf, var_line_limit,
+			       REC_FLAG_NONE) > 0)
 		 /* void */ ;
+	    errno = saved_errno;
 	    break;
 	}
 	if (rec_type == REC_TYPE_END)
@@ -439,8 +443,8 @@ int     main(int argc, char **argv)
      * Finish the file.
      */
     if ((status = mail_stream_finish(dst, (VSTRING *) 0)) != 0) {
-	postdrop_cleanup();
 	msg_warn("uid=%ld: %m", (long) uid);
+	postdrop_cleanup();
     }
 
     /*

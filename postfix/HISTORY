@@ -12961,3 +12961,28 @@ Apologies for any names omitted.
 	Duchovni, Morgan Stanley. Files: src/smtp/smtp_proto.c,
 	src/smtpd/smtpd.c, src/tls/tls.h, src/tls/tls_client.c,
 	src/tls/tls_misc.c and src/tls/tls_server.c.
+
+20070306
+
+	Workaround: on some FreeBSD versions, accept(2) can fail
+	with a bogus EINVAL error. We now allow accept(2) to fail
+	for a limited number of times before terminating the process.
+	Files: master/single_server.c, master/multi_server.c.
+	Back-ported from Postfix 2.4.
+
+	Bugfix (introduced with Postfix 2.3 Milter support): postdrop
+	reported "illegal seek" instead of "file too large".  File:
+	postdrop/postdrop.c. Back-ported from Postfix 2.4.
+
+20070331
+
+	Bugfix (introduced Postfix 2.3): segfault with HOLD action
+	in access/header_checks/body_checks on 64-bit platforms.
+	File: cleanup/cleanup_api.c. Back-ported from Postfix 2.4.
+
+20070421
+
+	Workaround: on (Linux) platforms that cripple signal handlers
+	with deadlock, "postfix stop" forcefully stops all processes
+	in the master's process group. Files: conf/postfix-script,
+	master/master_sig.c. Back-ported from Postfix 2.4.
