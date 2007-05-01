@@ -4095,7 +4095,8 @@ chroot jail, so you can leave the password file in /etc/postfix.
 
 %PARAM smtp_sasl_security_options noplaintext, noanonymous
 
-<p> SASL security options; as of Postfix 2.3 the list of available
+<p> Postfix SMTP client SASL security options; as of Postfix 2.3
+the list of available
 features depends on the SASL client implementation that is selected
 with <b>smtp_sasl_type</b>.  </p>
 
@@ -5461,7 +5462,8 @@ message header.  </p>
 %PARAM smtpd_sasl_exceptions_networks 
 
 <p>
-What SMTP clients Postfix will not offer AUTH support to.
+What remote SMTP clients the Postfix SMTP server will not offer
+AUTH support to.
 </p>
 
 <p>
@@ -5504,7 +5506,8 @@ This feature is available in Postfix 2.1 and later.
 %PARAM smtpd_sasl_local_domain 
 
 <p>
-The name of the local SASL authentication realm.
+The name of the Postfix SMTP server's local SASL authentication
+realm.
 </p>
 
 <p>
@@ -5522,7 +5525,8 @@ smtpd_sasl_local_domain = $myhostname
 
 %PARAM smtpd_sasl_security_options noanonymous
 
-<p> SASL security options; as of Postfix 2.3 the list of available
+<p> Postfix SMTP server SASL security options; as of Postfix 2.3
+the list of available
 features depends on the SASL server implementation that is selected
 with <b>smtpd_sasl_type</b>.  </p>
 
@@ -7542,7 +7546,8 @@ See the RESTRICTION_CLASS_README document for other examples.
 %PARAM smtpd_sasl_application_name smtpd
 
 <p>
-The application name used for SASL server initialization. This
+The application name that the Postfix SMTP server uses for SASL
+server initialization. This
 controls the name of the SASL configuration file. The default value
 is <b>smtpd</b>, corresponding to a SASL configuration file named
 <b>smtpd.conf</b>.
@@ -9379,7 +9384,8 @@ for authentication.  The available types are listed with the
 
 %PARAM smtpd_sasl_path smtpd
 
-<p> Implementation-specific information that is passed through to
+<p> Implementation-specific information that the Postfix SMTP server
+passes through to
 the SASL plug-in implementation that is selected with
 <b>smtpd_sasl_type</b>.  Typically this specifies the name of a
 configuration file or rendezvous point. </p>
@@ -9389,7 +9395,8 @@ releases it was called smtpd_sasl_application. </p>
 
 %PARAM smtp_sasl_path
 
-<p> Implementation-specific information that is passed through to
+<p> Implementation-specific information that the Postfix SMTP client
+passes through to
 the SASL plug-in implementation that is selected with
 <b>smtp_sasl_type</b>.  Typically this specifies the name of a
 configuration file or rendezvous point. </p>
@@ -10572,3 +10579,11 @@ configuration parameter.  See there for details. </p>
 configuration parameter.  See there for details. </p>
 
 <p> This feature is available in Postfix 2.4 and later. </p>
+
+%PARAM detect_8bit_encoding_header yes
+
+<p> Automatically detect 8BITMIME body content by looking at
+Content-Transfer-Encoding: message headers; historically, this
+behavior was hard-coded to be "always on".  </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>

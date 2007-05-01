@@ -693,7 +693,8 @@ static int local_deliver(DELIVER_REQUEST *rqst, char *service)
     state.msg_attr.request = rqst;
     RESET_OWNER_ATTR(state.msg_attr, state.level);
     RESET_USER_ATTR(usr_attr, state.level);
-    state.loop_info = delivered_hdr_init(rqst->fp, rqst->data_offset);
+    state.loop_info = delivered_hdr_init(rqst->fp, rqst->data_offset,
+					 FOLD_ADDR_ALL);
     state.request = rqst;
 
     /*

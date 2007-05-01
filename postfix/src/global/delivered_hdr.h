@@ -17,10 +17,15 @@
 #include <vstream.h>
 
  /*
+  * Global library.
+  */
+#include <fold_addr.h>
+
+ /*
   * External interface.
   */
 typedef struct DELIVERED_HDR_INFO DELIVERED_HDR_INFO;
-extern DELIVERED_HDR_INFO *delivered_hdr_init(VSTREAM *, off_t);
+extern DELIVERED_HDR_INFO *delivered_hdr_init(VSTREAM *, off_t, int);
 extern int delivered_hdr_find(DELIVERED_HDR_INFO *, const char *);
 extern void delivered_hdr_free(DELIVERED_HDR_INFO *);
 

@@ -1138,6 +1138,12 @@ file or \fBbounce\fR(8) logfile.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
+.SH detect_8bit_encoding_header (default: yes)
+Automatically detect 8BITMIME body content by looking at
+Content-Transfer-Encoding: message headers; historically, this
+behavior was hard-coded to be "always on".
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH disable_dns_lookups (default: no)
 Disable DNS lookups in the Postfix SMTP and LMTP clients. When
 disabled, hosts are looked up with the getaddrinfo() system
@@ -4325,14 +4331,16 @@ attempt to authenticate to the remote host.
 The Postfix SMTP client opens the lookup table before going to
 chroot jail, so you can leave the password file in /etc/postfix.
 .SH smtp_sasl_path (default: empty)
-Implementation-specific information that is passed through to
+Implementation-specific information that the Postfix SMTP client
+passes through to
 the SASL plug-in implementation that is selected with
 \fBsmtp_sasl_type\fR.  Typically this specifies the name of a
 configuration file or rendezvous point.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH smtp_sasl_security_options (default: noplaintext, noanonymous)
-SASL security options; as of Postfix 2.3 the list of available
+Postfix SMTP client SASL security options; as of Postfix 2.3
+the list of available
 features depends on the SASL client implementation that is selected
 with \fBsmtp_sasl_type\fR.
 .PP
@@ -6179,7 +6187,8 @@ right-hand side of a Postfix \fBaccess\fR(5) table.
 One major application is for implementing per-recipient UCE control.
 See the RESTRICTION_CLASS_README document for other examples.
 .SH smtpd_sasl_application_name (default: smtpd)
-The application name used for SASL server initialization. This
+The application name that the Postfix SMTP server uses for SASL
+server initialization. This
 controls the name of the SASL configuration file. The default value
 is \fBsmtpd\fR, corresponding to a SASL configuration file named
 \fBsmtpd.conf\fR.
@@ -6220,7 +6229,8 @@ message header.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH smtpd_sasl_exceptions_networks (default: empty)
-What SMTP clients Postfix will not offer AUTH support to.
+What remote SMTP clients the Postfix SMTP server will not offer
+AUTH support to.
 .PP
 Some clients (Netscape 4 at least) have a bug that causes them to
 require a login and password whenever AUTH is offered, whether it's
@@ -6256,7 +6266,8 @@ smtpd_sasl_exceptions_networks = $mynetworks
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH smtpd_sasl_local_domain (default: empty)
-The name of the local SASL authentication realm.
+The name of the Postfix SMTP server's local SASL authentication
+realm.
 .PP
 By default, the local authentication realm name is the null string.
 .PP
@@ -6271,7 +6282,8 @@ smtpd_sasl_local_domain = $myhostname
 .ad
 .ft R
 .SH smtpd_sasl_path (default: smtpd)
-Implementation-specific information that is passed through to
+Implementation-specific information that the Postfix SMTP server
+passes through to
 the SASL plug-in implementation that is selected with
 \fBsmtpd_sasl_type\fR.  Typically this specifies the name of a
 configuration file or rendezvous point.
@@ -6279,7 +6291,8 @@ configuration file or rendezvous point.
 This feature is available in Postfix 2.3 and later. In earlier
 releases it was called smtpd_sasl_application.
 .SH smtpd_sasl_security_options (default: noanonymous)
-SASL security options; as of Postfix 2.3 the list of available
+Postfix SMTP server SASL security options; as of Postfix 2.3
+the list of available
 features depends on the SASL server implementation that is selected
 with \fBsmtpd_sasl_type\fR.
 .PP

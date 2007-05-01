@@ -178,11 +178,22 @@ check)
 	exit 0
 	;;
 
+status)
+
+	$daemon_directory/master -t 2>/dev/null && {
+		$INFO the Postfix mail system is not running
+		exit 1
+	}
+	$INFO the Postfix mail system is running: PID: `sed 1q pid/master.pid`
+	exit 0
+	;;
+
+
 check-fatal)
 	# This command is NOT part of the public interface.
 
 	$SHELL $config_directory/post-install create-missing || {
-		$WARN unable to create missing queue directories
+		$FATAL unable to create missing queue directories
 		exit 1
 	}
 
@@ -285,7 +296,7 @@ post-install)
 
 *)
 
-	$FATAL "usage: postfix start (or stop, reload, abort, flush, check, set-permissions, upgrade-configuration)"
+	$FATAL "usage: postfix start (or stop, reload, abort, flush, check, status, set-permissions, upgrade-configuration)"
 	exit 1
 	;;
 

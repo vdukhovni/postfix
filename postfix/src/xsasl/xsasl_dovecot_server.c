@@ -123,7 +123,7 @@ static const char *xsasl_dovecot_server_get_mechanism_list(XSASL_SERVER *);
 static const char *xsasl_dovecot_server_get_username(XSASL_SERVER *);
 
 /* xsasl_dovecot_server_connect - initial auth server handshake */
- 
+
 static int xsasl_dovecot_server_connect(XSASL_DOVECOT_SERVER_IMPL *xp)
 {
     const char *myname = "xsasl_dovecot_server_connect";

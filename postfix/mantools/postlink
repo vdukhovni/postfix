@@ -151,6 +151,7 @@ while (<>) {
     s;\bdelay_warn[-</bB>]*\n*[ <bB>]*ing_time\b;<a href="postconf.5.html#delay_warning_time">$&</a>;g;
     s;\bdeliver_lock_attempts\b;<a href="postconf.5.html#deliver_lock_attempts">$&</a>;g;
     s;\bdeliver_lock_delay\b;<a href="postconf.5.html#deliver_lock_delay">$&</a>;g;
+    s;\bdetect_8bit_encoding_header\b;<a href="postconf.5.html#detect_8bit_encoding_header">$&</a>;g;
     s;\bdisable_dns_lookups\b;<a href="postconf.5.html#disable_dns_lookups">$&</a>;g;
     s;\bdisable_mime_input_processing\b;<a href="postconf.5.html#disable_mime_input_processing">$&</a>;g;
     s;\bdisable_mime_output_conversion\b;<a href="postconf.5.html#disable_mime_output_conversion">$&</a>;g;

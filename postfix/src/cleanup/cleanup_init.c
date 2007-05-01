@@ -160,6 +160,7 @@ char   *var_milt_data_macros;		/* DATA macros */
 char   *var_milt_eod_macros;		/* end-of-data macros */
 char   *var_milt_unk_macros;		/* unknown command macros */
 char   *var_cleanup_milters;		/* non-SMTP mail */
+int     var_auto_8bit_enc_hdr;		/* auto-detect 8bit encoding header */
 
 CONFIG_INT_TABLE cleanup_int_table[] = {
     VAR_HOPCOUNT_LIMIT, DEF_HOPCOUNT_LIMIT, &var_hopcount_limit, 1, 0,
@@ -174,6 +175,7 @@ CONFIG_INT_TABLE cleanup_int_table[] = {
 CONFIG_BOOL_TABLE cleanup_bool_table[] = {
     VAR_ENABLE_ORCPT, DEF_ENABLE_ORCPT, &var_enable_orcpt,
     VAR_VERP_BOUNCE_OFF, DEF_VERP_BOUNCE_OFF, &var_verp_bounce_off,
+    VAR_AUTO_8BIT_ENC_HDR, DEF_AUTO_8BIT_ENC_HDR, &var_auto_8bit_enc_hdr,
     0,
 };
 
@@ -382,18 +384,18 @@ void    cleanup_pre_jail(char *unused_name, char **unused_argv)
 			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
     if (*var_cleanup_milters)
 	cleanup_milters = milter_create(var_cleanup_milters,
-                                      var_milt_conn_time,
-                                      var_milt_cmd_time,
-                                      var_milt_msg_time,
-                                      var_milt_protocol,
-                                      var_milt_def_action,
-                                      var_milt_conn_macros,
-                                      var_milt_helo_macros,
-                                      var_milt_mail_macros,
-                                      var_milt_rcpt_macros,
-                                      var_milt_data_macros,
-                                      var_milt_eod_macros,
-                                      var_milt_unk_macros);
+					var_milt_conn_time,
+					var_milt_cmd_time,
+					var_milt_msg_time,
+					var_milt_protocol,
+					var_milt_def_action,
+					var_milt_conn_macros,
+					var_milt_helo_macros,
+					var_milt_mail_macros,
+					var_milt_rcpt_macros,
+					var_milt_data_macros,
+					var_milt_eod_macros,
+					var_milt_unk_macros);
 
     flush_init();
 }

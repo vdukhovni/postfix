@@ -82,7 +82,8 @@
 /*	The \fBD\fR flag also enforces loop detection (Postfix 2.5 and later):
 /*	if a message already contains a \fBDelivered-To:\fR header
 /*	with the same recipient address, then the message is
-/*	returned as undeliverable.
+/*	returned as undeliverable. The address comparison is case
+/*	insensitive.
 /* .sp
 /*	This feature is available as of Postfix 2.0.
 /* .IP \fBF\fR
@@ -440,6 +441,7 @@
 #include <dsn_buf.h>
 #include <sys_exits.h>
 #include <delivered_hdr.h>
+#include <fold_addr.h>
 
 /* Single server skeleton. */
 
@@ -485,11 +487,14 @@
   * Additional flags. These are colocated with mail_copy() flags. Allow some
   * space for extension of the mail_copy() interface.
   */
-#define PIPE_OPT_FOLD_USER	(1<<16)
-#define PIPE_OPT_FOLD_HOST	(1<<17)
-#define PIPE_OPT_QUOTE_LOCAL	(1<<18)
+#define PIPE_OPT_FOLD_BASE	(16)
+#define PIPE_OPT_FOLD_USER	(FOLD_ADDR_USER << PIPE_OPT_FOLD_BASE)
+#define PIPE_OPT_FOLD_HOST	(FOLD_ADDR_HOST << PIPE_OPT_FOLD_BASE)
+#define PIPE_OPT_QUOTE_LOCAL	(PIPE_OPT_FOLD_BASE << 2)
 
-#define PIPE_OPT_FOLD_FLAGS	(PIPE_OPT_FOLD_USER | PIPE_OPT_FOLD_HOST)
+#define PIPE_OPT_FOLD_ALL	(FOLD_ADDR_ALL << PIPE_OPT_FOLD_BASE)
+#define PIPE_OPT_FOLD_FLAGS(f) \
+	(((f) & PIPE_OPT_FOLD_ALL) >> PIPE_OPT_FOLD_BASE)
 
  /*
   * Tunable parameters. Values are taken from the config file, after
@@ -589,7 +594,6 @@ static int parse_callback(int type, VSTRING *buf, char *context)
 
 static void morph_recipient(VSTRING *buf, const char *address, int flags)
 {
-    char   *cp;
 
     /*
      * Quote the recipient address as appropriate.
@@ -602,23 +606,8 @@ static void morph_recipient(VSTRING *buf, const char *address, int flags)
     /*
      * Fold the recipient address as appropriate.
      */
-    switch (flags & PIPE_OPT_FOLD_FLAGS) {
-    case PIPE_OPT_FOLD_HOST:
-	if ((cp = strrchr(STR(buf), '@')) != 0)
-	    lowercase(cp + 1);
-	break;
-    case PIPE_OPT_FOLD_USER:
-	if ((cp = strrchr(STR(buf), '@')) != 0) {
-	    *cp = 0;
-	    lowercase(STR(buf));
-	    *cp = '@';
-	    break;
-	}
-	/* FALLTHROUGH */
-    case PIPE_OPT_FOLD_USER | PIPE_OPT_FOLD_HOST:
-	lowercase(STR(buf));
-	break;
-    }
+    if (flags & PIPE_OPT_FOLD_ALL)
+	fold_addr(STR(buf), PIPE_OPT_FOLD_FLAGS(flags));
 }
 
 /* expand_argv - expand macros in the argument vector */
@@ -683,7 +672,7 @@ static ARGV *expand_argv(const char *service, char **argv,
 		 */
 		if (state.expand_flag & PIPE_FLAG_USER) {
 		    morph_recipient(buf, rcpt_list->info[i].address,
-				    flags & PIPE_OPT_FOLD_FLAGS);
+				    flags & PIPE_OPT_FOLD_ALL);
 		    if (split_at_right(STR(buf), '@') == 0)
 			msg_warn("no @ in recipient address: %s",
 				 rcpt_list->info[i].address);
@@ -701,7 +690,7 @@ static ARGV *expand_argv(const char *service, char **argv,
 		 */
 		if (state.expand_flag & PIPE_FLAG_EXTENSION) {
 		    morph_recipient(buf, rcpt_list->info[i].address,
-				    flags & PIPE_OPT_FOLD_FLAGS);
+				    flags & PIPE_OPT_FOLD_ALL);
 		    if (split_at_right(STR(buf), '@') == 0)
 			msg_warn("no @ in recipient address: %s",
 				 rcpt_list->info[i].address);
@@ -717,7 +706,7 @@ static ARGV *expand_argv(const char *service, char **argv,
 		 */
 		if (state.expand_flag & PIPE_FLAG_MAILBOX) {
 		    morph_recipient(buf, rcpt_list->info[i].address,
-				    flags & PIPE_OPT_FOLD_FLAGS);
+				    flags & PIPE_OPT_FOLD_ALL);
 		    if (split_at_right(STR(buf), '@') == 0)
 			msg_warn("no @ in recipient address: %s",
 				 rcpt_list->info[i].address);
@@ -730,7 +719,7 @@ static ARGV *expand_argv(const char *service, char **argv,
 		 */
 		if (state.expand_flag & PIPE_FLAG_DOMAIN) {
 		    morph_recipient(buf, rcpt_list->info[i].address,
-				    flags & PIPE_OPT_FOLD_FLAGS);
+				    flags & PIPE_OPT_FOLD_ALL);
 		    dom = split_at_right(STR(buf), '@');
 		    if (dom == 0) {
 			msg_warn("no @ in recipient address: %s",
@@ -1125,7 +1114,8 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 	if (request->rcpt_list.len > 1)
 	    msg_panic("%s: delivered-to enabled with multi-recipient request",
 		      myname);
-	info = delivered_hdr_init(request->fp, request->data_offset);
+	info = delivered_hdr_init(request->fp, request->data_offset,
+				  FOLD_ADDR_ALL);
 	rcpt = request->rcpt_list.info;
 	loop_found = delivered_hdr_find(info, rcpt->address);
 	delivered_hdr_free(info);

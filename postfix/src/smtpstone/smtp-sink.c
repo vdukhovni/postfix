@@ -335,6 +335,8 @@ static char *single_template;		/* individual template */
 static char *shared_template;		/* shared template */
 static VSTRING *start_string;		/* dump content prefix */
 
+static INET_PROTO_INFO *proto_info;
+
 #define SOFT_ERROR_RESP		"450 4.3.0 Error: command failed"
 #define HARD_ERROR_RESP		"500 5.3.0 Error: command failed"
 
@@ -1172,8 +1174,11 @@ static void connect_event(int unused_event, char *unused_context)
 	if (++client_count == max_client_count)
 	    event_disable_readwrite(sock);
 	state = (SINK_STATE *) mymalloc(sizeof(*state));
-	SOCKADDR_TO_HOSTADDR(&sa, len, &state->client_addr,
-			     (MAI_SERVPORT_STR *) 0, sa.sa_family);
+	if (strchr((char *) proto_info->sa_family_list, sa.sa_family))
+	    SOCKADDR_TO_HOSTADDR(&sa, len, &state->client_addr,
+				 (MAI_SERVPORT_STR *) 0, sa.sa_family);
+	else
+	    strncpy(state->client_addr.buf, "local", sizeof("local"));
 	if (msg_verbose)
 	    msg_info("connect (%s %s)",
 #ifdef AF_LOCAL
@@ -1257,7 +1262,6 @@ int     main(int argc, char **argv)
     int     backlog;
     int     ch;
     const char *protocols = INET_PROTO_NAME_ALL;
-    INET_PROTO_INFO *proto_info;
     const char *root_dir = 0;
     const char *user_privs = 0;
 

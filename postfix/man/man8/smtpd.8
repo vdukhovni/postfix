@@ -109,7 +109,8 @@ Request that the Postfix SMTP server rejects mail from unknown
 sender addresses, even when no explicit reject_unlisted_sender
 access restriction is specified.
 .IP "\fBsmtpd_sasl_exceptions_networks (empty)\fR"
-What SMTP clients Postfix will not offer AUTH support to.
+What remote SMTP clients the Postfix SMTP server will not offer
+AUTH support to.
 .PP
 Available in Postfix version 2.2 and later:
 .IP "\fBsmtpd_discard_ehlo_keyword_address_maps (empty)\fR"
@@ -269,9 +270,11 @@ version of the AUTH command (RFC 2554).
 .IP "\fBsmtpd_sasl_auth_enable (no)\fR"
 Enable SASL authentication in the Postfix SMTP server.
 .IP "\fBsmtpd_sasl_local_domain (empty)\fR"
-The name of the local SASL authentication realm.
+The name of the Postfix SMTP server's local SASL authentication
+realm.
 .IP "\fBsmtpd_sasl_security_options (noanonymous)\fR"
-SASL security options; as of Postfix 2.3 the list of available
+Postfix SMTP server SASL security options; as of Postfix 2.3
+the list of available
 features depends on the SASL server implementation that is selected
 with \fBsmtpd_sasl_type\fR.
 .IP "\fBsmtpd_sender_login_maps (empty)\fR"
@@ -280,14 +283,16 @@ Optional lookup table with the SASL login names that own sender
 .PP
 Available in Postfix version 2.1 and later:
 .IP "\fBsmtpd_sasl_exceptions_networks (empty)\fR"
-What SMTP clients Postfix will not offer AUTH support to.
+What remote SMTP clients the Postfix SMTP server will not offer
+AUTH support to.
 .PP
 Available in Postfix version 2.3 and later:
 .IP "\fBsmtpd_sasl_authenticated_header (no)\fR"
 Report the SASL authenticated user name in the \fBsmtpd\fR(8) Received
 message header.
 .IP "\fBsmtpd_sasl_path (smtpd)\fR"
-Implementation-specific information that is passed through to
+Implementation-specific information that the Postfix SMTP server
+passes through to
 the SASL plug-in implementation that is selected with
 \fBsmtpd_sasl_type\fR.
 .IP "\fBsmtpd_sasl_type (cyrus)\fR"

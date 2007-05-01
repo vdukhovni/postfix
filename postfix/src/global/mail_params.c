@@ -144,6 +144,7 @@
 #include <pwd.h>
 #include <grp.h>
 #include <time.h>
+#include <ctype.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>
@@ -157,10 +158,13 @@
 #include <valid_hostname.h>
 #include <stringops.h>
 #include <safe.h>
+#include <safe_open.h>
+#include <mymalloc.h>
 #ifdef HAS_DB
 #include <dict_db.h>
 #endif
 #include <inet_proto.h>
+#include <vstring_vstream.h>
 
 /* Global library. */
 
@@ -433,6 +437,48 @@ static void check_overlap(void)
 		  (long) var_sgid_gid);
 }
 
+#ifdef MYORIGIN_FROM_FILE
+
+/* read_param_from_file - read parameter value from file */
+
+static char *read_param_from_file(const char *path)
+{
+    VSTRING *why = vstring_alloc(100);
+    VSTRING *buf = vstring_alloc(100);
+    VSTREAM *fp;
+    char   *bp;
+    char   *result;
+
+    /*
+     * Ugly macros to make complex expressions less unreadable.
+     */
+#define SKIP(start, var, cond) \
+	for (var = start; *var && (cond); var++);
+
+#define TRIM(s) { \
+	char *p; \
+	for (p = (s) + strlen(s); p > (s) && ISSPACE(p[-1]); p--); \
+	*p = 0; \
+    }
+
+    fp = safe_open(path, O_RDONLY, 0, (struct stat *) 0, -1, -1, why);
+    if (fp == 0)
+	msg_fatal("%s: %s", path, vstring_str(why));
+    vstring_get_nonl(buf, fp);
+    if (vstream_ferror(fp))			/* FIX 20070501 */
+	msg_fatal("%s: read error: %m", path);
+    vstream_fclose(fp);
+    SKIP(vstring_str(buf), bp, ISSPACE(*bp));
+    TRIM(bp);
+    result = mystrdup(bp);
+
+    vstring_free(why);
+    vstring_free(buf);
+    return (result);
+}
+
+#endif
+
 /* mail_params_init - configure built-in parameters */
 
 void    mail_params_init()
@@ -582,8 +628,23 @@ void    mail_params_init()
 
     /*
      * Variables that are needed by almost every program.
+     * 
+     * XXX Reading the myorigin value from file is originally a Debian Linux
+     * feature. This code is not enabled by default because of problems: 1)
+     * it re-implements its own parameter syntax checks, and 2) it does not
+     * implement $name expansions.
      */
     get_mail_conf_str_table(other_str_defaults);
+#ifdef MYORIGIN_FROM_FILE
+    if (*var_myorigin == '/') {
+	char   *origin = read_param_from_file(var_myorigin);
+
+	if (*origin == 0)
+	    msg_fatal("%s file %s is empty", VAR_MYORIGIN, var_myorigin);
+	myfree(var_myorigin);			/* FIX 20070501 */
+	var_myorigin = origin;
+    }
+#endif
     get_mail_conf_int_table(other_int_defaults);
     get_mail_conf_bool_table(bool_defaults);
     get_mail_conf_time_table(time_defaults);

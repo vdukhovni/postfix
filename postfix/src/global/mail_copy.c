@@ -49,6 +49,7 @@
 /* .IP MAIL_COPY_DELIVERED
 /*	Prepend a Delivered-To: header with the name of the
 /*	\fIdelivered\fR attribute.
+/*	The address is quoted according to RFC822 rules.
 /* .IP MAIL_COPY_ORIG_RCPT
 /*	Prepend an X-Original-To: header with the original
 /*	envelope recipient address.

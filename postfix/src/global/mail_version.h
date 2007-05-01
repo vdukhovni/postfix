@@ -20,7 +20,7 @@
   * Patches change both the patchlevel and the release date. Snapshots have no
   * patchlevel; they change the release date only.
   */
-#define MAIL_RELEASE_DATE	"20070423"
+#define MAIL_RELEASE_DATE	"20070501"
 #define MAIL_VERSION_NUMBER	"2.5"
 
 #ifdef SNAPSHOT
@@ -56,6 +56,8 @@ extern char *var_mail_release;
   * - Is this installation mixing multiple Postfix versions?
   * 
   * - What Postfix version generated this core dump?
+  * 
+  * To find out: strings -f file... | grep mail_version=
   */
 #include <string.h>
 

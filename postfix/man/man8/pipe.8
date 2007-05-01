@@ -92,7 +92,8 @@ envelope recipient address. Note: for this to work, the
 The \fBD\fR flag also enforces loop detection (Postfix 2.5 and later):
 if a message already contains a \fBDelivered-To:\fR header
 with the same recipient address, then the message is
-returned as undeliverable.
+returned as undeliverable. The address comparison is case
+insensitive.
 .sp
 This feature is available as of Postfix 2.0.
 .IP \fBF\fR

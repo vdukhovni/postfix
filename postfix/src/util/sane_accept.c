@@ -106,8 +106,11 @@ int     sane_accept(int sock, struct sockaddr * sa, SOCKADDR_SIZE *len)
      * socket. Turning on keepalives will fix a blocking socket provided that
      * the kernel's keepalive timer expires before the Postfix watchdog
      * timer.
+     * 
+     * XXX Work around NAT induced damage by sending a keepalive before an idle
+     * connection is expired. This requires that the kernel keepalive timer
+     * is set to a short time, like 100s.
      */
-#if defined(BROKEN_READ_SELECT_ON_TCP_SOCKET) && defined(SO_KEEPALIVE)
     else if (sa && (sa->sa_family == AF_INET
 #ifdef HAS_IPV6
 		    || sa->sa_family == AF_INET6
@@ -118,6 +121,5 @@ int     sane_accept(int sock, struct sockaddr * sa, SOCKADDR_SIZE *len)
 	(void) setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE,
 			  (char *) &on, sizeof(on));
     }
-#endif
     return (fd);
 }

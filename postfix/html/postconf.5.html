@@ -2091,6 +2091,18 @@ The default time unit is s (seconds).
 
 </DD>
 
+<DT><b><a name="detect_8bit_encoding_header">detect_8bit_encoding_header</a>
+(default: yes)</b></DT><DD>
+
+<p> Automatically detect 8BITMIME body content by looking at
+Content-Transfer-Encoding: message headers; historically, this
+behavior was hard-coded to be "always on".  </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="disable_dns_lookups">disable_dns_lookups</a>
 (default: no)</b></DT><DD>
 
@@ -7757,7 +7769,8 @@ chroot jail, so you can leave the password file in /etc/postfix.
 <DT><b><a name="smtp_sasl_path">smtp_sasl_path</a>
 (default: empty)</b></DT><DD>
 
-<p> Implementation-specific information that is passed through to
+<p> Implementation-specific information that the Postfix SMTP client
+passes through to
 the SASL plug-in implementation that is selected with
 <b><a href="postconf.5.html#smtp_sasl_type">smtp_sasl_type</a></b>.  Typically this specifies the name of a
 configuration file or rendezvous point. </p>
@@ -7770,7 +7783,8 @@ configuration file or rendezvous point. </p>
 <DT><b><a name="smtp_sasl_security_options">smtp_sasl_security_options</a>
 (default: noplaintext, noanonymous)</b></DT><DD>
 
-<p> SASL security options; as of Postfix 2.3 the list of available
+<p> Postfix SMTP client SASL security options; as of Postfix 2.3
+the list of available
 features depends on the SASL client implementation that is selected
 with <b><a href="postconf.5.html#smtp_sasl_type">smtp_sasl_type</a></b>.  </p>
 
@@ -10367,7 +10381,8 @@ See the <a href="RESTRICTION_CLASS_README.html">RESTRICTION_CLASS_README</a> doc
 (default: smtpd)</b></DT><DD>
 
 <p>
-The application name used for SASL server initialization. This
+The application name that the Postfix SMTP server uses for SASL
+server initialization. This
 controls the name of the SASL configuration file. The default value
 is <b>smtpd</b>, corresponding to a SASL configuration file named
 <b>smtpd.conf</b>.
@@ -10429,7 +10444,8 @@ message header.  </p>
 (default: empty)</b></DT><DD>
 
 <p>
-What SMTP clients Postfix will not offer AUTH support to.
+What remote SMTP clients the Postfix SMTP server will not offer
+AUTH support to.
 </p>
 
 <p>
@@ -10476,7 +10492,8 @@ This feature is available in Postfix 2.1 and later.
 (default: empty)</b></DT><DD>
 
 <p>
-The name of the local SASL authentication realm.
+The name of the Postfix SMTP server's local SASL authentication
+realm.
 </p>
 
 <p>
@@ -10498,7 +10515,8 @@ Examples:
 <DT><b><a name="smtpd_sasl_path">smtpd_sasl_path</a>
 (default: smtpd)</b></DT><DD>
 
-<p> Implementation-specific information that is passed through to
+<p> Implementation-specific information that the Postfix SMTP server
+passes through to
 the SASL plug-in implementation that is selected with
 <b><a href="postconf.5.html#smtpd_sasl_type">smtpd_sasl_type</a></b>.  Typically this specifies the name of a
 configuration file or rendezvous point. </p>
@@ -10512,7 +10530,8 @@ releases it was called smtpd_sasl_application. </p>
 <DT><b><a name="smtpd_sasl_security_options">smtpd_sasl_security_options</a>
 (default: noanonymous)</b></DT><DD>
 
-<p> SASL security options; as of Postfix 2.3 the list of available
+<p> Postfix SMTP server SASL security options; as of Postfix 2.3
+the list of available
 features depends on the SASL server implementation that is selected
 with <b><a href="postconf.5.html#smtpd_sasl_type">smtpd_sasl_type</a></b>.  </p>
 

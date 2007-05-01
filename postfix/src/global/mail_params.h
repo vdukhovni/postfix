@@ -2473,6 +2473,10 @@ extern bool var_strict_8bit_body;
 #define DEF_STRICT_ENCODING		0
 extern bool var_strict_encoding;
 
+#define VAR_AUTO_8BIT_ENC_HDR		"detect_8bit_encoding_header"
+#define DEF_AUTO_8BIT_ENC_HDR		1
+extern int var_auto_8bit_enc_hdr;
+
  /*
   * Bizarre.
   */

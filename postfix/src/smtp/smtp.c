@@ -231,7 +231,8 @@
 /*	per remote hostname or domain, or sender address when sender-dependent
 /*	authentication is enabled.
 /* .IP "\fBsmtp_sasl_security_options (noplaintext, noanonymous)\fR"
-/*	SASL security options; as of Postfix 2.3 the list of available
+/*	Postfix SMTP client SASL security options; as of Postfix 2.3
+/*	the list of available
 /*	features depends on the SASL client implementation that is selected
 /*	with \fBsmtp_sasl_type\fR.
 /* .PP
@@ -247,7 +248,8 @@
 /*	caching to ensure that mail from different senders will use the
 /*	appropriate credentials.
 /* .IP "\fBsmtp_sasl_path (empty)\fR"
-/*	Implementation-specific information that is passed through to
+/*	Implementation-specific information that the Postfix SMTP client
+/*	passes through to
 /*	the SASL plug-in implementation that is selected with
 /*	\fBsmtp_sasl_type\fR.
 /* .IP "\fBsmtp_sasl_type (cyrus)\fR"

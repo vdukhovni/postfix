@@ -512,7 +512,8 @@ static void cleanup_header_callback(void *context, int header_class,
     while (ISSPACE(*hdrval))
 	hdrval++;
     /* trimblanks(hdrval, 0)[0] = 0; */
-    if (hdr_opts->type == HDR_CONTENT_TRANSFER_ENCODING) {
+    if (var_auto_8bit_enc_hdr 
+	&& hdr_opts->type == HDR_CONTENT_TRANSFER_ENCODING) {
 	for (cmp = code_map; cmp->name != 0; cmp++) {
 	    if (strcasecmp(hdrval, cmp->name) == 0) {
 		if (strcmp(cmp->encoding, MAIL_ATTR_ENC_8BIT) == 0)

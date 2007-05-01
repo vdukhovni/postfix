@@ -6,9 +6,10 @@
 /* SYNOPSIS
 /*	#include <delivered_hdr.h>
 /*
-/*	DELIVERED_HDR_INFO *delivered_hdr_init(stream, offset)
+/*	DELIVERED_HDR_INFO *delivered_hdr_init(stream, offset, flags)
 /*	VSTREAM	*stream;
 /*	off_t	offset;
+/*	int	flags;
 /*
 /*	int	delivered_hdr_find(info, address)
 /*	DELIVERED_HDR_INFO *info;
@@ -39,6 +40,16 @@
 /*	The open queue file.
 /* .IP offset
 /*	Offset of the first message content record.
+/* .IP flags
+/*	Zero, or the bit-wise OR ot:
+/* .RS
+/* .IP FOLD_ADDR_USER
+/*	Case fold the address local part.
+/* .IP FOLD_ADDR_HOST
+/*	Case fold the address domain part.
+/* .IP FOLD_ADDR_ALL
+/*	Alias for (FOLD_ADDR_USER | FOLD_ADDR_HOST).
+/* .RE
 /* .IP info
 /*	Extracted Delivered-To: addresses information.
 /* .IP address
@@ -83,11 +94,13 @@
 #include <quote_822_local.h>
 #include <header_opts.h>
 #include <delivered_hdr.h>
+#include <fold_addr.h>
 
  /*
   * Application-specific.
   */
 struct DELIVERED_HDR_INFO {
+    int     flags;
     VSTRING *buf;
     HTABLE *table;
 };
@@ -96,13 +109,17 @@ struct DELIVERED_HDR_INFO {
 
 /* delivered_hdr_init - extract delivered-to information from the message */
 
-DELIVERED_HDR_INFO *delivered_hdr_init(VSTREAM *fp, off_t offset)
+DELIVERED_HDR_INFO *delivered_hdr_init(VSTREAM *fp, off_t offset, int flags)
 {
     char   *cp;
     DELIVERED_HDR_INFO *info;
     HEADER_OPTS *hdr;
 
+    /*
+     * Sanity check.
+     */
     info = (DELIVERED_HDR_INFO *) mymalloc(sizeof(*info));
+    info->flags = flags;
     info->buf = vstring_alloc(10);
     info->table = htable_create(0);
 
@@ -126,7 +143,8 @@ DELIVERED_HDR_INFO *delivered_hdr_init(VSTREAM *fp, off_t offset)
 		cp = STR(info->buf) + strlen(hdr->name) + 1;
 		while (ISSPACE(*cp))
 		    cp++;
-		lowercase(cp);
+		if (info->flags & FOLD_ADDR_ALL)
+		    fold_addr(cp, info->flags);
 		if (msg_verbose)
 		    msg_info("delivered_hdr_init: %s", cp);
 		htable_enter(info->table, cp, (char *) 0);
@@ -152,7 +170,8 @@ int     delivered_hdr_find(DELIVERED_HDR_INFO *info, const char *address)
      * up the recipient. Lowercase the delivered-to address for consistency.
      */
     quote_822_local(info->buf, address);
-    lowercase(STR(info->buf));
+    if (info->flags & FOLD_ADDR_ALL)
+	fold_addr(STR(info->buf), info->flags);
     ht = htable_locate(info->table, STR(info->buf));
     return (ht != 0);
 }

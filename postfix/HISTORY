@@ -13454,7 +13454,7 @@ Apologies for any names omitted.
 	to the recipient address domain portion.  Based on code by
 	Koen Vermeer. File: pipe/pipe.c.
 
-	Cleanup: suport for "Delivered-To:" loop detection in the
+	Cleanup: support for "Delivered-To:" loop detection in the
 	pipe(8) delivery agent. This follows a general principle:
 	if a program creates the "Delivered-To:" header, then it
 	is also responsible for "Delivered-To:" loop detection.
@@ -13465,6 +13465,54 @@ Apologies for any names omitted.
 	The cache expiring transport map lookups did not distinguish
 	between wildcard transport map entry with an "empty" transport
 	field, or no wildcard transport map entry.
+
+20070424
+
+	Cleanup: making hard-coded behavior configurable. In this
+	case, extracting 8BITMIME encoding information from
+	Content-Transfer-Encoding: message headers.  The default
+	behavior, "detect_8bit_encoding_header = yes", is backwards
+	compatible. This behavior was introduced to generate
+	RFC-compliant bounce messages before Postfix supported the
+	8BITMIME option in the MAIL FROM command and on the Postfix
+	sendmail command line.  Files: cleanup/cleanup_init.c,
+	cleanup/cleanup_message.c, global/mail_params.h.
+
+20070425
+
+	Bugfix: don't falsely report "lost connection from
+	localhost[127.0.0.1]" when Postfix is being portscanned.
+	Files: smtpd/smtpd_peer.c, qmqpd/qmqpd_peer.c.
+
+20070429
+
+	Feature: "postfix status" to report whether Postfix is
+	running.  By Mike Cappella.
+
+	Cleanup: configurable address case folding moved from the
+	pipe(8) delivery agent to the library, where it can also
+	be used by other delivery agents. Files: global/fold_addr.[hc].
+
+20070430
+
+	Robustness: recommend a "0" process limit for policy servers
+	to avoid "connection refused" problems when the smtpd process
+	limit exceeds the default process limit.  File:
+	proto/SMTPD_POLICY_README.html.
+
+20070501
+
+	Workaround: turn on KEEPALIVE probes to avoided "lost
+	connection after sending end-of-data" problems when some
+	stateful (NAT) filter expires an idle connection too soon.
+	This requires that the kernel's TCP keepalive timer be set
+	to a sufficiently short time (perhaps 100s or less).  Files:
+	util/sane_accept.c, util/sane_connect.c.
+
+	Safety: when IPv6 (or IPv4) is turned off, don't treat an
+	IPv6 (or IPv4) connection from e.g. inetd as if it comes
+	from localhost[127.0.0.1]. Files: smtpd/smtpd_peer.c,
+	qmqpd/qmqpd_peer.c.
 
 Wish list:
 
