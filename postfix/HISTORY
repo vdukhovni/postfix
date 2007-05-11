@@ -13422,3 +13422,28 @@ Apologies for any names omitted.
 	with deadlock, "postfix stop" now forcefully stops all the
 	processes in the master's process group, not just the master
 	process alone.  File: conf/postfix-script.
+
+20070425
+
+	Bugfix: don't falsely report "lost connection from
+	localhost[127.0.0.1]" when Postfix is being portscanned.
+	Files: smtpd/smtpd_peer.c, qmqpd/qmqpd_peer.c.
+
+20070430
+
+	Robustness: recommend a "0" process limit for policy servers
+	to avoid "connection refused" problems when the smtpd process
+	limit exceeds the default process limit.  File:
+	proto/SMTPD_POLICY_README.html.
+
+20070501
+
+	Safety: when IPv6 (or IPv4) is turned off, don't treat an
+	IPv6 (or IPv4) connection from e.g. inetd as if it comes
+	from localhost[127.0.0.1].  Files: smtpd/smtpd_peer.c,
+	qmqpd/qmqpd_peer.c.
+
+20070508
+
+	Bugfix: Content-Transfer-Encoding: attribute values are
+	case insensitive. File: src/cleanup/cleanup_message.c.
