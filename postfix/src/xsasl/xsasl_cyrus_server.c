@@ -311,9 +311,9 @@ static XSASL_SERVER *xsasl_cyrus_server_create(XSASL_SERVER_IMPL *unused_impl,
     }
 
     /*
-     * Extend the XSASL_SERVER_IMPL object with our own data. We use
-     * long-lived conversion buffers rather than local variables to avoid
-     * memory leaks in case of read/write timeout or I/O error.
+     * Extend the XSASL_SERVER object with our own data. We use long-lived
+     * conversion buffers rather than local variables to avoid memory leaks
+     * in case of read/write timeout or I/O error.
      */
     server = (XSASL_CYRUS_SERVER *) mymalloc(sizeof(*server));
     server->xsasl.free = xsasl_cyrus_server_free;

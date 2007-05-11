@@ -13514,7 +13514,34 @@ Apologies for any names omitted.
 	from localhost[127.0.0.1]. Files: smtpd/smtpd_peer.c,
 	qmqpd/qmqpd_peer.c.
 
+20070502
+
+	Workaround: build without EPOLL support when an epoll-enabled
+	kernel sits underneath a retarded libc.  File: makedefs.
+
+	Cleanup: missing support for SASL security properties with
+	Dovecot SASL authentication. Based on an initial version
+	by Lev A. Serebryakov.  File: xsasl/xsasl_dovecot_server.c.
+
+20070503
+
+	Cleanup: changed the default address verification sender
+	from "postmaster" to "double-bounce", so that the Postfix
+	SMTP server no longer surprises unsuspecting people by
+	excluding "postmaster" from SMTPD access controls.  File:
+	global/mail_params.h.
+
+20070508
+
+	Bugfix: Content-Transfer-Encoding: attribute values are
+	case insensitive. File: src/cleanup/cleanup_message.c.
+
+
 Wish list:
+
+	Would there be a problem adding $smtpd_mumble_restrictions
+	and $smtpd_sender_login_maps to the default proxy_read_maps
+	settings?
 
 	Remove defer(8) and trace(8) references and man pages. These
 	are services not program names.

@@ -175,8 +175,9 @@ Overrides the relayhost parameter setting for address verification
 probes. This information can be overruled with the \fBtransport\fR(5) table.
 .PP
 This feature is available in Postfix 2.1 and later.
-.SH address_verify_sender (default: postmaster)
-The sender address to use in address verification probes. To
+.SH address_verify_sender (default: $double_bounce_sender)
+The sender address to use in address verification probes; prior
+to Postfix 2.5 the default was "postmaster". To
 avoid problems with address probes that are sent in response to
 address probes, the Postfix SMTP server excludes the probe sender
 address from all SMTPD access blocks.
@@ -6312,9 +6313,11 @@ Disallow methods subject to active (non-dictionary) attack.
 Disallow methods subject to passive (dictionary) attack.
 .IP "\fBnoanonymous\fR"
 Disallow methods that allow anonymous authentication.
+.IP "\fBforward_secrecy\fR"
+Only allow methods that support forward secrecy (Dovecot only).
 .IP "\fBmutual_auth\fR"
 Only allow methods that provide mutual authentication (not available
-with SASL version 1).
+with Cyrus SASL version 1).
 .PP
 By default, the Postfix SMTP server accepts plaintext passwords but
 not anonymous logins.

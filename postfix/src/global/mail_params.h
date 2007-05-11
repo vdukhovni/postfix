@@ -2363,7 +2363,7 @@ extern int var_verify_neg_try;
 extern bool var_verify_neg_cache;
 
 #define VAR_VERIFY_SENDER		"address_verify_sender"
-#define DEF_VERIFY_SENDER		"postmaster"
+#define DEF_VERIFY_SENDER		"$" VAR_DOUBLE_BOUNCE
 extern char *var_verify_sender;
 
 #define VAR_VERIFY_POLL_COUNT		"address_verify_poll_count"

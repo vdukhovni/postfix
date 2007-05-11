@@ -340,9 +340,10 @@ probes. This information can be overruled with the transport(5) table.
 This feature is available in Postfix 2.1 and later.
 </p>
 
-%PARAM address_verify_sender postmaster
+%PARAM address_verify_sender $double_bounce_sender
 
-<p> The sender address to use in address verification probes. To
+<p> The sender address to use in address verification probes; prior
+to Postfix 2.5 the default was "postmaster". To
 avoid problems with address probes that are sent in response to
 address probes, the Postfix SMTP server excludes the probe sender
 address from all SMTPD access blocks. </p>
@@ -5561,10 +5562,15 @@ Specify zero or more of the following:
 
 <dd>Disallow methods that allow anonymous authentication. </dd>
 
+<dt><b>forward_secrecy</b></dt>
+
+<dd>Only allow methods that support forward secrecy (Dovecot only).
+</dd>
+
 <dt><b>mutual_auth</b></dt>
 
 <dd>Only allow methods that provide mutual authentication (not available
-with SASL version 1). </dd>
+with Cyrus SASL version 1). </dd>
 
 </dl>
 

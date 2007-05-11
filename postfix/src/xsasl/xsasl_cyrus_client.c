@@ -337,7 +337,7 @@ XSASL_CLIENT *xsasl_cyrus_client_create(XSASL_CLIENT_IMPL *unused_impl,
     }
 
     /*
-     * Extend XSASL_CLIENT_IMPL object with our own state. We use long-lived
+     * Extend the XSASL_CLIENT object with our own state. We use long-lived
      * conversion buffers rather than local variables to avoid memory leaks
      * in case of read/write timeout or I/O error.
      * 

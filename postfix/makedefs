@@ -282,6 +282,32 @@ case "$SYSTEM.$RELEASE" in
 		case "$RELEASE" in
 		2.[0-5].*) CCARGS="$CCARGS -DNO_EPOLL";;
 		esac
+		# Workaround for retarded libc 
+		case "$RELEASE" in
+		2.6.*)
+		trap 'rm -f makedefs.tmp makedefs.tmp.o makedefs.tmp.c' 1 2 3 15
+		cat >makedefs.tmp.c <<EOF
+#include <sys/types.h>
+#include <sys/epoll.h>
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int     main(int argc, char **argv)
+{
+    int     epoll_handle;
+
+    if ((epoll_handle = epoll_create(1)) < 0) {
+	perror("epoll_create");
+	exit(1);
+    }
+    exit(0);
+}
+EOF
+		${CC-gcc} -o makedefs.tmp makedefs.tmp.c || exit 1
+		./makedefs.tmp 2>/dev/null || CCARGS="$CCARGS -DNO_EPOLL"
+		rm -f makedefs.tmp makedefs.tmp.o makedefs.tmp.c;;
+		esac
 		;;
      GNU.0*|GNU/kFreeBSD.[56]*)
      		SYSTYPE=GNU0

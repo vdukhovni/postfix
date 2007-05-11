@@ -17,6 +17,14 @@ Incompatibility with Postfix 2.3 and earlier
 If you upgrade from Postfix 2.3 or earlier, read RELEASE_NOTES-2.4
 before proceeding.
 
+Incompatibility with Postfix snapshot 2007XXXX
+==============================================
+
+The default sender address for address verification probes was
+changed from "postmaster" to "double-bounce", so that the Postfix
+SMTP server no longer causes surprising behavior by excluding
+"postmaster" from SMTP server access controls.
+
 Incompatibility with Postfix snapshot 20070422
 ==============================================
 

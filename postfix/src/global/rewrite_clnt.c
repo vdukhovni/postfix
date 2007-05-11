@@ -108,7 +108,7 @@ VSTRING *rewrite_clnt(const char *rule, const char *addr, VSTRING *result)
     /*
      * Peek at the cache.
      */
-    if (event_time() < last_expire
+    if (time((time_t *) 0) < last_expire
 	&& strcmp(addr, STR(last_addr)) == 0
 	&& strcmp(rule, STR(last_rule)) == 0) {
 	vstring_strcpy(result, STR(last_result));
@@ -165,7 +165,7 @@ VSTRING *rewrite_clnt(const char *rule, const char *addr, VSTRING *result)
     vstring_strcpy(last_rule, rule);
     vstring_strcpy(last_addr, addr);
     vstring_strcpy(last_result, STR(result));
-    last_expire = event_time() + 30;		/* XXX make configurable */
+    last_expire = time((time_t *) 0) + 30;	/* XXX make configurable */
 
     return (result);
 }

@@ -364,7 +364,7 @@ RES_CONTEXT resolve_verify = {
   * This code detaches the trivial-rewrite process from the master, stops
   * accepting new clients, and handles established clients in the background,
   * asking them to reconnect the next time they send a request. The master
-  * create a new process that accepts connections. This is reasonably safe
+  * creates a new process that accepts connections. This is reasonably safe
   * because the number of trivial-rewrite server processes is small compared
   * to the number of trivial-rewrite client processes. The few extra
   * background processes should not make a difference in Postfix's footprint.

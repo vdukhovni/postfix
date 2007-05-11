@@ -191,7 +191,7 @@ void    resolve_clnt(const char *class, const char *sender,
      */
 #define IFSET(flag, text) ((reply->flags & (flag)) ? (text) : "")
 
-    if (event_time() < last_expire
+    if (time((time_t *) 0) < last_expire
 	&& *addr && strcmp(addr, STR(last_addr)) == 0
 	&& strcmp(class, STR(last_class)) == 0
 	&& strcmp(sender, STR(last_sender)) == 0) {
@@ -284,7 +284,7 @@ void    resolve_clnt(const char *class, const char *sender,
     vstring_strcpy(last_reply.nexthop, STR(reply->nexthop));
     vstring_strcpy(last_reply.recipient, STR(reply->recipient));
     last_reply.flags = reply->flags;
-    last_expire = event_time() + 30;		/* XXX make configurable */
+    last_expire = time((time_t *) 0) + 30;	/* XXX make configurable */
 }
 
 /* resolve_clnt_free - destroy reply */

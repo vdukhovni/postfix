@@ -59,6 +59,7 @@
 #include <stringops.h>
 #include <vstream.h>
 #include <vstring_vstream.h>
+#include <name_mask.h>
 
 /* Global library. */
 
@@ -83,13 +84,62 @@
 #define AUTH_TIMEOUT	10
 
  /*
+  * Security property bitmasks.
+  */
+#define SEC_PROPS_NOPLAINTEXT	(1 << 0)
+#define SEC_PROPS_NOACTIVE	(1 << 1)
+#define SEC_PROPS_NODICTIONARY	(1 << 2)
+#define SEC_PROPS_NOANONYMOUS	(1 << 3)
+#define SEC_PROPS_FWD_SECRECY	(1 << 4)
+#define SEC_PROPS_MUTUAL_AUTH	(1 << 5)
+#define SEC_PROPS_PRIVATE	(1 << 6)
+
+#define SEC_PROPS_POS_MASK	(SEC_PROPS_MUTUAL_AUTH | SEC_PROPS_FWD_SECRECY)
+#define SEC_PROPS_NEG_MASK	(SEC_PROPS_NOPLAINTEXT | SEC_PROPS_NOACTIVE | \
+				SEC_PROPS_NODICTIONARY | SEC_PROPS_NOANONYMOUS)
+
+ /*
+  * Security properties as specified in the Postfix main.cf file.
+  */
+static NAME_MASK xsasl_dovecot_conf_sec_props[] = {
+    "noplaintext", SEC_PROPS_NOPLAINTEXT,
+    "noactive", SEC_PROPS_NOACTIVE,
+    "nodictionary", SEC_PROPS_NODICTIONARY,
+    "noanonymous", SEC_PROPS_NOANONYMOUS,
+    "forward_secrecy", SEC_PROPS_FWD_SECRECY,
+    "mutual_auth", SEC_PROPS_MUTUAL_AUTH,
+    0, 0,
+};
+
+ /*
+  * Security properties as specified in the Dovecot protocol. See
+  * http://wiki.dovecot.org/Authentication_Protocol.
+  */
+static NAME_MASK xsasl_dovecot_serv_sec_props[] = {
+    "plaintext", SEC_PROPS_NOPLAINTEXT,
+    "active", SEC_PROPS_NOACTIVE,
+    "dictionary", SEC_PROPS_NODICTIONARY,
+    "anonymous", SEC_PROPS_NOANONYMOUS,
+    "forward-secrecy", SEC_PROPS_FWD_SECRECY,
+    "mutual-auth", SEC_PROPS_MUTUAL_AUTH,
+    "private", SEC_PROPS_PRIVATE,
+    0, 0,
+};
+
+ /*
   * Class variables.
   */
+typedef struct XSASL_DCSRV_MECH {
+    char   *mech_name;			/* mechanism name */
+    int     sec_props;			/* mechanism properties */
+    struct XSASL_DCSRV_MECH *next;
+} XSASL_DCSRV_MECH;
+
 typedef struct {
     XSASL_SERVER_IMPL xsasl;
     VSTREAM *sasl_stream;
     char   *socket_path;
-    char   *mechanism_list;		/* applicable mechanisms */
+    XSASL_DCSRV_MECH *mechanism_list;	/* unfiltered mechanism list */
     unsigned int request_id_counter;
 } XSASL_DOVECOT_SERVER_IMPL;
 
@@ -104,6 +154,8 @@ typedef struct {
     char   *service;
     char   *username;			/* authenticated user */
     VSTRING *sasl_line;
+    unsigned int sec_props;		/* Postfix mechanism filter */
+    char   *mechanism_list;		/* filtered mechanism list */
 } XSASL_DOVECOT_SERVER;
 
  /*
@@ -122,16 +174,79 @@ static int xsasl_dovecot_server_next(XSASL_SERVER *, const char *, VSTRING *);
 static const char *xsasl_dovecot_server_get_mechanism_list(XSASL_SERVER *);
 static const char *xsasl_dovecot_server_get_username(XSASL_SERVER *);
 
+/* xsasl_dovecot_server_mech_append - append server mechanism entry */
+
+static void xsasl_dovecot_server_mech_append(XSASL_DCSRV_MECH **mech_list,
+			               const char *mech_name, int sec_props)
+{
+    XSASL_DCSRV_MECH **mpp;
+    XSASL_DCSRV_MECH *mp;
+
+    for (mpp = mech_list; *mpp != 0; mpp = &mpp[0]->next)
+	 /* void */ ;
+
+    mp = (XSASL_DCSRV_MECH *) mymalloc(sizeof(*mp));
+    mp->mech_name = mystrdup(mech_name);
+    mp->sec_props = sec_props;
+    mp->next = 0;
+    *mpp = mp;
+}
+
+/* xsasl_dovecot_server_mech_free - destroy server mechanism list */
+
+static void xsasl_dovecot_server_mech_free(XSASL_DCSRV_MECH *mech_list)
+{
+    XSASL_DCSRV_MECH *mp;
+    XSASL_DCSRV_MECH *next;
+
+    for (mp = mech_list; mp != 0; mp = next) {
+	myfree(mp->mech_name);
+	next = mp->next;
+	myfree((char *) mp);
+    }
+}
+
+/* xsasl_dovecot_server_mech_filter - filter server mechanism list */
+
+static char *xsasl_dovecot_server_mech_filter(XSASL_DCSRV_MECH *mechanism_list,
+					            unsigned int conf_props)
+{
+    const char *myname = "xsasl_dovecot_server_mech_filter";
+    unsigned int pos_conf_props = (conf_props & SEC_PROPS_POS_MASK);
+    unsigned int neg_conf_props = (conf_props & SEC_PROPS_NEG_MASK);
+    VSTRING *mechanisms_str = vstring_alloc(10);
+    XSASL_DCSRV_MECH *mp;
+
+    /*
+     * Match Postfix properties against Dovecot server properties.
+     */
+    for (mp = mechanism_list; mp != 0; mp = mp->next) {
+	if ((mp->sec_props & pos_conf_props) == pos_conf_props
+	    && (mp->sec_props & neg_conf_props) == 0) {
+	    if (VSTRING_LEN(mechanisms_str) > 0)
+		VSTRING_ADDCH(mechanisms_str, ' ');
+	    vstring_strcat(mechanisms_str, mp->mech_name);
+	    if (msg_verbose)
+		msg_info("%s: keep mechanism: %s", myname, mp->mech_name);
+	} else {
+	    if (msg_verbose)
+		msg_info("%s: skip mechanism: %s", myname, mp->mech_name);
+	}
+    }
+    return (vstring_export(mechanisms_str));
+}
+
 /* xsasl_dovecot_server_connect - initial auth server handshake */
 
 static int xsasl_dovecot_server_connect(XSASL_DOVECOT_SERVER_IMPL *xp)
 {
     const char *myname = "xsasl_dovecot_server_connect";
-    VSTRING *line_str, *mechanisms_str;
+    VSTRING *line_str;
     VSTREAM *sasl_stream;
     char   *line, *cmd, *mech_name;
     unsigned int major_version, minor_version;
     int     fd, success;
+    int     sec_props;
 
     if (msg_verbose)
 	msg_info("%s: Connecting", myname);
@@ -158,7 +273,6 @@ static int xsasl_dovecot_server_connect(XSASL_DOVECOT_SERVER_IMPL *xp)
     }
     success = 0;
     line_str = vstring_alloc(256);
-    mechanisms_str = vstring_alloc(128);
     while (vstring_get_nonl(line_str, sasl_stream) != VSTREAM_EOF) {
 	line = vstring_str(line_str);
 
@@ -182,10 +296,17 @@ static int xsasl_dovecot_server_connect(XSASL_DOVECOT_SERVER_IMPL *xp)
 	} else if (strcmp(cmd, "MECH") == 0 && line != NULL) {
 	    mech_name = line;
 	    line = split_at(line, '\t');
-
-	    if (VSTRING_LEN(mechanisms_str) > 0)
-		VSTRING_ADDCH(mechanisms_str, ' ');
-	    vstring_strcat(mechanisms_str, mech_name);
+	    if (line != 0) {
+		sec_props =
+		    name_mask_delim_opt(myname,
+					xsasl_dovecot_serv_sec_props,
+					line, "\t", NAME_MASK_ANY_CASE);
+		if ((sec_props & SEC_PROPS_PRIVATE) != 0)
+		    continue;
+	    } else
+		sec_props = 0;
+	    xsasl_dovecot_server_mech_append(&xp->mechanism_list, mech_name,
+					     sec_props);
 	} else if (strcmp(cmd, "DONE") == 0) {
 	    /* Handshake finished. */
 	    success = 1;
@@ -198,15 +319,10 @@ static int xsasl_dovecot_server_connect(XSASL_DOVECOT_SERVER_IMPL *xp)
 
     if (!success) {
 	/* handshake failed */
-	vstring_free(mechanisms_str);
 	(void) vstream_fclose(sasl_stream);
 	return (-1);
     }
     xp->sasl_stream = sasl_stream;
-    xp->mechanism_list =
-	translit(vstring_export(mechanisms_str), "\t", " ");
-    if (msg_verbose)
-	msg_info("%s: Mechanisms: %s", myname, xp->mechanism_list);
     return (0);
 }
 
@@ -219,7 +335,7 @@ static void xsasl_dovecot_server_disconnect(XSASL_DOVECOT_SERVER_IMPL *xp)
 	xp->sasl_stream = 0;
     }
     if (xp->mechanism_list) {
-	myfree(xp->mechanism_list);
+	xsasl_dovecot_server_mech_free(xp->mechanism_list);
 	xp->mechanism_list = 0;
     }
 }
@@ -258,7 +374,7 @@ static XSASL_SERVER *xsasl_dovecot_server_create(XSASL_SERVER_IMPL *impl,
 					             VSTREAM *unused_stream,
 						         const char *service,
 						         const char *realm,
-				               const char *unused_sec_props)
+					              const char *sec_props)
 {
     const char *myname = "xsasl_dovecot_server_create";
     XSASL_DOVECOT_SERVER *server;
@@ -283,6 +399,10 @@ static XSASL_SERVER *xsasl_dovecot_server_create(XSASL_SERVER_IMPL *impl,
     server->username = 0;
     server->service = mystrdup(service);
     server->last_request_id = 0;
+    server->mechanism_list = 0;
+    server->sec_props =
+	name_mask_opt(myname, xsasl_dovecot_conf_sec_props,
+		      sec_props, NAME_MASK_ANY_CASE | NAME_MASK_FATAL);
 
     return (&server->xsasl);
 }
@@ -297,7 +417,11 @@ static const char *xsasl_dovecot_server_get_mechanism_list(XSASL_SERVER *xp)
 	if (xsasl_dovecot_server_connect(server->impl) < 0)
 	    return (0);
     }
-    return (server->impl->mechanism_list);
+    if (server->mechanism_list == 0)
+	server->mechanism_list =
+	    xsasl_dovecot_server_mech_filter(server->impl->mechanism_list,
+					     server->sec_props);
+    return (server->mechanism_list[0] ? server->mechanism_list : 0);
 }
 
 /* xsasl_dovecot_server_free - destroy server instance */
@@ -309,6 +433,8 @@ static void xsasl_dovecot_server_free(XSASL_SERVER *xp)
     vstring_free(server->sasl_line);
     if (server->username)
 	myfree(server->username);
+    if (server->mechanism_list)
+	myfree(server->mechanism_list);
     myfree(server->service);
     myfree((char *) server);
 }
