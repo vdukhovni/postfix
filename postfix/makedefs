@@ -285,8 +285,8 @@ case "$SYSTEM.$RELEASE" in
 		# Workaround for retarded libc 
 		case "$RELEASE" in
 		2.6.*)
-		trap 'rm -f makedefs.tmp makedefs.tmp.o makedefs.tmp.c' 1 2 3 15
-		cat >makedefs.tmp.c <<EOF
+		trap 'rm -f makedefs.test makedefs.test.o makedefs.test.c' 1 2 3 15
+		cat >makedefs.test.c <<EOF
 #include <sys/types.h>
 #include <sys/epoll.h>
 #include <errno.h>
@@ -304,9 +304,9 @@ int     main(int argc, char **argv)
     exit(0);
 }
 EOF
-		${CC-gcc} -o makedefs.tmp makedefs.tmp.c || exit 1
-		./makedefs.tmp 2>/dev/null || CCARGS="$CCARGS -DNO_EPOLL"
-		rm -f makedefs.tmp makedefs.tmp.o makedefs.tmp.c;;
+		${CC-gcc} -o makedefs.test makedefs.test.c || exit 1
+		./makedefs.test 2>/dev/null || CCARGS="$CCARGS -DNO_EPOLL"
+		rm -f makedefs.test makedefs.test.o makedefs.test.c;;
 		esac
 		;;
      GNU.0*|GNU/kFreeBSD.[56]*)

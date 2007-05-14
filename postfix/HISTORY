@@ -13537,6 +13537,16 @@ Apologies for any names omitted.
 	case insensitive. File: src/cleanup/cleanup_message.c.
 
 
+20070514
+
+	Bugfix: the makedefs EPOLL workaround broke any attempt to
+	build on a 2.6 kernel. And that two weeks after the workaround
+	had been posted to the mailing list. File: makedefs.
+
+	Bugfix: mailbox_transport nixed the recipient file offset
+	for both local(8) and the delegated transport, instead of
+	just nixing it only for local(8). File: local/mailbox.c.
+
 Wish list:
 
 	Would there be a problem adding $smtpd_mumble_restrictions

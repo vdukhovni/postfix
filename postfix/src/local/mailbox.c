@@ -280,9 +280,9 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 	return (YES);
     }
     if (*var_mailbox_transport) {
-	state.msg_attr.rcpt.offset = -1L;
 	*statusp = deliver_pass(MAIL_CLASS_PRIVATE, var_mailbox_transport,
 				state.request, &state.msg_attr.rcpt);
+	state.msg_attr.rcpt.offset = -1L;
 	return (YES);
     }
 
