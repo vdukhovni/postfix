@@ -13543,9 +13543,12 @@ Apologies for any names omitted.
 	build on a 2.6 kernel. And that two weeks after the workaround
 	had been posted to the mailing list. File: makedefs.
 
-	Bugfix: mailbox_transport nixed the recipient file offset
-	for both local(8) and the delegated transport, instead of
-	just nixing it only for local(8). File: local/mailbox.c.
+	Workaround: local(8) nixed the recipient file offset for
+	delegated transports. This broke delegation via
+	mailbox_transport(_maps) and fallback_transport(_maps) to
+	the error(8) transport. Unfortunately it is not possible
+	to nix the file offset for local(8) only.  Files:
+	local/mailbox.c, local/unknown.c.
 
 Wish list:
 

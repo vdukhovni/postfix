@@ -116,7 +116,6 @@ int     deliver_unknown(LOCAL_STATE state, USER_ATTR usr_attr)
 			     state.request, &state.msg_attr.rcpt));
     }
     if (*var_fallback_transport) {
-	state.msg_attr.rcpt.offset = -1L;
 	return (deliver_pass(MAIL_CLASS_PRIVATE, var_fallback_transport,
 			     state.request, &state.msg_attr.rcpt));
     }

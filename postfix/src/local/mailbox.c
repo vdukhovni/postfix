@@ -274,7 +274,6 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     if (*var_mbox_transp_maps
 	&& (map_transport = maps_find(transp_maps, state.msg_attr.user,
 				      DICT_FLAG_NONE)) != 0) {
-	state.msg_attr.rcpt.offset = -1L;
 	*statusp = deliver_pass(MAIL_CLASS_PRIVATE, map_transport,
 				state.request, &state.msg_attr.rcpt);
 	return (YES);
@@ -282,7 +281,6 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     if (*var_mailbox_transport) {
 	*statusp = deliver_pass(MAIL_CLASS_PRIVATE, var_mailbox_transport,
 				state.request, &state.msg_attr.rcpt);
-	state.msg_attr.rcpt.offset = -1L;
 	return (YES);
     }
 
