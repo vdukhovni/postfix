@@ -54,9 +54,15 @@
 /*	of the following:
 /* .IP \fBDEL_REQ_FLAG_SUCCESS\fR
 /*	Delete successful recipients from the queue file.
+/*
+/*	Note: currently, this also controls whether bounced recipients
+/*	are deleted.
+/*
+/*	Note: the deliver_completed() function ignores this request
+/*	when the recipient queue file offset is -1.
 /* .IP \fBDEL_REQ_FLAG_BOUNCE\fR
 /*	Delete bounced recipients from the queue file. Currently,
-/*	this flag is considered to be "always on".
+/*	this flag is non-functional.
 /* .PP
 /*	The \fBDEL_REQ_FLAG_DEFLT\fR constant provides a convenient shorthand
 /*	for the most common case: delete successful and bounced recipients.

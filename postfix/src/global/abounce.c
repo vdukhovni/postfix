@@ -100,6 +100,12 @@
 /* .IP BOUNCE_FLAG_CLEAN
 /*	Delete the bounce log in case of an error (as in: pretend
 /*	that we never even tried to bounce this message).
+/* .IP BOUNCE_FLAG_DELRCPT
+/*	When specified with a flush operation, request that
+/*	recipients be deleted from the queue file.
+/*
+/*	Note: the bounce daemon ignores this request when the
+/*	recipient queue file offset is <= 0.
 /* .IP BOUNCE_FLAG_COPY
 /*	Request that a postmaster copy is sent.
 /* .RE

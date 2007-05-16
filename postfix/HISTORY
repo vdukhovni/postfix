@@ -9281,7 +9281,7 @@ Apologies for any names omitted.
 	conf/mumble_table files removed, new commands added to
 	conf/postfix-script.
 
-	Cleanups: function declared in but used as void, missing
+	Cleanups: function declared int but used as void, missing
 	include file, missing const qualifier, unused variable.
 	Matthias Andree. Files:  bounce/bounce_notify_util.c,
 	bounce/bounce_service.h, postlog/postlog.c, smtpd/smtpd_check.c,
@@ -13543,12 +13543,10 @@ Apologies for any names omitted.
 	build on a 2.6 kernel. And that two weeks after the workaround
 	had been posted to the mailing list. File: makedefs.
 
-	Workaround: local(8) nixed the recipient file offset for
-	delegated transports. This broke delegation via
-	mailbox_transport(_maps) and fallback_transport(_maps) to
-	the error(8) transport. Unfortunately it is not possible
-	to nix the file offset for local(8) only.  Files:
-	local/mailbox.c, local/unknown.c.
+	Bugfix: mailbox_transport(_maps) and fallback_transport(_maps)
+	were broken when used with the error(8) or discard(8)
+	transports. Cause: insufficient documentation.  Files:
+	error/error.c, discard/discard.c.
 
 Wish list:
 
