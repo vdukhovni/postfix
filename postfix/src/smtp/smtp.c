@@ -711,6 +711,7 @@ int     var_scache_proto_tmout;
 bool    var_smtp_cname_overr;
 char   *var_smtp_pix_bug_words;
 char   *var_smtp_pix_bug_maps;
+char   *var_cyrus_conf_path;
 
  /*
   * Global variables.

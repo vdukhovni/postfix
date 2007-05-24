@@ -1383,6 +1383,10 @@ extern char *var_smtpd_sasl_opts;
 #define DEF_SMTPD_SASL_PATH	"smtpd"
 extern char *var_smtpd_sasl_path;
 
+#define VAR_CYRUS_CONF_PATH	"cyrus_sasl_config_path"
+#define DEF_CYRUS_CONF_PATH	""
+extern char *var_cyrus_conf_path;
+
 #define VAR_SMTPD_SASL_TLS_OPTS	"smtpd_sasl_tls_security_options"
 #define DEF_SMTPD_SASL_TLS_OPTS	"$" VAR_SMTPD_SASL_OPTS
 extern char *var_smtpd_sasl_tls_opts;

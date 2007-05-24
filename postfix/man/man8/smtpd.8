@@ -298,6 +298,11 @@ the SASL plug-in implementation that is selected with
 .IP "\fBsmtpd_sasl_type (cyrus)\fR"
 The SASL plug-in type that the Postfix SMTP server should use
 for authentication.
+.PP
+Available in Postfix version 2.5 and later:
+.IP "\fBcyrus_sasl_config_path (empty)\fR"
+Search path for Cyrus SASL application configuration files,
+currently used only to locate the $smtpd_sasl_path.conf file.
 .SH "STARTTLS SUPPORT CONTROLS"
 .na
 .nf
@@ -742,8 +747,9 @@ of an address verification request in progress.
 .IP "\fBaddress_verify_poll_delay (3s)\fR"
 The delay between queries for the completion of an address
 verification request in progress.
-.IP "\fBaddress_verify_sender (postmaster)\fR"
-The sender address to use in address verification probes.
+.IP "\fBaddress_verify_sender ($double_bounce_sender)\fR"
+The sender address to use in address verification probes; prior
+to Postfix 2.5 the default was "postmaster".
 .IP "\fBunverified_sender_reject_code (450)\fR"
 The numerical Postfix SMTP server response code when a recipient
 address is rejected by the reject_unverified_sender restriction.

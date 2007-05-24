@@ -268,6 +268,11 @@
 /* .IP "\fBsmtpd_sasl_type (cyrus)\fR"
 /*	The SASL plug-in type that the Postfix SMTP server should use
 /*	for authentication.
+/* .PP
+/*	Available in Postfix version 2.5 and later:
+/* .IP "\fBcyrus_sasl_config_path (empty)\fR"
+/*	Search path for Cyrus SASL application configuration files,
+/*	currently used only to locate the $smtpd_sasl_path.conf file.
 /* STARTTLS SUPPORT CONTROLS
 /* .ad
 /* .fi
@@ -692,8 +697,9 @@
 /* .IP "\fBaddress_verify_poll_delay (3s)\fR"
 /*	The delay between queries for the completion of an address
 /*	verification request in progress.
-/* .IP "\fBaddress_verify_sender (postmaster)\fR"
-/*	The sender address to use in address verification probes.
+/* .IP "\fBaddress_verify_sender ($double_bounce_sender)\fR"
+/*	The sender address to use in address verification probes; prior
+/*	to Postfix 2.5 the default was "postmaster".
 /* .IP "\fBunverified_sender_reject_code (450)\fR"
 /*	The numerical Postfix SMTP server response code when a recipient
 /*	address is rejected by the reject_unverified_sender restriction.
@@ -1010,6 +1016,7 @@ bool    var_smtpd_sasl_enable;
 bool    var_smtpd_sasl_auth_hdr;
 char   *var_smtpd_sasl_opts;
 char   *var_smtpd_sasl_path;
+char   *var_cyrus_conf_path;
 char   *var_smtpd_sasl_realm;
 char   *var_smtpd_sasl_exceptions_networks;
 char   *var_smtpd_sasl_type;
@@ -4526,6 +4533,7 @@ int     main(int argc, char **argv)
 	VAR_LOCAL_RCPT_MAPS, DEF_LOCAL_RCPT_MAPS, &var_local_rcpt_maps, 0, 0,
 	VAR_SMTPD_SASL_OPTS, DEF_SMTPD_SASL_OPTS, &var_smtpd_sasl_opts, 0, 0,
 	VAR_SMTPD_SASL_PATH, DEF_SMTPD_SASL_PATH, &var_smtpd_sasl_path, 1, 0,
+	VAR_CYRUS_CONF_PATH, DEF_CYRUS_CONF_PATH, &var_cyrus_conf_path, 0, 0,
 	VAR_SMTPD_SASL_REALM, DEF_SMTPD_SASL_REALM, &var_smtpd_sasl_realm, 0, 0,
 	VAR_SMTPD_SASL_EXCEPTIONS_NETWORKS, DEF_SMTPD_SASL_EXCEPTIONS_NETWORKS, &var_smtpd_sasl_exceptions_networks, 0, 0,
 	VAR_FILTER_XPORT, DEF_FILTER_XPORT, &var_filter_xport, 0, 0,

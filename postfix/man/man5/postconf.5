@@ -788,6 +788,14 @@ This parameter uses the same syntax as the right-hand side of a
 Postfix \fBtransport\fR(5) table. This setting has a lower precedence
 than a content filter that is specified with an \fBaccess\fR(5) table or
 in a \fBheader_checks\fR(5) or \fBbody_checks\fR(5) table.
+.SH cyrus_sasl_config_path (default: empty)
+Search path for Cyrus SASL application configuration files,
+currently used only to locate the $smtpd_sasl_path.conf file.
+Specify zero or more directories separated by a colon character,
+or an empty value to use Cyrus SASL's built-in search path.
+.PP
+This feature is available in Postfix 2.5 and later when compiled
+with Cyrus SASL 2.1.22 or later.
 .SH daemon_directory (default: see "postconf -d" output)
 The directory with Postfix support programs and daemon programs.
 These should not be invoked directly by humans. The directory must

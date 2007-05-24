@@ -19,7 +19,7 @@ transmit client or message attributes incrementally. It is not implemented by
 passing additional parameters via the MAIL FROM command, because doing so would
 require extending the MAIL FROM command length limit by another 600 or more
 characters beyond the space that is already needed to support other extensions
-such as AUTH.
+such as AUTH and DSN.
 
 XXFFOORRWWAARRDD CCoommmmaanndd ssyynnttaaxx
 
@@ -31,8 +31,8 @@ XFORWARD. The keyword is followed by the names of the attributes that the
 XFORWARD implementation supports.
 
 The client may send the XFORWARD request at any time except in the middle of a
-mail delivery transaction (i.e. between MAIL and DOT). The command may be
-pipelined when the server supports ESMTP command pipelining.
+mail delivery transaction (i.e. between MAIL and RSET or DOT). The command may
+be pipelined when the server supports ESMTP command pipelining.
 
 The syntax of XFORWARD requests is described below. Upper case and quoted
 strings specify terminals, lowercase strings specify meta terminals, and SP is
@@ -93,7 +93,7 @@ XXFFOORRWWAARRDD SSeerrvveerr rreessppoonnssee
 Upon receipt of a correctly formatted XFORWARD command, the server stores the
 specified attribute values, and erases the attributes whose value was specified
 as [UNAVAILABLE]. All XFORWARD attributes are reset to the real client
-information after the MAIL FROM command completes.
+information after the MAIL FROM transaction completes (i.e. after RSET or DOT).
 
 XXFFOORRWWAARRDD SSeerrvveerr rreeppllyy ccooddeess
 
@@ -149,7 +149,8 @@ SSMMTTPP ccoonnnneeccttiioonn ccaacchhiinngg
 
 SMTP connection caching makes it possible to deliver multiple messages within
 the same SMTP session. The XFORWARD attributes are reset after the MAIL FROM
-command completes, so there is no risk of information leakage.
+transaction completes (after RSET or DOT), so there is no risk of information
+leakage.
 
 RReeffeerreenncceess
 

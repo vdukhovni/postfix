@@ -213,6 +213,20 @@ XSASL_SERVER_IMPL *xsasl_cyrus_server_init(const char *unused_server_type,
     }
 #endif
 
+    if (*var_cyrus_conf_path) {
+#ifdef SASL_PATH_TYPE_CONFIG			/* Cyrus SASL 2.1.22 */
+	if (set_sasl_path(SASL_PATH_TYPE_CONFIG,
+			  var_cyrus_conf_path) != SASL_OK)
+	    msg_warn("failed to set Cyrus SASL configuration path: \"%s\"",
+		     var_cyrus_conf_path);
+#else
+	msg_warn("%s is not empty, but setting the Cyrus SASL configuration "
+		 "path is not supported with SASL library version %d.%d.%d",
+		 VAR_CYRUS_CONF_PATH, SASL_VERSION_MAJOR,
+		 SASL_VERSION_MINOR, SASL_VERSION_STEP);
+#endif
+    }
+
     /*
      * Initialize the library: load SASL plug-in routines, etc.
      */

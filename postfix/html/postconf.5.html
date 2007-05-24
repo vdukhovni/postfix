@@ -1447,6 +1447,20 @@ in a <a href="header_checks.5.html">header_checks(5)</a> or <a href="header_chec
 
 </DD>
 
+<DT><b><a name="cyrus_sasl_config_path">cyrus_sasl_config_path</a>
+(default: empty)</b></DT><DD>
+
+<p> Search path for Cyrus SASL application configuration files,
+currently used only to locate the $<a href="postconf.5.html#smtpd_sasl_path">smtpd_sasl_path</a>.conf file.
+Specify zero or more directories separated by a colon character,
+or an empty value to use Cyrus SASL's built-in search path.  </p>
+
+<p> This feature is available in Postfix 2.5 and later when compiled
+with Cyrus SASL 2.1.22 or later. </p>
+
+
+</DD>
+
 <DT><b><a name="daemon_directory">daemon_directory</a>
 (default: see "postconf -d" output)</b></DT><DD>
 

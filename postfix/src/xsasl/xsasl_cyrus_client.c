@@ -66,6 +66,11 @@
 #include <stringops.h>
 
  /*
+  * Global library.
+  */
+#include <mail_params.h>
+
+ /*
   * Application-specific
   */
 #include <xsasl.h>
@@ -212,7 +217,7 @@ static int xsasl_cyrus_client_get_passwd(sasl_conn_t *conn, void *context,
 /* xsasl_cyrus_client_init - initialize Cyrus SASL library */
 
 XSASL_CLIENT_IMPL *xsasl_cyrus_client_init(const char *unused_client_type,
-					       const char *unused_path_info)
+				               const char *unused_path_info)
 {
     XSASL_CLIENT_IMPL *xp;
     int     sasl_status;
@@ -251,6 +256,20 @@ XSASL_CLIENT_IMPL *xsasl_cyrus_client_init(const char *unused_client_type,
 	return (0);
     }
 #endif
+
+    if (*var_cyrus_conf_path) {
+#ifdef SASL_PATH_TYPE_CONFIG			/* Cyrus SASL 2.1.22 */
+	if (set_sasl_path(SASL_PATH_TYPE_CONFIG,
+			  var_cyrus_conf_path) != SASL_OK)
+	    msg_warn("failed to set Cyrus SASL configuration path: \"%s\"",
+		     var_cyrus_conf_path);
+#else
+	msg_warn("%s is not empty, but setting the Cyrus SASL configuration "
+		 "path is not supported with SASL library version %d.%d.%d",
+		 VAR_CYRUS_CONF_PATH, SASL_VERSION_MAJOR,
+		 SASL_VERSION_MINOR, SASL_VERSION_STEP);
+#endif
+    }
 
     /*
      * Initialize the SASL library.

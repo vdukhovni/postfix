@@ -12,9 +12,8 @@
 /*	void	(*service)(VSTREAM *stream, char *service_name, char **argv);
 /*	int	key;
 /*
-/*	void	multi_server_disconnect(stream, argv)
+/*	void	multi_server_disconnect(stream)
 /*	VSTREAM *stream;
-/*	char	**argv;
 /*
 /*	void	multi_server_drain()
 /* DESCRIPTION
@@ -97,7 +96,7 @@
 /*	Function to be executed prior to accepting a new connection.
 /* .sp
 /*	Only the last instance of this parameter type is remembered.
-/* .IP "MAIL_SERVER_PRE_DISCONN (VSTREAM *, void *(char *service_name, char **argv))"
+/* .IP "MAIL_SERVER_PRE_DISCONN (VSTREAM *, char *service_name, char **argv)"
 /*	A pointer to a function that is called
 /*	by the multi_server_disconnect() function (see below).
 /* .sp

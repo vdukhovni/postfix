@@ -13548,7 +13548,29 @@ Apologies for any names omitted.
 	transports. Cause: insufficient documentation.  Files:
 	error/error.c, discard/discard.c.
 
+20070520
+
+	Bugfix (problem introduced Postfix 2.3): when DSN support
+	was introduced it broke "agressive" recipient duplicate
+	elimination with "enable_original_recipient = no".  File:
+	cleanup/cleanup_out_recipient.c.
+
+20070523
+
+	Feature: cyrus_sasl_config_path to specify a search path
+	for Cyrus SASL configuration files (currently used only to
+	locate the smtpd.conf file).  Based on code by Victor
+	Duchovni. Files: smtpd/smtpd.c xsasl/xsasl_cyrus_server.c,
+	(and xsasl/xsasl_cyrus_client.c for future expansion).
+
 Wish list:
+
+	Update attr_print/scan() so they can send/receive file
+	descriptors. This simplifies kludgy code in many daemons.
+
+	Make adding date/from/etc. conditional. Perhaps on header
+	rewrite context? Do we need a more powerful concept than
+	local_header_rewrite_clients/remote_header_rewrite_domain?
 
 	Would there be a problem adding $smtpd_mumble_restrictions
 	and $smtpd_sender_login_maps to the default proxy_read_maps
