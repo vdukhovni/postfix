@@ -109,9 +109,11 @@ int     deliver_unknown(LOCAL_STATE state, USER_ATTR usr_attr)
     if (*var_fbck_transp_maps && transp_maps == 0)
 	transp_maps = maps_create(VAR_FBCK_TRANSP_MAPS, var_fbck_transp_maps,
 				  DICT_FLAG_LOCK | DICT_FLAG_NO_REGSUB);
+    /* The -1 is a hint for the down-stream deliver_completed() function. */
     if (*var_fbck_transp_maps
 	&& (map_transport = maps_find(transp_maps, state.msg_attr.user,
 				      DICT_FLAG_NONE)) != 0) {
+	state.msg_attr.rcpt.offset = -1L;
 	return (deliver_pass(MAIL_CLASS_PRIVATE, map_transport,
 			     state.request, &state.msg_attr.rcpt));
     }

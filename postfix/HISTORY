@@ -13447,3 +13447,17 @@ Apologies for any names omitted.
 
 	Bugfix: Content-Transfer-Encoding: attribute values are
 	case insensitive. File: src/cleanup/cleanup_message.c.
+
+20070514
+
+	Bugfix: mailbox_transport(_maps) and fallback_transport(_maps)
+	were broken when used with the error(8) or discard(8)
+	transports. Cause: insufficient documentation.  Files:
+	error/error.c, discard/discard.c.
+
+20070520
+
+	Bugfix (problem introduced Postfix 2.3): when DSN support
+	was introduced it broke "agressive" recipient duplicate
+	elimination with "enable_original_recipient = no".  File:
+	cleanup/cleanup_out_recipient.c.
