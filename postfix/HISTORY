@@ -13563,6 +13563,11 @@ Apologies for any names omitted.
 	Duchovni. Files: smtpd/smtpd.c xsasl/xsasl_cyrus_server.c,
 	(and xsasl/xsasl_cyrus_client.c for future expansion).
 
+20070525
+
+	Bugfix (introduced 20070523) the sasl_set_path() function
+	name was mis-speeled.
+
 Wish list:
 
 	Update attr_print/scan() so they can send/receive file

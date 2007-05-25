@@ -215,7 +215,7 @@ XSASL_SERVER_IMPL *xsasl_cyrus_server_init(const char *unused_server_type,
 
     if (*var_cyrus_conf_path) {
 #ifdef SASL_PATH_TYPE_CONFIG			/* Cyrus SASL 2.1.22 */
-	if (set_sasl_path(SASL_PATH_TYPE_CONFIG,
+	if (sasl_set_path(SASL_PATH_TYPE_CONFIG,
 			  var_cyrus_conf_path) != SASL_OK)
 	    msg_warn("failed to set Cyrus SASL configuration path: \"%s\"",
 		     var_cyrus_conf_path);
