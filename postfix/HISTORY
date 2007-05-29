@@ -13565,8 +13565,14 @@ Apologies for any names omitted.
 
 20070525
 
-	Bugfix (introduced 20070523) the sasl_set_path() function
+	Bugfix (introduced 20070523): the sasl_set_path() function
 	name was mis-speeled.
+
+20070529
+
+	Bugfix (introduced Postfix 2.3): the sendmail/postdrop
+	commands would hang when trying to submit a message larger
+	than the per-message size limit. File: postdrop/postdrop.c.
 
 Wish list:
 

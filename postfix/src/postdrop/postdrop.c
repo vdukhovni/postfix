@@ -438,9 +438,10 @@ int     main(int argc, char **argv)
 	if (REC_PUT_BUF(dst->stream, rec_type, buf) < 0) {
 	    /* rec_get() errors must not clobber errno. */
 	    saved_errno = errno;
-	    while (rec_get_raw(VSTREAM_IN, buf, var_line_limit,
-			       REC_FLAG_NONE) > 0)
-		 /* void */ ;
+	    while ((rec_type = rec_get_raw(VSTREAM_IN, buf, var_line_limit,
+					   REC_FLAG_NONE)) != REC_TYPE_END)
+		if (rec_type <= 0)
+		    msg_fatal("uid=%ld: malformed input", (long) uid);
 	    errno = saved_errno;
 	    break;
 	}
