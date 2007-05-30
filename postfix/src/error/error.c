@@ -176,13 +176,11 @@ static int deliver_message(DELIVER_REQUEST *request)
     (void) DSN_SIMPLE(&dsn, DSN_STATUS(dp.dsn), dp.text);
     for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
 	rcpt = request->rcpt_list.info + nrcpt;
-	if (rcpt->offset >= 0) {
-	    status = bounce_append(BOUNCE_FLAGS(request), request->queue_id,
-				   &request->msg_stats, rcpt, "none", &dsn);
-	    if (status == 0)
-		deliver_completed(src, rcpt->offset);
-	    result |= status;
-	}
+	status = bounce_append(BOUNCE_FLAGS(request), request->queue_id,
+			       &request->msg_stats, rcpt, "none", &dsn);
+	if (status == 0)
+	    deliver_completed(src, rcpt->offset);
+	result |= status;
     }
 
     /*
