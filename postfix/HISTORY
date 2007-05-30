@@ -13574,6 +13574,14 @@ Apologies for any names omitted.
 	commands would hang when trying to submit a message larger
 	than the per-message size limit. File: postdrop/postdrop.c.
 
+20070530
+
+	Sabotage the saboteur who insists on breaking Postfix by
+	adding gethostbyname() calls that cause maildir delivery
+	to fail when the machine name is not found in /etc/hosts,
+	or that cause Postfix processes to hang when the network
+	is down.
+
 Wish list:
 
 	Update attr_print/scan() so they can send/receive file
