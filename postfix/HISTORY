@@ -13582,6 +13582,12 @@ Apologies for any names omitted.
 	or that cause Postfix processes to hang when the network
 	is down.
 
+20070531
+
+	Portability: Victor helpfully pointed out that change
+	20070425 broke on non-IPv6 systems. Files: smtpd/smtpd_peer.c,
+	qmqpd/qmqpd_peer.c.
+
 Wish list:
 
 	Update attr_print/scan() so they can send/receive file

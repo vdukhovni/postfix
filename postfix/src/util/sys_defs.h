@@ -73,6 +73,19 @@
 #define NATIVE_DAEMON_DIR "/usr/libexec/postfix"
 #endif
 
+#ifdef FREEBSD2
+#define getsid(p) getpgrp()
+#ifndef CMSG_SPACE
+#define CMSG_SPACE(len) (CMSG_ALIGN(sizeof(struct cmsghdr)) + CMSG_ALIGN(len))
+#endif
+#ifndef CMSG_LEN
+#define CMSG_LEN(len) (CMSG_ALIGN(sizeof(struct cmsghdr)) + (len))
+#endif
+#ifndef CMSG_ALIGN
+#define CMSG_ALIGN(n) ALIGN(n)
+#endif
+#endif					/* FREEBSD2 */
+
 #ifdef BSDI4
 /* #define HAS_IPV6 find out interface lookup method */
 #endif

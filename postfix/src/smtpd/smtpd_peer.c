@@ -196,7 +196,9 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 	 */
 	if (strchr((char *) proto_info->sa_family_list, sa->sa_family) == 0)
 	    msg_fatal("cannot handle socket type %s with \"%s = %s\"",
+#ifdef AF_INET6
 		      sa->sa_family == AF_INET6 ? "AF_INET6" :
+#endif
 		      sa->sa_family == AF_INET ? "AF_INET" :
 		      "other", VAR_INET_PROTOCOLS, var_inet_protocols);
 
