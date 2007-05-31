@@ -13475,3 +13475,9 @@ Apologies for any names omitted.
 	to fail when the machine name is not found in /etc/hosts,
 	or that cause Postfix processes to hang when the network
 	is down.
+
+20070531
+
+	Portability: Victor helpfully pointed out that change
+	20070425 broke on non-IPv6 systems. Files: smtpd/smtpd_peer.c,
+	qmqpd/qmqpd_peer.c.
