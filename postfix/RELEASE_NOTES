@@ -17,7 +17,13 @@ Incompatibility with Postfix 2.3 and earlier
 If you upgrade from Postfix 2.3 or earlier, read RELEASE_NOTES-2.4
 before proceeding.
 
-Incompatibility with Postfix snapshot 2007XXXX
+Incompatibility with Postfix snapshot 20070613
+==============================================
+
+The pipe(8) delivery agent no longer allows delivery with the same
+group ID as the main.cf postdrop group.
+
+Incompatibility with Postfix snapshot 20070514
 ==============================================
 
 The default sender address for address verification probes was

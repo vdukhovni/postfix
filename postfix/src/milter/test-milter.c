@@ -243,14 +243,6 @@ static sfsistat test_body(SMFICTX *ctx, unsigned char *data, size_t data_len)
 static sfsistat test_eom(SMFICTX *ctx)
 {
     printf("test_eom\n");
-#ifdef SMFIR_INSHEADER
-    if (ins_hdr && smfi_insheader(ctx, ins_idx, ins_hdr, ins_val) == MI_FAILURE)
-	fprintf(stderr, "smfi_insheader failed");
-#endif
-#ifdef SMFIR_CHGHEADER
-    if (chg_hdr && smfi_chgheader(ctx, chg_hdr, chg_idx, chg_val) == MI_FAILURE)
-	fprintf(stderr, "smfi_chgheader failed");
-#endif
 #ifdef SMFIR_REPLBODY
     if (body_file) {
 	char    buf[BUFSIZ + 2];
@@ -278,6 +270,14 @@ static sfsistat test_eom(SMFICTX *ctx)
 	    (void) fclose(fp);
 	}
     }
+#endif
+#ifdef SMFIR_INSHEADER
+    if (ins_hdr && smfi_insheader(ctx, ins_idx, ins_hdr, ins_val) == MI_FAILURE)
+	fprintf(stderr, "smfi_insheader failed");
+#endif
+#ifdef SMFIR_CHGHEADER
+    if (chg_hdr && smfi_chgheader(ctx, chg_hdr, chg_idx, chg_val) == MI_FAILURE)
+	fprintf(stderr, "smfi_chgheader failed");
 #endif
     return (test_reply(ctx, test_eom_reply));
 }

@@ -923,6 +923,9 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
     if (attr->gid == var_owner_gid)
 	msg_fatal("user= command-line attribute specifies mail system owner %s group id %ld",
 		  var_mail_owner, (long) attr->gid);
+    if (attr->gid == var_sgid_gid)
+	msg_fatal("user= command-line attribute specifies mail system %s group id %ld",
+		  var_sgid_group, (long) attr->gid);
 
     /*
      * Give the poor tester a clue of what is going on.

@@ -475,6 +475,26 @@ static int milter8_comm_error(MILTER8 *milter)
     return (milter->state = MILTER8_STAT_ERROR);
 }
 
+/* milter8_edit_error - local message/envelope edit error */
+
+static void milter8_edit_error(MILTER8 *milter, const char *reply)
+{
+
+    /*
+     * Close the socket so that we don't receive later Milter replies while
+     * we're handling the next email message. Set the Milter handle state to
+     * ERROR, i.e. don't report further MTA events via this handle. We don't
+     * want surprises when this code gets reused for a protocol that allows
+     * envelope or header updates before the end-of-body MTA event.
+     */
+    if (milter->fp != 0) {
+	(void) vstream_fclose(milter->fp);
+	milter->fp = 0;
+    }
+    milter8_def_reply(milter, reply);
+    milter->state = MILTER8_STAT_ERROR;
+}
+
 /* milter8_close_stream - close stream to milter application */
 
 static void milter8_close_stream(MILTER8 *milter)
@@ -1002,6 +1022,27 @@ static const char *milter8_event(MILTER8 *milter, int event,
 	    msg_info("reply: %s data %ld bytes",
 		     (smfir_name = str_name_code(smfir_table, cmd)) != 0 ?
 		     smfir_name : "unknown", (long) data_size);
+
+	/*
+	 * Handle unfinished message body replacement first.
+	 */
+	if (body_line_buf != 0 && cmd != SMFIR_REPLBODY) {
+	    /* In case the last body replacement line didn't end in CRLF. */
+	    if (LEN(body_line_buf) > 0)
+		edit_resp = parent->repl_body(parent->chg_context,
+					      MILTER_BODY_LINE,
+					      body_line_buf);
+	    if (edit_resp == 0)
+		edit_resp = parent->repl_body(parent->chg_context,
+					      MILTER_BODY_END,
+					      (VSTRING *) 0);
+	    if (edit_resp) {
+		milter8_edit_error(milter, edit_resp);
+		MILTER8_EVENT_BREAK(milter->def_reply);
+	    }
+	    vstring_free(body_line_buf);
+	    body_line_buf = 0;
+	}
 	switch (cmd) {
 
 	    /*
@@ -1212,8 +1253,10 @@ static const char *milter8_event(MILTER8 *milter, int event,
 			edit_resp = parent->del_header(parent->chg_context,
 						       (ssize_t) index,
 						       STR(milter->buf));
-		    if (edit_resp)
-			MILTER8_EVENT_BREAK(edit_resp);
+		    if (edit_resp) {
+			milter8_edit_error(milter, edit_resp);
+			MILTER8_EVENT_BREAK(milter->def_reply);
+		    }
 		    continue;
 #endif
 
@@ -1229,8 +1272,10 @@ static const char *milter8_event(MILTER8 *milter, int event,
 		    edit_resp = parent->add_header(parent->chg_context,
 						   STR(milter->buf),
 						   STR(milter->body));
-		    if (edit_resp)
-			MILTER8_EVENT_BREAK(edit_resp);
+		    if (edit_resp) {
+			milter8_edit_error(milter, edit_resp);
+			MILTER8_EVENT_BREAK(milter->def_reply);
+		    }
 		    continue;
 
 		    /*
@@ -1257,8 +1302,10 @@ static const char *milter8_event(MILTER8 *milter, int event,
 						   (ssize_t) index + 1,
 						   STR(milter->buf),
 						   STR(milter->body));
-		    if (edit_resp)
-			MILTER8_EVENT_BREAK(edit_resp);
+		    if (edit_resp) {
+			milter8_edit_error(milter, edit_resp);
+			MILTER8_EVENT_BREAK(milter->def_reply);
+		    }
 		    continue;
 #endif
 
@@ -1272,8 +1319,10 @@ static const char *milter8_event(MILTER8 *milter, int event,
 			MILTER8_EVENT_BREAK(milter->def_reply);
 		    edit_resp = parent->add_rcpt(parent->chg_context,
 						 STR(milter->buf));
-		    if (edit_resp)
-			MILTER8_EVENT_BREAK(edit_resp);
+		    if (edit_resp) {
+			milter8_edit_error(milter, edit_resp);
+			MILTER8_EVENT_BREAK(milter->def_reply);
+		    }
 		    continue;
 
 		    /*
@@ -1286,8 +1335,10 @@ static const char *milter8_event(MILTER8 *milter, int event,
 			MILTER8_EVENT_BREAK(milter->def_reply);
 		    edit_resp = parent->del_rcpt(parent->chg_context,
 						 STR(milter->buf));
-		    if (edit_resp)
-			MILTER8_EVENT_BREAK(edit_resp);
+		    if (edit_resp) {
+			milter8_edit_error(milter, edit_resp);
+			MILTER8_EVENT_BREAK(milter->def_reply);
+		    }
 		    continue;
 
 		    /*
@@ -1323,6 +1374,10 @@ static const char *milter8_event(MILTER8 *milter, int event,
 			    VSTRING_ADDCH(body_line_buf, ch);
 			}
 		    }
+		    if (edit_resp) {
+			milter8_edit_error(milter, edit_resp);
+			MILTER8_EVENT_BREAK(milter->def_reply);
+		    }
 		    continue;
 		}
 	    }
@@ -1348,35 +1403,11 @@ static const char *milter8_event(MILTER8 *milter, int event,
     }
 
     /*
-     * Finish message body replacement.
+     * Clean up after aborted message body replacement.
      */
-    if (body_line_buf != 0) {
-	if (edit_resp == 0) {
-	    /* In case the last body replacement line didn't end in CRLF. */
-	    if (LEN(body_line_buf) > 0)
-		edit_resp = parent->repl_body(parent->chg_context,
-					      MILTER_BODY_LINE,
-					      body_line_buf);
-	    if (edit_resp == 0)
-		edit_resp = parent->repl_body(parent->chg_context,
-					      MILTER_BODY_END,
-					      (VSTRING *) 0);
-	}
+    if (body_line_buf)
 	vstring_free(body_line_buf);
 
-	/*
-	 * Override a non-reject/discard result value after body replacement
-	 * failure.
-	 * 
-	 * XXX Some cleanup clients ask the cleanup server to bounce mail for
-	 * them. In that case we must override a hard reject retval result
-	 * after queue file update failure. This is not a big problem; the
-	 * odds are small that a Milter application sends a hard reject after
-	 * replacing the message body.
-	 */
-	if (edit_resp && (retval == 0 || strchr("DS4", retval[0]) == 0))
-	    retval = edit_resp;
-    }
     return (retval);
 }
 

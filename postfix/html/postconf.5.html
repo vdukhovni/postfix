@@ -43,7 +43,8 @@ that starts with whitespace continues a logical line. </p>
 <ul>
 
 <li> <p> The expressions "$name", "${name}" or "$(name)" are
-recursively replaced by the value of the named parameter. </p>
+recursively replaced by the value of the named parameter.
+Specify "$$" to produce a single "$" character. </p>
 
 <li> <p> The expression "${name?value}" expands to "value" when
 "$name" is non-empty. This form is supported with Postfix version
