@@ -34,7 +34,6 @@ A parameter value may refer to other parameters.
 .IP \(bu 
 The expressions "$name", "${name}" or "$(name)" are
 recursively replaced by the value of the named parameter.
-Specify "$$" to produce a single "$" character.
 .IP \(bu
 The expression "${name?value}" expands to "value" when
 "$name" is non-empty. This form is supported with Postfix
@@ -43,6 +42,8 @@ version 2.2 and later.
 The expression "${name:value}" expands to "value" when
 "$name" is empty. This form is supported with Postfix
 version 2.2 and later.
+.IP \(bu
+Specify "$$" to produce a single "$" character.
 .RE
 .IP \(bu
 When the same parameter is defined multiple times, only the last

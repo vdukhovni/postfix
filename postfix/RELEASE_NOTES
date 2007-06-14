@@ -17,6 +17,14 @@ Incompatibility with Postfix 2.3 and earlier
 If you upgrade from Postfix 2.3 or earlier, read RELEASE_NOTES-2.4
 before proceeding.
 
+Incompatibility with Postfix snapshot 20070614
+==============================================
+
+By default, the Cyrus SASL client no longer sends an authoriZation
+ID (authzid); it sends only the authentiCation ID (authcid) plus
+the authcid's password. Specify "send_cyrus_sasl_authzid = yes" to
+get the old behavior.
+
 Incompatibility with Postfix snapshot 20070613
 ==============================================
 

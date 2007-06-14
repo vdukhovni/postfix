@@ -475,22 +475,24 @@ static int milter8_comm_error(MILTER8 *milter)
     return (milter->state = MILTER8_STAT_ERROR);
 }
 
-/* milter8_edit_error - local message/envelope edit error */
+/* milter8_edit_error - local queue file update error */
 
 static void milter8_edit_error(MILTER8 *milter, const char *reply)
 {
 
     /*
-     * Close the socket so that we don't receive later Milter replies while
-     * we're handling the next email message. Set the Milter handle state to
-     * ERROR, i.e. don't report further MTA events via this handle. We don't
-     * want surprises when this code gets reused for a protocol that allows
-     * envelope or header updates before the end-of-body MTA event.
+     * Close the socket, so we don't have to skip pending replies from this
+     * Milter instance.
      */
     if (milter->fp != 0) {
 	(void) vstream_fclose(milter->fp);
 	milter->fp = 0;
     }
+
+    /*
+     * Set the socket state to ERROR, so we don't try to send further MTA
+     * events to this Milter instance.
+     */
     milter8_def_reply(milter, reply);
     milter->state = MILTER8_STAT_ERROR;
 }

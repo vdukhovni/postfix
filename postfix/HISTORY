@@ -13596,8 +13596,23 @@ Apologies for any names omitted.
 
 20070613
 
-	Bugfix: the Milter client assumed that body edit requests
-	would never come before header/envelope edit requests.
-	Problem was triggered by Jose-Marcio Martins da Cruz. Also
-	streamlined the handling of queue file update errors. File:
-	milter/milter8.c.
+	Bugfix: the Milter client assumed that a Milter application
+	does not modify the message header or envelope, after that
+	same Milter application has modified the message body of
+	that same email message. This is not a problem with updates
+	by different Milter applications.  Problem was triggered
+	by Jose-Marcio Martins da Cruz. Also simplified the handling
+	of queue file update errors. File: milter/milter8.c.
+
+20070614
+
+	Workaround: some EXIM servers require SASL login without
+	authzid (authoriZation ID), i.e. the client must send only
+	the authcid (authentiCation ID) + the authcid's password.
+	The IETF draft document says that in this case the server
+	shall derive the authzid from the authcid. And since the
+	Postfix client always used the same value for authzid and
+	authcid, dropping the authzid should not create problems
+	(lightly tested with Cyrus SASL servers).  To get the old
+	behavior specify "send_cyrus_sasl_authzid = yes". File:
+	xsasl/xsasl_cyrus_client.c.
