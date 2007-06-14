@@ -13481,3 +13481,13 @@ Apologies for any names omitted.
 	Portability: Victor helpfully pointed out that change
 	20070425 broke on non-IPv6 systems. Files: smtpd/smtpd_peer.c,
 	qmqpd/qmqpd_peer.c.
+
+20070613
+
+        Bugfix: the Milter client assumed that a Milter application
+        does not modify the message header or envelope, after that
+        same Milter application has modified the message body of
+        that same email message. This is not a problem with updates
+        by different Milter applications.  Problem was triggered
+        by Jose-Marcio Martins da Cruz. Also simplified the handling
+        of queue file update errors. File: milter/milter8.c.
