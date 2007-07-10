@@ -13491,3 +13491,21 @@ Apologies for any names omitted.
         by different Milter applications.  Problem was triggered
         by Jose-Marcio Martins da Cruz. Also simplified the handling
         of queue file update errors. File: milter/milter8.c.
+
+20070614
+
+	Workaround: some non-Cyrus SASL SMTP servers require SASL
+	login without authzid (authoriZation ID), i.e. the client
+	must send only the authcid (authentiCation ID) + the authcid's
+	password.  In this case the server is supposed to derive
+	the authzid from the authcid. This works as expected when
+	authenticating to a Cyrus SASL SMTP server.  To get the old
+	behavior specify "send_cyrus_sasl_authzid = yes", in which
+	case Postfix sends the (authzid, authcid, password), with
+	the authzid equal to the authcid. File: xsasl/xsasl_cyrus_client.c.
+
+20070619
+
+	Portability: /dev/poll support for Solaris chroot jail setup
+	scripts. Files: examples/chroot-setup/Solaris8,
+	examples/chroot-setup/Solaris10.

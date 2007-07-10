@@ -329,7 +329,8 @@ XSASL_CLIENT *xsasl_cyrus_client_create(XSASL_CLIENT_IMPL *unused_impl,
 
     if ((sasl_status = SASL_CLIENT_NEW(service, server,
 				       NULL_CLIENT_ADDR, NULL_SERVER_ADDR,
-				       custom_callbacks, NULL_SECFLAGS,
+				 var_cyrus_sasl_authzid ? custom_callbacks :
+				       custom_callbacks + 1, NULL_SECFLAGS,
 				       &sasl_conn)) != SASL_OK) {
 	msg_warn("per-session SASL client initialization: %s",
 		 xsasl_cyrus_strerror(sasl_status));

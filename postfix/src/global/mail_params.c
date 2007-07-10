@@ -106,6 +106,7 @@
 /*	int	var_oldlog_compat;
 /*	int	var_delay_max_res;
 /*	char	*var_int_filt_classes;
+/*	int	var_cyrus_sasl_authzid;
 /*
 /*	void	mail_params_init()
 /*
@@ -275,6 +276,7 @@ int     var_verify_neg_cache;
 int     var_oldlog_compat;
 int     var_delay_max_res;
 char   *var_int_filt_classes;
+int     var_cyrus_sasl_authzid;
 
 const char null_format_string[1] = "";
 
@@ -543,6 +545,7 @@ void    mail_params_init()
 	VAR_VERIFY_NEG_CACHE, DEF_VERIFY_NEG_CACHE, &var_verify_neg_cache,
 	VAR_OLDLOG_COMPAT, DEF_OLDLOG_COMPAT, &var_oldlog_compat,
 	VAR_HELPFUL_WARNINGS, DEF_HELPFUL_WARNINGS, &var_helpful_warnings,
+	VAR_CYRUS_SASL_AUTHZID, DEF_CYRUS_SASL_AUTHZID, &var_cyrus_sasl_authzid,
 	0,
     };
     const char *cp;

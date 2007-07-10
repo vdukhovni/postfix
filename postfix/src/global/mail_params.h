@@ -1532,6 +1532,10 @@ extern char *var_lmtp_sasl_path;
   */
 #define PERMIT_SASL_AUTH	"permit_sasl_authenticated"
 
+#define VAR_CYRUS_SASL_AUTHZID	"send_cyrus_sasl_authzid"
+#define DEF_CYRUS_SASL_AUTHZID	0
+extern int var_cyrus_sasl_authzid;
+
  /*
   * LMTP client. Timeouts inspired by RFC 1123. The LMTP recipient limit
   * determines how many recipient addresses the LMTP client sends along with
