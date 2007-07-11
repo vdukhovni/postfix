@@ -13484,13 +13484,13 @@ Apologies for any names omitted.
 
 20070613
 
-        Bugfix: the Milter client assumed that a Milter application
-        does not modify the message header or envelope, after that
-        same Milter application has modified the message body of
-        that same email message. This is not a problem with updates
-        by different Milter applications.  Problem was triggered
-        by Jose-Marcio Martins da Cruz. Also simplified the handling
-        of queue file update errors. File: milter/milter8.c.
+	Bugfix: the Milter client assumed that a Milter application
+	does not modify the message header or envelope, after that
+	same Milter application has modified the message body of
+	that same email message. This is not a problem with updates
+	by different Milter applications.  Problem was triggered
+	by Jose-Marcio Martins da Cruz. Also simplified the handling
+	of queue file update errors. File: milter/milter8.c.
 
 20070614
 

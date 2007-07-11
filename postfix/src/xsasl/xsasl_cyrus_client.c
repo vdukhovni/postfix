@@ -66,6 +66,11 @@
 #include <stringops.h>
 
  /*
+  * Global library
+  */
+#include <mail_params.h>
+
+ /*
   * Application-specific
   */
 #include <xsasl.h>
