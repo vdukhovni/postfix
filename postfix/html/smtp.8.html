@@ -256,10 +256,10 @@ SMTP(8)                                                                SMTP(8)
        Available in Postfix version 2.4.4 and later:
 
        <b><a href="postconf.5.html#send_cyrus_sasl_authzid">send_cyrus_sasl_authzid</a> (no)</b>
-              When authenticating  to  a  SASL  server  with  the
-              default  setting  "no",  send  no  authoriZation ID
-              (authzid); send only the authentiCation  ID  (auth-
-              cid) plus the authcid's password.
+              When authenticating to a remote SMTP or LMTP server
+              with  the default setting "no", send no SASL autho-
+              riZation ID (authzid); send only the SASL authenti-
+              Cation ID (authcid) plus the authcid's password.
 
 <b>MIME PROCESSING CONTROLS</b>
        Available in Postfix version 2.0 and later:

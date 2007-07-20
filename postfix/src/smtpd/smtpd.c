@@ -2737,6 +2737,24 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     }
 
     /*
+     * XXX If we lost the cleanup server, the Postfix SMTP server will be out
+     * of sync with Milter applications. Sending an ABORT to the Milters is
+     * not sufficient to restore synchronization, because there may be any
+     * number of Milter replies already in flight. Destroying and recreating
+     * the Milters (and faking the connect and ehlo events) is too much
+     * trouble for testing and maintenance. Workaround: force the Postfix
+     * SMTP server to hang up with a 421 response in the rare case that the
+     * cleanup server breaks AND that the remote SMTP client continues the
+     * session after end-of-data.
+     * 
+     * XXX Should use something other than CLEANUP_STAT_WRITE when we lose
+     * contact with the cleanup server. This requires changes to among others
+     * the mail_stream module.
+     */
+    if (smtpd_milters != 0 && (state->err & CLEANUP_STAT_WRITE) != 0)
+	state->access_denied = mystrdup("421 4.3.0 Mail system error");
+
+    /*
      * Handle any errors. One message may suffer from multiple errors, so
      * complain only about the most severe error. Forgive any previous client
      * errors when a message was received successfully.

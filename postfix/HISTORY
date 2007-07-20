@@ -13509,3 +13509,11 @@ Apologies for any names omitted.
 	Portability: /dev/poll support for Solaris chroot jail setup
 	scripts. Files: examples/chroot-setup/Solaris8,
 	examples/chroot-setup/Solaris10.
+
+20070719
+
+	Cleanup: streamlined Milter client error handling, so that
+	the (Postfix SMTP server's Milter client) does not get out
+	of sync with Milter applications after the (cleanup server's
+	Milter client) encounters some non-recoverable problem.
+	Files: milter/milter8.c, smtpd/smtpd.c.
