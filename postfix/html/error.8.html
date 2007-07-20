@@ -17,8 +17,8 @@ ERROR(8)                                                              ERROR(8)
        requests from the queue manager. Each request specifies  a
        queue  file, a sender address, the reason for non-delivery
        (specified as the  next-hop  destination),  and  recipient
-       information.   The  reason  may  be  prefixed  with an <a href="http://www.faqs.org/rfcs/rfc3463.html">RFC</a>
-       <a href="http://www.faqs.org/rfcs/rfc3463.html">3463</a>-compatible  detail  code;  if  none  is  specified  a
+       information.   The  reason  may  be  prefixed  with an <a href="http://tools.ietf.org/html/rfc3463">RFC</a>
+       <a href="http://tools.ietf.org/html/rfc3463">3463</a>-compatible  detail  code;  if  none  is  specified  a
        default 4.0.0 or 5.0.0 code is used instead.  This program
        expects to be run from the <a href="master.8.html"><b>master</b>(8)</a> process manager.
 
@@ -37,7 +37,7 @@ ERROR(8)                                                              ERROR(8)
        privilege.
 
 <b>STANDARDS</b>
-       <a href="http://www.faqs.org/rfcs/rfc3463.html">RFC 3463</a> (Enhanced Status Codes)
+       <a href="http://tools.ietf.org/html/rfc3463">RFC 3463</a> (Enhanced Status Codes)
 
 <b>DIAGNOSTICS</b>
        Problems and transactions are logged to <b>syslogd</b>(8).

@@ -41,19 +41,19 @@ SMTPD(8)                                                              SMTPD(8)
        SMTP server can be run chrooted at fixed low privilege.
 
 <b>STANDARDS</b>
-       <a href="http://www.faqs.org/rfcs/rfc821.html">RFC 821</a> (SMTP protocol)
-       <a href="http://www.faqs.org/rfcs/rfc1123.html">RFC 1123</a> (Host requirements)
-       <a href="http://www.faqs.org/rfcs/rfc1652.html">RFC 1652</a> (8bit-MIME transport)
-       <a href="http://www.faqs.org/rfcs/rfc1869.html">RFC 1869</a> (SMTP service extensions)
-       <a href="http://www.faqs.org/rfcs/rfc1870.html">RFC 1870</a> (Message Size Declaration)
-       <a href="http://www.faqs.org/rfcs/rfc1985.html">RFC 1985</a> (ETRN command)
-       <a href="http://www.faqs.org/rfcs/rfc2034.html">RFC 2034</a> (SMTP Enhanced Error Codes)
-       <a href="http://www.faqs.org/rfcs/rfc2554.html">RFC 2554</a> (AUTH command)
-       <a href="http://www.faqs.org/rfcs/rfc2821.html">RFC 2821</a> (SMTP protocol)
-       <a href="http://www.faqs.org/rfcs/rfc2920.html">RFC 2920</a> (SMTP Pipelining)
-       <a href="http://www.faqs.org/rfcs/rfc3207.html">RFC 3207</a> (STARTTLS command)
-       <a href="http://www.faqs.org/rfcs/rfc3461.html">RFC 3461</a> (SMTP DSN Extension)
-       <a href="http://www.faqs.org/rfcs/rfc3463.html">RFC 3463</a> (Enhanced Status Codes)
+       <a href="http://tools.ietf.org/html/rfc821">RFC 821</a> (SMTP protocol)
+       <a href="http://tools.ietf.org/html/rfc1123">RFC 1123</a> (Host requirements)
+       <a href="http://tools.ietf.org/html/rfc1652">RFC 1652</a> (8bit-MIME transport)
+       <a href="http://tools.ietf.org/html/rfc1869">RFC 1869</a> (SMTP service extensions)
+       <a href="http://tools.ietf.org/html/rfc1870">RFC 1870</a> (Message Size Declaration)
+       <a href="http://tools.ietf.org/html/rfc1985">RFC 1985</a> (ETRN command)
+       <a href="http://tools.ietf.org/html/rfc2034">RFC 2034</a> (SMTP Enhanced Error Codes)
+       <a href="http://tools.ietf.org/html/rfc2554">RFC 2554</a> (AUTH command)
+       <a href="http://tools.ietf.org/html/rfc2821">RFC 2821</a> (SMTP protocol)
+       <a href="http://tools.ietf.org/html/rfc2920">RFC 2920</a> (SMTP Pipelining)
+       <a href="http://tools.ietf.org/html/rfc3207">RFC 3207</a> (STARTTLS command)
+       <a href="http://tools.ietf.org/html/rfc3461">RFC 3461</a> (SMTP DSN Extension)
+       <a href="http://tools.ietf.org/html/rfc3463">RFC 3463</a> (Enhanced Status Codes)
 
 <b>DIAGNOSTICS</b>
        Problems and transactions are logged to <b>syslogd</b>(8).
@@ -78,7 +78,7 @@ SMTPD(8)                                                              SMTPD(8)
        <b><a href="postconf.5.html#broken_sasl_auth_clients">broken_sasl_auth_clients</a> (no)</b>
               Enable inter-operability  with  SMTP  clients  that
               implement  an  obsolete version of the AUTH command
-              (<a href="http://www.faqs.org/rfcs/rfc2554.html">RFC 2554</a>).
+              (<a href="http://tools.ietf.org/html/rfc2554">RFC 2554</a>).
 
        <b><a href="postconf.5.html#disable_vrfy_command">disable_vrfy_command</a> (no)</b>
               Disable the SMTP VRFY command.
@@ -91,7 +91,7 @@ SMTPD(8)                                                              SMTPD(8)
        <b><a href="postconf.5.html#strict_rfc821_envelopes">strict_rfc821_envelopes</a> (no)</b>
               Require that addresses received in SMTP  MAIL  FROM
               and RCPT TO commands are enclosed with &lt;&gt;, and that
-              those addresses do not contain <a href="http://www.faqs.org/rfcs/rfc822.html">RFC 822</a>  style  com-
+              those addresses do not contain <a href="http://tools.ietf.org/html/rfc822">RFC 822</a>  style  com-
               ments or phrases.
 
        Available in Postfix version 2.1 and later:
@@ -283,7 +283,7 @@ SMTPD(8)                                                              SMTPD(8)
               feature.
 
 <b>SASL AUTHENTICATION CONTROLS</b>
-       Postfix SASL support (<a href="http://www.faqs.org/rfcs/rfc2554.html">RFC 2554</a>) can be used  to  authenti-
+       Postfix SASL support (<a href="http://tools.ietf.org/html/rfc2554">RFC 2554</a>) can be used  to  authenti-
        cate  remote  SMTP clients to the Postfix SMTP server, and
        to authenticate the Postfix SMTP client to a  remote  SMTP
        server.  See the <a href="SASL_README.html">SASL_README</a> document for details.
@@ -291,7 +291,7 @@ SMTPD(8)                                                              SMTPD(8)
        <b><a href="postconf.5.html#broken_sasl_auth_clients">broken_sasl_auth_clients</a> (no)</b>
               Enable  inter-operability  with  SMTP  clients that
               implement an obsolete version of the  AUTH  command
-              (<a href="http://www.faqs.org/rfcs/rfc2554.html">RFC 2554</a>).
+              (<a href="http://tools.ietf.org/html/rfc2554">RFC 2554</a>).
 
        <b><a href="postconf.5.html#smtpd_sasl_auth_enable">smtpd_sasl_auth_enable</a> (no)</b>
               Enable  SASL  authentication  in  the  Postfix SMTP

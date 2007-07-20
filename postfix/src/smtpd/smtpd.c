@@ -2068,7 +2068,8 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * Check the queue file space, if applicable.
      */
     if (!USE_SMTPD_PROXY(state)) {
-	if ((err = smtpd_check_queue(state)) != 0) {
+	if (SMTPD_STAND_ALONE(state) == 0
+	    && (err = smtpd_check_queue(state)) != 0) {
 	    /* XXX Reset access map side effects. */
 	    mail_reset(state);
 	    smtpd_chat_reply(state, "%s", err);
@@ -2757,6 +2758,25 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	state->dest = 0;
 	state->cleanup = 0;
     }
+
+    /*
+     * XXX If we lost the cleanup server, the Postfix SMTP server will be out
+     * of sync with Milter applications. Sending an ABORT to the Milters is
+     * not sufficient to restore synchronization, because there may be any
+     * number of Milter replies already in flight. Destroying and recreating
+     * the Milters (and faking the connect and ehlo events) is too much
+     * trouble for testing and maintenance. Workaround: force the Postfix
+     * SMTP server to hang up with a 421 response in the rare case that the
+     * cleanup server breaks AND that the remote SMTP client continues the
+     * session after end-of-data.
+     * 
+     * XXX Should use something other than CLEANUP_STAT_WRITE when we lose
+     * contact with the cleanup server. This requires internal changes to the
+     * mail_stream module; these may affect other mail_stream_service() users
+     * (qmqpd, sendmail, ...).
+     */
+    if (smtpd_milters != 0 && (state->err & CLEANUP_STAT_WRITE) != 0)
+	state->access_denied = mystrdup("421 4.3.0 Mail system error");
 
     /*
      * Handle any errors. One message may suffer from multiple errors, so
@@ -4208,6 +4228,17 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     xclient_hosts = namadr_list_init(MATCH_FLAG_NONE, var_xclient_hosts);
     xforward_hosts = namadr_list_init(MATCH_FLAG_NONE, var_xforward_hosts);
     hogger_list = namadr_list_init(MATCH_FLAG_NONE, var_smtpd_hoggers);
+
+    /*
+     * Open maps before dropping privileges so we can read passwords etc.
+     * 
+     * XXX We should not do this in stand-alone (sendmail -bs) mode, but we
+     * can't use SMTPD_STAND_ALONE(state) here. This means "sendmail -bs"
+     * will try to connect to proxymap when invoked by root for mail
+     * submission. To fix, we would have to pass stand-alone mode information
+     * via different means. For now we have to tell people not to run mail
+     * clients as root.
+     */
     if (getuid() == 0 || getuid() == var_owner_uid)
 	smtpd_check_init();
     debug_peer_init();

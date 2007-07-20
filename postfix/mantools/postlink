@@ -788,7 +788,7 @@ while (<>) {
 
     s/(http:\/\/[^ ,"\(\)]*[^ ,"\(\):;!?.])/<a href="$1">$1<\/a>/;
     s/(ftp:\/\/[^ ,"\(\)]*[^ ,"\(\):;!?.])/<a href="$1">$1<\/a>/;
-    s/\bRFC\s*([1-9]\d*)/<a href="http:\/\/www.faqs.org\/rfcs\/rfc$1.html">$&<\/a>/;
+    s/\bRFC\s*([1-9]\d*)/<a href="http:\/\/tools.ietf.org\/html\/rfc$1">$&<\/a>/;
 
     # Split README/RFC/parameter/restriction hyperlinks that span line breaks
 

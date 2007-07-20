@@ -127,7 +127,7 @@ PIPE(8)                                                                PIPE(8)
                      ters in the command-line <b>$sender</b> and <b>$recip-</b>
                      <b>ient</b> address localparts (text to the left of
                      the right-most <b>@</b> character), according to an
-                     8-bit  transparent version of <a href="http://www.faqs.org/rfcs/rfc822.html">RFC 822</a>.  This
+                     8-bit  transparent version of <a href="http://tools.ietf.org/html/rfc822">RFC 822</a>.  This
                      is recommended  for  delivery  via  <b>UUCP</b>  or
                      <b>BSMTP</b>.
 
@@ -302,8 +302,8 @@ PIPE(8)                                                                PIPE(8)
 
               <b>${sasl_sender</b>}
                      This macro expands to the SASL  sender  name
-                     (i.e.  the  original  submitter  as  per <a href="http://www.faqs.org/rfcs/rfc2554.html">RFC</a>
-                     <a href="http://www.faqs.org/rfcs/rfc2554.html">2554</a>) used during the reception of the  mes-
+                     (i.e.  the  original  submitter  as  per <a href="http://tools.ietf.org/html/rfc2554">RFC</a>
+                     <a href="http://tools.ietf.org/html/rfc2554">2554</a>) used during the reception of the  mes-
                      sage.
 
                      This  is available in Postfix 2.2 and later.
@@ -345,14 +345,14 @@ PIPE(8)                                                                PIPE(8)
                      for case folding.
 
 <b>STANDARDS</b>
-       <a href="http://www.faqs.org/rfcs/rfc3463.html">RFC 3463</a> (Enhanced status codes)
+       <a href="http://tools.ietf.org/html/rfc3463">RFC 3463</a> (Enhanced status codes)
 
 <b>DIAGNOSTICS</b>
        Command  exit status codes are expected to follow the con-
        ventions defined in &lt;<b>sysexits.h</b>&gt;.   Exit  status  0  means
        normal successful completion.
 
-       Postfix  version  2.3  and  later  support  <a href="http://www.faqs.org/rfcs/rfc3463.html">RFC 3463</a>-style
+       Postfix  version  2.3  and  later  support  <a href="http://tools.ietf.org/html/rfc3463">RFC 3463</a>-style
        enhanced status codes.  If a  command  terminates  with  a
        non-zero  exit  status, and the command output begins with
        an enhanced status code, this status code takes precedence

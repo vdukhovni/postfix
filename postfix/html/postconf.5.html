@@ -94,7 +94,7 @@ is rejected by an <a href="access.5.html">access(5)</a> map restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://www.faqs.org/rfcs/rfc821.html">RFC 821</a>.
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
 </p>
 
 
@@ -1163,7 +1163,7 @@ is placed into the Postfix configuration directory.  </p>
 
 <p>
 Enable inter-operability with SMTP clients that implement an obsolete
-version of the AUTH command (<a href="http://www.faqs.org/rfcs/rfc2554.html">RFC 2554</a>). Examples of such clients
+version of the AUTH command (<a href="http://tools.ietf.org/html/rfc2554">RFC 2554</a>). Examples of such clients
 are MicroSoft Outlook Express version 4 and MicroSoft Exchange
 version 5.0.
 </p>
@@ -1798,7 +1798,7 @@ address, or Recipient address. </dd>
 <a href="postconf.5.html#maps_rbl_reject_code">maps_rbl_reject_code</a> configuration parameter. Note: The numerical
 SMTP response code is required, and must appear at the start of the
 reply. With Postfix version 2.3 and later this information may be followed
-by an <a href="http://www.faqs.org/rfcs/rfc3463.html">RFC 3463</a> enhanced status code. </dd>
+by an <a href="http://tools.ietf.org/html/rfc3463">RFC 3463</a> enhanced status code. </dd>
 
 <dt><b>$rbl_domain</b></dt>
 
@@ -1971,7 +1971,7 @@ client request is rejected by the "defer" restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://www.faqs.org/rfcs/rfc821.html">RFC 821</a>.
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
 </p>
 
 
@@ -2967,7 +2967,7 @@ on whether the operating system implements IPv6. </p>
 <p> Note: you MUST stop and start Postfix after changing this
 parameter. </p>
 
-<p> On systems that pre-date IPV6_V6ONLY support (<a href="http://www.faqs.org/rfcs/rfc3493.html">RFC 3493</a>), an
+<p> On systems that pre-date IPV6_V6ONLY support (<a href="http://tools.ietf.org/html/rfc3493">RFC 3493</a>), an
 IPv6 server will also accept IPv4 connections, even when IPv4 is
 turned off with the <a href="postconf.5.html#inet_protocols">inet_protocols</a> parameter.  On systems with
 IPV6_V6ONLY support, Postfix will use separate server sockets for
@@ -2978,7 +2978,7 @@ corresponding protocol.  </p>
 Postfix will to DNS type A record lookups, and will convert
 IPv4-in-IPv6 client IP addresses (::ffff:1.2.3.4) to their original
 IPv4 form (1.2.3.4).  The latter is needed on hosts that pre-date
-IPV6_V6ONLY support (<a href="http://www.faqs.org/rfcs/rfc3493.html">RFC 3493</a>). </p>
+IPV6_V6ONLY support (<a href="http://tools.ietf.org/html/rfc3493">RFC 3493</a>). </p>
 
 <p> When IPv6 support is enabled via the <a href="postconf.5.html#inet_protocols">inet_protocols</a> parameter,
 Postfix will do DNS type AAAA record lookups. </p>
@@ -3054,7 +3054,7 @@ restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://www.faqs.org/rfcs/rfc821.html">RFC 821</a>.
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
 </p>
 
 
@@ -4188,7 +4188,7 @@ a neighboring system.  </dd>
 <dt><b> <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a> </b></dt>
 
 <dd> Append the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> when the
-client is successfully authenticated via the <a href="http://www.faqs.org/rfcs/rfc2554.html">RFC 2554</a> (AUTH)
+client is successfully authenticated via the <a href="http://tools.ietf.org/html/rfc2554">RFC 2554</a> (AUTH)
 protocol. </dd>
 
 <dt><b> <a href="postconf.5.html#permit_tls_clientcerts">permit_tls_clientcerts</a> </b></dt>
@@ -4772,7 +4772,7 @@ client request is blocked by the <a href="postconf.5.html#reject_rbl_client">rej
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://www.faqs.org/rfcs/rfc821.html">RFC 821</a>.
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
 </p>
 
 
@@ -5316,7 +5316,7 @@ restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://www.faqs.org/rfcs/rfc821.html">RFC 821</a>.
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
 </p>
 
 <p>
@@ -6346,7 +6346,7 @@ client request is rejected by the "reject" restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://www.faqs.org/rfcs/rfc821.html">RFC 821</a>.
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
 </p>
 
 
@@ -6454,7 +6454,7 @@ restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://www.faqs.org/rfcs/rfc821.html">RFC 821</a>.
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
 </p>
 
 
@@ -6646,7 +6646,7 @@ the mail server (NOT RECOMMENDED).
 looking inside quotes.  </p>
 
 <p> By default, the Postfix address resolver does not quote the
-address localpart as per <a href="http://www.faqs.org/rfcs/rfc822.html">RFC 822</a>, so that additional @ or % or !
+address localpart as per <a href="http://tools.ietf.org/html/rfc822">RFC 822</a>, so that additional @ or % or !
 operators remain visible. This behavior is safe but it is also
 technically incorrect.  </p>
 
@@ -6718,16 +6718,17 @@ The name of the directory with example Postfix configuration files.
 <DT><b><a name="send_cyrus_sasl_authzid">send_cyrus_sasl_authzid</a>
 (default: no)</b></DT><DD>
 
-<p> When authenticating to a SASL server, with the default setting
-"no", send no authoriZation ID (authzid); send only the authentiCation
-ID (authcid) plus the authcid's password. </p>
+<p> When authenticating to a remote SMTP or LMTP server with the
+default setting "no", send no SASL authoriZation ID (authzid); send
+only the SASL authentiCation ID (authcid) plus the authcid's password.
+</p>
 
 <p> The non-default setting "yes" enables the behavior of older
-Postfix versions.  These always send an authzid that is equal to
-the authcid, but this causes inter-operability problems with some
-SMTP servers. </p>
+Postfix versions.  These always send a SASL authzid that is equal
+to the SASL authcid, but this causes inter-operability problems
+with some SMTP servers. </p>
 
-<p> This feature is available in Postfix 2.5 and later. </p>
+<p> This feature is available in Postfix 2.4.4 and later. </p>
 
 
 </DD>
@@ -7353,7 +7354,7 @@ the CommonName is checked.  The behavior may be changed with the
 <a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a> option.  </p>
 
 <p> This option is useful only if you are definitely sure that you
-will only connect to servers that support <a href="http://www.faqs.org/rfcs/rfc2487.html">RFC 2487</a> _and_ that
+will only connect to servers that support <a href="http://tools.ietf.org/html/rfc2487">RFC 2487</a> _and_ that
 provide valid server certificates.  Typical use is for clients that
 send all their email to a dedicated mailhub.  </p>
 
@@ -7664,12 +7665,12 @@ The default time unit is s (seconds).
 
 <p>
 Quote addresses in SMTP MAIL FROM and RCPT TO commands as required
-by <a href="http://www.faqs.org/rfcs/rfc821.html">RFC 821</a>. This includes putting quotes around an address localpart
+by <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>. This includes putting quotes around an address localpart
 that ends in ".".
 </p>
 
 <p>
-The default is to comply with <a href="http://www.faqs.org/rfcs/rfc821.html">RFC 821</a>. If you have to send mail to
+The default is to comply with <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>. If you have to send mail to
 a broken SMTP server, configure a special SMTP client in <a href="master.5.html">master.cf</a>:
 </p>
 
@@ -8156,7 +8157,7 @@ access only to the system superuser account ("root"). </p>
 
 <p> With mandatory TLS encryption, require that the remote SMTP
 server hostname matches the information in the remote SMTP server
-certificate.  As of <a href="http://www.faqs.org/rfcs/rfc2487.html">RFC 2487</a> the requirements for hostname checking
+certificate.  As of <a href="http://tools.ietf.org/html/rfc2487">RFC 2487</a> the requirements for hostname checking
 for MTA clients are not specified. </p>
 
 <p> This option can be set to "no" to disable strict peer name
@@ -9299,7 +9300,7 @@ network or network address listed in  $<a href="postconf.5.html#mynetworks">myne
 <dt><b><a name="permit_sasl_authenticated">permit_sasl_authenticated</a></b></dt>
 
 <dd> Permit the request when the client is successfully
-authenticated via the <a href="http://www.faqs.org/rfcs/rfc2554.html">RFC 2554</a> (AUTH) protocol. </dd>
+authenticated via the <a href="http://tools.ietf.org/html/rfc2554">RFC 2554</a> (AUTH) protocol. </dd>
 
 <dt><b><a name="permit_tls_all_clientcerts">permit_tls_all_clientcerts</a></b></dt>
 
@@ -9648,7 +9649,7 @@ applies in the context of the SMTP END-OF-DATA command. </p>
 (default: no)</b></DT><DD>
 
 <p> Mandatory TLS: announce STARTTLS support to SMTP clients,
-and require that clients use TLS encryption.  According to <a href="http://www.faqs.org/rfcs/rfc2487.html">RFC 2487</a>
+and require that clients use TLS encryption.  According to <a href="http://tools.ietf.org/html/rfc2487">RFC 2487</a>
 this MUST NOT be applied in case of a publicly-referenced SMTP
 server.  This option is off by default and should be used only on
 dedicated servers. </p>
@@ -11435,7 +11436,7 @@ to SMTP clients, but do not require that clients use TLS encryption.
 
 <dt><b>encrypt</b></dt> <dd>Mandatory TLS encryption: announce
 STARTTLS support to SMTP clients, and require that clients use TLS
-encryption. According to <a href="http://www.faqs.org/rfcs/rfc2487.html">RFC 2487</a> this MUST NOT be applied in case
+encryption. According to <a href="http://tools.ietf.org/html/rfc2487">RFC 2487</a> this MUST NOT be applied in case
 of a publicly-referenced SMTP server. Instead, this option should
 be used only on dedicated servers. </dd>
 
@@ -11667,12 +11668,12 @@ This feature is available in Postfix 2.0 and later.
 <p>
 Require that addresses received in SMTP MAIL FROM and RCPT TO
 commands are enclosed with &lt;&gt;, and that those addresses do
-not contain <a href="http://www.faqs.org/rfcs/rfc822.html">RFC 822</a> style comments or phrases.  This stops mail
+not contain <a href="http://tools.ietf.org/html/rfc822">RFC 822</a> style comments or phrases.  This stops mail
 from poorly written software.
 </p>
 
 <p>
-By default, the Postfix SMTP server accepts <a href="http://www.faqs.org/rfcs/rfc822.html">RFC 822</a> syntax in MAIL
+By default, the Postfix SMTP server accepts <a href="http://tools.ietf.org/html/rfc822">RFC 822</a> syntax in MAIL
 FROM and RCPT TO addresses.
 </p>
 
@@ -12025,7 +12026,7 @@ always 450 in case of a temporary DNS error.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://www.faqs.org/rfcs/rfc821.html">RFC 821</a>.
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
 </p>
 
 
@@ -12042,7 +12043,7 @@ with 450 when the mapping failed due to a temporary error condition.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://www.faqs.org/rfcs/rfc821.html">RFC 821</a>.
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
 </p>
 
 
@@ -12058,7 +12059,7 @@ specified with the HELO or EHLO command is rejected by the
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://www.faqs.org/rfcs/rfc821.html">RFC 821</a>.
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
 </p>
 
 
@@ -12158,7 +12159,7 @@ accept the address anyway.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://www.faqs.org/rfcs/rfc821.html">RFC 821</a>.
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
 </p>
 
 <p>
@@ -12182,7 +12183,7 @@ accept the address anyway.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://www.faqs.org/rfcs/rfc821.html">RFC 821</a>.
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
 </p>
 
 <p>

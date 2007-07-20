@@ -1,5 +1,16 @@
 Wish list:
 
+	Absent a formal spec, model IPv6 RBL lookups after the IPv6
+	PTR lookups (one zone per hex nibble, nibbles in reversed
+	order). How to specify whether to query an RBL server for
+	status info about an IPv6 address? One could argue that as
+	long as IPv6 traffic is small an unsupported lookup doesn't
+	matter; and once IPv6 takes off, the RBL servers better
+	start supporting IPv6 client status information.
+
+	Don't log "warning: XXXXX: undeliverable postmaster
+	notification discarded" for spam from outside.
+
 	Really need a cleanup driver that allows testing against
 	Milter applications instead of synthetic events. This would
 	have to provide stubs for clients that talk to Postfix
@@ -65,10 +76,14 @@ Wish list:
 	into mailer-daemon (current bahavior) or disallow (strict
 	behavior, currently implemented only in the SMTP server).
 
-	The type of var_message_limit should be changed from int
-	to long or better, to take advantage of LP64 architectures.
-	This also requires checking all expressions in which
-	var_message_limit appears.
+	Plan for time_t larger than long, or wait for LP64 to
+	dominate the world?
+
+	The type of var_message_limit (and other file size/offset
+	configuration parameters or internal protocol attributes)
+	should be changed from int to off_t.  This also requires
+	checking all expressions in which var_message_limit etc.
+	appears.
 
 	Add M flag (enable multi-recipient delivery) to pipe daemon.
 

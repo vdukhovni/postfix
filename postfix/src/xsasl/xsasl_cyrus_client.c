@@ -66,7 +66,7 @@
 #include <stringops.h>
 
  /*
-  * Global library.
+  * Global library
   */
 #include <mail_params.h>
 

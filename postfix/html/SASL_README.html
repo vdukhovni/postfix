@@ -28,7 +28,7 @@ Dovecot provides an alternative that may be worth considering.
 
 <h2><a name="intro">How Postfix uses SASL authentication information</a></h2>
 
-<p> Postfix SASL support (<a href="http://www.faqs.org/rfcs/rfc2554.html">RFC 2554</a>) can be used to authenticate
+<p> Postfix SASL support (<a href="http://tools.ietf.org/html/rfc2554">RFC 2554</a>) can be used to authenticate
 remote SMTP clients to the Postfix SMTP server, and to authenticate
 the Postfix SMTP client to a remote SMTP server.  </p>
 
@@ -239,7 +239,9 @@ SMTP server</a></h2>
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> = 
-        <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a> <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a> ...
+        <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a> 
+        <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a> 
+        <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>
 </pre>
 </blockquote>
 
@@ -537,13 +539,13 @@ client is shown in bold font. </p>
 250-ETRN
 250-AUTH DIGEST-MD5 PLAIN CRAM-MD5
 250 8BITMIME
-<b>AUTH PLAIN dGVzdAB0ZXN0AHRlc3RwYXNz</b>
+<b>AUTH PLAIN AHRlc3QAdGVzdHBhc3M=</b>
 235 Authentication successful
 </pre>
 </blockquote>
 
-<p> Instead of dGVzdAB0ZXN0AHRlc3RwYXNz, specify the base64 encoded
-form of username\0username\0password (the \0 is a null byte). The
+<p> Instead of AHRlc3QAdGVzdHBhc3M=, specify the base64 encoded
+form of \0username\0password (the \0 is a null byte). The
 example above is for a user named `test' with password `testpass'.
 </p>
 
@@ -552,14 +554,14 @@ you can use one of the following commands: </p>
 
 <blockquote>
 <pre>
-% printf 'username\0username\0password' | mmencode 
+% printf '\0username\0password' | mmencode 
 </pre>
 </blockquote>
 
 <blockquote>
 <pre>
 % perl -MMIME::Base64 -e \
-    'print encode_base64("username\0username\0password");'
+    'print encode_base64("\0username\0password");'
 </pre>
 </blockquote>
 

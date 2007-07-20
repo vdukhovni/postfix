@@ -99,21 +99,21 @@ SMTP(8)                                                                SMTP(8)
        low privilege.
 
 <b>STANDARDS</b>
-       <a href="http://www.faqs.org/rfcs/rfc821.html">RFC 821</a> (SMTP protocol)
-       <a href="http://www.faqs.org/rfcs/rfc822.html">RFC 822</a> (ARPA Internet Text Messages)
-       <a href="http://www.faqs.org/rfcs/rfc1651.html">RFC 1651</a> (SMTP service extensions)
-       <a href="http://www.faqs.org/rfcs/rfc1652.html">RFC 1652</a> (8bit-MIME transport)
-       <a href="http://www.faqs.org/rfcs/rfc1870.html">RFC 1870</a> (Message Size Declaration)
-       <a href="http://www.faqs.org/rfcs/rfc2033.html">RFC 2033</a> (LMTP protocol)
-       <a href="http://www.faqs.org/rfcs/rfc2034.html">RFC 2034</a> (SMTP Enhanced Error Codes)
-       <a href="http://www.faqs.org/rfcs/rfc2045.html">RFC 2045</a> (MIME: Format of Internet Message Bodies)
-       <a href="http://www.faqs.org/rfcs/rfc2046.html">RFC 2046</a> (MIME: Media Types)
-       <a href="http://www.faqs.org/rfcs/rfc2554.html">RFC 2554</a> (AUTH command)
-       <a href="http://www.faqs.org/rfcs/rfc2821.html">RFC 2821</a> (SMTP protocol)
-       <a href="http://www.faqs.org/rfcs/rfc2920.html">RFC 2920</a> (SMTP Pipelining)
-       <a href="http://www.faqs.org/rfcs/rfc3207.html">RFC 3207</a> (STARTTLS command)
-       <a href="http://www.faqs.org/rfcs/rfc3461.html">RFC 3461</a> (SMTP DSN Extension)
-       <a href="http://www.faqs.org/rfcs/rfc3463.html">RFC 3463</a> (Enhanced Status Codes)
+       <a href="http://tools.ietf.org/html/rfc821">RFC 821</a> (SMTP protocol)
+       <a href="http://tools.ietf.org/html/rfc822">RFC 822</a> (ARPA Internet Text Messages)
+       <a href="http://tools.ietf.org/html/rfc1651">RFC 1651</a> (SMTP service extensions)
+       <a href="http://tools.ietf.org/html/rfc1652">RFC 1652</a> (8bit-MIME transport)
+       <a href="http://tools.ietf.org/html/rfc1870">RFC 1870</a> (Message Size Declaration)
+       <a href="http://tools.ietf.org/html/rfc2033">RFC 2033</a> (LMTP protocol)
+       <a href="http://tools.ietf.org/html/rfc2034">RFC 2034</a> (SMTP Enhanced Error Codes)
+       <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a> (MIME: Format of Internet Message Bodies)
+       <a href="http://tools.ietf.org/html/rfc2046">RFC 2046</a> (MIME: Media Types)
+       <a href="http://tools.ietf.org/html/rfc2554">RFC 2554</a> (AUTH command)
+       <a href="http://tools.ietf.org/html/rfc2821">RFC 2821</a> (SMTP protocol)
+       <a href="http://tools.ietf.org/html/rfc2920">RFC 2920</a> (SMTP Pipelining)
+       <a href="http://tools.ietf.org/html/rfc3207">RFC 3207</a> (STARTTLS command)
+       <a href="http://tools.ietf.org/html/rfc3461">RFC 3461</a> (SMTP DSN Extension)
+       <a href="http://tools.ietf.org/html/rfc3463">RFC 3463</a> (Enhanced Status Codes)
 
 <b>DIAGNOSTICS</b>
        Problems  and transactions are logged to <b>syslogd</b>(8).  Cor-
@@ -193,7 +193,7 @@ SMTP(8)                                                                SMTP(8)
 
        <b><a href="postconf.5.html#smtp_quote_rfc821_envelope">smtp_quote_rfc821_envelope</a> (yes)</b>
               Quote addresses in SMTP MAIL FROM and RCPT TO  com-
-              mands as required by <a href="http://www.faqs.org/rfcs/rfc821.html">RFC 821</a>.
+              mands as required by <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
 
        <b><a href="postconf.5.html#smtp_skip_5xx_greeting">smtp_skip_5xx_greeting</a> (yes)</b>
               Skip SMTP servers that greet with a 5XX status code
@@ -253,13 +253,13 @@ SMTP(8)                                                                SMTP(8)
               will ignore in the LHLO response from a remote LMTP
               server.
 
-       Available in Postfix version 2.5 and later:
+       Available in Postfix version 2.4.4 and later:
 
        <b><a href="postconf.5.html#send_cyrus_sasl_authzid">send_cyrus_sasl_authzid</a> (no)</b>
-              When authenticating to  a  SASL  server,  with  the
-              default  setting  "no",  send  no  authoriZation ID
-              (authzid); send only the authentiCation  ID  (auth-
-              cid) plus the authcid's password.
+              When authenticating to a remote SMTP or LMTP server
+              with  the default setting "no", send no SASL autho-
+              riZation ID (authzid); send only the SASL authenti-
+              Cation ID (authcid) plus the authcid's password.
 
 <b>MIME PROCESSING CONTROLS</b>
        Available in Postfix version 2.0 and later:

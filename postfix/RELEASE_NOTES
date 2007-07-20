@@ -20,10 +20,10 @@ before proceeding.
 Incompatibility with Postfix snapshot 20070614
 ==============================================
 
-By default, the Cyrus SASL client no longer sends an authoriZation
-ID (authzid); it sends only the authentiCation ID (authcid) plus
-the authcid's password. Specify "send_cyrus_sasl_authzid = yes" to
-get the old behavior.
+By default, the Postfix Cyrus SASL client no longer sends a SASL
+authoriZation ID (authzid); it sends only the SASL authentiCation
+ID (authcid) plus the authcid's password. Specify "send_cyrus_sasl_authzid
+= yes" to get the old behavior.
 
 Incompatibility with Postfix snapshot 20070613
 ==============================================
