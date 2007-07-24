@@ -442,15 +442,9 @@ static int milter8_conf_error(MILTER8 *milter)
     const char *reply;
 
     /*
-     * While reading the following, keep in mind that a client-side Milter
-     * socket is shared between the Postfix SMTP server and the cleanup
-     * server. The SMTP server reports only the SMTP events to the Milter.
-     * The cleanup server reports the headers and body to the Milter, and
-     * receives the header or body modification requests from the Milter.
-     * 
-     * XXX When the cleanup server closes its end of the Milter socket after
-     * some local/remote configuration error, the SMTP server is left out of
-     * sync with the Milter. Sending an ABORT to the Milters will not restore
+     * XXX When the cleanup server closes its end of the Milter socket while
+     * editing a queue file, the SMTP server is left out of sync with the
+     * Milter. Sending an ABORT to the Milters will not restore
      * synchronization, because there may be any number of Milter replies
      * already in flight. Workaround: poison the socket and force the SMTP
      * server to abandon it.
@@ -476,18 +470,12 @@ static int milter8_comm_error(MILTER8 *milter)
     const char *reply;
 
     /*
-     * While reading the following, keep in mind that a client-side Milter
-     * socket is shared between the Postfix SMTP server and the cleanup
-     * server. The SMTP server reports only the SMTP events to the Milter.
-     * The cleanup server reports the headers and body to the Milter, and
-     * receives the header or body modification requests from the Milter.
-     * 
-     * XXX When the cleanup server closes its end of the Milter socket after
-     * some local or remote remote protocol error, the SMTP server is left
-     * out of sync with the Milter. Sending an ABORT to the Milters will not
-     * restore synchronization, because there may be any number of Milter
-     * replies already in flight. Workaround: poison the socket and force the
-     * SMTP server to abandon it.
+     * XXX When the cleanup server closes its end of the Milter socket while
+     * editing a queue file, the SMTP server is left out of sync with the
+     * Milter. Sending an ABORT to the Milters will not restore
+     * synchronization, because there may be any number of Milter replies
+     * already in flight. Workaround: poison the socket and force the SMTP
+     * server to abandon it.
      */
     if (milter->fp != 0) {
 	(void) shutdown(vstream_fileno(milter->fp), SHUT_RDWR);
@@ -1009,26 +997,21 @@ static const char *milter8_event(MILTER8 *milter, int event,
     /*
      * Receive the reply or replies.
      * 
-     * Intercept all loop exits so that we can do post body replacement
+     * Intercept all loop exits so that we can do post header/body edit
      * processing.
      * 
      * XXX Bound the loop iteration count.
      * 
-     * While reading the following, keep in mind that a client-side Milter
-     * socket is shared between the Postfix SMTP server and the cleanup
-     * server. The SMTP server reports only the SMTP events to the Milter.
-     * The cleanup server reports the headers and body to the Milter, and
-     * receives the header or body modification requests from the Milter.
-     * 
      * In the end-of-body stage, the Milter may reply with one or more queue
      * file edit requests before it replies with its final decision: accept,
-     * reject, etc. After a local queue file edit error, do not close the
-     * Milter socket in the cleanup server. Instead skip all further Milter
-     * replies until the final decision. This way the Postfix SMTP server
-     * stays in sync with the Milter, and Postfix doesn't have to lose the
-     * ability to handle multiple deliveries within the same SMTP session.
-     * This requires that the Postfix SMTP server uses something other than
-     * CLEANUP_STAT_WRITE when it loses contact with the cleanup server.
+     * reject, etc. After a local queue file edit error (file too big, media
+     * write error), do not close the Milter socket in the cleanup server.
+     * Instead skip all further Milter replies until the final decision. This
+     * way the Postfix SMTP server stays in sync with the Milter, and Postfix
+     * doesn't have to lose the ability to handle multiple deliveries within
+     * the same SMTP session. This requires that the Postfix SMTP server uses
+     * something other than CLEANUP_STAT_WRITE when it loses contact with the
+     * cleanup server.
      */
 #define IN_CONNECT_EVENT(e) ((e) == SMFIC_CONNECT || (e) == SMFIC_HELO)
 

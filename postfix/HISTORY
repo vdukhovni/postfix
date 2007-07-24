@@ -13634,8 +13634,16 @@ Apologies for any names omitted.
 	pre-formatted message from file, and to handle replies other
 	than the expected 2xx or 3xx. File: smtpstone/smtp-source.c.
 
-	Cleanup: streamlined Milter client error handling, so that
-	the (Postfix SMTP server's Milter client) does not get out
-	of sync with Milter applications after the (cleanup server's
-	Milter client) encounters some non-recoverable problem.
-	Files: milter/milter8.c, smtpd/smtpd.c.
+	Cleanup: Milter client error handling, so that the (Postfix
+	SMTP server's Milter client) does not get out of sync with
+	Milter applications after the (cleanup server's Milter
+	client) encounters some non-recoverable problem.  Files:
+	milter/milter8.c, smtpd/smtpd.c.
+
+20070720
+
+	Support for RFC 4954 (SASL AUTH, updates RFC 2554, refines
+	some reply codes and introduces DSN enhanced status codes)
+	and RFC 3848 ("Received ...  with ESMTPS?A? ...). Currently,
+	support for the latter is always on.  Files: smtpd/smtpd.c,
+	smtpd/smtpd_sasl_proto.c, smtpd/smtpd_sasl_glue.c.

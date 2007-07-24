@@ -17,6 +17,13 @@ Incompatibility with Postfix 2.3 and earlier
 If you upgrade from Postfix 2.3 or earlier, read RELEASE_NOTES-2.4
 before proceeding.
 
+Major changes with Postfix snapshot 20070724
+============================================
+
+Not really major. Support for RFC 3848 (ESMTPS, ESMTPA, ESMTPSA
+in Received: headers) and updated SASL support with reply codes and
+enhanced (DSN) status codes as per RFC 4954.
+
 Incompatibility with Postfix snapshot 20070614
 ==============================================
 

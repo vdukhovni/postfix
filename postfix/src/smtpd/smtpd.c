@@ -47,6 +47,8 @@
 /*	RFC 3207 (STARTTLS command)
 /*	RFC 3461 (SMTP DSN Extension)
 /*	RFC 3463 (Enhanced Status Codes)
+/*	RFC 3848 (ESMTP Transmission Types)
+/*	RFC 4954 (AUTH command)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /*
@@ -2462,6 +2464,8 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     int     out_error;
     char  **cpp;
     CLEANUP_STAT_DETAIL *detail;
+    const char *rfc3848_sess;
+    const char *rfc3848_auth;
 
 #ifdef USE_TLS
     VSTRING *peer_CN;
@@ -2595,7 +2599,13 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 		out_fprintf(out_stream, REC_TYPE_NORM,
 			    "\t(No client certificate requested)");
 	}
+	/* RFC 3848 is defined for ESMTP only. */
+	if (state->tls_context != 0
+	    && strcmp(state->protocol, MAIL_PROTO_ESMTP) == 0)
+	    rfc3848_sess = "S";
+	else
 #endif
+	    rfc3848_sess = "";
 #ifdef USE_SASL_AUTH
 	if (var_smtpd_sasl_enable && var_smtpd_sasl_auth_hdr && state->sasl_username) {
 	    username = VSTRING_STRDUP(state->sasl_username);
@@ -2604,23 +2614,31 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 			"\t(Authenticated sender: %s)", STR(username));
 	    vstring_free(username);
 	}
+	/* RFC 3848 is defined for ESMTP only. */
+	if (var_smtpd_sasl_enable && state->sasl_username
+	    && strcmp(state->protocol, MAIL_PROTO_ESMTP) == 0)
+	    rfc3848_auth = "A";
+	else
 #endif
+	    rfc3848_auth = "";
 	if (state->rcpt_count == 1 && state->recipient) {
 	    out_fprintf(out_stream, REC_TYPE_NORM,
-			state->cleanup ? "\tby %s (%s) with %s id %s" :
+			state->cleanup ? "\tby %s (%s) with %s%s%s id %s" :
 			"\tby %s (%s) with %s",
 			var_myhostname, var_mail_name,
-			state->protocol, state->queue_id);
+			state->protocol, rfc3848_sess,
+			rfc3848_auth, state->queue_id);
 	    quote_822_local(state->buffer, state->recipient);
 	    out_fprintf(out_stream, REC_TYPE_NORM,
 			"\tfor <%s>; %s", STR(state->buffer),
 			mail_date(state->arrival_time.tv_sec));
 	} else {
 	    out_fprintf(out_stream, REC_TYPE_NORM,
-			state->cleanup ? "\tby %s (%s) with %s id %s;" :
+			state->cleanup ? "\tby %s (%s) with %s%s%s id %s;" :
 			"\tby %s (%s) with %s;",
 			var_myhostname, var_mail_name,
-			state->protocol, state->queue_id);
+			state->protocol, rfc3848_sess,
+			rfc3848_auth, state->queue_id);
 	    out_fprintf(out_stream, REC_TYPE_NORM,
 			"\t%s", mail_date(state->arrival_time.tv_sec));
 	}
@@ -2760,20 +2778,19 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     }
 
     /*
-     * XXX If we lost the cleanup server, the Postfix SMTP server will be out
-     * of sync with Milter applications. Sending an ABORT to the Milters is
-     * not sufficient to restore synchronization, because there may be any
-     * number of Milter replies already in flight. Destroying and recreating
-     * the Milters (and faking the connect and ehlo events) is too much
-     * trouble for testing and maintenance. Workaround: force the Postfix
-     * SMTP server to hang up with a 421 response in the rare case that the
-     * cleanup server breaks AND that the remote SMTP client continues the
-     * session after end-of-data.
+     * XXX If we lose the cleanup server while it is editing a queue file,
+     * the Postfix SMTP server will be out of sync with Milter applications.
+     * Sending an ABORT to the Milters is not sufficient to restore
+     * synchronization, because there may be any number of Milter replies
+     * already in flight. Destroying and recreating the Milters (and faking
+     * the connect and ehlo events) is too much trouble for testing and
+     * maintenance. Workaround: force the Postfix SMTP server to hang up with
+     * a 421 response in the rare case that the cleanup server breaks AND
+     * that the remote SMTP client continues the session after end-of-data.
      * 
      * XXX Should use something other than CLEANUP_STAT_WRITE when we lose
-     * contact with the cleanup server. This requires internal changes to the
-     * mail_stream module; these may affect other mail_stream_service() users
-     * (qmqpd, sendmail, ...).
+     * contact with the cleanup server. This requires changes to the
+     * mail_stream module and its users (smtpd, qmqpd, perhaps sendmail).
      */
     if (smtpd_milters != 0 && (state->err & CLEANUP_STAT_WRITE) != 0)
 	state->access_denied = mystrdup("421 4.3.0 Mail system error");
@@ -3695,7 +3712,8 @@ static int starttls_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     }
     if (smtpd_tls_ctx == 0) {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
-	smtpd_chat_reply(state, "454 4.3.0 TLS not available due to local problem");
+	/* RFC 4954 Section 6. */
+	smtpd_chat_reply(state, "454 4.7.0 TLS not available due to local problem");
 	return (-1);
     }
 

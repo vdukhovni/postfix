@@ -258,11 +258,13 @@ int     smtpd_sasl_authenticate(SMTPD_STATE *state,
 	msg_warn("%s[%s]: SASL %s authentication failed: %s",
 		 state->name, state->addr, sasl_method,
 		 STR(state->sasl_reply));
-	smtpd_chat_reply(state, "535 5.7.0 Error: authentication failed: %s",
+	/* RFC 4954 Section 6. */
+	smtpd_chat_reply(state, "535 5.7.8 Error: authentication failed: %s",
 			 STR(state->sasl_reply));
 	return (-1);
     }
-    smtpd_chat_reply(state, "235 2.0.0 Authentication successful");
+    /* RFC 4954 Section 6. */
+    smtpd_chat_reply(state, "235 2.7.0 Authentication successful");
     if ((sasl_username = xsasl_server_get_username(state->sasl_server)) == 0)
 	msg_panic("cannot look up the authenticated SASL username");
     state->sasl_username = mystrdup(sasl_username);
