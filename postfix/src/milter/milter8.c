@@ -1591,6 +1591,9 @@ static void milter8_connect(MILTER8 *milter)
 		    VSTREAM_CTL_DOUBLE,
 		    VSTREAM_CTL_TIMEOUT, milter->cmd_timeout,
 		    VSTREAM_CTL_END);
+    /* Avoid poor performance when TCP MSS > VSTREAM_BUFSIZE. */
+    if (connect_fn == inet_connect)
+	vstream_tweak_tcp(milter->fp);
 
     /*
      * Open the negotiations by sending what actions the Milter may request
@@ -2485,7 +2488,7 @@ MILTER *milter8_receive(VSTREAM *stream, MILTERS *parent)
 #endif
     } else {
 #define NO_PROTOCOL	((char *) 0)
-
+ 
 	if (msg_verbose)
 	    msg_info("%s: milter %s", myname, STR(name_buf));
 
@@ -2493,6 +2496,8 @@ MILTER *milter8_receive(VSTREAM *stream, MILTERS *parent)
 			    msg_timeout, NO_PROTOCOL, STR(act_buf), parent);
 	milter->fp = vstream_fdopen(fd, O_RDWR);
 	vstream_control(milter->fp, VSTREAM_CTL_DOUBLE, VSTREAM_CTL_END);
+	/* Avoid poor performance when TCP MSS > VSTREAM_BUFSIZE. */
+	vstream_tweak_sock(milter->fp);
 	milter->version = version;
 	milter->rq_mask = rq_mask;
 	milter->ev_mask = ev_mask;

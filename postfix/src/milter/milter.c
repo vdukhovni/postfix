@@ -97,6 +97,10 @@
 /*	MILTERS	*milter_receive(fp, count)
 /*	VSTREAM	*fp;
 /*	int	count;
+/*
+/*	int	milter_dummy(milters, fp)
+/*	MILTERS	*milters;
+/*	VSTREAM *fp;
 /* DESCRIPTION
 /*	The functions in this module manage one or more milter (mail
 /*	filter) clients. Currently, only the Sendmail 8 filter
@@ -192,6 +196,9 @@
 /*	milter_receive() receives the specified number of mail
 /*	filters over the specified stream. The result is a null
 /*	pointer when no milters were sent, or when an error happened.
+/*
+/*	milter_dummy() is like milter_send(), except that it sends
+/*	a dummy, but entirely valid, mail filter list.
 /* SEE ALSO
 /*	milter8(3) Sendmail 8 Milter protocol
 /* DIAGNOSTICS
@@ -587,6 +594,16 @@ void    milter_free(MILTERS *milters)
 #define MAIL_ATTR_MILT_EOD	"eod_macros"
 #define MAIL_ATTR_MILT_UNK	"unk_macros"
 
+/* milter_dummy - send empty milter list */
+
+int     milter_dummy(MILTERS *milters, VSTREAM *stream)
+{
+    MILTERS dummy = *milters;
+
+    dummy.milter_list = 0;
+    return (milter_send(&dummy, stream));
+}
+
 /* milter_send - send Milter instances over stream */
 
 int     milter_send(MILTERS *milters, VSTREAM *stream)
@@ -606,8 +623,6 @@ int     milter_send(MILTERS *milters, VSTREAM *stream)
 	for (m = milters->milter_list; m != 0; m = m->next)
 	    if (m->active(m))
 		count++;
-    if (count == 0)
-	return (0);
     (void) rec_fprintf(stream, REC_TYPE_MILT_COUNT, "%d", count);
 
     /*
@@ -655,9 +670,6 @@ MILTERS *milter_receive(VSTREAM *stream, int count)
     VSTRING *data_macros;
     VSTRING *eod_macros;
     VSTRING *unk_macros;
-
-    if (count == 0)
-	return (0);
 
     /*
      * Receive filter macros.

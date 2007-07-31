@@ -13647,3 +13647,30 @@ Apologies for any names omitted.
 	and RFC 3848 ("Received ...  with ESMTPS?A? ...). Currently,
 	support for the latter is always on.  Files: smtpd/smtpd.c,
 	smtpd/smtpd_sasl_proto.c, smtpd/smtpd_sasl_glue.c.
+
+20070727
+
+	Workaround: the queue manager no longer logs a warning for
+	mail sent to the local double-bounce address (normally, the
+	this is used as the sender while reporting an undeliverable
+	bounce message to the local postmaster).  As of 20070503
+	the local double-bounce address is the default sender for
+	sender/recipient address verification probes, and it now
+	shows up as a spam target. Files: *qmgr/qmgr_message.c.
+
+20070729
+
+	Performance: fix for poor TCP performance for loopback
+	(127.0.0.1) connections. Problem reported by Mark Martinec.
+	Files: util/vstream.c, util/vstream_tweak.c, milter/milter8.c,
+	smtp/smtp_connect.c, smtpstone/*source.c.
+
+20070730
+
+	Bugfix: when a milter replied with ACCEPT at or before the
+	first RCPT command, the cleanup server would apply the
+	non_smtpd_milters setting as if the message was a local
+	submission. Problem reported by Jukka Salmi. Also, the
+	cleanup server would get out of sync with the milter when
+	a milter replied with ACCEPT at the DATA command. Files:
+	cleanup/cleanup_envelope.c, smtpd/smtpd.c, milter/milters.c.

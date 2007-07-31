@@ -83,7 +83,7 @@ Wish list:
 	configuration parameters or internal protocol attributes)
 	should be changed from int to off_t.  This also requires
 	checking all expressions in which var_message_limit etc.
-	appears.
+	appears: qmqpd, netstring, deliver_request, ...
 
 	Add M flag (enable multi-recipient delivery) to pipe daemon.
 

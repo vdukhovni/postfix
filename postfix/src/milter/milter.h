@@ -99,6 +99,7 @@ extern const char *milter_unknown_event(MILTERS *, const char *);
 extern const char *milter_other_event(MILTERS *);
 extern void milter_abort(MILTERS *);
 extern void milter_disc_event(MILTERS *);
+extern int milter_dummy(MILTERS *, VSTREAM *);
 extern int milter_send(MILTERS *, VSTREAM *);
 extern MILTERS *milter_receive(VSTREAM *, int);
 extern void milter_free(MILTERS *);
@@ -109,7 +110,7 @@ extern void milter_free(MILTERS *);
 #define MILTER_BODY_START	1	/* start message body */
 #define MILTER_BODY_LINE	2	/* message body line */
 #define MILTER_BODY_END		3	/* end message body */
-
+  
  /*
   * Sendmail 8 macro names. We support forms with and without the {}.
   */

@@ -277,6 +277,16 @@
 /*	Enable exception handling with vstream_setjmp() and vstream_longjmp().
 /*	This involves allocation of additional memory that normally isn't
 /*	used.
+/* .IP "VSTREAM_CTL_BUFSIZE (ssize_t)"
+/*	Specify a non-default write buffer size, or zero to implement
+/*	a no-op. Requests to shrink an existing buffer size are
+/*	ignored. Requests to change a fixed-size buffer (stdin,
+/*	stdout, stderr) are not allowed.
+/*
+/*	NOTE: the VSTREAM_CTL_BUFSIZE argument type is ssize_t, not
+/*	int. Use an explicit cast to avoid problems on LP64
+/*	environments and other environments where ssize_t is larger
+/*	than int.
 /* .PP
 /*	vstream_fileno() gives access to the file handle associated with
 /*	a buffered stream. With streams that have separate read/write
@@ -384,6 +394,13 @@ static int vstream_buf_space(VBUF *, ssize_t);
   * Initialization of the three pre-defined streams. Pre-allocate a static
   * I/O buffer for the standard error stream, so that the error handler can
   * produce a diagnostic even when memory allocation fails.
+  * 
+  * XXX We don't (yet) statically initialize the req_bufsize field: it is the
+  * last VSTREAM member so we don't break Postfix 2.4 binary compatibility,
+  * and Wietse doesn't know how to specify an initializer for the jmp_buf
+  * VSTREAM member (which can be a struct or an array) without collateral
+  * damage to the source code. We can fix the initialization later in the
+  * Postfix 2.5 development cycle.
   */
 static unsigned char vstream_fstd_buf[VSTREAM_BUFSIZE];
 
@@ -762,13 +779,14 @@ static int vstream_buf_put_ready(VBUF *bp)
 
     /*
      * Remember the direction. If this is the first PUT operation for this
-     * stream, allocate a new buffer; obviously there is no data to be
-     * flushed yet. Otherwise, flush the buffer if it is full.
+     * stream or if the buffer is smaller than the requested size, allocate a
+     * new buffer; obviously there is no data to be flushed yet. Otherwise,
+     * flush the buffer.
      */
-    if (bp->data == 0) {
-	vstream_buf_alloc(bp, VSTREAM_BUFSIZE);
-	if (bp->flags & VSTREAM_FLAG_DOUBLE)
-	    VSTREAM_SAVE_STATE(stream, write_buf, write_fd);
+    if (stream->req_bufsize == 0)
+	stream->req_bufsize = VSTREAM_BUFSIZE;	/* Postfix 2.4 binary compat. */
+    if (bp->len < stream->req_bufsize) {
+	vstream_buf_alloc(bp, stream->req_bufsize);
     } else if (bp->cnt <= 0) {
 	if (VSTREAM_FFLUSH_SOME(stream))
 	    return (VSTREAM_EOF);
@@ -822,12 +840,18 @@ static int vstream_buf_space(VBUF *bp, ssize_t want)
 #define VSTREAM_ROUNDUP(count, base)	VSTREAM_TRUNCATE(count + base - 1, base)
 
     if (want > bp->cnt) {
-	if ((used = bp->len - bp->cnt) > VSTREAM_BUFSIZE)
-	    if (vstream_fflush_some(stream, VSTREAM_TRUNCATE(used, VSTREAM_BUFSIZE)))
+	if (stream->req_bufsize == 0)
+	    stream->req_bufsize = VSTREAM_BUFSIZE;	/* 2.4 binary compat. */
+	if ((used = bp->len - bp->cnt) > stream->req_bufsize)
+	    if (vstream_fflush_some(stream, VSTREAM_TRUNCATE(used, stream->req_bufsize)))
 		return (VSTREAM_EOF);
 	if ((shortage = (want - bp->cnt)) > 0) {
-	    incr = VSTREAM_ROUNDUP(shortage, VSTREAM_BUFSIZE);
-	    vstream_buf_alloc(bp, bp->len + incr);
+	    if (shortage > __MAXINT__(ssize_t) -bp->len - stream->req_bufsize) {
+		bp->flags |= VSTREAM_FLAG_ERR;
+	    } else {
+		incr = VSTREAM_ROUNDUP(shortage, stream->req_bufsize);
+		vstream_buf_alloc(bp, bp->len + incr);
+	    }
 	}
     }
     return (vstream_ferror(stream) ? VSTREAM_EOF : 0);	/* mmap() may fail */
@@ -1027,6 +1051,7 @@ VSTREAM *vstream_fdopen(int fd, int flags)
     stream->context = 0;
     stream->jbuf = 0;
     stream->iotime.tv_sec = stream->iotime.tv_usec = 0;
+    stream->req_bufsize = VSTREAM_BUFSIZE;
     return (stream);
 }
 
@@ -1169,6 +1194,7 @@ void    vstream_control(VSTREAM *stream, int name,...)
     va_list ap;
     int     floor;
     int     old_fd;
+    ssize_t req_bufsize = 0;
 
     for (va_start(ap, name); name != VSTREAM_CTL_END; name = va_arg(ap, int)) {
 	switch (name) {
@@ -1248,6 +1274,18 @@ void    vstream_control(VSTREAM *stream, int name,...)
 	    }
 	    break;
 #endif
+
+	    /*
+	     * Postpone memory (re)allocation until the space is needed.
+	     */
+	case VSTREAM_CTL_BUFSIZE:
+	    req_bufsize = va_arg(ap, ssize_t);
+	    if (req_bufsize < 0)
+		msg_panic("VSTREAM_CTL_BUFSIZE with negative size: %ld",
+			  (long) req_bufsize);
+	    if (req_bufsize > stream->req_bufsize)
+		stream->req_bufsize = req_bufsize;
+	    break;
 	default:
 	    msg_panic("%s: bad name %d", myname, name);
 	}

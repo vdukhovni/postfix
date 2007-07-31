@@ -5,6 +5,8 @@
 /*	Postfix SMTP server
 /* SYNOPSIS
 /*	\fBsmtpd\fR [generic Postfix daemon options]
+/*
+/*	\fBsendmail -bs\fR
 /* DESCRIPTION
 /*	The SMTP server accepts network connection requests
 /*	and performs zero or more SMTP transactions per connection.
@@ -1632,7 +1634,8 @@ static int mail_open_stream(SMTPD_STATE *state)
 	if (SMTPD_STAND_ALONE(state) == 0) {
 	    if (smtpd_milters != 0
 		&& (state->saved_flags & MILTER_SKIP_FLAGS) == 0)
-		(void) milter_send(smtpd_milters, state->dest->stream);
+		/* Send place-holder smtpd_milters list. */
+		(void) milter_dummy(smtpd_milters, state->cleanup);
 	    rec_fprintf(state->cleanup, REC_TYPE_TIME, REC_TYPE_TIME_FORMAT,
 			REC_TYPE_TIME_ARG(state->arrival_time));
 	    if (*var_filter_xport)
@@ -2542,6 +2545,10 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      */
     if (state->cleanup) {
 	if (SMTPD_STAND_ALONE(state) == 0) {
+	    if (smtpd_milters != 0
+		&& (state->saved_flags & MILTER_SKIP_FLAGS) == 0)
+		/* Send actual smtpd_milters list. */
+		(void) milter_send(smtpd_milters, state->cleanup);
 	    if (state->saved_flags)
 		rec_fprintf(state->cleanup, REC_TYPE_FLGS, "%d",
 			    state->saved_flags);

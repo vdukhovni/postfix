@@ -20,9 +20,10 @@ before proceeding.
 Major changes with Postfix snapshot 20070724
 ============================================
 
-Not really major. Support for RFC 3848 (ESMTPS, ESMTPA, ESMTPSA
-in Received: headers) and updated SASL support with reply codes and
-enhanced (DSN) status codes as per RFC 4954.
+Not really major. New support for RFC 3848 (Received: headers with
+ESMTPS, ESMTPA, or ESMTPSA); updated SASL support according to RFC
+4954, resulting in small changes to SMTP reply codes and (DSN)
+enhanced status codes.
 
 Incompatibility with Postfix snapshot 20070614
 ==============================================

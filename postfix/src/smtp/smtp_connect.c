@@ -297,11 +297,25 @@ static SMTP_SESSION *smtp_connect_sock(int sock, struct sockaddr * sa,
 	conn_stat = sane_connect(sock, sa, salen);
     }
     if (conn_stat < 0) {
-	dsb_simple(why, "4.4.1", "connect to %s[%s]: %m", name, addr);
+	if (port)
+	    dsb_simple(why, "4.4.1", "connect to %s[%s]:%d: %m",
+		       name, addr, ntohs(port));
+	else
+	    dsb_simple(why, "4.4.1", "connect to %s[%s]: %m", name, addr);
 	close(sock);
 	return (0);
     }
     stream = vstream_fdopen(sock, O_RDWR);
+
+    /*
+     * Avoid poor performance when TCP MSS > VSTREAM_BUFSIZE.
+     */
+    if (sa->sa_family == AF_INET
+#ifdef AF_INET6
+	|| sa->sa_family == AF_INET6
+#endif
+	)
+	vstream_tweak_tcp(stream);
 
     /*
      * Bundle up what we have into a nice SMTP_SESSION object.

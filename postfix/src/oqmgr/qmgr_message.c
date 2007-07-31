@@ -1041,8 +1041,11 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 			"undeliverable postmaster notification discarded"));
 		if (status == 0) {
 		    deliver_completed(message->fp, recipient->offset);
+#if 0
+		    /* It's the default verification probe sender address. */
 		    msg_warn("%s: undeliverable postmaster notification discarded",
 			     message->queue_id);
+#endif
 		} else
 		    message->flags |= status;
 		continue;
