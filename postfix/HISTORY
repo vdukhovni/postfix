@@ -13534,3 +13534,9 @@ Apologies for any names omitted.
 	cleanup server would get out of sync with the milter when
 	a milter replied with ACCEPT at the DATA command. Files:
 	cleanup/cleanup_envelope.c, smtpd/smtpd.c, milter/milters.c.
+
+20070731
+
+	Bugfix: the loopback TCP performance workaround was ineffective
+	due to a wetware bit-flip during code cleanup.  File:
+	util/vstream_tweak.c.
