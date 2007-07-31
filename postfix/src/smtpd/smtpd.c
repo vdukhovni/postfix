@@ -1618,7 +1618,8 @@ static int mail_open_stream(SMTPD_STATE *state)
 	if (SMTPD_STAND_ALONE(state) == 0) {
 	    if (smtpd_milters != 0
 		&& (state->saved_flags & MILTER_SKIP_FLAGS) == 0)
-		(void) milter_send(smtpd_milters, state->dest->stream);
+		/* Send place-holder smtpd_milters list. */
+		(void) milter_dummy(smtpd_milters, state->cleanup);
 	    rec_fprintf(state->cleanup, REC_TYPE_TIME, REC_TYPE_TIME_FORMAT,
 			REC_TYPE_TIME_ARG(state->arrival_time));
 	    if (*var_filter_xport)
@@ -2516,6 +2517,10 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      */
     if (state->cleanup) {
 	if (SMTPD_STAND_ALONE(state) == 0) {
+	    if (smtpd_milters != 0
+		&& (state->saved_flags & MILTER_SKIP_FLAGS) == 0)
+		/* Send actual smtpd_milters list. */
+		(void) milter_send(smtpd_milters, state->cleanup);
 	    if (state->saved_flags)
 		rec_fprintf(state->cleanup, REC_TYPE_FLGS, "%d",
 			    state->saved_flags);
@@ -2730,6 +2735,25 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	state->dest = 0;
 	state->cleanup = 0;
     }
+
+    /*
+     * XXX If we lose the cleanup server while it is editing a queue file,
+     * the Postfix SMTP server will be out of sync with Milter applications.
+     * Sending an ABORT to the Milters is not sufficient to restore
+     * synchronization, because there may be any number of Milter replies
+     * already in flight. Destroying and recreating the Milters (and faking
+     * the connect and ehlo events) is too much trouble for testing and
+     * maintenance. Workaround: force the Postfix SMTP server to hang up with
+     * a 421 response in the rare case that the cleanup server breaks AND
+     * that the remote SMTP client continues the session after end-of-data.
+     * 
+     * XXX Should use something other than CLEANUP_STAT_WRITE when we lose
+     * contact with the cleanup server. This requires changes to the
+     * mail_stream module and its users (smtpd, qmqpd, perhaps sendmail).
+     * That is too much change for a stable release.
+     */
+    if (smtpd_milters != 0 && (state->err & CLEANUP_STAT_WRITE) != 0)
+	state->access_denied = mystrdup("421 4.3.0 Mail system error");
 
     /*
      * Handle any errors. One message may suffer from multiple errors, so

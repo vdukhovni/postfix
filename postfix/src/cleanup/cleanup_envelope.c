@@ -147,13 +147,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 #endif
     if (type == REC_TYPE_MILT_COUNT) {
 	/* Not part of queue file format. */
-	if (state->milters != 0) {
-	    msg_warn("%s: message rejected: too many milter instances",
-		     state->queue_id);
-	    state->errs |= CLEANUP_STAT_BAD;
-	    return;
-	}
-	if ((milter_count = atoi(buf)) > 0)
+	if ((milter_count = atoi(buf)) >= 0)
 	    cleanup_milter_receive(state, milter_count);
 	return;
     }

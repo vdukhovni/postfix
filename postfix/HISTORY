@@ -13045,3 +13045,30 @@ Apologies for any names omitted.
 	Portability: Victor helpfully pointed out that change
 	20070425 broke on non-IPv6 systems. Files: smtpd/smtpd_peer.c,
 	qmqpd/qmqpd_peer.c.
+
+20070722
+
+	Cleanup: Milter client error handling, so that the (Postfix
+	SMTP server's Milter client) does not get out of sync with
+	Milter applications after the (cleanup server's Milter
+	client) encounters some non-recoverable problem.  Files:
+	milter/milter8.c, smtpd/smtpd.c.  Back-port from Postfix
+	2.4/2.5.
+
+20070729
+
+	Performance: workaround for poor TCP performance on loopback
+	(127.0.0.1) connections. Reported by Mark Martinec.  Files:
+	util/vstream_tweak.c, milter/milter8.c, smtp/smtp_connect.c,
+	smtpstone/*source.c. Back-port from Postfix 2.4/2.5.
+
+20070730
+
+        Bugfix: when a milter replied with ACCEPT at or before the
+        first RCPT command, the cleanup server would apply the
+        non_smtpd_milters setting as if the message was a local
+        submission. Problem reported by Jukka Salmi. Also, the
+        cleanup server would get out of sync with the milter when
+        a milter replied with ACCEPT at the DATA command. Files:
+        cleanup/cleanup_envelope.c, smtpd/smtpd.c, milter/milters.c.
+	Back-port from Postfix 2.4/2.5.

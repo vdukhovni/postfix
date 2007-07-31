@@ -304,6 +304,16 @@ static SMTP_SESSION *smtp_connect_sock(int sock, struct sockaddr * sa,
     stream = vstream_fdopen(sock, O_RDWR);
 
     /*
+     * Avoid poor performance when TCP MSS > VSTREAM_BUFSIZE.
+     */
+    if (sa->sa_family == AF_INET
+#ifdef AF_INET6
+	|| sa->sa_family == AF_INET6
+#endif
+	)
+	vstream_tweak_tcp(stream);
+
+    /*
      * Bundle up what we have into a nice SMTP_SESSION object.
      */
     return (smtp_session_alloc(stream, destination, name, addr,

@@ -146,6 +146,12 @@ extern ssize_t vstream_peek(VSTREAM *);
 #define vstream_setjmp(stream)		setjmp((stream)->jbuf[0])
 #define vstream_longjmp(stream, val)	longjmp((stream)->jbuf[0], (val))
 
+ /*
+  * Tweaks and workarounds.
+  */
+extern int vstream_tweak_sock(VSTREAM *);
+extern int vstream_tweak_tcp(VSTREAM *);
+
 /* LICENSE
 /* .ad
 /* .fi
