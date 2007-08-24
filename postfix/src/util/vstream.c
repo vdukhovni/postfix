@@ -846,7 +846,8 @@ static int vstream_buf_space(VBUF *bp, ssize_t want)
 	    if (vstream_fflush_some(stream, VSTREAM_TRUNCATE(used, stream->req_bufsize)))
 		return (VSTREAM_EOF);
 	if ((shortage = (want - bp->cnt)) > 0) {
-	    if (shortage > __MAXINT__(ssize_t) -bp->len - stream->req_bufsize) {
+	    if ((bp->flags & VSTREAM_FLAG_FIXED)
+		|| shortage > __MAXINT__(ssize_t) -bp->len - stream->req_bufsize) {
 		bp->flags |= VSTREAM_FLAG_ERR;
 	    } else {
 		incr = VSTREAM_ROUNDUP(shortage, stream->req_bufsize);

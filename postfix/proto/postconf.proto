@@ -4631,7 +4631,7 @@ network or network address listed in  $mynetworks. </dd>
 <dt><b><a name="permit_sasl_authenticated">permit_sasl_authenticated</a></b></dt>
 
 <dd> Permit the request when the client is successfully
-authenticated via the RFC 2554 (AUTH) protocol. </dd>
+authenticated via the RFC 4954 (AUTH) protocol. </dd>
 
 
 <dt><b><a name="permit_tls_all_clientcerts">permit_tls_all_clientcerts</a></b></dt>
@@ -5418,7 +5418,7 @@ smtpd_recipient_restrictions = permit_mynetworks, reject_unauth_destination
 %CLASS sasl-auth SASL Authentication
 
 <p>
-Postfix SASL support (RFC 2554) can be used to authenticate remote
+Postfix SASL support (RFC 4954) can be used to authenticate remote
 SMTP clients to the Postfix SMTP server, and to authenticate the
 Postfix SMTP client to a remote SMTP server.
 See the SASL_README document for details.
@@ -6434,7 +6434,7 @@ This feature is available in Postfix 2.0 and later.
 
 <p>
 Enable inter-operability with SMTP clients that implement an obsolete
-version of the AUTH command (RFC 2554). Examples of such clients
+version of the AUTH command (RFC 4954). Examples of such clients
 are MicroSoft Outlook Express version 4 and MicroSoft Exchange
 version 5.0.
 </p>
@@ -8078,7 +8078,7 @@ a neighboring system.  </dd>
 <dt><b> permit_sasl_authenticated </b></dt>
 
 <dd> Append the domain name in $myorigin or $mydomain when the
-client is successfully authenticated via the RFC 2554 (AUTH)
+client is successfully authenticated via the RFC 4954 (AUTH)
 protocol. </dd>
 
 <dt><b> permit_tls_clientcerts </b></dt>
@@ -9397,7 +9397,7 @@ the SASL plug-in implementation that is selected with
 configuration file or rendezvous point. </p>
 
 <p> This feature is available in Postfix 2.3 and later. In earlier
-releases it was called smtpd_sasl_application. </p>
+releases it was called <b>smtpd_sasl_application_name</b>. </p>
 
 %PARAM cyrus_sasl_config_path
 

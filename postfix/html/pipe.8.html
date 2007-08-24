@@ -76,7 +76,7 @@ PIPE(8)                                                                PIPE(8)
               escape sequences are recognized: <b>\a \b \f \n \r  \t</b>
               <b>\v \</b><i>ddd</i> (up to three octal digits) and <b>\\</b>.
 
-       <b>flags=BDFORhqu.</b>&gt; (optional)
+       <b>flags=BDFORXhqu.</b>&gt; (optional)
               Optional  message  processing  flags. By default, a
               message is copied unchanged.
 
@@ -115,6 +115,12 @@ PIPE(8)                                                                PIPE(8)
 
               <b>R</b>      Prepend  a  <b>Return-Path:</b> message header with
                      the envelope sender address.
+
+              <b>X</b>      Indicate that the external command  performs
+                     final  delivery.  This flag affects the sta-
+                     tus reported in "success" DSN (delivery sta-
+                     tus  notification)  messages, and changes it
+                     from "relayed" into "delivered".
 
               <b>h</b>      Fold  the  command-line  <b>$recipient</b>  address
                      domain part (text to the right of the right-
@@ -184,8 +190,8 @@ PIPE(8)                                                                PIPE(8)
               This feature is available as of Postfix 2.3.
 
        <b>size</b>=<i>size</i><b>_</b><i>limit</i> (optional)
-              Messages greater in size than this limit (in bytes)
-              will be returned to the sender as undeliverable.
+              Don't  deliver messages that exceed this size limit
+              (in bytes); return them to the sender instead.
 
        <b>user</b>=<i>username</i> (required)
 
@@ -302,8 +308,8 @@ PIPE(8)                                                                PIPE(8)
 
               <b>${sasl_sender</b>}
                      This macro expands to the SASL  sender  name
-                     (i.e.  the  original  submitter  as  per <a href="http://tools.ietf.org/html/rfc2554">RFC</a>
-                     <a href="http://tools.ietf.org/html/rfc2554">2554</a>) used during the reception of the  mes-
+                     (i.e.  the  original  submitter  as  per <a href="http://tools.ietf.org/html/rfc4954">RFC</a>
+                     <a href="http://tools.ietf.org/html/rfc4954">4954</a>) used during the reception of the  mes-
                      sage.
 
                      This  is available in Postfix 2.2 and later.

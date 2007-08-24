@@ -1163,7 +1163,7 @@ is placed into the Postfix configuration directory.  </p>
 
 <p>
 Enable inter-operability with SMTP clients that implement an obsolete
-version of the AUTH command (<a href="http://tools.ietf.org/html/rfc2554">RFC 2554</a>). Examples of such clients
+version of the AUTH command (<a href="http://tools.ietf.org/html/rfc4954">RFC 4954</a>). Examples of such clients
 are MicroSoft Outlook Express version 4 and MicroSoft Exchange
 version 5.0.
 </p>
@@ -4188,7 +4188,7 @@ a neighboring system.  </dd>
 <dt><b> <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a> </b></dt>
 
 <dd> Append the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> when the
-client is successfully authenticated via the <a href="http://tools.ietf.org/html/rfc2554">RFC 2554</a> (AUTH)
+client is successfully authenticated via the <a href="http://tools.ietf.org/html/rfc4954">RFC 4954</a> (AUTH)
 protocol. </dd>
 
 <dt><b> <a href="postconf.5.html#permit_tls_clientcerts">permit_tls_clientcerts</a> </b></dt>
@@ -9300,7 +9300,7 @@ network or network address listed in  $<a href="postconf.5.html#mynetworks">myne
 <dt><b><a name="permit_sasl_authenticated">permit_sasl_authenticated</a></b></dt>
 
 <dd> Permit the request when the client is successfully
-authenticated via the <a href="http://tools.ietf.org/html/rfc2554">RFC 2554</a> (AUTH) protocol. </dd>
+authenticated via the <a href="http://tools.ietf.org/html/rfc4954">RFC 4954</a> (AUTH) protocol. </dd>
 
 <dt><b><a name="permit_tls_all_clientcerts">permit_tls_all_clientcerts</a></b></dt>
 
@@ -10557,7 +10557,7 @@ the SASL plug-in implementation that is selected with
 configuration file or rendezvous point. </p>
 
 <p> This feature is available in Postfix 2.3 and later. In earlier
-releases it was called smtpd_sasl_application. </p>
+releases it was called <b>smtpd_sasl_application_name</b>. </p>
 
 
 </DD>

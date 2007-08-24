@@ -65,7 +65,7 @@
 /*	\fB\er\en\fR or \fB\en\fR. The usual C-style backslash escape
 /*	sequences are recognized: \fB\ea \eb \ef \en \er \et \ev
 /*	\e\fIddd\fR (up to three octal digits) and \fB\e\e\fR.
-/* .IP "\fBflags=BDFORhqu.>\fR (optional)"
+/* .IP "\fBflags=BDFORXhqu.>\fR (optional)"
 /*	Optional message processing flags. By default, a message is
 /*	copied unchanged.
 /* .RS
@@ -100,6 +100,11 @@
 /* .IP \fBR\fR
 /*	Prepend a \fBReturn-Path:\fR message header with the envelope sender
 /*	address.
+/* .IP \fBX\fR
+/*	Indicate that the external command performs final delivery.
+/*	This flag affects the status reported in "success" DSN
+/*	(delivery status notification) messages, and changes it
+/*	from "relayed" into "delivered".
 /* .IP \fBh\fR
 /*	Fold the command-line \fB$recipient\fR address domain part
 /*	(text to the right of the right-most \fB@\fR character) to
@@ -163,8 +168,8 @@
 /* .IP
 /*	This feature is available as of Postfix 2.3.
 /* .IP "\fBsize\fR=\fIsize_limit\fR (optional)"
-/*	Messages greater in size than this limit (in bytes) will
-/*	be returned to the sender as undeliverable.
+/*	Don't deliver messages that exceed this size limit (in
+/*	bytes); return them to the sender instead.
 /* .IP "\fBuser\fR=\fIusername\fR (required)"
 /* .IP "\fBuser\fR=\fIusername\fR:\fIgroupname\fR"
 /*	Execute the external command with the rights of the
@@ -249,7 +254,7 @@
 /*	This is available in Postfix 2.2 and later.
 /* .IP \fB${\fBsasl_sender\fR}\fR
 /*	This macro expands to the SASL sender name (i.e. the original
-/*	submitter as per RFC 2554) used during the reception of the message.
+/*	submitter as per RFC 4954) used during the reception of the message.
 /* .sp
 /*	This is available in Postfix 2.2 and later.
 /* .IP \fB${\fBsasl_username\fR}\fR
@@ -490,7 +495,8 @@
 #define PIPE_OPT_FOLD_BASE	(16)
 #define PIPE_OPT_FOLD_USER	(FOLD_ADDR_USER << PIPE_OPT_FOLD_BASE)
 #define PIPE_OPT_FOLD_HOST	(FOLD_ADDR_HOST << PIPE_OPT_FOLD_BASE)
-#define PIPE_OPT_QUOTE_LOCAL	(PIPE_OPT_FOLD_BASE << 2)
+#define PIPE_OPT_QUOTE_LOCAL	(1 << (PIPE_OPT_FOLD_BASE + 2))
+#define PIPE_OPT_FINAL_DELIVERY	(1 << (PIPE_OPT_FOLD_BASE + 3))
 
 #define PIPE_OPT_FOLD_ALL	(FOLD_ADDR_ALL << PIPE_OPT_FOLD_BASE)
 #define PIPE_OPT_FOLD_FLAGS(f) \
@@ -811,6 +817,9 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
 		case 'R':
 		    attr->flags |= MAIL_COPY_RETURN_PATH;
 		    break;
+		case 'X':
+		    attr->flags |= PIPE_OPT_FINAL_DELIVERY;
+		    break;
 		case '.':
 		    attr->flags |= MAIL_COPY_DOT;
 		    break;
@@ -939,7 +948,7 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
 /* eval_command_status - do something with command completion status */
 
 static int eval_command_status(int command_status, char *service,
-			             DELIVER_REQUEST *request, VSTREAM *src,
+			          DELIVER_REQUEST *request, PIPE_ATTR *attr,
 			               DSN_BUF *why)
 {
     RECIPIENT *rcpt;
@@ -953,7 +962,8 @@ static int eval_command_status(int command_status, char *service,
      */
     switch (command_status) {
     case PIPE_STAT_OK:
-	dsb_update(why, "2.0.0", "relayed", DSB_SKIP_RMTA, DSB_SKIP_REPLY,
+	dsb_update(why, "2.0.0", (attr->flags & PIPE_OPT_FINAL_DELIVERY) ?
+		   "delivered" : "relayed", DSB_SKIP_RMTA, DSB_SKIP_REPLY,
 		   "delivered via %s service", service);
 	(void) DSN_FROM_DSN_BUF(why);
 	for (n = 0; n < request->rcpt_list.len; n++) {
@@ -962,7 +972,7 @@ static int eval_command_status(int command_status, char *service,
 			  request->queue_id, &request->msg_stats, rcpt,
 			  service, &why->dsn);
 	    if (status == 0 && (request->flags & DEL_REQ_FLAG_SUCCESS))
-		deliver_completed(src, rcpt->offset);
+		deliver_completed(request->fp, rcpt->offset);
 	    result |= status;
 	}
 	break;
@@ -977,7 +987,7 @@ static int eval_command_status(int command_status, char *service,
 				       &request->msg_stats, rcpt,
 				       service, &why->dsn);
 		if (status == 0)
-		    deliver_completed(src, rcpt->offset);
+		    deliver_completed(request->fp, rcpt->offset);
 		result |= status;
 	    }
 	} else {
@@ -1047,7 +1057,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
     if ((attr.flags & MAIL_COPY_DELIVERED) && (rcpt_list->len > 1)) {
 	dsb_simple(why, "4.3.5", "mail system configuration error");
 	deliver_status = eval_command_status(PIPE_STAT_DEFER, service,
-					     request, request->fp, why);
+					     request, &attr, why);
 	msg_warn("pipe flag `D' requires %s_destination_recipient_limit = 1",
 		 service);
 	DELIVER_MSG_CLEANUP();
@@ -1060,7 +1070,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
     if ((attr.flags & MAIL_COPY_ORIG_RCPT) && (rcpt_list->len > 1)) {
 	dsb_simple(why, "4.3.5", "mail system configuration error");
 	deliver_status = eval_command_status(PIPE_STAT_DEFER, service,
-					     request, request->fp, why);
+					     request, &attr, why);
 	msg_warn("pipe flag `O' requires %s_destination_recipient_limit = 1",
 		 service);
 	DELIVER_MSG_CLEANUP();
@@ -1076,7 +1086,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 		     myname, (long) attr.size_limit, request->data_size);
 	dsb_simple(why, "5.2.3", "message too large");
 	deliver_status = eval_command_status(PIPE_STAT_BOUNCE, service,
-					     request, request->fp, why);
+					     request, &attr, why);
 	DELIVER_MSG_CLEANUP();
 	return (deliver_status);
     }
@@ -1126,7 +1136,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 	    dsb_simple(why, "5.4.6", "mail forwarding loop for %s",
 		       rcpt->address);
 	    deliver_status = eval_command_status(PIPE_STAT_BOUNCE, service,
-						 request, request->fp, why);
+						 request, &attr, why);
 	    DELIVER_MSG_CLEANUP();
 	    return (deliver_status);
 	}
@@ -1179,7 +1189,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 				     rcpt_list, attr.flags)) == 0) {
 	dsb_simple(why, "4.3.5", "mail system configuration error");
 	deliver_status = eval_command_status(PIPE_STAT_DEFER, service,
-					     request, request->fp, why);
+					     request, &attr, why);
 	DELIVER_MSG_CLEANUP();
 	return (deliver_status);
     }
@@ -1202,7 +1212,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
     argv_free(export_env);
 
     deliver_status = eval_command_status(command_status, service, request,
-					 request->fp, why);
+					 &attr, why);
 
     /*
      * Clean up.

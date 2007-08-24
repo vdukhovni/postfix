@@ -128,7 +128,7 @@ int     vstream_tweak_tcp(VSTREAM *fp)
      */
 #else
     if (mss > VSTREAM_BUFSIZE) {
-	int     nodelay = 0;
+	int     nodelay = 1;
 
 	if ((err = setsockopt(vstream_fileno(fp), IPPROTO_TCP, TCP_NODELAY,
 			      (char *) &nodelay, sizeof(nodelay))) < 0)

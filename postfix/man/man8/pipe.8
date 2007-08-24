@@ -75,7 +75,7 @@ The output record delimiter. Typically one would use either
 \fB\er\en\fR or \fB\en\fR. The usual C-style backslash escape
 sequences are recognized: \fB\ea \eb \ef \en \er \et \ev
 \e\fIddd\fR (up to three octal digits) and \fB\e\e\fR.
-.IP "\fBflags=BDFORhqu.>\fR (optional)"
+.IP "\fBflags=BDFORXhqu.>\fR (optional)"
 Optional message processing flags. By default, a message is
 copied unchanged.
 .RS
@@ -110,6 +110,11 @@ This feature is available as of Postfix 2.0.
 .IP \fBR\fR
 Prepend a \fBReturn-Path:\fR message header with the envelope sender
 address.
+.IP \fBX\fR
+Indicate that the external command performs final delivery.
+This flag affects the status reported in "success" DSN
+(delivery status notification) messages, and changes it
+from "relayed" into "delivered".
 .IP \fBh\fR
 Fold the command-line \fB$recipient\fR address domain part
 (text to the right of the right-most \fB@\fR character) to
@@ -173,8 +178,8 @@ specify \fB$sender\fR as an argument by itself:
 .IP
 This feature is available as of Postfix 2.3.
 .IP "\fBsize\fR=\fIsize_limit\fR (optional)"
-Messages greater in size than this limit (in bytes) will
-be returned to the sender as undeliverable.
+Don't deliver messages that exceed this size limit (in
+bytes); return them to the sender instead.
 .IP "\fBuser\fR=\fIusername\fR (required)"
 .IP "\fBuser\fR=\fIusername\fR:\fIgroupname\fR"
 Execute the external command with the rights of the
@@ -259,7 +264,7 @@ if the message has been received without SASL authentication.
 This is available in Postfix 2.2 and later.
 .IP \fB${\fBsasl_sender\fR}\fR
 This macro expands to the SASL sender name (i.e. the original
-submitter as per RFC 2554) used during the reception of the message.
+submitter as per RFC 4954) used during the reception of the message.
 .sp
 This is available in Postfix 2.2 and later.
 .IP \fB${\fBsasl_username\fR}\fR

@@ -76,7 +76,7 @@
 /* .fi
 /* .IP "\fBbroken_sasl_auth_clients (no)\fR"
 /*	Enable inter-operability with SMTP clients that implement an obsolete
-/*	version of the AUTH command (RFC 2554).
+/*	version of the AUTH command (RFC 4954).
 /* .IP "\fBdisable_vrfy_command (no)\fR"
 /*	Disable the SMTP VRFY command.
 /* .IP "\fBsmtpd_noop_commands (empty)\fR"
@@ -234,13 +234,13 @@
 /* SASL AUTHENTICATION CONTROLS
 /* .ad
 /* .fi
-/*	Postfix SASL support (RFC 2554) can be used to authenticate remote
+/*	Postfix SASL support (RFC 4954) can be used to authenticate remote
 /*	SMTP clients to the Postfix SMTP server, and to authenticate the
 /*	Postfix SMTP client to a remote SMTP server.
 /*	See the SASL_README document for details.
 /* .IP "\fBbroken_sasl_auth_clients (no)\fR"
 /*	Enable inter-operability with SMTP clients that implement an obsolete
-/*	version of the AUTH command (RFC 2554).
+/*	version of the AUTH command (RFC 4954).
 /* .IP "\fBsmtpd_sasl_auth_enable (no)\fR"
 /*	Enable SASL authentication in the Postfix SMTP server.
 /* .IP "\fBsmtpd_sasl_local_domain (empty)\fR"
@@ -259,6 +259,11 @@
 /* .IP "\fBsmtpd_sasl_exceptions_networks (empty)\fR"
 /*	What remote SMTP clients the Postfix SMTP server will not offer
 /*	AUTH support to.
+/* .PP
+/*	Available in Postfix version 2.1 and 2.2:
+/* .IP "\fBsmtpd_sasl_application_name (smtpd)\fR"
+/*	The application name that the Postfix SMTP server uses for SASL
+/*	server initialization.
 /* .PP
 /*	Available in Postfix version 2.3 and later:
 /* .IP "\fBsmtpd_sasl_authenticated_header (no)\fR"
@@ -1344,14 +1349,21 @@ static int helo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * persists so it will apply to MAIL FROM and to other commands such as
      * AUTH, STARTTLS, and VRFY.
      */
+#define PUSH_STRING(old, curr, new)	{ char *old = (curr); (curr) = (new);
+#define POP_STRING(old, curr)		(curr) = old; }
+
     if (smtpd_milters != 0
 	&& SMTPD_STAND_ALONE(state) == 0
 	&& (state->saved_flags & MILTER_SKIP_FLAGS) == 0
-	&& (err = milter_helo_event(smtpd_milters, argv[1].strval, 0)) != 0
-	&& (err = check_milter_reply(state, err)) != 0
-	&& strncmp(err, "421", 3) == 0) {
-	smtpd_chat_reply(state, "%s", err);
-	return (-1);
+      && (err = milter_helo_event(smtpd_milters, argv[1].strval, 0)) != 0) {
+	/* Log reject etc. with correct HELO information. */
+	PUSH_STRING(saved_helo, state->helo_name, argv[1].strval);
+	err = check_milter_reply(state, err);
+	POP_STRING(saved_helo, state->helo_name);
+	if (err != 0 && strncmp(err, "421", 3) == 0) {
+	    smtpd_chat_reply(state, "%s", err);
+	    return (-1);
+	}
     }
     if (state->helo_name != 0)
 	helo_reset(state);
@@ -1411,11 +1423,15 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     if (smtpd_milters != 0
 	&& SMTPD_STAND_ALONE(state) == 0
 	&& (state->saved_flags & MILTER_SKIP_FLAGS) == 0
-	&& (err = milter_helo_event(smtpd_milters, argv[1].strval, 1)) != 0
-	&& (err = check_milter_reply(state, err)) != 0
-	&& strncmp(err, "421", 3) == 0) {
-	smtpd_chat_reply(state, "%s", err);
-	return (-1);
+      && (err = milter_helo_event(smtpd_milters, argv[1].strval, 1)) != 0) {
+	/* Log reject etc. with correct HELO information. */
+	PUSH_STRING(saved_helo, state->helo_name, argv[1].strval);
+	err = check_milter_reply(state, err);
+	POP_STRING(saved_helo, state->helo_name);
+	if (err != 0 && strncmp(err, "421", 3) == 0) {
+	    smtpd_chat_reply(state, "%s", err);
+	    return (-1);
+	}
     }
     if (state->helo_name != 0)
 	helo_reset(state);
@@ -2057,11 +2073,15 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     if (smtpd_milters != 0
 	&& SMTPD_STAND_ALONE(state) == 0
 	&& (state->saved_flags & MILTER_SKIP_FLAGS) == 0) {
-	state->sender = STR(state->addr_buf);
 	err = milter_mail_event(smtpd_milters,
 				milter_argv(state, argc - 2, argv + 2));
-	state->sender = 0;
-	if (err != 0 && (err = check_milter_reply(state, err)) != 0) {
+	if (err != 0) {
+	    /* Log reject etc. with correct sender information. */
+	    PUSH_STRING(saved_sender, state->sender, STR(state->addr_buf));
+	    err = check_milter_reply(state, err);
+	    POP_STRING(saved_sender, state->sender);
+	}
+	if (err != 0) {
 	    /* XXX Reset access map side effects. */
 	    mail_reset(state);
 	    smtpd_chat_reply(state, "%s", err);
@@ -2307,11 +2327,15 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	}
 	if (smtpd_milters != 0
 	    && (state->saved_flags & MILTER_SKIP_FLAGS) == 0) {
-	    state->recipient = STR(state->addr_buf);
 	    err = milter_rcpt_event(smtpd_milters,
 				    milter_argv(state, argc - 2, argv + 2));
-	    state->recipient = 0;
-	    if (err != 0 && (err = check_milter_reply(state, err)) != 0) {
+	    if (err != 0) {
+		/* Log reject etc. with correct recipient information. */
+		PUSH_STRING(saved_rcpt, state->recipient, STR(state->addr_buf));
+		err = check_milter_reply(state, err);
+		POP_STRING(saved_rcpt, state->recipient);
+	    }
+	    if (err != 0) {
 		smtpd_chat_reply(state, "%s", err);
 		return (-1);
 	    }

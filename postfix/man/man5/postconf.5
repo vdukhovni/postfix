@@ -641,7 +641,7 @@ is placed into the Postfix configuration directory.
 This feature is available in Postfix 2.3 and later.
 .SH broken_sasl_auth_clients (default: no)
 Enable inter-operability with SMTP clients that implement an obsolete
-version of the AUTH command (RFC 2554). Examples of such clients
+version of the AUTH command (RFC 4954). Examples of such clients
 are MicroSoft Outlook Express version 4 and MicroSoft Exchange
 version 5.0.
 .PP
@@ -2225,7 +2225,7 @@ address rewriting when mail from a remote client is forwarded by
 a neighboring system.
 .IP "\fB permit_sasl_authenticated \fR"
 Append the domain name in $myorigin or $mydomain when the
-client is successfully authenticated via the RFC 2554 (AUTH)
+client is successfully authenticated via the RFC 4954 (AUTH)
 protocol.
 .IP "\fB permit_tls_clientcerts \fR"
 Append the domain name in $myorigin or $mydomain when the
@@ -5488,7 +5488,7 @@ Permit the request when the client IP address matches any
 network or network address listed in  $mynetworks.
 .IP "\fBpermit_sasl_authenticated\fR"
 Permit the request when the client is successfully
-authenticated via the RFC 2554 (AUTH) protocol.
+authenticated via the RFC 4954 (AUTH) protocol.
 .IP "\fBpermit_tls_all_clientcerts\fR"
 Permit the request when the remote SMTP client certificate is
 verified successfully.  This option must be used only if a special
@@ -6311,7 +6311,7 @@ the SASL plug-in implementation that is selected with
 configuration file or rendezvous point.
 .PP
 This feature is available in Postfix 2.3 and later. In earlier
-releases it was called smtpd_sasl_application.
+releases it was called \fBsmtpd_sasl_application_name\fR.
 .SH smtpd_sasl_security_options (default: noanonymous)
 Postfix SMTP server SASL security options; as of Postfix 2.3
 the list of available

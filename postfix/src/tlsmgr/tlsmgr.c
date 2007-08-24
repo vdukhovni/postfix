@@ -810,6 +810,8 @@ static void tlsmgr_pre_init(char *unused_name, char **unused_argv)
      * Open the session cache files and discard old information while
      * privileged. Start the cache maintenance pseudo threads after dropping
      * privileges.
+     * 
+     * XXX Need sanity check that the databases have different names.
      */
     for (ent = cache_table; ent->cache_label; ++ent)
 	if (**ent->cache_db)

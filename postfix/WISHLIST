@@ -1,5 +1,8 @@
 Wish list:
 
+	Make TLS_BIO_BUFSIZE run-time adjustable, to future-proof
+	Postfix for remote connections with MSS > 8 kbytes.
+
 	Absent a formal spec, model IPv6 RBL lookups after the IPv6
 	PTR lookups (one zone per hex nibble, nibbles in reversed
 	order). How to specify whether to query an RBL server for

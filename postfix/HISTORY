@@ -13674,3 +13674,22 @@ Apologies for any names omitted.
 	cleanup server would get out of sync with the milter when
 	a milter replied with ACCEPT at the DATA command. Files:
 	cleanup/cleanup_envelope.c, smtpd/smtpd.c, milter/milters.c.
+
+20070811
+
+	Cleanup: unlike smtpd_mumble_restrictions, the Postfix SMTP
+	server Milter reject logging did not show the (helo argument,
+	sender address, or recipient address) that was being rejected.
+	File: smtpd/smtpd.c.
+
+20070824
+
+	Bugfix (introduced snapshot 20070429): the pipe(8) delivery
+	agent 'q' flag (quote address local-part) used the same bit
+	mask as the 'B' flag (append blank line). Setting one flag
+	also turned on the other. File: pipe/pipe.c.
+
+	Feature: specify the 'X' flag to indicate that the pipe(8)
+	delivery agent performs final delivery. This changes the
+	status in DSN "success" messages from "relayed" into
+	"delivered".  File: pipe/pipe.c.
