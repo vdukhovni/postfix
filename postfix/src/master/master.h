@@ -47,6 +47,8 @@ typedef struct MASTER_SERV {
     int     max_proc;			/* upper bound on # processes */
     char   *path;			/* command pathname */
     struct ARGV *args;			/* argument vector */
+    char   *stress_param_val;		/* stress value: "yes" or empty */
+    time_t  stress_expire_time;		/* stress pulse stretcher */
     int     avail_proc;			/* idle processes */
     int     total_proc;			/* number of processes */
     int     throttle_delay;		/* failure recovery parameter */

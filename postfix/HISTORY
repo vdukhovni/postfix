@@ -13693,3 +13693,22 @@ Apologies for any names omitted.
 	delivery agent performs final delivery. This changes the
 	status in DSN "success" messages from "relayed" into
 	"delivered".  File: pipe/pipe.c.
+
+20070904-6
+
+	Feature: stress-adaptive behavior. When a "public" network
+	service runs into an "all processes are busy" condition,
+	the master(8) daemon logs a warning, restarts the service,
+	and runs it with "-o stress=yes" on the command line (normally
+	it runs the service with "-o stress=").  This can be used
+	to make main.cf parameter settings stress dependent.
+	Examples: "smtpd_timeout = ${stress?10}${stress:300}" and
+	"smtpd_hard_error_limit = ${stress?1}${stress:20}".  Files:
+	master/master_avail.c, master/master_spawn.c, master/master_ent.c.
+
+20070911
+
+	Bugfix (introduced Postfix 2.2.11): certificate with
+	unparsable canonical name caused the SMTPD policy client
+	to allocate zero-length memory, triggering an assertion
+	that it shouldn't do such things.  File: smtpd/smtpd_check.c.

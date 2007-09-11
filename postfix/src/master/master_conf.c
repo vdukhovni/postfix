@@ -134,6 +134,7 @@ void    master_config(void)
 	    SWAP(char *, serv->ext_name, entry->ext_name);
 	    SWAP(char *, serv->path, entry->path);
 	    SWAP(ARGV *, serv->args, entry->args);
+	    SWAP(char *, serv->stress_param_val, entry->stress_param_val);
 	    master_restart_service(serv);
 	    free_master_ent(entry);
 	}

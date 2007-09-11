@@ -17,6 +17,27 @@ Incompatibility with Postfix 2.3 and earlier
 If you upgrade from Postfix 2.3 or earlier, read RELEASE_NOTES-2.4
 before proceeding.
 
+Major changes with Postfix snapshot 20070911
+============================================
+
+Stress-adaptive behavior. When a "public" network service runs into
+an "all processes are busy" condition, the master(8) daemon logs a
+warning, restarts the service, and runs it with "-o stress=yes" on
+the command line (under normal conditions it runs the service with
+"-o stress=" on the command line).  This can be used to make main.cf
+parameter settings stress dependent, for example:
+
+/etc/postfix/main.cf:
+    smtpd_timeout = ${stress?10}${stress:300}
+    smtpd_hard_error_limit = ${stress?1}${stress:20}
+
+Translation: under conditions of stress, use an smtpd_timeout value
+of 10 seconds instead of 300, and use smtpd_hard_error_limit of 1
+instead of 20. The syntax is explained in the postconf(5) manpage.
+
+This feature needs further configuration and documentation, but is
+already useful in its present form.
+
 Major changes with Postfix snapshot 20070724
 ============================================
 

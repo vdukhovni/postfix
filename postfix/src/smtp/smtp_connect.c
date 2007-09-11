@@ -901,7 +901,8 @@ static void smtp_connect_remote(SMTP_STATE *state, const char *nexthop,
 		}
 		smtp_cleanup_session(state);
 	    } else {
-		msg_info("%s (port %d)", STR(why->reason), ntohs(port));
+		/* The reason already includes the IP address and TCP port. */
+		msg_info("%s", STR(why->reason));
 	    }
 	    /* Insert: test if we must skip the remaining MX hosts. */
 	}

@@ -105,6 +105,8 @@
 /*	This flag affects the status reported in "success" DSN
 /*	(delivery status notification) messages, and changes it
 /*	from "relayed" into "delivered".
+/* .sp
+/*	This feature is available as of Postfix 2.5.
 /* .IP \fBh\fR
 /*	Fold the command-line \fB$recipient\fR address domain part
 /*	(text to the right of the right-most \fB@\fR character) to
