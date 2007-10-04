@@ -55,6 +55,7 @@ void    smtpd_xforward_init(SMTPD_STATE *state)
     state->xforward.flags = 0;
     state->xforward.name = 0;
     state->xforward.addr = 0;
+    state->xforward.port = 0;
     state->xforward.namaddr = 0;
     state->xforward.protocol = 0;
     state->xforward.helo_name = 0;
@@ -82,6 +83,7 @@ void    smtpd_xforward_preset(SMTPD_STATE *state)
     state->xforward.flags = SMTPD_STATE_XFORWARD_INIT;
     state->xforward.name = mystrdup(CLIENT_NAME_UNKNOWN);
     state->xforward.addr = mystrdup(CLIENT_ADDR_UNKNOWN);
+    state->xforward.port = mystrdup(CLIENT_PORT_UNKNOWN);
     state->xforward.namaddr = mystrdup(CLIENT_NAMADDR_UNKNOWN);
     state->xforward.rfc_addr = mystrdup(CLIENT_ADDR_UNKNOWN);
     /* Leave helo at zero. */
@@ -99,6 +101,7 @@ void    smtpd_xforward_reset(SMTPD_STATE *state)
     state->xforward.flags = 0;
     FREE_AND_WIPE(state->xforward.name);
     FREE_AND_WIPE(state->xforward.addr);
+    FREE_AND_WIPE(state->xforward.port);
     FREE_AND_WIPE(state->xforward.namaddr);
     FREE_AND_WIPE(state->xforward.rfc_addr);
     FREE_AND_WIPE(state->xforward.protocol);

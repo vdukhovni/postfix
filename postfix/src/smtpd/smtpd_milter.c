@@ -92,6 +92,8 @@ const char *smtpd_milter_eval(const char *name, void *ptr)
 	return (var_myhostname);
     if (strcmp(name, S8_MAC_CLIENT_ADDR) == 0)
 	return (state->rfc_addr);
+    if (strcmp(name, S8_MAC_CLIENT_PORT) == 0)
+	return (state->port);
     if (strcmp(name, S8_MAC_CLIENT_CONN) == 0) {
 	if (state->expand_buf == 0)
 	    state->expand_buf = vstring_alloc(10);

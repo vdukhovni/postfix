@@ -179,6 +179,7 @@ static QMGR_MESSAGE *qmgr_message_create(const char *queue_name,
     message->verp_delims = 0;
     message->client_name = 0;
     message->client_addr = 0;
+    message->client_port = 0;
     message->client_proto = 0;
     message->client_helo = 0;
     message->sasl_method = 0;
@@ -634,6 +635,10 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		if (message->client_addr != 0)
 		    myfree(message->client_addr);
 		message->client_addr = mystrdup(value);
+	    } else if (strcmp(name, MAIL_ATTR_LOG_CLIENT_PORT) == 0) {
+		if (message->client_port != 0)
+		    myfree(message->client_port);
+		message->client_port = mystrdup(value);
 	    } else if (strcmp(name, MAIL_ATTR_LOG_PROTO_NAME) == 0) {
 		if (message->client_proto != 0)
 		    myfree(message->client_proto);
@@ -735,6 +740,8 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	message->client_name = mystrdup("");
     if (message->client_addr == 0)
 	message->client_addr = mystrdup("");
+    if (message->client_port == 0)
+	message->client_port = mystrdup("");
     if (message->client_proto == 0)
 	message->client_proto = mystrdup("");
     if (message->client_helo == 0)
@@ -1253,6 +1260,8 @@ void    qmgr_message_free(QMGR_MESSAGE *message)
 	myfree(message->client_name);
     if (message->client_addr)
 	myfree(message->client_addr);
+    if (message->client_port)
+	myfree(message->client_port);
     if (message->client_proto)
 	myfree(message->client_proto);
     if (message->client_helo)

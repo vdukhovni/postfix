@@ -322,6 +322,9 @@ static void qmqpd_write_attributes(QMQPD_STATE *state)
     if (IS_AVAIL_CLIENT_ADDR(state->addr))
 	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 		    MAIL_ATTR_LOG_CLIENT_ADDR, state->rfc_addr);
+    if (IS_AVAIL_CLIENT_PORT(state->port))
+	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		    MAIL_ATTR_LOG_CLIENT_PORT, state->port);
     if (IS_AVAIL_CLIENT_NAMADDR(state->namaddr))
 	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 		    MAIL_ATTR_LOG_ORIGIN, state->namaddr);
@@ -335,6 +338,8 @@ static void qmqpd_write_attributes(QMQPD_STATE *state)
 		MAIL_ATTR_ACT_CLIENT_NAME, state->name);
     rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 		MAIL_ATTR_ACT_CLIENT_ADDR, state->rfc_addr);
+    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		MAIL_ATTR_ACT_CLIENT_PORT, state->port);
     rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%u",
 		MAIL_ATTR_ACT_CLIENT_AF, state->addr_family);
 }

@@ -178,6 +178,7 @@
 #define SMTPD_PROXY_XFORWARD_HELO  (1<<3)	/* client helo */
 #define SMTPD_PROXY_XFORWARD_IDENT (1<<4)	/* message identifier */
 #define SMTPD_PROXY_XFORWARD_DOMAIN (1<<5)	/* origin type */
+#define SMTPD_PROXY_XFORWARD_PORT  (1<<6)	/* client port */
 
  /*
   * SLMs.
@@ -257,6 +258,7 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
     static NAME_CODE xforward_features[] = {
 	XFORWARD_NAME, SMTPD_PROXY_XFORWARD_NAME,
 	XFORWARD_ADDR, SMTPD_PROXY_XFORWARD_ADDR,
+	XFORWARD_PORT, SMTPD_PROXY_XFORWARD_PORT,
 	XFORWARD_PROTO, SMTPD_PROXY_XFORWARD_PROTO,
 	XFORWARD_HELO, SMTPD_PROXY_XFORWARD_HELO,
 	XFORWARD_DOMAIN, SMTPD_PROXY_XFORWARD_DOMAIN,
@@ -367,6 +369,11 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
 	    bad = smtpd_xforward(state, buf, XFORWARD_ADDR,
 				 IS_AVAIL_CLIENT_ADDR(FORWARD_ADDR(state)),
 				 FORWARD_ADDR(state));
+	if (bad == 0
+	    && (state->proxy_xforward_features & SMTPD_PROXY_XFORWARD_PORT))
+	    bad = smtpd_xforward(state, buf, XFORWARD_PORT,
+				 IS_AVAIL_CLIENT_PORT(FORWARD_PORT(state)),
+				 FORWARD_PORT(state));
 	if (bad == 0
 	    && (state->proxy_xforward_features & SMTPD_PROXY_XFORWARD_HELO))
 	    bad = smtpd_xforward(state, buf, XFORWARD_HELO,

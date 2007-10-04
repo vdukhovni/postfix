@@ -41,7 +41,7 @@ are in fact case insensitive.
 
     xforward-command = XFORWARD 1*( SP attribute-name"="attribute-value )
 
-    attribute-name = ( NAME | ADDR | PROTO | HELO | SOURCE )
+    attribute-name = ( NAME | ADDR | PORT | PROTO | HELO | SOURCE )
 
     attribute-value = xtext
 
@@ -53,6 +53,9 @@ are in fact case insensitive.
   * The ADDR attribute specifies the up-stream network address, or
     [UNAVAILABLE] when the information is unavailable. Address information is
     not enclosed with []. The address may be a non-IP address.
+
+  * The PORT attribute specifies an up-stream client TCP port number in
+    decimal, or [UNAVAILABLE] when the information is unavailable.
 
   * The PROTO attribute specifies the mail protocol for receiving mail from the
     up-stream host. This may be an SMTP or non-SMTP protocol name of up to 64

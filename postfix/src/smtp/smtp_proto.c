@@ -255,6 +255,7 @@ int     smtp_helo(SMTP_STATE *state)
     static NAME_CODE xforward_features[] = {
 	XFORWARD_NAME, SMTP_FEATURE_XFORWARD_NAME,
 	XFORWARD_ADDR, SMTP_FEATURE_XFORWARD_ADDR,
+	XFORWARD_PORT, SMTP_FEATURE_XFORWARD_PORT,
 	XFORWARD_PROTO, SMTP_FEATURE_XFORWARD_PROTO,
 	XFORWARD_HELO, SMTP_FEATURE_XFORWARD_HELO,
 	XFORWARD_DOMAIN, SMTP_FEATURE_XFORWARD_DOMAIN,
@@ -1166,6 +1167,12 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		xtext_quote_append(next_command,
 				   DEL_REQ_ATTR_AVAIL(request->client_addr) ?
 			   request->client_addr : XFORWARD_UNAVAILABLE, "");
+	    }
+	    if (session->features & SMTP_FEATURE_XFORWARD_PORT) {
+		vstring_strcat(next_command, " " XFORWARD_PORT "=");
+		xtext_quote_append(next_command,
+				   DEL_REQ_ATTR_AVAIL(request->client_port) ?
+			   request->client_port : XFORWARD_UNAVAILABLE, "");
 	    }
 	    if (session->send_proto_helo)
 		next_state = SMTP_STATE_XFORWARD_PROTO_HELO;

@@ -55,7 +55,8 @@ typedef struct {
     int     flags;			/* XFORWARD server state */
     char   *name;			/* name for access control */
     char   *addr;			/* address for access control */
-    char   *namaddr;			/* name[address] */
+    char   *port;			/* port for logging */
+    char   *namaddr;			/* name[address]:port */
     char   *rfc_addr;			/* address for RFC 2821 */
     char   *protocol;			/* email protocol */
     char   *helo_name;			/* helo/ehlo parameter */
@@ -74,7 +75,8 @@ typedef struct SMTPD_STATE {
     char   *name;			/* verified client hostname */
     char   *reverse_name;		/* unverified client hostname */
     char   *addr;			/* client host address string */
-    char   *namaddr;			/* combined name and address */
+    char   *port;			/* port for logging */
+    char   *namaddr;			/* name[address]:port */
     char   *rfc_addr;			/* address for RFC 2821 */
     int     addr_family;		/* address family */
     struct sockaddr_storage sockaddr;	/* binary client endpoint */
@@ -187,10 +189,12 @@ typedef struct SMTPD_STATE {
 #define SMTPD_STATE_XFORWARD_HELO  (1<<4)	/* client helo received */
 #define SMTPD_STATE_XFORWARD_IDENT (1<<5)	/* message identifier */
 #define SMTPD_STATE_XFORWARD_DOMAIN (1<<6)	/* message identifier */
+#define SMTPD_STATE_XFORWARD_PORT  (1<<7)	/* client port received */
 
 #define SMTPD_STATE_XFORWARD_CLIENT_MASK \
 	(SMTPD_STATE_XFORWARD_NAME | SMTPD_STATE_XFORWARD_ADDR \
-	| SMTPD_STATE_XFORWARD_PROTO | SMTPD_STATE_XFORWARD_HELO)
+	| SMTPD_STATE_XFORWARD_PROTO | SMTPD_STATE_XFORWARD_HELO \
+	| SMTPD_STATE_XFORWARD_PORT)
 
 extern void smtpd_state_init(SMTPD_STATE *, VSTREAM *, const char *);
 extern void smtpd_state_reset(SMTPD_STATE *);
@@ -232,6 +236,7 @@ extern void smtpd_state_reset(SMTPD_STATE *);
 
 #define CLIENT_NAME_UNKNOWN	CLIENT_ATTR_UNKNOWN
 #define CLIENT_ADDR_UNKNOWN	CLIENT_ATTR_UNKNOWN
+#define CLIENT_PORT_UNKNOWN	CLIENT_ATTR_UNKNOWN
 #define CLIENT_NAMADDR_UNKNOWN	CLIENT_ATTR_UNKNOWN
 #define CLIENT_HELO_UNKNOWN	0
 #define CLIENT_PROTO_UNKNOWN	CLIENT_ATTR_UNKNOWN
@@ -242,6 +247,7 @@ extern void smtpd_state_reset(SMTPD_STATE *);
 
 #define IS_AVAIL_CLIENT_NAME(v)	IS_AVAIL_CLIENT_ATTR(v)
 #define IS_AVAIL_CLIENT_ADDR(v)	IS_AVAIL_CLIENT_ATTR(v)
+#define IS_AVAIL_CLIENT_PORT(v)	IS_AVAIL_CLIENT_ATTR(v)
 #define IS_AVAIL_CLIENT_NAMADDR(v) IS_AVAIL_CLIENT_ATTR(v)
 #define IS_AVAIL_CLIENT_HELO(v)	((v) != 0)
 #define IS_AVAIL_CLIENT_PROTO(v) IS_AVAIL_CLIENT_ATTR(v)
@@ -299,6 +305,7 @@ extern void smtpd_peer_reset(SMTPD_STATE *state);
 #define FORWARD_NAMADDR(s)	FORWARD_CLIENT_ATTR((s), namaddr)
 #define FORWARD_PROTO(s)	FORWARD_CLIENT_ATTR((s), protocol)
 #define FORWARD_HELO(s)		FORWARD_CLIENT_ATTR((s), helo_name)
+#define FORWARD_PORT(s)		FORWARD_CLIENT_ATTR((s), port)
 
 #define FORWARD_IDENT(s) \
 	(((s)->xforward.flags & SMTPD_STATE_XFORWARD_IDENT) ? \

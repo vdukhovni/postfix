@@ -206,6 +206,10 @@
 /*	This macro expands to the remote client hostname.
 /* .sp
 /*	This is available in Postfix 2.2 and later.
+/* .IP \fB${\fBclient_port\fR}\fR
+/*	This macro expands to the remote client TCP port number.
+/* .sp
+/*	This is available in Postfix 2.5 and later.
 /* .IP \fB${\fBclient_protocol\fR}\fR
 /*	This macro expands to the remote client protocol.
 /* .sp
@@ -474,6 +478,7 @@
 #define PIPE_DICT_SIZE		"size"	/* key */
 #define PIPE_DICT_CLIENT_ADDR	"client_address"	/* key */
 #define PIPE_DICT_CLIENT_NAME	"client_hostname"	/* key */
+#define PIPE_DICT_CLIENT_PORT	"client_port"	/* key */
 #define PIPE_DICT_CLIENT_PROTO	"client_protocol"	/* key */
 #define PIPE_DICT_CLIENT_HELO	"client_helo"	/* key */
 #define PIPE_DICT_SASL_METHOD	"sasl_method"	/* key */
@@ -570,6 +575,7 @@ static int parse_callback(int type, VSTRING *buf, char *context)
 	PIPE_DICT_SIZE, 0,
 	PIPE_DICT_CLIENT_ADDR, 0,
 	PIPE_DICT_CLIENT_NAME, 0,
+	PIPE_DICT_CLIENT_PORT, 0,
 	PIPE_DICT_CLIENT_PROTO, 0,
 	PIPE_DICT_CLIENT_HELO, 0,
 	PIPE_DICT_SASL_METHOD, 0,
@@ -1177,6 +1183,8 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 		request->client_helo);
     dict_update(PIPE_DICT_TABLE, PIPE_DICT_CLIENT_NAME,
 		request->client_name);
+    dict_update(PIPE_DICT_TABLE, PIPE_DICT_CLIENT_PORT,
+		request->client_port);
     dict_update(PIPE_DICT_TABLE, PIPE_DICT_CLIENT_PROTO,
 		request->client_proto);
     dict_update(PIPE_DICT_TABLE, PIPE_DICT_SASL_METHOD,

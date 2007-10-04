@@ -22,20 +22,20 @@
 <p> Postfix version 2.3 introduces support for the Sendmail version
 8 Milter (mail filter) protocol. This protocol is used by applications
 that run outside the MTA to inspect SMTP events (CONNECT, DISCONNECT),
-SMTP commands (HELO, MAIL FROM, etc.) as well as mail content.  All
-this happens before mail is queued.  </p>
+SMTP commands (HELO, MAIL FROM, etc.) as well as mail content (headers
+and body).  All this happens before mail is queued.  </p>
 
 <p> The reason for adding Milter support to Postfix is that there
 exists a large collection of applications, not only to block unwanted
 mail, but also to verify authenticity (examples: <a
-href="http://sourceforge.net/projects/dkim-milter/">Domain keys
-identified mail</a>, <a
+href="http://sourceforge.net/projects/dkim-milter/">DomainKeys
+Identified Mail (DKIM)</a>, <a
 href="http://sourceforge.net/projects/sid-milter/">SenderID+SPF</a> and
-<a href="http://sourceforge.net/projects/dk-milter/">Domain keys</a>)
+<a href="http://sourceforge.net/projects/dk-milter/">DomainKeys</a>)
 or to digitally sign mail (examples: <a
-href="http://sourceforge.net/projects/dkim-milter/">Domain keys
-identified mail</a>, <a
-href="http://sourceforge.net/projects/dk-milter/">Domain keys</a>).
+href="http://sourceforge.net/projects/dkim-milter/">DomainKeys
+Identified Mail (DKIM)</a>, <a
+href="http://sourceforge.net/projects/dk-milter/">DomainKeys</a>).
 Having yet another Postfix-specific version of all that software
 is a poor use of human and system resources. </p>
 
@@ -547,6 +547,9 @@ Connection concurrency for this client </td> </tr>
 
 <tr> <td> {client_name} </td> <td> Always </td> <td> Client hostname,
 "unknown" when lookup or verification fails </td> </tr>
+
+<tr> <td> {client_port} </td> <td> Always <br> (Postfix &ge;2.5) </td>
+<td> Client TCP port </td> </tr>
 
 <tr> <td> {client_ptr} </td> <td> CONNECT, HELO, MAIL, DATA </td>
 <td> Client name from reverse lookup, "unknown" when lookup fails

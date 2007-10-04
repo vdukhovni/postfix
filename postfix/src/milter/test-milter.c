@@ -162,7 +162,7 @@ static sfsistat test_connect(SMFICTX *ctx, char *name, struct sockaddr * sa)
 	    print_addr = inet_ntop(AF_INET, &sin->sin_addr, buf, sizeof(buf));
 	    if (print_addr == 0)
 		print_addr = strerror(errno);
-	    printf("AF_INET (%s)\n", print_addr);
+	    printf("AF_INET (%s:%d)\n", print_addr, ntohs(sin->sin_port));
 	}
 	break;
 #ifdef HAS_IPV6
@@ -173,7 +173,7 @@ static sfsistat test_connect(SMFICTX *ctx, char *name, struct sockaddr * sa)
 	    print_addr = inet_ntop(AF_INET, &sin6->sin6_addr, buf, sizeof(buf));
 	    if (print_addr == 0)
 		print_addr = strerror(errno);
-	    printf("AF_INET6 (%s)\n", print_addr);
+	    printf("AF_INET6 (%s:%d)\n", print_addr, ntohs(sin6->sin6_port));
 	}
 	break;
 #endif

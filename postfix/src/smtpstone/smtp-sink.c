@@ -150,6 +150,13 @@
 /*	Show the SMTP conversations.
 /* .IP "\fB-w \fIdelay\fR"
 /*	Wait \fIdelay\fR seconds before responding to a DATA command.
+/* .IP "\fB-W \fIcommand:delay[:odds]\fR"
+/*	Wait \fIdelay\fR seconds before responding to \fIcommand\fR.
+/*	If \fIodds\fR is also specified (a number between 1-99
+/*	inclusive), wait for a random multiple of \fIdelay\fR. The
+/*	random multiplier is equal to the number of times the program
+/*	needs to roll a dice with a range of 0..99 inclusive, before
+/*	the dice produces a result greater than or equal to \fIodds\fR.
 /* .IP [\fBinet:\fR][\fIhost\fR]:\fIport\fR
 /*	Listen on network interface \fIhost\fR (default: any interface)
 /*	TCP port \fIport\fR. Both \fIhost\fR and \fIport\fR may be
@@ -286,6 +293,8 @@ typedef struct SINK_STATE {
     time_t  start_time;			/* MAIL command time */
     int     id;				/* pseudo-random */
     VSTREAM *dump_file;			/* dump file or null */
+    void    (*delayed_response) (struct SINK_STATE *state, const char *);
+    char   *delayed_args;
 } SINK_STATE;
 
 #define ST_ANY			0
@@ -318,7 +327,6 @@ static int mesg_count;
 static int max_quit_count;
 static int disable_pipelining;
 static int disable_8bitmime;
-static int fixed_delay;
 static int disable_esmtp;
 static int enable_lmtp;
 static int pretend_pix;
@@ -708,18 +716,6 @@ static void data_response(SINK_STATE *state, const char *unused_args)
 	mail_file_finish_header(state);
 }
 
-/* data_event - delayed response to DATA command */
-
-static void data_event(int unused_event, char *context)
-{
-    SINK_STATE *state = (SINK_STATE *) context;
-
-    data_response(state, "");
-    /* Resume input event handling after the delayed DATA response. */
-    event_enable_read(vstream_fileno(state->stream), read_event, (char *) state);
-    event_request_timer(read_timeout, (char *) state, var_tmout);
-}
-
 /* dot_resp_hard - hard error response to . command */
 
 static void dot_resp_hard(SINK_STATE *state)
@@ -780,6 +776,25 @@ static void conn_response(SINK_STATE *state, const char *unused_args)
     else
 	smtp_printf(state->stream, "220 %s ESMTP", var_myhostname);
     smtp_flush(state->stream);
+}
+
+/* delay_event - delayed command response */
+
+static void delay_event(int unused_event, char *context)
+{
+    SINK_STATE *state = (SINK_STATE *) context;
+
+    state->delayed_response(state, state->delayed_args);
+    myfree(state->delayed_args);
+    state->delayed_args = 0;
+
+    if (state->delayed_response == quit_response) {
+	disconnect(state);
+	return;
+    }
+    /* Resume input event handling after the delayed response. */
+    event_enable_read(vstream_fileno(state->stream), read_event, (char *) state);
+    event_request_timer(read_timeout, (char *) state, var_tmout);
 }
 
 /* data_read - read data from socket */
@@ -863,6 +878,8 @@ typedef struct SINK_COMMAND {
     void    (*hard_response) (SINK_STATE *);
     void    (*soft_response) (SINK_STATE *);
     int     flags;
+    int     delay;
+    int     delay_odds;
 } SINK_COMMAND;
 
 #define FLAG_ENABLE	(1<<0)		/* command is enabled */
@@ -872,21 +889,21 @@ typedef struct SINK_COMMAND {
 #define FLAG_DISCONNECT	(1<<4)		/* disconnect */
 
 static SINK_COMMAND command_table[] = {
-    "connect", conn_response, hard_err_resp, soft_err_resp, 0,
-    "helo", helo_response, hard_err_resp, soft_err_resp, 0,
-    "ehlo", ehlo_response, hard_err_resp, soft_err_resp, 0,
-    "lhlo", ehlo_response, hard_err_resp, soft_err_resp, 0,
-    "xclient", ok_response, hard_err_resp, soft_err_resp, FLAG_ENABLE,
-    "xforward", ok_response, hard_err_resp, soft_err_resp, FLAG_ENABLE,
-    "auth", ok_response, hard_err_resp, soft_err_resp, FLAG_ENABLE,
-    "mail", mail_response, hard_err_resp, soft_err_resp, FLAG_ENABLE,
-    "rcpt", rcpt_response, hard_err_resp, soft_err_resp, FLAG_ENABLE,
-    "data", data_response, hard_err_resp, soft_err_resp, FLAG_ENABLE,
-    ".", dot_response, dot_resp_hard, dot_resp_soft, FLAG_ENABLE,
-    "rset", rset_response, hard_err_resp, soft_err_resp, FLAG_ENABLE,
-    "noop", ok_response, hard_err_resp, soft_err_resp, FLAG_ENABLE,
-    "vrfy", ok_response, hard_err_resp, soft_err_resp, FLAG_ENABLE,
-    "quit", quit_response, hard_err_resp, soft_err_resp, FLAG_ENABLE,
+    "connect", conn_response, hard_err_resp, soft_err_resp, 0, 0, 0,
+    "helo", helo_response, hard_err_resp, soft_err_resp, 0, 0, 0,
+    "ehlo", ehlo_response, hard_err_resp, soft_err_resp, 0, 0, 0,
+    "lhlo", ehlo_response, hard_err_resp, soft_err_resp, 0, 0, 0,
+    "xclient", ok_response, hard_err_resp, soft_err_resp, FLAG_ENABLE, 0, 0,
+    "xforward", ok_response, hard_err_resp, soft_err_resp, FLAG_ENABLE, 0, 0,
+    "auth", ok_response, hard_err_resp, soft_err_resp, FLAG_ENABLE, 0, 0,
+    "mail", mail_response, hard_err_resp, soft_err_resp, FLAG_ENABLE, 0, 0,
+    "rcpt", rcpt_response, hard_err_resp, soft_err_resp, FLAG_ENABLE, 0, 0,
+    "data", data_response, hard_err_resp, soft_err_resp, FLAG_ENABLE, 0, 0,
+    ".", dot_response, dot_resp_hard, dot_resp_soft, FLAG_ENABLE, 0, 0,
+    "rset", rset_response, hard_err_resp, soft_err_resp, FLAG_ENABLE, 0, 0,
+    "noop", ok_response, hard_err_resp, soft_err_resp, FLAG_ENABLE, 0, 0,
+    "vrfy", ok_response, hard_err_resp, soft_err_resp, FLAG_ENABLE, 0, 0,
+    "quit", quit_response, hard_err_resp, soft_err_resp, FLAG_ENABLE, 0, 0,
     0,
 };
 
@@ -932,6 +949,47 @@ static void set_cmds_flags(const char *cmds, int flags)
     myfree(saved_cmds);
 }
 
+/* set_cmd_delay - set per-command delay */
+
+static void set_cmd_delay(const char *cmd, int delay, int odds)
+{
+    SINK_COMMAND *cmdp;
+
+    for (cmdp = command_table; cmdp->name != 0; cmdp++)
+	if (strcasecmp(cmd, cmdp->name) == 0)
+	    break;
+    if (cmdp->name == 0)
+	msg_fatal("unknown command: %s", cmd);
+
+    if (delay <= 0)
+	msg_fatal("non-positive '%s' delay", cmd);
+    if (odds < 0 || odds > 99)
+	msg_fatal("delay odds for '%s' out of range", cmd);
+
+    cmdp->delay = delay;
+    cmdp->delay_odds = odds;
+}
+
+/* set_cmd_delay_arg - set per-command delay from option argument */
+
+static void set_cmd_delay_arg(char *arg)
+{
+    char   *cp;
+    char   *saved_arg;
+    char   *cmd;
+    char   *delay;
+    char   *odds;
+
+    saved_arg = cp = mystrdup(arg);
+    cmd = mystrtok(&cp, ":");
+    delay = mystrtok(&cp, ":");
+    if (cmd == 0 || delay == 0)
+	msg_fatal("invalid command delay argument: %s", arg);
+    odds = mystrtok(&cp, "");
+    set_cmd_delay(cmd, atoi(delay), odds ? atoi(odds) : 0);
+    myfree(saved_arg);
+}
+
 /* command_resp - respond to command */
 
 static int command_resp(SINK_STATE *state, SINK_COMMAND *cmdp,
@@ -950,11 +1008,20 @@ static int command_resp(SINK_STATE *state, SINK_COMMAND *cmdp,
 	cmdp->soft_response(state);
 	return (0);
     }
-    if (cmdp->response == data_response && fixed_delay > 0) {
-	/* Suspend input event handling while delaying the DATA response. */
+    if (cmdp->delay > 0) {
+	int     delay = cmdp->delay;
+
+	if (cmdp->delay_odds > 0)
+	    for (delay = 0;
+	     ((int) (100.0 * rand() / (RAND_MAX + 1.0))) < cmdp->delay_odds;
+		 delay += cmdp->delay)
+		 /* NOP */ ;
+	/* Suspend input event handling while delaying the command response. */
 	event_disable_readwrite(vstream_fileno(state->stream));
 	event_cancel_timer(read_timeout, (char *) state);
-	event_request_timer(data_event, (char *) state, fixed_delay);
+	event_request_timer(delay_event, (char *) state, delay);
+	state->delayed_response = cmdp->response;
+	state->delayed_args = mystrdup(args);
     } else {
 	cmdp->response(state, args);
 	if (cmdp->response == quit_response)
@@ -1153,6 +1220,8 @@ static void disconnect(SINK_STATE *state)
 	myfree(state->helo_args);
     /* Delete incomplete mail transaction. */
     mail_cmd_reset(state);
+    if (state->delayed_args)
+	myfree(state->delayed_args);
     myfree((char *) state);
     if (max_quit_count > 0 && quit_count >= max_quit_count)
 	exit(0);
@@ -1201,6 +1270,8 @@ static void connect_event(int unused_event, char *unused_context)
 	smtp_timeout_setup(state->stream, var_tmout);
 	state->in_mail = 0;
 	state->rcpts = 0;
+	state->delayed_response = 0;
+	state->delayed_args = 0;
 	/* Initialize file capture attributes. */
 #ifdef AF_INET6
 	if (sa.sa_family == AF_INET6)
@@ -1261,6 +1332,7 @@ int     main(int argc, char **argv)
 {
     int     backlog;
     int     ch;
+    int     delay;
     const char *protocols = INET_PROTO_NAME_ALL;
     const char *root_dir = 0;
     const char *user_privs = 0;
@@ -1283,7 +1355,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "468aA:cCd:D:eEf:Fh:Ln:m:pPq:r:R:s:S:t:u:vw:")) > 0) {
+    while ((ch = GETOPT(argc, argv, "468aA:cCd:D:eEf:Fh:Ln:m:pPq:r:R:s:S:t:u:vw:W:")) > 0) {
 	switch (ch) {
 	case '4':
 	    protocols = INET_PROTO_NAME_IPV4;
@@ -1378,8 +1450,12 @@ int     main(int argc, char **argv)
 	    msg_verbose++;
 	    break;
 	case 'w':
-	    if ((fixed_delay = atoi(optarg)) <= 0)
+	    if ((delay = atoi(optarg)) <= 0)
 		usage(argv[0]);
+	    set_cmd_delay("data", delay, 0);
+	    break;
+	case 'W':
+	    set_cmd_delay_arg(optarg);
 	    break;
 	default:
 	    usage(argv[0]);

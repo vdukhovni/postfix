@@ -185,6 +185,15 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
               Wait <i>delay</i> seconds before responding to a DATA com-
               mand.
 
+       <b>-W</b> <i>command:delay[:odds]</i>
+              Wait  <i>delay</i>  seconds  before responding to <i>command</i>.
+              If <i>odds</i> is also specified (a  number  between  1-99
+              inclusive),  wait  for  a random multiple of <i>delay</i>.
+              The random multiplier is equal  to  the  number  of
+              times the program needs to roll a dice with a range
+              of 0..99 inclusive,  before  the  dice  produces  a
+              result greater than or equal to <i>odds</i>.
+
        [<b>inet:</b>][<i>host</i>]:<i>port</i>
               Listen  on  network  interface  <i>host</i>  (default: any
               interface) TCP port <i>port</i>. Both <i>host</i> and <i>port</i> may be

@@ -130,8 +130,6 @@ static void qmgr_active_corrupt(const char *queue_id)
 	if (errno != ENOENT)
 	    msg_fatal("%s: save corrupt file queue %s id %s: %m",
 		      myname, MAIL_QUEUE_ACTIVE, queue_id);
-	msg_warn("%s: save corrupt file queue %s id %s: %m",
-		 myname, MAIL_QUEUE_ACTIVE, queue_id);
     } else {
 	msg_warn("saving corrupt file \"%s\" from queue \"%s\" to queue \"%s\"",
 		 queue_id, MAIL_QUEUE_ACTIVE, MAIL_QUEUE_CORRUPT);

@@ -622,7 +622,11 @@ void    event_drain(int time_limit)
     if (EVENT_INIT_NEEDED())
 	return;
 
+#if (EVENTS_STYLE == EVENTS_STYLE_SELECT)
     EVENT_MASK_ZERO(&zero_mask);
+#else
+    EVENT_MASK_ALLOC(&zero_mask, event_fdslots);
+#endif
     (void) time(&event_present);
     max_time = event_present + time_limit;
     while (event_present < max_time
@@ -630,6 +634,9 @@ void    event_drain(int time_limit)
 	       || memcmp(&zero_mask, &event_xmask,
 			 EVENT_MASK_BYTE_COUNT(&zero_mask)) != 0))
 	event_loop(1);
+#if (EVENTS_STYLE != EVENTS_STYLE_SELECT)
+    EVENT_MASK_FREE(&zero_mask);
+#endif
 }
 
 /* event_enable_read - enable read events */

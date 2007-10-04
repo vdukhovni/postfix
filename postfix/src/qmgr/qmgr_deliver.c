@@ -170,13 +170,17 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
 	       ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, message->dsn_envid,
 	       ATTR_TYPE_INT, MAIL_ATTR_DSN_RET, message->dsn_ret,
 	       ATTR_TYPE_FUNC, msg_stats_print, (void *) &stats,
+    /* XXX Should be encapsulated with ATTR_TYPE_FUNC. */
 	     ATTR_TYPE_STR, MAIL_ATTR_LOG_CLIENT_NAME, message->client_name,
 	     ATTR_TYPE_STR, MAIL_ATTR_LOG_CLIENT_ADDR, message->client_addr,
+	     ATTR_TYPE_STR, MAIL_ATTR_LOG_CLIENT_PORT, message->client_port,
 	     ATTR_TYPE_STR, MAIL_ATTR_LOG_PROTO_NAME, message->client_proto,
 	       ATTR_TYPE_STR, MAIL_ATTR_LOG_HELO_NAME, message->client_helo,
+    /* XXX Should be encapsulated with ATTR_TYPE_FUNC. */
 	       ATTR_TYPE_STR, MAIL_ATTR_SASL_METHOD, message->sasl_method,
 	     ATTR_TYPE_STR, MAIL_ATTR_SASL_USERNAME, message->sasl_username,
 	       ATTR_TYPE_STR, MAIL_ATTR_SASL_SENDER, message->sasl_sender,
+    /* XXX Ditto if we want to pass TLS certificate info. */
 	     ATTR_TYPE_STR, MAIL_ATTR_RWR_CONTEXT, message->rewrite_context,
 	       ATTR_TYPE_INT, MAIL_ATTR_RCPT_COUNT, list.len,
 	       ATTR_TYPE_END);

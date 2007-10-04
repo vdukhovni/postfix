@@ -125,6 +125,7 @@ extern void milter_free(MILTERS *);
 #define S8_MAC_CLIENT_ADDR	"{client_addr}"
 #define S8_MAC_CLIENT_CONN	"{client_connections}"
 #define S8_MAC_CLIENT_NAME	"{client_name}"
+#define S8_MAC_CLIENT_PORT	"{client_port}"
 #define S8_MAC_CLIENT_PTR	"{client_ptr}"
 #define S8_MAC_CLIENT_RES	"{client_resolve}"
 

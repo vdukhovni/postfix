@@ -68,7 +68,7 @@ names are shown in upper case, they are in fact case insensitive.
     xforward-command = XFORWARD 1*( SP attribute-name"="attribute-value )
 </p>
 <p>
-    attribute-name = ( NAME | ADDR | PROTO | HELO | SOURCE )
+    attribute-name = ( NAME | ADDR | PORT | PROTO | HELO | SOURCE )
 </p>
 <p>
     attribute-value = xtext
@@ -88,6 +88,10 @@ names are shown in upper case, they are in fact case insensitive.
     address, or [UNAVAILABLE] when the information is unavailable.
     Address information is not enclosed with []. The address may
     be a non-IP address. </p>
+
+    <li> <p> The PORT attribute specifies an up-stream client TCP
+    port number in decimal, or [UNAVAILABLE] when the information
+    is unavailable.  </p>
 
     <li> <p> The PROTO attribute specifies the mail protocol for
     receiving mail from the up-stream host. This may be an SMTP or

@@ -1283,6 +1283,8 @@ static const char *cleanup_milter_eval(const char *name, void *ptr)
 	return (state->client_addr);
     if (strcmp(name, S8_MAC_CLIENT_NAME) == 0)
 	return (state->client_name);
+    if (strcmp(name, S8_MAC_CLIENT_PORT) == 0)
+	return (state->client_port);
     if (strcmp(name, S8_MAC_CLIENT_PTR) == 0)
 	return (state->reverse_name);
 
@@ -1450,6 +1452,7 @@ static void cleanup_milter_client_init(CLEANUP_STATE *state)
 	state->client_af = atoi(proto_attr);
     if (state->reverse_name == 0)
 	state->reverse_name = state->client_name;
+    /* Compatibility with pre-2.5 queue files. */
     if (state->client_port == 0)
 	state->client_port = NO_CLIENT_PORT;
 }

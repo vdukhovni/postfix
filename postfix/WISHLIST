@@ -1,5 +1,12 @@
 Wish list:
 
+	Combine smtpd_peer.c and qmqpd_peer.c into a single function
+	that produces a client context object, and provide attribute
+	print/scan routines that pass these client context objects
+	around. With this, we no longer have to update a multiple
+	pieces of code when a client attribute is added. Ditto for
+	SASL and TLS context.
+
 	Make TLS_BIO_BUFSIZE run-time adjustable, to future-proof
 	Postfix for remote connections with MSS > 8 kbytes.
 

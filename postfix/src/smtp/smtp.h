@@ -117,6 +117,7 @@ typedef struct SMTP_STATE {
 #define SMTP_FEATURE_DSN		(1<<15)	/* DSN supported */
 #define SMTP_FEATURE_PIX_NO_ESMTP	(1<<16)	/* PIX smtp fixup mode */
 #define SMTP_FEATURE_PIX_DELAY_DOTCRLF	(1<<17)	/* PIX smtp fixup mode */
+#define SMTP_FEATURE_XFORWARD_PORT	(1<<18)
 
  /*
   * Features that passivate under the endpoint.

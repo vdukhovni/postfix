@@ -7,14 +7,15 @@ IInnttrroodduuccttiioonn
 Postfix version 2.3 introduces support for the Sendmail version 8 Milter (mail
 filter) protocol. This protocol is used by applications that run outside the
 MTA to inspect SMTP events (CONNECT, DISCONNECT), SMTP commands (HELO, MAIL
-FROM, etc.) as well as mail content. All this happens before mail is queued.
+FROM, etc.) as well as mail content (headers and body). All this happens before
+mail is queued.
 
 The reason for adding Milter support to Postfix is that there exists a large
 collection of applications, not only to block unwanted mail, but also to verify
-authenticity (examples: Domain keys identified mail, SenderID+SPF and Domain
-keys) or to digitally sign mail (examples: Domain keys identified mail, Domain
-keys). Having yet another Postfix-specific version of all that software is a
-poor use of human and system resources.
+authenticity (examples: DomainKeys Identified Mail (DKIM), SenderID+SPF and
+DomainKeys) or to digitally sign mail (examples: DomainKeys Identified Mail
+(DKIM), DomainKeys). Having yet another Postfix-specific version of all that
+software is a poor use of human and system resources.
 
 Postfix version 2.4 implements all the requests of Sendmail version 8 Milter
 protocols up to version 4, including message body replacement (body replacement
@@ -335,6 +336,9 @@ workarounds section below for solutions.
     |                    |                         |Client hostname, "unknown"|
     |{client_name}       |Always                   |when lookup or            |
     |                    |                         |verification fails        |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |{client_port}       |Always                   |Client TCP port           |
+    |                    |(Postfix >=2.5)          |                          |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |                    |                         |Client name from reverse  |
     |{client_ptr}        |CONNECT, HELO, MAIL, DATA|lookup, "unknown" when    |

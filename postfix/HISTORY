@@ -13712,3 +13712,47 @@ Apologies for any names omitted.
 	unparsable canonical name caused the SMTPD policy client
 	to allocate zero-length memory, triggering an assertion
 	that it shouldn't do such things.  File: smtpd/smtpd_check.c.
+
+20070912
+
+	Bugfix (introduced Postfix 2.4) missing initialization of
+	event mask in the event_mask_drain() routine (used by the
+	obsolete postkick(1) command). Found by Coverity.  File:
+	util/events.c.
+
+20070917
+
+	Workaround: the flush daemon forces an access time update
+	for the per-destination logfile, to prevent an excessive
+	rate of delivery attempts when the queue file system is
+	mounted with "noatime".  File: flush/flush.c.
+
+20070923
+
+	Cleanup: don't complain when a "corrupt" queue file is 
+	deleted before it can be saved to the "corrupt" queue.
+	Files: *qmgr/qmgr_active.c.
+
+20071003
+
+	Logging: the Postfix SMTP server now logs the number of
+	bytes received after the DATA command when a connection
+	breaks before mail delivery completes.  This may help finding
+	the cause of the problem: packet loss, MTU, or other. File:
+	smtpd/smtpd.c.
+
+20071004
+
+	Logging: all daemons now log the TCP port number of remote
+	SMTP or QMQP clients.  The information is overruled with
+	the SMTP XCLIENT command, is propagated through SMTP-based
+	content filters with XFORWARD, and is sent to Milter
+	applications.  Files: smtpd/smtpd_peer.c, smtpd/smtpd.c,
+	smtpd/smtpd_proxy.c, smtpd/smtpd_milter.c, qmqpd/qmqpd_peer.c,
+	cleanup/cleanup_milter.c, *qmgr/qmgr_message.c,
+	*qmgr/qmgr_deliver.c, smtp/smtp_proto.c, pipe/pipe.c,
+	global/deliver_request.c, global/deliver_pass.c,
+	proto/XFORWARD_README, proto/XCLIENT_README.
+
+	Feature: per-command delays in smtp-sink. File:
+	smtpstone/smtp-sink.c.  Victor Duchovni.

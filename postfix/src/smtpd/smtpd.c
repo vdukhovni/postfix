@@ -1533,13 +1533,13 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    ENQUEUE_FIX_REPLY(state, reply_buf, XCLIENT_CMD
 			      " " XCLIENT_NAME " " XCLIENT_ADDR
 			      " " XCLIENT_PROTO " " XCLIENT_HELO
-			      " " XCLIENT_REVERSE_NAME);
+			      " " XCLIENT_REVERSE_NAME " " XCLIENT_PORT);
     if ((discard_mask & EHLO_MASK_XFORWARD) == 0)
 	if (xforward_allowed)
 	    ENQUEUE_FIX_REPLY(state, reply_buf, XFORWARD_CMD
 			      " " XFORWARD_NAME " " XFORWARD_ADDR
 			      " " XFORWARD_PROTO " " XFORWARD_HELO
-			      " " XFORWARD_DOMAIN);
+			      " " XFORWARD_DOMAIN " " XFORWARD_PORT);
     if ((discard_mask & EHLO_MASK_ENHANCEDSTATUSCODES) == 0)
 	ENQUEUE_FIX_REPLY(state, reply_buf, "ENHANCEDSTATUSCODES");
     if ((discard_mask & EHLO_MASK_8BITMIME) == 0)
@@ -1716,6 +1716,9 @@ static int mail_open_stream(SMTPD_STATE *state)
 	    if (IS_AVAIL_CLIENT_ADDR(FORWARD_ADDR(state)))
 		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			    MAIL_ATTR_LOG_CLIENT_ADDR, FORWARD_ADDR(state));
+	    if (IS_AVAIL_CLIENT_PORT(FORWARD_PORT(state)))
+		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			    MAIL_ATTR_LOG_CLIENT_PORT, FORWARD_PORT(state));
 	    if (IS_AVAIL_CLIENT_NAMADDR(FORWARD_NAMADDR(state)))
 		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			    MAIL_ATTR_LOG_ORIGIN, FORWARD_NAMADDR(state));
@@ -1736,6 +1739,8 @@ static int mail_open_stream(SMTPD_STATE *state)
 		    MAIL_ATTR_ACT_REVERSE_CLIENT_NAME, state->reverse_name);
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			MAIL_ATTR_ACT_CLIENT_ADDR, state->addr);
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_ACT_CLIENT_PORT, state->port);
 	    if (state->helo_name)
 		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			    MAIL_ATTR_ACT_HELO_NAME, state->helo_name);
@@ -3295,6 +3300,25 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	}
 
 	/*
+	 * PORT=substitute SMTP client port number.
+	 */
+	else if (STREQ(attr_name, XCLIENT_PORT)) {
+	    if (STREQ(attr_value, XCLIENT_UNAVAILABLE)) {
+		attr_value = CLIENT_PORT_UNKNOWN;
+	    } else {
+		if (!alldig(attr_value)
+		    || strlen(attr_value) > sizeof("65535") - 1) {
+		    state->error_mask |= MAIL_ERROR_PROTOCOL;
+		    smtpd_chat_reply(state, "501 5.5.4 Bad %s syntax: %s",
+				     XCLIENT_PORT, attr_value);
+		    return (-1);
+		}
+	    }
+	    UPDATE_STR(state->port, attr_value);
+	    update_namaddr = 1;
+	}
+
+	/*
 	 * HELO=substitute SMTP client HELO parameter. Censor special
 	 * characters that could mess up message headers.
 	 */
@@ -3346,7 +3370,8 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	if (state->namaddr)
 	    myfree(state->namaddr);
 	state->namaddr =
-	    concatenate(state->name, "[", state->addr, "]", (char *) 0);
+	    concatenate(state->name, "[", state->addr, "]:",
+			state->port, (char *) 0);
     }
 
     /*
@@ -3401,6 +3426,7 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     static NAME_CODE xforward_flags[] = {
 	XFORWARD_NAME, SMTPD_STATE_XFORWARD_NAME,
 	XFORWARD_ADDR, SMTPD_STATE_XFORWARD_ADDR,
+	XFORWARD_PORT, SMTPD_STATE_XFORWARD_PORT,
 	XFORWARD_PROTO, SMTPD_STATE_XFORWARD_PROTO,
 	XFORWARD_HELO, SMTPD_STATE_XFORWARD_HELO,
 	XFORWARD_DOMAIN, SMTPD_STATE_XFORWARD_DOMAIN,
@@ -3521,6 +3547,24 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    break;
 
 	    /*
+	     * PORT=up-stream port number.
+	     */
+	case SMTPD_STATE_XFORWARD_PORT:
+	    if (STREQ(attr_value, XFORWARD_UNAVAILABLE)) {
+		attr_value = CLIENT_PORT_UNKNOWN;
+	    } else {
+		if (!alldig(attr_value)
+		    || strlen(attr_value) > sizeof("65535") - 1) {
+		    state->error_mask |= MAIL_ERROR_PROTOCOL;
+		    smtpd_chat_reply(state, "501 5.5.4 Bad %s syntax: %s",
+				     XFORWARD_PORT, attr_value);
+		    return (-1);
+		}
+	    }
+	    UPDATE_STR(state->xforward.port, attr_value);
+	    break;
+
+	    /*
 	     * HELO=hostname that the up-stream MTA introduced itself with
 	     * (not necessarily SMTP HELO). Censor special characters that
 	     * could mess up message headers.
@@ -3593,7 +3637,8 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	state->xforward.namaddr =
 	    IS_AVAIL_CLIENT_ADDR(state->xforward.addr) ?
 	    concatenate(state->xforward.name, "[",
-			state->xforward.addr, "]",
+			state->xforward.addr, "]:",
+			state->xforward.port,
 			(char *) 0) : mystrdup(state->xforward.name);
     }
     smtpd_chat_reply(state, "250 2.0.0 Ok");
@@ -4004,14 +4049,13 @@ static void smtpd_proto(SMTPD_STATE *state)
 	 * HELO or EHLO, but we do change the feature list that is announced
 	 * in the EHLO response.
 	 */
-#define XXX_NO_PORT	"0"
 	else {
 	    err = 0;
 	    if (smtpd_milters != 0 && SMTPD_STAND_ALONE(state) == 0) {
 		milter_macro_callback(smtpd_milters, smtpd_milter_eval,
 				      (void *) state);
 		if ((err = milter_conn_event(smtpd_milters, state->name,
-					     state->addr, XXX_NO_PORT,
+					     state->addr, state->port,
 					     state->addr_family)) != 0)
 		    err = check_milter_reply(state, err);
 	    }
@@ -4142,13 +4186,20 @@ static void smtpd_proto(SMTPD_STATE *state)
      * Log abnormal session termination, in case postmaster notification has
      * been turned off. In the log, indicate the last recognized state before
      * things went wrong. Don't complain about clients that go away without
-     * sending QUIT.
+     * sending QUIT. Log the byte count after DATA to help diagnose MTU
+     * troubles.
      */
-    if (state->reason && state->where
-	&& (strcmp(state->where, SMTPD_AFTER_DOT)
-	    || strcmp(state->reason, REASON_LOST_CONNECTION)))
-	msg_info("%s after %s from %s[%s]",
-		 state->reason, state->where, state->name, state->addr);
+    if (state->reason && state->where) {
+	if (strcmp(state->where, SMTPD_CMD_DATA) == 0) {
+	    msg_info("%s after %s (%lu bytes) from %s[%s]",
+		     state->reason, state->where, (long) state->act_size,
+		     state->name, state->addr);
+	} else if (strcmp(state->where, SMTPD_AFTER_DOT)
+		   || strcmp(state->reason, REASON_LOST_CONNECTION)) {
+	    msg_info("%s after %s from %s[%s]",
+		     state->reason, state->where, state->name, state->addr);
+	}
+    }
 
     /*
      * Cleanup whatever information the client gave us during the SMTP
@@ -4193,7 +4244,7 @@ static void smtpd_service(VSTREAM *stream, char *service, char **argv)
      * machines.
      */
     smtpd_state_init(&state, stream, service);
-    msg_info("connect from %s[%s]", state.name, state.addr);
+    msg_info("connect from %s", state.namaddr);
 
     /*
      * With TLS wrapper mode, we run on a dedicated port and turn on TLS
@@ -4243,7 +4294,7 @@ static void smtpd_service(VSTREAM *stream, char *service, char **argv)
      * After the client has gone away, clean up whatever we have set up at
      * connection time.
      */
-    msg_info("disconnect from %s[%s]", state.name, state.addr);
+    msg_info("disconnect from %s", state.namaddr);
     smtpd_state_reset(&state);
     debug_peer_restore();
 }

@@ -68,7 +68,7 @@ names are shown in upper case, they are in fact case insensitive.
     xforward-command = XFORWARD 1*( SP attribute-name"="attribute-value )
 </p>
 <p>
-    attribute-name = ( NAME | ADDR | PROTO | HELO | SOURCE )
+    attribute-name = ( NAME | ADDR | PORT | PROTO | HELO | SOURCE )
 </p>
 <p>
     attribute-value = xtext
@@ -77,7 +77,7 @@ names are shown in upper case, they are in fact case insensitive.
 
 <ul>
 
-    <li> <p> Attribute values are xtext encoded as per <a href="http://www.faqs.org/rfcs/rfc1891.html">RFC 1891</a>.
+    <li> <p> Attribute values are xtext encoded as per <a href="http://tools.ietf.org/html/rfc1891">RFC 1891</a>.
     </p>
 
     <li> <p> The NAME attribute specifies the up-stream hostname,
@@ -88,6 +88,10 @@ names are shown in upper case, they are in fact case insensitive.
     address, or [UNAVAILABLE] when the information is unavailable.
     Address information is not enclosed with []. The address may
     be a non-IP address. </p>
+
+    <li> <p> The PORT attribute specifies an up-stream client TCP
+    port number in decimal, or [UNAVAILABLE] when the information
+    is unavailable.  </p>
 
     <li> <p> The PROTO attribute specifies the mail protocol for
     receiving mail from the up-stream host. This may be an SMTP or
@@ -211,7 +215,7 @@ so there is no risk of information leakage. </p>
 <h2> References </h2>
 
 <p> Moore, K, "SMTP Service Extension for Delivery Status Notifications",
-<a href="http://www.faqs.org/rfcs/rfc1891.html">RFC 1891</a>, January 1996. </p>
+<a href="http://tools.ietf.org/html/rfc1891">RFC 1891</a>, January 1996. </p>
 
 </body>
 

@@ -5,7 +5,7 @@
 /* NAME
 /*	mail_proto 3h
 /* SUMMARY
-/*	mail internal IPC support
+/*	mail internal and external protocol support
 /* SYNOPSIS
 /*	#include <mail_proto.h>
 /* DESCRIPTION
@@ -169,9 +169,10 @@ extern char *mail_pathname(const char *, const char *);
 
 #define MAIL_ATTR_LOG_CLIENT_NAME "log_client_name"	/* client hostname */
 #define MAIL_ATTR_LOG_CLIENT_ADDR "log_client_address"	/* client address */
+#define MAIL_ATTR_LOG_CLIENT_PORT "log_client_port"	/* client port */
 #define MAIL_ATTR_LOG_HELO_NAME	"log_helo_name"	/* SMTP helo name */
 #define MAIL_ATTR_LOG_PROTO_NAME "log_protocol_name"	/* SMTP/ESMTP/QMQP */
-#define MAIL_ATTR_LOG_ORIGIN	"log_message_origin"	/* hostname[address] */
+#define MAIL_ATTR_LOG_ORIGIN	"log_message_origin"	/* name[addr]:port */
 
 #define MAIL_ATTR_ACT_CLIENT	"client"/* client name addr */
 #define MAIL_ATTR_ACT_CLIENT_NAME "client_name"	/* client name */
@@ -191,27 +192,29 @@ extern char *mail_pathname(const char *, const char *);
   * XCLIENT/XFORWARD in SMTP.
   */
 #define XCLIENT_CMD		"XCLIENT"	/* XCLIENT command */
-#define XCLIENT_NAME		"NAME"		/* client name */
+#define XCLIENT_NAME		"NAME"	/* client name */
 #define XCLIENT_REVERSE_NAME	"REVERSE_NAME"	/* reverse client name */
 #ifdef FORWARD_CLIENT_NAME
 #define XCLIENT_FORWARD_NAME	"FORWARD_NAME"	/* forward client name */
 #endif
-#define XCLIENT_ADDR		"ADDR"		/* client address */
-#define XCLIENT_PROTO		"PROTO"		/* client protocol */
-#define XCLIENT_HELO		"HELO"		/* client helo */
+#define XCLIENT_ADDR		"ADDR"	/* client address */
+#define XCLIENT_PORT		"PORT"	/* client port */
+#define XCLIENT_PROTO		"PROTO"	/* client protocol */
+#define XCLIENT_HELO		"HELO"	/* client helo */
 
 #define XCLIENT_UNAVAILABLE	"[UNAVAILABLE]"	/* permanently unavailable */
 #define XCLIENT_TEMPORARY	"[TEMPUNAVAIL]"	/* temporarily unavailable */
 
 #define XFORWARD_CMD		"XFORWARD"	/* XFORWARD command */
-#define XFORWARD_NAME		"NAME"		/* client name */
-#define XFORWARD_ADDR		"ADDR"		/* client address */
-#define XFORWARD_PROTO		"PROTO"		/* client protocol */
-#define XFORWARD_HELO		"HELO"		/* client helo */
-#define XFORWARD_IDENT		"IDENT"		/* message identifier */
-#define XFORWARD_DOMAIN		"SOURCE"	/* origin type */
-#define XFORWARD_DOM_LOCAL	"LOCAL"		/* local origin */
-#define XFORWARD_DOM_REMOTE	"REMOTE"	/* remote origin */
+#define XFORWARD_NAME		"NAME"	/* client name */
+#define XFORWARD_ADDR		"ADDR"	/* client address */
+#define XFORWARD_PORT		"PORT"	/* client port */
+#define XFORWARD_PROTO		"PROTO"	/* client protocol */
+#define XFORWARD_HELO		"HELO"	/* client helo */
+#define XFORWARD_IDENT		"IDENT"	/* message identifier */
+#define XFORWARD_DOMAIN		"SOURCE"/* origin type */
+#define XFORWARD_DOM_LOCAL	"LOCAL"	/* local origin */
+#define XFORWARD_DOM_REMOTE	"REMOTE"/* remote origin */
 
 #define XFORWARD_UNAVAILABLE	"[UNAVAILABLE]"	/* attribute unavailable */
 
