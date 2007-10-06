@@ -3287,6 +3287,11 @@ qmqpd_authorized_clients = !192.168.0.1, 192.168.0.0/24
 .fi
 .ad
 .ft R
+.SH qmqpd_client_port_logging (default: no)
+Enable logging of the remote QMQP client port in addition to
+the hostname and IP address. The logging format is "host[address]:port".
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH qmqpd_error_delay (default: 1s)
 How long the QMQP server will pause before sending a negative reply
 to the client. The purpose is to slow down confused or malicious
@@ -5433,6 +5438,11 @@ smtpd_client_new_tls_session_rate_limit = 100
 .fi
 .ad
 .ft R
+.SH smtpd_client_port_logging (default: no)
+Enable logging of the remote SMTP client port in addition to
+the hostname and IP address. The logging format is "host[address]:port".
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH smtpd_client_recipient_rate_limit (default: 0)
 The maximal number of recipient addresses that any client is allowed
 to send to this service per time unit, regardless of whether or not

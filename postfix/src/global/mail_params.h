@@ -2791,6 +2791,17 @@ extern char *var_milt_v;
 #define DEF_INT_FILT_CLASSES		""
 extern char *var_int_filt_classes;
 
+ /*
+  * This could break logfile processors, so it's off by default.
+  */
+#define VAR_SMTPD_CLIENT_PORT_LOG		"smtpd_client_port_logging"
+#define DEF_SMTPD_CLIENT_PORT_LOG		0
+extern bool var_smtpd_client_port_log;
+
+#define VAR_QMQPD_CLIENT_PORT_LOG		"qmqpd_client_port_logging"
+#define DEF_QMQPD_CLIENT_PORT_LOG		0
+extern bool var_qmqpd_client_port_log;
+
 /* LICENSE
 /* .ad
 /* .fi

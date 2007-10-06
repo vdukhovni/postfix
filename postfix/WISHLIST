@@ -1,5 +1,8 @@
 Wish list:
 
+	Make event_drain() a proper event loop; update the zero mask,
+	and don't ignore a non-empty timer queue.
+
 	Combine smtpd_peer.c and qmqpd_peer.c into a single function
 	that produces a client context object, and provide attribute
 	print/scan routines that pass these client context objects

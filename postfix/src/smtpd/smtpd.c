@@ -829,6 +829,11 @@
 /* .IP "\fBsmtpd_forbidden_commands (CONNECT, GET, POST)\fR"
 /*	List of commands that causes the Postfix SMTP server to immediately
 /*	terminate the session with a 221 code.
+/* .PP
+/*	Available in Postfix version 2.5 and later:
+/* .IP "\fBsmtpd_client_port_logging (no)\fR"
+/*	Enable logging of the remote SMTP client port in addition to
+/*	the hostname and IP address.
 /* SEE ALSO
 /*	anvil(8), connection/rate limiting
 /*	cleanup(8), message canonicalization
@@ -1124,6 +1129,7 @@ char   *var_milt_rcpt_macros;
 char   *var_milt_data_macros;
 char   *var_milt_eod_macros;
 char   *var_milt_unk_macros;
+bool    var_smtpd_client_port_log;
 
  /*
   * Silly little macros.
@@ -1228,8 +1234,8 @@ static int sasl_client_exception(SMTPD_STATE *state)
 			      state->name, state->addr);
 
     if (msg_verbose)
-	msg_info("sasl_exceptions: %s[%s], match=%d",
-		 state->name, state->addr, match);
+	msg_info("sasl_exceptions: %s, match=%d",
+		 state->namaddr, match);
 
     return (match);
 }
@@ -3933,8 +3939,8 @@ static void smtpd_proto(SMTPD_STATE *state)
     switch (status) {
 
     default:
-	msg_panic("smtpd_proto: unknown error reading from %s[%s]",
-		  state->name, state->addr);
+	msg_panic("smtpd_proto: unknown error reading from %s",
+		  state->namaddr);
 	break;
 
     case SMTP_ERR_TIME:
@@ -4055,7 +4061,9 @@ static void smtpd_proto(SMTPD_STATE *state)
 		milter_macro_callback(smtpd_milters, smtpd_milter_eval,
 				      (void *) state);
 		if ((err = milter_conn_event(smtpd_milters, state->name,
-					     state->addr, state->port,
+					     state->addr,
+				  strcmp(state->port, CLIENT_PORT_UNKNOWN) ?
+					     state->port : "0",
 					     state->addr_family)) != 0)
 		    err = check_milter_reply(state, err);
 	    }
@@ -4191,13 +4199,13 @@ static void smtpd_proto(SMTPD_STATE *state)
      */
     if (state->reason && state->where) {
 	if (strcmp(state->where, SMTPD_CMD_DATA) == 0) {
-	    msg_info("%s after %s (%lu bytes) from %s[%s]",
+	    msg_info("%s after %s (%lu bytes) from %s",
 		     state->reason, state->where, (long) state->act_size,
-		     state->name, state->addr);
+		     state->namaddr);
 	} else if (strcmp(state->where, SMTPD_AFTER_DOT)
 		   || strcmp(state->reason, REASON_LOST_CONNECTION)) {
-	    msg_info("%s after %s from %s[%s]",
-		     state->reason, state->where, state->name, state->addr);
+	    msg_info("%s after %s from %s",
+		     state->reason, state->where, state->namaddr);
 	}
     }
 
@@ -4640,6 +4648,7 @@ int     main(int argc, char **argv)
 #endif
 	VAR_SMTPD_PEERNAME_LOOKUP, DEF_SMTPD_PEERNAME_LOOKUP, &var_smtpd_peername_lookup,
 	VAR_SMTPD_DELAY_OPEN, DEF_SMTPD_DELAY_OPEN, &var_smtpd_delay_open,
+	VAR_SMTPD_CLIENT_PORT_LOG, DEF_SMTPD_CLIENT_PORT_LOG, &var_smtpd_client_port_log,
 	0,
     };
     static CONFIG_STR_TABLE str_table[] = {

@@ -127,12 +127,12 @@ void    smtpd_chat_query(SMTPD_STATE *state)
     last_char = smtp_get(state->buffer, state->client, var_line_limit);
     smtp_chat_append(state, "In:  ");
     if (last_char != '\n')
-	msg_warn("%s[%s]: request longer than %d: %.30s...",
-		 state->name, state->addr, var_line_limit,
+	msg_warn("%s: request longer than %d: %.30s...",
+		 state->namaddr, var_line_limit,
 		 printable(STR(state->buffer), '?'));
 
     if (msg_verbose)
-	msg_info("< %s[%s]: %s", state->name, state->addr, STR(state->buffer));
+	msg_info("< %s: %s", state->namaddr, STR(state->buffer));
 }
 
 /* smtpd_chat_reply - format, send and record an SMTP response */
@@ -154,7 +154,7 @@ void    smtpd_chat_reply(SMTPD_STATE *state, const char *format,...)
     smtp_chat_append(state, "Out: ");
 
     if (msg_verbose)
-	msg_info("> %s[%s]: %s", state->name, state->addr, STR(state->buffer));
+	msg_info("> %s: %s", state->namaddr, STR(state->buffer));
 
     /*
      * Slow down clients that make errors. Sleep-on-anything slows down
@@ -236,8 +236,8 @@ void    smtpd_chat_notify(SMTPD_STATE *state)
     post_mail_fprintf(notice, "From: %s (Mail Delivery System)",
 		      mail_addr_mail_daemon());
     post_mail_fprintf(notice, "To: %s (Postmaster)", var_error_rcpt);
-    post_mail_fprintf(notice, "Subject: %s SMTP server: errors from %s[%s]",
-		      var_mail_name, state->name, state->addr);
+    post_mail_fprintf(notice, "Subject: %s SMTP server: errors from %s",
+		      var_mail_name, state->namaddr);
     post_mail_fputs(notice, "");
     post_mail_fputs(notice, "Transcript of session follows.");
     post_mail_fputs(notice, "");

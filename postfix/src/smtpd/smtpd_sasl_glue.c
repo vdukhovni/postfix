@@ -248,15 +248,15 @@ int     smtpd_sasl_authenticate(SMTPD_STATE *state,
 	 */
 	smtpd_chat_query(state);
 	if (strcmp(STR(state->buffer), "*") == 0) {
-	    msg_warn("%s[%s]: SASL %s authentication aborted",
-		     state->name, state->addr, sasl_method);
+	    msg_warn("%s: SASL %s authentication aborted",
+		     state->namaddr, sasl_method);
 	    smtpd_chat_reply(state, "501 5.7.0 Authentication aborted");
 	    return (-1);
 	}
     }
     if (status != XSASL_AUTH_DONE) {
-	msg_warn("%s[%s]: SASL %s authentication failed: %s",
-		 state->name, state->addr, sasl_method,
+	msg_warn("%s: SASL %s authentication failed: %s",
+		 state->namaddr, sasl_method,
 		 STR(state->sasl_reply));
 	/* RFC 4954 Section 6. */
 	smtpd_chat_reply(state, "535 5.7.8 Error: authentication failed: %s",

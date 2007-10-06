@@ -106,6 +106,9 @@
 /*	The process name of a Postfix command or daemon process.
 /* .IP "\fBqmqpd_authorized_clients (empty)\fR"
 /*	What clients are allowed to connect to the QMQP server port.
+/* .IP "\fBqmqpd_client_port_logging (no)\fR"
+/*	Enable logging of the remote QMQP client port in addition to
+/*	the hostname and IP address.
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 /*	The location of the Postfix top-level queue directory.
 /* .IP "\fBsyslog_facility (mail)\fR"
@@ -200,6 +203,7 @@ int     var_qmqpd_err_sleep;
 char   *var_filter_xport;
 char   *var_qmqpd_clients;
 char   *var_input_transp;
+bool    var_qmqpd_client_port_log;
 
  /*
   * Silly little macros.
@@ -780,6 +784,10 @@ int     main(int argc, char **argv)
 	VAR_FILTER_XPORT, DEF_FILTER_XPORT, &var_filter_xport, 0, 0,
 	VAR_QMQPD_CLIENTS, DEF_QMQPD_CLIENTS, &var_qmqpd_clients, 0, 0,
 	VAR_INPUT_TRANSP, DEF_INPUT_TRANSP, &var_input_transp, 0, 0,
+	0,
+    };
+    static CONFIG_BOOL_TABLE bool_table[] = {
+	VAR_QMQPD_CLIENT_PORT_LOG, DEF_QMQPD_CLIENT_PORT_LOG, &var_qmqpd_client_port_log,
 	0,
     };
 

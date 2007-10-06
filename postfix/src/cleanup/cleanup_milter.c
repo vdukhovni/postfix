@@ -1270,6 +1270,10 @@ static const char *cleanup_milter_eval(const char *name, void *ptr)
     /*
      * Connect macros.
      */
+#ifndef CLIENT_ATTR_UNKNOWN
+#define CLIENT_ATTR_UNKNOWN "unknown"
+#endif
+
     if (strcmp(name, S8_MAC__) == 0) {
 	vstring_sprintf(state->temp1, "%s [%s]",
 			state->reverse_name, state->client_addr);
@@ -1284,7 +1288,9 @@ static const char *cleanup_milter_eval(const char *name, void *ptr)
     if (strcmp(name, S8_MAC_CLIENT_NAME) == 0)
 	return (state->client_name);
     if (strcmp(name, S8_MAC_CLIENT_PORT) == 0)
-	return (state->client_port);
+	return (state->client_port
+		&& strcmp(state->client_port, CLIENT_ATTR_UNKNOWN) ?
+		state->client_port : "0");
     if (strcmp(name, S8_MAC_CLIENT_PTR) == 0)
 	return (state->reverse_name);
 

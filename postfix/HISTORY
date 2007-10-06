@@ -13756,3 +13756,18 @@ Apologies for any names omitted.
 
 	Feature: per-command delays in smtp-sink. File:
 	smtpstone/smtp-sink.c.  Victor Duchovni.
+
+20071006
+
+	Cleanup: updated a bunch of hard-coded host[addr] logging
+	statements. Files: smtpd/smtpd.c, smtpd/smtpd_chat.c,
+	smtpd/smtpd_sasl_glue.c.
+
+	Cleanup: client port logging is now configurable (off by
+	default). Parameters: smtpd_client_port_logging and
+	qmqpd_client_port_logging. Files: smtpd/smtpd_peer.c,
+	qmqpd/qmqpd_peer.c.
+
+	Cleanup: send client port information "0" instead of "unknown"
+	to Milter applications. Files: smtpd/smtpd.c, smtpd/smtpd_milter.c,
+	cleanup/cleanup_milter.c.

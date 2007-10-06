@@ -276,8 +276,9 @@ void    qmqpd_peer_init(QMQPD_STATE *state)
      * Do the name[addr]:port formatting for pretty reports.
      */
     state->namaddr =
-	concatenate(state->name, "[", state->addr,
-		    "]:", state->port, (char *) 0);
+	concatenate(state->name, "[", state->addr, "]",
+		    var_qmqpd_client_port_log ? ":" : (char *) 0,
+		    state->port, (char *) 0);
 }
 
 /* qmqpd_peer_reset - destroy peer information */

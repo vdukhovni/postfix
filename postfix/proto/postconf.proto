@@ -10617,3 +10617,19 @@ to the SASL authcid, but this causes inter-operability problems
 with some SMTP servers. </p>
 
 <p> This feature is available in Postfix 2.4.4 and later. </p>
+
+%PARAM smtpd_client_port_logging no
+
+<p> Enable logging of the remote SMTP client port in addition to
+the hostname and IP address. The logging format is "host[address]:port".
+</p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+%PARAM qmqpd_client_port_logging no
+
+<p> Enable logging of the remote QMQP client port in addition to
+the hostname and IP address. The logging format is "host[address]:port".
+</p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
