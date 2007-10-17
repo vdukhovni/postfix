@@ -108,7 +108,8 @@
 /*	event_drain() repeatedly calls event_loop() until no more timer
 /*	events or I/O events are pending or until the time limit is reached.
 /*	This routine must not be called from an event_whatever() callback
-/*	routine.
+/*	routine. Note: this function ignores pending timer events, and
+/*	assumes that no new I/O events will be registered.
 /* DIAGNOSTICS
 /*	Panics: interface violations. Fatal errors: out of memory,
 /*	system call failure. Warnings: the number of available
@@ -622,7 +623,11 @@ void    event_drain(int time_limit)
     if (EVENT_INIT_NEEDED())
 	return;
 
+#if (EVENTS_STYLE == EVENTS_STYLE_SELECT)
     EVENT_MASK_ZERO(&zero_mask);
+#else
+    EVENT_MASK_ALLOC(&zero_mask, event_fdslots);
+#endif
     (void) time(&event_present);
     max_time = event_present + time_limit;
     while (event_present < max_time
@@ -630,6 +635,9 @@ void    event_drain(int time_limit)
 	       || memcmp(&zero_mask, &event_xmask,
 			 EVENT_MASK_BYTE_COUNT(&zero_mask)) != 0))
 	event_loop(1);
+#if (EVENTS_STYLE != EVENTS_STYLE_SELECT)
+    EVENT_MASK_FREE(&zero_mask);
+#endif
 }
 
 /* event_enable_read - enable read events */

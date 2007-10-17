@@ -3302,7 +3302,7 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 	    coded_CN_buf = 0; \
 	    coded_CN = ""; \
 	} else { \
-	    coded_CN_buf = vstring_alloc(strlen(CN)); \
+	    coded_CN_buf = vstring_alloc(strlen(CN) + 1); \
 	    xtext_quote(coded_CN_buf, CN, ""); \
 	    coded_CN = STR(coded_CN_buf); \
 	} \

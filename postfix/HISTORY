@@ -13540,3 +13540,25 @@ Apologies for any names omitted.
 	Bugfix: the loopback TCP performance workaround was ineffective
 	due to a wetware bit-flip during code cleanup.  File:
 	util/vstream_tweak.c.
+
+20070911
+
+	Bugfix (introduced Postfix 2.2.11): TLS client certificate
+	with unparsable canonical name caused the SMTP server's
+	policy client to allocate zero-length memory, triggering
+	an assertion that it shouldn't do such things.  File:
+	smtpd/smtpd_check.c.
+
+20070912
+
+	Bugfix (introduced Postfix 2.4) missing initialization of
+	event mask in the event_mask_drain() routine (used by the
+	obsolete postkick(1) command). Found by Coverity.  File:
+	util/events.c.
+
+20070917
+
+	Workaround: the flush daemon forces an access time update
+	for the per-destination logfile, to prevent an excessive
+	rate of delivery attempts when the queue file system is
+	mounted with "noatime".  File: flush/flush.c.
