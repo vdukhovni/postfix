@@ -13064,11 +13064,27 @@ Apologies for any names omitted.
 
 20070730
 
-        Bugfix: when a milter replied with ACCEPT at or before the
-        first RCPT command, the cleanup server would apply the
-        non_smtpd_milters setting as if the message was a local
-        submission. Problem reported by Jukka Salmi. Also, the
-        cleanup server would get out of sync with the milter when
-        a milter replied with ACCEPT at the DATA command. Files:
-        cleanup/cleanup_envelope.c, smtpd/smtpd.c, milter/milters.c.
+	Bugfix: when a milter replied with ACCEPT at or before the
+	first RCPT command, the cleanup server would apply the
+	non_smtpd_milters setting as if the message was a local
+	submission. Problem reported by Jukka Salmi. Also, the
+	cleanup server would get out of sync with the milter when
+	a milter replied with ACCEPT at the DATA command. Files:
+	cleanup/cleanup_envelope.c, smtpd/smtpd.c, milter/milters.c.
 	Back-port from Postfix 2.4/2.5.
+
+20070911
+
+	Bugfix (introduced Postfix 2.2.11): TLS client certificate
+	with unparsable canonical name caused the SMTP server's
+	policy client to allocate zero-length memory, triggering
+	an assertion that it shouldn't do such things.  File:
+	smtpd/smtpd_check.c. Back-port from Postfix 2.4/2.5.
+
+20070917
+
+	Workaround: the flush daemon forces an access time update
+	for the per-destination logfile, to prevent an excessive
+	rate of delivery attempts when the queue file system is
+	mounted with "noatime".  File: flush/flush.c. Back-port
+	from Postfix 2.4/2.5.
