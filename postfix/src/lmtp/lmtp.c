@@ -443,6 +443,7 @@ static int deliver_message(DELIVER_REQUEST *request, char **unused_argv)
     if (state->session != 0
 	&& (!var_lmtp_cache_conn
 	    || vstream_ferror(state->session->stream)
+	    || vstream_ftimeout(state->session->stream)
 	    || vstream_feof(state->session->stream)))
 	state->session = lmtp_session_free(state->session);
 

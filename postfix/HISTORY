@@ -11012,3 +11012,36 @@ Apologies for any names omitted.
 	if Postfix could somehow be forced to send HELO instead of
 	EHLO. Victor Duchovni.  File: src/smtp/smtp_proto.c.
 
+20061203
+
+	Bugfix (introduced with Postfix 2.2): with SMTP server
+	tarpit delays of smtp_rset_timeout or larger, the SMTP
+	client could get out of sync with the server while reusing
+	a connection.  The symptoms were "recipient rejected .. in
+	reply to DATA".  Fix by Victor Duchovni and Wietse.  File:
+	smtp/smtp_proto.c, smtp/smtp_connect.c. Back-ported from
+	Postfix 2.3.
+
+	Safety: additional error tests to prevent connection reuse
+	after timeout error. Files: lmtp/lmtp.c, smtp/smtp_connect.c.
+	Back-ported from Postfix 2.3.
+
+20070529
+
+	Cleanup: misleading error message while discarding malformed
+	input after queue file write error. File postdrop/postdrop.c.
+
+20070911
+
+	Bugfix (introduced Postfix 2.2.11): TLS client certificate
+	with unparsable canonical name caused the SMTP server's
+	policy client to allocate zero-length memory, triggering
+	an assertion that it shouldn't do such things.  File:
+	smtpd/smtpd_check.c.
+
+20070917
+
+	Workaround: the flush daemon forces an access time update
+	for the per-destination logfile, to prevent an excessive
+	rate of delivery attempts when the queue file system is
+	mounted with "noatime".  File: flush/flush.c.

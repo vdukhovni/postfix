@@ -378,7 +378,11 @@ static void smtp_cleanup_session(SMTP_STATE *state)
      * logical next-hop state, so that we won't cache connections to
      * less-preferred MX hosts under the logical next-hop destination.
      */
-    if (session->reuse_count > 0) {
+    if (session->reuse_count > 0
+    /* Redundant tests for safety... */
+	&& vstream_ferror(session->stream) == 0
+	&& vstream_ftimeout(session->stream) == 0
+	&& vstream_feof(session->stream) == 0) {
 	smtp_save_session(state);
 	if (HAVE_NEXTHOP_STATE(state))
 	    FREE_NEXTHOP_STATE(state);
@@ -709,6 +713,7 @@ int     smtp_connect(SMTP_STATE *state)
 		if ((session->features & SMTP_FEATURE_FROM_CACHE) == 0
 		    && smtp_helo(state, misc_flags) != 0) {
 		    if (vstream_ferror(session->stream) == 0
+			&& vstream_ftimeout(session->stream) == 0
 			&& vstream_feof(session->stream) == 0)
 			smtp_quit(state);
 		} else

@@ -888,6 +888,8 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
     } while (0)
 
 #define RETURN(x) do { \
+	if (recv_state != SMTP_STATE_LAST) \
+	    DONT_CACHE_THIS_SESSION; \
 	vstring_free(next_command); \
 	if (session->mime_state) \
 	    session->mime_state = mime_state_free(session->mime_state); \

@@ -406,6 +406,8 @@ int     main(int argc, char **argv)
 	    while ((rec_type = rec_get(VSTREAM_IN, buf, var_line_limit)) > 0
 		   && rec_type != REC_TYPE_END)
 		 /* void */ ;
+	    if (rec_type <= 0)
+		msg_fatal("uid=%ld: malformed input", (long) uid);
 	    break;
 	}
 	if (rec_type == REC_TYPE_END)
