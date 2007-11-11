@@ -238,6 +238,18 @@ char   *xfer_request[SMTP_STATE_LAST] = {
 
 static int smtp_start_tls(SMTP_STATE *);
 
+ /*
+  * Call-back information for header/body checks. We don't provide call-backs
+  * for actions that change the message delivery time or destination.
+  */
+static void smtp_hbc_logger(void *, const char *, const char *, const char *, const char *);
+static void smtp_text_out(void *, int, const char *, ssize_t, off_t);
+
+HBC_CALL_BACKS smtp_hbc_callbacks[1] = {
+    smtp_hbc_logger,
+    smtp_text_out,
+};
+
 /* smtp_helo - perform initial handshake with SMTP server */
 
 int     smtp_helo(SMTP_STATE *state)
@@ -810,6 +822,23 @@ static int smtp_start_tls(SMTP_STATE *state)
 
 #endif
 
+/* smtp_hbc_logger - logging call-back for header/body checks */
+
+static void smtp_hbc_logger(void *context, const char *action,
+			            const char *where, const char *content,
+			            const char *text)
+{
+    const SMTP_STATE *state = (SMTP_STATE *) context;
+
+    if (*text) {
+	msg_info("%s: %s: %s %.60s: %s",
+		 state->request->queue_id, action, where, content, text);
+    } else {
+	msg_info("%s: %s: %s %.60s",
+		 state->request->queue_id, action, where, content);
+    }
+}
+
 /* smtp_text_out - output one header/body record */
 
 static void smtp_text_out(void *context, int rec_type,
@@ -906,6 +935,21 @@ static void smtp_header_rewrite(void *context, int header_class,
     char   *start;
     char   *next_line;
     char   *end_line;
+    char   *result;
+
+    /*
+     * Apply optional header filtering.
+     */
+    if (smtp_header_checks) {
+	result = hbc_header_checks(context, smtp_header_checks, header_class,
+				   header_info, buf, offset);
+	if (result == 0)
+	    return;
+	if (result != STR(buf)) {
+	    vstring_strcpy(buf, result);
+	    myfree(result);
+	}
+    }
 
     /*
      * Rewrite primary header addresses that match the smtp_generic_maps. The
@@ -913,7 +957,7 @@ static void smtp_header_rewrite(void *context, int header_class,
      * and that all addresses are in proper form, so we don't have to repeat
      * that.
      */
-    if (header_info && header_class == MIME_HDR_PRIMARY
+    if (smtp_generic_maps && header_info && header_class == MIME_HDR_PRIMARY
 	&& (header_info->flags & (HDR_OPT_SENDER | HDR_OPT_RECIP)) != 0) {
 	TOK822 *tree;
 	TOK822 **addr_list;
@@ -978,6 +1022,29 @@ static void smtp_header_rewrite(void *context, int header_class,
 			  next_line - line - 1 : strlen(line), offset);
 	} else {
 	    smtp_format_out(state, REC_TYPE_NORM, "\t%s", line);
+	}
+    }
+}
+
+/* smtp_body_rewrite - rewrite message body before output */
+
+static void smtp_body_rewrite(void *context, int type,
+			              const char *buf, ssize_t len,
+			              off_t offset)
+{
+    SMTP_STATE *state = (SMTP_STATE *) context;
+    char   *result;
+
+    /*
+     * Apply optional body filtering.
+     */
+    if (smtp_body_checks) {
+	result = hbc_body_checks(context, smtp_body_checks, buf, len, offset);
+	if (result == buf) {
+	    smtp_text_out(state, type, buf, len, offset);
+	} else if (result != 0) {
+	    smtp_text_out(state, type, result, strlen(result), offset);
+	    myfree(result);
 	}
     }
 }
@@ -1706,15 +1773,19 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		 * XXX Don't downgrade just because generic_maps is turned
 		 * on.
 		 */
-		if (downgrading || smtp_generic_maps)
+		if (downgrading || smtp_generic_maps || smtp_header_checks
+		    || smtp_body_checks)
 		    session->mime_state = mime_state_alloc(downgrading ?
 							   MIME_OPT_DOWNGRADE
 						 | MIME_OPT_REPORT_NESTING :
 						      MIME_OPT_DISABLE_MIME,
-							 smtp_generic_maps ?
+							   smtp_generic_maps
+						     || smtp_header_checks ?
 						       smtp_header_rewrite :
 							   smtp_header_out,
 						     (MIME_STATE_ANY_END) 0,
+							   smtp_body_checks ?
+							 smtp_body_rewrite :
 							   smtp_text_out,
 						     (MIME_STATE_ANY_END) 0,
 						   (MIME_STATE_ERR_PRINT) 0,

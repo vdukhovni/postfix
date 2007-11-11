@@ -17,6 +17,15 @@ Incompatibility with Postfix 2.3 and earlier
 If you upgrade from Postfix 2.3 or earlier, read RELEASE_NOTES-2.4
 before proceeding.
 
+Major changes with Postfix snapshot 20071110
+============================================
+
+Header/body checks are now available in the SMTP client, after the
+implementation was moved from the cleanup server to a library module.
+The SMTP client provides only actions that don't change the message
+delivery time or destination: warn, replace, prepend, ignore, dunno,
+ok.
+
 Major changes with Postfix snapshot 20070911
 ============================================
 

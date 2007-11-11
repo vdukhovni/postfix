@@ -2802,6 +2802,34 @@ extern bool var_smtpd_client_port_log;
 #define DEF_QMQPD_CLIENT_PORT_LOG		0
 extern bool var_qmqpd_client_port_log;
 
+ /*
+  * Header/body checks in delivery agents.
+  */
+#define VAR_SMTP_HEAD_CHKS	"smtp_header_checks"
+#define DEF_SMTP_HEAD_CHKS	""
+extern char *var_smtp_head_chks;
+
+#define VAR_SMTP_MIME_CHKS	"smtp_mime_header_checks"
+#define DEF_SMTP_MIME_CHKS	""
+extern char *var_smtp_mime_chks;
+
+#define VAR_SMTP_NEST_CHKS	"smtp_nested_header_checks"
+#define DEF_SMTP_NEST_CHKS	""
+extern char *var_smtp_nest_chks;
+
+#define VAR_SMTP_BODY_CHKS	"smtp_body_checks"
+#define DEF_SMTP_BODY_CHKS	""
+extern char *var_smtp_body_chks;
+
+#define VAR_LMTP_HEAD_CHKS	"lmtp_header_checks"
+#define DEF_LMTP_HEAD_CHKS	""
+#define VAR_LMTP_MIME_CHKS	"lmtp_mime_header_checks"
+#define DEF_LMTP_MIME_CHKS	""
+#define VAR_LMTP_NEST_CHKS	"lmtp_nested_header_checks"
+#define DEF_LMTP_NEST_CHKS	""
+#define VAR_LMTP_BODY_CHKS	"lmtp_body_checks"
+#define DEF_LMTP_BODY_CHKS	""
+
 /* LICENSE
 /* .ad
 /* .fi

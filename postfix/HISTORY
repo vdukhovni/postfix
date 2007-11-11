@@ -13708,10 +13708,11 @@ Apologies for any names omitted.
 
 20070911
 
-	Bugfix (introduced Postfix 2.2.11): certificate with
-	unparsable canonical name caused the SMTPD policy client
-	to allocate zero-length memory, triggering an assertion
-	that it shouldn't do such things.  File: smtpd/smtpd_check.c.
+	Bugfix (introduced Postfix 2.2.11): TLS client certificate
+	with unparsable canonical name caused the SMTP server's
+	policy client to allocate zero-length memory, triggering
+	an assertion that it shouldn't do such things.  File:
+	smtpd/smtpd_check.c.
 
 20070912
 
@@ -13771,3 +13772,44 @@ Apologies for any names omitted.
 	Cleanup: send client port information "0" instead of "unknown"
 	to Milter applications. Files: smtpd/smtpd.c, smtpd/smtpd_milter.c,
 	cleanup/cleanup_milter.c.
+
+20071025
+
+	Portability: on Linux we no longer need /proc to find out
+	local IPv6 interface address information. LaMont Jones.
+	Files: util/sys_defs.h.
+
+20071030
+
+	Bugfix: Postfix mistakenly enforced the 64kbyte limit (for
+	sending body parts TO Milter applications) also while
+	receiving packets FROM Milter applications.  The limit is
+	now at least 1GB.  File: milter/milter8.c.
+
+20071105
+
+	Feature: ORIGINAL_RECIPIENT environment variable.  Corey
+	Hickey. File: local/local.c.
+
+20071108-10
+
+	Feature: general-purpose header/body_checks library module,
+	first used in the SMTP client. Actions that change the
+	message delivery time or destination can be implemented
+	with a simple extension mechanism (they make sense only in
+	before-queue filters).  Configuration parameters:
+	smtp_header_checks, smtp_mime_header_checks,
+	smtp_nested_header_checks, smtp_body_checks. Unlike the
+	cleanup server, the mime and nested header checks don't by
+	default assume the header_checks value.  Files:
+	global/header_body_checks.[hc], smtp/smtp_proto.c,
+	smtp/smtp_session.c.
+
+20071110
+
+	Feature: ${original_recipient} command-line macro.  Corey
+	Hickey. File: pipe/pipe.c.
+
+	Bugfix (introduced: 20071004) missing exception handling
+	in smtp-sink per-command delay feature. Victor Duchovni.
+	File: smtpstone/smtp-sink.c.

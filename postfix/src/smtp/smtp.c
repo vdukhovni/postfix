@@ -211,6 +211,18 @@
 /*	When authenticating to a remote SMTP or LMTP server with the
 /*	default setting "no", send no SASL authoriZation ID (authzid); send
 /*	only the SASL authentiCation ID (authcid) plus the authcid's password.
+/* .PP
+/*      Available in Postfix version 2.5 and later:
+/* .IP "\fBsmtp_header_checks (empty)\fR"
+/*	Restricted \fBheader_checks\fR(5) tables for the Postfix SMTP client.
+/* .IP "\fBsmtp_mime_header_checks (empty)\fR"
+/*	Restricted \fBmime_header_checks\fR(5) tables for the Postfix SMTP
+/*	client.
+/* .IP "\fBsmtp_nested_header_checks (empty)\fR"
+/*	Restricted \fBnested_header_checks\fR(5) tables for the Postfix SMTP
+/*	client.
+/* .IP "\fBsmtp_body_checks (empty)\fR"
+/*	Restricted \fBbody_checks\fR(5) tables for the Postfix SMTP client.
 /* MIME PROCESSING CONTROLS
 /* .ad
 /* .fi
@@ -538,6 +550,9 @@
 /*	Optional list of relay hosts for SMTP destinations that can't be
 /*	found or that are unreachable.
 /* SEE ALSO
+/*	generic(5), output address rewriting
+/*	header_checks(5), message header content inspection
+/*	body_checks(5), body parts content inspection
 /*	qmgr(8), queue manager
 /*	bounce(8), delivery status reports
 /*	scache(8), connection cache server
@@ -719,6 +734,10 @@ bool    var_smtp_cname_overr;
 char   *var_smtp_pix_bug_words;
 char   *var_smtp_pix_bug_maps;
 char   *var_cyrus_conf_path;
+char   *var_smtp_head_chks;
+char   *var_smtp_mime_chks;
+char   *var_smtp_nest_chks;
+char   *var_smtp_body_chks;
 
  /*
   * Global variables.
@@ -730,6 +749,8 @@ MAPS   *smtp_ehlo_dis_maps;
 MAPS   *smtp_generic_maps;
 int     smtp_ext_prop_mask;
 MAPS   *smtp_pix_bug_maps;
+HBC_CHECKS *smtp_header_checks;		/* limited header checks */
+HBC_CHECKS *smtp_body_checks;		/* limited body checks */
 
 #ifdef USE_TLS
 
@@ -944,6 +965,18 @@ static void pre_init(char *unused_name, char **unused_argv)
 	smtp_generic_maps =
 	    maps_create(VAR_SMTP_GENERIC_MAPS, var_smtp_generic_maps,
 			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+
+    /*
+     * Header/body checks.
+     */
+    smtp_header_checks = hbc_header_checks_create(
+				     VAR_SMTP_HEAD_CHKS, var_smtp_head_chks,
+				     VAR_SMTP_MIME_CHKS, var_smtp_mime_chks,
+				     VAR_SMTP_NEST_CHKS, var_smtp_nest_chks,
+						  smtp_hbc_callbacks);
+    smtp_body_checks = hbc_body_checks_create(
+				     VAR_SMTP_BODY_CHKS, var_smtp_body_chks,
+					      smtp_hbc_callbacks);
 }
 
 /* pre_accept - see if tables have changed */

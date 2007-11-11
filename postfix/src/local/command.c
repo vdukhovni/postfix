@@ -165,6 +165,9 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, const char *comma
 	argv_add(env, "DOMAIN", state.msg_attr.domain, ARGV_END);
     if (state.msg_attr.extension)
 	argv_add(env, "EXTENSION", state.msg_attr.extension, ARGV_END);
+    if (state.msg_attr.rcpt.orig_addr && state.msg_attr.rcpt.orig_addr[0])
+	argv_add(env, "ORIGINAL_RECIPIENT", state.msg_attr.rcpt.orig_addr,
+		 ARGV_END);
 
 #define EXPORT_REQUEST(name, value) \
 	if ((value)[0]) argv_add(env, (name), (value), ARGV_END);

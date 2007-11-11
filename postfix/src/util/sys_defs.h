@@ -724,8 +724,13 @@ extern int initgroups(const char *, int);
 #endif
 #ifndef NO_IPV6
 # define HAS_IPV6
+#if defined(__GLIBC_PREREQ) && __GLIBC_PREREQ(2,4)
+/* Really 2.3.3 or later, but there's no __GLIBC_MICRO version macro. */
+# define HAVE_GETIFADDRS
+#else
 # define HAS_PROCNET_IFINET6
 # define _PATH_PROCNET_IFINET6 "/proc/net/if_inet6"
+#endif
 #endif
 #include <linux/version.h>
 #if !defined(KERNEL_VERSION) 

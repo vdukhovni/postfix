@@ -108,7 +108,8 @@
 /*	event_drain() repeatedly calls event_loop() until no more timer
 /*	events or I/O events are pending or until the time limit is reached.
 /*	This routine must not be called from an event_whatever() callback
-/*	routine.
+/*	routine. Note: this function ignores pending timer events, and
+/*	assumes that no new I/O events will be registered.
 /* DIAGNOSTICS
 /*	Panics: interface violations. Fatal errors: out of memory,
 /*	system call failure. Warnings: the number of available

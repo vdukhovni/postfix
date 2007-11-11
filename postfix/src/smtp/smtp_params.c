@@ -48,6 +48,10 @@
 	VAR_SMTP_PIX_BUG_WORDS, DEF_SMTP_PIX_BUG_WORDS, &var_smtp_pix_bug_words, 0, 0,
 	VAR_SMTP_PIX_BUG_MAPS, DEF_SMTP_PIX_BUG_MAPS, &var_smtp_pix_bug_maps, 0, 0,
 	VAR_CYRUS_CONF_PATH, DEF_CYRUS_CONF_PATH, &var_cyrus_conf_path, 0, 0,
+	VAR_SMTP_HEAD_CHKS, DEF_SMTP_HEAD_CHKS, &var_smtp_head_chks, 0, 0,
+	VAR_SMTP_MIME_CHKS, DEF_SMTP_MIME_CHKS, &var_smtp_mime_chks, 0, 0,
+	VAR_SMTP_NEST_CHKS, DEF_SMTP_NEST_CHKS, &var_smtp_nest_chks, 0, 0,
+	VAR_SMTP_BODY_CHKS, DEF_SMTP_BODY_CHKS, &var_smtp_body_chks, 0, 0,
 	0,
     };
     static CONFIG_TIME_TABLE smtp_time_table[] = {

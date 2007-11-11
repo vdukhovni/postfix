@@ -124,34 +124,36 @@ PIPE(8)                                                                PIPE(8)
 
                      This feature is available as of Postfix 2.5.
 
-              <b>h</b>      Fold  the  command-line  <b>$recipient</b>  address
-                     domain part (text to the right of the right-
-                     most  <b>@</b>  character)  to lower case; fold the
-                     entire  command-line  <b>$domain</b>  and  <b>$nexthop</b>
-                     host  or  domain  information to lower case.
-                     This is recommended for delivery via <b>UUCP</b>.
+              <b>h</b>      Fold  the  command-line  <b>$original_recipient</b>
+                     and <b>$recipient</b> address domain part (text  to
+                     the  right of the right-most <b>@</b> character) to
+                     lower case;  fold  the  entire  command-line
+                     <b>$domain</b> and <b>$nexthop</b> host or domain informa-
+                     tion to lower case.  This is recommended for
+                     delivery via <b>UUCP</b>.
 
-              <b>q</b>      Quote white space and other special  charac-
-                     ters in the command-line <b>$sender</b> and <b>$recip-</b>
-                     <b>ient</b> address localparts (text to the left of
-                     the right-most <b>@</b> character), according to an
-                     8-bit transparent version of <a href="http://tools.ietf.org/html/rfc822">RFC 822</a>.   This
-                     is  recommended  for  delivery  via  <b>UUCP</b> or
-                     <b>BSMTP</b>.
+              <b>q</b>      Quote  white space and other special charac-
+                     ters in the  command-line  <b>$sender</b>,  <b>$origi-</b>
+                     <b>nal_recipient</b>  and <b>$recipient</b> address local-
+                     parts (text to the left of the right-most  <b>@</b>
+                     character),  according to an 8-bit transpar-
+                     ent version of <a href="http://tools.ietf.org/html/rfc822">RFC 822</a>.  This is recommended
+                     for delivery via <b>UUCP</b> or <b>BSMTP</b>.
 
-                     The result is compatible  with  the  address
-                     parsing  of  command-line  recipients by the
+                     The  result  is  compatible with the address
+                     parsing of command-line  recipients  by  the
                      Postfix <a href="sendmail.1.html"><b>sendmail</b>(1)</a> mail submission command.
 
-                     The  <b>q</b>  flag  affects only entire addresses,
+                     The <b>q</b> flag affects  only  entire  addresses,
                      not the partial address information from the
-                     <b>$user</b>,  <b>$extension</b>  or <b>$mailbox</b> command-line
+                     <b>$user</b>, <b>$extension</b> or  <b>$mailbox</b>  command-line
                      macros.
 
-              <b>u</b>      Fold  the  command-line  <b>$recipient</b>  address
-                     localpart  (text  to  the left of the right-
-                     most <b>@</b> character) to lower  case.   This  is
-                     recommended for delivery via <b>UUCP</b>.
+              <b>u</b>      Fold  the  command-line  <b>$original_recipient</b>
+                     and <b>$recipient</b> address  localpart  (text  to
+                     the  left  of the right-most <b>@</b> character) to
+                     lower case.  This is recommended for  deliv-
+                     ery via <b>UUCP</b>.
 
               <b>.</b>      Prepend "<b>.</b>" to lines starting with "<b>.</b>". This
                      is needed by, for example, <b>BSMTP</b> software.
@@ -293,6 +295,19 @@ PIPE(8)                                                                PIPE(8)
 
                      This  information  is modified by the <b>h</b> flag
                      for case folding.
+
+              <b>${original_recipient</b>}
+                     This macro expands to the complete recipient
+                     address  before  any  address  rewriting  or
+                     aliasing.
+
+                     A  command-line   argument   that   contains
+                     <b>${original_recipient</b>}  expands  to  as  many
+                     command-line arguments as there are  recipi-
+                     ents.
+
+                     This  information  is  modified  by  the <b>hqu</b>
+                     flags for quoting and case folding.
 
               <b>${recipient</b>}
                      This macro expands to the complete recipient

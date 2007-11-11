@@ -233,6 +233,18 @@ Available in Postfix version 2.4.4 and later:
 When authenticating to a remote SMTP or LMTP server with the
 default setting "no", send no SASL authoriZation ID (authzid); send
 only the SASL authentiCation ID (authcid) plus the authcid's password.
+.PP
+Available in Postfix version 2.5 and later:
+.IP "\fBsmtp_header_checks (empty)\fR"
+Restricted \fBheader_checks\fR(5) tables for the Postfix SMTP client.
+.IP "\fBsmtp_mime_header_checks (empty)\fR"
+Restricted \fBmime_header_checks\fR(5) tables for the Postfix SMTP
+client.
+.IP "\fBsmtp_nested_header_checks (empty)\fR"
+Restricted \fBnested_header_checks\fR(5) tables for the Postfix SMTP
+client.
+.IP "\fBsmtp_body_checks (empty)\fR"
+Restricted \fBbody_checks\fR(5) tables for the Postfix SMTP client.
 .SH "MIME PROCESSING CONTROLS"
 .na
 .nf
@@ -578,6 +590,9 @@ found or that are unreachable.
 .SH "SEE ALSO"
 .na
 .nf
+generic(5), output address rewriting
+header_checks(5), message header content inspection
+body_checks(5), body parts content inspection
 qmgr(8), queue manager
 bounce(8), delivery status reports
 scache(8), connection cache server

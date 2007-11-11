@@ -262,6 +262,24 @@ SMTP(8)                                                                SMTP(8)
               riZation ID (authzid); send only the SASL authenti-
               Cation ID (authcid) plus the authcid's password.
 
+       Available in Postfix version 2.5 and later:
+
+       <b><a href="postconf.5.html#smtp_header_checks">smtp_header_checks</a> (empty)</b>
+              Restricted  <a href="header_checks.5.html"><b>header_checks</b>(5)</a> tables for the Postfix
+              SMTP client.
+
+       <b><a href="postconf.5.html#smtp_mime_header_checks">smtp_mime_header_checks</a> (empty)</b>
+              Restricted  <b><a href="postconf.5.html#mime_header_checks">mime_header_checks</a></b>(5)  tables  for  the
+              Postfix SMTP client.
+
+       <b><a href="postconf.5.html#smtp_nested_header_checks">smtp_nested_header_checks</a> (empty)</b>
+              Restricted  <b><a href="postconf.5.html#nested_header_checks">nested_header_checks</a></b>(5)  tables for the
+              Postfix SMTP client.
+
+       <b><a href="postconf.5.html#smtp_body_checks">smtp_body_checks</a> (empty)</b>
+              Restricted <a href="header_checks.5.html"><b>body_checks</b>(5)</a> tables  for  the  Postfix
+              SMTP client.
+
 <b>MIME PROCESSING CONTROLS</b>
        Available in Postfix version 2.0 and later:
 
@@ -732,6 +750,9 @@ SMTP(8)                                                                SMTP(8)
               that can't be found or that are unreachable.
 
 <b>SEE ALSO</b>
+       <a href="generic.5.html">generic(5)</a>, output address rewriting
+       <a href="header_checks.5.html">header_checks(5)</a>, message header content inspection
+       <a href="header_checks.5.html">body_checks(5)</a>, body parts content inspection
        <a href="qmgr.8.html">qmgr(8)</a>, queue manager
        <a href="bounce.8.html">bounce(8)</a>, delivery status reports
        <a href="scache.8.html">scache(8)</a>, connection cache server

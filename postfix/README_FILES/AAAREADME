@@ -16,6 +16,7 @@ GGeenneerraall ccoonnffiigguurraattiioonn
 PPrroobblleemm ssoollvviinngg
 
   * QSHAPE_README: Bottleneck analysis
+  * STRESS_README: Stress-dependent configuration
   * TUNING_README: Performance tuning
   * DEBUG_README: Debugging strategies
 

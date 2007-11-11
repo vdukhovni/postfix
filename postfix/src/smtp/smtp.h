@@ -30,6 +30,7 @@
 #include <maps.h>
 #include <tok822.h>
 #include <dsn_buf.h>
+#include <header_body_checks.h>
 
  /*
   * Postfix TLS library.
@@ -175,6 +176,9 @@ extern SSL_CTX *smtp_tls_ctx;		/* client-side TLS engine */
 
 #endif
 
+extern HBC_CHECKS *smtp_header_checks;	/* limited header checks */
+extern HBC_CHECKS *smtp_body_checks;	/* limited body checks */
+
  /*
   * smtp_session.c
   */
@@ -258,6 +262,8 @@ extern int smtp_helo(SMTP_STATE *);
 extern int smtp_xfer(SMTP_STATE *);
 extern int smtp_rset(SMTP_STATE *);
 extern int smtp_quit(SMTP_STATE *);
+
+extern HBC_CALL_BACKS smtp_hbc_callbacks[];
 
  /*
   * A connection is re-usable if session->expire_time is > 0 and the

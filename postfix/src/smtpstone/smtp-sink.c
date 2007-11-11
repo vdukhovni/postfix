@@ -784,14 +784,35 @@ static void delay_event(int unused_event, char *context)
 {
     SINK_STATE *state = (SINK_STATE *) context;
 
-    state->delayed_response(state, state->delayed_args);
-    myfree(state->delayed_args);
-    state->delayed_args = 0;
+    switch (vstream_setjmp(state->stream)) {
+
+    default:
+	msg_panic("unknown read/write error");
+	/* NOTREACHED */
+
+    case SMTP_ERR_TIME:
+	msg_warn("write timeout");
+	disconnect(state);
+	return;
+
+    case SMTP_ERR_EOF:
+	msg_warn("lost connection");
+	disconnect(state);
+	return;
+
+    case 0:
+	state->delayed_response(state, state->delayed_args);
+	myfree(state->delayed_args);
+	state->delayed_args = 0;
+	break;
+    }
 
     if (state->delayed_response == quit_response) {
 	disconnect(state);
 	return;
     }
+    state->delayed_response = 0;
+
     /* Resume input event handling after the delayed response. */
     event_enable_read(vstream_fileno(state->stream), read_event, (char *) state);
     event_request_timer(read_timeout, (char *) state, var_tmout);
@@ -1311,7 +1332,7 @@ static void connect_event(int unused_event, char *unused_context)
 	case 0:
 	    if (command_resp(state, command_table, "connect", "") < 0)
 		disconnect(state);
-	    else {
+	    else if (command_table->delay == 0) {
 		event_enable_read(fd, read_event, (char *) state);
 		event_request_timer(read_timeout, (char *) state, var_tmout);
 	    }

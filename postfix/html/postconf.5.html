@@ -4564,6 +4564,11 @@ and later.</dd>
 
 <dd>The recipient's username. </dd>
 
+<dt><b>ORIGINAL_RECIPIENT</b></dt>
+
+<dd>The entire recipient address, before any address rewriting or
+aliasing.  </dd>
+
 <dt><b>RECIPIENT</b></dt>
 
 <dd>The full recipient address. </dd>
@@ -7031,6 +7036,19 @@ but this form is not recommended here. </p>
 
 </DD>
 
+<DT><b><a name="smtp_body_checks">smtp_body_checks</a>
+(default: empty)</b></DT><DD>
+
+<p> Restricted <a href="header_checks.5.html">body_checks(5)</a> tables for the Postfix SMTP client.
+These tables are searched while mail is being delivered.  Actions
+that change the delivery time or destination are not available.
+</p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="smtp_cname_overrides_servername">smtp_cname_overrides_servername</a>
 (default: version dependent)</b></DT><DD>
 
@@ -7420,6 +7438,19 @@ examples are shown in the <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRIT
 
 </DD>
 
+<DT><b><a name="smtp_header_checks">smtp_header_checks</a>
+(default: empty)</b></DT><DD>
+
+<p> Restricted <a href="header_checks.5.html">header_checks(5)</a> tables for the Postfix SMTP client.
+These tables are searched while mail is being delivered.  Actions
+that change the delivery time or destination are not available.
+</p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="smtp_helo_name">smtp_helo_name</a>
 (default: $<a href="postconf.5.html#myhostname">myhostname</a>)</b></DT><DD>
 
@@ -7536,6 +7567,19 @@ The default time unit is s (seconds).
 
 </DD>
 
+<DT><b><a name="smtp_mime_header_checks">smtp_mime_header_checks</a>
+(default: empty)</b></DT><DD>
+
+<p> Restricted mime_<a href="header_checks.5.html">header_checks(5)</a> tables for the Postfix SMTP
+client. These tables are searched while mail is being delivered.
+Actions that change the delivery time or destination are not
+available.  </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="smtp_mx_address_limit">smtp_mx_address_limit</a>
 (default: 5)</b></DT><DD>
 
@@ -7562,6 +7606,19 @@ SMTP initial handshake (Postfix version 2.2 and earlier) or that fail to
 complete the EHLO and TLS handshake (Postfix version 2.3 and later).  </p>
 
 <p> This feature is available in Postfix 2.1 and later.  </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_nested_header_checks">smtp_nested_header_checks</a>
+(default: empty)</b></DT><DD>
+
+<p> Restricted nested_<a href="header_checks.5.html">header_checks(5)</a> tables for the Postfix SMTP
+client. These tables are searched while mail is being delivered.
+Actions that change the delivery time or destination are not
+available.  </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
 
 
 </DD>

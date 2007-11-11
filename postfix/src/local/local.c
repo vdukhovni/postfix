@@ -210,6 +210,9 @@
 /* .IP \fBLOCAL\fR
 /*	The entire recipient address localpart (text to the left of the
 /*	rightmost @ character).
+/* .IP \fBORIGINAL_RECIPIENT\fR
+/*	The entire recipient address, before any address rewriting
+/*	or aliasing (Postfix 2.5 and later).
 /* .IP \fBRECIPIENT\fR
 /*	The entire recipient address.
 /* .IP \fBSENDER\fR

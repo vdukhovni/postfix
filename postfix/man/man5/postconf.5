@@ -2461,6 +2461,9 @@ The recipient home directory.
 The recipient address localpart.
 .IP "\fBLOGNAME\fR"
 The recipient's username.
+.IP "\fBORIGINAL_RECIPIENT\fR"
+The entire recipient address, before any address rewriting or
+aliasing.
 .IP "\fBRECIPIENT\fR"
 The full recipient address.
 .IP "\fBSASL_METHOD\fR"
@@ -3911,6 +3914,12 @@ inet_interfaces documentation for more detail.
 .PP
 Note 2: address information may be enclosed inside [],
 but this form is not recommended here.
+.SH smtp_body_checks (default: empty)
+Restricted \fBbody_checks\fR(5) tables for the Postfix SMTP client.
+These tables are searched while mail is being delivered.  Actions
+that change the delivery time or destination are not available.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH smtp_cname_overrides_servername (default: version dependent)
 Allow DNS CNAME records to override the servername that the
 Postfix SMTP client uses for logging, SASL password lookup, TLS
@@ -4150,6 +4159,12 @@ examples are shown in the ADDRESS_REWRITING_README and
 STANDARD_CONFIGURATION_README documents.
 .PP
 This feature is available in Postfix 2.2 and later.
+.SH smtp_header_checks (default: empty)
+Restricted \fBheader_checks\fR(5) tables for the Postfix SMTP client.
+These tables are searched while mail is being delivered.  Actions
+that change the delivery time or destination are not available.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH smtp_helo_name (default: $myhostname)
 The hostname to send in the SMTP EHLO or HELO command.
 .PP
@@ -4204,6 +4219,13 @@ for receiving the server response.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
+.SH smtp_mime_header_checks (default: empty)
+Restricted \fBmime_header_checks\fR(5) tables for the Postfix SMTP
+client. These tables are searched while mail is being delivered.
+Actions that change the delivery time or destination are not
+available.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH smtp_mx_address_limit (default: 5)
 The maximal number of MX (mail exchanger) IP addresses that can
 result from mail exchanger lookups, or zero (no limit). Prior to
@@ -4218,6 +4240,13 @@ SMTP initial handshake (Postfix version 2.2 and earlier) or that fail to
 complete the EHLO and TLS handshake (Postfix version 2.3 and later).
 .PP
 This feature is available in Postfix 2.1 and later.
+.SH smtp_nested_header_checks (default: empty)
+Restricted \fBnested_header_checks\fR(5) tables for the Postfix SMTP
+client. These tables are searched while mail is being delivered.
+Actions that change the delivery time or destination are not
+available.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH smtp_never_send_ehlo (default: no)
 Never send EHLO at the start of an SMTP session. See also the
 smtp_always_send_ehlo parameter.

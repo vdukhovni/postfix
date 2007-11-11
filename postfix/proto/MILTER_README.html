@@ -501,7 +501,7 @@ EOH, BODY, EOM </td> </tr>
 
 </blockquote>
 
-<p> Beware: 30s is not a lot for applications that do a lot of DNS
+<p> Beware: 30s may be too short for applications doing lots of DNS
 lookups.  However, if you increase the above timeouts too much,
 remote SMTP clients may hang up and mail may be delivered multiple
 times. This is an inherent problem with before-queue filtering. </p>
@@ -624,7 +624,7 @@ TO </td> </tr>
 
 <h2><a name="workarounds">Workarounds</a></h2>
 
-<p> Content filters may break domain key etc. signatures. If you
+<p> Content filters may break DKIM etc. signatures. If you
 use an SMTP-based content filter, then you should add a line to
 master.cf with "-o disable_mime_output_conversion=yes" (note: no
 spaces around the "="), as described in the <a
@@ -650,8 +650,8 @@ sid-filter[36540]: WARNING: sendmail symbol 'i' not available
 </pre>
 </blockquote>
 
-<p> And they may insert a message header with "unknown-msgid" like
-this: </p>
+<p> And they may insert an ugly message header with "unknown-msgid"
+like this: </p>
 
 <blockquote>
 <pre>

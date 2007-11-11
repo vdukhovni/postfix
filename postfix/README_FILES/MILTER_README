@@ -300,7 +300,7 @@ message).
     |milter_content_timeout|300s      |HEADER, EOH, BODY, EOM         |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 
-Beware: 30s is not a lot for applications that do a lot of DNS lookups.
+Beware: 30s may be too short for applications doing lots of DNS lookups.
 However, if you increase the above timeouts too much, remote SMTP clients may
 hang up and mail may be delivered multiple times. This is an inherent problem
 with before-queue filtering.
@@ -390,7 +390,7 @@ message).
 
 WWoorrkkaarroouunnddss
 
-Content filters may break domain key etc. signatures. If you use an SMTP-based
+Content filters may break DKIM etc. signatures. If you use an SMTP-based
 content filter, then you should add a line to master.cf with "-
 o disable_mime_output_conversion=yes" (note: no spaces around the "="), as
 described in the advanced content filter example.
@@ -407,7 +407,7 @@ Milter applications make assumptions that aren't true in a Postfix environment.
 
         sid-filter[36540]: WARNING: sendmail symbol 'i' not available
 
-    And they may insert a message header with "unknown-msgid" like this:
+    And they may insert an ugly message header with "unknown-msgid" like this:
 
         X-SenderID: Sendmail Sender-ID Filter vx.y.z host.example.com <unknown-
         msgid>

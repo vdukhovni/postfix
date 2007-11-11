@@ -63,6 +63,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <limits.h>			/* INT_MAX */
 
 #ifndef SHUT_RDWR
 #define SHUT_RDWR	2
@@ -281,7 +282,7 @@ typedef struct {
  /*
   * We don't accept insane amounts of data.
   */
-#define XXX_MAX_DATA	(MILTER_CHUNK_SIZE * 2)
+#define XXX_MAX_DATA	(INT_MAX / 2)
 #define XXX_TIMEOUT	10
 
 #ifndef USE_LIBMILTER_INCLUDES
@@ -533,8 +534,8 @@ static int milter8_read_resp(MILTER8 *milter, int event, unsigned char *command,
 		 milter->m.name, (long) pkt_len);
 	return (milter8_comm_error(milter));
     } else if (pkt_len > XXX_MAX_DATA) {
-	msg_warn("milter %s: unreasonable packet length: %ld",
-		 milter->m.name, (long) pkt_len);
+	msg_warn("milter %s: unreasonable packet length: %ld > %ld",
+		 milter->m.name, (long) pkt_len, (long) XXX_MAX_DATA);
 	return (milter8_comm_error(milter));
     }
 

@@ -2360,6 +2360,11 @@ and later.</dd>
 
 <dd>The recipient's username. </dd>
 
+<dt><b>ORIGINAL_RECIPIENT</b></dt>
+
+<dd>The entire recipient address, before any address rewriting or
+aliasing.  </dd>
+
 <dt><b>RECIPIENT</b></dt>
 
 <dd>The full recipient address. </dd>
@@ -10630,6 +10635,42 @@ the hostname and IP address. The logging format is "host[address]:port".
 
 <p> Enable logging of the remote QMQP client port in addition to
 the hostname and IP address. The logging format is "host[address]:port".
+</p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+%PARAM smtp_header_checks
+
+<p> Restricted header_checks(5) tables for the Postfix SMTP client.
+These tables are searched while mail is being delivered.  Actions
+that change the delivery time or destination are not available.
+</p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+%PARAM smtp_mime_header_checks
+
+<p> Restricted mime_header_checks(5) tables for the Postfix SMTP
+client. These tables are searched while mail is being delivered.
+Actions that change the delivery time or destination are not
+available.  </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+%PARAM smtp_nested_header_checks
+
+<p> Restricted nested_header_checks(5) tables for the Postfix SMTP
+client. These tables are searched while mail is being delivered.
+Actions that change the delivery time or destination are not
+available.  </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+%PARAM smtp_body_checks
+
+<p> Restricted body_checks(5) tables for the Postfix SMTP client.
+These tables are searched while mail is being delivered.  Actions
+that change the delivery time or destination are not available.
 </p>
 
 <p> This feature is available in Postfix 2.5 and later. </p>

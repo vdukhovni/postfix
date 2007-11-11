@@ -108,14 +108,16 @@
 /* .sp
 /*	This feature is available as of Postfix 2.5.
 /* .IP \fBh\fR
-/*	Fold the command-line \fB$recipient\fR address domain part
+/*	Fold the command-line \fB$original_recipient\fR and
+/*	\fB$recipient\fR address domain part
 /*	(text to the right of the right-most \fB@\fR character) to
 /*	lower case; fold the entire command-line \fB$domain\fR and
 /*	\fB$nexthop\fR host or domain information to lower case.
 /*	This is recommended for delivery via \fBUUCP\fR.
 /* .IP \fBq\fR
 /*	Quote white space and other special characters in the command-line
-/*	\fB$sender\fR and \fB$recipient\fR address localparts (text to the
+/*	\fB$sender\fR, \fB$original_recipient\fR and \fB$recipient\fR
+/*	address localparts (text to the
 /*	left of the right-most \fB@\fR character), according to an 8-bit
 /*	transparent version of RFC 822.
 /*	This is recommended for delivery via \fBUUCP\fR or \fBBSMTP\fR.
@@ -127,7 +129,8 @@
 /*	address information from the \fB$user\fR, \fB$extension\fR or
 /*	\fB$mailbox\fR command-line macros.
 /* .IP \fBu\fR
-/*	Fold the command-line \fB$recipient\fR address localpart (text to
+/*	Fold the command-line \fB$original_recipient\fR and
+/*	\fB$recipient\fR address localpart (text to
 /*	the left of the right-most \fB@\fR character) to lower case.
 /*	This is recommended for delivery via \fBUUCP\fR.
 /* .IP \fB.\fR
@@ -244,6 +247,16 @@
 /*	This macro expands to the next-hop hostname.
 /* .sp
 /*	This information is modified by the \fBh\fR flag for case folding.
+/* .IP \fB${\fBoriginal_recipient\fR}\fR
+/*	This macro expands to the complete recipient address before any
+/*	address rewriting or aliasing.
+/* .sp
+/*	A command-line argument that contains
+/*	\fB${\fBoriginal_recipient\fR}\fR expands to as many
+/*	command-line arguments as there are recipients.
+/* .sp
+/*	This information is modified by the \fBhqu\fR flags for quoting
+/*	and case folding.
 /* .IP \fB${\fBrecipient\fR}\fR
 /*	This macro expands to the complete recipient address.
 /* .sp
@@ -470,6 +483,7 @@
 #define PIPE_DICT_TABLE		"pipe_command"	/* table name */
 #define PIPE_DICT_NEXTHOP	"nexthop"	/* key */
 #define PIPE_DICT_RCPT		"recipient"	/* key */
+#define PIPE_DICT_ORIG_RCPT	"original_recipient"	/* key */
 #define PIPE_DICT_SENDER	"sender"/* key */
 #define PIPE_DICT_USER		"user"	/* key */
 #define PIPE_DICT_EXTENSION	"extension"	/* key */
@@ -494,6 +508,7 @@
 #define PIPE_FLAG_EXTENSION	(1<<2)
 #define PIPE_FLAG_MAILBOX	(1<<3)
 #define PIPE_FLAG_DOMAIN	(1<<4)
+#define PIPE_FLAG_ORIG_RCPT	(1<<5)
 
  /*
   * Additional flags. These are colocated with mail_copy() flags. Allow some
@@ -567,6 +582,7 @@ static int parse_callback(int type, VSTRING *buf, char *context)
     static struct cmd_flags cmd_flags[] = {
 	PIPE_DICT_NEXTHOP, 0,
 	PIPE_DICT_RCPT, PIPE_FLAG_RCPT,
+	PIPE_DICT_ORIG_RCPT, PIPE_FLAG_ORIG_RCPT,
 	PIPE_DICT_SENDER, 0,
 	PIPE_DICT_USER, PIPE_FLAG_USER,
 	PIPE_DICT_EXTENSION, PIPE_FLAG_EXTENSION,
@@ -670,6 +686,14 @@ static ARGV *expand_argv(const char *service, char **argv,
 		if (state.expand_flag & PIPE_FLAG_RCPT) {
 		    morph_recipient(buf, rcpt_list->info[i].address, flags);
 		    dict_update(PIPE_DICT_TABLE, PIPE_DICT_RCPT, STR(buf));
+		}
+
+		/*
+		 * This argument contains $original_recipient.
+		 */
+		if (state.expand_flag & PIPE_FLAG_ORIG_RCPT) {
+		    morph_recipient(buf, rcpt_list->info[i].orig_addr, flags);
+		    dict_update(PIPE_DICT_TABLE, PIPE_DICT_ORIG_RCPT, STR(buf));
 		}
 
 		/*

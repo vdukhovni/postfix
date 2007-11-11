@@ -73,12 +73,14 @@ extern MIME_STATE_DETAIL *mime_state_detail(int);
 extern const char *mime_state_error(int);
 
  /*
-  * Header classes. Look at the header_opts argument to find out if something
-  * is a MIME header in a primary or nested section.
+  * With header classes, look at the header_opts argument to recognize MIME
+  * headers in primary or nested sections.
   */
+#define MIME_HDR_FIRST		(1)	/* first class */
 #define MIME_HDR_PRIMARY	(1)	/* initial headers */
 #define MIME_HDR_MULTIPART	(2)	/* headers after multipart boundary */
 #define MIME_HDR_NESTED		(3)	/* attached message initial headers */
+#define MIME_HDR_LAST		(3)	/* last class */
 
 /* LICENSE
 /* .ad

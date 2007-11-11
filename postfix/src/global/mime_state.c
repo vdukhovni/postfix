@@ -152,8 +152,12 @@
 /*	At the start of a nested (e.g., message/rfc822) message.
 /* .RE
 /* .sp
+/*	For convenience, the macros MIME_HDR_FIRST and MIME_HDR_LAST
+/*	specify the range of MIME_HDR_MUMBLE macros.
+/* .sp
 /*	To find out if something is a MIME header at the beginning
-/*	of an RFC 822 message, look at the header_info argument.
+/*	of an RFC 822 message or an attached message, look at the
+/*	header_info argument.
 /* .IP header_info
 /*	Null pointer or information about the message header, see
 /*	header_opts(3).
