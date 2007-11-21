@@ -198,6 +198,9 @@ struct QMGR_QUEUE {
     int     todo_refcount;		/* queue entries (todo list) */
     int     busy_refcount;		/* queue entries (busy list) */
     int     window;			/* slow open algorithm */
+    double  success;			/* cumulative positive feedback */
+    double  failure;			/* cumulative negative feedback */
+    double  fail_cohorts;		/* pseudo-cohort failure count */
     QMGR_TRANSPORT *transport;		/* transport linkage */
     QMGR_ENTRY_LIST todo;		/* todo queue entries */
     QMGR_ENTRY_LIST busy;		/* messages on the wire */
@@ -217,6 +220,7 @@ extern void qmgr_queue_done(QMGR_QUEUE *);
 extern void qmgr_queue_throttle(QMGR_QUEUE *, DSN *);
 extern void qmgr_queue_unthrottle(QMGR_QUEUE *);
 extern QMGR_QUEUE *qmgr_queue_find(QMGR_TRANSPORT *, const char *);
+extern void qmgr_queue_feedback_init(void);
 
 #define QMGR_QUEUE_THROTTLED(q) ((q)->window <= 0)
 

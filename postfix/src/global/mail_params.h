@@ -2830,6 +2830,39 @@ extern char *var_smtp_body_chks;
 #define VAR_LMTP_BODY_CHKS	"lmtp_body_checks"
 #define DEF_LMTP_BODY_CHKS	""
 
+ /*
+  * Scheduler concurrency feedback algorithms.
+  */
+#define VAR_QMGR_POS_FDBACK	"qmgr_positive_concurrency_feedback_style"
+#define DEF_QMGR_POS_FDBACK	QMGR_FDBACK_NAME_FIXED_1
+extern char *var_qmgr_pos_feedback;
+
+#define VAR_QMGR_NEG_FDBACK	"qmgr_negative_concurrency_feedback_style"
+#define DEF_QMGR_NEG_FDBACK	QMGR_FDBACK_NAME_FIXED_1
+extern char *var_qmgr_neg_feedback;
+
+#define QMGR_FDBACK_NAME_FIXED_1	"fixed_1"
+#define QMGR_FDBACK_NAME_INVERSE_1	"inverse_1"	/* deprecated */
+#define QMGR_FDBACK_NAME_INVERSE_WIN	"inverse_concurrency"
+#define QMGR_FDBACK_NAME_INV_SQRT	"inverse_sqrt"	/* deprecated */
+#define QMGR_FDBACK_NAME_INV_SQRT_WIN	"inverse_sqrt_concurrency"
+
+#define VAR_QMGR_POS_HYST	"qmgr_positive_concurrency_feedback_hysteresis"
+#define DEF_QMGR_POS_HYST	1
+extern int var_qmgr_pos_hysteresis;
+
+#define VAR_QMGR_NEG_HYST	"qmgr_negative_concurrency_feedback_hysteresis"
+#define DEF_QMGR_NEG_HYST	1
+extern int var_qmgr_neg_hysteresis;
+
+#define VAR_QMGR_SAC_COHORTS	"qmgr_sacrificial_cohorts"
+#define DEF_QMGR_SAC_COHORTS	1
+extern int var_qmgr_sac_cohorts;
+
+#define VAR_QMGR_FDBACK_DEBUG	"qmgr_concurrency_feedback_debug"
+#define DEF_QMGR_FDBACK_DEBUG	0
+extern bool var_qmgr_feedback_debug;
+
 /* LICENSE
 /* .ad
 /* .fi

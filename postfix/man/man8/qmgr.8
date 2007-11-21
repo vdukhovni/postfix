@@ -235,6 +235,29 @@ The default maximal number of parallel deliveries to the same
 destination.
 .IP "\fItransport\fB_destination_concurrency_limit ($default_destination_concurrency_limit)\fR"
 Idem, for delivery via the named message \fItransport\fR.
+.IP "\fBqmgr_concurrency_feedback_debug (no)\fR"
+Make the queue manager's feedback algorithm verbose for performance
+analysis purposes.
+.IP "\fBqmgr_negative_concurrency_feedback_hysteresis (1)\fR"
+The per-destination integer amount of negative concurrency
+feedback that must accumulate between negative adjustments of a
+destination's delivery concurrency.
+.IP "\fBqmgr_negative_concurrency_feedback_style (fixed_1)\fR"
+The per-destination amount of negative delivery concurrency
+feedback, after a delivery completes with a connection or handshake
+failure.
+.IP "\fBqmgr_positive_concurrency_feedback_hysteresis (1)\fR"
+The per-destination integer amount of positive concurrency
+feedback that must accumulate before positive adjustments of a
+destination's delivery concurrency.
+.IP "\fBqmgr_positive_concurrency_feedback_style (fixed_1)\fR"
+The per-destination amount of positive delivery concurrency
+feedback, after a delivery completes without connection or handshake
+failure.
+.IP "\fBqmgr_sacrificial_cohorts (1)\fR"
+How many pseudo-cohorts must suffer connection or handshake
+failure before a specific destination is considered unavailable
+(and further delivery is suspended).
 .SH "RECIPIENT SCHEDULING CONTROLS"
 .na
 .nf
@@ -274,15 +297,17 @@ Idem, for delivery via the named message \fItransport\fR.
 .nf
 .ad
 .fi
-.IP "\fBminimal_backoff_time (version dependent)\fR"
-The minimal time between attempts to deliver a deferred message.
+.IP "\fBminimal_backoff_time (300s)\fR"
+The minimal time between attempts to deliver a deferred message;
+prior to Postfix 2.4 the default value was 1000s.
 .IP "\fBmaximal_backoff_time (4000s)\fR"
 The maximal time between attempts to deliver a deferred message.
 .IP "\fBmaximal_queue_lifetime (5d)\fR"
 The maximal time a message is queued before it is sent back as
 undeliverable.
-.IP "\fBqueue_run_delay (version dependent)\fR"
-The time between deferred queue scans by the queue manager.
+.IP "\fBqueue_run_delay (300s)\fR"
+The time between deferred queue scans by the queue manager;
+prior to Postfix 2.4 the default value was 1000s.
 .IP "\fBtransport_retry_time (60s)\fR"
 The time between attempts by the Postfix queue manager to contact
 a malfunctioning message delivery transport.

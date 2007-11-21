@@ -10674,3 +10674,121 @@ that change the delivery time or destination are not available.
 </p>
 
 <p> This feature is available in Postfix 2.5 and later. </p>
+
+%PARAM qmgr_concurrency_feedback_debug no
+
+<p> Make the queue manager's feedback algorithm verbose for performance
+analysis purposes. </p>
+
+<p> This feature is temporarily available in Postfix 2.5; its final
+form is likely to change. </p>
+
+%PARAM qmgr_sacrificial_cohorts 1
+
+<p> How many pseudo-cohorts must suffer connection or handshake
+failure before a specific destination is considered unavailable
+(and further delivery is suspended). A pseudo-cohort is a number
+of deliveries equal to a destination's concurrency. The pseudo-cohort
+failure count is reset each time a delivery completes without
+connection or handshake failure for that specific destination.  </p>
+
+<p> This feature is temporarily available in Postfix 2.5; its final
+form is likely to change. The default setting is compatible with
+earlier Postfix versions. </p>
+
+%PARAM qmgr_negative_concurrency_feedback_hysteresis 1
+
+<p> The per-destination integer amount of negative concurrency
+feedback that must accumulate between negative adjustments of a
+destination's delivery concurrency.  The concurrency adjustment is
+equal in size to the negative hysteresis value, and is applied at
+the <b>beginning</b> of a cycle of (hysteresis / feedback) steps.
+At that same time, the destination's positive feedback hysteresis
+cycle is reset to its beginning.  </p>
+
+<p> This feature is temporarily available in Postfix 2.5; its final
+form is likely to change. The default setting is compatible with
+earlier Postfix versions. </p>
+
+%PARAM qmgr_positive_concurrency_feedback_hysteresis 1
+
+<p> The per-destination integer amount of positive concurrency
+feedback that must accumulate before positive adjustments of a
+destination's delivery concurrency.  The concurrency adjustment is
+equal in size to the positive hysteresis value, and is applied at
+the <b>end</b> of a cycle of (hysteresis / feedback) steps. At that
+same time, the destination's negative feedback hysteresis cycle is
+reset to its beginning. </p>
+
+<p> This feature is temporarily available in Postfix 2.5; its final
+form is likely to change. The default setting is compatible with
+earlier Postfix versions. </p>
+
+%PARAM qmgr_negative_concurrency_feedback_style fixed_1
+
+<p> The per-destination amount of negative delivery concurrency
+feedback, after a delivery completes with a connection or handshake
+failure.  </p>
+
+<dl>
+
+<dt> <b> inverse_concurrency </b> </dt> <dd> Variable feedback of
+1 / (delivery concurrency). With this setting, and with
+"qmgr_negative_concurrency_feedback_hysteresis = 1", the destination's
+delivery concurrency is decremented by 1 after each failed
+pseudo-cohort, and the destination is marked dead (further delivery
+suspended) after the failed pseudo-cohort count reaches
+$qmgr_sacrificial_cohorts.  </dd>
+
+<dt> <b> inverse_sqrt_concurrency </b> </dt> <dd> Variable feedback
+of 1 / (square root of delivery concurrency). This is an intermediate
+form between the other two. It lacks sound justification, and is a
+candidate for removal. </dd>
+
+<dt> <b> fixed_1 </b> </dt> <dd> Constant feedback of 1. This setting
+is compatible with Postfix versions before 2.5, where a destination's
+delivery concurrency is throttled down to zero (and further delivery
+suspended) after a single failed pseudo-cohort.  </dd>
+
+</dl>
+
+<p> A pseudo-cohort is a number of deliveries equal to the destination's
+delivery concurrency. </p>
+
+<p> This feature is temporarily available in Postfix 2.5; its final
+form is likely to change. The default setting is compatible with
+earlier Postfix versions. </p>
+
+%PARAM qmgr_positive_concurrency_feedback_style fixed_1
+
+<p> The per-destination amount of positive delivery concurrency
+feedback, after a delivery completes without connection or handshake
+failure.  </p>
+
+<dl>
+
+<dt> <b> inverse_concurrency </b> </dt> <dd> Variable feedback of
+1 / (delivery concurrency). With this setting, and with
+"qmgr_positive_concurrency_feedback_hysteresis = 1", the destination's
+delivery concurrency is incremented by 1 after each successful
+pseudo-cohort, until it reaches the per-destination maximal concurrency
+limit.  </dd>
+
+<dt> <b> inverse_sqrt_concurrency </b> </dt> <dd> Variable feedback
+of 1 / (square root of delivery concurrency). This is an intermediate
+form between the other two. It lacks sound justification, and is a
+candidate for removal. </dd>
+
+<dt> <b> fixed_1 </b> </dt> <dd> Constant feedback of 1. This setting
+is compatible with Postfix versions before 2.5, where a destination's
+delivery concurrency is doubled after each successful pseudo-cohort,
+until it reaches the per-destination maximal concurrency limit.
+</dd>
+
+</dl>
+
+<p> A pseudo-cohort is a number of deliveries equal to the destination's
+delivery concurrency. </p>
+
+<p> This feature is temporarily available in Postfix 2.5. The default
+setting is compatible with earlier Postfix versions. </p>

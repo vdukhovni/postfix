@@ -14,7 +14,7 @@ CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 TESTPROG= 
 PROG	= qmgr
 INC_DIR	= ../../include
-LIBS	= ../../lib/libmaster.a ../../lib/libglobal.a ../../lib/libutil.a
+LIBS	= ../../lib/libmaster.a ../../lib/libglobal.a ../../lib/libutil.a -lm
 
 .c.o:;	$(CC) $(CFLAGS) -c $*.c
 
@@ -290,6 +290,7 @@ qmgr_queue.o: ../../include/htable.h
 qmgr_queue.o: ../../include/mail_params.h
 qmgr_queue.o: ../../include/msg.h
 qmgr_queue.o: ../../include/mymalloc.h
+qmgr_queue.o: ../../include/name_code.h
 qmgr_queue.o: ../../include/recipient_list.h
 qmgr_queue.o: ../../include/scan_dir.h
 qmgr_queue.o: ../../include/sys_defs.h

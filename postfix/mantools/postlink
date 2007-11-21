@@ -334,6 +334,14 @@ while (<>) {
     s;\bqmgr_message_recip[-</bB>]*\n* *[<bB>]*ient_limit\b;<a href="postconf.5.html#qmgr_message_recipient_limit">$&</a>;g;
     s;\bqmgr_message_recip[-</bB>]*\n* *[<bB>]*ient_minimum\b;<a href="postconf.5.html#qmgr_message_recipient_minimum">$&</a>;g;
     s;\bqmqpd_authorized_clients\b;<a href="postconf.5.html#qmqpd_authorized_clients">$&</a>;g;
+
+    s;\bqmgr_negative_concurrency_feedback_hysteresis\b;<a href="postconf.5.html#qmgr_negative_concurrency_feedback_hysteresis">$&</a>;g;
+    s;\bqmgr_negative_concurrency_feedback_style\b;<a href="postconf.5.html#qmgr_negative_concurrency_feedback_style">$&</a>;g;
+    s;\bqmgr_positive_concurrency_feedback_hysteresis\b;<a href="postconf.5.html#qmgr_positive_concurrency_feedback_hysteresis">$&</a>;g;
+    s;\bqmgr_positive_concurrency_feedback_style\b;<a href="postconf.5.html#qmgr_positive_concurrency_feedback_style">$&</a>;g;
+    s;\bqmgr_sacrificial_cohorts\b;<a href="postconf.5.html#qmgr_sacrificial_cohorts">$&</a>;g;
+    s;\bqmgr_concurrency_feedback_debug\b;<a href="postconf.5.html#qmgr_concurrency_feedback_debug">$&</a>;g;
+
     s;\bqmqpd_error_delay\b;<a href="postconf.5.html#qmqpd_error_delay">$&</a>;g;
     s;\bqmqpd_timeout\b;<a href="postconf.5.html#qmqpd_timeout">$&</a>;g;
     s;\bqueue_directory\b;<a href="postconf.5.html#queue_directory">$&</a>;g;

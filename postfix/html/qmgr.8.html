@@ -262,6 +262,38 @@ QMGR(8)                                                                QMGR(8)
        <b><a href="postconf.5.html#default_destination_concurrency_limit">tion_concurrency_limit</a>)</b>
               Idem, for delivery via the named message <i>transport</i>.
 
+       <b><a href="postconf.5.html#qmgr_concurrency_feedback_debug">qmgr_concurrency_feedback_debug</a> (no)</b>
+              Make the queue manager's feedback algorithm verbose
+              for performance analysis purposes.
+
+       <b><a href="postconf.5.html#qmgr_negative_concurrency_feedback_hysteresis">qmgr_negative_concurrency_feedback_hysteresis</a> (1)</b>
+              The per-destination integer amount of negative con-
+              currency feedback that must accumulate between neg-
+              ative  adjustments of a destination's delivery con-
+              currency.
+
+       <b><a href="postconf.5.html#qmgr_negative_concurrency_feedback_style">qmgr_negative_concurrency_feedback_style</a> (fixed_1)</b>
+              The per-destination  amount  of  negative  delivery
+              concurrency  feedback,  after  a delivery completes
+              with a connection or handshake failure.
+
+       <b><a href="postconf.5.html#qmgr_positive_concurrency_feedback_hysteresis">qmgr_positive_concurrency_feedback_hysteresis</a> (1)</b>
+              The per-destination integer amount of positive con-
+              currency feedback that must accumulate before posi-
+              tive adjustments of a destination's  delivery  con-
+              currency.
+
+       <b><a href="postconf.5.html#qmgr_positive_concurrency_feedback_style">qmgr_positive_concurrency_feedback_style</a> (fixed_1)</b>
+              The  per-destination  amount  of  positive delivery
+              concurrency feedback, after  a  delivery  completes
+              without connection or handshake failure.
+
+       <b><a href="postconf.5.html#qmgr_sacrificial_cohorts">qmgr_sacrificial_cohorts</a> (1)</b>
+              How  many  pseudo-cohorts must suffer connection or
+              handshake failure before a specific destination  is
+              considered  unavailable  (and  further  delivery is
+              suspended).
+
 <b>RECIPIENT SCHEDULING CONTROLS</b>
        <b><a href="postconf.5.html#default_destination_recipient_limit">default_destination_recipient_limit</a> (50)</b>
               The default maximal number of recipients  per  mes-
@@ -305,21 +337,23 @@ QMGR(8)                                                                QMGR(8)
               Idem, for delivery via the named message <i>transport</i>.
 
 <b>OTHER RESOURCE AND RATE CONTROLS</b>
-       <b><a href="postconf.5.html#minimal_backoff_time">minimal_backoff_time</a> (version dependent)</b>
+       <b><a href="postconf.5.html#minimal_backoff_time">minimal_backoff_time</a> (300s)</b>
               The minimal time  between  attempts  to  deliver  a
-              deferred message.
+              deferred  message; prior to Postfix 2.4 the default
+              value was 1000s.
 
        <b><a href="postconf.5.html#maximal_backoff_time">maximal_backoff_time</a> (4000s)</b>
-              The  maximal  time  between  attempts  to deliver a
+              The maximal time  between  attempts  to  deliver  a
               deferred message.
 
        <b><a href="postconf.5.html#maximal_queue_lifetime">maximal_queue_lifetime</a> (5d)</b>
-              The maximal time a message is queued before  it  is
+              The  maximal  time a message is queued before it is
               sent back as undeliverable.
 
-       <b><a href="postconf.5.html#queue_run_delay">queue_run_delay</a> (version dependent)</b>
-              The  time between <a href="QSHAPE_README.html#deferred_queue">deferred queue</a> scans by the queue
-              manager.
+       <b><a href="postconf.5.html#queue_run_delay">queue_run_delay</a> (300s)</b>
+              The time between <a href="QSHAPE_README.html#deferred_queue">deferred queue</a> scans by the  queue
+              manager; prior to Postfix 2.4 the default value was
+              1000s.
 
        <b><a href="postconf.5.html#transport_retry_time">transport_retry_time</a> (60s)</b>
               The time between attempts by the Postfix queue man-

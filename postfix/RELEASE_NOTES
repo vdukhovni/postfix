@@ -17,7 +17,46 @@ Incompatibility with Postfix 2.3 and earlier
 If you upgrade from Postfix 2.3 or earlier, read RELEASE_NOTES-2.4
 before proceeding.
 
-Major changes with Postfix snapshot 20071110
+Major changes with Postfix snapshot 20071121
+============================================
+
+Revised queue manager with separate mechanisms for per-destination
+concurrency control and for dead destination detection.  The
+concurrency control supports non-integer feedback to allow for more
+gradual concurrency adjustments, and uses hysteresis to avoid rapid
+oscillations.  A destination is declared "dead" after a configurable
+number of pseudo-cohorts(*) reports connection or handshake failure.
+
+(*) A pseudo-cohort is a number of delivery requests equal to a
+    destination's delivery concurrency.
+
+The drawbacks of the old +/-1 feedback scheduler are a) overshoot
+due to exponential delivery concurrency growth with each pseudo-cohort(*)
+(5-10-20...); b) throttling down to zero concurrency after a single
+pseudo-cohort(*) failure. The second problem was especially an issue
+with low-concurrency channels where a single failure could be
+sufficient to mark a destination as "dead", and suspend further
+deliveries.
+
+The new code is a laboratory model with a multitude of configuration
+parameters, so that developers can experiment with different feedback
+functions and hysteresis values.  This is a baseline against which
+further improvements will be measured: a) is the additional improvement
+worth the additional complexity; b) is the design sound, i.e. free
+from arbitrary constants and other tweaks that optimize for a narrow
+range of application.
+
+New main.cf parameters: qmgr_concurrency_feedback_debug,
+qmgr_negative_feedback_hysteresis, qmgr_negative_feedback_method,
+qmgr_positive_feedback_hysteresis, qmgr_positive_feedback_method,
+qmgr_sacrifice_cohorts.  See postconf(5) for extensive descriptions.
+
+The default parameter settings are backwards compatible with older
+Postfix versions.  However, after a testing period, the number of
+parameters will be consolidated, and the default settings will be
+changed to take advantage of the "better" algorithm.
+
+Major changes with Postfix snapshot 20071111
 ============================================
 
 Header/body checks are now available in the SMTP client, after the

@@ -13813,3 +13813,29 @@ Apologies for any names omitted.
 	Bugfix (introduced: 20071004) missing exception handling
 	in smtp-sink per-command delay feature. Victor Duchovni.
 	File: smtpstone/smtp-sink.c.
+
+2007117-20
+
+	Revised queue manager with separate mechanisms for
+	per-destination concurrency control and dead destination
+	detection.  The concurrency control supports non-integer
+	feedback for more gradual concurrency adjustments, and uses
+	hysteresis to avoid rapid oscillations.  A destination is
+	declared "dead" after a configurable number of pseudo-cohorts
+	(number of deliveries equal to a destination's concurrency)
+	reports connection or handshake failure. This work began
+	with a discussion that Wietse started with Patrik Rak and
+	Victor Duchovni late January 2004, and that Victor revived
+	late October 2007. To establish a baseline for further
+	improvement, Wietse implemented a few simple mechanisms.
+
+	Configuration parameters: qmgr_concurrency_feedback_debug,
+	qmgr_negative_concurrency_feedback_hysteresis,
+	qmgr_negative_concurrency_feedback_style,
+	qmgr_positive_concurrency_feedback_hysteresis,
+	qmgr_positive_concurrency_feedback_style, qmgr_sacrifice_cohorts.
+	See postconf(5) for detailed information. Right now, the
+	defaults are compatible with older Postfix versions.  After
+	further review the number of parameters will be consolidated
+	and the defaults will select the better algorithms.  Files:
+	qmgr/qmgr_queue.c, qmgr/qmgr_deliver.c.
