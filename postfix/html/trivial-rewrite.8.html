@@ -193,6 +193,13 @@ TRIVIAL-REWRITE(8)                                          TRIVIAL-REWRITE(8)
               A  sender-dependent  override for the global <a href="postconf.5.html#relayhost">relay</a>-
               <a href="postconf.5.html#relayhost">host</a> parameter setting.
 
+       Available in Postfix version 2.5 and later:
+
+       <b><a href="postconf.5.html#empty_address_relayhost_maps_lookup_key">empty_address_relayhost_maps_lookup_key</a> (</b>&lt;&gt;<b>)</b>
+              The <a href="postconf.5.html#sender_dependent_relayhost_maps">sender_dependent_relayhost_maps</a>  search  string
+              that  will  be  used  instead  of  the  null sender
+              address.
+
 <b>ADDRESS VERIFICATION CONTROLS</b>
        Postfix  version  2.1  introduces  sender  and   recipient
        address  verification.   This  feature  is  implemented by

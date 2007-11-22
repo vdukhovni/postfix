@@ -379,6 +379,7 @@ while (<>) {
     s;\bsender_canonical_classes\b;<a href="postconf.5.html#sender_canonical_classes">$&</a>;g;
     s;\bsender_canonical_maps\b;<a href="postconf.5.html#sender_canonical_maps">$&</a>;g;
     s;\bsender_dependent_relay[-</bB>]*\n*[ <bB>]*host_maps\b;<a href="postconf.5.html#sender_dependent_relayhost_maps">$&</a>;g;
+    s;\bempty_address_relayhost_maps_lookup_key\b;<a href="postconf.5.html#empty_address_relayhost_maps_lookup_key">$&</a>;g;
     s;\bsendmail_path\b;<a href="postconf.5.html#sendmail_path">$&</a>;g;
     s;\bservice_throttle_time\b;<a href="postconf.5.html#service_throttle_time">$&</a>;g;
     s;\bsetgid_group\b;<a href="postconf.5.html#setgid_group">$&</a>;g;

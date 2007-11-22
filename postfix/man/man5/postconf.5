@@ -1212,6 +1212,13 @@ for \fBshowq\fR(8) queue displays.
 The recipient of mail addressed to the null address.  Postfix does
 not accept such addresses in SMTP commands, but they may still be
 created locally as the result of configuration or software error.
+.SH empty_address_relayhost_maps_lookup_key (default: <>)
+The sender_dependent_relayhost_maps search string that will be
+used instead of the null sender address.
+.PP
+This feature is available in Postfix 2.5 and later. With
+earlier versions, sender_dependent_relayhost_maps lookups were
+skipped for the null sender address.
 .SH enable_errors_to (default: no)
 Report mail delivery errors to the address specified with the
 non-standard Errors-To: message header, instead of the envelope

@@ -13839,3 +13839,14 @@ Apologies for any names omitted.
 	further review the number of parameters will be consolidated
 	and the defaults will select the better algorithms.  Files:
 	qmgr/qmgr_queue.c, qmgr/qmgr_deliver.c.
+
+20071121
+
+	Boundary condition: Patrik Rak pointed out that handling
+	of negative feedback with concurrency window 1 could
+	be improved.
+
+	Feature: support to look up null sender addresses
+	in sender-dependent relayhost maps. Parameter name:
+	empty_address_relayhost_maps_lookup_key (default; <>).
+	Keean Schupke. File: trivial-rewrite/resolve.c.

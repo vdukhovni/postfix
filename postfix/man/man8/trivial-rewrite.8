@@ -172,6 +172,11 @@ Available in Postfix version 2.3 and later:
 .IP "\fBsender_dependent_relayhost_maps (empty)\fR"
 A sender-dependent override for the global relayhost parameter
 setting.
+.PP
+Available in Postfix version 2.5 and later:
+.IP "\fBempty_address_relayhost_maps_lookup_key (<>)\fR"
+The sender_dependent_relayhost_maps search string that will be
+used instead of the null sender address.
 .SH "ADDRESS VERIFICATION CONTROLS"
 .na
 .nf

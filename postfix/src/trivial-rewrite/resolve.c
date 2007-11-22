@@ -507,8 +507,9 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 	     * With off-host delivery, sender-dependent or global relayhost
 	     * override the recipient domain.
 	     */
-	    if (rp->snd_relay_info && *sender
-		&& (relay = mail_addr_find(rp->snd_relay_info, sender,
+	    if (rp->snd_relay_info
+		&& (relay = mail_addr_find(rp->snd_relay_info, *sender ?
+				      sender : var_null_relay_maps_key,
 					   (char **) 0)) != 0)
 		vstring_strcpy(nexthop, relay);
 	    else if (*RES_PARAM_VALUE(rp->relayhost))

@@ -22,7 +22,7 @@
 /*	const char *key;
 /*	const char *value;
 /*
-/*	char	*dict_get(dict, key)
+/*	const char *dict_get(dict, key)
 /*	DICT	*dict;
 /*	const char *key;
 /*
@@ -137,6 +137,9 @@
 /*
 /*	dict_get() retrieves the value stored in the named dictionary
 /*	under the given key. A null pointer means the value was not found.
+/*	As with dict_lookup(), the result is owned by the lookup table
+/*	implementation. Make a copy if the result is to be modified,
+/*	or if the result is to survive multiple table lookups.
 /*
 /*	dict_put() stores the specified key and value into the named
 /*	dictionary.

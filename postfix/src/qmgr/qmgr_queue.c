@@ -310,8 +310,11 @@ void    qmgr_queue_throttle(QMGR_QUEUE *queue, DSN *dsn)
      * adjustments on the concurrency limit itself, instead of using the
      * actual concurrency. The latter fluctuates wildly when deliveries
      * complete in bursts (artificial benchmark measurements).
+     * 
+     * Even after reaching 1, we maintain the negative hysteresis cycle so that
+     * negative feedback can cancel out positive feedback.
      */
-    if (queue->window > 1) {
+    if (queue->window > 0) {
 	feedback = QMGR_FEEDBACK_VAL(qmgr_neg_feedback_idx, queue->window);
 	QMGR_LOG_FEEDBACK(feedback);
 	queue->failure -= feedback;

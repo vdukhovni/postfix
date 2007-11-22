@@ -9091,6 +9091,15 @@ substitutions in regular expression maps. </p>
 This feature is available in Postfix 2.3 and later.
 </p>
 
+%PARAM empty_address_relayhost_maps_lookup_key <>
+
+<p> The sender_dependent_relayhost_maps search string that will be
+used instead of the null sender address. </p>
+
+<p> This feature is available in Postfix 2.5 and later. With
+earlier versions, sender_dependent_relayhost_maps lookups were
+skipped for the null sender address.  </p>
+
 %PARAM address_verify_sender_dependent_relayhost_maps empty
 
 <p>

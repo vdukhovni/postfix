@@ -33,10 +33,9 @@ number of pseudo-cohorts(*) reports connection or handshake failure.
 The drawbacks of the old +/-1 feedback scheduler are a) overshoot
 due to exponential delivery concurrency growth with each pseudo-cohort(*)
 (5-10-20...); b) throttling down to zero concurrency after a single
-pseudo-cohort(*) failure. The second problem was especially an issue
-with low-concurrency channels where a single failure could be
-sufficient to mark a destination as "dead", and suspend further
-deliveries.
+pseudo-cohort(*) failure. This was especially an issue with
+low-concurrency channels where a single failure could be sufficient
+to mark a destination as "dead", and suspend further deliveries.
 
 The new code is a laboratory model with a multitude of configuration
 parameters, so that developers can experiment with different feedback

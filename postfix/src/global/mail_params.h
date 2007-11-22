@@ -192,6 +192,10 @@ extern char *var_relayhost;
 #define DEF_SND_RELAY_MAPS	""
 extern char *var_snd_relay_maps;
 
+#define VAR_NULL_RELAY_MAPS_KEY	"empty_address_relayhost_maps_lookup_key"
+#define DEF_NULL_RELAY_MAPS_KEY	"<>"
+extern char *var_null_relay_maps_key;
+
 #define VAR_SMTP_FALLBACK	"smtp_fallback_relay"
 #define DEF_SMTP_FALLBACK	"$fallback_relay"
 #define VAR_LMTP_FALLBACK	"smtp_fallback_relay"

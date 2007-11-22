@@ -150,6 +150,11 @@
 /* .IP "\fBsender_dependent_relayhost_maps (empty)\fR"
 /*	A sender-dependent override for the global relayhost parameter
 /*	setting.
+/* .PP
+/*	Available in Postfix version 2.5 and later:
+/* .IP "\fBempty_address_relayhost_maps_lookup_key (<>)\fR"
+/*	The sender_dependent_relayhost_maps search string that will be
+/*	used instead of the null sender address.
 /* ADDRESS VERIFICATION CONTROLS
 /* .ad
 /* .fi
@@ -315,6 +320,7 @@ int     var_show_unk_rcpt_table;
 int     var_resolve_nulldom;
 char   *var_remote_rwr_domain;
 char   *var_snd_relay_maps;
+char   *var_null_relay_maps_key;
 int     var_resolve_num_dom;
 
  /*
@@ -557,6 +563,7 @@ int     main(int argc, char **argv)
 	VAR_VRFY_RELAYHOST, DEF_VRFY_RELAYHOST, &var_vrfy_relayhost, 0, 0,
 	VAR_REM_RWR_DOMAIN, DEF_REM_RWR_DOMAIN, &var_remote_rwr_domain, 0, 0,
 	VAR_SND_RELAY_MAPS, DEF_SND_RELAY_MAPS, &var_snd_relay_maps, 0, 0,
+	VAR_NULL_RELAY_MAPS_KEY, DEF_NULL_RELAY_MAPS_KEY, &var_null_relay_maps_key, 1, 0,
 	VAR_VRFY_RELAY_MAPS, DEF_VRFY_RELAY_MAPS, &var_vrfy_relay_maps, 0, 0,
 	0,
     };

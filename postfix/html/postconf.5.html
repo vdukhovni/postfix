@@ -2255,6 +2255,19 @@ created locally as the result of configuration or software error.
 
 </DD>
 
+<DT><b><a name="empty_address_relayhost_maps_lookup_key">empty_address_relayhost_maps_lookup_key</a>
+(default: <>)</b></DT><DD>
+
+<p> The <a href="postconf.5.html#sender_dependent_relayhost_maps">sender_dependent_relayhost_maps</a> search string that will be
+used instead of the null sender address. </p>
+
+<p> This feature is available in Postfix 2.5 and later. With
+earlier versions, <a href="postconf.5.html#sender_dependent_relayhost_maps">sender_dependent_relayhost_maps</a> lookups were
+skipped for the null sender address.  </p>
+
+
+</DD>
+
 <DT><b><a name="enable_errors_to">enable_errors_to</a>
 (default: no)</b></DT><DD>
 

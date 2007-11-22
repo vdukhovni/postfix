@@ -1,5 +1,7 @@
 Wish list:
 
+	document dict_get() as returning const char *
+
 	Make event_drain() a proper event loop; update the zero mask,
 	and don't ignore a non-empty timer queue.
 
