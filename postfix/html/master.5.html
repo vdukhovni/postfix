@@ -19,9 +19,9 @@ MASTER(5)                                                            MASTER(5)
        process.   The  <a href="master.5.html">master.cf</a> configuration file defines how a
        client program connects to a service, and what daemon pro-
        gram  runs  when a service is requested.  Most daemon pro-
-       cesses are short-lived and terminate after serving <b><a href="postconf.5.html#max_use">max_use</a></b>
-       clients, or after inactivity for <b><a href="postconf.5.html#max_idle">max_idle</a></b> or more units of
-       time.
+       cesses are short-lived  and  terminate  voluntarily  after
+       serving  <b><a href="postconf.5.html#max_use">max_use</a></b> clients, or after inactivity for <b><a href="postconf.5.html#max_idle">max_idle</a></b>
+       or more units of time.
 
        All daemons specified here must speak  a  Postfix-internal
        protocol. In order to execute non-Postfix software use the

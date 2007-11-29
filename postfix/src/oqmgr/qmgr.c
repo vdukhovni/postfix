@@ -192,15 +192,17 @@
 /* OTHER RESOURCE AND RATE CONTROLS
 /* .ad
 /* .fi
-/* .IP "\fBminimal_backoff_time (version dependent)\fR"
-/*	The minimal time between attempts to deliver a deferred message.
+/* .IP "\fBminimal_backoff_time (300s)\fR"
+/*	The minimal time between attempts to deliver a deferred message;
+/*	prior to Postfix 2.4 the default value was 1000s.
 /* .IP "\fBmaximal_backoff_time (4000s)\fR"
 /*	The maximal time between attempts to deliver a deferred message.
 /* .IP "\fBmaximal_queue_lifetime (5d)\fR"
 /*	The maximal time a message is queued before it is sent back as
 /*	undeliverable.
-/* .IP "\fBqueue_run_delay (version dependent)\fR"
-/*	The time between deferred queue scans by the queue manager.
+/* .IP "\fBqueue_run_delay (300s)\fR"
+/*	The time between deferred queue scans by the queue manager;
+/*	prior to Postfix 2.4 the default value was 1000s.
 /* .IP "\fBtransport_retry_time (60s)\fR"
 /*	The time between attempts by the Postfix queue manager to contact
 /*	a malfunctioning message delivery transport.

@@ -82,7 +82,6 @@
 
 #include <sys_defs.h>
 #include <time.h>
-#include <math.h>
 
 /* Utility library. */
 
@@ -90,7 +89,6 @@
 #include <mymalloc.h>
 #include <events.h>
 #include <htable.h>
-#include <name_code.h>
 
 /* Global library. */
 
@@ -104,80 +102,19 @@
 
 int     qmgr_queue_count;
 
- /*
-  * Lookup tables for main.cf feedback method names.
-  */
-#define QMGR_FDBACK_CODE_BAD		0
-#define QMGR_FDBACK_CODE_FIXED_1	1
-#define QMGR_FDBACK_CODE_INVERSE_WIN	2
-#define QMGR_FDBACK_CODE_INVERSE_1	QMGR_FDBACK_CODE_INVERSE_WIN
-#define QMGR_FDBACK_CODE_INV_SQRT_WIN	3
-#define QMGR_FDBACK_CODE_INV_SQRT	QMGR_FDBACK_CODE_INV_SQRT_WIN
-
-NAME_CODE qmgr_feedback_map[] = {
-    QMGR_FDBACK_NAME_FIXED_1, QMGR_FDBACK_CODE_FIXED_1,
-    QMGR_FDBACK_NAME_INVERSE_WIN, QMGR_FDBACK_CODE_INVERSE_WIN,
-    QMGR_FDBACK_NAME_INVERSE_1, QMGR_FDBACK_CODE_INVERSE_1,
-    QMGR_FDBACK_NAME_INV_SQRT_WIN, QMGR_FDBACK_CODE_INV_SQRT_WIN,
-    QMGR_FDBACK_NAME_INV_SQRT, QMGR_FDBACK_CODE_INV_SQRT,
-    0, QMGR_FDBACK_CODE_BAD,
-};
-static int qmgr_pos_feedback_idx;
-static int qmgr_neg_feedback_idx;
-
- /*
-  * Choosing the right feedback method at run-time.
-  */
-#define QMGR_FEEDBACK_VAL(idx, window) ( \
-	(idx) == QMGR_FDBACK_CODE_INVERSE_1 ? (1.0 / (window)) : \
-	(idx) == QMGR_FDBACK_CODE_FIXED_1 ? (1.0) : \
-	(1.0 / sqrt(window)) \
-    )
-
 #define QMGR_ERROR_OR_RETRY_QUEUE(queue) \
 	(strcmp(queue->transport->name, MAIL_SERVICE_RETRY) == 0 \
 	    || strcmp(queue->transport->name, MAIL_SERVICE_ERROR) == 0)
 
 #define QMGR_LOG_FEEDBACK(feedback) \
-	if (var_qmgr_feedback_debug && !QMGR_ERROR_OR_RETRY_QUEUE(queue)) \
+	if (var_conc_feedback_debug && !QMGR_ERROR_OR_RETRY_QUEUE(queue)) \
 	    msg_info("%s: feedback %g", myname, feedback);
 
 #define QMGR_LOG_WINDOW(queue) \
-	if (var_qmgr_feedback_debug && !QMGR_ERROR_OR_RETRY_QUEUE(queue)) \
+	if (var_conc_feedback_debug && !QMGR_ERROR_OR_RETRY_QUEUE(queue)) \
 	    msg_info("%s: queue %s: limit %d window %d success %g failure %g fail_cohorts %g", \
 		    myname, queue->name, queue->transport->dest_concurrency_limit, \
 		    queue->window, queue->success, queue->failure, queue->fail_cohorts);
-
-/* qmgr_queue_feedback_init - initialize feedback selection */
-
-void    qmgr_queue_feedback_init(void)
-{
-
-    /*
-     * Positive and negative feedback method indices.
-     */
-    qmgr_pos_feedback_idx = name_code(qmgr_feedback_map, NAME_CODE_FLAG_NONE,
-				      var_qmgr_pos_feedback);
-    if (qmgr_pos_feedback_idx == QMGR_FDBACK_CODE_BAD)
-	msg_fatal("%s: bad feedback method: %s",
-		  VAR_QMGR_POS_FDBACK, var_qmgr_pos_feedback);
-    if (var_qmgr_feedback_debug)
-	msg_info("positive feedback method %d, value at %d: %g",
-		 qmgr_pos_feedback_idx, var_init_dest_concurrency,
-		 QMGR_FEEDBACK_VAL(qmgr_pos_feedback_idx,
-				   var_init_dest_concurrency));
-
-    qmgr_neg_feedback_idx = name_code(qmgr_feedback_map, NAME_CODE_FLAG_NONE,
-				      var_qmgr_neg_feedback);
-    if (qmgr_neg_feedback_idx == QMGR_FDBACK_CODE_BAD)
-	msg_fatal("%s: bad feedback method: %s",
-		  VAR_QMGR_NEG_FDBACK, var_qmgr_neg_feedback);
-    if (var_qmgr_feedback_debug)
-	msg_info("negative feedback method %d, value at %d: %g",
-		 qmgr_neg_feedback_idx, var_init_dest_concurrency,
-		 QMGR_FEEDBACK_VAL(qmgr_neg_feedback_idx,
-				   var_init_dest_concurrency));
-}
 
 /* qmgr_queue_unthrottle_wrapper - in case (char *) != (struct *) */
 
@@ -202,7 +139,6 @@ void    qmgr_queue_unthrottle(QMGR_QUEUE *queue)
     const char *myname = "qmgr_queue_unthrottle";
     QMGR_TRANSPORT *transport = queue->transport;
     double  feedback;
-    double  multiplier;
 
     if (msg_verbose)
 	msg_info("%s: queue %s", myname, queue->name);
@@ -253,13 +189,13 @@ void    qmgr_queue_unthrottle(QMGR_QUEUE *queue)
     if (transport->dest_concurrency_limit == 0
 	|| transport->dest_concurrency_limit > queue->window)
 	if (queue->window < queue->busy_refcount + transport->init_dest_concurrency) {
-	    feedback = QMGR_FEEDBACK_VAL(qmgr_pos_feedback_idx, queue->window);
+	    feedback = QMGR_FEEDBACK_VAL(transport->pos_feedback, queue->window);
 	    QMGR_LOG_FEEDBACK(feedback);
 	    queue->success += feedback;
 	    /* Prepare for overshoot (feedback > hysteresis, rounding error). */
-	    while (queue->success >= var_qmgr_pos_hysteresis) {
-		queue->window += var_qmgr_pos_hysteresis;
-		queue->success -= var_qmgr_pos_hysteresis;
+	    while (queue->success + feedback / 2 >= transport->pos_feedback.hysteresis) {
+		queue->window += transport->pos_feedback.hysteresis;
+		queue->success -= transport->pos_feedback.hysteresis;
 		queue->failure = 0;
 	    }
 	    /* Prepare for overshoot. */
@@ -275,6 +211,7 @@ void    qmgr_queue_unthrottle(QMGR_QUEUE *queue)
 void    qmgr_queue_throttle(QMGR_QUEUE *queue, DSN *dsn)
 {
     const char *myname = "qmgr_queue_throttle";
+    QMGR_TRANSPORT *transport = queue->transport;
     double  feedback;
 
     /*
@@ -301,7 +238,8 @@ void    qmgr_queue_throttle(QMGR_QUEUE *queue, DSN *dsn)
      */
     if (queue->window > 0) {
 	queue->fail_cohorts += 1.0 / queue->window;
-	if (queue->fail_cohorts >= var_qmgr_sac_cohorts)
+	if (transport->fail_cohort_limit > 0
+	    && queue->fail_cohorts >= transport->fail_cohort_limit)
 	    queue->window = 0;
     }
 
@@ -315,14 +253,14 @@ void    qmgr_queue_throttle(QMGR_QUEUE *queue, DSN *dsn)
      * negative feedback can cancel out positive feedback.
      */
     if (queue->window > 0) {
-	feedback = QMGR_FEEDBACK_VAL(qmgr_neg_feedback_idx, queue->window);
+	feedback = QMGR_FEEDBACK_VAL(transport->neg_feedback, queue->window);
 	QMGR_LOG_FEEDBACK(feedback);
 	queue->failure -= feedback;
 	/* Prepare for overshoot (feedback > hysteresis, rounding error). */
-	while (queue->failure < 0) {
-	    queue->window -= var_qmgr_neg_hysteresis;
+	while (queue->failure - feedback / 2 < 0) {
+	    queue->window -= transport->neg_feedback.hysteresis;
 	    queue->success = 0;
-	    queue->failure += var_qmgr_neg_hysteresis;
+	    queue->failure += transport->neg_feedback.hysteresis;
 	}
 	/* Prepare for overshoot. */
 	if (queue->window < 1)

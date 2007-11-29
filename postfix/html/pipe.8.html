@@ -39,7 +39,7 @@ PIPE(8)                                                                PIPE(8)
        To  prevent  Postfix  from sending multiple recipients per
        delivery request, specify
 
-           <i>transport</i><b>_destination_recipient_limit = 1</b>
+           <b><a href="postconf.5.html#transport_destination_recipient_limit"><i>transport</i>_destination_recipient_limit</a> = 1</b>
 
        in the Postfix <a href="postconf.5.html"><b>main.cf</b></a> file, where <i>transport</i> is  the  name
        in the first column of the Postfix <a href="master.5.html"><b>master.cf</b></a> entry for the
@@ -107,7 +107,7 @@ PIPE(8)                                                                PIPE(8)
               <b>O</b>      Prepend  an  "<b>X-Original-To:</b> <i>recipient</i>" mes-
                      sage header with the  recipient  address  as
                      given  to  Postfix.  Note: for this to work,
-                     the    <i>transport</i><b>_destination_recipient_limit</b>
+                     the    <b><a href="postconf.5.html#transport_destination_recipient_limit"><i>transport</i>_destination_recipient_limit</a></b>
                      must  be  1  (see  SINGLE-RECIPIENT DELIVERY
                      above for details).
 
@@ -409,19 +409,19 @@ PIPE(8)                                                                PIPE(8)
        In  the text below, <i>transport</i> is the first field in a <b>mas-</b>
        <b>ter.cf</b> entry.
 
-       <i>transport</i><b>_destination_concurrency_limit ($<a href="postconf.5.html#default_destination_concurrency_limit">default_destina</a>-</b>
+       <b><a href="postconf.5.html#transport_destination_concurrency_limit"><i>transport</i>_destination_concurrency_limit</a> ($<a href="postconf.5.html#default_destination_concurrency_limit">default_destina</a>-</b>
        <b><a href="postconf.5.html#default_destination_concurrency_limit">tion_concurrency_limit</a>)</b>
               Limit the number of parallel deliveries to the same
               destination,  for delivery via the named <i>transport</i>.
               The limit is enforced by the Postfix queue manager.
 
-       <i>transport</i><b>_destination_recipient_limit   ($<a href="postconf.5.html#default_destination_recipient_limit">default_destina</a>-</b>
+       <b><a href="postconf.5.html#transport_destination_recipient_limit"><i>transport</i>_destination_recipient_limit</a>   ($<a href="postconf.5.html#default_destination_recipient_limit">default_destina</a>-</b>
        <b><a href="postconf.5.html#default_destination_recipient_limit">tion_recipient_limit</a>)</b>
               Limit  the  number of recipients per message deliv-
               ery, for delivery via  the  named  <i>transport</i>.   The
               limit is enforced by the Postfix queue manager.
 
-       <i>transport</i><b>_time_limit ($<a href="postconf.5.html#command_time_limit">command_time_limit</a>)</b>
+       <b><a href="postconf.5.html#transport_time_limit"><i>transport</i>_time_limit</a> ($<a href="postconf.5.html#command_time_limit">command_time_limit</a>)</b>
               Limit  the  time  for delivery to external command,
               for delivery via the named <i>transport</i>.  The limit is
               enforced by the pipe delivery agent.

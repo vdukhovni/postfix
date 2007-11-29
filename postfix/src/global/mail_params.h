@@ -456,6 +456,7 @@ extern bool var_biff;
 extern char *var_allow_commands;
 
 #define VAR_COMMAND_MAXTIME	"command_time_limit"
+#define _MAXTIME		"_time_limit"
 #define DEF_COMMAND_MAXTIME	"1000s"
 extern int var_command_maxtime;
 
@@ -731,6 +732,7 @@ extern int var_qmgr_fudge;
   * Queue manager: default destination concurrency levels.
   */
 #define VAR_INIT_DEST_CON	"initial_destination_concurrency"
+#define _INIT_DEST_CON		"_initial_destination_concurrency"
 #define DEF_INIT_DEST_CON	5
 extern int var_init_dest_concurrency;
 
@@ -2837,35 +2839,27 @@ extern char *var_smtp_body_chks;
  /*
   * Scheduler concurrency feedback algorithms.
   */
-#define VAR_QMGR_POS_FDBACK	"qmgr_positive_concurrency_feedback_style"
-#define DEF_QMGR_POS_FDBACK	QMGR_FDBACK_NAME_FIXED_1
-extern char *var_qmgr_pos_feedback;
+#define VAR_CONC_POS_FDBACK	"default_concurrency_positive_feedback"
+#define _CONC_POS_FDBACK	"_concurrency_positive_feedback"
+#define DEF_CONC_POS_FDBACK	"1"
+extern char *var_conc_pos_feedback;
 
-#define VAR_QMGR_NEG_FDBACK	"qmgr_negative_concurrency_feedback_style"
-#define DEF_QMGR_NEG_FDBACK	QMGR_FDBACK_NAME_FIXED_1
-extern char *var_qmgr_neg_feedback;
+#define VAR_CONC_NEG_FDBACK	"default_concurrency_negative_feedback"
+#define _CONC_NEG_FDBACK	"_concurrency_negative_feedback"
+#define DEF_CONC_NEG_FDBACK	"1"
+extern char *var_conc_neg_feedback;
 
-#define QMGR_FDBACK_NAME_FIXED_1	"fixed_1"
-#define QMGR_FDBACK_NAME_INVERSE_1	"inverse_1"	/* deprecated */
-#define QMGR_FDBACK_NAME_INVERSE_WIN	"inverse_concurrency"
-#define QMGR_FDBACK_NAME_INV_SQRT	"inverse_sqrt"	/* deprecated */
-#define QMGR_FDBACK_NAME_INV_SQRT_WIN	"inverse_sqrt_concurrency"
+#define CONC_FDBACK_NAME_WIN	"concurrency"
+#define CONC_FDBACK_NAME_SQRT_WIN "sqrt_concurrency"
 
-#define VAR_QMGR_POS_HYST	"qmgr_positive_concurrency_feedback_hysteresis"
-#define DEF_QMGR_POS_HYST	1
-extern int var_qmgr_pos_hysteresis;
+#define VAR_CONC_COHORT_LIM	"default_concurrency_failed_cohort_limit"
+#define _CONC_COHORT_LIM	"_concurrency_failed_cohort_limit"
+#define DEF_CONC_COHORT_LIM	1
+extern int var_conc_cohort_limit;
 
-#define VAR_QMGR_NEG_HYST	"qmgr_negative_concurrency_feedback_hysteresis"
-#define DEF_QMGR_NEG_HYST	1
-extern int var_qmgr_neg_hysteresis;
-
-#define VAR_QMGR_SAC_COHORTS	"qmgr_sacrificial_cohorts"
-#define DEF_QMGR_SAC_COHORTS	1
-extern int var_qmgr_sac_cohorts;
-
-#define VAR_QMGR_FDBACK_DEBUG	"qmgr_concurrency_feedback_debug"
-#define DEF_QMGR_FDBACK_DEBUG	0
-extern bool var_qmgr_feedback_debug;
+#define VAR_CONC_FDBACK_DEBUG	"concurrency_feedback_debug"
+#define DEF_CONC_FDBACK_DEBUG	0
+extern bool var_conc_feedback_debug;
 
 /* LICENSE
 /* .ad

@@ -63,6 +63,15 @@ operation of the mail system.
 The recipient of undeliverable mail that cannot be returned to
 the sender.  This feature is enabled with the notify_classes
 parameter.
+<DT>\fB\fItransport\fR_concurrency_failed_cohort_limit
+(default: $default_concurrency_failed_cohort_limit)\fR</DT><DD>
+.PP
+A transport-specific override for the
+default_concurrency_failed_cohort_limit parameter value, where
+\fItransport\fR is the master.cf name of the message delivery
+transport.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH access_map_reject_code (default: 554)
 The numerical Postfix SMTP server response code when a client
 is rejected by an \fBaccess\fR(5) map restriction.
@@ -749,6 +758,11 @@ delivery by the \fBpipe\fR(8) delivery agent.
 .PP
 Note: if you set this time limit to a large value you must update the
 global ipc_timeout parameter as well.
+.SH concurrency_feedback_debug (default: no)
+Make the queue manager's feedback algorithm verbose for performance
+analysis purposes.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH config_directory (default: see "postconf -d" output)
 The default location of the Postfix main.cf and master.cf
 configuration files. This can be overruled via the following
@@ -852,6 +866,102 @@ debugger_command =
 .fi
 .ad
 .ft R
+.SH default_concurrency_failed_cohort_limit (default: 1)
+How many pseudo-cohorts must suffer connection or handshake
+failure before a specific destination is considered unavailable
+(and further delivery is suspended). Specify zero to disable this
+feature. A destination's pseudo-cohort failure count is reset each
+time a delivery completes without connection or handshake failure
+for that specific destination.
+.PP
+A pseudo-cohort is the number of deliveries equal to a destination's
+delivery concurrency.
+.PP
+Use \fItransport\fR_concurrency_failed_cohort_limit to specify
+a transport-specific override, where \fItransport\fR is the master.cf
+name of the message delivery transport.
+.PP
+This feature is available in Postfix 2.5. The default setting
+is compatible with earlier Postfix versions.
+.SH default_concurrency_negative_feedback (default: 1)
+The per-destination amount of negative delivery concurrency
+feedback, after a delivery completes with a connection or handshake
+failure. Feedback values are in range 0..1 inclusive. With negative
+feedback, concurrency is decremented at the beginning of a sequence
+of length 1/feedback. This is unlike positive feedback, where
+concurrency is incremented at the end of a sequence of length
+1/feedback.
+.PP
+As of Postfix version 2.5, negative feedback cannot reduce
+delivery concurrency to zero.  Instead, a destination is marked
+dead (further delivery suspended) after the failed pseudo-cohort
+count reaches $default_concurrency_failed_cohort_limit (or
+$\fItransport\fR_concurrency_failed_cohort_limit). To make the
+scheduler completely immune to connection or handshake failures,
+specify a zero feedback value and a zero failed pseudo-cohort limit.
+.PP
+Specify one of the following forms:
+.IP "\fB\fInumber\fR \fR"
+.IP "\fB\fInumber\fR / \fInumber\fR \fR"
+Constant feedback. The value must be in the range 0..1 inclusive.
+The default setting of "1" is compatible with Postfix versions
+before 2.5, where a destination's delivery concurrency is throttled
+down to zero (and further delivery suspended) after a single failed
+pseudo-cohort.
+.IP "\fB\fInumber\fR / concurrency \fR"
+Variable feedback of "\fInumber\fR / (delivery concurrency)".
+The \fInumber\fR must be in the range 0..1 inclusive. With
+\fInumber\fR equal to "1", a destination's delivery concurrency
+is decremented by 1 after each failed pseudo-cohort.
+.IP "\fB\fInumber\fR / sqrt_concurrency \fR"
+Variable feedback of "\fInumber\fR / sqrt(delivery concurrency)".
+The \fInumber\fR must be in the range 0..1 inclusive. This setting
+may be removed in a future version.
+.PP
+A pseudo-cohort is the number of deliveries equal to a destination's
+delivery concurrency.
+.PP
+Use \fItransport\fR_concurrency_negative_feedback to specify
+a transport-specific override, where \fItransport\fR is the master.cf
+name of the message delivery transport.
+.PP
+This feature is available in Postfix 2.5. The default setting
+is compatible with earlier Postfix versions.
+.SH default_concurrency_positive_feedback (default: 1)
+The per-destination amount of positive delivery concurrency
+feedback, after a delivery completes without connection or handshake
+failure. Feedback values are in the range 0..1 inclusive.  The
+concurrency increases until it reaches the per-destination maximal
+concurrency limit. With positive feedback, concurrency is incremented
+at the end of a sequence with length 1/feedback. This is unlike
+negative feedback, where concurrency is decremented at the start
+of a sequence of length 1/feedback.
+.PP
+Specify one of the following forms:
+.IP "\fB\fInumber\fR \fR"
+.IP "\fB\fInumber\fR / \fInumber\fR \fR"
+Constant feedback.  The value must be in the range 0..1
+inclusive. The default setting of "1" is compatible with Postfix
+versions before 2.5, where a destination's delivery concurrency
+doubles after each successful pseudo-cohort.
+.IP "\fB\fInumber\fR / concurrency \fR"
+Variable feedback of "\fInumber\fR / (delivery concurrency)".
+The \fInumber\fR must be in the range 0..1 inclusive. With
+\fInumber\fR equal to "1", a destination's delivery concurrency
+is incremented by 1 after each successful pseudo-cohort.
+.IP "\fB\fInumber\fR / sqrt_concurrency \fR"
+Variable feedback of "\fInumber\fR / sqrt(delivery concurrency)".
+The \fInumber\fR must be in the range 0..1 inclusive. This setting
+may be removed in a future version.
+.PP
+A pseudo-cohort is the number of deliveries equal to a destination's
+delivery concurrency.
+.PP
+Use \fItransport\fR_concurrency_positive_feedback to specify
+a transport-specific override, where \fItransport\fR is the master.cf
+name of the message delivery transport.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH default_database_type (default: see "postconf -d" output)
 The default database type for use in \fBnewaliases\fR(1), \fBpostalias\fR(1)
 and \fBpostmap\fR(1) commands. On many UNIX systems the default type is
@@ -1041,12 +1151,16 @@ When not all message recipients fit into the memory at once, keep loading
 more of them at least once every this many seconds.  This is used to
 make sure the recipients are refilled in timely manner even when
 $default_recipient_refill_limit is too high for too slow deliveries.
+.PP
+This feature is available in Postfix 2.4 and later.
 .SH default_recipient_refill_limit (default: 100)
 The default per-transport limit on the number of recipients refilled at
 once.  When not all message recipients fit into the memory at once, keep
 loading more of them in batches of at least this many at a time.  See also
 $default_recipient_refill_delay, which may result in recipient batches
 lower than this when this limit is too high for too slow deliveries.
+.PP
+This feature is available in Postfix 2.4 and later.
 .SH default_transport (default: smtp)
 The default mail delivery transport and next-hop destination for
 destinations that do not match $mydestination, $inet_interfaces,
@@ -1644,6 +1758,10 @@ The initial per-destination concurrency level for parallel delivery
 to the same destination. This limit applies to delivery via \fBsmtp\fR(8),
 and via the \fBpipe\fR(8) and \fBvirtual\fR(8) delivery agents.
 .PP
+Use \fItransport\fR_initial_destination_concurrency to specify
+a transport-specific override, where \fItransport\fR is the master.cf
+name of the message delivery transport (Postfix 2.5 and later).
+.PP
 Warning: with concurrency of 1, one bad message can be enough to
 block all mail to a site.
 .SH internal_mail_filter_classes (default: empty)
@@ -2230,21 +2348,21 @@ client IP address matches any network or network address listed in
 $mynetworks. This setting will not prevent remote mail header
 address rewriting when mail from a remote client is forwarded by
 a neighboring system.
-.IP "\fB permit_sasl_authenticated \fR"
+.IP "\fBpermit_sasl_authenticated \fR"
 Append the domain name in $myorigin or $mydomain when the
 client is successfully authenticated via the RFC 4954 (AUTH)
 protocol.
-.IP "\fB permit_tls_clientcerts \fR"
+.IP "\fBpermit_tls_clientcerts \fR"
 Append the domain name in $myorigin or $mydomain when the
 client TLS certificate is successfully verified, and the client
 certificate fingerprint is listed in $relay_clientcerts.
-.IP "\fB permit_tls_all_clientcerts \fR"
+.IP "\fBpermit_tls_all_clientcerts \fR"
 Append the domain name in $myorigin or $mydomain when the
 client TLS certificate is successfully verified, regardless of
 whether it is listed on the server, and regardless of the certifying
 authority.
-.IP "\fB check_address_map \fItype:table\fR \fR"
-.IP "\fB \fItype:table\fR \fR"
+.IP "\fBcheck_address_map \fItype:table\fR \fR"
+.IP "\fB\fItype:table\fR \fR"
 Append the domain name in $myorigin or $mydomain when the
 client IP address matches the specified lookup table.
 The lookup result is ignored, and no subnet lookup is done. This
@@ -3251,12 +3369,6 @@ clogging up the Postfix active queue. Specify 0 to disable.
 This feature is enabled with the helpful_warnings parameter.
 .PP
 This feature is available in Postfix 2.0 and later.
-.SH qmgr_concurrency_feedback_debug (default: no)
-Make the queue manager's feedback algorithm verbose for performance
-analysis purposes.
-.PP
-This feature is temporarily available in Postfix 2.5; its final
-form is likely to change.
 .SH qmgr_fudge_factor (default: 100)
 Obsolete feature: the percentage of delivery resources that a busy
 mail system will use up for delivery of a large mailing  list
@@ -3276,97 +3388,6 @@ takes priority over any other in-memory recipient limits (i.e.,
 the global qmgr_message_recipient_limit and the per transport
 _recipient_limit) if necessary. The minimum value allowed for this
 parameter is 1.
-.SH qmgr_negative_concurrency_feedback_hysteresis (default: 1)
-The per-destination integer amount of negative concurrency
-feedback that must accumulate between negative adjustments of a
-destination's delivery concurrency.  The concurrency adjustment is
-equal in size to the negative hysteresis value, and is applied at
-the \fBbeginning\fR of a cycle of (hysteresis / feedback) steps.
-At that same time, the destination's positive feedback hysteresis
-cycle is reset to its beginning.
-.PP
-This feature is temporarily available in Postfix 2.5; its final
-form is likely to change. The default setting is compatible with
-earlier Postfix versions.
-.SH qmgr_negative_concurrency_feedback_style (default: fixed_1)
-The per-destination amount of negative delivery concurrency
-feedback, after a delivery completes with a connection or handshake
-failure.
-.IP "\fB inverse_concurrency \fR"
-Variable feedback of
-1 / (delivery concurrency). With this setting, and with
-"qmgr_negative_concurrency_feedback_hysteresis = 1", the destination's
-delivery concurrency is decremented by 1 after each failed
-pseudo-cohort, and the destination is marked dead (further delivery
-suspended) after the failed pseudo-cohort count reaches
-$qmgr_sacrificial_cohorts.
-.IP "\fB inverse_sqrt_concurrency \fR"
-Variable feedback
-of 1 / (square root of delivery concurrency). This is an intermediate
-form between the other two. It lacks sound justification, and is a
-candidate for removal.
-.IP "\fB fixed_1 \fR"
-Constant feedback of 1. This setting
-is compatible with Postfix versions before 2.5, where a destination's
-delivery concurrency is throttled down to zero (and further delivery
-suspended) after a single failed pseudo-cohort.
-.PP
-A pseudo-cohort is a number of deliveries equal to the destination's
-delivery concurrency.
-.PP
-This feature is temporarily available in Postfix 2.5; its final
-form is likely to change. The default setting is compatible with
-earlier Postfix versions.
-.SH qmgr_positive_concurrency_feedback_hysteresis (default: 1)
-The per-destination integer amount of positive concurrency
-feedback that must accumulate before positive adjustments of a
-destination's delivery concurrency.  The concurrency adjustment is
-equal in size to the positive hysteresis value, and is applied at
-the \fBend\fR of a cycle of (hysteresis / feedback) steps. At that
-same time, the destination's negative feedback hysteresis cycle is
-reset to its beginning.
-.PP
-This feature is temporarily available in Postfix 2.5; its final
-form is likely to change. The default setting is compatible with
-earlier Postfix versions.
-.SH qmgr_positive_concurrency_feedback_style (default: fixed_1)
-The per-destination amount of positive delivery concurrency
-feedback, after a delivery completes without connection or handshake
-failure.
-.IP "\fB inverse_concurrency \fR"
-Variable feedback of
-1 / (delivery concurrency). With this setting, and with
-"qmgr_positive_concurrency_feedback_hysteresis = 1", the destination's
-delivery concurrency is incremented by 1 after each successful
-pseudo-cohort, until it reaches the per-destination maximal concurrency
-limit.
-.IP "\fB inverse_sqrt_concurrency \fR"
-Variable feedback
-of 1 / (square root of delivery concurrency). This is an intermediate
-form between the other two. It lacks sound justification, and is a
-candidate for removal.
-.IP "\fB fixed_1 \fR"
-Constant feedback of 1. This setting
-is compatible with Postfix versions before 2.5, where a destination's
-delivery concurrency is doubled after each successful pseudo-cohort,
-until it reaches the per-destination maximal concurrency limit.
-.PP
-A pseudo-cohort is a number of deliveries equal to the destination's
-delivery concurrency.
-.PP
-This feature is temporarily available in Postfix 2.5. The default
-setting is compatible with earlier Postfix versions.
-.SH qmgr_sacrificial_cohorts (default: 1)
-How many pseudo-cohorts must suffer connection or handshake
-failure before a specific destination is considered unavailable
-(and further delivery is suspended). A pseudo-cohort is a number
-of deliveries equal to a destination's concurrency. The pseudo-cohort
-failure count is reset each time a delivery completes without
-connection or handshake failure for that specific destination.
-.PP
-This feature is temporarily available in Postfix 2.5; its final
-form is likely to change. The default setting is compatible with
-earlier Postfix versions.
 .SH qmqpd_authorized_clients (default: empty)
 What clients are allowed to connect to the QMQP server port.
 .PP
@@ -7394,6 +7415,52 @@ of mail deliveries and produces a mail delivery report when verbose
 delivery is requested with "\fBsendmail -v\fR".
 .PP
 This feature is available in Postfix 2.1 and later.
+.SH transport_concurrency_negative_feedback (default: $default_concurrency_negative_feedback)
+A transport-specific override for the
+default_concurrency_negative_feedback parameter value, where
+\fItransport\fR is the master.cf name of the message delivery
+transport.
+.PP
+This feature is available in Postfix 2.5 and later.
+.SH transport_concurrency_positive_feedback (default: $default_concurrency_positive_feedback)
+A transport-specific override for the
+default_concurrency_positive_feedback parameter value, where
+\fItransport\fR is the master.cf name of the message delivery
+transport.
+.PP
+This feature is available in Postfix 2.5 and later.
+.SH transport_delivery_slot_cost (default: $default_delivery_slot_cost)
+A transport-specific override for the default_delivery_slot_cost
+parameter value, where \fItransport\fR is the master.cf name of
+the message delivery transport.
+.SH transport_delivery_slot_discount (default: $default_delivery_slot_discount)
+A transport-specific override for the default_delivery_slot_discount
+parameter value, where \fItransport\fR is the master.cf name of
+the message delivery transport.
+.SH transport_delivery_slot_loan (default: $default_delivery_slot_loan)
+A transport-specific override for the default_delivery_slot_loan
+parameter value, where \fItransport\fR is the master.cf name of
+the message delivery transport.
+.SH transport_destination_concurrency_limit (default: $default_destination_concurrency_limit)
+A transport-specific override for the
+default_destination_concurrency_limit parameter value, where
+\fItransport\fR is the master.cf name of the message delivery
+transport.
+.SH transport_destination_recipient_limit (default: $default_destination_concurrency_limit)
+A transport-specific override for the
+default_destination_recipient_limit parameter value, where
+\fItransport\fR is the master.cf name of the message delivery
+transport.
+.SH transport_extra_recipient_limit (default: $default_extra_recipient_limit)
+A transport-specific override for the default_extra_recipient_limit
+parameter value, where \fItransport\fR is the master.cf name of
+the message delivery transport.
+.SH transport_initial_destination_concurrency (default: $initial_destination_concurrency)
+A transport-specific override for the initial_destination_concurrency
+parameter value, where \fItransport\fR is the master.cf name of
+the message delivery transport.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH transport_maps (default: empty)
 Optional lookup tables with mappings from recipient address to
 (message delivery transport, next-hop destination).  See \fBtransport\fR(5)
@@ -7416,12 +7483,36 @@ transport_maps = hash:/etc/postfix/transport
 .fi
 .ad
 .ft R
+.SH transport_minimum_delivery_slots (default: $default_minimum_delivery_slots)
+A transport-specific override for the default_minimum_delivery_slots
+parameter value, where \fItransport\fR is the master.cf name of
+the message delivery transport.
+.SH transport_recipient_limit (default: $default_recipient_limit)
+A transport-specific override for the default_recipient_limit
+parameter value, where \fItransport\fR is the master.cf name of
+the message delivery transport.
+.SH transport_recipient_refill_delay (default: $default_recipient_refill_delay)
+A transport-specific override for the default_recipient_refill_delay
+parameter value, where \fItransport\fR is the master.cf name of
+the message delivery transport.
+.PP
+This feature is available in Postfix 2.4 and later.
+.SH transport_recipient_refill_limit (default: $default_recipient_refill_limit)
+A transport-specific override for the default_recipient_refill_limit
+parameter value, where \fItransport\fR is the master.cf name of
+the message delivery transport.
+.PP
+This feature is available in Postfix 2.4 and later.
 .SH transport_retry_time (default: 60s)
 The time between attempts by the Postfix queue manager to contact
 a malfunctioning message delivery transport.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
+.SH transport_time_limit (default: $command_time_limit)
+A transport-specific override for the command_time_limit parameter
+value, where \fItransport\fR is the master.cf name of the message
+delivery transport.
 .SH trigger_timeout (default: 10s)
 The time limit for sending a trigger to a Postfix daemon (for
 example, the \fBpickup\fR(8) or \fBqmgr\fR(8) daemon). This time limit prevents

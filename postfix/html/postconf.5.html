@@ -85,6 +85,19 @@ parameter.  </p>
 
 </DD>
 
+<DT><b><a name="<i>transport</i>_concurrency_failed_cohort_limit"><i>transport</i>_concurrency_failed_cohort_limit</a>
+(default: $<a href="postconf.5.html#default_concurrency_failed_cohort_limit">default_concurrency_failed_cohort_limit</a>)</b></DT><DD>
+
+<p> A transport-specific override for the
+<a href="postconf.5.html#default_concurrency_failed_cohort_limit">default_concurrency_failed_cohort_limit</a> parameter value, where
+<i>transport</i> is the <a href="master.5.html">master.cf</a> name of the message delivery
+transport. </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="access_map_reject_code">access_map_reject_code</a>
 (default: 554)</b></DT><DD>
 
@@ -1364,6 +1377,17 @@ global <a href="postconf.5.html#ipc_timeout">ipc_timeout</a> parameter as well.
 
 </DD>
 
+<DT><b><a name="concurrency_feedback_debug">concurrency_feedback_debug</a>
+(default: no)</b></DT><DD>
+
+<p> Make the queue manager's feedback algorithm verbose for performance
+analysis purposes. </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="config_directory">config_directory</a>
 (default: see "postconf -d" output)</b></DT><DD>
 
@@ -1547,6 +1571,143 @@ Example:
     PATH=/usr/bin:/usr/X11R6/bin
     xxgdb $<a href="postconf.5.html#daemon_directory">daemon_directory</a>/$<a href="postconf.5.html#process_name">process_name</a> $<a href="postconf.5.html#process_id">process_id</a> &amp; sleep 5
 </pre>
+
+
+</DD>
+
+<DT><b><a name="default_concurrency_failed_cohort_limit">default_concurrency_failed_cohort_limit</a>
+(default: 1)</b></DT><DD>
+
+<p> How many pseudo-cohorts must suffer connection or handshake
+failure before a specific destination is considered unavailable
+(and further delivery is suspended). Specify zero to disable this
+feature. A destination's pseudo-cohort failure count is reset each
+time a delivery completes without connection or handshake failure
+for that specific destination. </p>
+
+<p> A pseudo-cohort is the number of deliveries equal to a destination's
+delivery concurrency. </p>
+
+<p> Use <a href="postconf.5.html#transport_concurrency_failed_cohort_limit"><i>transport</i>_concurrency_failed_cohort_limit</a> to specify
+a transport-specific override, where <i>transport</i> is the <a href="master.5.html">master.cf</a>
+name of the message delivery transport. </p>
+
+<p> This feature is available in Postfix 2.5. The default setting
+is compatible with earlier Postfix versions. </p>
+
+
+</DD>
+
+<DT><b><a name="default_concurrency_negative_feedback">default_concurrency_negative_feedback</a>
+(default: 1)</b></DT><DD>
+
+<p> The per-destination amount of negative delivery concurrency
+feedback, after a delivery completes with a connection or handshake
+failure. Feedback values are in range 0..1 inclusive. With negative
+feedback, concurrency is decremented at the beginning of a sequence
+of length 1/feedback. This is unlike positive feedback, where
+concurrency is incremented at the end of a sequence of length
+1/feedback. </p>
+
+<p> As of Postfix version 2.5, negative feedback cannot reduce
+delivery concurrency to zero.  Instead, a destination is marked
+dead (further delivery suspended) after the failed pseudo-cohort
+count reaches $<a href="postconf.5.html#default_concurrency_failed_cohort_limit">default_concurrency_failed_cohort_limit</a> (or
+$<a href="postconf.5.html#transport_concurrency_failed_cohort_limit"><i>transport</i>_concurrency_failed_cohort_limit</a>). To make the
+scheduler completely immune to connection or handshake failures,
+specify a zero feedback value and a zero failed pseudo-cohort limit.
+</p>
+
+<p> Specify one of the following forms: </p>
+
+<dl>
+
+<dt> <b><i>number</i> </b> </dt>
+
+<dt> <b><i>number</i> / <i>number</i> </b> </dt>
+
+<dd> Constant feedback. The value must be in the range 0..1 inclusive.
+The default setting of "1" is compatible with Postfix versions
+before 2.5, where a destination's delivery concurrency is throttled
+down to zero (and further delivery suspended) after a single failed
+pseudo-cohort. </dd>
+
+<dt> <b><i>number</i> / concurrency </b> </dt>
+
+<dd> Variable feedback of "<i>number</i> / (delivery concurrency)".
+The <i>number</i> must be in the range 0..1 inclusive. With
+<i>number</i> equal to "1", a destination's delivery concurrency
+is decremented by 1 after each failed pseudo-cohort.  </dd>
+
+<dt> <b><i>number</i> / sqrt_concurrency </b> </dt>
+
+<dd> Variable feedback of "<i>number</i> / sqrt(delivery concurrency)".
+The <i>number</i> must be in the range 0..1 inclusive. This setting
+may be removed in a future version.  </dd>
+
+</dl>
+
+<p> A pseudo-cohort is the number of deliveries equal to a destination's
+delivery concurrency. </p>
+
+<p> Use <a href="postconf.5.html#transport_concurrency_positive_feedback"><i>transport</i>_concurrency_negative_feedback</a> to specify
+a transport-specific override, where <i>transport</i> is the <a href="master.5.html">master.cf</a>
+name of the message delivery transport. </p>
+
+<p> This feature is available in Postfix 2.5. The default setting
+is compatible with earlier Postfix versions. </p>
+
+
+</DD>
+
+<DT><b><a name="default_concurrency_positive_feedback">default_concurrency_positive_feedback</a>
+(default: 1)</b></DT><DD>
+
+<p> The per-destination amount of positive delivery concurrency
+feedback, after a delivery completes without connection or handshake
+failure. Feedback values are in the range 0..1 inclusive.  The
+concurrency increases until it reaches the per-destination maximal
+concurrency limit. With positive feedback, concurrency is incremented
+at the end of a sequence with length 1/feedback. This is unlike
+negative feedback, where concurrency is decremented at the start
+of a sequence of length 1/feedback. </p>
+
+<p> Specify one of the following forms:  </p>
+
+<dl>
+
+<dt> <b><i>number</i> </b> </dt>
+
+<dt> <b><i>number</i> / <i>number</i> </b> </dt>
+
+<dd> Constant feedback.  The value must be in the range 0..1
+inclusive. The default setting of "1" is compatible with Postfix
+versions before 2.5, where a destination's delivery concurrency
+doubles after each successful pseudo-cohort.  </dd>
+
+<dt> <b><i>number</i> / concurrency </b> </dt>
+
+<dd> Variable feedback of "<i>number</i> / (delivery concurrency)".
+The <i>number</i> must be in the range 0..1 inclusive. With
+<i>number</i> equal to "1", a destination's delivery concurrency
+is incremented by 1 after each successful pseudo-cohort.  </dd>
+
+<dt> <b><i>number</i> / sqrt_concurrency </b> </dt>
+
+<dd> Variable feedback of "<i>number</i> / sqrt(delivery concurrency)".
+The <i>number</i> must be in the range 0..1 inclusive. This setting
+may be removed in a future version.  </dd>
+
+</dl>
+
+<p> A pseudo-cohort is the number of deliveries equal to a destination's
+delivery concurrency. </p>
+
+<p> Use <a href="postconf.5.html#transport_concurrency_positive_feedback"><i>transport</i>_concurrency_positive_feedback</a> to specify
+a transport-specific override, where <i>transport</i> is the <a href="master.5.html">master.cf</a>
+name of the message delivery transport. </p>
+
+<p> This feature is available in Postfix 2.5 and later.  </p>
 
 
 </DD>
@@ -1897,6 +2058,8 @@ make sure the recipients are refilled in timely manner even when
 $<a href="postconf.5.html#default_recipient_refill_limit">default_recipient_refill_limit</a> is too high for too slow deliveries.
 </p>
 
+<p> This feature is available in Postfix 2.4 and later. </p>
+
 
 </DD>
 
@@ -1910,6 +2073,8 @@ loading more of them in batches of at least this many at a time.  See also
 $<a href="postconf.5.html#default_recipient_refill_delay">default_recipient_refill_delay</a>, which may result in recipient batches
 lower than this when this limit is too high for too slow deliveries.
 </p>
+
+<p> This feature is available in Postfix 2.4 and later. </p>
 
 
 </DD>
@@ -3022,6 +3187,10 @@ The initial per-destination concurrency level for parallel delivery
 to the same destination. This limit applies to delivery via <a href="smtp.8.html">smtp(8)</a>,
 and via the <a href="pipe.8.html">pipe(8)</a> and <a href="virtual.8.html">virtual(8)</a> delivery agents.
 </p>
+
+<p> Use <a href="postconf.5.html#transport_initial_destination_concurrency"><i>transport</i>_initial_destination_concurrency</a> to specify
+a transport-specific override, where <i>transport</i> is the <a href="master.5.html">master.cf</a>
+name of the message delivery transport (Postfix 2.5 and later). </p>
 
 <p>
 Warning: with concurrency of 1, one bad message can be enough to
@@ -4198,28 +4367,28 @@ $<a href="postconf.5.html#mynetworks">mynetworks</a>. This setting will not prev
 address rewriting when mail from a remote client is forwarded by
 a neighboring system.  </dd>
 
-<dt><b> <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a> </b></dt>
+<dt><b><a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a> </b></dt>
 
 <dd> Append the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> when the
 client is successfully authenticated via the <a href="http://tools.ietf.org/html/rfc4954">RFC 4954</a> (AUTH)
 protocol. </dd>
 
-<dt><b> <a href="postconf.5.html#permit_tls_clientcerts">permit_tls_clientcerts</a> </b></dt>
+<dt><b><a href="postconf.5.html#permit_tls_clientcerts">permit_tls_clientcerts</a> </b></dt>
 
 <dd> Append the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> when the
 client TLS certificate is successfully verified, and the client
 certificate fingerprint is listed in $<a href="postconf.5.html#relay_clientcerts">relay_clientcerts</a>.  </dd>
 
-<dt><b> <a href="postconf.5.html#permit_tls_all_clientcerts">permit_tls_all_clientcerts</a> </b></dt>
+<dt><b><a href="postconf.5.html#permit_tls_all_clientcerts">permit_tls_all_clientcerts</a> </b></dt>
 
 <dd> Append the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> when the
 client TLS certificate is successfully verified, regardless of
 whether it is listed on the server, and regardless of the certifying
 authority. </dd>
 
-<dt><b> <a name="check_address_map">check_address_map</a> <i><a href="DATABASE_README.html">type:table</a></i> </b></dt>
+<dt><b><a name="check_address_map">check_address_map</a> <i><a href="DATABASE_README.html">type:table</a></i> </b></dt>
 
-<dt><b> <i><a href="DATABASE_README.html">type:table</a></i> </b></dt>
+<dt><b><i><a href="DATABASE_README.html">type:table</a></i> </b></dt>
 
 <dd> Append the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> when the
 client IP address matches the specified lookup table.
@@ -5930,18 +6099,6 @@ This feature is available in Postfix 2.0 and later.
 
 </DD>
 
-<DT><b><a name="qmgr_concurrency_feedback_debug">qmgr_concurrency_feedback_debug</a>
-(default: no)</b></DT><DD>
-
-<p> Make the queue manager's feedback algorithm verbose for performance
-analysis purposes. </p>
-
-<p> This feature is temporarily available in Postfix 2.5; its final
-form is likely to change. </p>
-
-
-</DD>
-
 <DT><b><a name="qmgr_fudge_factor">qmgr_fudge_factor</a>
 (default: 100)</b></DT><DD>
 
@@ -5989,136 +6146,6 @@ the global <a href="postconf.5.html#qmgr_message_recipient_limit">qmgr_message_r
 _recipient_limit) if necessary. The minimum value allowed for this
 parameter is 1.
 </p>
-
-
-</DD>
-
-<DT><b><a name="qmgr_negative_concurrency_feedback_hysteresis">qmgr_negative_concurrency_feedback_hysteresis</a>
-(default: 1)</b></DT><DD>
-
-<p> The per-destination integer amount of negative concurrency
-feedback that must accumulate between negative adjustments of a
-destination's delivery concurrency.  The concurrency adjustment is
-equal in size to the negative hysteresis value, and is applied at
-the <b>beginning</b> of a cycle of (hysteresis / feedback) steps.
-At that same time, the destination's positive feedback hysteresis
-cycle is reset to its beginning.  </p>
-
-<p> This feature is temporarily available in Postfix 2.5; its final
-form is likely to change. The default setting is compatible with
-earlier Postfix versions. </p>
-
-
-</DD>
-
-<DT><b><a name="qmgr_negative_concurrency_feedback_style">qmgr_negative_concurrency_feedback_style</a>
-(default: fixed_1)</b></DT><DD>
-
-<p> The per-destination amount of negative delivery concurrency
-feedback, after a delivery completes with a connection or handshake
-failure.  </p>
-
-<dl>
-
-<dt> <b> inverse_concurrency </b> </dt> <dd> Variable feedback of
-1 / (delivery concurrency). With this setting, and with
-"<a href="postconf.5.html#qmgr_negative_concurrency_feedback_hysteresis">qmgr_negative_concurrency_feedback_hysteresis</a> = 1", the destination's
-delivery concurrency is decremented by 1 after each failed
-pseudo-cohort, and the destination is marked dead (further delivery
-suspended) after the failed pseudo-cohort count reaches
-$<a href="postconf.5.html#qmgr_sacrificial_cohorts">qmgr_sacrificial_cohorts</a>.  </dd>
-
-<dt> <b> inverse_sqrt_concurrency </b> </dt> <dd> Variable feedback
-of 1 / (square root of delivery concurrency). This is an intermediate
-form between the other two. It lacks sound justification, and is a
-candidate for removal. </dd>
-
-<dt> <b> fixed_1 </b> </dt> <dd> Constant feedback of 1. This setting
-is compatible with Postfix versions before 2.5, where a destination's
-delivery concurrency is throttled down to zero (and further delivery
-suspended) after a single failed pseudo-cohort.  </dd>
-
-</dl>
-
-<p> A pseudo-cohort is a number of deliveries equal to the destination's
-delivery concurrency. </p>
-
-<p> This feature is temporarily available in Postfix 2.5; its final
-form is likely to change. The default setting is compatible with
-earlier Postfix versions. </p>
-
-
-</DD>
-
-<DT><b><a name="qmgr_positive_concurrency_feedback_hysteresis">qmgr_positive_concurrency_feedback_hysteresis</a>
-(default: 1)</b></DT><DD>
-
-<p> The per-destination integer amount of positive concurrency
-feedback that must accumulate before positive adjustments of a
-destination's delivery concurrency.  The concurrency adjustment is
-equal in size to the positive hysteresis value, and is applied at
-the <b>end</b> of a cycle of (hysteresis / feedback) steps. At that
-same time, the destination's negative feedback hysteresis cycle is
-reset to its beginning. </p>
-
-<p> This feature is temporarily available in Postfix 2.5; its final
-form is likely to change. The default setting is compatible with
-earlier Postfix versions. </p>
-
-
-</DD>
-
-<DT><b><a name="qmgr_positive_concurrency_feedback_style">qmgr_positive_concurrency_feedback_style</a>
-(default: fixed_1)</b></DT><DD>
-
-<p> The per-destination amount of positive delivery concurrency
-feedback, after a delivery completes without connection or handshake
-failure.  </p>
-
-<dl>
-
-<dt> <b> inverse_concurrency </b> </dt> <dd> Variable feedback of
-1 / (delivery concurrency). With this setting, and with
-"<a href="postconf.5.html#qmgr_positive_concurrency_feedback_hysteresis">qmgr_positive_concurrency_feedback_hysteresis</a> = 1", the destination's
-delivery concurrency is incremented by 1 after each successful
-pseudo-cohort, until it reaches the per-destination maximal concurrency
-limit.  </dd>
-
-<dt> <b> inverse_sqrt_concurrency </b> </dt> <dd> Variable feedback
-of 1 / (square root of delivery concurrency). This is an intermediate
-form between the other two. It lacks sound justification, and is a
-candidate for removal. </dd>
-
-<dt> <b> fixed_1 </b> </dt> <dd> Constant feedback of 1. This setting
-is compatible with Postfix versions before 2.5, where a destination's
-delivery concurrency is doubled after each successful pseudo-cohort,
-until it reaches the per-destination maximal concurrency limit.
-</dd>
-
-</dl>
-
-<p> A pseudo-cohort is a number of deliveries equal to the destination's
-delivery concurrency. </p>
-
-<p> This feature is temporarily available in Postfix 2.5. The default
-setting is compatible with earlier Postfix versions. </p>
-
-
-</DD>
-
-<DT><b><a name="qmgr_sacrificial_cohorts">qmgr_sacrificial_cohorts</a>
-(default: 1)</b></DT><DD>
-
-<p> How many pseudo-cohorts must suffer connection or handshake
-failure before a specific destination is considered unavailable
-(and further delivery is suspended). A pseudo-cohort is a number
-of deliveries equal to a destination's concurrency. The pseudo-cohort
-failure count is reset each time a delivery completes without
-connection or handshake failure for that specific destination.  </p>
-
-<p> This feature is temporarily available in Postfix 2.5; its final
-form is likely to change. The default setting is compatible with
-earlier Postfix versions. </p>
 
 
 </DD>
@@ -12178,6 +12205,106 @@ This feature is available in Postfix 2.1 and later.
 
 </DD>
 
+<DT><b><a name="transport_concurrency_negative_feedback">transport_concurrency_negative_feedback</a>
+(default: $<a href="postconf.5.html#default_concurrency_negative_feedback">default_concurrency_negative_feedback</a>)</b></DT><DD>
+
+<p> A transport-specific override for the
+<a href="postconf.5.html#default_concurrency_negative_feedback">default_concurrency_negative_feedback</a> parameter value, where
+<i>transport</i> is the <a href="master.5.html">master.cf</a> name of the message delivery
+transport. </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="transport_concurrency_positive_feedback">transport_concurrency_positive_feedback</a>
+(default: $<a href="postconf.5.html#default_concurrency_positive_feedback">default_concurrency_positive_feedback</a>)</b></DT><DD>
+
+<p> A transport-specific override for the
+<a href="postconf.5.html#default_concurrency_positive_feedback">default_concurrency_positive_feedback</a> parameter value, where
+<i>transport</i> is the <a href="master.5.html">master.cf</a> name of the message delivery
+transport. </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="transport_delivery_slot_cost">transport_delivery_slot_cost</a>
+(default: $<a href="postconf.5.html#default_delivery_slot_cost">default_delivery_slot_cost</a>)</b></DT><DD>
+
+<p> A transport-specific override for the <a href="postconf.5.html#default_delivery_slot_cost">default_delivery_slot_cost</a>
+parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of
+the message delivery transport. </p>
+
+
+</DD>
+
+<DT><b><a name="transport_delivery_slot_discount">transport_delivery_slot_discount</a>
+(default: $<a href="postconf.5.html#default_delivery_slot_discount">default_delivery_slot_discount</a>)</b></DT><DD>
+
+<p> A transport-specific override for the <a href="postconf.5.html#default_delivery_slot_discount">default_delivery_slot_discount</a>
+parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of
+the message delivery transport. </p>
+
+
+</DD>
+
+<DT><b><a name="transport_delivery_slot_loan">transport_delivery_slot_loan</a>
+(default: $<a href="postconf.5.html#default_delivery_slot_loan">default_delivery_slot_loan</a>)</b></DT><DD>
+
+<p> A transport-specific override for the <a href="postconf.5.html#default_delivery_slot_loan">default_delivery_slot_loan</a>
+parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of
+the message delivery transport. </p>
+
+
+</DD>
+
+<DT><b><a name="transport_destination_concurrency_limit">transport_destination_concurrency_limit</a>
+(default: $<a href="postconf.5.html#default_destination_concurrency_limit">default_destination_concurrency_limit</a>)</b></DT><DD>
+
+<p> A transport-specific override for the
+<a href="postconf.5.html#default_destination_concurrency_limit">default_destination_concurrency_limit</a> parameter value, where
+<i>transport</i> is the <a href="master.5.html">master.cf</a> name of the message delivery
+transport. </p>
+
+
+</DD>
+
+<DT><b><a name="transport_destination_recipient_limit">transport_destination_recipient_limit</a>
+(default: $<a href="postconf.5.html#default_destination_concurrency_limit">default_destination_concurrency_limit</a>)</b></DT><DD>
+
+<p> A transport-specific override for the
+<a href="postconf.5.html#default_destination_recipient_limit">default_destination_recipient_limit</a> parameter value, where
+<i>transport</i> is the <a href="master.5.html">master.cf</a> name of the message delivery
+transport. </p>
+
+
+</DD>
+
+<DT><b><a name="transport_extra_recipient_limit">transport_extra_recipient_limit</a>
+(default: $<a href="postconf.5.html#default_extra_recipient_limit">default_extra_recipient_limit</a>)</b></DT><DD>
+
+<p> A transport-specific override for the <a href="postconf.5.html#default_extra_recipient_limit">default_extra_recipient_limit</a>
+parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of
+the message delivery transport. </p>
+
+
+</DD>
+
+<DT><b><a name="transport_initial_destination_concurrency">transport_initial_destination_concurrency</a>
+(default: $<a href="postconf.5.html#initial_destination_concurrency">initial_destination_concurrency</a>)</b></DT><DD>
+
+<p> A transport-specific override for the <a href="postconf.5.html#initial_destination_concurrency">initial_destination_concurrency</a>
+parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of
+the message delivery transport. </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="transport_maps">transport_maps</a>
 (default: empty)</b></DT><DD>
 
@@ -12207,6 +12334,50 @@ Examples:
 
 </DD>
 
+<DT><b><a name="transport_minimum_delivery_slots">transport_minimum_delivery_slots</a>
+(default: $<a href="postconf.5.html#default_minimum_delivery_slots">default_minimum_delivery_slots</a>)</b></DT><DD>
+
+<p> A transport-specific override for the <a href="postconf.5.html#default_minimum_delivery_slots">default_minimum_delivery_slots</a>
+parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of
+the message delivery transport. </p>
+
+
+</DD>
+
+<DT><b><a name="transport_recipient_limit">transport_recipient_limit</a>
+(default: $<a href="postconf.5.html#default_recipient_limit">default_recipient_limit</a>)</b></DT><DD>
+
+<p> A transport-specific override for the <a href="postconf.5.html#default_recipient_limit">default_recipient_limit</a>
+parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of
+the message delivery transport. </p>
+
+
+</DD>
+
+<DT><b><a name="transport_recipient_refill_delay">transport_recipient_refill_delay</a>
+(default: $<a href="postconf.5.html#default_recipient_refill_delay">default_recipient_refill_delay</a>)</b></DT><DD>
+
+<p> A transport-specific override for the <a href="postconf.5.html#default_recipient_refill_delay">default_recipient_refill_delay</a>
+parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of
+the message delivery transport. </p>
+
+<p> This feature is available in Postfix 2.4 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="transport_recipient_refill_limit">transport_recipient_refill_limit</a>
+(default: $<a href="postconf.5.html#default_recipient_refill_limit">default_recipient_refill_limit</a>)</b></DT><DD>
+
+<p> A transport-specific override for the <a href="postconf.5.html#default_recipient_refill_limit">default_recipient_refill_limit</a>
+parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of
+the message delivery transport. </p>
+
+<p> This feature is available in Postfix 2.4 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="transport_retry_time">transport_retry_time</a>
 (default: 60s)</b></DT><DD>
 
@@ -12219,6 +12390,16 @@ a malfunctioning message delivery transport.
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 </p>
+
+
+</DD>
+
+<DT><b><a name="transport_time_limit">transport_time_limit</a>
+(default: $<a href="postconf.5.html#command_time_limit">command_time_limit</a>)</b></DT><DD>
+
+<p> A transport-specific override for the <a href="postconf.5.html#command_time_limit">command_time_limit</a> parameter
+value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of the message
+delivery transport. </p>
 
 
 </DD>

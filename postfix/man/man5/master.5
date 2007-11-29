@@ -17,9 +17,9 @@ run in the background under control of the \fBmaster\fR(8)
 process.  The master.cf configuration file defines how a
 client program connects to a service, and what daemon
 program runs when a service is requested.  Most daemon
-processes are short-lived and terminate after serving
-\fBmax_use\fR clients, or after inactivity for \fBmax_idle\fR
-or more units of time.
+processes are short-lived and terminate voluntarily after
+serving \fBmax_use\fR clients, or after inactivity for
+\fBmax_idle\fR or more units of time.
 
 All daemons specified here must speak a Postfix-internal
 protocol. In order to execute non-Postfix software use the

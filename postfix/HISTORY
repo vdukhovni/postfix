@@ -5215,7 +5215,7 @@ Apologies for any names omitted.
 
 20010525
 
-	Portability: gcc 2.6.3 does not have __attribute__ (Clive
+	Portability: gcc 2.6.3 does not have _attribute__ (Clive
 	Jones, dgw.co.uk). File: util/sys_defs.h.
 
 	Bugfix: the SMTP and LMTP clients claimed that a queue file
@@ -12203,7 +12203,7 @@ Apologies for any names omitted.
 
 20060516
 
-	Portability: __float80 alignment, by Albert Chin.  File:
+	Portability: _float80 alignment, by Albert Chin.  File:
 	util/sys_defs.h.
 
 	Further testing of Milter support uncovered typos; a missing
@@ -13829,16 +13829,11 @@ Apologies for any names omitted.
 	late October 2007. To establish a baseline for further
 	improvement, Wietse implemented a few simple mechanisms.
 
-	Configuration parameters: qmgr_concurrency_feedback_debug,
-	qmgr_negative_concurrency_feedback_hysteresis,
-	qmgr_negative_concurrency_feedback_style,
-	qmgr_positive_concurrency_feedback_hysteresis,
-	qmgr_positive_concurrency_feedback_style, qmgr_sacrifice_cohorts.
-	See postconf(5) for detailed information. Right now, the
-	defaults are compatible with older Postfix versions.  After
-	further review the number of parameters will be consolidated
-	and the defaults will select the better algorithms.  Files:
-	qmgr/qmgr_queue.c, qmgr/qmgr_deliver.c.
+	Configuration parameters for debugging, positive/negative
+	hysteresis, and positive/negative feedback. Some have since
+	been removed or renamed, so no point naming them here.
+	Files: global/mail_params.h, qmgr/qmgr_queue.c,
+	qmgr/qmgr_deliver.c.
 
 20071121
 
@@ -13850,3 +13845,22 @@ Apologies for any names omitted.
 	in sender-dependent relayhost maps. Parameter name:
 	empty_address_relayhost_maps_lookup_key (default; <>).
 	Keean Schupke. File: trivial-rewrite/resolve.c.
+
+20071127-9
+
+	Revision 2 of queue manager scheduler interface, allowing
+	feedback parameter settings with constants and variables
+	such as 1/8 or 1/concurrency.  Some experimental parameters
+	were removed and others were renamed. The new names are:
+	default_concurrency_negative_feedback,
+	default_concurrency_positive_feedback, concurrency_feedback_debug,
+	default_concurrency_failed_cohort_limit.
+
+	Also available are transport-specific overrides:
+	<transport>_initial_destination_concurrency,
+	<transport>_concurrency_negative_feedback,
+	<transport>_concurrency_positive_feedback,
+	<transport>_concurrency_failed_cohort_limit.
+
+	Files: global/mail_params.h, qmgr/qmgr.c, qmgr/qmgr_transport.c,
+	qmgr/qmge_queue.c, qmgr/qmgr_feedback.c.

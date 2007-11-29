@@ -131,15 +131,15 @@ while (<>) {
     s;\bdefault_deliv[-</Bb>]*\n* *[<Bb>]*ery_slot_cost\b;<a href="postconf.5.html#default_delivery_slot_cost">$&</a>;g;
     s;\bdefault_deliv[-</Bb>]*\n* *[<Bb>]*ery_slot_discount\b;<a href="postconf.5.html#default_delivery_slot_discount">$&</a>;g;
     s;\bdefault_deliv[-</Bb>]*\n* *[<Bb>]*ery_slot_loan\b;<a href="postconf.5.html#default_delivery_slot_loan">$&</a>;g;
-    s;\bdefault_destina[-</Bb>]*\n* *[<Bb>]*tion_concurrency_limit\b;<a href="postconf.5.html#default_destination_concurrency_limit">$&</a>;g;
+    s;\bdefault_destina[-</Bb>]*\n* *[<Bb>]*tion_concur[-</Bb>]*\n* *[<Bb>]*rency_limit\b;<a href="postconf.5.html#default_destination_concurrency_limit">$&</a>;g;
     s;\bdefault_destina[-</Bb>]*\n* *[<Bb>]*tion_recip[-</bB>]*\n* *[<bB>]*ient_limit\b;<a href="postconf.5.html#default_destination_recipient_limit">$&</a>;g;
-    s;\bdefault_extra_recip[-</bB>]*\n* *[<bB>]*ient_limit\b;<a href="postconf.5.html#default_extra_recipient_limit">$&</a>;g;
+    s;\bdefault_extra_recipi[-</bB>]*\n* *[<bB>]*ent_limit\b;<a href="postconf.5.html#default_extra_recipient_limit">$&</a>;g;
     s;\bdefault_minimum_deliv[-</Bb>]*\n* *[<Bb>]*ery_slots\b;<a href="postconf.5.html#default_minimum_delivery_slots">$&</a>;g;
     s;\bdefault_privs\b;<a href="postconf.5.html#default_privs">$&</a>;g;
     s;\bdefault_process_limit\b;<a href="postconf.5.html#default_process_limit">$&</a>;g;
     s;\bdefault_rbl_reply\b;<a href="postconf.5.html#default_rbl_reply">$&</a>;g;
-    s;\bdefault_recipient_refill_limit\b;<a href="postconf.5.html#default_recipient_refill_limit">$&</a>;g;
-    s;\bdefault_recipient_refill_delay\b;<a href="postconf.5.html#default_recipient_refill_delay">$&</a>;g;
+    s;\bdefault_recipi[-</bB>]*\n* *[<bB>]*ent_refill_limit\b;<a href="postconf.5.html#default_recipient_refill_limit">$&</a>;g;
+    s;\bdefault_recipi[-</bB>]*\n* *[<bB>]*ent_refill_delay\b;<a href="postconf.5.html#default_recipient_refill_delay">$&</a>;g;
     s;\bdefault_recip[-</bB>]*\n* *[<bB>]*ient_limit\b;<a href="postconf.5.html#default_recipient_limit">$&</a>;g;
     s;\bdefault_transport\b;<a href="postconf.5.html#default_transport">$&</a>;g;
     s;\bdefault_verp_delimiters\b;<a href="postconf.5.html#default_verp_delimiters">$&</a>;g;
@@ -194,7 +194,7 @@ while (<>) {
     s;\bin_flow_delay\b;<a href="postconf.5.html#in_flow_delay">$&</a>;g;
     s;\binet_inter[-</bB>]*\n*[ <bB>]*faces\b;<a href="postconf.5.html#inet_interfaces">$&</a>;g;
     s;\binet_protocols\b;<a href="postconf.5.html#inet_protocols">$&</a>;g;
-    s;\binitial_destination_concurrency\b;<a href="postconf.5.html#initial_destination_concurrency">$&</a>;g;
+    s;\binitial_desti[-</bB>]*\n*[ <bB>]*nation_concurrency\b;<a href="postconf.5.html#initial_destination_concurrency">$&</a>;g;
     s;\binvalid_hostname_reject_code\b;<a href="postconf.5.html#invalid_hostname_reject_code">$&</a>;g;
     s;\bipc_idle\b;<a href="postconf.5.html#ipc_idle">$&</a>;g;
     s;\bipc_timeout\b;<a href="postconf.5.html#ipc_timeout">$&</a>;g;
@@ -335,12 +335,10 @@ while (<>) {
     s;\bqmgr_message_recip[-</bB>]*\n* *[<bB>]*ient_minimum\b;<a href="postconf.5.html#qmgr_message_recipient_minimum">$&</a>;g;
     s;\bqmqpd_authorized_clients\b;<a href="postconf.5.html#qmqpd_authorized_clients">$&</a>;g;
 
-    s;\bqmgr_negative_concurrency_feedback_hysteresis\b;<a href="postconf.5.html#qmgr_negative_concurrency_feedback_hysteresis">$&</a>;g;
-    s;\bqmgr_negative_concurrency_feedback_style\b;<a href="postconf.5.html#qmgr_negative_concurrency_feedback_style">$&</a>;g;
-    s;\bqmgr_positive_concurrency_feedback_hysteresis\b;<a href="postconf.5.html#qmgr_positive_concurrency_feedback_hysteresis">$&</a>;g;
-    s;\bqmgr_positive_concurrency_feedback_style\b;<a href="postconf.5.html#qmgr_positive_concurrency_feedback_style">$&</a>;g;
-    s;\bqmgr_sacrificial_cohorts\b;<a href="postconf.5.html#qmgr_sacrificial_cohorts">$&</a>;g;
-    s;\bqmgr_concurrency_feedback_debug\b;<a href="postconf.5.html#qmgr_concurrency_feedback_debug">$&</a>;g;
+    s;\bdefault_concur[-</Bb>]*\n* *[<Bb>]*rency_negative_feedback\b;<a href="postconf.5.html#default_concurrency_negative_feedback">$&</a>;g;
+    s;\bdefault_concur[-</Bb>]*\n* *[<Bb>]*rency_positive_feedback\b;<a href="postconf.5.html#default_concurrency_positive_feedback">$&</a>;g;
+    s;\bdefault_con[-</Bb>]*\n* *[<Bb>]*currency_failed_cohort_limit\b;<a href="postconf.5.html#default_concurrency_failed_cohort_limit">$&</a>;g;
+    s;\bconcurrency_feedback_debug\b;<a href="postconf.5.html#concurrency_feedback_debug">$&</a>;g;
 
     s;\bqmqpd_error_delay\b;<a href="postconf.5.html#qmqpd_error_delay">$&</a>;g;
     s;\bqmqpd_timeout\b;<a href="postconf.5.html#qmqpd_timeout">$&</a>;g;
@@ -619,6 +617,25 @@ while (<>) {
     s;\btls_null_cipherlist\b;<a href="postconf.5.html#tls_null_cipherlist">$&</a>;g;
  
     s;\bfrozen_delivered_to\b;<a href="postconf.5.html#frozen_delivered_to">$&</a>;g;
+
+    # Transport-dependent magical parameters.
+
+    s;(<i>transport</i>)(<b>)?(_concurrency_failed_cohort_limit)\b;$2<a href="postconf.5.html#transport_concurrency_failed_cohort_limit">$1$3</a>;g;
+    s;(<i>transport</i>)(<b>)?(_concurrency_negative_feedback)\b;$2<a href="postconf.5.html#transport_concurrency_positive_feedback">$1$3</a>;g;
+    s;(<i>transport</i>)(<b>)?(_concurrency_positive_feedback)\b;$2<a href="postconf.5.html#transport_concurrency_positive_feedback">$1$3</a>;g;
+    s;(<i>transport</i>)(<b>)?(_delivery_slot_cost)\b;$2<a href="postconf.5.html#transport_delivery_slot_cost">$1$3</a>;g;
+    s;(<i>transport</i>)(<b>)?(_delivery_slot_discount)\b;$2<a href="postconf.5.html#transport_delivery_slot_discount">$1$3</a>;g;
+    s;(<i>transport</i>)(<b>)?(_delivery_slot_loan)\b;$2<a href="postconf.5.html#transport_delivery_slot_loan">$1$3</a>;g;
+    s;(<i>transport</i>)(<b>)?(_destination_concurrency_limit)\b;$2<a href="postconf.5.html#transport_destination_concurrency_limit">$1$3</a>;g;
+    s;(<i>transport</i>)(<b>)?(_destination_recipient_limit)\b;$2<a href="postconf.5.html#transport_destination_recipient_limit">$1$3</a>;g;
+    s;(<i>transport</i>)(<b>)?(_extra_recipient_limit)\b;$2<a href="postconf.5.html#transport_extra_recipient_limit">$1$3</a>;g;
+    s;(<i>transport</i>)(<b>)?(_initial_destination_concurrency)\b;$2<a href="postconf.5.html#transport_initial_destination_concurrency">$1$3</a>;g;
+    s;(<i>transport</i>)(<b>)?(_minimum_delivery_slots)\b;$2<a href="postconf.5.html#transport_minimum_delivery_slots">$1$3</a>;g;
+    s;(<i>transport</i>)(<b>)?(_recipient_limit)\b;$2<a href="postconf.5.html#transport_recipient_limit">$1$3</a>;g;
+    s;(<i>transport</i>)(<b>)?(_recipient_refill_delay)\b;$2<a href="postconf.5.html#transport_recipient_refill_delay">$1$3</a>;g;
+    s;(<i>transport</i>)(<b>)?(_recipient_refill_limit)\b;$2<a href="postconf.5.html#transport_recipient_refill_limit">$1$3</a>;g;
+    s;(<i>transport</i>)(<b>)?(_time_limit)\b;$2<a href="postconf.5.html#transport_time_limit">$1$3</a>;g;
+    s;(<i>transport</i>)(<b>)?(delivery_slot_discount)\b;$2<a href="postconf.5.html#transportdelivery_slot_discount">$1$3</a>;g;
 
     # Undo hyperlinks of manual pages with the same name as parameters.
 

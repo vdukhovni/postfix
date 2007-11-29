@@ -230,13 +230,9 @@ static char *hbc_action(void *context, HBC_CALL_BACKS *cb,
     char   *ret;
 
     /*
-     * XXX We don't delegate action logging to the action call-back
-     * functions, because actions without call-back must be logged here
-     * anyway. This means that some actions must report back whether the
-     * action should be logged. This is admittedly a little clumsy.
-     * 
-     * XXX We don't use a hash table for action lookup. Mail rarely triggers an
-     * action, and mail that triggers multiple actions is even rarer.
+     * XXX We don't use a hash table for action lookup. Mail rarely triggers
+     * an action, and mail that triggers multiple actions is even rarer.
+     * Setting up the hash table costs more than we would gain from using it.
      */
     while (*cmd_args && ISSPACE(*cmd_args))
 	cmd_args++;

@@ -205,29 +205,32 @@
 /*	destination.
 /* .IP "\fItransport\fB_destination_concurrency_limit ($default_destination_concurrency_limit)\fR"
 /*	Idem, for delivery via the named message \fItransport\fR.
-/* .IP "\fBqmgr_concurrency_feedback_debug (no)\fR"
-/*	Make the queue manager's feedback algorithm verbose for performance
-/*	analysis purposes.
-/* .IP "\fBqmgr_negative_concurrency_feedback_hysteresis (1)\fR"
-/*	The per-destination integer amount of negative concurrency
-/*	feedback that must accumulate between negative adjustments of a
-/*	destination's delivery concurrency.
-/* .IP "\fBqmgr_negative_concurrency_feedback_style (fixed_1)\fR"
-/*	The per-destination amount of negative delivery concurrency
-/*	feedback, after a delivery completes with a connection or handshake
-/*	failure.
-/* .IP "\fBqmgr_positive_concurrency_feedback_hysteresis (1)\fR"
-/*	The per-destination integer amount of positive concurrency
-/*	feedback that must accumulate before positive adjustments of a
-/*	destination's delivery concurrency.
-/* .IP "\fBqmgr_positive_concurrency_feedback_style (fixed_1)\fR"
-/*	The per-destination amount of positive delivery concurrency
-/*	feedback, after a delivery completes without connection or handshake
-/*	failure.
-/* .IP "\fBqmgr_sacrificial_cohorts (1)\fR"
+/* .PP
+/*	Available in Postfix version 2.5 and later:
+/* .IP "\fItransport\fB_initial_destination_concurrency ($initial_destination_concurrency)\fR"
+/*	Initial concurrency for delivery via the named message
+/*	\fItransport\fR.
+/* .IP "\fBdefault_concurrency_failed_cohort_limit (1)\fR"
 /*	How many pseudo-cohorts must suffer connection or handshake
 /*	failure before a specific destination is considered unavailable
 /*	(and further delivery is suspended).
+/* .IP "\fItransport\fB_concurrency_failed_cohort_limit ($default_concurrency_failed_cohort_limit)\fR"
+/*	Idem, for delivery via the named message \fItransport\fR.
+/* .IP "\fBdefault_concurrency_negative_feedback (1)\fR"
+/*	The per-destination amount of negative delivery concurrency
+/*	feedback, after a delivery completes with a connection or handshake
+/*	failure.
+/* .IP "\fItransport\fB_concurrency_negative_feedback ($default_concurrency_negative_feedback)\fR"
+/*	Idem, for delivery via the named message \fItransport\fR.
+/* .IP "\fBdefault_concurrency_positive_feedback (1)\fR"
+/*	The per-destination amount of positive delivery concurrency
+/*	feedback, after a delivery completes without connection or handshake
+/*	failure.
+/* .IP "\fItransport\fB_concurrency_positive_feedback ($default_concurrency_positive_feedback)\fR"
+/*	Idem, for delivery via the named message \fItransport\fR.
+/* .IP "\fBconcurrency_feedback_debug (no)\fR"
+/*	Make the queue manager's feedback algorithm verbose for performance
+/*	analysis purposes.
 /* RECIPIENT SCHEDULING CONTROLS
 /* .ad
 /* .fi
@@ -415,12 +418,10 @@ int     var_local_rcpt_lim;
 int     var_proc_limit;
 bool    var_verp_bounce_off;
 int     var_qmgr_clog_warn_time;
-char   *var_qmgr_pos_feedback;
-char   *var_qmgr_neg_feedback;
-int     var_qmgr_pos_hysteresis;
-int     var_qmgr_neg_hysteresis;
-int     var_qmgr_sac_cohorts;
-int     var_qmgr_feedback_debug;
+char   *var_conc_pos_feedback;
+char   *var_conc_neg_feedback;
+int     var_conc_cohort_limit;
+int     var_conc_feedback_debug;
 
 static QMGR_SCAN *qmgr_scans[2];
 
@@ -645,11 +646,6 @@ static void qmgr_post_init(char *name, char **unused_argv)
     qmgr_scans[QMGR_SCAN_IDX_DEFERRED] = qmgr_scan_create(MAIL_QUEUE_DEFERRED);
     qmgr_scan_request(qmgr_scans[QMGR_SCAN_IDX_INCOMING], QMGR_SCAN_START);
     qmgr_deferred_run_event(0, (char *) 0);
-
-    /*
-     * Scheduler initialization.
-     */
-    qmgr_queue_feedback_init();
 }
 
 MAIL_VERSION_STAMP_DECLARE;
@@ -660,8 +656,8 @@ int     main(int argc, char **argv)
 {
     static CONFIG_STR_TABLE str_table[] = {
 	VAR_DEFER_XPORTS, DEF_DEFER_XPORTS, &var_defer_xports, 0, 0,
-	VAR_QMGR_POS_FDBACK, DEF_QMGR_POS_FDBACK, &var_qmgr_pos_feedback, 1, 0,
-	VAR_QMGR_NEG_FDBACK, DEF_QMGR_NEG_FDBACK, &var_qmgr_neg_feedback, 1, 0,
+	VAR_CONC_POS_FDBACK, DEF_CONC_POS_FDBACK, &var_conc_pos_feedback, 1, 0,
+	VAR_CONC_NEG_FDBACK, DEF_CONC_NEG_FDBACK, &var_conc_neg_feedback, 1, 0,
 	0,
     };
     static CONFIG_TIME_TABLE time_table[] = {
@@ -692,15 +688,13 @@ int     main(int argc, char **argv)
 	VAR_LOCAL_RCPT_LIMIT, DEF_LOCAL_RCPT_LIMIT, &var_local_rcpt_lim, 0, 0,
 	VAR_LOCAL_CON_LIMIT, DEF_LOCAL_CON_LIMIT, &var_local_con_lim, 0, 0,
 	VAR_PROC_LIMIT, DEF_PROC_LIMIT, &var_proc_limit, 1, 0,
-	VAR_QMGR_POS_HYST, DEF_QMGR_POS_HYST, &var_qmgr_pos_hysteresis, 1, 0,
-	VAR_QMGR_NEG_HYST, DEF_QMGR_NEG_HYST, &var_qmgr_neg_hysteresis, 1, 0,
-	VAR_QMGR_SAC_COHORTS, DEF_QMGR_SAC_COHORTS, &var_qmgr_sac_cohorts, 1, 0,
+	VAR_CONC_COHORT_LIM, DEF_CONC_COHORT_LIM, &var_conc_cohort_limit, 0, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {
 	VAR_ALLOW_MIN_USER, DEF_ALLOW_MIN_USER, &var_allow_min_user,
 	VAR_VERP_BOUNCE_OFF, DEF_VERP_BOUNCE_OFF, &var_verp_bounce_off,
-	VAR_QMGR_FDBACK_DEBUG, DEF_QMGR_FDBACK_DEBUG, &var_qmgr_feedback_debug,
+	VAR_CONC_FDBACK_DEBUG, DEF_CONC_FDBACK_DEBUG, &var_conc_feedback_debug,
 	0,
     };
 

@@ -789,7 +789,7 @@ static void get_service_params(PIPE_PARAMS *config, char *service)
      * Figure out the command time limit for this transport.
      */
     config->time_limit =
-	get_mail_conf_time2(service, "_time_limit", var_command_maxtime, 's', 1, 0);
+	get_mail_conf_time2(service, _MAXTIME, var_command_maxtime, 's', 1, 0);
 
     /*
      * Give the poor tester a clue of what is going on.

@@ -220,15 +220,15 @@ QMGR(8)                                                                QMGR(8)
               The default per-transport upper limit on the number
               of in-memory recipients.
 
-       <i>transport</i><b>_recipient_limit ($<a href="postconf.5.html#default_recipient_limit">default_recipient_limit</a>)</b>
+       <b><a href="postconf.5.html#transport_recipient_limit"><i>transport</i>_recipient_limit</a> ($<a href="postconf.5.html#default_recipient_limit">default_recipient_limit</a>)</b>
               Idem, for delivery via the named message <i>transport</i>.
 
        <b><a href="postconf.5.html#default_extra_recipient_limit">default_extra_recipient_limit</a> (1000)</b>
               The default value for the extra per-transport limit
               imposed on the number of in-memory recipients.
 
-       <i>transport</i><b>_extra_recipient_limit    ($default_extra_recipi-</b>
-       <b>ent_limit)</b>
+       <b><a href="postconf.5.html#transport_extra_recipient_limit"><i>transport</i>_extra_recipient_limit</a>    ($<a href="postconf.5.html#default_extra_recipient_limit">default_extra_recipi</a>-</b>
+       <b><a href="postconf.5.html#default_extra_recipient_limit">ent_limit</a>)</b>
               Idem, for delivery via the named message <i>transport</i>.
 
        Available in Postfix version 2.4 and later:
@@ -237,16 +237,16 @@ QMGR(8)                                                                QMGR(8)
               The  default  per-transport  limit on the number of
               recipients refilled at once.
 
-       <i>transport</i><b>_recipient_refill_limit         ($default_recipi-</b>
-       <b>ent_refill_limit)</b>
+       <b><a href="postconf.5.html#transport_recipient_refill_limit"><i>transport</i>_recipient_refill_limit</a>         ($<a href="postconf.5.html#default_recipient_refill_limit">default_recipi</a>-</b>
+       <b><a href="postconf.5.html#default_recipient_refill_limit">ent_refill_limit</a>)</b>
               Idem, for delivery via the named message <i>transport</i>.
 
        <b><a href="postconf.5.html#default_recipient_refill_delay">default_recipient_refill_delay</a> (5s)</b>
               The  default  per-transport  maximum  delay between
               recipients refills.
 
-       <i>transport</i><b>_recipient_refill_delay         ($default_recipi-</b>
-       <b>ent_refill_delay)</b>
+       <b><a href="postconf.5.html#transport_recipient_refill_delay"><i>transport</i>_recipient_refill_delay</a>         ($<a href="postconf.5.html#default_recipient_refill_delay">default_recipi</a>-</b>
+       <b><a href="postconf.5.html#default_recipient_refill_delay">ent_refill_delay</a>)</b>
               Idem, for delivery via the named message <i>transport</i>.
 
 <b>DELIVERY CONCURRENCY CONTROLS</b>
@@ -258,48 +258,55 @@ QMGR(8)                                                                QMGR(8)
               The default maximal number of  parallel  deliveries
               to the same destination.
 
-       <i>transport</i><b>_destination_concurrency_limit ($<a href="postconf.5.html#default_destination_concurrency_limit">default_destina</a>-</b>
+       <b><a href="postconf.5.html#transport_destination_concurrency_limit"><i>transport</i>_destination_concurrency_limit</a> ($<a href="postconf.5.html#default_destination_concurrency_limit">default_destina</a>-</b>
        <b><a href="postconf.5.html#default_destination_concurrency_limit">tion_concurrency_limit</a>)</b>
               Idem, for delivery via the named message <i>transport</i>.
 
-       <b><a href="postconf.5.html#qmgr_concurrency_feedback_debug">qmgr_concurrency_feedback_debug</a> (no)</b>
-              Make the queue manager's feedback algorithm verbose
-              for performance analysis purposes.
+       Available in Postfix version 2.5 and later:
 
-       <b><a href="postconf.5.html#qmgr_negative_concurrency_feedback_hysteresis">qmgr_negative_concurrency_feedback_hysteresis</a> (1)</b>
-              The per-destination integer amount of negative con-
-              currency feedback that must accumulate between neg-
-              ative  adjustments of a destination's delivery con-
-              currency.
+       <b><a href="postconf.5.html#transport_initial_destination_concurrency"><i>transport</i>_initial_destination_concurrency</a> ($<a href="postconf.5.html#initial_destination_concurrency">initial_desti</a>-</b>
+       <b><a href="postconf.5.html#initial_destination_concurrency">nation_concurrency</a>)</b>
+              Initial concurrency for delivery via the named mes-
+              sage <i>transport</i>.
 
-       <b><a href="postconf.5.html#qmgr_negative_concurrency_feedback_style">qmgr_negative_concurrency_feedback_style</a> (fixed_1)</b>
-              The per-destination  amount  of  negative  delivery
-              concurrency  feedback,  after  a delivery completes
-              with a connection or handshake failure.
-
-       <b><a href="postconf.5.html#qmgr_positive_concurrency_feedback_hysteresis">qmgr_positive_concurrency_feedback_hysteresis</a> (1)</b>
-              The per-destination integer amount of positive con-
-              currency feedback that must accumulate before posi-
-              tive adjustments of a destination's  delivery  con-
-              currency.
-
-       <b><a href="postconf.5.html#qmgr_positive_concurrency_feedback_style">qmgr_positive_concurrency_feedback_style</a> (fixed_1)</b>
-              The  per-destination  amount  of  positive delivery
-              concurrency feedback, after  a  delivery  completes
-              without connection or handshake failure.
-
-       <b><a href="postconf.5.html#qmgr_sacrificial_cohorts">qmgr_sacrificial_cohorts</a> (1)</b>
+       <b><a href="postconf.5.html#default_concurrency_failed_cohort_limit">default_concurrency_failed_cohort_limit</a> (1)</b>
               How  many  pseudo-cohorts must suffer connection or
               handshake failure before a specific destination  is
               considered  unavailable  (and  further  delivery is
               suspended).
+
+       <b><a href="postconf.5.html#transport_concurrency_failed_cohort_limit"><i>transport</i>_concurrency_failed_cohort_limit</a>   ($<a href="postconf.5.html#default_concurrency_failed_cohort_limit">default_con</a>-</b>
+       <b><a href="postconf.5.html#default_concurrency_failed_cohort_limit">currency_failed_cohort_limit</a>)</b>
+              Idem, for delivery via the named message <i>transport</i>.
+
+       <b><a href="postconf.5.html#default_concurrency_negative_feedback">default_concurrency_negative_feedback</a> (1)</b>
+              The  per-destination  amount  of  negative delivery
+              concurrency feedback, after  a  delivery  completes
+              with a connection or handshake failure.
+
+       <b><a href="postconf.5.html#transport_concurrency_positive_feedback"><i>transport</i>_concurrency_negative_feedback</a>  ($<a href="postconf.5.html#default_concurrency_negative_feedback">default_concur</a>-</b>
+       <b><a href="postconf.5.html#default_concurrency_negative_feedback">rency_negative_feedback</a>)</b>
+              Idem, for delivery via the named message <i>transport</i>.
+
+       <b><a href="postconf.5.html#default_concurrency_positive_feedback">default_concurrency_positive_feedback</a> (1)</b>
+              The per-destination  amount  of  positive  delivery
+              concurrency  feedback,  after  a delivery completes
+              without connection or handshake failure.
+
+       <b><a href="postconf.5.html#transport_concurrency_positive_feedback"><i>transport</i>_concurrency_positive_feedback</a>  ($<a href="postconf.5.html#default_concurrency_positive_feedback">default_concur</a>-</b>
+       <b><a href="postconf.5.html#default_concurrency_positive_feedback">rency_positive_feedback</a>)</b>
+              Idem, for delivery via the named message <i>transport</i>.
+
+       <b><a href="postconf.5.html#concurrency_feedback_debug">concurrency_feedback_debug</a> (no)</b>
+              Make the queue manager's feedback algorithm verbose
+              for performance analysis purposes.
 
 <b>RECIPIENT SCHEDULING CONTROLS</b>
        <b><a href="postconf.5.html#default_destination_recipient_limit">default_destination_recipient_limit</a> (50)</b>
               The default maximal number of recipients  per  mes-
               sage delivery.
 
-       <i>transport</i><b>_destination_recipient_limit   ($<a href="postconf.5.html#default_destination_recipient_limit">default_destina</a>-</b>
+       <b><a href="postconf.5.html#transport_destination_recipient_limit"><i>transport</i>_destination_recipient_limit</a>   ($<a href="postconf.5.html#default_destination_recipient_limit">default_destina</a>-</b>
        <b><a href="postconf.5.html#default_destination_recipient_limit">tion_recipient_limit</a>)</b>
               Idem, for delivery via the named message <i>transport</i>.
 
@@ -309,7 +316,7 @@ QMGR(8)                                                                QMGR(8)
               allowed  to  preempt  delivery  of one message with
               another.
 
-       <i>transport</i><b>_delivery_slot_cost ($<a href="postconf.5.html#default_delivery_slot_cost">default_delivery_slot_cost</a>)</b>
+       <b><a href="postconf.5.html#transport_delivery_slot_cost"><i>transport</i>_delivery_slot_cost</a> ($<a href="postconf.5.html#default_delivery_slot_cost">default_delivery_slot_cost</a>)</b>
               Idem, for delivery via the named message <i>transport</i>.
 
        <b><a href="postconf.5.html#default_minimum_delivery_slots">default_minimum_delivery_slots</a> (3)</b>
@@ -317,7 +324,7 @@ QMGR(8)                                                                QMGR(8)
               invoke the Postfix queue manager's scheduling algo-
               rithm at all.
 
-       <i>transport</i><b>_minimum_delivery_slots  ($<a href="postconf.5.html#default_minimum_delivery_slots">default_minimum_deliv</a>-</b>
+       <b><a href="postconf.5.html#transport_minimum_delivery_slots"><i>transport</i>_minimum_delivery_slots</a>  ($<a href="postconf.5.html#default_minimum_delivery_slots">default_minimum_deliv</a>-</b>
        <b><a href="postconf.5.html#default_minimum_delivery_slots">ery_slots</a>)</b>
               Idem, for delivery via the named message <i>transport</i>.
 
@@ -325,7 +332,7 @@ QMGR(8)                                                                QMGR(8)
               The default value  for  transport-specific  _deliv-
               ery_slot_discount settings.
 
-       <i>transport</i><b>_delivery_slot_discount          ($<a href="postconf.5.html#default_delivery_slot_discount">default_deliv</a>-</b>
+       <b><a href="postconf.5.html#transport_delivery_slot_discount"><i>transport</i>_delivery_slot_discount</a>          ($<a href="postconf.5.html#default_delivery_slot_discount">default_deliv</a>-</b>
        <b><a href="postconf.5.html#default_delivery_slot_discount">ery_slot_discount</a>)</b>
               Idem, for delivery via the named message <i>transport</i>.
 
@@ -333,7 +340,7 @@ QMGR(8)                                                                QMGR(8)
               The default value  for  transport-specific  _deliv-
               ery_slot_loan settings.
 
-       <i>transport</i><b>_delivery_slot_loan ($<a href="postconf.5.html#default_delivery_slot_loan">default_delivery_slot_loan</a>)</b>
+       <b><a href="postconf.5.html#transport_delivery_slot_loan"><i>transport</i>_delivery_slot_loan</a> ($<a href="postconf.5.html#default_delivery_slot_loan">default_delivery_slot_loan</a>)</b>
               Idem, for delivery via the named message <i>transport</i>.
 
 <b>OTHER RESOURCE AND RATE CONTROLS</b>

@@ -2,19 +2,367 @@ PPoossttffiixx QQuueeuuee SScchheedduulleerr
 
 -------------------------------------------------------------------------------
 
-WWhhaatt tthhiiss ffiillee iiss aabboouutt
+OOvveerrvviieeww
 
-This is the beginning of documentation for the clever queue manager scheduling
-algorithm by Patrik Rak. For a long time, this code was made available under
-the name "nqmgr(8)" (new queue manager), as an optional module. As of Postfix
-2.1 this is the default queue manager, which is always called "qmgr(8)". The
-old queue manager will for some time will be available under the name of "oqmgr
-(8)".
+The queue manager is by far the most complex part of the Postfix mail system.
+It schedules delivery of new mail, retries failed deliveries at specific times,
+and removes mail from the queue after the last delivery attempt. Once started,
+the qmgr(8) process runs until "postfix reload" or "postfix stop".
 
-WWhhyy tthhee oolldd PPoossttffiixx qquueeuuee mmaannaaggeerr wwaass rreeppllaacceedd
+As a persistent process, the queue manager has to meet strict requirements with
+respect to code correctness and robustness. Unlike non-persistent daemon
+processes, the queue manager cannot benefit from Postfix's process rejuvenation
+mechanism that limit the impact from resource leaks and other coding errors.
 
-The old Postfix scheduler had several limitations due to unfortunate choices in
-its design.
+There are two major classes of mechanisms that control the operation of the
+queue manager:
+
+  * Mechanisms concerned with the number of concurrent deliveries to a specific
+    destination, including decisions on when to suspend deliveries after
+    persistent failures. These are described under "Concurrency scheduling".
+
+  * Mechanisms concerned with the selection of what mail to deliver to a given
+    destination. These are described under "Preemptive scheduling".
+
+CCoonnccuurrrreennccyy sscchheedduulliinngg
+
+This section documents the Postfix 2.5 concurrency scheduler. Prior Postfix
+versions used a simple but robust algorithm where the per-destination delivery
+concurrency was decremented by 1 after a delivery suffered connection or
+handshake failure, and was incremented by 1 otherwise. Of course the
+concurrency was never allowed to exceed the maximum per-destination concurrency
+limit. And when a destination's concurrency level dropped to zero, the
+destination was declared "dead" and delivery was suspended.
+
+Drawbacks of the old +/-1 feedback concurrency scheduler are:
+
+  * Overshoot due to exponential delivery concurrency growth with each pseudo-
+    cohort(*). For example, with the default initial concurrency of 5,
+    concurrency would proceed over time as (5-10-20).
+
+  * Throttling down to zero concurrency after a single pseudo-cohort(*)
+    failure. This was especially an issue with low-concurrency channels where a
+    single failure could be sufficient to mark a destination as "dead", causing
+    the suspension of further deliveries to the affected destination.
+
+(*) A pseudo-cohort is a number of delivery requests equal to a destination's
+delivery concurrency.
+
+The revised concurrency scheduler has a highly modular structure. It uses
+separate mechanisms for per-destination concurrency control and for "dead
+destination" detection. The concurrency control in turn is built from two
+separate mechanisms: it supports less-than-1 feedback to allow for more gradual
+concurrency adjustments, and it uses feedback hysteresis to suppress
+concurrency oscillations. And instead of waiting for delivery concurrency to
+throttle down to zero, a destination is declared "dead" after a configurable
+number of pseudo-cohorts reports connection or handshake failure.
+
+SSuummmmaarryy ooff tthhee PPoossttffiixx 22..55 ccoonnccuurrrreennccyy ffeeeeddbbaacckk aallggoorriitthhmm
+
+We want to increment a destination's delivery concurrency after some (not
+necessarily consecutive) number of deliveries without connection or handshake
+failure. This is implemented with positive feedback g(N) where N is the
+destination's delivery concurrency. With g(N)=1 we get the old scheduler's
+exponential growth in time, while g(N)=1/N gives linear growth in time. Less-
+than-1 feedback and integer truncation naturally give us hysteresis, so that
+transitions to larger concurrency happen every 1/g(N) positive feedback events.
+
+We want to decrement a destination's delivery concurrency after some (not
+necessarily consecutive) number of deliveries suffer connection or handshake
+failure. This is implemented with negative feedback f(N) where N is the
+destination's delivery concurrency. With f(N)=1 we get the old scheduler's
+behavior where concurrency is throttled down dramatically after a single
+pseudo-cohort failure, while f(N)=1/N backs off more gently. Again, less-than-
+1 feedback and integer truncation naturally give us hysteresis, so that
+transitions to lower concurrency happen every 1/f(N) negative feedback events.
+
+However, with negative feedback we introduce a subtle twist. We "reverse" the
+hysteresis cycle so that the transition to lower concurrency happens at the
+bbeeggiinnnniinngg of a sequence of 1/f(N) negative feedback events. Otherwise, a
+correction for overload would be made too late. In the case of a concurrency-
+limited server, this makes the choice of f(N) relatively unimportant, as borne
+out by measurements.
+
+In summary, the main ingredients for the Postfix 2.5 concurrency feedback
+algorithm are a) the option of less-than-1 positive feedback to avoid
+overwhelming servers, b) the option of less-than-1 negative feedback to avoid
+or giving up too fast, c) feedback hysteresis to avoid rapid oscillation, and
+c) a "reverse" hysteresis cycle for negative feedback, so that it can correct
+for overload quickly.
+
+SSuummmmaarryy ooff tthhee PPoossttffiixx 22..55 ""ddeeaadd ddeessttiinnaattiioonn"" ddeetteeccttiioonn aallggoorriitthhmm
+
+We want to suspend deliveries to a specific destination after some number of
+deliveries suffers connection or handshake failure. The old scheduler declares
+a destination "dead" when negative (-1) feedback throttles the delivery
+concurrency down to zero. With less-than-1 feedback, this throttling down would
+obviously take too long. We therefore have to separate "dead destination"
+detection from concurrency feedback. This is implemented by introducing the
+concept of pseudo-cohort failure. The Postfix 2.5 concurrency scheduler
+declares a destination "dead" after a configurable number of pseudo-cohort
+failures. The old scheduler corresponds to the special case where the pseudo-
+cohort failure limit is equal to 1.
+
+PPsseeuuddooccooddee ffoorr tthhee PPoossttffiixx 22..55 ccoonnccuurrrreennccyy sscchheedduulleerr
+
+The pseudo code shows how the ideas behind new concurrency scheduler are
+implemented as of November 2007. The actual code can be found in the module
+qmgr/qmgr_queue.c.
+
+Types:
+	Each destination has one set of the following variables
+        int window
+        double success
+        double failure
+        double fail_cohorts
+
+Feedback functions:
+	N is concurrency; x, y are arbitrary numbers in [0..1] inclusive
+        positive feedback: g(N) = x/N | x/sqrt(N) | x
+        negative feedback: f(N) = y/N | y/sqrt(N) | y
+
+Initialization:
+        window = initial_concurrency
+        success = 0
+        failure = 0
+        fail_cohorts = 0
+
+After success:
+        fail_cohorts = 0
+        Be prepared for feedback > hysteresis, or rounding error
+        success += g(window)
+        while (success >= 1)    Hysteresis 1
+            window += 1         Hysteresis 1
+            failure = 0
+            success -= 1        Hysteresis 1
+        Be prepared for overshoot
+        if (window > concurrency limit)
+            window = concurrency limit
+
+Safety:
+        Don't apply positive feedback unless
+            window < busy_refcount + init_dest_concurrency
+        otherwise negative feedback effect could be delayed
+
+After failure:
+        if (window > 0)
+            fail_cohorts += 1.0 / window
+            if (fail_cohorts > cohort_failure_limit)
+                window = 0
+        if (window > 0)
+            Be prepared for feedback > hysteresis, rounding errors
+            failure -= f(window)
+            while (failure < 0)
+                window -= 1     Hysteresis 1
+                failure += 1    Hysteresis 1
+                success = 0
+            Be prepared for overshoot
+            if (window < 1)
+                window = 1
+
+RReessuullttss ffoorr tthhee PPoossttffiixx 22..55 ccoonnccuurrrreennccyy ffeeeeddbbaacckk sscchheedduulleerr
+
+Discussions about the concurrency scheduler redesign started early 2004, when
+the primary goal was to find alternatives that did not exhibit exponential
+growth or rapid concurrency throttling. No code was implemented until late
+2007, when the primary concern had shifted towards better handling of server
+concurrency limits. For this reason we measure how well the new scheduler does
+this job. The table below compares mail delivery performance of the old +/-
+1 feedback with other feedback functions, for different server concurrency
+enforcement methods. Measurements were done with a FreeBSD 6.2 client and with
+FreeBSD 6.2 and various Linux servers.
+
+Server configuration:
+
+  * The mail flow was slowed down with 1 second latency per recipient
+    ("smtpd_client_restrictions = sleep 1"). The purpose was to make results
+    less dependent on hardware details, by reducing the slow-downs by disk I/O,
+    logging I/O, and network I/O.
+  * Concurrency was limited by the server process limit ("default_process_limit
+    = 5", "smtpd_client_event_limit_exceptions = static:all"). Postfix was
+    stopped and started after changing the process limit, because the same
+    number is also used as the backlog argument to the listen(2) system call,
+    and "postfix reload" does not re-issue this call.
+  * Mail was discarded with "local_recipient_maps = static:all" and
+    "local_transport = discard". The discard action in header/body checks could
+    not be used as it fails to update the in_flow_delay counters.
+
+Client configuration:
+
+  * Queue file overhead was minimized by sending one message to a virtual alias
+    that expanded into 2000 different remote recipients. All recipients were
+    accounted for according to the maillog file. The
+    virtual_alias_expansion_limit setting was increased to avoid complaints
+    from the cleanup(8) server.
+  * The number of deliveries was maximized with
+    "smtp_destination_recipient_limit = 2". A smaller limit would cause Postfix
+    to schedule the concurrency per recipient instead of domain, which is not
+    what we want.
+  * Maximal concurrency was limited with "smtp_destination_concurrency_limit =
+    20", and initial_destination_concurrency was set to the same value.
+  * The positive and negative concurrency feedback hysteresis was 1.
+    Concurrency was incremented by 1 at the END of 1/feedback steps of positive
+    feedback, and was decremented by 1 at the START of 1/feedback steps of
+    negative feedback.
+  * The SMTP client used the default 30s SMTP connect timeout and 300s SMTP
+    greeting timeout.
+
+The first results are for a FreeBSD 6.2 server, where our artificially low
+listen(2) backlog results in a very short kernel queue for established
+connections. As the table shows, all deferred deliveries failed due to a 30s
+connection timeout, and none failed due to a server greeting timeout. This
+measurement simulates what happens when the server's connection queue is
+completely full under load, and the TCP engine drops new connections.
+
+    cclliieenntt sseerrvveerr ffeeeeddbbaacckk  ccoonnnneeccttiioonn ppeerrcceennttaaggee cclliieenntt         ttiimmeedd--oouutt iinn
+    lliimmiitt  lliimmiitt  ssttyyllee     ccaacchhiinngg    ddeeffeerrrreedd   ccoonnccuurrrreennccyy    ccoonnnneecctt//
+                                                  aavveerraaggee//ssttddddeevv ggrreeeettiinngg
+
+    -------------------------------------------------------------------------
+       20     5       1/N         no        9.9   19.4    0.49   198      -
+
+       20     5       1/N        yes       10.3   19.4    0.49   206      -
+
+       20     5   1/sqrt(N)       no       10.4   19.6    0.59   208      -
+
+       20     5   1/sqrt(N)      yes       10.6   19.6    0.61   212      -
+
+       20     5         1         no       10.1   19.5    1.29   202      -
+
+       20     5         1        yes       10.8   19.3    1.57   216      -
+
+    -------------------------------------------------------------------------
+
+    A busy server with a completely full connection queue. N is the client
+    delivery concurrency. Failed deliveries time out after 30s without
+    completing the TCP handshake. See below for a discussion of results.
+
+The next table shows results for a Fedora Core 8 server (results for RedHat 7.3
+are identical). In this case, the listen(2) backlog argument has little if any
+effect on the kernel's established connection queue. As the table shows,
+practically all deferred deliveries fail after the 300s SMTP greeting timeout.
+As these timeouts were 10x longer than with the previous measurement, we
+increased the recipient count (and thus the running time) by a factor of 10 to
+keep the results comparable.
+
+    cclliieenntt sseerrvveerr ffeeeeddbbaacckk  ccoonnnneeccttiioonn ppeerrcceennttaaggee cclliieenntt         ttiimmeedd--oouutt iinn
+    lliimmiitt  lliimmiitt  ssttyyllee     ccaacchhiinngg    ddeeffeerrrreedd   ccoonnccuurrrreennccyy    ccoonnnneecctt//
+                                                  aavveerraaggee//ssttddddeevv ggrreeeettiinngg
+
+    -------------------------------------------------------------------------
+       20     5       1/N         no       1.16   19.8    0.37   -      230
+
+       20     5       1/N        yes       1.36   19.8    0.36   -      272
+
+       20     5   1/sqrt(N)       no       1.21   19.9    0.23   4      238
+
+       20     5   1/sqrt(N)      yes       1.36   20.0    0.23   -      272
+
+       20     5         1         no       1.18   20.0    0.16   -      236
+
+       20     5         1        yes       1.39   20.0    0.16   -      278
+
+    -------------------------------------------------------------------------
+
+    A busy server with a non-full connection queue. N is the client delivery
+    concurrency. Failed deliveries complete at the TCP level, but time out
+    after 300s while waiting for the SMTP greeting. See below for a discussion
+    of results.
+
+The final concurrency limited result shows what happens when SMTP connections
+don't time out, but are rejected immediately with the Postfix server's
+smtpd_client_connection_count_limit feature. Similar results can be expected
+with concurrency limiting features built into other MTAs or firewalls. For this
+measurement we specified a server concurrency limit and a client initial
+destination concurrency of 5, and a server process limit of 10. The server was
+FreeBSD 6.2 but that does not matter here, because the "push back" is done
+entirely by the server's Postfix itself.
+
+    cclliieenntt sseerrvveerr ffeeeeddbbaacckk  ccoonnnneeccttiioonn ppeerrcceennttaaggee cclliieenntt         tthheeoorreettiiccaall
+    lliimmiitt  lliimmiitt  ssttyyllee     ccaacchhiinngg    ddeeffeerrrreedd   ccoonnccuurrrreennccyy    ddeeffeerr rraattee
+                                                  aavveerraaggee//ssttddddeevv
+
+    -------------------------------------------------------------------------
+       20     5       1/N         no       16.5   5.17    0.38         1/6
+
+       20     5       1/N        yes       16.5   5.17    0.38         1/6
+
+       20     5   1/sqrt(N)       no       24.5   5.28    0.45         1/4
+
+       20     5   1/sqrt(N)      yes       24.3   5.28    0.46         1/4
+
+       20     5         1         no       49.7   5.63    0.67         1/2
+
+       20     5         1        yes       49.7   5.68    0.70         1/2
+
+    -------------------------------------------------------------------------
+
+    A server with active per-client concurrency limiter that replies with 421
+    and disconnects. N is the client delivery concurrency. The theoretical mail
+    deferral rate is 1/(1+roundup(1/feedback)). This is always 1/2 with the
+    fixed +/-1 feedback; with the variable feedback variants, the defer rate
+    decreases with increasing concurrency. See below for a discussion of
+    results.
+
+The results are based on the first delivery runs only; they do not include any
+second etc. delivery attempts.
+
+The first two examples show that the feedback method matters little when
+concurrency is limited due to congestion. This is because the initial
+concurrency was already at the client's concurrency maximum, and because there
+was 10-100 times more positive than negative feedback. The contribution from
+SMTP connection caching was also minor for these two examples.
+
+In the last example, the old +/-1 feedback scheduler defers 50% of the mail
+when confronted with an active (anvil-style) server concurrency limit, where
+the server hangs up immediately with a 421 status (a TCP-level RST would have
+the same result). Less aggressive feedback mechanisms fare better here, and the
+concurrency-dependent feedback fares even better at higher concurrencies than
+shown here, but they have limitations as discussed in the next section.
+
+LLiimmiittaattiioonnss ooff lleessss--tthhaann--11 ffeeeeddbbaacckk
+
+The delivery concurrency scheduler with less-than-1 feedback solves a problem
+with servers that have active concurrency limiters, but this works well only
+because feedback is handled in a peculiar manner: positive feedback increments
+the concurrency by 1 at the end of a sequence of events of length 1/feedback,
+while negative feedback decrements concurrency by 1 at the beginning of such a
+sequence. This is how Postfix adjusts quickly for overshoot without causing
+lots of mail to be deferred. Without this difference in feedback treatment,
+less-than-1 feedback would defer 50% of the mail, and would be no better in
+this respect than the simple +/-1 feedback scheduler.
+
+Unfortunately, the same feature that corrects quickly for concurrency overshoot
+also makes the scheduler more sensitive for noisy negative feedback. The reason
+is that one lonely negative feedback event has the same effect as a complete
+sequence of length 1/feedback: in both cases delivery concurrency is dropped by
+1 immediately. For example, when multiple servers are placed behind a load
+balancer on a single IP address, and 1 out of K servers fails to complete the
+SMTP handshake, a scheduler with 1/N (N = concurrency) feedback will stop
+increasing its concurrency once it reaches roughly K. Even though the good
+servers behind the load balancer are perfectly capable of handling more mail,
+the 1/N feedback scheduler will linger around concurrency K.
+
+This problem with 1/N feedback gets worse as 1/N gets smaller. A workaround is
+to use fixed less-than-1 values for positive and negative feedback that limit
+the noise sensitivity, for example: positive feedback of 1/4 and negative
+feedback 1/10. Of course using fixed feedback means concurrency growth is
+moderated only for a limited range of concurrencies. Sites that deliver at per-
+destination concurrencies of 50 or more will require special configuration.
+
+PPrreeeemmppttiivvee sscchheedduulliinngg
+
+This is the beginning of documentation for a preemptive queue manager
+scheduling algorithm by Patrik Rak. For a long time, this code was made
+available under the name "nqmgr(8)" (new queue manager), as an optional module.
+As of Postfix 2.1 this is the default queue manager, which is always called
+"qmgr(8)". The old queue manager will for some time will be available under the
+name of "oqmgr(8)".
+
+WWhhyy tthhee nnoonn--pprreeeemmppttiivvee PPoossttffiixx qquueeuuee mmaannaaggeerr wwaass rreeppllaacceedd
+
+The non-preemptive Postfix scheduler had several limitations due to unfortunate
+choices in its design.
 
  1. Round-robin selection by destination for mail that is delivered via the
     same message delivery transport. The round-robin strategy was chosen with
@@ -33,7 +381,7 @@ its design.
     scheduler allows mail with fewer recipients to slip past bulk mail in an
     elegant manner.
 
-HHooww tthhee qquueeuuee mmaannaaggeerr sscchheedduulleerr wwoorrkkss
+HHooww tthhee nnoonn--pprreeeemmppttiivvee qquueeuuee mmaannaaggeerr sscchheedduulleerr wwoorrkkss
 
 The following text is from Patrik Rak and should be read together with the
 postconf(5) manual that describes each configuration parameter in detail.

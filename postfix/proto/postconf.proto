@@ -1107,6 +1107,8 @@ $default_recipient_refill_delay, which may result in recipient batches
 lower than this when this limit is too high for too slow deliveries.
 </p>
 
+<p> This feature is available in Postfix 2.4 and later. </p>
+
 %PARAM default_recipient_refill_delay 5s
 
 <p>
@@ -1116,6 +1118,8 @@ more of them at least once every this many seconds.  This is used to
 make sure the recipients are refilled in timely manner even when
 $default_recipient_refill_limit is too high for too slow deliveries.
 </p>
+
+<p> This feature is available in Postfix 2.4 and later. </p>
 
 %PARAM default_transport smtp
 
@@ -1802,6 +1806,10 @@ The initial per-destination concurrency level for parallel delivery
 to the same destination. This limit applies to delivery via smtp(8),
 and via the pipe(8) and virtual(8) delivery agents.
 </p>
+
+<p> Use <i>transport</i>_initial_destination_concurrency to specify
+a transport-specific override, where <i>transport</i> is the master.cf
+name of the message delivery transport (Postfix 2.5 and later). </p>
 
 <p>
 Warning: with concurrency of 1, one bad message can be enough to
@@ -8080,28 +8088,28 @@ $mynetworks. This setting will not prevent remote mail header
 address rewriting when mail from a remote client is forwarded by
 a neighboring system.  </dd>
 
-<dt><b> permit_sasl_authenticated </b></dt>
+<dt><b>permit_sasl_authenticated </b></dt>
 
 <dd> Append the domain name in $myorigin or $mydomain when the
 client is successfully authenticated via the RFC 4954 (AUTH)
 protocol. </dd>
 
-<dt><b> permit_tls_clientcerts </b></dt>
+<dt><b>permit_tls_clientcerts </b></dt>
 
 <dd> Append the domain name in $myorigin or $mydomain when the
 client TLS certificate is successfully verified, and the client
 certificate fingerprint is listed in $relay_clientcerts.  </dd>
 
-<dt><b> permit_tls_all_clientcerts </b></dt>
+<dt><b>permit_tls_all_clientcerts </b></dt>
 
 <dd> Append the domain name in $myorigin or $mydomain when the
 client TLS certificate is successfully verified, regardless of
 whether it is listed on the server, and regardless of the certifying
 authority. </dd>
 
-<dt><b> <a name="check_address_map">check_address_map</a> <i><a href="DATABASE_README.html">type:table</a></i> </b></dt>
+<dt><b><a name="check_address_map">check_address_map</a> <i><a href="DATABASE_README.html">type:table</a></i> </b></dt>
 
-<dt><b> <i><a href="DATABASE_README.html">type:table</a></i> </b></dt>
+<dt><b><i><a href="DATABASE_README.html">type:table</a></i> </b></dt>
 
 <dd> Append the domain name in $myorigin or $mydomain when the
 client IP address matches the specified lookup table.
@@ -10684,120 +10692,241 @@ that change the delivery time or destination are not available.
 
 <p> This feature is available in Postfix 2.5 and later. </p>
 
-%PARAM qmgr_concurrency_feedback_debug no
+%PARAM concurrency_feedback_debug no
 
 <p> Make the queue manager's feedback algorithm verbose for performance
 analysis purposes. </p>
 
-<p> This feature is temporarily available in Postfix 2.5; its final
-form is likely to change. </p>
+<p> This feature is available in Postfix 2.5 and later. </p>
 
-%PARAM qmgr_sacrificial_cohorts 1
+%PARAM default_concurrency_failed_cohort_limit 1
 
 <p> How many pseudo-cohorts must suffer connection or handshake
 failure before a specific destination is considered unavailable
-(and further delivery is suspended). A pseudo-cohort is a number
-of deliveries equal to a destination's concurrency. The pseudo-cohort
-failure count is reset each time a delivery completes without
-connection or handshake failure for that specific destination.  </p>
+(and further delivery is suspended). Specify zero to disable this
+feature. A destination's pseudo-cohort failure count is reset each
+time a delivery completes without connection or handshake failure
+for that specific destination. </p>
 
-<p> This feature is temporarily available in Postfix 2.5; its final
-form is likely to change. The default setting is compatible with
-earlier Postfix versions. </p>
+<p> A pseudo-cohort is the number of deliveries equal to a destination's
+delivery concurrency. </p>
 
-%PARAM qmgr_negative_concurrency_feedback_hysteresis 1
+<p> Use <i>transport</i>_concurrency_failed_cohort_limit to specify
+a transport-specific override, where <i>transport</i> is the master.cf
+name of the message delivery transport. </p>
 
-<p> The per-destination integer amount of negative concurrency
-feedback that must accumulate between negative adjustments of a
-destination's delivery concurrency.  The concurrency adjustment is
-equal in size to the negative hysteresis value, and is applied at
-the <b>beginning</b> of a cycle of (hysteresis / feedback) steps.
-At that same time, the destination's positive feedback hysteresis
-cycle is reset to its beginning.  </p>
+<p> This feature is available in Postfix 2.5. The default setting
+is compatible with earlier Postfix versions. </p>
 
-<p> This feature is temporarily available in Postfix 2.5; its final
-form is likely to change. The default setting is compatible with
-earlier Postfix versions. </p>
-
-%PARAM qmgr_positive_concurrency_feedback_hysteresis 1
-
-<p> The per-destination integer amount of positive concurrency
-feedback that must accumulate before positive adjustments of a
-destination's delivery concurrency.  The concurrency adjustment is
-equal in size to the positive hysteresis value, and is applied at
-the <b>end</b> of a cycle of (hysteresis / feedback) steps. At that
-same time, the destination's negative feedback hysteresis cycle is
-reset to its beginning. </p>
-
-<p> This feature is temporarily available in Postfix 2.5; its final
-form is likely to change. The default setting is compatible with
-earlier Postfix versions. </p>
-
-%PARAM qmgr_negative_concurrency_feedback_style fixed_1
+%PARAM default_concurrency_negative_feedback 1
 
 <p> The per-destination amount of negative delivery concurrency
 feedback, after a delivery completes with a connection or handshake
-failure.  </p>
+failure. Feedback values are in range 0..1 inclusive. With negative
+feedback, concurrency is decremented at the beginning of a sequence
+of length 1/feedback. This is unlike positive feedback, where
+concurrency is incremented at the end of a sequence of length
+1/feedback. </p>
+
+<p> As of Postfix version 2.5, negative feedback cannot reduce
+delivery concurrency to zero.  Instead, a destination is marked
+dead (further delivery suspended) after the failed pseudo-cohort
+count reaches $default_concurrency_failed_cohort_limit (or
+$<i>transport</i>_concurrency_failed_cohort_limit). To make the
+scheduler completely immune to connection or handshake failures,
+specify a zero feedback value and a zero failed pseudo-cohort limit.
+</p>
+
+<p> Specify one of the following forms: </p>
 
 <dl>
 
-<dt> <b> inverse_concurrency </b> </dt> <dd> Variable feedback of
-1 / (delivery concurrency). With this setting, and with
-"qmgr_negative_concurrency_feedback_hysteresis = 1", the destination's
-delivery concurrency is decremented by 1 after each failed
-pseudo-cohort, and the destination is marked dead (further delivery
-suspended) after the failed pseudo-cohort count reaches
-$qmgr_sacrificial_cohorts.  </dd>
+<dt> <b><i>number</i> </b> </dt>
 
-<dt> <b> inverse_sqrt_concurrency </b> </dt> <dd> Variable feedback
-of 1 / (square root of delivery concurrency). This is an intermediate
-form between the other two. It lacks sound justification, and is a
-candidate for removal. </dd>
+<dt> <b><i>number</i> / <i>number</i> </b> </dt>
 
-<dt> <b> fixed_1 </b> </dt> <dd> Constant feedback of 1. This setting
-is compatible with Postfix versions before 2.5, where a destination's
-delivery concurrency is throttled down to zero (and further delivery
-suspended) after a single failed pseudo-cohort.  </dd>
+<dd> Constant feedback. The value must be in the range 0..1 inclusive.
+The default setting of "1" is compatible with Postfix versions
+before 2.5, where a destination's delivery concurrency is throttled
+down to zero (and further delivery suspended) after a single failed
+pseudo-cohort. </dd>
+
+<dt> <b><i>number</i> / concurrency </b> </dt>
+
+<dd> Variable feedback of "<i>number</i> / (delivery concurrency)".
+The <i>number</i> must be in the range 0..1 inclusive. With
+<i>number</i> equal to "1", a destination's delivery concurrency
+is decremented by 1 after each failed pseudo-cohort.  </dd>
+
+<dt> <b><i>number</i> / sqrt_concurrency </b> </dt>
+
+<dd> Variable feedback of "<i>number</i> / sqrt(delivery concurrency)".
+The <i>number</i> must be in the range 0..1 inclusive. This setting
+may be removed in a future version.  </dd>
 
 </dl>
 
-<p> A pseudo-cohort is a number of deliveries equal to the destination's
+<p> A pseudo-cohort is the number of deliveries equal to a destination's
 delivery concurrency. </p>
 
-<p> This feature is temporarily available in Postfix 2.5; its final
-form is likely to change. The default setting is compatible with
-earlier Postfix versions. </p>
+<p> Use <i>transport</i>_concurrency_negative_feedback to specify
+a transport-specific override, where <i>transport</i> is the master.cf
+name of the message delivery transport. </p>
 
-%PARAM qmgr_positive_concurrency_feedback_style fixed_1
+<p> This feature is available in Postfix 2.5. The default setting
+is compatible with earlier Postfix versions. </p>
+
+%PARAM default_concurrency_positive_feedback 1
 
 <p> The per-destination amount of positive delivery concurrency
 feedback, after a delivery completes without connection or handshake
-failure.  </p>
+failure. Feedback values are in the range 0..1 inclusive.  The
+concurrency increases until it reaches the per-destination maximal
+concurrency limit. With positive feedback, concurrency is incremented
+at the end of a sequence with length 1/feedback. This is unlike
+negative feedback, where concurrency is decremented at the start
+of a sequence of length 1/feedback. </p>
+
+<p> Specify one of the following forms:  </p>
 
 <dl>
 
-<dt> <b> inverse_concurrency </b> </dt> <dd> Variable feedback of
-1 / (delivery concurrency). With this setting, and with
-"qmgr_positive_concurrency_feedback_hysteresis = 1", the destination's
-delivery concurrency is incremented by 1 after each successful
-pseudo-cohort, until it reaches the per-destination maximal concurrency
-limit.  </dd>
+<dt> <b><i>number</i> </b> </dt>
 
-<dt> <b> inverse_sqrt_concurrency </b> </dt> <dd> Variable feedback
-of 1 / (square root of delivery concurrency). This is an intermediate
-form between the other two. It lacks sound justification, and is a
-candidate for removal. </dd>
+<dt> <b><i>number</i> / <i>number</i> </b> </dt>
 
-<dt> <b> fixed_1 </b> </dt> <dd> Constant feedback of 1. This setting
-is compatible with Postfix versions before 2.5, where a destination's
-delivery concurrency is doubled after each successful pseudo-cohort,
-until it reaches the per-destination maximal concurrency limit.
-</dd>
+<dd> Constant feedback.  The value must be in the range 0..1
+inclusive. The default setting of "1" is compatible with Postfix
+versions before 2.5, where a destination's delivery concurrency
+doubles after each successful pseudo-cohort.  </dd>
+
+<dt> <b><i>number</i> / concurrency </b> </dt>
+
+<dd> Variable feedback of "<i>number</i> / (delivery concurrency)".
+The <i>number</i> must be in the range 0..1 inclusive. With
+<i>number</i> equal to "1", a destination's delivery concurrency
+is incremented by 1 after each successful pseudo-cohort.  </dd>
+
+<dt> <b><i>number</i> / sqrt_concurrency </b> </dt>
+
+<dd> Variable feedback of "<i>number</i> / sqrt(delivery concurrency)".
+The <i>number</i> must be in the range 0..1 inclusive. This setting
+may be removed in a future version.  </dd>
 
 </dl>
 
-<p> A pseudo-cohort is a number of deliveries equal to the destination's
+<p> A pseudo-cohort is the number of deliveries equal to a destination's
 delivery concurrency. </p>
 
-<p> This feature is temporarily available in Postfix 2.5. The default
-setting is compatible with earlier Postfix versions. </p>
+<p> Use <i>transport</i>_concurrency_positive_feedback to specify
+a transport-specific override, where <i>transport</i> is the master.cf
+name of the message delivery transport. </p>
+
+<p> This feature is available in Postfix 2.5 and later.  </p>
+
+%PARAM <i>transport</i>_concurrency_failed_cohort_limit $default_concurrency_failed_cohort_limit
+
+<p> A transport-specific override for the
+default_concurrency_failed_cohort_limit parameter value, where
+<i>transport</i> is the master.cf name of the message delivery
+transport. </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+%PARAM transport_concurrency_positive_feedback $default_concurrency_positive_feedback
+
+<p> A transport-specific override for the
+default_concurrency_positive_feedback parameter value, where
+<i>transport</i> is the master.cf name of the message delivery
+transport. </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+%PARAM transport_concurrency_negative_feedback $default_concurrency_negative_feedback
+
+<p> A transport-specific override for the
+default_concurrency_negative_feedback parameter value, where
+<i>transport</i> is the master.cf name of the message delivery
+transport. </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+%PARAM transport_initial_destination_concurrency $initial_destination_concurrency
+
+<p> A transport-specific override for the initial_destination_concurrency
+parameter value, where <i>transport</i> is the master.cf name of
+the message delivery transport. </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+%PARAM transport_destination_concurrency_limit $default_destination_concurrency_limit
+
+<p> A transport-specific override for the
+default_destination_concurrency_limit parameter value, where
+<i>transport</i> is the master.cf name of the message delivery
+transport. </p>
+
+%PARAM transport_destination_recipient_limit $default_destination_concurrency_limit
+
+<p> A transport-specific override for the
+default_destination_recipient_limit parameter value, where
+<i>transport</i> is the master.cf name of the message delivery
+transport. </p>
+
+%PARAM transport_time_limit $command_time_limit
+
+<p> A transport-specific override for the command_time_limit parameter
+value, where <i>transport</i> is the master.cf name of the message
+delivery transport. </p>
+
+%PARAM transport_delivery_slot_cost $default_delivery_slot_cost
+
+<p> A transport-specific override for the default_delivery_slot_cost
+parameter value, where <i>transport</i> is the master.cf name of
+the message delivery transport. </p>
+
+%PARAM transport_delivery_slot_loan $default_delivery_slot_loan
+
+<p> A transport-specific override for the default_delivery_slot_loan
+parameter value, where <i>transport</i> is the master.cf name of  
+the message delivery transport. </p>
+
+%PARAM transport_delivery_slot_discount $default_delivery_slot_discount
+
+<p> A transport-specific override for the default_delivery_slot_discount
+parameter value, where <i>transport</i> is the master.cf name of
+the message delivery transport. </p>
+
+%PARAM transport_minimum_delivery_slots $default_minimum_delivery_slots
+
+<p> A transport-specific override for the default_minimum_delivery_slots
+parameter value, where <i>transport</i> is the master.cf name of
+the message delivery transport. </p>
+
+%PARAM transport_recipient_limit $default_recipient_limit
+
+<p> A transport-specific override for the default_recipient_limit
+parameter value, where <i>transport</i> is the master.cf name of
+the message delivery transport. </p>
+
+%PARAM transport_extra_recipient_limit $default_extra_recipient_limit
+
+<p> A transport-specific override for the default_extra_recipient_limit
+parameter value, where <i>transport</i> is the master.cf name of
+the message delivery transport. </p>
+
+%PARAM transport_recipient_refill_limit $default_recipient_refill_limit
+
+<p> A transport-specific override for the default_recipient_refill_limit
+parameter value, where <i>transport</i> is the master.cf name of
+the message delivery transport. </p>
+
+<p> This feature is available in Postfix 2.4 and later. </p>
+
+%PARAM transport_recipient_refill_delay $default_recipient_refill_delay
+
+<p> A transport-specific override for the default_recipient_refill_delay
+parameter value, where <i>transport</i> is the master.cf name of
+the message delivery transport. </p>
+
+<p> This feature is available in Postfix 2.4 and later. </p>

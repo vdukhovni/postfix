@@ -386,11 +386,12 @@ QMGR_TRANSPORT *qmgr_transport_create(const char *name)
     transport->recipient_limit =
 	get_mail_conf_int2(name, _DEST_RCPT_LIMIT,
 			   var_dest_rcpt_limit, 0, 0);
+    transport->init_dest_concurrency =
+	get_mail_conf_int2(name, _INIT_DEST_CON,
+			   var_init_dest_concurrency, 1, 0);
 
-    if (transport->dest_concurrency_limit == 0
-	|| transport->dest_concurrency_limit >= var_init_dest_concurrency)
-	transport->init_dest_concurrency = var_init_dest_concurrency;
-    else
+    if (transport->dest_concurrency_limit != 0
+    && transport->dest_concurrency_limit < transport->init_dest_concurrency)
 	transport->init_dest_concurrency = transport->dest_concurrency_limit;
 
     transport->slot_cost = get_mail_conf_int2(name, _DELIVERY_SLOT_COST,
@@ -423,6 +424,13 @@ QMGR_TRANSPORT *qmgr_transport_create(const char *name)
     transport->candidate_cache_time = (time_t) 0;
     transport->blocker_tag = 1;
     transport->dsn = 0;
+    qmgr_feedback_init(&transport->pos_feedback, name, _CONC_POS_FDBACK,
+		       VAR_CONC_POS_FDBACK, var_conc_pos_feedback);
+    qmgr_feedback_init(&transport->neg_feedback, name, _CONC_NEG_FDBACK,
+		       VAR_CONC_NEG_FDBACK, var_conc_neg_feedback);
+    transport->fail_cohort_limit =
+	get_mail_conf_int2(name, _CONC_COHORT_LIM,
+			   var_conc_cohort_limit, 0, 0);
     if (qmgr_transport_byname == 0)
 	qmgr_transport_byname = htable_create(10);
     htable_enter(qmgr_transport_byname, name, (char *) transport);
