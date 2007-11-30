@@ -317,9 +317,9 @@ static void qmgr_deliver_update(int unused_event, char *context)
 	    if (VSTRING_LEN(dsb->reason) == 0)
 		vstring_strcpy(dsb->reason, "unknown error");
 	    vstring_prepend(dsb->reason, SUSPENDED, sizeof(SUSPENDED) - 1);
-	    if (queue->window > 0) {
+	    if (QMGR_QUEUE_READY(queue)) {
 		qmgr_queue_throttle(queue, DSN_FROM_DSN_BUF(dsb));
-		if (queue->window == 0)
+		if (QMGR_QUEUE_THROTTLED(queue))
 		    qmgr_defer_todo(queue, &dsb->dsn);
 	    }
 	}

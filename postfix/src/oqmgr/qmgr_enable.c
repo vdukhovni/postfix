@@ -97,11 +97,11 @@ void    qmgr_enable_transport(QMGR_TRANSPORT *transport)
 
 void    qmgr_enable_queue(QMGR_QUEUE *queue)
 {
-    if (queue->window == 0) {
+    if (QMGR_QUEUE_THROTTLED(queue)) {
 	if (msg_verbose)
 	    msg_info("enable site %s/%s", queue->transport->name, queue->name);
 	qmgr_queue_unthrottle(queue);
     }
-    if (queue->todo.next == 0 && queue->busy.next == 0)
+    if (QMGR_QUEUE_READY(queue) && queue->todo.next == 0 && queue->busy.next == 0)
 	qmgr_queue_done(queue);
 }

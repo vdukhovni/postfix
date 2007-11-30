@@ -554,7 +554,7 @@ the next section.  </p>
 
 <h3> <a name="concurrency_limitations"> Limitations of less-than-1 per delivery feedback </a> </h3>
 
-<p> The delivery concurrency scheduler with less-than-1 concurrency
+<p> The scheduler with less-than-1 concurrency
 feedback per delivery solves a problem with servers that have active
 concurrency limiters.  This works only because feedback is handled
 in a peculiar manner: positive feedback will increment the concurrency
@@ -580,9 +580,9 @@ level of about K,  even though the good servers behind the load
 balancer are perfectly capable of handling more traffic. </p>
 
 <p> This noise problem gets worse as the amount of positive feedback
-per delivery gets smaller.  A compromise is to avoid concurrency-dependent
-positive feedback, and to use fixed less-than-1 feedback values
-instead.  For example, to tolerate 1 of 4 bad servers in the above
+per delivery gets smaller.  A compromise is to use fixed less-than-1
+positive feedback values instead of concurrency-dependent positive
+feedback.  For example, to tolerate 1 of 4 bad servers in the above
 load balancer scenario, use positive feedback of 1/4 per "good"
 delivery (no connect or handshake error), and use an equal or smaller
 amount of negative feedback per "bad" delivery.  The downside of

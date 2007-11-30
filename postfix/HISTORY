@@ -13863,5 +13863,18 @@ Apologies for any names omitted.
 	<transport>_destination_concurrency_positive_feedback,
 	<transport>_destination_concurrency_failed_cohort_limit.
 
-	Files: global/mail_params.h, qmgr/qmgr.c, qmgr/qmgr_transport.c,
-	qmgr/qmge_queue.c, qmgr/qmgr_feedback.c, postconf/auto.awk.
+	Files: global/mail_params.h, *qmgr/qmgr.c, *qmgr/qmgr_transport.c,
+	*qmgr/qmgr_queue.c, *qmgr/qmgr_feedback.c, postconf/auto.awk.
+
+20071202
+
+	Feature: output rate control. For example, specify
+	"smtp_delivery_rate_delay = 5m" to insert a five-minute
+	delay between deliveries. This was an opportunity to define
+	the mutually exclusive states that a queue can have, and
+	to detect invalid transitions.  This will make adding new
+	features code easier.  Files: *qmgr/qmgr_transport.c,
+	*qmgr/qmgr_queue.c, *qmgr/qmgr_entry.c.
+
+	Bugfix: don't update the back-to-back delivery time stamp
+	while deferring mail. File: *qmgr/qmgr_entry.c.

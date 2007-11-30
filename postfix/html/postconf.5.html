@@ -1586,6 +1586,35 @@ Examples:
 
 </DD>
 
+<DT><b><a name="default_delivery_rate_delay">default_delivery_rate_delay</a>
+(default: 0s)</b></DT><DD>
+
+<p> The default amount of delay that is inserted between individual
+deliveries to the same destination; with per-destination recipient
+limit &gt; 1, a destination is a domain, otherwise it is a recipient.
+</p>
+
+<p> To enable the delay, specify a non-zero time value (an integral
+value plus an optional one-letter suffix that specifies the time
+unit). </p>
+
+<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
+(weeks). The default time unit is s (seconds). </p>
+
+<p> NOTE: the delay is enforced by the queue manager. The delay
+timer state does not survive "postfix reload" or "postfix stop".
+</p>
+
+<p> Use <a href="postconf.5.html#transport_delivery_rate_delay"><i>transport</i>_delivery_rate_delay</a> to specify a
+transport-specific override, where <i>transport</i> is the <a href="master.5.html">master.cf</a>
+name of the message delivery transport.
+</p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="default_delivery_slot_cost">default_delivery_slot_cost</a>
 (default: 5)</b></DT><DD>
 
@@ -1623,6 +1652,11 @@ message response times while making sure the mailing-list deliveries
 are not extended by more than 20-25 percent even in the worst case.
 </p>
 
+<p> Use <a href="postconf.5.html#transport_delivery_slot_cost"><i>transport</i>_delivery_slot_cost</a> to specify a
+transport-specific override, where <i>transport</i> is the <a href="master.5.html">master.cf</a>
+name of the message delivery transport.
+</p>
+
 <p>
 Examples:
 </p>
@@ -1653,6 +1687,11 @@ Note that the full amount will still have to be accumulated before
 another preemption can take place later.
 </p>
 
+<p> Use <a href="postconf.5.html#transport_delivery_slot_discount"><a href="postconf.5.html#transport_delivery_slot_discount"><i>transport</i>_delivery_slot_discount</a></a> to specify a
+transport-specific override, where <i>transport</i> is the <a href="master.5.html">master.cf</a>
+name of the message delivery transport.
+</p>
+
 
 </DD>
 
@@ -1672,6 +1711,11 @@ transport_delivery_slot_discount percent of the required amount
 plus transport_delivery_slot_loan still remains to be accumulated.
 Note that the full amount will still have to be accumulated before
 another preemption can take place later.
+</p>
+
+<p> Use <a href="postconf.5.html#transport_delivery_slot_loan"><i>transport</i>_delivery_slot_loan</a> to specify a
+transport-specific override, where <i>transport</i> is the <a href="master.5.html">master.cf</a>
+name of the message delivery transport.
 </p>
 
 
@@ -1707,6 +1751,13 @@ is compatible with earlier Postfix versions. </p>
 The default maximal number of parallel deliveries to the same
 destination.  This is the default limit for delivery via the <a href="lmtp.8.html">lmtp(8)</a>,
 <a href="pipe.8.html">pipe(8)</a>, <a href="smtp.8.html">smtp(8)</a> and <a href="virtual.8.html">virtual(8)</a> delivery agents.
+With per-destination recipient limit &gt; 1, a destination is a domain,
+otherwise it is a recipient.
+</p>
+
+<p> Use <a href="postconf.5.html#transport_destination_concurrency_limit"><i>transport</i>_destination_concurrency_limit</a> to specify a
+transport-specific override, where <i>transport</i> is the <a href="master.5.html">master.cf</a>
+name of the message delivery transport.
 </p>
 
 
@@ -1840,6 +1891,11 @@ This is the default limit for delivery via the <a href="lmtp.8.html">lmtp(8)</a>
 the corresponding per-destination concurrency limit from concurrency
 per domain into concurrency per recipient.  </p>
 
+<p> Use <a href="postconf.5.html#transport_destination_recipient_limit"><i>transport</i>_destination_recipient_limit</a> to specify a
+transport-specific override, where <i>transport</i> is the <a href="master.5.html">master.cf</a>
+name of the message delivery transport.
+</p>
+
 
 </DD>
 
@@ -1855,6 +1911,11 @@ recipients slots for the chosen message in order to avoid performance
 degradation.
 </p>
 
+<p> Use <a href="postconf.5.html#transport_extra_recipient_limit"><i>transport</i>_extra_recipient_limit</a> to specify a
+transport-specific override, where <i>transport</i> is the <a href="master.5.html">master.cf</a>
+name of the message delivery transport.
+</p>
+
 
 </DD>
 
@@ -1866,6 +1927,11 @@ How many recipients a message must have in order to invoke the
 Postfix queue manager's scheduling algorithm at all.  Messages
 which would never accumulate at least this many delivery slots
 (subject to slot cost parameter as well) are never preempted.
+</p>
+
+<p> Use <a href="postconf.5.html#transport_minimum_delivery_slots"><i>transport</i>_minimum_delivery_slots</a> to specify a
+transport-specific override, where <i>transport</i> is the <a href="master.5.html">master.cf</a>
+name of the message delivery transport.
 </p>
 
 
@@ -2034,6 +2100,11 @@ to the respective transports.  See also <a href="postconf.5.html#default_extra_r
 and <a href="postconf.5.html#qmgr_message_recipient_minimum">qmgr_message_recipient_minimum</a>.
 </p>
 
+<p> Use <a href="postconf.5.html#transport_recipient_limit"><i>transport</i>_recipient_limit</a> to specify a
+transport-specific override, where <i>transport</i> is the <a href="master.5.html">master.cf</a>
+name of the message delivery transport.
+</p>
+
 
 </DD>
 
@@ -2046,6 +2117,11 @@ When not all message recipients fit into the memory at once, keep loading
 more of them at least once every this many seconds.  This is used to
 make sure the recipients are refilled in timely manner even when
 $<a href="postconf.5.html#default_recipient_refill_limit">default_recipient_refill_limit</a> is too high for too slow deliveries.
+</p>
+
+<p> Use <a href="postconf.5.html#transport_recipient_refill_delay"><i>transport</i>_recipient_refill_delay</a> to specify a
+transport-specific override, where <i>transport</i> is the <a href="master.5.html">master.cf</a>
+name of the message delivery transport.
 </p>
 
 <p> This feature is available in Postfix 2.4 and later. </p>
@@ -2062,6 +2138,11 @@ once.  When not all message recipients fit into the memory at once, keep
 loading more of them in batches of at least this many at a time.  See also
 $<a href="postconf.5.html#default_recipient_refill_delay">default_recipient_refill_delay</a>, which may result in recipient batches
 lower than this when this limit is too high for too slow deliveries.
+</p>
+
+<p> Use <a href="postconf.5.html#transport_recipient_refill_limit"><i>transport</i>_recipient_refill_limit</a> to specify a
+transport-specific override, where <i>transport</i> is the <a href="master.5.html">master.cf</a>
+name of the message delivery transport.
 </p>
 
 <p> This feature is available in Postfix 2.4 and later. </p>
@@ -3187,6 +3268,8 @@ Examples:
 The initial per-destination concurrency level for parallel delivery
 to the same destination. This limit applies to delivery via <a href="smtp.8.html">smtp(8)</a>,
 and via the <a href="pipe.8.html">pipe(8)</a> and <a href="virtual.8.html">virtual(8)</a> delivery agents.
+With per-destination recipient limit &gt; 1, a destination is a domain,
+otherwise it is a recipient.
 </p>
 
 <p> Use <a href="postconf.5.html#transport_initial_destination_concurrency"><i>transport</i>_initial_destination_concurrency</a> to specify
@@ -12202,6 +12285,18 @@ delivery is requested with "<b>sendmail -v</b>".
 <p>
 This feature is available in Postfix 2.1 and later.
 </p>
+
+
+</DD>
+
+<DT><b><a name="transport_delivery_rate_delay">transport_delivery_rate_delay</a>
+(default: $<a href="postconf.5.html#default_delivery_rate_delay">default_delivery_rate_delay</a>)</b></DT><DD>
+
+<p> A transport-specific override for the <a href="postconf.5.html#default_recipient_refill_delay">default_recipient_refill_delay</a>
+parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of
+the message delivery transport. </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
 
 
 </DD>

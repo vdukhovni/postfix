@@ -202,6 +202,7 @@ struct QMGR_TRANSPORT {
     QMGR_FEEDBACK pos_feedback;		/* positive feedback control */
     QMGR_FEEDBACK neg_feedback;		/* negative feedback control */
     int     fail_cohort_limit;		/* flow shutdown control */
+    int     rate_delay;			/* suspend per delivery */
 };
 
 #define QMGR_TRANSPORT_STAT_DEAD	(1<<1)
@@ -258,8 +259,36 @@ extern void qmgr_queue_done(QMGR_QUEUE *);
 extern void qmgr_queue_throttle(QMGR_QUEUE *, DSN *);
 extern void qmgr_queue_unthrottle(QMGR_QUEUE *);
 extern QMGR_QUEUE *qmgr_queue_find(QMGR_TRANSPORT *, const char *);
+extern void qmgr_queue_suspend(QMGR_QUEUE *, int);
 
-#define QMGR_QUEUE_THROTTLED(q) ((q)->window <= 0)
+ /*
+  * Exclusive queue states. Originally there were only two: "throttled" and
+  * "not throttled". It was natural to encode these in the queue window size.
+  * After 10 years it's not practical to rip out all the working code and
+  * change representations, so we just clean up the names a little.
+  * 
+  * Note: only the "ready" state can reach every state (including itself);
+  * non-ready states can reach only the "ready" state. Other transitions are
+  * forbidden, because they would result in dangling event handlers.
+  */
+#define QMGR_QUEUE_STAT_THROTTLED	0	/* back-off timer */
+#define QMGR_QUEUE_STAT_SUSPENDED	-1	/* voluntary delay timer */
+#define QMGR_QUEUE_STAT_SAVED		-2	/* delayed cleanup timer */
+#define QMGR_QUEUE_STAT_BAD		-3	/* can't happen */
+
+#define QMGR_QUEUE_READY(q)	((q)->window > 0)
+#define QMGR_QUEUE_THROTTLED(q)	((q)->window == QMGR_QUEUE_STAT_THROTTLED)
+#define QMGR_QUEUE_SUSPENDED(q)	((q)->window == QMGR_QUEUE_STAT_SUSPENDED)
+#define QMGR_QUEUE_SAVED(q)	((q)->window == QMGR_QUEUE_STAT_SAVED)
+#define QMGR_QUEUE_BAD(q)	((q)->window <= QMGR_QUEUE_STAT_BAD)
+
+#define QMGR_QUEUE_STATUS(q) ( \
+	    QMGR_QUEUE_READY(q) ? "ready" : \
+	    QMGR_QUEUE_THROTTLED(q) ? "throttled" : \
+	    QMGR_QUEUE_SUSPENDED(q) ? "suspended" : \
+	    QMGR_QUEUE_SAVED(q) ? "saved" : \
+	    "invalid queue status" \
+	)
 
  /*
   * Structure of one next-hop queue entry. In order to save some copying

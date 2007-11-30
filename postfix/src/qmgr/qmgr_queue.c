@@ -26,6 +26,10 @@
 /*
 /*	void	qmgr_queue_unthrottle(queue)
 /*	QMGR_QUEUE *queue;
+/*
+/*	void	qmgr_queue_suspend(queue, delay)
+/*	QMGR_QUEUE *queue;
+/*	int	delay;
 /* DESCRIPTION
 /*	These routines add/delete/manipulate per-destination queues.
 /*	Each queue corresponds to a specific transport and destination.
@@ -60,6 +64,9 @@
 /*	provided that it does not exceed the destination concurrency
 /*	limit specified for the transport. This routine implements
 /*	"slow open" mode, and eliminates the "thundering herd" problem.
+/*
+/*	qmgr_queue_suspend() suspends delivery for this destination
+/*	briefly.
 /* DIAGNOSTICS
 /*	Panic: consistency check failure.
 /* LICENSE
@@ -120,6 +127,53 @@ int     qmgr_queue_count;
 		    myname, queue->name, queue->transport->dest_concurrency_limit, \
 		    queue->window, queue->success, queue->failure, queue->fail_cohorts);
 
+/* qmgr_queue_resume - resume delivery to destination */
+
+static void qmgr_queue_resume(int event, char *context)
+{
+    QMGR_QUEUE *queue = (QMGR_QUEUE *) context;
+    const char *myname = "qmgr_queue_resume";
+
+    /*
+     * Sanity checks.
+     */
+    if (!QMGR_QUEUE_SUSPENDED(queue))
+	msg_panic("%s: bad queue status: %s", myname, QMGR_QUEUE_STATUS(queue));
+
+    /*
+     * We can't simply force delivery on this queue: the transport's pending
+     * count may already be maxed out, and there may be other constraints
+     * that definitely should be none of our business. The best we can do is
+     * to play by the same rules as everyone else: trigger *some* delivery
+     * via qmgr_active_drain() and let round-robin selection work for us.
+     */
+    queue->window = 1;
+    if (queue->todo_refcount > 0)
+	qmgr_active_drain();
+}
+
+/* qmgr_queue_suspend - briefly suspend a destination */
+
+void    qmgr_queue_suspend(QMGR_QUEUE *queue, int delay)
+{
+    const char *myname = "qmgr_queue_suspend";
+
+    /*
+     * Sanity checks.
+     */
+    if (!QMGR_QUEUE_READY(queue))
+	msg_panic("%s: bad queue status: %s", myname, QMGR_QUEUE_STATUS(queue));
+    if (queue->busy_refcount > 0)
+	msg_panic("%s: queue is busy", myname);
+
+    /*
+     * Set the queue status to "suspended". No-one is supposed to remove a
+     * queue in suspended state.
+     */
+    queue->window = QMGR_QUEUE_STAT_SUSPENDED;
+    event_request_timer(qmgr_queue_resume, (char *) queue, delay);
+}
+
 /* qmgr_queue_unthrottle_wrapper - in case (char *) != (struct *) */
 
 static void qmgr_queue_unthrottle_wrapper(int unused_event, char *context)
@@ -132,7 +186,7 @@ static void qmgr_queue_unthrottle_wrapper(int unused_event, char *context)
      * this in-core queue when it is empty and when this site is not dead.
      */
     qmgr_queue_unthrottle(queue);
-    if (queue->window > 0 && queue->todo.next == 0 && queue->busy.next == 0)
+    if (QMGR_QUEUE_READY(queue) && queue->todo.next == 0 && queue->busy.next == 0)
 	qmgr_queue_done(queue);
 }
 
@@ -148,6 +202,12 @@ void    qmgr_queue_unthrottle(QMGR_QUEUE *queue)
 	msg_info("%s: queue %s", myname, queue->name);
 
     /*
+     * Sanity checks.
+     */
+    if (!QMGR_QUEUE_READY(queue) && !QMGR_QUEUE_THROTTLED(queue))
+	msg_panic("%s: bad queue status: %s", myname, QMGR_QUEUE_STATUS(queue));
+
+    /*
      * Don't restart the negative feedback hysteresis cycle with every
      * positive feedback. Restart it only when we make a positive concurrency
      * adjustment (i.e. at the end of a positive feedback hysteresis cycle).
@@ -159,7 +219,7 @@ void    qmgr_queue_unthrottle(QMGR_QUEUE *queue)
     /*
      * Special case when this site was dead.
      */
-    if (queue->window == 0) {
+    if (QMGR_QUEUE_THROTTLED(queue)) {
 	event_cancel_timer(qmgr_queue_unthrottle_wrapper, (char *) queue);
 	if (queue->dsn == 0)
 	    msg_panic("%s: queue %s: window 0 status 0", myname, queue->name);
@@ -221,6 +281,8 @@ void    qmgr_queue_throttle(QMGR_QUEUE *queue, DSN *dsn)
     /*
      * Sanity checks.
      */
+    if (!QMGR_QUEUE_READY(queue))
+	msg_panic("%s: bad queue status: %s", myname, QMGR_QUEUE_STATUS(queue));
     if (queue->dsn)
 	msg_panic("%s: queue %s: spurious reason %s",
 		  myname, queue->name, queue->dsn->reason);
@@ -240,7 +302,7 @@ void    qmgr_queue_throttle(QMGR_QUEUE *queue, DSN *dsn)
      * This queue is declared dead after a configurable number of
      * pseudo-cohort failures.
      */
-    if (queue->window > 0) {
+    if (QMGR_QUEUE_READY(queue)) {
 	queue->fail_cohorts += 1.0 / queue->window;
 	if (transport->fail_cohort_limit > 0
 	    && queue->fail_cohorts >= transport->fail_cohort_limit)
@@ -256,7 +318,7 @@ void    qmgr_queue_throttle(QMGR_QUEUE *queue, DSN *dsn)
      * Even after reaching 1, we maintain the negative hysteresis cycle so that
      * negative feedback can cancel out positive feedback.
      */
-    if (queue->window > 0) {
+    if (QMGR_QUEUE_READY(queue)) {
 	feedback = QMGR_FEEDBACK_VAL(transport->neg_feedback, queue->window);
 	QMGR_LOG_FEEDBACK(feedback);
 	queue->failure -= feedback;
@@ -274,7 +336,7 @@ void    qmgr_queue_throttle(QMGR_QUEUE *queue, DSN *dsn)
     /*
      * Special case for a site that just was declared dead.
      */
-    if (queue->window == 0) {
+    if (QMGR_QUEUE_THROTTLED(queue)) {
 	queue->dsn = DSN_COPY(dsn);
 	event_request_timer(qmgr_queue_unthrottle_wrapper,
 			    (char *) queue, var_min_backoff_time);
@@ -299,8 +361,8 @@ void    qmgr_queue_done(QMGR_QUEUE *queue)
 		  queue->busy_refcount + queue->todo_refcount);
     if (queue->todo.next || queue->busy.next)
 	msg_panic("%s: queue not empty: %s", myname, queue->name);
-    if (queue->window <= 0)
-	msg_panic("%s: window %d", myname, queue->window);
+    if (!QMGR_QUEUE_READY(queue))
+	msg_panic("%s: bad queue status: %s", myname, QMGR_QUEUE_STATUS(queue));
     if (queue->dsn)
 	msg_panic("%s: queue %s: spurious reason %s",
 		  myname, queue->name, queue->dsn->reason);

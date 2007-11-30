@@ -17,6 +17,14 @@ Incompatibility with Postfix 2.3 and earlier
 If you upgrade from Postfix 2.3 or earlier, read RELEASE_NOTES-2.4
 before proceeding.
 
+Major changes with Postfix snapshot 20071202
+============================================
+
+Output rate control in the queue manager. For example, specify
+"smtp_delivery_rate_delay = 5m", to pause five minutes between
+message deliveries. More information in the postconf(5) manual
+under "default_delivery_rate_delay".
+
 Major changes with Postfix snapshot 20071130
 ============================================
 

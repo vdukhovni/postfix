@@ -224,13 +224,13 @@ failure before a specific destination is considered unavailable
 .IP "\fItransport\fB_destination_concurrency_failed_cohort_limit ($default_destination_concurrency_failed_cohort_limit)\fR"
 Idem, for delivery via the named message \fItransport\fR.
 .IP "\fBdefault_destination_concurrency_negative_feedback (1)\fR"
-The per-destination amount of negative delivery concurrency
+The per-destination amount of delivery concurrency negative
 feedback, after a delivery completes with a connection or handshake
 failure.
 .IP "\fItransport\fB_destination_concurrency_negative_feedback ($default_destination_concurrency_negative_feedback)\fR"
 Idem, for delivery via the named message \fItransport\fR.
 .IP "\fBdefault_destination_concurrency_positive_feedback (1)\fR"
-The per-destination amount of positive delivery concurrency
+The per-destination amount of delivery concurrency positive
 feedback, after a delivery completes without connection or handshake
 failure.
 .IP "\fItransport\fB_destination_concurrency_positive_feedback ($default_destination_concurrency_positive_feedback)\fR"
@@ -271,6 +271,14 @@ Available in Postfix version 2.1 and later:
 .IP "\fBbounce_queue_lifetime (5d)\fR"
 The maximal time a bounce message is queued before it is considered
 undeliverable.
+.PP
+Available in Postfix version 2.5 and later:
+.IP "\fBdefault_delivery_rate_delay (0s)\fR"
+The default amount of delay that is inserted between individual
+deliveries to the same destination; with per-destination recipient
+limit > 1, a destination is a domain, otherwise it is a recipient.
+.IP "\fItransport\fB_delivery_rate_delay $default_delivery_rate_delay
+Idem, for delivery via the named message \fItransport\fR.
 .SH MISCELLANEOUS CONTROLS
 .ad
 .fi

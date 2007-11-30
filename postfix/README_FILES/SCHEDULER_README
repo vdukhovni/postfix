@@ -351,14 +351,14 @@ next section.
 
 LLiimmiittaattiioonnss ooff lleessss--tthhaann--11 ppeerr ddeelliivveerryy ffeeeeddbbaacckk
 
-The delivery concurrency scheduler with less-than-1 concurrency feedback per
-delivery solves a problem with servers that have active concurrency limiters.
-This works only because feedback is handled in a peculiar manner: positive
-feedback will increment the concurrency by 1 at the eenndd of a sequence of events
-of length 1/feedback, while negative feedback will decrement concurrency by 1
-at the bbeeggiinnnniinngg of such a sequence. This is how Postfix adjusts quickly for
-overshoot without causing lots of mail to be deferred. Without this difference
-in feedback treatment, less-than-1 feedback per delivery would defer 50% of the
+The scheduler with less-than-1 concurrency feedback per delivery solves a
+problem with servers that have active concurrency limiters. This works only
+because feedback is handled in a peculiar manner: positive feedback will
+increment the concurrency by 1 at the eenndd of a sequence of events of length 1/
+feedback, while negative feedback will decrement concurrency by 1 at the
+bbeeggiinnnniinngg of such a sequence. This is how Postfix adjusts quickly for overshoot
+without causing lots of mail to be deferred. Without this difference in
+feedback treatment, less-than-1 feedback per delivery would defer 50% of the
 mail, and would be no better in this respect than the old +/-1 feedback per
 delivery.
 
@@ -374,10 +374,10 @@ once it reaches a concurrency level of about K, even though the good servers
 behind the load balancer are perfectly capable of handling more traffic.
 
 This noise problem gets worse as the amount of positive feedback per delivery
-gets smaller. A compromise is to avoid concurrency-dependent positive feedback,
-and to use fixed less-than-1 feedback values instead. For example, to tolerate
-1 of 4 bad servers in the above load balancer scenario, use positive feedback
-of 1/4 per "good" delivery (no connect or handshake error), and use an equal or
+gets smaller. A compromise is to use fixed less-than-1 positive feedback values
+instead of concurrency-dependent positive feedback. For example, to tolerate 1
+of 4 bad servers in the above load balancer scenario, use positive feedback of
+1/4 per "good" delivery (no connect or handshake error), and use an equal or
 smaller amount of negative feedback per "bad" delivery. The downside of using
 concurrency-independent feedback is that some of the old +/-1 feedback problems
 will return at large concurrencies. Sites that deliver at non-trivial per-

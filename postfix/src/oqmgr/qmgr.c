@@ -194,13 +194,13 @@
 /* .IP "\fItransport\fB_destination_concurrency_failed_cohort_limit ($default_destination_concurrency_failed_cohort_limit)\fR"
 /*	Idem, for delivery via the named message \fItransport\fR.
 /* .IP "\fBdefault_destination_concurrency_negative_feedback (1)\fR"
-/*	The per-destination amount of negative delivery concurrency
+/*	The per-destination amount of delivery concurrency negative
 /*	feedback, after a delivery completes with a connection or handshake
 /*	failure.
 /* .IP "\fItransport\fB_destination_concurrency_negative_feedback ($default_destination_concurrency_negative_feedback)\fR"
 /*	Idem, for delivery via the named message \fItransport\fR.
 /* .IP "\fBdefault_destination_concurrency_positive_feedback (1)\fR"
-/*	The per-destination amount of positive delivery concurrency
+/*	The per-destination amount of delivery concurrency positive
 /*	feedback, after a delivery completes without connection or handshake
 /*	failure.
 /* .IP "\fItransport\fB_destination_concurrency_positive_feedback ($default_destination_concurrency_positive_feedback)\fR"
@@ -237,6 +237,14 @@
 /* .IP "\fBbounce_queue_lifetime (5d)\fR"
 /*	The maximal time a bounce message is queued before it is considered
 /*	undeliverable.
+/* .PP
+/*	Available in Postfix version 2.5 and later:
+/* .IP "\fBdefault_delivery_rate_delay (0s)\fR"
+/*	The default amount of delay that is inserted between individual
+/*	deliveries to the same destination; with per-destination recipient
+/*	limit > 1, a destination is a domain, otherwise it is a recipient.
+/* .IP "\fItransport\fB_delivery_rate_delay $default_delivery_rate_delay
+/*	Idem, for delivery via the named message \fItransport\fR.
 /* .SH MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi
@@ -362,6 +370,7 @@ char   *var_conc_pos_feedback;
 char   *var_conc_neg_feedback;
 int     var_conc_cohort_limit;
 int     var_conc_feedback_debug;
+int     var_dest_rate_delay;
 
 static QMGR_SCAN *qmgr_scans[2];
 
@@ -601,6 +610,7 @@ int     main(int argc, char **argv)
 	VAR_DSN_QUEUE_TIME, DEF_DSN_QUEUE_TIME, &var_dsn_queue_time, 0, 8640000,
 	VAR_XPORT_RETRY_TIME, DEF_XPORT_RETRY_TIME, &var_transport_retry_time, 1, 0,
 	VAR_QMGR_CLOG_WARN_TIME, DEF_QMGR_CLOG_WARN_TIME, &var_qmgr_clog_warn_time, 0, 0,
+	VAR_DEST_RATE_DELAY, DEF_DEST_RATE_DELAY, &var_dest_rate_delay, 0, 0,
 	0,
     };
     static CONFIG_INT_TABLE int_table[] = {

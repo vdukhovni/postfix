@@ -885,6 +885,11 @@ message response times while making sure the mailing-list deliveries
 are not extended by more than 20-25 percent even in the worst case.
 </p>
 
+<p> Use <i>transport</i>_delivery_slot_cost to specify a
+transport-specific override, where <i>transport</i> is the master.cf
+name of the message delivery transport.
+</p>
+
 <p>
 Examples:
 </p>
@@ -900,6 +905,13 @@ default_delivery_slot_cost = 2
 The default maximal number of parallel deliveries to the same
 destination.  This is the default limit for delivery via the lmtp(8),
 pipe(8), smtp(8) and virtual(8) delivery agents.
+With per-destination recipient limit &gt; 1, a destination is a domain,
+otherwise it is a recipient.
+</p>
+
+<p> Use <i>transport</i>_destination_concurrency_limit to specify a
+transport-specific override, where <i>transport</i> is the master.cf
+name of the message delivery transport.
 </p>
 
 %PARAM default_destination_recipient_limit 50
@@ -914,6 +926,11 @@ smtp(8) and virtual(8) delivery agents.
 the corresponding per-destination concurrency limit from concurrency
 per domain into concurrency per recipient.  </p>
 
+<p> Use <i>transport</i>_destination_recipient_limit to specify a
+transport-specific override, where <i>transport</i> is the master.cf
+name of the message delivery transport.
+</p>
+
 %PARAM default_extra_recipient_limit 1000
 
 <p>
@@ -925,6 +942,11 @@ recipients slots for the chosen message in order to avoid performance
 degradation.
 </p>
 
+<p> Use <i>transport</i>_extra_recipient_limit to specify a
+transport-specific override, where <i>transport</i> is the master.cf
+name of the message delivery transport.
+</p>
+
 %PARAM default_minimum_delivery_slots 3
 
 <p>
@@ -932,6 +954,11 @@ How many recipients a message must have in order to invoke the
 Postfix queue manager's scheduling algorithm at all.  Messages
 which would never accumulate at least this many delivery slots
 (subject to slot cost parameter as well) are never preempted.
+</p>
+
+<p> Use <i>transport</i>_minimum_delivery_slots to specify a
+transport-specific override, where <i>transport</i> is the master.cf
+name of the message delivery transport.
 </p>
 
 %PARAM default_privs nobody
@@ -1097,6 +1124,11 @@ to the respective transports.  See also default_extra_recipient_limit
 and qmgr_message_recipient_minimum.
 </p>
 
+<p> Use <i>transport</i>_recipient_limit to specify a
+transport-specific override, where <i>transport</i> is the master.cf
+name of the message delivery transport.
+</p>
+
 %PARAM default_recipient_refill_limit 100
 
 <p>
@@ -1105,6 +1137,11 @@ once.  When not all message recipients fit into the memory at once, keep
 loading more of them in batches of at least this many at a time.  See also
 $default_recipient_refill_delay, which may result in recipient batches
 lower than this when this limit is too high for too slow deliveries.
+</p>
+
+<p> Use <i>transport</i>_recipient_refill_limit to specify a
+transport-specific override, where <i>transport</i> is the master.cf
+name of the message delivery transport.
 </p>
 
 <p> This feature is available in Postfix 2.4 and later. </p>
@@ -1117,6 +1154,11 @@ When not all message recipients fit into the memory at once, keep loading
 more of them at least once every this many seconds.  This is used to
 make sure the recipients are refilled in timely manner even when
 $default_recipient_refill_limit is too high for too slow deliveries.
+</p>
+
+<p> Use <i>transport</i>_recipient_refill_delay to specify a
+transport-specific override, where <i>transport</i> is the master.cf
+name of the message delivery transport.
 </p>
 
 <p> This feature is available in Postfix 2.4 and later. </p>
@@ -1805,6 +1847,8 @@ inet_protocols = ipv4, ipv6
 The initial per-destination concurrency level for parallel delivery
 to the same destination. This limit applies to delivery via smtp(8),
 and via the pipe(8) and virtual(8) delivery agents.
+With per-destination recipient limit &gt; 1, a destination is a domain,
+otherwise it is a recipient.
 </p>
 
 <p> Use <i>transport</i>_initial_destination_concurrency to specify
@@ -6566,6 +6610,11 @@ Note that the full amount will still have to be accumulated before
 another preemption can take place later.
 </p>
 
+<p> Use <i>transport</i>_delivery_slot_discount to specify a
+transport-specific override, where <i>transport</i> is the master.cf
+name of the message delivery transport.
+</p>
+
 %PARAM default_delivery_slot_loan 3
 
 <p>
@@ -6581,6 +6630,11 @@ transport_delivery_slot_discount percent of the required amount
 plus transport_delivery_slot_loan still remains to be accumulated.
 Note that the full amount will still have to be accumulated before
 another preemption can take place later.
+</p>
+
+<p> Use <i>transport</i>_delivery_slot_loan to specify a
+transport-specific override, where <i>transport</i> is the master.cf
+name of the message delivery transport.
 </p>
 
 %CLASS verp VERP Support
@@ -10931,3 +10985,36 @@ parameter value, where <i>transport</i> is the master.cf name of
 the message delivery transport. </p>
 
 <p> This feature is available in Postfix 2.4 and later. </p>
+
+%PARAM default_delivery_rate_delay 0s
+
+<p> The default amount of delay that is inserted between individual
+deliveries to the same destination; with per-destination recipient
+limit &gt; 1, a destination is a domain, otherwise it is a recipient.
+</p>
+
+<p> To enable the delay, specify a non-zero time value (an integral
+value plus an optional one-letter suffix that specifies the time
+unit). </p>
+
+<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
+(weeks). The default time unit is s (seconds). </p>
+
+<p> NOTE: the delay is enforced by the queue manager. The delay
+timer state does not survive "postfix reload" or "postfix stop".
+</p>
+
+<p> Use <i>transport</i>_delivery_rate_delay to specify a
+transport-specific override, where <i>transport</i> is the master.cf
+name of the message delivery transport.
+</p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+%PARAM transport_delivery_rate_delay $default_delivery_rate_delay
+
+<p> A transport-specific override for the default_recipient_refill_delay
+parameter value, where <i>transport</i> is the master.cf name of
+the message delivery transport. </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>

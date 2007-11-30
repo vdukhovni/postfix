@@ -389,7 +389,12 @@ QMGR_TRANSPORT *qmgr_transport_create(const char *name)
     transport->init_dest_concurrency =
 	get_mail_conf_int2(name, _INIT_DEST_CON,
 			   var_init_dest_concurrency, 1, 0);
+    transport->rate_delay = get_mail_conf_time2(name, _DEST_RATE_DELAY,
+						var_dest_rate_delay, 
+						's', 0, 0);
 
+    if (transport->rate_delay > 0)
+	transport->dest_concurrency_limit = 1;
     if (transport->dest_concurrency_limit != 0
     && transport->dest_concurrency_limit < transport->init_dest_concurrency)
 	transport->init_dest_concurrency = transport->dest_concurrency_limit;

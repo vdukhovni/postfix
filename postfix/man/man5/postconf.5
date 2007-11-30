@@ -877,6 +877,26 @@ default_database_type = dbm
 .fi
 .ad
 .ft R
+.SH default_delivery_rate_delay (default: 0s)
+The default amount of delay that is inserted between individual
+deliveries to the same destination; with per-destination recipient
+limit > 1, a destination is a domain, otherwise it is a recipient.
+.PP
+To enable the delay, specify a non-zero time value (an integral
+value plus an optional one-letter suffix that specifies the time
+unit).
+.PP
+Time units: s (seconds), m (minutes), h (hours), d (days), w
+(weeks). The default time unit is s (seconds).
+.PP
+NOTE: the delay is enforced by the queue manager. The delay
+timer state does not survive "postfix reload" or "postfix stop".
+.PP
+Use \fItransport\fR_delivery_rate_delay to specify a
+transport-specific override, where \fItransport\fR is the master.cf
+name of the message delivery transport.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH default_delivery_slot_cost (default: 5)
 How often the Postfix queue manager's scheduler is allowed to
 preempt delivery of one message with another.
@@ -904,6 +924,10 @@ disabled. The default value of 5 turns out to provide reasonable
 message response times while making sure the mailing-list deliveries
 are not extended by more than 20-25 percent even in the worst case.
 .PP
+Use \fItransport\fR_delivery_slot_cost to specify a
+transport-specific override, where \fItransport\fR is the master.cf
+name of the message delivery transport.
+.PP
 Examples:
 .PP
 .nf
@@ -925,6 +949,10 @@ transport_delivery_slot_discount percent of the required amount
 plus transport_delivery_slot_loan still remains to be accumulated.
 Note that the full amount will still have to be accumulated before
 another preemption can take place later.
+.PP
+Use \fItransport\fR_delivery_slot_discount to specify a
+transport-specific override, where \fItransport\fR is the master.cf
+name of the message delivery transport.
 .SH default_delivery_slot_loan (default: 3)
 The default value for transport-specific _delivery_slot_loan
 settings.
@@ -936,6 +964,10 @@ transport_delivery_slot_discount percent of the required amount
 plus transport_delivery_slot_loan still remains to be accumulated.
 Note that the full amount will still have to be accumulated before
 another preemption can take place later.
+.PP
+Use \fItransport\fR_delivery_slot_loan to specify a
+transport-specific override, where \fItransport\fR is the master.cf
+name of the message delivery transport.
 .SH default_destination_concurrency_failed_cohort_limit (default: 1)
 How many pseudo-cohorts must suffer connection or handshake
 failure before a specific destination is considered unavailable
@@ -957,6 +989,12 @@ is compatible with earlier Postfix versions.
 The default maximal number of parallel deliveries to the same
 destination.  This is the default limit for delivery via the \fBlmtp\fR(8),
 \fBpipe\fR(8), \fBsmtp\fR(8) and \fBvirtual\fR(8) delivery agents.
+With per-destination recipient limit > 1, a destination is a domain,
+otherwise it is a recipient.
+.PP
+Use \fItransport\fR_destination_concurrency_limit to specify a
+transport-specific override, where \fItransport\fR is the master.cf
+name of the message delivery transport.
 .SH default_destination_concurrency_negative_feedback (default: 1)
 The per-destination amount of delivery concurrency negative
 feedback, after a delivery completes with a connection or handshake
@@ -1046,6 +1084,10 @@ This is the default limit for delivery via the \fBlmtp\fR(8), \fBpipe\fR(8),
 Setting this parameter to a value of 1 changes the meaning of
 the corresponding per-destination concurrency limit from concurrency
 per domain into concurrency per recipient.
+.PP
+Use \fItransport\fR_destination_recipient_limit to specify a
+transport-specific override, where \fItransport\fR is the master.cf
+name of the message delivery transport.
 .SH default_extra_recipient_limit (default: 1000)
 The default value for the extra per-transport limit imposed on the
 number of in-memory recipients.  This extra recipient space is
@@ -1053,11 +1095,19 @@ reserved for the cases when the Postfix queue manager's scheduler
 preempts one message with another and suddenly needs some extra
 recipients slots for the chosen message in order to avoid performance
 degradation.
+.PP
+Use \fItransport\fR_extra_recipient_limit to specify a
+transport-specific override, where \fItransport\fR is the master.cf
+name of the message delivery transport.
 .SH default_minimum_delivery_slots (default: 3)
 How many recipients a message must have in order to invoke the
 Postfix queue manager's scheduling algorithm at all.  Messages
 which would never accumulate at least this many delivery slots
 (subject to slot cost parameter as well) are never preempted.
+.PP
+Use \fItransport\fR_minimum_delivery_slots to specify a
+transport-specific override, where \fItransport\fR is the master.cf
+name of the message delivery transport.
 .SH default_privs (default: nobody)
 The default rights used by the \fBlocal\fR(8) delivery agent for delivery
 to external file or command.  These rights are used when delivery
@@ -1142,12 +1192,20 @@ recipients.  These limits take priority over the global
 qmgr_message_recipient_limit after the message has been assigned
 to the respective transports.  See also default_extra_recipient_limit
 and qmgr_message_recipient_minimum.
+.PP
+Use \fItransport\fR_recipient_limit to specify a
+transport-specific override, where \fItransport\fR is the master.cf
+name of the message delivery transport.
 .SH default_recipient_refill_delay (default: 5s)
 The default per-transport maximum delay between recipients refills.
 When not all message recipients fit into the memory at once, keep loading
 more of them at least once every this many seconds.  This is used to
 make sure the recipients are refilled in timely manner even when
 $default_recipient_refill_limit is too high for too slow deliveries.
+.PP
+Use \fItransport\fR_recipient_refill_delay to specify a
+transport-specific override, where \fItransport\fR is the master.cf
+name of the message delivery transport.
 .PP
 This feature is available in Postfix 2.4 and later.
 .SH default_recipient_refill_limit (default: 100)
@@ -1156,6 +1214,10 @@ once.  When not all message recipients fit into the memory at once, keep
 loading more of them in batches of at least this many at a time.  See also
 $default_recipient_refill_delay, which may result in recipient batches
 lower than this when this limit is too high for too slow deliveries.
+.PP
+Use \fItransport\fR_recipient_refill_limit to specify a
+transport-specific override, where \fItransport\fR is the master.cf
+name of the message delivery transport.
 .PP
 This feature is available in Postfix 2.4 and later.
 .SH default_transport (default: smtp)
@@ -1759,6 +1821,8 @@ inet_protocols = ipv4, ipv6
 The initial per-destination concurrency level for parallel delivery
 to the same destination. This limit applies to delivery via \fBsmtp\fR(8),
 and via the \fBpipe\fR(8) and \fBvirtual\fR(8) delivery agents.
+With per-destination recipient limit > 1, a destination is a domain,
+otherwise it is a recipient.
 .PP
 Use \fItransport\fR_initial_destination_concurrency to specify
 a transport-specific override, where \fItransport\fR is the master.cf
@@ -7417,6 +7481,12 @@ of mail deliveries and produces a mail delivery report when verbose
 delivery is requested with "\fBsendmail -v\fR".
 .PP
 This feature is available in Postfix 2.1 and later.
+.SH transport_delivery_rate_delay (default: $default_delivery_rate_delay)
+A transport-specific override for the default_recipient_refill_delay
+parameter value, where \fItransport\fR is the master.cf name of
+the message delivery transport.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH transport_delivery_slot_cost (default: $default_delivery_slot_cost)
 A transport-specific override for the default_delivery_slot_cost
 parameter value, where \fItransport\fR is the master.cf name of
