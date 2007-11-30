@@ -8012,7 +8012,7 @@ The table is not searched by hostname for robustness reasons.  </p>
 
 <p> This feature is available in Postfix 2.2 and later. </p>
 
-%PARAM connection_cache_service scache
+%PARAM connection_cache_service_name scache
 
 <p> The name of the scache(8) connection cache service.  This service
 maintains a limited pool of cached sessions.  </p>
@@ -9108,7 +9108,7 @@ used instead of the null sender address. </p>
 earlier versions, sender_dependent_relayhost_maps lookups were
 skipped for the null sender address.  </p>
 
-%PARAM address_verify_sender_dependent_relayhost_maps empty
+%PARAM address_verify_sender_dependent_relayhost_maps $sender_dependent_relayhost_maps
 
 <p>
 Overrides the sender_dependent_relayhost_maps parameter setting for address
@@ -10692,14 +10692,14 @@ that change the delivery time or destination are not available.
 
 <p> This feature is available in Postfix 2.5 and later. </p>
 
-%PARAM concurrency_feedback_debug no
+%PARAM destination_concurrency_feedback_debug no
 
 <p> Make the queue manager's feedback algorithm verbose for performance
 analysis purposes. </p>
 
 <p> This feature is available in Postfix 2.5 and later. </p>
 
-%PARAM default_concurrency_failed_cohort_limit 1
+%PARAM default_destination_concurrency_failed_cohort_limit 1
 
 <p> How many pseudo-cohorts must suffer connection or handshake
 failure before a specific destination is considered unavailable
@@ -10711,31 +10711,31 @@ for that specific destination. </p>
 <p> A pseudo-cohort is the number of deliveries equal to a destination's
 delivery concurrency. </p>
 
-<p> Use <i>transport</i>_concurrency_failed_cohort_limit to specify
+<p> Use <i>transport</i>_destination_concurrency_failed_cohort_limit to specify
 a transport-specific override, where <i>transport</i> is the master.cf
 name of the message delivery transport. </p>
 
 <p> This feature is available in Postfix 2.5. The default setting
 is compatible with earlier Postfix versions. </p>
 
-%PARAM default_concurrency_negative_feedback 1
+%PARAM default_destination_concurrency_negative_feedback 1
 
-<p> The per-destination amount of negative delivery concurrency
+<p> The per-destination amount of delivery concurrency negative
 feedback, after a delivery completes with a connection or handshake
-failure. Feedback values are in range 0..1 inclusive. With negative
-feedback, concurrency is decremented at the beginning of a sequence
-of length 1/feedback. This is unlike positive feedback, where
-concurrency is incremented at the end of a sequence of length
+failure. Feedback values are in the range 0..1 inclusive. With
+negative feedback, concurrency is decremented at the beginning of
+a sequence of length 1/feedback. This is unlike positive feedback,
+where concurrency is incremented at the end of a sequence of length
 1/feedback. </p>
 
 <p> As of Postfix version 2.5, negative feedback cannot reduce
 delivery concurrency to zero.  Instead, a destination is marked
 dead (further delivery suspended) after the failed pseudo-cohort
-count reaches $default_concurrency_failed_cohort_limit (or
-$<i>transport</i>_concurrency_failed_cohort_limit). To make the
-scheduler completely immune to connection or handshake failures,
-specify a zero feedback value and a zero failed pseudo-cohort limit.
-</p>
+count reaches $default_destination_concurrency_failed_cohort_limit
+(or $<i>transport</i>_destination_concurrency_failed_cohort_limit).
+To make the scheduler completely immune to connection or handshake
+failures, specify a zero feedback value and a zero failed pseudo-cohort
+limit.  </p>
 
 <p> Specify one of the following forms: </p>
 
@@ -10769,16 +10769,17 @@ may be removed in a future version.  </dd>
 <p> A pseudo-cohort is the number of deliveries equal to a destination's
 delivery concurrency. </p>
 
-<p> Use <i>transport</i>_concurrency_negative_feedback to specify
-a transport-specific override, where <i>transport</i> is the master.cf
+<p> Use <i>transport</i>_destination_concurrency_negative_feedback
+to specify a transport-specific override, where <i>transport</i>
+is the master.cf
 name of the message delivery transport. </p>
 
 <p> This feature is available in Postfix 2.5. The default setting
 is compatible with earlier Postfix versions. </p>
 
-%PARAM default_concurrency_positive_feedback 1
+%PARAM default_destination_concurrency_positive_feedback 1
 
-<p> The per-destination amount of positive delivery concurrency
+<p> The per-destination amount of delivery concurrency positive
 feedback, after a delivery completes without connection or handshake
 failure. Feedback values are in the range 0..1 inclusive.  The
 concurrency increases until it reaches the per-destination maximal
@@ -10818,35 +10819,35 @@ may be removed in a future version.  </dd>
 <p> A pseudo-cohort is the number of deliveries equal to a destination's
 delivery concurrency. </p>
 
-<p> Use <i>transport</i>_concurrency_positive_feedback to specify
-a transport-specific override, where <i>transport</i> is the master.cf
-name of the message delivery transport. </p>
+<p> Use <i>transport</i>_destination_concurrency_positive_feedback
+to specify a transport-specific override, where <i>transport</i>
+is the master.cf name of the message delivery transport. </p>
 
 <p> This feature is available in Postfix 2.5 and later.  </p>
 
-%PARAM <i>transport</i>_concurrency_failed_cohort_limit $default_concurrency_failed_cohort_limit
+%PARAM <i>transport</i>_destination_concurrency_failed_cohort_limit $default_destination_concurrency_failed_cohort_limit
 
 <p> A transport-specific override for the
-default_concurrency_failed_cohort_limit parameter value, where
-<i>transport</i> is the master.cf name of the message delivery
+default_destination_concurrency_failed_cohort_limit parameter value,
+where <i>transport</i> is the master.cf name of the message delivery
 transport. </p>
 
 <p> This feature is available in Postfix 2.5 and later. </p>
 
-%PARAM transport_concurrency_positive_feedback $default_concurrency_positive_feedback
+%PARAM transport_destination_concurrency_positive_feedback $default_destination_concurrency_positive_feedback
 
 <p> A transport-specific override for the
-default_concurrency_positive_feedback parameter value, where
-<i>transport</i> is the master.cf name of the message delivery
+default_destination_concurrency_positive_feedback parameter value,
+where <i>transport</i> is the master.cf name of the message delivery
 transport. </p>
 
 <p> This feature is available in Postfix 2.5 and later. </p>
 
-%PARAM transport_concurrency_negative_feedback $default_concurrency_negative_feedback
+%PARAM transport_destination_concurrency_negative_feedback $default_destination_concurrency_negative_feedback
 
 <p> A transport-specific override for the
-default_concurrency_negative_feedback parameter value, where
-<i>transport</i> is the master.cf name of the message delivery
+default_destination_concurrency_negative_feedback parameter value,
+where <i>transport</i> is the master.cf name of the message delivery
 transport. </p>
 
 <p> This feature is available in Postfix 2.5 and later. </p>
@@ -10866,7 +10867,7 @@ default_destination_concurrency_limit parameter value, where
 <i>transport</i> is the master.cf name of the message delivery
 transport. </p>
 
-%PARAM transport_destination_recipient_limit $default_destination_concurrency_limit
+%PARAM transport_destination_recipient_limit $default_destination_recipient_limit
 
 <p> A transport-specific override for the
 default_destination_recipient_limit parameter value, where

@@ -59,7 +59,7 @@
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
 /*
-/*	Scheduler enhancements:
+/*	Preemptive scheduler enhancements:
 /*	Patrik Rak
 /*	Modra 6
 /*	155 00, Prague, Czech Republic

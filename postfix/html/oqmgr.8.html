@@ -220,8 +220,48 @@ OQMGR(8)                                                              OQMGR(8)
               The default maximal number of  parallel  deliveries
               to the same destination.
 
-       <b><a href="postconf.5.html#transport_destination_concurrency_limit"><i>transport</i>_destination_concurrency_limit</a></b>
+       <b><a href="postconf.5.html#transport_destination_concurrency_limit"><i>transport</i>_destination_concurrency_limit</a> ($<a href="postconf.5.html#default_destination_concurrency_limit">default_destina</a>-</b>
+       <b><a href="postconf.5.html#default_destination_concurrency_limit">tion_concurrency_limit</a>)</b>
               Idem, for delivery via the named message <i>transport</i>.
+
+       Available in Postfix version 2.5 and later:
+
+       <b><a href="postconf.5.html#transport_initial_destination_concurrency"><i>transport</i>_initial_destination_concurrency</a> ($<a href="postconf.5.html#initial_destination_concurrency">initial_desti</a>-</b>
+       <b><a href="postconf.5.html#initial_destination_concurrency">nation_concurrency</a>)</b>
+              Initial concurrency for delivery via the named mes-
+              sage <i>transport</i>.
+
+       <b><a href="postconf.5.html#default_destination_concurrency_failed_cohort_limit">default_destination_concurrency_failed_cohort_limit</a> (1)</b>
+              How  many  pseudo-cohorts must suffer connection or
+              handshake failure before a specific destination  is
+              considered  unavailable  (and  further  delivery is
+              suspended).
+
+       <b><a href="postconf.5.html#transport_destination_concurrency_failed_cohort_limit"><i>transport</i>_destination_concurrency_failed_cohort_limit</a></b>
+       <b>($<a href="postconf.5.html#default_destination_concurrency_failed_cohort_limit">default_destination_concurrency_failed_cohort_limit</a>)</b>
+              Idem, for delivery via the named message <i>transport</i>.
+
+       <b><a href="postconf.5.html#default_destination_concurrency_negative_feedback">default_destination_concurrency_negative_feedback</a> (1)</b>
+              The  per-destination  amount  of  negative delivery
+              concurrency feedback, after  a  delivery  completes
+              with a connection or handshake failure.
+
+       <b><a href="postconf.5.html#transport_destination_concurrency_positive_feedback"><i>transport</i>_destination_concurrency_negative_feedback</a></b>
+       <b>($<a href="postconf.5.html#default_destination_concurrency_negative_feedback">default_destination_concurrency_negative_feedback</a>)</b>
+              Idem, for delivery via the named message <i>transport</i>.
+
+       <b><a href="postconf.5.html#default_destination_concurrency_positive_feedback">default_destination_concurrency_positive_feedback</a> (1)</b>
+              The per-destination  amount  of  positive  delivery
+              concurrency  feedback,  after  a delivery completes
+              without connection or handshake failure.
+
+       <b><a href="postconf.5.html#transport_destination_concurrency_positive_feedback"><i>transport</i>_destination_concurrency_positive_feedback</a></b>
+       <b>($<a href="postconf.5.html#default_destination_concurrency_positive_feedback">default_destination_concurrency_positive_feedback</a>)</b>
+              Idem, for delivery via the named message <i>transport</i>.
+
+       <b><a href="postconf.5.html#destination_concurrency_feedback_debug">destination_concurrency_feedback_debug</a> (no)</b>
+              Make the queue manager's feedback algorithm verbose
+              for performance analysis purposes.
 
 <b>RECIPIENT SCHEDULING CONTROLS</b>
        <b><a href="postconf.5.html#default_destination_recipient_limit">default_destination_recipient_limit</a> (50)</b>

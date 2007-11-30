@@ -17,7 +17,7 @@ Incompatibility with Postfix 2.3 and earlier
 If you upgrade from Postfix 2.3 or earlier, read RELEASE_NOTES-2.4
 before proceeding.
 
-Major changes with Postfix snapshot 20071129
+Major changes with Postfix snapshot 20071130
 ============================================
 
 Revised queue manager with separate mechanisms for per-destination
@@ -37,13 +37,13 @@ pseudo-cohort(*) failure. The latter was especially an issue with
 low-concurrency channels where a single failure could be sufficient
 to mark a destination as "dead", and suspend further deliveries.
 
-New configuration parameters: concurrency_feedback_debug,
-default_concurrency_positive_feedback,
-default_concurrency_negative_feedback,
-default_concurrency_failed_cohort_limit, as well as transport-specific
-versions of the same.  See postconf(5) for extensive descriptions,
-and SCHEDULER_README for background information on why things work
-the way they work.
+New configuration parameters: destination_concurrency_feedback_debug,
+default_destination_concurrency_positive_feedback,
+default_destination_concurrency_negative_feedback,
+default_destination_concurrency_failed_cohort_limit, as well as
+transport-specific versions of the same.  See postconf(5) for
+extensive descriptions, and SCHEDULER_README for background information
+on the theory and practice of how these settings work.
 
 The default parameter settings are backwards compatible with older
 Postfix versions. This may change after better defaults are field

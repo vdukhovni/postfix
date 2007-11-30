@@ -210,25 +210,25 @@
 /* .IP "\fItransport\fB_initial_destination_concurrency ($initial_destination_concurrency)\fR"
 /*	Initial concurrency for delivery via the named message
 /*	\fItransport\fR.
-/* .IP "\fBdefault_concurrency_failed_cohort_limit (1)\fR"
+/* .IP "\fBdefault_destination_concurrency_failed_cohort_limit (1)\fR"
 /*	How many pseudo-cohorts must suffer connection or handshake
 /*	failure before a specific destination is considered unavailable
 /*	(and further delivery is suspended).
-/* .IP "\fItransport\fB_concurrency_failed_cohort_limit ($default_concurrency_failed_cohort_limit)\fR"
+/* .IP "\fItransport\fB_destination_concurrency_failed_cohort_limit ($default_destination_concurrency_failed_cohort_limit)\fR"
 /*	Idem, for delivery via the named message \fItransport\fR.
-/* .IP "\fBdefault_concurrency_negative_feedback (1)\fR"
+/* .IP "\fBdefault_destination_concurrency_negative_feedback (1)\fR"
 /*	The per-destination amount of negative delivery concurrency
 /*	feedback, after a delivery completes with a connection or handshake
 /*	failure.
-/* .IP "\fItransport\fB_concurrency_negative_feedback ($default_concurrency_negative_feedback)\fR"
+/* .IP "\fItransport\fB_destination_concurrency_negative_feedback ($default_destination_concurrency_negative_feedback)\fR"
 /*	Idem, for delivery via the named message \fItransport\fR.
-/* .IP "\fBdefault_concurrency_positive_feedback (1)\fR"
+/* .IP "\fBdefault_destination_concurrency_positive_feedback (1)\fR"
 /*	The per-destination amount of positive delivery concurrency
 /*	feedback, after a delivery completes without connection or handshake
 /*	failure.
-/* .IP "\fItransport\fB_concurrency_positive_feedback ($default_concurrency_positive_feedback)\fR"
+/* .IP "\fItransport\fB_destination_concurrency_positive_feedback ($default_destination_concurrency_positive_feedback)\fR"
 /*	Idem, for delivery via the named message \fItransport\fR.
-/* .IP "\fBconcurrency_feedback_debug (no)\fR"
+/* .IP "\fBdestination_concurrency_feedback_debug (no)\fR"
 /*	Make the queue manager's feedback algorithm verbose for performance
 /*	analysis purposes.
 /* RECIPIENT SCHEDULING CONTROLS
@@ -348,7 +348,7 @@
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
 /*
-/*	Scheduler enhancements:
+/*	Preemptive scheduler enhancements:
 /*	Patrik Rak
 /*	Modra 6
 /*	155 00, Prague, Czech Republic

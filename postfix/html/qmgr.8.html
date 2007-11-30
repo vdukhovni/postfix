@@ -269,35 +269,35 @@ QMGR(8)                                                                QMGR(8)
               Initial concurrency for delivery via the named mes-
               sage <i>transport</i>.
 
-       <b><a href="postconf.5.html#default_concurrency_failed_cohort_limit">default_concurrency_failed_cohort_limit</a> (1)</b>
+       <b><a href="postconf.5.html#default_destination_concurrency_failed_cohort_limit">default_destination_concurrency_failed_cohort_limit</a> (1)</b>
               How  many  pseudo-cohorts must suffer connection or
               handshake failure before a specific destination  is
               considered  unavailable  (and  further  delivery is
               suspended).
 
-       <b><a href="postconf.5.html#transport_concurrency_failed_cohort_limit"><i>transport</i>_concurrency_failed_cohort_limit</a>   ($<a href="postconf.5.html#default_concurrency_failed_cohort_limit">default_con</a>-</b>
-       <b><a href="postconf.5.html#default_concurrency_failed_cohort_limit">currency_failed_cohort_limit</a>)</b>
+       <b><a href="postconf.5.html#transport_destination_concurrency_failed_cohort_limit"><i>transport</i>_destination_concurrency_failed_cohort_limit</a></b>
+       <b>($<a href="postconf.5.html#default_destination_concurrency_failed_cohort_limit">default_destination_concurrency_failed_cohort_limit</a>)</b>
               Idem, for delivery via the named message <i>transport</i>.
 
-       <b><a href="postconf.5.html#default_concurrency_negative_feedback">default_concurrency_negative_feedback</a> (1)</b>
+       <b><a href="postconf.5.html#default_destination_concurrency_negative_feedback">default_destination_concurrency_negative_feedback</a> (1)</b>
               The  per-destination  amount  of  negative delivery
               concurrency feedback, after  a  delivery  completes
               with a connection or handshake failure.
 
-       <b><a href="postconf.5.html#transport_concurrency_positive_feedback"><i>transport</i>_concurrency_negative_feedback</a>  ($<a href="postconf.5.html#default_concurrency_negative_feedback">default_concur</a>-</b>
-       <b><a href="postconf.5.html#default_concurrency_negative_feedback">rency_negative_feedback</a>)</b>
+       <b><a href="postconf.5.html#transport_destination_concurrency_positive_feedback"><i>transport</i>_destination_concurrency_negative_feedback</a></b>
+       <b>($<a href="postconf.5.html#default_destination_concurrency_negative_feedback">default_destination_concurrency_negative_feedback</a>)</b>
               Idem, for delivery via the named message <i>transport</i>.
 
-       <b><a href="postconf.5.html#default_concurrency_positive_feedback">default_concurrency_positive_feedback</a> (1)</b>
+       <b><a href="postconf.5.html#default_destination_concurrency_positive_feedback">default_destination_concurrency_positive_feedback</a> (1)</b>
               The per-destination  amount  of  positive  delivery
               concurrency  feedback,  after  a delivery completes
               without connection or handshake failure.
 
-       <b><a href="postconf.5.html#transport_concurrency_positive_feedback"><i>transport</i>_concurrency_positive_feedback</a>  ($<a href="postconf.5.html#default_concurrency_positive_feedback">default_concur</a>-</b>
-       <b><a href="postconf.5.html#default_concurrency_positive_feedback">rency_positive_feedback</a>)</b>
+       <b><a href="postconf.5.html#transport_destination_concurrency_positive_feedback"><i>transport</i>_destination_concurrency_positive_feedback</a></b>
+       <b>($<a href="postconf.5.html#default_destination_concurrency_positive_feedback">default_destination_concurrency_positive_feedback</a>)</b>
               Idem, for delivery via the named message <i>transport</i>.
 
-       <b><a href="postconf.5.html#concurrency_feedback_debug">concurrency_feedback_debug</a> (no)</b>
+       <b><a href="postconf.5.html#destination_concurrency_feedback_debug">destination_concurrency_feedback_debug</a> (no)</b>
               Make the queue manager's feedback algorithm verbose
               for performance analysis purposes.
 
@@ -450,7 +450,7 @@ QMGR(8)                                                                QMGR(8)
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
 
-       Scheduler enhancements:
+       Preemptive scheduler enhancements:
        Patrik Rak
        Modra 6
        155 00, Prague, Czech Republic

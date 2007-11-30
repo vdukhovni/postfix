@@ -185,7 +185,7 @@
 /*	probes.
 /* .PP
 /*	Available in Postfix version 2.3 and later:
-/* .IP "\fBaddress_verify_sender_dependent_relayhost_maps (empty)\fR"
+/* .IP "\fBaddress_verify_sender_dependent_relayhost_maps ($sender_dependent_relayhost_maps)\fR"
 /*	Overrides the sender_dependent_relayhost_maps parameter setting for address
 /*	verification probes.
 /* MISCELLANEOUS CONTROLS

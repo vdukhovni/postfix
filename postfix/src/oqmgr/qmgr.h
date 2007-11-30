@@ -38,6 +38,7 @@ typedef struct QMGR_TRANSPORT_LIST QMGR_TRANSPORT_LIST;
 typedef struct QMGR_QUEUE_LIST QMGR_QUEUE_LIST;
 typedef struct QMGR_ENTRY_LIST QMGR_ENTRY_LIST;
 typedef struct QMGR_SCAN QMGR_SCAN;
+typedef struct QMGR_FEEDBACK QMGR_FEEDBACK;
 
  /*
   * Hairy macros to update doubly-linked lists.
@@ -102,6 +103,40 @@ extern struct HTABLE *qmgr_transport_byname;	/* transport by name */
 extern QMGR_TRANSPORT_LIST qmgr_transport_list;	/* transports, round robin */
 
  /*
+  * Delivery agents provide feedback, as hints that Postfix should expend
+  * more or fewer resources on a specific destination domain. The main.cf
+  * file specifies how feedback affects delivery concurrency: add/subtract a
+  * constant, a ratio of constants, or a constant divided by the delivery
+  * concurrency; and it specifies how much feedback must accumulate between
+  * concurrency updates.
+  */
+struct QMGR_FEEDBACK {
+    int     hysteresis;			/* to pass, need to be this tall */
+    double  base;			/* pre-computed from main.cf */
+    int     index;			/* none, window, sqrt(window) */
+};
+
+#define QMGR_FEEDBACK_IDX_NONE		0	/* no window dependence */
+#define QMGR_FEEDBACK_IDX_WIN		1	/* 1/window dependence */
+#define QMGR_FEEDBACK_IDX_SQRT_WIN	2	/* 1/sqrt(window) dependence */
+
+#ifdef QMGR_FEEDBACK_IDX_SQRT_WIN
+#include <math.h>
+#endif
+
+extern void qmgr_feedback_init(QMGR_FEEDBACK *, const char *, const char *, const char *, const char *);
+
+#ifndef QMGR_FEEDBACK_IDX_SQRT_WIN
+#define QMGR_FEEDBACK_VAL(fb, win) \
+    ((fb).index == QMGR_FEEDBACK_IDX_NONE ? (fb).base : (fb).base / (win))
+#else
+#define QMGR_FEEDBACK_VAL(fb, win) \
+    ((fb).index == QMGR_FEEDBACK_IDX_NONE ? (fb).base : \
+    (fb).index == QMGR_FEEDBACK_IDX_WIN ? (fb).base / (win) : \
+    (fb).base / sqrt(win))
+#endif
+
+ /*
   * Each transport (local, smtp-out, bounce) can have one queue per next hop
   * name. Queues are looked up by next hop name (when we have resolved a
   * message destination), or round-robin wise (when we want to deliver
@@ -123,6 +158,9 @@ struct QMGR_TRANSPORT {
     QMGR_QUEUE_LIST queue_list;		/* queues, round robin order */
     QMGR_TRANSPORT_LIST peers;		/* linkage */
     DSN    *dsn;			/* why unavailable */
+    QMGR_FEEDBACK pos_feedback;		/* positive feedback control */
+    QMGR_FEEDBACK neg_feedback;		/* negative feedback control */
+    int     fail_cohort_limit;		/* flow shutdown control */
 };
 
 #define QMGR_TRANSPORT_STAT_DEAD	(1<<1)
@@ -159,6 +197,9 @@ struct QMGR_QUEUE {
     int     todo_refcount;		/* queue entries (todo list) */
     int     busy_refcount;		/* queue entries (busy list) */
     int     window;			/* slow open algorithm */
+    double  success;			/* accumulated positive feedback */
+    double  failure;			/* accumulated negative feedback */
+    double  fail_cohorts;		/* pseudo-cohort failure count */
     QMGR_TRANSPORT *transport;		/* transport linkage */
     QMGR_ENTRY_LIST todo;		/* todo queue entries */
     QMGR_ENTRY_LIST busy;		/* messages on the wire */

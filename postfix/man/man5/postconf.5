@@ -63,12 +63,12 @@ operation of the mail system.
 The recipient of undeliverable mail that cannot be returned to
 the sender.  This feature is enabled with the notify_classes
 parameter.
-<DT>\fB\fItransport\fR_concurrency_failed_cohort_limit
-(default: $default_concurrency_failed_cohort_limit)\fR</DT><DD>
+<DT>\fB\fItransport\fR_destination_concurrency_failed_cohort_limit
+(default: $default_destination_concurrency_failed_cohort_limit)\fR</DT><DD>
 .PP
 A transport-specific override for the
-default_concurrency_failed_cohort_limit parameter value, where
-\fItransport\fR is the master.cf name of the message delivery
+default_destination_concurrency_failed_cohort_limit parameter value,
+where \fItransport\fR is the master.cf name of the message delivery
 transport.
 .PP
 This feature is available in Postfix 2.5 and later.
@@ -209,7 +209,7 @@ address_verify_sender = postmaster@my.domain
 .ft R
 .PP
 This feature is available in Postfix 2.1 and later.
-.SH address_verify_sender_dependent_relayhost_maps (default: empty)
+.SH address_verify_sender_dependent_relayhost_maps (default: $sender_dependent_relayhost_maps)
 Overrides the sender_dependent_relayhost_maps parameter setting for address
 verification probes.
 .PP
@@ -758,11 +758,6 @@ delivery by the \fBpipe\fR(8) delivery agent.
 .PP
 Note: if you set this time limit to a large value you must update the
 global ipc_timeout parameter as well.
-.SH concurrency_feedback_debug (default: no)
-Make the queue manager's feedback algorithm verbose for performance
-analysis purposes.
-.PP
-This feature is available in Postfix 2.5 and later.
 .SH config_directory (default: see "postconf -d" output)
 The default location of the Postfix main.cf and master.cf
 configuration files. This can be overruled via the following
@@ -782,7 +777,7 @@ Time limit for connection cache connect, send or receive
 operations.  The time limit is enforced in the client.
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH connection_cache_service (default: scache)
+.SH connection_cache_service_name (default: scache)
 The name of the \fBscache\fR(8) connection cache service.  This service
 maintains a limited pool of cached sessions.
 .SH connection_cache_status_update_time (default: 600s)
@@ -866,102 +861,6 @@ debugger_command =
 .fi
 .ad
 .ft R
-.SH default_concurrency_failed_cohort_limit (default: 1)
-How many pseudo-cohorts must suffer connection or handshake
-failure before a specific destination is considered unavailable
-(and further delivery is suspended). Specify zero to disable this
-feature. A destination's pseudo-cohort failure count is reset each
-time a delivery completes without connection or handshake failure
-for that specific destination.
-.PP
-A pseudo-cohort is the number of deliveries equal to a destination's
-delivery concurrency.
-.PP
-Use \fItransport\fR_concurrency_failed_cohort_limit to specify
-a transport-specific override, where \fItransport\fR is the master.cf
-name of the message delivery transport.
-.PP
-This feature is available in Postfix 2.5. The default setting
-is compatible with earlier Postfix versions.
-.SH default_concurrency_negative_feedback (default: 1)
-The per-destination amount of negative delivery concurrency
-feedback, after a delivery completes with a connection or handshake
-failure. Feedback values are in range 0..1 inclusive. With negative
-feedback, concurrency is decremented at the beginning of a sequence
-of length 1/feedback. This is unlike positive feedback, where
-concurrency is incremented at the end of a sequence of length
-1/feedback.
-.PP
-As of Postfix version 2.5, negative feedback cannot reduce
-delivery concurrency to zero.  Instead, a destination is marked
-dead (further delivery suspended) after the failed pseudo-cohort
-count reaches $default_concurrency_failed_cohort_limit (or
-$\fItransport\fR_concurrency_failed_cohort_limit). To make the
-scheduler completely immune to connection or handshake failures,
-specify a zero feedback value and a zero failed pseudo-cohort limit.
-.PP
-Specify one of the following forms:
-.IP "\fB\fInumber\fR \fR"
-.IP "\fB\fInumber\fR / \fInumber\fR \fR"
-Constant feedback. The value must be in the range 0..1 inclusive.
-The default setting of "1" is compatible with Postfix versions
-before 2.5, where a destination's delivery concurrency is throttled
-down to zero (and further delivery suspended) after a single failed
-pseudo-cohort.
-.IP "\fB\fInumber\fR / concurrency \fR"
-Variable feedback of "\fInumber\fR / (delivery concurrency)".
-The \fInumber\fR must be in the range 0..1 inclusive. With
-\fInumber\fR equal to "1", a destination's delivery concurrency
-is decremented by 1 after each failed pseudo-cohort.
-.IP "\fB\fInumber\fR / sqrt_concurrency \fR"
-Variable feedback of "\fInumber\fR / sqrt(delivery concurrency)".
-The \fInumber\fR must be in the range 0..1 inclusive. This setting
-may be removed in a future version.
-.PP
-A pseudo-cohort is the number of deliveries equal to a destination's
-delivery concurrency.
-.PP
-Use \fItransport\fR_concurrency_negative_feedback to specify
-a transport-specific override, where \fItransport\fR is the master.cf
-name of the message delivery transport.
-.PP
-This feature is available in Postfix 2.5. The default setting
-is compatible with earlier Postfix versions.
-.SH default_concurrency_positive_feedback (default: 1)
-The per-destination amount of positive delivery concurrency
-feedback, after a delivery completes without connection or handshake
-failure. Feedback values are in the range 0..1 inclusive.  The
-concurrency increases until it reaches the per-destination maximal
-concurrency limit. With positive feedback, concurrency is incremented
-at the end of a sequence with length 1/feedback. This is unlike
-negative feedback, where concurrency is decremented at the start
-of a sequence of length 1/feedback.
-.PP
-Specify one of the following forms:
-.IP "\fB\fInumber\fR \fR"
-.IP "\fB\fInumber\fR / \fInumber\fR \fR"
-Constant feedback.  The value must be in the range 0..1
-inclusive. The default setting of "1" is compatible with Postfix
-versions before 2.5, where a destination's delivery concurrency
-doubles after each successful pseudo-cohort.
-.IP "\fB\fInumber\fR / concurrency \fR"
-Variable feedback of "\fInumber\fR / (delivery concurrency)".
-The \fInumber\fR must be in the range 0..1 inclusive. With
-\fInumber\fR equal to "1", a destination's delivery concurrency
-is incremented by 1 after each successful pseudo-cohort.
-.IP "\fB\fInumber\fR / sqrt_concurrency \fR"
-Variable feedback of "\fInumber\fR / sqrt(delivery concurrency)".
-The \fInumber\fR must be in the range 0..1 inclusive. This setting
-may be removed in a future version.
-.PP
-A pseudo-cohort is the number of deliveries equal to a destination's
-delivery concurrency.
-.PP
-Use \fItransport\fR_concurrency_positive_feedback to specify
-a transport-specific override, where \fItransport\fR is the master.cf
-name of the message delivery transport.
-.PP
-This feature is available in Postfix 2.5 and later.
 .SH default_database_type (default: see "postconf -d" output)
 The default database type for use in \fBnewaliases\fR(1), \fBpostalias\fR(1)
 and \fBpostmap\fR(1) commands. On many UNIX systems the default type is
@@ -1037,10 +936,108 @@ transport_delivery_slot_discount percent of the required amount
 plus transport_delivery_slot_loan still remains to be accumulated.
 Note that the full amount will still have to be accumulated before
 another preemption can take place later.
+.SH default_destination_concurrency_failed_cohort_limit (default: 1)
+How many pseudo-cohorts must suffer connection or handshake
+failure before a specific destination is considered unavailable
+(and further delivery is suspended). Specify zero to disable this
+feature. A destination's pseudo-cohort failure count is reset each
+time a delivery completes without connection or handshake failure
+for that specific destination.
+.PP
+A pseudo-cohort is the number of deliveries equal to a destination's
+delivery concurrency.
+.PP
+Use \fItransport\fR_destination_concurrency_failed_cohort_limit to specify
+a transport-specific override, where \fItransport\fR is the master.cf
+name of the message delivery transport.
+.PP
+This feature is available in Postfix 2.5. The default setting
+is compatible with earlier Postfix versions.
 .SH default_destination_concurrency_limit (default: 20)
 The default maximal number of parallel deliveries to the same
 destination.  This is the default limit for delivery via the \fBlmtp\fR(8),
 \fBpipe\fR(8), \fBsmtp\fR(8) and \fBvirtual\fR(8) delivery agents.
+.SH default_destination_concurrency_negative_feedback (default: 1)
+The per-destination amount of delivery concurrency negative
+feedback, after a delivery completes with a connection or handshake
+failure. Feedback values are in the range 0..1 inclusive. With
+negative feedback, concurrency is decremented at the beginning of
+a sequence of length 1/feedback. This is unlike positive feedback,
+where concurrency is incremented at the end of a sequence of length
+1/feedback.
+.PP
+As of Postfix version 2.5, negative feedback cannot reduce
+delivery concurrency to zero.  Instead, a destination is marked
+dead (further delivery suspended) after the failed pseudo-cohort
+count reaches $default_destination_concurrency_failed_cohort_limit
+(or $\fItransport\fR_destination_concurrency_failed_cohort_limit).
+To make the scheduler completely immune to connection or handshake
+failures, specify a zero feedback value and a zero failed pseudo-cohort
+limit.
+.PP
+Specify one of the following forms:
+.IP "\fB\fInumber\fR \fR"
+.IP "\fB\fInumber\fR / \fInumber\fR \fR"
+Constant feedback. The value must be in the range 0..1 inclusive.
+The default setting of "1" is compatible with Postfix versions
+before 2.5, where a destination's delivery concurrency is throttled
+down to zero (and further delivery suspended) after a single failed
+pseudo-cohort.
+.IP "\fB\fInumber\fR / concurrency \fR"
+Variable feedback of "\fInumber\fR / (delivery concurrency)".
+The \fInumber\fR must be in the range 0..1 inclusive. With
+\fInumber\fR equal to "1", a destination's delivery concurrency
+is decremented by 1 after each failed pseudo-cohort.
+.IP "\fB\fInumber\fR / sqrt_concurrency \fR"
+Variable feedback of "\fInumber\fR / sqrt(delivery concurrency)".
+The \fInumber\fR must be in the range 0..1 inclusive. This setting
+may be removed in a future version.
+.PP
+A pseudo-cohort is the number of deliveries equal to a destination's
+delivery concurrency.
+.PP
+Use \fItransport\fR_destination_concurrency_negative_feedback
+to specify a transport-specific override, where \fItransport\fR
+is the master.cf
+name of the message delivery transport.
+.PP
+This feature is available in Postfix 2.5. The default setting
+is compatible with earlier Postfix versions.
+.SH default_destination_concurrency_positive_feedback (default: 1)
+The per-destination amount of delivery concurrency positive
+feedback, after a delivery completes without connection or handshake
+failure. Feedback values are in the range 0..1 inclusive.  The
+concurrency increases until it reaches the per-destination maximal
+concurrency limit. With positive feedback, concurrency is incremented
+at the end of a sequence with length 1/feedback. This is unlike
+negative feedback, where concurrency is decremented at the start
+of a sequence of length 1/feedback.
+.PP
+Specify one of the following forms:
+.IP "\fB\fInumber\fR \fR"
+.IP "\fB\fInumber\fR / \fInumber\fR \fR"
+Constant feedback.  The value must be in the range 0..1
+inclusive. The default setting of "1" is compatible with Postfix
+versions before 2.5, where a destination's delivery concurrency
+doubles after each successful pseudo-cohort.
+.IP "\fB\fInumber\fR / concurrency \fR"
+Variable feedback of "\fInumber\fR / (delivery concurrency)".
+The \fInumber\fR must be in the range 0..1 inclusive. With
+\fInumber\fR equal to "1", a destination's delivery concurrency
+is incremented by 1 after each successful pseudo-cohort.
+.IP "\fB\fInumber\fR / sqrt_concurrency \fR"
+Variable feedback of "\fInumber\fR / sqrt(delivery concurrency)".
+The \fInumber\fR must be in the range 0..1 inclusive. This setting
+may be removed in a future version.
+.PP
+A pseudo-cohort is the number of deliveries equal to a destination's
+delivery concurrency.
+.PP
+Use \fItransport\fR_destination_concurrency_positive_feedback
+to specify a transport-specific override, where \fItransport\fR
+is the master.cf name of the message delivery transport.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH default_destination_recipient_limit (default: 50)
 The default maximal number of recipients per message delivery.
 This is the default limit for delivery via the \fBlmtp\fR(8), \fBpipe\fR(8),
@@ -1263,6 +1260,11 @@ file or \fBbounce\fR(8) logfile.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
+.SH destination_concurrency_feedback_debug (default: no)
+Make the queue manager's feedback algorithm verbose for performance
+analysis purposes.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH detect_8bit_encoding_header (default: yes)
 Automatically detect 8BITMIME body content by looking at
 Content-Transfer-Encoding: message headers; historically, this
@@ -7415,20 +7417,6 @@ of mail deliveries and produces a mail delivery report when verbose
 delivery is requested with "\fBsendmail -v\fR".
 .PP
 This feature is available in Postfix 2.1 and later.
-.SH transport_concurrency_negative_feedback (default: $default_concurrency_negative_feedback)
-A transport-specific override for the
-default_concurrency_negative_feedback parameter value, where
-\fItransport\fR is the master.cf name of the message delivery
-transport.
-.PP
-This feature is available in Postfix 2.5 and later.
-.SH transport_concurrency_positive_feedback (default: $default_concurrency_positive_feedback)
-A transport-specific override for the
-default_concurrency_positive_feedback parameter value, where
-\fItransport\fR is the master.cf name of the message delivery
-transport.
-.PP
-This feature is available in Postfix 2.5 and later.
 .SH transport_delivery_slot_cost (default: $default_delivery_slot_cost)
 A transport-specific override for the default_delivery_slot_cost
 parameter value, where \fItransport\fR is the master.cf name of
@@ -7446,7 +7434,21 @@ A transport-specific override for the
 default_destination_concurrency_limit parameter value, where
 \fItransport\fR is the master.cf name of the message delivery
 transport.
-.SH transport_destination_recipient_limit (default: $default_destination_concurrency_limit)
+.SH transport_destination_concurrency_negative_feedback (default: $default_destination_concurrency_negative_feedback)
+A transport-specific override for the
+default_destination_concurrency_negative_feedback parameter value,
+where \fItransport\fR is the master.cf name of the message delivery
+transport.
+.PP
+This feature is available in Postfix 2.5 and later.
+.SH transport_destination_concurrency_positive_feedback (default: $default_destination_concurrency_positive_feedback)
+A transport-specific override for the
+default_destination_concurrency_positive_feedback parameter value,
+where \fItransport\fR is the master.cf name of the message delivery
+transport.
+.PP
+This feature is available in Postfix 2.5 and later.
+.SH transport_destination_recipient_limit (default: $default_destination_recipient_limit)
 A transport-specific override for the
 default_destination_recipient_limit parameter value, where
 \fItransport\fR is the master.cf name of the message delivery

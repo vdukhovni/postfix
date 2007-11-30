@@ -57,8 +57,9 @@
 /*	non-empty `todo' list.
 /*
 /*	qmgr_queue_throttle() handles a delivery error, and decrements the
-/*	concurrency limit for the destination. When the concurrency limit
-/*	for a destination becomes zero, qmgr_queue_throttle() starts a timer
+/*	concurrency limit for the destination, with a lower bound of 1.
+/*	When the cohort failure bound is reached, qmgr_queue_throttle()
+/*	sets the concurrency limit to zero and starts a timer
 /*	to re-enable delivery to the destination after a configurable delay.
 /*
 /*	qmgr_queue_unthrottle() undoes qmgr_queue_throttle()'s effects.
@@ -95,12 +96,27 @@
 
 #include <mail_params.h>
 #include <recipient_list.h>
+#include <mail_proto.h>			/* QMGR_LOG_WINDOW */
 
 /* Application-specific. */
 
 #include "qmgr.h"
 
 int     qmgr_queue_count;
+
+#define QMGR_ERROR_OR_RETRY_QUEUE(queue) \
+	(strcmp(queue->transport->name, MAIL_SERVICE_RETRY) == 0 \
+	    || strcmp(queue->transport->name, MAIL_SERVICE_ERROR) == 0)
+
+#define QMGR_LOG_FEEDBACK(feedback) \
+	if (var_conc_feedback_debug && !QMGR_ERROR_OR_RETRY_QUEUE(queue)) \
+	    msg_info("%s: feedback %g", myname, feedback);
+
+#define QMGR_LOG_WINDOW(queue) \
+	if (var_conc_feedback_debug && !QMGR_ERROR_OR_RETRY_QUEUE(queue)) \
+	    msg_info("%s: queue %s: limit %d window %d success %g failure %g fail_cohorts %g", \
+		    myname, queue->name, queue->transport->dest_concurrency_limit, \
+		    queue->window, queue->success, queue->failure, queue->fail_cohorts);
 
 /* qmgr_queue_unthrottle_wrapper - in case (char *) != (struct *) */
 
@@ -124,9 +140,19 @@ void    qmgr_queue_unthrottle(QMGR_QUEUE *queue)
 {
     const char *myname = "qmgr_queue_unthrottle";
     QMGR_TRANSPORT *transport = queue->transport;
+    double  feedback;
 
     if (msg_verbose)
 	msg_info("%s: queue %s", myname, queue->name);
+
+    /*
+     * Don't restart the negative feedback hysteresis cycle with every
+     * positive feedback. Restart it only when we make a positive concurrency
+     * adjustment (i.e. at the end of a positive feedback hysteresis cycle).
+     * Otherwise negative feedback would be too aggressive: negative feedback
+     * takes effect immediately at the start of its hysteresis cycle.
+     */
+    queue->fail_cohorts = 0;
 
     /*
      * Special case when this site was dead.
@@ -137,7 +163,13 @@ void    qmgr_queue_unthrottle(QMGR_QUEUE *queue)
 	    msg_panic("%s: queue %s: window 0 status 0", myname, queue->name);
 	dsn_free(queue->dsn);
 	queue->dsn = 0;
-	queue->window = transport->init_dest_concurrency;
+	/* Back from the almost grave, best concurrency is anyone's guess. */
+	if (queue->busy_refcount > 0)
+	    queue->window = queue->busy_refcount;
+	else
+	    queue->window = transport->init_dest_concurrency;
+	queue->success = queue->failure = 0;
+	QMGR_LOG_WINDOW(queue);
 	return;
     }
 
@@ -145,11 +177,35 @@ void    qmgr_queue_unthrottle(QMGR_QUEUE *queue)
      * Increase the destination's concurrency limit until we reach the
      * transport's concurrency limit. Allow for a margin the size of the
      * initial destination concurrency, so that we're not too gentle.
+     * 
+     * Why is the concurrency increment based on preferred concurrency and not
+     * on the number of outstanding delivery requests? The latter fluctuates
+     * wildly when deliveries complete in bursts (artificial benchmark
+     * measurements), and does not account for cached connections.
+     * 
+     * Keep the window within reasonable distance from actual concurrency
+     * otherwise negative feedback will be ineffective. This expression
+     * assumes that busy_refcount changes gradually. This is invalid when
+     * deliveries complete in bursts (artificial benchmark measurements).
      */
     if (transport->dest_concurrency_limit == 0
 	|| transport->dest_concurrency_limit > queue->window)
-	if (queue->window <= queue->busy_refcount + transport->init_dest_concurrency)
-	    queue->window++;
+	if (queue->window < queue->busy_refcount + transport->init_dest_concurrency) {
+	    feedback = QMGR_FEEDBACK_VAL(transport->pos_feedback, queue->window);
+	    QMGR_LOG_FEEDBACK(feedback);
+	    queue->success += feedback;
+	    /* Prepare for overshoot (feedback > hysteresis, rounding error). */
+	    while (queue->success + feedback / 2 >= transport->pos_feedback.hysteresis) {
+		queue->window += transport->pos_feedback.hysteresis;
+		queue->success -= transport->pos_feedback.hysteresis;
+		queue->failure = 0;
+	    }
+	    /* Prepare for overshoot. */
+	    if (transport->dest_concurrency_limit > 0
+		&& queue->window > transport->dest_concurrency_limit)
+		queue->window = transport->dest_concurrency_limit;
+	}
+    QMGR_LOG_WINDOW(queue);
 }
 
 /* qmgr_queue_throttle - handle destination delivery failure */
@@ -157,6 +213,8 @@ void    qmgr_queue_unthrottle(QMGR_QUEUE *queue)
 void    qmgr_queue_throttle(QMGR_QUEUE *queue, DSN *dsn)
 {
     const char *myname = "qmgr_queue_throttle";
+    QMGR_TRANSPORT *transport = queue->transport;
+    double  feedback;
 
     /*
      * Sanity checks.
@@ -169,13 +227,47 @@ void    qmgr_queue_throttle(QMGR_QUEUE *queue, DSN *dsn)
 		 myname, queue->name, dsn->status, dsn->reason);
 
     /*
-     * Decrease the destination's concurrency limit until we reach zero, at
-     * which point the destination is declared dead. Decrease the concurrency
-     * limit by one, instead of using actual concurrency - 1, to avoid
-     * declaring a host dead after just one single delivery failure.
+     * Don't restart the positive feedback hysteresis cycle with every
+     * negative feedback. Restart it only when we make a negative concurrency
+     * adjustment (i.e. at the start of a negative feedback hysteresis
+     * cycle). Otherwise positive feedback would be too weak (positive
+     * feedback does not take effect until the end of its hysteresis cycle).
      */
-    if (queue->window > 0)
-	queue->window--;
+
+    /*
+     * This queue is declared dead after a configurable number of
+     * pseudo-cohort failures.
+     */
+    if (queue->window > 0) {
+	queue->fail_cohorts += 1.0 / queue->window;
+	if (transport->fail_cohort_limit > 0
+	    && queue->fail_cohorts >= transport->fail_cohort_limit)
+	    queue->window = 0;
+    }
+
+    /*
+     * Decrease the destination's concurrency limit until we reach 1. Base
+     * adjustments on the concurrency limit itself, instead of using the
+     * actual concurrency. The latter fluctuates wildly when deliveries
+     * complete in bursts (artificial benchmark measurements).
+     * 
+     * Even after reaching 1, we maintain the negative hysteresis cycle so that
+     * negative feedback can cancel out positive feedback.
+     */
+    if (queue->window > 0) {
+	feedback = QMGR_FEEDBACK_VAL(transport->neg_feedback, queue->window);
+	QMGR_LOG_FEEDBACK(feedback);
+	queue->failure -= feedback;
+	/* Prepare for overshoot (feedback > hysteresis, rounding error). */
+	while (queue->failure - feedback / 2 < 0) {
+	    queue->window -= transport->neg_feedback.hysteresis;
+	    queue->success = 0;
+	    queue->failure += transport->neg_feedback.hysteresis;
+	}
+	/* Prepare for overshoot. */
+	if (queue->window < 1)
+	    queue->window = 1;
+    }
 
     /*
      * Special case for a site that just was declared dead.
@@ -186,6 +278,7 @@ void    qmgr_queue_throttle(QMGR_QUEUE *queue, DSN *dsn)
 			    (char *) queue, var_min_backoff_time);
 	queue->dflags = 0;
     }
+    QMGR_LOG_WINDOW(queue);
 }
 
 /* qmgr_queue_select - select in-core queue for delivery */
@@ -264,6 +357,7 @@ QMGR_QUEUE *qmgr_queue_create(QMGR_TRANSPORT *transport, const char *name,
     queue->busy_refcount = 0;
     queue->transport = transport;
     queue->window = transport->init_dest_concurrency;
+    queue->success = queue->failure = queue->fail_cohorts = 0;
     QMGR_LIST_INIT(queue->todo);
     QMGR_LIST_INIT(queue->busy);
     queue->dsn = 0;

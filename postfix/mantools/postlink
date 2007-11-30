@@ -335,10 +335,10 @@ while (<>) {
     s;\bqmgr_message_recip[-</bB>]*\n* *[<bB>]*ient_minimum\b;<a href="postconf.5.html#qmgr_message_recipient_minimum">$&</a>;g;
     s;\bqmqpd_authorized_clients\b;<a href="postconf.5.html#qmqpd_authorized_clients">$&</a>;g;
 
-    s;\bdefault_concur[-</Bb>]*\n* *[<Bb>]*rency_negative_feedback\b;<a href="postconf.5.html#default_concurrency_negative_feedback">$&</a>;g;
-    s;\bdefault_concur[-</Bb>]*\n* *[<Bb>]*rency_positive_feedback\b;<a href="postconf.5.html#default_concurrency_positive_feedback">$&</a>;g;
-    s;\bdefault_con[-</Bb>]*\n* *[<Bb>]*currency_failed_cohort_limit\b;<a href="postconf.5.html#default_concurrency_failed_cohort_limit">$&</a>;g;
-    s;\bconcurrency_feedback_debug\b;<a href="postconf.5.html#concurrency_feedback_debug">$&</a>;g;
+    s;\bdefault_destination_concur[-</Bb>]*\n* *[<Bb>]*rency_negative_feedback\b;<a href="postconf.5.html#default_destination_concurrency_negative_feedback">$&</a>;g;
+    s;\bdefault_destination_concur[-</Bb>]*\n* *[<Bb>]*rency_positive_feedback\b;<a href="postconf.5.html#default_destination_concurrency_positive_feedback">$&</a>;g;
+    s;\bdefault_destination_con[-</Bb>]*\n* *[<Bb>]*currency_failed_cohort_limit\b;<a href="postconf.5.html#default_destination_concurrency_failed_cohort_limit">$&</a>;g;
+    s;\bdestination_concurrency_feedback_debug\b;<a href="postconf.5.html#destination_concurrency_feedback_debug">$&</a>;g;
 
     s;\bqmqpd_error_delay\b;<a href="postconf.5.html#qmqpd_error_delay">$&</a>;g;
     s;\bqmqpd_timeout\b;<a href="postconf.5.html#qmqpd_timeout">$&</a>;g;
@@ -620,9 +620,9 @@ while (<>) {
 
     # Transport-dependent magical parameters.
 
-    s;(<i>transport</i>)(<b>)?(_concurrency_failed_cohort_limit)\b;$2<a href="postconf.5.html#transport_concurrency_failed_cohort_limit">$1$3</a>;g;
-    s;(<i>transport</i>)(<b>)?(_concurrency_negative_feedback)\b;$2<a href="postconf.5.html#transport_concurrency_positive_feedback">$1$3</a>;g;
-    s;(<i>transport</i>)(<b>)?(_concurrency_positive_feedback)\b;$2<a href="postconf.5.html#transport_concurrency_positive_feedback">$1$3</a>;g;
+    s;(<i>transport</i>)(<b>)?(_destination_concurrency_failed_cohort_limit)\b;$2<a href="postconf.5.html#transport_destination_concurrency_failed_cohort_limit">$1$3</a>;g;
+    s;(<i>transport</i>)(<b>)?(_destination_concurrency_negative_feedback)\b;$2<a href="postconf.5.html#transport_destination_concurrency_positive_feedback">$1$3</a>;g;
+    s;(<i>transport</i>)(<b>)?(_destination_concurrency_positive_feedback)\b;$2<a href="postconf.5.html#transport_destination_concurrency_positive_feedback">$1$3</a>;g;
     s;(<i>transport</i>)(<b>)?(_delivery_slot_cost)\b;$2<a href="postconf.5.html#transport_delivery_slot_cost">$1$3</a>;g;
     s;(<i>transport</i>)(<b>)?(_delivery_slot_discount)\b;$2<a href="postconf.5.html#transport_delivery_slot_discount">$1$3</a>;g;
     s;(<i>transport</i>)(<b>)?(_delivery_slot_loan)\b;$2<a href="postconf.5.html#transport_delivery_slot_loan">$1$3</a>;g;

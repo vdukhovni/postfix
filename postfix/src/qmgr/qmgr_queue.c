@@ -76,6 +76,10 @@
 /*	Patrik Rak
 /*	Modra 6
 /*	155 00, Prague, Czech Republic
+/*
+/*	Concurrency scheduler enhancements with:
+/*	Victor Duchovni
+/*	Morgan Stanley
 /*--*/
 
 /* System library. */

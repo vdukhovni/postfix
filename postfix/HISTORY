@@ -5215,7 +5215,7 @@ Apologies for any names omitted.
 
 20010525
 
-	Portability: gcc 2.6.3 does not have _attribute__ (Clive
+	Portability: gcc 2.6.3 does not have __attribute__ (Clive
 	Jones, dgw.co.uk). File: util/sys_defs.h.
 
 	Bugfix: the SMTP and LMTP clients claimed that a queue file
@@ -12203,7 +12203,7 @@ Apologies for any names omitted.
 
 20060516
 
-	Portability: _float80 alignment, by Albert Chin.  File:
+	Portability: __float80 alignment, by Albert Chin.  File:
 	util/sys_defs.h.
 
 	Further testing of Milter support uncovered typos; a missing
@@ -13841,8 +13841,8 @@ Apologies for any names omitted.
 	of negative feedback with concurrency window 1 could
 	be improved.
 
-	Feature: support to look up null sender addresses
-	in sender-dependent relayhost maps. Parameter name:
+	Feature: support to look up null sender addresses in
+	sender-dependent relayhost maps. Parameter name:
 	empty_address_relayhost_maps_lookup_key (default; <>).
 	Keean Schupke. File: trivial-rewrite/resolve.c.
 
@@ -13852,15 +13852,16 @@ Apologies for any names omitted.
 	feedback parameter settings with constants and variables
 	such as 1/8 or 1/concurrency.  Some experimental parameters
 	were removed and others were renamed. The new names are:
-	default_concurrency_negative_feedback,
-	default_concurrency_positive_feedback, concurrency_feedback_debug,
-	default_concurrency_failed_cohort_limit.
+	default_destination_concurrency_negative_feedback,
+	default_destination_concurrency_positive_feedback,
+	default_destination_concurrency_failed_cohort_limit,
+	destination_concurrency_feedback_debug.
 
 	Also available are transport-specific overrides:
 	<transport>_initial_destination_concurrency,
-	<transport>_concurrency_negative_feedback,
-	<transport>_concurrency_positive_feedback,
-	<transport>_concurrency_failed_cohort_limit.
+	<transport>_destination_concurrency_negative_feedback,
+	<transport>_destination_concurrency_positive_feedback,
+	<transport>_destination_concurrency_failed_cohort_limit.
 
 	Files: global/mail_params.h, qmgr/qmgr.c, qmgr/qmgr_transport.c,
-	qmgr/qmge_queue.c, qmgr/qmgr_feedback.c.
+	qmgr/qmge_queue.c, qmgr/qmgr_feedback.c, postconf/auto.awk.

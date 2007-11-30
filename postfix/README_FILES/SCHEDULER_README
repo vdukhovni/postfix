@@ -6,23 +6,34 @@ OOvveerrvviieeww
 
 The queue manager is by far the most complex part of the Postfix mail system.
 It schedules delivery of new mail, retries failed deliveries at specific times,
-and removes mail from the queue after the last delivery attempt. Once started,
-the qmgr(8) process runs until "postfix reload" or "postfix stop".
+and removes mail from the queue after the last delivery attempt. There are two
+major classes of mechanisms that control the operation of the queue manager.
 
-As a persistent process, the queue manager has to meet strict requirements with
-respect to code correctness and robustness. Unlike non-persistent daemon
-processes, the queue manager cannot benefit from Postfix's process rejuvenation
-mechanism that limit the impact from resource leaks and other coding errors.
+The first class of mechanisms is concerned with the number of concurrent
+deliveries to a specific destination, including decisions on when to suspend
+deliveries after persistent failures:
 
-There are two major classes of mechanisms that control the operation of the
-queue manager:
+  * Concurrency scheduling
 
-  * Mechanisms concerned with the number of concurrent deliveries to a specific
-    destination, including decisions on when to suspend deliveries after
-    persistent failures. These are described under "Concurrency scheduling".
+      o Summary of the Postfix 2.5 concurrency feedback algorithm
+      o Summary of the Postfix 2.5 "dead destination" detection algorithm
+      o Pseudocode for the Postfix 2.5 concurrency scheduler
+      o Results for delivery to concurrency limited servers
+      o Discussion of concurrency limited server results
+      o Limitations of less-than-1 per delivery feedback
+      o Concurrency configuration parameters
 
-  * Mechanisms concerned with the selection of what mail to deliver to a given
-    destination. These are described under "Preemptive scheduling".
+The second class of mechanisms is concerned with the selection of what mail to
+deliver to a given destination:
+
+  * Preemptive scheduling
+
+      o Why the non-preemptive Postfix queue manager was replaced
+      o How the non-preemptive queue manager scheduler works
+
+And this document would not be complete without:
+
+  * Credits
 
 CCoonnccuurrrreennccyy sscchheedduulliinngg
 
@@ -34,7 +45,7 @@ concurrency was never allowed to exceed the maximum per-destination concurrency
 limit. And when a destination's concurrency level dropped to zero, the
 destination was declared "dead" and delivery was suspended.
 
-Drawbacks of the old +/-1 feedback concurrency scheduler are:
+Drawbacks of the old +/-1 feedback per delivery are:
 
   * Overshoot due to exponential delivery concurrency growth with each pseudo-
     cohort(*). For example, with the default initial concurrency of 5,
@@ -51,57 +62,63 @@ delivery concurrency.
 The revised concurrency scheduler has a highly modular structure. It uses
 separate mechanisms for per-destination concurrency control and for "dead
 destination" detection. The concurrency control in turn is built from two
-separate mechanisms: it supports less-than-1 feedback to allow for more gradual
-concurrency adjustments, and it uses feedback hysteresis to suppress
-concurrency oscillations. And instead of waiting for delivery concurrency to
-throttle down to zero, a destination is declared "dead" after a configurable
-number of pseudo-cohorts reports connection or handshake failure.
+separate mechanisms: it supports less-than-1 feedback per delivery to allow for
+more gradual concurrency adjustments, and it uses feedback hysteresis to
+suppress concurrency oscillations. And instead of waiting for delivery
+concurrency to throttle down to zero, a destination is declared "dead" after a
+configurable number of pseudo-cohorts reports connection or handshake failure.
 
 SSuummmmaarryy ooff tthhee PPoossttffiixx 22..55 ccoonnccuurrrreennccyy ffeeeeddbbaacckk aallggoorriitthhmm
 
-We want to increment a destination's delivery concurrency after some (not
-necessarily consecutive) number of deliveries without connection or handshake
-failure. This is implemented with positive feedback g(N) where N is the
-destination's delivery concurrency. With g(N)=1 we get the old scheduler's
-exponential growth in time, while g(N)=1/N gives linear growth in time. Less-
-than-1 feedback and integer truncation naturally give us hysteresis, so that
-transitions to larger concurrency happen every 1/g(N) positive feedback events.
+We want to increment a destination's delivery concurrency when some (not
+necessarily consecutive) number of deliveries complete without connection or
+handshake failure. This is implemented with positive feedback g(N) where N is
+the destination's delivery concurrency. With g(N)=1 feedback per delivery,
+concurrency increases by 1 after each positive feedback event; this gives us
+the old scheduler's exponential growth in time. With g(N)=1/N feedback per
+delivery, concurrency increases by 1 after an entire pseudo-cohort N of
+positive feedback reports; this gives us linear growth in time. Less-than-
+1 feedback per delivery and integer truncation naturally give us hysteresis, so
+that transitions to larger concurrency happen every 1/g(N) positive feedback
+events.
 
-We want to decrement a destination's delivery concurrency after some (not
-necessarily consecutive) number of deliveries suffer connection or handshake
-failure. This is implemented with negative feedback f(N) where N is the
-destination's delivery concurrency. With f(N)=1 we get the old scheduler's
-behavior where concurrency is throttled down dramatically after a single
-pseudo-cohort failure, while f(N)=1/N backs off more gently. Again, less-than-
-1 feedback and integer truncation naturally give us hysteresis, so that
-transitions to lower concurrency happen every 1/f(N) negative feedback events.
+We want to decrement a destination's delivery concurrency when some (not
+necessarily consecutive) number of deliveries complete after connection or
+handshake failure. This is implemented with negative feedback f(N) where N is
+the destination's delivery concurrency. With f(N)=1 feedback per delivery,
+concurrency decreases by 1 after each negative feedback event; this gives us
+the old scheduler's behavior where concurrency is throttled down dramatically
+after a single pseudo-cohort failure. With f(N)=1/N feedback per delivery,
+concurrency backs off more gently. Again, less-than-1 feedback per delivery and
+integer truncation naturally give us hysteresis, so that transitions to lower
+concurrency happen every 1/f(N) negative feedback events.
 
 However, with negative feedback we introduce a subtle twist. We "reverse" the
-hysteresis cycle so that the transition to lower concurrency happens at the
-bbeeggiinnnniinngg of a sequence of 1/f(N) negative feedback events. Otherwise, a
-correction for overload would be made too late. In the case of a concurrency-
-limited server, this makes the choice of f(N) relatively unimportant, as borne
-out by measurements.
+negative hysteresis cycle so that the transition to lower concurrency happens
+at the bbeeggiinnnniinngg of a sequence of 1/f(N) negative feedback events. Otherwise, a
+correction for overload would be made too late. This makes the choice of f(N)
+relatively unimportant, as borne out by measurements later in this document.
 
 In summary, the main ingredients for the Postfix 2.5 concurrency feedback
-algorithm are a) the option of less-than-1 positive feedback to avoid
-overwhelming servers, b) the option of less-than-1 negative feedback to avoid
-or giving up too fast, c) feedback hysteresis to avoid rapid oscillation, and
-c) a "reverse" hysteresis cycle for negative feedback, so that it can correct
-for overload quickly.
+algorithm are a) the option of less-than-1 positive feedback per delivery to
+avoid overwhelming servers, b) the option of less-than-1 negative feedback per
+delivery to avoid giving up too fast, c) feedback hysteresis to avoid rapid
+oscillation, and c) a "reverse" hysteresis cycle for negative feedback, so that
+it can correct for overload quickly.
 
 SSuummmmaarryy ooff tthhee PPoossttffiixx 22..55 ""ddeeaadd ddeessttiinnaattiioonn"" ddeetteeccttiioonn aallggoorriitthhmm
 
 We want to suspend deliveries to a specific destination after some number of
 deliveries suffers connection or handshake failure. The old scheduler declares
 a destination "dead" when negative (-1) feedback throttles the delivery
-concurrency down to zero. With less-than-1 feedback, this throttling down would
-obviously take too long. We therefore have to separate "dead destination"
-detection from concurrency feedback. This is implemented by introducing the
-concept of pseudo-cohort failure. The Postfix 2.5 concurrency scheduler
-declares a destination "dead" after a configurable number of pseudo-cohort
-failures. The old scheduler corresponds to the special case where the pseudo-
-cohort failure limit is equal to 1.
+concurrency down to zero. With less-than-1 feedback per delivery, this
+throttling down would obviously take too long. We therefore have to separate
+"dead destination" detection from concurrency feedback. This is implemented by
+introducing the concept of pseudo-cohort failure. The Postfix 2.5 concurrency
+scheduler declares a destination "dead" after a configurable number of pseudo-
+cohorts suffers from connection or handshake failures. The old scheduler
+corresponds to the special case where the pseudo-cohort failure limit is equal
+to 1.
 
 PPsseeuuddooccooddee ffoorr tthhee PPoossttffiixx 22..55 ccoonnccuurrrreennccyy sscchheedduulleerr
 
@@ -110,19 +127,19 @@ implemented as of November 2007. The actual code can be found in the module
 qmgr/qmgr_queue.c.
 
 Types:
-	Each destination has one set of the following variables
-        int window
+        Each destination has one set of the following variables
+        int concurrency
         double success
         double failure
         double fail_cohorts
 
 Feedback functions:
-	N is concurrency; x, y are arbitrary numbers in [0..1] inclusive
+        N is concurrency; x, y are arbitrary numbers in [0..1] inclusive
         positive feedback: g(N) = x/N | x/sqrt(N) | x
         negative feedback: f(N) = y/N | y/sqrt(N) | y
 
 Initialization:
-        window = initial_concurrency
+        concurrency = initial_concurrency
         success = 0
         failure = 0
         fail_cohorts = 0
@@ -130,37 +147,37 @@ Initialization:
 After success:
         fail_cohorts = 0
         Be prepared for feedback > hysteresis, or rounding error
-        success += g(window)
-        while (success >= 1)    Hysteresis 1
-            window += 1         Hysteresis 1
+        success += g(concurrency)
+        while (success >= 1)            Hysteresis 1
+            concurrency += 1            Hysteresis 1
             failure = 0
-            success -= 1        Hysteresis 1
+            success -= 1                Hysteresis 1
         Be prepared for overshoot
-        if (window > concurrency limit)
-            window = concurrency limit
+        if (concurrency > concurrency limit)
+            concurrency = concurrency limit
 
 Safety:
         Don't apply positive feedback unless
-            window < busy_refcount + init_dest_concurrency
+            concurrency < busy_refcount + init_dest_concurrency
         otherwise negative feedback effect could be delayed
 
 After failure:
-        if (window > 0)
-            fail_cohorts += 1.0 / window
+        if (concurrency > 0)
+            fail_cohorts += 1.0 / concurrency
             if (fail_cohorts > cohort_failure_limit)
-                window = 0
-        if (window > 0)
+                concurrency = 0
+        if (concurrency > 0)
             Be prepared for feedback > hysteresis, rounding errors
-            failure -= f(window)
+            failure -= f(concurrency)
             while (failure < 0)
-                window -= 1     Hysteresis 1
-                failure += 1    Hysteresis 1
+                concurrency -= 1        Hysteresis 1
+                failure += 1            Hysteresis 1
                 success = 0
             Be prepared for overshoot
-            if (window < 1)
-                window = 1
+            if (concurrency < 1)
+                concurrency = 1
 
-RReessuullttss ffoorr tthhee PPoossttffiixx 22..55 ccoonnccuurrrreennccyy ffeeeeddbbaacckk sscchheedduulleerr
+RReessuullttss ffoorr ddeelliivveerryy ttoo ccoonnccuurrrreennccyy lliimmiitteedd sseerrvveerrss
 
 Discussions about the concurrency scheduler redesign started early 2004, when
 the primary goal was to find alternatives that did not exhibit exponential
@@ -168,18 +185,18 @@ growth or rapid concurrency throttling. No code was implemented until late
 2007, when the primary concern had shifted towards better handling of server
 concurrency limits. For this reason we measure how well the new scheduler does
 this job. The table below compares mail delivery performance of the old +/-
-1 feedback with other feedback functions, for different server concurrency
-enforcement methods. Measurements were done with a FreeBSD 6.2 client and with
-FreeBSD 6.2 and various Linux servers.
+1 feedback per delivery with several less-than-1 feedback functions, for
+different limited-concurrency server scenarios. Measurements were done with a
+FreeBSD 6.2 client and with FreeBSD 6.2 and various Linux servers.
 
 Server configuration:
 
   * The mail flow was slowed down with 1 second latency per recipient
     ("smtpd_client_restrictions = sleep 1"). The purpose was to make results
-    less dependent on hardware details, by reducing the slow-downs by disk I/O,
-    logging I/O, and network I/O.
+    less dependent on hardware details, by avoiding slow-downs by queue file I/
+    O, logging I/O, and network I/O.
   * Concurrency was limited by the server process limit ("default_process_limit
-    = 5", "smtpd_client_event_limit_exceptions = static:all"). Postfix was
+    = 5" and "smtpd_client_event_limit_exceptions = static:all"). Postfix was
     stopped and started after changing the process limit, because the same
     number is also used as the backlog argument to the listen(2) system call,
     and "postfix reload" does not re-issue this call.
@@ -198,7 +215,7 @@ Client configuration:
     "smtp_destination_recipient_limit = 2". A smaller limit would cause Postfix
     to schedule the concurrency per recipient instead of domain, which is not
     what we want.
-  * Maximal concurrency was limited with "smtp_destination_concurrency_limit =
+  * Maximum concurrency was limited with "smtp_destination_concurrency_limit =
     20", and initial_destination_concurrency was set to the same value.
   * The positive and negative concurrency feedback hysteresis was 1.
     Concurrency was incremented by 1 at the END of 1/feedback steps of positive
@@ -207,9 +224,11 @@ Client configuration:
   * The SMTP client used the default 30s SMTP connect timeout and 300s SMTP
     greeting timeout.
 
+IImmppaacctt ooff tthhee 3300ss SSMMTTPP ccoonnnneecctt ttiimmeeoouutt
+
 The first results are for a FreeBSD 6.2 server, where our artificially low
 listen(2) backlog results in a very short kernel queue for established
-connections. As the table shows, all deferred deliveries failed due to a 30s
+connections. The table shows that all deferred deliveries failed due to a 30s
 connection timeout, and none failed due to a server greeting timeout. This
 measurement simulates what happens when the server's connection queue is
 completely full under load, and the TCP engine drops new connections.
@@ -235,15 +254,19 @@ completely full under load, and the TCP engine drops new connections.
 
     A busy server with a completely full connection queue. N is the client
     delivery concurrency. Failed deliveries time out after 30s without
-    completing the TCP handshake. See below for a discussion of results.
+    completing the TCP handshake. See text for a discussion of results.
+
+IImmppaacctt ooff tthhee 330000ss SSMMTTPP ggrreeeettiinngg ttiimmeeoouutt
 
 The next table shows results for a Fedora Core 8 server (results for RedHat 7.3
-are identical). In this case, the listen(2) backlog argument has little if any
-effect on the kernel's established connection queue. As the table shows,
-practically all deferred deliveries fail after the 300s SMTP greeting timeout.
-As these timeouts were 10x longer than with the previous measurement, we
-increased the recipient count (and thus the running time) by a factor of 10 to
-keep the results comparable.
+are identical). In this case, the artificially small listen(2) backlog argument
+does not impact our measurement. The table shows that practically all deferred
+deliveries fail after the 300s SMTP greeting timeout. As these timeouts were
+10x longer than with the first measurement, we increased the recipient count
+(and thus the running time) by a factor of 10 to keep the results comparable.
+The deferred mail percentages are a factor 10 lower than with the first
+measurement, because the 1s per-recipient delay was 1/300th of the greeting
+timeout instead of 1/30th of the connection timeout.
 
     cclliieenntt sseerrvveerr ffeeeeddbbaacckk  ccoonnnneeccttiioonn ppeerrcceennttaaggee cclliieenntt         ttiimmeedd--oouutt iinn
     lliimmiitt  lliimmiitt  ssttyyllee     ccaacchhiinngg    ddeeffeerrrreedd   ccoonnccuurrrreennccyy    ccoonnnneecctt//
@@ -266,17 +289,21 @@ keep the results comparable.
 
     A busy server with a non-full connection queue. N is the client delivery
     concurrency. Failed deliveries complete at the TCP level, but time out
-    after 300s while waiting for the SMTP greeting. See below for a discussion
+    after 300s while waiting for the SMTP greeting. See text for a discussion
     of results.
+
+IImmppaacctt ooff aaccttiivvee sseerrvveerr ccoonnccuurrrreennccyy lliimmiitteerr
 
 The final concurrency limited result shows what happens when SMTP connections
 don't time out, but are rejected immediately with the Postfix server's
-smtpd_client_connection_count_limit feature. Similar results can be expected
-with concurrency limiting features built into other MTAs or firewalls. For this
+smtpd_client_connection_count_limit feature (the server replies with a 421
+status and disconnects immediately). Similar results can be expected with
+concurrency limiting features built into other MTAs or firewalls. For this
 measurement we specified a server concurrency limit and a client initial
-destination concurrency of 5, and a server process limit of 10. The server was
-FreeBSD 6.2 but that does not matter here, because the "push back" is done
-entirely by the server's Postfix itself.
+destination concurrency of 5, and a server process limit of 10; all other
+conditions were the same as with the first measurement. The same result would
+be obtained with a FreeBSD or Linux server, because the "pushing back" is done
+entirely by the receiving Postfix.
 
     cclliieenntt sseerrvveerr ffeeeeddbbaacckk  ccoonnnneeccttiioonn ppeerrcceennttaaggee cclliieenntt         tthheeoorreettiiccaall
     lliimmiitt  lliimmiitt  ssttyyllee     ccaacchhiinngg    ddeeffeerrrreedd   ccoonnccuurrrreennccyy    ddeeffeerr rraattee
@@ -298,57 +325,127 @@ entirely by the server's Postfix itself.
     -------------------------------------------------------------------------
 
     A server with active per-client concurrency limiter that replies with 421
-    and disconnects. N is the client delivery concurrency. The theoretical mail
-    deferral rate is 1/(1+roundup(1/feedback)). This is always 1/2 with the
-    fixed +/-1 feedback; with the variable feedback variants, the defer rate
-    decreases with increasing concurrency. See below for a discussion of
-    results.
+    and disconnects. N is the client delivery concurrency. The theoretical
+    defer rate is 1/(1+roundup(1/feedback)). This is always 1/2 with the fixed
+    +/-1 feedback per delivery; with the concurrency-dependent feedback
+    variants, the defer rate decreases with increasing concurrency. See text
+    for a discussion of results.
 
-The results are based on the first delivery runs only; they do not include any
-second etc. delivery attempts.
+DDiissccuussssiioonn ooff ccoonnccuurrrreennccyy lliimmiitteedd sseerrvveerr rreessuullttss
 
-The first two examples show that the feedback method matters little when
-concurrency is limited due to congestion. This is because the initial
-concurrency was already at the client's concurrency maximum, and because there
-was 10-100 times more positive than negative feedback. The contribution from
-SMTP connection caching was also minor for these two examples.
+All results in the previous sections are based on the first delivery runs only;
+they do not include any second etc. delivery attempts. The first two examples
+show that the feedback method matters little when concurrency is limited due to
+congestion. This is because the initial concurrency is already at the client's
+concurrency maximum, and because there is 10-100 times more positive than
+negative feedback. Under these conditions, the contribution from SMTP
+connection caching is negligible.
 
-In the last example, the old +/-1 feedback scheduler defers 50% of the mail
-when confronted with an active (anvil-style) server concurrency limit, where
-the server hangs up immediately with a 421 status (a TCP-level RST would have
-the same result). Less aggressive feedback mechanisms fare better here, and the
-concurrency-dependent feedback fares even better at higher concurrencies than
-shown here, but they have limitations as discussed in the next section.
+In the last example, the old +/-1 feedback per delivery will defer 50% of the
+mail when confronted with an active (anvil-style) server concurrency limit,
+where the server hangs up immediately with a 421 status (a TCP-level RST would
+have the same result). Less aggressive feedback mechanisms fare better than
+more aggressive ones. Concurrency-dependent feedback fares even better at
+higher concurrencies than shown here, but has limitations as discussed in the
+next section.
 
-LLiimmiittaattiioonnss ooff lleessss--tthhaann--11 ffeeeeddbbaacckk
+LLiimmiittaattiioonnss ooff lleessss--tthhaann--11 ppeerr ddeelliivveerryy ffeeeeddbbaacckk
 
-The delivery concurrency scheduler with less-than-1 feedback solves a problem
-with servers that have active concurrency limiters, but this works well only
-because feedback is handled in a peculiar manner: positive feedback increments
-the concurrency by 1 at the end of a sequence of events of length 1/feedback,
-while negative feedback decrements concurrency by 1 at the beginning of such a
-sequence. This is how Postfix adjusts quickly for overshoot without causing
-lots of mail to be deferred. Without this difference in feedback treatment,
-less-than-1 feedback would defer 50% of the mail, and would be no better in
-this respect than the simple +/-1 feedback scheduler.
+The delivery concurrency scheduler with less-than-1 concurrency feedback per
+delivery solves a problem with servers that have active concurrency limiters.
+This works only because feedback is handled in a peculiar manner: positive
+feedback will increment the concurrency by 1 at the eenndd of a sequence of events
+of length 1/feedback, while negative feedback will decrement concurrency by 1
+at the bbeeggiinnnniinngg of such a sequence. This is how Postfix adjusts quickly for
+overshoot without causing lots of mail to be deferred. Without this difference
+in feedback treatment, less-than-1 feedback per delivery would defer 50% of the
+mail, and would be no better in this respect than the old +/-1 feedback per
+delivery.
 
 Unfortunately, the same feature that corrects quickly for concurrency overshoot
 also makes the scheduler more sensitive for noisy negative feedback. The reason
 is that one lonely negative feedback event has the same effect as a complete
 sequence of length 1/feedback: in both cases delivery concurrency is dropped by
-1 immediately. For example, when multiple servers are placed behind a load
-balancer on a single IP address, and 1 out of K servers fails to complete the
-SMTP handshake, a scheduler with 1/N (N = concurrency) feedback will stop
-increasing its concurrency once it reaches roughly K. Even though the good
-servers behind the load balancer are perfectly capable of handling more mail,
-the 1/N feedback scheduler will linger around concurrency K.
+1 immediately. As a worst-case scenario, consider multiple servers behind a
+load balancer on a single IP address, and no backup MX address. When 1 out of K
+servers fails to complete the SMTP handshake or drops the connection, a
+scheduler with 1/N (N = concurrency) feedback stops increasing its concurrency
+once it reaches a concurrency level of about K, even though the good servers
+behind the load balancer are perfectly capable of handling more traffic.
 
-This problem with 1/N feedback gets worse as 1/N gets smaller. A workaround is
-to use fixed less-than-1 values for positive and negative feedback that limit
-the noise sensitivity, for example: positive feedback of 1/4 and negative
-feedback 1/10. Of course using fixed feedback means concurrency growth is
-moderated only for a limited range of concurrencies. Sites that deliver at per-
-destination concurrencies of 50 or more will require special configuration.
+This noise problem gets worse as the amount of positive feedback per delivery
+gets smaller. A compromise is to avoid concurrency-dependent positive feedback,
+and to use fixed less-than-1 feedback values instead. For example, to tolerate
+1 of 4 bad servers in the above load balancer scenario, use positive feedback
+of 1/4 per "good" delivery (no connect or handshake error), and use an equal or
+smaller amount of negative feedback per "bad" delivery. The downside of using
+concurrency-independent feedback is that some of the old +/-1 feedback problems
+will return at large concurrencies. Sites that deliver at non-trivial per-
+destination concurrencies will require special configuration.
+
+CCoonnccuurrrreennccyy ccoonnffiigguurraattiioonn ppaarraammeetteerrss
+
+The Postfix 2.5 concurrency scheduler is controlled with the following
+configuration parameters, where "transport_foo" provides a transport-specific
+parameter override. All parameter default settings are compatible with earlier
+Postfix versions.
+
+    PPaarraammeetteerr nnaammee                                        PPoossttffiixx DDeessccrriippttiioonn
+                                                          vveerrssiioonn
+
+    ---------------------------------------------------------------------------
+                                                                  Initial per-
+    initial_destination_concurrency                          all  destination
+    transport_initial_destination_concurrency                2.5  delivery
+                                                                  concurrency
+
+                                                                  Maximum per-
+    default_destination_concurrency_limit                    all  destination
+    transport_destination_concurrency_limit                  all  delivery
+                                                                  concurrency
+
+                                                                  Per-
+                                                                  destination
+                                                                  positive
+                                                                  feedback
+    default_destination_concurrency_positive_feedback        2.5  amount, per
+    transport_destination_concurrency_positive_feedback      2.5  delivery that
+                                                                  does not fail
+                                                                  with
+                                                                  connection or
+                                                                  handshake
+                                                                  failure
+
+                                                                  Per-
+                                                                  destination
+                                                                  negative
+                                                                  feedback
+    default_destination_concurrency_negative_feedback        2.5  amount, per
+    transport_destination_concurrency_negative_feedback      2.5  delivery that
+                                                                  fails with
+                                                                  connection or
+                                                                  handshake
+                                                                  failure
+
+                                                                  Number of
+                                                                  failed
+                                                                  pseudo-
+                                                                  cohorts after
+    default_destination_concurrency_failed_cohort_limit      2.5  which a
+    transport_destination_concurrency_failed_cohort_limit    2.5  destination
+                                                                  is declared
+                                                                  "dead" and
+                                                                  delivery is
+                                                                  suspended
+
+                                                                  Enable
+                                                                  verbose
+    destination_concurrency_feedback_debug                   2.5  logging of
+                                                                  concurrency
+                                                                  scheduler
+                                                                  activity
+
+    ---------------------------------------------------------------------------
 
 PPrreeeemmppttiivvee sscchheedduulliinngg
 
@@ -439,4 +536,26 @@ user's view are:
 The points 2 and 3 are those which made the implementation (look) complicated
 and were the real coding work, but I believe that to understand the scheduling
 algorithm itself (which was the real thinking work) is fairly easy.
+
+CCrreeddiittss
+
+  * Wietse Venema designed and implemented the initial queue manager with per-
+    domain FIFO scheduling, and per-delivery +/-1 concurrency feedback.
+  * Patrik Rak designed and implemented preemption where mail with fewer
+    recipients can slip past mail with more recipients.
+  * Wietse Venema initiated a discussion with Patrik Rak and Victor Duchovni on
+    alternatives for the +/-1 feedback scheduler's aggressive behavior. This is
+    when K/N feedback was reviewed (N = concurrency). The discussion ended
+    without a good solution for both negative feedback and dead site detection.
+  * Victor Duchovni resumed work on concurrency feedback in the context of
+    concurrency-limited servers.
+  * Wietse Venema then re-designed the concurrency scheduler in terms of
+    simplest possible concepts: less-than-1 concurrency feedback per delivery,
+    forward and reverse concurrency feedback hysteresis, and pseudo-cohort
+    failure. At this same time, concurrency feedback was separated from dead
+    site detection.
+  * These simplifications, and their modular implementation, helped to develop
+    further insights into the different roles that positive and negative
+    concurrency feedback play, and helped to avoid all the known worst-case
+    scenarios.
 
