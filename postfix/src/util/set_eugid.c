@@ -9,10 +9,19 @@
 /*	void	set_eugid(euid, egid)
 /*	uid_t	euid;
 /*	gid_t	egid;
+/*
+/*	void	SAVE_AND_SET_EUGID(uid, gid)
+/*	uid_t	uid;
+/*	gid_t gid;
+/*
+/*	void	RESTORE_SAVED_EUGID()
 /* DESCRIPTION
 /*	set_eugid() sets the effective user and group process attributes
 /*	and updates the process group access list to be just the specified
 /*	effective group id.
+/*
+/*	SAVE_AND_SET_EUGID() opens a block that executes with the
+/*	specified privilege. RESTORE_SAVED_EUGID() closes the block. 
 /* DIAGNOSTICS
 /*	All system call errors are fatal.
 /* SEE ALSO

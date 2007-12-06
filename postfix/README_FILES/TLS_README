@@ -416,6 +416,12 @@ Example:
     /etc/postfix/main.cf:
         smtpd_tls_session_cache_database = btree:/etc/postfix/smtpd_scache
 
+Note: as of version 2.5, Postfix no longer uses root privileges when opening
+this file. The file should now be stored under the Postfix-owned
+data_directory. As a migration aid, an attempt to open the file under a non-
+Postfix directory is redirected to the Postfix-owned data_directory, and a
+warning is logged.
+
 Cached Postfix SMTP server session information expires after a certain amount
 of time. Postfix/TLS does not use the OpenSSL default of 300s, but a longer
 time of 3600sec (=1 hour). RFC 2246 recommends a maximum of 24 hours.
@@ -743,6 +749,12 @@ Example:
 
     /etc/postfix/main.cf:
         smtp_tls_session_cache_database = btree:/etc/postfix/smtp_scache
+
+Note: as of version 2.5, Postfix no longer uses root privileges when opening
+this file. The file should now be stored under the Postfix-owned
+data_directory. As a migration aid, an attempt to open the file under a non-
+Postfix directory is redirected to the Postfix-owned data_directory, and a
+warning is logged.
 
 Cached Postfix SMTP client session information expires after a certain amount
 of time. Postfix/TLS does not use the OpenSSL default of 300s, but a longer
@@ -1598,16 +1610,24 @@ Example:
 The tlsmgr(8) process saves the PRNG state to a persistent exchange file at
 regular times and when the process terminates, so that it can recover the PRNG
 state the next time it starts up. This file is created when it does not exist.
-Its default location is under the Postfix configuration directory, which is not
-the proper place for information that is modified by Postfix. Instead, the file
-location should probably be on the /var partition (but nnoott inside the chroot
-jail).
 
 Examples:
 
     /etc/postfix/main.cf:
-        tls_random_exchange_name = /etc/postfix/prng_exch
+        tls_random_exchange_name = /var/lib/postfix/prng_exch
         tls_random_prng_update_period = 3600s
+
+As of version 2.5, Postfix no longer uses root privileges when opening this
+file. The file should now be stored under the Postfix-owned data_directory. As
+a migration aid, an attempt to open the file under a non-Postfix directory is
+redirected to the Postfix-owned data_directory, and a warning is logged. If you
+wish to continue using a pre-existing PRNG state file, move it to the
+data_directory and change the ownership to the account specified with the
+mail_owner parameter.
+
+With earlier Postfix versions the default file location is under the Postfix
+configuration directory, which is not the proper place for information that is
+modified by Postfix.
 
 GGeettttiinngg ssttaarrtteedd,, qquuiicckk aanndd ddiirrttyy
 

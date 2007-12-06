@@ -109,13 +109,13 @@
 /*	setting to be used by sensitive and non-sensitive processes.
 /*
 /*	Postfix-writable data files should be stored under a dedicated
-/*	directory that is writable only by the $\fBmail_owner\fR
-/*	account, such as the $\fBdata_directory\fR directory.
+/*	directory that is writable only by the Postfix mail system,
+/*	such as the Postfix-owned \fBdata_directory\fR.
 /*
 /*	In particular, Postfix-writable files should never exist
 /*	in root-owned directories. That would open up a particular
-/*	type of security hole where ownership (root) does not match
-/*	content provenance (Postfix).
+/*	type of security hole where ownership of a file or directory
+/*	does not match the provider of its content.
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* BUGS
@@ -169,8 +169,8 @@
 /*	The directory with Postfix-writable data files (for example:
 /*	caches, pseudo-random numbers).
 /* .IP "\fBproxy_write_maps (see 'postconf -d' output)\fR"
-/*	The lookup tables that the \fBproxymap\fR(8) server is allowed to access
-/*	for the read-write service.
+/*	The lookup tables that the \fBproxymap\fR(8) server is allowed to
+/*	access for the read-write service.
 /* SEE ALSO
 /*	postconf(5), configuration parameters
 /*	master(5), generic daemon options

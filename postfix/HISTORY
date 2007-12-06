@@ -13895,7 +13895,7 @@ Apologies for any names omitted.
 	postalias/postalias.c.
 
 	Bugfix: the proxymap client didn't properly propagate user
-	options options to the proxymap server.  File: util/dict.h.
+	options to the proxymap server.  File: util/dict.h.
 
 	Workaround: force synchronous updates in the proxymap server
 	so that maps will be in a consistent state between updates.
@@ -13923,3 +13923,17 @@ Apologies for any names omitted.
 	Feature: data_directory configuration parameter for
 	Postfix-writable data such as caches and random numbers.
 	Files: postfix-install, conf/postfix-files.
+
+20071206
+
+	Security: tlsmgr(8) and verify(8) no longer use root
+	privileges when opening their cache files. This avoids a
+	potential security loophole where the ownership of a file
+	(or directory) does not match the trust level of the content
+	of that file (or directory). See RELEASE_NOTES for how to
+	use pre-existing data. Files: util/set_eugid.[hc],
+	tlsmgr/tlsmgr.c, verify/verify.c.
+
+	Compatibility: as a migration tool, redirect attempts by
+	tlsmgr(8) or verify(8) to open files in non-Postfix directories
+	to the Postfix-owned data_directory. File: global/data_redirect.c.

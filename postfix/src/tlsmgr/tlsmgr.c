@@ -40,6 +40,14 @@
 /*	At process startup it connects to the entropy source and
 /*	exchange file, and creates or truncates the optional TLS
 /*	session cache files.
+/*
+/*	With Postfix version 2.5 and later, the \fBtlsmgr\fR(8) no
+/*	longer uses root privileges when opening cache files. These
+/*	files should now be stored under the Postfix-owned
+/*	\fBdata_directory\fR.  As a migration aid, an attempt to
+/*	open a cache file under a non-Postfix directory is redirected
+/*	to the Postfix-owned \fBdata_directory\fR, and a warning
+/*	is logged.
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to the syslog daemon.
 /* BUGS
@@ -92,7 +100,7 @@
 /*	The number of bytes that \fBtlsmgr\fR(8) reads from $tls_random_source
 /*	when (re)seeding the in-memory pseudo random number generator (PRNG)
 /*	pool.
-/* .IP "\fBtls_random_exchange_name (${config_directory}/prng_exch)\fR"
+/* .IP "\fBtls_random_exchange_name (see 'postconf -d' output)\fR"
 /*	Name of the pseudo random number generator (PRNG) state file
 /*	that is maintained by \fBtlsmgr\fR(8).
 /* .IP "\fBtls_random_prng_update_period (3600s)\fR"
@@ -187,6 +195,7 @@
 #include <vstring.h>
 #include <vstring_vstream.h>
 #include <attr.h>
+#include <set_eugid.h>
 
 /* Global library. */
 
@@ -195,6 +204,7 @@
 #include <mail_version.h>
 #include <tls_mgr.h>
 #include <mail_proto.h>
+#include <data_redirect.h>
 
 /* Master process interface. */
 
@@ -737,6 +747,7 @@ static void tlsmgr_pre_init(char *unused_name, char **unused_argv)
     char   *path;
     struct timeval tv;
     TLSMGR_SCACHE *ent;
+    VSTRING *redirect;
 
     /*
      * If nothing else works then at least this will get us a few bits of
@@ -796,28 +807,48 @@ static void tlsmgr_pre_init(char *unused_name, char **unused_argv)
     }
 
     /*
-     * Open the PRNG exchange file while privileged. Start the exchange file
-     * read/update pseudo thread after dropping privileges.
+     * Security: don't create root-owned files that contain untrusted data.
+     * And don't create Postfix-owned files in root-owned directories,
+     * either. We want a correct relationship between (file/directory)
+     * ownership and (file/directory) content.
+     */
+    SAVE_AND_SET_EUGID(var_owner_uid, var_owner_gid);
+    redirect = vstring_alloc(100);
+
+    /*
+     * Open the PRNG exchange file before going to jail, but don't use root
+     * privileges. Start the exchange file read/update pseudo thread after
+     * dropping privileges.
      */
     if (*var_tls_rand_exch_name) {
-	rand_exch = tls_prng_exch_open(var_tls_rand_exch_name);
+	rand_exch =
+	    tls_prng_exch_open(data_redirect_file(redirect,
+						  var_tls_rand_exch_name));
 	if (rand_exch == 0)
 	    msg_fatal("cannot open PRNG exchange file %s: %m",
 		      var_tls_rand_exch_name);
     }
 
     /*
-     * Open the session cache files and discard old information while
-     * privileged. Start the cache maintenance pseudo threads after dropping
-     * privileges.
+     * Open the session cache files and discard old information before going
+     * to jail, but don't use root privilege. Start the cache maintenance
+     * pseudo threads after dropping privileges.
      * 
      * XXX Need sanity check that the databases have different names.
      */
     for (ent = cache_table; ent->cache_label; ++ent)
 	if (**ent->cache_db)
 	    ent->cache_info =
-		tls_scache_open(*ent->cache_db, ent->cache_label,
-			    *ent->cache_loglevel >= 2, *ent->cache_timeout);
+		tls_scache_open(data_redirect_map(redirect, *ent->cache_db),
+				ent->cache_label,
+				*ent->cache_loglevel >= 2,
+				*ent->cache_timeout);
+
+    /*
+     * Clean up and restore privilege.
+     */
+    vstring_free(redirect);
+    RESTORE_SAVED_EUGID();
 }
 
 /* tlsmgr_post_init - post-jail initialization */

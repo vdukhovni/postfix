@@ -608,7 +608,7 @@ extern bool var_stat_home_dir;
 extern int var_dup_filter_limit;
 
 #define VAR_TLS_RAND_EXCH_NAME	"tls_random_exchange_name"
-#define DEF_TLS_RAND_EXCH_NAME	"${config_directory}/prng_exch"
+#define DEF_TLS_RAND_EXCH_NAME	"${data_directory}/prng_exch"
 extern char *var_tls_rand_exch_name;
 
 #define VAR_TLS_RAND_SOURCE	"tls_random_source"

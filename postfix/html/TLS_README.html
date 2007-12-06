@@ -463,7 +463,7 @@ so that the Postfix SMTP server announces STARTTLS and accepts no
 mail without TLS encryption, by setting
 "<a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a> = encrypt" (Postfix 2.3 and
 later) or "<a href="postconf.5.html#smtpd_enforce_tls">smtpd_enforce_tls</a> = yes" (obsolete but still
-supported). According to <a href="http://www.faqs.org/rfcs/rfc2487.html">RFC 2487</a> this MUST NOT be applied in case
+supported). According to <a href="http://tools.ietf.org/html/rfc2487">RFC 2487</a> this MUST NOT be applied in case
 of a publicly-referenced Postfix SMTP server.  This option is off
 by default and should only seldom be used. </p>
 
@@ -616,9 +616,15 @@ the cost of repeatedly negotiating TLS session keys is high.</p>
 </pre>
 </blockquote>
 
+<p> Note: as of version 2.5, Postfix no longer uses root privileges     
+when opening this file. The file should now be stored under the
+Postfix-owned <a href="postconf.5.html#data_directory">data_directory</a>. As a migration aid, an attempt to
+open the file under a non-Postfix directory is redirected to the
+Postfix-owned <a href="postconf.5.html#data_directory">data_directory</a>, and a warning is logged. </p>
+
 <p> Cached Postfix SMTP server session information expires after
 a certain amount of time.  Postfix/TLS does not use the OpenSSL
-default of 300s, but a longer time of 3600sec (=1 hour). <a href="http://www.faqs.org/rfcs/rfc2246.html">RFC 2246</a>
+default of 300s, but a longer time of 3600sec (=1 hour). <a href="http://tools.ietf.org/html/rfc2246">RFC 2246</a>
 recommends a maximum of 24 hours.  </p>
 
 <p> Example: </p>
@@ -1077,9 +1083,15 @@ is allowed to negotiate per unit time.</p>
 </pre>
 </blockquote>
 
+<p> Note: as of version 2.5, Postfix no longer uses root privileges     
+when opening this file. The file should now be stored under the
+Postfix-owned <a href="postconf.5.html#data_directory">data_directory</a>. As a migration aid, an attempt to
+open the file under a non-Postfix directory is redirected to the
+Postfix-owned <a href="postconf.5.html#data_directory">data_directory</a>, and a warning is logged. </p>
+
 <p> Cached Postfix SMTP client session information expires after
 a certain amount of time.  Postfix/TLS does not use the OpenSSL
-default of 300s, but a longer time of 3600s (=1 hour). <a href="http://www.faqs.org/rfcs/rfc2246.html">RFC 2246</a>
+default of 300s, but a longer time of 3600s (=1 hour). <a href="http://tools.ietf.org/html/rfc2246">RFC 2246</a>
 recommends a maximum of 24 hours.  </p>
 
 <p> Example: </p>
@@ -1461,7 +1473,7 @@ verification as a default policy. </p>
 
 <p> Mandatory server certificate verification as a default security
 level may be appropriate if you know that you will only connect to
-servers that support <a href="http://www.faqs.org/rfcs/rfc2487.html">RFC 2487</a> <i>and</i> that present verifiable
+servers that support <a href="http://tools.ietf.org/html/rfc2487">RFC 2487</a> <i>and</i> that present verifiable
 server certificates. An example would be a client that sends all
 email to a central mailhub that offers the necessary STARTTLS
 support. In such cases, you can often use a <a
@@ -1545,7 +1557,7 @@ as a default policy. </p>
 
 <p> Mandatory secure server certificate verification as a default
 security level may be appropriate if you know that you will only
-connect to servers that support <a href="http://www.faqs.org/rfcs/rfc2487.html">RFC 2487</a> <i>and</i> that present
+connect to servers that support <a href="http://tools.ietf.org/html/rfc2487">RFC 2487</a> <i>and</i> that present
 verifiable server certificates. An example would be a client that
 sends all email to a central mailhub that offers the necessary
 STARTTLS support. </p>
@@ -2164,21 +2176,30 @@ The default maximal time interval is 1 hour. </p>
 <p> The <a href="tlsmgr.8.html">tlsmgr(8)</a> process saves the PRNG state to a persistent
 exchange file at regular times and when the process terminates, so
 that it can recover the PRNG state the next time it starts up.
-This file is created when it does not exist. Its default location
-is under the Postfix configuration directory, which is not the
-proper place for information that is modified by Postfix.  Instead,
-the file location should probably be on the /var partition (but
-<b>not</b> inside the chroot jail).  </p>
+This file is created when it does not exist. </p>
 
 <p> Examples: </p>
  
 <blockquote>
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
-    <a href="postconf.5.html#tls_random_exchange_name">tls_random_exchange_name</a> = /etc/postfix/prng_exch
+    <a href="postconf.5.html#tls_random_exchange_name">tls_random_exchange_name</a> = /var/lib/postfix/prng_exch
     <a href="postconf.5.html#tls_random_prng_update_period">tls_random_prng_update_period</a> = 3600s
 </pre>
 </blockquote>
+
+<p> As of version 2.5, Postfix no longer uses root privileges when
+opening this file. The file should now be stored under the Postfix-owned
+<a href="postconf.5.html#data_directory">data_directory</a>. As a migration aid, an attempt to open the file
+under a non-Postfix directory is redirected to the Postfix-owned
+<a href="postconf.5.html#data_directory">data_directory</a>, and a warning is logged. If you wish to continue
+using a pre-existing PRNG state file, move it to the <a href="postconf.5.html#data_directory">data_directory</a>
+and change the ownership to the account specified with the <a href="postconf.5.html#mail_owner">mail_owner</a>
+parameter.  </p>
+
+<p> With earlier Postfix versions the default file location
+is under the Postfix configuration directory, which is not the
+proper place for information that is modified by Postfix.  </p>
 
 <h2><a name="quick-start">Getting started, quick and dirty</a></h2>
 
