@@ -13937,3 +13937,6 @@ Apologies for any names omitted.
 	Compatibility: as a migration tool, redirect attempts by
 	tlsmgr(8) or verify(8) to open files in non-Postfix directories
 	to the Postfix-owned data_directory. File: global/data_redirect.c.
+
+	Lots of pathname fixes in the examples of TLS_README and
+	postconf(5); -lm library screw-up in 8qmgr/Makefile.in.

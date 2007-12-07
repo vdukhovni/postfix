@@ -174,8 +174,8 @@ Examples:
 </p>
 
 <pre>
-<a href="postconf.5.html#address_verify_map">address_verify_map</a> = hash:/etc/postfix/verify
-<a href="postconf.5.html#address_verify_map">address_verify_map</a> = btree:/etc/postfix/verify
+<a href="postconf.5.html#address_verify_map">address_verify_map</a> = hash:/var/lib/postfix/verify
+<a href="postconf.5.html#address_verify_map">address_verify_map</a> = btree:/var/lib/postfix/verify
 </pre>
 
 <p>
@@ -9135,7 +9135,7 @@ under a non-Postfix directory is redirected to the Postfix-owned
 <p> Example: </p>
 
 <pre>
-<a href="postconf.5.html#smtp_tls_session_cache_database">smtp_tls_session_cache_database</a> = btree:/var/spool/postfix/smtp_scache
+<a href="postconf.5.html#smtp_tls_session_cache_database">smtp_tls_session_cache_database</a> = btree:/var/lib/postfix/smtp_scache
 </pre>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
@@ -11875,7 +11875,7 @@ under a non-Postfix directory is redirected to the Postfix-owned
 <p> Example: </p>
 
 <pre>
-<a href="postconf.5.html#smtpd_tls_session_cache_database">smtpd_tls_session_cache_database</a> = btree:/var/spool/postfix/smtpd_scache
+<a href="postconf.5.html#smtpd_tls_session_cache_database">smtpd_tls_session_cache_database</a> = btree:/var/lib/postfix/smtpd_scache
 </pre>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>

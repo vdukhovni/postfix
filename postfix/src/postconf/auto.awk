@@ -29,4 +29,5 @@ BEGIN {
 	}
 	print "" > "auto_vars.h"
     }
+    exit(0)
 }
