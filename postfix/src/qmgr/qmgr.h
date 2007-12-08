@@ -130,7 +130,9 @@ struct QMGR_FEEDBACK {
 
 #define QMGR_FEEDBACK_IDX_NONE		0	/* no window dependence */
 #define QMGR_FEEDBACK_IDX_WIN		1	/* 1/window dependence */
+#if 0
 #define QMGR_FEEDBACK_IDX_SQRT_WIN	2	/* 1/sqrt(window) dependence */
+#endif
 
 #ifdef QMGR_FEEDBACK_IDX_SQRT_WIN
 #include <math.h>

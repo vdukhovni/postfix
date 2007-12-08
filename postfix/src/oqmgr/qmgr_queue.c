@@ -142,12 +142,10 @@ static void qmgr_queue_resume(int event, char *context)
      * We can't simply force delivery on this queue: the transport's pending
      * count may already be maxed out, and there may be other constraints
      * that definitely should be none of our business. The best we can do is
-     * to play by the same rules as everyone else: trigger *some* delivery
-     * via qmgr_active_drain() and let round-robin selection work for us.
+     * to play by the same rules as everyone else: let qmgr_active_drain()
+     * and round-robin selection take care of message selection.
      */
     queue->window = 1;
-    if (queue->todo_refcount > 0)
-	qmgr_active_drain();
 
     /*
      * Every event handler that leaves a queue in the "ready" state should

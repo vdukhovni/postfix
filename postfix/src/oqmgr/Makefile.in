@@ -19,7 +19,7 @@ LIBS	= ../../lib/libmaster.a ../../lib/libglobal.a ../../lib/libutil.a
 .c.o:;	$(CC) $(CFLAGS) -c $*.c
 
 $(PROG):	$(OBJS) $(LIBS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(SYSLIBS) -lm
+	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
 
 $(OBJS): ../../conf/makedefs.out
 

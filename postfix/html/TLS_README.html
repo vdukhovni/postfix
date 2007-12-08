@@ -2328,14 +2328,14 @@ but don't require them from all clients. </p>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtp_tls_CAfile">smtp_tls_CAfile</a> = /etc/postfix/cacert.pem
     <a href="postconf.5.html#smtp_tls_session_cache_database">smtp_tls_session_cache_database</a> =
-	btree:/var/spool/postfix/smtp_tls_session_cache
+	btree:/var/lib/postfix/smtp_tls_session_cache
     <a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a> = yes
     <a href="postconf.5.html#smtpd_tls_CAfile">smtpd_tls_CAfile</a> = /etc/postfix/cacert.pem
     <a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a> = /etc/postfix/FOO-cert.pem
     <a href="postconf.5.html#smtpd_tls_key_file">smtpd_tls_key_file</a> = /etc/postfix/FOO-key.pem
     <a href="postconf.5.html#smtpd_tls_received_header">smtpd_tls_received_header</a> = yes
     <a href="postconf.5.html#smtpd_tls_session_cache_database">smtpd_tls_session_cache_database</a> =
-	btree:/var/spool/postfix/smtpd_tls_session_cache
+	btree:/var/lib/postfix/smtpd_tls_session_cache
     <a href="postconf.5.html#tls_random_source">tls_random_source</a> = dev:/dev/urandom
     # Postfix 2.3 and later
     <a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a> = may

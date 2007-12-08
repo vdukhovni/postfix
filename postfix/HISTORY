@@ -13939,4 +13939,16 @@ Apologies for any names omitted.
 	to the Postfix-owned data_directory. File: global/data_redirect.c.
 
 	Lots of pathname fixes in the examples of TLS_README and
-	postconf(5); -lm library screw-up in 8qmgr/Makefile.in.
+	postconf(5); -lm library screw-up in queue manager Makefiles.
+
+20071207
+
+	Cleanup: pathname fixes in documentation; unnecessary queue
+	scan in the queue manager rate limiter; inverse square root
+	feedback in the queue manager concurrency scheduler.  Files:
+	mantools/postlink, proto/TLS_README.html, *qmgr/qmgr_queue.c.
+
+	All changes up to this point should be ready for Postfix 2.5.
+
+	Documentation: updated nqgmr preemptive scheduler documentation
+	by Patrik Rak. File: proto/SCHEDULER_README.html.

@@ -35,6 +35,9 @@
 #   * The postconf2man tool leaves unrecognized HTML in place as a
 #     reminder that it is not supported.
 #
+#   * Text between <!-- and --> is stripped out. The <!-- and -->
+#     must appear on separate lines.
+#
 #   Also:
 #
 #   * All <dt> and <dd>text must be closed with </dt> and </dd>.
@@ -10844,11 +10847,15 @@ The <i>number</i> must be in the range 0..1 inclusive. With
 <i>number</i> equal to "1", a destination's delivery concurrency
 is decremented by 1 after each failed pseudo-cohort.  </dd>
 
+<!--
+
 <dt> <b><i>number</i> / sqrt_concurrency </b> </dt>
 
 <dd> Variable feedback of "<i>number</i> / sqrt(delivery concurrency)".
 The <i>number</i> must be in the range 0..1 inclusive. This setting
 may be removed in a future version.  </dd>
+
+-->
 
 </dl>
 
@@ -10894,11 +10901,15 @@ The <i>number</i> must be in the range 0..1 inclusive. With
 <i>number</i> equal to "1", a destination's delivery concurrency
 is incremented by 1 after each successful pseudo-cohort.  </dd>
 
+<!--
+
 <dt> <b><i>number</i> / sqrt_concurrency </b> </dt>
 
 <dd> Variable feedback of "<i>number</i> / sqrt(delivery concurrency)".
 The <i>number</i> must be in the range 0..1 inclusive. This setting
 may be removed in a future version.  </dd>
+
+-->
 
 </dl>
 
