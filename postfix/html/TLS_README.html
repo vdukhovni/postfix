@@ -857,6 +857,8 @@ key configuration </a>
 
 <li> <a href="#client_cipher">Client-side cipher controls </a>
 
+<li> <a href="#client_smtps">Client-side SMTPS support </a>
+
 <li> <a href="#client_misc"> Miscellaneous client controls </a>
 
 </ul>
@@ -2084,6 +2086,80 @@ little point in requesting them. </p>
     <a href="postconf.5.html#smtp_tls_exclude_ciphers">smtp_tls_exclude_ciphers</a> = aNULL
 </pre>
 </blockquote>
+
+<h3> <a name="client_smtps">Client-side SMTPS support </a> </h3>
+
+<p> Although the Postfix SMTP client by itself doesn't support TLS
+wrapper mode, it is relatively easy to forward a connection through
+the stunnel program if Postfix needs to deliver mail to some legacy
+system that doesn't support STARTTLS. Use one of the following two
+examples, to send only some remote mail, or to send all remote mail,
+to an SMTPS server.  </p>
+
+<h4> Sending all remote mail to an SMTPS server </h4>
+
+<p> The first example uses SMTPS to send all remote mail to a
+provider's mail server called "mail.example.com".  </p>
+
+<p> A minimal stunnel.conf file is sufficient to set up a tunnel
+from local port 11125 to the remote destination "mail.example.com"
+and port "smtps". Postfix will later use this tunnel to connect to
+the remote server. </p>
+
+<blockquote>
+<pre>
+/path/to/stunnel.conf:
+    [smtp-tls-wrapper]
+    accept = 11125
+    client = yes
+    connect = mail.example.com:smtps
+</pre>
+</blockquote>
+
+<p> To test this tunnel, use: </p>
+
+<blockquote>
+<pre>
+$ telnet localhost 11125
+</pre>
+</blockquote>
+
+<p> This should produce the greeting from the remote SMTP server
+at mail.example.com. </p>
+
+<p> On the Postfix side, the <a href="postconf.5.html#relayhost">relayhost</a> feature sends all remote
+mail through the local stunnel listener on port 11125: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#relayhost">relayhost</a> = [127.0.0.1]:11125
+</pre>
+</blockquote>
+
+<p> Use "postfix reload" to make the change effective. </p>
+
+<h4> Sending only mail for a specific destination via SMTPS </h4>
+
+<p> The second example will use SMTPS to send only mail for
+"example.com" via SMTPS. It uses the same stunnel configuration
+file as the first example, so it won't be repeated here. </p>
+
+<p> This time, the Postfix side uses a transport map to direct only
+mail for "example.com" through the tunnel: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#transport_maps">transport_maps</a> = hash:/etc/postfix/transport
+
+/etc/postfix/transport:
+    example.com  relay:[127.0.0.1]:11125
+</pre>
+</blockquote>
+
+<p> Use "postmap hash:/etc/postfix/transport" and "postfix reload"
+to make the change effective. </p>
 
 <h3> <a name="client_misc"> Miscellaneous client controls </a> </h3>
 

@@ -221,35 +221,35 @@ Initialization:
 
 After success:
         fail_cohorts = 0
-        Be prepared for feedback > hysteresis, or rounding error
+        Be prepared for feedback &gt; hysteresis, or rounding error
         success += g(concurrency)
         while (success >= 1)            Hysteresis 1
             concurrency += 1            Hysteresis 1
             failure = 0
             success -= 1                Hysteresis 1
         Be prepared for overshoot
-        if (concurrency > concurrency limit)
+        if (concurrency &gt; concurrency limit)
             concurrency = concurrency limit
 
 Safety:
         Don't apply positive feedback unless
-            concurrency < busy_refcount + init_dest_concurrency
+            concurrency &lt; busy_refcount + init_dest_concurrency
         otherwise negative feedback effect could be delayed
 
 After failure:
-        if (concurrency > 0)
+        if (concurrency &gt; 0)
             fail_cohorts += 1.0 / concurrency
-            if (fail_cohorts > cohort_failure_limit)
+            if (fail_cohorts &gt; cohort_failure_limit)
                 concurrency = 0
-        if (concurrency > 0)
-            Be prepared for feedback > hysteresis, rounding errors
+        if (concurrency &gt; 0)
+            Be prepared for feedback &gt; hysteresis, rounding errors
             failure -= f(concurrency)
-            while (failure < 0)
+            while (failure &lt; 0)
                 concurrency -= 1        Hysteresis 1
                 failure += 1            Hysteresis 1
                 success = 0
             Be prepared for overshoot
-            if (concurrency < 1)
+            if (concurrency &lt; 1)
                 concurrency = 1
 </pre>
 
@@ -644,7 +644,7 @@ activity </td> </tr>
 <p>
 
 This document attempts to describe the new queue manager and its
-preeemptive scheduler algorithm. Note that the document was originally
+preemptive scheduler algorithm. Note that the document was originally
 written to describe the changes between the new queue manager (in
 this text referred to as <tt>nqmgr</tt>, the name it was known by
 before it became the default queue manager) and the old queue manager
@@ -796,7 +796,7 @@ from the resolved triple to the recipient entry which is appended
 to both the queue entry list and the peer entry list. The addresses
 for same nexthop are batched in the entries up to recipient_concurrency
 limit for that transport. This happens in qmgr_assign() and apart
-from that it operates with job and peer structures is basically the
+from that it operates with job and peer structures it is basically the
 same as in <tt>oqmgr</tt>.
 
 </p>
@@ -846,7 +846,7 @@ do
     foreach transport's job (in the order of the transport's job list)
     do
 	foreach job's peer (round-robin-by-destination)
-	     if peer->queue->concurrency < peer->queue->window
+	     if peer-&gt;queue-&gt;concurrency &lt; peer-&gt;queue-&gt;window
 		 return next peer entry.
 	done
     done
@@ -906,7 +906,7 @@ the scheduler's job list only.
 <p>
 
 So, we have the job list, which is first ordered by the time the
-job's messages were enqueued, oldest messages first, the most recently
+jobs' messages were enqueued, oldest messages first, the most recently
 picked one at the end. For now, let's assume that there are no
 destination concurrency problems. Without preemption, we pick some
 entry of the first (oldest) job on the queue, assign it to delivery
@@ -926,7 +926,7 @@ the delivery time of that first job by some constant for free - it
 is basically the same trick you might remember as "accumulation of
 potential" from the amortized complexity lessons. For example,
 instead of delivering the entries of the first job on the job list
-every time an delivery agent becomes available, we can do it only
+every time a delivery agent becomes available, we can do it only
 every second time. If you view the moments the delivery agent becomes
 available on a timeline as "delivery slots", then instead of using
 every delivery slot for the first job, we can use only every other
@@ -965,7 +965,7 @@ hundred-recipient mail is delivered, which really sucks.
 
 <p>
 
-So, it becomes obvious that while the inflating the message to get
+So, it becomes obvious that while inflating the message to get
 free slots is great idea, one has to be really careful of how the
 free slots are assigned, otherwise one might corner himself. So,
 how does <tt>nqmgr</tt> really use the free slots?
@@ -978,7 +978,7 @@ The key idea is that one does not have to generate the free slots
 in a uniform way. The delivery sequence <tt>111...1</tt> is no
 worse than <tt>1.1.1.1</tt>, in fact, it is even better as some
 entries are in the first case selected earlier than in the second
-case, and none is selected later! So it is possible to first to
+case, and none is selected later! So it is possible to first
 "accumulate" the free delivery slots and then use them all at once.
 It is even possible to accumulate some, then use them, then accumulate
 some more and use them again, as in <tt>11..1.1</tt> .
@@ -992,7 +992,7 @@ that we could first accumulate one hundred free slots, and only
 after then to preempt the first job and sneak the one hundred
 recipient mail in. Applying the algorithm recursively, we see the
 hundred recipient job can accumulate ten free delivery slots, and
-then we could preempt it and sneak in the ten recipient mail...
+then we could preempt it and sneak in the ten-recipient mail...
 Wait wait wait! Could we? Aren't we overinflating the original one
 thousand recipient mail?
 
@@ -1068,7 +1068,7 @@ and perhaps even already used some when it was preempted before
 (remember a job can be preempted several times). In either case,
 we know how many are accumulated and how many are left to deliver,
 so we know how many it may yet accumulate at maximum. Every other
-job which may be delivered by less than that amount of slots is an
+job which may be delivered by less than that amount of slots is a
 valid candidate for preemption. How do we choose among them?
 
 </p>
@@ -1132,12 +1132,12 @@ is attempted the next time. But that's not the complete truth.
 
 The truth is that it turns out that it is not really necessary to
 wait until the jobs counter accumulates all the delivery slots in
-advance. Say we have ten recipient mail followed by two two-recipient
+advance. Say we have ten-recipient mail followed by two two-recipient
 mails. If the preemption happened when enough delivery slot accumulate
 (assuming slot cost 2), the delivery sequence becomes
 <tt>11112211113311</tt>. Now what would we get if we would wait
 only for 50% of the necessary slots to accumulate and we promise
-we would wait for the remaining 50% later, after the we get back
+we would wait for the remaining 50% later, after we get back
 to the preempted job? If we use such slot loan, the delivery sequence
 becomes <tt>11221111331111</tt>. As we can see, it makes it no
 considerably worse for the delivery of the ten-recipient mail, but
@@ -1148,7 +1148,7 @@ it allows the small messages to be delivered sooner.
 <p>
 
 The concept of these slot loans is where the
-<a href="postconf.5.html#transport_delivery_slot_discount"><a href="postconf.5.html#transport_delivery_slot_discount"><i>transport</i>_delivery_slot_discount</a></a> and
+<a href="postconf.5.html#transport_delivery_slot_discount"><i>transport</i>_delivery_slot_discount</a> and
 <a href="postconf.5.html#transport_delivery_slot_loan"><i>transport</i>_delivery_slot_loan</a> come from (they default to
 <a href="postconf.5.html#default_delivery_slot_discount">default_delivery_slot_discount</a> and <a href="postconf.5.html#default_delivery_slot_loan">default_delivery_slot_loan</a>, whose
 values are by default 50 and 3, respectively). The discount (resp.
@@ -1174,8 +1174,8 @@ see the job list and the preemption happening at its head, in ideal
 delivery conditions. The feeling of understanding shall last until
 you start wondering what happens if some of the jobs are blocked,
 which you might eventually figure out correctly from what had been
-said already. But I would be surprised if you mental image of the
-scheduler's functionality it is not completely shattered once you
+said already. But I would be surprised if your mental image of the
+scheduler's functionality is not completely shattered once you
 start wondering how it works when not all recipients may be read
 in-core.  More on that later.]
 
@@ -1213,7 +1213,7 @@ in all further scheduler actions normally.
 
 <p>
 
-So the summary is that the user's don't really have to be concerned
+So the summary is that the users don't really have to be concerned
 about the interaction of the destination limits and scheduling
 algorithm. It works well on its own and there are no knobs they
 would need to control it.
@@ -1241,11 +1241,11 @@ blockers would be like this:
 
 <blockquote>
 <pre>
-first job->    1--2--3--5--6--8--...    <- job list
+first job-&gt;    1--2--3--5--6--8--...    &lt;- job list
 on job list    |
-               4    <- preemption stack
+               4    &lt;- preemption stack
                |
-current job->  7
+current job-&gt;  7
 </pre>
 </blockquote>
 
@@ -1304,7 +1304,7 @@ The idea of the preemption stack at the head of the job list is
 gone.  That is, it must be possible to preempt any job on the job
 list. For example, if the jobs 7, 4, 1 and 2 in the example above
 become all blocked, job 3 becomes the current job. And of course
-we do not want the preemption be affected by the fact that there
+we do not want the preemption to be affected by the fact that there
 are some blocked jobs or not. Therefore, if it turns out that job
 3 might be preempted by job 6, the implementation shall make it
 possible.
@@ -1348,11 +1348,11 @@ If I illustrate the relations after the above mentioned examples
 <pre>
                             v- parent
 
-adoptive parent ->    1--2--3--5--...      <- "stack" level 0
+adoptive parent -&gt;    1--2--3--5--...      &lt;- "stack" level 0
                       |     |
-parent gone ->        ?     6              <- "stack" level 1
+parent gone -&gt;        ?     6              &lt;- "stack" level 1
                      / \
-children ->         7   8   ^- child       <- "stack" level 2
+children -&gt;         7   8   ^- child       &lt;- "stack" level 2
 
                       ^- siblings
 </pre>
@@ -1378,7 +1378,7 @@ as simple as this:
 
 <blockquote>
 <pre>
-7--8--1--2--6--3--5--..   <- scheduler's job list order
+7--8--1--2--6--3--5--..   &lt;- scheduler's job list order
 </pre>
 </blockquote>
 
@@ -1470,8 +1470,9 @@ The recipient limit complicates more things. First of all, the
 message reading code must support reading the recipients in batches,
 which among other things means accessing the queue file several
 times and continuing where the last recipient batch ended. This is
-invoked by the scheduler whenever the current job runs out of in-core
-recipients and more are required. It is also done any time when all
+invoked by the scheduler whenever the current job has space for more
+recipients, subject to transport's refill_limit and refill_delay parameters.
+It is also done any time when all
 in-core recipients of the message are dealt with (which may also
 mean they were deferred) but there are still more in the queue file.
 
@@ -1564,10 +1565,10 @@ Now how many recipients shall we read for the first time? This is
 what <a href="postconf.5.html#qmgr_message_recipient_minimum">qmgr_message_recipient_minimum</a> and <a href="postconf.5.html#qmgr_message_recipient_limit">qmgr_message_recipient_limit</a>
 values control. The <a href="postconf.5.html#qmgr_message_recipient_minimum">qmgr_message_recipient_minimum</a> value specifies
 how many recipients of each message we will read for the first time,
-no matter what.  It is necessary to read at least one recipients
+no matter what.  It is necessary to read at least one recipient
 before we can assign the message to a transport and create the first
 job. However, reading only <a href="postconf.5.html#qmgr_message_recipient_minimum">qmgr_message_recipient_minimum</a> recipients
-even if there are only few messages with few messages in-core would
+even if there are only few messages with few recipients in-core would
 be wasteful. Therefore if there is less than <a href="postconf.5.html#qmgr_message_recipient_limit">qmgr_message_recipient_limit</a>
 recipients in-core so far, the first batch of recipients may be
 larger than <a href="postconf.5.html#qmgr_message_recipient_minimum">qmgr_message_recipient_minimum</a> - as large as is required
@@ -1581,7 +1582,7 @@ Once the first batch of recipients was read in core and the message
 jobs were created, the size of the subsequent recipient batches (if
 any - of course it's best when all recipients are read in one batch)
 is based solely on the position of the message jobs on their
-corresponding transport's job lists. Each transport has a pool of
+corresponding transports' job lists. Each transport has a pool of
 <a href="postconf.5.html#transport_recipient_limit"><i>transport</i>_recipient_limit</a> recipient slots which it can
 distribute among its jobs (how this is done is described later).
 The subsequent recipient batch may be as large as the sum of all
@@ -1683,7 +1684,7 @@ slots as they have recipients in-core).
 Things work fine in such state for most of the time, because the
 current job is either completely read in-core or has as much recipient
 slots as there are, but there is one situation which we still have
-to take care specially.  Imagine if the current job is preempted
+to take care of specially.  Imagine if the current job is preempted
 by some unread job from the job list and there are no more recipient
 slots available, so this new current job could read only batches
 of <a href="postconf.5.html#qmgr_message_recipient_minimum">qmgr_message_recipient_minimum</a> recipients at a time. This would
@@ -1700,7 +1701,7 @@ slots from the normal pool and this extra pool.
 And that's it. It sure does sound pretty complicated, but fortunately
 most people don't really have to care how exactly it works as long
 as it works.  Perhaps the only important things to know for most
-people ire the following upper bound formulas:
+people are the following upper bound formulas:
 
 </p>
 

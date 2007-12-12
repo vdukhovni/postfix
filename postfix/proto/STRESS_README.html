@@ -420,6 +420,9 @@ a "-o stress=yes" command-line option in master.cf. This can be
 useful for testing overrides on the SMTP service. Issue "postfix
 reload" to make the change effective.  </p>
 
+<p> Note: setting the stress parameter in main.cf has no effect for
+services that accept remote connections. </p>
+
 <blockquote>
 <pre>
 1 /etc/postfix/master.cf:
@@ -434,9 +437,12 @@ reload" to make the change effective.  </p>
 </blockquote>
 
 <p> To permanently force stress-adaptive behavior off with a specific
-service, specify "-o stress=" on its command line.  This may be
-desirable for the "submission" service. Issue "postfix reload" to
-make the change effective.  </p>
+service, specify "-o stress=" on its master.cf command line.  This
+may be desirable for the "submission" service. Issue "postfix reload"
+to make the change effective.  </p>
+
+<p> Note: setting the stress parameter in main.cf has no effect for
+services that accept remote connections. </p>
 
 <blockquote>
 <pre>

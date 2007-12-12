@@ -90,6 +90,11 @@
 /* .IP "\fBresolve_numeric_domain (no)\fR"
 /*	Resolve "user@ipaddress" as "user@[ipaddress]", instead of
 /*	rejecting the address as invalid.
+/* .PP
+/*	Available with Postfix version 2.5 and later:
+/* .IP "\fBallow_min_user (no)\fR"
+/*	Allow a sender or recipient address to have `-' as the first
+/*	character.
 /* ADDRESS REWRITING CONTROLS
 /* .ad
 /* .fi
@@ -322,6 +327,7 @@ char   *var_remote_rwr_domain;
 char   *var_snd_relay_maps;
 char   *var_null_relay_maps_key;
 int     var_resolve_num_dom;
+bool    var_allow_min_user;
 
  /*
   * Shadow personality for address verification.
@@ -576,6 +582,7 @@ int     main(int argc, char **argv)
 	VAR_SHOW_UNK_RCPT_TABLE, DEF_SHOW_UNK_RCPT_TABLE, &var_show_unk_rcpt_table,
 	VAR_RESOLVE_NULLDOM, DEF_RESOLVE_NULLDOM, &var_resolve_nulldom,
 	VAR_RESOLVE_NUM_DOM, DEF_RESOLVE_NUM_DOM, &var_resolve_num_dom,
+	VAR_ALLOW_MIN_USER, DEF_ALLOW_MIN_USER, &var_allow_min_user,
 	0,
     };
 

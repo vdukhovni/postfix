@@ -4,7 +4,9 @@ PPoossttffiixx XXCCLLIIEENNTT HHoowwttoo
 
 PPuurrppoossee ooff tthhee XXCCLLIIEENNTT eexxtteennssiioonn ttoo SSMMTTPP
 
-The XCLIENT command targets the following problems:
+When an SMTP server announces support for the XCLIENT command, an SMTP client
+may send information that overrides one or more client-related session
+attributes. The XCLIENT command targets the following problems:
 
  1. Access control tests. SMTP server access rules are difficult to verify when
     decisions can be triggered only by remote clients. In order to facilitate

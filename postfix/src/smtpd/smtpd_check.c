@@ -2100,8 +2100,8 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     }
 
     /*
-     * BCC means deliver to designated recipient. But we may still
-     * change our mind, and reject/discard the message for other reasons.
+     * BCC means deliver to designated recipient. But we may still change our
+     * mind, and reject/discard the message for other reasons.
      */
 #ifdef SNAPSHOT
     if (STREQUAL(value, "BCC", cmd_len)) {
@@ -3366,6 +3366,7 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 					 state->act_size : state->msg_size),
 			  ATTR_TYPE_STR, MAIL_ATTR_ETRN_DOMAIN,
 			  state->etrn_name ? state->etrn_name : "",
+			  ATTR_TYPE_STR, MAIL_ATTR_STRESS, var_stress,
 #ifdef USE_SASL_AUTH
 			  ATTR_TYPE_STR, MAIL_ATTR_SASL_METHOD,
 			  var_smtpd_sasl_enable && state->sasl_method ?

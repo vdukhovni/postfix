@@ -13952,3 +13952,18 @@ Apologies for any names omitted.
 
 	Documentation: updated nqgmr preemptive scheduler documentation
 	by Patrik Rak. File: proto/SCHEDULER_README.html.
+
+20071211
+
+	Bugfix: memory leak when the first write on a bi-directional
+	VSTREAM fails. File: util/vstream.c.
+
+20071212
+
+	Feature: "stress=" or "stress=yes" attribute in the SMTPD
+	policy delegation protocol. File: smtp/smtpd_check.c.
+
+	Cleanup: allow_min_user now rejects recipients (and senders)
+	starting with '-' at SMTP session time. To make this possible
+	the feature was moved from qmgr(8) to trivial-rewrite(8).
+	Files: *qmgr/qmgr_message.c, trivial-rewrite/resolve.c.

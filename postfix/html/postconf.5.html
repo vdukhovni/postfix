@@ -577,13 +577,18 @@ Example:
 (default: no)</b></DT><DD>
 
 <p>
-Allow a recipient address to have `-' as the first character.  By
+Allow a sender or recipient address to have `-' as the first
+character.  By
 default, this is not allowed, to avoid accidents with software that
 passes email addresses via the command line. Such software
 would not be able to distinguish a malicious address from a
 bona fide command-line option. Although this can be prevented by
 inserting a "--" option terminator into the command line, this is
 difficult to enforce consistently and globally.  </p>
+
+<p> As of Postfix version 2.5, this feature is implemented by
+<a href="trivial-rewrite.8.html">trivial-rewrite(8)</a>.  With earlier versions this feature was implemented
+by <a href="qmgr.8.html">qmgr(8)</a> and was limited to recipient addresses only. </p>
 
 
 </DD>
@@ -1706,7 +1711,7 @@ Note that the full amount will still have to be accumulated before
 another preemption can take place later.
 </p>
 
-<p> Use <a href="postconf.5.html#transport_delivery_slot_discount"><a href="postconf.5.html#transport_delivery_slot_discount"><i>transport</i>_delivery_slot_discount</a></a> to specify a
+<p> Use <a href="postconf.5.html#transport_delivery_slot_discount"><i>transport</i>_delivery_slot_discount</a> to specify a
 transport-specific override, where <i>transport</i> is the <a href="master.5.html">master.cf</a>
 name of the message delivery transport.
 </p>
@@ -11952,6 +11957,16 @@ This is used for delivery to file or mailbox.
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 </p>
+
+
+</DD>
+
+<DT><b><a name="stress">stress</a>
+(default: empty)</b></DT><DD>
+
+<p> This feature is documented in the <a href="STRESS_README.html">STRESS_README</a> document. </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
 
 
 </DD>

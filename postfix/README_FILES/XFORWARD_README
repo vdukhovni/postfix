@@ -4,7 +4,9 @@ PPoossttffiixx XXFFOORRWWAARRDD HHoowwttoo
 
 PPuurrppoossee ooff tthhee XXFFOORRWWAARRDD eexxtteennssiioonn ttoo SSMMTTPP
 
-The XFORWARD command targets the following problem:
+When an SMTP server announces support for the XFORWARD command, an SMTP client
+may send information that overrides one or more client-related logging
+attributes. The XFORWARD command targets the following problem:
 
   * Logging after SMTP-based content filter. With the deployment of Internet-
     >MTA1->filter->MTA2 style content filter applications, the logging of

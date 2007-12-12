@@ -108,6 +108,11 @@ invalid.
 .IP "\fBresolve_numeric_domain (no)\fR"
 Resolve "user@ipaddress" as "user@[ipaddress]", instead of
 rejecting the address as invalid.
+.PP
+Available with Postfix version 2.5 and later:
+.IP "\fBallow_min_user (no)\fR"
+Allow a sender or recipient address to have `-' as the first
+character.
 .SH "ADDRESS REWRITING CONTROLS"
 .na
 .nf

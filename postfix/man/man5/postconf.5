@@ -318,13 +318,18 @@ allow_mail_to_files = alias,forward,include
 .ad
 .ft R
 .SH allow_min_user (default: no)
-Allow a recipient address to have `-' as the first character.  By
+Allow a sender or recipient address to have `-' as the first
+character.  By
 default, this is not allowed, to avoid accidents with software that
 passes email addresses via the command line. Such software
 would not be able to distinguish a malicious address from a
 bona fide command-line option. Although this can be prevented by
 inserting a "--" option terminator into the command line, this is
 difficult to enforce consistently and globally.
+.PP
+As of Postfix version 2.5, this feature is implemented by
+\fBtrivial-rewrite\fR(8).  With earlier versions this feature was implemented
+by \fBqmgr\fR(8) and was limited to recipient addresses only.
 .SH allow_percent_hack (default: yes)
 Enable the rewriting of the form "user%domain" to "user@domain".
 This is enabled by default.
@@ -7312,6 +7317,10 @@ This is used for delivery to file or mailbox.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
+.SH stress (default: empty)
+This feature is documented in the STRESS_README document.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH strict_7bit_headers (default: no)
 Reject mail with 8-bit text in message headers. This blocks mail
 from poorly written applications.

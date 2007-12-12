@@ -1011,22 +1011,6 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	}
 
 	/*
-	 * Bounce recipient addresses that start with `-'. External commands
-	 * may misinterpret such addresses as command-line options.
-	 * 
-	 * In theory I could say people should always carefully set up their
-	 * master.cf pipe mailer entries with `--' before the first
-	 * non-option argument, but mistakes will happen regardless.
-	 * 
-	 * Therefore the protection is put in place here, in the queue manager,
-	 * where it cannot be bypassed.
-	 */
-	if (var_allow_min_user == 0 && recipient->address[0] == '-') {
-	    QMGR_REDIRECT(&reply, MAIL_SERVICE_ERROR,
-			  "5.1.3 bad address syntax");
-	}
-
-	/*
 	 * Discard mail to the local double bounce address here, so this
 	 * system can run without a local delivery agent. They'd still have
 	 * to configure something for mail directed to the local postmaster,

@@ -153,8 +153,10 @@
 /* COMPATIBILITY CONTROLS
 /* .ad
 /* .fi
+/*	Available before Postfix version 2.5:
 /* .IP "\fBallow_min_user (no)\fR"
-/*	Allow a recipient address to have `-' as the first character.
+/*	Allow a sender or recipient address to have `-' as the first
+/*	character.
 /* ACTIVE QUEUE CONTROLS
 /* .ad
 /* .fi
@@ -359,7 +361,6 @@ int     var_transport_retry_time;
 int     var_dest_con_limit;
 int     var_dest_rcpt_limit;
 char   *var_defer_xports;
-bool    var_allow_min_user;
 int     var_qmgr_fudge;
 int     var_local_rcpt_lim;		/* XXX */
 int     var_local_con_lim;		/* XXX */
@@ -627,7 +628,6 @@ int     main(int argc, char **argv)
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {
-	VAR_ALLOW_MIN_USER, DEF_ALLOW_MIN_USER, &var_allow_min_user,
 	VAR_VERP_BOUNCE_OFF, DEF_VERP_BOUNCE_OFF, &var_verp_bounce_off,
 	VAR_CONC_FDBACK_DEBUG, DEF_CONC_FDBACK_DEBUG, &var_conc_feedback_debug,
 	0,

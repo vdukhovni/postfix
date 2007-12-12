@@ -1130,6 +1130,7 @@ char   *var_milt_data_macros;
 char   *var_milt_eod_macros;
 char   *var_milt_unk_macros;
 bool    var_smtpd_client_port_log;
+char   *var_stress;
 
  /*
   * Silly little macros.
@@ -4729,6 +4730,7 @@ int     main(int argc, char **argv)
 	VAR_MILT_DEF_ACTION, DEF_MILT_DEF_ACTION, &var_milt_def_action, 1, 0,
 	VAR_MILT_DAEMON_NAME, DEF_MILT_DAEMON_NAME, &var_milt_daemon_name, 1, 0,
 	VAR_MILT_V, DEF_MILT_V, &var_milt_v, 1, 0,
+	VAR_STRESS, DEF_STRESS, &var_stress, 0, 0,
 	0,
     };
     static CONFIG_RAW_TABLE raw_table[] = {

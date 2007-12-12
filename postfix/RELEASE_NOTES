@@ -17,6 +17,15 @@ Incompatibility with Postfix 2.3 and earlier
 If you upgrade from Postfix 2.3 or earlier, read RELEASE_NOTES-2.4
 before proceeding.
 
+Incompatibility with Postfix snapshot 20071212
+==============================================
+
+The allow_min_user feature now applies to both sender and recipient
+addresses in SMTP commands. With earlier Postfix versions, only
+recipients were subject to the allow_min_user feature, and the
+restriction took effect at mail delivery time, causing mail to be
+bounced later instead of being rejected immediately.
+
 Incompatibility with Postfix snapshot 20071206
 ==============================================
 

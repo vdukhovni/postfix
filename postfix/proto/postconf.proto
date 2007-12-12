@@ -506,13 +506,18 @@ allow_mail_to_files = alias,forward,include
 %PARAM allow_min_user no
 
 <p>
-Allow a recipient address to have `-' as the first character.  By
+Allow a sender or recipient address to have `-' as the first
+character.  By
 default, this is not allowed, to avoid accidents with software that
 passes email addresses via the command line. Such software
 would not be able to distinguish a malicious address from a
 bona fide command-line option. Although this can be prevented by
 inserting a "--" option terminator into the command line, this is
 difficult to enforce consistently and globally.  </p>
+
+<p> As of Postfix version 2.5, this feature is implemented by
+trivial-rewrite(8).  With earlier versions this feature was implemented
+by qmgr(8) and was limited to recipient addresses only. </p>
 
 %PARAM allow_percent_hack yes
 
@@ -11070,3 +11075,10 @@ the mail_owner account, and must not be shared with non-Postfix
 software.  </p>
 
 <p> This feature is available in Postfix 2.5 and later. </p>
+
+%PARAM stress
+
+<p> This feature is documented in the STRESS_README document. </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+

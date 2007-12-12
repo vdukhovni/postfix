@@ -2879,6 +2879,13 @@ extern bool var_conc_feedback_debug;
 #define DEF_DEST_RATE_DELAY	"0s"
 extern int var_dest_rate_delay;
 
+ /*
+  * Stress handling.
+  */
+#define VAR_STRESS		"stress"
+#define DEF_STRESS		""
+extern char *var_stress;
+
 /* LICENSE
 /* .ad
 /* .fi
