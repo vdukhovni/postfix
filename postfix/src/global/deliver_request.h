@@ -69,7 +69,14 @@ typedef struct DELIVER_REQUEST {
 #define DEL_REQ_FLAG_MTA_VRFY	(1<<8)	/* MTA-requested address probe */
 #define DEL_REQ_FLAG_USR_VRFY	(1<<9)	/* user-requested address probe */
 #define DEL_REQ_FLAG_RECORD	(1<<10)	/* record and deliver */
-#define DEL_REQ_FLAG_SCACHE	(1<<11)	/* opportunistic caching */
+#define DEL_REQ_FLAG_SCACHE_LD	(1<<11)	/* Consult opportunistic cache */
+#define DEL_REQ_FLAG_SCACHE_ST	(1<<12)	/* Update opportunistic cache */
+
+ /*
+  * Cache Load and Store as value or mask. Use explicit names for multi-bit
+  * values.
+  */
+#define DEL_REQ_FLAG_SCACHE_MASK (DEL_REQ_FLAG_SCACHE_LD|DEL_REQ_FLAG_SCACHE_ST)
 
  /*
   * For compatibility, the old confusing names.

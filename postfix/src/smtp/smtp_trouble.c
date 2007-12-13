@@ -244,7 +244,8 @@ static int smtp_bulk_fail(SMTP_STATE *state, int throttle_queue)
 	    SMTP_RCPT_DROP(state, rcpt);
 	    state->status |= status;
 	}
-	if (throttle_queue && soft_error && request->hop_status == 0)
+	if ((state->misc_flags & SMTP_MISC_FLAG_COMPLETE_SESSION) == 0
+	    && throttle_queue && soft_error && request->hop_status == 0)
 	    request->hop_status = DSN_COPY(&why->dsn);
     }
 

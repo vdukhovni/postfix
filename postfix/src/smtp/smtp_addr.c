@@ -100,7 +100,7 @@
 
 /* smtp_print_addr - print address list */
 
-static void smtp_print_addr(char *what, DNS_RR *addr_list)
+static void smtp_print_addr(const char *what, DNS_RR *addr_list)
 {
     DNS_RR *addr;
     MAI_HOSTADDR_STR hostaddr;
@@ -120,8 +120,8 @@ static void smtp_print_addr(char *what, DNS_RR *addr_list)
 
 /* smtp_addr_one - address lookup for one host name */
 
-static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
-			             DSN_BUF *why)
+static DNS_RR *smtp_addr_one(DNS_RR *addr_list, const char *host,
+			             unsigned pref, DSN_BUF *why)
 {
     const char *myname = "smtp_addr_one";
     DNS_RR *addr = 0;
@@ -469,7 +469,7 @@ DNS_RR *smtp_domain_addr(char *name, int misc_flags, DSN_BUF *why,
 
 /* smtp_host_addr - direct host lookup */
 
-DNS_RR *smtp_host_addr(char *host, int misc_flags, DSN_BUF *why)
+DNS_RR *smtp_host_addr(const char *host, int misc_flags, DSN_BUF *why)
 {
     DNS_RR *addr_list;
 

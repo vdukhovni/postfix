@@ -13950,13 +13950,13 @@ Apologies for any names omitted.
 
 	All changes up to this point should be ready for Postfix 2.5.
 
-	Documentation: updated nqgmr preemptive scheduler documentation
+	Documentation: updated nqmgr preemptive scheduler documentation
 	by Patrik Rak. File: proto/SCHEDULER_README.html.
 
 20071211
 
-	Bugfix: memory leak when the first write on a bi-directional
-	VSTREAM fails. File: util/vstream.c.
+	Bugfix (introduced 19980315): the "write" equivalent of
+	bugfix 20030104. File: util/vstream.c.
 
 20071212
 
@@ -13967,3 +13967,25 @@ Apologies for any names omitted.
 	starting with '-' at SMTP session time. To make this possible
 	the feature was moved from qmgr(8) to trivial-rewrite(8).
 	Files: *qmgr/qmgr_message.c, trivial-rewrite/resolve.c.
+
+20071213:
+
+	Cleanup: the queue manager and SMTP client now distinguish
+	between connection cache store and retrieve hints. Once the
+	queue manager enables enables connection caching (store and
+	load) hints on a per-destination queue, it keeps sending
+	connection cache retrieve hints to the delivery agent even
+	after it stops sending connection cache store hints.  This
+	prevents the SMTP client from making a new connection without
+	checking the connection cache first. Victor Duchovni.  Files:
+	*qmgr/qmgr_entry.c, smtp/smtp_connect.c.
+
+	Bugfix (introduced Postfix 2.3): the SMTP client never
+	marked corrupt files as corrupt. Victor Duchovni. File:
+	smtp/smtp_proto.c.
+
+	Cleanup: the SMTP client won't mark a destination as
+	unavailable when at least one SMTP session was completed
+	without connect or handshake error. Victor Duchovni. Files:
+	smtp/smtp_connect.c, smtp/smtp_session.c, smtp/smtp_proto.c,
+	smtp/smtp_trouble.c.

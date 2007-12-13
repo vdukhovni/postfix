@@ -66,9 +66,12 @@
 /* .IP flags
 /*	Zero or more of the following:
 /* .RS
-/* .IP SMTP_MISC_FLAG_CONN_CACHE
-/*	Enable SMTP or LMTP connection caching.
+/* .IP SMTP_MISC_FLAG_CONN_LOAD
+/*	Enable re-use of cached SMTP or LMTP connections.
+/* .IP SMTP_MISC_FLAG_CONN_STORE
+/*	Enable saving of cached SMTP or LMTP connections.
 /* .RE
+/*	SMTP_MISC_FLAG_CONN_MASK corresponds with both _LOAD and _STORE.
 /* .IP dest_prop
 /*	Destination specific session properties: the server is the
 /*	best MX host for the current logical destination.
@@ -545,7 +548,7 @@ SMTP_SESSION *smtp_session_alloc(VSTREAM *stream, const char *dest,
     session->sndbufsize = 0;
     session->send_proto_helo = 0;
 
-    if (flags & SMTP_MISC_FLAG_CONN_CACHE)
+    if (flags & SMTP_MISC_FLAG_CONN_STORE)
 	CACHE_THIS_SESSION_UNTIL(start + var_smtp_reuse_time);
     else
 	DONT_CACHE_THIS_SESSION;

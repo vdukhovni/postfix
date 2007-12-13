@@ -123,9 +123,8 @@ QMGR_ENTRY *qmgr_entry_select(QMGR_QUEUE *queue)
 	 * (we need to recognize back-to-back deliveries for transports with
 	 * concurrency 1).
 	 * 
-	 * XXX It would be nice if we could say "try to reuse a cached
-	 * connection, but don't bother saving it when you're done". As long
-	 * as we can't, we must not turn off session caching too early.
+	 * If caching has previously been enabled, but is not now, fetch any
+	 * existing entries from the cache, but don't add new ones.
 	 */
 #define CONCURRENT_OR_BACK_TO_BACK_DELIVERY() \
 	    (queue->busy_refcount > 1 || BACK_TO_BACK_DELIVERY())
@@ -139,12 +138,12 @@ QMGR_ENTRY *qmgr_entry_select(QMGR_QUEUE *queue)
 	 * prevents unnecessary session caching when we have a burst of mail
 	 * <= the initial concurrency limit.
 	 */
-	if ((queue->dflags & DEL_REQ_FLAG_SCACHE) == 0) {
+	if ((queue->dflags & DEL_REQ_FLAG_SCACHE_ST) == 0) {
 	    if (BACK_TO_BACK_DELIVERY()) {
 		if (msg_verbose)
 		    msg_info("%s: allowing on-demand session caching for %s",
 			     myname, queue->name);
-		queue->dflags |= DEL_REQ_FLAG_SCACHE;
+		queue->dflags |= DEL_REQ_FLAG_SCACHE_MASK;
 	    }
 	}
 
@@ -159,7 +158,7 @@ QMGR_ENTRY *qmgr_entry_select(QMGR_QUEUE *queue)
 		if (msg_verbose)
 		    msg_info("%s: disallowing on-demand session caching for %s",
 			     myname, queue->name);
-		queue->dflags &= ~DEL_REQ_FLAG_SCACHE;
+		queue->dflags &= ~DEL_REQ_FLAG_SCACHE_ST;
 	    }
 	}
     }

@@ -1847,8 +1847,13 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		    fail_status = smtp_mesg_fail(state, DSN_BY_LOCAL_MTA,
 					     SMTP_RESP_FAKE(&fake, "5.3.0"),
 					     "unreadable mail queue entry");
-		    if (fail_status == 0)
+		    /* Bailing out, abort stream with prejudice */
+		    (void) vstream_fpurge(session->stream, VSTREAM_PURGE_BOTH);
+		    DONT_USE_DEAD_SESSION;
+		    /* If bounce_append() succeeded, status is still 0 */
+		    if (state->status == 0)
 			(void) mark_corrupt(state->src);
+		    /* Don't override smtp_mesg_fail() here. */
 		    RETURN(fail_status);
 		}
 	    } else {
@@ -1899,6 +1904,7 @@ int     smtp_xfer(SMTP_STATE *state)
     int     send_state;
     int     recv_state;
     int     send_name_addr;
+    int     result;
 
     /*
      * Sanity check. Recipients should be unmarked at this point.
@@ -1921,6 +1927,8 @@ int     smtp_xfer(SMTP_STATE *state)
 		    "message size %lu exceeds size limit %.0f of server %s",
 		       request->data_size, (double) session->size_limit,
 		       session->namaddr);
+	/* Redundant. We abort this delivery attempt. */
+	state->misc_flags |= SMTP_MISC_FLAG_COMPLETE_SESSION;
 	return (0);
     }
 
@@ -1947,7 +1955,20 @@ int     smtp_xfer(SMTP_STATE *state)
     else
 	recv_state = send_state = SMTP_STATE_MAIL;
 
-    return (smtp_loop(state, send_state, recv_state));
+    /*
+     * Remember this session's "normal completion", even if the server 4xx-ed
+     * some or all recipients. Connection or handshake errors with a later MX
+     * host should not cause this destination be marked as unreachable.
+     */
+    result = smtp_loop(state, send_state, recv_state);
+
+    if (result == 0
+    /* Just in case */
+	&& vstream_ferror(session->stream) == 0
+	&& vstream_feof(session->stream) == 0)
+	state->misc_flags |= SMTP_MISC_FLAG_COMPLETE_SESSION;
+
+    return (result);
 }
 
 /* smtp_rset - send a lone RSET command */
