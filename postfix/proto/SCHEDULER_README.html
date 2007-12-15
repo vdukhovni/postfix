@@ -26,17 +26,19 @@ deliveries at specific times, and removes mail from the queue after
 the last delivery attempt.  There are two major classes of mechanisms
 that control the operation of the queue manager. </p>
 
+<p> Topics covered by this document: </p>
+
 <ul>
 
-<li> <a href="#concurrency"> Concurrency scheduling </a> is concerned
+<li> <a href="#concurrency"> Concurrency scheduling</a>, concerned
 with the number of concurrent deliveries to a specific destination,
 including decisions on when to suspend deliveries after persistent
 failures.
 
-<li> <a href="#jobs"> Preemptive scheduling </a> is concerned with
+<li> <a href="#jobs"> Preemptive scheduling</a>, concerned with
 the selection of email messages and recipients for a given destination.
 
-<li> <a href="#credits"> Credits </a>. This document would not be
+<li> <a href="#credits"> Credits</a>, something this document would not be
 complete without.
 
 </ul>
@@ -97,7 +99,7 @@ concurrency scheduler </a> </h3>
 
 <p> From the start, Postfix has used a simple but robust algorithm
 where the per-destination delivery concurrency is decremented by 1
-after a delivery suffered connection or handshake failure, and
+after delivery failed due to connection or handshake failure, and
 incremented by 1 otherwise.  Of course the concurrency is never
 allowed to exceed the maximum per-destination concurrency limit.
 And when a destination's concurrency level drops to zero, the
@@ -282,7 +284,8 @@ argument to the listen(2) system call, and "postfix reload" does
 not re-issue this call.
 
 <li> Mail was discarded with "local_recipient_maps = static:all" and
-"local_transport = discard". The discard action in header/body checks
+"local_transport = discard". The discard action in access maps or
+header/body checks
 could not be used as it fails to update the in_flow_delay counters.
 
 </ul>
@@ -468,7 +471,7 @@ a server concurrency limit and a client initial destination concurrency
 of 5, and a server process limit of 10; all other conditions were
 the same as with the first measurement. The same result would be
 obtained with a FreeBSD or Linux server, because the "pushing back"
-is done entirely by the receiving Postfix. </p>
+is done entirely by the receiving side. </p>
 
 <blockquote>
 
@@ -529,7 +532,12 @@ with increasing concurrency. See text for a discussion of results.
 
 <p> All results in the previous sections are based on the first
 delivery runs only; they do not include any second etc. delivery
-attempts.  The first two examples show that the effect of feedback
+attempts. It's also worth noting that the measurements look at
+steady-state behavior only. They don't show what happens when the
+client starts sending at a much higher or lower concurrency.
+</p>
+
+<p> The first two examples show that the effect of feedback
 is negligible when concurrency is limited due to congestion. This
 is because the initial concurrency is already at the client's
 concurrency maximum, and because there is 10-100 times more positive
@@ -547,6 +555,20 @@ concurrencies than shown here, but has limitations as discussed in
 the next section.  </p>
 
 <h3> <a name="concurrency_limitations"> Limitations of less-than-1 per delivery feedback </a> </h3>
+
+<p> Less-than-1 feedback is of interest primarily when sending large
+amounts of mail to destinations with active concurrency limiters
+(servers that reply with 421, or firewalls that send RST).  When
+sending small amounts of mail per destination, less-than-1 per-delivery
+feedback won't have a noticeable effect on the per-destination
+concurrency, because the number of deliveries to the same destination
+is too small. You might just as well use zero per-delivery feedback
+and stay with the initial per-destination concurrency. And when
+mail deliveries fail due to congestion instead of active concurrency
+limiters, the measurements above show that per-delivery feedback
+has no effect.  With large amounts of mail you might just as well
+use zero per-delivery feedback and start with the maximal per-destination
+concurrency.  </p>
 
 <p> The scheduler with less-than-1 concurrency
 feedback per delivery solves a problem with servers that have active
@@ -582,8 +604,8 @@ delivery (no connect or handshake error), and use an equal or smaller
 amount of negative feedback per "bad" delivery.  The downside of
 using concurrency-independent feedback is that some of the old +/-1
 feedback problems will return at large concurrencies.  Sites that
-deliver at non-trivial per-destination concurrencies will require
-special configuration.  </p>
+must deliver mail at non-trivial per-destination concurrencies will
+require special configuration.  </p>
 
 <h3> <a name="concurrency_config"> Concurrency configuration parameters </a> </h3>
 
@@ -643,7 +665,7 @@ activity </td> </tr>
 
 <p>
 
-This document attempts to describe the new queue manager and its
+The following sections describe the new queue manager and its
 preemptive scheduler algorithm. Note that the document was originally
 written to describe the changes between the new queue manager (in
 this text referred to as <tt>nqmgr</tt>, the name it was known by
@@ -1776,7 +1798,8 @@ with per-domain FIFO scheduling, and per-delivery +/-1 concurrency
 feedback.
 
 <li> Patrik Rak designed and implemented preemption where mail with
-fewer recipients can slip past mail with more recipients.
+fewer recipients can slip past mail with more recipients in a
+controlled manner, and wrote up its documentation.
 
 <li> Wietse Venema initiated a discussion with Patrik Rak and Victor
 Duchovni on alternatives for the +/-1 feedback scheduler's aggressive
@@ -1788,10 +1811,10 @@ feedback and dead site detection.
 context of concurrency-limited servers.
 
 <li> Wietse Venema then re-designed the concurrency scheduler in
-terms of simplest possible concepts: less-than-1 concurrency feedback
-per delivery, forward and reverse concurrency feedback hysteresis,
-and pseudo-cohort failure. At this same time, concurrency feedback
-was separated from dead site detection.
+terms of the simplest possible concepts: less-than-1 concurrency
+feedback per delivery, forward and reverse concurrency feedback
+hysteresis, and pseudo-cohort failure. At this same time, concurrency
+feedback was separated from dead site detection.
 
 <li> These simplifications, and their modular implementation, helped
 to develop further insights into the different roles that positive

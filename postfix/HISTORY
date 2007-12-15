@@ -13972,12 +13972,12 @@ Apologies for any names omitted.
 
 	Cleanup: the queue manager and SMTP client now distinguish
 	between connection cache store and retrieve hints. Once the
-	queue manager enables enables connection caching (store and
-	load) hints on a per-destination queue, it keeps sending
-	connection cache retrieve hints to the delivery agent even
-	after it stops sending connection cache store hints.  This
-	prevents the SMTP client from making a new connection without
-	checking the connection cache first. Victor Duchovni.  Files:
+	queue manager enables connection caching (store and load)
+	hints on a per-destination queue, it keeps sending connection
+	cache retrieve hints to the delivery agent even after it
+	stops sending connection cache store hints.  This prevents
+	the SMTP client from making a new connection without checking
+	the connection cache first. Victor Duchovni.  Files:
 	*qmgr/qmgr_entry.c, smtp/smtp_connect.c.
 
 	Bugfix (introduced Postfix 2.3): the SMTP client never
@@ -13989,3 +13989,12 @@ Apologies for any names omitted.
 	without connect or handshake error. Victor Duchovni. Files:
 	smtp/smtp_connect.c, smtp/smtp_session.c, smtp/smtp_proto.c,
 	smtp/smtp_trouble.c.
+
+20071215
+
+	Documentation and code cleanup. Files: global/deliver_request.h,
+	*qmgr/qmgr_entry.c, smtp/smtp_connect.c,
+	proto/SCHEDULER_README.html.
+
+	Bugfix: qmqpd ignored the qmqpd_client_port_logging parameter
+	setting. File: qmqpd/qmqpd.c.

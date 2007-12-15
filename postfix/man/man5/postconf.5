@@ -1829,8 +1829,7 @@ inet_protocols = ipv4, ipv6
 .ft R
 .SH initial_destination_concurrency (default: 5)
 The initial per-destination concurrency level for parallel delivery
-to the same destination. This limit applies to delivery via \fBsmtp\fR(8),
-and via the \fBpipe\fR(8) and \fBvirtual\fR(8) delivery agents.
+to the same destination.
 With per-destination recipient limit > 1, a destination is a domain,
 otherwise it is a recipient.
 .PP

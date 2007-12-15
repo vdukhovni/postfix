@@ -1859,8 +1859,7 @@ inet_protocols = ipv4, ipv6
 
 <p>
 The initial per-destination concurrency level for parallel delivery
-to the same destination. This limit applies to delivery via smtp(8),
-and via the pipe(8) and virtual(8) delivery agents.
+to the same destination.
 With per-destination recipient limit &gt; 1, a destination is a domain,
 otherwise it is a recipient.
 </p>

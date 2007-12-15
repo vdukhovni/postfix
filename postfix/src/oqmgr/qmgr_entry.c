@@ -138,12 +138,12 @@ QMGR_ENTRY *qmgr_entry_select(QMGR_QUEUE *queue)
 	 * prevents unnecessary session caching when we have a burst of mail
 	 * <= the initial concurrency limit.
 	 */
-	if ((queue->dflags & DEL_REQ_FLAG_SCACHE_ST) == 0) {
+	if ((queue->dflags & DEL_REQ_FLAG_CONN_STORE) == 0) {
 	    if (BACK_TO_BACK_DELIVERY()) {
 		if (msg_verbose)
 		    msg_info("%s: allowing on-demand session caching for %s",
 			     myname, queue->name);
-		queue->dflags |= DEL_REQ_FLAG_SCACHE_MASK;
+		queue->dflags |= DEL_REQ_FLAG_CONN_MASK;
 	    }
 	}
 
@@ -158,7 +158,7 @@ QMGR_ENTRY *qmgr_entry_select(QMGR_QUEUE *queue)
 		if (msg_verbose)
 		    msg_info("%s: disallowing on-demand session caching for %s",
 			     myname, queue->name);
-		queue->dflags &= ~DEL_REQ_FLAG_SCACHE_ST;
+		queue->dflags &= ~DEL_REQ_FLAG_CONN_STORE;
 	    }
 	}
     }

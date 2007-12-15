@@ -9,12 +9,14 @@ It schedules delivery of new mail, retries failed deliveries at specific times,
 and removes mail from the queue after the last delivery attempt. There are two
 major classes of mechanisms that control the operation of the queue manager.
 
-  * Concurrency scheduling is concerned with the number of concurrent
-    deliveries to a specific destination, including decisions on when to
-    suspend deliveries after persistent failures.
-  * Preemptive scheduling is concerned with the selection of email messages and
+Topics covered by this document:
+
+  * Concurrency scheduling, concerned with the number of concurrent deliveries
+    to a specific destination, including decisions on when to suspend
+    deliveries after persistent failures.
+  * Preemptive scheduling, concerned with the selection of email messages and
     recipients for a given destination.
-  * Credits. This document would not be complete without.
+  * Credits, something this document would not be complete without.
 
 CCoonnccuurrrreennccyy sscchheedduulliinngg
 
@@ -37,11 +39,11 @@ The material is organized as follows:
 DDrraawwbbaacckkss ooff tthhee eexxiissttiinngg ccoonnccuurrrreennccyy sscchheedduulleerr
 
 From the start, Postfix has used a simple but robust algorithm where the per-
-destination delivery concurrency is decremented by 1 after a delivery suffered
-connection or handshake failure, and incremented by 1 otherwise. Of course the
-concurrency is never allowed to exceed the maximum per-destination concurrency
-limit. And when a destination's concurrency level drops to zero, the
-destination is declared "dead" and delivery is suspended.
+destination delivery concurrency is decremented by 1 after delivery failed due
+to connection or handshake failure, and incremented by 1 otherwise. Of course
+the concurrency is never allowed to exceed the maximum per-destination
+concurrency limit. And when a destination's concurrency level drops to zero,
+the destination is declared "dead" and delivery is suspended.
 
 Drawbacks of +/-1 concurrency feedback per delivery are:
 
@@ -200,8 +202,9 @@ Server configuration:
     number is also used as the backlog argument to the listen(2) system call,
     and "postfix reload" does not re-issue this call.
   * Mail was discarded with "local_recipient_maps = static:all" and
-    "local_transport = discard". The discard action in header/body checks could
-    not be used as it fails to update the in_flow_delay counters.
+    "local_transport = discard". The discard action in access maps or header/
+    body checks could not be used as it fails to update the in_flow_delay
+    counters.
 
 Client configuration:
 
@@ -302,7 +305,7 @@ measurement we specified a server concurrency limit and a client initial
 destination concurrency of 5, and a server process limit of 10; all other
 conditions were the same as with the first measurement. The same result would
 be obtained with a FreeBSD or Linux server, because the "pushing back" is done
-entirely by the receiving Postfix.
+entirely by the receiving side.
 
     cclliieenntt sseerrvveerr ffeeeeddbbaacckk  ccoonnnneeccttiioonn ppeerrcceennttaaggee cclliieenntt         tthheeoorreettiiccaall
     lliimmiitt  lliimmiitt  ssttyyllee     ccaacchhiinngg    ddeeffeerrrreedd   ccoonnccuurrrreennccyy    ddeeffeerr rraattee
@@ -333,12 +336,16 @@ entirely by the receiving Postfix.
 DDiissccuussssiioonn ooff ccoonnccuurrrreennccyy lliimmiitteedd sseerrvveerr rreessuullttss
 
 All results in the previous sections are based on the first delivery runs only;
-they do not include any second etc. delivery attempts. The first two examples
-show that the effect of feedback is negligible when concurrency is limited due
-to congestion. This is because the initial concurrency is already at the
-client's concurrency maximum, and because there is 10-100 times more positive
-than negative feedback. Under these conditions, it is no surprise that the
-contribution from SMTP connection caching is also negligible.
+they do not include any second etc. delivery attempts. It's also worth noting
+that the measurements look at steady-state behavior only. They don't show what
+happens when the client starts sending at a much higher or lower concurrency.
+
+The first two examples show that the effect of feedback is negligible when
+concurrency is limited due to congestion. This is because the initial
+concurrency is already at the client's concurrency maximum, and because there
+is 10-100 times more positive than negative feedback. Under these conditions,
+it is no surprise that the contribution from SMTP connection caching is also
+negligible.
 
 In the last example, the old +/-1 feedback per delivery will defer 50% of the
 mail when confronted with an active (anvil-style) server concurrency limit,
@@ -349,6 +356,18 @@ higher concurrencies than shown here, but has limitations as discussed in the
 next section.
 
 LLiimmiittaattiioonnss ooff lleessss--tthhaann--11 ppeerr ddeelliivveerryy ffeeeeddbbaacckk
+
+Less-than-1 feedback is of interest primarily when sending large amounts of
+mail to destinations with active concurrency limiters (servers that reply with
+421, or firewalls that send RST). When sending small amounts of mail per
+destination, less-than-1 per-delivery feedback won't have a noticeable effect
+on the per-destination concurrency, because the number of deliveries to the
+same destination is too small. You might just as well use zero per-delivery
+feedback and stay with the initial per-destination concurrency. And when mail
+deliveries fail due to congestion instead of active concurrency limiters, the
+measurements above show that per-delivery feedback has no effect. With large
+amounts of mail you might just as well use zero per-delivery feedback and start
+with the maximal per-destination concurrency.
 
 The scheduler with less-than-1 concurrency feedback per delivery solves a
 problem with servers that have active concurrency limiters. This works only
@@ -379,8 +398,8 @@ of 4 bad servers in the above load balancer scenario, use positive feedback of
 1/4 per "good" delivery (no connect or handshake error), and use an equal or
 smaller amount of negative feedback per "bad" delivery. The downside of using
 concurrency-independent feedback is that some of the old +/-1 feedback problems
-will return at large concurrencies. Sites that deliver at non-trivial per-
-destination concurrencies will require special configuration.
+will return at large concurrencies. Sites that must deliver mail at non-trivial
+per-destination concurrencies will require special configuration.
 
 CCoonnccuurrrreennccyy ccoonnffiigguurraattiioonn ppaarraammeetteerrss
 
@@ -448,7 +467,7 @@ Postfix versions.
 
 PPrreeeemmppttiivvee sscchheedduulliinngg
 
-This document attempts to describe the new queue manager and its preemptive
+The following sections describe the new queue manager and its preemptive
 scheduler algorithm. Note that the document was originally written to describe
 the changes between the new queue manager (in this text referred to as nqmgr,
 the name it was known by before it became the default queue manager) and the
@@ -1113,14 +1132,15 @@ CCrreeddiittss
   * Wietse Venema designed and implemented the initial queue manager with per-
     domain FIFO scheduling, and per-delivery +/-1 concurrency feedback.
   * Patrik Rak designed and implemented preemption where mail with fewer
-    recipients can slip past mail with more recipients.
+    recipients can slip past mail with more recipients in a controlled manner,
+    and wrote up its documentation.
   * Wietse Venema initiated a discussion with Patrik Rak and Victor Duchovni on
     alternatives for the +/-1 feedback scheduler's aggressive behavior. This is
     when K/N feedback was reviewed (N = concurrency). The discussion ended
     without a good solution for both negative feedback and dead site detection.
   * Victor Duchovni resumed work on concurrency feedback in the context of
     concurrency-limited servers.
-  * Wietse Venema then re-designed the concurrency scheduler in terms of
+  * Wietse Venema then re-designed the concurrency scheduler in terms of the
     simplest possible concepts: less-than-1 concurrency feedback per delivery,
     forward and reverse concurrency feedback hysteresis, and pseudo-cohort
     failure. At this same time, concurrency feedback was separated from dead

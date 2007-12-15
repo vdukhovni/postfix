@@ -457,9 +457,9 @@ static void smtp_cache_policy(SMTP_STATE *state, const char *dest)
     if (smtp_cache_dest && string_list_match(smtp_cache_dest, dest)) {
 	state->misc_flags |= SMTP_MISC_FLAG_CONN_CACHE_MASK;
     } else if (var_smtp_cache_demand) {
-	if (request->flags & DEL_REQ_FLAG_SCACHE_LD)
+	if (request->flags & DEL_REQ_FLAG_CONN_LOAD)
 	    state->misc_flags |= SMTP_MISC_FLAG_CONN_LOAD;
-	if (request->flags & DEL_REQ_FLAG_SCACHE_ST)
+	if (request->flags & DEL_REQ_FLAG_CONN_STORE)
 	    state->misc_flags |= SMTP_MISC_FLAG_CONN_STORE;
     }
 }
