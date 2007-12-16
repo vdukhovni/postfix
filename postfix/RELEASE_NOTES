@@ -17,6 +17,16 @@ Incompatibility with Postfix 2.3 and earlier
 If you upgrade from Postfix 2.3 or earlier, read RELEASE_NOTES-2.4
 before proceeding.
 
+Incompatibility with Postfix snapshot 20071216
+==============================================
+
+Due to an incompatible API change between OpenLDAP 2.0.11 and 2.0.12,
+an LDAP client compiled for OpenLDAP version <= 2.0.11 will refuse
+to work with an OpenLDAP library version >= 2.0.12 and vice versa.
+
+The SMTP "transcript of session" email now includes the remote SMTP
+server TCP port number.
+
 Incompatibility with Postfix snapshot 20071212
 ==============================================
 

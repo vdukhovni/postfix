@@ -139,7 +139,7 @@ void    smtp_sasl_helo_auth(SMTP_SESSION *session, const char *words)
     } else {
 	msg_warn(*words ? "%s offered no supported AUTH mechanisms: '%s'" :
 		 "%s offered null AUTH mechanism list",
-		 session->namaddr, words);
+		 session->namaddrport, words);
     }
     session->features |= SMTP_FEATURE_AUTH;
 }

@@ -277,7 +277,7 @@ int     smtp_sasl_authenticate(SMTP_SESSION *session, DSN_BUF *why)
 
     if (msg_verbose)
 	msg_info("%s: %s: SASL mechanisms %s",
-		 myname, session->namaddr, session->sasl_mechanism_list);
+		 myname, session->namaddrport, session->sasl_mechanism_list);
 
     /*
      * Start the client side authentication protocol.

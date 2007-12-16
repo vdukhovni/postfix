@@ -318,8 +318,8 @@ int     db_common_expand(void *ctxArg, const char *format, const char *value,
 	    if ((vdomain = strrchr(value, '@')) != 0)
 		++vdomain;
 
-	if ((!vdomain || !*vdomain) && (ctx->flags & DB_COMMON_VALUE_DOMAIN) != 0
-	|| vdomain == value + 1 && (ctx->flags & DB_COMMON_VALUE_USER) != 0)
+	if (((!vdomain || !*vdomain) && (ctx->flags & DB_COMMON_VALUE_DOMAIN) != 0)
+	    || (vdomain == value + 1 && (ctx->flags & DB_COMMON_VALUE_USER) != 0))
 	    return (0);
 
 	/* The result format may use the local or domain part of the key */
@@ -331,8 +331,8 @@ int     db_common_expand(void *ctxArg, const char *format, const char *value,
 	 * The key should already be checked before the query. No harm if the
 	 * query did not get optimized out, so we just issue a warning.
 	 */
-	if ((!kdomain || !*kdomain) && (ctx->flags & DB_COMMON_KEY_DOMAIN) != 0
-	  || kdomain == key + 1 && (ctx->flags & DB_COMMON_KEY_USER) != 0) {
+	if (((!kdomain || !*kdomain) && (ctx->flags & DB_COMMON_KEY_DOMAIN) != 0)
+	|| (kdomain == key + 1 && (ctx->flags & DB_COMMON_KEY_USER) != 0)) {
 	    msg_warn("%s: %s: lookup key '%s' skipped after query", myname,
 		     ctx->dict->name, value);
 	    return (0);
@@ -343,8 +343,8 @@ int     db_common_expand(void *ctxArg, const char *format, const char *value,
 	    if ((vdomain = strrchr(value, '@')) != 0)
 		++vdomain;
 
-	if ((!vdomain || !*vdomain) && (ctx->flags & DB_COMMON_KEY_DOMAIN) != 0
-	  || vdomain == value + 1 && (ctx->flags & DB_COMMON_KEY_USER) != 0)
+	if (((!vdomain || !*vdomain) && (ctx->flags & DB_COMMON_KEY_DOMAIN) != 0)
+	|| (vdomain == value + 1 && (ctx->flags & DB_COMMON_KEY_USER) != 0))
 	    return (0);
     }
 

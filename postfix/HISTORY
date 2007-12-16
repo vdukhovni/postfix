@@ -13998,3 +13998,14 @@ Apologies for any names omitted.
 
 	Bugfix: qmqpd ignored the qmqpd_client_port_logging parameter
 	setting. File: qmqpd/qmqpd.c.
+
+20071216
+
+	Cleanup: show the remote SMTP server port in verbose logging,
+	warnings and postmaster notices.  Still don't show the port
+	in delivery status notifications. Files: smtp/smtp_chat.c,
+	smtp/smtp_sasl_glue.c, smtp/smtp_sasl_proto.c.
+
+	The "tls_require_cert" is now compatible with OpenLDAP 2.1
+	and later. Victor Duchovni. Files: proto/ldap_table,
+	global/dict_ldap.c.

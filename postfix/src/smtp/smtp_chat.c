@@ -182,7 +182,7 @@ void    smtp_chat_cmd(SMTP_SESSION *session, char *fmt,...)
      * program is trying to do.
      */
     if (msg_verbose)
-	msg_info("> %s: %s", session->namaddr, STR(session->buffer));
+	msg_info("> %s: %s", session->namaddrport, STR(session->buffer));
 
     /*
      * Send the command to the SMTP server.
@@ -246,9 +246,9 @@ SMTP_RESP *smtp_chat_resp(SMTP_SESSION *session)
 	printable(STR(session->buffer), '?');
 	if (last_char != '\n')
 	    msg_warn("%s: response longer than %d: %.30s...",
-		     session->namaddr, var_line_limit, STR(session->buffer));
+		session->namaddrport, var_line_limit, STR(session->buffer));
 	if (msg_verbose)
-	    msg_info("< %s: %.100s", session->namaddr, STR(session->buffer));
+	    msg_info("< %s: %.100s", session->namaddrport, STR(session->buffer));
 
 	/*
 	 * Defend against a denial of service attack by limiting the amount
@@ -420,9 +420,10 @@ void    smtp_chat_notify(SMTP_SESSION *session)
 		      var_mail_name,
 		      (session->state->misc_flags &
 		       SMTP_MISC_FLAG_USE_LMTP) ? "LMTP" : "SMTP",
-		      session->namaddr);
+		      session->namaddrport);
     post_mail_fputs(notice, "");
-    post_mail_fprintf(notice, "Unexpected response from %s.", session->namaddr);
+    post_mail_fprintf(notice, "Unexpected response from %s.",
+		      session->namaddrport);
     post_mail_fputs(notice, "");
     post_mail_fputs(notice, "Transcript of session follows.");
     post_mail_fputs(notice, "");
