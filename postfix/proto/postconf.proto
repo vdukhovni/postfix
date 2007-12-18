@@ -6259,7 +6259,7 @@ Example:
 <pre>
 debugger_command =
     PATH=/usr/bin:/usr/X11R6/bin
-    xxgdb $daemon_directory/$process_name $process_id &amp; sleep 5
+    ddd $daemon_directory/$process_name $process_id &amp; sleep 5
 </pre>
 
 %PARAM 2bounce_notice_recipient postmaster

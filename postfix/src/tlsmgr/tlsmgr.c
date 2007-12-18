@@ -196,6 +196,7 @@
 #include <vstring_vstream.h>
 #include <attr.h>
 #include <set_eugid.h>
+#include <htable.h>
 
 /* Global library. */
 
@@ -275,12 +276,12 @@ static TLS_PRNG_SRC *rand_source_file;
   * State for TLS session caches.
   */
 typedef struct {
-    char   *cache_label;
-    TLS_SCACHE *cache_info;
-    int     cache_active;
-    char  **cache_db;
-    int    *cache_loglevel;
-    int    *cache_timeout;
+    char   *cache_label;		/* cache short-hand name */
+    TLS_SCACHE *cache_info;		/* cache handle */
+    int     cache_active;		/* cache status */
+    char  **cache_db;			/* main.cf parameter value */
+    int    *cache_loglevel;		/* main.cf parameter value */
+    int    *cache_timeout;		/* main.cf parameter value */
 } TLSMGR_SCACHE;
 
 TLSMGR_SCACHE cache_table[] = {
@@ -748,6 +749,8 @@ static void tlsmgr_pre_init(char *unused_name, char **unused_argv)
     struct timeval tv;
     TLSMGR_SCACHE *ent;
     VSTRING *redirect;
+    HTABLE *dup_filter;
+    const char *dup_label;
 
     /*
      * If nothing else works then at least this will get us a few bits of
@@ -833,16 +836,22 @@ static void tlsmgr_pre_init(char *unused_name, char **unused_argv)
      * Open the session cache files and discard old information before going
      * to jail, but don't use root privilege. Start the cache maintenance
      * pseudo threads after dropping privileges.
-     * 
-     * XXX Need sanity check that the databases have different names.
      */
-    for (ent = cache_table; ent->cache_label; ++ent)
-	if (**ent->cache_db)
+    dup_filter = htable_create(sizeof(cache_table) / sizeof(cache_table[0]));
+    for (ent = cache_table; ent->cache_label; ++ent) {
+	if (**ent->cache_db) {
+	    if ((dup_label = htable_find(dup_filter, *ent->cache_db)) != 0)
+		msg_fatal("do not use the same TLS cache file %s for %s and %s",
+			  *ent->cache_db, dup_label, ent->cache_label);
+	    htable_enter(dup_filter, *ent->cache_db, ent->cache_label);
 	    ent->cache_info =
 		tls_scache_open(data_redirect_map(redirect, *ent->cache_db),
 				ent->cache_label,
 				*ent->cache_loglevel >= 2,
 				*ent->cache_timeout);
+	}
+    }
+    htable_free(dup_filter, (void (*) (char *)) 0);
 
     /*
      * Clean up and restore privilege.

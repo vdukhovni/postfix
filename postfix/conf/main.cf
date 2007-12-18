@@ -587,7 +587,7 @@ debug_peer_level = 2
 #
 debugger_command =
 	 PATH=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin
-	 xxgdb $daemon_directory/$process_name $process_id & sleep 5
+	 ddd $daemon_directory/$process_name $process_id & sleep 5
 
 # If you can't use X, use this to capture the call stack when a
 # daemon crashes. The result is in a file in the configuration

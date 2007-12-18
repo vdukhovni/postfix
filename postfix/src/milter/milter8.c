@@ -71,37 +71,6 @@
 
 /* Sendmail 8 Milter protocol. */
 
-#ifdef USE_LIBMILTER_INCLUDES
-
- /*
-  * Use the include files that match the installed libmilter library. This
-  * requires that the libmilter files are installed before Postfix can be
-  * built with milter support, and requires that Postfix is rebuilt whenever
-  * protocol version in these files changes. The other option (below) is to
-  * use our own protocol definitions.
-  */
-#include <libmilter/mfapi.h>
-#include <libmilter/mfdef.h>
-
- /*
-  * Compatibility for missing definitions or for names that have changed over
-  * time.
-  */
-#ifndef SMFIF_CHGBODY
-#define SMFIF_CHGBODY	SMFIF_MODBODY
-#endif
-#ifndef SMFIF_CHGHDRS
-#define SMFIF_CHGHDRS	SMFIF_MODHDRS
-#endif
-#if defined(SMFIC_UNKNOWN) && !defined(SMFIP_NOUNKNOWN)
-#define SMFIP_NOUNKNOWN 	(1L<<8)	/* MTA should not send unknown cmd */
-#endif
-#if defined(SMFIC_DATA) && !defined(SMFIP_NODATA)
-#define SMFIP_NODATA		(1L<<9)	/* MTA should not send DATA */
-#endif
-
-#else
-
  /*
   * Use our own protocol definitions, so that Postfix can be built even when
   * libmilter is not installed. This means that we must specify the libmilter
@@ -186,8 +155,6 @@
   */
 #define MILTER_CHUNK_SIZE	65535	/* body chunk size */
 
-#endif
-
 /* Utility library. */
 
 #include <msg.h>
@@ -229,9 +196,7 @@ typedef struct {
     int     version;			/* application protocol version */
     int     rq_mask;			/* application requests (SMFIF_*) */
     int     ev_mask;			/* application events (SMFIP_*) */
-#ifndef USE_LIBMILTER_INCLUDES
     int     np_mask;			/* events outside my protocol version */
-#endif
     VSTRING *buf;			/* I/O buffer */
     VSTRING *body;			/* I/O buffer */
     VSTREAM *fp;			/* stream or null (closed) */
@@ -285,8 +250,6 @@ typedef struct {
 #define XXX_MAX_DATA	(INT_MAX / 2)
 #define XXX_TIMEOUT	10
 
-#ifndef USE_LIBMILTER_INCLUDES
-
  /*
   * If we're not using Sendmail's libmilter include files, then we implement
   * the protocol up to and including version 4, and configure in main.cf what
@@ -330,8 +293,6 @@ static NAME_CODE milter8_versions[] = {
     "no_header_reply", 0,
     0, -1,
 };
-
-#endif
 
  /*
   * Tables to map the above symbolic constants to printable strings. We use
@@ -914,7 +875,6 @@ static const char *milter8_event(MILTER8 *milter, int event,
     /*
      * Skip this event if it doesn't exist in the protocol that I announced.
      */
-#ifndef USE_LIBMILTER_INCLUDES
     if ((skip_event_flag & milter->np_mask) != 0) {
 	if (msg_verbose)
 	    msg_info("skipping non-protocol event %s for milter %s",
@@ -922,7 +882,6 @@ static const char *milter8_event(MILTER8 *milter, int event,
 		     smfic_name : "(unknown MTA event)", milter->m.name);
 	return (milter->def_reply);
     }
-#endif
 
     /*
      * Send the macros for this event, even when we're not reporting the
@@ -1459,31 +1418,11 @@ static void milter8_connect(MILTER8 *milter)
 #endif
     );
 
-#ifdef USE_LIBMILTER_INCLUDES
-    const UINT32_TYPE my_version = SMFI_VERSION;
-    const UINT32_TYPE my_events = (SMFIP_NOCONNECT | SMFIP_NOHELO
-				   | SMFIP_NOMAIL | SMFIP_NORCPT
-				   | SMFIP_NOBODY | SMFIP_NOHDRS
-				   | SMFIP_NOEOH
-#ifdef SMFIP_NOHREPL
-				   | SMFIP_NOHREPL
-#endif
-#ifdef SMFIP_NOUNKNOWN
-				   | SMFIP_NOUNKNOWN
-#endif
-#ifdef SMFIP_NODATA
-				   | SMFIP_NODATA
-#endif
-    );
-
-#else
     UINT32_TYPE my_version = 0;
     UINT32_TYPE my_events = 0;
     char   *saved_version;
     char   *cp;
     char   *name;
-
-#endif
 
     /*
      * Sanity check.
@@ -1491,8 +1430,6 @@ static void milter8_connect(MILTER8 *milter)
     if (milter->fp != 0)
 	msg_panic("%s: milter %s: socket is not closed",
 		  myname, milter->m.name);
-
-#ifndef USE_LIBMILTER_INCLUDES
 
     /*
      * For user friendliness reasons the milter_protocol configuration
@@ -1547,7 +1484,6 @@ static void milter8_connect(MILTER8 *milter)
 		 myname, my_version,
 		 str_name_mask_opt(milter->buf, "non-protocol event mask",
 			   smfip_table, milter->np_mask, NAME_MASK_NUMBER));
-#endif
 
     /*
      * Parse the Milter application endpoint.
@@ -2401,9 +2337,7 @@ static int milter8_send(MILTER *m, VSTREAM *stream)
 		   ATTR_TYPE_INT, MAIL_ATTR_MILT_VERS, milter->version,
 		   ATTR_TYPE_INT, MAIL_ATTR_MILT_ACTS, milter->rq_mask,
 		   ATTR_TYPE_INT, MAIL_ATTR_MILT_EVTS, milter->ev_mask,
-#ifndef USE_LIBMILTER_INCLUDES
 		   ATTR_TYPE_INT, MAIL_ATTR_MILT_NPTS, milter->np_mask,
-#endif
 		   ATTR_TYPE_INT, MAIL_ATTR_MILT_STAT, milter->state,
 		   ATTR_TYPE_INT, MAIL_ATTR_MILT_CONN, milter->conn_timeout,
 		   ATTR_TYPE_INT, MAIL_ATTR_MILT_CMD, milter->cmd_timeout,
@@ -2462,9 +2396,7 @@ MILTER *milter8_receive(VSTREAM *stream, MILTERS *parent)
 		  ATTR_TYPE_INT, MAIL_ATTR_MILT_VERS, &version,
 		  ATTR_TYPE_INT, MAIL_ATTR_MILT_ACTS, &rq_mask,
 		  ATTR_TYPE_INT, MAIL_ATTR_MILT_EVTS, &ev_mask,
-#ifndef USE_LIBMILTER_INCLUDES
 		  ATTR_TYPE_INT, MAIL_ATTR_MILT_NPTS, &np_mask,
-#endif
 		  ATTR_TYPE_INT, MAIL_ATTR_MILT_STAT, &state,
 		  ATTR_TYPE_INT, MAIL_ATTR_MILT_CONN, &conn_timeout,
 		  ATTR_TYPE_INT, MAIL_ATTR_MILT_CMD, &cmd_timeout,
@@ -2489,7 +2421,7 @@ MILTER *milter8_receive(VSTREAM *stream, MILTERS *parent)
 #endif
     } else {
 #define NO_PROTOCOL	((char *) 0)
- 
+
 	if (msg_verbose)
 	    msg_info("%s: milter %s", myname, STR(name_buf));
 
@@ -2502,9 +2434,7 @@ MILTER *milter8_receive(VSTREAM *stream, MILTERS *parent)
 	milter->version = version;
 	milter->rq_mask = rq_mask;
 	milter->ev_mask = ev_mask;
-#ifndef USE_LIBMILTER_INCLUDES
 	milter->np_mask = np_mask;
-#endif
 	milter->state = state;
 	return (&milter->m);
     }

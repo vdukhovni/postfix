@@ -64,6 +64,7 @@ tlsmgr.o: ../../include/attr.h
 tlsmgr.o: ../../include/data_redirect.h
 tlsmgr.o: ../../include/dict.h
 tlsmgr.o: ../../include/events.h
+tlsmgr.o: ../../include/htable.h
 tlsmgr.o: ../../include/iostuff.h
 tlsmgr.o: ../../include/mail_conf.h
 tlsmgr.o: ../../include/mail_params.h
