@@ -5157,6 +5157,17 @@ fully-qualified domain form, as required by the RFC. <br> The
 non_fqdn_reject_code parameter specifies the response code to
 rejected requests (default: 504).</dd>
 
+<dt><b><a name="reject_rhsbl_helo">reject_rhsbl_helo <i>rbl_domain=d.d.d.d</i></a></b></dt>
+
+<dd>Reject the request when the HELO or EHLO hostname hostname is
+listed with the A record "<i>d.d.d.d</i>" under <i>rbl_domain</i>
+(Postfix version 2.1 and later only).  If no "<i>=d.d.d.d</i>" is
+specified, reject the request when the HELO or EHLO hostname is
+listed with any A record under <i>rbl_domain</i>. See the
+reject_rbl_client description for additional RBL related configuration
+parameters.  This feature is available in Postfix 2.0 and later.
+</dd>
+
 <dt><b><a name="reject_unknown_helo_hostname">reject_unknown_helo_hostname</a></b> (with Postfix &lt; 2.3: reject_unknown_hostname)</dt>
 
 <dd>Reject the request when the HELO or EHLO hostname has no DNS A
@@ -10121,19 +10132,24 @@ for details.  </p>
 %PARAM milter_protocol 2
 
 <p> The mail filter protocol version and optional protocol extensions
-for communication with a Milter (mail filter) application. This
-information should match the protocol that is expected by the actual
-mail filter application.  </p>
+for communication with a Milter (mail filter) application. Postfix
+sends this version number during the initial protocol handshake.
+It should match the version number that is expected by the mail
+filter application (or by its Milter library).  </p>
 
 <p>Protocol versions: </p>
 
 <dl compact>
 
-<dt>2</dt> <dd>Use Sendmail 8 mail filter protocol version 2.</dd>
+<dt>2</dt> <dd>Use Sendmail 8 mail filter protocol version 2 (default
+as of Sendmail version 8.11).</dd>
 
 <dt>3</dt> <dd>Use Sendmail 8 mail filter protocol version 3.</dd>
 
 <dt>4</dt> <dd>Use Sendmail 8 mail filter protocol version 4.</dd>
+
+<dt>6</dt> <dd>Use Sendmail 8 mail filter protocol version 6 (default
+as of Sendmail version 8.14).</dd>
 
 </dl>
 
@@ -10247,6 +10263,14 @@ filter) applications after the SMTP DATA command. See MILTER_README
 for a list of available macro names and their meanings.  </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
+
+%PARAM milter_end_of_header_macros see postconf -n output
+
+<p> The macros that are sent to Milter (mail filter) applications
+after the end of the message header. See MILTER_README for a list
+of available macro names and their meanings.  </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
 
 %PARAM milter_end_of_data_macros see postconf -n output
 

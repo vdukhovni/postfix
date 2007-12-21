@@ -256,7 +256,9 @@ static const char *cleanup_milter_error(CLEANUP_STATE *state, int err)
 
 /* cleanup_add_header - append message header */
 
-static const char *cleanup_add_header(void *context, char *name, char *value)
+static const char *cleanup_add_header(void *context, const char *name,
+				              const char *space,
+				              const char *value)
 {
     const char *myname = "cleanup_add_header";
     CLEANUP_STATE *state = (CLEANUP_STATE *) context;
@@ -286,7 +288,7 @@ static const char *cleanup_add_header(void *context, char *name, char *value)
 	return (cleanup_milter_error(state, errno));
     }
     buf = vstring_alloc(100);
-    vstring_sprintf(buf, "%s: %s", name, value);
+    vstring_sprintf(buf, "%s:%s%s", name, space, value);
     cleanup_out_header(state, buf);		/* Includes padding */
     vstring_free(buf);
     if ((reverse_ptr_offset = vstream_ftell(state->dst)) < 0) {
@@ -600,6 +602,7 @@ static off_t cleanup_find_header_end(CLEANUP_STATE *state,
 
 static const char *cleanup_patch_header(CLEANUP_STATE *state,
 					        const char *new_hdr_name,
+					        const char *hdr_space,
 					        const char *new_hdr_value,
 					        off_t old_rec_offset,
 					        int old_rec_type,
@@ -648,7 +651,7 @@ static const char *cleanup_patch_header(CLEANUP_STATE *state,
 	msg_warn("%s: seek file %s: %m", myname, cleanup_path);
 	CLEANUP_PATCH_HEADER_RETURN(cleanup_milter_error(state, errno));
     }
-    vstring_sprintf(buf, "%s: %s", new_hdr_name, new_hdr_value);
+    vstring_sprintf(buf, "%s:%s%s", new_hdr_name, hdr_space, new_hdr_value);
     cleanup_out_header(state, buf);		/* Includes padding */
     if (msg_verbose > 1)
 	msg_info("%s: %ld: write %.*s", myname, (long) new_hdr_offset,
@@ -714,8 +717,9 @@ static const char *cleanup_patch_header(CLEANUP_STATE *state,
 /* cleanup_ins_header - insert message header */
 
 static const char *cleanup_ins_header(void *context, ssize_t index,
-				              char *new_hdr_name,
-				              char *new_hdr_value)
+				              const char *new_hdr_name,
+				              const char *hdr_space,
+				              const char *new_hdr_value)
 {
     const char *myname = "cleanup_ins_header";
     CLEANUP_STATE *state = (CLEANUP_STATE *) context;
@@ -763,7 +767,7 @@ static const char *cleanup_ins_header(void *context, ssize_t index,
      */
     if (old_rec_offset < 0)
 	CLEANUP_INS_HEADER_RETURN(cleanup_add_header(context, new_hdr_name,
-						     new_hdr_value));
+						 hdr_space, new_hdr_value));
 
     /*
      * If the header does exist, save both the new and the existing header to
@@ -779,7 +783,7 @@ static const char *cleanup_ins_header(void *context, ssize_t index,
 	    CLEANUP_INS_HEADER_RETURN(cleanup_milter_error(state, errno));
 	}
     }
-    ret = cleanup_patch_header(state, new_hdr_name, new_hdr_value,
+    ret = cleanup_patch_header(state, new_hdr_name, hdr_space, new_hdr_value,
 			       old_rec_offset, old_rec_type,
 			       old_rec_buf, next_offset);
     CLEANUP_INS_HEADER_RETURN(ret);
@@ -788,8 +792,9 @@ static const char *cleanup_ins_header(void *context, ssize_t index,
 /* cleanup_upd_header - modify or append message header */
 
 static const char *cleanup_upd_header(void *context, ssize_t index,
-				              char *new_hdr_name,
-				              char *new_hdr_value)
+				              const char *new_hdr_name,
+				              const char *hdr_space,
+				              const char *new_hdr_value)
 {
     const char *myname = "cleanup_upd_header";
     CLEANUP_STATE *state = (CLEANUP_STATE *) context;
@@ -843,7 +848,7 @@ static const char *cleanup_upd_header(void *context, ssize_t index,
      */
     if (old_rec_offset < 0)
 	CLEANUP_UPD_HEADER_RETURN(cleanup_add_header(context, new_hdr_name,
-						     new_hdr_value));
+						 hdr_space, new_hdr_value));
 
     /*
      * If the old header is found, find the end of the old header, save the
@@ -853,7 +858,7 @@ static const char *cleanup_upd_header(void *context, ssize_t index,
     if ((next_offset = cleanup_find_header_end(state, rec_buf, last_type)) < 0)
 	/* Warning and errno->error mapping are done elsewhere. */
 	CLEANUP_UPD_HEADER_RETURN(cleanup_milter_error(state, 0));
-    ret = cleanup_patch_header(state, new_hdr_name, new_hdr_value,
+    ret = cleanup_patch_header(state, new_hdr_name, hdr_space, new_hdr_value,
 			       old_rec_offset, DONT_SAVE_RECORD,
 			       (VSTRING *) 0, next_offset);
     CLEANUP_UPD_HEADER_RETURN(ret);
@@ -862,7 +867,7 @@ static const char *cleanup_upd_header(void *context, ssize_t index,
 /* cleanup_del_header - delete message header */
 
 static const char *cleanup_del_header(void *context, ssize_t index,
-				              char *hdr_name)
+				              const char *hdr_name)
 {
     const char *myname = "cleanup_del_header";
     CLEANUP_STATE *state = (CLEANUP_STATE *) context;
@@ -928,7 +933,7 @@ static const char *cleanup_del_header(void *context, ssize_t index,
 
 /* cleanup_add_rcpt - append recipient address */
 
-static const char *cleanup_add_rcpt(void *context, char *ext_rcpt)
+static const char *cleanup_add_rcpt(void *context, const char *ext_rcpt)
 {
     const char *myname = "cleanup_add_rcpt";
     CLEANUP_STATE *state = (CLEANUP_STATE *) context;
@@ -1034,7 +1039,7 @@ static const char *cleanup_add_rcpt(void *context, char *ext_rcpt)
 
 /* cleanup_del_rcpt - remove recipient and all its expansions */
 
-static const char *cleanup_del_rcpt(void *context, char *ext_rcpt)
+static const char *cleanup_del_rcpt(void *context, const char *ext_rcpt)
 {
     const char *myname = "cleanup_del_rcpt";
     CLEANUP_STATE *state = (CLEANUP_STATE *) context;
@@ -1325,6 +1330,8 @@ void    cleanup_milter_receive(CLEANUP_STATE *state, int count)
     if (state->milters)
 	milter_free(state->milters);
     state->milters = milter_receive(state->src, count);
+    if (state->milters == 0)
+	msg_fatal("cleanup_milter_receive: milter receive failed");
     milter_macro_callback(state->milters, cleanup_milter_eval, (void *) state);
     milter_edit_callback(state->milters,
 			 cleanup_add_header, cleanup_upd_header,
@@ -1853,7 +1860,7 @@ int     main(int unused_argc, char **argv)
 		msg_warn("bad add_header argument count: %d", argv->argc);
 	    } else {
 		flatten_args(arg_buf, argv->argv + 2);
-		cleanup_add_header(state, argv->argv[1], STR(arg_buf));
+		cleanup_add_header(state, argv->argv[1], " ", STR(arg_buf));
 	    }
 	} else if (strcmp(argv->argv[0], "ins_header") == 0) {
 	    if (argv->argc < 3) {
@@ -1862,7 +1869,7 @@ int     main(int unused_argc, char **argv)
 		msg_warn("bad ins_header index value");
 	    } else {
 		flatten_args(arg_buf, argv->argv + 3);
-		cleanup_ins_header(state, index, argv->argv[2], STR(arg_buf));
+		cleanup_ins_header(state, index, argv->argv[2], " ", STR(arg_buf));
 	    }
 	} else if (strcmp(argv->argv[0], "upd_header") == 0) {
 	    if (argv->argc < 3) {
@@ -1871,7 +1878,7 @@ int     main(int unused_argc, char **argv)
 		msg_warn("bad upd_header index value");
 	    } else {
 		flatten_args(arg_buf, argv->argv + 3);
-		cleanup_upd_header(state, index, argv->argv[2], STR(arg_buf));
+		cleanup_upd_header(state, index, argv->argv[2], " ", STR(arg_buf));
 	    }
 	} else if (strcmp(argv->argv[0], "del_header") == 0) {
 	    if (argv->argc != 3) {

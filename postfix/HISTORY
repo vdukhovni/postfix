@@ -14029,3 +14029,22 @@ Apologies for any names omitted.
 	Cleanup: replaced documentation references to xxgdb by ddd.
 	The xxgdb program hasn't been updated in more than 10 years.
 	Files: proto/postconf.proto, conf/main.cf.
+
+20071219-20
+
+	Feature: support for all new Sendmail 8.14 Milter features
+	except SMFIR_SKIP (skip further events of this type),
+	SMFIP_RCPT_REJ (report rejected recipients to the mail
+	filter), SMFIR_CHGFROM (replace sender, with optional ESMTP
+	command parameters), and SMFIR_ADDRCPT_PAR (add recipient,
+	with optional ESMTP command parameters). Files: milter/milters.c,
+	milter/milter8.c, milter/test-milter.c, cleanup/cleanup_milter.c.
+
+20071221
+
+	Feature: support for Sendmail 8.14 Milter SMFIR_SKIP (skip
+	further events of this type). Files: milter/milter8.c,
+	milter/test-milter.c.
+
+	Cleanup: don't try sending HELO after a 421 EHLO reply.
+	File: smtp/smtp_proto.c.

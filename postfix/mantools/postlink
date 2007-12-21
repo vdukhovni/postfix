@@ -768,6 +768,7 @@ while (<>) {
     s;\breject_invalid_hostname\b;<a href="postconf.5.html#reject_invalid_helo_hostname">$&</a>;g;
     s;\breject_non_fqdn_helo_hostname\b;<a href="postconf.5.html#reject_non_fqdn_helo_hostname">$&</a>;g;
     s;\breject_non_fqdn_hostname\b;<a href="postconf.5.html#reject_non_fqdn_helo_hostname">$&</a>;g;
+    s;\breject_rhsbl_helo\b;<a href="postconf.5.html#reject_rhsbl_helo">$&</a>;g;
     s;\breject_unknown_helo_hostname\b;<a href="postconf.5.html#reject_unknown_helo_hostname">$&</a>;g;
     s;\breject_unknown_hostname\b;<a href="postconf.5.html#reject_unknown_helo_hostname">$&</a>;g;
 
@@ -817,6 +818,7 @@ while (<>) {
     s;\bmilter_data_macros\b;<a href="postconf.5.html#milter_data_macros">$&</a>;g;
     s;\bmilter_unknown_command_macros\b;<a href="postconf.5.html#milter_unknown_command_macros">$&</a>;g;
     s;\bmilter_end_of_data_macros\b;<a href="postconf.5.html#milter_end_of_data_macros">$&</a>;g;
+    s;\bmilter_end_of_header_macros\b;<a href="postconf.5.html#milter_end_of_header_macros">$&</a>;g;
 
     # Hyperlink URLs and RFC documents
 

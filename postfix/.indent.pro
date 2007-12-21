@@ -273,6 +273,7 @@
 -Tregmatch_t
 -Tsasl_conn_t
 -Tsasl_secret_t
+-Tsfsistat
 -Tsize_t
 -Tssize_t
 -Ttls_client_init_props

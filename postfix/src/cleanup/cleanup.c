@@ -159,6 +159,11 @@
 /* .IP "\fBmilter_end_of_data_macros (see postconf -n output)\fR"
 /*	The macros that are sent to Milter (mail filter) applications
 /*	after the message end-of-data.
+/* .PP
+/*	Available in Postfix version 2.5 and later:
+/* .IP "\fBmilter_end_of_header_macros (see postconf -n output)\fR"
+/*	The macros that are sent to Milter (mail filter) applications
+/*	after the end of the message header.
 /* MIME PROCESSING CONTROLS
 /* .ad
 /* .fi

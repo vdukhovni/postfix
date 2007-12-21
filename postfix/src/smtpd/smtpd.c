@@ -209,6 +209,9 @@
 /* .IP "\fBmilter_unknown_command_macros (see postconf -n output)\fR"
 /*	The macros that are sent to version 3 or higher Milter (mail
 /*	filter) applications after an unknown SMTP command.
+/* .IP "\fBmilter_end_of_header_macros (see postconf -n output)\fR"
+/*	The macros that are sent to Milter (mail filter) applications
+/*	after the message header.
 /* .IP "\fBmilter_end_of_data_macros (see postconf -n output)\fR"
 /*	The macros that are sent to Milter (mail filter) applications
 /*	after the message end-of-data.
@@ -1127,6 +1130,7 @@ char   *var_milt_helo_macros;
 char   *var_milt_mail_macros;
 char   *var_milt_rcpt_macros;
 char   *var_milt_data_macros;
+char   *var_milt_eoh_macros;
 char   *var_milt_eod_macros;
 char   *var_milt_unk_macros;
 bool    var_smtpd_client_port_log;
@@ -4535,6 +4539,7 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 					  var_milt_mail_macros,
 					  var_milt_rcpt_macros,
 					  var_milt_data_macros,
+					  var_milt_eoh_macros,
 					  var_milt_eod_macros,
 					  var_milt_unk_macros);
 	else
@@ -4724,6 +4729,7 @@ int     main(int argc, char **argv)
 	VAR_MILT_MAIL_MACROS, DEF_MILT_MAIL_MACROS, &var_milt_mail_macros, 0, 0,
 	VAR_MILT_RCPT_MACROS, DEF_MILT_RCPT_MACROS, &var_milt_rcpt_macros, 0, 0,
 	VAR_MILT_DATA_MACROS, DEF_MILT_DATA_MACROS, &var_milt_data_macros, 0, 0,
+	VAR_MILT_EOH_MACROS, DEF_MILT_EOH_MACROS, &var_milt_eoh_macros, 0, 0,
 	VAR_MILT_EOD_MACROS, DEF_MILT_EOD_MACROS, &var_milt_eod_macros, 0, 0,
 	VAR_MILT_UNK_MACROS, DEF_MILT_UNK_MACROS, &var_milt_unk_macros, 0, 0,
 	VAR_MILT_PROTOCOL, DEF_MILT_PROTOCOL, &var_milt_protocol, 1, 0,

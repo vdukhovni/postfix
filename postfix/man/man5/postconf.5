@@ -2998,6 +2998,12 @@ after the message end-of-data. See MILTER_README for a list of
 available macro names and their meanings.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH milter_end_of_header_macros (default: see postconf -n output)
+The macros that are sent to Milter (mail filter) applications
+after the end of the message header. See MILTER_README for a list
+of available macro names and their meanings.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH milter_helo_macros (default: see postconf -n output)
 The macros that are sent to Milter (mail filter) applications
 after the SMTP HELO or EHLO command. See
@@ -3024,17 +3030,22 @@ for a list of available macro names and their meanings.
 This feature is available in Postfix 2.3 and later.
 .SH milter_protocol (default: 2)
 The mail filter protocol version and optional protocol extensions
-for communication with a Milter (mail filter) application. This
-information should match the protocol that is expected by the actual
-mail filter application.
+for communication with a Milter (mail filter) application. Postfix
+sends this version number during the initial protocol handshake.
+It should match the version number that is expected by the mail
+filter application (or by its Milter library).
 .PP
 Protocol versions:
 .IP "2"
-Use Sendmail 8 mail filter protocol version 2.
+Use Sendmail 8 mail filter protocol version 2 (default
+as of Sendmail version 8.11).
 .IP "3"
 Use Sendmail 8 mail filter protocol version 3.
 .IP "4"
 Use Sendmail 8 mail filter protocol version 4.
+.IP "6"
+Use Sendmail 8 mail filter protocol version 6 (default
+as of Sendmail version 8.14).
 .PP
 Protocol extensions:
 .IP "no_header_reply"
@@ -6132,6 +6143,14 @@ fully-qualified domain form, as required by the RFC.
 The
 non_fqdn_reject_code parameter specifies the response code to
 rejected requests (default: 504).
+.IP "\fBreject_rhsbl_helo \fIrbl_domain=d.d.d.d\fR\fR"
+Reject the request when the HELO or EHLO hostname hostname is
+listed with the A record "\fId.d.d.d\fR" under \fIrbl_domain\fR
+(Postfix version 2.1 and later only).  If no "\fI=d.d.d.d\fR" is
+specified, reject the request when the HELO or EHLO hostname is
+listed with any A record under \fIrbl_domain\fR. See the
+reject_rbl_client description for additional RBL related configuration
+parameters.  This feature is available in Postfix 2.0 and later.
 .IP "\fBreject_unknown_helo_hostname\fR (with Postfix < 2.3: reject_unknown_hostname)"
 Reject the request when the HELO or EHLO hostname has no DNS A
 or MX record.

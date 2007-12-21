@@ -157,6 +157,7 @@ char   *var_milt_helo_macros;		/* HELO macros */
 char   *var_milt_mail_macros;		/* MAIL FROM macros */
 char   *var_milt_rcpt_macros;		/* RCPT TO macros */
 char   *var_milt_data_macros;		/* DATA macros */
+char   *var_milt_eoh_macros;		/* end-of-header macros */
 char   *var_milt_eod_macros;		/* end-of-data macros */
 char   *var_milt_unk_macros;		/* unknown command macros */
 char   *var_cleanup_milters;		/* non-SMTP mail */
@@ -220,6 +221,7 @@ CONFIG_STR_TABLE cleanup_str_table[] = {
     VAR_MILT_MAIL_MACROS, DEF_MILT_MAIL_MACROS, &var_milt_mail_macros, 0, 0,
     VAR_MILT_RCPT_MACROS, DEF_MILT_RCPT_MACROS, &var_milt_rcpt_macros, 0, 0,
     VAR_MILT_DATA_MACROS, DEF_MILT_DATA_MACROS, &var_milt_data_macros, 0, 0,
+    VAR_MILT_EOH_MACROS, DEF_MILT_EOH_MACROS, &var_milt_eoh_macros, 0, 0,
     VAR_MILT_EOD_MACROS, DEF_MILT_EOD_MACROS, &var_milt_eod_macros, 0, 0,
     VAR_MILT_UNK_MACROS, DEF_MILT_UNK_MACROS, &var_milt_unk_macros, 0, 0,
     VAR_CLEANUP_MILTERS, DEF_CLEANUP_MILTERS, &var_cleanup_milters, 0, 0,
@@ -394,6 +396,7 @@ void    cleanup_pre_jail(char *unused_name, char **unused_argv)
 					var_milt_mail_macros,
 					var_milt_rcpt_macros,
 					var_milt_data_macros,
+					var_milt_eoh_macros,
 					var_milt_eod_macros,
 					var_milt_unk_macros);
 

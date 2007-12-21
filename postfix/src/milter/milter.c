@@ -10,8 +10,8 @@
 /*					msg_timeout, protocol, def_action,
 /*					conn_macros, helo_macros,
 /*					mail_macros, rcpt_macros,
-/*					data_macros, eod_macros,
-/*					unk_macros)
+/*					data_macros, eoh_macros,
+/*					eod_macros, unk_macros)
 /*	const char *milter_names;
 /*	int	conn_timeout;
 /*	int	cmd_timeout;
@@ -23,6 +23,7 @@
 /*	const char *mail_macros;
 /*	const char *rcpt_macrps;
 /*	const char *data_macros;
+/*	const char *eoh_macros;
 /*	const char *eod_macros;
 /*	const char *unk_macros;
 /*
@@ -37,15 +38,13 @@
 /*					ins_header, del_header, add_rcpt,
 /*					del_rcpt, repl_body, context)
 /*	MILTERS	*milters;
-/*	const char *(*add_header) (void *context, char *name, char *value);
-/*	const char *(*upd_header) (void *context, ssize_t index,
-/*				char *name, char *value);
-/*	const char *(*ins_header) (void *context, ssize_t index,
-/*				char *name, char *value);
-/*	const char *(*del_header) (void *context, ssize_t index, char *name);
-/*	const char *(*add_rcpt) (void *context, char *rcpt);
-/*	const char *(*del_rcpt) (void *context, char *rcpt);
-/*	const char *(*repl_body) (void *context, VSTRING *body);
+/*	MILTER_ADD_HEADER_FN add_header;
+/*	MILTER_EDIT_HEADER_FN upd_header;
+/*	MILTER_EDIT_HEADER_FN ins_header;
+/*	MILTER_DEL_HEADER_FN del_header;
+/*	MILTER_EDIT_RCPT_FN add_rcpt;
+/*	MILTER_EDIT_RCPT_FN del_rcpt;
+/*	MILTER_EDIT_BODY_FN repl_body;
 /*	void	*context;
 /*
 /*	const char *milter_conn_event(milters, client_name, client_addr,
@@ -179,7 +178,8 @@
 /*
 /*	milter_message() sends the message header and body to the
 /*	to the specified milter instances, and sends the macros
-/*	specified with the milter_create() eod_macros argument at
+/*	specified with the milter_create() eoh_macros after the
+/*	message header, and with the eod_macros argument at
 /*	the end.  Each milter sees the result of any changes made
 /*	by a preceding milter. This function must be called with
 /*	as argument an open Postfix queue file.
@@ -281,13 +281,13 @@ void    milter_macro_callback(MILTERS *milters,
 /* milter_edit_callback - specify queue file edit call-back information */
 
 void    milter_edit_callback(MILTERS *milters,
-		         const char *(*add_header) (void *, char *, char *),
-	        const char *(*upd_header) (void *, ssize_t, char *, char *),
-	        const char *(*ins_header) (void *, ssize_t, char *, char *),
-		        const char *(*del_header) (void *, ssize_t, char *),
-			           const char *(*add_rcpt) (void *, char *),
-			           const char *(*del_rcpt) (void *, char *),
-		          const char *(*repl_body) (void *, int, VSTRING *),
+			             MILTER_ADD_HEADER_FN add_header,
+			             MILTER_EDIT_HEADER_FN upd_header,
+			             MILTER_EDIT_HEADER_FN ins_header,
+			             MILTER_DEL_HEADER_FN del_header,
+			             MILTER_EDIT_RCPT_FN add_rcpt,
+			             MILTER_EDIT_RCPT_FN del_rcpt,
+			             MILTER_EDIT_BODY_FN repl_body,
 			             void *chg_context)
 {
     milters->add_header = add_header;
@@ -454,16 +454,21 @@ const char *milter_message(MILTERS *milters, VSTREAM *fp, off_t data_offset)
 {
     const char *resp;
     MILTER *m;
-    ARGV   *macros;
+    ARGV   *eoh_macros;
+    ARGV   *eod_macros;
 
     if (msg_verbose)
 	msg_info("inspect content by all milters");
-    macros = milters->eod_macros == 0 ? 0 :
+    eoh_macros = milters->eoh_macros == 0 ? 0 :
+	milter_macro_lookup(milters, milters->eoh_macros);
+    eod_macros = milters->eod_macros == 0 ? 0 :
 	milter_macro_lookup(milters, milters->eod_macros);
     for (resp = 0, m = milters->milter_list; resp == 0 && m != 0; m = m->next)
-	resp = m->message(m, fp, data_offset, macros);
-    if (macros)
-	argv_free(macros);
+	resp = m->message(m, fp, data_offset, eoh_macros, eod_macros);
+    if (eoh_macros)
+	argv_free(eoh_macros);
+    if (eod_macros)
+	argv_free(eod_macros);
     return (resp);
 }
 
@@ -504,6 +509,7 @@ MILTERS *milter_create(const char *names,
 		               const char *mail_macros,
 		               const char *rcpt_macros,
 		               const char *data_macros,
+		               const char *eoh_macros,
 		               const char *eod_macros,
 		               const char *unk_macros)
 {
@@ -543,12 +549,14 @@ MILTERS *milter_create(const char *names,
     milters->mail_macros = mystrdup(mail_macros);
     milters->rcpt_macros = mystrdup(rcpt_macros);
     milters->data_macros = mystrdup(data_macros);
+    milters->eoh_macros = mystrdup(eoh_macros);
     milters->eod_macros = mystrdup(eod_macros);
     milters->unk_macros = mystrdup(unk_macros);
     milters->add_header = 0;
     milters->upd_header = milters->ins_header = 0;
     milters->del_header = 0;
     milters->add_rcpt = milters->del_rcpt = 0;
+    milters->repl_body = 0;
     milters->chg_context = 0;
     return (milters);
 }
@@ -574,6 +582,8 @@ void    milter_free(MILTERS *milters)
 	myfree(milters->rcpt_macros);
     if (milters->rcpt_macros)
 	myfree(milters->data_macros);
+    if (milters->eoh_macros)
+	myfree(milters->eoh_macros);
     if (milters->eod_macros)
 	myfree(milters->eod_macros);
     if (milters->unk_macros)
@@ -591,6 +601,7 @@ void    milter_free(MILTERS *milters)
 #define MAIL_ATTR_MILT_MAIL	"mail_macros"
 #define MAIL_ATTR_MILT_RCPT	"rcpt_macros"
 #define MAIL_ATTR_MILT_DATA	"data_macros"
+#define MAIL_ATTR_MILT_EOH	"eoh_macros"
 #define MAIL_ATTR_MILT_EOD	"eod_macros"
 #define MAIL_ATTR_MILT_UNK	"unk_macros"
 
@@ -634,6 +645,7 @@ int     milter_send(MILTERS *milters, VSTREAM *stream)
 		   ATTR_TYPE_STR, MAIL_ATTR_MILT_MAIL, milters->mail_macros,
 		   ATTR_TYPE_STR, MAIL_ATTR_MILT_RCPT, milters->rcpt_macros,
 		   ATTR_TYPE_STR, MAIL_ATTR_MILT_DATA, milters->data_macros,
+		      ATTR_TYPE_STR, MAIL_ATTR_MILT_EOH, milters->eoh_macros,
 		      ATTR_TYPE_STR, MAIL_ATTR_MILT_EOD, milters->eod_macros,
 		      ATTR_TYPE_STR, MAIL_ATTR_MILT_UNK, milters->unk_macros,
 		      ATTR_TYPE_END);
@@ -668,6 +680,7 @@ MILTERS *milter_receive(VSTREAM *stream, int count)
     VSTRING *mail_macros;
     VSTRING *rcpt_macros;
     VSTRING *data_macros;
+    VSTRING *eoh_macros;
     VSTRING *eod_macros;
     VSTRING *unk_macros;
 
@@ -677,8 +690,8 @@ MILTERS *milter_receive(VSTREAM *stream, int count)
 #define FREE_BUFFERS() do { \
 	vstring_free(conn_macros); vstring_free(helo_macros); \
 	vstring_free(mail_macros); vstring_free(rcpt_macros); \
-	vstring_free(data_macros); vstring_free(eod_macros); \
-	vstring_free(unk_macros); \
+	vstring_free(data_macros); vstring_free(eoh_macros); \
+	vstring_free(eod_macros); vstring_free(unk_macros); \
    } while (0)
 
     conn_macros = vstring_alloc(10);
@@ -686,6 +699,7 @@ MILTERS *milter_receive(VSTREAM *stream, int count)
     mail_macros = vstring_alloc(10);
     rcpt_macros = vstring_alloc(10);
     data_macros = vstring_alloc(10);
+    eoh_macros = vstring_alloc(10);
     eod_macros = vstring_alloc(10);
     unk_macros = vstring_alloc(10);
     if (attr_scan(stream, ATTR_FLAG_STRICT | ATTR_FLAG_MORE,
@@ -694,9 +708,10 @@ MILTERS *milter_receive(VSTREAM *stream, int count)
 		  ATTR_TYPE_STR, MAIL_ATTR_MILT_MAIL, mail_macros,
 		  ATTR_TYPE_STR, MAIL_ATTR_MILT_RCPT, rcpt_macros,
 		  ATTR_TYPE_STR, MAIL_ATTR_MILT_DATA, data_macros,
+		  ATTR_TYPE_STR, MAIL_ATTR_MILT_EOH, eoh_macros,
 		  ATTR_TYPE_STR, MAIL_ATTR_MILT_EOD, eod_macros,
 		  ATTR_TYPE_STR, MAIL_ATTR_MILT_UNK, unk_macros,
-		  ATTR_TYPE_END) != 7) {
+		  ATTR_TYPE_END) != 8) {
 	FREE_BUFFERS();
 	return (0);
     }
@@ -708,8 +723,8 @@ MILTERS *milter_receive(VSTREAM *stream, int count)
     milters = milter_create(NO_MILTERS, NO_TIMEOUTS, NO_PROTOCOL, NO_ACTION,
 			    STR(conn_macros), STR(helo_macros),
 			    STR(mail_macros), STR(rcpt_macros),
-			    STR(data_macros), STR(eod_macros),
-			    STR(unk_macros));
+			    STR(data_macros), STR(eoh_macros),
+			    STR(eod_macros), STR(unk_macros));
     FREE_BUFFERS();
 
     /*
@@ -794,7 +809,7 @@ int     main(int argc, char **argv)
 {
     MILTERS *milters = 0;
     char   *conn_macros, *helo_macros, *mail_macros, *rcpt_macros;
-    char   *data_macros, *eod_macros, *unk_macros;
+    char   *data_macros, *eoh_macros, *eod_macros, *unk_macros;
     VSTRING *inbuf = vstring_alloc(100);
     char   *bufp;
     char   *cmd;
@@ -802,7 +817,7 @@ int     main(int argc, char **argv)
     int     istty = isatty(vstream_fileno(VSTREAM_IN));
 
     conn_macros = helo_macros = mail_macros = rcpt_macros = data_macros
-	= eod_macros = unk_macros = "";
+	= eoh_macros = eod_macros = unk_macros = "";
 
     msg_vstream_init(argv[0], VSTREAM_ERR);
     while ((ch = GETOPT(argc, argv, "V:v")) > 0) {
@@ -856,8 +871,8 @@ int     main(int argc, char **argv)
 				    var_milt_cmd_time, var_milt_msg_time,
 				    var_milt_protocol, var_milt_def_action,
 				    conn_macros, helo_macros, mail_macros,
-				    rcpt_macros, data_macros, eod_macros,
-				    unk_macros);
+				    rcpt_macros, data_macros, eoh_macros,
+				    eod_macros, unk_macros);
 	} else if (strcmp(cmd, "free") == 0 && argv->argc == 0) {
 	    if (milters == 0) {
 		msg_warn("no milters");

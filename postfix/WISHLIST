@@ -1,5 +1,15 @@
 Wish list:
 
+	In the SMTP client, handle 421 replies in smtp_loop() by
+	having the input function raise a flag after detecting 421
+	(kill connection caching and be sure to do the right thing
+	with RSET probes), leave the smtp_loop() per-command reply
+	handlers unchanged, and have the smtp_loop() reader loop
+	bail out with smtp_site_fail("server disconnected after
+	%s", where), but only in the case that it isn't already in
+	the final state. Handle 421 replies in HELO/EHLO with custom
+	code to prevent EHLO->HELO fall-back.
+
 	Make event_drain() a proper event loop; update the zero mask,
 	and don't ignore a non-empty timer queue.
 

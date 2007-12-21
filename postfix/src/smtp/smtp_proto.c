@@ -394,8 +394,15 @@ int     smtp_helo(SMTP_STATE *state)
 	where = "performing the EHLO handshake";
 	if (session->features & SMTP_FEATURE_ESMTP) {
 	    smtp_chat_cmd(session, "EHLO %s", var_smtp_helo_name);
-	    if ((resp = smtp_chat_resp(session))->code / 100 != 2)
-		session->features &= ~SMTP_FEATURE_ESMTP;
+	    if ((resp = smtp_chat_resp(session))->code / 100 != 2) {
+		if (resp->code == 421)
+		    return (smtp_site_fail(state, session->host, resp,
+					"host %s refused to talk to me: %s",
+					   session->namaddr,
+					   translit(resp->str, "\n", " ")));
+		else
+		    session->features &= ~SMTP_FEATURE_ESMTP;
+	    }
 	}
 	if ((session->features & SMTP_FEATURE_ESMTP) == 0) {
 	    where = "performing the HELO handshake";

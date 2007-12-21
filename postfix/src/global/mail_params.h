@@ -2770,6 +2770,10 @@ extern char *var_milt_data_macros;
 #define DEF_MILT_UNK_MACROS		""
 extern char *var_milt_unk_macros;
 
+#define VAR_MILT_EOH_MACROS		"milter_end_of_header_macros"
+#define DEF_MILT_EOH_MACROS		"i"
+extern char *var_milt_eoh_macros;
+
 #define VAR_MILT_EOD_MACROS		"milter_end_of_data_macros"
 #define DEF_MILT_EOD_MACROS		"i"
 extern char *var_milt_eod_macros;

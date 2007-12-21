@@ -111,6 +111,14 @@
 /*	DATA, ., RSET, NOOP, and QUIT. Separate command names by
 /*	white space or commas, and use quotes to protect white space
 /*	from the shell. Command names are case-insensitive.
+/* .IP "\fB-Q \fIcommand,command,...\fR"
+/*	Disconnect after sending a 431 reply after receiving one
+/*	of the specified commands.
+/* .sp
+/*	Examples of commands are CONNECT, HELO, EHLO, LHLO, MAIL, RCPT, VRFY,
+/*	DATA, ., RSET, NOOP, and QUIT. Separate command names by
+/*	white space or commas, and use quotes to protect white space
+/*	from the shell. Command names are case-insensitive.
 /* .IP "\fB-r \fIcommand,command,...\fR"
 /*	Reject the specified commands with a soft (4xx) error code.
 /*	This option implies \fB-p\fR.
@@ -908,6 +916,7 @@ typedef struct SINK_COMMAND {
 #define FLAG_HARD_ERR	(1<<2)		/* report hard error */
 #define FLAG_SOFT_ERR	(1<<3)		/* report soft error */
 #define FLAG_DISCONNECT	(1<<4)		/* disconnect */
+#define FLAG_CLOSE	(1<<5)		/* say goodbye and disconnect */
 
 static SINK_COMMAND command_table[] = {
     "connect", conn_response, hard_err_resp, soft_err_resp, 0, 0, 0,
@@ -1021,6 +1030,10 @@ static int command_resp(SINK_STATE *state, SINK_COMMAND *cmdp,
 	syslog(LOG_INFO, "%s %.100s", command, args);
     if (cmdp->flags & FLAG_DISCONNECT)
 	return (-1);
+    if (cmdp->flags & FLAG_CLOSE) {
+	smtp_printf(state->stream, "421 4.0.0 Server closing connection");
+	return (-1);
+    }
     if (cmdp->flags & FLAG_HARD_ERR) {
 	cmdp->hard_response(state);
 	return (0);
@@ -1376,7 +1389,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "468aA:cCd:D:eEf:Fh:Ln:m:pPq:r:R:s:S:t:u:vw:W:")) > 0) {
+    while ((ch = GETOPT(argc, argv, "468aA:cCd:D:eEf:Fh:Ln:m:pPq:Q:r:R:s:S:t:u:vw:W:")) > 0) {
 	switch (ch) {
 	case '4':
 	    protocols = INET_PROTO_NAME_IPV4;
@@ -1444,6 +1457,9 @@ int     main(int argc, char **argv)
 	    break;
 	case 'q':
 	    set_cmds_flags(optarg, FLAG_DISCONNECT);
+	    break;
+	case 'Q':
+	    set_cmds_flags(optarg, FLAG_CLOSE);
 	    break;
 	case 'r':
 	    set_cmds_flags(optarg, FLAG_SOFT_ERR);
