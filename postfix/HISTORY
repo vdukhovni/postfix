@@ -14048,3 +14048,8 @@ Apologies for any names omitted.
 
 	Cleanup: don't try sending HELO after a 421 EHLO reply.
 	File: smtp/smtp_proto.c.
+
+20071222
+
+	Further polishing of the Milter code and logging. File:
+	milter/milter8.c.

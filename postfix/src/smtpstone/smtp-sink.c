@@ -112,7 +112,7 @@
 /*	white space or commas, and use quotes to protect white space
 /*	from the shell. Command names are case-insensitive.
 /* .IP "\fB-Q \fIcommand,command,...\fR"
-/*	Disconnect after sending a 431 reply after receiving one
+/*	Send a 421 reply and disconnect after receiving one
 /*	of the specified commands.
 /* .sp
 /*	Examples of commands are CONNECT, HELO, EHLO, LHLO, MAIL, RCPT, VRFY,

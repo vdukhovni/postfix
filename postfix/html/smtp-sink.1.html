@@ -135,8 +135,8 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
               shell. Command names are case-insensitive.
 
        <b>-Q</b> <i>command,command,...</i>
-              Disconnect after sending a 431 reply after  receiv-
-              ing one of the specified commands.
+              Send a 421 reply and disconnect after receiving one
+              of the specified commands.
 
               Examples of commands are CONNECT, HELO, EHLO, LHLO,
               MAIL, RCPT, VRFY, DATA, ., RSET,  NOOP,  and  QUIT.
