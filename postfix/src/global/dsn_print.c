@@ -16,7 +16,7 @@
 /*	the specified attribute print routine. dsn_print() is meant
 /*	to be passed as a call-back to attr_print(), thusly:
 /*
-/*	... ATTR_PRINT_FUNC, dsn_print, (void *) dsn, ...
+/*	... ATTR_TYPE_FUNC, dsn_print, (void *) dsn, ...
 /* DIAGNOSTICS
 /*	Fatal: out of memory.
 /* LICENSE

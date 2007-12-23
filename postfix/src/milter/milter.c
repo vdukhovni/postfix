@@ -310,15 +310,27 @@ const char *milter_conn_event(MILTERS *milters,
 {
     const char *resp;
     MILTER *m;
-    ARGV   *macros;
+    ARGV   *global_macros = 0;
+    ARGV   *any_macros;
+
+#define MILTER_MACRO_EVAL(global_macros, m, milters, member) \
+	((m->macros && m->macros->member[0]) ? \
+	    milter_macro_lookup(milters, m->macros->member) : \
+		global_macros ? global_macros : \
+		    (global_macros = \
+		         milter_macro_lookup(milters, milters->macros->member)))
 
     if (msg_verbose)
 	msg_info("report connect to all milters");
-    macros = milter_macro_lookup(milters, milters->conn_macros);
-    for (resp = 0, m = milters->milter_list; resp == 0 && m != 0; m = m->next)
+    for (resp = 0, m = milters->milter_list; resp == 0 && m != 0; m = m->next) {
+	any_macros = MILTER_MACRO_EVAL(global_macros, m, milters, conn_macros);
 	resp = m->conn_event(m, client_name, client_addr, client_port,
-			     addr_family, macros);
-    argv_free(macros);
+			     addr_family, any_macros);
+	if (any_macros != global_macros)
+	    argv_free(any_macros);
+    }
+    if (global_macros)
+	argv_free(global_macros);
     return (resp);
 }
 
@@ -329,16 +341,19 @@ const char *milter_helo_event(MILTERS *milters, const char *helo_name,
 {
     const char *resp;
     MILTER *m;
-    ARGV   *macros;
+    ARGV   *global_macros = 0;
+    ARGV   *any_macros;
 
     if (msg_verbose)
 	msg_info("report helo to all milters");
-    macros = milters->helo_macros == 0 ? 0 :
-	milter_macro_lookup(milters, milters->helo_macros);
-    for (resp = 0, m = milters->milter_list; resp == 0 && m != 0; m = m->next)
-	resp = m->helo_event(m, helo_name, esmtp_flag, macros);
-    if (macros)
-	argv_free(macros);
+    for (resp = 0, m = milters->milter_list; resp == 0 && m != 0; m = m->next) {
+	any_macros = MILTER_MACRO_EVAL(global_macros, m, milters, helo_macros);
+	resp = m->helo_event(m, helo_name, esmtp_flag, any_macros);
+	if (any_macros != global_macros)
+	    argv_free(any_macros);
+    }
+    if (global_macros)
+	argv_free(global_macros);
     return (resp);
 }
 
@@ -348,16 +363,19 @@ const char *milter_mail_event(MILTERS *milters, const char **argv)
 {
     const char *resp;
     MILTER *m;
-    ARGV   *macros;
+    ARGV   *global_macros = 0;
+    ARGV   *any_macros;
 
     if (msg_verbose)
 	msg_info("report sender to all milters");
-    macros = milters->mail_macros == 0 ? 0 :
-	milter_macro_lookup(milters, milters->mail_macros);
-    for (resp = 0, m = milters->milter_list; resp == 0 && m != 0; m = m->next)
-	resp = m->mail_event(m, argv, macros);
-    if (macros)
-	argv_free(macros);
+    for (resp = 0, m = milters->milter_list; resp == 0 && m != 0; m = m->next) {
+	any_macros = MILTER_MACRO_EVAL(global_macros, m, milters, mail_macros);
+	resp = m->mail_event(m, argv, any_macros);
+	if (any_macros != global_macros)
+	    argv_free(any_macros);
+    }
+    if (global_macros)
+	argv_free(global_macros);
     return (resp);
 }
 
@@ -367,16 +385,19 @@ const char *milter_rcpt_event(MILTERS *milters, const char **argv)
 {
     const char *resp;
     MILTER *m;
-    ARGV   *macros;
+    ARGV   *global_macros = 0;
+    ARGV   *any_macros;
 
     if (msg_verbose)
 	msg_info("report recipient to all milters");
-    macros = milters->rcpt_macros == 0 ? 0 :
-	milter_macro_lookup(milters, milters->rcpt_macros);
-    for (resp = 0, m = milters->milter_list; resp == 0 && m != 0; m = m->next)
-	resp = m->rcpt_event(m, argv, macros);
-    if (macros)
-	argv_free(macros);
+    for (resp = 0, m = milters->milter_list; resp == 0 && m != 0; m = m->next) {
+	any_macros = MILTER_MACRO_EVAL(global_macros, m, milters, rcpt_macros);
+	resp = m->rcpt_event(m, argv, any_macros);
+	if (any_macros != global_macros)
+	    argv_free(any_macros);
+    }
+    if (global_macros)
+	argv_free(global_macros);
     return (resp);
 }
 
@@ -384,26 +405,21 @@ const char *milter_rcpt_event(MILTERS *milters, const char **argv)
 
 const char *milter_data_event(MILTERS *milters)
 {
-    const char *myname = "milter_data_event";
     const char *resp;
     MILTER *m;
-    ARGV   *macros = 0;
+    ARGV   *global_macros = 0;
+    ARGV   *any_macros;
 
     if (msg_verbose)
 	msg_info("report data to all milters");
     for (resp = 0, m = milters->milter_list; resp == 0 && m != 0; m = m->next) {
-	if (m->data_event) {
-	    if (macros == 0 && milters->data_macros)
-		macros = milter_macro_lookup(milters, milters->data_macros);
-	    resp = m->data_event(m, macros);
-	} else {
-	    if (msg_verbose)
-		msg_info("%s: skip milter %s (command unimplemented)",
-			 myname, m->name);
-	}
+	any_macros = MILTER_MACRO_EVAL(global_macros, m, milters, data_macros);
+	resp = m->data_event(m, any_macros);
+	if (any_macros != global_macros)
+	    argv_free(any_macros);
     }
-    if (macros)
-	argv_free(macros);
+    if (global_macros)
+	argv_free(global_macros);
     return (resp);
 }
 
@@ -411,26 +427,21 @@ const char *milter_data_event(MILTERS *milters)
 
 const char *milter_unknown_event(MILTERS *milters, const char *command)
 {
-    const char *myname = "milter_unknown_event";
     const char *resp;
     MILTER *m;
-    ARGV   *macros = 0;
+    ARGV   *global_macros = 0;
+    ARGV   *any_macros;
 
     if (msg_verbose)
 	msg_info("report unknown command to all milters");
     for (resp = 0, m = milters->milter_list; resp == 0 && m != 0; m = m->next) {
-	if (m->unknown_event) {
-	    if (macros == 0 && milters->unk_macros)
-		macros = milter_macro_lookup(milters, milters->unk_macros);
-	    resp = m->unknown_event(m, command, macros);
-	} else {
-	    if (msg_verbose)
-		msg_info("%s: skip milter %s (command unimplemented)",
-			 myname, m->name);
-	}
+	any_macros = MILTER_MACRO_EVAL(global_macros, m, milters, unk_macros);
+	resp = m->unknown_event(m, command, any_macros);
+	if (any_macros != global_macros)
+	    argv_free(any_macros);
     }
-    if (macros)
-	argv_free(macros);
+    if (global_macros)
+	argv_free(global_macros);
     return (resp);
 }
 
@@ -454,21 +465,26 @@ const char *milter_message(MILTERS *milters, VSTREAM *fp, off_t data_offset)
 {
     const char *resp;
     MILTER *m;
-    ARGV   *eoh_macros;
-    ARGV   *eod_macros;
+    ARGV   *global_eoh_macros = 0;
+    ARGV   *global_eod_macros = 0;
+    ARGV   *any_eoh_macros;
+    ARGV   *any_eod_macros;
 
     if (msg_verbose)
 	msg_info("inspect content by all milters");
-    eoh_macros = milters->eoh_macros == 0 ? 0 :
-	milter_macro_lookup(milters, milters->eoh_macros);
-    eod_macros = milters->eod_macros == 0 ? 0 :
-	milter_macro_lookup(milters, milters->eod_macros);
-    for (resp = 0, m = milters->milter_list; resp == 0 && m != 0; m = m->next)
-	resp = m->message(m, fp, data_offset, eoh_macros, eod_macros);
-    if (eoh_macros)
-	argv_free(eoh_macros);
-    if (eod_macros)
-	argv_free(eod_macros);
+    for (resp = 0, m = milters->milter_list; resp == 0 && m != 0; m = m->next) {
+	any_eoh_macros = MILTER_MACRO_EVAL(global_eoh_macros, m, milters, eoh_macros);
+	any_eod_macros = MILTER_MACRO_EVAL(global_eod_macros, m, milters, eod_macros);
+	resp = m->message(m, fp, data_offset, any_eoh_macros, any_eod_macros);
+	if (any_eoh_macros != global_eoh_macros)
+	    argv_free(any_eoh_macros);
+	if (any_eod_macros != global_eod_macros)
+	    argv_free(any_eod_macros);
+    }
+    if (global_eoh_macros)
+	argv_free(global_eoh_macros);
+    if (global_eod_macros)
+	argv_free(global_eod_macros);
     return (resp);
 }
 
@@ -496,22 +512,15 @@ void    milter_disc_event(MILTERS *milters)
 	m->disc_event(m);
 }
 
-/* milter_create - create milter list */
+/* milter_new - create milter list */
 
-MILTERS *milter_create(const char *names,
-		               int conn_timeout,
-		               int cmd_timeout,
-		               int msg_timeout,
-		               const char *protocol,
-		               const char *def_action,
-		               const char *conn_macros,
-		               const char *helo_macros,
-		               const char *mail_macros,
-		               const char *rcpt_macros,
-		               const char *data_macros,
-		               const char *eoh_macros,
-		               const char *eod_macros,
-		               const char *unk_macros)
+MILTERS *milter_new(const char *names,
+		            int conn_timeout,
+		            int cmd_timeout,
+		            int msg_timeout,
+		            const char *protocol,
+		            const char *def_action,
+		            MILTER_MACROS *macros)
 {
     MILTERS *milters;
     MILTER *head = 0;
@@ -544,14 +553,7 @@ MILTERS *milter_create(const char *names,
     milters->milter_list = head;
     milters->mac_lookup = 0;
     milters->mac_context = 0;
-    milters->conn_macros = mystrdup(conn_macros);
-    milters->helo_macros = mystrdup(helo_macros);
-    milters->mail_macros = mystrdup(mail_macros);
-    milters->rcpt_macros = mystrdup(rcpt_macros);
-    milters->data_macros = mystrdup(data_macros);
-    milters->eoh_macros = mystrdup(eoh_macros);
-    milters->eod_macros = mystrdup(eod_macros);
-    milters->unk_macros = mystrdup(unk_macros);
+    milters->macros = macros;
     milters->add_header = 0;
     milters->upd_header = milters->ins_header = 0;
     milters->del_header = 0;
@@ -572,38 +574,10 @@ void    milter_free(MILTERS *milters)
 	msg_info("free all milters");
     for (m = milters->milter_list; m != 0; m = next)
 	next = m->next, m->free(m);
-    if (milters->conn_macros)
-	myfree(milters->conn_macros);
-    if (milters->helo_macros)
-	myfree(milters->helo_macros);
-    if (milters->mail_macros)
-	myfree(milters->mail_macros);
-    if (milters->rcpt_macros)
-	myfree(milters->rcpt_macros);
-    if (milters->rcpt_macros)
-	myfree(milters->data_macros);
-    if (milters->eoh_macros)
-	myfree(milters->eoh_macros);
-    if (milters->eod_macros)
-	myfree(milters->eod_macros);
-    if (milters->unk_macros)
-	myfree(milters->unk_macros);
+    if (milters->macros)
+	milter_macros_free(milters->macros);
     myfree((char *) milters);
 }
-
- /*
-  * Temporary protocol to send /receive milter instances. This needs to be
-  * extended with type information when we support both Sendmail8 and
-  * Sendmail X protocols.
-  */
-#define MAIL_ATTR_MILT_CONN	"conn_macros"
-#define MAIL_ATTR_MILT_HELO	"helo_macros"
-#define MAIL_ATTR_MILT_MAIL	"mail_macros"
-#define MAIL_ATTR_MILT_RCPT	"rcpt_macros"
-#define MAIL_ATTR_MILT_DATA	"data_macros"
-#define MAIL_ATTR_MILT_EOH	"eoh_macros"
-#define MAIL_ATTR_MILT_EOD	"eod_macros"
-#define MAIL_ATTR_MILT_UNK	"unk_macros"
 
 /* milter_dummy - send empty milter list */
 
@@ -640,14 +614,8 @@ int     milter_send(MILTERS *milters, VSTREAM *stream)
      * Send the filter macro names.
      */
     (void) attr_print(stream, ATTR_FLAG_MORE,
-		   ATTR_TYPE_STR, MAIL_ATTR_MILT_CONN, milters->conn_macros,
-		   ATTR_TYPE_STR, MAIL_ATTR_MILT_HELO, milters->helo_macros,
-		   ATTR_TYPE_STR, MAIL_ATTR_MILT_MAIL, milters->mail_macros,
-		   ATTR_TYPE_STR, MAIL_ATTR_MILT_RCPT, milters->rcpt_macros,
-		   ATTR_TYPE_STR, MAIL_ATTR_MILT_DATA, milters->data_macros,
-		      ATTR_TYPE_STR, MAIL_ATTR_MILT_EOH, milters->eoh_macros,
-		      ATTR_TYPE_STR, MAIL_ATTR_MILT_EOD, milters->eod_macros,
-		      ATTR_TYPE_STR, MAIL_ATTR_MILT_UNK, milters->unk_macros,
+		      ATTR_TYPE_FUNC, milter_macros_print,
+		      (void *) milters->macros,
 		      ATTR_TYPE_END);
 
     /*
@@ -675,44 +643,12 @@ MILTERS *milter_receive(VSTREAM *stream, int count)
     MILTER *head = 0;
     MILTER *tail = 0;
     MILTER *milter = 0;
-    VSTRING *conn_macros;
-    VSTRING *helo_macros;
-    VSTRING *mail_macros;
-    VSTRING *rcpt_macros;
-    VSTRING *data_macros;
-    VSTRING *eoh_macros;
-    VSTRING *eod_macros;
-    VSTRING *unk_macros;
+    MILTER_MACROS *macros = milter_macros_alloc(MILTER_MACROS_ALLOC_ZERO);
 
-    /*
-     * Receive filter macros.
-     */
-#define FREE_BUFFERS() do { \
-	vstring_free(conn_macros); vstring_free(helo_macros); \
-	vstring_free(mail_macros); vstring_free(rcpt_macros); \
-	vstring_free(data_macros); vstring_free(eoh_macros); \
-	vstring_free(eod_macros); vstring_free(unk_macros); \
-   } while (0)
-
-    conn_macros = vstring_alloc(10);
-    helo_macros = vstring_alloc(10);
-    mail_macros = vstring_alloc(10);
-    rcpt_macros = vstring_alloc(10);
-    data_macros = vstring_alloc(10);
-    eoh_macros = vstring_alloc(10);
-    eod_macros = vstring_alloc(10);
-    unk_macros = vstring_alloc(10);
     if (attr_scan(stream, ATTR_FLAG_STRICT | ATTR_FLAG_MORE,
-		  ATTR_TYPE_STR, MAIL_ATTR_MILT_CONN, conn_macros,
-		  ATTR_TYPE_STR, MAIL_ATTR_MILT_HELO, helo_macros,
-		  ATTR_TYPE_STR, MAIL_ATTR_MILT_MAIL, mail_macros,
-		  ATTR_TYPE_STR, MAIL_ATTR_MILT_RCPT, rcpt_macros,
-		  ATTR_TYPE_STR, MAIL_ATTR_MILT_DATA, data_macros,
-		  ATTR_TYPE_STR, MAIL_ATTR_MILT_EOH, eoh_macros,
-		  ATTR_TYPE_STR, MAIL_ATTR_MILT_EOD, eod_macros,
-		  ATTR_TYPE_STR, MAIL_ATTR_MILT_UNK, unk_macros,
-		  ATTR_TYPE_END) != 8) {
-	FREE_BUFFERS();
+		  ATTR_TYPE_FUNC, milter_macros_scan, (void *) macros,
+		  ATTR_TYPE_END) != 1) {
+	milter_macros_free(macros);
 	return (0);
     }
 #define NO_MILTERS	((char *) 0)
@@ -720,12 +656,7 @@ MILTERS *milter_receive(VSTREAM *stream, int count)
 #define NO_PROTOCOL	((char *) 0)
 #define NO_ACTION	((char *) 0)
 
-    milters = milter_create(NO_MILTERS, NO_TIMEOUTS, NO_PROTOCOL, NO_ACTION,
-			    STR(conn_macros), STR(helo_macros),
-			    STR(mail_macros), STR(rcpt_macros),
-			    STR(data_macros), STR(eoh_macros),
-			    STR(eod_macros), STR(unk_macros));
-    FREE_BUFFERS();
+    milters = milter_new(NO_MILTERS, NO_TIMEOUTS, NO_PROTOCOL, NO_ACTION, macros);
 
     /*
      * Receive the filters.

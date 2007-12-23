@@ -14053,3 +14053,12 @@ Apologies for any names omitted.
 
 	Further polishing of the Milter code and logging. File:
 	milter/milter8.c.
+
+20071123
+
+	Further polishing of the Milter code. With SETSYMLIST, each
+	Milter can update its own macros instead of clobbering
+	the global copy is shared with other Milters. Also an
+	opportunity to clean up some ad-hoc code for sending macro
+	lists from smtp(8) to cleanup(8). Files: milter/milter.c,
+	milter/milter8.c, milter/milter_macros.c.

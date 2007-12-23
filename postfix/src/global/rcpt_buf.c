@@ -41,7 +41,7 @@
 /*	using the specified attribute scan routine. rcpb_scan()
 /*	is meant to be passed as a call-back to attr_scan(), thusly:
 /*
-/*	... ATTR_SCAN_FUNC, rcpb_scan, (void *) rcpt_buf, ...
+/*	... ATTR_TYPE_FUNC, rcpb_scan, (void *) rcpt_buf, ...
 /*
 /*	rcpb_create(), rcpb_reset() and rcpb_free() create, wipe
 /*	and destroy recipient buffer instances.

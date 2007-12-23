@@ -19,6 +19,11 @@
 #include <argv.h>
 
  /*
+  * Global library.
+  */
+#include <attr.h>
+
+ /*
   * Each Milter handle is an element of a null-terminated linked list. The
   * functions are virtual so that we can support multiple MTA-side Milter
   * implementations. The Sendmail 8 and Sendmail X Milter-side APIs are too
@@ -28,6 +33,7 @@ typedef struct MILTER {
     char   *name;			/* full name including transport */
     struct MILTER *next;		/* linkage */
     struct MILTERS *parent;		/* parent information */
+    struct MILTER_MACROS *macros;	/* private macros */
     const char *(*conn_event) (struct MILTER *, const char *, const char *, const char *, unsigned, ARGV *);
     const char *(*helo_event) (struct MILTER *, const char *, int, ARGV *);
     const char *(*mail_event) (struct MILTER *, const char **, ARGV *);
@@ -47,6 +53,70 @@ extern MILTER *milter8_create(const char *, int, int, int, const char *, const c
 extern MILTER *milter8_receive(VSTREAM *, struct MILTERS *);
 
  /*
+  * As of Sendmail 8.14 each milter can override the default macro list. If a
+  * Milter has its own macro list, a null member means use the global
+  * definition.
+  */
+typedef struct MILTER_MACROS {
+    char   *conn_macros;		/* macros for connect event */
+    char   *helo_macros;		/* macros for HELO/EHLO command */
+    char   *mail_macros;		/* macros for MAIL FROM command */
+    char   *rcpt_macros;		/* macros for RCPT TO command */
+    char   *data_macros;		/* macros for DATA command */
+    char   *eoh_macros;			/* macros for end-of-headers */
+    char   *eod_macros;			/* macros for END-OF-DATA command */
+    char   *unk_macros;			/* macros for unknown command */
+} MILTER_MACROS;
+
+extern MILTER_MACROS *milter_macros_create(const char *, const char *,
+					         const char *, const char *,
+					         const char *, const char *,
+					        const char *, const char *);
+extern MILTER_MACROS *milter_macros_alloc(int);
+extern void milter_macros_free(MILTER_MACROS *);
+extern int milter_macros_print(ATTR_PRINT_MASTER_FN, VSTREAM *, int, void *);
+extern int milter_macros_scan(ATTR_SCAN_MASTER_FN, VSTREAM *, int, void *);
+
+#define MILTER_MACROS_ALLOC_ZERO	1	/* null pointer */
+#define MILTER_MACROS_ALLOC_EMPTY	2	/* mystrdup(""); */
+
+#define milter_macros_wipe(mp) do { \
+	MILTER_MACROS *__mp = mp; \
+	if (__mp->conn_macros) \
+	    myfree(__mp->conn_macros); \
+	if (__mp->helo_macros) \
+	    myfree(__mp->helo_macros); \
+	if (__mp->mail_macros) \
+	    myfree(__mp->mail_macros); \
+	if (__mp->rcpt_macros) \
+	    myfree(__mp->rcpt_macros); \
+	if (__mp->data_macros) \
+	    myfree(__mp->data_macros); \
+	if (__mp->eoh_macros) \
+	    myfree(__mp->eoh_macros); \
+	if (__mp->eod_macros) \
+	    myfree(__mp->eod_macros); \
+	if (__mp->unk_macros) \
+	    myfree(__mp->unk_macros); \
+    } while (0)
+
+#define milter_macros_zero(mp) milter_macros_init(mp, 0)
+
+#define milter_macros_init(mp, expr) do { \
+	MILTER_MACROS *__mp = (mp); \
+	char *__expr = (expr); \
+	__mp->conn_macros = __expr; \
+	__mp->helo_macros = __expr; \
+	__mp->mail_macros = __expr; \
+	__mp->rcpt_macros = __expr; \
+	__mp->data_macros = __expr; \
+	__mp->eoh_macros = __expr; \
+	__mp->eod_macros = __expr; \
+	__mp->unk_macros = __expr; \
+    } while (0)
+
+
+ /*
   * A bunch of Milters.
   */
 typedef const char *(*MILTER_MAC_LOOKUP_FN) (const char *, void *);
@@ -60,14 +130,7 @@ typedef struct MILTERS {
     MILTER *milter_list;		/* linked list of Milters */
     MILTER_MAC_LOOKUP_FN mac_lookup;
     void   *mac_context;		/* macro lookup context */
-    char   *conn_macros;		/* macros for connect event */
-    char   *helo_macros;		/* macros for HELO/EHLO command */
-    char   *mail_macros;		/* macros for MAIL FROM command */
-    char   *rcpt_macros;		/* macros for RCPT TO command */
-    char   *data_macros;		/* macros for DATA command */
-    char   *eoh_macros;			/* macros for end-of-headers */
-    char   *eod_macros;			/* macros for END-OF-DATA command */
-    char   *unk_macros;			/* macros for unknown command */
+    struct MILTER_MACROS *macros;
     void   *chg_context;		/* context for queue file changes */
     MILTER_ADD_HEADER_FN add_header;
     MILTER_EDIT_HEADER_FN upd_header;
@@ -78,12 +141,17 @@ typedef struct MILTERS {
     MILTER_EDIT_BODY_FN repl_body;
 } MILTERS;
 
-extern MILTERS *milter_create(const char *, int, int, int,
-			              const char *, const char *,
-			              const char *, const char *,
-			              const char *, const char *,
-			              const char *, const char *,
-			              const char *, const char *);
+#define milter_create(milter_names, conn_timeout, cmd_timeout, msg_timeout, \
+			protocol, def_action, conn_macros, helo_macros, \
+			mail_macros, rcpt_macros, data_macros, eoh_macros, \
+			eod_macros, unk_macros) \
+	milter_new(milter_names, conn_timeout, cmd_timeout, msg_timeout, \
+		    protocol, def_action, milter_macros_create(conn_macros, \
+		    helo_macros, mail_macros, rcpt_macros, data_macros, \
+		    eoh_macros, eod_macros, unk_macros))
+
+extern MILTERS *milter_new(const char *, int, int, int, const char *,
+			           const char *, MILTER_MACROS *);
 extern void milter_macro_callback(MILTERS *, MILTER_MAC_LOOKUP_FN, void *);
 extern void milter_edit_callback(MILTERS *milters, MILTER_ADD_HEADER_FN,
 		               MILTER_EDIT_HEADER_FN, MILTER_EDIT_HEADER_FN,

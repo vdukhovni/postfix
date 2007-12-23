@@ -322,17 +322,17 @@ static NAME_CODE smfim_table[] = {
   * members, without using a switch statement.
   */
 static size_t milter8_macro_offsets[] = {
-    offsetof(MILTERS, conn_macros),	/* SMFIM_CONNECT */
-    offsetof(MILTERS, helo_macros),	/* SMFIM_HELO */
-    offsetof(MILTERS, mail_macros),	/* SMFIM_ENVFROM */
-    offsetof(MILTERS, rcpt_macros),	/* SMFIM_ENVRCPT */
-    offsetof(MILTERS, data_macros),	/* SMFIM_DATA */
-    offsetof(MILTERS, eod_macros),	/* Note: SMFIM_EOM < SMFIM_EOH */
-    offsetof(MILTERS, eoh_macros),	/* Note: SMFIM_EOH > SMFIM_EOM */
+    offsetof(MILTER_MACROS, conn_macros),	/* SMFIM_CONNECT */
+    offsetof(MILTER_MACROS, helo_macros),	/* SMFIM_HELO */
+    offsetof(MILTER_MACROS, mail_macros),	/* SMFIM_ENVFROM */
+    offsetof(MILTER_MACROS, rcpt_macros),	/* SMFIM_ENVRCPT */
+    offsetof(MILTER_MACROS, data_macros),	/* SMFIM_DATA */
+    offsetof(MILTER_MACROS, eod_macros),/* Note: SMFIM_EOM < SMFIM_EOH */
+    offsetof(MILTER_MACROS, eoh_macros),/* Note: SMFIM_EOH > SMFIM_EOM */
 };
 
-#define MILTER8_MACRO_PTR(__milters, __type) \
-	((char **) (((char *) (__milters)) + milter8_macro_offsets[(__type)]))
+#define MILTER8_MACRO_PTR(__macros, __type) \
+	((char **) (((char *) (__macros)) + milter8_macro_offsets[(__type)]))
 
  /*
   * How much buffer space is available for sending body content.
@@ -1734,6 +1734,8 @@ static void milter8_connect(MILTER8 *milter)
 	const char *smfim_name;
 	char  **mac_value_ptr;
 
+	milter->m.macros = milter_macros_alloc(MILTER_MACROS_ALLOC_EMPTY);
+
 	while (data_len > 0
 	       && milter8_read_data(milter, &data_len,
 				    MILTER8_DATA_HLONG, &mac_type,
@@ -1747,7 +1749,7 @@ static void milter8_connect(MILTER8 *milter)
 		if (msg_verbose)
 		    msg_info("override %s macro list with \"%s\"",
 			     smfim_name, STR(buf));
-		mac_value_ptr = MILTER8_MACRO_PTR(milter->m.parent, mac_type);
+		mac_value_ptr = MILTER8_MACRO_PTR(milter->m.macros, mac_type);
 		if (*mac_value_ptr != 0)
 		    myfree(*mac_value_ptr);
 		*mac_value_ptr = mystrdup(STR(buf));
@@ -2467,6 +2469,7 @@ static const char *milter8_message(MILTER *m, VSTREAM *qfile,
 #define MAIL_ATTR_MILT_CMD	"milter_cmd_timeout"
 #define MAIL_ATTR_MILT_MSG	"milter_msg_timeout"
 #define MAIL_ATTR_MILT_ACT	"milter_action"
+#define MAIL_ATTR_MILT_MAC	"milter_macro_list"
 
 /* milter8_active - report if this milter still wants events */
 
@@ -2489,7 +2492,7 @@ static int milter8_send(MILTER *m, VSTREAM *stream)
     if (msg_verbose)
 	msg_info("%s: milter %s", myname, milter->m.name);
 
-    if (attr_print(stream, ATTR_FLAG_NONE,
+    if (attr_print(stream, ATTR_FLAG_MORE,
 		   ATTR_TYPE_STR, MAIL_ATTR_MILT_NAME, milter->m.name,
 		   ATTR_TYPE_INT, MAIL_ATTR_MILT_VERS, milter->version,
 		   ATTR_TYPE_INT, MAIL_ATTR_MILT_ACTS, milter->rq_mask,
@@ -2500,7 +2503,16 @@ static int milter8_send(MILTER *m, VSTREAM *stream)
 		   ATTR_TYPE_INT, MAIL_ATTR_MILT_CMD, milter->cmd_timeout,
 		   ATTR_TYPE_INT, MAIL_ATTR_MILT_MSG, milter->msg_timeout,
 		   ATTR_TYPE_STR, MAIL_ATTR_MILT_ACT, milter->def_action,
+		   ATTR_TYPE_INT, MAIL_ATTR_MILT_MAC, milter->m.macros != 0,
 		   ATTR_TYPE_END) != 0
+	|| (milter->m.macros != 0
+	    && attr_print(stream, ATTR_FLAG_NONE,
+			  ATTR_TYPE_FUNC, milter_macros_print,
+			  (void *) milter->m.macros,
+			  ATTR_TYPE_END) != 0)
+	|| (milter->m.macros == 0
+	    && attr_print(stream, ATTR_FLAG_NONE,
+			  ATTR_TYPE_END) != 0)
 	|| vstream_fflush(stream) != 0) {
 	return (-1);
 #ifdef CANT_WRITE_BEFORE_SENDING_FD
@@ -2524,7 +2536,7 @@ static int milter8_send(MILTER *m, VSTREAM *stream)
 }
 
 static MILTER8 *milter8_alloc(const char *, int, int, int, const char *,
-			              const char *, MILTERS *);
+			          const char *, MILTERS *);
 
 /* milter8_receive - receive milter instance */
 
@@ -2543,12 +2555,20 @@ MILTER *milter8_receive(VSTREAM *stream, MILTERS *parent)
     int     cmd_timeout;
     int     msg_timeout;
     int     fd;
+    int     has_macros;
+    MILTER_MACROS *macros = 0;
+
+#define FREE_MACROS_AND_RETURN(x) do { \
+	if (macros) \
+	    milter_macros_free(macros); \
+	return (x); \
+    } while (0)
 
     if (name_buf == 0) {
 	name_buf = vstring_alloc(10);
 	act_buf = vstring_alloc(10);
     }
-    if (attr_scan(stream, ATTR_FLAG_STRICT,
+    if (attr_scan(stream, ATTR_FLAG_STRICT | ATTR_FLAG_MORE,
 		  ATTR_TYPE_STR, MAIL_ATTR_MILT_NAME, name_buf,
 		  ATTR_TYPE_INT, MAIL_ATTR_MILT_VERS, &version,
 		  ATTR_TYPE_INT, MAIL_ATTR_MILT_ACTS, &rq_mask,
@@ -2559,22 +2579,32 @@ MILTER *milter8_receive(VSTREAM *stream, MILTERS *parent)
 		  ATTR_TYPE_INT, MAIL_ATTR_MILT_CMD, &cmd_timeout,
 		  ATTR_TYPE_INT, MAIL_ATTR_MILT_MSG, &msg_timeout,
 		  ATTR_TYPE_STR, MAIL_ATTR_MILT_ACT, act_buf,
-		  ATTR_TYPE_END) < 9) {
-	return (0);
+		  ATTR_TYPE_INT, MAIL_ATTR_MILT_MAC, &has_macros,
+		  ATTR_TYPE_END) < 10
+	|| (has_macros != 0
+	    && attr_scan(stream, ATTR_FLAG_STRICT,
+			 ATTR_TYPE_FUNC, milter_macros_scan,
+			 (void *) (macros =
+			     milter_macros_alloc(MILTER_MACROS_ALLOC_ZERO)),
+			 ATTR_TYPE_END) < 1)
+	|| (has_macros == 0
+	    && attr_scan(stream, ATTR_FLAG_STRICT,
+			 ATTR_TYPE_END) < 0)) {
+	FREE_MACROS_AND_RETURN(0);
 #ifdef CANT_WRITE_BEFORE_SENDING_FD
     } else if (attr_print(stream, ATTR_FLAG_NONE,
 			  ATTR_TYPE_STR, MAIL_ATTR_DUMMY, "",
 			  ATTR_TYPE_END) != 0
 	       || vstream_fflush(stream) != 0) {
-	return (0);
+	FREE_MACROS_AND_RETURN(0);
 #endif
     } else if ((fd = LOCAL_RECV_FD(vstream_fileno(stream))) < 0) {
-	return (0);
+	FREE_MACROS_AND_RETURN(0);
 #ifdef MUST_READ_AFTER_SENDING_FD
     } else if (attr_print(stream, ATTR_FLAG_NONE,
 			  ATTR_TYPE_STR, MAIL_ATTR_DUMMY, "",
 			  ATTR_TYPE_END) != 0) {
-	return (0);
+	FREE_MACROS_AND_RETURN(0);
 #endif
     } else {
 #define NO_PROTOCOL	((char *) 0)
@@ -2585,6 +2615,7 @@ MILTER *milter8_receive(VSTREAM *stream, MILTERS *parent)
 	milter = milter8_alloc(STR(name_buf), conn_timeout, cmd_timeout,
 			    msg_timeout, NO_PROTOCOL, STR(act_buf), parent);
 	milter->fp = vstream_fdopen(fd, O_RDWR);
+	milter->m.macros = macros;
 	vstream_control(milter->fp, VSTREAM_CTL_DOUBLE, VSTREAM_CTL_END);
 	/* Avoid poor performance when TCP MSS > VSTREAM_BUFSIZE. */
 	vstream_tweak_sock(milter->fp);
@@ -2615,6 +2646,8 @@ static void milter8_free(MILTER *m)
     myfree(milter->def_action);
     if (milter->def_reply)
 	myfree(milter->def_reply);
+    if (milter->m.macros)
+	milter_macros_free(milter->m.macros);
     myfree((char *) milter);
 }
 
@@ -2635,6 +2668,7 @@ static MILTER8 *milter8_alloc(const char *name, int conn_timeout,
     milter->m.name = mystrdup(name);
     milter->m.next = 0;
     milter->m.parent = parent;
+    milter->m.macros = 0;
     milter->m.conn_event = milter8_conn_event;
     milter->m.helo_event = milter8_helo_event;
     milter->m.mail_event = milter8_mail_event;
@@ -2678,7 +2712,7 @@ MILTER *milter8_create(const char *name, int conn_timeout, int cmd_timeout,
      * Fill in the structure.
      */
     milter = milter8_alloc(name, conn_timeout, cmd_timeout, msg_timeout,
-			   protocol, def_action, parent);
+			 protocol, def_action, parent);
 
     /*
      * XXX Sendmail 8 libmilter closes the MTA-to-filter socket when it finds

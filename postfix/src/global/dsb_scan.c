@@ -16,7 +16,7 @@
 /*	specified attribute scan routine. dsb_scan() is meant
 /*	to be passed as a call-back to attr_scan(), thusly:
 /*
-/*	... ATTR_SCAN_FUNC, dsb_scan, (void *) &dsbuf, ...
+/*	... ATTR_TYPE_FUNC, dsb_scan, (void *) &dsbuf, ...
 /* DIAGNOSTICS
 /*	Fatal: out of memory.
 /* LICENSE
