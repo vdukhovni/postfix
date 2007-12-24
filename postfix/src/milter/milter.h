@@ -80,42 +80,6 @@ extern int milter_macros_scan(ATTR_SCAN_MASTER_FN, VSTREAM *, int, void *);
 #define MILTER_MACROS_ALLOC_ZERO	1	/* null pointer */
 #define MILTER_MACROS_ALLOC_EMPTY	2	/* mystrdup(""); */
 
-#define milter_macros_wipe(mp) do { \
-	MILTER_MACROS *__mp = mp; \
-	if (__mp->conn_macros) \
-	    myfree(__mp->conn_macros); \
-	if (__mp->helo_macros) \
-	    myfree(__mp->helo_macros); \
-	if (__mp->mail_macros) \
-	    myfree(__mp->mail_macros); \
-	if (__mp->rcpt_macros) \
-	    myfree(__mp->rcpt_macros); \
-	if (__mp->data_macros) \
-	    myfree(__mp->data_macros); \
-	if (__mp->eoh_macros) \
-	    myfree(__mp->eoh_macros); \
-	if (__mp->eod_macros) \
-	    myfree(__mp->eod_macros); \
-	if (__mp->unk_macros) \
-	    myfree(__mp->unk_macros); \
-    } while (0)
-
-#define milter_macros_zero(mp) milter_macros_init(mp, 0)
-
-#define milter_macros_init(mp, expr) do { \
-	MILTER_MACROS *__mp = (mp); \
-	char *__expr = (expr); \
-	__mp->conn_macros = __expr; \
-	__mp->helo_macros = __expr; \
-	__mp->mail_macros = __expr; \
-	__mp->rcpt_macros = __expr; \
-	__mp->data_macros = __expr; \
-	__mp->eoh_macros = __expr; \
-	__mp->eod_macros = __expr; \
-	__mp->unk_macros = __expr; \
-    } while (0)
-
-
  /*
   * A bunch of Milters.
   */

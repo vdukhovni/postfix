@@ -18,7 +18,7 @@
 /*	Arguments (multiple alternatives are separated by "\fB|\fR"):
 /* .IP "\fB-a accept|tempfail|reject|discard|skip|\fIddd x.y.z text\fR"
 /*	Specifies a non-default reply for the MTA command specified
-/*	with \fB-a\fR. The default is \fBtempfail\fR.
+/*	with \fB-c\fR. The default is \fBtempfail\fR.
 /* .IP "\fB-d\fI level\fR"
 /*	Enable libmilter debugging at the specified level.
 /* .IP "\fB-c connect|helo|mail|rcpt|data|header|eoh|body|eom|unknown|close|abort\fR"
@@ -28,6 +28,9 @@
 /*	Terminate after \fIcount\fR connections.
 /* .IP "\fB-i \fI'index header-label header-value'\fR"
 /*	Insert header at specified position.
+/* .IP "\fB-l\fR"
+/*	Header values include leading space. Specify this option
+/*	before \fB-i\fR or \fB-r\fR.
 /* .IP "\fB-m connect|helo|mail|rcpt|data|eoh|eom\fR"
 /*	The protocol stage that receives the list of macros specified
 /*	with \fB-M\fR.  The default protocol stage is \fBconnect\fR.
@@ -100,7 +103,7 @@ struct command_map {
     int    *reply;
 };
 
-static struct command_map command_map[] = {
+static const struct command_map command_map[] = {
     "connect", &test_connect_reply,
     "helo", &test_helo_reply,
     "mail", &test_mail_reply,
@@ -387,7 +390,7 @@ struct noproto_map {
     FILTER_ACTION *action;
 };
 
-static struct noproto_map noproto_map[] = {
+static const struct noproto_map noproto_map[] = {
     "connect", SMFIP_NOCONNECT, SMFIP_NR_CONN, &test_connect_reply, &smfilter.xxfi_connect,
     "helo", SMFIP_NOHELO, SMFIP_NR_HELO, &test_helo_reply, &smfilter.xxfi_helo,
     "mail", SMFIP_NOMAIL, SMFIP_NR_MAIL, &test_mail_reply, &smfilter.xxfi_envfrom,
@@ -402,6 +405,7 @@ static struct noproto_map noproto_map[] = {
 
 static int nosend_mask;
 static int noreply_mask;
+static int misc_mask;
 
 static sfsistat test_negotiate(SMFICTX *ctx,
 			               unsigned long f0,
@@ -420,10 +424,10 @@ static sfsistat test_negotiate(SMFICTX *ctx,
 	smfi_setsymlist(ctx, set_macro_state, set_macro_list);
     }
     if (verbose)
-	printf("negotiate f0=%lx *pf0 = %lx f1=%lx *pf1=%lx nosend=%lx noreply=%lx\n",
-	       f0, *pf0, f1, *pf1, (long) nosend_mask, (long) noreply_mask);
+	printf("negotiate f0=%lx *pf0 = %lx f1=%lx *pf1=%lx nosend=%lx noreply=%lx misc=%lx\n",
+	       f0, *pf0, f1, *pf1, (long) nosend_mask, (long) noreply_mask, (long) misc_mask);
     *pf0 = f0;
-    *pf1 = f1 & (nosend_mask | noreply_mask);
+    *pf1 = f1 & (nosend_mask | noreply_mask | misc_mask);
     return (SMFIS_CONTINUE);
 }
 
@@ -439,7 +443,9 @@ static void parse_hdr_info(const char *optarg, int *idx,
 	fprintf(stderr, "out of memory\n");
 	exit(1);
     }
-    if (sscanf(optarg, "%d %s %[^\n]", idx, *hdr, *value) != 3) {
+    if ((misc_mask & SMFIP_HDR_LEADSPC) == 0 ?
+	sscanf(optarg, "%d %s %[^\n]", idx, *hdr, *value) != 3 :
+	sscanf(optarg, "%d %[^ ]%[^\n]", idx, *hdr, *value) != 3) {
 	fprintf(stderr, "bad header info: %s\n", optarg);
 	exit(1);
     }
@@ -449,16 +455,16 @@ int     main(int argc, char **argv)
 {
     char   *action = 0;
     char   *command = 0;
-    struct command_map *cp;
+    const struct command_map *cp;
     int     ch;
     int     code;
     const char **cpp;
     char   *set_macro_state_arg = 0;
     char   *nosend = 0;
     char   *noreply = 0;
-    struct noproto_map *np;
+    const struct noproto_map *np;
 
-    while ((ch = getopt(argc, argv, "a:c:C:d:i:m:M:n:N:p:r:R:v")) > 0) {
+    while ((ch = getopt(argc, argv, "a:c:C:d:i:lm:M:n:N:p:r:R:v")) > 0) {
 	switch (ch) {
 	case 'a':
 	    action = optarg;
@@ -484,6 +490,18 @@ int     main(int argc, char **argv)
 	    exit(1);
 #endif
 	    break;
+	case 'l':
+#if SMFI_VERSION > 5
+	    if (ins_hdr || chg_hdr) {
+		fprintf(stderr, "specify -l before -i or -r\n");
+		exit(1);
+	    }
+	    misc_mask |= SMFIP_HDR_LEADSPC;
+#else
+	    fprintf(stderr, "no libmilter support for leading space\n");
+	    exit(1);
+#endif
+	    break;
 	case 'm':
 #if SMFI_VERSION > 5
 	    if (set_macro_state_arg) {
@@ -493,6 +511,7 @@ int     main(int argc, char **argv)
 	    set_macro_state_arg = optarg;
 #else
 	    fprintf(stderr, "no libmilter support to specify macro list\n");
+	    exit(1);
 #endif
 	    break;
 	case 'M':

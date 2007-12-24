@@ -211,7 +211,7 @@
 /*	filter) applications after an unknown SMTP command.
 /* .IP "\fBmilter_end_of_header_macros (see postconf -n output)\fR"
 /*	The macros that are sent to Milter (mail filter) applications
-/*	after the message header.
+/*	after the end of the message header.
 /* .IP "\fBmilter_end_of_data_macros (see postconf -n output)\fR"
 /*	The macros that are sent to Milter (mail filter) applications
 /*	after the message end-of-data.
@@ -1654,6 +1654,11 @@ static int mail_open_stream(SMTPD_STATE *state)
      * XXX Send Milter information first, because this will hang when cleanup
      * goes into "throw away" mode. Also, cleanup needs to know early on
      * whether or not it has to do its own SMTP event emulation.
+     * 
+     * XXX At this point we send only dummy information to keep the cleanup
+     * server from using its non_smtpd_milters settings. We have to send
+     * up-to-date Milter information after DATA so that the cleanup server
+     * knows the actual Milter state.
      */
     if (state->dest) {
 	state->cleanup = state->dest->stream;

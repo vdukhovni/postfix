@@ -14,12 +14,12 @@
 /*	} NAME_CODE;
 /*
 /*	int	name_code(table, flags, name)
-/*	NAME_CODE *table;
+/*	const NAME_CODE *table;
 /*	int	flags;
 /*	const char *name;
 /*
 /*	const char *str_name_code(table, code)
-/*	NAME_CODE *table;
+/*	const NAME_CODE *table;
 /*	int	code;
 /* DESCRIPTION
 /*	This module does simple name<->number mapping. The process
@@ -66,9 +66,9 @@
 
 /* name_code - look up code by name */
 
-int     name_code(NAME_CODE *table, int flags, const char *name)
+int     name_code(const NAME_CODE *table, int flags, const char *name)
 {
-    NAME_CODE *np;
+    const NAME_CODE *np;
     int     (*lookup) (const char *, const char *);
 
     if (flags & NAME_CODE_FLAG_STRICT_CASE)
@@ -84,9 +84,9 @@ int     name_code(NAME_CODE *table, int flags, const char *name)
 
 /* str_name_code - look up name by code */
 
-const char *str_name_code(NAME_CODE *table, int code)
+const char *str_name_code(const NAME_CODE *table, int code)
 {
-    NAME_CODE *np;
+    const NAME_CODE *np;
 
     for (np = table; np->name; np++)
 	if (code == np->code)

@@ -1332,6 +1332,8 @@ void    cleanup_milter_receive(CLEANUP_STATE *state, int count)
     state->milters = milter_receive(state->src, count);
     if (state->milters == 0)
 	msg_fatal("cleanup_milter_receive: milter receive failed");
+    if (count <= 0)
+	return;
     milter_macro_callback(state->milters, cleanup_milter_eval, (void *) state);
     milter_edit_callback(state->milters,
 			 cleanup_add_header, cleanup_upd_header,

@@ -123,7 +123,7 @@
  /* Introduced with Sendmail 8.14. */
 #define SMFIC_QUIT_NC		'K'	/* Quit + new connection */
 
-static NAME_CODE smfic_table[] = {
+static const NAME_CODE smfic_table[] = {
     "SMFIC_ABORT", SMFIC_ABORT,
     "SMFIC_BODY", SMFIC_BODY,
     "SMFIC_CONNECT", SMFIC_CONNECT,
@@ -168,7 +168,7 @@ static NAME_CODE smfic_table[] = {
 #define SMFIR_ADDRCPT_PAR	'2'	/* add recipient (incl. ESMTP args) */
 #define SMFIR_SETSYMLIST	'l'	/* set list of symbols (macros) */
 
-static NAME_CODE smfir_table[] = {
+static const NAME_CODE smfir_table[] = {
     "SMFIR_ADDRCPT", SMFIR_ADDRCPT,
     "SMFIR_DELRCPT", SMFIR_DELRCPT,
     "SMFIR_ACCEPT", SMFIR_ACCEPT,
@@ -231,7 +231,7 @@ static NAME_CODE smfir_table[] = {
 	| SMFIP_NR_DATA | SMFIP_NR_UNKN | SMFIP_NR_HDR | SMFIP_NR_EOH | \
 	SMFIP_NR_BODY)
 
-static NAME_MASK smfip_table[] = {
+static const NAME_MASK smfip_table[] = {
     "SMFIP_NOCONNECT", SMFIP_NOCONNECT,
     "SMFIP_NOHELO", SMFIP_NOHELO,
     "SMFIP_NOMAIL", SMFIP_NOMAIL,
@@ -272,7 +272,7 @@ static NAME_MASK smfip_table[] = {
 #define SMFIF_ADDRCPT_PAR	(1L<<7)	/* filter may add recipients + args */
 #define SMFIF_SETSYMLIST	(1L<<8)	/* filter may send macro names */
 
-static NAME_MASK smfif_table[] = {
+static const NAME_MASK smfif_table[] = {
     "SMFIF_ADDHDRS", SMFIF_ADDHDRS,
     "SMFIF_CHGBODY", SMFIF_CHGBODY,
     "SMFIF_ADDRCPT", SMFIF_ADDRCPT,
@@ -306,7 +306,7 @@ static NAME_MASK smfif_table[] = {
 #define SMFIM_EOM	5		/* macros for end-of-message */
 #define SMFIM_EOH	6		/* macros for end-of-header */
 
-static NAME_CODE smfim_table[] = {
+static const NAME_CODE smfim_table[] = {
     "SMFIM_CONNECT", SMFIM_CONNECT,
     "SMFIM_HELO", SMFIM_HELO,
     "SMFIM_ENVFROM", SMFIM_ENVFROM,
@@ -318,10 +318,10 @@ static NAME_CODE smfim_table[] = {
 };
 
  /*
-  * Mapping from external macro set numbers to our internal MILTERS structure
-  * members, without using a switch statement.
+  * Mapping from external macro set numbers to our internal MILTER_MACROS
+  * structure members, without using an array or switch statement.
   */
-static size_t milter8_macro_offsets[] = {
+static const size_t milter8_macro_offsets[] = {
     offsetof(MILTER_MACROS, conn_macros),	/* SMFIM_CONNECT */
     offsetof(MILTER_MACROS, helo_macros),	/* SMFIM_HELO */
     offsetof(MILTER_MACROS, mail_macros),	/* SMFIM_ENVFROM */
@@ -445,7 +445,7 @@ typedef struct {
   * XXX Is this still needed? Sendmail 8.14 provides a proper way to negotiate
   * what replies the mail filter will send.
   */
-static NAME_CODE milter8_event_masks[] = {
+static const NAME_CODE milter8_event_masks[] = {
     "2", MILTER8_V2_PROTO_MASK,
     "3", MILTER8_V3_PROTO_MASK,
     "4", MILTER8_V4_PROTO_MASK,
@@ -460,7 +460,7 @@ static NAME_CODE milter8_event_masks[] = {
   * protocol extensions such as "no_header_reply", and require that exactly
   * one version number is specified.
   */
-static NAME_CODE milter8_versions[] = {
+static const NAME_CODE milter8_versions[] = {
     "2", 2,
     "3", 3,
     "4", 4,
@@ -1750,8 +1750,7 @@ static void milter8_connect(MILTER8 *milter)
 		    msg_info("override %s macro list with \"%s\"",
 			     smfim_name, STR(buf));
 		mac_value_ptr = MILTER8_MACRO_PTR(milter->m.macros, mac_type);
-		if (*mac_value_ptr != 0)
-		    myfree(*mac_value_ptr);
+		myfree(*mac_value_ptr);
 		*mac_value_ptr = mystrdup(STR(buf));
 	    }
 	}
@@ -2536,7 +2535,7 @@ static int milter8_send(MILTER *m, VSTREAM *stream)
 }
 
 static MILTER8 *milter8_alloc(const char *, int, int, int, const char *,
-			          const char *, MILTERS *);
+			              const char *, MILTERS *);
 
 /* milter8_receive - receive milter instance */
 
@@ -2712,7 +2711,7 @@ MILTER *milter8_create(const char *name, int conn_timeout, int cmd_timeout,
      * Fill in the structure.
      */
     milter = milter8_alloc(name, conn_timeout, cmd_timeout, msg_timeout,
-			 protocol, def_action, parent);
+			   protocol, def_action, parent);
 
     /*
      * XXX Sendmail 8 libmilter closes the MTA-to-filter socket when it finds

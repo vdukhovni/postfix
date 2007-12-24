@@ -11,6 +11,17 @@ instead, a new snapshot is released.
 The mail_release_date configuration parameter (format: yyyymmdd)
 specifies the release date of a stable release or snapshot release.
 
+Incompatibility with Postfix snapshot 20071224
+==============================================
+
+The protocol to send Milter information from smtpd(8) to cleanup(8)
+processes was cleaned up. If you use the Milter feature, and upgrade
+a live Postfix system, you may see an "unexpected record type"
+warning from a cleanup(8) server process.  To prevent this, execute
+the command "postfix reload".  The incompatibility affects only
+systems that use the Milter feature. It does not cause loss of mail,
+just a minor delay until the remote SMTP client retries.
+
 Major changes with Postfix snapshot 20071221
 ============================================
 

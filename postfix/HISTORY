@@ -14057,8 +14057,17 @@ Apologies for any names omitted.
 20071123
 
 	Further polishing of the Milter code. With SETSYMLIST, each
-	Milter can update its own macros instead of clobbering
-	the global copy is shared with other Milters. Also an
+	Milter can now update its own macros instead of clobbering
+	the global copy that is shared with other Milters. Also an
 	opportunity to clean up some ad-hoc code for sending macro
 	lists from smtp(8) to cleanup(8). Files: milter/milter.c,
 	milter/milter8.c, milter/milter_macros.c.
+
+20071224
+
+	Further polishing of the Milter code. Eliminated unnecessary
+	steps from the initial smtpd/cleanup Milter handshake. Files:
+	milter/milter.c, milter/milter8.c, milter/milter_macros.c.
+
+	Cleanup: name_code(3) and name_mask(3) now support read-only
+	tables. Files: util/name_code.[hc] util/name_mask.[hc].

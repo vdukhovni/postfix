@@ -603,6 +603,10 @@ int     milter_send(MILTERS *milters, VSTREAM *stream)
      * to a cleanup server. For now we skip only the filters that are known
      * to be disabled (either in global error state or in global accept
      * state).
+     * 
+     * XXX We must send *some* information, even when there are no active
+     * filters, otherwise the cleanup server would try to apply its own
+     * non_smtpd_milters settings.
      */
     if (milters != 0)
 	for (m = milters->milter_list; m != 0; m = m->next)
@@ -611,7 +615,14 @@ int     milter_send(MILTERS *milters, VSTREAM *stream)
     (void) rec_fprintf(stream, REC_TYPE_MILT_COUNT, "%d", count);
 
     /*
-     * Send the filter macro names.
+     * XXX Optimization: don't send or receive further information when there
+     * aren't any active filters.
+     */
+    if (count <= 0)
+	return (0);
+
+    /*
+     * Send the filter macro name lists.
      */
     (void) attr_print(stream, ATTR_FLAG_MORE,
 		      ATTR_TYPE_FUNC, milter_macros_print,
@@ -624,6 +635,10 @@ int     milter_send(MILTERS *milters, VSTREAM *stream)
     for (m = milters->milter_list; m != 0; m = m->next)
 	if (m->active(m) && (status = m->send(m, stream)) != 0)
 	    break;
+
+    /*
+     * Over to you.
+     */
     if (status != 0
 	|| attr_scan(stream, ATTR_FLAG_STRICT,
 		     ATTR_TYPE_INT, MAIL_ATTR_STATUS, &status,
@@ -643,20 +658,39 @@ MILTERS *milter_receive(VSTREAM *stream, int count)
     MILTER *head = 0;
     MILTER *tail = 0;
     MILTER *milter = 0;
-    MILTER_MACROS *macros = milter_macros_alloc(MILTER_MACROS_ALLOC_ZERO);
 
-    if (attr_scan(stream, ATTR_FLAG_STRICT | ATTR_FLAG_MORE,
-		  ATTR_TYPE_FUNC, milter_macros_scan, (void *) macros,
-		  ATTR_TYPE_END) != 1) {
-	milter_macros_free(macros);
-	return (0);
-    }
+    /*
+     * XXX We must instantiate a MILTERS structure even when the sender has
+     * no active filters, otherwise the cleanup server would try to use its
+     * own non_smtpd_milters settings.
+     */
 #define NO_MILTERS	((char *) 0)
 #define NO_TIMEOUTS	0, 0, 0
 #define NO_PROTOCOL	((char *) 0)
 #define NO_ACTION	((char *) 0)
+#define NO_MACROS	((MILTER_MACROS *) 0)
 
-    milters = milter_new(NO_MILTERS, NO_TIMEOUTS, NO_PROTOCOL, NO_ACTION, macros);
+    milters = milter_new(NO_MILTERS, NO_TIMEOUTS, NO_PROTOCOL, NO_ACTION,
+			 NO_MACROS);
+
+    /*
+     * XXX Optimization: don't send or receive further information when there
+     * aren't any active filters.
+     */
+    if (count <= 0)
+	return (milters);
+
+    /*
+     * Receive the global macro name lists.
+     */
+    milters->macros = milter_macros_alloc(MILTER_MACROS_ALLOC_ZERO);
+    if (attr_scan(stream, ATTR_FLAG_STRICT | ATTR_FLAG_MORE,
+		  ATTR_TYPE_FUNC, milter_macros_scan,
+		  (void *) milters->macros,
+		  ATTR_TYPE_END) != 1) {
+	milter_free(milters);
+	return (0);
+    }
 
     /*
      * Receive the filters.
@@ -677,6 +711,9 @@ MILTERS *milter_receive(VSTREAM *stream, int count)
 	tail = milter;
     }
 
+    /*
+     * Over to you.
+     */
     (void) attr_print(stream, ATTR_FLAG_NONE,
 		      ATTR_TYPE_INT, MAIL_ATTR_STATUS, 0,
 		      ATTR_TYPE_END);

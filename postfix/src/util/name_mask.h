@@ -45,8 +45,8 @@ typedef struct {
 #define str_name_mask(tag, table, mask) \
 	str_name_mask_opt(((VSTRING *) 0), (tag), (table), (mask), NAME_MASK_DEFAULT)
 
-extern int name_mask_delim_opt(const char *, NAME_MASK *, const char *, const char *, int);
-extern const char *str_name_mask_opt(VSTRING *, const char *, NAME_MASK *, int, int);
+extern int name_mask_delim_opt(const char *, const NAME_MASK *, const char *, const char *, int);
+extern const char *str_name_mask_opt(VSTRING *, const char *, const NAME_MASK *, int, int);
 
 /* LICENSE
 /* .ad
