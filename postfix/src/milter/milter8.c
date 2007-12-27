@@ -319,7 +319,7 @@ static const NAME_CODE smfim_table[] = {
 
  /*
   * Mapping from external macro set numbers to our internal MILTER_MACROS
-  * structure members, without using an array or switch statement.
+  * structure members, without using a switch statement.
   */
 static const size_t milter8_macro_offsets[] = {
     offsetof(MILTER_MACROS, conn_macros),	/* SMFIM_CONNECT */
@@ -1740,7 +1740,7 @@ static void milter8_connect(MILTER8 *milter)
 	       && milter8_read_data(milter, &data_len,
 				    MILTER8_DATA_HLONG, &mac_type,
 				    MILTER8_DATA_STRING, buf,
-				    MILTER8_DATA_END) == 0) {
+				    MILTER8_DATA_MORE) == 0) {
 	    smfim_name = str_name_code(smfim_table, mac_type);
 	    if (smfim_name == 0) {
 		msg_warn("milter %s: ignoring unknown macro type %u",
@@ -2599,13 +2599,12 @@ MILTER *milter8_receive(VSTREAM *stream, MILTERS *parent)
 #endif
     } else if ((fd = LOCAL_RECV_FD(vstream_fileno(stream))) < 0) {
 	FREE_MACROS_AND_RETURN(0);
-#ifdef MUST_READ_AFTER_SENDING_FD
-    } else if (attr_print(stream, ATTR_FLAG_NONE,
-			  ATTR_TYPE_STR, MAIL_ATTR_DUMMY, "",
-			  ATTR_TYPE_END) != 0) {
-	FREE_MACROS_AND_RETURN(0);
-#endif
     } else {
+#ifdef MUST_READ_AFTER_SENDING_FD
+	(void) attr_print(stream, ATTR_FLAG_NONE,
+			  ATTR_TYPE_STR, MAIL_ATTR_DUMMY, "",
+			  ATTR_TYPE_END);
+#endif
 #define NO_PROTOCOL	((char *) 0)
 
 	if (msg_verbose)

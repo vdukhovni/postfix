@@ -14060,7 +14060,7 @@ Apologies for any names omitted.
 	Milter can now update its own macros instead of clobbering
 	the global copy that is shared with other Milters. Also an
 	opportunity to clean up some ad-hoc code for sending macro
-	lists from smtp(8) to cleanup(8). Files: milter/milter.c,
+	lists from smtpd(8) to cleanup(8). Files: milter/milter.c,
 	milter/milter8.c, milter/milter_macros.c.
 
 20071224
@@ -14070,4 +14070,10 @@ Apologies for any names omitted.
 	milter/milter.c, milter/milter8.c, milter/milter_macros.c.
 
 	Cleanup: name_code(3) and name_mask(3) now support read-only
-	tables. Files: util/name_code.[hc] util/name_mask.[hc].
+	tables. Files: util/name_code.[hc], util/name_mask.[hc].
+
+20071227
+
+	Cleanup: further refinements of the Milter code, allowing
+	for multiple macro overrides. The code is now ready for
+	serious testing. File: milter/milter8.c.
