@@ -1,5 +1,10 @@
 Wish list:
 
+	Milter client: send [ipaddress] instead of "unknown".
+
+	The cleanup server should report "file too large" milter
+	errors as permanent errors.
+
 	In the SMTP client, handle 421 replies in smtp_loop() by
 	having the input function raise a flag after detecting 421
 	(kill connection caching and be sure to do the right thing

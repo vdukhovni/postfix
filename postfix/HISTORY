@@ -14077,3 +14077,9 @@ Apologies for any names omitted.
 	Cleanup: further refinements of the Milter code, allowing
 	for multiple macro overrides. The code is now ready for
 	serious testing. File: milter/milter8.c.
+
+20071229
+
+	Bugfix: the Milter client did not replace the Postfix-specific
+	form for unknown host names by the Sendmail-specific form.
+	File: milter/milter8.c.

@@ -17,8 +17,8 @@
 /*
 /*	Arguments:
 /* .IP fd
-/*	File descriptor in the range 0..FD_SETSIZE. Its value is logged
-/*	when verbose logging is turned on.
+/*	File descriptor whose value is logged when verbose logging
+/*	is turned on.
 /* .IP buf
 /*	Write buffer pointer. Not used.
 /* .IP buf_len
