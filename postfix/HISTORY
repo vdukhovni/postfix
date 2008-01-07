@@ -14083,3 +14083,23 @@ Apologies for any names omitted.
 	Bugfix: the Milter client did not replace the Postfix-specific
 	form for unknown host names by the Sendmail-specific form.
 	File: milter/milter8.c.
+
+	Cleanup: when a cleanup milter reports a problem don't log
+	generic "4.3.0 Sevice unavailable", but log the text for
+	the actual error. File: cleanup/cleanup_milter.c.
+
+20080104
+
+	Workaround: minor change to the Dovecot AUTH request to
+	prevent dovecot-auth memory wastage. Timo Sirainen.  File:
+	xsasl/xsasl_dovecot_server.c.
+
+20070807
+
+	Feature (experimental release only): new "pass" service
+	type (in addition to "inet", "unix" and "fifo").  The "pass"
+	service type supports front-end daemons that accept all
+	inbound connections and that permit only well-behaved clients
+	to talk to the MTA. This service type had been sitting in
+	the master daemon for years but was disabled by default.
+	Files: util/upass_connect.c, util/upass_trigger.c.

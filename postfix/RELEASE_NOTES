@@ -11,6 +11,16 @@ instead, a new snapshot is released.
 The mail_release_date configuration parameter (format: yyyymmdd)
 specifies the release date of a stable release or snapshot release.
 
+Major changes with Postfix snapshot 20080107
+============================================
+
+New "pass" service type in master.cf.  Written years ago, this
+allows a front-end daemon to accept all connections from the network,
+and forward only those from well-behaved clients to Postfix. Since
+this uses file descriptor passing, it imposes no overhead once a
+connection is handed over to Postfix. This is available in the
+experimental release only. See master(5) for a few details.
+
 Incompatibility with Postfix snapshot 20071224
 ==============================================
 

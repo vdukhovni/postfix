@@ -136,8 +136,7 @@ void    master_listen_init(MASTER_SERV *serv)
 	set_eugid(var_owner_uid, var_owner_gid);
 	serv->listen_fd[0] =
 	    PASS_LISTEN(serv->name, serv->max_proc > var_proc_limit ?
-			serv->max_proc : var_proc_limit, NON_BLOCKING,
-			&(serv->pass_info));
+			serv->max_proc : var_proc_limit, NON_BLOCKING);
 	close_on_exec(serv->listen_fd[0], CLOSE_ON_EXEC);
 	set_ugid(getuid(), getgid());
 	break;
@@ -161,10 +160,6 @@ void    master_listen_cleanup(MASTER_SERV *serv)
      * listener. The 4.4BSD shutdown(2) man page promises an ENOTCONN error
      * when shutdown(2) is applied to a socket that is not connected.
      */
-#ifdef MASTER_SERV_TYPE_PASS
-    if (serv->type == MASTER_SERV_TYPE_PASS)
-	PASS_SHUTDOWN(&(serv->pass_info));
-#endif
     for (n = 0; n < serv->listen_fd_count; n++) {
 	if (close(serv->listen_fd[n]) < 0)
 	    msg_warn("%s: close listener socket %d: %m",

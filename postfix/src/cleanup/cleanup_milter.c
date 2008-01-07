@@ -234,6 +234,7 @@ static void cleanup_milter_set_error(CLEANUP_STATE *state, int err)
 static const char *cleanup_milter_error(CLEANUP_STATE *state, int err)
 {
     const char *myname = "cleanup_milter_error";
+    CLEANUP_STAT_DETAIL *dp;
 
     /*
      * For consistency with error reporting within the milter infrastructure,
@@ -251,7 +252,11 @@ static const char *cleanup_milter_error(CLEANUP_STATE *state, int err)
 	cleanup_milter_set_error(state, err);
     else if (CLEANUP_OUT_OK(state))
 	msg_panic("%s: missing errno to error flag mapping", myname);
-    return ("451 4.3.0 Server internal error");
+    if (state->milter_err_text == 0)
+	state->milter_err_text = vstring_alloc(50);
+    dp = cleanup_stat_detail(state->errs);
+    return (STR(vstring_sprintf(state->milter_err_text,
+				"%d %s %s", dp->smtp, dp->dsn, dp->text)));
 }
 
 /* cleanup_add_header - append message header */

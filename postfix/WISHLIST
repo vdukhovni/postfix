@@ -1,9 +1,6 @@
 Wish list:
 
-	Milter client: send [ipaddress] instead of "unknown".
-
-	The cleanup server should report "file too large" milter
-	errors as permanent errors.
+	Consolidate duplicated code in {inet,unix,upass}_trigger.c.
 
 	In the SMTP client, handle 421 replies in smtp_loop() by
 	having the input function raise a flag after detecting 421

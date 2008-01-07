@@ -79,7 +79,7 @@ int     unix_connect(const char *addr, int block_mode, int timeout)
      * Create a client socket.
      */
     if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
-	msg_fatal("socket: %m");
+	return (-1);
 
     /*
      * Timed connect.

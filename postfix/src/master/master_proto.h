@@ -15,7 +15,9 @@
 #define MASTER_XPORT_NAME_UNIX	"unix"	/* local IPC */
 #define MASTER_XPORT_NAME_FIFO	"fifo"	/* local IPC */
 #define MASTER_XPORT_NAME_INET	"inet"	/* non-local IPC */
-/*#define MASTER_XPORT_NAME_PASS	"pass"	/* local IPC */
+#ifdef SNAPSHOT				/* see also master.h */
+#define MASTER_XPORT_NAME_PASS	"pass"	/* local IPC */
+#endif
 
  /*
   * Format of a status message sent by a child process to the process

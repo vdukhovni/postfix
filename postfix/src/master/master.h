@@ -33,9 +33,6 @@ typedef struct MASTER_SERV {
     int     wakeup_time;		/* wakeup interval */
     int    *listen_fd;			/* incoming requests */
     int     listen_fd_count;		/* nr of descriptors */
-#ifdef MASTER_SERV_TYPE_PASS
-    struct PASS_INFO *pass_info;	/* descriptor passing state */
-#endif
     union {
 	struct {
 	    char   *port;		/* inet listen port */
@@ -78,7 +75,9 @@ typedef struct MASTER_SERV {
 #define MASTER_SERV_TYPE_UNIX	1	/* AF_UNIX domain socket */
 #define MASTER_SERV_TYPE_INET	2	/* AF_INET domain socket */
 #define MASTER_SERV_TYPE_FIFO	3	/* fifo (named pipe) */
-/*#define MASTER_SERV_TYPE_PASS	4	/* AF_UNIX domain socket */
+#ifdef SNAPSHOT				/* see also master_proto.h */
+#define MASTER_SERV_TYPE_PASS	4	/* AF_UNIX domain socket */
+#endif
 
  /*
   * Default process management policy values. This is only the bare minimum.

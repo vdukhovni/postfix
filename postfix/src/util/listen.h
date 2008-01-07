@@ -24,7 +24,7 @@ extern int inet_listen(const char *, int, int);
 extern int fifo_listen(const char *, int, int);
 extern int stream_listen(const char *, int, int);
 
-#define upass_listen(path, mode, log) fifo_listen((path), (mode), (log))
+#define upass_listen(path, mode, log) unix_listen((path), (mode), (log))
 
 extern int inet_accept(int);
 extern int unix_accept(int);

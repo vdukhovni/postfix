@@ -104,6 +104,7 @@ typedef struct CLEANUP_STATE {
     const char *client_port;		/* real or ersatz client */
     VSTRING *milter_ext_from;		/* externalized sender */
     VSTRING *milter_ext_rcpt;		/* externalized recipient */
+    VSTRING *milter_err_text;		/* milter call-back reply */
 
     /*
      * Support for Milter body replacement requests.

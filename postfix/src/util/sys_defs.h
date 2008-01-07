@@ -1301,6 +1301,12 @@ extern int inet_pton(int, const char *, void *);
 #define LOCAL_RECV_FD	unix_recv_fd
 #endif
 
+#ifndef PASS_LISTEN
+#define PASS_LISTEN	upass_listen
+#define PASS_ACCEPT	upass_accept
+#define PASS_TRIGGER	upass_trigger
+#endif
+
 #if !defined (HAVE_SYS_NDIR_H) && !defined (HAVE_SYS_DIR_H) \
 	&& !defined (HAVE_NDIR_H)
 #define HAVE_DIRENT_H
