@@ -62,7 +62,7 @@
  /*
   * The lookup table.
   */
-static NAME_MASK ehlo_mask_table[] = {
+static const NAME_MASK ehlo_mask_table[] = {
     "8BITMIME", EHLO_MASK_8BITMIME,
     "AUTH", EHLO_MASK_AUTH,
     "ETRN", EHLO_MASK_ETRN,

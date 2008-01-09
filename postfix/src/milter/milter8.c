@@ -2167,7 +2167,7 @@ typedef struct {
 /* milter8_header - milter8_message call-back for message header */
 
 static void milter8_header(void *ptr, int unused_header_class,
-			           HEADER_OPTS *header_info,
+			           const HEADER_OPTS *header_info,
 			           VSTRING *buf, off_t unused_offset)
 {
     const char *myname = "milter8_header";
@@ -2387,7 +2387,7 @@ static const char *milter8_message(MILTER *m, VSTREAM *qfile,
     MILTER8 *milter = (MILTER8 *) m;
     MIME_STATE *mime_state;
     int     rec_type;
-    MIME_STATE_DETAIL *detail;
+    const MIME_STATE_DETAIL *detail;
     int     mime_errs = 0;
     MILTER_MSG_CONTEXT msg_ctx;
     VSTRING *buf;

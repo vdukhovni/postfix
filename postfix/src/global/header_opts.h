@@ -67,7 +67,7 @@ typedef struct {
 
 #define HDR_OPT_XRECIP	(HDR_OPT_RECIP | HDR_OPT_EXTRACT)
 
-extern HEADER_OPTS *header_opts_find(const char *);
+extern const HEADER_OPTS *header_opts_find(const char *);
 
 /* LICENSE
 /* .ad

@@ -234,7 +234,7 @@ static void cleanup_milter_set_error(CLEANUP_STATE *state, int err)
 static const char *cleanup_milter_error(CLEANUP_STATE *state, int err)
 {
     const char *myname = "cleanup_milter_error";
-    CLEANUP_STAT_DETAIL *dp;
+    const CLEANUP_STAT_DETAIL *dp;
 
     /*
      * For consistency with error reporting within the milter infrastructure,
@@ -348,7 +348,7 @@ static off_t cleanup_find_header_start(CLEANUP_STATE *state, ssize_t index,
     off_t   curr_offset;		/* offset after found record */
     off_t   ptr_offset;			/* pointer to found record */
     VSTRING *ptr_buf = 0;
-    int     rec_type;
+    int     rec_type = REC_TYPE_ERROR;
     int     last_type;
     ssize_t len;
     int     hdr_count = 0;

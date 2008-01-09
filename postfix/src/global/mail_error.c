@@ -64,7 +64,7 @@
   * also contains a function that is being called explicitly. REF/DEF and all
   * that.
   */
-NAME_MASK mail_error_masks[] = {
+const NAME_MASK mail_error_masks[] = {
     "bounce", MAIL_ERROR_BOUNCE,
     "2bounce", MAIL_ERROR_2BOUNCE,
     "delay", MAIL_ERROR_DELAY,

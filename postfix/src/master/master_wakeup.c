@@ -36,6 +36,7 @@
 /*	inet_trigger(3), internet-domain client
 /*	unix_trigger(3), unix-domain client
 /*	fifo_trigger(3), fifo client
+/*	upass_trigger(3), file descriptor passing client
 /* LICENSE
 /* .ad
 /* .fi

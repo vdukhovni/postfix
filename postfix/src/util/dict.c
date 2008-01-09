@@ -519,7 +519,7 @@ int     dict_changed(void)
  /*
   * Mapping between flag names and flag values.
   */
-static NAME_MASK dict_mask[] = {
+static const NAME_MASK dict_mask[] = {
     "warn_dup", (1 << 0),		/* if file, warn about dups */
     "ignore_dup", (1 << 1),		/* if file, ignore dups */
     "try0null", (1 << 2),		/* do not append 0 to key/value */

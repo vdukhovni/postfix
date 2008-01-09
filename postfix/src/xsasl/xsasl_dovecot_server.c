@@ -101,7 +101,7 @@
  /*
   * Security properties as specified in the Postfix main.cf file.
   */
-static NAME_MASK xsasl_dovecot_conf_sec_props[] = {
+static const NAME_MASK xsasl_dovecot_conf_sec_props[] = {
     "noplaintext", SEC_PROPS_NOPLAINTEXT,
     "noactive", SEC_PROPS_NOACTIVE,
     "nodictionary", SEC_PROPS_NODICTIONARY,
@@ -115,7 +115,7 @@ static NAME_MASK xsasl_dovecot_conf_sec_props[] = {
   * Security properties as specified in the Dovecot protocol. See
   * http://wiki.dovecot.org/Authentication_Protocol.
   */
-static NAME_MASK xsasl_dovecot_serv_sec_props[] = {
+static const NAME_MASK xsasl_dovecot_serv_sec_props[] = {
     "plaintext", SEC_PROPS_NOPLAINTEXT,
     "active", SEC_PROPS_NOACTIVE,
     "dictionary", SEC_PROPS_NODICTIONARY,

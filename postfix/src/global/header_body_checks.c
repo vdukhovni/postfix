@@ -42,7 +42,7 @@
 /*	void	*context;
 /*	HBC_CHECKS *hbc;
 /*	int	header_class;
-/*	HEADER_OPTS *hdr_opts;
+/*	const HEADER_OPTS *hdr_opts;
 /*	VSTRING *header;
 /*
 /*	char	*hbc_body_checks(context, hbc, body_line, body_line_len)
@@ -292,7 +292,7 @@ static char *hbc_action(void *context, HBC_CALL_BACKS *cb,
 /* hbc_header_checks - process one complete header line */
 
 char   *hbc_header_checks(void *context, HBC_CHECKS *hbc, int header_class,
-			          HEADER_OPTS *hdr_opts,
+			          const HEADER_OPTS *hdr_opts,
 			          VSTRING *header, off_t offset)
 {
     const char *myname = "hbc_header_checks";
@@ -463,7 +463,8 @@ static void out_cb(void *context, int rec_type, const char *buf,
 
 /* head_out - MIME_STATE header call-back */
 
-static void head_out(void *context, int header_class, HEADER_OPTS *header_info,
+static void head_out(void *context, int header_class,
+		             const HEADER_OPTS *header_info,
 		             VSTRING *buf, off_t offset)
 {
     HBC_TEST_CONTEXT *dp = (HBC_TEST_CONTEXT *) context;

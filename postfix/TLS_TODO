@@ -1,5 +1,19 @@
 This list does not really follow priority.
 
+* Code cleanup: split smtp_session.c into generic SMTP, legacy TLS,
+  and current TLS.  The amount of TLS code now dominates the file.
+  Do this after all other code revisions stabilize, to avoid
+  complicating code reviews.
+
+* Code cleanup: TLS_LEV_NOTFOUND no longer belongs in the TLS
+  library. It is an SMTP-client only feature. To fix, change the
+  policy lookup API and use a different method to indicate if a
+  policy was found. At the same time, fix policy lookup to initialize
+  session->tls_level.
+
+* Code cleanup: see if multiple consecutive switches can be aggregated
+  (set_cipher_grade() and session_tls_init()).
+
 * Implement support of CRL checking. OpenSSL 0.9.7 finally supports CRLs,
   so Postfix/TLS should support loading CRLs.
 

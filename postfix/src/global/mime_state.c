@@ -11,7 +11,7 @@
 /*					 err_print, context)
 /*	int	flags;
 /*	void	(*head_out)(void *ptr, int header_class,
-/*				HEADER_OPTS *header_info,
+/*				const HEADER_OPTS *header_info,
 /*				VSTRING *buf, off_t offset);
 /*	void	(*head_end)(void *ptr);
 /*	void	(*body_out)(void *ptr, int rec_type,
@@ -41,7 +41,7 @@
 /* .in -4
 /*	} MIME_STATE_DETAIL;
 /*
-/*	MIME_STATE_DETAIL *mime_state_detail(error_code)
+/*	const MIME_STATE_DETAIL *mime_state_detail(error_code)
 /*	int	error_code;
 /* DESCRIPTION
 /*	This module implements a one-pass MIME processor with optional
@@ -385,7 +385,7 @@ typedef struct MIME_ENCODING {
 #define MIME_ENC_BINARY		9	/* domain only */
 #endif
 
-static MIME_ENCODING mime_encoding_map[] = {	/* RFC 2045 */
+static const MIME_ENCODING mime_encoding_map[] = {	/* RFC 2045 */
     "7bit", MIME_ENC_7BIT, MIME_ENC_7BIT,	/* domain */
     "8bit", MIME_ENC_8BIT, MIME_ENC_8BIT,	/* domain */
     "binary", MIME_ENC_BINARY, MIME_ENC_BINARY,	/* domain */
@@ -539,7 +539,7 @@ MIME_STATE *mime_state_free(MIME_STATE *state)
 /* mime_state_content_type - process content-type header */
 
 static void mime_state_content_type(MIME_STATE *state,
-				            HEADER_OPTS *header_info)
+				            const HEADER_OPTS *header_info)
 {
     const char *cp;
     ssize_t tok_count;
@@ -650,10 +650,10 @@ static void mime_state_content_type(MIME_STATE *state,
 /* mime_state_content_encoding - process content-transfer-encoding header */
 
 static void mime_state_content_encoding(MIME_STATE *state,
-					        HEADER_OPTS *header_info)
+				             const HEADER_OPTS *header_info)
 {
     const char *cp;
-    MIME_ENCODING *cmp;
+    const MIME_ENCODING *cmp;
 
 #define PARSE_CONTENT_ENCODING_HEADER(state, ptr) \
     header_token(state->token, 1, state->token_buffer, ptr, (char *) 0, 0)
@@ -680,7 +680,7 @@ static void mime_state_content_encoding(MIME_STATE *state,
 
 static const char *mime_state_enc_name(int encoding)
 {
-    MIME_ENCODING *cmp;
+    const MIME_ENCODING *cmp;
 
     for (cmp = mime_encoding_map; cmp->name != 0; cmp++)
 	if (encoding == cmp->encoding)
@@ -754,7 +754,7 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
     int     input_is_text = (rec_type == REC_TYPE_NORM
 			     || rec_type == REC_TYPE_CONT);
     MIME_STACK *sp;
-    HEADER_OPTS *header_info;
+    const HEADER_OPTS *header_info;
     const unsigned char *cp;
 
 #define SAVE_PREV_REC_TYPE_AND_RETURN_ERR_FLAGS(state, rec_type) do { \
@@ -1122,7 +1122,7 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
   * must precede less serious errors, because the error-to-text conversion
   * can report only one error.
   */
-static MIME_STATE_DETAIL mime_err_detail[] = {
+static const MIME_STATE_DETAIL mime_err_detail[] = {
     MIME_ERR_NESTING, "5.6.0", "MIME nesting exceeds safety limit",
     MIME_ERR_TRUNC_HEADER, "5.6.0", "message header length exceeds safety limit",
     MIME_ERR_8BIT_IN_HEADER, "5.6.0", "improper use of 8-bit data in message header",
@@ -1135,7 +1135,7 @@ static MIME_STATE_DETAIL mime_err_detail[] = {
 
 const char *mime_state_error(int error_code)
 {
-    MIME_STATE_DETAIL *mp;
+    const MIME_STATE_DETAIL *mp;
 
     if (error_code == 0)
 	msg_panic("mime_state_error: there is no error");
@@ -1147,9 +1147,9 @@ const char *mime_state_error(int error_code)
 
 /* mime_state_detail - error code to table entry with assorted data */
 
-MIME_STATE_DETAIL *mime_state_detail(int error_code)
+const MIME_STATE_DETAIL *mime_state_detail(int error_code)
 {
-    MIME_STATE_DETAIL *mp;
+    const MIME_STATE_DETAIL *mp;
 
     if (error_code == 0)
 	msg_panic("mime_state_detail: there is no error");
@@ -1175,7 +1175,7 @@ MIME_STATE_DETAIL *mime_state_detail(int error_code)
 
 #define REC_LEN	1024
 
-static void head_out(void *context, int class, HEADER_OPTS *unused_info,
+static void head_out(void *context, int class, const HEADER_OPTS *unused_info,
 		             VSTRING *buf, off_t offset)
 {
     VSTREAM *stream = (VSTREAM *) context;

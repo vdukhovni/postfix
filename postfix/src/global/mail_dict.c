@@ -43,7 +43,7 @@ typedef struct {
     struct DICT *(*open) (const char *, int, int);
 } DICT_OPEN_INFO;
 
-static DICT_OPEN_INFO dict_open_info[] = {
+static const DICT_OPEN_INFO dict_open_info[] = {
     DICT_TYPE_PROXY, dict_proxy_open,
 #ifdef HAS_LDAP
     DICT_TYPE_LDAP, dict_ldap_open,
@@ -61,7 +61,7 @@ static DICT_OPEN_INFO dict_open_info[] = {
 
 void    mail_dict_init(void)
 {
-    DICT_OPEN_INFO *dp;
+    const DICT_OPEN_INFO *dp;
 
     for (dp = dict_open_info; dp->type; dp++)
 	dict_open_register(dp->type, dp->open);

@@ -11,15 +11,75 @@ instead, a new snapshot is released.
 The mail_release_date configuration parameter (format: yyyymmdd)
 specifies the release date of a stable release or snapshot release.
 
+Incompatibility with Postfix snapshot 20080109
+==============================================
+
+TLS logging output has changed to make it more useful. Existing
+logfile parser regular expressions may need adjustment.
+
+- More log entries include the "hostnamename[ipaddress]" of the
+  remote SMTP peer.
+
+- Certificate trust chain error reports show only the first
+  error certificate (closest to the trust chain root), and the
+  reporting is more human-readable for the most likely errors.
+
+- After the completion of the TLS handshake, the session is logged
+  with TLS loglevel >= 1 as either "Untrusted", "Trusted" or
+  "Verified" (SMTP client only).
+  - "Untrusted" means that the certificate trust chain is invalid,
+    or that the root CA is not trusted.
+  - "Trusted" means that the certificate trust chain is valid, and
+    that the root CA is trusted.
+  - "Verified" means that the certificate meets the SMTP client's
+    matching criteria for the destination:
+    - In the case of a destination name match, "Verified" also
+      implies "Trusted".
+    - In the case of a fingerprint match, CA trust is not applicable.
+
+- The logging of protocol states with TLS loglevel >= 2 no longer
+  reports bogus error conditions when OpenSSL asks Postfix to refill
+  (or flush) network I/O buffers.  This loglevel is for debugging
+  only; use 0 or 1 in production configurations.
+
+Major changes with Postfix snapshot 20080109
+============================================
+
+The Postfix SMTP client has a new "fingerprint" security level.
+This avoids dependencies on CAs, and relies entirely on bi-lateral
+exchange of public keys (really self-signed or private CA signed
+X.509 public key certificates). Scalability is clearly limited. For
+details, see the fingerprint discussion in TLS_README.
+
+The Postfix SMTP server can now use SHA1 instead of MD5 to compute
+remote SMTP client certificate fingerprints. For backwards
+compatibility, the default algorithm is MD5.  For details, see the
+"smtpd_tls_fingerprint_digest" parameter in the postconf(5) manual.
+
+The maximum certificate trust chain depth (verifydepth) is finally
+implemented in the Postfix TLS library. Previously, the parameter
+had no effect. The default depth was changed to 9 (the OpenSSL
+default) for backwards compatibility.
+
+If you have explicity limited the verification depth in main.cf,
+check that the configured limit meets your needs. See the
+"lmtp_tls_scert_verifydepth", "smtp_tls_scert_verifydepth" and
+"smtpd_tls_ccert_verifydepth" parameters in the postconf(5) manual.
+
+The selection of SSL/TLS protocols for mandatory TLS can now use
+exclusion rather than inclusion. Either form is acceptable; see the
+"lmtp_tls_mandatory_protocols", "smtp_tls_mandatory_protocols" and
+"smtpd_tls_mandatory_protocols" parameters in the postconf(5) manual.
+
 Major changes with Postfix snapshot 20080107
 ============================================
 
 New "pass" service type in master.cf.  Written years ago, this
-allows a front-end daemon to accept all connections from the network,
-and forward only those from well-behaved clients to Postfix. Since
-this uses file descriptor passing, it imposes no overhead once a
-connection is handed over to Postfix. This is available in the
-experimental release only. See master(5) for a few details.
+allows a future front-end daemon to accept all connections from the
+network, and forward only those from well-behaved clients to Postfix.
+Since this uses file descriptor passing, it imposes no overhead
+once a connection is handed over to Postfix. See master(5) for a
+few details.
 
 Incompatibility with Postfix snapshot 20071224
 ==============================================

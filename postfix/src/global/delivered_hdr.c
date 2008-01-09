@@ -113,7 +113,7 @@ DELIVERED_HDR_INFO *delivered_hdr_init(VSTREAM *fp, off_t offset, int flags)
 {
     char   *cp;
     DELIVERED_HDR_INFO *info;
-    HEADER_OPTS *hdr;
+    const HEADER_OPTS *hdr;
 
     /*
      * Sanity check.

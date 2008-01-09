@@ -64,7 +64,7 @@
 
 int     ext_prop_mask(const char *param_name, const char *pattern)
 {
-    static NAME_MASK table[] = {
+    static const NAME_MASK table[] = {
 	"canonical", EXT_PROP_CANONICAL,
 	"virtual", EXT_PROP_VIRTUAL,
 	"alias", EXT_PROP_ALIAS,

@@ -132,7 +132,8 @@ static char *cleanup_extract_internal(VSTRING *buffer, TOK822 *addr)
 
 /* cleanup_rewrite_sender - sender address rewriting */
 
-static void cleanup_rewrite_sender(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
+static void cleanup_rewrite_sender(CLEANUP_STATE *state,
+				           const HEADER_OPTS *hdr_opts,
 				           VSTRING *header_buf)
 {
     TOK822 *tree;
@@ -188,7 +189,8 @@ static void cleanup_rewrite_sender(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
 
 /* cleanup_rewrite_recip - recipient address rewriting */
 
-static void cleanup_rewrite_recip(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
+static void cleanup_rewrite_recip(CLEANUP_STATE *state,
+				          const HEADER_OPTS *hdr_opts,
 				          VSTRING *header_buf)
 {
     TOK822 *tree;
@@ -297,7 +299,7 @@ static const char *cleanup_act(CLEANUP_STATE *state, char *context,
      * queue record processing, and prevents bounces from being sent.
      */
     if (STREQUAL(value, "REJECT", command_len)) {
-	CLEANUP_STAT_DETAIL *detail;
+	const CLEANUP_STAT_DETAIL *detail;
 
 	if (state->reason)
 	    myfree(state->reason);
@@ -437,7 +439,8 @@ static const char *cleanup_act(CLEANUP_STATE *state, char *context,
 /* cleanup_header_callback - process one complete header line */
 
 static void cleanup_header_callback(void *context, int header_class,
-			         HEADER_OPTS *hdr_opts, VSTRING *header_buf,
+				            const HEADER_OPTS *hdr_opts,
+				            VSTRING *header_buf,
 				            off_t unused_offset)
 {
     CLEANUP_STATE *state = (CLEANUP_STATE *) context;
@@ -762,7 +765,7 @@ static void cleanup_message_headerbody(CLEANUP_STATE *state, int type,
 				               const char *buf, ssize_t len)
 {
     const char *myname = "cleanup_message_headerbody";
-    MIME_STATE_DETAIL *detail;
+    const MIME_STATE_DETAIL *detail;
     const char *cp;
     char   *dst;
 

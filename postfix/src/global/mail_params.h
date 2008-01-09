@@ -1162,7 +1162,7 @@ extern bool var_smtpd_tls_ask_ccert;
 extern bool var_smtpd_tls_req_ccert;
 
 #define VAR_SMTPD_TLS_CCERT_VD	"smtpd_tls_ccert_verifydepth"
-#define DEF_SMTPD_TLS_CCERT_VD	5
+#define DEF_SMTPD_TLS_CCERT_VD	9
 extern int var_smtpd_tls_ccert_vd;
 
 #define VAR_SMTPD_TLS_CERT_FILE	"smtpd_tls_cert_file"
@@ -1204,6 +1204,10 @@ extern char *var_smtpd_tls_excl_ciph;
 #define VAR_SMTPD_TLS_MAND_EXCL  "smtpd_tls_mandatory_exclude_ciphers"
 #define DEF_SMTPD_TLS_MAND_EXCL  ""
 extern char *var_smtpd_tls_mand_excl;
+
+#define VAR_SMTPD_TLS_FPT_DGST	"smtpd_tls_fingerprint_digest"
+#define DEF_SMTPD_TLS_FPT_DGST	"md5"
+extern char *var_smtpd_tls_fpt_dgst;
 
 #define VAR_SMTPD_TLS_512_FILE	"smtpd_tls_dh512_param_file"
 #define DEF_SMTPD_TLS_512_FILE	""
@@ -1268,9 +1272,9 @@ extern bool var_smtp_tls_enforce_peername;
 extern char *var_smtp_tls_level;
 
 #define VAR_SMTP_TLS_SCERT_VD	"smtp_tls_scert_verifydepth"
-#define DEF_SMTP_TLS_SCERT_VD	5
+#define DEF_SMTP_TLS_SCERT_VD	9
 #define VAR_LMTP_TLS_SCERT_VD	"lmtp_tls_scert_verifydepth"
-#define DEF_LMTP_TLS_SCERT_VD	5
+#define DEF_LMTP_TLS_SCERT_VD	9
 extern int var_smtp_tls_scert_vd;
 
 #define VAR_SMTP_TLS_CERT_FILE	"smtp_tls_cert_file"
@@ -1327,6 +1331,12 @@ extern char *var_smtp_tls_excl_ciph;
 #define DEF_LMTP_TLS_MAND_EXCL  ""
 extern char *var_smtp_tls_mand_excl;
 
+#define VAR_SMTP_TLS_FPT_DGST	"smtp_tls_fingerprint_digest"
+#define DEF_SMTP_TLS_FPT_DGST	"md5"
+#define VAR_LMTP_TLS_FPT_DGST	"lmtp_tls_fingerprint_digest"
+#define DEF_LMTP_TLS_FPT_DGST	"md5"
+extern char *var_smtp_tls_fpt_dgst;
+
 #define VAR_SMTP_TLS_LOGLEVEL	"smtp_tls_loglevel"
 #define DEF_SMTP_TLS_LOGLEVEL	0
 #define VAR_LMTP_TLS_LOGLEVEL	"lmtp_tls_loglevel"
@@ -1381,6 +1391,12 @@ extern char *var_smtp_tls_vfy_cmatch;
 #define DEF_LMTP_TLS_SEC_CMATCH	"nexthop"
 extern char *var_smtp_tls_sec_cmatch;
 
+
+#define VAR_SMTP_TLS_FPT_CMATCH "smtp_tls_fingerprint_cert_match"
+#define DEF_SMTP_TLS_FPT_CMATCH ""
+#define VAR_LMTP_TLS_FPT_CMATCH "lmtp_tls_fingerprint_cert_match"
+#define DEF_LMTP_TLS_FPT_CMATCH ""
+extern char *var_smtp_tls_fpt_cmatch;
 
  /*
   * SASL authentication support, SMTP server side.

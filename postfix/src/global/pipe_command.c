@@ -401,7 +401,7 @@ int     pipe_command(VSTREAM *src, DSN_BUF *why,...)
     char  **cpp;
     ARGV   *argv;
     DSN_SPLIT dp;
-    SYS_EXITS_DETAIL *sp;
+    const SYS_EXITS_DETAIL *sp;
 
     /*
      * Process the variadic argument list. This also does sanity checks on

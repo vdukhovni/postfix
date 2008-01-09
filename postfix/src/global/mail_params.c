@@ -487,17 +487,17 @@ static char *read_param_from_file(const char *path)
 
 void    mail_params_init()
 {
-    static CONFIG_STR_TABLE first_str_defaults[] = {
+    static const CONFIG_STR_TABLE first_str_defaults[] = {
 	VAR_SYSLOG_FACILITY, DEF_SYSLOG_FACILITY, &var_syslog_facility, 1, 0,
 	VAR_INET_PROTOCOLS, DEF_INET_PROTOCOLS, &var_inet_protocols, 1, 0,
 	0,
     };
-    static CONFIG_STR_FN_TABLE function_str_defaults[] = {
+    static const CONFIG_STR_FN_TABLE function_str_defaults[] = {
 	VAR_MYHOSTNAME, check_myhostname, &var_myhostname, 1, 0,
 	VAR_MYDOMAIN, check_mydomainname, &var_mydomain, 1, 0,
 	0,
     };
-    static CONFIG_STR_TABLE other_str_defaults[] = {
+    static const CONFIG_STR_TABLE other_str_defaults[] = {
 	VAR_MAIL_NAME, DEF_MAIL_NAME, &var_mail_name, 1, 0,
 	VAR_SYSLOG_NAME, DEF_SYSLOG_NAME, &var_syslog_name, 1, 0,
 	VAR_MAIL_OWNER, DEF_MAIL_OWNER, &var_mail_owner, 1, 0,
@@ -544,11 +544,11 @@ void    mail_params_init()
 	VAR_INT_FILT_CLASSES, DEF_INT_FILT_CLASSES, &var_int_filt_classes, 0, 0,
 	0,
     };
-    static CONFIG_STR_FN_TABLE function_str_defaults_2[] = {
+    static const CONFIG_STR_FN_TABLE function_str_defaults_2[] = {
 	VAR_MYNETWORKS, mynetworks, &var_mynetworks, 0, 0,
 	0,
     };
-    static CONFIG_INT_TABLE other_int_defaults[] = {
+    static const CONFIG_INT_TABLE other_int_defaults[] = {
 	VAR_MAX_USE, DEF_MAX_USE, &var_use_limit, 1, 0,
 	VAR_DONT_REMOVE, DEF_DONT_REMOVE, &var_dont_remove, 0, 0,
 	VAR_LINE_LIMIT, DEF_LINE_LIMIT, &var_line_limit, 512, 0,
@@ -567,7 +567,7 @@ void    mail_params_init()
 	VAR_DELAY_MAX_RES, DEF_DELAY_MAX_RES, &var_delay_max_res, MIN_DELAY_MAX_RES, MAX_DELAY_MAX_RES,
 	0,
     };
-    static CONFIG_TIME_TABLE time_defaults[] = {
+    static const CONFIG_TIME_TABLE time_defaults[] = {
 	VAR_EVENT_DRAIN, DEF_EVENT_DRAIN, &var_event_drain, 1, 0,
 	VAR_MAX_IDLE, DEF_MAX_IDLE, &var_idle_limit, 1, 0,
 	VAR_IPC_TIMEOUT, DEF_IPC_TIMEOUT, &var_ipc_timeout, 1, 0,
@@ -581,7 +581,7 @@ void    mail_params_init()
 	VAR_IN_FLOW_DELAY, DEF_IN_FLOW_DELAY, &var_in_flow_delay, 0, 10,
 	0,
     };
-    static CONFIG_BOOL_TABLE bool_defaults[] = {
+    static const CONFIG_BOOL_TABLE bool_defaults[] = {
 	VAR_DISABLE_DNS, DEF_DISABLE_DNS, &var_disable_dns,
 	VAR_SOFT_BOUNCE, DEF_SOFT_BOUNCE, &var_soft_bounce,
 	VAR_OWNREQ_SPECIAL, DEF_OWNREQ_SPECIAL, &var_ownreq_special,

@@ -84,7 +84,7 @@ typedef struct {
 } CLEANUP_STAT_DETAIL;
 
 extern const char *cleanup_strerror(unsigned);
-extern CLEANUP_STAT_DETAIL *cleanup_stat_detail(unsigned);
+extern const CLEANUP_STAT_DETAIL *cleanup_stat_detail(unsigned);
 extern const char *cleanup_strflags(unsigned);
 
 /* LICENSE

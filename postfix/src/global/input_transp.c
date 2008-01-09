@@ -69,7 +69,7 @@
 
 int     input_transp_mask(const char *param_name, const char *pattern)
 {
-    static NAME_MASK table[] = {
+    static const NAME_MASK table[] = {
 	"no_unknown_recipient_checks", INPUT_TRANSP_UNKNOWN_RCPT,
 	"no_address_mappings", INPUT_TRANSP_ADDRESS_MAPPING,
 	"no_header_body_checks", INPUT_TRANSP_HEADER_BODY,

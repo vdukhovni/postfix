@@ -316,7 +316,7 @@
 /*	When TLS encryption is optional in the Postfix SMTP server, do
 /*	not announce or accept SASL authentication over unencrypted
 /*	connections.
-/* .IP "\fBsmtpd_tls_ccert_verifydepth (5)\fR"
+/* .IP "\fBsmtpd_tls_ccert_verifydepth (9)\fR"
 /*	The verification depth for remote SMTP client certificates.
 /* .IP "\fBsmtpd_tls_cert_file (empty)\fR"
 /*	File with the Postfix SMTP server RSA certificate in PEM format.
@@ -345,7 +345,7 @@
 /*	Additional list of ciphers or cipher types to exclude from the
 /*	SMTP server cipher list at mandatory TLS security levels.
 /* .IP "\fBsmtpd_tls_mandatory_protocols (SSLv3, TLSv1)\fR"
-/*	The TLS protocols accepted by the Postfix SMTP server with
+/*	The SSL/TLS protocols accepted by the Postfix SMTP server with
 /*	mandatory TLS encryption.
 /* .IP "\fBsmtpd_tls_received_header (no)\fR"
 /*	Request that the Postfix SMTP server produces Received:  message
@@ -353,7 +353,7 @@
 /*	as well as the client CommonName and client certificate issuer
 /*	CommonName.
 /* .IP "\fBsmtpd_tls_req_ccert (no)\fR"
-/*	With mandatory TLS encryption, require a remote SMTP client
+/*	With mandatory TLS encryption, require a trusted remote SMTP client
 /*	certificate in order to allow TLS connections to proceed.
 /* .IP "\fBsmtpd_tls_session_cache_database (empty)\fR"
 /*	Name of the file containing the optional Postfix SMTP server
@@ -379,6 +379,12 @@
 /* .IP "\fBtls_null_cipherlist (eNULL:!aNULL)\fR"
 /*	The OpenSSL cipherlist for "NULL" grade ciphers that provide
 /*	authentication without encryption.
+/* .PP
+/*	Available in Postfix version 2.5 and later:
+/* .IP "\fBsmtpd_tls_fingerprint_digest (md5)\fR"
+/*	The message digest algorithm used to construct client-certificate
+/*	fingerprints for \fBcheck_ccert_access\fR and
+/*	\fBpermit_tls_clientcerts\fR.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -888,6 +894,10 @@
 /*	Allgemeine Elektrotechnik
 /*	Universitaetsplatz 3-4
 /*	D-03044 Cottbus, Germany
+/*
+/*	Revised TLS support by:
+/*	Victor Duchovni
+/*	Morgan Stanley
 /*--*/
 
 /* System library. */
@@ -1110,7 +1120,7 @@ bool    var_smtpd_tls_received_header;
 bool    var_smtpd_tls_req_ccert;
 int     var_smtpd_tls_scache_timeout;
 bool    var_smtpd_tls_set_sessid;
-int     var_tls_daemon_rand_bytes;
+char   *var_smtpd_tls_fpt_dgst;
 
 #endif
 
@@ -1210,9 +1220,12 @@ MILTERS *smtpd_milters;
  /*
   * TLS initialization status.
   */
-static SSL_CTX *smtpd_tls_ctx;
+static TLS_APPL_STATE *smtpd_tls_ctx;
+static int wantcert;
 
 #endif
+
+static int enforce_tls;
 
 #ifdef USE_SASL_AUTH
 
@@ -2511,7 +2524,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     VSTREAM *out_stream;
     int     out_error;
     char  **cpp;
-    CLEANUP_STAT_DETAIL *detail;
+    const CLEANUP_STAT_DETAIL *detail;
     const char *rfc3848_sess;
     const char *rfc3848_auth;
 
@@ -2628,20 +2641,17 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 			state->tls_context->cipher_name,
 			state->tls_context->cipher_usebits,
 			state->tls_context->cipher_algbits);
-	    if (state->tls_context->peer_CN) {
+	    if (TLS_CERT_IS_PRESENT(state->tls_context)) {
 		peer_CN = VSTRING_STRDUP(state->tls_context->peer_CN);
 		comment_sanitize(peer_CN);
 		issuer_CN = VSTRING_STRDUP(state->tls_context->issuer_CN ?
 					state->tls_context->issuer_CN : "");
 		comment_sanitize(issuer_CN);
-		if (state->tls_context->peer_verified)
-		    out_fprintf(out_stream, REC_TYPE_NORM,
-			"\t(Client CN \"%s\", Issuer \"%s\" (verified OK))",
-				STR(peer_CN), STR(issuer_CN));
-		else
-		    out_fprintf(out_stream, REC_TYPE_NORM,
-		       "\t(Client CN \"%s\", Issuer \"%s\" (not verified))",
-				STR(peer_CN), STR(issuer_CN));
+		out_fprintf(out_stream, REC_TYPE_NORM,
+			    "\t(Client CN \"%s\", Issuer \"%s\" (%s))",
+			    STR(peer_CN), STR(issuer_CN),
+			    TLS_CERT_IS_TRUSTED(state->tls_context) ?
+			    "verified OK" : "not verified");
 		vstring_free(issuer_CN);
 		vstring_free(peer_CN);
 	    } else if (var_smtpd_tls_ask_ccert)
@@ -3164,12 +3174,12 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     char   *attr_name;
     int     update_namaddr = 0;
     int     name_status;
-    static NAME_CODE peer_codes[] = {
+    static const NAME_CODE peer_codes[] = {
 	XCLIENT_UNAVAILABLE, SMTPD_PEER_CODE_PERM,
 	XCLIENT_TEMPORARY, SMTPD_PEER_CODE_TEMP,
 	0, SMTPD_PEER_CODE_OK,
     };
-    static NAME_CODE proto_names[] = {
+    static const NAME_CODE proto_names[] = {
 	MAIL_PROTO_SMTP, 1,
 	MAIL_PROTO_ESMTP, 2,
 	0, -1,
@@ -3439,7 +3449,7 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     const char *bare_value;
     char   *attr_name;
     int     updated = 0;
-    static NAME_CODE xforward_flags[] = {
+    static const NAME_CODE xforward_flags[] = {
 	XFORWARD_NAME, SMTPD_STATE_XFORWARD_NAME,
 	XFORWARD_ADDR, SMTPD_STATE_XFORWARD_ADDR,
 	XFORWARD_PORT, SMTPD_STATE_XFORWARD_PORT,
@@ -3452,7 +3462,7 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	MAIL_ATTR_RWR_LOCAL,		/* Postfix internal form */
 	MAIL_ATTR_RWR_REMOTE,		/* Postfix internal form */
     };
-    static NAME_CODE xforward_to_context[] = {
+    static const NAME_CODE xforward_to_context[] = {
 	XFORWARD_DOM_LOCAL, 0,		/* XFORWARD representation */
 	XFORWARD_DOM_REMOTE, 1,		/* XFORWARD representation */
 	0, -1,
@@ -3689,7 +3699,10 @@ static void chat_reset(SMTPD_STATE *state, int threshold)
 static void smtpd_start_tls(SMTPD_STATE *state)
 {
     int     rate;
-    tls_server_start_props props;
+    TLS_SERVER_START_PROPS props;
+    static char *cipher_grade;
+    static VSTRING *cipher_exclusions;
+    int     cert_present;
 
     /*
      * Wrapper mode uses a dedicated port and always requires TLS.
@@ -3701,28 +3714,56 @@ static void smtpd_start_tls(SMTPD_STATE *state)
      * command. For this reason, Postfix does not require client certificate
      * verification unless TLS is required.
      * 
-     * XXX We append the service name to the session cache ID, so that there
-     * won't be collisions between multiple master.cf entries that use
-     * different roots of trust. This does not eliminate collisions between
-     * multiple inetd.conf entries that use different roots of trust. For a
-     * universal solution we would have to append the local IP address + port
-     * number information.
+     * The cipher grade and exclusions don't change between sessions. Compute
+     * just once and cache.
      */
-    memset((char *) &props, 0, sizeof(props));
-    props.ctx = smtpd_tls_ctx;
-    props.stream = state->client;
-    props.log_level = var_smtpd_tls_loglevel;
-    props.timeout = var_smtpd_starttls_tmout;
-    props.requirecert = (var_smtpd_tls_req_ccert && state->tls_enforce_tls);
-    props.serverid = state->service;
-    props.peername = state->name;
-    props.peeraddr = state->addr;
-    state->tls_context = tls_server_start(&props);
+#define ADD_EXCLUDE(vstr, str) \
+    do { \
+	if (*(str)) \
+	    vstring_sprintf_append((vstr), "%s%s", \
+				   VSTRING_LEN(vstr) ? " " : "", (str)); \
+    } while (0)
+
+    if (cipher_grade == 0) {
+	cipher_grade =
+	    enforce_tls ? var_smtpd_tls_mand_ciph : "export";
+	cipher_exclusions = vstring_alloc(10);
+	ADD_EXCLUDE(cipher_exclusions, var_smtpd_tls_excl_ciph);
+	if (enforce_tls)
+	    ADD_EXCLUDE(cipher_exclusions, var_smtpd_tls_mand_excl);
+	if (wantcert)
+	    ADD_EXCLUDE(cipher_exclusions, "aNULL");
+    }
 
     /*
-     * XXX The client event count/rate control must be consistent in its use
-     * of client address information in connect and disconnect events. For
-     * now we exclude xclient authorized hosts from event count/rate control.
+     * Perform the TLS handshake now. Check the client certificate
+     * requirements later, if necessary.
+     */
+    state->tls_context =
+	TLS_SERVER_START(&props,
+			 ctx = smtpd_tls_ctx,
+			 stream = state->client,
+			 log_level = var_smtpd_tls_loglevel,
+			 timeout = var_smtpd_starttls_tmout,
+			 requirecert = (var_smtpd_tls_req_ccert
+					&& state->tls_enforce_tls),
+			 serverid = state->service,
+			 namaddr = state->namaddr,
+			 cipher_grade = cipher_grade,
+			 cipher_exclusions = STR(cipher_exclusions),
+			 fpt_dgst = var_smtpd_tls_fpt_dgst);
+
+    /*
+     * For new (i.e. not re-used) TLS sessions, increment the client's new
+     * TLS session rate counter. We enforce the limit here only for human
+     * factors reasons (reduce the WTF factor), even though it is too late to
+     * save the CPU that was already burnt on PKI ops. The real safety
+     * mechanism applies with future STARTTLS commands (or wrappermode
+     * connections), prior to the SSL handshake.
+     * 
+     * XXX The client event count/rate control must be consistent in its use of
+     * client address information in connect and disconnect events. For now
+     * we exclude xclient authorized hosts from event count/rate control.
      */
     if (var_smtpd_cntls_limit > 0
 	&& state->tls_context
@@ -3750,6 +3791,31 @@ static void smtpd_start_tls(SMTPD_STATE *state)
      */
     if (state->tls_context == 0)
 	vstream_longjmp(state->client, SMTP_ERR_EOF);
+
+    /*
+     * If we are requiring verified client certs, enforce the constraint
+     * here. We have a usable TLS session with the client, so no need to
+     * disable I/O, ...  we can even be polite and send "421 ...".
+     */
+    if (props.requirecert && TLS_CERT_IS_TRUSTED(state->tls_context) == 0) {
+
+	/*
+	 * Fetch and reject the next command (should be EHLO), then
+	 * disconnect (side-effect of returning "421 ...".
+	 */
+	cert_present = TLS_CERT_IS_PRESENT(state->tls_context);
+	msg_info("NOQUEUE: abort: TLS from %s: %s",
+		 state->namaddr, cert_present ?
+		 "Client certificate not trusted" :
+		 "No client certificate presented");
+	smtpd_chat_query(state);
+	smtpd_chat_reply(state, "421 4.7.1 %s Error: %s",
+			 var_myhostname, cert_present ?
+			 "Client certificate not trusted" :
+			 "No client certificate presented");
+	state->error_mask |= MAIL_ERROR_POLICY;
+	return;
+    }
 
     /*
      * When TLS is turned on, we may offer AUTH methods that would not be
@@ -3810,9 +3876,12 @@ static int starttls_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     }
 
     /*
-     * XXX The client event count/rate control must be consistent in its use
-     * of client address information in connect and disconnect events. For
-     * now we exclude xclient authorized hosts from event count/rate control.
+     * Enforce TLS handshake rate limit when this client negotiated too many
+     * new TLS sessions in the recent past.
+     * 
+     * XXX The client event count/rate control must be consistent in its use of
+     * client address information in connect and disconnect events. For now
+     * we exclude xclient authorized hosts from event count/rate control.
      */
     if (var_smtpd_cntls_limit > 0
 	&& SMTPD_STAND_ALONE(state) == 0
@@ -3974,10 +4043,11 @@ static void smtpd_proto(SMTPD_STATE *state)
 	 * the STARTTLS command. This code does not return when the handshake
 	 * fails.
 	 * 
-	 * XXX We start TLS before we apply access control, concurrency or
-	 * connection rate limits, so that we can inform the client why
-	 * service is denied. This means we spend a lot of CPU just to tell
-	 * the client that we don't provide service. TLS wrapper mode is
+	 * Enforce TLS handshake rate limit when this client negotiated too many
+	 * new TLS sessions in the recent past.
+	 * 
+	 * XXX This means we don't complete a TLS handshake just to tell the
+	 * client that we don't provide service. TLS wrapper mode is
 	 * obsolete, so we don't have to provide perfect support.
 	 */
 #ifdef USE_TLS
@@ -4333,7 +4403,6 @@ static void pre_accept(char *unused_name, char **unused_argv)
 
 static void pre_jail_init(char *unused_name, char **unused_argv)
 {
-    int     enforce_tls;
     int     use_tls;
 
     /*
@@ -4379,15 +4448,18 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      * security levels. We implement only a subset for now. If we implement
      * more levels, wrappermode should override only weaker TLS security
      * levels.
+     * 
+     * Note: tls_level_lookup() logs no warning.
      */
     if (!var_smtpd_tls_wrappermode && *var_smtpd_tls_level) {
 	switch (tls_level_lookup(var_smtpd_tls_level)) {
 	default:
-	    msg_warn("%s: ignoring unknown TLS level \"%s\"",
-		     VAR_SMTPD_TLS_LEVEL, var_smtpd_tls_level);
+	    msg_fatal("Invalid TLS level \"%s\"", var_smtpd_tls_level);
+	    /* NOTREACHED */
 	    break;
 	case TLS_LEV_SECURE:
 	case TLS_LEV_VERIFY:
+	case TLS_LEV_FPRINT:
 	    msg_warn("%s: unsupported TLS level \"%s\", using \"encrypt\"",
 		     VAR_SMTPD_TLS_LEVEL, var_smtpd_tls_level);
 	    /* FALLTHROUGH */
@@ -4414,33 +4486,10 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     if (getuid() == 0 || getuid() == var_owner_uid) {
 	if (use_tls) {
 #ifdef USE_TLS
-	    tls_server_props props;
+	    TLS_SERVER_INIT_PROPS props;
+	    const char *cert_file;
 	    int     havecert;
 	    int     oknocert;
-	    int     wantcert;
-
-	    /*
-	     * We get stronger type safety and a cleaner interface by
-	     * combining the various parameters into a single
-	     * tls_server_props structure.
-	     */
-	    props.log_level = var_smtpd_tls_loglevel;
-	    props.verifydepth = var_smtpd_tls_ccert_vd;
-	    props.cache_type = TLS_MGR_SCACHE_SMTPD;
-	    props.scache_timeout = var_smtpd_tls_scache_timeout;
-	    props.set_sessid = var_smtpd_tls_set_sessid;
-	    props.cert_file = var_smtpd_tls_cert_file;
-	    props.key_file = var_smtpd_tls_key_file;
-	    props.dcert_file = var_smtpd_tls_dcert_file;
-	    props.dkey_file = var_smtpd_tls_dkey_file;
-	    props.CAfile = var_smtpd_tls_CAfile;
-	    props.CApath = var_smtpd_tls_CApath;
-	    props.dh1024_param_file = var_smtpd_tls_dh1024_param_file;
-	    props.dh512_param_file = var_smtpd_tls_dh512_param_file;
-	    props.protocols = enforce_tls && *var_smtpd_tls_mand_proto ?
-		tls_protocol_mask(VAR_SMTPD_TLS_MAND_PROTO,
-				  var_smtpd_tls_mand_proto) : 0;
-	    props.ask_ccert = var_smtpd_tls_ask_ccert;
 
 	    /*
 	     * Can't use anonymous ciphers if we want client certificates.
@@ -4448,47 +4497,53 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 	     * 
 	     * XXX: Ugh! Too many booleans!
 	     */
-	    wantcert = props.ask_ccert;
-	    wantcert |= enforce_tls && var_smtpd_tls_req_ccert;
-	    oknocert = strcasecmp(props.cert_file, "none") == 0;
-	    if (oknocert)
-		props.cert_file = "";
-	    havecert = *props.cert_file || *props.dcert_file;
+	    wantcert = (var_smtpd_tls_ask_ccert
+			|| (enforce_tls && var_smtpd_tls_req_ccert));
+	    if (strcasecmp(var_smtpd_tls_cert_file, "none") == 0) {
+		oknocert = 1;
+		cert_file = "";
+	    } else {
+		oknocert = 0;
+		cert_file = var_smtpd_tls_cert_file;
+	    }
+	    havecert =
+		(*cert_file || *var_smtpd_tls_dcert_file);
 
+	    /* Some TLS configuration errors are not show stoppers. */
 	    if (!havecert && wantcert)
 		msg_warn("Need a server cert to request client certs");
 	    if (!enforce_tls && var_smtpd_tls_req_ccert)
 		msg_warn("Can't require client certs unless TLS is required");
+	    /* After a show-stopper error, reply with 454 to STARTTLS. */
+	    if (havecert || (oknocert && !wantcert))
 
-	    props.cipherlist =
-		tls_cipher_list(enforce_tls ?
-				tls_cipher_level(var_smtpd_tls_mand_ciph) :
-				TLS_CIPHER_EXPORT,
-				var_smtpd_tls_excl_ciph,
-				havecert ? "" : "aRSA aDSS",
-				wantcert ? "aNULL" : "",
-				enforce_tls ? var_smtpd_tls_mand_excl :
-				TLS_END_EXCLUDE,
-				TLS_END_EXCLUDE);
-
-	    if (props.cipherlist == 0) {
-		msg_warn("unknown '%s' value '%s' ignored, using 'export'",
-			 VAR_SMTPD_TLS_MAND_CIPH, var_smtpd_tls_mand_ciph);
-		props.cipherlist =
-		    tls_cipher_list(TLS_CIPHER_EXPORT,
-				    var_smtpd_tls_excl_ciph,
-				    havecert ? "" : "aRSA aDSS",
-				    wantcert ? "aNULL" : "",
-				    enforce_tls ? var_smtpd_tls_mand_excl :
-				    TLS_END_EXCLUDE,
-				    TLS_END_EXCLUDE);
-		if (props.cipherlist == 0)
-		    msg_panic("NULL export cipherlist");
-	    }
-	    if (havecert || oknocert)
-		smtpd_tls_ctx = tls_server_init(&props);
-	    else if (enforce_tls)
-		msg_fatal("No server certs available. TLS can't be enabled");
+		/*
+		 * Large parameter lists are error-prone, so we emulate a
+		 * language feature that C does not have natively: named
+		 * parameter lists.
+		 */
+		smtpd_tls_ctx =
+		    TLS_SERVER_INIT(&props,
+				    log_level = var_smtpd_tls_loglevel,
+				    verifydepth = var_smtpd_tls_ccert_vd,
+				    cache_type = TLS_MGR_SCACHE_SMTPD,
+				    scache_timeout
+				    = var_smtpd_tls_scache_timeout,
+				    set_sessid = var_smtpd_tls_set_sessid,
+				    cert_file = cert_file,
+				    key_file = var_smtpd_tls_key_file,
+				    dcert_file = var_smtpd_tls_dcert_file,
+				    dkey_file = var_smtpd_tls_dkey_file,
+				    CAfile = var_smtpd_tls_CAfile,
+				    CApath = var_smtpd_tls_CApath,
+				    dh1024_param_file
+				    = var_smtpd_tls_dh1024_param_file,
+				    dh512_param_file
+				    = var_smtpd_tls_dh512_param_file,
+				    protocols = enforce_tls ?
+				    var_smtpd_tls_mand_proto : "",
+				    ask_ccert = var_smtpd_tls_ask_ccert,
+				    fpt_dgst = var_smtpd_tls_fpt_dgst);
 	    else
 		msg_warn("No server certs available. TLS won't be enabled");
 #else
@@ -4579,7 +4634,7 @@ MAIL_VERSION_STAMP_DECLARE;
 
 int     main(int argc, char **argv)
 {
-    static CONFIG_INT_TABLE int_table[] = {
+    static const CONFIG_INT_TABLE int_table[] = {
 	VAR_SMTPD_RCPT_LIMIT, DEF_SMTPD_RCPT_LIMIT, &var_smtpd_rcpt_limit, 1, 0,
 	VAR_SMTPD_SOFT_ERLIM, DEF_SMTPD_SOFT_ERLIM, &var_smtpd_soft_erlim, 1, 0,
 	VAR_SMTPD_HARD_ERLIM, DEF_SMTPD_HARD_ERLIM, &var_smtpd_hard_erlim, 1, 0,
@@ -4614,11 +4669,10 @@ int     main(int argc, char **argv)
 #ifdef USE_TLS
 	VAR_SMTPD_TLS_CCERT_VD, DEF_SMTPD_TLS_CCERT_VD, &var_smtpd_tls_ccert_vd, 0, 0,
 	VAR_SMTPD_TLS_LOGLEVEL, DEF_SMTPD_TLS_LOGLEVEL, &var_smtpd_tls_loglevel, 0, 0,
-	VAR_TLS_DAEMON_RAND_BYTES, DEF_TLS_DAEMON_RAND_BYTES, &var_tls_daemon_rand_bytes, 1, 0,
 #endif
 	0,
     };
-    static CONFIG_TIME_TABLE time_table[] = {
+    static const CONFIG_TIME_TABLE time_table[] = {
 	VAR_SMTPD_TMOUT, DEF_SMTPD_TMOUT, &var_smtpd_tmout, 1, 0,
 	VAR_SMTPD_ERR_SLEEP, DEF_SMTPD_ERR_SLEEP, &var_smtpd_err_sleep, 0, 0,
 	VAR_SMTPD_PROXY_TMOUT, DEF_SMTPD_PROXY_TMOUT, &var_smtpd_proxy_tmout, 1, 0,
@@ -4635,7 +4689,7 @@ int     main(int argc, char **argv)
 	VAR_MILT_MSG_TIME, DEF_MILT_MSG_TIME, &var_milt_msg_time, 1, 0,
 	0,
     };
-    static CONFIG_BOOL_TABLE bool_table[] = {
+    static const CONFIG_BOOL_TABLE bool_table[] = {
 	VAR_HELO_REQUIRED, DEF_HELO_REQUIRED, &var_helo_required,
 	VAR_SMTPD_DELAY_REJECT, DEF_SMTPD_DELAY_REJECT, &var_smtpd_delay_reject,
 	VAR_STRICT_RFC821_ENV, DEF_STRICT_RFC821_ENV, &var_strict_rfc821_env,
@@ -4662,7 +4716,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_CLIENT_PORT_LOG, DEF_SMTPD_CLIENT_PORT_LOG, &var_smtpd_client_port_log,
 	0,
     };
-    static CONFIG_STR_TABLE str_table[] = {
+    static const CONFIG_STR_TABLE str_table[] = {
 	VAR_SMTPD_BANNER, DEF_SMTPD_BANNER, &var_smtpd_banner, 1, 0,
 	VAR_NOTIFY_CLASSES, DEF_NOTIFY_CLASSES, &var_notify_classes, 0, 0,
 	VAR_CLIENT_CHECKS, DEF_CLIENT_CHECKS, &var_client_checks, 0, 0,
@@ -4717,14 +4771,10 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_TLS_MAND_CIPH, DEF_SMTPD_TLS_MAND_CIPH, &var_smtpd_tls_mand_ciph, 1, 0,
 	VAR_SMTPD_TLS_EXCL_CIPH, DEF_SMTPD_TLS_EXCL_CIPH, &var_smtpd_tls_excl_ciph, 0, 0,
 	VAR_SMTPD_TLS_MAND_EXCL, DEF_SMTPD_TLS_MAND_EXCL, &var_smtpd_tls_mand_excl, 0, 0,
-	VAR_TLS_HIGH_CLIST, DEF_TLS_HIGH_CLIST, &var_tls_high_clist, 1, 0,
-	VAR_TLS_MEDIUM_CLIST, DEF_TLS_MEDIUM_CLIST, &var_tls_medium_clist, 1, 0,
-	VAR_TLS_LOW_CLIST, DEF_TLS_LOW_CLIST, &var_tls_low_clist, 1, 0,
-	VAR_TLS_EXPORT_CLIST, DEF_TLS_EXPORT_CLIST, &var_tls_export_clist, 1, 0,
-	VAR_TLS_NULL_CLIST, DEF_TLS_NULL_CLIST, &var_tls_null_clist, 1, 0,
 	VAR_SMTPD_TLS_MAND_PROTO, DEF_SMTPD_TLS_MAND_PROTO, &var_smtpd_tls_mand_proto, 0, 0,
 	VAR_SMTPD_TLS_512_FILE, DEF_SMTPD_TLS_512_FILE, &var_smtpd_tls_dh512_param_file, 0, 0,
 	VAR_SMTPD_TLS_1024_FILE, DEF_SMTPD_TLS_1024_FILE, &var_smtpd_tls_dh1024_param_file, 0, 0,
+	VAR_SMTPD_TLS_FPT_DGST, DEF_SMTPD_TLS_FPT_DGST, &var_smtpd_tls_fpt_dgst, 1, 0,
 #endif
 	VAR_SMTPD_TLS_LEVEL, DEF_SMTPD_TLS_LEVEL, &var_smtpd_tls_level, 0, 0,
 	VAR_SMTPD_SASL_TYPE, DEF_SMTPD_SASL_TYPE, &var_smtpd_sasl_type, 1, 0,
@@ -4744,7 +4794,7 @@ int     main(int argc, char **argv)
 	VAR_STRESS, DEF_STRESS, &var_stress, 0, 0,
 	0,
     };
-    static CONFIG_RAW_TABLE raw_table[] = {
+    static const CONFIG_RAW_TABLE raw_table[] = {
 	VAR_SMTPD_EXP_FILTER, DEF_SMTPD_EXP_FILTER, &var_smtpd_exp_filter, 1, 0,
 	VAR_DEF_RBL_REPLY, DEF_DEF_RBL_REPLY, &var_def_rbl_reply, 1, 0,
 	0,

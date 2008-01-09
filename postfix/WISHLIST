@@ -1,5 +1,7 @@
 Wish list:
 
+	Consolidate duplicated code *_server_accept_{pass,inet}().
+
 	Consolidate duplicated code in {inet,unix,upass}_trigger.c.
 
 	In the SMTP client, handle 421 replies in smtp_loop() by

@@ -126,12 +126,12 @@ typedef struct {
     int     max;			/* upper bound or zero */
 } CONFIG_TIME_TABLE;
 
-extern void get_mail_conf_str_table(CONFIG_STR_TABLE *);
-extern void get_mail_conf_int_table(CONFIG_INT_TABLE *);
-extern void get_mail_conf_long_table(CONFIG_LONG_TABLE *);
-extern void get_mail_conf_bool_table(CONFIG_BOOL_TABLE *);
-extern void get_mail_conf_time_table(CONFIG_TIME_TABLE *);
-extern void get_mail_conf_raw_table(CONFIG_RAW_TABLE *);
+extern void get_mail_conf_str_table(const CONFIG_STR_TABLE *);
+extern void get_mail_conf_int_table(const CONFIG_INT_TABLE *);
+extern void get_mail_conf_long_table(const CONFIG_LONG_TABLE *);
+extern void get_mail_conf_bool_table(const CONFIG_BOOL_TABLE *);
+extern void get_mail_conf_time_table(const CONFIG_TIME_TABLE *);
+extern void get_mail_conf_raw_table(const CONFIG_RAW_TABLE *);
 
  /*
   * Tables to initialize parameters from the global configuration file or
@@ -175,11 +175,11 @@ typedef struct {
     int    *target;			/* pointer to global variable */
 } CONFIG_BOOL_FN_TABLE;
 
-extern void get_mail_conf_str_fn_table(CONFIG_STR_FN_TABLE *);
-extern void get_mail_conf_int_fn_table(CONFIG_INT_FN_TABLE *);
-extern void get_mail_conf_long_fn_table(CONFIG_LONG_FN_TABLE *);
-extern void get_mail_conf_bool_fn_table(CONFIG_BOOL_FN_TABLE *);
-extern void get_mail_conf_raw_fn_table(CONFIG_RAW_FN_TABLE *);
+extern void get_mail_conf_str_fn_table(const CONFIG_STR_FN_TABLE *);
+extern void get_mail_conf_int_fn_table(const CONFIG_INT_FN_TABLE *);
+extern void get_mail_conf_long_fn_table(const CONFIG_LONG_FN_TABLE *);
+extern void get_mail_conf_bool_fn_table(const CONFIG_BOOL_FN_TABLE *);
+extern void get_mail_conf_raw_fn_table(const CONFIG_RAW_FN_TABLE *);
 
 /* LICENSE
 /* .ad

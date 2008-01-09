@@ -255,7 +255,7 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
     VSTRING *buf;
     int     bad;
     char   *word;
-    static NAME_CODE xforward_features[] = {
+    static const NAME_CODE xforward_features[] = {
 	XFORWARD_NAME, SMTPD_PROXY_XFORWARD_NAME,
 	XFORWARD_ADDR, SMTPD_PROXY_XFORWARD_ADDR,
 	XFORWARD_PORT, SMTPD_PROXY_XFORWARD_PORT,
@@ -264,7 +264,7 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
 	XFORWARD_DOMAIN, SMTPD_PROXY_XFORWARD_DOMAIN,
 	0, 0,
     };
-    CLEANUP_STAT_DETAIL *detail;
+    const CLEANUP_STAT_DETAIL *detail;
     int     (*connect_fn) (const char *, int, int);
     const char *endpoint;
 
@@ -460,7 +460,7 @@ int     smtpd_proxy_cmd(SMTPD_STATE *state, int expect, const char *fmt,...)
     int     last_char;
     int     err = 0;
     static VSTRING *buffer = 0;
-    CLEANUP_STAT_DETAIL *detail;
+    const CLEANUP_STAT_DETAIL *detail;
 
     /*
      * Errors first. Be prepared for delayed errors from the DATA phase.

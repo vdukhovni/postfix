@@ -21,7 +21,7 @@ typedef struct {
 } SYS_EXITS_DETAIL;
 
 extern const char *sys_exits_strerror(int);
-extern SYS_EXITS_DETAIL *sys_exits_detail(int);
+extern const SYS_EXITS_DETAIL *sys_exits_detail(int);
 extern int sys_exits_softerror(int);
 
 #define SYS_EXITS_CODE(n) ((n) >= EX__BASE && (n) <= EX__MAX)

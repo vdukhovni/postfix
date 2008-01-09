@@ -215,7 +215,7 @@ typedef struct {
     struct DICT *(*open) (const char *, int, int);
 } DICT_OPEN_INFO;
 
-static DICT_OPEN_INFO dict_open_info[] = {
+static const DICT_OPEN_INFO dict_open_info[] = {
 #ifdef HAS_CDB
     DICT_TYPE_CDB, dict_cdb_open,
 #endif
@@ -261,7 +261,7 @@ static HTABLE *dict_open_hash;
 static void dict_open_init(void)
 {
     const char *myname = "dict_open_init";
-    DICT_OPEN_INFO *dp;
+    const DICT_OPEN_INFO *dp;
 
     if (dict_open_hash != 0)
 	msg_panic("%s: multiple initialization", myname);

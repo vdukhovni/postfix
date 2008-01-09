@@ -53,7 +53,7 @@
 
 int     int_filt_flags(int class)
 {
-    static NAME_MASK table[] = {
+    static const NAME_MASK table[] = {
 	"notify", INT_FILT_NOTIFY,
 	"bounce", INT_FILT_BOUNCE,
 	0,

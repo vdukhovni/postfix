@@ -76,14 +76,16 @@
 
  /*
   * Information about available database types. Here, we list only those map
-  * types that exist as files. Network-based maps are not of interest.
+  * types that support "create" operations.
+  * 
+  * We use a different table (in dict_open.c) when querying maps.
   */
 typedef struct {
     char   *type;
     MKMAP  *(*before_open) (const char *);
 } MKMAP_OPEN_INFO;
 
-MKMAP_OPEN_INFO mkmap_types[] = {
+static const MKMAP_OPEN_INFO mkmap_types[] = {
     DICT_TYPE_PROXY, mkmap_proxy_open,
 #ifdef HAS_CDB
     DICT_TYPE_CDB, mkmap_cdb_open,
@@ -147,7 +149,7 @@ MKMAP  *mkmap_open(const char *type, const char *path,
 		           int open_flags, int dict_flags)
 {
     MKMAP  *mkmap;
-    MKMAP_OPEN_INFO *mp;
+    const MKMAP_OPEN_INFO *mp;
 
     /*
      * Find out what map type to use.

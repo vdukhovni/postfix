@@ -60,7 +60,7 @@
  /*
   * SASL Security options.
   */
-static NAME_MASK xsasl_cyrus_sec_mask[] = {
+static const NAME_MASK xsasl_cyrus_sec_mask[] = {
     "noplaintext", SASL_SEC_NOPLAINTEXT,
     "noactive", SASL_SEC_NOACTIVE,
     "nodictionary", SASL_SEC_NODICTIONARY,

@@ -301,17 +301,17 @@ void    cleanup_sig(int sig)
 
 void    cleanup_pre_jail(char *unused_name, char **unused_argv)
 {
-    static NAME_MASK send_canon_class_table[] = {
+    static const NAME_MASK send_canon_class_table[] = {
 	CANON_CLASS_ENV_FROM, CLEANUP_CANON_FLAG_ENV_FROM,
 	CANON_CLASS_HDR_FROM, CLEANUP_CANON_FLAG_HDR_FROM,
 	0,
     };
-    static NAME_MASK rcpt_canon_class_table[] = {
+    static const NAME_MASK rcpt_canon_class_table[] = {
 	CANON_CLASS_ENV_RCPT, CLEANUP_CANON_FLAG_ENV_RCPT,
 	CANON_CLASS_HDR_RCPT, CLEANUP_CANON_FLAG_HDR_RCPT,
 	0,
     };
-    static NAME_MASK canon_class_table[] = {
+    static const NAME_MASK canon_class_table[] = {
 	CANON_CLASS_ENV_FROM, CLEANUP_CANON_FLAG_ENV_FROM,
 	CANON_CLASS_ENV_RCPT, CLEANUP_CANON_FLAG_ENV_RCPT,
 	CANON_CLASS_HDR_FROM, CLEANUP_CANON_FLAG_HDR_FROM,
@@ -319,7 +319,7 @@ void    cleanup_pre_jail(char *unused_name, char **unused_argv)
 	0,
     };
 
-    static NAME_MASK masq_class_table[] = {
+    static const NAME_MASK masq_class_table[] = {
 	MASQ_CLASS_ENV_FROM, CLEANUP_MASQ_FLAG_ENV_FROM,
 	MASQ_CLASS_ENV_RCPT, CLEANUP_MASQ_FLAG_ENV_RCPT,
 	MASQ_CLASS_HDR_FROM, CLEANUP_MASQ_FLAG_HDR_FROM,

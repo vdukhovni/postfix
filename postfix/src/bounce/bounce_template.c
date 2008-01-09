@@ -173,7 +173,7 @@ typedef struct {
 
 #define STRING_AND_LEN(x) (x), (sizeof(x) - 1)
 
-static BOUNCE_TIME_DIVISOR time_divisors[] = {
+static const BOUNCE_TIME_DIVISOR time_divisors[] = {
     STRING_AND_LEN("seconds"), 1,
     STRING_AND_LEN("minutes"), 60,
     STRING_AND_LEN("hours"), 60 * 60,
@@ -192,7 +192,7 @@ typedef struct {
     int    *value;			/* parameter value */
 } BOUNCE_TIME_PARAMETER;
 
-static BOUNCE_TIME_PARAMETER time_parameter[] = {
+static const BOUNCE_TIME_PARAMETER time_parameter[] = {
     STRING_AND_LEN(VAR_DELAY_WARN_TIME), &var_delay_warn_time,
     STRING_AND_LEN(VAR_MAX_QUEUE_TIME), &var_max_queue_time,
     0, 0,
@@ -381,8 +381,8 @@ static const char *bounce_template_lookup(const char *key, int unused_mode,
 					          char *context)
 {
     BOUNCE_TEMPLATE *tp = (BOUNCE_TEMPLATE *) context;
-    BOUNCE_TIME_PARAMETER *bp;
-    BOUNCE_TIME_DIVISOR *bd;
+    const BOUNCE_TIME_PARAMETER *bp;
+    const BOUNCE_TIME_DIVISOR *bd;
     static VSTRING *buf;
     int     result;
 

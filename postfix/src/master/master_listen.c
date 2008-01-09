@@ -24,6 +24,7 @@
 /*	inet_listen(3), internet-domain listener
 /*	unix_listen(3), unix-domain listener
 /*	fifo_listen(3), named-pipe listener
+/*	upass_listen(3), file descriptor passing listener
 /*	set_eugid(3), set effective user/group attributes
 /* LICENSE
 /* .ad

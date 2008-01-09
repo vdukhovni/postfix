@@ -117,7 +117,7 @@ INET_PROTO_INFO *inet_proto_table = 0;
 #define INET_PROTO_MASK_IPV4	(1<<0)
 #define INET_PROTO_MASK_IPV6	(1<<1)
 
-static NAME_MASK proto_table[] = {
+static const NAME_MASK proto_table[] = {
 #ifdef HAS_IPV6
     INET_PROTO_NAME_ALL, INET_PROTO_MASK_IPV4 | INET_PROTO_MASK_IPV6,
     INET_PROTO_NAME_IPV6, INET_PROTO_MASK_IPV6,

@@ -100,11 +100,11 @@
 #	open connection (file descriptor passing) per connection
 #	request, and is accessible to local clients only.
 #
-#	This feature is not part of the stable Postfix release.
-#
 #	The service name is a pathname relative to the Postfix
 #	queue directory (pathname controlled with the \fBqueue_directory\fR
 #	configuration parameter in main.cf).
+#
+#	This feature is available as of Postfix version 2.5.
 # .RE
 # .IP "\fBPrivate (default: y)\fR"
 #	Whether or not access is restricted to the mail system.

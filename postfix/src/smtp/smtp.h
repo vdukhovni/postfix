@@ -177,7 +177,7 @@ extern int smtp_ext_prop_mask;		/* address externsion propagation */
 
 #ifdef USE_TLS
 
-extern SSL_CTX *smtp_tls_ctx;		/* client-side TLS engine */
+extern TLS_APPL_STATE *smtp_tls_ctx;	/* client-side TLS engine */
 
 #endif
 
@@ -227,13 +227,14 @@ typedef struct SMTP_SESSION {
      * TLS related state, don't forget to initialize in session_tls_init()!
      */
 #ifdef USE_TLS
-    TLScontext_t *tls_context;		/* TLS session state */
+    TLS_SESS_STATE *tls_context;	/* TLS session state */
     char   *tls_nexthop;		/* Nexthop domain for cert checks */
     int     tls_level;			/* TLS enforcement level */
     int     tls_retry_plain;		/* Try plain when TLS handshake fails */
-    int     tls_protocols;		/* Acceptable SSL protocols (mask) */
-    char   *tls_cipherlist;		/* Acceptable SSL ciphers */
-    char   *tls_certmatch;		/* Certificate match patterns */
+    char   *tls_protocols;		/* Acceptable SSL protocols */
+    char   *tls_grade;			/* Cipher grade: "export", ... */
+    VSTRING *tls_exclusions;		/* Excluded SSL ciphers */
+    ARGV   *tls_matchargv;		/* Cert match patterns */
 #endif
 
     SMTP_STATE *state;			/* back link */

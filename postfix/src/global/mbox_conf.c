@@ -67,7 +67,7 @@
   * though some systems do not use dotlock files by default (4.4BSD), such
   * locks can be necessary when accessing mailbox files over NFS.
   */
-static NAME_MASK mbox_mask[] = {
+static const NAME_MASK mbox_mask[] = {
 #ifdef HAS_FLOCK_LOCK
     "flock", MBOX_FLOCK_LOCK,
 #endif
@@ -89,7 +89,7 @@ int     mbox_lock_mask(const char *string)
 
 ARGV   *mbox_lock_names(void)
 {
-    NAME_MASK *np;
+    const NAME_MASK *np;
     ARGV   *argv;
 
     argv = argv_alloc(2);

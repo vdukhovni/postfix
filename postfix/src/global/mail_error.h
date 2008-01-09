@@ -27,7 +27,7 @@
 #define MAIL_ERROR_2BOUNCE	(1<<5)
 #define MAIL_ERROR_DELAY	(1<<6)
 
-extern NAME_MASK mail_error_masks[];
+extern const NAME_MASK mail_error_masks[];
 
 /* LICENSE
 /* .ad

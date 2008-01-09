@@ -86,7 +86,7 @@ int     cleanup_bounce(CLEANUP_STATE *state)
 {
     const char *myname = "cleanup_bounce";
     VSTRING *buf = vstring_alloc(100);
-    CLEANUP_STAT_DETAIL *detail;
+    const CLEANUP_STAT_DETAIL *detail;
     DSN_SPLIT dp;
     const char *dsn_status;
     const char *dsn_text;

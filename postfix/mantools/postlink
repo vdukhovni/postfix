@@ -216,6 +216,7 @@ while (<>) {
     s;\blmtp_tls_policy_maps\b;<a href="postconf.5.html#lmtp_tls_policy_maps">$&</a>;g;
     s;\blmtp_tls_secure_cert_match\b;<a href="postconf.5.html#lmtp_tls_secure_cert_match">$&</a>;g;
     s;\blmtp_tls_security_level\b;<a href="postconf.5.html#lmtp_tls_security_level">$&</a>;g;
+    s;\blmtp_tls_fingerprint_cert_match\b;<a href="postconf.5.html#lmtp_tls_fingerprint_cert_match">$&</a>;g;
     s;\blmtp_tls_verify_cert_match\b;<a href="postconf.5.html#lmtp_tls_verify_cert_match">$&</a>;g;
     s;\blmtp_tls_per_site\b;<a href="postconf.5.html#lmtp_tls_per_site">$&</a>;g;
     s;\blmtp_tls_cert_file\b;<a href="postconf.5.html#lmtp_tls_cert_file">$&</a>;g;
@@ -224,6 +225,7 @@ while (<>) {
     s;\blmtp_tls_dkey_file\b;<a href="postconf.5.html#lmtp_tls_dkey_file">$&</a>;g;
     s;\blmtp_tls_CAfile\b;<a href="postconf.5.html#lmtp_tls_CAfile">$&</a>;g;
     s;\blmtp_tls_CApath\b;<a href="postconf.5.html#lmtp_tls_CApath">$&</a>;g;
+    s;\blmtp_tls_fingerprint_digest\b;<a href="postconf.5.html#lmtp_tls_fingerprint_digest">$&</a>;g;
     s;\blmtp_tls_mandatory_ciphers\b;<a href="postconf.5.html#lmtp_tls_mandatory_ciphers">$&</a>;g;
     s;\blmtp_tls_exclude_ciphers\b;<a href="postconf.5.html#lmtp_tls_exclude_ciphers">$&</a>;g;
     s;\blmtp_tls_mandatory_exclude_ciphers\b;<a href="postconf.5.html#lmtp_tls_mandatory_exclude_ciphers">$&</a>;g;
@@ -553,6 +555,7 @@ while (<>) {
     s;\bsmtp_tls_CAfile\b;<a href="postconf.5.html#smtp_tls_CAfile">$&</a>;g;
     s;\bsmtp_tls_CApath\b;<a href="postconf.5.html#smtp_tls_CApath">$&</a>;g;
     s;\bsmtp_tls_cert_file\b;<a href="postconf.5.html#smtp_tls_cert_file">$&</a>;g;
+    s;\bsmtp_tls_fingerprint_digest\b;<a href="postconf.5.html#smtp_tls_fingerprint_digest">$&</a>;g;
     s;\bsmtp_tls_mandatory_ciphers\b;<a href="postconf.5.html#smtp_tls_mandatory_ciphers">$&</a>;g;
     s;\bsmtp_tls_cipherlist\b;<a href="postconf.5.html#smtp_tls_cipherlist">$&</a>;g;
     s;\bsmtp_tls_exclude_ciphers\b;<a href="postconf.5.html#smtp_tls_exclude_ciphers">$&</a>;g;
@@ -566,6 +569,7 @@ while (<>) {
     s;\bsmtp_tls_per_site\b;<a href="postconf.5.html#smtp_tls_per_site">$&</a>;g;
     s;\bsmtp_tls_policy_maps\b;<a href="postconf.5.html#smtp_tls_policy_maps">$&</a>;g;
     s;\bsmtp_tls_mandatory_protocols\b;<a href="postconf.5.html#smtp_tls_mandatory_protocols">$&</a>;g;
+    s;\bsmtp_tls_fingerprint_cert_match\b;<a href="postconf.5.html#smtp_tls_fingerprint_cert_match">$&</a>;g;
     s;\bsmtp_tls_verify_cert_match\b;<a href="postconf.5.html#smtp_tls_verify_cert_match">$&</a>;g;
     s;\bsmtp_tls_secure_cert_match\b;<a href="postconf.5.html#smtp_tls_secure_cert_match">$&</a>;g;
     s;\bsmtp_tls_scert_verifydepth\b;<a href="postconf.5.html#smtp_tls_scert_verifydepth">$&</a>;g;
@@ -589,6 +593,7 @@ while (<>) {
     s;\bsmtpd_tls_cert_file\b;<a href="postconf.5.html#smtpd_tls_cert_file">$&</a>;g;
     s;\bsmtpd_tls_cipherlist\b;<a href="postconf.5.html#smtpd_tls_cipherlist">$&</a>;g;
     s;\bsmtpd_tls_exclude_ciphers\b;<a href="postconf.5.html#smtpd_tls_exclude_ciphers">$&</a>;g;
+    s;\bsmtpd_tls_fingerprint_digest\b;<a href="postconf.5.html#smtpd_tls_fingerprint_digest">$&</a>;g;
     s;\bsmtpd_tls_mandatory_ciphers\b;<a href="postconf.5.html#smtpd_tls_mandatory_ciphers">$&</a>;g;
     s;\bsmtpd_tls_mandatory_exclude_ciphers\b;<a href="postconf.5.html#smtpd_tls_mandatory_exclude_ciphers">$&</a>;g;
     s;\bsmtpd_tls_dcert_file\b;<a href="postconf.5.html#smtpd_tls_dcert_file">$&</a>;g;

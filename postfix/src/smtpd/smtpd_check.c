@@ -1228,7 +1228,7 @@ static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
     if (!state->tls_context)
 	return SMTPD_CHECK_DUNNO;
 
-    if (state->tls_context->peer_verified && permit_all_certs) {
+    if (TLS_CERT_IS_TRUSTED(state->tls_context) && permit_all_certs) {
 	if (msg_verbose)
 	    msg_info("Relaying allowed for all verified client certificates");
 	return (SMTPD_CHECK_OK);
@@ -1238,7 +1238,7 @@ static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
      * When directly checking the fingerprint, it is OK if the issuing CA is
      * not trusted.
      */
-    if (state->tls_context->peer_fingerprint) {
+    if (TLS_CERT_IS_PRESENT(state->tls_context)) {
 	found = maps_find(relay_ccerts, state->tls_context->peer_fingerprint,
 			  DICT_FLAG_NONE);
 	if (found) {
@@ -2618,14 +2618,11 @@ static int check_ccert_access(SMTPD_STATE *state, const char *table,
     const char *myname = "check_ccert_access";
     int     found;
 
-    if (!state->tls_context)
-	return SMTPD_CHECK_DUNNO;
-
     /*
      * When directly checking the fingerprint, it is OK if the issuing CA is
      * not trusted.
      */
-    if (state->tls_context->peer_fingerprint) {
+    if (TLS_CERT_IS_PRESENT(state->tls_context)) {
 	if (msg_verbose)
 	    msg_info("%s: %s", myname, state->tls_context->peer_fingerprint);
 
@@ -3323,8 +3320,7 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 
 #ifdef USE_TLS
 #define ENCODE_CN(coded_CN, coded_CN_buf, CN) do { \
-	if (state->tls_context == 0 \
-	    || state->tls_context->peer_verified == 0 || (CN) == 0) { \
+	if (!TLS_CERT_IS_TRUSTED(state->tls_context) || *(CN) == 0) { \
 	    coded_CN_buf = 0; \
 	    coded_CN = ""; \
 	} else { \
@@ -3379,14 +3375,9 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 			  state->sasl_sender : "",
 #endif
 #ifdef USE_TLS
-#define IF_VERIFIED(x) \
-    ((state->tls_context && \
-      state->tls_context->peer_verified && ((x) != 0)) ? (x) : "")
 #define IF_ENCRYPTED(x, y) ((state->tls_context && ((x) != 0)) ? (x) : (y))
-			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_SUBJECT,
-			  IF_VERIFIED(subject),
-			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_ISSUER,
-			  IF_VERIFIED(issuer),
+			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_SUBJECT, subject,
+			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_ISSUER, issuer,
 
     /*
      * When directly checking the fingerprint, it is OK if the issuing CA is
@@ -4718,7 +4709,7 @@ typedef struct {
 #undef DEF_LOCAL_RCPT_MAPS
 #define DEF_LOCAL_RCPT_MAPS	""
 
-static STRING_TABLE string_table[] = {
+static const STRING_TABLE string_table[] = {
     VAR_MAPS_RBL_DOMAINS, DEF_MAPS_RBL_DOMAINS, &var_maps_rbl_domains,
     VAR_MYORIGIN, DEF_MYORIGIN, &var_myorigin,
     VAR_MYDEST, DEF_MYDEST, &var_mydest,
@@ -4817,7 +4808,7 @@ int     var_smtpd_rej_unl_rcpt;
 int     var_plaintext_code;
 bool    var_smtpd_peername_lookup;
 
-static INT_TABLE int_table[] = {
+static const INT_TABLE int_table[] = {
     "msg_verbose", 0, &msg_verbose,
     VAR_UNK_CLIENT_CODE, DEF_UNK_CLIENT_CODE, &var_unk_client_code,
     VAR_BAD_NAME_CODE, DEF_BAD_NAME_CODE, &var_bad_name_code,
@@ -4882,7 +4873,7 @@ typedef struct {
     ARGV  **target;
 } REST_TABLE;
 
-static REST_TABLE rest_table[] = {
+static const REST_TABLE rest_table[] = {
     "client_restrictions", &client_restrctions,
     "helo_restrictions", &helo_restrctions,
     "sender_restrictions", &mail_restrctions,

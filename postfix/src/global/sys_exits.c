@@ -20,7 +20,7 @@
 /*	const char *sys_exits_strerror(code)
 /*	int	code;
 /*
-/*	SYS_EXITS_DETAIL *sys_exits_detail(code)
+/*	const SYS_EXITS_DETAIL *sys_exits_detail(code)
 /*	int	code;
 /*
 /*	int	sys_exits_softerror(code)
@@ -71,7 +71,7 @@
 
 /* Application-specific. */
 
-static SYS_EXITS_DETAIL sys_exits_table[] = {
+static const SYS_EXITS_DETAIL sys_exits_table[] = {
     EX_USAGE, "5.3.0", "command line usage error",
     EX_DATAERR, "5.6.0", "data format error",
     EX_NOINPUT, "5.3.0", "cannot open input",
@@ -120,7 +120,7 @@ const char *sys_exits_strerror(int code)
 
 /* sys_exits_detail - map exit status info table entry */
 
-SYS_EXITS_DETAIL *sys_exits_detail(int code)
+const SYS_EXITS_DETAIL *sys_exits_detail(int code)
 {
     if (!SYS_EXITS_CODE(code)) {
 	return (sys_exits_fake(code));

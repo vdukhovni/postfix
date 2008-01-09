@@ -23,10 +23,10 @@
 /*	const char *value;
 /*
 /*	void	get_mail_conf_str_table(table)
-/*	CONFIG_STR_TABLE *table;
+/*	const CONFIG_STR_TABLE *table;
 /*
 /*	void	get_mail_conf_str_fn_table(table)
-/*	CONFIG_STR_TABLE *table;
+/*	const CONFIG_STR_TABLE *table;
 /* AUXILIARY FUNCTIONS
 /*	char	*get_mail_conf_str2(name, suffix, defval, min, max)
 /*	const char *name;
@@ -165,7 +165,7 @@ void    set_mail_conf_str(const char *name, const char *value)
 
 /* get_mail_conf_str_table - look up table of strings */
 
-void    get_mail_conf_str_table(CONFIG_STR_TABLE *table)
+void    get_mail_conf_str_table(const CONFIG_STR_TABLE *table)
 {
     while (table->name) {
 	if (table->target[0])
@@ -178,7 +178,7 @@ void    get_mail_conf_str_table(CONFIG_STR_TABLE *table)
 
 /* get_mail_conf_str_fn_table - look up strings, defaults are functions */
 
-void    get_mail_conf_str_fn_table(CONFIG_STR_FN_TABLE *table)
+void    get_mail_conf_str_fn_table(const CONFIG_STR_FN_TABLE *table)
 {
     while (table->name) {
 	if (table->target[0])

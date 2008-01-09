@@ -348,7 +348,7 @@ Ask a remote SMTP client for a client certificate.
 When TLS encryption is optional in the Postfix SMTP server, do
 not announce or accept SASL authentication over unencrypted
 connections.
-.IP "\fBsmtpd_tls_ccert_verifydepth (5)\fR"
+.IP "\fBsmtpd_tls_ccert_verifydepth (9)\fR"
 The verification depth for remote SMTP client certificates.
 .IP "\fBsmtpd_tls_cert_file (empty)\fR"
 File with the Postfix SMTP server RSA certificate in PEM format.
@@ -377,7 +377,7 @@ TLS encryption.
 Additional list of ciphers or cipher types to exclude from the
 SMTP server cipher list at mandatory TLS security levels.
 .IP "\fBsmtpd_tls_mandatory_protocols (SSLv3, TLSv1)\fR"
-The TLS protocols accepted by the Postfix SMTP server with
+The SSL/TLS protocols accepted by the Postfix SMTP server with
 mandatory TLS encryption.
 .IP "\fBsmtpd_tls_received_header (no)\fR"
 Request that the Postfix SMTP server produces Received:  message
@@ -385,7 +385,7 @@ headers that include information about the protocol and cipher used,
 as well as the client CommonName and client certificate issuer
 CommonName.
 .IP "\fBsmtpd_tls_req_ccert (no)\fR"
-With mandatory TLS encryption, require a remote SMTP client
+With mandatory TLS encryption, require a trusted remote SMTP client
 certificate in order to allow TLS connections to proceed.
 .IP "\fBsmtpd_tls_session_cache_database (empty)\fR"
 Name of the file containing the optional Postfix SMTP server
@@ -411,6 +411,12 @@ The OpenSSL cipherlist for "EXPORT" or higher grade ciphers.
 .IP "\fBtls_null_cipherlist (eNULL:!aNULL)\fR"
 The OpenSSL cipherlist for "NULL" grade ciphers that provide
 authentication without encryption.
+.PP
+Available in Postfix version 2.5 and later:
+.IP "\fBsmtpd_tls_fingerprint_digest (md5)\fR"
+The message digest algorithm used to construct client-certificate
+fingerprints for \fBcheck_ccert_access\fR and
+\fBpermit_tls_clientcerts\fR.
 .SH "OBSOLETE STARTTLS CONTROLS"
 .na
 .nf
@@ -950,3 +956,7 @@ BTU Cottbus
 Allgemeine Elektrotechnik
 Universitaetsplatz 3-4
 D-03044 Cottbus, Germany
+
+Revised TLS support by:
+Victor Duchovni
+Morgan Stanley

@@ -14049,6 +14049,58 @@ Apologies for any names omitted.
 	Cleanup: don't try sending HELO after a 421 EHLO reply.
 	File: smtp/smtp_proto.c.
 
+20071221-nonprod
+
+	Using 20071221 as reference point.
+
+	Cleanup: Simplified TLS library cipher and protocol API to
+	just pass string-valued properties to tls_client_init() and
+	tls_client_start(). The client is now agnostic of the
+	mechanics of cipher management internal to the library. The
+	main.cf parameters used internally in the library are now
+	loaded by the library, not the caller. Files:
+	src/smtp/lmtp_params.c, src/smtp/smtp.c, src/smtp/smtp.h,
+	src/smtp/smtp_params.c, src/smtp/smtp_proto.c,
+	src/smtp/smtp_session.c, src/smtpd/smtpd.c, src/tls/tls.h,
+	src/tls/tls_client.c, src/tls/tls_level.c, src/tls/tls_misc.c,
+	src/tls/tls_server.c, src/tls/tls_session.c, src/tls/tls_verify.c
+	and src/tlsmgr/tlsmgr.c
+
+	Cleanup: Client session lookup key "salting" is now handled
+	internally in the tls library. Files: src/tls/tls_client.c
+
+	Cleanup: Cipher state is cached, and only updated when
+	necessary.  Files: src/tls/tls_misc.c
+
+	Feature: Extended the syntax of protocol selection to allow
+	exclusions as well as inclusions. Files: src/tls/tls_misc.c
+
+	Cleanup: Updated default verification depth to match reality:
+	default is 9 in OpenSSL and we don't yet override it.  When
+	we do (soon), the default will match previous behavior.
+	Files: src/global/mail_params.h
+
+	Bugfix: Reference to obsolete "pfixtls" code won't compile
+	inside #ifdef for OpenSSL <= 0.9.5a. Using an OpenSSL release
+	that old has not been tested for some time, but may now
+	work. Files: src/tls/tls_bio_ops.c.
+
+	Replaced "void *" TLS library application handles by explicit
+	pointer types, while hiding data structure implementation
+	details from the TLS library users. Files: tls/tls_client.c,
+	tls/tls_server.c, smtp/smtp.c, smtpd/smtpd.c.
+
+	The TLS library no longer modifies VSTRINGs passed in by
+	the caller. Where possible, information is passed as "const"
+	from application to library. Files: smtp/smtp_proto.c,
+	tls/tls_client.c.
+
+20071227-nonprod
+
+	Replaced explicit initialization of props structures by
+	emulating function calls with named parameter lists.  Files:
+	tls/tls.h, smtp/smtp.c, smtp/smtp_proto.c, smtpd/smtpd.c.
+
 20071222
 
 	Further polishing of the Milter code and logging. File:
@@ -14088,18 +14140,94 @@ Apologies for any names omitted.
 	generic "4.3.0 Sevice unavailable", but log the text for
 	the actual error. File: cleanup/cleanup_milter.c.
 
+20080102-nonprod
+
+	SMTP client fingerprint security level support and configurable
+	fingerprint digest algorithm. Victor Duchovni. Files:
+	smtp/lmtp_params.c, smtp/smtp.c, smtp/smtp.h,
+	src/smtp/smtp_params.c, src/smtp/smtp_proto.c,
+	src/smtp/smtp_session.c, tls/tls_client.c, tls/tls_level.c,
+	tls/tls_verify.c.
+
+20080103-nonprod
+
+	Missed "invalid TLS configuration" patch for SMTP client.
+	Victor Duchovni. File: smtp/smtp_proto.c.
+
+	SMTP server configurable fingerprint digest algorithm.
+	Victor Duchovni. Files: smtpd/smtpd.c, tls/tls.h,
+	tls/tls_server.c, tls/tls_verify.c.
+
+20080104-nonprod
+
+	Cleanup: finally implemented certificate verification depth
+	limit parameters. Prior to Postfix 2.5 these were ignored.
+	For backwards compatibility, the default verification depth
+	limit is now 9, the OpenSSL default. Victor Duchovni. Files:
+	src/tls/tls_client.c, src/tls/tls_server.c, src/tls/tls_verify.c.
+
+	Robustness: Avoid possibility of NULL pointer issues in
+	application code that checks certificate names, by providing
+	"empty string" values when no data is available.  Victor
+	Duchovni.  Files: src/tls/tls_verify.c, src/tls/tls_client.c,
+	src/tls/tls_server.c, src/smtpd/smtpd_check.c, src/smtpd/smtpd.c.
+
+	Cleanup: separation of TLS handshake from security level
+	enforcement. The library shakes hands; the application
+	decides if the resulting security is acceptable. Victor
+	Duchovni.  Files: smtpd/smtpd.c, smtpd/smtpd_proto.c,
+	tls/tls_server.c, tls/tls_client.c, tls/tls_verify.c.
+
+	Robustness: more robust processing of ASN.1 string attributes
+	in x509v3 certificates, plus additional sanity checks (e.g.
+	embedded null characters). Victor Duchovni. File:
+	src/tls/tls_verify.c.
+
 20080104
 
 	Workaround: minor change to the Dovecot AUTH request to
 	prevent dovecot-auth memory wastage. Timo Sirainen.  File:
 	xsasl/xsasl_dovecot_server.c.
 
-20070807
+20080105-nonprod
 
-	Feature (experimental release only): new "pass" service
-	type (in addition to "inet", "unix" and "fifo").  The "pass"
-	service type supports front-end daemons that accept all
-	inbound connections and that permit only well-behaved clients
-	to talk to the MTA. This service type had been sitting in
-	the master daemon for years but was disabled by default.
-	Files: util/upass_connect.c, util/upass_trigger.c.
+	Cleanup: renamed TLS-related symbols for consistency (always
+	include the init, start, stop prefix in the TLS library
+	function and data structure names; consistently distinguish
+	between per-application TLS state and per-session TLS state;
+	consistently use the fpt prefix for fingerprint related
+	variables and structure members; consistent use of monocase
+	typedef-ed names).
+
+20080106-nonprod
+
+	Cleanup: consistent use of <pre> and <blockquote> in examples;
+	instead of emphasizing new Postfix 2.5 behavior in reference
+	documentation, describe the new behavior as "current", with
+	historical behavior as a supplemental note.
+
+20080107
+
+	Feature: new "pass" service type (in addition to "inet",
+	"unix" and "fifo").  The "pass" service type supports
+	front-end daemons that accept all inbound connections and
+	that permit only well-behaved clients to talk to the MTA.
+	This service type had been sitting in the master daemon for
+	years but was disabled by default.  Actual applications for
+	this will have to be developed later.  Files: util/upass_connect.c,
+	util/upass_trigger.c.
+
+20080108
+
+	Cleanup: where possible, store data structures in read-only
+	memory. Besides the security advantage of no write access,
+	this also gives slightly better memory utilization when
+	many processes execute the same file. Files: pretty much
+	everything that has a static table, except for a few tables
+	in the benchmark tools with flags that are controlled by
+	command-line information.
+
+20080109
+
+	Cleanup: more read-only data. Files: everything that passes
+	around a HEADER_OPTS pointer.

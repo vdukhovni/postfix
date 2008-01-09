@@ -94,7 +94,7 @@
   * even know about, because map types may be added dynamically on some
   * platforms.
   */
-static NAME_CODE data_redirect_map_types[] = {
+static const NAME_CODE data_redirect_map_types[] = {
     DICT_TYPE_HASH, 1,
     DICT_TYPE_BTREE, 1,
     DICT_TYPE_DBM, 1,

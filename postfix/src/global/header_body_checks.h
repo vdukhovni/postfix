@@ -53,7 +53,7 @@ extern HBC_CHECKS *hbc_header_checks_create(const char *, const char *,
 					            HBC_CALL_BACKS *);
 extern HBC_CHECKS *hbc_body_checks_create(const char *, const char *,
 					          HBC_CALL_BACKS *);
-extern char *hbc_header_checks(void *, HBC_CHECKS *, int, HEADER_OPTS *,
+extern char *hbc_header_checks(void *, HBC_CHECKS *, int, const HEADER_OPTS *,
 			               VSTRING *, off_t);
 extern char *hbc_body_checks(void *, HBC_CHECKS *, const char *, ssize_t, off_t);
 

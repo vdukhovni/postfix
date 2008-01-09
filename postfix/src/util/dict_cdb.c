@@ -270,7 +270,8 @@ static void dict_cdbm_update(DICT *dict, const char *name, const char *value)
     if (r < 0)
 	msg_fatal("error writing %s: %m", dict_cdbm->tmp_path);
     else if (r > 0) {
-	if (dict->flags & (DICT_FLAG_DUP_IGNORE | DICT_FLAG_DUP_REPLACE));
+	if (dict->flags & (DICT_FLAG_DUP_IGNORE | DICT_FLAG_DUP_REPLACE))
+	     /* void */ ;
 	else if (dict->flags & DICT_FLAG_DUP_WARN)
 	    msg_warn("%s: duplicate entry: \"%s\"",
 		     dict_cdbm->dict.name, name);

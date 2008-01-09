@@ -8,8 +8,8 @@ This document describes the symptoms of Postfix SMTP server overload, and how
 to avoid the condition under normal conditions. When the condition is caused by
 botnets or other malware, the document suggests configuration settings that
 help to minimize the impact on legitimate mail. Finally, the document
-introduces Postfix stress-adaptive behavior, and how it can be used to
-automatically switch configuration settings under overload.
+introduces stress-adaptive behavior, introduced with Postfix 2.5, and how it
+can be used to automatically switch configuration settings under overload.
 
 Topics covered in this document:
 
@@ -26,26 +26,16 @@ Topics covered in this document:
 SSyymmppttoommss ooff PPoossttffiixx SSMMTTPP sseerrvveerr oovveerrllooaadd
 
 Under normal conditions, Postfix responds immediately when a remote SMTP client
-connects. The time needed to deliver mail to Postfix may depend on how busy the
-CPU or disk are, but that should be noticeable only with very large messages.
-Performance degrades more dramatically when the number of remote SMTP clients
-exceeds the number of Postfix SMTP server processes. When a client connects
-while all server processes are busy, the client must wait until a server
-process becomes available.
+connects. The time needed to deliver mail should be noticeable only with very
+large messages. Performance degrades more dramatically when the number of
+remote SMTP clients exceeds the number of Postfix SMTP server processes. When a
+client connects while all server processes are busy, the client must wait until
+a server process becomes available.
 
 Overload may be caused by a legitimate mail (example: a DNS registrar opens a
 new zone for registrations), by mistake (mail explosion caused by a forwarding
 loop) or by illegitimate mail (worm outbreak, botnet, or other malware
 activity). Symptoms of Postfix SMTP mail server overload are:
-
-  * Postfix logs a warning that all server ports are busy:
-
-    Oct  3 20:39:27 spike postfix/master[28905]: warning: service "smtp"
-     (25) has reached its process limit "30": new clients may experience
-     noticeable delays
-    Oct  3 20:39:27 spike postfix/master[28905]: warning: to avoid this
-     condition, increase the process count in master.cf or reduce the
-     service time per client
 
   * Remote SMTP clients experience a long delay before Postfix sends the "220
     hostname.example.com ESMTP Postfix" greeting. If this affects end-user mail
@@ -57,7 +47,16 @@ activity). Symptoms of Postfix SMTP mail server overload are:
     CONNECT" events. This happens because remote SMTP clients disconnect before
     Postfix answers the connection.
 
-NOTE: The last two symptoms also happen without overload.
+  * Postfix 2.3 and later logs a warning that all server ports are busy:
+
+    Oct  3 20:39:27 spike postfix/master[28905]: warning: service "smtp"
+     (25) has reached its process limit "30": new clients may experience
+     noticeable delays
+    Oct  3 20:39:27 spike postfix/master[28905]: warning: to avoid this
+     condition, increase the process count in master.cf or reduce the
+     service time per client
+
+NOTE: The first two symptoms may also happen without overload, for example:
 
   * Broken DNS also causes lengthy delays before "220 hostname.example.com ..."
     while the Postfix SMTP server tries to look up the client's hostname.

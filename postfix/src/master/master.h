@@ -75,9 +75,7 @@ typedef struct MASTER_SERV {
 #define MASTER_SERV_TYPE_UNIX	1	/* AF_UNIX domain socket */
 #define MASTER_SERV_TYPE_INET	2	/* AF_INET domain socket */
 #define MASTER_SERV_TYPE_FIFO	3	/* fifo (named pipe) */
-#ifdef SNAPSHOT				/* see also master_proto.h */
 #define MASTER_SERV_TYPE_PASS	4	/* AF_UNIX domain socket */
-#endif
 
  /*
   * Default process management policy values. This is only the bare minimum.

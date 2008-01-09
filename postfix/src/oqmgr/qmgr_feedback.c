@@ -90,7 +90,7 @@
  /*
   * Lookup tables for main.cf feedback method names.
   */
-NAME_CODE qmgr_feedback_map[] = {
+const NAME_CODE qmgr_feedback_map[] = {
     CONC_FDBACK_NAME_WIN, QMGR_FEEDBACK_IDX_WIN,
 #ifdef QMGR_FEEDBACK_IDX_SQRT_WIN
     CONC_FDBACK_NAME_SQRT_WIN, QMGR_FEEDBACK_IDX_SQRT_WIN,

@@ -264,7 +264,7 @@ int     smtp_helo(SMTP_STATE *state)
     char   *words;
     char   *word;
     int     n;
-    static NAME_CODE xforward_features[] = {
+    static const NAME_CODE xforward_features[] = {
 	XFORWARD_NAME, SMTP_FEATURE_XFORWARD_NAME,
 	XFORWARD_ADDR, SMTP_FEATURE_XFORWARD_ADDR,
 	XFORWARD_PORT, SMTP_FEATURE_XFORWARD_PORT,
@@ -276,7 +276,7 @@ int     smtp_helo(SMTP_STATE *state)
     SOCKOPT_SIZE optlen;
     const char *ehlo_words;
     int     discard_mask;
-    static NAME_MASK pix_bug_table[] = {
+    static const NAME_MASK pix_bug_table[] = {
 	PIX_BUG_DISABLE_ESMTP, SMTP_FEATURE_PIX_NO_ESMTP,
 	PIX_BUG_DELAY_DOTCRLF, SMTP_FEATURE_PIX_DELAY_DOTCRLF,
 	0,
@@ -322,6 +322,18 @@ int     smtp_helo(SMTP_STATE *state)
 				   session->namaddr,
 				   translit(resp->str, "\n", " ")));
 	}
+
+	/*
+	 * If the policy table specifies a bogus TLS security level, fail
+	 * now.
+	 */
+#ifdef USE_TLS
+	if (session->tls_level == TLS_LEV_INVALID)
+	    /* Warning is already logged. */
+	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
+				   SMTP_RESP_FAKE(&fake, "4.7.0"),
+				   "client TLS configuration problem"));
+#endif
 
 	/*
 	 * XXX Some PIX firewall versions require flush before ".<CR><LF>" so
@@ -676,7 +688,7 @@ int     smtp_helo(SMTP_STATE *state)
 static int smtp_start_tls(SMTP_STATE *state)
 {
     SMTP_SESSION *session = state->session;
-    tls_client_start_props tls_props;
+    TLS_CLIENT_START_PROPS tls_props;
     VSTRING *serverid;
     SMTP_RESP fake;
 
@@ -692,19 +704,14 @@ static int smtp_start_tls(SMTP_STATE *state)
     DONT_CACHE_THIS_SESSION;
 
     /*
-     * The actual TLS handshake may succeed, but tls_client_start() may fail
-     * anyway, for example because server certificate verification is
-     * required but failed, or because enforce_peername is required but the
-     * names listed in the server certificate don't match the peer hostname.
+     * As of Postfix 2.5, tls_client_start() tries hard to always complete
+     * the TLS handshake. It records the verification and match status in the
+     * resulting TLScontext. It is now up to the application to abort the TLS
+     * connection if it chooses.
      * 
      * XXX When tls_client_start() fails then we don't know what state the SMTP
      * connection is in, so we give up on this connection even if we are not
      * required to use TLS.
-     * 
-     * XXX Other tests for specific combinations of required/failed behavior
-     * follow below AFTER the tls_client_start() call. These tests should be
-     * done inside tls_client_start() or its call-backs, to keep the SMTP
-     * client code clean (as it is in the SMTP server).
      * 
      * The following assumes sites that use TLS in a perverse configuration:
      * multiple hosts per hostname, or even multiple hosts per IP address.
@@ -719,76 +726,40 @@ static int smtp_start_tls(SMTP_STATE *state)
      * is valid for another. Therefore the client session id must include
      * either the transport name or the values of CAfile and CApath. We use
      * the transport name.
+     * 
+     * XXX: We store only one session per lookup key. Ideally the the key maps
+     * 1-to-1 to a server TLS session cache. We use the IP address, port and
+     * ehlo response name to build a lookup key that works for split caches
+     * (that announce distinct names) behind a load balancer.
+     * 
+     * XXX: The TLS library may salt the serverid with further details of the
+     * protocol and cipher requirements.
+     * 
+     * Large parameter lists are error-prone, so we emulate a language feature
+     * that C does not have natively: named parameter lists.
      */
     serverid = vstring_alloc(10);
     vstring_sprintf(serverid, "%s:%s:%u:%s", state->service, session->addr,
 		  ntohs(session->port), session->helo ? session->helo : "");
-
-    /*
-     * XXX: We store only one session per lookup key. Ideally the the key
-     * maps 1-to-1 to a server TLS session cache. We use the IP address, port
-     * and ehlo response name to build a lookup key that works for split
-     * caches (that announce distinct names) behind a load balancer.
-     * 
-     * Starting with Postfix 2.3 we may have incompatible security requirements
-     * for different domains hosted on the same server (peer cache). This
-     * requires multiple sessions to be negotiated with the same peer. It
-     * would be bad to store just one session and repeatedly discard it when
-     * we encounter incompatible requirements.
-     * 
-     * This drives us to separate lookup keys for each combination of cipher and
-     * protocol requirements. While at times a stronger session may not get
-     * re-used for a delivery with weaker requirements, a multi-session cache
-     * is prohibitively complex at this time.
-     * 
-     * - Expiration code would need to selectively delete sessions from a list -
-     * Re-use code would need to decode many sessions and choose the best -
-     * Store code would need to choose between replace and append.
-     * 
-     * Note: checking the compatibility of re-activated sessions against the
-     * cipher requirements of the session under construction requires us to
-     * store the cipher name in the session cache with the passivated session
-     * object. But the name is not available when the session is revived
-     * until the handshake is complete, which is too late.
-     * 
-     * XXX: When a cached session is reloaded, its cipher is not available via
-     * documented APIs until the handshake completes. We need to filter out
-     * sessions that use the wrong ciphers, but may not peek at the
-     * undocumented session->cipher_id and cipher->id structure members.
-     * 
-     * Since cipherlists are typically shared by many domains, we include the
-     * cipherlist in the session cache lookup key. This avoids false
-     * positives from the TLS session cache.
-     * 
-     * To support mutually incompatible protocol/cipher combinations, our
-     * session key must include both the protocol and the cipherlist.
-     * 
-     * XXX: the cipherlist is case sensitive, "aDH" != "ADH". So we don't
-     * lowercase() the serverid.
-     */
-    if (session->tls_level >= TLS_LEV_ENCRYPT
-	&& session->tls_protocols != 0
-	&& session->tls_protocols != TLS_ALL_PROTOCOLS)
-	vstring_sprintf_append(serverid, "&p=%s",
-			       tls_protocol_names(VAR_SMTP_TLS_MAND_PROTO,
-						  session->tls_protocols));
-    if (session->tls_level >= TLS_LEV_ENCRYPT)
-	vstring_sprintf_append(serverid, "&c=%s", session->tls_cipherlist);
-
-    tls_props.ctx = smtp_tls_ctx;
-    tls_props.stream = session->stream;
-    tls_props.log_level = var_smtp_tls_loglevel;
-    tls_props.timeout = var_smtp_starttls_tmout;
-    tls_props.tls_level = session->tls_level;
-    tls_props.nexthop = session->tls_nexthop;
-    tls_props.host = session->host;
-    tls_props.serverid = vstring_str(serverid);
-    tls_props.protocols = session->tls_protocols;
-    tls_props.cipherlist = session->tls_cipherlist;
-    tls_props.certmatch = session->tls_certmatch;
-
-    session->tls_context = tls_client_start(&tls_props);
+    session->tls_context =
+	TLS_CLIENT_START(&tls_props,
+			 ctx = smtp_tls_ctx,
+			 stream = session->stream,
+			 log_level = var_smtp_tls_loglevel,
+			 timeout = var_smtp_starttls_tmout,
+			 tls_level = session->tls_level,
+			 nexthop = session->tls_nexthop,
+			 host = session->host,
+			 namaddr = session->namaddrport,
+			 serverid = vstring_str(serverid),
+			 protocols = session->tls_protocols,
+			 cipher_grade = session->tls_grade,
+			 cipher_exclusions
+			 = vstring_str(session->tls_exclusions),
+			 matchargv = session->tls_matchargv,
+			 fpt_dgst = var_smtp_tls_fpt_dgst);
     vstring_free(serverid);
+
     if (session->tls_context == 0) {
 
 	/*
@@ -819,6 +790,26 @@ static int smtp_start_tls(SMTP_STATE *state)
 			       SMTP_RESP_FAKE(&fake, "4.7.5"),
 			       "Cannot start TLS: handshake failure"));
     }
+
+    /*
+     * If we are verifying the server certificate and are not happy with the
+     * result, abort the delivery here. We have a usable TLS session with the
+     * server, so no need to disable I/O, ... we can even be polite and send
+     * "QUIT".
+     * 
+     * See src/tls/tls_level.c. Levels above encrypt require matching. Levels >=
+     * verify require CA trust.
+     */
+    if (session->tls_level >= TLS_LEV_VERIFY)
+	if (!TLS_CERT_IS_TRUSTED(session->tls_context))
+	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
+				   SMTP_RESP_FAKE(&fake, "4.7.5"),
+				   "Server certificate not trusted"));
+    if (session->tls_level > TLS_LEV_ENCRYPT)
+	if (!TLS_CERT_IS_MATCHED(session->tls_context))
+	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
+				   SMTP_RESP_FAKE(&fake, "4.7.5"),
+				   "Server certificate not verified"));
 
     /*
      * At this point we have to re-negotiate the "EHLO" to reget the
@@ -912,8 +903,8 @@ static void smtp_format_out(void *context, int rec_type, const char *fmt,...)
 /* smtp_header_out - output one message header */
 
 static void smtp_header_out(void *context, int unused_header_class,
-			            HEADER_OPTS *unused_info, VSTRING *buf,
-			            off_t offset)
+			            const HEADER_OPTS *unused_info,
+			            VSTRING *buf, off_t offset)
 {
     char   *start = vstring_str(buf);
     char   *line;
@@ -933,8 +924,8 @@ static void smtp_header_out(void *context, int unused_header_class,
 /* smtp_header_rewrite - rewrite message header before output */
 
 static void smtp_header_rewrite(void *context, int header_class,
-			             HEADER_OPTS *header_info, VSTRING *buf,
-				        off_t offset)
+				        const HEADER_OPTS *header_info,
+				        VSTRING *buf, off_t offset)
 {
     SMTP_STATE *state = (SMTP_STATE *) context;
     int     did_rewrite = 0;
@@ -1060,7 +1051,7 @@ static void smtp_body_rewrite(void *context, int type,
 
 static void smtp_mime_fail(SMTP_STATE *state, int mime_errs)
 {
-    MIME_STATE_DETAIL *detail;
+    const MIME_STATE_DETAIL *detail;
     SMTP_RESP fake;
 
     detail = mime_state_detail(mime_errs);

@@ -483,7 +483,7 @@ typedef struct SM_STATE {
   */
 char   *var_submit_acl;
 
-static CONFIG_STR_TABLE str_table[] = {
+static const CONFIG_STR_TABLE str_table[] = {
     VAR_SUBMIT_ACL, DEF_SUBMIT_ACL, &var_submit_acl, 0, 0,
     0,
 };
@@ -509,7 +509,7 @@ static void output_text(void *context, int rec_type, const char *buf, ssize_t le
 /* output_header - output one message header */
 
 static void output_header(void *context, int header_class,
-			          HEADER_OPTS *header_info,
+			          const HEADER_OPTS *header_info,
 			          VSTRING *buf, off_t offset)
 {
     SM_STATE *state = (SM_STATE *) context;

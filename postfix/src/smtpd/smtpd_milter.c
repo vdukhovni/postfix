@@ -114,8 +114,7 @@ const char *smtpd_milter_eval(const char *name, void *ptr)
      */
 #ifdef USE_TLS
 #define IF_ENCRYPTED(x) (state->tls_context ? (x) : 0)
-#define IF_VERIFIED(x) \
-    (state->tls_context && state->tls_context->peer_verified ? (x) : 0)
+#define IF_TRUSTED(x) (TLS_CERT_IS_TRUSTED(state->tls_context) ? (x) : 0)
 
     if (strcmp(name, S8_MAC_TLS_VERSION) == 0)
 	return (IF_ENCRYPTED(state->tls_context->protocol));
@@ -131,9 +130,9 @@ const char *smtpd_milter_eval(const char *name, void *ptr)
 	return (STR(state->expand_buf));
     }
     if (strcmp(name, S8_MAC_CERT_SUBJECT) == 0)
-	return (IF_VERIFIED(state->tls_context->peer_CN));
+	return (IF_TRUSTED(state->tls_context->peer_CN));
     if (strcmp(name, S8_MAC_CERT_ISSUER) == 0)
-	return (IF_VERIFIED(state->tls_context->issuer_CN));
+	return (IF_TRUSTED(state->tls_context->issuer_CN));
 #endif
 
     /*

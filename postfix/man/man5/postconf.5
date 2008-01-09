@@ -63,15 +63,6 @@ operation of the mail system.
 The recipient of undeliverable mail that cannot be returned to
 the sender.  This feature is enabled with the notify_classes
 parameter.
-<DT>\fB\fItransport\fR_destination_concurrency_failed_cohort_limit
-(default: $default_destination_concurrency_failed_cohort_limit)\fR</DT><DD>
-.PP
-A transport-specific override for the
-default_destination_concurrency_failed_cohort_limit parameter value,
-where \fItransport\fR is the master.cf name of the message delivery
-transport.
-.PP
-This feature is available in Postfix 2.5 and later.
 .SH access_map_reject_code (default: 554)
 The numerical Postfix SMTP server response code when a client
 is rejected by an \fBaccess\fR(5) map restriction.
@@ -550,7 +541,7 @@ and changed the default to none.
 Specify a list of network/netmask patterns, separated by commas
 and/or whitespace. The mask specifies the number of bits in the
 network part of a host address. You can also specify hostnames or
-\e&.domain names (the initial dot causes the domain to match any name
+\&.domain names (the initial dot causes the domain to match any name
 below it),  "/file/name" or "type:table" patterns.  A "/file/name"
 pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
@@ -2060,15 +2051,17 @@ The default value is the machine hostname.  Specify a hostname or
 This information can be specified in the main.cf file for all LMTP
 clients, or it can be specified in the master.cf file for a specific
 client, for example:
-.PP
+.sp
+.in +4
 .nf
 .na
 .ft C
-  /etc/postfix/master.cf:
-        mylmtp ... lmtp -o lmtp_lhlo_name=foo.bar.com
+/etc/postfix/master.cf:
+    mylmtp ... lmtp -o lmtp_lhlo_name=foo.bar.com
 .fi
 .ad
 .ft R
+.in -4
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH lmtp_lhlo_timeout (default: 300s)
@@ -2275,6 +2268,16 @@ The LMTP-specific version of the smtp_tls_exclude_ciphers
 configuration parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH lmtp_tls_fingerprint_cert_match (default: empty)
+The LMTP-specific version of the smtp_tls_fingerprint_cert_match
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.5 and later.
+.SH lmtp_tls_fingerprint_digest (default: md5)
+The LMTP-specific version of the smtp_tls_fingerprint_digest
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH lmtp_tls_key_file (default: $lmtp_tls_cert_file)
 The LMTP-specific version of the smtp_tls_key_file
 configuration parameter.  See there for details.
@@ -2315,7 +2318,7 @@ The LMTP-specific version of the smtp_tls_policy_maps
 configuration parameter. See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH lmtp_tls_scert_verifydepth (default: 5)
+.SH lmtp_tls_scert_verifydepth (default: 9)
 The LMTP-specific version of the smtp_tls_scert_verifydepth
 configuration parameter.  See there for details.
 .PP
@@ -2323,6 +2326,11 @@ This feature is available in Postfix 2.3 and later.
 .SH lmtp_tls_secure_cert_match (default: nexthop)
 The LMTP-specific version of the smtp_tls_secure_cert_match
 configuration parameter. See there for details.
+.PP
+This feature is available in Postfix 2.3 and later.
+.SH lmtp_tls_security_level (default: empty)
+The LMTP-specific version of the smtp_tls_security_level configuration
+parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH lmtp_tls_session_cache_database (default: empty)
@@ -2429,8 +2437,10 @@ client is successfully authenticated via the RFC 4954 (AUTH)
 protocol.
 .IP "\fBpermit_tls_clientcerts \fR"
 Append the domain name in $myorigin or $mydomain when the
-client TLS certificate is successfully verified, and the client
-certificate fingerprint is listed in $relay_clientcerts.
+client TLS certificate fingerprint is listed in $relay_clientcerts.
+The fingerprint digest algorithm is configurable via the
+smtpd_tls_fingerprint_digest parameter (hard-coded as md5 prior to
+Postfix version 2.5).
 .IP "\fBpermit_tls_all_clientcerts \fR"
 Append the domain name in $myorigin or $mydomain when the
 client TLS certificate is successfully verified, regardless of
@@ -2448,25 +2458,29 @@ Examples:
 The Postfix < 2.2 backwards compatible setting: always rewrite
 message headers, and always append my own domain to incomplete
 header addresses.
-.PP
+.sp
+.in +4
 .nf
 .na
 .ft C
-    local_header_rewrite_clients = static:all
+local_header_rewrite_clients = static:all
 .fi
 .ad
 .ft R
+.in -4
 .PP
 The purist (and default) setting: rewrite headers only in mail
 from Postfix sendmail and in SMTP mail from this machine.
-.PP
+.sp
+.in +4
 .nf
 .na
 .ft C
-    local_header_rewrite_clients = permit_inet_interfaces
+local_header_rewrite_clients = permit_inet_interfaces
 .fi
 .ad
 .ft R
+.in -4
 .PP
 The intermediate setting: rewrite header addresses and append
 $myorigin or $mydomain information only with mail from Postfix
@@ -2475,16 +2489,18 @@ sendmail, from local clients, or from authorized SMTP clients.
 Note: this setting will not prevent remote mail header address
 rewriting when mail from a remote client is forwarded by a neighboring
 system.
-.PP
+.sp
+.in +4
 .nf
 .na
 .ft C
-    local_header_rewrite_clients = permit_mynetworks,
-        permit_sasl_authenticated permit_tls_clientcerts
-        check_address_map hash:/etc/postfix/pop-before-smtp
+local_header_rewrite_clients = permit_mynetworks,
+    permit_sasl_authenticated permit_tls_clientcerts
+    check_address_map hash:/etc/postfix/pop-before-smtp
 .fi
 .ad
 .ft R
+.in -4
 .SH local_recipient_maps (default: proxy:unix:passwd.byname $alias_maps)
 Lookup tables with all names or addresses of local recipients:
 a recipient address is local when its domain matches $mydestination,
@@ -2793,28 +2809,32 @@ off in email addresses.
 .PP
 The list is processed left to right, and processing stops at the
 first match.  Thus,
-.PP
+.sp
+.in +4
 .nf
 .na
 .ft C
-    masquerade_domains = foo.example.com example.com
+masquerade_domains = foo.example.com example.com
 .fi
 .ad
 .ft R
+.in -4
 .PP
 strips "user@any.thing.foo.example.com" to "user@foo.example.com",
 but strips "user@any.thing.else.example.com" to "user@example.com".
 .PP
 A domain name prefixed with ! means do not masquerade this domain
 or its subdomains. Thus,
-.PP
+.sp
+.in +4
 .nf
 .na
 .ft C
-    masquerade_domains = !foo.example.com example.com
+masquerade_domains = !foo.example.com example.com
 .fi
 .ad
 .ft R
+.in -4
 .PP
 does not change "user@any.thing.foo.example.com" or "user@foo.example.com",
 but strips "user@any.thing.else.example.com" to "user@example.com".
@@ -3707,12 +3727,12 @@ client request is rejected by the "reject" restriction.
 .PP
 Do not change this unless you have a complete understanding of RFC 821.
 .SH relay_clientcerts (default: empty)
-The list of remote SMTP client certificates for which the
-Postfix SMTP server will allow access with the permit_tls_clientcerts
-feature.  This feature does not use certificate names, because
-Postfix list manipulation routines treat whitespace and some other
-characters as special.  Instead we use certificate fingerprints as
-they are difficult to fake but easy to use for lookup.
+List of tables with remote SMTP client-certificate fingerprints
+for which the Postfix SMTP server will allow access with the
+permit_tls_clientcerts feature.
+The fingerprint digest algorithm is configurable via the
+smtpd_tls_fingerprint_digest parameter (hard-coded as md5 prior to
+Postfix version 2.5).
 .PP
 Postfix lookup tables are in the form of (key, value) pairs.
 Since we only need the key, the value can be chosen freely, e.g.
@@ -3888,25 +3908,29 @@ Examples:
 The safe setting: append "domain.invalid" to incomplete header
 addresses from remote SMTP clients, so that those addresses cannot
 be confused with local addresses.
-.PP
+.sp
+.in +4
 .nf
 .na
 .ft C
-    remote_header_rewrite_domain = domain.invalid
+remote_header_rewrite_domain = domain.invalid
 .fi
 .ad
 .ft R
+.in -4
 .PP
 The default, purist, setting: don't rewrite headers from remote
 clients at all.
-.PP
+.sp
+.in +4
 .nf
 .na
 .ft C
-    remote_header_rewrite_domain =
+remote_header_rewrite_domain =
 .fi
 .ad
 .ft R
+.in -4
 .SH require_home_directory (default: no)
 Whether or not a \fBlocal\fR(8) recipient's home directory must exist
 before mail delivery is attempted. By default this test is disabled.
@@ -4087,15 +4111,17 @@ should bind to when making an IPv4 connection.
 This can be specified in the main.cf file for all SMTP clients, or
 it can be specified in the master.cf file for a specific client,
 for example:
-.PP
+.sp
+.in +4
 .nf
 .na
 .ft C
-  /etc/postfix/master.cf:
-        smtp ... smtp -o smtp_bind_address=11.22.33.44
+/etc/postfix/master.cf:
+    smtp ... smtp -o smtp_bind_address=11.22.33.44
 .fi
 .ad
 .ft R
+.in -4
 .PP
 Note 1: when inet_interfaces specifies no more than one IPv4
 address, and that address is a non-loopback address, it is
@@ -4114,15 +4140,17 @@ This feature is available in Postfix 2.2 and later.
 This can be specified in the main.cf file for all SMTP clients, or
 it can be specified in the master.cf file for a specific client,
 for example:
-.PP
+.sp
+.in +4
 .nf
 .na
 .ft C
-  /etc/postfix/master.cf:
-        smtp ... smtp -o smtp_bind_address6=1:2:3:4:5:6:7:8
+/etc/postfix/master.cf:
+    smtp ... smtp -o smtp_bind_address6=1:2:3:4:5:6:7:8
 .fi
 .ad
 .ft R
+.in -4
 .PP
 Note 1: when inet_interfaces specifies no more than one IPv6
 address, and that address is a non-loopback address, it is
@@ -4392,15 +4420,17 @@ The default value is the machine hostname.  Specify a hostname or
 This information can be specified in the main.cf file for all SMTP
 clients, or it can be specified in the master.cf file for a specific
 client, for example:
-.PP
+.sp
+.in +4
 .nf
 .na
 .ft C
-  /etc/postfix/master.cf:
-        mysmtp ... smtp -o smtp_helo_name=foo.bar.com
+/etc/postfix/master.cf:
+    mysmtp ... smtp -o smtp_helo_name=foo.bar.com
 .fi
 .ad
 .ft R
+.in -4
 .PP
 This feature is available in Postfix 2.0 and later.
 .SH smtp_helo_timeout (default: 300s)
@@ -4525,15 +4555,17 @@ that ends in ".".
 .PP
 The default is to comply with RFC 821. If you have to send mail to
 a broken SMTP server, configure a special SMTP client in master.cf:
-.PP
+.sp
+.in +4
 .nf
 .na
 .ft C
-    /etc/postfix/master.cf:
-        broken-smtp . . . smtp -o smtp_quote_rfc821_envelope=no
+/etc/postfix/master.cf:
+    broken-smtp . . . smtp -o smtp_quote_rfc821_envelope=no
 .fi
 .ad
 .ft R
+.in -4
 .PP
 and route mail for the destination in question to the "broken-smtp"
 message delivery with a \fBtransport\fR(5) table.
@@ -4651,10 +4683,8 @@ This feature is available in Postfix 2.2 and later.
 .SH smtp_sasl_tls_verified_security_options (default: $smtp_sasl_tls_security_options)
 The SASL authentication security options that the Postfix SMTP
 client uses for TLS encrypted SMTP sessions with a verified server
-certificate. This feature is still under construction. It will not be
-included in the Postfix 2.3 release.
-.PP
-This feature should be available in Postfix 2.4 and later.
+certificate. This feature is under construction as of Postfix version
+2.3.
 .SH smtp_sasl_type (default: cyrus)
 The SASL plug-in type that the Postfix SMTP client should use
 for authentication.  The available types are listed with the
@@ -4752,22 +4782,19 @@ Do not configure client certificates unless you \fBmust\fR present
 client TLS certificates to one or more servers. Client certificates are
 not usually needed, and can cause problems in configurations that work
 well without them. The recommended setting is to let the defaults stand:
-.na
-.nf
+.sp
 .in +4
 .nf
 .na
 .ft C
-    smtp_tls_cert_file =
-    smtp_tls_dcert_file =
-    smtp_tls_key_file =
-    smtp_tls_dkey_file =
+smtp_tls_cert_file =
+smtp_tls_dcert_file =
+smtp_tls_key_file =
+smtp_tls_dkey_file =
 .fi
 .ad
 .ft R
 .in -4
-.fi
-.ad
 .PP
 The best way to use the default settings is to comment out the above
 parameters in main.cf if present.
@@ -4868,7 +4895,8 @@ single cipher, or one or more "+" separated cipher properties, in which
 case only ciphers matching \fBall\fR the properties are excluded.
 .PP
 Examples (some of these will cause problems):
-.PP
+.sp
+.in +4
 .nf
 .na
 .ft C
@@ -4880,6 +4908,7 @@ smtp_tls_exclude_ciphers = kEDH+aRSA
 .fi
 .ad
 .ft R
+.in -4
 .PP
 The first setting, disables anonymous ciphers. The next setting
 disables ciphers that use the MD5 digest algorithm or the (single) DES
@@ -4889,6 +4918,121 @@ and "DES-CBC3-MD5". The last setting disables ciphers that use "EDH"
 key exchange with RSA authentication.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH smtp_tls_fingerprint_cert_match (default: empty)
+List of acceptable remote SMTP server certificate fingerprints
+for the "fingerprint" TLS security level (\fBsmtp_tls_security_level\fR =
+fingerprint). At this security level, certificate authorities are
+not used, and certificate expiration times are ignored. Instead,
+server certificates are verified directly via their "fingerprint". The
+fingerprint is a message digest of the server certificate. The digest
+algorithm is selected via the \fBsmtp_tls_fingerprint_digest\fR
+parameter.
+.PP
+When an \fBsmtp_tls_policy_maps\fR table entry specifies the
+"fingerprint" security level, any "match" attributes in that entry specify
+the list of valid fingerprints for the corresponding destination. Multiple
+fingerprints can be combined with a "|" delimiter in a single match
+attribute, or multiple match attributes can be employed.
+.PP
+Example: Certificate fingerprint verification with internal mailhub.
+Two matching fingerprints are listed. The relayhost may be multiple
+physical hosts behind a load-balancer, each with its own private/public
+key and self-signed certificate. Alternatively, a single relayhost may
+be in the process of switching from one set of private/public keys to
+another, and both keys are trusted just prior to the transition.
+.sp
+.in +4
+.nf
+.na
+.ft C
+relayhost = [mailhub.example.com]
+smtp_tls_security_level = fingerprint
+smtp_tls_fingerprint_digest = md5
+smtp_tls_fingerprint_cert_match =
+    3D:95:34:51:24:66:33:B9:D2:40:99:C0:C1:17:0B:D1
+    EC:3B:2D:B0:5B:B1:FB:6D:20:A3:9D:72:F6:8D:12:35
+.fi
+.ad
+.ft R
+.in -4
+.PP
+Example: Certificate fingerprint verification with selected destinations.
+As in the example above, we show two matching fingerprints:
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    smtp_tls_policy_maps = hash:/etc/postfix/tls_policy
+    smtp_tls_fingerprint_digest = md5
+.fi
+.ad
+.ft R
+.nf
+.na
+.ft C
+/etc/postfix/tls_policy:
+    example.com	fingerprint
+        match=3D:95:34:51:24:66:33:B9:D2:40:99:C0:C1:17:0B:D1
+        match=EC:3B:2D:B0:5B:B1:FB:6D:20:A3:9D:72:F6:8D:12:35
+.fi
+.ad
+.ft R
+.in -4
+.PP
+This feature is available in Postfix 2.5 and later.
+.SH smtp_tls_fingerprint_digest (default: md5)
+The message digest algorithm used to construct remote SMTP server
+certificate fingerprints. At the "fingerprint" TLS security level
+(\fBsmtp_tls_security_level\fR = fingerprint), the server certificate is
+verified by directly matching its \fIfingerprint\fR. The fingerprint
+is the message digest of the server certificate using the selected
+algorithm. With a digest algorithm resistant to "second pre-image"
+attacks, it is not feasible to create a new public key and a matching
+certificate that has the same fingerprint.
+.PP
+The default algorithm is \fBmd5\fR; this is consistent with
+the backwards compatible setting of the digest used to verify client
+certificates in the SMTP server.
+.PP
+The best practice algorithm is now \fBsha1\fR. Recent advances in hash
+function cryptanalysis have led to md5 being deprecated in favor of sha1.
+However, as long as there are no known "second pre-image" attacks
+against md5, its use in this context can still be considered safe.
+.PP
+While additional digest algorithms are often available with OpenSSL's
+libcrypto, only those used by libssl in SSL cipher suites are available to
+Postfix. For now this means just md5 or sha1.
+.PP
+To find the fingerprint of a specific certificate file, with a
+specific digest algorithm, run:
+.sp
+.in +4
+.nf
+.na
+.ft C
+$ openssl x509 -noout -fingerprint -\fIdigest\fR -in \fIcertfile\fR.pem
+.fi
+.ad
+.ft R
+.in -4
+.PP
+The text to the right of "=" sign is the desired fingerprint.
+For example:
+.sp
+.in +4
+.nf
+.na
+.ft C
+$ openssl x509 -noout -fingerprint -sha1 -in cert.pem
+SHA1 Fingerprint=D4:6A:AB:19:24:79:F8:32:BB:A6:CB:66:82:C0:8E:9B:EE:29:A8:1A
+.fi
+.ad
+.ft R
+.in -4
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH smtp_tls_key_file (default: $smtp_tls_cert_file)
 File with the Postfix SMTP client RSA private key in PEM format.
 This file may be combined with the Postfix SMTP client RSA certificate
@@ -5000,21 +5144,39 @@ works in addition to the exclusions listed with smtp_tls_exclude_ciphers
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH smtp_tls_mandatory_protocols (default: SSLv3, TLSv1)
-List of TLS protocols that the Postfix SMTP client will use
-with mandatory TLS encryption.  In main.cf the values
-are separated by whitespace, commas or colons. In the policy table
+List of SSL/TLS protocols that the Postfix SMTP client will use with
+mandatory TLS encryption.  In main.cf the values are separated by
+whitespace, commas or colons. In the policy table "protocols" attribute
 (see smtp_tls_policy_maps) the only valid separator is colon. An
-empty value means allow all protocols. The valid protocol names,
-(see \\fBfBSSL_get_version\fR(3)\fR), are "SSLv2", "SSLv3" and
-"TLSv1".
+empty value means allow all protocols. The valid protocol names, (see
+\\fBfBSSL_get_version\fR(3)\fR), are "SSLv2", "SSLv3" and "TLSv1".
 .PP
-Since SSL version 2 has known protocol weaknesses and
-is now deprecated, the default setting only lists "SSLv3" and
-"TLSv1". This means that by default, SSL version 2 will not be used
-at the "encrypt" security level and higher.
+With Postfix >= 2.5 the parameter syntax is expanded to support
+protocol exclusions. One can now explicitly exclude SSLv2 by setting
+"smtp_tls_mandatory_protocols = !SSLv2". To exclude both SSLv2 and
+SSLv3 set "smtp_tls_mandatory_protocols = !SSLv2, !SSLv3". Listing
+the protocols to include, rather than protocols to exclude, is still
+supported; use the form you find more intuitive.
+.PP
+Since SSL version 2 has known protocol weaknesses and is now
+deprecated, the default setting excludes "SSLv2".  This means that by
+default, SSL version 2 will not be used at the "encrypt" security level
+and higher.
 .PP
 See the documentation of the smtp_tls_policy_maps parameter and
 TLS_README for more information about security levels.
+.PP
+Example:
+.PP
+.nf
+.na
+.ft C
+smtp_tls_mandatory_protocols = TLSv1
+# Alternative form with Postfix >= 2.5:
+smtp_tls_mandatory_protocols = !SSLv2, !SSLv3
+.fi
+.ad
+.ft R
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH smtp_tls_note_starttls_offer (default: no)
@@ -5149,6 +5311,20 @@ smtp_tls_mandatory_ciphers parameter and the optional "protocols"
 keyword overrides the main.cf smtp_tls_mandatory_protocols parameter.
 In the policy table, multiple protocols must be separated by colons,
 as attribute values may not contain whitespace or commas.
+.IP "\fBfingerprint\fR"
+Certificate fingerprint
+verification. Available with Postfix 2.5 and later. At this security
+level, there are no trusted certificate authorities. The certificate
+trust chain, expiration date, ... are not checked. Instead,
+the optional \fBmatch\fR attribute, or else the main.cf
+\fBsmtp_tls_fingerprint_cert_match\fR parameter, lists the
+valid "fingerprints" of the server certificate. The digest
+algorithm used to calculate the fingerprint is selected by the
+\fBsmtp_tls_fingerprint_digest\fR parameter. Multiple fingerprints can
+be combined with a "|" delimiter in a single match attribute, or multiple
+match attributes can be employed. The ":" character is not used as a
+delimiter as it occurs between each pair of fingerprint (hexadecimal)
+digits.
 .IP "\fBverify\fR"
 Mandatory TLS verification.  At this security
 level, DNS MX lookups are trusted to be secure enough, and the name
@@ -5181,15 +5357,18 @@ Example:
 .nf
 .na
 .ft C
-main.cf:
+/etc/postfix/main.cf:
     smtp_tls_policy_maps = hash:/etc/postfix/tls_policy
+    # Postfix 2.5 and later
+    smtp_tls_fingerprint_digest = md5
 .fi
 .ad
 .ft R
+.PP
 .nf
 .na
 .ft C
-tls_policy:
+/etc/postfix/tls_policy:
     example.edu                 none
     example.mil                 may
     example.gov                 encrypt protocols=TLSv1
@@ -5197,6 +5376,10 @@ tls_policy:
     example.net                 secure
     .example.net                secure match=.example.net:example.net
     [mail.example.org]:587      secure match=nexthop
+    # Postfix 2.5 and later
+    [thumb.example.org]          fingerprint
+    	match=EC:3B:2D:B0:5B:B1:FB:6D:20:A3:9D:72:F6:8D:12:35
+	match=3D:95:34:51:24:66:33:B9:D2:40:99:C0:C1:17:0B:D1
 .fi
 .ad
 .ft R
@@ -5208,12 +5391,19 @@ DNS forgery. Do not use the \fBhostname\fR strategy for secure-channel
 configurations in environments where DNS security is not assured.
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH smtp_tls_scert_verifydepth (default: 5)
-The verification depth for remote SMTP server certificates. A
-depth of 1 is sufficient, if the certificate is directly issued by
-a CA listed in the CA files.  The default value (5) should suffice
-for longer chains (the root CA issues special CA which then issues
-the actual certificate...).
+.SH smtp_tls_scert_verifydepth (default: 9)
+The verification depth for remote SMTP server certificates. A depth
+of 1 is sufficient if the issuing CA is listed in a local CA file.
+.PP
+The default verification depth is 9 (the OpenSSL default) for
+compatibility with earlier Postfix behavior. Prior to Postfix 2.5,
+the default value was 5, but the limit was not actually enforced. If
+you have set this to a lower non-default value, certificates with longer
+trust chains may now fail to verify. Certificate chains with 1 or 2
+CAs are common, deeper chains are more rare and any number between 5
+and 9 should suffice in practice. You can choose a lower number if,
+for example, you trust certificates directly signed by an issuing CA
+but not any CAs it delegates to.
 .PP
 This feature is available in Postfix 2.2 and later.
 .SH smtp_tls_secure_cert_match (default: nexthop, dot-nexthop)
@@ -5233,7 +5423,8 @@ the results of MX lookups in certificate verification is not immune to active
 (man-in-the-middle) attacks on DNS.
 .PP
 Sample main.cf setting:
-.PP
+.sp
+.in +4
 .nf
 .na
 .ft C
@@ -5241,17 +5432,20 @@ smtp_tls_secure_cert_match = nexthop
 .fi
 .ad
 .ft R
+.in -4
 .PP
 Sample policy table override:
-.PP
+.sp
+.in +4
 .nf
 .na
 .ft C
 example.net     secure match=example.com:.example.com
-\e&.example.net    secure match=example.com:.example.com
+\&.example.net    secure match=example.com:.example.com
 .fi
 .ad
 .ft R
+.in -4
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH smtp_tls_security_level (default: empty)
@@ -5282,6 +5476,15 @@ smtp_tls_mandatory_ciphers specify the TLS protocols and minimum
 cipher grade which the administrator considers secure enough for
 mandatory encrypted sessions. This security level is not an appropriate
 default for systems delivering mail to the Internet.
+.IP "\fBfingerprint\fR"
+Certificate fingerprint
+verification. Available with Postfix 2.5 and later. At this security
+level, there are no trusted certificate authorities. The certificate
+trust chain, expiration date, ... are not checked. Instead,
+the \fBsmtp_tls_fingerprint_cert_match\fR parameter lists
+the valid "fingerprints" of the server certificate. The digest
+algorithm used to calculate the fingerprint is selected by the
+\fBsmtp_tls_fingerprint_digest\fR parameter.
 .IP "\fBverify\fR"
 Mandatory TLS verification. At this security
 level, DNS MX lookups are trusted to be secure enough, and the name
@@ -5304,58 +5507,72 @@ an appropriate default for systems delivering mail to the Internet.
 .PP
 Examples:
 .PP
-No TLS, old-style: smtp_use_tls=no and smtp_enforce_tls=no.
 .nf
 .na
 .ft C
-main.cf:
-    smtp_tls_security_level = none
+# No TLS. Formerly: smtp_use_tls=no and smtp_enforce_tls=no.
+smtp_tls_security_level = none
 .fi
 .ad
 .ft R
 .PP
-Opportunistic TLS:
 .nf
 .na
 .ft C
-main.cf:
-    smtp_tls_security_level = may
+# Opportunistic TLS.
+smtp_tls_security_level = may
 .fi
 .ad
 .ft R
 .PP
-Mandatory (high-grade) TLS encryption:
 .nf
 .na
 .ft C
-main.cf:
-    smtp_tls_security_level = encrypt
-    smtp_tls_mandatory_ciphers = high
+# Mandatory (high-grade) TLS encryption.
+smtp_tls_security_level = encrypt
+smtp_tls_mandatory_ciphers = high
 .fi
 .ad
 .ft R
 .PP
-Mandatory TLS verification, of hostname or nexthop domain:
 .nf
 .na
 .ft C
-main.cf:
-    smtp_tls_security_level = verify
-    smtp_tls_mandatory_ciphers = high
-    smtp_tls_verify_cert_match = hostname, nexthop, dot-nexthop
+# Mandatory TLS verification of hostname or nexthop domain.
+smtp_tls_security_level = verify
+smtp_tls_mandatory_ciphers = high
+smtp_tls_verify_cert_match = hostname, nexthop, dot-nexthop
 .fi
 .ad
 .ft R
 .PP
-Secure channel TLS with exact nexthop name matching:
 .nf
 .na
 .ft C
-main.cf:
-    smtp_tls_security_level = secure
-    smtp_tls_mandatory_protocols = TLSv1
-    smtp_tls_mandatory_ciphers = high
-    smtp_tls_secure_cert_match = nexthop
+# Secure channel TLS with exact nexthop name match.
+smtp_tls_security_level = secure
+smtp_tls_mandatory_protocols = TLSv1
+smtp_tls_mandatory_ciphers = high
+smtp_tls_secure_cert_match = nexthop
+.fi
+.ad
+.ft R
+.PP
+.nf
+.na
+.ft C
+# Certificate fingerprint verification (Postfix >= 2.5).
+# The CA-less "fingerprint" security level only scales to a limited
+# number of destinations. As a global default rather than a per-site
+# setting, this is practical when mail for all recipients is sent
+# to a central mail hub.
+relayhost = [mailhub.example.com]
+smtp_tls_security_level = fingerprint
+smtp_tls_mandatory_protocols = !SSLv2, !SSLv3
+smtp_tls_mandatory_ciphers = high
+smtp_tls_fingerprint_cert_match =
+    3D:95:34:51:24:66:33:B9:D2:40:99:C0:C1:17:0B:D1
+    EC:3B:2D:B0:5B:B1:FB:6D:20:A3:9D:72:F6:8D:12:35
 .fi
 .ad
 .ft R
@@ -5465,7 +5682,7 @@ Sample policy table override:
 .na
 .ft C
 example.com     verify  match=hostname:nexthop
-\e&.example.com    verify  match=example.com:.example.com:hostname
+\&.example.com    verify  match=example.com:.example.com:hostname
 .fi
 .ad
 .ft R
@@ -5502,7 +5719,7 @@ is backwards compatible with Postfix version 2.0.
 Specify a list of network/netmask patterns, separated by commas
 and/or whitespace. The mask specifies the number of bits in the
 network part of a host address. You can also specify hostnames or
-\e&.domain names (the initial dot causes the domain to match any name
+\&.domain names (the initial dot causes the domain to match any name
 below it),  "/file/name" or "type:table" patterns.  A "/file/name"
 pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
@@ -5530,7 +5747,7 @@ By default, no clients are allowed to specify XCLIENT.
 Specify a list of network/netmask patterns, separated by commas
 and/or whitespace. The mask specifies the number of bits in the
 network part of a host address. You can also specify hostnames or
-\e&.domain names (the initial dot causes the domain to match any name
+\&.domain names (the initial dot causes the domain to match any name
 below it),  "/file/name" or "type:table" patterns.  A "/file/name"
 pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
@@ -5557,7 +5774,7 @@ By default, no clients are allowed to specify XFORWARD.
 Specify a list of network/netmask patterns, separated by commas
 and/or whitespace. The mask specifies the number of bits in the
 network part of a host address. You can also specify hostnames or
-\e&.domain names (the initial dot causes the domain to match any name
+\&.domain names (the initial dot causes the domain to match any name
 below it),  "/file/name" or "type:table" patterns.  A "/file/name"
 pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
@@ -5736,9 +5953,12 @@ The following restrictions are specific to client hostname or
 client network address information.
 .IP "\fBcheck_ccert_access \fItype:table\fR\fR"
 Use the client certificate fingerprint as lookup key for the
-specified \fBaccess\fR(5) database; with Postfix version 2.2, also require
-that the SMTP client certificate is verified successfully. This
-feature is available with Postfix version 2.2 and later.
+specified \fBaccess\fR(5) database; with Postfix version 2.2, also require that
+the SMTP client certificate is verified successfully.
+The fingerprint digest algorithm is configurable via the
+smtpd_tls_fingerprint_digest parameter (hard-coded as md5 prior to
+Postfix version 2.5).  This feature is available with Postfix version
+2.2 and later.
 .IP "\fBcheck_client_access \fItype:table\fR\fR"
 Search the specified access database for the client hostname,
 parent domains, client IP address, or networks obtained by stripping
@@ -5759,9 +5979,12 @@ CA issues the certificates and only this CA is listed as trusted
 CA, otherwise all clients with a recognized certificate would be
 allowed to relay. This feature is available with Postfix version 2.2.
 .IP "\fBpermit_tls_clientcerts\fR"
-Permit the request when the remote SMTP client certificate is
-verified successfully, and the certificate fingerprint is listed
-in $relay_clientcerts. This feature is available with Postfix version 2.2.
+Permit the request when the remote SMTP client certificate
+fingerprint is listed in $relay_clientcerts.
+The fingerprint digest algorithm is configurable via the
+smtpd_tls_fingerprint_digest parameter (hard-coded as md5 prior to
+Postfix version 2.5).  This feature is available with Postfix version
+2.2.
 .IP "\fBreject_rbl_client \fIrbl_domain=d.d.d.d\fR\fR"
 Reject the request when the reversed client network address is
 listed with the A record "\fId.d.d.d\fR" under \fIrbl_domain\fR
@@ -5886,7 +6109,6 @@ rejected requests (default: 554).
 Pause for the specified number of seconds and proceed with
 the next restriction in the list, if any. This may stop zombie
 mail when used as:
-.PP
 .nf
 .na
 .ft C
@@ -6287,14 +6509,16 @@ $virtual_mailbox_domains.
 IMPORTANT: If you change this parameter setting, you must specify
 at least one of the following restrictions. Otherwise Postfix will
 refuse to receive mail:
-.PP
+.sp
+.in +4
 .nf
 .na
 .ft C
-    reject, defer, defer_if_permit, reject_unauth_destination
+reject, defer, defer_if_permit, reject_unauth_destination
 .fi
 .ad
 .ft R
+.in -4
 .PP
 Specify a list of restrictions, separated by commas and/or whitespace.
 Continue long lines by starting the next line with whitespace.
@@ -6494,26 +6718,30 @@ the Postfix SMTP server does not use authentication.
 .PP
 If a remote SMTP client is authenticated, the permit_sasl_authenticated
 access restriction can be used to permit relay access, like this:
-.PP
+.sp
+.in +4
 .nf
 .na
 .ft C
-    smtpd_recipient_restrictions =
-        permit_mynetworks, permit_sasl_authenticated, ...
+smtpd_recipient_restrictions =
+    permit_mynetworks, permit_sasl_authenticated, ...
 .fi
 .ad
 .ft R
+.in -4
 .PP
 To reject all SMTP connections from unauthenticated clients,
 specify "smtpd_delay_reject = yes" (which is the default) and use:
-.PP
+.sp
+.in +4
 .nf
 .na
 .ft C
-    smtpd_client_restrictions = permit_sasl_authenticated, reject
+smtpd_client_restrictions = permit_sasl_authenticated, reject
 .fi
 .ad
 .ft R
+.in -4
 .PP
 See the SASL_README file for SASL configuration and operation details.
 .SH smtpd_sasl_authenticated_header (default: no)
@@ -6859,19 +7087,14 @@ such as MS Outlook, and may also prevent interoperability issues
 with other MTAs.
 .PP
 Example:
-.na
-.nf
-.in +4
+.PP
 .nf
 .na
 .ft C
-    smtpd_tls_always_issue_session_ids = no
+smtpd_tls_always_issue_session_ids = no
 .fi
 .ad
 .ft R
-.in -4
-.fi
-.ad
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH smtpd_tls_ask_ccert (default: no)
@@ -6891,11 +7114,20 @@ not announce or accept SASL authentication over unencrypted
 connections.
 .PP
 This feature is available in Postfix 2.2 and later.
-.SH smtpd_tls_ccert_verifydepth (default: 5)
+.SH smtpd_tls_ccert_verifydepth (default: 9)
 The verification depth for remote SMTP client certificates. A
 depth of 1 is sufficient if the issuing CA is listed in a local CA
-file.  The default value should also suffice for longer chains (the
-root CA issues special CA which then issues the actual certificate...).
+file.
+.PP
+The default verification depth is 9 (the OpenSSL default) for
+compatibility with earlier Postfix behavior. Prior to Postfix 2.5,
+the default value was 5, but the limit was not actually enforced. If
+you have set this to a lower non-default value, certificates with longer
+trust chains may now fail to verify. Certificate chains with 1 or 2
+CAs are common, deeper chains are more rare and any number between 5
+and 9 should suffice in practice. You can choose a lower number if,
+for example, you trust certificates directly signed by an issuing CA
+but not any CAs it delegates to.
 .PP
 This feature is available in Postfix 2.2 and later.
 .SH smtpd_tls_cert_file (default: empty)
@@ -6970,7 +7202,7 @@ This feature is available with Postfix version 2.2. It is not used with
 Postfix 2.3 and later; use smtpd_tls_mandatory_ciphers instead.
 .SH smtpd_tls_dcert_file (default: empty)
 File with the Postfix SMTP server DSA certificate in PEM format.
-This file may also contain the Postfix SMTP server private key.
+This file may also contain the Postfix SMTP server private DSA key.
 .PP
 See the discussion under smtpd_tls_cert_file for more details.
 .PP
@@ -6992,14 +7224,16 @@ use with EDH ciphers.
 Instead of using the exact same parameter sets as distributed
 with other TLS packages, it is more secure to generate your own
 set of parameters with something like the following command:
-.PP
+.sp
+.in +4
 .nf
 .na
 .ft C
-openssl gendh -out /etc/postfix/dh_1024.pem -2 -rand /var/run/egd-pool 1024
+openssl gendh -out /etc/postfix/dh_1024.pem -2 1024
 .fi
 .ad
 .ft R
+.in -4
 .PP
 Your actual source for entropy may differ. Some systems have
 /dev/random; on other system you may consider using the "Entropy
@@ -7054,7 +7288,8 @@ cipher, or one or more "+" separated cipher properties, in which case
 only ciphers matching \fBall\fR the properties are excluded.
 .PP
 Examples (some of these will cause problems):
-.PP
+.sp
+.in +4
 .nf
 .na
 .ft C
@@ -7066,6 +7301,7 @@ smtpd_tls_exclude_ciphers = kEDH+aRSA
 .fi
 .ad
 .ft R
+.in -4
 .PP
 The first setting disables anonymous ciphers. The next setting
 disables ciphers that use the MD5 digest algorithm or the (single) DES
@@ -7075,11 +7311,81 @@ and "DES-CBC3-MD5". The last setting disables ciphers that use "EDH"
 key exchange with RSA authentication.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH smtpd_tls_fingerprint_digest (default: md5)
+The message digest algorithm used to construct client-certificate
+fingerprints for \fBcheck_ccert_access\fR and
+\fBpermit_tls_clientcerts\fR. The default algorithm is \fBmd5\fR,
+for backwards compatibility with Postfix releases prior to 2.5.
+.PP
+The best practice algorithm is now \fBsha1\fR. Recent advances in hash
+function cryptanalysis have led to md5 being deprecated in favor of sha1.
+However, as long as there are no known "second pre-image" attacks
+against md5, its use in this context can still be considered safe.
+.PP
+While additional digest algorithms are often available with OpenSSL's
+libcrypto, only those used by libssl in SSL cipher suites are available to
+Postfix. For now this means just md5 or sha1.
+.PP
+To find the fingerprint of a specific certificate file, with a
+specific digest algorithm, run:
+.sp
+.in +4
+.nf
+.na
+.ft C
+$ openssl x509 -noout -fingerprint -\fIdigest\fR -in \fIcertfile\fR.pem
+.fi
+.ad
+.ft R
+.in -4
+.PP
+The text to the right of "=" sign is the desired fingerprint.
+For example:
+.sp
+.in +4
+.nf
+.na
+.ft C
+$ openssl x509 -noout -fingerprint -sha1 -in cert.pem
+SHA1 Fingerprint=D4:6A:AB:19:24:79:F8:32:BB:A6:CB:66:82:C0:8E:9B:EE:29:A8:1A
+.fi
+.ad
+.ft R
+.in -4
+.PP
+Example: client-certificate access table, with sha1 fingerprints:
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    smtpd_tls_fingerprint_digest = sha1
+    smtpd_client_restrictions =
+        check_ccert_access hash:/etc/postfix/access,
+        reject
+.fi
+.ad
+.ft R
+.nf
+.na
+.ft C
+/etc/postfix/access:
+    # Action folded to next line...
+    AF:88:7C:AD:51:95:6F:36:96:F6:01:FB:2E:48:CD:AB:49:25:A2:3B
+        OK
+    85:16:78:FD:73:6E:CE:70:E0:31:5F:0D:3C:C8:6D:C4:2C:24:59:E1
+        permit_auth_destination
+.fi
+.ad
+.ft R
+.in -4
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH smtpd_tls_key_file (default: $smtpd_tls_cert_file)
 File with the Postfix SMTP server RSA private key in PEM format.
-This file may be combined with the Postfix SMTP server certificate
-file specified
-with $smtpd_tls_cert_file.
+This file may be combined with the Postfix SMTP server RSA certificate
+file specified with $smtpd_tls_cert_file.
 .PP
 The private key must be accessible without a pass-phrase, i.e. it
 must not be encrypted, but file permissions should grant read/write
@@ -7180,20 +7486,33 @@ works in addition to the exclusions listed with smtpd_tls_exclude_ciphers
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH smtpd_tls_mandatory_protocols (default: SSLv3, TLSv1)
-The TLS protocols accepted by the Postfix SMTP server with
-mandatory TLS encryption.  With opportunistic TLS encryption, all
-protocols are always accepted. If the list is empty, the server
-supports all available TLS protocol versions.  A non-empty value
-is a list of protocol names separated by whitespace, commas or
-colons. The supported protocol names are "SSLv2", "SSLv3" and
-"TLSv1", and are not case sensitive.
+The SSL/TLS protocols accepted by the Postfix SMTP server with
+mandatory TLS encryption. If the list is empty, the server supports all
+available SSL/TLS protocol versions.  A non-empty value is a list
+of protocol
+names separated by whitespace, commas or colons. The supported protocol
+names are "SSLv2", "SSLv3" and "TLSv1", and are not case sensitive.
+.PP
+With Postfix >= 2.5 the parameter syntax is expanded to support
+protocol exclusions. One can now explicitly exclude SSLv2 by setting
+"smtpd_tls_mandatory_protocols = !SSLv2". To exclude both SSLv2 and
+SSLv3 set "smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3". Listing
+the protocols to include, rather than protocols to exclude, is still
+supported, use the form you find more intuitive.
+.PP
+Since SSL version 2 has known protocol weaknesses and is now
+deprecated, the default setting excludes "SSLv2".  This means that
+by default, SSL version 2 will not be used at the "encrypt" security
+level.
 .PP
 Example:
 .PP
 .nf
 .na
 .ft C
-smtpd_tls_mandatory_protocols = SSLv3, TLSv1
+smtpd_tls_mandatory_protocols = TLSv1
+# Alternative form with Postfix >= 2.5:
+smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3
 .fi
 .ad
 .ft R
@@ -7209,7 +7528,7 @@ that was recorded by the final destination can be trusted.
 .PP
 This feature is available in Postfix 2.2 and later.
 .SH smtpd_tls_req_ccert (default: no)
-With mandatory TLS encryption, require a remote SMTP client
+With mandatory TLS encryption, require a trusted remote SMTP client
 certificate in order to allow TLS connections to proceed.  This
 option implies "smtpd_tls_ask_ccert = yes".
 .PP
@@ -7236,7 +7555,8 @@ encryption. According to RFC 2487 this MUST NOT be applied in case
 of a publicly-referenced SMTP server. Instead, this option should
 be used only on dedicated servers.
 .PP
-Note 1: the "verify" and "secure" levels are not supported.
+Note 1: the "fingerprint", "verify" and "secure" levels are not
+supported here.
 The Postfix SMTP server logs a warning and uses "encrypt" instead.
 To verify SMTP client certificates, see TLS_README for a discussion
 of the smtpd_tls_ask_ccert, smtpd_tls_req_ccert, and permit_tls_clientcerts
@@ -7553,6 +7873,13 @@ the message delivery transport.
 A transport-specific override for the default_delivery_slot_loan
 parameter value, where \fItransport\fR is the master.cf name of
 the message delivery transport.
+.SH transport_destination_concurrency_failed_cohort_limit (default: $default_destination_concurrency_failed_cohort_limit)
+A transport-specific override for the
+default_destination_concurrency_failed_cohort_limit parameter value,
+where \fItransport\fR is the master.cf name of the message delivery
+transport.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH transport_destination_concurrency_limit (default: $default_destination_concurrency_limit)
 A transport-specific override for the
 default_destination_concurrency_limit parameter value, where

@@ -19,10 +19,10 @@
 /*	int	max;
 /*
 /*	void	get_mail_conf_raw_table(table)
-/*	CONFIG_RAW_TABLE *table;
+/*	const CONFIG_RAW_TABLE *table;
 /*
 /*	void	get_mail_conf_raw_fn_table(table)
-/*	CONFIG_RAW_TABLE *table;
+/*	const CONFIG_RAW_TABLE *table;
 /* DESCRIPTION
 /*	This module implements support for string-valued global
 /*	configuration parameters that are loaded without $name expansion.
@@ -120,7 +120,7 @@ char   *get_mail_conf_raw_fn(const char *name, stupid_indent_str defval,
 
 /* get_mail_conf_raw_table - look up table of strings */
 
-void    get_mail_conf_raw_table(CONFIG_RAW_TABLE *table)
+void    get_mail_conf_raw_table(const CONFIG_RAW_TABLE *table)
 {
     while (table->name) {
 	if (table->target[0])
@@ -133,7 +133,7 @@ void    get_mail_conf_raw_table(CONFIG_RAW_TABLE *table)
 
 /* get_mail_conf_raw_fn_table - look up strings, defaults are functions */
 
-void    get_mail_conf_raw_fn_table(CONFIG_RAW_FN_TABLE *table)
+void    get_mail_conf_raw_fn_table(const CONFIG_RAW_FN_TABLE *table)
 {
     while (table->name) {
 	if (table->target[0])
