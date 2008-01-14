@@ -295,7 +295,7 @@ static const NAME_MASK smfif_table[] = {
 #define SMFIA_INET6		'6'	/* inet6 */
 
  /*
-  * External macro set numbers, to identify the optional macro name lists
+  * External macro class numbers, to identify the optional macro name lists
   * that may be sent after the initial negotiation header.
   */
 #define SMFIM_CONNECT	0		/* macros for connect */
@@ -318,7 +318,7 @@ static const NAME_CODE smfim_table[] = {
 };
 
  /*
-  * Mapping from external macro set numbers to our internal MILTER_MACROS
+  * Mapping from external macro class numbers to our internal MILTER_MACROS
   * structure members, without using a switch statement.
   */
 static const size_t milter8_macro_offsets[] = {
@@ -331,8 +331,8 @@ static const size_t milter8_macro_offsets[] = {
     offsetof(MILTER_MACROS, eoh_macros),/* Note: SMFIM_EOH > SMFIM_EOM */
 };
 
-#define MILTER8_MACRO_PTR(__macros, __type) \
-	((char **) (((char *) (__macros)) + milter8_macro_offsets[(__type)]))
+#define MILTER8_MACRO_PTR(__macros, __class) \
+	((char **) (((char *) (__macros)) + milter8_macro_offsets[(__class)]))
 
  /*
   * How much buffer space is available for sending body content.

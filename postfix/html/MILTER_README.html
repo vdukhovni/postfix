@@ -552,7 +552,7 @@ Connection concurrency for this client </td> </tr>
 <tr> <td> {client_name} </td> <td> Always </td> <td> Client hostname,
 "unknown" when lookup or verification fails </td> </tr>
 
-<tr> <td> {client_port} </td> <td> Always <br> (Postfix &ge;2.5) </td>
+<tr> <td> {client_port} </td> <td> Always (Postfix &ge;2.5) </td>
 <td> Client TCP port </td> </tr>
 
 <tr> <td> {client_ptr} </td> <td> CONNECT, HELO, MAIL, DATA </td>
@@ -592,7 +592,9 @@ TLS protocol version </td> </tr>
 
 <p> Postfix sends specific sets of macros at different SMTP protocol
 stages.  The sets are configured with the parameters as described
-in the table (EOH = end of headers; EOM = end of message). </p>
+in the table (EOH = end of headers; EOM = end of message). The
+protocol version is a number that Postfix sends at the beginning
+of the Milter protocol handshake. </p>
 
 <blockquote>
 

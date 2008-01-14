@@ -26,7 +26,8 @@
 # tool:
 #
 #   * Supported HTML elements are: blockquote, ul, li, dl, dt, dd,
-#     p, pre, b, i, h, and the escapes for < and >. Sorry, no tables.
+#     p, pre, b, i, h, and the escapes for < <= >= >. Sorry, no
+#     tables.
 #
 #   * HTML elements must be specified in lower case.
 #
@@ -37,6 +38,11 @@
 #
 #   * Text between <!-- and --> is stripped out. The <!-- and -->
 #     must appear on separate lines.
+#
+#   * Blank lines are special for postconf2man: it replaces them by
+#     a "new paragraph" command. Don't put any blank lines inside
+#     <blockquote> text. Instead, put those blank lines between
+#     </blockquote> and <blockquote>.
 #
 #   * Text after a blank line must start with an HTML element.
 #
@@ -1346,8 +1352,9 @@ host, host:port, [host]:port, [address] or [address]:port; the form
 destinations, Postfix will try them in the specified order.  </p>
 
 <p> To prevent mailer loops between MX hosts and fall-back hosts,
-Postfix version 2.3 and later will not use the smtp_fallback_relay
-feature for destinations that it is MX host for. </p>
+Postfix version 2.2 and later will not use the fallback relays for
+destinations that it is MX host for (and DSN lookup is turned on).
+</p>
 
 %PARAM fallback_relay 
 
@@ -10960,6 +10967,9 @@ As in the example above, we show two matching fingerprints: </p>
     smtp_tls_policy_maps = hash:/etc/postfix/tls_policy
     smtp_tls_fingerprint_digest = md5
 </pre>
+</blockquote>
+
+<blockquote>
 <pre>
 /etc/postfix/tls_policy:
     example.com	fingerprint
@@ -11417,6 +11427,86 @@ software.  </p>
 %PARAM stress
 
 <p> This feature is documented in the STRESS_README document. </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+%PARAM smtp_sasl_auth_soft_bounce yes
+
+<p> When a remote SMTP server rejects a SASL authentication request
+with a 535 reply code, defer mail delivery instead of returning
+mail as undeliverable. The latter behavior was hard-coded prior to
+Postfix version 2.5. </p>
+
+<p> Note: the setting "yes" overrides the global soft_bounce
+parameter, but the setting "no" does not. </p>
+
+<p> Example: </p>
+
+<pre>
+# Default as of Postfix 2.5
+smtp_sasl_auth_soft_bounce = yes
+# The old hard-coded default
+smtp_sasl_auth_soft_bounce = no
+</pre>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+%PARAM smtp_sasl_auth_cache_name
+
+<p> An optional table to prevent repeated SASL authentication
+failures with the same remote SMTP server hostname, username and
+password. Each table (key, value) pair contains a server name, a
+username and password, and the full server response. This information
+is stored when a remote SMTP server rejects an authentication attempt
+with a 535 reply code.  As long as the smtp_sasl_password_maps
+information does no change, and as long as the smtp_sasl_auth_cache_name
+information does not expire (see smtp_sasl_auth_cache_time) the
+Postfix SMTP client avoids SASL authentication attempts with the
+same server, username and password, and instead bounces or defers
+mail as controlled with the smtp_sasl_auth_soft_bounce configuration
+parameter.  </p>
+
+<p> The table must be accessed via the proxywrite service, i.e. the
+map name must start with "proxy:". The table should be stored under
+the directory specified with the data_directory parameter. </p>
+
+<p> This feature uses cryptographic hashing to protect plain-text
+passwords, and requires that Postfix is compiled with TLS support.
+</p>
+
+<p> Example: </p>
+
+<pre>
+smtp_sasl_auth_cache_name = proxy:btree:/var/lib/postfix/sasl_auth_cache
+</pre>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+%PARAM smtp_sasl_auth_cache_time 90d
+
+<p> The maximal age of an smtp_sasl_auth_cache_name entry before it
+is removed. </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+%PARAM lmtp_sasl_auth_soft_bounce yes
+
+<p> The LMTP-specific version of the smtp_sasl_auth_soft_bounce
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+%PARAM lmtp_sasl_auth_cache_name
+
+<p> The LMTP-specific version of the smtp_sasl_auth_cache_name
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+%PARAM lmtp_sasl_auth_cache_time 90d
+
+<p> The LMTP-specific version of the smtp_sasl_auth_cache_time
+configuration parameter.  See there for details. </p>
 
 <p> This feature is available in Postfix 2.5 and later. </p>
 

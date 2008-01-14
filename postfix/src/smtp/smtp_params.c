@@ -44,6 +44,7 @@
 	VAR_LMTP_TCP_PORT, DEF_LMTP_TCP_PORT, &var_lmtp_tcp_port, 0, 0,
 	VAR_SMTP_PIX_BUG_WORDS, DEF_SMTP_PIX_BUG_WORDS, &var_smtp_pix_bug_words, 0, 0,
 	VAR_SMTP_PIX_BUG_MAPS, DEF_SMTP_PIX_BUG_MAPS, &var_smtp_pix_bug_maps, 0, 0,
+	VAR_SMTP_SASL_AUTH_CACHE_NAME, DEF_SMTP_SASL_AUTH_CACHE_NAME, &var_smtp_sasl_auth_cache_name, 0, 0,
 	VAR_CYRUS_CONF_PATH, DEF_CYRUS_CONF_PATH, &var_cyrus_conf_path, 0, 0,
 	VAR_SMTP_HEAD_CHKS, DEF_SMTP_HEAD_CHKS, &var_smtp_head_chks, 0, 0,
 	VAR_SMTP_MIME_CHKS, DEF_SMTP_MIME_CHKS, &var_smtp_mime_chks, 0, 0,
@@ -70,6 +71,7 @@
 	VAR_SMTP_STARTTLS_TMOUT, DEF_SMTP_STARTTLS_TMOUT, &var_smtp_starttls_tmout, 1, 0,
 #endif
 	VAR_SCACHE_PROTO_TMOUT, DEF_SCACHE_PROTO_TMOUT, &var_scache_proto_tmout, 1, 0,
+	VAR_SMTP_SASL_AUTH_CACHE_TIME, DEF_SMTP_SASL_AUTH_CACHE_TIME, &var_smtp_sasl_auth_cache_time, 0, 0,
 	0,
     };
     static const CONFIG_INT_TABLE smtp_int_table[] = {
@@ -102,5 +104,6 @@
 #endif
 	VAR_SMTP_SENDER_AUTH, DEF_SMTP_SENDER_AUTH, &var_smtp_sender_auth,
 	VAR_SMTP_CNAME_OVERR, DEF_SMTP_CNAME_OVERR, &var_smtp_cname_overr,
+	VAR_SMTP_SASL_AUTH_SOFT_BOUNCE, DEF_SMTP_SASL_AUTH_SOFT_BOUNCE, &var_smtp_sasl_auth_soft_bounce,
 	0,
     };

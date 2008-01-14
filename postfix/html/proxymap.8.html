@@ -155,9 +155,13 @@ PROXYMAP(8)                                                        PROXYMAP(8)
               The default location of  the  Postfix  <a href="postconf.5.html">main.cf</a>  and
               <a href="master.5.html">master.cf</a> configuration files.
 
+       <b><a href="postconf.5.html#data_directory">data_directory</a> (see 'postconf -d' output)</b>
+              The directory with Postfix-writable data files (for
+              example: caches, pseudo-random numbers).
+
        <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
-              How  much time a Postfix daemon process may take to
-              handle a request  before  it  is  terminated  by  a
+              How much time a Postfix daemon process may take  to
+              handle  a  request  before  it  is  terminated by a
               built-in watchdog timer.
 
        <b><a href="postconf.5.html#ipc_timeout">ipc_timeout</a> (3600s)</b>
@@ -165,25 +169,25 @@ PROXYMAP(8)                                                        PROXYMAP(8)
               over an internal communication channel.
 
        <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
-              The maximum amount of time  that  an  idle  Postfix
-              daemon  process  waits  for  an incoming connection
+              The  maximum  amount  of  time that an idle Postfix
+              daemon process waits  for  an  incoming  connection
               before terminating voluntarily.
 
        <b><a href="postconf.5.html#max_use">max_use</a> (100)</b>
-              The maximal number of incoming connections  that  a
-              Postfix  daemon  process will service before termi-
+              The  maximal  number of incoming connections that a
+              Postfix daemon process will service  before  termi-
               nating voluntarily.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
-              The process ID  of  a  Postfix  command  or  daemon
+              The  process  ID  of  a  Postfix  command or daemon
               process.
 
        <b><a href="postconf.5.html#process_name">process_name</a> (read-only)</b>
-              The  process  name  of  a Postfix command or daemon
+              The process name of a  Postfix  command  or  daemon
               process.
 
        <b><a href="postconf.5.html#proxy_read_maps">proxy_read_maps</a> (see 'postconf -d' output)</b>
-              The lookup tables that the  <a href="proxymap.8.html"><b>proxymap</b>(8)</a>  server  is
+              The  lookup  tables  that the <a href="proxymap.8.html"><b>proxymap</b>(8)</a> server is
               allowed to access for the read-only service.
 
        Available in Postfix 2.5 and later:
@@ -193,7 +197,7 @@ PROXYMAP(8)                                                        PROXYMAP(8)
               example: caches, pseudo-random numbers).
 
        <b><a href="postconf.5.html#proxy_write_maps">proxy_write_maps</a> (see 'postconf -d' output)</b>
-              The lookup tables that the  <a href="proxymap.8.html"><b>proxymap</b>(8)</a>  server  is
+              The  lookup  tables  that the <a href="proxymap.8.html"><b>proxymap</b>(8)</a> server is
               allowed to access for the read-write service.
 
 <b>SEE ALSO</b>
@@ -204,7 +208,7 @@ PROXYMAP(8)                                                        PROXYMAP(8)
        <a href="DATABASE_README.html">DATABASE_README</a>, Postfix lookup table overview
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>HISTORY</b>

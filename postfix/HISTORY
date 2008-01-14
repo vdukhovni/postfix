@@ -14231,3 +14231,24 @@ Apologies for any names omitted.
 
 	Cleanup: more read-only data. Files: everything that passes
 	around a HEADER_OPTS pointer.
+
+20080112
+
+	Safety: optional lookup table to prevent the Postfix SMTP
+	client from making repeated SASL login failures with the
+	same hostname, username and password.  This introduces new
+	parameters: smtp_sasl_auth_cache_name, smtp_sasl_auth_cache_time.
+	Based on code by Keean Schupke.  Files: smtp/smtp_sasl_glue.c,
+	smtp/smtp_sasl_auth_cache.c.
+
+	Safety: the Postfix SMTP client now by default defers mail
+	after the server rejects a SASL login attempt with a 535
+	status code.  Specify "smtp_sasl_auth_soft_bounce = no" to
+	get the earlier behavior.  Based on code by Keean Schupke.
+	Files: smtp/smtp_sasl_glue.c.
+
+20080114
+
+	Safety: the smtpd_client_new_tls_session_rate_limit setting
+	now also limits the number of failed TLS handshakes. This
+	limits the impact of broken configurations. File: smtpd/smtpd.c.

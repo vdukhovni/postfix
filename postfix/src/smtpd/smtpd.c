@@ -3766,8 +3766,7 @@ static void smtpd_start_tls(SMTPD_STATE *state)
      * we exclude xclient authorized hosts from event count/rate control.
      */
     if (var_smtpd_cntls_limit > 0
-	&& state->tls_context
-	&& state->tls_context->session_reused == 0
+	&& (state->tls_context == 0 || state->tls_context->session_reused == 0)
 	&& SMTPD_STAND_ALONE(state) == 0
 	&& !xclient_allowed
 	&& anvil_clnt
@@ -3778,9 +3777,10 @@ static void smtpd_start_tls(SMTPD_STATE *state)
 	state->error_mask |= MAIL_ERROR_POLICY;
 	msg_warn("New TLS session rate limit exceeded: %d from %s for service %s",
 		 rate, state->namaddr, state->service);
-	smtpd_chat_reply(state,
-		    "421 4.7.0 %s Error: too many new TLS sessions from %s",
-			 var_myhostname, state->namaddr);
+	if (state->tls_context)
+	    smtpd_chat_reply(state,
+			"421 4.7.0 %s Error: too many new TLS sessions from %s",
+			     var_myhostname, state->namaddr);
 	/* XXX Use regular return to signal end of session. */
 	vstream_longjmp(state->client, SMTP_ERR_QUIET);
     }

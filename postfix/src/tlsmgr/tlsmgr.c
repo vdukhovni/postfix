@@ -117,6 +117,9 @@
 /* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 /*	The default location of the Postfix main.cf and master.cf
 /*	configuration files.
+/* .IP "\fBdata_directory (see 'postconf -d' output)\fR"
+/*	The directory with Postfix-writable data files (for example:
+/*	caches, pseudo-random numbers).
 /* .IP "\fBdaemon_timeout (18000s)\fR"
 /*	How much time a Postfix daemon process may take to handle a
 /*	request before it is terminated by a built-in watchdog timer.

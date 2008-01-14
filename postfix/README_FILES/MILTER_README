@@ -340,8 +340,7 @@ Sendmail. See the workarounds section below for solutions.
     |{client_name}       |Always                   |when lookup or            |
     |                    |                         |verification fails        |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |{client_port}       |Always                   |Client TCP port           |
-    |                    |(Postfix >=2.5)          |                          |
+    |{client_port}       |Always (Postfix >=2.5)   |Client TCP port           |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |                    |                         |Client name from reverse  |
     |{client_ptr}        |CONNECT, HELO, MAIL, DATA|lookup, "unknown" when    |
@@ -374,7 +373,8 @@ Sendmail. See the workarounds section below for solutions.
 
 Postfix sends specific sets of macros at different SMTP protocol stages. The
 sets are configured with the parameters as described in the table (EOH = end of
-headers; EOM = end of message).
+headers; EOM = end of message). The protocol version is a number that Postfix
+sends at the beginning of the Milter protocol handshake.
 
      _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
     |PPaarraammeetteerr nnaammee               |PPrroottooccooll vveerrssiioonn|PPrroottooccooll ssttaaggee |

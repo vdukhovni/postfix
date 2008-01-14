@@ -95,9 +95,9 @@ cache files. </p>
 <tr> <td>Network<tt>-&gt; </tt> </td> <td align="center"
 bgcolor="#f0f0ff"> <br> <a href="smtpd.8.html">smtpd(8)</a> <br> &nbsp; </td> <td colspan="2">
 
-<tt> &lt;---seed---<br><br>&lt;-session-&gt; </tt> </td> <td
+<tt> &lt;---seed----<br><br>&lt;-key/cert-&gt; </tt> </td> <td
 align="center" bgcolor="#f0f0ff"> <br> <a href="tlsmgr.8.html">tlsmgr(8)</a> <br> &nbsp; </td>
-<td colspan="3"> <tt> ---seed---&gt;<br> <br>&lt;-session-&gt;
+<td colspan="3"> <tt> ----seed---&gt;<br> <br>&lt;-key/cert-&gt;
 
 </tt> </td> <td align="center" bgcolor="#f0f0ff"> <br> <a href="smtp.8.html">smtp(8)</a> <br>
 &nbsp; </td> <td> <tt> -&gt;</tt>Network </td> </tr>
@@ -121,6 +121,11 @@ align="center" bgcolor="#f0f0ff"> smtp<br> session<br> key cache
 </table>
 
 <h2><a name="build_tls">Building Postfix with TLS support</a></h2>
+
+<p> These instructions assume that you build Postfix from source
+code as described in the <a href="INSTALL.html">INSTALL</a> document. Some modification may   
+be required if you build Postfix from a vendor-specific source
+package.  </p>
 
 <p> To build Postfix with TLS support, first we need to generate
 the <tt>make(1)</tt> files with the necessary definitions. This is
@@ -2431,17 +2436,17 @@ Enter PEM pass phrase:<b>whatever</b>
 </pre>
 </blockquote>
 
-<li> <p> Create an unpassworded private key for host FOO and create
+<li> <p> Create an unpassworded private key for host foo.porcupine.org and create
 an unsigned public key certificate. </p>
 
 <blockquote>
 <pre>
-% <b>openssl req -new -nodes -keyout FOO-key.pem -out FOO-req.pem -days 365</b>
+% <b>openssl req -new -nodes -keyout foo-key.pem -out foo-req.pem -days 365</b>
 Using configuration from /etc/ssl/openssl.cnf
 Generating a 1024 bit RSA private key
 ........................................++++++
 ....++++++
-writing new private key to 'FOO-key.pem'
+writing new private key to 'foo-key.pem'
 -----
 You are about to be asked to enter information that will be incorporated
 into your certificate request.
@@ -2455,7 +2460,7 @@ State or Province Name (full name) [Some-State]:<b>New York</b>
 Locality Name (eg, city) []:<b>Westchester</b>
 Organization Name (eg, company) [Internet Widgits Pty Ltd]:<b>Porcupine</b>
 Organizational Unit Name (eg, section) []:
-Common Name (eg, YOUR name) []:<b>FOO</b>
+Common Name (eg, YOUR name) []:<b>foo.porcupine.org</b>
 Email Address []:<b>wietse@porcupine.org</b>
 
 Please enter the following 'extra' attributes
@@ -2465,13 +2470,13 @@ An optional company name []:
 </pre>
 </blockquote>
 
-<li> <p> Sign the public key certificate for host FOO with the
+<li> <p> Sign the public key certificate for host foo.porcupine.org with the
 Certification Authority private key that we created a few
 steps ago. </p>
 
 <blockquote>
 <pre>
-% <b>openssl ca -out FOO-cert.pem -infiles FOO-req.pem</b>
+% <b>openssl ca -out foo-cert.pem -infiles foo-req.pem</b>
 Using configuration from /etc/ssl/openssl.cnf
 Enter PEM pass phrase:<b>whatever</b>
 Check that the request matches the signature
@@ -2481,7 +2486,7 @@ countryName           :PRINTABLE:'US'
 stateOrProvinceName   :PRINTABLE:'New York'
 localityName          :PRINTABLE:'Westchester'
 organizationName      :PRINTABLE:'Porcupine'
-commonName            :PRINTABLE:'FOO'
+commonName            :PRINTABLE:'foo.porcupine.org'
 emailAddress          :IA5STRING:'wietse@porcupine.org'
 Certificate is to be certified until Nov 21 19:40:56 2005 GMT (365 days)
 Sign the certificate? [y/n]:<b>y</b>
@@ -2499,9 +2504,9 @@ super-user privileges. </p>
 
 <blockquote>
 <pre>
-# <b>cp demoCA/cacert.pem FOO-key.pem FOO-cert.pem /etc/postfix</b>
-# <b>chmod 644 /etc/postfix/FOO-cert.pem /etc/postfix/cacert.pem</b>
-# <b>chmod 400 /etc/postfix/FOO-key.pem</b>
+# <b>cp demoCA/cacert.pem foo-key.pem foo-cert.pem /etc/postfix</b>
+# <b>chmod 644 /etc/postfix/foo-cert.pem /etc/postfix/cacert.pem</b>
+# <b>chmod 400 /etc/postfix/foo-key.pem</b>
 </pre>
 </blockquote>
 
@@ -2522,8 +2527,8 @@ but don't require them from all clients. </p>
 	btree:/var/lib/postfix/smtp_tls_session_cache
     <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = may
     <a href="postconf.5.html#smtpd_tls_CAfile">smtpd_tls_CAfile</a> = /etc/postfix/cacert.pem
-    <a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a> = /etc/postfix/FOO-cert.pem
-    <a href="postconf.5.html#smtpd_tls_key_file">smtpd_tls_key_file</a> = /etc/postfix/FOO-key.pem
+    <a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a> = /etc/postfix/foo-cert.pem
+    <a href="postconf.5.html#smtpd_tls_key_file">smtpd_tls_key_file</a> = /etc/postfix/foo-key.pem
     <a href="postconf.5.html#smtpd_tls_received_header">smtpd_tls_received_header</a> = yes
     <a href="postconf.5.html#smtpd_tls_session_cache_database">smtpd_tls_session_cache_database</a> =
 	btree:/var/lib/postfix/smtpd_tls_session_cache

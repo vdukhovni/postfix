@@ -62,6 +62,10 @@ Needless to say, these commands are not available in earlier Postfix versions.
 
 BBuuiillddiinngg PPoossttffiixx wwiitthh DDoovveeccoott SSAASSLL ssuuppppoorrtt
 
+These instructions assume that you build Postfix from source code as described
+in the INSTALL document. Some modification may be required if you build Postfix
+from a vendor-specific source package.
+
 Support for the Dovecot version 1 SASL protocol is available in Postfix 2.3 and
 later. At the time of writing, only server-side SASL support is available, so
 you can't use it to authenticate to your network provider's server. Dovecot
@@ -101,6 +105,10 @@ authentication method. To enable this authentication method, specify ``./
 configure --enable-login''.
 
 BBuuiillddiinngg PPoossttffiixx wwiitthh CCyyrruuss SSAASSLL ssuuppppoorrtt
+
+These instructions assume that you build Postfix from source code as described
+in the INSTALL document. Some modification may be required if you build Postfix
+from a vendor-specific source package.
 
 The following assumes that the Cyrus SASL include files are in /usr/local/
 include, and that the Cyrus SASL libraries are in /usr/local/lib.

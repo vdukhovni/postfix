@@ -274,6 +274,19 @@
 /* .IP "\fBsmtp_sasl_type (cyrus)\fR"
 /*	The SASL plug-in type that the Postfix SMTP client should use
 /*	for authentication.
+/* .PP
+/*	Available in Postfix version 2.5 and later:
+/* .IP "\fBsmtp_sasl_auth_cache_name (empty)\fR"
+/*	An optional table to prevent repeated SASL authentication
+/*	failures with the same remote SMTP server hostname, username and
+/*	password.
+/* .IP "\fBsmtp_sasl_auth_cache_time (90d)\fR"
+/*	The maximal age of an smtp_sasl_auth_cache_name entry before it
+/*	is removed.
+/* .IP "\fBsmtp_sasl_auth_soft_bounce (yes)\fR"
+/*	When a remote SMTP server rejects a SASL authentication request
+/*	with a 535 reply code, defer mail delivery instead of returning
+/*	mail as undeliverable.
 /* STARTTLS SUPPORT CONTROLS
 /* .ad
 /* .fi
@@ -748,6 +761,11 @@ char   *var_smtp_head_chks;
 char   *var_smtp_mime_chks;
 char   *var_smtp_nest_chks;
 char   *var_smtp_body_chks;
+
+ /* Special handling of 535 AUTH errors. */
+char   *var_smtp_sasl_auth_cache_name;
+int     var_smtp_sasl_auth_cache_time;
+bool    var_smtp_sasl_auth_soft_bounce;
 
  /*
   * Global variables.

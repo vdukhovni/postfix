@@ -1575,6 +1575,27 @@ extern char *var_lmtp_sasl_path;
 extern int var_cyrus_sasl_authzid;
 
  /*
+  * Special handling of AUTH 535 failures.
+  */
+#define VAR_SMTP_SASL_AUTH_SOFT_BOUNCE	"smtp_sasl_auth_soft_bounce"
+#define DEF_SMTP_SASL_AUTH_SOFT_BOUNCE	1
+#define VAR_LMTP_SASL_AUTH_SOFT_BOUNCE	"lmtp_sasl_auth_soft_bounce"
+#define DEF_LMTP_SASL_AUTH_SOFT_BOUNCE	1
+extern bool var_smtp_sasl_auth_soft_bounce;
+
+#define VAR_SMTP_SASL_AUTH_CACHE_NAME	"smtp_sasl_auth_cache_name"
+#define DEF_SMTP_SASL_AUTH_CACHE_NAME	""
+#define VAR_LMTP_SASL_AUTH_CACHE_NAME	"lmtp_sasl_auth_cache_name"
+#define DEF_LMTP_SASL_AUTH_CACHE_NAME	""
+extern char *var_smtp_sasl_auth_cache_name;
+
+#define VAR_SMTP_SASL_AUTH_CACHE_TIME	"smtp_sasl_auth_cache_time"
+#define DEF_SMTP_SASL_AUTH_CACHE_TIME	"90d"
+#define VAR_LMTP_SASL_AUTH_CACHE_TIME	"lmtp_sasl_auth_cache_time"
+#define DEF_LMTP_SASL_AUTH_CACHE_TIME	"90d"
+extern int var_smtp_sasl_auth_cache_time;
+
+ /*
   * LMTP client. Timeouts inspired by RFC 1123. The LMTP recipient limit
   * determines how many recipient addresses the LMTP client sends along with
   * each message. Unfortunately, some mailers misbehave and disconnect (smap)
@@ -2040,7 +2061,8 @@ extern int var_local_rcpt_code;
 extern char *var_proxy_read_maps;
 
 #define VAR_PROXY_WRITE_MAPS	"proxy_write_maps"
-#define DEF_PROXY_WRITE_MAPS	""	/* Add here: "$" VAR_AUTH_FAIL_MAP */
+#define DEF_PROXY_WRITE_MAPS	"$" VAR_SMTP_SASL_AUTH_CACHE_NAME \
+				" $" VAR_LMTP_SASL_AUTH_CACHE_NAME
 extern char *var_proxy_write_maps;
 
  /*

@@ -346,6 +346,23 @@ SMTP(8)                                                                SMTP(8)
               The SASL plug-in type that the Postfix SMTP  client
               should use for authentication.
 
+       Available in Postfix version 2.5 and later:
+
+       <b><a href="postconf.5.html#smtp_sasl_auth_cache_name">smtp_sasl_auth_cache_name</a> (empty)</b>
+              An  optional table to prevent repeated SASL authen-
+              tication failures with the same remote SMTP  server
+              hostname, username and password.
+
+       <b><a href="postconf.5.html#smtp_sasl_auth_cache_time">smtp_sasl_auth_cache_time</a> (90d)</b>
+              The  maximal  age  of  an <a href="postconf.5.html#smtp_sasl_auth_cache_name">smtp_sasl_auth_cache_name</a>
+              entry before it is removed.
+
+       <b><a href="postconf.5.html#smtp_sasl_auth_soft_bounce">smtp_sasl_auth_soft_bounce</a> (yes)</b>
+              When a remote SMTP server rejects a SASL  authenti-
+              cation  request  with  a 535 reply code, defer mail
+              delivery instead of returning  mail  as  undeliver-
+              able.
+
 <b>STARTTLS SUPPORT CONTROLS</b>
        Detailed  information  about STARTTLS configuration may be
        found in the <a href="TLS_README.html">TLS_README</a> document.

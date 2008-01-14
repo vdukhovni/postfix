@@ -1,5 +1,8 @@
 Wish list:
 
+	See if "pickup =o content_filter=smtp:127.0.0.1" can be
+	made a viable alternative to the use of non_smtpd_milters.
+
 	Consolidate duplicated code *_server_accept_{pass,inet}().
 
 	Consolidate duplicated code in {inet,unix,upass}_trigger.c.
@@ -11,8 +14,8 @@ Wish list:
 	handlers unchanged, and have the smtp_loop() reader loop
 	bail out with smtp_site_fail("server disconnected after
 	%s", where), but only in the case that it isn't already in
-	the final state. Handle 421 replies in HELO/EHLO with custom
-	code to prevent EHLO->HELO fall-back.
+	the final state. But first we need to clean up the handling
+	of do/don't cache, expired, bad and dead sessions.
 
 	Make event_drain() a proper event loop; update the zero mask,
 	and don't ignore a non-empty timer queue.
@@ -63,7 +66,9 @@ Wish list:
 	settings?
 
 	Remove defer(8) and trace(8) references and man pages. These
-	are services not program names.
+	are services not program names. On the other hand we have
+	man pages for lmtp(8) and smtp(8), but not for relay(8).
+	Likewise, retry(8) does not have a man page.
 
 	Bind all deliveries to the same local delivery process,
 	making Postfix perform as poorly as monolithic mailers, but
@@ -75,13 +80,13 @@ Wish list:
 
 	Need scache size limit.
 
-	Update BACKSCATTER_README to use PCRE because that's what I
-	am using now.
-
 	Make postcat header/body aware so people can grep headers.
+	What headers? primary, mime, nested? What body? Does it
+	include the mime and attached headers?
 
 	Make postmap header/body aware so people can test multi-line
-	header checks.
+	header checks. What headers? primary, mime, nested? What
+	body? Does it include the mime and attached headers?
 
 	REDIRECT should override original recipient info, and
 	probably override DSN as well.
@@ -265,10 +270,6 @@ Wish list:
 	Low: randomize deferred mail backoff.
 
 	Med: separate ulimit for delivery to command?
-
-	Med: option to open queue file early, after MAIL FROM.  This
-	would allow correlation of rejected RCPT TO requests with
-	accepted requests for the same mail transaction.
 
 	Med: postsuper -r should do something with recipients in
 	bounce logfiles, to make sure the sender will be notified.

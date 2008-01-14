@@ -92,10 +92,6 @@
 
 /* __FreeBSD_version version is major+minor */
 
-#if __FreeBSD_version >= 200000
-#define HAS_DUPLEX_PIPE
-#endif
-
 #if __FreeBSD_version >= 220000
 #define HAS_DEV_URANDOM			/* introduced in 2.1.5 */
 #endif
@@ -108,6 +104,10 @@
 #if __FreeBSD_version >= 400000
 #define SOCKADDR_SIZE	socklen_t
 #define SOCKOPT_SIZE	socklen_t
+#endif
+
+#if __FreeBSD_version >= 420000
+#define HAS_DUPLEX_PIPE			/* 4.1 breaks with kqueue(2) */
 #endif
 
 /* OpenBSD version is year+month */

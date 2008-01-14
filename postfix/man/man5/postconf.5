@@ -2141,8 +2141,23 @@ cached connection is still alive.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
+.SH lmtp_sasl_auth_cache_name (default: empty)
+The LMTP-specific version of the smtp_sasl_auth_cache_name
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.5 and later.
+.SH lmtp_sasl_auth_cache_time (default: 90d)
+The LMTP-specific version of the smtp_sasl_auth_cache_time
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH lmtp_sasl_auth_enable (default: no)
 Enable SASL authentication in the Postfix LMTP client.
+.SH lmtp_sasl_auth_soft_bounce (default: yes)
+The LMTP-specific version of the smtp_sasl_auth_soft_bounce
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH lmtp_sasl_mechanism_filter (default: empty)
 The LMTP-specific version of the smtp_sasl_mechanism_filter
 configuration parameter.  See there for details.
@@ -4390,8 +4405,8 @@ host, host:port, [host]:port, [address] or [address]:port; the form
 destinations, Postfix will try them in the specified order.
 .PP
 To prevent mailer loops between MX hosts and fall-back hosts,
-Postfix version 2.3 and later will not use the smtp_fallback_relay
-feature for destinations that it is MX host for.
+Postfix version 2.2 and later will not use the fallback relays for
+destinations that it is MX host for (and DSN lookup is turned on).
 .SH smtp_generic_maps (default: empty)
 Optional lookup tables that perform address rewriting in the
 SMTP client, typically to transform a locally valid address into
@@ -4587,6 +4602,43 @@ order to finish a recipient address probe, or to verify that a
 cached session is still usable.
 .PP
 This feature is available in Postfix 2.1 and later.
+.SH smtp_sasl_auth_cache_name (default: empty)
+An optional table to prevent repeated SASL authentication
+failures with the same remote SMTP server hostname, username and
+password. Each table (key, value) pair contains a server name, a
+username and password, and the full server response. This information
+is stored when a remote SMTP server rejects an authentication attempt
+with a 535 reply code.  As long as the smtp_sasl_password_maps
+information does no change, and as long as the smtp_sasl_auth_cache_name
+information does not expire (see smtp_sasl_auth_cache_time) the
+Postfix SMTP client avoids SASL authentication attempts with the
+same server, username and password, and instead bounces or defers
+mail as controlled with the smtp_sasl_auth_soft_bounce configuration
+parameter.
+.PP
+The table must be accessed via the proxywrite service, i.e. the
+map name must start with "proxy:". The table should be stored under
+the directory specified with the data_directory parameter.
+.PP
+This feature uses cryptographic hashing to protect plain-text
+passwords, and requires that Postfix is compiled with TLS support.
+.PP
+Example:
+.PP
+.nf
+.na
+.ft C
+smtp_sasl_auth_cache_name = proxy:btree:/var/lib/postfix/sasl_auth_cache
+.fi
+.ad
+.ft R
+.PP
+This feature is available in Postfix 2.5 and later.
+.SH smtp_sasl_auth_cache_time (default: 90d)
+The maximal age of an smtp_sasl_auth_cache_name entry before it
+is removed.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH smtp_sasl_auth_enable (default: no)
 Enable SASL authentication in the Postfix SMTP client.  By default,
 the Postfix SMTP client uses no authentication.
@@ -4600,6 +4652,29 @@ smtp_sasl_auth_enable = yes
 .fi
 .ad
 .ft R
+.SH smtp_sasl_auth_soft_bounce (default: yes)
+When a remote SMTP server rejects a SASL authentication request
+with a 535 reply code, defer mail delivery instead of returning
+mail as undeliverable. The latter behavior was hard-coded prior to
+Postfix version 2.5.
+.PP
+Note: the setting "yes" overrides the global soft_bounce
+parameter, but the setting "no" does not.
+.PP
+Example:
+.PP
+.nf
+.na
+.ft C
+# Default as of Postfix 2.5
+smtp_sasl_auth_soft_bounce = yes
+# The old hard-coded default
+smtp_sasl_auth_soft_bounce = no
+.fi
+.ad
+.ft R
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH smtp_sasl_mechanism_filter (default: empty)
 If non-empty, a Postfix SMTP client filter for the remote SMTP
 server's list of offered SASL mechanisms.  Different client and
@@ -4969,6 +5044,9 @@ As in the example above, we show two matching fingerprints:
 .fi
 .ad
 .ft R
+.in -4
+.sp
+.in +4
 .nf
 .na
 .ft C

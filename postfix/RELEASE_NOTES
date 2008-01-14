@@ -11,6 +11,30 @@ instead, a new snapshot is released.
 The mail_release_date configuration parameter (format: yyyymmdd)
 specifies the release date of a stable release or snapshot release.
 
+Incompatibility with Postfix 2.3 and earlier
+============================================
+
+If you upgrade from Postfix 2.3 or earlier, read RELEASE_NOTES-2.4
+before proceeding.
+
+Incompatibility with Postfix snapshot 20080114
+==============================================
+
+The Postfix SMTP client now by default defers mail after a remote
+SMTP server rejects a SASL authentication attempt.  Specify
+"smtp_sasl_auth_soft_bounce = no" for the old behavior.
+
+Major changes with Postfix snapshot 20080114
+============================================
+
+The Postfix SMTP client can now avoid making repeated SASL login
+failures with the same server, username and password.  To enable
+this safety feature, specify for example "smtp_sasl_auth_cache_name
+= proxy:btree:/var/lib/postfix/sasl_auth_cache" (access through the
+proxy service is required). Instead of trying to SASL authenticate,
+the Postfix SMTP client defers or bounces mail as controlled with
+the new smtp_sasl_auth_soft_bounce configuration parameter.
+
 Incompatibility with Postfix snapshot 20080109
 ==============================================
 
@@ -135,12 +159,6 @@ processing and error handling.  SMFIR_CHGFROM and SMFIR_ADDRCPT_PAR
 require ESMTP command-line parsing in the cleanup server. Unfortunately,
 Sendmail's documentation does not specify what ESMTP options are
 supported, but only discusses examples of things that don't work.
-
-Incompatibility with Postfix 2.3 and earlier
-============================================
-
-If you upgrade from Postfix 2.3 or earlier, read RELEASE_NOTES-2.4
-before proceeding.
 
 Incompatibility with Postfix snapshot 20071216
 ==============================================

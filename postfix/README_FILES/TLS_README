@@ -49,9 +49,9 @@ programs. Other colored boxes represent storage elements.
     that seeds the TLS engines in the smtpd(8) server and smtp(8) client
     processes, and maintains the TLS session key cache files.
 
-                    <---seed---              ---seed--->
+                    <---seed----             ----seed--->
 Network-> smtpd(8)                tlsmgr(8)                 smtp(8)  ->Network
-                    <-session->              <-session->        
+                    <-key/cert->             <-key/cert->       
 
                                 /       |    \
                                         |
@@ -62,6 +62,10 @@ Network-> smtpd(8)                tlsmgr(8)                 smtp(8)  ->Network
                     key cache         file       key cache
 
 BBuuiillddiinngg PPoossttffiixx wwiitthh TTLLSS ssuuppppoorrtt
+
+These instructions assume that you build Postfix from source code as described
+in the INSTALL document. Some modification may be required if you build Postfix
+from a vendor-specific source package.
 
 To build Postfix with TLS support, first we need to generate the make(1) files
 with the necessary definitions. This is done by invoking the command "make
@@ -1795,16 +1799,16 @@ indicates a super-user shell.
         writing new private key to './demoCA/private/cakey.pem'
         Enter PEM pass phrase:wwhhaatteevveerr
 
-  * Create an unpassworded private key for host FOO and create an unsigned
-    public key certificate.
+  * Create an unpassworded private key for host foo.porcupine.org and create an
+    unsigned public key certificate.
 
-        % ooppeennssssll rreeqq --nneeww --nnooddeess --kkeeyyoouutt FFOOOO--kkeeyy..ppeemm --oouutt FFOOOO--rreeqq..ppeemm --ddaayyss
+        % ooppeennssssll rreeqq --nneeww --nnooddeess --kkeeyyoouutt ffoooo--kkeeyy..ppeemm --oouutt ffoooo--rreeqq..ppeemm --ddaayyss
         336655
         Using configuration from /etc/ssl/openssl.cnf
         Generating a 1024 bit RSA private key
         ........................................++++++
         ....++++++
-        writing new private key to 'FOO-key.pem'
+        writing new private key to 'foo-key.pem'
         -----
         You are about to be asked to enter information that will be
         incorporated
@@ -1820,7 +1824,7 @@ indicates a super-user shell.
         Locality Name (eg, city) []:WWeessttcchheesstteerr
         Organization Name (eg, company) [Internet Widgits Pty Ltd]:PPoorrccuuppiinnee
         Organizational Unit Name (eg, section) []:
-        Common Name (eg, YOUR name) []:FFOOOO
+        Common Name (eg, YOUR name) []:ffoooo..ppoorrccuuppiinnee..oorrgg
         Email Address []:wwiieettssee@@ppoorrccuuppiinnee..oorrgg
 
         Please enter the following 'extra' attributes
@@ -1828,10 +1832,10 @@ indicates a super-user shell.
         A challenge password []:wwhhaatteevveerr
         An optional company name []:
 
-  * Sign the public key certificate for host FOO with the Certification
-    Authority private key that we created a few steps ago.
+  * Sign the public key certificate for host foo.porcupine.org with the
+    Certification Authority private key that we created a few steps ago.
 
-        % ooppeennssssll ccaa --oouutt FFOOOO--cceerrtt..ppeemm --iinnffiilleess FFOOOO--rreeqq..ppeemm
+        % ooppeennssssll ccaa --oouutt ffoooo--cceerrtt..ppeemm --iinnffiilleess ffoooo--rreeqq..ppeemm
         Using configuration from /etc/ssl/openssl.cnf
         Enter PEM pass phrase:wwhhaatteevveerr
         Check that the request matches the signature
@@ -1841,7 +1845,7 @@ indicates a super-user shell.
         stateOrProvinceName   :PRINTABLE:'New York'
         localityName          :PRINTABLE:'Westchester'
         organizationName      :PRINTABLE:'Porcupine'
-        commonName            :PRINTABLE:'FOO'
+        commonName            :PRINTABLE:'foo.porcupine.org'
         emailAddress          :IA5STRING:'wietse@porcupine.org'
         Certificate is to be certified until Nov 21 19:40:56 2005 GMT (365
         days)
@@ -1855,9 +1859,9 @@ indicates a super-user shell.
     Certification Authority certificate files. This requires super-user
     privileges.
 
-        # ccpp ddeemmooCCAA//ccaacceerrtt..ppeemm FFOOOO--kkeeyy..ppeemm FFOOOO--cceerrtt..ppeemm //eettcc//ppoossttffiixx
-        # cchhmmoodd 664444 //eettcc//ppoossttffiixx//FFOOOO--cceerrtt..ppeemm //eettcc//ppoossttffiixx//ccaacceerrtt..ppeemm
-        # cchhmmoodd 440000 //eettcc//ppoossttffiixx//FFOOOO--kkeeyy..ppeemm
+        # ccpp ddeemmooCCAA//ccaacceerrtt..ppeemm ffoooo--kkeeyy..ppeemm ffoooo--cceerrtt..ppeemm //eettcc//ppoossttffiixx
+        # cchhmmoodd 664444 //eettcc//ppoossttffiixx//ffoooo--cceerrtt..ppeemm //eettcc//ppoossttffiixx//ccaacceerrtt..ppeemm
+        # cchhmmoodd 440000 //eettcc//ppoossttffiixx//ffoooo--kkeeyy..ppeemm
 
   * Configure Postfix, by adding the following to /etc/postfix/main.cf. It is
     generally best to not configure client certificates, unless there are
@@ -1873,8 +1877,8 @@ indicates a super-user shell.
         	btree:/var/lib/postfix/smtp_tls_session_cache
             smtp_tls_security_level = may
             smtpd_tls_CAfile = /etc/postfix/cacert.pem
-            smtpd_tls_cert_file = /etc/postfix/FOO-cert.pem
-            smtpd_tls_key_file = /etc/postfix/FOO-key.pem
+            smtpd_tls_cert_file = /etc/postfix/foo-cert.pem
+            smtpd_tls_key_file = /etc/postfix/foo-key.pem
             smtpd_tls_received_header = yes
             smtpd_tls_session_cache_database =
         	btree:/var/lib/postfix/smtpd_tls_session_cache
