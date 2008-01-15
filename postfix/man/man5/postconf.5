@@ -4616,6 +4616,11 @@ same server, username and password, and instead bounces or defers
 mail as controlled with the smtp_sasl_auth_soft_bounce configuration
 parameter.
 .PP
+Use a per-destination delivery concurrency of 1 (for example,
+"smtp_destination_concurrency_limit = 1",
+"relay_destination_concurrency_limit = 1", etc.), otherwise multiple
+delivery agents may experience a login failure at the same time.
+.PP
 The table must be accessed via the proxywrite service, i.e. the
 map name must start with "proxy:". The table should be stored under
 the directory specified with the data_directory parameter.

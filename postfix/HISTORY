@@ -14252,3 +14252,16 @@ Apologies for any names omitted.
 	Safety: the smtpd_client_new_tls_session_rate_limit setting
 	now also limits the number of failed TLS handshakes. This
 	limits the impact of broken configurations. File: smtpd/smtpd.c.
+
+20080115
+
+	Bugfix (introduced 20080112): Patrik Rak found two bugs
+	that largely canceled each other out, causing Postfix not
+	to complain about a missing "proxy:" prefix with the new
+	smtp_sasl_auth_cache_name parameter setting. File:
+	smtp/smtp_sasl_glue.c.
+
+	Documentation: new SOHO_README file for small/home offices.
+	The text is automatically generated from bits and pieces of
+	information that are scattered across other documents.
+	File: mantools/make_soho_readme.
