@@ -8205,6 +8205,12 @@ same server, username and password, and instead bounces or defers
 mail as controlled with the <a href="postconf.5.html#smtp_sasl_auth_soft_bounce">smtp_sasl_auth_soft_bounce</a> configuration
 parameter.  </p>
 
+<p> Use a per-destination delivery concurrency of 1 (for example,
+"<a href="postconf.5.html#smtp_destination_concurrency_limit">smtp_destination_concurrency_limit</a> = 1",
+"<a href="postconf.5.html#relay_destination_concurrency_limit">relay_destination_concurrency_limit</a> = 1", etc.), otherwise multiple
+delivery agents may experience a login failure at the same time.
+</p>
+
 <p> The table must be accessed via the proxywrite service, i.e. the
 map name must start with "<a href="proxymap.8.html">proxy</a>:". The table should be stored under
 the directory specified with the <a href="postconf.5.html#data_directory">data_directory</a> parameter. </p>

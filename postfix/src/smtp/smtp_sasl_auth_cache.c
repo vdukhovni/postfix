@@ -133,8 +133,8 @@ SMTP_SASL_AUTH_CACHE *smtp_sasl_auth_cache_init(const char *map, int ttl)
 #define CACHE_DICT_OPEN_FLAGS \
 	(DICT_FLAG_DUP_REPLACE | DICT_FLAG_SYNC_UPDATE)
 
-    if (strncmp(map, DICT_TYPE_PROXY, sizeof(DICT_TYPE_PROXY)) - 1 != 0
-	&& map[sizeof(DICT_TYPE_PROXY) - 1] != ':')
+    if (strncmp(map, DICT_TYPE_PROXY, sizeof(DICT_TYPE_PROXY) - 1) != 0
+	|| map[sizeof(DICT_TYPE_PROXY) - 1] != ':')
 	msg_fatal("SASL authentication cache name \"%s\" must start with \""
 		  DICT_TYPE_PROXY "\":", map);
 
