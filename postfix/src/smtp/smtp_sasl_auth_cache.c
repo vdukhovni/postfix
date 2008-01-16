@@ -141,8 +141,8 @@ SMTP_SASL_AUTH_CACHE *smtp_sasl_auth_cache_init(const char *map, int ttl)
     auth_cache = (SMTP_SASL_AUTH_CACHE *) mymalloc(sizeof(*auth_cache));
     auth_cache->dict = dict_open(map, O_CREAT | O_RDWR, CACHE_DICT_OPEN_FLAGS);
     auth_cache->ttl = ttl;
-    auth_cache->dsn = mymalloc(100);
-    auth_cache->text = mymalloc(100);
+    auth_cache->dsn = mystrdup("");
+    auth_cache->text = mystrdup("");
     return (auth_cache);
 }
 
@@ -154,9 +154,9 @@ SMTP_SASL_AUTH_CACHE *smtp_sasl_auth_cache_init(const char *map, int ttl)
   * password has changed.
   */
 
-/* smtp_sasl_make_auth_cache_key - format auth failure cache lookup key */
+/* smtp_sasl_auth_cache_make_key - format auth failure cache lookup key */
 
-static char *smtp_sasl_make_auth_cache_key(const char *host, const char *user)
+static char *smtp_sasl_auth_cache_make_key(const char *host, const char *user)
 {
     VSTRING *buf = vstring_alloc(100);
 
@@ -164,9 +164,9 @@ static char *smtp_sasl_make_auth_cache_key(const char *host, const char *user)
     return (vstring_export(buf));
 }
 
-/* smtp_sasl_make_auth_cache_pass - hash the auth failure cache password */
+/* smtp_sasl_auth_cache_make_pass - hash the auth failure cache password */
 
-static char *smtp_sasl_make_auth_cache_pass(const char *password)
+static char *smtp_sasl_auth_cache_make_pass(const char *password)
 {
     VSTRING *buf = vstring_alloc(2 * SHA_DIGEST_LENGTH);
 
@@ -176,9 +176,9 @@ static char *smtp_sasl_make_auth_cache_pass(const char *password)
     return (vstring_export(buf));
 }
 
-/* smtp_sasl_make_auth_cache_value - format auth failure cache value */
+/* smtp_sasl_auth_cache_make_value - format auth failure cache value */
 
-static char *smtp_sasl_make_auth_cache_value(const char *password,
+static char *smtp_sasl_auth_cache_make_value(const char *password,
 					             const char *dsn,
 					             const char *rep_str)
 {
@@ -186,7 +186,7 @@ static char *smtp_sasl_make_auth_cache_value(const char *password,
     char   *pwd_hash;
     unsigned long now = (unsigned long) time((time_t *) 0);
 
-    pwd_hash = smtp_sasl_make_auth_cache_pass(password);
+    pwd_hash = smtp_sasl_auth_cache_make_pass(password);
     vstring_sprintf(val_buf, "%lu;%s;%s;%s", now, pwd_hash, dsn, rep_str);
     myfree(pwd_hash);
     return (vstring_export(val_buf));
@@ -216,7 +216,7 @@ static int smtp_sasl_auth_cache_valid(SMTP_SASL_AUTH_CACHE *auth_cache,
     } else if (time_stamp + auth_cache->ttl < now) {
 	valid = 0;
     } else {
-	curr_hash = smtp_sasl_make_auth_cache_pass(password);
+	curr_hash = smtp_sasl_auth_cache_make_pass(password);
 	valid = (strcmp(cache_hash, curr_hash) == 0);
 	myfree(curr_hash);
     }
@@ -233,7 +233,7 @@ int     smtp_sasl_auth_cache_find(SMTP_SASL_AUTH_CACHE *auth_cache,
     const char *entry;
     int     valid = 0;
 
-    key = smtp_sasl_make_auth_cache_key(session->host, session->sasl_username);
+    key = smtp_sasl_auth_cache_make_key(session->host, session->sasl_username);
     if ((entry = dict_get(auth_cache->dict, key)) != 0)
 	if ((valid = smtp_sasl_auth_cache_valid(auth_cache, entry,
 						session->sasl_passwd)) == 0)
@@ -254,8 +254,8 @@ void    smtp_sasl_auth_cache_store(SMTP_SASL_AUTH_CACHE *auth_cache,
     char   *key;
     char   *value;
 
-    key = smtp_sasl_make_auth_cache_key(session->host, session->sasl_username);
-    value = smtp_sasl_make_auth_cache_value(session->sasl_passwd,
+    key = smtp_sasl_auth_cache_make_key(session->host, session->sasl_username);
+    value = smtp_sasl_auth_cache_make_value(session->sasl_passwd,
 					    resp->dsn, resp->str);
     dict_put(auth_cache->dict, key, value);
 
