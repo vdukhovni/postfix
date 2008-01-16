@@ -14265,3 +14265,8 @@ Apologies for any names omitted.
 	The text is automatically generated from bits and pieces of
 	information that are scattered across other documents.
 	File: mantools/make_soho_readme.
+
+20080116
+
+	Bugfix (introduced 20080112): missing #ifdef for the SASL
+	login failure cache. File: smtp/smtp_sasl_auth_cache.h.

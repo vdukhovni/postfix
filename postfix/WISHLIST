@@ -1,8 +1,8 @@
 Wish list:
 
-	Collect random bits and pieces in one SOHO_README document:
-	smtp_generic_maps, sender_dependent_mumble,
-	smtp_sasl_auth_cache_name/time.
+	Write delivery rate delay example (which _README?) and auth
+	failure cache example (SASL_README). Then include them in
+	SOHO_README.
 
 	See if "pickup =o content_filter=smtp:127.0.0.1" can be
 	made a viable alternative to the use of non_smtpd_milters.

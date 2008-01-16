@@ -20,7 +20,7 @@
  /*
   * This code stores hashed passwords which requires OpenSSL.
   */
-#ifdef USE_TLS
+#if defined(USE_TLS) && defined(USE_SASL_AUTH)
 #define HAVE_SASL_AUTH_CACHE
 
  /*

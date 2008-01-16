@@ -12,7 +12,7 @@ The mail_release_date configuration parameter (format: yyyymmdd)
 specifies the release date of a stable release or snapshot release.
 
 Incompatibility with Postfix 2.3 and earlier
-============================================
+--------------------------------------------
 
 If you upgrade from Postfix 2.3 or earlier, read RELEASE_NOTES-2.4
 before proceeding.
@@ -200,16 +200,16 @@ New configuration parameters: destination_concurrency_feedback_debug,
 default_destination_concurrency_positive_feedback,
 default_destination_concurrency_negative_feedback,
 default_destination_concurrency_failed_cohort_limit, as well as
-transport-specific versions of the same.  See postconf(5) for
-extensive descriptions, and SCHEDULER_README for background information
-on the theory and practice of how these settings work.
+transport-specific versions of the same.
 
 The default parameter settings are backwards compatible with older
 Postfix versions. This may change after better defaults are field
 tested.
 
-The SCHEDULER_README document describes the new concurrency scheduler,
-as well as Patrik Rak's preemptive job scheduler.
+The updated SCHEDULER_README document describes the theory behind
+the new concurrency scheduler, as well as Patrik Rak's preemptive
+job scheduler. See postconf(5) for more extensive descriptions of
+the configuration parameters.
 
 Major changes - small/home office
 ---------------------------------
