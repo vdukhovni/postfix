@@ -886,7 +886,7 @@ default_database_type = dbm
 .fi
 .ad
 .ft R
-.SH default_delivery_rate_delay (default: 0s)
+.SH default_destination_rate_delay (default: 0s)
 The default amount of delay that is inserted between individual
 deliveries to the same destination; with per-destination recipient
 limit > 1, a destination is a domain, otherwise it is a recipient.
@@ -901,7 +901,7 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w
 NOTE: the delay is enforced by the queue manager. The delay
 timer state does not survive "postfix reload" or "postfix stop".
 .PP
-Use \fItransport\fR_delivery_rate_delay to specify a
+Use \fItransport\fR_destination_rate_delay to specify a
 transport-specific override, where \fItransport\fR is the master.cf
 name of the message delivery transport.
 .PP
@@ -7938,8 +7938,8 @@ of mail deliveries and produces a mail delivery report when verbose
 delivery is requested with "\fBsendmail -v\fR".
 .PP
 This feature is available in Postfix 2.1 and later.
-.SH transport_delivery_rate_delay (default: $default_delivery_rate_delay)
-A transport-specific override for the default_recipient_refill_delay
+.SH transport_destination_rate_delay (default: $default_destination_rate_delay)
+A transport-specific override for the default_destination_rate_delay
 parameter value, where \fItransport\fR is the master.cf name of
 the message delivery transport.
 .PP

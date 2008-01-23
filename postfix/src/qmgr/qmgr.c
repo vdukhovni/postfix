@@ -287,11 +287,11 @@
 /*	undeliverable.
 /* .PP
 /*	Available in Postfix version 2.5 and later:
-/* .IP "\fBdefault_delivery_rate_delay (0s)\fR"
+/* .IP "\fBdefault_destination_rate_delay (0s)\fR"
 /*	The default amount of delay that is inserted between individual
 /*	deliveries to the same destination; with per-destination recipient
 /*	limit > 1, a destination is a domain, otherwise it is a recipient.
-/* .IP "\fItransport\fB_delivery_rate_delay $default_delivery_rate_delay
+/* .IP "\fItransport\fB_destination_rate_delay $default_destination_rate_delay
 /*	Idem, for delivery via the named message \fItransport\fR.
 /* MISCELLANEOUS CONTROLS
 /* .ad

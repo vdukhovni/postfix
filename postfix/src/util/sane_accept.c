@@ -18,8 +18,8 @@
 /*	workarounds may be enabled that depend on the socket type.
 /* BUGS
 /*	Bizarre systems may have other harmless error results. Such
-/*	systems encourage programers to ignore error results, and
-/*	penalizes programmers who code defensively.
+/*	systems encourage programmers to ignore error results, and
+/*	penalize programmers who code defensively.
 /* LICENSE
 /* .ad
 /* .fi

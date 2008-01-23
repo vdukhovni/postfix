@@ -2916,8 +2916,8 @@ extern int var_conc_cohort_limit;
 #define DEF_CONC_FDBACK_DEBUG	0
 extern bool var_conc_feedback_debug;
 
-#define VAR_DEST_RATE_DELAY	"default_delivery_rate_delay"
-#define _DEST_RATE_DELAY	"_delivery_rate_delay"
+#define VAR_DEST_RATE_DELAY	"default_destination_rate_delay"
+#define _DEST_RATE_DELAY	"_destination_rate_delay"
 #define DEF_DEST_RATE_DELAY	"0s"
 extern int var_dest_rate_delay;
 

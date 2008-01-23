@@ -13870,7 +13870,7 @@ Apologies for any names omitted.
 20071202
 
 	Feature: output rate control. For example, specify
-	"smtp_delivery_rate_delay = 5m" to insert a five-minute
+	"smtp_destination_rate_delay = 5m" to insert a five-minute
 	delay between deliveries. This was an opportunity to define
 	the mutually exclusive states that a queue can have, and
 	to detect invalid transitions.  This will make adding new
@@ -14270,3 +14270,10 @@ Apologies for any names omitted.
 
 	Bugfix (introduced 20080112): missing #ifdef for the SASL
 	login failure cache. File: smtp/smtp_sasl_auth_cache.h.
+
+20080123
+
+	Name fix: renamed the mumble_delivery_rate_delay parameter
+	to mumble_destination_rate_delay, because it really is a
+	per-destination feature. With this change we keep the option
+	of implementing a future per-transport rate delay.

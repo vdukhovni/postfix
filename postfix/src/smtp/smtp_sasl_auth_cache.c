@@ -132,11 +132,12 @@ SMTP_SASL_AUTH_CACHE *smtp_sasl_auth_cache_init(const char *map, int ttl)
      */
 #define CACHE_DICT_OPEN_FLAGS \
 	(DICT_FLAG_DUP_REPLACE | DICT_FLAG_SYNC_UPDATE)
+#define PROXY_COLON	DICT_TYPE_PROXY ":"
+#define PROXY_COLON_LEN	(sizeof(PROXY_COLON) - 1)
 
-    if (strncmp(map, DICT_TYPE_PROXY, sizeof(DICT_TYPE_PROXY) - 1) != 0
-	|| map[sizeof(DICT_TYPE_PROXY) - 1] != ':')
+    if (strncmp(map, PROXY_COLON, PROXY_COLON_LEN) != 0)
 	msg_fatal("SASL authentication cache name \"%s\" must start with \""
-		  DICT_TYPE_PROXY "\":", map);
+		  PROXY_COLON, map);
 
     auth_cache = (SMTP_SASL_AUTH_CACHE *) mymalloc(sizeof(*auth_cache));
     auth_cache->dict = dict_open(map, O_CREAT | O_RDWR, CACHE_DICT_OPEN_FLAGS);
@@ -192,9 +193,9 @@ static char *smtp_sasl_auth_cache_make_value(const char *password,
     return (vstring_export(val_buf));
 }
 
-/* smtp_sasl_auth_cache_valid - validate auth failure cache value */
+/* smtp_sasl_auth_cache_valid_value - validate auth failure cache value */
 
-static int smtp_sasl_auth_cache_valid(SMTP_SASL_AUTH_CACHE *auth_cache,
+static int smtp_sasl_auth_cache_valid_value(SMTP_SASL_AUTH_CACHE *auth_cache,
 				              const char *entry,
 				              const char *password)
 {
@@ -235,7 +236,7 @@ int     smtp_sasl_auth_cache_find(SMTP_SASL_AUTH_CACHE *auth_cache,
 
     key = smtp_sasl_auth_cache_make_key(session->host, session->sasl_username);
     if ((entry = dict_get(auth_cache->dict, key)) != 0)
-	if ((valid = smtp_sasl_auth_cache_valid(auth_cache, entry,
+	if ((valid = smtp_sasl_auth_cache_valid_value(auth_cache, entry,
 						session->sasl_passwd)) == 0)
 	    /* Remove expired, password changed, or malformed cache entry. */
 	    if (dict_del(auth_cache->dict, key) == 0)

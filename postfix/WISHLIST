@@ -1,13 +1,16 @@
 Wish list:
 
+	Make adding Date/From/Message-ID headers dependent on local
+	rewrite context?
+
 	Write delivery rate delay example (which _README?) and auth
 	failure cache example (SASL_README). Then include them in
 	SOHO_README.
 
-	See if "pickup =o content_filter=smtp:127.0.0.1" can be
-	made a viable alternative to the use of non_smtpd_milters.
+	See if "pickup -o content_filter=smtp:127.0.0.1" can be a
+	viable alternative to the use of non_smtpd_milters.
 
-	Consolidate duplicated code *_server_accept_{pass,inet}().
+	Consolidate duplicated code in *_server_accept_{pass,inet}().
 
 	Consolidate duplicated code in {inet,unix,upass}_trigger.c.
 
