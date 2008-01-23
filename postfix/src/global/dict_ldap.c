@@ -488,58 +488,63 @@ static int dict_ldap_set_tls_options(DICT_LDAP *dict_ldap)
     if (dict_ldap->start_tls || dict_ldap->ldap_ssl) {
 	if (*dict_ldap->tls_random_file) {
 	    if ((rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_RANDOM_FILE,
-			       dict_ldap->tls_random_file)) != LDAP_SUCCESS)
+			       dict_ldap->tls_random_file)) != LDAP_SUCCESS) {
 		msg_warn("%s: Unable to set tls_random_file to %s: %d: %s",
 			 myname, dict_ldap->tls_random_file,
 			 rc, ldap_err2string(rc));
-	    return (-1);
+		return (-1);
+	    }
 	}
 	if (*dict_ldap->tls_ca_cert_file) {
 	    if ((rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_CACERTFILE,
-			      dict_ldap->tls_ca_cert_file)) != LDAP_SUCCESS)
+			      dict_ldap->tls_ca_cert_file)) != LDAP_SUCCESS) {
 		msg_warn("%s: Unable to set tls_ca_cert_file to %s: %d: %s",
 			 myname, dict_ldap->tls_ca_cert_file,
 			 rc, ldap_err2string(rc));
-	    return (-1);
+		return (-1);
+	    }
 	}
 	if (*dict_ldap->tls_ca_cert_dir) {
 	    if ((rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_CACERTDIR,
-			       dict_ldap->tls_ca_cert_dir)) != LDAP_SUCCESS)
+			       dict_ldap->tls_ca_cert_dir)) != LDAP_SUCCESS) {
 		msg_warn("%s: Unable to set tls_ca_cert_dir to %s: %d: %s",
 			 myname, dict_ldap->tls_ca_cert_dir,
 			 rc, ldap_err2string(rc));
-	    return (-1);
+		return (-1);
+	    }
 	}
 	if (*dict_ldap->tls_cert) {
 	    if ((rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_CERTFILE,
-				      dict_ldap->tls_cert)) != LDAP_SUCCESS)
+				      dict_ldap->tls_cert)) != LDAP_SUCCESS) {
 		msg_warn("%s: Unable to set tls_cert to %s: %d: %s",
 			 myname, dict_ldap->tls_cert,
 			 rc, ldap_err2string(rc));
-	    return (-1);
+		return (-1);
+	    }
 	}
 	if (*dict_ldap->tls_key) {
 	    if ((rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_KEYFILE,
-				      dict_ldap->tls_key)) != LDAP_SUCCESS)
+				      dict_ldap->tls_key)) != LDAP_SUCCESS) {
 		msg_warn("%s: Unable to set tls_key to %s: %d: %s",
 			 myname, dict_ldap->tls_key,
 			 rc, ldap_err2string(rc));
-	    return (-1);
+		return (-1);
+	    }
 	}
 	if (*dict_ldap->tls_cipher_suite) {
 	    if ((rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_CIPHER_SUITE,
-			      dict_ldap->tls_cipher_suite)) != LDAP_SUCCESS)
+			      dict_ldap->tls_cipher_suite)) != LDAP_SUCCESS) {
 		msg_warn("%s: Unable to set tls_cipher_suite to %s: %d: %s",
 			 myname, dict_ldap->tls_cipher_suite,
 			 rc, ldap_err2string(rc));
-	    return (-1);
+		return (-1);
+	    }
 	}
-	if (dict_ldap->tls_require_cert) {
-	    if ((rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_REQUIRE_CERT,
-			   &(dict_ldap->tls_require_cert))) != LDAP_SUCCESS)
-		msg_warn("%s: Unable to set tls_require_cert to %d: %d: %s",
-			 myname, dict_ldap->tls_require_cert,
-			 rc, ldap_err2string(rc));
+	if ((rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_REQUIRE_CERT,
+		       &(dict_ldap->tls_require_cert))) != LDAP_SUCCESS) {
+	    msg_warn("%s: Unable to set tls_require_cert to %d: %d: %s",
+		     myname, dict_ldap->tls_require_cert,
+		     rc, ldap_err2string(rc));
 	    return (-1);
 	}
     }

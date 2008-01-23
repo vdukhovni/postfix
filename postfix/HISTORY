@@ -14277,3 +14277,26 @@ Apologies for any names omitted.
 	to mumble_destination_rate_delay, because it really is a
 	per-destination feature. With this change we keep the option
 	of implementing a future per-transport rate delay.
+
+20080125
+
+	Bugfix (introduced 20071216): missing {} in the LDAP client
+	broke OpenLDAP TLS.  The setting tls_require_cert=no was
+	further broken because Postfix used OpenLDAP incorrectly.
+	Victor Duchovni.  This broke tls_require_cert=no File:
+	global/dict_ldap.c.
+
+20080130
+
+	Bugfix (introduced 20071204): wrong proxywrite process limit
+	in the default master.cf file.  File: conf/master.cf.
+
+20080201
+
+	Workaround: pick up a missing data_directory setting from
+	main.cf when "postfix start" is invoked with an obsolete
+	postfix command. File: conf/post-install.
+
+	Workaround (introduced 20071204): update the wrong proxywrite
+	process limit when upgrading an already installed default
+	master.cf file.  File: conf/post-install.
