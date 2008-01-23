@@ -1597,35 +1597,6 @@ Examples:
 
 </DD>
 
-<DT><b><a name="default_delivery_rate_delay">default_delivery_rate_delay</a>
-(default: 0s)</b></DT><DD>
-
-<p> The default amount of delay that is inserted between individual
-deliveries to the same destination; with per-destination recipient
-limit &gt; 1, a destination is a domain, otherwise it is a recipient.
-</p>
-
-<p> To enable the delay, specify a non-zero time value (an integral
-value plus an optional one-letter suffix that specifies the time
-unit). </p>
-
-<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
-(weeks). The default time unit is s (seconds). </p>
-
-<p> NOTE: the delay is enforced by the queue manager. The delay
-timer state does not survive "postfix reload" or "postfix stop".
-</p>
-
-<p> Use <a href="postconf.5.html#transport_delivery_rate_delay"><i>transport</i>_delivery_rate_delay</a> to specify a
-transport-specific override, where <i>transport</i> is the <a href="master.5.html">master.cf</a>
-name of the message delivery transport.
-</p>
-
-<p> This feature is available in Postfix 2.5 and later. </p>
-
-
-</DD>
-
 <DT><b><a name="default_delivery_slot_cost">default_delivery_slot_cost</a>
 (default: 5)</b></DT><DD>
 
@@ -1873,6 +1844,35 @@ to specify a transport-specific override, where <i>transport</i>
 is the <a href="master.5.html">master.cf</a> name of the message delivery transport. </p>
 
 <p> This feature is available in Postfix 2.5 and later.  </p>
+
+
+</DD>
+
+<DT><b><a name="default_destination_rate_delay">default_destination_rate_delay</a>
+(default: 0s)</b></DT><DD>
+
+<p> The default amount of delay that is inserted between individual
+deliveries to the same destination; with per-destination recipient
+limit &gt; 1, a destination is a domain, otherwise it is a recipient.
+</p>
+
+<p> To enable the delay, specify a non-zero time value (an integral
+value plus an optional one-letter suffix that specifies the time
+unit). </p>
+
+<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
+(weeks). The default time unit is s (seconds). </p>
+
+<p> NOTE: the delay is enforced by the queue manager. The delay
+timer state does not survive "postfix reload" or "postfix stop".
+</p>
+
+<p> Use <a href="postconf.5.html#transport_destination_rate_delay"><i>transport</i>_destination_rate_delay</a> to specify a
+transport-specific override, where <i>transport</i> is the <a href="master.5.html">master.cf</a>
+name of the message delivery transport.
+</p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
 
 
 </DD>
@@ -12800,18 +12800,6 @@ This feature is available in Postfix 2.1 and later.
 
 </DD>
 
-<DT><b><a name="transport_delivery_rate_delay">transport_delivery_rate_delay</a>
-(default: $<a href="postconf.5.html#default_delivery_rate_delay">default_delivery_rate_delay</a>)</b></DT><DD>
-
-<p> A transport-specific override for the <a href="postconf.5.html#default_recipient_refill_delay">default_recipient_refill_delay</a>
-parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of
-the message delivery transport. </p>
-
-<p> This feature is available in Postfix 2.5 and later. </p>
-
-
-</DD>
-
 <DT><b><a name="transport_delivery_slot_cost">transport_delivery_slot_cost</a>
 (default: $<a href="postconf.5.html#default_delivery_slot_cost">default_delivery_slot_cost</a>)</b></DT><DD>
 
@@ -12886,6 +12874,18 @@ transport. </p>
 <a href="postconf.5.html#default_destination_concurrency_positive_feedback">default_destination_concurrency_positive_feedback</a> parameter value,
 where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of the message delivery
 transport. </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="transport_destination_rate_delay">transport_destination_rate_delay</a>
+(default: $<a href="postconf.5.html#default_destination_rate_delay">default_destination_rate_delay</a>)</b></DT><DD>
+
+<p> A transport-specific override for the <a href="postconf.5.html#default_destination_rate_delay">default_destination_rate_delay</a>
+parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of
+the message delivery transport. </p>
 
 <p> This feature is available in Postfix 2.5 and later. </p>
 

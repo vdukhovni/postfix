@@ -8,7 +8,7 @@ BEGIN {
     vars["destination_concurrency_positive_feedback"] = "default_destination_concurrency_positive_feedback"
     vars["destination_recipient_limit"] = "default_destination_recipient_limit"
     vars["initial_destination_concurrency"] = "initial_destination_concurrency"
-    vars["delivery_rate_delay"] = "default_delivery_rate_delay"
+    vars["destination_rate_delay"] = "default_destination_rate_delay"
 
     # auto_table.h
 
