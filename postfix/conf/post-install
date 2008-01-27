@@ -9,7 +9,7 @@
 # SUMMARY
 #	Postfix post-installation script
 # SYNOPSIS
-#	post-install [name=value] command ...
+#	postfix post-install [name=value] command ...
 # DESCRIPTION
 #	The post-install script performs the finishing touch of a Postfix
 #	installation, after the executable programs and configuration
@@ -90,7 +90,7 @@
 #	copy the configuration files from the primary Postfix instance to
 #	a secondary configuration directory and execute:
 #
-#	post-install config_directory=secondary-config-directory \e
+#	postfix post-install config_directory=secondary-config-directory \e
 # .in +4
 #		queue_directory=secondary-queue-directory \e
 # .br
@@ -106,7 +106,7 @@
 #	To upgrade a secondary Postfix installation on the same machine,
 #	execute:
 #
-#	post-install config_directory=secondary-config-directory \e
+#	postfix post-install config_directory=secondary-config-directory \e
 # .in +4
 #		upgrade-permissions upgrade-configuration
 # INSTALLATION PARAMETER INPUT METHODS
@@ -139,6 +139,8 @@
 # .IP command_directory
 #	The directory for Postfix administrative commands. This
 #	directory should be in the command search path of adminstrative users.
+# .IP data_directory
+#	The directory for Postfix writable data files (caches, etc.).
 # .IP queue_directory
 #	The directory for Postfix queues.
 # .IP sendmail_path
@@ -190,9 +192,15 @@ SHELL=/bin/sh
 IFS=" 	
 "
 BACKUP_IFS="$IFS"
+MOST_PARAMETERS="command_directory daemon_directory data_directory
+    html_directory mail_owner mailq_path manpage_directory
+    newaliases_path queue_directory readme_directory sample_directory
+    sendmail_path setgid_group"
 
 USAGE="Usage: $0 [name=value] command
     create-missing          Create missing queue directories.
+    set-permissions         Update file permission and ownership.
+    upgrade-configuration   Update configuration files.
     upgrade-source          When installing or upgrading from source code.
     upgrade-package         When installing or upgrading from pre-built package.
     first-install-reminder  Remind of mandatory first-time configuration steps.
@@ -228,18 +236,20 @@ test -n "$create$upgrade_conf$first_install_reminder" || {
     exit 1
 }
 
-# Bootstrapping problem.
+for name in config_directory $MOST_PARAMETERS
+do
+    eval test -n \${$name} || {
+	echo "$0: Error: do not invoke this command directly" 1>&2
+	echo Re-run this command as: postfix $0 ... 1>&2
+	exit 1
+    }
+done
 
-if [ -n "$command_directory" ]
-then
-    POSTCONF="$command_directory/postconf"
-else
-    POSTCONF="postconf"
-fi
+POSTCONF="$command_directory/postconf"
 
 $POSTCONF -d mail_version >/dev/null 2>/dev/null || {
     echo $0: Error: no $POSTCONF command found. 1>&2
-    echo Re-run this command as $0 command_directory=/some/where. 1>&2
+    echo Re-run this command as: postfix $0 command_directory=/some/where. 1>&2
     exit 1
 }
 
@@ -277,53 +287,18 @@ SunOS*) FMT=fake_fmt;;
      *) FMT=fmt;;
 esac
 
-# If a parameter is not set via the command line or environment,
-# try to use settings from installed configuration files.
-
-# Extract parameter settings from the obsolete install.cf file, as
-# a transitional aid.
-
-grep setgid_group $config_directory/main.cf >/dev/null 2>&1 || {
-    test -f $config_directory/install.cf  && {
-        for name in sendmail_path newaliases_path mailq_path setgid manpages
-        do
-	eval junk=\$$name
-        case "$junk" in
-        "") eval unset $name;;
-        esac
-	   eval : \${$name="\`. $config_directory/install.cf; echo \$$name\`"} \
-		|| exit 1
-        done
-        : ${setgid_group=$setgid}
-        : ${manpage_directory=$manpages}
-    }
-}
-
-# Extract parameter settings from the installed main.cf file.
-
-test -f $config_directory/main.cf && {
-    for name in daemon_directory command_directory queue_directory mail_owner \
-        setgid_group sendmail_path newaliases_path mailq_path \
-	html_directory manpage_directory sample_directory readme_directory
-    do
-	eval junk=\$$name
-        case "$junk" in
-        "") eval unset $name;;
-        esac
-        eval : \${$name=\`$POSTCONF -c $config_directory -h $name\`} || exit 1
-    done
-}
-
 # Sanity checks
 
 case $manpage_directory in
  no) echo $0: Error: manpage_directory no longer accepts \"no\" values. 1>&2
-     echo Try again with \"$0 manpage_directory=/pathname ...\". 1>&2; exit 1;;
+     echo Try again with \"postfix $0 manpage_directory=/pathname ...\". 1>&2
+     exit 1;;
 esac
 
 case $setgid_group in
  no) echo $0: Error: setgid_group no longer accepts \"no\" values. 1>&2
-     echo Try again with \"$0 setgid_group=groupname ...\" 1>&2; exit 1;;
+     echo Try again with \"postfix $0 setgid_group=groupname ...\" 1>&2
+     exit 1;;
 esac
 
 for path in "$daemon_directory" "$command_directory" "$queue_directory" \
@@ -340,63 +315,21 @@ do
    case "$path" in
    /*) ;;
    no) ;;
-    *) echo $0: Error: \"$path\" should be \"no\" or an absolute path name. 1>&2; exit 1;;
+    *) echo $0: Error: \"$path\" should be \"no\" or an absolute path name. 1>&2
+       exit 1;;
    esac
 done
 
-# Find out what parameters were not specified via command line,
-# via environment, or via installed configuration files.
-
-missing=
-for name in daemon_directory command_directory queue_directory mail_owner \
-    setgid_group sendmail_path newaliases_path mailq_path manpage_directory \
-    readme_directory html_directory
-do
-    eval test -n \"\$$name\" || missing="$missing $name"
-done
-
-# All parameters must be specified at this point.
-
-test -n "$non_interactive" -a -n "$missing" && {
-    cat <<EOF | ${FMT} 1>&2
-$0: Error: some required installation parameters are not defined.
-
-- Either the parameters need to be given in the $config_directory/main.cf
-file from a recent Postfix installation,
-
-- Or the parameters need to be specified through the process
-environment.
-
-- Or the parameters need to be specified as name=value arguments
-on the $0 command line,
-
-The following parameters were missing:
-
-    $missing
-
-EOF
-    exit 1
-}
-
-POSTCONF="$command_directory/postconf"
-
 # Save settings, allowing command line/environment override.
+# Optimization: don't update main.cf if nothing has changed.
+# Caution: "`command`" removes the last newline character.
 
-override=
-for name in daemon_directory command_directory queue_directory mail_owner \
-    setgid_group sendmail_path newaliases_path mailq_path manpage_directory \
-    sample_directory readme_directory html_directory
-do
-    eval test \"\$$name\" = \"`$POSTCONF -c $config_directory -h $name`\" || {
-	override=1
-	break
-    }
-done
-
-test -n "$override" && {
+test "`for name in $MOST_PARAMETERS; do eval echo \\\${\$name}; done`" = \
+    "`$POSTCONF -h $MOST_PARAMETERS`" || {
     $POSTCONF -c $config_directory -e \
 	"daemon_directory = $daemon_directory" \
 	"command_directory = $command_directory" \
+	"data_directory = $data_directory" \
 	"queue_directory = $queue_directory" \
 	"mail_owner = $mail_owner" \
 	"setgid_group = $setgid_group" \
@@ -489,6 +422,7 @@ test -n "$create" && {
 
 test -n "$upgrade_conf" && {
 
+    # Postfix 2.0.
     # Add missing relay service to master.cf.
 
     grep '^relay' $config_directory/master.cf >/dev/null || {
@@ -498,6 +432,7 @@ relay	  unix	-	-	n	-	-	smtp
 EOF
     }
 
+    # Postfix 1.1.
     # Add missing flush service to master.cf.
 
     grep '^flush.*flush' $config_directory/master.cf >/dev/null || {
@@ -507,6 +442,7 @@ flush     unix  -       -       n       1000?   0       flush
 EOF
     }
 
+    # Postfix 2.1.
     # Add missing trace service to master.cf.
 
     grep 'trace.*bounce' $config_directory/master.cf >/dev/null || {
@@ -516,6 +452,7 @@ trace	  unix	-	-	n	-	0	bounce
 EOF
     }
 
+    # Postfix 2.1.
     # Add missing verify service to master.cf.
 
     grep '^verify.*verify' $config_directory/master.cf >/dev/null || {
@@ -525,6 +462,7 @@ verify	  unix	-	-	n	-	1	verify
 EOF
     }
 
+    # Postfix 2.1.
     # Fix verify service process limit.
 
     grep '^verify.*[ 	]0[ 	]*verify' \
@@ -539,6 +477,7 @@ q
 EOF
     }
 
+    # Postfix 1.1.
     # Change privileged pickup service into unprivileged.
 
     grep "^pickup[ 	]*fifo[ 	]*n[ 	]*n" \
@@ -553,6 +492,7 @@ q
 EOF
     }
 
+    # Postfix 1.1.
     # Change private cleanup and flush services into public.
 
     for name in cleanup flush
@@ -570,8 +510,9 @@ EOF
 	}
     done
 
+    # Postfix 2.2.
     # File systems have improved since Postfix came out, and all we
-    # require now is that defer and deferred are hashed because those
+    # require now that defer and deferred are hashed because those
     # can contain lots of files.
 
     found=`$POSTCONF -c $config_directory -h hash_queue_names`
@@ -590,6 +531,7 @@ EOF
     # [The "unknown_local_recipient_reject_code = 450" safety net,
     # introduced with Postfix 2.0 and deleted after Postfix 2.3.]
 
+    # Postfix 2.0.
     # Add missing proxymap service to master.cf.
 
     grep '^proxymap.*proxymap' $config_directory/master.cf >/dev/null || {
@@ -599,6 +541,7 @@ proxymap  unix	-	-	n	-	-	proxymap
 EOF
     }
 
+    # Postfix 2.1.
     # Add missing anvil service to master.cf.
 
     grep '^anvil.*anvil' $config_directory/master.cf >/dev/null || {
@@ -608,6 +551,7 @@ anvil	  unix	-	-	n	-	1	anvil
 EOF
     }
 
+    # Postfix 2.2.
     # Add missing scache service to master.cf.
 
     grep '^scache.*scache' $config_directory/master.cf >/dev/null || {
@@ -617,6 +561,7 @@ scache	  unix	-	-	n	-	1	scache
 EOF
     }
 
+    # Postfix 2.2.
     # Add missing discard service to master.cf.
 
     grep '^discard.*discard' $config_directory/master.cf >/dev/null || {
@@ -626,6 +571,7 @@ discard	  unix	-	-	n	-	-	discard
 EOF
     }
 
+    # Postfix 2.2.
     # Update the tlsmgr fifo->unix service.
 
     grep "^tlsmgr[ 	]*fifo[ 	]" \
@@ -641,6 +587,7 @@ q
 EOF
     }
 
+    # Postfix 2.2.
     # Add missing tlsmgr service to master.cf.
 
     grep '^tlsmgr.*tlsmgr' $config_directory/master.cf >/dev/null || {
@@ -650,6 +597,7 @@ tlsmgr    unix  -       -       n       1000?   1       tlsmgr
 EOF
     }
 
+    # Postfix 2.2.
     # Add missing retry service to master.cf.
 
     grep '^retry.*error' $config_directory/master.cf >/dev/null || {
@@ -659,6 +607,7 @@ retry     unix  -       -       n       -       -       error
 EOF
     }
 
+    # Postfix 2.5.
     # Add missing proxywrite service to master.cf.
 
     grep '^proxywrite.*proxymap' $config_directory/master.cf >/dev/null || {

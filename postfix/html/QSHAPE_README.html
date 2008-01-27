@@ -547,7 +547,7 @@ problem destination as the <a href="postconf.5.html#fallback_relay">fallback_rel
     slow      unix     -       -       n       -       1    smtp
         -o <a href="postconf.5.html#fallback_relay">fallback_relay</a>=problem.example.com
         -o <a href="postconf.5.html#smtp_connect_timeout">smtp_connect_timeout</a>=1
-        -o smtp_cache_connection=no
+        -o <a href="postconf.5.html#smtp_connection_cache_on_demand">smtp_connection_cache_on_demand</a>=no
 </pre>
 
 </ul>

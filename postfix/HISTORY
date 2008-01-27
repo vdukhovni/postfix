@@ -14277,3 +14277,16 @@ Apologies for any names omitted.
 	to mumble_destination_rate_delay, because it really is a
 	per-destination feature. With this change we keep the option
 	of implementing a future per-transport rate delay.
+
+20080125
+
+	Bugfix: missing {} in the LDAP client. Victor Duchovni.
+	File: global/dict_ldap.c.
+
+20080126
+
+	Cleanup: the post-install script now requires that it is
+	invoked via the postfix(1) command. This was the intended
+	use since Postfix 2.1, but it was never enforced.  The
+	documentation for package maintainers has been updated
+	accordingly. File: conf/post-install.

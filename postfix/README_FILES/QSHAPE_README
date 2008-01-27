@@ -400,7 +400,7 @@ delivery attempts.
             slow      unix     -       -       n       -       1    smtp
                 -o fallback_relay=problem.example.com
                 -o smtp_connect_timeout=1
-                -o smtp_cache_connection=no
+                -o smtp_connection_cache_on_demand=no
 
     This solution forces the Postfix smtp(8) client to wait for
     $smtp_connect_timeout seconds between deliveries. The connection caching

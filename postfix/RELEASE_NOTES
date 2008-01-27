@@ -16,3 +16,11 @@ Incompatibility with Postfix 2.4 and earlier
 
 If you upgrade from Postfix 2.4 or earlier, read RELEASE_NOTES-2.5
 before proceeding.
+
+Incompatible changes with snapshot 20080127
+===========================================
+
+The post-install script now requires explicitly that it is invoked
+via the postfix(1) command. This was the intended usage since Postfix
+version 2.1, but it was never enforced.  The internal documentation
+for package maintainers has been updated accordingly.

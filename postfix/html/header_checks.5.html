@@ -364,14 +364,24 @@ HEADER_CHECKS(5)                                              HEADER_CHECKS(5)
 
 <b>EXAMPLES</b>
        Header pattern to block attachments  with  bad  file  name
-       extensions.
+       extensions.   For  convenience, the PCRE /x flag is speci-
+       fied, so that there is no need  to  collapse  the  pattern
+       into   a   single  line  of  text.   The  purpose  of  the
+       [[:xdigit:]] sub-expressions is to recognize Windows CLSID
+       strings.
 
        /etc/postfix/<a href="postconf.5.html">main.cf</a>:
-           <a href="postconf.5.html#header_checks">header_checks</a> = <a href="regexp_table.5.html">regexp</a>:/etc/postfix/header_checks
+           <a href="postconf.5.html#header_checks">header_checks</a> = <a href="pcre_table.5.html">pcre</a>:/etc/postfix/header_checks.pcre
 
-       /etc/postfix/header_checks:
-           /^content-(type|disposition):.*name[[:space:]]*=.*\.(exe|vbs)/
-               REJECT Bad attachment file name extension: $2
+       /etc/postfix/header_checks.<a href="pcre_table.5.html">pcre</a>:
+           /^Content-(Disposition|Type).*name\s*=\s*"?(.*(\.|=2E)(
+             ade|adp|asp|bas|bat|chm|cmd|com|cpl|crt|dll|exe|
+             hlp|ht[at]|
+             inf|ins|isp|jse?|lnk|md[betw]|ms[cipt]|nws|
+             \{[[:xdigit:]]{8}(?:-[[:xdigit:]]{4}){3}-[[:xdigit:]]{12}\}|
+             ops|pcd|pif|prf|reg|sc[frt]|sh[bsm]|swf|
+             vb[esx]?|vxd|ws[cfh]))(\?=)?"?\s*(;|$)/x
+               REJECT Attachment name "$2" may not end with ".$4"
 
        Body pattern to stop a specific HTML browser vulnerability
        exploit.
