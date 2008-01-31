@@ -1710,7 +1710,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		fail_status = smtp_mesg_fail(state, DSN_BY_LOCAL_MTA,
 					     SMTP_RESP_FAKE(&fake, "5.3.0"),
 					     "unreadable mail queue entry");
-		if (fail_status == 0)
+		if (state->status == 0)
 		    (void) mark_corrupt(state->src);
 		RETURN(fail_status);
 	    }

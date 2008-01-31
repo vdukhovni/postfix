@@ -63,6 +63,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <limits.h>			/* INT_MAX */
 
 #ifndef SHUT_RDWR
 #define SHUT_RDWR	2
@@ -280,7 +281,7 @@ typedef struct {
  /*
   * We don't accept insane amounts of data.
   */
-#define XXX_MAX_DATA	(MILTER_CHUNK_SIZE * 2)
+#define XXX_MAX_DATA	(INT_MAX / 2)
 #define XXX_TIMEOUT	10
 
 #ifndef USE_LIBMILTER_INCLUDES
@@ -1624,6 +1625,17 @@ static const char *milter8_conn_event(MILTER *m,
     const char *myname = "milter8_conn_event";
     MILTER8 *milter = (MILTER8 *) m;
     int     port;
+    const char *sm_name;
+    char   *ptr = 0;
+    const char *resp;
+
+    /*
+     * Need a global definition for "unknown" host name or address that is
+     * shared by smtpd, cleanup and libmilter.
+     */
+#define XXX_UNKNOWN	"unknown"
+#define STR_EQ(x,y)	(strcmp((x), (y)) == 0)
+#define STR_NE(x,y)	(strcmp((x), (y)) != 0)
 
     /*
      * XXX Sendmail 8 libmilter closes the MTA-to-filter socket when it finds
@@ -1655,40 +1667,51 @@ static const char *milter8_conn_event(MILTER *m,
 	    port = 0;
 	}
 	milter->state = MILTER8_STAT_ENVELOPE;
+	/* Transform unknown hostname from Postfix to Sendmail form. */
+	sm_name = (STR_NE(client_name, XXX_UNKNOWN) ? client_name :
+		   STR_EQ(client_addr, XXX_UNKNOWN) ? client_name :
+		   (ptr = concatenate("[", client_addr, "]", (char *) 0)));
 	switch (addr_family) {
 	case AF_INET:
-	    return (milter8_event(milter, SMFIC_CONNECT, SMFIP_NOCONNECT,
-				  DONT_SKIP_REPLY, macros,
-				  MILTER8_DATA_STRING, client_name,
-				  MILTER8_DATA_OCTET, SMFIA_INET,
-				  MILTER8_DATA_NSHORT, htons(port),
-				  MILTER8_DATA_STRING, client_addr,
-				  MILTER8_DATA_END));
+	    resp = milter8_event(milter, SMFIC_CONNECT, SMFIP_NOCONNECT,
+				 DONT_SKIP_REPLY, macros,
+				 MILTER8_DATA_STRING, sm_name,
+				 MILTER8_DATA_OCTET, SMFIA_INET,
+				 MILTER8_DATA_NSHORT, htons(port),
+				 MILTER8_DATA_STRING, client_addr,
+				 MILTER8_DATA_END);
+	    break;
 #ifdef HAS_IPV6
 	case AF_INET6:
-	    return (milter8_event(milter, SMFIC_CONNECT, SMFIP_NOCONNECT,
-				  DONT_SKIP_REPLY, macros,
-				  MILTER8_DATA_STRING, client_name,
-				  MILTER8_DATA_OCTET, SMFIA_INET6,
-				  MILTER8_DATA_NSHORT, htons(port),
-				  MILTER8_DATA_STRING, client_addr,
-				  MILTER8_DATA_END));
+	    resp = milter8_event(milter, SMFIC_CONNECT, SMFIP_NOCONNECT,
+				 DONT_SKIP_REPLY, macros,
+				 MILTER8_DATA_STRING, sm_name,
+				 MILTER8_DATA_OCTET, SMFIA_INET6,
+				 MILTER8_DATA_NSHORT, htons(port),
+				 MILTER8_DATA_STRING, client_addr,
+				 MILTER8_DATA_END);
+	    break;
 #endif
 	case AF_UNIX:
-	    return (milter8_event(milter, SMFIC_CONNECT, SMFIP_NOCONNECT,
-				  DONT_SKIP_REPLY, macros,
-				  MILTER8_DATA_STRING, client_name,
-				  MILTER8_DATA_OCTET, SMFIA_UNIX,
-				  MILTER8_DATA_NSHORT, htons(0),
-				  MILTER8_DATA_STRING, client_addr,
-				  MILTER8_DATA_END));
+	    resp = milter8_event(milter, SMFIC_CONNECT, SMFIP_NOCONNECT,
+				 DONT_SKIP_REPLY, macros,
+				 MILTER8_DATA_STRING, sm_name,
+				 MILTER8_DATA_OCTET, SMFIA_UNIX,
+				 MILTER8_DATA_NSHORT, htons(0),
+				 MILTER8_DATA_STRING, client_addr,
+				 MILTER8_DATA_END);
+	    break;
 	default:
-	    return (milter8_event(milter, SMFIC_CONNECT, SMFIP_NOCONNECT,
-				  DONT_SKIP_REPLY, macros,
-				  MILTER8_DATA_STRING, client_name,
-				  MILTER8_DATA_OCTET, SMFIA_UNKNOWN,
-				  MILTER8_DATA_END));
+	    resp = milter8_event(milter, SMFIC_CONNECT, SMFIP_NOCONNECT,
+				 DONT_SKIP_REPLY, macros,
+				 MILTER8_DATA_STRING, sm_name,
+				 MILTER8_DATA_OCTET, SMFIA_UNKNOWN,
+				 MILTER8_DATA_END);
+	    break;
 	}
+	if (ptr != 0)
+	    myfree(ptr);
+	return (resp);
     default:
 	msg_panic("%s: milter %s: bad state %d",
 		  myname, milter->m.name, milter->state);

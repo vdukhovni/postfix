@@ -276,7 +276,8 @@ void    qmgr_entry_done(QMGR_ENTRY *entry, int which)
     /*
      * Maintain back-to-back delivery status.
      */
-    queue->last_done = event_time();
+    if (which == QMGR_QUEUE_BUSY)
+	queue->last_done = event_time();
 
     /*
      * When the in-core queue for this site is empty and when this site is
