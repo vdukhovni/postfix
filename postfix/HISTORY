@@ -13562,3 +13562,40 @@ Apologies for any names omitted.
 	for the per-destination logfile, to prevent an excessive
 	rate of delivery attempts when the queue file system is
 	mounted with "noatime".  File: flush/flush.c.
+
+20071030
+
+	Bugfix (introduced Postfix 2.3): Postfix mistakenly enforced
+	the 64kbyte limit (for sending body parts TO Milter
+	applications) also while receiving packets FROM Milter
+	applications.  The limit is now at least 1GB.  File:
+	milter/milter8.c.
+
+20071202
+
+	Bugfix (introduced Postfix 2.2): don't update the back-to-back
+	delivery time stamp while deferring mail. File: *qmgr/qmgr_entry.c.
+
+20071211
+
+	Bugfix (introduced 19980315): the "write" equivalent of
+	bugfix 20030104. File: util/vstream.c.
+
+20071213
+
+	Bugfix (introduced Postfix 2.3): the SMTP client never
+	marked corrupt files as corrupt. Victor Duchovni. File:
+	smtp/smtp_proto.c.
+
+20071229
+
+	Bugfix: the Milter client did not replace the Postfix-specific
+	form for unknown host names by the Sendmail-specific form.
+	File: milter/milter8.c.
+
+20080104
+
+	Workaround: minor change to the Dovecot AUTH request to
+	prevent dovecot-auth memory wastage. Timo Sirainen.  File:
+	xsasl/xsasl_dovecot_server.c.
+

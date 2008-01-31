@@ -848,7 +848,7 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
 	/*
 	 * null_sender=string
 	 */
-	else if (strncasecmp("null_sender=", *argv, sizeof("eol=") - 1) == 0) {
+	else if (strncasecmp("null_sender=", *argv, sizeof("null_sender=") - 1) == 0) {
 	    vstring_strcpy(attr->null_sender, *argv + sizeof("null_sender=") - 1);
 	}
 
