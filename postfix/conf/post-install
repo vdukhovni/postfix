@@ -238,7 +238,7 @@ test -n "$create$upgrade_conf$first_install_reminder" || {
 
 for name in config_directory $MOST_PARAMETERS
 do
-    eval test -n \${$name} || {
+    eval test -n \"\${$name}\" || {
 	echo "$0: Error: do not invoke this command directly" 1>&2
 	echo Re-run this command as: postfix $0 ... 1>&2
 	exit 1

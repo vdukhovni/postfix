@@ -14280,8 +14280,10 @@ Apologies for any names omitted.
 
 20080125
 
-	Bugfix: missing {} in the LDAP client. Victor Duchovni.
-	File: global/dict_ldap.c.
+	Bugfix: missing {} in the LDAP client broke OpenLDAP TLS.
+	The setting tls_require_cert=no was further broken because
+	Postfix used OpenLDAP incorrectly. Victor Duchovni.  This
+	broke tls_require_cert=no File: global/dict_ldap.c.
 
 20080126
 
@@ -14290,3 +14292,14 @@ Apologies for any names omitted.
 	use since Postfix 2.1, but it was never enforced.  The
 	documentation for package maintainers has been updated
 	accordingly. File: conf/post-install.
+
+20080130
+
+	Bugfix (introduced 20071204): wrong proxywrite process limit
+	in the default master.cf file.  File: conf/master.cf.
+
+20080131
+
+	Bugfix (introduced 20080126): the new "do not execute
+	directly" test in post-install got broken during code
+	cleanup.  File: conf/post-install.

@@ -32,7 +32,7 @@ trace     unix  -       -       n       -       0       bounce
 verify    unix  -       -       n       -       1       verify
 flush     unix  n       -       n       1000?   0       flush
 proxymap  unix  -       -       n       -       -       proxymap
-proxywrite unix -       -       n       -       -       proxymap
+proxywrite unix -       -       n       -       1       proxymap
 smtp      unix  -       -       n       -       -       smtp
 # When relaying mail as backup MX, disable fallback_relay to avoid MX loops
 relay     unix  -       -       n       -       -       smtp
