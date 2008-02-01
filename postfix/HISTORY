@@ -14280,10 +14280,11 @@ Apologies for any names omitted.
 
 20080125
 
-	Bugfix: missing {} in the LDAP client broke OpenLDAP TLS.
-	The setting tls_require_cert=no was further broken because
-	Postfix used OpenLDAP incorrectly. Victor Duchovni.  This
-	broke tls_require_cert=no File: global/dict_ldap.c.
+	Bugfix (introduced 20071216): missing {} in the LDAP client
+	broke OpenLDAP TLS.  The setting tls_require_cert=no was
+	further broken because Postfix used OpenLDAP incorrectly.
+	Victor Duchovni.  This broke tls_require_cert=no File:
+	global/dict_ldap.c.
 
 20080126
 
@@ -14303,3 +14304,14 @@ Apologies for any names omitted.
 	Bugfix (introduced 20080126): the new "do not execute
 	directly" test in post-install got broken during code
 	cleanup.  File: conf/post-install.
+
+20080201
+
+	Workaround: undo the changes that require that post-install
+	is invoked via the postfix command, because this breaks
+	when "postfix start" is invoked with an obsolete postfix
+	command that doesn't export the new data_directory parameter.
+
+	Workaround: pick up a missing data_directory setting from
+	main.cf when "postfix start" is invoked with an obsolete
+	postfix command. File: conf/post-install.
