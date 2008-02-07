@@ -16,3 +16,13 @@ Incompatibility with Postfix 2.4 and earlier
 
 If you upgrade from Postfix 2.4 or earlier, read RELEASE_NOTES-2.5
 before proceeding.
+
+Incompatible changes with snapshot 20080207
+===========================================
+
+According to discussions on the mailing list, too many people are
+breaking newly installed Postfix by overwriting the new /etc/postfix
+files with versions from an older release, and end up with a broken
+configuration that cannot repair itself. For this reason, postfix-script,
+postfix-files and post-install are moved away from /etc/postfix to
+$daemon_directory.

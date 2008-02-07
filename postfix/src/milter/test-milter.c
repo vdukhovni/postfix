@@ -151,8 +151,8 @@ static int test_reply(SMFICTX *ctx, int code)
     (void) fflush(stdout);		/* In case output redirected. */
 
     if (code == SMFIR_REPLYCODE) {
-	if (smfi_setreply(ctx, reply_code, reply_dsn, reply_message) == MI_FAILURE)
-	    fprintf(stderr, "smfi_setreply failed\n");
+	if (smfi_setmlreply(ctx, reply_code, reply_dsn, reply_message, reply_message, (char *) 0) == MI_FAILURE)
+	    fprintf(stderr, "smfi_setmlreply failed\n");
 	printf("test_reply %s\n", reply_code);
 	return (reply_code[0] == '4' ? SMFIS_TEMPFAIL : SMFIS_REJECT);
     } else {

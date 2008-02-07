@@ -22,6 +22,7 @@
 #define CLEANUP_FLAG_BCC_OK	(1<<4)	/* Ok to add auto-BCC addresses */
 #define CLEANUP_FLAG_MAP_OK	(1<<5)	/* Ok to map addresses */
 #define CLEANUP_FLAG_MILTER	(1<<6)	/* Enable Milter applications */
+#define CLEANUP_FLAG_SMTP_REPLY	(1<<7)	/* Enable SMTP reply */
 
 #define CLEANUP_FLAG_FILTER_ALL	(CLEANUP_FLAG_FILTER | CLEANUP_FLAG_MILTER)
  /*

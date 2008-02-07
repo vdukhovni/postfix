@@ -78,6 +78,7 @@ typedef struct CLEANUP_STATE {
     off_t   append_hdr_pt_target;	/* target of above record */
     ssize_t rcpt_count;			/* recipient count */
     char   *reason;			/* failure reason */
+    char   *smtp_reply;			/* failure reason, SMTP-style */
     NVTABLE *attr;			/* queue file attribute list */
     MIME_STATE *mime_state;		/* MIME state engine */
     int     mime_errs;			/* MIME error flags */
@@ -120,6 +121,29 @@ typedef struct CLEANUP_STATE {
 #define CLEANUP_FLAG_INRCPT	(1<<16)	/* Processing recipient records */
 #define CLEANUP_FLAG_WARN_SEEN	(1<<17)	/* REC_TYPE_WARN record seen */
 #define CLEANUP_FLAG_END_SEEN	(1<<18)	/* REC_TYPE_END record seen */
+
+ /*
+  * Milter replies.
+  */
+#define CLEANUP_MILTER_REASON(__state, __reason) do { \
+	if ((__state)->reason) \
+	    myfree((__state)->reason); \
+	(__state)->reason = mystrdup(__reason); \
+	if ((__state)->smtp_reply) { \
+	    myfree((__state)->smtp_reply); \
+	    (__state)->smtp_reply = 0; \
+	} \
+    } while (0)
+
+#define CLEANUP_MILTER_SMTP_REPLY(__state, __smtp_reply) do { \
+	if ((__state)->reason) \
+	    myfree((__state)->reason); \
+	(__state)->reason = mystrdup(__smtp_reply + 4); \
+	printable((__state)->reason, '_'); \
+	if ((__state)->smtp_reply) \
+	    myfree((__state)->smtp_reply); \
+	(__state)->smtp_reply = mystrdup(__smtp_reply); \
+    } while (0)
 
  /*
   * Mappings.

@@ -9,7 +9,7 @@
 # SUMMARY
 #	Postfix post-installation script
 # SYNOPSIS
-#	post-install [name=value] command ...
+#	postfix post-install [name=value] command ...
 # DESCRIPTION
 #	The post-install script performs the finishing touch of a Postfix
 #	installation, after the executable programs and configuration
@@ -40,14 +40,14 @@
 #	Arguments
 # .IP create-missing
 #	Create missing queue directories with ownerships and permissions
-#	according to the contents of $config_directory/postfix-files, using
+#	according to the contents of $daemon_directory/postfix-files, using
 #	the mail_owner and setgid_group parameter settings from the command
 #	line, process environment or from the installed main.cf file.
 #
 #	This is required at Postfix start-up time.
 # .IP set-permissions
 #	Set all file/directory ownerships and permissions according to the
-#	contents of $config_directory/postfix-files, using the mail_owner
+#	contents of $daemon_directory/postfix-files, using the mail_owner
 #	and setgid_group parameter settings from the command line, process
 #	environment or from the installed main.cf file. Implies create-missing.
 #
@@ -56,7 +56,7 @@
 #	settings after Postfix is already installed.
 # .IP upgrade-permissions
 #	Update ownership and permission of existing files/directories as
-#	specified in $config_directory/postfix-files, using the mail_owner
+#	specified in $daemon_directory/postfix-files, using the mail_owner
 #	and setgid_group parameter settings from the command line, process
 #	environment or from the installed main.cf file. Implies create-missing.
 #
@@ -90,7 +90,7 @@
 #	copy the configuration files from the primary Postfix instance to
 #	a secondary configuration directory and execute:
 #
-#	post-install config_directory=secondary-config-directory \e
+#	postfix post-install config_directory=secondary-config-directory \e
 # .in +4
 #		queue_directory=secondary-queue-directory \e
 # .br
@@ -106,7 +106,7 @@
 #	To upgrade a secondary Postfix installation on the same machine,
 #	execute:
 #
-#	post-install config_directory=secondary-config-directory \e
+#	postfix post-install config_directory=secondary-config-directory \e
 # .in +4
 #		upgrade-permissions upgrade-configuration
 # INSTALLATION PARAMETER INPUT METHODS
@@ -173,7 +173,7 @@
 #	postfix-install(1) Postfix primary installation script.
 # FILES
 #	$config_directory/main.cf, Postfix installation parameters.
-#	$config_directory/postfix-files, installation control file.
+#	$daemon_directory/postfix-files, installation control file.
 #	$config_directory/install.cf, obsolete configuration file.
 # LICENSE
 # .ad
@@ -258,8 +258,8 @@ test -d "$config_directory" || {
     exit 1
 }
 
-test -f $config_directory/postfix-files || {
-    echo $0: Error: $config_directory/postfix-files is not a file. 1>&2
+test -f $daemon_directory/postfix-files || {
+    echo $0: Error: $daemon_directory/postfix-files is not a file. 1>&2
     exit 1
 }
 
@@ -412,10 +412,10 @@ test -n "$override" && {
     || exit 1
 }
 
-# Use file/directory status information in $config_directory/postfix-files.
+# Use file/directory status information in $daemon_directory/postfix-files.
 
 test -n "$create" && {
-    exec <$config_directory/postfix-files || exit 1
+    exec <$daemon_directory/postfix-files || exit 1
     while IFS=: read path type owner group mode flags junk
     do
 	IFS="$BACKUP_IFS"
@@ -429,7 +429,7 @@ test -n "$create" && {
 	case $type in
 	[hl]) continue;;
 	[df]) ;;
-	   *) echo unknown type $type for $path in $config_directory/postfix-files1>&2; exit 1;;
+	   *) echo unknown type $type for $path in $daemon_directory/postfix-files1>&2; exit 1;;
 	esac
 	# Expand $name, and canonicalize null fields.
 	for name in path owner group flags

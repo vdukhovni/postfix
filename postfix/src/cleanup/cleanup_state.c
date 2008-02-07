@@ -97,6 +97,7 @@ CLEANUP_STATE *cleanup_state_alloc(VSTREAM *src)
     state->append_hdr_pt_target = -1;
     state->rcpt_count = 0;
     state->reason = 0;
+    state->smtp_reply = 0;
     state->attr = nvtable_create(10);
     nvtable_update(state->attr, MAIL_ATTR_LOG_ORIGIN, MAIL_ATTR_ORG_LOCAL);
     state->mime_state = 0;
@@ -150,6 +151,8 @@ void    cleanup_state_free(CLEANUP_STATE *state)
     been_here_free(state->dups);
     if (state->reason)
 	myfree(state->reason);
+    if (state->smtp_reply)
+	myfree(state->smtp_reply);
     nvtable_free(state->attr);
     if (state->mime_state)
 	mime_state_free(state->mime_state);

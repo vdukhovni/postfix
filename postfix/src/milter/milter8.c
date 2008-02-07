@@ -83,7 +83,7 @@
 
 /* Global library. */
 
-#include <mail_params.h>		/* var_line_limit */
+#include <mail_params.h>
 #include <mail_proto.h>
 #include <rec_type.h>
 #include <record.h>
@@ -1094,6 +1094,7 @@ static const char *milter8_event(MILTER8 *milter, int event,
 	char   *cp;
 	char   *rp;
 	char    ch;
+	char   *next;
 
 	if (milter8_read_resp(milter, event, &cmd, &data_size) != 0)
 	    MILTER8_EVENT_BREAK(milter->def_reply);
@@ -1265,6 +1266,18 @@ static const char *milter8_event(MILTER8 *milter, int event,
 		    if (ch == 0)
 			break;
 		}
+	    }
+	    for (cp = STR(milter->buf); /* void */ ; cp = next) {
+		if (var_soft_bounce) {
+		    if (cp[0] == '5') {
+			cp[0] = '4';
+			if (cp[4] == '5')
+			    cp[4] = '4';
+		    }
+		}
+		if ((next = strstr(cp, "\r\n")) == 0)
+		    break;
+		next += 2;
 	    }
 	    if (IN_CONNECT_EVENT(event)) {
 #ifdef LIBMILTER_AUTO_DISCONNECT

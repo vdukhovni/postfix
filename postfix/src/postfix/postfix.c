@@ -152,9 +152,9 @@
 /* FILES
 /*	/etc/postfix/main.cf, Postfix configuration parameters
 /*	/etc/postfix/master.cf, Postfix daemon processes
-/*	/etc/postfix/postfix-files, file/directory permissions
-/*	/etc/postfix/postfix-script, administrative commands
-/*	/etc/postfix/post-install, post-installation configuration
+/*	$daemon_directory/postfix-files, file/directory permissions
+/*	$daemon_directory/postfix-script, administrative commands
+/*	$daemon_directory/post-install, post-installation configuration
 /* SEE ALSO
 /*	Commands:
 /*	postalias(1), create/update/query alias database
@@ -466,7 +466,7 @@ int     main(int argc, char **argv)
     /*
      * Run the management script with as process name ourself.
      */
-    script = concatenate(var_config_dir, "/postfix-script", (char *) 0);
+    script = concatenate(var_daemon_dir, "/postfix-script", (char *) 0);
     execvp(script, argv + optind - 1);
     msg_fatal("%s: %m", script);
 }

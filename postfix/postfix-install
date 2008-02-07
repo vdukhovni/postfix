@@ -151,7 +151,7 @@
 #	post-install(1) post-installation procedure
 # FILES
 #	$config_directory/main.cf, Postfix installation configuration.
-#	$config_directory/postfix-files, installation control file.
+#	$daemon_directory/postfix-files, installation control file.
 #	$config_directory/install.cf, obsolete configuration file.
 # LICENSE
 # .ad
@@ -586,7 +586,7 @@ fi
 
 # Install files, using information from the postfix-files file.
 
-exec < conf/postfix-files || exit 1
+exec < libexec/postfix-files || exit 1
 while IFS=: read path type owner group mode flags junk
 do
     IFS="$BACKUP_IFS"
@@ -682,7 +682,7 @@ do
 	    test "$readme_directory" = "no" ||
 		compare_or_replace $mode "$owner" "$group" README_FILES/$file \
 		    $README_DIRECTORY/$file || exit 1;;
-	 *) echo $0: Error: unknown entry $path in conf/postfix-files 1>&2
+	 *) echo $0: Error: unknown entry $path in libexec/postfix-files 1>&2
 	    exit 1;;
 	esac) || exit 1
 	continue;;
@@ -713,7 +713,7 @@ do
 	) || exit 1
 	continue;;
 
-     *) echo $0: Error: unknown type $type for $path in conf/postfix-files 1>&2
+     *) echo $0: Error: unknown type $type for $path in libexec/postfix-files 1>&2
 	exit 1;;
     esac
 

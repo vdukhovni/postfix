@@ -94,12 +94,12 @@ start)
 	then
 		rm -f $queue_directory/quick-start
 	else
-		$config_directory/postfix-script check-fatal || {
+		$daemon_directory/postfix-script check-fatal || {
 			$FATAL Postfix integrity check failed!
 			exit 1
 		}
 		# Foreground this so it can be stopped. All inodes are cached.
-		$config_directory/postfix-script check-warn
+		$daemon_directory/postfix-script check-warn
 	fi
 	$INFO starting the Postfix mail system
 	$daemon_directory/master &
@@ -117,7 +117,7 @@ drain)
 
 quick-stop)
 
-	$config_directory/postfix-script stop
+	$daemon_directory/postfix-script stop
 	touch $queue_directory/quick-start
 	;;
 
@@ -173,8 +173,8 @@ flush)
 
 check)
 
-	$config_directory/postfix-script check-fatal || exit 1
-	$config_directory/postfix-script check-warn
+	$daemon_directory/postfix-script check-fatal || exit 1
+	$daemon_directory/postfix-script check-warn
 	exit 0
 	;;
 
@@ -192,7 +192,7 @@ status)
 check-fatal)
 	# This command is NOT part of the public interface.
 
-	$SHELL $config_directory/post-install create-missing || {
+	$SHELL $daemon_directory/post-install create-missing || {
 		$FATAL unable to create missing queue directories
 		exit 1
 	}
@@ -283,13 +283,13 @@ check-warn)
 	;;
 
 set-permissions|upgrade-configuration)
-	$config_directory/post-install create-missing "$@"
+	$daemon_directory/post-install create-missing "$@"
 	;;
 
 post-install)
 	# Currently not part of the public interface.
 	shift
-	$config_directory/post-install "$@"
+	$daemon_directory/post-install "$@"
 	;;
 
 /*)
