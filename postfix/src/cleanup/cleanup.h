@@ -78,6 +78,7 @@ typedef struct CLEANUP_STATE {
     off_t   append_hdr_pt_target;	/* target of above record */
     ssize_t rcpt_count;			/* recipient count */
     char   *reason;			/* failure reason */
+    char   *smtp_reply;			/* failure reason, SMTP-style */
     NVTABLE *attr;			/* queue file attribute list */
     MIME_STATE *mime_state;		/* MIME state engine */
     int     mime_errs;			/* MIME error flags */

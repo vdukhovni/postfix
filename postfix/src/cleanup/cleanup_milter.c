@@ -216,6 +216,29 @@
 #define STR(x)		vstring_str(x)
 #define LEN(x)		VSTRING_LEN(x)
 
+ /*
+  * Milter replies.
+  */
+#define CLEANUP_MILTER_SET_REASON(__state, __reason) do { \
+	if ((__state)->reason) \
+	    myfree((__state)->reason); \
+	(__state)->reason = mystrdup(__reason); \
+	if ((__state)->smtp_reply) { \
+	    myfree((__state)->smtp_reply); \
+	    (__state)->smtp_reply = 0; \
+	} \
+    } while (0)
+
+#define CLEANUP_MILTER_SET_SMTP_REPLY(__state, __smtp_reply) do { \
+	if ((__state)->reason) \
+	    myfree((__state)->reason); \
+	(__state)->reason = mystrdup(__smtp_reply + 4); \
+	printable((__state)->reason, '_'); \
+	if ((__state)->smtp_reply) \
+	    myfree((__state)->smtp_reply); \
+	(__state)->smtp_reply = mystrdup(__smtp_reply); \
+    } while (0)
+
 /* cleanup_milter_set_error - set error flag from errno */
 
 static void cleanup_milter_set_error(CLEANUP_STATE *state, int err)
@@ -1402,25 +1425,17 @@ static const char *cleanup_milter_apply(CLEANUP_STATE *state, const char *event,
 	 * CLEANUP_STAT_CONT and CLEANUP_STAT_DEFER both update the reason
 	 * attribute, but CLEANUP_STAT_DEFER takes precedence. It terminates
 	 * queue record processing, and prevents bounces from being sent.
-	 * 
-	 * XXX Multi-line replies are messy, We should eliminate not only the
-	 * CRLF, but also the SMTP status and the enhanced status code that
-	 * follows.
 	 */
     case '4':
-	if (state->reason)
-	    myfree(state->reason);
-	ret = state->reason = mystrdup(resp + 4);
-	printable(state->reason, '_');
+	CLEANUP_MILTER_SET_SMTP_REPLY(state, resp);
+	ret = state->reason;
 	state->errs |= CLEANUP_STAT_DEFER;
 	action = "milter-reject";
 	text = resp + 4;
 	break;
     case '5':
-	if (state->reason)
-	    myfree(state->reason);
-	ret = state->reason = mystrdup(resp + 4);
-	printable(state->reason, '_');
+	CLEANUP_MILTER_SET_SMTP_REPLY(state, resp);
+	ret = state->reason;
 	state->errs |= CLEANUP_STAT_CONT;
 	action = "milter-reject";
 	text = resp + 4;
@@ -1596,9 +1611,7 @@ void    cleanup_milter_emul_rcpt(CLEANUP_STATE *state,
 	msg_warn("%s: milter configuration error: can't reject recipient "
 		 "in non-smtpd(8) submission", state->queue_id);
 	msg_warn("%s: deferring delivery of this message", state->queue_id);
-	if (state->reason)
-	    myfree(state->reason);
-	state->reason = mystrdup("4.3.5 Server configuration error");
+	CLEANUP_MILTER_SET_REASON(state, "4.3.5 Server configuration error");
 	state->errs |= CLEANUP_STAT_DEFER;
     }
 }

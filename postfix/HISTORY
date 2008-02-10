@@ -14300,3 +14300,15 @@ Apologies for any names omitted.
 	Workaround (introduced 20071204): update the wrong proxywrite
 	process limit when upgrading an already installed default
 	master.cf file.  File: conf/post-install.
+
+20080207
+
+	Cleanup: soft_bounce support for multi-line Milter replies.
+	File: src/milter/milter8.c.
+
+	Cleanup: preserve multi-line format of header/body Milter
+	replies. Files: cleanup/cleanup_milter.c, smtpd/smtpd.c.
+
+	Cleanup: multi-line support in SMTP server replies.  File:
+	smtpd/smtpd_chat.c.
+

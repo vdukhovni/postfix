@@ -1633,7 +1633,8 @@ static int mail_open_stream(SMTPD_STATE *state)
 
 	smtpd_check_rewrite(state);
 	cleanup_flags = input_transp_cleanup(CLEANUP_FLAG_MASK_EXTERNAL,
-					     smtpd_input_transp_mask);
+					     smtpd_input_transp_mask)
+	    | CLEANUP_FLAG_SMTP_REPLY;
 	state->dest = mail_stream_service(MAIL_CLASS_PUBLIC,
 					  var_cleanup_service);
 	if (state->dest == 0
@@ -2864,6 +2865,11 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      * 
      * See also: qmqpd.c
      */
+#define IS_SMTP_REJECT(s) \
+	(((s)[0] == '4' || (s)[0] == '5') \
+	 && ISDIGIT((s)[1]) && ISDIGIT((s)[2]) \
+	 && ((s)[3] == '\0' || (s)[3] == ' ' || (s)[3] == '-'))
+
     if (state->err == CLEANUP_STAT_OK) {
 	state->error_count = 0;
 	state->error_mask = 0;
@@ -2873,6 +2879,9 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 			     "250 2.0.0 Ok: queued as %s", state->queue_id);
 	else
 	    smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
+    } else if (why && IS_SMTP_REJECT(STR(why))) {
+	state->error_mask |= MAIL_ERROR_POLICY;
+	smtpd_chat_reply(state, "%s", STR(why));
     } else if ((state->err & CLEANUP_STAT_DEFER) != 0) {
 	state->error_mask |= MAIL_ERROR_POLICY;
 	detail = cleanup_stat_detail(CLEANUP_STAT_DEFER);
@@ -3766,7 +3775,7 @@ static void smtpd_start_tls(SMTPD_STATE *state)
      * we exclude xclient authorized hosts from event count/rate control.
      */
     if (var_smtpd_cntls_limit > 0
-	&& (state->tls_context == 0 || state->tls_context->session_reused == 0)
+     && (state->tls_context == 0 || state->tls_context->session_reused == 0)
 	&& SMTPD_STAND_ALONE(state) == 0
 	&& !xclient_allowed
 	&& anvil_clnt
@@ -3779,7 +3788,7 @@ static void smtpd_start_tls(SMTPD_STATE *state)
 		 rate, state->namaddr, state->service);
 	if (state->tls_context)
 	    smtpd_chat_reply(state,
-			"421 4.7.0 %s Error: too many new TLS sessions from %s",
+		    "421 4.7.0 %s Error: too many new TLS sessions from %s",
 			     var_myhostname, state->namaddr);
 	/* XXX Use regular return to signal end of session. */
 	vstream_longjmp(state->client, SMTP_ERR_QUIET);
