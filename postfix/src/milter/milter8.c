@@ -1267,17 +1267,17 @@ static const char *milter8_event(MILTER8 *milter, int event,
 			break;
 		}
 	    }
-	    for (cp = STR(milter->buf); /* void */ ; cp = next) {
-		if (var_soft_bounce) {
+	    if (var_soft_bounce) {
+		for (cp = STR(milter->buf); /* void */ ; cp = next) {
 		    if (cp[0] == '5') {
 			cp[0] = '4';
 			if (cp[4] == '5')
 			    cp[4] = '4';
 		    }
+		    if ((next = strstr(cp, "\r\n")) == 0)
+			break;
+		    next += 2;
 		}
-		if ((next = strstr(cp, "\r\n")) == 0)
-		    break;
-		next += 2;
 	    }
 	    if (IN_CONNECT_EVENT(event)) {
 #ifdef LIBMILTER_AUTO_DISCONNECT

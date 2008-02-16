@@ -1,7 +1,13 @@
 Wish list:
 
+	To support ternary operator without a huge parsing effort,
+	consider ${value?{xxx}:{yyy}} where ${name} is existing
+	syntax, and where ?{text} and :{text} are new syntax that
+	is unlikely to break existing configurations. Or perhaps
+	it's just too ugly.
+
 	Make adding Date/From/Message-ID headers dependent on local
-	rewrite context?
+	rewrite context.
 
 	Write delivery rate delay example (which _README?) and auth
 	failure cache example (SASL_README). Then include them in

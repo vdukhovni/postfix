@@ -14324,7 +14324,7 @@ Apologies for any names omitted.
 	Cleanup: preserve multi-line format of header/body Milter
 	replies. Files: cleanup/cleanup_milter.c, smtpd/smtpd.c.
 
-	Cleanup: nicer multi-line support in the SMTP server.  File:
+	Cleanup: multi-line support in SMTP server replies.  File:
 	smtpd/smtpd_chat.c.
 
 	SAFETY: postfix-script, postfix-files and post-install are
@@ -14334,3 +14334,15 @@ Apologies for any names omitted.
 	with an unusable Postfix setup.  Files: postfix-install,
 	Makefile.in, postfix/postfix.c, conf/postfix-files,
 	conf/postfix-script, conf/post-install.
+
+20080212
+
+	Feature: check_reverse_client_access, to make access decisions
+	based on the unverified client hostname.  For safety reasons
+	an OK result is not allowed.  Noel Jones. Files:
+	smtpd/smtpd_check.c plus header files and documentation.
+
+20080215
+
+	Safety: break SASL loop in case both the SASL library and the
+	remote SMTP server are confused. File: smtp/smtp_sasl_glue.c.

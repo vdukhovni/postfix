@@ -57,7 +57,7 @@
 /*	already installed Postfix system.
 /* .sp
 /*	This feature is available in Postfix 2.1 and later.  With
-/*	Postfix 2.0 and earlier, use "\fB/etc/postfix/post-install
+/*	Postfix 2.0 and earlier, use "\fB$config_directory/post-install
 /*	set-permissions\fR".
 /* .IP "\fBupgrade-configuration\fR \fB[\fIname\fR=\fIvalue ...\fB]\fR
 /*	Update the \fBmain.cf\fR and \fBmaster.cf\fR files with information
@@ -68,7 +68,7 @@
 /*	main.cf configuration parameters.
 /* .sp
 /*	This feature is available in Postfix 2.1 and later.  With
-/*	Postfix 2.0 and earlier, use "\fB/etc/postfix/post-install
+/*	Postfix 2.0 and earlier, use "\fB$config_directory/post-install
 /*	upgrade-configuration\fR".
 /* .PP
 /*	The following options are implemented:
@@ -150,8 +150,21 @@
 /*	The mail system name that is prepended to the process name in syslog
 /*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* FILES
-/*	/etc/postfix/main.cf, Postfix configuration parameters
-/*	/etc/postfix/master.cf, Postfix daemon processes
+/* .ad
+/* .fi
+/*	Prior to Postfix version 2.6, all of the following files
+/*	were in \fB$config_directory\fR. Some files are now in
+/*	\fB$daemon_directory\fR so that they can be shared among
+/*	multiple instances that run the same Postfix version.
+/*
+/*	Use the command "\fBpostconf config_directory\fR" or
+/*	"\fBpostconf daemon_directory\fR" to expand the names
+/*	into their actual values.
+/* .na
+/* .nf
+/*
+/*	$config_directory/main.cf, Postfix configuration parameters
+/*	$config_directory/master.cf, Postfix daemon processes
 /*	$daemon_directory/postfix-files, file/directory permissions
 /*	$daemon_directory/postfix-script, administrative commands
 /*	$daemon_directory/post-install, post-installation configuration

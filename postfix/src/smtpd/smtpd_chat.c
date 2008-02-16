@@ -172,6 +172,7 @@ void    smtpd_chat_reply(SMTPD_STATE *state, const char *format,...)
 	    next = end;
 	}
 	smtp_chat_append(state, "Out: ", cp);
+
 	if (msg_verbose)
 	    msg_info("> %s: %s", state->namaddr, cp);
 

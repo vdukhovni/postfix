@@ -1970,6 +1970,7 @@ extern char *var_perm_mx_networks;
 extern int var_access_map_code;
 
 #define CHECK_CLIENT_ACL	"check_client_access"
+#define CHECK_REVERSE_CLIENT_ACL "check_reverse_client_hostname_access"
 #define CHECK_CCERT_ACL		"check_ccert_access"
 #define CHECK_HELO_ACL		"check_helo_access"
 #define CHECK_SENDER_ACL	"check_sender_access"

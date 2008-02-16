@@ -70,8 +70,8 @@ POSTFIX(1)                                                          POSTFIX(1)
               setting for an already installed Postfix system.
 
               This feature is available in Postfix 2.1 and later.
-              With  Postfix  2.0  and  earlier,  use  "<b>/etc/post-</b>
-              <b>fix/post-install set-permissions</b>".
+              With  Postfix  2.0 and earlier, use "<b>$<a href="postconf.5.html#config_directory">config_direc</a>-</b>
+              <b><a href="postconf.5.html#config_directory">tory</a>/post-install set-permissions</b>".
 
        <b>upgrade-configuration [</b><i>name</i>=<i>value ...</i><b>]</b>
               Update the <a href="postconf.5.html"><b>main.cf</b></a> and <a href="master.5.html"><b>master.cf</b></a> files with  infor-
@@ -83,8 +83,8 @@ POSTFIX(1)                                                          POSTFIX(1)
               <a href="postconf.5.html">main.cf</a> configuration parameters.
 
               This feature is available in Postfix 2.1 and later.
-              With  Postfix  2.0  and  earlier,  use  "<b>/etc/post-</b>
-              <b>fix/post-install upgrade-configuration</b>".
+              With  Postfix  2.0 and earlier, use "<b>$<a href="postconf.5.html#config_directory">config_direc</a>-</b>
+              <b><a href="postconf.5.html#config_directory">tory</a>/post-install upgrade-configuration</b>".
 
        The following options are implemented:
 
@@ -199,8 +199,17 @@ POSTFIX(1)                                                          POSTFIX(1)
               becomes, for example, "postfix/smtpd".
 
 <b>FILES</b>
-       /etc/postfix/<a href="postconf.5.html">main.cf</a>, Postfix configuration parameters
-       /etc/postfix/<a href="master.5.html">master.cf</a>, Postfix daemon processes
+       Prior to Postfix version 2.6, all of the  following  files
+       were  in  <b>$<a href="postconf.5.html#config_directory">config_directory</a></b>.  Some  files are now in <b>$<a href="postconf.5.html#daemon_directory">dae</a>-</b>
+       <b><a href="postconf.5.html#daemon_directory">mon_directory</a></b> so that they can be  shared  among  multiple
+       instances that run the same Postfix version.
+
+       Use  the  command "<b>postconf <a href="postconf.5.html#config_directory">config_directory</a></b>" or "<b>postconf</b>
+       <b><a href="postconf.5.html#daemon_directory">daemon_directory</a></b>" to expand the names  into  their  actual
+       values.
+
+       $<a href="postconf.5.html#config_directory">config_directory</a>/<a href="postconf.5.html">main.cf</a>, Postfix configuration parameters
+       $<a href="postconf.5.html#config_directory">config_directory</a>/<a href="master.5.html">master.cf</a>, Postfix daemon processes
        $<a href="postconf.5.html#daemon_directory">daemon_directory</a>/postfix-files, file/directory permissions
        $<a href="postconf.5.html#daemon_directory">daemon_directory</a>/postfix-script, administrative commands
        $<a href="postconf.5.html#daemon_directory">daemon_directory</a>/post-install, post-installation configuration
@@ -283,7 +292,7 @@ POSTFIX(1)                                                          POSTFIX(1)
        <a href="QSHAPE_README.html">QSHAPE_README</a>, Postfix queue analysis
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>

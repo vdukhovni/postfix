@@ -62,9 +62,6 @@ $queue_directory/public:d:$mail_owner:$setgid_group:710:uc
 $queue_directory/pid:d:root:-:755:uc
 $queue_directory/saved:d:$mail_owner:-:700:ucr
 $queue_directory/trace:d:$mail_owner:-:700:ucr
-$daemon_directory/postfix-script:f:root:-:755
-$daemon_directory/postfix-files:f:root:-:644
-$daemon_directory/post-install:f:root:-:755
 $daemon_directory/anvil:f:root:-:755
 $daemon_directory/bounce:f:root:-:755
 $daemon_directory/cleanup:f:root:-:755
@@ -77,6 +74,9 @@ $daemon_directory/master:f:root:-:755
 $daemon_directory/oqmgr:f:root:-:755
 $daemon_directory/pickup:f:root:-:755
 $daemon_directory/pipe:f:root:-:755
+$daemon_directory/post-install:f:root:-:755
+$daemon_directory/postfix-files:f:root:-:644
+$daemon_directory/postfix-script:f:root:-:755
 $daemon_directory/proxymap:f:root:-:755
 $daemon_directory/qmgr:f:root:-:755
 $daemon_directory/qmqpd:f:root:-:755

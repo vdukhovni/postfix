@@ -3502,8 +3502,8 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 
 	if (strchr(name, ':') != 0) {
 	    if (def_acl == NO_DEF_ACL) {
-		msg_warn("specify one of (%s, %s, %s, %s, %s) before %s restriction \"%s\"",
-			 CHECK_CLIENT_ACL, CHECK_HELO_ACL, CHECK_SENDER_ACL,
+		msg_warn("specify one of (%s, %s, %s, %s, %s, %s) before %s restriction \"%s\"",
+			 CHECK_CLIENT_ACL, CHECK_REVERSE_CLIENT_ACL, CHECK_HELO_ACL, CHECK_SENDER_ACL,
 			 CHECK_RECIP_ACL, CHECK_ETRN_ACL, reply_class, name);
 		longjmp(smtpd_check_buf,
 			smtpd_check_reject(state, MAIL_ERROR_SOFTWARE,
@@ -3590,6 +3590,11 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    status = check_namadr_access(state, *cpp, state->name, state->addr,
 					 FULL, &found, state->namaddr,
 					 SMTPD_NAME_CLIENT, def_acl);
+	} else if (is_map_command(state, name, CHECK_REVERSE_CLIENT_ACL, &cpp)) {
+	    status = check_namadr_access(state, *cpp, state->reverse_name, state->addr,
+					 FULL, &found, state->namaddr,
+					 SMTPD_NAME_REV_CLIENT, def_acl);
+	    forbid_whitelist(state, name, status, state->reverse_name);
 	} else if (strcasecmp(name, REJECT_MAPS_RBL) == 0) {
 	    status = reject_maps_rbl(state);
 	} else if (strcasecmp(name, REJECT_RBL_CLIENT) == 0

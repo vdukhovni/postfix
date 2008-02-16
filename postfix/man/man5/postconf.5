@@ -4229,7 +4229,7 @@ the unix: prefix),
 a /file/name with domain names and/or relay host names as
 defined above,
 .IP \(bu
-a "type:table" with domain names and/or relay hosts name on
+a "type:table" with domain names and/or relay host names on
 the left-hand side.  The right-hand side result from "type:table"
 lookups is ignored.
 .PP
@@ -6047,6 +6047,14 @@ Postfix version 2.5).  This feature is available with Postfix version
 Search the specified access database for the client hostname,
 parent domains, client IP address, or networks obtained by stripping
 least significant octets. See the \fBaccess\fR(5) manual page for details.
+.IP "\fBcheck_reverse_client_hostname_access \fItype:table\fR\fR"
+Search the specified access database for the unverified reverse
+client hostname, parent domains, client IP address, or networks
+obtained by stripping least significant octets. See the \fBaccess\fR(5)
+manual page for details.  Note: a result of "OK" is not allowed for
+safety reasons.  Instead, use DUNNO in order to exclude specific
+hosts from blacklists.  This feature is available in Postfix 2.6
+and later.
 .IP "\fBpermit_inet_interfaces\fR"
 Permit the request when the client IP address matches
 $inet_interfaces.

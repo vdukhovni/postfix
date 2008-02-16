@@ -7503,7 +7503,7 @@ the unix: prefix),
 <li> a /file/name with domain names and/or <a href="postconf.5.html#relayhost">relay host</a> names as
 defined above,
 
-<li> a "<a href="DATABASE_README.html">type:table</a>" with domain names and/or relay hosts name on
+<li> a "<a href="DATABASE_README.html">type:table</a>" with domain names and/or <a href="postconf.5.html#relayhost">relay host</a> names on
 the left-hand side.  The right-hand side result from "<a href="DATABASE_README.html">type:table</a>"
 lookups is ignored.
 
@@ -10020,6 +10020,16 @@ Postfix version 2.5).  This feature is available with Postfix version
 <dd>Search the specified access database for the client hostname,
 parent domains, client IP address, or networks obtained by stripping
 least significant octets. See the <a href="access.5.html">access(5)</a> manual page for details. </dd>
+
+<dt><b><a name="check_reverse_client_hostname_access">check_reverse_client_hostname_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
+
+<dd>Search the specified access database for the unverified reverse
+client hostname, parent domains, client IP address, or networks
+obtained by stripping least significant octets. See the <a href="access.5.html">access(5)</a>
+manual page for details.  Note: a result of "OK" is not allowed for
+safety reasons.  Instead, use DUNNO in order to exclude specific
+hosts from blacklists.  This feature is available in Postfix 2.6
+and later.</dd>
 
 <dt><b><a name="permit_inet_interfaces">permit_inet_interfaces</a></b></dt>
 

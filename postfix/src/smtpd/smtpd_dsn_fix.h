@@ -13,6 +13,7 @@
   * Internal interface.
   */
 #define SMTPD_NAME_CLIENT	"Client host"
+#define SMTPD_NAME_REV_CLIENT	"Unverified Client host"
 #define SMTPD_NAME_CCERT	"Client certificate"
 #define SMTPD_NAME_HELO		"Helo command"
 #define SMTPD_NAME_SENDER	"Sender address"

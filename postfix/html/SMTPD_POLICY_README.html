@@ -550,6 +550,13 @@ $database_name="/var/mta/greylist.db";
 $greylist_delay=60;
 
 #
+# Auto-whitelist threshold. Specify 0 to disable, or the number of
+# successful "come backs" after which a client is no longer subject
+# to greylisting.
+#
+$auto_whitelist_threshold = 10;
+
+#
 # Demo SMTPD access policy routine. The result is an action just like
 # it would be specified on the right-hand side of a Postfix access
 # table.  Request attributes are available via the %attr hash.
@@ -559,6 +566,14 @@ sub smtpd_access_policy {
 
     # Open the database on the fly.
     open_database() unless $database_obj;
+
+    # Search the auto-whitelist.
+    if ($auto_whitelist_threshold &gt; 0) {
+        $count = read_database($attr{"client_address"});
+        if ($count &gt; $auto_whitelist_threshold) {
+            return "dunno";
+        }
+    }
 
     # Lookup the time stamp for this client/sender/recipient.
     $key =
@@ -584,6 +599,10 @@ sub smtpd_access_policy {
     #
     syslog $syslog_priority, "request age %d", $now - $time_stamp if $verbose;
     if ($now - $time_stamp &gt; $greylist_delay) {
+        # Update the auto-whitelist.
+        if ($auto_whitelist_threshold &gt; 0) {
+            update_database($attr{"client_address"}, $count + 1);
+        }
         return "dunno";
     } else {
         return "<a href="postconf.5.html#defer_if_permit">defer_if_permit</a> Service temporarily unavailable";

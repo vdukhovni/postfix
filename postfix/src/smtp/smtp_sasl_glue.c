@@ -291,6 +291,7 @@ int     smtp_sasl_authenticate(SMTP_SESSION *session, DSN_BUF *why)
     const char *mechanism;
     int     result;
     char   *line;
+    int     steps = 0;
 
     /*
      * Sanity check.
@@ -355,6 +356,16 @@ int     smtp_sasl_authenticate(SMTP_SESSION *session, DSN_BUF *why)
      * that we are done.
      */
     while ((resp = smtp_chat_resp(session))->code / 100 == 3) {
+
+	/*
+	 * Sanity check.
+	 */
+	if (++steps > 100) {
+	    dsb_simple(why, "4.3.0", "SASL authentication failed; "
+		       "authentication protocol loop with server %s",
+		       session->namaddr);
+	    return (-1);
+	}
 
 	/*
 	 * Process a server challenge.
