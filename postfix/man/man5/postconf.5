@@ -751,7 +751,8 @@ Instead of $name you can also specify ${name} or $(name).
 This feature is available in Postfix 2.2 and later.
 .SH command_expansion_filter (default: see "postconf -d" output)
 Restrict the characters that the \fBlocal\fR(8) delivery agent allows in
-$name expansions of $mailbox_command.  Characters outside the
+$name expansions of $mailbox_command and $command_execution_directory.
+Characters outside the
 allowed set are replaced by underscores.
 .SH command_time_limit (default: 1000s)
 Time limit for delivery to external commands. This limit is used
@@ -4228,7 +4229,7 @@ the unix: prefix),
 a /file/name with domain names and/or relay host names as
 defined above,
 .IP \(bu
-a "type:table" with domain names and/or relay hosts name on
+a "type:table" with domain names and/or relay host names on
 the left-hand side.  The right-hand side result from "type:table"
 lookups is ignored.
 .PP

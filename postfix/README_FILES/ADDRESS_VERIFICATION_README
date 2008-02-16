@@ -245,7 +245,7 @@ NOTE 1: As of version 2.5, Postfix no longer uses root privileges when opening
 this file. The file should now be stored under the Postfix-owned
 data_directory. As a migration aid, an attempt to open the file under a non-
 Postfix directory is redirected to the Postfix-owned data_directory, and a
-warning is logged. If you wish to continue using an pre-existing database file,
+warning is logged. If you wish to continue using a pre-existing database file,
 move it to the data_directory, and change ownership to the account specified
 with the mail_owner parameter.
 
