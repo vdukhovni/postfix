@@ -64,11 +64,11 @@ The nature of each problem is indicated as follows:
 
 DDeebbuuggggiinngg PPoossttffiixx ffrroomm iinnssiiddee
 
-With Postfix version 2.1 and later you can ask Postfix to produce mail delivery
-reports for debugging purposes. These reports not only show sender/recipient
-addresses after address rewriting and alias expansion or forwarding, they also
-show information about delivery to mailbox, delivery to non-Postfix command,
-responses from remote SMTP servers, and so on.
+Postfix version 2.1 and later can produce mail delivery reports for debugging
+purposes. These reports not only show sender/recipient addresses after address
+rewriting and alias expansion or forwarding, they also show information about
+delivery to mailbox, delivery to non-Postfix command, responses from remote
+SMTP servers, and so on.
 
 Postfix can produce two types of mail delivery reports for debugging:
 

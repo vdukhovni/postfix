@@ -148,9 +148,17 @@ records, so that "smtpd" becomes, for example, "postfix/smtpd".
 .SH "FILES"
 .na
 .nf
-/etc/postfix/main.cf, global configuration file.
-/etc/postfix/master.cf, master server configuration file.
-/var/spool/postfix/pid/master.pid, master lock file.
+.ad
+.fi
+To expand the directory names below into their actual values,
+use the command "\fBpostconf config_directory\fR" etc.
+.na
+.nf
+
+$config_directory/main.cf, global configuration file.
+$config_directory/master.cf, master server configuration file.
+$queue_directory/pid/master.pid, master lock file.
+$data_directory/master.lock, master lock file.
 .SH "SEE ALSO"
 .na
 .nf

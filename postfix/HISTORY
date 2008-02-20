@@ -14337,12 +14337,21 @@ Apologies for any names omitted.
 
 20080212
 
-	Feature: check_reverse_client_access, to make access decisions
-	based on the unverified client hostname.  For safety reasons
-	an OK result is not allowed.  Noel Jones. Files:
-	smtpd/smtpd_check.c plus header files and documentation.
+	Feature: check_reverse_client_hostname_access, to make
+	access decisions based on the unverified client hostname.
+	For safety reasons an OK result is not allowed.  Noel Jones.
+	Files: smtpd/smtpd_check.c plus header files and documentation.
 
 20080215
 
-	Safety: break SASL loop in case both the SASL library and the
-	remote SMTP server are confused. File: smtp/smtp_sasl_glue.c.
+	Safety: break SASL loop in case both the SASL library and
+	the remote SMTP server are confused. File: smtp/smtp_sasl_glue.c.
+
+20080220
+
+	Safety: the master daemon now sets an exclusive lock on a
+	file $data_directory/master.lock, so that the data directory
+	can't be shared between multiple Postfix instances.  This
+	would corrupt files that rely on single-writer updates
+	(examples: verify(8) cache, tlsmgr(8) caches, etc.). File:
+	master/master.c.

@@ -168,9 +168,13 @@ MASTER(8)                                                            MASTER(8)
               becomes, for example, "postfix/smtpd".
 
 <b>FILES</b>
-       /etc/postfix/<a href="postconf.5.html">main.cf</a>, global configuration file.
-       /etc/postfix/<a href="master.5.html">master.cf</a>, master server configuration file.
-       /var/spool/postfix/pid/master.pid, master lock file.
+       To expand the directory names below into their actual val-
+       ues, use the command "<b>postconf <a href="postconf.5.html#config_directory">config_directory</a></b>" etc.
+
+       $<a href="postconf.5.html#config_directory">config_directory</a>/<a href="postconf.5.html">main.cf</a>, global configuration file.
+       $<a href="postconf.5.html#config_directory">config_directory</a>/<a href="master.5.html">master.cf</a>, master server configuration file.
+       $<a href="postconf.5.html#queue_directory">queue_directory</a>/pid/master.pid, master lock file.
+       $<a href="postconf.5.html#data_directory">data_directory</a>/master.lock, master lock file.
 
 <b>SEE ALSO</b>
        <a href="qmgr.8.html">qmgr(8)</a>, queue manager
@@ -180,7 +184,7 @@ MASTER(8)                                                            MASTER(8)
        syslogd(8), system logging
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>

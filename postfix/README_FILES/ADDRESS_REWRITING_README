@@ -752,11 +752,11 @@ Examples:
 
 DDeebbuuggggiinngg yyoouurr aaddddrreessss mmaanniippuullaattiioonnss
 
-With Postfix version 2.1 and later you can ask Postfix to produce mail delivery
-reports for debugging purposes. These reports not only show sender/recipient
-addresses after address rewriting and alias expansion or forwarding, they also
-show information about delivery to mailbox, delivery to non-Postfix command,
-responses from remote SMTP servers, and so on.
+Postfix version 2.1 and later can produce mail delivery reports for debugging
+purposes. These reports not only show sender/recipient addresses after address
+rewriting and alias expansion or forwarding, they also show information about
+delivery to mailbox, delivery to non-Postfix command, responses from remote
+SMTP servers, and so on.
 
 Postfix can produce two types of mail delivery reports for debugging:
 
