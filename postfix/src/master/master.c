@@ -186,6 +186,7 @@
 #include <argv.h>
 #include <safe.h>
 #include <set_eugid.h>
+#include <set_ugid.h>
 
 /* Global library. */
 
@@ -423,10 +424,10 @@ int     main(int argc, char **argv)
      * Lock down the Postfix-writable data directory.
      */
     vstring_sprintf(data_lock_path, "%s/%s.lock", var_data_dir, var_procname);
-    SAVE_AND_SET_EUGID(var_owner_uid, var_owner_gid);
+    set_eugid(var_owner_uid, var_owner_gid);
     data_lock_fp =
 	open_lock(vstring_str(data_lock_path), O_RDWR | O_CREAT, 0644, why);
-    RESTORE_SAVED_EUGID();
+    set_ugid(getuid(), getgid());
     if (data_lock_fp == 0)
 	msg_fatal("open lock file %s: %s",
 		  vstring_str(data_lock_path), vstring_str(why));

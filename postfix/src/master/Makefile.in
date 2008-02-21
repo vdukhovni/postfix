@@ -106,6 +106,7 @@ master.o: ../../include/mymalloc.h
 master.o: ../../include/open_lock.h
 master.o: ../../include/safe.h
 master.o: ../../include/set_eugid.h
+master.o: ../../include/set_ugid.h
 master.o: ../../include/stringops.h
 master.o: ../../include/sys_defs.h
 master.o: ../../include/vbuf.h
