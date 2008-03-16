@@ -50,6 +50,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef STRCASECMP_IN_STRINGS_H
+#include <strings.h>
+#endif
+
 /* Utility library. */
 
 #include <msg.h>
@@ -60,6 +64,7 @@
 #include <vstream.h>
 #include <vstring_vstream.h>
 #include <name_mask.h>
+#include <argv.h>
 
 /* Global library. */
 
@@ -156,6 +161,7 @@ typedef struct {
     VSTRING *sasl_line;
     unsigned int sec_props;		/* Postfix mechanism filter */
     char   *mechanism_list;		/* filtered mechanism list */
+    ARGV   *mechanism_argv;		/* ditto */
 } XSASL_DOVECOT_SERVER;
 
  /*
@@ -208,7 +214,8 @@ static void xsasl_dovecot_server_mech_free(XSASL_DCSRV_MECH *mech_list)
 
 /* xsasl_dovecot_server_mech_filter - filter server mechanism list */
 
-static char *xsasl_dovecot_server_mech_filter(XSASL_DCSRV_MECH *mechanism_list,
+static char *xsasl_dovecot_server_mech_filter(ARGV *mechanism_argv,
+				           XSASL_DCSRV_MECH *mechanism_list,
 					            unsigned int conf_props)
 {
     const char *myname = "xsasl_dovecot_server_mech_filter";
@@ -226,6 +233,7 @@ static char *xsasl_dovecot_server_mech_filter(XSASL_DCSRV_MECH *mechanism_list,
 	    if (VSTRING_LEN(mechanisms_str) > 0)
 		VSTRING_ADDCH(mechanisms_str, ' ');
 	    vstring_strcat(mechanisms_str, mp->mech_name);
+	    argv_add(mechanism_argv, mp->mech_name, (char *) 0);
 	    if (msg_verbose)
 		msg_info("%s: keep mechanism: %s", myname, mp->mech_name);
 	} else {
@@ -400,6 +408,7 @@ static XSASL_SERVER *xsasl_dovecot_server_create(XSASL_SERVER_IMPL *impl,
     server->service = mystrdup(service);
     server->last_request_id = 0;
     server->mechanism_list = 0;
+    server->mechanism_argv = 0;
     server->sec_props =
 	name_mask_opt(myname, xsasl_dovecot_conf_sec_props,
 		      sec_props, NAME_MASK_ANY_CASE | NAME_MASK_FATAL);
@@ -417,10 +426,13 @@ static const char *xsasl_dovecot_server_get_mechanism_list(XSASL_SERVER *xp)
 	if (xsasl_dovecot_server_connect(server->impl) < 0)
 	    return (0);
     }
-    if (server->mechanism_list == 0)
+    if (server->mechanism_list == 0) {
+	server->mechanism_argv = argv_alloc(2);
 	server->mechanism_list =
-	    xsasl_dovecot_server_mech_filter(server->impl->mechanism_list,
+	    xsasl_dovecot_server_mech_filter(server->mechanism_argv,
+					     server->impl->mechanism_list,
 					     server->sec_props);
+    }
     return (server->mechanism_list[0] ? server->mechanism_list : 0);
 }
 
@@ -433,8 +445,10 @@ static void xsasl_dovecot_server_free(XSASL_SERVER *xp)
     vstring_free(server->sasl_line);
     if (server->username)
 	myfree(server->username);
-    if (server->mechanism_list)
+    if (server->mechanism_list) {
 	myfree(server->mechanism_list);
+	argv_free(server->mechanism_argv);
+    }
     myfree(server->service);
     myfree((char *) server);
 }
@@ -558,6 +572,7 @@ int     xsasl_dovecot_server_first(XSASL_SERVER *xp, const char *sasl_method,
     const char *myname = "xsasl_dovecot_server_first";
     XSASL_DOVECOT_SERVER *server = (XSASL_DOVECOT_SERVER *) xp;
     int     i;
+    char  **cpp;
 
 #define IFELSE(e1,e2,e3) ((e1) ? (e2) : (e3))
 
@@ -566,6 +581,17 @@ int     xsasl_dovecot_server_first(XSASL_SERVER *xp, const char *sasl_method,
 		 IFELSE(init_response, ", init_response ", ""),
 		 IFELSE(init_response, init_response, ""));
 
+    if (server->mechanism_argv == 0)
+	msg_panic("%s: no mechanism list", myname);
+
+    for (cpp = server->mechanism_argv->argv; /* see below */ ; cpp++) {
+	if (*cpp == 0) {
+	    vstring_strcpy(reply, "Invalid authentication mechanism");
+	    return XSASL_AUTH_FAIL;
+	}
+	if (strcasecmp(sasl_method, *cpp) == 0)
+	    break;
+    }
     if (init_response)
 	if (!is_valid_base64(init_response)) {
 	    vstring_strcpy(reply, "Invalid base64 data in initial response");

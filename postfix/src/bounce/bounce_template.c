@@ -343,7 +343,7 @@ static void bounce_template_parse_buffer(BOUNCE_TEMPLATE *tp)
      * Is this 7bit or 8bit text? If the character set is US-ASCII, then
      * don't allow 8bit text. Don't assume 8bit when charset was changed.
      */
-#define NON_ASCII(p) (*(p) && !allascii((p)))
+#define NON_ASCII(p) ((p) && *(p) && !allascii((p)))
 
     if (NON_ASCII(cp) || NON_ASCII(tval)) {
 	if (strcasecmp(tp->mime_charset, "us-ascii") == 0) {

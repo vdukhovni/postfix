@@ -477,9 +477,12 @@ int     main(int argc, char **argv)
 	msg_fatal("chdir(%s): %m", var_queue_dir);
 
     /*
-     * Run the management script with as process name ourself.
+     * Run the management script.
      */
     script = concatenate(var_daemon_dir, "/postfix-script", (char *) 0);
+    if (optind < 1)
+	msg_panic("bad optind value");
+    argv[optind - 1] = script;
     execvp(script, argv + optind - 1);
     msg_fatal("%s: %m", script);
 }

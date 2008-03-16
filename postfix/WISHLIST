@@ -1,5 +1,14 @@
 Wish list:
 
+	Encapsulate time_t comparisons so that they can be made
+	system dependent (use difftime() where available).
+
+	Encapsulate time_t conversions (e.g. REC_TYPE_TIME) so that
+	they can be made system dependent.
+
+	Make "AUTH=<>" appendage to MAIL FROM configurable, enabled
+	by default.
+
 	To support ternary operator without a huge parsing effort,
 	consider ${value?{xxx}:{yyy}} where ${name} is existing
 	syntax, and where ?{text} and :{text} are new syntax that

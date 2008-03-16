@@ -37,9 +37,18 @@ SENDMAIL(1)                                                        SENDMAIL(1)
               file ID, message size, arrival  time,  sender,  and
               the recipients that still need to be delivered.  If
               mail could not be delivered upon the last  attempt,
-              the reason for failure is shown. This mode of oper-
-              ation is implemented by executing the  <a href="postqueue.1.html"><b>postqueue</b>(1)</a>
-              command.
+              the  reason  for  failure  is  shown.  The queue ID
+              string is followed by an optional status character:
+
+              <b>*</b>      The message is in the <b>active</b> queue, i.e. the
+                     message is selected for delivery.
+
+              <b>!</b>      The message is in the <b>hold</b>  queue,  i.e.  no
+                     further  delivery attempt will be made until
+                     the mail is taken off hold.
+
+              This mode of operation is implemented by  executing
+              the <a href="postqueue.1.html"><b>postqueue</b>(1)</a> command.
 
        <b>newaliases</b>
               Initialize the alias database.  If no input file is

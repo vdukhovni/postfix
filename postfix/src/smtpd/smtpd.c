@@ -2108,14 +2108,14 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     if (smtpd_milters != 0
 	&& SMTPD_STAND_ALONE(state) == 0
 	&& (state->saved_flags & MILTER_SKIP_FLAGS) == 0) {
+	PUSH_STRING(saved_sender, state->sender, STR(state->addr_buf));
 	err = milter_mail_event(smtpd_milters,
 				milter_argv(state, argc - 2, argv + 2));
 	if (err != 0) {
 	    /* Log reject etc. with correct sender information. */
-	    PUSH_STRING(saved_sender, state->sender, STR(state->addr_buf));
 	    err = check_milter_reply(state, err);
-	    POP_STRING(saved_sender, state->sender);
 	}
+	POP_STRING(saved_sender, state->sender);
 	if (err != 0) {
 	    /* XXX Reset access map side effects. */
 	    mail_reset(state);
@@ -2362,14 +2362,14 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	}
 	if (smtpd_milters != 0
 	    && (state->saved_flags & MILTER_SKIP_FLAGS) == 0) {
+	    PUSH_STRING(saved_rcpt, state->recipient, STR(state->addr_buf));
 	    err = milter_rcpt_event(smtpd_milters,
 				    milter_argv(state, argc - 2, argv + 2));
 	    if (err != 0) {
 		/* Log reject etc. with correct recipient information. */
-		PUSH_STRING(saved_rcpt, state->recipient, STR(state->addr_buf));
 		err = check_milter_reply(state, err);
-		POP_STRING(saved_rcpt, state->recipient);
 	    }
+	    POP_STRING(saved_rcpt, state->recipient);
 	    if (err != 0) {
 		smtpd_chat_reply(state, "%s", err);
 		return (-1);

@@ -36,8 +36,19 @@ operation:
 List the mail queue. Each entry shows the queue file ID, message
 size, arrival time, sender, and the recipients that still need to
 be delivered.  If mail could not be delivered upon the last attempt,
-the reason for failure is shown. This mode of operation is implemented
-by executing the \fBpostqueue\fR(1) command.
+the reason for failure is shown. The queue ID string is
+followed by an optional status character:
+.RS
+.IP \fB*\fR
+The message is in the \fBactive\fR queue, i.e. the message is
+selected for delivery.
+.IP \fB!\fR
+The message is in the \fBhold\fR queue, i.e. no further delivery
+attempt will be made until the mail is taken off hold.
+.RE
+.IP
+This mode of operation is implemented by executing the
+\fBpostqueue\fR(1) command.
 .IP \fBnewaliases\fR
 Initialize the alias database.  If no input file is specified (with
 the \fB-oA\fR option, see below), the program processes the file(s)
