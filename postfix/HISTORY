@@ -14312,3 +14312,21 @@ Apologies for any names omitted.
 	Cleanup: multi-line support in SMTP server replies.  File:
 	smtpd/smtpd_chat.c.
 
+20080228
+
+	Bugfix: bounce(8) segfault on one-line template text.
+	Problem found by Sacha Chlytor. File: bounce/bounce_template.c.
+
+20080310
+
+	Safety: the SMTP server's Dovecot authentication client now
+	enforces the SASL mechanism output filter also on client
+	command input. File: src/xsasl/xsasl_dovecot_server.c.
+
+20080311
+
+	Bugfix (introduced 20070811): the MAIL and RCPT Milter
+	application call-backs no longer received {mail_addr} or
+	{rcpt_addr} information. Problem reported by Anton Yuzhaninov.
+	File: smtpd/smtpd.c.
+
