@@ -722,9 +722,12 @@ static DICT_PCRE_RULE *dict_pcre_parse_rule(const char *mapname, int lineno,
 	 */
 	while (*p && ISSPACE(*p))
 	    ++p;
-	if (*p)
-	    msg_warn("pcre map %s, line %d: ignoring extra text after IF",
-		     mapname, lineno);
+	if (*p) {
+	    msg_warn("pcre map %s, line %d: ignoring extra text after "
+		     "IF statement: \"%s\"", mapname, lineno, p);
+	    msg_warn("pcre map %s, line %d: do not prepend whitespace"
+		     " to statements between IF and ENDIF", mapname, lineno);
+	}
 
 	/*
 	 * Compile the pattern.

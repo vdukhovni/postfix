@@ -5,7 +5,7 @@
 /*	Postfix lookup table management
 /* SYNOPSIS
 /* .fi
-/*	\fBpostmap\fR [\fB-Nfinoprsvw\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostmap\fR [\fB-Nbfhimnoprsvw\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fB-d \fIkey\fR] [\fB-q \fIkey\fR]
 /*		[\fIfile_type\fR:]\fIfile_name\fR ...
 /* DESCRIPTION
@@ -57,6 +57,22 @@
 /* COMMAND-LINE ARGUMENTS
 /* .ad
 /* .fi
+/* .IP \fB-b\fR
+/*	Enable message body query mode. When reading lookup keys
+/*	from standard input with "\fB-q -\fR", process the input
+/*	as if it is an email message in RFC 2822 format.  Each line
+/*	of body content becomes one lookup key.
+/* .sp
+/*	By default, this processing of body content starts at the
+/*	first non-header line, and continues until the end of the
+/*	message is reached.
+/* .sp
+/*	To simulate \fBbody_checks\fR(5) processing, enable MIME
+/*	parsing with \fB-m\fR. With this, the \fB-b\fR option
+/*	generates no body-style lookup keys from attachment MIME
+/*	headers and from attached message/* headers.
+/* .sp
+/*	This feature is available in Postfix version 2.6 and later.
 /* .IP "\fB-c \fIconfig_dir\fR"
 /*	Read the \fBmain.cf\fR configuration file in the named directory
 /*	instead of the default configuration directory.
@@ -74,10 +90,30 @@
 /*	With Postfix version 2.3 and later, this option has no
 /*	effect for regular expression tables. There, case folding
 /*	is controlled by appending a flag to a pattern.
+/* .IP \fB-h\fR
+/*	Enable message header query mode. When reading lookup keys
+/*	from standard input with "\fB-q -\fR", process the input
+/*	as if it is an email message in RFC 2822 format.  Each
+/*	logical header line becomes one lookup key. A multi-line
+/*	header becomes one string with embedded newline characters.
+/* .sp
+/*	By default, this processing of header content ends at the
+/*	first non-header line.
+/* .sp
+/*	To simulate \fBheader_checks\fR(5) processing, enable MIME
+/*	parsing with \fB-m\fR. With this, the \fB-h\fR option also
+/*	generates header-style lookup keys from attachment MIME
+/*	headers and from attached message/* headers.
+/* .sp
+/*	This feature is available in Postfix version 2.6 and later.
 /* .IP \fB-i\fR
 /*	Incremental mode. Read entries from standard input and do not
 /*	truncate an existing database. By default, \fBpostmap\fR(1) creates
 /*	a new database from the entries in \fBfile_name\fR.
+/* .IP \fB-m\fR
+/*	Enable MIME mode mode with "\fB-b\fR" and "\fB-h\fR".
+/* .sp
+/*	This feature is available in Postfix version 2.6 and later.
 /* .IP \fB-N\fR
 /*	Include the terminating null character that terminates lookup keys
 /*	and values. By default, \fBpostmap\fR(1) does whatever is
@@ -113,6 +149,7 @@
 /*	\fIkey value\fR output for each element. The elements are
 /*	printed in database order, which is not necessarily the same
 /*	as the original input order.
+/* .sp
 /*	This feature is available in Postfix version 2.2 and later,
 /*	and is not available for all database types.
 /* .IP \fB-v\fR
@@ -251,13 +288,36 @@
 #include <mkmap.h>
 #include <mail_task.h>
 #include <dict_proxy.h>
+#include <mime_state.h>
+#include <rec_type.h>
 
 /* Application-specific. */
 
 #define STR	vstring_str
+#define LEN	VSTRING_LEN
 
 #define POSTMAP_FLAG_AS_OWNER	(1<<0)	/* open dest as owner of source */
 #define POSTMAP_FLAG_SAVE_PERM	(1<<1)	/* copy access permission from source */
+#define POSTMAP_FLAG_HEADER_KEY	(1<<2)	/* apply to header text */
+#define POSTMAP_FLAG_BODY_KEY	(1<<3)	/* apply to body text */
+#define POSTMAP_FLAG_MIME_KEY	(1<<4)	/* enable MIME parsing */
+
+#define POSTMAP_FLAG_HB_KEY (POSTMAP_FLAG_HEADER_KEY | POSTMAP_FLAG_BODY_KEY)
+#define POSTMAP_FLAG_FULL_KEY (POSTMAP_FLAG_BODY_KEY | POSTMAP_FLAG_MIME_KEY)
+#define POSTMAP_FLAG_ANY_KEY (POSTMAP_FLAG_HB_KEY | POSTMAP_FLAG_MIME_KEY)
+
+ /*
+  * MIME Engine call-back state for generating lookup keys from an email
+  * message read from standard input.
+  */
+typedef struct {
+    DICT  **dicts;			/* map handles */
+    char  **maps;			/* map names */
+    int     map_count;			/* yes, indeed */
+    int     dict_flags;			/* query flags */
+    int     header_done;		/* past primary header */
+    int     found;			/* result */
+} POSTMAP_KEY_STATE;
 
 /* postmap - create or update mapping database */
 
@@ -367,9 +427,71 @@ static void postmap(char *map_type, char *path_name, int postmap_flags,
 	vstream_fclose(source_fp);
 }
 
+/* postmap_body - MIME engine body call-back routine */
+
+static void postmap_body(void *ptr, int unused_rec_type,
+			         const char *keybuf,
+			         ssize_t unused_len,
+			         off_t unused_offset)
+{
+    POSTMAP_KEY_STATE *state = (POSTMAP_KEY_STATE *) ptr;
+    DICT  **dicts = state->dicts;
+    char  **maps = state->maps;
+    int     map_count = state->map_count;
+    int     dict_flags = state->dict_flags;
+    const char *map_name;
+    const char *value;
+    int     n;
+
+    for (n = 0; n < map_count; n++) {
+	if (dicts[n] == 0)
+	    dicts[n] = ((map_name = split_at(maps[n], ':')) != 0 ?
+			dict_open3(maps[n], map_name, O_RDONLY, dict_flags) :
+		    dict_open3(var_db_type, maps[n], O_RDONLY, dict_flags));
+	if ((value = dict_get(dicts[n], keybuf)) != 0) {
+	    if (*value == 0) {
+		msg_warn("table %s:%s: key %s: empty string result is not allowed",
+			 dicts[n]->type, dicts[n]->name, keybuf);
+		msg_warn("table %s:%s should return NO RESULT in case of NOT FOUND",
+			 dicts[n]->type, dicts[n]->name);
+	    }
+	    vstream_printf("%s	%s\n", keybuf, value);
+	    state->found = 1;
+	    break;
+	}
+    }
+}
+
+/* postmap_header - MIME engine header call-back routine */
+
+static void postmap_header(void *ptr, int unused_header_class,
+			           const HEADER_OPTS *unused_header_info,
+			           VSTRING *header_buf,
+			           off_t offset)
+{
+
+    /*
+     * Don't re-invent an already working wheel.
+     */
+    postmap_body(ptr, 0, STR(header_buf), LEN(header_buf), offset);
+}
+
+/* postmap_head_end - MIME engine end-of-header call-back routine */
+
+static void postmap_head_end(void *ptr)
+{
+    POSTMAP_KEY_STATE *state = (POSTMAP_KEY_STATE *) ptr;
+
+    /*
+     * Don't process the message body when we only examine primary headers.
+     */
+    state->header_done = 1;
+}
+
 /* postmap_queries - apply multiple requests from stdin */
 
 static int postmap_queries(VSTREAM *in, char **maps, const int map_count,
+			           const int postmap_flags,
 			           const int dict_flags)
 {
     int     found = 0;
@@ -396,24 +518,71 @@ static int postmap_queries(VSTREAM *in, char **maps, const int map_count,
      * Perform all queries. Open maps on the fly, to avoid opening unecessary
      * maps.
      */
-    while (vstring_get_nonl(keybuf, in) != VSTREAM_EOF) {
-	for (n = 0; n < map_count; n++) {
-	    if (dicts[n] == 0)
-		dicts[n] = ((map_name = split_at(maps[n], ':')) != 0 ?
+    if ((postmap_flags & POSTMAP_FLAG_HB_KEY) == 0) {
+	while (vstring_get_nonl(keybuf, in) != VSTREAM_EOF) {
+	    for (n = 0; n < map_count; n++) {
+		if (dicts[n] == 0)
+		    dicts[n] = ((map_name = split_at(maps[n], ':')) != 0 ?
 		       dict_open3(maps[n], map_name, O_RDONLY, dict_flags) :
 		    dict_open3(var_db_type, maps[n], O_RDONLY, dict_flags));
-	    if ((value = dict_get(dicts[n], STR(keybuf))) != 0) {
-		if (*value == 0) {
-		    msg_warn("table %s:%s: key %s: empty string result is not allowed",
-			     dicts[n]->type, dicts[n]->name, STR(keybuf));
-		    msg_warn("table %s:%s should return NO RESULT in case of NOT FOUND",
-			     dicts[n]->type, dicts[n]->name);
+		if ((value = dict_get(dicts[n], STR(keybuf))) != 0) {
+		    if (*value == 0) {
+			msg_warn("table %s:%s: key %s: empty string result is not allowed",
+			       dicts[n]->type, dicts[n]->name, STR(keybuf));
+			msg_warn("table %s:%s should return NO RESULT in case of NOT FOUND",
+				 dicts[n]->type, dicts[n]->name);
+		    }
+		    vstream_printf("%s	%s\n", STR(keybuf), value);
+		    found = 1;
+		    break;
 		}
-		vstream_printf("%s	%s\n", STR(keybuf), value);
-		found = 1;
-		break;
 	    }
 	}
+    } else {
+	POSTMAP_KEY_STATE key_state;
+	MIME_STATE *mime_state;
+	int     mime_errs = 0;
+
+	/*
+	 * Bundle up the request and instantiate a MIME parsing engine.
+	 */
+	key_state.dicts = dicts;
+	key_state.maps = maps;
+	key_state.map_count = map_count;
+	key_state.dict_flags = dict_flags;
+	key_state.header_done = 0;
+	key_state.found = 0;
+	mime_state =
+	    mime_state_alloc((postmap_flags & POSTMAP_FLAG_MIME_KEY) ?
+			     0 : MIME_OPT_DISABLE_MIME,
+			     (postmap_flags & POSTMAP_FLAG_HEADER_KEY) ?
+			     postmap_header : (MIME_STATE_HEAD_OUT) 0,
+			     (postmap_flags & POSTMAP_FLAG_FULL_KEY) ?
+			     (MIME_STATE_ANY_END) 0 : postmap_head_end,
+			     (postmap_flags & POSTMAP_FLAG_BODY_KEY) ?
+			     postmap_body : (MIME_STATE_BODY_OUT) 0,
+			     (MIME_STATE_ANY_END) 0,
+			     (MIME_STATE_ERR_PRINT) 0,
+			     (void *) &key_state);
+
+	/*
+	 * Process the input message.
+	 */
+	while (vstring_get_nonl(keybuf, in) != VSTREAM_EOF
+	       && key_state.header_done == 0 && mime_errs == 0)
+	    mime_errs = mime_state_update(mime_state, REC_TYPE_NORM,
+					  STR(keybuf), LEN(keybuf));
+
+	/*
+	 * Flush the MIME engine output buffer and tidy up loose ends.
+	 */
+	if (mime_errs == 0)
+	    mime_errs = mime_state_update(mime_state, REC_TYPE_END, "", 0);
+	if (mime_errs)
+	    msg_fatal("message format error: %s",
+		      mime_state_detail(mime_errs)->text);
+	mime_state_free(mime_state);
+	found = key_state.found;
     }
     if (found)
 	vstream_fflush(VSTREAM_OUT);
@@ -619,7 +788,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "Nc:d:finopq:rsvw")) > 0) {
+    while ((ch = GETOPT(argc, argv, "Nbc:d:fhimnopq:rsvw")) > 0) {
 	switch (ch) {
 	default:
 	    usage(argv[0]);
@@ -627,6 +796,9 @@ int     main(int argc, char **argv)
 	case 'N':
 	    dict_flags |= DICT_FLAG_TRY1NULL;
 	    dict_flags &= ~DICT_FLAG_TRY0NULL;
+	    break;
+	case 'b':
+	    postmap_flags |= POSTMAP_FLAG_BODY_KEY;
 	    break;
 	case 'c':
 	    if (setenv(CONF_ENV_PATH, optarg, 1) < 0)
@@ -640,8 +812,14 @@ int     main(int argc, char **argv)
 	case 'f':
 	    dict_flags &= ~DICT_FLAG_FOLD_FIX;
 	    break;
+	case 'h':
+	    postmap_flags |= POSTMAP_FLAG_HEADER_KEY;
+	    break;
 	case 'i':
 	    open_flags &= ~O_TRUNC;
+	    break;
+	case 'm':
+	    postmap_flags |= POSTMAP_FLAG_MIME_KEY;
 	    break;
 	case 'n':
 	    dict_flags |= DICT_FLAG_TRY0NULL;
@@ -680,6 +858,9 @@ int     main(int argc, char **argv)
     if (strcmp(var_syslog_name, DEF_SYSLOG_NAME) != 0)
 	msg_syslog_init(mail_task(argv[0]), LOG_PID, LOG_FACILITY);
     mail_dict_init();
+    if ((query == 0 || strcmp(query, "-") != 0) 
+	&& (postmap_flags & POSTMAP_FLAG_ANY_KEY))
+	msg_fatal("specify -b -h or -m only with \"-q -\"");
 
     /*
      * Use the map type specified by the user, or fall back to a default
@@ -708,7 +889,7 @@ int     main(int argc, char **argv)
 	    usage(argv[0]);
 	if (strcmp(query, "-") == 0)
 	    exit(postmap_queries(VSTREAM_IN, argv + optind, argc - optind,
-				 dict_flags | DICT_FLAG_LOCK) == 0);
+			  postmap_flags, dict_flags | DICT_FLAG_LOCK) == 0);
 	while (optind < argc) {
 	    if ((path_name = split_at(argv[optind], ':')) != 0) {
 		found = postmap_query(argv[optind], path_name, query,

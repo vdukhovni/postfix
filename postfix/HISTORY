@@ -14383,3 +14383,23 @@ Apologies for any names omitted.
 	Bugfix (introduced 20080207): "cleanup -v" panic because
 	the new "SMTP reply" request flag did not have a printable
 	name. File: global/cleanup_strflags.c.
+
+20080318
+
+	Human factors: the PCRE and regexp maps now give more
+	comprehensible error messages when people make the common
+	mistake of indenting if/endif blocks. Files: util/dict_pcre.c,
+	util/dict_regexp.c.
+
+20030824
+
+	Cleanup: the event_drain() function is now a proper event
+	processing loop. File: util/events.c
+
+	Feature: when the "postmap -q -" command reads lookup keys
+	from standard input, it now understands RFC822 and MIME
+	message format. Specify -h or -b to use headers or body
+	lines as lookup keys, and specify -hm or -bm to simulate
+	header_checks or body_checks.  The postmap -h option (without
+	-m) will be compatible with a future postmap -h option.
+	File: postmap/postmap.c.

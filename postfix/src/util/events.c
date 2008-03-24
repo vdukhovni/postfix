@@ -205,7 +205,8 @@ typedef struct {
 	size_t _byte_len = EVENT_MASK_BYTES_NEEDED(bit_len); \
 	size_t _old_len = (mask)->data_len; \
 	(mask)->data = myrealloc((mask)->data, _byte_len); \
-	memset((mask)->data + _old_len, 0, _byte_len - _old_len); \
+	if (_byte_len > _old_len) \
+	    memset((mask)->data + _old_len, 0, _byte_len - _old_len); \
 	(mask)->data_len = _byte_len; \
     } while (0)
 #define EVENT_MASK_FREE(mask)	myfree((mask)->data)
@@ -633,8 +634,14 @@ void    event_drain(int time_limit)
     while (event_present < max_time
 	   && (event_timer_head.pred != &event_timer_head
 	       || memcmp(&zero_mask, &event_xmask,
-			 EVENT_MASK_BYTE_COUNT(&zero_mask)) != 0))
+			 EVENT_MASK_BYTE_COUNT(&zero_mask)) != 0)) {
 	event_loop(1);
+#if (EVENTS_STYLE != EVENTS_STYLE_SELECT)
+	if (EVENT_MASK_BYTE_COUNT(&zero_mask)
+	    != EVENT_MASK_BYTES_NEEDED(event_fdslots))
+	    EVENT_MASK_REALLOC(&zero_mask, event_fdslots);
+#endif
+    }
 #if (EVENTS_STYLE != EVENTS_STYLE_SELECT)
     EVENT_MASK_FREE(&zero_mask);
 #endif
@@ -1133,9 +1140,13 @@ int     main(int argc, char **argv)
     event_request_timer(timer_event, "4 second", 4);
     event_request_timer(timer_event, "2 first", 2);
     event_request_timer(timer_event, "2 second", 2);
+    event_request_timer(timer_event, "1 first", 1);
+    event_request_timer(timer_event, "1 second", 1);
+    event_request_timer(timer_event, "0 first", 0);
+    event_request_timer(timer_event, "0 second", 0);
     event_enable_read(fileno(stdin), echo, (char *) 0);
-    for (;;)
-	event_loop(-1);
+    event_drain(10);
+    exit(0);
 }
 
 #endif

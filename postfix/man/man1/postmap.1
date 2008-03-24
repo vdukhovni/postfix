@@ -9,7 +9,7 @@ Postfix lookup table management
 .na
 .nf
 .fi
-\fBpostmap\fR [\fB-Nfinoprsvw\fR] [\fB-c \fIconfig_dir\fR]
+\fBpostmap\fR [\fB-Nbfhimnoprsvw\fR] [\fB-c \fIconfig_dir\fR]
 [\fB-d \fIkey\fR] [\fB-q \fIkey\fR]
         [\fIfile_type\fR:]\fIfile_name\fR ...
 .SH DESCRIPTION
@@ -67,6 +67,22 @@ information with $\fInumber\fR substitutions.
 .nf
 .ad
 .fi
+.IP \fB-b\fR
+Enable message body query mode. When reading lookup keys
+from standard input with "\fB-q -\fR", process the input
+as if it is an email message in RFC 2822 format.  Each line
+of body content becomes one lookup key.
+.sp
+By default, this processing of body content starts at the
+first non-header line, and continues until the end of the
+message is reached.
+.sp
+To simulate \fBbody_checks\fR(5) processing, enable MIME
+parsing with \fB-m\fR. With this, the \fB-b\fR option
+generates no body-style lookup keys from attachment MIME
+headers and from attached message/* headers.
+.sp
+This feature is available in Postfix version 2.6 and later.
 .IP "\fB-c \fIconfig_dir\fR"
 Read the \fBmain.cf\fR configuration file in the named directory
 instead of the default configuration directory.
@@ -84,10 +100,30 @@ a table.
 With Postfix version 2.3 and later, this option has no
 effect for regular expression tables. There, case folding
 is controlled by appending a flag to a pattern.
+.IP \fB-h\fR
+Enable message header query mode. When reading lookup keys
+from standard input with "\fB-q -\fR", process the input
+as if it is an email message in RFC 2822 format.  Each
+logical header line becomes one lookup key. A multi-line
+header becomes one string with embedded newline characters.
+.sp
+By default, this processing of header content ends at the
+first non-header line.
+.sp
+To simulate \fBheader_checks\fR(5) processing, enable MIME
+parsing with \fB-m\fR. With this, the \fB-h\fR option also
+generates header-style lookup keys from attachment MIME
+headers and from attached message/* headers.
+.sp
+This feature is available in Postfix version 2.6 and later.
 .IP \fB-i\fR
 Incremental mode. Read entries from standard input and do not
 truncate an existing database. By default, \fBpostmap\fR(1) creates
 a new database from the entries in \fBfile_name\fR.
+.IP \fB-m\fR
+Enable MIME mode mode with "\fB-b\fR" and "\fB-h\fR".
+.sp
+This feature is available in Postfix version 2.6 and later.
 .IP \fB-N\fR
 Include the terminating null character that terminates lookup keys
 and values. By default, \fBpostmap\fR(1) does whatever is
@@ -123,6 +159,7 @@ Retrieve all database elements, and write one line of
 \fIkey value\fR output for each element. The elements are
 printed in database order, which is not necessarily the same
 as the original input order.
+.sp
 This feature is available in Postfix version 2.2 and later,
 and is not available for all database types.
 .IP \fB-v\fR

@@ -9157,7 +9157,7 @@ server uses for TLS encrypted SMTP sessions. </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
 
-%PARAM smtp_generic_maps empty
+%PARAM smtp_generic_maps
 
 <p> Optional lookup tables that perform address rewriting in the
 SMTP client, typically to transform a locally valid address into
@@ -9172,7 +9172,7 @@ STANDARD_CONFIGURATION_README documents. </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
 
-%PARAM message_reject_characters empty
+%PARAM message_reject_characters
 
 <p> The set of characters that Postfix will reject in message
 content.  The usual C-like escape sequences are recognized: <tt>\a
@@ -9187,7 +9187,7 @@ message_reject_characters = \0
 
 <p> This feature is available in Postfix 2.3 and later.  </p>
 
-%PARAM message_strip_characters empty
+%PARAM message_strip_characters
 
 <p> The set of characters that Postfix will remove from message
 content.  The usual C-like escape sequences are recognized: <tt>\a
@@ -9252,7 +9252,7 @@ precision.  </p>
 
 <p> This feature is available in Postfix 2.3 and later.  </p>
 
-%PARAM bounce_template_file empty
+%PARAM bounce_template_file
 
 <p> Pathname of a configuration file with bounce message templates.
 These override the built-in templates of delivery status notification
@@ -9267,7 +9267,7 @@ is placed into the Postfix configuration directory.  </p>
 
 <p> This feature is available in Postfix 2.3 and later.  </p>
 
-%PARAM sender_dependent_relayhost_maps empty
+%PARAM sender_dependent_relayhost_maps
 
 <p> A sender-dependent override for the global relayhost parameter
 setting. The tables are searched by the envelope sender address and
@@ -10266,7 +10266,7 @@ smtp_tls_fingerprint_cert_match =
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
-%PARAM smtpd_milters empty
+%PARAM smtpd_milters
 
 <p> A list of Milter (mail filter) applications for new mail that
 arrives via the Postfix smtpd(8) server.  See the MILTER_README
@@ -10274,7 +10274,7 @@ document for details.  </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
-%PARAM non_smtpd_milters empty
+%PARAM non_smtpd_milters
 
 <p> A list of Milter (mail filter) applications for new mail that
 does not arrive via the Postfix smtpd(8) server. This includes local

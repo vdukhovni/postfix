@@ -39,9 +39,6 @@ Wish list:
 	the final state. But first we need to clean up the handling
 	of do/don't cache, expired, bad and dead sessions.
 
-	Make event_drain() a proper event loop; update the zero mask,
-	and don't ignore a non-empty timer queue.
-
 	Combine smtpd_peer.c and qmqpd_peer.c into a single function
 	that produces a client context object, and provide attribute
 	print/scan routines that pass these client context objects
@@ -105,10 +102,6 @@ Wish list:
 	Make postcat header/body aware so people can grep headers.
 	What headers? primary, mime, nested? What body? Does it
 	include the mime and attached headers?
-
-	Make postmap header/body aware so people can test multi-line
-	header checks. What headers? primary, mime, nested? What
-	body? Does it include the mime and attached headers?
 
 	REDIRECT should override original recipient info, and
 	probably override DSN as well.
