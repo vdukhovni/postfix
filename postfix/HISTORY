@@ -14330,3 +14330,16 @@ Apologies for any names omitted.
 	{rcpt_addr} information. Problem reported by Anton Yuzhaninov.
 	File: smtpd/smtpd.c.
 
+20040811
+
+	Bugfix (introduced Postfix 2.0): after "warn_if_reject
+	reject_unlisted_recipient/sender", the SMTP server mistakenly
+	remembered that recipient/sender validation was already
+	done. File: smtpd/smtpd_check.c.
+
+	Bugfix (introduced Postfix 2.3): the queue manager would
+	initialize missing client logging attributes (from xforward)
+	with real client attributes. Fix: enable this backwards
+	compatibility feature only with queue files that don't
+	contain logging attributes. Problem reported by Liviu Daia.
+	Files *qmgr/qmgr_message.c.

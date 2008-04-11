@@ -4295,7 +4295,9 @@ static int check_recipient_rcpt_maps(SMTPD_STATE *state, const char *recipient)
 	return (0);
     if (state->recipient_rcptmap_checked == 1)
 	return (0);
-    state->recipient_rcptmap_checked = 1;
+    if (state->warn_if_reject == 0)
+	/* We really validate the recipient address. */
+	state->recipient_rcptmap_checked = 1;
     return (check_rcpt_maps(state, recipient, SMTPD_NAME_RECIPIENT));
 }
 
@@ -4312,7 +4314,9 @@ static int check_sender_rcpt_maps(SMTPD_STATE *state, const char *sender)
 	return (0);
     if (state->sender_rcptmap_checked == 1)
 	return (0);
-    state->sender_rcptmap_checked = 1;
+    if (state->warn_if_reject == 0)
+	/* We really validate the sender address. */
+	state->sender_rcptmap_checked = 1;
     return (check_rcpt_maps(state, sender, SMTPD_NAME_SENDER));
 }
 
