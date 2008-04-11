@@ -122,9 +122,9 @@ directory.
 .ad
 .fi
 The first portion of a bounce template consists of optional
-template headers.  These either become message headers in
-the delivery status notification, or control the formatting
-of the notification. Headers not specified in a template
+template headers.  Some become message headers in the
+delivery status notification; some control the formatting
+of that notification. Headers not specified in a template
 will be left at their default value.
 
 The following headers are supported:
@@ -136,7 +136,7 @@ The sender address in the message header of the delivery
 status notification.
 .IP \fBSubject:\fR
 The subject in the message header of the delivery status
-notification.
+notification that is returned to the sender.
 .IP \fBPostmaster-Subject:\fR
 The subject that will be used in Postmaster copies of
 undeliverable or delayed mail notifications. These copies

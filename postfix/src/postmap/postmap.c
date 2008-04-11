@@ -63,14 +63,13 @@
 /*	as if it is an email message in RFC 2822 format.  Each line
 /*	of body content becomes one lookup key.
 /* .sp
-/*	By default, this processing of body content starts at the
-/*	first non-header line, and continues until the end of the
-/*	message is reached.
-/* .sp
+/*	By default, the \fB-b\fR option starts generating lookup
+/*	keys at the first non-header line, and stops when the end
+/*	of the message is reached.
 /*	To simulate \fBbody_checks\fR(5) processing, enable MIME
 /*	parsing with \fB-m\fR. With this, the \fB-b\fR option
-/*	generates no body-style lookup keys from attachment MIME
-/*	headers and from attached message/* headers.
+/*	generates no body-style lookup keys for attachment MIME
+/*	headers and for attached message/* headers.
 /* .sp
 /*	This feature is available in Postfix version 2.6 and later.
 /* .IP "\fB-c \fIconfig_dir\fR"
@@ -95,15 +94,15 @@
 /*	from standard input with "\fB-q -\fR", process the input
 /*	as if it is an email message in RFC 2822 format.  Each
 /*	logical header line becomes one lookup key. A multi-line
-/*	header becomes one string with embedded newline characters.
+/*	header becomes one lookup key with one or more embedded
+/*	newline characters.
 /* .sp
-/*	By default, this processing of header content ends at the
-/*	first non-header line.
-/* .sp
+/*	By default, the \fB-h\fR option generates lookup keys until
+/*	the first non-header line is reached.
 /*	To simulate \fBheader_checks\fR(5) processing, enable MIME
 /*	parsing with \fB-m\fR. With this, the \fB-h\fR option also
-/*	generates header-style lookup keys from attachment MIME
-/*	headers and from attached message/* headers.
+/*	generates header-style lookup keys for attachment MIME
+/*	headers and for attached message/* headers.
 /* .sp
 /*	This feature is available in Postfix version 2.6 and later.
 /* .IP \fB-i\fR
@@ -111,7 +110,7 @@
 /*	truncate an existing database. By default, \fBpostmap\fR(1) creates
 /*	a new database from the entries in \fBfile_name\fR.
 /* .IP \fB-m\fR
-/*	Enable MIME mode mode with "\fB-b\fR" and "\fB-h\fR".
+/*	Enable MIME parsing with "\fB-b\fR" and "\fB-h\fR".
 /* .sp
 /*	This feature is available in Postfix version 2.6 and later.
 /* .IP \fB-N\fR

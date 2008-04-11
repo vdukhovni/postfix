@@ -107,7 +107,11 @@ Notes:
     value must not contain null or newline.
 
   * The "instance" attribute value can be used to correlate different requests
-    regarding the same message delivery.
+    regarding the same message delivery. These requests are sent over the same
+    policy connection (unless the policy daemon terminates the connection).
+    Once Postfix sends a query with a different instance attribute over that
+    same policy connection, the previous message delivery is either completed
+    or aborted.
 
   * The "size" attribute value specifies the message size that the client
     specified in the MAIL FROM command (zero if none was specified). With

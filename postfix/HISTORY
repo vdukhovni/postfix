@@ -14391,7 +14391,7 @@ Apologies for any names omitted.
 	mistake of indenting if/endif blocks. Files: util/dict_pcre.c,
 	util/dict_regexp.c.
 
-20030824
+20080324
 
 	Cleanup: the event_drain() function is now a proper event
 	processing loop. File: util/events.c
@@ -14401,5 +14401,19 @@ Apologies for any names omitted.
 	message format. Specify -h or -b to use headers or body
 	lines as lookup keys, and specify -hm or -bm to simulate
 	header_checks or body_checks.  The postmap -h option (without
-	-m) will be compatible with a future postmap -h option.
+	-m) will be compatible with a future postcat -h option.
 	File: postmap/postmap.c.
+
+20040811
+
+	Bugfix (introduced Postfix 2.0): after "warn_if_reject
+	reject_unlisted_recipient/sender", the SMTP server mistakenly
+	remembered that recipient/sender validation was already
+	done. File: smtpd/smtpd_check.c.
+
+	Bugfix (introduced Postfix 2.3): the queue manager would
+	initialize missing client logging attributes (from xforward)
+	with real client attributes. Fix: enable this backwards
+	compatibility feature only with queue files that don't
+	contain logging attributes. Problem reported by Liviu Daia.
+	Files *qmgr/qmgr_message.c.

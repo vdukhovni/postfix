@@ -334,6 +334,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
     int     dsn_notify = 0;
     char   *dsn_orcpt = 0;
     int     n;
+    int     have_log_client_attr = 0;
 
     /*
      * Initialize. No early returns or we have a memory leak.
@@ -653,18 +654,24 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	     * client information. To support old queue files we accept both
 	     * names for the purpose of logging; the new name overrides the
 	     * old one.
+	     * 
+	     * XXX Do not use the "legacy" client_name etc. attribute values for
+	     * initializing the logging attributes, when this file already
+	     * contains the "modern" log_client_name etc. logging attributes.
+	     * Otherwise, logging attributes that are not present in the
+	     * queue file would be set with information from the real client.
 	     */
 	    else if (strcmp(name, MAIL_ATTR_ACT_CLIENT_NAME) == 0) {
-		if (message->client_name == 0)
+		if (have_log_client_attr == 0 && message->client_name == 0)
 		    message->client_name = mystrdup(value);
 	    } else if (strcmp(name, MAIL_ATTR_ACT_CLIENT_ADDR) == 0) {
-		if (message->client_addr == 0)
+		if (have_log_client_attr == 0 && message->client_addr == 0)
 		    message->client_addr = mystrdup(value);
 	    } else if (strcmp(name, MAIL_ATTR_ACT_PROTO_NAME) == 0) {
-		if (message->client_proto == 0)
+		if (have_log_client_attr == 0 && message->client_proto == 0)
 		    message->client_proto = mystrdup(value);
 	    } else if (strcmp(name, MAIL_ATTR_ACT_HELO_NAME) == 0) {
-		if (message->client_helo == 0)
+		if (have_log_client_attr == 0 && message->client_helo == 0)
 		    message->client_helo = mystrdup(value);
 	    }
 	    /* Original client attributes. */
@@ -672,22 +679,27 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		if (message->client_name != 0)
 		    myfree(message->client_name);
 		message->client_name = mystrdup(value);
+		have_log_client_attr = 1;
 	    } else if (strcmp(name, MAIL_ATTR_LOG_CLIENT_ADDR) == 0) {
 		if (message->client_addr != 0)
 		    myfree(message->client_addr);
 		message->client_addr = mystrdup(value);
+		have_log_client_attr = 1;
 	    } else if (strcmp(name, MAIL_ATTR_LOG_CLIENT_PORT) == 0) {
 		if (message->client_port != 0)
 		    myfree(message->client_port);
 		message->client_port = mystrdup(value);
+		have_log_client_attr = 1;
 	    } else if (strcmp(name, MAIL_ATTR_LOG_PROTO_NAME) == 0) {
 		if (message->client_proto != 0)
 		    myfree(message->client_proto);
 		message->client_proto = mystrdup(value);
+		have_log_client_attr = 1;
 	    } else if (strcmp(name, MAIL_ATTR_LOG_HELO_NAME) == 0) {
 		if (message->client_helo != 0)
 		    myfree(message->client_helo);
 		message->client_helo = mystrdup(value);
+		have_log_client_attr = 1;
 	    } else if (strcmp(name, MAIL_ATTR_SASL_METHOD) == 0) {
 		if (message->sasl_method == 0)
 		    message->sasl_method = mystrdup(value);
