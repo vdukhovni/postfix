@@ -1781,14 +1781,16 @@ static int reject_unknown_address(SMTPD_STATE *state, const char *addr,
 
 static int reject_unverified_address(SMTPD_STATE *state, const char *addr,
 		            const char *reply_name, const char *reply_class,
-				             int unv_addr_code)
+			             int unv_addr_dcode, int unv_addr_rcode,
+				             const char *alt_reply)
 {
     const char *myname = "reject_unverified_address";
     VSTRING *why = vstring_alloc(10);
-    int     rqst_status;
+    int     rqst_status = SMTPD_CHECK_DUNNO;
     int     rcpt_status;
     int     verify_status;
     int     count;
+    int     reject_code = 0;
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, addr);
@@ -1816,27 +1818,34 @@ static int reject_unverified_address(SMTPD_STATE *state, const char *addr,
 	switch (rcpt_status) {
 	default:
 	    msg_warn("unknown address verification status %d", rcpt_status);
-	    rqst_status = SMTPD_CHECK_DUNNO;
 	    break;
 	case DEL_RCPT_STAT_TODO:
 	case DEL_RCPT_STAT_DEFER:
+	    reject_code = unv_addr_dcode;
+	    break;
+	case DEL_RCPT_STAT_OK:
+	    break;
+	case DEL_RCPT_STAT_BOUNCE:
+	    reject_code = unv_addr_rcode;
+	    break;
+	}
+	if (reject_code >= 400 && *alt_reply)
+	    vstring_strcpy(why, alt_reply);
+	switch (reject_code / 100) {
+	case 2:
+	    break;
+	case 4:
 	    DEFER_IF_PERMIT3(state, MAIL_ERROR_POLICY,
 			  450, strcmp(reply_class, SMTPD_NAME_SENDER) == 0 ?
 			     SND_DSN : "4.1.1",
 			     "<%s>: %s rejected: unverified address: %.250s",
 			     reply_name, reply_class, STR(why));
-	    rqst_status = SMTPD_CHECK_DUNNO;
 	    break;
-	case DEL_RCPT_STAT_OK:
-	    rqst_status = SMTPD_CHECK_DUNNO;
-	    break;
-	case DEL_RCPT_STAT_BOUNCE:
-	    if (unv_addr_code / 100 == 2)
-		rqst_status = SMTPD_CHECK_DUNNO;
-	    else
+	default:
+	    if (reject_code != 0)
 		rqst_status =
 		    smtpd_check_reject(state, MAIL_ERROR_POLICY,
-				       unv_addr_code,
+				       reject_code,
 			       strcmp(reply_class, SMTPD_NAME_SENDER) == 0 ?
 				       SND_DSN : "4.1.1",
 			     "<%s>: %s rejected: undeliverable address: %s",
@@ -3715,7 +3724,8 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    if (state->sender && *state->sender)
 		status = reject_unverified_address(state, state->sender,
 					   state->sender, SMTPD_NAME_SENDER,
-						   var_unv_from_code);
+				     var_unv_from_dcode, var_unv_from_rcode,
+						   var_unv_from_why);
 	} else if (strcasecmp(name, REJECT_NON_FQDN_SENDER) == 0) {
 	    if (state->sender && *state->sender)
 		status = reject_non_fqdn_address(state, state->sender,
@@ -3845,7 +3855,8 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    if (state->recipient && *state->recipient)
 		status = reject_unverified_address(state, state->recipient,
 				     state->recipient, SMTPD_NAME_RECIPIENT,
-						   var_unv_rcpt_code);
+				     var_unv_rcpt_dcode, var_unv_rcpt_rcode,
+						   var_unv_rcpt_why);
 	}
 
 	/*

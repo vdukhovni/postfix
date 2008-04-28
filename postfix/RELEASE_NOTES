@@ -17,6 +17,28 @@ Incompatibility with Postfix 2.4 and earlier
 If you upgrade from Postfix 2.4 or earlier, read RELEASE_NOTES-2.5
 before proceeding.
 
+Incompatibility with snapshot 20080428
+======================================
+
+Postfix SMTP server replies for address verification have changed.
+unverified_recipient_reject_code and unverified_sender_reject_code
+now handle "5XX" rejects only. The "4XX" rejects are now controlled
+with unverified_sender_defer_code and unverified_recipient_defer_code.
+
+Major changes with snapshot 20080428
+====================================
+
+Finer control over the way that Postfix reports address verification
+failures are reported to remote SMTP clients.
+
+- unverified_sender/recipient_defer_code: the numerical Postfix
+  SMTP server reply code when address verification failed due
+  to some temporary error.
+
+- unverified_sender/recipient_reject_reason: fixed text that Postfix
+  will send to the remote SMTP client, instead of sending actual
+  address verification details.
+
 Incompatible changes with snapshot 20080207
 ===========================================
 

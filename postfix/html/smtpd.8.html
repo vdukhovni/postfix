@@ -964,6 +964,28 @@ SMTPD(8)                                                              SMTPD(8)
               recipient address is rejected by the <a href="postconf.5.html#reject_unverified_recipient">reject_unveri</a>-
               <a href="postconf.5.html#reject_unverified_recipient">fied_recipient</a> restriction.
 
+       Available in Postfix version 2.6 and later:
+
+       <b><a href="postconf.5.html#unverified_sender_defer_code">unverified_sender_defer_code</a> (450)</b>
+              The numerical Postfix  SMTP  server  response  code
+              when  a  sender address probe fails due to a tempo-
+              rary error condition.
+
+       <b><a href="postconf.5.html#unverified_recipient_defer_code">unverified_recipient_defer_code</a> (450)</b>
+              The numerical Postfix SMTP server response  when  a
+              recipient  address  probe  fails due to a temporary
+              error condition.
+
+       <b><a href="postconf.5.html#unverified_sender_reject_reason">unverified_sender_reject_reason</a> (empty)</b>
+              When rejecting mail with  <a href="postconf.5.html#reject_unverified_sender">reject_unverified_sender</a>,
+              reply  with  this  text  as  the reason, instead of
+              actual address verification details.
+
+       <b><a href="postconf.5.html#unverified_recipient_reject_reason">unverified_recipient_reject_reason</a> (empty)</b>
+              When rejecting mail with  reject_unverified_recipi-
+              ent, reply with this text as the reason, instead of
+              actual address verification details.
+
 <b>ACCESS CONTROL RESPONSES</b>
        The following  parameters  control  numerical  SMTP  reply
        codes and/or text responses.

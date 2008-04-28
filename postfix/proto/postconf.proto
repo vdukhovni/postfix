@@ -157,7 +157,7 @@ is rejected by an access(5) map restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 821.
+Do not change this unless you have a complete understanding of RFC 2821.
 </p>
 
 %PARAM address_verify_default_transport $default_transport
@@ -1227,7 +1227,7 @@ client request is rejected by the "defer" restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 821.
+Do not change this unless you have a complete understanding of RFC 2821.
 </p>
 
 %PARAM defer_transports 
@@ -1897,7 +1897,7 @@ restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 821.
+Do not change this unless you have a complete understanding of RFC 2821.
 </p>
 
 %PARAM ipc_idle version dependent
@@ -2534,7 +2534,7 @@ reject_rhsbl_sender or reject_rhsbl_recipient restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 821.
+Do not change this unless you have a complete understanding of RFC 2821.
 </p>
 
 %PARAM masquerade_classes envelope_sender, header_sender, header_recipient
@@ -2741,7 +2741,7 @@ restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 821.
+Do not change this unless you have a complete understanding of RFC 2821.
 </p>
 
 <p>
@@ -3360,7 +3360,7 @@ client request is rejected by the "reject" restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 821.
+Do not change this unless you have a complete understanding of RFC 2821.
 </p>
 
 %PARAM relay_domains $mydestination
@@ -3400,7 +3400,7 @@ restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 821.
+Do not change this unless you have a complete understanding of RFC 2821.
 </p>
 
 %PARAM relay_recipient_maps 
@@ -4124,12 +4124,12 @@ The default time unit is s (seconds).
 
 <p>
 Quote addresses in SMTP MAIL FROM and RCPT TO commands as required
-by RFC 821. This includes putting quotes around an address localpart
+by RFC 2821. This includes putting quotes around an address localpart
 that ends in ".".
 </p>
 
 <p>
-The default is to comply with RFC 821. If you have to send mail to
+The default is to comply with RFC 2821. If you have to send mail to
 a broken SMTP server, configure a special SMTP client in master.cf:
 </p>
 
@@ -5512,9 +5512,10 @@ Address verification information is managed by the verify(8) server;
 see the ADDRESS_VERIFICATION_README file for details.  <br> The
 unverified_recipient_reject_code parameter specifies the response
 when an address is known to bounce (default: 450, change into 550
-when you are confident that it is safe to do so). Postfix replies
-with 450 when an address probe failed due to a temporary problem.
-This feature is available in Postfix 2.1 and later.  </dd>
+when you are confident that it is safe to do so).  The
+unverified_recipient_defer_code parameter specifies the response
+when an address probe failed due to a temporary problem (default:
+450).  This feature is available in Postfix 2.1 and later.  </dd>
 
 </dl>
 
@@ -5874,9 +5875,10 @@ Address verification information is managed by the verify(8) server;
 see the ADDRESS_VERIFICATION_README file for details. <br> The
 unverified_sender_reject_code parameter specifies the response when
 an address is known to bounce (default: 450, change into 550 when
-you are confident that it is safe to do so). Postfix replies with
-450 when an address probe failed due to a temporary problem.  This
-feature is available in Postfix 2.1 and later.  </dd>
+you are confident that it is safe to do so). The
+unverified_sender_defer_code specifies the response when an address
+address probe failed due to a temporary problem (default: 450).
+This feature is available in Postfix 2.1 and later.  </dd>
 
 </dl>
 
@@ -6096,7 +6098,7 @@ always 450 in case of a temporary DNS error.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 821.
+Do not change this unless you have a complete understanding of RFC 2821.
 </p>
 
 %PARAM unknown_client_reject_code 450
@@ -6109,7 +6111,7 @@ with 450 when the mapping failed due to a temporary error condition.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 821.
+Do not change this unless you have a complete understanding of RFC 2821.
 </p>
 
 %PARAM unknown_hostname_reject_code 450
@@ -6121,7 +6123,7 @@ reject_unknown_helo_hostname restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 821.
+Do not change this unless you have a complete understanding of RFC 2821.
 </p>
 
 %PARAM unknown_local_recipient_reject_code 550
@@ -6165,11 +6167,31 @@ accept the address anyway.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 821.
+Do not change this unless you have a complete understanding of RFC 2821.
 </p>
 
 <p>
 This feature is available in Postfix 2.1 and later.
+</p>
+
+%PARAM unverified_recipient_defer_code 450
+
+<p>
+The numerical Postfix SMTP server response when a recipient address
+probe fails due to a temporary error condition.
+</p>
+
+<p>
+Unlike elsewhere in Postfix, you can specify 250 in order to
+accept the address anyway.
+</p>
+
+<p>
+Do not change this unless you have a complete understanding of RFC 2821.
+</p>
+
+<p>
+This feature is available in Postfix 2.6 and later.
 </p>
 
 %PARAM unverified_sender_reject_code 450
@@ -6185,11 +6207,31 @@ accept the address anyway.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 821.
+Do not change this unless you have a complete understanding of RFC 2821.
 </p>
 
 <p>
 This feature is available in Postfix 2.1 and later.
+</p>
+
+%PARAM unverified_sender_defer_code 450
+
+<p>
+The numerical Postfix SMTP server response code when a sender address
+probe fails due to a temporary error condition.
+</p>
+
+<p>
+Unlike elsewhere in Postfix, you can specify 250 in order to
+accept the address anyway.
+</p>
+
+<p>
+Do not change this unless you have a complete understanding of RFC 2821.
+</p>
+
+<p>
+This feature is available in Postfix 2.6 and later.
 </p>
 
 %PARAM virtual_alias_domains $virtual_alias_maps
@@ -11526,4 +11568,21 @@ configuration parameter.  See there for details. </p>
 configuration parameter.  See there for details. </p>
 
 <p> This feature is available in Postfix 2.5 and later. </p>
+
+%PARAM unverified_sender_reject_reason
+
+<p> When rejecting mail with reject_unverified_sender, reply with
+this text as the reason, instead of actual address verification
+details.
+
+<p> This feature is available in Postfix 2.6 and later. </p>
+
+%PARAM unverified_recipient_reject_reason
+
+<p> When rejecting mail with reject_unverified_recipient, reply
+with this text as the reason, instead of actual address verification
+details.
+
+<p> This feature is available in Postfix 2.6 and later. </p>
+
 

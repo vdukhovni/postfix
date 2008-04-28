@@ -67,7 +67,7 @@ parameter.
 The numerical Postfix SMTP server response code when a client
 is rejected by an \fBaccess\fR(5) map restriction.
 .PP
-Do not change this unless you have a complete understanding of RFC 821.
+Do not change this unless you have a complete understanding of RFC 2821.
 .SH address_verify_default_transport (default: $default_transport)
 Overrides the default_transport parameter setting for address
 verification probes.
@@ -1257,7 +1257,7 @@ This feature is available in Postfix 1.1 and later.
 The numerical Postfix SMTP server response code when a remote SMTP
 client request is rejected by the "defer" restriction.
 .PP
-Do not change this unless you have a complete understanding of RFC 821.
+Do not change this unless you have a complete understanding of RFC 2821.
 .SH defer_service_name (default: defer)
 The name of the defer service. This service is implemented by the
 \fBbounce\fR(8) daemon and maintains a record
@@ -1852,7 +1852,7 @@ The numerical Postfix SMTP server response code when the client
 HELO or EHLO command parameter is rejected by the reject_invalid_helo_hostname
 restriction.
 .PP
-Do not change this unless you have a complete understanding of RFC 821.
+Do not change this unless you have a complete understanding of RFC 2821.
 .SH ipc_idle (default: version dependent)
 The time after which a client closes an idle internal communication
 channel.  The purpose is to allow servers to terminate voluntarily
@@ -2808,7 +2808,7 @@ The numerical Postfix SMTP server response code when a remote SMTP
 client request is blocked by the reject_rbl_client, reject_rhsbl_client,
 reject_rhsbl_sender or reject_rhsbl_recipient restriction.
 .PP
-Do not change this unless you have a complete understanding of RFC 821.
+Do not change this unless you have a complete understanding of RFC 2821.
 .SH masquerade_classes (default: envelope_sender, header_sender, header_recipient)
 What addresses are subject to address masquerading.
 .PP
@@ -3134,7 +3134,7 @@ The numerical Postfix SMTP server response code when a remote SMTP
 client request is blocked by the reject_multi_recipient_bounce
 restriction.
 .PP
-Do not change this unless you have a complete understanding of RFC 821.
+Do not change this unless you have a complete understanding of RFC 2821.
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH mydestination (default: $myhostname, localhost.$mydomain, localhost)
@@ -3741,7 +3741,7 @@ recipient_delimiter = +
 The numerical Postfix SMTP server response code when a remote SMTP
 client request is rejected by the "reject" restriction.
 .PP
-Do not change this unless you have a complete understanding of RFC 821.
+Do not change this unless you have a complete understanding of RFC 2821.
 .SH relay_clientcerts (default: empty)
 List of tables with remote SMTP client-certificate fingerprints
 for which the Postfix SMTP server will allow access with the
@@ -3818,7 +3818,7 @@ The numerical Postfix SMTP server response code when a client
 request is rejected by the reject_unauth_destination recipient
 restriction.
 .PP
-Do not change this unless you have a complete understanding of RFC 821.
+Do not change this unless you have a complete understanding of RFC 2821.
 .SH relay_recipient_maps (default: empty)
 Optional lookup tables with all valid addresses in the domains
 that match $relay_domains. Specify @domain as a wild-card for
@@ -4566,10 +4566,10 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 .SH smtp_quote_rfc821_envelope (default: yes)
 Quote addresses in SMTP MAIL FROM and RCPT TO commands as required
-by RFC 821. This includes putting quotes around an address localpart
+by RFC 2821. This includes putting quotes around an address localpart
 that ends in ".".
 .PP
-The default is to comply with RFC 821. If you have to send mail to
+The default is to comply with RFC 2821. If you have to send mail to
 a broken SMTP server, configure a special SMTP client in master.cf:
 .sp
 .in +4
@@ -6722,9 +6722,10 @@ see the ADDRESS_VERIFICATION_README file for details.
 The
 unverified_recipient_reject_code parameter specifies the response
 when an address is known to bounce (default: 450, change into 550
-when you are confident that it is safe to do so). Postfix replies
-with 450 when an address probe failed due to a temporary problem.
-This feature is available in Postfix 2.1 and later.
+when you are confident that it is safe to do so).  The
+unverified_recipient_defer_code parameter specifies the response
+when an address probe failed due to a temporary problem (default:
+450).  This feature is available in Postfix 2.1 and later.
 .PP
 Other restrictions that are valid in this context:
 .IP \(bu
@@ -7067,9 +7068,10 @@ see the ADDRESS_VERIFICATION_README file for details.
 The
 unverified_sender_reject_code parameter specifies the response when
 an address is known to bounce (default: 450, change into 550 when
-you are confident that it is safe to do so). Postfix replies with
-450 when an address probe failed due to a temporary problem.  This
-feature is available in Postfix 2.1 and later.
+you are confident that it is safe to do so). The
+unverified_sender_defer_code specifies the response when an address
+address probe failed due to a temporary problem (default: 450).
+This feature is available in Postfix 2.1 and later.
 .PP
 Other restrictions that are valid in this context:
 .IP \(bu
@@ -8075,20 +8077,20 @@ recipient address is rejected by the reject_unknown_sender_domain
 or reject_unknown_recipient_domain restriction.  The response is
 always 450 in case of a temporary DNS error.
 .PP
-Do not change this unless you have a complete understanding of RFC 821.
+Do not change this unless you have a complete understanding of RFC 2821.
 .SH unknown_client_reject_code (default: 450)
 The numerical Postfix SMTP server response code when a client
 without valid address <=> name mapping is rejected by the
 reject_unknown_client_hostname restriction. The SMTP server always replies
 with 450 when the mapping failed due to a temporary error condition.
 .PP
-Do not change this unless you have a complete understanding of RFC 821.
+Do not change this unless you have a complete understanding of RFC 2821.
 .SH unknown_hostname_reject_code (default: 450)
 The numerical Postfix SMTP server response code when the hostname
 specified with the HELO or EHLO command is rejected by the
 reject_unknown_helo_hostname restriction.
 .PP
-Do not change this unless you have a complete understanding of RFC 821.
+Do not change this unless you have a complete understanding of RFC 2821.
 .SH unknown_local_recipient_reject_code (default: 550)
 The numerical Postfix SMTP server response code when a recipient
 address is local, and $local_recipient_maps specifies a list of
@@ -8129,6 +8131,16 @@ $virtual_mailbox_domains, and $virtual_mailbox_maps specifies a list
 of lookup tables that does not match the recipient address.
 .PP
 This feature is available in Postfix 2.0 and later.
+.SH unverified_recipient_defer_code (default: 450)
+The numerical Postfix SMTP server response when a recipient address
+probe fails due to a temporary error condition.
+.PP
+Unlike elsewhere in Postfix, you can specify 250 in order to
+accept the address anyway.
+.PP
+Do not change this unless you have a complete understanding of RFC 2821.
+.PP
+This feature is available in Postfix 2.6 and later.
 .SH unverified_recipient_reject_code (default: 450)
 The numerical Postfix SMTP server response when a recipient address
 is rejected by the reject_unverified_recipient restriction.
@@ -8136,9 +8148,25 @@ is rejected by the reject_unverified_recipient restriction.
 Unlike elsewhere in Postfix, you can specify 250 in order to
 accept the address anyway.
 .PP
-Do not change this unless you have a complete understanding of RFC 821.
+Do not change this unless you have a complete understanding of RFC 2821.
 .PP
 This feature is available in Postfix 2.1 and later.
+.SH unverified_recipient_reject_reason (default: empty)
+When rejecting mail with reject_unverified_recipient, reply
+with this text as the reason, instead of actual address verification
+details.
+.PP
+This feature is available in Postfix 2.6 and later.
+.SH unverified_sender_defer_code (default: 450)
+The numerical Postfix SMTP server response code when a sender address
+probe fails due to a temporary error condition.
+.PP
+Unlike elsewhere in Postfix, you can specify 250 in order to
+accept the address anyway.
+.PP
+Do not change this unless you have a complete understanding of RFC 2821.
+.PP
+This feature is available in Postfix 2.6 and later.
 .SH unverified_sender_reject_code (default: 450)
 The numerical Postfix SMTP server response code when a recipient
 address is rejected by the reject_unverified_sender restriction.
@@ -8146,9 +8174,15 @@ address is rejected by the reject_unverified_sender restriction.
 Unlike elsewhere in Postfix, you can specify 250 in order to
 accept the address anyway.
 .PP
-Do not change this unless you have a complete understanding of RFC 821.
+Do not change this unless you have a complete understanding of RFC 2821.
 .PP
 This feature is available in Postfix 2.1 and later.
+.SH unverified_sender_reject_reason (default: empty)
+When rejecting mail with reject_unverified_sender, reply with
+this text as the reason, instead of actual address verification
+details.
+.PP
+This feature is available in Postfix 2.6 and later.
 .SH verp_delimiter_filter (default: -=+)
 The characters Postfix accepts as VERP delimiter characters on the
 Postfix \fBsendmail\fR(1) command line and in SMTP commands.

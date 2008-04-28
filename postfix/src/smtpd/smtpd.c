@@ -724,6 +724,22 @@
 /* .IP "\fBunverified_recipient_reject_code (450)\fR"
 /*	The numerical Postfix SMTP server response when a recipient address
 /*	is rejected by the reject_unverified_recipient restriction.
+/* .PP
+/*	Available in Postfix version 2.6 and later:
+/* .IP "\fBunverified_sender_defer_code (450)\fR"
+/*	The numerical Postfix SMTP server response code when a sender address
+/*	probe fails due to a temporary error condition.
+/* .IP "\fBunverified_recipient_defer_code (450)\fR"
+/*	The numerical Postfix SMTP server response when a recipient address
+/*	probe fails due to a temporary error condition.
+/* .IP "\fBunverified_sender_reject_reason (empty)\fR"
+/*	When rejecting mail with reject_unverified_sender, reply with
+/*	this text as the reason, instead of actual address verification
+/*	details.
+/* .IP "\fBunverified_recipient_reject_reason (empty)\fR"
+/*	When rejecting mail with reject_unverified_recipient, reply
+/*	with this text as the reason, instead of actual address verification
+/*	details.
 /* ACCESS CONTROL RESPONSES
 /* .ad
 /* .fi
@@ -1056,8 +1072,12 @@ char   *var_smtpd_null_key;
 int     var_smtpd_hist_thrsh;
 char   *var_smtpd_exp_filter;
 char   *var_def_rbl_reply;
-int     var_unv_from_code;
-int     var_unv_rcpt_code;
+int     var_unv_from_rcode;
+int     var_unv_rcpt_rcode;
+int     var_unv_from_dcode;
+int     var_unv_rcpt_dcode;
+char   *var_unv_from_why;
+char   *var_unv_rcpt_why;
 int     var_mul_rcpt_code;
 char   *var_relay_rcpt_maps;
 char   *var_verify_sender;
@@ -3405,8 +3425,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	if (state->namaddr)
 	    myfree(state->namaddr);
 	state->namaddr =
-	    concatenate(state->name, "[", state->addr, "]:",
-			state->port, (char *) 0);
+	    SMTPD_BUILD_NAMADDRPORT(state->name, state->addr, state->port);
     }
 
     /*
@@ -3671,10 +3690,10 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    myfree(state->xforward.namaddr);
 	state->xforward.namaddr =
 	    IS_AVAIL_CLIENT_ADDR(state->xforward.addr) ?
-	    concatenate(state->xforward.name, "[",
-			state->xforward.addr, "]:",
-			state->xforward.port,
-			(char *) 0) : mystrdup(state->xforward.name);
+	    SMTPD_BUILD_NAMADDRPORT(state->xforward.name,
+				    state->xforward.addr,
+				    state->xforward.port) :
+	    mystrdup(state->xforward.name);
     }
     smtpd_chat_reply(state, "250 2.0.0 Ok");
     return (0);
@@ -4661,8 +4680,10 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_JUNK_CMD, DEF_SMTPD_JUNK_CMD, &var_smtpd_junk_cmd_limit, 1, 0,
 	VAR_SMTPD_RCPT_OVERLIM, DEF_SMTPD_RCPT_OVERLIM, &var_smtpd_rcpt_overlim, 1, 0,
 	VAR_SMTPD_HIST_THRSH, DEF_SMTPD_HIST_THRSH, &var_smtpd_hist_thrsh, 1, 0,
-	VAR_UNV_FROM_CODE, DEF_UNV_FROM_CODE, &var_unv_from_code, 0, 0,
-	VAR_UNV_RCPT_CODE, DEF_UNV_RCPT_CODE, &var_unv_rcpt_code, 0, 0,
+	VAR_UNV_FROM_RCODE, DEF_UNV_FROM_RCODE, &var_unv_from_rcode, 200, 599,
+	VAR_UNV_RCPT_RCODE, DEF_UNV_RCPT_RCODE, &var_unv_rcpt_rcode, 200, 599,
+	VAR_UNV_FROM_DCODE, DEF_UNV_FROM_DCODE, &var_unv_from_dcode, 200, 499,
+	VAR_UNV_RCPT_DCODE, DEF_UNV_RCPT_DCODE, &var_unv_rcpt_dcode, 200, 499,
 	VAR_MUL_RCPT_CODE, DEF_MUL_RCPT_CODE, &var_mul_rcpt_code, 0, 0,
 	VAR_LOCAL_RCPT_CODE, DEF_LOCAL_RCPT_CODE, &var_local_rcpt_code, 0, 0,
 	VAR_VIRT_ALIAS_CODE, DEF_VIRT_ALIAS_CODE, &var_virt_alias_code, 0, 0,
@@ -4801,6 +4822,8 @@ int     main(int argc, char **argv)
 	VAR_MILT_DAEMON_NAME, DEF_MILT_DAEMON_NAME, &var_milt_daemon_name, 1, 0,
 	VAR_MILT_V, DEF_MILT_V, &var_milt_v, 1, 0,
 	VAR_STRESS, DEF_STRESS, &var_stress, 0, 0,
+	VAR_UNV_FROM_WHY, DEF_UNV_FROM_WHY, &var_unv_from_why, 0, 0,
+	VAR_UNV_RCPT_WHY, DEF_UNV_RCPT_WHY, &var_unv_rcpt_why, 0, 0,
 	0,
     };
     static const CONFIG_RAW_TABLE raw_table[] = {

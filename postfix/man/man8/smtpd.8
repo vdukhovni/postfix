@@ -774,6 +774,22 @@ address is rejected by the reject_unverified_sender restriction.
 .IP "\fBunverified_recipient_reject_code (450)\fR"
 The numerical Postfix SMTP server response when a recipient address
 is rejected by the reject_unverified_recipient restriction.
+.PP
+Available in Postfix version 2.6 and later:
+.IP "\fBunverified_sender_defer_code (450)\fR"
+The numerical Postfix SMTP server response code when a sender address
+probe fails due to a temporary error condition.
+.IP "\fBunverified_recipient_defer_code (450)\fR"
+The numerical Postfix SMTP server response when a recipient address
+probe fails due to a temporary error condition.
+.IP "\fBunverified_sender_reject_reason (empty)\fR"
+When rejecting mail with reject_unverified_sender, reply with
+this text as the reason, instead of actual address verification
+details.
+.IP "\fBunverified_recipient_reject_reason (empty)\fR"
+When rejecting mail with reject_unverified_recipient, reply
+with this text as the reason, instead of actual address verification
+details.
 .SH "ACCESS CONTROL RESPONSES"
 .na
 .nf

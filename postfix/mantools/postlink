@@ -535,7 +535,11 @@ while (<>) {
     s;\bunknown_virtual_alias_reject_code\b;<a href="postconf.5.html#unknown_virtual_alias_reject_code">$&</a>;g;
     s;\bunknown_virtual_mail[-</bB>]*\n* *[<bB>]*box_reject_code\b;<a href="postconf.5.html#unknown_virtual_mailbox_reject_code">$&</a>;g;
     s;\bunverified_recip[-</bB>]*\n* *[<bB>]*ient_reject_code\b;<a href="postconf.5.html#unverified_recipient_reject_code">$&</a>;g;
+    s;\bunverified_recip[-</bB>]*\n* *[<bB>]*ient_defer_code\b;<a href="postconf.5.html#unverified_recipient_defer_code">$&</a>;g;
     s;\bunverified_sender_reject_code\b;<a href="postconf.5.html#unverified_sender_reject_code">$&</a>;g;
+    s;\bunverified_sender_defer_code\b;<a href="postconf.5.html#unverified_sender_defer_code">$&</a>;g;
+    s;\bunverified_recipient_reject_reason\b;<a href="postconf.5.html#unverified_recipient_reject_reason">$&</a>;g;
+    s;\bunverified_sender_reject_reason\b;<a href="postconf.5.html#unverified_sender_reject_reason">$&</a>;g;
     s;\bverp_delimiter_filter\b;<a href="postconf.5.html#verp_delimiter_filter">$&</a>;g;
     s;\bvir[-</bB>]*\n*[ <bB>]*tual_alias_domains\b;<a href="postconf.5.html#virtual_alias_domains">$&</a>;g;
     s;\bvir[-</bB>]*\n*[ <bB>]*tual_alias_expansion_limit\b;<a href="postconf.5.html#virtual_alias_expansion_limit">$&</a>;g;

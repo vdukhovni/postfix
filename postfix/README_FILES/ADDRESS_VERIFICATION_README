@@ -103,9 +103,10 @@ LLiimmiittaattiioonnss ooff aaddddrreessss vveerriiffi
     response to end of DATA after a message is transferred. Postfix address
     verification does not work with such sites.
 
-  * By default, Postfix probe messages have "postmaster@$myorigin" as the
-    sender address. This is SAFE because the Postfix SMTP server does not
-    reject mail for this address.
+  * By default, Postfix probe messages have "double-bounce@$myorigin" as the
+    sender address (with Postfix versions before 2.5, the default is
+    "postmaster@$myorigin"). This is SAFE because the Postfix SMTP server does
+    not reject mail for this address.
 
     You can change this into the null address ("address_verify_sender ="). This
     is UNSAFE because address probes will fail with mis-configured sites that
@@ -138,23 +139,39 @@ described later.
             reject_unknown_recipient_domain
             reject_unverified_recipient
             ...
+        # Postfix 2.6 and later privacy feature.
+        # unverified_recipient_reject_reason = Address lookup failed
 
 The "reject_unknown_recipient_domain" restriction blocks mail for non-existent
 domains. Putting this before "reject_unverified_recipient" avoids the overhead
 of generating unnecessary probe messages.
 
-The unverified_recipient_reject_code parameter (default 450) specifies how
-Postfix replies when a recipient address is known to bounce. Change this
-setting into 550 when you trust Postfix's judgments.
+The unverified_recipient_reject_code parameter (default 450) specifies the
+numerical Postfix SMTP server reply code when a recipient address is known to
+bounce. Change this setting into 550 when you trust Postfix's judgments.
+
+The following features are available in Postfix 2.6 and later.
+
+The unverified_recipient_defer_code parameter (default 450) specifies the
+numerical Postfix SMTP server reply code when a recipient address probe fails
+with some temporary error. Some sites insist on changing this into 250. NOTE:
+This change turns MX servers into backscatter sources when the load is high.
+
+The unverified_recipient_reject_reason parameter (default: empty) specifies
+fixed text that Postfix will send to remote SMTP clients, instead of sending
+actual address verification details.
 
 SSeennddeerr aaddddrreessss vveerriiffiiccaattiioonn ffoorr mmaaiill ffrroomm ffrreeqquueennttllyy ffoorrggeedd ddoommaaiinnss
 
-It is relatively safe to turn on sender address verification for specific
-domains that often appear in forged email.
+Only for very small sites, it is relatively safe to turn on sender address
+verification for specific domains that often appear in forged email.
 
     /etc/postfix/main.cf:
         smtpd_sender_restrictions = hash:/etc/postfix/sender_access
         unverified_sender_reject_code = 550
+        # Postfix 2.6 and later.
+        # unverified_sender_defer_code = 250
+
         # Note 1: Be sure to read the "Caching" section below!
         # Note 2: Avoid hash files here. Use btree instead.
         address_verify_map = btree:/var/lib/postfix/verify
@@ -191,6 +208,9 @@ be blocked:
             reject_unknown_sender_domain
             warn_if_reject reject_unverified_sender
             ...
+        # Postfix 2.6 and later.
+        # unverified_sender_reject_reason = Address verification failed
+
         # Note 1: Be sure to read the "Caching" section below!
         # Note 2: Avoid hash files here. Use btree instead.
         address_verify_map = btree:/var/lib/postfix/verify
@@ -215,9 +235,19 @@ The "reject_unknown_sender_domain" restriction blocks mail from non-existent
 domains. Putting this before "reject_unverified_sender" avoids the overhead of
 generating unnecessary probe messages.
 
-The unverified_sender_reject_code parameter (default 450) specifies how Postfix
-replies when a sender address is known to bounce. Change this setting into 550
-when you trust Postfix's judgments.
+The unverified_sender_reject_code parameter (default 450) specifies the
+numerical Postfix server reply code when a sender address is known to bounce.
+Change this setting into 550 when you trust Postfix's judgments.
+
+The following features are available in Postfix 2.6 and later.
+
+The unverified_sender_defer_code parameter (default 450) specifies the
+numerical Postfix SMTP server reply code when a sender address verification
+probe fails with some temporary error. Specify a valid 2xx or 4xx code.
+
+The unverified_sender_reject_reason parameter (default: empty) specifies fixed
+text that Postfix will send to remote SMTP clients, instead of sending actual
+addres verification details.
 
 AAddddrreessss vveerriiffiiccaattiioonn ddaattaabbaassee
 

@@ -1936,14 +1936,30 @@ extern bool var_smtpd_rej_unl_from;
 extern bool var_smtpd_rej_unl_rcpt;
 
 #define REJECT_UNVERIFIED_RECIP "reject_unverified_recipient"
-#define VAR_UNV_RCPT_CODE	"unverified_recipient_reject_code"
-#define DEF_UNV_RCPT_CODE	450
-extern int var_unv_rcpt_code;
+#define VAR_UNV_RCPT_RCODE	"unverified_recipient_reject_code"
+#define DEF_UNV_RCPT_RCODE	450
+extern int var_unv_rcpt_rcode;
 
 #define REJECT_UNVERIFIED_SENDER "reject_unverified_sender"
-#define VAR_UNV_FROM_CODE	"unverified_sender_reject_code"
-#define DEF_UNV_FROM_CODE	450
-extern int var_unv_from_code;
+#define VAR_UNV_FROM_RCODE	"unverified_sender_reject_code"
+#define DEF_UNV_FROM_RCODE	450
+extern int var_unv_from_rcode;
+
+#define VAR_UNV_RCPT_DCODE	"unverified_recipient_defer_code"
+#define DEF_UNV_RCPT_DCODE	450
+extern int var_unv_rcpt_dcode;
+
+#define VAR_UNV_FROM_DCODE	"unverified_sender_defer_code"
+#define DEF_UNV_FROM_DCODE	450
+extern int var_unv_from_dcode;
+
+#define VAR_UNV_RCPT_WHY	"unverified_recipient_reject_reason"
+#define DEF_UNV_RCPT_WHY	""
+extern char *var_unv_rcpt_why;
+
+#define VAR_UNV_FROM_WHY	"unverified_sender_reject_reason"
+#define DEF_UNV_FROM_WHY	""
+extern char *var_unv_from_why;
 
 #define REJECT_MUL_RCPT_BOUNCE	"reject_multi_recipient_bounce"
 #define VAR_MUL_RCPT_CODE	"multi_recipient_bounce_reject_code"
@@ -2058,7 +2074,11 @@ extern int var_local_rcpt_code;
 				" $" VAR_RCPT_CANON_MAPS \
 				" $" VAR_RELOCATED_MAPS \
 				" $" VAR_TRANSPORT_MAPS \
-				" $" VAR_MYNETWORKS
+				" $" VAR_MYNETWORKS \
+				" $" VAR_SEND_BCC_MAPS \
+				" $" VAR_RCPT_BCC_MAPS \
+				" $" VAR_SMTP_GENERIC_MAPS \
+				" $" VAR_LMTP_GENERIC_MAPS
 extern char *var_proxy_read_maps;
 
 #define VAR_PROXY_WRITE_MAPS	"proxy_write_maps"

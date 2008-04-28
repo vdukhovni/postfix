@@ -14404,7 +14404,7 @@ Apologies for any names omitted.
 	-m) will be compatible with a future postcat -h option.
 	File: postmap/postmap.c.
 
-20040811
+20080411
 
 	Bugfix (introduced Postfix 2.0): after "warn_if_reject
 	reject_unlisted_recipient/sender", the SMTP server mistakenly
@@ -14417,3 +14417,29 @@ Apologies for any names omitted.
 	compatibility feature only with queue files that don't
 	contain logging attributes. Problem reported by Liviu Daia.
 	Files *qmgr/qmgr_message.c.
+
+20080424
+
+	Cleanup: some warning messages said "regexp" or "regexp
+	map" instead of "pcre map". File: util/dict_pcre.c.
+
+20080426
+
+	Feature: finer control over address verification error
+	handling and amount of information disclosed in the SMTP
+	reject message.  Parameters: unverified_recipient_defer_code,
+	unverified_recipient_reject_reason, unverified_sender_defer_code,
+	unverified_sender_reject_reason. If I don't do this properly,
+	then someone will do it anyway. File: src/smtpd/smtpd_check.c.
+
+20080428
+
+	Cleanup: the proxy_read_maps (Postfix 2.0) default setting
+	was not updated when adding sender/recipient_bcc_maps
+	(Postfix 2.1) and smtp/lmtp_generic_maps (Postfix 2.3).
+	File: global/mail_params.h.
+
+	Cleanup: the SMTP server's XFORWARD and XCLIENT support
+	was not updated when the smtpd_client_port_logging configuration
+	parameter was added. Code by Victor Duchovni. Files:
+	smtpd/smtpd.c, smtpd/smtpd_peer.c.

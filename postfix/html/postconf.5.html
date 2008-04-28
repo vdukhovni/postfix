@@ -94,7 +94,7 @@ is rejected by an <a href="access.5.html">access(5)</a> map restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc2821">RFC 2821</a>.
 </p>
 
 
@@ -2207,7 +2207,7 @@ client request is rejected by the "defer" restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc2821">RFC 2821</a>.
 </p>
 
 
@@ -3319,7 +3319,7 @@ restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc2821">RFC 2821</a>.
 </p>
 
 
@@ -5118,7 +5118,7 @@ client request is blocked by the <a href="postconf.5.html#reject_rbl_client">rej
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc2821">RFC 2821</a>.
 </p>
 
 
@@ -5683,7 +5683,7 @@ restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc2821">RFC 2821</a>.
 </p>
 
 <p>
@@ -6740,7 +6740,7 @@ client request is rejected by the "reject" restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc2821">RFC 2821</a>.
 </p>
 
 
@@ -6848,7 +6848,7 @@ restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc2821">RFC 2821</a>.
 </p>
 
 
@@ -8122,12 +8122,12 @@ The default time unit is s (seconds).
 
 <p>
 Quote addresses in SMTP MAIL FROM and RCPT TO commands as required
-by <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>. This includes putting quotes around an address localpart
+by <a href="http://tools.ietf.org/html/rfc2821">RFC 2821</a>. This includes putting quotes around an address localpart
 that ends in ".".
 </p>
 
 <p>
-The default is to comply with <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>. If you have to send mail to
+The default is to comply with <a href="http://tools.ietf.org/html/rfc2821">RFC 2821</a>. If you have to send mail to
 a broken SMTP server, configure a special SMTP client in <a href="master.5.html">master.cf</a>:
 </p>
 
@@ -11053,9 +11053,10 @@ Address verification information is managed by the <a href="verify.8.html">verif
 see the <a href="ADDRESS_VERIFICATION_README.html">ADDRESS_VERIFICATION_README</a> file for details.  <br> The
 <a href="postconf.5.html#unverified_recipient_reject_code">unverified_recipient_reject_code</a> parameter specifies the response
 when an address is known to bounce (default: 450, change into 550
-when you are confident that it is safe to do so). Postfix replies
-with 450 when an address probe failed due to a temporary problem.
-This feature is available in Postfix 2.1 and later.  </dd>
+when you are confident that it is safe to do so).  The
+<a href="postconf.5.html#unverified_recipient_defer_code">unverified_recipient_defer_code</a> parameter specifies the response
+when an address probe failed due to a temporary problem (default:
+450).  This feature is available in Postfix 2.1 and later.  </dd>
 
 </dl>
 
@@ -11578,9 +11579,10 @@ Address verification information is managed by the <a href="verify.8.html">verif
 see the <a href="ADDRESS_VERIFICATION_README.html">ADDRESS_VERIFICATION_README</a> file for details. <br> The
 <a href="postconf.5.html#unverified_sender_reject_code">unverified_sender_reject_code</a> parameter specifies the response when
 an address is known to bounce (default: 450, change into 550 when
-you are confident that it is safe to do so). Postfix replies with
-450 when an address probe failed due to a temporary problem.  This
-feature is available in Postfix 2.1 and later.  </dd>
+you are confident that it is safe to do so). The
+<a href="postconf.5.html#unverified_sender_defer_code">unverified_sender_defer_code</a> specifies the response when an address
+address probe failed due to a temporary problem (default: 450).
+This feature is available in Postfix 2.1 and later.  </dd>
 
 </dl>
 
@@ -13074,7 +13076,7 @@ always 450 in case of a temporary DNS error.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc2821">RFC 2821</a>.
 </p>
 
 
@@ -13091,7 +13093,7 @@ with 450 when the mapping failed due to a temporary error condition.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc2821">RFC 2821</a>.
 </p>
 
 
@@ -13107,7 +13109,7 @@ specified with the HELO or EHLO command is rejected by the
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc2821">RFC 2821</a>.
 </p>
 
 
@@ -13193,6 +13195,30 @@ This feature is available in Postfix 2.0 and later.
 
 </DD>
 
+<DT><b><a name="unverified_recipient_defer_code">unverified_recipient_defer_code</a>
+(default: 450)</b></DT><DD>
+
+<p>
+The numerical Postfix SMTP server response when a recipient address
+probe fails due to a temporary error condition.
+</p>
+
+<p>
+Unlike elsewhere in Postfix, you can specify 250 in order to
+accept the address anyway.
+</p>
+
+<p>
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc2821">RFC 2821</a>.
+</p>
+
+<p>
+This feature is available in Postfix 2.6 and later.
+</p>
+
+
+</DD>
+
 <DT><b><a name="unverified_recipient_reject_code">unverified_recipient_reject_code</a>
 (default: 450)</b></DT><DD>
 
@@ -13207,11 +13233,47 @@ accept the address anyway.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc2821">RFC 2821</a>.
 </p>
 
 <p>
 This feature is available in Postfix 2.1 and later.
+</p>
+
+
+</DD>
+
+<DT><b><a name="unverified_recipient_reject_reason">unverified_recipient_reject_reason</a>
+(default: empty)</b></DT><DD>
+
+<p> When rejecting mail with <a href="postconf.5.html#reject_unverified_recipient">reject_unverified_recipient</a>, reply
+with this text as the reason, instead of actual address verification
+details.
+
+<p> This feature is available in Postfix 2.6 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="unverified_sender_defer_code">unverified_sender_defer_code</a>
+(default: 450)</b></DT><DD>
+
+<p>
+The numerical Postfix SMTP server response code when a sender address
+probe fails due to a temporary error condition.
+</p>
+
+<p>
+Unlike elsewhere in Postfix, you can specify 250 in order to
+accept the address anyway.
+</p>
+
+<p>
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc2821">RFC 2821</a>.
+</p>
+
+<p>
+This feature is available in Postfix 2.6 and later.
 </p>
 
 
@@ -13231,12 +13293,24 @@ accept the address anyway.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc821">RFC 821</a>.
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc2821">RFC 2821</a>.
 </p>
 
 <p>
 This feature is available in Postfix 2.1 and later.
 </p>
+
+
+</DD>
+
+<DT><b><a name="unverified_sender_reject_reason">unverified_sender_reject_reason</a>
+(default: empty)</b></DT><DD>
+
+<p> When rejecting mail with <a href="postconf.5.html#reject_unverified_sender">reject_unverified_sender</a>, reply with
+this text as the reason, instead of actual address verification
+details.
+
+<p> This feature is available in Postfix 2.6 and later. </p>
 
 
 </DD>
