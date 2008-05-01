@@ -207,9 +207,10 @@ delivery failure in response to end of DATA after a message is
 transferred.  Postfix address verification does not work with such
 sites. </p>
 
-<li> <p> By default, Postfix probe messages have "postmaster@$myorigin"
-as the sender address. This is SAFE because the Postfix SMTP server
-does not reject mail for this address. </p>
+<li> <p> By default, Postfix probe messages have "double-bounce@$myorigin"
+as the sender address (with Postfix versions before 2.5, the default
+is "postmaster@$myorigin"). This is SAFE because the Postfix SMTP
+server does not reject mail for this address. </p>
 
 <p> You can change this into the null address ("address_verify_sender
 ="). This is UNSAFE because address probes will fail with

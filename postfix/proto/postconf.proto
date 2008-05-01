@@ -6165,7 +6165,7 @@ This feature is available in Postfix 2.1 and later.
 %PARAM unverified_sender_reject_code 450
 
 <p>
-The numerical Postfix SMTP server response code when a recipient
+The numerical Postfix SMTP server response code when a sender
 address is rejected by the reject_unverified_sender restriction.
 </p>
 

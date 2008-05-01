@@ -3405,8 +3405,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	if (state->namaddr)
 	    myfree(state->namaddr);
 	state->namaddr =
-	    concatenate(state->name, "[", state->addr, "]:",
-			state->port, (char *) 0);
+	    SMTPD_BUILD_NAMADDRPORT(state->name, state->addr, state->port);
     }
 
     /*
@@ -3671,10 +3670,10 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    myfree(state->xforward.namaddr);
 	state->xforward.namaddr =
 	    IS_AVAIL_CLIENT_ADDR(state->xforward.addr) ?
-	    concatenate(state->xforward.name, "[",
-			state->xforward.addr, "]:",
-			state->xforward.port,
-			(char *) 0) : mystrdup(state->xforward.name);
+	    SMTPD_BUILD_NAMADDRPORT(state->xforward.name,
+				    state->xforward.addr,
+				    state->xforward.port) :
+	    mystrdup(state->xforward.name);
     }
     smtpd_chat_reply(state, "250 2.0.0 Ok");
     return (0);

@@ -14297,10 +14297,6 @@ Apologies for any names omitted.
 	main.cf when "postfix start" is invoked with an obsolete
 	postfix command. File: conf/post-install.
 
-	Workaround (introduced 20071204): update the wrong proxywrite
-	process limit when upgrading an already installed default
-	master.cf file.  File: conf/post-install.
-
 20080207
 
 	Cleanup: soft_bounce support for multi-line Milter replies.
@@ -14311,6 +14307,20 @@ Apologies for any names omitted.
 
 	Cleanup: multi-line support in SMTP server replies.  File:
 	smtpd/smtpd_chat.c.
+
+20080215
+
+	Safety: break SASL loop in case both the SASL library and
+	the remote SMTP server are confused. File: smtp/smtp_sasl_glue.c.
+
+20080220
+
+	Safety: the master daemon now sets an exclusive lock on a
+	file $data_directory/master.lock, so that the data directory
+	can't be shared between multiple Postfix instances.  This
+	would corrupt files that rely on single-writer updates
+	(examples: verify(8) cache, tlsmgr(8) caches, etc.). File:
+	master/master.c.
 
 20080228
 
@@ -14330,7 +14340,14 @@ Apologies for any names omitted.
 	{rcpt_addr} information. Problem reported by Anton Yuzhaninov.
 	File: smtpd/smtpd.c.
 
-20040811
+20080318
+
+	Human factors: the PCRE and regexp maps now give more
+	comprehensible error messages when people make the common
+	mistake of indenting if/endif blocks. Files: util/dict_pcre.c,
+	util/dict_regexp.c.
+
+20080411
 
 	Bugfix (introduced Postfix 2.0): after "warn_if_reject
 	reject_unlisted_recipient/sender", the SMTP server mistakenly
@@ -14343,3 +14360,20 @@ Apologies for any names omitted.
 	compatibility feature only with queue files that don't
 	contain logging attributes. Problem reported by Liviu Daia.
 	Files *qmgr/qmgr_message.c.
+
+20080424
+
+	Cleanup: some warning messages said "regexp" or "regexp
+	map" instead of "pcre map". File: util/dict_pcre.c.
+
+20080428
+
+	Cleanup: the proxy_read_maps (Postfix 2.0) default setting
+	was not updated when adding sender/recipient_bcc_maps
+	(Postfix 2.1) and smtp/lmtp_generic_maps (Postfix 2.3).
+	File: global/mail_params.h.
+
+	Cleanup: the SMTP server's XFORWARD and XCLIENT support was
+	not updated when the smtpd_client_port_logging configuration
+	parameter was added. Code by Victor Duchovni. Files:
+	smtpd/smtpd.c, smtpd/smtpd_peer.c.

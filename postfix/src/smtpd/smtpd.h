@@ -280,6 +280,14 @@ extern void smtpd_peer_reset(SMTPD_STATE *state);
 #define SMTPD_PEER_CODE_FORGED	6
 
  /*
+  * Construct name[addr] or name[addr]:port as appropriate
+  */
+#define SMTPD_BUILD_NAMADDRPORT(name, addr, port) \
+	concatenate((name), "[", (addr), "]", \
+		    var_smtpd_client_port_log ? ":" : (char *) 0, \
+		    (port), (char *) 0)
+
+ /*
   * Choose between normal or forwarded attributes.
   * 
   * Note 1: inside the SMTP server, forwarded attributes must have the exact

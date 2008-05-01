@@ -25,7 +25,7 @@
 /*	The verified client hostname. This name is represented by
 /*	the string "unknown" when 1) the address->name lookup failed,
 /*	2) the name->address mapping fails, or 3) the name->address
-/*	does not produce the client IP address.
+/*	mapping does not produce the client IP address.
 /* .IP reverse_name
 /*	The unverified client hostname as found with address->name
 /*	lookup; it is not verified for consistency with the client
@@ -373,10 +373,8 @@ void    smtpd_peer_init(SMTPD_STATE *state)
     /*
      * Do the name[addr]:port formatting for pretty reports.
      */
-    state->namaddr =
-	concatenate(state->name, "[", state->addr, "]",
-		    var_smtpd_client_port_log ? ":" : (char *) 0,
-		    state->port, (char *) 0);
+    state->namaddr = SMTPD_BUILD_NAMADDRPORT(state->name, state->addr,
+					     state->port);
 }
 
 /* smtpd_peer_reset - destroy peer information */
