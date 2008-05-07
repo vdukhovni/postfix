@@ -719,7 +719,7 @@
 /*	The sender address to use in address verification probes; prior
 /*	to Postfix 2.5 the default was "postmaster".
 /* .IP "\fBunverified_sender_reject_code (450)\fR"
-/*	The numerical Postfix SMTP server response code when a recipient
+/*	The numerical Postfix SMTP server response code when a sender
 /*	address is rejected by the reject_unverified_sender restriction.
 /* .IP "\fBunverified_recipient_reject_code (450)\fR"
 /*	The numerical Postfix SMTP server response when a recipient address

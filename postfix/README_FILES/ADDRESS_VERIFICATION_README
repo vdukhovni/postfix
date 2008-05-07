@@ -103,9 +103,10 @@ LLiimmiittaattiioonnss ooff aaddddrreessss vveerriiffi
     response to end of DATA after a message is transferred. Postfix address
     verification does not work with such sites.
 
-  * By default, Postfix probe messages have "postmaster@$myorigin" as the
-    sender address. This is SAFE because the Postfix SMTP server does not
-    reject mail for this address.
+  * By default, Postfix probe messages have "double-bounce@$myorigin" as the
+    sender address (with Postfix versions before 2.5, the default is
+    "postmaster@$myorigin"). This is SAFE because the Postfix SMTP server does
+    not reject mail for this address.
 
     You can change this into the null address ("address_verify_sender ="). This
     is UNSAFE because address probes will fail with mis-configured sites that
