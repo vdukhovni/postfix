@@ -173,7 +173,10 @@ stress=
     These attributes are empty in case of no certificate authentication.
     As of Postfix 2.2.11 these attribute values are encoded as
     xtext: some characters are represented by +XX, where XX is the
-    two-digit hexadecimal representation of the character value.
+    two-digit hexadecimal representation of the character value. With
+    Postfix 2.5 and later, the decoded string may contain non-ASCII
+    characters. If so, this is a UTF-8 string; xtext encoding works
+    with the bytes of the UTF-8 string, not the characters.
     </p>
 
     <li> <p> The "encryption_*" attributes (Postfix 2.3 and later)

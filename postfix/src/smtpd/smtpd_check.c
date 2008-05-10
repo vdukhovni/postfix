@@ -1813,7 +1813,6 @@ static int reject_unverified_address(SMTPD_STATE *state, const char *addr,
 			 SND_DSN : "4.1.1",
 			 "<%s>: %s rejected: address verification problem",
 			 reply_name, reply_class);
-	rqst_status = SMTPD_CHECK_DUNNO;
     } else {
 	switch (rcpt_status) {
 	default:

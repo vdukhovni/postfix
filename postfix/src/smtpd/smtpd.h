@@ -180,14 +180,6 @@ typedef struct SMTPD_STATE {
     ssize_t milter_argc;
 } SMTPD_STATE;
 
- /*
-  * Construct name[addr] or name[addr]:port as appropriate
-  */
-#define SMTPD_BUILD_NAMADDRPORT(name, addr, port) \
-    concatenate((name), "[", (addr), "]", \
-		var_smtpd_client_port_log ? ":" : (char *) 0, \
-		(port), (char *) 0)
-
 #define SMTPD_FLAG_HANGUP	(1<<0)	/* disconnect */
 
 #define SMTPD_STATE_XFORWARD_INIT  (1<<0)	/* xforward preset done */
@@ -286,6 +278,14 @@ extern void smtpd_peer_reset(SMTPD_STATE *state);
 #define SMTPD_PEER_CODE_TEMP	4
 #define SMTPD_PEER_CODE_PERM	5
 #define SMTPD_PEER_CODE_FORGED	6
+
+ /*
+  * Construct name[addr] or name[addr]:port as appropriate
+  */
+#define SMTPD_BUILD_NAMADDRPORT(name, addr, port) \
+	concatenate((name), "[", (addr), "]", \
+		    var_smtpd_client_port_log ? ":" : (char *) 0, \
+		    (port), (char *) 0)
 
  /*
   * Choose between normal or forwarded attributes.

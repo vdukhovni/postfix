@@ -773,6 +773,16 @@ int     bounce_original(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
     }
 
     /*
+     * XXX The cleanup server removes Return-Path: headers. This should be
+     * done only with mail that enters via a non-SMTP channel, but changing
+     * this now could break other software. Removing Return-Path: could break
+     * digital signatures, though this is unlikely. In any case,
+     * header_checks are more effective when the Return-Path: header is
+     * present, so we prepend one to the bounce message.
+     */
+    post_mail_fprintf(bounce, "Return-Path: <%s>", STR(bounce_info->sender));
+
+    /*
      * Copy the original message contents. We're doing raw record output here
      * so that we don't throw away binary transparency yet.
      */

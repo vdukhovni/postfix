@@ -17,6 +17,13 @@ Incompatibility with Postfix 2.4 and earlier
 If you upgrade from Postfix 2.4 or earlier, read RELEASE_NOTES-2.5
 before proceeding.
 
+Incompatibility with snapshot 20080510
+======================================
+
+In the policy delegation protocol, certificate common name attributes
+are now xtext encoded UTF-8. The xtext decoded attributes may contain
+any UTF-8 value including control characters.
+
 Incompatibility with snapshot 20080428
 ======================================
 

@@ -190,12 +190,13 @@ The reply code "421" causes Postfix to disconnect immediately
 (Postfix version 2.3 and later).
 .IP "\fBREJECT \fIoptional text...\fR
 Reject the address etc. that matches the pattern. Reply with
-\fI$reject_code optional text...\fR when the optional text is
+"\fB$access_map_reject_code \fIoptional text...\fR" when the
+optional text is
 specified, otherwise reply with a generic error response message.
 .IP "\fBDEFER_IF_REJECT \fIoptional text...\fR
 Defer the request if some later restriction would result in a
 REJECT action. Reply with "\fB450 4.7.1 \fI optional
-text...\fR when the
+text...\fR" when the
 optional text is specified, otherwise reply with a generic error
 response message.
 .sp
@@ -203,7 +204,7 @@ This feature is available in Postfix 2.1 and later.
 .IP "\fBDEFER_IF_PERMIT \fIoptional text...\fR
 Defer the request if some later restriction would result in a
 an explicit or implicit PERMIT action.
-Reply with "\fB450 4.7.1 \fI optional text...\fR when the
+Reply with "\fB450 4.7.1 \fI optional text...\fR" when the
 optional text is specified, otherwise reply with a generic error
 response message.
 .sp

@@ -14439,7 +14439,26 @@ Apologies for any names omitted.
 	(Postfix 2.1) and smtp/lmtp_generic_maps (Postfix 2.3).
 	File: global/mail_params.h.
 
-	Cleanup: the SMTP server's XFORWARD and XCLIENT support
-	was not updated when the smtpd_client_port_logging configuration
+	Cleanup: the SMTP server's XFORWARD and XCLIENT support was
+	not updated when the smtpd_client_port_logging configuration
 	parameter was added. Code by Victor Duchovni. Files:
 	smtpd/smtpd.c, smtpd/smtpd_peer.c.
+
+20080508
+
+	Cleanup: delivery status notifications now prepend a
+	Return-Path: message header to the returned message.
+	File: bounce/bounce_notify_util.c.
+
+20080509
+
+	Bugfix: null-terminate CN comment string after sanitization.
+	File: smtpd/smtpd.c.
+
+20080510
+
+	Cleanup: when extracting common name and issuer name from
+	TLS certificates, convert the result into UTF-8, and use
+	RFC 2047 encoding when logging these as Received: header
+	comment fields. Based remotely on code by Victor Duchovni.
+	Files: smtpd/smtpd.c, tls/tls_verify.c.

@@ -30,12 +30,12 @@
 /*	tls_peer_CN() returns the text CommonName for the peer
 /*	certificate subject, or an empty string if no CommonName was
 /*	found. The result is allocated with mymalloc() and must be
-/*	freed by the caller.
+/*	freed by the caller; it is arbitrary UTF-8 content.
 /*
 /*	tls_issuer_CN() returns the text CommonName for the peer
 /*	certificate issuer, or an empty string if no CommonName was
 /*	found. The result is allocated with mymalloc() and must be
-/*	freed by the caller.
+/*	freed by the caller; it is arbitrary UTF-8 content.
 /*
 /*	tls_dns_name() returns the string value of a GENERAL_NAME
 /*	from a DNS subjectAltName extension. If non-printable characters
@@ -278,11 +278,9 @@ static char *tls_text_name(X509_NAME *name, int nid, const char *label,
     int     pos;
     X509_NAME_ENTRY *entry;
     ASN1_STRING *entry_str;
-    int     typ;
-    int     len;
-    unsigned char *val;
-    unsigned char *utf;
-    char   *cp;
+    int     asn1_type;
+    int     utf8_length;
+    unsigned char *utf8_value;
 
     if (name == 0 || (pos = X509_NAME_get_index_by_NID(name, nid, -1)) < 0) {
 	if (gripe != DONT_GRIPE) {
@@ -321,96 +319,72 @@ static char *tls_text_name(X509_NAME *name, int nid, const char *label,
     }
 
     /*
-     * Peername checks are security sensitive, carefully scrutinize the
-     * input!
+     * XXX Convert everything into UTF-8. This is a super-set of ASCII, so we
+     * don't have to bother with separate code paths for ASCII-like content.
+     * If the payload is ASCII then we won't waste lots of CPU cycles
+     * converting it into UTF-8. It's up to OpenSSL to do something
+     * reasonable when converting ASCII formats that contain non-ASCII
+     * content.
+     * 
+     * XXX Don't bother optimizing the string length error check. It is not
+     * worth the complexity.
      */
-    typ = ASN1_STRING_type(entry_str);
-    len = ASN1_STRING_length(entry_str);
-    val = ASN1_STRING_data(entry_str);
+    asn1_type = ASN1_STRING_type(entry_str);
+    if ((utf8_length = ASN1_STRING_to_UTF8(&utf8_value, entry_str)) < 0) {
+	msg_warn("%s: %s: error decoding peer %s of ASN.1 type=%d",
+		 myname, TLScontext->namaddr, label, asn1_type);
+	tls_print_errors();
+	return (0);
+    }
 
     /*
-     * http://www.apps.ietf.org/rfc/rfc3280.html#sec-4.1.2.4 Quick Summary:
-     * 
-     * The DirectoryString type is defined as a choice of PrintableString,
-     * TeletexString, BMPString, UTF8String, and UniversalString.  The
-     * UTF8String encoding is the preferred encoding, and all certificates
-     * issued after December 31, 2003 MUST use the UTF8String encoding of
-     * DirectoryString (except as noted below).
-     * 
-     * XXX: 2007, the above has not happened yet (of course), and we continue to
-     * see new certificates with T61STRING (Teletex) attribute values.
-     * 
-     * XXX: 2007, at this time there are only two ASN.1 fixed width multi-byte
-     * string encodings, BMPSTRING (16 bit Unicode) and UniversalString
-     * (32-bit Unicode). The only variable width ASN.1 string encoding is
-     * UTF8 with all the other encodings being 1 byte wide subsets or subsets
-     * of ASCII.
-     * 
-     * Relying on this could simplify the code, because we would never convert
-     * unexpected single-byte encodings, but is involves too many cases to be
-     * sure that we have a complete set and the assumptions may become false.
-     * So, we pessimistically convert encodings not blessed by RFC 2459, and
-     * filter out all types that are not string types as a side-effect of
-     * UTF8 conversion (the ASN.1 library knows which types are string types
-     * and how wide they are...).
-     * 
-     * XXX: Two possible states after switch, either "utf == val" and it MUST
-     * NOT be freed with OPENSSL_free(), or "utf != val" and it MUST be freed
-     * with OPENSSL_free().
+     * No returns without cleaning up. A good optimizer will replace multiple
+     * blocks of identical code by jumps to just one such block.
      */
-    switch (typ) {
-    case V_ASN1_PRINTABLESTRING:		/* X.500 portable ASCII
-						 * printables */
-    case V_ASN1_IA5STRING:			/* ISO 646 ~ ASCII */
-    case V_ASN1_T61STRING:			/* Essentially ISO-Latin */
-    case V_ASN1_UTF8STRING:			/* UTF8 */
-	utf = val;
-	break;
+#define TLS_TEXT_NAME_RETURN(x) do { \
+	char *__tls_text_name_temp = (x); \
+	OPENSSL_free(utf8_value); \
+	return (__tls_text_name_temp); \
+    } while (0)
 
-    default:
-
-	/*
-	 * May shrink in wash, but BMPSTRING only shrinks by 50%. Others may
-	 * shrink by up to 75%. We Sanity check the length before bothering
-	 * to copy any large strings to convert to UTF8, only to find out
-	 * they don't fit. So long as no new MB types are introduced, and
-	 * weird string encodings unsanctioned by RFC 3280, are used in the
-	 * issuer or subject DN, this "conservative" estimate will be exact.
-	 */
-	len >>= (typ == V_ASN1_BMPSTRING) ? 1 : 2;
-	if (len >= CCERT_BUFSIZ) {
-	    msg_warn("%s: %s: peer %s too long: %d",
-		     myname, TLScontext->namaddr, label, len);
-	    return (0);
-	}
-	if ((len = ASN1_STRING_to_UTF8(&utf, entry_str)) < 0) {
-	    msg_warn("%s: %s: error decoding peer %s of ASN.1 type=%d",
-		     myname, TLScontext->namaddr, label, typ);
-	    tls_print_errors();
-	    return (0);
-	}
-    }
-#define RETURN(x) do { if (utf!=val) OPENSSL_free(utf); return (x); } while (0)
-
-    if (len >= CCERT_BUFSIZ) {
-	msg_warn("%s: %s: peer %s too long: %d",
-		 myname, TLScontext->namaddr, label, len);
-	RETURN(0);
-    }
-    if (len != strlen((char *) utf)) {
-	msg_warn("%s: %s: internal NUL in peer %s",
-		 myname, TLScontext->namaddr, label);
-	RETURN(0);
-    }
-    for (cp = (char *) utf; *cp; cp++) {
-	if (!ISASCII(*cp) || !ISPRINT(*cp)) {
-	    msg_warn("%s: %s: non-printable characters in peer %s",
+#if 0
+    for (cp = utf8_value; (ch = *cp) != 0; cp++) {
+	if (ISASCII(ch) && !ISPRINT(ch)) {
+	    msg_warn("%s: %s: non-printable content in peer %s",
 		     myname, TLScontext->namaddr, label);
-	    RETURN(0);
+	    TLS_TEXT_NAME_RETURN(0);
 	}
     }
-    cp = mystrdup((char *) utf);
-    RETURN(cp);
+#endif
+
+    /*
+     * Remove trailing null characters. They would give false alarms with the
+     * length check and with the embedded null check.
+     */
+#define TRIM0(s, l) do { while ((l) > 0 && (s)[(l)-1] == 0) --(l); } while (0)
+
+    TRIM0(utf8_value, utf8_length);
+
+    /*
+     * Enforce the length limit, because the caller will copy the result into
+     * a fixed-length buffer.
+     */
+    if (utf8_length >= CCERT_BUFSIZ) {
+	msg_warn("%s: %s: peer %s too long: %d",
+		 myname, TLScontext->namaddr, label, utf8_length);
+	TLS_TEXT_NAME_RETURN(0);
+    }
+
+    /*
+     * Don't allow embedded nulls in ASCII or UTF-8 names. OpenSSL is
+     * responsible for producing properly-formatted UTF-8.
+     */
+    if (utf8_length != strlen((char *) utf8_value)) {
+	msg_warn("%s: %s: NULL character in peer %s",
+		 myname, TLScontext->namaddr, label);
+	TLS_TEXT_NAME_RETURN(0);
+    }
+    TLS_TEXT_NAME_RETURN(mystrdup((char *) utf8_value));
 }
 
 /* tls_dns_name - Extract valid DNS name from subjectAltName value */
@@ -421,6 +395,7 @@ const char *tls_dns_name(const GENERAL_NAME * gn,
     const char *myname = "tls_dns_name";
     char   *cp;
     const char *dnsname;
+    int     len;
 
     /*
      * Peername checks are security sensitive, carefully scrutinize the
@@ -443,6 +418,8 @@ const char *tls_dns_name(const GENERAL_NAME * gn,
      * Safe to treat as an ASCII string possibly holding a DNS name
      */
     dnsname = (char *) ASN1_STRING_data(gn->d.ia5);
+    len = ASN1_STRING_length(gn->d.ia5);
+    TRIM0(dnsname, len);
 
     /*
      * Per Dr. Steven Henson of the OpenSSL development team, ASN1_IA5STRING
@@ -451,7 +428,7 @@ const char *tls_dns_name(const GENERAL_NAME * gn,
      * always appended to make sure that the string is terminated, but the
      * ASN.1 length may differ from strlen().
      */
-    if (ASN1_STRING_length(gn->d.ia5) != strlen(dnsname)) {
+    if (len != strlen(dnsname)) {
 	msg_warn("%s: %s: internal NUL in subjectAltName",
 		 myname, TLScontext->namaddr);
 	return 0;
@@ -463,14 +440,13 @@ const char *tls_dns_name(const GENERAL_NAME * gn,
      * compare equal to the expected peername, so being more strict than
      * "printable" is likely excessive...
      */
-    for (cp = (char *) dnsname; cp && *cp; cp++)
-	if (!ISASCII(*cp) || !ISPRINT(*cp)) {
-	    cp = mystrdup(dnsname);
-	    msg_warn("%s: %s: non-printable characters in subjectAltName: %s",
-		     myname, TLScontext->namaddr, printable(cp, '?'));
-	    myfree(cp);
-	    return 0;
-	}
+    if (*dnsname && !allprint(dnsname)) {
+	cp = mystrdup(dnsname);
+	msg_warn("%s: %s: non-printable characters in subjectAltName: %.100s",
+		 myname, TLScontext->namaddr, printable(cp, '?'));
+	myfree(cp);
+	return 0;
+    }
     return (dnsname);
 }
 
