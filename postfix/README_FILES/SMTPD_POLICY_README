@@ -127,9 +127,8 @@ Notes:
     case of no certificate authentication. As of Postfix 2.2.11 these attribute
     values are encoded as xtext: some characters are represented by +XX, where
     XX is the two-digit hexadecimal representation of the character value. With
-    Postfix 2.5 and later, the decoded string may contain non-ASCII characters.
-    If so, this is a UTF-8 string; xtext encoding works with the bytes of the
-    UTF-8 string, not the characters.
+    Postfix 2.6 and later, the decoded string is an UTF-8 string without non-
+    printable ASCII characters.
 
   * The "encryption_*" attributes (Postfix 2.3 and later) specify information
     about how the connection is encrypted. With plaintext connections the

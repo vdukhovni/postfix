@@ -14457,8 +14457,18 @@ Apologies for any names omitted.
 
 20080510
 
-	Cleanup: when extracting common name and issuer name from
+	Cleanup: when extracting peer and issuer common name from
 	TLS certificates, convert the result into UTF-8, and use
 	RFC 2047 encoding when logging these as Received: header
 	comment fields. Based remotely on code by Victor Duchovni.
 	Files: smtpd/smtpd.c, tls/tls_verify.c.
+
+20080511
+
+	Cleanup: the RFC 2047 encoding of RFC*822 comments is too
+	problematic.  The text that explains the problems is as
+	long as the code itself.  That is usually a good indication
+	that code is not ready for use.  File: smtpd/smtpd.c.
+
+	Cleanup: block non-printable ASCII text in UTF8 encoded TLS
+	peer and issuer common names.  File: tls/tls_verify.c.

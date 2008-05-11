@@ -2496,6 +2496,8 @@ static void rcpt_reset(SMTPD_STATE *state)
     state->rcpt_overshoot = 0;
 }
 
+#if 0
+
 /* rfc2047_comment_encode - encode comment string */
 
 static VSTRING *rfc2047_comment_encode(const char *str, const char *charset)
@@ -2505,22 +2507,29 @@ static VSTRING *rfc2047_comment_encode(const char *str, const char *charset)
     int     ch;
 
     /*
-     * XXX Most of the RFC 2047 "especials" are not special in RFC*822
-     * comments, but we encode them anyway to avoid complaints.
+     * XXX This is problematic code.
+     * 
+     * XXX Most of the RFC 2047 "especials" are not special in RFC*822 comments,
+     * but we encode them anyway to avoid complaints.
      * 
      * XXX In Received: header comments we enclose peer and issuer common names
-     * with "" quotes. This is the cause of several quirks.
+     * with "" quotes (inherited from the Lutz Jaenicke patch). This is the
+     * cause of several quirks.
      * 
      * 1) We encode text that contains the " character, even though that
-     * character is not special for RFC*822.
+     * character is not special for RFC*822 comments.
      * 
-     * 2) Long comments look ugly when folded in-between quotes, so we ignore
-     * the recommended limit of 75 characters per encoded word.
+     * 2) We ignore the recommended limit of 75 characters per encoded word,
+     * because long comments look ugly when folded in-between quotes.
      * 
-     * 3) We must encode the the enclosing quotes, to avoid producing invalid
-     * encoded words.
+     * 3) We encode the enclosing quotes, to avoid producing invalid encoded
+     * words. Microsoft abuses RFC 2047 encoding with attachment names, but
+     * we have no information on what decoders do with malformed encoding in
+     * comments. This means the comments are Jaenicke-compatible only after
+     * decoding.
      */
 #define ESPECIALS "()<>@,;:\"/[]?.="		/* Special in RFC 2047 */
+#define QSPECIALS "_" ESPECIALS			/* Special in RFC 2047 'Q' */
 #define CSPECIALS "\\\"()"			/* Special in our comments */
 
     /* Don't encode if not needed. */
@@ -2538,7 +2547,7 @@ static VSTRING *rfc2047_comment_encode(const char *str, const char *charset)
      */
     vstring_sprintf(buf, "=?%s?Q?=%02X", charset, '"');
     for (cp = (unsigned char *) str; (ch = *cp) != 0; ++cp) {
-	if (!ISPRINT(ch) || strchr(ESPECIALS CSPECIALS, ch)) {
+	if (!ISPRINT(ch) || strchr(QSPECIALS CSPECIALS, ch)) {
 	    vstring_sprintf_append(buf, "=%02X", ch);
 	} else if (ch == ' ') {
 	    VSTRING_ADDCH(buf, '_');
@@ -2549,6 +2558,8 @@ static VSTRING *rfc2047_comment_encode(const char *str, const char *charset)
     vstring_sprintf_append(buf, "=%02X?=", '"');
     return (buf);
 }
+
+#endif
 
 /* comment_sanitize - clean up comment string */
 
@@ -2709,10 +2720,6 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 
 #define VSTRING_STRDUP(s) vstring_strcpy(vstring_alloc(strlen(s) + 1), (s))
 
-	/*
-	 * Certificate CN information is arbitrary content in the UTF-8
-	 * character set.
-	 */
 #ifdef USE_TLS
 	if (var_smtpd_tls_received_header && state->tls_context) {
 	    out_fprintf(out_stream, REC_TYPE_NORM,
@@ -2722,14 +2729,13 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 			state->tls_context->cipher_usebits,
 			state->tls_context->cipher_algbits);
 	    if (TLS_CERT_IS_PRESENT(state->tls_context)) {
-		peer_CN =
-		    rfc2047_comment_encode(state->tls_context->peer_CN,
-					   "utf-8");
-		issuer_CN =
-		    rfc2047_comment_encode(state->tls_context->issuer_CN,
-					   "utf-8");
+		peer_CN = VSTRING_STRDUP(state->tls_context->peer_CN);
+		comment_sanitize(peer_CN);
+		issuer_CN = VSTRING_STRDUP(state->tls_context->issuer_CN ?
+					state->tls_context->issuer_CN : "");
+		comment_sanitize(issuer_CN);
 		out_fprintf(out_stream, REC_TYPE_NORM,
-			    "\t(Client CN %s, Issuer %s (%s))",
+			    "\t(Client CN \"%s\", Issuer \"%s\" (%s))",
 			    STR(peer_CN), STR(issuer_CN),
 			    TLS_CERT_IS_TRUSTED(state->tls_context) ?
 			    "verified OK" : "not verified");

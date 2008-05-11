@@ -30,12 +30,14 @@
 /*	tls_peer_CN() returns the text CommonName for the peer
 /*	certificate subject, or an empty string if no CommonName was
 /*	found. The result is allocated with mymalloc() and must be
-/*	freed by the caller; it is arbitrary UTF-8 content.
+/*	freed by the caller; it contains UTF-8 without non-printable
+/*	ASCII characters.
 /*
 /*	tls_issuer_CN() returns the text CommonName for the peer
 /*	certificate issuer, or an empty string if no CommonName was
 /*	found. The result is allocated with mymalloc() and must be
-/*	freed by the caller; it is arbitrary UTF-8 content.
+/*	freed by the caller; it contains UTF-8 without non-printable
+/*	ASCII characters.
 /*
 /*	tls_dns_name() returns the string value of a GENERAL_NAME
 /*	from a DNS subjectAltName extension. If non-printable characters
@@ -281,6 +283,8 @@ static char *tls_text_name(X509_NAME *name, int nid, const char *label,
     int     asn1_type;
     int     utf8_length;
     unsigned char *utf8_value;
+    int     ch;
+    unsigned char *cp;
 
     if (name == 0 || (pos = X509_NAME_get_index_by_NID(name, nid, -1)) < 0) {
 	if (gripe != DONT_GRIPE) {
@@ -347,16 +351,6 @@ static char *tls_text_name(X509_NAME *name, int nid, const char *label,
 	return (__tls_text_name_temp); \
     } while (0)
 
-#if 0
-    for (cp = utf8_value; (ch = *cp) != 0; cp++) {
-	if (ISASCII(ch) && !ISPRINT(ch)) {
-	    msg_warn("%s: %s: non-printable content in peer %s",
-		     myname, TLScontext->namaddr, label);
-	    TLS_TEXT_NAME_RETURN(0);
-	}
-    }
-#endif
-
     /*
      * Remove trailing null characters. They would give false alarms with the
      * length check and with the embedded null check.
@@ -376,13 +370,28 @@ static char *tls_text_name(X509_NAME *name, int nid, const char *label,
     }
 
     /*
-     * Don't allow embedded nulls in ASCII or UTF-8 names. OpenSSL is
-     * responsible for producing properly-formatted UTF-8.
+     * Reject embedded nulls in ASCII or UTF-8 names. OpenSSL is responsible
+     * for producing properly-formatted UTF-8.
      */
     if (utf8_length != strlen((char *) utf8_value)) {
 	msg_warn("%s: %s: NULL character in peer %s",
 		 myname, TLScontext->namaddr, label);
 	TLS_TEXT_NAME_RETURN(0);
+    }
+
+    /*
+     * Reject non-printable ASCII characters from UTF-8 content.
+     * 
+     * Note: the code below does not find control characters in illegal UTF-8
+     * sequences. It's OpenSSL's job to produce valid UTF-8, and reportedly,
+     * it does validation.
+     */
+    for (cp = utf8_value; (ch = *cp) != 0; cp++) {
+	if (ISASCII(ch) && !ISPRINT(ch)) {
+	    msg_warn("%s: %s: non-printable content in peer %s",
+		     myname, TLScontext->namaddr, label);
+	    TLS_TEXT_NAME_RETURN(0);
+	}
     }
     TLS_TEXT_NAME_RETURN(mystrdup((char *) utf8_value));
 }
