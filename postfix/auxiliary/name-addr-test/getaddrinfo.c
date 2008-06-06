@@ -43,7 +43,7 @@ int     main(int argc, char **argv)
     hints.ai_flags = AI_CANONNAME;
     hints.ai_socktype = SOCK_STREAM;
     if ((err = getaddrinfo(argv[1], NO_SERVICE, &hints, &res0)) != 0) {
-	fprintf(stderr, "host %s not found\n", argv[1]);
+	fprintf(stderr, "host %s not found: %s\n", argv[1], gai_strerror(err));
 	exit(1);
     }
     printf("Hostname:\t%s\n", res0->ai_canonname);

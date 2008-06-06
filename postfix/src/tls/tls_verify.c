@@ -380,7 +380,7 @@ static char *tls_text_name(X509_NAME *name, int nid, const char *label,
     }
 
     /*
-     * Reject non-printable ASCII characters from UTF-8 content.
+     * Reject non-printable ASCII characters in UTF-8 content.
      * 
      * Note: the code below does not find control characters in illegal UTF-8
      * sequences. It's OpenSSL's job to produce valid UTF-8, and reportedly,

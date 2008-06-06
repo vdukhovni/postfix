@@ -9,7 +9,7 @@ OK
 OK
 >>> relay_domains porcupine.org
 OK
->>> maps_rbl_domains relays.mail-abuse.org
+>>> maps_rbl_domains dnsbltest.porcupine.org
 OK
 >>> rbl_reply_maps hash:smtpd_check_access
 OK
@@ -30,10 +30,10 @@ OK
 >>> client foo 127.0.0.2
 OK
 >>> rcpt rname@rdomain
-./smtpd_check: <queue id>: reject: RCPT from foo[127.0.0.2]: 554 5.7.1 Service unavailable; Client host [127.0.0.2] blocked using relays.mail-abuse.org; from=<sname@sdomain> to=<rname@rdomain> proto=SMTP helo=<foobar>
-554 5.7.1 Service unavailable; Client host [127.0.0.2] blocked using relays.mail-abuse.org
+./smtpd_check: <queue id>: reject: RCPT from foo[127.0.0.2]: 554 5.7.1 Service unavailable; Client host [127.0.0.2] blocked using dnsbltest.porcupine.org; from=<sname@sdomain> to=<rname@rdomain> proto=SMTP helo=<foobar>
+554 5.7.1 Service unavailable; Client host [127.0.0.2] blocked using dnsbltest.porcupine.org
 >>> #
->>> recipient_restrictions reject_rbl_client,relays.mail-abuse.org
+>>> recipient_restrictions reject_rbl_client,dnsbltest.porcupine.org
 OK
 >>> client spike.porcupine.org 168.100.189.2
 OK
@@ -42,15 +42,15 @@ OK
 >>> client foo 127.0.0.2
 OK
 >>> rcpt rname@rdomain
-./smtpd_check: <queue id>: reject: RCPT from foo[127.0.0.2]: 554 5.7.1 Service unavailable; Client host [127.0.0.2] blocked using relays.mail-abuse.org; from=<sname@sdomain> to=<rname@rdomain> proto=SMTP helo=<foobar>
-554 5.7.1 Service unavailable; Client host [127.0.0.2] blocked using relays.mail-abuse.org
->>> recipient_restrictions reject_rbl_client,relays.mail-abuse.org=127.0.0.2
+./smtpd_check: <queue id>: reject: RCPT from foo[127.0.0.2]: 554 5.7.1 Service unavailable; Client host [127.0.0.2] blocked using dnsbltest.porcupine.org; from=<sname@sdomain> to=<rname@rdomain> proto=SMTP helo=<foobar>
+554 5.7.1 Service unavailable; Client host [127.0.0.2] blocked using dnsbltest.porcupine.org
+>>> recipient_restrictions reject_rbl_client,dnsbltest.porcupine.org=127.0.0.2
 OK
 >>> client foo 127.0.0.2
 OK
 >>> rcpt rname@rdomain
-./smtpd_check: <queue id>: reject: RCPT from foo[127.0.0.2]: 554 5.7.1 Service unavailable; Client host [127.0.0.2] blocked using relays.mail-abuse.org=127.0.0.2; from=<sname@sdomain> to=<rname@rdomain> proto=SMTP helo=<foobar>
-554 5.7.1 Service unavailable; Client host [127.0.0.2] blocked using relays.mail-abuse.org=127.0.0.2
+./smtpd_check: <queue id>: reject: RCPT from foo[127.0.0.2]: 554 5.7.1 Service unavailable; Client host [127.0.0.2] blocked using dnsbltest.porcupine.org=127.0.0.2; from=<sname@sdomain> to=<rname@rdomain> proto=SMTP helo=<foobar>
+554 5.7.1 Service unavailable; Client host [127.0.0.2] blocked using dnsbltest.porcupine.org=127.0.0.2
 >>> client foo 127.0.0.1
 OK
 >>> rcpt rname@rdomain

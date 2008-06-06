@@ -108,6 +108,9 @@
 /*	This service must be configured with process limit of 0.
 /* .IP MAIL_SERVER_PRIVILEGED
 /*	This service must be configured as privileged.
+/* .IP "MAIL_SERVER_WATCHDOG (int *)"
+/*	Override the default 1000s watchdog timeout. The value is
+/*	used after command-line and main.cf file processing.
 /* .PP
 /*	The var_use_limit variable limits the number of clients that
 /*	a server can service before it commits suicide.
@@ -206,6 +209,7 @@ static void (*trigger_server_pre_accept) (char *, char **);
 static VSTREAM *trigger_server_lock;
 static int trigger_server_in_flow_delay;
 static unsigned trigger_server_generation;
+static int trigger_server_watchdog = 1000;
 
 /* trigger_server_exit - normal termination */
 
@@ -588,6 +592,9 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
 		msg_fatal("service %s requires privileged operation",
 			  service_name);
 	    break;
+	case MAIL_SERVER_WATCHDOG:
+	    trigger_server_watchdog = *va_arg(ap, int *);
+	    break;
 	default:
 	    msg_panic("%s: unknown argument type: %d", myname, key);
 	}
@@ -723,7 +730,8 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
     close_on_exec(MASTER_STATUS_FD, CLOSE_ON_EXEC);
     close_on_exec(MASTER_FLOW_READ, CLOSE_ON_EXEC);
     close_on_exec(MASTER_FLOW_WRITE, CLOSE_ON_EXEC);
-    watchdog = watchdog_create(1000, (WATCHDOG_FN) 0, (char *) 0);
+    watchdog = watchdog_create(trigger_server_watchdog,
+			       (WATCHDOG_FN) 0, (char *) 0);
 
     /*
      * The event loop, at last.

@@ -9,7 +9,7 @@ OK
 OK
 >>> relay_domains porcupine.org
 OK
->>> maps_rbl_domains relays.mail-abuse.org
+>>> maps_rbl_domains dnsbltest.porcupine.org
 OK
 >>> #
 >>> # Test the client restrictions.
@@ -197,8 +197,8 @@ OK
 ./smtpd_check: warning: support for restriction "reject_maps_rbl" will be removed from Postfix; use "reject_rbl_client domain-name" instead
 OK
 >>> client foo 127.0.0.2
-./smtpd_check: <queue id>: reject: CONNECT from foo[127.0.0.2]: 554 5.7.1 Service unavailable; Client host [127.0.0.2] blocked using relays.mail-abuse.org; from=<foo@friend.bad.domain> proto=SMTP helo=<123.123.123.123>
-554 5.7.1 Service unavailable; Client host [127.0.0.2] blocked using relays.mail-abuse.org
+./smtpd_check: <queue id>: reject: CONNECT from foo[127.0.0.2]: 554 5.7.1 Service unavailable; Client host [127.0.0.2] blocked using dnsbltest.porcupine.org; from=<foo@friend.bad.domain> proto=SMTP helo=<123.123.123.123>
+554 5.7.1 Service unavailable; Client host [127.0.0.2] blocked using dnsbltest.porcupine.org
 >>> #
 >>> # Hybrids
 >>> #

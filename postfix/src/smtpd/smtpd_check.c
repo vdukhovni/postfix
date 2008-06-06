@@ -4715,6 +4715,9 @@ char   *var_verify_sender;
 char   *var_smtpd_sasl_opts;
 char   *var_local_rwr_clients;
 char   *var_smtpd_relay_ccerts;
+char   *var_unv_from_why;
+char   *var_unv_rcpt_why;
+char   *var_stress;
 
 typedef struct {
     char   *name;
@@ -4758,6 +4761,9 @@ static const STRING_TABLE string_table[] = {
     VAR_SMTPD_SASL_OPTS, DEF_SMTPD_SASL_OPTS, &var_smtpd_sasl_opts,
     VAR_LOC_RWR_CLIENTS, DEF_LOC_RWR_CLIENTS, &var_local_rwr_clients,
     VAR_RELAY_CCERTS, DEF_RELAY_CCERTS, &var_smtpd_relay_ccerts,
+    VAR_UNV_FROM_WHY, DEF_UNV_FROM_WHY, &var_unv_from_why,
+    VAR_UNV_RCPT_WHY, DEF_UNV_RCPT_WHY, &var_unv_rcpt_why,
+    VAR_STRESS, DEF_STRESS, &var_stress,
     0,
 };
 
@@ -4765,7 +4771,7 @@ static const STRING_TABLE string_table[] = {
 
 static void string_init(void)
 {
-    STRING_TABLE *sp;
+    const STRING_TABLE *sp;
 
     for (sp = string_table; sp->name; sp++)
 	sp->target[0] = mystrdup(sp->defval);
@@ -4775,7 +4781,7 @@ static void string_init(void)
 
 static int string_update(char **argv)
 {
-    STRING_TABLE *sp;
+    const STRING_TABLE *sp;
 
     for (sp = string_table; sp->name; sp++) {
 	if (strcasecmp(argv[0], sp->name) == 0) {
@@ -4810,8 +4816,10 @@ int     var_non_fqdn_code;
 int     var_smtpd_delay_reject;
 int     var_allow_untrust_route;
 int     var_mul_rcpt_code;
-int     var_unv_from_code;
-int     var_unv_rcpt_code;
+int     var_unv_from_rcode;
+int     var_unv_from_dcode;
+int     var_unv_rcpt_rcode;
+int     var_unv_rcpt_dcode;
 int     var_local_rcpt_code;
 int     var_relay_rcpt_code;
 int     var_virt_mailbox_code;
@@ -4826,6 +4834,7 @@ int     var_smtpd_rej_unl_from;
 int     var_smtpd_rej_unl_rcpt;
 int     var_plaintext_code;
 bool    var_smtpd_peername_lookup;
+bool    var_smtpd_client_port_log;
 
 static const INT_TABLE int_table[] = {
     "msg_verbose", 0, &msg_verbose,
@@ -4842,8 +4851,10 @@ static const INT_TABLE int_table[] = {
     VAR_SMTPD_DELAY_REJECT, DEF_SMTPD_DELAY_REJECT, &var_smtpd_delay_reject,
     VAR_ALLOW_UNTRUST_ROUTE, DEF_ALLOW_UNTRUST_ROUTE, &var_allow_untrust_route,
     VAR_MUL_RCPT_CODE, DEF_MUL_RCPT_CODE, &var_mul_rcpt_code,
-    VAR_UNV_FROM_CODE, DEF_UNV_FROM_CODE, &var_unv_from_code,
-    VAR_UNV_RCPT_CODE, DEF_UNV_RCPT_CODE, &var_unv_rcpt_code,
+    VAR_UNV_FROM_RCODE, DEF_UNV_FROM_RCODE, &var_unv_from_rcode,
+    VAR_UNV_FROM_DCODE, DEF_UNV_FROM_DCODE, &var_unv_from_dcode,
+    VAR_UNV_RCPT_RCODE, DEF_UNV_RCPT_RCODE, &var_unv_rcpt_rcode,
+    VAR_UNV_RCPT_DCODE, DEF_UNV_RCPT_DCODE, &var_unv_rcpt_dcode,
     VAR_LOCAL_RCPT_CODE, DEF_LOCAL_RCPT_CODE, &var_local_rcpt_code,
     VAR_RELAY_RCPT_CODE, DEF_RELAY_RCPT_CODE, &var_relay_rcpt_code,
     VAR_VIRT_ALIAS_CODE, DEF_VIRT_ALIAS_CODE, &var_virt_alias_code,
@@ -4854,6 +4865,7 @@ static const INT_TABLE int_table[] = {
     VAR_SMTPD_REJ_UNL_RCPT, DEF_SMTPD_REJ_UNL_RCPT, &var_smtpd_rej_unl_rcpt,
     VAR_PLAINTEXT_CODE, DEF_PLAINTEXT_CODE, &var_plaintext_code,
     VAR_SMTPD_PEERNAME_LOOKUP, DEF_SMTPD_PEERNAME_LOOKUP, &var_smtpd_peername_lookup,
+    VAR_SMTPD_CLIENT_PORT_LOG, DEF_SMTPD_CLIENT_PORT_LOG, &var_smtpd_client_port_log,
     0,
 };
 
@@ -4861,7 +4873,7 @@ static const INT_TABLE int_table[] = {
 
 static void int_init(void)
 {
-    INT_TABLE *sp;
+    const INT_TABLE *sp;
 
     for (sp = int_table; sp->name; sp++)
 	sp->target[0] = sp->defval;
@@ -4871,7 +4883,7 @@ static void int_init(void)
 
 static int int_update(char **argv)
 {
-    INT_TABLE *ip;
+    const INT_TABLE *ip;
 
     for (ip = int_table; ip->name; ip++) {
 	if (strcasecmp(argv[0], ip->name) == 0) {
@@ -4905,7 +4917,7 @@ static const REST_TABLE rest_table[] = {
 
 static int rest_update(char **argv)
 {
-    REST_TABLE *rp;
+    const REST_TABLE *rp;
 
     for (rp = rest_table; rp->name; rp++) {
 	if (strcasecmp(rp->name, argv[0]) == 0) {

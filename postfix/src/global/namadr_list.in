@@ -25,6 +25,10 @@ echo foo !bar baz >junk
 ./namadr_list `pwd`/junk bar 168.100.189.3
 ./namadr_list `pwd`/junk baz 168.100.189.3
 rm -f junk
+./namadr_list 'be.be' x.x.x 127.0.0.1
+./namadr_list 'be/be' x.x.x 127.0.0.1
+./namadr_list '[be:be]' x.x.x 127.0.0.1
+./namadr_list '[be:be]' x.x.x ::1
 env foo=x ./namadr_list environ:junk foo 168.100.189.3
 env foo=x ./namadr_list environ:junk bar 168.100.189.3
 env foo=x ./namadr_list !environ:junk foo 168.100.189.3

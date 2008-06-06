@@ -14472,3 +14472,22 @@ Apologies for any names omitted.
 
 	Cleanup: block non-printable ASCII text in UTF8 encoded TLS
 	peer and issuer common names.  File: tls/tls_verify.c.
+
+20080602
+
+	Workaround: avoid watchdog timeout in the local pickup
+	daemon when the cleanup server expands a very large virtual
+	alias list. Files: master/trigger_server.c, pickup/pickup.c.
+
+20080603
+
+	Workaround: avoid "bad address pattern" errors with non-address
+	patterns in namadr_list_match() calls. File: util/match_ops.c.
+
+	Feature: print fsstone elapsed time with sub-second time
+	resolution.  Kenji Kikuchi. File: fsstone/fsstone.c.
+
+20080606
+
+	Bitrot: "make test" was broken due to recent changes in
+	code and due to recent changes at mail-abuse.org.

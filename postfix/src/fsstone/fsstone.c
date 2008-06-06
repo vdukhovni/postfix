@@ -4,6 +4,7 @@
 /* SUMMARY
 /*	measure directory operation overhead
 /* SYNOPSIS
+/* .fi
 /*	\fBfsstone\fR [\fB-cr\fR] [\fB-s \fIsize\fR]
 /*		\fImsg_count files_per_dir\fR
 /* DESCRIPTION
@@ -47,12 +48,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <time.h>
+#include <string.h>
+#include <sys/time.h>
 
 /* Utility library. */
 
 #include <msg.h>
 #include <msg_vstream.h>
+
+/* Global directory. */
+
+#include <mail_version.h>
 
 /* rename_file - rename a file */
 
@@ -156,7 +162,7 @@ int     main(int argc, char **argv)
 {
     int     op_count;
     int     max_file;
-    time_t  start;
+    struct timeval start, end;
     int     do_rename = 0;
     int     do_create = 0;
     int     seq;
@@ -202,7 +208,7 @@ int     main(int argc, char **argv)
     /*
      * Simulate arrival and delivery of mail messages.
      */
-    start = time((time_t *) 0);
+    GETTIMEOFDAY(&start);
     while (op_count > 0) {
 	seq %= max_file;
 	if (do_create) {
@@ -218,7 +224,14 @@ int     main(int argc, char **argv)
 	seq++;
 	op_count--;
     }
-    printf("elapsed time: %ld\n", (long) time((time_t *) 0) - start);
+    GETTIMEOFDAY(&end);
+    if (end.tv_usec < start.tv_usec) {
+	end.tv_sec--;
+	end.tv_usec += 1000000;
+    }
+    printf("elapsed time: %ld.%06ld\n",
+	   (long) (end.tv_sec - start.tv_sec),
+	   (long) (end.tv_usec - start.tv_usec));
 
     /*
      * Clean up directory fillers.

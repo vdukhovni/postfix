@@ -22,8 +22,18 @@ Wish list:
 	failure cache example (SASL_README). Then include them in
 	SOHO_README.
 
-	See if "pickup -o content_filter=smtp:127.0.0.1" can be a
-	viable alternative to the use of non_smtpd_milters.
+	Look for alternatives for the use of non_smtpd_milters.
+	This involves some way to force local submissions to go
+	through a local SMTP client and server, without triggering
+	"mail loops back to myself" false alarms. The advantage is
+	that it makes smtpd_mumble_restrictions available for local
+	and remote mail; the disadvantage is that it makes local
+	submissions more dependent on networking.  One possibility
+	is to use "pickup -o content_filter=smtp:127.0.0.1". Another
+	is to have the pickup or cleanup server drive an SMTP client
+	directly; this would require extension of the mail_stream()
+	interface, plus a way to handle bounced/deferred recipients
+	intelligently.
 
 	Consolidate duplicated code in *_server_accept_{pass,inet}().
 

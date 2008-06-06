@@ -23,6 +23,10 @@ dummy/168.100.189.3: NO
 foo/168.100.189.3: YES
 bar/168.100.189.3: NO
 baz/168.100.189.3: YES
+x.x.x/127.0.0.1: NO
+./namadr_list: fatal: bad net/mask pattern: "be/be"
+x.x.x/127.0.0.1: NO
+./namadr_list: fatal: bad address pattern: "be:be"
 foo/168.100.189.3: YES
 bar/168.100.189.3: NO
 foo/168.100.189.3: NO

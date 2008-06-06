@@ -444,6 +444,8 @@ ctable_test: ctable
 	diff ctable.ref ctable.tmp
 	rm -f ctable.tmp
 
+# On Linux, following test may require "modprobe ipv6" to enable IPv6.
+
 inet_addr_list_test: inet_addr_list
 	./inet_addr_list `cat inet_addr_list.in` >inet_addr_list.tmp 2>&1
 	diff inet_addr_list.ref inet_addr_list.tmp

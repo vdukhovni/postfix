@@ -137,7 +137,7 @@ int     main(int unused_argc, char **unused_argv)
 	if (hex_unquote(raw, STR(hex)) == 0)
 	    msg_fatal("bad input: %.100s", STR(hex));
 	if (LEN(raw) != len)
-	    msg_fatal("len %ld != raw len %ld", len, LEN(raw));
+	    msg_fatal("len %ld != raw len %ld", (long) len, (long) LEN(raw));
 	if (vstream_fwrite(VSTREAM_OUT, STR(raw), LEN(raw)) != LEN(raw))
 	    msg_fatal("write error: %m");
     }

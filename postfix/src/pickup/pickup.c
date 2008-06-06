@@ -591,10 +591,18 @@ int     main(int argc, char **argv)
     /*
      * Use the multi-threaded skeleton, because no-one else should be
      * monitoring our service socket while this process runs.
+     * 
+     * XXX The default watchdog timeout for trigger servers is 1000s, while the
+     * cleanup server watchdog timeout is $daemon_timeout (i.e. several
+     * hours). We override the default 1000s timeout to avoid problems with
+     * slow mail submission. The real problem is of course that the
+     * single-threaded pickup server is not a good solution for mail
+     * submissions.
      */
     trigger_server_main(argc, argv, pickup_service,
 			MAIL_SERVER_STR_TABLE, str_table,
 			MAIL_SERVER_POST_INIT, post_jail_init,
 			MAIL_SERVER_SOLITARY,
+			MAIL_SERVER_WATCHDOG, &var_daemon_timeout,
 			0);
 }

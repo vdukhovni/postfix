@@ -68,7 +68,7 @@ tests: smtpd_check_test smtpd_check_test2 smtpd_acl_test smtpd_exp_test \
 
 root_tests:
 
-# This requires that the DNS server can query mail-abuse.org.
+# This requires that the DNS server can query porcupine.org.
 
 smtpd_check_test: smtpd_check smtpd_check.in smtpd_check.ref smtpd_check_access
 	../postmap/postmap hash:smtpd_check_access
@@ -76,7 +76,7 @@ smtpd_check_test: smtpd_check smtpd_check.in smtpd_check.ref smtpd_check_access
 	diff smtpd_check.ref smtpd_check.tmp
 	rm -f smtpd_check.tmp smtpd_check_access.*
 
-# This requires that the DNS server can query mail-abuse.org.
+# This requires that the DNS server can query porcupine.org.
 
 smtpd_check_test2: smtpd_check smtpd_check.in2 smtpd_check.ref2 smtpd_check_access
 	../postmap/postmap hash:smtpd_check_access
@@ -96,7 +96,7 @@ smtpd_acl_test: smtpd_check smtpd_acl.in smtpd_acl.ref smtpd_check_access
 	diff smtpd_acl.ref smtpd_check.tmp
 	rm -f smtpd_check.tmp smtpd_check_access.*
 
-# This requires that the DNS server can query mail-abuse.org.
+# This requires that the DNS server can query porcupine.org.
 
 smtpd_exp_test: smtpd_check smtpd_exp.in smtpd_exp.ref
 	../postmap/postmap hash:smtpd_check_access

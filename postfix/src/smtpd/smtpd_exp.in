@@ -6,7 +6,7 @@
 smtpd_delay_reject 0
 mynetworks 127.0.0.0/8,168.100.189.0/28
 relay_domains porcupine.org
-maps_rbl_domains relays.mail-abuse.org
+maps_rbl_domains dnsbltest.porcupine.org
 rbl_reply_maps hash:smtpd_check_access
 helo foobar
 #
@@ -19,12 +19,12 @@ rcpt rname@rdomain
 client foo 127.0.0.2
 rcpt rname@rdomain
 #
-recipient_restrictions reject_rbl_client,relays.mail-abuse.org
+recipient_restrictions reject_rbl_client,dnsbltest.porcupine.org
 client spike.porcupine.org 168.100.189.2
 rcpt rname@rdomain
 client foo 127.0.0.2
 rcpt rname@rdomain
-recipient_restrictions reject_rbl_client,relays.mail-abuse.org=127.0.0.2
+recipient_restrictions reject_rbl_client,dnsbltest.porcupine.org=127.0.0.2
 client foo 127.0.0.2
 rcpt rname@rdomain
 client foo 127.0.0.1

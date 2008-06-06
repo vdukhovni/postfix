@@ -243,8 +243,7 @@ int     main(int argc, char **argv)
     while (--argc && *++argv) {
 	mask = name_mask("test", table, *argv);
 	vstream_printf("%s -> 0x%x -> %s\n",
-		       *argv, mask, str_name_mask((VSTRING *) 0, "mask_test",
-						  table, mask));
+		       *argv, mask, str_name_mask("mask_test", table, mask));
 	vstream_fflush(VSTREAM_OUT);
     }
     vstring_free(buf);
