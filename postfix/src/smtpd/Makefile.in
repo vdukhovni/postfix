@@ -315,6 +315,7 @@ smtpd_milter.o: ../../include/vstring.h
 smtpd_milter.o: smtpd.h
 smtpd_milter.o: smtpd_milter.c
 smtpd_milter.o: smtpd_milter.h
+smtpd_milter.o: smtpd_sasl_glue.h
 smtpd_peer.o: ../../include/argv.h
 smtpd_peer.o: ../../include/attr.h
 smtpd_peer.o: ../../include/inet_proto.h

@@ -45,6 +45,7 @@
 /* Application-specific. */
 
 #include <smtpd.h>
+#include <smtpd_sasl_glue.h>
 #include <smtpd_milter.h>
 
  /*
@@ -138,7 +139,7 @@ const char *smtpd_milter_eval(const char *name, void *ptr)
     /*
      * MAIL FROM macros.
      */
-#define IF_SASL_ENABLED(s) (var_smtpd_sasl_enable && (s) ? (s) : 0)
+#define IF_SASL_ENABLED(s) (smtpd_sasl_is_active(state) && (s) ? (s) : 0)
 
     if (strcmp(name, S8_MAC_I) == 0)
 	return (state->queue_id);

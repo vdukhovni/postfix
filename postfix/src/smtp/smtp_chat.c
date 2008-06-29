@@ -431,5 +431,7 @@ void    smtp_chat_notify(SMTP_SESSION *session)
     for (cpp = session->history->argv; *cpp; cpp++)
 	line_wrap(printable(*cpp, '?'), LENGTH, INDENT, print_line,
 		  (char *) notice);
+    post_mail_fputs(notice, "");
+    post_mail_fprintf(notice, "For other details, see the local mail logfile");
     (void) post_mail_fclose(notice);
 }

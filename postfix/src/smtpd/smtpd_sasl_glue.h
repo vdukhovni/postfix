@@ -12,11 +12,14 @@
   * SASL protocol interface
   */
 extern void smtpd_sasl_initialize(void);
-extern void smtpd_sasl_connect(SMTPD_STATE *, const char *, const char *);
-extern void smtpd_sasl_disconnect(SMTPD_STATE *);
+extern void smtpd_sasl_activate(SMTPD_STATE *, const char *, const char *);
+extern void smtpd_sasl_deactivate(SMTPD_STATE *);
 extern int smtpd_sasl_authenticate(SMTPD_STATE *, const char *, const char *);
 extern void smtpd_sasl_logout(SMTPD_STATE *);
 extern int permit_sasl_auth(SMTPD_STATE *, int, int);
+
+#define smtpd_sasl_is_active(s)		((s)->sasl_server != 0)
+#define smtpd_sasl_set_inactive(s)	((void) ((s)->sasl_server = 0))
 
 /* LICENSE
 /* .ad

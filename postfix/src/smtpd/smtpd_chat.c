@@ -266,5 +266,7 @@ void    smtpd_chat_notify(SMTPD_STATE *state)
     post_mail_fputs(notice, "");
     if (state->reason)
 	post_mail_fprintf(notice, "Session aborted, reason: %s", state->reason);
+    post_mail_fputs(notice, "");
+    post_mail_fprintf(notice, "For other details, see the local mail logfile");
     (void) post_mail_fclose(notice);
 }

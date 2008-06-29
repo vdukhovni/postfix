@@ -1147,6 +1147,11 @@ non-delivery notification. Specify a byte count. If you increase
 this limit, then you should increase the <a href="postconf.5.html#mime_nesting_limit">mime_nesting_limit</a> value
 proportionally.  </p>
 
+<p> Note: be careful when making changes.  Excessively large values
+will result in the loss of non-delivery notifications, when a bounce
+message size exceeds a local or remote MTA's message size limit.
+</p>
+
 
 </DD>
 
@@ -3613,7 +3618,7 @@ field in the entry in the <a href="master.5.html">master.cf</a> file.  </p>
 <DT><b><a name="lmtp_destination_recipient_limit">lmtp_destination_recipient_limit</a>
 (default: $<a href="postconf.5.html#default_destination_recipient_limit">default_destination_recipient_limit</a>)</b></DT><DD>
 
-<p> The maximal number of recipients per delivery via the lmtp
+<p> The maximal number of recipients per message for the lmtp
 message delivery transport. This limit is enforced by the queue
 manager. The message delivery transport name is the first field in
 the entry in the <a href="master.5.html">master.cf</a> file.  </p>
@@ -5346,6 +5351,11 @@ content.  The usual C-like escape sequences are recognized: <tt>\a
 The maximal size in bytes of a message, including envelope information.
 </p>
 
+<p> Note: be careful when making changes.  Excessively small values
+will result in the loss of non-delivery notifications, when a bounce
+message size exceeds the local or remote MTA's message size limit.
+</p>
+
 
 </DD>
 
@@ -6792,7 +6802,7 @@ first field in the entry in the <a href="master.5.html">master.cf</a> file.  </p
 <DT><b><a name="relay_destination_recipient_limit">relay_destination_recipient_limit</a>
 (default: $<a href="postconf.5.html#default_destination_recipient_limit">default_destination_recipient_limit</a>)</b></DT><DD>
 
-<p> The maximal number of recipients per delivery via the relay
+<p> The maximal number of recipients per message for the relay
 message delivery transport. This limit is enforced by the queue
 manager. The message delivery transport name is the first field in
 the entry in the <a href="master.5.html">master.cf</a> file.  </p>
@@ -7701,7 +7711,7 @@ field in the entry in the <a href="master.5.html">master.cf</a> file.  </p>
 <DT><b><a name="smtp_destination_recipient_limit">smtp_destination_recipient_limit</a>
 (default: $<a href="postconf.5.html#default_destination_recipient_limit">default_destination_recipient_limit</a>)</b></DT><DD>
 
-<p> The maximal number of recipients per delivery via the smtp
+<p> The maximal number of recipients per message for the smtp
 message delivery transport. This limit is enforced by the queue
 manager. The message delivery transport name is the first field in
 the entry in the <a href="master.5.html">master.cf</a> file.  </p>
@@ -7799,7 +7809,7 @@ destinations, Postfix will try them in the specified order.  </p>
 
 <p> To prevent mailer loops between MX hosts and fall-back hosts,
 Postfix version 2.2 and later will not use the fallback relays for
-destinations that it is MX host for (and DSN lookup is turned on).
+destinations that it is MX host for (assuming DNS lookup is turned on).
 </p>
 
 
@@ -10935,7 +10945,7 @@ corresponding action.  </dd>
 <dt><b><a name="check_recipient_mx_access">check_recipient_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified <a href="access.5.html">access(5)</a> database for the MX hosts for
-the RCPT TO address, and execute the corresponding action.  Note:
+the RCPT TO domain, and execute the corresponding action.  Note:
 a result of "OK" is not allowed for safety reasons. Instead, use
 DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later. </dd>
@@ -10943,7 +10953,7 @@ feature is available in Postfix 2.1 and later. </dd>
 <dt><b><a name="check_recipient_ns_access">check_recipient_ns_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified <a href="access.5.html">access(5)</a> database for the DNS servers
-for the RCPT TO address, and execute the corresponding action.
+for the RCPT TO domain, and execute the corresponding action.
 Note: a result of "OK" is not allowed for safety reasons. Instead,
 use DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later.  </dd>
@@ -10954,11 +10964,11 @@ feature is available in Postfix 2.1 and later.  </dd>
 
 <ul>
 
-<li> Postfix is mail forwarder: the resolved RCPT TO address matches
+<li> Postfix is mail forwarder: the resolved RCPT TO domain matches
 $<a href="postconf.5.html#relay_domains">relay_domains</a> or a subdomain thereof, and the address contains no
 sender-specified routing (user@elsewhere@domain),
 
-<li> Postfix is the final destination: the resolved RCPT TO address
+<li> Postfix is the final destination: the resolved RCPT TO domain
 matches $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>, $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>,
 $<a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>, or $<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a>, and the address
 contains no sender-specified routing (user@elsewhere@domain).
@@ -10968,7 +10978,7 @@ contains no sender-specified routing (user@elsewhere@domain).
 <dt><b><a name="permit_mx_backup">permit_mx_backup</a></b></dt>
 
 <dd>Permit the request when the local mail system is backup MX for
-the RCPT TO address, or when the address is an authorized destination
+the RCPT TO domain, or when the domain is an authorized destination
 (see <a href="postconf.5.html#permit_auth_destination">permit_auth_destination</a> for definition).
 
 <ul>
@@ -11016,11 +11026,11 @@ in Postfix version 2.0 and later.</dd>
 
 <ul>
 
-<li> Postfix is mail forwarder: the resolved RCPT TO address matches
+<li> Postfix is mail forwarder: the resolved RCPT TO domain matches
 $<a href="postconf.5.html#relay_domains">relay_domains</a> or a subdomain thereof, and contains no sender-specified
 routing (user@elsewhere@domain),
 
-<li> Postfix is the final destination: the resolved RCPT TO address
+<li> Postfix is the final destination: the resolved RCPT TO domain
 matches $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>, $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>,
 $<a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>, or $<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a>, and contains
 no sender-specified routing (user@elsewhere@domain).
@@ -11031,7 +11041,7 @@ code for rejected requests (default: 554). </dd>
 <dt><b><a name="reject_unknown_recipient_domain">reject_unknown_recipient_domain</a></b></dt>
 
 <dd>Reject the request when Postfix is not final destination for
-the recipient address, and the RCPT TO address has no DNS A or MX
+the recipient domain, and the RCPT TO domain has no DNS A or MX
 record, or when it has a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later). <br> The
 <a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter specifies the response code
@@ -13458,7 +13468,7 @@ first field in the entry in the <a href="master.5.html">master.cf</a> file.  </p
 <DT><b><a name="virtual_destination_recipient_limit">virtual_destination_recipient_limit</a>
 (default: $<a href="postconf.5.html#default_destination_recipient_limit">default_destination_recipient_limit</a>)</b></DT><DD>
 
-<p> The maximal number of recipients per delivery via the virtual
+<p> The maximal number of recipients per message for the virtual
 message delivery transport. This limit is enforced by the queue
 manager. The message delivery transport name is the first field in
 the entry in the <a href="master.5.html">master.cf</a> file.  </p>

@@ -713,6 +713,11 @@ non-delivery notification. Specify a byte count. If you increase
 this limit, then you should increase the mime_nesting_limit value
 proportionally.  </p>
 
+<p> Note: be careful when making changes.  Excessively large values
+will result in the loss of non-delivery notifications, when a bounce
+message size exceeds a local or remote MTA's message size limit.
+</p>
+
 %PARAM canonical_maps 
 
 <p>
@@ -1353,7 +1358,7 @@ destinations, Postfix will try them in the specified order.  </p>
 
 <p> To prevent mailer loops between MX hosts and fall-back hosts,
 Postfix version 2.2 and later will not use the fallback relays for
-destinations that it is MX host for (and DSN lookup is turned on).
+destinations that it is MX host for (assuming DNS lookup is turned on).
 </p>
 
 %PARAM fallback_relay 
@@ -2712,6 +2717,11 @@ Specify 0 when mail delivery should be tried only once.
 The maximal size in bytes of a message, including envelope information.
 </p>
 
+<p> Note: be careful when making changes.  Excessively small values
+will result in the loss of non-delivery notifications, when a bounce
+message size exceeds the local or remote MTA's message size limit.
+</p>
+
 %PARAM minimal_backoff_time 300s
 
 <p>
@@ -3897,7 +3907,7 @@ field in the entry in the master.cf file.  </p>
 
 %PARAM lmtp_destination_recipient_limit $default_destination_recipient_limit
 
-<p> The maximal number of recipients per delivery via the lmtp
+<p> The maximal number of recipients per message for the lmtp
 message delivery transport. This limit is enforced by the queue
 manager. The message delivery transport name is the first field in
 the entry in the master.cf file.  </p>
@@ -3917,7 +3927,7 @@ first field in the entry in the master.cf file.  </p>
 
 %PARAM relay_destination_recipient_limit $default_destination_recipient_limit
 
-<p> The maximal number of recipients per delivery via the relay
+<p> The maximal number of recipients per message for the relay
 message delivery transport. This limit is enforced by the queue
 manager. The message delivery transport name is the first field in
 the entry in the master.cf file.  </p>
@@ -3937,7 +3947,7 @@ field in the entry in the master.cf file.  </p>
 
 %PARAM smtp_destination_recipient_limit $default_destination_recipient_limit
 
-<p> The maximal number of recipients per delivery via the smtp
+<p> The maximal number of recipients per message for the smtp
 message delivery transport. This limit is enforced by the queue
 manager. The message delivery transport name is the first field in
 the entry in the master.cf file.  </p>
@@ -3955,7 +3965,7 @@ first field in the entry in the master.cf file.  </p>
 
 %PARAM virtual_destination_recipient_limit $default_destination_recipient_limit
 
-<p> The maximal number of recipients per delivery via the virtual
+<p> The maximal number of recipients per message for the virtual
 message delivery transport. This limit is enforced by the queue
 manager. The message delivery transport name is the first field in
 the entry in the master.cf file.  </p>
@@ -5394,7 +5404,7 @@ corresponding action.  </dd>
 <dt><b><a name="check_recipient_mx_access">check_recipient_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access(5) database for the MX hosts for
-the RCPT TO address, and execute the corresponding action.  Note:
+the RCPT TO domain, and execute the corresponding action.  Note:
 a result of "OK" is not allowed for safety reasons. Instead, use
 DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later. </dd>
@@ -5402,7 +5412,7 @@ feature is available in Postfix 2.1 and later. </dd>
 <dt><b><a name="check_recipient_ns_access">check_recipient_ns_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access(5) database for the DNS servers
-for the RCPT TO address, and execute the corresponding action.
+for the RCPT TO domain, and execute the corresponding action.
 Note: a result of "OK" is not allowed for safety reasons. Instead,
 use DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later.  </dd>
@@ -5413,11 +5423,11 @@ feature is available in Postfix 2.1 and later.  </dd>
 
 <ul>
 
-<li> Postfix is mail forwarder: the resolved RCPT TO address matches
+<li> Postfix is mail forwarder: the resolved RCPT TO domain matches
 $relay_domains or a subdomain thereof, and the address contains no
 sender-specified routing (user@elsewhere@domain),
 
-<li> Postfix is the final destination: the resolved RCPT TO address
+<li> Postfix is the final destination: the resolved RCPT TO domain
 matches $mydestination, $inet_interfaces, $proxy_interfaces,
 $virtual_alias_domains, or $virtual_mailbox_domains, and the address
 contains no sender-specified routing (user@elsewhere@domain).
@@ -5427,7 +5437,7 @@ contains no sender-specified routing (user@elsewhere@domain).
 <dt><b><a name="permit_mx_backup">permit_mx_backup</a></b></dt>
 
 <dd>Permit the request when the local mail system is backup MX for
-the RCPT TO address, or when the address is an authorized destination
+the RCPT TO domain, or when the domain is an authorized destination
 (see permit_auth_destination for definition).
 
 <ul>
@@ -5475,11 +5485,11 @@ in Postfix version 2.0 and later.</dd>
 
 <ul>
 
-<li> Postfix is mail forwarder: the resolved RCPT TO address matches
+<li> Postfix is mail forwarder: the resolved RCPT TO domain matches
 $relay_domains or a subdomain thereof, and contains no sender-specified
 routing (user@elsewhere@domain),
 
-<li> Postfix is the final destination: the resolved RCPT TO address
+<li> Postfix is the final destination: the resolved RCPT TO domain
 matches $mydestination, $inet_interfaces, $proxy_interfaces,
 $virtual_alias_domains, or $virtual_mailbox_domains, and contains
 no sender-specified routing (user@elsewhere@domain).
@@ -5490,7 +5500,7 @@ code for rejected requests (default: 554). </dd>
 <dt><b><a name="reject_unknown_recipient_domain">reject_unknown_recipient_domain</a></b></dt>
 
 <dd>Reject the request when Postfix is not final destination for
-the recipient address, and the RCPT TO address has no DNS A or MX
+the recipient domain, and the RCPT TO domain has no DNS A or MX
 record, or when it has a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later). <br> The
 unknown_address_reject_code parameter specifies the response code

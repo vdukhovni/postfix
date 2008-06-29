@@ -149,8 +149,7 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
 #ifdef USE_SASL_AUTH
     if (SMTPD_STAND_ALONE(state))
 	var_smtpd_sasl_enable = 0;
-    if (var_smtpd_sasl_enable)
-	smtpd_sasl_connect(state, VAR_SMTPD_SASL_OPTS, var_smtpd_sasl_opts);
+    smtpd_sasl_set_inactive(state);
 #endif
 
     state->milter_argv = 0;
@@ -216,9 +215,4 @@ void    smtpd_state_reset(SMTPD_STATE *state)
 	vstring_free(state->dsn_buf);
     if (state->dsn_orcpt_buf)
 	vstring_free(state->dsn_orcpt_buf);
-
-#ifdef USE_SASL_AUTH
-    if (var_smtpd_sasl_enable)
-	smtpd_sasl_disconnect(state);
-#endif
 }

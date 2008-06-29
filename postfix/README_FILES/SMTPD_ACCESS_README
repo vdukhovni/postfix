@@ -123,7 +123,7 @@ Examples of simple restriction lists are:
     # Don't accept mail from domains that don't exist.
     smtpd_sender_restrictions = reject_unknown_sender_domain
 
-    # Whitelisting: local clients may specify any destination. Others may not.
+    # Whitelisting: local clients may specify any destination domain.
     smtpd_recipient_restrictions = permit_mynetworks, reject_unauth_destination
 
     # Block clients that speak too early.

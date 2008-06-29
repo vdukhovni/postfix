@@ -3247,7 +3247,7 @@ static int reject_auth_sender_login_mismatch(SMTPD_STATE *state, const char *sen
     /*
      * Reject if the client is logged in and does not own the sender address.
      */
-    if (var_smtpd_sasl_enable && state->sasl_username != 0) {
+    if (smtpd_sasl_is_active(state) && state->sasl_username != 0) {
 	reply = (const RESOLVE_REPLY *) ctable_locate(smtpd_resolve_cache, sender);
 	if (reply->flags & RESOLVE_FLAG_FAIL)
 	    reject_dict_retry(state, sender);
@@ -3280,7 +3280,7 @@ static int reject_unauth_sender_login_mismatch(SMTPD_STATE *state, const char *s
      * Reject if the client is not logged in and the sender address has an
      * owner.
      */
-    if (var_smtpd_sasl_enable && state->sasl_username == 0) {
+    if (smtpd_sasl_is_active(state) && state->sasl_username == 0) {
 	reply = (const RESOLVE_REPLY *) ctable_locate(smtpd_resolve_cache, sender);
 	if (reply->flags & RESOLVE_FLAG_FAIL)
 	    reject_dict_retry(state, sender);
@@ -3373,13 +3373,13 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 			  ATTR_TYPE_STR, MAIL_ATTR_STRESS, var_stress,
 #ifdef USE_SASL_AUTH
 			  ATTR_TYPE_STR, MAIL_ATTR_SASL_METHOD,
-			  var_smtpd_sasl_enable && state->sasl_method ?
+			  smtpd_sasl_is_active(state) && state->sasl_method ?
 			  state->sasl_method : "",
 			  ATTR_TYPE_STR, MAIL_ATTR_SASL_USERNAME,
-			  var_smtpd_sasl_enable && state->sasl_username ?
+		       smtpd_sasl_is_active(state) && state->sasl_username ?
 			  state->sasl_username : "",
 			  ATTR_TYPE_STR, MAIL_ATTR_SASL_SENDER,
-			  var_smtpd_sasl_enable && state->sasl_sender ?
+			  smtpd_sasl_is_active(state) && state->sasl_sender ?
 			  state->sasl_sender : "",
 #endif
 #ifdef USE_TLS
@@ -3731,7 +3731,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 					  state->sender, SMTPD_NAME_SENDER);
 	} else if (strcasecmp(name, REJECT_AUTH_SENDER_LOGIN_MISMATCH) == 0) {
 #ifdef USE_SASL_AUTH
-	    if (var_smtpd_sasl_enable) {
+	    if (smtpd_sasl_is_active(state)) {
 		if (state->sender && *state->sender)
 		    status = reject_auth_sender_login_mismatch(state, state->sender);
 	    } else
@@ -3739,7 +3739,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		msg_warn("restriction `%s' ignored: no SASL support", name);
 	} else if (strcasecmp(name, REJECT_UNAUTH_SENDER_LOGIN_MISMATCH) == 0) {
 #ifdef USE_SASL_AUTH
-	    if (var_smtpd_sasl_enable) {
+	    if (smtpd_sasl_is_active(state)) {
 		if (state->sender && *state->sender)
 		    status = reject_unauth_sender_login_mismatch(state, state->sender);
 	    } else
@@ -3800,7 +3800,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 			 cpp[1], CHECK_RELAY_DOMAINS);
 	} else if (strcasecmp(name, PERMIT_SASL_AUTH) == 0) {
 #ifdef USE_SASL_AUTH
-	    if (var_smtpd_sasl_enable)
+	    if (smtpd_sasl_is_active(state))
 		status = permit_sasl_auth(state,
 					  SMTPD_CHECK_OK, SMTPD_CHECK_DUNNO);
 #endif
@@ -3963,7 +3963,7 @@ void    smtpd_check_rewrite(SMTPD_STATE *state)
 		status = SMTPD_CHECK_OK;
 	} else if (strcasecmp(name, PERMIT_SASL_AUTH) == 0) {
 #ifdef USE_SASL_AUTH
-	    if (var_smtpd_sasl_enable)
+	    if (smtpd_sasl_is_active(state))
 		status = permit_sasl_auth(state, SMTPD_CHECK_OK,
 					  SMTPD_CHECK_DUNNO);
 #endif
@@ -4970,19 +4970,19 @@ bool    var_smtpd_sasl_enable = 0;
 
 #ifdef USE_SASL_AUTH
 
-/* smtpd_sasl_connect - stub */
+/* smtpd_sasl_activate - stub */
 
-void    smtpd_sasl_connect(SMTPD_STATE *state, const char *opts_name,
-			           const char *opts_var)
+void    smtpd_sasl_activate(SMTPD_STATE *state, const char *opts_name,
+			            const char *opts_var)
 {
-    msg_panic("smtpd_sasl_connect was called");
+    msg_panic("smtpd_sasl_activate was called");
 }
 
-/* smtpd_sasl_disconnect - stub */
+/* smtpd_sasl_deactivate - stub */
 
-void    smtpd_sasl_disconnect(SMTPD_STATE *state)
+void    smtpd_sasl_deactivate(SMTPD_STATE *state)
 {
-    msg_panic("smtpd_sasl_disconnect was called");
+    msg_panic("smtpd_sasl_deactivate was called");
 }
 
 /* permit_sasl_auth - stub */

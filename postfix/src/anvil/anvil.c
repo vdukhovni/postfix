@@ -161,7 +161,8 @@
 /*	count and/or rate limits falsely.
 /*
 /*	In this preliminary implementation, a count (or rate) limited server
-/*	can have only one remote client at a time. If a server reports
+/*	process can have only one remote client at a time. If a
+/*	server process reports
 /*	multiple simultaneous clients, state is kept only for the last
 /*	reported client.
 /*

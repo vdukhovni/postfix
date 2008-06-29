@@ -31,8 +31,9 @@
 /*	This server plug-in is available when Postfix is built with
 /*	Cyrus SASL support.
 /* .IP \fBdovecot\fR
-/*	This server plug-in requires the Dovecot authentication
-/*	server.
+/*	This server plug-in uses the Dovecot authentication server,
+/*	and is available when Postfix is built with any form of SASL
+/*	support.
 /* .RE
 /* .IP
 /*	This feature is available with Postfix 2.3 and later.

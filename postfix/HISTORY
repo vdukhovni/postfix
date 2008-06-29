@@ -14491,3 +14491,38 @@ Apologies for any names omitted.
 
 	Bitrot: "make test" was broken due to recent changes in
 	code and due to recent changes at mail-abuse.org.
+
+20080618
+
+	Add a note to SMTP session transcript email messages that
+	other details may be found in the maillog file.  Files:
+	smtpd/smtpd_chat.c, smtp/smtp_chat.c.
+
+20080620
+
+	Cleanup: with the "Before-queue content filter", RFC3848
+	information was not added to the headers. Carlos Velasco.
+	File smtpd/smtpd.c.
+
+20080621
+
+	Cleanup: include unread byte count in the SMTP server's "lost
+	connection after DATA (xx bytes)" logging. Files: smtpd/smtpd.c.
+
+20080629
+
+	Bugfix (introduced Postfix 2.2): multiple inconsistencies
+	in SASL support after introduction of TLS.  The Postfix
+	SMTP server 1) complained about plain-text SASL configuration
+	details when SASL was forbidden for plain-text sessions,
+	and 2) ignored the smtpd_tls_auth_only parameter setting
+	when built without TLS support.  Files: smtpd/smtpd.c,
+	smtpd/smtpd_check.c, smtpd/smtpd_sasl_glue.[hc],
+	smtpd/smtpd_state.c.
+
+	Some clarification about recipient address versus domain,
+	and recipients per message versus session. File:
+	proto/postconf.proto.
+
+	The description of SASL authentication attributes was
+	garbled.  File: pipe/pipe.c.

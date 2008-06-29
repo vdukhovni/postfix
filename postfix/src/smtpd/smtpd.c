@@ -1115,6 +1115,7 @@ char   *var_smtpd_tls_level;
 bool    var_smtpd_use_tls;
 bool    var_smtpd_enforce_tls;
 bool    var_smtpd_tls_wrappermode;
+bool    var_smtpd_tls_auth_only;
 
 #ifdef USE_TLS
 char   *var_smtpd_relay_ccerts;
@@ -1123,7 +1124,6 @@ int     var_smtpd_starttls_tmout;
 char   *var_smtpd_tls_CAfile;
 char   *var_smtpd_tls_CApath;
 bool    var_smtpd_tls_ask_ccert;
-bool    var_smtpd_tls_auth_only;
 int     var_smtpd_tls_ccert_vd;
 char   *var_smtpd_tls_cert_file;
 char   *var_smtpd_tls_mand_ciph;
@@ -1555,11 +1555,7 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 #endif
 #ifdef USE_SASL_AUTH
     if ((discard_mask & EHLO_MASK_AUTH) == 0) {
-	if (var_smtpd_sasl_enable && !sasl_client_exception(state)
-#ifdef USE_TLS
-	    && (!state->tls_auth_only || state->tls_context)
-#endif
-	    ) {
+	if (smtpd_sasl_is_active(state) && !sasl_client_exception(state)) {
 	    ENQUEUE_FMT_REPLY(state, reply_buf, "AUTH %s",
 			      state->sasl_mechanism_list);
 	    if (var_broken_auth_clients)
@@ -1709,7 +1705,7 @@ static int mail_open_stream(SMTPD_STATE *state)
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			MAIL_ATTR_RWR_CONTEXT, FORWARD_DOMAIN(state));
 #ifdef USE_SASL_AUTH
-	    if (var_smtpd_sasl_enable) {
+	    if (smtpd_sasl_is_active(state)) {
 		if (state->sasl_method)
 		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 				MAIL_ATTR_SASL_METHOD, state->sasl_method);
@@ -1810,7 +1806,7 @@ static int mail_open_stream(SMTPD_STATE *state)
      * Log the queue ID with the message origin.
      */
 #ifdef USE_SASL_AUTH
-    if (var_smtpd_sasl_enable)
+    if (smtpd_sasl_is_active(state))
 	smtpd_sasl_mail_log(state);
     else
 #endif
@@ -2052,7 +2048,8 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		return (-1);
 	    }
 #ifdef USE_SASL_AUTH
-	} else if (var_smtpd_sasl_enable && strncasecmp(arg, "AUTH=", 5) == 0) {
+	} else if (smtpd_sasl_is_active(state)
+		   && strncasecmp(arg, "AUTH=", 5) == 0) {
 	    if ((err = smtpd_sasl_mail_opt(state, arg + 5)) != 0) {
 		smtpd_chat_reply(state, "%s", err);
 		return (-1);
@@ -2233,7 +2230,7 @@ static void mail_reset(SMTPD_STATE *state)
     state->saved_delay = 0;
 #endif
 #ifdef USE_SASL_AUTH
-    if (var_smtpd_sasl_enable)
+    if (smtpd_sasl_is_active(state))
 	smtpd_sasl_mail_reset(state);
 #endif
     state->discard = 0;
@@ -2756,7 +2753,8 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 #endif
 	    rfc3848_sess = "";
 #ifdef USE_SASL_AUTH
-	if (var_smtpd_sasl_enable && var_smtpd_sasl_auth_hdr && state->sasl_username) {
+	if (smtpd_sasl_is_active(state) && var_smtpd_sasl_auth_hdr
+	    && state->sasl_username) {
 	    username = VSTRING_STRDUP(state->sasl_username);
 	    comment_sanitize(username);
 	    out_fprintf(out_stream, REC_TYPE_NORM,
@@ -2764,7 +2762,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	    vstring_free(username);
 	}
 	/* RFC 3848 is defined for ESMTP only. */
-	if (var_smtpd_sasl_enable && state->sasl_username
+	if (smtpd_sasl_is_active(state) && state->sasl_username
 	    && strcmp(state->protocol, MAIL_PROTO_ESMTP) == 0)
 	    rfc3848_auth = "A";
 	else
@@ -2773,7 +2771,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	if (state->rcpt_count == 1 && state->recipient) {
 	    out_fprintf(out_stream, REC_TYPE_NORM,
 			state->cleanup ? "\tby %s (%s) with %s%s%s id %s" :
-			"\tby %s (%s) with %s",
+			"\tby %s (%s) with %s%s%s",
 			var_myhostname, var_mail_name,
 			state->protocol, rfc3848_sess,
 			rfc3848_auth, state->queue_id);
@@ -2784,7 +2782,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	} else {
 	    out_fprintf(out_stream, REC_TYPE_NORM,
 			state->cleanup ? "\tby %s (%s) with %s%s%s id %s;" :
-			"\tby %s (%s) with %s;",
+			"\tby %s (%s) with %s%s%s;",
 			var_myhostname, var_mail_name,
 			state->protocol, rfc3848_sess,
 			rfc3848_auth, state->queue_id);
@@ -3521,7 +3519,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	state->protocol = mystrdup(MAIL_PROTO_SMTP);
     }
 #ifdef USE_SASL_AUTH
-    if (var_smtpd_sasl_enable)
+    if (smtpd_sasl_is_active(state))
 	smtpd_sasl_auth_reset(state);
 #endif
     chat_reset(state, 0);
@@ -3916,12 +3914,17 @@ static void smtpd_start_tls(SMTPD_STATE *state)
      * offered within a plain-text session.
      */
 #ifdef USE_SASL_AUTH
-    if (var_smtpd_sasl_enable
-	&& strcmp(var_smtpd_sasl_tls_opts, var_smtpd_sasl_opts) != 0) {
-	smtpd_sasl_auth_reset(state);
-	smtpd_sasl_disconnect(state);
-	smtpd_sasl_connect(state, VAR_SMTPD_SASL_TLS_OPTS,
-			   var_smtpd_sasl_tls_opts);
+    if (var_smtpd_sasl_enable) {
+	/* Non-wrappermode, presumably. */
+	if (smtpd_sasl_is_active(state)
+	    && strcmp(var_smtpd_sasl_opts, var_smtpd_sasl_tls_opts) != 0) {
+	    smtpd_sasl_auth_reset(state);
+	    smtpd_sasl_deactivate(state);
+	}
+	/* Wrappermode and non-wrappermode. */
+	if (smtpd_sasl_is_active(state) == 0)
+	    smtpd_sasl_activate(state, VAR_SMTPD_SASL_TLS_OPTS,
+				var_smtpd_sasl_tls_opts);
     }
 #endif
 }
@@ -4265,6 +4268,27 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    ehlo_words = var_smtpd_ehlo_dis_words;
 	state->ehlo_discard_mask = ehlo_mask(ehlo_words);
 
+	/*
+	 * SASL initialization for plaintext mode.
+	 * 
+	 * XXX Backwards compatibility: allow AUTH commands when the AUTH
+	 * announcement is suppressed via smtpd_sasl_exceptions_networks.
+	 * 
+	 * XXX Safety: don't enable SASL with "smtpd_tls_auth_only = yes" and
+	 * non-TLS build.
+	 */
+#ifdef USE_SASL_AUTH
+	if (var_smtpd_sasl_enable && smtpd_sasl_is_active(state) == 0
+#ifdef USE_TLS
+	    && state->tls_context == 0 && !state->tls_auth_only
+#else
+	    && var_smtpd_tls_auth_only == 0
+#endif
+	    )
+	    smtpd_sasl_activate(state, VAR_SMTPD_SASL_OPTS,
+				var_smtpd_sasl_opts);
+#endif
+
 	for (;;) {
 	    if (state->flags & SMTPD_FLAG_HANGUP)
 		break;
@@ -4373,8 +4397,9 @@ static void smtpd_proto(SMTPD_STATE *state)
      */
     if (state->reason && state->where) {
 	if (strcmp(state->where, SMTPD_CMD_DATA) == 0) {
-	    msg_info("%s after %s (%lu bytes) from %s",
-		     state->reason, state->where, (long) state->act_size,
+	    msg_info("%s after %s (approximately %lu bytes) from %s",
+		     state->reason, state->where,
+		     (long) (state->act_size + vstream_peek(state->client)),
 		     state->namaddr);
 	} else if (strcmp(state->where, SMTPD_AFTER_DOT)
 		   || strcmp(state->reason, REASON_LOST_CONNECTION)) {
@@ -4394,8 +4419,10 @@ static void smtpd_proto(SMTPD_STATE *state)
 #endif
     helo_reset(state);
 #ifdef USE_SASL_AUTH
-    if (var_smtpd_sasl_enable)
+    if (smtpd_sasl_is_active(state)) {
 	smtpd_sasl_auth_reset(state);
+	smtpd_sasl_deactivate(state);
+    }
 #endif
     chat_reset(state, 0);
     mail_reset(state);
@@ -4800,8 +4827,8 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_USE_TLS, DEF_SMTPD_USE_TLS, &var_smtpd_use_tls,
 	VAR_SMTPD_ENFORCE_TLS, DEF_SMTPD_ENFORCE_TLS, &var_smtpd_enforce_tls,
 	VAR_SMTPD_TLS_WRAPPER, DEF_SMTPD_TLS_WRAPPER, &var_smtpd_tls_wrappermode,
-#ifdef USE_TLS
 	VAR_SMTPD_TLS_AUTH_ONLY, DEF_SMTPD_TLS_AUTH_ONLY, &var_smtpd_tls_auth_only,
+#ifdef USE_TLS
 	VAR_SMTPD_TLS_ACERT, DEF_SMTPD_TLS_ACERT, &var_smtpd_tls_ask_ccert,
 	VAR_SMTPD_TLS_RCERT, DEF_SMTPD_TLS_RCERT, &var_smtpd_tls_req_ccert,
 	VAR_SMTPD_TLS_RECHEAD, DEF_SMTPD_TLS_RECHEAD, &var_smtpd_tls_received_header,

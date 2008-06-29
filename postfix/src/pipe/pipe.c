@@ -200,23 +200,23 @@
 /* .IP \fB${\fBclient_address\fR}\fR
 /*	This macro expands to the remote client network address.
 /* .sp
-/*	This is available in Postfix 2.2 and later.
+/*	This feature is available as of Postfix 2.2.
 /* .IP \fB${\fBclient_helo\fR}\fR
 /*	This macro expands to the remote client HELO command parameter.
 /* .sp
-/*	This is available in Postfix 2.2 and later.
+/*	This feature is available as of Postfix 2.2.
 /* .IP \fB${\fBclient_hostname\fR}\fR
 /*	This macro expands to the remote client hostname.
 /* .sp
-/*	This is available in Postfix 2.2 and later.
+/*	This feature is available as of Postfix 2.2.
 /* .IP \fB${\fBclient_port\fR}\fR
 /*	This macro expands to the remote client TCP port number.
 /* .sp
-/*	This is available in Postfix 2.5 and later.
+/*	This feature is available as of Postfix 2.5.
 /* .IP \fB${\fBclient_protocol\fR}\fR
 /*	This macro expands to the remote client protocol.
 /* .sp
-/*	This is available in Postfix 2.2 and later.
+/*	This feature is available as of Postfix 2.2.
 /* .IP \fB${\fBdomain\fR}\fR
 /*	This macro expands to the domain portion of the recipient
 /*	address.  For example, with an address \fIuser+foo@domain\fR
@@ -224,7 +224,7 @@
 /* .sp
 /*	This information is modified by the \fBh\fR flag for case folding.
 /* .sp
-/*	This is available in Postfix 2.5 and later.
+/*	This feature is available as of Postfix 2.5.
 /* .IP \fB${\fBextension\fR}\fR
 /*	This macro expands to the extension part of a recipient address.
 /*	For example, with an address \fIuser+foo@domain\fR the extension is
@@ -258,7 +258,7 @@
 /*	This information is modified by the \fBhqu\fR flags for quoting
 /*	and case folding.
 /* .sp
-/*	This feature is available in Postfix 2.5 and later.
+/*	This feature is available as of Postfix 2.5.
 /* .IP \fB${\fBrecipient\fR}\fR
 /*	This macro expands to the complete recipient address.
 /* .sp
@@ -268,22 +268,22 @@
 /*	This information is modified by the \fBhqu\fR flags for quoting
 /*	and case folding.
 /* .IP \fB${\fBsasl_method\fR}\fR
-/*	This macro expands to the SASL authentication mechanism used
-/*	during the reception of the message. An empty string is passed
-/*	if the message has been received without SASL authentication.
+/*	This macro expands to the name of the SASL authentication
+/*	mechanism in the AUTH command when the Postfix SMTP server
+/*	received the message.
 /* .sp
-/*	This is available in Postfix 2.2 and later.
+/*	This feature is available as of Postfix 2.2.
 /* .IP \fB${\fBsasl_sender\fR}\fR
 /*	This macro expands to the SASL sender name (i.e. the original
-/*	submitter as per RFC 4954) used during the reception of the message.
+/*	submitter as per RFC 4954) in the MAIL FROM command when
+/*	the Postfix SMTP server received the message.
 /* .sp
-/*	This is available in Postfix 2.2 and later.
+/*	This feature is available as of Postfix 2.2.
 /* .IP \fB${\fBsasl_username\fR}\fR
-/*	This macro expands to the SASL user name used during the reception
-/*	of the message. An empty string is passed if the message has been
-/*	received without SASL authentication.
+/*	This macro expands to the SASL user name in the AUTH command
+/*	when the Postfix SMTP server received the message.
 /* .sp
-/*	This is available in Postfix 2.2 and later.
+/*	This feature is available as of Postfix 2.2.
 /* .IP \fB${\fBsender\fR}\fR
 /*	This macro expands to the envelope sender address. By default,
 /*	the null sender address expands to MAILER-DAEMON; this can
