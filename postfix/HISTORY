@@ -14377,3 +14377,23 @@ Apologies for any names omitted.
 	not updated when the smtpd_client_port_logging configuration
 	parameter was added. Code by Victor Duchovni. Files:
 	smtpd/smtpd.c, smtpd/smtpd_peer.c.
+
+20080509
+
+	Bugfix: null-terminate CN comment string after sanitization.
+	File: smtpd/smtpd.c.
+
+20080603
+
+	Workaround: avoid "bad address pattern" errors with non-address
+	patterns in namadr_list_match() calls. File: util/match_ops.c.
+
+20080620
+
+	Bugfix (introduced 20080207): "cleanup -v" panic because
+	the new "SMTP reply" request flag did not have a printable
+	name. File: global/cleanup_strflags.c.
+
+	Cleanup: using "Before-queue content filter", RFC3848
+	information was not added to the headers. Carlos Velasco.
+	File smtpd/smtpd.c.
