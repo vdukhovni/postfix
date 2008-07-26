@@ -695,8 +695,15 @@ static void cleanup_header_done_callback(void *context)
 #define VISIBLE_RCPT	((1 << HDR_TO) | (1 << HDR_RESENT_TO) \
 			| (1 << HDR_CC) | (1 << HDR_RESENT_CC))
 
-    if ((state->headers_seen & VISIBLE_RCPT) == 0 && *var_rcpt_witheld)
-	cleanup_out_format(state, REC_TYPE_NORM, "%s", var_rcpt_witheld);
+    if ((state->headers_seen & VISIBLE_RCPT) == 0 && *var_rcpt_witheld) {
+	if (!is_header(var_rcpt_witheld)) {
+	    msg_warn("bad %s header text \"%s\" -- "
+		     "need \"headername: headervalue\"",
+		     VAR_RCPT_WITHELD, var_rcpt_witheld);
+	} else {
+	    cleanup_out_format(state, REC_TYPE_NORM, "%s", var_rcpt_witheld);
+	}
+    }
 
     /*
      * Place a dummy PTR record right after the last header so that we can

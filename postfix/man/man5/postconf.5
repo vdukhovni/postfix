@@ -634,11 +634,18 @@ of failed delivery attempts and generates non-delivery notifications.
 This feature is available in Postfix 2.0 and later.
 .SH bounce_size_limit (default: 50000)
 The maximal amount of original message text that is sent in a
-non-delivery notification. Specify a byte count. If you increase
-this limit, then you should increase the mime_nesting_limit value
-proportionally.
+non-delivery notification. Specify a byte count. With Postfix 2.4
+and later, a message is returned as either message/rfc822 (the
+complete original) or as text/rfc822-headers (the headers only).
+With earlier Postfix versions, a message is always returned as
+message/rfc822 and is truncated when it exceeds the size limit.
 .PP
-Note: be careful when making changes.  Excessively large values
+Notes:
+.IP \(bu
+If you increase this limit, then you should increase the
+mime_nesting_limit value proportionally.
+.IP \(bu
+Be careful when making changes.  Excessively large values
 will result in the loss of non-delivery notifications, when a bounce
 message size exceeds a local or remote MTA's message size limit.
 .SH bounce_template_file (default: empty)
@@ -3440,9 +3447,9 @@ The process name of a Postfix command or daemon process.
 What address lookup tables copy an address extension from the lookup
 key to the lookup result.
 .PP
-For example, with a \fBvirtual\fR(5) mapping of "\fIjoe@domain ->
-joe.user\fR", the address "\fIjoe+foo@domain\fR" would rewrite
-to "\fIjoe.user+foo\fR".
+For example, with a \fBvirtual\fR(5) mapping of "\fIjoe@example.com =>
+joe.user@example.net\fR", the address "\fIjoe+foo@example.com\fR"
+would rewrite to "\fIjoe.user+foo@example.net\fR".
 .PP
 Specify zero or more of \fBcanonical\fR, \fBvirtual\fR, \fBalias\fR,
 \fBforward\fR, \fBinclude\fR or \fBgeneric\fR. These cause
@@ -7789,6 +7796,11 @@ This feature should not be enabled on a general purpose mail server,
 because it is likely to reject legitimate email.
 .PP
 This feature is available in Postfix 2.0 and later.
+.SH strict_mailbox_ownership (default: yes)
+Defer delivery when a mailbox file is not owned by its recipient.
+The default setting is not backwards compatible.
+.PP
+This feature is available in Postfix 2.5.3 and later.
 .SH strict_mime_encoding_domain (default: no)
 Reject mail with invalid Content-Transfer-Encoding: information
 for the message/* or multipart/* MIME content types.  This blocks
@@ -8078,7 +8090,8 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 .SH undisclosed_recipients_header (default: To: undisclosed-recipients:;)
 Message header that the Postfix \fBcleanup\fR(8) server inserts when a
-message contains no To: or Cc: message header.
+message contains no To: or Cc: message header. With Postfix 2.4
+and later, specify an empty value to disable this feature.
 .SH unknown_address_reject_code (default: 450)
 The numerical Postfix SMTP server response code when a sender or
 recipient address is rejected by the reject_unknown_sender_domain

@@ -481,7 +481,8 @@ int     main(int argc, char **argv)
 	watchdog_start(watchdog);		/* same as trigger servers */
 	event_loop(-1);
 	if (master_gotsighup) {
-	    msg_info("reload configuration %s", var_config_dir);
+	    msg_info("reload -- version %s, configuration %s", 
+		     var_mail_version, var_config_dir);
 	    master_gotsighup = 0;		/* this first */
 	    master_vars_init();			/* then this */
 	    master_refresh();			/* then this */

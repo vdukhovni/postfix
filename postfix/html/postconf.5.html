@@ -1143,14 +1143,26 @@ This feature is available in Postfix 2.0 and later.
 (default: 50000)</b></DT><DD>
 
 <p> The maximal amount of original message text that is sent in a
-non-delivery notification. Specify a byte count. If you increase
-this limit, then you should increase the <a href="postconf.5.html#mime_nesting_limit">mime_nesting_limit</a> value
-proportionally.  </p>
+non-delivery notification. Specify a byte count. With Postfix 2.4
+and later, a message is returned as either message/rfc822 (the
+complete original) or as text/rfc822-headers (the headers only).
+With earlier Postfix versions, a message is always returned as
+message/rfc822 and is truncated when it exceeds the size limit.
+</p>
 
-<p> Note: be careful when making changes.  Excessively large values
+<p> Notes: </p>
+
+<ul>
+
+<li> <p> If you increase this limit, then you should increase the
+<a href="postconf.5.html#mime_nesting_limit">mime_nesting_limit</a> value proportionally.  </p>
+
+<li> <p> Be careful when making changes.  Excessively large values
 will result in the loss of non-delivery notifications, when a bounce
 message size exceeds a local or remote MTA's message size limit.
 </p>
+
+</ul>
 
 
 </DD>
@@ -6194,9 +6206,9 @@ key to the lookup result.
 </p>
 
 <p>
-For example, with a <a href="virtual.5.html">virtual(5)</a> mapping of "<i>joe@domain -&gt;
-joe.user</i>", the address "<i>joe+foo@domain</i>" would rewrite
-to "<i>joe.user+foo</i>".
+For example, with a <a href="virtual.5.html">virtual(5)</a> mapping of "<i>joe@example.com =&gt;
+joe.user@example.net</i>", the address "<i>joe+foo@example.com</i>"
+would rewrite to "<i>joe.user+foo@example.net</i>".
 </p>
 
 <p>
@@ -12519,6 +12531,17 @@ This feature is available in Postfix 2.0 and later.
 
 </DD>
 
+<DT><b><a name="strict_mailbox_ownership">strict_mailbox_ownership</a>
+(default: yes)</b></DT><DD>
+
+<p> Defer delivery when a mailbox file is not owned by its recipient.
+The default setting is not backwards compatible.  </p>
+
+<p> This feature is available in Postfix 2.5.3 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="strict_mime_encoding_domain">strict_mime_encoding_domain</a>
 (default: no)</b></DT><DD>
 
@@ -13070,7 +13093,8 @@ The default time unit is s (seconds).
 
 <p>
 Message header that the Postfix <a href="cleanup.8.html">cleanup(8)</a> server inserts when a
-message contains no To: or Cc: message header.  </p>
+message contains no To: or Cc: message header. With Postfix 2.4
+and later, specify an empty value to disable this feature.  </p>
 
 
 </DD>

@@ -14526,3 +14526,26 @@ Apologies for any names omitted.
 
 	The description of SASL authentication attributes was
 	garbled.  File: pipe/pipe.c.
+
+	Information: the master(8) server now logs the version
+	besides the configuration directory upon "postfix reload".
+	File: master/master.c.
+
+20080717
+
+	Cleanup: a poorly-implemented integer overflow check for
+	TCP MSS calculation had the unexpected effect that people
+	broke Postfix on LP64 systems while attempting to silence
+	a compiler warning.  File: util/vstream_tweak.c.
+
+20080721
+
+	The cleanup server now rejects undisclosed_recipients_header
+	parameter values with invalid message header syntax.
+	File: cleanup/cleanup_message.c.
+
+20080725
+
+	Paranoia: defer delivery when a mailbox file is not owned
+	by the recipient. Sebastian Krahmer, SuSE.  Files:
+	local/mailbox.c, virtual/mailbox.c.

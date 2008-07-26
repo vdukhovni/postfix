@@ -1,5 +1,13 @@
 Wish list:
 
+	Force a panic when the VDA patch reduces the file size limit
+	under the message size.  They break the code that marks a
+	recipient as "done", when that recipient was added late
+	(e.g., "sendmail -t" or Milter SMFIR_ADDRCPT).
+
+	Set a flag when a remote SMTP client speaks before the
+	Postfix SMTP server sends the 220 greeting.
+
 	Encapsulate time_t comparisons so that they can be made
 	system dependent (use difftime() where available).
 

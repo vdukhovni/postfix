@@ -11,12 +11,6 @@ instead, a new snapshot is released.
 The mail_release_date configuration parameter (format: yyyymmdd)
 specifies the release date of a stable release or snapshot release.
 
-Incompatibility with Postfix 2.4 and earlier
-============================================
-
-If you upgrade from Postfix 2.4 or earlier, read RELEASE_NOTES-2.5
-before proceeding.
-
 Incompatibility with snapshot 20080629
 ======================================
 
@@ -24,6 +18,14 @@ When TLS support is not compiled in, the Postfix SMTP server no
 longer ignores the "smtpd_tls_auth_only = yes" parameter setting.
 Earlier Postfix SMTP server versions would announce SASL support,
 and would accept SASL login or sender information.
+
+Incompatibility with snapshot 20080726
+======================================
+
+When a mailbox file is not owned by its recipient, the local and
+virtual delivery agents now log a warning and defer delivery.
+Specify "strict_mailbox_ownership = no" to ignore such ownership
+discrepancies.
 
 Major changes with snapshot 20080629
 ====================================
@@ -72,3 +74,9 @@ files with versions from an older release, and end up with a broken
 configuration that cannot repair itself. For this reason, postfix-script,
 postfix-files and post-install are moved away from /etc/postfix to
 $daemon_directory.
+
+Incompatible changes with Postfix 2.5.0
+=======================================
+
+If you upgrade from Postfix 2.4 or earlier, read RELEASE_NOTES-2.5
+before proceeding.

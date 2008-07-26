@@ -213,6 +213,10 @@ mail is delivered via the $virtual_transport mail delivery transport.
 .IP "\fBvirtual_transport (virtual)\fR"
 The default mail delivery transport and next-hop destination for
 final delivery to domains listed with $virtual_mailbox_domains.
+.PP
+Available in Postfix version 2.5.3 and later:
+.IP "\fBstrict_mailbox_ownership (yes)\fR"
+Defer delivery when a mailbox file is not owned by its recipient.
 .SH "LOCKING CONTROLS"
 .na
 .nf
@@ -238,7 +242,7 @@ The time after which a stale exclusive mailbox lockfile is removed.
 The maximal number of parallel deliveries to the same destination
 via the virtual message delivery transport.
 .IP "\fBvirtual_destination_recipient_limit ($default_destination_recipient_limit)\fR"
-The maximal number of recipients per delivery via the virtual
+The maximal number of recipients per message for the virtual
 message delivery transport.
 .IP "\fBvirtual_mailbox_limit (51200000)\fR"
 The maximal size in bytes of an individual mailbox or maildir file,
