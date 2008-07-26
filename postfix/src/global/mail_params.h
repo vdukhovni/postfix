@@ -2932,6 +2932,13 @@ extern int var_dest_rate_delay;
 #define DEF_STRESS		""
 extern char *var_stress;
 
+ /*
+  * Mailbox ownership.
+  */
+#define VAR_STRICT_MBOX_OWNER	"strict_mailbox_ownership"
+#define DEF_STRICT_MBOX_OWNER	1
+extern bool var_strict_mbox_owner;
+
 /* LICENSE
 /* .ad
 /* .fi

@@ -14397,3 +14397,17 @@ Apologies for any names omitted.
 	Cleanup: using "Before-queue content filter", RFC3848
 	information was not added to the headers. Carlos Velasco.
 	File smtpd/smtpd.c.
+
+20080717
+
+	Cleanup: a poorly-implemented integer overflow check for
+	TCP MSS calculation had the unexpected effect that people
+	broke Postfix on LP64 systems while attempting to silence
+	a compiler warning.  File: util/vstream_tweak.c.
+
+20080725
+
+	Paranoia: defer delivery when a mailbox file is not owned
+	by the recipient. Requested by Sebastian Krahmer, SuSE.
+	Specify "strict_mailbox_ownership=no" to ignore ownership
+	discrepancies.  Files: local/mailbox.c, virtual/mailbox.c.
