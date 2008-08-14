@@ -14411,3 +14411,22 @@ Apologies for any names omitted.
 	by the recipient. Requested by Sebastian Krahmer, SuSE.
 	Specify "strict_mailbox_ownership=no" to ignore ownership
 	discrepancies.  Files: local/mailbox.c, virtual/mailbox.c.
+
+20080804
+
+	Bugfix: dangling pointer in vstring_sprintf_prepend().
+	File: util/vstring.c.
+
+20080814
+
+	Security: some systems have changed their link() semantics,
+	and will hardlink a symlink, contrary to POSIX and XPG4.
+	Sebastian Krahmer, SuSE. File: util/safe_open.c.
+
+	The solution introduces the following incompatible change:
+	when the target of mail delivery is a symlink, the parent
+	directory of that symlink must now be writable by root only
+	(in addition to the already existing requirement that the
+	symlink itself is owned by root).  This change will break
+	legitimate configurations that deliver mail to a symbolic
+	link in a directory with less restrictive permissions.
