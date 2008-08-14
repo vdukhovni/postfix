@@ -13124,3 +13124,52 @@ Apologies for any names omitted.
 	Workaround: minor change to the Dovecot AUTH request to
 	prevent dovecot-auth memory wastage. Timo Sirainen.  File:
 	xsasl/xsasl_dovecot_server.c.
+
+20080228
+
+	Bugfix: bounce(8) segfault on one-line template text.
+	Problem found by Sacha Chlytor. File: bounce/bounce_template.c.
+
+20080411
+
+	Bugfix (introduced Postfix 2.0): after "warn_if_reject
+	reject_unlisted_recipient/sender", the SMTP server mistakenly
+	remembered that recipient/sender validation was already
+	done. File: smtpd/smtpd_check.c.
+
+20080428
+
+	Cleanup: the proxy_read_maps (Postfix 2.0) default setting
+	was not updated when adding sender/recipient_bcc_maps
+	(Postfix 2.1) and smtp/lmtp_generic_maps (Postfix 2.3).
+	File: global/mail_params.h.
+
+20080509
+
+	Bugfix: null-terminate CN comment string after sanitization.
+	File: smtpd/smtpd.c.
+
+20080603
+
+	Workaround: avoid "bad address pattern" errors with non-address
+	patterns in namadr_list_match() calls. File: util/match_ops.c.
+
+20080804
+
+	Bugfix: dangling pointer in vstring_sprintf_prepend().
+	File: util/vstring.c.
+
+20080814
+
+	Security: some systems have changed their link() semantics,
+	and will hardlink a symlink, contrary to POSIX and XPG4.
+	Sebastian Krahmer, SuSE. File: util/safe_open.c.
+
+	The solution introduces the following incompatible change:
+	when the target of mail delivery is a symlink, the parent
+	directory of that symlink must now be writable by root only
+	(in addition to the already existing requirement that the
+	symlink itself is owned by root).  This change will break
+	legitimate configurations that deliver mail to a symbolic
+	link in a directory with less restrictive permissions.
+

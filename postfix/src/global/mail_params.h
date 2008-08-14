@@ -1966,7 +1966,11 @@ extern int var_local_rcpt_code;
 				" $" VAR_RCPT_CANON_MAPS \
 				" $" VAR_RELOCATED_MAPS \
 				" $" VAR_TRANSPORT_MAPS \
-				" $" VAR_MYNETWORKS
+				" $" VAR_MYNETWORKS \
+				" $" VAR_SEND_BCC_MAPS \
+				" $" VAR_RCPT_BCC_MAPS \
+				" $" VAR_SMTP_GENERIC_MAPS \
+				" $" VAR_LMTP_GENERIC_MAPS
 extern char *var_proxy_read_maps;
 
  /*

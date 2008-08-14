@@ -2421,6 +2421,7 @@ static void comment_sanitize(VSTRING *comment_string)
     }
     while (pc-- > 0)
 	VSTRING_ADDCH(comment_string, ')');
+    VSTRING_TERMINATE(comment_string);
 }
 
 /* data_cmd - process DATA command */
