@@ -1,5 +1,5 @@
 Wish list:
-
+ 
 	Force a panic when the VDA patch reduces the file size limit
 	under the message size.  They break the code that marks a
 	recipient as "done", when that recipient was added late
@@ -37,11 +37,12 @@ Wish list:
 	that it makes smtpd_mumble_restrictions available for local
 	and remote mail; the disadvantage is that it makes local
 	submissions more dependent on networking.  One possibility
-	is to use "pickup -o content_filter=smtp:127.0.0.1". Another
-	is to have the pickup or cleanup server drive an SMTP client
-	directly; this would require extension of the mail_stream()
-	interface, plus a way to handle bounced/deferred recipients
-	intelligently.
+	is to use "pickup -o content_filter=smtp:127.0.0.1:10025";
+	we could also to suppress "mail loop" detection for loopback
+	connections.  Another is to have the pickup or cleanup
+	server drive an SMTP client directly; this would require
+	extension of the mail_stream() interface, plus a way to
+	handle bounced/deferred recipients intelligently.
 
 	Consolidate duplicated code in *_server_accept_{pass,inet}().
 

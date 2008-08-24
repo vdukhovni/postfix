@@ -308,38 +308,53 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
     int     server_flags;
     int     status;
     const char *service;
-    const char *relative_path;
+    char   *relative_path;
     char   *kludge = 0;
     char   *prefix;
     CLNT_STREAM **pstream;
 
     /*
-     * Sanity checks.
+     * If this map can't be proxied then we silently do a direct open. This
+     * allows sites to benefit from proxying the virtual mailbox maps without
+     * unnecessary pain.
+     */
+    if (dict_flags & DICT_FLAG_NO_PROXY)
+	return (dict_open(map, open_flags, dict_flags));
+
+    /*
+     * Use a shared stream for proxied table lookups of the same type.
      * 
      * XXX A complete implementation would also allow O_RDWR without O_CREAT.
      * But we must not pass on every possible set of flags to the proxy
      * server; only sets that make sense. For now, the flags are passed
      * implicitly by choosing between the proxymap or proxywrite service.
+     * 
+     * XXX Use absolute pathname to make this work from non-daemon processes.
      */
     if (open_flags == O_RDONLY) {
 	pstream = &proxymap_stream;
-	service = MAIL_SERVICE_PROXYMAP;
-	relative_path = MAIL_CLASS_PRIVATE "/" MAIL_SERVICE_PROXYMAP;
+	service = var_proxymap_service;
     } else if (open_flags == (O_RDWR | O_CREAT)) {
 	pstream = &proxywrite_stream;
-	service = MAIL_SERVICE_PROXYWRITE;
-	relative_path = MAIL_CLASS_PRIVATE "/" MAIL_SERVICE_PROXYWRITE;
+	service = var_proxywrite_service;
     } else
 	msg_fatal("%s: %s map open requires O_RDONLY or O_RDWR|O_CREAT mode",
 		  map, DICT_TYPE_PROXY);
 
-    /*
-     * OK. If this map can't be proxied then we silently do a direct open.
-     * This allows sites to benefit from proxying the virtual mailbox maps
-     * without unnecessary pain.
-     */
-    if (dict_flags & DICT_FLAG_NO_PROXY)
-	return (dict_open(map, open_flags, dict_flags));
+    if (*pstream == 0) {
+	relative_path = concatenate(MAIL_CLASS_PRIVATE "/",
+				    service, (char *) 0);
+	if (access(relative_path, F_OK) == 0)
+	    prefix = MAIL_CLASS_PRIVATE;
+	else
+	    prefix = kludge = concatenate(var_queue_dir, "/",
+					  MAIL_CLASS_PRIVATE, (char *) 0);
+	*pstream = clnt_stream_create(prefix, service, var_ipc_idle_limit,
+				      var_ipc_ttl_limit);
+	if (kludge)
+	    myfree(kludge);
+	myfree(relative_path);
+    }
 
     /*
      * Local initialization.
@@ -352,23 +367,6 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
     dict_proxy->dict.close = dict_proxy_close;
     dict_proxy->in_flags = dict_flags;
     dict_proxy->result = vstring_alloc(10);
-
-    /*
-     * Use a shared stream for proxied table lookups of the same type.
-     * 
-     * XXX Use absolute pathname to make this work from non-daemon processes.
-     */
-    if (*pstream == 0) {
-	if (access(relative_path, F_OK) == 0)
-	    prefix = MAIL_CLASS_PRIVATE;
-	else
-	    prefix = kludge = concatenate(var_queue_dir, "/",
-					  MAIL_CLASS_PRIVATE, (char *) 0);
-	*pstream = clnt_stream_create(prefix, service, var_ipc_idle_limit,
-				      var_ipc_ttl_limit);
-	if (kludge)
-	    myfree(kludge);
-    }
     dict_proxy->clnt = *pstream;
     dict_proxy->service = service;
 

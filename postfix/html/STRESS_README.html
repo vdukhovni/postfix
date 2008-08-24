@@ -77,9 +77,24 @@ this affects end-user mail clients, enable the "submission" service
 entry in <a href="master.5.html">master.cf</a> (present since Postfix 2.1), and tell users to
 connect to this instead of the public SMTP service. </p>
 
+<ul>
+
+<li> <p> NOTE: Broken DNS configurations also cause lengthy delays
+before Postfix sends "220 hostname.example.com ...". In this case
+the delay happens even when Postfix is not busy.  </p>
+
+</ul>
+
 <li> <p> The Postfix SMTP server logs an increased number of "lost
 connection after CONNECT" events. This happens because remote SMTP
 clients disconnect before Postfix answers the connection. </p>
+
+<ul>
+
+<li> <p> NOTE: A portscan for open SMTP ports also results in "lost
+connection ..." logfile messages. </p>
+
+</ul>
 
 <li> <p> Postfix 2.3 and later logs a warning that all server ports
 are busy: </p>
@@ -92,21 +107,6 @@ Oct  3 20:39:27 spike postfix/master[28905]: warning: to avoid this
  condition, increase the process count in <a href="master.5.html">master.cf</a> or reduce the
  service time per client
 </pre>
-
-</ul>
-
-<p> NOTE: The first two symptoms may also happen without overload,
-for example: </p>
-
-<ul>
-
-<li> <p> Broken DNS also causes lengthy delays before "220
-hostname.example.com
-..." while the Postfix SMTP server tries to look up the client's
-hostname.  </p>
-
-<li> <p> A portscan for open SMTP ports also results in "lost
-connection ..." logfile messages. </p>
 
 </ul>
 
@@ -138,7 +138,7 @@ filters (BSD kqueue(2), Linux epoll(4), or Solaris /dev/poll).
 </p>
 
 <li> <p> You can reduce the Postfix memory footprint by using <a href="CDB_README.html">cdb</a>:
-lookup tables instead of Berkeley DB. </p>
+lookup tables instead of Berkeley DB's hash: or btree: tables. </p>
 
 <pre>
  1 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
@@ -159,7 +159,9 @@ processes.  When you raise the SMTP server's "maxproc" field in
 <a href="master.5.html">master.cf</a>, SMTP server processes will report problems when connecting
 to policy server processes, because there aren't enough of them.
 Examples of errors are "connection refused" or "operation timed
-out".  To fix, edit <a href="master.5.html">master.cf</a> and specify a zero "maxproc" field
+out".  </p>
+
+<p> To fix, edit <a href="master.5.html">master.cf</a> and specify a zero "maxproc" field
 in all policy server entries; see line 6 in the example below.
 Issue a "postfix reload" command to make the change effective.  </p>
 
@@ -180,8 +182,7 @@ Issue a "postfix reload" command to make the change effective.  </p>
 <p> When increasing the number of SMTP server processes is not
 practical, you can improve Postfix server responsiveness by eliminating
 unnecessary work. When Postfix spends less time per SMTP session, the
-same number of SMTP server processes can service more clients in
-the same amount of time. </p>
+same number of SMTP server processes can service more clients. </p>
 
 <ul>
 

@@ -19,6 +19,9 @@
 /* .IP "\fB-a accept|tempfail|reject|discard|skip|\fIddd x.y.z text\fR"
 /*	Specifies a non-default reply for the MTA command specified
 /*	with \fB-c\fR. The default is \fBtempfail\fR.
+/* .IP "\fB-A address\fR"
+/*	Add the specified recipient address. Multiple -A options
+/*	are supported.
 /* .IP "\fB-d\fI level\fR"
 /*	Enable libmilter debugging at the specified level.
 /* .IP "\fB-c connect|helo|mail|rcpt|data|header|eoh|body|eom|unknown|close|abort\fR"
@@ -145,6 +148,10 @@ static char *chg_val;
 static char *body_file;
 
 #endif
+
+#define MAX_RCPT	10
+int     rcpt_count = 0;
+char   *rcpt_addr[MAX_RCPT];
 
 static int test_reply(SMFICTX *ctx, int code)
 {
@@ -288,12 +295,19 @@ static sfsistat test_eom(SMFICTX *ctx)
 #endif
 #ifdef SMFIR_INSHEADER
     if (ins_hdr && smfi_insheader(ctx, ins_idx, ins_hdr, ins_val) == MI_FAILURE)
-	fprintf(stderr, "smfi_insheader failed");
+	fprintf(stderr, "smfi_insheader failed\n");
 #endif
 #ifdef SMFIR_CHGHEADER
     if (chg_hdr && smfi_chgheader(ctx, chg_hdr, chg_idx, chg_val) == MI_FAILURE)
-	fprintf(stderr, "smfi_chgheader failed");
+	fprintf(stderr, "smfi_chgheader failed\n");
 #endif
+    {
+	int     count;
+
+	for (count = 0; count < rcpt_count; count++)
+	    if (smfi_addrcpt(ctx, rcpt_addr[count]) == MI_FAILURE)
+		fprintf(stderr, "smfi_addrcpt `%s' failed\n", rcpt_addr[count]);
+    }
     return (test_reply(ctx, test_eom_reply));
 }
 
@@ -464,10 +478,17 @@ int     main(int argc, char **argv)
     char   *noreply = 0;
     const struct noproto_map *np;
 
-    while ((ch = getopt(argc, argv, "a:c:C:d:i:lm:M:n:N:p:r:R:v")) > 0) {
+    while ((ch = getopt(argc, argv, "a:A:c:C:d:i:lm:M:n:N:p:r:R:v")) > 0) {
 	switch (ch) {
 	case 'a':
 	    action = optarg;
+	    break;
+	case 'A':
+	    if (rcpt_count >= MAX_RCPT) {
+		fprintf(stderr, "too many -A options\n");
+		exit(1);
+	    }
+	    rcpt_addr[rcpt_count++] = optarg;
 	    break;
 	case 'c':
 	    command = optarg;

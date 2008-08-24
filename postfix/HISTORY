@@ -14569,3 +14569,43 @@ Apologies for any names omitted.
 	legitimate configurations that deliver mail to a symbolic
 	link in a directory with less restrictive permissions.
 
+20080815
+
+	Feature: the milter_default_action parameter now accepts
+	the "quarantine" action. This works like "accept" but also
+	freezes the mail in the "hold" queue. File: milter/milter8.c.
+
+	Robustness: transition from setjmp()/longjmp() to the signal
+	mask saving/restoring versions sigsetjmp()/siglongjmp().
+	These functions have been around for 15 years, but they
+	have had bugs on supported platforms, so makedefs tests for
+	them.  Files: makedefs, util/sys_defs.h, util/vstream.h.
+
+20080822
+
+	Cleanup: the proxymap_service_name and proxywrite_service_name
+	parameters make the proxymap service names configurable.
+	This paves the way for a future option where the proxymap
+	services are accessible via TCP so that they can be shared
+	among multiple Postfix hosts.  File: global/dict_proxy.c.
+
+	Feature: MacOS X support for kqueue style event handling,
+	with workaround for broken MacOS X versions.  Files:
+	util/sys_defs.h, makedefs.
+
+	Cleanup: the makedefs script now keeps its test programs
+	in a directory makedefs.d, instead of inlining them as
+	fragile "here documents". Files: makedefs, makedefs.d/*.
+
+20080823
+
+	Feature: IPv6 dns blocklist lookup. File: smtpd/smtpd_check.c.
+
+20080824
+
+	Cleanup: untangled the MacOS X version dependent sections
+	in the makedefs script, to make future updates easier. File:
+	makedefs.
+
+	Cleanup: don't log multiple Milter "hold" actions for
+	the same message. File: cleanup/cleanup_milter.c.

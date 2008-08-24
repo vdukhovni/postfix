@@ -223,6 +223,11 @@
 #define NATIVE_DAEMON_DIR "/usr/libexec/postfix"
 #define SOCKADDR_SIZE	socklen_t
 #define SOCKOPT_SIZE	socklen_t
+#ifndef NO_KQUEUE
+# define EVENTS_STYLE	EVENTS_STYLE_KQUEUE
+# define USE_SYSV_POLL
+#endif
+
 #endif
 
  /*
@@ -1270,6 +1275,10 @@ extern int inet_pton(int, const char *, void *);
 #define EVENTS_STYLE_KQUEUE	2	/* FreeBSD kqueue */
 #define EVENTS_STYLE_DEVPOLL	3	/* Solaris /dev/poll */
 #define EVENTS_STYLE_EPOLL	4	/* Linux epoll */
+
+#if !defined(USE_SYSV_POLL) && (EVENTS_STYLE != EVENTS_STYLE_SELECT)
+#error "need USE_SYSV_POLL with EVENTS_STYLE != EVENTS_STYLE_SELECT"
+#endif
 
  /*
   * Defaults for all systems.

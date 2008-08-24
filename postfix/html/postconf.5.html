@@ -1434,6 +1434,8 @@ operations.  The time limit is enforced in the client. </p>
 <p> The name of the <a href="scache.8.html">scache(8)</a> connection cache service.  This service
 maintains a limited pool of cached sessions.  </p>
 
+<p> This feature is available in Postfix 2.2 and later. </p>
+
 
 </DD>
 
@@ -5482,6 +5484,9 @@ with a permanent status code.</dd>
 <dt>tempfail</dt> <dd>Reject all further commands in this session
 with a temporary status code. </dd>
 
+<dt>quarantine</dt> <dd>Like "accept", but freeze the message in
+the "<a href="QSHAPE_README.html#hold_queue">hold" queue</a>. Available with Postfix 2.6 and later. </dd>
+
 </dl>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
@@ -6293,6 +6298,29 @@ Table references that don't begin with <a href="proxymap.8.html">proxy</a>: are 
 <p>
 This feature is available in Postfix 2.5 and later.
 </p>
+
+
+</DD>
+
+<DT><b><a name="proxymap_service_name">proxymap_service_name</a>
+(default: proxymap)</b></DT><DD>
+
+<p> The name of the proxymap read-only table lookup service.  This
+service is normally implemented by the <a href="proxymap.8.html">proxymap(8)</a> daemon. </p>
+
+<p> This feature is available in Postfix 2.6 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="proxywrite_service_name">proxywrite_service_name</a>
+(default: proxywrite)</b></DT><DD>
+
+<p> The name of the proxywrite read-write table lookup service.
+This service is normally implemented by the <a href="proxymap.8.html">proxymap(8)</a> daemon.
+</p>
+
+<p> This feature is available in Postfix 2.6 and later. </p>
 
 
 </DD>

@@ -53,10 +53,16 @@
 /*	transport is currently limited to one of the following:
 /* .RS
 /* .IP inet
-/*	servername has the form "host:port".
+/*	servername has the form "inet:host:port".
+/* .IP local
+/*	servername has the form "local:private/servicename" or
+/*	"local:public/servicename". This is the preferred way to
+/*	specify Postfix daemons that are configured as "unix" in
+/*	master.cf.
 /* .IP unix
-/*	servername has the form "private/servicename" or
-/*	"public/servicename".
+/*	servername has the form "unix:private/servicename" or
+/*	"unix:public/servicename". This does not work on Solaris,
+/*	where Postfix uses STREAMS instead of UNIX-domain sockets.
 /* .RE
 /* .IP timeout
 /*	The time limit for sending, receiving, or for connecting

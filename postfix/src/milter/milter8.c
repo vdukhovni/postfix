@@ -505,6 +505,8 @@ static int milter8_conf_error(MILTER8 *milter)
     }
     if (strcasecmp(milter->def_action, "accept") == 0) {
 	reply = 0;
+    } else if (strcasecmp(milter->def_action, "quarantine") == 0) {
+	reply = "H";
     } else {
 	reply = "451 4.3.5 Server configuration problem - try again later";
     }
@@ -537,6 +539,8 @@ static int milter8_comm_error(MILTER8 *milter)
 	reply = "550 5.5.0 Service unavailable";
     } else if (strcasecmp(milter->def_action, "tempfail") == 0) {
 	reply = "451 4.7.1 Service unavailable - try again later";
+    } else if (strcasecmp(milter->def_action, "quarantine") == 0) {
+	reply = "H";
     } else {
 	msg_warn("milter %s: unrecognized default action: %s",
 		 milter->m.name, milter->def_action);

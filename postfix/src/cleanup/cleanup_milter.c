@@ -1399,6 +1399,8 @@ static const char *cleanup_milter_apply(CLEANUP_STATE *state, const char *event,
     switch (resp[0]) {
     case 'H':
 	/* XXX Should log the reason here. */
+	if (state->flags & CLEANUP_FLAG_HOLD) 
+	    return (0);
 	state->flags |= CLEANUP_FLAG_HOLD;
 	action = "milter-hold";
 	text = "milter triggers HOLD action";

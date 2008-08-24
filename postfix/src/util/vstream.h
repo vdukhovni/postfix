@@ -33,6 +33,12 @@
 typedef ssize_t (*VSTREAM_FN) (int, void *, size_t, int, void *);
 typedef int (*VSTREAM_WAITPID_FN) (pid_t, WAIT_STATUS_T *, int);
 
+#ifdef NO_SIGSETJMP
+#define VSTREAM_JMP_BUF	jmp_buf
+#else
+#define VSTREAM_JMP_BUF	sigjmp_buf
+#endif
+
 typedef struct VSTREAM {
     VBUF    buf;			/* generic intelligent buffer */
     int     fd;				/* file handle, no 256 limit */
@@ -48,7 +54,7 @@ typedef struct VSTREAM {
     pid_t   pid;			/* vstream_popen/close() */
     VSTREAM_WAITPID_FN waitpid_fn;	/* vstream_popen/close() */
     int     timeout;			/* read/write timout */
-    jmp_buf *jbuf;			/* exception handling */
+    VSTREAM_JMP_BUF *jbuf;		/* exception handling */
     struct timeval iotime;		/* time of last fill/flush */
     /* At bottom for Postfix 2.4 binary compatibility. */
     ssize_t req_bufsize;		/* write buffer size */
@@ -152,9 +158,18 @@ extern ssize_t vstream_peek(VSTREAM *);
  /*
   * Exception handling. We use pointer to jmp_buf to avoid a lot of unused
   * baggage for streams that don't need this functionality.
+  * 
+  * XXX sigsetjmp()/siglongjmp() save and restore the signal mask which can
+  * avoid surprises in code that manipulates signals, but unfortunately some
+  * systems have bugs in their implementation.
   */
+#ifdef NO_SIGSETJMP
 #define vstream_setjmp(stream)		setjmp((stream)->jbuf[0])
 #define vstream_longjmp(stream, val)	longjmp((stream)->jbuf[0], (val))
+#else
+#define vstream_setjmp(stream)		sigsetjmp((stream)->jbuf[0], 1)
+#define vstream_longjmp(stream, val)	siglongjmp((stream)->jbuf[0], (val))
+#endif
 
  /*
   * Tweaks and workarounds.

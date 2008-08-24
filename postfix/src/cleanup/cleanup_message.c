@@ -927,7 +927,7 @@ void    cleanup_message(CLEANUP_STATE *state, int type, const char *buf, ssize_t
 
     /*
      * XXX Workaround: truncate a long message header so that we don't exceed
-     * the Milter request size limit of 65535.
+     * the default Sendmail libmilter request size limit of 65535.
      */
 #define KLUDGE_HEADER_LIMIT	60000
     if ((cleanup_milters || state->milters)

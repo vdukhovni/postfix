@@ -8221,6 +8221,8 @@ The table is not searched by hostname for robustness reasons.  </p>
 <p> The name of the scache(8) connection cache service.  This service
 maintains a limited pool of cached sessions.  </p>
 
+<p> This feature is available in Postfix 2.2 and later. </p>
+
 %PARAM connection_cache_ttl_limit 2s
 
 <p> The maximal time-to-live value that the scache(8) connection
@@ -10401,6 +10403,9 @@ with a permanent status code.</dd>
 <dt>tempfail</dt> <dd>Reject all further commands in this session
 with a temporary status code. </dd>
 
+<dt>quarantine</dt> <dd>Like "accept", but freeze the message in
+the "hold" queue. Available with Postfix 2.6 and later. </dd>
+
 </dl>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
@@ -11614,3 +11619,19 @@ details.
 The default setting is not backwards compatible.  </p>
     
 <p> This feature is available in Postfix 2.5.3 and later. </p>
+
+%PARAM proxymap_service_name proxymap
+
+<p> The name of the proxymap read-only table lookup service.  This
+service is normally implemented by the proxymap(8) daemon. </p>
+
+<p> This feature is available in Postfix 2.6 and later. </p>
+
+%PARAM proxywrite_service_name proxywrite
+
+<p> The name of the proxywrite read-write table lookup service.
+This service is normally implemented by the proxymap(8) daemon.
+</p>
+
+<p> This feature is available in Postfix 2.6 and later. </p>
+

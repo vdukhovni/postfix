@@ -91,6 +91,8 @@
 /*	char   *var_flush_service;
 /*	char   *var_verify_service;
 /*	char   *var_trace_service;
+/*	char   *var_proxymap_service;
+/*	char   *var_proxywrite_service;
 /*	int	var_db_create_buf;
 /*	int	var_db_read_buf;
 /*	int	var_mime_maxdepth;
@@ -266,6 +268,8 @@ char   *var_error_service;
 char   *var_flush_service;
 char   *var_verify_service;
 char   *var_trace_service;
+char   *var_proxymap_service;
+char   *var_proxywrite_service;
 int     var_db_create_buf;
 int     var_db_read_buf;
 int     var_mime_maxdepth;
@@ -541,6 +545,8 @@ void    mail_params_init()
 	VAR_FLUSH_SERVICE, DEF_FLUSH_SERVICE, &var_flush_service, 1, 0,
 	VAR_VERIFY_SERVICE, DEF_VERIFY_SERVICE, &var_verify_service, 1, 0,
 	VAR_TRACE_SERVICE, DEF_TRACE_SERVICE, &var_trace_service, 1, 0,
+	VAR_PROXYMAP_SERVICE, DEF_PROXYMAP_SERVICE, &var_proxymap_service, 1, 0,
+	VAR_PROXYWRITE_SERVICE, DEF_PROXYWRITE_SERVICE, &var_proxywrite_service, 1, 0,
 	VAR_INT_FILT_CLASSES, DEF_INT_FILT_CLASSES, &var_int_filt_classes, 0, 0,
 	0,
     };

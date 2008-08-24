@@ -1250,7 +1250,8 @@ void    vstream_control(VSTREAM *stream, int name,...)
 	    break;
 	case VSTREAM_CTL_EXCEPT:
 	    if (stream->jbuf == 0)
-		stream->jbuf = (jmp_buf *) mymalloc(sizeof(jmp_buf));
+		stream->jbuf =
+		    (VSTREAM_JMP_BUF *) mymalloc(sizeof(VSTREAM_JMP_BUF));
 	    break;
 
 #ifdef VSTREAM_CTL_DUPFD

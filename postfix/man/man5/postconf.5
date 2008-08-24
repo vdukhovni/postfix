@@ -794,6 +794,8 @@ This feature is available in Postfix 2.3 and later.
 .SH connection_cache_service_name (default: scache)
 The name of the \fBscache\fR(8) connection cache service.  This service
 maintains a limited pool of cached sessions.
+.PP
+This feature is available in Postfix 2.2 and later.
 .SH connection_cache_status_update_time (default: 600s)
 How frequently the \fBscache\fR(8) server logs usage statistics with
 connection cache hit and miss rates for logical destinations and for
@@ -3041,6 +3043,9 @@ with a permanent status code.
 .IP "tempfail"
 Reject all further commands in this session
 with a temporary status code.
+.IP "quarantine"
+Like "accept", but freeze the message in
+the "hold" queue. Available with Postfix 2.6 and later.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH milter_end_of_data_macros (default: see postconf -n output)
@@ -3506,6 +3511,16 @@ files should be stored under the Postfix-owned data_directory.
 Table references that don't begin with proxy: are ignored.
 .PP
 This feature is available in Postfix 2.5 and later.
+.SH proxymap_service_name (default: proxymap)
+The name of the proxymap read-only table lookup service.  This
+service is normally implemented by the \fBproxymap\fR(8) daemon.
+.PP
+This feature is available in Postfix 2.6 and later.
+.SH proxywrite_service_name (default: proxywrite)
+The name of the proxywrite read-write table lookup service.
+This service is normally implemented by the \fBproxymap\fR(8) daemon.
+.PP
+This feature is available in Postfix 2.6 and later.
 .SH qmgr_clog_warn_time (default: 300s)
 The minimal delay between warnings that a specific destination is
 clogging up the Postfix active queue. Specify 0 to disable.

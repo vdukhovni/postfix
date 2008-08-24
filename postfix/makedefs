@@ -33,18 +33,22 @@
 #	Do not build with Linux EPOLL support.
 #	By default, EPOLL support is compiled in on platforms that
 #	are known to support it.
-# .IP \fB-DNO_KQUEUE\fR
-#	Do not build with FreeBSD/NetBSD/OpenBSD KQUEUE support.
-#	By default, KQUEUE support is compiled in on platforms that
-#	are known to support it.
 # .IP \fB-DNO_IPV6\fR
 #	Do not build with IPv6 support.
 #	By default, IPv6 support is compiled in on platforms that
 #	are known to have IPv6 support.
+# .IP \fB-DNO_KQUEUE\fR
+#	Do not build with FreeBSD/NetBSD/OpenBSD/MacOSX KQUEUE support.
+#	By default, KQUEUE support is compiled in on platforms that
+#	are known to support it.
 # .IP \fB-DNO_PCRE\fR
 #	Do not build with PCRE support.
 #	By default, PCRE support is compiled in when the \fBpcre-config\fR
 #	utility is installed.
+# .IP \fB-DNO_SIGSETJMP\fR
+#	Use setjmp()/longjmp() instead of sigsetjmp()/siglongjmp().
+#	By default, Postfix uses sigsetjmp()/siglongjmp() when they
+#	appear to work.
 # .RE
 # .IP \fBDEBUG=\fIdebug_level\fR
 #	Specifies a non-default debugging level. The default is \fB-g\fR.
@@ -168,7 +172,7 @@ case "$SYSTEM.$RELEASE" in
     SunOS.5*)	SYSTYPE=SUNOS5
 		RANLIB=echo
 		SYSLIBS="-lresolv -lsocket -lnsl"
-		# Solaris 5 added usleep() and POSIX regular expressions
+		# Solaris 2.5 added usleep() and POSIX regular expressions
 		case $RELEASE in
 		    5.[0-4]) CCARGS="$CCARGS -DMISSING_USLEEP -DNO_POSIX_REGEXP";;
 		esac
@@ -283,32 +287,12 @@ case "$SYSTEM.$RELEASE" in
 		# Kernel 2.6 added EPOLL
 		case "$RELEASE" in
 		2.[0-5].*) CCARGS="$CCARGS -DNO_EPOLL";;
-		esac
-		# Workaround for retarded libc 
-		case "$RELEASE" in
-		2.6.*)
-		trap 'rm -f makedefs.test makedefs.test.o makedefs.test.c' 1 2 3 15
-		cat >makedefs.test.c <<EOF
-#include <sys/types.h>
-#include <sys/epoll.h>
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-int     main(int argc, char **argv)
-{
-    int     epoll_handle;
-
-    if ((epoll_handle = epoll_create(1)) < 0) {
-	perror("epoll_create");
-	exit(1);
-    }
-    exit(0);
-}
-EOF
-		${CC-gcc} -o makedefs.test makedefs.test.c || exit 1
-		./makedefs.test 2>/dev/null || CCARGS="$CCARGS -DNO_EPOLL"
-		rm -f makedefs.test makedefs.test.o makedefs.test.c;;
+		    # Workaround for retarded libc 
+		    2.6.*) trap 'rm -f linux_epoll linux_epoll.o' 1 2 3 15
+			   ${CC-gcc} -o linux_epoll makedefs.d/linux_epoll.c || exit 1
+			   ./linux_epoll 2>/dev/null ||
+				CCARGS="$CCARGS -DNO_EPOLL"
+			   rm -f linux_epoll linux_epoll.o;;
 		esac
 		;;
      GNU.0*|GNU/kFreeBSD.[567]*)
@@ -384,25 +368,38 @@ ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
 		RANLIB=echo
 		SYSLIBS="-lresolv -lsocket -lnsl"
 		;;
-Rhapsody.5*|Darwin.*)
-		SYSTYPE=MACOSX
+    Darwin.*)   SYSTYPE=MACOSX
 		# Use the native compiler by default
 		: ${CC=cc}
+		# Darwin > 1.3 uses awk and flat_namespace
 		case $RELEASE in
 		 1.[0-3]) AWK=gawk
-			  CCARGS="$CCARGS -DNO_IPV6"
-			  ;;
-		 [2-6].*) AWK=awk
-			  CCARGS="$CCARGS -DNO_IPV6"
-			  SYSLIBS=-flat_namespace
 			  ;;
 		       *) AWK=awk
 			  SYSLIBS=-flat_namespace
-			  CCARGS="$CCARGS -DBIND_8_COMPAT -DNO_NETINFO"
+			  ;;
+		esac
+		# Darwin 7 adds IPv6 support, BIND_8_COMPAT, NO_NETINFO
+		case $RELEASE in
+		 [1-6].*) CCARGS="$CCARGS -DNO_IPV6"
+			  ;;
+		       *) CCARGS="$CCARGS -DBIND_8_COMPAT -DNO_NETINFO"
+			  ;;
+		esac
+		# Darwin 8.11.1 has kqueue support, but let's play safe
+		case $RELEASE in
+		 [1-8].*) CCARGS="$CCARGS -DNO_KQUEUE"
+			  ;;
+		       *) trap 'rm -f macosx_kqueue macosx_kqueue.o' 1 2 3 15
+			  ${CC-gcc} -o macosx_kqueue makedefs.d/macosx_kqueue.c || exit 1
+			  ./macosx_kqueue 2>/dev/null || 
+				CCARGS="$CCARGS -DNO_KQUEUE"
+			  rm -f macosx_kqueue macosx_kqueue.o
 			  ;;
 		esac
 		;;
-"Mac OS".10*)	SYSTYPE=MACOSX
+Rhapsody.5*|"Mac OS".10*)
+		SYSTYPE=MACOSX
 		# Use the native compiler by default
 		: ${CC=cc}
 		AWK=gawk
@@ -426,6 +423,19 @@ Rhapsody.5*|Darwin.*)
 		fi
 		;;
 	   *)	error "Unknown system type: $SYSTEM $RELEASE";;
+esac
+
+#
+# sigsetjmp()/siglongjmp() can be "better" than setjmp()/longjmp()
+# if used wisely (that is: almost never, just like signals).
+# Unfortunately some implementations have been buggy in the past.
+#
+case "$CCARGS" in
+ *-DNO_SIGSETJMP*) ;;
+                *) trap 'rm -f sigsetjmp sigsetjmp.o' 1 2 3 15
+		   ${CC-gcc} -o sigsetjmp makedefs.d/sigsetjmp.c || exit 1
+		   ./sigsetjmp 2>/dev/null || CCARGS="$CCARGS -DNO_SIGSETJMP"
+		   rm -f sigsetjmp sigsetjmp.o;;
 esac
 
 #

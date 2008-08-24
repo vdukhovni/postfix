@@ -2499,6 +2499,17 @@ extern char *var_vrfy_xport_maps;
 extern char *var_trace_service;
 
  /*
+  * Proxymappers.
+  */
+#define VAR_PROXYMAP_SERVICE		"proxymap_service_name"
+#define DEF_PROXYMAP_SERVICE		MAIL_SERVICE_PROXYMAP
+extern char *var_proxymap_service;
+
+#define VAR_PROXYWRITE_SERVICE		"proxywrite_service_name"
+#define DEF_PROXYWRITE_SERVICE		MAIL_SERVICE_PROXYWRITE
+extern char *var_proxywrite_service;
+
+ /*
   * Mailbox/maildir delivery errors that cause delivery to be tried again.
   */
 #define VAR_MBX_DEFER_ERRS		"mailbox_defer_errors"

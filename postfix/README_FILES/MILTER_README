@@ -250,10 +250,12 @@ The milter_default_action parameter specifies how Postfix handles Milter
 application errors. The default action is to respond with a temporary error
 status, so that the client will try again later. Specify "accept" if you want
 to receive mail as if the filter does not exist, and "reject" to reject mail
-with a permanent status.
+with a permanent status. The "quarantine" action is like "accept" but freezes
+the message in the "hold" queue, and is available with Postfix 2.6 or later.
 
     /etc/postfix/main.cf:
-        # What to do in case of errors? Specify accept, reject, or tempfail.
+        # What to do in case of errors? Specify accept, reject, tempfail,
+        # or quarantine (Postfix 2.6 or later).
         milter_default_action = tempfail
 
 MMiilltteerr pprroottooccooll vveerrssiioonn

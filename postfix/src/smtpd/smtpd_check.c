@@ -3115,27 +3115,49 @@ static int reject_rbl_addr(SMTPD_STATE *state, const char *rbl_domain,
     int     i;
     SMTPD_RBL_STATE *rbl;
     const char *reply_addr;
+    struct addrinfo *res;
+    unsigned char *ipv6_addr;
 
     if (msg_verbose)
 	msg_info("%s: %s %s", myname, reply_class, addr);
 
-    /*
-     * IPv4 / IPv6-mapped IPv4 (if supported) only for now
-     */
-    if (valid_ipv6_hostaddr(addr, DONT_GRIPE))
-	return SMTPD_CHECK_DUNNO;
+    query = vstring_alloc(100);
 
     /*
-     * Reverse the client IPV4 address, tack on the RBL domain name and query
-     * the DNS for an A record.
+     * Reverse the client IPV6 address, represented as 32 hexadecimal
+     * nibbles. We use the binary address to avoid tricky code. Asking for an
+     * AAAA record makes no sense here. Just like with IPv4 we use the lookup
+     * result as a bit mask, not as an IP address.
      */
-    query = vstring_alloc(100);
-    octets = argv_split(addr, ".");
-    for (i = octets->argc - 1; i >= 0; i--) {
-	vstring_strcat(query, octets->argv[i]);
-	vstring_strcat(query, ".");
+#ifdef PF_INET6
+    if (valid_ipv6_hostaddr(addr, DONT_GRIPE)) {
+	if (hostaddr_to_sockaddr(addr, (char *) 0, 0, &res) != 0
+	    || res->ai_family != PF_INET6)
+	    msg_fatal("%s: unable to convert address %s", myname, addr);
+	ipv6_addr = (unsigned char *) &SOCK_ADDR_IN6_ADDR(res->ai_addr);
+	for (i = sizeof(SOCK_ADDR_IN6_ADDR(res->ai_addr)) - 1; i >= 0; i--)
+	    vstring_sprintf_append(query, "%x.%x.",
+				   ipv6_addr[i] & 0xf, ipv6_addr[i] >> 4);
+	freeaddrinfo(res);
+    } else
+#endif
+
+	/*
+	 * Reverse the client IPV4 address, represented as four decimal octet
+	 * values. We use the textual address for convenience.
+	 */
+    {
+	octets = argv_split(addr, ".");
+	for (i = octets->argc - 1; i >= 0; i--) {
+	    vstring_strcat(query, octets->argv[i]);
+	    vstring_strcat(query, ".");
+	}
+	argv_free(octets);
     }
-    argv_free(octets);
+
+    /*
+     * Tack on the RBL domain name and query the DNS for an A record.
+     */
     vstring_strcat(query, rbl_domain);
     reply_addr = split_at(STR(query), '=');
     rbl = (SMTPD_RBL_STATE *) ctable_locate(smtpd_rbl_cache, STR(query));
