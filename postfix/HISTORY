@@ -14430,3 +14430,14 @@ Apologies for any names omitted.
 	symlink itself is owned by root).  This change will break
 	legitimate configurations that deliver mail to a symbolic
 	link in a directory with less restrictive permissions.
+
+20080826
+
+	Bugfix (introduced Postfix 2.4): epoll file descriptor leak.
+	With Postfix >= 2.4 on Linux >= 2.6, Postfix has an epoll
+	file descriptor leak when it executes non-Postfix commands
+	in, for example, user-controlled $HOME/.forward files.  A
+	local user can access a leaked epoll file descriptor to
+	implement a denial of service attack on Postfix. Data
+	confidentiality and integrity are not affected.  File:
+	util/events.c.
