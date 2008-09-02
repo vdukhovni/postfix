@@ -3129,7 +3129,7 @@ static int reject_rbl_addr(SMTPD_STATE *state, const char *rbl_domain,
      * AAAA record makes no sense here. Just like with IPv4 we use the lookup
      * result as a bit mask, not as an IP address.
      */
-#ifdef PF_INET6
+#ifdef HAS_IPV6
     if (valid_ipv6_hostaddr(addr, DONT_GRIPE)) {
 	if (hostaddr_to_sockaddr(addr, (char *) 0, 0, &res) != 0
 	    || res->ai_family != PF_INET6)

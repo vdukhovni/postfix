@@ -9397,7 +9397,8 @@ parameters <a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a>, <a href="pos
 destinations via <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>. </dd>
 
 <dt><b>may</b></dt>
-<dd> Opportunistic TLS. TLS will be used if supported by the server. Since
+<dd> Opportunistic TLS. Use TLS if this is supported by the remote
+SMTP server, otherwise use plaintext. Since
 sending in the clear is acceptable, demanding stronger than default TLS
 security parameters merely reduces inter-operability. Postfix 2.3 and
 later ignore the <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> and
@@ -9408,7 +9409,7 @@ This allows mail delivery to sites with non-interoperable TLS
 implementations. </dd>
 
 <dt><b>encrypt</b></dt> <dd>Mandatory TLS encryption. Since a minimum
-level of security is intended, it reasonable to be specific about
+level of security is intended, it is reasonable to be specific about
 sufficiently secure protocol versions and ciphers. At this security level
 and higher, the <a href="postconf.5.html">main.cf</a> parameters <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> and
 <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> specify the TLS protocols and minimum

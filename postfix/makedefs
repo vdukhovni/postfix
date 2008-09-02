@@ -37,6 +37,9 @@
 #	Do not build with IPv6 support.
 #	By default, IPv6 support is compiled in on platforms that
 #	are known to have IPv6 support.
+#
+#	Note: this directive is for debugging and testing only. It
+#	is not guaranteed to work on all platforms.
 # .IP \fB-DNO_KQUEUE\fR
 #	Do not build with FreeBSD/NetBSD/OpenBSD/MacOSX KQUEUE support.
 #	By default, KQUEUE support is compiled in on platforms that
@@ -92,12 +95,17 @@ error() {
    exit 1
 }
 
-SYSTEM=`(uname -s) 2>/dev/null`
-RELEASE=`(uname -r) 2>/dev/null`
-VERSION=`(uname -v) 2>/dev/null`
-
-case "$VERSION" in
- dcosx*) SYSTEM=$VERSION;;
+case $# in
+ # Officially supported usage.
+ 0) SYSTEM=`(uname -s) 2>/dev/null`
+    RELEASE=`(uname -r) 2>/dev/null`
+    VERSION=`(uname -v) 2>/dev/null`
+    case "$VERSION" in
+     dcosx*) SYSTEM=$VERSION;;
+    esac;;
+ # Unsupported debug-only mode. Not suitable for cross-platform tests.
+ 2) SYSTEM="$1"; RELEASE="$2";;
+ *) echo usage: $0 [system release] 1>&2; exit 1;;
 esac
 
 case "$SYSTEM.$RELEASE" in
@@ -187,7 +195,7 @@ case "$SYSTEM.$RELEASE" in
 		# Work around broken str*casecmp(). Do it all here instead
 		# of having half the solution in the sys_defs.h file.
 		CCARGS="$CCARGS -Dstrcasecmp=fix_strcasecmp \
-			-Dstrncasecmp=fix_strncasecmp"
+		    -Dstrncasecmp=fix_strncasecmp"
 		STRCASE="strcasecmp.o"
 		# Avoid common types of braindamage
 		case "$LD_LIBRARY_PATH" in
@@ -288,11 +296,29 @@ case "$SYSTEM.$RELEASE" in
 		case "$RELEASE" in
 		2.[0-5].*) CCARGS="$CCARGS -DNO_EPOLL";;
 		    # Workaround for retarded libc 
-		    2.6.*) trap 'rm -f linux_epoll linux_epoll.o' 1 2 3 15
-			   ${CC-gcc} -o linux_epoll makedefs.d/linux_epoll.c || exit 1
-			   ./linux_epoll 2>/dev/null ||
+		    2.6.*) trap 'rm -f makedefs.test makedefs.test.[co]' 1 2 3 15
+			   cat >makedefs.test.c <<'EOF'
+#include <sys/types.h>
+#include <sys/epoll.h>
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int     main(int argc, char **argv)
+{
+    int     epoll_handle;
+
+    if ((epoll_handle = epoll_create(1)) < 0) {
+	perror("epoll_create");
+	exit(1);
+    }
+    exit(0);
+}
+EOF
+			   ${CC-gcc} -o makedefs.test makedefs.test.c || exit 1
+			   ./makedefs.test 2>/dev/null ||
 				CCARGS="$CCARGS -DNO_EPOLL"
-			   rm -f linux_epoll linux_epoll.o;;
+			   rm -f makedefs.test makedefs.test.[co];;
 		esac
 		;;
      GNU.0*|GNU/kFreeBSD.[567]*)
@@ -373,29 +399,70 @@ ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
 		: ${CC=cc}
 		# Darwin > 1.3 uses awk and flat_namespace
 		case $RELEASE in
-		 1.[0-3]) AWK=gawk
-			  ;;
+		 1.[0-3]) AWK=gawk;;
 		       *) AWK=awk
-			  SYSLIBS=-flat_namespace
-			  ;;
+			  SYSLIBS=-flat_namespace;;
 		esac
 		# Darwin 7 adds IPv6 support, BIND_8_COMPAT, NO_NETINFO
 		case $RELEASE in
-		 [1-6].*) CCARGS="$CCARGS -DNO_IPV6"
-			  ;;
-		       *) CCARGS="$CCARGS -DBIND_8_COMPAT -DNO_NETINFO"
-			  ;;
+		 [1-6].*) CCARGS="$CCARGS -DNO_IPV6";;
+		       *) CCARGS="$CCARGS -DBIND_8_COMPAT -DNO_NETINFO";;
 		esac
 		# Darwin 8.11.1 has kqueue support, but let's play safe
 		case $RELEASE in
-		 [1-8].*) CCARGS="$CCARGS -DNO_KQUEUE"
-			  ;;
-		       *) trap 'rm -f macosx_kqueue macosx_kqueue.o' 1 2 3 15
-			  ${CC-gcc} -o macosx_kqueue makedefs.d/macosx_kqueue.c || exit 1
-			  ./macosx_kqueue 2>/dev/null || 
+		 [1-8].*) CCARGS="$CCARGS -DNO_KQUEUE";;
+		       *) trap 'rm -f makedefs.test makedefs.test.[co]' 1 2 3 15
+			  cat >makedefs.test.c <<'EOF'
+/* Adapted from libevent. */
+
+#include <sys/types.h>
+#include <sys/event.h>
+#include <sys/time.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#ifndef EV_SET
+#define EV_SET(kp, id, fi, fl, ffl, da, ud) do { \
+	struct kevent *__kp = (kp); \
+	__kp->ident = (id); \
+	__kp->filter = (fi); \
+	__kp->flags = (fl); \
+	__kp->fflags = (ffl); \
+	__kp->data = (da); \
+	__kp->udata = (ud); \
+    } while(0)
+#endif
+
+int     main(int argc, char **argv)
+{
+    int     kq;
+    struct kevent test_change;
+    struct kevent test_result;
+
+    if ((kq = kqueue()) < 0) {
+	perror("kqueue");
+	exit(1);
+    }
+#define TEST_FD (-1)
+
+    EV_SET(&test_change, TEST_FD, EVFILT_READ, EV_ADD, 0, 0, 0);
+    if (kevent(kq,
+	       &test_change, sizeof(test_change) / sizeof(struct kevent),
+	       &test_result, sizeof(test_result) / sizeof(struct kevent),
+	       (struct timespec *) 0) != 1 ||
+	test_result.ident != TEST_FD ||
+	test_result.flags != EV_ERROR) {
+	fprintf(stderr, "Error: kevent reports errors incorrectly\n");
+	exit(1);
+    }
+    exit(0);
+}
+EOF
+			  $CC -o makedefs.test makedefs.test.c || exit 1
+			  ./makedefs.test 2>/dev/null || 
 				CCARGS="$CCARGS -DNO_KQUEUE"
-			  rm -f macosx_kqueue macosx_kqueue.o
-			  ;;
+			  rm -f makedefs.test makedefs.test.[co];;
 		esac
 		;;
 Rhapsody.5*|"Mac OS".10*)
@@ -432,10 +499,50 @@ esac
 #
 case "$CCARGS" in
  *-DNO_SIGSETJMP*) ;;
-                *) trap 'rm -f sigsetjmp sigsetjmp.o' 1 2 3 15
-		   ${CC-gcc} -o sigsetjmp makedefs.d/sigsetjmp.c || exit 1
-		   ./sigsetjmp 2>/dev/null || CCARGS="$CCARGS -DNO_SIGSETJMP"
-		   rm -f sigsetjmp sigsetjmp.o;;
+                *) trap 'rm -f makedefs.test makedefs.test.[co]' 1 2 3 15
+		   cat >makedefs.test.c <<'EOF'
+#include <setjmp.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+static int count = 0;
+
+int     main(int argc, char **argv)
+{
+    sigjmp_buf env;
+    int     retval;
+
+    switch (retval = sigsetjmp(env, 1)) {
+    case 0:
+	siglongjmp(env, 12345);
+    case 12345:
+	break;
+    default:
+	fprintf(stderr, "Error: siglongjmp ignores second argument\n");
+	exit(1);
+    }
+
+    switch (retval = sigsetjmp(env, 1)) {
+    case 0:
+	if (count++ > 0) {
+	    fprintf(stderr, "Error: not overriding siglongjmp(env, 0)\n");
+	    exit(1);
+	}
+	siglongjmp(env, 0);
+    case 1:
+	break;
+    default:
+	fprintf(stderr, "Error: overriding siglongjmp(env, 0) with %d\n",
+		retval);
+	exit(1);
+    }
+    exit(0);
+}
+EOF
+		   ${CC-gcc} -o makedefs.test makedefs.test.c || exit 1
+		   ./makedefs.test 2>/dev/null ||
+			CCARGS="$CCARGS -DNO_SIGSETJMP"
+		   rm -f makedefs.test makedefs.test.[co]
 esac
 
 #

@@ -96,8 +96,10 @@
 /*	connections that \fBsmtp-sink\fR will handle. This prevents
 /*	the process from running out of file descriptors. Excess
 /*	connections will stay queued in the TCP/IP stack.
+/* .IP "\fB-M \fIcount\fR"
+/*	Terminate after receiving \fIcount\fR messages.
 /* .IP "\fB-n \fIcount\fR"
-/*	Terminate after \fIcount\fR sessions. This is for testing purposes.
+/*	Terminate after \fIcount\fR sessions.
 /* .IP \fB-p\fR
 /*	Do not announce support for ESMTP command pipelining.
 /* .IP \fB-P\fR
@@ -333,6 +335,7 @@ static int sess_count;
 static int quit_count;
 static int mesg_count;
 static int max_quit_count;
+static int max_msg_quit_count;
 static int disable_pipelining;
 static int disable_8bitmime;
 static int disable_esmtp;
@@ -880,9 +883,12 @@ static int data_read(SINK_STATE *state)
 	    if (state->dump_file)
 		mail_file_finish(state);
 	    mail_cmd_reset(state);
-	    if (count) {
+	    if (count || max_msg_quit_count > 0) {
 		mesg_count++;
-		do_stats();
+		if (count)
+		    do_stats();
+		if (max_msg_quit_count > 0 && mesg_count >= max_msg_quit_count)
+		    exit(0);
 	    }
 	    break;
 	}
@@ -1357,7 +1363,7 @@ static void connect_event(int unused_event, char *unused_context)
 
 static void usage(char *myname)
 {
-    msg_fatal("usage: %s [-468acCeEFLpPv] [-A abort_delay] [-f commands] [-h hostname] [-m max_concurrency] [-n quit_count] [-q commands] [-r commands] [-s commands] [-w delay] [-d dump-template] [-D dump-template] [-R root-dir] [-S start-string] [-u user_privs] [host]:port backlog", myname);
+    msg_fatal("usage: %s [-468acCeEFLpPv] [-A abort_delay] [-d dump-template] [-D dump-template] [-f commands] [-h hostname] [-m max_concurrency] [M message_quit_count] [-n quit_count] [-q commands] [-r commands] [-R root-dir] [-s commands] [-S start-string] [-u user_privs] [-w delay] [host]:port backlog", myname);
 }
 
 MAIL_VERSION_STAMP_DECLARE;
@@ -1389,7 +1395,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "468aA:cCd:D:eEf:Fh:Ln:m:pPq:Q:r:R:s:S:t:u:vw:W:")) > 0) {
+    while ((ch = GETOPT(argc, argv, "468aA:cCd:D:eEf:Fh:Ln:m:M:pPq:Q:r:R:s:S:t:u:vw:W:")) > 0) {
 	switch (ch) {
 	case '4':
 	    protocols = INET_PROTO_NAME_IPV4;
@@ -1443,6 +1449,10 @@ int     main(int argc, char **argv)
 	case 'm':
 	    if ((max_client_count = atoi(optarg)) <= 0)
 		msg_fatal("bad concurrency limit: %s", optarg);
+	    break;
+	case 'M':
+	    if ((max_msg_quit_count = atoi(optarg)) <= 0)
+		msg_fatal("bad message quit count: %s", optarg);
 	    break;
 	case 'n':
 	    if ((max_quit_count = atoi(optarg)) <= 0)

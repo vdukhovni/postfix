@@ -107,8 +107,9 @@
 /*
 /*	The functions that inspect content or envelope commands
 /*	return either an SMTP reply ([45]XX followed by enhanced
-/*	status code and text), "D" (discard), "H" (quarantine), or
-/*	a null pointer, which means "no news is good news".
+/*	status code and text), "D" (discard), "H" (quarantine), 
+/*	"S" (shutdown connection), or a null pointer, which means
+/*	"no news is good news".
 /*
 /*	milter_create() instantiates the milter clients specified
 /*	with the milter_names argument.  The conn_macros etc.

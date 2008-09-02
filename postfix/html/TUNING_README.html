@@ -69,6 +69,8 @@ complex database queries and so on. </p>
 
 <li> <a href="#proc_limit">Tuning the number of Postfix processes</a>
 
+<li> <a href="#proc_sys">Tuning the number of processes on the system</a>
+
 <li> <a href="#file_limit">Tuning the number of open files or
 sockets</a>
 
@@ -580,6 +582,40 @@ specify: </p>
     . . .
 </pre>
 </blockquote>
+
+<h2><a name="proc_sys">Tuning the number of processes on the system</a></h2>
+
+<ul>
+
+<li> <p> MacOS X will run out of process slots when you increase
+Postfix process limits. The following works with OSX 10.4 and OSX
+10.5. </p>
+
+<p> MacOS X kernel parameters can be specified in /etc/sysctl.conf.
+</p>
+
+<pre>
+/etc/sysctl.conf:
+    kern.maxproc=2048
+    kern.maxprocperuid=2048
+</pre>
+
+<p> Unfortunately these can't simply be set on the fly with "sysctl
+-w".  You also have to set the following in /etc/launchd.conf so
+that the root user after boot will have the right process limit
+(2048).  Otherwise you have to always run ulimit -u 2048 as root,
+then start a user shell, and then start processes for things to
+take effect. </p>
+
+<pre>
+/etc/launchd.conf:
+    limit maxproc 2048
+</pre>
+
+<p> Once these are in place, reboot the system.  After that, the limits will 
+stay in place. </p>
+
+</ul>
 
 <h2><a name="file_limit">Tuning the number of open files or sockets</a></h2>
 

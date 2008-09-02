@@ -14607,5 +14607,30 @@ Apologies for any names omitted.
 	in the makedefs script, to make future updates easier. File:
 	makedefs.
 
-	Cleanup: don't log multiple Milter "hold" actions for
-	the same message. File: cleanup/cleanup_milter.c.
+	Cleanup: don't log multiple Milter "hold" actions for the
+	same email message. File: cleanup/cleanup_milter.c.
+
+20080826
+
+	Cleanup: moving test programs from makedefs into a makedefs.d
+	directory brought more pain than gain.
+
+	Cleanup: untangled the Linux version dependent sections in
+	the makedefs script, to make future updates easier. File:
+	makedefs.
+
+	Documentation: MacOS process limit configuration by Quanah
+	Gibson-Mount.  File: proto/TUNING_README.html.
+
+	Feature: smtp-sink -M option to terminate after receiving
+	a specified number of messages. Laurent Gentil. File:
+	smtpstone/smtp-sink.c.
+
+	Bugfix (introduced Postfix 2.4): epoll file descriptor leak.
+	With Postfix >= 2.4 on Linux >= 2.6, Postfix has an epoll
+	file descriptor leak when it executes non-Postfix commands
+	in, for example, user-controlled $HOME/.forward files.  A
+	local user can access a leaked epoll file descriptor to
+	implement a denial of service attack on Postfix. Data
+	confidentiality and integrity are not affected.  File:
+	util/events.c.

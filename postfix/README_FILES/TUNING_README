@@ -35,6 +35,7 @@ Topics on mail delivery performance:
 Other Postfix performance tuning topics:
 
   * Tuning the number of Postfix processes
+  * Tuning the number of processes on the system
   * Tuning the number of open files or sockets
 
 The following tools can be used to measure mail system performance under
@@ -411,6 +412,29 @@ deliveries, you could specify:
         . . .
         smtp      inet  n       -       -       -       10      smtpd
         . . .
+
+TTuunniinngg tthhee nnuummbbeerr ooff pprroocceesssseess oonn tthhee ssyysstteemm
+
+  * MacOS X will run out of process slots when you increase Postfix process
+    limits. The following works with OSX 10.4 and OSX 10.5.
+
+    MacOS X kernel parameters can be specified in /etc/sysctl.conf.
+
+    /etc/sysctl.conf:
+        kern.maxproc=2048
+        kern.maxprocperuid=2048
+
+    Unfortunately these can't simply be set on the fly with "sysctl -w". You
+    also have to set the following in /etc/launchd.conf so that the root user
+    after boot will have the right process limit (2048). Otherwise you have to
+    always run ulimit -u 2048 as root, then start a user shell, and then start
+    processes for things to take effect.
+
+    /etc/launchd.conf:
+        limit maxproc 2048
+
+    Once these are in place, reboot the system. After that, the limits will
+    stay in place.
 
 TTuunniinngg tthhee nnuummbbeerr ooff ooppeenn ffiilleess oorr ssoocckkeettss
 
