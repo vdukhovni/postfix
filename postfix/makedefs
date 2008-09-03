@@ -408,68 +408,64 @@ ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
 		 [1-6].*) CCARGS="$CCARGS -DNO_IPV6";;
 		       *) CCARGS="$CCARGS -DBIND_8_COMPAT -DNO_NETINFO";;
 		esac
-		# Darwin 8.11.1 has kqueue support, but let's play safe
-		case $RELEASE in
-		 [1-8].*) CCARGS="$CCARGS -DNO_KQUEUE";;
-		       *) trap 'rm -f makedefs.test makedefs.test.[co]' 1 2 3 15
-			  cat >makedefs.test.c <<'EOF'
-/* Adapted from libevent. */
-
-#include <sys/types.h>
-#include <sys/event.h>
-#include <sys/time.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
-#ifndef EV_SET
-#define EV_SET(kp, id, fi, fl, ffl, da, ud) do { \
-	struct kevent *__kp = (kp); \
-	__kp->ident = (id); \
-	__kp->filter = (fi); \
-	__kp->flags = (fl); \
-	__kp->fflags = (ffl); \
-	__kp->data = (da); \
-	__kp->udata = (ud); \
-    } while(0)
-#endif
-
-int     main(int argc, char **argv)
-{
-    int     kq;
-    struct kevent test_change;
-    struct kevent test_result;
-
-    if ((kq = kqueue()) < 0) {
-	perror("kqueue");
-	exit(1);
-    }
-#define TEST_FD (-1)
-
-    EV_SET(&test_change, TEST_FD, EVFILT_READ, EV_ADD, 0, 0, 0);
-    if (kevent(kq,
-	       &test_change, sizeof(test_change) / sizeof(struct kevent),
-	       &test_result, sizeof(test_result) / sizeof(struct kevent),
-	       (struct timespec *) 0) != 1 ||
-	test_result.ident != TEST_FD ||
-	test_result.flags != EV_ERROR) {
-	fprintf(stderr, "Error: kevent reports errors incorrectly\n");
-	exit(1);
-    }
-    exit(0);
-}
-EOF
-			  $CC -o makedefs.test makedefs.test.c || exit 1
-			  ./makedefs.test 2>/dev/null || 
-				CCARGS="$CCARGS -DNO_KQUEUE"
-			  rm -f makedefs.test makedefs.test.[co];;
-		esac
-		;;
-Rhapsody.5*|"Mac OS".10*)
-		SYSTYPE=MACOSX
-		# Use the native compiler by default
-		: ${CC=cc}
-		AWK=gawk
+		# kqueue and/or poll are broken up to and including MacOS X 10.5
+		CCARGS="$CCARGS -DNO_KQUEUE"
+#		# Darwin 8.11.1 has kqueue support, but let's play safe
+#		case $RELEASE in
+#		 [1-8].*) CCARGS="$CCARGS -DNO_KQUEUE";;
+#		       *) trap 'rm -f makedefs.test makedefs.test.[co]' 1 2 3 15
+#			  cat >makedefs.test.c <<'EOF'
+#/* Adapted from libevent. */
+#
+##include <sys/types.h>
+##include <sys/event.h>
+##include <sys/time.h>
+##include <string.h>
+##include <stdlib.h>
+##include <stdio.h>
+#
+##ifndef EV_SET
+##define EV_SET(kp, id, fi, fl, ffl, da, ud) do { \
+#	struct kevent *__kp = (kp); \
+#	__kp->ident = (id); \
+#	__kp->filter = (fi); \
+#	__kp->flags = (fl); \
+#	__kp->fflags = (ffl); \
+#	__kp->data = (da); \
+#	__kp->udata = (ud); \
+#    } while(0)
+##endif
+#
+#int     main(int argc, char **argv)
+#{
+#    int     kq;
+#    struct kevent test_change;
+#    struct kevent test_result;
+#
+#    if ((kq = kqueue()) < 0) {
+#	perror("kqueue");
+#	exit(1);
+#    }
+##define TEST_FD (-1)
+#
+#    EV_SET(&test_change, TEST_FD, EVFILT_READ, EV_ADD, 0, 0, 0);
+#    if (kevent(kq,
+#	       &test_change, sizeof(test_change) / sizeof(struct kevent),
+#	       &test_result, sizeof(test_result) / sizeof(struct kevent),
+#	       (struct timespec *) 0) != 1 ||
+#	test_result.ident != TEST_FD ||
+#	test_result.flags != EV_ERROR) {
+#	fprintf(stderr, "Error: kevent reports errors incorrectly\n");
+#	exit(1);
+#    }
+#    exit(0);
+#}
+#EOF
+#			  $CC -o makedefs.test makedefs.test.c || exit 1
+#			  ./makedefs.test 2>/dev/null || 
+#				CCARGS="$CCARGS -DNO_KQUEUE"
+#			  rm -f makedefs.test makedefs.test.[co];;
+#		esac
 		;;
     dcosx.1*)	SYSTYPE=DCOSX1
 		RANLIB=echo

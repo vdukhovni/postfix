@@ -7281,7 +7281,8 @@ mailing lists.
 <p>
 Restrict the use of the permit_mx_backup SMTP access feature to
 only domains whose primary MX hosts match the listed networks.
-</p>
+The parameter value syntax is the same as with the mynetworks
+parameter; note, however, that the default value is empty.  </p>
 
 %PARAM pickup_service_name pickup
 

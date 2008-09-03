@@ -102,8 +102,10 @@ An upper bound on the maximal number of simultaneous
 connections that \fBsmtp-sink\fR will handle. This prevents
 the process from running out of file descriptors. Excess
 connections will stay queued in the TCP/IP stack.
+.IP "\fB-M \fIcount\fR"
+Terminate after receiving \fIcount\fR messages.
 .IP "\fB-n \fIcount\fR"
-Terminate after \fIcount\fR sessions. This is for testing purposes.
+Terminate after \fIcount\fR sessions.
 .IP \fB-p\fR
 Do not announce support for ESMTP command pipelining.
 .IP \fB-P\fR

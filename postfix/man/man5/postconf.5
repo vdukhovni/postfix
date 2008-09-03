@@ -3409,6 +3409,8 @@ you really want to match subdomains.
 .SH permit_mx_backup_networks (default: empty)
 Restrict the use of the permit_mx_backup SMTP access feature to
 only domains whose primary MX hosts match the listed networks.
+The parameter value syntax is the same as with the mynetworks
+parameter; note, however, that the default value is empty.
 .SH pickup_service_name (default: pickup)
 The name of the \fBpickup\fR(8) service. This service picks up local mail
 submissions from the Postfix maildrop queue.

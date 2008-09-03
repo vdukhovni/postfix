@@ -14634,3 +14634,11 @@ Apologies for any names omitted.
 	implement a denial of service attack on Postfix. Data
 	confidentiality and integrity are not affected.  File:
 	util/events.c.
+
+20080903
+
+	Don't enable kqueue (which requires poll) support on
+	MacOS X. File: makedefs.
+
+	Cleanup: remove obsolete Rhapsody and MacOS targets from
+	makedefs.
