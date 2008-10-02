@@ -78,7 +78,9 @@ alias.o: ../../include/dsn_buf.h
 alias.o: ../../include/dsn_mask.h
 alias.o: ../../include/fold_addr.h
 alias.o: ../../include/htable.h
+alias.o: ../../include/iostuff.h
 alias.o: ../../include/mail_params.h
+alias.o: ../../include/mail_proto.h
 alias.o: ../../include/maps.h
 alias.o: ../../include/mbox_conf.h
 alias.o: ../../include/msg.h
@@ -114,9 +116,11 @@ command.o: ../../include/dsn_buf.h
 command.o: ../../include/dsn_util.h
 command.o: ../../include/fold_addr.h
 command.o: ../../include/htable.h
+command.o: ../../include/iostuff.h
 command.o: ../../include/mac_parse.h
 command.o: ../../include/mail_copy.h
 command.o: ../../include/mail_params.h
+command.o: ../../include/mail_proto.h
 command.o: ../../include/maps.h
 command.o: ../../include/mbox_conf.h
 command.o: ../../include/msg.h
@@ -142,6 +146,8 @@ deliver_attr.o: ../../include/dsn.h
 deliver_attr.o: ../../include/dsn_buf.h
 deliver_attr.o: ../../include/fold_addr.h
 deliver_attr.o: ../../include/htable.h
+deliver_attr.o: ../../include/iostuff.h
+deliver_attr.o: ../../include/mail_proto.h
 deliver_attr.o: ../../include/maps.h
 deliver_attr.o: ../../include/mbox_conf.h
 deliver_attr.o: ../../include/msg.h
@@ -174,6 +180,7 @@ dotforward.o: ../../include/mac_expand.h
 dotforward.o: ../../include/mac_parse.h
 dotforward.o: ../../include/mail_conf.h
 dotforward.o: ../../include/mail_params.h
+dotforward.o: ../../include/mail_proto.h
 dotforward.o: ../../include/maps.h
 dotforward.o: ../../include/mbox_conf.h
 dotforward.o: ../../include/msg.h
@@ -207,8 +214,10 @@ file.o: ../../include/dsn_buf.h
 file.o: ../../include/dsn_util.h
 file.o: ../../include/fold_addr.h
 file.o: ../../include/htable.h
+file.o: ../../include/iostuff.h
 file.o: ../../include/mail_copy.h
 file.o: ../../include/mail_params.h
+file.o: ../../include/mail_proto.h
 file.o: ../../include/maps.h
 file.o: ../../include/mbox_conf.h
 file.o: ../../include/mbox_open.h
@@ -279,6 +288,7 @@ include.o: ../../include/fold_addr.h
 include.o: ../../include/htable.h
 include.o: ../../include/iostuff.h
 include.o: ../../include/mail_params.h
+include.o: ../../include/mail_proto.h
 include.o: ../../include/maps.h
 include.o: ../../include/mbox_conf.h
 include.o: ../../include/msg.h
@@ -309,7 +319,9 @@ indirect.o: ../../include/dsn.h
 indirect.o: ../../include/dsn_buf.h
 indirect.o: ../../include/fold_addr.h
 indirect.o: ../../include/htable.h
+indirect.o: ../../include/iostuff.h
 indirect.o: ../../include/mail_params.h
+indirect.o: ../../include/mail_proto.h
 indirect.o: ../../include/maps.h
 indirect.o: ../../include/mbox_conf.h
 indirect.o: ../../include/msg.h
@@ -341,6 +353,7 @@ local.o: ../../include/iostuff.h
 local.o: ../../include/mail_addr.h
 local.o: ../../include/mail_conf.h
 local.o: ../../include/mail_params.h
+local.o: ../../include/mail_proto.h
 local.o: ../../include/mail_server.h
 local.o: ../../include/mail_version.h
 local.o: ../../include/maps.h
@@ -369,9 +382,11 @@ local_expand.o: ../../include/dsn.h
 local_expand.o: ../../include/dsn_buf.h
 local_expand.o: ../../include/fold_addr.h
 local_expand.o: ../../include/htable.h
+local_expand.o: ../../include/iostuff.h
 local_expand.o: ../../include/mac_expand.h
 local_expand.o: ../../include/mac_parse.h
 local_expand.o: ../../include/mail_params.h
+local_expand.o: ../../include/mail_proto.h
 local_expand.o: ../../include/maps.h
 local_expand.o: ../../include/mbox_conf.h
 local_expand.o: ../../include/msg_stats.h
@@ -437,8 +452,10 @@ maildir.o: ../../include/dsn_util.h
 maildir.o: ../../include/fold_addr.h
 maildir.o: ../../include/get_hostname.h
 maildir.o: ../../include/htable.h
+maildir.o: ../../include/iostuff.h
 maildir.o: ../../include/mail_copy.h
 maildir.o: ../../include/mail_params.h
+maildir.o: ../../include/mail_proto.h
 maildir.o: ../../include/make_dirs.h
 maildir.o: ../../include/maps.h
 maildir.o: ../../include/mbox_conf.h
@@ -474,7 +491,9 @@ recipient.o: ../../include/dsn_buf.h
 recipient.o: ../../include/ext_prop.h
 recipient.o: ../../include/fold_addr.h
 recipient.o: ../../include/htable.h
+recipient.o: ../../include/iostuff.h
 recipient.o: ../../include/mail_params.h
+recipient.o: ../../include/mail_proto.h
 recipient.o: ../../include/maps.h
 recipient.o: ../../include/mbox_conf.h
 recipient.o: ../../include/msg.h
@@ -536,7 +555,9 @@ token.o: ../../include/dsn.h
 token.o: ../../include/dsn_buf.h
 token.o: ../../include/fold_addr.h
 token.o: ../../include/htable.h
+token.o: ../../include/iostuff.h
 token.o: ../../include/mail_params.h
+token.o: ../../include/mail_proto.h
 token.o: ../../include/maps.h
 token.o: ../../include/mbox_conf.h
 token.o: ../../include/msg.h

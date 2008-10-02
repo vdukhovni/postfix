@@ -121,6 +121,7 @@ milter_macros.o: ../../include/argv.h
 milter_macros.o: ../../include/attr.h
 milter_macros.o: ../../include/iostuff.h
 milter_macros.o: ../../include/mail_proto.h
+milter_macros.o: ../../include/msg.h
 milter_macros.o: ../../include/mymalloc.h
 milter_macros.o: ../../include/sys_defs.h
 milter_macros.o: ../../include/vbuf.h

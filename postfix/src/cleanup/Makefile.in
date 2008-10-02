@@ -414,6 +414,7 @@ cleanup_api.o: ../../include/vstring.h
 cleanup_api.o: cleanup.h
 cleanup_api.o: cleanup_api.c
 cleanup_body_edit.o: ../../include/argv.h
+cleanup_body_edit.o: ../../include/attr.h
 cleanup_body_edit.o: ../../include/been_here.h
 cleanup_body_edit.o: ../../include/cleanup_user.h
 cleanup_body_edit.o: ../../include/dict.h
@@ -554,6 +555,7 @@ cleanup_extracted.o: ../../include/vstring.h
 cleanup_extracted.o: cleanup.h
 cleanup_extracted.o: cleanup_extracted.c
 cleanup_final.o: ../../include/argv.h
+cleanup_final.o: ../../include/attr.h
 cleanup_final.o: ../../include/been_here.h
 cleanup_final.o: ../../include/cleanup_user.h
 cleanup_final.o: ../../include/dict.h
@@ -580,6 +582,7 @@ cleanup_final.o: ../../include/vstring.h
 cleanup_final.o: cleanup.h
 cleanup_final.o: cleanup_final.c
 cleanup_init.o: ../../include/argv.h
+cleanup_init.o: ../../include/attr.h
 cleanup_init.o: ../../include/been_here.h
 cleanup_init.o: ../../include/cleanup_user.h
 cleanup_init.o: ../../include/dict.h
@@ -613,6 +616,7 @@ cleanup_init.o: ../../include/vstring.h
 cleanup_init.o: cleanup.h
 cleanup_init.o: cleanup_init.c
 cleanup_map11.o: ../../include/argv.h
+cleanup_map11.o: ../../include/attr.h
 cleanup_map11.o: ../../include/been_here.h
 cleanup_map11.o: ../../include/cleanup_user.h
 cleanup_map11.o: ../../include/dict.h
@@ -641,6 +645,7 @@ cleanup_map11.o: ../../include/vstring.h
 cleanup_map11.o: cleanup.h
 cleanup_map11.o: cleanup_map11.c
 cleanup_map1n.o: ../../include/argv.h
+cleanup_map1n.o: ../../include/attr.h
 cleanup_map1n.o: ../../include/been_here.h
 cleanup_map1n.o: ../../include/cleanup_user.h
 cleanup_map1n.o: ../../include/dict.h
@@ -670,6 +675,7 @@ cleanup_map1n.o: ../../include/vstring.h
 cleanup_map1n.o: cleanup.h
 cleanup_map1n.o: cleanup_map1n.c
 cleanup_masquerade.o: ../../include/argv.h
+cleanup_masquerade.o: ../../include/attr.h
 cleanup_masquerade.o: ../../include/been_here.h
 cleanup_masquerade.o: ../../include/cleanup_user.h
 cleanup_masquerade.o: ../../include/dict.h
@@ -780,6 +786,7 @@ cleanup_milter.o: ../../include/vstring.h
 cleanup_milter.o: cleanup.h
 cleanup_milter.o: cleanup_milter.c
 cleanup_out.o: ../../include/argv.h
+cleanup_out.o: ../../include/attr.h
 cleanup_out.o: ../../include/been_here.h
 cleanup_out.o: ../../include/cleanup_user.h
 cleanup_out.o: ../../include/dict.h
@@ -850,6 +857,7 @@ cleanup_out_recipient.o: ../../include/vstring.h
 cleanup_out_recipient.o: cleanup.h
 cleanup_out_recipient.o: cleanup_out_recipient.c
 cleanup_region.o: ../../include/argv.h
+cleanup_region.o: ../../include/attr.h
 cleanup_region.o: ../../include/been_here.h
 cleanup_region.o: ../../include/cleanup_user.h
 cleanup_region.o: ../../include/dict.h

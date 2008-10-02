@@ -26,7 +26,8 @@
 /*	qmgr_deliver() executes when a delivery process announces its
 /*	availability for the named transport. It arranges for delivery
 /*	of a suitable queue entry.  The \fIfp\fR argument specifies a
-/*	stream that is connected to the delivery process. Upon completion
+/*	stream that is connected to a delivery process, or a null
+/*	pointer if the transport accepts no connection. Upon completion
 /*	of delivery (successful or not), the stream is closed, so that the
 /*	delivery process is released.
 /* DIAGNOSTICS

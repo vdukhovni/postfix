@@ -59,6 +59,7 @@
 
 #include <sys_defs.h>
 #include <sys/stat.h>
+#include <time.h>
 #include <errno.h>
 
 /* Utility library. */
@@ -102,9 +103,24 @@ int     mail_open_ok(const char *queue_name, const char *queue_id,
     }
     if ((statp->st_mode & S_IRWXU) != MAIL_QUEUE_STAT_READY)
 	return (MAIL_OPEN_NO);
+
+    /*
+     * Workaround for spurious "file has 2 links" warnings in showq. As
+     * kernels have evolved from non-interruptible system calls towards
+     * fine-grained locks, the showq command has become likely to observe a
+     * file while the queue manager is in the middle of renaming it, at a
+     * time when the file has links to both the old and new name. We now log
+     * the warning only when the condition appears to be persistent.
+     */
+#define MINUTE_SECONDS	60			/* XXX should be centralized */
+
     if (statp->st_nlink > 1) {
-	msg_warn("%s: uid %ld: file has %d links", *path,
-		 (long) statp->st_uid, (int) statp->st_nlink);
+	if (msg_verbose)
+	    msg_info("%s: uid %ld: file has %d links", *path,
+		     (long) statp->st_uid, (int) statp->st_nlink);
+	else if (statp->st_ctime < time((time_t *) 0) - MINUTE_SECONDS)
+	    msg_warn("%s: uid %ld: file has %d links", *path,
+		     (long) statp->st_uid, (int) statp->st_nlink);
     }
     return (MAIL_OPEN_YES);
 }

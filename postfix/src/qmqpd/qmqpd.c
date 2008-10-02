@@ -318,24 +318,6 @@ static void qmqpd_write_attributes(QMQPD_STATE *state)
 {
 
     /*
-     * Logging attributes, also used for XFORWARD.
-     */
-    if (IS_AVAIL_CLIENT_NAME(state->name))
-	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_LOG_CLIENT_NAME, state->name);
-    if (IS_AVAIL_CLIENT_ADDR(state->addr))
-	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_LOG_CLIENT_ADDR, state->rfc_addr);
-    if (IS_AVAIL_CLIENT_PORT(state->port))
-	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_LOG_CLIENT_PORT, state->port);
-    if (IS_AVAIL_CLIENT_NAMADDR(state->namaddr))
-	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_LOG_ORIGIN, state->namaddr);
-    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		MAIL_ATTR_LOG_PROTO_NAME, state->protocol);
-
-    /*
      * Provenance attributes for Milter policy etc.
      */
     rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",

@@ -292,13 +292,14 @@ extern void smtpd_peer_reset(SMTPD_STATE *state);
   * 
   * Note 1: inside the SMTP server, forwarded attributes must have the exact
   * same representation as normal attributes: unknown string values are
-  * "unknown", except for HELO which defaults to null. This is better than
-  * having to change every piece of code that accesses a possibly forwarded
-  * attribute.
+  * "unknown", and non-existent HELO is null.
   * 
-  * Note 2: outside the SMTP server, the representation of unknown/known
-  * attribute values is different in queue files, in queue manager delivery
-  * requests, and in over-the-network XFORWARD commands.
+  * Note 2: the SMTP server representation of unknown/known attribute values is
+  * also used in queue files and in delivery requests, while non-existent
+  * information is represented in those contexts as empty strings. In queue
+  * files and delivery requests, forwarded local submissions are represented
+  * by forwarded client attributes with empty string values (actually one
+  * attribute is sufficient).
   * 
   * Note 3: if forwarding client information, don't mix information from the
   * current SMTP session with forwarded information from an up-stream

@@ -1356,6 +1356,7 @@ safe_getenv.o: sys_defs.h
 safe_open.o: msg.h
 safe_open.o: safe_open.c
 safe_open.o: safe_open.h
+safe_open.o: stringops.h
 safe_open.o: sys_defs.h
 safe_open.o: vbuf.h
 safe_open.o: vstream.h

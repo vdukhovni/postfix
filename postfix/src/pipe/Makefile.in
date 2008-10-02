@@ -78,6 +78,7 @@ pipe.o: ../../include/mail_addr.h
 pipe.o: ../../include/mail_conf.h
 pipe.o: ../../include/mail_copy.h
 pipe.o: ../../include/mail_params.h
+pipe.o: ../../include/mail_proto.h
 pipe.o: ../../include/mail_server.h
 pipe.o: ../../include/mail_version.h
 pipe.o: ../../include/msg.h

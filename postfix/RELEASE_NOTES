@@ -11,6 +11,22 @@ instead, a new snapshot is released.
 The mail_release_date configuration parameter (format: yyyymmdd)
 specifies the release date of a stable release or snapshot release.
 
+Incompatibility with snapshot 20081002
+======================================
+
+There is a minor change in the way that XFORWARD attributes are
+stored in queue files. These attributes are used to propagate remote
+client information through an SMTP-based content filter. If you
+don't use such filters, then the following incompatibility does not
+affect your system.
+
+If you downgrade from this Postfix version to an older version while
+you still have new local submissions in the mail queue, the older
+Postfix cleanup server may log "spurious null attribute value"
+warnings when it processes queue files from the newer Postfix
+version.  The older cleanup server will ignore the null-valued
+attributes, and no harm will be done.
+
 Incompatibility with snapshot 20080814
 ======================================
 

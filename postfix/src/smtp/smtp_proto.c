@@ -1224,19 +1224,19 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	    if (session->features & SMTP_FEATURE_XFORWARD_NAME) {
 		vstring_strcat(next_command, " " XFORWARD_NAME "=");
 		xtext_quote_append(next_command,
-				   DEL_REQ_ATTR_AVAIL(request->client_name) ?
+				   MAIL_ATTR_IS_KNOWN(request->client_name) ?
 			   request->client_name : XFORWARD_UNAVAILABLE, "");
 	    }
 	    if (session->features & SMTP_FEATURE_XFORWARD_ADDR) {
 		vstring_strcat(next_command, " " XFORWARD_ADDR "=");
 		xtext_quote_append(next_command,
-				   DEL_REQ_ATTR_AVAIL(request->client_addr) ?
+				   MAIL_ATTR_IS_KNOWN(request->client_addr) ?
 			   request->client_addr : XFORWARD_UNAVAILABLE, "");
 	    }
 	    if (session->features & SMTP_FEATURE_XFORWARD_PORT) {
 		vstring_strcat(next_command, " " XFORWARD_PORT "=");
 		xtext_quote_append(next_command,
-				   DEL_REQ_ATTR_AVAIL(request->client_port) ?
+				   MAIL_ATTR_IS_KNOWN(request->client_port) ?
 			   request->client_port : XFORWARD_UNAVAILABLE, "");
 	    }
 	    if (session->send_proto_helo)
@@ -1250,19 +1250,19 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	    if (session->features & SMTP_FEATURE_XFORWARD_PROTO) {
 		vstring_strcat(next_command, " " XFORWARD_PROTO "=");
 		xtext_quote_append(next_command,
-				 DEL_REQ_ATTR_AVAIL(request->client_proto) ?
+				 MAIL_ATTR_IS_KNOWN(request->client_proto) ?
 			  request->client_proto : XFORWARD_UNAVAILABLE, "");
 	    }
 	    if (session->features & SMTP_FEATURE_XFORWARD_HELO) {
 		vstring_strcat(next_command, " " XFORWARD_HELO "=");
 		xtext_quote_append(next_command,
-				   DEL_REQ_ATTR_AVAIL(request->client_helo) ?
+				   MAIL_ATTR_IS_EXIST(request->client_helo) ?
 			   request->client_helo : XFORWARD_UNAVAILABLE, "");
 	    }
 	    if (session->features & SMTP_FEATURE_XFORWARD_DOMAIN) {
 		vstring_strcat(next_command, " " XFORWARD_DOMAIN "=");
 		xtext_quote_append(next_command,
-			 DEL_REQ_ATTR_AVAIL(request->rewrite_context) == 0 ?
+			 MAIL_ATTR_IS_EXIST(request->rewrite_context) == 0 ?
 				   XFORWARD_UNAVAILABLE :
 		     strcmp(request->rewrite_context, MAIL_ATTR_RWR_LOCAL) ?
 			      XFORWARD_DOM_REMOTE : XFORWARD_DOM_LOCAL, "");
@@ -1931,21 +1931,17 @@ int     smtp_xfer(SMTP_STATE *state)
     }
 
     /*
-     * Use the XFORWARD command to forward client attributes only when a
-     * minimal amount of information is available.
+     * Use the XFORWARD command to send local/remote submission information.
      */
     send_name_addr =
 	var_smtp_send_xforward
-	&& (((session->features & SMTP_FEATURE_XFORWARD_NAME)
-	     && DEL_REQ_ATTR_AVAIL(request->client_name))
-	    || ((session->features & SMTP_FEATURE_XFORWARD_ADDR)
-		&& DEL_REQ_ATTR_AVAIL(request->client_addr)));
+	&& (session->features & (SMTP_FEATURE_XFORWARD_NAME
+				 | SMTP_FEATURE_XFORWARD_ADDR));
     session->send_proto_helo =
 	var_smtp_send_xforward
-	&& (((session->features & SMTP_FEATURE_XFORWARD_PROTO)
-	     && DEL_REQ_ATTR_AVAIL(request->client_proto))
-	    || ((session->features & SMTP_FEATURE_XFORWARD_HELO)
-		&& DEL_REQ_ATTR_AVAIL(request->client_helo)));
+	&& (session->features & (SMTP_FEATURE_XFORWARD_PROTO
+				 | SMTP_FEATURE_XFORWARD_HELO
+				 | SMTP_FEATURE_XFORWARD_DOMAIN));
     if (send_name_addr)
 	recv_state = send_state = SMTP_STATE_XFORWARD_NAME_ADDR;
     else if (session->send_proto_helo)

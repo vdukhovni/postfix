@@ -1,5 +1,5 @@
 Wish list:
-
+ 
 	Force a panic when the VDA patch reduces the file size limit
 	under the message size.  They break the code that marks a
 	recipient as "done", when that recipient was added late

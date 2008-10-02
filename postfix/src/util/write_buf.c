@@ -46,6 +46,7 @@
 #include <sys_defs.h>
 #include <unistd.h>
 #include <errno.h>
+#include <time.h>
 
 /* Utility library. */
 
@@ -58,21 +59,31 @@ ssize_t write_buf(int fd, const char *buf, ssize_t len, int timeout)
 {
     const char *start = buf;
     ssize_t count;
+    time_t  expire;
+    int     time_left = timeout;
+
+    if (time_left > 0)
+	expire = time((time_t *) 0) + time_left;
 
     while (len > 0) {
-	if (timeout > 0 && write_wait(fd, timeout) < 0)
+	if (time_left > 0 && write_wait(fd, time_left) < 0)
 	    return (-1);
 	if ((count = write(fd, buf, len)) < 0) {
-	    if (errno == EAGAIN && timeout > 0)
-		continue;
-	    if (errno == EINTR)
-		continue;
-	    return (-1);
+	    if ((errno == EAGAIN && time_left > 0) || errno == EINTR)
+		 /* void */ ;
+	    else
+		return (-1);
+	} else {
+	    buf += count;
+	    len -= count;
 	}
-	if (count == 0)
-	    msg_fatal("write returned 0");
-	buf += count;
-	len -= count;
+	if (len > 0 && time_left > 0) {
+	    time_left = expire - time((time_t *) 0);
+	    if (time_left <= 0) {
+		errno = ETIMEDOUT;
+		return (-1);
+	    }
+	}
     }
     return (buf - start);
 }

@@ -191,6 +191,19 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_ORG_LOCAL	"local"	/* local submission */
 
  /*
+  * Non-existent attribute values are represented as empty strings (e.g. no
+  * remote client, or no HELO hostname). Unknown attribute values are
+  * represented as "unknown" (e.g., unknown remote client hostname). An empty
+  * string is more convenient to send than a null pointer, and is less likely
+  * to blow up.
+  */
+#define MAIL_ATTR_VAL_NONEXIST	""
+#define MAIL_ATTR_VAL_UNKNOWN	"unknown"
+
+#define MAIL_ATTR_IS_EXIST(a)	(*(a))
+#define MAIL_ATTR_IS_KNOWN(a)	(*(a)) && strcmp((a), MAIL_ATTR_VAL_UNKNOWN)
+
+ /*
   * XCLIENT/XFORWARD in SMTP.
   */
 #define XCLIENT_CMD		"XCLIENT"	/* XCLIENT command */

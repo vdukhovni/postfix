@@ -13248,7 +13248,7 @@ Apologies for any names omitted.
 	cleanup/cleanup_final.c, cleanup/cleanup_bounce.c,
 	cleanup/cleanup_api.c.
 
-20050217
+20070217
 
 	Streamline the compile time selection of event handling
 	styles, replacing multiple on/off macros by just one
@@ -14642,3 +14642,27 @@ Apologies for any names omitted.
 
 	Cleanup: remove obsolete Rhapsody and MacOS targets from
 	makedefs.
+
+20080929
+
+	Workaround: don't log "file has 2 links" warnings when the
+	condition appears to be temporary. As kernels have evolved
+	from non-interruptible system calls towards fine-grained
+	locks, the showq command has become likely to observe a
+	file while the queue manager is in the middle of a rename
+	operation, when the file has links to both the old and new
+	name.  File: global/mail_open_ok.c.
+
+	Workaround: don't loop forever when write() fails with a
+	persistent EAGAIN error on a writable file descriptor.
+	File: util/write_buf.c.  
+
+20081002
+
+	Bugfix (introduced Postfix 2.1): the introduction of XFORWARD
+	support resulted in inaccurate logging and (delivery agent)
+	$name expansion. Specifically, Postfix no longer properly
+	distinguished between local submissions and submissions
+	from clients with unknown hostname etc.  attributes.  Files:
+	smtpd/smtpd.c, qmqpd/qmqpd.c, smtp/smtp_proto.c,
+	cleanup/cleanup_envelope.c.

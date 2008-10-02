@@ -632,6 +632,9 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	    } else if (strcmp(name, MAIL_ATTR_ACT_HELO_NAME) == 0) {
 		if (have_log_client_attr == 0 && message->client_helo == 0)
 		    message->client_helo = mystrdup(value);
+	    } else if (strcmp(name, MAIL_ATTR_ACT_CLIENT_PORT) == 0) {
+		if (have_log_client_attr == 0 && message->client_port == 0)
+		    message->client_port = mystrdup(value);
 	    }
 	    /* Original client attributes. */
 	    else if (strcmp(name, MAIL_ATTR_LOG_CLIENT_NAME) == 0) {

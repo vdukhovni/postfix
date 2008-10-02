@@ -9,6 +9,9 @@
 /*	void	smtpd_xforward_init(state)
 /*	SMTPD_STATE *state;
 /*
+/*	void	smtpd_xforward_preset(state)
+/*	SMTPD_STATE *state;
+/*
 /*	void	smtpd_xforward_reset(state)
 /*	SMTPD_STATE *state;
 /* DESCRIPTION

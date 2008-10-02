@@ -342,7 +342,8 @@ void    qmgr_transport_alloc(QMGR_TRANSPORT *transport, QMGR_TRANSPORT_ALLOC_NOT
     transport->pending += 1;
     if ((alloc->stream = mail_connect(MAIL_CLASS_PRIVATE, transport->name,
 				      NON_BLOCKING)) == 0) {
-	msg_warn("connect to transport %s: %m", transport->name);
+	msg_warn("connect to transport %s/%s: %m",
+		 MAIL_CLASS_PRIVATE, transport->name);
 	event_request_timer(qmgr_transport_event, (char *) alloc, 0);
 	return;
     }
@@ -390,7 +391,7 @@ QMGR_TRANSPORT *qmgr_transport_create(const char *name)
 	get_mail_conf_int2(name, _INIT_DEST_CON,
 			   var_init_dest_concurrency, 1, 0);
     transport->rate_delay = get_mail_conf_time2(name, _DEST_RATE_DELAY,
-						var_dest_rate_delay, 
+						var_dest_rate_delay,
 						's', 0, 0);
 
     if (transport->rate_delay > 0)

@@ -55,7 +55,8 @@ of this document.  </p>
 extension is XFORWARD. The keyword is followed by the names of the
 attributes that the XFORWARD implementation supports. </p>
 
-<p> The client may send the XFORWARD request at any time except in
+<p> The client may send one or more XFORWARD requests at any time
+except in
 the middle of a mail delivery transaction (i.e.  between MAIL and
 RSET or DOT).  The command may be pipelined when the server supports
 ESMTP command pipelining.  </p>
@@ -139,13 +140,24 @@ xtext encode attribute values. Servers that wish to interoperate
 with these older implementations should be prepared to receive
 unencoded information. </p>
 
-<h2> XFORWARD Server response </h2>
+<h2> XFORWARD Server operation </h2>
 
-<p> Upon receipt of a correctly formatted XFORWARD command, the
-server stores the specified attribute values, and erases the
-attributes whose value was specified as [UNAVAILABLE]. All XFORWARD
-attributes are reset to the real client information after the MAIL
-FROM transaction completes (i.e. after RSET or DOT). </p>
+<p> Upon receipt of an initial XFORWARD command, the SMTP server
+initializes all XFORWARD attributes to [UNAVAILABLE].  With each
+XFORWARD command, the server overwrites attributes with the specified
+attribute values, and erases attributes whose value is specified
+as [UNAVAILABLE].  Attributes that are not specified in an XFORWARD
+command retain their current value. </p>
+
+<p> An ADDR attribute value of [UNAVAILABLE] indicates that the
+next MAIL FROM transaction is a forwarded local submission.  In
+this case the SMTP server should ignore other client attributes.
+This behavior is available with Postfix version 2.6.  </p>
+
+<p> At the end of the next MAIL FROM transaction (i.e. RSET or DOT),
+all XFORWARD attributes are reset to the real client information,
+and the SMTP server is ready to receive another initial XFORWARD
+command.  </p>
 
 <h2> XFORWARD Server reply codes </h2>
 

@@ -1754,26 +1754,37 @@ static int mail_open_stream(SMTPD_STATE *state)
 	if (SMTPD_STAND_ALONE(state) == 0) {
 
 	    /*
-	     * Attributes for logging, also used for XFORWARD.
+	     * Forwarded client attributes.
+	     * 
+	     * In the case of a forwarded remote submission, store original
+	     * client attributes in our own internal representation: either
+	     * actual values or "unknown"; don't bother with storing
+	     * non-existent HELO attributes.
+	     * 
+	     * In the case of a forwarded local submission, specify explicitly
+	     * that the original client attributes are non-existent.
 	     */
-	    if (IS_AVAIL_CLIENT_NAME(FORWARD_NAME(state)))
-		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+	    if (state->xforward.flags & SMTPD_STATE_XFORWARD_CLIENT_MASK) {
+		if (MAIL_ATTR_IS_KNOWN(FORWARD_ADDR(state))) {
+		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			    MAIL_ATTR_LOG_CLIENT_NAME, FORWARD_NAME(state));
-	    if (IS_AVAIL_CLIENT_ADDR(FORWARD_ADDR(state)))
-		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			    MAIL_ATTR_LOG_CLIENT_ADDR, FORWARD_ADDR(state));
-	    if (IS_AVAIL_CLIENT_PORT(FORWARD_PORT(state)))
-		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			    MAIL_ATTR_LOG_CLIENT_PORT, FORWARD_PORT(state));
-	    if (IS_AVAIL_CLIENT_NAMADDR(FORWARD_NAMADDR(state)))
-		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			    MAIL_ATTR_LOG_ORIGIN, FORWARD_NAMADDR(state));
-	    if (IS_AVAIL_CLIENT_HELO(FORWARD_HELO(state)))
-		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			    MAIL_ATTR_LOG_HELO_NAME, FORWARD_HELO(state));
-	    if (IS_AVAIL_CLIENT_PROTO(FORWARD_PROTO(state)))
-		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			      MAIL_ATTR_LOG_ORIGIN, FORWARD_NAMADDR(state));
+		    if (FORWARD_HELO(state))
+			rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			      MAIL_ATTR_LOG_HELO_NAME, FORWARD_HELO(state));
+		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			    MAIL_ATTR_LOG_PROTO_NAME, FORWARD_PROTO(state));
+		} else {
+		    /* Local submission. */
+		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			 MAIL_ATTR_LOG_CLIENT_ADDR, MAIL_ATTR_VAL_NONEXIST);
+		}
+	    }
 
 	    /*
 	     * Attributes with actual client information. These are used by
