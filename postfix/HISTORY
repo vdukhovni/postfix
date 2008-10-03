@@ -14657,12 +14657,18 @@ Apologies for any names omitted.
 	persistent EAGAIN error on a writable file descriptor.
 	File: util/write_buf.c.  
 
-20081002
+20081003
 
 	Bugfix (introduced Postfix 2.1): the introduction of XFORWARD
-	support resulted in inaccurate logging and (delivery agent)
-	$name expansion. Specifically, Postfix no longer properly
-	distinguished between local submissions and submissions
-	from clients with unknown hostname etc.  attributes.  Files:
-	smtpd/smtpd.c, qmqpd/qmqpd.c, smtp/smtp_proto.c,
-	cleanup/cleanup_envelope.c.
+	support introduced cosmetic errors in the logging of client
+	attributes and in local(8)/pipe(8) $name expansion. Postfix
+	did not propagate that a message originated as a local
+	submission, and it sometimes failed to distinguish between
+	local submissions and submissions from clients with unknown
+	hostname etc.  attributes. This also involves a minor change
+	to the XFORWARD protocol.  Files: smtpd/smtpd.c, qmqpd/qmqpd.c,
+	smtp/smtp_proto.c, cleanup/cleanup_envelope.c, proto/XFORWARD.html.
+
+	Feature: a DUNNO lookup result in per_sender_relayhost_maps
+	stops the search without replacing the next-hop destination.
+	File: trivial-rewrite/resolve.c.

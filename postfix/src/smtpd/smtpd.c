@@ -1754,41 +1754,63 @@ static int mail_open_stream(SMTPD_STATE *state)
 	if (SMTPD_STAND_ALONE(state) == 0) {
 
 	    /*
-	     * Forwarded client attributes.
+	     * Forwarded client attributes. These propagate original client
+	     * information through an SMTP-based content filter, to improve
+	     * the logging from an after-filter MTA. They are also used in
+	     * $name expansions by the local(8) and pipe(8) delivery agents.
 	     * 
 	     * In the case of a forwarded remote submission, store original
 	     * client attributes in our own internal representation: either
-	     * actual values or "unknown"; don't bother with storing
-	     * non-existent HELO attributes.
+	     * actual values or "unknown". This fixes a problem that was
+	     * introduced with Postfix 2.1: "unknown" got treated the same
+	     * way as "non-existent". As before, we don't store non-existent
+	     * HELO attributes.
 	     * 
 	     * In the case of a forwarded local submission, specify explicitly
-	     * that the original client attributes are non-existent.
+	     * that the original client attributes are non-existent. This
+	     * fixes another problem that was introduced with Postfix 2.1:
+	     * forwarded local submissions could not override the content
+	     * filter's own client attributes, so the message would appear to
+	     * originate from the content filter. To make this work we
+	     * introduced one change to the XFORWARD protocol: when both NAME
+	     * and ADDR values are [UNAVAILABLE], this is a local submission.
 	     */
 	    if (state->xforward.flags & SMTPD_STATE_XFORWARD_CLIENT_MASK) {
-		if (MAIL_ATTR_IS_KNOWN(FORWARD_ADDR(state))) {
+		if (MAIL_ATTR_IS_KNOWN(FORWARD_NAME(state))
+		    || MAIL_ATTR_IS_KNOWN(FORWARD_ADDR(state))) {
 		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			    MAIL_ATTR_LOG_CLIENT_NAME, FORWARD_NAME(state));
 		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			    MAIL_ATTR_LOG_CLIENT_ADDR, FORWARD_ADDR(state));
 		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			    MAIL_ATTR_LOG_CLIENT_PORT, FORWARD_PORT(state));
-		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			      MAIL_ATTR_LOG_ORIGIN, FORWARD_NAMADDR(state));
 		    if (FORWARD_HELO(state))
 			rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			      MAIL_ATTR_LOG_HELO_NAME, FORWARD_HELO(state));
 		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			    MAIL_ATTR_LOG_PROTO_NAME, FORWARD_PROTO(state));
 		} else {
-		    /* Local submission. */
+		    /* Local submission. See also qmgr_message_read(). */
 		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			 MAIL_ATTR_LOG_CLIENT_ADDR, MAIL_ATTR_VAL_NONEXIST);
 		}
 	    }
 
 	    /*
+	     * Logging attribute for the Postfix 2.3+ cleanup server.
+	     */
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_LOG_ORIGIN, FORWARD_NAMADDR(state));
+
+	    /*
 	     * Attributes with actual client information. These are used by
-	     * Milters in case mail is re-injected with "postsuper -R".
+	     * the smtpd Milter client for policy decisions. Mail that is
+	     * requeued with "postsuper -r" is not subject to processing by
+	     * the cleanup Milter client, because a) it has already been
+	     * filtered, and b) we don't have sufficient information to
+	     * reproduce the exact same SMTP events and Sendmail macros that
+	     * the smtpd Milter client received when the message originally
+	     * arrived in Postfix.
 	     */
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			MAIL_ATTR_ACT_CLIENT_NAME, state->name);

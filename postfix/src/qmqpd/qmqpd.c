@@ -318,7 +318,19 @@ static void qmqpd_write_attributes(QMQPD_STATE *state)
 {
 
     /*
-     * Provenance attributes for Milter policy etc.
+     * Logging attribute for the Postfix 2.3+ cleanup server.
+     */
+    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		MAIL_ATTR_LOG_ORIGIN, state->namaddr);
+
+    /*
+     * For consistency with the smtpd Milter client, we need to provide the
+     * real client attributes to the cleanup Milter client. This does not
+     * matter much with qmqpd which speaks to trusted clients only, but we
+     * want to be sure that the cleanup input protocol is ready when a new
+     * type of network daemon is added to receive mail from the Internet.
+     * 
+     * See also the comments in smtpd.c.
      */
     rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 		MAIL_ATTR_ACT_CLIENT_NAME, state->name);

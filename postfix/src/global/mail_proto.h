@@ -201,7 +201,7 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_VAL_UNKNOWN	"unknown"
 
 #define MAIL_ATTR_IS_EXIST(a)	(*(a))
-#define MAIL_ATTR_IS_KNOWN(a)	(*(a)) && strcmp((a), MAIL_ATTR_VAL_UNKNOWN)
+#define MAIL_ATTR_IS_KNOWN(a)	((*(a)) && strcmp((a), MAIL_ATTR_VAL_UNKNOWN))
 
  /*
   * XCLIENT/XFORWARD in SMTP.

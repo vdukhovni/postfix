@@ -511,7 +511,8 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 		&& (relay = mail_addr_find(rp->snd_relay_info, *sender ?
 					   sender : var_null_relay_maps_key,
 					   (char **) 0)) != 0)
-		vstring_strcpy(nexthop, relay);
+		vstring_strcpy(nexthop, strcasecmp(relay, "DUNNO") == 0 ?
+			       rcpt_domain : relay);
 	    else if (*RES_PARAM_VALUE(rp->relayhost))
 		vstring_strcpy(nexthop, RES_PARAM_VALUE(rp->relayhost));
 	    else

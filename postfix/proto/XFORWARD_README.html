@@ -144,17 +144,17 @@ unencoded information. </p>
 
 <p> Upon receipt of an initial XFORWARD command, the SMTP server
 initializes all XFORWARD attributes to [UNAVAILABLE].  With each
-XFORWARD command, the server overwrites attributes with the specified
-attribute values, and erases attributes whose value is specified
-as [UNAVAILABLE].  Attributes that are not specified in an XFORWARD
-command retain their current value. </p>
+valid XFORWARD command, the server overwrites attributes with the
+specified values, and erases attributes whose value is specified
+as [UNAVAILABLE].  </p>
 
-<p> An ADDR attribute value of [UNAVAILABLE] indicates that the
-next MAIL FROM transaction is a forwarded local submission.  In
-this case the SMTP server should ignore other client attributes.
-This behavior is available with Postfix version 2.6.  </p>
+<p> When both the NAME and ADDR attributes have a value of
+[UNAVAILABLE], the next MAIL FROM transaction corresponds to a local
+submission.  In this case the SMTP server must ignore the PORT and
+PROTO attributes.  This behavior is available with Postfix version
+2.6.  </p>
 
-<p> At the end of the next MAIL FROM transaction (i.e. RSET or DOT),
+<p> At the end of each MAIL FROM transaction (i.e. RSET or DOT),
 all XFORWARD attributes are reset to the real client information,
 and the SMTP server is ready to receive another initial XFORWARD
 command.  </p>

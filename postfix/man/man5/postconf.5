@@ -4113,7 +4113,9 @@ sender_canonical_maps = hash:/etc/postfix/sender_canonical
 .SH sender_dependent_relayhost_maps (default: empty)
 A sender-dependent override for the global relayhost parameter
 setting. The tables are searched by the envelope sender address and
-@domain. This information is overruled with relay_transport,
+@domain. A lookup result of DUNNO terminates the search without
+overriding the global relayhost parameter setting. This information
+is overruled with relay_transport,
 default_transport and with the \fBtransport\fR(5) table.
 .PP
 For safety reasons, this feature does not allow $number

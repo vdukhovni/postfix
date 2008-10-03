@@ -1931,7 +1931,15 @@ int     smtp_xfer(SMTP_STATE *state)
     }
 
     /*
-     * Use the XFORWARD command to send local/remote submission information.
+     * Use XFORWARD to forward the origin of this email message across an
+     * SMTP-based content filter. Send client attribute information even in
+     * the case of local submissions, which have no client attributes. This
+     * fixes a minor problem that was introduced with Postfix 2.1: no client
+     * attribute information was sent in the case of local submissions, and
+     * therefore local submissions appeared to originate from the SMTP-based
+     * content filter. To make this work we introduced one change to the
+     * XFORWARD protocol: when both NAME and ADDR values are [UNAVAILABLE],
+     * this is a local submission.
      */
     send_name_addr =
 	var_smtp_send_xforward
