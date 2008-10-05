@@ -228,9 +228,20 @@ extern void smtpd_state_reset(SMTPD_STATE *);
 #define SMTPD_CMD_UNKNOWN	"UNKNOWN"
 
  /*
-  * Representation of unknown client information within smtpd processes. This
-  * is not the representation that Postfix uses in queue files, in queue
-  * manager delivery requests, or in XCLIENT/XFORWARD commands!
+  * Representation of missing and non-existent client information. Throughout
+  * Postfix, we use the "unknown" string value for missing client information
+  * (e.g., unknown remote client hostname), and we use the empty string or
+  * null pointer for non-existent client information (e.g., no HELO command,
+  * or local submission).
+  * 
+  * When XFORWARD support was introduced with Postfix 2.1, the specification
+  * failed to clearly distinguish between missing and non-existent client
+  * information. This ambiguity affected the implementation: unknown client
+  * hostnames could become empty strings (as if a submission was local), and
+  * local submissions could appear to originate from an SMTP-based content
+  * filter. This was corrected during the Postfix 2.6 development cycle by
+  * introducing one semantic change to the XFORWARD protocol: when both NAME
+  * and ADDR values are [UNAVAILABLE], this is a local submission.
   */
 #define CLIENT_ATTR_UNKNOWN	"unknown"
 
@@ -305,9 +316,10 @@ extern void smtpd_peer_reset(SMTPD_STATE *state);
   * current SMTP session with forwarded information from an up-stream
   * session.
   */
+#define SMTPD_HAVE_XFORWARD_ATTR(s) \
+	((s)->xforward.flags & SMTPD_STATE_XFORWARD_INIT)
 #define FORWARD_CLIENT_ATTR(s, a) \
-	(((s)->xforward.flags & SMTPD_STATE_XFORWARD_CLIENT_MASK) ? \
-	    (s)->xforward.a : (s)->a)
+	(SMTPD_HAVE_XFORWARD_ATTR(s) ? (s)->xforward.a : (s)->a)
 
 #define FORWARD_ADDR(s)		FORWARD_CLIENT_ATTR((s), rfc_addr)
 #define FORWARD_NAME(s)		FORWARD_CLIENT_ATTR((s), name)

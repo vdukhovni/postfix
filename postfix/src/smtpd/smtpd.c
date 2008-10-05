@@ -1756,39 +1756,33 @@ static int mail_open_stream(SMTPD_STATE *state)
 	    /*
 	     * Forwarded client attributes. These propagate original client
 	     * information through an SMTP-based content filter, to improve
-	     * the logging from an after-filter MTA. They are also used in
-	     * $name expansions by the local(8) and pipe(8) delivery agents.
+	     * the logging from an after-filter MTA.
 	     * 
-	     * In the case of a forwarded remote submission, store original
-	     * client attributes in our own internal representation: either
-	     * actual values or "unknown". This fixes a problem that was
-	     * introduced with Postfix 2.1: "unknown" got treated the same
-	     * way as "non-existent". As before, we don't store non-existent
-	     * HELO attributes.
+	     * In the case of a remote submission, send all client attributes,
+	     * including ones with missing values. Otherwise, an unknown
+	     * client hostname would be treated as a non-existent hostname
+	     * (i.e. local submission).
 	     * 
 	     * In the case of a forwarded local submission, specify explicitly
-	     * that the original client attributes are non-existent. This
-	     * fixes another problem that was introduced with Postfix 2.1:
-	     * forwarded local submissions could not override the content
-	     * filter's own client attributes, so the message would appear to
-	     * originate from the content filter. To make this work we
-	     * introduced one change to the XFORWARD protocol: when both NAME
-	     * and ADDR values are [UNAVAILABLE], this is a local submission.
+	     * that the original client attributes are non-existent.
+	     * Otherwise, the real client attributes would be used, and mail
+	     * would appear to come from the content filter.
 	     */
-	    if (state->xforward.flags & SMTPD_STATE_XFORWARD_CLIENT_MASK) {
-		if (MAIL_ATTR_IS_KNOWN(FORWARD_NAME(state))
-		    || MAIL_ATTR_IS_KNOWN(FORWARD_ADDR(state))) {
+	    if (SMTPD_HAVE_XFORWARD_ATTR(state)) {
+		if (MAIL_ATTR_IS_KNOWN(state->xforward.name)
+		    || MAIL_ATTR_IS_KNOWN(state->xforward.addr)) {
 		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			    MAIL_ATTR_LOG_CLIENT_NAME, FORWARD_NAME(state));
+			   MAIL_ATTR_LOG_CLIENT_NAME, state->xforward.name);
+		    /* XXX Backwards compatibility: include IPv6: prefix. */
 		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			    MAIL_ATTR_LOG_CLIENT_ADDR, FORWARD_ADDR(state));
+		       MAIL_ATTR_LOG_CLIENT_ADDR, state->xforward.rfc_addr);
 		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			    MAIL_ATTR_LOG_CLIENT_PORT, FORWARD_PORT(state));
-		    if (FORWARD_HELO(state))
+			   MAIL_ATTR_LOG_CLIENT_PORT, state->xforward.port);
+		    if (state->xforward.helo_name)
 			rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			      MAIL_ATTR_LOG_HELO_NAME, FORWARD_HELO(state));
+			MAIL_ATTR_LOG_HELO_NAME, state->xforward.helo_name);
 		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			    MAIL_ATTR_LOG_PROTO_NAME, FORWARD_PROTO(state));
+			MAIL_ATTR_LOG_PROTO_NAME, state->xforward.protocol);
 		} else {
 		    /* Local submission. See also qmgr_message_read(). */
 		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
@@ -1816,13 +1810,16 @@ static int mail_open_stream(SMTPD_STATE *state)
 			MAIL_ATTR_ACT_CLIENT_NAME, state->name);
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 		    MAIL_ATTR_ACT_REVERSE_CLIENT_NAME, state->reverse_name);
+	    /* XXX Backwards compatibility: include IPv6: prefix. */
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			MAIL_ATTR_ACT_CLIENT_ADDR, state->addr);
+			MAIL_ATTR_ACT_CLIENT_ADDR, state->rfc_addr);
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			MAIL_ATTR_ACT_CLIENT_PORT, state->port);
 	    if (state->helo_name)
 		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			    MAIL_ATTR_ACT_HELO_NAME, state->helo_name);
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_ACT_PROTO_NAME, state->protocol);
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%u",
 			MAIL_ATTR_ACT_CLIENT_AF, state->addr_family);
 

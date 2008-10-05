@@ -9340,8 +9340,8 @@ is placed into the Postfix configuration directory.  </p>
 <p> A sender-dependent override for the global relayhost parameter
 setting. The tables are searched by the envelope sender address and
 @domain. A lookup result of DUNNO terminates the search without
-overriding the global relayhost parameter setting. This information
-is overruled with relay_transport,
+overriding the global relayhost parameter setting (Postfix 2.6 and
+later). This information is overruled with relay_transport,
 default_transport and with the transport(5) table. </p>
 
 <p> For safety reasons, this feature does not allow $number

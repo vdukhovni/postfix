@@ -7304,8 +7304,8 @@ Example:
 <p> A sender-dependent override for the global <a href="postconf.5.html#relayhost">relayhost</a> parameter
 setting. The tables are searched by the envelope sender address and
 @domain. A lookup result of DUNNO terminates the search without
-overriding the global <a href="postconf.5.html#relayhost">relayhost</a> parameter setting. This information
-is overruled with <a href="postconf.5.html#relay_transport">relay_transport</a>,
+overriding the global <a href="postconf.5.html#relayhost">relayhost</a> parameter setting (Postfix 2.6 and
+later). This information is overruled with <a href="postconf.5.html#relay_transport">relay_transport</a>,
 <a href="postconf.5.html#default_transport">default_transport</a> and with the <a href="transport.5.html">transport(5)</a> table. </p>
 
 <p> For safety reasons, this feature does not allow $number

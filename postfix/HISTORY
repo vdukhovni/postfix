@@ -14659,16 +14659,27 @@ Apologies for any names omitted.
 
 20081003
 
-	Bugfix (introduced Postfix 2.1): the introduction of XFORWARD
-	support introduced cosmetic errors in the logging of client
-	attributes and in local(8)/pipe(8) $name expansion. Postfix
-	did not propagate that a message originated as a local
-	submission, and it sometimes failed to distinguish between
-	local submissions and submissions from clients with unknown
-	hostname etc.  attributes. This also involves a minor change
-	to the XFORWARD protocol.  Files: smtpd/smtpd.c, qmqpd/qmqpd.c,
-	smtp/smtp_proto.c, cleanup/cleanup_envelope.c, proto/XFORWARD.html.
+	Bugfix (introduced Postfix 2.1): when XFORWARD support was
+	introduced with Postfix 2.1, the specification failed to
+	clearly distinguish between missing and non-existent client
+	information. This ambiguity affected the implementation:
+	in $name expansions by delivery agents, unknown client
+	hostnames could became empty strings (as if a submission
+	was local), and local submissions could appear to originate
+	from an SMTP-based content filter.  This was fixed with a
+	a minor semantic change to the XFORWARD protocol.  Files:
+	smtpd/smtpd.c, qmqpd/qmqpd.c, smtp/smtp_proto.c,
+	cleanup/cleanup_envelope.c, proto/XFORWARD.html.
 
 	Feature: a DUNNO lookup result in per_sender_relayhost_maps
 	stops the search without replacing the next-hop destination.
 	File: trivial-rewrite/resolve.c.
+
+20081005
+
+	Further refinements to the handling of missing or non-existent
+	remote client attributes. Files: smtpd/smtpd.c, smtpd/smtpd.h.
+
+	The XFORWARD specification of the ADDR attribute did not
+	agree with the actual on-the-wire protocol. The spec has
+	been updated. File: proto/XFORWARD_README.html.
