@@ -14683,3 +14683,15 @@ Apologies for any names omitted.
 	The XFORWARD specification of the ADDR attribute did not
 	agree with the actual on-the-wire protocol. The spec has
 	been updated. File: proto/XFORWARD_README.html.
+
+20081006
+
+	Further refinements to the handling of remote client
+	attributes.  Introduced a dummy "we have forwarded client
+	info" record, to eliminate the need for the backwards
+	incompatible queue file change that was introduced 20081003.
+	Files: smtpd/smtpd.c, cleanup/cleanup_envelope.c,
+	*qmgr/qmgr_message.c.
+
+	Hardened the proxymap client, in case it ever ends up in
+	a set-gid program. File: global/dict_proxy.c.

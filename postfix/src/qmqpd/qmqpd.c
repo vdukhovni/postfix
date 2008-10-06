@@ -334,12 +334,15 @@ static void qmqpd_write_attributes(QMQPD_STATE *state)
      */
     rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 		MAIL_ATTR_ACT_CLIENT_NAME, state->name);
+    /* XXX Backwards compatibility: include IPv6: prefix. */
     rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 		MAIL_ATTR_ACT_CLIENT_ADDR, state->rfc_addr);
     rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 		MAIL_ATTR_ACT_CLIENT_PORT, state->port);
     rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%u",
 		MAIL_ATTR_ACT_CLIENT_AF, state->addr_family);
+    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+                MAIL_ATTR_ACT_PROTO_NAME, state->protocol);
 }
 
 /* qmqpd_copy_recipients - copy message recipients */

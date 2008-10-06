@@ -1777,6 +1777,8 @@ static int mail_open_stream(SMTPD_STATE *state)
 		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 		       MAIL_ATTR_LOG_CLIENT_ADDR, state->xforward.rfc_addr);
 		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			     MAIL_ATTR_LOG_ORIGIN, state->xforward.namaddr);
+		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			   MAIL_ATTR_LOG_CLIENT_PORT, state->xforward.port);
 		    if (state->xforward.helo_name)
 			rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
@@ -1786,15 +1788,12 @@ static int mail_open_stream(SMTPD_STATE *state)
 		} else {
 		    /* Local submission. See also qmgr_message_read(). */
 		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			 MAIL_ATTR_LOG_CLIENT_ADDR, MAIL_ATTR_VAL_NONEXIST);
+				MAIL_ATTR_LOG_CLIENT_DUMMY, "dummy");
 		}
+	    } else {
+		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			    MAIL_ATTR_LOG_ORIGIN, state->namaddr);
 	    }
-
-	    /*
-	     * Logging attribute for the Postfix 2.3+ cleanup server.
-	     */
-	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			MAIL_ATTR_LOG_ORIGIN, FORWARD_NAMADDR(state));
 
 	    /*
 	     * Attributes with actual client information. These are used by

@@ -308,7 +308,7 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
     int     server_flags;
     int     status;
     const char *service;
-    char   *relative_path;
+    char   *chroot_path;
     char   *kludge = 0;
     char   *prefix;
     CLNT_STREAM **pstream;
@@ -342,10 +342,10 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
 		  map, DICT_TYPE_PROXY);
 
     if (*pstream == 0) {
-	relative_path = concatenate(MAIL_CLASS_PRIVATE "/",
+	chroot_path = concatenate("/" MAIL_CLASS_PRIVATE "/",
 				    service, (char *) 0);
-	if (access(relative_path, F_OK) == 0)
-	    prefix = MAIL_CLASS_PRIVATE;
+	if (access(chroot_path, F_OK) == 0)
+	    prefix = "/" MAIL_CLASS_PRIVATE;
 	else
 	    prefix = kludge = concatenate(var_queue_dir, "/",
 					  MAIL_CLASS_PRIVATE, (char *) 0);
@@ -353,7 +353,7 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
 				      var_ipc_ttl_limit);
 	if (kludge)
 	    myfree(kludge);
-	myfree(relative_path);
+	myfree(chroot_path);
     }
 
     /*

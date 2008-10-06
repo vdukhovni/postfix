@@ -122,7 +122,7 @@ SSppeenndd lleessss ttiimmee ppeerr SSMMTTPP cclliieenn
 When increasing the number of SMTP server processes is not practical, you can
 improve Postfix server responsiveness by eliminating unnecessary work. When
 Postfix spends less time per SMTP session, the same number of SMTP server
-processes can service more clients.
+processes can service more clients in the same amount of time.
 
   * Eliminate non-functional RBL lookups (blocklists that are no longer in
     operation). These lookups can degrade performance. Postfix logs a warning

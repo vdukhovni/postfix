@@ -176,14 +176,11 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	    state->errs |= CLEANUP_STAT_BAD;
 	    return;
 	}
-#if 0
-	/* Zero-length values are place holders for unavailable values. */
 	if (*attr_value == 0) {
 	    msg_warn("%s: spurious null attribute value for \"%s\" -- ignored",
 		     state->queue_id, attr_name);
 	    return;
 	}
-#endif
 	if ((junk = rec_attr_map(attr_name)) != 0) {
 	    mapped_buf = attr_value;
 	    mapped_type = junk;
@@ -468,9 +465,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 		return;
 	    }
 	}
-	/* Zero-length values are place holders for non-existent values. */
-	if (*attr_value)
-	    nvtable_update(state->attr, attr_name, attr_value);
+	nvtable_update(state->attr, attr_name, attr_value);
 	cleanup_out(state, type, buf, len);
 	return;
     } else {
