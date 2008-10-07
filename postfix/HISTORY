@@ -14695,3 +14695,9 @@ Apologies for any names omitted.
 
 	Hardened the proxymap client, in case it ever ends up in
 	a set-gid program. File: global/dict_proxy.c.
+
+10081007
+
+	Undo the proxymap client change. It broke chrooted servers
+	when they attempted to reconnect to the proxy read/write
+	service. File: global/dict_proxy.c.
