@@ -215,7 +215,8 @@ check-fatal)
 check-warn)
 	# This command is NOT part of the public interface.
 
-	for dir in $daemon_directory $config_directory $queue_directory
+	for dir in $daemon_directory $config_directory $queue_directory \
+		$queue_directory/pid
 	do
 		ls -lLd $dir | (grep " root " >/dev/null ||
 		    $WARN not owned by root: $dir)
@@ -232,7 +233,7 @@ check-warn)
 		-exec $WARN not owned by $mail_owner: {} \;
 
 	find `ls -d $queue_directory/* | \
-	    egrep '/(incoming|active|defer|deferred|bounce|hold|trace|corrupt|public|private|flush)$'` \
+	    egrep '/(saved|incoming|active|defer|deferred|bounce|hold|trace|corrupt|public|private|flush)$'` \
 	    ! \( -type p -o -type s \) ! -user $mail_owner \
 		-exec $WARN not owned by $mail_owner: {} \;
 

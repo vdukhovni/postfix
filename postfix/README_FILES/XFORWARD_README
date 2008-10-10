@@ -58,6 +58,9 @@ are in fact case insensitive.
     when the address information is unavailable. Address information is not
     enclosed with [].
 
+  * When both the NAME and ADDR attributes have the value [UNAVAILABLE], the
+    upcoming MAIL FROM transaction corresponds to a local submission.
+
   * The PORT attribute specifies an up-stream client TCP port number in
     decimal, or [UNAVAILABLE] when the information is unavailable.
 
@@ -102,10 +105,6 @@ session attributes for logging purposes.
 Upon receipt of an initial XFORWARD command, the SMTP server initializes all
 XFORWARD attributes to [UNAVAILABLE]. With each valid XFORWARD command, the
 server updates XFORWARD attributes with the specified values.
-
-When both the NAME and ADDR attributes have the value [UNAVAILABLE], the MAIL
-FROM transaction corresponds to a local submission. In this case the server
-must also treat the HELO, PORT and PROTO attributes as [UNAVAILABLE].
 
 When the server uses XFORWARD attributes for logging purposes, it must not mix
 XFORWARD attributes with attributes from the current SMTP session.

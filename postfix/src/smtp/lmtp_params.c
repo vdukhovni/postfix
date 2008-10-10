@@ -24,6 +24,8 @@
 	VAR_LMTP_TLS_SEC_CMATCH, DEF_LMTP_TLS_SEC_CMATCH, &var_smtp_tls_sec_cmatch, 1, 0,
 	VAR_LMTP_TLS_FPT_CMATCH, DEF_LMTP_TLS_FPT_CMATCH, &var_smtp_tls_fpt_cmatch, 0, 0,
 	VAR_LMTP_TLS_FPT_DGST, DEF_LMTP_TLS_FPT_DGST, &var_smtp_tls_fpt_dgst, 1, 0,
+	VAR_LMTP_TLS_PROTO, DEF_LMTP_TLS_PROTO, &var_smtp_tls_proto, 0, 0,
+	VAR_LMTP_TLS_CIPH, DEF_LMTP_TLS_CIPH, &var_smtp_tls_ciph, 1, 0,
 #endif
 	VAR_LMTP_SASL_MECHS, DEF_LMTP_SASL_MECHS, &var_smtp_sasl_mechs, 0, 0,
 	VAR_LMTP_SASL_TYPE, DEF_LMTP_SASL_TYPE, &var_smtp_sasl_type, 1, 0,

@@ -162,7 +162,7 @@
 /*	per-destination workarounds for CISCO PIX firewall bugs.
 /* .IP "\fBsmtp_quote_rfc821_envelope (yes)\fR"
 /*	Quote addresses in SMTP MAIL FROM and RCPT TO commands as required
-/*	by RFC 821.
+/*	by RFC 2821.
 /* .IP "\fBsmtp_skip_5xx_greeting (yes)\fR"
 /*	Skip SMTP servers that greet with a 5XX status code (go away, do
 /*	not try again later).
@@ -384,6 +384,14 @@
 /* .IP "\fBsmtp_tls_fingerprint_digest (md5)\fR"
 /*	The message digest algorithm used to construct remote SMTP server
 /*	certificate fingerprints.
+/* .PP
+/*	Available in Postfix version 2.6 and later:
+/* .IP "\fBsmtp_tls_protocols (empty)\fR"
+/*	List of TLS protocols that the Postfix SMTP client will exclude
+/*	or include with opportunistic TLS encryption.
+/* .IP "\fBsmtp_tls_ciphers (export)\fR"
+/*	The minimum TLS cipher grade that the Postfix SMTP client
+/*	will use with opportunistic TLS encryption.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -413,7 +421,7 @@
 /*	The maximal number of parallel deliveries to the same destination
 /*	via the smtp message delivery transport.
 /* .IP "\fBsmtp_destination_recipient_limit ($default_destination_recipient_limit)\fR"
-/*	The maximal number of recipients per delivery via the smtp
+/*	The maximal number of recipients per message for the smtp
 /*	message delivery transport.
 /* .IP "\fBsmtp_connect_timeout (30s)\fR"
 /*	The SMTP client time limit for completing a TCP connection, or
@@ -745,6 +753,8 @@ int     var_smtp_tls_scert_vd;
 char   *var_smtp_tls_vfy_cmatch;
 char   *var_smtp_tls_fpt_cmatch;
 char   *var_smtp_tls_fpt_dgst;
+char   *var_smtp_tls_proto;
+char   *var_smtp_tls_ciph;
 
 #endif
 

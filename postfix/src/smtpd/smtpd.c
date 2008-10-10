@@ -338,9 +338,8 @@
 /* .IP "\fBsmtpd_tls_loglevel (0)\fR"
 /*	Enable additional Postfix SMTP server logging of TLS activity.
 /* .IP "\fBsmtpd_tls_mandatory_ciphers (medium)\fR"
-/*	The minimum TLS cipher grade that the Postfix SMTP server will
-/*	use with mandatory
-/*	TLS encryption.
+/*	The minimum TLS cipher grade that the Postfix SMTP server
+/*	will use with mandatory TLS encryption.
 /* .IP "\fBsmtpd_tls_mandatory_exclude_ciphers (empty)\fR"
 /*	Additional list of ciphers or cipher types to exclude from the
 /*	SMTP server cipher list at mandatory TLS security levels.
@@ -385,6 +384,14 @@
 /*	The message digest algorithm used to construct client-certificate
 /*	fingerprints for \fBcheck_ccert_access\fR and
 /*	\fBpermit_tls_clientcerts\fR.
+/* .PP
+/*	Available in Postfix version 2.6 and later:
+/* .IP "\fBsmtpd_tls_protocols (empty)\fR"
+/*	List of TLS protocols that the Postfix SMTP server will exclude
+/*	or include with opportunistic TLS encryption.
+/* .IP "\fBsmtpd_tls_ciphers (export)\fR"
+/*	The minimum TLS cipher grade that the Postfix SMTP server
+/*	will use with opportunistic TLS encryption.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -1141,6 +1148,8 @@ bool    var_smtpd_tls_req_ccert;
 int     var_smtpd_tls_scache_timeout;
 bool    var_smtpd_tls_set_sessid;
 char   *var_smtpd_tls_fpt_dgst;
+char   *var_smtpd_tls_ciph;
+char   *var_smtpd_tls_proto;
 
 #endif
 
@@ -3847,7 +3856,7 @@ static void smtpd_start_tls(SMTPD_STATE *state)
 
     if (cipher_grade == 0) {
 	cipher_grade =
-	    enforce_tls ? var_smtpd_tls_mand_ciph : "export";
+	    enforce_tls ? var_smtpd_tls_mand_ciph : var_smtpd_tls_ciph;
 	cipher_exclusions = vstring_alloc(10);
 	ADD_EXCLUDE(cipher_exclusions, var_smtpd_tls_excl_ciph);
 	if (enforce_tls)
@@ -4691,7 +4700,8 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 				    dh512_param_file
 				    = var_smtpd_tls_dh512_param_file,
 				    protocols = enforce_tls ?
-				    var_smtpd_tls_mand_proto : "",
+				    var_smtpd_tls_mand_proto :
+				    var_smtpd_tls_proto,
 				    ask_ccert = var_smtpd_tls_ask_ccert,
 				    fpt_dgst = var_smtpd_tls_fpt_dgst);
 	    else
@@ -4920,9 +4930,11 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_TLS_DKEY_FILE, DEF_SMTPD_TLS_DKEY_FILE, &var_smtpd_tls_dkey_file, 0, 0,
 	VAR_SMTPD_TLS_CA_FILE, DEF_SMTPD_TLS_CA_FILE, &var_smtpd_tls_CAfile, 0, 0,
 	VAR_SMTPD_TLS_CA_PATH, DEF_SMTPD_TLS_CA_PATH, &var_smtpd_tls_CApath, 0, 0,
+	VAR_SMTPD_TLS_CIPH, DEF_SMTPD_TLS_CIPH, &var_smtpd_tls_ciph, 1, 0,
 	VAR_SMTPD_TLS_MAND_CIPH, DEF_SMTPD_TLS_MAND_CIPH, &var_smtpd_tls_mand_ciph, 1, 0,
 	VAR_SMTPD_TLS_EXCL_CIPH, DEF_SMTPD_TLS_EXCL_CIPH, &var_smtpd_tls_excl_ciph, 0, 0,
 	VAR_SMTPD_TLS_MAND_EXCL, DEF_SMTPD_TLS_MAND_EXCL, &var_smtpd_tls_mand_excl, 0, 0,
+	VAR_SMTPD_TLS_PROTO, DEF_SMTPD_TLS_PROTO, &var_smtpd_tls_proto, 0, 0,
 	VAR_SMTPD_TLS_MAND_PROTO, DEF_SMTPD_TLS_MAND_PROTO, &var_smtpd_tls_mand_proto, 0, 0,
 	VAR_SMTPD_TLS_512_FILE, DEF_SMTPD_TLS_512_FILE, &var_smtpd_tls_dh512_param_file, 0, 0,
 	VAR_SMTPD_TLS_1024_FILE, DEF_SMTPD_TLS_1024_FILE, &var_smtpd_tls_dh1024_param_file, 0, 0,

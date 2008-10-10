@@ -95,6 +95,10 @@ names are shown in upper case, they are in fact case insensitive.
     is unavailable.  Address information is not enclosed with [].
     </p>
 
+    <li> <p> When both the NAME and ADDR attributes have the value
+    [UNAVAILABLE], the upcoming MAIL FROM transaction corresponds
+    to a local submission. </p>
+
     <li> <p> The PORT attribute specifies an up-stream client TCP
     port number in decimal, or [UNAVAILABLE] when the information
     is unavailable.  </p>
@@ -150,11 +154,6 @@ purposes. </p>
 initializes all XFORWARD attributes to [UNAVAILABLE].  With each
 valid XFORWARD command, the server updates XFORWARD attributes with
 the specified values. </p>
-
-<p> When both the NAME and ADDR attributes have the value [UNAVAILABLE],
-the MAIL FROM transaction corresponds to a local submission. In
-this case the server must also treat the HELO, PORT and PROTO
-attributes as [UNAVAILABLE]. </p>
 
 <p> When the server uses XFORWARD attributes for logging purposes,
 it must not mix XFORWARD attributes with attributes from the current

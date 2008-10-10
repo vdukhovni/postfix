@@ -264,12 +264,6 @@ static int tls_policy_lookup_one(SMTP_SESSION *session, int *site_level,
 	}
 	/* Only one instance per policy. */
 	if (!strcasecmp(name, "ciphers")) {
-	    if (*site_level < TLS_LEV_ENCRYPT) {
-		msg_warn("%s: attribute \"%s\" invalid at security level \"%s\"",
-			 WHERE, name, policy_name(*site_level));
-		*site_level = TLS_LEV_INVALID;
-		break;
-	    }
 	    if (*val == 0) {
 		msg_warn("%s: attribute \"%s\" has empty value", WHERE, name);
 		*site_level = TLS_LEV_INVALID;
@@ -281,18 +275,11 @@ static int tls_policy_lookup_one(SMTP_SESSION *session, int *site_level,
 		*site_level = TLS_LEV_INVALID;
 		break;
 	    }
-	    /* set_cipher_grade() assumes this is NULL with level < encrypt */
 	    session->tls_grade = mystrdup(val);
 	    continue;
 	}
 	/* Only one instance per policy. */
 	if (!strcasecmp(name, "protocols")) {
-	    if (*site_level < TLS_LEV_ENCRYPT) {
-		msg_warn("%s: attribute \"%s\" invalid at security level \"%s\"",
-			 WHERE, name, policy_name(*site_level));
-		*site_level = TLS_LEV_INVALID;
-		break;
-	    }
 	    if (session->tls_protocols) {
 		msg_warn("%s: attribute \"%s\" is specified multiple times",
 			 WHERE, name);
@@ -321,6 +308,17 @@ static int tls_policy_lookup_one(SMTP_SESSION *session, int *site_level,
 		session->tls_matchargv = argv_split(val, delim);
 	    else
 		argv_split_append(session->tls_matchargv, val, delim);
+	    continue;
+	}
+	/* Only one instance per policy. */
+	if (!strcasecmp(name, "exclude")) {
+	    if (session->tls_exclusions) {
+		msg_warn("%s: attribute \"%s\" is specified multiple times",
+			 WHERE, name);
+		*site_level = TLS_LEV_INVALID;
+		break;
+	    }
+	    session->tls_exclusions = vstring_strcpy(vstring_alloc(10), val);
 	    continue;
 	} else {
 	    msg_warn("%s: invalid attribute name: \"%s\"", WHERE, name);
@@ -382,8 +380,8 @@ static void set_cipher_grade(SMTP_SESSION *session)
 	return;
 
     case TLS_LEV_MAY:
-	/* tls_policy_lookup_one() leaves this NULL with level < encrypt. */
-	session->tls_grade = mystrdup("export");/* XXX: For now */
+	if (session->tls_grade == 0)
+	    session->tls_grade = mystrdup(var_smtp_tls_ciph);
 	break;
 
     case TLS_LEV_ENCRYPT:
@@ -411,9 +409,8 @@ static void set_cipher_grade(SMTP_SESSION *session)
     } while (0)
 
     /*
-     * Soon, the "exclude" policy table attribute will be able to override
-     * the main.cf mandatory exclusion list, and the latter may become
-     * obsolete.
+     * The "exclude" policy table attribute overrides main.cf exclusion
+     * lists.
      */
     if (session->tls_exclusions == 0) {
 	session->tls_exclusions = vstring_alloc(10);
@@ -511,7 +508,7 @@ static void session_tls_init(SMTP_SESSION *session, const char *dest,
     if (session->tls_level > TLS_LEV_NONE && session->tls_protocols == 0)
 	session->tls_protocols =
 	    mystrdup((session->tls_level == TLS_LEV_MAY) ?
-		     "" : var_smtp_tls_mand_proto);
+		     var_smtp_tls_proto : var_smtp_tls_mand_proto);
 
     /*
      * Compute cipher grade (if set in per-destination table, else

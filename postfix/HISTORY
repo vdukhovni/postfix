@@ -14677,27 +14677,45 @@ Apologies for any names omitted.
 
 20081005
 
-	Further refinements to the handling of missing or non-existent
-	remote client attributes. Files: smtpd/smtpd.c, smtpd/smtpd.h.
+	Bugfix: further refinements to the handling of missing or
+	non-existent remote client attributes. Files: smtpd/smtpd.c,
+	smtpd/smtpd.h.
 
-	The XFORWARD specification of the ADDR attribute did not
-	agree with the actual on-the-wire protocol. The spec has
-	been updated. File: proto/XFORWARD_README.html.
+	Documentation: the XFORWARD specification of the ADDR
+	attribute did not agree with the actual on-the-wire protocol.
+	Since we can't change already existing deployments, the
+	spec has been updated. File: proto/XFORWARD_README.html.
 
 20081006
 
-	Further refinements to the handling of remote client
+	Bugfix: further refinements to the handling of remote client
 	attributes.  Introduced a dummy "we have forwarded client
 	info" record, to eliminate the need for the backwards
 	incompatible queue file change that was introduced 20081003.
 	Files: smtpd/smtpd.c, cleanup/cleanup_envelope.c,
 	*qmgr/qmgr_message.c.
 
-	Hardened the proxymap client, in case it ever ends up in
-	a set-gid program. File: global/dict_proxy.c.
+	Security: hardened the proxymap client, in case it ever
+	ends up in a set-gid program. File: global/dict_proxy.c.
 
 10081007
 
-	Undo the proxymap client change. It broke chrooted servers
-	when they attempted to reconnect to the proxy read/write
-	service. File: global/dict_proxy.c.
+	Workaround: undo the proxymap client change. It broke
+	chrooted servers when they attempted to reconnect to the
+	proxy read/write service. File: global/dict_proxy.c.
+
+20081008
+
+	Safety: added checks that $queue_directory/pid is owned by
+	root, and that $queue_directory/saved is owned by $mail_owner.
+	File: conf/postfix-script.
+
+20081010
+
+	Feature: controls for opportunistic TLS protocols and
+	ciphers. The smtp_tls_protocols, smtp_tls_ciphers, and
+	equivalent parameters for lmtp and smtpd provide global
+	settings; The SMTP client TLS policy table provides ciphers
+	and protocols settings for specific peers.  Code by Victor
+	Duchovni. Files: smtp/smtp.c, smtp/smtp_session.c, smtpd/smtpd.c
+	and documentation.

@@ -370,9 +370,8 @@ File with the Postfix SMTP server RSA private key in PEM format.
 .IP "\fBsmtpd_tls_loglevel (0)\fR"
 Enable additional Postfix SMTP server logging of TLS activity.
 .IP "\fBsmtpd_tls_mandatory_ciphers (medium)\fR"
-The minimum TLS cipher grade that the Postfix SMTP server will
-use with mandatory
-TLS encryption.
+The minimum TLS cipher grade that the Postfix SMTP server
+will use with mandatory TLS encryption.
 .IP "\fBsmtpd_tls_mandatory_exclude_ciphers (empty)\fR"
 Additional list of ciphers or cipher types to exclude from the
 SMTP server cipher list at mandatory TLS security levels.
@@ -417,6 +416,14 @@ Available in Postfix version 2.5 and later:
 The message digest algorithm used to construct client-certificate
 fingerprints for \fBcheck_ccert_access\fR and
 \fBpermit_tls_clientcerts\fR.
+.PP
+Available in Postfix version 2.6 and later:
+.IP "\fBsmtpd_tls_protocols (empty)\fR"
+List of TLS protocols that the Postfix SMTP server will exclude
+or include with opportunistic TLS encryption.
+.IP "\fBsmtpd_tls_ciphers (export)\fR"
+The minimum TLS cipher grade that the Postfix SMTP server
+will use with opportunistic TLS encryption.
 .SH "OBSOLETE STARTTLS CONTROLS"
 .na
 .nf

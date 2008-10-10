@@ -176,6 +176,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	    state->errs |= CLEANUP_STAT_BAD;
 	    return;
 	}
+	/* Zero-length values are place holders for unavailable values. */
 	if (*attr_value == 0) {
 	    msg_warn("%s: spurious null attribute value for \"%s\" -- ignored",
 		     state->queue_id, attr_name);
