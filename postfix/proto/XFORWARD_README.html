@@ -56,8 +56,7 @@ extension is XFORWARD. The keyword is followed by the names of the
 attributes that the XFORWARD implementation supports. </p>
 
 <p> After receiving the server's announcement for XFORWARD support,
-the client may send one or more XFORWARD requests at any time except
-in
+the client may send XFORWARD requests at any time except in
 the middle of a mail delivery transaction (i.e.  between MAIL and
 RSET or DOT).  The command may be pipelined when the server supports
 ESMTP command pipelining.  </p>
@@ -94,10 +93,6 @@ names are shown in upper case, they are in fact case insensitive.
     prefixed with IPV6:, or [UNAVAILABLE] when the address information
     is unavailable.  Address information is not enclosed with [].
     </p>
-
-    <li> <p> When both the NAME and ADDR attributes have the value
-    [UNAVAILABLE], the upcoming MAIL FROM transaction corresponds
-    to a local submission. </p>
 
     <li> <p> The PORT attribute specifies an up-stream client TCP
     port number in decimal, or [UNAVAILABLE] when the information
@@ -155,9 +150,8 @@ initializes all XFORWARD attributes to [UNAVAILABLE].  With each
 valid XFORWARD command, the server updates XFORWARD attributes with
 the specified values. </p>
 
-<p> When the server uses XFORWARD attributes for logging purposes,
-it must not mix XFORWARD attributes with attributes from the current
-SMTP session.  </p>
+<p> The server must not mix client attributes from XFORWARD with
+client attributes from the current SMTP session. </p>
 
 <p> At the end of each MAIL FROM transaction (i.e. RSET or DOT),
 the server resets all XFORWARD attributes to the undefined state,

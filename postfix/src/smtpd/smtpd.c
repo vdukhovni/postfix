@@ -1763,46 +1763,26 @@ static int mail_open_stream(SMTPD_STATE *state)
 	if (SMTPD_STAND_ALONE(state) == 0) {
 
 	    /*
-	     * Forwarded client attributes. These propagate original client
-	     * information through an SMTP-based content filter, to improve
-	     * the logging from an after-filter MTA.
+	     * Attributes for logging, also used for XFORWARD.
 	     * 
-	     * In the case of a remote submission, send all client attributes,
-	     * including ones with missing values. Otherwise, an unknown
-	     * client hostname would be treated as a non-existent hostname
-	     * (i.e. local submission).
-	     * 
-	     * In the case of a forwarded local submission, specify explicitly
-	     * that the original client attributes are non-existent.
-	     * Otherwise, the real client attributes would be used, and mail
-	     * would appear to come from the content filter.
+	     * We store all client attributes, including ones with unknown
+	     * values. Otherwise, an unknown client hostname would be treated
+	     * as a non-existent hostname (i.e. local submission).
 	     */
-	    if (SMTPD_HAVE_XFORWARD_ATTR(state)) {
-		if (MAIL_ATTR_IS_KNOWN(state->xforward.name)
-		    || MAIL_ATTR_IS_KNOWN(state->xforward.addr)) {
-		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			   MAIL_ATTR_LOG_CLIENT_NAME, state->xforward.name);
-		    /* XXX Backwards compatibility: include IPv6: prefix. */
-		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		       MAIL_ATTR_LOG_CLIENT_ADDR, state->xforward.rfc_addr);
-		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			     MAIL_ATTR_LOG_ORIGIN, state->xforward.namaddr);
-		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			   MAIL_ATTR_LOG_CLIENT_PORT, state->xforward.port);
-		    if (state->xforward.helo_name)
-			rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			MAIL_ATTR_LOG_HELO_NAME, state->xforward.helo_name);
-		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			MAIL_ATTR_LOG_PROTO_NAME, state->xforward.protocol);
-		} else {
-		    /* Local submission. See also qmgr_message_read(). */
-		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-				MAIL_ATTR_LOG_CLIENT_DUMMY, "dummy");
-		}
-	    } else {
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_LOG_CLIENT_NAME, FORWARD_NAME(state));
+	    /* XXX Note: state->rfc_addr, not state->addr. */
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_LOG_CLIENT_ADDR, FORWARD_ADDR(state));
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_LOG_CLIENT_PORT, FORWARD_PORT(state));
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_LOG_ORIGIN, FORWARD_NAMADDR(state));
+	    if (FORWARD_HELO(state))
 		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			    MAIL_ATTR_LOG_ORIGIN, state->namaddr);
-	    }
+			    MAIL_ATTR_LOG_HELO_NAME, FORWARD_HELO(state));
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_LOG_PROTO_NAME, FORWARD_PROTO(state));
 
 	    /*
 	     * Attributes with actual client information. These are used by
@@ -1818,9 +1798,9 @@ static int mail_open_stream(SMTPD_STATE *state)
 			MAIL_ATTR_ACT_CLIENT_NAME, state->name);
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 		    MAIL_ATTR_ACT_REVERSE_CLIENT_NAME, state->reverse_name);
-	    /* XXX Backwards compatibility: include IPv6: prefix. */
+	    /* XXX Note: state->addr, not state->rfc_addr. */
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			MAIL_ATTR_ACT_CLIENT_ADDR, state->rfc_addr);
+			MAIL_ATTR_ACT_CLIENT_ADDR, state->addr);
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			MAIL_ATTR_ACT_CLIENT_PORT, state->port);
 	    if (state->helo_name)

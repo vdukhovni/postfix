@@ -703,8 +703,6 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		    myfree(message->client_helo);
 		message->client_helo = mystrdup(value);
 		have_log_client_attr = 1;
-	    } else if (strcmp(name, MAIL_ATTR_LOG_CLIENT_DUMMY) == 0) {
-		have_log_client_attr = 1;
 	    } else if (strcmp(name, MAIL_ATTR_SASL_METHOD) == 0) {
 		if (message->sasl_method == 0)
 		    message->sasl_method = mystrdup(value);

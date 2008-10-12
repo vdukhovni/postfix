@@ -14669,7 +14669,9 @@ Apologies for any names omitted.
 	from an SMTP-based content filter.  This was fixed with a
 	a minor semantic change to the XFORWARD protocol.  Files:
 	smtpd/smtpd.c, qmqpd/qmqpd.c, smtp/smtp_proto.c,
-	cleanup/cleanup_envelope.c, proto/XFORWARD.html.
+	cleanup/cleanup_envelope.c, proto/XFORWARD.html. Note: the
+	changes to propagate local submission details were undone
+	20082012.
 
 	Feature: a DUNNO lookup result in per_sender_relayhost_maps
 	stops the search without replacing the next-hop destination.
@@ -14715,7 +14717,14 @@ Apologies for any names omitted.
 	Feature: controls for opportunistic TLS protocols and
 	ciphers. The smtp_tls_protocols, smtp_tls_ciphers, and
 	equivalent parameters for lmtp and smtpd provide global
-	settings; The SMTP client TLS policy table provides ciphers
+	settings; the SMTP client TLS policy table provides ciphers
 	and protocols settings for specific peers.  Code by Victor
 	Duchovni. Files: smtp/smtp.c, smtp/smtp_session.c, smtpd/smtpd.c
 	and documentation.
+
+20081012
+
+	Cleanup: simplify the 20081003 changes and don't try to
+	propagate local submission information through XFORWARD.
+	Files: smtpd/smtpd.c, qmqpd/qmqpd.c, smtp/smtp_proto.c,
+	cleanup/cleanup_envelope.c, proto/XFORWARD.html.

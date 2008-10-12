@@ -11,18 +11,15 @@ instead, a new snapshot is released.
 The mail_release_date configuration parameter (format: yyyymmdd)
 specifies the release date of a stable release or snapshot release.
 
-Incompatibility with snapshot 20081003
-======================================
+Major changes with snapshot 20081010
+====================================
 
-This release fixes cosmetic bugs in the way that Postfix propagates
-the origin of email messages through SMTP-based content filters.
-This changes the results of $name expansions by the local(8) and
-pipe(8) delivery agents. With a local submission, the $client_hostname
-etc. attributes now correctly expand into the empty string, instead
-of information about the host that runs the content filter; and
-with a remote submission from a client with an unknown hostname,
-the $client_hostname attribute now correctly expands into "unknown"
-instead of the empty string.
+Controls for the protocols and ciphers that Postfix will use with
+opportunistic TLS. The smtp_tls_protocols, smtp_tls_ciphers, and
+equivalent parameters for lmtp and smtpd provide global settings;
+the SMTP client TLS policy table provides ciphers and protocols
+settings for specific peers.  Code by Victor Duchovni. Details are
+given in the TLS_README and postconf(5) documents.
 
 Incompatibility with snapshot 20080814
 ======================================

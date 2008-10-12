@@ -228,20 +228,29 @@ extern void smtpd_state_reset(SMTPD_STATE *);
 #define SMTPD_CMD_UNKNOWN	"UNKNOWN"
 
  /*
-  * Representation of missing and non-existent client information. Throughout
-  * Postfix, we use the "unknown" string value for missing client information
-  * (e.g., unknown remote client hostname), and we use the empty string or
-  * null pointer for non-existent client information (e.g., no HELO command,
-  * or local submission).
+  * Representation of unknown and non-existent client information. Throughout
+  * Postfix, we use the "unknown" string value for unknown client information
+  * (e.g., unknown remote client hostname), and we use the empty string, null
+  * pointer or "no queue file record" for non-existent client information
+  * (e.g., no HELO command, or local submission).
   * 
-  * When XFORWARD support was introduced with Postfix 2.1, the specification
-  * failed to clearly distinguish between missing and non-existent client
-  * information. This ambiguity affected the implementation: unknown client
-  * hostnames could become empty strings (as if a submission was local), and
-  * local submissions could appear to originate from an SMTP-based content
-  * filter. This was corrected during the Postfix 2.6 development cycle by
-  * introducing one semantic change to the XFORWARD protocol: when both NAME
-  * and ADDR values are [UNAVAILABLE], this is a local submission.
+  * Inside the SMTP server, unknown real client attributes are represented by
+  * the string "unknown", and non-existent HELO is represented as a null
+  * pointer. The SMTP server uses this same representation internally for
+  * forwarded client attributes; the XFORWARD syntax makes no distinction
+  * between unknown (remote submission) and non-existent (local submission).
+  * 
+  * The SMTP client sends forwarded client attributes only when upstream client
+  * attributes exist (i.e. remote submission). Thus, local submissions will
+  * appear to come from an SMTP-based content filter, which is acceptable.
+  * 
+  * Known/unknown client attribute values use the SMTP server's internal
+  * representation in queue files, in queue manager delivery requests, and in
+  * delivery agent $name expansions.
+  * 
+  * Non-existent attribute values are never present in queue files. Non-existent
+  * information is represented as empty strings in queue manager delivery
+  * requests and in delivery agent $name expansions.
   */
 #define CLIENT_ATTR_UNKNOWN	"unknown"
 
@@ -299,34 +308,12 @@ extern void smtpd_peer_reset(SMTPD_STATE *state);
 		    (port), (char *) 0)
 
  /*
-  * Choose between normal or forwarded attributes.
-  * 
-  * Inside the SMTP server, unknown real client attributes are represented by
-  * the string "unknown", and non-existent HELO is represented as a null
-  * pointer. The SMTP server uses this same representation internally for
-  * forwarded client attributes; the XFORWARD syntax makes no distinction
-  * between unknown (remote submission) and non-existent (local submission).
-  * The SMTP server decides between remote and local submission when it
-  * generates queue file records (see below) so that the correct result is
-  * produced with down-stream logging and with $name expansion in delivery
-  * agents.
-  * 
-  * Known/unknown client attribute values use the SMTP server's internal
-  * representation in queue files, in queue manager delivery requests, and in
-  * delivery agent $name expansions.
-  * 
-  * Non-existent attribute values are never present in queue files. The SMTP
-  * server stores a dummy attribute to indicate that no client attributes
-  * exist. Non-existent information is represented as empty strings in queue
-  * manager delivery requests and in delivery agent $name expansions.
-  * 
-  * When forwarding client information, don't mix information from the current
-  * SMTP session with forwarded information from an up-stream session.
+  * Don't mix information from the current SMTP session with forwarded
+  * information from an up-stream session.
   */
-#define SMTPD_HAVE_XFORWARD_ATTR(s) \
-	((s)->xforward.flags & SMTPD_STATE_XFORWARD_INIT)
 #define FORWARD_CLIENT_ATTR(s, a) \
-	(SMTPD_HAVE_XFORWARD_ATTR(s) ? (s)->xforward.a : (s)->a)
+	(((s)->xforward.flags & SMTPD_STATE_XFORWARD_CLIENT_MASK) ? \
+	    (s)->xforward.a : (s)->a)
 
 #define FORWARD_ADDR(s)		FORWARD_CLIENT_ATTR((s), rfc_addr)
 #define FORWARD_NAME(s)		FORWARD_CLIENT_ATTR((s), name)
