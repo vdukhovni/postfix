@@ -4220,6 +4220,30 @@ configuration parameter.  See there for details. </p>
 
 </DD>
 
+<DT><b><a name="lmtp_tls_eccert_file">lmtp_tls_eccert_file</a>
+(default: empty)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_tls_eccert_file">smtp_tls_eccert_file</a> configuration
+parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.6 and later, when Postfix is
+compiled and linked with OpenSSL 0.9.9 or later. </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_tls_eckey_file">lmtp_tls_eckey_file</a>
+(default: empty)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_tls_eckey_file">smtp_tls_eckey_file</a> configuration
+parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.6 and later, when Postfix is
+compiled and linked with OpenSSL 0.9.9 or later. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_tls_enforce_peername">lmtp_tls_enforce_peername</a>
 (default: yes)</b></DT><DD>
 
@@ -8494,8 +8518,23 @@ client uses for TLS encrypted SMTP sessions. </p>
 
 <p> The SASL authentication security options that the Postfix SMTP
 client uses for TLS encrypted SMTP sessions with a verified server
-certificate. This feature is under construction as of Postfix version
-2.3. </p>
+certificate. </p>
+
+<p> When mail is sent to the public MX host for the recipient's
+domain, server certificates are by default optional, and delivery
+proceeds even if certificate verification fails. For delivery via
+a submission service that requires SASL authentication, it may be
+appropriate to send plaintext passwords only when the connection
+to the server is strongly encrypted <b>and</b> the server identity
+is verified. </p>
+
+<p> The <a href="postconf.5.html#smtp_sasl_tls_verified_security_options">smtp_sasl_tls_verified_security_options</a> parameter makes it
+possible to only enable plaintext mechanisms when a secure connection
+to the server is available. Submission servers subject to this
+policy must either have verifiable certificates or offer suitable
+non-plaintext SASL mechanisms. </p>
+
+<p> This feature is available in Postfix 2.6 and later. </p>
 
 
 </DD>
@@ -8667,9 +8706,11 @@ well without them. The recommended setting is to let the defaults stand: </p>
 <blockquote>
 <pre>
 <a href="postconf.5.html#smtp_tls_cert_file">smtp_tls_cert_file</a> =
-<a href="postconf.5.html#smtp_tls_dcert_file">smtp_tls_dcert_file</a> =
 <a href="postconf.5.html#smtp_tls_key_file">smtp_tls_key_file</a> =
+<a href="postconf.5.html#smtp_tls_dcert_file">smtp_tls_dcert_file</a> =
 <a href="postconf.5.html#smtp_tls_dkey_file">smtp_tls_dkey_file</a> =
+<a href="postconf.5.html#smtp_tls_eccert_file">smtp_tls_eccert_file</a> =
+<a href="postconf.5.html#smtp_tls_eckey_file">smtp_tls_eckey_file</a> =
 </pre>
 </blockquote>
 
@@ -8687,9 +8728,9 @@ Create the client.pem file with "cat client_cert.pem intermediate_CA.pem
 root_CA.pem &gt; client.pem". </p>
 
 <p> If you also want to verify remote SMTP server certificates issued by
-these CAs, you can also add the CA certificates to the <a href="postconf.5.html#smtp_tls_CAfile">smtp_tls_CAfile</a>,
-in which case it is not necessary to have them in the <a href="postconf.5.html#smtp_tls_cert_file">smtp_tls_cert_file</a>
-or <a href="postconf.5.html#smtp_tls_dcert_file">smtp_tls_dcert_file</a>. </p>
+these CAs, you can add the CA certificates to the <a href="postconf.5.html#smtp_tls_CAfile">smtp_tls_CAfile</a>, in
+which case it is not necessary to have them in the <a href="postconf.5.html#smtp_tls_cert_file">smtp_tls_cert_file</a>,
+<a href="postconf.5.html#smtp_tls_dcert_file">smtp_tls_dcert_file</a> or <a href="postconf.5.html#smtp_tls_eccert_file">smtp_tls_eccert_file</a>. </p>
 
 <p> A certificate supplied here must be usable as an SSL client certificate
 and hence pass the "openssl verify -purpose sslclient ..." test. </p>
@@ -8781,10 +8822,50 @@ This file may be combined with the Postfix SMTP client DSA certificate
 file specified with $<a href="postconf.5.html#smtp_tls_dcert_file">smtp_tls_dcert_file</a>. </p>
 
 <p> The private key must be accessible without a pass-phrase, i.e. it
-must not be encrypted, but file permissions should grant read/write
-access only to the system superuser account ("root"). </p>
+must not be encrypted. File permissions should grant read-only
+access to the system superuser account ("root"), and no access
+to anyone else. </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_tls_eccert_file">smtp_tls_eccert_file</a>
+(default: empty)</b></DT><DD>
+
+<p> File with the Postfix SMTP client ECDSA certificate in PEM format.
+This file may also contain the Postfix SMTP client ECDSA private key. </p>
+
+<p> See the discussion under <a href="postconf.5.html#smtp_tls_cert_file">smtp_tls_cert_file</a> for more details.
+</p>
+
+<p> Example: </p>
+
+<pre>
+<a href="postconf.5.html#smtp_tls_eccert_file">smtp_tls_eccert_file</a> = /etc/postfix/ecdsa-ccert.pem
+</pre>
+
+<p> This feature is available in Postfix 2.6 and later, when Postfix is
+compiled and linked with OpenSSL 0.9.9 or later. </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_tls_eckey_file">smtp_tls_eckey_file</a>
+(default: $<a href="postconf.5.html#smtp_tls_eccert_file">smtp_tls_eccert_file</a>)</b></DT><DD>
+
+<p> File with the Postfix SMTP client ECDSA private key in PEM format.
+This file may be combined with the Postfix SMTP client ECDSA
+certificate file specified with $<a href="postconf.5.html#smtp_tls_eccert_file">smtp_tls_eccert_file</a>. </p>
+
+<p> The private key must be accessible without a pass-phrase, i.e. it
+must not be encrypted. File permissions should grant read-only
+access to the system superuser account ("root"), and no access
+to anyone else. </p>
+
+<p> This feature is available in Postfix 2.6 and later, when Postfix is
+compiled and linked with OpenSSL 0.9.9 or later. </p>
 
 
 </DD>
@@ -8966,8 +9047,9 @@ This file may be combined with the Postfix SMTP client RSA certificate
 file specified with $<a href="postconf.5.html#smtp_tls_cert_file">smtp_tls_cert_file</a>. </p>
 
 <p> The private key must be accessible without a pass-phrase, i.e. it
-must not be encrypted, but file permissions should grant read/write
-access only to the system superuser account ("root"). </p>
+must not be encrypted. File permissions should grant read-only
+access to the system superuser account ("root"), and no access
+to anyone else. </p>
 
 <p> Example: </p>
 
@@ -12137,10 +12219,83 @@ This file may be combined with the Postfix SMTP server DSA certificate
 file specified with $<a href="postconf.5.html#smtpd_tls_dcert_file">smtpd_tls_dcert_file</a>. </p>
 
 <p> The private key must be accessible without a pass-phrase, i.e. it
-must not be encrypted, but file permissions should grant read/write
-access only to the system superuser account ("root"). </p>
+must not be encrypted. File permissions should grant read-only
+access to the system superuser account ("root"), and no access
+to anyone else. </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_tls_eccert_file">smtpd_tls_eccert_file</a>
+(default: empty)</b></DT><DD>
+
+<p> File with the Postfix SMTP server ECDSA certificate in PEM format.
+This file may also contain the Postfix SMTP server private ECDSA key. </p>
+
+<p> See the discussion under <a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a> for more details. </p>
+
+<p> Example: </p>
+
+<pre>
+<a href="postconf.5.html#smtpd_tls_eccert_file">smtpd_tls_eccert_file</a> = /etc/postfix/ecdsa-scert.pem
+</pre>
+
+<p> This feature is available in Postfix 2.6 and later, when Postfix is
+compiled and linked with OpenSSL 0.9.9 or later. </p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_tls_eckey_file">smtpd_tls_eckey_file</a>
+(default: $<a href="postconf.5.html#smtpd_tls_eccert_file">smtpd_tls_eccert_file</a>)</b></DT><DD>
+
+<p> File with the Postfix SMTP server ECDSA private key in PEM format.
+This file may be combined with the Postfix SMTP server ECDSA certificate
+file specified with $<a href="postconf.5.html#smtpd_tls_eccert_file">smtpd_tls_eccert_file</a>. </p>
+
+<p> The private key must be accessible without a pass-phrase, i.e. it
+must not be encrypted. File permissions should grant read-only
+access to the system superuser account ("root"), and no access
+to anyone else. </p>
+
+<p> This feature is available in Postfix 2.6 and later, when Postfix is
+compiled and linked with OpenSSL 0.9.9 or later. </p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_tls_eecdh_grade">smtpd_tls_eecdh_grade</a>
+(default: see "postconf -d" output)</b></DT><DD>
+
+<p> The Postfix SMTP server security grade for ephemeral elliptic-curve
+Diffie-Hellman (EECDH) key exchange. </p>
+
+<p> The available choices are: </p>
+
+<dl>
+
+<dt><b>none</b></dt> <dd> Don't use EECDH. Ciphers based on EECDH key
+exchange will be disabled. This is the default in official Postfix
+releases (<a href="postconf.5.html#mail_version">mail_version</a> = major.minor.patchlevel). </dd>
+
+<dt><b>strong</b></dt> <dd> Use EECDH with approximately 128
+bits of security at a reasonable computational cost. This is the
+current best-practice trade-off between security and computational
+efficiency. This is the default in Postfix snapshot releases
+(<a href="postconf.5.html#mail_version">mail_version</a> = major.minor-releasedate). </dd>
+
+<dt><b>ultra</b></dt> <dd> Use EECDH with approximately 192 bits of
+security at computational cost that is approximately twice as high
+as 128 bit strength ECC. Barring significant progress in attacks on
+elliptic curve crypto-systems, the "strong" curve is sufficient for most
+users. </dd>
+
+</dl>
+
+<p> This feature is available in Postfix 2.6 and later, when it is
+compiled and linked with OpenSSL 0.9.9 or later. </p>
 
 
 </DD>
@@ -12251,8 +12406,9 @@ This file may be combined with the Postfix SMTP server RSA certificate
 file specified with $<a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a>. </p>
 
 <p> The private key must be accessible without a pass-phrase, i.e. it
-must not be encrypted, but file permissions should grant read/write
-access only to the system superuser account ("root"). </p>
+must not be encrypted. File permissions should grant read-only
+access to the system superuser account ("root"), and no access
+to anyone else. </p>
 
 
 </DD>
@@ -12868,6 +13024,57 @@ bytes (equivalent to 256 bits) is sufficient to generate a 128bit
 (or 168bit) session key. </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
+
+
+</DD>
+
+<DT><b><a name="tls_eecdh_strong_curve">tls_eecdh_strong_curve</a>
+(default: prime256v1)</b></DT><DD>
+
+<p> The elliptic curve used by the SMTP server for sensibly strong
+ephemeral ECDH key exchange. This curve is used by the Postfix SMTP
+server when "<a href="postconf.5.html#smtpd_tls_eecdh_grade">smtpd_tls_eecdh_grade</a> = strong". The phrase "sensibly
+strong" means approximately 128-bit security based on best known
+attacks. The selected curve must be implemented by OpenSSL (as
+reported by ecparam(1) with the "-list_curves" option) and be one
+of the curves listed in Section 5.1.1 of <a href="http://tools.ietf.org/html/rfc4492">RFC 4492</a>. You should not
+generally change this setting. </p>
+
+<p> This default curve is specified in NSA "Suite B" Cryptography
+(see <a href="http://www.nsa.gov/ia/industry/crypto_suite_b.cfm">http://www.nsa.gov/ia/industry/crypto_suite_b.cfm</a>) for
+information classified as SECRET. </p>
+
+<p> Note: elliptic curve names are poorly standardized; different
+standards groups are assigning different names to the same underlying
+curves.  The curve with the X9.62 name "prime256v1" is also known
+under the SECG name "secp256r1", but OpenSSL does not recognize the
+latter name. </p>
+
+<p> This feature is available in Postfix 2.6 and later, when it is
+compiled and linked with OpenSSL 0.9.9 or later. </p>
+
+
+</DD>
+
+<DT><b><a name="tls_eecdh_ultra_curve">tls_eecdh_ultra_curve</a>
+(default: secp384r1)</b></DT><DD>
+
+<p> The elliptic curve used by the SMTP server for maximally strong
+ephemeral ECDH key exchange. This curve is used by the Postfix SMTP
+server when "<a href="postconf.5.html#smtpd_tls_eecdh_grade">smtpd_tls_eecdh_grade</a> = ultra". The phrase "maximally
+strong" means approximately 192-bit security based on best known attacks.
+This additional strength comes at a significant computational cost, most
+users should instead set "<a href="postconf.5.html#smtpd_tls_eecdh_grade">smtpd_tls_eecdh_grade</a> = strong".  The selected
+curve must be implemented by OpenSSL (as reported by ecparam(1) with the
+"-list_curves" option) and be one of the curves listed in Section 5.1.1
+of <a href="http://tools.ietf.org/html/rfc4492">RFC 4492</a>. You should not generally change this setting. </p>
+
+<p> This default "ultra" curve is specified in NSA "Suite B" Cryptography
+(see <a href="http://www.nsa.gov/ia/industry/crypto_suite_b.cfm">http://www.nsa.gov/ia/industry/crypto_suite_b.cfm</a>) for information
+classified as TOP SECRET. </p>
+
+<p> This feature is available in Postfix 2.6 and later, when it is
+compiled and linked with OpenSSL 0.9.9 or later. </p>
 
 
 </DD>

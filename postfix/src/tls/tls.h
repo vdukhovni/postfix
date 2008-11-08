@@ -97,7 +97,6 @@ typedef struct {
     char   *cache_type;			/* tlsmgr(8) cache type if enabled */
     char   *serverid;			/* unique server identifier */
     char   *namaddr;			/* nam[addr] for logging */
-    int     tls_level;			/* Application security level */
     int     log_level;			/* TLS library logging level */
     int     session_reused;		/* this session was reused */
     int     am_server;			/* Are we an SSL server or client? */
@@ -196,6 +195,8 @@ typedef struct {
     const char *key_file;
     const char *dcert_file;
     const char *dkey_file;
+    const char *eccert_file;
+    const char *eckey_file;
     const char *CAfile;
     const char *CApath;
     const char *fpt_dgst;		/* Fingerprint digest algorithm */
@@ -225,10 +226,11 @@ extern TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *);
 	tls_session_stop(ctx, (stream), (timeout), (failure), (TLScontext))
 
 #define TLS_CLIENT_INIT(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
-    a10) \
+    a10, a11, a12) \
     tls_client_init((((props)->a1), ((props)->a2), ((props)->a3), \
     ((props)->a4), ((props)->a5), ((props)->a6), ((props)->a7), \
-    ((props)->a8), ((props)->a9), ((props)->a10), (props)))
+    ((props)->a8), ((props)->a9), ((props)->a10), ((props)->a11), \
+    ((props)->a12), (props)))
 
 #define TLS_CLIENT_START(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
     a10, a11, a12, a13, a14) \
@@ -250,9 +252,12 @@ typedef struct {
     const char *key_file;
     const char *dcert_file;
     const char *dkey_file;
+    const char *eccert_file;
+    const char *eckey_file;
     const char *CAfile;
     const char *CApath;
     const char *protocols;
+    const char *eecdh_grade;
     const char *dh1024_param_file;
     const char *dh512_param_file;
     int     ask_ccert;
@@ -279,12 +284,12 @@ extern TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props);
 	tls_session_stop(ctx, (stream), (timeout), (failure), (TLScontext))
 
 #define TLS_SERVER_INIT(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
-    a10, a11, a12, a13, a14, a15, a16) \
+    a10, a11, a12, a13, a14, a15, a16, a17, a18, a19) \
     tls_server_init((((props)->a1), ((props)->a2), ((props)->a3), \
     ((props)->a4), ((props)->a5), ((props)->a6), ((props)->a7), \
     ((props)->a8), ((props)->a9), ((props)->a10), ((props)->a11), \
     ((props)->a12), ((props)->a13), ((props)->a14), ((props)->a15), \
-    ((props)->a16), (props)))
+    ((props)->a16), ((props)->a17), ((props)->a18), ((props)->a19), (props)))
 
 #define TLS_SERVER_START(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) \
     tls_server_start((((props)->a1), ((props)->a2), ((props)->a3), \
@@ -340,9 +345,9 @@ extern int tls_bio(int, int, TLS_SESS_STATE *,
  /*
   * tls_dh.c
   */
-extern void tls_set_dh_1024_from_file(const char *);
-extern void tls_set_dh_512_from_file(const char *);
+extern void tls_set_dh_from_file(const char *, int);
 extern DH *tls_tmp_dh_cb(SSL *, int, int);
+extern int tls_set_eecdh_curve(SSL_CTX *, const char *);
 
  /*
   * tls_rsa.c
@@ -362,10 +367,10 @@ extern int tls_verify_certificate_callback(int, X509_STORE_CTX *);
   * tls_certkey.c
   */
 extern int tls_set_ca_certificate_info(SSL_CTX *, const char *, const char *);
-extern int tls_set_my_certificate_key_info(SSL_CTX *, const char *,
-					           const char *,
-					           const char *,
-					           const char *);
+extern int tls_set_my_certificate_key_info(SSL_CTX *,
+				       /* RSA */ const char *, const char *,
+				       /* DSA */ const char *, const char *,
+				    /* ECDSA */ const char *, const char *);
 
  /*
   * tls_misc.c

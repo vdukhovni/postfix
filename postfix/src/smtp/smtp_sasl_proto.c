@@ -183,11 +183,9 @@ int     smtp_sasl_helo_login(SMTP_STATE *state)
 	if (session->tls_context == 0)
 	    smtp_sasl_start(session, VAR_SMTP_SASL_OPTS,
 			    var_smtp_sasl_opts);
-#ifdef SNAPSHOT					/* XXX: Not yet */
 	else if (TLS_CERT_IS_MATCHED(session->tls_context))
 	    smtp_sasl_start(session, VAR_SMTP_SASL_TLSV_OPTS,
 			    var_smtp_sasl_tlsv_opts);
-#endif
 	else
 	    smtp_sasl_start(session, VAR_SMTP_SASL_TLS_OPTS,
 			    var_smtp_sasl_tls_opts);

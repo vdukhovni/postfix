@@ -12,6 +12,8 @@
 /*	char	*var_tls_low_clist;
 /*	char	*var_tls_export_clist;
 /*	char	*var_tls_null_clist;
+/*	char	*var_tls_eecdh_strong;
+/*	char	*var_tls_eecdh_ultra;
 /*	int	var_tls_daemon_rand_bytes;
 /*
 /*	TLS_APPL_STATE *tls_alloc_app_context(ssl_ctx)
@@ -175,7 +177,7 @@
 #define TLS_INTERNAL
 #include <tls.h>
 
-/* Application-specific. */
+ /* Application-specific. */
 
  /*
   * Tunable parameters.
@@ -186,6 +188,8 @@ char   *var_tls_low_clist;
 char   *var_tls_export_clist;
 char   *var_tls_null_clist;
 int     var_tls_daemon_rand_bytes;
+char   *var_tls_eecdh_strong;
+char   *var_tls_eecdh_ultra;
 
  /*
   * Index to attach TLScontext pointers to SSL objects, so that they can be
@@ -395,6 +399,8 @@ void    tls_param_init(void)
 	VAR_TLS_LOW_CLIST, DEF_TLS_LOW_CLIST, &var_tls_low_clist, 1, 0,
 	VAR_TLS_EXPORT_CLIST, DEF_TLS_EXPORT_CLIST, &var_tls_export_clist, 1, 0,
 	VAR_TLS_NULL_CLIST, DEF_TLS_NULL_CLIST, &var_tls_null_clist, 1, 0,
+	VAR_TLS_EECDH_STRONG, DEF_TLS_EECDH_STRONG, &var_tls_eecdh_strong, 1, 0,
+	VAR_TLS_EECDH_ULTRA, DEF_TLS_EECDH_ULTRA, &var_tls_eecdh_ultra, 1, 0,
 	0,
     };
     static const CONFIG_INT_TABLE int_table[] = {

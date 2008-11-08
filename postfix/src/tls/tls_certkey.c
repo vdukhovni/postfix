@@ -13,12 +13,15 @@
 /*	const char *CApath;
 /*
 /*	int	tls_set_my_certificate_key_info(ctx, cert_file, key_file,
-/*						dcert_file, dkey_file)
+/*						dcert_file, dkey_file,
+/*						eccert_file, eckey_file)
 /*	SSL_CTX	*ctx;
 /*	const char *cert_file;
 /*	const char *key_file;
 /*	const char *dcert_file;
 /*	const char *dkey_file;
+/*	const char *eccert_file;
+/*	const char *eckey_file;
 /* DESCRIPTION
 /*	OpenSSL supports two options to specify CA certificates:
 /*	either one file CAfile that contains all CA certificates,
@@ -32,10 +35,10 @@
 /*	The result is -1 on failure, 0 on success.
 /*
 /*	tls_set_my_certificate_key_info() loads the public key
-/*	certificate and private key for the specified TLS server
-/*      or client context. The key file and certificate file may
-/*	be the same file; the certificate and key must match.
-/*	The result is -1 on failure, 0 on success.
+/*	certificates and private keys for the specified TLS server
+/*	or client context. Up to 3 pairs of key pairs (RSA, DSA and
+/*	ECDSA) may be specified; each certificate and key pair must
+/*	match.  The result is -1 on failure, 0 on success.
 /* LICENSE
 /* .ad
 /* .fi
@@ -83,12 +86,14 @@ int     tls_set_ca_certificate_info(SSL_CTX *ctx, const char *CAfile,
 	CApath = 0;
     if (CAfile || CApath) {
 	if (!SSL_CTX_load_verify_locations(ctx, CAfile, CApath)) {
-	    msg_info("cannot load Certificate Authority data");
+	    msg_info("cannot load Certificate Authority data: "
+		     "disabling TLS support");
 	    tls_print_errors();
 	    return (-1);
 	}
 	if (!SSL_CTX_set_default_verify_paths(ctx)) {
-	    msg_info("cannot set certificate verification paths");
+	    msg_info("cannot set certificate verification paths: "
+		     "disabling TLS support");
 	    tls_print_errors();
 	    return (-1);
 	}
@@ -98,7 +103,8 @@ int     tls_set_ca_certificate_info(SSL_CTX *ctx, const char *CAfile,
 
 /* set_cert_stuff - specify certificate and key information */
 
-static int set_cert_stuff(SSL_CTX *ctx, const char *cert_file,
+static int set_cert_stuff(SSL_CTX *ctx, const char *cert_type,
+			          const char *cert_file,
 			          const char *key_file)
 {
 
@@ -108,13 +114,16 @@ static int set_cert_stuff(SSL_CTX *ctx, const char *cert_file,
      * 
      * Code adapted from OpenSSL apps/s_cb.c.
      */
+    ERR_clear_error();
     if (SSL_CTX_use_certificate_chain_file(ctx, cert_file) <= 0) {
-	msg_warn("cannot get certificate from file %s", cert_file);
+	msg_warn("cannot get %s certificate from file %s: "
+		 "disabling TLS support", cert_type, cert_file);
 	tls_print_errors();
 	return (0);
     }
     if (SSL_CTX_use_PrivateKey_file(ctx, key_file, SSL_FILETYPE_PEM) <= 0) {
-	msg_warn("cannot get private key from file %s", key_file);
+	msg_warn("cannot get %s private key from file %s: "
+		 "disabling TLS support", cert_type, key_file);
 	tls_print_errors();
 	return (0);
     }
@@ -123,44 +132,40 @@ static int set_cert_stuff(SSL_CTX *ctx, const char *cert_file,
      * Sanity check.
      */
     if (!SSL_CTX_check_private_key(ctx)) {
-	msg_warn("private key in %s does not match public key certificate in %s",
-		 key_file, cert_file);
+	msg_warn("%s private key in %s does not match public key in %s: "
+		 "disabling TLS support", cert_type, key_file, cert_file);
 	return (0);
     }
     return (1);
 }
 
-/* tls_set_my_certificate_key_info - load client or server certificate/key */
+/* tls_set_my_certificate_key_info - load client or server certificates/keys */
 
 int     tls_set_my_certificate_key_info(SSL_CTX *ctx,
-			        const char *cert_file, const char *key_file,
-		              const char *dcert_file, const char *dkey_file)
+					        const char *cert_file,
+					        const char *key_file,
+					        const char *dcert_file,
+					        const char *dkey_file,
+					        const char *eccert_file,
+					        const char *eckey_file)
 {
 
     /*
      * Lack of certificates is fine so long as we are prepared to use
      * anonymous ciphers.
      */
-#if 0
-    if (*cert_file == 0 && *dcert_file == 0) {
-	msg_warn("need an RSA or DSA certificate/key pair");
-	return (-1);
-    }
+    if (*cert_file && !set_cert_stuff(ctx, "RSA", cert_file, key_file))
+	return (-1);			/* logged */
+    if (*dcert_file && !set_cert_stuff(ctx, "DSA", dcert_file, dkey_file))
+	return (-1);				/* logged */
+#if OPENSSL_VERSION_NUMBER >= 0x00909000 && !defined(OPENSSL_NO_ECDH)
+    if (*eccert_file && !set_cert_stuff(ctx, "ECDSA", eccert_file, eckey_file))
+	return (-1);				/* logged */
+#else
+    if (*eccert_file)
+	msg_warn("ECDSA not supported. Ignoring ECDSA certificate file \"%s\"",
+		 eccert_file);
 #endif
-    if (*cert_file) {
-	if (!set_cert_stuff(ctx, cert_file, *key_file ? key_file : cert_file)) {
-	    msg_info("cannot load RSA certificate and key data");
-	    tls_print_errors();
-	    return (-1);
-	}
-    }
-    if (*dcert_file) {
-	if (!set_cert_stuff(ctx, dcert_file, *dkey_file ? dkey_file : dcert_file)) {
-	    msg_info("cannot load DSA certificate and key data");
-	    tls_print_errors();
-	    return (-1);
-	}
-    }
     return (0);
 }
 

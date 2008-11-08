@@ -415,18 +415,22 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
      * 
      * Load the client public key certificate and private key from file and
      * check whether the cert matches the key. We can use RSA certificates
-     * ("cert") and DSA certificates ("dcert"), both can be made available at
-     * the same time. The CA certificates for both are handled in the same
-     * setup already finished. Which one is used depends on the cipher
-     * negotiated (that is: the first cipher listed by the client which does
-     * match the server). A client with RSA only (e.g. Netscape) will use the
-     * RSA certificate only. A client with openssl-library will use RSA first
-     * if not especially changed in the cipher setup.
+     * ("cert") DSA certificates ("dcert") or ECDSA certificates ("eccert").
+     * All three can be made available at the same time. The CA certificates
+     * for all three are handled in the same setup already finished. Which
+     * one is used depends on the cipher negotiated (that is: the first
+     * cipher listed by the client which does match the server). The client
+     * certificate is presented after the server chooses the session cipher,
+     * so we will just present the right cert for the chosen cipher (if it
+     * uses certificates).
      */
-    if ((*props->cert_file != 0 || *props->dcert_file != 0)
-	&& tls_set_my_certificate_key_info(client_ctx, props->cert_file,
-					 props->key_file, props->dcert_file,
-					   props->dkey_file) < 0) {
+    if (tls_set_my_certificate_key_info(client_ctx,
+					props->cert_file,
+					props->key_file,
+					props->dcert_file,
+					props->dkey_file,
+					props->eccert_file,
+					props->eckey_file) < 0) {
 	/* tls_set_my_certificate_key_info() already logs a warning. */
 	SSL_CTX_free(client_ctx);		/* 200411 */
 	return (0);

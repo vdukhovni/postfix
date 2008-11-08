@@ -392,6 +392,19 @@
 /* .IP "\fBsmtpd_tls_ciphers (export)\fR"
 /*	The minimum TLS cipher grade that the Postfix SMTP server
 /*	will use with opportunistic TLS encryption.
+/* .IP "\fBsmtpd_tls_eccert_file (empty)\fR"
+/*	File with the Postfix SMTP server ECDSA certificate in PEM format.
+/* .IP "\fBsmtpd_tls_eckey_file ($smtpd_tls_eccert_file)\fR"
+/*	File with the Postfix SMTP server ECDSA private key in PEM format.
+/* .IP "\fBsmtpd_tls_eecdh_grade (see 'postconf -d' output)\fR"
+/*	The Postfix SMTP server security grade for ephemeral elliptic-curve
+/*	Diffie-Hellman (EECDH) key exchange.
+/* .IP "\fBtls_eecdh_strong_curve (prime256v1)\fR"
+/*	The elliptic curve used by the SMTP server for sensibly strong
+/*	ephemeral ECDH key exchange.
+/* .IP "\fBtls_eecdh_ultra_curve (secp384r1)\fR"
+/*	The elliptic curve used by the SMTP server for maximally strong
+/*	ephemeral ECDH key exchange.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -1150,6 +1163,9 @@ bool    var_smtpd_tls_set_sessid;
 char   *var_smtpd_tls_fpt_dgst;
 char   *var_smtpd_tls_ciph;
 char   *var_smtpd_tls_proto;
+char   *var_smtpd_tls_eecdh;
+char   *var_smtpd_tls_eccert_file;
+char   *var_smtpd_tls_eckey_file;
 
 #endif
 
@@ -4646,7 +4662,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 		cert_file = var_smtpd_tls_cert_file;
 	    }
 	    havecert =
-		(*cert_file || *var_smtpd_tls_dcert_file);
+		(*cert_file || *var_smtpd_tls_dcert_file || *var_smtpd_tls_eccert_file);
 
 	    /* Some TLS configuration errors are not show stoppers. */
 	    if (!havecert && wantcert)
@@ -4673,16 +4689,19 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 				    key_file = var_smtpd_tls_key_file,
 				    dcert_file = var_smtpd_tls_dcert_file,
 				    dkey_file = var_smtpd_tls_dkey_file,
+				    eccert_file = var_smtpd_tls_eccert_file,
+				    eckey_file = var_smtpd_tls_eckey_file,
 				    CAfile = var_smtpd_tls_CAfile,
 				    CApath = var_smtpd_tls_CApath,
 				    dh1024_param_file
 				    = var_smtpd_tls_dh1024_param_file,
 				    dh512_param_file
 				    = var_smtpd_tls_dh512_param_file,
+				    eecdh_grade = var_smtpd_tls_eecdh,
 				    protocols = enforce_tls ?
 				    var_smtpd_tls_mand_proto :
 				    var_smtpd_tls_proto,
-				    ask_ccert = var_smtpd_tls_ask_ccert,
+				    ask_ccert = wantcert,
 				    fpt_dgst = var_smtpd_tls_fpt_dgst);
 	    else
 		msg_warn("No server certs available. TLS won't be enabled");
@@ -4908,6 +4927,8 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_TLS_KEY_FILE, DEF_SMTPD_TLS_KEY_FILE, &var_smtpd_tls_key_file, 0, 0,
 	VAR_SMTPD_TLS_DCERT_FILE, DEF_SMTPD_TLS_DCERT_FILE, &var_smtpd_tls_dcert_file, 0, 0,
 	VAR_SMTPD_TLS_DKEY_FILE, DEF_SMTPD_TLS_DKEY_FILE, &var_smtpd_tls_dkey_file, 0, 0,
+	VAR_SMTPD_TLS_ECCERT_FILE, DEF_SMTPD_TLS_ECCERT_FILE, &var_smtpd_tls_eccert_file, 0, 0,
+	VAR_SMTPD_TLS_ECKEY_FILE, DEF_SMTPD_TLS_ECKEY_FILE, &var_smtpd_tls_eckey_file, 0, 0,
 	VAR_SMTPD_TLS_CA_FILE, DEF_SMTPD_TLS_CA_FILE, &var_smtpd_tls_CAfile, 0, 0,
 	VAR_SMTPD_TLS_CA_PATH, DEF_SMTPD_TLS_CA_PATH, &var_smtpd_tls_CApath, 0, 0,
 	VAR_SMTPD_TLS_CIPH, DEF_SMTPD_TLS_CIPH, &var_smtpd_tls_ciph, 1, 0,
@@ -4918,6 +4939,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_TLS_MAND_PROTO, DEF_SMTPD_TLS_MAND_PROTO, &var_smtpd_tls_mand_proto, 0, 0,
 	VAR_SMTPD_TLS_512_FILE, DEF_SMTPD_TLS_512_FILE, &var_smtpd_tls_dh512_param_file, 0, 0,
 	VAR_SMTPD_TLS_1024_FILE, DEF_SMTPD_TLS_1024_FILE, &var_smtpd_tls_dh1024_param_file, 0, 0,
+	VAR_SMTPD_TLS_EECDH, DEF_SMTPD_TLS_EECDH, &var_smtpd_tls_eecdh, 1, 0,
 	VAR_SMTPD_TLS_FPT_DGST, DEF_SMTPD_TLS_FPT_DGST, &var_smtpd_tls_fpt_dgst, 1, 0,
 #endif
 	VAR_SMTPD_TLS_LEVEL, DEF_SMTPD_TLS_LEVEL, &var_smtpd_tls_level, 0, 0,

@@ -422,6 +422,10 @@ or include with opportunistic TLS encryption.
 .IP "\fBsmtp_tls_ciphers (export)\fR"
 The minimum TLS cipher grade that the Postfix SMTP client
 will use with opportunistic TLS encryption.
+.IP "\fBsmtp_tls_eccert_file (empty)\fR"
+File with the Postfix SMTP client ECDSA certificate in PEM format.
+.IP "\fBsmtp_tls_eckey_file ($smtp_tls_eccert_file)\fR"
+File with the Postfix SMTP client ECDSA private key in PEM format.
 .SH "OBSOLETE STARTTLS CONTROLS"
 .na
 .nf

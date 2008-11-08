@@ -153,12 +153,12 @@ administrator explicitly sets "smtpd_tls_cert_file = none". This ensures that
 new Postfix SMTP server configurations will not accidentally run with no
 certificates.
 
-Both RSA and DSA certificates are supported. Typically you will only have RSA
-certificates issued by a commercial CA. In addition, the tools supplied with
-OpenSSL will by default issue RSA certificates. You can have both at the same
-time, in which case the cipher used determines which certificate is presented.
-For Netscape and OpenSSL clients without special cipher choices, the RSA
-certificate is preferred.
+RSA, DSA and ECDSA (Postfix >= 2.6) certificates are supported. Typically you
+will only have RSA certificates issued by a commercial CA. In addition, the
+tools supplied with OpenSSL will by default issue RSA certificates. You can
+configure all three at the same time, in which case the cipher used determines
+which certificate is presented. For Netscape and OpenSSL clients without
+special cipher choices, the RSA certificate is preferred.
 
 In order for remote SMTP clients to check the Postfix SMTP server certificates,
 the CA certificate (in case of a certificate chain, all CA certificates) must
@@ -194,8 +194,17 @@ Their DSA counterparts:
         smtpd_tls_dcert_file = /etc/postfix/server-dsa.pem
         smtpd_tls_dkey_file = $smtpd_tls_dcert_file
 
-Postfix 2.3 and later, TLS without certificates for servers serving exclusively
-anonymous-cipher capable clients:
+Their ECDSA counterparts (Postfix >= 2.6 + OpenSSL >= 0.9.9):
+
+    /etc/postfix/main.cf:
+        # Most clients will not be ECDSA capable, so you will likely also need
+        # an RSA or DSA certificate and private key.
+        #
+        smtpd_tls_eccert_file = /etc/postfix/server-ecdsa.pem
+        smtpd_tls_eckey_file = $smtpd_tls_eccert_file
+
+TLS without certificates for servers serving exclusively anonymous-cipher
+capable clients:
 
     /etc/postfix/main.cf:
         smtpd_tls_cert_file = none
@@ -512,8 +521,8 @@ The Postfix SMTP server supports 5 distinct cipher security levels as specified
 by the smtpd_tls_mandatory_ciphers configuration parameter, which determines
 the cipher grade with mandatory TLS encryption. The default value is "medium"
 which is essentially 128-bit encryption or better. With opportunistic TLS
-encryption, the minimum accepted cipher grade is typically "export". Postfix >=
-2.6 has a corresponding smtpd_tls_ciphers parameter which controls the cipher
+encryption, the minimum accepted cipher grade is typically "export". The
+corresponding smtpd_tls_ciphers parameter (Postfix >= 2.6) controls the cipher
 grade used with opportunistic TLS.
 
 By default anonymous ciphers are enabled. They are automatically disabled when
@@ -524,22 +533,22 @@ anonymous ciphers by setting "smtpd_tls_mandatory_exclude_ciphers = aNULL" or
 SMTP client to check the server certificate, so excluding anonymous ciphers is
 generally unnecessary.
 
-The "smtpd_tls_ciphers" (Postfix >= 2.6) configuration parameter provides
+The "smtpd_tls_ciphers" configuration parameter (Postfix >= 2.6) provides
 control over the minimum cipher grade for opportunistic TLS. With Postfix <
 2.6, the minimum opportunistic TLS cipher grade is always "export".
 
 With mandatory TLS encryption, the Postfix SMTP server will by default only use
 SSLv3 or TLSv1. SSLv2 is only used when TLS encryption is optional. The
 mandatory TLS protocol list is specified via the smtpd_tls_mandatory_protocols
-configuration parameter. Postfix >= 2.6 has a corresponding smtpd_tls_protocols
-parameter which controls the SSL/TLS protocols used with opportunistic TLS.
+configuration parameter. The corresponding smtpd_tls_protocols parameter
+(Postfix >= 2.6) controls the SSL/TLS protocols used with opportunistic TLS.
 
 For a server that is not a public Internet MX host, Postfix (>= 2.3) supports
 configurations with no server certificates that use oonnllyy the anonymous ciphers.
 This is enabled by explicitly setting "smtpd_tls_cert_file = none" and not
-specifying an smtpd_tls_dcert_file.
+specifying an smtpd_tls_dcert_file or smtpd_tls_eccert_file.
 
-Example: (MSA that requires TLS with high grade ciphers)
+Example, MSA that requires TLSv1, not SSLv2 or SSLv3, with high grade ciphers:
 
     /etc/postfix/main.cf:
         smtpd_tls_cert_file = /etc/postfix/cert.pem
@@ -565,11 +574,19 @@ To generate your own set of DH parameters, use:
     % ooppeennssssll ggeennddhh --oouutt //eettcc//ppoossttffiixx//ddhh__551122..ppeemm --22 551122
     % ooppeennssssll ggeennddhh --oouutt //eettcc//ppoossttffiixx//ddhh__11002244..ppeemm --22 11002244
 
+Support for elliptic curve cryptography is available with Postfix 2.6 and
+OpenSSL 0.9.9 or later. To enable ephemeral elliptic curve Diffie-Hellman
+(EECDH) key-exchange, set "smtpd_tls_eecdh_grade = strong" or
+"smtpd_tls_eecdh_grade = ultra". The "ultra" setting is substantially more CPU
+intensive, and "strong" is sufficiently secure for most situations.
+
 Examples:
 
     /etc/postfix/main.cf:
         smtpd_tls_dh1024_param_file = /etc/postfix/dh_1024.pem
         smtpd_tls_dh512_param_file = /etc/postfix/dh_512.pem
+        # Postfix >= 2.6:
+        smtpd_tls_eecdh_grade = strong
 
 MMiisscceellllaanneeoouuss sseerrvveerr ccoonnttrroollss
 
@@ -634,6 +651,9 @@ them. The recommended setting is to let the defaults stand:
         smtp_tls_dcert_file =
         smtp_tls_key_file =
         smtp_tls_dkey_file =
+        # Postfix >= 2.6
+        smtp_tls_eccert_file =
+        smtp_tls_eckey_file =
 
 The best way to use the default settings is to comment out the above parameters
 in main.cf if present.
@@ -646,8 +666,9 @@ the "SSL_connect()" function from the OpenSSL package, this is not possible and
 we have to choose just one certificate. So for now the default is to use _no_
 certificate and key unless one is explicitly specified here.
 
-Both RSA and DSA certificates are supported. You can have both at the same
-time, in which case the cipher used determines which certificate is presented.
+RSA, DSA and ECDSA (Postfix >= 2.6) certificates are supported. You can
+configure all three at the same time, in which case the cipher used determines
+which certificate is presented.
 
 It is possible for the Postfix SMTP client to use the same key/certificate pair
 as the Postfix SMTP server. If a certificate is to be presented, it must be in
@@ -688,6 +709,12 @@ Their DSA counterparts:
     /etc/postfix/main.cf:
         smtp_tls_dcert_file = /etc/postfix/client-dsa.pem
         smtp_tls_dkey_file = $smtp_tls_dcert_file
+
+Their ECDSA counterparts (Postfix >= 2.6 + OpenSSL >= 0.9.9):
+
+    /etc/postfix/main.cf:
+        smtp_tls_eccert_file = /etc/postfix/client-ecdsa.pem
+        smtp_tls_eckey_file = $smtp_tls_eccert_file
 
 To verify a remote SMTP server certificate, the Postfix SMTP client needs to
 trust the certificates of the issuing certification authorities. These
@@ -902,11 +929,11 @@ opportunistic TLS can be configured by setting "smtp_tls_security_level = may".
 
 Since sending in the clear is acceptable, demanding stronger than default TLS
 security mostly reduces inter-operability. If you must restrict TLS protocol or
-cipher selection even with opportunistic TLS, the Postfix >= 2.6
-"smtp_tls_ciphers" and "smtp_tls_protocols" configuration parameters provide
-control over the protocols and cipher grade used with opportunistic TLS. With
-earlier releases the opportunistic TLS cipher grade is always "export" and no
-protocols are disabled.
+cipher selection even with opportunistic TLS, the "smtp_tls_ciphers" and
+"smtp_tls_protocols" configuration parameters (Postfix >= 2.6) provide control
+over the protocols and cipher grade used with opportunistic TLS. With earlier
+releases the opportunistic TLS cipher grade is always "export" and no protocols
+are disabled.
 
 With Postfix 2.2 and earlier, or when smtp_tls_security_level is set to its
 default (backwards compatible) empty value, the appropriate configuration
@@ -1649,15 +1676,15 @@ generally no need to take these measures. Anonymous ciphers save bandwidth and
 TLS session cache space, if certificates are ignored, there is little point in
 requesting them.
 
-The "smtp_tls_ciphers" (Postfix >= 2.6) configuration parameter provides
+The "smtp_tls_ciphers" configuration parameter (Postfix >= 2.6) provides
 control over the minimum cipher grade for opportunistic TLS. With Postfix <
 2.6, the minimum opportunistic TLS cipher grade is always "export".
 
 With mandatory TLS encryption, the Postfix SMTP client will by default only use
 SSLv3 or TLSv1. SSLv2 is only used when TLS encryption is optional. The
 mandatory TLS protocol list is specified via the smtp_tls_mandatory_protocols
-configuration parameter. Postfix >= 2.6 has a corresponding smtp_tls_protocols
-parameter which controls the SSL/TLS protocols used with opportunistic TLS.
+configuration parameter. The corresponding smtp_tls_protocols parameter
+(Postfix >= 2.6) controls the SSL/TLS protocols used with opportunistic TLS.
 
 Example:
 

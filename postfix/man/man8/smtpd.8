@@ -424,6 +424,19 @@ or include with opportunistic TLS encryption.
 .IP "\fBsmtpd_tls_ciphers (export)\fR"
 The minimum TLS cipher grade that the Postfix SMTP server
 will use with opportunistic TLS encryption.
+.IP "\fBsmtpd_tls_eccert_file (empty)\fR"
+File with the Postfix SMTP server ECDSA certificate in PEM format.
+.IP "\fBsmtpd_tls_eckey_file ($smtpd_tls_eccert_file)\fR"
+File with the Postfix SMTP server ECDSA private key in PEM format.
+.IP "\fBsmtpd_tls_eecdh_grade (see 'postconf -d' output)\fR"
+The Postfix SMTP server security grade for ephemeral elliptic-curve
+Diffie-Hellman (EECDH) key exchange.
+.IP "\fBtls_eecdh_strong_curve (prime256v1)\fR"
+The elliptic curve used by the SMTP server for sensibly strong
+ephemeral ECDH key exchange.
+.IP "\fBtls_eecdh_ultra_curve (secp384r1)\fR"
+The elliptic curve used by the SMTP server for maximally strong
+ephemeral ECDH key exchange.
 .SH "OBSOLETE STARTTLS CONTROLS"
 .na
 .nf

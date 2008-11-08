@@ -177,7 +177,7 @@ document.  </p>
 feedback algorithm are a) the option of less-than-1 positive feedback
 per delivery to avoid overwhelming servers, b) the option of
 less-than-1 negative feedback per delivery to avoid giving up too
-fast, c) feedback hysteresis to avoid rapid oscillation, and c) a
+fast, c) feedback hysteresis to avoid rapid oscillation, and d) a
 "reverse" hysteresis cycle for negative feedback, so that it can
 correct for overload quickly.  </p>
 
@@ -255,7 +255,7 @@ After failure:
                 concurrency = 1
 </pre>
 
-<h3> <a name="concurrency_results"> Results for delivery to concurrency limited servers </a> </h3>
+<h3> <a name="concurrency_results"> Results for delivery to concurrency-limited servers </a> </h3>
 
 <p> Discussions about the concurrency scheduler redesign started
 early 2004, when the primary goal was to find alternatives that did
@@ -461,7 +461,7 @@ text for a discussion of results.  </p>
 
 <h4> Impact of active server concurrency limiter </h4>
 
-<p> The final concurrency limited result shows what happens when
+<p> The final concurrency-limited result shows what happens when
 SMTP connections don't time out, but are rejected immediately with
 the Postfix server's smtpd_client_connection_count_limit feature
 (the server replies with a 421 status and disconnects immediately).
@@ -528,7 +528,7 @@ with increasing concurrency. See text for a discussion of results.
 
 </blockquote>
 
-<h3> <a name="concurrency_discussion"> Discussion of concurrency limited server results </a> </h3>
+<h3> <a name="concurrency_discussion"> Discussion of concurrency-limited server results </a> </h3>
 
 <p> All results in the previous sections are based on the first
 delivery runs only; they do not include any second etc. delivery
@@ -690,11 +690,11 @@ nqmgr </a>
 up the message </a> - how it is assigned to transports, jobs, peers,
 entries
 
-<li> <a href="#<tt>nqmgr</tt>_selection"> How does the entry selection
-work </a>
+<li> <a href="#<tt>nqmgr</tt>_selection"> How the entry selection
+works </a>
 
-<li> <a href="#<tt>nqmgr</tt>_preemption"> How does the preemption
-work </a> - what messages may be preempted and how and what messages
+<li> <a href="#<tt>nqmgr</tt>_preemption"> How the preemption
+works </a> - what messages may be preempted and how and what messages
 are chosen to preempt them
 
 <li> <a href="#<tt>nqmgr</tt>_concurrency"> How destination concurrency
@@ -841,8 +841,8 @@ relation between all those job, peer, queue and entry structures.]
 
 </p>
 
-<h3> <a name="<tt>nqmgr</tt>_selection"> How does the entry selection
-work </a> </h3>
+<h3> <a name="<tt>nqmgr</tt>_selection"> How the entry selection
+works </a> </h3>
 
 <p>
 
@@ -899,8 +899,8 @@ no recipient resource limits and no destination concurrency problems.]
 
 </p>
 
-<h3> <a name="<tt>nqmgr</tt>_preemption"> How does the preemption
-work </a> </h3>
+<h3> <a name="<tt>nqmgr</tt>_preemption"> How the preemption
+works </a> </h3>
 
 <p>
 
@@ -1047,7 +1047,7 @@ defaults to default_delivery_slot_cost parameter which is set to 5
 by default. This is the k from the paragraph above. Each time k
 entries of the job are selected for delivery, this counter is
 incremented by one. Once there are some slots accumulated, job which
-requires no more than that amount of slots to be fully delivered
+requires no more than that number of slots to be fully delivered
 can preempt this job.
 
 </p>
@@ -1090,7 +1090,7 @@ and perhaps even already used some when it was preempted before
 (remember a job can be preempted several times). In either case,
 we know how many are accumulated and how many are left to deliver,
 so we know how many it may yet accumulate at maximum. Every other
-job which may be delivered by less than that amount of slots is a
+job which may be delivered by less than that number of slots is a
 valid candidate for preemption. How do we choose among them?
 
 </p>
@@ -1111,7 +1111,7 @@ message with one recipient.
 
 Now let's recap the previous two paragraphs. Isn't it too complicated?
 Why don't the candidates come only among the jobs which can be
-delivered within the amount of slots the current job already
+delivered within the number of slots the current job already
 accumulated? Why do we need to estimate how much it has yet to
 accumulate? If you found out the answer, congratulate yourself. If
 we did it this simple way, we would always choose the candidate
@@ -1175,8 +1175,8 @@ The concept of these slot loans is where the
 default_delivery_slot_discount and default_delivery_slot_loan, whose
 values are by default 50 and 3, respectively). The discount (resp.
 loan) specifies how many percent (resp. how many slots) one "gets
-in advance", when the amount of slots required to deliver the best
-candidate is compared with the amount of slots the current slot had
+in advance", when the number of slots required to deliver the best
+candidate is compared with the number of slots the current slot had
 accumulated so far.
 
 </p>

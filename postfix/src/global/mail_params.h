@@ -1181,6 +1181,14 @@ extern char *var_smtpd_tls_dcert_file;
 #define DEF_SMTPD_TLS_DKEY_FILE	"$smtpd_tls_dcert_file"
 extern char *var_smtpd_tls_dkey_file;
 
+#define VAR_SMTPD_TLS_ECCERT_FILE "smtpd_tls_eccert_file"
+#define DEF_SMTPD_TLS_ECCERT_FILE ""
+extern char *var_smtpd_tls_eccert_file;
+
+#define VAR_SMTPD_TLS_ECKEY_FILE	"smtpd_tls_eckey_file"
+#define DEF_SMTPD_TLS_ECKEY_FILE	"$smtpd_tls_eccert_file"
+extern char *var_smtpd_tls_eckey_file;
+
 #define VAR_SMTPD_TLS_CA_FILE	"smtpd_tls_CAfile"
 #define DEF_SMTPD_TLS_CA_FILE	""
 extern char *var_smtpd_tls_CAfile;
@@ -1224,6 +1232,14 @@ extern char *var_smtpd_tls_dh512_param_file;
 #define VAR_SMTPD_TLS_1024_FILE	"smtpd_tls_dh1024_param_file"
 #define DEF_SMTPD_TLS_1024_FILE	""
 extern char *var_smtpd_tls_dh1024_param_file;
+
+#define VAR_SMTPD_TLS_EECDH	"smtpd_tls_eecdh_grade"
+#ifdef SNAPSHOT
+#define DEF_SMTPD_TLS_EECDH	"strong"
+#else
+#define DEF_SMTPD_TLS_EECDH	"none"
+#endif
+extern char *var_smtpd_tls_eecdh;
 
 #define VAR_SMTPD_TLS_LOGLEVEL	"smtpd_tls_loglevel"
 #define DEF_SMTPD_TLS_LOGLEVEL	0
@@ -1308,6 +1324,18 @@ extern char *var_smtp_tls_dcert_file;
 #define VAR_LMTP_TLS_DKEY_FILE	"lmtp_tls_dkey_file"
 #define DEF_LMTP_TLS_DKEY_FILE	"$lmtp_tls_dcert_file"
 extern char *var_smtp_tls_dkey_file;
+
+#define VAR_SMTP_TLS_ECCERT_FILE "smtp_tls_eccert_file"
+#define DEF_SMTP_TLS_ECCERT_FILE ""
+#define VAR_LMTP_TLS_ECCERT_FILE "lmtp_tls_eccert_file"
+#define DEF_LMTP_TLS_ECCERT_FILE ""
+extern char *var_smtp_tls_eccert_file;
+
+#define VAR_SMTP_TLS_ECKEY_FILE	"smtp_tls_eckey_file"
+#define DEF_SMTP_TLS_ECKEY_FILE	"$smtp_tls_eccert_file"
+#define VAR_LMTP_TLS_ECKEY_FILE	"lmtp_tls_eckey_file"
+#define DEF_LMTP_TLS_ECKEY_FILE	"$lmtp_tls_eccert_file"
+extern char *var_smtp_tls_eckey_file;
 
 #define VAR_SMTP_TLS_CA_FILE	"smtp_tls_CAfile"
 #define DEF_SMTP_TLS_CA_FILE	""
@@ -2818,6 +2846,14 @@ extern char *var_tls_export_clist;
 #define VAR_TLS_NULL_CLIST	"tls_null_cipherlist"
 #define DEF_TLS_NULL_CLIST	"eNULL:!aNULL"
 extern char *var_tls_null_clist;
+
+#define VAR_TLS_EECDH_STRONG	"tls_eecdh_strong_curve"
+#define DEF_TLS_EECDH_STRONG	"prime256v1"
+extern char *var_tls_eecdh_strong;
+
+#define VAR_TLS_EECDH_ULTRA	"tls_eecdh_ultra_curve"
+#define DEF_TLS_EECDH_ULTRA	"secp384r1"
+extern char *var_tls_eecdh_ultra;
 
  /*
   * Sendmail-style mail filter support.

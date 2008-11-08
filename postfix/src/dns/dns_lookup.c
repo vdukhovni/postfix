@@ -369,8 +369,6 @@ static int dns_get_rr(DNS_RR **list, const char *orig_name, DNS_REPLY *reply,
 #define MIN2(a, b)	((unsigned)(a) < (unsigned)(b) ? (a) : (b))
 
     *list = 0;
-    if (pos + fixed->length > reply->end)
-	return (DNS_RETRY);
 
     switch (fixed->type) {
     default:

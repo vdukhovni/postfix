@@ -180,8 +180,10 @@ extern int dns_lookup_v(const char *, unsigned, DNS_RR **, VSTRING *,
 
  /*
   * How long can a DNS name be?
+  * 
+  * XXX This currently also limits the combined length of data in TXT records.
   */
-#define DNS_NAME_LEN	1024
+#define DNS_NAME_LEN	4096
 
 /* LICENSE
 /* .ad

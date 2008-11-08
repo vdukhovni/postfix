@@ -395,20 +395,23 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
 
     /*
      * Load the server public key certificate and private key from file and
-     * check whether the cert matches the key. We cannot run without (we do
-     * not support ADH anonymous Diffie-Hellman ciphers as of now). We can
-     * use RSA certificates ("cert") and DSA certificates ("dcert"), both can
-     * be made available at the same time. The CA certificates for both are
-     * handled in the same setup already finished. Which one is used depends
-     * on the cipher negotiated (that is: the first cipher listed by the
-     * client which does match the server). A client with RSA only (e.g.
-     * Netscape) will use the RSA certificate only. A client with
-     * openssl-library will use RSA first if not especially changed in the
-     * cipher setup.
+     * check whether the cert matches the key. We can use RSA certificates
+     * ("cert") DSA certificates ("dcert") or ECDSA certificates ("eccert").
+     * All three can be made available at the same time. The CA certificates
+     * for all three are handled in the same setup already finished. Which
+     * one is used depends on the cipher negotiated (that is: the first
+     * cipher listed by the client which does match the server). A client
+     * with RSA only (e.g. Netscape) will use the RSA certificate only. A
+     * client with openssl-library will use RSA first if not especially
+     * changed in the cipher setup.
      */
-    if (tls_set_my_certificate_key_info(server_ctx, props->cert_file,
-					props->key_file, props->dcert_file,
-					props->dkey_file) < 0) {
+    if (tls_set_my_certificate_key_info(server_ctx,
+					props->cert_file,
+					props->key_file,
+					props->dcert_file,
+					props->dkey_file,
+					props->eccert_file,
+					props->eckey_file) < 0) {
 	/* tls_set_my_certificate_key_info() already logs a warning. */
 	SSL_CTX_free(server_ctx);		/* 200411 */
 	return (0);
@@ -431,9 +434,15 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
      */
     SSL_CTX_set_tmp_dh_callback(server_ctx, tls_tmp_dh_cb);
     if (*props->dh1024_param_file != 0)
-	tls_set_dh_1024_from_file(props->dh1024_param_file);
+	tls_set_dh_from_file(props->dh1024_param_file, 1024);
     if (*props->dh512_param_file != 0)
-	tls_set_dh_512_from_file(props->dh512_param_file);
+	tls_set_dh_from_file(props->dh512_param_file, 512);
+
+    /*
+     * Enable EECDH if available, errors are not fatal, we just keep going
+     * with any remaining key-exchange algorithms.
+     */
+    (void) tls_set_eecdh_curve(server_ctx, props->eecdh_grade);
 
     /*
      * If we want to check client certificates, we have to indicate it in

@@ -14728,3 +14728,28 @@ Apologies for any names omitted.
 	propagate local submission information through XFORWARD.
 	Files: smtpd/smtpd.c, qmqpd/qmqpd.c, smtp/smtp_proto.c,
 	cleanup/cleanup_envelope.c, proto/XFORWARD.html.
+
+20081015
+
+	Bugfix: GLIBC API version detection. Rob Foehl. File:
+	util/sys_defs.h.
+
+20081022
+
+	Documentation: removed inapplicable daemon_timeout reference
+	from qmgr(8), oqmgr(8), pickup(8). These daemons need to
+	use a much shorter watchdog timer.
+
+20081108
+
+	Feature: smtp_sasl_tls_verified_security_options is no
+	longer #ifdef SNAPSHOT.
+
+	Feature: elliptic curve support. This requires OpenSSL version
+	0.9.9 or later. Victor Duchovni. Files: TLS_README,
+	smtpd/smtpd.c, smtp/smtp.c, tls/tls_dh.c, tls/tls_certkey.c,
+	tls/tls_server.c, tls/tls_client.c, tls/tls.h, tls/tls_misc.c.
+
+	Bugfix (introduced Postfix 2.5): the Postfix SMTP server
+	did not ask for a client certificate with "smtpd_tls_req_ccert
+	= yes". Reported by Rob Foehl. File: smtpd/smtpd.c.

@@ -723,19 +723,25 @@ extern int initgroups(const char *, int);
 #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
 #define NATIVE_COMMAND_DIR "/usr/sbin"
 #define NATIVE_DAEMON_DIR "/usr/libexec/postfix"
-#if __GLIBC__ >= 2 && __GLIBC_MINOR__ >= 1
-#define SOCKADDR_SIZE	socklen_t
-#define SOCKOPT_SIZE	socklen_t
+#ifdef __GLIBC_PREREQ
+# define HAVE_GLIBC_API_VERSION_SUPPORT(maj, min) __GLIBC_PREREQ(maj, min)
+#else
+# define HAVE_GLIBC_API_VERSION_SUPPORT(maj, min) \
+    ((__GLIBC__ << 16) + __GLIBC_MINOR__ >= ((maj) << 16) + (min))
+#endif
+#if HAVE_GLIBC_API_VERSION_SUPPORT(2, 1)
+# define SOCKADDR_SIZE	socklen_t
+# define SOCKOPT_SIZE	socklen_t
 #endif
 #ifndef NO_IPV6
 # define HAS_IPV6
-#if defined(__GLIBC_PREREQ) && __GLIBC_PREREQ(2,4)
+# if HAVE_GLIBC_API_VERSION_SUPPORT(2, 4)
 /* Really 2.3.3 or later, but there's no __GLIBC_MICRO version macro. */
-# define HAVE_GETIFADDRS
-#else
-# define HAS_PROCNET_IFINET6
-# define _PATH_PROCNET_IFINET6 "/proc/net/if_inet6"
-#endif
+#  define HAVE_GETIFADDRS
+# else
+#  define HAS_PROCNET_IFINET6
+#  define _PATH_PROCNET_IFINET6 "/proc/net/if_inet6"
+# endif
 #endif
 #include <linux/version.h>
 #if !defined(KERNEL_VERSION) 

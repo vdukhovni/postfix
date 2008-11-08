@@ -225,6 +225,8 @@ while (<>) {
     s;\blmtp_tls_key_file\b;<a href="postconf.5.html#lmtp_tls_key_file">$&</a>;g;
     s;\blmtp_tls_dcert_file\b;<a href="postconf.5.html#lmtp_tls_dcert_file">$&</a>;g;
     s;\blmtp_tls_dkey_file\b;<a href="postconf.5.html#lmtp_tls_dkey_file">$&</a>;g;
+    s;\blmtp_tls_eccert_file\b;<a href="postconf.5.html#lmtp_tls_eccert_file">$&</a>;g;
+    s;\blmtp_tls_eckey_file\b;<a href="postconf.5.html#lmtp_tls_eckey_file">$&</a>;g;
     s;\blmtp_tls_CAfile\b;<a href="postconf.5.html#lmtp_tls_CAfile">$&</a>;g;
     s;\blmtp_tls_CApath\b;<a href="postconf.5.html#lmtp_tls_CApath">$&</a>;g;
     s;\blmtp_tls_fingerprint_digest\b;<a href="postconf.5.html#lmtp_tls_fingerprint_digest">$&</a>;g;
@@ -579,6 +581,8 @@ while (<>) {
     s;\bsmtp_tls_mandatory_exclude_ciphers\b;<a href="postconf.5.html#smtp_tls_mandatory_exclude_ciphers">$&</a>;g;
     s;\bsmtp_tls_dcert_file\b;<a href="postconf.5.html#smtp_tls_dcert_file">$&</a>;g;
     s;\bsmtp_tls_dkey_file\b;<a href="postconf.5.html#smtp_tls_dkey_file">$&</a>;g;
+    s;\bsmtp_tls_eccert_file\b;<a href="postconf.5.html#smtp_tls_eccert_file">$&</a>;g;
+    s;\bsmtp_tls_eckey_file\b;<a href="postconf.5.html#smtp_tls_eckey_file">$&</a>;g;
     s;\bsmtp_tls_enforce_peername\b;<a href="postconf.5.html#smtp_tls_enforce_peername">$&</a>;g;
     s;\bsmtp_tls_key_file\b;<a href="postconf.5.html#smtp_tls_key_file">$&</a>;g;
     s;\bsmtp_tls_loglevel\b;<a href="postconf.5.html#smtp_tls_loglevel">$&</a>;g;
@@ -616,6 +620,9 @@ while (<>) {
     s;\bsmtpd_tls_mandatory_ciphers\b;<a href="postconf.5.html#smtpd_tls_mandatory_ciphers">$&</a>;g;
     s;\bsmtpd_tls_mandatory_exclude_ciphers\b;<a href="postconf.5.html#smtpd_tls_mandatory_exclude_ciphers">$&</a>;g;
     s;\bsmtpd_tls_dcert_file\b;<a href="postconf.5.html#smtpd_tls_dcert_file">$&</a>;g;
+    s;\bsmtpd_tls_eccert_file\b;<a href="postconf.5.html#smtpd_tls_eccert_file">$&</a>;g;
+    s;\bsmtpd_tls_eckey_file\b;<a href="postconf.5.html#smtpd_tls_eckey_file">$&</a>;g;
+    s;\bsmtpd_tls_eecdh_grade\b;<a href="postconf.5.html#smtpd_tls_eecdh_grade">$&</a>;g;
     s;\bsmtpd_tls_dh1024_param_file\b;<a href="postconf.5.html#smtpd_tls_dh1024_param_file">$&</a>;g;
     s;\bsmtpd_tls_dh512_param_file\b;<a href="postconf.5.html#smtpd_tls_dh512_param_file">$&</a>;g;
     s;\bsmtpd_tls_dkey_file\b;<a href="postconf.5.html#smtpd_tls_dkey_file">$&</a>;g;
@@ -642,6 +649,8 @@ while (<>) {
     s;\btls_low_cipherlist\b;<a href="postconf.5.html#tls_low_cipherlist">$&</a>;g;
     s;\btls_export_cipherlist\b;<a href="postconf.5.html#tls_export_cipherlist">$&</a>;g;
     s;\btls_null_cipherlist\b;<a href="postconf.5.html#tls_null_cipherlist">$&</a>;g;
+    s;\btls_eecdh_strong_curve\b;<a href="postconf.5.html#tls_eecdh_strong_curve">$&</a>;g;
+    s;\btls_eecdh_ultra_curve\b;<a href="postconf.5.html#tls_eecdh_ultra_curve">$&</a>;g;
  
     s;\bfrozen_delivered_to\b;<a href="postconf.5.html#frozen_delivered_to">$&</a>;g;
 

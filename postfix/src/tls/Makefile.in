@@ -125,6 +125,7 @@ tls_client.o: tls.h
 tls_client.o: tls_client.c
 tls_client.o: tls_mgr.h
 tls_dh.o: ../../include/argv.h
+tls_dh.o: ../../include/mail_params.h
 tls_dh.o: ../../include/msg.h
 tls_dh.o: ../../include/name_code.h
 tls_dh.o: ../../include/name_mask.h

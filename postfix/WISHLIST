@@ -1,4 +1,11 @@
 Wish list:
+
+	To work around window scaling bugs, find out if we can force
+	< 65535 TCP windows with setsockopt(SO_SNDBUF/SO_RCVBUF)
+	between socket() and connect()/listen(). Instead of screwing
+	up lots of internal APIs with an extra buffer size parameter,
+	use a -o command-line option to override a global variable
+	for use by inet_connect() and inet_listen().
  
 	Force a panic when the VDA patch reduces the file size limit
 	under the message size.  They break the code that marks a

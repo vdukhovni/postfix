@@ -392,6 +392,10 @@
 /* .IP "\fBsmtp_tls_ciphers (export)\fR"
 /*	The minimum TLS cipher grade that the Postfix SMTP client
 /*	will use with opportunistic TLS encryption.
+/* .IP "\fBsmtp_tls_eccert_file (empty)\fR"
+/*	File with the Postfix SMTP client ECDSA certificate in PEM format.
+/* .IP "\fBsmtp_tls_eckey_file ($smtp_tls_eccert_file)\fR"
+/*	File with the Postfix SMTP client ECDSA private key in PEM format.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -755,6 +759,8 @@ char   *var_smtp_tls_fpt_cmatch;
 char   *var_smtp_tls_fpt_dgst;
 char   *var_smtp_tls_proto;
 char   *var_smtp_tls_ciph;
+char   *var_smtp_tls_eccert_file;
+char   *var_smtp_tls_eckey_file;
 
 #endif
 
@@ -978,6 +984,8 @@ static void pre_init(char *unused_name, char **unused_argv)
 			    key_file = var_smtp_tls_key_file,
 			    dcert_file = var_smtp_tls_dcert_file,
 			    dkey_file = var_smtp_tls_dkey_file,
+			    eccert_file = var_smtp_tls_eccert_file,
+			    eckey_file = var_smtp_tls_eckey_file,
 			    CAfile = var_smtp_tls_CAfile,
 			    CApath = var_smtp_tls_CApath,
 			    fpt_dgst = var_smtp_tls_fpt_dgst);
