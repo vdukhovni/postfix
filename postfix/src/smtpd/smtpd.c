@@ -1266,7 +1266,7 @@ MILTERS *smtpd_milters;
   * TLS initialization status.
   */
 static TLS_APPL_STATE *smtpd_tls_ctx;
-static int wantcert;
+static int require_server_cert;
 
 #endif
 
@@ -3857,7 +3857,7 @@ static void smtpd_start_tls(SMTPD_STATE *state)
 	ADD_EXCLUDE(cipher_exclusions, var_smtpd_tls_excl_ciph);
 	if (enforce_tls)
 	    ADD_EXCLUDE(cipher_exclusions, var_smtpd_tls_mand_excl);
-	if (wantcert)
+	if (require_server_cert)
 	    ADD_EXCLUDE(cipher_exclusions, "aNULL");
     }
 
@@ -4643,8 +4643,9 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 #ifdef USE_TLS
 	    TLS_SERVER_INIT_PROPS props;
 	    const char *cert_file;
-	    int     havecert;
-	    int     oknocert;
+	    int     have_server_cert;
+	    int     no_server_cert_ok;
+	    int     ask_client_cert;
 
 	    /*
 	     * Can't use anonymous ciphers if we want client certificates.
@@ -4652,25 +4653,26 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 	     * 
 	     * XXX: Ugh! Too many booleans!
 	     */
-	    wantcert = (var_smtpd_tls_ask_ccert
-			|| (enforce_tls && var_smtpd_tls_req_ccert));
+	    ask_client_cert = require_server_cert =
+		(var_smtpd_tls_ask_ccert
+		 || (enforce_tls && var_smtpd_tls_req_ccert));
 	    if (strcasecmp(var_smtpd_tls_cert_file, "none") == 0) {
-		oknocert = 1;
+		no_server_cert_ok = 1;
 		cert_file = "";
 	    } else {
-		oknocert = 0;
+		no_server_cert_ok = 0;
 		cert_file = var_smtpd_tls_cert_file;
 	    }
-	    havecert =
+	    have_server_cert =
 		(*cert_file || *var_smtpd_tls_dcert_file || *var_smtpd_tls_eccert_file);
 
 	    /* Some TLS configuration errors are not show stoppers. */
-	    if (!havecert && wantcert)
+	    if (!have_server_cert && require_server_cert)
 		msg_warn("Need a server cert to request client certs");
 	    if (!enforce_tls && var_smtpd_tls_req_ccert)
 		msg_warn("Can't require client certs unless TLS is required");
 	    /* After a show-stopper error, reply with 454 to STARTTLS. */
-	    if (havecert || (oknocert && !wantcert))
+	    if (have_server_cert || (no_server_cert_ok && !require_server_cert))
 
 		/*
 		 * Large parameter lists are error-prone, so we emulate a
@@ -4701,7 +4703,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 				    protocols = enforce_tls ?
 				    var_smtpd_tls_mand_proto :
 				    var_smtpd_tls_proto,
-				    ask_ccert = wantcert,
+				    ask_ccert = ask_client_cert,
 				    fpt_dgst = var_smtpd_tls_fpt_dgst);
 	    else
 		msg_warn("No server certs available. TLS won't be enabled");

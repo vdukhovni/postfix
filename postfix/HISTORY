@@ -14753,3 +14753,7 @@ Apologies for any names omitted.
 	Bugfix (introduced Postfix 2.5): the Postfix SMTP server
 	did not ask for a client certificate with "smtpd_tls_req_ccert
 	= yes". Reported by Rob Foehl. File: smtpd/smtpd.c.
+
+20081109
+
+	Cleanup: confusing names of variables. File: smtpd/smtpd.c.

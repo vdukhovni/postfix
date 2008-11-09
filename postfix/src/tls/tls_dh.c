@@ -192,13 +192,13 @@ DH     *tls_tmp_dh_cb(SSL *unused_ssl, int export, int keylength)
     DH     *dh_tmp;
 
     if (export && keylength == 512) {		/* 40-bit export cipher */
-	if (dh_1024 == 0)
-	    dh_1024 = tls_get_dh(dh512_p, (int) sizeof(dh512_p));
-	dh_tmp = dh_1024;
-    } else {					/* ADH, DHE-RSA or DSA */
 	if (dh_512 == 0)
-	    dh_512 = tls_get_dh(dh1024_p, (int) sizeof(dh1024_p));
+	    dh_512 = tls_get_dh(dh512_p, (int) sizeof(dh512_p));
 	dh_tmp = dh_512;
+    } else {					/* ADH, DHE-RSA or DSA */
+	if (dh_1024 == 0)
+	    dh_1024 = tls_get_dh(dh1024_p, (int) sizeof(dh1024_p));
+	dh_tmp = dh_1024;
     }
     return (dh_tmp);
 }
