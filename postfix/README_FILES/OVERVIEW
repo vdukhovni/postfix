@@ -4,10 +4,10 @@ PPoossttffiixx AArrcchhiitteeccttuurree OOvveerrvviiee
 
 IInnttrroodduuccttiioonn
 
-This document presents an overview of the Postfix architecture, and is the
-place where you find a pointer to every Postfix command or server program. The
-text gives the general context in which each command or server program is used,
-and provides pointers to documents with specific usage examples and background
+This document presents an overview of the Postfix architecture, and provides
+pointers to descriptions of every Postfix command or server program. The text
+gives the general context in which each command or server program is used, and
+provides pointers to documents with specific usage examples and background
 information.
 
 Topics covered by this document:
@@ -63,7 +63,7 @@ programs, while unnumbered names inside shaded areas represent Postfix queues.
     section), and postmaster notifications about problems with Postfix.
 
   * The cleanup(8) server implements the final processing stage before mail is
-    queued. It adds missing From: and other message headers, transforms
+    queued. It adds missing From: and other message headers, and transforms
     addresses as described in the ADDRESS_REWRITING_README document.
     Optionally, the cleanup(8) server can be configured to do light-weight
     content inspection with regular expressions as described in the

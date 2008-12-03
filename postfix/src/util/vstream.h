@@ -154,6 +154,17 @@ extern int vstream_pclose(VSTREAM *);
 extern VSTREAM *vstream_vfprintf(VSTREAM *, const char *, va_list);
 
 extern ssize_t vstream_peek(VSTREAM *);
+extern ssize_t vstream_bufstat(VSTREAM *, int);
+
+#define VSTREAM_BST_FLAG_IN		(1<<0)
+#define VSTREAM_BST_FLAG_OUT		(1<<1)
+#define VSTREAM_BST_FLAG_PEND		(1<<2)
+
+#define VSTREAM_BST_MASK_DIR	(VSTREAM_BST_FLAG_IN | VSTREAM_BST_FLAG_OUT)
+#define VSTREAM_BST_IN_PEND	(VSTREAM_BST_FLAG_IN | VSTREAM_BST_FLAG_PEND)
+#define VSTREAM_BST_OUT_PEND	(VSTREAM_BST_FLAG_OUT | VSTREAM_BST_FLAG_PEND)
+
+#define vstream_peek(vp) vstream_bufstat((vp), VSTREAM_BST_IN_PEND)
 
  /*
   * Exception handling. We use pointer to jmp_buf to avoid a lot of unused

@@ -130,6 +130,13 @@ extern char *gai_strerror(int);
   * Routines and data structures to hide some of the complexity of the
   * addrinfo API. They still don't hide that we may get results for address
   * families that we aren't interested in.
+  * 
+  * Note: the getnameinfo() and inet_ntop() system library functions use unsafe
+  * APIs with separate pointer and length arguments. To avoid buffer overflow
+  * problems with these functions, Postfix uses pointers to structures
+  * internally. This way the compiler can enforce that callers provide
+  * buffers with the appropriate length, instead of having to trust that
+  * callers will never mess up some length calculation.
   */
 typedef struct {
     char    buf[MAI_HOSTNAME_STRSIZE];

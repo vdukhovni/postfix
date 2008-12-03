@@ -1266,7 +1266,7 @@ MILTERS *smtpd_milters;
   * TLS initialization status.
   */
 static TLS_APPL_STATE *smtpd_tls_ctx;
-static int require_server_cert;
+static int ask_client_cert;
 
 #endif
 
@@ -3286,7 +3286,8 @@ static int quit_cmd(SMTPD_STATE *state, int unused_argc, SMTPD_TOKEN *unused_arg
      * XXX When this was added in Postfix 2.1 we used vstream_fflush(). As of
      * Postfix 2.3 we use smtp_flush() for better error reporting.
      */
-    smtp_flush(state->client);
+    if (vstream_bufstat(state->client, VSTREAM_BST_OUT_PEND) > 0)
+	smtp_flush(state->client);
     return (0);
 }
 
@@ -3857,7 +3858,7 @@ static void smtpd_start_tls(SMTPD_STATE *state)
 	ADD_EXCLUDE(cipher_exclusions, var_smtpd_tls_excl_ciph);
 	if (enforce_tls)
 	    ADD_EXCLUDE(cipher_exclusions, var_smtpd_tls_mand_excl);
-	if (require_server_cert)
+	if (ask_client_cert)
 	    ADD_EXCLUDE(cipher_exclusions, "aNULL");
     }
 
@@ -4645,7 +4646,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 	    const char *cert_file;
 	    int     have_server_cert;
 	    int     no_server_cert_ok;
-	    int     ask_client_cert;
+	    int     require_server_cert;
 
 	    /*
 	     * Can't use anonymous ciphers if we want client certificates.

@@ -101,6 +101,10 @@
 /*	const char *format;
 /*	va_list	*ap;
 /*
+/*	ssize_t	vstream_bufstat(stream, command)
+/*	VSTREAM	*stream;
+/*	int	command;
+/*
 /*	ssize_t	vstream_peek(stream)
 /*	VSTREAM	*stream;
 /*
@@ -320,8 +324,18 @@
 /*	vstream_vfprintf() provides an alternate interface
 /*	for formatting an argument list according to a format string.
 /*
+/*	vstream_bufstat() provides input and output buffer status
+/*	information.  The command is one of the following:
+/* .IP VSTREAM_BST_IN_PEND
+/*	Return the number of characters that can be read without
+/*	refilling the read buffer.
+/* .IP VSTREAM_BST_OUT_PEND
+/*	Return the number of characters that are waiting in the
+/*	write buffer.
+/* .PP
 /*	vstream_peek() returns the number of characters that can be
 /*	read from the named stream without refilling the read buffer.
+/*	This is an alias for vstream_bufstat(stream, VSTREAM_BST_IN_PEND).
 /*
 /*	vstream_setjmp() saves processing context and makes that context
 /*	available for use with vstream_longjmp().  Normally, vstream_setjmp()
@@ -703,8 +717,10 @@ static int vstream_buf_get_ready(VBUF *bp)
      * allocation gives the application a chance to override the default
      * buffering policy.
      */
-    if (bp->data == 0)
-	vstream_buf_alloc(bp, VSTREAM_BUFSIZE);
+    if (stream->req_bufsize == 0)
+	stream->req_bufsize = VSTREAM_BUFSIZE;
+    if (bp->len < stream->req_bufsize)
+	vstream_buf_alloc(bp, stream->req_bufsize);
 
     /*
      * If the stream is double-buffered and the write buffer is not empty,
@@ -1305,6 +1321,47 @@ VSTREAM *vstream_vfprintf(VSTREAM *vp, const char *format, va_list ap)
     vbuf_print(&vp->buf, format, ap);
     return (vp);
 }
+
+/* vstream_bufstat - get stream buffer status */
+
+ssize_t vstream_bufstat(VSTREAM *vp, int command)
+{
+    VBUF   *bp;
+
+    switch (command & VSTREAM_BST_MASK_DIR) {
+    case VSTREAM_BST_FLAG_IN:
+	if (vp->buf.flags & VSTREAM_FLAG_READ) {
+	    bp = &vp->buf;
+	} else if (vp->buf.flags & VSTREAM_FLAG_DOUBLE) {
+	    bp = &vp->read_buf;
+	} else {
+	    bp = 0;
+	}
+	switch (command & ~VSTREAM_BST_MASK_DIR) {
+	case VSTREAM_BST_FLAG_PEND:
+	    return (bp ? -bp->cnt : 0);
+	    /* Add other requests below. */
+	}
+	break;
+    case VSTREAM_BST_FLAG_OUT:
+	if (vp->buf.flags & VSTREAM_FLAG_WRITE) {
+	    bp = &vp->buf;
+	} else if (vp->buf.flags & VSTREAM_FLAG_DOUBLE) {
+	    bp = &vp->write_buf;
+	} else {
+	    bp = 0;
+	}
+	switch (command & ~VSTREAM_BST_MASK_DIR) {
+	case VSTREAM_BST_FLAG_PEND:
+	    return (bp ? bp->len - bp->cnt : 0);
+	    /* Add other requests below. */
+	}
+	break;
+    }
+    msg_panic("vstream_bufstat: unknown command: %d", command);
+}
+
+#undef vstream_peek			/* API binary compatibility. */
 
 /* vstream_peek - peek at a stream */
 

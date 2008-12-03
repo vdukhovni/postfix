@@ -208,7 +208,6 @@ typedef struct SMTP_SESSION {
     int     error_mask;			/* error classes */
     struct MIME_STATE *mime_state;	/* mime state machine */
 
-    int     sndbufsize;			/* PIPELINING buffer size */
     int     send_proto_helo;		/* XFORWARD support */
 
     time_t  expire_time;		/* session reuse expiration time */

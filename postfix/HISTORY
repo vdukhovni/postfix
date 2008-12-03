@@ -14745,8 +14745,8 @@ Apologies for any names omitted.
 	Feature: smtp_sasl_tls_verified_security_options is no
 	longer #ifdef SNAPSHOT.
 
-	Feature: elliptic curve support. This requires OpenSSL version
-	0.9.9 or later. Victor Duchovni. Files: TLS_README,
+	Feature: elliptic curve support. This requires OpenSSL
+	version 0.9.9 or later. Victor Duchovni. Files: TLS_README,
 	smtpd/smtpd.c, smtp/smtp.c, tls/tls_dh.c, tls/tls_certkey.c,
 	tls/tls_server.c, tls/tls_client.c, tls/tls.h, tls/tls_misc.c.
 
@@ -14757,3 +14757,29 @@ Apologies for any names omitted.
 20081109
 
 	Cleanup: confusing names of variables. File: smtpd/smtpd.c.
+
+20081126
+
+	Bugfix: pcre_table(5) incorrectly claimed that the 'x' flag
+	supports #comment after text. File: proto/pcre_table.
+
+20081202
+
+	Cleanup: vstream_bufstat() provides a more systematic
+	approach to get information about VSTREAM buffers. The
+	vstream_peek() function is now a backwards compatibility
+	wrapper.  Files: util/vstream.[hc].
+
+	Cleanup: the SMTP server should warn about "lost connection
+	after QUIT" only when the "." reply was pipelined together
+	with the "QUIT" reply. File: smtpd/smtpd.c.
+
+	Cleanup: the SMTP client's code was duplicating buffer
+	management that was already done in the VSTREAM module.
+	File: smtp/smtp_proto.c.
+
+20081203
+
+	Cleanup: adjust the VSTREAM buffer strategy when reusing
+	an SMTP connection with a large TCP MSS value. File:
+	smtp/smtp_proto.c.

@@ -585,7 +585,6 @@ SMTP_SESSION *smtp_session_alloc(VSTREAM *stream, const char *dest,
     } else
 	session->namaddrport = mystrdup(session->namaddr);
 
-    session->sndbufsize = 0;
     session->send_proto_helo = 0;
 
     if (flags & SMTP_MISC_FLAG_CONN_STORE)
@@ -695,13 +694,12 @@ int     smtp_session_passivate(SMTP_SESSION *session, VSTRING *dest_prop,
      * XXX Be sure to use unsigned types in the format string. Sign characters
      * would be rejected by the alldig() test on the reading end.
      */
-    vstring_sprintf(endp_prop, "%u\n%s\n%s\n%s\n%u\n%u\n%lu\n%u",
+    vstring_sprintf(endp_prop, "%u\n%s\n%s\n%s\n%u\n%u\n%lu",
 		    session->reuse_count,
 		    session->dest, session->host,
 		    session->addr, session->port,
 		    session->features & SMTP_FEATURE_ENDPOINT_MASK,
-		    (long) session->expire_time,
-		    session->sndbufsize);
+		    (long) session->expire_time);
 
     /*
      * Append the passivated SASL attributes.
@@ -740,7 +738,6 @@ SMTP_SESSION *smtp_session_activate(int fd, VSTRING *dest_prop,
     unsigned features;			/* server features */
     time_t  expire_time;		/* session re-use expiration time */
     unsigned reuse_count;		/* # times reused */
-    unsigned sndbufsize;		/* PIPELINING buffer size */
 
     /*
      * XXX it would be nice to have a VSTRING to VSTREAM adapter so that we
@@ -790,12 +787,6 @@ SMTP_SESSION *smtp_session_activate(int fd, VSTRING *dest_prop,
     expire_time = strtoul(prop, 0, 10);
 #endif
 
-    if ((prop = mystrtok(&endp_props, "\n")) == 0 || !alldig(prop)) {
-	msg_warn("%s: bad cached session sndbufsize property", myname);
-	return (0);
-    }
-    sndbufsize = atoi(prop);
-
     if (dest_prop && VSTRING_LEN(dest_prop)) {
 	dest_props = STR(dest_prop);
 	if ((prop = mystrtok(&dest_props, "\n")) == 0 || !alldig(prop)) {
@@ -815,14 +806,12 @@ SMTP_SESSION *smtp_session_activate(int fd, VSTRING *dest_prop,
     session->features = (features | SMTP_FEATURE_FROM_CACHE);
     CACHE_THIS_SESSION_UNTIL(expire_time);
     session->reuse_count = ++reuse_count;
-    session->sndbufsize = sndbufsize;
 
     if (msg_verbose)
 	msg_info("%s: dest=%s host=%s addr=%s port=%u features=0x%x, "
-		 "ttl=%ld, reuse=%d, sndbuf=%u",
+		 "ttl=%ld, reuse=%d",
 		 myname, dest, host, addr, ntohs(port), features,
-		 (long) (expire_time - time((time_t *) 0)), reuse_count,
-		 sndbufsize);
+		 (long) (expire_time - time((time_t *) 0)), reuse_count);
 
     /*
      * Re-activate the SASL attributes.
