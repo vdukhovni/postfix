@@ -3272,6 +3272,7 @@ static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 
 static int quit_cmd(SMTPD_STATE *state, int unused_argc, SMTPD_TOKEN *unused_argv)
 {
+    int     out_pending = vstream_bufstat(state->client, VSTREAM_BST_OUT_PEND);
 
     /*
      * Don't bother checking the syntax.
@@ -3286,7 +3287,7 @@ static int quit_cmd(SMTPD_STATE *state, int unused_argc, SMTPD_TOKEN *unused_arg
      * XXX When this was added in Postfix 2.1 we used vstream_fflush(). As of
      * Postfix 2.3 we use smtp_flush() for better error reporting.
      */
-    if (vstream_bufstat(state->client, VSTREAM_BST_OUT_PEND) > 0)
+    if (out_pending > 0)
 	smtp_flush(state->client);
     return (0);
 }

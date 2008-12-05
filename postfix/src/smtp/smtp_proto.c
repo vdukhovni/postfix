@@ -558,6 +558,9 @@ int     smtp_helo(SMTP_STATE *state)
      * 
      * XXX No need to do this before and after STARTTLS, but it's not a big deal
      * if we do.
+     * 
+     * XXX This critically depends on VSTREAM buffers to never be smaller than
+     * VSTREAM_BUFSIZE.
      */
     if (session->features & SMTP_FEATURE_PIPELINING) {
 	optlen = sizeof(sndbufsize);

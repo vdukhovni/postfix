@@ -1304,7 +1304,10 @@ void    vstream_control(VSTREAM *stream, int name,...)
 	    if (req_bufsize < 0)
 		msg_panic("VSTREAM_CTL_BUFSIZE with negative size: %ld",
 			  (long) req_bufsize);
-	    if (req_bufsize > stream->req_bufsize)
+	    if (stream->req_bufsize == 0)
+		stream->req_bufsize = VSTREAM_BUFSIZE;	/* 2.4 binary compat. */
+	    if (stream != VSTREAM_ERR
+		&& req_bufsize > stream->req_bufsize)
 		stream->req_bufsize = req_bufsize;
 	    break;
 	default:

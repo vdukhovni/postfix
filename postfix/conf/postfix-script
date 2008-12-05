@@ -222,6 +222,10 @@ check-warn)
 		    $WARN not owned by root: $dir)
 	done
 
+	# Some people break Postfix's security model.
+	ls -lLd $queue_directory | egrep '^.....(w|...w)' >/dev/null && \
+		$WARN group or other writable: $queue_directory
+
 	find $daemon_directory/* $config_directory/* ! -user root \
 		-exec $WARN not owned by root: {} \;
 

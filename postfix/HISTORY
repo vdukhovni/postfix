@@ -14782,4 +14782,19 @@ Apologies for any names omitted.
 
 	Cleanup: adjust the VSTREAM buffer strategy when reusing
 	an SMTP connection with a large TCP MSS value. File:
-	smtp/smtp_proto.c.
+	smtp/smtp_reuse.c.
+
+20081204
+
+	Cleanup: state the SMTP client PIPELINING implementation's
+	dependency on monotonic VSTREAM buffer size behavior, and
+	add some checks for boundary cases with VSTREAM buffer size
+	change requests. Files: util/vstream.c, smtp/smtp_proto.c.
+
+20081205
+
+	Fix 20081202 flush code. Victor Duchovni. File: smtpd/smtpd.c.
+
+	Safety: add another check to "postfix check", in this case
+	for group or other writable queue_directory. File:
+	conf/postfix-script.
