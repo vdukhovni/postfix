@@ -13248,7 +13248,7 @@ Apologies for any names omitted.
 	cleanup/cleanup_final.c, cleanup/cleanup_bounce.c,
 	cleanup/cleanup_api.c.
 
-20050217
+20070217
 
 	Streamline the compile time selection of event handling
 	styles, replacing multiple on/off macros by just one
@@ -13657,3 +13657,9 @@ Apologies for any names omitted.
 	implement a denial of service attack on Postfix. Data
 	confidentiality and integrity are not affected.  File:
 	util/events.c.
+
+20081203
+
+	Cleanup: adjust the VSTREAM buffer strategy when reusing
+	an SMTP connection with a large TCP MSS value. File:
+	smtp/smtp_reuse.c.
