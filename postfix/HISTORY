@@ -13173,3 +13173,15 @@ Apologies for any names omitted.
 	legitimate configurations that deliver mail to a symbolic
 	link in a directory with less restrictive permissions.
 
+20080908
+
+	Bugfix: the cleanup server did not update the recipient
+	count after Milter application access. Backported from
+	Postfix 2.4 update 20070215. Files: cleanup_api.c,
+	cleanup_extracted.c, cleanup_final.c.
+
+20081203
+
+	Cleanup: adjust the VSTREAM buffer strategy when reusing
+	an SMTP connection with a large TCP MSS value. File:
+	smtp/smtp_reuse.c.

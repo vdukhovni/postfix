@@ -3,12 +3,12 @@ SRCS	= cleanup.c cleanup_out.c cleanup_envelope.c cleanup_message.c \
 	cleanup_extracted.c cleanup_state.c cleanup_rewrite.c \
 	cleanup_map11.c cleanup_map1n.c cleanup_masquerade.c \
 	cleanup_out_recipient.c cleanup_init.c cleanup_api.c \
-	cleanup_addr.c cleanup_bounce.c cleanup_milter.c
+	cleanup_addr.c cleanup_bounce.c cleanup_milter.c cleanup_final.c
 OBJS	= cleanup.o cleanup_out.o cleanup_envelope.o cleanup_message.o \
 	cleanup_extracted.o cleanup_state.o cleanup_rewrite.o \
 	cleanup_map11.o cleanup_map1n.o cleanup_masquerade.o \
 	cleanup_out_recipient.o cleanup_init.o cleanup_api.o \
-	cleanup_addr.o cleanup_bounce.o cleanup_milter.o
+	cleanup_addr.o cleanup_bounce.o cleanup_milter.o cleanup_final.o
 HDRS	=
 TESTSRC	= 
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
@@ -321,6 +321,32 @@ cleanup_extracted.o: ../../include/vstream.h
 cleanup_extracted.o: ../../include/vstring.h
 cleanup_extracted.o: cleanup.h
 cleanup_extracted.o: cleanup_extracted.c
+cleanup_final.o: ../../include/argv.h
+cleanup_final.o: ../../include/been_here.h
+cleanup_final.o: ../../include/cleanup_user.h
+cleanup_final.o: ../../include/dict.h
+cleanup_final.o: ../../include/header_opts.h
+cleanup_final.o: ../../include/htable.h
+cleanup_final.o: ../../include/mail_conf.h
+cleanup_final.o: ../../include/mail_stream.h
+cleanup_final.o: ../../include/maps.h
+cleanup_final.o: ../../include/match_list.h
+cleanup_final.o: ../../include/match_ops.h
+cleanup_final.o: ../../include/milter.h
+cleanup_final.o: ../../include/mime_state.h
+cleanup_final.o: ../../include/msg.h
+cleanup_final.o: ../../include/mymalloc.h
+cleanup_final.o: ../../include/nvtable.h
+cleanup_final.o: ../../include/rec_type.h
+cleanup_final.o: ../../include/resolve_clnt.h
+cleanup_final.o: ../../include/string_list.h
+cleanup_final.o: ../../include/sys_defs.h
+cleanup_final.o: ../../include/tok822.h
+cleanup_final.o: ../../include/vbuf.h
+cleanup_final.o: ../../include/vstream.h
+cleanup_final.o: ../../include/vstring.h
+cleanup_final.o: cleanup.h
+cleanup_final.o: cleanup_final.c
 cleanup_init.o: ../../include/argv.h
 cleanup_init.o: ../../include/been_here.h
 cleanup_init.o: ../../include/dict.h

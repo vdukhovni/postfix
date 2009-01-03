@@ -235,6 +235,13 @@ int     cleanup_flush(CLEANUP_STATE *state)
     }
 
     /*
+     * Update the preliminary message size and count fields with the actual
+     * values.
+     */
+    if (CLEANUP_OUT_OK(state))
+	cleanup_final(state);
+
+    /*
      * If there was an error that requires us to generate a bounce message
      * (mail submitted with the Postfix sendmail command, mail forwarded by
      * the local(8) delivery agent, or mail re-queued with "postsuper -r"),

@@ -220,6 +220,11 @@ extern void cleanup_message(CLEANUP_STATE *, int, const char *, ssize_t);
 extern void cleanup_extracted(CLEANUP_STATE *, int, const char *, ssize_t);
 
  /*
+  * cleanup_final.c
+  */
+extern void cleanup_final(CLEANUP_STATE *);
+
+ /*
   * cleanup_rewrite.c
   */
 extern int cleanup_rewrite_external(const char *, VSTRING *, const char *);
