@@ -119,6 +119,10 @@
 /*	Force the Postfix SMTP server to issue a TLS session id, even
 /*	when TLS session caching is turned off (smtpd_tls_session_cache_database
 /*	is empty).
+/* .PP
+/*	Available in Postfix version 2.6 and later:
+/* .IP "\fBtcp_windowsize (0)\fR"
+/*	An optional workaround for routers that break TCP window scaling.
 /* ADDRESS REWRITING CONTROLS
 /* .ad
 /* .fi
@@ -766,8 +770,8 @@
 /*	The following parameters control numerical SMTP reply codes
 /*	and/or text responses.
 /* .IP "\fBaccess_map_reject_code (554)\fR"
-/*	The numerical Postfix SMTP server response code when a client
-/*	is rejected by an \fBaccess\fR(5) map restriction.
+/*	The numerical Postfix SMTP server response code for
+/*	an \fBaccess\fR(5) map "reject" action.
 /* .IP "\fBdefer_code (450)\fR"
 /*	The numerical Postfix SMTP server response code when a remote SMTP
 /*	client request is rejected by the "defer" restriction.
@@ -816,6 +820,12 @@
 /*	restriction.
 /* .IP "\fBrbl_reply_maps (empty)\fR"
 /*	Optional lookup tables with RBL response templates.
+/* .PP
+/*	Available in Postfix version 2.6 and later:
+/* .IP "\fBaccess_map_defer_code (450)\fR"
+/*	The numerical Postfix SMTP server response code for
+/*	an \fBaccess\fR(5) map "defer" action, including "defer_if_permit"
+/*	or "defer_if_reject".
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi
@@ -1053,7 +1063,8 @@ int     var_unk_name_code;
 int     var_unk_addr_code;
 int     var_relay_code;
 int     var_maps_rbl_code;
-int     var_access_map_code;
+int     var_map_reject_code;
+int     var_map_defer_code;
 char   *var_maps_rbl_domains;
 char   *var_rbl_reply_maps;
 int     var_helo_required;
@@ -4808,7 +4819,8 @@ int     main(int argc, char **argv)
 	VAR_UNK_ADDR_CODE, DEF_UNK_ADDR_CODE, &var_unk_addr_code, 0, 0,
 	VAR_RELAY_CODE, DEF_RELAY_CODE, &var_relay_code, 0, 0,
 	VAR_MAPS_RBL_CODE, DEF_MAPS_RBL_CODE, &var_maps_rbl_code, 0, 0,
-	VAR_ACCESS_MAP_CODE, DEF_ACCESS_MAP_CODE, &var_access_map_code, 0, 0,
+	VAR_MAP_REJECT_CODE, DEF_MAP_REJECT_CODE, &var_map_reject_code, 0, 0,
+	VAR_MAP_DEFER_CODE, DEF_MAP_DEFER_CODE, &var_map_defer_code, 0, 0,
 	VAR_REJECT_CODE, DEF_REJECT_CODE, &var_reject_code, 0, 0,
 	VAR_DEFER_CODE, DEF_DEFER_CODE, &var_defer_code, 0, 0,
 	VAR_NON_FQDN_CODE, DEF_NON_FQDN_CODE, &var_non_fqdn_code, 0, 0,

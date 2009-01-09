@@ -74,6 +74,7 @@
 /*	char	*var_par_dom_match;
 /*	char	*var_config_dirs;
 /*
+/*	int	var_inet_windowsize;
 /*	char	*var_import_environ;
 /*	char	*var_export_environ;
 /*	char	*var_debug_peer_list;
@@ -169,6 +170,8 @@
 #endif
 #include <inet_proto.h>
 #include <vstring_vstream.h>
+#include <connect.h>
+#include <listen.h>
 
 /* Global library. */
 
@@ -252,6 +255,7 @@ int     var_in_flow_delay;
 char   *var_par_dom_match;
 char   *var_config_dirs;
 
+int     var_inet_windowsize;
 char   *var_import_environ;
 char   *var_export_environ;
 char   *var_debug_peer_list;
@@ -571,6 +575,7 @@ void    mail_params_init()
 	VAR_MIME_MAXDEPTH, DEF_MIME_MAXDEPTH, &var_mime_maxdepth, 1, 0,
 	VAR_MIME_BOUND_LEN, DEF_MIME_BOUND_LEN, &var_mime_bound_len, 1, 0,
 	VAR_DELAY_MAX_RES, DEF_DELAY_MAX_RES, &var_delay_max_res, MIN_DELAY_MAX_RES, MAX_DELAY_MAX_RES,
+	VAR_INET_WINDOW, DEF_INET_WINDOW, &var_inet_windowsize, 0, 0,
 	0,
     };
     static const CONFIG_TIME_TABLE time_defaults[] = {
@@ -667,6 +672,7 @@ void    mail_params_init()
 #ifdef HAS_DB
     dict_db_cache_size = var_db_read_buf;
 #endif
+    inet_windowsize = var_inet_windowsize;
 
     /*
      * Variables whose defaults are determined at runtime, after other

@@ -223,6 +223,10 @@
 /*	client.
 /* .IP "\fBsmtp_body_checks (empty)\fR"
 /*	Restricted \fBbody_checks\fR(5) tables for the Postfix SMTP client.
+/* .PP
+/*	Available in Postfix version 2.6 and later:
+/* .IP "\fBtcp_windowsize (0)\fR"
+/*	An optional workaround for routers that break TCP window scaling.
 /* MIME PROCESSING CONTROLS
 /* .ad
 /* .fi

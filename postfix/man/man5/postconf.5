@@ -63,9 +63,18 @@ operation of the mail system.
 The recipient of undeliverable mail that cannot be returned to
 the sender.  This feature is enabled with the notify_classes
 parameter.
+.SH access_map_defer_code (default: 450)
+The numerical Postfix SMTP server response code for
+an \fBaccess\fR(5) map "defer" action, including "defer_if_permit"
+or "defer_if_reject". Prior to Postfix 2.6, the response
+is hard-coded as "450".
+.PP
+Do not change this unless you have a complete understanding of RFC 2821.
+.PP
+This feature is available in Postfix 2.6 and later.
 .SH access_map_reject_code (default: 554)
-The numerical Postfix SMTP server response code when a client
-is rejected by an \fBaccess\fR(5) map restriction.
+The numerical Postfix SMTP server response code for
+an \fBaccess\fR(5) map "reject" action.
 .PP
 Do not change this unless you have a complete understanding of RFC 2821.
 .SH address_verify_default_transport (default: $default_transport)
@@ -2939,6 +2948,33 @@ masquerade_exceptions = root
 .fi
 .ad
 .ft R
+.SH master_service_disable (default: empty)
+Selectively disable \fBmaster\fR(8) listener ports by service type
+or by service name and type.  Specify a list of service types
+("inet", "unix", "fifo", or "pass") or "name.type" tuples, where
+"name" is the first field of a master.cf entry and "type" is a
+service type. As with other Postfix matchlists, a search stops at
+the first match.  Specify "!pattern" to exclude a service from the
+list. By default, all \fBmaster\fR(8) listener ports are enabled.
+.PP
+Examples:
+.PP
+.nf
+.na
+.ft C
+# Turn on all \fBmaster\fR(8) listener ports (the default).
+master_service_disable =
+# Turn off only the main SMTP listener port.
+master_service_disable = smtp.inet
+# Turn off all TCP/IP listener ports.
+master_service_disable = inet
+# Turn off all TCP/IP listener ports except "foo".
+master_service_disable = !foo.inet, inet
+.fi
+.ad
+.ft R
+.PP
+This feature is available in Postfix 2.6 and later.
 .SH max_idle (default: 100s)
 The maximum amount of time that an idle Postfix daemon process waits
 for an incoming connection before terminating voluntarily.  This
@@ -8142,6 +8178,14 @@ a Postfix process has completed initialization. Errors during
 process initialization will be logged with the default name. Examples
 are errors while parsing the command line arguments, and errors
 while accessing the Postfix main.cf configuration file.
+.SH tcp_windowsize (default: 0)
+An optional workaround for routers that break TCP window scaling.
+Specify a value > 0 and < 65536 to enable this feature.
+.PP
+Note: for Postfix servers, this feature is implemented by the
+Postfix \fBmaster\fR(8) daemon, not by the servers themselves.
+.PP
+This feature is available in Postfix 2.6 and later.
 .SH tls_daemon_random_bytes (default: 32)
 The number of pseudo-random bytes that an \fBsmtp\fR(8) or \fBsmtpd\fR(8)
 process requests from the \fBtlsmgr\fR(8) server in order to seed its

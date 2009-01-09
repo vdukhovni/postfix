@@ -6,6 +6,8 @@
 /* SYNOPSIS
 /*	#include <connect.h>
 /*
+/*	int	inet_windowsize;
+/*
 /*	int	inet_connect(addr, block_mode, timeout)
 /*	const char *addr;
 /*	int	block_mode;
@@ -13,6 +15,9 @@
 /* DESCRIPTION
 /*	inet_connect connects to a TCP listener at
 /*	the specified address, and returns the resulting file descriptor.
+/*
+/*	Specify an inet_windowsize value > 0 to override the default
+/*	window size that the client advertises to the server.
 /*
 /*	Arguments:
 /* .IP addr
@@ -140,6 +145,18 @@ static int inet_connect_one(struct addrinfo * res, int block_mode, int timeout)
     sock = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
     if (sock < 0)
 	return (-1);
+
+    /*
+     * Window scaling workaround.
+     */
+    if (inet_windowsize > 0) {
+	if (setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (char *) &inet_windowsize,
+		       sizeof(inet_windowsize)) < 0)
+	    msg_warn("setsockopt SO_SNDBUF %d: %m", inet_windowsize);
+	if (setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char *) &inet_windowsize,
+		       sizeof(inet_windowsize)) < 0)
+	    msg_warn("setsockopt SO_RCVBUF %d: %m", inet_windowsize);
+    }
 
     /*
      * Timed connect.

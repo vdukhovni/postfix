@@ -64,8 +64,6 @@ deliver_attr.o: ../../include/deliver_request.h
 deliver_attr.o: ../../include/dict.h
 deliver_attr.o: ../../include/dsn.h
 deliver_attr.o: ../../include/dsn_buf.h
-deliver_attr.o: ../../include/iostuff.h
-deliver_attr.o: ../../include/mail_proto.h
 deliver_attr.o: ../../include/maps.h
 deliver_attr.o: ../../include/mbox_conf.h
 deliver_attr.o: ../../include/msg.h
@@ -86,11 +84,9 @@ mailbox.o: ../../include/dict.h
 mailbox.o: ../../include/dsn.h
 mailbox.o: ../../include/dsn_buf.h
 mailbox.o: ../../include/dsn_util.h
-mailbox.o: ../../include/iostuff.h
 mailbox.o: ../../include/mail_addr_find.h
 mailbox.o: ../../include/mail_copy.h
 mailbox.o: ../../include/mail_params.h
-mailbox.o: ../../include/mail_proto.h
 mailbox.o: ../../include/maps.h
 mailbox.o: ../../include/mbox_conf.h
 mailbox.o: ../../include/mbox_open.h
@@ -118,10 +114,8 @@ maildir.o: ../../include/dsn.h
 maildir.o: ../../include/dsn_buf.h
 maildir.o: ../../include/dsn_util.h
 maildir.o: ../../include/get_hostname.h
-maildir.o: ../../include/iostuff.h
 maildir.o: ../../include/mail_copy.h
 maildir.o: ../../include/mail_params.h
-maildir.o: ../../include/mail_proto.h
 maildir.o: ../../include/make_dirs.h
 maildir.o: ../../include/maps.h
 maildir.o: ../../include/mbox_conf.h
@@ -148,8 +142,6 @@ recipient.o: ../../include/deliver_request.h
 recipient.o: ../../include/dict.h
 recipient.o: ../../include/dsn.h
 recipient.o: ../../include/dsn_buf.h
-recipient.o: ../../include/iostuff.h
-recipient.o: ../../include/mail_proto.h
 recipient.o: ../../include/maps.h
 recipient.o: ../../include/mbox_conf.h
 recipient.o: ../../include/msg.h
@@ -170,8 +162,6 @@ unknown.o: ../../include/deliver_request.h
 unknown.o: ../../include/dict.h
 unknown.o: ../../include/dsn.h
 unknown.o: ../../include/dsn_buf.h
-unknown.o: ../../include/iostuff.h
-unknown.o: ../../include/mail_proto.h
 unknown.o: ../../include/maps.h
 unknown.o: ../../include/mbox_conf.h
 unknown.o: ../../include/msg.h
@@ -195,7 +185,6 @@ virtual.o: ../../include/iostuff.h
 virtual.o: ../../include/mail_addr_find.h
 virtual.o: ../../include/mail_conf.h
 virtual.o: ../../include/mail_params.h
-virtual.o: ../../include/mail_proto.h
 virtual.o: ../../include/mail_queue.h
 virtual.o: ../../include/mail_server.h
 virtual.o: ../../include/mail_version.h

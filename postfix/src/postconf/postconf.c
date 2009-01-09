@@ -13,6 +13,9 @@
 /*	\fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fIparameter=value ...\fR]
 /*
+/*	\fBpostconf\fR [\fB-#v\fR] [\fB-c \fIconfig_dir\fR]
+/*	[\fIparameter ...\fR]
+/*
 /*	\fBpostconf\fR [\fB-btv\fR] [\fB-c \fIconfig_dir\fR] [\fItemplate_file\fR]
 /* DESCRIPTION
 /*	The \fBpostconf\fR(1) command displays the actual values
@@ -178,6 +181,15 @@
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
+/* .IP \fB-#\fR
+/*	Edit the \fBmain.cf\fR configuration file. The file is copied
+/*	to a temporary file then renamed into place. The parameters
+/*	specified on the command line are commented-out, so that they
+/*	revert to their default values. Specify a list of parameter
+/*	names, not name=value pairs.  There is no \fBpostconf\fR command
+/*	to perform the reverse operation.
+/*
+/*	This feature is available with Postfix 2.6 and later.
 /* DIAGNOSTICS
 /*	Problems are reported to the standard error stream.
 /* ENVIRONMENT
@@ -254,6 +266,7 @@
 #include <myflock.h>
 #include <inet_proto.h>
 #include <argv.h>
+#include <edit_file.h>
 
 /* Global library. */
 
@@ -283,6 +296,7 @@
 #define SHOW_EVAL	(1<<6)		/* expand right-hand sides */
 #define SHOW_SASL_SERV	(1<<7)		/* show server auth plugin types */
 #define SHOW_SASL_CLNT	(1<<8)		/* show client auth plugin types */
+#define COMMENT_OUT	(1<<9)		/* #-out selected main.cf entries */
 
  /*
   * Lookup table for in-core parameter info.
@@ -451,11 +465,11 @@ static const char *check_mynetworks(void)
 
 /* edit_parameters - edit parameter file */
 
-static void edit_parameters(int argc, char **argv)
+static void edit_parameters(int cmd_mode, int argc, char **argv)
 {
     char   *config_dir;
     char   *path;
-    char   *temp;
+    EDIT_FILE *ep;
     VSTREAM *src;
     VSTREAM *dst;
     VSTRING *buf = vstring_alloc(100);
@@ -480,13 +494,25 @@ static void edit_parameters(int argc, char **argv)
     table = htable_create(argc);
     while ((cp = *argv++) != 0) {
 	if (strchr(cp, '\n') != 0)
-	    msg_fatal("edit accepts no multi-line input");
+	    msg_fatal("-e or -# accepts no multi-line input");
 	while (ISSPACE(*cp))
 	    cp++;
 	if (*cp == '#')
-	    msg_fatal("edit accepts no comment input");
-	if ((err = split_nameval(cp, &edit_key, &edit_val)) != 0)
-	    msg_fatal("%s: \"%s\"", err, cp);
+	    msg_fatal("-e or -# accepts no comment input");
+	if (cmd_mode & EDIT_MAIN) {
+	    if ((err = split_nameval(cp, &edit_key, &edit_val)) != 0)
+		msg_fatal("%s: \"%s\"", err, cp);
+	} else if (cmd_mode & COMMENT_OUT) {
+	    if (*cp == 0)
+		msg_fatal("-# requires non-blank parameter names");
+	    if (strchr(cp, '=') != 0)
+		msg_fatal("-# requires parameter names only");
+	    edit_key = mystrdup(cp);
+	    trimblanks(edit_key, 0);
+	    edit_val = 0;
+	} else {
+	    msg_panic("edit_parameters: unknown mode %d", cmd_mode);
+	}
 	cvalue = (struct cvalue *) mymalloc(sizeof(*cvalue));
 	cvalue->value = edit_val;
 	cvalue->found = 0;
@@ -503,24 +529,22 @@ static void edit_parameters(int argc, char **argv)
     set_mail_conf_str(VAR_CONFIG_DIR, var_config_dir);
 
     /*
-     * Open the original file for input.
+     * Open a temp file for the result. This uses a deterministic name so we
+     * don't leave behind thrash with random names.
      */
     path = concatenate(var_config_dir, "/", "main.cf", (char *) 0);
-    if ((src = vstream_fopen(path, O_RDONLY, 0)) == 0)
-	msg_fatal("open %s for reading: %m", path);
+    if ((ep = edit_file_open(path, O_CREAT | O_WRONLY, 0644)) == 0)
+	msg_fatal("open %s%s: %m", path, EDIT_FILE_SUFFIX);
+    dst = ep->tmp_fp;
 
     /*
-     * Open a temp file for the result. We use a fixed name so we don't leave
-     * behind thrash with random names. Lock the temp file to avoid
-     * accidents. Truncate the file only after we have an exclusive lock.
+     * Open the original file for input.
      */
-    temp = concatenate(path, ".tmp", (char *) 0);
-    if ((dst = vstream_fopen(temp, O_CREAT | O_WRONLY, 0644)) == 0)
-	msg_fatal("open %s: %m", temp);
-    if (myflock(vstream_fileno(dst), INTERNAL_LOCK, MYFLOCK_OP_EXCLUSIVE) < 0)
-	msg_fatal("lock %s: %m", temp);
-    if (ftruncate(vstream_fileno(dst), 0) < 0)
-	msg_fatal("truncate %s: %m", temp);
+    if ((src = vstream_fopen(path, O_RDONLY, 0)) == 0) {
+	/* OK to delete, since we control the temp file name exclusively. */
+	(void) unlink(ep->tmp_path);
+	msg_fatal("open %s for reading: %m", path);
+    }
 
     /*
      * Copy original file to temp file, while replacing parameters on the
@@ -536,10 +560,12 @@ static void edit_parameters(int argc, char **argv)
 	if (*cp == '#' || *cp == 0) {
 	    vstream_fputs(STR(buf), dst);
 	}
-	/* Copy or skip continued text. */
+	/* Copy, skip or replace continued text. */
 	else if (cp > STR(buf)) {
 	    if (interesting == 0)
 		vstream_fputs(STR(buf), dst);
+	    else if (cmd_mode & COMMENT_OUT)
+		vstream_fprintf(dst, "#%s", STR(buf));
 	}
 	/* Copy or replace start of logical line. */
 	else {
@@ -548,7 +574,12 @@ static void edit_parameters(int argc, char **argv)
 	    if ((interesting = !!cvalue) != 0) {
 		if (cvalue->found++ == 1)
 		    msg_warn("%s: multiple entries for \"%s\"", path, STR(key));
-		vstream_fprintf(dst, "%s = %s\n", STR(key), cvalue->value);
+		if (cmd_mode & EDIT_MAIN)
+		    vstream_fprintf(dst, "%s = %s\n", STR(key), cvalue->value);
+		else if (cmd_mode & COMMENT_OUT)
+		    vstream_fprintf(dst, "#%s", cp);
+		else
+		    msg_panic("edit_parameters: unknown mode %d", cmd_mode);
 	    } else {
 		vstream_fputs(STR(buf), dst);
 	    }
@@ -558,28 +589,27 @@ static void edit_parameters(int argc, char **argv)
     /*
      * Generate new entries for parameters that were not found.
      */
-    for (ht_info = ht = htable_list(table); *ht; ht++) {
-	cvalue = (struct cvalue *) ht[0]->value;
-	if (cvalue->found == 0)
-	    vstream_fprintf(dst, "%s = %s\n", ht[0]->key, cvalue->value);
+    if (cmd_mode & EDIT_MAIN) {
+	for (ht_info = ht = htable_list(table); *ht; ht++) {
+	    cvalue = (struct cvalue *) ht[0]->value;
+	    if (cvalue->found == 0)
+		vstream_fprintf(dst, "%s = %s\n", ht[0]->key, cvalue->value);
+	}
+	myfree((char *) ht_info);
     }
-    myfree((char *) ht_info);
 
     /*
      * When all is well, rename the temp file to the original one.
      */
     if (vstream_fclose(src))
 	msg_fatal("read %s: %m", path);
-    if (vstream_fclose(dst))
-	msg_fatal("write %s: %m", temp);
-    if (rename(temp, path) < 0)
-	msg_fatal("rename %s to %s: %m", temp, path);
+    if (edit_file_close(ep) != 0)
+	msg_fatal("close %s%s: %m", path, EDIT_FILE_SUFFIX);
 
     /*
      * Cleanup.
      */
     myfree(path);
-    myfree(temp);
     vstring_free(buf);
     vstring_free(key);
     htable_free(table, myfree);
@@ -1001,7 +1031,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "aAbc:deEhmlntv")) > 0) {
+    while ((ch = GETOPT(argc, argv, "aAbc:deE#hmlntv")) > 0) {
 	switch (ch) {
 	case 'a':
 	    cmd_mode |= SHOW_SASL_SERV;
@@ -1037,6 +1067,10 @@ int     main(int argc, char **argv)
 	    cmd_mode |= SHOW_EVAL;
 	    break;
 #endif
+	case '#':
+	    cmd_mode = COMMENT_OUT;
+	    break;
+
 	case 'h':
 	    cmd_mode &= ~SHOW_NAME;
 	    break;
@@ -1059,19 +1093,20 @@ int     main(int argc, char **argv)
 	    msg_verbose++;
 	    break;
 	default:
-	    msg_fatal("usage: %s [-a (server SASL types)] [-A (client SASL types)] [-b (bounce templates)] [-c config_dir] [-d (defaults)] [-e (edit)] [-h (no names)] [-l (lock types)] [-m (map types)] [-n (non-defaults)] [-v] [name...]", argv[0]);
+	    msg_fatal("usage: %s [-a (server SASL types)] [-A (client SASL types)] [-b (bounce templates)] [-c config_dir] [-d (defaults)] [-e (edit)] [-# (comment-out)] [-h (no names)] [-l (lock types)] [-m (map types)] [-n (non-defaults)] [-v] [name...]", argv[0]);
 	}
     }
 
     /*
      * Sanity check.
      */
-    junk = (cmd_mode & (SHOW_DEFS | SHOW_NONDEF | SHOW_MAPS | SHOW_LOCKS | EDIT_MAIN | SHOW_SASL_SERV | SHOW_SASL_CLNT));
+    junk = (cmd_mode & (SHOW_DEFS | SHOW_NONDEF | SHOW_MAPS | SHOW_LOCKS | EDIT_MAIN | SHOW_SASL_SERV | SHOW_SASL_CLNT | COMMENT_OUT));
     if (junk != 0 && ((junk != SHOW_DEFS && junk != SHOW_NONDEF
 	     && junk != SHOW_MAPS && junk != SHOW_LOCKS && junk != EDIT_MAIN
-		       && junk != SHOW_SASL_SERV && junk != SHOW_SASL_CLNT)
+		       && junk != SHOW_SASL_SERV && junk != SHOW_SASL_CLNT
+		       && junk != COMMENT_OUT)
 		      || ext_argv != 0))
-	msg_fatal("specify one of -a, -A, -b, -d, -e, -m, -l and -n");
+	msg_fatal("specify one of -a, -A, -b, -d, -e, -#, -m, -l and -n");
 
     /*
      * Display bounce template information and exit.
@@ -1121,8 +1156,8 @@ int     main(int argc, char **argv)
     /*
      * Edit main.cf.
      */
-    else if (cmd_mode & EDIT_MAIN) {
-	edit_parameters(argc - optind, argv + optind);
+    else if (cmd_mode & (EDIT_MAIN | COMMENT_OUT)) {
+	edit_parameters(cmd_mode, argc - optind, argv + optind);
     }
 
     /*

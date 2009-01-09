@@ -327,6 +327,19 @@ int     tls_bio(int fd, int timeout, TLS_SESS_STATE *TLScontext,
 	    if (biop_retval < 0)
 		return (-1);			/* network read/write error */
 	    break;
+
+	    /*
+	     * With tls_timed_read() and tls_timed_write() the caller is the
+	     * VSTREAM library module which is unaware of TLS, so we log the
+	     * TLS error stack here. In a better world, each VSTREAM I/O
+	     * object would provide an error reporting method in addition to
+	     * the timed_read and timed_write methods, so that we would not
+	     * need to have ad-hoc code like this.
+	     */
+	case SSL_ERROR_SSL:
+	    if (rfunc || wfunc)
+		tls_print_errors();
+	    /* FALLTHROUGH */
 	default:
 	    retval = status;
 	    done = 1;

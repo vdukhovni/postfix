@@ -6,6 +6,8 @@
 /* SYNOPSIS
 /*	#include <listen.h>
 /*
+/*	int	inet_windowsize;
+/*
 /*	int	inet_listen(addr, backlog, block_mode)
 /*	const char *addr;
 /*	int	backlog;
@@ -19,6 +21,9 @@
 /*	the resulting file descriptor.
 /*
 /*	inet_accept() accepts a connection and sanitizes error results.
+/*
+/*	Specify an inet_windowsize value > 0 to override the default
+/*	TCP window size that the server advertises to the server.
 /*
 /*	Arguments:
 /* .IP addr
@@ -71,6 +76,11 @@
 #include "myaddrinfo.h"
 #include "sock_addr.h"
 #include "inet_proto.h"
+
+ /*
+  * Tunable to work around broken routers.
+  */
+int     inet_windowsize = 0;
 
 /* inet_listen - create TCP listener */
 
@@ -135,12 +145,12 @@ int     inet_listen(const char *addr, int backlog, int block_mode)
     if ((sock = socket(res->ai_family, res->ai_socktype, 0)) < 0)
 	msg_fatal("socket: %m");
 #ifdef HAS_IPV6
-# if defined(IPV6_V6ONLY) && !defined(BROKEN_AI_PASSIVE_NULL_HOST)
+#if defined(IPV6_V6ONLY) && !defined(BROKEN_AI_PASSIVE_NULL_HOST)
     if (res->ai_family == AF_INET6
 	&& setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY,
 		      (char *) &on, sizeof(on)) < 0)
 	msg_fatal("setsockopt(IPV6_V6ONLY): %m");
-# endif
+#endif
 #endif
     if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
 		   (char *) &on, sizeof(on)) < 0)
@@ -149,6 +159,14 @@ int     inet_listen(const char *addr, int backlog, int block_mode)
 	SOCKADDR_TO_HOSTADDR(res->ai_addr, res->ai_addrlen,
 			     &hostaddr, &portnum, 0);
 	msg_fatal("bind %s port %s: %m", hostaddr.buf, portnum.buf);
+    }
+    if (inet_windowsize > 0) {
+	if (setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (char *) &inet_windowsize,
+		       sizeof(inet_windowsize)) < 0)
+	    msg_warn("setsockopt SO_SNDBUF %d: %m", inet_windowsize);
+	if (setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char *) &inet_windowsize,
+		       sizeof(inet_windowsize)) < 0)
+	    msg_warn("setsockopt SO_RCVBUF %d: %m", inet_windowsize);
     }
     freeaddrinfo(res0);
     non_blocking(sock, block_mode);

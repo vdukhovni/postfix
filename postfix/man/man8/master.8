@@ -109,6 +109,11 @@ process will service before terminating voluntarily.
 .IP "\fBservice_throttle_time (60s)\fR"
 How long the Postfix \fBmaster\fR(8) waits before forking a server that
 appears to be malfunctioning.
+.PP
+Available in Postfix version 2.6 and later:
+.IP "\fBmaster_service_disable (empty)\fR"
+Selectively disable \fBmaster\fR(8) listener ports by service type
+or by service name and type.
 .SH "MISCELLANEOUS CONTROLS"
 .na
 .nf

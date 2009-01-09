@@ -803,6 +803,13 @@ extern int var_proc_limit;
 extern int var_throttle_time;
 
  /*
+  * Master: what master.cf services are turned off.
+  */
+#define VAR_MASTER_DISABLE	"master_service_disable"
+#define DEF_MASTER_DISABLE	""
+extern char *var_master_disable;
+
+ /*
   * Any subsystem: default maximum number of clients serviced before a mail
   * subsystem terminates (except queue manager).
   */
@@ -2029,9 +2036,13 @@ extern int var_relay_code;
 #define DEF_PERM_MX_NETWORKS	""
 extern char *var_perm_mx_networks;
 
-#define VAR_ACCESS_MAP_CODE	"access_map_reject_code"
-#define DEF_ACCESS_MAP_CODE	554
-extern int var_access_map_code;
+#define VAR_MAP_REJECT_CODE	"access_map_reject_code"
+#define DEF_MAP_REJECT_CODE	554
+extern int var_map_reject_code;
+
+#define VAR_MAP_DEFER_CODE	"access_map_defer_code"
+#define DEF_MAP_DEFER_CODE	450
+extern int var_map_defer_code;
 
 #define CHECK_CLIENT_ACL	"check_client_access"
 #define CHECK_REVERSE_CLIENT_ACL "check_reverse_client_hostname_access"
@@ -3022,6 +3033,13 @@ extern char *var_stress;
 #define VAR_STRICT_MBOX_OWNER	"strict_mailbox_ownership"
 #define DEF_STRICT_MBOX_OWNER	1
 extern bool var_strict_mbox_owner;
+
+ /*
+  * Window scaling workaround.
+  */
+#define VAR_INET_WINDOW		"tcp_windowsize"
+#define DEF_INET_WINDOW		0
+extern int var_inet_windowsize;
 
 /* LICENSE
 /* .ad

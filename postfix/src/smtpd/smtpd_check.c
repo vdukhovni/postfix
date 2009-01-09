@@ -1967,7 +1967,22 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     if (STREQUAL(value, "REJECT", cmd_len)) {
 	dsn_split(&dp, "5.7.1", cmd_text);
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
-				   var_access_map_code,
+				   var_map_reject_code,
+				   smtpd_dsn_fix(DSN_STATUS(dp.dsn),
+						 reply_class),
+				   "<%s>: %s rejected: %s",
+				   reply_name, reply_class,
+				   *dp.text ? dp.text : "Access denied"));
+    }
+
+    /*
+     * DEFER means "try again". Use optional text or generate a generic error
+     * response.
+     */
+    if (STREQUAL(value, "DEFER", cmd_len)) {
+	dsn_split(&dp, "4.7.1", cmd_text);
+	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
+				   var_map_defer_code,
 				   smtpd_dsn_fix(DSN_STATUS(dp.dsn),
 						 reply_class),
 				   "<%s>: %s rejected: %s",
@@ -2140,7 +2155,8 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     if (STREQUAL(value, DEFER_IF_PERMIT, cmd_len)) {
 	dsn_split(&dp, "4.7.1", cmd_text);
 	DEFER_IF_PERMIT3(state, MAIL_ERROR_POLICY,
-			 450, smtpd_dsn_fix(DSN_STATUS(dp.dsn), reply_class),
+			 var_map_defer_code,
+			 smtpd_dsn_fix(DSN_STATUS(dp.dsn), reply_class),
 			 "<%s>: %s rejected: %s",
 			 reply_name, reply_class,
 			 *dp.text ? dp.text : "Service unavailable");
@@ -2154,7 +2170,8 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     if (STREQUAL(value, DEFER_IF_REJECT, cmd_len)) {
 	dsn_split(&dp, "4.7.1", cmd_text);
 	DEFER_IF_REJECT3(state, MAIL_ERROR_POLICY,
-			 450, smtpd_dsn_fix(DSN_STATUS(dp.dsn), reply_class),
+			 var_map_defer_code,
+			 smtpd_dsn_fix(DSN_STATUS(dp.dsn), reply_class),
 			 "<%s>: %s rejected: %s",
 			 reply_name, reply_class,
 			 *dp.text ? dp.text : "Service unavailable");
@@ -4831,7 +4848,8 @@ int     var_unk_name_code;
 int     var_unk_addr_code;
 int     var_relay_code;
 int     var_maps_rbl_code;
-int     var_access_map_code;
+int     var_map_reject_code;
+int     var_map_defer_code;
 int     var_reject_code;
 int     var_defer_code;
 int     var_non_fqdn_code;
@@ -4866,7 +4884,8 @@ static const INT_TABLE int_table[] = {
     VAR_UNK_ADDR_CODE, DEF_UNK_ADDR_CODE, &var_unk_addr_code,
     VAR_RELAY_CODE, DEF_RELAY_CODE, &var_relay_code,
     VAR_MAPS_RBL_CODE, DEF_MAPS_RBL_CODE, &var_maps_rbl_code,
-    VAR_ACCESS_MAP_CODE, DEF_ACCESS_MAP_CODE, &var_access_map_code,
+    VAR_MAP_REJECT_CODE, DEF_MAP_REJECT_CODE, &var_map_reject_code,
+    VAR_MAP_DEFER_CODE, DEF_MAP_DEFER_CODE, &var_map_defer_code,
     VAR_REJECT_CODE, DEF_REJECT_CODE, &var_reject_code,
     VAR_DEFER_CODE, DEF_DEFER_CODE, &var_defer_code,
     VAR_NON_FQDN_CODE, DEF_NON_FQDN_CODE, &var_non_fqdn_code,

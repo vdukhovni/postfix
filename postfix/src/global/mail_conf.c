@@ -10,6 +10,8 @@
 /*
 /*	void	mail_conf_suck()
 /*
+/*	void	mail_conf_flush()
+/*
 /*	void	mail_conf_update(name, value)
 /*	const char *name;
 /*	const char *value;
@@ -28,6 +30,10 @@
 /*
 /*	mail_conf_read() invokes mail_conf_suck() and assigns the values
 /*	to global variables by calling mail_params_init().
+/*
+/*	mail_conf_flush() discards the global configuration dictionary.
+/*	This is needed in programs that read main.cf multiple times, to
+/*	ensure that deleted parameter settings are handled properly.
 /*
 /*	The following routines are wrappers around the generic dictionary
 /*	access routines.
@@ -175,6 +181,14 @@ void    mail_conf_suck(void)
     path = concatenate(var_config_dir, "/", "main.cf", (char *) 0);
     dict_load_file(CONFIG_DICT, path);
     myfree(path);
+}
+
+/* mail_conf_flush - discard configuration dictionary */
+
+void mail_conf_flush(void)
+{
+    if (dict_handle(CONFIG_DICT) != 0)
+        dict_unregister(CONFIG_DICT);
 }
 
 /* mail_conf_eval - expand macros in string */

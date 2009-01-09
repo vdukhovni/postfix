@@ -168,11 +168,9 @@ bounce_notify_service.o: ../../include/dsn.h
 bounce_notify_service.o: ../../include/dsn_buf.h
 bounce_notify_service.o: ../../include/dsn_mask.h
 bounce_notify_service.o: ../../include/int_filt.h
-bounce_notify_service.o: ../../include/iostuff.h
 bounce_notify_service.o: ../../include/mail_addr.h
 bounce_notify_service.o: ../../include/mail_error.h
 bounce_notify_service.o: ../../include/mail_params.h
-bounce_notify_service.o: ../../include/mail_proto.h
 bounce_notify_service.o: ../../include/mail_queue.h
 bounce_notify_service.o: ../../include/msg.h
 bounce_notify_service.o: ../../include/msg_stats.h
@@ -234,11 +232,9 @@ bounce_notify_verp.o: ../../include/dsn.h
 bounce_notify_verp.o: ../../include/dsn_buf.h
 bounce_notify_verp.o: ../../include/dsn_mask.h
 bounce_notify_verp.o: ../../include/int_filt.h
-bounce_notify_verp.o: ../../include/iostuff.h
 bounce_notify_verp.o: ../../include/mail_addr.h
 bounce_notify_verp.o: ../../include/mail_error.h
 bounce_notify_verp.o: ../../include/mail_params.h
-bounce_notify_verp.o: ../../include/mail_proto.h
 bounce_notify_verp.o: ../../include/mail_queue.h
 bounce_notify_verp.o: ../../include/msg.h
 bounce_notify_verp.o: ../../include/msg_stats.h
@@ -263,11 +259,9 @@ bounce_one_service.o: ../../include/dsn.h
 bounce_one_service.o: ../../include/dsn_buf.h
 bounce_one_service.o: ../../include/dsn_mask.h
 bounce_one_service.o: ../../include/int_filt.h
-bounce_one_service.o: ../../include/iostuff.h
 bounce_one_service.o: ../../include/mail_addr.h
 bounce_one_service.o: ../../include/mail_error.h
 bounce_one_service.o: ../../include/mail_params.h
-bounce_one_service.o: ../../include/mail_proto.h
 bounce_one_service.o: ../../include/msg.h
 bounce_one_service.o: ../../include/msg_stats.h
 bounce_one_service.o: ../../include/name_mask.h
@@ -321,11 +315,9 @@ bounce_trace_service.o: ../../include/dsn.h
 bounce_trace_service.o: ../../include/dsn_buf.h
 bounce_trace_service.o: ../../include/dsn_mask.h
 bounce_trace_service.o: ../../include/int_filt.h
-bounce_trace_service.o: ../../include/iostuff.h
 bounce_trace_service.o: ../../include/mail_addr.h
 bounce_trace_service.o: ../../include/mail_error.h
 bounce_trace_service.o: ../../include/mail_params.h
-bounce_trace_service.o: ../../include/mail_proto.h
 bounce_trace_service.o: ../../include/mail_queue.h
 bounce_trace_service.o: ../../include/msg.h
 bounce_trace_service.o: ../../include/msg_stats.h

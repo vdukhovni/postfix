@@ -193,10 +193,15 @@ Reject the address etc. that matches the pattern. Reply with
 "\fB$access_map_reject_code \fIoptional text...\fR" when the
 optional text is
 specified, otherwise reply with a generic error response message.
+.IP "\fBDEFER \fIoptional text...\fR
+Reject the address etc. that matches the pattern. Reply with
+"\fB$access_map_defer_code \fIoptional text...\fR" when the
+optional text is
+specified, otherwise reply with a generic error response message.
 .IP "\fBDEFER_IF_REJECT \fIoptional text...\fR
 Defer the request if some later restriction would result in a
-REJECT action. Reply with "\fB450 4.7.1 \fI optional
-text...\fR" when the
+REJECT action. Reply with "\fB$access_map_defer_code 4.7.1
+\fIoptional text...\fR" when the
 optional text is specified, otherwise reply with a generic error
 response message.
 .sp
@@ -204,7 +209,8 @@ This feature is available in Postfix 2.1 and later.
 .IP "\fBDEFER_IF_PERMIT \fIoptional text...\fR
 Defer the request if some later restriction would result in a
 an explicit or implicit PERMIT action.
-Reply with "\fB450 4.7.1 \fI optional text...\fR" when the
+Reply with "\fB$access_map_defer_code 4.7.1 \fI optional
+text...\fR" when the
 optional text is specified, otherwise reply with a generic error
 response message.
 .sp

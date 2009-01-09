@@ -128,6 +128,7 @@ master_conf.o: master.h
 master_conf.o: master_conf.c
 master_ent.o: ../../include/argv.h
 master_ent.o: ../../include/attr.h
+master_ent.o: ../../include/domain_list.h
 master_ent.o: ../../include/host_port.h
 master_ent.o: ../../include/inet_addr_host.h
 master_ent.o: ../../include/inet_addr_list.h
@@ -135,6 +136,8 @@ master_ent.o: ../../include/iostuff.h
 master_ent.o: ../../include/mail_conf.h
 master_ent.o: ../../include/mail_params.h
 master_ent.o: ../../include/mail_proto.h
+master_ent.o: ../../include/match_list.h
+master_ent.o: ../../include/match_ops.h
 master_ent.o: ../../include/msg.h
 master_ent.o: ../../include/myaddrinfo.h
 master_ent.o: ../../include/mymalloc.h

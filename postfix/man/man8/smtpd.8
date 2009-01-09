@@ -135,6 +135,10 @@ Available in Postfix version 2.3 and later:
 Force the Postfix SMTP server to issue a TLS session id, even
 when TLS session caching is turned off (smtpd_tls_session_cache_database
 is empty).
+.PP
+Available in Postfix version 2.6 and later:
+.IP "\fBtcp_windowsize (0)\fR"
+An optional workaround for routers that break TCP window scaling.
 .SH "ADDRESS REWRITING CONTROLS"
 .na
 .nf
@@ -818,8 +822,8 @@ details.
 The following parameters control numerical SMTP reply codes
 and/or text responses.
 .IP "\fBaccess_map_reject_code (554)\fR"
-The numerical Postfix SMTP server response code when a client
-is rejected by an \fBaccess\fR(5) map restriction.
+The numerical Postfix SMTP server response code for
+an \fBaccess\fR(5) map "reject" action.
 .IP "\fBdefer_code (450)\fR"
 The numerical Postfix SMTP server response code when a remote SMTP
 client request is rejected by the "defer" restriction.
@@ -868,6 +872,12 @@ client request is blocked by the reject_multi_recipient_bounce
 restriction.
 .IP "\fBrbl_reply_maps (empty)\fR"
 Optional lookup tables with RBL response templates.
+.PP
+Available in Postfix version 2.6 and later:
+.IP "\fBaccess_map_defer_code (450)\fR"
+The numerical Postfix SMTP server response code for
+an \fBaccess\fR(5) map "defer" action, including "defer_if_permit"
+or "defer_if_reject".
 .SH "MISCELLANEOUS CONTROLS"
 .na
 .nf

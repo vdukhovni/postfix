@@ -95,6 +95,11 @@
 /* .IP "\fBservice_throttle_time (60s)\fR"
 /*	How long the Postfix \fBmaster\fR(8) waits before forking a server that
 /*	appears to be malfunctioning.
+/* .PP
+/*	Available in Postfix version 2.6 and later:
+/* .IP "\fBmaster_service_disable (empty)\fR"
+/*	Selectively disable \fBmaster\fR(8) listener ports by service type
+/*	or by service name and type.
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi
@@ -266,7 +271,6 @@ int     main(int argc, char **argv)
      * Strip and save the process name for diagnostics etc.
      */
     var_procname = mystrdup(basename(argv[0]));
-    set_mail_conf_str(VAR_PROCNAME, var_procname);
 
     /*
      * When running a child process, don't leak any open files that were
@@ -468,7 +472,9 @@ int     main(int argc, char **argv)
      * multiple things at the same time, it really is all a single thread, so
      * that there are no concurrency conflicts within the master process.
      */
-    watchdog = watchdog_create(1000, (WATCHDOG_FN) 0, (char *) 0);
+#define MASTER_WATCHDOG_TIME	1000
+
+    watchdog = watchdog_create(MASTER_WATCHDOG_TIME, (WATCHDOG_FN) 0, (char *) 0);
     for (;;) {
 #ifdef HAS_VOLATILE_LOCKS
 	if (myflock(vstream_fileno(lock_fp), INTERNAL_LOCK,
@@ -479,9 +485,9 @@ int     main(int argc, char **argv)
 	    msg_fatal("refresh exclusive lock: %m");
 #endif
 	watchdog_start(watchdog);		/* same as trigger servers */
-	event_loop(-1);
+	event_loop(MASTER_WATCHDOG_TIME / 2);
 	if (master_gotsighup) {
-	    msg_info("reload -- version %s, configuration %s", 
+	    msg_info("reload -- version %s, configuration %s",
 		     var_mail_version, var_config_dir);
 	    master_gotsighup = 0;		/* this first */
 	    master_vars_init();			/* then this */

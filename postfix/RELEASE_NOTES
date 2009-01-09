@@ -11,6 +11,22 @@ instead, a new snapshot is released.
 The mail_release_date configuration parameter (format: yyyymmdd)
 specifies the release date of a stable release or snapshot release.
 
+Major changes with snapshot 20090109
+====================================
+
+Support to selectively disable master(8) listener ports by service
+type or by service name + type. Specify a list of service types
+("inet", "unix", "fifo", or "pass") or "name.type" tuples, where
+"name" is the first field of a master.cf entry and "type" is a
+service type. Examples: to turn off the main SMTP listener port,
+use "master_service_disable = smtp.inet"; to turn off all TCP/IP
+listeners, use "master_service_disable = inet".
+
+Specify "tcp_windowsize = 65535" (or less) to work around routers
+with broken TCP window scaling implementations.  This is perhaps
+easier than collecting tcpdump output and tuning kernel parameters.
+Changing this parameter requires "postfix stop" and "postfix start".
+
 Major changes with snapshot 20081010
 ====================================
 

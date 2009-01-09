@@ -85,12 +85,33 @@ parameter.  </p>
 
 </DD>
 
+<DT><b><a name="access_map_defer_code">access_map_defer_code</a>
+(default: 450)</b></DT><DD>
+
+<p>
+The numerical Postfix SMTP server response code for
+an <a href="access.5.html">access(5)</a> map "defer" action, including "<a href="postconf.5.html#defer_if_permit">defer_if_permit</a>"
+or "<a href="postconf.5.html#defer_if_reject">defer_if_reject</a>". Prior to Postfix 2.6, the response
+is hard-coded as "450".
+</p>
+
+<p>
+Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc2821">RFC 2821</a>.
+</p>
+
+<p>
+This feature is available in Postfix 2.6 and later.
+</p>
+
+
+</DD>
+
 <DT><b><a name="access_map_reject_code">access_map_reject_code</a>
 (default: 554)</b></DT><DD>
 
 <p>
-The numerical Postfix SMTP server response code when a client
-is rejected by an <a href="access.5.html">access(5)</a> map restriction.
+The numerical Postfix SMTP server response code for
+an <a href="access.5.html">access(5)</a> map "reject" action.
 </p>
 
 <p>
@@ -5311,6 +5332,35 @@ Examples:
 <a href="postconf.5.html#masquerade_exceptions">masquerade_exceptions</a> = root, mailer-daemon
 <a href="postconf.5.html#masquerade_exceptions">masquerade_exceptions</a> = root
 </pre>
+
+
+</DD>
+
+<DT><b><a name="master_service_disable">master_service_disable</a>
+(default: empty)</b></DT><DD>
+
+<p> Selectively disable <a href="master.8.html">master(8)</a> listener ports by service type
+or by service name and type.  Specify a list of service types
+("inet", "unix", "fifo", or "pass") or "name.type" tuples, where
+"name" is the first field of a <a href="master.5.html">master.cf</a> entry and "type" is a
+service type. As with other Postfix matchlists, a search stops at
+the first match.  Specify "!pattern" to exclude a service from the
+list. By default, all <a href="master.8.html">master(8)</a> listener ports are enabled.  </p>
+
+<p> Examples: </p>
+
+<pre>
+# Turn on all <a href="master.8.html">master(8)</a> listener ports (the default).
+<a href="postconf.5.html#master_service_disable">master_service_disable</a> =
+# Turn off only the main SMTP listener port.
+<a href="postconf.5.html#master_service_disable">master_service_disable</a> = smtp.inet
+# Turn off all TCP/IP listener ports.
+<a href="postconf.5.html#master_service_disable">master_service_disable</a> = inet
+# Turn off all TCP/IP listener ports except "foo".
+<a href="postconf.5.html#master_service_disable">master_service_disable</a> = !foo.inet, inet
+</pre>
+
+<p> This feature is available in Postfix 2.6 and later. </p>
 
 
 </DD>
@@ -13010,6 +13060,20 @@ process initialization will be logged with the default name. Examples
 are errors while parsing the command line arguments, and errors
 while accessing the Postfix <a href="postconf.5.html">main.cf</a> configuration file.
 </p>
+
+
+</DD>
+
+<DT><b><a name="tcp_windowsize">tcp_windowsize</a>
+(default: 0)</b></DT><DD>
+
+<p> An optional workaround for routers that break TCP window scaling.
+Specify a value > 0 and < 65536 to enable this feature. </p>
+
+<p> Note: for Postfix servers, this feature is implemented by the
+Postfix <a href="master.8.html">master(8)</a> daemon, not by the servers themselves. </p>
+
+<p> This feature is available in Postfix 2.6 and later. </p>
 
 
 </DD>

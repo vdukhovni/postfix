@@ -129,7 +129,7 @@ extern void master_refresh(void);
 extern void master_vars_init(void);
 
  /*
-  * master_tab.c
+  * master_service.c
   */
 extern MASTER_SERV *master_head;
 extern void master_start_service(MASTER_SERV *);

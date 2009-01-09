@@ -99,10 +99,8 @@ qmgr_active.o: ../../include/dsn.h
 qmgr_active.o: ../../include/dsn_buf.h
 qmgr_active.o: ../../include/dsn_mask.h
 qmgr_active.o: ../../include/events.h
-qmgr_active.o: ../../include/iostuff.h
 qmgr_active.o: ../../include/mail_open_ok.h
 qmgr_active.o: ../../include/mail_params.h
-qmgr_active.o: ../../include/mail_proto.h
 qmgr_active.o: ../../include/mail_queue.h
 qmgr_active.o: ../../include/msg.h
 qmgr_active.o: ../../include/msg_stats.h
@@ -124,8 +122,6 @@ qmgr_bounce.o: ../../include/deliver_completed.h
 qmgr_bounce.o: ../../include/deliver_request.h
 qmgr_bounce.o: ../../include/dsn.h
 qmgr_bounce.o: ../../include/dsn_buf.h
-qmgr_bounce.o: ../../include/iostuff.h
-qmgr_bounce.o: ../../include/mail_proto.h
 qmgr_bounce.o: ../../include/msg_stats.h
 qmgr_bounce.o: ../../include/recipient_list.h
 qmgr_bounce.o: ../../include/scan_dir.h
@@ -192,9 +188,7 @@ qmgr_entry.o: ../../include/attr.h
 qmgr_entry.o: ../../include/deliver_request.h
 qmgr_entry.o: ../../include/dsn.h
 qmgr_entry.o: ../../include/events.h
-qmgr_entry.o: ../../include/iostuff.h
 qmgr_entry.o: ../../include/mail_params.h
-qmgr_entry.o: ../../include/mail_proto.h
 qmgr_entry.o: ../../include/msg.h
 qmgr_entry.o: ../../include/msg_stats.h
 qmgr_entry.o: ../../include/mymalloc.h
