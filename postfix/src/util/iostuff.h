@@ -36,6 +36,9 @@ extern int unix_send_fd(int, int);
 extern ssize_t dummy_read(int, void *, size_t, int, void *);
 extern ssize_t dummy_write(int, void *, size_t, int, void *);
 
+extern int inet_windowsize;
+extern void set_inet_windowsize(int, int);
+
 #define BLOCKING	0
 #define NON_BLOCKING	1
 

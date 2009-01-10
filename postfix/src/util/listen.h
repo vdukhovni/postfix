@@ -31,8 +31,6 @@ extern int unix_accept(int);
 extern int stream_accept(int);
 extern int upass_accept(int);
 
-extern int inet_windowsize;
-
 /* LICENSE
 /* .ad
 /* .fi

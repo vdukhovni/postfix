@@ -79,6 +79,10 @@
 /*	Send mail with the named subject line (default: none).
 /* .IP "\fB-t \fIto\fR"
 /*	Use the specified recipient address (default: <foo@myhostname>).
+/* .IP "\fB-T \fIwindowsize\fR"
+/*	Override the default TCP window size. To work around
+/*	broken TCP window scaling implementations, specify a
+/*	value > 0 and < 65536.
 /* .IP \fB-v\fR
 /*	Make the program more verbose, for debugging purposes.
 /* .IP "\fB-w \fIinterval\fR"
@@ -460,6 +464,8 @@ static void start_connect(SESSION *session)
     session->stream = vstream_fdopen(fd, O_RDWR);
     event_enable_write(fd, connect_done, (char *) session);
     smtp_timeout_setup(session->stream, var_timeout);
+    if (inet_windowsize > 0)
+	set_inet_windowsize(fd, inet_windowsize);
     if (sane_connect(fd, sa, sa_length) < 0 && errno != EINPROGRESS)
 	fail_connect(session);
 }
@@ -922,7 +928,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "46AcC:df:F:l:Lm:M:Nor:R:s:S:t:vw:")) > 0) {
+    while ((ch = GETOPT(argc, argv, "46AcC:df:F:l:Lm:M:Nor:R:s:S:t:T:vw:")) > 0) {
 	switch (ch) {
 	case '4':
 	    protocols = INET_PROTO_NAME_IPV4;
@@ -1000,6 +1006,10 @@ int     main(int argc, char **argv)
 	    break;
 	case 't':
 	    recipient = optarg;
+	    break;
+	case 'T':
+	    if ((inet_windowsize = atoi(optarg)) <= 0)
+		msg_fatal("bad TCP window size: %s", optarg);
 	    break;
 	case 'v':
 	    msg_verbose++;

@@ -85,6 +85,10 @@ Run the specified number of SMTP sessions in parallel (default: 1).
 Send mail with the named subject line (default: none).
 .IP "\fB-t \fIto\fR"
 Use the specified recipient address (default: <foo@myhostname>).
+.IP "\fB-T \fIwindowsize\fR"
+Override the default TCP window size. To work around
+broken TCP window scaling implementations, specify a
+value > 0 and < 65536.
 .IP \fB-v\fR
 Make the program more verbose, for debugging purposes.
 .IP "\fB-w \fIinterval\fR"

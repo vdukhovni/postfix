@@ -197,6 +197,9 @@ static SMTP_SESSION *smtp_connect_addr(const char *destination, DNS_RR *addr,
     if ((sock = socket(sa->sa_family, SOCK_STREAM, 0)) < 0)
 	msg_fatal("%s: socket: %m", myname);
 
+    if (inet_windowsize > 0)
+	set_inet_windowsize(sock, inet_windowsize);
+
     /*
      * Allow the sysadmin to specify the source address, for example, as "-o
      * smtp_bind_address=x.x.x.x" in the master.cf file.

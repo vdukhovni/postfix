@@ -157,6 +157,10 @@ character).
 .IP "\fB-t \fItimeout\fR (default: 100)"
 Limit the time for receiving a command or sending a response.
 The time limit is specified in seconds.
+.IP "\fB-T \fIwindowsize\fR"
+Override the default TCP window size. To work around
+broken TCP window scaling implementations, specify a
+value > 0 and < 65536.
 .IP "\fB-u \fIusername\fR"
 Switch to the specified user privileges after opening the
 network socket and optionally changing the process root

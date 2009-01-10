@@ -16,7 +16,7 @@
 /*	inet_connect connects to a TCP listener at
 /*	the specified address, and returns the resulting file descriptor.
 /*
-/*	Specify an inet_windowsize value > 0 to override the default
+/*	Specify an inet_windowsize value > 0 to override the TCP
 /*	window size that the client advertises to the server.
 /*
 /*	Arguments:
@@ -149,14 +149,8 @@ static int inet_connect_one(struct addrinfo * res, int block_mode, int timeout)
     /*
      * Window scaling workaround.
      */
-    if (inet_windowsize > 0) {
-	if (setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (char *) &inet_windowsize,
-		       sizeof(inet_windowsize)) < 0)
-	    msg_warn("setsockopt SO_SNDBUF %d: %m", inet_windowsize);
-	if (setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char *) &inet_windowsize,
-		       sizeof(inet_windowsize)) < 0)
-	    msg_warn("setsockopt SO_RCVBUF %d: %m", inet_windowsize);
-    }
+    if (inet_windowsize > 0)
+	set_inet_windowsize(sock, inet_windowsize);
 
     /*
      * Timed connect.

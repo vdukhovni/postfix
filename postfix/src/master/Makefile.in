@@ -2,10 +2,10 @@ SHELL	= /bin/sh
 SRCS	= master.c master_conf.c master_ent.c master_sig.c master_avail.c \
 	master_spawn.c master_service.c master_status.c master_listen.c \
 	master_proto.c single_server.c multi_server.c master_vars.c \
-	master_wakeup.c master_flow.c mail_flow.c
+	master_wakeup.c master_flow.c master_watch.c mail_flow.c
 OBJS	= master.o master_conf.o master_ent.o master_sig.o master_avail.o \
 	master_spawn.o master_service.o master_status.o master_listen.o \
-	master_vars.o master_wakeup.o master_flow.o
+	master_vars.o master_wakeup.o master_watch.o master_flow.o
 LIB_OBJ	= single_server.o multi_server.o trigger_server.o master_proto.o \
 	mail_flow.o
 HDRS	= mail_server.h master_proto.h mail_flow.h
@@ -128,7 +128,6 @@ master_conf.o: master.h
 master_conf.o: master_conf.c
 master_ent.o: ../../include/argv.h
 master_ent.o: ../../include/attr.h
-master_ent.o: ../../include/domain_list.h
 master_ent.o: ../../include/host_port.h
 master_ent.o: ../../include/inet_addr_host.h
 master_ent.o: ../../include/inet_addr_list.h
@@ -136,8 +135,7 @@ master_ent.o: ../../include/iostuff.h
 master_ent.o: ../../include/mail_conf.h
 master_ent.o: ../../include/mail_params.h
 master_ent.o: ../../include/mail_proto.h
-master_ent.o: ../../include/match_list.h
-master_ent.o: ../../include/match_ops.h
+master_ent.o: ../../include/match_service.h
 master_ent.o: ../../include/msg.h
 master_ent.o: ../../include/myaddrinfo.h
 master_ent.o: ../../include/mymalloc.h
@@ -237,6 +235,11 @@ master_wakeup.o: ../../include/vstream.h
 master_wakeup.o: mail_server.h
 master_wakeup.o: master.h
 master_wakeup.o: master_wakeup.c
+master_watch.o: ../../include/msg.h
+master_watch.o: ../../include/mymalloc.h
+master_watch.o: ../../include/sys_defs.h
+master_watch.o: master.h
+master_watch.o: master_watch.c
 multi_server.o: ../../include/chroot_uid.h
 multi_server.o: ../../include/debug_process.h
 multi_server.o: ../../include/events.h

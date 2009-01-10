@@ -20,12 +20,34 @@ type or by service name + type. Specify a list of service types
 "name" is the first field of a master.cf entry and "type" is a
 service type. Examples: to turn off the main SMTP listener port,
 use "master_service_disable = smtp.inet"; to turn off all TCP/IP
-listeners, use "master_service_disable = inet".
+listeners, use "master_service_disable = inet". Changing this
+parameter requires "postfix reload".
 
 Specify "tcp_windowsize = 65535" (or less) to work around routers
 with broken TCP window scaling implementations.  This is perhaps
-easier than collecting tcpdump output and tuning kernel parameters.
-Changing this parameter requires "postfix stop" and "postfix start".
+more convenient than collecting tcpdump output and tuning kernel
+parameters by hand.  With Postfix TCP servers (smtpd(8), qmqpd(8)),
+this feature is implemented by the Postfix master(8) daemon.
+
+To change this parameter without stopping Postfix, you need to first
+terminate all Postfix TCP servers:
+
+    # postconf -e master_service_disable=inet
+    # postfix reload
+
+This immediately terminates all processes that accept network
+connections.  Then you enable Postfix TCP servers with the updated
+tcp_windowsize setting:
+
+    # postconf -e tcp_windowsize=65535 master_service_disable=
+    # postfix reload
+
+If you skip these steps with a running Postfix system, then the
+tcp_windowsize change will work only for Postfix TCP clients (smtp(8),
+lmtp(8)).
+
+Of course you can also do "postfix stop" and "postfix start",
+but that is more disruptive.
 
 Major changes with snapshot 20081010
 ====================================

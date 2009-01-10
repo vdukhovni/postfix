@@ -184,6 +184,35 @@ extern void master_delete_children(MASTER_SERV *);
 extern void master_flow_init(void);
 extern int master_flow_pipe[2];
 
+ /*
+  * master_watch.c
+  * 
+  * Support to warn about main.cf parameters that can only be initialized but
+  * not updated, and to initialize or update data structures that derive
+  * values from main.cf parameters.
+  */
+typedef struct {
+    const char *name;			/* parameter name */
+    char  **value;			/* current main.cf value */
+    char  **backup;			/* actual value that is being used */
+    int     flags;			/* see below */
+    void    (*notify) (void);		/* init or update data structure */
+} MASTER_STR_WATCH;
+
+typedef struct {
+    const char *name;			/* parameter name */
+    int    *value;			/* current main.cf value */
+    int     backup;			/* actual value that is being used */
+    int     flags;			/* see below */
+    void    (*notify) (void);		/* init or update data structure */
+} MASTER_INT_WATCH;
+
+#define MASTER_WATCH_FLAG_UPDATABLE (1<<0)	/* support update after init */
+#define MASTER_WATCH_FLAG_ISSET    (1<<1)	/* backup is initialized */
+
+extern void master_str_watch(const MASTER_STR_WATCH *);
+extern void master_int_watch(MASTER_INT_WATCH *);
+
 /* DIAGNOSTICS
 /* BUGS
 /* SEE ALSO

@@ -106,6 +106,11 @@ SMTP-SOURCE(1)                                                  SMTP-SOURCE(1)
        <b>-t</b> <i>to</i>  Use   the  specified  recipient  address  (default:
               &lt;foo@<a href="postconf.5.html#myhostname">myhostname</a>&gt;).
 
+       <b>-T</b> <i>windowsize</i>
+              Override the  default  TCP  window  size.  To  work
+              around  broken  TCP window scaling implementations,
+              specify a value &gt; 0 and &lt; 65536.
+
        <b>-v</b>     Make the program more verbose, for  debugging  pur-
               poses.
 

@@ -170,8 +170,7 @@
 #endif
 #include <inet_proto.h>
 #include <vstring_vstream.h>
-#include <connect.h>
-#include <listen.h>
+#include <iostuff.h>
 
 /* Global library. */
 

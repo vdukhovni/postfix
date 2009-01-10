@@ -14845,10 +14845,12 @@ Apologies for any names omitted.
 	and type. For example, to turn off the main SMTP listener
 	use "master_service_disable = smtp.inet", and to turn off
 	all TCP/IP listeners use "master_service_disable = inet".
-	This feature does not distinguish services by their privacy
-	property; some day, clients will not need to specify that
-	anymore.  Files: global/mail_params.h, master/master.c,
-	master/master_vars.c, master/master_ent.c.
+	This immediately terminates all processes that provide the
+	specified services. The master_service_disable feature does
+	not distinguish services by their privacy property; some
+	day, clients will not need to specify that anymore.  Files:
+	global/mail_params.h, master/master.c, master/master_vars.c,
+	master/master_ent.c.
 
 	Bugfix (introduced May 19, 1997): removing a parameter
 	setting from main.cf did not reset the parameter to its
@@ -14863,8 +14865,20 @@ Apologies for any names omitted.
 	smtpd/smtpd_check.c, proto/access.
 
 	Workaround: specify "tcp_windowsize = 65535" (or less) to
-	work around routers with broken TCP window scaling
-	implementations.  This is perhaps easier than collecting
-	tcpdump output and tuning kernel parameters. Changing this
-	parameter requires "postfix stop" and "postfix start".
-	Files: util/inet_connect.c, inet_listen.c, global/mail_params.[hc].
+	work around broken TCP window scaling implementations.  This
+	is perhaps easier than collecting tcpdump output and tuning
+	kernel parameters by hand.  See RELEASE_NOTES for how to
+	change this setting without stopping Postfix.  Files:
+	util/inet_connect.c, inet_listen.c, global/mail_params.[hc].
+
+20090110
+
+	Cleanup: create separate code modules for TCP window size
+	handling, master.cf service name matching, and main.cf
+	change monitoring.  Files: util/inet_windowsize.c,
+	global/match_service.c, master/master_watch.c.
+
+	Feature: TCP window size override for the Postfix SMTP/LMTP
+	client, and for the smtp-source and smtp-sink test programs.
+	Files: smtp/smtp_connect.c, smtpstone/smtp-source.c,
+	smtpstone/smtp-sink.c.

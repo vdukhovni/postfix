@@ -184,6 +184,11 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
               Limit the time for receiving a command or sending a
               response.   The time limit is specified in seconds.
 
+       <b>-T</b> <i>windowsize</i>
+              Override the  default  TCP  window  size.  To  work
+              around  broken  TCP window scaling implementations,
+              specify a value &gt; 0 and &lt; 65536.
+
        <b>-u</b> <i>username</i>
               Switch to the specified user privileges after open-
               ing  the network socket and optionally changing the

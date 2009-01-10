@@ -11971,6 +11971,10 @@ service type. As with other Postfix matchlists, a search stops at
 the first match.  Specify "!pattern" to exclude a service from the
 list. By default, all master(8) listener ports are enabled.  </p>
 
+<p> Note: this feature does not support "/file/name" or "type:table"
+patterns, nor does it support wildcards such as "*" or "all". This
+is intentional. </p>
+
 <p> Examples: </p>
 
 <pre>
@@ -11986,13 +11990,36 @@ master_service_disable = !foo.inet, inet
 
 <p> This feature is available in Postfix 2.6 and later. </p>
 
-%PARAM tcp_windowsize 0 
+%PARAM tcp_windowsize 0
 
 <p> An optional workaround for routers that break TCP window scaling.
-Specify a value > 0 and < 65536 to enable this feature. </p>
+Specify a value &gt; 0 and &lt; 65536 to enable this feature.  With
+Postfix TCP servers (smtpd(8), qmqpd(8)), this feature is implemented
+by the Postfix master(8) daemon.  </p>
 
-<p> Note: for Postfix servers, this feature is implemented by the
-Postfix master(8) daemon, not by the servers themselves. The Postfix
-master must be restarted for a parameter change to take effect. </p>
+<p> To change this parameter without stopping Postfix, you need to
+first terminate all Postfix TCP servers: </p>
+
+<blockquote>
+<pre>
+# postconf -e master_service_disable=inet
+# postfix reload
+</pre>
+</blockquote>
+
+<p> This immediately terminates all processes that accept network
+connections.  Next, you enable Postfix TCP servers with the updated
+tcp_windowsize setting: </p>
+
+<blockquote>
+<pre>
+# postconf -e tcp_windowsize=65535 master_service_disable=
+# postfix reload
+</pre>
+</blockquote>
+
+<p> If you skip these steps with a running Postfix system, then the
+tcp_windowsize change will work only for Postfix TCP clients (smtp(8),
+lmtp(8)).  </p>
 
 <p> This feature is available in Postfix 2.6 and later. </p>

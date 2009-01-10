@@ -90,7 +90,7 @@
 
 /* Global library. */
 
-#include <domain_list.h>
+#include <match_service.h>
 #include <mail_proto.h>
 #include <mail_params.h>
 #include <own_inet_addr.h>
@@ -105,7 +105,7 @@
 static char *master_path;		/* config file name */
 static VSTREAM *master_fp;		/* config file pointer */
 static int master_line;			/* config file line number */
-static DOMAIN_LIST *master_disable;	/* disabled services */
+static ARGV *master_disable;		/* disabled service patterns */
 
 static char master_blanks[] = " \t\r\n";/* field delimiters */
 
@@ -136,7 +136,7 @@ void    set_master_ent()
     master_line = 0;
     if (master_disable != 0)
 	msg_panic("%s: service disable list still exists", myname);
-    master_disable = domain_list_init(MATCH_FLAG_PARENT, var_master_disable);
+    master_disable = match_service_init(var_master_disable);
 }
 
 /* end_master_ent - close configuration file */
@@ -152,7 +152,7 @@ void    end_master_ent()
     master_fp = 0;
     if (master_disable == 0)
 	msg_panic("%s: no service disable list", myname);
-    domain_list_free(master_disable);
+    match_service_free(master_disable);
     master_disable = 0;
 }
 
@@ -284,7 +284,7 @@ MASTER_SERV *get_master_ent()
 	name = cp;
 	transport = get_str_ent(&bufp, "transport type", (char *) 0);
 	vstring_sprintf(junk, "%s.%s", name, transport);
-    } while (domain_list_match(master_disable, vstring_str(junk)) != 0);
+    } while (match_service_match(master_disable, vstring_str(junk)) != 0);
 
     /*
      * Parse one logical line from the configuration file. Initialize service

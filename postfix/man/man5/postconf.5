@@ -2957,6 +2957,10 @@ service type. As with other Postfix matchlists, a search stops at
 the first match.  Specify "!pattern" to exclude a service from the
 list. By default, all \fBmaster\fR(8) listener ports are enabled.
 .PP
+Note: this feature does not support "/file/name" or "type:table"
+patterns, nor does it support wildcards such as "*" or "all". This
+is intentional.
+.PP
 Examples:
 .PP
 .nf
@@ -8180,10 +8184,42 @@ are errors while parsing the command line arguments, and errors
 while accessing the Postfix main.cf configuration file.
 .SH tcp_windowsize (default: 0)
 An optional workaround for routers that break TCP window scaling.
-Specify a value > 0 and < 65536 to enable this feature.
+Specify a value > 0 and < 65536 to enable this feature.  With
+Postfix TCP servers (\fBsmtpd\fR(8), \fBqmqpd\fR(8)), this feature is implemented
+by the Postfix \fBmaster\fR(8) daemon.
 .PP
-Note: for Postfix servers, this feature is implemented by the
-Postfix \fBmaster\fR(8) daemon, not by the servers themselves.
+To change this parameter without stopping Postfix, you need to
+first terminate all Postfix TCP servers:
+.sp
+.in +4
+.nf
+.na
+.ft C
+# postconf -e master_service_disable=inet
+# postfix reload
+.fi
+.ad
+.ft R
+.in -4
+.PP
+This immediately terminates all processes that accept network
+connections.  Next, you enable Postfix TCP servers with the updated
+tcp_windowsize setting:
+.sp
+.in +4
+.nf
+.na
+.ft C
+# postconf -e tcp_windowsize=65535 master_service_disable=
+# postfix reload
+.fi
+.ad
+.ft R
+.in -4
+.PP
+If you skip these steps with a running Postfix system, then the
+tcp_windowsize change will work only for Postfix TCP clients (\fBsmtp\fR(8),
+\fBlmtp\fR(8)).
 .PP
 This feature is available in Postfix 2.6 and later.
 .SH tls_daemon_random_bytes (default: 32)

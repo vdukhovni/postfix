@@ -151,6 +151,10 @@
 /* .IP "\fB-t \fItimeout\fR (default: 100)"
 /*	Limit the time for receiving a command or sending a response.
 /*	The time limit is specified in seconds.
+/* .IP "\fB-T \fIwindowsize\fR"
+/*	Override the default TCP window size. To work around
+/*	broken TCP window scaling implementations, specify a
+/*	value > 0 and < 65536.
 /* .IP "\fB-u \fIusername\fR"
 /*	Switch to the specified user privileges after opening the
 /*	network socket and optionally changing the process root
@@ -1395,7 +1399,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "468aA:cCd:D:eEf:Fh:Ln:m:M:pPq:Q:r:R:s:S:t:u:vw:W:")) > 0) {
+    while ((ch = GETOPT(argc, argv, "468aA:cCd:D:eEf:Fh:Ln:m:M:pPq:Q:r:R:s:S:t:T:u:vw:W:")) > 0) {
 	switch (ch) {
 	case '4':
 	    protocols = INET_PROTO_NAME_IPV4;
@@ -1489,6 +1493,10 @@ int     main(int argc, char **argv)
 	case 't':
 	    if ((var_tmout = atoi(optarg)) <= 0)
 		msg_fatal("bad timeout: %s", optarg);
+	    break;
+	case 'T':
+	    if ((inet_windowsize = atoi(optarg)) <= 0)
+		msg_fatal("bad TCP window size: %s", optarg);
 	    break;
 	case 'u':
 	    user_privs = optarg;
