@@ -1182,6 +1182,7 @@ mail_connect.o: mail_connect.c
 mail_connect.o: mail_proto.h
 mail_connect.o: timed_ipc.h
 mail_copy.o: ../../include/htable.h
+mail_copy.o: ../../include/iostuff.h
 mail_copy.o: ../../include/msg.h
 mail_copy.o: ../../include/safe_open.h
 mail_copy.o: ../../include/stringops.h

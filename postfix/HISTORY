@@ -14882,3 +14882,18 @@ Apologies for any names omitted.
 	client, and for the smtp-source and smtp-sink test programs.
 	Files: smtp/smtp_connect.c, smtpstone/smtp-source.c,
 	smtpstone/smtp-sink.c.
+
+20090114
+
+	Bugfix: VERP now uses the Postfix original recipient, if
+	available, because that is what the VERP consumer expects.
+	Files: *qmgr/qmgr_deliver.c, bounce/bounce_notify_verp.c.
+
+	Safety: extra check for broken third-party patches that
+	allow file size limit < message size limit. This can cause
+	mail to be stuck in the queue forever.
+
+	Invisible change, in preparation for multi-instance support.
+	Except for main.cf and master.cf, all files are optional
+	for non-default Postfix configuration directories. File:
+	conf/postfix-files.

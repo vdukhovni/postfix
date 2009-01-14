@@ -92,6 +92,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <sys/stat.h>
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
@@ -105,6 +106,7 @@
 #include <vstring.h>
 #include <vstring_vstream.h>
 #include <stringops.h>
+#include <iostuff.h>
 
 /* Global library. */
 
@@ -138,6 +140,25 @@ int     mail_copy(const char *sender,
     time_t  now;
     int     type;
     int     prev_type;
+    struct stat st;
+    off_t   size_limit;
+
+    /*
+     * Workaround 20090114. This will hopefully get someone's attention. The
+     * problem with file_size_limit < message_size_limit is that mail will be
+     * delivered again and again until someone removes it from the queue by
+     * hand, because Postfix cannot mark a recipient record as "completed".
+     */
+    if (fstat(vstream_fileno(src), &st) < 0)
+	msg_fatal("fstat: %m");
+    if ((size_limit = get_file_limit()) < st.st_size)
+	msg_panic("file size limit %lu < message size %lu. This "
+		  "causes large messages to be delivered repeatedly "
+		  "after they were submitted with \"sendmail -t\" "
+		  "or after recipients were added with the Milter "
+		  "SMFIR_ADDRCPT request",
+		  (unsigned long) size_limit,
+		  (unsigned long) st.st_size);
 
     /*
      * Initialize.

@@ -250,8 +250,9 @@ $POSTCONF -d mail_version >/dev/null 2>/dev/null || {
     exit 1
 }
 
+def_config_directory=`$POSTCONF -d -h config_directory` || exit 1
 test -n "$config_directory" ||
-    config_directory=`$POSTCONF -d -h config_directory` || exit 1
+    config_directory="$def_config_directory"
 
 test -d "$config_directory" || {
     echo $0: Error: $config_directory is not a directory. 1>&2
@@ -450,6 +451,8 @@ test -n "$create" && {
 	case $flags in *c*) create_flag=1;; *) create_flag=;; esac
 	case $flags in *r*) recursive="-R";; *) recursive=;; esac
 	case $flags in *o*) obsolete_flag=1;; *) obsolete_flag=;; esac
+	case $flags in *[1i]*) test ! -r "$path" -a "$config_directory" != \
+				"$def_config_directory" && continue;; esac
 	# Flag obsolete objects. XXX Solaris 2..9 does not have "test -e".
 	if [ -n "$obsolete_flag" ]
 	then

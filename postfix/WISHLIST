@@ -1,9 +1,4 @@
 Wish list:
- 
-	Force a panic when the VDA patch reduces the file size limit
-	under the message size.  They break the code that marks a
-	recipient as "done", when that recipient was added late
-	(e.g., "sendmail -t" or Milter SMFIR_ADDRCPT).
 
 	Set a flag when a remote SMTP client speaks before the
 	Postfix SMTP server sends the 220 greeting.
@@ -28,6 +23,10 @@ Wish list:
 
 	Make adding Date/From/Message-ID headers dependent on local
 	rewrite context.
+
+	Make adding date/from/etc. conditional. Perhaps on header
+	rewrite context? Do we need a more powerful concept than
+	local_header_rewrite_clients/remote_header_rewrite_domain?
 
 	Write delivery rate delay example (which _README?) and auth
 	failure cache example (SASL_README). Then include them in
@@ -89,10 +88,6 @@ Wish list:
 
 	Update attr_print/scan() so they can send/receive file
 	descriptors. This simplifies kludgy code in many daemons.
-
-	Make adding date/from/etc. conditional. Perhaps on header
-	rewrite context? Do we need a more powerful concept than
-	local_header_rewrite_clients/remote_header_rewrite_domain?
 
 	Would there be a problem adding $smtpd_mumble_restrictions
 	and $smtpd_sender_login_maps to the default proxy_read_maps

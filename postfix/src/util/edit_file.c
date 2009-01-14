@@ -44,10 +44,10 @@
 /*	At this point in the protocol, the current process controls
 /*	both the output file content and its temporary pathname.
 /*
-/*	In the second phase, the application is expected to update
-/*	the output file via the \fBtmp_fp\fR member of
-/*	the EDIT_FILE data structure.  This phase is not implemented
-/*	by the edit_file() module.
+/*	In the second phase, the application opens the original
+/*	file if needed, and updates the output file via the
+/*	\fBtmp_fp\fR member of the EDIT_FILE data structure.  This
+/*	phase is not implemented by the edit_file() module.
 /*
 /*	edit_file_close() implements the third and final phase of
 /*	the protocol.  It flushes the output file to persistent
@@ -68,7 +68,9 @@
 /*	The pathname of the original file that will be replaced by
 /*	the output file. The temporary pathname for the output file
 /*	is obtained by appending the suffix defined with EDIT_FILE_SUFFIX
-/*	to a copy of the specified original file pathname.
+/*	to a copy of the specified original file pathname, and is
+/*	made available via the \fBtmp_path\fR member of the EDIT_FILE
+/*	data structure.
 /* .IP output_flags
 /*	Flags for opening the output file. These are as with open(2),
 /*	except that the O_TRUNC flag is ignored.  edit_file_open()
@@ -96,7 +98,9 @@
 /*
 /*	With both functions, the global errno variable indicates
 /*	the nature of the problem.  All errors are relative to the
-/*	temporary output's pathname. 
+/*	temporary output's pathname. With both functions, this
+/*	pathname is not available via the EDIT_FILE data structure,
+/*	because that structure was already destroyed, or not created.
 /* BUGS
 /*	In the non-error case, edit_file_open() will not return
 /*	until it obtains exclusive control over the output file
@@ -106,7 +110,7 @@
 /*
 /*	When interrupted, edit_file_close() may leave behind a
 /*	world-readable output file under the temporary pathname.
-/*	On some systems this can be used to inflict a shared-file
+/*	On some systems this can be used to inflict a shared-lock
 /*	DOS on the protocol.  Applications that are concerned about
 /*	maximal safety should protect the edit_file_close() call
 /*	with sigdelay() and sigresume() calls, but this introduces
