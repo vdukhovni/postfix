@@ -68,6 +68,12 @@ cd $queue_directory || {
 	$FATAL no Postfix queue directory $queue_directory!
 	exit 1
 }
+def_config_directory=`$command_directory/postconf -dh config_directory` || {
+	$FATAL cannot execute $command_directory/postconf!
+	exit 1
+}
+test "$def_config_directory" = "$config_directory" &&
+	check_shared_files=1
 
 #
 # Parse JCL
@@ -215,8 +221,10 @@ check-fatal)
 check-warn)
 	# This command is NOT part of the public interface.
 
-	for dir in $daemon_directory $config_directory $queue_directory \
-		$queue_directory/pid
+	todo="$config_directory $queue_directory $queue_directory/pid"
+	test -n "$check_shared_files" && todo="$daemon_directory $todo"
+
+	for dir in $todo
 	do
 		ls -lLd $dir | (grep " root " >/dev/null ||
 		    $WARN not owned by root: $dir)
@@ -226,26 +234,36 @@ check-warn)
 	ls -lLd $queue_directory | egrep '^.....(w|...w)' >/dev/null && \
 		$WARN group or other writable: $queue_directory
 
-	find $daemon_directory/* $config_directory/* ! -user root \
+	todo="$config_directory/*"
+	test -n "$check_shared_files" && todo="$daemon_directory/* $todo"
+
+	find $todo ! -user root \
 		-exec $WARN not owned by root: {} \;
 
-	find $daemon_directory/. $config_directory/. \
+	todo="$config_directory/."
+	test -n "$check_shared_files" && todo="$daemon_directory/. $todo"
+
+	find $todo \
 		\( -perm -020 -o -perm -002 \) -type f \
 		-exec $WARN group or other writable: {} \;
 
 	find $data_directory/. ! -user $mail_owner \
-		-exec $WARN not owned by $mail_owner: {} \;
+	    -exec $WARN not owned by $mail_owner: {} \;
 
 	find `ls -d $queue_directory/* | \
 	    egrep '/(saved|incoming|active|defer|deferred|bounce|hold|trace|corrupt|public|private|flush)$'` \
 	    ! \( -type p -o -type s \) ! -user $mail_owner \
 		-exec $WARN not owned by $mail_owner: {} \;
 
-	find $queue_directory/public $queue_directory/maildrop \
-	    $command_directory/postqueue $command_directory/postdrop \
+	todo="$queue_directory/public $queue_directory/maildrop"
+	test -n "$check_shared_files" && 
+	   todo="$command_directory/postqueue $command_directory/postdrop $todo"
+
+	find $todo \
 	    -prune ! -group $setgid_group \
 	    -exec $WARN not owned by group $setgid_group: {} \;
 
+	test -n "$check_shared_files" &&
 	find $command_directory/postqueue $command_directory/postdrop \
 	    -prune ! -perm -02111 \
 	    -exec $WARN not set-gid or not owner+group+world executable: {} \;
@@ -278,7 +296,8 @@ check-warn)
 
 	# XXX also: look for weird stuff, weird permissions, etc.
 
-	test -f /usr/sbin/sendmail -a -f /usr/lib/sendmail && {
+	test -n "$check_shared_files" -a -f /usr/sbin/sendmail -a \
+		-f /usr/lib/sendmail && {
 	    cmp -s /usr/sbin/sendmail /usr/lib/sendmail || {
 		$WARN /usr/lib/sendmail and /usr/sbin/sendmail differ
 		$WARN Replace one by a symbolic link to the other

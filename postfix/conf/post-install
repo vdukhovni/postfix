@@ -193,10 +193,13 @@ SHELL=/bin/sh
 IFS=" 	
 "
 BACKUP_IFS="$IFS"
+debug=:
+#debug=echo
 MOST_PARAMETERS="command_directory daemon_directory data_directory
     html_directory mail_owner mailq_path manpage_directory
     newaliases_path queue_directory readme_directory sample_directory
     sendmail_path setgid_group"
+NON_SHARED="config_directory queue_directory data_directory"
 
 USAGE="Usage: $0 [name=value] command
     create-missing          Create missing queue directories.
@@ -421,9 +424,22 @@ test -n "$create" && {
     do
 	IFS="$BACKUP_IFS"
 	set_permission=
-	# Skip comments.
+	# Skip comments. Skip shared files, if updating a non-default instance.
 	case $path in
-	[$]*) ;;
+	[$]*) case "$def_config_directory" in
+	      "$config_directory") $debug keep non-shared or shared $path;;
+	      *) non_shared=
+		 for name in $NON_SHARED
+		 do
+		     case $path in
+		     "\$$name"*) non_shared=1; break;;
+		     esac
+		 done
+		 case "$non_shared" in
+		  1) $debug keep non-shared $path;;
+		  *) $debug skip shared $path; continue;;
+		 esac;;
+	      esac;;
 	   *) continue;;
 	esac
 	# Skip hard links and symbolic links.

@@ -56,10 +56,11 @@ sub save_text
 
 # Emit one parameter name and text
 
-sub emit_text() 
+sub emit_text
 {
+    my ($delim) = @_;
     if ($block = $param_text{$name}) {
-	print "/* .IP \"\\fB$name ($defval_text{$name})\\fR\"\n";
+	print "$delim .IP \"\\fB$name ($defval_text{$name})\\fR\"\n";
 	$wantpp = 0;
 	$block =~ s/<a [^>]*>//g;
 	$block =~ s/<\/a>//g;
@@ -105,14 +106,14 @@ sub emit_text()
 	$block =~ s/([_a-zA-Z0-9-]+)(\([0-9]\))/\\fB\1\\fR\2/g;
 
 	# Encapsulate as C code comment.
-	$block =~ s/^([^.])/\/\*\t\1/;
-	$block =~ s/^\./\/\* ./;
-	$block =~ s/\n([^.])/\n\/\*\t\1/g;
-	$block =~ s/\n\./\n\/\* ./g;
+	$block =~ s/^([^.])/$delim\t\1/;
+	$block =~ s/^\./$delim ./;
+	$block =~ s/\n([^.])/\n$delim\t\1/g;
+	$block =~ s/\n\./\n$delim ./g;
 
 	print $block;
     } else {
-	print "/* .IP \"\\fB$name ($defval)\\fR\"\n";
+	print "$delim .IP \"\\fB$name ($defval)\\fR\"\n";
 	print $text;
     }
     $name = "";
@@ -168,19 +169,19 @@ if ($name && $text) {
     save_text();
 }
 
-# Process source file with embedded text. For now, hard-coded for C.
+# Process source file with embedded text. For now, hard-coded for C & sh.
 
 while(<>) {
 
-    if (/^\/\*\+\+/) {
+    if (/^(\/\*|#)\+\+/) {
 	$incomment = 1;
 	$name = "";
 	print;
 	next;
     }
 
-    if (/^\/\*--/) {
-	emit_text() if ($name ne "");
+    if (/^(\/\*|#)--/) {
+	emit_text($1) if ($name ne "");
 	$incomment = 0;
 	print;
 	next;
@@ -191,43 +192,43 @@ while(<>) {
 	next;
     }
 
-    if (/\/\* +CONFIGURATION +PARAM/) {
+    if (/(\/\*|#) +CONFIGURATION +PARAM/) {
 	$incomment = 2;
     }
 
     # Delete text after nested itemized list.
-    if ($incomment == 2 && /^\/\* +\.IP ""/) {
+    if ($incomment == 2 && /^(\/\*|#) +\.IP ""/) {
 	$text .= $_;
 	while (<>) {
-	    last if /^\/\* +([A-Z][A-Z][A-Z]+|\.[A-Z][A-Z])/;
+	    last if /^(\/\*|#) +([A-Z][A-Z][A-Z]+|\.[A-Z][A-Z])/;
 	    $text .= $_;
 	}
     }
 
     # Delete nested itemized list.
-    if ($incomment == 2 && /^\/\* +\.RS/) {
+    if ($incomment == 2 && /^(\/\*|#) +\.RS/) {
 	$text .= $_;
 	$rsnest++;
 	while (<>) {
 	    $text .= $_;
-	    $rsnest++ if /^\/\* +\.RS/;
-	    $rsnest-- if /\/\* +\.RE/;
+	    $rsnest++ if /^(\/\*|#) +\.RS/;
+	    $rsnest-- if /(\/\*|#) +\.RE/;
 	    last if $rsnest == 0;
 	}
 	next;
     }
 
-    if ($incomment == 2 && /^\/\* +\.IP +"?\\fB([a-zA-Z0-9_]+)( +\((.*)\))?/) {
-	emit_text() if ($name ne "");
-	$name = $1;
-	$defval = $3;
+    if ($incomment == 2 && /^(\/\*|#) +\.IP +"?\\fB([a-zA-Z0-9_]+)( +\((.*)\))?/) {
+	emit_text($1) if ($name ne "");
+	$name = $2;
+	$defval = $4;
 	$text = "";
 	next;
     }
 
-    if ($incomment == 2 && /^\/\* +([A-Z][A-Z][A-Z]+|\.[A-Z][A-Z])/) {
-	emit_text() if ($name ne "");
-	$incomment = 0 if /^\/\* +(SEE +ALSO|README +FILES|LICENSE|AUTHOR)/;
+    if ($incomment == 2 && /^(\/\*|#) +([A-Z][A-Z][A-Z]+|\.[A-Z][A-Z])/) {
+	emit_text($1) if ($name ne "");
+	$incomment = 0 if /^(\/\*|#) +(SEE +ALSO|README +FILES|LICENSE|AUTHOR)/;
 	print;
 	next;
     }

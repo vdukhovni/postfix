@@ -93,7 +93,7 @@ while (<>) {
     s;\ballow_min_user\b;<a href="postconf.5.html#allow_min_user">$&</a>;g;
     s;\ballow_percent_hack\b;<a href="postconf.5.html#allow_percent_hack">$&</a>;g;
     s;\ballow_untrusted_routing\b;<a href="postconf.5.html#allow_untrusted_routing">$&</a>;g;
-    s;\balternate_config_directories\b;<a href="postconf.5.html#alternate_config_directories">$&</a>;g;
+    s;\balternate_config_direc[-</bB>]*\n*[ <bB>]*tories\b;<a href="postconf.5.html#alternate_config_directories">$&</a>;g;
     s;\balways_bcc\b;<a href="postconf.5.html#always_bcc">$&</a>;g;
     s;\banvil_rate_time_unit\b;<a href="postconf.5.html#anvil_rate_time_unit">$&</a>;g;
     s;\bappend_at_myorigin\b;<a href="postconf.5.html#append_at_myorigin">$&</a>;g;
@@ -740,6 +740,7 @@ while (<>) {
     s/[<bB>]*pcre[<\/bBiI>]*_[<\/iIbB>]*ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="pcre_table.5.html">$&<\/a>/g;
     s/[<bB>]*pgsql[<\/bBiI>]*_[<\/iIbB>]*ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="pgsql_table.5.html">$&<\/a>/g;
     s/[<bB>]*postconf[<\/bB>]*\(5\)/<a href="postconf.5.html">$&<\/a>/g;
+    s/[<bB>]*postfix-wrapper[<\/bB>]*\(5\)/<a href="postfix-wrapper.5.html">$&<\/a>/g;
     s/[<bB>]*prox[-<\/bB>]*\n*[ <bB>]*ymap[<\/bB>]*\(8\)/<a href="proxymap.8.html">$&<\/a>/g;
     s/[<bB>]*reg[-<\/bB>]*\n*[ <bB>]*exp[<\/bBiI>]*_[<\/iIbB>]*ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="regexp_table.5.html">$&<\/a>/g;
     s/[<bB>]*relocated[<\/bB>]*\(5\)/<a href="relocated.5.html">$&<\/a>/g;
@@ -855,6 +856,14 @@ while (<>) {
     s;\bmilter_unknown_command_macros\b;<a href="postconf.5.html#milter_unknown_command_macros">$&</a>;g;
     s;\bmilter_end_of_data_macros\b;<a href="postconf.5.html#milter_end_of_data_macros">$&</a>;g;
     s;\bmilter_end_of_header_macros\b;<a href="postconf.5.html#milter_end_of_header_macros">$&</a>;g;
+
+    # Multi-instance support
+    s;\bmulti_instance_directo[-</bB>]*\n*[ <bB>]*ries\b;<a href="postconf.5.html#multi_instance_directories">$&</a>;g;
+    s;\bmulti_instance_wrapper\b;<a href="postconf.5.html#multi_instance_wrapper">$&</a>;g;
+    s;\bmulti_instance_group\b;<a href="postconf.5.html#multi_instance_group">$&</a>;g;
+    s;\bmulti_instance_name\b;<a href="postconf.5.html#multi_instance_name">$&</a>;g;
+    s;\bmulti_instance_enable\b;<a href="postconf.5.html#multi_instance_enable">$&</a>;g;
+
 
     # Hyperlink URLs and RFC documents
 

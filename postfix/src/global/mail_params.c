@@ -112,6 +112,12 @@
 /*	char	*var_int_filt_classes;
 /*	int	var_cyrus_sasl_authzid;
 /*
+/*	char	*var_multi_conf_dirs;
+/*	char	*var_multi_wrapper;
+/*	char	*var_multi_group;
+/*	char	*var_multi_name;
+/*	bool	var_multi_enable;
+/*
 /*	void	mail_params_init()
 /*
 /*	const	char null_format_string[1];
@@ -290,6 +296,12 @@ int     var_oldlog_compat;
 int     var_delay_max_res;
 char   *var_int_filt_classes;
 int     var_cyrus_sasl_authzid;
+
+char   *var_multi_conf_dirs;
+char   *var_multi_wrapper;
+char   *var_multi_group;
+char   *var_multi_name;
+bool    var_multi_enable;
 
 const char null_format_string[1] = "";
 
@@ -497,6 +509,10 @@ void    mail_params_init()
     static const CONFIG_STR_TABLE first_str_defaults[] = {
 	VAR_SYSLOG_FACILITY, DEF_SYSLOG_FACILITY, &var_syslog_facility, 1, 0,
 	VAR_INET_PROTOCOLS, DEF_INET_PROTOCOLS, &var_inet_protocols, 1, 0,
+	VAR_MULTI_CONF_DIRS, DEF_MULTI_CONF_DIRS, &var_multi_conf_dirs, 0, 0,
+	VAR_MULTI_WRAPPER, DEF_MULTI_WRAPPER, &var_multi_wrapper, 0, 0,
+	VAR_MULTI_GROUP, DEF_MULTI_GROUP, &var_multi_group, 0, 0,
+	VAR_MULTI_NAME, DEF_MULTI_NAME, &var_multi_name, 0, 0,
 	0,
     };
     static const CONFIG_STR_FN_TABLE function_str_defaults[] = {
@@ -605,6 +621,7 @@ void    mail_params_init()
 	VAR_OLDLOG_COMPAT, DEF_OLDLOG_COMPAT, &var_oldlog_compat,
 	VAR_HELPFUL_WARNINGS, DEF_HELPFUL_WARNINGS, &var_helpful_warnings,
 	VAR_CYRUS_SASL_AUTHZID, DEF_CYRUS_SASL_AUTHZID, &var_cyrus_sasl_authzid,
+	VAR_MULTI_ENABLE, DEF_MULTI_ENABLE, &var_multi_enable,
 	0,
     };
     const char *cp;

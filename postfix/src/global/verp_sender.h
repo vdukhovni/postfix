@@ -17,9 +17,14 @@
 #include <vstring.h>
 
  /*
+  * Global library.
+  */
+#include <recipient_list.h>
+
+ /*
   * External interface.
   */
-extern VSTRING *verp_sender(VSTRING *, const char *, const char *, const char *);
+extern VSTRING *verp_sender(VSTRING *, const char *, const char *, const RECIPIENT *);
 extern const char *verp_delims_verify(const char *);
 
 /* LICENSE

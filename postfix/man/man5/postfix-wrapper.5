@@ -1,0 +1,237 @@
+.TH POSTFIX-WRAPPER 5 
+.ad
+.fi
+.SH NAME
+postfix-wrapper
+\-
+Postfix multi-instance API
+.SH DESCRIPTION
+.ad
+.fi
+This document describes an interface that allows a
+multi-instance manager to plug into Postfix and to control
+multiple Postfix instances.
+
+Each Postfix instance is defined by its own configuration
+directory with its own main.cf and master.cf files, by its
+own queue and data directories, and by its own myhostname
+and inet_interfaces settings. Other Postfix files, including
+executable files and documentation, are shared between
+Postfix instances.
+
+Only the default Postfix instance is required. The location
+of its configuration files is specified by the built-in
+default value for the config_directory parameter.  Other
+Postfix instances are optional.
+.SH "GENERAL OPERATION"
+.na
+.nf
+.ad
+.fi
+First of all, nothing changes when there is only one Postfix
+instance.
+
+Even after multi-instance support has been set up through
+the mechanisms discussed later, sites can still continue
+to use the familiar "postfix start / stop / reload / upgrade
+/ etc" commands in boot scripts, build procedures, etc.
+
+To start, stop, update, etc., multiple Postfix instances,
+use:
+
+.nf
+    # postfix \fIcommand\fR
+.fi
+
+For example, to find out what Postfix instances are configured:
+
+.nf
+    # postfix status
+
+To manage an individual Postfix instance, use:
+
+.nf
+    # postfix -c \fI/path/to/config_directory command\fR
+.fi
+.SH "MULTI-INSTANCE DETECTION"
+.na
+.nf
+.ad
+.fi
+While "postfix start/stop/etc" will remain the primary
+command interface, the postfix(1) command itself will need
+to figure out if a command targets multiple Postfix instances
+or just a specific Postfix instance.  This decision can be
+made with information that is already available:
+.IP
+When the postfix(1) command is invoked with the -c
+option, it will operate only on the specified instance.
+We do the same when MAIL_CONFIG is specified in the
+process environment.
+
+Otherwise, the postfix(1) command will operate on all
+applicable Postfix instances.
+.SH "MULTI-INSTANCE MANAGER HOOK"
+.na
+.nf
+.ad
+.fi
+When the postfix(1) command is invoked without -c option,
+and non-default Postfix instance directories are defined
+in main.cf with multi_instance_directories, then the
+postfix(1) command invokes the command specified in main.cf
+with multi_instance_wrapper, instead of invoking postfix-script.
+The multi_instance_wrapper and other main.cf parameters are
+listed in the CONFIGURATION PARAMETERS section below.
+
+A useful wrapper implementation can be as simple as:
+
+.nf
+.ft C
+    #!/bin/sh
+
+    : ${command_directory?"do not invoke this command directly"}
+
+    POSTCONF=$command_directory/postconf
+    POSTFIX=$command_directory/postfix
+    instance_dirs=`$POSTCONF -h multi_instance_directories |
+                    sed 's/,/ /'` || exit 1
+
+    for dir in $config_directory $instance_dirs
+    do
+        case "$1" in
+        stop|abort|flush|reload|drain)
+            test "`$POSTCONF -c $dir -h multi_instance_enable`"
+                    = yes || continue;;
+        start)
+            test "`$POSTCONF -c $dir -h multi_instance_enable`"
+                    = yes || set check;;
+        esac
+        $POSTFIX -c $dir "$@" || err=$?
+    done
+
+    exit $err
+.ft
+.fi
+
+This wrapper skips commands such as "stop" that require a
+running Postfix instance when a Postfix instance is disabled,
+and replaces "start" by "check" so that problems will still
+be reported.
+
+The postmulti(1) command implements a more sophisticated
+approach, based on a combination of C code and scripting.
+.SH "SHARED VERSUS NON-SHARED FILES"
+.na
+.nf
+.ad
+.fi
+Some files are shared between Postfix instances (such as
+executables and manpages) and some files are per-instance
+(such as the queue).  See the NON-SHARED FILES section below
+for a list of per-instance files.
+
+Until now, executables, manpages, etc., have been checked
+or updated as part of the default Postfix instance. With
+multi-instance support, we simply continue to do this.
+Non-default Postfix instances will check or update only
+their non-shared files.
+
+The consequence of this approach is that the default Postfix
+instance should be updated before any other instances.
+.SH "IMPLEMENTATION NOTES"
+.na
+.nf
+.ad
+.fi
+The postfix(1) command ignores the multi_instance_directories
+and multi_instance_wrapper parameters when the -c option
+is specified, or when MAIL_CONFIG is present in the process
+environment.
+
+Otherwise, the postfix(1) command uses the multi_instance_wrapper
+parameter only when the multi_instance_directories parameter
+value is non-empty.
+
+The multi-instance manager must replace a "start" command by
+"check" when a Postfix instance does not have
+"multi_instance_enable = yes". This substitution ensures
+that problems will still be reported.
+
+Set-gid commands such as postdrop(1) and postqueue(1)
+effectively append the multi_instance_directories parameter
+value to the legacy alternate_config_directories parameter
+value.
+
+The legacy alternate_config_directories parameter remains
+necessary for non-default Postfix instances that are running
+different versions of Postfix, or that are not managed
+together with the default Postfix instance.
+
+No Postfix command or script will update or check shared
+files unless it is running in the context of the default
+Postfix instance.
+.SH "ENVIRONMENT VARIABLES"
+.na
+.nf
+.ad
+.fi
+.IP MAIL_CONFIG
+When present, this forces the postfix(1) command to operate
+only on the specified Postfix instance. This environment
+variable is exported by the postfix(1) -c option, so that
+postfix(1) commands in descendant processes will work
+correctly.
+.SH "CONFIGURATION PARAMETERS"
+.na
+.nf
+.ad
+.fi
+.IP "\fBmulti_instance_directories (empty)\fR"
+An optional list of non-default Postfix configuration directories;
+these directories belong to additional Postfix instances that share
+the Postfix executable files and documentation with the default
+Postfix instance, and that are started, stopped, etc., together
+with the default Postfix instance.
+.IP "\fBmulti_instance_wrapper (empty)\fR"
+The pathname of a multi-instance manager command that the
+\fBpostfix\fR(1) command invokes when the multi_instance_directories
+parameter value is non-empty.
+.IP "\fBmulti_instance_name (empty)\fR"
+The optional instance name of this Postfix instance.
+.IP "\fBmulti_instance_group (empty)\fR"
+The optional instance group name of this Postfix instance.
+.IP "\fBmulti_instance_enable (no)\fR"
+Allow this Postfix instance to be started, stopped, etc., by a
+multi-instance manager.
+.SH "NON-SHARED FILES"
+.na
+.nf
+.ad
+.fi
+.IP "\fBconfig_directory (see 'postconf -d' output)\fR"
+The default location of the Postfix main.cf and master.cf
+configuration files.
+.IP "\fBdata_directory (see 'postconf -d' output)\fR"
+The directory with Postfix-writable data files (for example:
+caches, pseudo-random numbers).
+.IP "\fBqueue_directory (see 'postconf -d' output)\fR"
+The location of the Postfix top-level queue directory.
+.SH "SEE ALSO"
+.na
+.nf
+postfix(1) Postfix control program
+postmulti(1) full-blown multi-instance manager
+.SH "LICENSE"
+.na
+.nf
+.ad
+.fi
+The Secure Mailer license must be distributed with this software.
+.SH "AUTHOR(S)"
+.na
+.nf
+Wietse Venema
+IBM T.J. Watson Research
+P.O. Box 704
+Yorktown Heights, NY 10598, USA

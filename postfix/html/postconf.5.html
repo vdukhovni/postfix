@@ -5510,7 +5510,7 @@ one-letter suffix that specifies the time unit). </p>
 </DD>
 
 <DT><b><a name="milter_connect_macros">milter_connect_macros</a>
-(default: see postconf -n output)</b></DT><DD>
+(default: see "postconf -d" output)</b></DT><DD>
 
 <p> The macros that are sent to Milter (mail filter) applications
 after completion of an SMTP connection. See <a href="MILTER_README.html">MILTER_README</a>
@@ -5556,7 +5556,7 @@ one-letter suffix that specifies the time unit). </p>
 </DD>
 
 <DT><b><a name="milter_data_macros">milter_data_macros</a>
-(default: see postconf -n output)</b></DT><DD>
+(default: see "postconf -d" output)</b></DT><DD>
 
 <p> The macros that are sent to version 4 or higher Milter (mail
 filter) applications after the SMTP DATA command. See <a href="MILTER_README.html">MILTER_README</a>
@@ -5595,7 +5595,7 @@ the "<a href="QSHAPE_README.html#hold_queue">hold" queue</a>. Available with Pos
 </DD>
 
 <DT><b><a name="milter_end_of_data_macros">milter_end_of_data_macros</a>
-(default: see postconf -n output)</b></DT><DD>
+(default: see "postconf -d" output)</b></DT><DD>
 
 <p> The macros that are sent to Milter (mail filter) applications
 after the message end-of-data. See <a href="MILTER_README.html">MILTER_README</a> for a list of
@@ -5607,7 +5607,7 @@ available macro names and their meanings.  </p>
 </DD>
 
 <DT><b><a name="milter_end_of_header_macros">milter_end_of_header_macros</a>
-(default: see postconf -n output)</b></DT><DD>
+(default: see "postconf -d" output)</b></DT><DD>
 
 <p> The macros that are sent to Milter (mail filter) applications
 after the end of the message header. See <a href="MILTER_README.html">MILTER_README</a> for a list
@@ -5619,7 +5619,7 @@ of available macro names and their meanings.  </p>
 </DD>
 
 <DT><b><a name="milter_helo_macros">milter_helo_macros</a>
-(default: see postconf -n output)</b></DT><DD>
+(default: see "postconf -d" output)</b></DT><DD>
 
 <p> The macros that are sent to Milter (mail filter) applications
 after the SMTP HELO or EHLO command. See
@@ -5656,7 +5656,7 @@ meanings.  </p>
 </DD>
 
 <DT><b><a name="milter_mail_macros">milter_mail_macros</a>
-(default: see postconf -n output)</b></DT><DD>
+(default: see "postconf -d" output)</b></DT><DD>
 
 <p> The macros that are sent to Milter (mail filter) applications
 after the SMTP MAIL FROM command. See <a href="MILTER_README.html">MILTER_README</a>
@@ -5707,7 +5707,7 @@ will not reply for each individual message header.</dd>
 </DD>
 
 <DT><b><a name="milter_rcpt_macros">milter_rcpt_macros</a>
-(default: see postconf -n output)</b></DT><DD>
+(default: see "postconf -d" output)</b></DT><DD>
 
 <p> The macros that are sent to Milter (mail filter) applications
 after the SMTP RCPT TO command. See <a href="MILTER_README.html">MILTER_README</a>
@@ -5719,7 +5719,7 @@ for a list of available macro names and their meanings. </p>
 </DD>
 
 <DT><b><a name="milter_unknown_command_macros">milter_unknown_command_macros</a>
-(default: see postconf -n output)</b></DT><DD>
+(default: see "postconf -d" output)</b></DT><DD>
 
 <p> The macros that are sent to version 3 or higher Milter (mail
 filter) applications after an unknown SMTP command.  See <a href="MILTER_README.html">MILTER_README</a>
@@ -5796,6 +5796,87 @@ $<a href="postconf.5.html#queue_run_delay">queue_run_delay</a>. See also $<a hre
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 </p>
+
+
+</DD>
+
+<DT><b><a name="multi_instance_directories">multi_instance_directories</a>
+(default: empty)</b></DT><DD>
+
+<p> An optional list of non-default Postfix configuration directories;
+these directories belong to additional Postfix instances that share
+the Postfix executable files and documentation with the default
+Postfix instance, and that are started, stopped, etc., together
+with the default Postfix instance.  Specify a list of pathnames
+separated by comma or whitespace.  </p>
+
+<p> This feature is available in Postfix 2.6 and later. </p>
+
+<p> When the list of non-default Postfix configuration directories
+is non-empty, the <a href="postfix.1.html">postfix(1)</a> command will invoke the multi-instance
+manager specified with the <a href="postconf.5.html#multi_instance_wrapper">multi_instance_wrapper</a> parameter to
+execute commands on the default instance and on all additional
+Postfix instances.  </p>
+
+<p> This feature is available in Postfix 2.6 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="multi_instance_enable">multi_instance_enable</a>
+(default: no)</b></DT><DD>
+
+<p> Allow this Postfix instance to be started, stopped, etc., by a
+multi-instance manager.  By default, new instances are created in
+a safe state that prevents them from being started inadvertently.
+This parameter is reserved for the multi-instance manager.  </p>
+
+<p> This feature is available in Postfix 2.6 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="multi_instance_group">multi_instance_group</a>
+(default: empty)</b></DT><DD>
+
+<p> The optional instance group name of this Postfix instance. A
+group identifies closely-related Postfix instances that the
+multi-instance manager can start, stop, etc., as a unit.  This
+parameter is reserved for the multi-instance manager. </p>
+
+<p> This feature is available in Postfix 2.6 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="multi_instance_name">multi_instance_name</a>
+(default: empty)</b></DT><DD>
+
+<p> The optional instance name of this Postfix instance. This name
+becomes also the default value for the <a href="postconf.5.html#syslog_name">syslog_name</a> parameter. </p>
+
+<p> This feature is available in Postfix 2.6 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="multi_instance_wrapper">multi_instance_wrapper</a>
+(default: empty)</b></DT><DD>
+
+<p> The pathname of a multi-instance manager command that the
+<a href="postfix.1.html">postfix(1)</a> command invokes when the <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a>
+parameter value is non-empty. The pathname may be followed by
+initial command arguments separated by whitespace; shell
+metacharacters are not supported in this context. </p>
+
+<p> The <a href="postfix.1.html">postfix(1)</a> command invokes the manager command with the
+<a href="postfix.1.html">postfix(1)</a> non-option command arguments on the manager command line,
+and with all installation configuration parameters exported into
+the manager command process environment. The manager command in
+turn invokes the <a href="postfix.1.html">postfix(1)</a> command for individual Postfix instances
+as "postfix -c <i><a href="postconf.5.html#config_directory">config_directory</a></i> <i>command</i>".  </p>
+
+<p> This feature is available in Postfix 2.6 and later. </p>
 
 
 </DD>
@@ -13050,7 +13131,7 @@ errors while accessing the Postfix <a href="postconf.5.html">main.cf</a> configu
 </DD>
 
 <DT><b><a name="syslog_name">syslog_name</a>
-(default: postfix)</b></DT><DD>
+(default: see "postconf -d" output)</b></DT><DD>
 
 <p>
 The mail system name that is prepended to the process name in syslog

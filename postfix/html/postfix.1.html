@@ -20,9 +20,15 @@ POSTFIX(1)                                                          POSTFIX(1)
        fix  mail system: start or stop the <a href="master.8.html"><b>master</b>(8)</a> daemon, do a
        health check, and other maintenance.
 
-       The <a href="postfix.1.html"><b>postfix</b>(1)</a> command sets up a standardized  environment
-       and  runs the <b>postfix-script</b> shell script to do the actual
-       work.
+       By default, the <a href="postfix.1.html"><b>postfix</b>(1)</a> command sets up a  standardized
+       environment and runs the <b>postfix-script</b> shell script to do
+       the actual work.
+
+       However, when support for multiple  Postfix  instances  is
+       configured, <a href="postfix.1.html"><b>postfix</b>(1)</a> executes the command specified with
+       the <b><a href="postconf.5.html#multi_instance_wrapper">multi_instance_wrapper</a></b> configuration parameter.   This
+       command will execute the <i>command</i> for each applicable Post-
+       fix instance.
 
        The following commands are implemented:
 
@@ -95,6 +101,12 @@ POSTFIX(1)                                                          POSTFIX(1)
               between  multiple  Postfix  instances  on  the same
               host.
 
+              With Postfix 2.6 and later, this option forces  the
+              <a href="postfix.1.html">postfix(1)</a>  command  to  operate  on  the specified
+              Postfix instance only.  This behavior is  inherited
+              by  <a href="postfix.1.html">postfix(1)</a> commands that run as a descendant of
+              the current process.
+
        <b>-D</b> (with <b>postfix start</b> only)
               Run each Postfix daemon under control of a debugger
               as specified via the <b><a href="postconf.5.html#debugger_command">debugger_command</a></b> configuration
@@ -111,6 +123,12 @@ POSTFIX(1)                                                          POSTFIX(1)
        <b>MAIL_CONFIG</b>
               This  is  set  when  the  -c command-line option is
               present.
+
+              With Postfix 2.6 and later, this environment  vari-
+              able  forces  the  <a href="postfix.1.html">postfix(1)</a> command to operate on
+              the specified Postfix instance only.  This behavior
+              is  inherited  by <a href="postfix.1.html">postfix(1)</a> commands that run as a
+              descendant of the current process.
 
        <b>MAIL_VERBOSE</b>
               This is set when  the  -v  command-line  option  is
@@ -179,14 +197,42 @@ POSTFIX(1)                                                          POSTFIX(1)
               The directory with Postfix-writable data files (for
               example: caches, pseudo-random numbers).
 
+       Available in Postfix version 2.6 and later:
+
+       <b><a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a> (empty)</b>
+              An  optional list of non-default Postfix configura-
+              tion directories; these directories belong to addi-
+              tional  Postfix  instances  that  share the Postfix
+              executable files and documentation with the default
+              Postfix  instance,  and  that are started, stopped,
+              etc., together with the default Postfix instance.
+
+       <b><a href="postconf.5.html#multi_instance_wrapper">multi_instance_wrapper</a> (empty)</b>
+              The pathname of a  multi-instance  manager  command
+              that   the  <a href="postfix.1.html"><b>postfix</b>(1)</a>  command  invokes  when  the
+              <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a> parameter value is  non-
+              empty.
+
+       <b><a href="postconf.5.html#multi_instance_group">multi_instance_group</a> (empty)</b>
+              The  optional  instance  group name of this Postfix
+              instance.
+
+       <b><a href="postconf.5.html#multi_instance_name">multi_instance_name</a> (empty)</b>
+              The  optional  instance  name   of   this   Postfix
+              instance.
+
+       <b><a href="postconf.5.html#multi_instance_enable">multi_instance_enable</a> (no)</b>
+              Allow this Postfix instance to be started, stopped,
+              etc., by a multi-instance manager.
+
        Other configuration parameters:
 
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The  default  location  of  the Postfix <a href="postconf.5.html">main.cf</a> and
+              The default location of  the  Postfix  <a href="postconf.5.html">main.cf</a>  and
               <a href="master.5.html">master.cf</a> configuration files.
 
        <b><a href="postconf.5.html#import_environment">import_environment</a> (see 'postconf -d' output)</b>
-              The list of environment parameters that  a  Postfix
+              The  list  of environment parameters that a Postfix
               process  will  import  from  a  non-Postfix  parent
               process.
 
@@ -194,18 +240,18 @@ POSTFIX(1)                                                          POSTFIX(1)
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (postfix)</b>
-              The mail system  name  that  is  prepended  to  the
-              process  name  in  syslog  records, so that "smtpd"
+              The  mail  system  name  that  is  prepended to the
+              process name in syslog  records,  so  that  "smtpd"
               becomes, for example, "postfix/smtpd".
 
 <b>FILES</b>
-       Prior to Postfix version 2.6, all of the  following  files
-       were  in  <b>$<a href="postconf.5.html#config_directory">config_directory</a></b>.  Some  files are now in <b>$<a href="postconf.5.html#daemon_directory">dae</a>-</b>
-       <b><a href="postconf.5.html#daemon_directory">mon_directory</a></b> so that they can be  shared  among  multiple
+       Prior  to  Postfix version 2.6, all of the following files
+       were in <b>$<a href="postconf.5.html#config_directory">config_directory</a></b>. Some files  are  now  in  <b>$<a href="postconf.5.html#daemon_directory">dae</a>-</b>
+       <b><a href="postconf.5.html#daemon_directory">mon_directory</a></b>  so  that  they can be shared among multiple
        instances that run the same Postfix version.
 
-       Use  the  command "<b>postconf <a href="postconf.5.html#config_directory">config_directory</a></b>" or "<b>postconf</b>
-       <b><a href="postconf.5.html#daemon_directory">daemon_directory</a></b>" to expand the names  into  their  actual
+       Use the command "<b>postconf <a href="postconf.5.html#config_directory">config_directory</a></b>"  or  "<b>postconf</b>
+       <b><a href="postconf.5.html#daemon_directory">daemon_directory</a></b>"  to  expand  the names into their actual
        values.
 
        $<a href="postconf.5.html#config_directory">config_directory</a>/<a href="postconf.5.html">main.cf</a>, Postfix configuration parameters
@@ -224,6 +270,7 @@ POSTFIX(1)                                                          POSTFIX(1)
        <a href="postlock.1.html">postlock(1)</a>, Postfix-compatible locking
        <a href="postlog.1.html">postlog(1)</a>, Postfix-compatible logging
        <a href="postmap.1.html">postmap(1)</a>, Postfix lookup table manager
+       postmulti(1), Postfix multi-instance manager
        <a href="postqueue.1.html">postqueue(1)</a>, Postfix mail queue control
        <a href="postsuper.1.html">postsuper(1)</a>, Postfix housekeeping
        <a href="mailq.1.html">mailq(1)</a>, Sendmail compatibility interface
@@ -234,6 +281,7 @@ POSTFIX(1)                                                          POSTFIX(1)
        <a href="bounce.5.html">bounce(5)</a>, Postfix bounce message templates
        <a href="master.5.html">master(5)</a>, Postfix <a href="master.5.html">master.cf</a> file syntax
        <a href="postconf.5.html">postconf(5)</a>, Postfix <a href="postconf.5.html">main.cf</a> file syntax
+       <a href="postfix-wrapper.5.html">postfix-wrapper(5)</a>, Postfix multi-instance API
 
        Table-driven mechanisms:
        <a href="access.5.html">access(5)</a>, Postfix SMTP access control table
@@ -292,7 +340,7 @@ POSTFIX(1)                                                          POSTFIX(1)
        <a href="QSHAPE_README.html">QSHAPE_README</a>, Postfix queue analysis
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

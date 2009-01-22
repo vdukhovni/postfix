@@ -607,13 +607,7 @@ Topics covered in this section:
   * Client-side TLS activity logging
   * Client-side TLS session cache
   * Client TLS limitations
-  * Client TLS security levels
-  * Disabling TLS in the SMTP/LMTP client
-  * Enabling TLS in the SMTP/LMTP client
-  * Mandating TLS encryption
-  * Certificate fingerprint verification
-  * Mandating server certificate verification
-  * Secure server certificate verification
+  * Configuring TLS in the SMTP/LMTP client
   * Per-destination TLS policy
   * Obsolete per-site TLS policy support
   * Closing a DNS loophole with obsolete per-site TLS policies
@@ -883,9 +877,10 @@ archive/msg00305.html. The problem is not even unique to SMTP or even TLS,
 similar issues exist for secure connections via aliases for HTTPS and Kerberos.
 SMTP merely uses indirect naming (via MX records) more frequently.
 
-CClliieenntt TTLLSS sseeccuurriittyy lleevveellss
+CCoonnffiigguurriinngg TTLLSS iinn tthhee SSMMTTPP//LLMMTTPP cclliieenntt
 
-The TLS security levels listed below are described in more detail in the
+Similar to the Postfix SMTP server, the Postfix SMTP/LMTP client implements
+multiple TLS security levels. These levels are described in more detail in the
 sections that follow.
 
 nnoonnee
@@ -901,7 +896,7 @@ vveerriiffyy
 sseeccuurree
     Secure-channel TLS.
 
-DDiissaabblliinngg TTLLSS iinn tthhee SSMMTTPP//LLMMTTPP cclliieenntt
+NNoo TTLLSS eennccrryyppttiioonn
 
 At the "none" TLS security level, TLS encryption is disabled. This is the
 default security level. With Postfix 2.3 and later, it can be configured
@@ -1328,7 +1323,7 @@ the obsolete per-site table; use the new policy table instead.
 
 TTLLSS ppoolliiccyy ttaabbllee
 
-Postfix 2.3 introduces a new more flexible TLS policy table. For earlier
+The current TLS policy table was introduced with Postfix 2.3. For earlier
 releases, read the description of the obsolete Postfix 2.2 per-site table.
 
 A small fraction of servers offer STARTTLS but the negotiation consistently

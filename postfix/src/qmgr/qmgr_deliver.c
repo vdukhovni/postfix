@@ -145,17 +145,13 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
      * If variable envelope return path is requested, change prefix+@origin
      * into prefix+user=domain@origin. Note that with VERP there is only one
      * recipient per delivery.
-     * 
-     * Fix 20090114: Use the Postfix original recipient, because that is what
-     * the VERP consumer expects.
      */
     if (message->verp_delims == 0) {
 	sender = message->sender;
     } else {
 	sender_buf = vstring_alloc(100);
 	verp_sender(sender_buf, message->verp_delims,
-		    message->sender, list.info->orig_addr[0] ?
-		    list.info->orig_addr : list.info->address);
+		    message->sender, list.info);
 	sender = vstring_str(sender_buf);
     }
 

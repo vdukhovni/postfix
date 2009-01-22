@@ -14897,3 +14897,40 @@ Apologies for any names omitted.
 	Except for main.cf and master.cf, all files are optional
 	for non-default Postfix configuration directories. File:
 	conf/postfix-files.
+
+20090115
+
+	Cleanup: rewrote the 20090114 VERP bugfix, to replace code
+	that "works" by code that is "right". Files: *qmgr/qmgr_deliver.c,
+	bounce/bounce_notify_verp.c, global/verp_sender.c.
+
+20090118
+
+	Documentation: some URLs to enable/disable client-side TLS
+	jumped into the middle of an enumeration.  File:
+	proto/TLS_README.html.
+
+20090119-21
+
+	Feature: multi-instance manager plug-in API.  A sample
+	multi-instance manager with instructions is available as
+	$daemon_directory/postfix-wrapper. The plug-in API itself
+	is described in postfix-wrapper(5).  Files: postfix/postfix.c,
+	global/mail_params.[hc], proto/postfix-wrapper,
+	conf/postfix-wrapper, conf/postfix-script, conf/postfix-files.
+
+	Support to check/update shared files only in the context
+	of the default Postfix instance. Files: conf/post-install,
+	conf/postfix-script.
+
+20090122
+
+	Refinements: the multi-instance manager always replaces
+	"start" by "check" when a Postfix instance is multi-instance
+	disabled, so that problems will still be reported; polish
+	documentation; delete unnecessary multi_instance_order
+	parameter.  Files: conf/postfix-wrapper, proto/postfix-wrapper,
+	global/mail_params.[hc] and documentation.
+
+	Bugfix: the data_directory was not automatically created!
+	File: conf/postfix-files.

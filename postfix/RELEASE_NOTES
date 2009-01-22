@@ -11,6 +11,15 @@ instead, a new snapshot is released.
 The mail_release_date configuration parameter (format: yyyymmdd)
 specifies the release date of a stable release or snapshot release.
 
+Major changes with snapshot 20090121
+====================================
+
+Plug-in support for multi-instance managers. Basically this
+automatically applies your "postfix start" etc. command to multiple
+Postfix instances if available.  The postfix-wrapper script (in the
+daemon directory) provides a simple multi-instance manager with
+instructions. The plug-in API itself is described in postfix-wrapper(5).
+
 Major changes with snapshot 20090109
 ====================================
 

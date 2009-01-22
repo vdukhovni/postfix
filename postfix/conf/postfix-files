@@ -43,7 +43,7 @@
 # permissions, so that running "make install" fixes any glitches.
 #
 $config_directory:d:root:-:755:u
-$data_directory:d:$mail_owner:-:700:u
+$data_directory:d:$mail_owner:-:700:uc
 $daemon_directory:d:root:-:755:u
 $queue_directory:d:root:-:755:uc
 $sample_directory:d:root:-:755:o
@@ -71,6 +71,8 @@ $daemon_directory/error:f:root:-:755
 $daemon_directory/flush:f:root:-:755
 #$daemon_directory/lmtp:f:root:-:755
 $daemon_directory/local:f:root:-:755
+$daemon_directory/main.cf:f:root:-:644
+$daemon_directory/master.cf:f:root:-:644
 $daemon_directory/master:f:root:-:755
 $daemon_directory/oqmgr:f:root:-:755
 $daemon_directory/pickup:f:root:-:755
@@ -78,6 +80,7 @@ $daemon_directory/pipe:f:root:-:755
 $daemon_directory/post-install:f:root:-:755
 $daemon_directory/postfix-files:f:root:-:644
 $daemon_directory/postfix-script:f:root:-:755
+$daemon_directory/postfix-wrapper:f:root:-:755
 $daemon_directory/proxymap:f:root:-:755
 $daemon_directory/qmgr:f:root:-:755
 $daemon_directory/qmqpd:f:root:-:755
@@ -162,6 +165,7 @@ $manpage_directory/man5/nisplus_table.5:f:root:-:644
 $manpage_directory/man5/pcre_table.5:f:root:-:644
 $manpage_directory/man5/pgsql_table.5:f:root:-:644
 $manpage_directory/man5/postconf.5:f:root:-:644
+$manpage_directory/man5/postfix-wrapper.5:f:root:-:644
 $manpage_directory/man5/regexp_table.5:f:root:-:644
 $manpage_directory/man5/relocated.5:f:root:-:644
 $manpage_directory/man5/tcp_table.5:f:root:-:644
@@ -361,6 +365,7 @@ $html_directory/postconf.5.html:f:root:-:644
 $html_directory/postdrop.1.html:f:root:-:644
 $html_directory/postfix-logo.jpg:f:root:-:644
 $html_directory/postfix-manuals.html:f:root:-:644
+$html_directory/postfix-wrapper.5.html:f:root:-:644
 $html_directory/postfix.1.html:f:root:-:644
 $html_directory/postkick.1.html:f:root:-:644
 $html_directory/postlock.1.html:f:root:-:644

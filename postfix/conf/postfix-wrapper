@@ -1,0 +1,204 @@
+#!/bin/sh
+
+# To view the formatted manual page of this file, type:
+#	POSTFIXSOURCE/mantools/srctoman - postfix-wrapper | nroff -man
+
+#++
+# NAME
+#	postfix-wrapper 1
+# SUMMARY
+#	trivial multi-instance manager
+# SYNOPSIS
+#	postfix command
+#
+#	postfix /usr/libexec/postfix/postfix-wrapper init
+# DESCRIPTION
+#	This command implements a trivial Postfix multi-instance
+#	manager.
+#
+#	Each Postfix instance is defined by its own configuration
+#	directory with its own main.cf and master.cf files, by its
+#	own queue and data directories, and by its own myhostname
+#	and inet_interfaces settings. Other Postfix files, including
+#	executable files and documentation, are shared between
+#	Postfix instances.
+#
+#	Only the default Postfix instance is required. The location
+#	of its configuration files is specified by the built-in
+#	default value for the config_directory parameter.  Other
+#	Postfix instances are optional.
+# MANAGING INSTANCES
+# .ad
+# .fi
+#	To hook the postfix-wrapper multi-instance manager into
+#	Postfix, see the WRAPPER INITIALIZATION section below.  To
+#	create a new Postfix instance, see the CREATING A NEW POSTFIX
+#	INSTANCE section below.
+#
+#	To start, stop, get status, etc., with multiple Postfix
+#	instances, use:
+#
+# .nf
+#	    # postfix command
+# .fi
+#
+#	For example, to find out what Postfix instances are configured:
+#
+# .nf
+#	    # postfix status
+# .fi
+#
+#	The postfix(1) command invokes the postfix-wrapper command.
+#	This in turn applies the postfix(1) command to the default
+#	Postfix instance, and to each instance specified with the
+#	default main.cf file's multi_instance_directories parameter
+#	value.
+#
+#	The postfix-wrapper command will start, stop, reload, etc.,
+#	only Postfix instances that have "multi_instance_enable =
+#	yes" in their main.cf files.  When an instance is disabled,
+#	postfix-wrapper replaces "start" commands by "check" so
+#	that problems will still be reported.
+#
+#	The startup order is taken from the multi_instance_directories
+#	parameter; the default instance is prepended to the list.
+#	The startup order is used for all postfix(1) commands,
+#	except for commands that stop Postfix instances. In those
+#	cases the order is reversed.
+#
+#	To manage an individual Postfix instance, use:
+#
+# .nf
+#	    # postfix -c /path/to/config_directory command
+# .fi
+#
+#	Note: only the default Postfix instance will check or update
+#	the shared Postfix files, including the executable files
+#	and documentation.
+# WRAPPER INITIALIZATION
+# .ad
+# .fi
+#	To hook this program into Postfix, execute the following
+#	command, replacing /etc/postfix by the default Postfix
+#	configuration directory, and replacing /usr/libexec/postfix
+#	by the actual path of the Postfix daemon directory:
+#
+# .nf
+#	    # postfix -c /etc/postfix
+#		/usr/libexec/postfix/postfix-wrapper init
+# .fi
+# CREATING A NEW POSTFIX INSTANCE
+# .ad
+# .fi
+#	To create a Postfix instance called "postfix-test", start
+#	with working main.cf and master.cf files and customize the
+#	locations of the queue and data directories.  The last
+#	command below also creates any directories that Postfix
+#	will need.
+#
+# .nf
+#	    # mkdir /etc/postfix-test
+#	    # cp /etc/postfix/main.cf /etc/postfix-test
+#	    # cp /etc/postfix/master.cf /etc/postfix-test
+#	    # postconf -c /etc/postfix-test -e 
+#		"multi_instance_name=postfix-test"
+#	    # postfix -c /etc/postfix-test post-install
+#		"queue_directory=/var/spool/postfix-test"
+#		"data_directory=/var/lib/postfix-test"
+#		create-missing
+# .fi
+#
+#	Register this Postfix instance with the default instance:
+#
+# .nf
+#	    # postconf -e "multi_instance_directories=`postconf
+#		-h multi_instance_directories` /etc/postfix-test"
+# .fi
+#
+#	Edit the myhostname and inet_interfaces main.cf parameters,
+#	so that they will not conflict with the default Postfix
+#	instance, and change whatever else needs to be changed.
+#
+#	Test the instance with:
+#
+# .nf
+#	    # postfix -c /etc/postfix-test start
+# .fi
+#
+#	When everything is working satisfactorily, enable start/stop/etc.
+#	by the multi-instance manager:
+#
+# .nf
+#	    # postconf -c /etc/postfix-test -e multi_instance_enable=yes
+# DIAGNOSTICS
+# .ad
+# .fi
+#	When an operation fails, the affected Postfix instance logs
+#	a message, and the multi-instance manager skips to the next
+#	instance.
+# BUGS
+#	Support for the multi_instance_group feature is not implemented.
+# SEE ALSO
+#	postfix(1) Postfix control program
+#	postfix-wrapper(5) multi-instance manager API
+#	postmulti(1) full-blown multi-instance manager
+# LICENSE
+# .ad
+# .fi
+#	The Secure Mailer license must be distributed with this software.
+# AUTHOR(S)
+#	Wietse Venema
+#	IBM T.J. Watson Research
+#	P.O. Box 704
+#	Yorktown Heights, NY 10598, USA
+#--
+
+# Sanity checks.
+
+: ${command_directory?"do not invoke this command directly"}
+: ${daemon_directory?"do not invoke this command directly"}
+
+# Readability.
+
+POSTCONF=$command_directory/postconf
+POSTFIX=$command_directory/postfix
+WRAPPER=$daemon_directory/postfix-wrapper
+
+# Canonicalize the instance directory list. The list is specified
+# in startup order.
+
+instance_dirs=`$POSTCONF -h multi_instance_directories | sed 's/,/ /'` ||
+    exit 1
+
+case "$1" in
+  stop|abort|drain) all_dirs=
+	for dir in $config_directory $instance_dirs
+	do
+	    all_dirs="$dir $all_dirs"
+	done;;
+     *) all_dirs="$config_directory $instance_dirs";;
+esac
+#
+# Execute the command on all applicable instances. When a Postfix
+# instance is disabled, replace "postfix start" by "postfix check"
+# so that problems will still be reported.
+
+for dir in $all_dirs
+do
+    case "$1" in
+    init*)
+	$POSTCONF -e \
+	    "multi_instance_enable = yes" \
+	    "multi_instance_wrapper = $daemon_directory/postfix-wrapper"
+	exit;;
+    start)
+	test "`$POSTCONF -c $dir -h multi_instance_enable`" = yes ||
+	    set check;;
+    stop|abort|drain|flush|reload)
+	test "`$POSTCONF -c $dir -h multi_instance_enable`" = yes ||
+	    continue;;
+    esac
+    $POSTFIX -c $dir "$@" || err=$?
+done
+
+exit $err

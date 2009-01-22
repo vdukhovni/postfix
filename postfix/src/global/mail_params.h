@@ -2267,7 +2267,12 @@ extern char *var_virt_mailbox_lock;
   * Distinct logging tag for multiple Postfix instances.
   */
 #define VAR_SYSLOG_NAME			"syslog_name"
+#if 1
+#define DEF_SYSLOG_NAME			\
+    "${" VAR_MULTI_NAME ":postfix}${" VAR_MULTI_NAME "?$" VAR_MULTI_NAME "}"
+#else
 #define DEF_SYSLOG_NAME			"postfix"
+#endif
 extern char *var_syslog_name;
 
  /*
@@ -3040,6 +3045,30 @@ extern bool var_strict_mbox_owner;
 #define VAR_INET_WINDOW		"tcp_windowsize"
 #define DEF_INET_WINDOW		0
 extern int var_inet_windowsize;
+
+ /*
+  * Plug-in multi-instance support. Only the first two paramaters are used by
+  * Postfix itself; the other ones are reserved for the instance manager.
+  */
+#define VAR_MULTI_CONF_DIRS	"multi_instance_directories"
+#define DEF_MULTI_CONF_DIRS	""
+extern char *var_multi_conf_dirs;
+
+#define VAR_MULTI_WRAPPER	"multi_instance_wrapper"
+#define DEF_MULTI_WRAPPER	""
+extern char *var_multi_wrapper;
+
+#define VAR_MULTI_NAME		"multi_instance_name"
+#define DEF_MULTI_NAME		""
+extern char *var_multi_name;
+
+#define VAR_MULTI_GROUP		"multi_instance_group"
+#define DEF_MULTI_GROUP		""
+extern char *var_multi_group;
+
+#define VAR_MULTI_ENABLE	"multi_instance_enable"
+#define DEF_MULTI_ENABLE	0
+extern bool var_multi_enable;
 
 /* LICENSE
 /* .ad

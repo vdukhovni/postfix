@@ -3060,7 +3060,7 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w
 (weeks). The default time unit is s (seconds).
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH milter_connect_macros (default: see postconf -n output)
+.SH milter_connect_macros (default: see "postconf -d" output)
 The macros that are sent to Milter (mail filter) applications
 after completion of an SMTP connection. See MILTER_README
 for a list of available macro names and their meanings.
@@ -3088,7 +3088,7 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w
 (weeks). The default time unit is s (seconds).
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH milter_data_macros (default: see postconf -n output)
+.SH milter_data_macros (default: see "postconf -d" output)
 The macros that are sent to version 4 or higher Milter (mail
 filter) applications after the SMTP DATA command. See MILTER_README
 for a list of available macro names and their meanings.
@@ -3110,19 +3110,19 @@ Like "accept", but freeze the message in
 the "hold" queue. Available with Postfix 2.6 and later.
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH milter_end_of_data_macros (default: see postconf -n output)
+.SH milter_end_of_data_macros (default: see "postconf -d" output)
 The macros that are sent to Milter (mail filter) applications
 after the message end-of-data. See MILTER_README for a list of
 available macro names and their meanings.
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH milter_end_of_header_macros (default: see postconf -n output)
+.SH milter_end_of_header_macros (default: see "postconf -d" output)
 The macros that are sent to Milter (mail filter) applications
 after the end of the message header. See MILTER_README for a list
 of available macro names and their meanings.
 .PP
 This feature is available in Postfix 2.5 and later.
-.SH milter_helo_macros (default: see postconf -n output)
+.SH milter_helo_macros (default: see "postconf -d" output)
 The macros that are sent to Milter (mail filter) applications
 after the SMTP HELO or EHLO command. See
 MILTER_README for a list of available macro names and their meanings.
@@ -3140,7 +3140,7 @@ See MILTER_README for a list of available macro names and their
 meanings.
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH milter_mail_macros (default: see postconf -n output)
+.SH milter_mail_macros (default: see "postconf -d" output)
 The macros that are sent to Milter (mail filter) applications
 after the SMTP MAIL FROM command. See MILTER_README
 for a list of available macro names and their meanings.
@@ -3171,13 +3171,13 @@ Specify this when the Milter application
 will not reply for each individual message header.
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH milter_rcpt_macros (default: see postconf -n output)
+.SH milter_rcpt_macros (default: see "postconf -d" output)
 The macros that are sent to Milter (mail filter) applications
 after the SMTP RCPT TO command. See MILTER_README
 for a list of available macro names and their meanings.
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH milter_unknown_command_macros (default: see postconf -n output)
+.SH milter_unknown_command_macros (default: see "postconf -d" output)
 The macros that are sent to version 3 or higher Milter (mail
 filter) applications after an unknown SMTP command.  See MILTER_README
 for a list of available macro names and their meanings.
@@ -3211,6 +3211,57 @@ $queue_run_delay. See also $maximal_backoff_time.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
+.SH multi_instance_directories (default: empty)
+An optional list of non-default Postfix configuration directories;
+these directories belong to additional Postfix instances that share
+the Postfix executable files and documentation with the default
+Postfix instance, and that are started, stopped, etc., together
+with the default Postfix instance.  Specify a list of pathnames
+separated by comma or whitespace.
+.PP
+This feature is available in Postfix 2.6 and later.
+.PP
+When the list of non-default Postfix configuration directories
+is non-empty, the \fBpostfix\fR(1) command will invoke the multi-instance
+manager specified with the multi_instance_wrapper parameter to
+execute commands on the default instance and on all additional
+Postfix instances.
+.PP
+This feature is available in Postfix 2.6 and later.
+.SH multi_instance_enable (default: no)
+Allow this Postfix instance to be started, stopped, etc., by a
+multi-instance manager.  By default, new instances are created in
+a safe state that prevents them from being started inadvertently.
+This parameter is reserved for the multi-instance manager.
+.PP
+This feature is available in Postfix 2.6 and later.
+.SH multi_instance_group (default: empty)
+The optional instance group name of this Postfix instance. A
+group identifies closely-related Postfix instances that the
+multi-instance manager can start, stop, etc., as a unit.  This
+parameter is reserved for the multi-instance manager.
+.PP
+This feature is available in Postfix 2.6 and later.
+.SH multi_instance_name (default: empty)
+The optional instance name of this Postfix instance. This name
+becomes also the default value for the syslog_name parameter.
+.PP
+This feature is available in Postfix 2.6 and later.
+.SH multi_instance_wrapper (default: empty)
+The pathname of a multi-instance manager command that the
+\fBpostfix\fR(1) command invokes when the multi_instance_directories
+parameter value is non-empty. The pathname may be followed by
+initial command arguments separated by whitespace; shell
+metacharacters are not supported in this context.
+.PP
+The \fBpostfix\fR(1) command invokes the manager command with the
+\fBpostfix\fR(1) non-option command arguments on the manager command line,
+and with all installation configuration parameters exported into
+the manager command process environment. The manager command in
+turn invokes the \fBpostfix\fR(1) command for individual Postfix instances
+as "postfix -c \fIconfig_directory\fR \fIcommand\fR".
+.PP
+This feature is available in Postfix 2.6 and later.
 .SH multi_recipient_bounce_reject_code (default: 550)
 The numerical Postfix SMTP server response code when a remote SMTP
 client request is blocked by the reject_multi_recipient_bounce
@@ -8173,7 +8224,7 @@ after a Postfix process has completed initialization.  Errors during
 process initialization will be logged with the default facility.
 Examples are errors while parsing the command line arguments, and
 errors while accessing the Postfix main.cf configuration file.
-.SH syslog_name (default: postfix)
+.SH syslog_name (default: see "postconf -d" output)
 The mail system name that is prepended to the process name in syslog
 records, so that "smtpd" becomes, for example, "postfix/smtpd".
 .PP

@@ -885,19 +885,7 @@ key configuration </a>
 
 <li><a href="#client_tls_limits"> Client TLS limitations </a>
 
-<li><a href="#client_tls_levels"> Client TLS security levels </a>
-
-<li><a href="#client_tls_none"> Disabling TLS in the SMTP/LMTP client</a>
-
-<li><a href="#client_tls_may"> Enabling TLS in the SMTP/LMTP client </a>
-
-<li><a href="#client_tls_encrypt"> Mandating TLS encryption </a>
-
-<li><a href="#client_tls_fprint"> Certificate fingerprint verification </a>
-
-<li><a href="#client_tls_verify"> Mandating server certificate verification </a>
-
-<li><a href="#client_tls_secure"> Secure server certificate verification </a>
+<li><a href="#client_tls_levels"> Configuring TLS in the SMTP/LMTP client </a>
 
 <li><a href="#client_tls_policy"> Per-destination TLS policy </a>
 
@@ -1259,11 +1247,12 @@ The problem is not even unique to SMTP or even TLS, similar issues exist
 for secure connections via aliases for HTTPS and Kerberos. SMTP merely
 uses indirect naming (via MX records) more frequently. </p>
 
-<h3><a name="client_tls_levels"> Client TLS security levels </a>
+<h3><a name="client_tls_levels"> Configuring TLS in the SMTP/LMTP client </a>
 </h3>
 
-<p> The TLS security levels listed below are described in more detail
-in the sections that follow.</p>
+<p> Similar to the Postfix SMTP server, the Postfix SMTP/LMTP client
+implements multiple TLS security levels.  These levels are described
+in more detail in the sections that follow.</p>
 
 <dl>
 <dt><b>none</b></dt>
@@ -1280,7 +1269,7 @@ in the sections that follow.</p>
 <dd><a href="#client_tls_secure">Secure-channel TLS.</a>
 </dl>
 
-<h3><a name="client_tls_none"> Disabling TLS in the SMTP/LMTP client </a>
+<h3><a name="client_tls_none"> No TLS encryption </a>
 </h3>
 
 <p> At the "none" TLS security level, TLS encryption is
@@ -1821,7 +1810,7 @@ use the new <a href="#client_tls_policy">policy table</a> instead. </p>
 <h3> <a name="client_tls_policy"> TLS policy table </a>
 </h3>
 
-<p> Postfix 2.3 introduces a new more flexible TLS policy table. For
+<p> The current TLS policy table was introduced with Postfix 2.3. For
 earlier releases, read the description of the obsolete Postfix 2.2 <a
 href="#client_tls_obs">per-site</a> table. </p>
 

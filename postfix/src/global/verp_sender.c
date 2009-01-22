@@ -10,7 +10,7 @@
 /*	VSTRING	*dst;
 /*	const char *delims;
 /*	const char *sender;
-/*	const char *recipient;
+/*	const RECIPIENT *recipient;
 /*
 /*	const char *verp_delims_verify(delims)
 /*	const char *delims;
@@ -59,22 +59,29 @@
 /* Global library. */
 
 #include <mail_params.h>
+#include <recipient_list.h>
 #include <verp_sender.h>
 
 /* verp_sender - encode recipient into envelope sender address */
 
 VSTRING *verp_sender(VSTRING *buf, const char *delimiters,
-		             const char *sender, const char *recipient)
+		             const char *sender, const RECIPIENT *rcpt_info)
 {
     ssize_t send_local_len;
     ssize_t rcpt_local_len;
+    const char *recipient;
     const char *cp;
 
     /*
      * Change prefix@origin into prefix+user=domain@origin.
+     * 
+     * Fix 20090115: Use the Postfix original recipient, because that is what
+     * the VERP consumer expects.
      */
     send_local_len = ((cp = strrchr(sender, '@')) != 0 ?
 		      cp - sender : strlen(sender));
+    recipient = (rcpt_info->orig_addr[0] ?
+		 rcpt_info->orig_addr : rcpt_info->address);
     rcpt_local_len = ((cp = strrchr(recipient, '@')) != 0 ?
 		      cp - recipient : strlen(recipient));
     vstring_strncpy(buf, sender, send_local_len);
