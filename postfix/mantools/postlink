@@ -125,7 +125,7 @@ while (<>) {
     s;\bconfig_direc[-</bB>]*\n*[ <bB>]*tory\b;<a href="postconf.5.html#config_directory">$&</a>;g;
     s;\bcon[-</bB>]*\n*[ <bB>]*tent_filter\b;<a href="postconf.5.html#content_filter">$&</a>;g;
     s;\bdata_directory\b;<a href="postconf.5.html#data_directory">$&</a>;g;
-    s;\bdae[-</bB>]*\n*[ <bB>]*mon_directory\b;<a href="postconf.5.html#daemon_directory">$&</a>;g;
+    s;\bdae[-</bB>]*\n*[ <bB>]*mon_direc[-</bB>]*\n*[ <bB>]*tory\b;<a href="postconf.5.html#daemon_directory">$&</a>;g;
     s;\bdaemon_timeout\b;<a href="postconf.5.html#daemon_timeout">$&</a>;g;
     s;\bdebug_peer_level\b;<a href="postconf.5.html#debug_peer_level">$&</a>;g;
     s;\bdebug_peer_list\b;<a href="postconf.5.html#debug_peer_list">$&</a>;g;

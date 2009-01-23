@@ -7,11 +7,9 @@
 # NAME
 #	postfix-wrapper 1
 # SUMMARY
-#	trivial multi-instance manager
+#	trivial but useful multi-instance manager
 # SYNOPSIS
 #	postfix command
-#
-#	postfix /usr/libexec/postfix/postfix-wrapper init
 # DESCRIPTION
 #	This command implements a trivial Postfix multi-instance
 #	manager.
@@ -27,13 +25,13 @@
 #	of its configuration files is specified by the built-in
 #	default value for the config_directory parameter.  Other
 #	Postfix instances are optional.
-# MANAGING INSTANCES
+# MANAGING MULTIPLE INSTANCES
 # .ad
 # .fi
 #	To hook the postfix-wrapper multi-instance manager into
-#	Postfix, see the WRAPPER INITIALIZATION section below.  To
-#	create a new Postfix instance, see the CREATING A NEW POSTFIX
-#	INSTANCE section below.
+#	Postfix, see the POSTFIX-WRAPPER INITIALIZATION section
+#	below.  To create a new Postfix instance, see the CREATING
+#	A NEW POSTFIX INSTANCE section below.
 #
 #	To start, stop, get status, etc., with multiple Postfix
 #	instances, use:
@@ -65,50 +63,77 @@
 #	The startup order is used for all postfix(1) commands,
 #	except for commands that stop Postfix instances. In those
 #	cases the order is reversed.
-#
+# MANAGING INDIVIDUAL INSTANCES
+# .ad
+# .fi
 #	To manage an individual Postfix instance, use:
 #
 # .nf
 #	    # postfix -c /path/to/config_directory command
 # .fi
 #
-#	Note: only the default Postfix instance will check or update
-#	the shared Postfix files, including the executable files
-#	and documentation.
-# WRAPPER INITIALIZATION
+#	This is also needed to manage the default Postfix instance,
+#	after you turn on multi-instance support.
+#
+#	To use the Postfix sendmail command with a non-default
+#	Postfix instance, use:
+#
+# .nf
+#	    # sendmail -C /path/to/config_directory ...
+# .fi
+#
+#	Note 1: that's capital C, not lower-case c.
+#
+#	Note 2: only the default Postfix instance will check or
+#	update the shared Postfix files, including the executable
+#	files and documentation.
+# POSTFIX-WRAPPER INITIALIZATION
 # .ad
 # .fi
 #	To hook this program into Postfix, execute the following
-#	command, replacing /etc/postfix by the default Postfix
-#	configuration directory, and replacing /usr/libexec/postfix
-#	by the actual path of the Postfix daemon directory:
+#	command. 
+#
+#	Replace /etc/postfix with the default Postfix configuration
+#	directory, and replace /usr/libexec/postfix with the daemon
+#	directory pathname of the default Postfix instance.
+#
+#	This command should be entered as one line.
 #
 # .nf
-#	    # postfix -c /etc/postfix
-#		/usr/libexec/postfix/postfix-wrapper init
+#	    # postconf -c /etc/postfix -e
+#		"multi_instance_enable=yes"
+#		"multi_instance_wrapper=/usr/libexec/postfix/postfix-wrapper"
 # .fi
 # CREATING A NEW POSTFIX INSTANCE
 # .ad
 # .fi
 #	To create a Postfix instance called "postfix-test", start
-#	with working main.cf and master.cf files and customize the
-#	locations of the queue and data directories.  The last
-#	command below also creates any directories that Postfix
-#	will need.
+#	with generic main.cf and master.cf files and customize the
+#	locations of the queue and data directories as shown below.
+#	The last command updates main.cf and creates any directories
+#	that Postfix will need. 
+#
+#	Replace /etc/postfix with the default Postfix configuration
+#	directory, and replace /usr/libexec/postfix with the daemon
+#	directory pathname of the default Postfix instance.
+#
+#	Each command should be entered as one line.
 #
 # .nf
 #	    # mkdir /etc/postfix-test
-#	    # cp /etc/postfix/main.cf /etc/postfix-test
-#	    # cp /etc/postfix/master.cf /etc/postfix-test
+#	    # cp /usr/libexec/postfix/main.cf /etc/postfix-test
+#	    # cp /usr/libexec/postfix/master.cf /etc/postfix-test
 #	    # postconf -c /etc/postfix-test -e 
 #		"multi_instance_name=postfix-test"
-#	    # postfix -c /etc/postfix-test post-install
+#	    # postfix -c /etc/postfix post-install
+#		"config_directory=/etc/postfix-test"
 #		"queue_directory=/var/spool/postfix-test"
 #		"data_directory=/var/lib/postfix-test"
 #		create-missing
 # .fi
 #
-#	Register this Postfix instance with the default instance:
+#	Register this Postfix instance with the default instance.
+#	This command should be entered as one line.
 #
 # .nf
 #	    # postconf -e "multi_instance_directories=`postconf
@@ -123,6 +148,8 @@
 #
 # .nf
 #	    # postfix -c /etc/postfix-test start
+#	    # postfix -c /etc/postfix-test status
+#	    [ other tests ... ]
 # .fi
 #
 #	When everything is working satisfactorily, enable start/stop/etc.
@@ -162,7 +189,6 @@
 
 POSTCONF=$command_directory/postconf
 POSTFIX=$command_directory/postfix
-WRAPPER=$daemon_directory/postfix-wrapper
 
 # Canonicalize the instance directory list. The list is specified
 # in startup order.
@@ -178,7 +204,7 @@ case "$1" in
 	done;;
      *) all_dirs="$config_directory $instance_dirs";;
 esac
-#
+
 # Execute the command on all applicable instances. When a Postfix
 # instance is disabled, replace "postfix start" by "postfix check"
 # so that problems will still be reported.
@@ -186,11 +212,6 @@ esac
 for dir in $all_dirs
 do
     case "$1" in
-    init*)
-	$POSTCONF -e \
-	    "multi_instance_enable = yes" \
-	    "multi_instance_wrapper = $daemon_directory/postfix-wrapper"
-	exit;;
     start)
 	test "`$POSTCONF -c $dir -h multi_instance_enable`" = yes ||
 	    set check;;

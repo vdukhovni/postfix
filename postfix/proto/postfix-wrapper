@@ -6,7 +6,9 @@
 # DESCRIPTION
 #	This document describes an interface that allows a
 #	multi-instance manager to plug into Postfix and to control
-#	multiple Postfix instances.
+#	multiple Postfix instances. A trivial but useful implementation,
+#	with instructions, can be found in
+#	$daemon_directory/postfix-wrapper.
 #
 #	Each Postfix instance is defined by its own configuration
 #	directory with its own main.cf and master.cf files, by its
@@ -77,7 +79,6 @@
 #	A useful wrapper implementation can be as simple as:
 #
 # .nf
-# .ft C
 #	    #!/bin/sh
 #
 #	    : ${command_directory?"do not invoke this command directly"}
@@ -101,7 +102,6 @@
 #	    done
 #
 #	    exit $err
-# .ft
 # .fi
 #
 #	This wrapper skips commands such as "stop" that require a
@@ -199,6 +199,7 @@
 #	The location of the Postfix top-level queue directory.
 # SEE ALSO
 #	postfix(1) Postfix control program
+#	$daemon_directory/postfix-wrapper simple multi-instance manager
 #	postmulti(1) full-blown multi-instance manager
 # LICENSE
 # .ad

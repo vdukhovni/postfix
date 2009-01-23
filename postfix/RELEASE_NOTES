@@ -14,11 +14,38 @@ specifies the release date of a stable release or snapshot release.
 Major changes with snapshot 20090121
 ====================================
 
-Plug-in support for multi-instance managers. Basically this
-automatically applies your "postfix start" etc. command to multiple
-Postfix instances if available.  The postfix-wrapper script (in the
-daemon directory) provides a simple multi-instance manager with
-instructions. The plug-in API itself is described in postfix-wrapper(5).
+Plug-in support for managing multiple Postfix instances.  This can
+automatically apply your "postfix start" etc. command to multiple
+Postfix instances, including upgrades to new Postfix versions.
+Multi-instance support allows you to do the following and more:
+
+- Simplify post-queue content filter configuration by using separate
+  Postfix instances before and after the filter. This simplifies
+  trouble shooting and performance tuning.
+
+- Implement per-user content filters (or no filter) via transport
+  map lookups instead of content_filter settings. Mail for some
+  users can be sent directly from the before-filter instance to the
+  after-filter instance.
+
+- Test new configuration settings (on a different server IP address
+  or TCP port) without disturbing production instances.
+
+- Each additional Postfix instance uses a few files and directories,
+  plus memory for an extra master daemon and queue manager. The
+  pickup daemon is needed only if you use local submission or
+  "postsuper -r".
+
+Best of all, nothing changes when you use only one Postfix instance.
+
+The postfix-wrapper script (in the daemon directory) implements a
+simple but useful multi-instance manager, with instructions. The
+plug-in API itself is described in the postfix-wrapper(5) manpage.
+
+A more sophisticated multi-instance manager called postmulti(1) is
+approaching completion. A prototype version has been used internally
+at Morgan Stanley. This version will be adapted to the new plug-in
+API which makes some simplification possible.
 
 Major changes with snapshot 20090109
 ====================================

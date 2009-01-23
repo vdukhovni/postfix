@@ -14934,3 +14934,9 @@ Apologies for any names omitted.
 
 	Bugfix: the data_directory was not automatically created!
 	File: conf/postfix-files.
+
+20090123
+
+	More little fixes in the "trivial but useful" postfix-wrapper
+	including instructions. It's ready for testing in the field.
+	File: conf/postfix-wrapper.
