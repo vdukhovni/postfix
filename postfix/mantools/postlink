@@ -715,7 +715,7 @@ while (<>) {
     s/[<bB>]*postcat[<\/bB>]*\(1\)/<a href="postcat.1.html">$&<\/a>/g;
     s/[<bB>]*post[-<\/bB>]*\n*[ <bB>]*conf[<\/bB>]*\(1\)/<a href="postconf.1.html">$&<\/a>/g;
     s/[<bB>]*postdrop[<\/bB>]*\(1\)/<a href="postdrop.1.html">$&<\/a>/g;
-    s/[<bB>]*postfix[<\/bB>]*\(1\)/<a href="postfix.1.html">$&<\/a>/g;
+    s/[<bB>]*post[-<\/bB>]*\n* *[<bB>]*fix[<\/bB>]*\(1\)/<a href="postfix.1.html">$&<\/a>/g;
     s/[<bB>]*postkick[<\/bB>]*\(1\)/<a href="postkick.1.html">$&<\/a>/g;
     s/[<bB>]*postlock[<\/bB>]*\(1\)/<a href="postlock.1.html">$&<\/a>/g;
     s/[<bB>]*postlog[<\/bB>]*\(1\)/<a href="postlog.1.html">$&<\/a>/g;

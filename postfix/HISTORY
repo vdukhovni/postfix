@@ -14940,3 +14940,9 @@ Apologies for any names omitted.
 	More little fixes in the "trivial but useful" postfix-wrapper
 	including instructions. It's ready for testing in the field.
 	File: conf/postfix-wrapper.
+
+20090125
+
+	Documentation: more precise description of multi-instance
+	manager API, and minor edits of the example program. Files:
+	conf/postfix-wrapper, proto/postfix-wrapper.

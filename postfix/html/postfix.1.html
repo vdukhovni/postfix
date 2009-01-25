@@ -197,52 +197,52 @@ POSTFIX(1)                                                          POSTFIX(1)
               The directory with Postfix-writable data files (for
               example: caches, pseudo-random numbers).
 
-       Available in Postfix version 2.6 and later:
-
-       <b><a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a> (empty)</b>
-              An  optional list of non-default Postfix configura-
-              tion directories; these directories belong to addi-
-              tional  Postfix  instances  that  share the Postfix
-              executable files and documentation with the default
-              Postfix  instance,  and  that are started, stopped,
-              etc., together with the default Postfix instance.
-
-       <b><a href="postconf.5.html#multi_instance_wrapper">multi_instance_wrapper</a> (empty)</b>
-              The pathname of a  multi-instance  manager  command
-              that   the  <a href="postfix.1.html"><b>postfix</b>(1)</a>  command  invokes  when  the
-              <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a> parameter value is  non-
-              empty.
-
-       <b><a href="postconf.5.html#multi_instance_group">multi_instance_group</a> (empty)</b>
-              The  optional  instance  group name of this Postfix
-              instance.
-
-       <b><a href="postconf.5.html#multi_instance_name">multi_instance_name</a> (empty)</b>
-              The  optional  instance  name   of   this   Postfix
-              instance.
-
-       <b><a href="postconf.5.html#multi_instance_enable">multi_instance_enable</a> (no)</b>
-              Allow this Postfix instance to be started, stopped,
-              etc., by a multi-instance manager.
-
        Other configuration parameters:
 
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The default location of  the  Postfix  <a href="postconf.5.html">main.cf</a>  and
+              The  default  location  of  the Postfix <a href="postconf.5.html">main.cf</a> and
               <a href="master.5.html">master.cf</a> configuration files.
 
        <b><a href="postconf.5.html#import_environment">import_environment</a> (see 'postconf -d' output)</b>
-              The  list  of environment parameters that a Postfix
+              The list of environment parameters that  a  Postfix
               process  will  import  from  a  non-Postfix  parent
               process.
 
        <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>
               The syslog facility of Postfix logging.
 
-       <b><a href="postconf.5.html#syslog_name">syslog_name</a> (postfix)</b>
-              The  mail  system  name  that  is  prepended to the
-              process name in syslog  records,  so  that  "smtpd"
+       <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
+              The mail system  name  that  is  prepended  to  the
+              process  name  in  syslog  records, so that "smtpd"
               becomes, for example, "postfix/smtpd".
+
+       Available in Postfix version 2.6 and later:
+
+       <b><a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a> (empty)</b>
+              An optional list of non-default Postfix  configura-
+              tion directories; these directories belong to addi-
+              tional Postfix instances  that  share  the  Postfix
+              executable files and documentation with the default
+              Postfix instance, and that  are  started,  stopped,
+              etc., together with the default Postfix instance.
+
+       <b><a href="postconf.5.html#multi_instance_wrapper">multi_instance_wrapper</a> (empty)</b>
+              The  pathname  of  a multi-instance manager command
+              that  the  <a href="postfix.1.html"><b>postfix</b>(1)</a>  command  invokes  when   the
+              <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a>  parameter value is non-
+              empty.
+
+       <b><a href="postconf.5.html#multi_instance_group">multi_instance_group</a> (empty)</b>
+              The optional instance group name  of  this  Postfix
+              instance.
+
+       <b><a href="postconf.5.html#multi_instance_name">multi_instance_name</a> (empty)</b>
+              The   optional   instance   name  of  this  Postfix
+              instance.
+
+       <b><a href="postconf.5.html#multi_instance_enable">multi_instance_enable</a> (no)</b>
+              Allow this Postfix instance to be started, stopped,
+              etc., by a multi-instance manager.
 
 <b>FILES</b>
        Prior  to  Postfix version 2.6, all of the following files

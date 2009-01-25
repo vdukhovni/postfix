@@ -1,8 +1,5 @@
 #!/bin/sh
 
-# To view the formatted manual page of this file, type:
-#	POSTFIXSOURCE/mantools/srctoman - postfix-wrapper | nroff -man
-
 #++
 # NAME
 #	postfix-wrapper 1
@@ -197,7 +194,8 @@ instance_dirs=`$POSTCONF -h multi_instance_directories | sed 's/,/ /'` ||
     exit 1
 
 case "$1" in
-  stop|abort|drain) all_dirs=
+  stop|quick-stop|abort|drain)
+	all_dirs=
 	for dir in $config_directory $instance_dirs
 	do
 	    all_dirs="$dir $all_dirs"
@@ -209,6 +207,7 @@ esac
 # instance is disabled, replace "postfix start" by "postfix check"
 # so that problems will still be reported.
 
+err=0
 for dir in $all_dirs
 do
     case "$1" in

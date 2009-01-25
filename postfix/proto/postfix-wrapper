@@ -34,129 +34,147 @@
 #
 #	To start, stop, update, etc., multiple Postfix instances,
 #	use:
-#
-# .nf
-#	    # postfix \fIcommand\fR
-# .fi
-#
+# .IP
+#	# postfix \fIcommand\fR
+# .PP
 #	For example, to find out what Postfix instances are configured:
-#
-# .nf
-#	    # postfix status
-#
-#	To manage an individual Postfix instance, use:
-#
-# .nf
-#	    # postfix -c \fI/path/to/config_directory command\fR
-# .fi
-# MULTI-INSTANCE DETECTION
+# .IP
+#	# postfix status
+# MANAGING AN INDIVIDUAL POSTFIX INSTANCE
 # .ad
 # .fi
-#	While "postfix start/stop/etc" will remain the primary
-#	command interface, the postfix(1) command itself will need
-#	to figure out if a command targets multiple Postfix instances
-#	or just a specific Postfix instance.  This decision can be
-#	made with information that is already available:
+#	To manage an individual Postfix instance, use:
 # .IP
-#	When the postfix(1) command is invoked with the -c
-#	option, it will operate only on the specified instance.
-#	We do the same when MAIL_CONFIG is specified in the
-#	process environment.
+#	# postfix -c \fI/path/to/config_directory command\fR
+# .PP
+#	When the postfix(1) command is invoked with the -c option,
+#	it will operate only on the specified instance.  The same
+#	happens when MAIL_CONFIG is specified in the process
+#	environment.
 #
 #	Otherwise, the postfix(1) command will operate on all
 #	applicable Postfix instances.
-# MULTI-INSTANCE MANAGER HOOK
+# MULTI-INSTANCE MANAGER EXAMPLE
 # .ad
 # .fi
-#	When the postfix(1) command is invoked without -c option,
-#	and non-default Postfix instance directories are defined
-#	in main.cf with multi_instance_directories, then the
-#	postfix(1) command invokes the command specified in main.cf
-#	with multi_instance_wrapper, instead of invoking postfix-script.
-#	The multi_instance_wrapper and other main.cf parameters are
-#	listed in the CONFIGURATION PARAMETERS section below.
+#	When the postfix(1) command is invoked without -c option
+#	or MAIL_CONFIG environment setting, and non-default Postfix
+#	instance directories are defined in main.cf with the
+#	multi_instance_directories parameter, postfix(1) invokes
+#	the command specified in main.cf with the multi_instance_wrapper
+#	parameter, instead of invoking postfix-script.
+#
+#	The multi_instance_directories and other main.cf parameters
+#	are listed below in the CONFIGURATION PARAMETERS section.
 #
 #	A useful wrapper implementation can be as simple as:
-#
+# .IP
 # .nf
-#	    #!/bin/sh
+#	#!/bin/sh
 #
-#	    : ${command_directory?"do not invoke this command directly"}
+#	: ${command_directory?"do not invoke this command directly"}
 #
-#	    POSTCONF=$command_directory/postconf
-#	    POSTFIX=$command_directory/postfix
-#	    instance_dirs=`$POSTCONF -h multi_instance_directories | 
-#			    sed 's/,/ /'` || exit 1
+#	POSTCONF=$command_directory/postconf
+#	POSTFIX=$command_directory/postfix
+#	instance_dirs=\`$POSTCONF -h multi_instance_directories | 
+#			sed 's/,/ /'\` || exit 1
 #
-#	    for dir in $config_directory $instance_dirs
-#	    do
-#		case "$1" in
-#		stop|abort|flush|reload|drain)
-#		    test "`$POSTCONF -c $dir -h multi_instance_enable`" 
-#			    = yes || continue;;
-#		start)
-#		    test "`$POSTCONF -c $dir -h multi_instance_enable`" 
-#			    = yes || set check;;
-#		esac
-#		$POSTFIX -c $dir "$@" || err=$?
-#	    done
+#	err=0
+#	for dir in $config_directory $instance_dirs
+#	do
+#	    case "$1" in
+#	    stop|abort|flush|reload|drain)
+#		test "\`$POSTCONF -c $dir -h multi_instance_enable\`" \e
+#			= yes || continue;;
+#	    start)
+#		test "\`$POSTCONF -c $dir -h multi_instance_enable\`" \e
+#			= yes || set check;;
+#	    esac
+#	    $POSTFIX -c $dir "$@" || err=$?
+#	done
 #
-#	    exit $err
+#	exit $err
 # .fi
-#
-#	This wrapper skips commands such as "stop" that require a
-#	running Postfix instance when a Postfix instance is disabled,
-#	and replaces "start" by "check" so that problems will still
-#	be reported.
-#
+# .PP
 #	The postmulti(1) command implements a more sophisticated
 #	approach, based on a combination of C code and scripting.
+# ENABLING AN INSTANCE FOR MULTI-INSTANCE OPERATION
+# .ad
+# .fi
+#	To enable start/stop/etc. by a multi-instance manager, set
+#	the Postfix instance's main.cf multi_instance_enable parameter
+#	to "yes".  This parameter has no effect on single-instance
+#	operation with "postfix -c" or with a MAIL_CONFIG environment
+#	setting.
+#
+#	The multi-instance manager program will skip commands such
+#	as "stop" and "flush" when a Postfix instance is disabled,
+#	and will replace "start" by "check" so that problems will
+#	still be reported even when the default instance is disabled.
 # SHARED VERSUS NON-SHARED FILES
 # .ad
 # .fi
-#	Some files are shared between Postfix instances (such as
-#	executables and manpages) and some files are per-instance
-#	(such as the queue).  See the NON-SHARED FILES section below
+#	Some files are shared between Postfix instances, such as
+#	executables and manpages, and some files are per-instance,
+#	such as the queue.  See the NON-SHARED FILES section below
 #	for a list of per-instance files.
 #
-#	Until now, executables, manpages, etc., have been checked
-#	or updated as part of the default Postfix instance. With
+#	Before Postfix multi-instance support was implemented, the
+#	executables, manpages, etc., have always been checked or
+#	updated as part of the default Postfix instance. With
 #	multi-instance support, we simply continue to do this.
 #	Non-default Postfix instances will check or update only
 #	their non-shared files.
 #
 #	The consequence of this approach is that the default Postfix
 #	instance should be updated before any other instances.
-# IMPLEMENTATION NOTES
+# MULTI-INSTANCE API SUMMARY
 # .ad
 # .fi
+#	Only the multi-instance manager implements support for the
+#	multi_instance_enable configuration parameter. The
+#	multi-instance manager will not start Postfix instances
+#	without "multi_instance_enable = yes". This allows a Postfix
+#	instance to be tested by hand before it is placed under
+#	control of a multi-instance manager.
+#
 #	The postfix(1) command ignores the multi_instance_directories
 #	and multi_instance_wrapper parameters when the -c option
 #	is specified, or when MAIL_CONFIG is present in the process
 #	environment.
 #
-#	Otherwise, the postfix(1) command uses the multi_instance_wrapper
-#	parameter only when the multi_instance_directories parameter
-#	value is non-empty.
+#	Otherwise, when the multi_instance_directories parameter
+#	value is non-empty, the postfix(1) command executes the
+#	command specified with the multi_instance_wrapper parameter,
+#	instead of executing the commands in postfix-script.
 #
-#	The multi-instance manager must replace a "start" command by
+#	The multi-instance manager skips commands such as "stop"
+#	or "reload" that require a running Postfix instance, when
+#	an instance does not have "multi_instance_enable = yes".
+#	This avoids false error messages.
+#
+#	The multi-instance manager replaces a "start" command by
 #	"check" when a Postfix instance does not have
 #	"multi_instance_enable = yes". This substitution ensures
-#	that problems will still be reported.
+#	that problems will still be reported even when the default
+#	instance is disabled.
+#
+#	No Postfix command or script will update or check shared
+#	files unless it is running in the context of the default
+#	Postfix instance. Therefore, the default instance should
+#	be updated before any other Postfix instances.
 #
 #	Set-gid commands such as postdrop(1) and postqueue(1)
 #	effectively append the multi_instance_directories parameter
 #	value to the legacy alternate_config_directories parameter
-#	value.
+#	value. The commands use this information to determine whether
+#	a -c option or MAIL_CONFIG environment setting specifies a
+#	legitimate value.
 #
 #	The legacy alternate_config_directories parameter remains
 #	necessary for non-default Postfix instances that are running
 #	different versions of Postfix, or that are not managed
 #	together with the default Postfix instance.
-#
-#	No Postfix command or script will update or check shared
-#	files unless it is running in the context of the default
-#	Postfix instance.
 # ENVIRONMENT VARIABLES
 # .ad
 # .fi
@@ -169,6 +187,8 @@
 # CONFIGURATION PARAMETERS
 # .ad
 # .fi
+#	The text below provides only a parameter summary. See
+#	postconf(5) for more details.
 # .IP "\fBmulti_instance_directories (empty)\fR"
 #	An optional list of non-default Postfix configuration directories;
 #	these directories belong to additional Postfix instances that share

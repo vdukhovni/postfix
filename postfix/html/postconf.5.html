@@ -5810,8 +5810,6 @@ Postfix instance, and that are started, stopped, etc., together
 with the default Postfix instance.  Specify a list of pathnames
 separated by comma or whitespace.  </p>
 
-<p> This feature is available in Postfix 2.6 and later. </p>
-
 <p> When the list of non-default Postfix configuration directories
 is non-empty, the <a href="postfix.1.html">postfix(1)</a> command will invoke the multi-instance
 manager specified with the <a href="postconf.5.html#multi_instance_wrapper">multi_instance_wrapper</a> parameter to
@@ -5867,7 +5865,8 @@ becomes also the default value for the <a href="postconf.5.html#syslog_name">sys
 <a href="postfix.1.html">postfix(1)</a> command invokes when the <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a>
 parameter value is non-empty. The pathname may be followed by
 initial command arguments separated by whitespace; shell
-metacharacters are not supported in this context. </p>
+metacharacters such as quotes are not supported in this context.
+</p>
 
 <p> The <a href="postfix.1.html">postfix(1)</a> command invokes the manager command with the
 <a href="postfix.1.html">postfix(1)</a> non-option command arguments on the manager command line,

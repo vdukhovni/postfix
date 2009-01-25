@@ -154,6 +154,19 @@
 /*	The directory with Postfix-writable data files (for example:
 /*	caches, pseudo-random numbers).
 /* .PP
+/*	Other configuration parameters:
+/* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
+/*	The default location of the Postfix main.cf and master.cf
+/*	configuration files.
+/* .IP "\fBimport_environment (see 'postconf -d' output)\fR"
+/*	The list of environment parameters that a Postfix process will
+/*	import from a non-Postfix parent process.
+/* .IP "\fBsyslog_facility (mail)\fR"
+/*	The syslog facility of Postfix logging.
+/* .IP "\fBsyslog_name (see 'postconf -d' output)\fR"
+/*	The mail system name that is prepended to the process name in syslog
+/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
+/* .PP
 /*	Available in Postfix version 2.6 and later:
 /* .IP "\fBmulti_instance_directories (empty)\fR"
 /*	An optional list of non-default Postfix configuration directories;
@@ -170,21 +183,8 @@
 /* .IP "\fBmulti_instance_name (empty)\fR"
 /*	The optional instance name of this Postfix instance.
 /* .IP "\fBmulti_instance_enable (no)\fR"
-/*	Allow this Postfix instance to be started, stopped, etc., by
-/*	a multi-instance manager.
-/* .PP
-/*	Other configuration parameters:
-/* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
-/*	The default location of the Postfix main.cf and master.cf
-/*	configuration files.
-/* .IP "\fBimport_environment (see 'postconf -d' output)\fR"
-/*	The list of environment parameters that a Postfix process will
-/*	import from a non-Postfix parent process.
-/* .IP "\fBsyslog_facility (mail)\fR"
-/*	The syslog facility of Postfix logging.
-/* .IP "\fBsyslog_name (postfix)\fR"
-/*	The mail system name that is prepended to the process name in syslog
-/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
+/*	Allow this Postfix instance to be started, stopped, etc., by a
+/*	multi-instance manager.
 /* FILES
 /* .ad
 /* .fi

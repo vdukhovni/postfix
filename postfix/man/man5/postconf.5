@@ -3219,8 +3219,6 @@ Postfix instance, and that are started, stopped, etc., together
 with the default Postfix instance.  Specify a list of pathnames
 separated by comma or whitespace.
 .PP
-This feature is available in Postfix 2.6 and later.
-.PP
 When the list of non-default Postfix configuration directories
 is non-empty, the \fBpostfix\fR(1) command will invoke the multi-instance
 manager specified with the multi_instance_wrapper parameter to
@@ -3252,7 +3250,7 @@ The pathname of a multi-instance manager command that the
 \fBpostfix\fR(1) command invokes when the multi_instance_directories
 parameter value is non-empty. The pathname may be followed by
 initial command arguments separated by whitespace; shell
-metacharacters are not supported in this context.
+metacharacters such as quotes are not supported in this context.
 .PP
 The \fBpostfix\fR(1) command invokes the manager command with the
 \fBpostfix\fR(1) non-option command arguments on the manager command line,

@@ -12033,8 +12033,6 @@ Postfix instance, and that are started, stopped, etc., together
 with the default Postfix instance.  Specify a list of pathnames
 separated by comma or whitespace.  </p>
 
-<p> This feature is available in Postfix 2.6 and later. </p>
-
 <p> When the list of non-default Postfix configuration directories
 is non-empty, the postfix(1) command will invoke the multi-instance
 manager specified with the multi_instance_wrapper parameter to
@@ -12049,7 +12047,8 @@ Postfix instances.  </p>
 postfix(1) command invokes when the multi_instance_directories
 parameter value is non-empty. The pathname may be followed by
 initial command arguments separated by whitespace; shell
-metacharacters are not supported in this context. </p>
+metacharacters such as quotes are not supported in this context.
+</p>
 
 <p> The postfix(1) command invokes the manager command with the
 postfix(1) non-option command arguments on the manager command line,

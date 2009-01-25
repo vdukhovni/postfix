@@ -41,85 +41,91 @@ POSTFIX-WRAPPER(5)                                          POSTFIX-WRAPPER(5)
        To start, stop, update, etc., multiple Postfix  instances,
        use:
 
-           # postfix <i>command</i>
+              # postfix <i>command</i>
 
        For  example,  to find out what Postfix instances are con-
        figured:
 
-           # postfix status
+              # postfix status
 
+<b>MANAGING AN INDIVIDUAL POSTFIX INSTANCE</b>
        To manage an individual Postfix instance, use:
 
-           # postfix -c <i>/path/to/config</i><b>_</b><i>directory command</i>
+              # postfix -c <i>/path/to/config</i><b>_</b><i>directory command</i>
 
-<b>MULTI-INSTANCE DETECTION</b>
-       While "postfix start/stop/etc"  will  remain  the  primary
-       command interface, the <a href="postfix.1.html">postfix(1)</a> command itself will need
-       to figure  out  if  a  command  targets  multiple  Postfix
-       instances or just a specific Postfix instance.  This deci-
-       sion can be made with information that is  already  avail-
-       able:
+       When the <a href="postfix.1.html">postfix(1)</a> command is invoked with the -c option,
+       it  will operate only on the specified instance.  The same
+       happens when MAIL_CONFIG is specified in the process envi-
+       ronment.
 
-              When  the <a href="postfix.1.html">postfix(1)</a> command is invoked with the -c
-              option, it  will  operate  only  on  the  specified
-              instance.  We do the same when MAIL_CONFIG is spec-
-              ified in the process environment.
+       Otherwise,  the  <a href="postfix.1.html">postfix(1)</a>  command  will  operate on all
+       applicable Postfix instances.
 
-              Otherwise, the <a href="postfix.1.html">postfix(1)</a> command will  operate  on
-              all applicable Postfix instances.
+<b>MULTI-INSTANCE MANAGER EXAMPLE</b>
+       When the <a href="postfix.1.html">postfix(1)</a> command is invoked without  -c  option
+       or  MAIL_CONFIG environment setting, and non-default Post-
+       fix instance directories are defined in <a href="postconf.5.html">main.cf</a>  with  the
+       <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a>  parameter,  <a href="postfix.1.html">postfix(1)</a> invokes
+       the   command    specified    in    <a href="postconf.5.html">main.cf</a>    with    the
+       <a href="postconf.5.html#multi_instance_wrapper">multi_instance_wrapper</a>   parameter,  instead  of  invoking
+       postfix-script.
 
-<b>MULTI-INSTANCE MANAGER HOOK</b>
-       When  the <a href="postfix.1.html">postfix(1)</a> command is invoked without -c option,
-       and non-default Postfix instance directories  are  defined
-       in <a href="postconf.5.html">main.cf</a> with <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a>, then the post-
-       fix(1) command invokes the command  specified  in  <a href="postconf.5.html">main.cf</a>
-       with  <a href="postconf.5.html#multi_instance_wrapper">multi_instance_wrapper</a>, instead of invoking postfix-
-       script.   The  <a href="postconf.5.html#multi_instance_wrapper">multi_instance_wrapper</a>  and  other  <a href="postconf.5.html">main.cf</a>
-       parameters are listed in the CONFIGURATION PARAMETERS sec-
-       tion below.
+       The <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a> and other  <a href="postconf.5.html">main.cf</a>  parame-
+       ters are listed below in the CONFIGURATION PARAMETERS sec-
+       tion.
 
        A useful wrapper implementation can be as simple as:
 
-           #!/bin/sh
+              #!/bin/sh
 
-           : ${<a href="postconf.5.html#command_directory">command_directory</a>?"do not invoke this command directly"}
+              : ${<a href="postconf.5.html#command_directory">command_directory</a>?"do not invoke this command directly"}
 
-           POSTCONF=$<a href="postconf.5.html#command_directory">command_directory</a>/postconf
-           POSTFIX=$<a href="postconf.5.html#command_directory">command_directory</a>/postfix
-           instance_dirs=`$POSTCONF -h <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a> |
-                           sed 's/,/ /'` || exit 1
+              POSTCONF=$<a href="postconf.5.html#command_directory">command_directory</a>/postconf
+              POSTFIX=$<a href="postconf.5.html#command_directory">command_directory</a>/postfix
+              instance_dirs=`$POSTCONF -h <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a> |
+                              sed 's/,/ /'` || exit 1
 
-           for dir in $<a href="postconf.5.html#config_directory">config_directory</a> $instance_dirs
-           do
-               case "$1" in
-               stop|abort|flush|reload|drain)
-                   test "`$POSTCONF -c $dir -h <a href="postconf.5.html#multi_instance_enable">multi_instance_enable</a>`"
-                           = yes || continue;;
-               start)
-                   test "`$POSTCONF -c $dir -h <a href="postconf.5.html#multi_instance_enable">multi_instance_enable</a>`"
-                           = yes || set check;;
-               esac
-               $POSTFIX -c $dir "$@" || err=$?
-           done
+              err=0
+              for dir in $<a href="postconf.5.html#config_directory">config_directory</a> $instance_dirs
+              do
+                  case "$1" in
+                  stop|abort|flush|reload|drain)
+                      test "`$POSTCONF -c $dir -h <a href="postconf.5.html#multi_instance_enable">multi_instance_enable</a>`" \
+                              = yes || continue;;
+                  start)
+                      test "`$POSTCONF -c $dir -h <a href="postconf.5.html#multi_instance_enable">multi_instance_enable</a>`" \
+                              = yes || set check;;
+                  esac
+                  $POSTFIX -c $dir "$@" || err=$?
+              done
 
-           exit $err
+              exit $err
 
-       This wrapper skips commands such as "stop" that require  a
-       running  Postfix  instance when a Postfix instance is dis-
-       abled, and replaces "start" by "check"  so  that  problems
-       will still be reported.
+       The postmulti(1) command implements a  more  sophisticated
+       approach,  based on a combination of C code and scripting.
 
-       The  postmulti(1)  command implements a more sophisticated
-       approach, based on a combination of C code and  scripting.
+<b>ENABLING AN INSTANCE FOR MULTI-INSTANCE OPERATION</b>
+       To enable start/stop/etc. by a multi-instance manager, set
+       the   Postfix   instance's  <a href="postconf.5.html">main.cf</a>  <a href="postconf.5.html#multi_instance_enable">multi_instance_enable</a>
+       parameter to "yes".  This parameter has no effect on  sin-
+       gle-instance   operation  with  "postfix  -c"  or  with  a
+       MAIL_CONFIG environment setting.
+
+       The multi-instance manager program will skip commands such
+       as "stop" and "flush" when a Postfix instance is disabled,
+       and will replace "start" by "check" so that problems  will
+       still  be  reported even when the default instance is dis-
+       abled.
 
 <b>SHARED VERSUS NON-SHARED FILES</b>
-       Some  files  are shared between Postfix instances (such as
-       executables and manpages) and some files are  per-instance
-       (such  as  the  queue).   See the NON-SHARED FILES section
-       below for a list of per-instance files.
+       Some files are shared between Postfix instances,  such  as
+       executables and manpages, and some files are per-instance,
+       such as the queue.  See the NON-SHARED FILES section below
+       for a list of per-instance files.
 
-       Until now, executables, manpages, etc., have been  checked
-       or  updated  as part of the default Postfix instance. With
+       Before Postfix multi-instance support was implemented, the
+       executables, manpages, etc., have always been  checked  or
+       updated  as  part  of  the  default Postfix instance. With
        multi-instance support, we simply  continue  to  do  this.
        Non-default  Postfix  instances  will check or update only
        their non-shared files.
@@ -127,64 +133,84 @@ POSTFIX-WRAPPER(5)                                          POSTFIX-WRAPPER(5)
        The consequence of this approach is that the default Post-
        fix instance should be updated before any other instances.
 
-<b>IMPLEMENTATION NOTES</b>
+<b>MULTI-INSTANCE API SUMMARY</b>
+       Only the multi-instance manager implements support for the
+       <a href="postconf.5.html#multi_instance_enable">multi_instance_enable</a>  configuration parameter. The multi-
+       instance manager will not start Postfix instances  without
+       "<a href="postconf.5.html#multi_instance_enable">multi_instance_enable</a>  =  yes".  This  allows  a  Postfix
+       instance to be tested by hand before it  is  placed  under
+       control of a multi-instance manager.
+
        The <a href="postfix.1.html">postfix(1)</a> command ignores the <a href="postconf.5.html#multi_instance_directories">multi_instance_directo</a>-
-       <a href="postconf.5.html#multi_instance_directories">ries</a>  and  <a href="postconf.5.html#multi_instance_wrapper">multi_instance_wrapper</a>  parameters  when the -c
+       <a href="postconf.5.html#multi_instance_directories">ries</a> and <a href="postconf.5.html#multi_instance_wrapper">multi_instance_wrapper</a>  parameters  when  the  -c
        option is specified, or when MAIL_CONFIG is present in the
        process environment.
 
-       Otherwise,     the    <a href="postfix.1.html">postfix(1)</a>    command    uses    the
-       <a href="postconf.5.html#multi_instance_wrapper">multi_instance_wrapper</a>    parameter    only    when    the
-       <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a> parameter value is non-empty.
+       Otherwise, when the  <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a>  parameter
+       value  is  non-empty,  the <a href="postfix.1.html">postfix(1)</a> command executes the
+       command specified with the <a href="postconf.5.html#multi_instance_wrapper">multi_instance_wrapper</a>  parame-
+       ter,  instead of executing the commands in postfix-script.
 
-       The  multi-instance manager must replace a "start" command
-       by  "check"  when  a  Postfix  instance  does   not   have
+       The multi-instance manager skips commands such  as  "stop"
+       or  "reload" that require a running Postfix instance, when
+       an instance does not have "<a href="postconf.5.html#multi_instance_enable">multi_instance_enable</a>  =  yes".
+       This avoids false error messages.
+
+       The  multi-instance  manager replaces a "start" command by
+       "check"  when   a   Postfix   instance   does   not   have
        "<a href="postconf.5.html#multi_instance_enable">multi_instance_enable</a>  =  yes". This substitution ensures
-       that problems will still be reported.
+       that problems will still be reported even when the default
+       instance is disabled.
+
+       No  Postfix  command or script will update or check shared
+       files unless it is running in the context of  the  default
+       Postfix  instance.  Therefore, the default instance should
+       be updated before any other Postfix instances.
 
        Set-gid commands  such  as  <a href="postdrop.1.html">postdrop(1)</a>  and  <a href="postqueue.1.html">postqueue(1)</a>
        effectively  append the <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a> parame-
        ter  value  to  the  legacy   <a href="postconf.5.html#alternate_config_directories">alternate_config_directories</a>
-       parameter value.
+       parameter  value.  The  commands  use  this information to
+       determine whether a -c option or  MAIL_CONFIG  environment
+       setting specifies a legitimate value.
 
        The  legacy <a href="postconf.5.html#alternate_config_directories">alternate_config_directories</a> parameter remains
        necessary for non-default Postfix instances that are  run-
        ning  different  versions of Postfix, or that are not man-
        aged together with the default Postfix instance.
 
-       No Postfix command or script will update or  check  shared
-       files  unless  it is running in the context of the default
-       Postfix instance.
-
 <b>ENVIRONMENT VARIABLES</b>
        MAIL_CONFIG
               When present, this forces the <a href="postfix.1.html">postfix(1)</a> command to
               operate  only  on  the  specified Postfix instance.
-              This environment variable is exported by the  post-
-              fix(1)  -c  option,  so that <a href="postfix.1.html">postfix(1)</a> commands in
+              This environment variable is exported by the  <a href="postfix.1.html">post-</a>
+              <a href="postfix.1.html">fix(1)</a>  -c  option,  so that <a href="postfix.1.html">postfix(1)</a> commands in
               descendant processes will work correctly.
 
 <b>CONFIGURATION PARAMETERS</b>
+       The text below provides  only  a  parameter  summary.  See
+       <a href="postconf.5.html">postconf(5)</a> for more details.
+
        <b><a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a> (empty)</b>
-              An optional list of non-default Postfix  configura-
+              An  optional list of non-default Postfix configura-
               tion directories; these directories belong to addi-
-              tional Postfix instances  that  share  the  Postfix
+              tional  Postfix  instances  that  share the Postfix
               executable files and documentation with the default
-              Postfix instance, and that  are  started,  stopped,
+              Postfix  instance,  and  that are started, stopped,
               etc., together with the default Postfix instance.
 
        <b><a href="postconf.5.html#multi_instance_wrapper">multi_instance_wrapper</a> (empty)</b>
-              The  pathname  of  a multi-instance manager command
-              that  the  <a href="postfix.1.html"><b>postfix</b>(1)</a>  command  invokes  when   the
-              <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a>  parameter value is non-
+              The pathname of a  multi-instance  manager  command
+              that   the  <a href="postfix.1.html"><b>postfix</b>(1)</a>  command  invokes  when  the
+              <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a> parameter value is  non-
               empty.
 
        <b><a href="postconf.5.html#multi_instance_name">multi_instance_name</a> (empty)</b>
-              The  optional  instance  name   of   this   Postfix
+              The   optional   instance   name  of  this  Postfix
               instance.
 
        <b><a href="postconf.5.html#multi_instance_group">multi_instance_group</a> (empty)</b>
-              The  optional  instance  group name of this Postfix
+              The optional instance group name  of  this  Postfix
               instance.
 
        <b><a href="postconf.5.html#multi_instance_enable">multi_instance_enable</a> (no)</b>
@@ -193,7 +219,7 @@ POSTFIX-WRAPPER(5)                                          POSTFIX-WRAPPER(5)
 
 <b>NON-SHARED FILES</b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The  default  location  of  the Postfix <a href="postconf.5.html">main.cf</a> and
+              The default location of  the  Postfix  <a href="postconf.5.html">main.cf</a>  and
               <a href="master.5.html">master.cf</a> configuration files.
 
        <b><a href="postconf.5.html#data_directory">data_directory</a> (see 'postconf -d' output)</b>
@@ -201,7 +227,7 @@ POSTFIX-WRAPPER(5)                                          POSTFIX-WRAPPER(5)
               example: caches, pseudo-random numbers).
 
        <b><a href="postconf.5.html#queue_directory">queue_directory</a> (see 'postconf -d' output)</b>
-              The  location of the Postfix top-level queue direc-
+              The location of the Postfix top-level queue  direc-
               tory.
 
 <b>SEE ALSO</b>
@@ -210,7 +236,7 @@ POSTFIX-WRAPPER(5)                                          POSTFIX-WRAPPER(5)
        postmulti(1) full-blown multi-instance manager
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>
