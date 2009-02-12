@@ -347,6 +347,14 @@ static int check_recipient_rcpt_maps(SMTPD_STATE *, const char *);
 static int check_rcpt_maps(SMTPD_STATE *, const char *, const char *);
 
  /*
+  * Tempfail actions;
+  */
+static int unk_name_tf_act;
+static int unk_addr_tf_act;
+static int unv_rcpt_tf_act;
+static int unv_from_tf_act;
+
+ /*
   * YASLM.
   */
 #define STR	vstring_str
@@ -377,7 +385,7 @@ static int check_rcpt_maps(SMTPD_STATE *, const char *, const char *);
   * permit-style restriction fails. Otherwise, we could reject legitimate
   * mail.
   */
-static void PRINTFLIKE(5, 6) defer_if(SMTPD_DEFER *, int, int, const char *, const char *,...);
+static int PRINTFLIKE(5, 6) defer_if(SMTPD_DEFER *, int, int, const char *, const char *,...);
 static int PRINTFLIKE(5, 6) smtpd_check_reject(SMTPD_STATE *, int, int, const char *, const char *,...);
 
 #define DEFER_IF_REJECT2(state, class, code, dsn, fmt, a1, a2) \
@@ -386,24 +394,24 @@ static int PRINTFLIKE(5, 6) smtpd_check_reject(SMTPD_STATE *, int, int, const ch
     defer_if(&(state)->defer_if_reject, (class), (code), (dsn), (fmt), (a1), (a2), (a3))
 #define DEFER_IF_REJECT4(state, class, code, dsn, fmt, a1, a2, a3, a4) \
     defer_if(&(state)->defer_if_reject, (class), (code), (dsn), (fmt), (a1), (a2), (a3), (a4))
-#define DEFER_IF_PERMIT2(state, class, code, dsn, fmt, a1, a2) do { \
-    if ((state)->warn_if_reject == 0) \
-	defer_if(&(state)->defer_if_permit, (class), (code), (dsn), (fmt), (a1), (a2)); \
-    else \
-	(void) smtpd_check_reject((state), (class), (code), (dsn), (fmt), (a1), (a2)); \
-    } while (0)
-#define DEFER_IF_PERMIT3(state, class, code, dsn, fmt, a1, a2, a3) do { \
-    if ((state)->warn_if_reject == 0) \
-	defer_if(&(state)->defer_if_permit, (class), (code), (dsn), (fmt), (a1), (a2), (a3)); \
-    else \
-	(void) smtpd_check_reject((state), (class), (code), (dsn), (fmt), (a1), (a2), (a3)); \
-    } while (0)
-#define DEFER_IF_PERMIT4(state, class, code, dsn, fmt, a1, a2, a3, a4) do { \
-    if ((state)->warn_if_reject == 0) \
-	defer_if(&(state)->defer_if_permit, (class), (code), (dsn), (fmt), (a1), (a2), (a3), (a4)); \
-    else \
-	(void) smtpd_check_reject((state), (class), (code), (dsn), (fmt), (a1), (a2), (a3), (a4)); \
-    } while (0)
+
+#define DEFER_EXPLICIT 1
+
+#define DEFER_IF_PERMIT2(type, state, class, code, dsn, fmt, a1, a2) \
+    (((state)->warn_if_reject == 0 && (type) != 0) ? \
+	defer_if(&(state)->defer_if_permit, (class), (code), (dsn), (fmt), (a1), (a2)) \
+    : \
+	smtpd_check_reject((state), (class), (code), (dsn), (fmt), (a1), (a2)))
+#define DEFER_IF_PERMIT3(type, state, class, code, dsn, fmt, a1, a2, a3) \
+    (((state)->warn_if_reject == 0 && (type) != 0) ? \
+	defer_if(&(state)->defer_if_permit, (class), (code), (dsn), (fmt), (a1), (a2), (a3)) \
+    : \
+	smtpd_check_reject((state), (class), (code), (dsn), (fmt), (a1), (a2), (a3)))
+#define DEFER_IF_PERMIT4(type, state, class, code, dsn, fmt, a1, a2, a3, a4) \
+    (((state)->warn_if_reject == 0 && (type) != 0) ? \
+	defer_if(&(state)->defer_if_permit, (class), (code), (dsn), (fmt), (a1), (a2), (a3), (a4)) \
+    : \
+	smtpd_check_reject((state), (class), (code), (dsn), (fmt), (a1), (a2), (a3), (a4)))
 
  /*
   * Cached RBL lookup state.
@@ -591,6 +599,11 @@ void    smtpd_check_init(void)
 	DEFER_IF_PERMIT,
 	0,
     };
+    static NAME_CODE tempfail_actions[] = {
+	DEFER_ALL, 0,
+	DEFER_IF_PERMIT, 1,
+	0, -1,
+    };
 
     /*
      * Pre-open access control lists before going to jail.
@@ -733,6 +746,35 @@ void    smtpd_check_init(void)
      */
     local_rewrite_clients = smtpd_check_parse(SMTPD_CHECK_PARSE_MAPS,
 					      var_local_rwr_clients);
+
+    /*
+     * Tempfail_actions.
+     * 
+     * XXX This name-to-number mapping should be encapsulated in a separate
+     * mail_conf_name_code.c module.
+     */
+    if ((unk_name_tf_act = name_code(tempfail_actions, NAME_CODE_FLAG_NONE,
+				     var_unk_name_tf_act)) < 0)
+	msg_fatal("bad configuration: %s = %s",
+		  VAR_UNK_NAME_TF_ACT, var_unk_name_tf_act);
+    if ((unk_addr_tf_act = name_code(tempfail_actions, NAME_CODE_FLAG_NONE,
+				     var_unk_addr_tf_act)) < 0)
+	msg_fatal("bad configuration: %s = %s",
+		  VAR_UNK_ADDR_TF_ACT, var_unk_addr_tf_act);
+    if ((unv_rcpt_tf_act = name_code(tempfail_actions, NAME_CODE_FLAG_NONE,
+				     var_unv_rcpt_tf_act)) < 0)
+	msg_fatal("bad configuration: %s = %s",
+		  VAR_UNV_RCPT_TF_ACT, var_unv_rcpt_tf_act);
+    if ((unv_from_tf_act = name_code(tempfail_actions, NAME_CODE_FLAG_NONE,
+				     var_unv_from_tf_act)) < 0)
+	msg_fatal("bad configuration: %s = %s",
+		  VAR_UNV_FROM_TF_ACT, var_unv_from_tf_act);
+    if (msg_verbose) {
+	msg_info("%s = %s", VAR_UNK_NAME_TF_ACT, tempfail_actions[unk_name_tf_act].name);
+	msg_info("%s = %s", VAR_UNK_ADDR_TF_ACT, tempfail_actions[unk_addr_tf_act].name);
+	msg_info("%s = %s", VAR_UNV_RCPT_TF_ACT, tempfail_actions[unv_rcpt_tf_act].name);
+	msg_info("%s = %s", VAR_UNV_FROM_TF_ACT, tempfail_actions[unv_from_tf_act].name);
+    }
 }
 
 /* log_whatsup - log as much context as we have */
@@ -866,9 +908,9 @@ static int smtpd_check_reject(SMTPD_STATE *state, int error_class,
 
 /* defer_if - prepare to change our mind */
 
-static void defer_if(SMTPD_DEFER *defer, int error_class,
-		             int code, const char *dsn,
-		             const char *fmt,...)
+static int defer_if(SMTPD_DEFER *defer, int error_class,
+		            int code, const char *dsn,
+		            const char *fmt,...)
 {
     va_list ap;
 
@@ -889,6 +931,7 @@ static void defer_if(SMTPD_DEFER *defer, int error_class,
 	vstring_vsprintf(defer->reason, fmt, ap);
 	va_end(ap);
     }
+    return (SMTPD_CHECK_DUNNO);
 }
 
 /* reject_dict_retry - reject with temporary failure if dict lookup fails */
@@ -1168,10 +1211,10 @@ static int reject_unknown_hostname(SMTPD_STATE *state, char *name,
 				       "Malformed DNS server reply" :
 				       "Host not found"));
 	else
-	    DEFER_IF_PERMIT2(state, MAIL_ERROR_POLICY,
-			     450, "4.7.1",
-			     "<%s>: %s rejected: Host not found",
-			     reply_name, reply_class);
+	    return (DEFER_IF_PERMIT2(unk_name_tf_act, state, MAIL_ERROR_POLICY,
+				     450, "4.7.1",
+				     "<%s>: %s rejected: Host not found",
+				     reply_name, reply_class));
     }
     return (SMTPD_CHECK_DUNNO);
 }
@@ -1207,11 +1250,11 @@ static int reject_unknown_mailhost(SMTPD_STATE *state, const char *name,
 				       "Malformed DNS server reply" :
 				       "Domain not found"));
 	else
-	    DEFER_IF_PERMIT2(state, MAIL_ERROR_POLICY,
+	    return (DEFER_IF_PERMIT2(unk_addr_tf_act, state, MAIL_ERROR_POLICY,
 			  450, strcmp(reply_class, SMTPD_NAME_SENDER) == 0 ?
-			     "4.1.8" : "4.1.2",
-			     "<%s>: %s rejected: Domain not found",
-			     reply_name, reply_class);
+				     "4.1.8" : "4.1.2",
+				     "<%s>: %s rejected: Domain not found",
+				     reply_name, reply_class));
     }
     return (SMTPD_CHECK_DUNNO);
 }
@@ -1782,6 +1825,7 @@ static int reject_unknown_address(SMTPD_STATE *state, const char *addr,
 static int reject_unverified_address(SMTPD_STATE *state, const char *addr,
 		            const char *reply_name, const char *reply_class,
 			             int unv_addr_dcode, int unv_addr_rcode,
+				             int unv_addr_tf_act,
 				             const char *alt_reply)
 {
     const char *myname = "reject_unverified_address";
@@ -1808,11 +1852,12 @@ static int reject_unverified_address(SMTPD_STATE *state, const char *addr,
     }
     if (verify_status != VRFY_STAT_OK) {
 	msg_warn("%s service failure", var_verify_service);
-	DEFER_IF_PERMIT2(state, MAIL_ERROR_POLICY,
-			 450, strcmp(reply_class, SMTPD_NAME_SENDER) == 0 ?
-			 SND_DSN : "4.1.1",
-			 "<%s>: %s rejected: address verification problem",
-			 reply_name, reply_class);
+	rqst_status =
+	    DEFER_IF_PERMIT2(unv_addr_tf_act, state, MAIL_ERROR_POLICY,
+			  450, strcmp(reply_class, SMTPD_NAME_SENDER) == 0 ?
+			     SND_DSN : "4.1.1",
+			  "<%s>: %s rejected: address verification problem",
+			     reply_name, reply_class);
     } else {
 	switch (rcpt_status) {
 	default:
@@ -1834,11 +1879,12 @@ static int reject_unverified_address(SMTPD_STATE *state, const char *addr,
 	case 2:
 	    break;
 	case 4:
-	    DEFER_IF_PERMIT3(state, MAIL_ERROR_POLICY,
+	    rqst_status =
+		DEFER_IF_PERMIT3(unv_addr_tf_act, state, MAIL_ERROR_POLICY,
 			  450, strcmp(reply_class, SMTPD_NAME_SENDER) == 0 ?
-			     SND_DSN : "4.1.1",
-			     "<%s>: %s rejected: unverified address: %.250s",
-			     reply_name, reply_class, STR(why));
+				 SND_DSN : "4.1.1",
+			    "<%s>: %s rejected: unverified address: %.250s",
+				 reply_name, reply_class, STR(why));
 	    break;
 	default:
 	    if (reject_code != 0)
@@ -2154,13 +2200,12 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
      */
     if (STREQUAL(value, DEFER_IF_PERMIT, cmd_len)) {
 	dsn_split(&dp, "4.7.1", cmd_text);
-	DEFER_IF_PERMIT3(state, MAIL_ERROR_POLICY,
-			 var_map_defer_code,
-			 smtpd_dsn_fix(DSN_STATUS(dp.dsn), reply_class),
-			 "<%s>: %s rejected: %s",
-			 reply_name, reply_class,
-			 *dp.text ? dp.text : "Service unavailable");
-	return (SMTPD_CHECK_DUNNO);
+	return (DEFER_IF_PERMIT3(DEFER_EXPLICIT, state, MAIL_ERROR_POLICY,
+				 var_map_defer_code,
+			     smtpd_dsn_fix(DSN_STATUS(dp.dsn), reply_class),
+				 "<%s>: %s rejected: %s",
+				 reply_name, reply_class,
+			       *dp.text ? dp.text : "Service unavailable"));
     }
 
     /*
@@ -3599,10 +3644,10 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		status = check_policy_service(state, *++cpp, reply_name,
 					      reply_class, def_acl);
 	} else if (strcasecmp(name, DEFER_IF_PERMIT) == 0) {
-	    DEFER_IF_PERMIT2(state, MAIL_ERROR_POLICY,
-			     450, "4.7.0",
+	    status = DEFER_IF_PERMIT2(DEFER_EXPLICIT, state, MAIL_ERROR_POLICY,
+				      450, "4.7.0",
 			     "<%s>: %s rejected: defer_if_permit requested",
-			     reply_name, reply_class);
+				      reply_name, reply_class);
 	} else if (strcasecmp(name, DEFER_IF_REJECT) == 0) {
 	    DEFER_IF_REJECT2(state, MAIL_ERROR_POLICY,
 			     450, "4.7.0",
@@ -3763,6 +3808,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		status = reject_unverified_address(state, state->sender,
 					   state->sender, SMTPD_NAME_SENDER,
 				     var_unv_from_dcode, var_unv_from_rcode,
+						   unv_from_tf_act,
 						   var_unv_from_why);
 	} else if (strcasecmp(name, REJECT_NON_FQDN_SENDER) == 0) {
 	    if (state->sender && *state->sender)
@@ -3894,6 +3940,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		status = reject_unverified_address(state, state->recipient,
 				     state->recipient, SMTPD_NAME_RECIPIENT,
 				     var_unv_rcpt_dcode, var_unv_rcpt_rcode,
+						   unv_rcpt_tf_act,
 						   var_unv_rcpt_why);
 	}
 
@@ -4757,6 +4804,10 @@ char   *var_smtpd_relay_ccerts;
 char   *var_unv_from_why;
 char   *var_unv_rcpt_why;
 char   *var_stress;
+char   *var_unk_name_tf_act;
+char   *var_unk_addr_tf_act;
+char   *var_unv_rcpt_tf_act;
+char   *var_unv_from_tf_act;
 
 typedef struct {
     char   *name;
@@ -4803,6 +4854,11 @@ static const STRING_TABLE string_table[] = {
     VAR_UNV_FROM_WHY, DEF_UNV_FROM_WHY, &var_unv_from_why,
     VAR_UNV_RCPT_WHY, DEF_UNV_RCPT_WHY, &var_unv_rcpt_why,
     VAR_STRESS, DEF_STRESS, &var_stress,
+    /* XXX Can't use ``$name'' type default values below. */
+    VAR_UNK_NAME_TF_ACT, DEF_REJECT_TMPF_ACT, &var_unk_name_tf_act,
+    VAR_UNK_ADDR_TF_ACT, DEF_REJECT_TMPF_ACT, &var_unk_addr_tf_act,
+    VAR_UNV_RCPT_TF_ACT, DEF_REJECT_TMPF_ACT, &var_unv_rcpt_tf_act,
+    VAR_UNV_FROM_TF_ACT, DEF_REJECT_TMPF_ACT, &var_unv_from_tf_act,
     0,
 };
 

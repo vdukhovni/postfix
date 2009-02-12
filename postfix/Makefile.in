@@ -33,22 +33,34 @@ update printfck tests root_tests:
 update: $(LIBEXEC)
 
 libexec/post-install: conf/post-install
-	ln -f $? $@
+	# XXX Work around broken hardlink implementations
+	rm -f $@
+	cp $? $@
 
 libexec/postfix-files: conf/postfix-files
-	ln -f $? $@
+	# XXX Work around broken hardlink implementations
+	rm -f $@
+	cp $? $@
 
 libexec/postfix-script: conf/postfix-script
-	ln -f $? $@
+	# XXX Work around broken hardlink implementations
+	rm -f $@
+	cp $? $@
 
 libexec/postfix-wrapper: conf/postfix-wrapper
-	ln -f $? $@
+	# XXX Work around broken hardlink implementations
+	rm -f $@
+	cp $? $@
 
 libexec/main.cf: conf/main.cf
-	ln -f $? $@
+	# XXX Work around broken hardlink implementations
+	rm -f $@
+	cp $? $@
 
 libexec/master.cf: conf/master.cf
-	ln -f $? $@
+	# XXX Work around broken hardlink implementations
+	rm -f $@
+	cp $? $@
 
 manpages:
 	set -e; for i in $(MANDIRS); do \

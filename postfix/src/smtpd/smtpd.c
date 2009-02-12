@@ -195,28 +195,28 @@
 /* .IP "\fBmilter_content_timeout (300s)\fR"
 /*	The time limit for sending message content to a Milter (mail
 /*	filter) application, and for receiving the response.
-/* .IP "\fBmilter_connect_macros (see postconf -n output)\fR"
+/* .IP "\fBmilter_connect_macros (see 'postconf -d' output)\fR"
 /*	The macros that are sent to Milter (mail filter) applications
 /*	after completion of an SMTP connection.
-/* .IP "\fBmilter_helo_macros (see postconf -n output)\fR"
+/* .IP "\fBmilter_helo_macros (see 'postconf -d' output)\fR"
 /*	The macros that are sent to Milter (mail filter) applications
 /*	after the SMTP HELO or EHLO command.
-/* .IP "\fBmilter_mail_macros (see postconf -n output)\fR"
+/* .IP "\fBmilter_mail_macros (see 'postconf -d' output)\fR"
 /*	The macros that are sent to Milter (mail filter) applications
 /*	after the SMTP MAIL FROM command.
-/* .IP "\fBmilter_rcpt_macros (see postconf -n output)\fR"
+/* .IP "\fBmilter_rcpt_macros (see 'postconf -d' output)\fR"
 /*	The macros that are sent to Milter (mail filter) applications
 /*	after the SMTP RCPT TO command.
-/* .IP "\fBmilter_data_macros (see postconf -n output)\fR"
+/* .IP "\fBmilter_data_macros (see 'postconf -d' output)\fR"
 /*	The macros that are sent to version 4 or higher Milter (mail
 /*	filter) applications after the SMTP DATA command.
-/* .IP "\fBmilter_unknown_command_macros (see postconf -n output)\fR"
+/* .IP "\fBmilter_unknown_command_macros (see 'postconf -d' output)\fR"
 /*	The macros that are sent to version 3 or higher Milter (mail
 /*	filter) applications after an unknown SMTP command.
-/* .IP "\fBmilter_end_of_header_macros (see postconf -n output)\fR"
+/* .IP "\fBmilter_end_of_header_macros (see 'postconf -d' output)\fR"
 /*	The macros that are sent to Milter (mail filter) applications
 /*	after the end of the message header.
-/* .IP "\fBmilter_end_of_data_macros (see postconf -n output)\fR"
+/* .IP "\fBmilter_end_of_data_macros (see 'postconf -d' output)\fR"
 /*	The macros that are sent to Milter (mail filter) applications
 /*	after the message end-of-data.
 /* GENERAL CONTENT INSPECTION CONTROLS
@@ -573,7 +573,7 @@
 /* .IP "\fBsmtpd_recipient_limit (1000)\fR"
 /*	The maximal number of recipients that the Postfix SMTP server
 /*	accepts per message delivery request.
-/* .IP "\fBsmtpd_timeout (300s)\fR"
+/* .IP "\fBsmtpd_timeout (normal: 300s, stress: 10s)\fR"
 /*	The time limit for sending a Postfix SMTP server response and for
 /*	receiving a remote SMTP client request.
 /* .IP "\fBsmtpd_history_flush_threshold (100)\fR"
@@ -627,10 +627,10 @@
 /*	The number of errors a remote SMTP client is allowed to make without
 /*	delivering mail before the Postfix SMTP server slows down all its
 /*	responses.
-/* .IP "\fBsmtpd_hard_error_limit (20)\fR"
+/* .IP "\fBsmtpd_hard_error_limit (normal: 20, stress: 1)\fR"
 /*	The maximal number of errors a remote SMTP client is allowed to
 /*	make without delivering mail.
-/* .IP "\fBsmtpd_junk_command_limit (100)\fR"
+/* .IP "\fBsmtpd_junk_command_limit (normal: 100, stress: 1)\fR"
 /*	The number of junk commands (NOOP, VRFY, ETRN or RSET) that a remote
 /*	SMTP client can send before the Postfix SMTP server starts to
 /*	increment the error counter with each junk command.
@@ -757,13 +757,17 @@
 /*	The numerical Postfix SMTP server response when a recipient address
 /*	probe fails due to a temporary error condition.
 /* .IP "\fBunverified_sender_reject_reason (empty)\fR"
-/*	When rejecting mail with reject_unverified_sender, reply with
-/*	this text as the reason, instead of actual address verification
-/*	details.
+/*	The Postfix SMTP server's reply when rejecting mail with
+/*	reject_unverified_sender.
 /* .IP "\fBunverified_recipient_reject_reason (empty)\fR"
-/*	When rejecting mail with reject_unverified_recipient, reply
-/*	with this text as the reason, instead of actual address verification
-/*	details.
+/*	The Postfix SMTP server's reply when rejecting mail with
+/*	reject_unverified_recipient.
+/* .IP "\fBunverified_sender_tempfail_action ($reject_tempfail_action)\fR"
+/*	The Postfix SMTP server's action when reject_unverified_sender
+/*	fails due to a temporary error condition.
+/* .IP "\fBunverified_recipient_tempfail_action ($reject_tempfail_action)\fR"
+/*	The Postfix SMTP server's action when reject_unverified_recipient
+/*	fails due to a temporary error condition.
 /* ACCESS CONTROL RESPONSES
 /* .ad
 /* .fi
@@ -826,6 +830,16 @@
 /*	The numerical Postfix SMTP server response code for
 /*	an \fBaccess\fR(5) map "defer" action, including "defer_if_permit"
 /*	or "defer_if_reject".
+/* .IP "\fBreject_tempfail_action (defer_if_permit)\fR"
+/*	The Postfix SMTP server's action when a reject-type restriction
+/*	fails due to a temporary error condition.
+/* .IP "\fBunknown_helo_hostname_tempfail_action ($reject_tempfail_action)\fR"
+/*	The Postfix SMTP server's action when reject_unknown_helo_hostname
+/*	fails due to an temporary error condition.
+/* .IP "\fBunknown_address_tempfail_action ($reject_tempfail_action)\fR"
+/*	The Postfix SMTP server's action when reject_unknown_sender_domain
+/*	or reject_unknown_recipient_domain fail due to a temporary error
+/*	condition.
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi
@@ -876,7 +890,7 @@
 /*	banner.
 /* .IP "\fBsyslog_facility (mail)\fR"
 /*	The syslog facility of Postfix logging.
-/* .IP "\fBsyslog_name (postfix)\fR"
+/* .IP "\fBsyslog_name (see 'postconf -d' output)\fR"
 /*	The mail system name that is prepended to the process name in syslog
 /*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* .PP
@@ -1201,6 +1215,12 @@ char   *var_milt_eod_macros;
 char   *var_milt_unk_macros;
 bool    var_smtpd_client_port_log;
 char   *var_stress;
+
+char   *var_reject_tmpf_act;
+char   *var_unk_name_tf_act;
+char   *var_unk_addr_tf_act;
+char   *var_unv_rcpt_tf_act;
+char   *var_unv_from_tf_act;
 
  /*
   * Silly little macros.
@@ -4808,10 +4828,14 @@ MAIL_VERSION_STAMP_DECLARE;
 
 int     main(int argc, char **argv)
 {
-    static const CONFIG_INT_TABLE int_table[] = {
+    static const CONFIG_NINT_TABLE nint_table[] = {
 	VAR_SMTPD_RCPT_LIMIT, DEF_SMTPD_RCPT_LIMIT, &var_smtpd_rcpt_limit, 1, 0,
 	VAR_SMTPD_SOFT_ERLIM, DEF_SMTPD_SOFT_ERLIM, &var_smtpd_soft_erlim, 1, 0,
 	VAR_SMTPD_HARD_ERLIM, DEF_SMTPD_HARD_ERLIM, &var_smtpd_hard_erlim, 1, 0,
+	VAR_SMTPD_JUNK_CMD, DEF_SMTPD_JUNK_CMD, &var_smtpd_junk_cmd_limit, 1, 0,
+	0,
+    };
+    static const CONFIG_INT_TABLE int_table[] = {
 	VAR_QUEUE_MINFREE, DEF_QUEUE_MINFREE, &var_queue_minfree, 0, 0,
 	VAR_UNK_CLIENT_CODE, DEF_UNK_CLIENT_CODE, &var_unk_client_code, 0, 0,
 	VAR_BAD_NAME_CODE, DEF_BAD_NAME_CODE, &var_bad_name_code, 0, 0,
@@ -4824,7 +4848,6 @@ int     main(int argc, char **argv)
 	VAR_REJECT_CODE, DEF_REJECT_CODE, &var_reject_code, 0, 0,
 	VAR_DEFER_CODE, DEF_DEFER_CODE, &var_defer_code, 0, 0,
 	VAR_NON_FQDN_CODE, DEF_NON_FQDN_CODE, &var_non_fqdn_code, 0, 0,
-	VAR_SMTPD_JUNK_CMD, DEF_SMTPD_JUNK_CMD, &var_smtpd_junk_cmd_limit, 1, 0,
 	VAR_SMTPD_RCPT_OVERLIM, DEF_SMTPD_RCPT_OVERLIM, &var_smtpd_rcpt_overlim, 1, 0,
 	VAR_SMTPD_HIST_THRSH, DEF_SMTPD_HIST_THRSH, &var_smtpd_hist_thrsh, 1, 0,
 	VAR_UNV_FROM_RCODE, DEF_UNV_FROM_RCODE, &var_unv_from_rcode, 200, 599,
@@ -4976,6 +4999,11 @@ int     main(int argc, char **argv)
 	VAR_STRESS, DEF_STRESS, &var_stress, 0, 0,
 	VAR_UNV_FROM_WHY, DEF_UNV_FROM_WHY, &var_unv_from_why, 0, 0,
 	VAR_UNV_RCPT_WHY, DEF_UNV_RCPT_WHY, &var_unv_rcpt_why, 0, 0,
+	VAR_REJECT_TMPF_ACT, DEF_REJECT_TMPF_ACT, &var_reject_tmpf_act, 1, 0,
+	VAR_UNK_NAME_TF_ACT, DEF_UNK_NAME_TF_ACT, &var_unk_name_tf_act, 1, 0,
+	VAR_UNK_ADDR_TF_ACT, DEF_UNK_ADDR_TF_ACT, &var_unk_addr_tf_act, 1, 0,
+	VAR_UNV_RCPT_TF_ACT, DEF_UNV_RCPT_TF_ACT, &var_unv_rcpt_tf_act, 1, 0,
+	VAR_UNV_FROM_TF_ACT, DEF_UNV_FROM_TF_ACT, &var_unv_from_tf_act, 1, 0,
 	0,
     };
     static const CONFIG_RAW_TABLE raw_table[] = {
@@ -4993,6 +5021,7 @@ int     main(int argc, char **argv)
      * Pass control to the single-threaded service skeleton.
      */
     single_server_main(argc, argv, smtpd_service,
+		       MAIL_SERVER_NINT_TABLE, nint_table,
 		       MAIL_SERVER_INT_TABLE, int_table,
 		       MAIL_SERVER_STR_TABLE, str_table,
 		       MAIL_SERVER_RAW_TABLE, raw_table,

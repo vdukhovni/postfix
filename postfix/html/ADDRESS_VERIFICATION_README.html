@@ -75,9 +75,11 @@ verification probes</a>
 
 <h2><a name="how">How address verification works</a></h2>
 
-<p> A sender or recipient address is verified by probing the nearest
+<p> A Postfix MTA verifies a sender or recipient address by probing
+the nearest
 MTA for that address, without actually delivering mail. The nearest
-MTA could be Postfix itself, or it could be a remote MTA (SMTP
+MTA could be the Postfix MTA itself, or it could be a remote MTA
+(SMTP
 interruptus).  Probe messages are like normal mail, except that
 they are never delivered, deferred or bounced; probe messages are
 always discarded.  </p>
@@ -275,7 +277,13 @@ into backscatter sources when the load is high.  </p>
 
 <p> The <a href="postconf.5.html#unverified_recipient_reject_reason">unverified_recipient_reject_reason</a> parameter (default:
 empty) specifies fixed text that Postfix will send to remote SMTP
-clients, instead of sending actual address verification details.  </p>
+clients, instead of sending actual address verification details.
+Do not specify the SMTP status code or enhanced status code.  </p>
+
+<p> The <a href="postconf.5.html#unverified_recipient_tempfail_action">unverified_recipient_tempfail_action</a> parameter (default:
+<a href="postconf.5.html#defer_if_permit">defer_if_permit</a>) specifies the Postfix SMTP server action when a
+recipient address verification probe fails with some temporary
+error.  </p>
 
 <h2><a name="forged_sender">Sender address verification for mail from frequently forged domains</a></h2>
 
@@ -384,7 +392,13 @@ verification probe fails with some temporary error. Specify a valid
 
 <p> The <a href="postconf.5.html#unverified_sender_reject_reason">unverified_sender_reject_reason</a> parameter (default:
 empty) specifies fixed text that Postfix will send to remote SMTP
-clients, instead of sending actual addres verification details.  </p>
+clients, instead of sending actual addres verification details.
+Do not specify the SMTP status code or enhanced status code.  </p>
+
+<p> The <a href="postconf.5.html#unverified_sender_tempfail_action">unverified_sender_tempfail_action</a> parameter (default:
+<a href="postconf.5.html#defer_if_permit">defer_if_permit</a>) specifies the Postfix SMTP server action when a
+sender address verification probe fails with some temporary error.
+</p>
 
 <h2><a name="caching">Address verification database</a></h2>
 

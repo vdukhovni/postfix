@@ -29,7 +29,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	user_acl.c valid_mailhost_addr.c verify.c verify_clnt.c \
 	verp_sender.c wildcard_inet_addr.c xtext.c delivered_hdr.c \
 	fold_addr.c header_body_checks.c mkmap_proxy.c data_redirect.c \
-	match_service.c
+	match_service.c mail_conf_nint.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
@@ -60,7 +60,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	user_acl.o valid_mailhost_addr.o verify.o verify_clnt.o \
 	verp_sender.o wildcard_inet_addr.o xtext.o delivered_hdr.o \
 	fold_addr.o header_body_checks.o mkmap_proxy.o data_redirect.o \
-	match_service.o
+	match_service.o mail_conf_nint.o
 HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	canon_addr.h cfg_parser.h cleanup_user.h clnt_stream.h config.h \
 	conv_time.h db_common.h debug_peer.h debug_process.h defer.h \
@@ -1143,6 +1143,17 @@ mail_conf_long.o: ../../include/vstream.h
 mail_conf_long.o: ../../include/vstring.h
 mail_conf_long.o: mail_conf.h
 mail_conf_long.o: mail_conf_long.c
+mail_conf_nint.o: ../../include/argv.h
+mail_conf_nint.o: ../../include/dict.h
+mail_conf_nint.o: ../../include/msg.h
+mail_conf_nint.o: ../../include/mymalloc.h
+mail_conf_nint.o: ../../include/stringops.h
+mail_conf_nint.o: ../../include/sys_defs.h
+mail_conf_nint.o: ../../include/vbuf.h
+mail_conf_nint.o: ../../include/vstream.h
+mail_conf_nint.o: ../../include/vstring.h
+mail_conf_nint.o: mail_conf.h
+mail_conf_nint.o: mail_conf_nint.c
 mail_conf_raw.o: ../../include/msg.h
 mail_conf_raw.o: ../../include/mymalloc.h
 mail_conf_raw.o: ../../include/sys_defs.h
@@ -1275,6 +1286,7 @@ mail_params.o: mail_proto.h
 mail_params.o: mail_version.h
 mail_params.o: mynetworks.h
 mail_params.o: own_inet_addr.h
+mail_params.o: recipient_list.h
 mail_params.o: verp_sender.h
 mail_pathname.o: ../../include/attr.h
 mail_pathname.o: ../../include/iostuff.h
@@ -1988,6 +2000,7 @@ verp_sender.o: ../../include/sys_defs.h
 verp_sender.o: ../../include/vbuf.h
 verp_sender.o: ../../include/vstring.h
 verp_sender.o: mail_params.h
+verp_sender.o: recipient_list.h
 verp_sender.o: verp_sender.c
 verp_sender.o: verp_sender.h
 wildcard_inet_addr.o: ../../include/inet_addr_host.h

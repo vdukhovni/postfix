@@ -219,28 +219,28 @@ filter) application, and for receiving the response.
 .IP "\fBmilter_content_timeout (300s)\fR"
 The time limit for sending message content to a Milter (mail
 filter) application, and for receiving the response.
-.IP "\fBmilter_connect_macros (see postconf -n output)\fR"
+.IP "\fBmilter_connect_macros (see 'postconf -d' output)\fR"
 The macros that are sent to Milter (mail filter) applications
 after completion of an SMTP connection.
-.IP "\fBmilter_helo_macros (see postconf -n output)\fR"
+.IP "\fBmilter_helo_macros (see 'postconf -d' output)\fR"
 The macros that are sent to Milter (mail filter) applications
 after the SMTP HELO or EHLO command.
-.IP "\fBmilter_mail_macros (see postconf -n output)\fR"
+.IP "\fBmilter_mail_macros (see 'postconf -d' output)\fR"
 The macros that are sent to Milter (mail filter) applications
 after the SMTP MAIL FROM command.
-.IP "\fBmilter_rcpt_macros (see postconf -n output)\fR"
+.IP "\fBmilter_rcpt_macros (see 'postconf -d' output)\fR"
 The macros that are sent to Milter (mail filter) applications
 after the SMTP RCPT TO command.
-.IP "\fBmilter_data_macros (see postconf -n output)\fR"
+.IP "\fBmilter_data_macros (see 'postconf -d' output)\fR"
 The macros that are sent to version 4 or higher Milter (mail
 filter) applications after the SMTP DATA command.
-.IP "\fBmilter_unknown_command_macros (see postconf -n output)\fR"
+.IP "\fBmilter_unknown_command_macros (see 'postconf -d' output)\fR"
 The macros that are sent to version 3 or higher Milter (mail
 filter) applications after an unknown SMTP command.
-.IP "\fBmilter_end_of_header_macros (see postconf -n output)\fR"
+.IP "\fBmilter_end_of_header_macros (see 'postconf -d' output)\fR"
 The macros that are sent to Milter (mail filter) applications
 after the end of the message header.
-.IP "\fBmilter_end_of_data_macros (see postconf -n output)\fR"
+.IP "\fBmilter_end_of_data_macros (see 'postconf -d' output)\fR"
 The macros that are sent to Milter (mail filter) applications
 after the message end-of-data.
 .SH "GENERAL CONTENT INSPECTION CONTROLS"
@@ -615,7 +615,7 @@ The maximal size in bytes of a message, including envelope information.
 .IP "\fBsmtpd_recipient_limit (1000)\fR"
 The maximal number of recipients that the Postfix SMTP server
 accepts per message delivery request.
-.IP "\fBsmtpd_timeout (300s)\fR"
+.IP "\fBsmtpd_timeout (normal: 300s, stress: 10s)\fR"
 The time limit for sending a Postfix SMTP server response and for
 receiving a remote SMTP client request.
 .IP "\fBsmtpd_history_flush_threshold (100)\fR"
@@ -671,10 +671,10 @@ fewer than $smtpd_hard_error_limit errors, without delivering mail.
 The number of errors a remote SMTP client is allowed to make without
 delivering mail before the Postfix SMTP server slows down all its
 responses.
-.IP "\fBsmtpd_hard_error_limit (20)\fR"
+.IP "\fBsmtpd_hard_error_limit (normal: 20, stress: 1)\fR"
 The maximal number of errors a remote SMTP client is allowed to
 make without delivering mail.
-.IP "\fBsmtpd_junk_command_limit (100)\fR"
+.IP "\fBsmtpd_junk_command_limit (normal: 100, stress: 1)\fR"
 The number of junk commands (NOOP, VRFY, ETRN or RSET) that a remote
 SMTP client can send before the Postfix SMTP server starts to
 increment the error counter with each junk command.
@@ -807,13 +807,17 @@ probe fails due to a temporary error condition.
 The numerical Postfix SMTP server response when a recipient address
 probe fails due to a temporary error condition.
 .IP "\fBunverified_sender_reject_reason (empty)\fR"
-When rejecting mail with reject_unverified_sender, reply with
-this text as the reason, instead of actual address verification
-details.
+The Postfix SMTP server's reply when rejecting mail with
+reject_unverified_sender.
 .IP "\fBunverified_recipient_reject_reason (empty)\fR"
-When rejecting mail with reject_unverified_recipient, reply
-with this text as the reason, instead of actual address verification
-details.
+The Postfix SMTP server's reply when rejecting mail with
+reject_unverified_recipient.
+.IP "\fBunverified_sender_tempfail_action ($reject_tempfail_action)\fR"
+The Postfix SMTP server's action when reject_unverified_sender
+fails due to a temporary error condition.
+.IP "\fBunverified_recipient_tempfail_action ($reject_tempfail_action)\fR"
+The Postfix SMTP server's action when reject_unverified_recipient
+fails due to a temporary error condition.
 .SH "ACCESS CONTROL RESPONSES"
 .na
 .nf
@@ -878,6 +882,16 @@ Available in Postfix version 2.6 and later:
 The numerical Postfix SMTP server response code for
 an \fBaccess\fR(5) map "defer" action, including "defer_if_permit"
 or "defer_if_reject".
+.IP "\fBreject_tempfail_action (defer_if_permit)\fR"
+The Postfix SMTP server's action when a reject-type restriction
+fails due to a temporary error condition.
+.IP "\fBunknown_helo_hostname_tempfail_action ($reject_tempfail_action)\fR"
+The Postfix SMTP server's action when reject_unknown_helo_hostname
+fails due to an temporary error condition.
+.IP "\fBunknown_address_tempfail_action ($reject_tempfail_action)\fR"
+The Postfix SMTP server's action when reject_unknown_sender_domain
+or reject_unknown_recipient_domain fail due to a temporary error
+condition.
 .SH "MISCELLANEOUS CONTROLS"
 .na
 .nf
@@ -930,7 +944,7 @@ The text that follows the 220 status code in the SMTP greeting
 banner.
 .IP "\fBsyslog_facility (mail)\fR"
 The syslog facility of Postfix logging.
-.IP "\fBsyslog_name (postfix)\fR"
+.IP "\fBsyslog_name (see 'postconf -d' output)\fR"
 The mail system name that is prepended to the process name in syslog
 records, so that "smtpd" becomes, for example, "postfix/smtpd".
 .PP

@@ -53,6 +53,14 @@
 	}
     }
 }
+/^(static| )*(const +)?CONFIG_NINT_TABLE .*\{/,/\};/ { 
+    if ($1 ~ /VAR/) {
+	print "int " substr($3,2,length($3)-2) ";" > "nint_vars.h"
+	if (++itab[$1 $2 $4 $5 $6 $7 $8 $9] == 1) {
+	    print |"sed 's/[ 	][ 	]*/ /g' > nint_table.h"
+	}
+    }
+}
 
 # Workaround for broken gawk versions.
 

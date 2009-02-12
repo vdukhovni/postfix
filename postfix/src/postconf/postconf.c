@@ -316,6 +316,7 @@ DICT   *text_table;
 #include "int_vars.h"
 #include "str_vars.h"
 #include "raw_vars.h"
+#include "nint_vars.h"
 
  /*
   * Manually extracted.
@@ -350,6 +351,11 @@ static const CONFIG_STR_TABLE str_table[] = {
 
 static const CONFIG_RAW_TABLE raw_table[] = {
 #include "raw_table.h"
+    0,
+};
+
+static const CONFIG_NINT_TABLE nint_table[] = {
+#include "nint_table.h"
     0,
 };
 
@@ -671,6 +677,7 @@ static void hash_parameters(void)
     const CONFIG_STR_TABLE *cst;
     const CONFIG_STR_FN_TABLE *csft;
     const CONFIG_RAW_TABLE *rst;
+    const CONFIG_NINT_TABLE *nst;
 
     param_table = htable_create(100);
 
@@ -688,6 +695,8 @@ static void hash_parameters(void)
 	htable_enter(param_table, csft->name, (char *) csft);
     for (rst = raw_table; rst->name; rst++)
 	htable_enter(param_table, rst->name, (char *) rst);
+    for (nst = nint_table; nst->name; nst++)
+	htable_enter(param_table, nst->name, (char *) nst);
 }
 
 /* show_strval - show string-valued parameter */
@@ -880,6 +889,33 @@ static void print_raw(int mode, CONFIG_RAW_TABLE * rst)
     }
 }
 
+/* print_nint - print new integer parameter */
+
+static void print_nint(int mode, CONFIG_NINT_TABLE * rst)
+{
+    const char *value;
+
+    if (mode & SHOW_EVAL)
+	msg_warn("parameter %s expands at run-time", rst->name);
+    mode &= ~SHOW_EVAL;
+
+    if (mode & SHOW_DEFS) {
+	show_strval(mode, rst->name, rst->defval);
+    } else {
+	value = dict_lookup(CONFIG_DICT, rst->name);
+	if ((mode & SHOW_NONDEF) == 0) {
+	    if (value == 0) {
+		show_strval(mode, rst->name, rst->defval);
+	    } else {
+		show_strval(mode, rst->name, value);
+	    }
+	} else {
+	    if (value != 0)
+		show_strval(mode, rst->name, value);
+	}
+    }
+}
+
 /* print_parameter - show specific parameter */
 
 static void print_parameter(int mode, char *ptr)
@@ -904,6 +940,8 @@ static void print_parameter(int mode, char *ptr)
 	print_str_fn_2(mode, (CONFIG_STR_FN_TABLE *) ptr);
     if (INSIDE(ptr, raw_table))
 	print_raw(mode, (CONFIG_RAW_TABLE *) ptr);
+    if (INSIDE(ptr, nint_table))
+	print_nint(mode, (CONFIG_NINT_TABLE *) ptr);
     if (msg_verbose)
 	vstream_fflush(VSTREAM_OUT);
 }

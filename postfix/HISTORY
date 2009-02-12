@@ -14946,3 +14946,40 @@ Apologies for any names omitted.
 	Documentation: more precise description of multi-instance
 	manager API, and minor edits of the example program. Files:
 	conf/postfix-wrapper, proto/postfix-wrapper.
+
+20090208
+
+	Cleanup: enable multi-instance shared-file logic only when
+	the instance is listed in multi_instance_directories.  Files:
+	conf/post-install, conf/postfix-script.
+
+20090210
+
+	Feature: specify "reject_tempfail_action = defer" to
+	immediately defer a remote SMTP client request after a
+	reject-type restriction fails with a temporary error.  Based
+	on code by Rob Foehl. File: smtpd/smtpd_check.c.
+
+	Feature: finer control of reject_tempfail_action with
+	unknown_address_tempfail_action, unverified_sender_tempfail_action
+	unverified_recipient_tempfail_action, and
+	unknown_helo_hostname_tempfail_action. See documentation
+	for details.  File: smtpd/smtpd_check.c.
+
+20090211
+
+	Workaround: pass the SMTP server socket's local and remote
+	peer address information to the Dovecot authentication server.
+	This is incomplete code: it ignores XCLIENT server address
+	overrides.  File: xsasl/xsasl_dovecot_server.c.
+
+20090212
+
+	Testing revealed that with mumble_tempfail_action=defer,
+	the "defer" action was ignored.  Cause: the DEFER_IF_PERMIT[0-9]
+	macros lost the SMTPD_CHECK_REJECT result value.  File:
+	smtpd/smtpd_check.c.
+
+	Feature: stress-dependent smtpd_timeout (normal: 300s,
+	overload: 10s), smtpd_hard_error_limit (normal: 20, overload:
+	1) and smtpd_junk_command_limit (normal: 100, overload: 1).

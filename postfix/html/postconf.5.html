@@ -6977,6 +6977,25 @@ Do not change this unless you have a complete understanding of <a href="http://t
 
 </DD>
 
+<DT><b><a name="reject_tempfail_action">reject_tempfail_action</a>
+(default: <a href="postconf.5.html#defer_if_permit">defer_if_permit</a>)</b></DT><DD>
+
+<p> The Postfix SMTP server's action when a reject-type restriction
+fails due to a temporary error condition. Specify "defer" to defer
+the remote SMTP client request immediately. With the default
+"<a href="postconf.5.html#defer_if_permit">defer_if_permit</a>" action, the Postfix SMTP server continues to look
+for opportunities to reject mail, and defers the client request
+only if it would otherwise be accepted. </p>
+
+<p> For finer control, see: <a href="postconf.5.html#unverified_recipient_tempfail_action">unverified_recipient_tempfail_action</a>,
+<a href="postconf.5.html#unverified_sender_tempfail_action">unverified_sender_tempfail_action</a>, <a href="postconf.5.html#unknown_address_tempfail_action">unknown_address_tempfail_action</a>,
+and <a href="postconf.5.html#unknown_helo_hostname_tempfail_action">unknown_helo_hostname_tempfail_action</a>.  </p>
+
+<p> This feature is available in Postfix 2.6 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="relay_clientcerts">relay_clientcerts</a>
 (default: empty)</b></DT><DD>
 
@@ -10566,7 +10585,7 @@ restriction contexts is therefore not recommended.  </dd>
 
 <dd>Reject the request. This restriction is useful at the end of
 a restriction list, to make the default policy explicit.  The
-<a href="postconf.5.html#reject_code">reject_code</a> configuration parameter specifies the response code to
+<a href="postconf.5.html#reject_code">reject_code</a> configuration parameter specifies the response code for
 rejected requests (default: 554).</dd>
 
 <dt><b><a name="sleep">sleep <i>seconds</i></a></b></dt>
@@ -10898,12 +10917,13 @@ This feature is available in Postfix 2.2 and later.
 </DD>
 
 <DT><b><a name="smtpd_hard_error_limit">smtpd_hard_error_limit</a>
-(default: 20)</b></DT><DD>
+(default: normal: 20, stress: 1)</b></DT><DD>
 
 <p>
 The maximal number of errors a remote SMTP client is allowed to
 make without delivering mail. The Postfix SMTP server disconnects
-when the limit is exceeded.
+when the limit is exceeded. Normally the default limit is 20, but
+it changes under overload to just 1 with Postfix 2.6 and later.
 </p>
 
 
@@ -10980,13 +11000,13 @@ feature is available in Postfix 2.1 and later.  </dd>
 
 <dd>Reject the request when the HELO or EHLO hostname syntax is
 invalid. <br> The <a href="postconf.5.html#invalid_hostname_reject_code">invalid_hostname_reject_code</a> specifies the response
-code to rejected requests (default: 501).</dd>
+code for rejected requests (default: 501).</dd>
 
 <dt><b><a name="reject_non_fqdn_helo_hostname">reject_non_fqdn_helo_hostname</a></b> (with Postfix &lt; 2.3: reject_non_fqdn_hostname)</dt>
 
 <dd>Reject the request when the HELO or EHLO hostname is not in
 fully-qualified domain form, as required by the RFC. <br> The
-<a href="postconf.5.html#non_fqdn_reject_code">non_fqdn_reject_code</a> parameter specifies the response code to
+<a href="postconf.5.html#non_fqdn_reject_code">non_fqdn_reject_code</a> parameter specifies the response code for
 rejected requests (default: 504).</dd>
 
 <dt><b><a name="reject_rhsbl_helo">reject_rhsbl_helo <i>rbl_domain=d.d.d.d</i></a></b></dt>
@@ -11003,8 +11023,11 @@ parameters.  This feature is available in Postfix 2.0 and later.
 <dt><b><a name="reject_unknown_helo_hostname">reject_unknown_helo_hostname</a></b> (with Postfix &lt; 2.3: reject_unknown_hostname)</dt>
 
 <dd>Reject the request when the HELO or EHLO hostname has no DNS A
-or MX record. <br> The <a href="postconf.5.html#unknown_hostname_reject_code">unknown_hostname_reject_code</a> specifies the
-response code to rejected requests (default: 450). </dd>
+or MX record. <br> The <a href="postconf.5.html#unknown_hostname_reject_code">unknown_hostname_reject_code</a> parameter
+specifies the numerical response code for rejected requests (default:
+450). <br> The <a href="postconf.5.html#unknown_helo_hostname_tempfail_action">unknown_helo_hostname_tempfail_action</a> parameter
+specifies the action after a temporary DNS error (default:
+<a href="postconf.5.html#defer_if_permit">defer_if_permit</a>). </dd>
 
 </dl>
 
@@ -11053,7 +11076,7 @@ before it is flushed upon receipt of EHLO, RSET, or end of DATA.
 </DD>
 
 <DT><b><a name="smtpd_junk_command_limit">smtpd_junk_command_limit</a>
-(default: 100)</b></DT><DD>
+(default: normal: 100, stress: 1)</b></DT><DD>
 
 <p>
 The number of junk commands (NOOP, VRFY, ETRN or RSET) that a remote
@@ -11061,7 +11084,8 @@ SMTP client can send before the Postfix SMTP server starts to
 increment the error counter with each junk command.  The junk
 command count is reset after mail is delivered.  See also the
 <a href="postconf.5.html#smtpd_error_sleep_time">smtpd_error_sleep_time</a> and <a href="postconf.5.html#smtpd_soft_error_limit">smtpd_soft_error_limit</a> configuration
-parameters.
+parameters.  Normally the default limit is 100, but it changes under
+overload to just 1 with Postfix 2.6 and later.
 </p>
 
 
@@ -11363,7 +11387,7 @@ lookup problem with Postfix prior to version 2.0.
 
 <dd>Reject the request when the RCPT TO address is not in
 fully-qualified domain form, as required by the RFC. <br> The
-<a href="postconf.5.html#non_fqdn_reject_code">non_fqdn_reject_code</a> parameter specifies the response code to
+<a href="postconf.5.html#non_fqdn_reject_code">non_fqdn_reject_code</a> parameter specifies the response code for
 rejected requests (default: 504). </dd>
 
 <dt><b><a name="reject_rhsbl_recipient">reject_rhsbl_recipient <i>rbl_domain=d.d.d.d</i></a></b></dt>
@@ -11403,9 +11427,11 @@ code for rejected requests (default: 554). </dd>
 the recipient domain, and the RCPT TO domain has no DNS A or MX
 record, or when it has a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later). <br> The
-<a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter specifies the response code
-for rejected requests (default: 450).  The response is always 450
-in case of a temporary DNS error.</dd>
+<a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter specifies the numerical
+response code for rejected requests (default: 450).  The response
+is always 450 in case of a temporary DNS error. <br> The
+<a href="postconf.5.html#unknown_address_tempfail_action">unknown_address_tempfail_action</a> parameter specifies the action
+after a temporary DNS error (default: <a href="postconf.5.html#defer_if_permit">defer_if_permit</a>).  </dd>
 
 <dt><b><a name="reject_unlisted_recipient">reject_unlisted_recipient</a></b> (with Postfix version 2.0: check_recipient_maps)</dt>
 
@@ -11420,12 +11446,16 @@ This feature is available in Postfix 2.1 and later.</dd>
 to bounce, or when the recipient address destination is not reachable.
 Address verification information is managed by the <a href="verify.8.html">verify(8)</a> server;
 see the <a href="ADDRESS_VERIFICATION_README.html">ADDRESS_VERIFICATION_README</a> file for details.  <br> The
-<a href="postconf.5.html#unverified_recipient_reject_code">unverified_recipient_reject_code</a> parameter specifies the response
-when an address is known to bounce (default: 450, change into 550
-when you are confident that it is safe to do so).  The
-<a href="postconf.5.html#unverified_recipient_defer_code">unverified_recipient_defer_code</a> parameter specifies the response
-when an address probe failed due to a temporary problem (default:
-450).  This feature is available in Postfix 2.1 and later.  </dd>
+<a href="postconf.5.html#unverified_recipient_reject_code">unverified_recipient_reject_code</a> parameter specifies the numerical
+response code when an address is known to bounce (default: 450,
+change into 550 when you are confident that it is safe to do so).
+<br>The <a href="postconf.5.html#unverified_recipient_defer_code">unverified_recipient_defer_code</a> parameter specifies the
+numerical response code when an address probe failed due to a
+temporary problem (default: 450). <br> The
+<a href="postconf.5.html#unverified_recipient_tempfail_action">unverified_recipient_tempfail_action</a> parameter specifies the action
+after addres probe failure due to a temporary problem (default:
+<a href="postconf.5.html#defer_if_permit">defer_if_permit</a>).  <br>  This feature is available in Postfix 2.1
+and later.  </dd>
 
 </dl>
 
@@ -11893,7 +11923,7 @@ Postfix version 2.1 and later. </dd>
 
 <dd>Reject the request when the MAIL FROM address is not in
 fully-qualified domain form, as required by the RFC. <br> The
-<a href="postconf.5.html#non_fqdn_reject_code">non_fqdn_reject_code</a> parameter specifies the response code to
+<a href="postconf.5.html#non_fqdn_reject_code">non_fqdn_reject_code</a> parameter specifies the response code for
 rejected requests (default: 504). </dd>
 
 <dt><b><a name="reject_rhsbl_sender">reject_rhsbl_sender <i>rbl_domain=d.d.d.d</i></a></b></dt>
@@ -11929,9 +11959,11 @@ Postfix version 2.1 and later. </dd>
 the sender address, and the MAIL FROM address has no DNS A or MX
 record, or when it has a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later). <br> The
-<a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter specifies the response code
-for rejected requests (default: 450).  The response is always 450
-in case of a temporary DNS error.  </dd>
+<a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter specifies the numerical
+response code for rejected requests (default: 450).  The response
+is always 450 in case of a temporary DNS error. <br> The
+<a href="postconf.5.html#unknown_address_tempfail_action">unknown_address_tempfail_action</a> parameter specifies the action
+after a temporary DNS error (default: <a href="postconf.5.html#defer_if_permit">defer_if_permit</a>). </dd>
 
 <dt><b><a name="reject_unlisted_sender">reject_unlisted_sender</a></b></dt>
 
@@ -11946,12 +11978,15 @@ This feature is available in Postfix 2.1 and later.</dd>
 bounce, or when the sender address destination is not reachable.
 Address verification information is managed by the <a href="verify.8.html">verify(8)</a> server;
 see the <a href="ADDRESS_VERIFICATION_README.html">ADDRESS_VERIFICATION_README</a> file for details. <br> The
-<a href="postconf.5.html#unverified_sender_reject_code">unverified_sender_reject_code</a> parameter specifies the response when
-an address is known to bounce (default: 450, change into 550 when
-you are confident that it is safe to do so). The
-<a href="postconf.5.html#unverified_sender_defer_code">unverified_sender_defer_code</a> specifies the response when an address
-address probe failed due to a temporary problem (default: 450).
-This feature is available in Postfix 2.1 and later.  </dd>
+<a href="postconf.5.html#unverified_sender_reject_code">unverified_sender_reject_code</a> parameter specifies the numerical
+response code when an address is known to bounce (default: 450,
+change into 550 when you are confident that it is safe to do so).
+<br>The <a href="postconf.5.html#unverified_sender_defer_code">unverified_sender_defer_code</a> specifies the numerical response
+code when an address address probe failed due to a temporary problem
+(default: 450).  <br> The <a href="postconf.5.html#unverified_sender_tempfail_action">unverified_sender_tempfail_action</a> parameter
+specifies the action after address probe failure due to a temporary
+problem (default: <a href="postconf.5.html#defer_if_permit">defer_if_permit</a>).  <br> This feature is available
+in Postfix 2.1 and later.  </dd>
 
 </dl>
 
@@ -12022,11 +12057,13 @@ during TLS startup and shutdown handshake procedures. </p>
 </DD>
 
 <DT><b><a name="smtpd_timeout">smtpd_timeout</a>
-(default: 300s)</b></DT><DD>
+(default: normal: 300s, stress: 10s)</b></DT><DD>
 
 <p>
 The time limit for sending a Postfix SMTP server response and for
-receiving a remote SMTP client request.
+receiving a remote SMTP client request. Normally the default limit
+is 300s, but it changes under overload to just 10s with Postfix 2.6
+and later.
 </p>
 
 <p>
@@ -13685,6 +13722,22 @@ Do not change this unless you have a complete understanding of <a href="http://t
 
 </DD>
 
+<DT><b><a name="unknown_address_tempfail_action">unknown_address_tempfail_action</a>
+(default: $<a href="postconf.5.html#reject_tempfail_action">reject_tempfail_action</a>)</b></DT><DD>
+
+<p> The Postfix SMTP server's action when <a href="postconf.5.html#reject_unknown_sender_domain">reject_unknown_sender_domain</a>
+or <a href="postconf.5.html#reject_unknown_recipient_domain">reject_unknown_recipient_domain</a> fail due to a temporary error
+condition. Specify "defer" to defer the remote SMTP client request
+immediately. With the default "<a href="postconf.5.html#defer_if_permit">defer_if_permit</a>" action, the Postfix
+SMTP server continues to look for opportunities to reject mail, and
+defers the client request only if it would otherwise be accepted.
+</p>
+
+<p> This feature is available in Postfix 2.6 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="unknown_client_reject_code">unknown_client_reject_code</a>
 (default: 450)</b></DT><DD>
 
@@ -13698,6 +13751,21 @@ with 450 when the mapping failed due to a temporary error condition.
 <p>
 Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc2821">RFC 2821</a>.
 </p>
+
+
+</DD>
+
+<DT><b><a name="unknown_helo_hostname_tempfail_action">unknown_helo_hostname_tempfail_action</a>
+(default: $<a href="postconf.5.html#reject_tempfail_action">reject_tempfail_action</a>)</b></DT><DD>
+
+<p> The Postfix SMTP server's action when <a href="postconf.5.html#reject_unknown_helo_hostname">reject_unknown_helo_hostname</a>
+fails due to an temporary error condition. Specify "defer" to defer
+the remote SMTP client request immediately. With the default
+"<a href="postconf.5.html#defer_if_permit">defer_if_permit</a>" action, the Postfix SMTP server continues to look
+for opportunities to reject mail, and defers the client request
+only if it would otherwise be accepted. </p>
+
+<p> This feature is available in Postfix 2.6 and later. </p>
 
 
 </DD>
@@ -13849,9 +13917,31 @@ This feature is available in Postfix 2.1 and later.
 <DT><b><a name="unverified_recipient_reject_reason">unverified_recipient_reject_reason</a>
 (default: empty)</b></DT><DD>
 
-<p> When rejecting mail with <a href="postconf.5.html#reject_unverified_recipient">reject_unverified_recipient</a>, reply
-with this text as the reason, instead of actual address verification
-details.
+<p> The Postfix SMTP server's reply when rejecting mail with
+<a href="postconf.5.html#reject_unverified_recipient">reject_unverified_recipient</a>. Do not include the numeric SMTP reply
+code or the enhanced status code. By default, the response includes
+actual address verification details.
+
+<p> Example: </p>
+
+<pre>
+<a href="postconf.5.html#unverified_recipient_reject_reason">unverified_recipient_reject_reason</a> = Recipient address lookup failed
+</pre>
+
+<p> This feature is available in Postfix 2.6 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="unverified_recipient_tempfail_action">unverified_recipient_tempfail_action</a>
+(default: $<a href="postconf.5.html#reject_tempfail_action">reject_tempfail_action</a>)</b></DT><DD>
+
+<p> The Postfix SMTP server's action when <a href="postconf.5.html#reject_unverified_recipient">reject_unverified_recipient</a>
+fails due to a temporary error condition. Specify "defer" to defer
+the remote SMTP client request immediately. With the default
+"<a href="postconf.5.html#defer_if_permit">defer_if_permit</a>" action, the Postfix SMTP server continues to look
+for opportunities to reject mail, and defers the client request
+only if it would otherwise be accepted. </p>
 
 <p> This feature is available in Postfix 2.6 and later. </p>
 
@@ -13909,9 +13999,31 @@ This feature is available in Postfix 2.1 and later.
 <DT><b><a name="unverified_sender_reject_reason">unverified_sender_reject_reason</a>
 (default: empty)</b></DT><DD>
 
-<p> When rejecting mail with <a href="postconf.5.html#reject_unverified_sender">reject_unverified_sender</a>, reply with
-this text as the reason, instead of actual address verification
-details.
+<p> The Postfix SMTP server's reply when rejecting mail with
+<a href="postconf.5.html#reject_unverified_sender">reject_unverified_sender</a>. Do not include the numeric SMTP reply
+code or the enhanced status code. By default, the response includes
+actual address verification details.
+
+<p> Example: </p>
+
+<pre>
+<a href="postconf.5.html#unverified_sender_reject_reason">unverified_sender_reject_reason</a> = Sender address lookup failed
+</pre>
+
+<p> This feature is available in Postfix 2.6 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="unverified_sender_tempfail_action">unverified_sender_tempfail_action</a>
+(default: $<a href="postconf.5.html#reject_tempfail_action">reject_tempfail_action</a>)</b></DT><DD>
+
+<p> The Postfix SMTP server's action when <a href="postconf.5.html#reject_unverified_sender">reject_unverified_sender</a>
+fails due to a temporary error condition. Specify "defer" to defer
+the remote SMTP client request immediately. With the default
+"<a href="postconf.5.html#defer_if_permit">defer_if_permit</a>" action, the Postfix SMTP server continues to look
+for opportunities to reject mail, and defers the client request
+only if it would otherwise be accepted. </p>
 
 <p> This feature is available in Postfix 2.6 and later. </p>
 

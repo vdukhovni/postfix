@@ -72,8 +72,23 @@ def_config_directory=`$command_directory/postconf -dh config_directory` || {
 	$FATAL cannot execute $command_directory/postconf!
 	exit 1
 }
-test "$def_config_directory" = "$config_directory" &&
-	check_shared_files=1
+
+# If this is a secondary instance, don't touch shared files.
+
+instances=`$command_directory/postconf -c $def_config_directory \
+    -h multi_instance_directories | sed 's/,/ /'` || {
+	$FATAL cannot execute $command_directory/postconf!
+	exit 1
+}
+
+check_shared_files=1
+for name in $instances
+do
+    case "$name" in
+    "$def_config_directory") ;;
+    "$config_directory") check_shared_files=; break;;
+    esac
+done
 
 #
 # Parse JCL

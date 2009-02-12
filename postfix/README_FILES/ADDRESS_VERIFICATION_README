@@ -41,11 +41,11 @@ Topics covered in this document:
 
 HHooww aaddddrreessss vveerriiffiiccaattiioonn wwoorrkkss
 
-A sender or recipient address is verified by probing the nearest MTA for that
-address, without actually delivering mail. The nearest MTA could be Postfix
-itself, or it could be a remote MTA (SMTP interruptus). Probe messages are like
-normal mail, except that they are never delivered, deferred or bounced; probe
-messages are always discarded.
+A Postfix MTA verifies a sender or recipient address by probing the nearest MTA
+for that address, without actually delivering mail. The nearest MTA could be
+the Postfix MTA itself, or it could be a remote MTA (SMTP interruptus). Probe
+messages are like normal mail, except that they are never delivered, deferred
+or bounced; probe messages are always discarded.
 
                 Postfix         Postfix             Address
     Internet ->  SMTP   <->     verify      <->   verification
@@ -159,7 +159,12 @@ This change turns MX servers into backscatter sources when the load is high.
 
 The unverified_recipient_reject_reason parameter (default: empty) specifies
 fixed text that Postfix will send to remote SMTP clients, instead of sending
-actual address verification details.
+actual address verification details. Do not specify the SMTP status code or
+enhanced status code.
+
+The unverified_recipient_tempfail_action parameter (default: defer_if_permit)
+specifies the Postfix SMTP server action when a recipient address verification
+probe fails with some temporary error.
 
 SSeennddeerr aaddddrreessss vveerriiffiiccaattiioonn ffoorr mmaaiill ffrroomm ffrreeqquueennttllyy ffoorrggeedd ddoommaaiinnss
 
@@ -247,7 +252,12 @@ probe fails with some temporary error. Specify a valid 2xx or 4xx code.
 
 The unverified_sender_reject_reason parameter (default: empty) specifies fixed
 text that Postfix will send to remote SMTP clients, instead of sending actual
-addres verification details.
+addres verification details. Do not specify the SMTP status code or enhanced
+status code.
+
+The unverified_sender_tempfail_action parameter (default: defer_if_permit)
+specifies the Postfix SMTP server action when a sender address verification
+probe fails with some temporary error.
 
 AAddddrreessss vveerriiffiiccaattiioonn ddaattaabbaassee
 

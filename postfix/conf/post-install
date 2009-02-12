@@ -253,6 +253,8 @@ $POSTCONF -d mail_version >/dev/null 2>/dev/null || {
     exit 1
 }
 
+# Also used to require license etc. files only in the default instance.
+
 def_config_directory=`$POSTCONF -d -h config_directory` || exit 1
 test -n "$config_directory" ||
     config_directory="$def_config_directory"
@@ -261,6 +263,22 @@ test -d "$config_directory" || {
     echo $0: Error: $config_directory is not a directory. 1>&2
     exit 1
 }
+
+# If this is a secondary instance, don't touch shared files.
+# XXX Solaris does not have "test -e".
+
+instances=`test ! -f $def_config_directory/main.cf || 
+    $POSTCONF -c $def_config_directory -h multi_instance_directories | 
+	sed 's/,/ /'` || exit 1
+
+update_shared_files=1
+for name in $instances
+do
+    case "$name" in
+    "$def_config_directory") ;;
+    "$config_directory") update_shared_files=; break;;
+    esac
+done
 
 test -f $daemon_directory/postfix-files || {
     echo $0: Error: $daemon_directory/postfix-files is not a file. 1>&2
@@ -424,10 +442,10 @@ test -n "$create" && {
     do
 	IFS="$BACKUP_IFS"
 	set_permission=
-	# Skip comments. Skip shared files, if updating a non-default instance.
+	# Skip comments. Skip shared files, if updating a secondary instance.
 	case $path in
-	[$]*) case "$def_config_directory" in
-	      "$config_directory") $debug keep non-shared or shared $path;;
+	[$]*) case "$update_shared_files" in
+	      1) $debug keep non-shared or shared $path;;
 	      *) non_shared=
 		 for name in $NON_SHARED
 		 do

@@ -65,6 +65,7 @@
 #include <vstring_vstream.h>
 #include <name_mask.h>
 #include <argv.h>
+#include <myaddrinfo.h>
 
 /* Global library. */
 
@@ -162,6 +163,8 @@ typedef struct {
     unsigned int sec_props;		/* Postfix mechanism filter */
     char   *mechanism_list;		/* filtered mechanism list */
     ARGV   *mechanism_argv;		/* ditto */
+    MAI_HOSTADDR_STR server_addr;	/* local IP address */
+    MAI_HOSTADDR_STR client_addr;	/* remote IP address */
 } XSASL_DOVECOT_SERVER;
 
  /*
@@ -255,11 +258,23 @@ static int xsasl_dovecot_server_connect(XSASL_DOVECOT_SERVER_IMPL *xp)
     unsigned int major_version, minor_version;
     int     fd, success;
     int     sec_props;
+    const char *path;
 
     if (msg_verbose)
 	msg_info("%s: Connecting", myname);
 
-    if ((fd = unix_connect(xp->socket_path, BLOCKING, AUTH_TIMEOUT)) < 0) {
+    /*
+     * Not documented, but necessary for testing.
+     */
+    path = xp->socket_path;
+    if (strncmp(path, "inet:", 5) == 0) {
+	fd = inet_connect(path + 5, BLOCKING, AUTH_TIMEOUT);
+    } else {
+	if (strncmp(path, "unix:", 5) == 0)
+	    path += 5;
+	fd = unix_connect(path, BLOCKING, AUTH_TIMEOUT);
+    }
+    if (fd < 0) {
 	msg_warn("SASL: Connect to %s failed: %m", xp->socket_path);
 	return (-1);
     }
@@ -379,13 +394,16 @@ static void xsasl_dovecot_server_done(XSASL_SERVER_IMPL *impl)
 /* xsasl_dovecot_server_create - create server instance */
 
 static XSASL_SERVER *xsasl_dovecot_server_create(XSASL_SERVER_IMPL *impl,
-					             VSTREAM *unused_stream,
+						         VSTREAM *stream,
 						         const char *service,
 						         const char *realm,
 					              const char *sec_props)
 {
     const char *myname = "xsasl_dovecot_server_create";
     XSASL_DOVECOT_SERVER *server;
+    struct sockaddr_storage ss;
+    struct sockaddr *sa = (struct sockaddr *) & ss;
+    SOCKADDR_SIZE salen;
 
     if (msg_verbose)
 	msg_info("%s: SASL service=%s, realm=%s",
@@ -412,6 +430,19 @@ static XSASL_SERVER *xsasl_dovecot_server_create(XSASL_SERVER_IMPL *impl,
     server->sec_props =
 	name_mask_opt(myname, xsasl_dovecot_conf_sec_props,
 		      sec_props, NAME_MASK_ANY_CASE | NAME_MASK_FATAL);
+
+    /*
+     * XXX This is not the right place: it ignores client overrides with the
+     * XCLIENT command.
+     */
+    salen = sizeof(ss);
+    if (getpeername(vstream_fileno(stream), sa, &salen) < 0
+	|| sockaddr_to_hostaddr(sa, salen, &server->client_addr, 0, 0) != 0)
+	server->client_addr.buf[0] = 0;
+    salen = sizeof(ss);
+    if (getsockname(vstream_fileno(stream), sa, &salen) < 0
+	|| sockaddr_to_hostaddr(sa, salen, &server->server_addr, 0, 0) != 0)
+	server->server_addr.buf[0] = 0;
 
     return (&server->xsasl);
 }
@@ -605,9 +636,10 @@ int     xsasl_dovecot_server_first(XSASL_SERVER *xp, const char *sasl_method,
 	/* send the request */
 	server->last_request_id = ++server->impl->request_id_counter;
 	vstream_fprintf(server->impl->sasl_stream,
-			"AUTH\t%u\t%s\tservice=%s\tnologin",
+			"AUTH\t%u\t%s\tservice=%s\tnologin\tlip=%s\trip=%s",
 			server->last_request_id, sasl_method,
-			server->service);
+			server->service, server->server_addr.buf,
+			server->client_addr.buf);
 	if (init_response) {
 
 	    /*

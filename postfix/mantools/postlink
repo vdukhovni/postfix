@@ -376,6 +376,7 @@ while (<>) {
     s;\brecip[-</bB>]*\n* *[<bB>]*ient_canoni[-</bB>]*\n* *[<bB>]*cal_maps\b;<a href="postconf.5.html#recipient_canonical_maps">$&</a>;g;
     s;\brecip[-</bB>]*\n* *[<bB>]*ient_delim[-</bB>]*\n* *[<bB>]*iter\b;<a href="postconf.5.html#recipient_delimiter">$&<\/a>;g;
     s;\breject_code\b;<a href="postconf.5.html#reject_code">$&</a>;g;
+    s;\breject_temp[-</bB>]*\n* *[<bB>]*fail_action\b;<a href="postconf.5.html#reject_tempfail_action">$&</a>;g;
     s;\brelay_clientcerts\b;<a href="postconf.5.html#relay_clientcerts">$&</a>;g;
     s;\brelay_domains\b;<a href="postconf.5.html#relay_domains">$&</a>;g;
     s;\brelay_domains_reject_code\b;<a href="postconf.5.html#relay_domains_reject_code">$&</a>;g;
@@ -538,16 +539,20 @@ while (<>) {
     s;\btcp_windowsize\b;<a href="postconf.5.html#tcp_windowsize">$&</a>;g;
     s;\bundisclosed_recip[-</bB>]*\n* *[<bB>]*ients_header\b;<a href="postconf.5.html#undisclosed_recipients_header">$&</a>;g;
     s;\bunknown_address_reject_code\b;<a href="postconf.5.html#unknown_address_reject_code">$&</a>;g;
+    s;\bunknown_address_tempfail_action\b;<a href="postconf.5.html#unknown_address_tempfail_action">$&</a>;g;
     s;\bunknown_client_reject_code\b;<a href="postconf.5.html#unknown_client_reject_code">$&</a>;g;
     s;\bunknown_hostname_reject_code\b;<a href="postconf.5.html#unknown_hostname_reject_code">$&</a>;g;
+    s;\bunknown_helo_hostname_tempfail_action\b;<a href="postconf.5.html#unknown_helo_hostname_tempfail_action">$&</a>;g;
     s;\bunknown_local_recip[-</bB>]*\n* *[<bB>]*ient_reject_code\b;<a href="postconf.5.html#unknown_local_recipient_reject_code">$&</a>;g;
     s;\bunknown_relay_recipi[-</bB>]*\n*[ <bB>]*ent_reject_code\b;<a href="postconf.5.html#unknown_relay_recipient_reject_code">$&</a>;g;
     s;\bunknown_virtual_alias_reject_code\b;<a href="postconf.5.html#unknown_virtual_alias_reject_code">$&</a>;g;
     s;\bunknown_virtual_mail[-</bB>]*\n* *[<bB>]*box_reject_code\b;<a href="postconf.5.html#unknown_virtual_mailbox_reject_code">$&</a>;g;
     s;\bunverified_recip[-</bB>]*\n* *[<bB>]*ient_reject_code\b;<a href="postconf.5.html#unverified_recipient_reject_code">$&</a>;g;
     s;\bunverified_recip[-</bB>]*\n* *[<bB>]*ient_defer_code\b;<a href="postconf.5.html#unverified_recipient_defer_code">$&</a>;g;
+    s;\bunverified_recip[-</bB>]*\n* *[<bB>]*ient_tempfail_action\b;<a href="postconf.5.html#unverified_recipient_tempfail_action">$&</a>;g;
     s;\bunverified_sender_reject_code\b;<a href="postconf.5.html#unverified_sender_reject_code">$&</a>;g;
     s;\bunverified_sender_defer_code\b;<a href="postconf.5.html#unverified_sender_defer_code">$&</a>;g;
+    s;\bunverified_sender_tempfail_action\b;<a href="postconf.5.html#unverified_sender_tempfail_action">$&</a>;g;
     s;\bunverified_recipient_reject_reason\b;<a href="postconf.5.html#unverified_recipient_reject_reason">$&</a>;g;
     s;\bunverified_sender_reject_reason\b;<a href="postconf.5.html#unverified_sender_reject_reason">$&</a>;g;
     s;\bverp_delimiter_filter\b;<a href="postconf.5.html#verp_delimiter_filter">$&</a>;g;
@@ -819,7 +824,7 @@ while (<>) {
     s;\breject_unauthenticated_sender_login_mismatch\b;<a href="postconf.5.html#reject_unauthenticated_sender_login_mismatch">$&</a>;g;
     s;\breject_unknown_sender_domain\b;<a href="postconf.5.html#reject_unknown_sender_domain">$&</a>;g;
     s;\breject_unlisted_sender\b;<a href="postconf.5.html#reject_unlisted_sender">$&</a>;g;
-    s;\breject_unveri[-</bB>]*\n*[ <bB>]*fied_sender\b;<a href="postconf.5.html#reject_unverified_sender">$&</a>;g;
+    s;\breject_unver[-</bB>]*\n*[ <bB>]*ified_sender\b;<a href="postconf.5.html#reject_unverified_sender">$&</a>;g;
 
     # Access restrictions - recipient
 
@@ -833,7 +838,7 @@ while (<>) {
     s;\breject_unauth_destination\b;<a href="postconf.5.html#reject_unauth_destination">$&</a>;g;
     s;\breject_unknown_recipi[-</bB>]*\n*[ <bB>]*ent_domain\b;<a href="postconf.5.html#reject_unknown_recipient_domain">$&</a>;g;
     s;\breject_unlisted_recip[-</bB>]*\n* *[<bB>]*ient\b;<a href="postconf.5.html#reject_unlisted_recipient">$&</a>;g;
-    s;\breject_unveri[-</bB>]*\n*[ <bB>]*fied_recip[-</bB>]*\n* *[<bB>]*ient\b;<a href="postconf.5.html#reject_unverified_recipient">$&</a>;g;
+    s;\breject_unver[-</bB>]*\n*[ <bB>]*ified_recip[-</bB>]*\n* *[<bB>]*ient\b;<a href="postconf.5.html#reject_unverified_recipient">$&</a>;g;
 
     # Access restrictions - etrn
 

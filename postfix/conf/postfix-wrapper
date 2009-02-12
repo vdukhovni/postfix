@@ -8,20 +8,16 @@
 # SYNOPSIS
 #	postfix command
 # DESCRIPTION
+#	Postfix versions 2.6 and later provide support for multiple
+#	Postfix instances. Instances share executable files and
+#	documentation, but have their own directories for configuration,
+#	queue and data files. In many cases different instances
+#	have different myhostname and inet_interfaces settings,
+#	though this is not always necessary.
+#
 #	This command implements a trivial Postfix multi-instance
-#	manager.
-#
-#	Each Postfix instance is defined by its own configuration
-#	directory with its own main.cf and master.cf files, by its
-#	own queue and data directories, and by its own myhostname
-#	and inet_interfaces settings. Other Postfix files, including
-#	executable files and documentation, are shared between
-#	Postfix instances.
-#
-#	Only the default Postfix instance is required. The location
-#	of its configuration files is specified by the built-in
-#	default value for the config_directory parameter.  Other
-#	Postfix instances are optional.
+#	manager. It simply applies commands such as "postfix start"
+#	to all the applicable Postfix instances.
 # MANAGING MULTIPLE INSTANCES
 # .ad
 # .fi
@@ -87,14 +83,15 @@
 # POSTFIX-WRAPPER INITIALIZATION
 # .ad
 # .fi
-#	To hook this program into Postfix, execute the following
-#	command. 
-#
-#	Replace /etc/postfix with the default Postfix configuration
-#	directory, and replace /usr/libexec/postfix with the daemon
-#	directory pathname of the default Postfix instance.
+#	To hook this program into Postfix, execute the command
+#	shown below.
 #
 #	This command should be entered as one line.
+#
+#	In the example, replace /etc/postfix with the default Postfix
+#	configuration directory, and replace /usr/libexec/postfix
+#	with the daemon directory pathname of the default Postfix
+#	instance.
 #
 # .nf
 #	    # postconf -c /etc/postfix -e
@@ -106,15 +103,16 @@
 # .fi
 #	To create a Postfix instance called "postfix-test", start
 #	with generic main.cf and master.cf files and customize the
-#	locations of the queue and data directories as shown below.
-#	The last command updates main.cf and creates any directories
-#	that Postfix will need. 
+#	locations of the queue and data directories with the commands
+#	shown below.  The last command updates main.cf and creates
+#	any directories that Postfix will need.
 #
-#	Replace /etc/postfix with the default Postfix configuration
-#	directory, and replace /usr/libexec/postfix with the daemon
-#	directory pathname of the default Postfix instance.
+#	Each command below should be entered as one line.
 #
-#	Each command should be entered as one line.
+#	In the example, replace /etc/postfix with the default Postfix
+#	configuration directory, and replace /usr/libexec/postfix
+#	with the daemon directory pathname of the default Postfix
+#	instance.
 #
 # .nf
 #	    # mkdir /etc/postfix-test
@@ -212,8 +210,10 @@ for dir in $all_dirs
 do
     case "$1" in
     start)
-	test "`$POSTCONF -c $dir -h multi_instance_enable`" = yes ||
-	    set check;;
+	test "`$POSTCONF -c $dir -h multi_instance_enable`" = yes || {
+	    $POSTFIX -c $dir check || err=$?
+	    continue
+	};;
     stop|abort|drain|flush|reload)
 	test "`$POSTCONF -c $dir -h multi_instance_enable`" = yes ||
 	    continue;;

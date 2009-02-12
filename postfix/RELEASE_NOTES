@@ -11,6 +11,14 @@ instead, a new snapshot is released.
 The mail_release_date configuration parameter (format: yyyymmdd)
 specifies the release date of a stable release or snapshot release.
 
+Major changes with snapshot 20090212
+====================================
+
+Stress-depdent behavior by default. Under conditions of overload,
+smtpd_timeout is reduced from 300s to to 10s, smtpd_hard_error_limit
+is reduced from 20 to 1, and smtpd_junk_command_limit is reduced
+from 100 to 1. This will reduce the delays for most legitimate mail.
+
 Major changes with snapshot 20090121
 ====================================
 

@@ -71,7 +71,7 @@ while(<>) {
     $block =~ s/\s*<\/tt>//g;
     $block =~ s/<blockquote>/\n.sp\n.in +4\n/g;
     $block =~ s/<\/blockquote>/\n.in -4\n/g;
-    $block =~ s/\n<br>/\n.br\n/g;
+    $block =~ s/\n<br>\s*/\n.br\n/g;
     $block =~ s/<br>\s*/\n.br\n/g;
     $block =~ s/&le;/<=/g;
     $block =~ s/&lt;/</g;

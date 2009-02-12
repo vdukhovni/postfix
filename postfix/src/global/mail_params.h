@@ -1097,7 +1097,7 @@ extern char *var_smtp_generic_maps;
 extern char *var_smtpd_banner;
 
 #define VAR_SMTPD_TMOUT		"smtpd_timeout"
-#define DEF_SMTPD_TMOUT		"300s"
+#define DEF_SMTPD_TMOUT		"${stress?10}${stress:300}s"
 extern int var_smtpd_tmout;
 
 #define VAR_SMTPD_STARTTLS_TMOUT "smtpd_starttls_timeout"
@@ -1105,15 +1105,15 @@ extern int var_smtpd_tmout;
 extern int var_smtpd_starttls_tmout;
 
 #define VAR_SMTPD_RCPT_LIMIT	"smtpd_recipient_limit"
-#define DEF_SMTPD_RCPT_LIMIT	1000
+#define DEF_SMTPD_RCPT_LIMIT	"1000"
 extern int var_smtpd_rcpt_limit;
 
 #define VAR_SMTPD_SOFT_ERLIM	"smtpd_soft_error_limit"
-#define DEF_SMTPD_SOFT_ERLIM	10
+#define DEF_SMTPD_SOFT_ERLIM	"10"
 extern int var_smtpd_soft_erlim;
 
 #define VAR_SMTPD_HARD_ERLIM	"smtpd_hard_error_limit"
-#define DEF_SMTPD_HARD_ERLIM	20
+#define DEF_SMTPD_HARD_ERLIM	"${stress?1}${stress:20}"
 extern int var_smtpd_hard_erlim;
 
 #define VAR_SMTPD_ERR_SLEEP	"smtpd_error_sleep_time"
@@ -1121,7 +1121,7 @@ extern int var_smtpd_hard_erlim;
 extern int var_smtpd_err_sleep;
 
 #define VAR_SMTPD_JUNK_CMD	"smtpd_junk_command_limit"
-#define DEF_SMTPD_JUNK_CMD	100
+#define DEF_SMTPD_JUNK_CMD	"${stress?1}${stress:100}"
 extern int var_smtpd_junk_cmd_limit;
 
 #define VAR_SMTPD_RCPT_OVERLIM	"smtpd_recipient_overshoot_limit"
@@ -1930,6 +1930,10 @@ extern int var_defer_code;
 #define DEFER_IF_PERMIT		"defer_if_permit"
 #define DEFER_IF_REJECT		"defer_if_reject"
 
+#define VAR_REJECT_TMPF_ACT	"reject_tempfail_action"
+#define DEF_REJECT_TMPF_ACT	DEFER_IF_PERMIT
+extern char *var_reject_tmpf_act;
+
 #define SLEEP			"sleep"
 
 #define REJECT_PLAINTEXT_SESSION "reject_plaintext_session"
@@ -1963,6 +1967,10 @@ extern int var_bad_name_code;
 #define DEF_UNK_NAME_CODE	450
 extern int var_unk_name_code;
 
+#define VAR_UNK_NAME_TF_ACT	"unknown_helo_hostname_tempfail_action"
+#define DEF_UNK_NAME_TF_ACT	"$" VAR_REJECT_TMPF_ACT
+extern char *var_unk_name_tf_act;
+
 #define REJECT_NON_FQDN_HELO_HOSTNAME "reject_non_fqdn_helo_hostname"
 #define REJECT_NON_FQDN_HOSTNAME "reject_non_fqdn_hostname"
 #define REJECT_NON_FQDN_SENDER	"reject_non_fqdn_sender"
@@ -1981,6 +1989,10 @@ extern int var_non_fqdn_code;
 #define VAR_UNK_ADDR_CODE	"unknown_address_reject_code"
 #define DEF_UNK_ADDR_CODE	450
 extern int var_unk_addr_code;
+
+#define VAR_UNK_ADDR_TF_ACT	"unknown_address_tempfail_action"
+#define DEF_UNK_ADDR_TF_ACT	"$" VAR_REJECT_TMPF_ACT
+extern char *var_unk_addr_tf_act;
 
 #define VAR_SMTPD_REJ_UNL_FROM	"smtpd_reject_unlisted_sender"
 #define DEF_SMTPD_REJ_UNL_FROM	0
@@ -2007,6 +2019,14 @@ extern int var_unv_rcpt_dcode;
 #define VAR_UNV_FROM_DCODE	"unverified_sender_defer_code"
 #define DEF_UNV_FROM_DCODE	450
 extern int var_unv_from_dcode;
+
+#define VAR_UNV_RCPT_TF_ACT	"unverified_recipient_tempfail_action"
+#define DEF_UNV_RCPT_TF_ACT	"$" VAR_REJECT_TMPF_ACT
+extern char *var_unv_rcpt_tf_act;
+
+#define VAR_UNV_FROM_TF_ACT	"unverified_sender_tempfail_action"
+#define DEF_UNV_FROM_TF_ACT	"$" VAR_REJECT_TMPF_ACT
+extern char *var_unv_from_tf_act;
 
 #define VAR_UNV_RCPT_WHY	"unverified_recipient_reject_reason"
 #define DEF_UNV_RCPT_WHY	""
