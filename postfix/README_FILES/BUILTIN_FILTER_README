@@ -213,8 +213,8 @@ all mail and complicate Postfix maintenance.
 
 CCoonnffiigguurriinngg hheeaaddeerr//bbooddyy cchheecckkss ffoorr mmaaiill ffrroomm oouuttssiiddee uusseerrss oonnllyy
 
-The following information applies to Postfix 2.1. Earlier Postfix versions do
-not support the receive_override_options feature.
+The following information applies to Postfix 2.1 and later. Earlier Postfix
+versions do not support the receive_override_options feature.
 
 The easiest approach is to configure ONE Postfix instance with multiple SMTP
 server IP addresses in master.cf:
@@ -234,6 +234,9 @@ server IP addresses in master.cf:
             -o receive_override_options=no_header_body_checks
         pickup         fifo  n       -       n       60      1       pickup
             -o receive_override_options=no_header_body_checks
+
+  * Add some firewall rule to prevent access to 1.2.3.4:smtp from the outside
+    world.
 
   * One SMTP server address for mail from outside users with header/body
     filtering turned on via main.cf.

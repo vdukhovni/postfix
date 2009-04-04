@@ -625,7 +625,8 @@ static void cleanup_header_done_callback(void *context)
      * the message ID matches the queue ID creation time, as long as we use
      * the queue ID in the message ID.
      */
-    if ((state->headers_seen & (1 << (state->resent[0] ?
+    if ((state->hdr_rewrite_context || var_always_add_hdrs)
+	&& (state->headers_seen & (1 << (state->resent[0] ?
 			   HDR_RESENT_MESSAGE_ID : HDR_MESSAGE_ID))) == 0) {
 	tv = state->handle->ctime.tv_sec;
 	tp = gmtime(&tv);
@@ -641,8 +642,9 @@ static void cleanup_header_done_callback(void *context)
      * Add a missing (Resent-)Date: header. The date is in local time units,
      * with the GMT offset at the end.
      */
-    if ((state->headers_seen & (1 << (state->resent[0] ?
-				      HDR_RESENT_DATE : HDR_DATE))) == 0) {
+    if ((state->hdr_rewrite_context || var_always_add_hdrs)
+	&& (state->headers_seen & (1 << (state->resent[0] ?
+				       HDR_RESENT_DATE : HDR_DATE))) == 0) {
 	cleanup_out_format(state, REC_TYPE_NORM, "%sDate: %s",
 		      state->resent, mail_date(state->arrival_time.tv_sec));
     }
@@ -650,8 +652,9 @@ static void cleanup_header_done_callback(void *context)
     /*
      * Add a missing (Resent-)From: header.
      */
-    if ((state->headers_seen & (1 << (state->resent[0] ?
-				      HDR_RESENT_FROM : HDR_FROM))) == 0) {
+    if ((state->hdr_rewrite_context || var_always_add_hdrs)
+	&& (state->headers_seen & (1 << (state->resent[0] ?
+				       HDR_RESENT_FROM : HDR_FROM))) == 0) {
 	quote_822_local(state->temp1, *state->sender ?
 			state->sender : MAIL_ADDR_MAIL_DAEMON);
 	vstring_sprintf(state->temp2, "%sFrom: %s",
@@ -695,7 +698,8 @@ static void cleanup_header_done_callback(void *context)
 #define VISIBLE_RCPT	((1 << HDR_TO) | (1 << HDR_RESENT_TO) \
 			| (1 << HDR_CC) | (1 << HDR_RESENT_CC))
 
-    if ((state->headers_seen & VISIBLE_RCPT) == 0 && *var_rcpt_witheld) {
+    if ((state->hdr_rewrite_context || var_always_add_hdrs)
+	&& (state->headers_seen & VISIBLE_RCPT) == 0 && *var_rcpt_witheld) {
 	if (!is_header(var_rcpt_witheld)) {
 	    msg_warn("bad %s header text \"%s\" -- "
 		     "need \"headername: headervalue\"",

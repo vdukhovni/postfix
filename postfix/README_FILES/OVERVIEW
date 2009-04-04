@@ -390,6 +390,10 @@ all named postsomething.
   * The postmap(1) command maintains Postfix lookup tables such as canonical
     (5), virtual(5) and others. It is a cousin of the UNIX makemap command.
 
+  * The postmulti(1) command repeats the "postfix start" etc. command for each
+    Postfix instance, and supports creation, deletion etc. of Postfix
+    instances. For a tutorial, see MULTI_INSTANCE_README.
+
   * The postqueue(1) command is the privileged command that is run by Postfix
     sendmail(1) and mailq(1) in order to flush or list the mail queue.
 

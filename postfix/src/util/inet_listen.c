@@ -77,11 +77,6 @@
 #include "sock_addr.h"
 #include "inet_proto.h"
 
- /*
-  * Tunable to work around broken routers.
-  */
-int     inet_windowsize = 0;
-
 /* inet_listen - create TCP listener */
 
 int     inet_listen(const char *addr, int backlog, int block_mode)

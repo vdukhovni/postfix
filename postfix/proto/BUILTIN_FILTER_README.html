@@ -348,7 +348,8 @@ Such rules slow down all mail and complicate Postfix maintenance.
 
 <h2><a name="remote_only">Configuring header/body checks for mail from outside users only</a></h2>
 
-<p> The following information applies to Postfix 2.1. Earlier
+<p> The following information applies to Postfix 2.1 and later.
+Earlier
 Postfix versions do not support the receive_override_options feature.
 </p>
 
@@ -374,6 +375,9 @@ service with header/body filtering turned off.  </p>
     pickup         fifo  n       -       n       60      1       pickup
         -o receive_override_options=no_header_body_checks
 </pre>
+
+<li> <p> Add some firewall rule to prevent access to 1.2.3.4:smtp
+from the outside world. </p>
 
 <li> <p> One SMTP server address for mail from outside users with
 header/body filtering turned on via main.cf. </p>

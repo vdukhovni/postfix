@@ -80,7 +80,7 @@ static void print_rr(DNS_RR *rr)
 int     main(int argc, char **argv)
 {
     ARGV   *types_argv;
-    int    *types;
+    unsigned *types;
     char   *name;
     VSTRING *fqdn = vstring_alloc(100);
     VSTRING *why = vstring_alloc(100);

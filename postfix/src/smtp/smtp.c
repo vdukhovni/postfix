@@ -542,6 +542,10 @@
 /* .IP "\fBipc_timeout (3600s)\fR"
 /*	The time limit for sending or receiving information over an internal
 /*	communication channel.
+/* .IP "\fBlmtp_assume_final (no)\fR"
+/*	When an LMTP server announces no DSN support, assume that the
+/*	server performs final delivery, and send "delivered" delivery status
+/*	notifications instead of "relayed".
 /* .IP "\fBlmtp_tcp_port (24)\fR"
 /*	The default TCP port that the Postfix LMTP client connects to.
 /* .IP "\fBmax_idle (100s)\fR"
@@ -574,7 +578,7 @@
 /*	Randomize the order of equal-preference MX host addresses.
 /* .IP "\fBsyslog_facility (mail)\fR"
 /*	The syslog facility of Postfix logging.
-/* .IP "\fBsyslog_name (postfix)\fR"
+/* .IP "\fBsyslog_name (see 'postconf -d' output)\fR"
 /*	The mail system name that is prepended to the process name in syslog
 /*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* .PP
@@ -781,6 +785,7 @@ char   *var_smtp_head_chks;
 char   *var_smtp_mime_chks;
 char   *var_smtp_nest_chks;
 char   *var_smtp_body_chks;
+bool    var_lmtp_assume_final;
 
  /* Special handling of 535 AUTH errors. */
 char   *var_smtp_sasl_auth_cache_name;

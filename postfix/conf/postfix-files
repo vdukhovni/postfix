@@ -81,6 +81,7 @@ $daemon_directory/post-install:f:root:-:755
 $daemon_directory/postfix-files:f:root:-:644
 $daemon_directory/postfix-script:f:root:-:755
 $daemon_directory/postfix-wrapper:f:root:-:755
+$daemon_directory/postmulti-script:f:root:-:755
 $daemon_directory/proxymap:f:root:-:755
 $daemon_directory/qmgr:f:root:-:755
 $daemon_directory/qmqpd:f:root:-:755
@@ -103,6 +104,7 @@ $command_directory/postkick:f:root:-:755
 $command_directory/postlock:f:root:-:755
 $command_directory/postlog:f:root:-:755
 $command_directory/postmap:f:root:-:755
+$command_directory/postmulti:f:root:-:755
 $command_directory/postsuper:f:root:-:755
 $command_directory/postdrop:f:root:$setgid_group:2755:u
 $command_directory/postqueue:f:root:$setgid_group:2755:u
@@ -146,6 +148,7 @@ $manpage_directory/man1/postkick.1:f:root:-:644
 $manpage_directory/man1/postlock.1:f:root:-:644
 $manpage_directory/man1/postlog.1:f:root:-:644
 $manpage_directory/man1/postmap.1:f:root:-:644
+$manpage_directory/man1/postmulti.1:f:root:-:644
 $manpage_directory/man1/postqueue.1:f:root:-:644
 $manpage_directory/man1/postsuper.1:f:root:-:644
 $manpage_directory/man1/sendmail.1:f:root:-:644
@@ -255,6 +258,7 @@ $readme_directory/LOCAL_RECIPIENT_README:f:root:-:644
 $readme_directory/MACOSX_README:f:root:-:644:o
 $readme_directory/MAILDROP_README:f:root:-:644
 $readme_directory/MILTER_README:f:root:-:644
+$readme_directory/MULTI_INSTANCE_README:f:root:-:644
 $readme_directory/MYSQL_README:f:root:-:644
 $readme_directory/NFS_README:f:root:-:644
 $readme_directory/OVERVIEW:f:root:-:644
@@ -304,6 +308,7 @@ $html_directory/LINUX_README.html:f:root:-:644
 $html_directory/LOCAL_RECIPIENT_README.html:f:root:-:644
 $html_directory/MAILDROP_README.html:f:root:-:644
 $html_directory/MILTER_README.html:f:root:-:644
+$html_directory/MULTI_INSTANCE_README.html:f:root:-:644
 $html_directory/MYSQL_README.html:f:root:-:644
 $html_directory/NFS_README.html:f:root:-:644
 $html_directory/OVERVIEW.html:f:root:-:644
@@ -371,6 +376,7 @@ $html_directory/postkick.1.html:f:root:-:644
 $html_directory/postlock.1.html:f:root:-:644
 $html_directory/postlog.1.html:f:root:-:644
 $html_directory/postmap.1.html:f:root:-:644
+$html_directory/postmulti.1.html:f:root:-:644
 $html_directory/postqueue.1.html:f:root:-:644
 $html_directory/postsuper.1.html:f:root:-:644
 $html_directory/qshape.1.html:f:root:-:644

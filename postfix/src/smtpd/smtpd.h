@@ -180,7 +180,10 @@ typedef struct SMTPD_STATE {
     ssize_t milter_argc;
 } SMTPD_STATE;
 
-#define SMTPD_FLAG_HANGUP	(1<<0)	/* disconnect */
+#define SMTPD_FLAG_HANGUP	   (1<<0)	/* 421/521 disconnect */
+#define SMTPD_FLAG_ILL_PIPELINING  (1<<1)	/* inappropriate pipelining */
+
+#define SMTPD_MASK_MAIL_KEEP		~0	/* keep all after MAIL reset */
 
 #define SMTPD_STATE_XFORWARD_INIT  (1<<0)	/* xforward preset done */
 #define SMTPD_STATE_XFORWARD_NAME  (1<<1)	/* client name received */
@@ -204,6 +207,7 @@ extern void smtpd_state_reset(SMTPD_STATE *);
   * diagnostics.
   */
 #define SMTPD_AFTER_CONNECT	"CONNECT"
+#define SMTPD_AFTER_DATA	"DATA content"
 #define SMTPD_AFTER_DOT		"END-OF-MESSAGE"
 
  /*

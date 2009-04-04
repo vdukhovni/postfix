@@ -357,7 +357,7 @@
 /*	append the specified domain name to incomplete addresses.
 /* .IP "\fBsyslog_facility (mail)\fR"
 /*	The syslog facility of Postfix logging.
-/* .IP "\fBsyslog_name (postfix)\fR"
+/* .IP "\fBsyslog_name (see 'postconf -d' output)\fR"
 /*	The mail system name that is prepended to the process name in syslog
 /*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* FILES
@@ -375,8 +375,12 @@
 /*	postqueue(1), mail queue control
 /*	syslogd(8), system logging
 /* README_FILES
+/* .ad
+/* .fi
 /*	Use "\fBpostconf readme_directory\fR" or
 /*	"\fBpostconf html_directory\fR" to locate this information.
+/* .na
+/* .nf
 /*	DEBUG_README, Postfix debugging howto
 /*	ETRN_README, Postfix ETRN howto
 /*	VERP_README, Postfix VERP howto
@@ -754,7 +758,7 @@ static void enqueue(const int flags, const char *encoding,
 	    rec_fprintf(dst, REC_TYPE_NORM, "From: %s", saved_sender);
 	rec_fprintf(dst, REC_TYPE_NORM, "Subject: probe");
 	if (recipients) {
-	    rec_fprintf(dst, REC_TYPE_NORM, "To:");
+	    rec_fprintf(dst, REC_TYPE_CONT, "To:");
 	    for (cpp = recipients; *cpp != 0; cpp++) {
 		rec_fprintf(dst, REC_TYPE_NORM, "	%s%s",
 			    *cpp, cpp[1] ? "," : "");

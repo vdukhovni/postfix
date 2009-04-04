@@ -307,7 +307,7 @@ static XSASL_SERVER *xsasl_cyrus_server_create(XSASL_SERVER_IMPL *unused_impl,
 
     /*
      * Don't give any IP address information to SASL.  SASLv1 doesn't use it,
-     * and in SASLv2 this will disable any mechaniams that do.
+     * and in SASLv2 this will disable any mechanisms that do.
      */
     server_address = 0;
     client_address = 0;

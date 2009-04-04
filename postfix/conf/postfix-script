@@ -75,7 +75,8 @@ def_config_directory=`$command_directory/postconf -dh config_directory` || {
 
 # If this is a secondary instance, don't touch shared files.
 
-instances=`$command_directory/postconf -c $def_config_directory \
+instances=`test ! -f $def_config_directory/main.cf ||
+    $command_directory/postconf -c $def_config_directory \
     -h multi_instance_directories | sed 's/,/ /'` || {
 	$FATAL cannot execute $command_directory/postconf!
 	exit 1
@@ -337,7 +338,7 @@ post-install)
 	;;
 
 *)
-
+	$ERROR "unknown command: '$1'"
 	$FATAL "usage: postfix start (or stop, reload, abort, flush, check, status, set-permissions, upgrade-configuration)"
 	exit 1
 	;;

@@ -43,27 +43,27 @@
 /*	for integer values. The default value can be a macro
 /*	expression ($name, ${name?value} and ${name:value}).
 /*
-/*	get_mail_conf_int() looks up the named entry in the global
+/*	get_mail_conf_nint() looks up the named entry in the global
 /*	configuration dictionary. The default value is returned
 /*	when no value was found.
 /*	\fImin\fR is zero or specifies a lower limit on the integer
 /*	value or string length; \fImax\fR is zero or specifies an
 /*	upper limit on the integer value or string length.
 /*
-/*	get_mail_conf_int_fn() is similar but specifies a function that
+/*	get_mail_conf_nint_fn() is similar but specifies a function that
 /*	provides the default value. The function is called only
 /*	when the default value is needed.
 /*
-/*	set_mail_conf_int() updates the named entry in the global
+/*	set_mail_conf_nint() updates the named entry in the global
 /*	configuration dictionary. This has no effect on values that
 /*	have been looked up earlier via the get_mail_conf_XXX() routines.
 /*
-/*	get_mail_conf_int_table() and get_mail_conf_int_fn_table() initialize
+/*	get_mail_conf_nint_table() and get_mail_conf_nint_fn_table() initialize
 /*	lists of variables, as directed by their table arguments. A table
 /*	must be terminated by a null entry.
 /*
-/*	get_mail_conf_int2() concatenates the two names and is otherwise
-/*	identical to get_mail_conf_int().
+/*	get_mail_conf_nint2() concatenates the two names and is otherwise
+/*	identical to get_mail_conf_nint().
 /* DIAGNOSTICS
 /*	Fatal errors: malformed numerical value.
 /* SEE ALSO

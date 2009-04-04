@@ -2248,6 +2248,7 @@ static void mail_reset(SMTPD_STATE *state)
 {
     state->msg_size = 0;
     state->act_size = 0;
+    state->flags &= SMTPD_MASK_MAIL_KEEP;
 
     /*
      * Unceremoniously close the pipe to the cleanup service. The cleanup
@@ -2861,6 +2862,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 #endif
     }
     smtpd_chat_reply(state, "354 End data with <CR><LF>.<CR><LF>");
+    state->where = SMTPD_AFTER_DATA;
 
     /*
      * Copy the message content. If the cleanup process has a problem, keep
@@ -4119,6 +4121,7 @@ typedef struct SMTPD_CMD {
 
 #define SMTPD_CMD_FLAG_LIMIT	(1<<0)	/* limit usage */
 #define SMTPD_CMD_FLAG_PRE_TLS	(1<<1)	/* allow before STARTTLS */
+#define SMTPD_CMD_FLAG_LAST	(1<<2)	/* last in PIPELINING command group */
 
 static SMTPD_CMD smtpd_cmd_table[] = {
     SMTPD_CMD_HELO, helo_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_PRE_TLS,
@@ -4131,14 +4134,14 @@ static SMTPD_CMD smtpd_cmd_table[] = {
 #endif
     SMTPD_CMD_MAIL, mail_cmd, 0,
     SMTPD_CMD_RCPT, rcpt_cmd, 0,
-    SMTPD_CMD_DATA, data_cmd, 0,
+    SMTPD_CMD_DATA, data_cmd, SMTPD_CMD_FLAG_LAST,
     SMTPD_CMD_RSET, rset_cmd, SMTPD_CMD_FLAG_LIMIT,
     SMTPD_CMD_NOOP, noop_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_PRE_TLS,
     SMTPD_CMD_VRFY, vrfy_cmd, SMTPD_CMD_FLAG_LIMIT,
     SMTPD_CMD_ETRN, etrn_cmd, SMTPD_CMD_FLAG_LIMIT,
     SMTPD_CMD_QUIT, quit_cmd, SMTPD_CMD_FLAG_PRE_TLS,
-    SMTPD_CMD_XCLIENT, xclient_cmd, SMTPD_CMD_FLAG_LIMIT,
-    SMTPD_CMD_XFORWARD, xforward_cmd, SMTPD_CMD_FLAG_LIMIT,
+    SMTPD_CMD_XCLIENT, xclient_cmd, 0,
+    SMTPD_CMD_XFORWARD, xforward_cmd, 0,
     0,
 };
 
@@ -4321,7 +4324,55 @@ static void smtpd_proto(SMTPD_STATE *state)
 		smtpd_chat_reply(state, "421 %s Service unavailable - try again later",
 				 var_myhostname);
 		/* Not: state->error_count++; */
+#ifdef notdef
+	    } else if (strcmp(state->name, "unknown") == 0) {
+		static char *greet_chunks[] = {
+		    "220 ", 0, " ESMTP ", 0, 0,
+		};
+		char  **cpp;
+		char   *cp;
+
+		greet_chunks[1] = var_myhostname;
+		greet_chunks[3] = var_mail_name;
+		for (cpp = greet_chunks; *cpp; cpp++) {
+		    for (cp = *cpp; *cp; cp++)
+			smtp_fputc(*(unsigned char *) cp, state->client);
+		    smtp_flush(state->client);
+		    if (read_wait(vstream_fileno(state->client), 2) == 0) {
+			smtpd_chat_query(state);
+			msg_info("PREGREET from %s: %s",
+				 state->namaddr, vstring_str(state->buffer));
+			state->error_mask |= MAIL_ERROR_POLICY;
+			smtpd_chat_reply(state,
+				   "521 %s ESMTP not accepting connections",
+					 var_myhostname);
+			/* Not: state->error_count++; */
+			break;
+		    }
+		}
+		smtp_fputs("", 0, state->client);
+		smtp_flush(state->client);
+#endif
 	    } else {
+#ifdef PREGREET
+		if (*var_stress == 0 && strcmp(state->name, "unknown") == 0) {
+		    smtpd_chat_reply(state, "220-%s", var_smtpd_banner);
+		    smtp_flush(state->client);
+		    if (read_wait(vstream_fileno(state->client), 1) == 0) {
+			int     n = peekfd(vstream_fileno(state->client));
+
+			smtpd_chat_query(state);
+			msg_info("PREGREET %d from %s: %s",
+			     n, state->namaddr, vstring_str(state->buffer));
+			state->error_mask |= MAIL_ERROR_POLICY;
+			smtpd_chat_reply(state,
+				   "521 %s ESMTP not accepting connections",
+					 var_myhostname);
+			/* Not: state->error_count++; */
+			break;
+		    }
+		}
+#endif
 		smtpd_chat_reply(state, "220 %s", var_smtpd_banner);
 	    }
 	}
@@ -4427,6 +4478,16 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    }
 #endif
 	    state->where = cmdp->name;
+	    if (SMTPD_STAND_ALONE(state) == 0
+		&& (strcasecmp(state->protocol, MAIL_PROTO_ESMTP) != 0
+		    || (cmdp->flags & SMTPD_CMD_FLAG_LAST))
+		&& (state->flags & SMTPD_FLAG_ILL_PIPELINING) == 0
+		&& (vstream_peek(state->client) > 0
+		    || peekfd(vstream_fileno(state->client)) > 0)) {
+		msg_info("improper command pipelining after %s from %s",
+			 cmdp->name, state->namaddr);
+		state->flags |= SMTPD_FLAG_ILL_PIPELINING;
+	    }
 	    if (cmdp->action(state, argc, argv) != 0)
 		state->error_count++;
 	    if ((cmdp->flags & SMTPD_CMD_FLAG_LIMIT)
@@ -4463,9 +4524,9 @@ static void smtpd_proto(SMTPD_STATE *state)
      * troubles.
      */
     if (state->reason && state->where) {
-	if (strcmp(state->where, SMTPD_CMD_DATA) == 0) {
-	    msg_info("%s after %s (approximately %lu bytes) from %s",
-		     state->reason, state->where,
+	if (strcmp(state->where, SMTPD_AFTER_DATA) == 0) {
+	    msg_info("%s after %s (%lu bytes) from %s",	/* 2.5 compat */
+		     state->reason, SMTPD_CMD_DATA,	/* 2.5 compat */
 		     (long) (state->act_size + vstream_peek(state->client)),
 		     state->namaddr);
 	} else if (strcmp(state->where, SMTPD_AFTER_DOT)
@@ -4829,13 +4890,13 @@ MAIL_VERSION_STAMP_DECLARE;
 int     main(int argc, char **argv)
 {
     static const CONFIG_NINT_TABLE nint_table[] = {
-	VAR_SMTPD_RCPT_LIMIT, DEF_SMTPD_RCPT_LIMIT, &var_smtpd_rcpt_limit, 1, 0,
 	VAR_SMTPD_SOFT_ERLIM, DEF_SMTPD_SOFT_ERLIM, &var_smtpd_soft_erlim, 1, 0,
 	VAR_SMTPD_HARD_ERLIM, DEF_SMTPD_HARD_ERLIM, &var_smtpd_hard_erlim, 1, 0,
 	VAR_SMTPD_JUNK_CMD, DEF_SMTPD_JUNK_CMD, &var_smtpd_junk_cmd_limit, 1, 0,
 	0,
     };
     static const CONFIG_INT_TABLE int_table[] = {
+	VAR_SMTPD_RCPT_LIMIT, DEF_SMTPD_RCPT_LIMIT, &var_smtpd_rcpt_limit, 1, 0,
 	VAR_QUEUE_MINFREE, DEF_QUEUE_MINFREE, &var_queue_minfree, 0, 0,
 	VAR_UNK_CLIENT_CODE, DEF_UNK_CLIENT_CODE, &var_unk_client_code, 0, 0,
 	VAR_BAD_NAME_CODE, DEF_BAD_NAME_CODE, &var_bad_name_code, 0, 0,

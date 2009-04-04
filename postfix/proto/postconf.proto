@@ -12065,11 +12065,16 @@ Postfix instance, and that are started, stopped, etc., together
 with the default Postfix instance.  Specify a list of pathnames
 separated by comma or whitespace.  </p>
 
-<p> When the list of non-default Postfix configuration directories
-is non-empty, the postfix(1) command will invoke the multi-instance
-manager specified with the multi_instance_wrapper parameter to
-execute commands on the default instance and on all additional
-Postfix instances.  </p>
+<p> When $multi_instance_directories is empty, the postfix(1) command
+runs in single-instance mode and operates on a single Postfix
+instance only. Otherwise, the postfix(1) command runs in multi-instance
+mode and invokes the multi-instance manager specified with the
+multi_instance_wrapper parameter. The multi-instance manager in
+turn executes postfix(1) commands for the default instance and for
+all Postfix instances in $multi_instance_directories.  </p>
+
+<p> Currently, this parameter setting is ignored except for the
+default main.cf file. </p>
 
 <p> This feature is available in Postfix 2.6 and later. </p>
 
@@ -12175,3 +12180,44 @@ for opportunities to reject mail, and defers the client request
 only if it would otherwise be accepted. </p>
 
 <p> This feature is available in Postfix 2.6 and later. </p>
+
+%PARAM postmulti_start_commands start
+
+<p> The postfix(1) commands that the postmulti(1) instance manager treats
+as "start" commands. For these commands, disabled instances are "checked"
+rather than "started", and failure to "start" a member instance of an
+instance group will abort the start-up of later instances. </p>
+
+<p> This feature is available in Postfix 2.6 and later. </p>
+
+%PARAM postmulti_stop_commands see "postconf -d" output
+
+<p> The postfix(1) commands that the postmulti(1) instance manager treats
+as "stop" commands. For these commands, disabled instances are skipped,
+and enabled instances are processed in reverse order. </p>
+
+<p> This feature is available in Postfix 2.6 and later. </p>
+
+%PARAM postmulti_control_commands reload flush
+
+<p> The postfix(1) commands that the postmulti(1) instance manager
+treats as "control" commands, that operate on running instances. For
+these commands, disabled instances are skipped. </p>
+
+<p> This feature is available in Postfix 2.6 and later. </p>
+
+%PARAM lmtp_assume_final no
+
+<p> When an LMTP server announces no DSN support, assume that the
+server performs final delivery, and send "delivered" delivery status
+notifications instead of "relayed". The default setting is backwards
+compatible to avoid the infinetisimal possibility of breaking
+existing LMTP-based content filters. </p>
+
+%PARAM always_add_missing_headers no
+
+<p> Always add (Resent-) From:, To:, Date: or Message-ID: headers
+when not present.  Postfix 2.6 and later add these headers only
+when clients match the local_header_rewrite_clients parameter
+setting.  Earlier Postfix versions always add these headers; this
+may break DKIM signatures that cover non-existent headers. </p>

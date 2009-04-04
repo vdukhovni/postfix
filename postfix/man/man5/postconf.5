@@ -376,6 +376,12 @@ via the MAIL_CONFIG environment parameter.
 This list must be specified in the default Postfix configuration
 directory, and is used by set-gid Postfix commands such as \fBpostqueue\fR(1)
 and \fBpostdrop\fR(1).
+.SH always_add_missing_headers (default: no)
+Always add (Resent-) From:, To:, Date: or Message-ID: headers
+when not present.  Postfix 2.6 and later add these headers only
+when clients match the local_header_rewrite_clients parameter
+setting.  Earlier Postfix versions always add these headers; this
+may break DKIM signatures that cover non-existent headers.
 .SH always_bcc (default: empty)
 Optional address that receives a "blind carbon copy" of each message
 that is received by the Postfix mail system.
@@ -1906,6 +1912,12 @@ This feature is available in Postfix 2.1 and later.
 .SH line_length_limit (default: 2048)
 Upon input, long lines are chopped up into pieces of at most
 this length; upon delivery, long lines are reconstructed.
+.SH lmtp_assume_final (default: no)
+When an LMTP server announces no DSN support, assume that the
+server performs final delivery, and send "delivered" delivery status
+notifications instead of "relayed". The default setting is backwards
+compatible to avoid the infinetisimal possibility of breaking
+existing LMTP-based content filters.
 .SH lmtp_bind_address (default: empty)
 The LMTP-specific version of the smtp_bind_address configuration
 parameter.  See there for details.
@@ -3219,11 +3231,16 @@ Postfix instance, and that are started, stopped, etc., together
 with the default Postfix instance.  Specify a list of pathnames
 separated by comma or whitespace.
 .PP
-When the list of non-default Postfix configuration directories
-is non-empty, the \fBpostfix\fR(1) command will invoke the multi-instance
-manager specified with the multi_instance_wrapper parameter to
-execute commands on the default instance and on all additional
-Postfix instances.
+When $multi_instance_directories is empty, the \fBpostfix\fR(1) command
+runs in single-instance mode and operates on a single Postfix
+instance only. Otherwise, the \fBpostfix\fR(1) command runs in multi-instance
+mode and invokes the multi-instance manager specified with the
+multi_instance_wrapper parameter. The multi-instance manager in
+turn executes \fBpostfix\fR(1) commands for the default instance and for
+all Postfix instances in $multi_instance_directories.
+.PP
+Currently, this parameter setting is ignored except for the
+default main.cf file.
 .PP
 This feature is available in Postfix 2.6 and later.
 .SH multi_instance_enable (default: no)
@@ -3532,6 +3549,25 @@ The numerical Postfix SMTP server response code when a request
 is rejected by the \fBreject_plaintext_session\fR restriction.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH postmulti_control_commands (default: reload flush)
+The \fBpostfix\fR(1) commands that the \fBpostmulti\fR(1) instance manager
+treats as "control" commands, that operate on running instances. For
+these commands, disabled instances are skipped.
+.PP
+This feature is available in Postfix 2.6 and later.
+.SH postmulti_start_commands (default: start)
+The \fBpostfix\fR(1) commands that the \fBpostmulti\fR(1) instance manager treats
+as "start" commands. For these commands, disabled instances are "checked"
+rather than "started", and failure to "start" a member instance of an
+instance group will abort the start-up of later instances.
+.PP
+This feature is available in Postfix 2.6 and later.
+.SH postmulti_stop_commands (default: see "postconf -d" output)
+The \fBpostfix\fR(1) commands that the \fBpostmulti\fR(1) instance manager treats
+as "stop" commands. For these commands, disabled instances are skipped,
+and enabled instances are processed in reverse order.
+.PP
+This feature is available in Postfix 2.6 and later.
 .SH prepend_delivered_header (default: command, file, forward)
 The message delivery contexts where the Postfix \fBlocal\fR(8) delivery
 agent prepends a Delivered-To:  message header with the address

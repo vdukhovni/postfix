@@ -679,6 +679,18 @@ and <a href="postdrop.1.html">postdrop(1)</a>.
 
 </DD>
 
+<DT><b><a name="always_add_missing_headers">always_add_missing_headers</a>
+(default: no)</b></DT><DD>
+
+<p> Always add (Resent-) From:, To:, Date: or Message-ID: headers
+when not present.  Postfix 2.6 and later add these headers only
+when clients match the <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> parameter
+setting.  Earlier Postfix versions always add these headers; this
+may break DKIM signatures that cover non-existent headers. </p>
+
+
+</DD>
+
 <DT><b><a name="always_bcc">always_bcc</a>
 (default: empty)</b></DT><DD>
 
@@ -3434,6 +3446,18 @@ this length; upon delivery, long lines are reconstructed.  </p>
 
 </DD>
 
+<DT><b><a name="lmtp_assume_final">lmtp_assume_final</a>
+(default: no)</b></DT><DD>
+
+<p> When an LMTP server announces no DSN support, assume that the
+server performs final delivery, and send "delivered" delivery status
+notifications instead of "relayed". The default setting is backwards
+compatible to avoid the infinetisimal possibility of breaking
+existing LMTP-based content filters. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_bind_address">lmtp_bind_address</a>
 (default: empty)</b></DT><DD>
 
@@ -5810,11 +5834,16 @@ Postfix instance, and that are started, stopped, etc., together
 with the default Postfix instance.  Specify a list of pathnames
 separated by comma or whitespace.  </p>
 
-<p> When the list of non-default Postfix configuration directories
-is non-empty, the <a href="postfix.1.html">postfix(1)</a> command will invoke the multi-instance
-manager specified with the <a href="postconf.5.html#multi_instance_wrapper">multi_instance_wrapper</a> parameter to
-execute commands on the default instance and on all additional
-Postfix instances.  </p>
+<p> When $<a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a> is empty, the <a href="postfix.1.html">postfix(1)</a> command
+runs in single-instance mode and operates on a single Postfix
+instance only. Otherwise, the <a href="postfix.1.html">postfix(1)</a> command runs in multi-instance
+mode and invokes the multi-instance manager specified with the
+<a href="postconf.5.html#multi_instance_wrapper">multi_instance_wrapper</a> parameter. The multi-instance manager in
+turn executes <a href="postfix.1.html">postfix(1)</a> commands for the default instance and for
+all Postfix instances in $<a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a>.  </p>
+
+<p> Currently, this parameter setting is ignored except for the
+default <a href="postconf.5.html">main.cf</a> file. </p>
 
 <p> This feature is available in Postfix 2.6 and later. </p>
 
@@ -6318,6 +6347,43 @@ is rejected by the <b><a href="postconf.5.html#reject_plaintext_session">reject_
 </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="postmulti_control_commands">postmulti_control_commands</a>
+(default: reload flush)</b></DT><DD>
+
+<p> The <a href="postfix.1.html">postfix(1)</a> commands that the <a href="postmulti.1.html">postmulti(1)</a> instance manager
+treats as "control" commands, that operate on running instances. For
+these commands, disabled instances are skipped. </p>
+
+<p> This feature is available in Postfix 2.6 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="postmulti_start_commands">postmulti_start_commands</a>
+(default: start)</b></DT><DD>
+
+<p> The <a href="postfix.1.html">postfix(1)</a> commands that the <a href="postmulti.1.html">postmulti(1)</a> instance manager treats
+as "start" commands. For these commands, disabled instances are "checked"
+rather than "started", and failure to "start" a member instance of an
+instance group will abort the start-up of later instances. </p>
+
+<p> This feature is available in Postfix 2.6 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="postmulti_stop_commands">postmulti_stop_commands</a>
+(default: see "postconf -d" output)</b></DT><DD>
+
+<p> The <a href="postfix.1.html">postfix(1)</a> commands that the <a href="postmulti.1.html">postmulti(1)</a> instance manager treats
+as "stop" commands. For these commands, disabled instances are skipped,
+and enabled instances are processed in reverse order. </p>
+
+<p> This feature is available in Postfix 2.6 and later. </p>
 
 
 </DD>

@@ -11,10 +11,22 @@ instead, a new snapshot is released.
 The mail_release_date configuration parameter (format: yyyymmdd)
 specifies the release date of a stable release or snapshot release.
 
+Incompatibility with snapshot 20090330
+======================================
+
+Postfix now adds (Resent-) From:, Date:, Message-ID: or To: headers
+only when clients match $local_header_rewrite_clients.  Specify
+"always_add_missing_headers = yes" for backwards compatibility.
+Adding such headers can break DKIM signatures that cover headers
+that are not present.
+
+This changes the appearance of Postfix logging: some messages will
+no longer log a message-id=<...text...> line.
+
 Major changes with snapshot 20090212
 ====================================
 
-Stress-depdent behavior by default. Under conditions of overload,
+Stress-dependent behavior by default. Under conditions of overload,
 smtpd_timeout is reduced from 300s to to 10s, smtpd_hard_error_limit
 is reduced from 20 to 1, and smtpd_junk_command_limit is reduced
 from 100 to 1. This will reduce the delays for most legitimate mail.

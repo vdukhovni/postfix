@@ -485,10 +485,19 @@ static int dict_ldap_set_tls_options(DICT_LDAP *dict_ldap)
     const char *myname = "dict_ldap_set_tls_options";
     int     rc;
 
+#ifdef LDAP_OPT_X_TLS_NEWCTX
+    int     am_server = 0;
+    LDAP   *ld = dict_ldap->ld;
+
+#else
+    LDAP   *ld = 0;
+
+#endif
+
     if (dict_ldap->start_tls || dict_ldap->ldap_ssl) {
 	if (*dict_ldap->tls_random_file) {
-	    if ((rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_RANDOM_FILE,
-			       dict_ldap->tls_random_file)) != LDAP_SUCCESS) {
+	    if ((rc = ldap_set_option(ld, LDAP_OPT_X_TLS_RANDOM_FILE,
+			     dict_ldap->tls_random_file)) != LDAP_SUCCESS) {
 		msg_warn("%s: Unable to set tls_random_file to %s: %d: %s",
 			 myname, dict_ldap->tls_random_file,
 			 rc, ldap_err2string(rc));
@@ -496,8 +505,8 @@ static int dict_ldap_set_tls_options(DICT_LDAP *dict_ldap)
 	    }
 	}
 	if (*dict_ldap->tls_ca_cert_file) {
-	    if ((rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_CACERTFILE,
-			      dict_ldap->tls_ca_cert_file)) != LDAP_SUCCESS) {
+	    if ((rc = ldap_set_option(ld, LDAP_OPT_X_TLS_CACERTFILE,
+			    dict_ldap->tls_ca_cert_file)) != LDAP_SUCCESS) {
 		msg_warn("%s: Unable to set tls_ca_cert_file to %s: %d: %s",
 			 myname, dict_ldap->tls_ca_cert_file,
 			 rc, ldap_err2string(rc));
@@ -505,8 +514,8 @@ static int dict_ldap_set_tls_options(DICT_LDAP *dict_ldap)
 	    }
 	}
 	if (*dict_ldap->tls_ca_cert_dir) {
-	    if ((rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_CACERTDIR,
-			       dict_ldap->tls_ca_cert_dir)) != LDAP_SUCCESS) {
+	    if ((rc = ldap_set_option(ld, LDAP_OPT_X_TLS_CACERTDIR,
+			     dict_ldap->tls_ca_cert_dir)) != LDAP_SUCCESS) {
 		msg_warn("%s: Unable to set tls_ca_cert_dir to %s: %d: %s",
 			 myname, dict_ldap->tls_ca_cert_dir,
 			 rc, ldap_err2string(rc));
@@ -514,8 +523,8 @@ static int dict_ldap_set_tls_options(DICT_LDAP *dict_ldap)
 	    }
 	}
 	if (*dict_ldap->tls_cert) {
-	    if ((rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_CERTFILE,
-				      dict_ldap->tls_cert)) != LDAP_SUCCESS) {
+	    if ((rc = ldap_set_option(ld, LDAP_OPT_X_TLS_CERTFILE,
+				    dict_ldap->tls_cert)) != LDAP_SUCCESS) {
 		msg_warn("%s: Unable to set tls_cert to %s: %d: %s",
 			 myname, dict_ldap->tls_cert,
 			 rc, ldap_err2string(rc));
@@ -523,7 +532,7 @@ static int dict_ldap_set_tls_options(DICT_LDAP *dict_ldap)
 	    }
 	}
 	if (*dict_ldap->tls_key) {
-	    if ((rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_KEYFILE,
+	    if ((rc = ldap_set_option(ld, LDAP_OPT_X_TLS_KEYFILE,
 				      dict_ldap->tls_key)) != LDAP_SUCCESS) {
 		msg_warn("%s: Unable to set tls_key to %s: %d: %s",
 			 myname, dict_ldap->tls_key,
@@ -532,21 +541,29 @@ static int dict_ldap_set_tls_options(DICT_LDAP *dict_ldap)
 	    }
 	}
 	if (*dict_ldap->tls_cipher_suite) {
-	    if ((rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_CIPHER_SUITE,
-			      dict_ldap->tls_cipher_suite)) != LDAP_SUCCESS) {
+	    if ((rc = ldap_set_option(ld, LDAP_OPT_X_TLS_CIPHER_SUITE,
+			    dict_ldap->tls_cipher_suite)) != LDAP_SUCCESS) {
 		msg_warn("%s: Unable to set tls_cipher_suite to %s: %d: %s",
 			 myname, dict_ldap->tls_cipher_suite,
 			 rc, ldap_err2string(rc));
 		return (-1);
 	    }
 	}
-	if ((rc = ldap_set_option(NULL, LDAP_OPT_X_TLS_REQUIRE_CERT,
-		       &(dict_ldap->tls_require_cert))) != LDAP_SUCCESS) {
+	if ((rc = ldap_set_option(ld, LDAP_OPT_X_TLS_REQUIRE_CERT,
+			 &(dict_ldap->tls_require_cert))) != LDAP_SUCCESS) {
 	    msg_warn("%s: Unable to set tls_require_cert to %d: %d: %s",
 		     myname, dict_ldap->tls_require_cert,
 		     rc, ldap_err2string(rc));
 	    return (-1);
 	}
+#ifdef LDAP_OPT_X_TLS_NEWCTX
+	if ((rc = ldap_set_option(ld, LDAP_OPT_X_TLS_NEWCTX, &am_server))
+	    != LDAP_SUCCESS) {
+	    msg_warn("%s: Unable to allocate new TLS context %d: %s",
+		     myname, rc, ldap_err2string(rc));
+	    return (-1);
+	}
+#endif
     }
     return (0);
 }
@@ -592,10 +609,6 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 
 #ifdef LDAP_OPT_NETWORK_TIMEOUT
 #ifdef LDAP_API_FEATURE_X_OPENLDAP
-    if (dict_ldap_set_tls_options(dict_ldap) != 0) {
-	dict_errno = DICT_ERR_RETRY;
-	return (-1);
-    }
     ldap_initialize(&(dict_ldap->ld), dict_ldap->server_host);
 #else
     dict_ldap->ld = ldap_init(dict_ldap->server_host,
@@ -700,6 +713,8 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 #endif
 
 #ifdef LDAP_API_FEATURE_X_OPENLDAP
+    if (dict_ldap_set_tls_options(dict_ldap) != 0)
+	DICT_LDAP_UNBIND_RETURN(dict_ldap->ld, DICT_ERR_RETRY, -1);
     if (dict_ldap->start_tls) {
 	if ((saved_alarm = signal(SIGALRM, dict_ldap_timeout)) == SIG_ERR) {
 	    msg_warn("%s: Error setting signal handler for STARTTLS timeout: %m",

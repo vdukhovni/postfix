@@ -180,6 +180,8 @@ case "$SYSTEM.$RELEASE" in
     SunOS.5*)	SYSTYPE=SUNOS5
 		RANLIB=echo
 		SYSLIBS="-lresolv -lsocket -lnsl"
+		# Stock awk breaks with >10 files.
+		test -x /usr/xpg4/bin/awk && AWK=/usr/xpg4/bin/awk
 		# Solaris 2.5 added usleep() and POSIX regular expressions
 		case $RELEASE in
 		    5.[0-4]) CCARGS="$CCARGS -DMISSING_USLEEP -DNO_POSIX_REGEXP";;

@@ -14983,3 +14983,100 @@ Apologies for any names omitted.
 	Feature: stress-dependent smtpd_timeout (normal: 300s,
 	overload: 10s), smtpd_hard_error_limit (normal: 20, overload:
 	1) and smtpd_junk_command_limit (normal: 100, overload: 1).
+	Files: global/mail_params.h, global/mail_conf_nint.c,
+	master/*_server.c, smtpd/smtpd.c.
+
+20090213
+
+	Fine tuning: don't enforce smtpd_junk_command_limit for
+	XCLIENT and XFORWARD commands.  These commands can be issued
+	only by authorized clients. File: src/smtpd/smtpd.c.
+
+20090215
+
+	Feature: the Postfix SMTP server hangs up after replying
+	with "521". This makes overload handling more effective. 
+	See also RFC 1846.  File: smtpd/smtpd.c.
+
+	Feature: postmulti mult-instance manager command, very
+	lightly tested. The MULTI_INSTANCE_README still needs to
+	be proofread.  Originally by Victor Duchovni.  Files:
+	src/postmulti/*, proto/MULTI_INSTANCE_README.html,
+	conf/postmulti-script.
+
+20090216-24
+
+	Cleanup: assorted code cleanups in postmulti.  File:
+	src/postmulti/postmulti.c.
+
+20090223
+
+	Cleanup: multiple instances of the same global.  Files:
+	util/inet_windowsize.c, util/inet_listen.c.
+
+20090228
+
+	Cleanup: the Postfix SMTP server now maintains a per-session
+	"improper command pipelining detected" flag. This flag can
+	be tested at any time with reject_unauth_pipelining, and
+	is raised whenever a client command is followed by unexpected
+	commands or message content.  Files: smtpd/smtpd.c,
+	smtpd/smtpd_check.c.
+
+	Logging: the Postfix SMTP server now logs the first command
+	pipelining transgression as "improper command pipelining
+	after <command> from <hostname>[<hostaddress>]".
+
+	Cleanup: after DATA command failure, log "(approximately
+	XX bytes)" only if Postfix actually accepted the DATA
+	command.  File: smtpd/smtpd.c.
+
+20090303
+
+	Cleanup: word smithing of "sendmail -bv" probe message.
+	File: sendmail/sendmail.c.
+
+	Cleanup: OpenLDAP now provides a sane solution for conflicts
+	with PAM ldap-over-tls. Victor Duchovni.  File: global/dict_ldap.c.
+
+20900304
+
+	Cleanup: skip over suspended or throttled queues while
+	looking for delivery requests. File: *qmgr/qmgr_transport.c.
+
+20090305
+
+	Bugfix: in the "new queue manager", the _destination_rate_delay
+	code needed to postpone the job scheduler updates after
+	delivery completion, otherwise the scheduler could loop on
+	blocked jobs.  Victor & Wietse.  File: qmgr/qmgr_entry.c,
+	qmgr/qmgr_queue.c, qmgr/qmgr_job.c.
+
+	Cleanup: report a "queue file write error", instead of
+	passing though bogus 2xx replies from proxy filters to SMTP
+	clients.  File: smtpd/smtpd_proxy.c.
+
+20090307
+
+	Cleanup: with "lmtp_assume_final = yes", the Postfix LMTP
+	delivery agent assumes that delivery is final when talking
+	to an LMTP server that announces no DSN support.  Otherwise,
+	the Postfix LMTP delivery agent assumes that delivery is
+	"relayed", to maintain compatibility with simple LMTP-based
+	content filters.  Based on code by Michel Sebastien, ATOS
+	Origin.  File: smtp/smtp_rcpt.c.
+
+20090310
+
+	Bugfix: Postfix used mumble_concurrency_failed_cohort_limit
+	instead of mumble_destination_concurrency_failed_cohort_limit
+	as documented. File: global/mail_params.h.
+
+20090330
+
+	Cleanup: add (Resent-) From:, Date:, Message-ID: or To:
+	headers only when clients match $local_header_rewrite_clients.
+	Specify "always_add_missing_headers = yes" for backwards
+	compatibility.  Adding such headers to remote mail can break
+	DKIM signatures that cover headers that are not present.
+	File: cleanup/cleanup_message.c.

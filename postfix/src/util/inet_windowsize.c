@@ -53,7 +53,10 @@
 
 /* Application storage. */
 
-int     inet_windowsize;
+ /*
+  * Tunable to work around broken routers.
+  */
+int     inet_windowsize = 0;
 
 /* set_inet_windowsize - set TCP send/receive window size */
 

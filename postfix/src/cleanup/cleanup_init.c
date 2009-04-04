@@ -162,6 +162,7 @@ char   *var_milt_eod_macros;		/* end-of-data macros */
 char   *var_milt_unk_macros;		/* unknown command macros */
 char   *var_cleanup_milters;		/* non-SMTP mail */
 int     var_auto_8bit_enc_hdr;		/* auto-detect 8bit encoding header */
+int     var_always_add_hdrs;		/* always add missing headers */
 
 CONFIG_INT_TABLE cleanup_int_table[] = {
     VAR_HOPCOUNT_LIMIT, DEF_HOPCOUNT_LIMIT, &var_hopcount_limit, 1, 0,
@@ -177,6 +178,7 @@ CONFIG_BOOL_TABLE cleanup_bool_table[] = {
     VAR_ENABLE_ORCPT, DEF_ENABLE_ORCPT, &var_enable_orcpt,
     VAR_VERP_BOUNCE_OFF, DEF_VERP_BOUNCE_OFF, &var_verp_bounce_off,
     VAR_AUTO_8BIT_ENC_HDR, DEF_AUTO_8BIT_ENC_HDR, &var_auto_8bit_enc_hdr,
+    VAR_ALWAYS_ADD_HDRS, DEF_ALWAYS_ADD_HDRS, &var_always_add_hdrs,
     0,
 };
 
@@ -318,7 +320,6 @@ void    cleanup_pre_jail(char *unused_name, char **unused_argv)
 	CANON_CLASS_HDR_RCPT, CLEANUP_CANON_FLAG_HDR_RCPT,
 	0,
     };
-
     static const NAME_MASK masq_class_table[] = {
 	MASQ_CLASS_ENV_FROM, CLEANUP_MASQ_FLAG_ENV_FROM,
 	MASQ_CLASS_ENV_RCPT, CLEANUP_MASQ_FLAG_ENV_RCPT,

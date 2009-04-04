@@ -69,7 +69,7 @@ only parameters that are not left at their default settings.
     1 /etc/postfix/main.cf:
     2     myorigin = $mydomain
     3     relayhost = $mydomain
-    4     inet_interfaces = 127.0.0.1
+    4     inet_interfaces = loopback-only
     5     local_transport = error:local delivery is disabled
     6
     7 /etc/postfix/master.cf:

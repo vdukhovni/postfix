@@ -93,7 +93,8 @@ while (<>) {
     s;\ballow_min_user\b;<a href="postconf.5.html#allow_min_user">$&</a>;g;
     s;\ballow_percent_hack\b;<a href="postconf.5.html#allow_percent_hack">$&</a>;g;
     s;\ballow_untrusted_routing\b;<a href="postconf.5.html#allow_untrusted_routing">$&</a>;g;
-    s;\balternate_config_direc[-</bB>]*\n*[ <bB>]*tories\b;<a href="postconf.5.html#alternate_config_directories">$&</a>;g;
+    s;\balternate_con[-</bB>]*\n*[ <bB>]*fig_direc[-</bB>]*\n*[ <bB>]*tories\b;<a href="postconf.5.html#alternate_config_directories">$&</a>;g;
+    s;\balways_add_missing_headers\b;<a href="postconf.5.html#always_add_missing_headers">$&</a>;g;
     s;\balways_bcc\b;<a href="postconf.5.html#always_bcc">$&</a>;g;
     s;\banvil_rate_time_unit\b;<a href="postconf.5.html#anvil_rate_time_unit">$&</a>;g;
     s;\bappend_at_myorigin\b;<a href="postconf.5.html#append_at_myorigin">$&</a>;g;
@@ -119,7 +120,7 @@ while (<>) {
     s;\bcommand_execu[-</bB>]*\n* *[<bB>]*tion_direc[-</bB>]*\n* *[<bB>]*tory\b;<a href="postconf.5.html#command_execution_directory">$&</a>;g;
     s;\bexecu[-</bB>]*\n* *[<bB>]*tion_directory_expansion_filter\b;<a href="postconf.5.html#execution_directory_expansion_filter">$&</a>;g;
     s;\banvil_status_update_time\b;<a href="postconf.5.html#anvil_status_update_time">$&</a>;g;
-    s;\bcommand_directory\b;<a href="postconf.5.html#command_directory">$&</a>;g;
+    s;\bcommand_direc[-</bB>]*\n* *[<bB>]*tory\b;<a href="postconf.5.html#command_directory">$&</a>;g;
     s;\bcommand_expan[-</bB>]*\n* *[<bB>]*sion_filter\b;<a href="postconf.5.html#command_expansion_filter">$&</a>;g;
     s;\bcommand_time_limit\b;<a href="postconf.5.html#command_time_limit">$&</a>;g;
     s;\bconfig_direc[-</bB>]*\n*[ <bB>]*tory\b;<a href="postconf.5.html#config_directory">$&</a>;g;
@@ -333,6 +334,9 @@ while (<>) {
     s;\bpermit_mx_backup_networks\b;<a href="postconf.5.html#permit_mx_backup_networks">$&</a>;g;
     s;\bpickup_service_name\b;<a href="postconf.5.html#pickup_service_name">$&</a>;g;
     s;\bplaintext_reject_code\b;<a href="postconf.5.html#plaintext_reject_code">$&</a>;g;
+    s;\bpostmulti_start_commands\b;<a href="postconf.5.html#postmulti_start_commands">$&</a>;g;
+    s;\bpostmulti_stop_commands\b;<a href="postconf.5.html#postmulti_stop_commands">$&</a>;g;
+    s;\bpostmulti_con[-</bB>]*\n* *[<bB>]*trol_commands\b;<a href="postconf.5.html#postmulti_control_commands">$&</a>;g;
     s;\bprepend_delivered_header\b;<a href="postconf.5.html#prepend_delivered_header">$&</a>;g;
     s;\bprocess_id\b;<a href="postconf.5.html#process_id">$&</a>;g;
     s;\bprocess_id_directory\b;<a href="postconf.5.html#process_id_directory">$&</a>;g;
@@ -725,6 +729,7 @@ while (<>) {
     s/[<bB>]*postlock[<\/bB>]*\(1\)/<a href="postlock.1.html">$&<\/a>/g;
     s/[<bB>]*postlog[<\/bB>]*\(1\)/<a href="postlog.1.html">$&<\/a>/g;
     s/[<bB>]*postmap[<\/bB>]*\(1\)/<a href="postmap.1.html">$&<\/a>/g;
+    s/[<bB>]*postmulti[<\/bB>]*\(1\)/<a href="postmulti.1.html">$&<\/a>/g;
     s/[<bB>]*postqueue[<\/bB>]*\(1\)/<a href="postqueue.1.html">$&<\/a>/g;
     s/[<bB>]*postsuper[<\/bB>]*\(1\)/<a href="postsuper.1.html">$&<\/a>/g;
     s/[<bB>]*send[-<\/bB>]*\n*[ <bB>]*mail[<\/bB>]*\(1\)/<a href="sendmail.1.html">$&<\/a>/g;

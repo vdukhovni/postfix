@@ -116,6 +116,7 @@
 
 /* Global library. */
 
+#include <mail_params.h>
 #include <deliver_request.h>		/* smtp_rcpt_done */
 #include <deliver_completed.h>		/* smtp_rcpt_done */
 #include <sent.h>			/* smtp_rcpt_done */
@@ -132,19 +133,36 @@ void    smtp_rcpt_done(SMTP_STATE *state, SMTP_RESP *resp, RECIPIENT *rcpt)
     DELIVER_REQUEST *request = state->request;
     SMTP_SESSION *session = state->session;
     DSN_BUF *why = state->why;
+    const char *dsn_action = "relayed";
     int     status;
 
     /*
-     * Report success and delete the recipient from the delivery request.
-     * Defer if the success can't be reported. Don't send a DSN "SUCCESS"
-     * notification if the receiving site announced DSN support.
-     * 
-     * Note: the DSN action is ignored in case of address probes.
+     * Assume this was intermediate delivery when the server announced DSN
+     * support, and don't send a DSN "SUCCESS" notification.
      */
     if (session->features & SMTP_FEATURE_DSN)
 	rcpt->dsn_notify &= ~DSN_NOTIFY_SUCCESS;
 
-    dsb_update(why, resp->dsn, "relayed", DSB_MTYPE_DNS, session->host,
+    /*
+     * Assume this was final delivery when the LMTP server announced no DSN
+     * support. In backwards compatibility mode, send a "relayed" instead of
+     * a "delivered" DSN "SUCCESS" notification. Do not attempt to "simplify"
+     * the expression. The redundancy is for clarity. It is trivially
+     * eliminated by the compiler. There is no need to sacrifice clarity for
+     * the sake of "performance".
+     */
+    if ((session->features & SMTP_FEATURE_DSN) == 0
+	&& (state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) != 0
+	&& var_lmtp_assume_final != 0)
+	dsn_action = "delivered";
+
+    /*
+     * Report success and delete the recipient from the delivery request.
+     * Defer if the success can't be reported.
+     * 
+     * Note: the DSN action is ignored in case of address probes.
+     */
+    dsb_update(why, resp->dsn, dsn_action, DSB_MTYPE_DNS, session->host,
 	       DSB_DTYPE_SMTP, resp->str, "%s", resp->str);
 
     status = sent(DEL_REQ_TRACE_FLAGS(request->flags),

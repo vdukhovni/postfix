@@ -17,36 +17,31 @@ POSTFIX-WRAPPER(5)                                          POSTFIX-WRAPPER(5)
 
        This document describes how the familiar  "postfix  start"
        etc.  user interface can be used to manage one or multiple
-       Postfix instances, and gives details of an API that allows
-       the  <a href="postfix.1.html">postfix(1)</a>  command  to  coordinate activities with a
+       Postfix instances, and gives details of an API to  coordi-
+       nate  activities  between  the  <a href="postfix.1.html">postfix(1)</a>  command  and a
        multi-instance manager program.
 
-       A trivial but useful multi-instance manager implementation
-       is  described  below,  and  can be found in the file $<a href="postconf.5.html#daemon_directory">dae</a>-
-       <a href="postconf.5.html#daemon_directory">mon_directory</a>/postfix-wrapper. The latter file  also  con-
-       tains instructions for setting up multiple instances.
-
-       With  multi-instance support, the default Postfix instance
-       is required. The location of its  configuration  files  is
-       specified  by  the  built-in  default  value  for the con-
-       fig_directory parameter.
+       With multi-instance support, the default Postfix  instance
+       is   always  required.  The  <a href="postconf.5.html#config_directory">config_directory</a>  parameter's
+       default value specifies that instance's configuration file
+       location.
 
 <b>GENERAL OPERATION</b>
-       Multi-instance support is backwards compatible: when there
-       is  only  one  Postfix instance, commands such as "postfix
-       start" keep doing what they have always done.
+       Multi-instance  support  is backwards compatible: when you
+       run only one Postfix instance, commands such  as  "postfix
+       start" will not change behavior at all.
 
-       Even after multi-instance support has been set up  through
-       the  mechanisms discussed later, sites can continue to use
-       the familiar postfix commands  in  boot  scripts,  upgrade
-       procedures, and other places.
+       Even  with  multiple Postfix instances, you can keep using
+       the same postfix commands in boot scripts, upgrade  proce-
+       dures,  and  other  places. The commands do more work, but
+       humans are not forced to learn new tricks.
 
-       To start all applicable Postfix instances, use:
+       For example, to start all Postfix instances, use:
 
               # postfix start
 
        Other <a href="postfix.1.html">postfix(1)</a> commands also work as expected. For exam-
-       ple, to find out what Postfix instances exist in a  multi-
+       ple,  to find out what Postfix instances exist in a multi-
        instance configuration, use:
 
               # postfix status
@@ -55,51 +50,64 @@ POSTFIX-WRAPPER(5)                                          POSTFIX-WRAPPER(5)
        a multi-instance configuration.
 
 <b>MANAGING AN INDIVIDUAL POSTFIX INSTANCE</b>
-       To operate on a specific  Postfix  instance,  specify  its
-       configuration directory on the <a href="postfix.1.html">postfix(1)</a> command line:
+       To manage a specific Postfix instance, specify its config-
+       uration directory on the <a href="postfix.1.html">postfix(1)</a> command line:
 
               # postfix -c <i>/path/to/config</i><b>_</b><i>directory command</i>
 
-       Alternatively,   the   <a href="postfix.1.html">postfix(1)</a>   command   accepts  the
-       instance's configuration  directory  via  the  MAIL_CONFIG
+       Alternatively,  the   <a href="postfix.1.html">postfix(1)</a>   command   accepts   the
+       instance's  configuration  directory  via  the MAIL_CONFIG
        environment  variable  (the  -c  command-line  option  has
        higher precedence).
 
-       When no Postfix instance  information  is  specified,  the
-       <a href="postfix.1.html">postfix(1)</a>  command will operate on all applicable Postfix
-       instances.
+       When  no  Postfix  instance  information is specified, the
+       <a href="postfix.1.html">postfix(1)</a> command will operate on all Postfix  instances.
 
-<b>MULTI-INSTANCE MANAGER IMPLEMENTATION</b>
-       Historically, the <a href="postfix.1.html">postfix(1)</a> command invokes the  postfix-
-       script file (currently installed in the daemon directory).
-       This file contains the commands that start or  stop  Post-
-       fix, upgrade the configuration and so on.
+<b>ENABLING POSTFIX(1) MULTI-INSTANCE MODE</b>
+       By  default,  the  <a href="postfix.1.html">postfix(1)</a>  command operates in single-
+       instance mode. In this mode the command invokes the  post-
+       fix-script  file directly (currently installed in the dae-
+       mon directory).  This  file  contains  the  commands  that
+       start  or stop one Postfix instance, that upgrade the con-
+       figuration of one Postfix instance, and so on.
 
-       When  multi-instance  support is turned on, the <a href="postfix.1.html">postfix(1)</a>
-       command needs to execute these commands for each  applica-
-       ble  Postfix  instance. This multiplication of commands is
-       handled by a multi-instance manager program.
+       When the <a href="postfix.1.html">postfix(1)</a>  command  operates  in  multi-instance
+       mode  as  discussed  below,  the  command needs to execute
+       start, stop, etc.  commands  for  each  Postfix  instance.
+       This  multiplication  of  commands  is handled by a multi-
+       instance manager program.
 
-       Turning on multi-instance support goes as follows:  update
-       the  default Postfix instance's <a href="postconf.5.html">main.cf</a> file, and populate
-       the <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a> parameter with the configu-
-       ration   directory   pathnames   of   additional   Postfix
-       instances.
+       Turning on <a href="postfix.1.html">postfix(1)</a> multi-instance mode goes as follows:
+       in the default Postfix instance's <a href="postconf.5.html">main.cf</a> file, 1) specify
+       the pathname of a multi-instance manager program with  the
+       <a href="postconf.5.html#multi_instance_wrapper">multi_instance_wrapper</a>    parameter;   2)   populate   the
+       <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a> parameter with  the  configura-
+       tion  directory pathnames of additional Postfix instances.
+       For example:
 
-       With multi-instance support turned on, the <a href="postfix.1.html">postfix(1)</a> com-
-       mand  invokes  a multi-instance manager command instead of
-       the postfix-script file. The multi-instance  manager  exe-
-       cutes  the  <a href="postfix.1.html">postfix(1)</a> command for each applicable Postfix
-       instance.  The pathname of the multi-instance  manager  is
-       specified   in   the   default   <a href="postconf.5.html">main.cf</a>   file  with  the
-       <a href="postconf.5.html#multi_instance_wrapper">multi_instance_wrapper</a> parameter.
+              /etc/postfix/<a href="postconf.5.html">main.cf</a>:
+                  <a href="postconf.5.html#multi_instance_wrapper">multi_instance_wrapper</a> = $<a href="postconf.5.html#daemon_directory">daemon_directory</a>/postfix-wrapper
+                  <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a> = /etc/postfix-test
+
+       The $<a href="postconf.5.html#daemon_directory">daemon_directory</a>/postfix-wrapper  file  implements  a
+       simple  manager  and  contains  instructions  for creating
+       Postfix instances by hand.  The <a href="postmulti.1.html">postmulti(1)</a> command  pro-
+       vides  a  more  extensive implementation including support
+       for life-cycle management.
 
        The <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a> and other  <a href="postconf.5.html">main.cf</a>  parame-
        ters are listed below in the CONFIGURATION PARAMETERS sec-
        tion.
 
-       A useful multi-instance manager implementation can  be  as
-       simple as:
+       In multi-instance mode, the <a href="postfix.1.html">postfix(1)</a> command invokes the
+       $<a href="postconf.5.html#multi_instance_wrapper">multi_instance_wrapper</a>  command  instead  of the postfix-
+       script file. This multi-instance manager in turn  executes
+       the  <a href="postfix.1.html">postfix(1)</a>  command  in single-instance mode for each
+       Postfix instance.
+
+       To illustrate the main ideas behind multi-instance  opera-
+       tion,  below  is  an example of a simple but useful multi-
+       instance manager implementation:
 
               #!/bin/sh
 
@@ -129,47 +137,43 @@ POSTFIX-WRAPPER(5)                                          POSTFIX-WRAPPER(5)
 
               exit $err
 
-       A  sample  implementation, with instructions, can be found
-       in $<a href="postconf.5.html#daemon_directory">daemon_directory</a>/postfix-wrapper.
-
-       The postmulti(1) command implements a  more  sophisticated
-       approach,  based on a combination of C code and scripting.
-
-<b>ENABLING A SPECIFIC INSTANCE FOR MULTI-INSTANCE OPERATION</b>
+<b>PER-INSTANCE MULTI-INSTANCE MANAGER CONTROLS</b>
        Each Postfix instance has its own <a href="postconf.5.html">main.cf</a> file with param-
-       eters  that  control  multi-instance  operation.  The most
-       important settings are discussed here.
+       eters that control how the multi-instance manager operates
+       on that instance.  This section discusses the most  impor-
+       tant settings.
 
        The  setting  "<a href="postconf.5.html#multi_instance_enable">multi_instance_enable</a>  =  yes"  allows  the
-       multi-instance manager to start (and stop) the correspond-
-       ing Postfix instance. For safety reasons, this setting  is
-       not the default.
+       multi-instance manager to start (stop,  etc.)  the  corre-
+       sponding  Postfix  instance. For safety reasons, this set-
+       ting is not the default.
 
-       The  setting  "<a href="postconf.5.html#multi_instance_enable">multi_instance_enable</a>  =  no" is useful for
-       manual testing.  With  this,  the  multi-instance  manager
-       will not start the Postfix instance, and it will skip com-
-       mands such as "stop" or "flush"  that  require  a  running
-       Postfix instance.  The multi-instance manager will execute
-       commands such as "check", "set-permissions"  or  "upgrade-
-       configuration",  and it will replace "start" by "check" so
-       that problems will be reported even when the  instance  is
-       disabled.
+       The default setting "<a href="postconf.5.html#multi_instance_enable">multi_instance_enable</a> = no" is useful
+       for manual testing with "postfix -c <i>/path/name</i> start" etc.
+       The  multi-instance  manager  will  not  start   such   an
+       instance,  and  it  will  skip  commands such as "stop" or
+       "flush" that require  a  running  Postfix  instance.   The
+       multi-instance  manager  will  execute  commands  such  as
+       "check", "set-permissions" or "upgrade-configuration", and
+       it  will  replace "start" by "check" so that problems will
+       be reported even when the instance is disabled.
 
-<b>SHARED VERSUS NON-SHARED FILES</b>
-       Some  files  are shared between Postfix instances, such as
+<b>MAINTAINING SHARED AND NON-SHARED FILES</b>
+       Some files are shared between Postfix instances,  such  as
        executables and manpages, and some files are per-instance,
-       such  as  the  queue  directory.  See the NON-SHARED FILES
-       section below for a list of per-instance files.
+       such as configuration files, mail queue  files,  and  data
+       files.   See the NON-SHARED FILES section below for a list
+       of per-instance files.
 
        Before Postfix multi-instance support was implemented, the
-       executables,  manpages,  etc., have always been checked or
-       updated as part of  the  default  Postfix  instance.  With
-       multi-instance support, we simply continue to do this.
+       executables,  manpages,  etc., have always been maintained
+       as part of the default Postfix instance.
 
-       Specifically,  Postfix  instances will not check or update
-       shared files when their <a href="postconf.5.html#config_directory">config_directory</a> value  is  listed
-       with   the  default  <a href="postconf.5.html">main.cf</a>'s  <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a>
-       parameter.
+       With multi-instance support,  we  simply  continue  to  do
+       this.   Specifically, a Postfix instance will not check or
+       update shared files when that instance's  <a href="postconf.5.html#config_directory">config_directory</a>
+       value   is   listed   with   the  default  <a href="postconf.5.html">main.cf</a>  file's
+       <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a> parameter.
 
        The consequence of this approach is that the default Post-
        fix  instance  should  be  checked  and updated before any
@@ -275,7 +279,7 @@ POSTFIX-WRAPPER(5)                                          POSTFIX-WRAPPER(5)
 
 <b>SEE ALSO</b>
        <a href="postfix.1.html">postfix(1)</a> Postfix control program
-       postmulti(1) full-blown multi-instance manager
+       <a href="postmulti.1.html">postmulti(1)</a> full-blown multi-instance manager
        $<a href="postconf.5.html#daemon_directory">daemon_directory</a>/postfix-wrapper simple multi-instance manager
 
 <b>LICENSE</b>

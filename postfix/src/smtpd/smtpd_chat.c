@@ -200,9 +200,10 @@ void    smtpd_chat_reply(SMTPD_STATE *state, const char *format,...)
 	vstream_longjmp(state->client, SMTP_ERR_EOF);
 
     /*
-     * Orderly disconnect in case of 421 reply.
+     * Orderly disconnect in case of 421 or 521 reply.
      */
-    if (strncmp(STR(state->buffer), "421", 3) == 0)
+    if (strncmp(STR(state->buffer), "421", 3) == 0
+	|| strncmp(STR(state->buffer), "521", 3) == 0)
 	state->flags |= SMTPD_FLAG_HANGUP;
 }
 

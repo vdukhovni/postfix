@@ -333,6 +333,14 @@ extern char *var_always_bcc;
 extern char *var_rcpt_witheld;
 
  /*
+  * Add missing headers. Postfix 2.6 no longer adds headers to remote mail by
+  * default.
+  */
+#define VAR_ALWAYS_ADD_HDRS	"always_add_missing_headers"
+#define DEF_ALWAYS_ADD_HDRS	0
+extern bool var_always_add_hdrs;
+
+ /*
   * Standards violation: allow/permit RFC 822-style addresses in SMTP
   * commands.
   */
@@ -1105,7 +1113,7 @@ extern int var_smtpd_tmout;
 extern int var_smtpd_starttls_tmout;
 
 #define VAR_SMTPD_RCPT_LIMIT	"smtpd_recipient_limit"
-#define DEF_SMTPD_RCPT_LIMIT	"1000"
+#define DEF_SMTPD_RCPT_LIMIT	1000
 extern int var_smtpd_rcpt_limit;
 
 #define VAR_SMTPD_SOFT_ERLIM	"smtpd_soft_error_limit"
@@ -1659,6 +1667,10 @@ extern int var_smtp_sasl_auth_cache_time;
 #define VAR_LMTP_TCP_PORT	"lmtp_tcp_port"
 #define DEF_LMTP_TCP_PORT	"24"
 extern char *var_lmtp_tcp_port;
+
+#define VAR_LMTP_ASSUME_FINAL	"lmtp_assume_final"
+#define DEF_LMTP_ASSUME_FINAL	0
+extern bool var_lmtp_assume_final;
 
 #define VAR_LMTP_CACHE_CONN	"lmtp_cache_connection"
 #define DEF_LMTP_CACHE_CONN	1
@@ -3019,12 +3031,12 @@ extern char *var_smtp_body_chks;
   * Scheduler concurrency feedback algorithms.
   */
 #define VAR_CONC_POS_FDBACK	"default_destination_concurrency_positive_feedback"
-#define _CONC_POS_FDBACK	"_concurrency_positive_feedback"
+#define _CONC_POS_FDBACK	"_destination_concurrency_positive_feedback"
 #define DEF_CONC_POS_FDBACK	"1"
 extern char *var_conc_pos_feedback;
 
 #define VAR_CONC_NEG_FDBACK	"default_destination_concurrency_negative_feedback"
-#define _CONC_NEG_FDBACK	"_concurrency_negative_feedback"
+#define _CONC_NEG_FDBACK	"_destination_concurrency_negative_feedback"
 #define DEF_CONC_NEG_FDBACK	"1"
 extern char *var_conc_neg_feedback;
 
@@ -3032,7 +3044,7 @@ extern char *var_conc_neg_feedback;
 #define CONC_FDBACK_NAME_SQRT_WIN "sqrt_concurrency"
 
 #define VAR_CONC_COHORT_LIM	"default_destination_concurrency_failed_cohort_limit"
-#define _CONC_COHORT_LIM	"_concurrency_failed_cohort_limit"
+#define _CONC_COHORT_LIM	"_destination_concurrency_failed_cohort_limit"
 #define DEF_CONC_COHORT_LIM	1
 extern int var_conc_cohort_limit;
 
@@ -3089,6 +3101,21 @@ extern char *var_multi_group;
 #define VAR_MULTI_ENABLE	"multi_instance_enable"
 #define DEF_MULTI_ENABLE	0
 extern bool var_multi_enable;
+
+ /*
+  * postmulti(1) instance manager
+  */
+#define VAR_MULTI_START_CMDS	"postmulti_start_commands"
+#define DEF_MULTI_START_CMDS	"start"
+extern char *var_multi_start_cmds;
+
+#define VAR_MULTI_STOP_CMDS	"postmulti_stop_commands"
+#define DEF_MULTI_STOP_CMDS	"stop abort drain quick-stop"
+extern char *var_multi_stop_cmds;
+
+#define VAR_MULTI_CNTRL_CMDS	"postmulti_control_commands"
+#define DEF_MULTI_CNTRL_CMDS	"reload flush"
+extern char *var_multi_cntrl_cmds;
 
 /* LICENSE
 /* .ad

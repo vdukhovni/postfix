@@ -520,7 +520,8 @@ int     main(int argc, char **argv)
     /*
      * Run the management script.
      */
-    if (force_single_instance || *var_multi_conf_dirs == 0) {
+    if (force_single_instance 
+	|| argv_split(var_multi_conf_dirs, "\t\r\n, ")->argc == 0) {
 	script = concatenate(var_daemon_dir, "/postfix-script", (char *) 0);
 	if (optind < 1)
 	    msg_panic("bad optind value");

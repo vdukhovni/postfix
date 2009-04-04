@@ -1421,17 +1421,12 @@ static int reject_unauth_pipelining(SMTPD_STATE *state,
     if (msg_verbose)
 	msg_info("%s: %s", myname, state->where);
 
-    if (state->client != 0
-	&& SMTPD_STAND_ALONE(state) == 0
-	&& (vstream_peek(state->client) > 0
-	    || peekfd(vstream_fileno(state->client)) > 0)
-	&& (strcasecmp(state->protocol, MAIL_PROTO_ESMTP) != 0
-	    || strcasecmp(state->where, SMTPD_CMD_DATA) == 0)) {
+    if (state->flags & SMTPD_FLAG_ILL_PIPELINING)
 	return (smtpd_check_reject(state, MAIL_ERROR_PROTOCOL,
 				   503, "5.5.0",
 	       "<%s>: %s rejected: Improper use of SMTP command pipelining",
 				   reply_name, reply_class));
-    }
+
     return (SMTPD_CHECK_DUNNO);
 }
 

@@ -355,6 +355,7 @@ smtp_rcpt.o: ../../include/dsn_mask.h
 smtp_rcpt.o: ../../include/header_body_checks.h
 smtp_rcpt.o: ../../include/header_opts.h
 smtp_rcpt.o: ../../include/htable.h
+smtp_rcpt.o: ../../include/mail_params.h
 smtp_rcpt.o: ../../include/maps.h
 smtp_rcpt.o: ../../include/match_list.h
 smtp_rcpt.o: ../../include/match_ops.h
