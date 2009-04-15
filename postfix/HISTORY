@@ -15080,3 +15080,14 @@ Apologies for any names omitted.
 	compatibility.  Adding such headers to remote mail can break
 	DKIM signatures that cover headers that are not present.
 	File: cleanup/cleanup_message.c.
+
+20090415
+
+	Workaround: to avoid unnecessary "fatal" delivery agent
+	exits, delivery agents retry getting a shared lock on a
+	queue file.  This is necessary since the queue manager's
+	behavior was changed years ago to refill the in-memory
+	recipient list before it was completely empty.  File:
+	global/deliver_request.c.
+
+	Documentation: updated STRESS_README.

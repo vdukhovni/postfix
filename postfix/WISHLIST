@@ -9,25 +9,18 @@ Wish list:
 	compatibility. The "first" setting is good for performance
 	(stress=yes) when all users are defined in local files.
 
-	Make the double-bounce address time-dependent (with 24-hour
-	grace period).  Spammers appear to use this address to avoid
-	DATA command rejects. Avoiding DATA rejects means they can
-	pipeline the entire SMTP session without triggering huge
-	numbers of protocol errors. They can still trigger "improper
-	command pipelining after DATA" alarms, but that requires
-	non-default main.cf settings.
-
 	Cleanup: make DNSBL query format configurable beyond the
 	client's reversed IP address.
 
 	With 'final delivery' in the LMTP client, need an option
-	to also add delivered-to and other pipe(8) features.
-	This requires making mail_copy() more generic.
+	to also add delivered-to and other pipe(8) features.  This
+	requires making mail_copy() functionality available in
+	non-mailbox context.
 
 	To work around historical AWK's limit of 10 open files,
 	pipe all output into a shell and have the shell open files.
-	It's too much pain to find out whose AWK is old and where
-	if any they keep the XPG4 compliant version.
+	It's too much pain to find out what systems use ancient AWK
+	and where, if any, they keep the XPG4 compliant version.
 
 	Cleanup: modernize the "add missing From: header" code, to
 	``phrase <addr>'' form. Most likely, quote the entire phrase

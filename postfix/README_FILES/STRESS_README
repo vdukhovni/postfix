@@ -4,12 +4,11 @@ PPoossttffiixx SSttrreessss--DDeeppeennddeenntt CCoonn
 
 OOvveerrvviieeww
 
-This document describes the symptoms of Postfix SMTP server overload, and how
-to avoid the condition under normal conditions. When the condition is caused by
-botnets or other malware, the document suggests configuration settings that
-help to minimize the impact on legitimate mail. Finally, the document
-introduces stress-adaptive behavior, introduced with Postfix 2.5, and how it
-can be used to automatically switch configuration settings under overload.
+This document describes the symptoms of Postfix SMTP server overload. It
+presents permanent main.cf changes to avoid overload during normal operation,
+and temporary main.cf changes to cope with an unexpected burst of mail. This
+document makes specific suggestions for Postfix 2.5 and later which support
+stress-adaptive behavior, and for earlier Postfix versions that don't.
 
 Topics covered in this document:
 
@@ -17,42 +16,46 @@ Topics covered in this document:
   * Service more SMTP clients at the same time
   * Spend less time per SMTP client
   * Disconnect suspicious SMTP clients
-  * Take desperate measures
-  * Make Postfix behavior stress-adaptive
+  * Temporary measures for older Postfix releases
+  * Automatic stress-adaptive behavior
   * Detecting support for stress-adaptive behavior
   * Forcing stress-adaptive behavior on or off
+  * Other measures to off-load zombies
   * Credits
 
 SSyymmppttoommss ooff PPoossttffiixx SSMMTTPP sseerrvveerr oovveerrllooaadd
 
-Under normal conditions, Postfix responds immediately when a remote SMTP client
-connects. The time needed to deliver mail should be noticeable only with very
-large messages. Performance degrades more dramatically when the number of
-remote SMTP clients exceeds the number of Postfix SMTP server processes. When a
-client connects while all server processes are busy, the client must wait until
-a server process becomes available.
+Under normal conditions, the Postfix SMTP server responds immediately when an
+SMTP client connects to it; the time to deliver mail is noticeable only with
+large messages. Performance degrades dramatically when the number of SMTP
+clients exceeds the number of Postfix SMTP server processes. When an SMTP
+client connects while all Postfix SMTP server processes are busy, the client
+must wait until a server process becomes available.
 
-Overload may be caused by a legitimate mail (example: a DNS registrar opens a
-new zone for registrations), by mistake (mail explosion caused by a forwarding
-loop) or by illegitimate mail (worm outbreak, botnet, or other malware
-activity). Symptoms of Postfix SMTP mail server overload are:
+SMTP server overload may be caused by a surge of legitimate mail (example: a
+DNS registrar opens a new zone for registrations), by mistake (mail explosion
+caused by a forwarding loop) or by malice (worm outbreak, botnet, or other
+illegitimate activity).
+
+Symptoms of Postfix SMTP server overload are:
 
   * Remote SMTP clients experience a long delay before Postfix sends the "220
-    hostname.example.com ESMTP Postfix" greeting. If this affects end-user mail
-    clients, enable the "submission" service entry in master.cf (present since
-    Postfix 2.1), and tell users to connect to this instead of the public SMTP
-    service.
+    hostname.example.com ESMTP Postfix" greeting.
 
-      o NOTE: Broken DNS configurations also cause lengthy delays before
-        Postfix sends "220 hostname.example.com ...". In this case the delay
-        happens even when Postfix is not busy.
+      o NOTE: Broken DNS configurations can also cause lengthy delays before
+        Postfix sends "220 hostname.example.com ...". These delays also exist
+        when Postfix is NOT overloaded.
+
+      o NOTE: To avoid "overload" delays for end-user mail clients, enable the
+        "submission" service entry in master.cf (present since Postfix 2.1),
+        and tell users to connect to this instead of the public SMTP service.
 
   * The Postfix SMTP server logs an increased number of "lost connection after
     CONNECT" events. This happens because remote SMTP clients disconnect before
     Postfix answers the connection.
 
-      o NOTE: A portscan for open SMTP ports also results in "lost connection
-        ..." logfile messages.
+      o NOTE: A portscan for open SMTP ports can also result in "lost
+        connection ..." logfile messages.
 
   * Postfix 2.3 and later logs a warning that all server ports are busy:
 
@@ -63,15 +66,16 @@ activity). Symptoms of Postfix SMTP mail server overload are:
      condition, increase the process count in master.cf or reduce the
      service time per client
 
-Legitimate mail that doesn't get through during an episode of overload is not
-necessarily lost. It should still arrive once the situation returns to normal,
-as long as the overload condition is temporary.
+Legitimate mail that doesn't get through during an episode of Postfix SMTP
+server overload is not necessarily lost. It should still arrive once the
+situation returns to normal, as long as the overload condition is temporary.
 
 SSeerrvviiccee mmoorree SSMMTTPP cclliieennttss aatt tthhee ssaammee ttiimmee
 
-To service more SMTP clients simultaneously, you need to increase the number of
-SMTP server processes. This will improve the responsiveness for remote SMTP
-clients, as long as the server machine has enough hardware and software
+One measure to avoid the "all server processes busy" condition is to service
+more SMTP clients simultaneously. For this you need to increase the number of
+Postfix SMTP server processes. This will improve the responsiveness for remote
+SMTP clients, as long as the server machine has enough hardware and software
 resources to run the additional processes, and as long as the file system can
 keep up with the additional load.
 
@@ -84,8 +88,9 @@ keep up with the additional load.
     operating system that supports kernel-based event filters (BSD kqueue(2),
     Linux epoll(4), or Solaris /dev/poll).
 
-  * You can reduce the Postfix memory footprint by using cdb: lookup tables
-    instead of Berkeley DB's hash: or btree: tables.
+  * More processes use more memory. You can reduce the Postfix memory footprint
+    by using cdb: lookup tables instead of Berkeley DB's hash: or btree:
+    tables.
 
      1 /etc/postfix/main.cf:
      2     # Raise the global process limit, 100 since Postfix 2.0.
@@ -120,9 +125,9 @@ keep up with the additional load.
 SSppeenndd lleessss ttiimmee ppeerr SSMMTTPP cclliieenntt
 
 When increasing the number of SMTP server processes is not practical, you can
-improve Postfix server responsiveness by eliminating unnecessary work. When
-Postfix spends less time per SMTP session, the same number of SMTP server
-processes can service more clients in the same amount of time.
+improve Postfix server responsiveness by eliminating delays. When Postfix
+spends less time per SMTP session, the same number of SMTP server processes can
+service more clients in a given amount of time.
 
   * Eliminate non-functional RBL lookups (blocklists that are no longer in
     operation). These lookups can degrade performance. Postfix logs a warning
@@ -137,18 +142,18 @@ processes can service more clients in the same amount of time.
     BACKSCATTER_README for examples of the latter.
 
   * Group your header_checks and body_checks patterns to avoid unnecessary
-    pattern matching operations.
+    pattern matching operations:
 
      1  /etc/postfix/header_checks:
      2      if /^Subject:/
      3      /^Subject: virus found in mail from you/ reject
-     4      /^Subject: ..../ ....
+     4      /^Subject: ..other../ reject
      5      endif
      6
      7      if /^Received:/
      8      /^Received: from (postfix\.org) / reject forged client name in
     received header: $1
-     9      /^Received: from .../ ....
+     9      /^Received: from ..other../ reject ....
     10      endif
 
 DDiissccoonnnneecctt ssuussppiicciioouuss SSMMTTPP cclliieennttss
@@ -157,14 +162,16 @@ Under conditions of overload you can improve Postfix SMTP server responsiveness
 by hanging up on suspicious clients, so that other clients get a chance to talk
 to Postfix.
 
-  * Use "521" reply codes (Postfix 2.6 and later) for botnet-related RBLs or
-    for selected non-RBL restrictions. With Postfix 2.3-2.5 use "421" for a
-    similar result. The Postfix SMTP server will disconnect immediately without
+  * Use "521" SMTP reply codes (Postfix 2.6 and later) or "421" (Postfix 2.3-
+    2.5) to hang up on clients that that match botnet-related RBLs (see next
+    bullet) or that match selected non-RBL restrictions such as SMTP access
+    maps. The Postfix SMTP server will reject mail and disconnect without
     waiting for the remote SMTP client to send a QUIT command.
 
-    You can set individual reject codes for RBLs, and for individual responses
-    from a specific RBL. We'll use zen.spamhaus.org as an example; by the time
-    you read this document, details may have changed. Right now, their
+  * To hang up connections from blacklisted zombies, you can set specific
+    Postfix SMTP server reject codes for specific RBLs, and for individual
+    responses from specific RBLs. We'll use zen.spamhaus.org as an example; by
+    the time you read this document, details may have changed. Right now, their
     documents say that a response of 127.0.0.10 or 127.0.0.11 indicates a
     dynamic client IP address, which means that the machine is probably running
     a bot of some kind. To give a 521 response instead of the default 554
@@ -180,37 +187,45 @@ to Postfix.
      8      rbl_reply_maps = hash:/etc/postfix/rbl_reply_maps
      9
     10  /etc/postfix/rbl_reply_maps:
-    11      zen.spamhaus.org=127.0.0.10 521 4.7.1 Service unavailable;
-    12       $rbl_class [$rbl_what] blocked using
-    13       $rbl_domain${rbl_reason?; $rbl_reason}
-    14
-    15      zen.spamhaus.org=127.0.0.11 521 4.7.1 Service unavailable;
-    16       $rbl_class [$rbl_what] blocked using
-    17       $rbl_domain${rbl_reason?; $rbl_reason}
+    11      # With Postfix 2.3-2.5 use "421" to hang up connections.
+    12      zen.spamhaus.org=127.0.0.10 521 4.7.1 Service unavailable;
+    13       $rbl_class [$rbl_what] blocked using
+    14       $rbl_domain${rbl_reason?; $rbl_reason}
+    15
+    16      zen.spamhaus.org=127.0.0.11 521 4.7.1 Service unavailable;
+    17       $rbl_class [$rbl_what] blocked using
+    18       $rbl_domain${rbl_reason?; $rbl_reason}
 
-    Although the above shows three RBL lookups (lines 4-6), Postfix will still
-    only do a single DNS query, so the performance difference is negligible.
+    Although the above example shows three RBL lookups (lines 4-6), Postfix
+    will only do a single DNS query, so it does not affect the performance.
 
-    With Postfix 2.3-2.5, use 421 (reply code 521 will not cause Postfix to
-    disconnect). The down-side of sending 421 is that it works only for zombies
-    and other malware. If the client is running a real MTA, then it may connect
-    again several times until the mail expires in its queue. When this is a
-    problem, stick with the default 554 reply, and use "smtpd_hard_error_limit
-    = 1" as described below.
+  * With Postfix 2.3-2.5, use reply code 421 (521 will not cause Postfix to
+    disconnect). The down-side of replying with 421 is that it works only for
+    zombies and other malware. If the client is running a real MTA, then it may
+    connect again several times until the mail expires in its queue. When this
+    is a problem, stick with the default 554 reply, and use
+    "smtpd_hard_error_limit = 1" as described below.
 
-    With Postfix 2.5, or with earlier releases that contain the stress-adaptive
-    behavior patch, you can turn on the above under overload by replacing line
-    8 with:
+  * You can automatically turn on the above overload measure with Postfix 2.5
+    and later, or with earlier releases that contain the stress-adaptive
+    behavior source code patch from the mirrors listed at http://
+    www.postfix.org/download.html. Simply replace line above 8 with:
 
      8      rbl_reply_maps = ${stress?hash:/etc/postfix/rbl_reply_maps}
 
-    More information about automatic stress-adaptive behavior is at the end of
-    this document.
+More information about automatic stress-adaptive behavior is in section
+"Automatic stress-adaptive behavior".
 
-TTaakkee ddeessppeerraattee mmeeaassuurreess
+TTeemmppoorraarryy mmeeaassuurreess ffoorr oollddeerr PPoossttffiixx rreelleeaasseess
 
-The following measures will still allow mmoosstt legitimate clients to connect and
-send mail, but may affect some legitimate clients.
+See the next section, "Automatic stress-adaptive behavior", if you are running
+Postfix version 2.5 or later, or if you have applied the source code patch for
+stress-adaptive behavior from the mirrors listed at http://www.postfix.org/
+download.html.
+
+The following measures can be applied temporarily during overload. They still
+allow mmoosstt legitimate clients to connect and send mail, but may affect some
+legitimate clients.
 
   * Reduce smtpd_timeout (default: 300s). Experience on the postfix-users list
     from a variety of sysadmins shows that reducing the "normal" smtpd_timeout
@@ -228,55 +243,75 @@ send mail, but may affect some legitimate clients.
     longer-active user names that didn't bother to unsubscribe. No mail should
     be lost, as long as this measure is used only temporarily.
 
-  * Disable remote SMTP client hostname lookups, so that all SMTP client
-    hostnames become "unknown" (line 5 below). This feature was introduced with
-    Postfix 2.3. Unfortunately, this measure is more problematic than the other
-    ones proposed sofar. First, this will result in loss of mail when you use
-    hostname-based access rules that reject mail from "unknown" SMTP clients
-    (examples: reject_unknown_client_hostname,
-    reject_unknown_reverse_client_hostname). Second, this may result in loss of
-    mail when you subject "unknown" SMTP clients to additional restrictions
-    such as reject_unverified_sender.
+  * Use an smtpd_junk_command_limit of 1 instead of the default 100. This
+    prevents clients from keeping idle connections open by repeatedly sending
+    NOOP or RSET commands.
 
     1  /etc/postfix/main.cf:
     2      smtpd_timeout = 10
     3      smtpd_hard_error_limit = 1
-    4      # Caution: line 5 may trigger REJECTs by hostname-based access rules
+    4      smtpd_junk_command_limit = 1
 
-    5      smtpd_peername_lookup = no
+With these measures, no mail should be lost, as long as these measures are used
+only temporarily. The next section of this document introduces a way to
+automate this process.
 
-Except with the last measure, no mail should be lost, as long as these measures
-are used only temporarily. The next section of this document introduces a way
-to automate this process.
-
-MMaakkee PPoossttffiixx bbeehhaavviioorr ssttrreessss--aaddaappttiivvee
+AAuuttoommaattiicc ssttrreessss--aaddaappttiivvee bbeehhaavviioorr
 
 Postfix version 2.5 introduces automatic stress-adaptive behavior. This is also
-available as an add-on patch for Postfix versions 2.4 and 2.3 from the mirrors
-listed at http://www.postfix.org/download.html.
+available as a source code patch for Postfix versions 2.4 and 2.3 from the
+mirrors listed at http://www.postfix.org/download.html.
 
-It works as follows. When a "public" network service runs into an "all server
-ports are busy" condition, the master(8) daemon logs a warning, restarts the
-service (without interrupting existing network sessions), and runs the service
-with "-o stress=yes" on the command line. Normally, it runs a stress-adaptive
-service with "-o stress=" on the command line (i.e. with an empty parameter
-value). Other services never have "-o stress" parameters on the command line,
-including services that listen on a loopback interface only.
+It works as follows. When a "public" network service such as the SMTP server
+runs into an "all server ports are busy" condition, the Postfix master(8)
+daemon logs a warning, restarts the service (without interrupting existing
+network sessions), and runs the service with "-o stress=yes" on the server
+process command line:
 
-The stress pseudo-parameter value is the key to making main.cf parameter
-settings stress adaptive:
+    80821  ??  S      0:00.24 smtpd -n smtp -t inet -u -c -o stress=yes
 
-    1  /etc/postfix/main.cf:
-    2      smtpd_timeout = ${stress?10}${stress:300}
-    3      smtpd_hard_error_limit = ${stress?1}${stress:20}
+Normally, the Postfix master(8) daemon runs such a service with "-o stress=" on
+the command line (i.e. with an empty parameter value):
+
+    83326  ??  S      0:00.28 smtpd -n smtp -t inet -u -c -o stress=
+
+Services that have local access only never have "-o stress" parameters on the
+command line. This includes services internal to Postfix such as the queue
+manager, and services that listen on a loopback interface only, such as after-
+filter SMTP services.
+
+The "stress" parameter value is the key to making main.cf parameter settings
+stress adaptive. The following settings are the default with Postfix 2.6 and
+later. With earlier Postfix versions that have stress-adaptive support, append
+the lines below to the main.cf file and issue a "postfix reload" command:
+
+    1 smtpd_timeout = ${stress?10}${stress:300}s
+    2 smtpd_hard_error_limit = ${stress?1}${stress:20}
+    3 smtpd_junk_command_limit = ${stress?1}${stress:100}
 
 Translation:
 
-  * Line 2: under conditions of stress, use an smtpd_timeout value of 10
-    seconds instead of the default 300 seconds,
+  * Line 1: under conditions of stress, use an smtpd_timeout value of 10
+    seconds instead of the default 300 seconds. Experience on the postfix-users
+    list from a variety of sysadmins shows that reducing the "normal"
+    smtpd_timeout to 60s is unlikely to affect legitimate clients. However, it
+    is unlikely to become the Postfix default because it's not RFC compliant.
+    Setting smtpd_timeout to 10s (line 2 below) or even 5s under stress will
+    still allow most legitimate clients to connect and send mail, but may delay
+    mail from some clients. No mail should be lost, as long as this measure is
+    used only temporarily.
 
-  * Line 3: under conditions of stress, use an smtpd_hard_error_limit of 1
-    instead of the default 20.
+  * Line 2: under conditions of stress, use an smtpd_hard_error_limit of 1
+    instead of the default 20. This helps by disconnecting clients after a
+    single error, giving other clients a chance to connect. However, this may
+    cause significant delays with legitimate mail, such as a mailing list that
+    contains a few no-longer-active user names that didn't bother to
+    unsubscribe. No mail should be lost, as long as this measure is used only
+    temporarily.
+
+  * Line 3: under conditions of stress, use an smtpd_junk_command_limit of 1
+    instead of the default 100. This prevents clients from keeping idle
+    connections open by repeatedly sending NOOP or RSET commands.
 
 The syntax of ${name?value} and ${name:value} is explained at the beginning of
 the postconf(5) manual page.
@@ -345,6 +380,18 @@ accept remote connections.
     6     submission inet n       -       n       -       -       smtpd
     7         -o stress=
     8         -o . . .
+
+OOtthheerr mmeeaassuurreess ttoo ooffff--llooaadd zzoommbbiieess
+
+OpenBSD spamd implements a daemon that handles all connections from "new"
+clients. Only well-behaved mail clients are allowed to talk to the mail server.
+Other clients are tarpitted, and will never get a chance to affect mail server
+performance.
+
+At some point in the future, Postfix may come with a simple front-end daemon
+that does basic greylisting and pipelining detection to keep zombies and other
+ratware away from Postfix itself. This would use the "pass" service type which
+has been available in stable Postfix releases since Postfix 2.5.
 
 CCrreeddiittss
 

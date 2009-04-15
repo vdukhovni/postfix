@@ -164,8 +164,9 @@
 /* .SH "New or existing instance name assignment"
 /* .IP "\fB-I \fIname\fR"
 /*	Assign the specified instance \fIname\fR to an existing
-/*	instance or to a newly created or imported instance.  Instance
-/*	names other than "-"	(which makes the instance "nameless")
+/*	instance, newly-created instance, or imported instance.
+/*	Instance
+/*	names other than "-" (which makes the instance "nameless")
 /*	must start with "postfix-".  This restriction reduces the
 /*	likelihood of name collisions with system files.
 /* .IP "\fB-G \fIgroup\fR"
