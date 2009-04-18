@@ -624,6 +624,10 @@ static void cleanup_header_done_callback(void *context)
      * ID uniqueness only within a second, we must ensure that the time in
      * the message ID matches the queue ID creation time, as long as we use
      * the queue ID in the message ID.
+     * 
+     * XXX We log a dummy name=value record so that we (hopefully) don't break
+     * compatibility with existing logfile analyzers, and so that we don't
+     * complicate future code that wants to log more name=value attributes.
      */
     if ((state->hdr_rewrite_context || var_always_add_hdrs)
 	&& (state->headers_seen & (1 << (state->resent[0] ?
@@ -636,7 +640,11 @@ static void cleanup_header_done_callback(void *context)
 	msg_info("%s: %smessage-id=<%s.%s@%s>",
 		 state->queue_id, *state->resent ? "resent-" : "",
 		 time_stamp, state->queue_id, var_myhostname);
+	state->headers_seen |= (1 << (state->resent[0] ?
+				   HDR_RESENT_MESSAGE_ID : HDR_MESSAGE_ID));
     }
+    if ((state->headers_seen & (1 << HDR_MESSAGE_ID)) == 0)
+	msg_info("%s: message-id=<>", state->queue_id);
 
     /*
      * Add a missing (Resent-)Date: header. The date is in local time units,

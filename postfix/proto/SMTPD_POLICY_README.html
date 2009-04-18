@@ -126,10 +126,10 @@ stress=
     an empty value ("name="), or sends a zero value ("name=0") in
     the case of a numerical attribute. </p>
 
-    <li> <p> The "recipient" attribute is available only in the
-    "RCPT TO" stage, and in the "DATA" and "END-OF-MESSAGE" stages
-    when Postfix accepted only one recipient for the current message.
-    </p>
+    <li> <p> The "recipient" attribute is available in the "RCPT
+    TO" stage. It is also available in the "DATA" and "END-OF-MESSAGE"
+    stages if Postfix accepted only one recipient for the current
+    message.  </p>
 
     <li> <p> The "recipient_count" attribute (Postfix 2.3 and later)
     is non-zero only in the "DATA" and "END-OF-MESSAGE" stages. It

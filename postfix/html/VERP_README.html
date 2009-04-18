@@ -132,7 +132,7 @@ you of the new syntax): </p>
 </pre>
 </blockquote>
 
-<p> The first form uses the default main.cf VERP delimiter characters.
+<p> The first form uses the default <a href="postconf.5.html">main.cf</a> VERP delimiter characters.
 The second form allows you to explicitly specify the VERP delimiter
 characters. The example shows the recommended values. </p>
 
@@ -156,7 +156,7 @@ are to be discarded when doing alias expansions: </p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> = +
     <a href="postconf.5.html#forward_path">forward_path</a> = $home/.forward${<a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a>}${extension},
         $home/.forward
@@ -213,7 +213,7 @@ MAIL FROM:&lt;sender@domain&gt; XVERP=+=
 </pre>
 </blockquote>
 
-<p> The first form uses the default main.cf VERP delimiters, the
+<p> The first form uses the default <a href="postconf.5.html">main.cf</a> VERP delimiters, the
 second form overrides them explicitly. The values shown are the
 recommended ones. </p>
 
@@ -243,7 +243,7 @@ you of the new syntax): </p>
 </pre>
 </blockquote>
 
-<p> The first form uses the default main.cf VERP delimiters, the
+<p> The first form uses the default <a href="postconf.5.html">main.cf</a> VERP delimiters, the
 second form overrides them explicitly. The values shown are the
 recommended ones. </p>
 

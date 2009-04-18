@@ -44,16 +44,29 @@ typedef struct XSASL_SERVER {
   * Generic server implementation. Specific instances extend this with their
   * own private data.
   */
+typedef struct XSASL_SERVER_CREATE_ARGS {
+    VSTREAM *stream;
+    const char *server_addr;
+    const char *client_addr;
+    const char *service;
+    const char *user_realm;
+    const char *security_options;
+    int     tls_flag;
+} XSASL_SERVER_CREATE_ARGS;
+
 typedef struct XSASL_SERVER_IMPL {
-    XSASL_SERVER *(*create) (struct XSASL_SERVER_IMPL *, VSTREAM *, const char *, const char *, const char *);
+    XSASL_SERVER *(*create) (struct XSASL_SERVER_IMPL *, XSASL_SERVER_CREATE_ARGS *);
     void    (*done) (struct XSASL_SERVER_IMPL *);
 } XSASL_SERVER_IMPL;
 
 extern XSASL_SERVER_IMPL *xsasl_server_init(const char *, const char *);
 extern ARGV *xsasl_server_types(void);
 
-#define xsasl_server_create(impl, stream, service, realm, sec_props) \
-	(impl)->create((impl), (stream), (service), (realm), (sec_props))
+#define xsasl_server_create(impl, args) \
+	(impl)->create((impl), (args))
+#define XSASL_SERVER_CREATE(impl, args, a1, a2, a3, a4, a5, a6, a7) \
+	xsasl_server_create((impl), (((args)->a1), ((args)->a2), ((args)->a3), \
+	((args)->a4), ((args)->a5), ((args)->a6), ((args)->a7), (args)))
 #define xsasl_server_done(impl) (impl)->done((impl));
 
  /*
@@ -78,16 +91,26 @@ typedef struct XSASL_CLIENT {
   * Generic client implementation. Specific instances extend this with their
   * own private data.
   */
+typedef struct XSASL_CLIENT_CREATE_ARGS {
+    VSTREAM *stream;
+    const char *service;
+    const char *server_name;
+    const char *security_options;
+} XSASL_CLIENT_CREATE_ARGS;
+
 typedef struct XSASL_CLIENT_IMPL {
-    XSASL_CLIENT *(*create) (struct XSASL_CLIENT_IMPL *, VSTREAM *, const char *, const char *, const char *);
+    XSASL_CLIENT *(*create) (struct XSASL_CLIENT_IMPL *, XSASL_CLIENT_CREATE_ARGS *);
     void    (*done) (struct XSASL_CLIENT_IMPL *);
 } XSASL_CLIENT_IMPL;
 
 extern XSASL_CLIENT_IMPL *xsasl_client_init(const char *, const char *);
 extern ARGV *xsasl_client_types(void);
 
-#define xsasl_client_create(impl, stream, service, server, sec_props) \
-	(impl)->create((impl), (stream), (service), (server), (sec_props))
+#define xsasl_client_create(impl, args) \
+	(impl)->create((impl), (args))
+#define XSASL_CLIENT_CREATE(impl, args, a1, a2, a3, a4) \
+	xsasl_client_create((impl), (((args)->a1), ((args)->a2), ((args)->a3), \
+	((args)->a4), (args)))
 #define xsasl_client_done(impl) (impl)->done((impl));
 
  /*

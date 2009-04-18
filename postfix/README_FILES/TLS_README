@@ -160,10 +160,10 @@ configure all three at the same time, in which case the cipher used determines
 which certificate is presented. For Netscape and OpenSSL clients without
 special cipher choices, the RSA certificate is preferred.
 
-In order for remote SMTP clients to check the Postfix SMTP server certificates,
-the CA certificate (in case of a certificate chain, all CA certificates) must
-be available. You should add any intermediate CA certificates to the server
-certificate: the server certificate first, then the intermediate CA(s).
+To enable a remote SMTP client to verify the Postfix SMTP server certificate,
+the issuing CA certificates must be made available to the client. You should
+include the required certificates in the server certificate file, the server
+certificate first, then the issuing CA(s) (bottom-up order).
 
 Example: the certificate for "server.example.com" was issued by "intermediate
 CA" which itself has a certificate issued by "root CA". Create the server.pem
@@ -227,14 +227,14 @@ files in the directory when the information is needed. Thus, the
 $smtpd_tls_CApath directory needs to be accessible inside the optional chroot
 jail.
 
-When you configure the Postfix SMTP server to request client certificates, any
-CA certificates in $smtpd_tls_CAfile are sent to the client, in order to allow
-it to choose an identity signed by a CA you trust. If no $smtpd_tls_CAfile is
-specified, no preferred CA list is sent, and the client is free to choose an
-identity signed by any CA. Many clients use a fixed identity regardless of the
-preferred CA list and you may be able to reduce TLS negotiation overhead by
-installing client CA certificates mostly or only in $smtpd_tls_CApath. In the
-latter case you need not specify a $smtpd_tls_CAfile.
+When you configure the Postfix SMTP server to request client certificates, the
+DNs of certificate authorities in $smtpd_tls_CAfile are sent to the client, in
+order to allow it to choose an identity signed by a CA you trust. If no
+$smtpd_tls_CAfile is specified, no preferred CA list is sent, and the client is
+free to choose an identity signed by any CA. Many clients use a fixed identity
+regardless of the preferred CA list and you may be able to reduce TLS
+negotiation overhead by installing client CA certificates mostly or only in
+$smtpd_tls_CApath. In the latter case you need not specify a $smtpd_tls_CAfile.
 
 Note, that unless client certificates are used to allow greater access to TLS
 authenticated clients, it is best to not ask for client certificates at all, as
@@ -670,14 +670,14 @@ as the Postfix SMTP server. If a certificate is to be presented, it must be in
 accessible without password. Both parts (certificate and private key) may be in
 the same file.
 
-In order for remote SMTP servers to verify the Postfix SMTP client
-certificates, the CA certificate (in case of a certificate chain, all CA
-certificates) must be available. You should add these certificates to the
-client certificate, the client certificate first, then the issuing CA(s).
+To enable remote SMTP servers to verify the Postfix SMTP client certificate,
+the issuing CA certificates must be made available to the server. You should
+include the required certificates in the client certificate file, the client
+certificate first, then the issuing CA(s) (bottom-up order).
 
 Example: the certificate for "client.example.com" was issued by "intermediate
-CA" which itself has a certificate of "root CA". Create the client.pem file
-with:
+CA" which itself has a certificate issued by "root CA". Create the client.pem
+file with:
 
     % ccaatt cclliieenntt__cceerrtt..ppeemm iinntteerrmmeeddiiaattee__CCAA..ppeemm >> cclliieenntt..ppeemm
 

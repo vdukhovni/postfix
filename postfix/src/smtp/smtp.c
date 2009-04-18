@@ -307,8 +307,8 @@
 /*	Time limit for Postfix SMTP client write and read operations
 /*	during TLS startup and shutdown handshake procedures.
 /* .IP "\fBsmtp_tls_CAfile (empty)\fR"
-/*	The file with the certificate of the certification authority
-/*	(CA) that issued the Postfix SMTP client certificate.
+/*	A file containing CA certificates of root CAs trusted to sign
+/*	either remote SMTP server certificates or intermediate CA certificates.
 /* .IP "\fBsmtp_tls_CApath (empty)\fR"
 /*	Directory with PEM format certificate authority certificates
 /*	that the Postfix SMTP client uses to verify a remote SMTP server

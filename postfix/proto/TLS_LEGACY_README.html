@@ -568,6 +568,11 @@ the cost of repeatedly negotiating TLS session keys is high.</p>
 </pre>
 </blockquote>
 
+<p> As of version 2.5, Postfix will no longer maintain this file
+in a directory with non-Postfix ownership. As a migration aid,
+attempts to open such files are redirected to the Postfix-owned
+$data_directory, and a warning is logged. </p>
+
 <p> Cached Postfix SMTP server session information expires after
 a certain amount of time.  Postfix/TLS does not use the OpenSSL
 default of 300s, but a longer time of 3600sec (=1 hour). RFC 2246
@@ -936,6 +941,11 @@ is allowed to negotiate per unit time.</p>
     smtp_tls_session_cache_database = btree:/etc/postfix/smtp_scache
 </pre>
 </blockquote>
+
+<p> As of version 2.5, Postfix will no longer maintain this file
+in a directory with non-Postfix ownership. As a migration aid,
+attempts to open such files are redirected to the Postfix-owned
+$data_directory, and a warning is logged. </p>
 
 <p> Cached Postfix SMTP client session information expires after
 a certain amount of time.  Postfix/TLS does not use the OpenSSL

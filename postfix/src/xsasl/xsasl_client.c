@@ -15,13 +15,25 @@
 /*
 /*	ARGV	*xsasl_client_types()
 /*
-/*	XSASL_CLIENT *xsasl_client_create(implementation, stream, service, 
-/*					server_name, security_properties)
+/* .in +4
+/*	typedef struct XSASL_CLIENT_CREATE_ARGS {
+/*		VSTREAM	*stream;
+/*		const char *service;
+/*		const char *server_name;
+/*		const char *security_options;
+/*	} XSASL_CLIENT_CREATE_ARGS;
+/* .in -4
+/*
+/*	XSASL_CLIENT *xsasl_client_create(implementation, create_args)
 /*	XSASL_CLIENT_IMPL *implementation;
-/*	VSTREAM	*stream;
-/*	const char *service;
-/*	const char *server_name;
-/*	const char *security_properties;
+/*	XSASL_CLIENT_CREATE_ARGS *create_args;
+/*
+/*	XSASL_CLIENT *XSASL_CLIENT_CREATE(implementation, create_args,
+/*					stream = stream_val,
+/*					...,
+/*					security_options = prop_val)
+/*	XSASL_CLIENT_IMPL *implementation;
+/*	XSASL_CLIENT_CREATE_ARGS *create_args;
 /*
 /*	void	xsasl_client_free(client)
 /*	XSASL_CLIENT *client;
@@ -61,6 +73,11 @@
 /*	for the specified service and server name, with the specified
 /*	security properties. The stream handle is stored so that
 /*	encryption can be turned on after successful negotiations.
+/*
+/*	XSASL_CLIENT_CREATE() is a macro that provides an interface
+/*	with named parameters.  Named parameters do not have to
+/*	appear in a fixed order. The parameter names correspond to
+/*	the member names of the XSASL_CLIENT_CREATE_ARGS structure.
 /*
 /*	xsasl_client_free() is called at the end of an SMTP session.
 /*	It destroys a SASL client instance, and disables further

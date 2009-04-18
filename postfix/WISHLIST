@@ -1,5 +1,7 @@
 Wish list:
 
+	Remove this file from the stable release.
+
 	"postconf -N" option to print user-defined parameter names
 	(these have no defaults, since they exist only when 
 	specified in main.cf or with "-o name=value").
@@ -7,27 +9,16 @@ Wish list:
 	Make the "unknown recipient" test configurable as
 	first|last|never, with "yes"=="last" for backwards
 	compatibility. The "first" setting is good for performance
-	(stress=yes) when all users are defined in local files.
-
-	Make the double-bounce address time-dependent (with 24-hour
-	grace period).  Spammers appear to use this address to avoid
-	DATA command rejects. Avoiding DATA rejects means they can
-	pipeline the entire SMTP session without triggering huge
-	numbers of protocol errors. They can still trigger "improper
-	command pipelining after DATA" alarms, but that requires
-	non-default main.cf settings.
+	(stress=yes) when all users are defined in local files; but
+	it may perform worse when users are in networked tables.
 
 	Cleanup: make DNSBL query format configurable beyond the
 	client's reversed IP address.
 
 	With 'final delivery' in the LMTP client, need an option
-	to also add delivered-to and other pipe(8) features.
-	This requires making mail_copy() more generic.
-
-	To work around historical AWK's limit of 10 open files,
-	pipe all output into a shell and have the shell open files.
-	It's too much pain to find out whose AWK is old and where
-	if any they keep the XPG4 compliant version.
+	to also add delivered-to and other pipe(8) features.  This
+	requires making mail_copy() functionality available in
+	non-mailbox context.
 
 	Cleanup: modernize the "add missing From: header" code, to
 	``phrase <addr>'' form. Most likely, quote the entire phrase
@@ -39,13 +30,6 @@ Wish list:
 
 	Maybe change maps_rbl_reject_code default to 521, and
 	update wording in STRESS_README.
-
-	reject_unlisted_recipient = (yes | late | early | no) with
-	yes===late, for backwards compatibility. Ditto for
-	reject_unlisted_sender.
-
-	Set a flag when a remote SMTP client speaks before the
-	Postfix SMTP server sends the 220 greeting.
 
 	Encapsulate time_t comparisons so that they can be made
 	system dependent (use difftime() where available).
@@ -65,13 +49,6 @@ Wish list:
 	is unlikely to break existing configurations. Or perhaps
 	it's just too ugly.
 
-	Make adding Date/From/Message-ID headers dependent on local
-	rewrite context.
-
-	Make adding date/from/etc. conditional. Perhaps on header
-	rewrite context? Do we need a more powerful concept than
-	local_header_rewrite_clients/remote_header_rewrite_domain?
-
 	Write delivery rate delay example (which _README?) and auth
 	failure cache example (SASL_README). Then include them in
 	SOHO_README.
@@ -83,12 +60,16 @@ Wish list:
 	that it makes smtpd_mumble_restrictions available for local
 	and remote mail; the disadvantage is that it makes local
 	submissions more dependent on networking.  One possibility
-	is to use "pickup -o content_filter=smtp:127.0.0.1:10025";
+	is to use "pickup -o content_filter=smtp:127.0.0.1:10025",
+	or a dedicated SMTP client/server on UNIX-domain sockets;
 	we could also decide to always suppress "mail loop" detection
 	for loopback connections.  Another option is to have the
 	pickup or cleanup server drive an SMTP client directly;
 	this would require extension of the mail_stream() interface,
-	plus a way to handle bounced/deferred recipients intelligently.
+	plus a way to handle bounced/deferred recipients intelligently,
+	but it would be at odds with Postfix design where delivery
+	agents access queue files directly; exposing delivery agents
+	to raw queue files violates another Postfix design principle.
 
 	Consolidate duplicated code in *_server_accept_{pass,inet}().
 

@@ -337,11 +337,13 @@ server uses for TLS encrypted SMTP sessions.
 The time limit for Postfix SMTP server write and read operations
 during TLS startup and shutdown handshake procedures.
 .IP "\fBsmtpd_tls_CAfile (empty)\fR"
-The file with the certificate of the certification authority
-(CA) that issued the Postfix SMTP server certificate.
+A file containing (PEM format) CA certificates of root CAs trusted
+to sign either remote SMTP client certificates or intermediate CA
+certificates.
 .IP "\fBsmtpd_tls_CAfile (empty)\fR"
-The file with the certificate of the certification authority
-(CA) that issued the Postfix SMTP server certificate.
+A file containing (PEM format) CA certificates of root CAs trusted
+to sign either remote SMTP client certificates or intermediate CA
+certificates.
 .IP "\fBsmtpd_tls_always_issue_session_ids (yes)\fR"
 Force the Postfix SMTP server to issue a TLS session id, even
 when TLS session caching is turned off (smtpd_tls_session_cache_database

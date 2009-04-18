@@ -273,11 +273,16 @@ void    smtp_sasl_connect(SMTP_SESSION *session)
 void    smtp_sasl_start(SMTP_SESSION *session, const char *sasl_opts_name,
 			        const char *sasl_opts_val)
 {
+    XSASL_CLIENT_CREATE_ARGS create_args;
+
     if (msg_verbose)
 	msg_info("starting new SASL client");
     if ((session->sasl_client =
-	 xsasl_client_create(smtp_sasl_impl, session->stream, var_procname,
-			     session->host, sasl_opts_val)) == 0)
+	 XSASL_CLIENT_CREATE(smtp_sasl_impl, &create_args,
+			     stream = session->stream,
+			     service = var_procname,
+			     server_name = session->host,
+			     security_options = sasl_opts_val)) == 0)
 	msg_fatal("SASL per-connection initialization failed");
     session->sasl_reply = vstring_alloc(20);
 }

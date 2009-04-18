@@ -890,7 +890,7 @@ Examples:
 
 <pre>
 debug_peer_list = 127.0.0.1
-debug_peer_list = some.domain
+debug_peer_list = example.com
 </pre>
 
 %PARAM default_database_type see "postconf -d" output
@@ -2876,7 +2876,7 @@ Example:
 </p>
 
 <pre>
-myhostname = host.domain.tld
+myhostname = host.example.com
 </pre>
 
 %PARAM mynetworks see "postconf -d" output
@@ -3508,7 +3508,7 @@ Examples:
 
 <pre>
 relayhost = $mydomain
-relayhost = [gateway.my.domain]
+relayhost = [gateway.example.com]
 relayhost = uucphost
 relayhost = [an.ip.add.ress]
 </pre>
@@ -7050,6 +7050,11 @@ seconds. When the LMTP client receives a request for the same
 connection the connection is reused.
 </p>
 
+<p> This parameter is available in Postfix version 2.2 and earlier.
+With Postfix version 2.3 and later, see lmtp_connection_cache_on_demand,
+lmtp_connection_cache_destinations, or lmtp_connection_reuse_time_limit.
+</p>
+
 <p>
 The effectiveness of cached connections will be determined by the
 number of LMTP servers in use, and the concurrency limit specified
@@ -8430,12 +8435,13 @@ are present, the cipher used determines which certificate will be
 presented to the client.  For Netscape and OpenSSL clients without
 special cipher choices the RSA certificate is preferred. </p>
 
-<p> In order to verify a certificate, the CA certificate (in case
-of a certificate chain, all CA certificates) must be available.
-You should add these certificates to the server certificate, the
-server certificate first, then the issuing CA(s).  </p>
+<p> To enable a remote SMTP client to verify the Postfix SMTP server
+certificate, the issuing CA certificates must be made available to the
+client. You should include the required certificates in the server
+certificate file, the server certificate first, then the issuing
+CA(s) (bottom-up order). </p>
 
-<p> Example: the certificate for "server.dom.ain" was issued by
+<p> Example: the certificate for "server.example.com" was issued by
 "intermediate CA" which itself has a certificate of "root CA".
 Create the server.pem file with "cat server_cert.pem intermediate_CA.pem
 root_CA.pem &gt; server.pem". </p>
@@ -8498,12 +8504,25 @@ to anyone else. </p>
 
 %PARAM smtpd_tls_CAfile
 
-<p> The file with the certificate of the certification authority
-(CA) that issued the Postfix SMTP server certificate.  This is
-needed only when the CA certificate is not already present in the
-server certificate file.  This file may also contain the CA
-certificates of other trusted CAs.  You must use this file for the
-list of trusted CAs if you want to use chroot-mode. </p>
+<p> A file containing (PEM format) CA certificates of root CAs trusted
+to sign either remote SMTP client certificates or intermediate CA
+certificates.  These are loaded into memory before the smtpd(8) server
+enters the chroot jail. If the number of trusted roots is large, consider
+using smtpd_tls_CApath instead, but note that the latter directory must
+be present in the chroot jail if the smtpd(8) server is chrooted. This
+file may also be used to augment the server certificate trust chain,
+but it is best to include all the required certificates directly in the
+server certificate file. </p>
+
+<p> By default (see smtpd_tls_ask_ccert), client certificates are not
+requested, and smtpd_tls_CAfile should remain empty. If you do make use
+of client certificates, the distinguished names (DNs) of the certificate
+authorities listed in smtpd_tls_CAfile are sent to the remote SMTP client
+in the client certificate request message. MUAs with multiple client
+certificates may use the list of preferred certificate authorities
+to select the correct client certificate.  You may want to put your
+"preferred" CA or CAs in this file, and install other trusted CAs in
+$smtpd_tls_CApath. </p>
 
 <p> Example: </p>
 
@@ -8515,17 +8534,22 @@ smtpd_tls_CAfile = /etc/postfix/CAcert.pem
 
 %PARAM smtpd_tls_CApath
 
-<p> Directory with PEM format certificate authority certificates
-that the Postfix SMTP server offers to remote SMTP clients for the
-purpose of client certificate verification.  Do not forget to create
-the necessary "hash" links with, for example, "$OPENSSL_HOME/bin/c_rehash
-/etc/postfix/certs".  </p>
+<p> A directory containing (PEM format) CA certificates of root CAs
+trusted to sign either remote SMTP client certificates or intermediate CA
+certificates. Do not forget to create the necessary "hash" links with,
+for example, "$OPENSSL_HOME/bin/c_rehash /etc/postfix/certs". To use
+smtpd_tls_CApath in chroot mode, this directory (or a copy) must be
+inside the chroot jail. </p>
 
-<p> To use this option in chroot mode, this directory (or a copy)
-must be inside the chroot jail. Please note that in this case the
-CA certificates are not offered to the client, so that e.g.  Netscape
-clients might not offer certificates issued by them.  Use of this
-feature is therefore not recommended. </p>
+<p> By default (see smtpd_tls_ask_ccert), client certificates are
+not requested, and smtpd_tls_CApath should remain empty. In contrast
+to smtp_tls_CAfile, DNs of certificate authorities installed
+in $smtpd_tls_CApath are not included in the client certificate
+request message. MUAs with multiple client certificates may use the
+list of preferred certificate authorities to select the correct
+client certificate.  You may want to put your "preferred" CA or
+CAs in $smtp_tls_CAfile, and install the remaining trusted CAs in
+$smtpd_tls_CApath. </p>
 
 <p> Example: </p>
 
@@ -8827,13 +8851,14 @@ smtp_tls_eckey_file =
 <p> The best way to use the default settings is to comment out the above
 parameters in main.cf if present. </p>
 
-<p> In order to verify certificates, the CA certificate (in case
-of a certificate chain, all CA certificates) must be available.
-You should add these certificates to the client certificate, the
-client certificate first, then the issuing CA(s). </p>
+<p> To enable remote SMTP servers to verify the Postfix SMTP client
+certificate, the issuing CA certificates must be made available to the
+server. You should include the required certificates in the client
+certificate file, the client certificate first, then the issuing
+CA(s) (bottom-up order). </p>
 
-<p> Example: the certificate for "client.dom.ain" was issued by
-"intermediate CA" which itself has a certificate of "root CA".
+<p> Example: the certificate for "client.example.com" was issued by
+"intermediate CA" which itself has a certificate issued by "root CA".
 Create the client.pem file with "cat client_cert.pem intermediate_CA.pem
 root_CA.pem &gt; client.pem". </p>
 
@@ -8874,10 +8899,15 @@ smtp_tls_key_file = $smtp_tls_cert_file
 
 %PARAM smtp_tls_CAfile
 
-<p> The file with the certificate of the certification authority
-(CA) that issued the Postfix SMTP client certificate.  This is
-needed only when the CA certificate is not already present in the
-client certificate file.  </p>
+<p> A file containing CA certificates of root CAs trusted to sign
+either remote SMTP server certificates or intermediate CA certificates.
+These are loaded into memory before the smtp(8) client enters the
+chroot jail. If the number of trusted roots is large, consider using
+smtp_tls_CApath instead, but note that the latter directory must be
+present in the chroot jail if the smtp(8) client is chrooted. This
+file may also be used to augment the client certificate trust chain,
+but it is best to include all the required certificates directly in
+$smtp_tls_cert_file. </p>
 
 <p> Example: </p>
 

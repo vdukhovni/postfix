@@ -15,13 +15,28 @@
 /*
 /*	ARGV	*xsasl_server_types()
 /*
-/*	XSASL_SERVER *xsasl_server_create(implementation, stream, service,
-/*						user_realm, security_options)
+/* .in +4
+/*	typedef struct XSASL_SERVER_CREATE_ARGS {
+/*		VSTREAM *stream;
+/*		const char *server_addr;
+/*		const char *client_addr;
+/*		const char *service;
+/*		const char *user_realm;
+/*		const char *security_options;
+/*		int     tls_flag;
+/*	} XSASL_SERVER_CREATE_ARGS;
+/* .in -4
+/*
+/*	XSASL_SERVER *xsasl_server_create(implementation, args)
 /*	XSASL_SERVER_IMPL *implementation;
-/*	const char *service;
-/*	VSTREAM *stream;
-/*	const char *user_realm;
-/*	const char *security_options;
+/*	XSASL_SERVER_CREATE_ARGS *args;
+/*
+/*	XSASL_SERVER *XSASL_SERVER_CREATE(implementation, args,
+/*					stream = stream_value,
+/*					...,
+/*					tls_flag = tls_flag_value)
+/*	XSASL_SERVER_IMPL *implementation;
+/*	XSASL_SERVER_CREATE_ARGS *args;
 /*
 /*	void xsasl_server_free(server)
 /*	XSASL_SERVER *server;
@@ -65,7 +80,13 @@
 /*	with the specified security properties. Specify a null
 /*	pointer when no realm should be used. The stream handle is
 /*	stored so that encryption can be turned on after successful
-/*	negotiations.
+/*	negotiations. Specify zero-length strings when a client or
+/*	server address is unavailable.
+/*
+/*	XSASL_SERVER_CREATE() is a macro that provides an interface
+/*	with named parameters.  Named parameters do not have to
+/*	appear in a fixed order. The parameter names correspond to
+/*	the member names of the XSASL_SERVER_CREATE_ARGS structure.
 /*
 /*	xsasl_server_free() is called at the end of an SMTP session.
 /*	It destroys a SASL server instance, and disables further
@@ -107,6 +128,9 @@
 /*	Arguments:
 /* .IP auth_method
 /*	AUTH command authentication method.
+/* .IP client_addr
+/*	IPv4 or IPv6 address (no surrounding [] or ipv6: prefix),
+/*	or zero-length string if unavailable.
 /* .IP init_resp
 /*	AUTH command initial response or null pointer.
 /* .IP implementation
@@ -121,6 +145,9 @@
 /*	equivalent. This is passed unchanged to the plug-in.
 /* .IP server
 /*	SASL plug-in server handle.
+/* .IP server_addr
+/*	IPv4 or IPv6 address (no surrounding [] or ipv6: prefix),
+/*	or zero-length string if unavailable.
 /* .IP server_reply
 /*	BASE64 encoded server non-error reply (without SMTP reply
 /*	code or enhanced status code), or ASCII error description.

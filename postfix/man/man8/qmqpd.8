@@ -130,19 +130,21 @@ The process ID of a Postfix command or daemon process.
 The process name of a Postfix command or daemon process.
 .IP "\fBqmqpd_authorized_clients (empty)\fR"
 What clients are allowed to connect to the QMQP server port.
-.IP "\fBqmqpd_client_port_logging (no)\fR"
-Enable logging of the remote QMQP client port in addition to
-the hostname and IP address.
 .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 The location of the Postfix top-level queue directory.
 .IP "\fBsyslog_facility (mail)\fR"
 The syslog facility of Postfix logging.
-.IP "\fBsyslog_name (postfix)\fR"
+.IP "\fBsyslog_name (see 'postconf -d' output)\fR"
 The mail system name that is prepended to the process name in syslog
 records, so that "smtpd" becomes, for example, "postfix/smtpd".
 .IP "\fBverp_delimiter_filter (-=+)\fR"
 The characters Postfix accepts as VERP delimiter characters on the
 Postfix \fBsendmail\fR(1) command line and in SMTP commands.
+.PP
+Available in Postfix version 2.5 and later:
+.IP "\fBqmqpd_client_port_logging (no)\fR"
+Enable logging of the remote QMQP client port in addition to
+the hostname and IP address.
 .SH "SEE ALSO"
 .na
 .nf

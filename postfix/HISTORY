@@ -15080,3 +15080,56 @@ Apologies for any names omitted.
 	compatibility.  Adding such headers to remote mail can break
 	DKIM signatures that cover headers that are not present.
 	File: cleanup/cleanup_message.c.
+
+20090415
+
+	Workaround: to avoid unnecessary "fatal" delivery agent
+	exits, delivery agents retry getting a shared lock on a
+	queue file.  This is necessary since the queue manager's
+	behavior was changed years ago to refill the in-memory
+	recipient list before it was completely empty.  File:
+	global/deliver_request.c.
+
+	Documentation: updated STRESS_README.
+
+20090416
+
+	Workaround: some AWK implementations have a limit of 10
+	output files and lack a working close() function. It is too
+	much trouble to find out what systems have this limitation,
+	and where, if any, such systems store their XPG4-compatible
+	AWK program.  So instead we generate a stream of here
+	documents and let the shell split the stream into files.
+	File: postconf/extract.awk.
+
+	Documentation: clarification of certificate file usage.
+	Victor Duchovni.  Files: proto/postconf.proto,
+	proto/TLS_README.html.
+
+	Feature: pass a "TLS is active" flag to the server-side
+	SASL support.  Based on code by Timo Sirainen, except that
+	the implementation uses an extensible API so that it will
+	be less painful to add more attributes in future Postfix
+	versions.  Files: xsasl/xsasl.h, xsasl/xsasl_*server.c,
+	smtpd/smtpd_sasl_glue.c.
+
+20090417
+
+	Documentation: re-generate READMEs and manpages for updated
+	hyperlinks.
+
+	Documentation: missing hyperlinks and missing parameters
+	in manpages. File: mantools/postlink, mantools/check-postlink.
+
+20090418
+
+	Cleanup: use the extensible API to pass SMTP client address
+	information to the dovecot SASL plugin, and prepare for
+	passing server address information. Files: xsasl/xsasl.h,
+	xsasl/xsasl_dovecot_server.c, smtpd/smtpd_sasl_glue.c.
+
+	Same extensible API transformation for the SASL client-side
+	code to make future extensions less painful. Files:
+	xsasl/xsasl.h, xsasl/xsasl*client.c, smtp/smtp_sasl_glue.c.
+
+	More postlink fixes. File: mantools/postlink.
