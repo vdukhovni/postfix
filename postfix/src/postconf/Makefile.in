@@ -44,7 +44,7 @@ update: ../../bin/$(PROG) $(SAMPLES)
 	cp $(PROG) ../../bin
 
 $(MAKES): $(INC_DIR)/mail_params.h ../global/mail_params.c
-	$(AWK) -f extract.awk ../*/*.c
+	$(AWK) -f extract.awk ../*/*.c | $(SHELL)
 
 $(AUTOS): auto.awk
 	$(AWK) -f auto.awk

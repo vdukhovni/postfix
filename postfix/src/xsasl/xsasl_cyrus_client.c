@@ -148,10 +148,7 @@ typedef struct {
   */
 static void xsasl_cyrus_client_done(XSASL_CLIENT_IMPL *);
 static XSASL_CLIENT *xsasl_cyrus_client_create(XSASL_CLIENT_IMPL *,
-					               VSTREAM *,
-					               const char *,
-					               const char *,
-					               const char *);
+					        XSASL_CLIENT_CREATE_ARGS *);
 static int xsasl_cyrus_client_set_security(XSASL_CLIENT *, const char *);
 static int xsasl_cyrus_client_first(XSASL_CLIENT *, const char *, const char *,
 			            const char *, const char **, VSTRING *);
@@ -301,10 +298,7 @@ static void xsasl_cyrus_client_done(XSASL_CLIENT_IMPL *impl)
 /* xsasl_cyrus_client_create - per-session SASL initialization */
 
 XSASL_CLIENT *xsasl_cyrus_client_create(XSASL_CLIENT_IMPL *unused_impl,
-					        VSTREAM *stream,
-					        const char *service,
-					        const char *server,
-					        const char *sec_props)
+				             XSASL_CLIENT_CREATE_ARGS *args)
 {
     XSASL_CYRUS_CLIENT *client = 0;
     static sasl_callback_t callbacks[] = {
@@ -346,7 +340,7 @@ XSASL_CLIENT *xsasl_cyrus_client_create(XSASL_CLIENT_IMPL *unused_impl,
 #define NULL_SERVER_ADDR	((char *) 0)
 #define NULL_CLIENT_ADDR	((char *) 0)
 
-    if ((sasl_status = SASL_CLIENT_NEW(service, server,
+    if ((sasl_status = SASL_CLIENT_NEW(args->service, args->server_name,
 				       NULL_CLIENT_ADDR, NULL_SERVER_ADDR,
 				 var_cyrus_sasl_authzid ? custom_callbacks :
 				       custom_callbacks + 1, NULL_SECFLAGS,
@@ -369,7 +363,7 @@ XSASL_CLIENT *xsasl_cyrus_client_create(XSASL_CLIENT_IMPL *unused_impl,
     client->xsasl.free = xsasl_cyrus_client_free;
     client->xsasl.first = xsasl_cyrus_client_first;
     client->xsasl.next = xsasl_cyrus_client_next;
-    client->stream = stream;
+    client->stream = args->stream;
     client->sasl_conn = sasl_conn;
     client->callbacks = custom_callbacks;
     client->decoded = vstring_alloc(20);
@@ -379,7 +373,8 @@ XSASL_CLIENT *xsasl_cyrus_client_create(XSASL_CLIENT_IMPL *unused_impl,
     for (cp = custom_callbacks; cp->id != SASL_CB_LIST_END; cp++)
 	cp->context = (void *) client;
 
-    if (xsasl_cyrus_client_set_security(&client->xsasl, sec_props)
+    if (xsasl_cyrus_client_set_security(&client->xsasl,
+					args->security_options)
 	!= XSASL_AUTH_OK)
 	XSASL_CYRUS_CLIENT_CREATE_ERROR_RETURN(0);
 

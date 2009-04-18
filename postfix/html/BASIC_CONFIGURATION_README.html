@@ -20,7 +20,7 @@
 <h2> Introduction </h2>
 
 <p> Postfix has several hundred configuration parameters that are
-controlled via the main.cf file.  Fortunately, all parameters have
+controlled via the <a href="postconf.5.html">main.cf</a> file.  Fortunately, all parameters have
 sensible default values.  In many cases, you need to configure only
 two or three parameters before you can start to play with the mail
 system. Here's a quick introduction to the syntax:  </p>
@@ -121,12 +121,12 @@ look at the other parameters listed here as well: </p>
 <h2> <a name="syntax">Postfix configuration files</a></h2>
 
 <p> By default, Postfix configuration files are in /etc/postfix.
-The two most important files are main.cf and master.cf; these files
+The two most important files are <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a>; these files
 must be owned by root.  Giving someone else write permission to
-main.cf or master.cf (or to their parent directories) means giving
+<a href="postconf.5.html">main.cf</a> or <a href="master.5.html">master.cf</a> (or to their parent directories) means giving
 root privileges to that person. </p>
 
-<p> In /etc/postfix/main.cf you will have to set up a minimal number
+<p> In /etc/postfix/<a href="postconf.5.html">main.cf</a> you will have to set up a minimal number
 of configuration parameters.  Postfix configuration parameters
 resemble shell variables, with two important differences: the first
 one is that Postfix does not know about quotes like the UNIX shell
@@ -136,7 +136,7 @@ does.</p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     parameter = value
 </pre>
 </blockquote>
@@ -145,7 +145,7 @@ does.</p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     other_parameter = $parameter
 </pre>
 </blockquote>
@@ -162,12 +162,12 @@ Here is a common example of how Postfix invokes a database: </p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> = hash:/etc/postfix/virtual
 </pre>
 </blockquote>
 
-<p> Whenever you make a change to the main.cf or master.cf file,
+<p> Whenever you make a change to the <a href="postconf.5.html">main.cf</a> or <a href="master.5.html">master.cf</a> file,
 execute the following command as root in order to refresh a running
 mail system: </p>
 
@@ -194,7 +194,7 @@ to an unqualified recipient address. </p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#myorigin">myorigin</a> = $<a href="postconf.5.html#myhostname">myhostname</a> (default: send mail as "user@$<a href="postconf.5.html#myhostname">myhostname</a>")
     <a href="postconf.5.html#myorigin">myorigin</a> = $<a href="postconf.5.html#mydomain">mydomain</a>   (probably desirable: "user@$<a href="postconf.5.html#mydomain">mydomain</a>")
 </pre>
@@ -223,7 +223,7 @@ domain, you must list $<a href="postconf.5.html#mydomain">mydomain</a> as well. 
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#mydestination">mydestination</a> = $<a href="postconf.5.html#myhostname">myhostname</a> localhost.$<a href="postconf.5.html#mydomain">mydomain</a> localhost
 </pre>
 </blockquote>
@@ -232,7 +232,7 @@ domain, you must list $<a href="postconf.5.html#mydomain">mydomain</a> as well. 
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#mydestination">mydestination</a> = $<a href="postconf.5.html#myhostname">myhostname</a> localhost.$<a href="postconf.5.html#mydomain">mydomain</a> localhost $<a href="postconf.5.html#mydomain">mydomain</a>
 </pre>
 </blockquote>
@@ -241,7 +241,7 @@ domain, you must list $<a href="postconf.5.html#mydomain">mydomain</a> as well. 
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#mydestination">mydestination</a> = $<a href="postconf.5.html#myhostname">myhostname</a> localhost.$<a href="postconf.5.html#mydomain">mydomain</a> localhost 
         www.$<a href="postconf.5.html#mydomain">mydomain</a> ftp.$<a href="postconf.5.html#mydomain">mydomain</a>
 </pre>
@@ -265,7 +265,7 @@ then your default <a href="postconf.5.html#mynetworks">mynetworks</a> setting ma
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#mynetworks_style">mynetworks_style</a> = subnet  (default: authorize subnetworks)
     <a href="postconf.5.html#mynetworks_style">mynetworks_style</a> = host    (safe: authorize local machine only)
     <a href="postconf.5.html#mynetworks">mynetworks</a> = 127.0.0.0/8   (safe: authorize local machine only)
@@ -273,7 +273,7 @@ then your default <a href="postconf.5.html#mynetworks">mynetworks</a> setting ma
 </pre>
 </blockquote>
 
-<p> You can specify the trusted networks in the main.cf file, or
+<p> You can specify the trusted networks in the <a href="postconf.5.html">main.cf</a> file, or
 you can let Postfix do the work for you. The default is to let
 Postfix do the work. The result depends on the <a href="postconf.5.html#mynetworks_style">mynetworks_style</a>
 parameter value.
@@ -304,13 +304,13 @@ blocks in CIDR (network/mask) notation, for example: </p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#mynetworks">mynetworks</a> = 168.100.189.0/28, 127.0.0.0/8
 </pre>
 </blockquote>
 
 <p> You can also specify the absolute pathname of a pattern file instead
-of listing the patterns in the main.cf file. </p>
+of listing the patterns in the <a href="postconf.5.html">main.cf</a> file. </p>
 
 <h2> <a name="relay_to"> What destinations to relay mail to </a> </h2>
 
@@ -325,7 +325,7 @@ of the domains listed with the <a href="postconf.5.html#mydestination">mydestina
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#relay_domains">relay_domains</a> = $<a href="postconf.5.html#mydestination">mydestination</a> (default)
     <a href="postconf.5.html#relay_domains">relay_domains</a> =           (safe: never forward mail from strangers)
     <a href="postconf.5.html#relay_domains">relay_domains</a> = $<a href="postconf.5.html#mydomain">mydomain</a> (forward mail to my domain and subdomains)
@@ -341,13 +341,13 @@ or desirable.  For example, your system may be turned off outside
 office hours, it may be behind a firewall, or it may be connected
 via a provider who does not allow direct mail to the Internet.  In
 those cases you need to configure Postfix to deliver mail indirectly
-via a relay host. </p>
+via a <a href="postconf.5.html#relayhost">relay host</a>. </p>
 
 <p> Examples (specify only one of the following): </p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#relayhost">relayhost</a> =                   (default: direct delivery to Internet)
     <a href="postconf.5.html#relayhost">relayhost</a> = $<a href="postconf.5.html#mydomain">mydomain</a>         (deliver via local mailhub)
     <a href="postconf.5.html#relayhost">relayhost</a> = [mail.$<a href="postconf.5.html#mydomain">mydomain</a>]  (deliver via local mailhub)
@@ -392,7 +392,7 @@ serious problems (resource, software) to postmaster:  </p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#notify_classes">notify_classes</a> = resource, software
 </pre>
 </blockquote>
@@ -477,7 +477,7 @@ mail delivery loops will happen when the primary MX host is down.
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a> = 1.2.3.4 (the proxy/NAT external network address)
 </pre>
 </blockquote>
@@ -539,7 +539,7 @@ Postfix logging. </p>
 <h2> <a name="chroot_setup"> Running Postfix daemon processes
 chrooted </a> </h2>
 
-<p> Postfix daemon processes can be configured (via the master.cf
+<p> Postfix daemon processes can be configured (via the <a href="master.5.html">master.cf</a>
 file) to run in a chroot jail.  The processes run at a fixed low
 privilege and with file system access limited to the Postfix queue
 directories (/var/spool/postfix).  This provides a significant
@@ -556,9 +556,9 @@ processes, and perhaps also the <a href="lmtp.8.html">lmtp(8)</a> client. The au
 porcupine.org mail server runs all daemons chrooted that can be
 chrooted.  </p>
 
-<p>The default /etc/postfix/master.cf file specifies that no Postfix
+<p>The default /etc/postfix/<a href="master.5.html">master.cf</a> file specifies that no Postfix
 daemon runs chrooted. In order to enable chroot operation, edit
-the file /etc/postfix/master.cf, and follow instructions in the
+the file /etc/postfix/<a href="master.5.html">master.cf</a>, and follow instructions in the
 file.  When you're finished, execute "postfix reload" to make the
 change effective. </p>
 
@@ -592,7 +592,7 @@ or if you run Postfix on a virtual interface, you will have to
 specify the fully-qualified domain name that the mail system should
 use. </p>
 
-<p> Alternatively, if you specify <a href="postconf.5.html#mydomain">mydomain</a> in main.cf, then Postfix
+<p> Alternatively, if you specify <a href="postconf.5.html#mydomain">mydomain</a> in <a href="postconf.5.html">main.cf</a>, then Postfix
 will use its value to generate a fully-qualified default value      
 for the <a href="postconf.5.html#myhostname">myhostname</a> parameter. </p>
 
@@ -600,7 +600,7 @@ for the <a href="postconf.5.html#myhostname">myhostname</a> parameter. </p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#myhostname">myhostname</a> = host.local.domain (machine name is not FQDN)
     <a href="postconf.5.html#myhostname">myhostname</a> = host.virtual.domain (virtual interface)
     <a href="postconf.5.html#myhostname">myhostname</a> = virtual.domain (virtual interface)
@@ -614,7 +614,7 @@ $<a href="postconf.5.html#myhostname">myhostname</a>.  By default, it is derived
 by stripping off the first part (unless the result would be a
 top-level domain). </p>
 
-<p> Conversely, if you specify <a href="postconf.5.html#mydomain">mydomain</a> in main.cf, then Postfix
+<p> Conversely, if you specify <a href="postconf.5.html#mydomain">mydomain</a> in <a href="postconf.5.html">main.cf</a>, then Postfix
 will use its value to generate a fully-qualified default value
 for the <a href="postconf.5.html#myhostname">myhostname</a> parameter. </p>
 
@@ -622,7 +622,7 @@ for the <a href="postconf.5.html#myhostname">myhostname</a> parameter. </p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#mydomain">mydomain</a> = local.domain
     <a href="postconf.5.html#mydomain">mydomain</a> = virtual.domain (virtual interface)
 </pre> 
@@ -636,7 +636,7 @@ to "user@[network address]" will be delivered locally,
 as if it is addressed to a domain listed in  $<a href="postconf.5.html#mydestination">mydestination</a>.</p>
 
 <p> You can override the <a href="postconf.5.html#inet_interfaces">inet_interfaces</a> setting in the Postfix
-master.cf file by prepending an IP address to a server name. </p>
+<a href="master.5.html">master.cf</a> file by prepending an IP address to a server name. </p>
 
 <p> The default is to listen on all active interfaces.  If you run
 mailers on virtual interfaces, you will have to specify what
@@ -652,7 +652,7 @@ MTA is down.  </p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#inet_interfaces">inet_interfaces</a> = all
 </pre>
 </blockquote>
@@ -662,7 +662,7 @@ each Postfix instance, specify only one of the following. </p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#inet_interfaces">inet_interfaces</a> = virtual.host.tld         (virtual Postfix)
     <a href="postconf.5.html#inet_interfaces">inet_interfaces</a> = $<a href="postconf.5.html#myhostname">myhostname</a> localhost... (non-virtual Postfix)
 </pre>

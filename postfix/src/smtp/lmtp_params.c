@@ -87,7 +87,7 @@
     };
     static const CONFIG_BOOL_TABLE lmtp_bool_table[] = {
 	VAR_LMTP_SKIP_5XX, DEF_LMTP_SKIP_5XX, &var_smtp_skip_5xx_greeting,
-	VAR_SKIP_QUIT_RESP, DEF_SKIP_QUIT_RESP, &var_skip_quit_resp,
+	VAR_LMTP_SKIP_QUIT_RESP, DEF_LMTP_SKIP_QUIT_RESP, &var_skip_quit_resp,
 	VAR_LMTP_SASL_ENABLE, DEF_LMTP_SASL_ENABLE, &var_smtp_sasl_enable,
 	VAR_LMTP_RAND_ADDR, DEF_LMTP_RAND_ADDR, &var_smtp_rand_addr,
 	VAR_LMTP_QUOTE_821_ENV, DEF_LMTP_QUOTE_821_ENV, &var_smtp_quote_821_env,

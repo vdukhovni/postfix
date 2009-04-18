@@ -134,26 +134,28 @@ QMQPD(8)                                                              QMQPD(8)
               What clients are allowed to  connect  to  the  QMQP
               server port.
 
-       <b>qmqpd_client_port_logging (no)</b>
-              Enable  logging  of  the remote QMQP client port in
-              addition to the hostname and IP address.
-
        <b><a href="postconf.5.html#queue_directory">queue_directory</a> (see 'postconf -d' output)</b>
-              The location of the Postfix top-level queue  direc-
+              The  location of the Postfix top-level queue direc-
               tory.
 
        <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>
               The syslog facility of Postfix logging.
 
-       <b><a href="postconf.5.html#syslog_name">syslog_name</a> (postfix)</b>
-              The  mail  system  name  that  is  prepended to the
-              process name in syslog  records,  so  that  "smtpd"
+       <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
+              The mail system  name  that  is  prepended  to  the
+              process  name  in  syslog  records, so that "smtpd"
               becomes, for example, "postfix/smtpd".
 
        <b><a href="postconf.5.html#verp_delimiter_filter">verp_delimiter_filter</a> (-=+)</b>
-              The  characters  Postfix  accepts as VERP delimiter
-              characters on the Postfix <a href="sendmail.1.html"><b>sendmail</b>(1)</a> command  line
+              The characters Postfix accepts  as  VERP  delimiter
+              characters  on the Postfix <a href="sendmail.1.html"><b>sendmail</b>(1)</a> command line
               and in SMTP commands.
+
+       Available in Postfix version 2.5 and later:
+
+       <b><a href="postconf.5.html#qmqpd_client_port_logging">qmqpd_client_port_logging</a> (no)</b>
+              Enable logging of the remote QMQP  client  port  in
+              addition to the hostname and IP address.
 
 <b>SEE ALSO</b>
        <a href="http://cr.yp.to/proto/qmqp.html">http://cr.yp.to/proto/qmqp.html</a>, QMQP protocol

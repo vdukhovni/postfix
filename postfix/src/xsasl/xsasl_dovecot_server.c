@@ -161,10 +161,11 @@ typedef struct {
     char   *username;			/* authenticated user */
     VSTRING *sasl_line;
     unsigned int sec_props;		/* Postfix mechanism filter */
+    int     tls_flag;			/* TLS enabled in this session */
     char   *mechanism_list;		/* filtered mechanism list */
     ARGV   *mechanism_argv;		/* ditto */
-    MAI_HOSTADDR_STR server_addr;	/* local IP address */
-    MAI_HOSTADDR_STR client_addr;	/* remote IP address */
+    char   *client_addr;		/* remote IP address */
+    char   *server_addr;		/* remote IP address */
 } XSASL_DOVECOT_SERVER;
 
  /*
@@ -172,10 +173,7 @@ typedef struct {
   */
 static void xsasl_dovecot_server_done(XSASL_SERVER_IMPL *);
 static XSASL_SERVER *xsasl_dovecot_server_create(XSASL_SERVER_IMPL *,
-						         VSTREAM *,
-						         const char *,
-						         const char *,
-						         const char *);
+					        XSASL_SERVER_CREATE_ARGS *);
 static void xsasl_dovecot_server_free(XSASL_SERVER *);
 static int xsasl_dovecot_server_first(XSASL_SERVER *, const char *,
 				              const char *, VSTRING *);
@@ -394,20 +392,19 @@ static void xsasl_dovecot_server_done(XSASL_SERVER_IMPL *impl)
 /* xsasl_dovecot_server_create - create server instance */
 
 static XSASL_SERVER *xsasl_dovecot_server_create(XSASL_SERVER_IMPL *impl,
-						         VSTREAM *stream,
-						         const char *service,
-						         const char *realm,
-					              const char *sec_props)
+				             XSASL_SERVER_CREATE_ARGS *args)
 {
     const char *myname = "xsasl_dovecot_server_create";
     XSASL_DOVECOT_SERVER *server;
     struct sockaddr_storage ss;
     struct sockaddr *sa = (struct sockaddr *) & ss;
     SOCKADDR_SIZE salen;
+    MAI_HOSTADDR_STR server_addr;
 
     if (msg_verbose)
 	msg_info("%s: SASL service=%s, realm=%s",
-		 myname, service, realm ? realm : "(null)");
+		 myname, args->service, args->user_realm ?
+		 args->user_realm : "(null)");
 
     /*
      * Extend the XSASL_SERVER_IMPL object with our own data. We use
@@ -423,26 +420,29 @@ static XSASL_SERVER *xsasl_dovecot_server_create(XSASL_SERVER_IMPL *impl,
     server->impl = (XSASL_DOVECOT_SERVER_IMPL *) impl;
     server->sasl_line = vstring_alloc(256);
     server->username = 0;
-    server->service = mystrdup(service);
+    server->service = mystrdup(args->service);
     server->last_request_id = 0;
     server->mechanism_list = 0;
     server->mechanism_argv = 0;
+    server->tls_flag = args->tls_flag;
     server->sec_props =
 	name_mask_opt(myname, xsasl_dovecot_conf_sec_props,
-		      sec_props, NAME_MASK_ANY_CASE | NAME_MASK_FATAL);
+		      args->security_options,
+		      NAME_MASK_ANY_CASE | NAME_MASK_FATAL);
+    server->client_addr = mystrdup(args->client_addr);
 
     /*
-     * XXX This is not the right place: it ignores client overrides with the
-     * XCLIENT command.
+     * XXX Temporary code until smtpd_peer.c is updated.
      */
-    salen = sizeof(ss);
-    if (getpeername(vstream_fileno(stream), sa, &salen) < 0
-	|| sockaddr_to_hostaddr(sa, salen, &server->client_addr, 0, 0) != 0)
-	server->client_addr.buf[0] = 0;
-    salen = sizeof(ss);
-    if (getsockname(vstream_fileno(stream), sa, &salen) < 0
-	|| sockaddr_to_hostaddr(sa, salen, &server->server_addr, 0, 0) != 0)
-	server->server_addr.buf[0] = 0;
+    if (args->server_addr && *args->server_addr) {
+	server->server_addr = mystrdup(args->server_addr);
+    } else {
+	salen = sizeof(ss);
+	if (getsockname(vstream_fileno(args->stream), sa, &salen) < 0
+	    || sockaddr_to_hostaddr(sa, salen, &server_addr, 0, 0) != 0)
+	    server_addr.buf[0] = 0;
+	server->server_addr = mystrdup(server_addr.buf);
+    }
 
     return (&server->xsasl);
 }
@@ -481,6 +481,8 @@ static void xsasl_dovecot_server_free(XSASL_SERVER *xp)
 	argv_free(server->mechanism_argv);
     }
     myfree(server->service);
+    myfree(server->server_addr);
+    myfree(server->client_addr);
     myfree((char *) server);
 }
 
@@ -638,8 +640,10 @@ int     xsasl_dovecot_server_first(XSASL_SERVER *xp, const char *sasl_method,
 	vstream_fprintf(server->impl->sasl_stream,
 			"AUTH\t%u\t%s\tservice=%s\tnologin\tlip=%s\trip=%s",
 			server->last_request_id, sasl_method,
-			server->service, server->server_addr.buf,
-			server->client_addr.buf);
+			server->service, server->server_addr,
+			server->client_addr);
+	if (server->tls_flag)
+	    vstream_fputs("\tsecured", server->impl->sasl_stream);
 	if (init_response) {
 
 	    /*

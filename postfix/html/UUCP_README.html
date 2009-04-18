@@ -89,7 +89,7 @@ directory. </p>
 via UUCP: </p>
 
 <pre>
-/etc/postfix/master.cf:
+/etc/postfix/<a href="master.5.html">master.cf</a>:
     uucp      unix  -       n       n       -       -       pipe
       flags=F user=uucp argv=uux -r -n -z -a$sender - $nexthop!rmail ($recipient)
 </pre>
@@ -118,7 +118,7 @@ whenever you change the <b>transport</b> file. </p>
 <li> <p> Enable <b>transport</b> table lookups: </p>
 
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#transport_maps">transport_maps</a> = hash:/etc/postfix/transport
 </pre>
 
@@ -130,7 +130,7 @@ types Postfix supports, use the command "<b>postconf -m</b>". </p>
 is willing to relay mail for. </p>
 
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#relay_domains">relay_domains</a> = example.com ...<i>other <a href="ADDRESS_CLASS_README.html#relay_domain_class">relay domains</a></i>...
 </pre>
 
@@ -162,7 +162,7 @@ directory. </p>
 mail transport to your UUCP gateway host, say, <i>uucp-gateway</i>: </p>
 
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#relayhost">relayhost</a> = uucp-gateway
     <a href="postconf.5.html#default_transport">default_transport</a> = uucp
 </pre>
@@ -170,7 +170,7 @@ mail transport to your UUCP gateway host, say, <i>uucp-gateway</i>: </p>
 <p> Postfix 2.0 and later also allows the following more succinct form: </p>
 
 <pre>
-/etc/postfix/main.cf:
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#default_transport">default_transport</a> = uucp:uucp-gateway
 </pre>
 
@@ -178,7 +178,7 @@ mail transport to your UUCP gateway host, say, <i>uucp-gateway</i>: </p>
 delivery via UUCP: </p>
 
 <pre>
-/etc/postfix/master.cf:
+/etc/postfix/<a href="master.5.html">master.cf</a>:
     uucp      unix  -       n       n       -       -       pipe
       flags=F user=uucp argv=uux -r -n -z -a$sender - $nexthop!rmail ($recipient)
 </pre>

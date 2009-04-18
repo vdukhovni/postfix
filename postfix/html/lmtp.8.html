@@ -392,9 +392,9 @@ SMTP(8)                                                                SMTP(8)
               shake procedures.
 
        <b><a href="postconf.5.html#smtp_tls_CAfile">smtp_tls_CAfile</a> (empty)</b>
-              The  file with the certificate of the certification
-              authority (CA) that issued the Postfix SMTP  client
-              certificate.
+              A  file  containing  CA  certificates  of  root CAs
+              trusted to sign either remote SMTP server  certifi-
+              cates or intermediate CA certificates.
 
        <b><a href="postconf.5.html#smtp_tls_CApath">smtp_tls_CApath</a> (empty)</b>
               Directory  with  PEM  format  certificate authority
@@ -777,7 +777,7 @@ SMTP(8)                                                                SMTP(8)
               The  hostname to send in the SMTP EHLO or HELO com-
               mand.
 
-       <b><a href="postconf.5.html#lmtp_lhloname">lmtp_lhlo_name</a> ($<a href="postconf.5.html#myhostname">myhostname</a>)</b>
+       <b><a href="postconf.5.html#lmtp_lhlo_name">lmtp_lhlo_name</a> ($<a href="postconf.5.html#myhostname">myhostname</a>)</b>
               The hostname to send in the LMTP LHLO command.
 
        <b><a href="postconf.5.html#smtp_host_lookup">smtp_host_lookup</a> (dns)</b>

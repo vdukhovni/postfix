@@ -154,10 +154,7 @@ typedef struct {
   */
 static void xsasl_cyrus_server_done(XSASL_SERVER_IMPL *);
 static XSASL_SERVER *xsasl_cyrus_server_create(XSASL_SERVER_IMPL *,
-					               VSTREAM *,
-					               const char *,
-					               const char *,
-					               const char *);
+					        XSASL_SERVER_CREATE_ARGS *);
 static void xsasl_cyrus_server_free(XSASL_SERVER *);
 static int xsasl_cyrus_server_first(XSASL_SERVER *, const char *,
 				            const char *, VSTRING *);
@@ -259,10 +256,7 @@ static void xsasl_cyrus_server_done(XSASL_SERVER_IMPL *impl)
 /* xsasl_cyrus_server_create - create server instance */
 
 static XSASL_SERVER *xsasl_cyrus_server_create(XSASL_SERVER_IMPL *unused_impl,
-					               VSTREAM *stream,
-					               const char *service,
-					               const char *realm,
-					               const char *sec_props)
+				             XSASL_SERVER_CREATE_ARGS *args)
 {
     const char *myname = "xsasl_cyrus_server_create";
     char   *server_address;
@@ -273,7 +267,8 @@ static XSASL_SERVER *xsasl_cyrus_server_create(XSASL_SERVER_IMPL *unused_impl,
 
     if (msg_verbose)
 	msg_info("%s: SASL service=%s, realm=%s",
-		 myname, service, realm ? realm : "(null)");
+		 myname, args->service, args->user_realm ?
+		 args->user_realm : "(null)");
 
     /*
      * The optimizer will eliminate code duplication and/or dead code.
@@ -314,8 +309,8 @@ static XSASL_SERVER *xsasl_cyrus_server_create(XSASL_SERVER_IMPL *unused_impl,
 #endif
 
     if ((sasl_status =
-	 SASL_SERVER_NEW(service, var_myhostname,
-			 realm ? realm : NO_AUTH_REALM,
+	 SASL_SERVER_NEW(args->service, var_myhostname,
+			 args->user_realm ? args->user_realm : NO_AUTH_REALM,
 			 server_address, client_address,
 			 NO_SESSION_CALLBACKS, NO_SECURITY_LAYERS,
 			 &sasl_conn)) != SASL_OK) {
@@ -335,13 +330,13 @@ static XSASL_SERVER *xsasl_cyrus_server_create(XSASL_SERVER_IMPL *unused_impl,
     server->xsasl.next = xsasl_cyrus_server_next;
     server->xsasl.get_mechanism_list = xsasl_cyrus_server_get_mechanism_list;
     server->xsasl.get_username = xsasl_cyrus_server_get_username;
-    server->stream = stream;
+    server->stream = args->stream;
     server->sasl_conn = sasl_conn;
     server->decoded = vstring_alloc(20);
     server->username = 0;
     server->mechanism_list = 0;
 
-    if (xsasl_cyrus_server_set_security(&server->xsasl, sec_props)
+    if (xsasl_cyrus_server_set_security(&server->xsasl, args->security_options)
 	!= XSASL_AUTH_OK)
 	XSASL_CYRUS_SERVER_CREATE_ERROR_RETURN(0);
 

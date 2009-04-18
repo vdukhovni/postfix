@@ -80,7 +80,7 @@
 /* .PP
 /*	Available in Postfix version 2.6 and later:
 /* .IP "\fBalways_add_missing_headers (no)\fR"
-/*	Always add (Resent-) From:, To:, Date: or Message-ID headers
+/*	Always add (Resent-) From:, To:, Date: or Message-ID: headers
 /*	when not present.
 /* BUILT-IN CONTENT FILTERING CONTROLS
 /* .ad
