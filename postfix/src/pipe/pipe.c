@@ -160,7 +160,7 @@
 /*	executes a command such as:
 /* .sp
 /* .nf
-/*	    command -f$sender -- $recipient (\fIbad\fR)
+/*	    \fIWrong\fR: command -f$sender -- $recipient
 /* .fi
 /* .IP
 /*	the command will mis-parse the -f option value when the
@@ -168,7 +168,7 @@
 /*	specify \fB$sender\fR as an argument by itself:
 /* .sp
 /* .nf
-/*	    command -f $sender -- $recipient (\fIgood\fR)
+/*	    \fIRight\fR: command -f $sender -- $recipient
 /* .fi
 /* .IP
 /*	This feature is available as of Postfix 2.3.
