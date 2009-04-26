@@ -430,7 +430,7 @@ typedef struct {
 #define MILTER8_V3_PROTO_MASK	(MILTER8_V2_PROTO_MASK | SMFIP_NOUNKNOWN)
 #define MILTER8_V4_PROTO_MASK	(MILTER8_V3_PROTO_MASK | SMFIP_NODATA)
 #define MILTER8_V6_PROTO_MASK \
-	(MILTER8_V4_PROTO_MASK | SMFIP_SKIP /* | SMFIP_RCPT_REJ */ \
+	(MILTER8_V4_PROTO_MASK | SMFIP_SKIP | SMFIP_RCPT_REJ \
 	| SMFIP_NOREPLY_MASK | SMFIP_HDR_LEADSPC)
 
  /*
@@ -1720,6 +1720,8 @@ static void milter8_connect(MILTER8 *milter)
 	(void) milter8_comm_error(milter);
 	return;
     }
+    if (milter->ev_mask & SMFIP_RCPT_REJ)
+	milter->m.flags |= MILTER_FLAG_WANT_RCPT_REJ;
 
     /*
      * Initial negotiations completed.
@@ -2703,6 +2705,7 @@ static MILTER8 *milter8_alloc(const char *name, int conn_timeout,
      */
     milter = (MILTER8 *) mymalloc(sizeof(*milter));
     milter->m.name = mystrdup(name);
+    milter->m.flags = 0;
     milter->m.next = 0;
     milter->m.parent = parent;
     milter->m.macros = 0;

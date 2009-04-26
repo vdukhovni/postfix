@@ -67,8 +67,9 @@
 /*	MILTERS	*milters;
 /*	const char **argv;
 /*
-/*	const char *milter_rcpt_event(milters, argv)
+/*	const char *milter_rcpt_event(milters, flags, argv)
 /*	MILTERS	*milters;
+/*	int	flags;
 /*	const char **argv;
 /*
 /*	const char *milter_data_event(milters)
@@ -159,8 +160,13 @@
 /*
 /*	milter_rcpt_event() reports an RCPT TO event to the specified
 /*	milter instances, after sending the macros that were specified
-/*	with the milter_create() rcpt_macros argument.
-/*
+/*	with the milter_create() rcpt_macros argument. When the flags
+/*	argument is non-zero, it selects only milter instances that
+/*	have at least one of the specificed flags. Known flags are:
+/* .IP MILTER_FLAG_WANT_RCPT_REJ
+/*	This milter expects to receive rejected recipients with the
+/*	{rcpt_mailer} macro set to "error".
+/* .PP
 /*	milter_data_event() reports a DATA event to the specified
 /*	milter instances, after sending the macros that were specified
 /*	with the milter_create() data_macros argument.
@@ -382,7 +388,7 @@ const char *milter_mail_event(MILTERS *milters, const char **argv)
 
 /* milter_rcpt_event - report rcpt to event */
 
-const char *milter_rcpt_event(MILTERS *milters, const char **argv)
+const char *milter_rcpt_event(MILTERS *milters, int flags, const char **argv)
 {
     const char *resp;
     MILTER *m;
@@ -390,12 +396,16 @@ const char *milter_rcpt_event(MILTERS *milters, const char **argv)
     ARGV   *any_macros;
 
     if (msg_verbose)
-	msg_info("report recipient to all milters");
+	msg_info("report recipient to all milters (flags=0x%x)", flags);
     for (resp = 0, m = milters->milter_list; resp == 0 && m != 0; m = m->next) {
-	any_macros = MILTER_MACRO_EVAL(global_macros, m, milters, rcpt_macros);
-	resp = m->rcpt_event(m, argv, any_macros);
-	if (any_macros != global_macros)
-	    argv_free(any_macros);
+	if ((flags & MILTER_FLAG_WANT_RCPT_REJ) == 0
+	    || (m->flags & MILTER_FLAG_WANT_RCPT_REJ) != 0) {
+	    any_macros =
+		MILTER_MACRO_EVAL(global_macros, m, milters, rcpt_macros);
+	    resp = m->rcpt_event(m, argv, any_macros);
+	    if (any_macros != global_macros)
+		argv_free(any_macros);
+	}
     }
     if (global_macros)
 	argv_free(global_macros);

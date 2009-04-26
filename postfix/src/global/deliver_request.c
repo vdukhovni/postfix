@@ -207,7 +207,6 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
     static RCPT_BUF *rcpt_buf;
     int     rcpt_count;
     int     dsn_ret;
-    int     lock_tries;
 
     /*
      * Initialize. For some reason I wanted to allow for multiple instances
@@ -319,6 +318,14 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
      * duplicate deliveries when the queue is flushed immediately after queue
      * manager restart.
      * 
+     * The queue manager locks the file exclusively when it enters the active
+     * queue, and releases the lock before starting deliveries from that
+     * file. The queue manager does not lock the file again when reading more
+     * recipients into memory. When the queue manager is restarted, the new
+     * process moves files from the active queue to the incoming queue to cool
+     * off for a while. Delivery agents should therefore never try to open a
+     * file that is locked by a queue manager process.
+     * 
      * Opening the queue file can fail for a variety of reasons, such as the
      * system running out of resources. Instead of throwing away mail, we're
      * raising a fatal error which forces the mail system to back off, and
@@ -336,21 +343,8 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
     }
     if (msg_verbose)
 	msg_info("%s: file %s", myname, VSTREAM_PATH(request->fp));
-
-    /*
-     * XXX Originally, the queue manager would read new recipients AFTER all
-     * the in-memory recipients were processed. either the queue manager held
-     * an exclusive lock or delivery agents held a shared lock. Now we try a
-     * few times.
-     */
-    for (lock_tries = 0; /* see below */; lock_tries++) {
-	if (myflock(vstream_fileno(request->fp), INTERNAL_LOCK, DELIVER_LOCK_MODE) == 0)
-	    break;
-	if (lock_tries < 5)
-	    sleep(1);
-	else
-	    msg_fatal("shared lock %s: %m", VSTREAM_PATH(request->fp));
-    }
+    if (myflock(vstream_fileno(request->fp), INTERNAL_LOCK, DELIVER_LOCK_MODE) < 0)
+	msg_fatal("shared lock %s: %m", VSTREAM_PATH(request->fp));
     close_on_exec(vstream_fileno(request->fp), CLOSE_ON_EXEC);
 
     return (0);

@@ -580,11 +580,24 @@ milter_macro_daemon_name </td> </tr>
 <tr> <td> {mail_addr} </td> <td> MAIL </td> <td> Sender address
 </td> </tr>
 
+<tr> <td> {mail_host} </td> <td> MAIL (Postfix &ge; 2.6) </td> <td>
+Sender next-hop destination </td> </tr>
+
+<tr> <td> {mail_mailer} </td> <td> MAIL (Postfix &ge; 2.6) </td>
+<td> Sender mail delivery transport </td> </tr>
+
 <tr> <td> {rcpt_addr} </td> <td> RCPT </td> <td> Recipient address
 </td> </tr>
 
-<tr> <td> {tls_version} </td> <td> HELO, MAIL, DATA, EOH, EOM </td> <td>
-TLS protocol version </td> </tr>
+<tr> <td> {rcpt_host} </td> <td> RCPT (Postfix &ge; 2.6) </td> <td>
+Recipient next-hop destination </td> </tr>
+
+<tr> <td> {rcpt_mailer} </td> <td> RCPT (Postfix &ge; 2.6) </td>
+<td> Recipient mail delivery transport, "error" for rejected
+recipient.  </td> </tr>
+
+<tr> <td> {tls_version} </td> <td> HELO, MAIL, DATA, EOH, EOM </td>
+<td> TLS protocol version </td> </tr>
 
 <tr> <td> v </td> <td> Always </td> <td> value of milter_macro_v
 </td> </tr>

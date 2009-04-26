@@ -340,9 +340,9 @@ during TLS startup and shutdown handshake procedures.
 A file containing (PEM format) CA certificates of root CAs trusted
 to sign either remote SMTP client certificates or intermediate CA
 certificates.
-.IP "\fBsmtpd_tls_CAfile (empty)\fR"
-A file containing (PEM format) CA certificates of root CAs trusted
-to sign either remote SMTP client certificates or intermediate CA
+.IP "\fBsmtpd_tls_CApath (empty)\fR"
+A directory containing (PEM format) CA certificates of root CAs
+trusted to sign either remote SMTP client certificates or intermediate CA
 certificates.
 .IP "\fBsmtpd_tls_always_issue_session_ids (yes)\fR"
 Force the Postfix SMTP server to issue a TLS session id, even

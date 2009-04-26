@@ -9533,8 +9533,8 @@ introduced in Postfix 2.3. Starting with Postfix 2.3, and independently
 of how the policy is specified, the <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> and
 <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> parameters apply when TLS encryption
 is mandatory. Connections for which encryption is optional typically
-enable all "export" grade and better ciphers and all SSL/TLS protocols
-(see <a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a> and <a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a>). </p>
+enable all "export" grade and better ciphers (see <a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a>
+and <a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a>). </p>
 
 <p> As long as no secure DNS lookup mechanism is available, false
 hostnames in MX or CNAME responses can change the server hostname
@@ -9689,12 +9689,12 @@ configurations in environments where DNS security is not assured. </p>
 </DD>
 
 <DT><b><a name="smtp_tls_protocols">smtp_tls_protocols</a>
-(default: empty)</b></DT><DD>
+(default: !SSLv2)</b></DT><DD>
 
-<p> List of TLS protocols that the Postfix SMTP client will exclude
-or include with opportunistic TLS encryption. This parameter SHOULD be
-left at its default empty value, allowing all protocols to be used with
-opportunistic TLS. </p>
+<p> List of TLS protocols that the Postfix SMTP client will exclude or
+include with opportunistic TLS encryption. Starting with Postfix 2.6,
+the Postfix SMTP client will by default only use SSLv3 and TLSv1, the
+SSLv2 protocol is insecure and obsolete. </p>
 
 <p> In <a href="postconf.5.html">main.cf</a> the values are separated by whitespace, commas or
 colons. In the policy table (see <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>) the only valid
@@ -9713,7 +9713,8 @@ they cannot be excluded using either syntax. </p>
 
 <p> Example: </p>
 <pre>
-<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a> = !SSLv2
+# TLSv1 only!
+<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a> = !SSLv2, !SSLv3
 </pre>
 
 <p> This feature is available in Postfix 2.6 and later. </p>
@@ -9867,12 +9868,12 @@ Examples:
 # Opportunistic TLS.
 <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = may
 # Postfix &ge; 2.6:
-# Do not tweak opportunistic ciphers or protocols unless it is essential
+# Do not tweak opportunistic ciphers unless it is essential
 # to do so (if a security vulnerability is found in the SSL library that
 # can be mitigated by disabling a particular protocol or raising the
 # cipher grade from "export" to "low" or "medium").
 <a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a> = export
-<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a> =
+<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a> = !SSLv2
 </pre>
 
 <pre>

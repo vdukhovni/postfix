@@ -31,6 +31,7 @@
   */
 typedef struct MILTER {
     char   *name;			/* full name including transport */
+    int     flags;			/* see below */
     struct MILTER *next;		/* linkage */
     struct MILTERS *parent;		/* parent information */
     struct MILTER_MACROS *macros;	/* private macros */
@@ -48,6 +49,9 @@ typedef struct MILTER {
     int     (*send) (struct MILTER *, VSTREAM *);
     void    (*free) (struct MILTER *);
 } MILTER;
+
+#define MILTER_FLAG_NONE		(0)
+#define MILTER_FLAG_WANT_RCPT_REJ	(1<<0)	/* see S8_RCPT_MAILER_ERROR */
 
 extern MILTER *milter8_create(const char *, int, int, int, const char *, const char *, struct MILTERS *);
 extern MILTER *milter8_receive(VSTREAM *, struct MILTERS *);
@@ -125,7 +129,7 @@ extern void milter_edit_callback(MILTERS *milters, MILTER_ADD_HEADER_FN,
 extern const char *milter_conn_event(MILTERS *, const char *, const char *, const char *, unsigned);
 extern const char *milter_helo_event(MILTERS *, const char *, int);
 extern const char *milter_mail_event(MILTERS *, const char **);
-extern const char *milter_rcpt_event(MILTERS *, const char **);
+extern const char *milter_rcpt_event(MILTERS *, int, const char **);
 extern const char *milter_data_event(MILTERS *);
 extern const char *milter_message(MILTERS *, VSTREAM *, off_t);
 extern const char *milter_unknown_event(MILTERS *, const char *);
@@ -180,6 +184,8 @@ extern void milter_free(MILTERS *);
 #define S8_MAC_RCPT_MAILER	"{rcpt_mailer}"	/* recip transport */
 #define S8_MAC_RCPT_HOST	"{rcpt_host}"	/* recip nexthop */
 #define S8_MAC_RCPT_ADDR	"{rcpt_addr}"	/* recip address */
+
+#define S8_RCPT_MAILER_ERROR	"error"	/* see MILTER_FLAG_WANT_RCPT_REJ */
 
 /* LICENSE
 /* .ad

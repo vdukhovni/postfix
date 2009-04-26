@@ -282,6 +282,7 @@ static int xsasl_dovecot_server_connect(XSASL_DOVECOT_SERVER_IMPL *xp)
 		    VSTREAM_CTL_TIMEOUT, AUTH_TIMEOUT,
 		    VSTREAM_CTL_END);
 
+	/* XXX Encapsulate for logging. */
     vstream_fprintf(sasl_stream,
 		    "VERSION\t%u\t%u\n"
 		    "CPID\t%u\n",
@@ -294,6 +295,7 @@ static int xsasl_dovecot_server_connect(XSASL_DOVECOT_SERVER_IMPL *xp)
     }
     success = 0;
     line_str = vstring_alloc(256);
+	/* XXX Encapsulate for logging. */
     while (vstring_get_nonl(line_str, sasl_stream) != VSTREAM_EOF) {
 	line = vstring_str(line_str);
 
@@ -543,6 +545,7 @@ static int xsasl_dovecot_handle_reply(XSASL_DOVECOT_SERVER *server,
     const char *myname = "xsasl_dovecot_handle_reply";
     char   *line, *cmd;
 
+	/* XXX Encapsulate for logging. */
     while (vstring_get_nonl(server->sasl_line,
 			    server->impl->sasl_stream) != VSTREAM_EOF) {
 	line = vstring_str(server->sasl_line);
@@ -637,12 +640,14 @@ int     xsasl_dovecot_server_first(XSASL_SERVER *xp, const char *sasl_method,
 	}
 	/* send the request */
 	server->last_request_id = ++server->impl->request_id_counter;
+	/* XXX Encapsulate for logging. */
 	vstream_fprintf(server->impl->sasl_stream,
 			"AUTH\t%u\t%s\tservice=%s\tnologin\tlip=%s\trip=%s",
 			server->last_request_id, sasl_method,
 			server->service, server->server_addr,
 			server->client_addr);
 	if (server->tls_flag)
+	/* XXX Encapsulate for logging. */
 	    vstream_fputs("\tsecured", server->impl->sasl_stream);
 	if (init_response) {
 
@@ -650,9 +655,11 @@ int     xsasl_dovecot_server_first(XSASL_SERVER *xp, const char *sasl_method,
 	     * initial response is already base64 encoded, so we can send it
 	     * directly.
 	     */
+	/* XXX Encapsulate for logging. */
 	    vstream_fprintf(server->impl->sasl_stream,
 			    "\tresp=%s", init_response);
 	}
+	/* XXX Encapsulate for logging. */
 	VSTREAM_PUTC('\n', server->impl->sasl_stream);
 
 	if (vstream_fflush(server->impl->sasl_stream) != VSTREAM_EOF)
@@ -683,6 +690,7 @@ static int xsasl_dovecot_server_next(XSASL_SERVER *xp, const char *request,
 	vstring_strcpy(reply, "Invalid base64 data in continued response");
 	return XSASL_AUTH_FAIL;
     }
+	/* XXX Encapsulate for logging. */
     vstream_fprintf(server->impl->sasl_stream,
 		    "CONT\t%u\t%s\n", server->last_request_id, request);
     if (vstream_fflush(server->impl->sasl_stream) == VSTREAM_EOF) {

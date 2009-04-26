@@ -9121,8 +9121,8 @@ introduced in Postfix 2.3. Starting with Postfix 2.3, and independently
 of how the policy is specified, the smtp_tls_mandatory_ciphers and
 smtp_tls_mandatory_protocols parameters apply when TLS encryption
 is mandatory. Connections for which encryption is optional typically
-enable all "export" grade and better ciphers and all SSL/TLS protocols
-(see smtp_tls_ciphers and smtp_tls_protocols). </p>
+enable all "export" grade and better ciphers (see smtp_tls_ciphers
+and smtp_tls_protocols). </p>
 
 <p> As long as no secure DNS lookup mechanism is available, false
 hostnames in MX or CNAME responses can change the server hostname
@@ -10389,12 +10389,12 @@ smtp_tls_security_level = none
 # Opportunistic TLS.
 smtp_tls_security_level = may
 # Postfix &ge; 2.6:
-# Do not tweak opportunistic ciphers or protocols unless it is essential
+# Do not tweak opportunistic ciphers unless it is essential
 # to do so (if a security vulnerability is found in the SSL library that
 # can be mitigated by disabling a particular protocol or raising the
 # cipher grade from "export" to "low" or "medium").
 smtp_tls_ciphers = export
-smtp_tls_protocols =
+smtp_tls_protocols = !SSLv2
 </pre>
 
 <pre>
@@ -11284,12 +11284,12 @@ the hostname and IP address. The logging format is "host[address]:port".
 
 <p> This feature is available in Postfix 2.5 and later. </p>
 
-%PARAM smtp_tls_protocols
+%PARAM smtp_tls_protocols !SSLv2
 
-<p> List of TLS protocols that the Postfix SMTP client will exclude
-or include with opportunistic TLS encryption. This parameter SHOULD be
-left at its default empty value, allowing all protocols to be used with
-opportunistic TLS. </p>
+<p> List of TLS protocols that the Postfix SMTP client will exclude or
+include with opportunistic TLS encryption. Starting with Postfix 2.6,
+the Postfix SMTP client will by default only use SSLv3 and TLSv1, the
+SSLv2 protocol is insecure and obsolete. </p>
 
 <p> In main.cf the values are separated by whitespace, commas or
 colons. In the policy table (see smtp_tls_policy_maps) the only valid
@@ -11308,7 +11308,8 @@ they cannot be excluded using either syntax. </p>
 
 <p> Example: </p>
 <pre>
-smtp_tls_protocols = !SSLv2
+# TLSv1 only!
+smtp_tls_protocols = !SSLv2, !SSLv3
 </pre>
 
 <p> This feature is available in Postfix 2.6 and later. </p>

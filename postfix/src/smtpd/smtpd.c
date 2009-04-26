@@ -308,9 +308,9 @@
 /*	A file containing (PEM format) CA certificates of root CAs trusted
 /*	to sign either remote SMTP client certificates or intermediate CA
 /*	certificates.
-/* .IP "\fBsmtpd_tls_CAfile (empty)\fR"
-/*	A file containing (PEM format) CA certificates of root CAs trusted
-/*	to sign either remote SMTP client certificates or intermediate CA
+/* .IP "\fBsmtpd_tls_CApath (empty)\fR"
+/*	A directory containing (PEM format) CA certificates of root CAs
+/*	trusted to sign either remote SMTP client certificates or intermediate CA
 /*	certificates.
 /* .IP "\fBsmtpd_tls_always_issue_session_ids (yes)\fR"
 /*	Force the Postfix SMTP server to issue a TLS session id, even
@@ -2341,6 +2341,7 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     const char *dsn_orcpt_type = 0;
     int     dsn_notify = 0;
     const char *coded_addr;
+    const char *milter_err;
 
     /*
      * Sanity checks.
@@ -2441,24 +2442,24 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	return (-1);
     }
     if (SMTPD_STAND_ALONE(state) == 0) {
-	if ((err = smtpd_check_rcpt(state, STR(state->addr_buf))) != 0) {
-	    smtpd_chat_reply(state, "%s", err);
-	    return (-1);
-	}
+	err = smtpd_check_rcpt(state, STR(state->addr_buf));
 	if (smtpd_milters != 0
 	    && (state->saved_flags & MILTER_SKIP_FLAGS) == 0) {
 	    PUSH_STRING(saved_rcpt, state->recipient, STR(state->addr_buf));
-	    err = milter_rcpt_event(smtpd_milters,
+	    state->milter_reject_text = err;
+	    milter_err = milter_rcpt_event(smtpd_milters,
+					   err == 0 ? MILTER_FLAG_NONE :
+					   MILTER_FLAG_WANT_RCPT_REJ,
 				    milter_argv(state, argc - 2, argv + 2));
-	    if (err != 0) {
+	    if (err == 0 && milter_err != 0) {
 		/* Log reject etc. with correct recipient information. */
-		err = check_milter_reply(state, err);
+		err = check_milter_reply(state, milter_err);
 	    }
 	    POP_STRING(saved_rcpt, state->recipient);
-	    if (err != 0) {
-		smtpd_chat_reply(state, "%s", err);
-		return (-1);
-	    }
+	}
+	if (err != 0) {
+	    smtpd_chat_reply(state, "%s", err);
+	    return (-1);
 	}
     }
 

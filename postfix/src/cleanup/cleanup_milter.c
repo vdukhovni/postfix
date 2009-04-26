@@ -1608,7 +1608,7 @@ void    cleanup_milter_emul_rcpt(CLEANUP_STATE *state,
 	vstring_strcpy(state->milter_ext_rcpt, addr);
     argv[0] = STR(state->milter_ext_rcpt);
     argv[1] = 0;
-    if ((resp = milter_rcpt_event(milters, argv)) != 0
+    if ((resp = milter_rcpt_event(milters, MILTER_FLAG_NONE, argv)) != 0
 	&& cleanup_milter_apply(state, "RCPT", resp) != 0) {
 	msg_warn("%s: milter configuration error: can't reject recipient "
 		 "in non-smtpd(8) submission", state->queue_id);
