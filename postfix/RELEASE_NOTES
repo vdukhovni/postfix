@@ -11,6 +11,30 @@ instead, a new snapshot is released.
 The mail_release_date configuration parameter (format: yyyymmdd)
 specifies the release date of a stable release or snapshot release.
 
+Incompatibility with snapshot 20090426
+======================================
+
+The Postfix SMTP client no longer tries to use the obsolete SSLv2
+protocol by default, as this may prevent the use of modern SSL
+features.  Lack of SSLv2 support should never be a problem, since
+SSLv3 was defined in 1996, and TLSv1 in 2006. The Postfix SMTP
+server maintains SSLv2 support for backwards compatibility with
+ancient clients.
+
+Major changes with snapshot 20090426
+====================================
+
+The following improvements have been made to the Milter implementation:
+
+- Improved compatibility of the {mail_addr} and {rcpt_addr} macros.
+
+- Support for the {mail_host}, {mail_mailer}, {rcpt_host} and
+{rcpt_mailer} macros.
+
+- Milters can now request rejected recipients with the SMFIP_RCPT_REJ
+feature. In this case, {rcpt_mailer} is "error", {rcpt_host} is an
+enhanced status code, and {rcpt_addr} is descriptive text.
+
 Incompatibility with snapshot 20090330
 ======================================
 

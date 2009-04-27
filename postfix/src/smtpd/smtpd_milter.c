@@ -189,6 +189,7 @@ const char *smtpd_milter_eval(const char *name, void *ptr)
 	if (state->recipient[0] == 0)
 	    return ("");
 	if (state->milter_reject_text) {
+	    /* 554 5.7.1 <user@example.com>: Relay access denied */
 	    vstring_strcpy(state->expand_buf, state->milter_reject_text + 4);
 	    cp = split_at(STR(state->expand_buf), ' ');
 	    return (cp ? split_at(cp, ' ') : cp);
@@ -205,6 +206,7 @@ const char *smtpd_milter_eval(const char *name, void *ptr)
 	if (state->recipient == 0)
 	    return (0);
 	if (state->milter_reject_text) {
+	    /* 554 5.7.1 <user@example.com>: Relay access denied */
 	    vstring_strcpy(state->expand_buf, state->milter_reject_text + 4);
 	    (void) split_at(STR(state->expand_buf), ' ');
 	    return (STR(state->expand_buf));

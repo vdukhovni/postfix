@@ -5764,8 +5764,8 @@ This feature is available in Postfix 2.3 and later.
 .SH smtp_tls_protocols (default: !SSLv2)
 List of TLS protocols that the Postfix SMTP client will exclude or
 include with opportunistic TLS encryption. Starting with Postfix 2.6,
-the Postfix SMTP client will by default only use SSLv3 and TLSv1, the
-SSLv2 protocol is insecure and obsolete.
+the Postfix SMTP client will by default not use the obsolete SSLv2
+protocol.
 .PP
 In main.cf the values are separated by whitespace, commas or
 colons. In the policy table (see smtp_tls_policy_maps) the only valid

@@ -9693,8 +9693,8 @@ configurations in environments where DNS security is not assured. </p>
 
 <p> List of TLS protocols that the Postfix SMTP client will exclude or
 include with opportunistic TLS encryption. Starting with Postfix 2.6,
-the Postfix SMTP client will by default only use SSLv3 and TLSv1, the
-SSLv2 protocol is insecure and obsolete. </p>
+the Postfix SMTP client will by default not use the obsolete SSLv2
+protocol. </p>
 
 <p> In <a href="postconf.5.html">main.cf</a> the values are separated by whitespace, commas or
 colons. In the policy table (see <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>) the only valid

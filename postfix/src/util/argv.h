@@ -28,6 +28,7 @@ extern void argv_truncate(ARGV *, ssize_t);
 extern ARGV *argv_free(ARGV *);
 
 extern ARGV *argv_split(const char *, const char *);
+extern ARGV *argv_split_count(const char *, const char *, ssize_t);
 extern ARGV *argv_split_append(ARGV *, const char *, const char *);
 
 #define ARGV_END	((char *) 0)

@@ -160,12 +160,14 @@
 /*
 /*	milter_rcpt_event() reports an RCPT TO event to the specified
 /*	milter instances, after sending the macros that were specified
-/*	with the milter_create() rcpt_macros argument. When the flags
-/*	argument is non-zero, it selects only milter instances that
-/*	have at least one of the specificed flags. Known flags are:
+/*	with the milter_create() rcpt_macros argument. The flags
+/*	argument supports the following:
 /* .IP MILTER_FLAG_WANT_RCPT_REJ
-/*	This milter expects to receive rejected recipients with the
-/*	{rcpt_mailer} macro set to "error".
+/*	When this flag is cleared, invoke all milters.  When this
+/*	flag is set, invoke only milters that want to receive
+/*	rejected recipients; with Sendmail V8 Milters, {rcpt_mailer}
+/*	is set to "error", {rcpt_host} is set to an enhanced status
+/*	code, and {rcpt_addr} is set to descriptive text.
 /* .PP
 /*	milter_data_event() reports a DATA event to the specified
 /*	milter instances, after sending the macros that were specified
