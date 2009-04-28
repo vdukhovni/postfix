@@ -959,6 +959,99 @@ static const char *cleanup_del_header(void *context, ssize_t index,
     return (CLEANUP_OUT_OK(state) ? 0 : cleanup_milter_error(state, 0));
 }
 
+/* cleanup_chg_from - replace sender address, ignore ESMTP arguments */
+
+static const char *cleanup_chg_from(void *context, const char *ext_from,
+				            const char *esmtp_args)
+{
+    const char *myname = "cleanup_chg_from";
+    CLEANUP_STATE *state = (CLEANUP_STATE *) context;
+    off_t   new_sender_offset;
+    int     addr_count;
+    TOK822 *tree;
+    TOK822 *tp;
+    VSTRING *int_sender_buf;
+
+    if (msg_verbose)
+	msg_info("%s: \"%s\" \"%s\"", myname, ext_from, esmtp_args);
+
+    if (esmtp_args[0])
+	msg_warn("%s: %s: ignoring ESMTP arguments \"%.100s\"",
+		 state->queue_id, myname, esmtp_args);
+
+    /*
+     * The cleanup server remembers the location of the the original sender
+     * address record (offset in sender_pt_offset) and the file offset of the
+     * record that follows the sender address (offset in sender_pt_target).
+     * Short original sender records are padded, so that they can safely be
+     * overwritten with a pointer record to the new sender address record.
+     */
+    if (state->sender_pt_offset < 0)
+	msg_panic("%s: no original sender record offset", myname);
+    if (state->sender_pt_target < 0)
+	msg_panic("%s: no post-sender record offset", myname);
+
+    /*
+     * Allocate space after the end of the queue file, and write the new
+     * sender record, followed by a reverse pointer record that points to the
+     * record that follows the original sender address record. No padding is
+     * needed for a "new" short sender record, since the record is not meant
+     * to be overwritten. When the "new" sender is replaced, we allocate a
+     * new record at the end of the queue file.
+     * 
+     * We update the queue file in a safe manner: save the new sender after the
+     * end of the queue file, write the reverse pointer, and only then
+     * overwrite the old sender record with the forward pointer to the new
+     * sender.
+     */
+    if ((new_sender_offset = vstream_fseek(state->dst, (off_t) 0, SEEK_END)) < 0) {
+	msg_warn("%s: seek file %s: %m", myname, cleanup_path);
+	return (cleanup_milter_error(state, errno));
+    }
+
+    /*
+     * Transform the address from external form to internal form. This also
+     * removes the enclosing <>, if present.
+     * 
+     * XXX vstring_alloc() rejects zero-length requests.
+     */
+    int_sender_buf = vstring_alloc(strlen(ext_from) + 1);
+    tree = tok822_parse(ext_from);
+    for (addr_count = 0, tp = tree; tp != 0; tp = tp->next) {
+	if (tp->type == TOK822_ADDR) {
+	    if (addr_count == 0) {
+		tok822_internalize(int_sender_buf, tp->head, TOK822_STR_DEFL);
+		addr_count += 1;
+	    } else {
+		msg_warn("%s: Milter request to add multi-sender: \"%s\"",
+			 state->queue_id, ext_from);
+		break;
+	    }
+	}
+    }
+    tok822_free_tree(tree);
+    cleanup_addr_sender(state, STR(int_sender_buf));
+    vstring_free(int_sender_buf);
+    cleanup_out_format(state, REC_TYPE_PTR, REC_TYPE_PTR_FORMAT,
+		       (long) state->sender_pt_target);
+
+    /*
+     * Overwrite the original sender record with the pointer to the new
+     * sender address record.
+     */
+    if (vstream_fseek(state->dst, state->sender_pt_offset, SEEK_SET) < 0) {
+	msg_warn("%s: seek file %s: %m", myname, cleanup_path);
+	return (cleanup_milter_error(state, errno));
+    }
+    cleanup_out_format(state, REC_TYPE_PTR, REC_TYPE_PTR_FORMAT,
+		       (long) new_sender_offset);
+
+    /*
+     * In case of error while doing record output.
+     */
+    return (CLEANUP_OUT_OK(state) ? 0 : cleanup_milter_error(state, 0));
+}
+
 /* cleanup_add_rcpt - append recipient address */
 
 static const char *cleanup_add_rcpt(void *context, const char *ext_rcpt)
@@ -1063,6 +1156,20 @@ static const char *cleanup_add_rcpt(void *context, const char *ext_rcpt)
      * In case of error while doing record output.
      */
     return (CLEANUP_OUT_OK(state) ? 0 : cleanup_milter_error(state, 0));
+}
+
+/* cleanup_add_rcpt_par - append recipient address, ignore ESMTP arguments */
+
+static const char *cleanup_add_rcpt_par(void *context, const char *ext_rcpt,
+					        const char *esmtp_args)
+{
+    const char *myname = "cleanup_add_rcpt";
+    CLEANUP_STATE *state = (CLEANUP_STATE *) context;
+
+    if (esmtp_args[0])
+	msg_warn("%s: %s: ignoring ESMTP arguments \"%.100s\"",
+		 state->queue_id, myname, esmtp_args);
+    return (cleanup_add_rcpt(context, ext_rcpt));
 }
 
 /* cleanup_del_rcpt - remove recipient and all its expansions */
@@ -1366,7 +1473,8 @@ void    cleanup_milter_receive(CLEANUP_STATE *state, int count)
     milter_edit_callback(state->milters,
 			 cleanup_add_header, cleanup_upd_header,
 			 cleanup_ins_header, cleanup_del_header,
-			 cleanup_add_rcpt, cleanup_del_rcpt,
+			 cleanup_chg_from, cleanup_add_rcpt,
+			 cleanup_add_rcpt_par, cleanup_del_rcpt,
 			 cleanup_repl_body, (void *) state);
 }
 
@@ -1399,7 +1507,7 @@ static const char *cleanup_milter_apply(CLEANUP_STATE *state, const char *event,
     switch (resp[0]) {
     case 'H':
 	/* XXX Should log the reason here. */
-	if (state->flags & CLEANUP_FLAG_HOLD) 
+	if (state->flags & CLEANUP_FLAG_HOLD)
 	    return (0);
 	state->flags |= CLEANUP_FLAG_HOLD;
 	action = "milter-hold";
@@ -1538,7 +1646,8 @@ void    cleanup_milter_emul_mail(CLEANUP_STATE *state,
     milter_edit_callback(milters,
 			 cleanup_add_header, cleanup_upd_header,
 			 cleanup_ins_header, cleanup_del_header,
-			 cleanup_add_rcpt, cleanup_del_rcpt,
+			 cleanup_chg_from, cleanup_add_rcpt,
+			 cleanup_add_rcpt_par, cleanup_del_rcpt,
 			 cleanup_repl_body, (void *) state);
     if (state->client_name == 0)
 	cleanup_milter_client_init(state);
@@ -1608,7 +1717,7 @@ void    cleanup_milter_emul_rcpt(CLEANUP_STATE *state,
 	vstring_strcpy(state->milter_ext_rcpt, addr);
     argv[0] = STR(state->milter_ext_rcpt);
     argv[1] = 0;
-    if ((resp = milter_rcpt_event(milters, argv)) != 0
+    if ((resp = milter_rcpt_event(milters, MILTER_FLAG_NONE, argv)) != 0
 	&& cleanup_milter_apply(state, "RCPT", resp) != 0) {
 	msg_warn("%s: milter configuration error: can't reject recipient "
 		 "in non-smtpd(8) submission", state->queue_id);
@@ -1768,6 +1877,14 @@ static void open_queue_file(CLEANUP_STATE *state, const char *path)
 			      cleanup_path, STR(buf));
 		state->data_offset = data_offset;
 		state->xtra_offset = data_offset + msg_seg_len;
+	    } else if (rec_type == REC_TYPE_FROM) {
+		state->sender_pt_offset = curr_offset;
+		if (LEN(buf) < REC_TYPE_PTR_PAYL_SIZE
+		    && rec_get_raw(state->dst, buf, 0, REC_FLAG_NONE) != REC_TYPE_PTR)
+		    msg_fatal("file %s: missing PTR record after short sender",
+			      cleanup_path);
+		if ((state->sender_pt_target = vstream_ftell(state->dst)) < 0)
+		    msg_fatal("file %s: missing END record", cleanup_path);
 	    } else if (rec_type == REC_TYPE_PTR) {
 		if (state->data_offset < 0)
 		    msg_fatal("file %s: missing SIZE record", cleanup_path);
@@ -1825,6 +1942,8 @@ int     main(int unused_argc, char **argv)
     char   *bufp;
     int     istty = isatty(vstream_fileno(VSTREAM_IN));
     CLEANUP_STATE *state = cleanup_state_alloc((VSTREAM *) 0);
+
+    state->queue_id = mystrdup("NOQUEUE");
 
     msg_vstream_init(argv[0], VSTREAM_ERR);
     var_line_limit = DEF_LINE_LIMIT;
@@ -1910,11 +2029,23 @@ int     main(int unused_argc, char **argv)
 	    } else {
 		cleanup_del_header(state, index, argv->argv[2]);
 	    }
+	} else if (strcmp(argv->argv[0], "chg_from") == 0) {
+	    if (argv->argc != 3) {
+		msg_warn("bad chg_from argument count: %d", argv->argc);
+	    } else {
+		cleanup_chg_from(state, argv->argv[1], argv->argv[2]);
+	    }
 	} else if (strcmp(argv->argv[0], "add_rcpt") == 0) {
 	    if (argv->argc != 2) {
 		msg_warn("bad add_rcpt argument count: %d", argv->argc);
 	    } else {
 		cleanup_add_rcpt(state, argv->argv[1]);
+	    }
+	} else if (strcmp(argv->argv[0], "add_rcpt_par") == 0) {
+	    if (argv->argc != 3) {
+		msg_warn("bad add_rcpt_par argument count: %d", argv->argc);
+	    } else {
+		cleanup_add_rcpt_par(state, argv->argv[1], argv->argv[2]);
 	    }
 	} else if (strcmp(argv->argv[0], "del_rcpt") == 0) {
 	    if (argv->argc != 2) {

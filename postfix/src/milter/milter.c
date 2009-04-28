@@ -35,14 +35,17 @@
 /*	void	*mac_context;
 /*
 /*	void	milter_edit_callback(milters, add_header, upd_header,
-/*					ins_header, del_header, add_rcpt,
-/*					del_rcpt, repl_body, context)
+/*					ins_header, del_header, chg_from,
+/*					add_rcpt, add_rcpt_par, del_rcpt,
+/*					repl_body, context)
 /*	MILTERS	*milters;
 /*	MILTER_ADD_HEADER_FN add_header;
 /*	MILTER_EDIT_HEADER_FN upd_header;
 /*	MILTER_EDIT_HEADER_FN ins_header;
 /*	MILTER_DEL_HEADER_FN del_header;
+/*	MILTER_EDIT_FROM_FN chg_from;
 /*	MILTER_EDIT_RCPT_FN add_rcpt;
+/*	MILTER_EDIT_RCPT_PAR_FN add_rcpt_par;
 /*	MILTER_EDIT_RCPT_FN del_rcpt;
 /*	MILTER_EDIT_BODY_FN repl_body;
 /*	void	*context;
@@ -67,8 +70,9 @@
 /*	MILTERS	*milters;
 /*	const char **argv;
 /*
-/*	const char *milter_rcpt_event(milters, argv)
+/*	const char *milter_rcpt_event(milters, flags, argv)
 /*	MILTERS	*milters;
+/*	int	flags;
 /*	const char **argv;
 /*
 /*	const char *milter_data_event(milters)
@@ -107,7 +111,7 @@
 /*
 /*	The functions that inspect content or envelope commands
 /*	return either an SMTP reply ([45]XX followed by enhanced
-/*	status code and text), "D" (discard), "H" (quarantine), 
+/*	status code and text), "D" (discard), "H" (quarantine),
 /*	"S" (shutdown connection), or a null pointer, which means
 /*	"no news is good news".
 /*
@@ -159,8 +163,15 @@
 /*
 /*	milter_rcpt_event() reports an RCPT TO event to the specified
 /*	milter instances, after sending the macros that were specified
-/*	with the milter_create() rcpt_macros argument.
-/*
+/*	with the milter_create() rcpt_macros argument. The flags
+/*	argument supports the following:
+/* .IP MILTER_FLAG_WANT_RCPT_REJ
+/*	When this flag is cleared, invoke all milters.  When this
+/*	flag is set, invoke only milters that want to receive
+/*	rejected recipients; with Sendmail V8 Milters, {rcpt_mailer}
+/*	is set to "error", {rcpt_host} is set to an enhanced status
+/*	code, and {rcpt_addr} is set to descriptive text.
+/* .PP
 /*	milter_data_event() reports a DATA event to the specified
 /*	milter instances, after sending the macros that were specified
 /*	with the milter_create() data_macros argument.
@@ -286,7 +297,9 @@ void    milter_edit_callback(MILTERS *milters,
 			             MILTER_EDIT_HEADER_FN upd_header,
 			             MILTER_EDIT_HEADER_FN ins_header,
 			             MILTER_DEL_HEADER_FN del_header,
+			             MILTER_EDIT_FROM_FN chg_from,
 			             MILTER_EDIT_RCPT_FN add_rcpt,
+			             MILTER_EDIT_RCPT_PAR_FN add_rcpt_par,
 			             MILTER_EDIT_RCPT_FN del_rcpt,
 			             MILTER_EDIT_BODY_FN repl_body,
 			             void *chg_context)
@@ -295,7 +308,9 @@ void    milter_edit_callback(MILTERS *milters,
     milters->upd_header = upd_header;
     milters->ins_header = ins_header;
     milters->del_header = del_header;
+    milters->chg_from = chg_from;
     milters->add_rcpt = add_rcpt;
+    milters->add_rcpt_par = add_rcpt_par;
     milters->del_rcpt = del_rcpt;
     milters->repl_body = repl_body;
     milters->chg_context = chg_context;
@@ -382,7 +397,7 @@ const char *milter_mail_event(MILTERS *milters, const char **argv)
 
 /* milter_rcpt_event - report rcpt to event */
 
-const char *milter_rcpt_event(MILTERS *milters, const char **argv)
+const char *milter_rcpt_event(MILTERS *milters, int flags, const char **argv)
 {
     const char *resp;
     MILTER *m;
@@ -390,12 +405,16 @@ const char *milter_rcpt_event(MILTERS *milters, const char **argv)
     ARGV   *any_macros;
 
     if (msg_verbose)
-	msg_info("report recipient to all milters");
+	msg_info("report recipient to all milters (flags=0x%x)", flags);
     for (resp = 0, m = milters->milter_list; resp == 0 && m != 0; m = m->next) {
-	any_macros = MILTER_MACRO_EVAL(global_macros, m, milters, rcpt_macros);
-	resp = m->rcpt_event(m, argv, any_macros);
-	if (any_macros != global_macros)
-	    argv_free(any_macros);
+	if ((flags & MILTER_FLAG_WANT_RCPT_REJ) == 0
+	    || (m->flags & MILTER_FLAG_WANT_RCPT_REJ) != 0) {
+	    any_macros =
+		MILTER_MACRO_EVAL(global_macros, m, milters, rcpt_macros);
+	    resp = m->rcpt_event(m, argv, any_macros);
+	    if (any_macros != global_macros)
+		argv_free(any_macros);
+	}
     }
     if (global_macros)
 	argv_free(global_macros);

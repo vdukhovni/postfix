@@ -5697,10 +5697,11 @@ for a list of available macro names and their meanings. </p>
 </DD>
 
 <DT><b><a name="milter_protocol">milter_protocol</a>
-(default: 2)</b></DT><DD>
+(default: 6)</b></DT><DD>
 
 <p> The mail filter protocol version and optional protocol extensions
-for communication with a Milter (mail filter) application. Postfix
+for communication with a Milter application; prior to Postfix 2.6
+the default protocol is 2. Postfix
 sends this version number during the initial protocol handshake.
 It should match the version number that is expected by the mail
 filter application (or by its Milter library).  </p>
@@ -5710,14 +5711,15 @@ filter application (or by its Milter library).  </p>
 <dl compact>
 
 <dt>2</dt> <dd>Use Sendmail 8 mail filter protocol version 2 (default
-as of Sendmail version 8.11).</dd>
+with Sendmail version 8.11 .. 8.13 and Postfix version 2.3 ..
+2.5).</dd>
 
 <dt>3</dt> <dd>Use Sendmail 8 mail filter protocol version 3.</dd>
 
 <dt>4</dt> <dd>Use Sendmail 8 mail filter protocol version 4.</dd>
 
 <dt>6</dt> <dd>Use Sendmail 8 mail filter protocol version 6 (default
-as of Sendmail version 8.14).</dd>
+with Sendmail version 8.14 and Postfix version 2.6).</dd>
 
 </dl>
 
@@ -9533,8 +9535,8 @@ introduced in Postfix 2.3. Starting with Postfix 2.3, and independently
 of how the policy is specified, the <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> and
 <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> parameters apply when TLS encryption
 is mandatory. Connections for which encryption is optional typically
-enable all "export" grade and better ciphers and all SSL/TLS protocols
-(see <a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a> and <a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a>). </p>
+enable all "export" grade and better ciphers (see <a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a>
+and <a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a>). </p>
 
 <p> As long as no secure DNS lookup mechanism is available, false
 hostnames in MX or CNAME responses can change the server hostname
@@ -9689,12 +9691,12 @@ configurations in environments where DNS security is not assured. </p>
 </DD>
 
 <DT><b><a name="smtp_tls_protocols">smtp_tls_protocols</a>
-(default: empty)</b></DT><DD>
+(default: !SSLv2)</b></DT><DD>
 
-<p> List of TLS protocols that the Postfix SMTP client will exclude
-or include with opportunistic TLS encryption. This parameter SHOULD be
-left at its default empty value, allowing all protocols to be used with
-opportunistic TLS. </p>
+<p> List of TLS protocols that the Postfix SMTP client will exclude or
+include with opportunistic TLS encryption. Starting with Postfix 2.6,
+the Postfix SMTP client will by default not use the obsolete SSLv2
+protocol. </p>
 
 <p> In <a href="postconf.5.html">main.cf</a> the values are separated by whitespace, commas or
 colons. In the policy table (see <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>) the only valid
@@ -9713,7 +9715,8 @@ they cannot be excluded using either syntax. </p>
 
 <p> Example: </p>
 <pre>
-<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a> = !SSLv2
+# TLSv1 only!
+<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a> = !SSLv2, !SSLv3
 </pre>
 
 <p> This feature is available in Postfix 2.6 and later. </p>
@@ -9867,12 +9870,12 @@ Examples:
 # Opportunistic TLS.
 <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = may
 # Postfix &ge; 2.6:
-# Do not tweak opportunistic ciphers or protocols unless it is essential
+# Do not tweak opportunistic ciphers unless it is essential
 # to do so (if a security vulnerability is found in the SSL library that
 # can be mitigated by disabling a particular protocol or raising the
 # cipher grade from "export" to "low" or "medium").
 <a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a> = export
-<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a> =
+<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a> = !SSLv2
 </pre>
 
 <pre>

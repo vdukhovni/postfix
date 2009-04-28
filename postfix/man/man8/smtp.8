@@ -420,9 +420,9 @@ The message digest algorithm used to construct remote SMTP server
 certificate fingerprints.
 .PP
 Available in Postfix version 2.6 and later:
-.IP "\fBsmtp_tls_protocols (empty)\fR"
-List of TLS protocols that the Postfix SMTP client will exclude
-or include with opportunistic TLS encryption.
+.IP "\fBsmtp_tls_protocols (!SSLv2)\fR"
+List of TLS protocols that the Postfix SMTP client will exclude or
+include with opportunistic TLS encryption.
 .IP "\fBsmtp_tls_ciphers (export)\fR"
 The minimum TLS cipher grade that the Postfix SMTP client
 will use with opportunistic TLS encryption.

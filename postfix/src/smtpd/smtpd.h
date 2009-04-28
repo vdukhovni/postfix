@@ -176,8 +176,9 @@ typedef struct SMTPD_STATE {
     /*
      * Milter support.
      */
-    const char **milter_argv;
-    ssize_t milter_argc;
+    const char **milter_argv;		/* SMTP command vector */
+    ssize_t milter_argc;		/* SMTP command vector */
+    const char *milter_reject_text;	/* input to call-back from Milter */
 } SMTPD_STATE;
 
 #define SMTPD_FLAG_HANGUP	   (1<<0)	/* 421/521 disconnect */

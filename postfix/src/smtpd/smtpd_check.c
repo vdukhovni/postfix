@@ -244,6 +244,7 @@
 #include "smtpd_sasl_glue.h"
 #include "smtpd_check.h"
 #include "smtpd_dsn_fix.h"
+#include "smtpd_resolve.h"
 
 #define RESTRICTION_SEPARATORS ", \t\r\n"
 
@@ -264,7 +265,6 @@ static jmp_buf smtpd_check_buf;
   * memory manager routines.
   */
 static VSTRING *error_text;
-static CTABLE *smtpd_resolve_cache;
 static CTABLE *smtpd_rbl_cache;
 
  /*
@@ -434,48 +434,6 @@ typedef struct {
     const char *class;			/* name of rejected value */
     const char *txt;			/* randomly selected trimmed TXT rr */
 } SMTPD_RBL_EXPAND_CONTEXT;
-
-/* resolve_pagein - page in an address resolver result */
-
-static void *resolve_pagein(const char *addr, void *unused_context)
-{
-    static VSTRING *query;
-    RESOLVE_REPLY *reply;
-
-    /*
-     * Initialize on the fly.
-     */
-    if (query == 0)
-	query = vstring_alloc(10);
-
-    /*
-     * Initialize.
-     */
-    reply = (RESOLVE_REPLY *) mymalloc(sizeof(*reply));
-    resolve_clnt_init(reply);
-
-    /*
-     * Resolve the address.
-     */
-    rewrite_clnt_internal(MAIL_ATTR_RWR_LOCAL, addr, query);
-    resolve_clnt_query(STR(query), reply);
-    lowercase(STR(reply->recipient));
-
-    /*
-     * Save the result.
-     */
-    return ((void *) reply);
-}
-
-/* resolve_pageout - page out an address resolver result */
-
-static void resolve_pageout(void *data, void *unused_context)
-{
-    RESOLVE_REPLY *reply = (RESOLVE_REPLY *) data;
-
-    resolve_clnt_free(reply);
-    myfree((void *) reply);
-}
 
 /* policy_client_register - register policy service endpoint */
 
@@ -668,8 +626,7 @@ void    smtpd_check_init(void)
      * Initialize the resolved address cache. Note: the cache persists across
      * SMTP sessions so we cannot make it dependent on session state.
      */
-    smtpd_resolve_cache = ctable_create(100, resolve_pagein,
-					resolve_pageout, (void *) 0);
+    smtpd_resolve_init(100);
 
     /*
      * Initialize the RBL lookup cache. Note: the cache persists across SMTP
@@ -1351,8 +1308,7 @@ static int permit_auth_destination(SMTPD_STATE *state, char *recipient)
     /*
      * Resolve the address.
      */
-    reply = (const RESOLVE_REPLY *)
-	ctable_locate(smtpd_resolve_cache, recipient);
+    reply = smtpd_resolve_addr(recipient);
     if (reply->flags & RESOLVE_FLAG_FAIL)
 	reject_dict_retry(state, recipient);
 
@@ -1625,8 +1581,7 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
     /*
      * Resolve the address.
      */
-    reply = (const RESOLVE_REPLY *)
-	ctable_locate(smtpd_resolve_cache, recipient);
+    reply = smtpd_resolve_addr(recipient);
     if (reply->flags & RESOLVE_FLAG_FAIL)
 	reject_dict_retry(state, recipient);
 
@@ -1794,7 +1749,7 @@ static int reject_unknown_address(SMTPD_STATE *state, const char *addr,
     /*
      * Resolve the address.
      */
-    reply = (const RESOLVE_REPLY *) ctable_locate(smtpd_resolve_cache, addr);
+    reply = smtpd_resolve_addr(addr);
     if (reply->flags & RESOLVE_FLAG_FAIL)
 	reject_dict_retry(state, addr);
 
@@ -2733,7 +2688,7 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
     /*
      * Resolve the address.
      */
-    reply = (const RESOLVE_REPLY *) ctable_locate(smtpd_resolve_cache, addr);
+    reply = smtpd_resolve_addr(addr);
     if (reply->flags & RESOLVE_FLAG_FAIL)
 	reject_dict_retry(state, addr);
 
@@ -3327,7 +3282,7 @@ static int reject_auth_sender_login_mismatch(SMTPD_STATE *state, const char *sen
      * Reject if the client is logged in and does not own the sender address.
      */
     if (smtpd_sasl_is_active(state) && state->sasl_username != 0) {
-	reply = (const RESOLVE_REPLY *) ctable_locate(smtpd_resolve_cache, sender);
+	reply = smtpd_resolve_addr(sender);
 	if (reply->flags & RESOLVE_FLAG_FAIL)
 	    reject_dict_retry(state, sender);
 	if ((owners = check_mail_addr_find(state, sender, smtpd_sender_login_maps,
@@ -3360,7 +3315,7 @@ static int reject_unauth_sender_login_mismatch(SMTPD_STATE *state, const char *s
      * owner.
      */
     if (smtpd_sasl_is_active(state) && state->sasl_username == 0) {
-	reply = (const RESOLVE_REPLY *) ctable_locate(smtpd_resolve_cache, sender);
+	reply = smtpd_resolve_addr(sender);
 	if (reply->flags & RESOLVE_FLAG_FAIL)
 	    reject_dict_retry(state, sender);
 	if (check_mail_addr_find(state, sender, smtpd_sender_login_maps,
@@ -4004,8 +3959,7 @@ int     smtpd_check_addr(const char *addr)
      */
     if (addr == 0 || *addr == 0)
 	return (0);
-    resolve_reply = (const RESOLVE_REPLY *)
-	ctable_locate(smtpd_resolve_cache, addr);
+    resolve_reply = smtpd_resolve_addr(addr);
     if (resolve_reply->flags & RESOLVE_FLAG_ERROR)
 	return (-1);
     return (0);
@@ -4430,8 +4384,7 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient,
     /*
      * Resolve the address.
      */
-    reply = (const RESOLVE_REPLY *)
-	ctable_locate(smtpd_resolve_cache, recipient);
+    reply = smtpd_resolve_addr(recipient);
     if (reply->flags & RESOLVE_FLAG_FAIL)
 	reject_dict_retry(state, recipient);
 

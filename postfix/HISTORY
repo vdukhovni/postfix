@@ -15133,3 +15133,64 @@ Apologies for any names omitted.
 	xsasl/xsasl.h, xsasl/xsasl*client.c, smtp/smtp_sasl_glue.c.
 
 	More postlink fixes. File: mantools/postlink.
+
+20090419
+
+	Bugfix: don't re-enable SIGHUP if it is ignored in the
+	parent. This may cause random "Postfix integrity check
+	failed" errors at boot time (POSIX SIGHUP death), causing
+	Postfix not to start. We duplicate code from postdrop and
+	thus avoid past mistakes.  File: postsuper/postsuper.c.
+
+	Robustness: don't re-enable SIGTERM if it is ignored in the
+	parent. Files: postsuper/postsuper.c, postdrop/postdrop.c.
+
+20090422
+
+	Undo delivery agent change 20090415. The queue manager never
+	locks a queue file to read additional recipients into memory,
+	so if a delivery agent runs into a locked file, then something
+	is seriously wrong. File: global/deliver_request.c.
+
+20090424
+
+	Compatibility: the Postfix SMTP client no longer uses the
+	obsolete SSLv2 by default for opportunistic encryption.
+	This has nothing to do with security (we're willing to send
+	plaintext over an unauthenticated connection) but with the
+	loss of advanced options that give better performance.
+	Victor Duchovni. Files: proto/postconf.proto, global/mail_params.h.
+
+20090426
+
+	Feature: more accurate support for Milter macros {mail_addr}
+	and {rcpt_addr}, and new support for Milter macros {mail_host},
+	{mail_mailer}, {rcpt_host}, and {rcpt_mailer}.  Files:
+	milter/milter.[hc], smtpd/smtpd.[hc], smtpd/smtpd_milter.c,
+	smtpd/smtpd_resolve.c.
+
+	Feature: support to report rejected recipients to Milters
+	(SMFIP_RCPT_REJ). Postfix reports the event as decribed in
+	Sendmail 8.14.0 documentation: {rcpt_mailer} = "error",
+	{rcpt_host} = enhanced status code (e.g., "5.7.1"), and
+	{rcpt_addr} = reason to reject (e.g., "Relay access denied").
+	Files: milter/milter.[hc], milter/milter8.c, smtpd/smtpd.[hc],
+	smtpd/smtpd_milter.c.
+
+20090427
+
+	Feature: Milter support for replacing the envelope sender
+	and adding recipients (SMFIR_CHGFROM, SMFIR_ADDRCPT_PAR).
+	This support currently ignores ESMTP command parameters.
+	Files: milter/milter8.c, cleanup/cleanup_milter.c.
+
+20090428
+
+	Compatibility: to make all the new Milter features usable,
+	raise the default milter_protocol setting from 2 to 6.
+	This has been tested with a Sendmail 8.14 libmilter.
+	File: global/mail_params.h.
+
+	Bugfix: don't disable MIME parsing with smtp_header_checks,
+	smtp_mime_header_checks, smtp_nested_header_checks or with
+	smtp_body_checks. Bug reported by Victor. File: smtp/smtp_proto.c.

@@ -569,6 +569,7 @@ argv.o: sys_defs.h
 argv_split.o: argv.h
 argv_split.o: argv_split.c
 argv_split.o: mymalloc.h
+argv_split.o: msg.h
 argv_split.o: stringops.h
 argv_split.o: sys_defs.h
 argv_split.o: vbuf.h

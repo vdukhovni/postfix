@@ -3162,9 +3162,10 @@ after the SMTP MAIL FROM command. See MILTER_README
 for a list of available macro names and their meanings.
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH milter_protocol (default: 2)
+.SH milter_protocol (default: 6)
 The mail filter protocol version and optional protocol extensions
-for communication with a Milter (mail filter) application. Postfix
+for communication with a Milter application; prior to Postfix 2.6
+the default protocol is 2. Postfix
 sends this version number during the initial protocol handshake.
 It should match the version number that is expected by the mail
 filter application (or by its Milter library).
@@ -3172,14 +3173,15 @@ filter application (or by its Milter library).
 Protocol versions:
 .IP "2"
 Use Sendmail 8 mail filter protocol version 2 (default
-as of Sendmail version 8.11).
+with Sendmail version 8.11 .. 8.13 and Postfix version 2.3 ..
+2.5).
 .IP "3"
 Use Sendmail 8 mail filter protocol version 3.
 .IP "4"
 Use Sendmail 8 mail filter protocol version 4.
 .IP "6"
 Use Sendmail 8 mail filter protocol version 6 (default
-as of Sendmail version 8.14).
+with Sendmail version 8.14 and Postfix version 2.6).
 .PP
 Protocol extensions:
 .IP "no_header_reply"
@@ -5617,8 +5619,8 @@ introduced in Postfix 2.3. Starting with Postfix 2.3, and independently
 of how the policy is specified, the smtp_tls_mandatory_ciphers and
 smtp_tls_mandatory_protocols parameters apply when TLS encryption
 is mandatory. Connections for which encryption is optional typically
-enable all "export" grade and better ciphers and all SSL/TLS protocols
-(see smtp_tls_ciphers and smtp_tls_protocols).
+enable all "export" grade and better ciphers (see smtp_tls_ciphers
+and smtp_tls_protocols).
 .PP
 As long as no secure DNS lookup mechanism is available, false
 hostnames in MX or CNAME responses can change the server hostname
@@ -5761,11 +5763,11 @@ DNS forgery. Do not use the \fBhostname\fR strategy for secure-channel
 configurations in environments where DNS security is not assured.
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH smtp_tls_protocols (default: empty)
-List of TLS protocols that the Postfix SMTP client will exclude
-or include with opportunistic TLS encryption. This parameter SHOULD be
-left at its default empty value, allowing all protocols to be used with
-opportunistic TLS.
+.SH smtp_tls_protocols (default: !SSLv2)
+List of TLS protocols that the Postfix SMTP client will exclude or
+include with opportunistic TLS encryption. Starting with Postfix 2.6,
+the Postfix SMTP client will by default not use the obsolete SSLv2
+protocol.
 .PP
 In main.cf the values are separated by whitespace, commas or
 colons. In the policy table (see smtp_tls_policy_maps) the only valid
@@ -5786,7 +5788,8 @@ Example:
 .nf
 .na
 .ft C
-smtp_tls_protocols = !SSLv2
+# TLSv1 only!
+smtp_tls_protocols = !SSLv2, !SSLv3
 .fi
 .ad
 .ft R
@@ -5926,12 +5929,12 @@ smtp_tls_security_level = none
 # Opportunistic TLS.
 smtp_tls_security_level = may
 # Postfix >= 2.6:
-# Do not tweak opportunistic ciphers or protocols unless it is essential
+# Do not tweak opportunistic ciphers unless it is essential
 # to do so (if a security vulnerability is found in the SSL library that
 # can be mitigated by disabling a particular protocol or raising the
 # cipher grade from "export" to "low" or "medium").
 smtp_tls_ciphers = export
-smtp_tls_protocols =
+smtp_tls_protocols = !SSLv2
 .fi
 .ad
 .ft R

@@ -184,7 +184,8 @@ Once you're satisfied with the content filtering script:
     store its temporary files.
 
   * Configure Postfix to deliver mail to the content filter with the pipe(8)
-    delivery agent.
+    delivery agent (see the pipe(8) manpage for a description of the command
+    syntax below).
 
     /etc/postfix/master.cf:
       # =============================================================
@@ -192,13 +193,14 @@ Once you're satisfied with the content filtering script:
       #               (yes)   (yes)   (yes)   (never) (100)
       # =============================================================
       filter    unix  -       n       n       -       10      pipe
-        flags=Rq user=filter argv=/path/to/script -f ${sender} -- ${recipient}
+        flags=Rq user=filter null_sender=
+        argv=/path/to/script -f ${sender} -- ${recipient}
 
     This runs up to 10 content filters in parallel. Instead of a limit of 10
     concurrent processes, use whatever process limit is feasible for your
     machine. Content inspection software can gobble up a lot of system
     resources, so you don't want to have too much of it running at the same
-    time.
+    time. The empty null_sender setting is required with Postfix 2.3 and later.
 
   * To turn on content filtering for mail arriving via SMTP only, append "-
     o content_filter=filter:dummy" to the master.cf entry that defines the

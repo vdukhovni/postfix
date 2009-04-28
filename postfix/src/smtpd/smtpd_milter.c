@@ -33,6 +33,8 @@
 
 /* Utility library. */
 
+#include <split_at.h>
+
 /* Global library. */
 
 #include <mail_params.h>
@@ -46,6 +48,7 @@
 
 #include <smtpd.h>
 #include <smtpd_sasl_glue.h>
+#include <smtpd_resolve.h>
 #include <smtpd_milter.h>
 
  /*
@@ -58,13 +61,19 @@
 const char *smtpd_milter_eval(const char *name, void *ptr)
 {
     SMTPD_STATE *state = (SMTPD_STATE *) ptr;
+    const RESOLVE_REPLY *reply;
+    char   *cp;
+
+    /*
+     * On-the-fly initialization.
+     */
+    if (state->expand_buf == 0)
+	state->expand_buf = vstring_alloc(10);
 
     /*
      * Canonicalize the name.
      */
     if (*name != '{') {				/* } */
-	if (state->expand_buf == 0)
-	    state->expand_buf = vstring_alloc(10);
 	vstring_sprintf(state->expand_buf, "{%s}", name);
 	name = STR(state->expand_buf);
     }
@@ -81,8 +90,6 @@ const char *smtpd_milter_eval(const char *name, void *ptr)
      * Connect macros.
      */
     if (strcmp(name, S8_MAC__) == 0) {
-	if (state->expand_buf == 0)
-	    state->expand_buf = vstring_alloc(10);
 	vstring_sprintf(state->expand_buf, "%s [%s]",
 			state->reverse_name, state->addr);
 	if (strcasecmp(state->name, state->reverse_name) != 0)
@@ -96,8 +103,6 @@ const char *smtpd_milter_eval(const char *name, void *ptr)
     if (strcmp(name, S8_MAC_CLIENT_PORT) == 0)
 	return (strcmp(state->port, CLIENT_PORT_UNKNOWN) ? state->port : "0");
     if (strcmp(name, S8_MAC_CLIENT_CONN) == 0) {
-	if (state->expand_buf == 0)
-	    state->expand_buf = vstring_alloc(10);
 	vstring_sprintf(state->expand_buf, "%d", state->conn_count);
 	return (STR(state->expand_buf));
     }
@@ -124,8 +129,6 @@ const char *smtpd_milter_eval(const char *name, void *ptr)
     if (strcmp(name, S8_MAC_CIPHER_BITS) == 0) {
 	if (state->tls_context == 0)
 	    return (0);
-	if (state->expand_buf == 0)
-	    state->expand_buf = vstring_alloc(10);
 	vstring_sprintf(state->expand_buf, "%d",
 			IF_ENCRYPTED(state->tls_context->cipher_usebits));
 	return (STR(state->expand_buf));
@@ -154,14 +157,27 @@ const char *smtpd_milter_eval(const char *name, void *ptr)
     if (strcmp(name, S8_MAC_MAIL_ADDR) == 0) {
 	if (state->sender == 0)
 	    return (0);
-	if (state->expand_buf == 0)
-	    state->expand_buf = vstring_alloc(10);
+	if (state->sender[0] == 0)
+	    return ("");
+	reply = smtpd_resolve_addr(state->sender);
 	/* Sendmail 8.13 does not externalize the null string. */
-	if (state->sender[0])
-	    quote_821_local(state->expand_buf, state->sender);
+	if (STR(reply->recipient)[0])
+	    quote_821_local(state->expand_buf, STR(reply->recipient));
 	else
-	    vstring_strcpy(state->expand_buf, state->sender);
+	    vstring_strcpy(state->expand_buf, STR(reply->recipient));
 	return (STR(state->expand_buf));
+    }
+    if (strcmp(name, S8_MAC_MAIL_HOST) == 0) {
+	if (state->sender == 0)
+	    return (0);
+	reply = smtpd_resolve_addr(state->sender);
+	return (STR(reply->nexthop));
+    }
+    if (strcmp(name, S8_MAC_MAIL_MAILER) == 0) {
+	if (state->sender == 0)
+	    return (0);
+	reply = smtpd_resolve_addr(state->sender);
+	return (STR(reply->transport));
     }
 
     /*
@@ -170,14 +186,41 @@ const char *smtpd_milter_eval(const char *name, void *ptr)
     if (strcmp(name, S8_MAC_RCPT_ADDR) == 0) {
 	if (state->recipient == 0)
 	    return (0);
-	if (state->expand_buf == 0)
-	    state->expand_buf = vstring_alloc(10);
+	if (state->recipient[0] == 0)
+	    return ("");
+	if (state->milter_reject_text) {
+	    /* 554 5.7.1 <user@example.com>: Relay access denied */
+	    vstring_strcpy(state->expand_buf, state->milter_reject_text + 4);
+	    cp = split_at(STR(state->expand_buf), ' ');
+	    return (cp ? split_at(cp, ' ') : cp);
+	}
+	reply = smtpd_resolve_addr(state->recipient);
 	/* Sendmail 8.13 does not externalize the null string. */
-	if (state->recipient[0])
-	    quote_821_local(state->expand_buf, state->recipient);
+	if (STR(reply->recipient)[0])
+	    quote_821_local(state->expand_buf, STR(reply->recipient));
 	else
-	    vstring_strcpy(state->expand_buf, state->recipient);
+	    vstring_strcpy(state->expand_buf, STR(reply->recipient));
 	return (STR(state->expand_buf));
+    }
+    if (strcmp(name, S8_MAC_RCPT_HOST) == 0) {
+	if (state->recipient == 0)
+	    return (0);
+	if (state->milter_reject_text) {
+	    /* 554 5.7.1 <user@example.com>: Relay access denied */
+	    vstring_strcpy(state->expand_buf, state->milter_reject_text + 4);
+	    (void) split_at(STR(state->expand_buf), ' ');
+	    return (STR(state->expand_buf));
+	}
+	reply = smtpd_resolve_addr(state->recipient);
+	return (STR(reply->nexthop));
+    }
+    if (strcmp(name, S8_MAC_RCPT_MAILER) == 0) {
+	if (state->recipient == 0)
+	    return (0);
+	if (state->milter_reject_text)
+	    return (S8_RCPT_MAILER_ERROR);
+	reply = smtpd_resolve_addr(state->recipient);
+	return (STR(reply->transport));
     }
     return (0);
 }

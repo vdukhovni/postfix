@@ -356,7 +356,8 @@ to the "filter" user. This is where the content filtering script
 is supposed to store its temporary files. </p>
 
 <li> <p> Configure Postfix to deliver mail to the content filter
-with the <a href="pipe.8.html">pipe(8)</a> delivery agent. </p>
+with the <a href="pipe.8.html">pipe(8)</a> delivery agent (see the <a href="pipe.8.html">pipe(8)</a> manpage for a
+description of the command syntax below). </p>
 
 <pre>
 /etc/postfix/<a href="master.5.html">master.cf</a>:
@@ -365,14 +366,16 @@ with the <a href="pipe.8.html">pipe(8)</a> delivery agent. </p>
   #               (yes)   (yes)   (yes)   (never) (100)
   # =============================================================
   filter    unix  -       n       n       -       10      pipe
-    flags=Rq user=filter argv=/path/to/script -f ${sender} -- ${recipient}
+    flags=Rq user=filter null_sender=
+    argv=/path/to/script -f ${sender} -- ${recipient}
 </pre>
 
 <p> This runs up to 10 content filters in parallel. Instead of a
 limit of 10 concurrent processes, use whatever process limit is
 feasible for your machine.  Content inspection software can gobble
 up a lot of system resources, so you don't want to have too much
-of it running at the same time. </p>
+of it running at the same time. The empty null_sender setting is
+required with Postfix 2.3 and later. </p>
 
 <li> <p> To turn on content filtering for mail arriving via SMTP
 only, append "-o <a href="postconf.5.html#content_filter">content_filter</a>=filter:dummy" to the <a href="master.5.html">master.cf</a>

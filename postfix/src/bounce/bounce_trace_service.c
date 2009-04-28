@@ -140,7 +140,7 @@ int     bounce_trace_service(int flags, char *service, char *queue_name,
      * a new queue file.
      */
     if ((bounce = post_mail_fopen_nowait(NULL_SENDER, recipient,
-					 INT_FILT_BOUNCE,
+					 INT_FILT_MASK_BOUNCE,
 					 NULL_TRACE_FLAGS,
 					 new_id)) != 0) {
 	count = -1;

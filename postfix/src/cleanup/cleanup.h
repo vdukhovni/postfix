@@ -72,6 +72,8 @@ typedef struct CLEANUP_STATE {
     off_t   body_offset;		/* start of body content */
     off_t   xtra_offset;		/* start of extra segment */
     off_t   cont_length;		/* length including Milter edits */
+    off_t   sender_pt_offset;		/* replace sender here */
+    off_t   sender_pt_target;		/* record after sender address */
     off_t   append_rcpt_pt_offset;	/* append recipient here */
     off_t   append_rcpt_pt_target;	/* target of above record */
     off_t   append_hdr_pt_offset;	/* append header here */

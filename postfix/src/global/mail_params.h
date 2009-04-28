@@ -1428,9 +1428,9 @@ extern int var_lmtp_tls_scache_timeout;
 extern char *var_smtp_tls_policy;
 
 #define VAR_SMTP_TLS_PROTO	"smtp_tls_protocols"
-#define DEF_SMTP_TLS_PROTO	""
+#define DEF_SMTP_TLS_PROTO	"!SSLv2"
 #define VAR_LMTP_TLS_PROTO	"lmtp_tls_protocols"
-#define DEF_LMTP_TLS_PROTO	""
+#define DEF_LMTP_TLS_PROTO	"!SSLv2"
 extern char *var_smtp_tls_proto;
 
 #define VAR_SMTP_TLS_MAND_PROTO	"smtp_tls_mandatory_protocols"
@@ -2929,11 +2929,13 @@ extern char *var_milt_helo_macros;
 
 #define VAR_MILT_MAIL_MACROS		"milter_mail_macros"
 #define DEF_MILT_MAIL_MACROS		"i {auth_type} {auth_authen}" \
-					" {auth_author} {mail_addr}"
+					" {auth_author} {mail_addr}" \
+					" {mail_host} {mail_mailer}"
 extern char *var_milt_mail_macros;
 
 #define VAR_MILT_RCPT_MACROS		"milter_rcpt_macros"
-#define DEF_MILT_RCPT_MACROS		"i {rcpt_addr}"
+#define DEF_MILT_RCPT_MACROS		"i {rcpt_addr} {rcpt_host}" \
+					" {rcpt_mailer}"
 extern char *var_milt_rcpt_macros;
 
 #define VAR_MILT_DATA_MACROS		"milter_data_macros"
@@ -2965,7 +2967,7 @@ extern int var_milt_cmd_time;
 extern int var_milt_msg_time;
 
 #define VAR_MILT_PROTOCOL		"milter_protocol"
-#define DEF_MILT_PROTOCOL		"2"
+#define DEF_MILT_PROTOCOL		"6"
 extern char *var_milt_protocol;
 
 #define VAR_MILT_DEF_ACTION		"milter_default_action"
@@ -2984,8 +2986,12 @@ extern char *var_milt_v;
   * What internal mail do we inspect/stamp/etc.? This is not yet safe enough
   * to enable world-wide.
   */
+#define INT_FILT_CLASS_NONE		""
+#define INT_FILT_CLASS_NOTIFY		"notify"
+#define INT_FILT_CLASS_BOUNCE		"bounce"
+
 #define VAR_INT_FILT_CLASSES		"internal_mail_filter_classes"
-#define DEF_INT_FILT_CLASSES		""
+#define DEF_INT_FILT_CLASSES		INT_FILT_CLASS_NONE
 extern char *var_int_filt_classes;
 
  /*

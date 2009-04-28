@@ -14,12 +14,12 @@
 /*	the internal_mail_filter_classes configuration parameter.
 /*
 /*	Specify one of the following:
-/* .IP INT_FILT_NONE
+/* .IP INT_FILT_MASK_NONE
 /*	Mail that must be excluded from inspection (address probes, etc.).
-/* .IP INT_FILT_NOTIFY
+/* .IP INT_FILT_MASK_NOTIFY
 /*	Postmaster notifications from the smtpd(8) and smtp(8)
 /*	protocol adapters.
-/* .IP INT_FILT_BOUNCE
+/* .IP INT_FILT_MASK_BOUNCE
 /*	Delivery status notifications from the bounce(8) server.
 /* DIAGNOSTICS
 /*	Fatal: invalid mail category name.
@@ -54,8 +54,8 @@
 int     int_filt_flags(int class)
 {
     static const NAME_MASK table[] = {
-	"notify", INT_FILT_NOTIFY,
-	"bounce", INT_FILT_BOUNCE,
+	INT_FILT_CLASS_NOTIFY, INT_FILT_MASK_NOTIFY,
+	INT_FILT_CLASS_BOUNCE, INT_FILT_MASK_BOUNCE,
 	0,
     };
     int     filtered_classes = 0;

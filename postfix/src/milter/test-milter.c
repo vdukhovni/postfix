@@ -22,13 +22,19 @@
 /* .IP "\fB-A address\fR"
 /*	Add the specified recipient address. Multiple -A options
 /*	are supported.
-/* .IP "\fB-d\fI level\fR"
-/*	Enable libmilter debugging at the specified level.
+/* .IP "\fB-b pathname
+/*	Replace the message body by the content of the specified file.
 /* .IP "\fB-c connect|helo|mail|rcpt|data|header|eoh|body|eom|unknown|close|abort\fR"
 /*	When to send the non-default reply specified with \fB-a\fR.
 /*	The default protocol stage is \fBconnect\fR.
 /* .IP "\fB-C\fI count\fR"
 /*	Terminate after \fIcount\fR connections.
+/* .IP "\fB-d\fI level\fR"
+/*	Enable libmilter debugging at the specified level.
+/* .IP "\fB-f \fIsender\fR
+/*	Replace the sender by the specified address.
+/* .IP "\fB-h \fI'index header-label header-value'\fR"
+/*	Replace the message header at the specified position.
 /* .IP "\fB-i \fI'index header-label header-value'\fR"
 /*	Insert header at specified position.
 /* .IP "\fB-l\fR"
@@ -46,10 +52,8 @@
 /*	The event for which the filter will not reply.
 /* .IP "\fB-p inet:\fIport\fB@\fIhost\fB|unix:\fIpathname\fR"
 /*	The mail filter listen endpoint.
-/* .IP "\fB-r \fI'index header-label header-value'\fR"
-/*	Replace the message header at the specified position.
-/* .IP "\fB-R pathname
-/*	Replace the message body by the content of the specified file.
+/* .IP "\fB-r\fR"
+/*	Request rejected recipients from the MTA.
 /* .IP "\fB-v\fR"
 /*	Make the program more verbose.
 /* LICENSE
@@ -130,6 +134,11 @@ static char *reply_code;
 static char *reply_dsn;
 static char *reply_message;
 
+#ifdef SMFIR_CHGFROM
+static char *chg_from;
+
+#endif
+
 #ifdef SMFIR_INSHEADER
 static char *ins_hdr;
 static int ins_idx;
@@ -153,9 +162,46 @@ static char *body_file;
 int     rcpt_count = 0;
 char   *rcpt_addr[MAX_RCPT];
 
+static const char *macro_names[] = {
+    "_",
+    "i",
+    "j",
+    "v",
+    "{auth_authen}",
+    "{auth_author}",
+    "{auth_type}",
+    "{cert_issuer}",
+    "{cert_subject}",
+    "{cipher}",
+    "{cipher_bits}",
+    "{client_addr}",
+    "{client_connections}",
+    "{client_name}",
+    "{client_port}",
+    "{client_ptr}",
+    "{client_resolve}",
+    "{daemon_name}",
+    "{if_addr}",
+    "{if_name}",
+    "{mail_addr}",
+    "{mail_host}",
+    "{mail_mailer}",
+    "{rcpt_addr}",
+    "{rcpt_host}",
+    "{rcpt_mailer}",
+    "{tls_version}",
+    0,
+};
+
 static int test_reply(SMFICTX *ctx, int code)
 {
-    (void) fflush(stdout);		/* In case output redirected. */
+    const char **cpp;
+    const char *symval;
+
+    for (cpp = macro_names; *cpp; cpp++)
+	if ((symval = smfi_getsymval(ctx, (char *) *cpp)) != 0)
+	    printf("macro: %s=\"%s\"\n", *cpp, symval);
+    (void) fflush(stdout);			/* In case output redirected. */
 
     if (code == SMFIR_REPLYCODE) {
 	if (smfi_setmlreply(ctx, reply_code, reply_dsn, reply_message, reply_message, (char *) 0) == MI_FAILURE)
@@ -293,6 +339,12 @@ static sfsistat test_eom(SMFICTX *ctx)
 	}
     }
 #endif
+#ifdef SMFIR_CHGFROM
+    if (chg_from != 0 && smfi_chgfrom(ctx, chg_from, "whatever") == MI_FAILURE)
+	fprintf(stderr, "smfi_chgfrom failed\n");
+    else
+	printf("smfi_chgfrom OK\n");
+#endif
 #ifdef SMFIR_INSHEADER
     if (ins_hdr && smfi_insheader(ctx, ins_idx, ins_hdr, ins_val) == MI_FAILURE)
 	fprintf(stderr, "smfi_insheader failed\n");
@@ -356,7 +408,7 @@ static struct smfiDesc smfilter =
 {
     "test-milter",
     SMFI_VERSION,
-    SMFIF_ADDRCPT | SMFIF_DELRCPT | SMFIF_ADDHDRS | SMFIF_CHGHDRS | SMFIF_CHGBODY,
+    SMFIF_ADDRCPT | SMFIF_DELRCPT | SMFIF_ADDHDRS | SMFIF_CHGHDRS | SMFIF_CHGBODY | SMFIF_CHGFROM,
     test_connect,
     test_helo,
     test_mail,
@@ -478,7 +530,7 @@ int     main(int argc, char **argv)
     char   *noreply = 0;
     const struct noproto_map *np;
 
-    while ((ch = getopt(argc, argv, "a:A:c:C:d:i:lm:M:n:N:p:r:R:v")) > 0) {
+    while ((ch = getopt(argc, argv, "a:A:b:c:C:d:f:h:i:lm:M:n:N:p:rv")) > 0) {
 	switch (ch) {
 	case 'a':
 	    action = optarg;
@@ -490,6 +542,17 @@ int     main(int argc, char **argv)
 	    }
 	    rcpt_addr[rcpt_count++] = optarg;
 	    break;
+	case 'b':
+#ifdef SMFIR_REPLBODY
+	    if (body_file) {
+		fprintf(stderr, "too many -b options\n");
+		exit(1);
+	    }
+	    body_file = optarg;
+#else
+	    fprintf(stderr, "no libmilter support to replace body\n");
+#endif
+	    break;
 	case 'c':
 	    command = optarg;
 	    break;
@@ -498,6 +561,30 @@ int     main(int argc, char **argv)
 		fprintf(stderr, "smfi_setdbg failed\n");
 		exit(1);
 	    }
+	    break;
+	case 'f':
+#ifdef SMFIR_CHGFROM
+	    if (chg_from) {
+		fprintf(stderr, "too many -f options\n");
+		exit(1);
+	    }
+	    chg_from = optarg;
+#else
+	    fprintf(stderr, "no libmilter support to change sender\n");
+	    exit(1);
+#endif
+	    break;
+	case 'h':
+#ifdef SMFIR_CHGHEADER
+	    if (chg_hdr) {
+		fprintf(stderr, "too many -h options\n");
+		exit(1);
+	    }
+	    parse_hdr_info(optarg, &chg_idx, &chg_hdr, &chg_val);
+#else
+	    fprintf(stderr, "no libmilter support to change header\n");
+	    exit(1);
+#endif
 	    break;
 	case 'i':
 #ifdef SMFIR_INSHEADER
@@ -575,15 +662,10 @@ int     main(int argc, char **argv)
 	    }
 	    break;
 	case 'r':
-#ifdef SMFIR_CHGHEADER
-	    if (chg_hdr) {
-		fprintf(stderr, "too many -r options\n");
-		exit(1);
-	    }
-	    parse_hdr_info(optarg, &chg_idx, &chg_hdr, &chg_val);
+#ifdef SMFIP_RCPT_REJ
+	    misc_mask |= SMFIP_RCPT_REJ;
 #else
-	    fprintf(stderr, "no libmilter support to change header\n");
-	    exit(1);
+	    fprintf(stderr, "no libmilter support for rejected recipients\n");
 #endif
 	    break;
 	case 'v':
@@ -592,29 +674,21 @@ int     main(int argc, char **argv)
 	case 'C':
 	    conn_count = atoi(optarg);
 	    break;
-#ifdef SMFIR_REPLBODY
-	case 'R':
-	    if (body_file) {
-		fprintf(stderr, "too many -R options\n");
-		exit(1);
-	    }
-	    body_file = optarg;
-#endif
-	    break;
 	default:
 	    fprintf(stderr,
 		    "usage: %s [-dv] \n"
 		    "\t[-a action]              non-default action\n"
+		    "\t[-b body_text]           replace body\n",
 		    "\t[-c command]             non-default action trigger\n"
+		    "\t[-h 'index label value'] replace header\n"
 		    "\t[-i 'index label value'] insert header\n"
 		    "\t[-m macro_state]		non-default macro state\n"
 		    "\t[-M macro_list]		non-default macro list\n"
 		    "\t[-n events]		don't receive these events\n"
 		  "\t[-N events]		don't reply to these events\n"
 		    "\t-p port                  milter application\n"
-		    "\t[-r 'index label value'] replace header\n"
+		  "\t-r                       request rejected recipients\n"
 		    "\t[-C conn_count]          when to exit\n",
-		    "\t[-R body_text]           replace body\n",
 		    argv[0]);
 	    exit(1);
 	}

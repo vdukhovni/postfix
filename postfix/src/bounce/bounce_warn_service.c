@@ -164,7 +164,7 @@ int     bounce_warn_service(int unused_flags, char *service, char *queue_name,
 	    postmaster = var_delay_rcpt;
 	    if ((bounce = post_mail_fopen_nowait(mail_addr_double_bounce(),
 						 postmaster,
-						 INT_FILT_BOUNCE,
+						 INT_FILT_MASK_BOUNCE,
 						 NULL_TRACE_FLAGS,
 						 new_id)) != 0) {
 
@@ -202,7 +202,7 @@ int     bounce_warn_service(int unused_flags, char *service, char *queue_name,
      */
     else {
 	if ((bounce = post_mail_fopen_nowait(NULL_SENDER, recipient,
-					     INT_FILT_BOUNCE,
+					     INT_FILT_MASK_BOUNCE,
 					     NULL_TRACE_FLAGS,
 					     new_id)) != 0) {
 
@@ -252,7 +252,7 @@ int     bounce_warn_service(int unused_flags, char *service, char *queue_name,
 	    postmaster = var_delay_rcpt;
 	    if ((bounce = post_mail_fopen_nowait(mail_addr_double_bounce(),
 						 postmaster,
-						 INT_FILT_BOUNCE,
+						 INT_FILT_MASK_BOUNCE,
 						 NULL_TRACE_FLAGS,
 						 new_id)) != 0) {
 		count = -1;

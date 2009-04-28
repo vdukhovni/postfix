@@ -1692,7 +1692,7 @@ Example:
         smtp_tls_mandatory_protocols = !SSLv2
         # Also available with Postfix >= 2.6:
         smtp_tls_ciphers = export
-        smtp_tls_protocols =
+        smtp_tls_protocols = !SSLv2
 
 CClliieenntt--ssiiddee SSMMTTPPSS ssuuppppoorrtt
 
