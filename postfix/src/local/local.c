@@ -300,10 +300,6 @@
 /*	~\fIname\fR/.\fBforward\fR+\fIfoo\fR or in ~\fIname\fR/.\fBforward\fR,
 /*	to the mailbox owned by the user \fIname\fR, or it is sent back as
 /*	undeliverable.
-/*
-/*	In all cases the \fBlocal\fR(8) daemon prepends an optional
-/*	`\fBDelivered-To:\fR header line with the final recipient
-/*	address.
 /* DELIVERY RIGHTS
 /* .ad
 /* .fi

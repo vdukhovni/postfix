@@ -176,9 +176,10 @@
 /* .IP "\fBsmtpd_milters (empty)\fR"
 /*	A list of Milter (mail filter) applications for new mail that
 /*	arrives via the Postfix \fBsmtpd\fR(8) server.
-/* .IP "\fBmilter_protocol (2)\fR"
+/* .IP "\fBmilter_protocol (6)\fR"
 /*	The mail filter protocol version and optional protocol extensions
-/*	for communication with a Milter (mail filter) application.
+/*	for communication with a Milter application; prior to Postfix 2.6
+/*	the default protocol is 2.
 /* .IP "\fBmilter_default_action (tempfail)\fR"
 /*	The default action when a Milter (mail filter) application is
 /*	unavailable or mis-configured.

@@ -3162,9 +3162,10 @@ after the SMTP MAIL FROM command. See MILTER_README
 for a list of available macro names and their meanings.
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH milter_protocol (default: 2)
+.SH milter_protocol (default: 6)
 The mail filter protocol version and optional protocol extensions
-for communication with a Milter (mail filter) application. Postfix
+for communication with a Milter application; prior to Postfix 2.6
+the default protocol is 2. Postfix
 sends this version number during the initial protocol handshake.
 It should match the version number that is expected by the mail
 filter application (or by its Milter library).
@@ -3172,14 +3173,15 @@ filter application (or by its Milter library).
 Protocol versions:
 .IP "2"
 Use Sendmail 8 mail filter protocol version 2 (default
-as of Sendmail version 8.11).
+with Sendmail version 8.11 .. 8.13 and Postfix version 2.3 ..
+2.5).
 .IP "3"
 Use Sendmail 8 mail filter protocol version 3.
 .IP "4"
 Use Sendmail 8 mail filter protocol version 4.
 .IP "6"
 Use Sendmail 8 mail filter protocol version 6 (default
-as of Sendmail version 8.14).
+with Sendmail version 8.14 and Postfix version 2.6).
 .PP
 Protocol extensions:
 .IP "no_header_reply"

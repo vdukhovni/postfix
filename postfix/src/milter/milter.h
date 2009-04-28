@@ -91,7 +91,9 @@ typedef const char *(*MILTER_MAC_LOOKUP_FN) (const char *, void *);
 typedef const char *(*MILTER_ADD_HEADER_FN) (void *, const char *, const char *, const char *);
 typedef const char *(*MILTER_EDIT_HEADER_FN) (void *, ssize_t, const char *, const char *, const char *);
 typedef const char *(*MILTER_DEL_HEADER_FN) (void *, ssize_t, const char *);
+typedef const char *(*MILTER_EDIT_FROM_FN) (void *, const char *, const char *);
 typedef const char *(*MILTER_EDIT_RCPT_FN) (void *, const char *);
+typedef const char *(*MILTER_EDIT_RCPT_PAR_FN) (void *, const char *, const char *);
 typedef const char *(*MILTER_EDIT_BODY_FN) (void *, int, VSTRING *);
 
 typedef struct MILTERS {
@@ -104,7 +106,9 @@ typedef struct MILTERS {
     MILTER_EDIT_HEADER_FN upd_header;
     MILTER_DEL_HEADER_FN del_header;
     MILTER_EDIT_HEADER_FN ins_header;
+    MILTER_EDIT_FROM_FN chg_from;
     MILTER_EDIT_RCPT_FN add_rcpt;
+    MILTER_EDIT_RCPT_PAR_FN add_rcpt_par;
     MILTER_EDIT_RCPT_FN del_rcpt;
     MILTER_EDIT_BODY_FN repl_body;
 } MILTERS;
@@ -123,7 +127,8 @@ extern MILTERS *milter_new(const char *, int, int, int, const char *,
 extern void milter_macro_callback(MILTERS *, MILTER_MAC_LOOKUP_FN, void *);
 extern void milter_edit_callback(MILTERS *milters, MILTER_ADD_HEADER_FN,
 		               MILTER_EDIT_HEADER_FN, MILTER_EDIT_HEADER_FN,
-			          MILTER_DEL_HEADER_FN, MILTER_EDIT_RCPT_FN,
+			          MILTER_DEL_HEADER_FN, MILTER_EDIT_FROM_FN,
+		               MILTER_EDIT_RCPT_FN, MILTER_EDIT_RCPT_PAR_FN,
 			           MILTER_EDIT_RCPT_FN, MILTER_EDIT_BODY_FN,
 				         void *);
 extern const char *milter_conn_event(MILTERS *, const char *, const char *, const char *, unsigned);

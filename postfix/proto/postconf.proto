@@ -10454,10 +10454,11 @@ for details.  </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
-%PARAM milter_protocol 2
+%PARAM milter_protocol 6
 
 <p> The mail filter protocol version and optional protocol extensions
-for communication with a Milter (mail filter) application. Postfix
+for communication with a Milter application; prior to Postfix 2.6
+the default protocol is 2. Postfix
 sends this version number during the initial protocol handshake.
 It should match the version number that is expected by the mail
 filter application (or by its Milter library).  </p>
@@ -10467,14 +10468,15 @@ filter application (or by its Milter library).  </p>
 <dl compact>
 
 <dt>2</dt> <dd>Use Sendmail 8 mail filter protocol version 2 (default
-as of Sendmail version 8.11).</dd>
+with Sendmail version 8.11 .. 8.13 and Postfix version 2.3 ..
+2.5).</dd>
 
 <dt>3</dt> <dd>Use Sendmail 8 mail filter protocol version 3.</dd>
 
 <dt>4</dt> <dd>Use Sendmail 8 mail filter protocol version 4.</dd>
 
 <dt>6</dt> <dd>Use Sendmail 8 mail filter protocol version 6 (default
-as of Sendmail version 8.14).</dd>
+with Sendmail version 8.14 and Postfix version 2.6).</dd>
 
 </dl>
 

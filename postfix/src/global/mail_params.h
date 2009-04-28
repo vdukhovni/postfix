@@ -2967,7 +2967,7 @@ extern int var_milt_cmd_time;
 extern int var_milt_msg_time;
 
 #define VAR_MILT_PROTOCOL		"milter_protocol"
-#define DEF_MILT_PROTOCOL		"2"
+#define DEF_MILT_PROTOCOL		"6"
 extern char *var_milt_protocol;
 
 #define VAR_MILT_DEF_ACTION		"milter_default_action"
@@ -2986,8 +2986,12 @@ extern char *var_milt_v;
   * What internal mail do we inspect/stamp/etc.? This is not yet safe enough
   * to enable world-wide.
   */
+#define INT_FILT_CLASS_NONE		""
+#define INT_FILT_CLASS_NOTIFY		"notify"
+#define INT_FILT_CLASS_BOUNCE		"bounce"
+
 #define VAR_INT_FILT_CLASSES		"internal_mail_filter_classes"
-#define DEF_INT_FILT_CLASSES		""
+#define DEF_INT_FILT_CLASSES		INT_FILT_CLASS_NONE
 extern char *var_int_filt_classes;
 
  /*

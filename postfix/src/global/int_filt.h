@@ -14,9 +14,9 @@
  /*
   * External interface.
   */
-#define INT_FILT_NONE		(0)
-#define INT_FILT_NOTIFY		(1<<1)
-#define INT_FILT_BOUNCE		(1<<2)
+#define INT_FILT_MASK_NONE		(0)
+#define INT_FILT_MASK_NOTIFY		(1<<1)
+#define INT_FILT_MASK_BOUNCE		(1<<2)
 
 extern int int_filt_flags(int);
 

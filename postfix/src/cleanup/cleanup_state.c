@@ -91,6 +91,8 @@ CLEANUP_STATE *cleanup_state_alloc(VSTREAM *src)
     state->body_offset = -1;
     state->xtra_offset = -1;
     state->cont_length = 0;
+    state->sender_pt_offset = -1;
+    state->sender_pt_target = -1;
     state->append_rcpt_pt_offset = -1;
     state->append_rcpt_pt_target = -1;
     state->append_hdr_pt_offset = -1;

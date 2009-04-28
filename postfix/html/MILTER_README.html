@@ -442,12 +442,15 @@ in the "<a href="QSHAPE_README.html#hold_queue">hold" queue</a>, and is availabl
 
 <p> As Postfix is not built with the Sendmail libmilter library,
 you may need to configure the Milter protocol version that Postfix
-should use.  The default version is 2. Other protocol versions are
-3 and 4 (Postfix 2.3 and later), and 6 (Postfix 2.5 an later).  </p>
+should use.  The default version is 6 (before Postfix 2.6 the default
+version is 2). </p>
 
 <blockquote>
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    # Postfix &ge; 2.6
+    <a href="postconf.5.html#milter_protocol">milter_protocol</a> = 6
+    # 2.3 &le; Postfix &le; 2.5
     <a href="postconf.5.html#milter_protocol">milter_protocol</a> = 2
 </pre>
 </blockquote>
@@ -515,7 +518,9 @@ times. This is an inherent problem with before-queue filtering. </p>
 <h3><a name="macros">Sendmail macro emulation</a></h3>
 
 <p> Postfix emulates a limited number of Sendmail macros, as shown
-in the table. Different macros are available at different SMTP
+in the table. Some macro values depend on whether a recipient is
+rejected (rejected recipients are available on request by the Milter
+application). Different macros are available at different SMTP
 protocol stages (EOH = end-of-header, EOM = end-of-message); their
 availability is not
 always the same as in Sendmail. See the <a
@@ -552,15 +557,16 @@ address </td> </tr>
 <tr> <td> {client_connections} </td> <td> CONNECT </td> <td>
 Connection concurrency for this client </td> </tr>
 
-<tr> <td> {client_name} </td> <td> Always </td> <td> Client hostname,
-"unknown" when lookup or verification fails </td> </tr>
+<tr> <td> {client_name} </td> <td> Always </td> <td> Client hostname
+<br> When address &rarr; name lookup or name &rarr; address
+verification fails: "unknown" </td> </tr>
 
 <tr> <td> {client_port} </td> <td> Always (Postfix &ge;2.5) </td>
 <td> Client TCP port </td> </tr>
 
 <tr> <td> {client_ptr} </td> <td> CONNECT, HELO, MAIL, DATA </td>
-<td> Client name from reverse lookup, "unknown" when lookup fails
-</td> </tr>
+<td> Client name from address &rarr; name lookup <br> When address
+&rarr; name lookup fails: "unknown" </td> </tr>
 
 <tr> <td> {cert_issuer} </td> <td> HELO, MAIL, DATA, EOH, EOM </td> <td>
 TLS client certificate issuer </td> </tr>
@@ -587,14 +593,15 @@ Sender next-hop destination </td> </tr>
 <td> Sender mail delivery transport </td> </tr>
 
 <tr> <td> {rcpt_addr} </td> <td> RCPT </td> <td> Recipient address
-</td> </tr>
+<br> With rejected recipient: descriptive text </td> </tr>
 
 <tr> <td> {rcpt_host} </td> <td> RCPT (Postfix &ge; 2.6) </td> <td>
-Recipient next-hop destination </td> </tr>
+Recipient next-hop destination <br> With rejected recpient: enhanced
+status code </td> </tr>
 
 <tr> <td> {rcpt_mailer} </td> <td> RCPT (Postfix &ge; 2.6) </td>
-<td> Recipient mail delivery transport, "error" for rejected
-recipient.  </td> </tr>
+<td> Recipient mail delivery transport <br> With rejected recipient:
+"error" </td> </tr>
 
 <tr> <td> {tls_version} </td> <td> HELO, MAIL, DATA, EOH, EOM </td>
 <td> TLS protocol version </td> </tr>
@@ -790,21 +797,16 @@ a discussion. </p>
 
 <ul>
 
-<li> <p> Postfix version 2.3 introduces support for Sendmail 8
-milter protocol versions 2, 3 and 4; Postfix version 2.5 adds support
-for protocol version 6, which is available with Sendmail 8.14.
-Support for other protocol types or protocol versions may be added
-later. </p>
-
-<li> <p> For applications that are written in C, you need to use
-the Sendmail libmilter library. A Postfix replacement may be 
-provided in the future. </p>
+<li> <p> For Milter applications that are written in C, you need
+to use the Sendmail libmilter library. </p>
 
 <li> <p> There are TWO sets of mail filters: filters that are used
 for SMTP mail only (specified with the <a href="postconf.5.html#smtpd_milters">smtpd_milters</a> parameter),
 and filters for non-SMTP mail (specified with the <a href="postconf.5.html#non_smtpd_milters">non_smtpd_milters</a>
 parameter).  The non-SMTP filters are primarily for local submissions.
 </p>
+
+<ul>
 
 <li> <p> When mail is filtered by non-SMTP filters, the Postfix
 <a href="cleanup.8.html">cleanup(8)</a> server has to simulate the SMTP client CONNECT and
@@ -814,6 +816,8 @@ non-SMTP filters must not REJECT or TEMPFAIL simulated RCPT TO
 commands.  When a non-SMTP filter REJECTs or TEMPFAILs a recipient,
 Postfix will report a configuration error, and mail will stay in
 the queue.  </p>
+
+</ul>
 
 <li> <p> Postfix currently does not apply content filters to mail
 that is forwarded or aliased internally, or to mail that is generated
@@ -827,9 +831,37 @@ only to the SMTP command information; they have no access to the
 message header or body, and cannot make modifications to the message
 or to the envelope. </p>
 
-<li> <p> Postfix 2.3 does not support Milter requests to replace
-the message body. Milter applications that request this unsupported
-operation will log a warning like this: </p>
+<li> <p> Postfix version 2.6 implements all Sendmail 8.14 Milter
+features, except it ignores the optional ESMTP command parameters
+with requests to replace the sender (SMFIR_CHGFROM), or to append
+a recipient (SMFIR_ADDRCPT_PAR). When a Milter application supplies
+ESMTP command parameters, these are logged as follows: </p>
+
+<pre>
+postfix/cleanup[40629]: warning: 100B22B3293: cleanup_chg_from: ignoring ESMTP arguments "<i>whatever</i>"
+</pre>
+
+<p> Specify "<a href="postconf.5.html#milter_protocol">milter_protocol</a> = 6" to enable all available Sendmail
+8.14 and earlier Milter features. </p>
+
+<li> <p> Postfix version 2.5 implements all Sendmail 8.14 Milter
+features except: SMFIP_RCPT_REJ (report rejected recipients to the
+mail filter), SMFIR_CHGFROM (replace sender, with optional ESMTP
+command parameters), and SMFIR_ADDRCPT_PAR (add recipient, with
+optional ESMTP command parameters). </p>
+
+<p> Specify "<a href="postconf.5.html#milter_protocol">milter_protocol</a> = 6" to enable all available Sendmail
+8.14 and earlier Milter features. </p>
+
+<li> <p> Postfix 2.4 implements all Sendmail 8.13 Milter features.
+</p>
+
+<p> Specify "<a href="postconf.5.html#milter_protocol">milter_protocol</a> = 4" to enable all available Sendmail
+8.13 and earlier Milter features. </p>
+
+<li> <p> Postfix 2.3 implements all Sendmail 8.13 Milter features
+except requests to replace the message body. Milter applications
+that request this unsupported operation will log a warning like
 
 <blockquote>
 <pre>
@@ -839,11 +871,8 @@ operation will log a warning like this: </p>
 
 <p> The solution is to use Postfix version 2.4 or later. </p>
 
-<li> <p> Postfix version 2.5 implements the Sendmail 8.14 features
-except: SMFIP_RCPT_REJ (report rejected recipients to the mail
-filter), SMFIR_CHGFROM (replace sender, with optional ESMTP command
-parameters), and SMFIR_ADDRCPT_PAR (add recipient, with optional
-ESMTP command parameters).
+<p> Specify "<a href="postconf.5.html#milter_protocol">milter_protocol</a> = 4" to enable all available Sendmail
+8.13 and earlier Milter features. </p>
 
 <li> <p> Most Milter configuration options are global. Future Postfix
 versions may support per-Milter timeouts, per-Milter error handling,

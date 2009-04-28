@@ -11,17 +11,31 @@ instead, a new snapshot is released.
 The mail_release_date configuration parameter (format: yyyymmdd)
 specifies the release date of a stable release or snapshot release.
 
-Incompatibility with snapshot 20090426
+Incompatibility with snapshot 20090428
 ======================================
 
-The Postfix SMTP client no longer tries to use the obsolete SSLv2
+The Postfix SMTP client(!) no longer tries to use the obsolete SSLv2
 protocol by default, as this may prevent the use of modern SSL
 features.  Lack of SSLv2 support should never be a problem, since
-SSLv3 was defined in 1996, and TLSv1 in 2006. The Postfix SMTP
-server maintains SSLv2 support for backwards compatibility with
-ancient clients.
+SSLv3 was defined in 1996, and TLSv1 in 2006, but you can undo the
+change by specifying empty main.cf values for smtp_tls_protocols
+and lmtp_tls_protocols. The Postfix SMTP server maintains SSLv2
+support for backwards compatibility with ancient clients.
 
-Major changes with snapshot 20090426
+The default Milter protocol version is increased from 2 to 6; this
+enables all available features up to and including Sendmail 8.14.0.
+The new milter_protocol setting may break compatibility with older
+Milter libraries or applications, and may cause Postfix to log
+warning messages such as:
+
+    postfix/smtpd[21045]: warning: milter inet:host:port: can't read packet
+    header: Unknown error : 0
+    postfix/cleanup[15190]: warning: milter inet:host:port: can't read packet
+    header: Success
+
+To restore compatibility, specify "milter_protocol = 2" in main.cf.
+
+Major changes with snapshot 20090428
 ====================================
 
 The following improvements have been made to the Milter implementation:
@@ -31,9 +45,19 @@ The following improvements have been made to the Milter implementation:
 - Support for the {mail_host}, {mail_mailer}, {rcpt_host} and
 {rcpt_mailer} macros.
 
-- Milters can now request rejected recipients with the SMFIP_RCPT_REJ
-feature. In this case, {rcpt_mailer} is "error", {rcpt_host} is an
-enhanced status code, and {rcpt_addr} is descriptive text.
+- Milter applications can now request rejected recipients with the
+SMFIP_RCPT_REJ feature. Rejected recipients are reported with
+{rcpt_mailer} = "error", {rcpt_host} = enhanced status code, and
+{rcpt_addr} = descriptive text. This feature requires "milter_protocol
+= 6" or higher (default as of Postfix 2.6).
+
+- Milters can now replace the envelope sender address with the
+SMFIR_CHGFROM request, and can add recipients with SMFIR_ADDRCPT_PAR.
+These implementations currently ignore ESMTP command parameters
+with a warning message as follows:
+
+    postfix/cleanup[40629]: warning: 100B22B3293: cleanup_chg_from:
+    ignoring ESMTP arguments "whatever"
 
 Incompatibility with snapshot 20090330
 ======================================

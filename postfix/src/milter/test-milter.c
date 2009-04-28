@@ -27,10 +27,12 @@
 /* .IP "\fB-c connect|helo|mail|rcpt|data|header|eoh|body|eom|unknown|close|abort\fR"
 /*	When to send the non-default reply specified with \fB-a\fR.
 /*	The default protocol stage is \fBconnect\fR.
-/* .IP "\fB-d\fI level\fR"
-/*	Enable libmilter debugging at the specified level.
 /* .IP "\fB-C\fI count\fR"
 /*	Terminate after \fIcount\fR connections.
+/* .IP "\fB-d\fI level\fR"
+/*	Enable libmilter debugging at the specified level.
+/* .IP "\fB-f \fIsender\fR
+/*	Replace the sender by the specified address.
 /* .IP "\fB-h \fI'index header-label header-value'\fR"
 /*	Replace the message header at the specified position.
 /* .IP "\fB-i \fI'index header-label header-value'\fR"
@@ -132,6 +134,11 @@ static char *reply_code;
 static char *reply_dsn;
 static char *reply_message;
 
+#ifdef SMFIR_CHGFROM
+static char *chg_from;
+
+#endif
+
 #ifdef SMFIR_INSHEADER
 static char *ins_hdr;
 static int ins_idx;
@@ -194,7 +201,7 @@ static int test_reply(SMFICTX *ctx, int code)
     for (cpp = macro_names; *cpp; cpp++)
 	if ((symval = smfi_getsymval(ctx, (char *) *cpp)) != 0)
 	    printf("macro: %s=\"%s\"\n", *cpp, symval);
-    (void) fflush(stdout);		/* In case output redirected. */
+    (void) fflush(stdout);			/* In case output redirected. */
 
     if (code == SMFIR_REPLYCODE) {
 	if (smfi_setmlreply(ctx, reply_code, reply_dsn, reply_message, reply_message, (char *) 0) == MI_FAILURE)
@@ -332,6 +339,12 @@ static sfsistat test_eom(SMFICTX *ctx)
 	}
     }
 #endif
+#ifdef SMFIR_CHGFROM
+    if (chg_from != 0 && smfi_chgfrom(ctx, chg_from, "whatever") == MI_FAILURE)
+	fprintf(stderr, "smfi_chgfrom failed\n");
+    else
+	printf("smfi_chgfrom OK\n");
+#endif
 #ifdef SMFIR_INSHEADER
     if (ins_hdr && smfi_insheader(ctx, ins_idx, ins_hdr, ins_val) == MI_FAILURE)
 	fprintf(stderr, "smfi_insheader failed\n");
@@ -395,7 +408,7 @@ static struct smfiDesc smfilter =
 {
     "test-milter",
     SMFI_VERSION,
-    SMFIF_ADDRCPT | SMFIF_DELRCPT | SMFIF_ADDHDRS | SMFIF_CHGHDRS | SMFIF_CHGBODY,
+    SMFIF_ADDRCPT | SMFIF_DELRCPT | SMFIF_ADDHDRS | SMFIF_CHGHDRS | SMFIF_CHGBODY | SMFIF_CHGFROM,
     test_connect,
     test_helo,
     test_mail,
@@ -517,7 +530,7 @@ int     main(int argc, char **argv)
     char   *noreply = 0;
     const struct noproto_map *np;
 
-    while ((ch = getopt(argc, argv, "a:A:b:c:C:d:h:i:lm:M:n:N:p:rv")) > 0) {
+    while ((ch = getopt(argc, argv, "a:A:b:c:C:d:f:h:i:lm:M:n:N:p:rv")) > 0) {
 	switch (ch) {
 	case 'a':
 	    action = optarg;
@@ -548,6 +561,18 @@ int     main(int argc, char **argv)
 		fprintf(stderr, "smfi_setdbg failed\n");
 		exit(1);
 	    }
+	    break;
+	case 'f':
+#ifdef SMFIR_CHGFROM
+	    if (chg_from) {
+		fprintf(stderr, "too many -f options\n");
+		exit(1);
+	    }
+	    chg_from = optarg;
+#else
+	    fprintf(stderr, "no libmilter support to change sender\n");
+	    exit(1);
+#endif
 	    break;
 	case 'h':
 #ifdef SMFIR_CHGHEADER
@@ -662,7 +687,7 @@ int     main(int argc, char **argv)
 		    "\t[-n events]		don't receive these events\n"
 		  "\t[-N events]		don't reply to these events\n"
 		    "\t-p port                  milter application\n"
-		    "\t-r                       request rejected recipients\n"
+		  "\t-r                       request rejected recipients\n"
 		    "\t[-C conn_count]          when to exit\n",
 		    argv[0]);
 	    exit(1);

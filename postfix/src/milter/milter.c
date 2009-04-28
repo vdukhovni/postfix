@@ -35,14 +35,17 @@
 /*	void	*mac_context;
 /*
 /*	void	milter_edit_callback(milters, add_header, upd_header,
-/*					ins_header, del_header, add_rcpt,
-/*					del_rcpt, repl_body, context)
+/*					ins_header, del_header, chg_from,
+/*					add_rcpt, add_rcpt_par, del_rcpt,
+/*					repl_body, context)
 /*	MILTERS	*milters;
 /*	MILTER_ADD_HEADER_FN add_header;
 /*	MILTER_EDIT_HEADER_FN upd_header;
 /*	MILTER_EDIT_HEADER_FN ins_header;
 /*	MILTER_DEL_HEADER_FN del_header;
+/*	MILTER_EDIT_FROM_FN chg_from;
 /*	MILTER_EDIT_RCPT_FN add_rcpt;
+/*	MILTER_EDIT_RCPT_PAR_FN add_rcpt_par;
 /*	MILTER_EDIT_RCPT_FN del_rcpt;
 /*	MILTER_EDIT_BODY_FN repl_body;
 /*	void	*context;
@@ -108,7 +111,7 @@
 /*
 /*	The functions that inspect content or envelope commands
 /*	return either an SMTP reply ([45]XX followed by enhanced
-/*	status code and text), "D" (discard), "H" (quarantine), 
+/*	status code and text), "D" (discard), "H" (quarantine),
 /*	"S" (shutdown connection), or a null pointer, which means
 /*	"no news is good news".
 /*
@@ -294,7 +297,9 @@ void    milter_edit_callback(MILTERS *milters,
 			             MILTER_EDIT_HEADER_FN upd_header,
 			             MILTER_EDIT_HEADER_FN ins_header,
 			             MILTER_DEL_HEADER_FN del_header,
+			             MILTER_EDIT_FROM_FN chg_from,
 			             MILTER_EDIT_RCPT_FN add_rcpt,
+			             MILTER_EDIT_RCPT_PAR_FN add_rcpt_par,
 			             MILTER_EDIT_RCPT_FN del_rcpt,
 			             MILTER_EDIT_BODY_FN repl_body,
 			             void *chg_context)
@@ -303,7 +308,9 @@ void    milter_edit_callback(MILTERS *milters,
     milters->upd_header = upd_header;
     milters->ins_header = ins_header;
     milters->del_header = del_header;
+    milters->chg_from = chg_from;
     milters->add_rcpt = add_rcpt;
+    milters->add_rcpt_par = add_rcpt_par;
     milters->del_rcpt = del_rcpt;
     milters->repl_body = repl_body;
     milters->chg_context = chg_context;

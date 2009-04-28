@@ -147,7 +147,7 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
 	} else {
 	    if ((bounce = post_mail_fopen_nowait(mail_addr_double_bounce(),
 						 var_2bounce_rcpt,
-						 INT_FILT_BOUNCE,
+						 INT_FILT_MASK_BOUNCE,
 						 NULL_TRACE_FLAGS,
 						 new_id)) != 0) {
 
@@ -183,7 +183,7 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
 	    bounce_status = 0;
 	} else {
 	    if ((bounce = post_mail_fopen_nowait(NULL_SENDER, orig_sender,
-						 INT_FILT_BOUNCE,
+						 INT_FILT_MASK_BOUNCE,
 						 NULL_TRACE_FLAGS,
 						 new_id)) != 0) {
 
@@ -228,7 +228,7 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
 	     */
 	    if ((bounce = post_mail_fopen_nowait(mail_addr_double_bounce(),
 						 var_bounce_rcpt,
-						 INT_FILT_BOUNCE,
+						 INT_FILT_MASK_BOUNCE,
 						 NULL_TRACE_FLAGS,
 						 new_id)) != 0) {
 		if (bounce_header(bounce, bounce_info, var_bounce_rcpt,

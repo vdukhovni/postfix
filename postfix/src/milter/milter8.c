@@ -1413,6 +1413,30 @@ static const char *milter8_event(MILTER8 *milter, int event,
 		    continue;
 
 		    /*
+		     * Modification request: replace sender, with optional
+		     * ESMTP args.
+		     */
+		case SMFIR_CHGFROM:
+		    if (milter8_read_data(milter, &data_size,
+					  MILTER8_DATA_STRING, milter->buf,
+					  MILTER8_DATA_MORE) != 0)
+			MILTER8_EVENT_BREAK(milter->def_reply);
+		    if (data_size > 0) {
+			if (milter8_read_data(milter, &data_size,
+					  MILTER8_DATA_STRING, milter->body,
+					      MILTER8_DATA_END) != 0)
+			    MILTER8_EVENT_BREAK(milter->def_reply);
+		    } else
+			STR(milter->body)[0] = 0;
+		    /* Skip to the next request after previous edit error. */
+		    if (edit_resp)
+			continue;
+		    edit_resp = parent->chg_from(parent->chg_context,
+						 STR(milter->buf),
+						 STR(milter->body));
+		    continue;
+
+		    /*
 		     * Modification request: append recipient.
 		     */
 		case SMFIR_ADDRCPT:
@@ -1425,6 +1449,30 @@ static const char *milter8_event(MILTER8 *milter, int event,
 			continue;
 		    edit_resp = parent->add_rcpt(parent->chg_context,
 						 STR(milter->buf));
+		    continue;
+
+		    /*
+		     * Modification request: append recipient, with optional
+		     * ESMTP args.
+		     */
+		case SMFIR_ADDRCPT_PAR:
+		    if (milter8_read_data(milter, &data_size,
+					  MILTER8_DATA_STRING, milter->buf,
+					  MILTER8_DATA_MORE) != 0)
+			MILTER8_EVENT_BREAK(milter->def_reply);
+		    if (data_size > 0) {
+			if (milter8_read_data(milter, &data_size,
+					  MILTER8_DATA_STRING, milter->body,
+					      MILTER8_DATA_END) != 0)
+			    MILTER8_EVENT_BREAK(milter->def_reply);
+		    } else
+			STR(milter->body)[0] = 0;
+		    /* Skip to the next request after previous edit error. */
+		    if (edit_resp)
+			continue;
+		    edit_resp = parent->add_rcpt_par(parent->chg_context,
+						     STR(milter->buf),
+						     STR(milter->body));
 		    continue;
 
 		    /*
@@ -1542,10 +1590,8 @@ static void milter8_connect(MILTER8 *milter)
 				    | SMFIF_DELRCPT | SMFIF_CHGHDRS
 				    | SMFIF_CHGBODY
 				    | SMFIF_QUARANTINE
-#if 0
 				    | SMFIF_CHGFROM
 				    | SMFIF_ADDRCPT_PAR
-#endif
 				    | SMFIF_SETSYMLIST
     );
     UINT32_TYPE my_version = 0;

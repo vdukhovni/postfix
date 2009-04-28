@@ -15169,10 +15169,28 @@ Apologies for any names omitted.
 	milter/milter.[hc], smtpd/smtpd.[hc], smtpd/smtpd_milter.c,
 	smtpd/smtpd_resolve.c.
 
-	Feature: new support for SMFIP_RCPT_REJ. When a recipient
-	is rejected, Postfix reports the event as decribed in
+	Feature: support to report rejected recipients to Milters
+	(SMFIP_RCPT_REJ). Postfix reports the event as decribed in
 	Sendmail 8.14.0 documentation: {rcpt_mailer} = "error",
 	{rcpt_host} = enhanced status code (e.g., "5.7.1"), and
 	{rcpt_addr} = reason to reject (e.g., "Relay access denied").
 	Files: milter/milter.[hc], milter/milter8.c, smtpd/smtpd.[hc],
 	smtpd/smtpd_milter.c.
+
+20090427
+
+	Feature: Milter support for replacing the envelope sender
+	and adding recipients (SMFIR_CHGFROM, SMFIR_ADDRCPT_PAR).
+	This support currently ignores ESMTP command parameters.
+	Files: milter/milter8.c, cleanup/cleanup_milter.c.
+
+20090428
+
+	Compatibility: to make all the new Milter features usable,
+	raise the default milter_protocol setting from 2 to 6.
+	This has been tested with a Sendmail 8.14 libmilter.
+	File: global/mail_params.h.
+
+	Bugfix: don't disable MIME parsing with smtp_header_checks,
+	smtp_mime_header_checks, smtp_nested_header_checks or with
+	smtp_body_checks. Bug reported by Victor. File: smtp/smtp_proto.c.

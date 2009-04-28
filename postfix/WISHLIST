@@ -2,6 +2,9 @@ Wish list:
 
 	Remove this file from the stable release.
 
+	Need to sign delivery status notifications, to avoid surprises
+	when eventually people start enforcing DKIM etc. signatures.
+
 	"postconf -N" option to print user-defined parameter names
 	(these have no defaults, since they exist only when 
 	specified in main.cf or with "-o name=value").
@@ -25,8 +28,8 @@ Wish list:
 	if it contains any text that is special, then rfc822_externalize
 	the whole thing.
 
-	SMTP server: make the server_addr and server_port port
-	available to policy server, Dovecot, and perhaps Milters.
+	SMTP server: make the server_addr and server_port available
+	to policy server, Dovecot, and perhaps Milters.
 
 	Maybe change maps_rbl_reject_code default to 521, and
 	update wording in STRESS_README.
@@ -88,7 +91,7 @@ Wish list:
 	Combine smtpd_peer.c and qmqpd_peer.c into a single function
 	that produces a client context object, and provide attribute
 	print/scan routines that pass these client context objects
-	around. With this, we no longer have to update a multiple
+	around. With this, we no longer have to update multiple
 	pieces of code when a client attribute is added. Ditto for
 	SASL and TLS context.
 
@@ -189,9 +192,9 @@ Wish list:
 	Check that "UINT32 == unsigned int" choice is ok (i.e. LP64
 	UNIX).
 
-	Tempfail when a Milter application wants content access,
-	while it is configured in an SMTP server that runs before
-	the smtpd_proxy filter.
+	Tempfail when a Milter application tries to negotiate content
+	access, while it is configured in an SMTP server that runs
+	before the smtpd_proxy filter.
 
 	Log DSN original recipient when rejecting mail.
 

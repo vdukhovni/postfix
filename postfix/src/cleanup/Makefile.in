@@ -74,7 +74,9 @@ milter_tests: cleanup_milter_test bug_tests \
 	cleanup_milter_test5 cleanup_milter_test6 cleanup_milter_test7 \
 	cleanup_milter_test8 cleanup_milter_test9 cleanup_milter_test10a \
 	cleanup_milter_test10b cleanup_milter_test10c cleanup_milter_test10d \
-	cleanup_milter_test10e cleanup_milter_test11 cleanup_milter_test12
+	cleanup_milter_test10e cleanup_milter_test11 cleanup_milter_test12 \
+	cleanup_milter_test13a cleanup_milter_test13b cleanup_milter_test13c \
+	cleanup_milter_test13d
 
 root_tests:
 
@@ -295,6 +297,42 @@ cleanup_milter_test12: cleanup_milter test-queue-file12 cleanup_milter.in12 \
 	../postcat/postcat -ov test-queue-file12.tmp 2>/dev/null >cleanup_milter.tmp
 	diff cleanup_milter.ref12 cleanup_milter.tmp
 	rm -f test-queue-file12.tmp cleanup_milter.tmp
+
+cleanup_milter_test13a: cleanup_milter test-queue-file13a cleanup_milter.in13a \
+	cleanup_milter.ref13a ../postcat/postcat
+	cp test-queue-file13a test-queue-file13a.tmp
+	chmod u+w test-queue-file13a.tmp
+	./cleanup_milter <cleanup_milter.in13a
+	../postcat/postcat -ov test-queue-file13a.tmp 2>/dev/null >cleanup_milter.tmp
+	diff cleanup_milter.ref13a cleanup_milter.tmp
+	rm -f test-queue-file13a.tmp cleanup_milter.tmp
+
+cleanup_milter_test13b: cleanup_milter test-queue-file13b cleanup_milter.in13b \
+	cleanup_milter.ref13b ../postcat/postcat
+	cp test-queue-file13b test-queue-file13b.tmp
+	chmod u+w test-queue-file13b.tmp
+	./cleanup_milter <cleanup_milter.in13b
+	../postcat/postcat -ov test-queue-file13b.tmp 2>/dev/null >cleanup_milter.tmp
+	diff cleanup_milter.ref13b cleanup_milter.tmp
+	rm -f test-queue-file13b.tmp cleanup_milter.tmp
+
+cleanup_milter_test13c: cleanup_milter test-queue-file13c cleanup_milter.in13c \
+	cleanup_milter.ref13c ../postcat/postcat
+	cp test-queue-file13c test-queue-file13c.tmp
+	chmod u+w test-queue-file13c.tmp
+	./cleanup_milter <cleanup_milter.in13c
+	../postcat/postcat -ov test-queue-file13c.tmp 2>/dev/null >cleanup_milter.tmp
+	diff cleanup_milter.ref13c cleanup_milter.tmp
+	rm -f test-queue-file13c.tmp cleanup_milter.tmp
+
+cleanup_milter_test13d: cleanup_milter test-queue-file13d cleanup_milter.in13d \
+	cleanup_milter.ref13d ../postcat/postcat
+	cp test-queue-file13d test-queue-file13d.tmp
+	chmod u+w test-queue-file13d.tmp
+	./cleanup_milter <cleanup_milter.in13d
+	../postcat/postcat -ov test-queue-file13d.tmp 2>/dev/null >cleanup_milter.tmp
+	diff cleanup_milter.ref13d cleanup_milter.tmp
+	rm -f test-queue-file13d.tmp cleanup_milter.tmp
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \

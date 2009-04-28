@@ -160,7 +160,7 @@ int     bounce_notify_verp(int flags, char *service, char *queue_name,
 	} else {
 	    verp_sender(verp_buf, verp_delims, recipient, rcpt);
 	    if ((bounce = post_mail_fopen_nowait(NULL_SENDER, STR(verp_buf),
-						 INT_FILT_BOUNCE,
+						 INT_FILT_MASK_BOUNCE,
 						 NULL_TRACE_FLAGS,
 						 new_id)) != 0) {
 
@@ -219,7 +219,7 @@ int     bounce_notify_verp(int flags, char *service, char *queue_name,
 	    postmaster = var_bounce_rcpt;
 	    if ((bounce = post_mail_fopen_nowait(mail_addr_double_bounce(),
 						 postmaster,
-						 INT_FILT_BOUNCE,
+						 INT_FILT_MASK_BOUNCE,
 						 NULL_TRACE_FLAGS,
 						 new_id)) != 0) {
 		if (bounce_header(bounce, bounce_info, postmaster,
