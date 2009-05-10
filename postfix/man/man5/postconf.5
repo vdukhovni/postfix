@@ -6355,6 +6355,8 @@ smtpd_client_recipient_rate_limit = 1000
 .SH smtpd_client_restrictions (default: empty)
 Optional SMTP server access restrictions in the context of a client
 SMTP connection request.
+See SMTPD_ACCESS_README, section "Delayed evaluation of SMTP access
+restriction lists" for a discussion of evaluation context and time.
 .PP
 The default is to allow all connection requests.
 .PP
@@ -6571,6 +6573,8 @@ smtpd_client_restrictions = permit_mynetworks, reject_unknown_client_hostname
 .SH smtpd_data_restrictions (default: empty)
 Optional access restrictions that the Postfix SMTP server applies
 in the context of the SMTP DATA command.
+See SMTPD_ACCESS_README, section "Delayed evaluation of SMTP access
+restriction lists" for a discussion of evaluation context and time.
 .PP
 This feature is available in Postfix 2.0 and later.
 .PP
@@ -6649,6 +6653,8 @@ to discard EHLO keywords selectively.
 .SH smtpd_end_of_data_restrictions (default: empty)
 Optional access restrictions that the Postfix SMTP server
 applies in the context of the SMTP END-OF-DATA command.
+See SMTPD_ACCESS_README, section "Delayed evaluation of SMTP access
+restriction lists" for a discussion of evaluation context and time.
 .PP
 This feature is available in Postfix 2.2 and later.
 .PP
@@ -6680,6 +6686,8 @@ mail.
 .SH smtpd_etrn_restrictions (default: empty)
 Optional SMTP server access restrictions in the context of a client
 ETRN request.
+See SMTPD_ACCESS_README, section "Delayed evaluation of SMTP access
+restriction lists" for a discussion of evaluation context and time.
 .PP
 The Postfix ETRN implementation accepts only destinations that are
 eligible for the Postfix "fast flush" service. See the ETRN_README
@@ -6750,6 +6758,8 @@ smtpd_helo_required = yes
 .SH smtpd_helo_restrictions (default: empty)
 Optional restrictions that the Postfix SMTP server applies in the
 context of the SMTP HELO command.
+See SMTPD_ACCESS_README, section "Delayed evaluation of SMTP access
+restriction lists" for a discussion of evaluation context and time.
 .PP
 The default is to permit everything.
 .PP
@@ -6922,6 +6932,8 @@ for each excess recipient.
 .SH smtpd_recipient_restrictions (default: permit_mynetworks, reject_unauth_destination)
 The access restrictions that the Postfix SMTP server applies in
 the context of the RCPT TO command.
+See SMTPD_ACCESS_README, section "Delayed evaluation of SMTP access
+restriction lists" for a discussion of evaluation context and time.
 .PP
 By default, the Postfix SMTP server accepts:
 .IP \(bu
@@ -7334,6 +7346,8 @@ or a list of SASL login names separated by comma and/or whitespace.
 .SH smtpd_sender_restrictions (default: empty)
 Optional restrictions that the Postfix SMTP server applies in the
 context of the MAIL FROM command.
+See SMTPD_ACCESS_README, section "Delayed evaluation of SMTP access
+restriction lists" for a discussion of evaluation context and time.
 .PP
 The default is to permit everything.
 .PP

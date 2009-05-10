@@ -620,8 +620,8 @@ extern int var_dup_filter_limit;
 extern char *var_tls_rand_exch_name;
 
 #define VAR_TLS_RAND_SOURCE	"tls_random_source"
-#ifdef HAS_DEV_URANDOM
-#define DEF_TLS_RAND_SOURCE	"dev:/dev/urandom"
+#ifdef PREFERRED_RAND_SOURCE
+#define DEF_TLS_RAND_SOURCE	PREFERRED_RAND_SOURCE
 #else
 #define DEF_TLS_RAND_SOURCE	""
 #endif

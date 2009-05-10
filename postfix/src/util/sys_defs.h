@@ -93,7 +93,7 @@
 /* __FreeBSD_version version is major+minor */
 
 #if __FreeBSD_version >= 220000
-#define HAS_DEV_URANDOM			/* introduced in 2.1.5 */
+#define PREFERRED_RAND_SOURCE	"dev:/dev/urandom"	/* introduced 2.1.5 */
 #endif
 
 #if __FreeBSD_version >= 300000
@@ -116,9 +116,12 @@
 #define HAS_FUTIMES			/* XXX maybe earlier */
 #endif
 
+#if (defined(OpenBSD) && OpenBSD >= 199608)
+#define PREFERRED_RAND_SOURCE	"dev:/dev/arandom"	/* XXX earlier */
+#endif
+
 #if OpenBSD >= 200000			/* XXX */
 #define HAS_ISSETUGID
-#define HAS_DEV_URANDOM			/* XXX probably earlier */
 #endif
 
 #if OpenBSD >= 200200			/* XXX */
@@ -135,7 +138,7 @@
 #if __NetBSD_Version__ >= 103000000	/* XXX maybe earlier */
 #undef DEF_MAILBOX_LOCK
 #define DEF_MAILBOX_LOCK "flock, dotlock"
-#define HAS_DEV_URANDOM			/* XXX probably earlier */
+#define PREFERRED_RAND_SOURCE	"dev:/dev/urandom"	/* XXX maybe earlier */
 #endif
 
 #if __NetBSD_Version__ >= 105000000
@@ -422,7 +425,7 @@ extern int opterr;
 # define HAS_CLOSEFROM
 #endif
 #ifndef NO_DEV_URANDOM
-# define HAS_DEV_URANDOM
+# define PREFERRED_RAND_SOURCE	"dev:/dev/urandom"
 #endif
 #ifndef NO_FUTIMESAT
 # define HAS_FUTIMESAT
@@ -754,7 +757,7 @@ extern int initgroups(const char *, int);
 #else
 # define CANT_WRITE_BEFORE_SENDING_FD
 #endif
-#define HAS_DEV_URANDOM			/* introduced in 1.1 */
+#define PREFERRED_RAND_SOURCE	"dev:/dev/urandom"	/* introduced in 1.1 */
 #ifndef NO_EPOLL
 # define EVENTS_STYLE	EVENTS_STYLE_EPOLL	/* introduced in 2.5 */
 #endif
@@ -852,7 +855,7 @@ extern int initgroups(const char *, int);
 #endif
 #define CANT_USE_SEND_RECV_MSG
 #define DEF_SMTP_CACHE_DEMAND	0
-#define HAS_DEV_URANDOM
+#define PREFERRED_RAND_SOURCE	"dev:/dev/urandom"
 #endif
 
  /*

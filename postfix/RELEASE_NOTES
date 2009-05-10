@@ -17,21 +17,23 @@ Incompatibility with snapshot 20090428
 The Postfix SMTP client(!) no longer tries to use the obsolete SSLv2
 protocol by default, as this may prevent the use of modern SSL
 features.  Lack of SSLv2 support should never be a problem, since
-SSLv3 was defined in 1996, and TLSv1 in 2006, but you can undo the
+SSLv3 was defined in 1996, and TLSv1 in 1999. You can undo the
 change by specifying empty main.cf values for smtp_tls_protocols
 and lmtp_tls_protocols. The Postfix SMTP server maintains SSLv2
 support for backwards compatibility with ancient clients.
 
-The default Milter protocol version is increased from 2 to 6; this
+The default milter_protocol setting is increased from 2 to 6; this
 enables all available features up to and including Sendmail 8.14.0.
 The new milter_protocol setting may break compatibility with older
 Milter libraries or applications, and may cause Postfix to log
 warning messages such as:
 
-    postfix/smtpd[21045]: warning: milter inet:host:port: can't read packet
-    header: Unknown error : 0
-    postfix/cleanup[15190]: warning: milter inet:host:port: can't read packet
-    header: Success
+    warning: milter inet:host:port: can't read packet header: Unknown error : 0
+
+    warning: milter inet:host:port: can't read packet header: Success
+
+    warning: milter inet:host:port: can't read SMFIC_DATA reply
+    packet header: No such file or directory
 
 To restore compatibility, specify "milter_protocol = 2" in main.cf.
 
@@ -54,10 +56,9 @@ SMFIP_RCPT_REJ feature. Rejected recipients are reported with
 - Milters can now replace the envelope sender address with the
 SMFIR_CHGFROM request, and can add recipients with SMFIR_ADDRCPT_PAR.
 These implementations currently ignore ESMTP command parameters
-with a warning message as follows:
+and log a warning message as follows:
 
-    postfix/cleanup[40629]: warning: 100B22B3293: cleanup_chg_from:
-    ignoring ESMTP arguments "whatever"
+    warning: 100B22B3293: cleanup_chg_from: ignoring ESMTP arguments "whatever"
 
 Incompatibility with snapshot 20090330
 ======================================

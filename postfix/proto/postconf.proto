@@ -4721,6 +4721,8 @@ smtpd_client_new_tls_session_rate_limit = 100
 <p>
 Optional SMTP server access restrictions in the context of a client
 SMTP connection request.
+See SMTPD_ACCESS_README, section "Delayed evaluation of SMTP access
+restriction lists" for a discussion of evaluation context and time.
 </p>
 
 <p>
@@ -5084,6 +5086,8 @@ for each excess recipient.  </p>
 <p>
 Optional SMTP server access restrictions in the context of a client
 ETRN request.
+See SMTPD_ACCESS_README, section "Delayed evaluation of SMTP access
+restriction lists" for a discussion of evaluation context and time.
 </p>
 
 <p>
@@ -5186,6 +5190,8 @@ smtpd_helo_required = yes
 <p>
 Optional restrictions that the Postfix SMTP server applies in the
 context of the SMTP HELO command.
+See SMTPD_ACCESS_README, section "Delayed evaluation of SMTP access
+restriction lists" for a discussion of evaluation context and time.
 </p>
 
 <p>
@@ -5383,6 +5389,8 @@ accepts per message delivery request.
 <p>
 The access restrictions that the Postfix SMTP server applies in
 the context of the RCPT TO command.
+See SMTPD_ACCESS_README, section "Delayed evaluation of SMTP access
+restriction lists" for a discussion of evaluation context and time.
 </p>
 
 <p>
@@ -5818,6 +5826,8 @@ or a list of SASL login names separated by comma and/or whitespace.
 <p>
 Optional restrictions that the Postfix SMTP server applies in the
 context of the MAIL FROM command.
+See SMTPD_ACCESS_README, section "Delayed evaluation of SMTP access
+restriction lists" for a discussion of evaluation context and time.
 </p>
 
 <p>
@@ -7613,6 +7623,8 @@ cached session is still usable.  </p>
 <p>
 Optional access restrictions that the Postfix SMTP server applies
 in the context of the SMTP DATA command.
+See SMTPD_ACCESS_README, section "Delayed evaluation of SMTP access
+restriction lists" for a discussion of evaluation context and time.
 </p>
 
 <p>
@@ -7653,7 +7665,10 @@ smtpd_data_restrictions = reject_multi_recipient_bounce
 %PARAM smtpd_end_of_data_restrictions 
 
 <p> Optional access restrictions that the Postfix SMTP server
-applies in the context of the SMTP END-OF-DATA command. </p>
+applies in the context of the SMTP END-OF-DATA command.
+See SMTPD_ACCESS_README, section "Delayed evaluation of SMTP access
+restriction lists" for a discussion of evaluation context and time.
+</p>
 
 <p> This feature is available in Postfix 2.2 and later. </p>
 

@@ -15194,3 +15194,23 @@ Apologies for any names omitted.
 	Bugfix: don't disable MIME parsing with smtp_header_checks,
 	smtp_mime_header_checks, smtp_nested_header_checks or with
 	smtp_body_checks. Bug reported by Victor. File: smtp/smtp_proto.c.
+
+	Code cleanups: respect VSTRING invariants by using VSTRING_RESET
+	and VSTRING_TERMINATE instead of directly groping the
+	underlying character buffer. Files: global/dsn_buf.c,
+	milter/milter8.c.
+
+20090507
+
+	main.cf:tls_random_source now defaults to /dev/arandom on
+	OpenBSD.  This device was introduced before Postfix development
+	began. Files: util/sys_defs.h, global/mail_params.h.
+
+20090510
+
+	Code cleanups: while emulating SMTP client requests for
+	Milter applications, use user@domain form addresses as
+	required by the SMTP protocol, instead of bare usernames.
+	This avoids hard to debug errors from some Milter applications.
+	Files: cleanup/cleanup_envelope.c, cleanup/cleanup_extracted.c,
+	cleanup/cleanup_addr.c.

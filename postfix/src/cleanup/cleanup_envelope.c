@@ -267,7 +267,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	if (cleanup_milters != 0
 	    && state->milters == 0
 	    && CLEANUP_MILTER_OK(state))
-	    cleanup_milter_emul_rcpt(state, cleanup_milters, buf);
+	    cleanup_milter_emul_rcpt(state, cleanup_milters, state->recip);
 	myfree(state->orig_rcpt);
 	state->orig_rcpt = 0;
 	if (state->dsn_orcpt != 0) {
@@ -394,7 +394,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	if (cleanup_milters != 0
 	    && state->milters == 0
 	    && CLEANUP_MILTER_OK(state))
-	    cleanup_milter_emul_mail(state, cleanup_milters, buf);
+	    cleanup_milter_emul_mail(state, cleanup_milters, state->sender);
 	return;
     }
     if (mapped_type == REC_TYPE_DSN_ENVID) {

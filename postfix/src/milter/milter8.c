@@ -1426,8 +1426,10 @@ static const char *milter8_event(MILTER8 *milter, int event,
 					  MILTER8_DATA_STRING, milter->body,
 					      MILTER8_DATA_END) != 0)
 			    MILTER8_EVENT_BREAK(milter->def_reply);
-		    } else
-			STR(milter->body)[0] = 0;
+		    } else {
+			VSTRING_RESET(milter->body);
+			VSTRING_TERMINATE(milter->body);
+		    }
 		    /* Skip to the next request after previous edit error. */
 		    if (edit_resp)
 			continue;
@@ -1465,8 +1467,10 @@ static const char *milter8_event(MILTER8 *milter, int event,
 					  MILTER8_DATA_STRING, milter->body,
 					      MILTER8_DATA_END) != 0)
 			    MILTER8_EVENT_BREAK(milter->def_reply);
-		    } else
-			STR(milter->body)[0] = 0;
+		    } else {
+			VSTRING_RESET(milter->body);
+			VSTRING_TERMINATE(milter->body);
+		    }
 		    /* Skip to the next request after previous edit error. */
 		    if (edit_resp)
 			continue;

@@ -124,8 +124,9 @@ void    cleanup_addr_sender(CLEANUP_STATE *state, const char *buf)
 	    cleanup_masquerade_internal(clean_addr, cleanup_masq_domains);
     }
     CLEANUP_OUT_BUF(state, REC_TYPE_FROM, clean_addr);
-    if (state->sender == 0)
-	state->sender = mystrdup(STR(clean_addr));
+    if (state->sender)				/* XXX Can't happen */
+	myfree(state->sender);
+    state->sender = mystrdup(STR(clean_addr));	/* Used by Milter client */
     if ((state->flags & CLEANUP_FLAG_BCC_OK)
 	&& *STR(clean_addr)
 	&& cleanup_send_bcc_maps
@@ -166,8 +167,9 @@ void    cleanup_addr_recipient(CLEANUP_STATE *state, const char *buf)
     }
     cleanup_out_recipient(state, state->dsn_orcpt, state->dsn_notify,
 			  state->orig_rcpt, STR(clean_addr));
-    if (state->recip == 0)
-	state->recip = mystrdup(STR(clean_addr));
+    if (state->recip)				/* This can happen */
+	myfree(state->recip);
+    state->recip = mystrdup(STR(clean_addr));	/* Used by Milter client */
     if ((state->flags & CLEANUP_FLAG_BCC_OK)
 	&& *STR(clean_addr)
 	&& cleanup_rcpt_bcc_maps
