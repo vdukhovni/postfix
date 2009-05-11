@@ -206,7 +206,8 @@ void    dsb_free(DSN_BUF *dsb)
   * 
   * For safety we keep the test for null pointers in input. It's cheap.
   */
-#define DSB_TRUNCATE(s) (STR(s)[0] = 0)
+#define DSB_TRUNCATE(s) \
+    do { VSTRING_RESET(s); VSTRING_TERMINATE(s); } while (0)
 
 #define NULL_OR_EMPTY(s) ((s) == 0 || *(s) == 0)
 

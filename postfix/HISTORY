@@ -15039,7 +15039,7 @@ Apologies for any names omitted.
 	Cleanup: OpenLDAP now provides a sane solution for conflicts
 	with PAM ldap-over-tls. Victor Duchovni.  File: global/dict_ldap.c.
 
-20900304
+20090304
 
 	Cleanup: skip over suspended or throttled queues while
 	looking for delivery requests. File: *qmgr/qmgr_transport.c.
@@ -15194,3 +15194,29 @@ Apologies for any names omitted.
 	Bugfix: don't disable MIME parsing with smtp_header_checks,
 	smtp_mime_header_checks, smtp_nested_header_checks or with
 	smtp_body_checks. Bug reported by Victor. File: smtp/smtp_proto.c.
+
+	Code cleanups: respect VSTRING invariants by using VSTRING_RESET
+	and VSTRING_TERMINATE instead of directly groping the
+	underlying character buffer. Files: global/dsn_buf.c,
+	milter/milter8.c.
+
+20090507
+
+	main.cf:tls_random_source now defaults to /dev/arandom on
+	OpenBSD.  This device was introduced before Postfix development
+	began. Files: util/sys_defs.h, global/mail_params.h.
+
+20090510
+
+	Code cleanups: while emulating SMTP client requests for
+	Milter applications, use user@domain form addresses as
+	required by the SMTP protocol, instead of bare usernames.
+	This avoids hard to debug errors from some Milter applications.
+	Files: cleanup/cleanup_envelope.c, cleanup/cleanup_extracted.c,
+	cleanup/cleanup_addr.c.
+
+20090511
+
+	Code cleanups: don't clobber -o command-line arguments so
+	that Linux people can debug daemon command lines more easily.
+	Files: master/*server.c.

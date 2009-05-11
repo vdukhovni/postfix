@@ -271,11 +271,12 @@ daemon, you would use something like this: </p>
 
 <li> <p> Lines 2, 11: the Postfix spawn(8) daemon by default kills
 its child process after 1000 seconds.  This is too short for a
-policy daemon that may run for as long as an SMTP client is connected
-to an SMTP server process. The default time limit is overruled in
+policy daemon that may need to run for as long as the SMTP server
+process that talks to it. The default time limit is overruled in
 main.cf with an explicit "policy_time_limit" setting.  The name of
 the parameter is the name of the master.cf entry ("policy")
-concatenated with the "_time_limit" suffix.  </p>
+concatenated with the "_time_limit" suffix. See spawn(8) for
+more information about the time limit parameter.  </p>
 
 <li> <p> Line 2: specify a "0" process limit instead of the default
 "-", to avoid "connection refused" and other problems when the smtpd
