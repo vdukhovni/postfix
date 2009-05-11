@@ -13185,3 +13185,14 @@ Apologies for any names omitted.
 	Cleanup: adjust the VSTREAM buffer strategy when reusing
 	an SMTP connection with a large TCP MSS value. File:
 	smtp/smtp_reuse.c.
+
+20090419
+
+	Bugfix: don't re-enable SIGHUP if it is ignored in the
+	parent. This may cause random "Postfix integrity check
+	failed" errors at boot time (POSIX SIGHUP death), causing
+	Postfix not to start. We duplicate code from postdrop and
+	thus avoid past mistakes.  File: postsuper/postsuper.c.
+
+	Robustness: don't re-enable SIGTERM if it is ignored in the
+	parent. Files: postsuper/postsuper.c, postdrop/postdrop.c.
