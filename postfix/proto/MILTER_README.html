@@ -204,10 +204,16 @@ an object library that implements the Sendmail 8 Milter protocol.
 Postfix currently does not provide such a library, but Sendmail
 does. </p>
 
-<p> On some Linux and *BSD distributions, the Sendmail libmilter
-library is installed by default. With this, applications such as
-<a href="http://sourceforge.net/projects/dkim-milter/">dkim-milter</a>
-and <a href="http://sourceforge.net/projects/sid-milter/">sid-milter</a>
+<ul>
+
+<li> <p> The first option is to use a pre-compiled library. Some
+systems install the Sendmail libmilter library by default.  With
+other systems, libmilter may be provided by a package (called
+"sendmail-devel" on some Linux systems).  </p>
+
+<p> Once libmilter is installed, applications such as <a
+href="http://sourceforge.net/projects/dkim-milter/">dkim-milter</a> and
+<a href="http://sourceforge.net/projects/sid-milter/">sid-milter</a>
 build out of the box without requiring any tinkering:</p>
 
 <blockquote>
@@ -219,17 +225,8 @@ $ <b>make</b>
 </pre>
 </blockquote>
 
-<p> On other platforms you have two options: </p>
-
-<ul>
-
-<li> <p>Install the Sendmail libmilter object library and include
-files.  On Linux systems, libmilter may be provided by the
-sendmail-devel package.  After installing libmilter, build the
-Milter applications as described in the preceding paragraph.  </p>
-
-<li> <p>Don't install the Sendmail libmilter library, but build the
-library from Sendmail source code instead: </p>
+<li> <p> The other option is to build the libmilter library from
+Sendmail source code: </p>
 
 <blockquote>
 <pre>
@@ -496,8 +493,8 @@ protocol stages
 
 <table border="1">
 
-<tr> <th> Parameter </th> <th> Time limit </th> <th> Protocol
-stage</th> </tr>
+<tr> <th> Postfix parameter </th> <th> Time limit </th> <th> Milter
+protocol stage</th> </tr>
 
 <tr> <td> milter_connect_timeout </td> <td> 30s </td> <td> CONNECT
 </td> </tr>
@@ -523,7 +520,7 @@ filtering. </p>
 <p> Postfix emulates a limited number of Sendmail macros, as shown
 in the table. Some macro values depend on whether a recipient is
 rejected (rejected recipients are available on request by the Milter
-application). Different macros are available at different SMTP
+application). Different macros are available at different Milter
 protocol stages (EOH = end-of-header, EOM = end-of-message); their
 availability is not
 always the same as in Sendmail. See the <a
@@ -534,12 +531,13 @@ href="#workarounds">workarounds</a> section below for solutions.
 
 <table border="1">
 
-<tr> <th> Name </th> <th> Availability </th> <th> Description </th>
-</tr>
+<tr> <th> Sendmail macro </th> <th> Milter protocol stage </th>
+<th> Description </th> </tr>
 
-<tr> <td> i </td> <td> DATA, EOH, EOM </td> <td> Queue ID </td> </tr>
+<tr> <td> i </td> <td> DATA, EOH, EOM </td> <td> Queue ID, also
+Postfix queue file name </td> </tr>
 
-<tr> <td> j </td> <td> Always </td> <td> value of myhostname </td>
+<tr> <td> j </td> <td> Always </td> <td> Value of myhostname </td>
 </tr>
 
 <tr> <td> _ </td> <td> Always </td> <td> The validated client name
@@ -600,7 +598,7 @@ smtpd_milters) </td> <td> Sender mail delivery transport </td> </tr>
 
 <tr> <td> {rcpt_host} </td> <td> RCPT (Postfix &ge; 2.6, only with
 smtpd_milters) </td> <td> Recipient next-hop destination <br> With
-rejected recpient: enhanced status code </td> </tr>
+rejected recipient: enhanced status code </td> </tr>
 
 <tr> <td> {rcpt_mailer} </td> <td> RCPT (Postfix &ge; 2.6, only with
 smtpd_milters) </td> <td> Recipient mail delivery transport <br>
@@ -616,23 +614,23 @@ With rejected recipient: "error" </td> </tr>
 
 </blockquote>
 
-<p> Postfix sends specific sets of macros at different SMTP protocol
+<p> Postfix sends specific sets of macros at different Milter protocol
 stages.  The sets are configured with the parameters as described
 in the table (EOH = end of headers; EOM = end of message). The
 protocol version is a number that Postfix sends at the beginning
 of the Milter protocol handshake. </p>
 
 <p> As of Sendmail 8.14.0, Milter applications can specify what
-macros they want to receive at different protocol stages. In that
-case, the application-specified list takes precedence over Postfix
-configuration. </p>
+macros they want to receive at different Milter protocol stages.
+An application-specified list takes precedence over a Postfix-specified
+list. </p>
 
 <blockquote>
 
 <table border="1">
 
-<tr> <th> Parameter name </th> <th> Protocol version </th> <th>
-Protocol stage </th> </tr>
+<tr> <th> Postfix parameter </th> <th> Milter protocol version </th>
+<th> Milter protocol stage </th> </tr>
 
 <tr> <td> milter_connect_macros </td> <td> 2 or higher </td> <td>
 CONNECT </td> </tr>
@@ -664,19 +662,26 @@ TO </td> </tr>
 
 <h2><a name="workarounds">Workarounds</a></h2>
 
-<p> Content filters may break DKIM etc. signatures. If you
-use an SMTP-based content filter, then you should add a line to
-master.cf with "-o disable_mime_output_conversion=yes" (note: no
-spaces around the "="), as described in the <a
+<ul>
+
+<li> <p> To avoid breaking DKIM etc. signatures with an SMTP-based
+content filter, update the before-filter SMTP client in master.cf,
+and add a line with "-o disable_mime_output_conversion=yes" (note:
+no spaces around the "="). For details, see the <a
 href="FILTER_README.html#advanced_filter">advanced content filter</a>
 example. </p>
 
-<p> Sendmail Milter applications were originally developed for the
-Sendmail version 8 MTA, which has a different architecture than
-Postfix.  The result is that some Milter applications make assumptions
-that aren't true in a Postfix environment. </p>
-
-<ul>
+<pre>
+/etc/postfix/master.cf:
+    # =============================================================
+    # service type  private unpriv  chroot  wakeup  maxproc command
+    #               (yes)   (yes)   (yes)   (never) (100)
+    # =============================================================
+    scan      unix  -       -       n       -       10      smtp
+        -o smtp_send_xforward_command=yes
+        -o disable_mime_output_conversion=yes
+        -o smtp_generic_maps=
+</pre>
 
 <li> <p> Some Milter applications use the "<tt>{if_addr}</tt>" macro
 to recognize local mail; this macro does not exist in Postfix.
@@ -699,16 +704,11 @@ X-SenderID: Sendmail Sender-ID Filter vx.y.z host.example.com &lt;unknown-msgid&
 </pre>
 </blockquote>
 
-<p> This happens because those Milter applications expect that the
-queue ID is known <i>before</i> the MTA accepts the MAIL FROM
-(sender) command.  Postfix, on the other hand, does not choose a
-queue file name until <i>after</i> it accepts the first valid RCPT
-TO (recipient) command (Postfix queue file names must be unique
-across multiple directories, so the name can't be chosen before the
-file is created; if multiple messages were to use the same queue
-ID <i>simultaneously</i>, mail would be lost).  </p>
-
-</ul>
+<p> The problem is that Milter applications expect that the queue
+ID is known <i>before</i> the MTA accepts the MAIL FROM (sender)
+command.  Postfix does not choose a queue ID, which is used as the
+queue file name, until <i>after</i> it accepts the first valid RCPT
+TO (recipient) command. </p>
 
 <p> If you experience the ugly header problem, see if a recent
 version of the Milter application fixes it. For example, current
@@ -717,8 +717,9 @@ up the Postfix queue ID at a later protocol stage, and sid-filter
 version 1.0.0 no longer includes the queue ID in the message header.
 </p>
 
-<p> To fix the ugly message header with other Milter applications,
-you will need to do something like this: </p>
+<p> To fix the ugly message header, you will need to add code that
+looks up the Postfix queue ID at some later point im time. The
+example below adds the lookup after the end-of-message.  </p>
 
 <ul>
 
@@ -741,8 +742,6 @@ if (dfc->mctx_jobid == 0 || strcmp(dfc->mctx_jobid, JOBIDUNKNOWN) == 0) {
         if (jobid != 0)
                 dfc->mctx_jobid = jobid;
 }</b>
-
-/* get hostname; used in the X header and in new MIME boundaries */
 </pre>
 </blockquote>
 
@@ -751,11 +750,15 @@ if (dfc->mctx_jobid == 0 || strcmp(dfc->mctx_jobid, JOBIDUNKNOWN) == 0) {
 <ul>
 
 <li> <p> Different mail filters use slightly different names for
-variables. If the above code does not compile, look for the code
-at the start of the <tt>mlfi_eoh()</tt> routine. </p>
+variables. If the above code does not compile, look elsewhere in
+the mail filter source file for code that looks up the "i" macro
+value, and copy that code.  </p>
 
-<li> <p> This fixes only the ugly message header, but not the WARNING
-message.  Fortunately, many Milters log that message only once. </p>
+<li> <p> This change fixes only the ugly message header, but not
+the WARNING message.  Fortunately, many Milters log that message
+only once. </p>
+
+</ul>
 
 </ul>
 
@@ -778,7 +781,7 @@ different Postfix versions implement different feature sets. </p>
 </tr>
 
 <tr> <td align="center"> 2.6 </td> <td> All Milter requests of
-Sendmail 8.14.0.  </td> </tr>
+Sendmail 8.14.0 (see notes below).  </td> </tr>
 
 <tr> <td align="center"> 2.5 </td> <td> All Milter requests of
 Sendmail 8.14.0, except: <br> SMFIP_RCPT_REJ (report rejected
@@ -791,14 +794,13 @@ Sendmail 8.13.0.  </td> </tr>
 
 <tr> <td align="center"> 2.3 </td> <td> All Milter requests of
 Sendmail 8.13.0, except: <br> SMFIR_REPLBODY (replace message body).
-</p>
 
 </table>
 
 <li> <p> For Milter applications that are written in C, you need
 to use the Sendmail libmilter library. </p>
 
-<li> <p> There are TWO sets of mail filters: filters that are used
+<li> <p> Postfix has TWO sets of mail filters: filters that are used
 for SMTP mail only (specified with the smtpd_milters parameter),
 and filters for non-SMTP mail (specified with the non_smtpd_milters
 parameter).  The non-SMTP filters are primarily for local submissions.
@@ -825,8 +827,8 @@ or to the envelope. </p>
 
 <li> <p> Postfix 2.6 ignores the optional ESMTP parameters in
 requests to replace the sender (SMFIR_CHGFROM) or to append a
-recipient (SMFIR_ADDRCPT_PAR). When a Milter application supplies
-such ESMTP parameters, Postfix will log a warning: </p>
+recipient (SMFIR_ADDRCPT_PAR). Postfix logs a warning message when
+a Milter application supplies such ESMTP parameters: </p>
 
 <pre>
 warning: <i>queue-id</i>: cleanup_chg_from: ignoring ESMTP arguments "<i>whatever</i>"
@@ -834,8 +836,8 @@ warning: <i>queue-id</i>: cleanup_add_rcpt: ignoring ESMTP arguments "<i>whateve
 </pre>
 
 <li> <p> Postfix 2.3 does not implement requests to replace the
-message body. Milter applications that need this unsupported operation
-will log a warning:
+message body. Milter applications log a warning message when they
+need this unsupported operation: </p>
 
 <pre>
 st_optionneg[134563840]: 0x3d does not fulfill action requirements 0x1e

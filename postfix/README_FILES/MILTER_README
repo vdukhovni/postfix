@@ -88,24 +88,20 @@ deals with C applications only. For these, you need an object library that
 implements the Sendmail 8 Milter protocol. Postfix currently does not provide
 such a library, but Sendmail does.
 
-On some Linux and *BSD distributions, the Sendmail libmilter library is
-installed by default. With this, applications such as dkim-milter and sid-
-milter build out of the box without requiring any tinkering:
+  * The first option is to use a pre-compiled library. Some systems install the
+    Sendmail libmilter library by default. With other systems, libmilter may be
+    provided by a package (called "sendmail-devel" on some Linux systems).
 
-    $ ggzzccaatt ddkkiimm--mmiilltteerr--xx..yy..zz..ttaarr..ggzz || ttaarr xxff --
-    $ ccdd ddkkiimm--mmiilltteerr--xx..yy..zz
-    $ mmaakkee
-    [...lots of output omitted...]
+    Once libmilter is installed, applications such as dkim-milter and sid-
+    milter build out of the box without requiring any tinkering:
 
-On other platforms you have two options:
+        $ ggzzccaatt ddkkiimm--mmiilltteerr--xx..yy..zz..ttaarr..ggzz || ttaarr xxff --
+        $ ccdd ddkkiimm--mmiilltteerr--xx..yy..zz
+        $ mmaakkee
+        [...lots of output omitted...]
 
-  * Install the Sendmail libmilter object library and include files. On Linux
-    systems, libmilter may be provided by the sendmail-devel package. After
-    installing libmilter, build the Milter applications as described in the
-    preceding paragraph.
-
-  * Don't install the Sendmail libmilter library, but build the library from
-    Sendmail source code instead:
+  * The other option is to build the libmilter library from Sendmail source
+    code:
 
         $ ggzzccaatt sseennddmmaaiill--xx..yy..zz..ttaarr..ggzz || ttaarr xxff --
         $ ccdd sseennddmmaaiill--xx..yy..zz//lliibbmmiilltteerr
@@ -299,7 +295,7 @@ table shows the timeout settings and the corresponding protocol stages (EOH =
 end of headers; EOM = end of message).
 
      _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-    |PPaarraammeetteerr             |TTiimmee lliimmiitt|PPrroottooccooll ssttaaggee                 |
+    |PPoossttffiixx ppaarraammeetteerr     |TTiimmee lliimmiitt|MMiilltteerr pprroottooccooll ssttaaggee          |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |milter_connect_timeout|30s       |CONNECT                        |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
@@ -318,16 +314,17 @@ SSeennddmmaaiill mmaaccrroo eemmuullaattiioonn
 Postfix emulates a limited number of Sendmail macros, as shown in the table.
 Some macro values depend on whether a recipient is rejected (rejected
 recipients are available on request by the Milter application). Different
-macros are available at different SMTP protocol stages (EOH = end-of-header,
+macros are available at different Milter protocol stages (EOH = end-of-header,
 EOM = end-of-message); their availability is not always the same as in
 Sendmail. See the workarounds section below for solutions.
 
      _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-    |NNaammee                |AAvvaaiillaabbiilliittyy             |DDeessccrriippttiioonn               |
+    |SSeennddmmaaiill mmaaccrroo      |MMiilltteerr pprroottooccooll ssttaaggee    |DDeessccrriippttiioonn               |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |i                   |DATA, EOH, EOM           |Queue ID                  |
+    |i                   |DATA, EOH, EOM           |Queue ID, also Postfix    |
+    |                    |                         |queue file name           |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |j                   |Always                   |value of myhostname       |
+    |j                   |Always                   |Value of myhostname       |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |_                   |Always                   |The validated client name |
     |                    |                         |and address               |
@@ -385,7 +382,7 @@ Sendmail. See the workarounds section below for solutions.
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |                    |                         |Recipient next-hop        |
     |{rcpt_host}         |RCPT (Postfix >= 2.6,    |destination               |
-    |                    |only with smtpd_milters) |With rejected recpient:   |
+    |                    |only with smtpd_milters) |With rejected recipient:  |
     |                    |                         |enhanced status code      |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |                    |                         |Recipient mail delivery   |
@@ -399,45 +396,52 @@ Sendmail. See the workarounds section below for solutions.
     |v                   |Always                   |value of milter_macro_v   |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 
-Postfix sends specific sets of macros at different SMTP protocol stages. The
+Postfix sends specific sets of macros at different Milter protocol stages. The
 sets are configured with the parameters as described in the table (EOH = end of
 headers; EOM = end of message). The protocol version is a number that Postfix
 sends at the beginning of the Milter protocol handshake.
 
 As of Sendmail 8.14.0, Milter applications can specify what macros they want to
-receive at different protocol stages. In that case, the application-specified
-list takes precedence over Postfix configuration.
+receive at different Milter protocol stages. An application-specified list
+takes precedence over a Postfix-specified list.
 
-     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-    |PPaarraammeetteerr nnaammee               |PPrroottooccooll vveerrssiioonn|PPrroottooccooll ssttaaggee |
-    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |milter_connect_macros        |2 or higher     |CONNECT        |
-    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |milter_helo_macros           |2 or higher     |HELO/EHLO      |
-    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |milter_mail_macros           |2 or higher     |MAIL FROM      |
-    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |milter_rcpt_macros           |2 or higher     |RCPT TO        |
-    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |milter_data_macros           |4 or higher     |DATA           |
-    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |milter_end_of_header_macros  |6 or higher     |EOH            |
-    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |milter_end_of_data_macros    |2 or higher     |EOM            |
-    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |milter_unknown_command_macros|3 or higher     |unknown command|
-    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+    |PPoossttffiixx ppaarraammeetteerr            |MMiilltteerr pprroottooccooll|MMiilltteerr pprroottooccooll ssttaaggee|
+    |                             |vveerrssiioonn        |                     |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |milter_connect_macros        |2 or higher    |CONNECT              |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |milter_helo_macros           |2 or higher    |HELO/EHLO            |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |milter_mail_macros           |2 or higher    |MAIL FROM            |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |milter_rcpt_macros           |2 or higher    |RCPT TO              |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |milter_data_macros           |4 or higher    |DATA                 |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |milter_end_of_header_macros  |6 or higher    |EOH                  |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |milter_end_of_data_macros    |2 or higher    |EOM                  |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |milter_unknown_command_macros|3 or higher    |unknown command      |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 
 WWoorrkkaarroouunnddss
 
-Content filters may break DKIM etc. signatures. If you use an SMTP-based
-content filter, then you should add a line to master.cf with "-
-o disable_mime_output_conversion=yes" (note: no spaces around the "="), as
-described in the advanced content filter example.
+  * To avoid breaking DKIM etc. signatures with an SMTP-based content filter,
+    update the before-filter SMTP client in master.cf, and add a line with "-
+    o disable_mime_output_conversion=yes" (note: no spaces around the "="). For
+    details, see the advanced content filter example.
 
-Sendmail Milter applications were originally developed for the Sendmail version
-8 MTA, which has a different architecture than Postfix. The result is that some
-Milter applications make assumptions that aren't true in a Postfix environment.
+    /etc/postfix/master.cf:
+        # =============================================================
+        # service type  private unpriv  chroot  wakeup  maxproc command
+        #               (yes)   (yes)   (yes)   (never) (100)
+        # =============================================================
+        scan      unix  -       -       n       -       10      smtp
+            -o smtp_send_xforward_command=yes
+            -o disable_mime_output_conversion=yes
+            -o smtp_generic_maps=
 
   * Some Milter applications use the "{if_addr}" macro to recognize local mail;
     this macro does not exist in Postfix. Workaround: use the "{client_addr}"
@@ -452,49 +456,47 @@ Milter applications make assumptions that aren't true in a Postfix environment.
         X-SenderID: Sendmail Sender-ID Filter vx.y.z host.example.com <unknown-
         msgid>
 
-    This happens because those Milter applications expect that the queue ID is
-    known before the MTA accepts the MAIL FROM (sender) command. Postfix, on
-    the other hand, does not choose a queue file name until after it accepts
-    the first valid RCPT TO (recipient) command (Postfix queue file names must
-    be unique across multiple directories, so the name can't be chosen before
-    the file is created; if multiple messages were to use the same queue ID
-    simultaneously, mail would be lost).
+    The problem is that Milter applications expect that the queue ID is known
+    before the MTA accepts the MAIL FROM (sender) command. Postfix does not
+    choose a queue ID, which is used as the queue file name, until after it
+    accepts the first valid RCPT TO (recipient) command.
 
-If you experience the ugly header problem, see if a recent version of the
-Milter application fixes it. For example, current versions of dkim-filter and
-dk-filter already have code that looks up the Postfix queue ID at a later
-protocol stage, and sid-filter version 1.0.0 no longer includes the queue ID in
-the message header.
+    If you experience the ugly header problem, see if a recent version of the
+    Milter application fixes it. For example, current versions of dkim-filter
+    and dk-filter already have code that looks up the Postfix queue ID at a
+    later protocol stage, and sid-filter version 1.0.0 no longer includes the
+    queue ID in the message header.
 
-To fix the ugly message header with other Milter applications, you will need to
-do something like this:
+    To fix the ugly message header, you will need to add code that looks up the
+    Postfix queue ID at some later point im time. The example below adds the
+    lookup after the end-of-message.
 
-  * Edit the filter source file (typically named xxx-filter/xxx-filter.c or
-    similar).
+      o Edit the filter source file (typically named xxx-filter/xxx-filter.c or
+        similar).
 
-  * Look up the mlfi_eom() function and add code near the top shown as bboolldd
-    text below:
+      o Look up the mlfi_eom() function and add code near the top shown as bboolldd
+        text below:
 
-    dfc = cc->cctx_msg;
-    assert(dfc != NULL);
+        dfc = cc->cctx_msg;
+        assert(dfc != NULL);
 
-    //** DDeetteerrmmiinnee tthhee jjoobb IIDD ffoorr llooggggiinngg.. **//
-    iiff ((ddffcc-->>mmccttxx__jjoobbiidd ==== 00 |||| ssttrrccmmpp((ddffcc-->>mmccttxx__jjoobbiidd,, JJOOBBIIDDUUNNKKNNOOWWNN)) ==== 00)) {{
-            cchhaarr **jjoobbiidd == ssmmffii__ggeettssyymmvvaall((ccttxx,, ""ii""));;
-            iiff ((jjoobbiidd !!== 00))
-                    ddffcc-->>mmccttxx__jjoobbiidd == jjoobbiidd;;
-    }}
+        //** DDeetteerrmmiinnee tthhee jjoobb IIDD ffoorr llooggggiinngg.. **//
+        iiff ((ddffcc-->>mmccttxx__jjoobbiidd ==== 00 |||| ssttrrccmmpp((ddffcc-->>mmccttxx__jjoobbiidd,, JJOOBBIIDDUUNNKKNNOOWWNN)) ==== 00))
+        {{
+                cchhaarr **jjoobbiidd == ssmmffii__ggeettssyymmvvaall((ccttxx,, ""ii""));;
+                iiff ((jjoobbiidd !!== 00))
+                        ddffcc-->>mmccttxx__jjoobbiidd == jjoobbiidd;;
+        }}
 
-    /* get hostname; used in the X header and in new MIME boundaries */
+    NOTES:
 
-NOTES:
+      o Different mail filters use slightly different names for variables. If
+        the above code does not compile, look elsewhere in the mail filter
+        source file for code that looks up the "i" macro value, and copy that
+        code.
 
-  * Different mail filters use slightly different names for variables. If the
-    above code does not compile, look for the code at the start of the mlfi_eoh
-    () routine.
-
-  * This fixes only the ugly message header, but not the WARNING message.
-    Fortunately, many Milters log that message only once.
+      o This change fixes only the ugly message header, but not the WARNING
+        message. Fortunately, many Milters log that message only once.
 
 LLiimmiittaattiioonnss
 
@@ -509,7 +511,7 @@ the CONTENT_INSPECTION_README document for a discussion.
      _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
     |PPoossttffiixx|SSuuppppoorrtteedd MMiilltteerr rreeqquueessttss                                       |
     |_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |   2.6 |All Milter requests of Sendmail 8.14.0.                         |
+    |   2.6 |All Milter requests of Sendmail 8.14.0 (see notes below).       |
     |_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |       |All Milter requests of Sendmail 8.14.0, except:                 |
     |       |SMFIP_RCPT_REJ (report rejected recipients to the mail filter), |
@@ -526,7 +528,7 @@ the CONTENT_INSPECTION_README document for a discussion.
   * For Milter applications that are written in C, you need to use the Sendmail
     libmilter library.
 
-  * There are TWO sets of mail filters: filters that are used for SMTP mail
+  * Postfix has TWO sets of mail filters: filters that are used for SMTP mail
     only (specified with the smtpd_milters parameter), and filters for non-SMTP
     mail (specified with the non_smtpd_milters parameter). The non-SMTP filters
     are primarily for local submissions.
@@ -549,14 +551,15 @@ the CONTENT_INSPECTION_README document for a discussion.
 
   * Postfix 2.6 ignores the optional ESMTP parameters in requests to replace
     the sender (SMFIR_CHGFROM) or to append a recipient (SMFIR_ADDRCPT_PAR).
-    When a Milter application supplies such ESMTP parameters, Postfix will log
-    a warning:
+    Postfix logs a warning message when a Milter application supplies such
+    ESMTP parameters:
 
     warning: queue-id: cleanup_chg_from: ignoring ESMTP arguments "whatever"
     warning: queue-id: cleanup_add_rcpt: ignoring ESMTP arguments "whatever"
 
   * Postfix 2.3 does not implement requests to replace the message body. Milter
-    applications that need this unsupported operation will log a warning:
+    applications log a warning message when they need this unsupported
+    operation:
 
     st_optionneg[134563840]: 0x3d does not fulfill action requirements 0x1e
 

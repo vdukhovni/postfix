@@ -5,6 +5,9 @@ Wish list:
 	Need to sign delivery status notifications, to avoid surprises
 	when eventually people start enforcing DKIM etc. signatures.
 
+	Either document or remove the internal_mail_filter_classes
+	feature (it's disabled by default).
+
 	"postconf -N" option to print user-defined parameter names
 	(these have no defaults, since they exist only when 
 	specified in main.cf or with "-o name=value").
@@ -30,6 +33,9 @@ Wish list:
 
 	SMTP server: make the server_addr and server_port available
 	to policy server, Dovecot, and perhaps Milters.
+
+	Med: local and remote source port and IP address for smtpd
+	policy hook.
 
 	Maybe change maps_rbl_reject_code default to 521, and
 	update wording in STRESS_README.
@@ -149,13 +155,6 @@ Wish list:
 	Update FILTER_README with mailing list suggestions to tag
 	with a badness indicator and then filter down-stream.
 
-	Either document or remove the internal_mail_filter_classes
-	feature (it's disabled by default).
-
-	Build a command-line test driver for the cleanup engine.
-	This allows us to test it with arbitrary record sequences
-	without having to use a live mail queue.
-
 	Make null local-part handling configurable: either expand
 	into mailer-daemon (current bahavior) or disallow (strict
 	behavior, currently implemented only in the SMTP server).
@@ -213,10 +212,16 @@ Wish list:
 	features.
 
 	Eliminate the (incoming,deferred)->active rename operation.
+	This requires an in-memory hash of queue file names to avoid 
+	duplicate open() operations.
 
-	Softbounce fallback-to-ISP for SOHO users. This requires
-	playing with the soft_error test in the smtp_trouble.c
-	module, and avoiding delivery to backup MX hosts.
+	Softbounce fallback-to-ISP for SOHO users. This heuristic
+	assumes that when direct-to-MX delivery fails with 5XX,
+	delivery via the ISP may still succeed.  This could be
+	implemented by enabling soft bounces for destinations other
+	than the smtp_fallback_relay. So the only benefit of this
+	over the existing soft_bounce feature is that it has no
+	effect on smtp_fallback_relay deliveries.
 
 	Centralize main.cf parameter input so that defaults work
 	consistently. What about parameter names that are prefixed
@@ -247,12 +252,9 @@ Wish list:
 	server stat() the maildrop directory before searching it.
 
 	Low: replace_sender/replace_recipient actions in access
-	maps?
+	maps, so they can be used in policy servers?
 
 	Low: configurable order of local(8) delivery methods.
-
-	Med: local and remote source port and IP address for smtpd
-	policy hook.
 
 	Med: smtp_connect_timeout_budget (default: 3x smtp_connect_timeout)
 	to limit the total time spent trying to connect.
@@ -279,9 +281,6 @@ Wish list:
 	the printable IPv6 address representation, this does not
 	really try all the possibilities that one might expect to
 	be tried. For now, this gotcha is documented in access(5).
-
-	Med: the TLS certificate verification depth parameters never
-	worked.
 
 	Low: reject HELO with any domain name or IP address that
 	this MTA is the final destination for.

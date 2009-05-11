@@ -511,6 +511,7 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     int     alone = 0;
     int     zerolimit = 0;
     WATCHDOG *watchdog;
+    char   *oname;
     char   *oval;
     char   *generation;
     int     msg_vstream_needed = 0;
@@ -591,10 +592,11 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 	    break;
 	case 'o':
 	    /* XXX Use split_nameval() */
-	    if ((oval = split_at(optarg, '=')) == 0)
+	    oname = mystrdup(optarg);
+	    if ((oval = split_at(oname, '=')) == 0)
 		oval = "";
-	    mail_conf_update(optarg, oval);
-	    if (strcmp(optarg, VAR_SYSLOG_NAME) == 0)
+	    mail_conf_update(oname, oval);
+	    if (strcmp(oname, VAR_SYSLOG_NAME) == 0)
 		redo_syslog_init = 1;
 	    break;
 	case 's':

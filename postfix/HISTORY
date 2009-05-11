@@ -15039,7 +15039,7 @@ Apologies for any names omitted.
 	Cleanup: OpenLDAP now provides a sane solution for conflicts
 	with PAM ldap-over-tls. Victor Duchovni.  File: global/dict_ldap.c.
 
-20900304
+20090304
 
 	Cleanup: skip over suspended or throttled queues while
 	looking for delivery requests. File: *qmgr/qmgr_transport.c.
@@ -15214,3 +15214,9 @@ Apologies for any names omitted.
 	This avoids hard to debug errors from some Milter applications.
 	Files: cleanup/cleanup_envelope.c, cleanup/cleanup_extracted.c,
 	cleanup/cleanup_addr.c.
+
+20090511
+
+	Code cleanups: don't clobber -o command-line arguments so
+	that Linux people can debug daemon command lines more easily.
+	Files: master/*server.c.
