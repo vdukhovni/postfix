@@ -14469,3 +14469,48 @@ Apologies for any names omitted.
 
 	Documentation: log the "*" pattern as the last transport
 	map lookup. File: proto/transport.
+
+20090122
+
+	Bugfix: the data_directory was not automatically created!
+	File: conf/postfix-files.
+
+20090304
+
+	Cleanup: skip over suspended or throttled queues while
+	looking for delivery requests. File: *qmgr/qmgr_transport.c.
+
+20090305
+
+	Bugfix: in the "new queue manager", the _destination_rate_delay
+	code needed to postpone the job scheduler updates after
+	delivery completion, otherwise the scheduler could loop on
+	blocked jobs.  Victor & Wietse.  File: qmgr/qmgr_entry.c,
+	qmgr/qmgr_queue.c, qmgr/qmgr_job.c.
+
+	Cleanup: report a "queue file write error", instead of
+	passing though bogus 2xx replies from proxy filters to SMTP
+	clients.  File: smtpd/smtpd_proxy.c.
+
+20090310
+
+	Bugfix: Postfix used mumble_concurrency_failed_cohort_limit
+	instead of mumble_destination_concurrency_failed_cohort_limit
+	as documented. File: global/mail_params.h.
+
+20090419
+
+	Bugfix: don't re-enable SIGHUP if it is ignored in the
+	parent. This may cause random "Postfix integrity check
+	failed" errors at boot time (POSIX SIGHUP death), causing
+	Postfix not to start. We duplicate code from postdrop and
+	thus avoid past mistakes.  File: postsuper/postsuper.c.
+
+	Robustness: don't re-enable SIGTERM if it is ignored in the
+	parent. Files: postsuper/postsuper.c, postdrop/postdrop.c.
+
+20090428
+
+	Bugfix: don't disable MIME parsing with smtp_header_checks,
+	smtp_mime_header_checks, smtp_nested_header_checks or with
+	smtp_body_checks. Bug reported by Victor. File: smtp/smtp_proto.c.
