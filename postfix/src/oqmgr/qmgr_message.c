@@ -366,10 +366,16 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		msg_fatal("seek file %s: %m", VSTREAM_PATH(message->fp));
 	    curr_offset += message->data_size;
 	}
-	rec_type = rec_get(message->fp, buf, 0);
+	rec_type = rec_get_raw(message->fp, buf, 0, REC_FLAG_NONE);
 	start = vstring_str(buf);
 	if (msg_verbose > 1)
 	    msg_info("record %c %s", rec_type, start);
+	if (rec_type == REC_TYPE_PTR) {
+	    if ((rec_type = rec_goto(message->fp, start)) == REC_TYPE_ERROR)
+		break;
+	    /* Need to update curr_offset after pointer jump. */
+	    continue;
+	}
 	if (rec_type <= 0) {
 	    msg_warn("%s: message rejected: missing end record",
 		     message->queue_id);

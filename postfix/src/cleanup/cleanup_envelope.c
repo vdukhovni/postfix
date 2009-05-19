@@ -385,8 +385,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	cleanup_addr_sender(state, buf);
 	if (state->milters || cleanup_milters) {
 	    /* Make room to replace sender. */
-	    if (len < REC_TYPE_PTR_PAYL_SIZE)
-		rec_pad(state->dst, REC_TYPE_PTR, REC_TYPE_PTR_PAYL_SIZE - len);
+	    rec_pad(state->dst, REC_TYPE_PTR, REC_TYPE_PTR_PAYL_SIZE);
 	    /* Remember the after-sender record offset. */
 	    if ((state->sender_pt_target = vstream_ftell(state->dst)) < 0)
 		msg_fatal("%s: vstream_ftell %s: %m:", myname, cleanup_path);

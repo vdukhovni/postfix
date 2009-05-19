@@ -15220,3 +15220,14 @@ Apologies for any names omitted.
 	Code cleanups: don't clobber -o command-line arguments so
 	that Linux people can debug daemon command lines more easily.
 	Files: master/*server.c.
+
+20090519
+
+	Bugfix (introduced: Postfix 2.3, but did not cause trouble
+	until 20090427).  Queue file corruption, with (smtpd_milters
+	or non_smtpd_milters) enabled, AND with delay_warning_time
+	enabled, AND with short envelope sender addresses e.g.,
+	local submissions with bare usernames, but not bounces).
+	The queue file would be corrupted when the delay_warning_time
+	record was marked as "done" after sending the "your mail
+	is delayed" notice.  File: qmgr/qmgr_message.c.

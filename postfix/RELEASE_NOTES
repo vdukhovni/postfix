@@ -42,14 +42,9 @@ and more:
 
 Best of all, nothing changes when you use only one Postfix instance.
 
-The postfix-wrapper script (in the daemon directory) implements a
-simple but useful multi-instance manager, with instructions. The
-plug-in API itself is described in the postfix-wrapper(5) manpage.
-
-A more sophisticated multi-instance manager called postmulti(1) is
-approaching completion. A prototype version has been used internally
-at Morgan Stanley. This version will be adapted to the new plug-in
-API which makes some simplification possible.
+The MULTI_INSTANCE_README file presents an introduction to
+multi-instance management. Multi-instance support is based on an
+API that is described in the postfix-wrapper(5) manual page.
 
 Major changes - milter support
 ------------------------------
