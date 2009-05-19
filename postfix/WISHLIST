@@ -2,6 +2,21 @@ Wish list:
 
 	Remove this file from the stable release.
 
+	The cleanup server rejects mail with REC_TYPE_DRCP (recipient
+	deleted by Milter). What happens after "postsuper -r" with
+	such mail? If it is rejected, the mail is discarded.
+
+	With "mixed recipient and other" queue files that have many
+	recpients, can qmgr_message_read() set message->rcpt_offset
+	multiple times? If it does, then recipients will be skipped.
+
+	Apply header_checks and body_checks when Milters add or
+	modify the message content. Use case: Milters that add
+	spamminess headers.
+
+	Update FILTER_README for multi-instance support, and rename
+	the old document to FILTER_LEGACY_README.
+
 	Need to sign delivery status notifications, to avoid surprises
 	when eventually people start enforcing DKIM etc. signatures.
 

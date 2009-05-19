@@ -565,7 +565,7 @@ int     smtpd_proxy_cmd(SMTPD_STATE *state, int expect, const char *fmt,...)
      * Log a warning in case the proxy does not send the expected response.
      * Silently accept any response when the client expressed no expectation.
      * 
-     * Don't pass through misleading 2xx replies. it confuses naive users and
+     * Don't pass through misleading 2xx replies. It confuses naive users and
      * SMTP clients, and creates support problems.
      */
     if (expect != SMTPD_PROX_WANT_ANY && expect != *STR(state->proxy_buffer)) {

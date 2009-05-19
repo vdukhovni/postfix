@@ -1928,6 +1928,11 @@ The LMTP-specific version of the smtp_bind_address6 configuration
 parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH lmtp_body_checks (default: empty)
+The LMTP-specific version of the smtp_body_checks configuration
+parameter. See there for details.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH lmtp_cache_connection (default: yes)
 Keep Postfix LMTP client connections open for up to $max_idle
 seconds. When the LMTP client receives a request for the same
@@ -2076,6 +2081,11 @@ The LMTP-specific version of the smtp_generic_maps configuration
 parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH lmtp_header_checks (default: empty)
+The LMTP-specific version of the smtp_header_checks configuration
+parameter. See there for details.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH lmtp_host_lookup (default: dns)
 The LMTP-specific version of the smtp_host_lookup configuration
 parameter.  See there for details.
@@ -2120,6 +2130,11 @@ for receiving the server response.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
+.SH lmtp_mime_header_checks (default: empty)
+The LMTP-specific version of the smtp_mime_header_checks
+configuration parameter. See there for details.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH lmtp_mx_address_limit (default: 5)
 The LMTP-specific version of the smtp_mx_address_limit configuration
 parameter.  See there for details.
@@ -2130,6 +2145,11 @@ The LMTP-specific version of the smtp_mx_session_limit configuration
 parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH lmtp_nested_header_checks (default: empty)
+The LMTP-specific version of the smtp_nested_header_checks
+configuration parameter. See there for details.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH lmtp_pix_workaround_delay_time (default: 10s)
 The LMTP-specific version of the smtp_pix_workaround_delay_time
 configuration parameter.  See there for details.

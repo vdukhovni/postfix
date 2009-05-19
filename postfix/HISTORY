@@ -14855,7 +14855,7 @@ Apologies for any names omitted.
 	Bugfix (introduced May 19, 1997): removing a parameter
 	setting from main.cf did not reset the parameter to its
 	default value. This was a problem only in the master daemon.
-	File: global/mail_params.c, master/master_vars.c.
+	File: global/mail_conf.c, master/master_vars.c.
 
 20090109
 
@@ -15220,3 +15220,25 @@ Apologies for any names omitted.
 	Code cleanups: don't clobber -o command-line arguments so
 	that Linux people can debug daemon command lines more easily.
 	Files: master/*server.c.
+
+20090513
+
+	Code cleanups: better parsing of Postfix daemon "-o"
+	command-line options, with better error handling.  Files:
+	master/*server.c.
+
+20090518
+
+	Documentation: missing dummy entries for lmtp_mumble_checks.
+	File: proto/postconf.proto.
+
+20090519
+
+	Bugfix (introduced: Postfix 2.3, but did not cause trouble
+	until 20090427).  Queue file corruption with (smtpd_milters
+	or non_smtpd_milters) enabled, AND with delay_warning_time
+	enabled, AND with short envelope sender addresses (e.g.,
+	local submissions with bare usernames, but not bounces).
+	The queue file would be corrupted when the delay_warning_time
+	record was marked as "done" after sending the "your mail
+	is delayed" notice.  File: qmgr/qmgr_message.c.

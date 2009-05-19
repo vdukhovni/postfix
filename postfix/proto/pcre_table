@@ -85,7 +85,7 @@
 # .IP "\fBs\fR (default: on)"
 #	Toggles the PCRE_DOTALL flag. When this flag is on, the \fB.\fR
 #	metacharacter matches the newline character. With
-#	Postfix versions prior to 2.0, The flag is off by
+#	Postfix versions prior to 2.0, the flag is off by
 #	default, which is inconvenient for multi-line message header
 #	matching.
 # .IP "\fBx\fR (default: off)"

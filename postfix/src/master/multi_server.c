@@ -513,6 +513,7 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     WATCHDOG *watchdog;
     char   *oname;
     char   *oval;
+    const char *err;
     char   *generation;
     int     msg_vstream_needed = 0;
     int     redo_syslog_init = 0;
@@ -591,10 +592,8 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 	    service_name = optarg;
 	    break;
 	case 'o':
-	    /* XXX Use split_nameval() */
-	    oname = mystrdup(optarg);
-	    if ((oval = split_at(oname, '=')) == 0)
-		oval = "";
+	    if ((err = split_nameval(mystrdup(optarg), &oname, &oval)) != 0)
+		msg_fatal("invalid \"-o %s\" option value: %s", optarg, err);
 	    mail_conf_update(oname, oval);
 	    if (strcmp(oname, VAR_SYSLOG_NAME) == 0)
 		redo_syslog_init = 1;
