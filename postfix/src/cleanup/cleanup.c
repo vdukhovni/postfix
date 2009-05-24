@@ -462,8 +462,7 @@ static void cleanup_service(VSTREAM *src, char *unused_service, char **argv)
 	    state->errs |= CLEANUP_STAT_BAD;
 	    break;
 	}
-	if (type == REC_TYPE_PTR || type == REC_TYPE_DTXT
-	    || type == REC_TYPE_DRCP) {
+	if (REC_GET_HIDDEN_TYPE(type)) {
 	    msg_warn("%s: record type %d not allowed - discarding this message",
 		     state->queue_id, type);
 	    state->errs |= CLEANUP_STAT_BAD;

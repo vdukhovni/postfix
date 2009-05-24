@@ -15242,3 +15242,20 @@ Apologies for any names omitted.
 	The queue file would be corrupted when the delay_warning_time
 	record was marked as "done" after sending the "your mail
 	is delayed" notice.  File: qmgr/qmgr_message.c.
+
+20090522
+
+	Bugfix (introduced: Postfix 2.3).  The cleanup server
+	rejected mail with records of type REC_TYPE_DRCP (recipient
+	deleted by Milter), but such records could be present in
+	mail re-submitted with "postsuper -r". Found during code
+	review. Files: global/record.h, cleanup/cleanup_envelope.c.
+
+20090524
+
+	Feature: new postcat options: -e (print envelope), -h (print
+	header), and -b (print body). Specify "postcat -bh" to
+	suppress information about envelope records, and "postcat
+	-h" to get the message header only. With large messages,
+	"postcat -h" is much faster than manually stripping the
+	message body from the output. File: postcat/postcat.c.
