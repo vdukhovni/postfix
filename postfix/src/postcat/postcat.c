@@ -4,17 +4,18 @@
 /* SUMMARY
 /*	show Postfix queue file contents
 /* SYNOPSIS
-/*	\fBpostcat\fR [\fB-bhmoqv\fR] [\fB-c \fIconfig_dir\fR] [\fIfiles\fR...]
+/*	\fBpostcat\fR [\fB-bdehnoqv\fR] [\fB-c \fIconfig_dir\fR] [\fIfiles\fR...]
 /* DESCRIPTION
-/*	The \fBpostcat\fR(1) command prints the contents of the named
-/*	\fIfiles\fR in human-readable form. The files are expected
-/*	to be in Postfix queue file format. If no
-/*	\fIfiles\fR are specified on the command line, the program
-/*	reads from standard input.
+/*	The \fBpostcat\fR(1) command prints the contents of the
+/*	named \fIfiles\fR in human-readable form. The files are
+/*	expected to be in Postfix queue file format. If no \fIfiles\fR
+/*	are specified on the command line, the program reads from
+/*	standard input.
 /*
-/*	By default, \fBpostcat\fR(1) behaves as if all three options
-/*	\fB-b\fR, \fB-e\fR, and \fB-h\fR are given. To view message
-/*	content only, specify \fB-bh\fR (Postfix 2.7 and later).
+/*	By default, \fBpostcat\fR(1) shows the envelope and message
+/*	content, as if the options \fB-beh\fR were specified. To
+/*	view message content only, specify \fB-bh\fR (Postfix 2.7
+/*	and later).
 /*
 /*	Options:
 /* .IP \fB-b\fR
@@ -22,27 +23,29 @@
 /*	output at the first non-header line, and stops when the end
 /*	of the message is reached.
 /* .sp
-/*	This feature is available in Postfix version 2.7 and later.
+/*	This feature is available in Postfix 2.7 and later.
 /* .IP "\fB-c \fIconfig_dir\fR"
 /*	The \fBmain.cf\fR configuration file is in the named directory
 /*	instead of the default configuration directory.
+/* .IP \fB-d\fR
+/*	Print the decimal type of each record.
 /* .IP \fB-e\fR
 /*	Show message envelope content.
 /* .sp
-/*	This feature is available in Postfix version 2.7 and later.
+/*	This feature is available in Postfix 2.7 and later.
 /* .IP \fB-h\fR
 /*	Show message header content.  The \fB-h\fR option produces
 /*	output from the beginning of the message up to, but not
 /*	including, the first non-header line.
 /* .sp
-/*	This feature is available in Postfix version 2.7 and later.
+/*	This feature is available in Postfix 2.7 and later.
 /* .IP \fB-o\fR
 /*	Print the queue file offset of each record.
 /* .IP \fB-q\fR
 /*	Search the Postfix queue for the named \fIfiles\fR instead
 /*	of taking the names literally.
 /*
-/*	Available in Postfix version 2.0 and later.
+/*	This feature is available in Postfix 2.0 and later.
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
@@ -121,6 +124,8 @@
 #define PC_FLAG_PRINT_ENV	(1<<2)	/* print envelope records */
 #define PC_FLAG_PRINT_HEADER	(1<<3)	/* print header records */
 #define PC_FLAG_PRINT_BODY	(1<<4)	/* print body records */
+#define PC_FLAG_PRINT_RTYPE_DEC	(1<<5)	/* print decimal record type */
+#define PC_FLAG_PRINT_RTYPE_SYM	(1<<6)	/* print symbolic record type */
 
 #define PC_MASK_PRINT_TEXT	(PC_FLAG_PRINT_HEADER | PC_FLAG_PRINT_BODY)
 #define PC_MASK_PRINT_ALL	(PC_FLAG_PRINT_ENV | PC_MASK_PRINT_TEXT)
@@ -198,9 +203,11 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 	 * likely need to be revised when the queue file organization is
 	 * changed.
 	 */
-#define PRINT_MARKER(flags, fp, offset, text) do { \
+#define PRINT_MARKER(flags, fp, offset, type, text) do { \
     if ((flags) & PC_FLAG_PRINT_OFFSET) \
 	vstream_printf("%9lu ", (unsigned long) (offset)); \
+    if (flags & PC_FLAG_PRINT_RTYPE_DEC) \
+	vstream_printf("%3d ", (type)); \
     vstream_printf("*** %s %s ***\n", (text), VSTREAM_PATH(fp)); \
     vstream_fflush(VSTREAM_OUT); \
 } while (0)
@@ -208,6 +215,8 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 #define PRINT_RECORD(flags, offset, type, value) do { \
     if ((flags) & PC_FLAG_PRINT_OFFSET) \
 	vstream_printf("%9lu ", (unsigned long) (offset)); \
+    if (flags & PC_FLAG_PRINT_RTYPE_DEC) \
+	vstream_printf("%3d ", (type)); \
     vstream_printf("%s: %s\n", rec_type_name(rec_type), (value)); \
     vstream_fflush(VSTREAM_OUT); \
 } while (0)
@@ -237,7 +246,7 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 			 VSTREAM_PATH(fp));
 	    /* Optional output. */
 	    if (flags & PC_FLAG_PRINT_ENV)
-		PRINT_MARKER(flags, fp, offset, "MESSAGE CONTENTS");
+		PRINT_MARKER(flags, fp, offset, rec_type, "MESSAGE CONTENTS");
 	    /* Optimization: skip to extracted segment marker. */
 	    if ((flags & PC_MASK_PRINT_TEXT) == 0
 		&& data_offset >= 0 && data_size >= 0
@@ -256,7 +265,7 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 	    if (do_print && prev_type == REC_TYPE_CONT)
 		VSTREAM_PUTCHAR('\n');
 	    if (flags & PC_FLAG_PRINT_ENV)
-		PRINT_MARKER(flags, fp, offset, "HEADER EXTRACTED");
+		PRINT_MARKER(flags, fp, offset, rec_type, "HEADER EXTRACTED");
 	    /* Update the state machine. */
 	    state = PC_STATE_ENV;
 	    do_print = (flags & PC_FLAG_PRINT_ENV);
@@ -271,7 +280,7 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 			 VSTREAM_PATH(fp));
 	    /* Optional output. */
 	    if (flags & PC_FLAG_PRINT_ENV)
-		PRINT_MARKER(flags, fp, offset, "MESSAGE FILE END");
+		PRINT_MARKER(flags, fp, offset, rec_type, "MESSAGE FILE END");
 	    /* Terminate the state machine. */
 	    break;
 	} else if (rec_type == REC_TYPE_PTR) {
@@ -284,15 +293,16 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 		msg_fatal("bad pointer record, or input is not seekable");
 	    continue;
 	} else if (rec_type == REC_TYPE_SIZE) {
+	    /* Optional output (here before we update the state machine). */
+	    if (do_print)
+		PRINT_RECORD(flags, offset, rec_type, STR(buffer));
+	    /* Read the message size/offset for the state machine optimizer. */
 	    if (data_size >= 0 || data_offset >= 0) {
 		msg_warn("file contains multiple size records");
 	    } else {
 		if (sscanf(STR(buffer), "%ld %ld", &data_size, &data_offset) != 2
 		    || data_offset <= 0 || data_size <= 0)
 		    msg_fatal("invalid size record: %.100s", STR(buffer));
-		/* Optional output (here since we update the state machine). */
-		if (do_print)
-		    PRINT_RECORD(flags, offset, rec_type, STR(buffer));
 		/* Optimization: skip to the message header. */
 		if ((flags & PC_FLAG_PRINT_ENV) == 0) {
 		    if (vstream_fseek(fp, data_offset, SEEK_SET) < 0)
@@ -312,6 +322,8 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 	    continue;
 	if (flags & PC_FLAG_PRINT_OFFSET)
 	    vstream_printf("%9lu ", (unsigned long) offset);
+	if (flags & PC_FLAG_PRINT_RTYPE_DEC)
+	    vstream_printf("%3d ", rec_type);
 	switch (rec_type) {
 	case REC_TYPE_TIME:
 	    REC_TYPE_TIME_SCAN(STR(buffer), tv);
@@ -381,7 +393,7 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 
 static NORETURN usage(char *myname)
 {
-    msg_fatal("usage: %s [-c config_dir] [-q (access queue)] [-v] [file(s)...]",
+    msg_fatal("usage: %s [-b (body text)] [-c config_dir] [-d (decimal record type)] [-e (envelope records)] [-h (header text)] [-q (access queue)] [-v] [file(s)...]",
 	      myname);
 }
 
@@ -429,7 +441,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "bc:ehoqv")) > 0) {
+    while ((ch = GETOPT(argc, argv, "bc:dehoqv")) > 0) {
 	switch (ch) {
 	case 'b':
 	    flags |= PC_FLAG_PRINT_BODY;
@@ -437,6 +449,9 @@ int     main(int argc, char **argv)
 	case 'c':
 	    if (setenv(CONF_ENV_PATH, optarg, 1) < 0)
 		msg_fatal("out of memory");
+	    break;
+	case 'd':
+	    flags |= PC_FLAG_PRINT_RTYPE_DEC;
 	    break;
 	case 'e':
 	    flags |= PC_FLAG_PRINT_ENV;

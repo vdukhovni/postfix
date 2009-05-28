@@ -7528,6 +7528,8 @@ This feature is available in Postfix 2.0 and later.
 
 <p>
 The name of the directory with example Postfix configuration files.
+Starting with Postfix 2.1, these files have been replaced with the
+postconf(5) manual page.
 </p>
 
 %PARAM sender_based_routing no

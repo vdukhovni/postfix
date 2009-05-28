@@ -3279,9 +3279,15 @@ static int reject_auth_sender_login_mismatch(SMTPD_STATE *state, const char *sen
     int     found = 0;
 
     /*
+     * Replace obscure code by self-evident code.
+     */
+#define SMTPD_SASL_AUTHENTICATED(state) \
+	(smtpd_sasl_is_active(state) && state->sasl_username != 0)
+
+    /*
      * Reject if the client is logged in and does not own the sender address.
      */
-    if (smtpd_sasl_is_active(state) && state->sasl_username != 0) {
+    if (var_smtpd_sasl_enable && SMTPD_SASL_AUTHENTICATED(state)) {
 	reply = smtpd_resolve_addr(sender);
 	if (reply->flags & RESOLVE_FLAG_FAIL)
 	    reject_dict_retry(state, sender);
@@ -3314,7 +3320,7 @@ static int reject_unauth_sender_login_mismatch(SMTPD_STATE *state, const char *s
      * Reject if the client is not logged in and the sender address has an
      * owner.
      */
-    if (smtpd_sasl_is_active(state) && state->sasl_username == 0) {
+    if (var_smtpd_sasl_enable && !SMTPD_SASL_AUTHENTICATED(state)) {
 	reply = smtpd_resolve_addr(sender);
 	if (reply->flags & RESOLVE_FLAG_FAIL)
 	    reject_dict_retry(state, sender);
@@ -3766,7 +3772,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 					  state->sender, SMTPD_NAME_SENDER);
 	} else if (strcasecmp(name, REJECT_AUTH_SENDER_LOGIN_MISMATCH) == 0) {
 #ifdef USE_SASL_AUTH
-	    if (smtpd_sasl_is_active(state)) {
+	    if (var_smtpd_sasl_enable) {
 		if (state->sender && *state->sender)
 		    status = reject_auth_sender_login_mismatch(state, state->sender);
 	    } else
@@ -3774,7 +3780,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		msg_warn("restriction `%s' ignored: no SASL support", name);
 	} else if (strcasecmp(name, REJECT_UNAUTH_SENDER_LOGIN_MISMATCH) == 0) {
 #ifdef USE_SASL_AUTH
-	    if (smtpd_sasl_is_active(state)) {
+	    if (var_smtpd_sasl_enable) {
 		if (state->sender && *state->sender)
 		    status = reject_unauth_sender_login_mismatch(state, state->sender);
 	    } else

@@ -15259,3 +15259,12 @@ Apologies for any names omitted.
 	-h" to get the message header only. With large messages,
 	"postcat -h" is much faster than manually stripping the
 	message body from the output. File: postcat/postcat.c.
+
+20090528
+
+	Bugfix (introduced: Postfix 2.6 change 20080629): with
+	plaintext sessions, smtpd_tls_auth_only=yes caused spurious
+	warnings with reject_authenticated_sender_login_mismatch,
+	and broke reject_unauthenticated_sender_login_mismatch and
+	reject_sender_login_mismatch.  Based on fix by Victor
+	Duchovni. File: smtpd/smtpd_check.c.
