@@ -15231,3 +15231,12 @@ Apologies for any names omitted.
 	The queue file would be corrupted when the delay_warning_time
 	record was marked as "done" after sending the "your mail
 	is delayed" notice.  File: qmgr/qmgr_message.c.
+
+20090528
+
+	Bugfix (introduced: Postfix 2.6 change 20080629): with
+	plaintext sessions, smtpd_tls_auth_only=yes caused spurious
+	warnings with reject_authenticated_sender_login_mismatch,
+	and broke reject_unauthenticated_sender_login_mismatch and
+	reject_sender_login_mismatch.  Based on fix by Victor
+	Duchovni. File: smtpd/smtpd_check.c.
