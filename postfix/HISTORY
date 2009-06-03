@@ -15268,3 +15268,13 @@ Apologies for any names omitted.
 	and broke reject_unauthenticated_sender_login_mismatch and
 	reject_sender_login_mismatch.  Based on fix by Victor
 	Duchovni. File: smtpd/smtpd_check.c.
+
+20090603
+
+	Cleanup: Postfix 2.3 adopted a file descriptor passing
+	workaround for OpenBSD. This workaround was hard-coded for
+	all platforms because there were no have adverse effects.
+	This is no longer the case: OpenBSD is fixed, and NetBSD
+	does not like the workaround. We now default back to the
+	non-workaround code and turn on the workaround dynamically.
+	Files: util/unix_send_fd.c, unix_recv_fd.c, unix_pass_fd_fix.c.

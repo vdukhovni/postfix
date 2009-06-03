@@ -45,6 +45,12 @@ extern void set_inet_windowsize(int, int);
 #define CLOSE_ON_EXEC	1
 #define PASS_ON_EXEC	0
 
+extern int unix_pass_fd_fix;
+extern void set_unix_pass_fd_fix(const char *);
+
+#define UNIX_PASS_FD_FIX_NONE		(0)
+#define UNIX_PASS_FD_FIX_CMSG_LEN	(1<<0)
+
 /* LICENSE
 /* .ad
 /* .fi

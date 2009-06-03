@@ -31,7 +31,8 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	vstream_popen.c vstring.c vstring_vstream.c watchdog.c writable.c \
 	write_buf.c write_wait.c sane_basename.c format_tv.c allspace.c \
 	allascii.c load_file.c killme_after.c vstream_tweak.c upass_connect.c \
-	upass_listen.c upass_trigger.c edit_file.c inet_windowsize.c
+	upass_listen.c upass_trigger.c edit_file.c inet_windowsize.c \
+	unix_pass_fd_fix.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -64,7 +65,8 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	vstream_popen.o vstring.o vstring_vstream.o watchdog.o writable.o \
 	write_buf.o write_wait.o sane_basename.o format_tv.o allspace.o \
 	allascii.o load_file.o killme_after.o vstream_tweak.o upass_connect.o \
-	upass_listen.o upass_trigger.o edit_file.o inet_windowsize.o
+	upass_listen.o upass_trigger.o edit_file.o inet_windowsize.o \
+	unix_pass_fd_fix.o
 HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	chroot_uid.h cidr_match.h clean_env.h connect.h ctable.h dict.h \
 	dict_cdb.h dict_cidr.h dict_db.h dict_dbm.h dict_env.h dict_ht.h \
@@ -86,7 +88,7 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	vstring_vstream.h watchdog.h format_tv.h load_file.h killme_after.h \
 	edit_file.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
-	stream_test.c dup2_pass_on_exec.c 
+	stream_test.c dup2_pass_on_exec.c test_send_fd test_recv_fd
 DEFS	= -I. -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 FILES	= Makefile $(SRCS) $(HDRS)
@@ -101,7 +103,8 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	inet_addr_list attr_print64 attr_scan64 base64_code attr_print0 \
 	attr_scan0 host_port attr_scan_plain attr_print_plain htable \
 	unix_recv_fd unix_send_fd stream_recv_fd stream_send_fd hex_code \
-	myaddrinfo myaddrinfo4 inet_proto sane_basename format_tv
+	myaddrinfo myaddrinfo4 inet_proto sane_basename format_tv \
+	test_send_fd test_recv_fd
 
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
@@ -568,8 +571,8 @@ argv.o: mymalloc.h
 argv.o: sys_defs.h
 argv_split.o: argv.h
 argv_split.o: argv_split.c
-argv_split.o: mymalloc.h
 argv_split.o: msg.h
+argv_split.o: mymalloc.h
 argv_split.o: stringops.h
 argv_split.o: sys_defs.h
 argv_split.o: vbuf.h
@@ -1552,6 +1555,12 @@ unix_listen.o: msg.h
 unix_listen.o: sane_accept.h
 unix_listen.o: sys_defs.h
 unix_listen.o: unix_listen.c
+unix_pass_fd_fix.o: iostuff.h
+unix_pass_fd_fix.o: name_mask.h
+unix_pass_fd_fix.o: sys_defs.h
+unix_pass_fd_fix.o: unix_pass_fd_fix.c
+unix_pass_fd_fix.o: vbuf.h
+unix_pass_fd_fix.o: vstring.h
 unix_recv_fd.o: iostuff.h
 unix_recv_fd.o: msg.h
 unix_recv_fd.o: sys_defs.h
