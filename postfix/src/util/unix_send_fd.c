@@ -105,22 +105,28 @@ int     unix_send_fd(int fd, int sendfd)
     msg.msg_iovlen = 1;
 
     /*
-     * The CMSG_LEN workaround was originally developed for OpenBSD 3.6 on
-     * 64-bit SPARC (later also confirmed on AMD64). It was hard-coded with
-     * Postfix 2.3 for all platforms because of increasing pressure to work
-     * on other things.
+     * The CMSG_LEN send/receive workaround was originally developed for
+     * OpenBSD 3.6 on SPARC64. After the workaround was verified to not break
+     * Solaris 8 on SPARC64, it was hard-coded with Postfix 2.3 for all
+     * platforms because of increasing pressure to work on other things. The
+     * workaround does nothing for 32-bit systems.
      * 
      * The investigation was reopened with Postfix 2.7 because the workaround
-     * broke on NetBSD 5.0. This time it was found that OpenBSD on AMD64
-     * needs the workaround for sending only. We assume that OpenBSD on AMD64
-     * and SPARC64 are similar, and turn on the workaround on-the-fly. The
-     * OpenBSD problem was fixed for AMD64 and SPARC64 with OpenBSD 4.4 or
-     * 4.5.
+     * broke with NetBSD 5.0 on 64-bit architectures. This time it was found
+     * that OpenBSD <= 4.3 on AMD64 and SPARC64 needed the workaround for
+     * sending only. The following platforms worked with and without the
+     * workaround: OpenBSD 4.5 on AMD64 and SPARC64, FreeBSD 7.2 on AMD64,
+     * Solaris 8 on SPARC64, and Linux 2.6-11 on x86_64.
      * 
-     * The workaround was made run-time configurable to make the investigation
-     * possible on many different platforms. Though the code is over-kill for
-     * this particular problem, it is left in place so that it can serve as
-     * an example of how to add run-time configurable workarounds to Postfix.
+     * As this appears to have been an OpenBSD-specific problem, we revert to
+     * the Postfix 2.2 behavior. Instead of hard-coding the workaround for
+     * all platforms, we now detect sendmsg() errors at run time and turn on
+     * the workaround dynamically.
+     * 
+     * The workaround was made run-time configurable to investigate the problem
+     * on multiple platforms. Though set_unix_pass_fd_fix() is over-kill for
+     * this specific problem, it is left in place so that it can serve as an
+     * example of how to add run-time configurable workarounds to Postfix.
      */
     if (sendmsg(fd, &msg, 0) >= 0)
 	return (0);

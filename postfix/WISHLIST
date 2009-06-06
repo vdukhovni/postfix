@@ -2,9 +2,11 @@ Wish list:
 
 	Remove this file from the stable release.
 
-	Apply header_checks and body_checks when Milters add or
-	modify the message content. Use case: Milters that add
-	spamminess headers.
+	Fix the header_body_checks API, so that the name of the map
+	class (e.g. milter_header_checks) is available for logging.
+
+	Fix the mime_state and header_body_checks APIs, so that
+	they use VSTRINGs. This simplifies REPLACE actions.
 
 	Update FILTER_README for multi-instance support, and rename
 	the old document to FILTER_LEGACY_README.

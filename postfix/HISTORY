@@ -15278,3 +15278,26 @@ Apologies for any names omitted.
 	does not like the workaround. We now default back to the
 	non-workaround code and turn on the workaround dynamically.
 	Files: util/unix_send_fd.c, unix_recv_fd.c, unix_pass_fd_fix.c.
+
+20090605
+
+	Portability: modern kernels below ancient user-land. File:
+	makedefs.
+
+20090606
+
+	Feature: post-Milter header checks, with all actions except
+	PREPEND. To enable, specify for example "milter_header_checks
+	= pcre:/path/to/file".  Files: cleanup/cleanup_init.c,
+	cleanup/cleanup_milter.c, cleanup/cleanup_extracted.c,
+	cleanup/cleanup_state.c.
+
+	Bugfix: non-portable command pathname in postmulti-script.
+
+	Safety: "postmulti -e destroy" no longer attempts to remove
+	files that are created AFTER "postmulti -e create". Rationale:
+	by design, postfix queue/data directories are not trusted;
+	actions within those directory trees must not affect files
+	outside those those trees (e.g. by symlink race attacks).
+	We don't want to be nailed with a bunch of CVEs for unsafe
+	pathname handling.  File: conf/postmulti-script.

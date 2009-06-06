@@ -868,6 +868,7 @@ while (<>) {
     s;\bmilter_unknown_command_macros\b;<a href="postconf.5.html#milter_unknown_command_macros">$&</a>;g;
     s;\bmilter_end_of_data_macros\b;<a href="postconf.5.html#milter_end_of_data_macros">$&</a>;g;
     s;\bmilter_end_of_header_macros\b;<a href="postconf.5.html#milter_end_of_header_macros">$&</a>;g;
+    s;\bmilter_header_checks\b;<a href="postconf.5.html#milter_header_checks">$&</a>;g;
 
     # Multi-instance support
     s;\bmulti_instance_directo[-</bB>]*\n*[ <bB>]*ries\b;<a href="postconf.5.html#multi_instance_directories">$&</a>;g;

@@ -2982,6 +2982,10 @@ extern char *var_milt_daemon_name;
 #define DEF_MILT_V			"$" VAR_MAIL_NAME " $" VAR_MAIL_VERSION
 extern char *var_milt_v;
 
+#define VAR_MILT_HEAD_CHECKS		"milter_header_checks"
+#define DEF_MILT_HEAD_CHECKS		""
+extern char *var_milt_head_checks;
+
  /*
   * What internal mail do we inspect/stamp/etc.? This is not yet safe enough
   * to enable world-wide.

@@ -170,6 +170,11 @@
 /* .IP "\fBmilter_end_of_header_macros (see 'postconf -d' output)\fR"
 /*	The macros that are sent to Milter (mail filter) applications
 /*	after the end of the message header.
+/* .PP
+/*	Available in Postfix version 2.5 and later:
+/* .IP "\fBmilter_header_checks (empty)\fR"
+/*	Optional lookup tables for content inspection of primary
+/*	message headers that are produced by Milter applications.
 /* MIME PROCESSING CONTROLS
 /* .ad
 /* .fi

@@ -12300,3 +12300,25 @@ parameter. See there for details. </p>
 
 <p> This feature is available in Postfix 2.5 and later. </p>
 
+%PARAM milter_header_checks
+
+<p>
+Optional lookup tables for content inspection of primary 
+message headers that are produced by Milter applications.
+See the header_checks(5) manual page for usage.
+</p>
+
+<p> The following example sends mail that is marked as SPAM to a
+spam sanization machine. Note that matches are case-insensitive by
+default. </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    milter_header_checks = pcre:/etc/postfix/milter_header_checks
+</pre>
+<pre>
+/etc/postfix/milter_header_checks:
+    /^X-SPAM-FLAG:\s+YES]/ FILTER mysmtp:sanitizer.example.com:25
+</pre>
+</blockquote> 

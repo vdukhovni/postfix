@@ -5691,6 +5691,33 @@ of available macro names and their meanings.  </p>
 
 </DD>
 
+<DT><b><a name="milter_header_checks">milter_header_checks</a>
+(default: empty)</b></DT><DD>
+
+<p>
+Optional lookup tables for content inspection of primary
+message headers that are produced by Milter applications.
+See the <a href="header_checks.5.html">header_checks(5)</a> manual page for usage.
+</p>
+
+<p> The following example sends mail that is marked as SPAM to a
+spam sanization machine. Note that matches are case-insensitive by
+default. </p>
+
+<blockquote>
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#milter_header_checks">milter_header_checks</a> = <a href="pcre_table.5.html">pcre</a>:/etc/postfix/<a href="postconf.5.html#milter_header_checks">milter_header_checks</a>
+</pre>
+<pre>
+/etc/postfix/<a href="postconf.5.html#milter_header_checks">milter_header_checks</a>:
+    /^X-SPAM-FLAG:\s+YES]/ FILTER mysmtp:sanitizer.example.com:25
+</pre>
+</blockquote>
+
+
+</DD>
+
 <DT><b><a name="milter_helo_macros">milter_helo_macros</a>
 (default: see "postconf -d" output)</b></DT><DD>
 
