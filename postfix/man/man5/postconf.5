@@ -3159,13 +3159,13 @@ of available macro names and their meanings.
 .PP
 This feature is available in Postfix 2.5 and later.
 .SH milter_header_checks (default: empty)
-Optional lookup tables for content inspection of primary
-message headers that are produced by Milter applications.
-See the \fBheader_checks\fR(5) manual page for usage.
+Optional lookup tables for content inspection of message headers
+that are produced by Milter applications.  See the \fBheader_checks\fR(5)
+manual page available actions. Currently, PREPEND is not implemented.
 .PP
-The following example sends mail that is marked as SPAM to a
-spam sanization machine. Note that matches are case-insensitive by
-default.
+The following example sends all mail that is marked as SPAM to
+a spam handling machine. Note that matches are case-insensitive
+by default.
 .sp
 .in +4
 .nf
@@ -3185,6 +3185,13 @@ default.
 .ad
 .ft R
 .in -4
+.PP
+The milter_header_checks mechanism could also be used for
+whitelisting. For example it could be used to skip heavy content
+scanning for DKIM-signed mail from known friendly domains.
+.PP
+This feature is available in Postfix 2.7, and as an optional
+patch for Postfix 2.6.
 .SH milter_helo_macros (default: see "postconf -d" output)
 The macros that are sent to Milter (mail filter) applications
 after the SMTP HELO or EHLO command. See

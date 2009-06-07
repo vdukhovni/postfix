@@ -78,9 +78,11 @@ milter_tests: cleanup_milter_test bug_tests \
 	cleanup_milter_test13a cleanup_milter_test13b cleanup_milter_test13c \
 	cleanup_milter_test13d \
 	cleanup_milter_test14a cleanup_milter_test14b cleanup_milter_test14c \
-	cleanup_milter_test14d cleanup_milter_test14e \
+	cleanup_milter_test14d cleanup_milter_test14e cleanup_milter_test14f \
+	cleanup_milter_test14g \
 	cleanup_milter_test15a cleanup_milter_test15b cleanup_milter_test15c \
-	cleanup_milter_test15d cleanup_milter_test15e
+	cleanup_milter_test15d cleanup_milter_test15e cleanup_milter_test15f \
+	cleanup_milter_test15g cleanup_milter_test15h cleanup_milter_test15i
 
 root_tests:
 
@@ -388,6 +390,26 @@ cleanup_milter_test14e: cleanup_milter test-queue-file14 cleanup_milter.in14e \
 	diff cleanup_milter.ref14e2 cleanup_milter.tmp2
 	rm -f test-queue-file14e.tmp cleanup_milter.tmp1 cleanup_milter.tmp2
 
+cleanup_milter_test14f: cleanup_milter test-queue-file14 cleanup_milter.in14f \
+	cleanup_milter.ref14f1 ../postcat/postcat cleanup_milter.ref14f2
+	cp test-queue-file14 test-queue-file14f.tmp
+	chmod u+w test-queue-file14f.tmp
+	./cleanup_milter <cleanup_milter.in14f 2>cleanup_milter.tmp1
+	diff cleanup_milter.ref14f1 cleanup_milter.tmp1
+	../postcat/postcat -ov test-queue-file14f.tmp 2>/dev/null >cleanup_milter.tmp2
+	diff cleanup_milter.ref14f2 cleanup_milter.tmp2
+	rm -f test-queue-file14f.tmp cleanup_milter.tmp1 cleanup_milter.tmp2
+
+cleanup_milter_test14g: cleanup_milter test-queue-file14 cleanup_milter.in14g \
+	cleanup_milter.ref14g1 ../postcat/postcat cleanup_milter.ref14g2
+	cp test-queue-file14 test-queue-file14g.tmp
+	chmod u+w test-queue-file14g.tmp
+	./cleanup_milter <cleanup_milter.in14g 2>cleanup_milter.tmp1
+	diff cleanup_milter.ref14g1 cleanup_milter.tmp1
+	../postcat/postcat -ov test-queue-file14g.tmp 2>/dev/null >cleanup_milter.tmp2
+	diff cleanup_milter.ref14g2 cleanup_milter.tmp2
+	rm -f test-queue-file14g.tmp cleanup_milter.tmp1 cleanup_milter.tmp2
+
 cleanup_milter_test15a: cleanup_milter test-queue-file15 cleanup_milter.in15a \
 	cleanup_milter.ref15a1 ../postcat/postcat cleanup_milter.ref15a2
 	cp test-queue-file15 test-queue-file15a.tmp
@@ -437,6 +459,46 @@ cleanup_milter_test15e: cleanup_milter test-queue-file15 cleanup_milter.in15e \
 	../postcat/postcat -ov test-queue-file15e.tmp 2>/dev/null >cleanup_milter.tmp2
 	diff cleanup_milter.ref15e2 cleanup_milter.tmp2
 	rm -f test-queue-file15e.tmp cleanup_milter.tmp1 cleanup_milter.tmp2
+
+cleanup_milter_test15f: cleanup_milter test-queue-file15 cleanup_milter.in15f \
+	cleanup_milter.ref15f1 ../postcat/postcat cleanup_milter.ref15f2
+	cp test-queue-file15 test-queue-file15f.tmp
+	chmod u+w test-queue-file15f.tmp
+	./cleanup_milter <cleanup_milter.in15f 2>cleanup_milter.tmp1
+	diff cleanup_milter.ref15f1 cleanup_milter.tmp1
+	../postcat/postcat -ov test-queue-file15f.tmp 2>/dev/null >cleanup_milter.tmp2
+	diff cleanup_milter.ref15f2 cleanup_milter.tmp2
+	rm -f test-queue-file15f.tmp cleanup_milter.tmp1 cleanup_milter.tmp2
+
+cleanup_milter_test15g: cleanup_milter test-queue-file15 cleanup_milter.in15g \
+	cleanup_milter.ref15g1 ../postcat/postcat cleanup_milter.ref15g2
+	cp test-queue-file15 test-queue-file15g.tmp
+	chmod u+w test-queue-file15g.tmp
+	./cleanup_milter <cleanup_milter.in15g 2>cleanup_milter.tmp1
+	diff cleanup_milter.ref15g1 cleanup_milter.tmp1
+	../postcat/postcat -ov test-queue-file15g.tmp 2>/dev/null >cleanup_milter.tmp2
+	diff cleanup_milter.ref15g2 cleanup_milter.tmp2
+	rm -f test-queue-file15g.tmp cleanup_milter.tmp1 cleanup_milter.tmp2
+
+cleanup_milter_test15h: cleanup_milter test-queue-file15 cleanup_milter.in15h \
+	cleanup_milter.ref15h1 ../postcat/postcat cleanup_milter.ref15h2
+	cp test-queue-file15 test-queue-file15h.tmp
+	chmod u+w test-queue-file15h.tmp
+	./cleanup_milter <cleanup_milter.in15h 2>cleanup_milter.tmp1
+	diff cleanup_milter.ref15h1 cleanup_milter.tmp1
+	../postcat/postcat -ov test-queue-file15h.tmp 2>/dev/null >cleanup_milter.tmp2
+	diff cleanup_milter.ref15h2 cleanup_milter.tmp2
+	rm -f test-queue-file15h.tmp cleanup_milter.tmp1 cleanup_milter.tmp2
+
+cleanup_milter_test15i: cleanup_milter test-queue-file15 cleanup_milter.in15i \
+	cleanup_milter.ref15i1 ../postcat/postcat cleanup_milter.ref15i2
+	cp test-queue-file15 test-queue-file15i.tmp
+	chmod u+w test-queue-file15i.tmp
+	./cleanup_milter <cleanup_milter.in15i 2>cleanup_milter.tmp1
+	diff cleanup_milter.ref15i1 cleanup_milter.tmp1
+	../postcat/postcat -ov test-queue-file15i.tmp 2>/dev/null >cleanup_milter.tmp2
+	diff cleanup_milter.ref15i2 cleanup_milter.tmp2
+	rm -f test-queue-file15i.tmp cleanup_milter.tmp1 cleanup_milter.tmp2
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \

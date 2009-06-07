@@ -27,13 +27,6 @@ umask 022
 #  multi_instance_group		- New value for target instance
 #  multi_instance_name		- New value for target instance
 
-# For security reasons we don't take pathnames from the file system
-# when destroying instances.  Instead we use known-to-be-safe names
-# and nothing with a / because that could be subject to races.
-QUEUE_DIRECTORIES="active bounce corrupt defer deferred flush hold incoming \
-maildrop pid private public saved trace"
-#DEBUG=echo
-
 : ${MAIL_CONFIG:?"do not invoke this command directly"}
 : ${command_directory:?"do not invoke this command directly"}
 : ${daemon_directory:?"do not invoke this command directly"}
@@ -43,7 +36,6 @@ usage() { echo "$0: Error: Usage: $USAGE" >&2; exit 1; }
 
 TAG="$MAIL_LOGTAG/postmulti-script"
 fatal() { postlog -p fatal -t "$TAG" "$1"; exit 1; }
-WARN="postlog -p warn -t $TAG"
 
 # args: add|del $dir
 #
@@ -236,6 +228,22 @@ deport)
     ;;
 
 destroy)
+
+    # "postmulti -e destroy" will remove an entire instance only
+    # when invoked immediately after "postmulti -e create". Trying
+    # to remove more files is too dangerous.
+    #
+    # By design, postfix-owned directory trees are not trusted, and
+    # any action within those directory trees must not affect files
+    # outside those trees (e.g. via symlink race attacks). Therefore
+    # we use only known-to-be-safe names and nothing with a / because
+    # that could be subject to races.
+    #
+    QUEUE_SUBDIRS="active bounce corrupt defer deferred flush hold \
+    incoming maildrop pid private public saved trace"
+    #DEBUG=echo
+    WARN="postlog -p warn -t $TAG"
+
     # Locate the target instance
     #
     [ -f "$config_directory/main.cf" ] ||
@@ -247,23 +255,15 @@ destroy)
     # Update multi_instance directories
     # and also (just in case) drop from alternate_config_directories
     #
-    $DEBUG update_cfdirs del $config_directory || exit 1
+    $DEBUG update_cfdirs del "$config_directory" || exit 1
 
-    # "postmulti -e destroy" will remove an entire instance only
-    # when invoked immediately after "postmulti -e create". Trying
-    # to remove more files is too dangerous.
-    #
-    # By design, postfix-owned directory trees are not trusted, and
-    # any action within those directory trees must not affect files
-    # outside those trees (e.g. via symlink race attacks).
-    #
     # XXX: Internal "postfix /some/cmd" interface.
     #
     postfix -c "$config_directory" /bin/sh -c "
-    for q in $QUEUE_DIRECTORIES
+    for q in $QUEUE_SUBDIRS
     do
 	$DEBUG rmdir -- \$q || 
-	    $WARN `pwd`/\$q: please verify contents and remove by hand
+	    $WARN \`pwd\`/\$q: please verify contents and remove by hand
     done
     "
 
@@ -278,7 +278,7 @@ destroy)
     # In the configuration directory remove just the main.cf and master.cf
     # files.
     $DEBUG rm -f -- "$config_directory/master.cf" "$config_directory/main.cf" 2>/dev/null
-    $DEBUG rmdir -- "$config_directory" ||
+    $DEBUG rmdir -- "$config_directory" || 
 	$WARN $config_directory: please verify contents and remove by hand
     ;;
 

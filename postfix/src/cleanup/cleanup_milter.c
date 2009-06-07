@@ -263,15 +263,40 @@ static char *cleanup_milter_hbc_extend(void *context, const char *command,
 #define STREQUAL(x,y,l) (strncasecmp((x), (y), (l)) == 0 && (y)[l] == 0)
 
     /*
-     * We log all header/body-checks actions here, because we know the
-     * details of the message content that triggered the action. We also
-     * report detail-free milter-reply values to the caller through the
-     * milter_hbc_reply state member, so that up-stream code can stop sending
-     * requests after e.g., reject or discard.
-     * 
-     * As enforced elsewhere, this code is not called when (state->flags &
-     * CLEANUP_FLAG_FILTER_ALL) == 0.
+     * These are currently our mutually-exclusive ways of not receiving mail:
+     * "reject" and "discard". Only these can be reported to the up-stream
+     * Postfix libmilter code, because sending any reply there causes Postfix
+     * libmilter to skip further "edit" requests. By way of safety net, each
+     * of these must also reset CLEANUP_FLAG_FILTER_ALL.
      */
+#define CLEANUP_MILTER_REJECTING_OR_DISCARDING_MESSAGE(state) \
+    ((state->flags & CLEANUP_FLAG_DISCARD) || (state->errs & CLEANUP_STAT_CONT))
+
+    /*
+     * We log all header/body-checks actions here, because we know the
+     * details of the message content that triggered the action. We report
+     * detail-free milter-reply values (reject/discard, stored in the
+     * milter_hbc_reply state member) to the Postfix libmilter code, so that
+     * Postfix libmilter can stop sending requests.
+     * 
+     * We also set all applicable cleanup flags here, because there is no
+     * guarantee that Postfix libmilter will propagate our own milter-reply
+     * value to cleanup_milter_inspect() which calls cleanup_milter_apply().
+     * The latter translates responses from Milter applications into cleanup
+     * flags, and logs the response text. Postfix libmilter can convey only
+     * one milter-reply value per email message, and that reply may even come
+     * from outside Postfix.
+     * 
+     * To suppress redundant logging, cleanup_milter_apply() does nothing when
+     * the milter-reply value matches the saved text in the milter_hbc_reply
+     * state member. As we remember only one milter-reply value, we can't
+     * report multiple milter-reply values per email message. We satisfy this
+     * constraint, because we already clear the CLEANUP_FLAG_FILTER_ALL flags
+     * to terminate further header inspection.
+     */
+    if ((state->flags & CLEANUP_FLAG_FILTER_ALL) == 0)
+	return ((char *) buf);
+
     if (STREQUAL(command, "REJECT", cmd_len)) {
 	const CLEANUP_STAT_DETAIL *detail;
 
@@ -288,9 +313,14 @@ static char *cleanup_milter_hbc_extend(void *context, const char *command,
 	} else {
 	    state->reason = dsn_prepend(detail->dsn, detail->text);
 	}
+	if (*state->reason == '4')
+	    state->errs |= CLEANUP_STAT_DEFER;
+	else
+	    state->errs |= CLEANUP_STAT_CONT;
 	state->flags &= ~CLEANUP_FLAG_FILTER_ALL;
-	cleanup_milter_hbc_log((void *) state, "reject", where, buf, state->reason);
-	vstring_sprintf(state->milter_hbc_reply, "%d %s", detail->smtp, state->reason);
+	cleanup_milter_hbc_log(context, "reject", where, buf, state->reason);
+	vstring_sprintf(state->milter_hbc_reply, "%d %s",
+			detail->smtp, state->reason);
 	STR(state->milter_hbc_reply)[0] = *state->reason;
 	return ((char *) buf);
     }
@@ -305,21 +335,22 @@ static char *cleanup_milter_hbc_extend(void *context, const char *command,
 	    if (state->filter)
 		myfree(state->filter);
 	    state->filter = mystrdup(optional_text);
-	    cleanup_milter_hbc_log((void *) state, "filter", where, buf,
+	    cleanup_milter_hbc_log(context, "filter", where, buf,
 				   optional_text);
 	}
 	return ((char *) buf);
     }
     if (STREQUAL(command, "DISCARD", cmd_len)) {
-	cleanup_milter_hbc_log((void *) state, "discard", where, buf, optional_text);
+	cleanup_milter_hbc_log(context, "discard", where, buf, optional_text);
 	vstring_strcpy(state->milter_hbc_reply, "D");
+	state->flags |= CLEANUP_FLAG_DISCARD;
 	state->flags &= ~CLEANUP_FLAG_FILTER_ALL;
 	return ((char *) buf);
     }
     if (STREQUAL(command, "HOLD", cmd_len)) {
-	if ((state->flags & CLEANUP_FLAG_HOLD) == 0) {
-	    cleanup_milter_hbc_log((void *) state, "hold", where, buf, optional_text);
-	    vstring_strcpy(state->milter_hbc_reply, "H");
+	if ((state->flags & (CLEANUP_FLAG_HOLD | CLEANUP_FLAG_DISCARD)) == 0) {
+	    cleanup_milter_hbc_log(context, "hold", where, buf, optional_text);
+	    state->flags |= CLEANUP_FLAG_HOLD;
 	}
 	return ((char *) buf);
     }
@@ -332,7 +363,7 @@ static char *cleanup_milter_hbc_extend(void *context, const char *command,
 	    if (state->redirect)
 		myfree(state->redirect);
 	    state->redirect = mystrdup(optional_text);
-	    cleanup_milter_hbc_log((void *) state, "redirect", where, buf,
+	    cleanup_milter_hbc_log(context, "redirect", where, buf,
 				   optional_text);
 	    state->flags &= ~CLEANUP_FLAG_FILTER_ALL;
 	}
@@ -367,17 +398,17 @@ static int cleanup_milter_header_checks(CLEANUP_STATE *state, VSTRING *buf)
     }
 }
 
-/* cleanup_milter_hbc_add_meta - add REDIRECT or FILTER meta records */
+/* cleanup_milter_hbc_add_meta_records - add REDIRECT or FILTER meta records */
 
-static void cleanup_milter_hbc_add_meta(CLEANUP_STATE *state)
+static void cleanup_milter_hbc_add_meta_records(CLEANUP_STATE *state)
 {
-    const char *myname = "cleanup_milter_hbc_add_meta";
+    const char *myname = "cleanup_milter_hbc_add_meta_records";
     off_t   reverse_ptr_offset;
     off_t   new_meta_offset;
 
     /*
      * Note: this code runs while the Milter infrastructure is being torn
-     * down. For this reason we handle all I/O errors here on the spot
+     * down. For this reason we handle all I/O errors here on the spot,
      * instead of reporting them back through the Milter infrastructure.
      */
 
@@ -395,7 +426,7 @@ static void cleanup_milter_hbc_add_meta(CLEANUP_STATE *state)
      * target of the old "meta record append" pointer record. This reverse
      * pointer record becomes the new "meta record append" pointer record.
      * Although the new "meta record append" pointer record will never be
-     * used we update it here to make the code more similar to other code
+     * used, we update it here to make the code more similar to other code
      * that inserts/appends content, so that common code can be factored out
      * later.
      */
@@ -436,6 +467,10 @@ static void cleanup_milter_hbc_add_meta(CLEANUP_STATE *state)
      * that was written while Postfix received the message.
      */
     state->append_meta_pt_offset = reverse_ptr_offset;
+
+    /*
+     * Note: state->append_meta_pt_target never changes.
+     */
 }
 
 /* cleanup_milter_header_checks_init - initialize post-Milter header checks */
@@ -477,8 +512,10 @@ static void cleanup_milter_hbc_finish(CLEANUP_STATE *state)
     if (state->milter_hbc_reply)
 	vstring_free(state->milter_hbc_reply);
     state->milter_hbc_reply = 0;
-    if (CLEANUP_OUT_OK(state) && (state->filter || state->redirect))
-	cleanup_milter_hbc_add_meta(state);
+    if (CLEANUP_OUT_OK(state)
+	&& !CLEANUP_MILTER_REJECTING_OR_DISCARDING_MESSAGE(state)
+	&& (state->filter || state->redirect))
+	cleanup_milter_hbc_add_meta_records(state);
 }
 
  /*
@@ -577,7 +614,6 @@ static const char *cleanup_add_header(void *context, const char *name,
     buf = vstring_alloc(100);
     vstring_sprintf(buf, "%s:%s%s", name, space, value);
     if (state->milter_hbc_checks
-	&& (state->flags & CLEANUP_FLAG_FILTER_ALL)
 	&& cleanup_milter_header_checks(state, buf) == 0) {
 	vstring_free(buf);
 	return (0);
@@ -637,7 +673,7 @@ static const char *cleanup_add_header(void *context, const char *name,
 	    STR(state->milter_hbc_reply) : 0);
 
     /*
-     * Note: state->append_meta_pt_target never changes.
+     * Note: state->append_hdr_pt_target never changes.
      */
 }
 
@@ -960,7 +996,6 @@ static const char *cleanup_patch_header(CLEANUP_STATE *state,
      */
     vstring_sprintf(buf, "%s:%s%s", new_hdr_name, hdr_space, new_hdr_value);
     if (state->milter_hbc_checks
-	&& (state->flags & CLEANUP_FLAG_FILTER_ALL)
 	&& cleanup_milter_header_checks(state, buf) == 0)
 	CLEANUP_PATCH_HEADER_RETURN(0);
 
@@ -1787,6 +1822,29 @@ static const char *cleanup_milter_apply(CLEANUP_STATE *state, const char *event,
 	msg_info("%s: %s", myname, resp);
 
     /*
+     * Don't process our own milter_header/body checks replies. See comments
+     * in cleanup_milter_hbc_extend().
+     */
+    if (state->milter_hbc_reply &&
+	strcmp(resp, STR(state->milter_hbc_reply)) == 0)
+	return (0);
+
+    /*
+     * Don't process Milter replies that are redundant because header/body
+     * checks already decided that we will not receive the message; or Milter
+     * replies that would have conflicting effect with the outcome of
+     * header/body checks (for example, header_checks "discard" action
+     * followed by Milter "reject" reply). Logging both actions would look
+     * silly.
+     */
+    if (CLEANUP_MILTER_REJECTING_OR_DISCARDING_MESSAGE(state)) {
+	if (msg_verbose)
+	    msg_info("%s: ignoring redundant or conflicting milter reply: %s",
+		     state->queue_id, resp);
+	return (0);
+    }
+
+    /*
      * Sanity check.
      */
     if (state->client_name == 0)
@@ -1847,13 +1905,6 @@ static const char *cleanup_milter_apply(CLEANUP_STATE *state, const char *event,
     default:
 	msg_panic("%s: unexpected mail filter reply: %s", myname, resp);
     }
-
-    /*
-     * Don't log milter_header/body checks actions again.
-     */
-    if (state->milter_hbc_reply && strcmp(resp, STR(state->milter_hbc_reply)) == 0)
-	return (ret);
-
     vstring_sprintf(state->temp1, "%s: %s: %s from %s[%s]: %s;",
 		    state->queue_id, action, event, state->client_name,
 		    state->client_addr, text);
@@ -2137,8 +2188,12 @@ static void usage(void)
     msg_warn("    ins_header index name [value]");
     msg_warn("    upd_header index name [value]");
     msg_warn("    del_header index name");
+    msg_warn("    chg_from addr parameters");
     msg_warn("    add_rcpt addr");
+    msg_warn("    add_rcpt_par addr parameters");
     msg_warn("    del_rcpt addr");
+    msg_warn("    replbody pathname");
+    msg_warn("    header_checks type:name");
 }
 
 /* flatten_args - unparse partial command line */
@@ -2327,9 +2382,17 @@ int     main(int unused_argc, char **argv)
 	} else if (state->dst == 0) {
 	    msg_warn("no open queue file");
 	} else if (strcmp(argv->argv[0], "close") == 0) {
-	    if (*var_milt_head_checks)
+	    if (*var_milt_head_checks) {
 		cleanup_milter_hbc_finish(state);
+		var_milt_head_checks = "";
+	    }
 	    close_queue_file(state);
+	} else if (state->milter_hbc_reply && LEN(state->milter_hbc_reply)) {
+	    /* Postfix libmilter would skip further requests. */
+	    msg_info("ignoring: %s %s %s", argv->argv[0],
+		     argv->argc > 1 ? argv->argv[1] : "",
+		     argv->argc > 2 ? argv->argv[2] : "");
+	    continue;
 	} else if (strcmp(argv->argv[0], "add_header") == 0) {
 	    if (argv->argc < 2) {
 		msg_warn("bad add_header argument count: %d", argv->argc);

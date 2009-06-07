@@ -16,9 +16,7 @@
       402 regular_text: Message-Id: <20090605180519.DA4892510C1@ahost.example.com>
       462 regular_text: Date: Fri,  5 Jun 2009 14:05:19 -0400 (EDT)
       507 regular_text: From: wietse@ahost.example.com (Wietse Venema)
-      555 pointer_record:             642
-      642 regular_text: X-SPAM-FLAG: YES
-      660 pointer_record:             572
+      555 pointer_record:               0
       572 regular_text: 
       574 regular_text: Fri Jun  5 14:05:19 EDT 2009
       604 pointer_record:               0

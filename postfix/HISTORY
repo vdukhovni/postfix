@@ -15301,3 +15301,10 @@ Apologies for any names omitted.
 	outside those those trees (e.g. by symlink race attacks).
 	We don't want to be nailed with a bunch of CVEs for unsafe
 	pathname handling.  File: conf/postmulti-script.
+
+20090607
+
+	Cleanup: revise milter_header_checks action implementation,
+	and avoid redundant logging and work when milter_header_checks
+	and Milters make redundant or conflicting decisions. File:
+	cleanup_milter.c.
