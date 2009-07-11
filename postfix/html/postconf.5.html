@@ -5703,20 +5703,19 @@ manual page available actions. Currently, PREPEND is not implemented.
 a spam handling machine. Note that matches are case-insensitive
 by default. </p>
 
-<blockquote>
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#milter_header_checks">milter_header_checks</a> = <a href="pcre_table.5.html">pcre</a>:/etc/postfix/<a href="postconf.5.html#milter_header_checks">milter_header_checks</a>
 </pre>
+
 <pre>
 /etc/postfix/<a href="postconf.5.html#milter_header_checks">milter_header_checks</a>:
-    /^X-SPAM-FLAG:\s+YES]/ FILTER mysmtp:sanitizer.example.com:25
+    /^X-SPAM-FLAG:\s+YES/ FILTER mysmtp:sanitizer.example.com:25
 </pre>
-</blockquote>
 
 <p> The <a href="postconf.5.html#milter_header_checks">milter_header_checks</a> mechanism could also be used for
 whitelisting. For example it could be used to skip heavy content
-scanning for DKIM-signed mail from known friendly domains. </p>
+inspection for DKIM-signed mail from known friendly domains. </p>
 
 <p> This feature is available in Postfix 2.7, and as an optional
 patch for Postfix 2.6. </p>

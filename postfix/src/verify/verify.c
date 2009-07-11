@@ -572,7 +572,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      * 
      * The solution is to query a map type and obtain its properties before
      * opening it. A clean solution is to add a dict_info() API that is
-     * simlar to dict_open() except it returns properties (dict flags) only.
+     * similar to dict_open() except it returns properties (dict flags) only.
      * A pragmatic solution is to overload the existing API and have
      * dict_open() return a dummy map when given a null map name.
      * 

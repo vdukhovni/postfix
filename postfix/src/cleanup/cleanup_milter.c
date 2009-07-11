@@ -247,6 +247,7 @@ static void cleanup_milter_hbc_log(void *context, const char *action,
 static void cleanup_milter_header_prepend(void *context, int rec_type,
 			         const char *buf, ssize_t len, off_t offset)
 {
+    /* XXX save prepended header to buffer. */
     msg_warn("the milter_header/body_checks prepend action is not implemented");
 }
 
@@ -630,6 +631,7 @@ static const char *cleanup_add_header(void *context, const char *name,
 	vstring_free(buf);
 	return (cleanup_milter_error(state, errno));
     }
+    /* XXX emit prepended header, then clear it. */
     cleanup_out_header(state, buf);		/* Includes padding */
     vstring_free(buf);
     if ((reverse_ptr_offset = vstream_ftell(state->dst)) < 0) {
@@ -1007,6 +1009,7 @@ static const char *cleanup_patch_header(CLEANUP_STATE *state,
 	msg_warn("%s: seek file %s: %m", myname, cleanup_path);
 	CLEANUP_PATCH_HEADER_RETURN(cleanup_milter_error(state, errno));
     }
+    /* XXX emit prepended header, then clear it. */
     cleanup_out_header(state, buf);		/* Includes padding */
     if (msg_verbose > 1)
 	msg_info("%s: %ld: write %.*s", myname, (long) new_hdr_offset,

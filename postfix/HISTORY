@@ -15308,3 +15308,13 @@ Apologies for any names omitted.
 	and avoid redundant logging and work when milter_header_checks
 	and Milters make redundant or conflicting decisions. File:
 	cleanup_milter.c.
+
+20090710
+
+	Bugfix (introduced Postfix 2.3): Postfix got out of sync
+	with a Milter application after the application sent a
+	"quarantine" request at end-of-message time. The milter
+	application would still be in the end-of-message state,
+	while Postfix would already be working on the next SMTP
+	event (typically, QUIT or MAIL FROM).  Problem diagnosed
+	with help from Alban Deniz. File: milter/milter8.c.

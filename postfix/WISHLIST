@@ -2,6 +2,10 @@ Wish list:
 
 	Remove this file from the stable release.
 
+	Implement PREPEND action for milter_header_checks. Save the
+	to-be-prepended text to buffer, then emit it along with the
+	new header.
+
 	Fix the header_body_checks API, so that the name of the map
 	class (e.g. milter_header_checks) is available for logging.
 

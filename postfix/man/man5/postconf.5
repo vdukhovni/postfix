@@ -3166,8 +3166,7 @@ manual page available actions. Currently, PREPEND is not implemented.
 The following example sends all mail that is marked as SPAM to
 a spam handling machine. Note that matches are case-insensitive
 by default.
-.sp
-.in +4
+.PP
 .nf
 .na
 .ft C
@@ -3176,19 +3175,19 @@ by default.
 .fi
 .ad
 .ft R
+.PP
 .nf
 .na
 .ft C
 /etc/postfix/milter_header_checks:
-    /^X-SPAM-FLAG:\es+YES]/ FILTER mysmtp:sanitizer.example.com:25
+    /^X-SPAM-FLAG:\es+YES/ FILTER mysmtp:sanitizer.example.com:25
 .fi
 .ad
 .ft R
-.in -4
 .PP
 The milter_header_checks mechanism could also be used for
 whitelisting. For example it could be used to skip heavy content
-scanning for DKIM-signed mail from known friendly domains.
+inspection for DKIM-signed mail from known friendly domains.
 .PP
 This feature is available in Postfix 2.7, and as an optional
 patch for Postfix 2.6.
