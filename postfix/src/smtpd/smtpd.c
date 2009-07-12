@@ -4464,7 +4464,7 @@ static void smtpd_proto(SMTPD_STATE *state)
 		    && (err = milter_unknown_event(smtpd_milters,
 						   argv[0].strval)) != 0
 		    && (err = check_milter_reply(state, err)) != 0) {
-		    smtpd_chat_reply(state, err);
+		    smtpd_chat_reply(state, "%s", err);
 		} else
 		    smtpd_chat_reply(state, "502 5.5.2 Error: command not recognized");
 		state->error_mask |= MAIL_ERROR_PROTOCOL;

@@ -15318,3 +15318,9 @@ Apologies for any names omitted.
 	while Postfix would already be working on the next SMTP
 	event (typically, QUIT or MAIL FROM).  Problem diagnosed
 	with help from Alban Deniz. File: milter/milter8.c.
+
+20090712
+
+	Cleanup: ${multi_instance_name:postfix}${multi_instance_name
+	?$multi_instance_name} garbage in Postfix logging is now
+	hopefully gone.  File: global/mail_task.c.
