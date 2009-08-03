@@ -15324,3 +15324,20 @@ Apologies for any names omitted.
 	Cleanup: ${multi_instance_name:postfix}${multi_instance_name
 	?$multi_instance_name} garbage in Postfix logging is now
 	hopefully gone.  File: global/mail_task.c.
+
+20090715
+
+	Documentation: as of Postfix 2.6, the reject_unauth_pipelining
+	feature can be used meaningfully at any protocol stage.
+	File: proto/postconf.proto.
+
+20090803
+
+	Workaround: with some local DNS servers including BIND, it
+	is possible that A or MX lookups succeed, while NS lookups
+	for the same domains time out.  Spammers use this to avoid
+	access restrictions.  To deal with future variations of
+	this, check_{client,helo,sender,etc}_{mx,ns,etc}_access no
+	longer tolerate any lookup failures. Instead, they reply
+	with $access_map_defer_code or $access_map_reject_code as
+	appropriate. File: smtpd/smtpd_check.c.

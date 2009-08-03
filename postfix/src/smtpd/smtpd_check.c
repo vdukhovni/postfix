@@ -2575,7 +2575,14 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
     if (dns_status != DNS_OK) {
 	msg_warn("Unable to look up %s host for %s: %s", dns_strtype(type),
 		 domain && domain[1] ? domain : name, dns_strerror(h_errno));
-	return (SMTPD_CHECK_DUNNO);
+	/* No mercy for DNS failure. */
+	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
+				   dns_status == DNS_NOTFOUND ?
+				   var_map_reject_code : var_map_defer_code,
+				   smtpd_dsn_fix("4.1.8", reply_class),
+				   "<%s>: %s rejected: %s",
+				   reply_name, reply_class,
+				   "Domain not found"));
     }
 
     /*
@@ -2600,7 +2607,16 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 	    msg_warn("Unable to look up %s host %s for %s %s: %s",
 		     dns_strtype(type), (char *) server->data,
 		     reply_class, reply_name, MAI_STRERROR(aierr));
-	    continue;
+	    /* No mercy for DNS failure. */
+	    status = smtpd_check_reject(state,
+					MAIL_ERROR_POLICY,
+					aierr == EAI_NONAME ?
+				   var_map_reject_code : var_map_defer_code,
+					smtpd_dsn_fix("4.1.8", reply_class),
+					"<%s>: %s rejected: %s",
+					reply_name, reply_class,
+					"Domain not found");
+	    CHECK_SERVER_RETURN(status);
 	}
 	/* Now we must also free the addrinfo result. */
 	if (msg_verbose)

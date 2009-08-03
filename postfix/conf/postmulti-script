@@ -229,15 +229,10 @@ deport)
 
 destroy)
 
-    # "postmulti -e destroy" will remove an entire instance only
-    # when invoked immediately after "postmulti -e create". Trying
-    # to remove more files is too dangerous.
-    #
-    # By design, postfix-owned directory trees are not trusted, and
-    # any action within those directory trees must not affect files
-    # outside those trees (e.g. via symlink race attacks). Therefore
-    # we use only known-to-be-safe names and nothing with a / because
-    # that could be subject to races.
+    # "postmulti -e destroy" will remove an entire instance only when
+    # invoked immediately after "postmulti -e create" (i.e. before
+    # other files are added to the instance). We delete only known
+    # safe names without "/".
     #
     QUEUE_SUBDIRS="active bounce corrupt defer deferred flush hold \
     incoming maildrop pid private public saved trace"
