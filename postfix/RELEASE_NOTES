@@ -14,6 +14,22 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.4 or earlier, read RELEASE_NOTES-2.5
 before proceeding.
 
+Incompatibility with Postfix 2.6.4
+==================================
+
+The check_{client,helo,sender,etc}_{mx,ns,etc}_access features no
+longer tolerate any lookup failures. Instead, they now reply with
+$access_map_defer_code or $access_map_reject_code as appropriate.
+
+The reason for this change is that spammers are using tricks where
+A or MX lookups succeed while NS lookups for the same domains fail,
+depending local DNS infrastructure details.  The change deals with
+future variants of this anomalous behavior.
+
+As a side effect, non-existent domain names in HELO commands will
+now trigger a REJECT action with check_helo_{mx,ns}_access, where
+previously such commands were silently permitted.
+
 Major changes - multi-instance support
 --------------------------------------
 
