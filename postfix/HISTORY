@@ -15331,13 +15331,27 @@ Apologies for any names omitted.
 	feature can be used meaningfully at any protocol stage.
 	File: proto/postconf.proto.
 
-20090803
+20090805
 
-	Workaround: with some local DNS servers including BIND, it
-	is possible that A or MX lookups succeed, while NS lookups
-	for the same domains time out.  Spammers use this to avoid
-	access restrictions.  To deal with future variations of
-	this, check_{client,helo,sender,etc}_{mx,ns,etc}_access no
-	longer tolerate any lookup failures. Instead, they reply
-	with $access_map_defer_code or $access_map_reject_code as
-	appropriate. File: smtpd/smtpd_check.c.
+	Bugfix: don't panic when an unexpected smtpd access map is
+	specified. File: smtpd/smtpd_check.c.
+
+	Workaround: NS record lookups for certain domains always
+	fail, while other queries for those domains always succeed
+	(and even return replies with NS records as additional
+	information).
+
+	This specific inconsistency would allow spammers to avoid
+	the Postfix check_{client,helo,sender,etc}_ns_access
+	restrictions, because those restrictions have effect only
+	for NS records that can be looked up in the DNS.
+
+	To address this specific inconsistency, the Postfix
+	reject_unknown_helo_hostname, reject_unknown_sender_domain
+	and reject_unknown_recipient_domain restrictions now require
+	that a domain has NS records that resolve to at least one
+	IP address, and they now accept only MX records that resolve
+	to at least one IP address; those addresses may or may not
+	be "correct". Postfix has no code to determine whether the
+	SMTP client name has a resolvable NS or MX record.  File:
+	smtpd/smtpd_check.c.

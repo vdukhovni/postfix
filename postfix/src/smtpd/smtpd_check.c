@@ -355,6 +355,19 @@ static int unv_rcpt_tf_act;
 static int unv_from_tf_act;
 
  /*
+  * What address types to query for when we determine domain existence.
+  * 
+  * XXX Should we accept mail from a domain that has IPv6 addresses only, when
+  * the local system has IPv4 only? This can happen when the receiving system
+  * uses an IPv6-enabled relayhost.
+  */
+#ifdef T_AAAA
+#define CHECK_RR_ADDR_TYPES	T_A, T_AAAA
+#else
+#define CHECK_RR_ADDR_TYPES	T_A
+#endif
+
+ /*
   * YASLM.
   */
 #define STR	vstring_str
@@ -1135,29 +1148,92 @@ static int reject_non_fqdn_hostname(SMTPD_STATE *state, char *name,
     return (stat);
 }
 
-/* reject_unknown_hostname - fail if name has no A, AAAA or MX record */
+/* resolve_server_list - check if at least some name resolves */
+
+static int resolve_server_list(const char *name, int type,
+			               const char *reply_name,
+			               const char *reply_class)
+{
+    const char *myname = "resolve_server_list";
+    const char *domain = name;
+    DNS_RR *server_list;
+    DNS_RR *server;
+    int     dns_status;
+    int     soft_err = 0;
+
+    /*
+     * Require that at least one server record exists.
+     */
+    dns_status = dns_lookup(domain, type, 0, &server_list,
+			    (VSTRING *) 0, (VSTRING *) 0);
+    if (dns_status == DNS_NOTFOUND && h_errno == NO_DATA) {
+	if (type == T_MX) {
+	    server_list = dns_rr_create(domain, domain, type, C_IN, 0, 0,
+					domain, strlen(domain) + 1);
+	    dns_status = DNS_OK;
+	} else if (type == T_NS) {
+	    while ((domain = strchr(domain, '.')) != 0 && domain[1]) {
+		domain += 1;
+		dns_status = dns_lookup(domain, type, 0, &server_list,
+					(VSTRING *) 0, (VSTRING *) 0);
+		if (dns_status != DNS_NOTFOUND || h_errno != NO_DATA)
+		    break;
+	    }
+	}
+    }
+    if (dns_status != DNS_OK) {
+	msg_warn("Unable to look up %s host for %s: %s", dns_strtype(type),
+		 domain && domain[1] ? domain : name, dns_strerror(h_errno));
+	return (dns_status);
+    }
+
+    /*
+     * Require that at least one server record resolves to an IP address.
+     */
+    for (server = server_list; server != 0; server = server->next) {
+	if (msg_verbose)
+	    msg_info("%s: %s hostname check: %s",
+		     myname, dns_strtype(type), (char *) server->data);
+	if (valid_hostaddr((char *) server->data, DONT_GRIPE)) {
+	    soft_err = 0;
+	    break;
+	}
+	dns_status = dns_lookup_l((char *) server->data, 0, (DNS_RR **) 0,
+				  (VSTRING *) 0, (VSTRING *) 0,
+				  DNS_REQ_FLAG_STOP_OK,
+				  CHECK_RR_ADDR_TYPES, 0);
+	if (dns_status == DNS_OK) {
+	    soft_err = 0;
+	    break;
+	}
+	msg_warn("Unable to look up %s host %s for %s %s: %s",
+		 dns_strtype(type), (char *) server->data,
+		 reply_class, reply_name, dns_strerror(h_errno));
+	if (dns_status == DNS_RETRY)
+	    soft_err = 1;
+    }
+    dns_rr_free(server_list);
+    return (soft_err ? DNS_RETRY : dns_status);
+}
+
+/* reject_unknown_hostname - fail if name has no NS, A, AAAA or MX record */
 
 static int reject_unknown_hostname(SMTPD_STATE *state, char *name,
 				        char *reply_name, char *reply_class)
 {
     const char *myname = "reject_unknown_hostname";
     int     dns_status;
-    DNS_RR *dummy;
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, name);
 
-#ifdef T_AAAA
-#define RR_ADDR_TYPES	T_A, T_AAAA
-#else
-#define RR_ADDR_TYPES	T_A
-#endif
-
-    dns_status = dns_lookup_l(name, 0, &dummy, (VSTRING *) 0,
-			      (VSTRING *) 0, DNS_REQ_FLAG_STOP_OK,
-			      RR_ADDR_TYPES, T_MX, 0);
-    if (dummy)
-	dns_rr_free(dummy);
+    /*
+     * Require that at least one record exists of each type that
+     * check_server_access() wants to check.
+     */
+    dns_status = resolve_server_list(name, T_MX, reply_name, reply_class);
+    if (dns_status == DNS_OK)
+	dns_status = resolve_server_list(name, T_NS, reply_name, reply_class);
     if (dns_status != DNS_OK) {			/* incl. DNS_INVAL */
 	if (dns_status != DNS_RETRY)
 	    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -1176,25 +1252,24 @@ static int reject_unknown_hostname(SMTPD_STATE *state, char *name,
     return (SMTPD_CHECK_DUNNO);
 }
 
-/* reject_unknown_mailhost - fail if name has no A, AAAA or MX record */
+/* reject_unknown_mailhost - fail if name has no NS, A, AAAA or MX record */
 
 static int reject_unknown_mailhost(SMTPD_STATE *state, const char *name,
 		            const char *reply_name, const char *reply_class)
 {
     const char *myname = "reject_unknown_mailhost";
     int     dns_status;
-    DNS_RR *dummy;
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, name);
 
-#define MAILHOST_LOOKUP_FLAGS	(DNS_REQ_FLAG_STOP_OK | DNS_REQ_FLAG_STOP_INVAL)
-
-    dns_status = dns_lookup_l(name, 0, &dummy, (VSTRING *) 0,
-			      (VSTRING *) 0, MAILHOST_LOOKUP_FLAGS,
-			      T_MX, RR_ADDR_TYPES, 0);
-    if (dummy)
-	dns_rr_free(dummy);
+    /*
+     * Require that at least one record exists of each type that
+     * check_server_access() wants to check.
+     */
+    dns_status = resolve_server_list(name, T_MX, reply_name, reply_class);
+    if (dns_status == DNS_OK)
+	dns_status = resolve_server_list(name, T_NS, reply_name, reply_class);
     if (dns_status != DNS_OK) {			/* incl. DNS_INVAL */
 	if (dns_status != DNS_RETRY)
 	    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -2315,8 +2390,13 @@ static int check_access(SMTPD_STATE *state, const char *table, const char *name,
     if (msg_verbose)
 	msg_info("%s: %s", myname, name);
 
-    if ((dict = dict_handle(table)) == 0)
-	msg_panic("%s: dictionary not found: %s", myname, table);
+    if ((dict = dict_handle(table)) == 0) {
+	msg_warn("%s: unexpected dictionary: %s", myname, table);
+	value = "451 4.3.5 Server configuration error";
+	CHK_ACCESS_RETURN(check_table_result(state, table, value, name,
+					     reply_name, reply_class,
+					     def_acl), FOUND);
+    }
     if (flags == 0 || (flags & dict->flags) != 0) {
 	if ((value = dict_get(dict, name)) != 0)
 	    CHK_ACCESS_RETURN(check_table_result(state, table, value, name,
@@ -2360,8 +2440,13 @@ static int check_domain_access(SMTPD_STATE *state, const char *table,
      */
 #define CHK_DOMAIN_RETURN(x,y) { *found = y; return(x); }
 
-    if ((dict = dict_handle(table)) == 0)
-	msg_panic("%s: dictionary not found: %s", myname, table);
+    if ((dict = dict_handle(table)) == 0) {
+	msg_warn("%s: unexpected dictionary: %s", myname, table);
+	value = "451 4.3.5 Server configuration error";
+	CHK_DOMAIN_RETURN(check_table_result(state, table, value,
+					     domain, reply_name, reply_class,
+					     def_acl), FOUND);
+    }
     for (name = domain; *name != 0; name = next) {
 	if (flags == 0 || (flags & dict->flags) != 0) {
 	    if ((value = dict_get(dict, name)) != 0)
@@ -2419,8 +2504,13 @@ static int check_addr_access(SMTPD_STATE *state, const char *table,
 #endif
 	delim = '.';
 
-    if ((dict = dict_handle(table)) == 0)
-	msg_panic("%s: dictionary not found: %s", myname, table);
+    if ((dict = dict_handle(table)) == 0) {
+	msg_warn("%s: unexpected dictionary: %s", myname, table);
+	value = "451 4.3.5 Server configuration error";
+	CHK_ADDR_RETURN(check_table_result(state, table, value, address,
+					   reply_name, reply_class,
+					   def_acl), FOUND);
+    }
     do {
 	if (flags == 0 || (flags & dict->flags) != 0) {
 	    if ((value = dict_get(dict, addr)) != 0)
@@ -2575,14 +2665,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
     if (dns_status != DNS_OK) {
 	msg_warn("Unable to look up %s host for %s: %s", dns_strtype(type),
 		 domain && domain[1] ? domain : name, dns_strerror(h_errno));
-	/* No mercy for DNS failure. */
-	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
-				   dns_status == DNS_NOTFOUND ?
-				   var_map_reject_code : var_map_defer_code,
-				   smtpd_dsn_fix("4.1.8", reply_class),
-				   "<%s>: %s rejected: %s",
-				   reply_name, reply_class,
-				   "Domain not found"));
+	return (SMTPD_CHECK_DUNNO);
     }
 
     /*
@@ -2598,6 +2681,13 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 	if (msg_verbose)
 	    msg_info("%s: %s hostname check: %s",
 		     myname, dns_strtype(type), (char *) server->data);
+	if (valid_hostaddr((char *) server->data, DONT_GRIPE)) {
+	    if ((status = check_addr_access(state, table, (char *) server->data,
+				      FULL, &found, reply_name, reply_class,
+					    def_acl)) != 0 || found)
+		CHECK_SERVER_RETURN(status);
+	    continue;
+	}
 	if ((status = check_domain_access(state, table, (char *) server->data,
 				      FULL, &found, reply_name, reply_class,
 					  def_acl)) != 0 || found)
@@ -2607,16 +2697,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 	    msg_warn("Unable to look up %s host %s for %s %s: %s",
 		     dns_strtype(type), (char *) server->data,
 		     reply_class, reply_name, MAI_STRERROR(aierr));
-	    /* No mercy for DNS failure. */
-	    status = smtpd_check_reject(state,
-					MAIL_ERROR_POLICY,
-					aierr == EAI_NONAME ?
-				   var_map_reject_code : var_map_defer_code,
-					smtpd_dsn_fix("4.1.8", reply_class),
-					"<%s>: %s rejected: %s",
-					reply_name, reply_class,
-					"Domain not found");
-	    CHECK_SERVER_RETURN(status);
+	    continue;
 	}
 	/* Now we must also free the addrinfo result. */
 	if (msg_verbose)

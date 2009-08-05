@@ -14,21 +14,22 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.5 or earlier, read RELEASE_NOTES-2.6
 before proceeding.
 
-Incompatibility with snapshot 20090803-nonprod
-==============================================
+Incompatibility with snapshot 20090805
+======================================
 
-The check_{client,helo,sender,etc}_{mx,ns,etc}_access features no
-longer tolerate any lookup failures. Instead, they now reply with
-$access_map_defer_code or $access_map_reject_code as appropriate.
+With some domain names, NS record lookups always fail while other
+lookups always succeed (and often return NS records as additional
+information).  This anomaly could be used by evil elements to skip
+Postfix check_{client,helo,sender,recipient}_ns_access checks,
+because those apply only domains with an NS record in the DNS.
 
-The reason for this change is that spammers are using tricks where
-A or MX lookups succeed while NS lookups for the same domains fail,
-depending local DNS infrastructure details.  The change deals with
-future variants of this anomalous behavior.
-
-As a side effect, non-existent domain names in HELO commands will
-now trigger a REJECT action with check_helo_{mx,ns}_access, where
-previously such commands were silently permitted.
+To address this specific problem, the reject_unknown_helo_hostname,
+reject_unknown_sender_domain and reject_unknown_recipient_domain
+features now require that a domain name has NS records that resolve
+to at least one IP address, and they now accept only MX records
+that resolve to at least one IP address; those addresses may or may
+not be "correct". Postfix has no code to determine whether the
+SMTP client name has a resolvable NS or MX record.
 
 Incompatibility with snapshot 20090606
 ======================================
