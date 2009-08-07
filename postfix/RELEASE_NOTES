@@ -17,18 +17,23 @@ before proceeding.
 Incompatibility with Postfix 2.6.4
 ==================================
 
-The check_{client,helo,sender,etc}_{mx,ns,etc}_access features no
-longer tolerate any lookup failures. Instead, they now reply with
-$access_map_defer_code or $access_map_reject_code as appropriate.
+With some domain names, NS record lookups always fail while other
+lookups always succeed (and may even return NS records as additional
+information).  This anomaly could be used by evil elements to skip
+Postfix check_{client,helo,sender,recipient}_ns_access checks,
+because these apply only to domains that are known in the DNS.
 
-The reason for this change is that spammers are using tricks where
-A or MX lookups succeed while NS lookups for the same domains fail,
-depending local DNS infrastructure details.  The change deals with
-future variants of this anomalous behavior.
+To address this specific problem, check_{client,etc}_ns_access now
+requires that a known-in-DNS domain name (or parent thereof) resolves
+to at least one name server IP address.
 
-As a side effect, non-existent domain names in HELO commands will
-now trigger a REJECT action with check_helo_{mx,ns}_access, where
-previously such commands were silently permitted.
+For consistency, check_{client,etc}_mx_access now requires that a
+known-in-DNS domain name resolves to at least one mail server IP
+address.
+
+Keep in mind that these measures provide no hard assurances. There
+is little to stop an uncooperative DNS server from lying, especially
+when the owner of the domain has no intention to receive email.
 
 Major changes - multi-instance support
 --------------------------------------
