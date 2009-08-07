@@ -1166,12 +1166,12 @@ static int resolve_server_list(const char *name, int type,
      */
     dns_status = dns_lookup(domain, type, 0, &server_list,
 			    (VSTRING *) 0, (VSTRING *) 0);
-    if (dns_status == DNS_NOTFOUND && h_errno == NO_DATA) {
+    if (dns_status == DNS_NOTFOUND /* Not: h_errno == NO_DATA */ ) {
 	if (type == T_MX) {
 	    server_list = dns_rr_create(domain, domain, type, C_IN, 0, 0,
 					domain, strlen(domain) + 1);
 	    dns_status = DNS_OK;
-	} else if (type == T_NS) {
+	} else if (type == T_NS && h_errno == NO_DATA) {
 	    while ((domain = strchr(domain, '.')) != 0 && domain[1]) {
 		domain += 1;
 		dns_status = dns_lookup(domain, type, 0, &server_list,
@@ -1232,8 +1232,10 @@ static int reject_unknown_hostname(SMTPD_STATE *state, char *name,
      * check_server_access() wants to check.
      */
     dns_status = resolve_server_list(name, T_MX, reply_name, reply_class);
+#ifdef REQUIRE_NS_FOR_REJECT_UNKNOWN_DOMAIN_CHECK
     if (dns_status == DNS_OK)
 	dns_status = resolve_server_list(name, T_NS, reply_name, reply_class);
+#endif
     if (dns_status != DNS_OK) {			/* incl. DNS_INVAL */
 	if (dns_status != DNS_RETRY)
 	    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -1268,8 +1270,10 @@ static int reject_unknown_mailhost(SMTPD_STATE *state, const char *name,
      * check_server_access() wants to check.
      */
     dns_status = resolve_server_list(name, T_MX, reply_name, reply_class);
+#ifdef REQUIRE_NS_FOR_REJECT_UNKNOWN_DOMAIN_CHECK
     if (dns_status == DNS_OK)
 	dns_status = resolve_server_list(name, T_NS, reply_name, reply_class);
+#endif
     if (dns_status != DNS_OK) {			/* incl. DNS_INVAL */
 	if (dns_status != DNS_RETRY)
 	    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -2590,6 +2594,10 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
     struct addrinfo *res;
     int     status;
     INET_PROTO_INFO *proto_info;
+    const char *saved_domain;
+    int     non_err, soft_err;
+    int     known_name_in_dns;
+    int     ping_status;
 
     /*
      * Sanity check.
@@ -2644,15 +2652,26 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
      * 
      * If the domain name exists but no NS record exists, look up parent domain
      * NS records.
+     * 
+     * After the initial lookup fails, do one final DNS sanity check. Reject
+     * mail when the name exists, but MX lookup produces no valid response or
+     * NS lookup fails for any reason. Beware, this sanity check provides no
+     * hard assurance. An uncooperative DNS server may lie about everything,
+     * including non-existence.
      */
+#define SOME_DNS_RR_EXISTS(stat, herr) \
+	((stat) == DNS_OK || (stat) == DNS_INVAL || (herr) == NO_DATA)
+
+    saved_domain = domain;
     dns_status = dns_lookup(domain, type, 0, &server_list,
 			    (VSTRING *) 0, (VSTRING *) 0);
-    if (dns_status == DNS_NOTFOUND && h_errno == NO_DATA) {
+    known_name_in_dns = SOME_DNS_RR_EXISTS(dns_status, h_errno);
+    if (dns_status == DNS_NOTFOUND /* Not: h_errno == NO_DATA */ ) {
 	if (type == T_MX) {
 	    server_list = dns_rr_create(domain, domain, type, C_IN, 0, 0,
 					domain, strlen(domain) + 1);
 	    dns_status = DNS_OK;
-	} else if (type == T_NS) {
+	} else if (type == T_NS && h_errno == NO_DATA) {
 	    while ((domain = strchr(domain, '.')) != 0 && domain[1]) {
 		domain += 1;
 		dns_status = dns_lookup(domain, type, 0, &server_list,
@@ -2665,6 +2684,22 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
     if (dns_status != DNS_OK) {
 	msg_warn("Unable to look up %s host for %s: %s", dns_strtype(type),
 		 domain && domain[1] ? domain : name, dns_strerror(h_errno));
+	if (known_name_in_dns == 0) {
+	    /* With hostile DNS, an address query is more likely to work. */
+	    ping_status = dns_lookup_l(saved_domain, 0, (DNS_RR **) 0,
+				       (VSTRING *) 0, (VSTRING *) 0,
+				       DNS_REQ_FLAG_STOP_OK,
+				       CHECK_RR_ADDR_TYPES, 0);
+	    known_name_in_dns = SOME_DNS_RR_EXISTS(ping_status, h_errno);
+	}
+	if (known_name_in_dns)
+	    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
+				       dns_status == DNS_RETRY ?
+				   var_map_defer_code : var_map_reject_code,
+				       smtpd_dsn_fix("4.1.8", reply_class),
+				       "<%s>: %s rejected: %s",
+				       reply_name, reply_class,
+				       "Domain not found"));
 	return (SMTPD_CHECK_DUNNO);
     }
 
@@ -2677,11 +2712,13 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
      * Check the hostnames first, then the addresses.
      */
     proto_info = inet_proto_info();
+    non_err = soft_err = 0;
     for (server = server_list; server != 0; server = server->next) {
 	if (msg_verbose)
 	    msg_info("%s: %s hostname check: %s",
 		     myname, dns_strtype(type), (char *) server->data);
 	if (valid_hostaddr((char *) server->data, DONT_GRIPE)) {
+	    non_err = 1;
 	    if ((status = check_addr_access(state, table, (char *) server->data,
 				      FULL, &found, reply_name, reply_class,
 					    def_acl)) != 0 || found)
@@ -2697,8 +2734,11 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 	    msg_warn("Unable to look up %s host %s for %s %s: %s",
 		     dns_strtype(type), (char *) server->data,
 		     reply_class, reply_name, MAI_STRERROR(aierr));
+	    if (aierr == EAI_AGAIN || aierr == EAI_SYSTEM)
+		soft_err = 1;
 	    continue;
 	}
+	non_err = 1;
 	/* Now we must also free the addrinfo result. */
 	if (msg_verbose)
 	    msg_info("%s: %s host address check: %s",
@@ -2722,7 +2762,15 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 	}
 	freeaddrinfo(res0);			/* 200412 */
     }
-    CHECK_SERVER_RETURN(SMTPD_CHECK_DUNNO);
+    status = non_err ? SMTPD_CHECK_DUNNO :
+	smtpd_check_reject(state, MAIL_ERROR_POLICY,
+			   soft_err ? var_map_defer_code :
+			   var_map_reject_code,
+			   smtpd_dsn_fix("4.1.8", reply_class),
+			   "<%s>: %s rejected: %s",
+			   reply_name, reply_class,
+			   "Domain not found");
+    CHECK_SERVER_RETURN(status);
 }
 
 /* check_ccert_access - access for TLS clients by certificate fingerprint */
