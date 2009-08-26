@@ -1217,7 +1217,8 @@ static const char *milter8_event(MILTER8 *milter, int event,
 	    /*
 	     * Decision: quarantine. In Sendmail 8.13 this does not imply a
 	     * transition in the receiver state (reply, reject, tempfail,
-	     * accept, discard).
+	     * accept, discard). We should not transition, either, otherwise
+	     * we get out of sync.
 	     */
 #ifdef SMFIR_QUARANTINE
 	case SMFIR_QUARANTINE:
@@ -1226,7 +1227,8 @@ static const char *milter8_event(MILTER8 *milter, int event,
 				  MILTER8_DATA_BUFFER, milter->buf,
 				  MILTER8_DATA_END) != 0)
 		MILTER8_EVENT_BREAK(milter->def_reply);
-	    MILTER8_EVENT_BREAK("H");
+	    milter8_def_reply(milter, "H");
+	    continue;
 #endif
 
 	    /*
