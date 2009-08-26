@@ -14514,3 +14514,47 @@ Apologies for any names omitted.
 	Bugfix: don't disable MIME parsing with smtp_header_checks,
 	smtp_mime_header_checks, smtp_nested_header_checks or with
 	smtp_body_checks. Bug reported by Victor. File: smtp/smtp_proto.c.
+
+20090710
+
+	Bugfix (introduced Postfix 2.3): Postfix got out of sync
+	with a Milter application after the application sent a
+	"quarantine" request at end-of-message time. The milter
+	application would still be in the end-of-message state,
+	while Postfix would already be working on the next SMTP
+	event (typically, QUIT or MAIL FROM).  Problem diagnosed
+	with help from Alban Deniz. File: milter/milter8.c.
+
+20090805
+
+	Bugfix: don't panic when an unexpected smtpd access map is
+	specified. File: smtpd/smtpd_check.c.
+
+20090807
+
+	Workaround: NS record lookups for certain domains always
+	fail, while other queries for those domains always succeed
+	(and even return replies with NS records as additional
+	information).
+
+	This inconsistency in DNS lookup results would allow spammers
+	to circumvent the Postfix check_{client,helo,sender,etc}_ns_access
+	restrictions, because those restrictions have effect only
+	for NS records that can be looked up in the DNS.
+
+	To address this inconsistency, check_{client,etc}_ns_access
+	now require that a known-in-DNS domain name (or parent
+	thereof) always resolves to at least one name server IP
+	address.
+
+	For consistency, check_{client,etc}_mx_access now require
+	that a known-in-DNS domain name always resolves to at least
+	one mail server IP address.
+
+	These measures merely raise the difficulty level for spammers.
+	The IP address information thus obtained is not necessarily
+	"correct".  There is little to stop an uncooperative DNS
+	server from lying, especially when the owner of the domain
+	has no desire to receive email.  File: smtpd/smtpd_check.c.
+
+	Problem reported by MXTools.com.
