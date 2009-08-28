@@ -11,28 +11,6 @@ instead, a new snapshot is released.
 The mail_release_date configuration parameter (format: yyyymmdd)
 specifies the release date of a stable release or snapshot release.
 
-Incompatible changes with Postfix 2.3.18
-----------------------------------------
-
-With some domain names, NS record lookups always fail while other
-lookups always succeed (and may even return NS records as additional
-information).  This anomaly could be used by evil elements to skip
-Postfix check_{client,helo,sender,recipient}_ns_access checks,
-because these apply only to NS records that are found in the DNS.
-
-To address this specific problem, check_{client,etc}_ns_access now
-requires that a known-in-DNS domain name (or parent thereof) always
-resolves to at least one name server IP address.
-
-For consistency, check_{client,etc}_mx_access now requires that a
-known-in-DNS domain name always resolves to at least one mail server
-IP address.
-
-These measures provide no hard assurances that the IP address
-information thus obtained is correct. There is little to stop an
-uncooperative DNS server from lying, especially when the owner of
-the domain has no desire to receive email.
-
 Incompatible changes with Postfix 2.3.7
 ---------------------------------------
 
