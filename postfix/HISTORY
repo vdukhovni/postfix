@@ -15335,34 +15335,3 @@ Apologies for any names omitted.
 
 	Bugfix: don't panic when an unexpected smtpd access map is
 	specified. File: smtpd/smtpd_check.c.
-
-20090807
-
-	Workaround: NS record lookups for certain domains always
-	fail, while other queries for those domains always succeed
-	(and even return replies with NS records as additional
-	information).
-
-	This inconsistency would allow spammers to avoid the Postfix
-	check_{client,helo,sender,etc}_ns_access restrictions,
-	because those restrictions have effect only for names that
-	are known in the DNS.
-
-	To address this specific inconsistency, the Postfix
-	check_{client,etc}_ns_access feature now requires that a
-	known-in-DNS domain name (or parent thereof) resolves to
-	at least one name server IP address.
-
-	For consistency, check_{client,etc}_mx_access now requires
-	that a known-in-DNS domain name resolves to at least one
-	mail server IP address.
-
-	In addition, reject_unknown_helo_hostname,
-	reject_unknown_sender_domain now require that an MX record
-	resolves to at least one IP address. Until now, the existence
-	of an MX record was sufficient.
-
-	The IP addresses thus obtained may or may not be "correct".
-	There is little to stop an uncooperative DNS server from
-	lying, especially when the owner of the domain has no
-	intention to receive email.  File: smtpd/smtpd_check.c.

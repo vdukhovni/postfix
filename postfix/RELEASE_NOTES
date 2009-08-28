@@ -14,32 +14,6 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.5 or earlier, read RELEASE_NOTES-2.6
 before proceeding.
 
-Incompatibility with snapshot 20090807
-======================================
-
-With some domain names, NS record lookups always fail while other
-lookups always succeed (and may even return NS records as additional
-information).  This anomaly could be used by evil elements to skip
-Postfix check_{client,helo,sender,recipient}_ns_access checks,
-because these apply only to domains that are known in the DNS.
-
-To address this specific problem, check_{client,etc}_ns_access now
-requires that a known-in-DNS domain name (or parent thereof) resolves
-to at least one name server IP address.
-
-For consistency, check_{client,etc}_mx_access now requires that a
-known-in-DNS domain name resolves to at least one mail server IP
-address.
-
-In addition, reject_unknown_helo_hostname, reject_unknown_sender_domain
-and reject_unknown_recipient_domain now require that an MX record
-resolves to at least one IP address.  Until now, the existence of
-an MX record was sufficient.
-
-Keep in mind that these measures provide no hard assurances. There
-is little to stop an uncooperative DNS server from lying, especially
-when the owner of the domain has no intention to receive email.
-
 Incompatibility with snapshot 20090606
 ======================================
 
