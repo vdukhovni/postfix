@@ -259,6 +259,7 @@
 /*	oqmgr(8), old Postfix queue manager
 /*	pickup(8), Postfix local mail pickup
 /*	pipe(8), deliver mail to non-Postfix command
+/*	postscreen(8), Postfix SMTP triage server
 /*	proxymap(8), Postfix lookup table proxy server
 /*	qmgr(8), Postfix queue manager
 /*	qmqpd(8), Postfix QMQP server

@@ -2084,9 +2084,13 @@ extern int var_map_defer_code;
 #define CHECK_RECIP_ACL		"check_recipient_access"
 #define CHECK_ETRN_ACL		"check_etrn_access"
 
+#define CHECK_CLIENT_MX_ACL	"check_client_mx_access"
+#define CHECK_REVERSE_CLIENT_MX_ACL "check_reverse_client_hostname_mx_access"
 #define CHECK_HELO_MX_ACL	"check_helo_mx_access"
 #define CHECK_SENDER_MX_ACL	"check_sender_mx_access"
 #define CHECK_RECIP_MX_ACL	"check_recipient_mx_access"
+#define CHECK_CLIENT_NS_ACL	"check_client_ns_access"
+#define CHECK_REVERSE_CLIENT_NS_ACL "check_reverse_client_hostname_ns_access"
 #define CHECK_HELO_NS_ACL	"check_helo_ns_access"
 #define CHECK_SENDER_NS_ACL	"check_sender_ns_access"
 #define CHECK_RECIP_NS_ACL	"check_recipient_ns_access"
@@ -3126,6 +3130,65 @@ extern char *var_multi_stop_cmds;
 #define VAR_MULTI_CNTRL_CMDS	"postmulti_control_commands"
 #define DEF_MULTI_CNTRL_CMDS	"reload flush"
 extern char *var_multi_cntrl_cmds;
+
+ /*
+  * postscreen(8)
+  */
+#define VAR_PS_CACHE_MAP	"postscreen_cache_map"
+#define DEF_PS_CACHE_MAP	"btree:$data_directory/ps_cache"
+extern char *var_ps_cache_map;
+
+#define VAR_SMTPD_SERVICE	"smtpd_service"
+#define DEF_SMTPD_SERVICE	"smtpd"
+extern char *var_smtpd_service;
+
+#define VAR_PS_POST_QLIMIT	"postscreen_post_queue_limit"
+#define DEF_PS_POST_QLIMIT	"$" VAR_PROC_LIMIT
+extern int var_ps_post_queue_limit;
+
+#define VAR_PS_PRE_QLIMIT	"postscreen_pre_queue_limit"
+#define DEF_PS_PRE_QLIMIT	"$" VAR_PROC_LIMIT
+extern int var_ps_pre_queue_limit;
+
+#define VAR_PS_CACHE_TTL	"postscreen_cache_ttl"
+#define DEF_PS_CACHE_TTL	"1d"
+extern int var_ps_cache_ttl;
+
+#define VAR_PS_GREET_WAIT	"postscreen_greet_wait"
+#define DEF_PS_GREET_WAIT	"4s"
+extern int var_ps_greet_wait;
+
+#define VAR_PS_GREET_ACTION	"postscreen_greet_action"
+#define DEF_PS_GREET_ACTION	"continue"
+extern char *var_ps_greet_action;
+
+#define VAR_PS_DNSBL_SITES	"postscreen_dnsbl_sites"
+#define DEF_PS_DNSBL_SITES	""
+extern char *var_ps_dnsbl_sites;
+
+#define VAR_PS_DNSBL_ACTION	"postscreen_dnsbl_action"
+#define DEF_PS_DNSBL_ACTION	"continue"
+extern char *var_ps_dnsbl_action;
+
+#define VAR_PS_HUP_ACTION	"postscreen_hangup_action"
+#define DEF_PS_HUP_ACTION	"continue"
+extern char *var_ps_hangup_action;
+
+#define VAR_PS_WLIST_NETS	"postscreen_whitelist_networks"
+#define DEF_PS_WLIST_NETS	"$" VAR_MYNETWORKS
+extern char *var_ps_wlist_nets;
+
+#define VAR_PS_BLIST_NETS	"postscreen_blacklist_networks"
+#define DEF_PS_BLIST_NETS	""
+extern char *var_ps_blist_nets;
+
+#define VAR_PS_BLIST_ACTION	"postscreen_blacklist_action"
+#define DEF_PS_BLIST_ACTION	"continue"
+extern char *var_ps_blist_nets;
+
+#define VAR_PS_GREET_BANNER	"postscreen_greet_banner"
+#define DEF_PS_GREET_BANNER	"$" VAR_SMTPD_BANNER
+extern char *var_ps_banner;
 
 /* LICENSE
 /* .ad

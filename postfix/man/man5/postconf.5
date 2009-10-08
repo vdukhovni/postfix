@@ -3627,6 +3627,131 @@ as "stop" commands. For these commands, disabled instances are skipped,
 and enabled instances are processed in reverse order.
 .PP
 This feature is available in Postfix 2.6 and later.
+.SH postscreen_blacklist_action (default: continue)
+The action that \fBpostscreen\fR(8) takes when an SMTP client is
+permanently blacklisted with the postscreen_blacklist_networks
+parameter.  Specify one of the following:
+.IP "continue"
+Continue waiting until the postscreen_greet_wait time has
+elapsed, and report whether the client triggers a PREGREET or HANGUP
+error, or whether the client is listed at the DNSBL sites specified
+with the postscreen_dnsbl_sites parameter.  Take the corresponding
+action, or forward the connection to a real SMTP server process.
+.IP "drop"
+Drop the connection immediately with a 521 SMTP reply, without
+reporting PREGREET, HANGUP or DNSBL results.
+.PP
+This feature is available in Postfix 2.7.
+.SH postscreen_blacklist_networks (default: empty)
+Network addresses that are permanently blacklisted; see the
+postscreen_blacklist_action parameter for possible actions.  This
+parameter uses the same address syntax as the mynetworks parameter.
+The blacklist has higher precedence than whitelists. This feature
+never uses the remote SMTP client hostname.
+.PP
+This feature is available in Postfix 2.7.
+.SH postscreen_cache_map (default: btree:$data_directory/ps_whitelist)
+Persistent storage for the \fBpostscreen\fR(8) server decisions.
+.PP
+This feature is available in Postfix 2.7.
+.SH postscreen_cache_ttl (default: 1d)
+The amount of time that \fBpostscreen\fR(8) will cache a decision for
+a specific SMTP client IP address. During this time, the client IP
+address is excluded from tests. If possible, expired decisions are
+renewed silently. Specify a non-zero time value (an integral value
+plus an optional one-letter suffix that specifies the time unit).
+.PP
+Time units: s (seconds), m (minutes), h (hours), d (days), w
+(weeks).
+.PP
+This feature is available in Postfix 2.7.
+.SH postscreen_dnsbl_action (default: continue)
+The action that \fBpostscreen\fR(8) takes when an SMTP client is listed
+at the DNS blocklist domains specified with the postscreen_dnsbl_sites
+parameter.  Specify one of the following:
+.IP "continue"
+Forward the connection to a real SMTP server process.
+.IP "drop"
+Drop the connection with a 521 SMTP reply.
+.PP
+This feature is available in Postfix 2.7.
+.SH postscreen_dnsbl_sites (default: empty)
+Optional list of DNS blocklist domains. When the list is non-enpty,
+the \fBdnsblog\fR(8) daemon will query these domains with the IP addresses
+of non-whitelisted \fBpostscreen\fR(8) clients. Specify a list of domain
+names, separated by comma or whitespace.
+.SH postscreen_greet_action (default: continue)
+The action that \fBpostscreen\fR(8) takes when an SMTP client speaks
+before its turn within the time specified with the postscreen_greet_wait
+parameter.  Specify one of the following:
+.IP "continue"
+Continue waiting until the postscreen_greet_wait time has
+elapsed. If the client is listed at the DNS blocklist domains
+specified with the postscreen_dnsbl_sites parameter, execute the
+action specified with the postscreen_dnsbl_action parameter, otherwise
+forward the connection to a real SMTP server process.
+.IP "drop"
+Drop the connection immediately with a 521 SMTP reply, without
+examining DNSBL lookup results.
+.PP
+In either case, \fBpostscreen\fR(8) will not whitelist the SMTP client
+IP address.
+.PP
+This feature is available in Postfix 2.7.
+.SH postscreen_greet_banner (default: $smtpd_banner)
+The text in the optional "220-text..." server response that
+\fBpostscreen\fR(8) sends ahead of the real Postfix SMTP server's "220
+text..." response, in an attempt to confuse bad SMTP clients so
+that they speak before their turn (pre-greet).  Specify an empty
+value to disable this feature.
+.PP
+This feature is available in Postfix 2.7.
+.SH postscreen_greet_wait (default: 4s)
+The amount of time that \fBpostscreen\fR(8) will wait for an SMTP
+client to send a command before its turn, and for DNS blocklist
+lookup results to arrive. This is done only when the SMTP client
+IP address is not permanently whitelisted, and when it has no cached
+decision.  Specify a non-zero time value (an integral value plus
+an optional one-letter suffix that specifies the time unit).
+.PP
+Time units: s (seconds), m (minutes), h (hours), d (days), w
+(weeks).
+.PP
+This feature is available in Postfix 2.7.
+.SH postscreen_hangup_action (default: continue)
+The action that \fBpostscreen\fR(8) takes when an SMTP client disconnects
+without sending data, within the time specified with the
+postscreen_greet_wait parameter.  Specify one of the following:
+.IP "continue"
+Continue waiting until the postscreen_greet_wait time has
+elapsed, and report whether the client is listed at the DNSBL sites
+specified with the postscreen_dnsbl_sites parameter. Do not
+forward the broken connection to a real SMTP server process.
+.IP "drop"
+Drop the connection immediately, without reporting DNSBL lookup
+results.
+.PP
+This feature is available in Postfix 2.7.
+.SH postscreen_post_queue_limit (default: $default_process_limit)
+The number of clients that can be waiting for service from a
+real SMTP server process. When this queue is full, all clients will
+receive a 421 reponse.
+.PP
+This feature is available in Postfix 2.7.
+.SH postscreen_pre_queue_limit (default: $default_process_limit)
+The number of non-whitelisted clients that can be waiting for
+a decision whether they will receive service from a real SMTP server
+process. When this queue is full, all non-whitelisted clients will
+receive a 421 reponse.
+.PP
+This feature is available in Postfix 2.7.
+.SH postscreen_whitelist_networks (default: $mynetworks)
+Network addresses that are permanently whitelisted, and that
+will not be subjected to \fBpostscreen\fR(8) checks. This parameter uses
+the same address syntax as the mynetworks parameter. This feature
+never uses the remote SMTP client hostname.
+.PP
+This feature is available in Postfix 2.7.
 .SH prepend_delivered_header (default: command, file, forward)
 The message delivery contexts where the Postfix \fBlocal\fR(8) delivery
 agent prepends a Delivered-To:  message header with the address
@@ -4711,8 +4836,9 @@ and for receiving the initial server response.
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 .SH smtp_host_lookup (default: dns)
-What mechanisms when the Postfix SMTP client uses to look up a host's IP
-address.  This parameter is ignored when DNS lookups are disabled.
+What mechanisms the Postfix SMTP client uses to look up a host's IP
+address.  This parameter is ignored when DNS lookups are disabled
+(see: disable_dns_lookups).
 .PP
 Specify one of the following:
 .IP "\fBdns\fR"
@@ -6434,6 +6560,18 @@ Postfix version 2.5).  This feature is available with Postfix version
 Search the specified access database for the client hostname,
 parent domains, client IP address, or networks obtained by stripping
 least significant octets. See the \fBaccess\fR(5) manual page for details.
+.IP "\fBcheck_client_mx_access \fItype:table\fR\fR"
+Search the specified \fBaccess\fR(5) database for the MX hosts for the
+client hostname, and execute the corresponding action.  Note: a result
+of "OK" is not allowed for safety reasons. Instead, use DUNNO in order
+to exclude specific hosts from blacklists.  This feature is available
+in Postfix 2.7 and later.
+.IP "\fBcheck_client_ns_access \fItype:table\fR\fR"
+Search the specified \fBaccess\fR(5) database for the DNS servers for
+the client hostname, and execute the corresponding action.  Note: a
+result of "OK" is not allowed for safety reasons. Instead, use DUNNO
+in order to exclude specific hosts from blacklists.  This feature is
+available in Postfix 2.7 and later.
 .IP "\fBcheck_reverse_client_hostname_access \fItype:table\fR\fR"
 Search the specified access database for the unverified reverse
 client hostname, parent domains, client IP address, or networks
@@ -6442,6 +6580,18 @@ manual page for details.  Note: a result of "OK" is not allowed for
 safety reasons.  Instead, use DUNNO in order to exclude specific
 hosts from blacklists.  This feature is available in Postfix 2.6
 and later.
+.IP "\fBcheck_reverse_client_hostname_mx_access \fItype:table\fR\fR"
+Search the specified \fBaccess\fR(5) database for the MX hosts for the
+unverified reverse client hostname, and execute the corresponding
+action.  Note: a result of "OK" is not allowed for safety reasons.
+Instead, use DUNNO in order to exclude specific hosts from blacklists.
+This feature is available in Postfix 2.7 and later.
+.IP "\fBcheck_reverse_client_hostname_ns_access \fItype:table\fR\fR"
+Search the specified \fBaccess\fR(5) database for the DNS servers for
+the unverified reverse client hostname, and execute the corresponding
+action.  Note: a result of "OK" is not allowed for safety reasons.
+Instead, use DUNNO in order to exclude specific hosts from blacklists.
+This feature is available in Postfix 2.7 and later.
 .IP "\fBpermit_inet_interfaces\fR"
 Permit the request when the client IP address matches
 $inet_interfaces.
@@ -7533,6 +7683,12 @@ smtpd_sender_restrictions = reject_unknown_sender_domain,
 .fi
 .ad
 .ft R
+.SH smtpd_service (default: smtpd)
+The internal service that \fBpostscreen\fR(8) forwards allowed
+connections to. In a future version there may be different
+classes of SMTP service.
+.PP
+This feature is available in Postfix 2.7.
 .SH smtpd_soft_error_limit (default: 10)
 The number of errors a remote SMTP client is allowed to make without
 delivering mail before the Postfix SMTP server slows down all its

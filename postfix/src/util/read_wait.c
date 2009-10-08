@@ -15,7 +15,8 @@
 /*
 /*	Arguments:
 /* .IP fd
-/*	File descriptor in the range 0..FD_SETSIZE.
+/*	File descriptor in the range 0..FD_SETSIZE (on systems that
+/*	need to use select(2)).
 /* .IP timeout
 /*	If positive, deadline in seconds. A zero value effects a poll.
 /*	A negative value means wait until something happens.

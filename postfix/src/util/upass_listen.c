@@ -66,7 +66,7 @@ int     upass_accept(int listen_fd)
 {
     const char *myname = "upass_accept";
     int     accept_fd;
-    int     recv_fd;
+    int     recv_fd = -1;
 
     accept_fd = sane_accept(listen_fd, (struct sockaddr *) 0, (SOCKADDR_SIZE *) 0);
     if (accept_fd < 0) {
@@ -74,7 +74,9 @@ int     upass_accept(int listen_fd)
 	    msg_warn("%s: accept connection: %m", myname);
 	return (-1);
     } else {
-	if ((recv_fd = unix_recv_fd(accept_fd)) < 0)
+	if (read_wait(accept_fd, 100) < 0)
+	    msg_warn("%s: timeout receiving file descriptor: %m", myname);
+	else if ((recv_fd = unix_recv_fd(accept_fd)) < 0)
 	    msg_warn("%s: cannot receive file descriptor: %m", myname);
 	if (close(accept_fd) < 0)
 	    msg_warn("%s: close: %m", myname);

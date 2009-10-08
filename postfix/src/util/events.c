@@ -35,6 +35,8 @@
 /*
 /*	void	event_drain(time_limit)
 /*	int	time_limit;
+/*
+/*	void	event_fork(void)
 /* DESCRIPTION
 /*	This module delivers I/O and timer events.
 /*	Multiple I/O streams and timers can be monitored simultaneously.
@@ -110,6 +112,9 @@
 /*	This routine must not be called from an event_whatever() callback
 /*	routine. Note: this function ignores pending timer events, and
 /*	assumes that no new I/O events will be registered.
+/*
+/*	event_fork() must be called by a child process after it is
+/*	created with fork(), to re-initialize event processing.
 /* DIAGNOSTICS
 /*	Panics: interface violations. Fatal errors: out of memory,
 /*	system call failure. Warnings: the number of available
@@ -282,6 +287,11 @@ static int event_kq;			/* handle to event filter */
     } while (0)
 #define EVENT_REG_INIT_TEXT	"kqueue"
 
+#define EVENT_REG_FORK_HANDLE(er, n) do { \
+	(void) close(event_kq); \
+	EVENT_REG_INIT_HANDLE(er, (n)); \
+    } while (0)
+
  /*
   * Macros to update the kernel-based filter; see event_enable_read(),
   * event_enable_write() and event_disable_readwrite().
@@ -359,6 +369,11 @@ static int event_pollfd;		/* handle to file descriptor set */
     } while (0)
 #define EVENT_REG_INIT_TEXT	"open /dev/poll"
 
+#define EVENT_REG_FORK_HANDLE(er, n) do { \
+	(void) close(event_pollfd); \
+	EVENT_REG_INIT_HANDLE(er, (n)); \
+    } while (0)
+
  /*
   * Macros to update the kernel-based filter; see event_enable_read(),
   * event_enable_write() and event_disable_readwrite().
@@ -430,6 +445,11 @@ static int event_epollfd;		/* epoll handle */
 	if (event_epollfd >= 0) close_on_exec(event_epollfd, CLOSE_ON_EXEC); \
     } while (0)
 #define EVENT_REG_INIT_TEXT	"epoll_create"
+
+#define EVENT_REG_FORK_HANDLE(er, n) do { \
+	(void) close(event_epollfd); \
+	EVENT_REG_INIT_HANDLE(er, (n)); \
+    } while (0)
 
  /*
   * Macros to update the kernel-based filter; see event_enable_read(),
@@ -646,6 +666,46 @@ void    event_drain(int time_limit)
     }
 #if (EVENTS_STYLE != EVENTS_STYLE_SELECT)
     EVENT_MASK_FREE(&zero_mask);
+#endif
+}
+
+/* event_fork - resume event processing after fork() */
+
+void    event_fork(void)
+{
+#if (EVENTS_STYLE != EVENTS_STYLE_SELECT)
+    EVENT_FDTABLE *fdp;
+    int     err;
+    int     fd;
+
+    /*
+     * No event was ever registered, so there's nothing to be done.
+     */
+    if (EVENT_INIT_NEEDED())
+	return;
+
+    /*
+     * Close the existing filter handle and open a new kernel-based filter.
+     */
+    EVENT_REG_FORK_HANDLE(err, event_fdslots);
+    if (err < 0)
+	msg_fatal("%s: %m", EVENT_REG_INIT_TEXT);
+
+    /*
+     * Populate the new kernel-based filter with events that were registered
+     * in the parent process.
+     */
+    for (fd = 0; fd <= event_max_fd; fd++) {
+	if (EVENT_MASK_ISSET(fd, &event_wmask)) {
+	    EVENT_MASK_CLR(fd, &event_wmask);
+	    fdp = event_fdtable + fd;
+	    event_enable_write(fd, fdp->callback, fdp->context);
+	} else if (EVENT_MASK_ISSET(fd, &event_rmask)) {
+	    EVENT_MASK_CLR(fd, &event_rmask);
+	    fdp = event_fdtable + fd;
+	    event_enable_read(fd, fdp->callback, fdp->context);
+	}
+    }
 #endif
 }
 

@@ -1,44 +1,47 @@
 /*++
 /* NAME
-/*	multi_server 3
+/*	event_server 3
 /* SUMMARY
 /*	skeleton multi-threaded mail subsystem
 /* SYNOPSIS
 /*	#include <mail_server.h>
 /*
-/*	NORETURN multi_server_main(argc, argv, service, key, value, ...)
+/*	NORETURN event_server_main(argc, argv, service, key, value, ...)
 /*	int	argc;
 /*	char	**argv;
 /*	void	(*service)(VSTREAM *stream, char *service_name, char **argv);
 /*	int	key;
 /*
-/*	void	multi_server_disconnect(stream)
-/*	VSTREAM *stream;
+/*	void	event_server_disconnect(fd)
+/*	VSTREAM	*stream;
 /*
-/*	void	multi_server_drain()
+/*	void	event_server_drain()
 /* DESCRIPTION
 /*	This module implements a skeleton for multi-threaded
 /*	mail subsystems: mail subsystem programs that service multiple
 /*	clients at the same time. The resulting program expects to be run
 /*	from the \fBmaster\fR process.
 /*
-/*	multi_server_main() is the skeleton entry point. It should be
+/*	event_server_main() is the skeleton entry point. It should be
 /*	called from the application main program.  The skeleton does all
 /*	the generic command-line processing, initialization of
 /*	configurable parameters, and connection management.
+/*	Unlike multi_server, this skeleton does not attempt to manage
+/*	all the events on a client connection.
 /*	The skeleton never returns.
 /*
 /*	Arguments:
 /* .IP "void (*service)(VSTREAM *stream, char *service_name, char **argv)"
 /*	A pointer to a function that is called by the skeleton each
-/*	time a client sends data to the program's service port. The
-/*	function is run after the program has optionally dropped its
-/*	privileges. This function should not attempt to preserve state
-/*	across calls. The stream initial state is non-blocking mode.
-/*	The service name argument corresponds to the service name in the
-/*	master.cf file.
-/*	The argv argument specifies command-line arguments left over
-/*	after options processing.
+/*	time a client connects to the program's service port. The
+/*	function is run after the program has optionally dropped
+/*	its privileges. The application is responsible for managing
+/*	subsequent I/O events on the stream, and is responsible for
+/*	calling event_server_disconnect() when the stream is closed.
+/*	The stream initial state is non-blocking mode.  The service
+/*	name argument corresponds to the service name in the master.cf
+/*	file.  The argv argument specifies command-line arguments
+/*	left over after options processing.
 /* .PP
 /*	Optional arguments are specified as a null-terminated (key, value)
 /*	list. Keys and expected values are:
@@ -103,7 +106,7 @@
 /*	Only the last instance of this parameter type is remembered.
 /* .IP "MAIL_SERVER_PRE_DISCONN (VSTREAM *, char *service_name, char **argv)"
 /*	A pointer to a function that is called
-/*	by the multi_server_disconnect() function (see below).
+/*	by the event_server_disconnect() function (see below).
 /* .sp
 /*	Only the last instance of this parameter type is remembered.
 /* .IP "MAIL_SERVER_IN_FLOW_DELAY (none)"
@@ -115,25 +118,31 @@
 /*	This service must be configured with process limit of 0.
 /* .IP MAIL_SERVER_PRIVILEGED
 /*	This service must be configured as privileged.
+/* .IP "MAIL_SERVER_SLOW_EXIT (void *(char *service_name, char **argv))"
+/*	A pointer to a function that is called after "postfix reload"
+/*	or "master exit".  The application can call event_server_drain()
+/*	(see below) to finish ongoing activities in the background.
 /* .PP
-/*	multi_server_disconnect() should be called by the application
+/*	event_server_disconnect() should be called by the application
 /*	to close a client connection.
 /*
-/*	multi_server_drain() should be called when the application
+/*	event_server_drain() should be called when the application
 /*	no longer wishes to accept new client connections. Existing
 /*	clients are handled in a background process, and the process
 /*	terminates when the last client is disconnected. A non-zero
 /*	result means this call should be tried again later.
 /*
-/*	The var_use_limit variable limits the number of clients that
-/*	a server can service before it commits suicide.
-/*	This value is taken from the global \fBmain.cf\fR configuration
-/*	file. Setting \fBvar_use_limit\fR to zero disables the client limit.
+/*	The var_use_limit variable limits the number of clients
+/*	that a server can service before it commits suicide.  This
+/*	value is taken from the global \fBmain.cf\fR configuration
+/*	file. Setting \fBvar_use_limit\fR to zero disables the
+/*	client limit.
 /*
 /*	The var_idle_limit variable limits the time that a service
-/*	receives no client connection requests before it commits suicide.
-/*	This value is taken from the global \fBmain.cf\fR configuration
-/*	file. Setting \fBvar_idle_limit\fR to zero disables the idle limit.
+/*	receives no client connection requests before it commits
+/*	suicide.  This value is taken from the global \fBmain.cf\fR
+/*	configuration file. Setting \fBvar_idle_limit\fR to zero
+/*	disables the idle limit.
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* SEE ALSO
@@ -220,47 +229,51 @@ static int client_count;
 static int use_count;
 static int socket_count = 1;
 
-static void (*multi_server_service) (VSTREAM *, char *, char **);
-static char *multi_server_name;
-static char **multi_server_argv;
-static void (*multi_server_accept) (int, char *);
-static void (*multi_server_onexit) (char *, char **);
-static void (*multi_server_pre_accept) (char *, char **);
-static VSTREAM *multi_server_lock;
-static int multi_server_in_flow_delay;
-static unsigned multi_server_generation;
-static void (*multi_server_pre_disconn) (VSTREAM *, char *, char **);
+static void (*event_server_service) (VSTREAM *, char *, char **);
+static char *event_server_name;
+static char **event_server_argv;
+static void (*event_server_accept) (int, char *);
+static void (*event_server_onexit) (char *, char **);
+static void (*event_server_pre_accept) (char *, char **);
+static VSTREAM *event_server_lock;
+static int event_server_in_flow_delay;
+static unsigned event_server_generation;
+static void (*event_server_pre_disconn) (VSTREAM *, char *, char **);
+static void (*event_server_slow_exit) (char *, char **);
 
-/* multi_server_exit - normal termination */
+/* event_server_exit - normal termination */
 
-static NORETURN multi_server_exit(void)
+static NORETURN event_server_exit(void)
 {
-    if (multi_server_onexit)
-	multi_server_onexit(multi_server_name, multi_server_argv);
+    if (event_server_onexit)
+	event_server_onexit(event_server_name, event_server_argv);
     exit(0);
 }
 
-/* multi_server_abort - terminate after abnormal master exit */
+/* event_server_abort - terminate after abnormal master exit */
 
-static void multi_server_abort(int unused_event, char *unused_context)
+static void event_server_abort(int unused_event, char *unused_context)
 {
     if (msg_verbose)
 	msg_info("master disconnect -- exiting");
-    multi_server_exit();
+    if (event_server_slow_exit)
+	event_server_slow_exit(event_server_name, event_server_argv);
+    else
+	event_server_exit();
 }
 
-/* multi_server_timeout - idle time exceeded */
+/* event_server_timeout - idle time exceeded */
 
-static void multi_server_timeout(int unused_event, char *unused_context)
+static void event_server_timeout(int unused_event, char *unused_context)
 {
     if (msg_verbose)
 	msg_info("idle timeout -- exiting");
-    multi_server_exit();
+    event_server_exit();
 }
 
-/*  multi_server_drain - stop accepting new clients */
+/*  event_server_drain - stop accepting new clients */
 
-int     multi_server_drain(void)
+int     event_server_drain(void)
 {
     int     fd;
 
@@ -282,63 +295,49 @@ int     multi_server_drain(void)
     }
 }
 
-/* multi_server_disconnect - terminate client session */
+/* event_server_disconnect - terminate client session */
 
-void    multi_server_disconnect(VSTREAM *stream)
+void    event_server_disconnect(VSTREAM *stream)
 {
     if (msg_verbose)
 	msg_info("connection closed fd %d", vstream_fileno(stream));
-    if (multi_server_pre_disconn)
-	multi_server_pre_disconn(stream, multi_server_name, multi_server_argv);
-    event_disable_readwrite(vstream_fileno(stream));
+    if (event_server_pre_disconn)
+	event_server_pre_disconn(stream, event_server_name, event_server_argv);
     (void) vstream_fclose(stream);
     client_count--;
     /* Avoid integer wrap-around in a persistent process.  */
     if (use_count < INT_MAX)
 	use_count++;
     if (client_count == 0 && var_idle_limit > 0)
-	event_request_timer(multi_server_timeout, (char *) 0, var_idle_limit);
+	event_request_timer(event_server_timeout, (char *) 0, var_idle_limit);
 }
 
-/* multi_server_execute - in case (char *) != (struct *) */
+/* event_server_execute - in case (char *) != (struct *) */
 
-static void multi_server_execute(int unused_event, char *context)
+static void event_server_execute(int unused_event, char *context)
 {
     VSTREAM *stream = (VSTREAM *) context;
 
-    if (multi_server_lock != 0
-	&& myflock(vstream_fileno(multi_server_lock), INTERNAL_LOCK,
+    if (event_server_lock != 0
+	&& myflock(vstream_fileno(event_server_lock), INTERNAL_LOCK,
 		   MYFLOCK_OP_NONE) < 0)
 	msg_fatal("select unlock: %m");
 
     /*
-     * Do not bother the application when the client disconnected. Don't drop
-     * the already accepted client request after "postfix reload"; that would
-     * be rude.
+     * Do bother the application when the client disconnected. Don't drop the
+     * already accepted client request after "postfix reload"; that would be
+     * rude.
      */
-    if (peekfd(vstream_fileno(stream)) > 0) {
-	if (master_notify(var_pid, multi_server_generation, MASTER_STAT_TAKEN) < 0)
-	     /* void */ ;
-	multi_server_service(stream, multi_server_name, multi_server_argv);
-	if (master_notify(var_pid, multi_server_generation, MASTER_STAT_AVAIL) < 0)
-	    multi_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
-    } else {
-	multi_server_disconnect(stream);
-    }
+    if (master_notify(var_pid, event_server_generation, MASTER_STAT_TAKEN) < 0)
+	 /* void */ ;
+    event_server_service(stream, event_server_name, event_server_argv);
+    if (master_notify(var_pid, event_server_generation, MASTER_STAT_AVAIL) < 0)
+	event_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
 }
 
-/* multi_server_enable_read - enable read events */
+/* event_server_wakeup - wake up application */
 
-static void multi_server_enable_read(int unused_event, char *context)
-{
-    VSTREAM *stream = (VSTREAM *) context;
-
-    event_enable_read(vstream_fileno(stream), multi_server_execute, (char *) stream);
-}
-
-/* multi_server_wakeup - wake up application */
-
-static void multi_server_wakeup(int fd)
+static void event_server_wakeup(int fd)
 {
     VSTREAM *stream;
     char   *tmp;
@@ -366,20 +365,20 @@ static void multi_server_wakeup(int fd)
     close_on_exec(fd, CLOSE_ON_EXEC);
     client_count++;
     stream = vstream_fdopen(fd, O_RDWR);
-    tmp = concatenate(multi_server_name, " socket", (char *) 0);
+    tmp = concatenate(event_server_name, " socket", (char *) 0);
     vstream_control(stream, VSTREAM_CTL_PATH, tmp, VSTREAM_CTL_END);
     myfree(tmp);
     timed_ipc_setup(stream);
-    if (multi_server_in_flow_delay && mail_flow_get(1) < 0)
-	event_request_timer(multi_server_enable_read, (char *) stream,
+    if (event_server_in_flow_delay && mail_flow_get(1) < 0)
+	event_request_timer(event_server_execute, (char *) stream,
 			    var_in_flow_delay);
     else
-	multi_server_enable_read(0, (char *) stream);
+	event_server_execute(0, (char *) stream);
 }
 
-/* multi_server_accept_local - accept client connection request */
+/* event_server_accept_local - accept client connection request */
 
-static void multi_server_accept_local(int unused_event, char *context)
+static void event_server_accept_local(int unused_event, char *context)
 {
     int     listen_fd = CAST_CHAR_PTR_TO_INT(context);
     int     time_left = -1;
@@ -393,30 +392,30 @@ static void multi_server_accept_local(int unused_event, char *context)
      * minimize confusion.
      */
     if (client_count == 0 && var_idle_limit > 0)
-	time_left = event_cancel_timer(multi_server_timeout, (char *) 0);
+	time_left = event_cancel_timer(event_server_timeout, (char *) 0);
 
-    if (multi_server_pre_accept)
-	multi_server_pre_accept(multi_server_name, multi_server_argv);
+    if (event_server_pre_accept)
+	event_server_pre_accept(event_server_name, event_server_argv);
     fd = LOCAL_ACCEPT(listen_fd);
-    if (multi_server_lock != 0
-	&& myflock(vstream_fileno(multi_server_lock), INTERNAL_LOCK,
+    if (event_server_lock != 0
+	&& myflock(vstream_fileno(event_server_lock), INTERNAL_LOCK,
 		   MYFLOCK_OP_NONE) < 0)
 	msg_fatal("select unlock: %m");
     if (fd < 0) {
 	if (errno != EAGAIN)
 	    msg_error("accept connection: %m");
 	if (time_left >= 0)
-	    event_request_timer(multi_server_timeout, (char *) 0, time_left);
+	    event_request_timer(event_server_timeout, (char *) 0, time_left);
 	return;
     }
-    multi_server_wakeup(fd);
+    event_server_wakeup(fd);
 }
 
 #ifdef MASTER_XPORT_NAME_PASS
 
-/* multi_server_accept_pass - accept descriptor */
+/* event_server_accept_pass - accept descriptor */
 
-static void multi_server_accept_pass(int unused_event, char *context)
+static void event_server_accept_pass(int unused_event, char *context)
 {
     int     listen_fd = CAST_CHAR_PTR_TO_INT(context);
     int     time_left = -1;
@@ -430,30 +429,30 @@ static void multi_server_accept_pass(int unused_event, char *context)
      * minimize confusion.
      */
     if (client_count == 0 && var_idle_limit > 0)
-	time_left = event_cancel_timer(multi_server_timeout, (char *) 0);
+	time_left = event_cancel_timer(event_server_timeout, (char *) 0);
 
-    if (multi_server_pre_accept)
-	multi_server_pre_accept(multi_server_name, multi_server_argv);
+    if (event_server_pre_accept)
+	event_server_pre_accept(event_server_name, event_server_argv);
     fd = PASS_ACCEPT(listen_fd);
-    if (multi_server_lock != 0
-	&& myflock(vstream_fileno(multi_server_lock), INTERNAL_LOCK,
+    if (event_server_lock != 0
+	&& myflock(vstream_fileno(event_server_lock), INTERNAL_LOCK,
 		   MYFLOCK_OP_NONE) < 0)
 	msg_fatal("select unlock: %m");
     if (fd < 0) {
 	if (errno != EAGAIN)
 	    msg_error("accept connection: %m");
 	if (time_left >= 0)
-	    event_request_timer(multi_server_timeout, (char *) 0, time_left);
+	    event_request_timer(event_server_timeout, (char *) 0, time_left);
 	return;
     }
-    multi_server_wakeup(fd);
+    event_server_wakeup(fd);
 }
 
 #endif
 
-/* multi_server_accept_inet - accept client connection request */
+/* event_server_accept_inet - accept client connection request */
 
-static void multi_server_accept_inet(int unused_event, char *context)
+static void event_server_accept_inet(int unused_event, char *context)
 {
     int     listen_fd = CAST_CHAR_PTR_TO_INT(context);
     int     time_left = -1;
@@ -467,30 +466,30 @@ static void multi_server_accept_inet(int unused_event, char *context)
      * minimize confusion.
      */
     if (client_count == 0 && var_idle_limit > 0)
-	time_left = event_cancel_timer(multi_server_timeout, (char *) 0);
+	time_left = event_cancel_timer(event_server_timeout, (char *) 0);
 
-    if (multi_server_pre_accept)
-	multi_server_pre_accept(multi_server_name, multi_server_argv);
+    if (event_server_pre_accept)
+	event_server_pre_accept(event_server_name, event_server_argv);
     fd = inet_accept(listen_fd);
-    if (multi_server_lock != 0
-	&& myflock(vstream_fileno(multi_server_lock), INTERNAL_LOCK,
+    if (event_server_lock != 0
+	&& myflock(vstream_fileno(event_server_lock), INTERNAL_LOCK,
 		   MYFLOCK_OP_NONE) < 0)
 	msg_fatal("select unlock: %m");
     if (fd < 0) {
 	if (errno != EAGAIN)
 	    msg_error("accept connection: %m");
 	if (time_left >= 0)
-	    event_request_timer(multi_server_timeout, (char *) 0, time_left);
+	    event_request_timer(event_server_timeout, (char *) 0, time_left);
 	return;
     }
-    multi_server_wakeup(fd);
+    event_server_wakeup(fd);
 }
 
-/* multi_server_main - the real main program */
+/* event_server_main - the real main program */
 
-NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
+NORETURN event_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 {
-    const char *myname = "multi_server_main";
+    const char *myname = "event_server_main";
     VSTREAM *stream = 0;
     char   *root_dir = 0;
     char   *user_name = 0;
@@ -680,16 +679,16 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 	    loop = va_arg(ap, MAIL_SERVER_LOOP_FN);
 	    break;
 	case MAIL_SERVER_EXIT:
-	    multi_server_onexit = va_arg(ap, MAIL_SERVER_EXIT_FN);
+	    event_server_onexit = va_arg(ap, MAIL_SERVER_EXIT_FN);
 	    break;
 	case MAIL_SERVER_PRE_ACCEPT:
-	    multi_server_pre_accept = va_arg(ap, MAIL_SERVER_ACCEPT_FN);
+	    event_server_pre_accept = va_arg(ap, MAIL_SERVER_ACCEPT_FN);
 	    break;
 	case MAIL_SERVER_PRE_DISCONN:
-	    multi_server_pre_disconn = va_arg(ap, MAIL_SERVER_DISCONN_FN);
+	    event_server_pre_disconn = va_arg(ap, MAIL_SERVER_DISCONN_FN);
 	    break;
 	case MAIL_SERVER_IN_FLOW_DELAY:
-	    multi_server_in_flow_delay = 1;
+	    event_server_in_flow_delay = 1;
 	    break;
 	case MAIL_SERVER_SOLITARY:
 	    if (stream == 0 && !alone)
@@ -705,6 +704,9 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 	    if (user_name)
 		msg_fatal("service %s requires privileged operation",
 			  service_name);
+	    break;
+	case MAIL_SERVER_SLOW_EXIT:
+	    event_server_slow_exit = va_arg(ap, MAIL_SERVER_SLOW_EXIT_FN);
 	    break;
 	default:
 	    msg_panic("%s: unknown argument type: %d", myname, key);
@@ -724,12 +726,12 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 	if (transport == 0)
 	    msg_fatal("no transport type specified");
 	if (strcasecmp(transport, MASTER_XPORT_NAME_INET) == 0)
-	    multi_server_accept = multi_server_accept_inet;
+	    event_server_accept = event_server_accept_inet;
 	else if (strcasecmp(transport, MASTER_XPORT_NAME_UNIX) == 0)
-	    multi_server_accept = multi_server_accept_local;
+	    event_server_accept = event_server_accept_local;
 #ifdef MASTER_XPORT_NAME_PASS
 	else if (strcasecmp(transport, MASTER_XPORT_NAME_PASS) == 0)
-	    multi_server_accept = multi_server_accept_pass;
+	    event_server_accept = event_server_accept_pass;
 #endif
 	else
 	    msg_fatal("unsupported transport type: %s", transport);
@@ -741,10 +743,10 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     if ((generation = getenv(MASTER_GEN_NAME)) != 0) {
 	if (!alldig(generation))
 	    msg_fatal("bad generation: %s", generation);
-	OCTAL_TO_UNSIGNED(multi_server_generation, generation);
+	OCTAL_TO_UNSIGNED(event_server_generation, generation);
 	if (msg_verbose)
 	    msg_info("process generation: %s (%o)",
-		     generation, multi_server_generation);
+		     generation, event_server_generation);
     }
 
     /*
@@ -769,10 +771,10 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 	lock_path = concatenate(DEF_PID_DIR, "/", transport,
 				".", service_name, (char *) 0);
 	why = vstring_alloc(1);
-	if ((multi_server_lock = safe_open(lock_path, O_CREAT | O_RDWR, 0600,
+	if ((event_server_lock = safe_open(lock_path, O_CREAT | O_RDWR, 0600,
 				      (struct stat *) 0, -1, -1, why)) == 0)
 	    msg_fatal("open lock file %s: %s", lock_path, vstring_str(why));
-	close_on_exec(vstream_fileno(multi_server_lock), CLOSE_ON_EXEC);
+	close_on_exec(vstream_fileno(event_server_lock), CLOSE_ON_EXEC);
 	myfree(lock_path);
 	vstring_free(why);
     }
@@ -781,9 +783,9 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     /*
      * Set up call-back info.
      */
-    multi_server_service = service;
-    multi_server_name = service_name;
-    multi_server_argv = argv + optind;
+    event_server_service = service;
+    event_server_name = service_name;
+    event_server_argv = argv + optind;
 
     /*
      * Run pre-jail initialization.
@@ -791,7 +793,7 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     if (chdir(var_queue_dir) < 0)
 	msg_fatal("chdir(\"%s\"): %m", var_queue_dir);
     if (pre_init)
-	pre_init(multi_server_name, multi_server_argv);
+	pre_init(event_server_name, event_server_argv);
 
     /*
      * Optionally, restrict the damage that this process can do.
@@ -804,7 +806,7 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
      * Run post-jail initialization.
      */
     if (post_init)
-	post_init(multi_server_name, multi_server_argv);
+	post_init(event_server_name, event_server_argv);
 
     /*
      * Are we running as a one-shot server with the client connection on
@@ -816,9 +818,9 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 			VSTREAM_CTL_DOUBLE,
 			VSTREAM_CTL_WRITE_FD, STDOUT_FILENO,
 			VSTREAM_CTL_END);
-	service(stream, multi_server_name, multi_server_argv);
+	service(stream, event_server_name, event_server_argv);
 	vstream_fflush(stream);
-	multi_server_exit();
+	event_server_exit();
     }
 
     /*
@@ -828,12 +830,12 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
      * when the master process terminated abnormally.
      */
     if (var_idle_limit > 0)
-	event_request_timer(multi_server_timeout, (char *) 0, var_idle_limit);
+	event_request_timer(event_server_timeout, (char *) 0, var_idle_limit);
     for (fd = MASTER_LISTEN_FD; fd < MASTER_LISTEN_FD + socket_count; fd++) {
-	event_enable_read(fd, multi_server_accept, CAST_INT_TO_CHAR_PTR(fd));
+	event_enable_read(fd, event_server_accept, CAST_INT_TO_CHAR_PTR(fd));
 	close_on_exec(fd, CLOSE_ON_EXEC);
     }
-    event_enable_read(MASTER_STATUS_FD, multi_server_abort, (char *) 0);
+    event_enable_read(MASTER_STATUS_FD, event_server_abort, (char *) 0);
     close_on_exec(MASTER_STATUS_FD, CLOSE_ON_EXEC);
     close_on_exec(MASTER_FLOW_READ, CLOSE_ON_EXEC);
     close_on_exec(MASTER_FLOW_WRITE, CLOSE_ON_EXEC);
@@ -843,15 +845,15 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
      * The event loop, at last.
      */
     while (var_use_limit == 0 || use_count < var_use_limit || client_count > 0) {
-	if (multi_server_lock != 0) {
+	if (event_server_lock != 0) {
 	    watchdog_stop(watchdog);
-	    if (myflock(vstream_fileno(multi_server_lock), INTERNAL_LOCK,
+	    if (myflock(vstream_fileno(event_server_lock), INTERNAL_LOCK,
 			MYFLOCK_OP_EXCLUSIVE) < 0)
 		msg_fatal("select lock: %m");
 	}
 	watchdog_start(watchdog);
-	delay = loop ? loop(multi_server_name, multi_server_argv) : -1;
+	delay = loop ? loop(event_server_name, event_server_argv) : -1;
 	event_loop(delay);
     }
-    multi_server_exit();
+    event_server_exit();
 }

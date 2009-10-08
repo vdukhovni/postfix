@@ -2,6 +2,44 @@ Wish list:
 
 	Remove this file from the stable release.
 
+	SMTP connection caching without storing connections, to
+	improve TLS mail delivery performance.
+
+	Should not milter8_mail_event() unset the "hold" default
+	reply? Better, the default reply should not be used for
+	this purpose.
+
+	Unescape the pregreeter's HELO command argument so that
+	<CR><LF> don't show up as ??.
+
+	Make postscreen logging easier. Always log connect, then log
+	why the connection is or is not forwarded.
+
+	Don't send MASTER_STAT_TAKEN/MASTER_STAT_AVAIL when a server
+	runs with process limit of 1. But this means the master
+	never learns that the process is successful and will always
+	pause $service_throttle_time before restarting a failed service.
+
+	Don't bother maintaining a per-service lockfile when a
+	server runs with process limit of 1. The purpose of the
+	lockfile is to avoid thundering herd problems when the kernel
+	wakes up multiple processes for each new client connection.
+
+	Concurrency/speed-matching: invoke a before-queue (smtpd_proxy)
+	filter after the entire message is received, so that fewer
+	filter processes will be running simultaneously.  In some
+	parts of the world, after-queue filtering is problematic.
+
+	This is different than the MailChannels patented solution
+	to multiplex many slow SMTP connections over a few fast
+	SMTP connections. We simply postpone opening the connection
+	to the filter, and rely on the before-filter SMTP server
+	to reject invalid recipients. MailChannels uses one
+	connection-to-MTA to discover invalid recipients, receives
+	the email message with a potentially reduced bitrate, and
+	then uses another connection-to-MTA to deliver the message
+	quickly.
+
 	Implement PREPEND action for milter_header_checks. Save the
 	to-be-prepended text to buffer, then emit it along with the
 	new header.

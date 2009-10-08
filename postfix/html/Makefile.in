@@ -7,7 +7,8 @@ DAEMONS	=  bounce.8.html cleanup.8.html defer.8.html error.8.html local.8.html \
 	showq.8.html smtp.8.html smtpd.8.html trivial-rewrite.8.html \
 	oqmgr.8.html spawn.8.html flush.8.html virtual.8.html qmqpd.8.html \
 	trace.8.html verify.8.html proxymap.8.html anvil.8.html \
-	scache.8.html discard.8.html tlsmgr.8.html
+	scache.8.html discard.8.html tlsmgr.8.html postscreen.8.html \
+	dnsblog.8.html
 COMMANDS= mailq.1.html newaliases.1.html postalias.1.html postcat.1.html \
 	postconf.1.html postfix.1.html postkick.1.html postlock.1.html \
 	postlog.1.html postdrop.1.html postmap.1.html postmulti.1.html \
@@ -44,6 +45,10 @@ defer.8.html: bounce.8.html
 	ln $? $@
 
 discard.8.html: ../src/discard/discard.c
+	PATH=../mantools:$$PATH; \
+	srctoman $? | $(AWK) | nroff -man | uniq | $(MAN2HTML) | postlink >$@
+
+dnsblog.8.html: ../src/dnsblog/dnsblog.c
 	PATH=../mantools:$$PATH; \
 	srctoman $? | $(AWK) | nroff -man | uniq | $(MAN2HTML) | postlink >$@
 
@@ -91,6 +96,10 @@ pickup.8.html: ../src/pickup/pickup.c
 	srctoman $? | $(AWK) | nroff -man | uniq | $(MAN2HTML) | postlink >$@
 
 pipe.8.html: ../src/pipe/pipe.c
+	PATH=../mantools:$$PATH; \
+	srctoman $? | $(AWK) | nroff -man | uniq | $(MAN2HTML) | postlink >$@
+
+postscreen.8.html: ../src/postscreen/postscreen.c
 	PATH=../mantools:$$PATH; \
 	srctoman $? | $(AWK) | nroff -man | uniq | $(MAN2HTML) | postlink >$@
 

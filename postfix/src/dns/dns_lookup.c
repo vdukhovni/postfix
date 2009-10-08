@@ -660,6 +660,7 @@ int     dns_lookup_l(const char *name, unsigned flags, DNS_RR **rrlist,
 	} else if (status == DNS_RETRY) {
 	    soft_err = 1;
 	}
+	/* XXX Stop after NXDOMAIN error. */
     }
     va_end(ap);
     return (non_err ? DNS_OK : soft_err ? DNS_RETRY : status);
@@ -697,6 +698,7 @@ int     dns_lookup_v(const char *name, unsigned flags, DNS_RR **rrlist,
 	} else if (status == DNS_RETRY) {
 	    soft_err = 1;
 	}
+	/* XXX Stop after NXDOMAIN error. */
     }
     return (non_err ? DNS_OK : soft_err ? DNS_RETRY : status);
 }

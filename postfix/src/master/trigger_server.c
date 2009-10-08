@@ -266,7 +266,9 @@ static void trigger_server_wakeup(int fd)
 	trigger_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
     if (var_idle_limit > 0)
 	event_request_timer(trigger_server_timeout, (char *) 0, var_idle_limit);
-    use_count++;
+    /* Avoid integer wrap-around in a persistent process.  */
+    if (use_count < INT_MAX)
+	use_count++;
 }
 
 /* trigger_server_accept_fifo - accept fifo client request */

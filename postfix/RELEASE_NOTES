@@ -14,6 +14,92 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.5 or earlier, read RELEASE_NOTES-2.6
 before proceeding.
 
+Incompatibility with snapshot 20091008
+======================================
+
+NOTE: You must stop and start the Postfix master daemon before you
+can use the postscreen(8) daemon.  This is needed because the Postfix
+"pass" master service type did not work reliably on some systems.
+
+Major changes with snapshot 20091008
+====================================
+
+Prototype postscreen(8) server that runs a number of time-consuming
+checks in parallel for all incoming SMTP connections, before clients
+are allowed to talk to a real Postfix SMTP server.  It detects
+clients that start talking too soon, or clients that appear on DNS
+blocklists, or clients that hang up without sending any command.
+
+By doing these checks in a single postscreen(8) process, Postfix
+can avoid wasting one SMTP server process per connection. A side
+benefit of postscreen(8)'s DNSBL lookups is that DNS records are
+already cached before the Postfix SMTP server looks them up later.
+
+postscreen(8) maintains a temporary whitelist of positive decisions.
+Once an SMTP client is whitelisted, it is immediately forwarded
+to a real Postfix SMTP server process without further checking.
+
+By default, the program logs only statistics, and it does not run
+any checks on clients in mynetworks (primarily, to avoid problems
+with buggy SMTP implementations in network appliances).  The logging
+function alone is already useful for research.
+
+postscreen(8) can be configured to drop clients that start talking
+too soon, or clients that appear on DNS blocklists. For details,
+see below.
+
+postscreen(8) has been tested on FreeBSD and Linux systems.  It
+probably needs additional work before it can be used on Solaris.
+
+This snapshot adds three new entries to the master.cf file. 
+
+To enable the postscreen(8) service and log client information
+without blocking mail:
+
+1 - Comment out the "smtp  inet ... smtpd" service in master.cf,
+    including any "-o parameter=value" entries that follow.
+
+2 - Uncomment the new "smtpd pass ... smtpd" service in master.cf.
+
+3 - Uncomment the the new "smtp inet ... postscreen" service in
+    master.cf, and duplicate any "-o parameter=value" entries from
+    the smtpd service that was commented out in step 1.
+
+4 - Uncomment the new "dnsblog  unix ... dnsblog" service in
+    master.cf.  This service does DNSBL lookups for postscreen(8)
+    and logs results.
+
+5 - To enable DNSBL lookups, list some DNS blocklist sites in
+    main.cf, e.g., "postscreen_dnsbl_sites = zen.spamhaus.org".
+    Separate domain names with comma or whitespace.
+
+Note: you must stop and start the master daemon.  This is needed
+because the Postfix "pass" master service type did not work reliably
+on all systems.
+
+To use the postscreen(8) service to block mail, edit main.cf and
+specify one or more of:
+
+- "postscreen_greet_action = drop", to drop clients that talk before
+  their turn. This alone stops about one third of all known-to-be
+  illegitimate connections to Wietse's mail server.
+
+- "postscreen_hangup_action = drop", to waste no time on clients
+  that hang up without sending a command. On Wietse's server, only
+  one percent of illegitimate connections behaves like this.
+
+- "postscreen_dnsbl_action = drop", to drop clients that are on DNS
+  blocklists. Different blocklists cover different client categories.
+
+There is also support for permanent blacklists and whitelists; see
+the postscreen(8) manual page for details.
+
+Note: right now, postscreen(8) "drop" actions disconnect the client
+without reporting sender and recipient information. In a future
+implementation, the connection may instead be passed to a dummy
+SMTP protocol engine that logs sender and recipient information
+before dropping the connection.
+
 Incompatibility with snapshot 20090606
 ======================================
 

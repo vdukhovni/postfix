@@ -15309,15 +15309,75 @@ Apologies for any names omitted.
 	and Milters make redundant or conflicting decisions. File:
 	cleanup_milter.c.
 
+20090614
+
+	Preliminary postscreen triage server for all inbound SMTP
+	connections.  This is not a proxy: it rejects bad clients
+	and forwards the rest of the connections to a real Postfix
+	SMTP server. The initial version does a simple "friend or
+	foe" based on whether the client starts talking too soon.
+	Decisions are cached, so "good" clients have no overhead.
+	File: postscreen/postscreen.c.
+
+	Cleanup: more robust code for receiving file descriptors
+	via the "pass" master service protocol.  File:
+	util/upass_listen.c.
+
+20090617
+
+	Temporary helper daemon that does parallel DNSBL lookups
+	for postscreen(8). It logs successful lookups to the maillog
+	file without blocking the client. postscreen(8) will use
+	the results in a later non-production version. To enable
+	DNSBL lookups, specify "postscreen_dnsbl_sites = name,
+	name, etc". and restart postscreen(8) with "postfix reload".
+	File: src/dnsblog/dnblog.c.
+
+20090618
+
+	postscreen(8) logging and actions are now documented in the
+	postscreen(8) manpage. When a client is listed in DNSBLs
+	specified with postscreen_dnsbl_sites, it is no longer
+	whitelisted. Instead the number of blocklist hits is logged.
+	File: postscreen/postscreen.c.
+
+20090619
+
+	postscreen(8) by default no longer immediately drops
+	connections. Specify "postscreen_greet_action = drop" and
+	"postscreen_hangup_action = drop" for the old behavior.
+	There is also a new postscreen_dnsbl_action parameter, for
+	completeness.  File: postscreen/postscreen.c.
+
+20090708
+
+	Portability: FreeBSD 8 has closefrom(). File: uti/sys_defs.h.
+
 20090710
 
 	Bugfix (introduced Postfix 2.3): Postfix got out of sync
 	with a Milter application after the application sent a
-	"quarantine" request at end-of-message time. The milter
+	"quarantine" request at end-of-message time. The milter 
 	application would still be in the end-of-message state,
 	while Postfix would already be working on the next SMTP
 	event (typically, QUIT or MAIL FROM).  Problem diagnosed
 	with help from Alban Deniz. File: milter/milter8.c.
+
+20090711-2
+
+	New "event_server" Postfix server framework. It is similar
+	to the "multi_server" framework but does not manage client
+	I/O events.  This framework is suitable for servers such
+	as postscreen that have complex event management requirements.
+	File: master/event_server.c.
+
+	New event_fork() primitive to resume event processing in a
+	child process after it is created with fork(). This is
+	needed by postscreen to complete work-in-progress in the
+	background after "postfix reload". File: util/events.c.
+
+	Cleanup: postscreen migrated to the "event_server" framework.
+	File: postscreen/postscreen.c.
 
 20090712
 
@@ -15331,7 +15391,57 @@ Apologies for any names omitted.
 	feature can be used meaningfully at any protocol stage.
 	File: proto/postconf.proto.
 
+20090717
+
+	Cleanup: postscreen PREGREET detection now uses non-destructive
+	read, so that the real SMTP server can still receive the
+	HELO command (apparently some sites allow pregreeters to
+	talk to their servers).  File: postscreen/postscreen.c.
+
 20090805
 
 	Bugfix: don't panic when an unexpected smtpd access map is
 	specified. File: smtpd/smtpd_check.c.
+
+20090918
+
+	Bugfix (introduced Postfix 2.3): with Milter RCPT TO replies
+	turned off, there was no automatic flush-before-read on the
+	smtpd-to-milter stream, because the read was done on the
+	cleanup-to-milter stream. Problem reported by Stephen Warren.
+	File: milter/milter8.c.
+
+20091005
+
+	Bugfix: core dump while printing error message for malformed
+	%<letter> sequence in LDAP, MySQL or PostgreSQL configuration.
+	File: global/db_common.c. Fix by Victor Duchovni.
+
+20091006
+
+	Feature: "postscreen_whitelist_networks = $mynetworks" (the
+	default) to avoid problems with buggy SMTP implementations
+	in network appliances.  Note: this feature never uses the
+	remote SMTP client hostname.  Files: global/addr_match_list.[hc],
+	postscreen/postscreen.c.
+
+	Feature: postscreen_blacklist_networks (default: empty) to
+	permanently blacklist hosts or networks. Address syntax is
+	as with mynetworks. Note: this feature never uses the remote
+	SMTP client hostname.  File: postscreen/postscreen.c.
+
+	Feature: postscreen_blacklist_action (default: continue)
+	to control what happens with a permanently blacklisted
+	client.
+
+20091007
+
+	Feature: hostname-based check_client_{mx,ns}_access,
+	check_reverse_client_hostname_{mx,ns}_access (the client
+	IP address is not used). Rob Foehl.  Files: smtpd/smtpd_check.c,
+	global/mail_params.h, proto/postconf.proto, mantools/postlink.
+
+20091008
+
+	Documentation: restructured the postscreen(8) manpage
+	as a sequence of tests. File: postscreen/postscreen.c.

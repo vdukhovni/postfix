@@ -475,7 +475,7 @@ while (<>) {
     s;\bsmtpd_autho[-</bB>]*\n*[ <bB>]*rized_verp_clients\b;<a href="postconf.5.html#smtpd_authorized_verp_clients">$&</a>;g;
     s;\bsmtpd_autho[-</bB>]*\n*[ <bB>]*rized_xclient_hosts\b;<a href="postconf.5.html#smtpd_authorized_xclient_hosts">$&</a>;g;
     s;\bsmtpd_autho[-</bB>]*\n*[ <bB>]*rized_xforward_hosts\b;<a href="postconf.5.html#smtpd_authorized_xforward_hosts">$&</a>;g;
-    s;\bsmtpd_banner\b;<a href="postconf.5.html#smtpd_banner">$&</a>;g;
+    s;\bsmtpd_ban[-</bB>]*\n*[ <bB>]*ner\b;<a href="postconf.5.html#smtpd_banner">$&</a>;g;
     s;\bsmtpd_client_connection_count_limit\b;<a href="postconf.5.html#smtpd_client_connection_count_limit">$&</a>;g;
     s;\bsmtpd_client_event_limit_exceptions\b;<a href="postconf.5.html#smtpd_client_event_limit_exceptions">$&</a>;g;
     s;\bsmtpd_client_connection_rate_limit\b;<a href="postconf.5.html#smtpd_client_connection_rate_limit">$&</a>;g;
@@ -702,6 +702,7 @@ while (<>) {
     s/[<bB>]*cleanup[<\/bB>]*\(8\)/<a href="cleanup.8.html">$&<\/a>/g;
     s/[<bB>]*defer[<\/bB>]*\(8\)/<a href="defer.8.html">$&<\/a>/g;
     s/[<bB>]*dis[-<\/bB>]*\n* *[<bB>]*card[<\/bB>]*\(8\)/<a href="discard.8.html">$&<\/a>/g;
+    s/[<bB>]*dnsblog[<\/bB>]*\(8\)/<a href="dnsblog.8.html">$&<\/a>/g;
     s/[<bB>]*error[<\/bB>]*\(8\)/<a href="error.8.html">$&<\/a>/g;
     s/[<bB>]*flush[<\/bB>]*\(8\)/<a href="flush.8.html">$&<\/a>/g;
     s/[<bB>]*lmtp[<\/bB>]*\(8\)/<a href="lmtp.8.html">$&<\/a>/g;
@@ -709,6 +710,7 @@ while (<>) {
     s/[<bB>]*mas[-<\/bB>]*\n* *[<bB>]*ter[<\/bB>]*\(8\)/<a href="master.8.html">$&<\/a>/g;
     s/[<bB>]*pickup[<\/bB>]*\(8\)/<a href="pickup.8.html">$&<\/a>/g;
     s/[<bB>]*pipe[<\/bB>]*\(8\)/<a href="pipe.8.html">$&<\/a>/g;
+    s/[<bB>]*postscreen[<\/bB>]*\(8\)/<a href="postscreen.8.html">$&<\/a>/g;
     s/[<bB>]*oqmgr[<\/bB>]*\(8\)/<a href="qmgr.8.html">$&<\/a>/g;
     s/[<bB>]*\bqmgr[<\/bB>]*\(8\)/<a href="qmgr.8.html">$&<\/a>/g;
     s/[<bB>]*qmqpd[<\/bB>]*\(8\)/<a href="qmqpd.8.html">$&<\/a>/g;
@@ -797,7 +799,12 @@ while (<>) {
     # Access restrictions - client
 
     s;\bcheck_client_access\b;<a href="postconf.5.html#check_client_access">$&</a>;g;
+    s;\bcheck_client_mx_access\b;<a href="postconf.5.html#check_client_mx_access">$&</a>;g;
+    s;\bcheck_client_ns_access\b;<a href="postconf.5.html#check_client_ns_access">$&</a>;g;
     s;\bcheck_ccert_access\b;<a href="postconf.5.html#check_ccert_access">$&</a>;g;
+    s;\bcheck_reverse_client_hostname_access\b;<a href="postconf.5.html#check_reverse_client_hostname_access">$&</a>;g;
+    s;\bcheck_reverse_client_hostname_mx_access\b;<a href="postconf.5.html#check_reverse_client_hostname_mx_access">$&</a>;g;
+    s;\bcheck_reverse_client_hostname_ns_access\b;<a href="postconf.5.html#check_reverse_client_hostname_ns_access">$&</a>;g;
     s;\bpermit_inet_interfaces\b;<a href="postconf.5.html#permit_inet_interfaces">$&</a>;g;
     s;\bpermit_mynetworks\b;<a href="postconf.5.html#permit_mynetworks">$&</a>;g;
     s;\bpermit_sasl_authenticated\b;<a href="postconf.5.html#permit_sasl_authenticated">$&</a>;g;
@@ -813,6 +820,8 @@ while (<>) {
     # Access restrictions - helo
 
     s;\bcheck_helo_access\b;<a href="postconf.5.html#check_helo_access">$&</a>;g;
+    s;\bcheck_helo_mx_access\b;<a href="postconf.5.html#check_helo_mx_access">$&</a>;g;
+    s;\bcheck_helo_ns_access\b;<a href="postconf.5.html#check_helo_ns_access">$&</a>;g;
     s;\breject_invalid_helo_hostname\b;<a href="postconf.5.html#reject_invalid_helo_hostname">$&</a>;g;
     s;\breject_invalid_hostname\b;<a href="postconf.5.html#reject_invalid_helo_hostname">$&</a>;g;
     s;\breject_non_fqdn_helo_hostname\b;<a href="postconf.5.html#reject_non_fqdn_helo_hostname">$&</a>;g;
@@ -824,6 +833,8 @@ while (<>) {
     # Access restrictions - sender
 
     s;\bcheck_sender_access\b;<a href="postconf.5.html#check_sender_access">$&</a>;g;
+    s;\bcheck_sender_mx_access\b;<a href="postconf.5.html#check_sender_mx_access">$&</a>;g;
+    s;\bcheck_sender_ns_access\b;<a href="postconf.5.html#check_sender_ns_access">$&</a>;g;
     s;\b(reject_authenti)([-</bB>]*\n*[ <bB>]*)(cated_sender_login_mismatch)\b;<a href="postconf.5.html#reject_authenticated_sender_login_mismatch">$1<\/a>$2<a href="postconf.5.html#reject_authenticated_sender_login_mismatch">$3</a>;g;
     s;\breject_non_fqdn_sender\b;<a href="postconf.5.html#reject_non_fqdn_sender">$&</a>;g;
     s;\breject_rhsbl_sender\b;<a href="postconf.5.html#reject_rhsbl_sender">$&</a>;g;
@@ -877,6 +888,21 @@ while (<>) {
     s;\bmulti_instance_name\b;<a href="postconf.5.html#multi_instance_name">$&</a>;g;
     s;\bmulti_instance_enable\b;<a href="postconf.5.html#multi_instance_enable">$&</a>;g;
 
+    # postscreen
+    s;\bpostscreen_cache_map\b;<a href="postconf.5.html#postscreen_cache_map">$&</a>;g;
+    s;\bpostscreen_cache_ttl\b;<a href="postconf.5.html#postscreen_cache_ttl">$&</a>;g;
+    s;\bsmtpd_service\b;<a href="postconf.5.html#smtpd_service">$&</a>;g;
+    s;\bpostscreen_post_queue_limit\b;<a href="postconf.5.html#postscreen_post_queue_limit">$&</a>;g;
+    s;\bpostscreen_pre_queue_limit\b;<a href="postconf.5.html#postscreen_pre_queue_limit">$&</a>;g;
+    s;\bpostscreen_greet_banner\b;<a href="postconf.5.html#postscreen_greet_banner">$&</a>;g;
+    s;\bpostscreen_greet_wait\b;<a href="postconf.5.html#postscreen_greet_wait">$&</a>;g;
+    s;\bpostscreen_greet_action\b;<a href="postconf.5.html#postscreen_greet_action">$&</a>;g;
+    s;\bpostscreen_dnsbl_sites\b;<a href="postconf.5.html#postscreen_dnsbl_sites">$&</a>;g;
+    s;\bpostscreen_dnsbl_action\b;<a href="postconf.5.html#postscreen_dnsbl_action">$&</a>;g;
+    s;\bpostscreen_hangup_action\b;<a href="postconf.5.html#postscreen_hangup_action">$&</a>;g;
+    s;\bpostscreen_whitelist_networks\b;<a href="postconf.5.html#postscreen_whitelist_networks">$&</a>;g;
+    s;\bpostscreen_black[-</bB>]*\n*[ <bB>]*list_networks\b;<a href="postconf.5.html#postscreen_blacklist_networks">$&</a>;g;
+    s;\bpostscreen_black[-</bB>]*\n*[ <bB>]*list_action\b;<a href="postconf.5.html#postscreen_blacklist_action">$&</a>;g;
 
     # Hyperlink URLs and RFC documents
 

@@ -265,7 +265,9 @@ static void single_server_wakeup(int fd)
 	single_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
     if (msg_verbose)
 	msg_info("connection closed");
-    use_count++;
+    /* Avoid integer wrap-around in a persistent process.  */
+    if (use_count < INT_MAX)
+	use_count++;
     if (var_idle_limit > 0)
 	event_request_timer(single_server_timeout, (char *) 0, var_idle_limit);
 }

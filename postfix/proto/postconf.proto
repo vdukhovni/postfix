@@ -4046,8 +4046,9 @@ The default time unit is s (seconds).
 %PARAM smtp_host_lookup dns
 
 <p>
-What mechanisms when the Postfix SMTP client uses to look up a host's IP
-address.  This parameter is ignored when DNS lookups are disabled.
+What mechanisms the Postfix SMTP client uses to look up a host's IP
+address.  This parameter is ignored when DNS lookups are disabled
+(see: disable_dns_lookups).
 </p>
 
 <p>
@@ -4759,6 +4760,22 @@ Postfix version 2.5).  This feature is available with Postfix version
 parent domains, client IP address, or networks obtained by stripping
 least significant octets. See the access(5) manual page for details. </dd>
 
+<dt><b><a name="check_client_mx_access">check_client_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
+
+<dd>Search the specified access(5) database for the MX hosts for the
+client hostname, and execute the corresponding action.  Note: a result
+of "OK" is not allowed for safety reasons. Instead, use DUNNO in order
+to exclude specific hosts from blacklists.  This feature is available
+in Postfix 2.7 and later.  </dd>
+
+<dt><b><a name="check_client_ns_access">check_client_ns_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
+
+<dd>Search the specified access(5) database for the DNS servers for
+the client hostname, and execute the corresponding action.  Note: a
+result of "OK" is not allowed for safety reasons. Instead, use DUNNO
+in order to exclude specific hosts from blacklists.  This feature is
+available in Postfix 2.7 and later.  </dd>
+
 <dt><b><a name="check_reverse_client_hostname_access">check_reverse_client_hostname_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access database for the unverified reverse
@@ -4768,6 +4785,22 @@ manual page for details.  Note: a result of "OK" is not allowed for
 safety reasons.  Instead, use DUNNO in order to exclude specific
 hosts from blacklists.  This feature is available in Postfix 2.6
 and later.</dd>
+
+<dt><b><a name="check_reverse_client_hostname_mx_access">check_reverse_client_hostname_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
+
+<dd>Search the specified access(5) database for the MX hosts for the
+unverified reverse client hostname, and execute the corresponding
+action.  Note: a result of "OK" is not allowed for safety reasons.
+Instead, use DUNNO in order to exclude specific hosts from blacklists.
+This feature is available in Postfix 2.7 and later.  </dd>
+
+<dt><b><a name="check_reverse_client_hostname_ns_access">check_reverse_client_hostname_ns_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
+
+<dd>Search the specified access(5) database for the DNS servers for
+the unverified reverse client hostname, and execute the corresponding
+action.  Note: a result of "OK" is not allowed for safety reasons.
+Instead, use DUNNO in order to exclude specific hosts from blacklists.
+This feature is available in Postfix 2.7 and later.  </dd>
 
 <dt><b><a name="permit_inet_interfaces">permit_inet_interfaces</a></b></dt>
 
@@ -4939,7 +4972,7 @@ of time where it is not allowed, or when the client sends SMTP
 commands ahead of time without knowing that Postfix actually supports
 ESMTP command pipelining. This stops mail from bulk mail software
 that improperly uses ESMTP command pipelining in order to speed up
-deliveries.
+deliveries. 
 <br> With Postfix 2.6 and later, the SMTP server sets a per-session
 flag whenever it detects illegal pipelining, including pipelined
 EHLO or HELO commands. The reject_unauth_pipelining feature simply
@@ -12331,3 +12364,197 @@ inspection for DKIM-signed mail from known friendly domains. </p>
 
 <p> This feature is available in Postfix 2.7, and as an optional
 patch for Postfix 2.6. </p>
+
+%PARAM postscreen_cache_map btree:$data_directory/ps_whitelist
+
+<p> Persistent storage for the postscreen(8) server decisions. </p>
+
+<p> This feature is available in Postfix 2.7. </p>
+
+%PARAM smtpd_service smtpd
+
+<p> The internal service that postscreen(8) forwards allowed
+connections to. In a future version there may be different
+classes of SMTP service. </p>
+
+<p> This feature is available in Postfix 2.7. </p>
+
+%PARAM postscreen_post_queue_limit $default_process_limit
+
+<p> The number of clients that can be waiting for service from a
+real SMTP server process. When this queue is full, all clients will
+receive a 421 reponse. </p>
+
+<p> This feature is available in Postfix 2.7. </p>
+
+%PARAM postscreen_pre_queue_limit $default_process_limit
+
+<p> The number of non-whitelisted clients that can be waiting for
+a decision whether they will receive service from a real SMTP server
+process. When this queue is full, all non-whitelisted clients will
+receive a 421 reponse. </p>
+
+<p> This feature is available in Postfix 2.7. </p>
+
+%PARAM postscreen_cache_ttl 1d
+
+<p> The amount of time that postscreen(8) will cache a decision for
+a specific SMTP client IP address. During this time, the client IP
+address is excluded from tests. If possible, expired decisions are
+renewed silently. Specify a non-zero time value (an integral value
+plus an optional one-letter suffix that specifies the time unit).
+</p>
+
+<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
+(weeks).  </p>
+
+<p> This feature is available in Postfix 2.7. </p>
+
+%PARAM postscreen_greet_wait 4s
+
+<p> The amount of time that postscreen(8) will wait for an SMTP
+client to send a command before its turn, and for DNS blocklist
+lookup results to arrive. This is done only when the SMTP client
+IP address is not permanently whitelisted, and when it has no cached
+decision.  Specify a non-zero time value (an integral value plus
+an optional one-letter suffix that specifies the time unit).  </p>
+
+<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
+(weeks).  </p>
+
+<p> This feature is available in Postfix 2.7. </p>
+
+%PARAM postscreen_dnsbl_sites
+
+<p>Optional list of DNS blocklist domains. When the list is non-enpty,
+the dnsblog(8) daemon will query these domains with the IP addresses
+of non-whitelisted postscreen(8) clients. Specify a list of domain
+names, separated by comma or whitespace. </p>
+
+%PARAM postscreen_dnsbl_action continue
+
+<p>The action that postscreen(8) takes when an SMTP client is listed
+at the DNS blocklist domains specified with the postscreen_dnsbl_sites
+parameter.  Specify one of the following: </p>
+
+<dl>
+
+<dt> continue </dt>
+
+<dd> Forward the connection to a real SMTP server process. </p>
+
+<dt> drop </dt>
+
+<dd> Drop the connection with a 521 SMTP reply. </dd>
+
+</dl>
+
+<p> This feature is available in Postfix 2.7. </p>
+
+%PARAM postscreen_greet_action continue
+
+<p>The action that postscreen(8) takes when an SMTP client speaks
+before its turn within the time specified with the postscreen_greet_wait
+parameter.  Specify one of the following: </p>
+
+<dl>
+
+<dt> continue </dt>
+
+<dd> Continue waiting until the postscreen_greet_wait time has
+elapsed. If the client is listed at the DNS blocklist domains
+specified with the postscreen_dnsbl_sites parameter, execute the
+action specified with the postscreen_dnsbl_action parameter, otherwise
+forward the connection to a real SMTP server process. </p>
+
+<dt> drop </dt>
+
+<dd> Drop the connection immediately with a 521 SMTP reply, without
+examining DNSBL lookup results. </dd>
+
+</dl>
+
+<p> In either case, postscreen(8) will not whitelist the SMTP client
+IP address. </p>
+
+<p> This feature is available in Postfix 2.7. </p>
+
+%PARAM postscreen_hangup_action continue
+
+<p>The action that postscreen(8) takes when an SMTP client disconnects
+without sending data, within the time specified with the
+postscreen_greet_wait parameter.  Specify one of the following:
+</p>
+
+<dl>
+
+<dt> continue </dt>
+
+<dd> Continue waiting until the postscreen_greet_wait time has
+elapsed, and report whether the client is listed at the DNSBL sites
+specified with the postscreen_dnsbl_sites parameter. Do not
+forward the broken connection to a real SMTP server process. </p>
+
+<dt> drop </dt>
+
+<dd> Drop the connection immediately, without reporting DNSBL lookup
+results. </dd>
+
+</dl>
+
+<p> This feature is available in Postfix 2.7. </p>
+
+%PARAM postscreen_whitelist_networks $mynetworks
+
+<p> Network addresses that are permanently whitelisted, and that
+will not be subjected to postscreen(8) checks. This parameter uses
+the same address syntax as the mynetworks parameter. This feature
+never uses the remote SMTP client hostname.  </p>
+
+<p> This feature is available in Postfix 2.7. </p>
+
+%PARAM postscreen_blacklist_networks 
+
+<p> Network addresses that are permanently blacklisted; see the
+postscreen_blacklist_action parameter for possible actions.  This
+parameter uses the same address syntax as the mynetworks parameter.
+The blacklist has higher precedence than whitelists. This feature
+never uses the remote SMTP client hostname.  </p>
+
+<p> This feature is available in Postfix 2.7. </p>
+
+%PARAM postscreen_greet_banner $smtpd_banner
+
+<p> The text in the optional "220-text..." server response that
+postscreen(8) sends ahead of the real Postfix SMTP server's "220
+text..." response, in an attempt to confuse bad SMTP clients so
+that they speak before their turn (pre-greet).  Specify an empty
+value to disable this feature.  </p>
+
+<p> This feature is available in Postfix 2.7. </p>
+
+%PARAM postscreen_blacklist_action continue
+
+<p> The action that postscreen(8) takes when an SMTP client is
+permanently blacklisted with the postscreen_blacklist_networks
+parameter.  Specify one of the following: </p>
+
+<dl>
+
+<dt> continue </dt>
+
+<dd> Continue waiting until the postscreen_greet_wait time has
+elapsed, and report whether the client triggers a PREGREET or HANGUP
+error, or whether the client is listed at the DNSBL sites specified
+with the postscreen_dnsbl_sites parameter.  Take the corresponding
+action, or forward the connection to a real SMTP server process.
+</p>
+
+<dt> drop </dt>
+
+<dd> Drop the connection immediately with a 521 SMTP reply, without
+reporting PREGREET, HANGUP or DNSBL results. </dd>
+
+<p> This feature is available in Postfix 2.7. </p>
+
+</dl>

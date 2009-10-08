@@ -3686,6 +3686,34 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    }
 	} else if (is_map_command(state, name, CHECK_CCERT_ACL, &cpp)) {
 	    status = check_ccert_access(state, *cpp, def_acl);
+	} else if (is_map_command(state, name, CHECK_CLIENT_NS_ACL, &cpp)) {
+	    if (strcasecmp(state->name, "unknown") != 0) {
+		status = check_server_access(state, *cpp, state->name,
+					     T_NS, state->namaddr,
+					     SMTPD_NAME_CLIENT, def_acl);
+		forbid_whitelist(state, name, status, state->name);
+	    }
+	} else if (is_map_command(state, name, CHECK_CLIENT_MX_ACL, &cpp)) {
+	    if (strcasecmp(state->name, "unknown") != 0) {
+		status = check_server_access(state, *cpp, state->name,
+					     T_MX, state->namaddr,
+					     SMTPD_NAME_CLIENT, def_acl);
+		forbid_whitelist(state, name, status, state->name);
+	    }
+	} else if (is_map_command(state, name, CHECK_REVERSE_CLIENT_NS_ACL, &cpp)) {
+	    if (strcasecmp(state->reverse_name, "unknown") != 0) {
+		status = check_server_access(state, *cpp, state->reverse_name,
+					     T_NS, state->namaddr,
+					     SMTPD_NAME_REV_CLIENT, def_acl);
+		forbid_whitelist(state, name, status, state->reverse_name);
+	    }
+	} else if (is_map_command(state, name, CHECK_REVERSE_CLIENT_MX_ACL, &cpp)) {
+	    if (strcasecmp(state->reverse_name, "unknown") != 0) {
+		status = check_server_access(state, *cpp, state->reverse_name,
+					     T_MX, state->namaddr,
+					     SMTPD_NAME_REV_CLIENT, def_acl);
+		forbid_whitelist(state, name, status, state->reverse_name);
+	    }
 	}
 
 	/*

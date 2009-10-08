@@ -2584,6 +2584,13 @@ static int milter8_send(MILTER *m, VSTREAM *stream)
     if (msg_verbose)
 	msg_info("%s: milter %s", myname, milter->m.name);
 
+    /*
+     * The next read on this Milter socket happens in a different process. It
+     * will not automatically flush the output buffer in this process.
+     */
+    if (milter->fp)
+	vstream_fflush(milter->fp);
+
     if (attr_print(stream, ATTR_FLAG_MORE,
 		   ATTR_TYPE_STR, MAIL_ATTR_MILT_NAME, milter->m.name,
 		   ATTR_TYPE_INT, MAIL_ATTR_MILT_VERS, milter->version,
