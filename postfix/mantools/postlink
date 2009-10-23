@@ -484,6 +484,7 @@ while (<>) {
     s;\bsmtpd_client_recipient_rate_limit\b;<a href="postconf.5.html#smtpd_client_recipient_rate_limit">$&</a>;g;
     s;\bsmtpd_client_new_tls_session_rate_limit\b;<a href="postconf.5.html#smtpd_client_new_tls_session_rate_limit">$&</a>;g;
     s;\bsmtpd_client_restrictions\b;<a href="postconf.5.html#smtpd_client_restrictions">$&</a>;g;
+    s;\bsmtpd_command_filter\b;<a href="postconf.5.html#smtpd_command_filter">$&</a>;g;
     s;\bsmtpd_data_restrictions\b;<a href="postconf.5.html#smtpd_data_restrictions">$&</a>;g;
     s;\bsmtpd_delay_open_until_valid_rcpt\b;<a href="postconf.5.html#smtpd_delay_open_until_valid_rcpt">$&</a>;g;
     s;\bsmtpd_delay_reject\b;<a href="postconf.5.html#smtpd_delay_reject">$&</a>;g;

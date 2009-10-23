@@ -1148,6 +1148,10 @@ extern char *var_smtpd_noop_cmds;
 #define DEF_SMTPD_FORBID_CMDS	"CONNECT GET POST"
 extern char *var_smtpd_forbid_cmds;
 
+#define VAR_SMTPD_CMD_FILTER	"smtpd_command_filter"
+#define DEF_SMTPD_CMD_FILTER	""
+extern char *var_smtpd_cmd_filter;
+
 #define VAR_SMTPD_TLS_WRAPPER	"smtpd_tls_wrappermode"
 #define DEF_SMTPD_TLS_WRAPPER	0
 extern bool var_smtpd_tls_wrappermode;

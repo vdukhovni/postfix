@@ -10,15 +10,16 @@
 /*	multiple inbound SMTP connections in parallel. The program
 /*	can run in two basic modes.
 /*
-/*	In \fBobservation mode\fR the purpose is to collect statistics
+/*	The purpose of \fBobservation mode\fR is to collect statistics
 /*	without actually blocking mail. \fBpostscreen\fR(8) runs a
 /*	number of tests before it forwards a connection to a real
 /*	SMTP server process.  These tests introduce a delay of a
 /*	few seconds; once a client passes the tests as "clean", its
-/*	IP address is whitelisted and subsequent connections incur
-/*	no delays until the whitelist entry expires.
+/*	IP address is temporarily whitelisted and subsequent
+/*	connections incur no delays until the temporary whitelist
+/*	entry expires.
 /*
-/*	In \fBenforcement mode\fR the purpose is to block mail
+/*	The purpose of \fBenforcement mode\fR is to block mail
 /*	without using up one Postfix SMTP server process for every
 /*	connection.  Here, \fBpostscreen\fR(8) terminates connections
 /*	from SMTP clients that fail the above tests, and forwards
@@ -38,9 +39,10 @@
 /* .fi
 /*	The postscreen_blacklist_networks parameter (default: empty)
 /*	specifies a permanent blacklist for SMTP client IP addresses.
-/*	The address syntax is as with mynetworks. When the SMTP
-/*	client address matches the permanent blacklist, this is
-/*	logged as:
+/*	The address syntax is as with mynetworks.
+/*
+/*	When the SMTP client address matches the permanent blacklist,
+/*	this is logged as:
 /* .sp
 /* .nf
 /*	\fBBLACKLISTED \fIaddress\fR
@@ -61,8 +63,10 @@
 /*	The postscreen_whitelist_networks parameter (default:
 /*	$mynetworks) specifies a permanent whitelist for SMTP client
 /*	IP addresses.  This feature is not used for addresses that
-/*	appear on the permanent blacklist. When the SMTP client
-/*	address matches the permanent whitelist, this is logged as:
+/*	appear on the permanent blacklist. 
+/*
+/*	When the SMTP client address matches the permanent whitelist,
+/*	this is logged as:
 /* .sp
 /* .nf
 /*	\fBWHITELISTED \fIaddress\fR
@@ -99,6 +103,7 @@
 /*	during which \fBpostscreen\fR(8) runs a number of tests as
 /*	described below.  These tests run before the client may
 /*	see the real SMTP server's "220 text..." server greeting.
+/*
 /*	When the SMTP client passes all the tests, this is logged
 /*	as:
 /* .sp
@@ -133,8 +138,8 @@
 /*	empty postscreen_greet_banner value to disable the "220-text..."
 /*	teaser banner.
 /*
-/*	When an SMTP client speaks before the postscreen_greet_wait
-/*	time has elapsed, this is logged as:
+/*	When an SMTP client sends a command before the
+/*	postscreen_greet_wait time has elapsed, this is logged as:
 /* .sp
 /* .nf
 /*	\fBPREGREET \fIcount \fBafter \fItime \fBfrom \fIaddress text...\fR
@@ -142,9 +147,9 @@
 /* .sp
 /*	Translation: the client at \fIaddress\fR sent \fIcount\fR
 /*	bytes before its turn to speak, and this happened \fItime\fR
-/*	seconds after the test started. The \fItext\fR is what the
-/*	client sent (truncated at 100 bytes, and with non-printable
-/*	characters replaced with "?").
+/*	seconds after the postscreen_greet_wait timer was started.
+/*	The \fItext\fR is what the client sent (truncated to 100
+/*	bytes, and with non-printable characters replaced with "?").
 /*
 /*	The postscreen_greet_action parameter specifies the action
 /*	that is taken next:
@@ -181,10 +186,11 @@
 /* .ad
 /* .fi
 /*	The postscreen_dnsbl_sites parameter (default: empty)
-/*	specifies a list of DNS blocklist servers. When the
-/*	postscreen_greet_wait time has elapsed, and the SMTP client
-/*	address is reported by at least one of these blocklists,
-/*	this is logged as:
+/*	specifies a list of DNS blocklist servers. 
+/*
+/*	When the postscreen_greet_wait time has elapsed, and the
+/*	SMTP client address is listed with at least one of these
+/*	blocklists, this is logged as:
 /* .sp
 /* .nf
 /*	\fBDNSBL rank \fIcount \fBfor \fIaddress\fR
@@ -1088,9 +1094,6 @@ static void postscreen_service(VSTREAM *smtp_client_stream,
      * If the client has no cached decision, send half the greeting banner,
      * by way of teaser, then wait briefly to see if the client speaks before
      * its turn.
-     * 
-     * This is where we would do DNS blocklist lookup in the background, and
-     * cancel the lookup when the client takes action first.
      * 
      * Before sending the banner we could set the TCP window to the smallest
      * possible value to save some network bandwidth, at least with spamware

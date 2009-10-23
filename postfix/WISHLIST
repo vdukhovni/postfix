@@ -2,8 +2,16 @@ Wish list:
 
 	Remove this file from the stable release.
 
+	Add smtpd_sender_login_maps to proxy_read_maps.
+
 	SMTP connection caching without storing connections, to
 	improve TLS mail delivery performance.
+
+	postscreen has separate socket budgets for whitelisted
+	clients and for other clients. If we add a dummy SMTP engine
+	then we extend the session length for non-whitelisted clients
+	and need to increase the socket budget (or create a new
+	budget class, which complicates the user interface).
 
 	Should not milter8_mail_event() unset the "hold" default
 	reply? Better, the default reply should not be used for

@@ -92,6 +92,9 @@
 /*	Resolve an address that ends in the "@" null domain as if the
 /*	local hostname were specified, instead of rejecting the address as
 /*	invalid.
+/* .IP "\fBsmtpd_command_filter (empty)\fR"
+/*	A mechanism to substitute incoming SMTP commands by other
+/*	commands.
 /* .IP "\fBsmtpd_reject_unlisted_sender (no)\fR"
 /*	Request that the Postfix SMTP server rejects mail from unknown
 /*	sender addresses, even when no explicit reject_unlisted_sender
@@ -1164,6 +1167,7 @@ bool    var_smtpd_use_tls;
 bool    var_smtpd_enforce_tls;
 bool    var_smtpd_tls_wrappermode;
 bool    var_smtpd_tls_auth_only;
+char   *var_smtpd_cmd_filter;
 
 #ifdef USE_TLS
 char   *var_smtpd_relay_ccerts;
@@ -1305,6 +1309,11 @@ static int ask_client_cert;
 #endif
 
 static int enforce_tls;
+
+ /*
+  * SMTP command mapping for broken clients.
+  */
+static DICT *smtpd_cmd_filter;
 
 #ifdef USE_SASL_AUTH
 
@@ -4163,6 +4172,7 @@ static void smtpd_proto(SMTPD_STATE *state)
     const char *ehlo_words;
     const char *err;
     int     status;
+    const char *cp;
 
     /*
      * Print a greeting banner and run the state machine. Read SMTP commands
@@ -4423,6 +4433,12 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    }
 	    watchdog_pat();
 	    smtpd_chat_query(state);
+	    if (smtpd_cmd_filter != 0) {
+		for (cp = STR(state->buffer); *cp && IS_SPACE_TAB(*cp); cp++)
+		     /* void */ ;
+		if ((cp = dict_get(smtpd_cmd_filter, cp)) != 0)
+		    vstring_strcpy(state->buffer, cp);
+	    }
 	    if ((argc = smtpd_token(vstring_str(state->buffer), &argv)) == 0) {
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
 		smtpd_chat_reply(state, "500 5.5.2 Error: bad syntax");
@@ -4695,6 +4711,10 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 	msg_warn("%s is true, but SASL support is not compiled in",
 		 VAR_SMTPD_SASL_ENABLE);
 #endif
+
+    if (*var_smtpd_cmd_filter)
+	smtpd_cmd_filter = dict_open(var_smtpd_cmd_filter, O_RDONLY,
+				     DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
 
     /*
      * XXX Temporary fix to pretend that we consistently implement TLS
@@ -5069,6 +5089,7 @@ int     main(int argc, char **argv)
 	VAR_UNK_ADDR_TF_ACT, DEF_UNK_ADDR_TF_ACT, &var_unk_addr_tf_act, 1, 0,
 	VAR_UNV_RCPT_TF_ACT, DEF_UNV_RCPT_TF_ACT, &var_unv_rcpt_tf_act, 1, 0,
 	VAR_UNV_FROM_TF_ACT, DEF_UNV_FROM_TF_ACT, &var_unv_from_tf_act, 1, 0,
+	VAR_SMTPD_CMD_FILTER, DEF_SMTPD_CMD_FILTER, &var_smtpd_cmd_filter, 0, 0,
 	0,
     };
     static const CONFIG_RAW_TABLE raw_table[] = {

@@ -65,10 +65,14 @@ scache    unix  -       -       n       -       1       scache
 #
 # ====================================================================
 #
-# The Cyrus deliver program has changed incompatibly, multiple times.
+# Recent Cyrus versions can use the existing "lmtp" master.cf entry.
 #
-#old-cyrus unix  -       n       n       -       -       pipe
-#  flags=R user=cyrus argv=/cyrus/bin/deliver -e -m ${extension} ${user}
+# Specify in cyrus.conf:
+#   lmtp    cmd="lmtpd -a" listen="localhost:lmtp" proto=tcp4
+#
+# Specify in main.cf one or more of the following:
+#  mailbox_transport = lmtp:inet:localhost
+#  virtual_transport = lmtp:inet:localhost
 #
 # ====================================================================
 #
@@ -77,6 +81,13 @@ scache    unix  -       -       n       -       1       scache
 #
 #cyrus     unix  -       n       n       -       -       pipe
 #  user=cyrus argv=/cyrus/bin/deliver -e -r ${sender} -m ${extension} ${user}
+#
+# ====================================================================
+#
+# Old example of delivery via Cyrus.
+#
+#old-cyrus unix  -       n       n       -       -       pipe
+#  flags=R user=cyrus argv=/cyrus/bin/deliver -e -m ${extension} ${user}
 #
 # ====================================================================
 #

@@ -15432,7 +15432,7 @@ Apologies for any names omitted.
 
 	Feature: postscreen_blacklist_action (default: continue)
 	to control what happens with a permanently blacklisted
-	client.
+	client. File: postscreen/postscreen.c.
 
 20091007
 
@@ -15445,3 +15445,16 @@ Apologies for any names omitted.
 
 	Documentation: restructured the postscreen(8) manpage
 	as a sequence of tests. File: postscreen/postscreen.c.
+
+20091012
+
+	Bugfix: postmulti did not skip commands with -p.  Luca
+	Berra. File: postmulti/postmulti.c.
+
+20091023
+
+	Feature: specify "smtp_command_maps = pcre:/file/name" to
+	replace incoming SMTP commands before they are executed by
+	the Postfix SMTP server. This a last-resort tool to fix bad
+	command syntax that Postfix would otherwise reject.  See
+	examples in the postconf(5) manual page.  File: smtpd/smtpd.c.
