@@ -2714,6 +2714,10 @@ extern char *var_smtpd_proxy_ehlo;
 #define DEF_SMTPD_PROXY_TMOUT		"100s"
 extern int var_smtpd_proxy_tmout;
 
+#define VAR_SMTPD_PROXY_OPTS		"smtpd_proxy_options"
+#define DEF_SMTPD_PROXY_OPTS		""
+extern char *var_smtpd_proxy_opts;
+
  /*
   * Transparency options for mail input interfaces and for the cleanup server
   * behind them. These should turn off stuff we don't want to happen, because

@@ -5362,6 +5362,35 @@ By default, the Postfix hostname is used.
 This feature is available in Postfix 2.1 and later.
 </p>
 
+%PARAM smtpd_proxy_options 
+
+<p>
+List of options that control how the Postfix SMTP server
+communicates with a before-queue content filter. Specify zero or
+more of the following, separated by comma or whitespace.  </p>
+
+<dl>
+
+<dt><b>speed_adjust</b></dt>
+
+<dd> Do not connect to a before-queue content filter until an entire
+message has been received. This reduces the number of simultaneous
+before-queue content filter processes. </p>
+
+<p> NOTE 1: A filter must not <i>selectively</i> reject recipients
+of a multi-recipient message.  Rejecting all recipients is OK, as
+is accepting all recipients. </p>
+
+<p> NOTE 2: This feature increases the minimum amount of free queue
+space by $message_size_limit. The extra space is needed to save the
+message to a temporary file. </p> </dd>
+
+</dl>
+
+<p>
+This feature is available in Postfix 2.7 and later.
+</p>
+
 %CLASS smtpd-proxy SMTP Proxy filter
 
 <p>
@@ -12567,10 +12596,9 @@ invalid command syntax that would otherwise be rejected by Postfix.
 </p>
 
 <p> Specify the name of a "type:table" lookup table. The search
-string is the SMTP command as received from the SMTP client. The
-only change made is to remove initial whitespace and the trailing
-<CR><LF> characters. The result value is executed by the Postfix
-SMTP server.  </p>
+string is the SMTP command as received from the SMTP client, except
+that initial whitespace and the trailing <CR><LF> are removed. The
+result value is executed by the Postfix SMTP server.  </p>
 
 <p> Examples: </p>
 
@@ -12591,7 +12619,7 @@ SMTP server.  </p>
 </pre>
 
 <pre>
-    # Work around clients that enclose addresses in single quotes.
+    # Work around clients that send RCPT TO:<'user@domain'>.
     # WARNING: do not lose the parameters that follow the address.
     /^RCPT\s+TO:\s*<'([^[:space:]]+)'>(.*)/     RCPT TO:<$1>$2
 </pre>

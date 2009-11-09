@@ -435,6 +435,12 @@ typedef struct {
     const char *txt;			/* randomly selected trimmed TXT rr */
 } SMTPD_RBL_EXPAND_CONTEXT;
 
+ /*
+  * Multiplication factor for free space check. Free space must be at least
+  * smtpd_space_multf * message_size_limit.
+  */
+double  smtpd_space_multf = 1.5;
+
 /* policy_client_register - register policy service endpoint */
 
 static void policy_client_register(const char *name)
@@ -4622,13 +4628,14 @@ char   *smtpd_check_queue(SMTPD_STATE *state)
 		 (unsigned long) var_queue_minfree,
 		 (unsigned long) var_message_limit);
     if (BLOCKS(var_queue_minfree) >= fsbuf.block_free
-	|| BLOCKS(var_message_limit) >= fsbuf.block_free / 1.5) {
+	|| BLOCKS(var_message_limit) >= fsbuf.block_free / smtpd_space_multf) {
 	(void) smtpd_check_reject(state, MAIL_ERROR_RESOURCE,
 				  452, "4.3.1",
 				  "Insufficient system storage");
 	msg_warn("not enough free space in mail queue: %lu bytes < "
-		 "1.5*message size limit",
-		 (unsigned long) fsbuf.block_free * fsbuf.block_size);
+		 "%g*message size limit",
+		 (unsigned long) fsbuf.block_free * fsbuf.block_size,
+		smtpd_space_multf);
 	return (STR(error_text));
     }
     return (0);

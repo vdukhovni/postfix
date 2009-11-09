@@ -415,6 +415,7 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
     int     alone = 0;
     int     zerolimit = 0;
     WATCHDOG *watchdog;
+    char   *oname_val;
     char   *oname;
     char   *oval;
     const char *err;
@@ -496,11 +497,13 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
 	    service_name = optarg;
 	    break;
 	case 'o':
-	    if ((err = split_nameval(mystrdup(optarg), &oname, &oval)) != 0)
+	    oname_val = mystrdup(optarg);
+	    if ((err = split_nameval(oname_val, &oname, &oval)) != 0)
 		msg_fatal("invalid \"-o %s\" option value: %s", optarg, err);
 	    mail_conf_update(oname, oval);
 	    if (strcmp(oname, VAR_SYSLOG_NAME) == 0)
 		redo_syslog_init = 1;
+	    myfree(oname_val);
 	    break;
 	case 's':
 	    if ((socket_count = atoi(optarg)) <= 0)

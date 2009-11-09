@@ -109,8 +109,7 @@ Resolve an address that ends in the "@" null domain as if the
 local hostname were specified, instead of rejecting the address as
 invalid.
 .IP "\fBsmtpd_command_filter (empty)\fR"
-A mechanism to substitute incoming SMTP commands by other
-commands.
+A mechanism to substitute incoming SMTP commands.
 .IP "\fBsmtpd_reject_unlisted_sender (no)\fR"
 Request that the Postfix SMTP server rejects mail from unknown
 sender addresses, even when no explicit reject_unlisted_sender
@@ -187,6 +186,9 @@ details on how to configure and operate this feature.
 The hostname and TCP port of the mail filtering proxy server.
 .IP "\fBsmtpd_proxy_ehlo ($myhostname)\fR"
 How the Postfix SMTP server announces itself to the proxy filter.
+.IP "\fBsmtpd_proxy_options (empty)\fR"
+List of options that control how the Postfix SMTP server
+communicates with a before-queue content filter.
 .IP "\fBsmtpd_proxy_timeout (100s)\fR"
 The time limit for connecting to a proxy filter and for sending or
 receiving information.

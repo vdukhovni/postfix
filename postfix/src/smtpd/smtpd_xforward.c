@@ -51,7 +51,7 @@
 
 #include <smtpd.h>
 
-/* smtpd_xforward_init - initialize XCLIENT attributes */
+/* smtpd_xforward_init - initialize xforward attributes */
 
 void    smtpd_xforward_init(SMTPD_STATE *state)
 {
@@ -95,7 +95,7 @@ void    smtpd_xforward_preset(SMTPD_STATE *state)
     /* Leave domain context at zero. */
 }
 
-/* smtpd_xforward_reset - reset XCLIENT attributes */
+/* smtpd_xforward_reset - reset xforward attributes */
 
 void    smtpd_xforward_reset(SMTPD_STATE *state)
 {

@@ -6785,10 +6785,9 @@ last-resort tool to work around problems with clients that send
 invalid command syntax that would otherwise be rejected by Postfix.
 .PP
 Specify the name of a "type:table" lookup table. The search
-string is the SMTP command as received from the SMTP client. The
-only change made is to remove initial whitespace and the trailing
-<CR><LF> characters. The result value is executed by the Postfix
-SMTP server.
+string is the SMTP command as received from the SMTP client, except
+that initial whitespace and the trailing <CR><LF> are removed. The
+result value is executed by the Postfix SMTP server.
 .PP
 Examples:
 .PP
@@ -6823,7 +6822,7 @@ Examples:
 .nf
 .na
 .ft C
-    # Work around clients that enclose addresses in single quotes.
+    # Work around clients that send RCPT TO:<'user@domain'>.
     # WARNING: do not lose the parameters that follow the address.
     /^RCPT\es+TO:\es*<'([^[:space:]]+)'>(.*)/     RCPT TO:<$1>$2
 .fi
@@ -7172,6 +7171,24 @@ This feature is available in Postfix 2.1 and later.
 .PP
 The "inet:" and "unix:" prefixes are available in Postfix 2.3
 and later.
+.SH smtpd_proxy_options (default: empty)
+List of options that control how the Postfix SMTP server
+communicates with a before-queue content filter. Specify zero or
+more of the following, separated by comma or whitespace.
+.IP "\fBspeed_adjust\fR"
+Do not connect to a before-queue content filter until an entire
+message has been received. This reduces the number of simultaneous
+before-queue content filter processes.
+.PP
+NOTE 1: A filter must not \fIselectively\fR reject recipients
+of a multi-recipient message.  Rejecting all recipients is OK, as
+is accepting all recipients.
+.PP
+NOTE 2: This feature increases the minimum amount of free queue
+space by $message_size_limit. The extra space is needed to save the
+message to a temporary file.
+.PP
+This feature is available in Postfix 2.7 and later.
 .SH smtpd_proxy_timeout (default: 100s)
 The time limit for connecting to a proxy filter and for sending or
 receiving information.  When a connection fails the client gets a

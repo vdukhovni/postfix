@@ -1484,10 +1484,23 @@ typedef int pid_t;
 #endif
 
 #ifndef SCANFLIKE
-#if (__GNUC__ == 2 && __GNUC_MINOR__ >= 7) || __GNUC__ == 3
+#if (__GNUC__ == 2 && __GNUC_MINOR__ >= 7) || __GNUC__ >= 3
 #define SCANFLIKE(x,y) __attribute__ ((format (scanf, (x), (y))))
 #else
 #define SCANFLIKE(x,y)
+#endif
+#endif
+
+ /*
+  * Some gcc implementations don't grok these attributes with pointer to
+  * function. Again, wild guess of what is supported. To override, specify
+  * #define PRINTPTRFLIKE  in the system-dependent sections above.
+  */
+#ifndef PRINTFPTRLIKE
+#if (__GNUC__ >= 3)			/* XXX Rough estimate */
+#define PRINTFPTRLIKE(x,y) PRINTFLIKE(x,y)
+#else
+#define PRINTFPTRLIKE(x,y)
 #endif
 #endif
 

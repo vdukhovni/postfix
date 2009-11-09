@@ -15458,3 +15458,32 @@ Apologies for any names omitted.
 	the Postfix SMTP server. This a last-resort tool to fix bad
 	command syntax that Postfix would otherwise reject.  See
 	examples in the postconf(5) manual page.  File: smtpd/smtpd.c.
+
+20091026
+
+	Cleanup: changed parameter evaluation order so that the
+	multi_instance_wrapper parameter value is evaluated after
+	the command and daemon directory parameters. File:
+	global/mail_params.h.
+
+20091101
+
+	Performance: specify "smtpd_proxy_options = speed_adjust"
+	to receive an entire message before sending it through a
+	before-queue content filter. This reduces the number of
+	simultaneous content filtering processes, and thus, the
+	system memory requirements.  Files: smtpd/smtpd.[hc],
+	smtpd/smtpd_proxy.[hc].
+
+20091103-4
+
+	Cleaned up the speed-adjust code, streamlined the error
+	handling, and updated documentation. Files: smtpd/smtpd.[hc],
+	smtpd/smtpd_proxy.[hc], proto/SMTPD_PROXY_README.html.
+
+20091105
+
+	Cleaning up after speed_adjust introduction: smtpd segfault
+	caused by an incomplete API change; refined the queue space
+	check; release scratch space immediately after delivering
+	mail to the before-queue filter. Files: smtpd.c, smtpd_proxy.c.

@@ -14,6 +14,34 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.5 or earlier, read RELEASE_NOTES-2.6
 before proceeding.
 
+Major changes with snapshot 20091109
+====================================
+
+Improved before-queue filter performance. With "smtpd_proxy_options
+= speed_adjust", the Postfix SMTP server receives the entire message
+before it connects to a before-queue content filter. This means you
+can run more SMTP server processes with the same number of running
+content filter processes, and thus, handle more mail. This feature
+is off by default until it is proven to create no new problems.
+
+This addresses a concern of people in Europe who want to reject all
+bad mail with a before-queue filter. The alternative, an after-queue
+filter, means they would have to discard bad mail (which is illegal)
+or bounce bad mail (which violates good network citizenship).
+
+NOTE 1: When this feature is turned on, a filter cannot selectively
+reject recipients of a multi-recipient message.  Rejecting all
+recipients is OK, as is deferring all recipients, or accepting all
+recipients of the same multi-recipient message.
+
+NOTE 2: This feature increases the minimum amount of free queue
+space by $message_size_limit. The extra space is needed to save the
+message to a temporary file.
+
+To keep the performance overhead low, the same temporary file is
+reused with successive mail transactions (the file is of course
+truncated before reuse, so there is no information leakage).
+
 Incompatibility with snapshot 20091008
 ======================================
 

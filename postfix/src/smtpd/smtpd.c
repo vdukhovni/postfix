@@ -93,8 +93,7 @@
 /*	local hostname were specified, instead of rejecting the address as
 /*	invalid.
 /* .IP "\fBsmtpd_command_filter (empty)\fR"
-/*	A mechanism to substitute incoming SMTP commands by other
-/*	commands.
+/*	A mechanism to substitute incoming SMTP commands.
 /* .IP "\fBsmtpd_reject_unlisted_sender (no)\fR"
 /*	Request that the Postfix SMTP server rejects mail from unknown
 /*	sender addresses, even when no explicit reject_unlisted_sender
@@ -165,6 +164,9 @@
 /*	The hostname and TCP port of the mail filtering proxy server.
 /* .IP "\fBsmtpd_proxy_ehlo ($myhostname)\fR"
 /*	How the Postfix SMTP server announces itself to the proxy filter.
+/* .IP "\fBsmtpd_proxy_options (empty)\fR"
+/*	List of options that control how the Postfix SMTP server
+/*	communicates with a before-queue content filter.
 /* .IP "\fBsmtpd_proxy_timeout (100s)\fR"
 /*	The time limit for connecting to a proxy filter and for sending or
 /*	receiving information.
@@ -1143,6 +1145,7 @@ int     var_verify_poll_delay;
 char   *var_smtpd_proxy_filt;
 int     var_smtpd_proxy_tmout;
 char   *var_smtpd_proxy_ehlo;
+char   *var_smtpd_proxy_opts;
 char   *var_input_transp;
 int     var_smtpd_policy_tmout;
 int     var_smtpd_policy_idle;
@@ -1228,6 +1231,8 @@ char   *var_unk_name_tf_act;
 char   *var_unk_addr_tf_act;
 char   *var_unv_rcpt_tf_act;
 char   *var_unv_from_tf_act;
+
+int     smtpd_proxy_opts;
 
  /*
   * Silly little macros.
@@ -1694,10 +1699,11 @@ static int mail_open_stream(SMTPD_STATE *state)
      */
     if (state->proxy_mail) {
 	smtpd_check_rewrite(state);
-	if (smtpd_proxy_open(state, var_smtpd_proxy_filt,
-			     var_smtpd_proxy_tmout, var_smtpd_proxy_ehlo,
-			     state->proxy_mail) != 0) {
-	    smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
+	if (smtpd_proxy_create(state, smtpd_proxy_opts, var_smtpd_proxy_filt,
+			       var_smtpd_proxy_tmout, var_smtpd_proxy_ehlo,
+			       state->proxy_mail) != 0) {
+	    smtpd_chat_reply(state, "%s", STR(state->proxy->buffer));
+	    smtpd_proxy_free(state);
 	    return (-1);
 	}
     }
@@ -2219,9 +2225,13 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     }
 
     /*
-     * Check the queue file space, if applicable.
+     * Check the queue file space, if applicable. The optional before-filter
+     * speed-adjust buffers use disk space. However, we don't know if they
+     * compete for storage space with the after-filter queue, so we can't
+     * simply bump up the free space requirement to 2.5 * message_size_limit.
      */
-    if (!USE_SMTPD_PROXY(state)) {
+    if (!USE_SMTPD_PROXY(state)
+	|| (smtpd_proxy_opts & SMTPD_PROXY_FLAG_SPEED_ADJUST)) {
 	if (SMTPD_STAND_ALONE(state) == 0
 	    && (err = smtpd_check_queue(state)) != 0) {
 	    /* XXX Reset access map side effects. */
@@ -2315,14 +2325,8 @@ static void mail_reset(SMTPD_STATE *state)
     VSTRING_RESET(state->instance);
     VSTRING_TERMINATE(state->instance);
 
-    /*
-     * Try to be nice. Don't bother when we lost the connection. Don't bother
-     * waiting for a reply, it just increases latency.
-     */
-    if (state->proxy) {
-	(void) smtpd_proxy_cmd(state, SMTPD_PROX_WANT_NONE, SMTPD_CMD_QUIT);
-	smtpd_proxy_close(state);
-    }
+    if (state->proxy)
+	smtpd_proxy_free(state);
     if (state->xforward.flags)
 	smtpd_xforward_reset(state);
     if (state->prepend)
@@ -2342,6 +2346,7 @@ static void mail_reset(SMTPD_STATE *state)
 
 static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 {
+    SMTPD_PROXY *proxy;
     const char *err;
     int     narg;
     char   *arg;
@@ -2485,9 +2490,10 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * the recipient then we can have a proxy connection without having
      * accepted a recipient.
      */
-    if (state->proxy && smtpd_proxy_cmd(state, SMTPD_PROX_WANT_OK,
-					"%s", STR(state->buffer)) != 0) {
-	smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
+    proxy = state->proxy;
+    if (proxy != 0 && proxy->cmd(state, SMTPD_PROX_WANT_OK,
+				 "%s", STR(state->buffer)) != 0) {
+	smtpd_chat_reply(state, "%s", STR(proxy->buffer));
 	return (-1);
     }
 
@@ -2674,6 +2680,7 @@ static void comment_sanitize(VSTRING *comment_string)
 
 static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 {
+    SMTPD_PROXY *proxy;
     const char *err;
     char   *start;
     int     len;
@@ -2732,9 +2739,10 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
-    if (state->proxy && smtpd_proxy_cmd(state, SMTPD_PROX_WANT_MORE,
-					"%s", STR(state->buffer)) != 0) {
-	smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
+    proxy = state->proxy;
+    if (proxy != 0 && proxy->cmd(state, SMTPD_PROX_WANT_MORE,
+				 "%s", STR(state->buffer)) != 0) {
+	smtpd_chat_reply(state, "%s", STR(proxy->buffer));
 	return (-1);
     }
 
@@ -2743,10 +2751,10 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      * operation. We want to avoid massive code duplication within tons of
      * if-else clauses.
      */
-    if (state->proxy) {
-	out_stream = state->proxy;
-	out_record = smtpd_proxy_rec_put;
-	out_fprintf = smtpd_proxy_rec_fprintf;
+    if (proxy) {
+	out_stream = proxy->stream;
+	out_record = proxy->rec_put;
+	out_fprintf = proxy->rec_fprintf;
 	out_error = CLEANUP_STAT_PROXY;
     } else {
 	out_stream = state->cleanup;
@@ -2788,7 +2796,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      * Suppress our own Received: header in the unlikely case that we are an
      * intermediate proxy.
      */
-    if (!state->proxy || state->xforward.flags == 0) {
+    if (!proxy || state->xforward.flags == 0) {
 	out_fprintf(out_stream, REC_TYPE_NORM,
 		    "Received: from %s (%s [%s])",
 		    state->helo_name ? state->helo_name : state->name,
@@ -2907,7 +2915,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 		out_record(out_stream, REC_TYPE_NORM, "", 0);
 	}
 	if (prev_rec_type != REC_TYPE_CONT && *start == '.'
-	    && (state->proxy == 0 ? (++start, --len) == 0 : len == 1))
+	    && (proxy == 0 ? (++start, --len) == 0 : len == 1))
 	    break;
 	if (state->err == CLEANUP_STAT_OK) {
 	    if (var_message_limit > 0 && var_message_limit - state->act_size < len + 2) {
@@ -2926,7 +2934,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	&& SMTPD_STAND_ALONE(state) == 0
 	&& (err = smtpd_check_eod(state)) != 0) {
 	smtpd_chat_reply(state, "%s", err);
-	if (state->proxy) {
+	if (proxy) {
 	    smtpd_proxy_close(state);
 	} else {
 	    mail_stream_cleanup(state->dest);
@@ -2939,23 +2947,13 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     /*
      * Send the end of DATA and finish the proxy connection. Set the
      * CLEANUP_STAT_PROXY error flag in case of trouble.
-     * 
-     * XXX The low-level proxy output routines should set "state" error
-     * attributes. This requires making "state" a context attribute of the
-     * VSTREAM.
      */
-    if (state->proxy) {
+    if (proxy) {
 	if (state->err == CLEANUP_STAT_OK) {
-	    (void) smtpd_proxy_cmd(state, SMTPD_PROX_WANT_ANY, ".");
+	    (void) proxy->cmd(state, SMTPD_PROX_WANT_ANY, ".");
 	    if (state->err == CLEANUP_STAT_OK &&
-		*STR(state->proxy_buffer) != '2')
+		*STR(proxy->buffer) != '2')
 		state->err = CLEANUP_STAT_CONT;
-	} else if (state->err != CLEANUP_STAT_SIZE) {
-	    state->err |= CLEANUP_STAT_PROXY;
-	    detail = cleanup_stat_detail(CLEANUP_STAT_PROXY);
-	    vstring_sprintf(state->proxy_buffer,
-			    "%d %s Error: %s",
-			    detail->smtp, detail->dsn, detail->text);
 	}
     }
 
@@ -3038,11 +3036,11 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	state->error_count = 0;
 	state->error_mask = 0;
 	state->junk_cmds = 0;
-	if (state->queue_id)
+	if (proxy)
+	    smtpd_chat_reply(state, "%s", STR(proxy->buffer));
+	else
 	    smtpd_chat_reply(state,
 			     "250 2.0.0 Ok: queued as %s", state->queue_id);
-	else
-	    smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
     } else if (why && IS_SMTP_REJECT(STR(why))) {
 	state->error_mask |= MAIL_ERROR_POLICY;
 	smtpd_chat_reply(state, "%s", STR(why));
@@ -3074,8 +3072,8 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     } else if ((state->err & CLEANUP_STAT_CONT) != 0) {
 	state->error_mask |= MAIL_ERROR_POLICY;
 	detail = cleanup_stat_detail(CLEANUP_STAT_CONT);
-	if (state->proxy_buffer) {
-	    smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
+	if (proxy) {
+	    smtpd_chat_reply(state, "%s", STR(proxy->buffer));
 	} else if (why && LEN(why) > 0) {
 	    /* Allow address-specific DSN status in header/body_checks. */
 	    smtpd_chat_reply(state, "%d %s", detail->smtp, STR(why));
@@ -3090,7 +3088,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 			 detail->smtp, detail->dsn, detail->text);
     } else if ((state->err & CLEANUP_STAT_PROXY) != 0) {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
-	smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
+	smtpd_chat_reply(state, "%s", STR(proxy->buffer));
     } else {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
 	detail = cleanup_stat_detail(CLEANUP_STAT_BAD);
@@ -4858,6 +4856,15 @@ static void post_jail_init(char *unused_name, char **unused_argv)
     input_transp_mask(VAR_INPUT_TRANSP, var_input_transp);
 
     /*
+     * Initialize before-queue filter options: do we want speed-matching
+     * support so that the entire message is received before we contact a
+     * before-queue content filter?
+     */
+    if (*var_smtpd_proxy_filt)
+	smtpd_proxy_opts =
+	    smtpd_proxy_parse_opts(VAR_SMTPD_PROXY_OPTS, var_smtpd_proxy_opts);
+
+    /*
      * Sendmail mail filters.
      * 
      * XXX Should not do this when running in stand-alone mode. But that test
@@ -5037,6 +5044,7 @@ int     main(int argc, char **argv)
 	VAR_VERP_CLIENTS, DEF_VERP_CLIENTS, &var_verp_clients, 0, 0,
 	VAR_SMTPD_PROXY_FILT, DEF_SMTPD_PROXY_FILT, &var_smtpd_proxy_filt, 0, 0,
 	VAR_SMTPD_PROXY_EHLO, DEF_SMTPD_PROXY_EHLO, &var_smtpd_proxy_ehlo, 0, 0,
+	VAR_SMTPD_PROXY_OPTS, DEF_SMTPD_PROXY_OPTS, &var_smtpd_proxy_opts, 0, 0,
 	VAR_INPUT_TRANSP, DEF_INPUT_TRANSP, &var_input_transp, 0, 0,
 	VAR_XCLIENT_HOSTS, DEF_XCLIENT_HOSTS, &var_xclient_hosts, 0, 0,
 	VAR_XFORWARD_HOSTS, DEF_XFORWARD_HOSTS, &var_xforward_hosts, 0, 0,

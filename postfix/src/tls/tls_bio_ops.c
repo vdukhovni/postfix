@@ -54,7 +54,7 @@
 /*
 /*	The TLS layer to network interface is realized with a BIO pair:
 /*
-/*	 Postfix             |   TLS layer
+/*	Postfix SMTP layer   |   TLS layer
 /*	                     |
 /*	smtp/smtpd           |
 /*	 /\    ||            |
@@ -64,7 +64,7 @@
 /*	                     |     ||    \/
 /*	                     |   BIO pair (internal_bio)
 /*	                     |   BIO pair (network_bio)
-/*	                     |     /\    ||
+/*	Postfix socket layer |     /\    ||
 /*	                     |     ||    \/
 /*	socket read/write  <===> BIO read/write
 /*	 /\    ||            |
