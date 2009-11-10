@@ -400,6 +400,12 @@
 /*	File with the Postfix SMTP client ECDSA certificate in PEM format.
 /* .IP "\fBsmtp_tls_eckey_file ($smtp_tls_eccert_file)\fR"
 /*	File with the Postfix SMTP client ECDSA private key in PEM format.
+/* .PP
+/*	Available in Postfix version 2.7 and later:
+/* .IP "\fBsmtp_tls_block_early_mail_reply (no)\fR"
+/*	Try to detect a mail hijacking attack based on a TLS protocol
+/*	vulnerability (CVE-2009-3555), where an attacker prepends malicious
+/*	HELO/MAIL/RCPT/DATA commands to a Postfix client TLS session.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -572,7 +578,7 @@
 /* .IP "\fBlmtp_lhlo_name ($myhostname)\fR"
 /*	The hostname to send in the LMTP LHLO command.
 /* .IP "\fBsmtp_host_lookup (dns)\fR"
-/*	What mechanisms when the Postfix SMTP client uses to look up a host's IP
+/*	What mechanisms the Postfix SMTP client uses to look up a host's IP
 /*	address.
 /* .IP "\fBsmtp_randomize_addresses (yes)\fR"
 /*	Randomize the order of equal-preference MX host addresses.
@@ -769,6 +775,7 @@ char   *var_smtp_tls_proto;
 char   *var_smtp_tls_ciph;
 char   *var_smtp_tls_eccert_file;
 char   *var_smtp_tls_eckey_file;
+bool    var_smtp_tls_blk_early_mail_reply;
 
 #endif
 

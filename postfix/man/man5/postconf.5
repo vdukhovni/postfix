@@ -5254,6 +5254,15 @@ smtp_tls_CApath = /etc/postfix/certs
 .ft R
 .PP
 This feature is available in Postfix 2.2 and later.
+.SH smtp_tls_block_early_mail_reply (default: no)
+Try to detect a mail hijacking attack based on a TLS protocol
+vulnerability (CVE-2009-3555), where an attacker prepends malicious
+HELO/MAIL/RCPT/DATA commands to a Postfix client TLS session.  The
+attack would succeed with non-Postfix SMTP servers that reply to
+the malicious HELO/MAIL/RCPT/DATA commands after negotiating the
+Postfix SMTP client TLS session.
+.PP
+This feature is available in Postfix 2.7.
 .SH smtp_tls_cert_file (default: empty)
 File with the Postfix SMTP client RSA certificate in PEM format.
 This file may also contain the Postfix SMTP client private RSA key,

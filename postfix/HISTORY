@@ -15487,3 +15487,14 @@ Apologies for any names omitted.
 	caused by an incomplete API change; refined the queue space
 	check; release scratch space immediately after delivering
 	mail to the before-queue filter. Files: smtpd.c, smtpd_proxy.c.
+
+20091110
+
+	Workaround: specify "smtp_tls_block_early_mail_reply = yes"
+	to detect a mail hijacking attack based on a TLS protocol
+	vulnerability (CVE-2009-3555). The attack involves prepending
+	malicious HELO/MAIL/RCPT/DATA commands to a Postfix SMTP
+	client TLS session. The attack would succeed with non-Postfix
+	SMTP servers that reply to the malicious commands after
+	negotiating the Postfix SMTP client TLS session. File:
+	smtp/smtp_proto.c.

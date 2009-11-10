@@ -1465,6 +1465,12 @@ extern char *var_smtp_tls_sec_cmatch;
 #define DEF_LMTP_TLS_FPT_CMATCH ""
 extern char *var_smtp_tls_fpt_cmatch;
 
+#define VAR_SMTP_TLS_BLK_EARLY_MAIL_REPLY "smtp_tls_block_early_mail_reply"
+#define DEF_SMTP_TLS_BLK_EARLY_MAIL_REPLY 0
+#define VAR_LMTP_TLS_BLK_EARLY_MAIL_REPLY "lmtp_tls_block_early_mail_reply"
+#define DEF_LMTP_TLS_BLK_EARLY_MAIL_REPLY 0
+extern bool var_smtp_tls_blk_early_mail_reply;
+
  /*
   * SASL authentication support, SMTP server side.
   */

@@ -9238,6 +9238,21 @@ must be inside the chroot jail. </p>
 
 </DD>
 
+<DT><b><a name="smtp_tls_block_early_mail_reply">smtp_tls_block_early_mail_reply</a>
+(default: no)</b></DT><DD>
+
+<p> Try to detect a mail hijacking attack based on a TLS protocol
+vulnerability (CVE-2009-3555), where an attacker prepends malicious
+HELO/MAIL/RCPT/DATA commands to a Postfix client TLS session.  The
+attack would succeed with non-Postfix SMTP servers that reply to
+the malicious HELO/MAIL/RCPT/DATA commands after negotiating the
+Postfix SMTP client TLS session.  </p>
+
+<p> This feature is available in Postfix 2.7. </p>
+
+
+</DD>
+
 <DT><b><a name="smtp_tls_cert_file">smtp_tls_cert_file</a>
 (default: empty)</b></DT><DD>
 

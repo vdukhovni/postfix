@@ -1292,6 +1292,36 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		&& (session->features & SMTP_FEATURE_AUTH))
 		vstring_strcat(next_command, " AUTH=<>");
 #endif
+
+	    /*
+	     * CVE-2009-3555 (TLS renegotiation). Try to detect a mail
+	     * hijacking attack that prepends malicious EHLO/MAIL/RCPT/DATA
+	     * commands to our TLS session.
+	     * 
+	     * For the attack to succeed, the remote SMTP server must reply to
+	     * the malicious EHLO/MAIL/RCPT/DATA commands after completing
+	     * TLS (re)negotiation, so that the replies arrive in our TLS
+	     * session (otherwise the Postfix SMTP client would time out
+	     * waiting for an answer). With some luck we can detect this
+	     * specific attack as a server MAIL reply that arrives before we
+	     * send our own MAIL command.
+	     * 
+	     * We don't apply this test to the HELO command because the result
+	     * would be very timing sensitive, and we don't apply this test
+	     * to RCPT and DATA replies because these may be pipelined for
+	     * legitimate reasons.
+	     */
+#ifdef USE_TLS
+	    if (var_smtp_tls_blk_early_mail_reply
+		&& (state->misc_flags & SMTP_MISC_FLAG_IN_STARTTLS) != 0
+		&& (vstream_peek(session->stream) > 0
+		    || peekfd(vstream_fileno(session->stream)) > 0))
+		session->features |= SMTP_FEATURE_EARLY_TLS_MAIL_REPLY;
+#endif
+
+	    /*
+	     * We now return to our regular broadcast.
+	     */
 	    next_state = SMTP_STATE_RCPT;
 	    break;
 
@@ -1512,6 +1542,32 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 				       xfer_request[SMTP_STATE_MAIL]);
 			mail_from_rejected = 1;
 		    }
+
+		    /*
+		     * CVE-2009-3555 (TLS renegotiation). Whatever it was
+		     * that arrived before we sent our MAIL FROM command, it
+		     * was not a fatal-level TLS alert message. It could be a
+		     * warning-level TLS alert message, or a ChangeCipherSpec
+		     * message, but such messages are not normally sent in
+		     * the middle of a TLS session. We disconnect and try
+		     * again later.
+		     */
+#ifdef USE_TLS
+		    if (var_smtp_tls_blk_early_mail_reply
+			&& (session->features & SMTP_FEATURE_EARLY_TLS_MAIL_REPLY)) {
+			smtp_site_fail(state, DSN_BY_LOCAL_MTA,
+				       SMTP_RESP_FAKE(&fake, "4.7.0"),
+				       "unexpected server message");
+			msg_warn("server %s violates %s policy",
+				 session->namaddr,
+				 VAR_SMTP_TLS_BLK_EARLY_MAIL_REPLY);
+			mail_from_rejected = 1;
+		    }
+#endif
+
+		    /*
+		     * We now return to our regular broadcast.
+		     */
 		    recv_state = SMTP_STATE_RCPT;
 		    break;
 

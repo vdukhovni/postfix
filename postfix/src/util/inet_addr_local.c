@@ -183,6 +183,9 @@ static int ial_getifaddrs(INET_ADDR_LIST *addr_list,
     for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
 	if (!(ifa->ifa_flags & IFF_UP) || ifa->ifa_addr == 0)
 	    continue;
+	/* XXX Should we cons up a default mask instead? */
+	if (ifa->ifa_netmask == 0)
+	    continue;				
 	sa = ifa->ifa_addr;
 	sam = ifa->ifa_netmask;
 	if (af != AF_UNSPEC && sa->sa_family != af)
