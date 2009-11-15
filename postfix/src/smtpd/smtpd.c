@@ -93,7 +93,7 @@
 /*	local hostname were specified, instead of rejecting the address as
 /*	invalid.
 /* .IP "\fBsmtpd_command_filter (empty)\fR"
-/*	A mechanism to substitute incoming SMTP commands.
+/*	A mechanism to transform commands from remote SMTP clients.
 /* .IP "\fBsmtpd_reject_unlisted_sender (no)\fR"
 /*	Request that the Postfix SMTP server rejects mail from unknown
 /*	sender addresses, even when no explicit reject_unlisted_sender
@@ -4431,11 +4431,15 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    }
 	    watchdog_pat();
 	    smtpd_chat_query(state);
+	    /* Move into smtpd_chat_query() and update session transcript. */
 	    if (smtpd_cmd_filter != 0) {
 		for (cp = STR(state->buffer); *cp && IS_SPACE_TAB(*cp); cp++)
 		     /* void */ ;
-		if ((cp = dict_get(smtpd_cmd_filter, cp)) != 0)
+		if ((cp = dict_get(smtpd_cmd_filter, cp)) != 0) {
+		    msg_info("%s: replacing client command \"%s\" with \"%s\"",
+			     state->namaddr, STR(state->buffer), cp);
 		    vstring_strcpy(state->buffer, cp);
+		}
 	    }
 	    if ((argc = smtpd_token(vstring_str(state->buffer), &argv)) == 0) {
 		state->error_mask |= MAIL_ERROR_PROTOCOL;

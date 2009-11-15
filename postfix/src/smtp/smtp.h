@@ -20,6 +20,7 @@
 #include <vstring.h>
 #include <argv.h>
 #include <htable.h>
+#include <dict.h>
 
  /*
   * Global library.
@@ -366,7 +367,8 @@ typedef struct SMTP_RESP {		/* server response */
     VSTRING *str_buf;			/* reply buffer */
 } SMTP_RESP;
 
-extern void PRINTFLIKE(2, 3) smtp_chat_cmd(SMTP_SESSION *, char *,...);
+extern void PRINTFLIKE(2, 3) smtp_chat_cmd(SMTP_SESSION *, const char *,...);
+extern DICT *smtp_chat_resp_filter;
 extern SMTP_RESP *smtp_chat_resp(SMTP_SESSION *);
 extern void smtp_chat_init(SMTP_SESSION *);
 extern void smtp_chat_reset(SMTP_SESSION *);

@@ -288,7 +288,7 @@ static void vsmtp_fill_dsn(SMTP_STATE *state, const char *mta_name,
      * cycles.
      */
     VSTRING_RESET(why->reason);
-    if (mta_name && reply && reply[0] != '4' && reply[0] != '5') {
+    if (mta_name && status && status[0] != '4' && status[0] != '5') {
 	vstring_strcpy(why->reason, "Protocol error: ");
 	status = "5.5.0";
     }

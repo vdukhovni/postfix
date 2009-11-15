@@ -15453,11 +15453,11 @@ Apologies for any names omitted.
 
 20091023
 
-	Feature: specify "smtp_command_maps = pcre:/file/name" to
-	replace incoming SMTP commands before they are executed by
-	the Postfix SMTP server. This a last-resort tool to fix bad
-	command syntax that Postfix would otherwise reject.  See
-	examples in the postconf(5) manual page.  File: smtpd/smtpd.c.
+	Feature: specify "smtp_command_filter = pcre:/file/name"
+	to replace remote SMTP client commands before they are
+	executed by the Postfix SMTP server. This a last-resort
+	tool to fix inter-operability problems.  See examples in
+	the postconf(5) manual page.  File: smtpd/smtpd.c.
 
 20091026
 
@@ -15498,3 +15498,26 @@ Apologies for any names omitted.
 	SMTP servers that reply to the malicious commands after
 	negotiating the Postfix SMTP client TLS session. File:
 	smtp/smtp_proto.c.
+
+20091113
+
+	Workaround: skip interfaces without netmask, to avoid
+	segfaults (reported by Dmitry Karasik). Don't supply a dummy
+	null netmask, as that would turn Postfix into an open relay
+	(mynetworks = 0.0.0.0/0). File: util/inet_addr_local.c.
+
+	Bugfix: forgot to flush output to the smtpd_proxy speed-adjust
+	buffer before truncating the file. Reported by Mark Martinec,
+	fix by Victor Duchovni. File: smtpd/smtpd_proxy.c.
+
+20091114
+
+	Feature: specify "smtp_reply_filter = pcre:/file/name" to
+	replace remote SMTP server reply lines before they are
+	parsed by the Postfix SMTP client. This a last-resort tool
+	to fix inter-operability problems.  See examples in the
+	postconf(5) manual page.  File: smtp/smtp_chat.c.
+
+	Safety: don't send postmaster notifications to report
+	problems delivering (possible) postmaster notifications.
+	File: smtp/smtp_connect.c.

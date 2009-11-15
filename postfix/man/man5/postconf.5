@@ -2192,6 +2192,11 @@ for receiving the server response.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
+.SH lmtp_reply_filter (default: empty)
+The LMTP-specific version of the smtp_reply_filter
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.7 and later.
 .SH lmtp_rset_timeout (default: 20s)
 The LMTP client time limit for sending the RSET command, and
 for receiving the server response. The LMTP client sends RSET in
@@ -2317,6 +2322,11 @@ The LMTP-specific version of the smtp_tls_CApath
 configuration parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH lmtp_tls_block_early_mail_reply (default: empty)
+The LMTP-specific version of the smtp_tls_block_early_mail_reply
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.7 and later.
 .SH lmtp_tls_cert_file (default: empty)
 The LMTP-specific version of the smtp_tls_cert_file
 configuration parameter.  See there for details.
@@ -4977,6 +4987,55 @@ for receiving the server response.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
+.SH smtp_reply_filter (default: empty)
+A mechanism to transform replies from remote SMTP servers one
+line at a time.  This is a last-resort tool to work around server
+replies that break inter-operability with the Postfix SMTP client.
+Other uses involve fault injection to test Postfix's handling of
+invalid responses.
+.PP
+Notes:
+.IP \(bu
+In the case of a multi-line reply, the Postfix SMTP client
+uses the last reply line's numerical SMTP reply code and enhanced
+status code.
+.IP \(bu
+The numerical SMTP reply code (XYZ) takes precedence over
+the enhanced status code (X.Y.Z).  When the enhanced status code
+initial digit differs from the SMTP reply code initial digit, or
+when no enhanced status code is present, the Postfix SMTP client
+uses a generic enhanced status code (X.0.0) instead.
+.PP
+Specify the name of a "type:table" lookup table. The search
+string is a single SMTP reply line as received from the remote SMTP
+server, except that the trailing <CR><LF> are removed.
+.PP
+Examples:
+.PP
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    smtp_reply_filter = pcre:/etc/postfix/command_filter
+.fi
+.ad
+.ft R
+.PP
+.nf
+.na
+.ft C
+/etc/postfix/reply_filter:
+    # Transform garbage into part of a multi-line reply. Note
+    # that the Postfix SMTP client uses only the last numerical
+    # SMTP reply code and enhanced status code from a multi-line
+    # reply, so it does not matter what we substitute here as
+    # long as it has the right syntax.
+    !/^([2-5][0-9][0-9]($|[- ]))/ 250-filler for garbage
+.fi
+.ad
+.ft R
+.PP
+This feature is available in Postfix 2.7.
 .SH smtp_rset_timeout (default: 20s)
 The SMTP client time limit for sending the RSET command, and
 for receiving the server response. The SMTP client sends RSET in
@@ -5257,10 +5316,10 @@ This feature is available in Postfix 2.2 and later.
 .SH smtp_tls_block_early_mail_reply (default: no)
 Try to detect a mail hijacking attack based on a TLS protocol
 vulnerability (CVE-2009-3555), where an attacker prepends malicious
-HELO/MAIL/RCPT/DATA commands to a Postfix client TLS session.  The
-attack would succeed with non-Postfix SMTP servers that reply to
-the malicious HELO/MAIL/RCPT/DATA commands after negotiating the
-Postfix SMTP client TLS session.
+HELO, MAIL, RCPT, DATA commands to a Postfix SMTP client TLS session.
+The attack would succeed with non-Postfix SMTP servers that reply
+to the malicious HELO, MAIL, RCPT, DATA commands after negotiating
+the Postfix SMTP client TLS session.
 .PP
 This feature is available in Postfix 2.7.
 .SH smtp_tls_cert_file (default: empty)
@@ -6789,14 +6848,16 @@ smtpd_client_restrictions = permit_mynetworks, reject_unknown_client_hostname
 .ad
 .ft R
 .SH smtpd_command_filter (default: empty)
-A mechanism to substitute incoming SMTP commands.  This is a
-last-resort tool to work around problems with clients that send
-invalid command syntax that would otherwise be rejected by Postfix.
+A mechanism to transform commands from remote SMTP clients.
+This is a last-resort tool to work around client commands that break
+inter-operability with the Postfix SMTP server.  Other uses involve
+fault injection to test Postfix's handling of invalid commands.
 .PP
 Specify the name of a "type:table" lookup table. The search
-string is the SMTP command as received from the SMTP client, except
-that initial whitespace and the trailing <CR><LF> are removed. The
-result value is executed by the Postfix SMTP server.
+string is the SMTP command as received from the remote SMTP client,
+except that initial whitespace and the trailing <CR><LF>
+are removed.  The result value is executed by the Postfix SMTP
+server.
 .PP
 Examples:
 .PP

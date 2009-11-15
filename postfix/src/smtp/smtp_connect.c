@@ -95,6 +95,7 @@
 #include <deliver_pass.h>
 #include <mail_error.h>
 #include <dsn_buf.h>
+#include <mail_addr.h>
 
 /* DNS library. */
 
@@ -374,11 +375,17 @@ static void smtp_cleanup_session(SMTP_STATE *state)
 
     /*
      * Inform the postmaster of trouble.
+     * 
+     * XXX Don't send notifications about errors while sending notifications.
      */
+#define POSSIBLE_NOTIFICATION(sender) \
+	(*sender == 0 || strcmp(sender, mail_addr_double_bounce()) == 0)
+
     if (session->history != 0
 	&& (session->error_mask & name_mask(VAR_NOTIFY_CLASSES,
 					    mail_error_masks,
-					    var_notify_classes)) != 0)
+					    var_notify_classes)) != 0
+	&& POSSIBLE_NOTIFICATION(request->sender) == 0)
 	smtp_chat_notify(session);
 
     /*

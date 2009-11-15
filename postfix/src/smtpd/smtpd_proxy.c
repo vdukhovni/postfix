@@ -183,7 +183,6 @@
 /* System library. */
 
 #include <sys_defs.h>
-#include <sys/stat.h>
 #include <ctype.h>
 #include <unistd.h>
 
@@ -556,6 +555,7 @@ static int smtpd_proxy_replay_send(SMTPD_STATE *state)
      */
     if (vstream_ferror(smtpd_proxy_replay_stream)
 	|| vstream_feof(smtpd_proxy_replay_stream)
+	|| rec_put(smtpd_proxy_replay_stream, REC_TYPE_END, "", 0) != REC_TYPE_END
 	|| vstream_fflush(smtpd_proxy_replay_stream))
 	/* NOT: fsync(vstream_fileno(smtpd_proxy_replay_stream)) */
 	return (smtpd_proxy_replay_rdwr_error(state));
@@ -615,9 +615,9 @@ static int smtpd_proxy_replay_send(SMTPD_STATE *state)
 	    break;
 
 	    /*
-	     * End of replay log.
+	     * Explicit end marker, instead of implicit EOF.
 	     */
-	case REC_TYPE_EOF:
+	case REC_TYPE_END:
 	    return (0);
 
 	    /*
@@ -954,7 +954,7 @@ static int smtpd_proxy_rec_fprintf(VSTREAM *stream, int rec_type,
 static int smtpd_proxy_replay_setup(SMTPD_STATE *state)
 {
     const char *myname = "smtpd_proxy_replay_setup";
-    struct stat st;
+    off_t   file_offs;
 
     /*
      * Where possible reuse an existing replay logfile, because creating a
@@ -962,28 +962,19 @@ static int smtpd_proxy_replay_setup(SMTPD_STATE *state)
      * we must truncate the file before reuse. For performance reasons we
      * should truncate the file immediately after the end of a mail
      * transaction. We enforce the security guarantee here by requiring that
-     * the file is emtpy when it is reused. This is less expensive than
-     * truncating the file redundantly.
+     * no I/O happened since the file was truncated. This is less expensive
+     * than truncating the file redundantly.
      */
     if (smtpd_proxy_replay_stream != 0) {
-	if (vstream_fseek(smtpd_proxy_replay_stream, (off_t) 0, SEEK_SET) < 0) {
-	    msg_warn("seek before-queue filter speed-adjust log: %m");
-	    (void) vstream_fclose(smtpd_proxy_replay_stream);
-	    smtpd_proxy_replay_stream = 0;
-	} else if (fstat(vstream_fileno(smtpd_proxy_replay_stream), &st) < 0) {
-	    msg_warn("fstat before-queue filter speed-adjust log: %m");
-	    (void) vstream_fclose(smtpd_proxy_replay_stream);
-	    smtpd_proxy_replay_stream = 0;
-	} else {
-	    if (st.st_size > 0)
-		msg_panic("%s: non-empty before-queue filter speed-adjust log",
-			  myname);
-	    vstream_clearerr(smtpd_proxy_replay_stream);
-	    if (msg_verbose)
-		msg_info("%s: reuse speed-adjust stream fd=%d", myname,
-			 vstream_fileno(smtpd_proxy_replay_stream));
-	    /* Here, smtpd_proxy_replay_stream != 0 */
-	}
+	/* vstream_ftell() won't invoke the kernel, so all errors are mine. */
+	if ((file_offs = vstream_ftell(smtpd_proxy_replay_stream)) != 0)
+	    msg_panic("%s: bad before-queue filter speed-adjust log offset %lu",
+		      myname, (unsigned long) file_offs);
+	vstream_clearerr(smtpd_proxy_replay_stream);
+	if (msg_verbose)
+	    msg_info("%s: reuse speed-adjust stream fd=%d", myname,
+		     vstream_fileno(smtpd_proxy_replay_stream));
+	/* Here, smtpd_proxy_replay_stream != 0 */
     }
 
     /*
@@ -1028,6 +1019,12 @@ int     smtpd_proxy_create(SMTPD_STATE *state, int flags, const char *service,
 	((p) = (SMTPD_PROXY *) mymalloc(sizeof(*(p))), (p)->a1, (p)->a2, \
 	 (p)->a3, (p)->a4, (p)->a5, (p)->a6, (p)->a7, (p)->a8, (p)->a9, \
 	 (p)->a10, (p)->a11, (p))
+
+    /*
+     * Sanity check.
+     */
+    if (state->proxy != 0)
+	msg_panic("smtpd_proxy_create: handle still exists");
 
     /*
      * Connect to the before-queue filter immediately.
@@ -1122,11 +1119,19 @@ void    smtpd_proxy_free(SMTPD_STATE *state)
      * truncate the replay logfile before reuse. For performance reasons we
      * should truncate the replay logfile immediately after the end of a mail
      * transaction. We truncate the file here, and enforce the security
-     * guarantee by requiring that the file is empty when it is reused.
+     * guarantee by requiring that no I/O happens before the file is reused.
      */
     if (smtpd_proxy_replay_stream == 0)
 	return;
     if (vstream_ferror(smtpd_proxy_replay_stream)) {
+	/* Errors are already reported. */
+	(void) vstream_fclose(smtpd_proxy_replay_stream);
+	smtpd_proxy_replay_stream = 0;
+	return;
+    }
+    /* Flush output from aborted transaction before truncating the file!! */
+    if (vstream_fseek(smtpd_proxy_replay_stream, (off_t) 0, SEEK_SET) < 0) {
+	msg_warn("seek before-queue filter speed-adjust log: %m");
 	(void) vstream_fclose(smtpd_proxy_replay_stream);
 	smtpd_proxy_replay_stream = 0;
 	return;

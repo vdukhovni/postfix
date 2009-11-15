@@ -1019,6 +1019,12 @@ extern bool var_smtp_always_ehlo;
 #define DEF_SMTP_NEVER_EHLO	0
 extern bool var_smtp_never_ehlo;
 
+#define VAR_SMTP_RESP_FILTER	"smtp_reply_filter"
+#define DEF_SMTP_RESP_FILTER	""
+#define VAR_LMTP_RESP_FILTER	"lmtp_reply_filter"
+#define DEF_LMTP_RESP_FILTER	""
+extern char *var_smtp_resp_filter;
+
 #define VAR_SMTP_BIND_ADDR	"smtp_bind_address"
 #define DEF_SMTP_BIND_ADDR	""
 #define VAR_LMTP_BIND_ADDR	"lmtp_bind_address"

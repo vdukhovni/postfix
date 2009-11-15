@@ -111,7 +111,7 @@
 #define HAS_DUPLEX_PIPE			/* 4.1 breaks with kqueue(2) */
 #endif
 
-#if __FreeBSD_version >= 800098		/* commit: r194262 */
+#if __FreeBSD_version >= 800107		/* safe; don't believe the experts */
 #define HAS_CLOSEFROM
 #endif
 

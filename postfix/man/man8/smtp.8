@@ -185,6 +185,9 @@ per-destination workarounds for CISCO PIX firewall bugs.
 .IP "\fBsmtp_quote_rfc821_envelope (yes)\fR"
 Quote addresses in SMTP MAIL FROM and RCPT TO commands as required
 by RFC 2821.
+.IP "\fBsmtp_reply_filter (empty)\fR"
+A mechanism to transform replies from remote SMTP servers one
+line at a time.
 .IP "\fBsmtp_skip_5xx_greeting (yes)\fR"
 Skip SMTP servers that greet with a 5XX status code (go away, do
 not try again later).
@@ -435,7 +438,7 @@ Available in Postfix version 2.7 and later:
 .IP "\fBsmtp_tls_block_early_mail_reply (no)\fR"
 Try to detect a mail hijacking attack based on a TLS protocol
 vulnerability (CVE-2009-3555), where an attacker prepends malicious
-HELO/MAIL/RCPT/DATA commands to a Postfix client TLS session.
+HELO, MAIL, RCPT, DATA commands to a Postfix SMTP client TLS session.
 .SH "OBSOLETE STARTTLS CONTROLS"
 .na
 .nf

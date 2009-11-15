@@ -2,6 +2,9 @@ Wish list:
 
 	Remove this file from the stable release.
 
+	Move smtpd_command_filter into smtpd_chat_query() and update
+	the session transcript (see smtp_chat_reply() for an example).
+
 	Add smtpd_sender_login_maps to proxy_read_maps.
 
 	SMTP connection caching without storing connections, to
