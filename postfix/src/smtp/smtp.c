@@ -704,6 +704,7 @@ char   *var_smtp_tls_sec_cmatch;
 int     var_smtp_tls_scert_vd;
 char   *var_smtp_tls_vfy_cmatch;
 int     var_tls_daemon_rand_bytes;
+bool    var_tls_append_def_CA;
 
 #endif
 
