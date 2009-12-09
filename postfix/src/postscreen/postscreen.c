@@ -32,9 +32,25 @@
 /*	intentional. The purpose is to prioritize legitimate clients
 /*	with as little overhead as possible.
 /*
-/*	\fBpostscreen\fR(8) logs its observations and takes actions
-/*	as described in the sections that follow.
-/* PERMANENT BLACKLIST TEST
+/*	\fBpostscreen\fR(8) performs tests in the order described below.
+/* .SH 1. PERMANENT WHITELIST TEST
+/* .ad
+/* .fi
+/*	The postscreen_whitelist_networks parameter (default:
+/*	$mynetworks) specifies a permanent whitelist for SMTP client
+/*	IP addresses.  This feature is not used for addresses that
+/*	appear on the permanent blacklist.
+/*
+/*	When the SMTP client address matches the permanent whitelist,
+/*	this is logged as:
+/* .sp
+/* .nf
+/*	\fBWHITELISTED \fIaddress\fR
+/* .fi
+/* .sp
+/*	The action is not configurable: immediately forward the
+/*	connection to a real SMTP server process.
+/* .SH 2. PERMANENT BLACKLIST TEST
 /* .ad
 /* .fi
 /*	The postscreen_blacklist_networks parameter (default: empty)
@@ -57,25 +73,8 @@
 /*	a future implementation, the connection may instead be
 /*	passed to a dummy SMTP protocol engine that logs sender and
 /*	recipient information.
-/* PERMANENT WHITELIST TEST
+/* .SH 3. TEMPORARY WHITELIST TEST
 /* .ad
-/* .fi
-/*	The postscreen_whitelist_networks parameter (default:
-/*	$mynetworks) specifies a permanent whitelist for SMTP client
-/*	IP addresses.  This feature is not used for addresses that
-/*	appear on the permanent blacklist. 
-/*
-/*	When the SMTP client address matches the permanent whitelist,
-/*	this is logged as:
-/* .sp
-/* .nf
-/*	\fBWHITELISTED \fIaddress\fR
-/* .fi
-/* .sp
-/*	The action is not configurable: immediately forward the
-/*	connection to a real SMTP server process.
-/* TEMPORARY WHITELIST TEST
-/* .ad    
 /* .fi
 /*	The \fBpostscreen\fR(8) daemon maintains a \fItemporary\fR
 /*	whitelist for SMTP client IP addresses that have passed all
@@ -96,7 +95,7 @@
 /*	excluded from further tests until its temporary whitelist
 /*	entry expires, as controlled with the postscreen_cache_ttl
 /*	parameter.  Expired entries are silently renewed if possible.
-/* SMTP GREETING PHASE TESTS
+/* .SH 4. SMTP GREETING PHASE TESTS
 /* .ad
 /* .fi
 /*	The postscreen_greet_wait parameter specifies a time interval
@@ -121,7 +120,7 @@
 /*	a dummy SMTP protocol engine that implements more protocol
 /*	tests including greylisting, before the client is allowed
 /*	to talk to a real SMTP server process.
-/* PREGREET TEST
+/* .SH 4A. PREGREET TEST
 /* .ad
 /* .fi
 /*	The postscreen_greet_banner parameter specifies the text
@@ -163,7 +162,7 @@
 /*	In a future implementation, the connection may instead be passed
 /*	to a dummy SMTP protocol engine that logs sender and recipient
 /*	information.
-/* HANGUP TEST
+/* .SH 4B. HANGUP TEST
 /* .ad
 /* .fi
 /*	When the SMTP client hangs up without sending any data
@@ -182,11 +181,11 @@
 /*	the broken connection to a real SMTP server process.
 /* .IP "\fBdrop\fR (enforcement mode)"
 /*	Drop the connection immediately.
-/* DNS BLOCKLIST TEST
+/* .SH 4C. DNS BLOCKLIST TEST
 /* .ad
 /* .fi
 /*	The postscreen_dnsbl_sites parameter (default: empty)
-/*	specifies a list of DNS blocklist servers. 
+/*	specifies a list of DNS blocklist servers.
 /*
 /*	When the postscreen_greet_wait time has elapsed, and the
 /*	SMTP client address is listed with at least one of these
@@ -449,7 +448,7 @@ typedef struct {
     int     dt_usec;			/* make sure it's signed */
 } DELTA_TIME;
 
-#define DELTA(x, y, z) \
+#define PS_CALC_DELTA(x, y, z) \
     do { \
 	(x).dt_sec = (y).tv_sec - (z).tv_sec; \
 	(x).dt_usec = (y).tv_usec - (z).tv_usec; \
@@ -487,6 +486,61 @@ typedef struct {
 
 #define STR(x)	vstring_str(x)
 #define LEN(x)	VSTRING_LEN(x)
+
+ /*
+  * Monitor time-critical operations.
+  */
+#define PS_GET_TIME_BEFORE_LOOKUP \
+    struct timeval _before, _after; \
+    DELTA_TIME _delta; \
+    GETTIMEOFDAY(&_before);
+
+#define PS_DELTA_MS(d) ((d).dt_sec * 1000 + (d).dt_usec / 1000)
+
+#define PS_CHECK_TIME_AFTER_LOOKUP(table, action) \
+    GETTIMEOFDAY(&_after); \
+    PS_CALC_DELTA(_delta, _after, _before); \
+    if (_delta.dt_sec > 1 || _delta.dt_usec > 100000) \
+	msg_warn("%s: %s %s took %d ms", \
+		 myname, (table), (action), PS_DELTA_MS(_delta));
+
+/* ps_addr_match_list_match - time-critical address list lookup */
+
+static int ps_addr_match_list_match(ADDR_MATCH_LIST *addr_list,
+				            const char *addr_str)
+{
+    const char *myname = "ps_addr_match_list_match";
+    int     result;
+
+    PS_GET_TIME_BEFORE_LOOKUP;
+    result = addr_match_list_match(addr_list, addr_str);
+    PS_CHECK_TIME_AFTER_LOOKUP("address list", "lookup");
+    return (result);
+}
+
+/* ps_dict_get - time-critical table lookup */
+
+static const char *ps_dict_get(DICT *dict, const char *key)
+{
+    const char *myname = "ps_dict_get";
+    const char *result;
+
+    PS_GET_TIME_BEFORE_LOOKUP;
+    result = dict_get(dict, key);
+    PS_CHECK_TIME_AFTER_LOOKUP(dict->name, "lookup");
+    return (result);
+}
+
+/* ps_dict_put - table dictionary update */
+
+static void ps_dict_put(DICT *dict, const char *key, const char *value)
+{
+    const char *myname = "ps_dict_put";
+
+    PS_GET_TIME_BEFORE_LOOKUP;
+    dict_put(dict, key, value);
+    PS_CHECK_TIME_AFTER_LOOKUP(dict->name, "update");
+}
 
  /*
   * DNSBL lookup status per client IP address.
@@ -666,7 +720,7 @@ static char *mydelta_time(VSTRING *buf, struct timeval tv, int *delta)
     struct timeval now;
 
     GETTIMEOFDAY(&now);
-    DELTA(pdelay, now, tv);
+    PS_CALC_DELTA(pdelay, now, tv);
     VSTRING_RESET(buf);
     format_tv(buf, pdelay.dt_sec, pdelay.dt_usec, SIG_DIGS, var_delay_max_res);
     *delta = pdelay.dt_sec;
@@ -860,7 +914,7 @@ static void smtp_read_event(int event, char *context)
 			 "OLD" : "NEW", state->smtp_client_addr);
 		if (cache_map != 0) {
 		    vstring_sprintf(temp, "%ld", (long) event_time());
-		    dict_put(cache_map, state->smtp_client_addr, STR(temp));
+		    ps_dict_put(cache_map, state->smtp_client_addr, STR(temp));
 		}
 	    }
 	    send_socket(state);
@@ -930,7 +984,14 @@ static void postscreen_drain(char *unused_service, char **unused_argv)
      * could retry failed fork() operations in the event call-back routines,
      * but we don't need perfection. The host system is severely overloaded
      * and service levels are already way down.
+     * 
+     * XXX Some Berkeley DB versions break with close-after-fork. Every new
+     * version is an improvement over its predecessor.
      */
+    if (cache_map != 0) {
+	dict_close(cache_map);
+	cache_map = 0;
+    }
     for (count = 0; /* see below */ ; count++) {
 	if (count >= 5) {
 	    msg_fatal("fork: %m");
@@ -939,10 +1000,6 @@ static void postscreen_drain(char *unused_service, char **unused_argv)
 	    sleep(1);
 	    continue;
 	} else {
-	    if (cache_map != 0) {
-		dict_close(cache_map);
-		cache_map = 0;
-	    }
 	    return;
 	}
     }
@@ -1028,12 +1085,22 @@ static void postscreen_service(VSTREAM *smtp_client_stream,
     }
 
     /*
-     * The permanent blacklist has first precedence. If the client is
+     * The permanent whitelist has highest precedence (never block mail from
+     * whitelisted sites).
+     */
+    if (wlist_nets != 0
+	&& ps_addr_match_list_match(wlist_nets, smtp_client_addr.buf) != 0) {
+	msg_info("WHITELISTED %s", smtp_client_addr.buf);
+	state_flags |= PS_FLAG_WHITELISTED;
+    }
+
+    /*
+     * The permanent blacklist has second precedence. If the client is
      * permanently blacklisted, send some generic reply and hang up
      * immediately, or torture them a little longer.
      */
-    if (blist_nets != 0
-	&& addr_match_list_match(blist_nets, smtp_client_addr.buf) != 0) {
+    else if (blist_nets != 0
+       && ps_addr_match_list_match(blist_nets, smtp_client_addr.buf) != 0) {
 	msg_info("BLACKLISTED %s", smtp_client_addr.buf);
 	if (blist_action == PS_ACT_DROP) {
 	    smtp_reply(vstream_fileno(smtp_client_stream),
@@ -1044,20 +1111,11 @@ static void postscreen_service(VSTREAM *smtp_client_stream,
     }
 
     /*
-     * The permanent whitelist has second precedence.
-     */
-    else if (wlist_nets != 0
-	  && addr_match_list_match(wlist_nets, smtp_client_addr.buf) != 0) {
-	msg_info("WHITELISTED %s", smtp_client_addr.buf);
-	state_flags |= PS_FLAG_WHITELISTED;
-    }
-
-    /*
      * Finally, the temporary whitelist (i.e. the postscreen cache) has the
      * lowest precedence.
      */
     else if (cache_map != 0
-	  && (stamp_str = dict_get(cache_map, smtp_client_addr.buf)) != 0) {
+       && (stamp_str = ps_dict_get(cache_map, smtp_client_addr.buf)) != 0) {
 	stamp_time = strtoul(stamp_str, 0, 10);
 	if (stamp_time > event_time() - var_ps_cache_ttl) {
 	    msg_info("PASS OLD %s", smtp_client_addr.buf);

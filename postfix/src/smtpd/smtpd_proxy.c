@@ -961,9 +961,9 @@ static int smtpd_proxy_replay_setup(SMTPD_STATE *state)
      * file is expensive compared to reading or writing. For security reasons
      * we must truncate the file before reuse. For performance reasons we
      * should truncate the file immediately after the end of a mail
-     * transaction. We enforce the security guarantee here by requiring that
-     * no I/O happened since the file was truncated. This is less expensive
-     * than truncating the file redundantly.
+     * transaction. We enforce the security guarantee upon reuse, by
+     * requiring that no I/O happened since the file was truncated. This is
+     * less expensive than truncating the file redundantly.
      */
     if (smtpd_proxy_replay_stream != 0) {
 	/* vstream_ftell() won't invoke the kernel, so all errors are mine. */

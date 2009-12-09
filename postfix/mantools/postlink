@@ -70,6 +70,7 @@ while (<>) {
     s;\baccess_map_reject_code\b;<a href="postconf.5.html#access_map_reject_code">$&</a>;g;
     s;\baccess_map_defer_code\b;<a href="postconf.5.html#access_map_defer_code">$&</a>;g;
     s;\baddress_verify_default_transport\b;<a href="postconf.5.html#address_verify_default_transport">$&</a>;g;
+    s;\baddress_verify_sender_depen[-</bB>]*\n*[ <bB>]*dent_default_trans[-</bB>]*\n*[ <bB>]*port_maps\b;<a href="postconf.5.html#address_verify_sender_dependent_default_transport_maps">$&</a>;g;
     s;\baddress_verify_local_transport\b;<a href="postconf.5.html#address_verify_local_transport">$&</a>;g;
     s;\baddress_verify_map\b;<a href="postconf.5.html#address_verify_map">$&</a>;g;
     s;\baddress_verify_negative_cache\b;<a href="postconf.5.html#address_verify_negative_cache">$&</a>;g;
@@ -145,6 +146,8 @@ while (<>) {
     s;\bdefault_recipi[-</bB>]*\n* *[<bB>]*ent_refill_delay\b;<a href="postconf.5.html#default_recipient_refill_delay">$&</a>;g;
     s;\bdefault_recip[-</bB>]*\n* *[<bB>]*ient_limit\b;<a href="postconf.5.html#default_recipient_limit">$&</a>;g;
     s;\bdefault_transport\b;<a href="postconf.5.html#default_transport">$&</a>;g;
+    s;\bsender_depen[-</bB>]*\n* *[<bB>]*dent_default_trans[-</bB>]*\n* *[<bB>]*port_maps\b;<a href="postconf.5.html#sender_dependent_default_transport_maps">$&</a>;g;
+    s;\bempty_address_default_transport_maps_lookup_key\b;<a href="postconf.5.html#empty_address_default_transport_maps_lookup_key">$&</a>;g;
     s;\bdefault_verp_delimiters\b;<a href="postconf.5.html#default_verp_delimiters">$&</a>;g;
     s;\bdefer_code\b;<a href="postconf.5.html#defer_code">$&</a>;g;
     s;\bdefer_service_name\b;<a href="postconf.5.html#defer_service_name">$&</a>;g;

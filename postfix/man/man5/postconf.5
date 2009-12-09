@@ -215,6 +215,11 @@ address_verify_sender = postmaster@my.domain
 .ft R
 .PP
 This feature is available in Postfix 2.1 and later.
+.SH address_verify_sender_dependent_default_transport_maps (default: $sender_dependent_default_transport_maps)
+Overrides the sender_dependent_default_transport_maps parameter
+setting for address verification probes.
+.PP
+This feature is available in Postfix 2.7 and later.
 .SH address_verify_sender_dependent_relayhost_maps (default: $sender_dependent_relayhost_maps)
 Overrides the sender_dependent_relayhost_maps parameter setting for address
 verification probes.
@@ -1254,11 +1259,14 @@ This feature is available in Postfix 2.4 and later.
 The default mail delivery transport and next-hop destination for
 destinations that do not match $mydestination, $inet_interfaces,
 $proxy_interfaces, $virtual_alias_domains, $virtual_mailbox_domains,
-or $relay_domains.  In order of decreasing precedence, the nexthop
-destination is taken from $default_transport,
+or $relay_domains.  This information can be overruled with the
+sender_dependent_default_transport_maps parameter and with the
+\fBtransport\fR(5) table.
+.PP
+In order of decreasing precedence, the nexthop destination is taken
+from $sender_dependent_default_transport_maps, $default_transport,
 $sender_dependent_relayhost_maps, $relayhost, or from the recipient
-domain. This information can be overruled with the \fBtransport\fR(5)
-table.
+domain.
 .PP
 Specify a string of the form \fItransport:nexthop\fR, where \fItransport\fR
 is the name of a mail delivery transport defined in master.cf.
@@ -1416,6 +1424,11 @@ in order to terminate mail bounce loops.
 The maximal number of addresses remembered by the address
 duplicate filter for \fBaliases\fR(5) or \fBvirtual\fR(5) alias expansion, or
 for \fBshowq\fR(8) queue displays.
+.SH empty_address_default_transport_maps_lookup_key (default: <>)
+The sender_dependent_default_transport_maps search string that
+will be used instead of the null sender address.
+.PP
+This feature is available in Postfix 2.7 and later.
 .SH empty_address_recipient (default: MAILER-DAEMON)
 The recipient of mail addressed to the null address.  Postfix does
 not accept such addresses in SMTP commands, but they may still be
@@ -4253,7 +4266,8 @@ This feature is available in Postfix 2.0 and later.
 .SH relayhost (default: empty)
 The next-hop destination of non-local mail; overrides non-local
 domains in recipient addresses. This information is overruled with
-relay_transport, default_transport, sender_dependent_relayhost_maps
+relay_transport, sender_dependent_default_transport_maps,
+default_transport, sender_dependent_relayhost_maps
 and with the \fBtransport\fR(5) table.
 .PP
 On an intranet, specify the organizational domain name. If your
@@ -4466,13 +4480,30 @@ sender_canonical_maps = hash:/etc/postfix/sender_canonical
 .fi
 .ad
 .ft R
+.SH sender_dependent_default_transport_maps (default: empty)
+A sender-dependent override for the global default_transport
+parameter setting. The tables are searched by the envelope sender
+address and @domain. A lookup result of DUNNO terminates the search
+without overriding the global default_transport parameter setting.
+This information is overruled with the \fBtransport\fR(5) table.
+.PP
+Note: this overrides default_transport, not transport_maps, and
+therefore the expected syntax is that of default_transport.  This
+feature does not support the transport_maps syntax for null transport,
+null nexthop, or null email addresses.
+.PP
+For safety reasons, this feature does not allow $number
+substitutions in regular expression maps.
+.PP
+This feature is available in Postfix 2.7 and later.
 .SH sender_dependent_relayhost_maps (default: empty)
 A sender-dependent override for the global relayhost parameter
 setting. The tables are searched by the envelope sender address and
 @domain. A lookup result of DUNNO terminates the search without
 overriding the global relayhost parameter setting (Postfix 2.6 and
 later). This information is overruled with relay_transport,
-default_transport and with the \fBtransport\fR(5) table.
+sender_dependent_default_transport_maps, default_transport and with
+the \fBtransport\fR(5) table.
 .PP
 For safety reasons, this feature does not allow $number
 substitutions in regular expression maps.
@@ -6582,7 +6613,7 @@ to send to this service per time unit, regardless of whether or not
 Postfix actually accepts those recipients.  The time unit is specified
 with the anvil_rate_time_unit configuration parameter.
 .PP
-By default, a client can make as many recipient addresses per time
+By default, a client can send as many recipient addresses per time
 unit as Postfix can accept.
 .PP
 To disable this feature, specify a limit of 0.

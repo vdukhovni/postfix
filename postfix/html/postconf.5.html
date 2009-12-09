@@ -403,6 +403,17 @@ This feature is available in Postfix 2.1 and later.
 
 </DD>
 
+<DT><b><a name="address_verify_sender_dependent_default_transport_maps">address_verify_sender_dependent_default_transport_maps</a>
+(default: $<a href="postconf.5.html#sender_dependent_default_transport_maps">sender_dependent_default_transport_maps</a>)</b></DT><DD>
+
+<p> Overrides the <a href="postconf.5.html#sender_dependent_default_transport_maps">sender_dependent_default_transport_maps</a> parameter
+setting for address verification probes.  </p>
+
+<p> This feature is available in Postfix 2.7 and later.  </p>
+
+
+</DD>
+
 <DT><b><a name="address_verify_sender_dependent_relayhost_maps">address_verify_sender_dependent_relayhost_maps</a>
 (default: $<a href="postconf.5.html#sender_dependent_relayhost_maps">sender_dependent_relayhost_maps</a>)</b></DT><DD>
 
@@ -2209,11 +2220,15 @@ name of the message delivery transport.
 The default mail delivery transport and next-hop destination for
 destinations that do not match $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>,
 $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>, $<a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>, $<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a>,
-or $<a href="postconf.5.html#relay_domains">relay_domains</a>.  In order of decreasing precedence, the nexthop
-destination is taken from $<a href="postconf.5.html#default_transport">default_transport</a>,
+or $<a href="postconf.5.html#relay_domains">relay_domains</a>.  This information can be overruled with the
+<a href="postconf.5.html#sender_dependent_default_transport_maps">sender_dependent_default_transport_maps</a> parameter and with the
+<a href="transport.5.html">transport(5)</a> table. </p>
+
+<p>
+In order of decreasing precedence, the nexthop destination is taken
+from $<a href="postconf.5.html#sender_dependent_default_transport_maps">sender_dependent_default_transport_maps</a>, $<a href="postconf.5.html#default_transport">default_transport</a>,
 $<a href="postconf.5.html#sender_dependent_relayhost_maps">sender_dependent_relayhost_maps</a>, $<a href="postconf.5.html#relayhost">relayhost</a>, or from the recipient
-domain. This information can be overruled with the <a href="transport.5.html">transport(5)</a>
-table.
+domain.
 </p>
 
 <p>
@@ -2538,6 +2553,17 @@ in order to terminate mail bounce loops.  </p>
 <p> The maximal number of addresses remembered by the address
 duplicate filter for <a href="aliases.5.html">aliases(5)</a> or <a href="virtual.5.html">virtual(5)</a> alias expansion, or
 for <a href="showq.8.html">showq(8)</a> queue displays.  </p>
+
+
+</DD>
+
+<DT><b><a name="empty_address_default_transport_maps_lookup_key">empty_address_default_transport_maps_lookup_key</a>
+(default: <>)</b></DT><DD>
+
+<p> The <a href="postconf.5.html#sender_dependent_default_transport_maps">sender_dependent_default_transport_maps</a> search string that
+will be used instead of the null sender address. </p>
+
+<p> This feature is available in Postfix 2.7 and later.  </p>
 
 
 </DD>
@@ -7588,7 +7614,8 @@ This feature is available in Postfix 2.0 and later.
 <p>
 The next-hop destination of non-local mail; overrides non-local
 domains in recipient addresses. This information is overruled with
-<a href="postconf.5.html#relay_transport">relay_transport</a>, <a href="postconf.5.html#default_transport">default_transport</a>, <a href="postconf.5.html#sender_dependent_relayhost_maps">sender_dependent_relayhost_maps</a>
+<a href="postconf.5.html#relay_transport">relay_transport</a>, <a href="postconf.5.html#sender_dependent_default_transport_maps">sender_dependent_default_transport_maps</a>,
+<a href="postconf.5.html#default_transport">default_transport</a>, <a href="postconf.5.html#sender_dependent_relayhost_maps">sender_dependent_relayhost_maps</a>
 and with the <a href="transport.5.html">transport(5)</a> table.
 </p>
 
@@ -7908,6 +7935,28 @@ Example:
 
 </DD>
 
+<DT><b><a name="sender_dependent_default_transport_maps">sender_dependent_default_transport_maps</a>
+(default: empty)</b></DT><DD>
+
+<p> A sender-dependent override for the global <a href="postconf.5.html#default_transport">default_transport</a>
+parameter setting. The tables are searched by the envelope sender
+address and @domain. A lookup result of DUNNO terminates the search
+without overriding the global <a href="postconf.5.html#default_transport">default_transport</a> parameter setting.
+This information is overruled with the <a href="transport.5.html">transport(5)</a> table. </p>
+
+<p> Note: this overrides <a href="postconf.5.html#default_transport">default_transport</a>, not <a href="postconf.5.html#transport_maps">transport_maps</a>, and
+therefore the expected syntax is that of <a href="postconf.5.html#default_transport">default_transport</a>.  This
+feature does not support the <a href="postconf.5.html#transport_maps">transport_maps</a> syntax for null transport,
+null nexthop, or null email addresses. </p>
+
+<p> For safety reasons, this feature does not allow $number
+substitutions in regular expression maps. </p>
+
+<p> This feature is available in Postfix 2.7 and later.  </p>
+
+
+</DD>
+
 <DT><b><a name="sender_dependent_relayhost_maps">sender_dependent_relayhost_maps</a>
 (default: empty)</b></DT><DD>
 
@@ -7916,7 +7965,8 @@ setting. The tables are searched by the envelope sender address and
 @domain. A lookup result of DUNNO terminates the search without
 overriding the global <a href="postconf.5.html#relayhost">relayhost</a> parameter setting (Postfix 2.6 and
 later). This information is overruled with <a href="postconf.5.html#relay_transport">relay_transport</a>,
-<a href="postconf.5.html#default_transport">default_transport</a> and with the <a href="transport.5.html">transport(5)</a> table. </p>
+<a href="postconf.5.html#sender_dependent_default_transport_maps">sender_dependent_default_transport_maps</a>, <a href="postconf.5.html#default_transport">default_transport</a> and with
+the <a href="transport.5.html">transport(5)</a> table. </p>
 
 <p> For safety reasons, this feature does not allow $number
 substitutions in regular expression maps. </p>
@@ -10824,7 +10874,7 @@ with the <a href="postconf.5.html#anvil_rate_time_unit">anvil_rate_time_unit</a>
 </p>
 
 <p>
-By default, a client can make as many recipient addresses per time
+By default, a client can send as many recipient addresses per time
 unit as Postfix can accept.
 </p>
 

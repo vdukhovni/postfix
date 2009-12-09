@@ -428,6 +428,14 @@ extern char *var_transport_maps;
 #define DEF_DEF_TRANSPORT	MAIL_SERVICE_SMTP
 extern char *var_def_transport;
 
+#define VAR_SND_DEF_XPORT_MAPS	"sender_dependent_" VAR_DEF_TRANSPORT "_maps"
+#define DEF_SND_DEF_XPORT_MAPS	""
+extern char *var_snd_def_xport_maps;
+
+#define VAR_NULL_DEF_XPORT_MAPS_KEY	"empty_address_" VAR_DEF_TRANSPORT "_maps_lookup_key"
+#define DEF_NULL_DEF_XPORT_MAPS_KEY	"<>"
+extern char *var_null_def_xport_maps_key;
+
  /*
   * trivial rewrite/resolve service: rewriting controls.
   */
@@ -2594,6 +2602,10 @@ extern char *var_vrfy_relay_xport;
 #define VAR_VRFY_DEF_XPORT		"address_verify_default_transport"
 #define DEF_VRFY_DEF_XPORT		"$" VAR_DEF_TRANSPORT
 extern char *var_vrfy_def_xport;
+
+#define VAR_VRFY_SND_DEF_XPORT_MAPS	"address_verify_" VAR_SND_DEF_XPORT_MAPS
+#define DEF_VRFY_SND_DEF_XPORT_MAPS	"$" VAR_SND_DEF_XPORT_MAPS
+extern char *var_snd_def_xport_maps;
 
 #define VAR_VRFY_RELAYHOST		"address_verify_relayhost"
 #define DEF_VRFY_RELAYHOST		"$" VAR_RELAYHOST

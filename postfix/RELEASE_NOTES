@@ -14,6 +14,31 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.5 or earlier, read RELEASE_NOTES-2.6
 before proceeding.
 
+Incompatibility with snapshot 20091209
+======================================
+
+The postscreen daemon now checks the permanent whitelist before
+the permanent blacklist. This makes the whitelist easier to use
+for its intended purpose, which is to receive mail.
+
+Major changes with snapshot 20091209
+====================================
+
+sender_dependent_default_transport_maps, a per-sender override for
+default_transport. It's original motivation is to use different
+output channels (with different source IP addresses) for different
+sender addresses, in order to keep their IP-based reputations
+separate from each other.  
+
+The result value syntax is that of default_transport, not transport_maps.
+Thus, sender_dependent_default_transport_maps does not support the
+special transport_maps result value syntax for null transport, null
+nexthop, or null email address.
+
+This feature makes sender_dependent_relayhost_maps pretty much
+redundant (though sender_dependent_relayhost_maps will often be
+easier to use because that is the only thing people want to override).
+
 Major changes with snapshot 20091109
 ====================================
 
@@ -30,9 +55,9 @@ filter, means they would have to discard bad mail (which is illegal)
 or bounce bad mail (which violates good network citizenship).
 
 NOTE 1: When this feature is turned on, a filter cannot selectively
-reject recipients of a multi-recipient message.  Rejecting all
-recipients is OK, as is deferring all recipients, or accepting all
-recipients of the same multi-recipient message.
+reject recipients of a multi-recipient message.  It is OK to reject
+all recipients of the same multi-recipient message, as is deferring
+or accepting all recipients of the same multi-recipient message.
 
 NOTE 2: This feature increases the minimum amount of free queue
 space by $message_size_limit. The extra space is needed to save the

@@ -15521,3 +15521,45 @@ Apologies for any names omitted.
 	Safety: don't send postmaster notifications to report
 	problems delivering (possible) postmaster notifications.
 	File: smtp/smtp_connect.c.
+
+20091121
+
+	Feature: sender_dependent_default_transport_maps, to override
+	the default transport in a sender-dependent manner. This
+	is not a transport_maps override, and therefore it does not
+	use the transport_maps syntax for null transport, null
+	nexthop, or null email address.
+
+20091127
+
+	Usability: the Postfix SMTP client now logs a warning that
+	wrappermode TLS is not supported, when configured to connect
+	to port smtps/465. File: smtp/smtp_connect.c.
+
+20091203
+
+	Safety: the postscreen daemon logs a warning when table
+	lookup is slow. Slow lookups cause postscreen to fall behind,
+	and worse, to catch up in bursts, which results in overload
+	elsewhere.  File: postscreen/postscreen.c.
+
+20091206
+
+	Feature: by popular demand, the Postfix SMTP server now
+	logs the before-queue content filter's end-of-message
+	accept/reject response.  File: smtpd/smtpd.c.
+
+20091209
+
+	Portability: as the result of continuous improvement,
+	Berkeley DB no longer allows fork-then-close. File:
+	postscreen/postscreen.c.
+
+	Bugfix: sender_dependent_relayhost_maps did not reject an
+	empty lookup result, and did not recognize lookup errors,
+	thus treating errors as "not found". Problem found during
+	code maintenance. File: trivial-rewrite/resolve.c.
+
+	Cleanup: the postscreen daemon now applies the permanent
+	whitelist first. It is a safety feature that prevents mail
+	from being blocked. File: postscreeb/postscreen.c.

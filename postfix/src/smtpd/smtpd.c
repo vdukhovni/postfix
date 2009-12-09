@@ -1353,6 +1353,27 @@ static int sasl_client_exception(SMTPD_STATE *state)
 
 #endif
 
+/* smtpd_whatsup - gather available evidence for logging */
+
+static const char *smtpd_whatsup(SMTPD_STATE *state)
+{
+    static VSTRING *buf = 0;
+
+    if (buf == 0)
+	buf = vstring_alloc(100);
+    else
+	VSTRING_RESET(buf);
+    if (state->sender)
+	vstring_sprintf_append(buf, " from=<%s>", state->sender);
+    if (state->recipient)
+	vstring_sprintf_append(buf, " to=<%s>", state->recipient);
+    if (state->protocol)
+	vstring_sprintf_append(buf, " proto=%s", state->protocol);
+    if (state->helo_name)
+	vstring_sprintf_append(buf, " helo=<%s>", state->helo_name);
+    return (STR(buf));
+}
+
 /* collapse_args - put arguments together again */
 
 static void collapse_args(int argc, SMTPD_TOKEN *argv)
@@ -1371,22 +1392,8 @@ static void collapse_args(int argc, SMTPD_TOKEN *argv)
 static const char *check_milter_reply(SMTPD_STATE *state, const char *reply)
 {
     const char *queue_id = state->queue_id ? state->queue_id : "NOQUEUE";
-    VSTRING *buf = vstring_alloc(100);
     const char *action;
     const char *text;
-
-    /*
-     * XXX Copied from log_whatsup(). Needs to be changed into a reusable
-     * function.
-     */
-    if (state->sender)
-	vstring_sprintf_append(buf, " from=<%s>", state->sender);
-    if (state->recipient)
-	vstring_sprintf_append(buf, " to=<%s>", state->recipient);
-    if (state->protocol)
-	vstring_sprintf_append(buf, " proto=%s", state->protocol);
-    if (state->helo_name)
-	vstring_sprintf_append(buf, " helo=<%s>", state->helo_name);
 
     /*
      * The syntax of user-specified SMTP replies is checked by the Milter
@@ -1430,8 +1437,7 @@ static const char *check_milter_reply(SMTPD_STATE *state, const char *reply)
 	break;
     }
     msg_info("%s: %s: %s from %s: %s;%s", queue_id, action, state->where,
-	     state->namaddr, reply ? reply : text, STR(buf));
-    vstring_free(buf);
+	     state->namaddr, reply ? reply : text, smtpd_whatsup(state));
     return (reply);
 }
 
@@ -3095,6 +3101,14 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	smtpd_chat_reply(state, "%d %s Error: internal error %d",
 			 detail->smtp, detail->dsn, state->err);
     }
+
+    /*
+     * By popular command: the proxy's end-of-data reply.
+     */
+    if (proxy)
+	msg_info("proxy-%s: %s: %s;%s",
+		 (state->err == CLEANUP_STAT_OK) ? "accept" : "reject",
+		 state->where, STR(proxy->buffer), smtpd_whatsup(state));
 
     /*
      * Cleanup. The client may send another MAIL command.

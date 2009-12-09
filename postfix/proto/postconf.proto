@@ -1231,11 +1231,15 @@ name of the message delivery transport.
 The default mail delivery transport and next-hop destination for
 destinations that do not match $mydestination, $inet_interfaces,
 $proxy_interfaces, $virtual_alias_domains, $virtual_mailbox_domains,
-or $relay_domains.  In order of decreasing precedence, the nexthop
-destination is taken from $default_transport,
+or $relay_domains.  This information can be overruled with the
+sender_dependent_default_transport_maps parameter and with the
+transport(5) table. </p>
+
+<p>
+In order of decreasing precedence, the nexthop destination is taken
+from $sender_dependent_default_transport_maps, $default_transport,
 $sender_dependent_relayhost_maps, $relayhost, or from the recipient
-domain. This information can be overruled with the transport(5)
-table.
+domain. 
 </p>
 
 <p>
@@ -3481,7 +3485,8 @@ This feature is available in Postfix 2.0 and later.
 <p>
 The next-hop destination of non-local mail; overrides non-local
 domains in recipient addresses. This information is overruled with
-relay_transport, default_transport, sender_dependent_relayhost_maps
+relay_transport, sender_dependent_default_transport_maps,
+default_transport, sender_dependent_relayhost_maps
 and with the transport(5) table.
 </p>
 
@@ -4655,7 +4660,7 @@ with the anvil_rate_time_unit configuration parameter.
 </p>
 
 <p>
-By default, a client can make as many recipient addresses per time
+By default, a client can send as many recipient addresses per time
 unit as Postfix can accept.
 </p>
 
@@ -9497,7 +9502,8 @@ setting. The tables are searched by the envelope sender address and
 @domain. A lookup result of DUNNO terminates the search without
 overriding the global relayhost parameter setting (Postfix 2.6 and
 later). This information is overruled with relay_transport,
-default_transport and with the transport(5) table. </p>
+sender_dependent_default_transport_maps, default_transport and with
+the transport(5) table. </p>
 
 <p> For safety reasons, this feature does not allow $number
 substitutions in regular expression maps. </p>
@@ -12699,3 +12705,36 @@ the Postfix SMTP client TLS session.  </p>
 configuration parameter.  See there for details. </p>
 
 <p> This feature is available in Postfix 2.7 and later. </p>
+
+%PARAM empty_address_default_transport_maps_lookup_key <>
+
+<p> The sender_dependent_default_transport_maps search string that
+will be used instead of the null sender address. </p>
+
+<p> This feature is available in Postfix 2.7 and later.  </p>
+
+%PARAM sender_dependent_default_transport_maps
+
+<p> A sender-dependent override for the global default_transport
+parameter setting. The tables are searched by the envelope sender
+address and @domain. A lookup result of DUNNO terminates the search
+without overriding the global default_transport parameter setting.
+This information is overruled with the transport(5) table. </p>
+
+<p> Note: this overrides default_transport, not transport_maps, and
+therefore the expected syntax is that of default_transport.  This
+feature does not support the transport_maps syntax for null transport,
+null nexthop, or null email addresses. </p>
+
+<p> For safety reasons, this feature does not allow $number
+substitutions in regular expression maps. </p>
+
+<p> This feature is available in Postfix 2.7 and later.  </p>
+
+%PARAM address_verify_sender_dependent_default_transport_maps $sender_dependent_default_transport_maps
+
+<p> Overrides the sender_dependent_default_transport_maps parameter
+setting for address verification probes.  </p>
+
+<p> This feature is available in Postfix 2.7 and later.  </p>
+

@@ -754,6 +754,10 @@ static void smtp_connect_remote(SMTP_STATE *state, const char *nexthop,
 	 * specified, or when DNS lookups are disabled.
 	 */
 	dest_buf = smtp_parse_destination(dest, def_service, &domain, &port);
+	if (var_helpful_warnings && ntohs(port) == 465) {
+	    msg_info("CLIENT wrappermode (port smtps/465) is unimplemented");
+	    msg_info("instead, send to (port submission/587) with STARTTLS");
+	}
 
 	/*
 	 * Resolve an SMTP server. Skip mail exchanger lookups when a quoted
