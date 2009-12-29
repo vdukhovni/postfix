@@ -26,6 +26,8 @@ typedef struct HTABLE {
     int     size;			/* length of entries array */
     int     used;			/* number of entries in table */
     HTABLE_INFO **data;			/* entries array, auto-resized */
+    HTABLE_INFO **seq_bucket;		/* current sequence bucket */
+    HTABLE_INFO *seq_element;		/* current sequence element */
 } HTABLE;
 
 extern HTABLE *htable_create(int);
@@ -36,6 +38,11 @@ extern void htable_delete(HTABLE *, const char *, void (*) (char *));
 extern void htable_free(HTABLE *, void (*) (char *));
 extern void htable_walk(HTABLE *, void (*) (HTABLE_INFO *, char *), char *);
 extern HTABLE_INFO **htable_list(HTABLE *);
+extern HTABLE_INFO *htable_sequence(HTABLE *, int);
+
+#define HTABLE_SEQ_FIRST	0
+#define HTABLE_SEQ_NEXT		1
+#define HTABLE_SEQ_STOP		(-1)
 
 /* LICENSE
 /* .ad

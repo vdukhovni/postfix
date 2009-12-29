@@ -76,6 +76,7 @@ while (<>) {
     s;\baddress_verify_negative_cache\b;<a href="postconf.5.html#address_verify_negative_cache">$&</a>;g;
     s;\baddress_verify_negative_expire_time\b;<a href="postconf.5.html#address_verify_negative_expire_time">$&</a>;g;
     s;\baddress_verify_negative_refresh_time\b;<a href="postconf.5.html#address_verify_negative_refresh_time">$&</a>;g;
+    s;\baddress_verify_cache_cleanup_interval\b;<a href="postconf.5.html#address_verify_cache_cleanup_interval">$&</a>;g;
     s;\baddress_verify_poll_count\b;<a href="postconf.5.html#address_verify_poll_count">$&</a>;g;
     s;\baddress_verify_poll_delay\b;<a href="postconf.5.html#address_verify_poll_delay">$&</a>;g;
     s;\baddress_verify_positive_expire_time\b;<a href="postconf.5.html#address_verify_positive_expire_time">$&</a>;g;
@@ -899,6 +900,8 @@ while (<>) {
     # postscreen
     s;\bpostscreen_cache_map\b;<a href="postconf.5.html#postscreen_cache_map">$&</a>;g;
     s;\bpostscreen_cache_ttl\b;<a href="postconf.5.html#postscreen_cache_ttl">$&</a>;g;
+    s;\bpostscreen_cache_cleanup_interval\b;<a href="postconf.5.html#postscreen_cache_cleanup_interval">$&</a>;g;
+    s;\bpostscreen_cache_retention_time\b;<a href="postconf.5.html#postscreen_cache_retention_time">$&</a>;g;
     s;\bsmtpd_service\b;<a href="postconf.5.html#smtpd_service">$&</a>;g;
     s;\bpostscreen_post_queue_limit\b;<a href="postconf.5.html#postscreen_post_queue_limit">$&</a>;g;
     s;\bpostscreen_pre_queue_limit\b;<a href="postconf.5.html#postscreen_pre_queue_limit">$&</a>;g;

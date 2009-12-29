@@ -121,6 +121,23 @@ Do not change this unless you have a complete understanding of <a href="http://t
 
 </DD>
 
+<DT><b><a name="address_verify_cache_cleanup_interval">address_verify_cache_cleanup_interval</a>
+(default: 12h)</b></DT><DD>
+
+<p> The amount of time between <a href="verify.8.html">verify(8)</a> cache cleanup runs.  Cache
+cleanup increases the load on the cache database and should therefore
+not be run frequently. This feature requires that the cache database
+supports the "delete" and "sequence" operators.  Specify a zero
+interval to disable cache cleanup. </p>
+
+<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
+(weeks). </p>
+
+<p> This feature is available in Postfix 2.7. </p>
+
+
+</DD>
+
 <DT><b><a name="address_verify_default_transport">address_verify_default_transport</a>
 (default: $<a href="postconf.5.html#default_transport">default_transport</a>)</b></DT><DD>
 
@@ -249,7 +266,7 @@ This feature is available in Postfix 2.1 and later.
 </DD>
 
 <DT><b><a name="address_verify_poll_count">address_verify_poll_count</a>
-(default: 3)</b></DT><DD>
+(default: see "postconf -d" output)</b></DT><DD>
 
 <p>
 How many times to query the <a href="verify.8.html">verify(8)</a> service for the completion
@@ -257,12 +274,16 @@ of an address verification request in progress.
 </p>
 
 <p>
-The default poll count is 3.
+With Postfix version 2.7 and later, the SMTP server polls the
+<a href="verify.8.html">verify(8)</a> service up to three times under non-overload conditions,
+and only once when under overload.  With earlier Postfix versions,
+the SMTP server always polls the <a href="verify.8.html">verify(8)</a> service up to three
+times.
 </p>
 
 <p>
 Specify 1 to implement a crude form of greylisting, that is, always
-defer the first delivery request for a never seen before address.
+defer the first delivery request for a new address.
 </p>
 
 <p>
@@ -6563,10 +6584,43 @@ never uses the remote SMTP client hostname.  </p>
 
 </DD>
 
+<DT><b><a name="postscreen_cache_cleanup_interval">postscreen_cache_cleanup_interval</a>
+(default: 12h)</b></DT><DD>
+
+<p> The amount of time between <a href="postscreen.8.html">postscreen(8)</a> cache cleanup runs.
+Cache cleanup increases the load on the cache database and should
+therefore not be run frequently. This feature requires that the
+cache database supports the "delete" and "sequence" operators.
+Specify a zero interval to disable cache cleanup. </p>
+
+<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
+(weeks).  </p>
+
+<p> This feature is available in Postfix 2.7. </p>
+
+
+</DD>
+
 <DT><b><a name="postscreen_cache_map">postscreen_cache_map</a>
 (default: btree:$<a href="postconf.5.html#data_directory">data_directory</a>/ps_whitelist)</b></DT><DD>
 
 <p> Persistent storage for the <a href="postscreen.8.html">postscreen(8)</a> server decisions. </p>
+
+<p> This feature is available in Postfix 2.7. </p>
+
+
+</DD>
+
+<DT><b><a name="postscreen_cache_retention_time">postscreen_cache_retention_time</a>
+(default: 1d)</b></DT><DD>
+
+<p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will cache an expired
+temporary whitelist entry before it is removed. This prevents clients
+from being logged as "NEW" just because their cache entry expired
+an hour ago.  </p>
+
+<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
+(weeks).  </p>
 
 <p> This feature is available in Postfix 2.7. </p>
 
@@ -6579,9 +6633,9 @@ never uses the remote SMTP client hostname.  </p>
 <p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will cache a decision for
 a specific SMTP client IP address. During this time, the client IP
 address is excluded from tests. If possible, expired decisions are
-renewed silently. Specify a non-zero time value (an integral value
-plus an optional one-letter suffix that specifies the time unit).
-</p>
+renewed automatically. Specify a non-zero time value (an integral
+value plus an optional one-letter suffix that specifies the time
+unit).  </p>
 
 <p> Time units: s (seconds), m (minutes), h (hours), d (days), w
 (weeks).  </p>
@@ -6661,7 +6715,8 @@ IP address. </p>
 <DT><b><a name="postscreen_greet_banner">postscreen_greet_banner</a>
 (default: $<a href="postconf.5.html#smtpd_banner">smtpd_banner</a>)</b></DT><DD>
 
-<p> The text in the optional "220-text..." server response that
+<p> The <i>text</i> in the optional "220-<i>text</i>..." server
+response that
 <a href="postscreen.8.html">postscreen(8)</a> sends ahead of the real Postfix SMTP server's "220
 text..." response, in an attempt to confuse bad SMTP clients so
 that they speak before their turn (pre-greet).  Specify an empty
@@ -8905,7 +8960,7 @@ invalid responses. </p>
 <ul>
 
 <li> <p> In the case of a multi-line reply, the Postfix SMTP client
-uses the last reply line's numerical SMTP reply code and enhanced
+uses the final reply line's numerical SMTP reply code and enhanced
 status code.  </p>
 
 <li> <p> The numerical SMTP reply code (XYZ) takes precedence over
@@ -8924,16 +8979,16 @@ server, except that the trailing &lt;CR&gt;&lt;LF&gt; are removed.  </p>
 
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
-    <a href="postconf.5.html#smtp_reply_filter">smtp_reply_filter</a> = <a href="pcre_table.5.html">pcre</a>:/etc/postfix/command_filter
+    <a href="postconf.5.html#smtp_reply_filter">smtp_reply_filter</a> = <a href="pcre_table.5.html">pcre</a>:/etc/postfix/reply_filter
 </pre>
 
 <pre>
 /etc/postfix/reply_filter:
-    # Transform garbage into part of a multi-line reply. Note
-    # that the Postfix SMTP client uses only the last numerical
-    # SMTP reply code and enhanced status code from a multi-line
-    # reply, so it does not matter what we substitute here as
-    # long as it has the right syntax.
+    # Transform garbage into "250-filler..." so that it looks like
+    # one line from a multi-line reply. It does not matter what we
+    # substitute here as long it has the right syntax.  The Postfix
+    # SMTP client will use the final line's numerical SMTP reply
+    # code and enhanced status code.
     !/^([2-5][0-9][0-9]($|[- ]))/ 250-filler for garbage
 </pre>
 
@@ -11226,6 +11281,20 @@ except that initial whitespace and the trailing &lt;CR&gt;&lt;LF&gt;
 are removed.  The result value is executed by the Postfix SMTP
 server.  </p>
 
+<p> Postfix already implements a number of workarounds for malformed
+client commands. </p>
+
+<ul>
+
+<li> <p> Use "<a href="postconf.5.html#resolve_numeric_domain">resolve_numeric_domain</a> = yes" to accept "<i>user@ipaddress</i>"
+Postfix already accepts the correct form "<i>user@[ipaddress]</i>".
+</p>
+
+<li> <p> Use "<a href="postconf.5.html#strict_rfc821_envelopes">strict_rfc821_envelopes</a> = no" to accept "<i>User Name
+&lt;user@example.com&gt;</i>". </p>
+
+</ul>
+
 <p> Examples: </p>
 
 <pre>
@@ -11557,8 +11626,9 @@ it changes under overload to just 1 with Postfix 2.6 and later.
 (default: no)</b></DT><DD>
 
 <p>
-Require that a remote SMTP client introduces itself at the beginning
-of an SMTP session with the HELO or EHLO command.
+Require that a remote SMTP client introduces itself with the HELO
+or EHLO command before sending the MAIL command or other commands
+that require EHLO negotiation.
 </p>
 
 <p>
@@ -12800,12 +12870,12 @@ inside the chroot jail. </p>
 
 <p> By default (see <a href="postconf.5.html#smtpd_tls_ask_ccert">smtpd_tls_ask_ccert</a>), client certificates are
 not requested, and <a href="postconf.5.html#smtpd_tls_CApath">smtpd_tls_CApath</a> should remain empty. In contrast
-to <a href="postconf.5.html#smtp_tls_CAfile">smtp_tls_CAfile</a>, DNs of certificate authorities installed
+to <a href="postconf.5.html#smtpd_tls_CAfile">smtpd_tls_CAfile</a>, DNs of certificate authorities installed
 in $<a href="postconf.5.html#smtpd_tls_CApath">smtpd_tls_CApath</a> are not included in the client certificate
 request message. MUAs with multiple client certificates may use the
 list of preferred certificate authorities to select the correct
 client certificate.  You may want to put your "preferred" CA or
-CAs in $<a href="postconf.5.html#smtp_tls_CAfile">smtp_tls_CAfile</a>, and install the remaining trusted CAs in
+CAs in $<a href="postconf.5.html#smtpd_tls_CAfile">smtpd_tls_CAfile</a>, and install the remaining trusted CAs in
 $<a href="postconf.5.html#smtpd_tls_CApath">smtpd_tls_CApath</a>. </p>
 
 <p> Example: </p>

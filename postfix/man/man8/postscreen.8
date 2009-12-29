@@ -13,26 +13,31 @@ Postfix SMTP triage server
 .ad
 .fi
 The Postfix \fBpostscreen\fR(8) server performs triage on
-multiple inbound SMTP connections in parallel. The program
-can run in two basic modes.
+multiple inbound SMTP connections in parallel.  By running
+time-consuming tests in parallel in \fBpostscreen\fR(8),
+zombies and other bogus clients can be kept away from Postfix
+SMTP server processes. Thus, more Postfix SMTP server
+processes remain available for legitimate clients.
 
-The purpose of \fBobservation mode\fR is to collect statistics
-without actually blocking mail. \fBpostscreen\fR(8) runs a
-number of tests before it forwards a connection to a real
-SMTP server process.  These tests introduce a delay of a
-few seconds; once a client passes the tests as "clean", its
-IP address is temporarily whitelisted and subsequent
-connections incur no delays until the temporary whitelist
-entry expires.
+This triage process involves a number of tests, documented
+below.  The tests introduce a delay of a few seconds; once
+a client passes the tests, its IP address is temporarily
+whitelisted, typically for 24 hours.
 
-The purpose of \fBenforcement mode\fR is to block mail
-without using up one Postfix SMTP server process for every
-connection.  Here, \fBpostscreen\fR(8) terminates connections
-from SMTP clients that fail the above tests, and forwards
-only the remaining connections to a real SMTP server process.
-By running time-consuming spam tests in parallel in
-\fBpostscreen\fR(8), more Postfix SMTP server processes
-remain available for legitimate clients.
+The program can run in two basic modes.
+.IP "\fBObservation mode\fR"
+\fBpostscreen\fR(8) reports the results of the tests, and
+forwards all connections to a real Postfix SMTP server
+process.
+.IP "\fBEnforcement mode\fR"
+\fBpostscreen\fR(8) reports the results of the tests, but
+forwards only connections to a real SMTP server process
+from clients that passed the tests.
+.sp
+\fBpostscreen\fR(8) disconnects clients that fail the tests,
+after sending a 521 status message (a future version may
+pass the connection to a dummy SMTP protocol engine that
+logs sender and recipient information).
 .PP
 Note: \fBpostscreen\fR(8) is not an SMTP proxy; this is
 intentional. The purpose is to prioritize legitimate clients
@@ -44,8 +49,7 @@ with as little overhead as possible.
 .fi
 The postscreen_whitelist_networks parameter (default:
 $mynetworks) specifies a permanent whitelist for SMTP client
-IP addresses.  This feature is not used for addresses that
-appear on the permanent blacklist.
+IP addresses.
 
 When the SMTP client address matches the permanent whitelist,
 this is logged as:
@@ -105,12 +109,13 @@ parameter.  Expired entries are silently renewed if possible.
 .ad
 .fi
 The postscreen_greet_wait parameter specifies a time interval
-during which \fBpostscreen\fR(8) runs a number of tests as
-described below.  These tests run before the client may
-see the real SMTP server's "220 text..." server greeting.
+during which \fBpostscreen\fR(8) runs a number of tests in
+parallel.  These tests are described below, and are run
+before the client may see the real SMTP server's "220
+text..." server greeting.
 
-When the SMTP client passes all the tests, this is logged
-as:
+When the SMTP client passes all greeting-phase tests, this
+is logged as:
 .sp
 .nf
 \fBPASS NEW \fIaddress\fR
@@ -129,8 +134,9 @@ to talk to a real SMTP server process.
 .SH 4A. PREGREET TEST
 .ad
 .fi
-The postscreen_greet_banner parameter specifies the text
-for a "220-text..." teaser banner (default: $smtpd_banner).
+The postscreen_greet_banner parameter specifies the \fItext\fR
+portion of a "220-\fItext\fR..." teaser banner (default:
+$smtpd_banner).
 The \fBpostscreen\fR(8) daemon sends this before the
 postscreen_greet_wait timer is started.  The purpose of the
 teaser banner is to confuse SPAM clients so that they speak
@@ -191,7 +197,8 @@ Drop the connection immediately.
 .ad
 .fi
 The postscreen_dnsbl_sites parameter (default: empty)
-specifies a list of DNS blocklist servers.
+specifies a list of DNS blocklist servers. These lookups
+are made in parallel.
 
 When the postscreen_greet_wait time has elapsed, and the
 SMTP client address is listed with at least one of these
@@ -256,11 +263,6 @@ parameter.
 .IP "\fBpostscreen_blacklist_networks (empty)\fR"
 Network addresses that are permanently blacklisted; see the
 postscreen_blacklist_action parameter for possible actions.
-.IP "\fBpostscreen_cache_map (btree:$data_directory/ps_whitelist)\fR"
-Persistent storage for the \fBpostscreen\fR(8) server decisions.
-.IP "\fBpostscreen_cache_ttl (1d)\fR"
-The amount of time that \fBpostscreen\fR(8) will cache a decision for
-a specific SMTP client IP address.
 .IP "\fBpostscreen_dnsbl_action (continue)\fR"
 The action that \fBpostscreen\fR(8) takes when an SMTP client is listed
 at the DNS blocklist domains specified with the postscreen_dnsbl_sites
@@ -272,7 +274,8 @@ The action that \fBpostscreen\fR(8) takes when an SMTP client speaks
 before its turn within the time specified with the postscreen_greet_wait
 parameter.
 .IP "\fBpostscreen_greet_banner ($smtpd_banner)\fR"
-The text in the optional "220-text..." server response that
+The \fItext\fR in the optional "220-\fItext\fR..." server
+response that
 \fBpostscreen\fR(8) sends ahead of the real Postfix SMTP server's "220
 text..." response, in an attempt to confuse bad SMTP clients so
 that they speak before their turn (pre-greet).
@@ -297,6 +300,21 @@ will not be subjected to \fBpostscreen\fR(8) checks.
 .IP "\fBsmtpd_service (smtpd)\fR"
 The internal service that \fBpostscreen\fR(8) forwards allowed
 connections to.
+.SH "CACHE CONTROLS"
+.na
+.nf
+.ad
+.fi
+.IP "\fBpostscreen_cache_cleanup_interval (12h)\fR"
+The amount of time between \fBpostscreen\fR(8) cache cleanup runs.
+.IP "\fBpostscreen_cache_map (btree:$data_directory/ps_whitelist)\fR"
+Persistent storage for the \fBpostscreen\fR(8) server decisions.
+.IP "\fBpostscreen_cache_retention_time (1d)\fR"
+The amount of time that \fBpostscreen\fR(8) will cache an expired
+temporary whitelist entry before it is removed.
+.IP "\fBpostscreen_cache_ttl (1d)\fR"
+The amount of time that \fBpostscreen\fR(8) will cache a decision for
+a specific SMTP client IP address.
 .SH "MISCELLANEOUS CONTROLS"
 .na
 .nf

@@ -14,6 +14,33 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.5 or earlier, read RELEASE_NOTES-2.6
 before proceeding.
 
+Incompatibility with snapshot 20091229
+======================================
+
+The verify(8) service now uses a persistent cache by default
+(address_verify_map = btree:$data_directory/verify_cache). To
+disable, specify "address_verify_map =" in main.cf.
+
+When periodic cache cleanup is enabled (the default), the postscreen(8)
+and verify(8) servers now require that their cache databases support
+the "delete" and "sequence" operations.  To disable periodic cache
+cleanup specify a zero xxx_cache_cleanup_interval.
+
+Major changes with snapshot 20091229
+====================================
+
+Periodic cache cleanup for the postscreen(8) and verify(8) cache
+databases. The time between cache cleanup runs is controlled with
+the address_verify_cache_cleanup_interval (default: 12h) and
+postscreen_cache_cleanup_interval (default: 12h) parameters.  Cache
+cleanup increases the database access latency, so this should not
+be run more often than necessary.
+
+In addition, the postscreen_cache_retention_time (default: 1d)
+parameter specifies how long to keep an expired entry in the cache.
+This prevents a client from being logged as "NEW" after its record
+expired only a little while ago.
+
 Incompatibility with snapshot 20091209
 ======================================
 
@@ -112,11 +139,12 @@ without blocking mail:
 1 - Comment out the "smtp  inet ... smtpd" service in master.cf,
     including any "-o parameter=value" entries that follow.
 
-2 - Uncomment the new "smtpd pass ... smtpd" service in master.cf.
+2 - Uncomment the new "smtpd pass ... smtpd" service in master.cf,
+    and duplicate any "-o parameter=value" entries from the smtpd
+    service that was commented out in step 1.
 
 3 - Uncomment the the new "smtp inet ... postscreen" service in
-    master.cf, and duplicate any "-o parameter=value" entries from
-    the smtpd service that was commented out in step 1.
+    master.cf.
 
 4 - Uncomment the new "dnsblog  unix ... dnsblog" service in
     master.cf.  This service does DNSBL lookups for postscreen(8)

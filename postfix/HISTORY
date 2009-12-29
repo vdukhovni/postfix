@@ -15453,7 +15453,7 @@ Apologies for any names omitted.
 
 20091023
 
-	Feature: specify "smtp_command_filter = pcre:/file/name"
+	Feature: specify "smtpd_command_filter = pcre:/file/name"
 	to replace remote SMTP client commands before they are
 	executed by the Postfix SMTP server. This a last-resort
 	tool to fix inter-operability problems.  See examples in
@@ -15563,3 +15563,42 @@ Apologies for any names omitted.
 	Cleanup: the postscreen daemon now applies the permanent
 	whitelist first. It is a safety feature that prevents mail
 	from being blocked. File: postscreeb/postscreen.c.
+
+20091224
+
+	Bugfix (introduced 20041215): dict_dbm_sequence() did not
+	release the shared lock when the end of the sequence was
+	reached. File: util/dict_dbm.c.
+
+20091227
+
+	Cleanup: postscreen and verify periodic cache cleanup
+	(default: 12 hours after the previous cache cleanup run).
+	This is based on a new dict_cache(3) module that implements
+	a generalized version of the tlsmgr(8) cache maintenance
+	code.  Once the new dict_cache(3) code is burned in, the
+	tlsmgr(8) will be migrated to it. See the RELEASE_NOTES for
+	user interface details. Files: util/htable.[hc], util/dict_ht.c,
+	util/dict_cache.[hc], postscreen/postscreen.c, verify/verify.c.
+
+	Bugfix: the event handler starved I/O events when a timer
+	call-back routine scheduled a zero-delay timer request.
+	This bug was exposed when adding the new dict_cache(3)
+	module for cache expiration.  File: util/events.c.
+
+20091228
+
+	Cleanup: postscreen and verify periodic cache cleanup is
+	now optional (specify a null time interval between cache
+	cleanup runs).
+
+20091229
+
+	Cleanup: the address_verify_poll_count default parameter
+	value is now stress-dependent, so that the Postfix SMTP
+	server will not wait (up to 6 seconds) for the address
+	verification result. File: global/mail_params.h.
+
+	Final slution for the I/O event starvation problem when a
+	timer call-back schedules a zero-delay timer request.  File:
+	util/events.c.

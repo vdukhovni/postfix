@@ -496,6 +496,11 @@ typedef struct epoll_event EVENT_BUFFER;
  /*
   * Timer events. Timer requests are kept sorted, in a circular list. We use
   * the RING abstraction, so we get to use a couple ugly macros.
+  * 
+  * When a call-back function adds a timer request, we label the request with
+  * the event_loop() call instance that invoked the call-back. We use this to
+  * prevent zero-delay timer requests from running in a tight loop and
+  * starving I/O events.
   */
 typedef struct EVENT_TIMER EVENT_TIMER;
 
@@ -503,10 +508,12 @@ struct EVENT_TIMER {
     time_t  when;			/* when event is wanted */
     EVENT_NOTIFY_TIME callback;		/* callback function */
     char   *context;			/* callback context */
+    long    loop_instance;		/* event_loop() call instance */
     RING    ring;			/* linkage */
 };
 
 static RING event_timer_head;		/* timer queue head */
+static long event_loop_instance;	/* event_loop() call instance */
 
 #define RING_TO_TIMER(r) \
 	((EVENT_TIMER *) ((char *) (r) - offsetof(EVENT_TIMER, ring)))
@@ -921,18 +928,24 @@ time_t  event_request_timer(EVENT_NOTIFY_TIME callback, char *context, int delay
 	timer->when = event_present + delay;
 	timer->callback = callback;
 	timer->context = context;
+	timer->loop_instance = event_loop_instance;
 	if (msg_verbose > 2)
 	    msg_info("%s: set 0x%lx 0x%lx %d", myname,
 		     (long) callback, (long) context, delay);
     }
 
     /*
-     * Insert the request at the right place. Timer requests are kept sorted
-     * to reduce lookup overhead in the event loop.
+     * Timer requests are kept sorted to reduce lookup overhead in the event
+     * loop.
+     * 
+     * XXX Append the new request after existing requests for the same time
+     * slot. The event_loop() routine depends on this to avoid starving I/O
+     * events when a call-back function schedules a zero-delay timer request.
      */
-    FOREACH_QUEUE_ENTRY(ring, &event_timer_head)
+    FOREACH_QUEUE_ENTRY(ring, &event_timer_head) {
 	if (timer->when < RING_TO_TIMER(ring)->when)
-	break;
+	    break;
+    }
     ring_prepend(ring, &timer->ring);
 
     return (timer->when);
@@ -1079,16 +1092,34 @@ void    event_loop(int delay)
 	msg_panic("event_loop: recursive call");
 
     /*
-     * Deliver timer events. Requests are sorted: we can stop when we reach
-     * the future or the list end. Allow the application to update the timer
-     * queue while it is being called back. To this end, we repeatedly pop
-     * the first request off the timer queue before delivering the event to
-     * the application.
+     * Deliver timer events. Allow the application to add/delete timer queue
+     * requests while it is being called back. Requests are sorted: we keep
+     * running over the timer request queue from the start, and stop when we
+     * reach the future or the list end. We also stop when we reach a timer
+     * request that was added by a call-back that was invoked from this
+     * event_loop() call instance, for reasons that are explained below.
+     * 
+     * To avoid dangling pointer problems 1) we must remove a request from the
+     * timer queue before delivering its event to the application and 2) we
+     * must look up the next timer request *after* calling the application.
+     * The latter complicates the handling of zero-delay timer requests that
+     * are added by event_loop() call-back functions.
+     * 
+     * XXX When a timer event call-back function adds a new timer request,
+     * event_request_timer() labels the request with the event_loop() call
+     * instance that invoked the timer event call-back. We use this instance
+     * label here to prevent zero-delay timer requests from running in a
+     * tight loop and starving I/O events. To make this solution work,
+     * event_request_timer() appends a new request after existing requests
+     * for the same time slot.
      */
     event_present = time((time_t *) 0);
+    event_loop_instance += 1;
 
     while ((timer = FIRST_TIMER(&event_timer_head)) != 0) {
 	if (timer->when > event_present)
+	    break;
+	if (timer->loop_instance == event_loop_instance)
 	    break;
 	ring_detach(&timer->ring);		/* first this */
 	if (msg_verbose > 2)
@@ -1192,10 +1223,10 @@ static void echo(int unused_event, char *unused_context)
     printf("Result: %s", buf);
 }
 
-int     main(int argc, char **argv)
+/* request - request a bunch of timer events */
+
+static void request(int unused_event, char *unused_context)
 {
-    if (argv[1])
-	msg_verbose = atoi(argv[1]);
     event_request_timer(timer_event, "3 first", 3);
     event_request_timer(timer_event, "3 second", 3);
     event_request_timer(timer_event, "4 first", 4);
@@ -1206,6 +1237,13 @@ int     main(int argc, char **argv)
     event_request_timer(timer_event, "1 second", 1);
     event_request_timer(timer_event, "0 first", 0);
     event_request_timer(timer_event, "0 second", 0);
+}
+
+int     main(int argc, char **argv)
+{
+    if (argv[1])
+	msg_verbose = atoi(argv[1]);
+    event_request_timer(request, (char *) 0, 0);
     event_enable_read(fileno(stdin), echo, (char *) 0);
     event_drain(10);
     exit(0);

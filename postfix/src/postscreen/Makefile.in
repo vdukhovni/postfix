@@ -61,7 +61,9 @@ postscreen.o: ../../include/addr_match_list.h
 postscreen.o: ../../include/argv.h
 postscreen.o: ../../include/attr.h
 postscreen.o: ../../include/connect.h
+postscreen.o: ../../include/data_redirect.h
 postscreen.o: ../../include/dict.h
+postscreen.o: ../../include/dict_cache.h
 postscreen.o: ../../include/events.h
 postscreen.o: ../../include/format_tv.h
 postscreen.o: ../../include/htable.h

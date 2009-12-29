@@ -7,26 +7,31 @@
 /*	\fBpostscreen\fR [generic Postfix daemon options]
 /* DESCRIPTION
 /*	The Postfix \fBpostscreen\fR(8) server performs triage on
-/*	multiple inbound SMTP connections in parallel. The program
-/*	can run in two basic modes.
+/*	multiple inbound SMTP connections in parallel.  By running
+/*	time-consuming tests in parallel in \fBpostscreen\fR(8),
+/*	zombies and other bogus clients can be kept away from Postfix
+/*	SMTP server processes. Thus, more Postfix SMTP server
+/*	processes remain available for legitimate clients.
 /*
-/*	The purpose of \fBobservation mode\fR is to collect statistics
-/*	without actually blocking mail. \fBpostscreen\fR(8) runs a
-/*	number of tests before it forwards a connection to a real
-/*	SMTP server process.  These tests introduce a delay of a
-/*	few seconds; once a client passes the tests as "clean", its
-/*	IP address is temporarily whitelisted and subsequent
-/*	connections incur no delays until the temporary whitelist
-/*	entry expires.
+/*	This triage process involves a number of tests, documented
+/*	below.  The tests introduce a delay of a few seconds; once
+/*	a client passes the tests, its IP address is temporarily
+/*	whitelisted, typically for 24 hours.
 /*
-/*	The purpose of \fBenforcement mode\fR is to block mail
-/*	without using up one Postfix SMTP server process for every
-/*	connection.  Here, \fBpostscreen\fR(8) terminates connections
-/*	from SMTP clients that fail the above tests, and forwards
-/*	only the remaining connections to a real SMTP server process.
-/*	By running time-consuming spam tests in parallel in
-/*	\fBpostscreen\fR(8), more Postfix SMTP server processes
-/*	remain available for legitimate clients.
+/*	The program can run in two basic modes.
+/* .IP "\fBObservation mode\fR"
+/*	\fBpostscreen\fR(8) reports the results of the tests, and
+/*	forwards all connections to a real Postfix SMTP server
+/*	process.
+/* .IP "\fBEnforcement mode\fR"
+/*	\fBpostscreen\fR(8) reports the results of the tests, but
+/*	forwards only connections to a real SMTP server process
+/*	from clients that passed the tests.
+/* .sp
+/*	\fBpostscreen\fR(8) disconnects clients that fail the tests,
+/*	after sending a 521 status message (a future version may
+/*	pass the connection to a dummy SMTP protocol engine that
+/*	logs sender and recipient information).
 /* .PP
 /*	Note: \fBpostscreen\fR(8) is not an SMTP proxy; this is
 /*	intentional. The purpose is to prioritize legitimate clients
@@ -38,8 +43,7 @@
 /* .fi
 /*	The postscreen_whitelist_networks parameter (default:
 /*	$mynetworks) specifies a permanent whitelist for SMTP client
-/*	IP addresses.  This feature is not used for addresses that
-/*	appear on the permanent blacklist.
+/*	IP addresses.
 /*
 /*	When the SMTP client address matches the permanent whitelist,
 /*	this is logged as:
@@ -99,12 +103,13 @@
 /* .ad
 /* .fi
 /*	The postscreen_greet_wait parameter specifies a time interval
-/*	during which \fBpostscreen\fR(8) runs a number of tests as
-/*	described below.  These tests run before the client may
-/*	see the real SMTP server's "220 text..." server greeting.
+/*	during which \fBpostscreen\fR(8) runs a number of tests in
+/*	parallel.  These tests are described below, and are run
+/*	before the client may see the real SMTP server's "220
+/*	text..." server greeting.
 /*
-/*	When the SMTP client passes all the tests, this is logged
-/*	as:
+/*	When the SMTP client passes all greeting-phase tests, this
+/*	is logged as:
 /* .sp
 /* .nf
 /*	\fBPASS NEW \fIaddress\fR
@@ -123,8 +128,9 @@
 /* .SH 4A. PREGREET TEST
 /* .ad
 /* .fi
-/*	The postscreen_greet_banner parameter specifies the text
-/*	for a "220-text..." teaser banner (default: $smtpd_banner).
+/*	The postscreen_greet_banner parameter specifies the \fItext\fR
+/*	portion of a "220-\fItext\fR..." teaser banner (default:
+/*	$smtpd_banner).
 /*	The \fBpostscreen\fR(8) daemon sends this before the
 /*	postscreen_greet_wait timer is started.  The purpose of the
 /*	teaser banner is to confuse SPAM clients so that they speak
@@ -185,7 +191,8 @@
 /* .ad
 /* .fi
 /*	The postscreen_dnsbl_sites parameter (default: empty)
-/*	specifies a list of DNS blocklist servers.
+/*	specifies a list of DNS blocklist servers. These lookups
+/*	are made in parallel.
 /*
 /*	When the postscreen_greet_wait time has elapsed, and the
 /*	SMTP client address is listed with at least one of these
@@ -240,11 +247,6 @@
 /* .IP "\fBpostscreen_blacklist_networks (empty)\fR"
 /*	Network addresses that are permanently blacklisted; see the
 /*	postscreen_blacklist_action parameter for possible actions.
-/* .IP "\fBpostscreen_cache_map (btree:$data_directory/ps_whitelist)\fR"
-/*	Persistent storage for the \fBpostscreen\fR(8) server decisions.
-/* .IP "\fBpostscreen_cache_ttl (1d)\fR"
-/*	The amount of time that \fBpostscreen\fR(8) will cache a decision for
-/*	a specific SMTP client IP address.
 /* .IP "\fBpostscreen_dnsbl_action (continue)\fR"
 /*	The action that \fBpostscreen\fR(8) takes when an SMTP client is listed
 /*	at the DNS blocklist domains specified with the postscreen_dnsbl_sites
@@ -256,7 +258,8 @@
 /*	before its turn within the time specified with the postscreen_greet_wait
 /*	parameter.
 /* .IP "\fBpostscreen_greet_banner ($smtpd_banner)\fR"
-/*	The text in the optional "220-text..." server response that
+/*	The \fItext\fR in the optional "220-\fItext\fR..." server
+/*	response that
 /*	\fBpostscreen\fR(8) sends ahead of the real Postfix SMTP server's "220
 /*	text..." response, in an attempt to confuse bad SMTP clients so
 /*	that they speak before their turn (pre-greet).
@@ -281,6 +284,19 @@
 /* .IP "\fBsmtpd_service (smtpd)\fR"
 /*	The internal service that \fBpostscreen\fR(8) forwards allowed
 /*	connections to.
+/* CACHE CONTROLS
+/* .ad
+/* .fi
+/* .IP "\fBpostscreen_cache_cleanup_interval (12h)\fR"
+/*	The amount of time between \fBpostscreen\fR(8) cache cleanup runs.
+/* .IP "\fBpostscreen_cache_map (btree:$data_directory/ps_whitelist)\fR"
+/*	Persistent storage for the \fBpostscreen\fR(8) server decisions.
+/* .IP "\fBpostscreen_cache_retention_time (1d)\fR"
+/*	The amount of time that \fBpostscreen\fR(8) will cache an expired
+/*	temporary whitelist entry before it is removed.
+/* .IP "\fBpostscreen_cache_ttl (1d)\fR"
+/*	The amount of time that \fBpostscreen\fR(8) will cache a decision for
+/*	a specific SMTP client IP address.
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi
@@ -347,7 +363,7 @@
 #include <events.h>
 #include <mymalloc.h>
 #include <myaddrinfo.h>
-#include <dict.h>
+#include <dict_cache.h>
 #include <sane_accept.h>
 #include <stringops.h>
 #include <set_eugid.h>
@@ -363,6 +379,7 @@
 #include <mail_version.h>
 #include <mail_proto.h>
 #include <addr_match_list.h>
+#include <data_redirect.h>
 
 /* Master server protocols. */
 
@@ -378,6 +395,8 @@ int     var_ps_post_queue_limit;
 int     var_ps_pre_queue_limit;
 int     var_proc_limit;
 int     var_ps_cache_ttl;
+int     var_ps_cache_ret;
+int     var_ps_cache_scan;
 int     var_ps_greet_wait;
 char   *var_ps_dnsbl_sites;
 char   *var_ps_dnsbl_action;
@@ -425,7 +444,7 @@ typedef struct {
 
 static int check_queue_length;		/* connections being checked */
 static int post_queue_length;		/* being sent to real SMTPD */
-static DICT *cache_map;			/* cache table handle */
+static DICT_CACHE *cache_map;		/* cache table handle */
 static VSTRING *temp;			/* scratchpad */
 static char *smtp_service_name;		/* path to real SMTPD */
 static char *teaser_greeting;		/* spamware teaser banner */
@@ -520,26 +539,26 @@ static int ps_addr_match_list_match(ADDR_MATCH_LIST *addr_list,
 
 /* ps_dict_get - time-critical table lookup */
 
-static const char *ps_dict_get(DICT *dict, const char *key)
+static const char *ps_dict_get(DICT_CACHE *cache, const char *key)
 {
     const char *myname = "ps_dict_get";
     const char *result;
 
     PS_GET_TIME_BEFORE_LOOKUP;
-    result = dict_get(dict, key);
-    PS_CHECK_TIME_AFTER_LOOKUP(dict->name, "lookup");
+    result = dict_cache_lookup(cache, key);
+    PS_CHECK_TIME_AFTER_LOOKUP(dict_cache_name(cache), "lookup");
     return (result);
 }
 
 /* ps_dict_put - table dictionary update */
 
-static void ps_dict_put(DICT *dict, const char *key, const char *value)
+static void ps_dict_put(DICT_CACHE *cache, const char *key, const char *value)
 {
     const char *myname = "ps_dict_put";
 
     PS_GET_TIME_BEFORE_LOOKUP;
-    dict_put(dict, key, value);
-    PS_CHECK_TIME_AFTER_LOOKUP(dict->name, "update");
+    dict_cache_update(cache, key, value);
+    PS_CHECK_TIME_AFTER_LOOKUP(dict_cache_name(cache), "update");
 }
 
  /*
@@ -965,6 +984,23 @@ static void smtp_read_event(int event, char *context)
     }
 }
 
+/* postscreen_dump - dump some statistics before exit */
+
+static void postscreen_dump(void)
+{
+
+    /*
+     * Dump preliminary cache cleanup statistics when the process commits
+     * suicide while a cache cleanup run is in progress. We can't currently
+     * distinguish between "postfix reload" (we should restart) or "maximal
+     * idle time reached" (we could finish the cache cleanup first).
+     */
+    if (cache_map) {
+	dict_cache_close(cache_map);
+	cache_map = 0;
+    }
+}
+
 /* postscreen_drain - delayed exit after "postfix reload" */
 
 static void postscreen_drain(char *unused_service, char **unused_argv)
@@ -989,7 +1025,7 @@ static void postscreen_drain(char *unused_service, char **unused_argv)
      * version is an improvement over its predecessor.
      */
     if (cache_map != 0) {
-	dict_close(cache_map);
+	dict_cache_close(cache_map);
 	cache_map = 0;
     }
     for (count = 0; /* see below */ ; count++) {
@@ -1181,10 +1217,31 @@ static void postscreen_service(VSTREAM *smtp_client_stream,
 	postscreen_dnsbl_query(smtp_client_addr.buf);
 }
 
+/* postscreen_cache_validator - validate one cache entry */
+
+static int postscreen_cache_validator(const char *client_addr,
+				              const char *stamp_str,
+				              char *unused_context)
+{
+    time_t  stamp_time;
+
+    /*
+     * This function is called by the cache cleanup pseudo thread.
+     * 
+     * XX Eliminate code duplication and abstract the parser into a separate
+     * routine.
+     * 
+     * Don't report a client as "NEW" just because their cache entry expired.
+     */
+    stamp_time = strtoul(stamp_str, 0, 10);
+    return (event_time() < stamp_time + var_ps_cache_ttl + var_ps_cache_ret);
+}
+
 /* pre_jail_init - pre-jail initialization */
 
 static void pre_jail_init(char *unused_name, char **unused_argv)
 {
+    VSTRING *redirect;
 
     /*
      * Open read-only maps as before dropping privilege, for consistency with
@@ -1192,7 +1249,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      */
     if (*var_ps_wlist_nets)
 	wlist_nets =
-	addr_match_list_init(MATCH_FLAG_NONE, var_ps_wlist_nets);
+	    addr_match_list_init(MATCH_FLAG_NONE, var_ps_wlist_nets);
 
     if (*var_ps_blist_nets)
 	blist_nets =
@@ -1213,22 +1270,26 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      * to jail, temporarily drop root privileges.
      */
     SAVE_AND_SET_EUGID(var_owner_uid, var_owner_gid);
+    redirect = vstring_alloc(100);
 
     /*
      * Keep state in persistent external map. As a safety measure we sync the
      * database on each update. This hurts on LINUX systems that sync all
      * their dirty disk blocks whenever any application invokes fsync().
+     * 
+     * Start the cache maintenance pseudo thread after dropping privileges.
      */
 #define PS_DICT_OPEN_FLAGS (DICT_FLAG_DUP_REPLACE | DICT_FLAG_SYNC_UPDATE)
 
     if (*var_ps_cache_map)
-	cache_map = dict_open(var_ps_cache_map,
-			      O_CREAT | O_RDWR,
-			      PS_DICT_OPEN_FLAGS);
+	cache_map =
+	    dict_cache_open(data_redirect_map(redirect, var_ps_cache_map),
+			    O_CREAT | O_RDWR, PS_DICT_OPEN_FLAGS);
 
     /*
      * Clean up and restore privilege.
      */
+    vstring_free(redirect);
     RESTORE_SAVED_EUGID();
 }
 
@@ -1241,6 +1302,7 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 	"continue", PS_ACT_CONT,
 	0, -1,
     };
+    int     expire_flags;
 
     /*
      * This routine runs after the skeleton code has entered the chroot jail.
@@ -1275,6 +1337,18 @@ static void post_jail_init(char *unused_name, char **unused_argv)
     if ((hangup_action = name_code(actions, NAME_CODE_FLAG_NONE,
 				   var_ps_hangup_action)) < 0)
 	msg_fatal("bad %s value: %s", VAR_PS_HUP_ACTION, var_ps_hangup_action);
+
+    /*
+     * Start the cache maintenance pseudo thread last. Early cleanup makes
+     * verbose logging more informative (we get positive confirmation that
+     * the cleanup thread runs).
+     */
+    expire_flags = DICT_CACHE_FLAG_EXP_SUMMARY;
+    if (msg_verbose)
+	expire_flags |= DICT_CACHE_FLAG_EXP_VERBOSE;
+    if (cache_map != 0 && var_ps_cache_scan > 0)
+	dict_cache_expire(cache_map, expire_flags, var_ps_cache_scan,
+			  postscreen_cache_validator, (char *) 0);
 }
 
 MAIL_VERSION_STAMP_DECLARE;
@@ -1309,6 +1383,8 @@ int     main(int argc, char **argv)
     static const CONFIG_TIME_TABLE time_table[] = {
 	VAR_PS_CACHE_TTL, DEF_PS_CACHE_TTL, &var_ps_cache_ttl, 1, 0,
 	VAR_PS_GREET_WAIT, DEF_PS_GREET_WAIT, &var_ps_greet_wait, 1, 0,
+	VAR_PS_CACHE_RET, DEF_PS_CACHE_RET, &var_ps_cache_ret, 0, 0,
+	VAR_PS_CACHE_SCAN, DEF_PS_CACHE_SCAN, &var_ps_cache_scan, 0, 0,
 	0,
     };
 
@@ -1326,5 +1402,6 @@ int     main(int argc, char **argv)
 		      MAIL_SERVER_POST_INIT, post_jail_init,
 		      MAIL_SERVER_SOLITARY,
 		      MAIL_SERVER_SLOW_EXIT, postscreen_drain,
+		      MAIL_SERVER_EXIT, postscreen_dump,
 		      0);
 }

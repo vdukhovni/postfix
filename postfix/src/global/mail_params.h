@@ -2552,7 +2552,7 @@ extern int var_scache_stat_time;
 extern char *var_verify_service;
 
 #define VAR_VERIFY_MAP			"address_verify_map"
-#define DEF_VERIFY_MAP			""
+#define DEF_VERIFY_MAP			"btree:$data_directory/verify_cache"
 extern char *var_verify_map;
 
 #define VAR_VERIFY_POS_EXP		"address_verify_positive_expire_time"
@@ -2575,12 +2575,16 @@ extern int var_verify_neg_try;
 #define DEF_VERIFY_NEG_CACHE		1
 extern bool var_verify_neg_cache;
 
+#define VAR_VERIFY_SCAN_CACHE		"address_verify_cache_cleanup_interval"
+#define DEF_VERIFY_SCAN_CACHE		"12h"
+extern int var_verify_scan_cache;
+
 #define VAR_VERIFY_SENDER		"address_verify_sender"
 #define DEF_VERIFY_SENDER		"$" VAR_DOUBLE_BOUNCE
 extern char *var_verify_sender;
 
 #define VAR_VERIFY_POLL_COUNT		"address_verify_poll_count"
-#define DEF_VERIFY_POLL_COUNT		3
+#define DEF_VERIFY_POLL_COUNT		"${stress?1}${stress:3}"
 extern int var_verify_poll_count;
 
 #define VAR_VERIFY_POLL_DELAY		"address_verify_poll_delay"
@@ -3185,6 +3189,14 @@ extern int var_ps_pre_queue_limit;
 #define VAR_PS_CACHE_TTL	"postscreen_cache_ttl"
 #define DEF_PS_CACHE_TTL	"1d"
 extern int var_ps_cache_ttl;
+
+#define VAR_PS_CACHE_RET	"postscreen_cache_retention_time"
+#define DEF_PS_CACHE_RET	"1d"
+extern int var_ps_cache_ret;
+
+#define VAR_PS_CACHE_SCAN	"postscreen_cache_cleanup_interval"
+#define DEF_PS_CACHE_SCAN	"12h"
+extern int var_ps_cache_scan;
 
 #define VAR_PS_GREET_WAIT	"postscreen_greet_wait"
 #define DEF_PS_GREET_WAIT	"4s"

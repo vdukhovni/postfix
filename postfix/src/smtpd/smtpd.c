@@ -681,8 +681,9 @@
 /*	Optional SMTP server access restrictions in the context of a client
 /*	SMTP connection request.
 /* .IP "\fBsmtpd_helo_required (no)\fR"
-/*	Require that a remote SMTP client introduces itself at the beginning
-/*	of an SMTP session with the HELO or EHLO command.
+/*	Require that a remote SMTP client introduces itself with the HELO
+/*	or EHLO command before sending the MAIL command or other commands
+/*	that require EHLO negotiation.
 /* .IP "\fBsmtpd_helo_restrictions (empty)\fR"
 /*	Optional restrictions that the Postfix SMTP server applies in the
 /*	context of the SMTP HELO command.
@@ -741,7 +742,7 @@
 /*	See the file ADDRESS_VERIFICATION_README for information
 /*	about how to configure and operate the Postfix sender/recipient
 /*	address verification service.
-/* .IP "\fBaddress_verify_poll_count (3)\fR"
+/* .IP "\fBaddress_verify_poll_count (see 'postconf -d' output)\fR"
 /*	How many times to query the \fBverify\fR(8) service for the completion
 /*	of an address verification request in progress.
 /* .IP "\fBaddress_verify_poll_delay (3s)\fR"
@@ -4942,6 +4943,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_SOFT_ERLIM, DEF_SMTPD_SOFT_ERLIM, &var_smtpd_soft_erlim, 1, 0,
 	VAR_SMTPD_HARD_ERLIM, DEF_SMTPD_HARD_ERLIM, &var_smtpd_hard_erlim, 1, 0,
 	VAR_SMTPD_JUNK_CMD, DEF_SMTPD_JUNK_CMD, &var_smtpd_junk_cmd_limit, 1, 0,
+	VAR_VERIFY_POLL_COUNT, DEF_VERIFY_POLL_COUNT, &var_verify_poll_count, 1, 0,
 	0,
     };
     static const CONFIG_INT_TABLE int_table[] = {
@@ -4970,7 +4972,6 @@ int     main(int argc, char **argv)
 	VAR_VIRT_MAILBOX_CODE, DEF_VIRT_MAILBOX_CODE, &var_virt_mailbox_code, 0, 0,
 	VAR_RELAY_RCPT_CODE, DEF_RELAY_RCPT_CODE, &var_relay_rcpt_code, 0, 0,
 	VAR_PLAINTEXT_CODE, DEF_PLAINTEXT_CODE, &var_plaintext_code, 0, 0,
-	VAR_VERIFY_POLL_COUNT, DEF_VERIFY_POLL_COUNT, &var_verify_poll_count, 1, 0,
 	VAR_SMTPD_CRATE_LIMIT, DEF_SMTPD_CRATE_LIMIT, &var_smtpd_crate_limit, 0, 0,
 	VAR_SMTPD_CCONN_LIMIT, DEF_SMTPD_CCONN_LIMIT, &var_smtpd_cconn_limit, 0, 0,
 	VAR_SMTPD_CMAIL_LIMIT, DEF_SMTPD_CMAIL_LIMIT, &var_smtpd_cmail_limit, 0, 0,

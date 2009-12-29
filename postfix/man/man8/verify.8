@@ -113,6 +113,10 @@ verification cache.
 .IP "\fBaddress_verify_negative_refresh_time (3h)\fR"
 The time after which a failed address verification probe needs to
 be refreshed.
+.PP
+Available with Postfix 2.7 and later:
+.IP "\fBaddress_verify_cache_cleanup_interval (12h)\fR"
+The amount of time between \fBverify\fR(8) cache cleanup runs.
 .SH "PROBE MESSAGE ROUTING CONTROLS"
 .na
 .nf
@@ -139,6 +143,16 @@ verification probes.
 .IP "\fBaddress_verify_default_transport ($default_transport)\fR"
 Overrides the default_transport parameter setting for address
 verification probes.
+.PP
+Available in Postfix 2.3 and later:
+.IP "\fBaddress_verify_sender_dependent_relayhost_maps ($sender_dependent_relayhost_maps)\fR"
+Overrides the sender_dependent_relayhost_maps parameter setting for address
+verification probes.
+.PP
+Available in Postfix 2.7 and later:
+.IP "\fBaddress_verify_sender_dependent_default_transport_maps ($sender_dependent_default_transport_maps)\fR"
+Overrides the sender_dependent_default_transport_maps parameter
+setting for address verification probes.
 .SH "MISCELLANEOUS CONTROLS"
 .na
 .nf

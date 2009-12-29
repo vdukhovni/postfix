@@ -729,8 +729,9 @@ instead of requiring an explicit ".domain.tld" pattern.
 Optional SMTP server access restrictions in the context of a client
 SMTP connection request.
 .IP "\fBsmtpd_helo_required (no)\fR"
-Require that a remote SMTP client introduces itself at the beginning
-of an SMTP session with the HELO or EHLO command.
+Require that a remote SMTP client introduces itself with the HELO
+or EHLO command before sending the MAIL command or other commands
+that require EHLO negotiation.
 .IP "\fBsmtpd_helo_restrictions (empty)\fR"
 Optional restrictions that the Postfix SMTP server applies in the
 context of the SMTP HELO command.
@@ -791,7 +792,7 @@ verification probes is maintained by the \fBverify\fR(8) server.
 See the file ADDRESS_VERIFICATION_README for information
 about how to configure and operate the Postfix sender/recipient
 address verification service.
-.IP "\fBaddress_verify_poll_count (3)\fR"
+.IP "\fBaddress_verify_poll_count (see 'postconf -d' output)\fR"
 How many times to query the \fBverify\fR(8) service for the completion
 of an address verification request in progress.
 .IP "\fBaddress_verify_poll_delay (3s)\fR"

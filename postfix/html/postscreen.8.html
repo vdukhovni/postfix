@@ -14,26 +14,34 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
 
 <b>DESCRIPTION</b>
        The Postfix <a href="postscreen.8.html"><b>postscreen</b>(8)</a> server performs triage on multi-
-       ple inbound SMTP connections in parallel. The program  can
-       run in two basic modes.
+       ple inbound SMTP  connections  in  parallel.   By  running
+       time-consuming tests in parallel in <a href="postscreen.8.html"><b>postscreen</b>(8)</a>, zombies
+       and other bogus clients can be kept away from Postfix SMTP
+       server processes. Thus, more Postfix SMTP server processes
+       remain available for legitimate clients.
 
-       The  purpose  of <b>observation mode</b> is to collect statistics
-       without actually blocking mail. <a href="postscreen.8.html"><b>postscreen</b>(8)</a> runs a  num-
-       ber  of  tests  before  it forwards a connection to a real
-       SMTP server process.  These tests introduce a delay  of  a
-       few  seconds;  once  a client passes the tests as "clean",
-       its IP address is temporarily whitelisted  and  subsequent
-       connections  incur no delays until the temporary whitelist
-       entry expires.
+       This triage process involves a number of tests, documented
+       below.  The tests introduce a delay of a few seconds; once
+       a client passes the tests, its IP address  is  temporarily
+       whitelisted, typically for 24 hours.
 
-       The purpose of <b>enforcement mode</b> is to block  mail  without
-       using up one Postfix SMTP server process for every connec-
-       tion.  Here,  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  terminates  connections  from
-       SMTP  clients that fail the above tests, and forwards only
-       the remaining connections to a real SMTP  server  process.
-       By  running  time-consuming  spam  tests  in  parallel  in
-       <a href="postscreen.8.html"><b>postscreen</b>(8)</a>, more Postfix SMTP server  processes  remain
-       available for legitimate clients.
+       The program can run in two basic modes.
+
+       <b>Observation mode</b>
+              <a href="postscreen.8.html"><b>postscreen</b>(8)</a> reports the results of the tests, and
+              forwards all connections to  a  real  Postfix  SMTP
+              server process.
+
+       <b>Enforcement mode</b>
+              <a href="postscreen.8.html"><b>postscreen</b>(8)</a> reports the results of the tests, but
+              forwards only connections to  a  real  SMTP  server
+              process from clients that passed the tests.
+
+              <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  disconnects  clients  that  fail the
+              tests, after sending a 521 status message (a future
+              version  may  pass  the  connection to a dummy SMTP
+              protocol engine  that  logs  sender  and  recipient
+              information).
 
        Note:  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  is not an SMTP proxy; this is inten-
        tional. The purpose is to  prioritize  legitimate  clients
@@ -44,144 +52,145 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
 <b>1. PERMANENT WHITELIST TEST</b>
        The  <a href="postconf.5.html#postscreen_whitelist_networks">postscreen_whitelist_networks</a>   parameter   (default:
        $<a href="postconf.5.html#mynetworks">mynetworks</a>)  specifies  a  permanent  whitelist  for SMTP
-       client  IP  addresses.   This  feature  is  not  used  for
-       addresses that appear on the permanent blacklist.
+       client IP addresses.
 
-       When   the  SMTP  client  address  matches  the  permanent
+       When  the  SMTP  client  address  matches  the   permanent
        whitelist, this is logged as:
 
        <b>WHITELISTED</b> <i>address</i>
 
-       The action is not configurable:  immediately  forward  the
+       The  action  is  not configurable: immediately forward the
        connection to a real SMTP server process.
 
 <b>2. PERMANENT BLACKLIST TEST</b>
-       The   <a href="postconf.5.html#postscreen_blacklist_networks">postscreen_blacklist_networks</a>   parameter  (default:
-       empty) specifies a permanent blacklist for SMTP client  IP
+       The  <a href="postconf.5.html#postscreen_blacklist_networks">postscreen_blacklist_networks</a>   parameter   (default:
+       empty)  specifies a permanent blacklist for SMTP client IP
        addresses.  The address syntax is as with <a href="postconf.5.html#mynetworks">mynetworks</a>.
 
-       When  the SMTP client address matches the permanent black-
+       When the SMTP client address matches the permanent  black-
        list, this is logged as:
 
        <b>BLACKLISTED</b> <i>address</i>
 
-       The <a href="postconf.5.html#postscreen_blacklist_action">postscreen_blacklist_action</a>  parameter  specifies  the
+       The  <a href="postconf.5.html#postscreen_blacklist_action">postscreen_blacklist_action</a>  parameter  specifies the
        action that is taken next:
 
        <b>continue</b> (default, observation mode)
-              Continue  with the SMTP GREETING PHASE TESTS below.
+              Continue with the SMTP GREETING PHASE TESTS  below.
 
        <b>drop</b> (enforcement mode)
-              Drop the connection immediately  with  a  521  SMTP
-              reply.   In a future implementation, the connection
-              may instead be passed  to  a  dummy  SMTP  protocol
-              engine  that logs sender and recipient information.
+              Drop  the  connection  immediately  with a 521 SMTP
+              reply.  In a future implementation, the  connection
+              may  instead  be  passed  to  a dummy SMTP protocol
+              engine that logs sender and recipient  information.
 
 <b>3. TEMPORARY WHITELIST TEST</b>
-       The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> daemon maintains a  <i>temporary</i>  whitelist
-       for  SMTP  client  IP  addresses  that have passed all the
-       tests described below. The <a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a>  parameter
-       specifies  the  location  of the temporary whitelist.  The
-       temporary whitelist is not used for SMTP client  addresses
+       The  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  daemon maintains a <i>temporary</i> whitelist
+       for SMTP client IP addresses  that  have  passed  all  the
+       tests  described below. The <a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a> parameter
+       specifies the location of the  temporary  whitelist.   The
+       temporary  whitelist is not used for SMTP client addresses
        that appear on the <i>permanent</i> blacklist or whitelist.
 
-       When  the  SMTP  client  address  appears on the temporary
+       When the SMTP client  address  appears  on  the  temporary
        whitelist, this is logged as:
 
        <b>PASS OLD</b> <i>address</i>
 
-       The action is not configurable:  immediately  forward  the
-       connection  to  a real SMTP server process.  The client is
-       excluded from further tests until its temporary  whitelist
+       The  action  is  not configurable: immediately forward the
+       connection to a real SMTP server process.  The  client  is
+       excluded  from further tests until its temporary whitelist
        entry expires, as controlled with the <a href="postconf.5.html#postscreen_cache_ttl">postscreen_cache_ttl</a>
        parameter.  Expired entries are silently renewed if possi-
        ble.
 
 <b>4. SMTP GREETING PHASE TESTS</b>
-       The   <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a>  parameter  specifies  a  time
+       The  <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a>  parameter  specifies  a   time
        interval during which <a href="postscreen.8.html"><b>postscreen</b>(8)</a> runs a number of tests
-       as described below.  These tests run before the client may
-       see the real SMTP server's "220 text..." server  greeting.
+       in parallel.  These tests are described below, and are run
+       before  the  client  may  see  the real SMTP server's "220
+       text..." server greeting.
 
-       When  the SMTP client passes all the tests, this is logged
-       as:
+       When the SMTP client passes all greeting-phase tests, this
+       is logged as:
 
        <b>PASS NEW</b> <i>address</i>
 
-       The action is to forward the connection  to  a  real  SMTP
-       server  process  and to create a temporary whitelist entry
-       that excludes the client IP  address  from  further  tests
+       The  action  is  to  forward the connection to a real SMTP
+       server process and to create a temporary  whitelist  entry
+       that  excludes  the  client  IP address from further tests
        until the temporary whitelist entry expires, as controlled
        with the <a href="postconf.5.html#postscreen_cache_ttl">postscreen_cache_ttl</a> parameter.
 
-       In a future implementation, the connection  may  first  be
-       passed  to  a  dummy  SMTP protocol engine that implements
-       more protocol  tests  including  greylisting,  before  the
+       In  a  future  implementation, the connection may first be
+       passed to a dummy SMTP  protocol  engine  that  implements
+       more  protocol  tests  including  greylisting,  before the
        client is allowed to talk to a real SMTP server process.
 
 <b>4A. PREGREET TEST</b>
-       The  <a href="postconf.5.html#postscreen_greet_banner">postscreen_greet_banner</a>  parameter specifies the text
-       for a "220-text..." teaser  banner  (default:  $<a href="postconf.5.html#smtpd_banner">smtpd_ban</a>-
-       <a href="postconf.5.html#smtpd_banner">ner</a>).   The  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  daemon  sends  this before the
-       <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> timer is started.   The  purpose  of
-       the  teaser banner is to confuse SPAM clients so that they
-       speak before their turn. It has no effect on SMTP  clients
-       that correctly implement the protocol.
+       The <a href="postconf.5.html#postscreen_greet_banner">postscreen_greet_banner</a> parameter specifies  the  <i>text</i>
+       portion   of   a  "220-<i>text</i>..."  teaser  banner  (default:
+       $<a href="postconf.5.html#smtpd_banner">smtpd_banner</a>).   The  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  daemon  sends   this
+       before  the  <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a>  timer is started.  The
+       purpose of the teaser banner is to confuse SPAM clients so
+       that  they  speak  before  their turn. It has no effect on
+       SMTP clients that correctly implement the protocol.
 
-       To  avoid  problems  with  broken  SMTP engines in network
-       appliances, either exclude them from all  tests  with  the
-       <a href="postconf.5.html#postscreen_whitelist_networks">postscreen_whitelist_networks</a>  feature  or else specify an
-       empty  <a href="postconf.5.html#postscreen_greet_banner">postscreen_greet_banner</a>  value   to   disable   the
+       To avoid problems with  broken  SMTP  engines  in  network
+       appliances,  either  exclude  them from all tests with the
+       <a href="postconf.5.html#postscreen_whitelist_networks">postscreen_whitelist_networks</a> feature or else  specify  an
+       empty   <a href="postconf.5.html#postscreen_greet_banner">postscreen_greet_banner</a>   value   to  disable  the
        "220-text..."  teaser banner.
 
-       When   an   SMTP   client   sends  a  command  before  the
+       When  an  SMTP  client  sends   a   command   before   the
        <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> time has elapsed, this is logged as:
 
        <b>PREGREET</b> <i>count</i> <b>after</b> <i>time</i> <b>from</b> <i>address text...</i>
 
        Translation: the client at <i>address</i> sent <i>count</i> bytes before
-       its turn to speak, and this happened  <i>time</i>  seconds  after
-       the  <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> timer was started.  The <i>text</i> is
-       what the client sent (truncated to  100  bytes,  and  with
+       its  turn  to  speak, and this happened <i>time</i> seconds after
+       the <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> timer was started.  The <i>text</i>  is
+       what  the  client  sent  (truncated to 100 bytes, and with
        non-printable characters replaced with "?").
 
        The <a href="postconf.5.html#postscreen_greet_action">postscreen_greet_action</a> parameter specifies the action
        that is taken next:
 
        <b>continue</b> (default, observation mode)
-              Wait  until  the  <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a>  time   has
+              Wait   until  the  <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a>  time  has
               elapsed, then report DNSBL lookup results if appli-
               cable. Either perform DNSBL-related actions or for-
-              ward  the connection to a real SMTP server process.
+              ward the connection to a real SMTP server  process.
 
        <b>drop</b> (enforcement mode)
-              Drop the connection immediately  with  a  521  SMTP
-              reply.   In a future implementation, the connection
-              may instead be passed  to  a  dummy  SMTP  protocol
-              engine  that logs sender and recipient information.
+              Drop  the  connection  immediately  with a 521 SMTP
+              reply.  In a future implementation, the  connection
+              may  instead  be  passed  to  a dummy SMTP protocol
+              engine that logs sender and recipient  information.
 
 <b>4B. HANGUP TEST</b>
-       When the SMTP client hangs up  without  sending  any  data
+       When  the  SMTP  client  hangs up without sending any data
        before the <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> time has elapsed, this is
        logged as:
 
        <b>HANGUP after</b> <i>time</i> <b>from</b> <i>address</i>
 
-       The <a href="postconf.5.html#postscreen_hangup_action">postscreen_hangup_action</a> specifies the action that  is
+       The  <a href="postconf.5.html#postscreen_hangup_action">postscreen_hangup_action</a> specifies the action that is
        taken next:
 
        <b>continue</b> (default, observation mode)
-              Wait   until  the  <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a>  time  has
+              Wait  until  the  <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a>  time   has
               elapsed, then report DNSBL lookup results if appli-
-              cable.  Do  not  forward the broken connection to a
+              cable. Do not forward the broken  connection  to  a
               real SMTP server process.
 
        <b>drop</b> (enforcement mode)
               Drop the connection immediately.
 
 <b>4C. DNS BLOCKLIST TEST</b>
-       The  <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a>  parameter  (default:   empty)
-       specifies a list of DNS blocklist servers.
+       The   <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a>  parameter  (default:  empty)
+       specifies a list of DNS blocklist servers.  These  lookups
+       are made in parallel.
 
        When  the  <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> time has elapsed, and the
        SMTP client address is listed with at least one  of  these
@@ -237,14 +246,6 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
               see the <a href="postconf.5.html#postscreen_blacklist_action">postscreen_blacklist_action</a>  parameter  for
               possible actions.
 
-       <b><a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a> (btree:$<a href="postconf.5.html#data_directory">data_directory</a>/ps_whitelist)</b>
-              Persistent  storage  for  the  <a href="postscreen.8.html"><b>postscreen</b>(8)</a> server
-              decisions.
-
-       <b><a href="postconf.5.html#postscreen_cache_ttl">postscreen_cache_ttl</a> (1d)</b>
-              The amount of time that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will cache  a
-              decision for a specific SMTP client IP address.
-
        <b><a href="postconf.5.html#postscreen_dnsbl_action">postscreen_dnsbl_action</a> (continue)</b>
               The  action  that  <a href="postscreen.8.html"><b>postscreen</b>(8)</a> takes when an SMTP
               client is listed at the DNS blocklist domains spec-
@@ -259,7 +260,7 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
               ified with the <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> parameter.
 
        <b><a href="postconf.5.html#postscreen_greet_banner">postscreen_greet_banner</a> ($<a href="postconf.5.html#smtpd_banner">smtpd_banner</a>)</b>
-              The  text  in  the  optional  "220-text..."  server
+              The  <i>text</i>  in  the  optional  "220-<i>text</i>..."  server
               response that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> sends ahead of the real
               Postfix SMTP server's "220 text..." response, in an
               attempt to confuse bad SMTP clients  so  that  they
@@ -294,22 +295,40 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
               The  internal  service  that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> forwards
               allowed connections to.
 
+<b>CACHE CONTROLS</b>
+       <b><a href="postconf.5.html#postscreen_cache_cleanup_interval">postscreen_cache_cleanup_interval</a> (12h)</b>
+              The amount  of  time  between  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  cache
+              cleanup runs.
+
+       <b><a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a> (btree:$<a href="postconf.5.html#data_directory">data_directory</a>/ps_whitelist)</b>
+              Persistent  storage  for  the  <a href="postscreen.8.html"><b>postscreen</b>(8)</a> server
+              decisions.
+
+       <b><a href="postconf.5.html#postscreen_cache_retention_time">postscreen_cache_retention_time</a> (1d)</b>
+              The amount of time that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will cache an
+              expired  temporary  whitelist  entry  before  it is
+              removed.
+
+       <b><a href="postconf.5.html#postscreen_cache_ttl">postscreen_cache_ttl</a> (1d)</b>
+              The amount of time that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will cache  a
+              decision for a specific SMTP client IP address.
+
 <b>MISCELLANEOUS CONTROLS</b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The default location of  the  Postfix  <a href="postconf.5.html">main.cf</a>  and
+              The  default  location  of  the Postfix <a href="postconf.5.html">main.cf</a> and
               <a href="master.5.html">master.cf</a> configuration files.
 
        <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
-              How  much time a Postfix daemon process may take to
-              handle a request  before  it  is  terminated  by  a
+              How much time a Postfix daemon process may take  to
+              handle  a  request  before  it  is  terminated by a
               built-in watchdog timer.
 
        <b><a href="postconf.5.html#delay_logging_resolution_limit">delay_logging_resolution_limit</a> (2)</b>
-              The  maximal  number  of  digits  after the decimal
+              The maximal number  of  digits  after  the  decimal
               point when logging sub-second delay values.
 
        <b><a href="postconf.5.html#command_directory">command_directory</a> (see 'postconf -d' output)</b>
-              The location of  all  postfix  administrative  com-
+              The  location  of  all  postfix administrative com-
               mands.
 
        <b><a href="postconf.5.html#ipc_timeout">ipc_timeout</a> (3600s)</b>
@@ -317,24 +336,24 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
               over an internal communication channel.
 
        <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
-              The maximum amount of time  that  an  idle  Postfix
-              daemon  process  waits  for  an incoming connection
+              The  maximum  amount  of  time that an idle Postfix
+              daemon process waits  for  an  incoming  connection
               before terminating voluntarily.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
-              The process ID  of  a  Postfix  command  or  daemon
+              The  process  ID  of  a  Postfix  command or daemon
               process.
 
        <b><a href="postconf.5.html#process_name">process_name</a> (read-only)</b>
-              The  process  name  of  a Postfix command or daemon
+              The process name of a  Postfix  command  or  daemon
               process.
 
        <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              The mail system  name  that  is  prepended  to  the
-              process  name  in  syslog  records, so that "smtpd"
+              The  mail  system  name  that  is  prepended to the
+              process name in syslog  records,  so  that  "smtpd"
               becomes, for example, "postfix/smtpd".
 
 <b>SEE ALSO</b>
@@ -343,7 +362,7 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
        syslogd(8), system logging
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

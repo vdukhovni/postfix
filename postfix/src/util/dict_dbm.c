@@ -310,6 +310,7 @@ static int dict_dbm_sequence(DICT *dict, int function,
     DICT_DBM *dict_dbm = (DICT_DBM *) dict;
     datum   dbm_key;
     datum   dbm_value;
+    int     status;
 
     /*
      * Acquire a shared lock.
@@ -350,6 +351,7 @@ static int dict_dbm_sequence(DICT *dict, int function,
 	     * Copy the value so that it is guaranteed null terminated.
 	     */
 	    *value = SCOPY(dict_dbm->val_buf, dbm_value.dptr, dbm_value.dsize);
+	    status = 0;
 	} else {
 
 	    /*
@@ -358,7 +360,7 @@ static int dict_dbm_sequence(DICT *dict, int function,
 	     */
 	    if (dbm_error(dict_dbm->dbm))
 		msg_fatal("error seeking %s: %m", dict_dbm->dict.name);
-	    return (1);				/* no error: eof/not found
+	    status = 1;				/* no error: eof/not found
 						 * (should not happen!) */
 	}
     } else {
@@ -368,7 +370,7 @@ static int dict_dbm_sequence(DICT *dict, int function,
 	 */
 	if (dbm_error(dict_dbm->dbm))
 	    msg_fatal("error seeking %s: %m", dict_dbm->dict.name);
-	return (1);				/* no error: eof/not found */
+	status = 1;				/* no error: eof/not found */
     }
 
     /*
@@ -378,7 +380,7 @@ static int dict_dbm_sequence(DICT *dict, int function,
 	&& myflock(dict->lock_fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
 	msg_fatal("%s: unlock dictionary: %m", dict_dbm->dict.name);
 
-    return (0);
+    return (status);
 }
 
 /* dict_dbm_close - disassociate from data base */

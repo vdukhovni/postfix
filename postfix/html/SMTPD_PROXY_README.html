@@ -108,11 +108,18 @@ filter</a>
 
 <h2><a name="principles">Principles of operation</a></h2>
 
-<p> The before-filter Postfix SMTP server accepts connections from the
+<p> As shown in the diagram above, the before-queue filter sits
+between two Postfix SMTP server processes. </p>
+
+<ul>
+
+<li> <p> The before-filter Postfix SMTP server accepts connections from the
 Internet and does the usual relay access control, SASL authentication,
 TLS negotiation,
 RBL lookups, rejecting non-existent sender or recipient addresses,
-etc.  The before-queue filter receives unfiltered mail content from
+etc. </p>
+
+<li> <p> The before-queue filter receives unfiltered mail content from
 Postfix and does one of the following:  </p>
 
 <ol>
@@ -129,8 +136,10 @@ Postfix and does one of the following:  </p>
 
 </ol>
 
-<p>The after-filter Postfix SMTP server receives mail from the
+<li> <p>The after-filter Postfix SMTP server receives mail from the
 content filter. From then on Postfix processes the mail as usual. </p>
+
+</ul>
 
 <p> The before-queue content filter described here works just like
 the after-queue content filter described in the <a href="FILTER_README.html">FILTER_README</a>

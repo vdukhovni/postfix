@@ -2,10 +2,24 @@ Wish list:
 
 	Remove this file from the stable release.
 
+	It would be nice if the generic dict_cache(3) cache manager
+	could postpone process suicide until cache cleanup is
+	completed (but that is not possible when postscreen forks
+	into the background to finish already-accepted connections).
+
+	When postscreen drops a connection, a 521 "greeting" should
+	be of the form "521 servername..." and not have an enhanced
+	status code. The "521 5.7.1" form can be used after EHLO.
+	Of course no spammer is going to complain about Postfix
+	SMTP compliance.
+
 	Find a place to document all the mail routing mechanisms
 	in one place so people can figure out how Postfix works.
 
 	owner-listname does not work for shell commands.
+
+	Investigate viability of Sendmail socket maps (the moral
+	equivalent of tcp_table(5)), and dns maps.
 
 	The BCC action is marked "not stable", perhaps because
 	people would also expect BCC actions in header/body_checks.

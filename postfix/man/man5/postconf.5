@@ -77,6 +77,17 @@ The numerical Postfix SMTP server response code for
 an \fBaccess\fR(5) map "reject" action.
 .PP
 Do not change this unless you have a complete understanding of RFC 2821.
+.SH address_verify_cache_cleanup_interval (default: 12h)
+The amount of time between \fBverify\fR(8) cache cleanup runs.  Cache
+cleanup increases the load on the cache database and should therefore
+not be run frequently. This feature requires that the cache database
+supports the "delete" and "sequence" operators.  Specify a zero
+interval to disable cache cleanup.
+.PP
+Time units: s (seconds), m (minutes), h (hours), d (days), w
+(weeks).
+.PP
+This feature is available in Postfix 2.7.
 .SH address_verify_default_transport (default: $default_transport)
 Overrides the default_transport parameter setting for address
 verification probes.
@@ -138,14 +149,18 @@ be refreshed.
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 .PP
 This feature is available in Postfix 2.1 and later.
-.SH address_verify_poll_count (default: 3)
+.SH address_verify_poll_count (default: see "postconf -d" output)
 How many times to query the \fBverify\fR(8) service for the completion
 of an address verification request in progress.
 .PP
-The default poll count is 3.
+With Postfix version 2.7 and later, the SMTP server polls the
+\fBverify\fR(8) service up to three times under non-overload conditions,
+and only once when under overload.  With earlier Postfix versions,
+the SMTP server always polls the \fBverify\fR(8) service up to three
+times.
 .PP
 Specify 1 to implement a crude form of greylisting, that is, always
-defer the first delivery request for a never seen before address.
+defer the first delivery request for a new address.
 .PP
 Example:
 .PP
@@ -3673,16 +3688,38 @@ The blacklist has higher precedence than whitelists. This feature
 never uses the remote SMTP client hostname.
 .PP
 This feature is available in Postfix 2.7.
+.SH postscreen_cache_cleanup_interval (default: 12h)
+The amount of time between \fBpostscreen\fR(8) cache cleanup runs.
+Cache cleanup increases the load on the cache database and should
+therefore not be run frequently. This feature requires that the
+cache database supports the "delete" and "sequence" operators.
+Specify a zero interval to disable cache cleanup.
+.PP
+Time units: s (seconds), m (minutes), h (hours), d (days), w
+(weeks).
+.PP
+This feature is available in Postfix 2.7.
 .SH postscreen_cache_map (default: btree:$data_directory/ps_whitelist)
 Persistent storage for the \fBpostscreen\fR(8) server decisions.
+.PP
+This feature is available in Postfix 2.7.
+.SH postscreen_cache_retention_time (default: 1d)
+The amount of time that \fBpostscreen\fR(8) will cache an expired
+temporary whitelist entry before it is removed. This prevents clients
+from being logged as "NEW" just because their cache entry expired
+an hour ago.
+.PP
+Time units: s (seconds), m (minutes), h (hours), d (days), w
+(weeks).
 .PP
 This feature is available in Postfix 2.7.
 .SH postscreen_cache_ttl (default: 1d)
 The amount of time that \fBpostscreen\fR(8) will cache a decision for
 a specific SMTP client IP address. During this time, the client IP
 address is excluded from tests. If possible, expired decisions are
-renewed silently. Specify a non-zero time value (an integral value
-plus an optional one-letter suffix that specifies the time unit).
+renewed automatically. Specify a non-zero time value (an integral
+value plus an optional one-letter suffix that specifies the time
+unit).
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w
 (weeks).
@@ -3722,7 +3759,8 @@ IP address.
 .PP
 This feature is available in Postfix 2.7.
 .SH postscreen_greet_banner (default: $smtpd_banner)
-The text in the optional "220-text..." server response that
+The \fItext\fR in the optional "220-\fItext\fR..." server
+response that
 \fBpostscreen\fR(8) sends ahead of the real Postfix SMTP server's "220
 text..." response, in an attempt to confuse bad SMTP clients so
 that they speak before their turn (pre-greet).  Specify an empty
@@ -5028,7 +5066,7 @@ invalid responses.
 Notes:
 .IP \(bu
 In the case of a multi-line reply, the Postfix SMTP client
-uses the last reply line's numerical SMTP reply code and enhanced
+uses the final reply line's numerical SMTP reply code and enhanced
 status code.
 .IP \(bu
 The numerical SMTP reply code (XYZ) takes precedence over
@@ -5047,7 +5085,7 @@ Examples:
 .na
 .ft C
 /etc/postfix/main.cf:
-    smtp_reply_filter = pcre:/etc/postfix/command_filter
+    smtp_reply_filter = pcre:/etc/postfix/reply_filter
 .fi
 .ad
 .ft R
@@ -5056,11 +5094,11 @@ Examples:
 .na
 .ft C
 /etc/postfix/reply_filter:
-    # Transform garbage into part of a multi-line reply. Note
-    # that the Postfix SMTP client uses only the last numerical
-    # SMTP reply code and enhanced status code from a multi-line
-    # reply, so it does not matter what we substitute here as
-    # long as it has the right syntax.
+    # Transform garbage into "250-filler..." so that it looks like
+    # one line from a multi-line reply. It does not matter what we
+    # substitute here as long it has the right syntax.  The Postfix
+    # SMTP client will use the final line's numerical SMTP reply
+    # code and enhanced status code.
     !/^([2-5][0-9][0-9]($|[- ]))/ 250-filler for garbage
 .fi
 .ad
@@ -6890,6 +6928,15 @@ except that initial whitespace and the trailing <CR><LF>
 are removed.  The result value is executed by the Postfix SMTP
 server.
 .PP
+Postfix already implements a number of workarounds for malformed
+client commands.
+.IP \(bu
+Use "resolve_numeric_domain = yes" to accept "\fIuser@ipaddress\fR"
+Postfix already accepts the correct form "\fIuser@[ipaddress]\fR".
+.IP \(bu
+Use "strict_rfc821_envelopes = no" to accept "\fIUser Name
+<user@example.com>\fR".
+.PP
 Examples:
 .PP
 .nf
@@ -7104,8 +7151,9 @@ make without delivering mail. The Postfix SMTP server disconnects
 when the limit is exceeded. Normally the default limit is 20, but
 it changes under overload to just 1 with Postfix 2.6 and later.
 .SH smtpd_helo_required (default: no)
-Require that a remote SMTP client introduces itself at the beginning
-of an SMTP session with the HELO or EHLO command.
+Require that a remote SMTP client introduces itself with the HELO
+or EHLO command before sending the MAIL command or other commands
+that require EHLO negotiation.
 .PP
 Example:
 .PP
@@ -7927,12 +7975,12 @@ inside the chroot jail.
 .PP
 By default (see smtpd_tls_ask_ccert), client certificates are
 not requested, and smtpd_tls_CApath should remain empty. In contrast
-to smtp_tls_CAfile, DNs of certificate authorities installed
+to smtpd_tls_CAfile, DNs of certificate authorities installed
 in $smtpd_tls_CApath are not included in the client certificate
 request message. MUAs with multiple client certificates may use the
 list of preferred certificate authorities to select the correct
 client certificate.  You may want to put your "preferred" CA or
-CAs in $smtp_tls_CAfile, and install the remaining trusted CAs in
+CAs in $smtpd_tls_CAfile, and install the remaining trusted CAs in
 $smtpd_tls_CApath.
 .PP
 Example:

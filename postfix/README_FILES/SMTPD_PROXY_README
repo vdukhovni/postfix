@@ -36,23 +36,28 @@ This document describes the following topics:
 
 PPrriinncciipplleess ooff ooppeerraattiioonn
 
-The before-filter Postfix SMTP server accepts connections from the Internet and
-does the usual relay access control, SASL authentication, TLS negotiation, RBL
-lookups, rejecting non-existent sender or recipient addresses, etc. The before-
-queue filter receives unfiltered mail content from Postfix and does one of the
-following:
+As shown in the diagram above, the before-queue filter sits between two Postfix
+SMTP server processes.
 
- 1. Re-inject the mail back into Postfix via SMTP, perhaps after changing its
-    content and/or destination.
+  * The before-filter Postfix SMTP server accepts connections from the Internet
+    and does the usual relay access control, SASL authentication, TLS
+    negotiation, RBL lookups, rejecting non-existent sender or recipient
+    addresses, etc.
 
- 2. Discard or quarantine the mail.
+  * The before-queue filter receives unfiltered mail content from Postfix and
+    does one of the following:
 
- 3. Reject the mail by sending a suitable SMTP status code back to Postfix.
-    Postfix passes the status back to the remote SMTP client. This way, Postfix
-    does not have to send a bounce message.
+     1. Re-inject the mail back into Postfix via SMTP, perhaps after changing
+        its content and/or destination.
 
-The after-filter Postfix SMTP server receives mail from the content filter.
-From then on Postfix processes the mail as usual.
+     2. Discard or quarantine the mail.
+
+     3. Reject the mail by sending a suitable SMTP status code back to Postfix.
+        Postfix passes the status back to the remote SMTP client. This way,
+        Postfix does not have to send a bounce message.
+
+  * The after-filter Postfix SMTP server receives mail from the content filter.
+    From then on Postfix processes the mail as usual.
 
 The before-queue content filter described here works just like the after-queue
 content filter described in the FILTER_README document. In many cases you can

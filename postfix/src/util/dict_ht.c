@@ -75,6 +75,29 @@ static void dict_ht_update(DICT *dict, const char *name, const char *value)
     ht->value = mystrdup(value);
 }
 
+/* dict_ht_sequence - first/next iterator */
+
+static int dict_ht_sequence(DICT *dict, int how, const char **name,
+			            const char **value)
+{
+    DICT_HT *dict_ht = (DICT_HT *) dict;
+    HTABLE_INFO *ht;
+
+    ht = htable_sequence(dict_ht->table,
+			 how == DICT_SEQ_FUN_FIRST ? HTABLE_SEQ_FIRST :
+			 how == DICT_SEQ_FUN_NEXT ? HTABLE_SEQ_NEXT :
+			 HTABLE_SEQ_STOP);
+    if (ht != 0) {
+	*name = ht->key;
+	*value = ht->value;
+	return (0);
+    } else {
+	*name = 0;
+	*value = 0;
+	return (1);
+    }
+}
+
 /* dict_ht_close - disassociate from hash table */
 
 static void dict_ht_close(DICT *dict)
@@ -95,6 +118,7 @@ DICT   *dict_ht_open(const char *name, HTABLE *table, void (*remove) (char *))
     dict_ht = (DICT_HT *) dict_alloc(DICT_TYPE_HT, name, sizeof(*dict_ht));
     dict_ht->dict.lookup = dict_ht_lookup;
     dict_ht->dict.update = dict_ht_update;
+    dict_ht->dict.sequence = dict_ht_sequence;
     dict_ht->dict.close = dict_ht_close;
     dict_ht->table = table;
     dict_ht->remove = remove;

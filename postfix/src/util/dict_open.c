@@ -144,13 +144,13 @@
 /*	dict_put() stores the specified key and value into the named
 /*	dictionary.
 /*
-/*	dict_del() removes a dictionary entry, and returns non-zero
+/*	dict_del() removes a dictionary entry, and returns zero
 /*	in case of success.
 /*
 /*	dict_seq() iterates over all members in the named dictionary.
 /*	func is define DICT_SEQ_FUN_FIRST (select first member) or
-/*	DICT_SEQ_FUN_NEXT (select next member). A null result means
-/*	there is more.
+/*	DICT_SEQ_FUN_NEXT (select next member). A zero result means
+/*	that an entry was found.
 /*
 /*	dict_close() closes the specified dictionary and cleans up the
 /*	associated data structures.
