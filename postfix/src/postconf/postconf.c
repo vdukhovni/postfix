@@ -121,6 +121,9 @@
 /*	An indexed file type based on hashing.
 /*	This is available on systems with support for Berkeley DB
 /*	databases.
+/* .IP \fBinternal\fR
+/*	A non-shared, in-memory hash table. Its content are lost
+/*	when a process terminates.
 /* .IP "\fBldap\fR (read-only)"
 /*	Perform lookups using the LDAP protocol. This is described
 /*	in \fBldap_table\fR(5).

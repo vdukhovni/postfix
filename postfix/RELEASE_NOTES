@@ -14,7 +14,7 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.5 or earlier, read RELEASE_NOTES-2.6
 before proceeding.
 
-Incompatibility with snapshot 20091229
+Incompatibility with snapshot 20100101
 ======================================
 
 The verify(8) service now uses a persistent cache by default
@@ -24,9 +24,9 @@ disable, specify "address_verify_map =" in main.cf.
 When periodic cache cleanup is enabled (the default), the postscreen(8)
 and verify(8) servers now require that their cache databases support
 the "delete" and "sequence" operations.  To disable periodic cache
-cleanup specify a zero xxx_cache_cleanup_interval.
+cleanup specify a zero xxx_cache_cleanup_interval value.
 
-Major changes with snapshot 20091229
+Major changes with snapshot 20100101
 ====================================
 
 Periodic cache cleanup for the postscreen(8) and verify(8) cache

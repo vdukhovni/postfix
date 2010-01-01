@@ -15602,3 +15602,16 @@ Apologies for any names omitted.
 	Final slution for the I/O event starvation problem when a
 	timer call-back schedules a zero-delay timer request.  File:
 	util/events.c.
+
+20091231
+
+	Cleanup: the non-shared, in-memory hash table is now
+	accessible as the "internal:" map type. This simplifies
+	code by eliminating some special cases. Files: util/dict_ht.c,
+	util/dict_open.c, and documentation.
+
+20100101
+
+	Bugfix: the mantools/postlink script applied hyperlinks
+	for the "virtual:" transport to "/etc/postfix/virtual:".
+	Symptom reported by Christoph Anton Mitterer.

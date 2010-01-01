@@ -6,17 +6,15 @@
 /* SYNOPSIS
 /*	#include <dict_ht.h>
 /*
-/*	DICT	*dict_ht_open(name, table, remove)
+/*	DICT	*dict_ht_open(name, open_flags, dict_flags)
 /*	const char *name;
-/*	HTABLE	*table;
-/*	void	(*remove)(char *value)
+/*	int	open_flags;
+/*	int	dict_flags;
 /* DESCRIPTION
-/*	dict_ht_open() makes specified hash table accessible via the
-/*	generic dictionary operations documented in dict_open(3).
-/*	\fIremove\fR specifies an optional callback function
-/*	that is called by the hash table manager when the hash table is
-/*	removed from the dictionary manager's care. The hash table is not
-/*	destroyed when \fIremove\fR is a null pointer.
+/*	dict_ht_open() creates a memory-resident hash table and
+/*	makes it accessible via the generic dictionary operations
+/*	documented in dict_open(3).  The open_flags argument is
+/*	ignored.
 /* SEE ALSO
 /*	dict(3) generic dictionary manager
 /* LICENSE
@@ -40,13 +38,14 @@
 #include "htable.h"
 #include "dict.h"
 #include "dict_ht.h"
+#include "stringops.h"
+#include "vstring.h"
 
 /* Application-specific. */
 
 typedef struct {
     DICT    dict;			/* generic members */
     HTABLE *table;			/* hash table */
-    void    (*remove) (char *);		/* callback */
 } DICT_HT;
 
 /* dict_ht_lookup - find hash-table entry */
@@ -57,6 +56,15 @@ static const char *dict_ht_lookup(DICT *dict, const char *name)
 
     dict_errno = 0;
 
+    /*
+     * Optionally fold the key.
+     */
+    if (dict->flags & DICT_FLAG_FOLD_FIX) {
+	if (dict->fold_buf == 0)
+	    dict->fold_buf = vstring_alloc(10);
+	vstring_strcpy(dict->fold_buf, name);
+	name = lowercase(vstring_str(dict->fold_buf));
+    }
     return (htable_find(dict_ht->table, name));
 }
 
@@ -67,6 +75,15 @@ static void dict_ht_update(DICT *dict, const char *name, const char *value)
     DICT_HT *dict_ht = (DICT_HT *) dict;
     HTABLE_INFO *ht;
 
+    /*
+     * Optionally fold the key.
+     */
+    if (dict->flags & DICT_FLAG_FOLD_FIX) {
+	if (dict->fold_buf == 0)
+	    dict->fold_buf = vstring_alloc(10);
+	vstring_strcpy(dict->fold_buf, name);
+	name = lowercase(vstring_str(dict->fold_buf));
+    }
     if ((ht = htable_locate(dict_ht->table, name)) != 0) {
 	myfree(ht->value);
     } else {
@@ -104,14 +121,13 @@ static void dict_ht_close(DICT *dict)
 {
     DICT_HT *dict_ht = (DICT_HT *) dict;
 
-    if (dict_ht->remove)
-	htable_free(dict_ht->table, dict_ht->remove);
+    htable_free(dict_ht->table, myfree);
     dict_free(dict);
 }
 
 /* dict_ht_open - create association with hash table */
 
-DICT   *dict_ht_open(const char *name, HTABLE *table, void (*remove) (char *))
+DICT   *dict_ht_open(const char *name, int unused_open_flags, int dict_flags)
 {
     DICT_HT *dict_ht;
 
@@ -120,7 +136,9 @@ DICT   *dict_ht_open(const char *name, HTABLE *table, void (*remove) (char *))
     dict_ht->dict.update = dict_ht_update;
     dict_ht->dict.sequence = dict_ht_sequence;
     dict_ht->dict.close = dict_ht_close;
-    dict_ht->table = table;
-    dict_ht->remove = remove;
+    dict_ht->dict.flags = dict_flags | DICT_FLAG_FIXED;
+    if (dict_flags & DICT_FLAG_FOLD_FIX)
+	dict_ht->dict.fold_buf = vstring_alloc(10);
+    dict_ht->table = htable_create(0);
     return (&dict_ht->dict);
 }

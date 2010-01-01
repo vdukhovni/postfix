@@ -28,12 +28,17 @@ extern const char *dict_cache_lookup(DICT_CACHE *, const char *);
 extern void dict_cache_update(DICT_CACHE *, const char *, const char *);
 extern int dict_cache_delete(DICT_CACHE *, const char *);
 extern int dict_cache_sequence(DICT_CACHE *, int, const char **, const char **);
-extern void dict_cache_expire(DICT_CACHE *, int, int, DICT_CACHE_VALIDATOR_FN, char *);
+extern void dict_cache_control(DICT_CACHE *,...);
 extern const char *dict_cache_name(DICT_CACHE *);
-extern DICT_CACHE *dict_cache_import(DICT *);
 
-#define DICT_CACHE_FLAG_EXP_VERBOSE	(1<<0)
-#define DICT_CACHE_FLAG_EXP_SUMMARY	(1<<1)
+#define DICT_CACHE_FLAG_VERBOSE		(1<<0)	/* verbose operation */
+#define DICT_CACHE_FLAG_STATISTICS	(1<<1)	/* log cache statistics */
+
+#define DICT_CACHE_CTL_END		0	/* list terminator */
+#define DICT_CACHE_CTL_FLAGS		1	/* see above */
+#define DICT_CACHE_CTL_INTERVAL		2	/* cleanup interval */
+#define DICT_CACHE_CTL_VALIDATOR	3	/* call-back validator */
+#define DICT_CACHE_CTL_CONTEXT		4	/* call-back context */
 
 /* LICENSE
 /* .ad

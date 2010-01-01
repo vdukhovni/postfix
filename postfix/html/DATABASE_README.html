@@ -299,6 +299,11 @@ created with the <a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1
 name as used in "hash:table" is the database file name without the
 ".db" suffix. </dd>
 
+<dt> <b>internal</b> </dt>
+
+<dd> A non-shared, in-memory hash table. Its content are lost when
+a process terminates. </dd>
+
 <dt> <b>ldap</b> (read-only) </dt>
 
 <dd> Perform lookups using the LDAP protocol. Configuration details

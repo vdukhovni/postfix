@@ -22,7 +22,7 @@
   */
 #define DICT_TYPE_HT	"internal"
 
-extern DICT *dict_ht_open(const char *, HTABLE *, void (*) (char *));
+extern DICT *dict_ht_open(const char *, int, int);
 
 /* LICENSE
 /* .ad

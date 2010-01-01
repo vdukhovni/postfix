@@ -343,7 +343,7 @@ HTABLE_INFO **htable_list(HTABLE *table)
     return (list);
 }
 
-/* htable_sequence - dict_cache(3) compatibility iterator */
+/* htable_sequence - dict(3) compatibility iterator */
 
 HTABLE_INFO *htable_sequence(HTABLE *table, int how)
 {

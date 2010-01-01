@@ -110,8 +110,8 @@
 /*	event_drain() repeatedly calls event_loop() until no more timer
 /*	events or I/O events are pending or until the time limit is reached.
 /*	This routine must not be called from an event_whatever() callback
-/*	routine. Note: this function ignores pending timer events, and
-/*	assumes that no new I/O events will be registered.
+/*	routine. Note: this function assumes that no new I/O events
+/*	will be registered.
 /*
 /*	event_fork() must be called by a child process after it is
 /*	created with fork(), to re-initialize event processing.
@@ -912,6 +912,7 @@ time_t  event_request_timer(EVENT_NOTIFY_TIME callback, char *context, int delay
 	timer = RING_TO_TIMER(ring);
 	if (timer->callback == callback && timer->context == context) {
 	    timer->when = event_present + delay;
+	    timer->loop_instance = event_loop_instance;
 	    ring_detach(ring);
 	    if (msg_verbose > 2)
 		msg_info("%s: reset 0x%lx 0x%lx %d", myname,

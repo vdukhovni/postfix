@@ -605,12 +605,15 @@ static void post_jail_init(char *unused_name, char **unused_argv)
     if (var_verify_scan_cache > 0) {
 	int     expire_flags;
 
-	expire_flags = DICT_CACHE_FLAG_EXP_SUMMARY;
+	expire_flags = DICT_CACHE_FLAG_STATISTICS;
 	if (msg_verbose)
-	    expire_flags |= DICT_CACHE_FLAG_EXP_VERBOSE;
-	dict_cache_expire(verify_map, expire_flags, var_verify_scan_cache,
-			  verify_cache_validator,
-			  (char *) vstring_alloc(100));
+	    expire_flags |= DICT_CACHE_FLAG_VERBOSE;
+	dict_cache_control(verify_map,
+			   DICT_CACHE_CTL_FLAGS, expire_flags,
+			   DICT_CACHE_CTL_INTERVAL, var_verify_scan_cache,
+			   DICT_CACHE_CTL_VALIDATOR, verify_cache_validator,
+			DICT_CACHE_CTL_CONTEXT, (char *) vstring_alloc(100),
+			   DICT_CACHE_CTL_END);
     }
 }
 
@@ -658,16 +661,13 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      */
 #define VERIFY_DICT_OPEN_FLAGS (DICT_FLAG_DUP_REPLACE | DICT_FLAG_SYNC_UPDATE)
 
-    if (*var_verify_map) {
-	saved_mask = umask(022);
-	verify_map =
-	    dict_cache_open(data_redirect_map(redirect, var_verify_map),
-			    O_CREAT | O_RDWR, VERIFY_DICT_OPEN_FLAGS);
-	(void) umask(saved_mask);
-    } else {
-	verify_map =
-	    dict_cache_import(dict_ht_open("verify", htable_create(0), myfree));
-    }
+    saved_mask = umask(022);
+    verify_map =
+	dict_cache_open(*var_verify_map ?
+			data_redirect_map(redirect, var_verify_map) :
+			"internal:verify",
+			O_CREAT | O_RDWR, VERIFY_DICT_OPEN_FLAGS);
+    (void) umask(saved_mask);
 
     /*
      * Clean up and restore privilege.

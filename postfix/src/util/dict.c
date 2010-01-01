@@ -290,7 +290,7 @@ void    dict_update(const char *dict_name, const char *member, const char *value
     if ((node = dict_node(dict_name)) == 0) {
 	if (dict_unknown_allowed == 0)
 	    msg_fatal("%s: unknown dictionary: %s", myname, dict_name);
-	dict = dict_ht_open(dict_name, htable_create(0), myfree);
+	dict = dict_ht_open(dict_name, O_CREAT | O_RDWR, 0);
 	dict_register(dict_name, dict);
     } else
 	dict = node->dict;
@@ -334,7 +334,7 @@ int     dict_delete(const char *dict_name, const char *member)
     if ((node = dict_node(dict_name)) == 0) {
 	if (dict_unknown_allowed == 0)
 	    msg_fatal("%s: unknown dictionary: %s", myname, dict_name);
-	dict = dict_ht_open(dict_name, htable_create(0), myfree);
+	dict = dict_ht_open(dict_name, O_CREAT | O_RDWR, 0);
 	dict_register(dict_name, dict);
     } else
 	dict = node->dict;
@@ -358,7 +358,7 @@ int     dict_sequence(const char *dict_name, const int func,
     if ((node = dict_node(dict_name)) == 0) {
 	if (dict_unknown_allowed == 0)
 	    msg_fatal("%s: unknown dictionary: %s", myname, dict_name);
-	dict = dict_ht_open(dict_name, htable_create(0), myfree);
+	dict = dict_ht_open(dict_name, O_CREAT | O_RDWR, 0);
 	dict_register(dict_name, dict);
     } else
 	dict = node->dict;

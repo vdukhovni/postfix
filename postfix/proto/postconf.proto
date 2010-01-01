@@ -7846,6 +7846,9 @@ access restriction is specified. This prevents the Postfix queue
 from filling up with undeliverable MAILER-DAEMON messages.
 </p>
 
+<p> An address is always considered "known" when it matches a
+virtual(5) alias or a canonical(5) mapping.
+
 <ul>
 
 <li> The recipient domain matches $mydestination, $inet_interfaces
@@ -7875,6 +7878,9 @@ This feature is available in Postfix 2.1 and later.
 sender addresses, even when no explicit reject_unlisted_sender
 access restriction is specified. This can slow down an explosion
 of forged mail from worms or viruses.  </p>
+
+<p> An address is always considered "known" when it matches a
+virtual(5) alias or a canonical(5) mapping.
 
 <ul>
 
@@ -8143,9 +8149,8 @@ value is backwards compatible with Postfix version 1.1.
 %PARAM virtual_mailbox_limit 51200000
 
 <p>
-The maximal size in bytes of an individual mailbox or maildir file,
-or zero (no limit).
-</p>
+The maximal size in bytes of an individual virtual(8) mailbox or
+maildir file, or zero (no limit).  </p>
 
 %PARAM virtual_mailbox_lock see "postconf -d" output
 

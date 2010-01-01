@@ -981,7 +981,7 @@ while (<>) {
     s/\b(smtp):/<a href="smtp.8.html">$1<\/a>:/g;
     s/\b(lmtp):/<a href="lmtp.8.html">$1<\/a>:/g;
     s/\b(local):/<a href="local.8.html">$1<\/a>:/g;
-    s/\b(virtual):/<a href="virtual.8.html">$1<\/a>:/g;
+    s/([^\/])\b(virtual):/$1<a href="virtual.8.html">$2<\/a>:/g;
 }
 continue {
     if ($printit)

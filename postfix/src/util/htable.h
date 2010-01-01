@@ -26,7 +26,7 @@ typedef struct HTABLE {
     int     size;			/* length of entries array */
     int     used;			/* number of entries in table */
     HTABLE_INFO **data;			/* entries array, auto-resized */
-    HTABLE_INFO **seq_bucket;		/* current sequence bucket */
+    HTABLE_INFO **seq_bucket;		/* current sequence hash bucket */
     HTABLE_INFO *seq_element;		/* current sequence element */
 } HTABLE;
 

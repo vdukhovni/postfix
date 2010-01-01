@@ -204,6 +204,9 @@ To find out what database types your Postfix system supports, use the "ppooss
         created with the postmap(1) or postalias(1) command. The database name
         as used in "hash:table" is the database file name without the ".db"
         suffix.
+    iinntteerrnnaall
+        A non-shared, in-memory hash table. Its content are lost when a process
+        terminates.
     llddaapp (read-only)
         Perform lookups using the LDAP protocol. Configuration details are
         given in the ldap_table(5).

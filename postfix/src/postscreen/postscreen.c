@@ -1343,12 +1343,16 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      * verbose logging more informative (we get positive confirmation that
      * the cleanup thread runs).
      */
-    expire_flags = DICT_CACHE_FLAG_EXP_SUMMARY;
+    expire_flags = DICT_CACHE_FLAG_STATISTICS;
     if (msg_verbose)
-	expire_flags |= DICT_CACHE_FLAG_EXP_VERBOSE;
+	expire_flags |= DICT_CACHE_FLAG_VERBOSE;
     if (cache_map != 0 && var_ps_cache_scan > 0)
-	dict_cache_expire(cache_map, expire_flags, var_ps_cache_scan,
-			  postscreen_cache_validator, (char *) 0);
+	dict_cache_control(cache_map,
+			   DICT_CACHE_CTL_FLAGS, expire_flags,
+			   DICT_CACHE_CTL_INTERVAL, var_ps_cache_scan,
+		       DICT_CACHE_CTL_VALIDATOR, postscreen_cache_validator,
+			   DICT_CACHE_CTL_CONTEXT, (char *) 0,
+			   DICT_CACHE_CTL_END);
 }
 
 MAIL_VERSION_STAMP_DECLARE;

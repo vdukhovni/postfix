@@ -12226,6 +12226,9 @@ access restriction is specified. This prevents the Postfix queue
 from filling up with undeliverable MAILER-DAEMON messages.
 </p>
 
+<p> An address is always considered "known" when it matches a
+<a href="virtual.5.html">virtual(5)</a> alias or a <a href="canonical.5.html">canonical(5)</a> mapping.
+
 <ul>
 
 <li> The recipient domain matches $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>
@@ -12259,6 +12262,9 @@ This feature is available in Postfix 2.1 and later.
 sender addresses, even when no explicit <a href="postconf.5.html#reject_unlisted_sender">reject_unlisted_sender</a>
 access restriction is specified. This can slow down an explosion
 of forged mail from worms or viruses.  </p>
+
+<p> An address is always considered "known" when it matches a
+<a href="virtual.5.html">virtual(5)</a> alias or a <a href="canonical.5.html">canonical(5)</a> mapping.
 
 <ul>
 
@@ -15033,9 +15039,8 @@ value is backwards compatible with Postfix version 1.1.
 (default: 51200000)</b></DT><DD>
 
 <p>
-The maximal size in bytes of an individual mailbox or maildir file,
-or zero (no limit).
-</p>
+The maximal size in bytes of an individual <a href="virtual.8.html">virtual(8)</a> mailbox or
+maildir file, or zero (no limit).  </p>
 
 
 </DD>
