@@ -261,54 +261,56 @@ probe fails with some temporary error.
 
 AAddddrreessss vveerriiffiiccaattiioonn ddaattaabbaassee
 
-NOTE: By default, address verification information is not stored in a
-persistent file. You have to specify one in main.cf (see below). Persistent
-storage is off by default because it may need more disk space than is available
-in your file system.
-
-Address verification information is cached by the Postfix verify daemon.
-Postfix has a bunch of parameters that control the caching of positive and
-negative results. Refer to the verify(8) manual page for details.
-
-The address_verify_map (NOTE: singular) configuration parameter specifies an
-optional database for sender or recipient address verification results. If you
-don't specify a file, all address verification information is lost after
-"postfix reload" or "postfix stop".
-
-If your /var file system has sufficient space, try:
+To improve performance, the Postfix verify(8) daemon can save address
+verification results to a persistent database. The address_verify_map (NOTE:
+singular) configuration parameter specifies persistent storage for sender or
+recipient address verification results. If you specify an empty value, all
+address verification results are lost after "postfix reload" or "postfix stop".
 
     /etc/postfix/main.cf:
+        # Default setting for Postfix 2.7 and later.
         # Note: avoid hash files here. Use btree instead.
-        address_verify_map = btree:/var/lib/postfix/verify
+        address_verify_map = btree:$data_directory/verify_cache
 
-NOTE 1: As of version 2.5, Postfix no longer uses root privileges when opening
-this file. The file should now be stored under the Postfix-owned
-data_directory. As a migration aid, an attempt to open the file under a non-
-Postfix directory is redirected to the Postfix-owned data_directory, and a
-warning is logged. If you wish to continue using a pre-existing database file,
-move it to the data_directory, and change ownership to the account specified
-with the mail_owner parameter.
+        # Default setting for Postfix 2.6 and earlier.
+        # This uses non-persistent storage only.
+        address_verify_map =
+
+NOTE 1: The database file should be stored under a Postfix-owned directory,
+such as $data_directory.
+
+    As of version 2.5, Postfix no longer uses root privileges when opening this
+    file. To maintain backwards compatibility, an attempt to open the file
+    under a non-Postfix directory is redirected to the Postfix-owned
+    data_directory, and a warning is logged. If you wish to continue using a
+    pre-existing database file, change its file ownership to the account
+    specified with the mail_owner parameter, and either move the file to the
+    data_directory, or move it to some other Postfix-owned directory.
 
 NOTE 2: Do not put this file in a file system that may run out of space. When
 the address verification table gets corrupted the world comes to an end and YOU
 will have to MANUALLY fix things as described in the next section. Meanwhile,
 you will not receive mail via SMTP.
 
-NOTE 3: The verify(8) daemon process will create a new database when none
-exists, and will open/create the file before it enters the chroot jail.
+NOTE 3: The verify(8) daemon will create a new database when none exists. It
+will open or create the file before entering the chroot jail.
 
 MMaannaaggiinngg tthhee aaddddrreessss vveerriiffiiccaattiioonn ddaattaabbaassee
 
-The verify(8) manual page describes parameters that control how long
-information remains cached before it needs to be refreshed, and how long
-information can remain "unrefreshed" before it expires. Postfix uses different
+The verify(8) manual page describes parameters that control how long address
+verification results are cached before they need to be refreshed, and how long
+results can remain "unrefreshed" before they expire. Postfix uses different
 controls for positive results (address was accepted) and for negative results
-(address was rejected).
+(address was rejected, or address verification failed for some other reason).
 
-Right now, no tools are provided to manage the address verification database.
-If the file gets too big, or if it gets corrupted, you can manually rename or
-delete the file and run "postfix reload". The new verify daemon process will
-then create a new database.
+Current Postfix versions will periodically remove expired entries from the
+address verification database. With Postfix version 2.6 and earlier, database
+cleanup had to be done as described next.
+
+If the address verification database file becomes too big, or if it becomes
+corrupted, the solution is to manually rename or delete (NOT: truncate) the
+file and run "postfix reload". The verify(8) daemon will then create a new
+database file.
 
 CCoonnttrroolllliinngg tthhee rroouuttiinngg ooff aaddddrreessss vveerriiffiiccaattiioonn pprroobbeess
 

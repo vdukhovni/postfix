@@ -498,6 +498,12 @@ dict_cidr_test: dict_open dict_cidr.in dict_cidr.map dict_cidr.ref
 	diff dict_cidr.ref dict_cidr.tmp
 	rm -f dict_cidr.tmp
 
+dict_seq_test: dict_open testdb dict_seq.in dict_seq.ref
+	rm -f testdb.db testdb.dir testdb.pag
+	./dict_open hash:testdb create sync < dict_seq.in > dict_seq.tmp 2>&1
+	diff dict_seq.ref dict_seq.tmp
+	rm -f testdb.db testdb.dir testdb.pag dict_seq.tmp
+
 host_port_test: host_port host_port.in host_port.ref
 	./host_port <host_port.in >host_port.tmp 2>&1
 	diff host_port.ref host_port.tmp

@@ -211,8 +211,8 @@
 /*	The maximal number of recipients per message for the virtual
 /*	message delivery transport.
 /* .IP "\fBvirtual_mailbox_limit (51200000)\fR"
-/*	The maximal size in bytes of an individual mailbox or maildir file,
-/*	or zero (no limit).
+/*	The maximal size in bytes of an individual \fBvirtual\fR(8) mailbox or
+/*	maildir file, or zero (no limit).
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi

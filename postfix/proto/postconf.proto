@@ -199,30 +199,32 @@ verification probes.
 This feature is available in Postfix 2.1 and later.
 </p>
 
-%PARAM address_verify_map
+%PARAM address_verify_map see "postconf -d" output
 
 <p>
-Optional lookup table for persistent address verification status
+Lookup table for persistent address verification status
 storage.  The table is maintained by the verify(8) service, and
 is opened before the process releases privileges.
 </p>
 
 <p>
-By default, the information is kept in volatile memory, and is lost
-after "<b>postfix reload</b>" or "<b>postfix stop</b>".
+The lookup table is persistent by default as of Postfix version
+2.7. Specify an empty table name to keep the information in volatile
+memory which is lost after "<b>postfix reload</b>" or "<b>postfix
+stop</b>" (this is default with earlier Postfix versions).
 </p>
 
 <p>
 Specify a location in a file system that will not fill up. If the
 database becomes corrupted, the world comes to an end. To recover
-delete the file and do "<b>postfix reload</b>".
+delete (NOT: truncate) the file and do "<b>postfix reload</b>".
 </p>
- 
+
 <p> As of version 2.5, Postfix no longer uses root privileges when
-opening this file. The file should now be stored under the Postfix-owned
-data_directory. As a migration aid, an attempt to open the file
-under a non-Postfix directory is redirected to the Postfix-owned
-data_directory, and a warning is logged. </p>
+opening this file. The file must now be stored under a Postfix-owned
+directory such as the data_directory. As a migration aid, an attempt
+to open the file under a non-Postfix directory is redirected to the
+Postfix-owned data_directory, and a warning is logged. </p>
 
 <p>
 Examples:
@@ -282,11 +284,10 @@ This feature is available in Postfix 2.1 and later.
 
 %PARAM address_verify_cache_cleanup_interval 12h
 
-<p> The amount of time between verify(8) cache cleanup runs.  Cache
-cleanup increases the load on the cache database and should therefore
-not be run frequently. This feature requires that the cache database
+<p> The amount of time between verify(8) address verification
+database cleanup runs. This feature requires that the database
 supports the "delete" and "sequence" operators.  Specify a zero
-interval to disable cache cleanup. </p>
+interval to disable database cleanup. </p>
 
 <p> Time units: s (seconds), m (minutes), h (hours), d (days), w
 (weeks). </p>

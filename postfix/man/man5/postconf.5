@@ -78,11 +78,10 @@ an \fBaccess\fR(5) map "reject" action.
 .PP
 Do not change this unless you have a complete understanding of RFC 2821.
 .SH address_verify_cache_cleanup_interval (default: 12h)
-The amount of time between \fBverify\fR(8) cache cleanup runs.  Cache
-cleanup increases the load on the cache database and should therefore
-not be run frequently. This feature requires that the cache database
+The amount of time between \fBverify\fR(8) address verification
+database cleanup runs. This feature requires that the database
 supports the "delete" and "sequence" operators.  Specify a zero
-interval to disable cache cleanup.
+interval to disable database cleanup.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w
 (weeks).
@@ -98,23 +97,25 @@ Overrides the local_transport parameter setting for address
 verification probes.
 .PP
 This feature is available in Postfix 2.1 and later.
-.SH address_verify_map (default: empty)
-Optional lookup table for persistent address verification status
+.SH address_verify_map (default: see "postconf -d" output)
+Lookup table for persistent address verification status
 storage.  The table is maintained by the \fBverify\fR(8) service, and
 is opened before the process releases privileges.
 .PP
-By default, the information is kept in volatile memory, and is lost
-after "\fBpostfix reload\fR" or "\fBpostfix stop\fR".
+The lookup table is persistent by default as of Postfix version
+2.7. Specify an empty table name to keep the information in volatile
+memory which is lost after "\fBpostfix reload\fR" or "\fBpostfix
+stop\fR" (this is default with earlier Postfix versions).
 .PP
 Specify a location in a file system that will not fill up. If the
 database becomes corrupted, the world comes to an end. To recover
-delete the file and do "\fBpostfix reload\fR".
+delete (NOT: truncate) the file and do "\fBpostfix reload\fR".
 .PP
 As of version 2.5, Postfix no longer uses root privileges when
-opening this file. The file should now be stored under the Postfix-owned
-data_directory. As a migration aid, an attempt to open the file
-under a non-Postfix directory is redirected to the Postfix-owned
-data_directory, and a warning is logged.
+opening this file. The file must now be stored under a Postfix-owned
+directory such as the data_directory. As a migration aid, an attempt
+to open the file under a non-Postfix directory is redirected to the
+Postfix-owned data_directory, and a warning is logged.
 .PP
 Examples:
 .PP

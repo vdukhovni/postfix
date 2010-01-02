@@ -535,8 +535,19 @@ static void dict_db_close(DICT *dict)
 #endif
     if (DICT_DB_SYNC(dict_db->db, 0) < 0)
 	msg_fatal("flush database %s: %m", dict_db->dict.name);
+
+    /*
+     * With some Berkeley DB implementations, close fails with a bogus ENOENT
+     * error, while it reports no errors with put+sync, no errors with
+     * del+sync, and no errors with the sync operation just before this
+     * comment. This happens in programs that never fork and that never share
+     * the database with other processes. The bogus close error has been
+     * reported for programs that use the first/next iterator. Instead of
+     * making Postfix look bad because it reports errors that other programs
+     * ignore, I'm going to report the bogus error as a non-error.
+     */
     if (DICT_DB_CLOSE(dict_db->db) < 0)
-	msg_fatal("close database %s: %m", dict_db->dict.name);
+	msg_info("close database %s: %m", dict_db->dict.name);
     if (dict_db->key_buf)
 	vstring_free(dict_db->key_buf);
     if (dict_db->val_buf)

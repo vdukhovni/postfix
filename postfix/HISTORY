@@ -15615,3 +15615,9 @@ Apologies for any names omitted.
 	Bugfix: the mantools/postlink script applied hyperlinks
 	for the "virtual:" transport to "/etc/postfix/virtual:".
 	Symptom reported by Christoph Anton Mitterer.
+
+20200102
+
+	Workaround: don't report bogus Berkeley DB close errors as
+	fatal errors. All operations before close are already error
+	checked, so the data is known to be safe.  File: util/dict_db.c.

@@ -77,8 +77,8 @@
 /* CACHE CONTROLS
 /* .ad
 /* .fi
-/* .IP "\fBaddress_verify_map (empty)\fR"
-/*	Optional lookup table for persistent address verification status
+/* .IP "\fBaddress_verify_map (see 'postconf -d' output)\fR"
+/*	Lookup table for persistent address verification status
 /*	storage.
 /* .IP "\fBaddress_verify_sender ($double_bounce_sender)\fR"
 /*	The sender address to use in address verification probes; prior

@@ -387,7 +387,7 @@ ARGV   *dict_mapnames()
 
 static NORETURN usage(char *myname)
 {
-    msg_fatal("usage: %s type:file read|write|create [fold]", myname);
+    msg_fatal("usage: %s type:file read|write|create [fold] [sync]", myname);
 }
 
 int     main(int argc, char **argv)
@@ -403,6 +403,7 @@ int     main(int argc, char **argv)
     const char *value;
     int     ch;
     int     dict_flags = DICT_FLAG_LOCK | DICT_FLAG_DUP_REPLACE;
+    int     n;
 
     signal(SIGPIPE, SIG_IGN);
 
@@ -417,7 +418,7 @@ int     main(int argc, char **argv)
 	}
     }
     optind = OPTIND;
-    if (argc - optind < 2 || argc - optind > 3)
+    if (argc - optind < 2)
 	usage(argv[0]);
     if (strcasecmp(argv[optind + 1], "create") == 0)
 	open_flags = O_CREAT | O_RDWR | O_TRUNC;
@@ -427,8 +428,14 @@ int     main(int argc, char **argv)
 	open_flags = O_RDONLY;
     else
 	msg_fatal("unknown access mode: %s", argv[2]);
-    if (argv[optind + 2] && strcasecmp(argv[optind + 2], "fold") == 0)
-	dict_flags |= DICT_FLAG_FOLD_ANY;
+    for (n = 2; argv[optind + n]; n++) {
+	if (strcasecmp(argv[optind + 2], "fold") == 0)
+	    dict_flags |= DICT_FLAG_FOLD_ANY;
+	else if (strcasecmp(argv[optind + 2], "sync") == 0)
+	    dict_flags |= DICT_FLAG_SYNC_UPDATE;
+	else
+	    usage(argv[0]);
+    }
     dict_name = argv[optind];
     dict = dict_open(dict_name, open_flags, dict_flags);
     dict_register(dict_name, dict);
