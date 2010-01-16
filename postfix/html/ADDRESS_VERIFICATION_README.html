@@ -454,13 +454,18 @@ they expire.  Postfix uses different controls for positive results
 (address was accepted) and for negative results (address was rejected,
 or address verification failed for some other reason). </p>
 
-<p> Current Postfix versions will periodically remove expired entries
-from the address verification database. With Postfix version 2.6
-and earlier, database cleanup had to be done as described next. </p>
+<p> The <a href="verify.8.html">verify(8)</a> daemon will periodically remove expired entries
+from the address verification database, and log the number of entries
+retained and dropped (Postfix versions 2.7 and later). A cleanup
+run is logged as "partial" when the daemon terminates early because
+of "postfix reload, "postfix stop", or because the daemon received
+no requests for $<a href="postconf.5.html#max_idle">max_idle</a> seconds.  Postfix versions 2.6 and earlier
+do not implement automatic address verification database cleanup.
+There, the database is managed manually as described next. </p>
 
-<p> If the address verification database file becomes too big, or
-if it becomes corrupted, the solution is to manually rename or
-delete (NOT: truncate) the file and run "postfix reload".  The
+<p> When the address verification database file becomes too big,
+or when it becomes corrupted, the solution is to manually rename
+or delete (NOT: truncate) the file and run "postfix reload".  The
 <a href="verify.8.html">verify(8)</a> daemon will then create a new database file.  </p>
 
 <h2><a name="probe_routing">Controlling the routing of address

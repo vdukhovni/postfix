@@ -7,37 +7,33 @@
 /*	\fBpostscreen\fR [generic Postfix daemon options]
 /* DESCRIPTION
 /*	The Postfix \fBpostscreen\fR(8) server performs triage on
-/*	multiple inbound SMTP connections in parallel.  By running
-/*	time-consuming tests in parallel in \fBpostscreen\fR(8),
-/*	zombies and other bogus clients can be kept away from Postfix
-/*	SMTP server processes. Thus, more Postfix SMTP server
-/*	processes remain available for legitimate clients.
+/*	multiple inbound SMTP connections in parallel. While
+/*	\fBpostscreen\fR(8) keeps zombies and other bogus clients
+/*	away from Postfix SMTP server processes, more Postfix SMTP
+/*	server processes remain available for legitimate clients.
+/* GENERAL OPERATION
+/* .ad
+/* .fi
+/*	The triage process involves a number of tests, in the order
+/*	as described below.  Some tests introduce a delay of a few
+/*	seconds.  Once a client passes all tests, its IP address
+/*	is temporarily excluded from the tests, typically for 24
+/*	hours.  This minimizes the impact of the tests on legitimate
+/*	mail clients.
 /*
-/*	This triage process involves a number of tests, documented
-/*	below.  The tests introduce a delay of a few seconds; once
-/*	a client passes the tests, its IP address is temporarily
-/*	whitelisted, typically for 24 hours.
+/*	After logging the result of its tests, \fBpostscreen\fR(8)
+/*	by default forwards all connections to a real SMTP server
+/*	process. This mode is useful for non-destructive testing.
 /*
-/*	The program can run in two basic modes.
-/* .IP "\fBObservation mode\fR"
-/*	\fBpostscreen\fR(8) reports the results of the tests, and
-/*	forwards all connections to a real Postfix SMTP server
-/*	process.
-/* .IP "\fBEnforcement mode\fR"
-/*	\fBpostscreen\fR(8) reports the results of the tests, but
-/*	forwards only connections to a real SMTP server process
-/*	from clients that passed the tests.
-/* .sp
-/*	\fBpostscreen\fR(8) disconnects clients that fail the tests,
-/*	after sending a 521 status message (a future version may
-/*	pass the connection to a dummy SMTP protocol engine that
-/*	logs sender and recipient information).
-/* .PP
+/*	In a typical production setting, \fBpostscreen\fR(8) is
+/*	configured to disconnect clients that fail some tests.  A
+/*	future implementation may pass the connection to a dummy
+/*	SMTP protocol engine that logs sender and recipient information
+/*	before hanging up.
+/*
 /*	Note: \fBpostscreen\fR(8) is not an SMTP proxy; this is
 /*	intentional. The purpose is to prioritize legitimate clients
 /*	with as little overhead as possible.
-/*
-/*	\fBpostscreen\fR(8) performs tests in the order described below.
 /* .SH 1. PERMANENT WHITELIST TEST
 /* .ad
 /* .fi
@@ -70,9 +66,9 @@
 /* .sp
 /*	The postscreen_blacklist_action parameter specifies the
 /*	action that is taken next:
-/* .IP "\fBcontinue\fR (default, observation mode)"
+/* .IP "\fBcontinue\fR (default)"
 /*	Continue with the SMTP GREETING PHASE TESTS below.
-/* .IP "\fBdrop\fR (enforcement mode)"
+/* .IP \fBdrop\fR
 /*	Drop the connection immediately with a 521 SMTP reply.  In
 /*	a future implementation, the connection may instead be
 /*	passed to a dummy SMTP protocol engine that logs sender and
@@ -158,12 +154,12 @@
 /*
 /*	The postscreen_greet_action parameter specifies the action
 /*	that is taken next:
-/* .IP "\fBcontinue\fR (default, observation mode)"
+/* .IP "\fBcontinue\fR (default)"
 /*	Wait until the postscreen_greet_wait time has elapsed, then
 /*	report DNSBL lookup results if applicable. Either perform
 /*	DNSBL-related actions or forward the connection to a real
 /*	SMTP server process.
-/* .IP "\fBdrop\fR (enforcement mode)"
+/* .IP \fBdrop\fR
 /*	Drop the connection immediately with a 521 SMTP reply.
 /*	In a future implementation, the connection may instead be passed
 /*	to a dummy SMTP protocol engine that logs sender and recipient
@@ -181,11 +177,11 @@
 /* .sp
 /*	The postscreen_hangup_action specifies the action
 /*	that is taken next:
-/* .IP "\fBcontinue\fR (default, observation mode)"
+/* .IP "\fBcontinue\fR (default)"
 /*	Wait until the postscreen_greet_wait time has elapsed, then
 /*	report DNSBL lookup results if applicable. Do not forward
 /*	the broken connection to a real SMTP server process.
-/* .IP "\fBdrop\fR (enforcement mode)"
+/* .IP \fBdrop\fR
 /*	Drop the connection immediately.
 /* .SH 4C. DNS BLOCKLIST TEST
 /* .ad
@@ -209,9 +205,9 @@
 /*
 /*	The postscreen_dnsbl_action parameter specifies the action
 /*	that is taken next:
-/* .IP "\fBcontinue\fR (default, observation mode)"
+/* .IP "\fBcontinue\fR (default)"
 /*	Forward the connection to a real SMTP server process.
-/* .IP "\fBdrop\fR (enforcement mode)"
+/* .IP \fBdrop\fR
 /*	Drop the connection immediately with a 521 SMTP reply.
 /*	In a future implementation, the connection may instead be passed
 /*	to a dummy SMTP protocol engine that logs sender and recipient
@@ -848,7 +844,7 @@ static void send_socket(PS_STATE *state)
 		      vstream_fileno(state->smtp_client_stream)) < 0) {
 	msg_warn("cannot pass connection to service %s: %m", smtp_service_name);
 	smtp_reply(vstream_fileno(state->smtp_client_stream), state->smtp_client_addr,
-	      state->smtp_client_port, "421 4.3.2 No system resources\r\n");
+		   state->smtp_client_port, "421 4.3.2 No system resources\r\n");
 	free_session_state(state);
 	return;
     } else {
@@ -1012,7 +1008,7 @@ static void postscreen_drain(char *unused_service, char **unused_argv)
      * instead of dropping already-accepted connections on the floor.
      * 
      * Unfortunately we must close all writable tables, so we can't store or
-     * look up reputation information. The reason is that don't have any
+     * look up reputation information. The reason is that we don't have any
      * multi-writer safety guarantees. We also can't use the single-writer
      * proxywrite service, because its latency guarantees are too weak.
      * 
@@ -1302,7 +1298,7 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 	"continue", PS_ACT_CONT,
 	0, -1,
     };
-    int     expire_flags;
+    int     cache_flags;
 
     /*
      * This routine runs after the skeleton code has entered the chroot jail.
@@ -1343,12 +1339,12 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      * verbose logging more informative (we get positive confirmation that
      * the cleanup thread runs).
      */
-    expire_flags = DICT_CACHE_FLAG_STATISTICS;
+    cache_flags = DICT_CACHE_FLAG_STATISTICS;
     if (msg_verbose)
-	expire_flags |= DICT_CACHE_FLAG_VERBOSE;
+	cache_flags |= DICT_CACHE_FLAG_VERBOSE;
     if (cache_map != 0 && var_ps_cache_scan > 0)
 	dict_cache_control(cache_map,
-			   DICT_CACHE_CTL_FLAGS, expire_flags,
+			   DICT_CACHE_CTL_FLAGS, cache_flags,
 			   DICT_CACHE_CTL_INTERVAL, var_ps_cache_scan,
 		       DICT_CACHE_CTL_VALIDATOR, postscreen_cache_validator,
 			   DICT_CACHE_CTL_CONTEXT, (char *) 0,

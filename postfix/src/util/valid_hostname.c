@@ -116,6 +116,7 @@ int     valid_hostname(const char *name, int gripe)
 	    }
 	    label_length = 0;
 	} else if (ch == '-') {
+	    non_numeric = 1;
 	    label_length++;
 	    if (label_length == 1 || cp[1] == 0 || cp[1] == '.') {
 		if (gripe)

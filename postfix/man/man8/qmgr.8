@@ -187,6 +187,11 @@ Available before Postfix version 2.5:
 .IP "\fBallow_min_user (no)\fR"
 Allow a sender or recipient address to have `-' as the first
 character.
+.PP
+Available with Postfix version 2.7 and later:
+.IP "\fBlegacy_filter_nexthop (no)\fR"
+When a FILTER command does not specify a destination, force the
+destination to be $myhostname, instead of using the recipient domain.
 .SH "ACTIVE QUEUE CONTROLS"
 .na
 .nf

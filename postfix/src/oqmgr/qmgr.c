@@ -157,6 +157,11 @@
 /* .IP "\fBallow_min_user (no)\fR"
 /*	Allow a sender or recipient address to have `-' as the first
 /*	character.
+/* .PP
+/*	Available with Postfix version 2.7 and later:
+/* .IP "\fBlegacy_filter_nexthop (no)\fR"
+/*	When a FILTER command does not specify a destination, force the
+/*	destination to be $myhostname, instead of using the recipient domain.
 /* ACTIVE QUEUE CONTROLS
 /* .ad
 /* .fi
@@ -369,6 +374,7 @@ char   *var_conc_neg_feedback;
 int     var_conc_cohort_limit;
 int     var_conc_feedback_debug;
 int     var_dest_rate_delay;
+bool    var_legacy_filter_nexthop;
 
 static QMGR_SCAN *qmgr_scans[2];
 
@@ -627,6 +633,7 @@ int     main(int argc, char **argv)
     static const CONFIG_BOOL_TABLE bool_table[] = {
 	VAR_VERP_BOUNCE_OFF, DEF_VERP_BOUNCE_OFF, &var_verp_bounce_off,
 	VAR_CONC_FDBACK_DEBUG, DEF_CONC_FDBACK_DEBUG, &var_conc_feedback_debug,
+	VAR_LEGACY_FILTER_NEXTHOP, DEF_LEGACY_FILTER_NEXTHOP, &var_legacy_filter_nexthop,
 	0,
     };
 

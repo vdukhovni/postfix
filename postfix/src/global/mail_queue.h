@@ -35,6 +35,7 @@
 #define MAIL_QUEUE_BOUNCE	"bounce"
 #define MAIL_QUEUE_CORRUPT	"corrupt"
 #define MAIL_QUEUE_FLUSH	"flush"
+#define MAIL_QUEUE_SAVED	"saved"
 
  /*
   * Queue file modes.

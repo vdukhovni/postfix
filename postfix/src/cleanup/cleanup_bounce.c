@@ -221,6 +221,7 @@ int     cleanup_bounce(CLEANUP_STATE *state)
 	    encoding = MAIL_ATTR_ENC_NONE;
 	dsn_envid = state->dsn_envid ?
 	    state->dsn_envid : "";
+	/* Do not send unfiltered (body) content. */
 	dsn_ret = (state->errs & (CLEANUP_STAT_CONT | CLEANUP_STAT_SIZE)) ?
 	    DSN_RET_HDRS : state->dsn_ret;
 

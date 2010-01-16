@@ -431,6 +431,7 @@ typedef struct pollfd EVENT_BUFFER;
   * descriptor is closed, so our information could get out of sync with the
   * kernel. But that will never happen, because we have to meticulously
   * unregister a file descriptor before it is closed, to avoid errors on
+  * systems that are built with EVENTS_STYLE == EVENTS_STYLE_SELECT.
   */
 #if (EVENTS_STYLE == EVENTS_STYLE_EPOLL)
 #include <sys/epoll.h>

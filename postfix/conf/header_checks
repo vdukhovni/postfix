@@ -167,17 +167,33 @@
 #               This feature is available in Postfix 2.1 and later.
 # 
 #        FILTER transport:destination
-#               Write a content filter request to the  queue  file,
-#               and  inspect  the  next input line.  After the com-
-#               plete message is received it will be  sent  through
-#               the specified external content filter.  More infor-
-#               mation about external content  filters  is  in  the
-#               Postfix FILTER_README file.
+#               After the message is queued, send the  entire  mes-
+#               sage through the specified external content filter.
+#               The transport name specifies the first field  of  a
+#               mail  delivery agent definition master.cf; the syn-
+#               tax of destination is described in the manual  page
+#               of the corresponding delivery agent.  More informa-
+#               tion about external content filters is in the Post-
+#               fix FILTER_README file.
 # 
-#               Note: this action overrides the content_filter set-
-#               ting, and affects all recipients of the message. In
-#               the  case  that  multiple FILTER actions fire, only
-#               the last one is executed.
+#               Note  1: do not use $number regular expression sub-
+#               stitutions for transport or destination unless  you
+#               know that the information has a trusted origin.
+# 
+#               Note  2:  this  action  overrides  the main.cf con-
+#               tent_filter setting, and affects all recipients  of
+#               the  message.  In  the  case  that  multiple FILTER
+#               actions fire, only the last one is executed.
+# 
+#               Note 3: the purpose of the  FILTER  command  is  to
+#               override  message routing.  To override the recipi-
+#               ent's transport but  not  destination,  specify  an
+#               empty destination (Postfix 2.7 and later), or spec-
+#               ify a transport:destination that delivers through a
+#               different  Postfix  instance  (Postfix 2.6 and ear-
+#               lier). Other options are using the recipient-depen-
+#               dent transport_maps or the sender-dependent sender-
+#               _dependent_default_transport_maps features.
 # 
 #               This feature is available in Postfix 2.0 and later.
 # 

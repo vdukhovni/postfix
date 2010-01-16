@@ -2,10 +2,26 @@ Wish list:
 
 	Remove this file from the stable release.
 
+	Should the postscreen temporary cache remember hosts that
+	are listed in the permanent white/black lists, and be queried
+	first? Skipping white/black list lookups will speed up the
+	handling of "good" clients without a permanent whitelist
+	entry.  Of course, this means that updates to the white/black
+	lists do not immediately take effect. Workarounds: 1) ignore
+	cached white/black list lookup results after "postfix
+	reload"; 2) use a short temporary cache TTL for clients on
+	the permanent black/white lists; 3) adjust the logging, for
+	example "WHITELISTED address (cached)" and "BLACKLISTED
+	address (cached)" to eliminate surprises.  Comparing the
+	cache entry time with the white/blacklist file modification
+	time is not foolproof: for example, pcre or CIDR tables are
+	read only once.
+
 	It would be nice if the generic dict_cache(3) cache manager
 	could postpone process suicide until cache cleanup is
 	completed (but that is not possible when postscreen forks
-	into the background to finish already-accepted connections).
+	into the background to finish already-accepted connections,
+	and it is not desirable when a host is being shut down).
 
 	When postscreen drops a connection, a 521 "greeting" should
 	be of the form "521 servername..." and not have an enhanced

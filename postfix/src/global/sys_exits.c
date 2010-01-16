@@ -39,6 +39,8 @@
 /*	sys_exits_detail() returns a table entry with assorted
 /*	information about the specified sendmail-compatible status
 /*	code, or a generic entry for an unknown status code.
+/*	The generic entry may be overwritten with each sys_exits_detail()
+/*	call.
 /*
 /*	sys_exits_softerror() returns non-zero when the specified
 /*	sendmail-compatible status code corresponds to a recoverable error.

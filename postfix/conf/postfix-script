@@ -266,6 +266,9 @@ check-warn)
 	find $data_directory/. ! -user $mail_owner \
 	    -exec $WARN not owned by $mail_owner: {} \;
 
+	ls -lLd $data_directory | egrep '^.....(w|...w)' >/dev/null && \
+		$WARN group or other writable: $data_directory
+
 	find `ls -d $queue_directory/* | \
 	    egrep '/(saved|incoming|active|defer|deferred|bounce|hold|trace|corrupt|public|private|flush)$'` \
 	    ! \( -type p -o -type s \) ! -user $mail_owner \

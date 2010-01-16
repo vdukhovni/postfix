@@ -147,7 +147,7 @@ while (<>) {
     s;\bdefault_recipi[-</bB>]*\n* *[<bB>]*ent_refill_delay\b;<a href="postconf.5.html#default_recipient_refill_delay">$&</a>;g;
     s;\bdefault_recip[-</bB>]*\n* *[<bB>]*ient_limit\b;<a href="postconf.5.html#default_recipient_limit">$&</a>;g;
     s;\bdefault_transport\b;<a href="postconf.5.html#default_transport">$&</a>;g;
-    s;\bsender_depen[-</bB>]*\n* *[<bB>]*dent_default_trans[-</bB>]*\n* *[<bB>]*port_maps\b;<a href="postconf.5.html#sender_dependent_default_transport_maps">$&</a>;g;
+    s;\bsender[-</bB>]*\n* *[<bB>]*_de[-</bB>]*\n* *[<bB>]*pen[-</bB>]*\n* *[<bB>]*dent_de[-</bB>]*\n* *[<bB>]*fault[-</bB>]*\n* *[<bB>]*_trans[-</bB>]*\n* *[<bB>]*port[-</bB>]*\n* *[<bB>]*_maps\b;<a href="postconf.5.html#sender_dependent_default_transport_maps">$&</a>;g;
     s;\bempty_address_default_transport_maps_lookup_key\b;<a href="postconf.5.html#empty_address_default_transport_maps_lookup_key">$&</a>;g;
     s;\bdefault_verp_delimiters\b;<a href="postconf.5.html#default_verp_delimiters">$&</a>;g;
     s;\bdefer_code\b;<a href="postconf.5.html#defer_code">$&</a>;g;
@@ -355,6 +355,7 @@ while (<>) {
     s;\bproxy_write_maps\b;<a href="postconf.5.html#proxy_write_maps">$&</a>;g;
     s;\bqmgr_clog_warn_time\b;<a href="postconf.5.html#qmgr_clog_warn_time">$&</a>;g;
     s;\bqmgr_fudge_factor\b;<a href="postconf.5.html#qmgr_fudge_factor">$&</a>;g;
+    s;\blegacy_filter_nexthop\b;<a href="postconf.5.html#legacy_filter_nexthop">$&</a>;g;
     s;\bqmgr_message_active_limit\b;<a href="postconf.5.html#qmgr_message_active_limit">$&</a>;g;
     s;\bqmgr_message_recip[-</bB>]*\n* *[<bB>]*ient_limit\b;<a href="postconf.5.html#qmgr_message_recipient_limit">$&</a>;g;
     s;\bqmgr_message_recip[-</bB>]*\n* *[<bB>]*ient_minimum\b;<a href="postconf.5.html#qmgr_message_recipient_minimum">$&</a>;g;
@@ -404,7 +405,7 @@ while (<>) {
     s;\bsender_bcc_maps\b;<a href="postconf.5.html#sender_bcc_maps">$&</a>;g;
     s;\bsender_canonical_classes\b;<a href="postconf.5.html#sender_canonical_classes">$&</a>;g;
     s;\bsender_canonical_maps\b;<a href="postconf.5.html#sender_canonical_maps">$&</a>;g;
-    s;\bsender_dependent_relay[-</bB>]*\n*[ <bB>]*host_maps\b;<a href="postconf.5.html#sender_dependent_relayhost_maps">$&</a>;g;
+    s;\bsender_de[-</bB>]*\n* *[<bB>]*pendent_relay[-</bB>]*\n*[ <bB>]*host_maps\b;<a href="postconf.5.html#sender_dependent_relayhost_maps">$&</a>;g;
     s;\bempty_address_relayhost_maps_lookup_key\b;<a href="postconf.5.html#empty_address_relayhost_maps_lookup_key">$&</a>;g;
     s;\bsendmail_path\b;<a href="postconf.5.html#sendmail_path">$&</a>;g;
     s;\bservice_throttle_time\b;<a href="postconf.5.html#service_throttle_time">$&</a>;g;
@@ -546,7 +547,7 @@ while (<>) {
     s;\bsyslog_facility\b;<a href="postconf.5.html#syslog_facility">$&</a>;g;
     s;\bsyslog_name\b;<a href="postconf.5.html#syslog_name">$&</a>;g;
     s;\btrace_service_name\b;<a href="postconf.5.html#trace_service_name">$&</a>;g;
-    s;\btransport_maps\b;<a href="postconf.5.html#transport_maps">$&</a>;g;
+    s;\btrans[-</bB>]*\n* *[<bB>]*port[-</bB>]*\n* *[<bB>]*_maps\b;<a href="postconf.5.html#transport_maps">$&</a>;g;
     s;\btransport_retry_time\b;<a href="postconf.5.html#transport_retry_time">$&</a>;g;
     s;\btrigger_timeout\b;<a href="postconf.5.html#trigger_timeout">$&</a>;g;
     s;\btcp_windowsize\b;<a href="postconf.5.html#tcp_windowsize">$&</a>;g;

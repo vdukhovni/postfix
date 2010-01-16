@@ -413,6 +413,7 @@ int     main(int argc, char **argv)
 	MAIL_QUEUE_ACTIVE,
 	MAIL_QUEUE_DEFERRED,
 	MAIL_QUEUE_HOLD,
+	MAIL_QUEUE_SAVED,
 	0,
     };
     char  **cpp;

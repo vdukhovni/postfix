@@ -15621,3 +15621,48 @@ Apologies for any names omitted.
 	Workaround: don't report bogus Berkeley DB close errors as
 	fatal errors. All operations before close are already error
 	checked, so the data is known to be safe.  File: util/dict_db.c.
+
+20100107
+
+	Documentation: the access(5) manual page did not document
+	the "send 521 and disconnect" behavior in the Postfix SMTP
+	server (introduced with Postfix 2.6). File: proto/access.
+
+	Bugfix: the pickup daemon did not discard messages that
+	were requeued after all recipients were delivered (or
+	bounced), and the cleanup server tried to bounce such
+	messages. Files: pickup/pickup.c, global/cleanup_user.h.
+
+	Future proofing: redundant code in postdrop to reject a
+	submission without recipient record. File: postdrop/postdrop.c.
+
+20100109
+
+	Cleanup: "postcat -q" will now access files in the "saved"
+	queue directory (for corrupted queue files). As before, the
+	"postsuper" command will not, to avoid suddenly deleting
+	such files. Files: global/mail_queue.h postcat/postcat.c.
+
+20100113
+
+	Cleanup: don't supply the "-o stress" command-line option
+	with a single-process service. File: master/master_ent.c.
+
+20100116
+
+	Bugfix: the valid_hostname() fuction did not set the
+	"non-numeric" flag after encountering the '-' character.
+	Reported by Jan Schampera.  File: util/valid_hostname.c.
+
+	Cleanup: when a content_filter parameter or FILTER command
+	specifies an empty next-hop destination, the queue manager
+	now uses the recipient domain instead of $myhostname. Specify
+	"legacy_filter_nexthop = yes" for backwards compatibility
+	with Postfix 2.6 and earlier, or specify a non-empty next-hop
+	destination.  Files: *qmgr/qmgr_message.c proto/access,
+	proto/header_checks, proto/postconf.proto, proto/FILTER_README.
+
+	Documentation: the content_filter and FILTER features never
+	supported the special cases of transport_maps. References
+	to transport_maps syntax are now removed from content filter
+	discussions.  Files: proto/postconf.proto, proto/FILTER_README.

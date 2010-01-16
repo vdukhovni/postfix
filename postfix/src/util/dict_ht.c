@@ -122,6 +122,8 @@ static void dict_ht_close(DICT *dict)
     DICT_HT *dict_ht = (DICT_HT *) dict;
 
     htable_free(dict_ht->table, myfree);
+    if (dict_ht->dict.fold_buf)
+	vstring_free(dict_ht->dict.fold_buf);
     dict_free(dict);
 }
 

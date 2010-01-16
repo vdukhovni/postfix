@@ -14,40 +14,32 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
 
 <b>DESCRIPTION</b>
        The Postfix <a href="postscreen.8.html"><b>postscreen</b>(8)</a> server performs triage on multi-
-       ple inbound SMTP  connections  in  parallel.   By  running
-       time-consuming tests in parallel in <a href="postscreen.8.html"><b>postscreen</b>(8)</a>, zombies
-       and other bogus clients can be kept away from Postfix SMTP
-       server processes. Thus, more Postfix SMTP server processes
-       remain available for legitimate clients.
+       ple  inbound   SMTP   connections   in   parallel.   While
+       <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  keeps  zombies and other bogus clients away
+       from Postfix SMTP  server  processes,  more  Postfix  SMTP
+       server  processes remain available for legitimate clients.
 
-       This triage process involves a number of tests, documented
-       below.  The tests introduce a delay of a few seconds; once
-       a client passes the tests, its IP address  is  temporarily
-       whitelisted, typically for 24 hours.
+<b>GENERAL OPERATION</b>
+       The triage process involves a  number  of  tests,  in  the
+       order as described below.  Some tests introduce a delay of
+       a few seconds.  Once a client passes  all  tests,  its  IP
+       address  is temporarily excluded from the tests, typically
+       for 24 hours.  This minimizes the impact of the  tests  on
+       legitimate mail clients.
 
-       The program can run in two basic modes.
+       After  logging  the  result of its tests, <a href="postscreen.8.html"><b>postscreen</b>(8)</a> by
+       default forwards all connections to  a  real  SMTP  server
+       process.  This mode is useful for non-destructive testing.
 
-       <b>Observation mode</b>
-              <a href="postscreen.8.html"><b>postscreen</b>(8)</a> reports the results of the tests, and
-              forwards all connections to  a  real  Postfix  SMTP
-              server process.
+       In a typical production setting, <a href="postscreen.8.html"><b>postscreen</b>(8)</a> is  config-
+       ured to disconnect clients that fail some tests.  A future
+       implementation may pass the connection  to  a  dummy  SMTP
+       protocol engine that logs sender and recipient information
+       before hanging up.
 
-       <b>Enforcement mode</b>
-              <a href="postscreen.8.html"><b>postscreen</b>(8)</a> reports the results of the tests, but
-              forwards only connections to  a  real  SMTP  server
-              process from clients that passed the tests.
-
-              <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  disconnects  clients  that  fail the
-              tests, after sending a 521 status message (a future
-              version  may  pass  the  connection to a dummy SMTP
-              protocol engine  that  logs  sender  and  recipient
-              information).
-
-       Note:  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  is not an SMTP proxy; this is inten-
-       tional. The purpose is to  prioritize  legitimate  clients
+       Note: <a href="postscreen.8.html"><b>postscreen</b>(8)</a> is not an SMTP proxy; this  is  inten-
+       tional.  The  purpose  is to prioritize legitimate clients
        with as little overhead as possible.
-
-       <a href="postscreen.8.html"><b>postscreen</b>(8)</a> performs tests in the order described below.
 
 <b>1. PERMANENT WHITELIST TEST</b>
        The  <a href="postconf.5.html#postscreen_whitelist_networks">postscreen_whitelist_networks</a>   parameter   (default:
@@ -75,11 +67,10 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
        The  <a href="postconf.5.html#postscreen_blacklist_action">postscreen_blacklist_action</a>  parameter  specifies the
        action that is taken next:
 
-       <b>continue</b> (default, observation mode)
+       <b>continue</b> (default)
               Continue with the SMTP GREETING PHASE TESTS  below.
 
-       <b>drop</b> (enforcement mode)
-              Drop  the  connection  immediately  with a 521 SMTP
+       <b>drop</b>   Drop  the  connection  immediately  with a 521 SMTP
               reply.  In a future implementation, the  connection
               may  instead  be  passed  to  a dummy SMTP protocol
               engine that logs sender and recipient  information.
@@ -156,14 +147,13 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
        The <a href="postconf.5.html#postscreen_greet_action">postscreen_greet_action</a> parameter specifies the action
        that is taken next:
 
-       <b>continue</b> (default, observation mode)
+       <b>continue</b> (default)
               Wait   until  the  <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a>  time  has
               elapsed, then report DNSBL lookup results if appli-
               cable. Either perform DNSBL-related actions or for-
               ward the connection to a real SMTP server  process.
 
-       <b>drop</b> (enforcement mode)
-              Drop  the  connection  immediately  with a 521 SMTP
+       <b>drop</b>   Drop  the  connection  immediately  with a 521 SMTP
               reply.  In a future implementation, the  connection
               may  instead  be  passed  to  a dummy SMTP protocol
               engine that logs sender and recipient  information.
@@ -178,14 +168,13 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
        The  <a href="postconf.5.html#postscreen_hangup_action">postscreen_hangup_action</a> specifies the action that is
        taken next:
 
-       <b>continue</b> (default, observation mode)
+       <b>continue</b> (default)
               Wait  until  the  <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a>  time   has
               elapsed, then report DNSBL lookup results if appli-
               cable. Do not forward the broken  connection  to  a
               real SMTP server process.
 
-       <b>drop</b> (enforcement mode)
-              Drop the connection immediately.
+       <b>drop</b>   Drop the connection immediately.
 
 <b>4C. DNS BLOCKLIST TEST</b>
        The   <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a>  parameter  (default:  empty)
@@ -205,12 +194,11 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
        The <a href="postconf.5.html#postscreen_dnsbl_action">postscreen_dnsbl_action</a> parameter specifies the action
        that is taken next:
 
-       <b>continue</b> (default, observation mode)
+       <b>continue</b> (default)
               Forward  the  connection  to  a  real  SMTP  server
               process.
 
-       <b>drop</b> (enforcement mode)
-              Drop  the  connection  immediately  with a 521 SMTP
+       <b>drop</b>   Drop  the  connection  immediately  with a 521 SMTP
               reply.  In a future implementation, the  connection
               may  instead  be  passed  to  a dummy SMTP protocol
               engine that logs sender and recipient  information.

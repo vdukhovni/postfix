@@ -208,10 +208,10 @@ is opened before the process releases privileges.
 </p>
 
 <p>
-The lookup table is persistent by default as of Postfix version
-2.7. Specify an empty table name to keep the information in volatile
+The lookup table is persistent by default (Postfix 2.7 and later).
+Specify an empty table name to keep the information in volatile
 memory which is lost after "<b>postfix reload</b>" or "<b>postfix
-stop</b>" (this is default with earlier Postfix versions).
+stop</b>". This is the default with Postfix version 2.6 and earlier.
 </p>
 
 <p>
@@ -220,11 +220,12 @@ database becomes corrupted, the world comes to an end. To recover
 delete (NOT: truncate) the file and do "<b>postfix reload</b>".
 </p>
 
-<p> As of version 2.5, Postfix no longer uses root privileges when
-opening this file. The file must now be stored under a Postfix-owned
-directory such as the data_directory. As a migration aid, an attempt
-to open the file under a non-Postfix directory is redirected to the
-Postfix-owned data_directory, and a warning is logged. </p>
+<p> Postfix daemon processes do not use root privileges when opening
+this file (Postfix 2.5 and later).  The file must therefore be
+stored under a Postfix-owned directory such as the data_directory.
+As a migration aid, an attempt to open the file under a non-Postfix
+directory is redirected to the Postfix-owned data_directory, and a
+warning is logged. </p>
 
 <p>
 Examples:
@@ -289,6 +290,12 @@ database cleanup runs. This feature requires that the database
 supports the "delete" and "sequence" operators.  Specify a zero
 interval to disable database cleanup. </p>
 
+<p> After each database cleanup run, the verify(8) daemon logs the
+number of entries that were retained and dropped. A cleanup run is
+logged as "partial" when the daemon terminates early after "<b>postfix
+reload</b>", "<b>postfix stop</b>", or no requests for $max_idle
+seconds. </p>
+
 <p> Time units: s (seconds), m (minutes), h (hours), d (days), w
 (weeks). </p>
 
@@ -302,11 +309,10 @@ of an address verification request in progress.
 </p>
 
 <p>
-With Postfix version 2.7 and later, the SMTP server polls the
-verify(8) service up to three times under non-overload conditions,
-and only once when under overload.  With earlier Postfix versions,
-the SMTP server always polls the verify(8) service up to three
-times.
+The Postfix SMTP server polls the verify(8) service up to three
+times under non-overload conditions, and only once when under
+overload.  With Postfix version 2.6 and earlier, the SMTP server
+always polls the verify(8) service up to three times.
 </p>
 
 <p>
@@ -744,11 +750,11 @@ This feature is available in Postfix 2.1 and later.
 %PARAM bounce_size_limit 50000
 
 <p> The maximal amount of original message text that is sent in a
-non-delivery notification. Specify a byte count. With Postfix 2.4
-and later, a message is returned as either message/rfc822 (the
-complete original) or as text/rfc822-headers (the headers only).
-With earlier Postfix versions, a message is always returned as
-message/rfc822 and is truncated when it exceeds the size limit.
+non-delivery notification. Specify a byte count.  A message is
+returned as either message/rfc822 (the complete original) or as
+text/rfc822-headers (the headers only).  With Postfix version 2.4
+and earlier, a message is always returned as message/rfc822 and is
+truncated when it exceeds the size limit.
 </p>
 
 <p> Notes: </p>
@@ -3217,8 +3223,9 @@ server to decide if it will accept any mail at all.
 </p>
 
 <p>
-By default, the Postfix version 2.1 SMTP server rejects MAIL FROM commands
-when the amount of free space is less than 1.5*$message_size_limit.
+By default, the Postfix SMTP server rejects MAIL FROM commands when
+the amount of free space is less than 1.5*$message_size_limit
+(Postfix version 2.1 and later).
 To specify a higher minimum free space limit, specify a queue_minfree
 value that is at least 1.5*$message_size_limit.
 </p>
@@ -6854,17 +6861,29 @@ allowed set are replaced by underscores.
 
 %PARAM content_filter 
 
-<p>
-The name of a mail delivery transport that filters mail after
-it is queued.
+<p> After the message is queued, send the entire message to the
+specified <i>transport:destination</i>. The <i>transport</i> name
+specifies the first field of a mail delivery agent definition in
+master.cf; the syntax of <i>destination</i> is described in the
+manual page of the corresponding delivery agent.  More information
+about external content filters is in the Postfix FILTER_README file.
 </p>
 
-<p>
-This parameter uses the same syntax as the right-hand side of a
-Postfix transport(5) table. This setting has a lower precedence
-than a content filter that is specified with an access(5) table or
-in a header_checks(5) or body_checks(5) table.
-</p>
+<p> Notes: </p>
+
+<ul>
+
+<li> <p> This setting has a lower precedence than a content filter that
+is specified with an access(5) table or in a header_checks(5) or
+body_checks(5) table. </p>
+
+<li> <p> The meaning of an empty filter <i>destination</i> is version
+dependent.  Postfix 2.7 and later will use the recipient domain;
+earlier versions will use $myhostname.  Specify "legacy_filter_nexthop
+= yes" for compatibility with Postfix 2.6 or earlier, or specify
+a non-empty filter <i>destination</i>.  </p>
+
+</ul>
 
 %PARAM default_delivery_slot_discount 50
 
@@ -9496,7 +9515,7 @@ precision.  </p>
 
 <li> b = time from last active queue entry to connection setup
 
-<li> c = time in connection setup, including DNS, EHLO and TLS
+<li> c = time in connection setup, including DNS, EHLO and STARTTLS
 
 <li> d = time in message transmission
 
@@ -11968,7 +11987,8 @@ unit). </p>
 (weeks). The default time unit is s (seconds). </p>
 
 <p> NOTE: the delay is enforced by the queue manager. The delay
-timer state does not survive "postfix reload" or "postfix stop".
+timer state does not survive "<b>postfix reload</b>" or "<b>postfix
+stop</b>".
 </p>
 
 <p> Use <i>transport</i>_destination_rate_delay to specify a
@@ -12489,6 +12509,12 @@ therefore not be run frequently. This feature requires that the
 cache database supports the "delete" and "sequence" operators.
 Specify a zero interval to disable cache cleanup. </p>
 
+<p> After each cache cleanup run, the postscreen(8) daemon logs the
+number of entries that were retained and dropped. A cleanup run is
+logged as "partial" when the daemon terminates early after "<b>postfix
+reload</b>", "<b>postfix stop</b>", or no requests for $max_idle
+seconds. </p>
+
 <p> Time units: s (seconds), m (minutes), h (hours), d (days), w
 (weeks).  </p>
 
@@ -12663,12 +12689,15 @@ client commands. </p>
 
 <ul>
 
-<li> <p> Use "resolve_numeric_domain = yes" to accept "<i>user@ipaddress</i>"
-Postfix already accepts the correct form "<i>user@[ipaddress]</i>".
-</p>
+<li> <p> Use "resolve_numeric_domain = yes" to accept
+"<i>user@ipaddress</i>". </p>
+
+<li> <p> Postfix already accepts the correct form
+"<i>user@[ipaddress]</i>".  </p>
 
 <li> <p> Use "strict_rfc821_envelopes = no" to accept "<i>User Name
-&lt;user@example.com&gt;</i>". </p>
+&lt;user@example.com&gt;</i>". Postfix will ignore the "User Name"
+part before delivering the mail. </p>
 
 </ul>
 
@@ -12786,9 +12815,10 @@ without overriding the global default_transport parameter setting.
 This information is overruled with the transport(5) table. </p>
 
 <p> Note: this overrides default_transport, not transport_maps, and
-therefore the expected syntax is that of default_transport.  This
-feature does not support the transport_maps syntax for null transport,
-null nexthop, or null email addresses. </p>
+therefore the expected syntax is that of default_transport, not the
+syntax of transport_maps.  Specifically, this does not support the
+transport_maps syntax for null transport, null nexthop, or null
+email addresses. </p>
 
 <p> For safety reasons, this feature does not allow $number
 substitutions in regular expression maps. </p>
@@ -12799,6 +12829,16 @@ substitutions in regular expression maps. </p>
 
 <p> Overrides the sender_dependent_default_transport_maps parameter
 setting for address verification probes.  </p>
+
+<p> This feature is available in Postfix 2.7 and later.  </p>
+
+%PARAM legacy_filter_nexthop no
+
+<p> When a FILTER command does not specify a destination, force the
+destination to be $myhostname, instead of using the recipient domain.
+Specify "legacy_filter_nexthop = yes" for compatibility with Postfix
+version 2.6 and earlier, or specify a non-empty filter destination.
+</p>
 
 <p> This feature is available in Postfix 2.7 and later.  </p>
 

@@ -100,7 +100,8 @@
 /* .PP
 /*	Available with Postfix 2.7 and later:
 /* .IP "\fBaddress_verify_cache_cleanup_interval (12h)\fR"
-/*	The amount of time between \fBverify\fR(8) cache cleanup runs.
+/*	The amount of time between \fBverify\fR(8) address verification
+/*	database cleanup runs.
 /* PROBE MESSAGE ROUTING CONTROLS
 /* .ad
 /* .fi
@@ -603,13 +604,13 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      * Start the cache cleanup thread.
      */
     if (var_verify_scan_cache > 0) {
-	int     expire_flags;
+	int     cache_flags;
 
-	expire_flags = DICT_CACHE_FLAG_STATISTICS;
+	cache_flags = DICT_CACHE_FLAG_STATISTICS;
 	if (msg_verbose)
-	    expire_flags |= DICT_CACHE_FLAG_VERBOSE;
+	    cache_flags |= DICT_CACHE_FLAG_VERBOSE;
 	dict_cache_control(verify_map,
-			   DICT_CACHE_CTL_FLAGS, expire_flags,
+			   DICT_CACHE_CTL_FLAGS, cache_flags,
 			   DICT_CACHE_CTL_INTERVAL, var_verify_scan_cache,
 			   DICT_CACHE_CTL_VALIDATOR, verify_cache_validator,
 			DICT_CACHE_CTL_CONTEXT, (char *) vstring_alloc(100),

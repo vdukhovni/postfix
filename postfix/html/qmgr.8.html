@@ -199,6 +199,13 @@ QMGR(8)                                                                QMGR(8)
               Allow  a sender or recipient address to have `-' as
               the first character.
 
+       Available with Postfix version 2.7 and later:
+
+       <b><a href="postconf.5.html#legacy_filter_nexthop">legacy_filter_nexthop</a> (no)</b>
+              When a FILTER command does not specify  a  destina-
+              tion,  force  the  destination  to  be $<a href="postconf.5.html#myhostname">myhostname</a>,
+              instead of using the recipient domain.
+
 <b>ACTIVE QUEUE CONTROLS</b>
        <b><a href="postconf.5.html#qmgr_clog_warn_time">qmgr_clog_warn_time</a> (300s)</b>
               The minimal delay between warnings that a  specific

@@ -2253,6 +2253,10 @@ extern void mail_params_init(void);
 #define DEF_FILTER_XPORT		""
 extern char *var_filter_xport;
 
+#define VAR_LEGACY_FILTER_NEXTHOP	"legacy_filter_nexthop"
+#define DEF_LEGACY_FILTER_NEXTHOP	0
+extern bool var_legacy_filter_nexthop;
+
  /*
   * Fast flush service support.
   */
