@@ -399,18 +399,19 @@ and causes mail to be given to the content filter instead. </p>
 <p> The <a href="postconf.5.html#content_filter">content_filter</a> configuration parameter expects a value of
 the form <i>transport:destination</i>. The <i>transport</i> name
 specifies the first field of a mail delivery agent definition in
-<a href="master.5.html">master.cf</a>; the syntax of <i>destination</i> is described in the
-manual page of the corresponding delivery agent. </p>
+<a href="master.5.html">master.cf</a>; the syntax of the next-hop <i>destination</i> is described
+in the manual page of the corresponding delivery agent. </p>
 
-<p> The meaning of an empty filter <i>destination</i> is version
-dependent.  Postfix 2.7 and later will use the recipient domain;
-earlier versions will use $<a href="postconf.5.html#myhostname">myhostname</a>.  Specify "<a href="postconf.5.html#legacy_filter_nexthop">legacy_filter_nexthop</a>
-= yes" for compatibility with Postfix 2.6 or earlier, or specify a
-non-empty filter destination.  </p>
+<p> The meaning of an empty next-hop filter <i>destination</i> is
+version dependent.  Postfix 2.7 and later will use the recipient
+domain; earlier versions will use $<a href="postconf.5.html#myhostname">myhostname</a>.  Specify
+"<a href="postconf.5.html#default_filter_nexthop">default_filter_nexthop</a> = $<a href="postconf.5.html#myhostname">myhostname</a>" for compatibility with Postfix
+2.6 or earlier, or specify a non-empty next-hop filter <i>destination</i>.
+</p>
 
-<p> The <a href="postconf.5.html#content_filter">content_filter</a> setting has a lower precedence than a content
-filter that is specified with an <a href="access.5.html">access(5)</a> table or in a <a href="header_checks.5.html">header_checks(5)</a>
-or <a href="header_checks.5.html">body_checks(5)</a> table. </p>
+<p> The <a href="postconf.5.html#content_filter">content_filter</a> setting has lower precedence than a FILTER
+action that is specified in an <a href="access.5.html">access(5)</a>, <a href="header_checks.5.html">header_checks(5)</a> or
+<a href="header_checks.5.html">body_checks(5)</a> table. </p>
 
 <li> <p> Execute "<b>postfix reload</b>" to complete the change.
 </p>
@@ -625,18 +626,18 @@ of its final destination. </p>
 <li> <p> The <a href="postconf.5.html#content_filter">content_filter</a> configuration parameter expects a value
 of the form <i>transport:destination</i>. The <i>transport</i> name
 specifies the first field of a mail delivery agent definition in
-<a href="master.5.html">master.cf</a>; the syntax of <i>destination</i> is described in the
-manual page of the corresponding delivery agent. </p>
+<a href="master.5.html">master.cf</a>; the syntax of the next-hop <i>destination</i> is described
+in the manual page of the corresponding delivery agent. </p>
 
-<li> <p> The meaning of an empty filter <i>destination</i> is version
-dependent.  Postfix 2.7 and later will use the recipient domain;
-earlier versions will use $<a href="postconf.5.html#myhostname">myhostname</a>.  Specify "<a href="postconf.5.html#legacy_filter_nexthop">legacy_filter_nexthop</a>
-= yes" for compatibility with Postfix 2.6 or earlier, or specify a
-non-empty filter destination.  </p>
+<li> <p> The meaning of an empty next-hop filter <i>destination</i>
+is version dependent.  Postfix 2.7 and later will use the recipient
+domain; earlier versions will use $<a href="postconf.5.html#myhostname">myhostname</a>.  Specify
+"<a href="postconf.5.html#default_filter_nexthop">default_filter_nexthop</a> = $<a href="postconf.5.html#myhostname">myhostname</a>" for compatibility with Postfix
+2.6 or earlier, or specify a non-empty next-hop filter <i>destination</i>.
 
-<li> <p> The <a href="postconf.5.html#content_filter">content_filter</a> setting has a lower precedence than a
-content filter that is specified with an <a href="access.5.html">access(5)</a> table or in a
-<a href="header_checks.5.html">header_checks(5)</a> or <a href="header_checks.5.html">body_checks(5)</a> table. </p>
+<li> <p> The <a href="postconf.5.html#content_filter">content_filter</a> setting has lower precedence than a
+FILTER action that is specified in an <a href="access.5.html">access(5)</a>, <a href="header_checks.5.html">header_checks(5)</a>
+or <a href="header_checks.5.html">body_checks(5)</a> table. </p>
 
 </ul>
 

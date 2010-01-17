@@ -1068,8 +1068,8 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	    reply.flags = 0;
 	    vstring_strcpy(reply.transport, message->filter_xport);
 	    if (FILTER_WITHOUT_NEXTHOP(STR(reply.transport), nexthop)
-		&& (var_legacy_filter_nexthop != 0
-		    || RCPT_WITHOUT_DOMAIN(recipient->address, nexthop)))
+		&& *(nexthop = var_def_filter_nexthop) == 0
+		&& RCPT_WITHOUT_DOMAIN(recipient->address, nexthop))
 		nexthop = var_myhostname;
 	    vstring_strcpy(reply.nexthop, nexthop);
 	    vstring_strcpy(reply.recipient, recipient->address);

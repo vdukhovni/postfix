@@ -6864,24 +6864,25 @@ allowed set are replaced by underscores.
 <p> After the message is queued, send the entire message to the
 specified <i>transport:destination</i>. The <i>transport</i> name
 specifies the first field of a mail delivery agent definition in
-master.cf; the syntax of <i>destination</i> is described in the
-manual page of the corresponding delivery agent.  More information
-about external content filters is in the Postfix FILTER_README file.
-</p>
+master.cf; the syntax of the next-hop <i>destination</i> is described
+in the manual page of the corresponding delivery agent.  More
+information about external content filters is in the Postfix
+FILTER_README file.  </p>
 
 <p> Notes: </p>
 
 <ul>
 
-<li> <p> This setting has a lower precedence than a content filter that
-is specified with an access(5) table or in a header_checks(5) or
-body_checks(5) table. </p>
+<li> <p> This setting has lower precedence than a FILTER action
+that is specified in an access(5), header_checks(5) or body_checks(5)
+table. </p>
 
-<li> <p> The meaning of an empty filter <i>destination</i> is version
-dependent.  Postfix 2.7 and later will use the recipient domain;
-earlier versions will use $myhostname.  Specify "legacy_filter_nexthop
-= yes" for compatibility with Postfix 2.6 or earlier, or specify
-a non-empty filter <i>destination</i>.  </p>
+<li> <p> The meaning of an empty next-hop filter <i>destination</i>
+is version dependent.  Postfix 2.7 and later will use the recipient
+domain; earlier versions will use $myhostname.  Specify
+"default_filter_nexthop = $myhostname" for compatibility with Postfix
+2.6 or earlier, or specify a content_filter value with an explicit
+next-hop <i>destination</i>.  </p>
 
 </ul>
 
@@ -12832,13 +12833,14 @@ setting for address verification probes.  </p>
 
 <p> This feature is available in Postfix 2.7 and later.  </p>
 
-%PARAM legacy_filter_nexthop no
+%PARAM default_filter_nexthop 
 
-<p> When a FILTER command does not specify a destination, force the
-destination to be $myhostname, instead of using the recipient domain.
-Specify "legacy_filter_nexthop = yes" for compatibility with Postfix
-version 2.6 and earlier, or specify a non-empty filter destination.
-</p>
+<p> When a content_filter or FILTER request specifies no explicit
+next-hop destination, use $default_filter_nexthop instead; when
+that value is empty, use the domain in the recipient address.
+Specify "default_filter_nexthop = $myhostname" for compatibility
+with Postfix version 2.6 and earlier, or specify an explicit next-hop
+destination with each content_filter value or FILTER action. </p>
 
 <p> This feature is available in Postfix 2.7 and later.  </p>
 

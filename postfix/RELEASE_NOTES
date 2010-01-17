@@ -14,23 +14,27 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.5 or earlier, read RELEASE_NOTES-2.6
 before proceeding.
 
-Incompatibility with snapshot 20100116
+Incompatibility with snapshot 20100117
 ======================================
 
 The meaning of an empty content filter next-hop destination has
 changed.  Postfix now uses the recipient domain, instead of using
 $myhostname as in Postfix 2.6 and earlier.  To get the old behavior
-use "legacy_filter_nexthop = yes", or specify a non-empty next-hop
-filter destination.
+use "default_filter_nexthop = $myhostname", or specify a non-empty
+next-hop content filter destination.
 
-Major changes with snapshot 20100116
+Major changes with snapshot 20100117
 ====================================
 
-The FILTER command can now be used to implement sender reputation
-schemes that dynamically choose the SMTP source IP address.  This
-is implemented by specifying a FILTER with an empty next-hop
-destination, and by configuring SMTP transports in master.cf with
-appropriate "-o myhostname" and "-o smtp_bind_address" settings.
+The FILTER action in access maps or header/body_checks now supports
+sender reputation schemes that dynamically choose the SMTP source
+IP address.
+
+This is implemented by specifying FILTER actions with empty next-hop
+destinations in access maps or header/body_checks, and by configuring
+in master.cf one Postfix SMTP client for each SMTP source IP address,
+where each client has its own "-o myhostname" and "-o smtp_bind_address"
+settings.
 
 Incompatibility with snapshot 20100101
 ======================================

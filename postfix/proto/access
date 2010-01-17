@@ -274,10 +274,11 @@
 #	After the message is queued, send the entire message through
 #	the specified external content filter. The \fItransport\fR
 #	name specifies the first field of a mail delivery agent
-#	definition in master.cf; the syntax of \fIdestination\fR
-#	is described in the manual page of the corresponding delivery
-#	agent.  More information about external content filters is
-#	in the Postfix FILTER_README file.
+#	definition in master.cf; the syntax of the next-hop
+#	\fIdestination\fR is described in the manual page of the
+#	corresponding delivery agent.  More information about
+#	external content filters is in the Postfix FILTER_README
+#	file.
 # .sp
 #	Note 1: do not use $\fInumber\fR regular expression
 #	substitutions for \fItransport\fR or \fIdestination\fR
@@ -290,12 +291,13 @@
 # .sp
 #	Note 3: the purpose of the FILTER command is to override
 #	message routing.  To override the recipient's \fItransport\fR
-#	but not \fIdestination\fR, specify an empty \fIdestination\fR
-#	(Postfix 2.7 and later), or specify a \fItransport:destination\fR
-#	that delivers through a different Postfix instance (Postfix
-#	2.6 and earlier). Other options are using the recipient-dependent
-#	\fBtrans\%port\%_maps\fR or the sen\%der-dependent
-#	\fBsender\%_de\%pen\%dent_default_trans\%port\%_maps\fR
+#	but not the next-hop \fIdestination\fR, specify an empty
+#	filter \fIdestination\fR (Postfix 2.7 and later), or specify
+#	a \fItransport:destination\fR that delivers through a
+#	different Postfix instance (Postfix 2.6 and earlier). Other
+#	options are using the recipient-dependent \fBtrans\%port\%_maps\fR
+#	or the sen\%der-dependent
+#	\fBsender\%_de\%pen\%dent\%_de\%fault\%_trans\%port\%_maps\fR
 #	features.
 # .sp
 #	This feature is available in Postfix 2.0 and later.

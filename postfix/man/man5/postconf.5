@@ -853,21 +853,23 @@ is already bounded by $max_idle.
 After the message is queued, send the entire message to the
 specified \fItransport:destination\fR. The \fItransport\fR name
 specifies the first field of a mail delivery agent definition in
-master.cf; the syntax of \fIdestination\fR is described in the
-manual page of the corresponding delivery agent.  More information
-about external content filters is in the Postfix FILTER_README file.
+master.cf; the syntax of the next-hop \fIdestination\fR is described
+in the manual page of the corresponding delivery agent.  More
+information about external content filters is in the Postfix
+FILTER_README file.
 .PP
 Notes:
 .IP \(bu
-This setting has a lower precedence than a content filter that
-is specified with an \fBaccess\fR(5) table or in a \fBheader_checks\fR(5) or
-\fBbody_checks\fR(5) table.
+This setting has lower precedence than a FILTER action
+that is specified in an \fBaccess\fR(5), \fBheader_checks\fR(5) or \fBbody_checks\fR(5)
+table.
 .IP \(bu
-The meaning of an empty filter \fIdestination\fR is version
-dependent.  Postfix 2.7 and later will use the recipient domain;
-earlier versions will use $myhostname.  Specify "legacy_filter_nexthop
-= yes" for compatibility with Postfix 2.6 or earlier, or specify
-a non-empty filter \fIdestination\fR.
+The meaning of an empty next-hop filter \fIdestination\fR
+is version dependent.  Postfix 2.7 and later will use the recipient
+domain; earlier versions will use $myhostname.  Specify
+"default_filter_nexthop = $myhostname" for compatibility with Postfix
+2.6 or earlier, or specify a content_filter value with an explicit
+next-hop \fIdestination\fR.
 .SH cyrus_sasl_config_path (default: empty)
 Search path for Cyrus SASL application configuration files,
 currently used only to locate the $smtpd_sasl_path.conf file.
@@ -1168,6 +1170,15 @@ degradation.
 Use \fItransport\fR_extra_recipient_limit to specify a
 transport-specific override, where \fItransport\fR is the master.cf
 name of the message delivery transport.
+.SH default_filter_nexthop (default: empty)
+When a content_filter or FILTER request specifies no explicit
+next-hop destination, use $default_filter_nexthop instead; when
+that value is empty, use the domain in the recipient address.
+Specify "default_filter_nexthop = $myhostname" for compatibility
+with Postfix version 2.6 and earlier, or specify an explicit next-hop
+destination with each content_filter value or FILTER action.
+.PP
+This feature is available in Postfix 2.7 and later.
 .SH default_minimum_delivery_slots (default: 3)
 How many recipients a message must have in order to invoke the
 Postfix queue manager's scheduling algorithm at all.  Messages
@@ -1956,13 +1967,6 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 .PP
 This feature is available in Postfix 2.1 and later.
-.SH legacy_filter_nexthop (default: no)
-When a FILTER command does not specify a destination, force the
-destination to be $myhostname, instead of using the recipient domain.
-Specify "legacy_filter_nexthop = yes" for compatibility with Postfix
-version 2.6 and earlier, or specify a non-empty filter destination.
-.PP
-This feature is available in Postfix 2.7 and later.
 .SH line_length_limit (default: 2048)
 Upon input, long lines are chopped up into pieces of at most
 this length; upon delivery, long lines are reconstructed.

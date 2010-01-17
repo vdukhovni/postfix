@@ -399,18 +399,19 @@ and causes mail to be given to the content filter instead. </p>
 <p> The content_filter configuration parameter expects a value of
 the form <i>transport:destination</i>. The <i>transport</i> name
 specifies the first field of a mail delivery agent definition in
-master.cf; the syntax of <i>destination</i> is described in the
-manual page of the corresponding delivery agent. </p>
+master.cf; the syntax of the next-hop <i>destination</i> is described
+in the manual page of the corresponding delivery agent. </p>
 
-<p> The meaning of an empty filter <i>destination</i> is version
-dependent.  Postfix 2.7 and later will use the recipient domain;
-earlier versions will use $myhostname.  Specify "legacy_filter_nexthop
-= yes" for compatibility with Postfix 2.6 or earlier, or specify a
-non-empty filter destination.  </p>
+<p> The meaning of an empty next-hop filter <i>destination</i> is
+version dependent.  Postfix 2.7 and later will use the recipient
+domain; earlier versions will use $myhostname.  Specify
+"default_filter_nexthop = $myhostname" for compatibility with Postfix
+2.6 or earlier, or specify a non-empty next-hop filter <i>destination</i>.
+</p>
 
-<p> The content_filter setting has a lower precedence than a content
-filter that is specified with an access(5) table or in a header_checks(5)
-or body_checks(5) table. </p>
+<p> The content_filter setting has lower precedence than a FILTER
+action that is specified in an access(5), header_checks(5) or
+body_checks(5) table. </p>
 
 <li> <p> Execute "<b>postfix reload</b>" to complete the change.
 </p>
@@ -625,18 +626,18 @@ of its final destination. </p>
 <li> <p> The content_filter configuration parameter expects a value
 of the form <i>transport:destination</i>. The <i>transport</i> name
 specifies the first field of a mail delivery agent definition in
-master.cf; the syntax of <i>destination</i> is described in the
-manual page of the corresponding delivery agent. </p>
+master.cf; the syntax of the next-hop <i>destination</i> is described
+in the manual page of the corresponding delivery agent. </p>
 
-<li> <p> The meaning of an empty filter <i>destination</i> is version
-dependent.  Postfix 2.7 and later will use the recipient domain;
-earlier versions will use $myhostname.  Specify "legacy_filter_nexthop
-= yes" for compatibility with Postfix 2.6 or earlier, or specify a
-non-empty filter destination.  </p>
+<li> <p> The meaning of an empty next-hop filter <i>destination</i>
+is version dependent.  Postfix 2.7 and later will use the recipient
+domain; earlier versions will use $myhostname.  Specify
+"default_filter_nexthop = $myhostname" for compatibility with Postfix
+2.6 or earlier, or specify a non-empty next-hop filter <i>destination</i>.
 
-<li> <p> The content_filter setting has a lower precedence than a
-content filter that is specified with an access(5) table or in a
-header_checks(5) or body_checks(5) table. </p>
+<li> <p> The content_filter setting has lower precedence than a
+FILTER action that is specified in an access(5), header_checks(5)
+or body_checks(5) table. </p>
 
 </ul>
 

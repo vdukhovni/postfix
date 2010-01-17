@@ -170,8 +170,8 @@ an external content filter AFTER the mail is queued. This content
 filter is expected to inject mail back into a (Postfix or other)
 MTA for further delivery. See the FILTER_README document for details.
 .IP "\fBcontent_filter (empty)\fR"
-The name of a mail delivery transport that filters mail after
-it is queued.
+After the message is queued, send the entire message to the
+specified \fItransport:destination\fR.
 .SH "BEFORE QUEUE EXTERNAL CONTENT INSPECTION CONTROLS"
 .na
 .nf

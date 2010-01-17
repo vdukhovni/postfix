@@ -15648,21 +15648,30 @@ Apologies for any names omitted.
 	Cleanup: don't supply the "-o stress" command-line option
 	with a single-process service. File: master/master_ent.c.
 
-20100116
+20100115
 
 	Bugfix: the valid_hostname() fuction did not set the
 	"non-numeric" flag after encountering the '-' character.
 	Reported by Jan Schampera.  File: util/valid_hostname.c.
 
-	Cleanup: when a content_filter parameter or FILTER command
-	specifies an empty next-hop destination, the queue manager
-	now uses the recipient domain instead of $myhostname. Specify
-	"legacy_filter_nexthop = yes" for backwards compatibility
-	with Postfix 2.6 and earlier, or specify a non-empty next-hop
-	destination.  Files: *qmgr/qmgr_message.c proto/access,
-	proto/header_checks, proto/postconf.proto, proto/FILTER_README.
+20100116
 
 	Documentation: the content_filter and FILTER features never
 	supported the special cases of transport_maps. References
 	to transport_maps syntax are now removed from content filter
 	discussions.  Files: proto/postconf.proto, proto/FILTER_README.
+
+	Workaround: as of Postfix 2.3 the VRFY command did not allow
+	a mailbox address inside <>, which broke expectations.  RFC
+	2821 (and 5321) is vague about the VRFY request format, but
+	spends lots of text on the reply format.  File: smtpd/smtpd.c.
+
+20010117
+
+	Cleanup: when a content_filter parameter or FILTER command
+	specifies an empty next-hop destination, the queue manager
+	now uses the recipient domain instead of $myhostname. Specify
+	"default_filter_nexthop = $myhostname" for compatibility
+	with Postfix 2.6 and earlier, or specify a non-empty next-hop
+	filter destination.  Files: *qmgr/qmgr_message.c proto/access,
+	proto/header_checks, proto/postconf.proto, proto/FILTER_README.
