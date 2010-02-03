@@ -1315,8 +1315,8 @@ domain.
 .PP
 Specify a string of the form \fItransport:nexthop\fR, where \fItransport\fR
 is the name of a mail delivery transport defined in master.cf.
-The \fI:nexthop\fR part is optional.  For more details see the
-\fBtransport\fR(5) manual page.
+The \fI:nexthop\fR destination is optional; its syntax is documented
+in the manual page of the corresponding delivery agent.
 .PP
 Example:
 .PP
@@ -2718,8 +2718,8 @@ which is just the name of a service that is defined the master.cf file.
 .PP
 Specify a string of the form \fItransport:nexthop\fR, where \fItransport\fR
 is the name of a mail delivery transport defined in master.cf.
-The \fI:nexthop\fR part is optional.  For more details see the
-\fBtransport\fR(5) manual page.
+The \fI:nexthop\fR destination is optional; its syntax is documented
+in the manual page of the corresponding delivery agent.
 .PP
 Beware: if you override the default local delivery agent then you
 need to review the LOCAL_RECIPIENT_README document, otherwise the
@@ -4331,8 +4331,8 @@ the \fBtransport\fR(5) table.
 .PP
 Specify a string of the form \fItransport:nexthop\fR, where \fItransport\fR
 is the name of a mail delivery transport defined in master.cf.
-The \fI:nexthop\fR part is optional.  For more details see the
-\fBtransport\fR(5) manual page.
+The \fI:nexthop\fR destination is optional; its syntax is documented
+in the manual page of the corresponding delivery agent.
 .PP
 See also the relay domains address class in the ADDRESS_CLASS_README
 file.
@@ -4423,10 +4423,10 @@ remote_header_rewrite_domain =
 .ft R
 .in -4
 .SH require_home_directory (default: no)
-Whether or not a \fBlocal\fR(8) recipient's home directory must exist
+Require that a \fBlocal\fR(8) recipient's home directory exists
 before mail delivery is attempted. By default this test is disabled.
 It can be useful for environments that import home directories to
-the mail server (NOT RECOMMENDED).
+the mail server (IMPORTING HOME DIRECTORIES IS NOT RECOMMENDED).
 .SH resolve_dequoted_address (default: yes)
 Resolve a recipient address safely instead of correctly, by
 looking inside quotes.
@@ -5800,50 +5800,34 @@ The minimum TLS cipher grade that the Postfix SMTP client will
 use with
 mandatory TLS encryption.  The default value "medium" is suitable
 for most destinations with which you may want to enforce TLS, and
-is beyond the reach of today's crypt-analytic methods. See
+is beyond the reach of today's cryptanalytic methods. See
 smtp_tls_policy_maps for information on how to configure ciphers
 on a per-destination basis.
 .PP
 The following cipher grades are supported:
 .IP "\fBexport\fR"
-Enable the mainstream "EXPORT" grade or better OpenSSL
-ciphers.  This is always used for opportunistic encryption. It is
+Enable "EXPORT" grade or better OpenSSL
+ciphers.  This is the default for opportunistic encryption. It is
 not recommended for mandatory encryption unless you must enforce TLS
 with "crippled" peers. The underlying cipherlist is specified via the
 tls_export_cipherlist configuration parameter, which you are strongly
-encouraged to not change. The default value of tls_export_cipherlist
-includes anonymous ciphers, but these are automatically filtered out if
-the client is configured to verify server certificates. If you must
-exclude anonymous ciphers also at the "encrypt" security level, set
-"smtp_tls_mandatory_exclude_ciphers = aNULL".
+encouraged to not change.
 .IP "\fBlow\fR"
-Enable the mainstream "LOW" grade or better OpenSSL ciphers.  This
+Enable "LOW" grade or better OpenSSL ciphers.  This
 setting is only appropriate for internal mail servers.  The underlying
 cipherlist is specified via the tls_low_cipherlist configuration
-parameter, which you are strongly encouraged to not change. The default
-value of tls_low_cipherlist includes anonymous ciphers, but these are
-automatically filtered out if the client is configured to verify server
-certificates. If you must exclude anonymous ciphers also at the "encrypt"
-security level, set "smtp_tls_mandatory_exclude_ciphers = aNULL".
+parameter, which you are strongly encouraged to not change.
 .IP "\fBmedium\fR"
-Enable the mainstream "MEDIUM" grade or better OpenSSL ciphers.
+Enable "MEDIUM" grade or better OpenSSL ciphers.
 The underlying cipherlist is specified via the tls_medium_cipherlist
 configuration parameter, which you are strongly encouraged to not change.
-The default value of tls_medium_cipherlist includes anonymous ciphers,
-but these are automatically filtered out if the client is configured to
-verify server certificates. If you must exclude anonymous ciphers also
-at the "encrypt" security level, set "smtp_tls_mandatory_exclude_ciphers
-= aNULL".
 .IP "\fBhigh\fR"
-Enable only the mainstream "HIGH" grade OpenSSL ciphers.  This
-setting is appropriate when all mandatory TLS destinations support
-some of "HIGH" grade ciphers, this is not uncommon. The underlying
-cipherlist is specified via the tls_high_cipherlist configuration
-parameter, which you are strongly encouraged to not change. The default
-value of tls_high_cipherlist includes anonymous ciphers, but these are
-automatically filtered out if the client is configured to verify server
-certificates. If you must exclude anonymous ciphers also at the "encrypt"
-security level, set "smtp_tls_mandatory_exclude_ciphers = aNULL".
+Enable only "HIGH" grade OpenSSL ciphers.  This setting may
+be appropriate when all mandatory TLS destinations (e.g. when all
+mail is routed to a suitably capable relayhost) support at least one
+"HIGH" grade cipher. The underlying cipherlist is specified via the
+tls_high_cipherlist configuration parameter, which you are strongly
+encouraged to not change.
 .IP "\fBnull\fR"
 Enable only the "NULL" OpenSSL ciphers, these provide authentication
 without encryption.  This setting is only appropriate in the rare case
@@ -5852,9 +5836,17 @@ in TLS servers). A plausible use-case is an LMTP server listening on a
 UNIX-domain socket that is configured to support "NULL" ciphers. The
 underlying cipherlist is specified via the tls_null_cipherlist
 configuration parameter, which you are strongly encouraged to not
-change. The default value of tls_null_cipherlist excludes anonymous
-ciphers (OpenSSL 0.9.8 has NULL ciphers that offer data integrity without
-encryption or authentication).
+change.
+.PP
+The underlying cipherlists for grades other than "null" include
+anonymous ciphers, but these are automatically filtered out if the
+Postfix SMTP client is configured to verify server certificates.
+You are very unlikely to need to take any steps to exclude anonymous
+ciphers, they are excluded automatically as necessary.  If you must
+exclude anonymous ciphers at the "may" or "encrypt" security levels,
+when the Postfix SMTP client does not need or use peer certificates, set
+"smtp_tls_exclude_ciphers = aNULL". To exclude anonymous ciphers only when
+TLS is enforced, set "smtp_tls_mandatory_exclude_ciphers = aNULL".
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH smtp_tls_mandatory_exclude_ciphers (default: empty)
@@ -6285,7 +6277,7 @@ smtp_tls_security_level = none
 # Opportunistic TLS.
 smtp_tls_security_level = may
 # Postfix >= 2.6:
-# Do not tweak opportunistic ciphers unless it is essential
+# Do not tweak opportunistic ciphers or protocol unless it is essential
 # to do so (if a security vulnerability is found in the SSL library that
 # can be mitigated by disabling a particular protocol or raising the
 # cipher grade from "export" to "low" or "medium").
@@ -8465,69 +8457,63 @@ loglevel 4 is strongly discouraged.
 .PP
 This feature is available in Postfix 2.2 and later.
 .SH smtpd_tls_mandatory_ciphers (default: medium)
-The minimum TLS cipher grade that the Postfix SMTP server
-will use with mandatory TLS encryption. Cipher types listed in
-smtpd_tls_mandatory_exclude_ciphers or smtpd_tls_exclude_ciphers are
-excluded from the base definition of the selected cipher grade. See
-smtpd_tls_ciphers for cipher controls that apply to opportunistic
-TLS.
+The minimum TLS cipher grade that the Postfix SMTP server will
+use with mandatory TLS encryption. The default grade ("medium") is
+sufficiently strong that any benefit from globally restricting TLS
+sessions to a more stringent grade is likely negligible, especially
+given the fact that many implementations still do not offer any stronger
+("high" grade) ciphers, while those that do, will always use "high"
+grade ciphers. So insisting on "high" grade ciphers is generally
+counter-productive. Allowing "export" or "low" ciphers is typically
+not a good idea, as systems limited to just these are limited to
+obsolete browsers. No known SMTP clients fail to support at least
+one "medium" or "high" grade cipher.
 .PP
 The following cipher grades are supported:
 .IP "\fBexport\fR"
-Enable the mainstream "EXPORT" grade or better OpenSSL ciphers.
+Enable "EXPORT" grade or stronger OpenSSL ciphers.
 This is the most appropriate setting for public MX hosts, and is always
 used with opportunistic TLS encryption. The underlying cipherlist
 is specified via the tls_export_cipherlist configuration parameter,
-which you are strongly encouraged to not change. The default value
-of tls_export_cipherlist includes anonymous ciphers, but these are
-automatically filtered out if the server is configured to ask for
-client certificates. If you must always exclude anonymous ciphers,
-set "smtpd_tls_exclude_ciphers = aNULL". To exclude anonymous ciphers
-only when TLS is enforced, set "smtpd_tls_mandatory_exclude_ciphers =
-aNULL".
+which you are strongly encouraged to not change.
 .IP "\fBlow\fR"
-Enable the mainstream "LOW" grade or better OpenSSL ciphers. The
+Enable "LOW" grade or stronger OpenSSL ciphers. The
 underlying cipherlist is specified via the tls_low_cipherlist
 configuration parameter, which you are strongly encouraged to
-not change. The default value of tls_low_cipherlist includes
-anonymous ciphers, but these are automatically filtered out if the
-server is configured to ask for client certificates. If you must
-always exclude anonymous ciphers, set "smtpd_tls_exclude_ciphers =
-aNULL". To exclude anonymous ciphers only when TLS is enforced, set
-"smtpd_tls_mandatory_exclude_ciphers = aNULL".
+not change.
 .IP "\fBmedium\fR"
-Enable the mainstream "MEDIUM" grade or better OpenSSL ciphers. These
-are essentially the 128-bit or stronger ciphers. This is the default
-minimum strength for mandatory TLS encryption. MSAs that enforce
-TLS and have clients that do not support any "MEDIUM" or "HIGH"
-grade ciphers, may need to configure a weaker ("low" or "export")
-minimum cipher grade. The underlying cipherlist is specified via the
-tls_medium_cipherlist configuration parameter, which you are strongly
-encouraged to not change. The default value of tls_medium_cipherlist
-includes anonymous ciphers, but these are automatically filtered out if
-the server is configured to ask for client certificates. If you must
-always exclude anonymous ciphers, set "smtpd_tls_exclude_ciphers =
-aNULL". To exclude anonymous ciphers only when TLS is enforced, set
-"smtpd_tls_mandatory_exclude_ciphers = aNULL".
+Enable "MEDIUM" grade or stronger OpenSSL ciphers. These use 128-bit
+or longer symmetric bulk-encryption keys. This is the default minimum
+strength for mandatory TLS encryption. The underlying cipherlist is
+specified via the tls_medium_cipherlist configuration parameter, which
+you are strongly encouraged to not change.
 .IP "\fBhigh\fR"
-Enable only the mainstream "HIGH" grade OpenSSL ciphers. The
+Enable only "HIGH" grade OpenSSL ciphers. The
 underlying cipherlist is specified via the tls_high_cipherlist
 configuration parameter, which you are strongly encouraged to
-not change. The default value of tls_high_cipherlist includes
-anonymous ciphers, but these are automatically filtered out if the
-server is configured to ask for client certificates. If you must
-always exclude anonymous ciphers, set "smtpd_tls_exclude_ciphers =
-aNULL". To exclude anonymous ciphers only when TLS is enforced, set
-"smtpd_tls_mandatory_exclude_ciphers = aNULL".
+not change.
 .IP "\fBnull\fR"
 Enable only the "NULL" OpenSSL ciphers, these provide authentication
 without encryption.  This setting is only appropriate in the rare
 case that all clients are prepared to use NULL ciphers (not normally
 enabled in TLS clients). The underlying cipherlist is specified via the
 tls_null_cipherlist configuration parameter, which you are strongly
-encouraged to not change. The default value of tls_null_cipherlist
-excludes anonymous ciphers (OpenSSL 0.9.8 has NULL ciphers that offer
-data integrity without encryption or authentication).
+encouraged to not change.
+.PP
+Cipher types listed in
+smtpd_tls_mandatory_exclude_ciphers or smtpd_tls_exclude_ciphers are
+excluded from the base definition of the selected cipher grade. See
+smtpd_tls_ciphers for cipher controls that apply to opportunistic
+TLS.
+.PP
+The underlying cipherlists for grades other than "null" include
+anonymous ciphers, but these are automatically filtered out if the
+server is configured to ask for client certificates.  You are very
+unlikely to need to take any steps to exclude anonymous ciphers, they
+are excluded automatically as required.  If you must exclude anonymous
+ciphers even when Postfix does not need or use peer certificates, set
+"smtpd_tls_exclude_ciphers = aNULL". To exclude anonymous ciphers only
+when TLS is enforced, set "smtpd_tls_mandatory_exclude_ciphers = aNULL".
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH smtpd_tls_mandatory_exclude_ciphers (default: empty)
@@ -9521,8 +9507,8 @@ This information can be overruled with the \fBtransport\fR(5) table.
 .PP
 Specify a string of the form \fItransport:nexthop\fR, where \fItransport\fR
 is the name of a mail delivery transport defined in master.cf.
-The \fI:nexthop\fR part is optional.  For more details see the
-\fBtransport\fR(5) manual page.
+The \fI:nexthop\fR destination is optional; its syntax is documented
+in the manual page of the corresponding delivery agent.
 .PP
 This feature is available in Postfix 2.0 and later.
 .SH virtual_uid_maps (default: empty)

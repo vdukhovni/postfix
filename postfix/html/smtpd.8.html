@@ -105,51 +105,53 @@ SMTPD(8)                                                              SMTPD(8)
               as if the local hostname were specified, instead of
               rejecting the address as invalid.
 
-       <b><a href="postconf.5.html#smtpd_command_filter">smtpd_command_filter</a> (empty)</b>
-              A  mechanism to transform commands from remote SMTP
-              clients.
-
        <b><a href="postconf.5.html#smtpd_reject_unlisted_sender">smtpd_reject_unlisted_sender</a> (no)</b>
-              Request that the Postfix SMTP server  rejects  mail
-              from   unknown   sender  addresses,  even  when  no
-              explicit <a href="postconf.5.html#reject_unlisted_sender">reject_unlisted_sender</a> access  restriction
+              Request  that  the Postfix SMTP server rejects mail
+              from  unknown  sender  addresses,  even   when   no
+              explicit  <a href="postconf.5.html#reject_unlisted_sender">reject_unlisted_sender</a> access restriction
               is specified.
 
        <b><a href="postconf.5.html#smtpd_sasl_exceptions_networks">smtpd_sasl_exceptions_networks</a> (empty)</b>
-              What  remote  SMTP  clients the Postfix SMTP server
+              What remote SMTP clients the  Postfix  SMTP  server
               will not offer AUTH support to.
 
        Available in Postfix version 2.2 and later:
 
        <b><a href="postconf.5.html#smtpd_discard_ehlo_keyword_address_maps">smtpd_discard_ehlo_keyword_address_maps</a> (empty)</b>
-              Lookup tables, indexed by the  remote  SMTP  client
-              address,  with  case insensitive lists of EHLO key-
-              words (pipelining, starttls, auth, etc.)  that  the
+              Lookup  tables,  indexed  by the remote SMTP client
+              address, with case insensitive lists of  EHLO  key-
+              words  (pipelining,  starttls, auth, etc.) that the
               SMTP server will not send in the EHLO response to a
               remote SMTP client.
 
        <b><a href="postconf.5.html#smtpd_discard_ehlo_keywords">smtpd_discard_ehlo_keywords</a> (empty)</b>
-              A case insensitive list of EHLO keywords  (pipelin-
-              ing,  starttls,  auth,  etc.)  that the SMTP server
+              A  case insensitive list of EHLO keywords (pipelin-
+              ing, starttls, auth, etc.)  that  the  SMTP  server
               will not send in the EHLO response to a remote SMTP
               client.
 
        <b><a href="postconf.5.html#smtpd_delay_open_until_valid_rcpt">smtpd_delay_open_until_valid_rcpt</a> (yes)</b>
-              Postpone  the  start  of  an  SMTP mail transaction
+              Postpone the start  of  an  SMTP  mail  transaction
               until a valid RCPT TO command is received.
 
        Available in Postfix version 2.3 and later:
 
        <b><a href="postconf.5.html#smtpd_tls_always_issue_session_ids">smtpd_tls_always_issue_session_ids</a> (yes)</b>
-              Force the Postfix SMTP server to issue a  TLS  ses-
-              sion  id,  even  when TLS session caching is turned
+              Force  the  Postfix SMTP server to issue a TLS ses-
+              sion id, even when TLS session  caching  is  turned
               off (<a href="postconf.5.html#smtpd_tls_session_cache_database">smtpd_tls_session_cache_database</a> is empty).
 
        Available in Postfix version 2.6 and later:
 
        <b><a href="postconf.5.html#tcp_windowsize">tcp_windowsize</a> (0)</b>
-              An optional workaround for routers that  break  TCP
+              An  optional  workaround for routers that break TCP
               window scaling.
+
+       Available in Postfix version 2.7 and later:
+
+       <b><a href="postconf.5.html#smtpd_command_filter">smtpd_command_filter</a> (empty)</b>
+              A mechanism to transform commands from remote  SMTP
+              clients.
 
 <b>ADDRESS REWRITING CONTROLS</b>
        See  the  <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a> document for a detailed

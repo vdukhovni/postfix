@@ -40,7 +40,7 @@ VERIFY(8)                                                            VERIFY(8)
 
        <b>query</b> <i>address</i>
               Look  up  the  <i>status</i>  and  <i>text</i>  for the specified
-              address.  If the status is unknown, a probe is sent
+              <i>address</i>.  If the status is unknown, a probe is sent
               and an "in progress" status is returned.
 
 <b>SECURITY</b>
@@ -50,9 +50,9 @@ VERIFY(8)                                                            VERIFY(8)
        low privilege.
 
        The address verification server can be  coerced  to  store
-       unlimited  amounts  of  garbage.  Limiting  the cache size
-       trades one problem (disk space exhaustion) for another one
-       (poor response time to client requests).
+       unlimited  amounts  of  garbage. Limiting the cache expiry
+       time  trades  one  problem  (disk  space  exhaustion)  for
+       another one (poor response time to client requests).
 
        With  Postfix  version 2.5 and later, the <a href="verify.8.html"><b>verify</b>(8)</a> server
        no  longer  uses  root   privileges   when   opening   the
@@ -66,12 +66,12 @@ VERIFY(8)                                                            VERIFY(8)
        Problems and transactions are logged to <b>syslogd</b>(8).
 
 <b>BUGS</b>
-       The  address  verification  service  is  suitable only for
-       sites that handle a low mail volume.  Verification  probes
-       add  additional  traffic  to  the  mail  queue and perform
-       poorly under high load.  Servers may blacklist sites  that
-       probe excessively, or that probe excessively for non-exis-
-       tent recipient addresses.
+       Address verification probe messages add additional traffic
+       to the mail queue.  Recipient verification  may  cause  an
+       increased  load  on  down-stream  servers in the case of a
+       dictionary attack  or  a  flood  of  backscatter  bounces.
+       Sender  address  verification  may  cause  your site to be
+       blacklisted by some providers.
 
        If the persistent database ever gets  corrupted  then  the
        world  comes  to  an end and human intervention is needed.
@@ -79,7 +79,7 @@ VERIFY(8)                                                            VERIFY(8)
 
 <b>CONFIGURATION PARAMETERS</b>
        Changes to <a href="postconf.5.html"><b>main.cf</b></a> are not  picked  up  automatically,  as
-       <a href="verify.8.html"><b>verify</b>(8)</a> processes are persistent. Use the command "<b>post-</b>
+       <a href="verify.8.html"><b>verify</b>(8)</a> processes are long-lived. Use the command "<b>post-</b>
        <b>fix reload</b>" after a configuration change.
 
        The text below provides  only  a  parameter  summary.  See

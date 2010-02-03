@@ -92,8 +92,6 @@
 /*	Resolve an address that ends in the "@" null domain as if the
 /*	local hostname were specified, instead of rejecting the address as
 /*	invalid.
-/* .IP "\fBsmtpd_command_filter (empty)\fR"
-/*	A mechanism to transform commands from remote SMTP clients.
 /* .IP "\fBsmtpd_reject_unlisted_sender (no)\fR"
 /*	Request that the Postfix SMTP server rejects mail from unknown
 /*	sender addresses, even when no explicit reject_unlisted_sender
@@ -125,6 +123,10 @@
 /*	Available in Postfix version 2.6 and later:
 /* .IP "\fBtcp_windowsize (0)\fR"
 /*	An optional workaround for routers that break TCP window scaling.
+/* .PP
+/*	Available in Postfix version 2.7 and later:
+/* .IP "\fBsmtpd_command_filter (empty)\fR"
+/*	A mechanism to transform commands from remote SMTP clients.
 /* ADDRESS REWRITING CONTROLS
 /* .ad
 /* .fi
@@ -4150,8 +4152,8 @@ typedef struct SMTPD_CMD {
 #define SMTPD_CMD_FLAG_LAST	(1<<2)	/* last in PIPELINING command group */
 
 static SMTPD_CMD smtpd_cmd_table[] = {
-    SMTPD_CMD_HELO, helo_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_PRE_TLS,
-    SMTPD_CMD_EHLO, ehlo_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_PRE_TLS,
+    SMTPD_CMD_HELO, helo_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_PRE_TLS | SMTPD_CMD_FLAG_LAST,
+    SMTPD_CMD_EHLO, ehlo_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_PRE_TLS | SMTPD_CMD_FLAG_LAST,
 #ifdef USE_TLS
     SMTPD_CMD_STARTTLS, starttls_cmd, SMTPD_CMD_FLAG_PRE_TLS,
 #endif

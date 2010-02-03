@@ -30,7 +30,8 @@
 /* .IP "\fBupdate\fI address status text\fR"
 /*	Update the status and text of the specified address.
 /* .IP "\fBquery\fI address\fR"
-/*	Look up the \fIstatus\fR and \fItext\fR for the specified address.
+/*	Look up the \fIstatus\fR and \fItext\fR for the specified
+/*	\fIaddress\fR.
 /*	If the status is unknown, a probe is sent and an "in progress"
 /*	status is returned.
 /* SECURITY
@@ -41,7 +42,8 @@
 /*	The verify server can run chrooted at fixed low privilege.
 /*
 /*	The address verification server can be coerced to store
-/*	unlimited amounts of garbage. Limiting the cache size
+/*	unlimited amounts of garbage. Limiting the cache expiry
+/*	time
 /*	trades one problem (disk space exhaustion) for another
 /*	one (poor response time to client requests).
 /*
@@ -55,11 +57,13 @@
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* BUGS
-/*	The address verification service is suitable only for sites that
-/*	handle a low mail volume. Verification probes add additional
-/*	traffic to the mail queue and perform poorly under high load.
-/*	Servers may blacklist sites that probe excessively, or that
-/*	probe excessively for non-existent recipient addresses.
+/*	Address verification probe messages add additional traffic
+/*	to the mail queue.
+/*	Recipient verification may cause an increased load on
+/*	down-stream servers in the case of a dictionary attack or
+/*	a flood of backscatter bounces.
+/*	Sender address verification may cause your site to be
+/*	blacklisted by some providers.
 /*
 /*	If the persistent database ever gets corrupted then the world
 /*	comes to an end and human intervention is needed. This violates
@@ -69,7 +73,7 @@
 /* .fi
 /*	Changes to \fBmain.cf\fR are not picked up automatically,
 /*	as \fBverify\fR(8)
-/*	processes are persistent. Use the command "\fBpostfix reload\fR" after
+/*	processes are long-lived. Use the command "\fBpostfix reload\fR" after
 /*	a configuration change.
 /*
 /*	The text below provides only a parameter summary. See

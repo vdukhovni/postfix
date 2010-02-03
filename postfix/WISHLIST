@@ -2,20 +2,35 @@ Wish list:
 
 	Remove this file from the stable release.
 
-	Should the postscreen temporary cache remember hosts that
-	are listed in the permanent white/black lists, and be queried
-	first? Skipping white/black list lookups will speed up the
-	handling of "good" clients without a permanent whitelist
-	entry.  Of course, this means that updates to the white/black
-	lists do not immediately take effect. Workarounds: 1) ignore
-	cached white/black list lookup results after "postfix
-	reload"; 2) use a short temporary cache TTL for clients on
-	the permanent black/white lists; 3) adjust the logging, for
-	example "WHITELISTED address (cached)" and "BLACKLISTED
-	address (cached)" to eliminate surprises.  Comparing the
-	cache entry time with the white/blacklist file modification
-	time is not foolproof: for example, pcre or CIDR tables are
-	read only once.
+	The cleanup virtual alias expansion limit does not really
+	deliver on its promises. 1) It promises to truncate the
+	result without aborting delivery, which would be undesirable
+	anyway, but that is not what it does, so that is good.  2)
+	It keeps all the recipients from multi-recipient database
+	lookup, then terminates further recursion when the result
+	exceeds the expansion limit. This behavior achieves the
+	original goal that all things shall have a finite size (even
+	though but we don'really care how large they are) but may
+	result in surprises when recipients are listed in virtual
+	alias domains or need expansion for other reasons.  In a
+	phone call with Victor, a reasonable way out is to set the
+	limit to some large number (100000) and abort delivery when
+	the result exceeds the limit.
+
+	Should the postscreen save permanent white/black list lookup
+	results int the temporary cache, and query the temporary
+	cache first? Skipping white/black list lookups will speed
+	up the handling of "good" clients without a permanent
+	whitelist entry.  Of course, this means that updates to the
+	white/black lists do not immediately take effect. Workarounds:
+	1) use a shorter temporary cache TTL for clients on the
+	permanent black/white lists; 2) ignore cached white/black
+	list lookup results after "postfix reload"; 2) adjust the
+	logging, for example "WHITELISTED address (cached)" and
+	"BLACKLISTED address (cached)" to eliminate surprises.
+	Comparing the cache entry time with the white/blacklist
+	file modification time is not foolproof: for example, pcre
+	or CIDR tables are read only once.
 
 	It would be nice if the generic dict_cache(3) cache manager
 	could postpone process suicide until cache cleanup is

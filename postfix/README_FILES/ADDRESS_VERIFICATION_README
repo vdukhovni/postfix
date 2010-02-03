@@ -4,10 +4,10 @@ PPoossttffiixx AAddddrreessss VVeerriiffiiccaattiioonn
 
 WWAARRNNIINNGG
 
-The sender/recipient address verification feature described in this document is
-suitable only for low-traffic sites. It performs poorly under high load;
-excessive sender address verification activity may even cause your site to be
-blacklisted by some providers. See the "Limitations" section below for details.
+Recipient address verification may cause an increased load on down-stream
+servers in the case of a dictionary attack or a flood of backscatter bounces.
+Sender address verification may cause your site to be blacklisted by some
+providers. See also the "Limitations" section below for more.
 
 WWhhaatt PPoossttffiixx aaddddrreessss vveerriiffiiccaattiioonn ccaann ddoo ffoorr yyoouu
 
@@ -18,8 +18,8 @@ verified to be deliverable.
 The technique has obvious uses to reject junk mail with an unreplyable sender
 address.
 
-The technique may also be useful to block mail for undeliverable recipients,
-for example on a mail relay host that does not have a list of all the valid
+The technique is also useful to block mail for undeliverable recipients, for
+example on a mail relay host that does not have a list of all the valid
 recipient addresses. This prevents undeliverable junk mail from entering the
 queue, so that Postfix doesn't have to waste resources trying to send MAILER-
 DAEMON messages back.
@@ -47,18 +47,26 @@ the Postfix MTA itself, or it could be a remote MTA (SMTP interruptus). Probe
 messages are like normal mail, except that they are never delivered, deferred
 or bounced; probe messages are always discarded.
 
-                Postfix         Postfix             Address
-    Internet ->  SMTP   <->     verify      <->   verification
-                server          server              database
+                               
+                                             probe     Postfix
+                                            message ->   mail
+                                                        queue
+                Postfix        Postfix   ->
+    Internet ->  SMTP   <->     verify
+                server          server                      |
+                                                            v
 
-                                   |    ^
-                               probe    delivery
-                            messages    status
-                                   v    |
+                                         <-            Postfix
+                                             probe  <- delivery -> Local
+                                            status      agents  -> Remote
+                                    ^
+                                    |
+                                    v
+                                          
 
-                            Postfix     Postfix
-                             queue   -> delivery
-                                         agents
+                              Address
+                            verification
+                              database
 
 With Postfix address verification turned on, normal mail will suffer only a
 short delay of up to 6 seconds while an address is being verified for the first
@@ -77,7 +85,8 @@ LLiimmiittaattiioonnss ooff aaddddrreessss vveerriiffi
     address, without actually delivering mail to it. If the nearest MTA accepts
     the address, then Postfix assumes that the address is deliverable. In
     reality, mail for a remote address can bounce AFTER the nearest MTA accepts
-    the recipient address.
+    the recipient address, or AFTER the nearest MTA accepts the message
+    content.
 
   * Some sites may blacklist you when you are probing them too often (a probe
     is an SMTP session that does not deliver mail), or when you are probing
@@ -95,30 +104,31 @@ LLiimmiittaattiioonnss ooff aaddddrreessss vveerriiffi
   * Postfix assumes that an address is undeliverable when the nearest MTA for
     the address rejects the probe, regardless of the reason for rejection
     (client rejected, HELO rejected, MAIL FROM rejected, etc.). Thus, Postfix
-    rejects mail when the sender's MTA rejects mail from your machine. This is
-    a good thing.
+    rejects an address when the nearest MTA for that address rejects mail from
+    your machine for any reason. This is not a limitation, but it is mentioned
+    here just in case people believe that it is a limitation.
 
-  * Unfortunately, some major sites such as YAHOO do not reject unknown
-    addresses in reply to the RCPT TO command, but report a delivery failure in
-    response to end of DATA after a message is transferred. Postfix address
-    verification does not work with such sites.
+  * Unfortunately, some sites do not reject unknown addresses in reply to the
+    RCPT TO command, but report a delivery failure in response to end of DATA
+    after a message is transferred. Postfix address verification does not work
+    with such sites.
 
-  * By default, Postfix probe messages have "double-bounce@$myorigin" as the
-    sender address (with Postfix versions before 2.5, the default is
+  * By default, Postfix probe messages have a sender address "double-
+    bounce@$myorigin" (with Postfix versions before 2.5, the default is
     "postmaster@$myorigin"). This is SAFE because the Postfix SMTP server does
     not reject mail for this address.
 
-    You can change this into the null address ("address_verify_sender ="). This
-    is UNSAFE because address probes will fail with mis-configured sites that
-    reject MAIL FROM: <>, while probes from "postmaster@$myorigin" would
-    succeed.
+    You can change the probe sender address into the null address
+    ("address_verify_sender ="). This is UNSAFE because address probes will
+    fail with mis-configured sites that reject MAIL FROM: <>, while probes from
+    "postmaster@$myorigin" would succeed.
 
 RReecciippiieenntt aaddddrreessss vveerriiffiiccaattiioonn
 
-As mentioned earlier, recipient address verification may be useful to block
-mail for undeliverable recipients on a mail relay host that does not have a
-list of all valid recipient addresses. This can help to prevent the mail queue
-from filling up with MAILER-DAEMON messages.
+As mentioned earlier, recipient address verification is useful to block mail
+for undeliverable recipients on a mail relay host that does not have a list of
+all valid recipient addresses. This can help to prevent the mail queue from
+filling up with MAILER-DAEMON messages.
 
 Recipient address verification is relatively straightforward and there are no
 surprises. If a recipient probe fails, then Postfix rejects mail for the
@@ -127,9 +137,10 @@ the recipient address. However, recipient address verification probes can
 increase the load on down-stream MTAs when you're being flooded by backscatter
 bounces, or when some spammer is mounting a dictionary attack.
 
-By default, address verification results are not saved. To avoid probing the
-same address repeatedly, you can store the result in a persistent database as
-described later.
+By default, address verification results are saved in a persistent database
+(Postfix version 2.7 and later; with earlier versions, specify the database in
+main.cf as described later). The persistent database helps to avoid probing the
+same address repeatedly.
 
     /etc/postfix/main.cf:
         smtpd_recipient_restrictions =
@@ -177,11 +188,13 @@ verification for specific domains that often appear in forged email.
         # Postfix 2.6 and later.
         # unverified_sender_defer_code = 250
 
+        # Default setting for Postfix 2.7 and later.
         # Note 1: Be sure to read the "Caching" section below!
         # Note 2: Avoid hash files here. Use btree instead.
         address_verify_map = btree:/var/lib/postfix/verify
 
     /etc/postfix/sender_access:
+        # Don't do this when you handle lots of email.
         aol.com     reject_unverified_sender
         hotmail.com reject_unverified_sender
         bigfoot.com reject_unverified_sender
@@ -216,6 +229,7 @@ be blocked:
         # Postfix 2.6 and later.
         # unverified_sender_reject_reason = Address verification failed
 
+        # Default setting for Postfix 2.7 and later.
         # Note 1: Be sure to read the "Caching" section below!
         # Note 2: Avoid hash files here. Use btree instead.
         address_verify_map = btree:/var/lib/postfix/verify
@@ -262,10 +276,11 @@ probe fails with some temporary error.
 AAddddrreessss vveerriiffiiccaattiioonn ddaattaabbaassee
 
 To improve performance, the Postfix verify(8) daemon can save address
-verification results to a persistent database. The address_verify_map (NOTE:
-singular) configuration parameter specifies persistent storage for sender or
-recipient address verification results. If you specify an empty value, all
-address verification results are lost after "postfix reload" or "postfix stop".
+verification results to a persistent database. This is enabled by default with
+Postfix 2.7 and later. The address_verify_map (NOTE: singular) configuration
+parameter specifies persistent storage for sender or recipient address
+verification results. If you specify an empty value, all address verification
+results are lost after "postfix reload" or "postfix stop".
 
     /etc/postfix/main.cf:
         # Default setting for Postfix 2.7 and later.
