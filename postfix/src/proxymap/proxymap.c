@@ -594,12 +594,6 @@ static void post_jail_init(char *service_name, char **unused_argv)
     myfree(saved_filter);
 
     /*
-     * This process is called by clients that already enforce the max_idle
-     * time, so we don't have to do it another time.
-     */
-    var_idle_limit = 1;
-
-    /*
      * Never, ever, get killed by a master signal, as that could corrupt a
      * persistent database when we're in the middle of an update.
      */

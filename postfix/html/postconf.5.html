@@ -2291,8 +2291,8 @@ domain.
 <p>
 Specify a string of the form <i>transport:nexthop</i>, where <i>transport</i>
 is the name of a mail delivery transport defined in <a href="master.5.html">master.cf</a>.
-The <i>:nexthop</i> part is optional.  For more details see the
-<a href="transport.5.html">transport(5)</a> manual page.
+The <i>:nexthop</i> destination is optional; its syntax is documented
+in the manual page of the corresponding delivery agent.
 </p>
 
 <p>
@@ -2615,7 +2615,7 @@ for <a href="showq.8.html">showq(8)</a> queue displays.  </p>
 </DD>
 
 <DT><b><a name="empty_address_default_transport_maps_lookup_key">empty_address_default_transport_maps_lookup_key</a>
-(default: <>)</b></DT><DD>
+(default: &lt;&gt;)</b></DT><DD>
 
 <p> The <a href="postconf.5.html#sender_dependent_default_transport_maps">sender_dependent_default_transport_maps</a> search string that
 will be used instead of the null sender address. </p>
@@ -4930,8 +4930,8 @@ which is just the name of a service that is defined the <a href="master.5.html">
 <p>
 Specify a string of the form <i>transport:nexthop</i>, where <i>transport</i>
 is the name of a mail delivery transport defined in <a href="master.5.html">master.cf</a>.
-The <i>:nexthop</i> part is optional.  For more details see the
-<a href="transport.5.html">transport(5)</a> manual page.
+The <i>:nexthop</i> destination is optional; its syntax is documented
+in the manual page of the corresponding delivery agent.
 </p>
 
 <p>
@@ -6576,284 +6576,6 @@ and enabled instances are processed in reverse order. </p>
 
 </DD>
 
-<DT><b><a name="postscreen_blacklist_action">postscreen_blacklist_action</a>
-(default: continue)</b></DT><DD>
-
-<p> The action that <a href="postscreen.8.html">postscreen(8)</a> takes when an SMTP client is
-permanently blacklisted with the <a href="postconf.5.html#postscreen_blacklist_networks">postscreen_blacklist_networks</a>
-parameter.  Specify one of the following: </p>
-
-<dl>
-
-<dt> continue </dt>
-
-<dd> Continue waiting until the <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> time has
-elapsed, and report whether the client triggers a PREGREET or HANGUP
-error, or whether the client is listed at the DNSBL sites specified
-with the <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> parameter.  Take the corresponding
-action, or forward the connection to a real SMTP server process.
-</p>
-
-<dt> drop </dt>
-
-<dd> Drop the connection immediately with a 521 SMTP reply, without
-reporting PREGREET, HANGUP or DNSBL results. </dd>
-
-</dl>
-
-<p> This feature is available in Postfix 2.7. </p>
-
-
-</DD>
-
-<DT><b><a name="postscreen_blacklist_networks">postscreen_blacklist_networks</a>
-(default: empty)</b></DT><DD>
-
-<p> Network addresses that are permanently blacklisted; see the
-<a href="postconf.5.html#postscreen_blacklist_action">postscreen_blacklist_action</a> parameter for possible actions.  This
-parameter uses the same address syntax as the <a href="postconf.5.html#mynetworks">mynetworks</a> parameter.
-The blacklist has higher precedence than whitelists. This feature
-never uses the remote SMTP client hostname.  </p>
-
-<p> This feature is available in Postfix 2.7. </p>
-
-
-</DD>
-
-<DT><b><a name="postscreen_cache_cleanup_interval">postscreen_cache_cleanup_interval</a>
-(default: 12h)</b></DT><DD>
-
-<p> The amount of time between <a href="postscreen.8.html">postscreen(8)</a> cache cleanup runs.
-Cache cleanup increases the load on the cache database and should
-therefore not be run frequently. This feature requires that the
-cache database supports the "delete" and "sequence" operators.
-Specify a zero interval to disable cache cleanup. </p>
-
-<p> After each cache cleanup run, the <a href="postscreen.8.html">postscreen(8)</a> daemon logs the
-number of entries that were retained and dropped. A cleanup run is
-logged as "partial" when the daemon terminates early after "<b>postfix
-reload</b>", "<b>postfix stop</b>", or no requests for $<a href="postconf.5.html#max_idle">max_idle</a>
-seconds. </p>
-
-<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
-(weeks).  </p>
-
-<p> This feature is available in Postfix 2.7. </p>
-
-
-</DD>
-
-<DT><b><a name="postscreen_cache_map">postscreen_cache_map</a>
-(default: btree:$<a href="postconf.5.html#data_directory">data_directory</a>/ps_whitelist)</b></DT><DD>
-
-<p> Persistent storage for the <a href="postscreen.8.html">postscreen(8)</a> server decisions. </p>
-
-<p> This feature is available in Postfix 2.7. </p>
-
-
-</DD>
-
-<DT><b><a name="postscreen_cache_retention_time">postscreen_cache_retention_time</a>
-(default: 1d)</b></DT><DD>
-
-<p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will cache an expired
-temporary whitelist entry before it is removed. This prevents clients
-from being logged as "NEW" just because their cache entry expired
-an hour ago.  </p>
-
-<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
-(weeks).  </p>
-
-<p> This feature is available in Postfix 2.7. </p>
-
-
-</DD>
-
-<DT><b><a name="postscreen_cache_ttl">postscreen_cache_ttl</a>
-(default: 1d)</b></DT><DD>
-
-<p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will cache a decision for
-a specific SMTP client IP address. During this time, the client IP
-address is excluded from tests. If possible, expired decisions are
-renewed automatically. Specify a non-zero time value (an integral
-value plus an optional one-letter suffix that specifies the time
-unit).  </p>
-
-<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
-(weeks).  </p>
-
-<p> This feature is available in Postfix 2.7. </p>
-
-
-</DD>
-
-<DT><b><a name="postscreen_dnsbl_action">postscreen_dnsbl_action</a>
-(default: continue)</b></DT><DD>
-
-<p>The action that <a href="postscreen.8.html">postscreen(8)</a> takes when an SMTP client is listed
-at the DNS blocklist domains specified with the <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a>
-parameter.  Specify one of the following: </p>
-
-<dl>
-
-<dt> continue </dt>
-
-<dd> Forward the connection to a real SMTP server process. </p>
-
-<dt> drop </dt>
-
-<dd> Drop the connection with a 521 SMTP reply. </dd>
-
-</dl>
-
-<p> This feature is available in Postfix 2.7. </p>
-
-
-</DD>
-
-<DT><b><a name="postscreen_dnsbl_sites">postscreen_dnsbl_sites</a>
-(default: empty)</b></DT><DD>
-
-<p>Optional list of DNS blocklist domains. When the list is non-enpty,
-the <a href="dnsblog.8.html">dnsblog(8)</a> daemon will query these domains with the IP addresses
-of non-whitelisted <a href="postscreen.8.html">postscreen(8)</a> clients. Specify a list of domain
-names, separated by comma or whitespace. </p>
-
-
-</DD>
-
-<DT><b><a name="postscreen_greet_action">postscreen_greet_action</a>
-(default: continue)</b></DT><DD>
-
-<p>The action that <a href="postscreen.8.html">postscreen(8)</a> takes when an SMTP client speaks
-before its turn within the time specified with the <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a>
-parameter.  Specify one of the following: </p>
-
-<dl>
-
-<dt> continue </dt>
-
-<dd> Continue waiting until the <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> time has
-elapsed. If the client is listed at the DNS blocklist domains
-specified with the <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> parameter, execute the
-action specified with the <a href="postconf.5.html#postscreen_dnsbl_action">postscreen_dnsbl_action</a> parameter, otherwise
-forward the connection to a real SMTP server process. </p>
-
-<dt> drop </dt>
-
-<dd> Drop the connection immediately with a 521 SMTP reply, without
-examining DNSBL lookup results. </dd>
-
-</dl>
-
-<p> In either case, <a href="postscreen.8.html">postscreen(8)</a> will not whitelist the SMTP client
-IP address. </p>
-
-<p> This feature is available in Postfix 2.7. </p>
-
-
-</DD>
-
-<DT><b><a name="postscreen_greet_banner">postscreen_greet_banner</a>
-(default: $<a href="postconf.5.html#smtpd_banner">smtpd_banner</a>)</b></DT><DD>
-
-<p> The <i>text</i> in the optional "220-<i>text</i>..." server
-response that
-<a href="postscreen.8.html">postscreen(8)</a> sends ahead of the real Postfix SMTP server's "220
-text..." response, in an attempt to confuse bad SMTP clients so
-that they speak before their turn (pre-greet).  Specify an empty
-value to disable this feature.  </p>
-
-<p> This feature is available in Postfix 2.7. </p>
-
-
-</DD>
-
-<DT><b><a name="postscreen_greet_wait">postscreen_greet_wait</a>
-(default: 4s)</b></DT><DD>
-
-<p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will wait for an SMTP
-client to send a command before its turn, and for DNS blocklist
-lookup results to arrive. This is done only when the SMTP client
-IP address is not permanently whitelisted, and when it has no cached
-decision.  Specify a non-zero time value (an integral value plus
-an optional one-letter suffix that specifies the time unit).  </p>
-
-<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
-(weeks).  </p>
-
-<p> This feature is available in Postfix 2.7. </p>
-
-
-</DD>
-
-<DT><b><a name="postscreen_hangup_action">postscreen_hangup_action</a>
-(default: continue)</b></DT><DD>
-
-<p>The action that <a href="postscreen.8.html">postscreen(8)</a> takes when an SMTP client disconnects
-without sending data, within the time specified with the
-<a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> parameter.  Specify one of the following:
-</p>
-
-<dl>
-
-<dt> continue </dt>
-
-<dd> Continue waiting until the <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> time has
-elapsed, and report whether the client is listed at the DNSBL sites
-specified with the <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> parameter. Do not
-forward the broken connection to a real SMTP server process. </p>
-
-<dt> drop </dt>
-
-<dd> Drop the connection immediately, without reporting DNSBL lookup
-results. </dd>
-
-</dl>
-
-<p> This feature is available in Postfix 2.7. </p>
-
-
-</DD>
-
-<DT><b><a name="postscreen_post_queue_limit">postscreen_post_queue_limit</a>
-(default: $<a href="postconf.5.html#default_process_limit">default_process_limit</a>)</b></DT><DD>
-
-<p> The number of clients that can be waiting for service from a
-real SMTP server process. When this queue is full, all clients will
-receive a 421 reponse. </p>
-
-<p> This feature is available in Postfix 2.7. </p>
-
-
-</DD>
-
-<DT><b><a name="postscreen_pre_queue_limit">postscreen_pre_queue_limit</a>
-(default: $<a href="postconf.5.html#default_process_limit">default_process_limit</a>)</b></DT><DD>
-
-<p> The number of non-whitelisted clients that can be waiting for
-a decision whether they will receive service from a real SMTP server
-process. When this queue is full, all non-whitelisted clients will
-receive a 421 reponse. </p>
-
-<p> This feature is available in Postfix 2.7. </p>
-
-
-</DD>
-
-<DT><b><a name="postscreen_whitelist_networks">postscreen_whitelist_networks</a>
-(default: $<a href="postconf.5.html#mynetworks">mynetworks</a>)</b></DT><DD>
-
-<p> Network addresses that are permanently whitelisted, and that
-will not be subjected to <a href="postscreen.8.html">postscreen(8)</a> checks. This parameter uses
-the same address syntax as the <a href="postconf.5.html#mynetworks">mynetworks</a> parameter. This feature
-never uses the remote SMTP client hostname.  </p>
-
-<p> This feature is available in Postfix 2.7. </p>
-
-
-</DD>
-
 <DT><b><a name="prepend_delivered_header">prepend_delivered_header</a>
 (default: command, file, forward)</b></DT><DD>
 
@@ -7690,8 +7412,8 @@ the <a href="transport.5.html">transport(5)</a> table.
 <p>
 Specify a string of the form <i>transport:nexthop</i>, where <i>transport</i>
 is the name of a mail delivery transport defined in <a href="master.5.html">master.cf</a>.
-The <i>:nexthop</i> part is optional.  For more details see the
-<a href="transport.5.html">transport(5)</a> manual page.
+The <i>:nexthop</i> destination is optional; its syntax is documented
+in the manual page of the corresponding delivery agent.
 </p>
 
 <p>
@@ -7812,10 +7534,10 @@ clients at all. </p>
 (default: no)</b></DT><DD>
 
 <p>
-Whether or not a <a href="local.8.html">local(8)</a> recipient's home directory must exist
+Require that a <a href="local.8.html">local(8)</a> recipient's home directory exists
 before mail delivery is attempted. By default this test is disabled.
 It can be useful for environments that import home directories to
-the mail server (NOT RECOMMENDED).
+the mail server (IMPORTING HOME DIRECTORIES IS NOT RECOMMENDED).
 </p>
 
 
@@ -9886,7 +9608,7 @@ loglevel 4 is strongly discouraged. </p>
 use with
 mandatory TLS encryption.  The default value "medium" is suitable
 for most destinations with which you may want to enforce TLS, and
-is beyond the reach of today's crypt-analytic methods. See
+is beyond the reach of today's cryptanalytic methods. See
 <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> for information on how to configure ciphers
 on a per-destination basis. </p>
 
@@ -9894,47 +9616,32 @@ on a per-destination basis. </p>
 
 <dl>
 <dt><b>export</b></dt>
-<dd> Enable the mainstream "EXPORT" grade or better OpenSSL
-ciphers.  This is always used for opportunistic encryption. It is
+<dd> Enable "EXPORT" grade or better OpenSSL
+ciphers.  This is the default for opportunistic encryption. It is
 not recommended for mandatory encryption unless you must enforce TLS
 with "crippled" peers. The underlying cipherlist is specified via the
 <a href="postconf.5.html#tls_export_cipherlist">tls_export_cipherlist</a> configuration parameter, which you are strongly
-encouraged to not change. The default value of <a href="postconf.5.html#tls_export_cipherlist">tls_export_cipherlist</a>
-includes anonymous ciphers, but these are automatically filtered out if
-the client is configured to verify server certificates. If you must
-exclude anonymous ciphers also at the "encrypt" security level, set
-"<a href="postconf.5.html#smtp_tls_mandatory_exclude_ciphers">smtp_tls_mandatory_exclude_ciphers</a> = aNULL". </dd>
+encouraged to not change. </dd>
 
 <dt><b>low</b></dt>
-<dd> Enable the mainstream "LOW" grade or better OpenSSL ciphers.  This
+<dd> Enable "LOW" grade or better OpenSSL ciphers.  This
 setting is only appropriate for internal mail servers.  The underlying
 cipherlist is specified via the <a href="postconf.5.html#tls_low_cipherlist">tls_low_cipherlist</a> configuration
-parameter, which you are strongly encouraged to not change. The default
-value of <a href="postconf.5.html#tls_low_cipherlist">tls_low_cipherlist</a> includes anonymous ciphers, but these are
-automatically filtered out if the client is configured to verify server
-certificates. If you must exclude anonymous ciphers also at the "encrypt"
-security level, set "<a href="postconf.5.html#smtp_tls_mandatory_exclude_ciphers">smtp_tls_mandatory_exclude_ciphers</a> = aNULL". </dd>
+parameter, which you are strongly encouraged to not change. </dd>
 
 <dt><b>medium</b></dt>
-<dd> Enable the mainstream "MEDIUM" grade or better OpenSSL ciphers.
+<dd> Enable "MEDIUM" grade or better OpenSSL ciphers.
 The underlying cipherlist is specified via the <a href="postconf.5.html#tls_medium_cipherlist">tls_medium_cipherlist</a>
 configuration parameter, which you are strongly encouraged to not change.
-The default value of <a href="postconf.5.html#tls_medium_cipherlist">tls_medium_cipherlist</a> includes anonymous ciphers,
-but these are automatically filtered out if the client is configured to
-verify server certificates. If you must exclude anonymous ciphers also
-at the "encrypt" security level, set "<a href="postconf.5.html#smtp_tls_mandatory_exclude_ciphers">smtp_tls_mandatory_exclude_ciphers</a>
-= aNULL". </dd>
+</dd>
 
 <dt><b>high</b></dt>
-<dd> Enable only the mainstream "HIGH" grade OpenSSL ciphers.  This
-setting is appropriate when all mandatory TLS destinations support
-some of "HIGH" grade ciphers, this is not uncommon. The underlying
-cipherlist is specified via the <a href="postconf.5.html#tls_high_cipherlist">tls_high_cipherlist</a> configuration
-parameter, which you are strongly encouraged to not change. The default
-value of <a href="postconf.5.html#tls_high_cipherlist">tls_high_cipherlist</a> includes anonymous ciphers, but these are
-automatically filtered out if the client is configured to verify server
-certificates. If you must exclude anonymous ciphers also at the "encrypt"
-security level, set "<a href="postconf.5.html#smtp_tls_mandatory_exclude_ciphers">smtp_tls_mandatory_exclude_ciphers</a> = aNULL". </dd>
+<dd> Enable only "HIGH" grade OpenSSL ciphers.  This setting may
+be appropriate when all mandatory TLS destinations (e.g. when all
+mail is routed to a suitably capable <a href="postconf.5.html#relayhost">relayhost</a>) support at least one
+"HIGH" grade cipher. The underlying cipherlist is specified via the
+<a href="postconf.5.html#tls_high_cipherlist">tls_high_cipherlist</a> configuration parameter, which you are strongly
+encouraged to not change. </dd>
 
 <dt><b>null</b></dt>
 <dd> Enable only the "NULL" OpenSSL ciphers, these provide authentication
@@ -9944,11 +9651,19 @@ in TLS servers). A plausible use-case is an LMTP server listening on a
 UNIX-domain socket that is configured to support "NULL" ciphers. The
 underlying cipherlist is specified via the <a href="postconf.5.html#tls_null_cipherlist">tls_null_cipherlist</a>
 configuration parameter, which you are strongly encouraged to not
-change. The default value of <a href="postconf.5.html#tls_null_cipherlist">tls_null_cipherlist</a> excludes anonymous
-ciphers (OpenSSL 0.9.8 has NULL ciphers that offer data integrity without
-encryption or authentication). </dd>
+change. </dd>
 
 </dl>
+
+<p> The underlying cipherlists for grades other than "null" include
+anonymous ciphers, but these are automatically filtered out if the
+Postfix SMTP client is configured to verify server certificates.
+You are very unlikely to need to take any steps to exclude anonymous
+ciphers, they are excluded automatically as necessary.  If you must
+exclude anonymous ciphers at the "may" or "encrypt" security levels,
+when the Postfix SMTP client does not need or use peer certificates, set
+"<a href="postconf.5.html#smtp_tls_exclude_ciphers">smtp_tls_exclude_ciphers</a> = aNULL". To exclude anonymous ciphers only when
+TLS is enforced, set "<a href="postconf.5.html#smtp_tls_mandatory_exclude_ciphers">smtp_tls_mandatory_exclude_ciphers</a> = aNULL". </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -10424,7 +10139,7 @@ Examples:
 # Opportunistic TLS.
 <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = may
 # Postfix &ge; 2.6:
-# Do not tweak opportunistic ciphers unless it is essential
+# Do not tweak opportunistic ciphers or protocol unless it is essential
 # to do so (if a security vulnerability is found in the SSL library that
 # can be mitigated by disabling a particular protocol or raising the
 # cipher grade from "export" to "low" or "medium").
@@ -11978,7 +11693,7 @@ more of the following, separated by comma or whitespace.  </p>
 
 <dt><b>speed_adjust</b></dt>
 
-<dd> Do not connect to a before-queue content filter until an entire
+<dd> <p> Do not connect to a before-queue content filter until an entire
 message has been received. This reduces the number of simultaneous
 before-queue content filter processes. </p>
 
@@ -12505,7 +12220,7 @@ the SASL plug-in implementation that is selected with
 configuration file or rendezvous point. </p>
 
 <p> This feature is available in Postfix 2.3 and later. In earlier
-releases it was called <b>smtpd_sasl_application_name</b>. </p>
+releases it was called <b><a href="postconf.5.html#smtpd_sasl_application_name">smtpd_sasl_application_name</a></b>. </p>
 
 
 </DD>
@@ -12805,18 +12520,6 @@ Examples:
 <a href="postconf.5.html#smtpd_sender_restrictions">smtpd_sender_restrictions</a> = <a href="postconf.5.html#reject_unknown_sender_domain">reject_unknown_sender_domain</a>,
     <a href="postconf.5.html#check_sender_access">check_sender_access</a> hash:/etc/postfix/access
 </pre>
-
-
-</DD>
-
-<DT><b><a name="smtpd_service">smtpd_service</a>
-(default: smtpd)</b></DT><DD>
-
-<p> The internal service that <a href="postscreen.8.html">postscreen(8)</a> forwards allowed
-connections to. In a future version there may be different
-classes of SMTP service. </p>
-
-<p> This feature is available in Postfix 2.7. </p>
 
 
 </DD>
@@ -13435,65 +13138,46 @@ loglevel 4 is strongly discouraged. </p>
 <DT><b><a name="smtpd_tls_mandatory_ciphers">smtpd_tls_mandatory_ciphers</a>
 (default: medium)</b></DT><DD>
 
-<p> The minimum TLS cipher grade that the Postfix SMTP server
-will use with mandatory TLS encryption. Cipher types listed in
-<a href="postconf.5.html#smtpd_tls_mandatory_exclude_ciphers">smtpd_tls_mandatory_exclude_ciphers</a> or <a href="postconf.5.html#smtpd_tls_exclude_ciphers">smtpd_tls_exclude_ciphers</a> are
-excluded from the base definition of the selected cipher grade. See
-<a href="postconf.5.html#smtpd_tls_ciphers">smtpd_tls_ciphers</a> for cipher controls that apply to opportunistic
-TLS. </p>
+<p> The minimum TLS cipher grade that the Postfix SMTP server will
+use with mandatory TLS encryption. The default grade ("medium") is
+sufficiently strong that any benefit from globally restricting TLS
+sessions to a more stringent grade is likely negligible, especially
+given the fact that many implementations still do not offer any stronger
+("high" grade) ciphers, while those that do, will always use "high"
+grade ciphers. So insisting on "high" grade ciphers is generally
+counter-productive. Allowing "export" or "low" ciphers is typically
+not a good idea, as systems limited to just these are limited to
+obsolete browsers. No known SMTP clients fail to support at least
+one "medium" or "high" grade cipher. </p>
 
 <p> The following cipher grades are supported: </p>
 
 <dl>
 <dt><b>export</b></dt>
-<dd> Enable the mainstream "EXPORT" grade or better OpenSSL ciphers.
+<dd> Enable "EXPORT" grade or stronger OpenSSL ciphers.
 This is the most appropriate setting for public MX hosts, and is always
 used with opportunistic TLS encryption. The underlying cipherlist
 is specified via the <a href="postconf.5.html#tls_export_cipherlist">tls_export_cipherlist</a> configuration parameter,
-which you are strongly encouraged to not change. The default value
-of <a href="postconf.5.html#tls_export_cipherlist">tls_export_cipherlist</a> includes anonymous ciphers, but these are
-automatically filtered out if the server is configured to ask for
-client certificates. If you must always exclude anonymous ciphers,
-set "<a href="postconf.5.html#smtpd_tls_exclude_ciphers">smtpd_tls_exclude_ciphers</a> = aNULL". To exclude anonymous ciphers
-only when TLS is enforced, set "<a href="postconf.5.html#smtpd_tls_mandatory_exclude_ciphers">smtpd_tls_mandatory_exclude_ciphers</a> =
-aNULL". </dd>
+which you are strongly encouraged to not change. </dd>
 
 <dt><b>low</b></dt>
-<dd> Enable the mainstream "LOW" grade or better OpenSSL ciphers. The
+<dd> Enable "LOW" grade or stronger OpenSSL ciphers. The
 underlying cipherlist is specified via the <a href="postconf.5.html#tls_low_cipherlist">tls_low_cipherlist</a>
 configuration parameter, which you are strongly encouraged to
-not change. The default value of <a href="postconf.5.html#tls_low_cipherlist">tls_low_cipherlist</a> includes
-anonymous ciphers, but these are automatically filtered out if the
-server is configured to ask for client certificates. If you must
-always exclude anonymous ciphers, set "<a href="postconf.5.html#smtpd_tls_exclude_ciphers">smtpd_tls_exclude_ciphers</a> =
-aNULL". To exclude anonymous ciphers only when TLS is enforced, set
-"<a href="postconf.5.html#smtpd_tls_mandatory_exclude_ciphers">smtpd_tls_mandatory_exclude_ciphers</a> = aNULL". </dd>
+not change. </dd>
 
 <dt><b>medium</b></dt>
-<dd> Enable the mainstream "MEDIUM" grade or better OpenSSL ciphers. These
-are essentially the 128-bit or stronger ciphers. This is the default
-minimum strength for mandatory TLS encryption. MSAs that enforce
-TLS and have clients that do not support any "MEDIUM" or "HIGH"
-grade ciphers, may need to configure a weaker ("low" or "export")
-minimum cipher grade. The underlying cipherlist is specified via the
-<a href="postconf.5.html#tls_medium_cipherlist">tls_medium_cipherlist</a> configuration parameter, which you are strongly
-encouraged to not change. The default value of <a href="postconf.5.html#tls_medium_cipherlist">tls_medium_cipherlist</a>
-includes anonymous ciphers, but these are automatically filtered out if
-the server is configured to ask for client certificates. If you must
-always exclude anonymous ciphers, set "<a href="postconf.5.html#smtpd_tls_exclude_ciphers">smtpd_tls_exclude_ciphers</a> =
-aNULL". To exclude anonymous ciphers only when TLS is enforced, set
-"<a href="postconf.5.html#smtpd_tls_mandatory_exclude_ciphers">smtpd_tls_mandatory_exclude_ciphers</a> = aNULL". </dd>
+<dd> Enable "MEDIUM" grade or stronger OpenSSL ciphers. These use 128-bit
+or longer symmetric bulk-encryption keys. This is the default minimum
+strength for mandatory TLS encryption. The underlying cipherlist is
+specified via the <a href="postconf.5.html#tls_medium_cipherlist">tls_medium_cipherlist</a> configuration parameter, which
+you are strongly encouraged to not change. </dd>
 
 <dt><b>high</b></dt>
-<dd> Enable only the mainstream "HIGH" grade OpenSSL ciphers. The
+<dd> Enable only "HIGH" grade OpenSSL ciphers. The
 underlying cipherlist is specified via the <a href="postconf.5.html#tls_high_cipherlist">tls_high_cipherlist</a>
 configuration parameter, which you are strongly encouraged to
-not change. The default value of <a href="postconf.5.html#tls_high_cipherlist">tls_high_cipherlist</a> includes
-anonymous ciphers, but these are automatically filtered out if the
-server is configured to ask for client certificates. If you must
-always exclude anonymous ciphers, set "<a href="postconf.5.html#smtpd_tls_exclude_ciphers">smtpd_tls_exclude_ciphers</a> =
-aNULL". To exclude anonymous ciphers only when TLS is enforced, set
-"<a href="postconf.5.html#smtpd_tls_mandatory_exclude_ciphers">smtpd_tls_mandatory_exclude_ciphers</a> = aNULL". </dd>
+not change. </dd>
 
 <dt><b>null</b></dt>
 <dd> Enable only the "NULL" OpenSSL ciphers, these provide authentication
@@ -13501,11 +13185,24 @@ without encryption.  This setting is only appropriate in the rare
 case that all clients are prepared to use NULL ciphers (not normally
 enabled in TLS clients). The underlying cipherlist is specified via the
 <a href="postconf.5.html#tls_null_cipherlist">tls_null_cipherlist</a> configuration parameter, which you are strongly
-encouraged to not change. The default value of <a href="postconf.5.html#tls_null_cipherlist">tls_null_cipherlist</a>
-excludes anonymous ciphers (OpenSSL 0.9.8 has NULL ciphers that offer
-data integrity without encryption or authentication). </dd>
+encouraged to not change. </dd>
 
 </dl>
+
+<p> Cipher types listed in
+<a href="postconf.5.html#smtpd_tls_mandatory_exclude_ciphers">smtpd_tls_mandatory_exclude_ciphers</a> or <a href="postconf.5.html#smtpd_tls_exclude_ciphers">smtpd_tls_exclude_ciphers</a> are
+excluded from the base definition of the selected cipher grade. See
+<a href="postconf.5.html#smtpd_tls_ciphers">smtpd_tls_ciphers</a> for cipher controls that apply to opportunistic
+TLS. </p>
+
+<p> The underlying cipherlists for grades other than "null" include
+anonymous ciphers, but these are automatically filtered out if the
+server is configured to ask for client certificates.  You are very
+unlikely to need to take any steps to exclude anonymous ciphers, they
+are excluded automatically as required.  If you must exclude anonymous
+ciphers even when Postfix does not need or use peer certificates, set
+"<a href="postconf.5.html#smtpd_tls_exclude_ciphers">smtpd_tls_exclude_ciphers</a> = aNULL". To exclude anonymous ciphers only
+when TLS is enforced, set "<a href="postconf.5.html#smtpd_tls_mandatory_exclude_ciphers">smtpd_tls_mandatory_exclude_ciphers</a> = aNULL". </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -15203,8 +14900,8 @@ This information can be overruled with the <a href="transport.5.html">transport(
 <p>
 Specify a string of the form <i>transport:nexthop</i>, where <i>transport</i>
 is the name of a mail delivery transport defined in <a href="master.5.html">master.cf</a>.
-The <i>:nexthop</i> part is optional.  For more details see the
-<a href="transport.5.html">transport(5)</a> manual page.
+The <i>:nexthop</i> destination is optional; its syntax is documented
+in the manual page of the corresponding delivery agent.
 </p>
 
 <p>

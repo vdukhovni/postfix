@@ -523,6 +523,7 @@ while (<>) {
     s;\bsmtpd_reject_unlisted_recip[-</bB>]*\n* *[<bB>]*ient\b;<a href="postconf.5.html#smtpd_reject_unlisted_recipient">$&</a>;g;
     s;\bsmtpd_reject_unlisted_sender\b;<a href="postconf.5.html#smtpd_reject_unlisted_sender">$&</a>;g;
     s;\bsmtpd_restriction_classes\b;<a href="postconf.5.html#smtpd_restriction_classes">$&</a>;g;
+    s;\bsmtpd_sasl_application_name\b;<a href="postconf.5.html#smtpd_sasl_application_name">$&</a>;g;
     s;\bsmtpd_sasl_path\b;<a href="postconf.5.html#smtpd_sasl_path">$&</a>;g;
     s;\bcyrus_sasl_config_path\b;<a href="postconf.5.html#cyrus_sasl_config_path">$&</a>;g;
     s;\bsmtpd_sasl_auth_enable\b;<a href="postconf.5.html#smtpd_sasl_auth_enable">$&</a>;g;

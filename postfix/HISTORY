@@ -15675,3 +15675,37 @@ Apologies for any names omitted.
 	with Postfix 2.6 and earlier, or specify a non-empty next-hop
 	filter destination.  Files: *qmgr/qmgr_message.c proto/access,
 	proto/header_checks, proto/postconf.proto, proto/FILTER_README.
+
+20100120
+
+	Cleanup: detect illegal pipelining after HELO, EHLO.  File:
+	smtpd/smtpd.c.
+
+20100128
+
+	Documentation: streamlined the decriptions of protocol and
+	cipher tweaks. Victor Duchovni. Files: proto/TLS_README,
+	proto/postconf.proto.
+
+20100131
+
+	Documentation: the address verification database is now
+	persistent by default. This, combined with the now default
+	stress-dependent configuration, improves the performance
+	limits and simplifies database maintenance.  Files:
+	proto/ADDRESS_VERIFICATION_README, verify/verify.c.
+
+	Cleanup: undo the proxymap and trivial-rewrite max_idle=1s
+	override that was introduced with Postfix 2.3. It did not
+	help to retire long-lived proxymap or trivial-rewrite
+	processes on busy servers, and worsened performance on
+	low-traffic servers. The reduced ipc_ttl value (introduced
+	with Postfix 2.4) already solves the problem of retiring
+	long-lived proxymap or trivial-rewrite processes.  Files:
+	proxymap/proxymap.c, trivial-rewrite/trivial-rewrite.c.
+
+20100202
+
+	Documentation: major revision of SASL_README with many
+	details on how to configure Cyrus SASL internals. Patrick
+	Koetter.  File: proto/SASL_README.html

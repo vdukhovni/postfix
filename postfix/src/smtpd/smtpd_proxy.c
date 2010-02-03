@@ -74,9 +74,10 @@
 /*	2xx or 3xx proxy server response is replaced by a generic
 /*	error response to avoid support problems.
 /*	In case of error, smtpd_proxy_create() updates the
-/*	state->error_mask and state->err fields, and leaves the the
-/*	proxy handle in an unconnected state.  Destroy the handle
-/*	after reporting the error reply in the proxy->buffer field.
+/*	state->error_mask and state->err fields, and leaves the
+/*	SMTPD_PROXY handle in an unconnected state.  Destroy the
+/*	handle after reporting the error reply in the proxy->buffer
+/*	field.
 /*
 /*	proxy->cmd() formats and either buffers up the command and
 /*	expected response until the entire message is received, or
@@ -374,8 +375,8 @@ static int smtpd_proxy_connect(SMTPD_STATE *state)
      * Send our own EHLO command. If this fails then we have a problem
      * because the proxy should always accept our EHLO command. Make up our
      * own response instead of passing back a negative EHLO reply: the proxy
-     * open is delayed to the point that the client expects a MAIL FROM or
-     * RCPT TO reply.
+     * open is delayed to the point that the remote SMTP client expects a
+     * MAIL FROM or RCPT TO reply.
      */
     if (smtpd_proxy_cmd(state, SMTPD_PROX_WANT_OK, "EHLO %s",
 			proxy->ehlo_name)) {
@@ -403,8 +404,8 @@ static int smtpd_proxy_connect(SMTPD_STATE *state)
      * Send XFORWARD attributes. For robustness, explicitly specify what SMTP
      * session attributes are known and unknown. Make up our own response
      * instead of passing back a negative XFORWARD reply: the proxy open is
-     * delayed to the point that the client expects a MAIL FROM or RCPT TO
-     * reply.
+     * delayed to the point that the remote SMTP client expects a MAIL FROM
+     * or RCPT TO reply.
      */
     if (server_xforward_features) {
 	buf = vstring_alloc(100);
@@ -443,9 +444,9 @@ static int smtpd_proxy_connect(SMTPD_STATE *state)
     }
 
     /*
-     * Pass-through the client's MAIL FROM command. If this fails, then we
-     * have a problem because the proxy should always accept any MAIL FROM
-     * command that was accepted by us.
+     * Pass-through the remote SMTP client's MAIL FROM command. If this
+     * fails, then we have a problem because the proxy should always accept
+     * any MAIL FROM command that was accepted by us.
      */
     if (smtpd_proxy_cmd(state, SMTPD_PROX_WANT_OK, "%s",
 			proxy->mail_from) != 0) {

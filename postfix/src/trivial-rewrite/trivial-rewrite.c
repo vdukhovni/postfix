@@ -565,12 +565,6 @@ static void post_jail_init(char *unused_name, char **unused_argv)
     if (resolve_verify.transport_info)
 	transport_post_init(resolve_verify.transport_info);
     check_table_stats(0, (char *) 0);
-
-    /*
-     * This process is called by clients that already enforce the max_idle
-     * time, so we don't have to do it another time.
-     */
-    var_idle_limit = 1;
 }
 
 MAIL_VERSION_STAMP_DECLARE;

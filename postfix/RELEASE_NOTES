@@ -1,10 +1,10 @@
-The stable Postfix release is called postfix-2.6.x where 2=major
-release number, 6=minor release number, x=patchlevel.  The stable
+The stable Postfix release is called postfix-2.7.x where 2=major
+release number, 7=minor release number, x=patchlevel.  The stable
 release never changes except for patches that address bugs or
 emergencies. Patches change the patchlevel and the release date.
 
 New features are developed in snapshot releases. These are called
-postfix-2.7-yyyymmdd where yyyymmdd is the release date (yyyy=year,
+postfix-2.8-yyyymmdd where yyyymmdd is the release date (yyyy=year,
 mm=month, dd=day).  Patches are never issued for snapshot releases;
 instead, a new snapshot is released.
 
@@ -14,89 +14,22 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.5 or earlier, read RELEASE_NOTES-2.6
 before proceeding.
 
-Incompatibility with snapshot 20100117
-======================================
+Major changes - performance
+---------------------------
 
-The meaning of an empty content filter next-hop destination has
-changed.  Postfix now uses the recipient domain, instead of using
-$myhostname as in Postfix 2.6 and earlier.  To get the old behavior
-use "default_filter_nexthop = $myhostname", or specify a non-empty
-next-hop content filter destination.
+[Feature 20100101] Periodic cache cleanup for the verify(8) cache
+database. The time between cache cleanup runs is controlled with
+the address_verify_cache_cleanup_interval (default: 12h) parameter.
+Cache cleanup increases the database access latency, so this should
+not be run more often than necessary.
 
-Major changes with snapshot 20100117
-====================================
-
-The FILTER action in access maps or header/body_checks now supports
-sender reputation schemes that dynamically choose the SMTP source
-IP address.
-
-This is implemented by specifying FILTER actions with empty next-hop
-destinations in access maps or header/body_checks, and by configuring
-in master.cf one Postfix SMTP client for each SMTP source IP address,
-where each client has its own "-o myhostname" and "-o smtp_bind_address"
-settings.
-
-Incompatibility with snapshot 20100101
-======================================
-
-The verify(8) service now uses a persistent cache by default
-(address_verify_map = btree:$data_directory/verify_cache). To
-disable, specify "address_verify_map =" in main.cf.
-
-When periodic cache cleanup is enabled (the default), the postscreen(8)
-and verify(8) servers now require that their cache databases support
-the "delete" and "sequence" operations.  To disable periodic cache
-cleanup specify a zero xxx_cache_cleanup_interval value.
-
-Major changes with snapshot 20100101
-====================================
-
-Periodic cache cleanup for the postscreen(8) and verify(8) cache
-databases. The time between cache cleanup runs is controlled with
-the address_verify_cache_cleanup_interval (default: 12h) and
-postscreen_cache_cleanup_interval (default: 12h) parameters.  Cache
-cleanup increases the database access latency, so this should not
-be run more often than necessary.
-
-In addition, the postscreen_cache_retention_time (default: 1d)
-parameter specifies how long to keep an expired entry in the cache.
-This prevents a client from being logged as "NEW" after its record
-expired only a little while ago.
-
-Incompatibility with snapshot 20091209
-======================================
-
-The postscreen daemon now checks the permanent whitelist before
-the permanent blacklist. This makes the whitelist easier to use
-for its intended purpose, which is to receive mail.
-
-Major changes with snapshot 20091209
-====================================
-
-sender_dependent_default_transport_maps, a per-sender override for
-default_transport. It's original motivation is to use different
-output channels (with different source IP addresses) for different
-sender addresses, in order to keep their IP-based reputations
-separate from each other.  
-
-The result value syntax is that of default_transport, not transport_maps.
-Thus, sender_dependent_default_transport_maps does not support the
-special transport_maps result value syntax for null transport, null
-nexthop, or null email address.
-
-This feature makes sender_dependent_relayhost_maps pretty much
-redundant (though sender_dependent_relayhost_maps will often be
-easier to use because that is the only thing people want to override).
-
-Major changes with snapshot 20091109
-====================================
-
-Improved before-queue filter performance. With "smtpd_proxy_options
-= speed_adjust", the Postfix SMTP server receives the entire message
-before it connects to a before-queue content filter. This means you
-can run more SMTP server processes with the same number of running
-content filter processes, and thus, handle more mail. This feature
-is off by default until it is proven to create no new problems.
+[Feature 20091109] Improved before-queue filter performance.  With
+"smtpd_proxy_options = speed_adjust", the Postfix SMTP server
+receives the entire message before it connects to a before-queue
+content filter. This means you can run more SMTP server processes
+with the same number of running content filter processes, and thus,
+handle more mail. This feature is off by default until it is proven
+to create no new problems.
 
 This addresses a concern of people in Europe who want to reject all
 bad mail with a before-queue filter. The alternative, an after-queue
@@ -116,107 +49,127 @@ To keep the performance overhead low, the same temporary file is
 reused with successive mail transactions (the file is of course
 truncated before reuse, so there is no information leakage).
 
-Incompatibility with snapshot 20091008
-======================================
+Major changes - sender reputation
+---------------------------------
 
-NOTE: You must stop and start the Postfix master daemon before you
-can use the postscreen(8) daemon.  This is needed because the Postfix
-"pass" master service type did not work reliably on some systems.
+[Feature 20100117] The FILTER action in access maps or header/body_checks
+now supports sender reputation schemes that dynamically choose the
+SMTP source IP address. Typically, mail is split into classes, and
+all mail in class X is sent out from an SMTP client IP address that
+is reserved for class X.
 
-Major changes with snapshot 20091008
-====================================
+This is implemented by specifying FILTER actions with empty next-hop
+destinations in access maps or header/body_checks, and by configuring
+in master.cf one Postfix SMTP client for each SMTP source IP address,
+where each client has its own "-o myhostname" and "-o smtp_bind_address"
+settings.
 
-Prototype postscreen(8) server that runs a number of time-consuming
-checks in parallel for all incoming SMTP connections, before clients
-are allowed to talk to a real Postfix SMTP server.  It detects
-clients that start talking too soon, or clients that appear on DNS
-blocklists, or clients that hang up without sending any command.
+[Feature 20091209] sender_dependent_default_transport_maps, a
+per-sender override for default_transport. The original motivation
+is to use different output channels (with different source IP
+addresses) for different sender addresses, in order to keep their
+IP-based reputations separate from each other.
 
-By doing these checks in a single postscreen(8) process, Postfix
-can avoid wasting one SMTP server process per connection. A side
-benefit of postscreen(8)'s DNSBL lookups is that DNS records are
-already cached before the Postfix SMTP server looks them up later.
+The result value syntax is that of default_transport, not transport_maps.
+Thus, sender_dependent_default_transport_maps does not support the
+special transport_maps result value syntax for null transport, null
+nexthop, or null email address.
 
-postscreen(8) maintains a temporary whitelist of positive decisions.
-Once an SMTP client is whitelisted, it is immediately forwarded
-to a real Postfix SMTP server process without further checking.
+This feature makes sender_dependent_relayhost_maps pretty much
+redundant (though sender_dependent_relayhost_maps will often be
+easier to use because that is the only thing people want to override).
 
-By default, the program logs only statistics, and it does not run
-any checks on clients in mynetworks (primarily, to avoid problems
-with buggy SMTP implementations in network appliances).  The logging
-function alone is already useful for research.
+Major changes - address verification
+------------------------------------
 
-postscreen(8) can be configured to drop clients that start talking
-too soon, or clients that appear on DNS blocklists. For details,
-see below.
+[Incompat 20100101] The verify(8) service now uses a persistent
+cache by default (address_verify_map = btree:$data_directory/verify_cache).
+To disable, specify "address_verify_map =" in main.cf.
 
-postscreen(8) has been tested on FreeBSD and Linux systems.  It
-probably needs additional work before it can be used on Solaris.
+When periodic cache cleanup is enabled (the default), the verify(8)
+server now requires that the cache database supports the "delete"
+and "sequence" operations.  To disable periodic cache cleanup specify
+a zero address_verify_cache_cleanup_interval value.
 
-This snapshot adds three new entries to the master.cf file. 
+[Feature 20100101] Periodic cache cleanup for the verify(8) cache
+database. The time between cache cleanup runs is controlled with
+the address_verify_cache_cleanup_interval (default: 12h) parameter.
+Cache cleanup increases the database access latency, so this should
+not be run more often than necessary.
 
-To enable the postscreen(8) service and log client information
-without blocking mail:
+Major changes - content filter
+------------------------------
 
-1 - Comment out the "smtp  inet ... smtpd" service in master.cf,
-    including any "-o parameter=value" entries that follow.
+[Incompat 20100117] The meaning of an empty filter next-hop destination
+has changed (for example, "content_filter = foo:" or "FILTER foo:").
+Postfix now uses the recipient domain, instead of using $myhostname
+as in Postfix 2.6 and earlier.  To restore the old behavior specify
+"default_filter_nexthop = $myhostname", or specify a non-empty
+next-hop content filter destination.
 
-2 - Uncomment the new "smtpd pass ... smtpd" service in master.cf,
-    and duplicate any "-o parameter=value" entries from the smtpd
-    service that was commented out in step 1.
+This compatibility option is not needed with SMTP-based content
+filters, because these always have an explicit next-hop destination.
 
-3 - Uncomment the the new "smtp inet ... postscreen" service in
-    master.cf.
+With pipe-based filters that specify no next-hop destination, the
+compatibility option restores the FIFO order of deliveries. Without
+the compatibility option, the delivery order for filters without
+next-hop destination changes to round-robin domain selection.
 
-4 - Uncomment the new "dnsblog  unix ... dnsblog" service in
-    master.cf.  This service does DNSBL lookups for postscreen(8)
-    and logs results.
+[Feature 20100117] The FILTER action in access maps or header/body_checks
+now supports sender reputation schemes that dynamically choose the
+SMTP source IP address. Typically, mail is split into classes, and
+all mail in class X is sent out from an SMTP client IP address that
+is reserved for class X.
 
-5 - To enable DNSBL lookups, list some DNS blocklist sites in
-    main.cf, e.g., "postscreen_dnsbl_sites = zen.spamhaus.org".
-    Separate domain names with comma or whitespace.
+This is implemented by specifying FILTER actions with empty next-hop
+destinations in access maps or header/body_checks, and by configuring
+in master.cf one Postfix SMTP client for each SMTP source IP address,
+where each client has its own "-o myhostname" and "-o smtp_bind_address"
+settings.
 
-Note: you must stop and start the master daemon.  This is needed
-because the Postfix "pass" master service type did not work reliably
-on all systems.
+[Feature 20091109] Improved before-queue filter performance.  With
+"smtpd_proxy_options = speed_adjust", the Postfix SMTP server
+receives the entire message before it connects to a before-queue
+content filter. This means you can run more SMTP server processes
+with the same number of running content filter processes, and thus,
+handle more mail. This feature is off by default until it is proven
+to create no new problems.
 
-To use the postscreen(8) service to block mail, edit main.cf and
-specify one or more of:
+This addresses a concern of people in Europe who want to reject all
+bad mail with a before-queue filter. The alternative, an after-queue
+filter, means they would have to discard bad mail (which is illegal)
+or bounce bad mail (which violates good network citizenship).
 
-- "postscreen_greet_action = drop", to drop clients that talk before
-  their turn. This alone stops about one third of all known-to-be
-  illegitimate connections to Wietse's mail server.
+NOTE 1: When this feature is turned on, a filter cannot selectively
+reject recipients of a multi-recipient message.  It is OK to reject
+all recipients of the same multi-recipient message, as is deferring
+or accepting all recipients of the same multi-recipient message.
 
-- "postscreen_hangup_action = drop", to waste no time on clients
-  that hang up without sending a command. On Wietse's server, only
-  one percent of illegitimate connections behaves like this.
+NOTE 2: This feature increases the minimum amount of free queue
+space by $message_size_limit. The extra space is needed to save the
+message to a temporary file.
 
-- "postscreen_dnsbl_action = drop", to drop clients that are on DNS
-  blocklists. Different blocklists cover different client categories.
+To keep the performance overhead low, the same temporary file is
+reused with successive mail transactions (the file is of course
+truncated before reuse, so there is no information leakage).
 
-There is also support for permanent blacklists and whitelists; see
-the postscreen(8) manual page for details.
+Major changes - milter
+----------------------
 
-Note: right now, postscreen(8) "drop" actions disconnect the client
-without reporting sender and recipient information. In a future
-implementation, the connection may instead be passed to a dummy
-SMTP protocol engine that logs sender and recipient information
-before dropping the connection.
+[Feature 20090606] Support for header checks on Milter-generated
+message headers.  This can be used, for example, to control mail
+flow with Milter-generated headers that carry indicators for badness
+or goodness. For details, see the postconf(5) section for
+"milter_header_checks". Currently, all header_checks features are
+implemented except PREPEND.  
 
-Incompatibility with snapshot 20090606
-======================================
+Major changes - multi-instance support
+--------------------------------------
 
-The "postmulti -e destroy" command no longer attempts to remove
-files that are created AFTER "postmulti -e create".  It still works
-as expected immediately after creating an instance by mistake.
-Trying to automatically remove other files is too risky because
-Postfix-owned directories are by design not trusted.
+[Incompat 20090606] The "postmulti -e destroy" command no longer
+attempts to remove files that are created AFTER "postmulti -e
+create".  It still works as expected immediately after creating an
+instance by mistake.  Trying to automatically remove other files
+is too risky because Postfix-owned directories are by design not
+trusted.
 
-Major changes with snapshot 20090606
-====================================
-
-Support for header checks on Milter-generated message headers.  This
-can be used, for example, to control mail flow with Milter-generated
-headers with indicators for badness or goodness. For details, see
-the postconf(5) section for "milter_header_checks". Currently, all
-header_checks features are implemented except PREPEND.

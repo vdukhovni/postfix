@@ -9,9 +9,6 @@
 #               (yes)   (yes)   (yes)   (never) (100)
 # ==========================================================================
 smtp      inet  n       -       n       -       -       smtpd
-#smtp      inet  n       -       n       -       1       postscreen
-#smtpd     pass  -       -       n       -       -       smtpd
-#dnsblog   unix  -       -       n       -       0       dnsblog
 #submission inet n       -       n       -       -       smtpd
 #  -o smtpd_tls_security_level=encrypt
 #  -o smtpd_sasl_auth_enable=yes

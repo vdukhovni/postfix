@@ -737,36 +737,6 @@ q
 EOF
     }
 
-    # Postfix 2.7.
-    # Add missing postscreen service to master.cf.
-
-    grep '^#*smtp.*postscreen' $config_directory/master.cf >/dev/null || {
-	echo Editing $config_directory/master.cf, adding missing entry for postscreen TCP service
-	cat >>$config_directory/master.cf <<EOF || exit 1
-#smtp     inet  n       -       n       -       1       postscreen
-EOF
-    }
-
-    # Postfix 2.7.
-    # Add missing smtpd (unix-domain) service to master.cf.
-
-    grep '^#*smtpd.*smtpd' $config_directory/master.cf >/dev/null || {
-	echo Editing $config_directory/master.cf, adding missing entry for smtpd unix-domain service
-	cat >>$config_directory/master.cf <<EOF || exit 1
-#smtpd     pass  -       -       n       -       -       smtpd
-EOF
-    }
-
-    # Postfix 2.7.
-    # Add temporary dnsblog (unix-domain) service to master.cf.
-
-    grep '^#*dnsblog.*dnsblog' $config_directory/master.cf >/dev/null || {
-	echo Editing $config_directory/master.cf, adding missing entry for dnsblog unix-domain service
-	cat >>$config_directory/master.cf <<EOF || exit 1
-#dnsblog  unix  -       -       n       -       0       dnsblog
-EOF
-    }
-
     # Report (but do not remove) obsolete files.
 
     test -n "$obsolete" && {
