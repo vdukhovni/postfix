@@ -737,7 +737,7 @@ q
 EOF
     }
 
-    # Postfix 2.7.
+    # Postfix 2.8.
     # Add missing postscreen service to master.cf.
 
     grep '^#*smtp.*postscreen' $config_directory/master.cf >/dev/null || {
@@ -747,7 +747,7 @@ EOF
 EOF
     }
 
-    # Postfix 2.7.
+    # Postfix 2.8.
     # Add missing smtpd (unix-domain) service to master.cf.
 
     grep '^#*smtpd.*smtpd' $config_directory/master.cf >/dev/null || {
@@ -757,7 +757,7 @@ EOF
 EOF
     }
 
-    # Postfix 2.7.
+    # Postfix 2.8.
     # Add temporary dnsblog (unix-domain) service to master.cf.
 
     grep '^#*dnsblog.*dnsblog' $config_directory/master.cf >/dev/null || {

@@ -12,19 +12,17 @@ may be worth considering.
 
 HHooww PPoossttffiixx uusseess SSAASSLL aauutthheennttiiccaattiioonn
 
-When an SMTP client connects to an SMTP server, the server needs to decide
-whether that client is authorized to send mail to remote destinations, or
-whether the client can send mail only to the destinations that the server
-itself is responsible for. Usually, the SMTP server will allow mail to remote
-destinations only if the client's IP address is in the "same network" as the
-server's IP address.
+SMTP servers need to decide whether an SMTP client is authorized to send mail
+to remote destinations, or only to destinations that the server itself is
+responsible for. Usually, SMTP servers allow mail to remote destinations when
+the client's IP address is in the "same network" as the server's IP address.
 
-Sometimes the SMTP client and server are in different networks, but the client
-still needs "same network" privileges. To address this problem, Postfix
-supports SASL authentication (RFC 4954, formerly RFC 2554). With this a remote
-SMTP client can authenticate to the Postfix SMTP server, and the Postfix SMTP
-client can authenticate to a remote SMTP server. Once the client is
-authenticated the server can give it "same network" privileges.
+Sometimes an SMTP client needs "same network" privileges when it connects from
+elsewhere. To address this problem, Postfix supports SASL authentication (RFC
+4954, formerly RFC 2554). With this a remote SMTP client can authenticate to
+the Postfix SMTP server, and the Postfix SMTP client can authenticate to a
+remote SMTP server. Once a client is authenticated, a server can give it "same
+network" privileges.
 
 Postfix does not implement SASL itself, but instead uses existing
 implementations as building blocks. This means that some SASL-related
@@ -76,7 +74,7 @@ You can read more about the following topics:
   * Enabling SASL authentication and authorization in the Postfix SMTP server
 
       o Enabling SASL authentication in the Postfix SMTP server
-      o Postfix SMTP Server Authentication Policy
+      o Postfix SMTP Server policy - SASL mechanism properties
       o Enabling SASL authorization in the Postfix SMTP server
       o Additional SMTP Server SASL options
 
@@ -367,9 +365,9 @@ plugins.
 
 TThhee ssaassllddbb pplluuggiinn
 
-The sasldb auxprop plugin authenticates credentials stored in a Berkeley DB
-database. The database schema is specific to Cyrus SASL. The database is
-usually located at /etc/sasldb2.
+The sasldb auxprop plugin authenticates SASL clients against credentials that
+are stored in a Berkeley DB database. The database schema is specific to Cyrus
+SASL. The database is usually located at /etc/sasldb2.
 
     NNoottee
 
@@ -422,17 +420,16 @@ Configure libsasl to use sasldb with the following instructions:
 TThhee ssqqll pplluuggiinn
 
 The sql auxprop plugin is a generic SQL plugin. It provides access to
-credentials stored in a MySQL, a PostgreSQL or a SQLite database.
-
-    NNoottee
-
-    The shared-secret mechanisms (CRAM-MD5, etc.) require that the SASL client
-    passwords are stored as plaintext.
+credentials stored in a MySQL, PostgreSQL or SQLite database. This plugin
+requires that SASL client passwords are stored as plaintext.
 
     TTiipp
 
-    Use "saslauthd > pam > (pam database module)" to verify encrypted passwords
-    in an SQL database.
+    If you must store encrypted passwords, see section "Using saslauthd with
+    PAM", and configure PAM to look up the encrypted passwords with, for
+    example, the pam_mysql module. You will not be able to use any of the
+    methods that require access to plaintext passwords, such as the shared-
+    secret methods CRAM-MD5 and DIGEST-MD5.
 
 The following example configures libsasl to use the sql plugin and connects it
 to a PostgreSQL server:
@@ -442,7 +439,8 @@ to a PostgreSQL server:
         auxprop_plugin: sql
         mech_list: PLAIN LOGIN CRAM-MD5 DIGEST-MD5 NTLM
         sql_engine: pgsql
-        sql_hostnames: 127.0.0.1, 192.0.2.1 sql_user: username
+        sql_hostnames: 127.0.0.1, 192.0.2.1
+        sql_user: username
         sql_passwd: secret
         sql_database: dbname
         sql_select: SELECT password FROM users WHERE user = '%u'@'%r'
@@ -510,22 +508,32 @@ available:
 
 TThhee llddaappddbb pplluuggiinn
 
-The ldapdb auxprop plugin provides access to credentials stored in an OpenLDAP
-LDAP server. It is the only plugin that implements proxy authorization.
+The ldapdb auxprop plugin provides access to credentials stored in an LDAP
+server. This plugin requires that SASL client passwords are stored as
+plaintext.
 
-Proxy authorization in this context means: The ldapdb plugin must SASL
-authenticate with the OpenLDAP server. The server then decides if the ldapdb
-plugin should be authorized to read the authenticating user's password. Once
-the ldapdb plugin has gone through proxy authorization it may proceed and
-authenticate the remote SMTP client's credentials.
+    TTiipp
+
+    If you must store encrypted passwords, you can use "saslauthd -a ldap" to
+    query the LDAP database directly, with appropriate configuration in
+    saslauthd.conf. This may be documented in a later version of this document.
+    You will not be able to use any of the methods that require access to
+    plaintext passwords, such as the shared-secret methods CRAM-MD5 and DIGEST-
+    MD5.
+
+The ldapdb plugin implements proxy authorization. This means that the ldapdb
+plugin uses its own username and password to authenticate with the LDAP server,
+before it asks the LDAP server for the remote SMTP client's password. The LDAP
+server then decides if the ldapdb plugin is authorized to read the remote SMTP
+client's password.
 
 In a nutshell: Configuring ldapdb means authentication and authorization must
 be configured twice - once in the Postfix SMTP server to authenticate and
-authorize the remote SMTP client, and once in the OpenLDAP slapd server to
-authenticate and authorize the ldapdb plugin.
+authorize the remote SMTP client, and once in the LDAP server to authenticate
+and authorize the ldapdb plugin.
 
 This example configures libsasl to use the ldapdb plugin and the plugin to
-connect to an OpenLDAP server:
+connect to an LDAP server:
 
     /etc/sasl2/smtpd.conf:
         pwcheck_method: auxprop
@@ -565,13 +573,11 @@ The following is a summary of applicable smtpd.conf file entries:
         LDAP server (proxy authorization).
 
     ldapdb_mech
-        The mechanism to authenticate the ldapdb plugin to the OpenLDAP slapd
-        server.
+        The mechanism to authenticate the ldapdb plugin to the LDAP server.
 
             NNoottee
 
-            Specify a mechanism here that is supported by the OpenLDAP slapd
-            server.
+            Specify a mechanism here that is supported by the LDAP server.
 
     ldapdb_rc (optional)
         The path to a file containing individual configuration options for the
@@ -701,10 +707,30 @@ capability twice - once for compliant and once for broken clients:
     250-AUTH=DIGEST-MD5 PLAIN CRAM-MD5
     ...
 
-PPoossttffiixx SSMMTTPP SSeerrvveerr AAuutthheennttiiccaattiioonn PPoolliiccyy
+PPoossttffiixx SSMMTTPP SSeerrvveerr ppoolliiccyy -- SSAASSLL mmeecchhaanniissmm pprrooppeerrttiieess
 
-The Postfix SMTP server provides a way to specify the properties of SASL
-mechanisms that can be made available to the remote SMTP client.
+The Postfix SMTP server supports policies that limit the SASL mechanisms that
+it makes available to clients, based on the properties of those mechanisms. The
+next two sections give examples of how these policies are used.
+
+     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+    |PPrrooppeerrttyy       |DDeessccrriippttiioonn                                              |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |noanonymous    |Don't use mechanisms that permit anonymous               |
+    |               |authentication.                                          |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |noplaintext    |Don't use mechanisms that transmit unencrypted username  |
+    |               |and password information.                                |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |nodictionary   |Don't use mechanisms that are vulnerable to dictionary   |
+    |               |attacks.                                                 |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |forward_secrecy|Require forward secrecy between sessions (breaking one   |
+    |               |session does not break earlier sessions).                |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |mutual_auth    |Use only mechanisms that authenticate both the client and|
+    |               |the server to each other.                                |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 
 UUnneennccrryypptteedd SSMMTTPP sseessssiioonn
 
@@ -720,25 +746,6 @@ for those based on anonymous authentication:
     Always set at least the noanonymous option. Otherwise, the Postfix SMTP
     server can give strangers the same authorization as a properly-
     authenticated client.
-
-Postfix can enforce the following policies on SASL authentication mechanisms:
-
-    noanonymous
-        Don't use mechanisms that permit anonymous authentication.
-
-    noplaintext
-        Don't use mechanisms that transmit unencrypted username and password
-        information.
-
-    nodictionary
-        Don't use mechanisms that are vulnerable to dictionary attacks.
-
-    forward_secrecy
-        Use only mechanisms that support forward secrecy (Dovecot SASL only).
-
-    mutual_auth
-        Use only mechanisms that authenticate both the client and the server to
-        each other.
 
 EEnnccrryypptteedd SSMMTTPP sseessssiioonn ((TTLLSS))
 
@@ -791,9 +798,9 @@ smtpd_recipient_restrictions as follows:
 EEnnvveellooppee sseennddeerr aaddddrreessss aauutthhoorriizzaattiioonn
 
 By default an SMTP client may specify any envelope sender address in the MAIL
-FROM command. That is because the Postfix SMTP server only knows the remte SMTP
-client hostname and IP address, but not the user who controls the remote SMTP
-client.
+FROM command. That is because the Postfix SMTP server only knows the remote
+SMTP client hostname and IP address, but not the user who controls the remote
+SMTP client.
 
 This changes the moment an SMTP client uses SASL authentication. Now, the
 Postfix SMTP server knows who the sender is. Given a table of envelope sender
@@ -811,8 +818,8 @@ authenticated client is allowed to use a particular envelope sender address:
             reject_unauth_destination
             ...
 
-The controlled_envelope_senders table specifies the binding between the sender
-envelope addresses and its their SASL login names:
+The controlled_envelope_senders table specifies the binding between a sender
+envelope address and the SASL login names that own that address:
 
     /etc/postfix/controlled_envelope_senders
         # envelope sender           owners (SASL login names)
@@ -935,14 +942,26 @@ You can read more about the following topics:
 
   * Enabling SASL authentication in the Postfix SMTP/LMTP client
   * Configuring sender-dependent SASL authentication
-  * Postfix SMTP/LMTP client authentication policy
-  * Filtering server mechanism names in the Postfix SMTP/LMTP client
+  * Postfix SMTP/LMTP client policy - SASL mechanism pprrooppeerrttiieess
+  * Postfix SMTP/LMTP client policy - SASL mechanism nnaammeess
 
 EEnnaabblliinngg SSAASSLL aauutthheennttiiccaattiioonn iinn tthhee PPoossttffiixx SSMMTTPP//LLMMTTPP cclliieenntt
 
 This section shows a typical scenario where the Postfix SMTP client sends all
-messages via a mail gateway server that requires SASL authentication. To make
-the example more readable we introduce it in two parts.
+messages via a mail gateway server that requires SASL authentication.
+
+    TTrroouubbllee ssoollvviinngg ttiippss::
+
+      * If your SASL logins fail with "SASL authentication failure: No worthy
+        mechs found" in the mail logfile, then see the section "Postfix SMTP/
+        LMTP client policy - SASL mechanism pprrooppeerrttiieess".
+
+      * For a solution to a more obscure class of SASL authentication failures,
+        see "Postfix SMTP/LMTP client policy - SASL mechanism nnaammeess".
+
+To make the example more readable we introduce it in two parts. The first part
+takes care of the basic configuration, while the second part sets up the
+username/password information.
 
     /etc/postfix/main.cf:
         smtp_sasl_auth_enable = yes
@@ -1057,10 +1076,26 @@ final resort.
   * Execute the command "postmap /etc/postfix/sender_relay" whenever you change
     the sender_relay table.
 
-PPoossttffiixx SSMMTTPP//LLMMTTPP cclliieenntt aauutthheennttiiccaattiioonn ppoolliiccyy
+PPoossttffiixx SSMMTTPP//LLMMTTPP cclliieenntt ppoolliiccyy -- SSAASSLL mmeecchhaanniissmm pprrooppeerrttiieess
 
 Just like the Postfix SMTP server, the SMTP client has a policy that determines
-which SASL mechanisms are acceptable and which are not.
+which SASL mechanisms are acceptable, based on their properties. The next two
+sections give examples of how these policies are used.
+
+     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+    |PPrrooppeerrttyy    |DDeessccrriippttiioonn                                                |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |noanonymous |Don't use mechanisms that permit anonymous authentication. |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |noplaintext |Don't use mechanisms that transmit unencrypted username and|
+    |            |password information.                                      |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |nodictionary|Don't use mechanisms that are vulnerable to dictionary     |
+    |            |attacks.                                                   |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |mutual_auth |Use only mechanisms that authenticate both the client and  |
+    |            |the server to each other.                                  |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 
 UUnneennccrryypptteedd SSMMTTPP sseessssiioonn
 
@@ -1070,37 +1105,17 @@ mechanisms are not allowed (nor is any anonymous mechanism):
     /etc/postfix/main.cf:
         smtp_sasl_security_options = noplaintext, noanonymous
 
-Postfix can enforce the following policies on SASL authentication mechanisms:
-
-    noanonymous
-        Don't use mechanisms that permit anonymous authentication.
-
-    noplaintext
-        Don't use mechanisms that transmit unencrypted username and password
-        information.
-
-    nodictionary
-        Don't use mechanisms that are vulnerable to dictionary attacks.
-
-    mutual_auth
-        Use only mechanisms that authenticate both the client and the server to
-        each other.
-
-With the default policy shown above, the Postfix SMTP client will not send its
-password over an unencrypted connection. This sometimes leads to authentication
-failures if the remote server only offers plaintext authentication mechanisms.
-In such cases the SMTP client will log the following error message:
+This default policy leads to authentication failures if the remote server only
+offers plaintext authentication mechanisms. In such cases the SMTP client will
+log the following error message:
 
     SASL authentication failure: No worthy mechs found
 
-The less secure approach to deal with this is to lower the security standards
-and permit plaintext authentication mechanisms:
+The less secure approach is to lower the security standards and permit
+plaintext authentication mechanisms:
 
     /etc/postfix/main.cf:
         smtp_sasl_security_options = noanonymous
-
-Needless to say, sending a username and password over an insecure channel is
-undesirable.
 
 If the remote server supports TLS, you can protect the plaintext username and
 password by turning on TLS in the Postfix SMTP client (see: TLS_README), and
@@ -1122,16 +1137,18 @@ encrypted connection:
         smtpd_sasl_security_options = noanonymous, noplaintext
         smtpd_sasl_tls_security_options = noanonymous
 
-FFiilltteerriinngg sseerrvveerr mmeecchhaanniissmm nnaammeess iinn tthhee PPoossttffiixx SSMMTTPP//LLMMTTPP cclliieenntt
+PPoossttffiixx SSMMTTPP//LLMMTTPP cclliieenntt ppoolliiccyy -- SSAASSLL mmeecchhaanniissmm nnaammeess
 
-Cyrus SASL always attempts to use the most secure authentication mechanism that
-the remote SMTP server offers - even if the client side was not configured to
-handle it! In such cases authentication will definitely fail.
+Unfortunately, Postfix needs a second client policy for SASL mechanism
+selection. Reason: the Cyrus SASL library will choose the most secure
+authentication mechanism that both the SMTP client and server implement - even
+if one of the parties was not configured for that mechanism.
 
-To prevent this, the Postfix SMTP client can filter the list of authentication
-mechanism names from the remote SMTP server. Used correctly, the filter hides
-unwanted mechanisms from the Cyrus SASL library, forcing the library to choose
-from the mechanisms the Postfix filter passes through.
+To prevent this, the Postfix SMTP client can filter the names of the
+authentication mechanisms from the remote SMTP server. Used correctly, the
+filter hides unwanted mechanisms from the Cyrus SASL library, forcing the
+library to choose from the mechanisms the Postfix SMTP client filter passes
+through.
 
 The following example filters out everything but the mechanisms PLAIN and
 LOGIN:

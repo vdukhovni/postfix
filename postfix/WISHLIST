@@ -2,6 +2,12 @@ Wish list:
 
 	Remove this file from the stable release.
 
+	instead of ipc_idle, reduce ipc_ttl.
+
+	Add smtpd_sender_login_maps to proxy_read_maps. What other 
+	parameters are worthy of being whitelisted for proxy access?
+	Is there a way to automate this decision?
+
 	The cleanup virtual alias expansion limit does not really
 	deliver on its promises. 1) It promises to truncate the
 	result without aborting delivery, which would be undesirable
@@ -47,20 +53,16 @@ Wish list:
 	Find a place to document all the mail routing mechanisms
 	in one place so people can figure out how Postfix works.
 
-	owner-listname does not work for shell commands.
-
 	Investigate viability of Sendmail socket maps (the moral
 	equivalent of tcp_table(5)), and dns maps.
 
-	The BCC action is marked "not stable", perhaps because
-	people would also expect BCC actions in header/body_checks.
+	The access map BCC action is marked "not stable", perhaps
+	because people would also expect BCC actions in header/body_checks.
 	How much would it take to make the queue file editing code
 	generally usable?
 
 	Move smtpd_command_filter into smtpd_chat_query() and update
 	the session transcript (see smtp_chat_reply() for an example).
-
-	Add smtpd_sender_login_maps to proxy_read_maps.
 
 	SMTP connection caching without storing connections, to
 	improve TLS mail delivery performance.

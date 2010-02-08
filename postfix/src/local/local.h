@@ -233,6 +233,11 @@ extern MAPS *alias_maps;
   */
 #define STR(s)	vstring_str(s)
 
+ /*
+  * bounce_workaround.c
+  */
+int     bounce_workaround(LOCAL_STATE);
+
 /* LICENSE
 /* .ad
 /* .fi
