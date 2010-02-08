@@ -15709,3 +15709,17 @@ Apologies for any names omitted.
 	Documentation: major revision of SASL_README with many
 	details on how to configure Cyrus SASL internals. Patrick
 	Koetter.  File: proto/SASL_README.html
+
+20100204
+
+	Feature: added "forward_secrecy" option for Cyrus SASL.
+	File: xsasl/xsasl_cyrus_security.c.
+
+20100206
+
+	Bugfix (from day zero): the local delivery agent returned
+	undeliverable mail to the envelope sender instead of the
+	owner- alias, when delivering to command or file. This
+	reuses the workaround that was implemented to report a
+	Delivered-To: loop. Files: local/file.c, local/command.c,
+	local/recipient.c, local/bounce_workaround.c.

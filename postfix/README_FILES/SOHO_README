@@ -152,8 +152,20 @@ virtual table.
 EEnnaabblliinngg SSAASSLL aauutthheennttiiccaattiioonn iinn tthhee PPoossttffiixx SSMMTTPP//LLMMTTPP cclliieenntt
 
 This section shows a typical scenario where the Postfix SMTP client sends all
-messages via a mail gateway server that requires SASL authentication. To make
-the example more readable we introduce it in two parts.
+messages via a mail gateway server that requires SASL authentication.
+
+    TTrroouubbllee ssoollvviinngg ttiippss::
+
+      * If your SASL logins fail with "SASL authentication failure: No worthy
+        mechs found" in the mail logfile, then see the section "Postfix SMTP/
+        LMTP client policy - SASL mechanism pprrooppeerrttiieess".
+
+      * For a solution to a more obscure class of SASL authentication failures,
+        see "Postfix SMTP/LMTP client policy - SASL mechanism nnaammeess".
+
+To make the example more readable we introduce it in two parts. The first part
+takes care of the basic configuration, while the second part sets up the
+username/password information.
 
     /etc/postfix/main.cf:
         smtp_sasl_auth_enable = yes

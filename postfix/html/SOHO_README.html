@@ -219,8 +219,30 @@ Postfix SMTP/LMTP client</a></h2>
 
 <p> This section shows a typical scenario where the Postfix SMTP
 client sends all messages via a mail gateway server that requires
-SASL authentication. To make the example more readable we introduce
-it in two parts. </p>
+SASL authentication. </p>
+
+<blockquote>
+
+<strong> Trouble solving tips: </strong>
+
+<ul>
+
+<li> <p> If your SASL logins fail with "SASL authentication failure:
+No worthy mechs found" in the mail logfile, then see the section
+"<a href="SASL_README.html#client_sasl_policy">Postfix SMTP/LMTP
+client policy - SASL mechanism <em>properties</em></a>".
+
+<li> <p> For a solution to a more obscure class of SASL authentication
+failures, see "<a href="SASL_README.html#client_sasl_filter">Postfix
+SMTP/LMTP client policy - SASL mechanism <em>names</em></a>".
+
+</ul>
+
+</blockquote>
+
+<p> To make the example more readable we introduce it in two parts.
+The first part takes care of the basic configuration, while the
+second part sets up the username/password information.  </p>
 
 <blockquote>
 <pre>
