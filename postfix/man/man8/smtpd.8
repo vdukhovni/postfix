@@ -384,8 +384,8 @@ File with the Postfix SMTP server RSA private key in PEM format.
 .IP "\fBsmtpd_tls_loglevel (0)\fR"
 Enable additional Postfix SMTP server logging of TLS activity.
 .IP "\fBsmtpd_tls_mandatory_ciphers (medium)\fR"
-The minimum TLS cipher grade that the Postfix SMTP server
-will use with mandatory TLS encryption.
+The minimum TLS cipher grade that the Postfix SMTP server will
+use with mandatory TLS encryption.
 .IP "\fBsmtpd_tls_mandatory_exclude_ciphers (empty)\fR"
 Additional list of ciphers or cipher types to exclude from the
 SMTP server cipher list at mandatory TLS security levels.
@@ -794,7 +794,7 @@ verification probes is maintained by the \fBverify\fR(8) server.
 See the file ADDRESS_VERIFICATION_README for information
 about how to configure and operate the Postfix sender/recipient
 address verification service.
-.IP "\fBaddress_verify_poll_count (see 'postconf -d' output)\fR"
+.IP "\fBaddress_verify_poll_count (${stress?1}${stress:3})\fR"
 How many times to query the \fBverify\fR(8) service for the completion
 of an address verification request in progress.
 .IP "\fBaddress_verify_poll_delay (3s)\fR"
