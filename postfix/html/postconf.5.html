@@ -274,19 +274,18 @@ This feature is available in Postfix 2.1 and later.
 </DD>
 
 <DT><b><a name="address_verify_poll_count">address_verify_poll_count</a>
-(default: see "postconf -d" output)</b></DT><DD>
+(default: ${stress?1}${stress:3})</b></DT><DD>
 
 <p>
 How many times to query the <a href="verify.8.html">verify(8)</a> service for the completion
 of an address verification request in progress.
 </p>
 
-<p>
-The Postfix SMTP server polls the <a href="verify.8.html">verify(8)</a> service up to three
-times under non-overload conditions, and only once when under
-overload.  With Postfix version 2.6 and earlier, the SMTP server
-always polls the <a href="verify.8.html">verify(8)</a> service up to three times.
-</p>
+<p> By default, the Postfix SMTP server polls the <a href="verify.8.html">verify(8)</a> service
+up to three times under non-overload conditions, and only once when
+under overload.  With Postfix version 2.6 and earlier, the SMTP
+server always polls the <a href="verify.8.html">verify(8)</a> service up to three times by
+default.  </p>
 
 <p>
 Specify 1 to implement a crude form of greylisting, that is, always
@@ -294,10 +293,13 @@ defer the first delivery request for a new address.
 </p>
 
 <p>
-Example:
+Examples:
 </p>
 
 <pre>
+# Postfix &le; 2.6 default
+<a href="postconf.5.html#address_verify_poll_count">address_verify_poll_count</a> = 3
+# Poor man's greylisting
 <a href="postconf.5.html#address_verify_poll_count">address_verify_poll_count</a> = 1
 </pre>
 

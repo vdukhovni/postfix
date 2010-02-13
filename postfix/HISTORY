@@ -15723,3 +15723,9 @@ Apologies for any names omitted.
 	reuses the workaround that was implemented to report a
 	Delivered-To: loop. Files: local/file.c, local/command.c,
 	local/recipient.c, local/bounce_workaround.c.
+
+20100209
+
+	The tcp_table(5) interface is now part of the stable release.
+	The last protocol change was in Postfix 2.1. File:
+	util/dict_open.c.

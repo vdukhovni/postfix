@@ -301,19 +301,18 @@ seconds. </p>
 
 <p> This feature is available in Postfix 2.7. </p>
 
-%PARAM address_verify_poll_count see "postconf -d" output
+%PARAM address_verify_poll_count ${stress?1}${stress:3}
 
 <p>
 How many times to query the verify(8) service for the completion
 of an address verification request in progress.
 </p>
 
-<p>
-The Postfix SMTP server polls the verify(8) service up to three
-times under non-overload conditions, and only once when under
-overload.  With Postfix version 2.6 and earlier, the SMTP server
-always polls the verify(8) service up to three times.
-</p>
+<p> By default, the Postfix SMTP server polls the verify(8) service
+up to three times under non-overload conditions, and only once when
+under overload.  With Postfix version 2.6 and earlier, the SMTP
+server always polls the verify(8) service up to three times by
+default.  </p>
 
 <p>
 Specify 1 to implement a crude form of greylisting, that is, always
@@ -321,10 +320,13 @@ defer the first delivery request for a new address.
 </p>
 
 <p>
-Example:
+Examples:
 </p>
 
 <pre>
+# Postfix &le; 2.6 default
+address_verify_poll_count = 3
+# Poor man's greylisting
 address_verify_poll_count = 1
 </pre>
 

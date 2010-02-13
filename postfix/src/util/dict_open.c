@@ -223,9 +223,7 @@ static const DICT_OPEN_INFO dict_open_info[] = {
     DICT_TYPE_ENVIRON, dict_env_open,
     DICT_TYPE_HT, dict_ht_open,
     DICT_TYPE_UNIX, dict_unix_open,
-#ifdef SNAPSHOT
     DICT_TYPE_TCP, dict_tcp_open,
-#endif
 #ifdef HAS_SDBM
     DICT_TYPE_SDBM, dict_sdbm_open,
 #endif

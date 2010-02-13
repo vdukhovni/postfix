@@ -2,8 +2,6 @@ Wish list:
 
 	Remove this file from the stable release.
 
-	instead of ipc_idle, reduce ipc_ttl.
-
 	Add smtpd_sender_login_maps to proxy_read_maps. What other 
 	parameters are worthy of being whitelisted for proxy access?
 	Is there a way to automate this decision?
@@ -24,7 +22,7 @@ Wish list:
 	the result exceeds the limit.
 
 	Should the postscreen save permanent white/black list lookup
-	results int the temporary cache, and query the temporary
+	results to the temporary cache, and query the temporary
 	cache first? Skipping white/black list lookups will speed
 	up the handling of "good" clients without a permanent
 	whitelist entry.  Of course, this means that updates to the

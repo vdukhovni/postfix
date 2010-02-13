@@ -32,8 +32,8 @@ the server itself is responsible for.  Usually, SMTP servers allow
 mail to remote destinations when the client's IP address is in the
 "same network" as the server's IP address.  </p>
 
-<p> Sometimes an SMTP client needs "same network" privileges when
-it connects from elsewhere.  To address this problem, Postfix
+<p> SMTP clients outside the SMTP server's network need a different
+way to get "same network" privileges.  To address this need, Postfix
 supports SASL authentication (RFC 4954, formerly RFC 2554).  With
 this a remote SMTP client can authenticate to the Postfix SMTP
 server, and the Postfix SMTP client can authenticate to a remote
@@ -176,10 +176,10 @@ later. </p>
 
 <h3><a name="server_dovecot">Configuring Dovecot SASL</a></h3>
 
-<p> Dovecot is a POP/IMAP server that must be configured to
+<p> Dovecot is a POP/IMAP server that has its own configuration to
 authenticate POP/IMAP clients. When the Postfix SMTP server uses
-Dovecot SASL, it also reuses this configuration.  Consult the <a
-href="http://wiki.dovecot.org">Dovecot documentation</a> for how
+Dovecot SASL, it reuses parts of this configuration.  Consult the
+<a href="http://wiki.dovecot.org">Dovecot documentation</a> for how
 to configure and operate the Dovecot authentication server.  </p>
 
 <h4><a name="server_dovecot_comm">Postfix to Dovecot SASL communication</a></h4>
@@ -220,16 +220,14 @@ SASL socket in <code>/var/spool/postfix/private/auth</code>, and
 lines 11-13 limit read+write permissions to user and group
 <code>postfix</code> only. </p>
 
-<p> Proceed with the section "<a href="#server_sasl_enable"
-title="Enabling SASL authentication and configuring authorization
-in the Postfix SMTP server">Enabling SASL authentication and
-authorization in the Postfix SMTP server</a>" to turn on and use
-SASL in the Postfix SMTP server.  </p>
+<p> Proceed with the section "<a href="#server_sasl_enable">Enabling
+SASL authentication and authorization in the Postfix SMTP server</a>"
+to turn on and use SASL in the Postfix SMTP server.  </p>
 
 <h3><a name="server_cyrus">Configuring Cyrus SASL</a></h3>
 
-<p> The Cyrus SASL framework was supports a wide variety of
-applications.  Different applications may require different
+<p> The Cyrus SASL framework supports a wide variety of applications
+(POP, IMAP, SMTP, etc.).  Different applications may require different
 configurations. As a consequence each application may have its own
 configuration file.  </p>
 
@@ -438,9 +436,9 @@ by an additional security layer such as a TLS-encrypted SMTP session
 
 <p> Additionally the <code>saslauthd</code> server itself must be
 configured. It must be told which authentication backend to turn
-to for password verification. The backend is choosen as a command
-line option when <code>saslauthd</code> is started and will be shown
-in the following examples. </p>
+to for password verification. The backend is selected with a
+<code>saslauthd</code> command-line option and will be shown in the
+following examples. </p>
 
 <blockquote>
 
@@ -561,14 +559,15 @@ when authentication is successful: </p>
 
 <p> Sometimes the <code>testsaslauthd</code> program is not distributed
 with a the Cyrus SASL main package.  In that case, it may be
-distributed with -devel, -dev or -debug packages. </p>
+distributed with <code>-devel</code>, <code>-dev</code> or
+<code>-debug</code> packages. </p>
 
 </blockquote>
 
 <p> Specify an additional "<code>-s smtp</code>" if <code>saslauthd</code>
-was configured to contact the PAM authentication framework and an
-additional "<code>-f <em>/path/to/socketdir/mux</em></code>" if
-<code>saslauthd</code> establishes the UNIX-domain socket in a
+was configured to contact the PAM authentication framework, and
+specify an additional "<code>-f <em>/path/to/socketdir/mux</em></code>"
+if <code>saslauthd</code> establishes the UNIX-domain socket in a
 non-default location. </p>
 
 <p> If authentication succeeds, proceed with the section "<a
@@ -584,22 +583,20 @@ SASL sources provide three authentication plugins. </p>
 
 <blockquote>
 
-<dl>
+<table border="1">
 
-<dt><a href="#auxprop_sasldb">sasldb</a></dt>
+<tr> <th>Plugin </th> <th>Description </th> </tr>
 
-<dd> <p> Accounts are stored stored in a Cyrus SASL Berkeley DB
-database </p> </dd>
+<tr> <td><a href="#auxprop_sasldb">sasldb</a></dt> <td> Accounts
+are stored stored in a Cyrus SASL Berkeley DB database </td> </tr>
 
-<dt><a href="#auxprop_sql">sql</a></dt>
+<tr> <td><a href="#auxprop_sql">sql</a></dt> <td> Accounts are
+stored in a SQL database </td> </tr>
 
-<dd> <p> Accounts are stored in a SQL database </p> </dd>
+<tr> <td><a href="#auxprop_ldapdb">ldapdb</a></dt> <td> Accounts
+are stored stored in an LDAP database </td> </tr>
 
-<dt><a href="#auxprop_ldapdb">ldapdb</a></dt>
-
-<dd> <p> Accounts are stored stored in an LDAP database </p> </dd>
-
-</dl>
+</table>
 
 </blockquote>
 
@@ -718,12 +715,13 @@ stored as plaintext. </p>
 
 <strong>Tip</strong>
 
-<p> If you must store encrypted passwords, see section "<a
-href="#saslauthd_pam">Using saslauthd with PAM</a>", and configure
-PAM to look up the encrypted passwords with, for example, the
-<code>pam_mysql</code> module.  You will not be able to use any of
-the methods that require access to plaintext passwords, such as the
-shared-secret methods CRAM-MD5 and DIGEST-MD5.  </p>
+<p> If you must store encrypted passwords, you cannot use the sql
+auxprop plugin. Instead, see section "<a href="#saslauthd_pam">Using
+saslauthd with PAM</a>", and configure PAM to look up the encrypted
+passwords with, for example, the <code>pam_mysql</code> module.
+You will not be able to use any of the methods that require access
+to plaintext passwords, such as the shared-secret methods CRAM-MD5
+and DIGEST-MD5.  </p>
 
 </blockquote>
 
@@ -896,12 +894,13 @@ stored as plaintext. </p>
 
 <strong>Tip</strong>
 
-<p> If you must store encrypted passwords, you can use "<code>saslauthd
--a ldap</code>" to query the LDAP database directly, with appropriate
-configuration in <code>saslauthd.conf</code>. This may be documented
-in a later version of this document.  You will not be able to use
-any of the methods that require access to plaintext passwords, such
-as the shared-secret methods CRAM-MD5 and DIGEST-MD5.  </p>
+<p> If you must store encrypted passwords, you cannot use the ldapdb
+auxprop plugin. Instead, you can use "<code>saslauthd -a ldap</code>"
+to query the LDAP database directly, with appropriate configuration
+in <code>saslauthd.conf</code>. This may be documented in a later
+version of this document.  You will not be able to use any of the
+methods that require access to plaintext passwords, such as the
+shared-secret methods CRAM-MD5 and DIGEST-MD5.  </p>
 
 </blockquote>
 
@@ -1123,7 +1122,7 @@ server runs chrooted. </p>
 in the Postfix SMTP server</a></h4>
 
 <p> Regardless of the SASL implementation type, enabling SMTP
-authentication in the Postfix SMTP server always requires seting
+authentication in the Postfix SMTP server always requires setting
 the <code>smtpd_sasl_auth_enable</code> option: </p>
 
 <blockquote>
@@ -1775,15 +1774,26 @@ mechanism): </p>
 </pre>
 </blockquote>
 
-<p> This default policy leads to authentication failures if the
-remote server only offers plaintext authentication mechanisms.  In
-such cases the SMTP client will log the following error message:
-</p>
+<p> This default policy, which allows no plaintext passwords, leads
+to authentication failures if the remote server only offers plaintext
+authentication mechanisms (the SMTP server announces "<code>AUTH
+PLAIN LOGIN</code>").  In such cases the SMTP client will log the
+following error message: </p>
 
 <blockquote>
 <pre>
 SASL authentication failure: No worthy mechs found
 </pre>
+</blockquote>
+
+<blockquote>
+
+<strong>Note</strong>
+
+<p> This same error message will also be logged when the
+<code>libplain.so</code> or <code>liblogin.so</code> modules are
+not installed in the <code>/usr/lib/sasl2</code> directory. </p>
+
 </blockquote>
 
 <p> The less secure approach is to lower the security standards and

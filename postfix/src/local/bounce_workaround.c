@@ -19,14 +19,15 @@
 /*
 /*	Sender address override is a problem only when delivering
 /*	to command or file, or when breaking a Delivered-To loop.
-/*	The local(8) delivery agent saves other recipients to a new
-/*	queue file, together with the replacement envelope sender
-/*	address; delivery then proceeds from that new queue file.
+/*	The local(8) delivery agent saves normal recipients to a
+/*	new queue file, together with the replacement envelope
+/*	sender address; delivery then proceeds from that new queue
+/*	file, and no workaround is needed.
 /*
 /*	The workaround sends one non-delivery notification for each
 /*	failed delivery that has a replacement sender address.  The
 /*	notifications are not aggregated, unlike notifications to
-/*	non-replaced sender addresses). In practice, a local alias
+/*	non-replaced sender addresses. In practice, a local alias
 /*	rarely has more than one file or command destination (if
 /*	only because soft error handling is problematic).
 /*
