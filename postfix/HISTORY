@@ -15729,3 +15729,15 @@ Apologies for any names omitted.
 	The tcp_table(5) interface is now part of the stable release.
 	The last protocol change was in Postfix 2.1. File:
 	util/dict_open.c.
+
+20100305
+
+	Feature: reject_rhsbl_reverse_client, to reject a remote
+	SMTP client based on its unverified reverse hostname.  Code
+	by Noel Jones. Files: smtpd/smtpd_check.c, proto/postconf.proto.
+
+	Feature: smtp_address_preference (default: ipv6) to control
+	the order in which the Postfix SMTP client will connect to
+	a destination that has IPv6 and IPv4 addresses with equal
+	MX preference. Files: global/mail_params.c, smtp/smtp.c,
+	smtp/smtp_params.c, smtp/smtp_addr.c, proto/postconf.proto.

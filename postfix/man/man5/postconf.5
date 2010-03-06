@@ -1974,6 +1974,11 @@ This feature is available in Postfix 2.1 and later.
 .SH line_length_limit (default: 2048)
 Upon input, long lines are chopped up into pieces of at most
 this length; upon delivery, long lines are reconstructed.
+.SH lmtp_address_preference (default: ipv6)
+The LMTP-specific version of the smtp_address_preference
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.8 and later.
 .SH lmtp_assume_final (default: no)
 When an LMTP server announces no DSN support, assume that the
 server performs final delivery, and send "delivered" delivery status
@@ -2535,8 +2540,8 @@ This feature is available in Postfix 2.1 and later.
 .SH local_command_shell (default: empty)
 Optional shell program for \fBlocal\fR(8) delivery to non-Postfix command.
 By default, non-Postfix commands are executed directly; commands
-are given to given to /bin/sh only when they contain shell meta
-characters or shell built-in commands.
+are given to given to the default shell (typically, /bin/sh) only
+when they contain shell meta characters or shell built-in commands.
 .PP
 "sendmail's restricted shell" (smrsh) is what most people will
 use in order to restrict what programs can be run from e.g. .forward
@@ -2552,6 +2557,7 @@ Example:
 .na
 .ft C
 local_command_shell = /some/where/smrsh -c
+local_command_shell = /bin/bash -c
 .fi
 .ad
 .ft R
@@ -2958,7 +2964,8 @@ Obsolete feature: use the reject_rbl_client feature instead.
 .SH maps_rbl_reject_code (default: 554)
 The numerical Postfix SMTP server response code when a remote SMTP
 client request is blocked by the reject_rbl_client, reject_rhsbl_client,
-reject_rhsbl_sender or reject_rhsbl_recipient restriction.
+reject_rhsbl_reverse_client, reject_rhsbl_sender or
+reject_rhsbl_recipient restriction.
 .PP
 Do not change this unless you have a complete understanding of RFC 2821.
 .SH masquerade_classes (default: envelope_sender, header_sender, header_recipient)
@@ -4615,6 +4622,13 @@ The name of the \fBshowq\fR(8) service. This service produces mail queue
 status reports.
 .PP
 This feature is available in Postfix 2.0 and later.
+.SH smtp_address_preference (default: ipv6)
+The address type ("ipv6", "ipv4" or "any") that the Postfix
+SMTP client will try first, when a destination has IPv6 and IPv4
+addresses with equal MX preference. This feature has no effect
+unless the inet_protocols setting enables both IPv4 and IPv6.
+.PP
+This feature is available in Postfix 2.8 and later.
 .SH smtp_always_send_ehlo (default: yes)
 Always send EHLO at the start of an SMTP session.
 .PP
@@ -6804,7 +6818,17 @@ A record "\fId.d.d.d\fR" under \fIrbl_domain\fR (Postfix version
 the request when the client hostname is listed with
 any A record under \fIrbl_domain\fR. See the reject_rbl_client
 description above for additional RBL related configuration parameters.
-This feature is available in Postfix 2.0 and later.
+This feature is available in Postfix 2.0 and later; with Postfix
+version 2.8 and later, reject_rhsbl_reverse_client will usually
+produce better results.
+.IP "\fBreject_rhsbl_reverse_client \fIrbl_domain=d.d.d.d\fR\fR"
+Reject the request when the unverified reverse client hostname
+is listed with the A record "\fId.d.d.d\fR" under \fIrbl_domain\fR.
+If no "\fI=d.d.d.d\fR" is specified, reject the request when the
+unverified reverse client hostname is listed with any A record under
+\fIrbl_domain\fR. See the reject_rbl_client description above for
+additional RBL related configuration parameters.  This feature is
+available in Postfix 2.8 and later.
 .IP "\fBreject_unknown_client_hostname\fR (with Postfix < 2.3: reject_unknown_client)"
 Reject the request when 1) the client IP address->name mapping
 fails, 2) the name->address mapping fails, or 3) the name->address
@@ -7037,6 +7061,12 @@ in any SMTP command context, described under smtpd_client_restrictions.
 SMTP command specific restrictions described under
 smtpd_client_restrictions, smtpd_helo_restrictions,
 smtpd_sender_restrictions or smtpd_recipient_restrictions.
+.IP \(bu
+However, no recipient information is available in the case of
+multi-recipient mail. Acting on only one recipient would be misleading,
+because any decision will affect all recipients equally. Acting on
+all recipients would require a possibly very large amount of memory,
+and would also be misleading for the reasons mentioned before.
 .PP
 Examples:
 .PP
@@ -7104,7 +7134,7 @@ restriction lists" for a discussion of evaluation context and time.
 .PP
 This feature is available in Postfix 2.2 and later.
 .PP
-See smtpd_data_restrictions for syntax details.
+See smtpd_data_restrictions for details and limitations.
 .SH smtpd_enforce_tls (default: no)
 Mandatory TLS: announce STARTTLS support to SMTP clients,
 and require that clients use TLS encryption.  According to RFC 2487

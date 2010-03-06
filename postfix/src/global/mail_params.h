@@ -903,6 +903,7 @@ extern int var_hash_queue_depth;
 #define INET_PROTO_NAME_IPV4	"ipv4"
 #define INET_PROTO_NAME_IPV6	"ipv6"
 #define INET_PROTO_NAME_ALL	"all"
+#define INET_PROTO_NAME_ANY	"any"
 #define VAR_INET_PROTOCOLS	"inet_protocols"
 extern char *var_inet_protocols;
 
@@ -2124,6 +2125,7 @@ extern int var_map_defer_code;
 #define REJECT_RBL		"reject_rbl"	/* LaMont compatibility */
 #define REJECT_RBL_CLIENT	"reject_rbl_client"
 #define REJECT_RHSBL_CLIENT	"reject_rhsbl_client"
+#define REJECT_RHSBL_REVERSE_CLIENT	"reject_rhsbl_reverse_client"
 #define REJECT_RHSBL_HELO	"reject_rhsbl_helo"
 #define REJECT_RHSBL_SENDER	"reject_rhsbl_sender"
 #define REJECT_RHSBL_RECIPIENT	"reject_rhsbl_recipient"
@@ -3080,6 +3082,17 @@ extern char *var_smtp_body_chks;
 #define DEF_LMTP_NEST_CHKS	""
 #define VAR_LMTP_BODY_CHKS	"lmtp_body_checks"
 #define DEF_LMTP_BODY_CHKS	""
+
+#define VAR_SMTP_ADDR_PREF	"smtp_address_preference"
+#ifdef HAS_IPV6
+#define DEF_SMTP_ADDR_PREF	INET_PROTO_NAME_IPV6
+#else
+#define DEF_SMTP_ADDR_PREF	INET_PROTO_NAME_IPV4
+#endif
+extern char *var_smtp_addr_pref;
+
+#define VAR_LMTP_ADDR_PREF	"lmtp_address_preference"
+#define DEF_LMTP_ADDR_PREF	DEF_SMTP_ADDR_PREF
 
  /*
   * Scheduler concurrency feedback algorithms.

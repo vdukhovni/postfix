@@ -701,6 +701,7 @@ capability twice - once for compliant and once for broken clients:
 
     % tteellnneett sseerrvveerr..eexxaammppllee..ccoomm 2255
     ...
+    220 server.example.com ESMTP Postfix
     EEHHLLOO cclliieenntt..eexxaammppllee..ccoomm
     250-server.example.com
     250-PIPELINING
@@ -885,7 +886,7 @@ TTeessttiinngg SSAASSLL aauutthheennttiiccaattiioonn i
 
 To test the server side, connect (for example, with telnet) to the Postfix SMTP
 server port and you should be able to have a conversation as shown below.
-Information sent by the client (that is, you) is shown in bold font.
+Information sent by the client (that is, you) is shown in bboolldd font.
 
     % tteellnneett sseerrvveerr..eexxaammppllee..ccoomm 2255
     ...
@@ -1119,21 +1120,37 @@ such cases the SMTP client will log the following error message:
     This same error message will also be logged when the libplain.so or
     liblogin.so modules are not installed in the /usr/lib/sasl2 directory.
 
-The less secure approach is to lower the security standards and permit
-plaintext authentication mechanisms:
+The insecure approach is to lower the security standards and permit plaintext
+authentication mechanisms:
 
     /etc/postfix/main.cf:
         smtp_sasl_security_options = noanonymous
 
-If the remote server supports TLS, you can protect the plaintext username and
-password by turning on TLS in the Postfix SMTP client (see: TLS_README), and
-configuring the client as discussed next.
+The more secure approach is to protect the plaintext username and password with
+TLS session encryption. To find out if the remote SMTP server supports TLS,
+connect to the server and see if it announces STARTTLS support as shown in the
+example. Information sent by the client (that is, you) is shown in bboolldd font.
+
+    % tteellnneett sseerrvveerr..eexxaammppllee..ccoomm 2255
+    ...
+    220 server.example.com ESMTP Postfix
+    EEHHLLOO cclliieenntt..eexxaammppllee..ccoomm
+    250-server.example.com
+    250-PIPELINING
+    250-SIZE 10240000
+    250-STARTTLS
+    ...
+
+Instead of port 25 (smtp), specify port 587 (submission) where appriopriate.
 
 EEnnccrryypptteedd SSMMTTPP sseessssiioonn ((TTLLSS))
 
-A separate parameter controls Postfix SASL mechanism policy during a TLS-
-encrypted SMTP session. The default is to copy the settings from the
-unencrypted session:
+To turn on TLS in the Postfix SMTP client, see TLS_README for configuration
+details.
+
+The smtp_sasl_tls_security_options parameter controls Postfix SASL mechanism
+policy during a TLS-encrypted SMTP session. The default is to copy the settings
+from the unencrypted session:
 
     /etc/postfix/main.cf:
         smtp_sasl_tls_security_options = $smtp_sasl_security_options
@@ -1147,10 +1164,10 @@ encrypted connection:
 
 PPoossttffiixx SSMMTTPP//LLMMTTPP cclliieenntt ppoolliiccyy -- SSAASSLL mmeecchhaanniissmm nnaammeess
 
-Unfortunately, Postfix needs a second client policy for SASL mechanism
-selection. Reason: the Cyrus SASL library will choose the most secure
-authentication mechanism that both the SMTP client and server implement - even
-if one of the parties was not configured for that mechanism.
+Given the SASL security options of the previous section, the Cyrus SASL library
+will choose the most secure authentication mechanism that both the SMTP client
+and server implement. Unfortunately, that authentication mechanism may fail
+because the client or server is not configured to use that mechanism.
 
 To prevent this, the Postfix SMTP client can filter the names of the
 authentication mechanisms from the remote SMTP server. Used correctly, the

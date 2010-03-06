@@ -3531,6 +3531,17 @@ this length; upon delivery, long lines are reconstructed.  </p>
 
 </DD>
 
+<DT><b><a name="lmtp_address_preference">lmtp_address_preference</a>
+(default: ipv6)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_address_preference">smtp_address_preference</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.8 and later.  </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_assume_final">lmtp_assume_final</a>
 (default: no)</b></DT><DD>
 
@@ -4696,8 +4707,9 @@ This feature is available in Postfix 2.1 and later.
 <p>
 Optional shell program for <a href="local.8.html">local(8)</a> delivery to non-Postfix command.
 By default, non-Postfix commands are executed directly; commands
-are given to given to /bin/sh only when they contain shell meta
-characters or shell built-in commands.  </p>
+are given to given to the default shell (typically, /bin/sh) only
+when they contain shell meta characters or shell built-in commands.
+</p>
 
 <p> "sendmail's restricted shell" (smrsh) is what most people will
 use in order to restrict what programs can be run from e.g. .forward
@@ -4713,6 +4725,7 @@ Example:
 
 <pre>
 <a href="postconf.5.html#local_command_shell">local_command_shell</a> = /some/where/smrsh -c
+<a href="postconf.5.html#local_command_shell">local_command_shell</a> = /bin/bash -c
 </pre>
 
 
@@ -5380,7 +5393,8 @@ Obsolete feature: use the <a href="postconf.5.html#reject_rbl_client">reject_rbl
 <p>
 The numerical Postfix SMTP server response code when a remote SMTP
 client request is blocked by the <a href="postconf.5.html#reject_rbl_client">reject_rbl_client</a>, <a href="postconf.5.html#reject_rhsbl_client">reject_rhsbl_client</a>,
-<a href="postconf.5.html#reject_rhsbl_sender">reject_rhsbl_sender</a> or <a href="postconf.5.html#reject_rhsbl_recipient">reject_rhsbl_recipient</a> restriction.
+<a href="postconf.5.html#reject_rhsbl_reverse_client">reject_rhsbl_reverse_client</a>, <a href="postconf.5.html#reject_rhsbl_sender">reject_rhsbl_sender</a> or
+<a href="postconf.5.html#reject_rhsbl_recipient">reject_rhsbl_recipient</a> restriction.
 </p>
 
 <p>
@@ -8147,6 +8161,19 @@ status reports.
 <p>
 This feature is available in Postfix 2.0 and later.
 </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_address_preference">smtp_address_preference</a>
+(default: ipv6)</b></DT><DD>
+
+<p> The address type ("ipv6", "ipv4" or "any") that the Postfix
+SMTP client will try first, when a destination has IPv6 and IPv4
+addresses with equal MX preference. This feature has no effect
+unless the <a href="postconf.5.html#inet_protocols">inet_protocols</a> setting enables both IPv4 and IPv6.  </p>
+
+<p> This feature is available in Postfix 2.8 and later.  </p>
 
 
 </DD>
@@ -11135,7 +11162,19 @@ A record "<i>d.d.d.d</i>" under <i>rbl_domain</i> (Postfix version
 the request when the client hostname is listed with
 any A record under <i>rbl_domain</i>. See the <a href="postconf.5.html#reject_rbl_client">reject_rbl_client</a>
 description above for additional RBL related configuration parameters.
-This feature is available in Postfix 2.0 and later.  </dd>
+This feature is available in Postfix 2.0 and later; with Postfix
+version 2.8 and later, <a href="postconf.5.html#reject_rhsbl_reverse_client">reject_rhsbl_reverse_client</a> will usually
+produce better results.  </dd>
+
+<dt><b><a name="reject_rhsbl_reverse_client">reject_rhsbl_reverse_client <i>rbl_domain=d.d.d.d</i></a></b></dt>
+
+<dd>Reject the request when the unverified reverse client hostname
+is listed with the A record "<i>d.d.d.d</i>" under <i>rbl_domain</i>.
+If no "<i>=d.d.d.d</i>" is specified, reject the request when the
+unverified reverse client hostname is listed with any A record under
+<i>rbl_domain</i>. See the <a href="postconf.5.html#reject_rbl_client">reject_rbl_client</a> description above for
+additional RBL related configuration parameters.  This feature is
+available in Postfix 2.8 and later.  </dd>
 
 <dt><b><a name="reject_unknown_client_hostname">reject_unknown_client_hostname</a></b> (with Postfix &lt; 2.3: reject_unknown_client)</dt>
 
@@ -11400,6 +11439,12 @@ in any SMTP command context, described under <a href="postconf.5.html#smtpd_clie
 <a href="postconf.5.html#smtpd_client_restrictions">smtpd_client_restrictions</a>, <a href="postconf.5.html#smtpd_helo_restrictions">smtpd_helo_restrictions</a>,
 <a href="postconf.5.html#smtpd_sender_restrictions">smtpd_sender_restrictions</a> or <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a>.
 
+<li>However, no recipient information is available in the case of
+multi-recipient mail. Acting on only one recipient would be misleading,
+because any decision will affect all recipients equally. Acting on
+all recipients would require a possibly very large amount of memory,
+and would also be misleading for the reasons mentioned before.  </p>
+
 </ul>
 
 <p>
@@ -11508,7 +11553,7 @@ restriction lists" for a discussion of evaluation context and time.
 
 <p> This feature is available in Postfix 2.2 and later. </p>
 
-<p> See <a href="postconf.5.html#smtpd_data_restrictions">smtpd_data_restrictions</a> for syntax details. </p>
+<p> See <a href="postconf.5.html#smtpd_data_restrictions">smtpd_data_restrictions</a> for details and limitations. </p>
 
 
 </DD>

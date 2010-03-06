@@ -570,6 +570,10 @@
 /* .IP "\fBproxy_interfaces (empty)\fR"
 /*	The network interface addresses that this mail system receives mail
 /*	on by way of a proxy or network address translation unit.
+/* .IP "\fBsmtp_address_preference (ipv6)\fR"
+/*	The address type ("ipv6", "ipv4" or "any") that the Postfix
+/*	SMTP client will try first, when a destination has IPv6 and IPv4
+/*	addresses with equal MX preference.
 /* .IP "\fBsmtp_bind_address (empty)\fR"
 /*	An optional numerical network address that the Postfix SMTP client
 /*	should bind to when making an IPv4 connection.
@@ -745,6 +749,7 @@ char   *var_scache_service;
 bool    var_smtp_cache_demand;
 char   *var_smtp_ehlo_dis_words;
 char   *var_smtp_ehlo_dis_maps;
+char   *var_smtp_addr_pref;
 
 char   *var_smtp_tls_level;
 bool    var_smtp_use_tls;
@@ -825,6 +830,11 @@ TLS_APPL_STATE *smtp_tls_ctx;
 
 #endif
 
+ /*
+  * IPv6 preference.
+  */
+static int smtp_addr_pref;
+
 /* deliver_message - deliver message with extreme prejudice */
 
 static int deliver_message(const char *service, DELIVER_REQUEST *request)
@@ -854,6 +864,7 @@ static int deliver_message(const char *service, DELIVER_REQUEST *request)
     state->request = request;
     state->src = request->fp;
     state->service = service;
+    state->misc_flags = smtp_addr_pref;
     SMTP_RCPT_INIT(state);
 
     /*
@@ -941,6 +952,12 @@ static void post_init(char *unused_name, char **unused_argv)
 static void pre_init(char *unused_name, char **unused_argv)
 {
     int     use_tls;
+    static const NAME_CODE addr_pref_map[] = {
+	INET_PROTO_NAME_IPV6, SMTP_MISC_FLAG_PREF_IPV6,
+	INET_PROTO_NAME_IPV4, SMTP_MISC_FLAG_PREF_IPV4,
+	INET_PROTO_NAME_ANY, 0,
+	0, -1,
+    };
 
     /*
      * Turn on per-peer debugging.
@@ -1072,6 +1089,16 @@ static void pre_init(char *unused_name, char **unused_argv)
 	smtp_chat_resp_filter =
 	    dict_open(var_smtp_resp_filter, O_RDONLY,
 		      DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+
+    /*
+     * Address family preference.
+     */
+    if (*var_smtp_addr_pref) {
+	smtp_addr_pref = name_code(addr_pref_map, NAME_CODE_FLAG_NONE,
+				   var_smtp_addr_pref);
+	if (smtp_addr_pref < 0)
+	    msg_fatal("bad %s value: %s", VAR_SMTP_ADDR_PREF, var_smtp_addr_pref);
+    }
 }
 
 /* pre_accept - see if tables have changed */

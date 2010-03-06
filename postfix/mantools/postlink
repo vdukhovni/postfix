@@ -627,6 +627,7 @@ while (<>) {
     s;\bsmtp_nested_header_checks\b;<a href="postconf.5.html#smtp_nested_header_checks">$&</a>;g;
     s;\bsmtp_body_checks\b;<a href="postconf.5.html#smtp_body_checks">$&</a>;g;
     s;\bsmtp_reply_filter\b;<a href="postconf.5.html#smtp_reply_filter">$&</a>;g;
+    s;\bsmtp_address_preference\b;<a href="postconf.5.html#smtp_address_preference">$&</a>;g;
     s;\bsmtpd_enforce_tls\b;<a href="postconf.5.html#smtpd_enforce_tls">$&</a>;g;
     s;\bsmtpd_sasl_tls_security_options\b;<a href="postconf.5.html#smtpd_sasl_tls_security_options">$&</a>;g;
     s;\bsmtpd_sasl_type\b;<a href="postconf.5.html#smtpd_sasl_type">$&</a>;g;
@@ -827,6 +828,7 @@ while (<>) {
     s;\breject_unknown_forward_client_hostname\b;<a href="postconf.5.html#reject_unknown_forward_client_hostname">$&</a>;g;
     s;\breject_rbl_client\b;<a href="postconf.5.html#reject_rbl_client">$&</a>;g;
     s;\breject_rhsbl_client\b;<a href="postconf.5.html#reject_rhsbl_client">$&</a>;g;
+    s;\breject_rhsbl_reverse_client\b;<a href="postconf.5.html#reject_rhsbl_reverse_client">$&</a>;g;
 
     # Access restrictions - helo
 

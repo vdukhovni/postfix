@@ -417,7 +417,7 @@ DNS_RR *smtp_domain_addr(char *name, int misc_flags, DSN_BUF *why,
 	    addr_list = smtp_host_addr(name, misc_flags, why);
 	break;
     case DNS_OK:
-	mx_names = dns_rr_sort(mx_names, dns_rr_compare_pref);
+	mx_names = dns_rr_sort(mx_names, dns_rr_compare_pref_any);
 	best_pref = (mx_names ? mx_names->pref : IMPOSSIBLE_PREFERENCE);
 	addr_list = smtp_addr_list(mx_names, why);
 	dns_rr_free(mx_names);
@@ -450,9 +450,14 @@ DNS_RR *smtp_domain_addr(char *name, int misc_flags, DSN_BUF *why,
 		}
 	    }
 	}
+#define SMTP_COMPARE_ADDR(flags) \
+	(((flags) & SMTP_MISC_FLAG_PREF_IPV6) ? dns_rr_compare_pref_ipv6 : \
+	 ((flags) & SMTP_MISC_FLAG_PREF_IPV4) ? dns_rr_compare_pref_ipv4 : \
+	 dns_rr_compare_pref_any)
+
 	if (addr_list && addr_list->next && var_smtp_rand_addr) {
 	    addr_list = dns_rr_shuffle(addr_list);
-	    addr_list = dns_rr_sort(addr_list, dns_rr_compare_pref);
+	    addr_list = dns_rr_sort(addr_list, SMTP_COMPARE_ADDR(misc_flags));
 	}
 	break;
     case DNS_NOTFOUND:
@@ -493,7 +498,7 @@ DNS_RR *smtp_host_addr(const char *host, int misc_flags, DSN_BUF *why)
 	    addr_list = dns_rr_shuffle(addr_list);
 	/* The following changes the order of equal-preference hosts. */
 	if (inet_proto_info()->ai_family_list[1] != 0)
-	    addr_list = dns_rr_sort(addr_list, dns_rr_compare_pref);
+	    addr_list = dns_rr_sort(addr_list, SMTP_COMPARE_ADDR(misc_flags));
     }
     if (msg_verbose)
 	smtp_print_addr(host, addr_list);

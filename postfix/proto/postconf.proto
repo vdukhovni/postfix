@@ -2183,8 +2183,9 @@ This feature is available in Postfix 2.1 and later.
 <p>
 Optional shell program for local(8) delivery to non-Postfix command.
 By default, non-Postfix commands are executed directly; commands
-are given to given to /bin/sh only when they contain shell meta
-characters or shell built-in commands.  </p>
+are given to given to the default shell (typically, /bin/sh) only
+when they contain shell meta characters or shell built-in commands.
+</p>
 
 <p> "sendmail's restricted shell" (smrsh) is what most people will
 use in order to restrict what programs can be run from e.g. .forward
@@ -2200,6 +2201,7 @@ Example:
 
 <pre>
 local_command_shell = /some/where/smrsh -c
+local_command_shell = /bin/bash -c
 </pre>
 
 %PARAM local_destination_concurrency_limit 2
@@ -2594,7 +2596,8 @@ This limit must not be smaller than the message size limit.
 <p>
 The numerical Postfix SMTP server response code when a remote SMTP
 client request is blocked by the reject_rbl_client, reject_rhsbl_client,
-reject_rhsbl_sender or reject_rhsbl_recipient restriction.
+reject_rhsbl_reverse_client, reject_rhsbl_sender or
+reject_rhsbl_recipient restriction.
 </p>
 
 <p>
@@ -4888,7 +4891,19 @@ A record "<i>d.d.d.d</i>" under <i>rbl_domain</i> (Postfix version
 the request when the client hostname is listed with
 any A record under <i>rbl_domain</i>. See the reject_rbl_client
 description above for additional RBL related configuration parameters.
-This feature is available in Postfix 2.0 and later.  </dd>
+This feature is available in Postfix 2.0 and later; with Postfix
+version 2.8 and later, reject_rhsbl_reverse_client will usually
+produce better results.  </dd>
+
+<dt><b><a name="reject_rhsbl_reverse_client">reject_rhsbl_reverse_client <i>rbl_domain=d.d.d.d</i></a></b></dt>
+
+<dd>Reject the request when the unverified reverse client hostname
+is listed with the A record "<i>d.d.d.d</i>" under <i>rbl_domain</i>.
+If no "<i>=d.d.d.d</i>" is specified, reject the request when the
+unverified reverse client hostname is listed with any A record under
+<i>rbl_domain</i>. See the reject_rbl_client description above for
+additional RBL related configuration parameters.  This feature is
+available in Postfix 2.8 and later.  </dd>
 
 <dt><b><a name="reject_unknown_client_hostname">reject_unknown_client_hostname</a></b> (with Postfix &lt; 2.3: reject_unknown_client)</dt>
 
@@ -7765,6 +7780,12 @@ in any SMTP command context, described under smtpd_client_restrictions.
 smtpd_client_restrictions, smtpd_helo_restrictions,
 smtpd_sender_restrictions or smtpd_recipient_restrictions.
 
+<li>However, no recipient information is available in the case of
+multi-recipient mail. Acting on only one recipient would be misleading,
+because any decision will affect all recipients equally. Acting on
+all recipients would require a possibly very large amount of memory,
+and would also be misleading for the reasons mentioned before.  </p>
+
 </ul>
 
 <p>
@@ -7786,7 +7807,7 @@ restriction lists" for a discussion of evaluation context and time.
 
 <p> This feature is available in Postfix 2.2 and later. </p>
 
-<p> See smtpd_data_restrictions for syntax details. </p>
+<p> See smtpd_data_restrictions for details and limitations. </p>
 
 %PARAM smtpd_delay_reject yes
 
@@ -12833,3 +12854,18 @@ destination with each content_filter value or FILTER action. </p>
 
 <p> This feature is available in Postfix 2.7 and later.  </p>
 
+%PARAM smtp_address_preference ipv6
+
+<p> The address type ("ipv6", "ipv4" or "any") that the Postfix
+SMTP client will try first, when a destination has IPv6 and IPv4
+addresses with equal MX preference. This feature has no effect
+unless the inet_protocols setting enables both IPv4 and IPv6.  </p>
+
+<p> This feature is available in Postfix 2.8 and later.  </p>
+
+%PARAM lmtp_address_preference ipv6
+
+<p> The LMTP-specific version of the smtp_address_preference
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.8 and later.  </p>

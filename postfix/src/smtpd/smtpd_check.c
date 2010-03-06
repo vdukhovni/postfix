@@ -1644,7 +1644,7 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
     /*
      * Separate MX list into primaries and backups.
      */
-    mx_list = dns_rr_sort(mx_list, dns_rr_compare_pref);
+    mx_list = dns_rr_sort(mx_list, dns_rr_compare_pref_any);
     for (middle = mx_list; /* see below */ ; middle = rest) {
 	rest = middle->next;
 	if (rest == 0)
@@ -3690,6 +3690,16 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		    status = reject_rbl_domain(state, *cpp, state->name,
 					       SMTPD_NAME_CLIENT);
 	    }
+	} else if (strcasecmp(name, REJECT_RHSBL_REVERSE_CLIENT) == 0) {
+	    if (cpp[1] == 0)
+		msg_warn("restriction %s requires domain name argument",
+			 name);
+	    else {
+		cpp += 1;
+		if (strcasecmp(state->name, "unknown") != 0)
+		    status = reject_rbl_domain(state, *cpp, state->reverse_name,
+					       SMTPD_NAME_REV_CLIENT);
+	    }
 	} else if (is_map_command(state, name, CHECK_CCERT_ACL, &cpp)) {
 	    status = check_ccert_access(state, *cpp, def_acl);
 	} else if (is_map_command(state, name, CHECK_CLIENT_NS_ACL, &cpp)) {
@@ -4628,14 +4638,14 @@ char   *smtpd_check_queue(SMTPD_STATE *state)
 		 (unsigned long) var_queue_minfree,
 		 (unsigned long) var_message_limit);
     if (BLOCKS(var_queue_minfree) >= fsbuf.block_free
-	|| BLOCKS(var_message_limit) >= fsbuf.block_free / smtpd_space_multf) {
+     || BLOCKS(var_message_limit) >= fsbuf.block_free / smtpd_space_multf) {
 	(void) smtpd_check_reject(state, MAIL_ERROR_RESOURCE,
 				  452, "4.3.1",
 				  "Insufficient system storage");
 	msg_warn("not enough free space in mail queue: %lu bytes < "
 		 "%g*message size limit",
 		 (unsigned long) fsbuf.block_free * fsbuf.block_size,
-		smtpd_space_multf);
+		 smtpd_space_multf);
 	return (STR(error_text));
     }
     return (0);

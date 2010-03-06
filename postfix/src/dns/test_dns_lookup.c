@@ -91,7 +91,7 @@ int     main(int argc, char **argv)
     if (argc != 3)
 	msg_fatal("usage: %s types name", argv[0]);
     types_argv = argv_split(argv[1], ", \t\r\n");
-    types = (int *) mymalloc(sizeof(*types) * (types_argv->argc + 1));
+    types = (unsigned *) mymalloc(sizeof(*types) * (types_argv->argc + 1));
     for (i = 0; i < types_argv->argc; i++)
 	if ((types[i] = dns_type(types_argv->argv[i])) == 0)
 	    msg_fatal("invalid query type: %s", types_argv->argv[i]);

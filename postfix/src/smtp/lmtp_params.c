@@ -52,6 +52,7 @@
 	VAR_LMTP_NEST_CHKS, DEF_LMTP_NEST_CHKS, &var_smtp_nest_chks, 0, 0,
 	VAR_LMTP_BODY_CHKS, DEF_LMTP_BODY_CHKS, &var_smtp_body_chks, 0, 0,
 	VAR_LMTP_RESP_FILTER, DEF_LMTP_RESP_FILTER, &var_smtp_resp_filter, 0, 0,
+	VAR_LMTP_ADDR_PREF, DEF_LMTP_ADDR_PREF, &var_smtp_addr_pref, 1, 0,
 	0,
     };
     static const CONFIG_TIME_TABLE lmtp_time_table[] = {
