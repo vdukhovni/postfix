@@ -1528,6 +1528,8 @@ static int iterate_command(int iter_cmd, int iter_flags, char **argv,
      */
     FOREACH_ITERATOR_INSTANCE(iter_flags, entry) {
 	ip = RING_TO_INSTANCE(entry);
+	if ((iter_flags & ITER_FLAG_SKIP_DISABLED) && !ip->enabled)
+	    continue;
 	if (!match_instance_selection(ip, selection))
 	    continue;
 	matched = 1;

@@ -25,6 +25,7 @@
   */
 #if defined(FREEBSD2) || defined(FREEBSD3) || defined(FREEBSD4) \
     || defined(FREEBSD5) || defined(FREEBSD6) || defined(FREEBSD7) \
+    || defined(FREEBSD8) \
     || defined(BSDI2) || defined(BSDI3) || defined(BSDI4) \
     || defined(OPENBSD2) || defined(OPENBSD3) || defined(OPENBSD4) \
     || defined(NETBSD1) || defined(NETBSD2) || defined(NETBSD3) \
@@ -108,6 +109,10 @@
 
 #if __FreeBSD_version >= 420000
 #define HAS_DUPLEX_PIPE			/* 4.1 breaks with kqueue(2) */
+#endif
+
+#if __FreeBSD_version >= 800098		/* commit: r194262 */
+#define HAS_CLOSEFROM
 #endif
 
 /* OpenBSD version is year+month */
@@ -1471,7 +1476,7 @@ typedef int pid_t;
   * sections above.
   */
 #ifndef PRINTFLIKE
-#if (__GNUC__ == 2 && __GNUC_MINOR__ >= 7) || __GNUC__ == 3
+#if (__GNUC__ == 2 && __GNUC_MINOR__ >= 7) || __GNUC__ >= 3
 #define PRINTFLIKE(x,y) __attribute__ ((format (printf, (x), (y))))
 #else
 #define PRINTFLIKE(x,y)
@@ -1479,7 +1484,7 @@ typedef int pid_t;
 #endif
 
 #ifndef SCANFLIKE
-#if (__GNUC__ == 2 && __GNUC_MINOR__ >= 7) || __GNUC__ == 3
+#if (__GNUC__ == 2 && __GNUC_MINOR__ >= 7) || __GNUC__ >= 3
 #define SCANFLIKE(x,y) __attribute__ ((format (scanf, (x), (y))))
 #else
 #define SCANFLIKE(x,y)
