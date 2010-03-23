@@ -2,9 +2,28 @@ Wish list:
 
 	Remove this file from the stable release.
 
-	Add smtpd_sender_login_maps to proxy_read_maps. What other 
-	parameters are worthy of being whitelisted for proxy access?
-	Is there a way to automate this decision?
+	Add some checks for tokens starting with #. A challenge
+	is to report sensible context from the guts of some low-level
+	parser, without introducing a great deal of clumsiness.
+
+	Add sendmail macros for {verify} and maybe other TLS info.
+
+	Find out if we are doing the correct thing by looking at
+	state->milter_reject_text when expanding {rcpt_addr} or
+	{rcpt_host}.
+
+	Find out why post_mail() etc. block when the qmgr fifo 
+	is full. This causes delays in the queue manager.
+
+	Add smtpd_sender_login_maps to proxy_read_maps, and make
+	sure that defaults are set before proxy_read_maps is
+	evaluated. What other parameters are worthy of being
+	whitelisted for proxy access?  Is there a way to automate
+	this decision?
+
+	How to ensure that proxy_read_maps is processed after all
+	its dependencies are initialized, or just bite the bullet
+	and rewrite the parameter initialization code.
 
 	The cleanup virtual alias expansion limit does not really
 	deliver on its promises. 1) It promises to truncate the

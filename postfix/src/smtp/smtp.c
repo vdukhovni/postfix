@@ -864,7 +864,7 @@ static int deliver_message(const char *service, DELIVER_REQUEST *request)
     state->request = request;
     state->src = request->fp;
     state->service = service;
-    state->misc_flags = smtp_addr_pref;
+    state->misc_flags |= smtp_addr_pref;
     SMTP_RCPT_INIT(state);
 
     /*

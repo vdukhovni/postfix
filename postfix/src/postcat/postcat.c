@@ -14,7 +14,7 @@
 /*
 /*	By default, \fBpostcat\fR(1) shows the envelope and message
 /*	content, as if the options \fB-beh\fR were specified. To
-/*	view message content only, specify \fB-bh\fR (Postfix 2.7
+/*	view message headers only, specify \fB-bh\fR (Postfix 2.7
 /*	and later).
 /*
 /*	Options:

@@ -15599,7 +15599,7 @@ Apologies for any names omitted.
 	server will not wait (up to 6 seconds) for the address
 	verification result. File: global/mail_params.h.
 
-	Final slution for the I/O event starvation problem when a
+	Final solution for the I/O event starvation problem when a
 	timer call-back schedules a zero-delay timer request.  File:
 	util/events.c.
 
@@ -15739,5 +15739,18 @@ Apologies for any names omitted.
 	Feature: smtp_address_preference (default: ipv6) to control
 	the order in which the Postfix SMTP client will connect to
 	a destination that has IPv6 and IPv4 addresses with equal
-	MX preference. Files: global/mail_params.c, smtp/smtp.c,
-	smtp/smtp_params.c, smtp/smtp_addr.c, proto/postconf.proto.
+	MX preference. Files: global/mail_params.h, smtp/smtp.c,
+	smtp/smtp_params.c, smtp/smtp_addr.c, dns/dns_rr.c,
+	and documentation.
+
+20100321
+
+	Feature: allow Milter applications to use a lower protocol
+	version than the version that Postfix is configured for.
+	Based on an idea by Kouhei Sutou.  File: milter/milter8.c.
+
+20100322
+
+	Bugfix (introduced 20100305) the new smtp_address_preference
+	feature was not tested with LMTP support. Problem reported
+	by Stefan Foerster. File: smtp/smtp.c.

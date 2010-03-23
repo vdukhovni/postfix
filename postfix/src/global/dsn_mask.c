@@ -29,7 +29,7 @@
 /*	NOTIFY option to internal form.
 /*
 /*	dsn_notify_str() converts internal form to the representation
-/*	used in the MAIL FROM .. NOTIFY command. The result is in
+/*	used in the RCPT TO .. NOTIFY command. The result is in
 /*	volatile memory and is clobbered whenever str_name_mask()
 /*	is called.
 /*
