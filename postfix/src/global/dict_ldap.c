@@ -833,6 +833,91 @@ static void dict_ldap_conn_find(DICT_LDAP *dict_ldap)
     vstring_free(keybuf);
 }
 
+/* attr_sub_type - Is one of two attributes a sub-type of another */
+
+static int attrdesc_subtype(const char *a1, const char *a2)
+{
+
+    /*
+     * RFC 2251 section 4.1.4: LDAP attribute names are case insensitive
+     */
+    while (*a1 && TOLOWER(*a1) == TOLOWER(*a2))
+	++a1, ++a2;
+
+    /*
+     * Names equal to end of a1, is a2 equal or a subtype?
+     */
+    if (*a1 == 0 && (*a2 == 0 || *a2 == ';'))
+	return (1);
+
+    /*
+     * Names equal to end of a2, is a1 a subtype?
+     */
+    if (*a2 == 0 && *a1 == ';')
+	return (-1);
+
+    /*
+     * Distinct attributes
+     */
+    return (0);
+}
+
+/* url_attrs - attributes we want from LDAP URL */
+
+static char **url_attrs(DICT_LDAP *dict_ldap, LDAPURLDesc * url)
+{
+    static ARGV *attrs;
+    char  **a1;
+    char  **a2;
+    int     arel;
+
+    /*
+     * If the LDAP URI specified no attributes, all entry attributes are
+     * returned, leading to unnecessarily large LDAP results, particularly
+     * since dynamic groups are most useful for large groups.
+     * 
+     * Since we only make use of the various mumble_results attributes, we ask
+     * only for these, thus making large queries much faster.
+     * 
+     * In one test case, a query returning 75K users took 16 minutes when all
+     * attributes are returned, and just under 3 minutes with only the
+     * desired result attribute.
+     */
+    if (url->lud_attrs == 0 || *url->lud_attrs == 0)
+	return (dict_ldap->result_attributes->argv);
+
+    /*
+     * When the LDAP URI explicitly specifies a set of attributes, we use the
+     * interection of the URI attributes and our result attributes. This way
+     * LDAP URIs can hide certain attributes that should not be part of the
+     * query. There is no point in retrieving attributes not listed in our
+     * result set, we won't make any use of those.
+     */
+    if (attrs)
+	argv_truncate(attrs, 0);
+    else
+	attrs = argv_alloc(2);
+
+    /*
+     * Retrieve only those attributes that are of interest to us.
+     * 
+     * If the URL attribute and the attribute we want differ only in the
+     * "options" part of the attribute descriptor, select the more specific
+     * attribute descriptor.
+     */
+    for (a1 = url->lud_attrs; *a1; ++a1) {
+	for (a2 = dict_ldap->result_attributes->argv; *a2; ++a2) {
+	    arel = attrdesc_subtype(*a1, *a2);
+	    if (arel > 0)
+		argv_add(attrs, *a2, ARGV_END);
+	    else if (arel < 0)
+		argv_add(attrs, *a1, ARGV_END);
+	}
+    }
+
+    return ((attrs->argc > 0) ? attrs->argv : 0);
+}
+
 /*
  * dict_ldap_get_values: for each entry returned by a search, get the values
  * of all its attributes. Recurses to resolve any DN or URL values found.
@@ -852,6 +937,7 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage *res,
     LDAPMessage *entry = 0;
     BerElement *ber;
     char   *attr;
+    char  **attrs;
     struct berval **vals;
     int     valcount;
     LDAPURLDesc *url;
@@ -946,7 +1032,7 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage *res,
 
 	    /*
 	     * The "result_attributes" list enumerates all the requested
-	     * attributes, first the ordinary result attribtutes and then the
+	     * attributes, first the ordinary result attributes and then the
 	     * special result attributes that hold DN or LDAP URL values.
 	     * 
 	     * The number of ordinary attributes is "num_attributes".
@@ -955,8 +1041,8 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage *res,
 	     * index on the "result_attributes" list.
 	     */
 	    for (i = 0; dict_ldap->result_attributes->argv[i]; i++)
-		if (strcasecmp(dict_ldap->result_attributes->argv[i],
-			       attr) == 0)
+		if (attrdesc_subtype(dict_ldap->result_attributes->argv[i],
+				     attr) > 0)
 		    break;
 
 	    /*
@@ -968,8 +1054,8 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage *res,
 		    || (!is_leaf &&
 			i < dict_ldap->num_terminal + dict_ldap->num_leaf)) {
 		    if (msg_verbose)
-			msg_info("%s[%d]: skipping %ld value(s) of %s "
-				 "attribute %s", myname, recursion, i,
+			msg_info("%s[%d]: skipping %d value(s) of %s "
+				 "attribute %s", myname, recursion, valcount,
 				 is_terminal ? "non-terminal" : "leaf-only",
 				 attr);
 		} else {
@@ -991,25 +1077,42 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage *res,
 		    if (dict_errno != 0)
 			continue;
 		    if (msg_verbose)
-			msg_info("%s[%d]: search returned %ld value(s) for"
+			msg_info("%s[%d]: search returned %d value(s) for"
 				 " requested result attribute %s",
-				 myname, recursion, i, attr);
+				 myname, recursion, valcount, attr);
 		}
 	    } else if (recursion < dict_ldap->recursion_limit
 		       && dict_ldap->result_attributes->argv[i]) {
 		/* Special result attribute */
 		for (i = 0; i < valcount; i++) {
 		    if (ldap_is_ldap_url(vals[i]->bv_val)) {
-			if (msg_verbose)
-			    msg_info("%s[%d]: looking up URL %s", myname,
-				     recursion, vals[i]->bv_val);
 			rc = ldap_url_parse(vals[i]->bv_val, &url);
 			if (rc == 0) {
-			    rc = search_st(dict_ldap->ld, url->lud_dn,
-					   url->lud_scope, url->lud_filter,
-					 url->lud_attrs, dict_ldap->timeout,
-					   &resloop);
+			    if ((attrs = url_attrs(dict_ldap, url)) != 0) {
+				if (msg_verbose)
+				    msg_info("%s[%d]: looking up URL %s",
+					     myname, recursion,
+					     vals[i]->bv_val);
+				rc = search_st(dict_ldap->ld, url->lud_dn,
+					       url->lud_scope,
+					       url->lud_filter,
+					       attrs, dict_ldap->timeout,
+					       &resloop);
+			    }
 			    ldap_free_urldesc(url);
+			    if (attrs == 0) {
+				if (msg_verbose)
+				    msg_info("%s[%d]: skipping URL %s: no "
+					     "pertinent attributes", myname,
+					     recursion, vals[i]->bv_val);
+				continue;
+			    }
+			} else {
+			    msg_warn("%s[%d]: malformed URL %s: %s(%d)",
+				     myname, recursion, vals[i]->bv_val,
+				     ldap_err2string(rc), rc);
+			    dict_errno = DICT_ERR_RETRY;
+			    break;
 			}
 		    } else {
 			if (msg_verbose)
@@ -1046,12 +1149,10 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage *res,
 		    if (dict_errno != 0)
 			break;
 		}
-		if (dict_errno != 0)
-		    continue;
-		if (msg_verbose)
-		    msg_info("%s[%d]: search returned %ld value(s) for"
+		if (msg_verbose && dict_errno == 0)
+		    msg_info("%s[%d]: search returned %d value(s) for"
 			     " special result attribute %s",
-			     myname, recursion, i, attr);
+			     myname, recursion, valcount, attr);
 	    } else if (recursion >= dict_ldap->recursion_limit
 		       && dict_ldap->result_attributes->argv[i]) {
 		msg_warn("%s[%d]: %s: Recursion limit exceeded"
@@ -1089,6 +1190,16 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	msg_info("%s: In dict_ldap_lookup", myname);
 
     /*
+     * Don't frustrate future attempts to make Postfix UTF-8 transparent.
+     */
+    if (!valid_utf_8(name, strlen(name))) {
+	if (msg_verbose)
+	    msg_info("%s: %s: Skipping lookup of non-UTF-8 key '%s'",
+		     myname, dict_ldap->parser->name, name);
+	return (0);
+    }
+
+    /*
      * Optionally fold the key.
      */
     if (dict->flags & DICT_FLAG_FOLD_FIX) {
@@ -1105,7 +1216,8 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
      */
     if (db_common_check_domain(dict_ldap->ctx, name) == 0) {
 	if (msg_verbose)
-	    msg_info("%s: Skipping lookup of '%s'", myname, name);
+	    msg_info("%s: %s: Skipping lookup of key '%s': domain mismatch",
+		     myname, dict_ldap->parser->name, name);
 	return (0);
     }
 #define INIT_VSTR(buf, len) do { \

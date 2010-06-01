@@ -41,6 +41,7 @@ extern int allprint(const char *);
 extern int allspace(const char *);
 extern int allascii(const char *);
 extern const char *split_nameval(char *, char **, char **);
+extern int valid_utf_8(const char *, ssize_t);
 
 /* LICENSE
 /* .ad

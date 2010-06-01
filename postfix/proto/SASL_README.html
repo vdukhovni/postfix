@@ -42,8 +42,8 @@ SMTP server.  Once a client is authenticated, a server can give it
 
 <p> Postfix does not implement SASL itself, but instead uses existing
 implementations as building blocks.  This means that some SASL-related
-configuration will involve files that belong to Postfix, while other
-configuration will involve files that belong to the specific SASL
+configuration files will belong to Postfix, while other
+configuration files belong to the specific SASL
 implementation that Postfix will use. This document covers both the
 Postfix and non-Postfix configuration.  </p>
 
@@ -1457,6 +1457,19 @@ the client (that is, you) is shown in <strong>bold</strong> font.
 250 8BITMIME
 <strong>AUTH PLAIN AHRlc3QAdGVzdHBhc3M=</strong>
 235 Authentication successful
+</pre>
+</blockquote>
+
+<p> To test this over a connection that is encrypted with TLS, use
+<code>openssl s_client</code> instead of <code>telnet</code>:
+
+<blockquote>
+<pre>
+% <strong>openssl s_client -connect server.example.com:25 -starttls smtp</strong>
+...
+220 server.example.com ESMTP Postfix
+<strong>EHLO client.example.com</strong>
+...see above example for more...
 </pre>
 </blockquote>
 

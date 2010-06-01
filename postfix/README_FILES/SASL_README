@@ -26,10 +26,9 @@ can give it "same network" privileges.
 
 Postfix does not implement SASL itself, but instead uses existing
 implementations as building blocks. This means that some SASL-related
-configuration will involve files that belong to Postfix, while other
-configuration will involve files that belong to the specific SASL
-implementation that Postfix will use. This document covers both the Postfix and
-non-Postfix configuration.
+configuration files will belong to Postfix, while other configuration files
+belong to the specific SASL implementation that Postfix will use. This document
+covers both the Postfix and non-Postfix configuration.
 
 You can read more about the following topics:
 
@@ -900,6 +899,15 @@ Information sent by the client (that is, you) is shown in bboolldd font.
     250 8BITMIME
     AAUUTTHH PPLLAAIINN AAHHRRllcc33QQAAddGGVVzzddHHBBhhcc33MM==
     235 Authentication successful
+
+To test this over a connection that is encrypted with TLS, use openssl s_client
+instead of telnet:
+
+    % ooppeennssssll ss__cclliieenntt --ccoonnnneecctt sseerrvveerr..eexxaammppllee..ccoomm::2255 --ssttaarrttttllss ssmmttpp
+    ...
+    220 server.example.com ESMTP Postfix
+    EEHHLLOO cclliieenntt..eexxaammppllee..ccoomm
+    ...see above example for more...
 
 Instead of AHRlc3QAdGVzdHBhc3M=, specify the base64-encoded form of
 \0username\0password (the \0 is a null byte). The example above is for a user

@@ -35,7 +35,8 @@ goes on and on like this:
     to=<yyyyyy@your.domain.here> proto=ESMTP helo=<zzzzzz>
 
 What you see are lots of "user unknown" errors with "from=<>". These are error
-reports from MAILER-DAEMONs elsewhere on the Internet.
+reports from MAILER-DAEMONs elsewhere on the Internet, about email that was
+sent with a false sender address in your domain.
 
 HHooww ddoo II bblloocckk bbaacckkssccaatttteerr mmaaiill ttoo rraannddoomm rreecciippiieenntt aaddddrreesssseess??
 

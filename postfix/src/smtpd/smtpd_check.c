@@ -3696,7 +3696,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 			 name);
 	    else {
 		cpp += 1;
-		if (strcasecmp(state->name, "unknown") != 0)
+		if (strcasecmp(state->reverse_name, "unknown") != 0)
 		    status = reject_rbl_domain(state, *cpp, state->reverse_name,
 					       SMTPD_NAME_REV_CLIENT);
 	    }

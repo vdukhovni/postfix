@@ -205,7 +205,7 @@ DH     *tls_tmp_dh_cb(SSL *unused_ssl, int export, int keylength)
 
 int     tls_set_eecdh_curve(SSL_CTX *server_ctx, const char *grade)
 {
-#if OPENSSL_VERSION_NUMBER >= 0x00909000 && !defined(OPENSSL_NO_ECDH)
+#if OPENSSL_VERSION_NUMBER >= 0x1000000fL && !defined(OPENSSL_NO_ECDH)
     int     nid;
     EC_KEY *ecdh;
     const char *curve;

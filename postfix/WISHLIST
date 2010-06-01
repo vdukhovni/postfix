@@ -2,6 +2,16 @@ Wish list:
 
 	Remove this file from the stable release.
 
+	When an alias is a member of an :include: list with owner-
+	alias, local(8) needs an option to deliver alias or alias->user
+	indirectly. What happens when an :include: list with owner-
+	alias includes another list?
+
+	Don't allow empty result values in pcre and regexp maps.
+	Postfix doesn't allow them anywhere else (check this).
+
+	Make PCRE_MAX_CAPTURE configurable.
+
 	Add some checks for tokens starting with #. A challenge
 	is to report sensible context from the guts of some low-level
 	parser, without introducing a great deal of clumsiness.
@@ -12,8 +22,12 @@ Wish list:
 	state->milter_reject_text when expanding {rcpt_addr} or
 	{rcpt_host}.
 
-	Find out why post_mail() etc. block when the qmgr fifo 
-	is full. This causes delays in the queue manager.
+	Find out why post_mail() etc. block when the qmgr fifo is
+	full (answer: trigger_timeout). How can this cause delays
+	in the queue manager?  When a recipient bounces during
+	(transport, nexthop, address) resolution, it is redirected
+	to the error or retry mailer; and bounce-after-delivery is
+	asynchrounous so it can't block the queue manager, either.
 
 	Add smtpd_sender_login_maps to proxy_read_maps, and make
 	sure that defaults are set before proxy_read_maps is

@@ -157,7 +157,7 @@ be refreshed.
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 .PP
 This feature is available in Postfix 2.1 and later.
-.SH address_verify_poll_count (default: ${stress?1}${stress:3})
+.SH address_verify_poll_count (default: normal: 3, overload: 1)
 How many times to query the \fBverify\fR(8) service for the completion
 of an address verification request in progress.
 .PP
@@ -422,8 +422,8 @@ the sender.
 .PP
 Note: automatic BCC recipients are produced only for new mail.
 To avoid mailer loops, automatic BCC recipients are not generated
-for mail that Postfix forwards internally, nor for mail that Postfix
-generates itself.
+after Postfix forwards mail internally, or after Postfix generates
+mail itself.
 .SH anvil_rate_time_unit (default: 60s)
 The time unit over which client connection rates and other rates
 are calculated.
@@ -2419,13 +2419,13 @@ The LMTP-specific version of the smtp_tls_eccert_file configuration
 parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.6 and later, when Postfix is
-compiled and linked with OpenSSL 0.9.9 or later.
+compiled and linked with OpenSSL 1.0.0 or later.
 .SH lmtp_tls_eckey_file (default: empty)
 The LMTP-specific version of the smtp_tls_eckey_file configuration
 parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.6 and later, when Postfix is
-compiled and linked with OpenSSL 0.9.9 or later.
+compiled and linked with OpenSSL 1.0.0 or later.
 .SH lmtp_tls_enforce_peername (default: yes)
 The LMTP-specific version of the smtp_tls_enforce_peername
 configuration parameter.  See there for details.
@@ -3720,7 +3720,7 @@ action, or forward the connection to a real SMTP server process.
 Drop the connection immediately with a 521 SMTP reply, without
 reporting PREGREET, HANGUP or DNSBL results.
 .PP
-This feature is available in Postfix 2.7.
+This feature is available in Postfix 2.8.
 .SH postscreen_blacklist_networks (default: empty)
 Network addresses that are permanently blacklisted; see the
 postscreen_blacklist_action parameter for possible actions.  This
@@ -3728,7 +3728,7 @@ parameter uses the same address syntax as the mynetworks parameter.
 The blacklist has higher precedence than whitelists. This feature
 never uses the remote SMTP client hostname.
 .PP
-This feature is available in Postfix 2.7.
+This feature is available in Postfix 2.8.
 .SH postscreen_cache_cleanup_interval (default: 12h)
 The amount of time between \fBpostscreen\fR(8) cache cleanup runs.
 Cache cleanup increases the load on the cache database and should
@@ -3745,11 +3745,11 @@ seconds.
 Time units: s (seconds), m (minutes), h (hours), d (days), w
 (weeks).
 .PP
-This feature is available in Postfix 2.7.
+This feature is available in Postfix 2.8.
 .SH postscreen_cache_map (default: btree:$data_directory/ps_whitelist)
 Persistent storage for the \fBpostscreen\fR(8) server decisions.
 .PP
-This feature is available in Postfix 2.7.
+This feature is available in Postfix 2.8.
 .SH postscreen_cache_retention_time (default: 1d)
 The amount of time that \fBpostscreen\fR(8) will cache an expired
 temporary whitelist entry before it is removed. This prevents clients
@@ -3759,7 +3759,7 @@ an hour ago.
 Time units: s (seconds), m (minutes), h (hours), d (days), w
 (weeks).
 .PP
-This feature is available in Postfix 2.7.
+This feature is available in Postfix 2.8.
 .SH postscreen_cache_ttl (default: 1d)
 The amount of time that \fBpostscreen\fR(8) will cache a decision for
 a specific SMTP client IP address. During this time, the client IP
@@ -3771,7 +3771,7 @@ unit).
 Time units: s (seconds), m (minutes), h (hours), d (days), w
 (weeks).
 .PP
-This feature is available in Postfix 2.7.
+This feature is available in Postfix 2.8.
 .SH postscreen_dnsbl_action (default: continue)
 The action that \fBpostscreen\fR(8) takes when an SMTP client is listed
 at the DNS blocklist domains specified with the postscreen_dnsbl_sites
@@ -3781,7 +3781,7 @@ Forward the connection to a real SMTP server process.
 .IP "drop"
 Drop the connection with a 521 SMTP reply.
 .PP
-This feature is available in Postfix 2.7.
+This feature is available in Postfix 2.8.
 .SH postscreen_dnsbl_sites (default: empty)
 Optional list of DNS blocklist domains. When the list is non-enpty,
 the \fBdnsblog\fR(8) daemon will query these domains with the IP addresses
@@ -3804,7 +3804,7 @@ examining DNSBL lookup results.
 In either case, \fBpostscreen\fR(8) will not whitelist the SMTP client
 IP address.
 .PP
-This feature is available in Postfix 2.7.
+This feature is available in Postfix 2.8.
 .SH postscreen_greet_banner (default: $smtpd_banner)
 The \fItext\fR in the optional "220-\fItext\fR..." server
 response that
@@ -3813,7 +3813,7 @@ text..." response, in an attempt to confuse bad SMTP clients so
 that they speak before their turn (pre-greet).  Specify an empty
 value to disable this feature.
 .PP
-This feature is available in Postfix 2.7.
+This feature is available in Postfix 2.8.
 .SH postscreen_greet_wait (default: 4s)
 The amount of time that \fBpostscreen\fR(8) will wait for an SMTP
 client to send a command before its turn, and for DNS blocklist
@@ -3825,7 +3825,7 @@ an optional one-letter suffix that specifies the time unit).
 Time units: s (seconds), m (minutes), h (hours), d (days), w
 (weeks).
 .PP
-This feature is available in Postfix 2.7.
+This feature is available in Postfix 2.8.
 .SH postscreen_hangup_action (default: continue)
 The action that \fBpostscreen\fR(8) takes when an SMTP client disconnects
 without sending data, within the time specified with the
@@ -3839,27 +3839,27 @@ forward the broken connection to a real SMTP server process.
 Drop the connection immediately, without reporting DNSBL lookup
 results.
 .PP
-This feature is available in Postfix 2.7.
+This feature is available in Postfix 2.8.
 .SH postscreen_post_queue_limit (default: $default_process_limit)
 The number of clients that can be waiting for service from a
 real SMTP server process. When this queue is full, all clients will
 receive a 421 reponse.
 .PP
-This feature is available in Postfix 2.7.
+This feature is available in Postfix 2.8.
 .SH postscreen_pre_queue_limit (default: $default_process_limit)
 The number of non-whitelisted clients that can be waiting for
 a decision whether they will receive service from a real SMTP server
 process. When this queue is full, all non-whitelisted clients will
 receive a 421 reponse.
 .PP
-This feature is available in Postfix 2.7.
+This feature is available in Postfix 2.8.
 .SH postscreen_whitelist_networks (default: $mynetworks)
 Network addresses that are permanently whitelisted, and that
 will not be subjected to \fBpostscreen\fR(8) checks. This parameter uses
 the same address syntax as the mynetworks parameter. This feature
 never uses the remote SMTP client hostname.
 .PP
-This feature is available in Postfix 2.7.
+This feature is available in Postfix 2.8.
 .SH prepend_delivered_header (default: command, file, forward)
 The message delivery contexts where the Postfix \fBlocal\fR(8) delivery
 agent prepends a Delivered-To:  message header with the address
@@ -4156,8 +4156,8 @@ the sender.
 .PP
 Note: automatic BCC recipients are produced only for new mail.
 To avoid mailer loops, automatic BCC recipients are not generated
-for mail that Postfix forwards internally, nor for mail that Postfix
-generates itself.
+after Postfix forwards mail internally, or after Postfix generates
+mail itself.
 .PP
 Example:
 .PP
@@ -4526,8 +4526,8 @@ the sender.
 .PP
 Note: automatic BCC recipients are produced only for new mail.
 To avoid mailer loops, automatic BCC recipients are not generated
-for mail that Postfix forwards internally, nor for mail that Postfix
-generates itself.
+after Postfix forwards mail internally, or after Postfix generates
+mail itself.
 .PP
 Example:
 .PP
@@ -5591,7 +5591,7 @@ smtp_tls_eccert_file = /etc/postfix/ecdsa-ccert.pem
 .ft R
 .PP
 This feature is available in Postfix 2.6 and later, when Postfix is
-compiled and linked with OpenSSL 0.9.9 or later.
+compiled and linked with OpenSSL 1.0.0 or later.
 .SH smtp_tls_eckey_file (default: $smtp_tls_eccert_file)
 File with the Postfix SMTP client ECDSA private key in PEM format.
 This file may be combined with the Postfix SMTP client ECDSA
@@ -5603,7 +5603,7 @@ access to the system superuser account ("root"), and no access
 to anyone else.
 .PP
 This feature is available in Postfix 2.6 and later, when Postfix is
-compiled and linked with OpenSSL 0.9.9 or later.
+compiled and linked with OpenSSL 1.0.0 or later.
 .SH smtp_tls_enforce_peername (default: yes)
 With mandatory TLS encryption, require that the remote SMTP
 server hostname matches the information in the remote SMTP server
@@ -6986,20 +6986,22 @@ except that initial whitespace and the trailing <CR><LF>
 are removed.  The result value is executed by the Postfix SMTP
 server.
 .PP
-Postfix already implements a number of workarounds for malformed
-client commands.
+There is no need to use smtpd_command_filter for the following
+cases:
 .IP \(bu
 Use "resolve_numeric_domain = yes" to accept
 "\fIuser@ipaddress\fR".
 .IP \(bu
 Postfix already accepts the correct form
-"\fIuser@[ipaddress]\fR".
+"\fIuser@[ipaddress]\fR". Use virtual_alias_maps or canonical_maps
+to translate these into domain names if necessary.
 .IP \(bu
-Use "strict_rfc821_envelopes = no" to accept "\fIUser Name
-<user@example.com>\fR". Postfix will ignore the "User Name"
-part before delivering the mail.
+Use "strict_rfc821_envelopes = no" to accept "RCPT TO:<\fIUser
+Name <user@example.com>>\fR". Postfix will ignore the "User
+Name" part and deliver to the <user@example.com>\fR address.
 .PP
-Examples:
+Examples of problems that can be solved with the smtpd_command_filter
+feature:
 .PP
 .nf
 .na
@@ -7224,11 +7226,12 @@ commands listed in this parameter, commands that follow the "Label:"
 format of message headers will also cause a disconnect.
 .PP
 This feature is available in Postfix 2.2 and later.
-.SH smtpd_hard_error_limit (default: normal: 20, stress: 1)
+.SH smtpd_hard_error_limit (default: normal: 20, overload: 1)
 The maximal number of errors a remote SMTP client is allowed to
 make without delivering mail. The Postfix SMTP server disconnects
 when the limit is exceeded. Normally the default limit is 20, but
-it changes under overload to just 1 with Postfix 2.6 and later.
+it changes under overload to just 1. With Postfix 2.5 and earlier,
+the SMTP server always allows up to 20 errors by default.
 .SH smtpd_helo_required (default: no)
 Require that a remote SMTP client introduces itself with the HELO
 or EHLO command before sending the MAIL command or other commands
@@ -7334,14 +7337,15 @@ smtpd_helo_restrictions = permit_mynetworks, reject_unknown_helo_hostname
 .SH smtpd_history_flush_threshold (default: 100)
 The maximal number of lines in the Postfix SMTP server command history
 before it is flushed upon receipt of EHLO, RSET, or end of DATA.
-.SH smtpd_junk_command_limit (default: normal: 100, stress: 1)
+.SH smtpd_junk_command_limit (default: normal: 100, overload: 1)
 The number of junk commands (NOOP, VRFY, ETRN or RSET) that a remote
 SMTP client can send before the Postfix SMTP server starts to
 increment the error counter with each junk command.  The junk
 command count is reset after mail is delivered.  See also the
 smtpd_error_sleep_time and smtpd_soft_error_limit configuration
 parameters.  Normally the default limit is 100, but it changes under
-overload to just 1 with Postfix 2.6 and later.
+overload to just 1. With Postfix 2.5 and earlier, the SMTP server
+always allows up to 100 junk commands by default.
 .SH smtpd_milters (default: empty)
 A list of Milter (mail filter) applications for new mail that
 arrives via the Postfix \fBsmtpd\fR(8) server.  See the MILTER_README
@@ -7991,7 +7995,7 @@ The internal service that \fBpostscreen\fR(8) forwards allowed
 connections to. In a future version there may be different
 classes of SMTP service.
 .PP
-This feature is available in Postfix 2.7.
+This feature is available in Postfix 2.8.
 .SH smtpd_soft_error_limit (default: 10)
 The number of errors a remote SMTP client is allowed to make without
 delivering mail before the Postfix SMTP server slows down all its
@@ -8007,11 +8011,12 @@ The time limit for Postfix SMTP server write and read operations
 during TLS startup and shutdown handshake procedures.
 .PP
 This feature is available in Postfix 2.2 and later.
-.SH smtpd_timeout (default: normal: 300s, stress: 10s)
+.SH smtpd_timeout (default: normal: 300s, overload: 10s)
 The time limit for sending a Postfix SMTP server response and for
 receiving a remote SMTP client request. Normally the default limit
-is 300s, but it changes under overload to just 10s with Postfix 2.6
-and later.
+is 300s, but it changes under overload to just 10s. With Postfix
+2.5 and earlier, the SMTP server always uses a time limit of 300s
+by default.
 .PP
 Note: if you set SMTP time limits to very large values you may have
 to update the global ipc_timeout parameter.
@@ -8330,7 +8335,7 @@ smtpd_tls_eccert_file = /etc/postfix/ecdsa-scert.pem
 .ft R
 .PP
 This feature is available in Postfix 2.6 and later, when Postfix is
-compiled and linked with OpenSSL 0.9.9 or later.
+compiled and linked with OpenSSL 1.0.0 or later.
 .SH smtpd_tls_eckey_file (default: $smtpd_tls_eccert_file)
 File with the Postfix SMTP server ECDSA private key in PEM format.
 This file may be combined with the Postfix SMTP server ECDSA certificate
@@ -8342,7 +8347,7 @@ access to the system superuser account ("root"), and no access
 to anyone else.
 .PP
 This feature is available in Postfix 2.6 and later, when Postfix is
-compiled and linked with OpenSSL 0.9.9 or later.
+compiled and linked with OpenSSL 1.0.0 or later.
 .SH smtpd_tls_eecdh_grade (default: see "postconf -d" output)
 The Postfix SMTP server security grade for ephemeral elliptic-curve
 Diffie-Hellman (EECDH) key exchange.
@@ -8366,7 +8371,7 @@ elliptic curve crypto-systems, the "strong" curve is sufficient for most
 users.
 .PP
 This feature is available in Postfix 2.6 and later, when it is
-compiled and linked with OpenSSL 0.9.9 or later.
+compiled and linked with OpenSSL 1.0.0 or later.
 .SH smtpd_tls_exclude_ciphers (default: empty)
 List of ciphers or cipher types to exclude from the SMTP server
 cipher list at all TLS security levels. Excluding valid ciphers
@@ -8941,7 +8946,7 @@ under the SECG name "secp256r1", but OpenSSL does not recognize the
 latter name.
 .PP
 This feature is available in Postfix 2.6 and later, when it is
-compiled and linked with OpenSSL 0.9.9 or later.
+compiled and linked with OpenSSL 1.0.0 or later.
 .SH tls_eecdh_ultra_curve (default: secp384r1)
 The elliptic curve used by the SMTP server for maximally strong
 ephemeral ECDH key exchange. This curve is used by the Postfix SMTP
@@ -8958,28 +8963,40 @@ This default "ultra" curve is specified in NSA "Suite B" Cryptography
 classified as TOP SECRET.
 .PP
 This feature is available in Postfix 2.6 and later, when it is
-compiled and linked with OpenSSL 0.9.9 or later.
+compiled and linked with OpenSSL 1.0.0 or later.
 .SH tls_export_cipherlist (default: ALL:+RC4:@STRENGTH)
 The OpenSSL cipherlist for "EXPORT" or higher grade ciphers. This
 defines the meaning of the "export" setting in smtpd_tls_mandatory_ciphers,
 smtp_tls_mandatory_ciphers and lmtp_tls_mandatory_ciphers. This is
 the cipherlist for the opportunistic ("may") TLS client security
 level and is the default cipherlist for the SMTP server. You are
-strongly encouraged to not change this setting.
+strongly encouraged to not change this setting. With OpenSSL 1.0.0 and
+later the cipherlist may start with an "aNULL:" prefix, which restores
+the 0.9.8-compatible ordering of the aNULL ciphers to the top of the
+list when they are enabled. This prefix is not needed with previous
+OpenSSL releases.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH tls_high_cipherlist (default: ALL:!EXPORT:!LOW:!MEDIUM:+RC4:@STRENGTH)
 The OpenSSL cipherlist for "HIGH" grade ciphers. This defines
 the meaning of the "high" setting in smtpd_tls_mandatory_ciphers,
 smtp_tls_mandatory_ciphers and lmtp_tls_mandatory_ciphers. You are
-strongly encouraged to not change this setting.
+strongly encouraged to not change this setting. With OpenSSL 1.0.0 and
+later the cipherlist may start with an "aNULL:" prefix, which restores
+the 0.9.8-compatible ordering of the aNULL ciphers to the top of the
+list when they are enabled. This prefix is not needed with previous
+OpenSSL releases.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH tls_low_cipherlist (default: ALL:!EXPORT:+RC4:@STRENGTH)
 The OpenSSL cipherlist for "LOW" or higher grade ciphers. This defines
 the meaning of the "low" setting in smtpd_tls_mandatory_ciphers,
 smtp_tls_mandatory_ciphers and lmtp_tls_mandatory_ciphers. You are
-strongly encouraged to not change this setting.
+strongly encouraged to not change this setting.  With OpenSSL 1.0.0 and
+later the cipherlist may start with an "aNULL:" prefix, which restores
+the 0.9.8-compatible ordering of the aNULL ciphers to the top of the
+list when they are enabled. This prefix is not needed with previous
+OpenSSL releases.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH tls_medium_cipherlist (default: ALL:!EXPORT:!LOW:+RC4:@STRENGTH)
@@ -8989,7 +9006,10 @@ smtp_tls_mandatory_ciphers and lmtp_tls_mandatory_ciphers. This is
 the default cipherlist for mandatory TLS encryption in the TLS
 client (with anonymous ciphers disabled when verifying server
 certificates). You are strongly encouraged to not change this
-setting.
+setting.  With OpenSSL 1.0.0 and later the cipherlist may start with an
+"aNULL:" prefix, which restores the 0.9.8-compatible ordering of the
+aNULL ciphers to the top of the list when they are enabled. This prefix
+is not needed with previous OpenSSL releases.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH tls_null_cipherlist (default: eNULL:!aNULL)

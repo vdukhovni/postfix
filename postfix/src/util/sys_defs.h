@@ -208,7 +208,6 @@
 #define DEF_DB_TYPE	"hash"
 #define ALIAS_DB_MAP	"hash:/etc/aliases"
 #define GETTIMEOFDAY(t) gettimeofday(t,(struct timezone *) 0)
-#define RESOLVE_H_NEEDS_NAMESER8_COMPAT_H
 #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
 #define USE_STATFS
 #define STATFS_IN_SYS_MOUNT_H
@@ -1501,6 +1500,20 @@ typedef int pid_t;
 #define PRINTFPTRLIKE(x,y) PRINTFLIKE(x,y)
 #else
 #define PRINTFPTRLIKE(x,y)
+#endif
+#endif
+
+ /*
+  * Compiler optimization hint. This makes sense only for code in a
+  * performance-critical loop.
+  */
+#ifndef EXPECTED
+#if defined(__GNUC__) && (__GNUC__ > 2)
+#define EXPECTED(x)	__builtin_expect(!!(x), 1)
+#define UNEXPECTED(x)	__builtin_expect(!!(x), 0)
+#else
+#define EXPECTED(x)	(x)
+#define UNEXPECTED(x)	(x)
 #endif
 #endif
 

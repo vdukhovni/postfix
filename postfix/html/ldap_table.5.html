@@ -344,21 +344,53 @@ LDAP_TABLE(5)                                                    LDAP_TABLE(5)
 
                   result_attribute = mailbox, maildrop
 
+              Don't rely on the default value  ("maildrop").  Set
+              the  result_attribute  explicitly in all ldap table
+              configuration files. This is particularly  relevant
+              when  no result_attribute is applicable, e.g. cases
+              in  which   leaf_result_attribute   and/or   termi-
+              nal_result_attribute  are used instead. The default
+              value is harmless if "maildrop" is also listed as a
+              leaf  or  terminal result attribute, but it is best
+              to not leave this to chance.
+
        <b>special_result_attribute (default: empty)</b>
               The attribute(s) of directory entries that can con-
-              tain  DNs or URLs. If found, a recursive subsequent
-              search is done using their values.
+              tain  DNs or <a href="http://tools.ietf.org/html/rfc2255">RFC 2255</a> LDAP URLs. If found, a recur-
+              sive search is performed to retrieve the entry ref-
+              erenced  by  the  DN, or the entries matched by the
+              URL query.
 
                   special_result_attribute = memberdn
 
               DN recursion retrieves the  same  result_attributes
               as the main query, including the special attributes
-              for further  recursion.  URI  processing  retrieves
-              only  those attributes that are included in the URI
-              definition    and    are    *also*    listed     in
-              "result_attribute".  If  the  URI  lists any of the
-              map's special result  attributes,  these  are  also
-              retrieved and used recursively.
+              for further recursion.
+
+              URL processing retrieves only those attributes that
+              are  included  in  both  the  URL definition and as
+              result attributes (ordinary, special, leaf or  ter-
+              minal) in the Postfix table definition.  If the URL
+              lists any of the table's special result attributes,
+              these  are  retrieved  and  used recursively. A URL
+              that does not specify any attribute  selection,  is
+              equivalent  (<a href="http://tools.ietf.org/html/rfc2255">RFC  2255</a>)  to  a URL that selects all
+              attributes, in which case the  selected  attributes
+              will  be  the  full set of result attributes in the
+              Postfix table.
+
+              If an LDAP URL attribute-descriptor or  the  corre-
+              sponding  Postfix  LDAP table result attribute (but
+              not  both)   uses   <a href="http://tools.ietf.org/html/rfc2255">RFC   2255</a>   sub-type   options
+              ("attr;option"),  the  attribute requested from the
+              LDAP server will include the  sub-type  option.  In
+              all  other  cases,  the URL attribute and the table
+              attribute  must  match  exactly.  Attributes   with
+              options  in  both the URL and the Postfix table are
+              requested only when the options are identical. LDAP
+              attribute-descriptor  options are very rarely used,
+              most LDAP users will not need to concern themselves
+              with this level of nuanced detail.
 
        <b>terminal_result_attribute (default: empty)</b>
               When  one  or  more  terminal result attributes are
@@ -371,7 +403,14 @@ LDAP_TABLE(5)                                                    LDAP_TABLE(5)
               the group is expanded,  possibly  via  mailing-list
               manager or other special processing.
 
+                  result_attribute =
                   terminal_result_attribute = maildrop
+
+              When  using terminal and/or leaf result attributes,
+              the result_attribute is best set to an empty  value
+              when  it is not used, or else explicitly set to the
+              desired value, even if  it  is  the  default  value
+              "maildrop".
 
               This  feature  is  available  with  Postfix  2.4 or
               later.
@@ -403,6 +442,12 @@ LDAP_TABLE(5)                                                    LDAP_TABLE(5)
                   special_result_attribute = memberdn
                   terminal_result_attribute = maildrop
                   leaf_result_attribute = mail
+
+              When using terminal and/or leaf result  attributes,
+              the  result_attribute is best set to an empty value
+              when it is not used, or else explicitly set to  the
+              desired  value,  even  if  it  is the default value
+              "maildrop".
 
               This feature  is  available  with  Postfix  2.4  or
               later.

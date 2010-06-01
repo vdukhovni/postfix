@@ -45,6 +45,12 @@
 /*	further input from the client; this is an attempt to block
 /*	the client before it sends ".".  Specify a zero delay value
 /*	to abort immediately.
+/* .IP "\fB-b \fIsoft-bounce-reply\fR"
+/*	Use \fIsoft-bounce-reply\fR for soft reject responses.  The
+/*	default reply is "450 4.3.0 Error: command failed".
+/* .IP "\fB-B \fIhard-bounce-reply\fR"
+/*	Use \fIhard-bounce-reply\fR for hard reject responses.  The
+/*	default reply is "500 5.3.0 Error: command failed".
 /* .IP \fB-c\fR
 /*	Display running counters that are updated whenever an SMTP
 /*	session ends, a QUIT command is executed, or when "." is
@@ -326,9 +332,14 @@ typedef struct SINK_STATE {
 #define DEF_MAX_CLIENT_COUNT	256
 #endif
 
+#define SOFT_ERROR_RESP		"450 4.3.0 Error: command failed"
+#define HARD_ERROR_RESP		"500 5.3.0 Error: command failed"
+
 static int var_tmout = 100;
 static int var_max_line_length = 2048;
 static char *var_myhostname;
+static char *soft_error_resp = SOFT_ERROR_RESP;
+static char *hard_error_resp = HARD_ERROR_RESP;
 static int command_read(SINK_STATE *);
 static int data_read(SINK_STATE *);
 static void disconnect(SINK_STATE *);
@@ -360,9 +371,6 @@ static VSTRING *start_string;		/* dump content prefix */
 
 static INET_PROTO_INFO *proto_info;
 
-#define SOFT_ERROR_RESP		"450 4.3.0 Error: command failed"
-#define HARD_ERROR_RESP		"500 5.3.0 Error: command failed"
-
 #define STR(x)	vstring_str(x)
 
 /* do_stats - show counters */
@@ -378,7 +386,7 @@ static void do_stats(void)
 
 static void hard_err_resp(SINK_STATE *state)
 {
-    smtp_printf(state->stream, HARD_ERROR_RESP);
+    smtp_printf(state->stream, hard_error_resp);
     smtp_flush(state->stream);
 }
 
@@ -386,7 +394,7 @@ static void hard_err_resp(SINK_STATE *state)
 
 static void soft_err_resp(SINK_STATE *state)
 {
-    smtp_printf(state->stream, SOFT_ERROR_RESP);
+    smtp_printf(state->stream, soft_error_resp);
     smtp_flush(state->stream);
 }
 
@@ -737,9 +745,9 @@ static void dot_resp_hard(SINK_STATE *state)
 {
     if (enable_lmtp) {
 	while (state->rcpts-- > 0)	/* XXX this could block */
-	    smtp_printf(state->stream, HARD_ERROR_RESP);
+	    smtp_printf(state->stream, hard_error_resp);
     } else {
-	smtp_printf(state->stream, HARD_ERROR_RESP);
+	smtp_printf(state->stream, hard_error_resp);
     }
     smtp_flush(state->stream);
 }
@@ -750,9 +758,9 @@ static void dot_resp_soft(SINK_STATE *state)
 {
     if (enable_lmtp) {
 	while (state->rcpts-- > 0)	/* XXX this could block */
-	    smtp_printf(state->stream, SOFT_ERROR_RESP);
+	    smtp_printf(state->stream, soft_error_resp);
     } else {
-	smtp_printf(state->stream, SOFT_ERROR_RESP);
+	smtp_printf(state->stream, soft_error_resp);
     }
     smtp_flush(state->stream);
 }
@@ -1367,7 +1375,7 @@ static void connect_event(int unused_event, char *unused_context)
 
 static void usage(char *myname)
 {
-    msg_fatal("usage: %s [-468acCeEFLpPv] [-A abort_delay] [-d dump-template] [-D dump-template] [-f commands] [-h hostname] [-m max_concurrency] [M message_quit_count] [-n quit_count] [-q commands] [-r commands] [-R root-dir] [-s commands] [-S start-string] [-u user_privs] [-w delay] [host]:port backlog", myname);
+    msg_fatal("usage: %s [-468acCeEFLpPv] [-A abort_delay] [-b soft_bounce_reply] [-B hard_bounce_reply] [-d dump-template] [-D dump-template] [-f commands] [-h hostname] [-m max_concurrency] [-M message_quit_count] [-n quit_count] [-q commands] [-r commands] [-R root-dir] [-s commands] [-S start-string] [-u user_privs] [-w delay] [host]:port backlog", myname);
 }
 
 MAIL_VERSION_STAMP_DECLARE;
@@ -1399,7 +1407,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "468aA:cCd:D:eEf:Fh:Ln:m:M:pPq:Q:r:R:s:S:t:T:u:vw:W:")) > 0) {
+    while ((ch = GETOPT(argc, argv, "468aA:b:B:cCd:D:eEf:Fh:Ln:m:M:pPq:Q:r:R:s:S:t:T:u:vw:W:")) > 0) {
 	switch (ch) {
 	case '4':
 	    protocols = INET_PROTO_NAME_IPV4;
@@ -1416,6 +1424,20 @@ int     main(int argc, char **argv)
 	case 'A':
 	    if (!alldig(optarg) || (abort_delay = atoi(optarg)) < 0)
 		usage(argv[0]);
+	    break;
+	case 'b':
+	    if (optarg[0] != '4' || strspn(optarg, "0123456789") != 3) {
+		msg_error("bad soft error reply: %s", optarg);
+		usage(argv[0]);
+	    } else
+		soft_error_resp = optarg;
+	    break;
+	case 'B':
+	    if (optarg[0] != '5' || strspn(optarg, "0123456789") != 3) {
+		msg_error("bad hard error reply: %s", optarg);
+		usage(argv[0]);
+	    } else
+		hard_error_resp = optarg;
 	    break;
 	case 'c':
 	    count++;
