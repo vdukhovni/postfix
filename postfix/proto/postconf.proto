@@ -12570,6 +12570,8 @@ the dnsblog(8) daemon will query these domains with the IP addresses
 of non-whitelisted postscreen(8) clients. Specify a list of domain
 names, separated by comma or whitespace. </p>
 
+<p> This feature is available in Postfix 2.8. </p>
+
 %PARAM postscreen_dnsbl_action continue
 
 <p>The action that postscreen(8) takes when an SMTP client is listed

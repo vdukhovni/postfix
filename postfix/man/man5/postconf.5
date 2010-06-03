@@ -3787,6 +3787,8 @@ Optional list of DNS blocklist domains. When the list is non-enpty,
 the \fBdnsblog\fR(8) daemon will query these domains with the IP addresses
 of non-whitelisted \fBpostscreen\fR(8) clients. Specify a list of domain
 names, separated by comma or whitespace.
+.PP
+This feature is available in Postfix 2.8.
 .SH postscreen_greet_action (default: continue)
 The action that \fBpostscreen\fR(8) takes when an SMTP client speaks
 before its turn within the time specified with the postscreen_greet_wait
