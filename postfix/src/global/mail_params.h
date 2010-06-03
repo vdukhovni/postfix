@@ -2922,7 +2922,7 @@ extern bool var_smtp_cname_overr;
 #ifdef USE_TLS
 #include <openssl/opensslv.h>
 #if OPENSSL_VERSION_NUMBER >= 0x1000000fL
-#define PREFER_aNULL "aNULL:"
+#define PREFER_aNULL "aNULL:-aNULL:"
 #else
 #define PREFER_aNULL ""
 #endif
