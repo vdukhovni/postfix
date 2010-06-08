@@ -15751,8 +15751,8 @@ Apologies for any names omitted.
 	tls/tls_dh.c, tls/tls_server.c.
 
 	Portability: Mac OS 10.6.3 requires <arpa/nameser_compat.h>
-	instead of <arpa/nameser8_compat.h>. Files: makedefs,
-	util/sys_defs.h, dns/dns.h.
+	instead of <nameser8_compat.h>. Files: makedefs, util/sys_defs.h,
+	dns/dns.h.
 
 20100531
 
