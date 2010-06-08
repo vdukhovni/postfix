@@ -15338,3 +15338,32 @@ Apologies for any names omitted.
 	a mailbox address inside <>, which broke expectations.  RFC
 	2821 (and 5321) is vague about the VRFY request format, but
 	spends lots of text on the reply format.  File: smtpd/smtpd.c.
+
+20100515
+
+	Bugfix (introduced Postfix 2.6): the Postfix SMTP client
+	XFORWARD implementation did not skip "unknown" SMTP client
+	attributes, causing a syntax error when sending a PORT
+	attribute. Reported by Victor Duchovni. File: smtp/smtp_proto.c.
+
+20100529
+
+	Portability: OpenSSL 1.0.0 changes the priority of anonymous
+	cyphers. Victor Duchovni. Files: postconf.proto,
+	global/mail_params.h, tls/tls_certkey.c, tls/tls_client.c,
+	tls/tls_dh.c, tls/tls_server.c.
+
+	Portability: Mac OS 10.6.3 requires <arpa/nameser_compat.h>
+	instead of <nameser8_compat.h>. Files: makedefs, util/sys_defs.h,
+	dns/dns.h.
+
+20100531
+
+	Robustness: skip LDAP queries with non-ASCII search strings.
+	The LDAP library requires well-formed UTF-8.  Victor Duchovni.
+	File: global/dict_ldap.c.
+
+20100601
+
+	Portability: Berkeley DB 5.x has the same API as Berkeley
+	DB 4.1 and later. File: util/dict_db.c.

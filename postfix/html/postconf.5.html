@@ -4279,7 +4279,7 @@ configuration parameter.  See there for details. </p>
 parameter.  See there for details. </p>
 
 <p> This feature is available in Postfix 2.6 and later, when Postfix is
-compiled and linked with OpenSSL 0.9.9 or later. </p>
+compiled and linked with OpenSSL 1.0.0 or later. </p>
 
 
 </DD>
@@ -4291,7 +4291,7 @@ compiled and linked with OpenSSL 0.9.9 or later. </p>
 parameter.  See there for details. </p>
 
 <p> This feature is available in Postfix 2.6 and later, when Postfix is
-compiled and linked with OpenSSL 0.9.9 or later. </p>
+compiled and linked with OpenSSL 1.0.0 or later. </p>
 
 
 </DD>
@@ -9081,7 +9081,7 @@ This file may also contain the Postfix SMTP client ECDSA private key. </p>
 </pre>
 
 <p> This feature is available in Postfix 2.6 and later, when Postfix is
-compiled and linked with OpenSSL 0.9.9 or later. </p>
+compiled and linked with OpenSSL 1.0.0 or later. </p>
 
 
 </DD>
@@ -9099,7 +9099,7 @@ access to the system superuser account ("root"), and no access
 to anyone else. </p>
 
 <p> This feature is available in Postfix 2.6 and later, when Postfix is
-compiled and linked with OpenSSL 0.9.9 or later. </p>
+compiled and linked with OpenSSL 1.0.0 or later. </p>
 
 
 </DD>
@@ -12534,7 +12534,7 @@ This file may also contain the Postfix SMTP server private ECDSA key. </p>
 </pre>
 
 <p> This feature is available in Postfix 2.6 and later, when Postfix is
-compiled and linked with OpenSSL 0.9.9 or later. </p>
+compiled and linked with OpenSSL 1.0.0 or later. </p>
 
 
 </DD>
@@ -12552,7 +12552,7 @@ access to the system superuser account ("root"), and no access
 to anyone else. </p>
 
 <p> This feature is available in Postfix 2.6 and later, when Postfix is
-compiled and linked with OpenSSL 0.9.9 or later. </p>
+compiled and linked with OpenSSL 1.0.0 or later. </p>
 
 
 </DD>
@@ -12586,7 +12586,7 @@ users. </dd>
 </dl>
 
 <p> This feature is available in Postfix 2.6 and later, when it is
-compiled and linked with OpenSSL 0.9.9 or later. </p>
+compiled and linked with OpenSSL 1.0.0 or later. </p>
 
 
 </DD>
@@ -13380,7 +13380,7 @@ under the SECG name "secp256r1", but OpenSSL does not recognize the
 latter name. </p>
 
 <p> This feature is available in Postfix 2.6 and later, when it is
-compiled and linked with OpenSSL 0.9.9 or later. </p>
+compiled and linked with OpenSSL 1.0.0 or later. </p>
 
 
 </DD>
@@ -13403,7 +13403,7 @@ of <a href="http://tools.ietf.org/html/rfc4492">RFC 4492</a>. You should not gen
 classified as TOP SECRET. </p>
 
 <p> This feature is available in Postfix 2.6 and later, when it is
-compiled and linked with OpenSSL 0.9.9 or later. </p>
+compiled and linked with OpenSSL 1.0.0 or later. </p>
 
 
 </DD>
@@ -13416,7 +13416,11 @@ defines the meaning of the "export" setting in <a href="postconf.5.html#smtpd_tl
 <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> and <a href="postconf.5.html#lmtp_tls_mandatory_ciphers">lmtp_tls_mandatory_ciphers</a>. This is
 the cipherlist for the opportunistic ("may") TLS client security
 level and is the default cipherlist for the SMTP server. You are
-strongly encouraged to not change this setting. </p>
+strongly encouraged to not change this setting. With OpenSSL 1.0.0 and
+later the cipherlist may start with an "aNULL:" prefix, which restores
+the 0.9.8-compatible ordering of the aNULL ciphers to the top of the
+list when they are enabled. This prefix is not needed with previous
+OpenSSL releases. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -13429,7 +13433,11 @@ strongly encouraged to not change this setting. </p>
 <p> The OpenSSL cipherlist for "HIGH" grade ciphers. This defines
 the meaning of the "high" setting in <a href="postconf.5.html#smtpd_tls_mandatory_ciphers">smtpd_tls_mandatory_ciphers</a>,
 <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> and <a href="postconf.5.html#lmtp_tls_mandatory_ciphers">lmtp_tls_mandatory_ciphers</a>. You are
-strongly encouraged to not change this setting. </p>
+strongly encouraged to not change this setting. With OpenSSL 1.0.0 and
+later the cipherlist may start with an "aNULL:" prefix, which restores
+the 0.9.8-compatible ordering of the aNULL ciphers to the top of the
+list when they are enabled. This prefix is not needed with previous
+OpenSSL releases. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -13442,7 +13450,11 @@ strongly encouraged to not change this setting. </p>
 <p> The OpenSSL cipherlist for "LOW" or higher grade ciphers. This defines
 the meaning of the "low" setting in <a href="postconf.5.html#smtpd_tls_mandatory_ciphers">smtpd_tls_mandatory_ciphers</a>,
 <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> and <a href="postconf.5.html#lmtp_tls_mandatory_ciphers">lmtp_tls_mandatory_ciphers</a>. You are
-strongly encouraged to not change this setting. </p>
+strongly encouraged to not change this setting.  With OpenSSL 1.0.0 and
+later the cipherlist may start with an "aNULL:" prefix, which restores
+the 0.9.8-compatible ordering of the aNULL ciphers to the top of the
+list when they are enabled. This prefix is not needed with previous
+OpenSSL releases. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -13458,7 +13470,10 @@ defines the meaning of the "medium" setting in <a href="postconf.5.html#smtpd_tl
 the default cipherlist for mandatory TLS encryption in the TLS
 client (with anonymous ciphers disabled when verifying server
 certificates). You are strongly encouraged to not change this
-setting. </p>
+setting.  With OpenSSL 1.0.0 and later the cipherlist may start with an
+"aNULL:" prefix, which restores the 0.9.8-compatible ordering of the
+aNULL ciphers to the top of the list when they are enabled. This prefix
+is not needed with previous OpenSSL releases. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 

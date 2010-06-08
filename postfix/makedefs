@@ -412,6 +412,11 @@ ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
 		 [1-6].*) CCARGS="$CCARGS -DNO_IPV6";;
 		       *) CCARGS="$CCARGS -DBIND_8_COMPAT -DNO_NETINFO";;
 		esac
+		# Darwin 10.3.0 no longer has <nameser8_compat.h>.
+		case $RELEASE in
+		     ?.*) CCARGS="$CCARGS -DRESOLVE_H_NEEDS_NAMESER8_COMPAT_H";;
+		       *) CCARGS="$CCARGS -DRESOLVE_H_NEEDS_ARPA_NAMESER_COMPAT_H";;
+		esac
 		# kqueue and/or poll are broken up to and including MacOS X 10.5
 		CCARGS="$CCARGS -DNO_KQUEUE"
 #		# Darwin 8.11.1 has kqueue support, but let's play safe

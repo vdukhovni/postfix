@@ -664,7 +664,7 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
 	msg_fatal("set DB cache size %d: %m", dict_db_cache_size);
     if (type == DB_HASH && db->set_h_nelem(db, DICT_DB_NELM) != 0)
 	msg_fatal("set DB hash element count %d: %m", DICT_DB_NELM);
-#if (DB_VERSION_MAJOR == 4 && DB_VERSION_MINOR > 0)
+#if DB_VERSION_MAJOR == 5 || (DB_VERSION_MAJOR == 4 && DB_VERSION_MINOR > 0)
     if ((errno = db->open(db, 0, db_path, 0, type, db_flags, 0644)) != 0)
 	msg_fatal("open database %s: %m", db_path);
 #elif (DB_VERSION_MAJOR == 3 || DB_VERSION_MAJOR == 4)

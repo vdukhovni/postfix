@@ -554,7 +554,7 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
 {
     int     sts;
     TLS_SESS_STATE *TLScontext;
-    SSL_CIPHER *cipher;
+    const SSL_CIPHER *cipher;
     X509   *peer;
     char    buf[CCERT_BUFSIZ];
     const char *cipher_list;

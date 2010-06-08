@@ -2326,13 +2326,13 @@ The LMTP-specific version of the smtp_tls_eccert_file configuration
 parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.6 and later, when Postfix is
-compiled and linked with OpenSSL 0.9.9 or later.
+compiled and linked with OpenSSL 1.0.0 or later.
 .SH lmtp_tls_eckey_file (default: empty)
 The LMTP-specific version of the smtp_tls_eckey_file configuration
 parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.6 and later, when Postfix is
-compiled and linked with OpenSSL 0.9.9 or later.
+compiled and linked with OpenSSL 1.0.0 or later.
 .SH lmtp_tls_enforce_peername (default: yes)
 The LMTP-specific version of the smtp_tls_enforce_peername
 configuration parameter.  See there for details.
@@ -5221,7 +5221,7 @@ smtp_tls_eccert_file = /etc/postfix/ecdsa-ccert.pem
 .ft R
 .PP
 This feature is available in Postfix 2.6 and later, when Postfix is
-compiled and linked with OpenSSL 0.9.9 or later.
+compiled and linked with OpenSSL 1.0.0 or later.
 .SH smtp_tls_eckey_file (default: $smtp_tls_eccert_file)
 File with the Postfix SMTP client ECDSA private key in PEM format.
 This file may be combined with the Postfix SMTP client ECDSA
@@ -5233,7 +5233,7 @@ access to the system superuser account ("root"), and no access
 to anyone else.
 .PP
 This feature is available in Postfix 2.6 and later, when Postfix is
-compiled and linked with OpenSSL 0.9.9 or later.
+compiled and linked with OpenSSL 1.0.0 or later.
 .SH smtp_tls_enforce_peername (default: yes)
 With mandatory TLS encryption, require that the remote SMTP
 server hostname matches the information in the remote SMTP server
@@ -7820,7 +7820,7 @@ smtpd_tls_eccert_file = /etc/postfix/ecdsa-scert.pem
 .ft R
 .PP
 This feature is available in Postfix 2.6 and later, when Postfix is
-compiled and linked with OpenSSL 0.9.9 or later.
+compiled and linked with OpenSSL 1.0.0 or later.
 .SH smtpd_tls_eckey_file (default: $smtpd_tls_eccert_file)
 File with the Postfix SMTP server ECDSA private key in PEM format.
 This file may be combined with the Postfix SMTP server ECDSA certificate
@@ -7832,7 +7832,7 @@ access to the system superuser account ("root"), and no access
 to anyone else.
 .PP
 This feature is available in Postfix 2.6 and later, when Postfix is
-compiled and linked with OpenSSL 0.9.9 or later.
+compiled and linked with OpenSSL 1.0.0 or later.
 .SH smtpd_tls_eecdh_grade (default: see "postconf -d" output)
 The Postfix SMTP server security grade for ephemeral elliptic-curve
 Diffie-Hellman (EECDH) key exchange.
@@ -7856,7 +7856,7 @@ elliptic curve crypto-systems, the "strong" curve is sufficient for most
 users.
 .PP
 This feature is available in Postfix 2.6 and later, when it is
-compiled and linked with OpenSSL 0.9.9 or later.
+compiled and linked with OpenSSL 1.0.0 or later.
 .SH smtpd_tls_exclude_ciphers (default: empty)
 List of ciphers or cipher types to exclude from the SMTP server
 cipher list at all TLS security levels. Excluding valid ciphers
@@ -8437,7 +8437,7 @@ under the SECG name "secp256r1", but OpenSSL does not recognize the
 latter name.
 .PP
 This feature is available in Postfix 2.6 and later, when it is
-compiled and linked with OpenSSL 0.9.9 or later.
+compiled and linked with OpenSSL 1.0.0 or later.
 .SH tls_eecdh_ultra_curve (default: secp384r1)
 The elliptic curve used by the SMTP server for maximally strong
 ephemeral ECDH key exchange. This curve is used by the Postfix SMTP
@@ -8454,28 +8454,40 @@ This default "ultra" curve is specified in NSA "Suite B" Cryptography
 classified as TOP SECRET.
 .PP
 This feature is available in Postfix 2.6 and later, when it is
-compiled and linked with OpenSSL 0.9.9 or later.
+compiled and linked with OpenSSL 1.0.0 or later.
 .SH tls_export_cipherlist (default: ALL:+RC4:@STRENGTH)
 The OpenSSL cipherlist for "EXPORT" or higher grade ciphers. This
 defines the meaning of the "export" setting in smtpd_tls_mandatory_ciphers,
 smtp_tls_mandatory_ciphers and lmtp_tls_mandatory_ciphers. This is
 the cipherlist for the opportunistic ("may") TLS client security
 level and is the default cipherlist for the SMTP server. You are
-strongly encouraged to not change this setting.
+strongly encouraged to not change this setting. With OpenSSL 1.0.0 and
+later the cipherlist may start with an "aNULL:" prefix, which restores
+the 0.9.8-compatible ordering of the aNULL ciphers to the top of the
+list when they are enabled. This prefix is not needed with previous
+OpenSSL releases.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH tls_high_cipherlist (default: ALL:!EXPORT:!LOW:!MEDIUM:+RC4:@STRENGTH)
 The OpenSSL cipherlist for "HIGH" grade ciphers. This defines
 the meaning of the "high" setting in smtpd_tls_mandatory_ciphers,
 smtp_tls_mandatory_ciphers and lmtp_tls_mandatory_ciphers. You are
-strongly encouraged to not change this setting.
+strongly encouraged to not change this setting. With OpenSSL 1.0.0 and
+later the cipherlist may start with an "aNULL:" prefix, which restores
+the 0.9.8-compatible ordering of the aNULL ciphers to the top of the
+list when they are enabled. This prefix is not needed with previous
+OpenSSL releases.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH tls_low_cipherlist (default: ALL:!EXPORT:+RC4:@STRENGTH)
 The OpenSSL cipherlist for "LOW" or higher grade ciphers. This defines
 the meaning of the "low" setting in smtpd_tls_mandatory_ciphers,
 smtp_tls_mandatory_ciphers and lmtp_tls_mandatory_ciphers. You are
-strongly encouraged to not change this setting.
+strongly encouraged to not change this setting.  With OpenSSL 1.0.0 and
+later the cipherlist may start with an "aNULL:" prefix, which restores
+the 0.9.8-compatible ordering of the aNULL ciphers to the top of the
+list when they are enabled. This prefix is not needed with previous
+OpenSSL releases.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH tls_medium_cipherlist (default: ALL:!EXPORT:!LOW:+RC4:@STRENGTH)
@@ -8485,7 +8497,10 @@ smtp_tls_mandatory_ciphers and lmtp_tls_mandatory_ciphers. This is
 the default cipherlist for mandatory TLS encryption in the TLS
 client (with anonymous ciphers disabled when verifying server
 certificates). You are strongly encouraged to not change this
-setting.
+setting.  With OpenSSL 1.0.0 and later the cipherlist may start with an
+"aNULL:" prefix, which restores the 0.9.8-compatible ordering of the
+aNULL ciphers to the top of the list when they are enabled. This prefix
+is not needed with previous OpenSSL releases.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH tls_null_cipherlist (default: eNULL:!aNULL)

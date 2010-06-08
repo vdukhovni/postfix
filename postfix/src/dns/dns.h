@@ -22,6 +22,9 @@
 #ifdef RESOLVE_H_NEEDS_NAMESER8_COMPAT_H
 #include <nameser8_compat.h>
 #endif
+#ifdef RESOLVE_H_NEEDS_ARPA_NAMESER_COMPAT_H
+#include <arpa/nameser_compat.h>
+#endif
 #include <resolv.h>
 
  /*

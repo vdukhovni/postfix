@@ -10891,7 +10891,11 @@ attribute. See smtp_tls_policy_maps for notes and examples. </p>
 <p> The OpenSSL cipherlist for "HIGH" grade ciphers. This defines
 the meaning of the "high" setting in smtpd_tls_mandatory_ciphers,
 smtp_tls_mandatory_ciphers and lmtp_tls_mandatory_ciphers. You are
-strongly encouraged to not change this setting. </p>
+strongly encouraged to not change this setting. With OpenSSL 1.0.0 and
+later the cipherlist may start with an "aNULL:" prefix, which restores
+the 0.9.8-compatible ordering of the aNULL ciphers to the top of the
+list when they are enabled. This prefix is not needed with previous
+OpenSSL releases. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -10903,7 +10907,10 @@ smtp_tls_mandatory_ciphers and lmtp_tls_mandatory_ciphers. This is
 the default cipherlist for mandatory TLS encryption in the TLS
 client (with anonymous ciphers disabled when verifying server
 certificates). You are strongly encouraged to not change this
-setting. </p>
+setting.  With OpenSSL 1.0.0 and later the cipherlist may start with an
+"aNULL:" prefix, which restores the 0.9.8-compatible ordering of the
+aNULL ciphers to the top of the list when they are enabled. This prefix
+is not needed with previous OpenSSL releases. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -10912,7 +10919,11 @@ setting. </p>
 <p> The OpenSSL cipherlist for "LOW" or higher grade ciphers. This defines
 the meaning of the "low" setting in smtpd_tls_mandatory_ciphers,
 smtp_tls_mandatory_ciphers and lmtp_tls_mandatory_ciphers. You are
-strongly encouraged to not change this setting. </p>
+strongly encouraged to not change this setting.  With OpenSSL 1.0.0 and
+later the cipherlist may start with an "aNULL:" prefix, which restores
+the 0.9.8-compatible ordering of the aNULL ciphers to the top of the
+list when they are enabled. This prefix is not needed with previous
+OpenSSL releases. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -10923,7 +10934,11 @@ defines the meaning of the "export" setting in smtpd_tls_mandatory_ciphers,
 smtp_tls_mandatory_ciphers and lmtp_tls_mandatory_ciphers. This is
 the cipherlist for the opportunistic ("may") TLS client security
 level and is the default cipherlist for the SMTP server. You are
-strongly encouraged to not change this setting. </p>
+strongly encouraged to not change this setting. With OpenSSL 1.0.0 and
+later the cipherlist may start with an "aNULL:" prefix, which restores
+the 0.9.8-compatible ordering of the aNULL ciphers to the top of the
+list when they are enabled. This prefix is not needed with previous
+OpenSSL releases. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -11449,7 +11464,7 @@ under the SECG name "secp256r1", but OpenSSL does not recognize the
 latter name. </p>
 
 <p> This feature is available in Postfix 2.6 and later, when it is
-compiled and linked with OpenSSL 0.9.9 or later. </p>
+compiled and linked with OpenSSL 1.0.0 or later. </p>
 
 %PARAM tls_eecdh_ultra_curve secp384r1
 
@@ -11468,7 +11483,7 @@ of RFC 4492. You should not generally change this setting. </p>
 classified as TOP SECRET. </p>
 
 <p> This feature is available in Postfix 2.6 and later, when it is
-compiled and linked with OpenSSL 0.9.9 or later. </p>
+compiled and linked with OpenSSL 1.0.0 or later. </p>
 
 %PARAM smtpd_tls_eecdh_grade see "postconf -d" output
 
@@ -11498,7 +11513,7 @@ users. </dd>
 </dl>
 
 <p> This feature is available in Postfix 2.6 and later, when it is
-compiled and linked with OpenSSL 0.9.9 or later. </p>
+compiled and linked with OpenSSL 1.0.0 or later. </p>
 
 %PARAM smtpd_tls_eccert_file
 
@@ -11514,7 +11529,7 @@ smtpd_tls_eccert_file = /etc/postfix/ecdsa-scert.pem
 </pre>
 
 <p> This feature is available in Postfix 2.6 and later, when Postfix is
-compiled and linked with OpenSSL 0.9.9 or later. </p>
+compiled and linked with OpenSSL 1.0.0 or later. </p>
 
 %PARAM smtpd_tls_eckey_file $smtpd_tls_eccert_file
 
@@ -11528,7 +11543,7 @@ access to the system superuser account ("root"), and no access
 to anyone else. </p>
 
 <p> This feature is available in Postfix 2.6 and later, when Postfix is
-compiled and linked with OpenSSL 0.9.9 or later. </p>
+compiled and linked with OpenSSL 1.0.0 or later. </p>
 
 %PARAM smtp_tls_eccert_file
 
@@ -11545,7 +11560,7 @@ smtp_tls_eccert_file = /etc/postfix/ecdsa-ccert.pem
 </pre>
 
 <p> This feature is available in Postfix 2.6 and later, when Postfix is
-compiled and linked with OpenSSL 0.9.9 or later. </p>
+compiled and linked with OpenSSL 1.0.0 or later. </p>
 
 %PARAM smtp_tls_eckey_file $smtp_tls_eccert_file
 
@@ -11559,7 +11574,7 @@ access to the system superuser account ("root"), and no access
 to anyone else. </p>
 
 <p> This feature is available in Postfix 2.6 and later, when Postfix is
-compiled and linked with OpenSSL 0.9.9 or later. </p>
+compiled and linked with OpenSSL 1.0.0 or later. </p>
 
 %PARAM lmtp_tls_eccert_file
 
@@ -11567,7 +11582,7 @@ compiled and linked with OpenSSL 0.9.9 or later. </p>
 parameter.  See there for details. </p>
 
 <p> This feature is available in Postfix 2.6 and later, when Postfix is
-compiled and linked with OpenSSL 0.9.9 or later. </p>
+compiled and linked with OpenSSL 1.0.0 or later. </p>
 
 %PARAM lmtp_tls_eckey_file
 
@@ -11575,7 +11590,7 @@ compiled and linked with OpenSSL 0.9.9 or later. </p>
 parameter.  See there for details. </p>
 
 <p> This feature is available in Postfix 2.6 and later, when Postfix is
-compiled and linked with OpenSSL 0.9.9 or later. </p>
+compiled and linked with OpenSSL 1.0.0 or later. </p>
 
 %PARAM smtp_header_checks
 
