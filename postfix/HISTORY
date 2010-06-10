@@ -15799,8 +15799,8 @@ Apologies for any names omitted.
 	tls/tls_dh.c, tls/tls_server.c.
 
 	Portability: Mac OS 10.6.3 requires <arpa/nameser_compat.h>
-	instead of <arpa/nameser8_compat.h>. Files: makedefs,
-	util/sys_defs.h, dns/dns.h.
+	instead of <nameser8_compat.h>. Files: makedefs, util/sys_defs.h,
+	dns/dns.h.
 
 20100531
 
@@ -15820,3 +15820,14 @@ Apologies for any names omitted.
 
 	Portability: Berkeley DB 5.x has the same API as Berkeley
 	DB 4.1 and later. File: util/dict_db.c.
+
+20100610
+
+	Postfix no longer appends the system default CAs to the
+	lists specified with *_tls_CAfile or with *_tls_CApath.
+	This prevents third-party certificates from being trusted
+	and being given mail relay permission with
+	permit_tls_all_clientcerts.  To get the old behavior specify
+	"tls_append_default_CA = yes".  Files: tls/tls_certkey.c,
+	tls/tls_misc.c, global/mail_params.h.  proto/postconf.proto,
+	mantools/postlink.

@@ -15,6 +15,7 @@
 /*	char	*var_tls_eecdh_strong;
 /*	char	*var_tls_eecdh_ultra;
 /*	int	var_tls_daemon_rand_bytes;
+/*	bool    var_tls_append_def_CA;
 /*
 /*	TLS_APPL_STATE *tls_alloc_app_context(ssl_ctx)
 /*	SSL_CTX	*ssl_ctx;
@@ -190,6 +191,7 @@ char   *var_tls_null_clist;
 int     var_tls_daemon_rand_bytes;
 char   *var_tls_eecdh_strong;
 char   *var_tls_eecdh_ultra;
+bool    var_tls_append_def_CA;
 
  /*
   * Index to attach TLScontext pointers to SSL objects, so that they can be
@@ -405,6 +407,10 @@ void    tls_param_init(void)
     };
     static const CONFIG_INT_TABLE int_table[] = {
 	VAR_TLS_DAEMON_RAND_BYTES, DEF_TLS_DAEMON_RAND_BYTES, &var_tls_daemon_rand_bytes, 1, 0,
+	0,
+    };
+    static const CONFIG_BOOL_TABLE bool_table[] = {
+	VAR_TLS_APPEND_DEF_CA, DEF_TLS_APPEND_DEF_CA, &var_tls_append_def_CA,
 	0,
     };
     static int init_done;

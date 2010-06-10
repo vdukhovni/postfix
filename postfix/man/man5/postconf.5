@@ -3473,7 +3473,8 @@ mydestination = $myhostname, localhost.$mydomain www.$mydomain, ftp.$mydomain
 .ft R
 .SH mydomain (default: see "postconf -d" output)
 The internet domain name of this mail system.  The default is to
-use $myhostname minus the first component.  $mydomain is used as
+use $myhostname minus the first component, or "localdomain" (Postfix
+2.3 and later).  $mydomain is used as
 a default value for many other configuration parameters.
 .PP
 Example:
@@ -3487,8 +3488,10 @@ mydomain = domain.tld
 .ft R
 .SH myhostname (default: see "postconf -d" output)
 The internet hostname of this mail system. The default is to use
-the fully-qualified domain name from gethostname(). $myhostname is
-used as a default value for many other configuration parameters.
+the fully-qualified domain name (FQDN) from gethostname(), or to
+use the non-FQDN result from gethostname() and append ".$mydomain".
+$myhostname is used as a default value for many other configuration
+parameters.
 .PP
 Example:
 .PP
@@ -5409,6 +5412,10 @@ file may also be used to augment the client certificate trust chain,
 but it is best to include all the required certificates directly in
 $smtp_tls_cert_file.
 .PP
+Specify "tls_append_default_CA = no" to prevent Postfix from
+appending the system-supplied default CAs and trusting third-party
+certificates. This setting is default as of Postfix 2.8.
+.PP
 Example:
 .PP
 .nf
@@ -5428,6 +5435,10 @@ with, for example, "$OPENSSL_HOME/bin/c_rehash /etc/postfix/certs".
 .PP
 To use this option in chroot mode, this directory (or a copy)
 must be inside the chroot jail.
+.PP
+Specify "tls_append_default_CA = no" to prevent Postfix from
+appending the system-supplied default CAs and trusting third-party
+certificates. This setting is default as of Postfix 2.8.
 .PP
 Example:
 .PP
@@ -6792,8 +6803,10 @@ authenticated via the RFC 4954 (AUTH) protocol.
 Permit the request when the remote SMTP client certificate is
 verified successfully.  This option must be used only if a special
 CA issues the certificates and only this CA is listed as trusted
-CA, otherwise all clients with a recognized certificate would be
-allowed to relay. This feature is available with Postfix version 2.2.
+CA. This requires that "tls_append_default_CA = no" (the default
+with Postfix 2.8 and later).  Otherwise, clients with a third-party
+certificate would also be allowed to relay. This feature is available
+with Postfix version 2.2.
 .IP "\fBpermit_tls_clientcerts\fR"
 Permit the request when the remote SMTP client certificate
 fingerprint is listed in $relay_clientcerts.
@@ -8036,6 +8049,10 @@ file may also be used to augment the server certificate trust chain,
 but it is best to include all the required certificates directly in the
 server certificate file.
 .PP
+Specify "tls_append_default_CA = no" to prevent Postfix from
+appending the system-supplied default CAs and trusting third-party
+certificates. This setting is default as of Postfix 2.8.
+.PP
 By default (see smtpd_tls_ask_ccert), client certificates are not
 requested, and smtpd_tls_CAfile should remain empty. If you do make use
 of client certificates, the distinguished names (DNs) of the certificate
@@ -8064,6 +8081,10 @@ certificates. Do not forget to create the necessary "hash" links with,
 for example, "$OPENSSL_HOME/bin/c_rehash /etc/postfix/certs". To use
 smtpd_tls_CApath in chroot mode, this directory (or a copy) must be
 inside the chroot jail.
+.PP
+Specify "tls_append_default_CA = no" to prevent Postfix from
+appending the system-supplied default CAs and trusting third-party
+certificates. This setting is default as of Postfix 2.8.
 .PP
 By default (see smtpd_tls_ask_ccert), client certificates are
 not requested, and smtpd_tls_CApath should remain empty. In contrast
@@ -8919,6 +8940,16 @@ tcp_windowsize change will work only for Postfix TCP clients (\fBsmtp\fR(8),
 \fBlmtp\fR(8)).
 .PP
 This feature is available in Postfix 2.6 and later.
+.SH tls_append_default_CA (default: no)
+Append the system-supplied default certificate authority
+certificates to the ones specified with *_tls_CApath or *_tls_CAfile.
+.PP
+To avoid massive compatibility breaks, this parameter defaults
+to "yes" for Postfix versions 2.7 and earlier. That is, they trust
+third-party certificates and they give relay permission with
+permit_tls_all_clientcerts.
+.PP
+This feature is retroactive in Postfix 2.4 and later.
 .SH tls_daemon_random_bytes (default: 32)
 The number of pseudo-random bytes that an \fBsmtp\fR(8) or \fBsmtpd\fR(8)
 process requests from the \fBtlsmgr\fR(8) server in order to seed its
