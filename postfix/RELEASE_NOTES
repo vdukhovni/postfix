@@ -19,10 +19,12 @@ Incompatibility with snapshot 20100610
 
 Postfix no longer appends the system-supplied default CAs to the
 lists specified with *_tls_CAfile or with *_tls_CApath. This prevents
-third-party certificates from being trusted and being given mail
-relay permission with permit_tls_all_clientcerts.
+third-party certificates from being trusted and given mail relay
+permission with permit_tls_all_clientcerts.
 
-Specify "tls_append_default_CA = yes" for the old behavior.
+Unfortunately this change may break certificate verification on
+sites that don't use permit_tls_all_clientcerts.  Specify
+"tls_append_default_CA = yes" for backwards compatibility.
 
 Incompatibility with snapshot 20100101
 ======================================

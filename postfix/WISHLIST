@@ -2,6 +2,9 @@ Wish list:
 
 	Remove this file from the stable release.
 
+	Need a regular expression table to translate address
+	verification responses into hard/soft/accept reply codes.
+
 	When an alias is a member of an :include: list with owner-
 	alias, local(8) needs an option to deliver alias or alias->user
 	indirectly. What happens when an :include: list with owner-
