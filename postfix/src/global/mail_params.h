@@ -623,6 +623,10 @@ extern bool var_stat_home_dir;
 #define DEF_DUP_FILTER_LIMIT	1000
 extern int var_dup_filter_limit;
 
+#define VAR_TLS_APPEND_DEF_CA	"tls_append_default_CA"
+#define DEF_TLS_APPEND_DEF_CA	0	/* Postfix < 2.8 BC break */
+extern bool var_tls_append_def_CA;
+
 #define VAR_TLS_RAND_EXCH_NAME	"tls_random_exchange_name"
 #define DEF_TLS_RAND_EXCH_NAME	"${data_directory}/prng_exch"
 extern char *var_tls_rand_exch_name;

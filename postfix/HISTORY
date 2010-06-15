@@ -15768,3 +15768,15 @@ Apologies for any names omitted.
 
 	Portability: Berkeley DB 5.x has the same API as Berkeley
 	DB 4.1 and later. File: util/dict_db.c.
+
+20100610
+
+	Bugfix: Postfix no longer appends the system default CAs
+	to the lists specified with *_tls_CAfile or with *_tls_CApath.
+	This prevents third-party certificates from being trusted
+	and given mail relay permission with permit_tls_all_clientcerts.
+	This change may break valid configurations that do not use
+	permit_tls_all_clientcerts.  To get the old behavior, specify
+	"tls_append_default_CA = yes".  Files: tls/tls_certkey.c,
+	tls/tls_misc.c, global/mail_params.h.  proto/postconf.proto,
+	mantools/postlink.
