@@ -8948,10 +8948,10 @@ The default is "no"; this prevents Postfix from trusting third-party
 certificates and giving them relay permission with
 permit_tls_all_clientcerts.
 .PP
-This feature is available in Postfix 2.4.15, 2.6.8, 2.7.2 and
-later versions. Specify "tls_append_default_CA = yes" for backwards
-compatibility, to avoid breaking certificate verification with sites
-that don't use permit_tls_all_clientcerts.
+This feature is available in Postfix 2.4.15, 2.5.11, 2.6.8,
+2.7.2 and later versions. Specify "tls_append_default_CA = yes" for
+backwards compatibility, to avoid breaking certificate verification
+with sites that don't use permit_tls_all_clientcerts.
 .SH tls_daemon_random_bytes (default: 32)
 The number of pseudo-random bytes that an \fBsmtp\fR(8) or \fBsmtpd\fR(8)
 process requests from the \fBtlsmgr\fR(8) server in order to seed its

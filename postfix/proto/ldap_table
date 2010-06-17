@@ -48,14 +48,8 @@
 #	written in main.cf, which is normally world-readable.  Support
 #	for this form will be removed in a future Postfix version.
 #
-#	Postfix 2.2 has enhanced query interfaces for MySQL and PostgreSQL.
-#	These include features that were previously available only in the
-#	Postfix LDAP client. This work also created an opportunity for
-#	improvements in the LDAP interface. The primary compatibility
-#	issue is that \fBresult_filter\fR (a name that has caused some
-#	confusion as to its meaning in the past) has been renamed to
-#	\fBresult_format\fR.  For backwards compatibility with the pre
-#	2.2 LDAP client, \fBresult_filter\fR can for now be used instead
+#	For backwards compatibility with the pre
+#	2.2 LDAP clients, \fBresult_filter\fR can for now be used instead
 #	of \fBresult_format\fR, when the latter parameter is not also set.
 #	The new name better reflects the function of the parameter. This
 #	compatibility interface may be removed in a future release.

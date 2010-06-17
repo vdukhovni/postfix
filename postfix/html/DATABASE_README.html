@@ -120,7 +120,8 @@ and are easy to debug with the <a href="postmap.1.html">postmap(1)</a> command: 
 </blockquote>
 
 <p> Once you have local files working properly you can follow the
-instructions in <a href="ldap_table.5.html">ldap_table(5)</a>, <a href="mysql_table.5.html">mysql_table(5)</a> or <a href="pgsql_table.5.html">pgsql_table(5)</a>
+instructions in <a href="ldap_table.5.html">ldap_table(5)</a>, <a href="mysql_table.5.html">mysql_table(5)</a>, <a href="pgsql_table.5.html">pgsql_table(5)</a>
+or <a href="sqlite_table.5.html">sqlite_table(5)</a>
 and replace local file lookups with LDAP or SQL lookups.  When you
 do this, you should use the <a href="postmap.1.html">postmap(1)</a> command again, to verify
 that database lookups still produce the exact same results as local
@@ -357,6 +358,11 @@ on systems with support for SDBM databases. Database files are
 created with the <a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1.html">postalias(1)</a> command. The lookup
 table name as used in "sdbm:table" is the database file name without
 the ".dir" or ".pag" suffix.  </dd>
+
+<dt> <b>sqlite</b> (read-only) </dt>
+
+<dd> Perform SQLite database lookups. Configuration details are given
+in <a href="sqlite_table.5.html">sqlite_table(5)</a>. </dd>
 
 <dt> <b>static</b> (read-only) </dt>
 

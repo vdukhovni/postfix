@@ -15832,3 +15832,22 @@ Apologies for any names omitted.
 	"tls_append_default_CA = yes".  Files: tls/tls_certkey.c,
 	tls/tls_misc.c, global/mail_params.h.  proto/postconf.proto,
 	mantools/postlink.
+
+20100615
+
+	Cleanup: the master no longer logs "process P killed with
+	signal S" when it shuts down a running service (for example,
+	the service is removed from master.cf, or the service is
+	disabled via the main.cf master_service_disable parameter).
+	File: master/master_spawn.c.
+
+20100617
+
+	Feature: read-only sqlite support based on code by Axel
+	Steiner and documentation by Jesus Garcia Crespo. Files:
+	conf/postfix-files, mantools/postlink, proto/DATABASE_README.html,
+	proto/Makefile.in, proto/INSTALL.html, proto/SASL_README.html,
+	proto/mysql_table, proto/pgsql_table, proto/sqlite_table,
+	proto/SQLITE_README.html, global/Makefile.in, global/mail_dict.c,
+	global/dict_sqlite.c, global/dict_sqlite.h, postconf/postconf.c,
+	postfix/postfix.c.

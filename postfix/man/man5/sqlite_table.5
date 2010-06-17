@@ -1,16 +1,16 @@
-.TH PGSQL_TABLE 5 
+.TH SQLITE_TABLE 5 
 .ad
 .fi
 .SH NAME
-pgsql_table
+sqlite_table
 \-
-Postfix PostgreSQL client configuration
+Postfix SQLite configuration
 .SH "SYNOPSIS"
 .na
 .nf
-\fBpostmap -q "\fIstring\fB" pgsql:/etc/postfix/filename\fR
+\fBpostmap -q "\fIstring\fB" sqlite:/etc/postfix/filename\fR
 
-\fBpostmap -q - pgsql:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
+\fBpostmap -q - sqlite:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
 .SH DESCRIPTION
 .ad
 .fi
@@ -18,14 +18,14 @@ The Postfix mail system uses optional tables for address
 rewriting or mail routing. These tables are usually in
 \fBdbm\fR or \fBdb\fR format.
 
-Alternatively, lookup tables can be specified as PostgreSQL
-databases.  In order to use PostgreSQL lookups, define a
-PostgreSQL source as a lookup table in main.cf, for example:
+Alternatively, lookup tables can be specified as SQLite databases.
+In order to use SQLite lookups, define a SQLite source as a lookup
+table in main.cf, for example:
 .nf
-    alias_maps = pgsql:/etc/pgsql-aliases.cf
+    alias_maps = sqlite:/etc/sqlite-aliases.cf
 .fi
 
-The file /etc/postfix/pgsql-aliases.cf has the same format as
+The file /etc/postfix/sqlite-aliases.cf has the same format as
 the Postfix main.cf file, and can specify the parameters
 described below.
 .SH "BACKWARDS COMPATIBILITY"
@@ -33,44 +33,32 @@ described below.
 .nf
 .ad
 .fi
-For compatibility with other Postfix lookup tables, PostgreSQL
-parameters can also be defined in main.cf.  In order to do
-that, specify as PostgreSQL source a name that doesn't begin
-with a slash or a dot.  The PostgreSQL parameters will then
-be accessible as the name you've given the source in its
-definition, an underscore, and the name of the parameter.  For
-example, if the map is specified as "pgsql:\fIpgsqlname\fR",
-the parameter "hosts" below would be defined in main.cf as
-"\fIpgsqlname\fR_hosts".
-
-Note: with this form, the passwords for the PostgreSQL sources
-are written in main.cf, which is normally world-readable.
-Support for this form will be removed in a future Postfix
-version.
+For compatibility with other Postfix lookup tables, SQLite
+parameters can also be defined in main.cf.  In order to do that,
+specify as SQLite source a name that doesn't begin with a slash
+or a dot.  The SQLite parameters will then be accessible as the
+name you've given the source in its definition, an underscore,
+and the name of the parameter.  For example, if the map is
+specified as "sqlite:\fIsqlitename\fR", the parameter "query"
+below would be defined in main.cf as "\fIsqlitename\fR_query".
 
 Normally, the SQL query is specified via a single \fBquery\fR
 parameter (described in more detail below).  When this
 parameter is not specified in the map definition, Postfix
-reverts to an older interface, with the  SQL  query
-constructed  from the \fBselect_function\fR, \fBselect_field\fR,
-\fBtable\fR, \fBwhere_field\fR and \fBadditional_conditions\fR
-parameters.  The old interface will be gradually phased
-out. To migrate to the new interface set:
+reverts to an older interface, with the SQL query constructed
+from the \fBselect_field\fR, \fBtable\fR, \fBwhere_field\fR
+and \fBadditional_conditions\fR parameters.  The old interface
+will be gradually phased out. To migrate to the new interface
+set:
 
 .nf
-    \fBquery\fR = SELECT \fIselect_function\fR('%s')
+    \fBquery\fR = SELECT [\fIselect_field\fR]
+        FROM [\fItable\fR]
+        WHERE [\fIwhere_field\fR] = '%s'
+            [\fIadditional_conditions\fR]
 .fi
 
-or in the absence of \fBselect_function\fR, the lower precedence:
-
-.nf
-    \fBquery\fR = SELECT \fIselect_field\fR
-        FROM \fItable\fR
-        WHERE \fIwhere_field\fR = '%s'
-            \fIadditional_conditions\fR
-.fi
-
-Use the value, not the name, of each legacy parameter. Note
+Insert the value, not the name, of each legacy parameter. Note
 that the \fBadditional_conditions\fR parameter is optional
 and if not empty, will always start with \fBAND\fR.
 .SH "LIST MEMBERSHIP"
@@ -93,41 +81,15 @@ in $mynetworks.
 DO create tables with each matching item as a key and with
 an arbitrary value. With SQL databases it is not uncommon to
 return the key itself or a constant value.
-.SH "PGSQL PARAMETERS"
+.SH "SQLITE PARAMETERS"
 .na
 .nf
 .ad
 .fi
-.IP "\fBhosts\fR"
-The hosts that Postfix will try to connect to and query from.
-Specify \fIunix:\fR for UNIX-domain sockets, \fIinet:\fR for TCP
-connections (default).  Example:
+.IP "\fBdbpath\fR"
+The SQLite database file location. Example:
 .nf
-    hosts = host1.some.domain host2.some.domain
-    hosts = unix:/file/name
-.fi
-
-The hosts are tried in random order, with all connections over
-UNIX domain sockets being tried before those over TCP.  The
-connections are automatically closed after being idle for about
-1 minute, and are re-opened as necessary.
-
-NOTE: the \fIunix:\fR and \fIinet:\fR prefixes are accepted for
-backwards compatibility reasons, but are actually ignored.
-The PostgreSQL client library will always try to connect to an
-UNIX socket if the name starts with a slash, and will try a TCP
-connection otherwise.
-.IP "\fBuser, password\fR"
-The user name and password to log into the pgsql server.
-Example:
-.nf
-    user = someone
-    password = some_password
-.fi
-.IP "\fBdbname\fR"
-The database name on the servers. Example:
-.nf
-    dbname = customer_database
+    dbpath = customer_database
 .fi
 .IP "\fBquery\fR"
 The SQL query template used to search the database, where \fB%s\fR
@@ -140,7 +102,7 @@ e.g.
 This parameter supports the following '%' expansions:
 .RS
 .IP "\fB\fB%%\fR\fR"
-This is replaced by a literal '%' character. (Postfix 2.2 and later)
+This is replaced by a literal '%' character.
 .IP "\fB\fB%s\fR\fR"
 This is replaced by the input key.
 SQL quoting is used to make sure that the input key does not
@@ -160,9 +122,6 @@ The upper-case equivalents of the above expansions behave in the
 \fBquery\fR parameter identically to their lower-case counter-parts.
 With the \fBresult_format\fR parameter (see below), they expand the
 input key rather than the result value.
-.IP
-The above %S, %U and %D expansions are available with Postfix 2.2
-and later
 .IP "\fB\fB%[1-9]\fR\fR"
 The patterns %1, %2, ... %9 are replaced by the corresponding
 most significant component of the input key's domain. If the
@@ -171,9 +130,6 @@ input key is \fIuser@mail.example.com\fR, then %1 is \fBcom\fR,
 unqualified or does not have enough domain components to satisfy
 all the specified patterns, the query is suppressed and returns
 no results.
-.IP
-The above %1, ... %9 expansions are available with Postfix 2.2
-and later
 .RE
 .IP
 The \fBdomain\fR parameter described below limits the input
@@ -182,14 +138,24 @@ parameter is non-empty, SQL queries for unqualified addresses
 or addresses in non-matching domains are suppressed
 and return no results.
 
-The precedence of this parameter has changed with Postfix 2.2,
-in prior releases the precedence was, from highest to lowest,
-\fBselect_function\fR, \fBquery\fR, \fBselect_field\fR, ...
+This parameter is available with Postfix 2.2. In prior releases
+the SQL query was built from the separate parameters:
+\fBselect_field\fR, \fBtable\fR, \fBwhere_field\fR and
+\fBadditional_conditions\fR. The mapping from the old parameters
+to the equivalent query is:
 
-With Postfix 2.2 the \fBquery\fR parameter has highest precedence,
-see COMPATIBILITY above.
+.nf
+    SELECT [\fBselect_field\fR]
+    FROM [\fBtable\fR]
+    WHERE [\fBwhere_field\fR] = '%s'
+          [\fBadditional_conditions\fR]
+.fi
 
-NOTE: DO NOT put quotes around the \fBquery\fR parameter.
+The '%s' in the \fBWHERE\fR clause expands to the escaped search string.
+With Postfix 2.2 these legacy parameters are used if the \fBquery\fR
+parameter is not specified.
+
+NOTE: DO NOT put quotes around the query parameter.
 .IP "\fBresult_format (default: \fB%s\fR)\fR"
 Format template applied to result attributes. Most commonly used
 to append (or prepend) text to the result. This parameter supports
@@ -238,7 +204,7 @@ dictionaries. When specified, only fully qualified search
 keys with a *non-empty* localpart and a matching domain
 are eligible for lookup: 'user' lookups, bare domain lookups
 and "@domain" lookups are not performed. This can significantly
-reduce the query load on the PostgreSQL server.
+reduce the query load on the SQLite server.
 .nf
     domain = postfix.org, hash:/etc/postfix/searchdomains
 .fi
@@ -257,35 +223,20 @@ A setting of zero disables the limit. Lookups fail with a
 temporary error if the limit is exceeded.  Setting the
 limit to 1 ensures that lookups do not return multiple
 values.
-.SH "OBSOLETE QUERY INTERFACES"
+.SH "OBSOLETE QUERY INTERFACE"
 .na
 .nf
 .ad
 .fi
-This section describes query interfaces that are deprecated
-as of Postfix 2.2.  Please migrate to the new \fBquery\fR
-interface as the old interfaces are slated to be phased
-out.
-.IP "\fBselect_function\fR"
-This parameter specifies a database function name. Example:
-.nf
-    select_function = my_lookup_user_alias
-.fi
+This section describes an interface that is deprecated as
+of Postfix 2.2. It is replaced by the more general \fBquery\fR
+interface described above.  If the \fBquery\fR parameter
+is defined, the legacy parameters described here ignored.
+Please migrate to the new interface as the legacy interface
+may be removed in a future release.
 
-This is equivalent to:
-.nf
-    query = SELECT my_lookup_user_alias('%s')
-.fi
-
-This parameter overrides the legacy table-related fields (described
-below). With Postfix versions prior to 2.2, it also overrides the
-\fBquery\fR parameter. Starting with Postfix 2.2, the \fBquery\fR
-parameter has highest precedence, and the \fBselect_function\fR
-parameter is deprecated.
-.PP
-The following parameters (with lower precedence than the
-\fBselect_function\fR interface described above) can be used to
-build the SQL select statement as follows:
+The following parameters can be used to fill in a
+SELECT template statement of the form:
 
 .nf
     SELECT [\fBselect_field\fR]
@@ -294,15 +245,9 @@ build the SQL select statement as follows:
           [\fBadditional_conditions\fR]
 .fi
 
-The specifier %s is replaced with each lookup by the lookup key
-and is escaped so if it contains single quotes or other odd
-characters, it will not cause a parse error, or worse, a security
-problem.
-
-Starting with Postfix 2.2, this interface is obsoleted by the more
-general \fBquery\fR interface described above. If higher precedence
-the \fBquery\fR or \fBselect_function\fR parameters described above
-are defined, the parameters described here are ignored.
+The specifier %s is replaced by the search string, and is
+escaped so if it contains single quotes or other odd characters,
+it will not cause a parse error, or worse, a security problem.
 .IP "\fBselect_field\fR"
 The SQL "select" parameter. Example:
 .nf
@@ -326,11 +271,11 @@ Additional conditions to the SQL query. Example:
 .SH "SEE ALSO"
 .na
 .nf
-postmap(1), Postfix lookup table manager
+postmap(1), Postfix lookup table maintenance
 postconf(5), configuration parameters
 ldap_table(5), LDAP lookup tables
 mysql_table(5), MySQL lookup tables
-sqlite_table(5), SQLite lookup tables
+pgsql_table(5), PostgreSQL lookup tables
 .SH "README FILES"
 .na
 .nf
@@ -341,7 +286,7 @@ Use "\fBpostconf readme_directory\fR" or
 .na
 .nf
 DATABASE_README, Postfix lookup table overview
-PGSQL_README, Postfix PostgreSQL client guide
+SQLITE_README, Postfix SQLITE driver
 .SH "LICENSE"
 .na
 .nf
@@ -351,19 +296,9 @@ The Secure Mailer license must be distributed with this software.
 .SH "HISTORY"
 .na
 .nf
-PgSQL support was introduced with Postfix version 2.1.
+SQLite support was introduced with Postfix version 2.8.
 .SH "AUTHOR(S)"
 .na
 .nf
-Based on the MySQL client by:
-Scott Cotton, Joshua Marcus
-IC Group, Inc.
-
-Ported to PostgreSQL by:
-Aaron Sethman
-
-Further enhanced by:
-Liviu Daia
-Institute of Mathematics of the Romanian Academy
-P.O. BOX 1-764
-RO-014700 Bucharest, ROMANIA
+Original implementation by:
+Axel Steiner

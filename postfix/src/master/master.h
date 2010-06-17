@@ -66,6 +66,7 @@ typedef struct MASTER_SERV {
 #define MASTER_FLAG_LOCAL_ONLY	(1<<4)	/* no remote clients */
 
 #define MASTER_THROTTLED(f)	((f)->flags & MASTER_FLAG_THROTTLE)
+#define MASTER_MARKED_FOR_DELETION(f) ((f)->flags & MASTER_FLAG_MARK)
 
 #define MASTER_LIMIT_OK(limit, count) ((limit) == 0 || ((count) < (limit)))
 

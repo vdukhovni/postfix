@@ -175,36 +175,40 @@ POSTCONF(1)                                                        POSTCONF(1)
                      is available on  systems  with  support  for
                      SDBM databases.
 
+              <b>sqlite</b> (read-only)
+                     Perform  lookups from SQLite database files.
+                     This is described in <a href="sqlite_table.5.html"><b>sqlite_table</b>(5)</a>.
+
               <b>static</b> (read-only)
-                     A  table  that  always  returns  its name as
-                     lookup result.  For  example,  <b>static:foobar</b>
-                     always  returns  the string <b>foobar</b> as lookup
+                     A table that  always  returns  its  name  as
+                     lookup  result.  For  example, <b>static:foobar</b>
+                     always returns the string <b>foobar</b>  as  lookup
                      result.
 
               <b>tcp</b> (read-only)
                      Perform lookups using a simple request-reply
-                     protocol  that is described in <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.
+                     protocol that is described in  <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.
                      This feature is not included with the stable
                      Postfix release.
 
               <b>unix</b> (read-only)
-                     A  limited way to query the UNIX authentica-
+                     A limited way to query the UNIX  authentica-
                      tion  database.  The  following  tables  are
                      implemented:
 
                      <b>unix:passwd.byname</b>
-                            The  table is the UNIX password data-
-                            base. The key is a login  name.   The
-                            result  is  a  password file entry in
+                            The table is the UNIX password  data-
+                            base.  The  key is a login name.  The
+                            result is a password  file  entry  in
                             <b>passwd</b>(5) format.
 
                      <b>unix:group.byname</b>
                             The table is the UNIX group database.
-                            The  key is a group name.  The result
-                            is a group  file  entry  in  <b>group</b>(5)
+                            The key is a group name.  The  result
+                            is  a  group  file  entry in <b>group</b>(5)
                             format.
 
-              Other  table types may exist depending on how Post-
+              Other table types may exist depending on how  Post-
               fix was built.
 
        <b>-n</b>     Print parameter settings that are not left at their
@@ -213,29 +217,29 @@ POSTCONF(1)                                                        POSTCONF(1)
 
        <b>-t</b> [<i>template</i><b>_</b><i>file</i>]
               Display the templates for delivery status notifica-
-              tion  (DSN) messages. To override the built-in tem-
-              plates, specify a template file at the end  of  the
+              tion (DSN) messages. To override the built-in  tem-
+              plates,  specify  a template file at the end of the
               command line, or specify a template file in <a href="postconf.5.html">main.cf</a>
-              with the <b><a href="postconf.5.html#bounce_template_file">bounce_template_file</a></b> parameter.  To  force
-              selection  of  the  built-in  templates, specify an
+              with  the <b><a href="postconf.5.html#bounce_template_file">bounce_template_file</a></b> parameter.  To force
+              selection of the  built-in  templates,  specify  an
               empty template file name (in shell language: "").
 
-              This feature is  available  with  Postfix  2.3  and
+              This  feature  is  available  with  Postfix 2.3 and
               later.
 
        <b>-v</b>     Enable verbose logging for debugging purposes. Mul-
-              tiple <b>-v</b> options  make  the  software  increasingly
+              tiple  <b>-v</b>  options  make  the software increasingly
               verbose.
 
-       <b>-#</b>     Edit  the  <a href="postconf.5.html"><b>main.cf</b></a>  configuration file. The file is
+       <b>-#</b>     Edit the <a href="postconf.5.html"><b>main.cf</b></a> configuration file.  The  file  is
               copied to a temporary file then renamed into place.
-              The  parameters  specified  on the command line are
+              The parameters specified on the  command  line  are
               commented-out, so that they revert to their default
-              values.  Specify  a  list  of  parameter names, not
-              name=value pairs.  There is no <b>postconf</b> command  to
+              values. Specify a  list  of  parameter  names,  not
+              name=value  pairs.  There is no <b>postconf</b> command to
               perform the reverse operation.
 
-              This  feature  is  available  with  Postfix 2.6 and
+              This feature is  available  with  Postfix  2.6  and
               later.
 
 <b>DIAGNOSTICS</b>
@@ -246,18 +250,18 @@ POSTCONF(1)                                                        POSTCONF(1)
               Directory with Postfix configuration files.
 
 <b>CONFIGURATION PARAMETERS</b>
-       The following <a href="postconf.5.html"><b>main.cf</b></a> parameters are  especially  relevant
+       The  following  <a href="postconf.5.html"><b>main.cf</b></a> parameters are especially relevant
        to this program.
 
-       The  text  below  provides  only  a parameter summary. See
+       The text below provides  only  a  parameter  summary.  See
        <a href="postconf.5.html"><b>postconf</b>(5)</a> for more details including examples.
 
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The default location of  the  Postfix  <a href="postconf.5.html">main.cf</a>  and
+              The  default  location  of  the Postfix <a href="postconf.5.html">main.cf</a> and
               <a href="master.5.html">master.cf</a> configuration files.
 
        <b><a href="postconf.5.html#bounce_template_file">bounce_template_file</a> (empty)</b>
-              Pathname  of  a configuration file with bounce mes-
+              Pathname of a configuration file with  bounce  mes-
               sage templates.
 
 <b>FILES</b>
@@ -271,7 +275,7 @@ POSTCONF(1)                                                        POSTCONF(1)
        <a href="DATABASE_README.html">DATABASE_README</a>, Postfix lookup table overview
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>

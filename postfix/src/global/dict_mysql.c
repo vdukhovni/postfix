@@ -31,7 +31,7 @@
 /*	main.cf configuration parameters for this search.
 /*
 /*	In the first case, the configuration parameters below are
-/*	specified in the file as \fIname\fR=\fBvalue\fR pairs.
+/*	specified in the file as \fIname\fR=\fIvalue\fR pairs.
 /*
 /*	In the second case, the configuration parameters are
 /*	prefixed with the value of \fIname\fR and an underscore,
@@ -47,29 +47,25 @@
 /*	See dict_open(3).
 /* .PP
 /*	Configuration parameters:
-/*
-/*	The parameters encodes a number of pieces of information:
-/*	username, password, databasename, table, select_field,
-/*	where_field, and hosts:
-/* .IP \fIuser\fR
+/* .IP user
 /* 	Username for connecting to the database.
-/* .IP \fIpassword\fR
+/* .IP password
 /*	Password for the above.
-/* .IP \fIdbname\fR
+/* .IP dbname
 /*	Name of the database.
-/* .IP \fIdomain\fR
+/* .IP domain
 /*      List of domains the queries should be restricted to.  If
 /*      specified, only FQDN addresses whose domain parts matching this
 /*      list will be queried against the SQL database.  Lookups for
 /*      partial addresses are also supressed.  This can significantly
 /*      reduce the query load on the server.
-/* .IP \fIquery\fR
+/* .IP query
 /*      Query template, before the query is actually issued, variable
 /*	substitutions are performed. See mysql_table(5) for details. If
 /*	No query is specified, the legacy variables \fItable\fR,
 /*	\fIselect_field\fR, \fIwhere_field\fR and \fIadditional_conditions\fR
 /*	are used to construct the query template.
-/* .IP \fIresult_format\fR
+/* .IP result_format
 /*      The format used to expand results from queries.  Substitutions
 /*      are performed as described in mysql_table(5). Defaults to returning
 /*	the lookup result unchanged.
@@ -78,22 +74,22 @@
 /*	exceed the limit fail with dict_errno=DICT_ERR_RETRY. Note that each
 /*	non-empty (and non-NULL) column of a multi-column result row counts as
 /*	one result.
-/* .IP \fItable\fR
+/* .IP table
 /*	When \fIquery\fR is not set, name of the table used to construct the
 /*	query string. This provides compatibility with older releases.
-/* .IP \fIselect_field\fR
+/* .IP select_field
 /*	When \fIquery\fR is not set, name of the result field used to
 /*	construct the query string. This provides compatibility with older
 /*	releases.
-/* .IP \fIwhere_field\fR
+/* .IP where_field
 /*	When \fIquery\fR is not set, name of the where clause field used to
 /*	construct the query string. This provides compatibility with older
 /*	releases.
-/* .IP \fIadditional_conditions\fR
+/* .IP additional_conditions
 /*	When \fIquery\fR is not set, additional where clause conditions used
 /*	to construct the query string. This provides compatibility with older
 /*	releases.
-/* .IP \fIhosts\fR
+/* .IP hosts
 /*	List of hosts to connect to.
 /* .PP
 /*	For example, if you want the map to reference databases of
@@ -117,10 +113,10 @@
 /*	\fIwhere_field\fR = \fBalias\fR
 /* .br
 /*	\fIhosts\fR = \fBhost1.some.domain\fR \fBhost2.some.domain\fR
-/* .IP \fIadditional_conditions\fR
+/* .IP additional_conditions
 /*      Backward compatibility when \fIquery\fR is not set, additional
 /*	conditions to the WHERE clause.
-/* .IP \fIhosts\fR
+/* .IP hosts
 /*	List of hosts to connect to.
 /* .PP
 /*	For example, if you want the map to reference databases of

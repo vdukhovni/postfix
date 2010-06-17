@@ -772,6 +772,7 @@ while (<>) {
     s/[<bB>]*reg[-<\/bB>]*\n*[ <bB>]*exp[<\/bBiI>]*_[<\/iIbB>]*ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="regexp_table.5.html">$&<\/a>/g;
     s/[<bB>]*relocated[<\/bB>]*\(5\)/<a href="relocated.5.html">$&<\/a>/g;
     s/[<bB>]*scache[<\/bB>]*\(8\)/<a href="scache.8.html">$&<\/a>/g;
+    s/[<bB>]*sqlite[<\/bBiI>]*_[<\/iIbB>]*ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="sqlite_table.5.html">$&<\/a>/g;
     s/[<bB>]*trans[-<\/bB>]*\n*[ <bB>]*port[<\/bB>]*\(5\)/<a href="transport.5.html">$&<\/a>/g;
     s/[<bB>]*verify[<\/bB>]*\(8\)/<a href="verify.8.html">$&<\/a>/g;
     s/[<bB>]*vir[-<\/bB>]*\n*[ <bB>]*tual[<\/bB>]*\(5\)/<a href="virtual.5.html">$&<\/a>/g;

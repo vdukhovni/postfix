@@ -299,7 +299,7 @@ static void vstring_extend(VBUF *bp, ssize_t incr)
      * negative length parameters).
      */
     new_len = bp->len + (bp->len > incr ? bp->len : incr);
-    if (new_len < 0)
+    if (new_len <= bp->len)
 	msg_fatal("vstring_extend: length overflow");
     bp->data = (unsigned char *) myrealloc((char *) bp->data, new_len);
     bp->len = new_len;
