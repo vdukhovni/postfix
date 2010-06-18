@@ -13,7 +13,7 @@
 #	\fBdbm\fR or \fBdb\fR format.
 #
 #	Alternatively, lookup tables can be specified as SQLite databases.
-#	In order to use SQLite lookups, define a SQLite source as a lookup
+#	In order to use SQLite lookups, define an SQLite source as a lookup
 #	table in main.cf, for example:
 # .nf
 #	    alias_maps = sqlite:/etc/sqlite-aliases.cf
@@ -268,7 +268,7 @@
 # .na
 # .nf
 #	DATABASE_README, Postfix lookup table overview
-#	SQLITE_README, Postfix SQLITE driver
+#	SQLITE_README, Postfix SQLITE howto
 # LICENSE
 # .ad
 # .fi

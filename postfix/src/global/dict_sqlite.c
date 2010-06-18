@@ -14,7 +14,7 @@
 /*	dict_sqlite_open() creates a dictionary of type 'sqlite'.
 /*	This dictionary is an interface for the postfix key->value
 /*	mappings to SQLite.  The result is a pointer to the installed
-/*	dictionary, or a null pointer in case of problems.
+/*	dictionary.
 /* .PP
 /*	Arguments:
 /* .IP name
@@ -39,7 +39,7 @@
 /* .IP dbpath
 /*	Path to SQLite database
 /* .IP query
-/*	Query template, before the query is actually issued, variable
+/*	Query template. Before the query is actually issued, variable
 /*	substitutions are performed. See sqlite_table(5) for details.
 /* .IP result_format
 /*	The format used to expand results from queries.  Substitutions
@@ -101,16 +101,16 @@ typedef struct {
 
 /* dict_sqlite_quote - escape SQL metacharacters in input string */
 
-static void dict_sqlite_quote(DICT *dict, const char *name, VSTRING *result)
+static void dict_sqlite_quote(DICT *dict, const char *raw_text, VSTRING *result)
 {
-    char   *q;
+    char   *quoted_text;
 
-    q = sqlite3_mprintf("%q", name);
+    quoted_text = sqlite3_mprintf("%q", raw_text);
     /* Fix 20100616 */
-    if (q == 0)
+    if (quoted_text == 0)
 	msg_fatal("dict_sqlite_quote: out of memory");
-    vstring_strcat(result, q);
-    sqlite3_free(q);
+    vstring_strcat(result, raw_text);
+    sqlite3_free(quoted_text);
 }
 
 /* dict_sqlite_close - close the database */
@@ -142,11 +142,11 @@ static const char *dict_sqlite_lookup(DICT *dict, const char *name)
 {
     const char *myname = "dict_sqlite_lookup";
     DICT_SQLITE *dict_sqlite = (DICT_SQLITE *) dict;
-    sqlite3_stmt *sql;
-    const char *zErrMsg;
+    sqlite3_stmt *sql_stmt;
+    const char *query_remainder;
     static VSTRING *query;
     static VSTRING *result;
-    const char *r;
+    const char *retval;
     int     expansion = 0;
     int     status;
 
@@ -161,17 +161,17 @@ static const char *dict_sqlite_lookup(DICT *dict, const char *name)
     }
 
     /*
-     * Optionally fold the key.
+     * Optionally fold the key. Folding may be enabled on on-the-fly.
      */
     if (dict->flags & DICT_FLAG_FOLD_FIX) {
 	if (dict->fold_buf == 0)
-	    dict->fold_buf = vstring_alloc(10);
+	    dict->fold_buf = vstring_alloc(100);
 	vstring_strcpy(dict->fold_buf, name);
 	name = lowercase(vstring_str(dict->fold_buf));
     }
 
     /*
-     * Domain filter for email address lookups.
+     * Apply the optional domain filter for email address lookups.
      */
     if (db_common_check_domain(dict_sqlite->ctx, name) == 0) {
 	if (msg_verbose)
@@ -201,75 +201,95 @@ static const char *dict_sqlite_lookup(DICT *dict, const char *name)
 		 myname, dict_sqlite->parser->name, vstring_str(query));
 
     if (sqlite3_prepare_v2(dict_sqlite->db, vstring_str(query), -1,
-			   &sql, &zErrMsg) != SQLITE_OK) {
+			   &sql_stmt, &query_remainder) != SQLITE_OK)
 	msg_fatal("%s: %s: SQL prepare failed: %s\n",
 		  myname, dict_sqlite->parser->name,
 		  sqlite3_errmsg(dict_sqlite->db));
-    }
+
+    if (*query_remainder && msg_verbose)
+	msg_info("%s: %s: Ignoring text at end of query: %s",
+		 myname, dict_sqlite->parser->name, query_remainder);
 
     /*
      * Retrieve and expand the result(s).
      */
     INIT_VSTR(result, 10);
-    while ((status = sqlite3_step(sql)) == SQLITE_ROW) {
-	if (db_common_expand(dict_sqlite->ctx, dict_sqlite->result_format,
-			     (char *) sqlite3_column_text(sql, 0),
-			     name, result, 0)
-	    && dict_sqlite->expansion_limit > 0
-	    && ++expansion > dict_sqlite->expansion_limit) {
-	    msg_warn("%s: %s: Expansion limit exceeded for key: '%s'",
-		     myname, dict_sqlite->parser->name, name);
+    while ((status = sqlite3_step(sql_stmt)) != SQLITE_DONE) {
+	if (status == SQLITE_ROW) {
+	    if (db_common_expand(dict_sqlite->ctx, dict_sqlite->result_format,
+				 (char *) sqlite3_column_text(sql_stmt, 0),
+				 name, result, 0)
+		&& dict_sqlite->expansion_limit > 0
+		&& ++expansion > dict_sqlite->expansion_limit) {
+		msg_warn("%s: %s: Expansion limit exceeded for key '%s'",
+			 myname, dict_sqlite->parser->name, name);
+		dict_errno = DICT_ERR_RETRY;
+		break;
+	    }
+	}
+	/* Fix 20100616 */
+	else {
+	    msg_warn("%s: %s: SQL step failed for query '%s': %s\n",
+		     myname, dict_sqlite->parser->name,
+		     vstring_str(query), sqlite3_errmsg(dict_sqlite->db));
 	    dict_errno = DICT_ERR_RETRY;
 	    break;
 	}
     }
 
-    /* Fix 20100616 */
-    if (status != SQLITE_ROW && status != SQLITE_DONE) {
-	msg_warn("%s: %s: sql step for %s; %s\n",
-		 myname, dict_sqlite->parser->name,
-		 vstring_str(query), sqlite3_errmsg(dict_sqlite->db));
-	dict_errno = DICT_ERR_RETRY;
-    }
-
     /*
      * Clean up.
      */
-    if (sqlite3_finalize(sql))
-	msg_fatal("%s: %s: SQL finalize for %s; %s\n",
+    if (sqlite3_finalize(sql_stmt))
+	msg_fatal("%s: %s: SQL finalize failed for query '%s': %s\n",
 		  myname, dict_sqlite->parser->name,
 		  vstring_str(query), sqlite3_errmsg(dict_sqlite->db));
 
-    r = vstring_str(result);
-    return ((dict_errno == 0 && *r) ? r : 0);
+    return ((dict_errno == 0 && *(retval = vstring_str(result)) != 0) ?
+	    retval : 0);
 }
 
 /* sqlite_parse_config - parse sqlite configuration file */
 
 static void sqlite_parse_config(DICT_SQLITE *dict_sqlite, const char *sqlitecf)
 {
-    CFG_PARSER *p;
     VSTRING *buf;
 
-    p = dict_sqlite->parser = cfg_parser_alloc(sqlitecf);
-    dict_sqlite->dbpath = cfg_get_str(p, "dbpath", "", 1, 0);
-    dict_sqlite->result_format = cfg_get_str(p, "result_format", "%s", 1, 0);
-
-    if ((dict_sqlite->query = cfg_get_str(p, "query", NULL, 0, 0)) == 0) {
-	buf = vstring_alloc(64);
-	db_common_sql_build_query(buf, p);
+    /*
+     * Parse the primary configuration parameters, and emulate the legacy
+     * query interface if necessary. This simplifies migration from one SQL
+     * database type to another.
+     */
+    dict_sqlite->parser = cfg_parser_alloc(sqlitecf);
+    dict_sqlite->dbpath = cfg_get_str(dict_sqlite->parser, "dbpath", "", 1, 0);
+    dict_sqlite->query = cfg_get_str(dict_sqlite->parser, "query", NULL, 0, 0);
+    if (dict_sqlite->query == 0) {
+	buf = vstring_alloc(100);
+	db_common_sql_build_query(buf, dict_sqlite->parser);
 	dict_sqlite->query = vstring_export(buf);
     }
-    dict_sqlite->expansion_limit = cfg_get_int(p, "expansion_limit", 0, 0, 0);
+    dict_sqlite->result_format =
+	cfg_get_str(dict_sqlite->parser, "result_format", "%s", 1, 0);
+    dict_sqlite->expansion_limit =
+	cfg_get_int(dict_sqlite->parser, "expansion_limit", 0, 0, 0);
+
+    /*
+     * Parse the query / result templates and the optional domain filter.
+     */
     dict_sqlite->ctx = 0;
-
-    (void) db_common_parse(&dict_sqlite->dict, &dict_sqlite->ctx, dict_sqlite->query, 1);
+    (void) db_common_parse(&dict_sqlite->dict, &dict_sqlite->ctx,
+			   dict_sqlite->query, 1);
     (void) db_common_parse(0, &dict_sqlite->ctx, dict_sqlite->result_format, 0);
+    db_common_parse_domain(dict_sqlite->parser, dict_sqlite->ctx);
 
-    db_common_parse_domain(p, dict_sqlite->ctx);
-
-    if (dict_sqlite->dict.flags & DICT_FLAG_FOLD_FIX)
-	dict_sqlite->dict.fold_buf = vstring_alloc(10);
+    /*
+     * Maps that use substring keys should only be used with the full input
+     * key.
+     */
+    if (db_common_dict_partial(dict_sqlite->ctx))
+	dict_sqlite->dict.flags |= DICT_FLAG_PATTERN;
+    else
+	dict_sqlite->dict.flags |= DICT_FLAG_FIXED;
 }
 
 /* dict_sqlite_open - open sqlite database */
@@ -290,13 +310,13 @@ DICT   *dict_sqlite_open(const char *name, int open_flags, int dict_flags)
     dict_sqlite->dict.lookup = dict_sqlite_lookup;
     dict_sqlite->dict.close = dict_sqlite_close;
     dict_sqlite->dict.flags = dict_flags;
-    dict_sqlite->dict.flags |= DICT_FLAG_FIXED;
+
     sqlite_parse_config(dict_sqlite, name);
 
-    if (sqlite3_open(dict_sqlite->dbpath, &dict_sqlite->db)) {
-	msg_fatal("Can't open database: %s\n", sqlite3_errmsg(dict_sqlite->db));
-	sqlite3_close(dict_sqlite->db);
-    }
+    if (sqlite3_open(dict_sqlite->dbpath, &dict_sqlite->db))
+	msg_fatal("%s:%s: Can't open database: %s\n",
+		  DICT_TYPE_SQLITE, name, sqlite3_errmsg(dict_sqlite->db));
+
     return (DICT_DEBUG (&dict_sqlite->dict));
 }
 

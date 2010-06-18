@@ -15846,8 +15846,12 @@ Apologies for any names omitted.
 	Feature: read-only sqlite support based on code by Axel
 	Steiner and documentation by Jesus Garcia Crespo. Files:
 	conf/postfix-files, mantools/postlink, proto/DATABASE_README.html,
-	proto/Makefile.in, proto/INSTALL.html, proto/SASL_README.html,
-	proto/mysql_table, proto/pgsql_table, proto/sqlite_table,
-	proto/SQLITE_README.html, global/Makefile.in, global/mail_dict.c,
-	global/dict_sqlite.c, global/dict_sqlite.h, postconf/postconf.c,
-	postfix/postfix.c.
+	proto/Makefile.in, proto/INSTALL.html, proto/mysql_table,
+	proto/pgsql_table, proto/sqlite_table, proto/SQLITE_README.html,
+	global/Makefile.in, global/mail_dict.c, global/dict_sqlite.c,
+	global/dict_sqlite.h, postconf/postconf.c, postfix/postfix.c.
+
+20100618
+
+	Cleanup: SQLite read-only driver and documentation.  Files:
+	global/dict_sqlite.c, proto/mysql_table, proto/SQLITE_README.html.

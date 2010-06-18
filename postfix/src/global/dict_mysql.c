@@ -100,19 +100,19 @@
 /*	"vmailer" and password "passwd" then the configuration file
 /*	should read:
 /* .PP
-/*	\fIuser\fR = \fBvmailer\fR
+/*	user = vmailer
 /* .br
-/*	\fIpassword\fR = \fBpasswd\fR
+/*	password = passwd
 /* .br
-/*	\fIdbname\fR = \fBvmailer_info\fR
+/*	dbname = vmailer_info
 /* .br
-/*	\fItable\fR = \fBaliases\fR
+/*	table = aliases
 /* .br
-/*	\fIselect_field\fR = \fBforw_addr\fR
+/*	select_field = forw_addr
 /* .br
-/*	\fIwhere_field\fR = \fBalias\fR
+/*	where_field = alias
 /* .br
-/*	\fIhosts\fR = \fBhost1.some.domain\fR \fBhost2.some.domain\fR
+/*	hosts = host1.some.domain\fR \fBhost2.some.domain
 /* .IP additional_conditions
 /*      Backward compatibility when \fIquery\fR is not set, additional
 /*	conditions to the WHERE clause.
@@ -127,19 +127,19 @@
 /*	"vmailer" and password "passwd" then the configuration file
 /*	should read:
 /* .PP
-/*	\fIuser\fR = \fBvmailer\fR
+/*	user = vmailer
 /* .br
-/*	\fIpassword\fR = \fBpasswd\fR
+/*	password = passwd
 /* .br
-/*	\fIdbname\fR = \fBvmailer_info\fR
+/*	dbname = vmailer_info
 /* .br
-/*	\fItable\fR = \fBaliases\fR
+/*	table = aliases
 /* .br
-/*	\fIselect_field\fR = \fBforw_addr\fR
+/*	select_field = forw_addr
 /* .br
-/*	\fIwhere_field\fR = \fBalias\fR
+/*	where_field = alias
 /* .br
-/*	\fIhosts\fR = \fBhost1.some.domain\fR \fBhost2.some.domain\fR
+/*	hosts = host1.some.domain\fR \fBhost2.some.domain
 /* .PP
 /* SEE ALSO
 /*	dict(3) generic dictionary manager

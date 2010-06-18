@@ -10,9 +10,9 @@ SQLITE_TABLE(5)                                                SQLITE_TABLE(5)
        sqlite_table - Postfix SQLite configuration
 
 <b>SYNOPSIS</b>
-       <b>postmap -q "</b><i>string</i><b>" sqlite:/etc/postfix/filename</b>
+       <b>postmap -q "</b><i>string</i><b>" <a href="mysql_table.5.html">sqlite</a>:/etc/postfix/filename</b>
 
-       <b>postmap -q - sqlite:/etc/postfix/</b><i>filename</i> &lt;<i>inputfile</i>
+       <b>postmap -q - <a href="mysql_table.5.html">sqlite</a>:/etc/postfix/</b><i>filename</i> &lt;<i>inputfile</i>
 
 <b>DESCRIPTION</b>
        The  Postfix  mail system uses optional tables for address
@@ -20,9 +20,9 @@ SQLITE_TABLE(5)                                                SQLITE_TABLE(5)
        or <b>db</b> format.
 
        Alternatively,  lookup  tables  can be specified as SQLite
-       databases.  In order  to  use  SQLite  lookups,  define  a
+       databases.  In order to  use  SQLite  lookups,  define  an
        SQLite source as a lookup table in <a href="postconf.5.html">main.cf</a>, for example:
-           <a href="postconf.5.html#alias_maps">alias_maps</a> = sqlite:/etc/sqlite-aliases.cf
+           <a href="postconf.5.html#alias_maps">alias_maps</a> = <a href="mysql_table.5.html">sqlite</a>:/etc/sqlite-aliases.cf
 
        The  file /etc/postfix/sqlite-aliases.cf has the same for-
        mat as the Postfix  <a href="postconf.5.html">main.cf</a>  file,  and  can  specify  the
@@ -35,7 +35,7 @@ SQLITE_TABLE(5)                                                SQLITE_TABLE(5)
        with a slash or a dot.  The SQLite parameters will then be
        accessible as the name you've given the source in its def-
        inition, an underscore, and the  name  of  the  parameter.
-       For  example,  if  the map is specified as "sqlite:<i>sqlite-</i>
+       For  example,  if  the map is specified as "<a href="mysql_table.5.html">sqlite</a>:<i>sqlite-</i>
        <i>name</i>", the parameter "query" below  would  be  defined  in
        <a href="postconf.5.html">main.cf</a> as "<i>sqlitename</i>_query".
 
@@ -269,7 +269,7 @@ SQLITE_TABLE(5)                                                SQLITE_TABLE(5)
 
 <b>README FILES</b>
        <a href="DATABASE_README.html">DATABASE_README</a>, Postfix lookup table overview
-       <a href="SQLITE_README.html">SQLITE_README</a>, Postfix SQLITE driver
+       <a href="SQLITE_README.html">SQLITE_README</a>, Postfix SQLITE howto
 
 <b>LICENSE</b>
        The  Secure  Mailer  license must be distributed with this
