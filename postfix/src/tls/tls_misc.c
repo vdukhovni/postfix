@@ -421,6 +421,7 @@ void    tls_param_init(void)
 
     get_mail_conf_str_table(str_table);
     get_mail_conf_int_table(int_table);
+    get_mail_conf_bool_table(bool_table);
 }
 
 /* tls_set_ciphers - Set SSL context cipher list */

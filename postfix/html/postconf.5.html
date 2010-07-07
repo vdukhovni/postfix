@@ -13767,10 +13767,10 @@ The default is "no"; this prevents Postfix from trusting third-party
 certificates and giving them relay permission with
 <a href="postconf.5.html#permit_tls_all_clientcerts">permit_tls_all_clientcerts</a>.  </p>
 
-<p> This feature is available in Postfix 2.4.15, 2.6.8, 2.7.2 and
-later versions. Specify "<a href="postconf.5.html#tls_append_default_CA">tls_append_default_CA</a> = yes" for backwards
-compatibility, to avoid breaking certificate verification with sites
-that don't use <a href="postconf.5.html#permit_tls_all_clientcerts">permit_tls_all_clientcerts</a>. </p>
+<p> This feature is available in Postfix 2.4.15, 2.5.11, 2.6.8,
+2.7.2 and later versions. Specify "<a href="postconf.5.html#tls_append_default_CA">tls_append_default_CA</a> = yes" for
+backwards compatibility, to avoid breaking certificate verification
+with sites that don't use <a href="postconf.5.html#permit_tls_all_clientcerts">permit_tls_all_clientcerts</a>. </p>
 
 
 </DD>
