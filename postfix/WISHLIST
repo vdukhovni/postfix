@@ -2,6 +2,12 @@ Wish list:
 
 	Remove this file from the stable release.
 
+	Update history in manpage/readme for SQLite driver.
+
+	Make postconf aware of magical suffixes (the ones that
+	combine with transport names) and show them in "postconf
+	-n" output. Making this work with "postconf -d" is trickier.
+
 	Need a regular expression table to translate address
 	verification responses into hard/soft/accept reply codes.
 

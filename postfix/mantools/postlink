@@ -979,7 +979,7 @@ while (<>) {
     s/\b(nisplus):/<a href="nisplus_table.5.html">$1<\/a>:/g;
     s/\b(ldap):/<a href="ldap_table.5.html">$1<\/a>:/g;
     s/\b(regexp):/<a href="regexp_table.5.html">$1<\/a>:/g;
-    s/\b(sqlite):/<a href="mysql_table.5.html">$1<\/a>:/g;
+    s/\b(sqlite):/<a href="sqlite_table.5.html">$1<\/a>:/g;
     s/\b(tcp):/<a href="tcp_table.5.html">$1<\/a>:/g;
 
     # Do nice links for smtp:host:port etc.

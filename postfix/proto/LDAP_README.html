@@ -336,8 +336,8 @@ related settings (hosts, ports, bind settings, timeouts, ...) we have:
         search_base = dc=example, dc=com
         query_filter = mail=%s
         result_attribute = memberaddr
-    $ postmap -q agroup@example.com ldap:simple.cf
-    auser@example.org,buser@example.org
+    $ postmap -q agroup@example.com ldap:/etc/postfix/simple.cf \
+        auser@example.org,buser@example.org
 </pre>
 </blockquote> 
 
@@ -369,8 +369,8 @@ assume for the moment that groups never have a "maildrop" (the "bgroup"
         query_filter = mail=%s
         result_attribute = maildrop
         special_result_attribute = memberdn
-    $ postmap -q agroup@example.com ldap:special.cf
-    auser@mailhub.example.com,buser@mailhub.example.com
+    $ postmap -q agroup@example.com ldap:/etc/postfix/special.cf \
+        auser@mailhub.example.com,buser@mailhub.example.com
 </pre>
 </blockquote> 
 
@@ -400,12 +400,15 @@ never nested members of groups that are directly expanded. </p>
         query_filter = mail=%s
         result_attribute = maildrop
         special_result_attribute = memberdn
-    $ postmap -q auser@example.com ldap:no_expand.cf ldap:expand.cf
-    auser@mailhub.example.com
-    $ postmap -q agroup@example.com ldap:no_expand.cf ldap:expand.cf
-    auser@mailhub.example.com,buser@mailhub.example.com
-    $ postmap -q bgroup@example.com ldap:no_expand.cf ldap:expand.cf
-    bgroup@mlm.example.com
+    $ postmap -q auser@example.com \
+        ldap:/etc/postfix/no_expand.cf ldap:/etc/postfix/expand.cf \
+        auser@mailhub.example.com
+    $ postmap -q agroup@example.com \
+        ldap:/etc/postfix/no_expand.cf ldap:/etc/postfix/expand.cf \
+        auser@mailhub.example.com,buser@mailhub.example.com
+    $ postmap -q bgroup@example.com \
+        ldap:/etc/postfix/no_expand.cf ldap:/etc/postfix/expand.cf \
+        bgroup@mlm.example.com
 </pre>
 </blockquote> 
 
@@ -429,14 +432,14 @@ expanded groups. </p>
         special_result_attribute = memberdn
         terminal_result_attribute = maildrop
         leaf_result_attribute = mail
-    $ postmap -q auser@example.com ldap:fancy.cf
-    auser@mailhub.example.com
-    $ postmap -q cuser@example.com ldap:fancy.cf
-    cuser@example.com
-    $ postmap -q agroup@example.com ldap:fancy.cf
-    auser@mailhub.example.com,buser@mailhub.example.com,auser@example.org,buser@example.org
-    $ postmap -q bgroup@example.com ldap:fancy.cf
-    bgroup@mlm.example.com
+    $ postmap -q auser@example.com ldap:/etc/postfix/fancy.cf \
+        auser@mailhub.example.com
+    $ postmap -q cuser@example.com ldap:/etc/postfix/fancy.cf \
+        cuser@example.com
+    $ postmap -q agroup@example.com ldap:/etc/postfix/fancy.cf \
+        auser@mailhub.example.com,buser@mailhub.example.com,auser@example.org,buser@example.org
+    $ postmap -q bgroup@example.com ldap:/etc/postfix/fancy.cf \
+        bgroup@mlm.example.com
 </pre>
 </blockquote> 
 

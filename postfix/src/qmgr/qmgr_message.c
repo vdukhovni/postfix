@@ -765,6 +765,9 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		    msg_warn("%s: ignoring bad VERP request: \"%.100s\"",
 			     message->queue_id, start);
 		} else {
+		    if (msg_verbose)
+			msg_info("%s: enabling VERP for sender \"%.100s\"",
+				 message->queue_id, message->sender);
 		    message->single_rcpt = 1;
 		    message->verp_delims = mystrdup(start);
 		}

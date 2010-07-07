@@ -1150,6 +1150,11 @@ Use \fItransport\fR_destination_rate_delay to specify a
 transport-specific override, where \fItransport\fR is the master.cf
 name of the message delivery transport.
 .PP
+NOTE: with a non-zero _destination_rate_delay, specify a
+\fItransport\fR_destination_concurrency_failed_cohort_limit of 10
+or more to prevent Postfix from deferring all mail for the same
+destination after only one connection or handshake error.
+.PP
 This feature is available in Postfix 2.5 and later.
 .SH default_destination_recipient_limit (default: 50)
 The default maximal number of recipients per message delivery.
@@ -6634,8 +6639,8 @@ smtpd_client_connection_rate_limit = 1000
 .ad
 .ft R
 .SH smtpd_client_event_limit_exceptions (default: $mynetworks)
-Clients that are excluded from connection count, connection rate,
-or SMTP request rate restrictions. See the mynetworks parameter
+Clients that are excluded from smtpd_client_*_count/rate_limit
+restrictions. See the mynetworks parameter
 description for the parameter value syntax.
 .PP
 By default, clients in trusted networks are excluded. Specify a

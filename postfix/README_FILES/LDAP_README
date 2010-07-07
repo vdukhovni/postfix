@@ -232,8 +232,8 @@ settings, timeouts, ...) we have:
             search_base = dc=example, dc=com
             query_filter = mail=%s
             result_attribute = memberaddr
-        $ postmap -q agroup@example.com ldap:simple.cf
-        auser@example.org,buser@example.org
+        $ postmap -q agroup@example.com ldap:/etc/postfix/simple.cf \
+            auser@example.org,buser@example.org
 
 We search "dc=example, dc=com". The "mail" attribute is used in the
 query_filter to locate the right group, the "result_attribute" setting
@@ -261,8 +261,8 @@ example data.
             query_filter = mail=%s
             result_attribute = maildrop
             special_result_attribute = memberdn
-        $ postmap -q agroup@example.com ldap:special.cf
-        auser@mailhub.example.com,buser@mailhub.example.com
+        $ postmap -q agroup@example.com ldap:/etc/postfix/special.cf \
+            auser@mailhub.example.com,buser@mailhub.example.com
 
 Note: if the desired member object result attribute is always also present in
 the group, you get surprising results: the expansion also returns the address
@@ -288,12 +288,15 @@ expanded.
             query_filter = mail=%s
             result_attribute = maildrop
             special_result_attribute = memberdn
-        $ postmap -q auser@example.com ldap:no_expand.cf ldap:expand.cf
-        auser@mailhub.example.com
-        $ postmap -q agroup@example.com ldap:no_expand.cf ldap:expand.cf
-        auser@mailhub.example.com,buser@mailhub.example.com
-        $ postmap -q bgroup@example.com ldap:no_expand.cf ldap:expand.cf
-        bgroup@mlm.example.com
+        $ postmap -q auser@example.com \
+            ldap:/etc/postfix/no_expand.cf ldap:/etc/postfix/expand.cf \
+            auser@mailhub.example.com
+        $ postmap -q agroup@example.com \
+            ldap:/etc/postfix/no_expand.cf ldap:/etc/postfix/expand.cf \
+            auser@mailhub.example.com,buser@mailhub.example.com
+        $ postmap -q bgroup@example.com \
+            ldap:/etc/postfix/no_expand.cf ldap:/etc/postfix/expand.cf \
+            bgroup@mlm.example.com
 
 Non-group objects and groups with delayed expansion (those that have a maildrop
 attribute) are rewritten to a single maildrop value. Groups that don't have a
@@ -312,15 +315,15 @@ assume that forwarded groups are never nested inside expanded groups.
             special_result_attribute = memberdn
             terminal_result_attribute = maildrop
             leaf_result_attribute = mail
-        $ postmap -q auser@example.com ldap:fancy.cf
-        auser@mailhub.example.com
-        $ postmap -q cuser@example.com ldap:fancy.cf
-        cuser@example.com
-        $ postmap -q agroup@example.com ldap:fancy.cf
+        $ postmap -q auser@example.com ldap:/etc/postfix/fancy.cf \
+            auser@mailhub.example.com
+        $ postmap -q cuser@example.com ldap:/etc/postfix/fancy.cf \
+            cuser@example.com
+        $ postmap -q agroup@example.com ldap:/etc/postfix/fancy.cf \
 
     auser@mailhub.example.com,buser@mailhub.example.com,auser@example.org,buser@example.org
-        $ postmap -q bgroup@example.com ldap:fancy.cf
-        bgroup@mlm.example.com
+        $ postmap -q bgroup@example.com ldap:/etc/postfix/fancy.cf \
+            bgroup@mlm.example.com
 
 Above, delayed expansion is enabled via "terminal_result_attribute", which, if
 present, is used as the sole result and all other expansion is suppressed.

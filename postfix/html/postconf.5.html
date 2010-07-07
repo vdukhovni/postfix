@@ -1980,6 +1980,11 @@ transport-specific override, where <i>transport</i> is the <a href="master.5.htm
 name of the message delivery transport.
 </p>
 
+<p> NOTE: with a non-zero _destination_rate_delay, specify a
+<a href="postconf.5.html#transport_destination_concurrency_failed_cohort_limit"><i>transport</i>_destination_concurrency_failed_cohort_limit</a> of 10
+or more to prevent Postfix from deferring all mail for the same
+destination after only one connection or handshake error. </p>
+
 <p> This feature is available in Postfix 2.5 and later. </p>
 
 
@@ -10880,8 +10885,8 @@ Example:
 (default: $<a href="postconf.5.html#mynetworks">mynetworks</a>)</b></DT><DD>
 
 <p>
-Clients that are excluded from connection count, connection rate,
-or SMTP request rate restrictions. See the <a href="postconf.5.html#mynetworks">mynetworks</a> parameter
+Clients that are excluded from smtpd_client_*_count/rate_limit
+restrictions. See the <a href="postconf.5.html#mynetworks">mynetworks</a> parameter
 description for the parameter value syntax.
 </p>
 

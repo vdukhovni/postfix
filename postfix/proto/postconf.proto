@@ -4592,8 +4592,8 @@ This feature is available in Postfix 2.2 and later.
 %PARAM smtpd_client_event_limit_exceptions $mynetworks
 
 <p>
-Clients that are excluded from connection count, connection rate,
-or SMTP request rate restrictions. See the mynetworks parameter
+Clients that are excluded from smtpd_client_*_count/rate_limit
+restrictions. See the mynetworks parameter
 description for the parameter value syntax.
 </p>
 
@@ -12058,6 +12058,11 @@ stop</b>".
 transport-specific override, where <i>transport</i> is the master.cf
 name of the message delivery transport.
 </p>
+
+<p> NOTE: with a non-zero _destination_rate_delay, specify a
+<i>transport</i>_destination_concurrency_failed_cohort_limit of 10
+or more to prevent Postfix from deferring all mail for the same
+destination after only one connection or handshake error. </p>
 
 <p> This feature is available in Postfix 2.5 and later. </p>
 
