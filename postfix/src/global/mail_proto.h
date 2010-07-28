@@ -129,6 +129,7 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_ETRN_DOMAIN	"etrn_domain"
 #define MAIL_ATTR_DUMMY		"dummy"
 #define MAIL_ATTR_STRESS	"stress"
+#define MAIL_ATTR_LOG_IDENT	"log_ident"
 #define MAIL_ATTR_RWR_CONTEXT	"rewrite_context"
 
 #define MAIL_ATTR_RWR_LOCAL	"local"

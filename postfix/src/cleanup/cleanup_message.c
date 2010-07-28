@@ -326,6 +326,10 @@ static const char *cleanup_act(CLEANUP_STATE *state, char *context,
 	cleanup_act_log(state, "warning", context, buf, optional_text);
 	return (buf);
     }
+    if (STREQUAL(value, "INFO", command_len)) {
+	cleanup_act_log(state, "info", context, buf, optional_text);
+	return (buf);
+    }
     if (STREQUAL(value, "FILTER", command_len)) {
 	if (*optional_text == 0) {
 	    msg_warn("missing FILTER command argument in %s map", map_class);

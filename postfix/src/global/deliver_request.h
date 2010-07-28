@@ -48,6 +48,7 @@ typedef struct DELIVER_REQUEST {
     char   *sasl_method;		/* SASL method */
     char   *sasl_username;		/* SASL user name */
     char   *sasl_sender;		/* SASL sender */
+    char   *log_ident;			/* original queue ID */
     char   *rewrite_context;		/* address rewrite context */
     char   *dsn_envid;			/* DSN envelope ID */
     int     dsn_ret;			/* DSN full/header notification */

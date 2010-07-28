@@ -73,8 +73,11 @@
 /*	to a temporary file then renamed into place. Parameters and
 /*	values are specified on the command line. Use quotes in order
 /*	to protect shell metacharacters and whitespace.
+/*
+/*	With Postfix version 2.8 and later, the \fB-e\fR is no
+/*	longer needed.
 /* .IP \fB-h\fR
-/*	Show parameter values only, not the ``name = '' label
+/*	Show parameter values only, not the "\fIname = " label
 /*	that normally precedes the value.
 /* .IP \fB-l\fR
 /*	List the names of all supported mailbox locking methods.
@@ -389,7 +392,8 @@ static const CONFIG_STR_FN_TABLE str_fn_table_2[] = {
  /*
   * XXX Global so that call-backs can see it.
   */
-static int cmd_mode = SHOW_NAME;
+#define DEF_MODE	SHOW_NAME
+static int cmd_mode = DEF_MODE;
 
 /* check_myhostname - lookup hostname and validate */
 
@@ -1202,6 +1206,9 @@ int     main(int argc, char **argv)
      */
     else if (cmd_mode & (EDIT_MAIN | COMMENT_OUT)) {
 	edit_parameters(cmd_mode, argc - optind, argv + optind);
+    } else if (cmd_mode == DEF_MODE
+	       && argv[optind] && strchr(argv[optind], '=')) {
+	edit_parameters(cmd_mode | EDIT_MAIN, argc - optind, argv + optind);
     }
 
     /*

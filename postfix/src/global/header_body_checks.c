@@ -59,9 +59,9 @@
 /* DESCRIPTION
 /*	This module implements header_checks and body_checks.
 /*	Actions are executed while mail is being delivered. The
-/*	following actions are recognized: WARN, REPLACE, PREPEND,
-/*	IGNORE, DUNNO, and OK. These actions are safe for use in
-/*	delivery agents.
+/*	following actions are recognized: INFO, WARN, REPLACE,
+/*	PREPEND, IGNORE, DUNNO, and OK. These actions are safe for
+/*	use in delivery agents.
 /*
 /*	Other actions may be supplied via the extension mechanism
 /*	described below.  For example, actions that change the
@@ -115,7 +115,7 @@
 /*	and the input byte offset within the current header or body
 /*	segment.  The result value is either the original line
 /*	argument, HBC_CHECKS_STAT_IGNORE (delete the line from the
-/*	input stream) or HBC_CHECK_STAT_UNKNOWN (the command was
+/*	input stream) or HBC_CHECKS_STAT_UNKNOWN (the command was
 /*	not recognized).  Specify a null pointer to disable this
 /*	feature.
 /* .RE
@@ -246,6 +246,10 @@ static char *hbc_action(void *context, HBC_CALL_BACKS *cb,
 
     if (STREQUAL(cmd, "WARN", cmd_len)) {
 	cb->logger(context, "warning", where, line, cmd_args);
+	return ((char *) line);
+    }
+    if (STREQUAL(cmd, "INFO", cmd_len)) {
+	cb->logger(context, "info", where, line, cmd_args);
 	return ((char *) line);
     }
     if (STREQUAL(cmd, "REPLACE", cmd_len)) {

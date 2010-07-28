@@ -209,7 +209,7 @@ static int test_reply(SMFICTX *ctx, int code)
 	printf("test_reply %s\n", reply_code);
 	return (reply_code[0] == '4' ? SMFIS_TEMPFAIL : SMFIS_REJECT);
     } else {
-	printf("test_reply %d\n", code);
+	printf("test_reply %d\n\n", code);
 	return (code);
     }
 }

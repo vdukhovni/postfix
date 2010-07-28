@@ -234,16 +234,28 @@ char   *smtpd_sasl_mail_opt(SMTPD_STATE *state, const char *addr)
 
 void    smtpd_sasl_mail_log(SMTPD_STATE *state)
 {
-#define IFELSE(e1,e2,e3) ((e1) ? (e2) : (e3))
 
-    msg_info("%s: client=%s%s%s%s%s%s%s",
-      state->queue_id ? state->queue_id : "NOQUEUE", FORWARD_NAMADDR(state),
-	     IFELSE(state->sasl_method, ", sasl_method=", ""),
-	     IFELSE(state->sasl_method, state->sasl_method, ""),
-	     IFELSE(state->sasl_username, ", sasl_username=", ""),
-	     IFELSE(state->sasl_username, state->sasl_username, ""),
-	     IFELSE(state->sasl_sender, ", sasl_sender=", ""),
-	     IFELSE(state->sasl_sender, state->sasl_sender, ""));
+    /*
+     * See also: smtpd.c, for a shorter client= logfile record.
+     */
+#define PRINT_OR_NULL(cond, str) \
+	    ((cond) ? (str) : "")
+#define PRINT2_OR_NULL(cond, name, value) \
+	    PRINT_OR_NULL((cond), (name)), PRINT_OR_NULL((cond), (value))
+
+    msg_info("%s: client=%s%s%s%s%s%s%s%s%s%s%s",
+	     (state->queue_id ? state->queue_id : "NOQUEUE"),
+	     state->namaddr,
+	     PRINT2_OR_NULL(state->sasl_method,
+			    ", sasl_method=", state->sasl_method),
+	     PRINT2_OR_NULL(state->sasl_username,
+			    ", sasl_username=", state->sasl_username),
+	     PRINT2_OR_NULL(state->sasl_sender,
+			    ", sasl_sender=", state->sasl_sender),
+	     PRINT2_OR_NULL(HAVE_FORWARDED_IDENT(state),
+			    ", orig_queue_id=", FORWARD_IDENT(state)),
+	     PRINT2_OR_NULL(HAVE_FORWARDED_CLIENT_ATTR(state),
+			    ", orig_client=", FORWARD_NAMADDR(state)));
 }
 
 /* smtpd_sasl_mail_reset - SASL-specific MAIL FROM cleanup */

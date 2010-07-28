@@ -270,6 +270,7 @@ int     smtp_helo(SMTP_STATE *state)
 	XFORWARD_PORT, SMTP_FEATURE_XFORWARD_PORT,
 	XFORWARD_PROTO, SMTP_FEATURE_XFORWARD_PROTO,
 	XFORWARD_HELO, SMTP_FEATURE_XFORWARD_HELO,
+	XFORWARD_IDENT, SMTP_FEATURE_XFORWARD_IDENT,
 	XFORWARD_DOMAIN, SMTP_FEATURE_XFORWARD_DOMAIN,
 	0, 0,
     };
@@ -1220,6 +1221,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 #define CAN_FORWARD_CLIENT_PORT	_ATTR_AVAIL_AND_KNOWN_
 #define CAN_FORWARD_PROTO_NAME	_ATTR_AVAIL_AND_KNOWN_
 #define CAN_FORWARD_HELO_NAME	DEL_REQ_ATTR_AVAIL
+#define CAN_FORWARD_IDENT_NAME	DEL_REQ_ATTR_AVAIL
 #define CAN_FORWARD_RWR_CONTEXT	DEL_REQ_ATTR_AVAIL
 #endif
 
@@ -1257,6 +1259,11 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		&& CAN_FORWARD_HELO_NAME(request->client_helo)) {
 		vstring_strcat(next_command, " " XFORWARD_HELO "=");
 		xtext_quote_append(next_command, request->client_helo, "");
+	    }
+	    if ((session->features & SMTP_FEATURE_XFORWARD_IDENT)
+		&& CAN_FORWARD_IDENT_NAME(request->log_ident)) {
+		vstring_strcat(next_command, " " XFORWARD_IDENT "=");
+		xtext_quote_append(next_command, request->log_ident, "");
 	    }
 	    if ((session->features & SMTP_FEATURE_XFORWARD_DOMAIN)
 		&& CAN_FORWARD_RWR_CONTEXT(request->rewrite_context)) {
@@ -2008,6 +2015,8 @@ int     smtp_xfer(SMTP_STATE *state)
 	     && CAN_FORWARD_PROTO_NAME(request->client_proto))
 	    || ((session->features & SMTP_FEATURE_XFORWARD_HELO)
 		&& CAN_FORWARD_HELO_NAME(request->client_helo))
+	    || ((session->features & SMTP_FEATURE_XFORWARD_IDENT)
+		&& CAN_FORWARD_IDENT_NAME(request->log_ident))
 	    || ((session->features & SMTP_FEATURE_XFORWARD_DOMAIN)
 		&& CAN_FORWARD_RWR_CONTEXT(request->rewrite_context)));
     if (send_name_addr)

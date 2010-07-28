@@ -121,6 +121,7 @@ typedef struct SMTP_STATE {
 #define SMTP_FEATURE_PIX_DELAY_DOTCRLF	(1<<17)	/* PIX smtp fixup mode */
 #define SMTP_FEATURE_XFORWARD_PORT	(1<<18)
 #define SMTP_FEATURE_EARLY_TLS_MAIL_REPLY (1<<19)	/* CVE-2009-3555 */
+#define SMTP_FEATURE_XFORWARD_IDENT	(1<<20)
 
  /*
   * Features that passivate under the endpoint.

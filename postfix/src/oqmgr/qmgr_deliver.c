@@ -177,6 +177,7 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
 	     ATTR_TYPE_STR, MAIL_ATTR_SASL_USERNAME, message->sasl_username,
 	       ATTR_TYPE_STR, MAIL_ATTR_SASL_SENDER, message->sasl_sender,
     /* XXX Ditto if we want to pass TLS certificate info. */
+	       ATTR_TYPE_STR, MAIL_ATTR_LOG_IDENT, message->log_ident,
 	     ATTR_TYPE_STR, MAIL_ATTR_RWR_CONTEXT, message->rewrite_context,
 	       ATTR_TYPE_INT, MAIL_ATTR_RCPT_COUNT, list.len,
 	       ATTR_TYPE_END);

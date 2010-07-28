@@ -44,7 +44,7 @@ are in fact case insensitive.
 
     xforward-command = XFORWARD 1*( SP attribute-name"="attribute-value )
 
-    attribute-name = ( NAME | ADDR | PORT | PROTO | HELO | SOURCE )
+    attribute-name = ( NAME | ADDR | PORT | PROTO | HELO | IDENT | SOURCE )
 
     attribute-value = xtext
 
@@ -69,6 +69,11 @@ are in fact case insensitive.
     itself with (not necessarily via the SMTP HELO command), or [UNAVAILABLE]
     when the information is unavailable. The hostname may be a non-DNS
     hostname.
+
+  * The IDENT attribute specifies a local message identifier on the up-stream
+    host, or [UNAVAILABLE] when the information is unavailable. The down-stream
+    MTA may log this information together with its own local message identifier
+    to facilitate message tracking across MTAs.
 
   * The SOURCE attribute specifies LOCAL when the message was received from a
     source that is local with respect to the up-stream host (for example, the

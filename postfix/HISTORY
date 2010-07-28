@@ -15860,3 +15860,39 @@ Apologies for any names omitted.
 20100707
 
 	Completed the 20100610 bugfix. File: tls/tls_misc.c.
+
+20100714
+
+	Compatibility with Postfix < 2.3: fix 20061207 was incomplete
+	(undoing the change to bounce instead of defer after
+	pipe-to-command delivery fails with a signal). Fix by Thomas
+	Arnett. File: global/pipe_command.c.
+
+20100715
+
+	Convenience: "postconf name=value ..." is now equivalent to
+	"postconf -e name=value ...".  File: postconf/postconf.c.
+
+20100724
+
+	Feature: INFO header/body_checks action for non-warning
+	messages (for example, to log all Milter-inserted headers).
+	File: global/header_body_checks.c, proto/header_checks.
+
+	Cleanup: after-filter Postfix SMTP servers now log before-filter
+	queue IDs. For this, the XFORWARD protocol was extended
+	with an IDENT attribute for the before-filter queue ID.
+	This code was started in Postfix 2.1, but it was never
+	finished due to time constraints.  Files: smtpd/smtpd.[hc]
+	smtpd/smtpd_proxy.c, smtpd/smtpd_sasl_proto.c,
+	*qmgr/qmgr_messsage.c, *qmgr/qmgr_deliver.c,
+	global/deliver_request.[hc], global/mail_proto.h,
+	global/deliver_pass.c, smtp/smtp_proto.c.
+
+20100727
+
+	Bugfix: the milter_header_checks parser provided only the
+	actions that change the message flow (reject, filter,
+	discard, redirect) but disabled the non-flow actions (warn,
+	replace, prepend, ignore, dunno, ok).  File:
+	cleanup/cleanup_milter.c.

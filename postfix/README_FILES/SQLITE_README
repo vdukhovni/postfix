@@ -16,9 +16,11 @@ from:
 
     http://www.sqlite.org/
 
-In order to build Postfix with sqlite map support, you will need to add -
-DHAS_SQLITE and -I for the directory containing the sqlite headers, and the
-sqlite3 library to AUXLIBS, for example:
+In order to build Postfix with sqlite map support, you will need to add to
+CCARGS the flags -DHAS_SQLITE and -I with the directory containing the sqlite
+header files, and you will need to add to AUXLIBS the directory and name of the
+sqlite3 library, plus the name of the standard POSIX thread library (pthread).
+For example:
 
     make -f Makefile.init makefiles \
          'CCARGS=-DHAS_SQLITE -I/usr/local/include' \
@@ -56,6 +58,8 @@ you can use one for a virtual table, one for an access table, and one for an
 aliases table if you want.
 
 CCrreeddiittss
+
+SQLite support was added with Postfix version 2.8.
 
   * Implementation by Axel Steiner
   * Documentation by Jesus Garcia Crespo

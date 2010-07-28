@@ -583,7 +583,7 @@
 /* .IP "\fBsmtpd_recipient_limit (1000)\fR"
 /*	The maximal number of recipients that the Postfix SMTP server
 /*	accepts per message delivery request.
-/* .IP "\fBsmtpd_timeout (normal: 300s, stress: 10s)\fR"
+/* .IP "\fBsmtpd_timeout (normal: 300s, overload: 10s)\fR"
 /*	The time limit for sending a Postfix SMTP server response and for
 /*	receiving a remote SMTP client request.
 /* .IP "\fBsmtpd_history_flush_threshold (100)\fR"
@@ -613,8 +613,8 @@
 /*	to send to this service per time unit, regardless of whether or not
 /*	Postfix actually accepts those recipients.
 /* .IP "\fBsmtpd_client_event_limit_exceptions ($mynetworks)\fR"
-/*	Clients that are excluded from connection count, connection rate,
-/*	or SMTP request rate restrictions.
+/*	Clients that are excluded from smtpd_client_*_count/rate_limit
+/*	restrictions.
 /* .PP
 /*	Available in Postfix version 2.3 and later:
 /* .IP "\fBsmtpd_client_new_tls_session_rate_limit (0)\fR"
@@ -637,10 +637,10 @@
 /*	The number of errors a remote SMTP client is allowed to make without
 /*	delivering mail before the Postfix SMTP server slows down all its
 /*	responses.
-/* .IP "\fBsmtpd_hard_error_limit (normal: 20, stress: 1)\fR"
+/* .IP "\fBsmtpd_hard_error_limit (normal: 20, overload: 1)\fR"
 /*	The maximal number of errors a remote SMTP client is allowed to
 /*	make without delivering mail.
-/* .IP "\fBsmtpd_junk_command_limit (normal: 100, stress: 1)\fR"
+/* .IP "\fBsmtpd_junk_command_limit (normal: 100, overload: 1)\fR"
 /*	The number of junk commands (NOOP, VRFY, ETRN or RSET) that a remote
 /*	SMTP client can send before the Postfix SMTP server starts to
 /*	increment the error counter with each junk command.
@@ -744,7 +744,7 @@
 /*	See the file ADDRESS_VERIFICATION_README for information
 /*	about how to configure and operate the Postfix sender/recipient
 /*	address verification service.
-/* .IP "\fBaddress_verify_poll_count (${stress?1}${stress:3})\fR"
+/* .IP "\fBaddress_verify_poll_count (normal: 3, overload: 1)\fR"
 /*	How many times to query the \fBverify\fR(8) service for the completion
 /*	of an address verification request in progress.
 /* .IP "\fBaddress_verify_poll_delay (3s)\fR"
@@ -1662,7 +1662,8 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    ENQUEUE_FIX_REPLY(state, reply_buf, XFORWARD_CMD
 			      " " XFORWARD_NAME " " XFORWARD_ADDR
 			      " " XFORWARD_PROTO " " XFORWARD_HELO
-			      " " XFORWARD_DOMAIN " " XFORWARD_PORT);
+			      " " XFORWARD_DOMAIN " " XFORWARD_PORT
+			      " " XFORWARD_IDENT);
     if ((discard_mask & EHLO_MASK_ENHANCEDSTATUSCODES) == 0)
 	ENQUEUE_FIX_REPLY(state, reply_buf, "ENHANCEDSTATUSCODES");
     if ((discard_mask & EHLO_MASK_8BITMIME) == 0)
@@ -1786,6 +1787,9 @@ static int mail_open_stream(SMTPD_STATE *state)
 			REC_TYPE_TIME_ARG(state->arrival_time));
 	    if (*var_filter_xport)
 		rec_fprintf(state->cleanup, REC_TYPE_FILT, "%s", var_filter_xport);
+	    if (FORWARD_IDENT(state))
+		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			    MAIL_ATTR_LOG_IDENT, FORWARD_IDENT(state));
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			MAIL_ATTR_RWR_CONTEXT, FORWARD_DOMAIN(state));
 #ifdef USE_SASL_AUTH
@@ -1903,8 +1907,22 @@ static int mail_open_stream(SMTPD_STATE *state)
 	smtpd_sasl_mail_log(state);
     else
 #endif
-	msg_info("%s: client=%s", state->queue_id ?
-		 state->queue_id : "NOQUEUE", FORWARD_NAMADDR(state));
+
+	/*
+	 * See also: smtpd_sasl_proto.c, for a longer client= logfile record.
+	 */
+#define PRINT_OR_NULL(cond, str) \
+	    ((cond) ? (str) : "")
+#define PRINT2_OR_NULL(cond, name, value) \
+	    PRINT_OR_NULL((cond), (name)), PRINT_OR_NULL((cond), (value))
+
+	msg_info("%s: client=%s%s%s%s%s",
+		 (state->queue_id ? state->queue_id : "NOQUEUE"),
+		 state->namaddr,
+		 PRINT2_OR_NULL(HAVE_FORWARDED_IDENT(state),
+				", orig_queue_id=", FORWARD_IDENT(state)),
+		 PRINT2_OR_NULL(HAVE_FORWARDED_CLIENT_ATTR(state),
+				", orig_client=", FORWARD_NAMADDR(state)));
     return (0);
 }
 
@@ -3645,6 +3663,7 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	XFORWARD_PORT, SMTPD_STATE_XFORWARD_PORT,
 	XFORWARD_PROTO, SMTPD_STATE_XFORWARD_PROTO,
 	XFORWARD_HELO, SMTPD_STATE_XFORWARD_HELO,
+	XFORWARD_IDENT, SMTPD_STATE_XFORWARD_IDENT,
 	XFORWARD_DOMAIN, SMTPD_STATE_XFORWARD_DOMAIN,
 	0, 0,
     };
@@ -3811,6 +3830,20 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		neuter(attr_value, NEUTER_CHARACTERS, '?');
 	    }
 	    UPDATE_STR(state->xforward.protocol, attr_value);
+	    break;
+
+	    /*
+	     * IDENT=local message identifier on the up-stream MTA. Censor
+	     * special characters that could mess up logging or macro
+	     * expansions.
+	     */
+	case SMTPD_STATE_XFORWARD_IDENT:
+	    if (STREQ(attr_value, XFORWARD_UNAVAILABLE)) {
+		attr_value = CLIENT_IDENT_UNKNOWN;
+	    } else {
+		neuter(attr_value, NEUTER_CHARACTERS, '?');
+	    }
+	    UPDATE_STR(state->xforward.ident, attr_value);
 	    break;
 
 	    /*

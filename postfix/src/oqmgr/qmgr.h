@@ -313,6 +313,7 @@ struct QMGR_MESSAGE {
     char   *sasl_method;		/* SASL method */
     char   *sasl_username;		/* SASL user name */
     char   *sasl_sender;		/* SASL sender */
+    char   *log_ident;			/* up-stream queue ID */
     char   *rewrite_context;		/* address qualification */
     RECIPIENT_LIST rcpt_list;		/* complete addresses */
 };

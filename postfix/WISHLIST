@@ -4,12 +4,28 @@ Wish list:
 
 	Update history in manpage/readme for SQLite driver.
 
+	header_checks(5): document synopsis and feature subsets.
+
+	Would it help if there were different cleanup_server parameter
+	names for different message paths? smtpd(8) uses the same
+	cleanup_server value for receiving remote mail and for
+	sending postmaster problem reports. Do we need separate
+	mumble_cleanup_service_name parameters for "inject", "notify"
+	and "forward" (with backwards compatinble defaults)?
+
+	IF/ENDIF support for CIDR tables.
+
 	Make postconf aware of magical suffixes (the ones that
 	combine with transport names) and show them in "postconf
 	-n" output. Making this work with "postconf -d" is trickier.
 
 	Need a regular expression table to translate address
 	verification responses into hard/soft/accept reply codes.
+
+	Is there a way to make sendmail -V work after local alias
+	expansion? Majordomo-like mailing lists would benefit from
+	this; the example in VERP_README does not work in the general
+	case.
 
 	When an alias is a member of an :include: list with owner-
 	alias, local(8) needs an option to deliver alias or alias->user

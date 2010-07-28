@@ -14,6 +14,29 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.6 or earlier, read RELEASE_NOTES-2.7
 before proceeding.
 
+Incompatibility with snapshot 20100728
+======================================
+
+The format of the "postfix/smtpd[pid]: queueid: client=host[addr]"
+logfile record has changed. When available, the before-filter client
+information and the before-filter queue ID are now appended to the
+end of the record.
+
+Major changes with snapshot 20100728
+====================================
+
+Improved message tracking across SMTP-based content filters.  The
+logging example below is from an after-filter SMTP server. Here,
+951F692462F is a before-filter queue ID, hades.porcupine.org is a
+before-filter SMTP client, while 6B4A9924782 is the after-filter
+queue ID, and localhost[127.0.0.1] is the SMTP-based content filter
+that sends mail into the after-filter SMTP server.
+
+    postfix/smtpd[4074]: 6B4A9924782: 
+	client=localhost[127.0.0.1],
+	orig_queue_id=951F692462F
+	orig_client=hades.porcupine.org[168.100.189.10]
+
 Incompatibility with snapshot 20100610
 ======================================
 

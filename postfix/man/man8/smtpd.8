@@ -625,7 +625,7 @@ The maximal size in bytes of a message, including envelope information.
 .IP "\fBsmtpd_recipient_limit (1000)\fR"
 The maximal number of recipients that the Postfix SMTP server
 accepts per message delivery request.
-.IP "\fBsmtpd_timeout (normal: 300s, stress: 10s)\fR"
+.IP "\fBsmtpd_timeout (normal: 300s, overload: 10s)\fR"
 The time limit for sending a Postfix SMTP server response and for
 receiving a remote SMTP client request.
 .IP "\fBsmtpd_history_flush_threshold (100)\fR"
@@ -655,8 +655,8 @@ The maximal number of recipient addresses that any client is allowed
 to send to this service per time unit, regardless of whether or not
 Postfix actually accepts those recipients.
 .IP "\fBsmtpd_client_event_limit_exceptions ($mynetworks)\fR"
-Clients that are excluded from connection count, connection rate,
-or SMTP request rate restrictions.
+Clients that are excluded from smtpd_client_*_count/rate_limit
+restrictions.
 .PP
 Available in Postfix version 2.3 and later:
 .IP "\fBsmtpd_client_new_tls_session_rate_limit (0)\fR"
@@ -681,10 +681,10 @@ fewer than $smtpd_hard_error_limit errors, without delivering mail.
 The number of errors a remote SMTP client is allowed to make without
 delivering mail before the Postfix SMTP server slows down all its
 responses.
-.IP "\fBsmtpd_hard_error_limit (normal: 20, stress: 1)\fR"
+.IP "\fBsmtpd_hard_error_limit (normal: 20, overload: 1)\fR"
 The maximal number of errors a remote SMTP client is allowed to
 make without delivering mail.
-.IP "\fBsmtpd_junk_command_limit (normal: 100, stress: 1)\fR"
+.IP "\fBsmtpd_junk_command_limit (normal: 100, overload: 1)\fR"
 The number of junk commands (NOOP, VRFY, ETRN or RSET) that a remote
 SMTP client can send before the Postfix SMTP server starts to
 increment the error counter with each junk command.
@@ -794,7 +794,7 @@ verification probes is maintained by the \fBverify\fR(8) server.
 See the file ADDRESS_VERIFICATION_README for information
 about how to configure and operate the Postfix sender/recipient
 address verification service.
-.IP "\fBaddress_verify_poll_count (${stress?1}${stress:3})\fR"
+.IP "\fBaddress_verify_poll_count (normal: 3, overload: 1)\fR"
 How many times to query the \fBverify\fR(8) service for the completion
 of an address verification request in progress.
 .IP "\fBaddress_verify_poll_delay (3s)\fR"
