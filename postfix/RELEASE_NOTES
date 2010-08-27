@@ -14,6 +14,14 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.6 or earlier, read RELEASE_NOTES-2.7
 before proceeding.
 
+Incompatibility with snapshot 20100827
+======================================
+
+The Postfix SMTP client no longer appends the local domain when
+looking up a DNS name without ".".  Specify "smtp_dns_resolver_options
+= res_defnames" to get the old behavior, which may produce unexpected
+results.
+
 Incompatibility with snapshot 20100728
 ======================================
 

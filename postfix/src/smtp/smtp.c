@@ -230,6 +230,10 @@
 /*	Available in Postfix version 2.6 and later:
 /* .IP "\fBtcp_windowsize (0)\fR"
 /*	An optional workaround for routers that break TCP window scaling.
+/* .PP
+/*	Available in Postfix version 2.8 and later:
+/* .IP "\fBsmtp_dns_resolver_options (empty)\fR"
+/*	DNS Resolver options for the Postfix SMTP client.
 /* MIME PROCESSING CONTROLS
 /* .ad
 /* .fi
@@ -690,6 +694,10 @@
 #include <maps.h>
 #include <ext_prop.h>
 
+/* DNS library. */
+
+#include <dns.h>
+
 /* Single server skeleton. */
 
 #include <mail_server.h>
@@ -802,6 +810,7 @@ char   *var_smtp_nest_chks;
 char   *var_smtp_body_chks;
 char   *var_smtp_resp_filter;
 bool    var_lmtp_assume_final;
+char   *var_smtp_dns_res_opt;
 
  /* Special handling of 535 AUTH errors. */
 char   *var_smtp_sasl_auth_cache_name;
@@ -817,6 +826,7 @@ SCACHE *smtp_scache;
 MAPS   *smtp_ehlo_dis_maps;
 MAPS   *smtp_generic_maps;
 int     smtp_ext_prop_mask;
+unsigned smtp_dns_res_opt;
 MAPS   *smtp_pix_bug_maps;
 HBC_CHECKS *smtp_header_checks;		/* limited header checks */
 HBC_CHECKS *smtp_body_checks;		/* limited body checks */
@@ -919,6 +929,11 @@ static void post_init(char *unused_name, char **unused_argv)
 	SMTP_HOST_LOOKUP_NATIVE, SMTP_HOST_FLAG_NATIVE,
 	0,
     };
+    static const NAME_MASK dns_res_opt_masks[] = {
+	SMTP_DNS_RES_OPT_DEFNAMES, RES_DEFNAMES,
+	SMTP_DNS_RES_OPT_DNSRCH, RES_DNSRCH,
+	0,
+    };
 
     /*
      * Select hostname lookup mechanisms.
@@ -945,6 +960,12 @@ static void post_init(char *unused_name, char **unused_argv)
 					 var_ipc_idle_limit,
 					 var_ipc_ttl_limit);
 #endif
+
+    /*
+     * Select DNS query flags.
+     */
+    smtp_dns_res_opt = name_mask(VAR_SMTP_DNS_RES_OPT, dns_res_opt_masks,
+				var_smtp_dns_res_opt);
 }
 
 /* pre_init - pre-jail initialization */

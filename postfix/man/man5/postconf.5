@@ -2143,6 +2143,11 @@ this action from being logged.
 .IP \(bu
 Use the lmtp_discard_lhlo_keyword_address_maps feature to
 discard LHLO keywords selectively.
+.SH lmtp_dns_resolver_options (default: empty)
+The LMTP-specific version of the smtp_dns_resolver_options
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.8 and later.
 .SH lmtp_enforce_tls (default: no)
 The LMTP-specific version of the smtp_enforce_tls configuration
 parameter.  See there for details.
@@ -4896,6 +4901,21 @@ this action from being logged.
 .IP \(bu
 Use the smtp_discard_ehlo_keyword_address_maps feature to
 discard EHLO keywords selectively.
+.SH smtp_dns_resolver_options (default: empty)
+DNS Resolver options for the Postfix SMTP client.  Specify zero
+or more of the following, separated by comma or whitespace. Option
+names are case-sensitive. Some options refer to domain names that
+are specified in /etc/resolv.conf or equivalent.
+.IP "\fBres_defnames\fR"
+Append the default domain name to single-component names (those
+that do not contain a dot). This can produce incorrect results,
+and was the behavior prior to Postfix 2.8.
+.IP "\fBres_dnsrch\fR"
+Search for host names in the current domain and in parent
+domains. This can produce incorrect results and is therefore not
+recommended.
+.PP
+This feature is available in Postfix 2.8 and later.
 .SH smtp_enforce_tls (default: no)
 Enforcement mode: require that remote SMTP servers use TLS
 encryption, and never send mail in the clear.  This also requires

@@ -6,12 +6,33 @@ Wish list:
 
 	header_checks(5): document synopsis and feature subsets.
 
-	Would it help if there were different cleanup_server parameter
-	names for different message paths? smtpd(8) uses the same
-	cleanup_server value for receiving remote mail and for
-	sending postmaster problem reports. Do we need separate
-	mumble_cleanup_service_name parameters for "inject", "notify"
-	and "forward" (with backwards compatinble defaults)?
+	Consistency: in postconf.proto make <dt>..</dt> tags bold.
+
+	According to a paper by Ted Unangst at BSDCON09, kqueue
+	reports state changes, i.e. kqueue indicates when the socket
+	becomes readable. Specifically, he writes when kqueue reports
+	a socket becomes readable but no data is read from that
+	socket, later kqueue calls won't report the socket as
+	readable. That's not what happens on FreeBSD 8.0, where
+	kqueue will keep reporting the socket as readable when
+	nothing is read.  Also, FreeBSD 8.0 kqueue still reports
+	the socket as readable after a read operation does not empty
+	the kernel buffer.  We need a test program for this that 
+	repeats these tests with OpenBSD and NetBSD (and MacOS X
+	once they fix their kqueue implementation).
+
+	postscreen(8): need some option to wait for DNSBL lookup
+	(etc.) completion. For example, postscreen_greet_wait would
+	become a lower bound, while postscreen_dnsbl_wait would
+	become an upper bound (or should all features use a shared
+	postscreen_max_wait upper bound?).
+
+	Would it help if there were different cleanup_service
+	parameter names for different message paths? smtpd(8) uses
+	the same cleanup_service value for receiving remote mail
+	and for submitting postmaster problem reports. Do we need
+	separate mumble_cleanup_service_name parameters for "inject",
+	"notify" and "forward" (with backwards compatinble defaults)?
 
 	IF/ENDIF support for CIDR tables.
 

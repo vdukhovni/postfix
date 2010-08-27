@@ -15896,3 +15896,15 @@ Apologies for any names omitted.
 	discard, redirect) but disabled the non-flow actions (warn,
 	replace, prepend, ignore, dunno, ok).  File:
 	cleanup/cleanup_milter.c.
+
+20100827
+
+	Performance: fix for poor smtpd_proxy_filter TCP performance
+	over loopback (127.0.0.1) connections. Problem reported by
+	Mark Martinec.  Files: smtpd/smtpd_proxy.c.
+
+	Bugfix: the Postfix SMTP client no longer appends the local
+	domain when looking up a DNS name without ".".  Specify
+	"smtp_dns_resolver_options = res_defnames" to get the old
+	behavior, which can produce unexpected results. Files:
+	smtp/smtp.c, smtp/smtp_params.c, smtp/smtp_addr.c.

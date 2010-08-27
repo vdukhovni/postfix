@@ -213,7 +213,16 @@ extern bool var_disable_dns;
 #define DEF_SMTP_HOST_LOOKUP	SMTP_HOST_LOOKUP_DNS
 #define VAR_LMTP_HOST_LOOKUP	"lmtp_host_lookup"
 #define DEF_LMTP_HOST_LOOKUP	SMTP_HOST_LOOKUP_DNS
-extern int var_smtp_dns_lookup;
+extern char *var_smtp_host_lookup;
+
+#define SMTP_DNS_RES_OPT_DEFNAMES "res_defnames"
+#define SMTP_DNS_RES_OPT_DNSRCH	"res_dnsrch"
+
+#define VAR_SMTP_DNS_RES_OPT	"smtp_dns_resolver_options"
+#define DEF_SMTP_DNS_RES_OPT	""
+#define VAR_LMTP_DNS_RES_OPT	"lmtp_dns_resolver_options"
+#define DEF_LMTP_DNS_RES_OPT	""
+extern char *var_smtp_dns_res_opt;
 
 #define VAR_SMTP_MXADDR_LIMIT	"smtp_mx_address_limit"
 #define DEF_SMTP_MXADDR_LIMIT	5

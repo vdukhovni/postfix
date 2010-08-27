@@ -179,6 +179,7 @@ extern MAPS *smtp_pix_bug_maps;		/* PIX workarounds */
 
 extern MAPS *smtp_generic_maps;		/* make internal address valid */
 extern int smtp_ext_prop_mask;		/* address externsion propagation */
+extern unsigned smtp_dns_res_opt;	/* DNS query flags */
 
 #ifdef USE_TLS
 

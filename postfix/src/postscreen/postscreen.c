@@ -425,8 +425,6 @@ typedef struct {
   * This program screens all inbound SMTP connections, so it better not waste
   * time.
   */
-#define PS_GREET_TIMEOUT		5
-#define PS_SMTP_WRITE_TIMEOUT		1
 #define PS_SEND_SOCK_CONNECT_TIMEOUT	1
 #define PS_SEND_SOCK_NOTIFY_TIMEOUT	100
 

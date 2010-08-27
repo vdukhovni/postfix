@@ -12938,3 +12938,36 @@ unless the inet_protocols setting enables both IPv4 and IPv6.  </p>
 configuration parameter.  See there for details. </p>
 
 <p> This feature is available in Postfix 2.8 and later.  </p>
+
+%PARAM smtp_dns_resolver_options 
+
+<p> DNS Resolver options for the Postfix SMTP client.  Specify zero
+or more of the following, separated by comma or whitespace. Option
+names are case-sensitive. Some options refer to domain names that
+are specified in /etc/resolv.conf or equivalent. </p>
+
+<dl>
+
+<dt><b>res_defnames</b></dt>
+
+<dd> Append the default domain name to single-component names (those
+that do not contain a dot). This can produce incorrect results,
+and was the behavior prior to Postfix 2.8. </dd>
+
+<dt><b>res_dnsrch</b></dt>
+
+<dd> Search for host names in the current domain and in parent
+domains. This can produce incorrect results and is therefore not
+recommended. </dd>
+
+</dl>
+
+<p> This feature is available in Postfix 2.8 and later.  </p>
+
+%PARAM lmtp_dns_resolver_options
+
+<p> The LMTP-specific version of the smtp_dns_resolver_options
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.8 and later.  </p>
+

@@ -155,7 +155,7 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, const char *host,
      * should not clobber a soft error text and status code.
      */
     if (smtp_host_lookup_mask & SMTP_HOST_FLAG_DNS) {
-	switch (dns_lookup_v(host, RES_DEFNAMES, &addr, (VSTRING *) 0,
+	switch (dns_lookup_v(host, smtp_dns_res_opt, &addr, (VSTRING *) 0,
 			     why->reason, DNS_REQ_FLAG_NONE,
 			     proto_info->dns_atype_list)) {
 	case DNS_OK:
