@@ -14,6 +14,46 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.6 or earlier, read RELEASE_NOTES-2.7
 before proceeding.
 
+Incompatibility with snapshot 20100830
+======================================
+
+Use "postfix reload" after installing this code, otherwise the
+dnsblog(8) daemon may complain.  The postscreen-to-dnsblog protocol
+had to be changed to support DNSBL query result filters.
+
+Major changes with snapshot 20100830
+====================================
+
+Postscreen DNSBL support is extended with optional fixed-string
+filters, with optional integral weight factors, and with an adjustable
+threshold to block SMTP clients with DNSBL score >= that threshold.
+Support for wild-card patterns will be added later.
+
+The updated postscreen configuration syntax is:
+
+    postscreen_dnsbl_sites = domain[=ipaddr][*weight] ...
+    postscreen_dnsbl_threshold = score
+
+Elements inside [] are optional, ipaddr is an IPv4 address, and
+weight and score are integral numbers. The [] are not part of the
+postscreen_dnsbl_sites input.  By default, weight and score are
+equal to 1, and entries without filter will match any non-error
+DNSBL reply.  Use a negative weight value for whitelisting.
+
+Examples:
+
+To use example.com as a high-confidence blocklist, and to block
+mail with example.net and example.org only when both agree, use:
+
+    postscreen_dnsbl_threshold = 2
+    postscreen_dnsbl_sites = example.com*2, example.net, example.org
+
+To filter only DNSBL replies containing 127.0.0.4, use:
+
+    postscreen_dnsbl_sites = example.com=127.0.0.4
+
+See also postconf(5) for the fine details.
+
 Incompatibility with snapshot 20100827
 ======================================
 

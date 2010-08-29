@@ -6623,8 +6623,9 @@ parameter.  Specify one of the following: </p>
 
 <dd> Continue waiting until the <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> time has
 elapsed, and report whether the client triggers a PREGREET or HANGUP
-error, or whether the client is listed at the DNSBL sites specified
-with the <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> parameter.  Take the corresponding
+error, or whether the client's combined DNSBL score is equal to or
+greater than a threshold (as specified with the <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a>
+and <a href="postconf.5.html#postscreen_dnsbl_threshold">postscreen_dnsbl_threshold</a> parameters).  Take the corresponding
 action, or forward the connection to a real SMTP server process.
 </dd>
 
@@ -6678,7 +6679,7 @@ seconds. </p>
 </DD>
 
 <DT><b><a name="postscreen_cache_map">postscreen_cache_map</a>
-(default: btree:$<a href="postconf.5.html#data_directory">data_directory</a>/ps_whitelist)</b></DT><DD>
+(default: btree:$<a href="postconf.5.html#data_directory">data_directory</a>/ps_cache)</b></DT><DD>
 
 <p> Persistent storage for the <a href="postscreen.8.html">postscreen(8)</a> server decisions. </p>
 
@@ -6724,9 +6725,10 @@ unit).  </p>
 <DT><b><a name="postscreen_dnsbl_action">postscreen_dnsbl_action</a>
 (default: continue)</b></DT><DD>
 
-<p>The action that <a href="postscreen.8.html">postscreen(8)</a> takes when an SMTP client is listed
-at the DNS blocklist domains specified with the <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a>
-parameter.  Specify one of the following: </p>
+<p>The action that <a href="postscreen.8.html">postscreen(8)</a> takes when an SMTP client's combined
+DNSBL score is equal to or greater than a threshold (as defined
+with the <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> and <a href="postconf.5.html#postscreen_dnsbl_threshold">postscreen_dnsbl_threshold</a>
+parameters).  Specify one of the following: </p>
 
 <dl>
 
@@ -6748,12 +6750,68 @@ parameter.  Specify one of the following: </p>
 <DT><b><a name="postscreen_dnsbl_sites">postscreen_dnsbl_sites</a>
 (default: empty)</b></DT><DD>
 
-<p>Optional list of DNS blocklist domains. When the list is non-enpty,
-the <a href="dnsblog.8.html">dnsblog(8)</a> daemon will query these domains with the IP addresses
-of non-whitelisted <a href="postscreen.8.html">postscreen(8)</a> clients. Specify a list of domain
-names, separated by comma or whitespace. </p>
+<p>Optional list of DNS blocklist domains, filters and weight
+factors. When the list is non-empty, the <a href="dnsblog.8.html">dnsblog(8)</a> daemon will
+query these domains with the IP addresses of non-whitelisted remote
+SMTP clients, and <a href="postscreen.8.html">postscreen(8)</a> will update an SMTP client's DNSBL
+score with each non-error reply. </p>
+
+<p> When a client's score is equal to or greater than the threshold
+specified with <a href="postconf.5.html#postscreen_dnsbl_threshold">postscreen_dnsbl_threshold</a>, <a href="postscreen.8.html">postscreen(8)</a> can drop
+the connection with the SMTP client. </p>
+
+<p> Specify a list of domain=filter*weight entries, separated by
+comma or whitespace.  </p>
+
+<ul>
+
+<li> <p> When no "=filter" is specified, <a href="postscreen.8.html">postscreen(8)</a> will use any
+non-error DNSBL reply.  Otherwise, the filter must be an IPv4
+address, and <a href="postscreen.8.html">postscreen(8)</a> uses only DNSBL replies that match the
+filter.  </p>
+
+<li> <p> When no "*weight" is specified, <a href="postscreen.8.html">postscreen(8)</a> increments
+the SMTP client's DNSBL score by 1.  Otherwise, the weight must be
+an integral number, and <a href="postscreen.8.html">postscreen(8)</a> adds the specified weight to
+the SMTP client's DNSBL score.  Specify a negative number for
+whitelisting.  </p>
+
+<li> <p> When one <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> entry produces multiple
+DNSBL responses, <a href="postscreen.8.html">postscreen(8)</a> applies the weight at most once.
+</p>
+
+</ul>
+
+<p> Examples: </p>
+
+<p> To use example.com as a high-confidence blocklist, and to
+block mail with example.net and example.org only when both agree:
+</p>
+
+<pre>
+<a href="postconf.5.html#postscreen_dnsbl_threshold">postscreen_dnsbl_threshold</a> = 2
+<a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> = example.com*2, example.net, example.org
+</pre>
+
+<p> To filter only DNSBL replies containing 127.0.0.4: </p>
+
+<pre>
+<a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> = example.com=127.0.0.4
+</pre>
 
 <p> This feature is available in Postfix 2.8. </p>
+
+
+</DD>
+
+<DT><b><a name="postscreen_dnsbl_threshold">postscreen_dnsbl_threshold</a>
+(default: 1)</b></DT><DD>
+
+<p> The inclusive lower bound for blocking an SMTP client, based on
+its combined DNSBL score as defined with the <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a>
+parameter. </p>
+
+<p> This feature is available in Postfix 2.8.  </p>
 
 
 </DD>
@@ -6770,10 +6828,11 @@ parameter.  Specify one of the following: </p>
 <dt> continue </dt>
 
 <dd> Continue waiting until the <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> time has
-elapsed. If the client is listed at the DNS blocklist domains
-specified with the <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> parameter, execute the
-action specified with the <a href="postconf.5.html#postscreen_dnsbl_action">postscreen_dnsbl_action</a> parameter, otherwise
-forward the connection to a real SMTP server process. </dd>
+elapsed. If the client's combined DNSBL score is equal to or greater
+than a threshold (as specified with the <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> and
+<a href="postconf.5.html#postscreen_dnsbl_threshold">postscreen_dnsbl_threshold</a> parameters), execute the action specified
+with the <a href="postconf.5.html#postscreen_dnsbl_action">postscreen_dnsbl_action</a> parameter, otherwise forward the
+connection to a real SMTP server process. </dd>
 
 <dt> drop </dt>
 
@@ -6836,9 +6895,11 @@ without sending data, within the time specified with the
 <dt> continue </dt>
 
 <dd> Continue waiting until the <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> time has
-elapsed, and report whether the client is listed at the DNSBL sites
-specified with the <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> parameter. Do not
-forward the broken connection to a real SMTP server process. </dd>
+elapsed, and report whether the client's combined DNSBL score is
+equal to or greater than a threshold (as defined with the
+<a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> and <a href="postconf.5.html#postscreen_dnsbl_threshold">postscreen_dnsbl_threshold</a> parameters).
+Do not forward the broken connection to a real SMTP server process.
+</dd>
 
 <dt> drop </dt>
 
@@ -8617,17 +8678,17 @@ discard EHLO keywords selectively. </p>
 (default: empty)</b></DT><DD>
 
 <p> DNS Resolver options for the Postfix SMTP client.  Specify zero
-or more of the following, separated by comma or whitespace. Option
-names are case-sensitive. Some options refer to domain names that
-are specified in /etc/resolv.conf or equivalent. </p>
+or more of the following options, separated by comma or whitespace.
+Option names are case-sensitive. Some options refer to domain names
+that are specified in the file /etc/resolv.conf or equivalent. </p>
 
 <dl>
 
 <dt><b>res_defnames</b></dt>
 
-<dd> Append the <a href="ADDRESS_CLASS_README.html#default_domain_class">default domain</a> name to single-component names (those
-that do not contain a dot). This can produce incorrect results,
-and was the behavior prior to Postfix 2.8. </dd>
+<dd> Append the current domain name to single-component names (those
+that do not contain a "." character). This can produce incorrect
+results, and is the hard-coded behavior prior to Postfix 2.8. </dd>
 
 <dt><b>res_dnsrch</b></dt>
 

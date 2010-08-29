@@ -191,20 +191,20 @@
 /*	are made in parallel.
 /*
 /*	When the postscreen_greet_wait time has elapsed, and the
-/*	SMTP client address is listed with at least one of these
-/*	blocklists, this is logged as:
+/*	combined DNSBL score is equal to or greater than the
+/*	postscreen_dnsbl_threshold parameter value, this is logged
+/*	as:
 /* .sp
 /* .nf
 /*	\fBDNSBL rank \fIcount \fBfor \fIaddress\fR
 /* .fi
 /* .sp
-/*	Translation: the client at \fIaddress\fR is listed with
-/*	\fIcount\fR DNSBL servers. The \fIcount\fR does not
-/*	depend on the number of DNS records that an individual DNSBL
-/*	server returns.
+/*	Translation: the SMTP client at \fIaddress\fR has a combined
+/*	DNSBL score of \fIcount\fR.
 /*
 /*	The postscreen_dnsbl_action parameter specifies the action
-/*	that is taken next:
+/*	that is taken when the combined DNSBL score is equal to or
+/*	greater than the threshold:
 /* .IP "\fBcontinue\fR (default)"
 /*	Forward the connection to a real SMTP server process.
 /* .IP \fBdrop\fR
@@ -244,11 +244,17 @@
 /*	Network addresses that are permanently blacklisted; see the
 /*	postscreen_blacklist_action parameter for possible actions.
 /* .IP "\fBpostscreen_dnsbl_action (continue)\fR"
-/*	The action that \fBpostscreen\fR(8) takes when an SMTP client is listed
-/*	at the DNS blocklist domains specified with the postscreen_dnsbl_sites
-/*	parameter.
+/*	The action that \fBpostscreen\fR(8) takes when an SMTP client's combined
+/*	DNSBL score is equal to or greater than a threshold (as defined
+/*	with the postscreen_dnsbl_sites and postscreen_dnsbl_threshold
+/*	parameters).
 /* .IP "\fBpostscreen_dnsbl_sites (empty)\fR"
-/*	Optional list of DNS blocklist domains.
+/*	Optional list of DNS blocklist domains, filters and weight
+/*	factors.
+/* .IP "\fBpostscreen_dnsbl_threshold (1)\fR"
+/*	The inclusive lower bound for blocking an SMTP client, based on
+/*	its combined DNSBL score as defined with the postscreen_dnsbl_sites
+/*	parameter.
 /* .IP "\fBpostscreen_greet_action (continue)\fR"
 /*	The action that \fBpostscreen\fR(8) takes when an SMTP client speaks
 /*	before its turn within the time specified with the postscreen_greet_wait
@@ -285,7 +291,7 @@
 /* .fi
 /* .IP "\fBpostscreen_cache_cleanup_interval (12h)\fR"
 /*	The amount of time between \fBpostscreen\fR(8) cache cleanup runs.
-/* .IP "\fBpostscreen_cache_map (btree:$data_directory/ps_whitelist)\fR"
+/* .IP "\fBpostscreen_cache_map (btree:$data_directory/ps_cache)\fR"
 /*	Persistent storage for the \fBpostscreen\fR(8) server decisions.
 /* .IP "\fBpostscreen_cache_retention_time (1d)\fR"
 /*	The amount of time that \fBpostscreen\fR(8) will cache an expired
@@ -381,6 +387,10 @@
 
 #include <mail_server.h>
 
+/* Application-specific. */
+
+#include <postscreen.h>
+
  /*
   * Configuration parameters.
   */
@@ -402,6 +412,7 @@ char   *var_ps_wlist_nets;
 char   *var_ps_blist_nets;
 char   *var_ps_greet_banner;
 char   *var_ps_blist_action;
+int     var_ps_dnsbl_thresh;
 
  /*
   * Per-session state. See also: new_session_state() and free_event_state()
@@ -442,249 +453,12 @@ static DICT_CACHE *cache_map;		/* cache table handle */
 static VSTRING *temp;			/* scratchpad */
 static char *smtp_service_name;		/* path to real SMTPD */
 static char *teaser_greeting;		/* spamware teaser banner */
-static ARGV *dnsbl_sites;		/* dns blocklist domains */
-static VSTRING *reply_addr;		/* address in DNSBL reply */
-static VSTRING *reply_domain;		/* domain in DNSBL reply */
-static HTABLE *dnsbl_cache;		/* entries being queried */
 static int dnsbl_action;		/* PS_ACT_DROP or PS_ACT_CONT */
 static int greet_action;		/* PS_ACT_DROP or PS_ACT_CONT */
 static int hangup_action;		/* PS_ACT_DROP or PS_ACT_CONT */
 static ADDR_MATCH_LIST *wlist_nets;	/* permanently whitelisted networks */
 static ADDR_MATCH_LIST *blist_nets;	/* permanently blacklisted networks */
 static int blist_action;		/* PS_ACT_DROP or PS_ACT_CONT */
-
- /*
-  * See log_adhoc.c for discussion.
-  */
-typedef struct {
-    int     dt_sec;			/* make sure it's signed */
-    int     dt_usec;			/* make sure it's signed */
-} DELTA_TIME;
-
-#define PS_CALC_DELTA(x, y, z) \
-    do { \
-	(x).dt_sec = (y).tv_sec - (z).tv_sec; \
-	(x).dt_usec = (y).tv_usec - (z).tv_usec; \
-	while ((x).dt_usec < 0) { \
-	    (x).dt_usec += 1000000; \
-	    (x).dt_sec -= 1; \
-	} \
-	while ((x).dt_usec >= 1000000) { \
-	    (x).dt_usec -= 1000000; \
-	    (x).dt_sec += 1; \
-	} \
-	if ((x).dt_sec < 0) \
-	    (x).dt_sec = (x).dt_usec = 0; \
-    } while (0)
-
-#define SIG_DIGS        2
-
-/* READ_EVENT_REQUEST - prepare for transition to next state */
-
-#define READ_EVENT_REQUEST(fd, action, context, timeout) do { \
-    if (msg_verbose) msg_info("%s: read-request fd=%d", myname, (fd)); \
-    event_enable_read((fd), (action), (context)); \
-    event_request_timer((action), (context), (timeout)); \
-} while (0)
-
-/* CLEAR_EVENT_REQUEST - complete state transition */
-
-#define CLEAR_EVENT_REQUEST(fd, action, context) do { \
-    if (msg_verbose) msg_info("%s: clear-request fd=%d", myname, (fd)); \
-    event_disable_readwrite(fd); \
-    event_cancel_timer((action), (context)); \
-} while (0)
-
-/* SLMs. */
-
-#define STR(x)	vstring_str(x)
-#define LEN(x)	VSTRING_LEN(x)
-
- /*
-  * Monitor time-critical operations.
-  */
-#define PS_GET_TIME_BEFORE_LOOKUP \
-    struct timeval _before, _after; \
-    DELTA_TIME _delta; \
-    GETTIMEOFDAY(&_before);
-
-#define PS_DELTA_MS(d) ((d).dt_sec * 1000 + (d).dt_usec / 1000)
-
-#define PS_CHECK_TIME_AFTER_LOOKUP(table, action) \
-    GETTIMEOFDAY(&_after); \
-    PS_CALC_DELTA(_delta, _after, _before); \
-    if (_delta.dt_sec > 1 || _delta.dt_usec > 100000) \
-	msg_warn("%s: %s %s took %d ms", \
-		 myname, (table), (action), PS_DELTA_MS(_delta));
-
-/* ps_addr_match_list_match - time-critical address list lookup */
-
-static int ps_addr_match_list_match(ADDR_MATCH_LIST *addr_list,
-				            const char *addr_str)
-{
-    const char *myname = "ps_addr_match_list_match";
-    int     result;
-
-    PS_GET_TIME_BEFORE_LOOKUP;
-    result = addr_match_list_match(addr_list, addr_str);
-    PS_CHECK_TIME_AFTER_LOOKUP("address list", "lookup");
-    return (result);
-}
-
-/* ps_dict_get - time-critical table lookup */
-
-static const char *ps_dict_get(DICT_CACHE *cache, const char *key)
-{
-    const char *myname = "ps_dict_get";
-    const char *result;
-
-    PS_GET_TIME_BEFORE_LOOKUP;
-    result = dict_cache_lookup(cache, key);
-    PS_CHECK_TIME_AFTER_LOOKUP(dict_cache_name(cache), "lookup");
-    return (result);
-}
-
-/* ps_dict_put - table dictionary update */
-
-static void ps_dict_put(DICT_CACHE *cache, const char *key, const char *value)
-{
-    const char *myname = "ps_dict_put";
-
-    PS_GET_TIME_BEFORE_LOOKUP;
-    dict_cache_update(cache, key, value);
-    PS_CHECK_TIME_AFTER_LOOKUP(dict_cache_name(cache), "update");
-}
-
- /*
-  * DNSBL lookup status per client IP address.
-  */
-typedef struct {
-    int     dnsbl_count;		/* is this address listed */
-    int     refcount;			/* query reference count */
-} PS_DNSBL_ENTRY;
-
-/* postscreen_dnsbl_entry_create - create blocklist cache entry */
-
-static PS_DNSBL_ENTRY *postscreen_dnsbl_entry_create(void)
-{
-    PS_DNSBL_ENTRY *entry;
-
-    entry = (PS_DNSBL_ENTRY *) mymalloc(sizeof(*entry));
-    entry->dnsbl_count = 0;
-    entry->refcount = 0;
-    return (entry);
-}
-
-/* postscreen_dnsbl_done - get blocklist cache entry, decrement refcount */
-
-static int postscreen_dnsbl_done(const char *addr)
-{
-    const char *myname = "postscreen_dnsbl_done";
-    PS_DNSBL_ENTRY *entry;
-    int     dnsbl_count;
-
-    /*
-     * Sanity check.
-     */
-    if ((entry = (PS_DNSBL_ENTRY *) htable_find(dnsbl_cache, addr)) == 0)
-	msg_panic("%s: no blocklist cache entry for %s", myname, addr);
-
-    /*
-     * Yes, cache reads are destructive.
-     */
-    dnsbl_count = entry->dnsbl_count;
-    entry->refcount -= 1;
-    if (entry->refcount < 1) {
-	if (msg_verbose)
-	    msg_info("%s: delete cache entry for %s", myname, addr);
-	htable_delete(dnsbl_cache, addr, myfree);
-    }
-    return (dnsbl_count);
-}
-
-/* postscreen_dnsbl_reply - receive dnsbl reply, update blocklist cache entry */
-
-static void postscreen_dnsbl_reply(int event, char *context)
-{
-    const char *myname = "postscreen_dnsbl_reply";
-    VSTREAM *stream = (VSTREAM *) context;
-    PS_DNSBL_ENTRY *entry;
-    int     dnsbl_count;
-
-    CLEAR_EVENT_REQUEST(vstream_fileno(stream), postscreen_dnsbl_reply, context);
-
-    /*
-     * Later, this will become an UDP-based DNS client that is built directly
-     * into the postscreen daemon.
-     * 
-     * Don't panic when no blocklist cache entry exists. It may be gone when the
-     * client triggered a "drop" action after pregreet, DNSBL lookup, or
-     * hangup.
-     */
-    if (event == EVENT_READ
-	&& attr_scan(stream,
-		     ATTR_FLAG_MORE | ATTR_FLAG_STRICT,
-		     ATTR_TYPE_STR, MAIL_ATTR_RBL_DOMAIN, reply_domain,
-		     ATTR_TYPE_STR, MAIL_ATTR_ADDR, reply_addr,
-		     ATTR_TYPE_INT, MAIL_ATTR_STATUS, &dnsbl_count,
-		     ATTR_TYPE_END) == 3) {
-	if ((entry = (PS_DNSBL_ENTRY *)
-	     htable_find(dnsbl_cache, STR(reply_addr))) != 0)
-	    entry->dnsbl_count += dnsbl_count;
-    }
-    vstream_fclose(stream);
-}
-
-/* postscreen_dnsbl_query  - send dnsbl query */
-
-static void postscreen_dnsbl_query(const char *addr)
-{
-    const char *myname = "postscreen_dnsbl_query";
-    int     fd;
-    VSTREAM *stream;
-    char  **cpp;
-    PS_DNSBL_ENTRY *entry;
-
-    /*
-     * Avoid duplicate effort when this lookup is already in progress. Now,
-     * we destroy the entry when the client replies. Later, we increment
-     * refcounts with queries sent, and decrement refcounts with replies
-     * received, so we can maintain state even after a client talks early,
-     * and update the external cache asynchronously.
-     */
-    if ((entry = (PS_DNSBL_ENTRY *) htable_find(dnsbl_cache, addr)) != 0) {
-	entry->refcount += 1;
-	return;
-    }
-    if (msg_verbose)
-	msg_info("%s: create cache entry for %s", myname, addr);
-    entry = postscreen_dnsbl_entry_create();
-    (void) htable_enter(dnsbl_cache, addr, (char *) entry);
-    entry->refcount = 1;
-
-    /*
-     * Later, this will become an UDP-based DNS client that is built directly
-     * into the postscreen daemon.
-     */
-    for (cpp = dnsbl_sites->argv; *cpp; cpp++) {
-	if ((fd = LOCAL_CONNECT("private/" DNSBL_SERVICE, NON_BLOCKING, 1)) < 0) {
-	    msg_warn("%s: connect to " DNSBL_SERVICE " service: %m", myname);
-	    return;
-	}
-	stream = vstream_fdopen(fd, O_RDWR);
-	attr_print(stream, ATTR_FLAG_NONE,
-		   ATTR_TYPE_STR, MAIL_ATTR_RBL_DOMAIN, *cpp,
-		   ATTR_TYPE_STR, MAIL_ATTR_ADDR, addr,
-		   ATTR_TYPE_END);
-	if (vstream_fflush(stream) != 0) {
-	    msg_warn("%s: error sending to " DNSBL_SERVICE " service: %m", myname);
-	    vstream_fclose(stream);
-	    return;
-	}
-	READ_EVENT_REQUEST(vstream_fileno(stream), postscreen_dnsbl_reply,
-			   (char *) stream, DNSBLOG_TIMEOUT);
-    }
-}
 
 /* new_session_state - fill in connection state for event processing */
 
@@ -842,7 +616,7 @@ static void send_socket(PS_STATE *state)
 		      vstream_fileno(state->smtp_client_stream)) < 0) {
 	msg_warn("cannot pass connection to service %s: %m", smtp_service_name);
 	smtp_reply(vstream_fileno(state->smtp_client_stream), state->smtp_client_addr,
-		   state->smtp_client_port, "421 4.3.2 No system resources\r\n");
+	      state->smtp_client_port, "421 4.3.2 No system resources\r\n");
 	free_session_state(state);
 	return;
     } else {
@@ -863,15 +637,15 @@ static void send_socket(PS_STATE *state)
     }
 }
 
-/* smtp_read_event - handle pre-greet, EOF or timeout. */
+/* smtp_early_event - handle pre-greet, EOF or timeout. */
 
-static void smtp_read_event(int event, char *context)
+static void smtp_early_event(int event, char *context)
 {
-    const char *myname = "smtp_read_event";
+    const char *myname = "smtp_early_event";
     PS_STATE *state = (PS_STATE *) context;
     char    read_buf[PS_READ_BUF_SIZE];
     int     read_count;
-    int     dnsbl_count;
+    int     dnsbl_score;
     int     elapsed;
     int     action;
 
@@ -886,7 +660,7 @@ static void smtp_read_event(int event, char *context)
      * was closed, or we reached the limit of our patience.
      */
     CLEAR_EVENT_REQUEST(vstream_fileno(state->smtp_client_stream),
-			smtp_read_event, context);
+			smtp_early_event, context);
 
     /*
      * If this session ends here, we MUST read the blocklist cache otherwise
@@ -905,12 +679,12 @@ static void smtp_read_event(int event, char *context)
 	 */
     case EVENT_TIME:
 	if (*var_ps_dnsbl_sites)
-	    dnsbl_count = postscreen_dnsbl_done(state->smtp_client_addr);
+	    dnsbl_score = ps_dnsbl_retrieve(state->smtp_client_addr);
 	else
-	    dnsbl_count = 0;
-	if (dnsbl_count > 0) {
+	    dnsbl_score = 0;
+	if (dnsbl_score >= var_ps_dnsbl_thresh) {
 	    msg_info("DNSBL rank %d for %s",
-		     dnsbl_count, state->smtp_client_addr);
+		     dnsbl_score, state->smtp_client_addr);
 	    if (dnsbl_action == PS_ACT_DROP) {
 		smtp_reply(vstream_fileno(state->smtp_client_stream),
 			   state->smtp_client_addr, state->smtp_client_port,
@@ -927,7 +701,7 @@ static void smtp_read_event(int event, char *context)
 			 "OLD" : "NEW", state->smtp_client_addr);
 		if (cache_map != 0) {
 		    vstring_sprintf(temp, "%ld", (long) event_time());
-		    ps_dict_put(cache_map, state->smtp_client_addr, STR(temp));
+		    ps_cache_update(cache_map, state->smtp_client_addr, STR(temp));
 		}
 	    }
 	    send_socket(state);
@@ -964,14 +738,14 @@ static void smtp_read_event(int event, char *context)
 	}
 	if (action == PS_ACT_DROP) {
 	    if (*var_ps_dnsbl_sites)
-		(void) postscreen_dnsbl_done(state->smtp_client_addr);
+		(void) ps_dnsbl_retrieve(state->smtp_client_addr);
 	    free_session_state(state);
 	} else {
 	    state->flags |= PS_FLAG_NOCACHE;
-	    /* not: postscreen_dnsbl_done */
+	    /* not: ps_dnsbl_retrieve */
 	    if (elapsed > var_ps_greet_wait)
 		elapsed = var_ps_greet_wait;
-	    event_request_timer(smtp_read_event, context,
+	    event_request_timer(smtp_early_event, context,
 				var_ps_greet_wait - elapsed);
 	}
 	break;
@@ -1145,7 +919,7 @@ static void postscreen_service(VSTREAM *smtp_client_stream,
      * lowest precedence.
      */
     else if (cache_map != 0
-       && (stamp_str = ps_dict_get(cache_map, smtp_client_addr.buf)) != 0) {
+    && (stamp_str = ps_cache_lookup(cache_map, smtp_client_addr.buf)) != 0) {
 	stamp_time = strtoul(stamp_str, 0, 10);
 	if (stamp_time > event_time() - var_ps_cache_ttl) {
 	    msg_info("PASS OLD %s", smtp_client_addr.buf);
@@ -1202,13 +976,13 @@ static void postscreen_service(VSTREAM *smtp_client_stream,
 			      smtp_client_port.buf);
     state->flags |= state_flags;
     READ_EVENT_REQUEST(vstream_fileno(state->smtp_client_stream),
-		       smtp_read_event, (char *) state, var_ps_greet_wait);
+		       smtp_early_event, (char *) state, var_ps_greet_wait);
 
     /*
      * Run a DNS blocklist query while we wait for the client to respond.
      */
     if (*var_ps_dnsbl_sites)
-	postscreen_dnsbl_query(smtp_client_addr.buf);
+	ps_dnsbl_request(smtp_client_addr.buf);
 }
 
 /* postscreen_cache_validator - validate one cache entry */
@@ -1315,10 +1089,7 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 	vstring_sprintf(temp, "220-%s\r\n", var_ps_greet_banner);
 	teaser_greeting = mystrdup(STR(temp));
     }
-    dnsbl_sites = argv_split(var_ps_dnsbl_sites, ", \t\r\n");
-    dnsbl_cache = htable_create(13);
-    reply_addr = vstring_alloc(100);
-    reply_domain = vstring_alloc(100);
+    ps_dnsbl_init();
     if ((blist_action = name_code(actions, NAME_CODE_FLAG_NONE,
 				  var_ps_blist_action)) < 0)
 	msg_fatal("bad %s value: %s", VAR_PS_BLIST_ACTION, var_ps_blist_action);
@@ -1371,6 +1142,7 @@ int     main(int argc, char **argv)
     };
     static const CONFIG_INT_TABLE int_table[] = {
 	VAR_PROC_LIMIT, DEF_PROC_LIMIT, &var_proc_limit, 1, 0,
+	VAR_PS_DNSBL_THRESH, DEF_PS_DNSBL_THRESH, &var_ps_dnsbl_thresh, 0, 0,
 	0,
     };
     static const CONFIG_NINT_TABLE nint_table[] = {

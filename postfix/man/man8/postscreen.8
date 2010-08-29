@@ -199,20 +199,20 @@ specifies a list of DNS blocklist servers. These lookups
 are made in parallel.
 
 When the postscreen_greet_wait time has elapsed, and the
-SMTP client address is listed with at least one of these
-blocklists, this is logged as:
+combined DNSBL score is equal to or greater than the
+postscreen_dnsbl_threshold parameter value, this is logged
+as:
 .sp
 .nf
 \fBDNSBL rank \fIcount \fBfor \fIaddress\fR
 .fi
 .sp
-Translation: the client at \fIaddress\fR is listed with
-\fIcount\fR DNSBL servers. The \fIcount\fR does not
-depend on the number of DNS records that an individual DNSBL
-server returns.
+Translation: the SMTP client at \fIaddress\fR has a combined
+DNSBL score of \fIcount\fR.
 
 The postscreen_dnsbl_action parameter specifies the action
-that is taken next:
+that is taken when the combined DNSBL score is equal to or
+greater than the threshold:
 .IP "\fBcontinue\fR (default)"
 Forward the connection to a real SMTP server process.
 .IP \fBdrop\fR
@@ -262,11 +262,17 @@ parameter.
 Network addresses that are permanently blacklisted; see the
 postscreen_blacklist_action parameter for possible actions.
 .IP "\fBpostscreen_dnsbl_action (continue)\fR"
-The action that \fBpostscreen\fR(8) takes when an SMTP client is listed
-at the DNS blocklist domains specified with the postscreen_dnsbl_sites
-parameter.
+The action that \fBpostscreen\fR(8) takes when an SMTP client's combined
+DNSBL score is equal to or greater than a threshold (as defined
+with the postscreen_dnsbl_sites and postscreen_dnsbl_threshold
+parameters).
 .IP "\fBpostscreen_dnsbl_sites (empty)\fR"
-Optional list of DNS blocklist domains.
+Optional list of DNS blocklist domains, filters and weight
+factors.
+.IP "\fBpostscreen_dnsbl_threshold (1)\fR"
+The inclusive lower bound for blocking an SMTP client, based on
+its combined DNSBL score as defined with the postscreen_dnsbl_sites
+parameter.
 .IP "\fBpostscreen_greet_action (continue)\fR"
 The action that \fBpostscreen\fR(8) takes when an SMTP client speaks
 before its turn within the time specified with the postscreen_greet_wait
@@ -305,7 +311,7 @@ connections to.
 .fi
 .IP "\fBpostscreen_cache_cleanup_interval (12h)\fR"
 The amount of time between \fBpostscreen\fR(8) cache cleanup runs.
-.IP "\fBpostscreen_cache_map (btree:$data_directory/ps_whitelist)\fR"
+.IP "\fBpostscreen_cache_map (btree:$data_directory/ps_cache)\fR"
 Persistent storage for the \fBpostscreen\fR(8) server decisions.
 .IP "\fBpostscreen_cache_retention_time (1d)\fR"
 The amount of time that \fBpostscreen\fR(8) will cache an expired

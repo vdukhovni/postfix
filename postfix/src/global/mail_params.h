@@ -3251,6 +3251,10 @@ extern char *var_ps_greet_action;
 #define DEF_PS_DNSBL_SITES	""
 extern char *var_ps_dnsbl_sites;
 
+#define VAR_PS_DNSBL_THRESH	"postscreen_dnsbl_threshold"
+#define DEF_PS_DNSBL_THRESH	1
+extern int var_ps_dnsbl_thresh;
+
 #define VAR_PS_DNSBL_ACTION	"postscreen_dnsbl_action"
 #define DEF_PS_DNSBL_ACTION	"continue"
 extern char *var_ps_dnsbl_action;

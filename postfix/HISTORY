@@ -15908,3 +15908,30 @@ Apologies for any names omitted.
 	"smtp_dns_resolver_options = res_defnames" to get the old
 	behavior, which can produce unexpected results. Files:
 	smtp/smtp.c, smtp/smtp_params.c, smtp/smtp_addr.c.
+
+20100828
+
+	Refactoring: postscreen source code broken up into multiple
+	files, and identifiers updated to match changes in their
+	purpose.  This will be the baseline for adding support for
+	DNSBL weighting, then a dummy engine to collect forensic
+	evidence with the option of future protocol checks.  Files:
+	postscreen/*.[hc], Makefile.in.
+
+20100829
+
+	Postscreen DNSBL support for optional fixed-string filters
+	and optional integral weight factors (use negative weights
+	for whitelisting). See RELEASE_NOTES and postconf(5) for
+	details.  Files: postscreen/postscreen_dnsbl.c,
+	proto/postconf.proto, mantools.postlink, global/mail_params.h.
+
+	Incompatibility: the postscreen-to-dnsblog protocol was
+	changed to support DNSBL query result filters. Use "postfix
+	reload" after installing the new version otherwise the
+	dnsblog(8) server may complain.
+
+20100830
+
+	Polished the postscreen documentation and comments to clarify
+	the user interface and implementation. No code changes.

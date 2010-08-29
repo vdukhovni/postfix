@@ -12512,7 +12512,7 @@ inspection for DKIM-signed mail from known friendly domains. </p>
 <p> This feature is available in Postfix 2.7, and as an optional
 patch for Postfix 2.6. </p>
 
-%PARAM postscreen_cache_map btree:$data_directory/ps_whitelist
+%PARAM postscreen_cache_map btree:$data_directory/ps_cache
 
 <p> Persistent storage for the postscreen(8) server decisions. </p>
 
@@ -12604,18 +12604,63 @@ an optional one-letter suffix that specifies the time unit).  </p>
 
 %PARAM postscreen_dnsbl_sites
 
-<p>Optional list of DNS blocklist domains. When the list is non-enpty,
-the dnsblog(8) daemon will query these domains with the IP addresses
-of non-whitelisted postscreen(8) clients. Specify a list of domain
-names, separated by comma or whitespace. </p>
+<p>Optional list of DNS blocklist domains, filters and weight
+factors. When the list is non-empty, the dnsblog(8) daemon will
+query these domains with the IP addresses of non-whitelisted remote
+SMTP clients, and postscreen(8) will update an SMTP client's DNSBL
+score with each non-error reply. </p>
+
+<p> When a client's score is equal to or greater than the threshold
+specified with postscreen_dnsbl_threshold, postscreen(8) can drop
+the connection with the SMTP client. </p>
+
+<p> Specify a list of domain=filter*weight entries, separated by
+comma or whitespace.  </p>
+
+<ul>
+
+<li> <p> When no "=filter" is specified, postscreen(8) will use any
+non-error DNSBL reply.  Otherwise, the filter must be an IPv4
+address, and postscreen(8) uses only DNSBL replies that match the
+filter.  </p>
+
+<li> <p> When no "*weight" is specified, postscreen(8) increments
+the SMTP client's DNSBL score by 1.  Otherwise, the weight must be
+an integral number, and postscreen(8) adds the specified weight to
+the SMTP client's DNSBL score.  Specify a negative number for
+whitelisting.  </p>
+
+<li> <p> When one postscreen_dnsbl_sites entry produces multiple
+DNSBL responses, postscreen(8) applies the weight at most once.
+</p>
+
+</ul>
+
+<p> Examples: </p>
+
+<p> To use example.com as a high-confidence blocklist, and to
+block mail with example.net and example.org only when both agree:
+</p>
+
+<pre> 
+postscreen_dnsbl_threshold = 2 
+postscreen_dnsbl_sites = example.com*2, example.net, example.org 
+</pre>
+
+<p> To filter only DNSBL replies containing 127.0.0.4: </p>
+
+<pre> 
+postscreen_dnsbl_sites = example.com=127.0.0.4 
+</pre>
 
 <p> This feature is available in Postfix 2.8. </p>
 
 %PARAM postscreen_dnsbl_action continue
 
-<p>The action that postscreen(8) takes when an SMTP client is listed
-at the DNS blocklist domains specified with the postscreen_dnsbl_sites
-parameter.  Specify one of the following: </p>
+<p>The action that postscreen(8) takes when an SMTP client's combined
+DNSBL score is equal to or greater than a threshold (as defined
+with the postscreen_dnsbl_sites and postscreen_dnsbl_threshold
+parameters).  Specify one of the following: </p>
 
 <dl>
 
@@ -12642,10 +12687,11 @@ parameter.  Specify one of the following: </p>
 <dt> continue </dt>
 
 <dd> Continue waiting until the postscreen_greet_wait time has
-elapsed. If the client is listed at the DNS blocklist domains
-specified with the postscreen_dnsbl_sites parameter, execute the
-action specified with the postscreen_dnsbl_action parameter, otherwise
-forward the connection to a real SMTP server process. </dd>
+elapsed. If the client's combined DNSBL score is equal to or greater
+than a threshold (as specified with the postscreen_dnsbl_sites and
+postscreen_dnsbl_threshold parameters), execute the action specified
+with the postscreen_dnsbl_action parameter, otherwise forward the
+connection to a real SMTP server process. </dd>
 
 <dt> drop </dt>
 
@@ -12671,9 +12717,11 @@ postscreen_greet_wait parameter.  Specify one of the following:
 <dt> continue </dt>
 
 <dd> Continue waiting until the postscreen_greet_wait time has
-elapsed, and report whether the client is listed at the DNSBL sites
-specified with the postscreen_dnsbl_sites parameter. Do not
-forward the broken connection to a real SMTP server process. </dd>
+elapsed, and report whether the client's combined DNSBL score is
+equal to or greater than a threshold (as defined with the
+postscreen_dnsbl_sites and postscreen_dnsbl_threshold parameters).
+Do not forward the broken connection to a real SMTP server process.
+</dd>
 
 <dt> drop </dt>
 
@@ -12726,8 +12774,9 @@ parameter.  Specify one of the following: </p>
 
 <dd> Continue waiting until the postscreen_greet_wait time has
 elapsed, and report whether the client triggers a PREGREET or HANGUP
-error, or whether the client is listed at the DNSBL sites specified
-with the postscreen_dnsbl_sites parameter.  Take the corresponding
+error, or whether the client's combined DNSBL score is equal to or
+greater than a threshold (as specified with the postscreen_dnsbl_sites
+and postscreen_dnsbl_threshold parameters).  Take the corresponding
 action, or forward the connection to a real SMTP server process.
 </dd>
 
@@ -12942,17 +12991,17 @@ configuration parameter.  See there for details. </p>
 %PARAM smtp_dns_resolver_options 
 
 <p> DNS Resolver options for the Postfix SMTP client.  Specify zero
-or more of the following, separated by comma or whitespace. Option
-names are case-sensitive. Some options refer to domain names that
-are specified in /etc/resolv.conf or equivalent. </p>
+or more of the following options, separated by comma or whitespace.
+Option names are case-sensitive. Some options refer to domain names
+that are specified in the file /etc/resolv.conf or equivalent. </p>
 
 <dl>
 
 <dt><b>res_defnames</b></dt>
 
-<dd> Append the default domain name to single-component names (those
-that do not contain a dot). This can produce incorrect results,
-and was the behavior prior to Postfix 2.8. </dd>
+<dd> Append the current domain name to single-component names (those
+that do not contain a "." character). This can produce incorrect
+results, and is the hard-coded behavior prior to Postfix 2.8. </dd>
 
 <dt><b>res_dnsrch</b></dt>
 
@@ -12971,3 +13020,10 @@ configuration parameter.  See there for details. </p>
 
 <p> This feature is available in Postfix 2.8 and later.  </p>
 
+%PARAM postscreen_dnsbl_threshold 1
+
+<p> The inclusive lower bound for blocking an SMTP client, based on
+its combined DNSBL score as defined with the postscreen_dnsbl_sites
+parameter. </p>
+
+<p> This feature is available in Postfix 2.8.  </p>

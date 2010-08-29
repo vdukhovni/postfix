@@ -916,6 +916,7 @@ while (<>) {
     s;\bpostscreen_greet_wait\b;<a href="postconf.5.html#postscreen_greet_wait">$&</a>;g;
     s;\bpostscreen_greet_action\b;<a href="postconf.5.html#postscreen_greet_action">$&</a>;g;
     s;\bpostscreen_dnsbl_sites\b;<a href="postconf.5.html#postscreen_dnsbl_sites">$&</a>;g;
+    s;\bpostscreen_dnsbl_threshold\b;<a href="postconf.5.html#postscreen_dnsbl_threshold">$&</a>;g;
     s;\bpostscreen_dnsbl_action\b;<a href="postconf.5.html#postscreen_dnsbl_action">$&</a>;g;
     s;\bpostscreen_hangup_action\b;<a href="postconf.5.html#postscreen_hangup_action">$&</a>;g;
     s;\bpostscreen_whitelist_networks\b;<a href="postconf.5.html#postscreen_whitelist_networks">$&</a>;g;

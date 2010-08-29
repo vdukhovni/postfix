@@ -1,6 +1,6 @@
 SHELL	= /bin/sh
-SRCS	= postscreen.c
-OBJS	= postscreen.o
+SRCS	= postscreen.c postscreen_dict.c postscreen_dnsbl.c
+OBJS	= postscreen.o postscreen_dict.o postscreen_dnsbl.o
 HDRS	= 
 TESTSRC	=
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
@@ -87,3 +87,40 @@ postscreen.o: ../../include/vbuf.h
 postscreen.o: ../../include/vstream.h
 postscreen.o: ../../include/vstring.h
 postscreen.o: postscreen.c
+postscreen.o: postscreen.h
+postscreen_dict.o: ../../include/addr_match_list.h
+postscreen_dict.o: ../../include/argv.h
+postscreen_dict.o: ../../include/dict.h
+postscreen_dict.o: ../../include/dict_cache.h
+postscreen_dict.o: ../../include/match_list.h
+postscreen_dict.o: ../../include/match_ops.h
+postscreen_dict.o: ../../include/msg.h
+postscreen_dict.o: ../../include/sys_defs.h
+postscreen_dict.o: ../../include/vbuf.h
+postscreen_dict.o: ../../include/vstream.h
+postscreen_dict.o: ../../include/vstring.h
+postscreen_dict.o: postscreen.h
+postscreen_dict.o: postscreen_dict.c
+postscreen_dnsbl.o: ../../include/addr_match_list.h
+postscreen_dnsbl.o: ../../include/argv.h
+postscreen_dnsbl.o: ../../include/attr.h
+postscreen_dnsbl.o: ../../include/connect.h
+postscreen_dnsbl.o: ../../include/dict.h
+postscreen_dnsbl.o: ../../include/dict_cache.h
+postscreen_dnsbl.o: ../../include/events.h
+postscreen_dnsbl.o: ../../include/htable.h
+postscreen_dnsbl.o: ../../include/iostuff.h
+postscreen_dnsbl.o: ../../include/mail_params.h
+postscreen_dnsbl.o: ../../include/mail_proto.h
+postscreen_dnsbl.o: ../../include/match_list.h
+postscreen_dnsbl.o: ../../include/match_ops.h
+postscreen_dnsbl.o: ../../include/msg.h
+postscreen_dnsbl.o: ../../include/mymalloc.h
+postscreen_dnsbl.o: ../../include/split_at.h
+postscreen_dnsbl.o: ../../include/sys_defs.h
+postscreen_dnsbl.o: ../../include/valid_hostname.h
+postscreen_dnsbl.o: ../../include/vbuf.h
+postscreen_dnsbl.o: ../../include/vstream.h
+postscreen_dnsbl.o: ../../include/vstring.h
+postscreen_dnsbl.o: postscreen.h
+postscreen_dnsbl.o: postscreen_dnsbl.c

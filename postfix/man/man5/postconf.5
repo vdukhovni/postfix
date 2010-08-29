@@ -3726,8 +3726,9 @@ parameter.  Specify one of the following:
 .IP "continue"
 Continue waiting until the postscreen_greet_wait time has
 elapsed, and report whether the client triggers a PREGREET or HANGUP
-error, or whether the client is listed at the DNSBL sites specified
-with the postscreen_dnsbl_sites parameter.  Take the corresponding
+error, or whether the client's combined DNSBL score is equal to or
+greater than a threshold (as specified with the postscreen_dnsbl_sites
+and postscreen_dnsbl_threshold parameters).  Take the corresponding
 action, or forward the connection to a real SMTP server process.
 .IP "drop"
 Drop the connection immediately with a 521 SMTP reply, without
@@ -3759,7 +3760,7 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w
 (weeks).
 .PP
 This feature is available in Postfix 2.8.
-.SH postscreen_cache_map (default: btree:$data_directory/ps_whitelist)
+.SH postscreen_cache_map (default: btree:$data_directory/ps_cache)
 Persistent storage for the \fBpostscreen\fR(8) server decisions.
 .PP
 This feature is available in Postfix 2.8.
@@ -3786,9 +3787,10 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_dnsbl_action (default: continue)
-The action that \fBpostscreen\fR(8) takes when an SMTP client is listed
-at the DNS blocklist domains specified with the postscreen_dnsbl_sites
-parameter.  Specify one of the following:
+The action that \fBpostscreen\fR(8) takes when an SMTP client's combined
+DNSBL score is equal to or greater than a threshold (as defined
+with the postscreen_dnsbl_sites and postscreen_dnsbl_threshold
+parameters).  Specify one of the following:
 .IP "continue"
 Forward the connection to a real SMTP server process.
 .IP "drop"
@@ -3796,10 +3798,62 @@ Drop the connection with a 521 SMTP reply.
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_dnsbl_sites (default: empty)
-Optional list of DNS blocklist domains. When the list is non-enpty,
-the \fBdnsblog\fR(8) daemon will query these domains with the IP addresses
-of non-whitelisted \fBpostscreen\fR(8) clients. Specify a list of domain
-names, separated by comma or whitespace.
+Optional list of DNS blocklist domains, filters and weight
+factors. When the list is non-empty, the \fBdnsblog\fR(8) daemon will
+query these domains with the IP addresses of non-whitelisted remote
+SMTP clients, and \fBpostscreen\fR(8) will update an SMTP client's DNSBL
+score with each non-error reply.
+.PP
+When a client's score is equal to or greater than the threshold
+specified with postscreen_dnsbl_threshold, \fBpostscreen\fR(8) can drop
+the connection with the SMTP client.
+.PP
+Specify a list of domain=filter*weight entries, separated by
+comma or whitespace.
+.IP \(bu
+When no "=filter" is specified, \fBpostscreen\fR(8) will use any
+non-error DNSBL reply.  Otherwise, the filter must be an IPv4
+address, and \fBpostscreen\fR(8) uses only DNSBL replies that match the
+filter.
+.IP \(bu
+When no "*weight" is specified, \fBpostscreen\fR(8) increments
+the SMTP client's DNSBL score by 1.  Otherwise, the weight must be
+an integral number, and \fBpostscreen\fR(8) adds the specified weight to
+the SMTP client's DNSBL score.  Specify a negative number for
+whitelisting.
+.IP \(bu
+When one postscreen_dnsbl_sites entry produces multiple
+DNSBL responses, \fBpostscreen\fR(8) applies the weight at most once.
+.PP
+Examples:
+.PP
+To use example.com as a high-confidence blocklist, and to
+block mail with example.net and example.org only when both agree:
+.PP
+.nf
+.na
+.ft C
+postscreen_dnsbl_threshold = 2
+postscreen_dnsbl_sites = example.com*2, example.net, example.org
+.fi
+.ad
+.ft R
+.PP
+To filter only DNSBL replies containing 127.0.0.4:
+.PP
+.nf
+.na
+.ft C
+postscreen_dnsbl_sites = example.com=127.0.0.4
+.fi
+.ad
+.ft R
+.PP
+This feature is available in Postfix 2.8.
+.SH postscreen_dnsbl_threshold (default: 1)
+The inclusive lower bound for blocking an SMTP client, based on
+its combined DNSBL score as defined with the postscreen_dnsbl_sites
+parameter.
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_greet_action (default: continue)
@@ -3808,10 +3862,11 @@ before its turn within the time specified with the postscreen_greet_wait
 parameter.  Specify one of the following:
 .IP "continue"
 Continue waiting until the postscreen_greet_wait time has
-elapsed. If the client is listed at the DNS blocklist domains
-specified with the postscreen_dnsbl_sites parameter, execute the
-action specified with the postscreen_dnsbl_action parameter, otherwise
-forward the connection to a real SMTP server process.
+elapsed. If the client's combined DNSBL score is equal to or greater
+than a threshold (as specified with the postscreen_dnsbl_sites and
+postscreen_dnsbl_threshold parameters), execute the action specified
+with the postscreen_dnsbl_action parameter, otherwise forward the
+connection to a real SMTP server process.
 .IP "drop"
 Drop the connection immediately with a 521 SMTP reply, without
 examining DNSBL lookup results.
@@ -3847,9 +3902,10 @@ without sending data, within the time specified with the
 postscreen_greet_wait parameter.  Specify one of the following:
 .IP "continue"
 Continue waiting until the postscreen_greet_wait time has
-elapsed, and report whether the client is listed at the DNSBL sites
-specified with the postscreen_dnsbl_sites parameter. Do not
-forward the broken connection to a real SMTP server process.
+elapsed, and report whether the client's combined DNSBL score is
+equal to or greater than a threshold (as defined with the
+postscreen_dnsbl_sites and postscreen_dnsbl_threshold parameters).
+Do not forward the broken connection to a real SMTP server process.
 .IP "drop"
 Drop the connection immediately, without reporting DNSBL lookup
 results.
@@ -4903,13 +4959,13 @@ Use the smtp_discard_ehlo_keyword_address_maps feature to
 discard EHLO keywords selectively.
 .SH smtp_dns_resolver_options (default: empty)
 DNS Resolver options for the Postfix SMTP client.  Specify zero
-or more of the following, separated by comma or whitespace. Option
-names are case-sensitive. Some options refer to domain names that
-are specified in /etc/resolv.conf or equivalent.
+or more of the following options, separated by comma or whitespace.
+Option names are case-sensitive. Some options refer to domain names
+that are specified in the file /etc/resolv.conf or equivalent.
 .IP "\fBres_defnames\fR"
-Append the default domain name to single-component names (those
-that do not contain a dot). This can produce incorrect results,
-and was the behavior prior to Postfix 2.8.
+Append the current domain name to single-component names (those
+that do not contain a "." character). This can produce incorrect
+results, and is the hard-coded behavior prior to Postfix 2.8.
 .IP "\fBres_dnsrch\fR"
 Search for host names in the current domain and in parent
 domains. This can produce incorrect results and is therefore not

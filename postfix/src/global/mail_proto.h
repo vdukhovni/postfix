@@ -160,6 +160,7 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_RBL_TXT	"rbl_txt"	/* LaMont compatibility */
 #define MAIL_ATTR_RBL_CLASS	"rbl_class"
 #define MAIL_ATTR_RBL_CODE	"rbl_code"
+#define MAIL_ATTR_RBL_ADDR	"rbl_addr"
 
  /*
   * The following attribute names are stored in queue files. Changing this

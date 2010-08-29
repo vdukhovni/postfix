@@ -108,15 +108,18 @@ static VSTRING *rbl_domain;
 static VSTRING *addr;
 static VSTRING *query;
 static VSTRING *why;
+static VSTRING *result;
 
  /*
   * Silly little macros.
   */
 #define STR(x)			vstring_str(x)
+#define LEN(x)			VSTRING_LEN(x)
 
 /* static void dnsblog_query - query DNSBL for client address */
 
-static int dnsblog_query(const char *dnsbl_domain, const char *addr)
+static VSTRING *dnsblog_query(VSTRING *result, const char *dnsbl_domain, 
+	const char *addr)
 {
     const char *myname = "dnsblog_query";
     ARGV   *octets;
@@ -127,7 +130,6 @@ static int dnsblog_query(const char *dnsbl_domain, const char *addr)
     DNS_RR *addr_list;
     DNS_RR *rr;
     MAI_HOSTADDR_STR hostaddr;
-    int     found = 0;
 
     if (msg_verbose)
 	msg_info("%s: addr %s dnsbl_domain %s",
@@ -168,11 +170,11 @@ static int dnsblog_query(const char *dnsbl_domain, const char *addr)
     }
 
     /*
-     * Tack on the RBL domain name and query the DNS for an A record. Don't
-     * do this for AAAA records. Yet.
+     * Tack on the RBL domain name and query the DNS for an A record.
      */
     vstring_strcat(query, dnsbl_domain);
     dns_status = dns_lookup(STR(query), T_A, 0, &addr_list, (VSTRING *) 0, why);
+    VSTRING_RESET(result);
     if (dns_status == DNS_OK) {
 	for (rr = addr_list; rr != 0; rr = rr->next) {
 	    if (dns_rr_to_pa(rr, &hostaddr) == 0) {
@@ -181,7 +183,9 @@ static int dnsblog_query(const char *dnsbl_domain, const char *addr)
 	    } else {
 		msg_info("addr %s blocked by domain %s as %s",
 			 addr, dnsbl_domain, hostaddr.buf);
-		found = 1;
+		if (LEN(result) > 0)
+		    vstring_strcat(result, " ");
+		vstring_strcat(result, hostaddr.buf);
 	    }
 	}
 	dns_rr_free(addr_list);
@@ -193,7 +197,8 @@ static int dnsblog_query(const char *dnsbl_domain, const char *addr)
 	msg_warn("%s: lookup error for DNS query %s: %s",
 		 myname, STR(query), STR(why));
     }
-    return (found);
+    VSTRING_TERMINATE(result);
+    return (result);
 }
 
 /* dnsblog_service - perform service for client */
@@ -201,7 +206,6 @@ static int dnsblog_query(const char *dnsbl_domain, const char *addr)
 static void dnsblog_service(VSTREAM *client_stream, char *unused_service,
 			            char **argv)
 {
-    int     found;
 
     /*
      * Sanity check. This service takes no command-line arguments.
@@ -217,13 +221,13 @@ static void dnsblog_service(VSTREAM *client_stream, char *unused_service,
     if (attr_scan(client_stream,
 		  ATTR_FLAG_MORE | ATTR_FLAG_STRICT,
 		  ATTR_TYPE_STR, MAIL_ATTR_RBL_DOMAIN, rbl_domain,
-		  ATTR_TYPE_STR, MAIL_ATTR_ADDR, addr,
+		  ATTR_TYPE_STR, MAIL_ATTR_ACT_CLIENT_ADDR, addr,
 		  ATTR_TYPE_END) == 2) {
-	found = dnsblog_query(STR(rbl_domain), STR(addr));
+	(void) dnsblog_query(result, STR(rbl_domain), STR(addr));
 	attr_print(client_stream, ATTR_FLAG_NONE,
 		   ATTR_TYPE_STR, MAIL_ATTR_RBL_DOMAIN, STR(rbl_domain),
-		   ATTR_TYPE_STR, MAIL_ATTR_ADDR, STR(addr),
-		   ATTR_TYPE_INT, MAIL_ATTR_STATUS, found,
+		   ATTR_TYPE_STR, MAIL_ATTR_ACT_CLIENT_ADDR, STR(addr),
+		   ATTR_TYPE_STR, MAIL_ATTR_RBL_ADDR, STR(result),
 		   ATTR_TYPE_END);
 	vstream_fflush(client_stream);
     }
@@ -237,6 +241,7 @@ static void post_jail_init(char *unused_name, char **unused_argv)
     addr = vstring_alloc(100);
     query = vstring_alloc(100);
     why = vstring_alloc(100);
+    result = vstring_alloc(100);
 }
 
 MAIL_VERSION_STAMP_DECLARE;
