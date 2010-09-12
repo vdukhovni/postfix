@@ -1867,8 +1867,8 @@ only over a TLS-encrypted connection: </p>
 <blockquote>
 <pre>
 /etc/postfix/main.cf:
-    smtpd_sasl_security_options = noanonymous, noplaintext
-    smtpd_sasl_tls_security_options = noanonymous
+    smtp_sasl_security_options = noanonymous, noplaintext
+    smtp_sasl_tls_security_options = noanonymous
 </pre>
 </blockquote>
 

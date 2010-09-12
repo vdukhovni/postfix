@@ -3719,20 +3719,59 @@ as "stop" commands. For these commands, disabled instances are skipped,
 and enabled instances are processed in reverse order.
 .PP
 This feature is available in Postfix 2.6 and later.
-.SH postscreen_blacklist_action (default: continue)
+.SH postscreen_bare_newline_action (default: ignore)
+The action that \fBpostscreen\fR(8) takes when an SMTP client sends
+a bare newline character, that is, a newline not preceded by carriage
+return.  Specify one of the following:
+.IP "\fBignore\fR"
+Ignore the failure of this test. Allow other tests to complete.
+Do \fInot\fR repeat this test before some the result from some
+other test expires.
+This option is useful for testing and collecting statistics
+without blocking mail permanently.
+.IP "\fBenforce\fR"
+Allow other tests to complete. Reject attempts to deliver mail
+with a 550 SMTP reply, and log the helo/sender/recipient information.
+Repeat this test the next time the client connects.
+.IP "\fBdrop\fR"
+Drop the connection immediately with a 521 SMTP reply. Repeat
+this test the next time the client connects.
+.PP
+This feature is available in Postfix 2.8.
+.SH postscreen_bare_newline_enable (default: no)
+Enable "bare newline" SMTP protocol tests in the \fBpostscreen\fR(8)
+server. These tests are expensive: a client must disconnect after
+it passes the test, before it can talk to a real Postfix SMTP server.
+.PP
+This feature is available in Postfix 2.8.
+.SH postscreen_bare_newline_ttl (default: 30d)
+The amount of time that \fBpostscreen\fR(8) will cache results from
+a successful "bare newline" SMTP protocol test. During this
+time, the client IP address is excluded from this test. The default
+is long because a client must disconnect after it passes the test,
+before it can talk to a real Postfix SMTP server.
+.PP
+Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+.PP
+This feature is available in Postfix 2.8.
+.SH postscreen_blacklist_action (default: ignore)
 The action that \fBpostscreen\fR(8) takes when an SMTP client is
 permanently blacklisted with the postscreen_blacklist_networks
 parameter.  Specify one of the following:
-.IP "continue"
-Continue waiting until the postscreen_greet_wait time has
-elapsed, and report whether the client triggers a PREGREET or HANGUP
-error, or whether the client's combined DNSBL score is equal to or
-greater than a threshold (as specified with the postscreen_dnsbl_sites
-and postscreen_dnsbl_threshold parameters).  Take the corresponding
-action, or forward the connection to a real SMTP server process.
-.IP "drop"
-Drop the connection immediately with a 521 SMTP reply, without
-reporting PREGREET, HANGUP or DNSBL results.
+.IP "\fBignore\fR (default)"
+Ignore  this result. Allow other tests to complete.  Repeat
+this test the next time the client connects.
+This option is useful for testing and collecting statistics
+without blocking mail.
+.IP "\fBenforce\fR"
+Allow other tests to complete. Reject attempts to deliver mail
+with a 550 SMTP reply, and log the helo/sender/recipient information.
+Repeat this test the next time the client connects.
+.IP "\fBdrop\fR"
+Drop the connection immediately with a 521 SMTP reply. Repeat
+this test the next time the client connects.
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_blacklist_networks (default: empty)
@@ -3764,37 +3803,85 @@ This feature is available in Postfix 2.8.
 Persistent storage for the \fBpostscreen\fR(8) server decisions.
 .PP
 This feature is available in Postfix 2.8.
-.SH postscreen_cache_retention_time (default: 1d)
+.SH postscreen_cache_retention_time (default: 7d)
 The amount of time that \fBpostscreen\fR(8) will cache an expired
 temporary whitelist entry before it is removed. This prevents clients
 from being logged as "NEW" just because their cache entry expired
-an hour ago.
+an hour ago. It also prevents the cache from filling up with clients
+that passed some deep protocol test once and never came back.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w
 (weeks).
 .PP
 This feature is available in Postfix 2.8.
-.SH postscreen_cache_ttl (default: 1d)
-The amount of time that \fBpostscreen\fR(8) will cache a decision for
-a specific SMTP client IP address. During this time, the client IP
-address is excluded from tests. If possible, expired decisions are
-renewed automatically. Specify a non-zero time value (an integral
-value plus an optional one-letter suffix that specifies the time
-unit).
-.PP
-Time units: s (seconds), m (minutes), h (hours), d (days), w
-(weeks).
+.SH postscreen_command_count_limit (default: 20)
+The limit on the total number of commands per SMTP session for
+\fBpostscreen\fR(8)'s built-in SMTP protocol engine.  This SMTP engine
+defers or rejects all attempts to deliver mail, therefore there is
+no need to enforce separate limits on the number of junk commands
+and error commands.
 .PP
 This feature is available in Postfix 2.8.
-.SH postscreen_dnsbl_action (default: continue)
+.SH postscreen_command_time_limit (default: ${stress?10}${stress:300}s)
+The command "read" time limit for \fBpostscreen\fR(8)'s built-in SMTP
+protocol engine.
+.PP
+This feature is available in Postfix 2.8.
+.SH postscreen_disable_vrfy_command (default: $disable_vrfy_command)
+Disable the SMTP VRFY command in the \fBpostscreen\fR(8) daemon.  See
+disable_vrfy_command for details.
+.PP
+This feature is available in Postfix 2.8.
+.SH postscreen_dnsbl_action (default: ignore)
 The action that \fBpostscreen\fR(8) takes when an SMTP client's combined
 DNSBL score is equal to or greater than a threshold (as defined
 with the postscreen_dnsbl_sites and postscreen_dnsbl_threshold
 parameters).  Specify one of the following:
-.IP "continue"
-Forward the connection to a real SMTP server process.
-.IP "drop"
-Drop the connection with a 521 SMTP reply.
+.IP "\fBignore\fR (default)"
+Ignore the failure of this test. Allow other tests to complete.
+Repeat this test the next time the client connects.
+This option is useful for testing and collecting statistics
+without blocking mail.
+.IP "\fBenforce\fR"
+Allow other tests to complete. Reject attempts to deliver mail
+with a 550 SMTP reply, and log the helo/sender/recipient information.
+Repeat this test the next time the client connects.
+.IP "\fBdrop\fR"
+Drop the connection immediately with a 521 SMTP reply. Repeat
+this test the next time the client connects.
+.PP
+This feature is available in Postfix 2.8.
+.SH postscreen_dnsbl_reply_map (default: empty)
+A mapping from actual DNSBL domain name which includes a secret
+password, to the DNSBL domain name that postscreen will reply with
+when it rejects mail.  When no mapping is found, the actual DNSBL
+domain will be used.
+.PP
+For maximal stability it is best to use a file that is read
+into memory such as pcre:, regexp: or texthash: (a format similar
+to hash: except that there is no need to run \fBpostmap\fR(1) before the
+file can be used, and that it does not detect changes after the
+file is read).
+.PP
+Example:
+.PP
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    postscreen_dnsbl_reply_map = texthash:/etc/postfix/dnsbl_reply
+.fi
+.ad
+.ft R
+.PP
+.nf
+.na
+.ft C
+/etc/postfix/dnsbl_reply:
+   secret.zen.spamhaus.org	zen.spamhaus.org
+.fi
+.ad
+.ft R
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_dnsbl_sites (default: empty)
@@ -3803,6 +3890,10 @@ factors. When the list is non-empty, the \fBdnsblog\fR(8) daemon will
 query these domains with the IP addresses of non-whitelisted remote
 SMTP clients, and \fBpostscreen\fR(8) will update an SMTP client's DNSBL
 score with each non-error reply.
+.PP
+Caution: when postscreen rejects mail, it replies with the DNSBL
+domain name. Use the postscreen_dnsbl_reply_map feature to hide
+"password" information in DNSBL domain names.
 .PP
 When a client's score is equal to or greater than the threshold
 specified with postscreen_dnsbl_threshold, \fBpostscreen\fR(8) can drop
@@ -3856,20 +3947,38 @@ its combined DNSBL score as defined with the postscreen_dnsbl_sites
 parameter.
 .PP
 This feature is available in Postfix 2.8.
-.SH postscreen_greet_action (default: continue)
+.SH postscreen_dnsbl_ttl (default: 1d)
+The amount of time that \fBpostscreen\fR(8) will cache results from
+a successful DNS blocklist test. During this time, the client IP address
+is excluded from this test. The default is relatively short, because a
+good client can immediately talk to a real Postfix SMTP server.
+.PP
+Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+.PP
+This feature is available in Postfix 2.8.
+.SH postscreen_forbidden_commands (default: $smtpd_forbidden_commands)
+List of commands that \fBpostscreen\fR(8) server considers in violation
+of the SMTP protocol. See also: postscreen_non_smtp_command_action.
+.PP
+This feature is available in Postfix 2.8.
+.SH postscreen_greet_action (default: ignore)
 The action that \fBpostscreen\fR(8) takes when an SMTP client speaks
 before its turn within the time specified with the postscreen_greet_wait
 parameter.  Specify one of the following:
-.IP "continue"
-Continue waiting until the postscreen_greet_wait time has
-elapsed. If the client's combined DNSBL score is equal to or greater
-than a threshold (as specified with the postscreen_dnsbl_sites and
-postscreen_dnsbl_threshold parameters), execute the action specified
-with the postscreen_dnsbl_action parameter, otherwise forward the
-connection to a real SMTP server process.
-.IP "drop"
-Drop the connection immediately with a 521 SMTP reply, without
-examining DNSBL lookup results.
+.IP "\fBignore\fR (default)"
+Ignore the failure of this test. Allow other tests to complete.
+Repeat this test the next time the client connects.
+This option is useful for testing and collecting statistics
+without blocking mail.
+.IP "\fBenforce\fR"
+Allow other tests to complete. Reject attempts to deliver mail
+with a 550 SMTP reply, and log the helo/sender/recipient information.
+Repeat this test the next time the client connects.
+.IP "\fBdrop\fR"
+Drop the connection immediately with a 521 SMTP reply. Repeat
+this test the next time the client connects.
 .PP
 In either case, \fBpostscreen\fR(8) will not whitelist the SMTP client
 IP address.
@@ -3884,31 +3993,110 @@ that they speak before their turn (pre-greet).  Specify an empty
 value to disable this feature.
 .PP
 This feature is available in Postfix 2.8.
-.SH postscreen_greet_wait (default: 4s)
+.SH postscreen_greet_ttl (default: 1d)
+The amount of time that \fBpostscreen\fR(8) will cache results from
+a successful PREGREET test. During this time, the client IP address
+is excluded from this test. The default is relatively short, because
+a good client can immediately talk to a real Postfix SMTP server.
+.PP
+Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+.PP
+This feature is available in Postfix 2.8.
+.SH postscreen_greet_wait (default: ${stress?2}${stress:6}s)
 The amount of time that \fBpostscreen\fR(8) will wait for an SMTP
 client to send a command before its turn, and for DNS blocklist
-lookup results to arrive. This is done only when the SMTP client
-IP address is not permanently whitelisted, and when it has no cached
-decision.  Specify a non-zero time value (an integral value plus
-an optional one-letter suffix that specifies the time unit).
+lookup results to arrive (default: 2 seconds under stress, 6 seconds
+normally).  This is done only when the SMTP client IP address is
+not permanently whitelisted, and when it has no cached decision.
+Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w
 (weeks).
 .PP
 This feature is available in Postfix 2.8.
-.SH postscreen_hangup_action (default: continue)
-The action that \fBpostscreen\fR(8) takes when an SMTP client disconnects
-without sending data, within the time specified with the
-postscreen_greet_wait parameter.  Specify one of the following:
-.IP "continue"
-Continue waiting until the postscreen_greet_wait time has
-elapsed, and report whether the client's combined DNSBL score is
-equal to or greater than a threshold (as defined with the
-postscreen_dnsbl_sites and postscreen_dnsbl_threshold parameters).
-Do not forward the broken connection to a real SMTP server process.
-.IP "drop"
-Drop the connection immediately, without reporting DNSBL lookup
-results.
+.SH postscreen_helo_required (default: $smtpd_helo_required)
+Require that a remote SMTP client sends HELO or EHLO before
+commencing a MAIL transaction.
+.PP
+This feature is available in Postfix 2.8.
+.SH postscreen_non_smtp_command_action (default: drop)
+The action that \fBpostscreen\fR(8) takes when an SMTP client sends
+non-SMTP commands as specified with the postscreen_forbidden_commands
+parameter.  Specify one of the following:
+.IP "\fBignore\fR"
+Ignore the failure of this test. Allow other tests to complete.
+Do \fInot\fR repeat this test before some the result from some
+other test expires.
+This option is useful for testing and collecting statistics
+without blocking mail permanently.
+.IP "\fBenforce\fR"
+Allow other tests to complete. Reject attempts to deliver mail
+with a 550 SMTP reply, and log the helo/sender/recipient information.
+Repeat this test the next time the client connects.
+.IP "\fBdrop\fR"
+Drop the connection immediately with a 521 SMTP reply. Repeat
+this test the next time the client connects. This action is the
+same as with the Postfix SMTP server's smtpd_forbidden_commands
+feature.
+.PP
+This feature is available in Postfix 2.8.
+.SH postscreen_non_smtp_command_enable (default: no)
+Enable "non-SMTP command" tests in the \fBpostscreen\fR(8) server. These
+tests are expensive: a client must disconnect after it passes the
+test, before it can talk to a real Postfix SMTP server.
+.PP
+This feature is available in Postfix 2.8.
+.SH postscreen_non_smtp_command_ttl (default: 30d)
+The amount of time that \fBpostscreen\fR(8) will cache results from
+a successful "non_smtp_command" SMTP protocol test. During this
+time, the client IP address is excluded from this test. The default
+is long because a client must disconnect after it passes the test,
+before it can talk to a real Postfix SMTP server.
+.PP
+Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+.PP
+This feature is available in Postfix 2.8.
+.SH postscreen_pipelining_action (default: enforce)
+The action that \fBpostscreen\fR(8) takes when an SMTP client sends
+multiple commands instead of sending one command and waiting for
+the server to respond.  Specify one of the following:
+.IP "\fBignore\fR"
+Ignore the failure of this test. Allow other tests to complete.
+Do \fInot\fR repeat this test before some the result from some
+other test expires.
+This option is useful for testing and collecting statistics
+without blocking mail permanently.
+.IP "\fBenforce\fR"
+Allow other tests to complete. Reject attempts to deliver mail
+with a 550 SMTP reply, and log the helo/sender/recipient information.
+Repeat this test the next time the client connects.
+.IP "\fBdrop\fR"
+Drop the connection immediately with a 521 SMTP reply. Repeat
+this test the next time the client connects.
+.PP
+This feature is available in Postfix 2.8.
+.SH postscreen_pipelining_enable (default: no)
+Enable "pipelining" SMTP protocol tests in the \fBpostscreen\fR(8)
+server. These tests are expensive: a good client must disconnect
+after it passes the test, before it can talk to a real Postfix SMTP
+server.
+.PP
+This feature is available in Postfix 2.8.
+.SH postscreen_pipelining_ttl (default: 30d)
+The amount of time that \fBpostscreen\fR(8) will cache results from
+a successful "pipelining" SMTP protocol test. During this time, the
+client IP address is excluded from this test. The default is
+long because a good client must disconnect after it passes the test,
+before it can talk to a real Postfix SMTP server.
+.PP
+Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_post_queue_limit (default: $default_process_limit)
@@ -3922,6 +4110,20 @@ The number of non-whitelisted clients that can be waiting for
 a decision whether they will receive service from a real SMTP server
 process. When this queue is full, all non-whitelisted clients will
 receive a 421 reponse.
+.PP
+This feature is available in Postfix 2.8.
+.SH postscreen_watchdog_timeout (default: 10s)
+How much time a \fBpostscreen\fR(8) process may take to respond to
+an SMTP client command or to perform a cache operation before it
+is terminated by a built-in watchdog timer.  This is a safety
+mechanism that prevents \fBpostscreen\fR(8) from becoming non-responsive
+due to a bug in Postfix itself or in system software.  To avoid
+false alarms and unnecessary cache corruption this limit cannot be
+set under 10s.
+.PP
+Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_whitelist_networks (default: $mynetworks)
@@ -7316,7 +7518,7 @@ This parameter is not subjected to $parameter expansion.
 .PP
 This feature is available in Postfix 2.0 and later.
 .SH smtpd_forbidden_commands (default: CONNECT, GET, POST)
-List of commands that causes the Postfix SMTP server to immediately
+List of commands that cause the Postfix SMTP server to immediately
 terminate the session with a 221 code. This can be used to disconnect
 clients that obviously attempt to abuse the system. In addition to the
 commands listed in this parameter, commands that follow the "Label:"
@@ -8087,7 +8289,7 @@ smtpd_sender_restrictions = reject_unknown_sender_domain,
 .fi
 .ad
 .ft R
-.SH smtpd_service (default: smtpd)
+.SH smtpd_service_name (default: smtpd)
 The internal service that \fBpostscreen\fR(8) forwards allowed
 connections to. In a future version there may be different
 classes of SMTP service.

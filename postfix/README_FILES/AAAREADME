@@ -38,6 +38,7 @@ SSMMTTPP RReellaayy aanndd aacccceessss ccoonnttrrooll
   * SMTPD_POLICY_README: Access policy delegation
   * ADDRESS_VERIFICATION_README: Address verification
   * RESTRICTION_CLASS_README: Per-client/user/etc. access
+  * POSTSCREEN_README: SMTP connection triage
   * ETRN_README: ETRN Support
   * UUCP_README: LAN connected via UUCP
 

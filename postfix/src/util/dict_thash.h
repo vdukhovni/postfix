@@ -1,13 +1,13 @@
-#ifndef _DICT_DBM_H_INCLUDED_
-#define _DICT_DBM_H_INCLUDED_
+#ifndef _DICT_THASH_H_INCLUDED_
+#define _DICT_THASH_H_INCLUDED_
 
 /*++
 /* NAME
-/*	dict_dbm 3h
+/*	dict_thash 3h
 /* SUMMARY
-/*	dictionary manager interface to DBM files
+/*	dictionary manager interface to flat text files
 /* SYNOPSIS
-/*	#include <dict_dbm.h>
+/*	#include <dict_thash.h>
 /* DESCRIPTION
 /* .nf
 
@@ -19,9 +19,9 @@
  /*
   * External interface.
   */
-#define DICT_TYPE_DBM	"dbm"
+#define DICT_TYPE_THASH	"texthash"
 
-extern DICT *dict_dbm_open(const char *, int, int);
+extern DICT *dict_thash_open(const char *, int, int);
 
 /* LICENSE
 /* .ad

@@ -271,6 +271,7 @@ $readme_directory/OVERVIEW:f:root:-:644
 $readme_directory/PACKAGE_README:f:root:-:644
 $readme_directory/PCRE_README:f:root:-:644
 $readme_directory/PGSQL_README:f:root:-:644
+$readme_directory/POSTSCREEN_README:f:root:-:644
 $readme_directory/QMQP_README:f:root:-:644:o
 $readme_directory/QSHAPE_README:f:root:-:644
 $readme_directory/RELEASE_NOTES:f:root:-:644
@@ -323,6 +324,7 @@ $html_directory/OVERVIEW.html:f:root:-:644
 $html_directory/PACKAGE_README.html:f:root:-:644
 $html_directory/PCRE_README.html:f:root:-:644
 $html_directory/PGSQL_README.html:f:root:-:644
+$html_directory/POSTSCREEN_README.html:f:root:-:644
 $html_directory/QMQP_README.html:f:root:-:644:o
 $html_directory/QSHAPE_README.html:f:root:-:644
 $html_directory/RESTRICTION_CLASS_README.html:f:root:-:644

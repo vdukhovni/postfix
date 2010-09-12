@@ -547,7 +547,8 @@ static void dict_db_close(DICT *dict)
      * ignore, I'm going to report the bogus error as a non-error.
      */
     if (DICT_DB_CLOSE(dict_db->db) < 0)
-	msg_info("close database %s: %m", dict_db->dict.name);
+	msg_info("close database %s: %m (possible Berkeley DB bug)",
+		 dict_db->dict.name);
     if (dict_db->key_buf)
 	vstring_free(dict_db->key_buf);
     if (dict_db->val_buf)

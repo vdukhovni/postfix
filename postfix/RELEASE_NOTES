@@ -14,6 +14,69 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.6 or earlier, read RELEASE_NOTES-2.7
 before proceeding.
 
+Postscreen notes:
+=================
+
+To turn on postscreen, see "Configuring the postscreen(8) service"
+in the POSTSCREEN_README file. This allows you to run postscreen
+without blocking mail first.
+
+The code is rock solid, but the user interface has dozens of
+parameters, so it literally is like using a machine that has wires
+hanging out on all sides. This makes it possible to do research.
+The idea is to reduce the number of parameters once things settle
+down.
+
+NOTE: Some postscreen parameters implement stress-dependent behavior.
+This is supported only when the default value is stress-dependent
+(that is, the default looks like ${stress?XX}${stress:YY}).  Other
+postscreen parameters always evaluate as if the stress value is 
+equal to the empty string.
+
+Incompatibility with snapshot 20100912
+======================================
+
+- The postscreen "continue" action is now called "ignore".  The old
+  name is still supported but no longer documented.
+
+- The postscreen_hangup_action parameter was removed. Postscreen
+  now always behaves as if "postscreen_hangup_action = drop".
+
+- The postscreen_cache_retention_time default was increased from
+  1d to 7d, to avoid deleting results from expensive deep SMTP
+  protocol tests too quickly.
+
+Major changes with snapshot 20100912
+====================================
+
+The main change is a new SMTP protocol engine for deep protocol
+tests, and for logging the helo/sender/recipient information when
+postscreen rejects an attempt to deliver mail.
+
+    CAUTION: when postscreen rejects mail, it replies with the DNSBL
+    domain name. Use the postscreen_dnsbl_reply_map feature to hide
+    "password" information in DNSBL domain names. See the poststconf(5)
+    manpage for a specific example.
+
+Deep protocol tests are implemented by a new SMTP protocol engine
+that defers or rejects all attempts to deliver mail. The first,
+test detects unauthorized SMTP command pipelining (an SMTP client
+sends multiple commands, instead of sending one command and waiting
+for the server response); a second deep protocol test implements
+the Postfix SMTP server's smtpd_forbidden_commands feature (a client
+sends commands such as CONNECT, GET, POST); and a third deep protocol
+test detects spambots that send SMTP commands that end in newline
+instead of carriage-return/newline.  Real spambots rarely make this
+mistake, but poorly-written software often does.
+
+Deep protocol tests are disabled by default, because the built-in
+SMTP engine cannot not hand off the "live" connection from a good
+SMTP client to a Postfix SMTP server process. Instead, postscreen(8)
+defers attempts to deliver mail with a 4XX status, and waits for
+the client to disconnect. The next time a good client connects,
+it will be allowed to talk to a Postfix SMTP server process to
+deliver mail.
+
 Incompatibility with snapshot 20100830
 ======================================
 

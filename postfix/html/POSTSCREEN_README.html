@@ -1,0 +1,709 @@
+<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+
+<head>
+
+<title>Postfix Postscreen Howto</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+
+</head>
+
+<body>
+
+<h1><img src="postfix-logo.jpg" width="203" height="98" ALT="">Postfix Postscreen Howto</h1>
+
+<hr>
+
+<h2> <a name="intro">Introduction</a> </h2>
+
+<p> The Postfix <a href="postscreen.8.html">postscreen(8)</a> server performs triage on multiple
+inbound SMTP connections in parallel. While one <a href="postscreen.8.html">postscreen(8)</a> process
+keeps spambots away from Postfix SMTP server processes, more Postfix
+SMTP server processes remain available for legitimate clients. </p>
+
+<p> By doing these checks in a single <a href="postscreen.8.html">postscreen(8)</a> process, Postfix
+can avoid wasting one SMTP server process per connection. A side
+benefit of <a href="postscreen.8.html">postscreen(8)</a>'s DNSBL lookups is that DNS records are
+already cached before the Postfix SMTP server looks them up later.
+</p>
+
+<p> <a href="postscreen.8.html">postscreen(8)</a> maintains a temporary whitelist of positive
+decisions.  Once an SMTP client is whitelisted, it is immediately
+forwarded to a real Postfix SMTP server process without further
+checking. </p>
+
+<p> By default, the program logs only statistics, and it does not
+run any checks on clients in <a href="postconf.5.html#mynetworks">mynetworks</a> (primarily, to avoid problems
+with buggy SMTP implementations in network appliances). </p>
+
+<p> Many of the ideas in <a href="postscreen.8.html">postscreen(8)</a> have been explored in earlier
+work by Michael Tokarev, in OpenBSD spamd, and in MailChannels
+Traffic Control.  </p>
+
+<p> Topics in this document: </p>
+
+<ul>
+
+<li> <a href="#intro">Introduction</a>
+
+<li> <a href="#basic">The basic idea behind postscreen(8)</a>
+
+<li> <a href="#general"> General operation </a>
+
+<li> <a href="#quick">Quick tests before everything else</a>
+
+<li> <a href="#before_220"> Tests before the 220 SMTP server greeting </a>
+
+<li> <a href="#after_220">Tests after the 220 SMTP server greeting</a>
+
+<li> <a href="#other_error">Other errors</a>
+
+<li> <a href="#victory">When all tests succeed</a>
+
+<li> <a href="#config"> Configuring the postscreen(8) service</a>
+
+</ul>
+
+<h2> <a name="basic">The basic idea behind postscreen(8)</a> </h2>
+
+<p> Spambots have a limited amount of time to send out spam before
+they become blacklisted. For this reason, spambots make compromises
+in their SMTP protocol implementation to speed up spam deliveries.
+For example, they speak before their turn. </p>
+
+<p> Many spambots avoid spamming the same site repeatedly.  Thus,
+<a href="postscreen.8.html">postscreen(8)</a> must make a long-term decision after a single
+measurement. For example, allow a good client to skip the DNSBL
+test for 24 hours. </p>
+
+<p> To recognize spambots, <a href="postscreen.8.html">postscreen(8)</a> measures properties of the
+client IP address and of the client SMTP protocol implementation
+(the protocol compromises that were made to speed up delivery).
+These properties don't change with delivery attempts, and are
+therefore suitable for making a long-term decision after a single
+measurement.  </p>
+
+<p> <a href="postscreen.8.html">postscreen(8)</a> does not inspect message content. The reason is
+that content can change with each delivery attempt, especially with
+legitimate clients. Message content is not good for making a long-term
+decision after a single measurement, and that is the problem that
+<a href="postscreen.8.html">postscreen(8)</a> is focused on. </p>
+
+<h2> <a name="general"> General operation </a> </h2>
+
+<p> The <a href="postscreen.8.html">postscreen(8)</a> triage process involves a number of tests,
+in the order as described below.  Some tests introduce a delay of
+a few seconds.  Once a client passes all tests, its IP address is
+temporarily excluded from any tests, typically 24 hours for simple
+tests or 1 week for complex tests.  This minimizes the impact of
+the tests on legitimate mail clients. </p>
+
+<p> After logging the result of its tests, <a href="postscreen.8.html">postscreen(8)</a> by default
+forwards all connections to a real SMTP server process. This mode
+is useful for non-destructive testing. </p>
+
+<p> In a typical production setting, <a href="postscreen.8.html">postscreen(8)</a> is configured
+to reject mail from clients that fail one or more tests, after
+logging the sender and recipient information. </p>
+
+<p> Note: <a href="postscreen.8.html">postscreen(8)</a> is not an SMTP proxy; this is intentional.
+The purpose is to prioritize legitimate clients with as little
+overhead as possible. </p>
+
+<h2> <a name="quick">Quick tests before everything else</a> </h2>
+
+<p> Before engaging in SMTP-level tests. <a href="postscreen.8.html">postscreen(8)</a> queries a
+number of local black and whitelists. These tests speed up the
+handling of known clients. </p>
+
+<ul>
+
+<li> <a href="#perm_white"> Permanent whitelist test </a>
+
+<li> <a href="#perm_black"> Permanent blacklist test </a>
+
+<li> <a href="#temp_white"> Temporary whitelist test </a>
+
+</ul>
+
+<h3> <a name="perm_white"> Permanent whitelist test </a> </h3>
+
+<p> The <a href="postconf.5.html#postscreen_whitelist_networks">postscreen_whitelist_networks</a> parameter (default: $<a href="postconf.5.html#mynetworks">mynetworks</a>)
+specifies a permanent whitelist for SMTP client IP addresses.  When
+the SMTP client address matches the permanent whitelist, this is
+logged as: </p>
+
+<pre>
+    <b>WHITELISTED</b> <i>address</i>
+</pre>
+
+<p> The action is not configurable: immediately forward the
+connection to a real SMTP server process. </p>
+
+<h3> <a name="perm_black"> Permanent blacklist test </a>  </h3>
+
+<p> The <a href="postconf.5.html#postscreen_blacklist_networks">postscreen_blacklist_networks</a> parameter (default: empty)
+specifies a permanent blacklist for SMTP client IP addresses.  The
+address syntax is as with <a href="postconf.5.html#mynetworks">mynetworks</a>.  When the SMTP client address
+matches the permanent blacklist, <a href="postscreen.8.html">postscreen(8)</a> logs this as: </p>
+
+<pre>
+    <b>BLACKLISTED</b> <i>address</i>
+</pre>
+
+<p> The <a href="postconf.5.html#postscreen_blacklist_action">postscreen_blacklist_action</a> parameter specifies the action
+that is taken next.  See "<a href="#fail_before_220">When tests
+fail before the 220 SMTP server greeting</a>" below. </p>
+
+<h3> <a name="temp_white"> Temporary whitelist test </a> </h3>
+
+<p> The <a href="postscreen.8.html">postscreen(8)</a> daemon maintains a <i>temporary</i>
+whitelist for SMTP client IP addresses that have passed all
+the tests described below. The <a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a> parameter
+specifies the location of the temporary whitelist.  The
+temporary whitelist is not used for SMTP client addresses
+that appear on the <i>permanent</i> blacklist or whitelist. </p>
+
+<p> When the SMTP client address appears on the temporary
+whitelist, <a href="postscreen.8.html">postscreen(8)</a> logs this as: </p>
+
+<pre>
+    <b>PASS OLD</b> <i>address</i>
+</pre>
+
+<p> The action is not configurable: immediately forward the
+connection to a real SMTP server process.  The client is
+excluded from further tests until its temporary whitelist
+entry expires, as controlled with the postscreen_*_ttl
+parameters.  Expired entries are silently renewed if possible. </p>
+
+<h2> <a name="before_220"> Tests before the 220 SMTP server greeting </a> </h2>
+
+<p> The <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> parameter specifies a short time
+interval before the "220 <i>text</i>..." server greeting, where
+<a href="postscreen.8.html">postscreen(8)</a> can run a number of tests in parallel. </p>
+
+<p> When a good client passes these tests, and no "<a
+href="#after_220">deep protocol tests</a>" are configured, postscreen(8)
+adds the client to the temporary whitelist and passes the "live"
+connection to a Postfix SMTP server process.  The client can then
+continue as if <a href="postscreen.8.html">postscreen(8)</a> never even existed (except of course
+for the short <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> delay).  </p>
+
+<ul>
+
+<li> <a href="#pregreet"> Pregreet test </a>
+
+<li> <a href="#dnsbl"> DNS Blocklist test </a>
+
+<li> <a href="#fail_before_220">When tests fail before the 220 SMTP server greeting</a>
+
+</ul>
+
+<h3> <a name="pregreet"> Pregreet test </a> </h3>
+
+<p> The SMTP protocol is a classic example of a protocol where the
+server speaks before the client. <a href="postscreen.8.html">postscreen(8)</a> detects spambots
+that are in a hurry and that speak before their turn. This test is
+enabled by default. </p>
+
+<p> The <a href="postconf.5.html#postscreen_greet_banner">postscreen_greet_banner</a> parameter specifies the <i>text</i>
+portion of a "220-<i>text</i>..." teaser banner (default: $<a href="postconf.5.html#smtpd_banner">smtpd_banner</a>).
+Note that this becomes the first part of a multi-line server greeting.
+The <a href="postscreen.8.html">postscreen(8)</a> daemon sends this before the <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a>
+timer is started.  The purpose of the teaser banner is to confuse
+spambots so that they speak before their turn. It has no effect on
+SMTP clients that correctly implement the protocol.  </p>
+
+<p> To avoid problems with poorly-implemented SMTP engines in network
+appliances or network testing tools, either exclude them from all
+tests with the <a href="postconf.5.html#postscreen_whitelist_networks">postscreen_whitelist_networks</a> feature or else specify
+an empty teaser banner with: </p>
+
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#postscreen_greet_banner">postscreen_greet_banner</a> =
+</pre>
+
+<p> When an SMTP client sends a command before the
+<a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> time has elapsed, <a href="postscreen.8.html">postscreen(8)</a> logs this as:
+</p>
+
+<pre>
+    <b>PREGREET</b> <i>count</i> <b>after</b> <i>time</i> <b>from</b> <i>address text...</i>
+</pre>
+
+<p> Translation: the client at <i>address</i> sent <i>count</i>
+bytes before its turn to speak. This happened <i>time</i> seconds
+after the <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> timer was started.  The <i>text</i>
+is what the client sent (truncated to 100 bytes, and with non-printable
+characters replaced with "?"). </p>
+
+<p> The <a href="postconf.5.html#postscreen_greet_action">postscreen_greet_action</a> parameter specifies the action that
+is taken next.  See "<a href="#fail_before_220">When tests fail
+before the 220 SMTP server greeting</a>" below. </p>
+
+<h3> <a name="dnsbl"> DNS Blocklist test </a> </h3>
+
+<p> The <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> parameter (default: empty) specifies
+a list of DNS blocklist servers with optional filters and weight
+factors.  These servers will be queried in parallel with the reverse
+client IP address. This test is disabled by default. </p>
+
+<blockquote>
+<p>
+CAUTION: when postscreen rejects mail, it replies with the DNSBL
+domain name. Use the <a href="postconf.5.html#postscreen_dnsbl_reply_map">postscreen_dnsbl_reply_map</a> feature to hide
+"password" information in DNSBL domain names.
+</p>
+</blockquote>
+
+<p> When the <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> time has elapsed, and the combined
+DNSBL score is equal to or greater than the <a href="postconf.5.html#postscreen_dnsbl_threshold">postscreen_dnsbl_threshold</a>
+parameter value, <a href="postscreen.8.html">postscreen(8)</a> logs this as: </p>
+
+<b>DNSBL rank</b> <i>count</i> <b>for</b> <i>address</i>
+
+<p> Translation: the SMTP client at <i>address</i> has a combined
+DNSBL score of <i>count</i>. </p>
+
+<p> The <a href="postconf.5.html#postscreen_dnsbl_action">postscreen_dnsbl_action</a> parameter specifies the action that
+is taken when the combined DNSBL score is equal to or greater than
+the threshold.  See "<a href="#fail_before_220">When tests fail
+before the 220 SMTP server greeting</a>" below. </p>
+
+<h3> <a name="fail_before_220">When tests fail before the 220 SMTP server greeting</a> </h3>
+
+<p> When the client address matches the permanent blacklist, or
+when the client fails the pregreet or DNSBL tests, the action is
+specified with <a href="postconf.5.html#postscreen_blacklist_action">postscreen_blacklist_action</a>, <a href="postconf.5.html#postscreen_greet_action">postscreen_greet_action</a>,
+or <a href="postconf.5.html#postscreen_dnsbl_action">postscreen_dnsbl_action</a>, respectively. </p>
+
+<dl>
+
+<dt> <b>ignore</b> (default) </dt>
+
+<dd> Ignore the failure of this test. Allow other tests to complete.
+Repeat this test the next time the client connects.  This option
+is useful for testing and collecting statistics without interfering
+with mail deliveries. </dd>
+
+<dt> <b>enforce</b> </dt>
+
+<dd> Allow other tests to complete.  Reject attempts to deliver mail
+with a 550 SMTP reply, and log the helo/sender/recipient information.
+Repeat this test the next time the client connects. </dd>
+
+<dt> <b>drop</b> </dt>
+
+<dd> Drop the connection immediately with a 521 SMTP reply.  Repeat
+this test the next time the client connects. </dd>
+
+</dl>
+
+<h2> <a name="after_220">Tests after the 220 SMTP server greeting</a> </h2>
+
+<p> The tests in this phase use an SMTP protocol engine that is
+built into the <a href="postscreen.8.html">postscreen(8)</a> server. </p>
+
+<p> Important notes: </p>
+
+<ul>
+
+<li> <p> These tests are disabled by default, because they
+are more intrusive than the pregreet and DNSBL tests. </p>
+
+<p> When a good client passes the <a href="#after_220">deep
+protocol tests </a>, postscreen(8) adds the client to the temporary
+whitelist but it cannot pass the "live" connection to a Postfix
+SMTP server process in the middle of the session. Instead, <a href="postscreen.8.html">postscreen(8)</a>
+defers mail delivery attempts with a 4XX status, logs the
+helo/sender/recipient information, and waits for the client to
+disconnect. </p>
+
+<p> The next time the client connects it will be allowed to talk
+to a real SMTP server process to deliver its mail. </p>
+
+<p> To minimize the impact of these tests, <a href="postscreen.8.html">postscreen(8)</a> gives them
+relatively long expiration times. </p>
+
+<li> <p> <a href="postscreen.8.html">postscreen(8)</a> does not implement the AUTH, STARTTLS,
+XCLIENT, and XFORWARD features.  STARTTLS support may be added in
+a future version. </p>
+
+</ul>
+
+<p> End-user clients should connect directly to the submission
+service. Other systems that require the above features
+should directly connect to a Postfix SMTP server, or they
+should be placed on the <a href="postscreen.8.html">postscreen(8)</a> whitelist. </p>
+
+<ul>
+
+<li> <a href="#pipelining">Command pipelining test</a>
+
+<li> <a href="#non_smtp">Non-SMTP command test</a>
+
+<li> <a href="#barelf">Bare newline test</a>
+
+<li> <a href="#fail_after_220">When tests fail after the 220 SMTP server greeting</a>
+
+</ul>
+
+<h3> <a name="pipelining">Command pipelining test</a> </h3>
+
+<p> By default, SMTP is a half-duplex protocol: the sender and
+receiver send one command and one response at a time.  Unlike the
+real Postfix SMTP server, <a href="postscreen.8.html">postscreen(8)</a> does not announce support
+for ESMTP command pipelining.  Therefore, clients are not allowed
+to send multiple commands. This test is disabled by default. </p>
+
+<p> With "<a href="postconf.5.html#postscreen_pipelining_enable">postscreen_pipelining_enable</a> = yes", <a href="postscreen.8.html">postscreen(8)</a> detects
+spambots that send multiple commands, instead of sending one command
+and waiting for the server to reply. </p>
+
+<p> This test is opportunistically enabled when enabled when
+<a href="postscreen.8.html">postscreen(8)</a> has to use the built-in SMTP engine anyway, to make
+<a href="postscreen.8.html">postscreen(8)</a> logging more informative. </p>
+
+<p> When a client sends multiple commands, <a href="postscreen.8.html">postscreen(8)</a> logs this
+as: </p>
+
+<b>COMMAND PIPELINING after</b> <i>time</i> <b>from</b> <i>address</i>
+
+<p> Translation: the SMTP client at <i>address</i> sent multiple
+SMTP commands, instead of sending one command and then waiting for
+the server to reply. This happened <i>time</i> seconds after the
+"220 " server greeting was sent. </p>
+
+<p> The <a href="postconf.5.html#postscreen_pipelining_action">postscreen_pipelining_action</a> parameter specifies the action
+that is taken next.  See "<a href="#fail_after_220">When tests fail
+after the 220 SMTP server greeting</a>" below. </p>
+
+<h3> <a name="non_smtp">Non-SMTP command test</a> </h3>
+
+<p> With "<a href="postconf.5.html#postscreen_non_smtp_command_enable">postscreen_non_smtp_command_enable</a> = yes", <a href="postscreen.8.html">postscreen(8)</a>
+detects spambots that send non-SMTP commands, such as commands
+specified with the <a href="postconf.5.html#postscreen_forbidden_commands">postscreen_forbidden_commands</a> parameter, and
+commands that have the syntax of a message header label.  </p>
+
+<p> This test is disabled by default. The test is opportunistically
+enabled when <a href="postscreen.8.html">postscreen(8)</a> has to use the built-in SMTP engine
+anyway, to make <a href="postscreen.8.html">postscreen(8)</a> logging more informative.  </p>
+
+<p> When a client sends non-SMTP commands, <a href="postscreen.8.html">postscreen(8)</a> logs this
+as: </p>
+
+<pre>
+    <b>NON-SMTP COMMAND from</b> <i>address command</i>
+</pre>
+
+<p> Translation: the SMTP client at <i>address</i> sent a
+<i>command</i> that matches the <a href="postconf.5.html#postscreen_forbidden_commands">postscreen_forbidden_commands</a>
+parameter, or that has the syntax of a message header label. </p>
+
+<p> The <a href="postconf.5.html#postscreen_non_smtp_command_action">postscreen_non_smtp_command_action</a> parameter specifies
+the action that is taken next.  See "<a href="#fail_after_220">When
+tests fail after the 220 SMTP server greeting</a>" below. </p>
+
+<h3> <a name="barelf">Bare newline test</a> </h3>
+
+<p> SMTP is a line-oriented protocol: lines have a limited
+length, and are terminated with &lt;CR&gt;&lt;LF&gt;. </p>
+
+<p> With "<a href="postconf.5.html#postscreen_bare_newline_enable">postscreen_bare_newline_enable</a> = yes", <a href="postscreen.8.html">postscreen(8)</a>
+detects spambots that send lines ending in bare newline
+characters, that is newline not preceded by carriage return. </p>
+
+<p> This test is disabled by default. The test is opportunistically
+enabled when <a href="postscreen.8.html">postscreen(8)</a> has to use the built-in SMTP engine
+anyway, to make <a href="postscreen.8.html">postscreen(8)</a> logging more informative. </p>
+
+<p> When a client sends bare newline characters, <a href="postscreen.8.html">postscreen(8)</a> logs
+this as:
+</p>
+
+<pre>
+    <b>BARE NEWLINE from</b> <i>address</i>
+</pre>
+
+<p> Translation: the SMTP client at <i>address</i> sent a bare
+newline character, that is newline not preceded by carriage
+return. </p>
+
+<p> The <a href="postconf.5.html#postscreen_bare_newline_action">postscreen_bare_newline_action</a> parameter specifies the
+action that is taken next.  See "<a href="#fail_after_220">When
+tests fail after the 220 SMTP server greeting</a>" below. </p>
+
+<h3> <a name="fail_after_220">When tests fail after the 220 SMTP server greeting</a> </h3>
+
+<p> When the client fails the pipelining, non-SMTP command or bare
+newline tests, the action is specified with <a href="postconf.5.html#postscreen_pipelining_action">postscreen_pipelining_action</a>,
+<a href="postconf.5.html#postscreen_non_smtp_command_action">postscreen_non_smtp_command_action</a> or <a href="postconf.5.html#postscreen_bare_newline_action">postscreen_bare_newline_action</a>,
+respectively. </p>
+
+<dl>
+
+<dt> <b>ignore</b> (default for bare newline) </dt>
+
+<dd> Ignore the failure of this test. Allow other tests to complete.
+Do NOT repeat this test before the result from some other test
+expires.
+
+This option is useful for testing and collecting statistics without
+blocking mail permanently. </dd>
+
+<dt> <b>enforce</b> (default for pipelining) </dt>
+
+<dd> Allow other tests to complete.  Reject attempts to deliver
+mail with a 550 SMTP reply, and log the helo/sender/recipient
+information.  Repeat this test the next time the client connects.
+</dd>
+
+<dt> <b>drop</b> (default for non-SMTP commands) </dt>
+
+<dd> Drop the connection immediately with a 521 SMTP reply.  Repeat
+this test the next time the client connects.  This action is
+compatible with the Postfix SMTP server's <a href="postconf.5.html#smtpd_forbidden_commands">smtpd_forbidden_commands</a>
+feature. </dd>
+
+</dl>
+
+<h2> <a name="other_error">Other errors</a> </h2>
+
+<p> When an SMTP client hangs up unexpectedly during any tests,
+<a href="postscreen.8.html">postscreen(8)</a> logs this as: </p>
+
+<pre>
+    <b>HANGUP after</b> <i>time</i> <b>from</b> <i>address</i> <b>in</b> <i>test name</i>
+</pre>
+
+<p> Translation: the SMTP client at <i>address</i> disconnected
+unexpectedly, <i>time</i> seconds after the start of the
+test named <i>test name</i>. </p>
+
+<p> The following errors are reported by the built-in SMTP engine.
+This engine never accepts mail, therefore it has per-session limits
+on the number of commands and on the session length. </p>
+
+<pre>
+    <b>COMMAND TIME LIMIT</b> <b>from</b> <i>address</i>
+</pre>
+
+<p> Translation: the SMTP client at <i>address</i> reached the
+per-command time limit as specified with the <a href="postconf.5.html#postscreen_command_time_limit">postscreen_command_time_limit</a>
+parameter.  The session is terminated immediately. </p>
+
+<pre>
+    <b>COMMAND COUNT LIMIT from</b> <i>address</i>
+</pre>
+
+<p> Translation: the SMTP client at <i>address</i> reached the
+per-session command count limit as specified with the
+<a href="postconf.5.html#postscreen_command_count_limit">postscreen_command_count_limit</a> parameter.  The session is terminated
+immediately. </p>
+
+<pre>
+    <b>COMMAND LENGTH LIMIT from</b> <i>address</i>
+</pre>
+
+<p> Translation: the SMTP client at <i>address</i> reached the
+per-command length limit, as specified with the <a href="postconf.5.html#line_length_limit">line_length_limit</a>
+parameter.  The session is terminated immediately. </p>
+
+<h2> <a name="victory">When all tests succeed</a> </h2>
+
+<p> When a new SMTP client passes all tests (i.e. it is not whitelisted
+via some mechanism), <a href="postscreen.8.html">postscreen(8)</a> logs this as: </p>
+
+<pre>
+    <b>PASS NEW</b> <i>address</i>
+</pre>
+
+<p> Where <i>address</i> is the client IP address. Then, <a href="postscreen.8.html">postscreen(8)</a>
+creates a temporary whitelist entry that excludes the client IP
+address from further tests until the temporary whitelist entry
+expires, as controlled with the postscreen_*_ttl parameters. </p>
+
+<p> When no "<a href="#after_220">deep procol tests</a>" are
+configured, <a href="postscreen.8.html">postscreen(8)</a> passes the "live" connection to a Postfix
+SMTP server process.  The client can then continue as if <a href="postscreen.8.html">postscreen(8)</a>
+never even existed (except for the short <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> delay).
+</p>
+
+<p> When any "<a href="#after_220">deep procol tests</a>" are
+configured, <a href="postscreen.8.html">postscreen(8)</a> cannot pass the "live" connection to a
+Postfix SMTP server process.  Instead, <a href="postscreen.8.html">postscreen(8)</a> defers mail
+delivery attempts with a 4XX status, logs the helo/sender/recipient
+information, and waits for the client to disconnect.  The next time
+the client connects it will be allowed to talk to a Postfix SMTP
+server process to deliver its mail. </p>
+
+<h2> <a name="config"> Configuring the postscreen(8) service</a>
+</h2>
+
+<p> <a href="postscreen.8.html">postscreen(8)</a> has been tested on FreeBSD [4-8] and Linux 2.[4-6]
+systems.  It probably needs additional work before it can be used
+on Solaris. </p>
+
+<ul>
+
+<li> <a href="#enable"> Turning on postscreen(8) without blocking
+mail</a>
+
+<li> <a href="#blocking"> Blocking mail with postscreen(8) </a>
+
+<li> <a href="#turnoff"> Turning off postscreen(8) </a>
+
+</ul>
+
+<h3> <a name="enable"> Turning on postscreen(8) without blocking mail</a> </h3>
+
+<p> To enable the <a href="postscreen.8.html">postscreen(8)</a> service and log client information
+without blocking mail: </p>
+
+<ol>
+
+<li> <p> Comment out the "<tt>smtp  inet ... smtpd</tt>" service
+in <a href="master.5.html">master.cf</a>, including any "<tt>-o parameter=value</tt>" entries
+that follow.  </p>
+
+<li> <p> Uncomment the new "<tt>smtpd pass ... smtpd</tt>" service
+in <a href="master.5.html">master.cf</a>, and duplicate any "<tt>-o parameter=value</tt>" entries
+from the smtpd service that was commented out in step 1. </p>
+
+<li> <p> Uncomment the new "<tt>smtp inet ... postscreen</tt>"
+service in <a href="master.5.html">master.cf</a>. </p>
+
+<li> <p> Uncomment the new "<tt>dnsblog  unix ... dnsblog</tt>"
+service in <a href="master.5.html">master.cf</a>.  This service does DNSBL lookups for <a href="postscreen.8.html">postscreen(8)</a>
+and logs results. </p>
+
+<li> <p> To enable DNSBL lookups, list some DNS blocklist sites in
+<a href="postconf.5.html">main.cf</a>, separated by whitespace. Different sites can have different
+weights. For example:
+
+<pre>
+    <a href="postconf.5.html#postscreen_dnsbl_threshold">postscreen_dnsbl_threshold</a> = 2
+    <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> = zen.spamhaus.org*2 example.com*1 example.net*1
+</pre>
+
+<p> Note: if your DNSBL queries have a "secret" in the domain name,
+you must censor this information from the <a href="postscreen.8.html">postscreen(8)</a> SMTP replies.
+For example: </p>
+
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#postscreen_dnsbl_reply_map">postscreen_dnsbl_reply_map</a> = texthash:/etc/postfix/dnsbl_reply
+</pre>
+
+<pre>
+/etc/postfix/dnsbl_reply:
+    # Secret DNSBL name        Name in <a href="postscreen.8.html">postscreen(8)</a> replies
+    secret.zen.spamhaus.org    zen.spamhaus.org
+</pre>
+
+<p> The texthash: format is similar to hash: except that there is
+no need to run <a href="postmap.1.html">postmap(1)</a> before the file can be used, and that it
+does not detect changes after the file is read. It is new with
+Postfix version 2.8. </p>
+
+<li> <p> Read the new configuration with "<tt>postfix reload</tt>".
+</p>
+
+</ol>
+
+<p> Notes: </p>
+
+<ul>
+
+<li> <p> See "<a href="#before_220">Tests before the 220 SMTP server
+greeting</a>" for details about the logging from these postscreen(8)
+tests. </p>
+
+<li> <p> By default, <a href="postscreen.8.html">postscreen(8)</a> whitelists all clients in
+<a href="postconf.5.html#mynetworks">mynetworks</a>.  This is a safety feature to avoid you from getting
+into trouble with local users. </p>
+
+<li> <p> If you run Postfix 2.6 or earlier you must stop and start
+the master daemon ("<tt>postfix stop; postfix start</tt>").  This
+is needed because the Postfix "pass" master service type did not
+work reliably on all systems. </p>
+
+</ul>
+
+<h3> <a name="blocking"> Blocking mail with postscreen(8) </a> </h3>
+
+<p> To use the <a href="postscreen.8.html">postscreen(8)</a> service to block mail, edit <a href="postconf.5.html">main.cf</a> and
+specify one or more of: </p>
+
+<ul>
+
+<li> <p> "<tt><a href="postconf.5.html#postscreen_dnsbl_action">postscreen_dnsbl_action</a> = enforce</tt>", to reject
+clients that are on DNS blocklists, and to log the helo/sender/recipient
+information. With good DNSBLs this reduces the amount of load on
+Postfix SMTP servers dramatically.  </p>
+
+<li> <p> "<tt><a href="postconf.5.html#postscreen_greet_action">postscreen_greet_action</a> = enforce</tt>", to reject
+clients that talk before their turn, and to log the helo/sender/recipient
+information. This stops over half of all known-to-be illegitimate
+connections to Wietse's mail server. It is backup protection for
+spambots that haven't yet been blacklisted. </p>
+
+<li> <p> You can also enable "<a href="#after_220">deep protocol
+tests</a>", but these are more intrusive than the pregreet or DNSBL
+tests. </p>
+
+<p> When a good client passes the "<a href="#after_220">deep
+protocol tests</a>", postscreen(8) adds the client to the temporary
+whitelist but it cannot pass the "live" connection to a Postfix
+SMTP server process in the middle of the session. Instead, <a href="postscreen.8.html">postscreen(8)</a>
+defers mail delivery attempts with a 4XX status, logs the
+helo/sender/recipient information, and waits for the client to
+disconnect. </p>
+
+<p> When the client comes back in a later session, it is allowed
+to talk directly to a Postfix SMTP server.  See "after_220 <a
+href="#after_220">Tests after the 220 SMTP server greeting</a> above
+for limitations with STARTTLS, AUTH and other features that clients
+may need. Wietse enables "<a href="#after_220">deep protocol
+tests</a>" on his own internet-facing mail server.  </p>
+
+<li> <p> There is also support for permanent blacklists and whitelists;
+see the description of the <a href="postconf.5.html#postscreen_whitelist_networks">postscreen_whitelist_networks</a> and
+<a href="postconf.5.html#postscreen_blacklist_networks">postscreen_blacklist_networks</a> parameters for details. </p>
+
+</ul>
+
+<h3> <a name="turnoff"> Turning off postscreen(8) </a> </h3>
+
+<p> To turn off <a href="postscreen.8.html">postscreen(8)</a> and handle mail directly with Postfix
+SMTP server processes: </p>
+
+<ol>
+
+<li> <p> Comment out the "<tt>smtp inet ... postscreen</tt>" service
+in <a href="master.5.html">master.cf</a>, including any "<tt>-o parameter=value</tt>" entries
+that follow. </p>
+
+<li> <p> Comment out the "<tt>dnsblog  unix ... dnsblog</tt>" service
+in <a href="master.5.html">master.cf</a>.  </p>
+
+<li> <p> Comment out the "<tt>smtpd pass ... smtpd</tt>" service
+in <a href="master.5.html">master.cf</a>, including any "<tt>-o parameter=value</tt>" entries
+that follow. </p>
+
+<li> <p> Uncomment the "<tt>smtp  inet ... smtpd</tt>" service in
+<a href="master.5.html">master.cf</a>, including any "<tt>-o parameter=value</tt>" entries that
+follow.  </p>
+
+<li> <p> Read the new configuration with "<tt>postfix reload</tt>".
+</p>
+
+</ol>
+
+</body>
+
+</html>
+

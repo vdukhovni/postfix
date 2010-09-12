@@ -3227,12 +3227,8 @@ extern int var_ps_post_queue_limit;
 #define DEF_PS_PRE_QLIMIT	"$" VAR_PROC_LIMIT
 extern int var_ps_pre_queue_limit;
 
-#define VAR_PS_CACHE_TTL	"postscreen_cache_ttl"
-#define DEF_PS_CACHE_TTL	"1d"
-extern int var_ps_cache_ttl;
-
 #define VAR_PS_CACHE_RET	"postscreen_cache_retention_time"
-#define DEF_PS_CACHE_RET	"1d"
+#define DEF_PS_CACHE_RET	"7d"
 extern int var_ps_cache_ret;
 
 #define VAR_PS_CACHE_SCAN	"postscreen_cache_cleanup_interval"
@@ -3240,12 +3236,24 @@ extern int var_ps_cache_ret;
 extern int var_ps_cache_scan;
 
 #define VAR_PS_GREET_WAIT	"postscreen_greet_wait"
-#define DEF_PS_GREET_WAIT	"4s"
+#define DEF_PS_GREET_WAIT	"${stress?2}${stress:6}s"
 extern int var_ps_greet_wait;
 
-#define VAR_PS_GREET_ACTION	"postscreen_greet_action"
-#define DEF_PS_GREET_ACTION	"continue"
-extern char *var_ps_greet_action;
+#define VAR_PS_PREGR_BANNER	"postscreen_greet_banner"
+#define DEF_PS_PREGR_BANNER	"$" VAR_SMTPD_BANNER
+extern char *var_ps_pregr_banner;
+
+#define VAR_PS_PREGR_ENABLE	"postscreen_greet_enable"
+#define DEF_PS_PREGR_ENABLE	no
+extern char *var_ps_pregr_enable;
+
+#define VAR_PS_PREGR_ACTION	"postscreen_greet_action"
+#define DEF_PS_PREGR_ACTION	"ignore"
+extern char *var_ps_pregr_action;
+
+#define VAR_PS_PREGR_TTL	"postscreen_greet_ttl"
+#define DEF_PS_PREGR_TTL	"1d"
+extern int var_ps_pregr_ttl;
 
 #define VAR_PS_DNSBL_SITES	"postscreen_dnsbl_sites"
 #define DEF_PS_DNSBL_SITES	""
@@ -3255,13 +3263,57 @@ extern char *var_ps_dnsbl_sites;
 #define DEF_PS_DNSBL_THRESH	1
 extern int var_ps_dnsbl_thresh;
 
+#define VAR_PS_DNSBL_ENABLE	"postscreen_dnsbl_enable"
+#define DEF_PS_DNSBL_ENABLE	0
+extern char *var_ps_dnsbl_enable;
+
 #define VAR_PS_DNSBL_ACTION	"postscreen_dnsbl_action"
-#define DEF_PS_DNSBL_ACTION	"continue"
+#define DEF_PS_DNSBL_ACTION	"ignore"
 extern char *var_ps_dnsbl_action;
 
-#define VAR_PS_HUP_ACTION	"postscreen_hangup_action"
-#define DEF_PS_HUP_ACTION	"continue"
-extern char *var_ps_hangup_action;
+#define VAR_PS_DNSBL_TTL	"postscreen_dnsbl_ttl"
+#define DEF_PS_DNSBL_TTL	"1d"
+extern int var_ps_dnsbl_ttl;
+
+#define	VAR_PS_DNSBL_REPLY	"postscreen_dnsbl_reply_map"
+#define	DEF_PS_DNSBL_REPLY	""
+extern char *var_ps_dnsbl_reply;
+
+#define VAR_PS_PIPEL_ENABLE	"postscreen_pipelining_enable"
+#define DEF_PS_PIPEL_ENABLE	0
+extern bool var_ps_pipel_enable;
+
+#define VAR_PS_PIPEL_ACTION	"postscreen_pipelining_action"
+#define DEF_PS_PIPEL_ACTION	"enforce"
+extern char *var_ps_pipel_action;
+
+#define VAR_PS_PIPEL_TTL	"postscreen_pipelining_ttl"
+#define DEF_PS_PIPEL_TTL	"30d"
+extern int var_ps_pipel_ttl;
+
+#define VAR_PS_NSMTP_ENABLE	"postscreen_non_smtp_command_enable"
+#define DEF_PS_NSMTP_ENABLE	0
+extern bool var_ps_nsmtp_enable;
+
+#define VAR_PS_NSMTP_ACTION	"postscreen_non_smtp_command_action"
+#define DEF_PS_NSMTP_ACTION	"drop"
+extern char *var_ps_nsmtp_action;
+
+#define VAR_PS_NSMTP_TTL	"postscreen_non_smtp_command_ttl"
+#define DEF_PS_NSMTP_TTL	"30d"
+extern int var_ps_nsmtp_ttl;
+
+#define VAR_PS_BARLF_ENABLE	"postscreen_bare_newline_enable"
+#define DEF_PS_BARLF_ENABLE	0
+extern bool var_ps_barlf_enable;
+
+#define VAR_PS_BARLF_ACTION	"postscreen_bare_newline_action"
+#define DEF_PS_BARLF_ACTION	"ignore"
+extern char *var_ps_barlf_action;
+
+#define VAR_PS_BARLF_TTL	"postscreen_bare_newline_ttl"
+#define DEF_PS_BARLF_TTL	"30d"
+extern int var_ps_barlf_ttl;
 
 #define VAR_PS_WLIST_NETS	"postscreen_whitelist_networks"
 #define DEF_PS_WLIST_NETS	"$" VAR_MYNETWORKS
@@ -3272,12 +3324,32 @@ extern char *var_ps_wlist_nets;
 extern char *var_ps_blist_nets;
 
 #define VAR_PS_BLIST_ACTION	"postscreen_blacklist_action"
-#define DEF_PS_BLIST_ACTION	"continue"
+#define DEF_PS_BLIST_ACTION	"ignore"
 extern char *var_ps_blist_nets;
 
-#define VAR_PS_GREET_BANNER	"postscreen_greet_banner"
-#define DEF_PS_GREET_BANNER	"$" VAR_SMTPD_BANNER
-extern char *var_ps_banner;
+#define VAR_PS_CMD_COUNT	"postscreen_command_count_limit"
+#define DEF_PS_CMD_COUNT	20
+extern int var_ps_cmd_count;
+
+#define VAR_PS_CMD_TIME		"postscreen_command_time_limit"
+#define DEF_PS_CMD_TIME		DEF_SMTPD_TMOUT
+extern char *var_ps_cmd_time;
+
+#define VAR_PS_WATCHDOG		"postscreen_watchdog_timeout"
+#define DEF_PS_WATCHDOG		"10s"
+extern int var_ps_watchdog;
+
+#define VAR_PS_FORBID_CMDS	"postscreen_forbidden_commands"
+#define DEF_PS_FORBID_CMDS	"$" VAR_SMTPD_FORBID_CMDS
+extern char *var_ps_forbid_cmds;
+
+#define VAR_PS_HELO_REQUIRED	"postscreen_helo_required"
+#define DEF_PS_HELO_REQUIRED	"$" VAR_HELO_REQUIRED
+extern bool var_ps_helo_required;
+
+#define VAR_PS_DISABLE_VRFY	"postscreen_disable_vrfy_command"
+#define DEF_PS_DISABLE_VRFY	"$" VAR_DISABLE_VRFY_CMD
+extern bool var_ps_disable_vrfy;
 
 /* LICENSE
 /* .ad

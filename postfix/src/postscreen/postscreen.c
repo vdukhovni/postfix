@@ -8,210 +8,30 @@
 /* DESCRIPTION
 /*	The Postfix \fBpostscreen\fR(8) server performs triage on
 /*	multiple inbound SMTP connections in parallel. While
-/*	\fBpostscreen\fR(8) keeps zombies and other bogus clients
-/*	away from Postfix SMTP server processes, more Postfix SMTP
-/*	server processes remain available for legitimate clients.
-/* GENERAL OPERATION
-/* .ad
-/* .fi
-/*	The triage process involves a number of tests, in the order
-/*	as described below.  Some tests introduce a delay of a few
-/*	seconds.  Once a client passes all tests, its IP address
-/*	is temporarily excluded from the tests, typically for 24
-/*	hours.  This minimizes the impact of the tests on legitimate
-/*	mail clients.
+/*	\fBpostscreen\fR(8) keeps spambots away from Postfix SMTP
+/*	server processes, more Postfix SMTP server processes remain
+/*	available for legitimate clients.
 /*
-/*	After logging the result of its tests, \fBpostscreen\fR(8)
+/*	\fBpostscreen\fR(8) maintains a temporary whitelist of
+/*	positive decisions. Once an SMTP client is whitelisted, it
+/*	is immediately forwarded to a real Postfix SMTP server
+/*	process without further checking.
+/*
+/*	By default, the program logs only statistics, and it does
+/*	not run any tests against clients in mynetworks (primarily,
+/*	to avoid problems with non-standard SMTP implementations
+/*	in network appliances and test programs).  \fBpostscreen\fR(8)
 /*	by default forwards all connections to a real SMTP server
 /*	process. This mode is useful for non-destructive testing.
 /*
 /*	In a typical production setting, \fBpostscreen\fR(8) is
-/*	configured to disconnect clients that fail some tests.  A
-/*	future implementation may pass the connection to a dummy
-/*	SMTP protocol engine that logs sender and recipient information
-/*	before hanging up.
-/*
-/*	Note: \fBpostscreen\fR(8) is not an SMTP proxy; this is
-/*	intentional. The purpose is to prioritize legitimate clients
-/*	with as little overhead as possible.
-/* .SH 1. PERMANENT WHITELIST TEST
-/* .ad
-/* .fi
-/*	The postscreen_whitelist_networks parameter (default:
-/*	$mynetworks) specifies a permanent whitelist for SMTP client
-/*	IP addresses.
-/*
-/*	When the SMTP client address matches the permanent whitelist,
-/*	this is logged as:
-/* .sp
-/* .nf
-/*	\fBWHITELISTED \fIaddress\fR
-/* .fi
-/* .sp
-/*	The action is not configurable: immediately forward the
-/*	connection to a real SMTP server process.
-/* .SH 2. PERMANENT BLACKLIST TEST
-/* .ad
-/* .fi
-/*	The postscreen_blacklist_networks parameter (default: empty)
-/*	specifies a permanent blacklist for SMTP client IP addresses.
-/*	The address syntax is as with mynetworks.
-/*
-/*	When the SMTP client address matches the permanent blacklist,
-/*	this is logged as:
-/* .sp
-/* .nf
-/*	\fBBLACKLISTED \fIaddress\fR
-/* .fi
-/* .sp
-/*	The postscreen_blacklist_action parameter specifies the
-/*	action that is taken next:
-/* .IP "\fBcontinue\fR (default)"
-/*	Continue with the SMTP GREETING PHASE TESTS below.
-/* .IP \fBdrop\fR
-/*	Drop the connection immediately with a 521 SMTP reply.  In
-/*	a future implementation, the connection may instead be
-/*	passed to a dummy SMTP protocol engine that logs sender and
-/*	recipient information.
-/* .SH 3. TEMPORARY WHITELIST TEST
-/* .ad
-/* .fi
-/*	The \fBpostscreen\fR(8) daemon maintains a \fItemporary\fR
-/*	whitelist for SMTP client IP addresses that have passed all
-/*	the tests described below. The postscreen_cache_map parameter
-/*	specifies the location of the temporary whitelist.  The
-/*	temporary whitelist is not used for SMTP client addresses
-/*	that appear on the \fIpermanent\fR blacklist or whitelist.
-/*
-/*	When the SMTP client address appears on the temporary
-/*	whitelist, this is logged as:
-/* .sp
-/* .nf
-/*	\fBPASS OLD \fIaddress\fR
-/* .fi
-/* .sp
-/*	The action is not configurable: immediately forward the
-/*	connection to a real SMTP server process.  The client is
-/*	excluded from further tests until its temporary whitelist
-/*	entry expires, as controlled with the postscreen_cache_ttl
-/*	parameter.  Expired entries are silently renewed if possible.
-/* .SH 4. SMTP GREETING PHASE TESTS
-/* .ad
-/* .fi
-/*	The postscreen_greet_wait parameter specifies a time interval
-/*	during which \fBpostscreen\fR(8) runs a number of tests in
-/*	parallel.  These tests are described below, and are run
-/*	before the client may see the real SMTP server's "220
-/*	text..." server greeting.
-/*
-/*	When the SMTP client passes all greeting-phase tests, this
-/*	is logged as:
-/* .sp
-/* .nf
-/*	\fBPASS NEW \fIaddress\fR
-/* .fi
-/* .sp
-/*	The action is to forward the connection to a real SMTP
-/*	server process and to create a temporary whitelist entry
-/*	that excludes the client IP address from further tests until
-/*	the temporary whitelist entry expires, as controlled with
-/*	the postscreen_cache_ttl parameter.
-/*
-/*	In a future implementation, the connection may first be passed to
-/*	a dummy SMTP protocol engine that implements more protocol
-/*	tests including greylisting, before the client is allowed
-/*	to talk to a real SMTP server process.
-/* .SH 4A. PREGREET TEST
-/* .ad
-/* .fi
-/*	The postscreen_greet_banner parameter specifies the \fItext\fR
-/*	portion of a "220-\fItext\fR..." teaser banner (default:
-/*	$smtpd_banner).
-/*	The \fBpostscreen\fR(8) daemon sends this before the
-/*	postscreen_greet_wait timer is started.  The purpose of the
-/*	teaser banner is to confuse SPAM clients so that they speak
-/*	before their turn. It has no effect on SMTP clients that
-/*	correctly implement the protocol.
-/*
-/*	To avoid problems with broken SMTP engines in network
-/*	appliances, either exclude them from all tests with the
-/*	postscreen_whitelist_networks feature or else specify an
-/*	empty postscreen_greet_banner value to disable the "220-text..."
-/*	teaser banner.
-/*
-/*	When an SMTP client sends a command before the
-/*	postscreen_greet_wait time has elapsed, this is logged as:
-/* .sp
-/* .nf
-/*	\fBPREGREET \fIcount \fBafter \fItime \fBfrom \fIaddress text...\fR
-/* .fi
-/* .sp
-/*	Translation: the client at \fIaddress\fR sent \fIcount\fR
-/*	bytes before its turn to speak, and this happened \fItime\fR
-/*	seconds after the postscreen_greet_wait timer was started.
-/*	The \fItext\fR is what the client sent (truncated to 100
-/*	bytes, and with non-printable characters replaced with "?").
-/*
-/*	The postscreen_greet_action parameter specifies the action
-/*	that is taken next:
-/* .IP "\fBcontinue\fR (default)"
-/*	Wait until the postscreen_greet_wait time has elapsed, then
-/*	report DNSBL lookup results if applicable. Either perform
-/*	DNSBL-related actions or forward the connection to a real
-/*	SMTP server process.
-/* .IP \fBdrop\fR
-/*	Drop the connection immediately with a 521 SMTP reply.
-/*	In a future implementation, the connection may instead be passed
-/*	to a dummy SMTP protocol engine that logs sender and recipient
+/*	configured to reject mail from clients that fail one or
+/*	more tests, after logging the helo, sender and recipient
 /*	information.
-/* .SH 4B. HANGUP TEST
-/* .ad
-/* .fi
-/*	When the SMTP client hangs up without sending any data
-/*	before the postscreen_greet_wait time has elapsed, this is
-/*	logged as:
-/* .sp
-/* .nf
-/*	\fBHANGUP after \fItime \fBfrom \fIaddress\fR
-/* .fi
-/* .sp
-/*	The postscreen_hangup_action specifies the action
-/*	that is taken next:
-/* .IP "\fBcontinue\fR (default)"
-/*	Wait until the postscreen_greet_wait time has elapsed, then
-/*	report DNSBL lookup results if applicable. Do not forward
-/*	the broken connection to a real SMTP server process.
-/* .IP \fBdrop\fR
-/*	Drop the connection immediately.
-/* .SH 4C. DNS BLOCKLIST TEST
-/* .ad
-/* .fi
-/*	The postscreen_dnsbl_sites parameter (default: empty)
-/*	specifies a list of DNS blocklist servers. These lookups
-/*	are made in parallel.
 /*
-/*	When the postscreen_greet_wait time has elapsed, and the
-/*	combined DNSBL score is equal to or greater than the
-/*	postscreen_dnsbl_threshold parameter value, this is logged
-/*	as:
-/* .sp
-/* .nf
-/*	\fBDNSBL rank \fIcount \fBfor \fIaddress\fR
-/* .fi
-/* .sp
-/*	Translation: the SMTP client at \fIaddress\fR has a combined
-/*	DNSBL score of \fIcount\fR.
-/*
-/*	The postscreen_dnsbl_action parameter specifies the action
-/*	that is taken when the combined DNSBL score is equal to or
-/*	greater than the threshold:
-/* .IP "\fBcontinue\fR (default)"
-/*	Forward the connection to a real SMTP server process.
-/* .IP \fBdrop\fR
-/*	Drop the connection immediately with a 521 SMTP reply.
-/*	In a future implementation, the connection may instead be passed
-/*	to a dummy SMTP protocol engine that logs sender and recipient
-/*	information.
+/*	\fBpostscreen\fR(8) is not an SMTP proxy; this is intentional.
+/*	The purpose is to keep spambots away from Postfix SMTP
+/*	server processes, not to control traffic flows.
 /* SECURITY
 /* .ad
 /* .fi
@@ -223,6 +43,16 @@
 /*	RFC 2920 (SMTP Pipelining)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
+/* BUGS
+/*	When successful tests involve \fBpostscreen\fR(8)'s built-in
+/*	SMTP protocol engine, \fBpostscreen\fR(8) adds the client
+/*	to the temporary whitelist but it cannot not hand off the
+/*	"live" connection from a good SMTP client to a Postfix SMTP
+/*	server process.  Instead, \fBpostscreen\fR(8) defers attempts
+/*	to deliver mail with a 4XX status, and waits for the client
+/*	to disconnect.  The next time a good client connects, it
+/*	will be allowed to talk to a Postfix SMTP server process
+/*	to deliver mail.
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
@@ -233,21 +63,39 @@
 /*
 /*	The text below provides only a parameter summary. See
 /*	\fBpostconf\fR(5) for more details including examples.
+/*
+/*	NOTE: Some parameters implement stress-dependent behavior.
+/*	This is supported only when the default value is stress-dependent
+/*	(${stress?X}${stress:Y}). Other parameters always evaluate
+/*	as if the stress value is the empty string.
 /* TRIAGE PARAMETERS
 /* .ad
 /* .fi
-/* .IP "\fBpostscreen_blacklist_action (continue)\fR"
+/* .IP "\fBpostscreen_bare_newline_action (ignore)\fR"
+/*	The action that \fBpostscreen\fR(8) takes when an SMTP client sends
+/*	a bare newline character, that is, a newline not preceded by carriage
+/*	return.
+/* .IP "\fBpostscreen_bare_newline_enable (no)\fR"
+/*	Enable "bare newline" SMTP protocol tests in the \fBpostscreen\fR(8)
+/*	server.
+/* .IP "\fBpostscreen_blacklist_action (ignore)\fR"
 /*	The action that \fBpostscreen\fR(8) takes when an SMTP client is
 /*	permanently blacklisted with the postscreen_blacklist_networks
 /*	parameter.
 /* .IP "\fBpostscreen_blacklist_networks (empty)\fR"
 /*	Network addresses that are permanently blacklisted; see the
 /*	postscreen_blacklist_action parameter for possible actions.
-/* .IP "\fBpostscreen_dnsbl_action (continue)\fR"
+/* .IP "\fBpostscreen_disable_vrfy_command ($disable_vrfy_command)\fR"
+/*	Disable the SMTP VRFY command in the \fBpostscreen\fR(8) daemon.
+/* .IP "\fBpostscreen_dnsbl_action (ignore)\fR"
 /*	The action that \fBpostscreen\fR(8) takes when an SMTP client's combined
 /*	DNSBL score is equal to or greater than a threshold (as defined
 /*	with the postscreen_dnsbl_sites and postscreen_dnsbl_threshold
 /*	parameters).
+/* .IP "\fBpostscreen_dnsbl_reply_map (empty)\fR"
+/*	A mapping from actual DNSBL domain name which includes a secret
+/*	password, to the DNSBL domain name that postscreen will reply with
+/*	when it rejects mail.
 /* .IP "\fBpostscreen_dnsbl_sites (empty)\fR"
 /*	Optional list of DNS blocklist domains, filters and weight
 /*	factors.
@@ -255,7 +103,10 @@
 /*	The inclusive lower bound for blocking an SMTP client, based on
 /*	its combined DNSBL score as defined with the postscreen_dnsbl_sites
 /*	parameter.
-/* .IP "\fBpostscreen_greet_action (continue)\fR"
+/* .IP "\fBpostscreen_forbidden_commands ($smtpd_forbidden_commands)\fR"
+/*	List of commands that \fBpostscreen\fR(8) server considers in violation
+/*	of the SMTP protocol.
+/* .IP "\fBpostscreen_greet_action (ignore)\fR"
 /*	The action that \fBpostscreen\fR(8) takes when an SMTP client speaks
 /*	before its turn within the time specified with the postscreen_greet_wait
 /*	parameter.
@@ -265,25 +116,31 @@
 /*	\fBpostscreen\fR(8) sends ahead of the real Postfix SMTP server's "220
 /*	text..." response, in an attempt to confuse bad SMTP clients so
 /*	that they speak before their turn (pre-greet).
-/* .IP "\fBpostscreen_greet_wait (4s)\fR"
+/* .IP "\fBpostscreen_greet_wait (${stress?2}${stress:6}s)\fR"
 /*	The amount of time that \fBpostscreen\fR(8) will wait for an SMTP
 /*	client to send a command before its turn, and for DNS blocklist
-/*	lookup results to arrive.
-/* .IP "\fBpostscreen_hangup_action (continue)\fR"
-/*	The action that \fBpostscreen\fR(8) takes when an SMTP client disconnects
-/*	without sending data, within the time specified with the
-/*	postscreen_greet_wait parameter.
-/* .IP "\fBpostscreen_post_queue_limit ($default_process_limit)\fR"
-/*	The number of clients that can be waiting for service from a
-/*	real SMTP server process.
-/* .IP "\fBpostscreen_pre_queue_limit ($default_process_limit)\fR"
-/*	The number of non-whitelisted clients that can be waiting for
-/*	a decision whether they will receive service from a real SMTP server
-/*	process.
+/*	lookup results to arrive (default: 2 seconds under stress, 6 seconds
+/*	normally).
+/* .IP "\fBpostscreen_helo_required ($smtpd_helo_required)\fR"
+/*	Require that a remote SMTP client sends HELO or EHLO before
+/*	commencing a MAIL transaction.
+/* .IP "\fBpostscreen_non_smtp_command_action (drop)\fR"
+/*	The action that \fBpostscreen\fR(8) takes when an SMTP client sends
+/*	non-SMTP commands as specified with the postscreen_forbidden_commands
+/*	parameter.
+/* .IP "\fBpostscreen_non_smtp_command_enable (no)\fR"
+/*	Enable "non-SMTP command" tests in the \fBpostscreen\fR(8) server.
+/* .IP "\fBpostscreen_pipelining_action (enforce)\fR"
+/*	The action that \fBpostscreen\fR(8) takes when an SMTP client sends
+/*	multiple commands instead of sending one command and waiting for
+/*	the server to respond.
+/* .IP "\fBpostscreen_pipelining_enable (no)\fR"
+/*	Enable "pipelining" SMTP protocol tests in the \fBpostscreen\fR(8)
+/*	server.
 /* .IP "\fBpostscreen_whitelist_networks ($mynetworks)\fR"
 /*	Network addresses that are permanently whitelisted, and that
 /*	will not be subjected to \fBpostscreen\fR(8) checks.
-/* .IP "\fBsmtpd_service (smtpd)\fR"
+/* .IP "\fBsmtpd_service_name (smtpd)\fR"
 /*	The internal service that \fBpostscreen\fR(8) forwards allowed
 /*	connections to.
 /* CACHE CONTROLS
@@ -293,21 +150,53 @@
 /*	The amount of time between \fBpostscreen\fR(8) cache cleanup runs.
 /* .IP "\fBpostscreen_cache_map (btree:$data_directory/ps_cache)\fR"
 /*	Persistent storage for the \fBpostscreen\fR(8) server decisions.
-/* .IP "\fBpostscreen_cache_retention_time (1d)\fR"
+/* .IP "\fBpostscreen_cache_retention_time (7d)\fR"
 /*	The amount of time that \fBpostscreen\fR(8) will cache an expired
 /*	temporary whitelist entry before it is removed.
-/* .IP "\fBpostscreen_cache_ttl (1d)\fR"
-/*	The amount of time that \fBpostscreen\fR(8) will cache a decision for
-/*	a specific SMTP client IP address.
+/* .IP "\fBpostscreen_bare_newline_ttl (30d)\fR"
+/*	The amount of time that \fBpostscreen\fR(8) will cache results from
+/*	a successful "bare newline" SMTP protocol test.
+/* .IP "\fBpostscreen_dnsbl_ttl (1d)\fR"
+/*	The amount of time that \fBpostscreen\fR(8) will cache results from
+/*	a successful DNS blocklist test.
+/* .IP "\fBpostscreen_greet_ttl (1d)\fR"
+/*	The amount of time that \fBpostscreen\fR(8) will cache results from
+/*	a successful PREGREET test.
+/* .IP "\fBpostscreen_non_smtp_command_ttl (30d)\fR"
+/*	The amount of time that \fBpostscreen\fR(8) will cache results from
+/*	a successful "non_smtp_command" SMTP protocol test.
+/* .IP "\fBpostscreen_pipelining_ttl (30d)\fR"
+/*	The amount of time that \fBpostscreen\fR(8) will cache results from
+/*	a successful "pipelining" SMTP protocol test.
+/* RESOURCE CONTROLS
+/* .ad
+/* .fi
+/* .IP "\fBline_length_limit (2048)\fR"
+/*	Upon input, long lines are chopped up into pieces of at most
+/*	this length; upon delivery, long lines are reconstructed.
+/* .IP "\fBpostscreen_command_count_limit (20)\fR"
+/*	The limit on the total number of commands per SMTP session for
+/*	\fBpostscreen\fR(8)'s built-in SMTP protocol engine.
+/* .IP "\fBpostscreen_command_time_limit (${stress?10}${stress:300}s)\fR"
+/*	The command "read" time limit for \fBpostscreen\fR(8)'s built-in SMTP
+/*	protocol engine.
+/* .IP "\fBpostscreen_post_queue_limit ($default_process_limit)\fR"
+/*	The number of clients that can be waiting for service from a
+/*	real SMTP server process.
+/* .IP "\fBpostscreen_pre_queue_limit ($default_process_limit)\fR"
+/*	The number of non-whitelisted clients that can be waiting for
+/*	a decision whether they will receive service from a real SMTP server
+/*	process.
+/* .IP "\fBpostscreen_watchdog_timeout (10s)\fR"
+/*	How much time a \fBpostscreen\fR(8) process may take to respond to
+/*	an SMTP client command or to perform a cache operation before it
+/*	is terminated by a built-in watchdog timer.
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi
 /* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 /*	The default location of the Postfix main.cf and master.cf
 /*	configuration files.
-/* .IP "\fBdaemon_timeout (18000s)\fR"
-/*	How much time a Postfix daemon process may take to handle a
-/*	request before it is terminated by a built-in watchdog timer.
 /* .IP "\fBdelay_logging_resolution_limit (2)\fR"
 /*	The maximal number of digits after the decimal point when logging
 /*	sub-second delay values.
@@ -332,6 +221,14 @@
 /*	smtpd(8), Postfix SMTP server
 /*	dnsblog(8), temporary DNS helper
 /*	syslogd(8), system logging
+/* README FILES
+/* .ad
+/* .fi
+/*	Use "\fBpostconf readme_directory\fR" or "\fBpostconf
+/*	html_directory\fR" to locate this information.
+/* .nf
+/* .na
+/*	POSTSCREEN_README, Postfix Postscreen Howto
 /* LICENSE
 /* .ad
 /* .fi
@@ -349,29 +246,15 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 
-#ifdef STRCASECMP_IN_STRINGS_H
-#include <strings.h>
-#endif
-
-#ifdef MISSING_STRTOUL
-#define strtoul strtol
-#endif
-
 /* Utility library. */
 
 #include <msg.h>
-#include <connect.h>
-#include <iostuff.h>
-#include <events.h>
 #include <mymalloc.h>
+#include <events.h>
 #include <myaddrinfo.h>
 #include <dict_cache.h>
-#include <sane_accept.h>
-#include <stringops.h>
 #include <set_eugid.h>
 #include <vstream.h>
-#include <format_tv.h>
-#include <htable.h>
 #include <name_code.h>
 
 /* Global library. */
@@ -380,8 +263,8 @@
 #include <mail_params.h>
 #include <mail_version.h>
 #include <mail_proto.h>
-#include <addr_match_list.h>
 #include <data_redirect.h>
+#include <string_list.h>
 
 /* Master server protocols. */
 
@@ -394,367 +277,92 @@
  /*
   * Configuration parameters.
   */
+int     var_proc_limit;
 char   *var_smtpd_service;
 char   *var_smtpd_banner;
+char   *var_smtpd_forbid_cmds;
+bool    var_disable_vrfy_cmd;
+bool    var_helo_required;
+
+char   *var_ps_forbid_cmds;
+
+bool    var_ps_disable_vrfy;
+bool    var_ps_helo_required;
+
 char   *var_ps_cache_map;
+int     var_ps_cache_scan;
+int     var_ps_cache_ret;
 int     var_ps_post_queue_limit;
 int     var_ps_pre_queue_limit;
-int     var_proc_limit;
-int     var_ps_cache_ttl;
-int     var_ps_cache_ret;
-int     var_ps_cache_scan;
-int     var_ps_greet_wait;
-char   *var_ps_dnsbl_sites;
-char   *var_ps_dnsbl_action;
-char   *var_ps_greet_action;
-char   *var_ps_hangup_action;
+int     var_ps_watchdog;
+
 char   *var_ps_wlist_nets;
 char   *var_ps_blist_nets;
-char   *var_ps_greet_banner;
 char   *var_ps_blist_action;
+
+char   *var_ps_greet_ttl;
+int     var_ps_greet_wait;
+
+char   *var_ps_pregr_banner;
+char   *var_ps_pregr_action;
+int     var_ps_pregr_ttl;
+
+char   *var_ps_dnsbl_sites;
+char   *var_ps_dnsbl_reply;
 int     var_ps_dnsbl_thresh;
+char   *var_ps_dnsbl_action;
+int     var_ps_dnsbl_ttl;
+
+bool    var_ps_pipel_enable;
+char   *var_ps_pipel_action;
+int     var_ps_pipel_ttl;
+
+bool    var_ps_nsmtp_enable;
+char   *var_ps_nsmtp_action;
+int     var_ps_nsmtp_ttl;
+
+bool    var_ps_barlf_enable;
+char   *var_ps_barlf_action;
+int     var_ps_barlf_ttl;
+
+int     var_ps_cmd_count;
+char   *var_ps_cmd_time;
 
  /*
-  * Per-session state. See also: new_session_state() and free_event_state()
-  * below.
+  * Global variables.
   */
-typedef struct {
-    int     flags;			/* see below */
-    VSTREAM *smtp_client_stream;	/* remote SMTP client */
-    int     smtp_server_fd;		/* real SMTP server */
-    char   *smtp_client_addr;		/* client address */
-    char   *smtp_client_port;		/* client port */
-    struct timeval creation_time;	/* as the name says */
-} PS_STATE;
-
-#define PS_FLAG_NOCACHE		(1<<0)	/* don't store this client */
-#define PS_FLAG_NOFORWARD	(1<<1)	/* don't forward this session */
-#define PS_FLAG_EXPIRED		(1<<2)	/* whitelist expired */
-#define PS_FLAG_WHITELISTED	(1<<3)	/* whitelisted (temp or perm) */
+int     ps_check_queue_length;		/* connections being checked */
+int     ps_post_queue_length;		/* being sent to real SMTPD */
+DICT_CACHE *ps_cache_map;		/* cache table handle */
+VSTRING *ps_temp;			/* scratchpad */
+char   *ps_smtpd_service_name;		/* path to real SMTPD */
+int     ps_pregr_action;		/* PS_ACT_DROP/ENFORCE/etc */
+int     ps_dnsbl_action;		/* PS_ACT_DROP/ENFORCE/etc */
+int     ps_pipel_action;		/* PS_ACT_DROP/ENFORCE/etc */
+int     ps_nsmtp_action;		/* PS_ACT_DROP/ENFORCE/etc */
+int     ps_barlf_action;		/* PS_ACT_DROP/ENFORCE/etc */
+int     ps_min_ttl;			/* Update with new tests! */
+int     ps_max_ttl;			/* Update with new tests! */
+STRING_LIST *ps_forbid_cmds;		/* CONNECT GET POST */
+int     ps_stress_greet_wait;		/* stressed greet wait */
+int     ps_normal_greet_wait;		/* stressed greet wait */
+int     ps_stress_cmd_time_limit;	/* stressed command limit */
+int     ps_normal_cmd_time_limit;	/* normal command time limit */
+int     ps_stress;			/* stress level */
+int     ps_check_queue_length_lowat;	/* stress low-water mark */
+int     ps_check_queue_length_hiwat;	/* stress high-water mark */
+DICT   *ps_dnsbl_reply;			/* DNSBL name mapper */
 
  /*
-  * This program screens all inbound SMTP connections, so it better not waste
-  * time.
+  * Local variables.
   */
-#define PS_SEND_SOCK_CONNECT_TIMEOUT	1
-#define PS_SEND_SOCK_NOTIFY_TIMEOUT	100
+static ADDR_MATCH_LIST *ps_wlist_nets;	/* permanently whitelisted networks */
+static ADDR_MATCH_LIST *ps_blist_nets;	/* permanently blacklisted networks */
+static int ps_blist_action;		/* PS_ACT_DROP/ENFORCE/etc */
 
-#define PS_READ_BUF_SIZE		1024
+/* ps_dump - dump some statistics before exit */
 
-#define DNSBL_SERVICE			"dnsblog"
-#define DNSBLOG_TIMEOUT			10
-
-#define PS_ACT_DROP			1
-#define PS_ACT_CONT			2
-
-static int check_queue_length;		/* connections being checked */
-static int post_queue_length;		/* being sent to real SMTPD */
-static DICT_CACHE *cache_map;		/* cache table handle */
-static VSTRING *temp;			/* scratchpad */
-static char *smtp_service_name;		/* path to real SMTPD */
-static char *teaser_greeting;		/* spamware teaser banner */
-static int dnsbl_action;		/* PS_ACT_DROP or PS_ACT_CONT */
-static int greet_action;		/* PS_ACT_DROP or PS_ACT_CONT */
-static int hangup_action;		/* PS_ACT_DROP or PS_ACT_CONT */
-static ADDR_MATCH_LIST *wlist_nets;	/* permanently whitelisted networks */
-static ADDR_MATCH_LIST *blist_nets;	/* permanently blacklisted networks */
-static int blist_action;		/* PS_ACT_DROP or PS_ACT_CONT */
-
-/* new_session_state - fill in connection state for event processing */
-
-static PS_STATE *new_session_state(VSTREAM *stream, const char *addr,
-				           const char *port)
-{
-    PS_STATE *state;
-
-    state = (PS_STATE *) mymalloc(sizeof(*state));
-    state->flags = 0;
-    if ((state->smtp_client_stream = stream) != 0)
-	check_queue_length++;
-    state->smtp_server_fd = (-1);
-    state->smtp_client_addr = mystrdup(addr);
-    state->smtp_client_port = mystrdup(port);
-    GETTIMEOFDAY(&state->creation_time);
-    return (state);
-}
-
-/* free_session_state - destroy connection state including connections */
-
-static void free_session_state(PS_STATE *state)
-{
-    if (state->smtp_client_stream != 0) {
-	event_server_disconnect(state->smtp_client_stream);
-	check_queue_length--;
-    }
-    if (state->smtp_server_fd >= 0) {
-	close(state->smtp_server_fd);
-	post_queue_length--;
-    }
-    myfree(state->smtp_client_addr);
-    myfree(state->smtp_client_port);
-    myfree((char *) state);
-
-    if (check_queue_length < 0 || post_queue_length < 0)
-	msg_panic("bad queue length: check_queue=%d, post_queue=%d",
-		  check_queue_length, post_queue_length);
-}
-
-/* mydelta_time - pretty-formatted delta time */
-
-static char *mydelta_time(VSTRING *buf, struct timeval tv, int *delta)
-{
-    DELTA_TIME pdelay;
-    struct timeval now;
-
-    GETTIMEOFDAY(&now);
-    PS_CALC_DELTA(pdelay, now, tv);
-    VSTRING_RESET(buf);
-    format_tv(buf, pdelay.dt_sec, pdelay.dt_usec, SIG_DIGS, var_delay_max_res);
-    *delta = pdelay.dt_sec;
-    return (STR(buf));
-}
-
-/* smtp_reply - reply to the client */
-
-static int smtp_reply(int smtp_client_fd, const char *smtp_client_addr,
-		              const char *smtp_client_port, const char *text)
-{
-    int     ret;
-
-    /*
-     * XXX Need to make sure that the TCP send buffer is large enough for any
-     * response, so that a nasty client can't cause this process to block.
-     */
-    ret = (write_buf(smtp_client_fd, text, strlen(text), 1) < 0);
-    if (ret != 0 && errno != EPIPE)
-	msg_warn("write %s:%s: %m", smtp_client_addr, smtp_client_port);
-    return (ret);
-}
-
-/* send_socket_close_event - file descriptor has arrived or timeout */
-
-static void send_socket_close_event(int event, char *context)
-{
-    const char *myname = "send_socket_close_event";
-    PS_STATE *state = (PS_STATE *) context;
-
-    if (msg_verbose)
-	msg_info("%s: sq=%d cq=%d event %d on send socket %d from %s:%s",
-		 myname, post_queue_length, check_queue_length,
-		 event, state->smtp_server_fd, state->smtp_client_addr,
-		 state->smtp_client_port);
-
-    /*
-     * The real SMTP server has closed the local IPC channel, or we have
-     * reached the limit of our patience. In the latter case it is still
-     * possible that the real SMTP server will receive the socket so we
-     * should not interfere.
-     */
-    CLEAR_EVENT_REQUEST(state->smtp_server_fd, send_socket_close_event, context);
-
-    switch (event) {
-    case EVENT_TIME:
-	msg_warn("timeout sending connection to service %s", smtp_service_name);
-	break;
-    default:
-	break;
-    }
-    free_session_state(state);
-}
-
-/* send_socket - send socket to real smtpd */
-
-static void send_socket(PS_STATE *state)
-{
-    const char *myname = "send_socket";
-    int     window_size;
-
-    if (msg_verbose)
-	msg_info("%s: sq=%d cq=%d send socket %d from %s:%s",
-		 myname, post_queue_length, check_queue_length,
-	 vstream_fileno(state->smtp_client_stream), state->smtp_client_addr,
-		 state->smtp_client_port);
-
-    /*
-     * This is where we would adjust the window size to a value that is
-     * appropriate for this client class.
-     */
-#if 0
-    window_size = 65535;
-    if (setsockopt(vstream_fileno(state->smtp_client_stream), SOL_SOCKET, SO_RCVBUF,
-		   (char *) &window_size, sizeof(window_size)) < 0)
-	msg_warn("setsockopt SO_RCVBUF %d: %m", window_size);
-#endif
-
-    /*
-     * Connect to the real SMTP service over a local IPC channel, send the
-     * file descriptor, and close the file descriptor to save resources.
-     * Experience has shown that some systems will discard information when
-     * we close a channel immediately after writing. Thus, we waste resources
-     * waiting for the remote side to close the local IPC channel first. The
-     * good side of waiting is that we learn when the real SMTP server is
-     * falling behind.
-     * 
-     * This is where we would forward the connection to an SMTP server that
-     * provides an appropriate level of service for this client class. For
-     * example, a server that is more forgiving, or one that is more
-     * suspicious. Alternatively, we could send attributes along with the
-     * socket with client reputation information, making everything even more
-     * Postfix-specific.
-     */
-    if ((state->smtp_server_fd = LOCAL_CONNECT(smtp_service_name, NON_BLOCKING,
-				       PS_SEND_SOCK_CONNECT_TIMEOUT)) < 0) {
-	msg_warn("cannot connect to service %s: %m", smtp_service_name);
-	smtp_reply(vstream_fileno(state->smtp_client_stream),
-		   state->smtp_client_addr, state->smtp_client_port,
-		   "421 4.3.2 All server ports are busy\r\n");
-	free_session_state(state);
-	return;
-    }
-    post_queue_length++;
-    if (LOCAL_SEND_FD(state->smtp_server_fd,
-		      vstream_fileno(state->smtp_client_stream)) < 0) {
-	msg_warn("cannot pass connection to service %s: %m", smtp_service_name);
-	smtp_reply(vstream_fileno(state->smtp_client_stream), state->smtp_client_addr,
-	      state->smtp_client_port, "421 4.3.2 No system resources\r\n");
-	free_session_state(state);
-	return;
-    } else {
-
-	/*
-	 * Closing the smtp_client_fd here triggers a FreeBSD 7.1 kernel bug
-	 * where smtp-source sometimes sees the connection being closed after
-	 * it has already received the real SMTP server's 220 greeting!
-	 */
-#if 0
-	event_server_disconnect(state->smtp_client_stream);
-	state->smtp_client_stream = 0;
-	check_queue_length--;
-#endif
-	READ_EVENT_REQUEST(state->smtp_server_fd, send_socket_close_event,
-			   (char *) state, PS_SEND_SOCK_NOTIFY_TIMEOUT);
-	return;
-    }
-}
-
-/* smtp_early_event - handle pre-greet, EOF or timeout. */
-
-static void smtp_early_event(int event, char *context)
-{
-    const char *myname = "smtp_early_event";
-    PS_STATE *state = (PS_STATE *) context;
-    char    read_buf[PS_READ_BUF_SIZE];
-    int     read_count;
-    int     dnsbl_score;
-    int     elapsed;
-    int     action;
-
-    if (msg_verbose)
-	msg_info("%s: sq=%d cq=%d event %d on smtp socket %d from %s:%s",
-		 myname, post_queue_length, check_queue_length,
-		 event, vstream_fileno(state->smtp_client_stream),
-		 state->smtp_client_addr, state->smtp_client_port);
-
-    /*
-     * Either the remote SMTP client spoke before its turn, the connection
-     * was closed, or we reached the limit of our patience.
-     */
-    CLEAR_EVENT_REQUEST(vstream_fileno(state->smtp_client_stream),
-			smtp_early_event, context);
-
-    /*
-     * If this session ends here, we MUST read the blocklist cache otherwise
-     * we have a memory leak.
-     */
-    switch (event) {
-
-	/*
-	 * The SMTP client did not speak before its turn. If it is DNS
-	 * blocklisted, drop the connection, or continue and forward the
-	 * connection to the real SMTP server.
-	 * 
-	 * This is where we would use a dummy SMTP protocol engine to further
-	 * investigate whether the client cuts corners in the protocol,
-	 * before allowing it to talk to a real SMTP server process.
-	 */
-    case EVENT_TIME:
-	if (*var_ps_dnsbl_sites)
-	    dnsbl_score = ps_dnsbl_retrieve(state->smtp_client_addr);
-	else
-	    dnsbl_score = 0;
-	if (dnsbl_score >= var_ps_dnsbl_thresh) {
-	    msg_info("DNSBL rank %d for %s",
-		     dnsbl_score, state->smtp_client_addr);
-	    if (dnsbl_action == PS_ACT_DROP) {
-		smtp_reply(vstream_fileno(state->smtp_client_stream),
-			   state->smtp_client_addr, state->smtp_client_port,
-			   "521 5.7.1 Blocked by DNSBL\r\n");
-		state->flags |= PS_FLAG_NOFORWARD;
-	    }
-	    state->flags |= PS_FLAG_NOCACHE;
-	}
-	if (state->flags & PS_FLAG_NOFORWARD) {
-	    free_session_state(state);
-	} else {
-	    if ((state->flags & PS_FLAG_NOCACHE) == 0) {
-		msg_info("PASS %s %s", (state->flags & PS_FLAG_EXPIRED) ?
-			 "OLD" : "NEW", state->smtp_client_addr);
-		if (cache_map != 0) {
-		    vstring_sprintf(temp, "%ld", (long) event_time());
-		    ps_cache_update(cache_map, state->smtp_client_addr, STR(temp));
-		}
-	    }
-	    send_socket(state);
-	}
-	break;
-
-	/*
-	 * EOF or the client spoke before its turn. We simply drop the
-	 * connection, or we continue waiting and allow DNS replies to
-	 * trickle in.
-	 * 
-	 * This is where we would use a dummy SMTP protocol engine to obtain the
-	 * sender and recipient information before dropping a pregreeter's
-	 * connection.
-	 */
-    default:
-	if ((read_count = recv(vstream_fileno(state->smtp_client_stream),
-			   read_buf, sizeof(read_buf) - 1, MSG_PEEK)) > 0) {
-	    read_buf[read_count] = 0;
-	    msg_info("PREGREET %d after %s from %s: %.100s", read_count,
-		     mydelta_time(temp, state->creation_time, &elapsed),
-		     state->smtp_client_addr, printable(read_buf, '?'));
-	    action = greet_action;
-	    if (action == PS_ACT_DROP)
-		smtp_reply(vstream_fileno(state->smtp_client_stream),
-			   state->smtp_client_addr, state->smtp_client_port,
-			   "521 5.5.1 Protocol error\r\n");
-	} else {
-	    msg_info("HANGUP after %s from %s",
-		     mydelta_time(temp, state->creation_time, &elapsed),
-		     state->smtp_client_addr);
-	    action = hangup_action;
-	    state->flags |= PS_FLAG_NOFORWARD;
-	}
-	if (action == PS_ACT_DROP) {
-	    if (*var_ps_dnsbl_sites)
-		(void) ps_dnsbl_retrieve(state->smtp_client_addr);
-	    free_session_state(state);
-	} else {
-	    state->flags |= PS_FLAG_NOCACHE;
-	    /* not: ps_dnsbl_retrieve */
-	    if (elapsed > var_ps_greet_wait)
-		elapsed = var_ps_greet_wait;
-	    event_request_timer(smtp_early_event, context,
-				var_ps_greet_wait - elapsed);
-	}
-	break;
-    }
-}
-
-/* postscreen_dump - dump some statistics before exit */
-
-static void postscreen_dump(void)
+static void ps_dump(void)
 {
 
     /*
@@ -763,15 +371,15 @@ static void postscreen_dump(void)
      * distinguish between "postfix reload" (we should restart) or "maximal
      * idle time reached" (we could finish the cache cleanup first).
      */
-    if (cache_map) {
-	dict_cache_close(cache_map);
-	cache_map = 0;
+    if (ps_cache_map) {
+	dict_cache_close(ps_cache_map);
+	ps_cache_map = 0;
     }
 }
 
-/* postscreen_drain - delayed exit after "postfix reload" */
+/* ps_drain - delayed exit after "postfix reload" */
 
-static void postscreen_drain(char *unused_service, char **unused_argv)
+static void ps_drain(char *unused_service, char **unused_argv)
 {
     int     count;
 
@@ -792,9 +400,9 @@ static void postscreen_drain(char *unused_service, char **unused_argv)
      * XXX Some Berkeley DB versions break with close-after-fork. Every new
      * version is an improvement over its predecessor.
      */
-    if (cache_map != 0) {
-	dict_cache_close(cache_map);
-	cache_map = 0;
+    if (ps_cache_map != 0) {
+	dict_cache_close(ps_cache_map);
+	ps_cache_map = 0;
     }
     for (count = 0; /* see below */ ; count++) {
 	if (count >= 5) {
@@ -809,13 +417,13 @@ static void postscreen_drain(char *unused_service, char **unused_argv)
     }
 }
 
-/* postscreen_service - handle new client connection */
+/* ps_service - handle new client connection */
 
-static void postscreen_service(VSTREAM *smtp_client_stream,
-			               char *unused_service,
-			               char **unused_argv)
+static void ps_service(VSTREAM *smtp_client_stream,
+		               char *unused_service,
+		               char **unused_argv)
 {
-    const char *myname = "postscreen_service";
+    const char *myname = "ps_service";
     PS_STATE *state;
     struct sockaddr_storage addr_storage;
     SOCKADDR_SIZE addr_storage_len = sizeof(addr_storage);
@@ -823,20 +431,21 @@ static void postscreen_service(VSTREAM *smtp_client_stream,
     MAI_SERVPORT_STR smtp_client_port;
     int     aierr;
     const char *stamp_str;
-    time_t  stamp_time;
     int     window_size;
-    int     state_flags = 0;
+    int     saved_flags;
 
     /*
      * This program handles all incoming connections, so it must not block.
      * We use event-driven code for all operations that introduce latency.
-     * 
-     * We use the event_server framework. This means we get already-accepted
-     * connections wrapped into a VSTREAM so we have to invoke getpeername()
-     * to find out the remote address and port.
      */
+    non_blocking(vstream_fileno(smtp_client_stream), NON_BLOCKING);
 
-#define PS_SERVICE_GIVEUP_AND_RETURN(stream) do { \
+    /*
+     * We use the event_server framework. This means we get already-accepted
+     * connections so we have to invoke getpeername() to find out the remote
+     * address and port.
+     */
+#define PS_SERVICE_DISCONNECT_AND_RETURN(stream) do { \
 	event_server_disconnect(stream); \
 	return; \
     } while (0);
@@ -847,10 +456,10 @@ static void postscreen_service(VSTREAM *smtp_client_stream,
     if (getpeername(vstream_fileno(smtp_client_stream), (struct sockaddr *)
 		    & addr_storage, &addr_storage_len) < 0) {
 	msg_warn("getpeername: %m");
-	smtp_reply(vstream_fileno(smtp_client_stream),
-		   "unknown_address", "unknown_port",
-		   "421 4.3.2 No system resources\r\n");
-	PS_SERVICE_GIVEUP_AND_RETURN(smtp_client_stream);
+	ps_send_reply(vstream_fileno(smtp_client_stream),
+		      "unknown_address", "unknown_port",
+		      "421 4.3.2 No system resources\r\n");
+	PS_SERVICE_DISCONNECT_AND_RETURN(smtp_client_stream);
     }
 
     /*
@@ -862,104 +471,122 @@ static void postscreen_service(VSTREAM *smtp_client_stream,
 				      &smtp_client_port, 0)) != 0) {
 	msg_warn("cannot convert client address/port to string: %s",
 		 MAI_STRERROR(aierr));
-	smtp_reply(vstream_fileno(smtp_client_stream),
-		   "unknown_address", "unknown_port",
-		   "421 4.3.2 No system resources\r\n");
-	PS_SERVICE_GIVEUP_AND_RETURN(smtp_client_stream);
+	ps_send_reply(vstream_fileno(smtp_client_stream),
+		      "unknown_address", "unknown_port",
+		      "421 4.3.2 No system resources\r\n");
+	PS_SERVICE_DISCONNECT_AND_RETURN(smtp_client_stream);
     }
     if (strncasecmp("::ffff:", smtp_client_addr.buf, 7) == 0)
 	memmove(smtp_client_addr.buf, smtp_client_addr.buf + 7,
 		sizeof(smtp_client_addr.buf) - 7);
-    if (msg_verbose)
+    if (msg_verbose > 1)
 	msg_info("%s: sq=%d cq=%d connect from %s:%s",
-		 myname, post_queue_length, check_queue_length,
+		 myname, ps_post_queue_length, ps_check_queue_length,
 		 smtp_client_addr.buf, smtp_client_port.buf);
+
+    /*
+     * Bundle up all the loose session pieces. This zeroes all flags and time
+     * stamps.
+     */
+    state = ps_new_session_state(smtp_client_stream, smtp_client_addr.buf,
+				 smtp_client_port.buf);
 
     /*
      * Reply with 421 when we can't forward more connections.
      */
     if (var_ps_post_queue_limit > 0
-	&& post_queue_length >= var_ps_post_queue_limit) {
+	&& ps_post_queue_length >= var_ps_post_queue_limit) {
 	msg_info("reject: connect from %s:%s: all server ports busy",
-		 smtp_client_addr.buf, smtp_client_port.buf);
-	smtp_reply(vstream_fileno(smtp_client_stream),
-		   smtp_client_addr.buf, smtp_client_port.buf,
-		   "421 4.3.2 All server ports are busy\r\n");
-	PS_SERVICE_GIVEUP_AND_RETURN(smtp_client_stream);
+		 state->smtp_client_addr, state->smtp_client_port);
+	PS_DROP_SESSION_STATE(state,
+			      "421 4.3.2 All server ports are busy\r\n");
+	return;
     }
 
     /*
      * The permanent whitelist has highest precedence (never block mail from
-     * whitelisted sites).
+     * whitelisted sites, and never run tests against those sites).
      */
-    if (wlist_nets != 0
-	&& ps_addr_match_list_match(wlist_nets, smtp_client_addr.buf) != 0) {
-	msg_info("WHITELISTED %s", smtp_client_addr.buf);
-	state_flags |= PS_FLAG_WHITELISTED;
+    if (ps_wlist_nets != 0
+      && ps_addr_match_list_match(ps_wlist_nets, state->smtp_client_addr)) {
+	msg_info("WHITELISTED %s", state->smtp_client_addr);
+	ps_conclude(state);
+	return;
     }
 
     /*
      * The permanent blacklist has second precedence. If the client is
      * permanently blacklisted, send some generic reply and hang up
-     * immediately, or torture them a little longer.
+     * immediately, or run more tests for logging purposes.
      */
-    else if (blist_nets != 0
-       && ps_addr_match_list_match(blist_nets, smtp_client_addr.buf) != 0) {
-	msg_info("BLACKLISTED %s", smtp_client_addr.buf);
-	if (blist_action == PS_ACT_DROP) {
-	    smtp_reply(vstream_fileno(smtp_client_stream),
-		       smtp_client_addr.buf, smtp_client_port.buf,
-		       "521 5.3.2 Service currently not available\r\n");
-	    PS_SERVICE_GIVEUP_AND_RETURN(smtp_client_stream);
+    if (ps_blist_nets != 0
+      && ps_addr_match_list_match(ps_blist_nets, state->smtp_client_addr)) {
+	msg_info("BLACKLISTED %s", state->smtp_client_addr);
+	PS_FAIL_SESSION_STATE(state, PS_STATE_FLAG_BLIST_FAIL);
+	switch (ps_blist_action) {
+	case PS_ACT_DROP:
+	    PS_DROP_SESSION_STATE(state,
+			     "521 5.3.2 Service currently unavailable\r\n");
+	    return;
+	case PS_ACT_ENFORCE:
+	    PS_ENFORCE_SESSION_STATE(state,
+			     "550 5.3.2 Service currently unavailable\r\n");
+	    break;
+	case PS_ACT_IGNORE:
+	    PS_UNFAIL_SESSION_STATE(state, PS_STATE_FLAG_BLIST_FAIL);
+	    /* Not: PS_PASS_SESSION_STATE. Repeat this test the next time. */
+	    break;
+	default:
+	    msg_panic("%s: unknown pregreet action value %d",
+		      myname, ps_blist_action);
 	}
     }
 
     /*
-     * Finally, the temporary whitelist (i.e. the postscreen cache) has the
-     * lowest precedence.
+     * The temporary whitelist (i.e. the postscreen cache) has the lowest
+     * precedence. This cache contains information about the results of prior
+     * tests. Whitelist the client when all enabled test results are still
+     * valid.
      */
-    else if (cache_map != 0
-    && (stamp_str = ps_cache_lookup(cache_map, smtp_client_addr.buf)) != 0) {
-	stamp_time = strtoul(stamp_str, 0, 10);
-	if (stamp_time > event_time() - var_ps_cache_ttl) {
-	    msg_info("PASS OLD %s", smtp_client_addr.buf);
-	    state_flags |= PS_FLAG_WHITELISTED;
-	} else
-	    state_flags |= PS_FLAG_EXPIRED;
-    }
-
-    /*
-     * If the client is permanently or temporarily whitelisted, send the
-     * socket to the real SMTP service and get out of the way.
-     */
-    if (state_flags & PS_FLAG_WHITELISTED) {
-	state = new_session_state(smtp_client_stream, smtp_client_addr.buf,
-				  smtp_client_port.buf);
-	send_socket(state);
-	return;
+    if ((state->flags & PS_STATE_FLAG_ANY_FAIL) == 0
+	&& ps_cache_map != 0
+	&& (stamp_str = ps_cache_lookup(ps_cache_map, state->smtp_client_addr)) != 0) {
+	saved_flags = state->flags;
+	ps_parse_tests(state, stamp_str, event_time());
+	state->flags |= saved_flags;
+	if (msg_verbose)
+	    msg_info("%s: cached + recent flags: %s",
+		     myname, ps_print_state_flags(state->flags, myname));
+	if ((state->flags & PS_STATE_FLAG_ANY_TODO) == 0) {
+	    msg_info("PASS OLD %s", state->smtp_client_addr);
+	    ps_conclude(state);
+	    return;
+	}
+    } else {
+	saved_flags = state->flags;
+	ps_new_tests(state);
+	state->flags |= saved_flags;
+	if (msg_verbose)
+	    msg_info("%s: new + recent flags: %s",
+		     myname, ps_print_state_flags(state->flags, myname));
     }
 
     /*
      * Reply with 421 when we can't analyze more connections.
      */
     if (var_ps_pre_queue_limit > 0
-      && check_queue_length - post_queue_length >= var_ps_pre_queue_limit) {
+	&& ps_check_queue_length - ps_post_queue_length >= var_ps_pre_queue_limit) {
 	msg_info("reject: connect from %s:%s: all screening ports busy",
-		 smtp_client_addr.buf, smtp_client_port.buf);
-	smtp_reply(vstream_fileno(smtp_client_stream),
-		   smtp_client_addr.buf, smtp_client_port.buf,
-		   "421 4.3.2 All screening ports are busy\r\n");
-	PS_SERVICE_GIVEUP_AND_RETURN(smtp_client_stream);
+		 state->smtp_client_addr, state->smtp_client_port);
+	PS_DROP_SESSION_STATE(state,
+			      "421 4.3.2 All screening ports are busy\r\n");
+	return;
     }
 
     /*
-     * If the client has no cached decision, send half the greeting banner,
-     * by way of teaser, then wait briefly to see if the client speaks before
-     * its turn.
-     * 
-     * Before sending the banner we could set the TCP window to the smallest
-     * possible value to save some network bandwidth, at least with spamware
-     * that waits until the server starts speaking.
+     * Before commencing the tests we could set the TCP window to the
+     * smallest possible value to save some network bandwidth, at least with
+     * spamware that waits until the server starts speaking.
      */
 #if 0
     window_size = 1;
@@ -967,42 +594,37 @@ static void postscreen_service(VSTREAM *smtp_client_stream,
 		   (char *) &window_size, sizeof(window_size)) < 0)
 	msg_warn("setsockopt SO_RCVBUF %d: %m", window_size);
 #endif
-    if (teaser_greeting != 0
-     && smtp_reply(vstream_fileno(smtp_client_stream), smtp_client_addr.buf,
-		   smtp_client_port.buf, teaser_greeting) != 0)
-	PS_SERVICE_GIVEUP_AND_RETURN(smtp_client_stream);
-
-    state = new_session_state(smtp_client_stream, smtp_client_addr.buf,
-			      smtp_client_port.buf);
-    state->flags |= state_flags;
-    READ_EVENT_REQUEST(vstream_fileno(state->smtp_client_stream),
-		       smtp_early_event, (char *) state, var_ps_greet_wait);
 
     /*
-     * Run a DNS blocklist query while we wait for the client to respond.
+     * If the client has no up-to-date results for some tests, do those tests
+     * first. Otherwise, skip the tests and hand off the connection.
      */
-    if (*var_ps_dnsbl_sites)
-	ps_dnsbl_request(smtp_client_addr.buf);
+    if (state->flags & PS_STATE_FLAG_EARLY_TODO)
+	ps_early_tests(state);
+    else if (state->flags & (PS_STATE_FLAG_SMTPD_TODO | PS_STATE_FLAG_NOFORWARD))
+	ps_smtpd_tests(state);
+    else
+	ps_conclude(state);
 }
 
-/* postscreen_cache_validator - validate one cache entry */
+/* ps_cache_validator - validate one cache entry */
 
-static int postscreen_cache_validator(const char *client_addr,
-				              const char *stamp_str,
-				              char *unused_context)
+static int ps_cache_validator(const char *client_addr,
+			              const char *stamp_str,
+			              char *unused_context)
 {
-    time_t  stamp_time;
+    PS_STATE dummy;
 
     /*
      * This function is called by the cache cleanup pseudo thread.
      * 
-     * XX Eliminate code duplication and abstract the parser into a separate
-     * routine.
-     * 
-     * Don't report a client as "NEW" just because their cache entry expired.
+     * When an entry is removed from the cache, the client will be reported as
+     * "NEW" in the next session where it passes all tests again. To avoid
+     * silly logging we remove the cache entry only after all tests have
+     * expired longer ago than the cache retention time.
      */
-    stamp_time = strtoul(stamp_str, 0, 10);
-    return (event_time() < stamp_time + var_ps_cache_ttl + var_ps_cache_ret);
+    ps_parse_tests(&dummy, stamp_str, event_time() - var_ps_cache_ret);
+    return ((dummy.flags & PS_STATE_FLAG_ANY_TODO) == 0);
 }
 
 /* pre_jail_init - pre-jail initialization */
@@ -1012,16 +634,19 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     VSTRING *redirect;
 
     /*
-     * Open read-only maps as before dropping privilege, for consistency with
+     * Open read-only maps before dropping privilege, for consistency with
      * other Postfix daemons.
      */
     if (*var_ps_wlist_nets)
-	wlist_nets =
-	    addr_match_list_init(MATCH_FLAG_NONE, var_ps_wlist_nets);
+	ps_wlist_nets = addr_match_list_init(MATCH_FLAG_NONE, var_ps_wlist_nets);
 
     if (*var_ps_blist_nets)
-	blist_nets =
-	    addr_match_list_init(MATCH_FLAG_NONE, var_ps_blist_nets);
+	ps_blist_nets = addr_match_list_init(MATCH_FLAG_NONE, var_ps_blist_nets);
+    if (*var_ps_forbid_cmds)
+	ps_forbid_cmds = string_list_init(MATCH_FLAG_NONE, var_ps_forbid_cmds);
+    if (*var_ps_dnsbl_reply)
+	ps_dnsbl_reply = dict_open(var_ps_dnsbl_reply, O_RDONLY,
+				   DICT_FLAG_DUP_WARN);
 
     /*
      * Never, ever, get killed by a master signal, as that would corrupt the
@@ -1042,15 +667,15 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 
     /*
      * Keep state in persistent external map. As a safety measure we sync the
-     * database on each update. This hurts on LINUX systems that sync all
-     * their dirty disk blocks whenever any application invokes fsync().
+     * database on each update. This hurts on LINUX file systems that sync
+     * all dirty disk blocks whenever any application invokes fsync().
      * 
      * Start the cache maintenance pseudo thread after dropping privileges.
      */
 #define PS_DICT_OPEN_FLAGS (DICT_FLAG_DUP_REPLACE | DICT_FLAG_SYNC_UPDATE)
 
     if (*var_ps_cache_map)
-	cache_map =
+	ps_cache_map =
 	    dict_cache_open(data_redirect_map(redirect, var_ps_cache_map),
 			    O_CREAT | O_RDWR, PS_DICT_OPEN_FLAGS);
 
@@ -1066,8 +691,10 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 static void post_jail_init(char *unused_name, char **unused_argv)
 {
     const NAME_CODE actions[] = {
-	"drop", PS_ACT_DROP,
-	"continue", PS_ACT_CONT,
+	PS_NAME_ACT_DROP, PS_ACT_DROP,
+	PS_NAME_ACT_ENFORCE, PS_ACT_ENFORCE,
+	PS_NAME_ACT_IGNORE, PS_ACT_IGNORE,
+	PS_NAME_ACT_CONT, PS_ACT_IGNORE,/* compatibility */
 	0, -1,
     };
     int     cache_flags;
@@ -1082,26 +709,31 @@ static void post_jail_init(char *unused_name, char **unused_argv)
     /*
      * Other one-time initialization.
      */
-    temp = vstring_alloc(10);
-    vstring_sprintf(temp, "%s/%s", MAIL_CLASS_PRIVATE, var_smtpd_service);
-    smtp_service_name = mystrdup(STR(temp));
-    if (*var_ps_greet_banner) {
-	vstring_sprintf(temp, "220-%s\r\n", var_ps_greet_banner);
-	teaser_greeting = mystrdup(STR(temp));
-    }
+    ps_temp = vstring_alloc(10);
+    vstring_sprintf(ps_temp, "%s/%s", MAIL_CLASS_PRIVATE, var_smtpd_service);
+    ps_smtpd_service_name = mystrdup(STR(ps_temp));
     ps_dnsbl_init();
-    if ((blist_action = name_code(actions, NAME_CODE_FLAG_NONE,
-				  var_ps_blist_action)) < 0)
+    ps_early_init();
+    ps_smtpd_init();
+
+    if ((ps_blist_action = name_code(actions, NAME_CODE_FLAG_NONE,
+				     var_ps_blist_action)) < 0)
 	msg_fatal("bad %s value: %s", VAR_PS_BLIST_ACTION, var_ps_blist_action);
-    if ((dnsbl_action = name_code(actions, NAME_CODE_FLAG_NONE,
-				  var_ps_dnsbl_action)) < 0)
+    if ((ps_dnsbl_action = name_code(actions, NAME_CODE_FLAG_NONE,
+				     var_ps_dnsbl_action)) < 0)
 	msg_fatal("bad %s value: %s", VAR_PS_DNSBL_ACTION, var_ps_dnsbl_action);
-    if ((greet_action = name_code(actions, NAME_CODE_FLAG_NONE,
-				  var_ps_greet_action)) < 0)
-	msg_fatal("bad %s value: %s", VAR_PS_GREET_ACTION, var_ps_greet_action);
-    if ((hangup_action = name_code(actions, NAME_CODE_FLAG_NONE,
-				   var_ps_hangup_action)) < 0)
-	msg_fatal("bad %s value: %s", VAR_PS_HUP_ACTION, var_ps_hangup_action);
+    if ((ps_pregr_action = name_code(actions, NAME_CODE_FLAG_NONE,
+				     var_ps_pregr_action)) < 0)
+	msg_fatal("bad %s value: %s", VAR_PS_PREGR_ACTION, var_ps_pregr_action);
+    if ((ps_pipel_action = name_code(actions, NAME_CODE_FLAG_NONE,
+				     var_ps_pipel_action)) < 0)
+	msg_fatal("bad %s value: %s", VAR_PS_PIPEL_ACTION, var_ps_pipel_action);
+    if ((ps_nsmtp_action = name_code(actions, NAME_CODE_FLAG_NONE,
+				     var_ps_nsmtp_action)) < 0)
+	msg_fatal("bad %s value: %s", VAR_PS_NSMTP_ACTION, var_ps_nsmtp_action);
+    if ((ps_barlf_action = name_code(actions, NAME_CODE_FLAG_NONE,
+				     var_ps_barlf_action)) < 0)
+	msg_fatal("bad %s value: %s", VAR_PS_BARLF_ACTION, var_ps_barlf_action);
 
     /*
      * Start the cache maintenance pseudo thread last. Early cleanup makes
@@ -1109,15 +741,49 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      * the cleanup thread runs).
      */
     cache_flags = DICT_CACHE_FLAG_STATISTICS;
-    if (msg_verbose)
+    if (msg_verbose > 1)
 	cache_flags |= DICT_CACHE_FLAG_VERBOSE;
-    if (cache_map != 0 && var_ps_cache_scan > 0)
-	dict_cache_control(cache_map,
+    if (ps_cache_map != 0 && var_ps_cache_scan > 0)
+	dict_cache_control(ps_cache_map,
 			   DICT_CACHE_CTL_FLAGS, cache_flags,
 			   DICT_CACHE_CTL_INTERVAL, var_ps_cache_scan,
-		       DICT_CACHE_CTL_VALIDATOR, postscreen_cache_validator,
+			   DICT_CACHE_CTL_VALIDATOR, ps_cache_validator,
 			   DICT_CACHE_CTL_CONTEXT, (char *) 0,
 			   DICT_CACHE_CTL_END);
+
+    /*
+     * Pre-compute the minimal and maximal TTL.
+     */
+    ps_min_ttl =
+	PS_MIN(PS_MIN(var_ps_pregr_ttl, var_ps_dnsbl_ttl),
+	       PS_MIN(PS_MIN(var_ps_pipel_ttl, var_ps_nsmtp_ttl),
+		      var_ps_barlf_ttl));
+    ps_max_ttl =
+	PS_MAX(PS_MAX(var_ps_pregr_ttl, var_ps_dnsbl_ttl),
+	       PS_MAX(PS_MAX(var_ps_pipel_ttl, var_ps_nsmtp_ttl),
+		      var_ps_barlf_ttl));
+
+    /*
+     * Pre-compute the stress and normal command time limits.
+     */
+    mail_conf_update(VAR_STRESS, "yes");
+    ps_stress_cmd_time_limit =
+	get_mail_conf_time(VAR_PS_CMD_TIME, DEF_PS_CMD_TIME, 1, 0);
+    ps_stress_greet_wait =
+	get_mail_conf_time(VAR_PS_GREET_WAIT, DEF_PS_GREET_WAIT, 1, 0);
+
+    mail_conf_update(VAR_STRESS, "");
+    ps_normal_cmd_time_limit =
+	get_mail_conf_time(VAR_PS_CMD_TIME, DEF_PS_CMD_TIME, 1, 0);
+    ps_normal_greet_wait =
+	get_mail_conf_time(VAR_PS_GREET_WAIT, DEF_PS_GREET_WAIT, 1, 0);
+
+    ps_check_queue_length_lowat = .7 * var_ps_pre_queue_limit;
+    ps_check_queue_length_hiwat = .9 * var_ps_pre_queue_limit;
+    if (msg_verbose)
+	msg_info(VAR_PS_CMD_TIME ": stress=%d normal=%d lowat=%d hiwat=%d",
+		 ps_stress_cmd_time_limit, ps_normal_cmd_time_limit,
+		 ps_check_queue_length_lowat, ps_check_queue_length_hiwat);
 }
 
 MAIL_VERSION_STAMP_DECLARE;
@@ -1126,35 +792,68 @@ MAIL_VERSION_STAMP_DECLARE;
 
 int     main(int argc, char **argv)
 {
+
+    /*
+     * List smtpd(8) parameters before any postscreen(8) parameters that have
+     * defaults dependencies on them.
+     */
     static const CONFIG_STR_TABLE str_table[] = {
 	VAR_SMTPD_SERVICE, DEF_SMTPD_SERVICE, &var_smtpd_service, 1, 0,
-	VAR_PS_CACHE_MAP, DEF_PS_CACHE_MAP, &var_ps_cache_map, 0, 0,
 	VAR_SMTPD_BANNER, DEF_SMTPD_BANNER, &var_smtpd_banner, 1, 0,
+	VAR_SMTPD_FORBID_CMDS, DEF_SMTPD_FORBID_CMDS, &var_smtpd_forbid_cmds, 0, 0,
+	VAR_PS_CACHE_MAP, DEF_PS_CACHE_MAP, &var_ps_cache_map, 0, 0,
+	VAR_PS_PREGR_BANNER, DEF_PS_PREGR_BANNER, &var_ps_pregr_banner, 0, 0,
+	VAR_PS_PREGR_ACTION, DEF_PS_PREGR_ACTION, &var_ps_pregr_action, 1, 0,
 	VAR_PS_DNSBL_SITES, DEF_PS_DNSBL_SITES, &var_ps_dnsbl_sites, 0, 0,
-	VAR_PS_GREET_ACTION, DEF_PS_GREET_ACTION, &var_ps_greet_action, 1, 0,
 	VAR_PS_DNSBL_ACTION, DEF_PS_DNSBL_ACTION, &var_ps_dnsbl_action, 1, 0,
-	VAR_PS_HUP_ACTION, DEF_PS_HUP_ACTION, &var_ps_hangup_action, 1, 0,
+	VAR_PS_PIPEL_ACTION, DEF_PS_PIPEL_ACTION, &var_ps_pipel_action, 1, 0,
+	VAR_PS_NSMTP_ACTION, DEF_PS_NSMTP_ACTION, &var_ps_nsmtp_action, 1, 0,
+	VAR_PS_BARLF_ACTION, DEF_PS_BARLF_ACTION, &var_ps_barlf_action, 1, 0,
 	VAR_PS_WLIST_NETS, DEF_PS_WLIST_NETS, &var_ps_wlist_nets, 0, 0,
 	VAR_PS_BLIST_NETS, DEF_PS_BLIST_NETS, &var_ps_blist_nets, 0, 0,
-	VAR_PS_GREET_BANNER, DEF_PS_GREET_BANNER, &var_ps_greet_banner, 0, 0,
 	VAR_PS_BLIST_ACTION, DEF_PS_BLIST_ACTION, &var_ps_blist_action, 1, 0,
+	VAR_PS_FORBID_CMDS, DEF_PS_FORBID_CMDS, &var_ps_forbid_cmds, 0, 0,
+	VAR_PS_DNSBL_REPLY, DEF_PS_DNSBL_REPLY, &var_ps_dnsbl_reply, 0, 0,
 	0,
     };
     static const CONFIG_INT_TABLE int_table[] = {
 	VAR_PROC_LIMIT, DEF_PROC_LIMIT, &var_proc_limit, 1, 0,
 	VAR_PS_DNSBL_THRESH, DEF_PS_DNSBL_THRESH, &var_ps_dnsbl_thresh, 0, 0,
+	VAR_PS_CMD_COUNT, DEF_PS_CMD_COUNT, &var_ps_cmd_count, 1, 0,
 	0,
     };
     static const CONFIG_NINT_TABLE nint_table[] = {
-	VAR_PS_POST_QLIMIT, DEF_PS_POST_QLIMIT, &var_ps_post_queue_limit, 1, 0,
-	VAR_PS_PRE_QLIMIT, DEF_PS_PRE_QLIMIT, &var_ps_pre_queue_limit, 1, 0,
+	VAR_PS_POST_QLIMIT, DEF_PS_POST_QLIMIT, &var_ps_post_queue_limit, 10, 0,
+	VAR_PS_PRE_QLIMIT, DEF_PS_PRE_QLIMIT, &var_ps_pre_queue_limit, 10, 0,
 	0,
     };
     static const CONFIG_TIME_TABLE time_table[] = {
-	VAR_PS_CACHE_TTL, DEF_PS_CACHE_TTL, &var_ps_cache_ttl, 1, 0,
 	VAR_PS_GREET_WAIT, DEF_PS_GREET_WAIT, &var_ps_greet_wait, 1, 0,
-	VAR_PS_CACHE_RET, DEF_PS_CACHE_RET, &var_ps_cache_ret, 0, 0,
-	VAR_PS_CACHE_SCAN, DEF_PS_CACHE_SCAN, &var_ps_cache_scan, 0, 0,
+	VAR_PS_PREGR_TTL, DEF_PS_PREGR_TTL, &var_ps_pregr_ttl, 1, 0,
+	VAR_PS_DNSBL_TTL, DEF_PS_DNSBL_TTL, &var_ps_dnsbl_ttl, 1, 0,
+	VAR_PS_PIPEL_TTL, DEF_PS_PIPEL_TTL, &var_ps_pipel_ttl, 1, 0,
+	VAR_PS_NSMTP_TTL, DEF_PS_NSMTP_TTL, &var_ps_nsmtp_ttl, 1, 0,
+	VAR_PS_BARLF_TTL, DEF_PS_BARLF_TTL, &var_ps_barlf_ttl, 1, 0,
+	VAR_PS_CACHE_RET, DEF_PS_CACHE_RET, &var_ps_cache_ret, 1, 0,
+	VAR_PS_CACHE_SCAN, DEF_PS_CACHE_SCAN, &var_ps_cache_scan, 1, 0,
+	VAR_PS_WATCHDOG, DEF_PS_WATCHDOG, &var_ps_watchdog, 10, 0,
+	0,
+    };
+    static const CONFIG_BOOL_TABLE bool_table[] = {
+	VAR_HELO_REQUIRED, DEF_HELO_REQUIRED, &var_helo_required,
+	VAR_DISABLE_VRFY_CMD, DEF_DISABLE_VRFY_CMD, &var_disable_vrfy_cmd,
+	VAR_PS_PIPEL_ENABLE, DEF_PS_PIPEL_ENABLE, &var_ps_pipel_enable,
+	VAR_PS_NSMTP_ENABLE, DEF_PS_NSMTP_ENABLE, &var_ps_nsmtp_enable,
+	VAR_PS_BARLF_ENABLE, DEF_PS_BARLF_ENABLE, &var_ps_barlf_enable,
+	0,
+    };
+    static const CONFIG_RAW_TABLE raw_table[] = {
+	VAR_PS_CMD_TIME, DEF_PS_CMD_TIME, &var_ps_cmd_time, 1, 0,
+	0,
+    };
+    static const CONFIG_NBOOL_TABLE nbool_table[] = {
+	VAR_PS_HELO_REQUIRED, DEF_PS_HELO_REQUIRED, &var_ps_helo_required,
+	VAR_PS_DISABLE_VRFY, DEF_PS_DISABLE_VRFY, &var_ps_disable_vrfy,
 	0,
     };
 
@@ -1163,15 +862,19 @@ int     main(int argc, char **argv)
      */
     MAIL_VERSION_STAMP_ALLOCATE;
 
-    event_server_main(argc, argv, postscreen_service,
+    event_server_main(argc, argv, ps_service,
 		      MAIL_SERVER_STR_TABLE, str_table,
 		      MAIL_SERVER_INT_TABLE, int_table,
 		      MAIL_SERVER_NINT_TABLE, nint_table,
 		      MAIL_SERVER_TIME_TABLE, time_table,
+		      MAIL_SERVER_BOOL_TABLE, bool_table,
+		      MAIL_SERVER_RAW_TABLE, raw_table,
+		      MAIL_SERVER_NBOOL_TABLE, nbool_table,
 		      MAIL_SERVER_PRE_INIT, pre_jail_init,
 		      MAIL_SERVER_POST_INIT, post_jail_init,
 		      MAIL_SERVER_SOLITARY,
-		      MAIL_SERVER_SLOW_EXIT, postscreen_drain,
-		      MAIL_SERVER_EXIT, postscreen_dump,
+		      MAIL_SERVER_SLOW_EXIT, ps_drain,
+		      MAIL_SERVER_EXIT, ps_dump,
+		      MAIL_SERVER_WATCHDOG, &var_ps_watchdog,
 		      0);
 }

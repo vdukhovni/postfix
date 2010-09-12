@@ -131,6 +131,8 @@
 /*	PERL-compatible regular expressions.
 /* .IP regexp
 /*	POSIX-compatible regular expressions.
+/* .IP texthash
+/*	Flat text in postmap(1) input format.
 /* .PP
 /*	dict_open3() takes separate arguments for dictionary type and
 /*	name, but otherwise performs the same functions as dict_open().
@@ -204,6 +206,7 @@
 #include <dict_static.h>
 #include <dict_cidr.h>
 #include <dict_ht.h>
+#include <dict_thash.h>
 #include <stringops.h>
 #include <split_at.h>
 #include <htable.h>
@@ -251,6 +254,7 @@ static const DICT_OPEN_INFO dict_open_info[] = {
 #endif
     DICT_TYPE_STATIC, dict_static_open,
     DICT_TYPE_CIDR, dict_cidr_open,
+    DICT_TYPE_THASH, dict_thash_open,
     0,
 };
 

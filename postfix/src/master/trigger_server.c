@@ -74,6 +74,11 @@
 /*	global Postfix configuration file. Tables are loaded in the
 /*	order as specified, and multiple instances of the same type
 /*	are allowed.
+/* .IP "MAIL_SERVER_NBOOL_TABLE (CONFIG_NBOOL_TABLE *)"
+/*	A table with configurable parameters, to be loaded from the
+/*	global Postfix configuration file. Tables are loaded in the
+/*	order as specified, and multiple instances of the same type
+/*	are allowed.
 /* .IP "MAIL_SERVER_PRE_INIT (void *(char *service_name, char **argv))"
 /*	A pointer to a function that is called once
 /*	by the skeleton after it has read the global configuration file
@@ -572,6 +577,9 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
 	    break;
 	case MAIL_SERVER_NINT_TABLE:
 	    get_mail_conf_nint_table(va_arg(ap, CONFIG_NINT_TABLE *));
+	    break;
+	case MAIL_SERVER_NBOOL_TABLE:
+	    get_mail_conf_nbool_table(va_arg(ap, CONFIG_NBOOL_TABLE *));
 	    break;
 	case MAIL_SERVER_PRE_INIT:
 	    pre_init = va_arg(ap, MAIL_SERVER_INIT_FN);

@@ -11,18 +11,20 @@
 /*	void	ps_dnsbl_request(client_addr)
 /*	char	*client_addr;
 /*
-/*	int	ps_dnsbl_retrieve(client_addr)
+/*	int	ps_dnsbl_retrieve(client_addr, dnsbl_name)
 /*	char	*client_addr;
+/*	const char **dnsbl_name;
 /* DESCRIPTION
-/*	This module implements preliminary support for DNSBL lookups
-/*	that complete in the background. Multiple requests for the
-/*	same information are handled with reference counts.
+/*	This module implements preliminary support for DNSBL lookups.
+/*	Multiple requests for the same information are handled with
+/*	reference counts.
 /*
 /*	ps_dnsbl_init() initializes this module, and must be called
 /*	once before any of the other functions in this module.
 /*
-/*	ps_dnsbl_request() requests a blocklist score for the specified
-/*	client IP address and increments the reference count. The
+/*	ps_dnsbl_request() requests a blocklist score for the
+/*	specified client IP address and increments the reference
+/*	count. The request completes in the background. The
 /*	client IP address must be in inet_ntop(3) output format.
 /*
 /*	ps_dnsbl_retrieve() retrieves the result score requested with
@@ -78,10 +80,16 @@
   * 
   * Each DNSBL domain can be specified more than once, each time with a
   * different (filter, weight) pair. We group (filter, weight) pairs in a
-  * linked list under their DNSBL domain name.
+  * linked list under their DNSBL domain name. The list head has a reference
+  * to a "safe name" for the DNSBL, in case the name includes a password.
   */
 static HTABLE *dnsbl_site_cache;	/* indexed by DNSBNL domain */
 static HTABLE_INFO **dnsbl_site_list;	/* flattened cache */
+
+typedef struct {
+    const char *safe_dnsbl;		/* from postscreen_dnsbl_reply_map */
+    struct PS_DNSBL_SITE *first;	/* list of (filter, weight) tuples */
+} PS_DNSBL_HEAD;
 
 typedef struct PS_DNSBL_SITE {
     char   *filter;			/* reply filter (default: null) */
@@ -101,6 +109,7 @@ typedef struct PS_DNSBL_SITE {
 static HTABLE *dnsbl_score_cache;	/* indexed by client address */
 
 typedef struct {
+    const char *dnsbl;			/* one contributing DNSBL */
     int     total;			/* combined blocklist score */
     int     refcount;			/* score reference count */
 } PS_DNSBL_SCORE;
@@ -122,12 +131,13 @@ static void ps_dnsbl_add_site(const char *site)
 {
     const char *myname = "ps_dnsbl_add_site";
     char   *saved_site = mystrdup(site);
-    PS_DNSBL_SITE *old_site;
+    PS_DNSBL_HEAD *head;
     PS_DNSBL_SITE *new_site;
     char    junk;
     const char *weight_text;
     const char *pattern_text;
     int     weight;
+    HTABLE_INFO *ht;
 
     /*
      * Parse the required DNSBL domain name, the optional reply filter and
@@ -153,28 +163,36 @@ static void ps_dnsbl_add_site(const char *site)
 	msg_fatal("bad DNSBL domain name \"%s\" in \"%s\"",
 		  saved_site, site);
 
-    if (msg_verbose)
+    if (msg_verbose > 1)
 	msg_info("%s: \"%s\" -> domain=\"%s\" pattern=\"%s\" weight=%d",
 		 myname, site, saved_site, pattern_text ? pattern_text :
 		 "null", weight);
 
     /*
-     * Add a new node for this DNSBL domain name. One DNSBL domain name can
-     * be specified multiple times with different filters and weights. These
-     * are stored as a linked list under the DNSBL domain name.
+     * Look up or create the (filter, weight) list head for this DNSBL domain
+     * name.
+     */
+    if ((head = (PS_DNSBL_HEAD *)
+	 htable_find(dnsbl_site_cache, saved_site)) == 0) {
+	head = (PS_DNSBL_HEAD *) mymalloc(sizeof(*head));
+	ht = htable_enter(dnsbl_site_cache, saved_site, (char *) head);
+	/* Translate the DNSBL name into a safe name if available. */
+	if (ps_dnsbl_reply == 0
+	  || (head->safe_dnsbl = dict_get(ps_dnsbl_reply, saved_site)) == 0)
+	    head->safe_dnsbl = ht->key;
+	head->first = 0;
+    }
+
+    /*
+     * Append the new (filter, weight) node to the list for this DNSBL domain
+     * name.
      */
     new_site = (PS_DNSBL_SITE *) mymalloc(sizeof(*new_site));
     new_site->filter = (pattern_text ? mystrdup(pattern_text) : 0);
     new_site->weight = weight;
+    new_site->next = head->first;
+    head->first = new_site;
 
-    if ((old_site = (PS_DNSBL_SITE *)
-	 htable_find(dnsbl_site_cache, saved_site)) != 0) {
-	new_site->next = old_site->next;
-	old_site->next = new_site;
-    } else {
-	(void) htable_enter(dnsbl_site_cache, saved_site, (char *) new_site);
-	new_site->next = 0;
-    }
     myfree(saved_site);
 }
 
@@ -195,7 +213,7 @@ static int ps_dnsbl_match(const char *filter, ARGV *reply)
 
 /* ps_dnsbl_retrieve - retrieve blocklist score, decrement reference count */
 
-int     ps_dnsbl_retrieve(const char *client_addr)
+int     ps_dnsbl_retrieve(const char *client_addr, const char **dnsbl_name)
 {
     const char *myname = "ps_dnsbl_retrieve";
     PS_DNSBL_SCORE *score;
@@ -212,9 +230,10 @@ int     ps_dnsbl_retrieve(const char *client_addr)
      * Reads are destructive.
      */
     result_score = score->total;
+    *dnsbl_name = score->dnsbl;
     score->refcount -= 1;
     if (score->refcount < 1) {
-	if (msg_verbose)
+	if (msg_verbose > 1)
 	    msg_info("%s: delete blocklist score for %s", myname, client_addr);
 	htable_delete(dnsbl_score_cache, client_addr, myfree);
     }
@@ -228,10 +247,11 @@ static void ps_dnsbl_receive(int event, char *context)
     const char *myname = "ps_dnsbl_receive";
     VSTREAM *stream = (VSTREAM *) context;
     PS_DNSBL_SCORE *score;
+    PS_DNSBL_HEAD *head;
     PS_DNSBL_SITE *site;
     ARGV   *reply_argv;
 
-    CLEAR_EVENT_REQUEST(vstream_fileno(stream), ps_dnsbl_receive, context);
+    PS_CLEAR_EVENT_REQUEST(vstream_fileno(stream), ps_dnsbl_receive, context);
 
     /*
      * Receive the DNSBL lookup result.
@@ -266,18 +286,19 @@ static void ps_dnsbl_receive(int event, char *context)
 	 * Don't panic when the DNSBL domain name is not found. The DNSBLOG
 	 * server may be messed up.
 	 */
-	if (msg_verbose)
+	if (msg_verbose > 1)
 	    msg_info("%s: client=\"%s\" score=%d domain=\"%s\" reply=\"%s\"",
 		     myname, STR(reply_client), score->total,
 		     STR(reply_dnsbl), STR(reply_addr));
-	for (reply_argv = 0, site = (PS_DNSBL_SITE *)
-	     htable_find(dnsbl_site_cache, STR(reply_dnsbl));
-	     site != 0; site = site->next) {
+	head = (PS_DNSBL_HEAD *) htable_find(dnsbl_site_cache, STR(reply_dnsbl));
+	site = (head ? head->first : (PS_DNSBL_SITE *) 0);
+	for (reply_argv = 0; site != 0; site = site->next) {
 	    if (site->filter == 0
 		|| ps_dnsbl_match(site->filter, reply_argv ? reply_argv :
 			 (reply_argv = argv_split(STR(reply_addr), " ")))) {
+		score->dnsbl = head->safe_dnsbl;
 		score->total += site->weight;
-		if (msg_verbose)
+		if (msg_verbose > 1)
 		    msg_info("%s: filter=\"%s\" weight=%d score=%d",
 			     myname, site->filter ? site->filter : "null",
 			     site->weight, score->total);
@@ -304,13 +325,16 @@ void    ps_dnsbl_request(const char *client_addr)
      * store a reference-counted DNSBL score under its client IP address. We
      * increment the reference count with each request, and decrement the
      * reference count with each retrieval.
+     * 
+     * XXX Notify the requestor as soon as all DNS replies are in, to avoid
+     * unnecessary delay when we only need the DNSBL score.
      */
     if ((score = (PS_DNSBL_SCORE *)
 	 htable_find(dnsbl_score_cache, client_addr)) != 0) {
 	score->refcount += 1;
 	return;
     }
-    if (msg_verbose)
+    if (msg_verbose > 1)
 	msg_info("%s: create blocklist score for %s", myname, client_addr);
     score = (PS_DNSBL_SCORE *) mymalloc(sizeof(*score));
     score->total = 0;
@@ -338,8 +362,8 @@ void    ps_dnsbl_request(const char *client_addr)
 	    vstream_fclose(stream);
 	    return;
 	}
-	READ_EVENT_REQUEST(vstream_fileno(stream), ps_dnsbl_receive,
-			   (char *) stream, DNSBLOG_TIMEOUT);
+	PS_READ_EVENT_REQUEST(vstream_fileno(stream), ps_dnsbl_receive,
+			      (char *) stream, DNSBLOG_TIMEOUT);
     }
 }
 

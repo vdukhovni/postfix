@@ -76,6 +76,11 @@
 /*	global Postfix configuration file. Tables are loaded in the
 /*	order as specified, and multiple instances of the same type
 /*	are allowed.
+/* .IP "MAIL_SERVER_NBOOL_TABLE (CONFIG_NBOOL_TABLE *)"
+/*	A table with configurable parameters, to be loaded from the
+/*	global Postfix configuration file. Tables are loaded in the
+/*	order as specified, and multiple instances of the same type
+/*	are allowed.
 /* .IP "MAIL_SERVER_PRE_INIT (void *(char *service_name, char **argv))"
 /*	A pointer to a function that is called once
 /*	by the skeleton after it has read the global configuration file
@@ -122,6 +127,9 @@
 /*	A pointer to a function that is called after "postfix reload"
 /*	or "master exit".  The application can call event_server_drain()
 /*	(see below) to finish ongoing activities in the background.
+/* .IP "MAIL_SERVER_WATCHDOG (int *)"
+/*	Override the default 1000s watchdog timeout. The value is
+/*	used after command-line and main.cf file processing.
 /* .PP
 /*	event_server_disconnect() should be called by the application
 /*	to close a client connection.
@@ -240,6 +248,7 @@ static int event_server_in_flow_delay;
 static unsigned event_server_generation;
 static void (*event_server_pre_disconn) (VSTREAM *, char *, char **);
 static void (*event_server_slow_exit) (char *, char **);
+static int event_server_watchdog = 1000;
 
 /* event_server_exit - normal termination */
 
@@ -256,6 +265,7 @@ static void event_server_abort(int unused_event, char *unused_context)
 {
     if (msg_verbose)
 	msg_info("master disconnect -- exiting");
+    event_disable_readwrite(MASTER_STATUS_FD);
     if (event_server_slow_exit)
 	event_server_slow_exit(event_server_name, event_server_argv);
     else
@@ -672,6 +682,9 @@ NORETURN event_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 	case MAIL_SERVER_NINT_TABLE:
 	    get_mail_conf_nint_table(va_arg(ap, CONFIG_NINT_TABLE *));
 	    break;
+	case MAIL_SERVER_NBOOL_TABLE:
+	    get_mail_conf_nbool_table(va_arg(ap, CONFIG_NBOOL_TABLE *));
+	    break;
 	case MAIL_SERVER_PRE_INIT:
 	    pre_init = va_arg(ap, MAIL_SERVER_INIT_FN);
 	    break;
@@ -707,6 +720,9 @@ NORETURN event_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 	    if (user_name)
 		msg_fatal("service %s requires privileged operation",
 			  service_name);
+	    break;
+	case MAIL_SERVER_WATCHDOG:
+	    event_server_watchdog = *va_arg(ap, int *);
 	    break;
 	case MAIL_SERVER_SLOW_EXIT:
 	    event_server_slow_exit = va_arg(ap, MAIL_SERVER_SLOW_EXIT_FN);
@@ -842,7 +858,8 @@ NORETURN event_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     close_on_exec(MASTER_STATUS_FD, CLOSE_ON_EXEC);
     close_on_exec(MASTER_FLOW_READ, CLOSE_ON_EXEC);
     close_on_exec(MASTER_FLOW_WRITE, CLOSE_ON_EXEC);
-    watchdog = watchdog_create(var_daemon_timeout, (WATCHDOG_FN) 0, (char *) 0);
+    watchdog = watchdog_create(event_server_watchdog,
+			       (WATCHDOG_FN) 0, (char *) 0);
 
     /*
      * The event loop, at last.

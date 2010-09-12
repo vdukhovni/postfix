@@ -350,8 +350,10 @@ static int smtpd_proxy_connect(SMTPD_STATE *state)
     /*
      * Connect to proxy.
      */
-    if ((fd = connect_fn(endpoint, BLOCKING, proxy->timeout)) < 0)
+    if ((fd = connect_fn(endpoint, BLOCKING, proxy->timeout)) < 0) {
+	msg_warn("connect to proxy filter %s: %m", proxy->service_name);
 	return (smtpd_proxy_rdwr_error(state, 0));
+    }
     proxy->service_stream = vstream_fdopen(fd, O_RDWR);
     /* Needed by our DATA-phase record emulation routines. */
     vstream_control(proxy->service_stream, VSTREAM_CTL_CONTEXT,

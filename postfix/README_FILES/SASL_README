@@ -1167,8 +1167,8 @@ A more sophisticated policy allows plaintext mechanisms, but only over a TLS-
 encrypted connection:
 
     /etc/postfix/main.cf:
-        smtpd_sasl_security_options = noanonymous, noplaintext
-        smtpd_sasl_tls_security_options = noanonymous
+        smtp_sasl_security_options = noanonymous, noplaintext
+        smtp_sasl_tls_security_options = noanonymous
 
 PPoossttffiixx SSMMTTPP//LLMMTTPP cclliieenntt ppoolliiccyy -- SSAASSLL mmeecchhaanniissmm nnaammeess
 

@@ -5250,7 +5250,7 @@ This feature is available in Postfix 2.0 and later.
 %PARAM smtpd_forbidden_commands CONNECT, GET, POST
 
 <p>
-List of commands that causes the Postfix SMTP server to immediately
+List of commands that cause the Postfix SMTP server to immediately
 terminate the session with a 221 code. This can be used to disconnect
 clients that obviously attempt to abuse the system. In addition to the
 commands listed in this parameter, commands that follow the "Label:"
@@ -12518,7 +12518,7 @@ patch for Postfix 2.6. </p>
 
 <p> This feature is available in Postfix 2.8. </p>
 
-%PARAM smtpd_service smtpd
+%PARAM smtpd_service_name smtpd
 
 <p> The internal service that postscreen(8) forwards allowed
 connections to. In a future version there may be different
@@ -12543,26 +12543,26 @@ receive a 421 reponse. </p>
 
 <p> This feature is available in Postfix 2.8. </p>
 
-%PARAM postscreen_cache_ttl 1d
+%PARAM postscreen_greet_ttl 1d
 
-<p> The amount of time that postscreen(8) will cache a decision for
-a specific SMTP client IP address. During this time, the client IP
-address is excluded from tests. If possible, expired decisions are
-renewed automatically. Specify a non-zero time value (an integral
-value plus an optional one-letter suffix that specifies the time
-unit).  </p>
+<p> The amount of time that postscreen(8) will cache results from
+a successful PREGREET test. During this time, the client IP address
+is excluded from this test. The default is relatively short, because
+a good client can immediately talk to a real Postfix SMTP server. </p>
 
-<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
-(weeks).  </p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
 
 <p> This feature is available in Postfix 2.8. </p>
 
-%PARAM postscreen_cache_retention_time 1d
+%PARAM postscreen_cache_retention_time 7d
 
 <p> The amount of time that postscreen(8) will cache an expired
 temporary whitelist entry before it is removed. This prevents clients
 from being logged as "NEW" just because their cache entry expired
-an hour ago.  </p>
+an hour ago. It also prevents the cache from filling up with clients
+that passed some deep protocol test once and never came back. </p>
 
 <p> Time units: s (seconds), m (minutes), h (hours), d (days), w
 (weeks).  </p>
@@ -12588,14 +12588,15 @@ seconds. </p>
 
 <p> This feature is available in Postfix 2.8. </p>
 
-%PARAM postscreen_greet_wait 4s
+%PARAM postscreen_greet_wait ${stress?2}${stress:6}s
 
 <p> The amount of time that postscreen(8) will wait for an SMTP
 client to send a command before its turn, and for DNS blocklist
-lookup results to arrive. This is done only when the SMTP client
-IP address is not permanently whitelisted, and when it has no cached
-decision.  Specify a non-zero time value (an integral value plus
-an optional one-letter suffix that specifies the time unit).  </p>
+lookup results to arrive (default: 2 seconds under stress, 6 seconds
+normally).  This is done only when the SMTP client IP address is
+not permanently whitelisted, and when it has no cached decision.
+Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  </p>
 
 <p> Time units: s (seconds), m (minutes), h (hours), d (days), w
 (weeks).  </p>
@@ -12609,6 +12610,10 @@ factors. When the list is non-empty, the dnsblog(8) daemon will
 query these domains with the IP addresses of non-whitelisted remote
 SMTP clients, and postscreen(8) will update an SMTP client's DNSBL
 score with each non-error reply. </p>
+
+<p> Caution: when postscreen rejects mail, it replies with the DNSBL
+domain name. Use the postscreen_dnsbl_reply_map feature to hide
+"password" information in DNSBL domain names. </p>
 
 <p> When a client's score is equal to or greater than the threshold
 specified with postscreen_dnsbl_threshold, postscreen(8) can drop
@@ -12655,7 +12660,7 @@ postscreen_dnsbl_sites = example.com=127.0.0.4
 
 <p> This feature is available in Postfix 2.8. </p>
 
-%PARAM postscreen_dnsbl_action continue
+%PARAM postscreen_dnsbl_action ignore
 
 <p>The action that postscreen(8) takes when an SMTP client's combined
 DNSBL score is equal to or greater than a threshold (as defined
@@ -12664,19 +12669,29 @@ parameters).  Specify one of the following: </p>
 
 <dl>
 
-<dt> continue </dt>
+<dt> <b>ignore</b> (default) </dt>
 
-<dd> Forward the connection to a real SMTP server process. </dd>
+<dd> Ignore the failure of this test. Allow other tests to complete.
+Repeat this test the next time the client connects.
+This option is useful for testing and collecting statistics
+without blocking mail. </dd>
 
-<dt> drop </dt>
+<dt> <b>enforce</b> </dt>
 
-<dd> Drop the connection with a 521 SMTP reply. </dd>
+<dd> Allow other tests to complete. Reject attempts to deliver mail
+with a 550 SMTP reply, and log the helo/sender/recipient information.
+Repeat this test the next time the client connects. </dd>
+
+<dt> <b>drop</b> </dt>
+
+<dd> Drop the connection immediately with a 521 SMTP reply. Repeat
+this test the next time the client connects. </dd>
 
 </dl>
 
 <p> This feature is available in Postfix 2.8. </p>
 
-%PARAM postscreen_greet_action continue
+%PARAM postscreen_greet_action ignore
 
 <p>The action that postscreen(8) takes when an SMTP client speaks
 before its turn within the time specified with the postscreen_greet_wait
@@ -12684,51 +12699,28 @@ parameter.  Specify one of the following: </p>
 
 <dl>
 
-<dt> continue </dt>
+<dt> <b>ignore</b> (default) </dt>
 
-<dd> Continue waiting until the postscreen_greet_wait time has
-elapsed. If the client's combined DNSBL score is equal to or greater
-than a threshold (as specified with the postscreen_dnsbl_sites and
-postscreen_dnsbl_threshold parameters), execute the action specified
-with the postscreen_dnsbl_action parameter, otherwise forward the
-connection to a real SMTP server process. </dd>
+<dd> Ignore the failure of this test. Allow other tests to complete.
+Repeat this test the next time the client connects.
+This option is useful for testing and collecting statistics
+without blocking mail. </dd>
 
-<dt> drop </dt>
+<dt> <b>enforce</b> </dt>
 
-<dd> Drop the connection immediately with a 521 SMTP reply, without
-examining DNSBL lookup results. </dd>
+<dd> Allow other tests to complete. Reject attempts to deliver mail
+with a 550 SMTP reply, and log the helo/sender/recipient information.
+Repeat this test the next time the client connects. </dd>
+
+<dt> <b>drop</b> </dt>
+
+<dd> Drop the connection immediately with a 521 SMTP reply. Repeat
+this test the next time the client connects. </dd>
 
 </dl>
 
 <p> In either case, postscreen(8) will not whitelist the SMTP client
 IP address. </p>
-
-<p> This feature is available in Postfix 2.8. </p>
-
-%PARAM postscreen_hangup_action continue
-
-<p>The action that postscreen(8) takes when an SMTP client disconnects
-without sending data, within the time specified with the
-postscreen_greet_wait parameter.  Specify one of the following:
-</p>
-
-<dl>
-
-<dt> continue </dt>
-
-<dd> Continue waiting until the postscreen_greet_wait time has
-elapsed, and report whether the client's combined DNSBL score is
-equal to or greater than a threshold (as defined with the
-postscreen_dnsbl_sites and postscreen_dnsbl_threshold parameters).
-Do not forward the broken connection to a real SMTP server process.
-</dd>
-
-<dt> drop </dt>
-
-<dd> Drop the connection immediately, without reporting DNSBL lookup
-results. </dd>
-
-</dl>
 
 <p> This feature is available in Postfix 2.8. </p>
 
@@ -12762,7 +12754,7 @@ value to disable this feature.  </p>
 
 <p> This feature is available in Postfix 2.8. </p>
 
-%PARAM postscreen_blacklist_action continue
+%PARAM postscreen_blacklist_action ignore
 
 <p> The action that postscreen(8) takes when an SMTP client is
 permanently blacklisted with the postscreen_blacklist_networks
@@ -12770,20 +12762,23 @@ parameter.  Specify one of the following: </p>
 
 <dl>
 
-<dt> continue </dt>
+<dt> <b>ignore</b> (default) </dt>
 
-<dd> Continue waiting until the postscreen_greet_wait time has
-elapsed, and report whether the client triggers a PREGREET or HANGUP
-error, or whether the client's combined DNSBL score is equal to or
-greater than a threshold (as specified with the postscreen_dnsbl_sites
-and postscreen_dnsbl_threshold parameters).  Take the corresponding
-action, or forward the connection to a real SMTP server process.
-</dd>
+<dd> Ignore  this result. Allow other tests to complete.  Repeat
+this test the next time the client connects.
+This option is useful for testing and collecting statistics
+without blocking mail. </dd>
 
-<dt> drop </dt>
+<dt> <b>enforce</b> </dt>
 
-<dd> Drop the connection immediately with a 521 SMTP reply, without
-reporting PREGREET, HANGUP or DNSBL results. </dd>
+<dd> Allow other tests to complete. Reject attempts to deliver mail
+with a 550 SMTP reply, and log the helo/sender/recipient information.
+Repeat this test the next time the client connects. </dd>
+
+<dt> <b>drop</b> </dt>
+
+<dd> Drop the connection immediately with a 521 SMTP reply. Repeat
+this test the next time the client connects. </dd>
 
 </dl>
 
@@ -13027,3 +13022,263 @@ its combined DNSBL score as defined with the postscreen_dnsbl_sites
 parameter. </p>
 
 <p> This feature is available in Postfix 2.8.  </p>
+
+%PARAM postscreen_command_count_limit 20
+
+<p> The limit on the total number of commands per SMTP session for
+postscreen(8)'s built-in SMTP protocol engine.  This SMTP engine
+defers or rejects all attempts to deliver mail, therefore there is
+no need to enforce separate limits on the number of junk commands
+and error commands.  </p>
+
+<p> This feature is available in Postfix 2.8.  </p>
+
+%PARAM postscreen_command_time_limit ${stress?10}${stress:300}s
+
+<p> The command "read" time limit for postscreen(8)'s built-in SMTP
+protocol engine.  </p>
+
+<p> This feature is available in Postfix 2.8.  </p>
+
+%PARAM postscreen_dnsbl_ttl 1d
+
+<p> The amount of time that postscreen(8) will cache results from
+a successful DNS blocklist test. During this time, the client IP address
+is excluded from this test. The default is relatively short, because a
+good client can immediately talk to a real Postfix SMTP server.
+</p>
+
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
+
+<p> This feature is available in Postfix 2.8.  </p>
+
+%PARAM postscreen_pipelining_action enforce
+
+<p> The action that postscreen(8) takes when an SMTP client sends
+multiple commands instead of sending one command and waiting for
+the server to respond.  Specify one of the following: </p>
+
+<dl>
+
+<dt> <b>ignore</b> </dt>
+
+<dd> Ignore the failure of this test. Allow other tests to complete.
+Do <i>not</i> repeat this test before some the result from some
+other test expires.
+This option is useful for testing and collecting statistics
+without blocking mail permanently. </dd>
+
+<dt> <b>enforce</b> </dt>
+
+<dd> Allow other tests to complete. Reject attempts to deliver mail
+with a 550 SMTP reply, and log the helo/sender/recipient information.
+Repeat this test the next time the client connects. </dd>
+
+<dt> <b>drop</b> </dt>
+
+<dd> Drop the connection immediately with a 521 SMTP reply. Repeat
+this test the next time the client connects. </dd>
+
+</dl>
+
+<p> This feature is available in Postfix 2.8. </p>
+
+%PARAM postscreen_pipelining_ttl 30d
+
+<p> The amount of time that postscreen(8) will cache results from
+a successful "pipelining" SMTP protocol test. During this time, the
+client IP address is excluded from this test. The default is
+long because a good client must disconnect after it passes the test,
+before it can talk to a real Postfix SMTP server. </p>
+
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
+
+<p> This feature is available in Postfix 2.8.  </p>
+
+%PARAM postscreen_pipelining_enable no
+
+<p> Enable "pipelining" SMTP protocol tests in the postscreen(8)
+server. These tests are expensive: a good client must disconnect
+after it passes the test, before it can talk to a real Postfix SMTP
+server. </p>
+
+<p> This feature is available in Postfix 2.8.  </p>
+
+%PARAM postscreen_watchdog_timeout 10s
+
+<p> How much time a postscreen(8) process may take to respond to
+an SMTP client command or to perform a cache operation before it
+is terminated by a built-in watchdog timer.  This is a safety
+mechanism that prevents postscreen(8) from becoming non-responsive
+due to a bug in Postfix itself or in system software.  To avoid
+false alarms and unnecessary cache corruption this limit cannot be
+set under 10s.  </p>
+
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
+
+<p> This feature is available in Postfix 2.8.  </p>
+
+%PARAM postscreen_helo_required $smtpd_helo_required
+
+<p> Require that a remote SMTP client sends HELO or EHLO before 
+commencing a MAIL transaction. </p>
+
+<p> This feature is available in Postfix 2.8.  </p>
+
+%PARAM postscreen_forbidden_commands $smtpd_forbidden_commands
+
+<p> List of commands that postscreen(8) server considers in violation
+of the SMTP protocol. See also: postscreen_non_smtp_command_action.
+</p>
+
+<p> This feature is available in Postfix 2.8.  </p>
+
+%PARAM postscreen_disable_vrfy_command $disable_vrfy_command
+
+<p> Disable the SMTP VRFY command in the postscreen(8) daemon.  See
+disable_vrfy_command for details.  </p>
+
+<p> This feature is available in Postfix 2.8.  </p>
+
+%PARAM postscreen_non_smtp_command_action drop
+
+<p> The action that postscreen(8) takes when an SMTP client sends
+non-SMTP commands as specified with the postscreen_forbidden_commands
+parameter.  Specify one of the following: </p>
+
+<dl>
+
+<dt> <b>ignore</b> </dt>
+
+<dd> Ignore the failure of this test. Allow other tests to complete.
+Do <i>not</i> repeat this test before some the result from some
+other test expires.
+This option is useful for testing and collecting statistics
+without blocking mail permanently. </dd>
+
+<dt> <b>enforce</b> </dt>
+
+<dd> Allow other tests to complete. Reject attempts to deliver mail
+with a 550 SMTP reply, and log the helo/sender/recipient information.
+Repeat this test the next time the client connects. </dd>
+
+<dt> <b>drop</b> </dt>
+
+<dd> Drop the connection immediately with a 521 SMTP reply. Repeat
+this test the next time the client connects. This action is the
+same as with the Postfix SMTP server's smtpd_forbidden_commands
+feature.  </dd>
+
+</dl>
+
+<p> This feature is available in Postfix 2.8. </p>
+
+%PARAM postscreen_non_smtp_command_ttl 30d
+
+<p> The amount of time that postscreen(8) will cache results from
+a successful "non_smtp_command" SMTP protocol test. During this
+time, the client IP address is excluded from this test. The default
+is long because a client must disconnect after it passes the test,
+before it can talk to a real Postfix SMTP server. </p>
+
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
+
+<p> This feature is available in Postfix 2.8.  </p>
+
+%PARAM postscreen_non_smtp_command_enable no
+
+<p> Enable "non-SMTP command" tests in the postscreen(8) server. These
+tests are expensive: a client must disconnect after it passes the
+test, before it can talk to a real Postfix SMTP server. </p>
+
+<p> This feature is available in Postfix 2.8.  </p>
+
+%PARAM postscreen_dnsbl_reply_map
+
+<p> A mapping from actual DNSBL domain name which includes a secret
+password, to the DNSBL domain name that postscreen will reply with
+when it rejects mail.  When no mapping is found, the actual DNSBL
+domain will be used. </p>
+
+<p> For maximal stability it is best to use a file that is read
+into memory such as pcre:, regexp: or texthash: (a format similar
+to hash: except that there is no need to run postmap(1) before the
+file can be used, and that it does not detect changes after the
+file is read). </p>
+
+<p> Example: </p>
+
+<pre>
+/etc/postfix/main.cf:
+    postscreen_dnsbl_reply_map = texthash:/etc/postfix/dnsbl_reply
+</pre>
+
+<pre>
+/etc/postfix/dnsbl_reply:
+   secret.zen.spamhaus.org	zen.spamhaus.org
+</pre>
+
+<p> This feature is available in Postfix 2.8.  </p>
+
+%PARAM postscreen_bare_newline_action ignore
+
+<p> The action that postscreen(8) takes when an SMTP client sends
+a bare newline character, that is, a newline not preceded by carriage
+return.  Specify one of the following: </p>
+
+<dl>
+
+<dt> <b>ignore</b> </dt>
+
+<dd> Ignore the failure of this test. Allow other tests to complete.
+Do <i>not</i> repeat this test before some the result from some
+other test expires.
+This option is useful for testing and collecting statistics
+without blocking mail permanently. </dd>
+
+<dt> <b>enforce</b> </dt>
+
+<dd> Allow other tests to complete. Reject attempts to deliver mail
+with a 550 SMTP reply, and log the helo/sender/recipient information.
+Repeat this test the next time the client connects. </dd>
+
+<dt> <b>drop</b> </dt>
+
+<dd> Drop the connection immediately with a 521 SMTP reply. Repeat
+this test the next time the client connects.  </dd>
+
+</dl>
+
+<p> This feature is available in Postfix 2.8. </p>
+
+%PARAM postscreen_bare_newline_ttl 30d
+
+<p> The amount of time that postscreen(8) will cache results from
+a successful "bare newline" SMTP protocol test. During this
+time, the client IP address is excluded from this test. The default
+is long because a client must disconnect after it passes the test,
+before it can talk to a real Postfix SMTP server. </p>
+
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
+
+<p> This feature is available in Postfix 2.8.  </p>
+
+%PARAM postscreen_bare_newline_enable no
+
+<p> Enable "bare newline" SMTP protocol tests in the postscreen(8)
+server. These tests are expensive: a client must disconnect after
+it passes the test, before it can talk to a real Postfix SMTP server.
+</p>
+
+<p> This feature is available in Postfix 2.8.  </p>
+

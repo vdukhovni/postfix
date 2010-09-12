@@ -165,7 +165,10 @@ result.
 .IP "\fBtcp\fR (read-only)"
 Perform lookups using a simple request-reply protocol that is
 described in \fBtcp_table\fR(5).
-This feature is not included with the stable Postfix release.
+.IP "\fBtexthash\fR (read-only)"
+Produces similar results as hash: files, except that you don't
+need to run the postmap(1) command before you can use the file,
+and that it does not detect changes after the file is read.
 .IP "\fBunix\fR (read-only)"
 A limited way to query the UNIX authentication database. The
 following tables are implemented:

@@ -379,6 +379,14 @@ and "port" specifies a symbolic service name or a numeric port
 number.
 </dd>
 
+<dt> <b>texthash</b> (read-only) </dt>
+
+<dd> This produces similar results as hash: files, except that you
+don't have to run the postmap(1) command before you can use the
+file, and that it does not detect changes after the file is read.
+The lookup table name is "texthash:filename", where the file name
+is taken literally; no suffix is appended. </dd>
+
 <dt> <b>unix</b> (read-only) </dt>
 
 <dd> A limited way to query the UNIX authentication database. The

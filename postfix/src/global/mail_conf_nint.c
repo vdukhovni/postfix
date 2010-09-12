@@ -40,8 +40,8 @@
 /*	int	max;
 /* DESCRIPTION
 /*	This module implements configuration parameter support
-/*	for integer values. The default value can be a macro
-/*	expression ($name, ${name?value} and ${name:value}).
+/*	for integer values. Unlike mail_conf_int, the default
+/*	is a string, which can be subjected to macro expansion.
 /*
 /*	get_mail_conf_nint() looks up the named entry in the global
 /*	configuration dictionary. The default value is returned

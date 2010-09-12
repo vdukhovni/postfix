@@ -29,7 +29,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	user_acl.c valid_mailhost_addr.c verify.c verify_clnt.c \
 	verp_sender.c wildcard_inet_addr.c xtext.c delivered_hdr.c \
 	fold_addr.c header_body_checks.c mkmap_proxy.c data_redirect.c \
-	match_service.c mail_conf_nint.c addr_match_list.c
+	match_service.c mail_conf_nint.c addr_match_list.c mail_conf_nbool.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
@@ -60,7 +60,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	user_acl.o valid_mailhost_addr.o verify.o verify_clnt.o \
 	verp_sender.o wildcard_inet_addr.o xtext.o delivered_hdr.o \
 	fold_addr.o header_body_checks.o mkmap_proxy.o data_redirect.o \
-	match_service.o mail_conf_nint.o addr_match_list.o
+	match_service.o mail_conf_nint.o addr_match_list.o mail_conf_nbool.o
 HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	canon_addr.h cfg_parser.h cleanup_user.h clnt_stream.h config.h \
 	conv_time.h db_common.h debug_peer.h debug_process.h defer.h \
@@ -812,53 +812,10 @@ dict_ldap.o: db_common.h
 dict_ldap.o: dict_ldap.c
 dict_ldap.o: dict_ldap.h
 dict_ldap.o: string_list.h
-dict_mysql.o: ../../include/argv.h
-dict_mysql.o: ../../include/dict.h
-dict_mysql.o: ../../include/events.h
-dict_mysql.o: ../../include/find_inet.h
-dict_mysql.o: ../../include/match_list.h
-dict_mysql.o: ../../include/match_ops.h
-dict_mysql.o: ../../include/msg.h
-dict_mysql.o: ../../include/mymalloc.h
-dict_mysql.o: ../../include/myrand.h
-dict_mysql.o: ../../include/split_at.h
-dict_mysql.o: ../../include/stringops.h
 dict_mysql.o: ../../include/sys_defs.h
-dict_mysql.o: ../../include/vbuf.h
-dict_mysql.o: ../../include/vstream.h
-dict_mysql.o: ../../include/vstring.h
-dict_mysql.o: cfg_parser.h
-dict_mysql.o: db_common.h
 dict_mysql.o: dict_mysql.c
-dict_mysql.o: dict_mysql.h
-dict_mysql.o: string_list.h
-dict_sqlite.o: ../../include/dict.h
-dict_sqlite.o: ../../include/msg.h
-dict_sqlite.o: ../../include/sys_defs.h
-dict_sqlite.o: cfg_parser.h
-dict_sqlite.o: db_common.h
-dict_sqlite.o: dict_sqlite.c
-dict_sqlite.o: dict_sqlite.h
-dict_pgsql.o: ../../include/argv.h
-dict_pgsql.o: ../../include/dict.h
-dict_pgsql.o: ../../include/events.h
-dict_pgsql.o: ../../include/find_inet.h
-dict_pgsql.o: ../../include/match_list.h
-dict_pgsql.o: ../../include/match_ops.h
-dict_pgsql.o: ../../include/msg.h
-dict_pgsql.o: ../../include/mymalloc.h
-dict_pgsql.o: ../../include/myrand.h
-dict_pgsql.o: ../../include/split_at.h
-dict_pgsql.o: ../../include/stringops.h
 dict_pgsql.o: ../../include/sys_defs.h
-dict_pgsql.o: ../../include/vbuf.h
-dict_pgsql.o: ../../include/vstream.h
-dict_pgsql.o: ../../include/vstring.h
-dict_pgsql.o: cfg_parser.h
-dict_pgsql.o: db_common.h
 dict_pgsql.o: dict_pgsql.c
-dict_pgsql.o: dict_pgsql.h
-dict_pgsql.o: string_list.h
 dict_proxy.o: ../../include/argv.h
 dict_proxy.o: ../../include/attr.h
 dict_proxy.o: ../../include/dict.h
@@ -875,6 +832,22 @@ dict_proxy.o: dict_proxy.c
 dict_proxy.o: dict_proxy.h
 dict_proxy.o: mail_params.h
 dict_proxy.o: mail_proto.h
+dict_sqlite.o: ../../include/argv.h
+dict_sqlite.o: ../../include/dict.h
+dict_sqlite.o: ../../include/match_list.h
+dict_sqlite.o: ../../include/match_ops.h
+dict_sqlite.o: ../../include/msg.h
+dict_sqlite.o: ../../include/mymalloc.h
+dict_sqlite.o: ../../include/stringops.h
+dict_sqlite.o: ../../include/sys_defs.h
+dict_sqlite.o: ../../include/vbuf.h
+dict_sqlite.o: ../../include/vstream.h
+dict_sqlite.o: ../../include/vstring.h
+dict_sqlite.o: cfg_parser.h
+dict_sqlite.o: db_common.h
+dict_sqlite.o: dict_sqlite.c
+dict_sqlite.o: dict_sqlite.h
+dict_sqlite.o: string_list.h
 domain_list.o: ../../include/match_list.h
 domain_list.o: ../../include/match_ops.h
 domain_list.o: ../../include/sys_defs.h
@@ -1156,6 +1129,15 @@ mail_conf_long.o: ../../include/vstream.h
 mail_conf_long.o: ../../include/vstring.h
 mail_conf_long.o: mail_conf.h
 mail_conf_long.o: mail_conf_long.c
+mail_conf_nbool.o: ../../include/argv.h
+mail_conf_nbool.o: ../../include/dict.h
+mail_conf_nbool.o: ../../include/msg.h
+mail_conf_nbool.o: ../../include/sys_defs.h
+mail_conf_nbool.o: ../../include/vbuf.h
+mail_conf_nbool.o: ../../include/vstream.h
+mail_conf_nbool.o: ../../include/vstring.h
+mail_conf_nbool.o: mail_conf.h
+mail_conf_nbool.o: mail_conf_nbool.c
 mail_conf_nint.o: ../../include/argv.h
 mail_conf_nint.o: ../../include/dict.h
 mail_conf_nint.o: ../../include/msg.h

@@ -391,7 +391,7 @@ void    dict_load_file(const char *dict_name, const char *path)
 	after = time((time_t *) 0);
 	if (st.st_mtime < before - 1 || st.st_mtime > after)
 	    break;
-	if (msg_verbose)
+	if (msg_verbose > 1)
 	    msg_info("pausing to let %s cool down", path);
 	doze(300000);
     }
@@ -459,7 +459,7 @@ const char *dict_eval(const char *dict_name, const char *value, int recursive)
 			DONT_FILTER, dict_eval_lookup, (char *) dict_name);
     if (status & MAC_PARSE_ERROR)
 	msg_fatal("dictionary %s: macro processing error", dict_name);
-    if (msg_verbose) {
+    if (msg_verbose > 1) {
 	if (strcmp(value, STR(buf)) != 0)
 	    msg_info("%s: expand %s -> %s", myname, value, STR(buf));
 	else

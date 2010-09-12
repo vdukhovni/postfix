@@ -68,7 +68,7 @@
 #include <sqlite3.h>
 
 #if !defined(SQLITE_VERSION_NUMBER) || (SQLITE_VERSION_NUMBER < 3005004)
-#error "Your SQLite version is too old"
+#define sqlite3_prepare_v2 sqlite3_prepare
 #endif
 
 /* Utility library. */

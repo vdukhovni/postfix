@@ -2,6 +2,9 @@ Wish list:
 
 	Remove this file from the stable release.
 
+	how to prevent postscreen's cache sweeper from deleting
+	records that have failed ignored tests?
+
 	Update history in manpage/readme for SQLite driver.
 
 	header_checks(5): document synopsis and feature subsets.

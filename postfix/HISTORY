@@ -15935,3 +15935,37 @@ Apologies for any names omitted.
 
 	Polished the postscreen documentation and comments to clarify
 	the user interface and implementation. No code changes.
+
+20100831-910
+
+	Restructured postscreen and added support for a dummy SMTP
+	protocol engine. This engine logs rejected attempts to
+	deliver mail with helo/sender/recipient information, and
+	implements deep protocol tests.  The first deep protocol
+	test is for command pipelining, where a client sends multiple
+	commands instead of waiting for the server to respond to
+	each command. The second one implements the Postfix SMTP
+	server's smtpd_forbidden_commands feature.  Files:
+	postscreen/*.[hc]. See RELEASE_NOTES, postconf(5) and
+	postscreen(8) for incompatibilities, features, and configuration
+	parameters.
+
+20100910
+
+	Feature: boolean configuration parameters with string-valued
+	defaults, so that they can be subject to macro expansions.
+	This was needed to make some postscreen parameter defaults
+	to the values of the corresponding smtpd parameters.  Files:
+	global/mail_conf.h, global/mail_conf_nbool.c,
+	master/event_server.c, master/mail_server.h, master/multi_server.c,
+	master/single_server.c, master/trigger_server.c,
+	postconf/extract.awk, postconf/postconf.c.
+
+20100911
+
+	Feature: texthash read-only database. This is similar to
+	hash: files, except that you don't need to run the postmap(1)
+	command before you can use the file, and that it does not
+	detect changes after the file is read.  All information is
+	read into memory. Files: util/dict_open.c, util/dict_thash.[hc],
+	proto/DATABSE_README.html, postconf/postconf.c
