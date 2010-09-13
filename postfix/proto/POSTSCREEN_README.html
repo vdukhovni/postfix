@@ -28,18 +28,17 @@ benefit of postscreen(8)'s DNSBL lookups is that DNS records are
 already cached before the Postfix SMTP server looks them up later.
 </p>
 
-<p> postscreen(8) maintains a temporary whitelist of positive
-decisions.  Once an SMTP client is whitelisted, it is immediately
-forwarded to a real Postfix SMTP server process without further
-checking. </p>
+<p> postscreen(8) maintains a temporary whitelist for clients that
+have passed a number of tests. When an SMTP client IP address is
+whitelisted, postscreen(8) hands off the connection immediately to
+a Postfix SMTP server process. This minimizes the overhead for
+legitimate mail.  </p>
 
-<p> By default, the program logs only statistics, and it does not
-run any checks on clients in mynetworks (primarily, to avoid problems
-with buggy SMTP implementations in network appliances). </p>
-
-<p> Many of the ideas in postscreen(8) have been explored in earlier
-work by Michael Tokarev, in OpenBSD spamd, and in MailChannels
-Traffic Control.  </p>
+<p> By default, postscreen(8) logs statistics and hands off every
+connection to a Postfix SMTP server process, while excluding clients
+in mynetworks from all tests (primarily, to avoid problems with
+non-standard SMTP implementations in network appliances). This mode
+is useful for non-destructive testing. </p>
 
 <p> Topics in this document: </p>
 
@@ -63,6 +62,8 @@ Traffic Control.  </p>
 
 <li> <a href="#config"> Configuring the postscreen(8) service</a>
 
+<li> <a href="#historical"> Historical notes and credits </a>
+
 </ul>
 
 <h2> <a name="basic">The basic idea behind postscreen(8)</a> </h2>
@@ -70,12 +71,14 @@ Traffic Control.  </p>
 <p> Spambots have a limited amount of time to send out spam before
 they become blacklisted. For this reason, spambots make compromises
 in their SMTP protocol implementation to speed up spam deliveries.
-For example, they speak before their turn. </p>
+For example, they speak before their turn, or they ignore responses
+from SMTP servers. </p>
 
-<p> Many spambots avoid spamming the same site repeatedly.  Thus,
-postscreen(8) must make a long-term decision after a single
-measurement. For example, allow a good client to skip the DNSBL
-test for 24 hours. </p>
+<p> Many spambots avoid spamming the same site repeatedly, in an
+attempt to fly under the radar.  Thus, postscreen(8) must make a
+long-term decision after a single measurement. For example, allow
+a good client to skip the "<a href="#pregreet">pregreet</a>" test
+for 24 hours. </p>
 
 <p> To recognize spambots, postscreen(8) measures properties of the
 client IP address and of the client SMTP protocol implementation
@@ -99,17 +102,17 @@ temporarily excluded from any tests, typically 24 hours for simple
 tests or 1 week for complex tests.  This minimizes the impact of
 the tests on legitimate mail clients. </p>
 
-<p> After logging the result of its tests, postscreen(8) by default
-forwards all connections to a real SMTP server process. This mode
-is useful for non-destructive testing. </p>
+<p> After logging its findings, postscreen(8) by default hands off
+all connections to a Postfix SMTP server process. This mode is
+useful for non-destructive testing. </p>
 
 <p> In a typical production setting, postscreen(8) is configured
 to reject mail from clients that fail one or more tests, after
-logging the sender and recipient information. </p>
+logging the helo, sender and recipient information. </p>
 
 <p> Note: postscreen(8) is not an SMTP proxy; this is intentional.
-The purpose is to prioritize legitimate clients with as little
-overhead as possible. </p>
+The purpose is to keep spambots away from Postfix, with minimal
+overhead for legitimate clients. </p>
 
 <h2> <a name="quick">Quick tests before everything else</a> </h2>
 
@@ -138,8 +141,8 @@ logged as: </p>
     <b>WHITELISTED</b> <i>address</i>
 </pre>
 
-<p> The action is not configurable: immediately forward the
-connection to a real SMTP server process. </p>
+<p> The action is not configurable: immediately hand off the
+connection to a Postfix SMTP server process. </p>
 
 <h3> <a name="perm_black"> Permanent blacklist test </a>  </h3>
 
@@ -172,8 +175,8 @@ whitelist, postscreen(8) logs this as: </p>
     <b>PASS OLD</b> <i>address</i>
 </pre>
 
-<p> The action is not configurable: immediately forward the
-connection to a real SMTP server process.  The client is
+<p> The action is not configurable: immediately hand off the
+connection to a Postfix SMTP server process.  The client is
 excluded from further tests until its temporary whitelist
 entry expires, as controlled with the postscreen_*_ttl
 parameters.  Expired entries are silently renewed if possible. </p>
@@ -186,7 +189,7 @@ postscreen(8) can run a number of tests in parallel. </p>
 
 <p> When a good client passes these tests, and no "<a
 href="#after_220">deep protocol tests</a>" are configured, postscreen(8)
-adds the client to the temporary whitelist and passes the "live"
+adds the client to the temporary whitelist and hands off the "live"
 connection to a Postfix SMTP server process.  The client can then
 continue as if postscreen(8) never even existed (except of course
 for the short postscreen_greet_wait delay).  </p>
@@ -253,9 +256,9 @@ client IP address. This test is disabled by default. </p>
 
 <blockquote>
 <p>
-CAUTION: when postscreen rejects mail, it replies with the DNSBL
-domain name. Use the postscreen_dnsbl_reply_map feature to hide
-"password" information in DNSBL domain names.
+CAUTION: when postscreen rejects mail, it's SMTP reply contains the
+DNSBL domain name. Use the postscreen_dnsbl_reply_map feature to
+hide "password" information in DNSBL domain names.
 </p>
 </blockquote>
 
@@ -304,33 +307,32 @@ this test the next time the client connects. </dd>
 
 <h2> <a name="after_220">Tests after the 220 SMTP server greeting</a> </h2>
 
-<p> The tests in this phase use an SMTP protocol engine that is
-built into the postscreen(8) server. </p>
+<p> In this phase of the protocol, postscreen(8) implements a
+number of "deep protocol" tests. These tests use an SMTP protocol
+engine that is built into the postscreen(8) server. </p>
 
-<p> Important notes: </p>
+<p> Important note: deep protocol tests are disabled by default.
+They are more intrusive than the pregreet and DNSBL tests, and they
+have limitations as discussed next. </p>
 
 <ul>
 
-<li> <p> These tests are disabled by default, because they
-are more intrusive than the pregreet and DNSBL tests. </p>
-
-<p> When a good client passes the <a href="#after_220">deep
-protocol tests </a>, postscreen(8) adds the client to the temporary
-whitelist but it cannot pass the "live" connection to a Postfix
+<li> <p> When a good client passes the <a href="#after_220">deep
+protocol tests</a>, postscreen(8) adds the client to the temporary
+whitelist but it cannot hand off the "live" connection to a Postfix
 SMTP server process in the middle of the session. Instead, postscreen(8)
 defers mail delivery attempts with a 4XX status, logs the
 helo/sender/recipient information, and waits for the client to
 disconnect. </p>
 
 <p> The next time the client connects it will be allowed to talk
-to a real SMTP server process to deliver its mail. </p>
+to a Postfix SMTP server process to deliver its mail.  To minimize the
+impact of this limitation, postscreen(8) gives deep protocol tests
+a relatively long expiration time. </p>
 
-<p> To minimize the impact of these tests, postscreen(8) gives them
-relatively long expiration times. </p>
-
-<li> <p> postscreen(8) does not implement the AUTH, STARTTLS,
-XCLIENT, and XFORWARD features.  STARTTLS support may be added in
-a future version. </p>
+<li> <p> postscreen(8)'s built-in SMTP engine does not implement
+the AUTH, STARTTLS, XCLIENT, and XFORWARD features.  STARTTLS and
+AUTH support may be added in a future version. </p>
 
 </ul>
 
@@ -355,22 +357,25 @@ should be placed on the postscreen(8) whitelist. </p>
 
 <p> By default, SMTP is a half-duplex protocol: the sender and
 receiver send one command and one response at a time.  Unlike the
-real Postfix SMTP server, postscreen(8) does not announce support
+Postfix SMTP server, postscreen(8) does not announce support
 for ESMTP command pipelining.  Therefore, clients are not allowed
-to send multiple commands. This test is disabled by default. </p>
+to send multiple commands. postscreen(8)'s <a href="#after_220">deep
+protocol test</a> for this is disabled by default. </p>
 
 <p> With "postscreen_pipelining_enable = yes", postscreen(8) detects
 spambots that send multiple commands, instead of sending one command
-and waiting for the server to reply. </p>
+and waiting for the server to reply.  </p>
 
-<p> This test is opportunistically enabled when enabled when
-postscreen(8) has to use the built-in SMTP engine anyway, to make
-postscreen(8) logging more informative. </p>
+<p> This test is opportunistically enabled when postscreen(8) has
+to use the built-in SMTP engine anyway. This is to make postscreen(8)
+logging more informative. </p>
 
 <p> When a client sends multiple commands, postscreen(8) logs this
 as: </p>
 
-<b>COMMAND PIPELINING after</b> <i>time</i> <b>from</b> <i>address</i>
+<pre>
+    <b>COMMAND PIPELINING after</b> <i>time</i> <b>from</b> <i>address</i>
+</pre>
 
 <p> Translation: the SMTP client at <i>address</i> sent multiple
 SMTP commands, instead of sending one command and then waiting for
@@ -383,14 +388,23 @@ after the 220 SMTP server greeting</a>" below. </p>
 
 <h3> <a name="non_smtp">Non-SMTP command test</a> </h3>
 
-<p> With "postscreen_non_smtp_command_enable = yes", postscreen(8)
-detects spambots that send non-SMTP commands, such as commands
-specified with the postscreen_forbidden_commands parameter, and
-commands that have the syntax of a message header label.  </p>
+<p> Some spambots send their mail through open proxies. A symptom
+of this is the usage of commands such as CONNECT and other non-SMTP
+commands. Just like the Postfix SMTP server's smtpd_forbidden_commands
+feature, postscreen(8) has an equivalent postscreen_forbidden_commands
+feature to block these clients. postscreen(8)'s <a href="#after_220">deep
+protocol test</a> for this is disabled by default.  </p>
 
-<p> This test is disabled by default. The test is opportunistically
-enabled when postscreen(8) has to use the built-in SMTP engine
-anyway, to make postscreen(8) logging more informative.  </p>
+<p> With "postscreen_non_smtp_command_enable = yes", postscreen(8)
+detects spambots that send commands specified with the
+postscreen_forbidden_commands parameter. This also detects commands
+with the syntax of a message header label. The latter is a symptom
+that the client is sending message content after ignoring all the
+responses from postscreen(8) that reject mail. </p>
+
+<p> This test is opportunistically enabled when postscreen(8) has
+to use the built-in SMTP engine anyway. This is to make postscreen(8)
+logging more informative.  </p>
 
 <p> When a client sends non-SMTP commands, postscreen(8) logs this
 as: </p>
@@ -409,16 +423,19 @@ tests fail after the 220 SMTP server greeting</a>" below. </p>
 
 <h3> <a name="barelf">Bare newline test</a> </h3>
 
-<p> SMTP is a line-oriented protocol: lines have a limited
-length, and are terminated with &lt;CR&gt;&lt;LF&gt;. </p>
+<p> SMTP is a line-oriented protocol: lines have a limited length,
+and are terminated with &lt;CR&gt;&lt;LF&gt;. Lines ending in a
+"bare" &lt;LF&gt;, that is newline not preceded by carriage return,
+are not allowed in SMTP.  postscreen(8)'s <a href="#after_220">deep
+protocol test</a> for this is disabled by default.  </p>
 
 <p> With "postscreen_bare_newline_enable = yes", postscreen(8)
-detects spambots that send lines ending in bare newline
-characters, that is newline not preceded by carriage return. </p>
+detects clients that send lines ending in bare newline characters.
+</p>
 
-<p> This test is disabled by default. The test is opportunistically
-enabled when postscreen(8) has to use the built-in SMTP engine
-anyway, to make postscreen(8) logging more informative. </p>
+<p> This test is opportunistically enabled when postscreen(8) has
+to use the built-in SMTP engine anyway. This is to make postscreen(8)
+logging more informative.  </p>
 
 <p> When a client sends bare newline characters, postscreen(8) logs
 this as:
@@ -526,19 +543,22 @@ creates a temporary whitelist entry that excludes the client IP
 address from further tests until the temporary whitelist entry
 expires, as controlled with the postscreen_*_ttl parameters. </p>
 
-<p> When no "<a href="#after_220">deep procol tests</a>" are
+<p> When no "<a href="#after_220">deep protocol tests</a>" are
 configured, postscreen(8) passes the "live" connection to a Postfix
 SMTP server process.  The client can then continue as if postscreen(8)
 never even existed (except for the short postscreen_greet_wait delay).
 </p>
 
-<p> When any "<a href="#after_220">deep procol tests</a>" are
-configured, postscreen(8) cannot pass the "live" connection to a
-Postfix SMTP server process.  Instead, postscreen(8) defers mail
-delivery attempts with a 4XX status, logs the helo/sender/recipient
-information, and waits for the client to disconnect.  The next time
-the client connects it will be allowed to talk to a Postfix SMTP
-server process to deliver its mail. </p>
+<p> When any "<a href="#after_220">deep protocol tests</a>" are
+configured, postscreen(8) cannot hand off the "live" connection to
+a Postfix SMTP server process in the middle of the session.  Instead,
+postscreen(8) defers mail delivery attempts with a 4XX status, logs
+the helo/sender/recipient information, and waits for the client to
+disconnect.  The next time the client connects it will be allowed
+to talk to a Postfix SMTP server process to deliver its mail.
+postscreen(8) mitigates the impact of this limitation by giving
+<a href="#after_220">deep protocol tests</a> a long expiration
+time. </p>
 
 <h2> <a name="config"> Configuring the postscreen(8) service</a>
 </h2>
@@ -618,6 +638,12 @@ Postfix version 2.8. </p>
 
 <ul>
 
+<li> <p> Some postscreen(8) configuration parameters implement
+stress-dependent behavior. This is supported only when the default
+value is stress-dependent (that is, it looks like ${stress?X}${stress:Y}).
+Other parameters always evaluate as if the stress value is the empty
+string. </p>
+
 <li> <p> See "<a href="#before_220">Tests before the 220 SMTP server
 greeting</a>" for details about the logging from these postscreen(8)
 tests. </p>
@@ -657,18 +683,23 @@ tests. </p>
 
 <p> When a good client passes the "<a href="#after_220">deep
 protocol tests</a>", postscreen(8) adds the client to the temporary
-whitelist but it cannot pass the "live" connection to a Postfix
+whitelist but it cannot hand off the "live" connection to a Postfix
 SMTP server process in the middle of the session. Instead, postscreen(8)
 defers mail delivery attempts with a 4XX status, logs the
 helo/sender/recipient information, and waits for the client to
 disconnect. </p>
 
-<p> When the client comes back in a later session, it is allowed
+<p> When the good client comes back in a later session, it is allowed
 to talk directly to a Postfix SMTP server.  See "after_220 <a
 href="#after_220">Tests after the 220 SMTP server greeting</a> above
 for limitations with STARTTLS, AUTH and other features that clients
-may need. Wietse enables "<a href="#after_220">deep protocol
-tests</a>" on his own internet-facing mail server.  </p>
+may need. </p>
+
+<p> An unexpected benefit from "<a href="#after_220">deep protocol
+tests</a>" is that some "good" clients don't return after the 4XX
+reply; these clients were not so good after all.  Wietse enables
+"<a href="#after_220">deep protocol tests</a>" on his own internet-facing
+mail server.  </p>
 
 <li> <p> There is also support for permanent blacklists and whitelists;
 see the description of the postscreen_whitelist_networks and
@@ -702,6 +733,27 @@ follow.  </p>
 </p>
 
 </ol>
+
+<h2> <a name="historical"> Historical notes and credits </a> </h2>
+
+<p> Many ideas in postscreen(8) were explored in earlier work by
+Michael Tokarev, in OpenBSD spamd, and in MailChannels Traffic
+Control.  </p>
+
+<p> Wietse threw together a crude prototype with pregreet and dnsbl
+support in June 2009, because he needed something new for a Mailserver
+conference presentation in July. Ralf Hildebrandt ran this code on
+several servers to collect real-world evidence. This version used
+the dnsblog(8) ad-hoc DNS client program. </p>
+
+<p> Wietse needed new material for a LISA conference presentation
+in November 2010, so he added support for DNSBL weights and filters
+in August, followed by a major code rewrite, deep protocol tests,
+helo/sender/recipient logging, and stress-adaptive behavior in
+September. Ralf Hildebrandt ran this code on several servers to
+collect real-world evidence. This version still used the same delay
+for pregreet and DNBL tests, as well as the embarrassing dnsblog(8)
+ad-hoc DNS client.  </p>
 
 </body>
 

@@ -15968,4 +15968,15 @@ Apologies for any names omitted.
 	command before you can use the file, and that it does not
 	detect changes after the file is read.  All information is
 	read into memory. Files: util/dict_open.c, util/dict_thash.[hc],
-	proto/DATABSE_README.html, postconf/postconf.c
+	proto/DATABASE_README.html, postconf/postconf.c
+
+20100912
+
+	Feature: bare newline detection in postscreen. Real spambots
+	don't make this mistake but poorly-written software often does.
+	File: postscreen/smtpd.c.
+
+	Documentation: POSTSCREEN_README including instructions for
+	turning postscreen(8) on without blocking mail, and more.
+	Trimmed the text in the postscreen(8) manpage.  File:
+	proto/POSTSCREEN_README.html, postscreen/postscreen.c.

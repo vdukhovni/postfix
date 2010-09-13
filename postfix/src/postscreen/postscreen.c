@@ -12,26 +12,28 @@
 /*	server processes, more Postfix SMTP server processes remain
 /*	available for legitimate clients.
 /*
-/*	\fBpostscreen\fR(8) maintains a temporary whitelist of
-/*	positive decisions. Once an SMTP client is whitelisted, it
-/*	is immediately forwarded to a real Postfix SMTP server
-/*	process without further checking.
+/*	\fBpostscreen\fR(8) maintains a temporary whitelist for
+/*	clients that have passed a number of tests.  When an SMTP
+/*	client IP address is whitelisted, \fBpostscreen\fR(8) hands
+/*	off the connection immediately to a Postfix SMTP server
+/*	process. This minimizes the overhead for legitimate mail.
 /*
-/*	By default, the program logs only statistics, and it does
-/*	not run any tests against clients in mynetworks (primarily,
+/*	By default, \fBpostscreen\fR(8) logs statistics and hands
+/*	off every connection to a Postfix SMTP server process, while
+/*	excluding clients in mynetworks from all tests (primarily,
 /*	to avoid problems with non-standard SMTP implementations
-/*	in network appliances and test programs).  \fBpostscreen\fR(8)
-/*	by default forwards all connections to a real SMTP server
-/*	process. This mode is useful for non-destructive testing.
+/*	in network appliances).  This mode is useful for non-destructive
+/*	testing.
 /*
 /*	In a typical production setting, \fBpostscreen\fR(8) is
 /*	configured to reject mail from clients that fail one or
-/*	more tests, after logging the helo, sender and recipient
-/*	information.
+/*	more tests. \fBpostscreen\fR(8) logs rejected mail with the
+/*	client address, helo, sender and recipient information.
 /*
 /*	\fBpostscreen\fR(8) is not an SMTP proxy; this is intentional.
 /*	The purpose is to keep spambots away from Postfix SMTP
-/*	server processes, not to control traffic flows.
+/*	server processes, while minimizing overhead for legitimate
+/*	traffic.
 /* SECURITY
 /* .ad
 /* .fi
@@ -44,15 +46,26 @@
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* BUGS
-/*	When successful tests involve \fBpostscreen\fR(8)'s built-in
-/*	SMTP protocol engine, \fBpostscreen\fR(8) adds the client
+/*	Some of the non-default protocol tests involve
+/*	\fBpostscreen\fR(8)'s built-in SMTP protocol engine. When
+/*	these tests succeed, \fBpostscreen\fR(8) adds the client
 /*	to the temporary whitelist but it cannot not hand off the
-/*	"live" connection from a good SMTP client to a Postfix SMTP
-/*	server process.  Instead, \fBpostscreen\fR(8) defers attempts
-/*	to deliver mail with a 4XX status, and waits for the client
-/*	to disconnect.  The next time a good client connects, it
-/*	will be allowed to talk to a Postfix SMTP server process
-/*	to deliver mail.
+/*	"live" connection to a Postfix SMTP server process in the
+/*	middle of a session.  Instead, \fBpostscreen\fR(8) defers
+/*	attempts to deliver mail with a 4XX status, and waits for
+/*	the client to disconnect.  The next time a good client
+/*	connects, it will be allowed to talk to a Postfix SMTP
+/*	server process to deliver mail. \fBpostscreen\fR(8) mitigates
+/*	the impact of this limitation by giving such tests a long
+/*	expiration time.
+/*
+/*	The \fBpostscreen\fR(8) built-in SMTP protocol engine does
+/*	not announce support for STARTTLS, AUTH, XCLIENT or XFORWARD
+/*	(support for STARTTLS and AUTH may be added in the future).
+/*	End-user clients should connect directly to the submission
+/*	service; other systems that require the above features
+/*	should directly connect to a Postfix SMTP server, or they
+/*	should be placed on the \fBpostscreen\fR(8) whitelist.
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
@@ -64,9 +77,10 @@
 /*	The text below provides only a parameter summary. See
 /*	\fBpostconf\fR(5) for more details including examples.
 /*
-/*	NOTE: Some parameters implement stress-dependent behavior.
-/*	This is supported only when the default value is stress-dependent
-/*	(${stress?X}${stress:Y}). Other parameters always evaluate
+/*	NOTE: Some \fBpostscreen\fR(8)  parameters implement
+/*	stress-dependent behavior.  This is supported only when the
+/*	default value is stress-dependent (that is, it looks like
+/*	${stress?X}${stress:Y}).  Other parameters always evaluate
 /*	as if the stress value is the empty string.
 /* TRIAGE PARAMETERS
 /* .ad
@@ -233,6 +247,12 @@
 /* .ad
 /* .fi
 /*	The Secure Mailer license must be distributed with this software.
+/* HISTORY
+/* .ad
+/* .fi
+/*	Many ideas in \fBpostscreen\fR(8) were explored in earlier
+/*	work by Michael Tokarev, in OpenBSD spamd, and in MailChannels
+/*	Traffic Control.
 /* AUTHOR(S)
 /*	Wietse Venema
 /*	IBM T.J. Watson Research

@@ -19,31 +19,32 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
        processes,  more  Postfix  SMTP  server  processes  remain
        available for legitimate clients.
 
-       <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  maintains a temporary whitelist of positive
-       decisions. Once an SMTP client is whitelisted, it is imme-
-       diately  forwarded  to  a real Postfix SMTP server process
-       without further checking.
+       <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  maintains a temporary whitelist for clients
+       that have passed a number of tests.  When an  SMTP  client
+       IP  address  is  whitelisted,  <a href="postscreen.8.html"><b>postscreen</b>(8)</a> hands off the
+       connection immediately to a Postfix SMTP  server  process.
+       This minimizes the overhead for legitimate mail.
 
-       By default, the program logs only statistics, and it  does
-       not  run  any tests against clients in <a href="postconf.5.html#mynetworks">mynetworks</a> (primar-
-       ily, to avoid problems with non-standard SMTP  implementa-
-       tions   in   network   appliances   and   test  programs).
-       <a href="postscreen.8.html"><b>postscreen</b>(8)</a> by default forwards  all  connections  to  a
-       real  SMTP  server  process.  This mode is useful for non-
+       By  default,  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  logs statistics and hands off
+       every connection to a Postfix SMTP server  process,  while
+       excluding clients in <a href="postconf.5.html#mynetworks">mynetworks</a> from all tests (primarily,
+       to avoid problems with non-standard  SMTP  implementations
+       in  network  appliances).   This  mode  is useful for non-
        destructive testing.
 
        In a typical production setting, <a href="postscreen.8.html"><b>postscreen</b>(8)</a> is  config-
        ured  to  reject  mail  from clients that fail one or more
-       tests, after logging the helo, sender and recipient infor-
-       mation.
+       tests. <a href="postscreen.8.html"><b>postscreen</b>(8)</a> logs rejected mail  with  the  client
+       address, helo, sender and recipient information.
 
        <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  is  not an SMTP proxy; this is intentional.
        The purpose is to keep spambots  away  from  Postfix  SMTP
-       server processes, not to control traffic flows.
+       server processes, while minimizing overhead for legitimate
+       traffic.
 
 <b>SECURITY</b>
        The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> server is moderately security-sensitive.
-       It talks to untrusted clients on the network. The  process
+       It  talks to untrusted clients on the network. The process
        can be run chrooted at fixed low privilege.
 
 <b>STANDARDS</b>
@@ -54,15 +55,26 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
        Problems and transactions are logged to <b>syslogd</b>(8).
 
 <b>BUGS</b>
-       When  successful  tests  involve  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>'s built-in
-       SMTP protocol engine, <a href="postscreen.8.html"><b>postscreen</b>(8)</a> adds the client to the
-       temporary  whitelist but it cannot not hand off the "live"
-       connection from a good  SMTP  client  to  a  Postfix  SMTP
-       server process.  Instead, <a href="postscreen.8.html"><b>postscreen</b>(8)</a> defers attempts to
+       Some   of   the   non-default   protocol   tests   involve
+       <a href="postscreen.8.html"><b>postscreen</b>(8)</a>'s  built-in SMTP protocol engine. When these
+       tests succeed, <a href="postscreen.8.html"><b>postscreen</b>(8)</a> adds the client to the tempo-
+       rary  whitelist but it cannot not hand off the "live" con-
+       nection to a Postfix SMTP server process in the middle  of
+       a  session.   Instead,  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  defers  attempts to
        deliver mail with a 4XX status, and waits for  the  client
        to  disconnect.   The next time a good client connects, it
        will be allowed to talk to a Postfix SMTP  server  process
-       to deliver mail.
+       to  deliver  mail.  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  mitigates the impact of
+       this limitation by giving such  tests  a  long  expiration
+       time.
+
+       The  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  built-in SMTP protocol engine does not
+       announce support for STARTTLS, AUTH, XCLIENT  or  XFORWARD
+       (support  for  STARTTLS  and  AUTH  may  be  added  in the
+       future).  End-user clients should connect directly to  the
+       submission  service;  other systems that require the above
+       features should directly connect to a Postfix SMTP server,
+       or they should be placed on the <a href="postscreen.8.html"><b>postscreen</b>(8)</a> whitelist.
 
 <b>CONFIGURATION PARAMETERS</b>
        Changes  to  <a href="postconf.5.html">main.cf</a>  are  not picked up automatically, as
@@ -72,11 +84,11 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
        The text below provides  only  a  parameter  summary.  See
        <a href="postconf.5.html"><b>postconf</b>(5)</a> for more details including examples.
 
-       NOTE: Some parameters implement stress-dependent behavior.
-       This is supported only when the default value  is  stress-
-       dependent   (${stress?X}${stress:Y}).   Other   parameters
-       always evaluate as  if  the  stress  value  is  the  empty
-       string.
+       NOTE:  Some  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>   parameters  implement stress-
+       dependent behavior.   This  is  supported  only  when  the
+       default  value is stress-dependent (that is, it looks like
+       ${stress?X}${stress:Y}).  Other parameters always evaluate
+       as if the stress value is the empty string.
 
 <b>TRIAGE PARAMETERS</b>
        <b><a href="postconf.5.html#postscreen_bare_newline_action">postscreen_bare_newline_action</a> (ignore)</b>
@@ -294,6 +306,11 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
 <b>LICENSE</b>
        The Secure Mailer license must be  distributed  with  this
        software.
+
+<b>HISTORY</b>
+       Many  ideas in <a href="postscreen.8.html"><b>postscreen</b>(8)</a> were explored in earlier work
+       by Michael Tokarev, in OpenBSD spamd, and in  MailChannels
+       Traffic Control.
 
 <b>AUTHOR(S)</b>
        Wietse Venema

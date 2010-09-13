@@ -36,6 +36,21 @@ equal to the empty string.
 Incompatibility with snapshot 20100912
 ======================================
 
+- If your DNSBL queries have a "secret" in the domain name, you
+  must now censor this information from the postscreen(8) SMTP
+  replies.  For example:
+
+  /etc/postfix/main.cf:
+      postscreen_dnsbl_reply_map = texthash:/etc/postfix/dnsbl_reply
+
+  /etc/postfix/dnsbl_reply:
+      # Secret DNSBL name        Name in postscreen(8) replies
+      secret.zen.spamhaus.org    zen.spamhaus.org
+
+  The texthash: format is similar to hash: except that there is no need to
+  run postmap(1) before the file can be used, and that it does not detect
+  changes after the file is read. It is new with Postfix version 2.8.
+
 - The postscreen "continue" action is now called "ignore".  The old
   name is still supported but no longer documented.
 
