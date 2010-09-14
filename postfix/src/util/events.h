@@ -45,8 +45,9 @@ extern void event_fork(void);
  /*
   * Dummies.
   */
-#define EVENT_NULL_TYPE	0
+#define EVENT_NULL_TYPE		(0)
 #define EVENT_NULL_CONTEXT	((char *) 0)
+#define EVENT_NULL_DELAY	(0)
 
 /* LICENSE
 /* .ad

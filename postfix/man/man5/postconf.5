@@ -3858,10 +3858,10 @@ when it rejects mail.  When no mapping is found, the actual DNSBL
 domain will be used.
 .PP
 For maximal stability it is best to use a file that is read
-into memory such as pcre:, regexp: or texthash: (a format similar
-to hash: except that there is no need to run \fBpostmap\fR(1) before the
-file can be used, and that it does not detect changes after the
-file is read).
+into memory such as pcre:, regexp: or texthash: (texthash: is similar
+to hash:, except a) there is no need to run \fBpostmap\fR(1) before the
+file can be used, and b) texthash: does not detect changes after
+the file is read).
 .PP
 Example:
 .PP
@@ -3947,7 +3947,7 @@ its combined DNSBL score as defined with the postscreen_dnsbl_sites
 parameter.
 .PP
 This feature is available in Postfix 2.8.
-.SH postscreen_dnsbl_ttl (default: 1d)
+.SH postscreen_dnsbl_ttl (default: 1h)
 The amount of time that \fBpostscreen\fR(8) will cache results from
 a successful DNS blocklist test. During this time, the client IP address
 is excluded from this test. The default is relatively short, because a
@@ -4007,9 +4007,9 @@ This feature is available in Postfix 2.8.
 .SH postscreen_greet_wait (default: ${stress?2}${stress:6}s)
 The amount of time that \fBpostscreen\fR(8) will wait for an SMTP
 client to send a command before its turn, and for DNS blocklist
-lookup results to arrive (default: 2 seconds under stress, 6 seconds
-normally).  This is done only when the SMTP client IP address is
-not permanently whitelisted, and when it has no cached decision.
+lookup results to arrive (default: up to 2 seconds under stress,
+up to 6 seconds otherwise).
+.PP
 Specify a non-zero time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).
 .PP

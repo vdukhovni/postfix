@@ -195,12 +195,47 @@ static void ps_early_event(int event, char *context)
 	    msg_panic("%s: unknown pregreet action value %d",
 		      myname, ps_pregr_action);
 	}
-	if (elapsed > PS_EFF_GREET_WAIT)
-	    elapsed = PS_EFF_GREET_WAIT;
-	event_request_timer(ps_early_event, context,
-			    PS_EFF_GREET_WAIT - elapsed);
+
+	/*
+	 * Terminate the greet delay if we're just waiting for the pregreet
+	 * test to complete. It is safe to call ps_early_event directly,
+	 * since we are already in that function.
+	 * 
+	 * XXX After this code passes all tests, swap around the two blocks in
+	 * this switch statement and fall through from EVENT_READ into
+	 * EVENT_TIME, instead of calling ps_early_event recursively.
+	 */
+	state->flags |= PS_STATE_FLAG_PREGR_DONE;
+	if (elapsed >= PS_EFF_GREET_WAIT
+	    || ((state->flags & PS_STATE_FLAG_EARLY_DONE)
+		== PS_STATE_FLAGS_TODO_TO_DONE(state->flags & PS_STATE_FLAG_EARLY_TODO)))
+	    ps_early_event(EVENT_TIME, context);
+	else
+	    event_request_timer(ps_early_event, context,
+				PS_EFF_GREET_WAIT - elapsed);
 	return;
     }
+}
+
+/* ps_early_dnsbl_event - cancel pregreet timer if waiting for DNS only */
+
+static void ps_early_dnsbl_event(int unused_event, char *context)
+{
+    const char *myname = "ps_early_dnsbl_event";
+    PS_STATE *state = (PS_STATE *) context;
+
+    if (msg_verbose)
+	msg_info("%s: notify %s:%s", myname, PS_CLIENT_ADDR_PORT(state));
+
+    /*
+     * Terminate the greet delay if we're just waiting for DNSBL lookup to
+     * complete. Don't call ps_early_event directly, that would result in a
+     * dangling pointer.
+     */
+    state->flags |= PS_STATE_FLAG_DNSBL_DONE;
+    if ((state->flags & PS_STATE_FLAG_EARLY_DONE)
+    == PS_STATE_FLAGS_TODO_TO_DONE(state->flags & PS_STATE_FLAG_EARLY_TODO))
+	event_request_timer(ps_early_event, context, EVENT_NULL_DELAY);
 }
 
 /* ps_early_tests - start the early (before protocol) tests */
@@ -231,7 +266,8 @@ void    ps_early_tests(PS_STATE *state)
      * Run a DNS blocklist query.
      */
     if ((state->flags & PS_STATE_FLAG_DNSBL_TODO) != 0)
-	ps_dnsbl_request(state->smtp_client_addr);
+	ps_dnsbl_request(state->smtp_client_addr, ps_early_dnsbl_event,
+			    (char *) state);
 
     /*
      * Wait for the client to respond or for DNS lookup to complete.

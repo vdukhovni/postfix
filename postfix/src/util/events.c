@@ -61,7 +61,8 @@
 /*	event_request_timer() causes the specified callback function to
 /*	be called with the specified context argument after \fIdelay\fR
 /*	seconds, or as soon as possible thereafter. The delay should
-/*	not be negative.
+/*	not be negative (the manifest EVENT_NULL_DELAY provides for
+/*	convenient zero-delay notification).
 /*	The event argument is equal to EVENT_TIME.
 /*	Only one timer request can be active per (callback, context) pair.
 /*	Calling event_request_timer() with an existing (callback, context)

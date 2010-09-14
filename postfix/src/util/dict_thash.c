@@ -169,7 +169,7 @@ DICT   *dict_thash_open(const char *path, int open_flags, int dict_flags)
     dict_thash->dict.lookup = dict_thash_lookup;
     dict_thash->dict.sequence = dict_thash_sequence;
     dict_thash->dict.close = dict_thash_close;
-    dict_thash->dict.flags = dict_flags | DICT_FLAG_FIXED;
+    dict_thash->dict.flags = dict_flags | DICT_FLAG_DUP_WARN | DICT_FLAG_FIXED;
     if (dict_flags & DICT_FLAG_FOLD_FIX)
 	dict_thash->dict.fold_buf = vstring_alloc(10);
     dict_thash->info = 0;

@@ -78,21 +78,33 @@ typedef struct {
   * Important: every MUMBLE_TODO flag must have a MUMBLE_PASS flag, such that
   * MUMBLE_PASS == PS_STATE_FLAGS_TODO_TO_PASS(MUMBLE_TODO).
   * 
-  * MUMBLE_TODO flags must not be cleared once they are raised. The code in
-  * ps_conclude() depends on this when it decides that all unfinished tests
-  * are completed.
+  * MUMBLE_TODO flags must not be cleared once raised. The _TODO_TO_PASS and
+  * _TODO_TO_DONE macros depend on this to decide that a group of tests is
+  * passed or completed.
+  * 
+  * MUMBLE_DONE flags are used for "early" tests that have final results.
+  * 
+  * MUMBLE_SKIP flags are used for "deep" tests where the client messed up.
+  * These flags look like MUMBLE_DONE but they are different. Deep tests can
+  * tentatively pass, but can still fail later in a session. The "ignore"
+  * action introduces an additional complication. MUMBLE_PASS indicates
+  * either that a deep test passed tentatively, or that the test failed but
+  * the result was ignored. MUMBLE_FAIL, on the other hand, is always final.
+  * We use MUMBLE_SKIP to indicate that a decision was either "fail" or
+  * forced "pass".
   */
 #define PS_STATE_FLAGS_TODO_TO_PASS(todo_flags) ((todo_flags) >> 1)
+#define PS_STATE_FLAGS_TODO_TO_DONE(todo_flags) ((todo_flags) << 1)
 
- /* Room here for one more before-handshake test. */
+#define PS_STATE_FLAG_PREGR_FAIL	(1<<8)	/* failed pregreet test */
+#define PS_STATE_FLAG_PREGR_PASS	(1<<9)	/* passed pregreet test */
+#define PS_STATE_FLAG_PREGR_TODO	(1<<10)	/* pregreet test expired */
+#define PS_STATE_FLAG_PREGR_DONE	(1<<11)	/* decision is final */
 
-#define PS_STATE_FLAG_PREGR_FAIL	(1<<10)	/* failed pregreet test */
-#define PS_STATE_FLAG_PREGR_PASS	(1<<11)	/* passed pregreet test */
-#define PS_STATE_FLAG_PREGR_TODO	(1<<12)	/* pregreet test expired */
-
-#define PS_STATE_FLAG_DNSBL_FAIL	(1<<13)	/* failed DNSBL test */
-#define PS_STATE_FLAG_DNSBL_PASS	(1<<14)	/* passed DNSBL test */
-#define PS_STATE_FLAG_DNSBL_TODO	(1<<15)	/* DNSBL test expired */
+#define PS_STATE_FLAG_DNSBL_FAIL	(1<<12)	/* failed DNSBL test */
+#define PS_STATE_FLAG_DNSBL_PASS	(1<<13)	/* passed DNSBL test */
+#define PS_STATE_FLAG_DNSBL_TODO	(1<<14)	/* DNSBL test expired */
+#define PS_STATE_FLAG_DNSBL_DONE	(1<<15)	/* decision is final */
 
  /* Room here for one more after-handshake test. */
 
@@ -142,6 +154,8 @@ typedef struct {
  /*
   * Separate aggregates for early tests and deep tests.
   */
+#define PS_STATE_FLAG_EARLY_DONE \
+	(PS_STATE_FLAG_PREGR_DONE | PS_STATE_FLAG_DNSBL_DONE)
 #define PS_STATE_FLAG_EARLY_TODO \
 	(PS_STATE_FLAG_PREGR_TODO | PS_STATE_FLAG_DNSBL_TODO)
 #define PS_STATE_FLAG_EARLY_PASS \
@@ -359,7 +373,7 @@ extern void ps_cache_update(DICT_CACHE *, const char *, const char *);
   */
 extern void ps_dnsbl_init(void);
 extern int ps_dnsbl_retrieve(const char *, const char **);
-extern void ps_dnsbl_request(const char *);
+extern void ps_dnsbl_request(const char *, void (*) (int, char *), char *);
 
  /*
   * postscreen_tests.c

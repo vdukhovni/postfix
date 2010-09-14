@@ -7,10 +7,10 @@
 /*	\fBpostscreen\fR [generic Postfix daemon options]
 /* DESCRIPTION
 /*	The Postfix \fBpostscreen\fR(8) server performs triage on
-/*	multiple inbound SMTP connections in parallel. While
-/*	\fBpostscreen\fR(8) keeps spambots away from Postfix SMTP
-/*	server processes, more Postfix SMTP server processes remain
-/*	available for legitimate clients.
+/*	multiple inbound SMTP connections in parallel. While a
+/*	single \fBpostscreen\fR(8) process keeps spambots away from
+/*	Postfix SMTP server processes, more Postfix SMTP server
+/*	processes remain available for legitimate clients.
 /*
 /*	\fBpostscreen\fR(8) maintains a temporary whitelist for
 /*	clients that have passed a number of tests.  When an SMTP
@@ -133,8 +133,8 @@
 /* .IP "\fBpostscreen_greet_wait (${stress?2}${stress:6}s)\fR"
 /*	The amount of time that \fBpostscreen\fR(8) will wait for an SMTP
 /*	client to send a command before its turn, and for DNS blocklist
-/*	lookup results to arrive (default: 2 seconds under stress, 6 seconds
-/*	normally).
+/*	lookup results to arrive (default: up to 2 seconds under stress,
+/*	up to 6 seconds otherwise).
 /* .IP "\fBpostscreen_helo_required ($smtpd_helo_required)\fR"
 /*	Require that a remote SMTP client sends HELO or EHLO before
 /*	commencing a MAIL transaction.
@@ -170,7 +170,7 @@
 /* .IP "\fBpostscreen_bare_newline_ttl (30d)\fR"
 /*	The amount of time that \fBpostscreen\fR(8) will cache results from
 /*	a successful "bare newline" SMTP protocol test.
-/* .IP "\fBpostscreen_dnsbl_ttl (1d)\fR"
+/* .IP "\fBpostscreen_dnsbl_ttl (1h)\fR"
 /*	The amount of time that \fBpostscreen\fR(8) will cache results from
 /*	a successful DNS blocklist test.
 /* .IP "\fBpostscreen_greet_ttl (1d)\fR"
@@ -843,7 +843,7 @@ int     main(int argc, char **argv)
 	0,
     };
     static const CONFIG_NINT_TABLE nint_table[] = {
-	VAR_PS_POST_QLIMIT, DEF_PS_POST_QLIMIT, &var_ps_post_queue_limit, 10, 0,
+	VAR_PS_POST_QLIMIT, DEF_PS_POST_QLIMIT, &var_ps_post_queue_limit, 5, 0,
 	VAR_PS_PRE_QLIMIT, DEF_PS_PRE_QLIMIT, &var_ps_pre_queue_limit, 10, 0,
 	0,
     };

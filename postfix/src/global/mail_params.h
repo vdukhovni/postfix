@@ -3272,7 +3272,7 @@ extern char *var_ps_dnsbl_enable;
 extern char *var_ps_dnsbl_action;
 
 #define VAR_PS_DNSBL_TTL	"postscreen_dnsbl_ttl"
-#define DEF_PS_DNSBL_TTL	"1d"
+#define DEF_PS_DNSBL_TTL	"1h"
 extern int var_ps_dnsbl_ttl;
 
 #define	VAR_PS_DNSBL_REPLY	"postscreen_dnsbl_reply_map"

@@ -18,27 +18,16 @@
 <h2> <a name="intro">Introduction</a> </h2>
 
 <p> The Postfix postscreen(8) server performs triage on multiple
-inbound SMTP connections in parallel. While one postscreen(8) process
-keeps spambots away from Postfix SMTP server processes, more Postfix
-SMTP server processes remain available for legitimate clients. </p>
+inbound SMTP connections in parallel. While a single postscreen(8)
+process keeps spambots away from Postfix SMTP server processes,
+more Postfix SMTP server processes remain available for legitimate
+clients. </p>
 
 <p> By doing these checks in a single postscreen(8) process, Postfix
 can avoid wasting one SMTP server process per connection. A side
 benefit of postscreen(8)'s DNSBL lookups is that DNS records are
 already cached before the Postfix SMTP server looks them up later.
 </p>
-
-<p> postscreen(8) maintains a temporary whitelist for clients that
-have passed a number of tests. When an SMTP client IP address is
-whitelisted, postscreen(8) hands off the connection immediately to
-a Postfix SMTP server process. This minimizes the overhead for
-legitimate mail.  </p>
-
-<p> By default, postscreen(8) logs statistics and hands off every
-connection to a Postfix SMTP server process, while excluding clients
-in mynetworks from all tests (primarily, to avoid problems with
-non-standard SMTP implementations in network appliances). This mode
-is useful for non-destructive testing. </p>
 
 <p> Topics in this document: </p>
 
@@ -222,10 +211,17 @@ SMTP clients that correctly implement the protocol.  </p>
 <p> To avoid problems with poorly-implemented SMTP engines in network
 appliances or network testing tools, either exclude them from all
 tests with the postscreen_whitelist_networks feature or else specify
-an empty teaser banner with: </p>
+an empty teaser banner: </p>
 
 <pre>
 /etc/postfix/main.cf:
+    # Exclude broken clients by whitelisting. $mynetworks is default.
+    postscreen_whitelist_networks = $mynetworks, 192.168.254.0/24
+</pre>
+
+<pre>
+/etc/postfix/main.cf:
+    # Disable the teaser banner (try whitelisting first if you can).
     postscreen_greet_banner =
 </pre>
 

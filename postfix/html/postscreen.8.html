@@ -14,10 +14,10 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
 
 <b>DESCRIPTION</b>
        The Postfix <a href="postscreen.8.html"><b>postscreen</b>(8)</a> server performs triage on multi-
-       ple  inbound   SMTP   connections   in   parallel.   While
-       <a href="postscreen.8.html"><b>postscreen</b>(8)</a> keeps spambots away from Postfix SMTP server
-       processes,  more  Postfix  SMTP  server  processes  remain
-       available for legitimate clients.
+       ple inbound SMTP connections in parallel. While  a  single
+       <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  process  keeps  spambots  away from Postfix
+       SMTP server processes, more Postfix SMTP server  processes
+       remain available for legitimate clients.
 
        <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  maintains a temporary whitelist for clients
        that have passed a number of tests.  When an  SMTP  client
@@ -156,8 +156,8 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
               The amount of time that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will wait for
               an SMTP client to send a command before  its  turn,
               and  for  DNS  blocklist  lookup  results to arrive
-              (default: 2 seconds under stress,  6  seconds  nor-
-              mally).
+              (default: up to 2 seconds under  stress,  up  to  6
+              seconds otherwise).
 
        <b><a href="postconf.5.html#postscreen_helo_required">postscreen_helo_required</a> ($<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a>)</b>
               Require  that  a  remote  SMTP client sends HELO or
@@ -209,7 +209,7 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
               results  from a successful "bare newline" SMTP pro-
               tocol test.
 
-       <b><a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a> (1d)</b>
+       <b><a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a> (1h)</b>
               The amount of time that  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  will  cache
               results from a successful DNS blocklist test.
 

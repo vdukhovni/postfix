@@ -15973,10 +15973,22 @@ Apologies for any names omitted.
 20100912
 
 	Feature: bare newline detection in postscreen. Real spambots
-	don't make this mistake but poorly-written software often does.
-	File: postscreen/smtpd.c.
+	don't make this mistake anymore, but poorly-written software
+	still does.  File: postscreen/smtpd.c.
 
 	Documentation: POSTSCREEN_README including instructions for
 	turning postscreen(8) on without blocking mail, and more.
 	Trimmed the text in the postscreen(8) manpage.  File:
 	proto/POSTSCREEN_README.html, postscreen/postscreen.c.
+
+20100914
+
+	Cleanup: the "postscreen_greet_wait" delay now ends as soon
+	as both the pregreet and DNSBL tests complete (the postscreen
+	documentation mentions in history/credits that the program
+	started as a crude prototype).  The default postscreen_dnsbl_ttl
+	caching time is now reduced to 1h from 24h, allowing
+	postscreen to catch up on DNSBL updates more quickly. If
+	this increases the database update frequency too much then
+	we'll need to make dnsbl result non-cachable.  Files:
+	postscreen/postscreen_dnsbl.c, global/mail_params.h.

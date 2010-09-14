@@ -18,27 +18,16 @@
 <h2> <a name="intro">Introduction</a> </h2>
 
 <p> The Postfix <a href="postscreen.8.html">postscreen(8)</a> server performs triage on multiple
-inbound SMTP connections in parallel. While one <a href="postscreen.8.html">postscreen(8)</a> process
-keeps spambots away from Postfix SMTP server processes, more Postfix
-SMTP server processes remain available for legitimate clients. </p>
+inbound SMTP connections in parallel. While a single <a href="postscreen.8.html">postscreen(8)</a>
+process keeps spambots away from Postfix SMTP server processes,
+more Postfix SMTP server processes remain available for legitimate
+clients. </p>
 
 <p> By doing these checks in a single <a href="postscreen.8.html">postscreen(8)</a> process, Postfix
 can avoid wasting one SMTP server process per connection. A side
 benefit of <a href="postscreen.8.html">postscreen(8)</a>'s DNSBL lookups is that DNS records are
 already cached before the Postfix SMTP server looks them up later.
 </p>
-
-<p> <a href="postscreen.8.html">postscreen(8)</a> maintains a temporary whitelist for clients that
-have passed a number of tests. When an SMTP client IP address is
-whitelisted, <a href="postscreen.8.html">postscreen(8)</a> hands off the connection immediately to
-a Postfix SMTP server process. This minimizes the overhead for
-legitimate mail.  </p>
-
-<p> By default, <a href="postscreen.8.html">postscreen(8)</a> logs statistics and hands off every
-connection to a Postfix SMTP server process, while excluding clients
-in <a href="postconf.5.html#mynetworks">mynetworks</a> from all tests (primarily, to avoid problems with
-non-standard SMTP implementations in network appliances). This mode
-is useful for non-destructive testing. </p>
 
 <p> Topics in this document: </p>
 
@@ -222,10 +211,17 @@ SMTP clients that correctly implement the protocol.  </p>
 <p> To avoid problems with poorly-implemented SMTP engines in network
 appliances or network testing tools, either exclude them from all
 tests with the <a href="postconf.5.html#postscreen_whitelist_networks">postscreen_whitelist_networks</a> feature or else specify
-an empty teaser banner with: </p>
+an empty teaser banner: </p>
 
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    # Exclude broken clients by whitelisting. $<a href="postconf.5.html#mynetworks">mynetworks</a> is default.
+    <a href="postconf.5.html#postscreen_whitelist_networks">postscreen_whitelist_networks</a> = $<a href="postconf.5.html#mynetworks">mynetworks</a>, 192.168.254.0/24
+</pre>
+
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    # Disable the teaser banner (try whitelisting first if you can).
     <a href="postconf.5.html#postscreen_greet_banner">postscreen_greet_banner</a> =
 </pre>
 

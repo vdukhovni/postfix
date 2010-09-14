@@ -8,8 +8,10 @@
 /*
 /*	void	ps_dnsbl_init(void)
 /*
-/*	void	ps_dnsbl_request(client_addr)
+/*	void	ps_dnsbl_request(client_addr, callback, context)
 /*	char	*client_addr;
+/*	void	(*callback)(int, char *);
+/*	char	*context;
 /*
 /*	int	ps_dnsbl_retrieve(client_addr, dnsbl_name)
 /*	char	*client_addr;
@@ -24,8 +26,13 @@
 /*
 /*	ps_dnsbl_request() requests a blocklist score for the
 /*	specified client IP address and increments the reference
-/*	count. The request completes in the background. The
-/*	client IP address must be in inet_ntop(3) output format.
+/*	count.  The request completes in the background. The client
+/*	IP address must be in inet_ntop(3) output format.  The
+/*	callback argument specifies a function that is called when
+/*	the requested result is available. The context is passed
+/*	on to the callback function. The callback should ignore its
+/*	first argument (it exists for compatibility with Postfix
+/*	generic event infrastructure).
 /*
 /*	ps_dnsbl_retrieve() retrieves the result score requested with
 /*	ps_dnsbl_request() and decrements the reference count. It
@@ -100,19 +107,63 @@ typedef struct PS_DNSBL_SITE {
  /*
   * Per-client DNSBL scores.
   * 
-  * One remote SMTP client may make parallel connections and thereby trigger
-  * parallel blocklist score requests. We combine identical requests under
-  * the client IP address in a single reference-counted entry. The reference
-  * count goes up with each score request, and it goes down with each score
-  * retrieval.
+  * Some SMTP clients make parallel connections. This can trigger parallel
+  * blocklist score requests when the pre-handshake delays of the connections
+  * overlap.
+  * 
+  * We combine requests for the same score under the client IP address in a
+  * single reference-counted entry. The reference count goes up with each
+  * request for a score, and it goes down with each score retrieval. Each
+  * score has one or more requestors that need to be notified when the result
+  * is ready, so that postscreen can terminate a pre-handshake delay when all
+  * pre-handshake tests are completed.
   */
 static HTABLE *dnsbl_score_cache;	/* indexed by client address */
+
+typedef struct {
+    void    (*callback) (int, char *);	/* generic call-back routine */
+    char   *context;			/* generic call-back argument */
+} PS_CALL_BACK_ENTRY;
 
 typedef struct {
     const char *dnsbl;			/* one contributing DNSBL */
     int     total;			/* combined blocklist score */
     int     refcount;			/* score reference count */
+    int     pending_lookups;		/* nr of DNS requests in flight */
+    /* Call-back table support. */
+    int     index;			/* next table index */
+    int     limit;			/* last valid index */
+    PS_CALL_BACK_ENTRY table[1];	/* actually a bunch */
 } PS_DNSBL_SCORE;
+
+#define PS_CALL_BACK_INIT(sp) do { \
+	(sp)->limit = 0; \
+	(sp)->index = 0; \
+    } while (0)
+
+#define PS_CALL_BACK_EXTEND(hp, sp) do { \
+	if ((sp)->index >= (sp)->limit) { \
+	    int _count_ = ((sp)->limit ? (sp)->limit * 2 : 5); \
+	    (hp)->value = myrealloc((char *) (sp), sizeof(*(sp)) + \
+				    _count_ * sizeof((sp)->table)); \
+	    (sp) = (PS_DNSBL_SCORE *) (hp)->value; \
+	    (sp)->limit = _count_; \
+	} \
+    } while (0)
+
+#define PS_CALL_BACK_ENTER(sp, fn, ctx) do { \
+	PS_CALL_BACK_ENTRY *_cb_ = (sp)->table + (sp)->index++; \
+	_cb_->callback = (fn); \
+	_cb_->context = (ctx); \
+    } while (0)
+
+#define PS_CALL_BACK_NOTIFY(sp, ev) do { \
+	PS_CALL_BACK_ENTRY *_cb_; \
+	for (_cb_ = (sp)->table; _cb_ < (sp)->table + (sp)->index; _cb_++) \
+	    _cb_->callback((ev), _cb_->context); \
+    } while (0)
+
+#define PS_NULL_EVENT	(0)
 
  /*
   * Per-request state.
@@ -306,32 +357,68 @@ static void ps_dnsbl_receive(int event, char *context)
 	}
 	if (reply_argv != 0)
 	    argv_free(reply_argv);
+    } else {
+	msg_warn("%s: unexpected event: %d", myname, event);
     }
+
+    /*
+     * We're done with this stream. Notify the requestor(s) that the result
+     * is ready to be picked up. If this call isn't made, clients have to sit
+     * out the entire pre-handshake delay.
+     */
+    score->pending_lookups -= 1;
+    if (score->pending_lookups == 0)
+	PS_CALL_BACK_NOTIFY(score, PS_NULL_EVENT);
+
     vstream_fclose(stream);
 }
 
 /* ps_dnsbl_request  - send dnsbl query, increment reference count */
 
-void    ps_dnsbl_request(const char *client_addr)
+void    ps_dnsbl_request(const char *client_addr,
+			         void (*callback) (int, char *),
+			         char *context)
 {
     const char *myname = "ps_dnsbl_request";
     int     fd;
     VSTREAM *stream;
     HTABLE_INFO **ht;
     PS_DNSBL_SCORE *score;
+    HTABLE_INFO *hash_node;
 
     /*
-     * Avoid duplicate effort when this lookup is already in progress. We
-     * store a reference-counted DNSBL score under its client IP address. We
-     * increment the reference count with each request, and decrement the
-     * reference count with each retrieval.
+     * Some spambots make several connections at nearly the same time,
+     * causing their pregreet delays to overlap. Such connections can share
+     * the efforts of DNSBL lookup.
      * 
-     * XXX Notify the requestor as soon as all DNS replies are in, to avoid
-     * unnecessary delay when we only need the DNSBL score.
+     * We store a reference-counted DNSBL score under its client IP address. We
+     * increment the reference count with each score request, and decrement
+     * the reference count with each score retrieval.
+     * 
+     * Do not notify the requestor NOW when the DNS replies are already in.
+     * Reason: we must not make a backwards call while we are still in the
+     * middle of executing the corresponding forward call. Instead we create
+     * a zero-delay timer request and call the notification function from
+     * there.
+     * 
+     * ps_dnsbl_request() could instead return a result value to indicate that
+     * the DNSBL score is already available, but that would complicate the
+     * caller with two different notification code paths: one asynchronous
+     * code path via the callback invocation, and one synchronous code path
+     * via the ps_dnsbl_request() result value. That would be a source of
+     * future bugs.
      */
-    if ((score = (PS_DNSBL_SCORE *)
-	 htable_find(dnsbl_score_cache, client_addr)) != 0) {
+    if ((hash_node = htable_locate(dnsbl_score_cache, client_addr)) != 0) {
+	score = (PS_DNSBL_SCORE *) hash_node->value;
 	score->refcount += 1;
+	PS_CALL_BACK_EXTEND(hash_node, score);
+	PS_CALL_BACK_ENTER(score, callback, context);
+	if (msg_verbose > 1)
+	    msg_info("%s: reuse blocklist score for %s refcount=%d pending=%d",
+		     myname, client_addr, score->refcount,
+		     score->pending_lookups);
+	if (score->pending_lookups == 0)
+	    event_request_timer(callback, context, EVENT_NULL_DELAY);
 	return;
     }
     if (msg_verbose > 1)
@@ -339,6 +426,9 @@ void    ps_dnsbl_request(const char *client_addr)
     score = (PS_DNSBL_SCORE *) mymalloc(sizeof(*score));
     score->total = 0;
     score->refcount = 1;
+    score->pending_lookups = 0;
+    PS_CALL_BACK_INIT(score);
+    PS_CALL_BACK_ENTER(score, callback, context);
     (void) htable_enter(dnsbl_score_cache, client_addr, (char *) score);
 
     /*
@@ -350,7 +440,7 @@ void    ps_dnsbl_request(const char *client_addr)
     for (ht = dnsbl_site_list; *ht; ht++) {
 	if ((fd = LOCAL_CONNECT("private/" DNSBL_SERVICE, NON_BLOCKING, 1)) < 0) {
 	    msg_warn("%s: connect to " DNSBL_SERVICE " service: %m", myname);
-	    return;
+	    continue;
 	}
 	stream = vstream_fdopen(fd, O_RDWR);
 	attr_print(stream, ATTR_FLAG_NONE,
@@ -360,10 +450,11 @@ void    ps_dnsbl_request(const char *client_addr)
 	if (vstream_fflush(stream) != 0) {
 	    msg_warn("%s: error sending to " DNSBL_SERVICE " service: %m", myname);
 	    vstream_fclose(stream);
-	    return;
+	    continue;
 	}
 	PS_READ_EVENT_REQUEST(vstream_fileno(stream), ps_dnsbl_receive,
 			      (char *) stream, DNSBLOG_TIMEOUT);
+	score->pending_lookups += 1;
     }
 }
 

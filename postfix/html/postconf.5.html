@@ -6854,10 +6854,10 @@ when it rejects mail.  When no mapping is found, the actual DNSBL
 domain will be used. </p>
 
 <p> For maximal stability it is best to use a file that is read
-into memory such as <a href="pcre_table.5.html">pcre</a>:, <a href="regexp_table.5.html">regexp</a>: or texthash: (a format similar
-to hash: except that there is no need to run <a href="postmap.1.html">postmap(1)</a> before the
-file can be used, and that it does not detect changes after the
-file is read). </p>
+into memory such as <a href="pcre_table.5.html">pcre</a>:, <a href="regexp_table.5.html">regexp</a>: or texthash: (texthash: is similar
+to hash:, except a) there is no need to run <a href="postmap.1.html">postmap(1)</a> before the
+file can be used, and b) texthash: does not detect changes after
+the file is read). </p>
 
 <p> Example: </p>
 
@@ -6950,7 +6950,7 @@ parameter. </p>
 </DD>
 
 <DT><b><a name="postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>
-(default: 1d)</b></DT><DD>
+(default: 1h)</b></DT><DD>
 
 <p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will cache results from
 a successful DNS blocklist test. During this time, the client IP address
@@ -7053,10 +7053,10 @@ one-letter suffix that specifies the time unit).  Time units: s
 
 <p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will wait for an SMTP
 client to send a command before its turn, and for DNS blocklist
-lookup results to arrive (default: 2 seconds under stress, 6 seconds
-normally).  This is done only when the SMTP client IP address is
-not permanently whitelisted, and when it has no cached decision.
-Specify a non-zero time value (an integral value plus an optional
+lookup results to arrive (default: up to 2 seconds under stress,
+up to 6 seconds otherwise).  <p>
+
+<p> Specify a non-zero time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  </p>
 
 <p> Time units: s (seconds), m (minutes), h (hours), d (days), w
