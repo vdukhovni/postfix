@@ -357,19 +357,16 @@ static void ps_dnsbl_receive(int event, char *context)
 	}
 	if (reply_argv != 0)
 	    argv_free(reply_argv);
-    } else {
-	msg_warn("%s: unexpected event: %d", myname, event);
+
+	/*
+	 * Notify the requestor(s) that the result is ready to be picked up.
+	 * If this call isn't made, clients have to sit out the entire
+	 * pre-handshake delay.
+	 */
+	score->pending_lookups -= 1;
+	if (score->pending_lookups == 0)
+	    PS_CALL_BACK_NOTIFY(score, PS_NULL_EVENT);
     }
-
-    /*
-     * We're done with this stream. Notify the requestor(s) that the result
-     * is ready to be picked up. If this call isn't made, clients have to sit
-     * out the entire pre-handshake delay.
-     */
-    score->pending_lookups -= 1;
-    if (score->pending_lookups == 0)
-	PS_CALL_BACK_NOTIFY(score, PS_NULL_EVENT);
-
     vstream_fclose(stream);
 }
 

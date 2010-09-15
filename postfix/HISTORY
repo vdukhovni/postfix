@@ -15992,3 +15992,8 @@ Apologies for any names omitted.
 	this increases the database update frequency too much then
 	we'll need to make dnsbl result non-cachable.  Files:
 	postscreen/postscreen_dnsbl.c, global/mail_params.h.
+
+20100915
+
+	Bugfix (introduced 20100914): missing precondition for
+	call-back notification.  File: postscreen/dnsblog.c.

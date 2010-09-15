@@ -393,10 +393,10 @@ whitelist entry that excludes the client IP address from further tests until
 the temporary whitelist entry expires, as controlled with the postscreen_*_ttl
 parameters.
 
-When no "deep protocol tests" are configured, postscreen(8) passes the "live"
-connection to a Postfix SMTP server process. The client can then continue as if
-postscreen(8) never even existed (except for the short postscreen_greet_wait
-delay).
+When no "deep protocol tests" are configured, postscreen(8) hands off the
+"live" connection to a Postfix SMTP server process. The client can then
+continue as if postscreen(8) never even existed (except for the short
+postscreen_greet_wait delay).
 
 When any "deep protocol tests" are configured, postscreen(8) cannot hand off
 the "live" connection to a Postfix SMTP server process in the middle of the

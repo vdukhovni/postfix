@@ -540,7 +540,7 @@ address from further tests until the temporary whitelist entry
 expires, as controlled with the postscreen_*_ttl parameters. </p>
 
 <p> When no "<a href="#after_220">deep protocol tests</a>" are
-configured, postscreen(8) passes the "live" connection to a Postfix
+configured, postscreen(8) hands off the "live" connection to a Postfix
 SMTP server process.  The client can then continue as if postscreen(8)
 never even existed (except for the short postscreen_greet_wait delay).
 </p>
