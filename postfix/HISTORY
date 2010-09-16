@@ -15996,4 +15996,16 @@ Apologies for any names omitted.
 20100915
 
 	Bugfix (introduced 20100914): missing precondition for
-	call-back notification.  File: postscreen/dnsblog.c.
+	call-back notification.  File: postscreen/postscreen_dnsbl.c.
+
+	Bugfix (introduced 20100914): the "postscreen_greet_wait"
+	delay speedup worked only for DNSBL listed sites.  File:
+	postscreen/postscreen_dnsbl.c.
+
+	Workaround: better handling of pregreeting spambots. The
+	postscreen built-in SMTP engine no longer sends a 220 banner
+	to a client that falls into the pregeet trap.  This eliminates
+	many "non-SMTP command" records in postscreen logging, as
+	the SMTP client and server no longer get out of sync.  It
+	also results in better logging of sender/recipient information.
+	file: postscreen/postscreen-smtpd.c.

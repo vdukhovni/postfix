@@ -830,9 +830,11 @@ void    ps_smtpd_tests(PS_STATE *state)
 		     PS_STATE_FLAG_BARLF_TODO);
 
     /*
-     * Send the SMTP banner.
+     * Send no SMTP banner to pregreeting clients. This eliminates a lot of
+     * "NON-SMTP COMMAND" events, and improves sender/recipient logging.
      */
-    if (PS_SEND_REPLY(state, ps_smtpd_greeting) != 0) {
+    if ((state->flags & PS_STATE_FLAG_PREGR_FAIL) == 0
+	&& PS_SEND_REPLY(state, ps_smtpd_greeting) != 0) {
 	ps_hangup_event(state);
 	return;
     }

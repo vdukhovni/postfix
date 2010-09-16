@@ -326,7 +326,6 @@ static void ps_dnsbl_receive(int event, char *context)
 		     ATTR_TYPE_STR, MAIL_ATTR_ACT_CLIENT_ADDR, reply_client,
 		     ATTR_TYPE_STR, MAIL_ATTR_RBL_ADDR, reply_addr,
 		     ATTR_TYPE_END) == 3
-	&& *STR(reply_addr) != 0
 	&& (score = (PS_DNSBL_SCORE *)
 	    htable_find(dnsbl_score_cache, STR(reply_client))) != 0) {
 
@@ -341,22 +340,25 @@ static void ps_dnsbl_receive(int event, char *context)
 	    msg_info("%s: client=\"%s\" score=%d domain=\"%s\" reply=\"%s\"",
 		     myname, STR(reply_client), score->total,
 		     STR(reply_dnsbl), STR(reply_addr));
-	head = (PS_DNSBL_HEAD *) htable_find(dnsbl_site_cache, STR(reply_dnsbl));
-	site = (head ? head->first : (PS_DNSBL_SITE *) 0);
-	for (reply_argv = 0; site != 0; site = site->next) {
-	    if (site->filter == 0
-		|| ps_dnsbl_match(site->filter, reply_argv ? reply_argv :
+	if (*STR(reply_addr) != 0) {
+	    head = (PS_DNSBL_HEAD *)
+		htable_find(dnsbl_site_cache, STR(reply_dnsbl));
+	    site = (head ? head->first : (PS_DNSBL_SITE *) 0);
+	    for (reply_argv = 0; site != 0; site = site->next) {
+		if (site->filter == 0
+		    || ps_dnsbl_match(site->filter, reply_argv ? reply_argv :
 			 (reply_argv = argv_split(STR(reply_addr), " ")))) {
-		score->dnsbl = head->safe_dnsbl;
-		score->total += site->weight;
-		if (msg_verbose > 1)
-		    msg_info("%s: filter=\"%s\" weight=%d score=%d",
-			     myname, site->filter ? site->filter : "null",
-			     site->weight, score->total);
+		    score->dnsbl = head->safe_dnsbl;
+		    score->total += site->weight;
+		    if (msg_verbose > 1)
+			msg_info("%s: filter=\"%s\" weight=%d score=%d",
+			       myname, site->filter ? site->filter : "null",
+				 site->weight, score->total);
+		}
 	    }
+	    if (reply_argv != 0)
+		argv_free(reply_argv);
 	}
-	if (reply_argv != 0)
-	    argv_free(reply_argv);
 
 	/*
 	 * Notify the requestor(s) that the result is ready to be picked up.
@@ -367,6 +369,7 @@ static void ps_dnsbl_receive(int event, char *context)
 	if (score->pending_lookups == 0)
 	    PS_CALL_BACK_NOTIFY(score, PS_NULL_EVENT);
     }
+    /* Here, score may be a null pointer. */
     vstream_fclose(stream);
 }
 

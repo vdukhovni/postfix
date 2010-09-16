@@ -423,19 +423,34 @@ mail:
  1. Comment out the "smtp inet ... smtpd" service in master.cf, including any
     "-o parameter=value" entries that follow.
 
+    /etc/postfix/master.cf:
+        #smtp      inet  n       -       n       -       -       smtpd
+        #    -o parameter=value ...
+
  2. Uncomment the new "smtpd pass ... smtpd" service in master.cf, and
     duplicate any "-o parameter=value" entries from the smtpd service that was
     commented out in step 1.
 
+    /etc/postfix/master.cf:
+        smtpd     pass  -       -       n       -       -       smtpd
+            -o parameter=value ...
+
  3. Uncomment the new "smtp inet ... postscreen" service in master.cf.
+
+    /etc/postfix/master.cf:
+        smtp      inet  n       -       n       -       1       postscreen
 
  4. Uncomment the new "dnsblog unix ... dnsblog" service in master.cf. This
     service does DNSBL lookups for postscreen(8) and logs results.
+
+    /etc/postfix/master.cf:
+        dnsblog   unix  -       -       n       -       0       dnsblog
 
  5. To enable DNSBL lookups, list some DNS blocklist sites in main.cf,
     separated by whitespace. Different sites can have different weights. For
     example:
 
+    /etc/postfix/main.cf:
         postscreen_dnsbl_threshold = 2
         postscreen_dnsbl_sites = zen.spamhaus.org*2 example.com*1 example.net*1
 
@@ -520,13 +535,28 @@ processes:
  1. Comment out the "smtp inet ... postscreen" service in master.cf, including
     any "-o parameter=value" entries that follow.
 
+    /etc/postfix/master.cf:
+        #smtp      inet  n       -       n       -       1       postscreen
+        #    -o parameter=value ...
+
  2. Comment out the "dnsblog unix ... dnsblog" service in master.cf.
+
+    /etc/postfix/master.cf:
+        #dnsblog   unix  -       -       n       -       0       dnsblog
 
  3. Comment out the "smtpd pass ... smtpd" service in master.cf, including any
     "-o parameter=value" entries that follow.
 
+    /etc/postfix/master.cf:
+        #smtpd     pass  -       -       n       -       -       smtpd
+        #    -o parameter=value ...
+
  4. Uncomment the "smtp inet ... smtpd" service in master.cf, including any "-
     o parameter=value" entries that follow.
+
+    /etc/postfix/master.cf:
+        smtp      inet  n       -       n       -       -       smtpd
+            -o parameter=value ...
 
  5. Read the new configuration with "postfix reload".
 
@@ -538,13 +568,13 @@ in OpenBSD spamd, and in MailChannels Traffic Control.
 Wietse threw together a crude prototype with pregreet and dnsbl support in June
 2009, because he needed something new for a Mailserver conference presentation
 in July. Ralf Hildebrandt ran this code on several servers to collect real-
-world evidence. This version used the dnsblog(8) ad-hoc DNS client program.
+world statistics. This version used the dnsblog(8) ad-hoc DNS client program.
 
 Wietse needed new material for a LISA conference presentation in November 2010,
 so he added support for DNSBL weights and filters in August, followed by a
 major code rewrite, deep protocol tests, helo/sender/recipient logging, and
 stress-adaptive behavior in September. Ralf Hildebrandt ran this code on
-several servers to collect real-world evidence. This version still used the
-same delay for pregreet and DNBL tests, as well as the embarrassing dnsblog(8)
+several servers to collect real-world statistics. This version still used the
+same delay for pregreet and DNSBL tests, as well as the embarrassing dnsblog(8)
 ad-hoc DNS client.
 

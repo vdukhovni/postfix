@@ -585,22 +585,45 @@ without blocking mail: </p>
 in <a href="master.5.html">master.cf</a>, including any "<tt>-o parameter=value</tt>" entries
 that follow.  </p>
 
+<pre>
+/etc/postfix/<a href="master.5.html">master.cf</a>:
+    #smtp      inet  n       -       n       -       -       smtpd
+    #    -o parameter=value ...
+</pre>
+
 <li> <p> Uncomment the new "<tt>smtpd pass ... smtpd</tt>" service
 in <a href="master.5.html">master.cf</a>, and duplicate any "<tt>-o parameter=value</tt>" entries
 from the smtpd service that was commented out in step 1. </p>
 
+<pre>
+/etc/postfix/<a href="master.5.html">master.cf</a>:
+    smtpd     pass  -       -       n       -       -       smtpd
+        -o parameter=value ...
+</pre>
+
 <li> <p> Uncomment the new "<tt>smtp inet ... postscreen</tt>"
 service in <a href="master.5.html">master.cf</a>. </p>
+
+<pre>
+/etc/postfix/<a href="master.5.html">master.cf</a>:
+    smtp      inet  n       -       n       -       1       postscreen
+</pre>
 
 <li> <p> Uncomment the new "<tt>dnsblog  unix ... dnsblog</tt>"
 service in <a href="master.5.html">master.cf</a>.  This service does DNSBL lookups for <a href="postscreen.8.html">postscreen(8)</a>
 and logs results. </p>
+
+<pre>
+/etc/postfix/<a href="master.5.html">master.cf</a>:
+    dnsblog   unix  -       -       n       -       0       dnsblog
+</pre>
 
 <li> <p> To enable DNSBL lookups, list some DNS blocklist sites in
 <a href="postconf.5.html">main.cf</a>, separated by whitespace. Different sites can have different
 weights. For example:
 
 <pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#postscreen_dnsbl_threshold">postscreen_dnsbl_threshold</a> = 2
     <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> = zen.spamhaus.org*2 example.com*1 example.net*1
 </pre>
@@ -714,16 +737,40 @@ SMTP server processes: </p>
 in <a href="master.5.html">master.cf</a>, including any "<tt>-o parameter=value</tt>" entries
 that follow. </p>
 
+<pre>
+/etc/postfix/<a href="master.5.html">master.cf</a>:
+    #smtp      inet  n       -       n       -       1       postscreen
+    #    -o parameter=value ...
+</pre>
+
 <li> <p> Comment out the "<tt>dnsblog  unix ... dnsblog</tt>" service
 in <a href="master.5.html">master.cf</a>.  </p>
+
+<pre>
+/etc/postfix/<a href="master.5.html">master.cf</a>:
+    #dnsblog   unix  -       -       n       -       0       dnsblog
+</pre>
 
 <li> <p> Comment out the "<tt>smtpd pass ... smtpd</tt>" service
 in <a href="master.5.html">master.cf</a>, including any "<tt>-o parameter=value</tt>" entries
 that follow. </p>
 
+<pre>
+/etc/postfix/<a href="master.5.html">master.cf</a>:
+    #smtpd     pass  -       -       n       -       -       smtpd
+    #    -o parameter=value ...
+</pre>
+
+
 <li> <p> Uncomment the "<tt>smtp  inet ... smtpd</tt>" service in
 <a href="master.5.html">master.cf</a>, including any "<tt>-o parameter=value</tt>" entries that
 follow.  </p>
+
+<pre>
+/etc/postfix/<a href="master.5.html">master.cf</a>:
+    smtp      inet  n       -       n       -       -       smtpd
+        -o parameter=value ...
+</pre>
 
 <li> <p> Read the new configuration with "<tt>postfix reload</tt>".
 </p>
@@ -739,7 +786,7 @@ Control.  </p>
 <p> Wietse threw together a crude prototype with pregreet and dnsbl
 support in June 2009, because he needed something new for a Mailserver
 conference presentation in July. Ralf Hildebrandt ran this code on
-several servers to collect real-world evidence. This version used
+several servers to collect real-world statistics. This version used
 the <a href="dnsblog.8.html">dnsblog(8)</a> ad-hoc DNS client program. </p>
 
 <p> Wietse needed new material for a LISA conference presentation
@@ -747,9 +794,9 @@ in November 2010, so he added support for DNSBL weights and filters
 in August, followed by a major code rewrite, deep protocol tests,
 helo/sender/recipient logging, and stress-adaptive behavior in
 September. Ralf Hildebrandt ran this code on several servers to
-collect real-world evidence. This version still used the same delay
-for pregreet and DNBL tests, as well as the embarrassing <a href="dnsblog.8.html">dnsblog(8)</a>
-ad-hoc DNS client.  </p>
+collect real-world statistics. This version still used the same
+delay for pregreet and DNSBL tests, as well as the embarrassing
+<a href="dnsblog.8.html">dnsblog(8)</a> ad-hoc DNS client.  </p>
 
 </body>
 
