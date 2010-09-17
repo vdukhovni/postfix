@@ -16005,7 +16005,26 @@ Apologies for any names omitted.
 	Workaround: better handling of pregreeting spambots. The
 	postscreen built-in SMTP engine no longer sends a 220 banner
 	to a client that falls into the pregeet trap.  This eliminates
-	many "non-SMTP command" records in postscreen logging, as
+	many "NON-SMTP COMMAND" records in postscreen logging, as
 	the SMTP client and server no longer get out of sync.  It
 	also results in better logging of sender/recipient information.
-	file: postscreen/postscreen-smtpd.c.
+	File: postscreen/postscreen_smtpd.c.
+
+20100916
+
+	Cleanup: postscreen now uses the first responding DNSBL
+	name in the "5.7.1 Service unavailable" reply, instead of
+	the last responding one. File: postscreen/postscreen_dnsbl.c.
+
+	Cleanup: the 20100914 "postscreen_greet_wait" speedup did
+	not happen as often as it should, because some older code
+	still turned on PREGREET tests gratuitously, causing a full
+	greet-wait delay.  File: postscreen/postscreen_tests.c.
+
+	Cleanup: to avoid "address in use" problems, postscreen now
+	closes the listening socket after "postfix stop".  It also
+	closes the socket after "postfix reload" but that does not
+	hurt. Files: master/event_server.c, master/multi_server.c.
+
+	Cleanup: postscreen now logs CONNECT and DISCONNECT events.
+	Files: postscreen/postscreen.c, postscreen/postscreen_misc.c.

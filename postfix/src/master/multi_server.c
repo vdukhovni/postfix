@@ -267,6 +267,7 @@ static void multi_server_timeout(int unused_event, char *unused_context)
 
 int     multi_server_drain(void)
 {
+    const char *myname = "multi_server_drain";
     int     fd;
 
     switch (fork()) {
@@ -277,8 +278,13 @@ int     multi_server_drain(void)
     case 0:
 	(void) msg_cleanup((MSG_CLEANUP_FN) 0);
 	event_fork();
-	for (fd = MASTER_LISTEN_FD; fd < MASTER_LISTEN_FD + socket_count; fd++)
+	for (fd = MASTER_LISTEN_FD; fd < MASTER_LISTEN_FD + socket_count; fd++) {
 	    event_disable_readwrite(fd);
+	    (void) close(fd);
+	    /* Play safe - don't reuse this file number. */
+	    if (DUP2(STDIN_FILENO, fd) < 0)
+		msg_warn("%s: dup2(%d, %d): %m", myname, STDIN_FILENO, fd);
+	}
 	var_use_limit = 1;
 	return (0);
 	/* Let the master start a new process. */

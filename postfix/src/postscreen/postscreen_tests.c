@@ -234,13 +234,19 @@ void    ps_parse_tests(PS_STATE *state,
     /*
      * Gratuitously make postscreen logging more useful by turning on all
      * enabled pre-handshake tests when any pre-handshake test is turned on.
+     * 
+     * XXX Don't enable PREGREET gratuitously before the test expires. With a
+     * short TTL for DNSBL whitelisting, turning on PREGREET would force a
+     * full postscreen_greet_wait too frequently.
      */
+#if 0
     if (state->flags & PS_STATE_FLAG_EARLY_TODO) {
 	if (PS_PREGR_TEST_ENABLE())
 	    state->flags |= PS_STATE_FLAG_PREGR_TODO;
 	if (PS_DNSBL_TEST_ENABLE())
 	    state->flags |= PS_STATE_FLAG_DNSBL_TODO;
     }
+#endif
 }
 
 /* ps_print_tests - print postscreen cache record */

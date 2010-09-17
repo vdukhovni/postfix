@@ -475,7 +475,7 @@ static void ps_service(VSTREAM *smtp_client_stream,
      */
     if (getpeername(vstream_fileno(smtp_client_stream), (struct sockaddr *)
 		    & addr_storage, &addr_storage_len) < 0) {
-	msg_warn("getpeername: %m");
+	msg_warn("getpeername: %m -- dropping this connection");
 	ps_send_reply(vstream_fileno(smtp_client_stream),
 		      "unknown_address", "unknown_port",
 		      "421 4.3.2 No system resources\r\n");
@@ -489,7 +489,8 @@ static void ps_service(VSTREAM *smtp_client_stream,
     if ((aierr = sockaddr_to_hostaddr((struct sockaddr *) & addr_storage,
 				      addr_storage_len, &smtp_client_addr,
 				      &smtp_client_port, 0)) != 0) {
-	msg_warn("cannot convert client address/port to string: %s",
+	msg_warn("cannot convert client address/port to string: %s"
+		 " -- dropping this connection",
 		 MAI_STRERROR(aierr));
 	ps_send_reply(vstream_fileno(smtp_client_stream),
 		      "unknown_address", "unknown_port",
@@ -503,6 +504,8 @@ static void ps_service(VSTREAM *smtp_client_stream,
 	msg_info("%s: sq=%d cq=%d connect from %s:%s",
 		 myname, ps_post_queue_length, ps_check_queue_length,
 		 smtp_client_addr.buf, smtp_client_port.buf);
+
+    msg_info("CONNECT from %s", smtp_client_addr.buf);
 
     /*
      * Bundle up all the loose session pieces. This zeroes all flags and time

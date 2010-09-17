@@ -348,7 +348,8 @@ static void ps_dnsbl_receive(int event, char *context)
 		if (site->filter == 0
 		    || ps_dnsbl_match(site->filter, reply_argv ? reply_argv :
 			 (reply_argv = argv_split(STR(reply_addr), " ")))) {
-		    score->dnsbl = head->safe_dnsbl;
+		    if (score->dnsbl == 0)
+			score->dnsbl = head->safe_dnsbl;
 		    score->total += site->weight;
 		    if (msg_verbose > 1)
 			msg_info("%s: filter=\"%s\" weight=%d score=%d",
@@ -424,6 +425,7 @@ void    ps_dnsbl_request(const char *client_addr,
     if (msg_verbose > 1)
 	msg_info("%s: create blocklist score for %s", myname, client_addr);
     score = (PS_DNSBL_SCORE *) mymalloc(sizeof(*score));
+    score->dnsbl = 0;
     score->total = 0;
     score->refcount = 1;
     score->pending_lookups = 0;
