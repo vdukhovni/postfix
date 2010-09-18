@@ -112,7 +112,7 @@ static void ps_early_event(int event, char *context)
 	    dnsbl_score =
 		ps_dnsbl_retrieve(state->smtp_client_addr, &dnsbl_name);
 	    if (dnsbl_score < var_ps_dnsbl_thresh) {
-		state->dnsbl_stamp = event_time() + var_ps_pregr_ttl;
+		state->dnsbl_stamp = event_time() + var_ps_dnsbl_ttl;
 		PS_PASS_SESSION_STATE(state, "dnsbl test",
 				      PS_STATE_FLAG_DNSBL_PASS);
 	    } else {

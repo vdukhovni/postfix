@@ -16028,3 +16028,8 @@ Apologies for any names omitted.
 
 	Cleanup: postscreen now logs CONNECT and DISCONNECT events.
 	Files: postscreen/postscreen.c, postscreen/postscreen_misc.c.
+
+20100917
+
+	Bugfix: cut-and-paste error. Postscreen used pregreet_ttl
+	instead of dnsbnl_ttl. File: postscreen/postscreen_early.c.

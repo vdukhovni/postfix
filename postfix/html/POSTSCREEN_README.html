@@ -625,7 +625,8 @@ weights. For example:
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#postscreen_dnsbl_threshold">postscreen_dnsbl_threshold</a> = 2
-    <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> = zen.spamhaus.org*2 example.com*1 example.net*1
+    <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> = zen.spamhaus.org*2 
+        bl.spamcop.net*1 b.barracudacentral.org*1
 </pre>
 
 <p> Note: if your DNSBL queries have a "secret" in the domain name,
@@ -794,9 +795,8 @@ in November 2010, so he added support for DNSBL weights and filters
 in August, followed by a major code rewrite, deep protocol tests,
 helo/sender/recipient logging, and stress-adaptive behavior in
 September. Ralf Hildebrandt ran this code on several servers to
-collect real-world statistics. This version still used the same
-delay for pregreet and DNSBL tests, as well as the embarrassing
-<a href="dnsblog.8.html">dnsblog(8)</a> ad-hoc DNS client.  </p>
+collect real-world statistics. This version still used the embarrassing
+<a href="dnsblog.8.html">dnsblog(8)</a> ad-hoc DNS client program.  </p>
 
 </body>
 
