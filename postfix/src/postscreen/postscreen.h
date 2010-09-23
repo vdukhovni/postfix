@@ -186,6 +186,12 @@ typedef struct {
 #define PS_STATE_FLAG_ANY_TODO \
 	(PS_STATE_FLAG_EARLY_TODO | PS_STATE_FLAG_SMTPD_TODO)
 
+#define PS_STATE_FLAG_ANY_TODO_FAIL \
+	(PS_STATE_FLAG_ANY_TODO | PS_STATE_FLAG_ANY_FAIL)
+
+#define PS_STATE_FLAG_ANY_UPDATE \
+	(PS_STATE_FLAG_ANY_PASS)
+
  /*
   * See log_adhoc.c for discussion.
   */
@@ -383,6 +389,7 @@ extern void ps_dnsbl_request(const char *, void (*) (int, char *), char *);
 	(dst)->pregr_stamp = PS_TIME_STAMP_INVALID; \
 	(dst)->dnsbl_stamp = PS_TIME_STAMP_INVALID; \
 	(dst)->pipel_stamp = PS_TIME_STAMP_INVALID; \
+	(dst)->barlf_stamp = PS_TIME_STAMP_INVALID; \
     } while (0)
 #define PS_BEGIN_TESTS(state, name) do { \
 	(state)->test_name = (name); \
@@ -411,7 +418,7 @@ extern void ps_smtpd_init(void);
  /*
   * postscreen_misc.c
   */
-extern char *ps_format_delta_time(VSTRING *, struct timeval, int *);
+extern char *ps_format_delta_time(VSTRING *, struct timeval, DELTA_TIME *);
 extern void ps_conclude(PS_STATE *);
 extern void ps_hangup_event(PS_STATE *);
 

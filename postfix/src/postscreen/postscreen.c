@@ -560,7 +560,7 @@ static void ps_service(VSTREAM *smtp_client_stream,
 	    /* Not: PS_PASS_SESSION_STATE. Repeat this test the next time. */
 	    break;
 	default:
-	    msg_panic("%s: unknown pregreet action value %d",
+	    msg_panic("%s: unknown blacklist action value %d",
 		      myname, ps_blist_action);
 	}
     }
@@ -580,7 +580,7 @@ static void ps_service(VSTREAM *smtp_client_stream,
 	if (msg_verbose)
 	    msg_info("%s: cached + recent flags: %s",
 		     myname, ps_print_state_flags(state->flags, myname));
-	if ((state->flags & PS_STATE_FLAG_ANY_TODO) == 0) {
+	if ((state->flags & PS_STATE_FLAG_ANY_TODO_FAIL) == 0) {
 	    msg_info("PASS OLD %s", state->smtp_client_addr);
 	    ps_conclude(state);
 	    return;

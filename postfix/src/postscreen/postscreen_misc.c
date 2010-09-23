@@ -9,7 +9,7 @@
 /*	char	*ps_format_delta_time(buf, tv, delta)
 /*	VSTRING	*buf;
 /*	struct timeval tv;
-/*	int	*delta;
+/*	DELTA_TIME *delta;
 /*
 /*	void	ps_conclude(state)
 /*	PS_STATE *state;
@@ -66,7 +66,7 @@
 
 /* ps_format_delta_time - pretty-formatted delta time */
 
-char   *ps_format_delta_time(VSTRING *buf, struct timeval tv, int *delta)
+char   *ps_format_delta_time(VSTRING *buf, struct timeval tv, DELTA_TIME *delta)
 {
     DELTA_TIME pdelay;
     struct timeval now;
@@ -75,7 +75,7 @@ char   *ps_format_delta_time(VSTRING *buf, struct timeval tv, int *delta)
     PS_CALC_DELTA(pdelay, now, tv);
     VSTRING_RESET(buf);
     format_tv(buf, pdelay.dt_sec, pdelay.dt_usec, SIG_DIGS, var_delay_max_res);
-    *delta = pdelay.dt_sec;
+    *delta = pdelay;
     return (STR(buf));
 }
 
@@ -95,26 +95,26 @@ void    ps_conclude(PS_STATE *state)
      * blacklisting. There may still be unfinished tests; those tests will
      * need to be completed when the client returns in a later session.
      */
-    if ((state->flags & PS_STATE_FLAG_ANY_PASS) != 0
-	&& (state->flags & PS_STATE_FLAG_ANY_FAIL) == 0) {
+    if (state->flags & PS_STATE_FLAG_ANY_FAIL)
+	state->flags &= ~PS_STATE_FLAG_ANY_PASS;
 
-	/*
-	 * Log our final blessing when all unfinished tests were completed.
-	 */
-	if ((state->flags & PS_STATE_FLAG_ANY_PASS) ==
-	 PS_STATE_FLAGS_TODO_TO_PASS(state->flags & PS_STATE_FLAG_ANY_TODO))
-	    msg_info("PASS %s %s", (state->flags & PS_STATE_FLAG_NEW) == 0 ?
-		     "OLD" : "NEW", state->smtp_client_addr);
+    /*
+     * Log our final blessing when all unfinished tests were completed.
+     */
+    if ((state->flags & PS_STATE_FLAG_ANY_PASS) ==
+	PS_STATE_FLAGS_TODO_TO_PASS(state->flags & PS_STATE_FLAG_ANY_TODO))
+	msg_info("PASS %s %s", (state->flags & PS_STATE_FLAG_NEW) == 0 ?
+		 "OLD" : "NEW", state->smtp_client_addr);
 
-	/*
-	 * Update the postscreen cache. This still supports a scenario where
-	 * a client gets whitelisted in the course of multiple sessions, as
-	 * long as that client does not "fail" any test.
-	 */
-	if (ps_cache_map != 0) {
-	    ps_print_tests(ps_temp, state);
-	    ps_cache_update(ps_cache_map, state->smtp_client_addr, STR(ps_temp));
-	}
+    /*
+     * Update the postscreen cache. This still supports a scenario where a
+     * client gets whitelisted in the course of multiple sessions, as long as
+     * that client does not "fail" any test.
+     */
+    if ((state->flags & PS_STATE_FLAG_ANY_UPDATE) != 0
+	&& ps_cache_map != 0) {
+	ps_print_tests(ps_temp, state);
+	ps_cache_update(ps_cache_map, state->smtp_client_addr, STR(ps_temp));
     }
 
     /*
@@ -123,7 +123,7 @@ void    ps_conclude(PS_STATE *state)
     if ((state->flags & PS_STATE_FLAG_NOFORWARD) == 0) {
 	ps_send_socket(state);
     } else {
-	if ((state->flags & PS_STATE_FLAG_HANGUP) == 0) 
+	if ((state->flags & PS_STATE_FLAG_HANGUP) == 0)
 	    (void) ps_send_reply(vstream_fileno(state->smtp_client_stream),
 			   state->smtp_client_addr, state->smtp_client_port,
 				 state->final_reply);
@@ -136,7 +136,7 @@ void    ps_conclude(PS_STATE *state)
 
 void    ps_hangup_event(PS_STATE *state)
 {
-    int     elapsed;
+    DELTA_TIME elapsed;
 
     /*
      * Sessions can break at any time, even after the client passes all tests

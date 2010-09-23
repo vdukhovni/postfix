@@ -2,14 +2,16 @@ Wish list:
 
 	Remove this file from the stable release.
 
-	how to prevent postscreen's cache sweeper from deleting
-	records that have failed ignored tests?
-
-	Update history in manpage/readme for SQLite driver.
-
-	header_checks(5): document synopsis and feature subsets.
-
 	Consistency: in postconf.proto make <dt>..</dt> tags bold.
+
+	postscreen(8): listen on multiple IP addresses and enforce
+	that the client contacts the primary MX address first (i.e.
+	punish hosts that contact the secondary before the primary).
+	The downside with any approach that relies on temporary
+	punishment is that it does not scale to configurations
+	with multiple equal-preference MX hosts. Such hosts would
+	have to share the postscreen cache, causing an unacceptable
+	performance bottleneck and a single point of failure.
 
 	According to a paper by Ted Unangst at BSDCON09, kqueue
 	reports state changes, i.e. kqueue indicates when the socket
@@ -23,12 +25,6 @@ Wish list:
 	the kernel buffer.  We need a test program for this that 
 	repeats these tests with OpenBSD and NetBSD (and MacOS X
 	once they fix their kqueue implementation).
-
-	postscreen(8): need some option to wait for DNSBL lookup
-	(etc.) completion. For example, postscreen_greet_wait would
-	become a lower bound, while postscreen_dnsbl_wait would
-	become an upper bound (or should all features use a shared
-	postscreen_max_wait upper bound?).
 
 	Would it help if there were different cleanup_service
 	parameter names for different message paths? smtpd(8) uses

@@ -58,7 +58,7 @@ static void ps_early_event(int event, char *context)
     char    read_buf[PS_READ_BUF_SIZE];
     int     read_count;
     int     dnsbl_score;
-    int     elapsed;
+    DELTA_TIME elapsed;
     const char *dnsbl_name;
 
     if (msg_verbose > 1)
@@ -206,13 +206,13 @@ static void ps_early_event(int event, char *context)
 	 * EVENT_TIME, instead of calling ps_early_event recursively.
 	 */
 	state->flags |= PS_STATE_FLAG_PREGR_DONE;
-	if (elapsed >= PS_EFF_GREET_WAIT
+	if (elapsed.dt_sec >= PS_EFF_GREET_WAIT
 	    || ((state->flags & PS_STATE_FLAG_EARLY_DONE)
 		== PS_STATE_FLAGS_TODO_TO_DONE(state->flags & PS_STATE_FLAG_EARLY_TODO)))
 	    ps_early_event(EVENT_TIME, context);
 	else
 	    event_request_timer(ps_early_event, context,
-				PS_EFF_GREET_WAIT - elapsed);
+				PS_EFF_GREET_WAIT - elapsed.dt_sec);
 	return;
     }
 }

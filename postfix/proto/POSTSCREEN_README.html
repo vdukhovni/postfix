@@ -19,15 +19,14 @@
 
 <p> The Postfix postscreen(8) server performs triage on multiple
 inbound SMTP connections in parallel. While a single postscreen(8)
-process keeps spambots away from Postfix SMTP server processes,
+process keeps zombies away from Postfix SMTP server processes,
 more Postfix SMTP server processes remain available for legitimate
 clients. </p>
 
 <p> By doing these checks in a single postscreen(8) process, Postfix
-can avoid wasting one SMTP server process per connection. A side
-benefit of postscreen(8)'s DNSBL lookups is that DNS records are
-already cached before the Postfix SMTP server looks them up later.
-</p>
+can avoid wasting one SMTP server process per zombie. A side benefit
+of postscreen(8)'s DNSBL lookups is that DNS records will already be
+cached before the Postfix SMTP server looks them up later.  </p>
 
 <p> Topics in this document: </p>
 
@@ -57,30 +56,39 @@ already cached before the Postfix SMTP server looks them up later.
 
 <h2> <a name="basic">The basic idea behind postscreen(8)</a> </h2>
 
-<p> Spambots have a limited amount of time to send out spam before
-they become blacklisted. For this reason, spambots make compromises
-in their SMTP protocol implementation to speed up spam deliveries.
-For example, they speak before their turn, or they ignore responses
-from SMTP servers. </p>
+<p> Most email is spam, and most spam is sent out by zombies (malware
+on compromised end-user computers).  Wietse expects that the zombie
+problem will get worse before things improve, if ever. Without a
+tool like postscreen(8) that keeps the zombies away, Postfix would be
+spending most of its resources not receiving email. </p>
 
-<p> Many spambots avoid spamming the same site repeatedly, in an
-attempt to fly under the radar.  Thus, postscreen(8) must make a
-long-term decision after a single measurement. For example, allow
-a good client to skip the "<a href="#pregreet">pregreet</a>" test
-for 24 hours. </p>
+<p> The main challenge for postscreen(8) is to make an is-it-a-zombie
+decision based on a single measurement. This is necessary because
+many zombies avoid spamming the same site repeatedly, in an attempt
+to fly under the radar.  Once postscreen(8) decides that a client
+is not-a-zombie, it whitelists the client temporarily to avoid
+further delays for legitimate mail.  </p>
 
-<p> To recognize spambots, postscreen(8) measures properties of the
-client IP address and of the client SMTP protocol implementation
-(the protocol compromises that were made to speed up delivery).
-These properties don't change with delivery attempts, and are
-therefore suitable for making a long-term decision after a single
-measurement.  </p>
+<p> Zombies have challenges too: they have only a limited amount
+of time to deliver spam before their IP address becomes blacklisted.
+To speed up spam deliveries, zombies make compromises in their SMTP
+protocol implementation.  For example, they speak before their turn,
+or they ignore responses from SMTP servers and continue sending
+mail even when the server tells them to go away. </p>
 
-<p> postscreen(8) does not inspect message content. The reason is
-that content can change with each delivery attempt, especially with
-legitimate clients. Message content is not good for making a long-term
-decision after a single measurement, and that is the problem that
-postscreen(8) is focused on. </p>
+<p> postscreen(8) uses a variety of measurements to recognize
+zombies.  First, postscreen(8) determines if the remote SMTP client
+IP address is blacklisted.  Second, postscreen(8) looks for protocol
+compromises that are made to speed up delivery.  The results of
+such measurements don't change with each delivery attempt, and are
+therefore good for making an is-it-a-zombie decision based on a
+single measurement.  </p>
+
+<p> postscreen(8) does not inspect message content. Message content
+can vary widely with each delivery attempt, especially with clients
+that (also) send legitimate email. Content is therefore not good
+for making an is-it-a-zombie decision based on a single measurement,
+and that is the problem that postscreen(8) is focused on.  </p>
 
 <h2> <a name="general"> General operation </a> </h2>
 
@@ -100,7 +108,7 @@ to reject mail from clients that fail one or more tests, after
 logging the helo, sender and recipient information. </p>
 
 <p> Note: postscreen(8) is not an SMTP proxy; this is intentional.
-The purpose is to keep spambots away from Postfix, with minimal
+The purpose is to keep zombies away from Postfix, with minimal
 overhead for legitimate clients. </p>
 
 <h2> <a name="quick">Quick tests before everything else</a> </h2>
@@ -196,7 +204,7 @@ for the short postscreen_greet_wait delay).  </p>
 <h3> <a name="pregreet"> Pregreet test </a> </h3>
 
 <p> The SMTP protocol is a classic example of a protocol where the
-server speaks before the client. postscreen(8) detects spambots
+server speaks before the client. postscreen(8) detects zombies
 that are in a hurry and that speak before their turn. This test is
 enabled by default. </p>
 
@@ -205,7 +213,7 @@ portion of a "220-<i>text</i>..." teaser banner (default: $smtpd_banner).
 Note that this becomes the first part of a multi-line server greeting.
 The postscreen(8) daemon sends this before the postscreen_greet_wait
 timer is started.  The purpose of the teaser banner is to confuse
-spambots so that they speak before their turn. It has no effect on
+zombies so that they speak before their turn. It has no effect on
 SMTP clients that correctly implement the protocol.  </p>
 
 <p> To avoid problems with poorly-implemented SMTP engines in network
@@ -262,7 +270,9 @@ hide "password" information in DNSBL domain names.
 DNSBL score is equal to or greater than the postscreen_dnsbl_threshold
 parameter value, postscreen(8) logs this as: </p>
 
-<b>DNSBL rank</b> <i>count</i> <b>for</b> <i>address</i>
+<pre>
+    <b>DNSBL rank</b> <i>count</i> <b>for</b> <i>address</i>
+</pre>
 
 <p> Translation: the SMTP client at <i>address</i> has a combined
 DNSBL score of <i>count</i>. </p>
@@ -359,7 +369,7 @@ to send multiple commands. postscreen(8)'s <a href="#after_220">deep
 protocol test</a> for this is disabled by default. </p>
 
 <p> With "postscreen_pipelining_enable = yes", postscreen(8) detects
-spambots that send multiple commands, instead of sending one command
+zombies that send multiple commands, instead of sending one command
 and waiting for the server to reply.  </p>
 
 <p> This test is opportunistically enabled when postscreen(8) has
@@ -392,7 +402,7 @@ feature to block these clients. postscreen(8)'s <a href="#after_220">deep
 protocol test</a> for this is disabled by default.  </p>
 
 <p> With "postscreen_non_smtp_command_enable = yes", postscreen(8)
-detects spambots that send commands specified with the
+detects zombies that send commands specified with the
 postscreen_forbidden_commands parameter. This also detects commands
 with the syntax of a message header label. The latter is a symptom
 that the client is sending message content after ignoring all the
@@ -695,7 +705,7 @@ Postfix SMTP servers dramatically.  </p>
 clients that talk before their turn, and to log the helo/sender/recipient
 information. This stops over half of all known-to-be illegitimate
 connections to Wietse's mail server. It is backup protection for
-spambots that haven't yet been blacklisted. </p>
+zombies that haven't yet been blacklisted. </p>
 
 <li> <p> You can also enable "<a href="#after_220">deep protocol
 tests</a>", but these are more intrusive than the pregreet or DNSBL

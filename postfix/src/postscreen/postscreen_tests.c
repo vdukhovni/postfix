@@ -191,11 +191,17 @@ void    ps_parse_tests(PS_STATE *state,
     default:
 	break;
     }
-    if ((state->pregr_stamp = pregr_stamp) == PS_TIME_STAMP_NEW
-	|| (state->dnsbl_stamp = dnsbl_stamp) == PS_TIME_STAMP_NEW
-	|| (state->pipel_stamp = pipel_stamp) == PS_TIME_STAMP_NEW
-	|| (state->nsmtp_stamp = nsmtp_stamp) == PS_TIME_STAMP_NEW
-	|| (state->barlf_stamp = barlf_stamp) == PS_TIME_STAMP_NEW)
+    state->pregr_stamp = pregr_stamp;
+    state->dnsbl_stamp = dnsbl_stamp;
+    state->pipel_stamp = pipel_stamp;
+    state->nsmtp_stamp = nsmtp_stamp;
+    state->barlf_stamp = barlf_stamp;
+
+    if (pregr_stamp == PS_TIME_STAMP_NEW
+	|| dnsbl_stamp == PS_TIME_STAMP_NEW
+	|| pipel_stamp == PS_TIME_STAMP_NEW
+	|| nsmtp_stamp == PS_TIME_STAMP_NEW
+	|| barlf_stamp == PS_TIME_STAMP_NEW)
 	state->flags |= PS_STATE_FLAG_NEW;
 
     /*
@@ -258,8 +264,8 @@ char   *ps_print_tests(VSTRING *buf, PS_STATE *state)
     /*
      * Sanity check.
      */
-    if ((state->flags & PS_STATE_FLAG_ANY_PASS) == 0)
-	msg_panic("%s: attempt to save a no-pass record", myname);
+    if ((state->flags & PS_STATE_FLAG_ANY_UPDATE) == 0)
+	msg_panic("%s: attempt to save a no-update record", myname);
 
     /*
      * Give disabled tests a dummy time stamp so that we don't log a client

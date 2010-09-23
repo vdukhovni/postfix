@@ -16033,3 +16033,9 @@ Apologies for any names omitted.
 
 	Bugfix: cut-and-paste error. Postscreen used pregreet_ttl
 	instead of dnsbnl_ttl. File: postscreen/postscreen_early.c.
+
+20100920
+
+	Cleanup: minor cleanups and invisible fixes. Files:
+	postscreen/postscreen_misc.c, postscreen/postscreen.h,
+	postscreen/postscreen_tests.c.
