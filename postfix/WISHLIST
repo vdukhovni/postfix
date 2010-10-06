@@ -4,6 +4,8 @@ Wish list:
 
 	Consistency: in postconf.proto make <dt>..</dt> tags bold.
 
+	Milter addrcpt - use Sendmail default DSN
+
 	postscreen(8): listen on multiple IP addresses and enforce
 	that the client contacts the primary MX address first (i.e.
 	punish hosts that contact the secondary before the primary).

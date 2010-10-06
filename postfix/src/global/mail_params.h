@@ -2897,6 +2897,10 @@ extern char *var_msg_strip_chars;
 #define DEF_FROZEN_DELIVERED		1
 extern bool var_frozen_delivered;
 
+#define VAR_RESET_OWNER_ATTR		"reset_owner_alias"
+#define DEF_RESET_OWNER_ATTR		0
+extern bool var_reset_owner_attr;
+
  /*
   * Delay logging time roundup.
   */
@@ -3350,6 +3354,10 @@ extern bool var_ps_helo_required;
 #define VAR_PS_DISABLE_VRFY	"postscreen_disable_vrfy_command"
 #define DEF_PS_DISABLE_VRFY	"$" VAR_DISABLE_VRFY_CMD
 extern bool var_ps_disable_vrfy;
+
+#define VAR_DNSBLOG_DELAY	"dnsblog_reply_delay"
+#define DEF_DNSBLOG_DELAY	"0s"
+extern int var_dnsblog_delay;
 
 /* LICENSE
 /* .ad

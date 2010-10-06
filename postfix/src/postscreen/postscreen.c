@@ -571,7 +571,7 @@ static void ps_service(VSTREAM *smtp_client_stream,
      * tests. Whitelist the client when all enabled test results are still
      * valid.
      */
-    if ((state->flags & PS_STATE_FLAG_ANY_FAIL) == 0
+    if ((state->flags & PS_STATE_MASK_ANY_FAIL) == 0
 	&& ps_cache_map != 0
 	&& (stamp_str = ps_cache_lookup(ps_cache_map, state->smtp_client_addr)) != 0) {
 	saved_flags = state->flags;
@@ -580,7 +580,7 @@ static void ps_service(VSTREAM *smtp_client_stream,
 	if (msg_verbose)
 	    msg_info("%s: cached + recent flags: %s",
 		     myname, ps_print_state_flags(state->flags, myname));
-	if ((state->flags & PS_STATE_FLAG_ANY_TODO_FAIL) == 0) {
+	if ((state->flags & PS_STATE_MASK_ANY_TODO_FAIL) == 0) {
 	    msg_info("PASS OLD %s", state->smtp_client_addr);
 	    ps_conclude(state);
 	    return;
@@ -622,9 +622,9 @@ static void ps_service(VSTREAM *smtp_client_stream,
      * If the client has no up-to-date results for some tests, do those tests
      * first. Otherwise, skip the tests and hand off the connection.
      */
-    if (state->flags & PS_STATE_FLAG_EARLY_TODO)
+    if (state->flags & PS_STATE_MASK_EARLY_TODO)
 	ps_early_tests(state);
-    else if (state->flags & (PS_STATE_FLAG_SMTPD_TODO | PS_STATE_FLAG_NOFORWARD))
+    else if (state->flags & (PS_STATE_MASK_SMTPD_TODO | PS_STATE_FLAG_NOFORWARD))
 	ps_smtpd_tests(state);
     else
 	ps_conclude(state);
@@ -647,7 +647,7 @@ static int ps_cache_validator(const char *client_addr,
      * expired longer ago than the cache retention time.
      */
     ps_parse_tests(&dummy, stamp_str, event_time() - var_ps_cache_ret);
-    return ((dummy.flags & PS_STATE_FLAG_ANY_TODO) == 0);
+    return ((dummy.flags & PS_STATE_MASK_ANY_TODO) == 0);
 }
 
 /* pre_jail_init - pre-jail initialization */

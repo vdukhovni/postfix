@@ -49,6 +49,7 @@ typedef struct {
     time_t  pregr_stamp;		/* pregreet expiration time */
     time_t  dnsbl_stamp;		/* dnsbl expiration time */
     VSTRING *dnsbl_reply;		/* dnsbl reject text */
+    int     dnsbl_index;		/* dnsbl request index */
     /* Built-in SMTP protocol engine. */
     time_t  pipel_stamp;		/* pipelining expiration time */
     time_t  nsmtp_stamp;		/* non-smtp command expiration time */
@@ -126,71 +127,71 @@ typedef struct {
  /*
   * Aggregates for individual tests.
   */
-#define PS_STATE_FLAG_PREGR_TODO_FAIL \
+#define PS_STATE_MASK_PREGR_TODO_FAIL \
 	(PS_STATE_FLAG_PREGR_TODO | PS_STATE_FLAG_PREGR_FAIL)
-#define PS_STATE_FLAG_DNSBL_TODO_FAIL \
+#define PS_STATE_MASK_DNSBL_TODO_FAIL \
 	(PS_STATE_FLAG_DNSBL_TODO | PS_STATE_FLAG_DNSBL_FAIL)
-#define PS_STATE_FLAG_PIPEL_TODO_FAIL \
+#define PS_STATE_MASK_PIPEL_TODO_FAIL \
 	(PS_STATE_FLAG_PIPEL_TODO | PS_STATE_FLAG_PIPEL_FAIL)
-#define PS_STATE_FLAG_NSMTP_TODO_FAIL \
+#define PS_STATE_MASK_NSMTP_TODO_FAIL \
 	(PS_STATE_FLAG_NSMTP_TODO | PS_STATE_FLAG_NSMTP_FAIL)
-#define PS_STATE_FLAG_BARLF_TODO_FAIL \
+#define PS_STATE_MASK_BARLF_TODO_FAIL \
 	(PS_STATE_FLAG_BARLF_TODO | PS_STATE_FLAG_BARLF_FAIL)
 
-#define PS_STATE_FLAG_PIPEL_TODO_SKIP \
+#define PS_STATE_MASK_PIPEL_TODO_SKIP \
 	(PS_STATE_FLAG_PIPEL_TODO | PS_STATE_FLAG_PIPEL_SKIP)
-#define PS_STATE_FLAG_NSMTP_TODO_SKIP \
+#define PS_STATE_MASK_NSMTP_TODO_SKIP \
 	(PS_STATE_FLAG_NSMTP_TODO | PS_STATE_FLAG_NSMTP_SKIP)
-#define PS_STATE_FLAG_BARLF_TODO_SKIP \
+#define PS_STATE_MASK_BARLF_TODO_SKIP \
 	(PS_STATE_FLAG_BARLF_TODO | PS_STATE_FLAG_BARLF_SKIP)
 
-#define PS_STATE_FLAG_PIPEL_TODO_PASS_FAIL \
-	(PS_STATE_FLAG_PIPEL_TODO_FAIL | PS_STATE_FLAG_PIPEL_PASS)
-#define PS_STATE_FLAG_NSMTP_TODO_PASS_FAIL \
-	(PS_STATE_FLAG_NSMTP_TODO_FAIL | PS_STATE_FLAG_NSMTP_PASS)
-#define PS_STATE_FLAG_BARLF_TODO_PASS_FAIL \
-	(PS_STATE_FLAG_BARLF_TODO_FAIL | PS_STATE_FLAG_BARLF_PASS)
+#define PS_STATE_MASK_PIPEL_TODO_PASS_FAIL \
+	(PS_STATE_MASK_PIPEL_TODO_FAIL | PS_STATE_FLAG_PIPEL_PASS)
+#define PS_STATE_MASK_NSMTP_TODO_PASS_FAIL \
+	(PS_STATE_MASK_NSMTP_TODO_FAIL | PS_STATE_FLAG_NSMTP_PASS)
+#define PS_STATE_MASK_BARLF_TODO_PASS_FAIL \
+	(PS_STATE_MASK_BARLF_TODO_FAIL | PS_STATE_FLAG_BARLF_PASS)
 
  /*
   * Separate aggregates for early tests and deep tests.
   */
-#define PS_STATE_FLAG_EARLY_DONE \
+#define PS_STATE_MASK_EARLY_DONE \
 	(PS_STATE_FLAG_PREGR_DONE | PS_STATE_FLAG_DNSBL_DONE)
-#define PS_STATE_FLAG_EARLY_TODO \
+#define PS_STATE_MASK_EARLY_TODO \
 	(PS_STATE_FLAG_PREGR_TODO | PS_STATE_FLAG_DNSBL_TODO)
-#define PS_STATE_FLAG_EARLY_PASS \
+#define PS_STATE_MASK_EARLY_PASS \
 	(PS_STATE_FLAG_PREGR_PASS | PS_STATE_FLAG_DNSBL_PASS)
-#define PS_STATE_FLAG_EARLY_FAIL \
+#define PS_STATE_MASK_EARLY_FAIL \
 	(PS_STATE_FLAG_PREGR_FAIL | PS_STATE_FLAG_DNSBL_FAIL)
 
-#define PS_STATE_FLAG_SMTPD_TODO \
+#define PS_STATE_MASK_SMTPD_TODO \
 	(PS_STATE_FLAG_PIPEL_TODO | PS_STATE_FLAG_NSMTP_TODO | \
 	PS_STATE_FLAG_BARLF_TODO)
-#define PS_STATE_FLAG_SMTPD_PASS \
+#define PS_STATE_MASK_SMTPD_PASS \
 	(PS_STATE_FLAG_PIPEL_PASS | PS_STATE_FLAG_NSMTP_PASS | \
 	PS_STATE_FLAG_BARLF_PASS)
-#define PS_STATE_FLAG_SMTPD_FAIL \
+#define PS_STATE_MASK_SMTPD_FAIL \
 	(PS_STATE_FLAG_PIPEL_FAIL | PS_STATE_FLAG_NSMTP_FAIL | \
 	PS_STATE_FLAG_BARLF_FAIL)
 
  /*
   * Super-aggregates for all tests combined.
   */
-#define PS_STATE_FLAG_ANY_FAIL \
+#define PS_STATE_MASK_ANY_FAIL \
 	(PS_STATE_FLAG_BLIST_FAIL | \
-	PS_STATE_FLAG_EARLY_FAIL | PS_STATE_FLAG_SMTPD_FAIL)
+	PS_STATE_MASK_EARLY_FAIL | PS_STATE_MASK_SMTPD_FAIL)
 
-#define PS_STATE_FLAG_ANY_PASS \
-	(PS_STATE_FLAG_EARLY_PASS | PS_STATE_FLAG_SMTPD_PASS)
+#define PS_STATE_MASK_ANY_PASS \
+	(PS_STATE_MASK_EARLY_PASS | PS_STATE_MASK_SMTPD_PASS)
 
-#define PS_STATE_FLAG_ANY_TODO \
-	(PS_STATE_FLAG_EARLY_TODO | PS_STATE_FLAG_SMTPD_TODO)
+#define PS_STATE_MASK_ANY_TODO \
+	(PS_STATE_MASK_EARLY_TODO | PS_STATE_MASK_SMTPD_TODO)
 
-#define PS_STATE_FLAG_ANY_TODO_FAIL \
-	(PS_STATE_FLAG_ANY_TODO | PS_STATE_FLAG_ANY_FAIL)
+#define PS_STATE_MASK_ANY_TODO_FAIL \
+	(PS_STATE_MASK_ANY_TODO | PS_STATE_MASK_ANY_FAIL)
 
-#define PS_STATE_FLAG_ANY_UPDATE \
-	(PS_STATE_FLAG_ANY_PASS)
+#define PS_STATE_MASK_ANY_UPDATE \
+	(PS_STATE_MASK_ANY_PASS)
 
  /*
   * See log_adhoc.c for discussion.
@@ -378,8 +379,8 @@ extern void ps_cache_update(DICT_CACHE *, const char *, const char *);
   * postscreen_dnsbl.c
   */
 extern void ps_dnsbl_init(void);
-extern int ps_dnsbl_retrieve(const char *, const char **);
-extern void ps_dnsbl_request(const char *, void (*) (int, char *), char *);
+extern int ps_dnsbl_retrieve(const char *, const char **, int);
+extern int ps_dnsbl_request(const char *, void (*) (int, char *), char *);
 
  /*
   * postscreen_tests.c

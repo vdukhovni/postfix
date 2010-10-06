@@ -95,14 +95,14 @@ void    ps_conclude(PS_STATE *state)
      * blacklisting. There may still be unfinished tests; those tests will
      * need to be completed when the client returns in a later session.
      */
-    if (state->flags & PS_STATE_FLAG_ANY_FAIL)
-	state->flags &= ~PS_STATE_FLAG_ANY_PASS;
+    if (state->flags & PS_STATE_MASK_ANY_FAIL)
+	state->flags &= ~PS_STATE_MASK_ANY_PASS;
 
     /*
      * Log our final blessing when all unfinished tests were completed.
      */
-    if ((state->flags & PS_STATE_FLAG_ANY_PASS) ==
-	PS_STATE_FLAGS_TODO_TO_PASS(state->flags & PS_STATE_FLAG_ANY_TODO))
+    if ((state->flags & PS_STATE_MASK_ANY_PASS) ==
+	PS_STATE_FLAGS_TODO_TO_PASS(state->flags & PS_STATE_MASK_ANY_TODO))
 	msg_info("PASS %s %s", (state->flags & PS_STATE_FLAG_NEW) == 0 ?
 		 "OLD" : "NEW", state->smtp_client_addr);
 
@@ -111,7 +111,7 @@ void    ps_conclude(PS_STATE *state)
      * client gets whitelisted in the course of multiple sessions, as long as
      * that client does not "fail" any test.
      */
-    if ((state->flags & PS_STATE_FLAG_ANY_UPDATE) != 0
+    if ((state->flags & PS_STATE_MASK_ANY_UPDATE) != 0
 	&& ps_cache_map != 0) {
 	ps_print_tests(ps_temp, state);
 	ps_cache_update(ps_cache_map, state->smtp_client_addr, STR(ps_temp));

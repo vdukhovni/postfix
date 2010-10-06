@@ -381,6 +381,10 @@
 /*	Available in Postfix version 2.5.3 and later:
 /* .IP "\fBstrict_mailbox_ownership (yes)\fR"
 /*	Defer delivery when a mailbox file is not owned by its recipient.
+/* .IP "\fBreset_owner_alias (no)\fR"
+/*	Reset the \fBlocal\fR(8) delivery agent's idea of the owner-alias
+/*	attribute, when delivering mail to a child alias that does not have
+/*	its own owner alias.
 /* DELIVERY METHOD CONTROLS
 /* .ad
 /* .fi
@@ -529,7 +533,7 @@
 /* .IP "\fBrecipient_delimiter (empty)\fR"
 /*	The separator between user names and address extensions (user+foo).
 /* .IP "\fBrequire_home_directory (no)\fR"
-/*	Whether or not a \fBlocal\fR(8) recipient's home directory must exist
+/*	Require that a \fBlocal\fR(8) recipient's home directory exists
 /*	before mail delivery is attempted.
 /* .IP "\fBsyslog_facility (mail)\fR"
 /*	The syslog facility of Postfix logging.
@@ -648,6 +652,7 @@ int     var_mailtool_compat;
 char   *var_mailbox_lock;
 int     var_mailbox_limit;
 bool    var_frozen_delivered;
+bool    var_reset_owner_attr;
 bool    var_strict_mbox_owner;
 
 int     local_cmd_deliver_mask;
@@ -896,6 +901,7 @@ int     main(int argc, char **argv)
 	VAR_STAT_HOME_DIR, DEF_STAT_HOME_DIR, &var_stat_home_dir,
 	VAR_MAILTOOL_COMPAT, DEF_MAILTOOL_COMPAT, &var_mailtool_compat,
 	VAR_FROZEN_DELIVERED, DEF_FROZEN_DELIVERED, &var_frozen_delivered,
+	VAR_RESET_OWNER_ATTR, DEF_RESET_OWNER_ATTR, &var_reset_owner_attr,
 	VAR_STRICT_MBOX_OWNER, DEF_STRICT_MBOX_OWNER, &var_strict_mbox_owner,
 	0,
     };

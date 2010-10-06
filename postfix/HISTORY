@@ -16039,3 +16039,36 @@ Apologies for any names omitted.
 	Cleanup: minor cleanups and invisible fixes. Files:
 	postscreen/postscreen_misc.c, postscreen/postscreen.h,
 	postscreen/postscreen_tests.c.
+
+20100923
+
+	Cleanup: renamed MUMBLE_FLAG_MUMBLE aggregates to
+	MUMBLE_MASK_MUMBLE for consistency with other Postfix code.
+	Files: postscreen/*.[hc].
+
+20100930
+
+	Cleanup: flag PIPELINING errors with NOOP and VRFY.  File:
+	smtpd/smtpd.c.
+
+20101006
+
+	Bugfix (introduced: 20100914) dangling pointer when a client
+	makes N > 1 simultaneous connections and closes M < N
+	connections before postscreen has delivered the DNSBL score
+	to the corresponding pseudothreads. In practice the pointer
+	will refer to a block of 0xff bytes; the program terminates
+	with a segmentation violation, and is restarted immediately
+	by the master daemon. Files: postscreen/postscreen_early.c,
+	postscreen/postscreen_dnsbl.c.
+
+	Cleanup: avoid repeated delivery to mailing list members
+	with pathological nested alias configurations.  The local(8)
+	delivery agent now keeps the owner-alias attribute of the
+	parent alias, when delivering mail to a child alias that
+	does not have its own owner alias. With this change, local
+	addresses from that child alias will be written to a new
+	queue file, and a temporary error with one local address
+	will no longer result in repeated delivery to other mailing
+	list members.  Specify "reset_owner_alias = yes" for the
+	older behavior.  File: local/alias.c.

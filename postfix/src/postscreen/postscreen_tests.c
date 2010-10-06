@@ -246,7 +246,7 @@ void    ps_parse_tests(PS_STATE *state,
      * full postscreen_greet_wait too frequently.
      */
 #if 0
-    if (state->flags & PS_STATE_FLAG_EARLY_TODO) {
+    if (state->flags & PS_STATE_MASK_EARLY_TODO) {
 	if (PS_PREGR_TEST_ENABLE())
 	    state->flags |= PS_STATE_FLAG_PREGR_TODO;
 	if (PS_DNSBL_TEST_ENABLE())
@@ -264,7 +264,7 @@ char   *ps_print_tests(VSTRING *buf, PS_STATE *state)
     /*
      * Sanity check.
      */
-    if ((state->flags & PS_STATE_FLAG_ANY_UPDATE) == 0)
+    if ((state->flags & PS_STATE_MASK_ANY_UPDATE) == 0)
 	msg_panic("%s: attempt to save a no-update record", myname);
 
     /*

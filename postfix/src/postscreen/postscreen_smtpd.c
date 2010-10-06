@@ -576,7 +576,7 @@ static void ps_smtpd_read_event(int event, char *context)
 	     * Bare newline test.
 	     */
 	    if (ch == '\n') {
-		if ((state->flags & PS_STATE_FLAG_BARLF_TODO_SKIP)
+		if ((state->flags & PS_STATE_MASK_BARLF_TODO_SKIP)
 		    == PS_STATE_FLAG_BARLF_TODO) {
 		    msg_info("BARE NEWLINE from %s", state->smtp_client_addr);
 		    PS_FAIL_SESSION_STATE(state, PS_STATE_FLAG_BARLF_FAIL);
@@ -661,7 +661,7 @@ static void ps_smtpd_read_event(int event, char *context)
 		break;
 
 	/* Non-SMTP command test. */
-	if ((state->flags & PS_STATE_FLAG_NSMTP_TODO_SKIP)
+	if ((state->flags & PS_STATE_MASK_NSMTP_TODO_SKIP)
 	    == PS_STATE_FLAG_NSMTP_TODO && cmdp->name == 0
 	    && (is_header(command)
 		|| (*var_ps_forbid_cmds
@@ -699,7 +699,7 @@ static void ps_smtpd_read_event(int event, char *context)
 	    }
 	}
 	/* Command PIPELINING test. */
-	if ((state->flags & PS_STATE_FLAG_PIPEL_TODO_SKIP)
+	if ((state->flags & PS_STATE_MASK_PIPEL_TODO_SKIP)
 	    == PS_STATE_FLAG_PIPEL_TODO && !PS_SMTPD_BUFFER_EMPTY(state)) {
 	    printable(command, '?');
 	    msg_info("COMMAND PIPELINING from %s after %.100s",
@@ -740,21 +740,21 @@ static void ps_smtpd_read_event(int event, char *context)
 	 * tests with some later command.
 	 */
 	if (cmdp->action == ps_rcpt_cmd) {
-	    if ((state->flags & PS_STATE_FLAG_BARLF_TODO_PASS_FAIL)
+	    if ((state->flags & PS_STATE_MASK_BARLF_TODO_PASS_FAIL)
 		== PS_STATE_FLAG_BARLF_TODO) {
 		PS_PASS_SESSION_STATE(state, "bare newline test",
 				      PS_STATE_FLAG_BARLF_PASS);
 		/* XXX Reset to PS_TIME_STAMP_DISABLED on failure. */
 		state->barlf_stamp = event_time() + var_ps_barlf_ttl;
 	    }
-	    if ((state->flags & PS_STATE_FLAG_NSMTP_TODO_PASS_FAIL)
+	    if ((state->flags & PS_STATE_MASK_NSMTP_TODO_PASS_FAIL)
 		== PS_STATE_FLAG_NSMTP_TODO) {
 		PS_PASS_SESSION_STATE(state, "non-smtp test",
 				      PS_STATE_FLAG_NSMTP_PASS);
 		/* XXX Reset to PS_TIME_STAMP_DISABLED on failure. */
 		state->nsmtp_stamp = event_time() + var_ps_nsmtp_ttl;
 	    }
-	    if ((state->flags & PS_STATE_FLAG_PIPEL_TODO_PASS_FAIL)
+	    if ((state->flags & PS_STATE_MASK_PIPEL_TODO_PASS_FAIL)
 		== PS_STATE_FLAG_PIPEL_TODO) {
 		PS_PASS_SESSION_STATE(state, "pipelining test",
 				      PS_STATE_FLAG_PIPEL_PASS);

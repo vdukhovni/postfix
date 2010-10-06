@@ -681,6 +681,7 @@ while (<>) {
     s;\btls_append_default_CA\b;<a href="postconf.5.html#tls_append_default_CA">$&</a>;g;
  
     s;\bfrozen_delivered_to\b;<a href="postconf.5.html#frozen_delivered_to">$&</a>;g;
+    s;\breset_owner_alias\b;<a href="postconf.5.html#reset_owner_alias">$&</a>;g;
 
     # Transport-dependent magical parameters.
 
@@ -905,6 +906,7 @@ while (<>) {
     s;\bmulti_instance_enable\b;<a href="postconf.5.html#multi_instance_enable">$&</a>;g;
 
     # postscreen
+    s;\bdnsblog_reply_delay\b;<a href="postconf.5.html#dnsblog_reply_delay">$&</a>;g;
     s;\bpostscreen_cache_map\b;<a href="postconf.5.html#postscreen_cache_map">$&</a>;g;
     s;\bpostscreen_cache_cleanup_interval\b;<a href="postconf.5.html#postscreen_cache_cleanup_interval">$&</a>;g;
     s;\bpostscreen_cache_retention_time\b;<a href="postconf.5.html#postscreen_cache_retention_time">$&</a>;g;

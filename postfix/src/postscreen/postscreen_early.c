@@ -89,7 +89,7 @@ static void ps_early_event(int event, char *context)
 	/*
 	 * Check if the SMTP client spoke before its turn.
 	 */
-	if ((state->flags & PS_STATE_FLAG_PREGR_TODO_FAIL)
+	if ((state->flags & PS_STATE_MASK_PREGR_TODO_FAIL)
 	    == PS_STATE_FLAG_PREGR_TODO) {
 	    state->pregr_stamp = event_time() + var_ps_pregr_ttl;
 	    PS_PASS_SESSION_STATE(state, "pregreet test",
@@ -110,7 +110,8 @@ static void ps_early_event(int event, char *context)
 
 	if (state->flags & PS_STATE_FLAG_DNSBL_TODO) {
 	    dnsbl_score =
-		ps_dnsbl_retrieve(state->smtp_client_addr, &dnsbl_name);
+		ps_dnsbl_retrieve(state->smtp_client_addr, &dnsbl_name,
+				  state->dnsbl_index);
 	    if (dnsbl_score < var_ps_dnsbl_thresh) {
 		state->dnsbl_stamp = event_time() + var_ps_dnsbl_ttl;
 		PS_PASS_SESSION_STATE(state, "dnsbl test",
@@ -148,7 +149,7 @@ static void ps_early_event(int event, char *context)
 	 * Pass the connection to a real SMTP server, or enter the dummy
 	 * engine for deep tests.
 	 */
-	if (state->flags & (PS_STATE_FLAG_NOFORWARD | PS_STATE_FLAG_SMTPD_TODO))
+	if (state->flags & (PS_STATE_FLAG_NOFORWARD | PS_STATE_MASK_SMTPD_TODO))
 	    ps_smtpd_tests(state);
 	else
 	    ps_conclude(state);
@@ -166,7 +167,8 @@ static void ps_early_event(int event, char *context)
 			  read_buf, sizeof(read_buf) - 1, MSG_PEEK)) <= 0) {
 	    /* Avoid memory leak. */
 	    if (state->flags & PS_STATE_FLAG_DNSBL_TODO)
-		(void) ps_dnsbl_retrieve(state->smtp_client_addr, &dnsbl_name);
+		(void) ps_dnsbl_retrieve(state->smtp_client_addr, &dnsbl_name,
+					 state->dnsbl_index);
 	    /* XXX Wait for DNS replies to come in. */
 	    ps_hangup_event(state);
 	    return;
@@ -180,7 +182,8 @@ static void ps_early_event(int event, char *context)
 	case PS_ACT_DROP:
 	    /* Avoid memory leak. */
 	    if (state->flags & PS_STATE_FLAG_DNSBL_TODO)
-		(void) ps_dnsbl_retrieve(state->smtp_client_addr, &dnsbl_name);
+		(void) ps_dnsbl_retrieve(state->smtp_client_addr, &dnsbl_name,
+					 state->dnsbl_index);
 	    PS_DROP_SESSION_STATE(state, "521 5.5.1 Protocol error\r\n");
 	    return;
 	case PS_ACT_ENFORCE:
@@ -207,8 +210,8 @@ static void ps_early_event(int event, char *context)
 	 */
 	state->flags |= PS_STATE_FLAG_PREGR_DONE;
 	if (elapsed.dt_sec >= PS_EFF_GREET_WAIT
-	    || ((state->flags & PS_STATE_FLAG_EARLY_DONE)
-		== PS_STATE_FLAGS_TODO_TO_DONE(state->flags & PS_STATE_FLAG_EARLY_TODO)))
+	    || ((state->flags & PS_STATE_MASK_EARLY_DONE)
+		== PS_STATE_FLAGS_TODO_TO_DONE(state->flags & PS_STATE_MASK_EARLY_TODO)))
 	    ps_early_event(EVENT_TIME, context);
 	else
 	    event_request_timer(ps_early_event, context,
@@ -233,8 +236,8 @@ static void ps_early_dnsbl_event(int unused_event, char *context)
      * dangling pointer.
      */
     state->flags |= PS_STATE_FLAG_DNSBL_DONE;
-    if ((state->flags & PS_STATE_FLAG_EARLY_DONE)
-    == PS_STATE_FLAGS_TODO_TO_DONE(state->flags & PS_STATE_FLAG_EARLY_TODO))
+    if ((state->flags & PS_STATE_MASK_EARLY_DONE)
+    == PS_STATE_FLAGS_TODO_TO_DONE(state->flags & PS_STATE_MASK_EARLY_TODO))
 	event_request_timer(ps_early_event, context, EVENT_NULL_DELAY);
 }
 
@@ -266,8 +269,11 @@ void    ps_early_tests(PS_STATE *state)
      * Run a DNS blocklist query.
      */
     if ((state->flags & PS_STATE_FLAG_DNSBL_TODO) != 0)
-	ps_dnsbl_request(state->smtp_client_addr, ps_early_dnsbl_event,
-			    (char *) state);
+	state->dnsbl_index =
+	    ps_dnsbl_request(state->smtp_client_addr, ps_early_dnsbl_event,
+			     (char *) state);
+    else
+	state->dnsbl_index = -1;
 
     /*
      * Wait for the client to respond or for DNS lookup to complete.

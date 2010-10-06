@@ -8,14 +8,15 @@
 /*
 /*	void	ps_dnsbl_init(void)
 /*
-/*	void	ps_dnsbl_request(client_addr, callback, context)
+/*	int	ps_dnsbl_request(client_addr, callback, context)
 /*	char	*client_addr;
 /*	void	(*callback)(int, char *);
 /*	char	*context;
 /*
-/*	int	ps_dnsbl_retrieve(client_addr, dnsbl_name)
+/*	int	ps_dnsbl_retrieve(client_addr, dnsbl_name, dnsbl_index)
 /*	char	*client_addr;
 /*	const char **dnsbl_name;
+/*	int	dnsbl_index;
 /* DESCRIPTION
 /*	This module implements preliminary support for DNSBL lookups.
 /*	Multiple requests for the same information are handled with
@@ -33,6 +34,8 @@
 /*	on to the callback function. The callback should ignore its
 /*	first argument (it exists for compatibility with Postfix
 /*	generic event infrastructure).
+/*	The result value is the index for the ps_dnsbl_retrieve()
+/*	call.
 /*
 /*	ps_dnsbl_retrieve() retrieves the result score requested with
 /*	ps_dnsbl_request() and decrements the reference count. It
@@ -141,6 +144,19 @@ typedef struct {
 	(sp)->index = 0; \
     } while (0)
 
+#define PS_CALL_BACK_INDEX_OF_LAST(sp) ((sp)->index - 1)
+
+#define PS_CALL_BACK_CANCEL(sp, idx) do { \
+	PS_CALL_BACK_ENTRY *_cb_; \
+	if ((idx) < 0 || (idx) >= (sp)->index) \
+	    msg_panic("%s: index %d must be >= 0 and < %d", \
+		      myname, (idx), (sp)->index); \
+	_cb_ = (sp)->table + (idx); \
+	event_cancel_timer(_cb_->callback, _cb_->context); \
+	_cb_->callback = 0; \
+	_cb_->context = 0; \
+    } while (0)
+
 #define PS_CALL_BACK_EXTEND(hp, sp) do { \
 	if ((sp)->index >= (sp)->limit) { \
 	    int _count_ = ((sp)->limit ? (sp)->limit * 2 : 5); \
@@ -160,7 +176,8 @@ typedef struct {
 #define PS_CALL_BACK_NOTIFY(sp, ev) do { \
 	PS_CALL_BACK_ENTRY *_cb_; \
 	for (_cb_ = (sp)->table; _cb_ < (sp)->table + (sp)->index; _cb_++) \
-	    _cb_->callback((ev), _cb_->context); \
+	    if (_cb_->callback != 0) \
+		_cb_->callback((ev), _cb_->context); \
     } while (0)
 
 #define PS_NULL_EVENT	(0)
@@ -264,7 +281,8 @@ static int ps_dnsbl_match(const char *filter, ARGV *reply)
 
 /* ps_dnsbl_retrieve - retrieve blocklist score, decrement reference count */
 
-int     ps_dnsbl_retrieve(const char *client_addr, const char **dnsbl_name)
+int     ps_dnsbl_retrieve(const char *client_addr, const char **dnsbl_name,
+			          int dnsbl_index)
 {
     const char *myname = "ps_dnsbl_retrieve";
     PS_DNSBL_SCORE *score;
@@ -276,6 +294,11 @@ int     ps_dnsbl_retrieve(const char *client_addr, const char **dnsbl_name)
     if ((score = (PS_DNSBL_SCORE *)
 	 htable_find(dnsbl_score_cache, client_addr)) == 0)
 	msg_panic("%s: no blocklist score for %s", myname, client_addr);
+
+    /*
+     * Disable callbacks.
+     */
+    PS_CALL_BACK_CANCEL(score, dnsbl_index);
 
     /*
      * Reads are destructive.
@@ -376,7 +399,7 @@ static void ps_dnsbl_receive(int event, char *context)
 
 /* ps_dnsbl_request  - send dnsbl query, increment reference count */
 
-void    ps_dnsbl_request(const char *client_addr,
+int     ps_dnsbl_request(const char *client_addr,
 			         void (*callback) (int, char *),
 			         char *context)
 {
@@ -420,7 +443,7 @@ void    ps_dnsbl_request(const char *client_addr,
 		     score->pending_lookups);
 	if (score->pending_lookups == 0)
 	    event_request_timer(callback, context, EVENT_NULL_DELAY);
-	return;
+	return (PS_CALL_BACK_INDEX_OF_LAST(score));
     }
     if (msg_verbose > 1)
 	msg_info("%s: create blocklist score for %s", myname, client_addr);
@@ -458,6 +481,7 @@ void    ps_dnsbl_request(const char *client_addr,
 			      (char *) stream, DNSBLOG_TIMEOUT);
 	score->pending_lookups += 1;
     }
+    return (PS_CALL_BACK_INDEX_OF_LAST(score));
 }
 
 /* ps_dnsbl_init - initialize */

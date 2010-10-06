@@ -37,7 +37,8 @@
 /*	How much time a Postfix daemon process may take to handle a
 /*	request before it is terminated by a built-in watchdog timer.
 /* .IP "\fBpostscreen_dnsbl_sites (empty)\fR"
-/*	Optional list of DNS blocklist domains.
+/*	Optional list of DNS blocklist domains, filters and weight
+/*	factors.
 /* .IP "\fBipc_timeout (3600s)\fR"
 /*	The time limit for sending or receiving information over an internal
 /*	communication channel.
@@ -90,6 +91,7 @@
 #include <mail_conf.h>
 #include <mail_version.h>
 #include <mail_proto.h>
+#include <mail_params.h>
 
 /* DNS library. */
 
@@ -100,6 +102,11 @@
 #include <mail_server.h>
 
 /* Application-specific. */
+
+ /*
+  * Tunable parameters.
+  */
+int     var_dnsblog_delay;
 
  /*
   * Static so we don't allocate and free on every request.
@@ -118,8 +125,8 @@ static VSTRING *result;
 
 /* static void dnsblog_query - query DNSBL for client address */
 
-static VSTRING *dnsblog_query(VSTRING *result, const char *dnsbl_domain, 
-	const char *addr)
+static VSTRING *dnsblog_query(VSTRING *result, const char *dnsbl_domain,
+			              const char *addr)
 {
     const char *myname = "dnsblog_query";
     ARGV   *octets;
@@ -224,6 +231,8 @@ static void dnsblog_service(VSTREAM *client_stream, char *unused_service,
 		  ATTR_TYPE_STR, MAIL_ATTR_ACT_CLIENT_ADDR, addr,
 		  ATTR_TYPE_END) == 2) {
 	(void) dnsblog_query(result, STR(rbl_domain), STR(addr));
+	if (var_dnsblog_delay > 0)
+	    sleep(var_dnsblog_delay);
 	attr_print(client_stream, ATTR_FLAG_NONE,
 		   ATTR_TYPE_STR, MAIL_ATTR_RBL_DOMAIN, STR(rbl_domain),
 		   ATTR_TYPE_STR, MAIL_ATTR_ACT_CLIENT_ADDR, STR(addr),
@@ -250,6 +259,10 @@ MAIL_VERSION_STAMP_DECLARE;
 
 int     main(int argc, char **argv)
 {
+    static const CONFIG_TIME_TABLE time_table[] = {
+	VAR_DNSBLOG_DELAY, DEF_DNSBLOG_DELAY, &var_dnsblog_delay, 0, 0,
+	0,
+    };
 
     /*
      * Fingerprint executables and core dumps.
@@ -257,6 +270,7 @@ int     main(int argc, char **argv)
     MAIL_VERSION_STAMP_ALLOCATE;
 
     multi_server_main(argc, argv, dnsblog_service,
+		      MAIL_SERVER_TIME_TABLE, time_table,
 		      MAIL_SERVER_POST_INIT, post_jail_init,
 		      MAIL_SERVER_UNLIMITED,
 		      0);

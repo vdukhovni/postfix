@@ -33,6 +33,20 @@ This is supported only when the default value is stress-dependent
 postscreen parameters always evaluate as if the stress value is 
 equal to the empty string.
 
+Incompatibility with snapshot 20101006
+======================================
+
+To avoid repeated delivery to mailing list members with pathological
+nested alias configurations, the local(8) delivery agent now keeps
+the owner-alias attribute of the parent alias, when delivering mail
+to a child alias that does not have its own owner alias.
+
+With this change, local addresses from that child alias will be
+written to a new queue file, and a temporary error with one local
+address will no longer result in repeated delivery to other mailing
+list members.  Specify "reset_owner_alias = yes" for the older,
+more fragile, behavior.
+
 Incompatibility with snapshot 20100912
 ======================================
 

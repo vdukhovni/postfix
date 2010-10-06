@@ -265,7 +265,8 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
 	    } else {
 		canon_owner = 0;
 		/* Note: this does not reset the envelope sender. */
-		RESET_OWNER_ATTR(state.msg_attr, state.level);
+		if (var_reset_owner_attr)
+		    RESET_OWNER_ATTR(state.msg_attr, state.level);
 	    }
 
 	    /*
