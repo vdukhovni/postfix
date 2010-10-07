@@ -101,7 +101,8 @@ void    ps_conclude(PS_STATE *state)
     /*
      * Log our final blessing when all unfinished tests were completed.
      */
-    if ((state->flags & PS_STATE_MASK_ANY_PASS) ==
+    if ((state->flags & PS_STATE_MASK_ANY_PASS) != 0
+	&& (state->flags & PS_STATE_MASK_ANY_PASS) ==
 	PS_STATE_FLAGS_TODO_TO_PASS(state->flags & PS_STATE_MASK_ANY_TODO))
 	msg_info("PASS %s %s", (state->flags & PS_STATE_FLAG_NEW) == 0 ?
 		 "OLD" : "NEW", state->smtp_client_addr);

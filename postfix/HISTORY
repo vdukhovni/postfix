@@ -16072,3 +16072,7 @@ Apologies for any names omitted.
 	will no longer result in repeated delivery to other mailing
 	list members.  Specify "reset_owner_alias = yes" for the
 	older behavior.  File: local/alias.c.
+
+20101007
+
+	Bugfix (introduced: 2100923): duplicate "PASS OLD" logging.
