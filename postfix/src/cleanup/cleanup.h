@@ -33,6 +33,7 @@
 #include <string_list.h>
 #include <cleanup_user.h>
 #include <header_body_checks.h>
+#include <dsn_mask.h>
 
  /*
   * Milter library.
@@ -283,7 +284,14 @@ extern void cleanup_out_recipient(CLEANUP_STATE *, const char *, int, const char
   */
 extern void cleanup_addr_sender(CLEANUP_STATE *, const char *);
 extern void cleanup_addr_recipient(CLEANUP_STATE *, const char *);
-extern void cleanup_addr_bcc(CLEANUP_STATE *, const char *);
+extern void cleanup_addr_bcc_dsn(CLEANUP_STATE *, const char *, const char *, int);
+
+#define NO_DSN_ORCPT	((char *) 0)
+#define NO_DSN_NOTIFY	DSN_NOTIFY_NEVER
+#define DEF_DSN_NOTIFY	(0)
+
+#define cleanup_addr_bcc(state, addr) \
+    cleanup_addr_bcc_dsn((state), (addr), NO_DSN_ORCPT, NO_DSN_NOTIFY)
 
  /*
   * cleanup_bounce.c.

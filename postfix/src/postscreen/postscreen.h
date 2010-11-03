@@ -50,6 +50,7 @@ typedef struct {
     time_t  dnsbl_stamp;		/* dnsbl expiration time */
     VSTRING *dnsbl_reply;		/* dnsbl reject text */
     int     dnsbl_index;		/* dnsbl request index */
+    time_t  penal_stamp;		/* penalty expiration time */
     /* Built-in SMTP protocol engine. */
     time_t  pipel_stamp;		/* pipelining expiration time */
     time_t  nsmtp_stamp;		/* non-smtp command expiration time */
@@ -96,6 +97,9 @@ typedef struct {
   */
 #define PS_STATE_FLAGS_TODO_TO_PASS(todo_flags) ((todo_flags) >> 1)
 #define PS_STATE_FLAGS_TODO_TO_DONE(todo_flags) ((todo_flags) << 1)
+
+#define PS_STATE_FLAG_PENAL_UPDATE	(1<<6)	/* save new penalty */
+#define PS_STATE_FLAG_PENAL_FAIL	(1<<7)	/* penalty is active */
 
 #define PS_STATE_FLAG_PREGR_FAIL	(1<<8)	/* failed pregreet test */
 #define PS_STATE_FLAG_PREGR_PASS	(1<<9)	/* passed pregreet test */
@@ -178,7 +182,7 @@ typedef struct {
   * Super-aggregates for all tests combined.
   */
 #define PS_STATE_MASK_ANY_FAIL \
-	(PS_STATE_FLAG_BLIST_FAIL | \
+	(PS_STATE_FLAG_BLIST_FAIL | PS_STATE_FLAG_PENAL_FAIL | \
 	PS_STATE_MASK_EARLY_FAIL | PS_STATE_MASK_SMTPD_FAIL)
 
 #define PS_STATE_MASK_ANY_PASS \
@@ -191,7 +195,7 @@ typedef struct {
 	(PS_STATE_MASK_ANY_TODO | PS_STATE_MASK_ANY_FAIL)
 
 #define PS_STATE_MASK_ANY_UPDATE \
-	(PS_STATE_MASK_ANY_PASS)
+	(PS_STATE_MASK_ANY_PASS | PS_STATE_FLAG_PENAL_UPDATE)
 
  /*
   * See log_adhoc.c for discussion.
@@ -391,6 +395,7 @@ extern int ps_dnsbl_request(const char *, void (*) (int, char *), char *);
 	(dst)->dnsbl_stamp = PS_TIME_STAMP_INVALID; \
 	(dst)->pipel_stamp = PS_TIME_STAMP_INVALID; \
 	(dst)->barlf_stamp = PS_TIME_STAMP_INVALID; \
+	(dst)->penal_stamp = PS_TIME_STAMP_INVALID; \
     } while (0)
 #define PS_BEGIN_TESTS(state, name) do { \
 	(state)->test_name = (name); \

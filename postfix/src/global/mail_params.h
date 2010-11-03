@@ -1870,6 +1870,10 @@ extern int var_mailtool_compat;
 #define DEF_DAEMON_TIMEOUT	"18000s"
 extern int var_daemon_timeout;
 
+#define VAR_QMGR_DAEMON_TIMEOUT	"qmgr_daemon_timeout"
+#define DEF_QMGR_DAEMON_TIMEOUT	"1000s"
+extern int var_qmgr_daemon_timeout;
+
  /*
   * How long an intra-mail command may take before we assume the mail system
   * is in deadlock (should never happen).
@@ -1877,6 +1881,10 @@ extern int var_daemon_timeout;
 #define VAR_IPC_TIMEOUT		"ipc_timeout"
 #define DEF_IPC_TIMEOUT		"3600s"
 extern int var_ipc_timeout;
+
+#define VAR_QMGR_IPC_TIMEOUT	"qmgr_ipc_timeout"
+#define DEF_QMGR_IPC_TIMEOUT	"60s"
+extern int var_qmgr_ipc_timeout;
 
  /*
   * Time limit on intra-mail triggers.

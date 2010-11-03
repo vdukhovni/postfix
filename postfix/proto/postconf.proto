@@ -13133,8 +13133,9 @@ commencing a MAIL transaction. </p>
 
 %PARAM postscreen_forbidden_commands $smtpd_forbidden_commands
 
-<p> List of commands that postscreen(8) server considers in violation
-of the SMTP protocol. See also: postscreen_non_smtp_command_action.
+<p> List of commands that the postscreen(8) server considers in
+violation of the SMTP protocol. See smtpd_forbidden_commands for
+syntax, and postscreen_non_smtp_command_action for possible actions.
 </p>
 
 <p> This feature is available in Postfix 2.8.  </p>
@@ -13336,3 +13337,27 @@ fails with a temporary error condition, the entire mailing list may
 be expanded repeatedly until the mail expires in the queue, resulting
 in multiple deliveries of the same message to mailing list members.
 </p>
+
+%PARAM qmgr_ipc_timeout 60s
+
+<p> The time limit for the queue manager to send or receive information
+over an internal communication channel.  The purpose is to break
+out of deadlock situations. If the time limit is exceeded the
+software either retries or aborts the operation. </p>
+
+<p>
+Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).
+</p>
+
+%PARAM qmgr_daemon_timeout 1000s
+
+<p> How much time a Postfix queue manager process may take to handle
+a request before it is terminated by a built-in watchdog timer.
+</p>
+
+<p>
+Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).
+</p>
+

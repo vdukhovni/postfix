@@ -295,8 +295,8 @@ or <a href="postconf.5.html#postscreen_dnsbl_action">postscreen_dnsbl_action</a>
 
 <dd> Ignore the failure of this test. Allow other tests to complete.
 Repeat this test the next time the client connects.  This option
-is useful for testing and collecting statistics without interfering
-with mail deliveries. </dd>
+is useful for testing and collecting statistics without blocking
+mail. </dd>
 
 <dt> <b>enforce</b> </dt>
 
@@ -505,6 +505,21 @@ feature. </dd>
 <p> Translation: the SMTP client at <i>address</i> disconnected
 unexpectedly, <i>time</i> seconds after the start of the
 test named <i>test name</i>. </p>
+
+<!--
+
+<p> While an unexpired penalty is in effect, an SMTP client is not
+allowed to pass any tests, and  <a href="postscreen.8.html">postscreen(8)</a> logs each connection
+with the remaining amount of penalty time as: </p>
+
+<pre>
+    <b>PENALTY</b> <i>time</i> <b>for</b> <i>address</i>
+</pre>
+
+<p> During this time, all attempts by the client to deliver mail
+will be deferred with a 450 SMTP status.  </p>
+
+-->
 
 <p> The following errors are reported by the built-in SMTP engine.
 This engine never accepts mail, therefore it has per-session limits

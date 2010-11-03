@@ -14,6 +14,12 @@
 /*	CLEANUP_STATE *state;
 /*	const char *addr;
 /*
+/*	void	cleanup_addr_bcc_dsn(state, addr, dsn_orcpt, dsn_notify)
+/*	CLEANUP_STATE *state;
+/*	const char *addr;
+/*	const char *dsn_orcpt;
+/*	int	dsn_notify;
+/*
 /*	void	cleanup_addr_bcc(state, addr)
 /*	CLEANUP_STATE *state;
 /*	const char *addr;
@@ -28,9 +34,13 @@
 /*	cleanup_addr_recipient() processes recipient envelope information
 /*	and updates state->recip.
 /*
-/*	cleanup_addr_bcc() processes recipient envelope information. This
+/*	cleanup_addr_bcc_dsn() processes recipient envelope information. This
 /*	is a separate function to avoid invoking cleanup_addr_recipient()
 /*	recursively.
+/*
+/*	cleanup_addr_bcc() is a backwards-compatibility wrapper for
+/*	cleanup_addr_bcc_dsn() that requests no delivery status
+/*	notification for the recipient.
 /*
 /*	Arguments:
 /* .IP state
@@ -38,6 +48,11 @@
 /*	as records are processed and as errors happen.
 /* .IP buf
 /*	Record content.
+/* .IP dsn_orcpt
+/*	The DSN original recipient (or NO_DSN_ORCPT to specify none).
+/* .IP dsn_notify
+/*	DSN notification options. Specify NO_DSN_NOTIFY to disable
+/*	notification, and DEF_DSN_NOTIFY for default notification.
 /* LICENSE
 /* .ad
 /* .fi
@@ -179,9 +194,10 @@ void    cleanup_addr_recipient(CLEANUP_STATE *state, const char *buf)
     vstring_free(clean_addr);
 }
 
-/* cleanup_addr_bcc - process automatic BCC recipient */
+/* cleanup_addr_bcc_dsn - process automatic BCC recipient */
 
-void    cleanup_addr_bcc(CLEANUP_STATE *state, const char *bcc)
+void    cleanup_addr_bcc_dsn(CLEANUP_STATE *state, const char *bcc,
+			         const char *dsn_orcpt, int dsn_notify)
 {
     VSTRING *clean_addr = vstring_alloc(100);
 
@@ -189,8 +205,6 @@ void    cleanup_addr_bcc(CLEANUP_STATE *state, const char *bcc)
      * Note: BCC addresses are supplied locally, and must be rewritten in the
      * local address rewriting context.
      */
-#define NO_DSN_ORCPT	((char *) 0)
-
     cleanup_rewrite_internal(MAIL_ATTR_RWR_LOCAL, clean_addr, bcc);
     if (state->flags & CLEANUP_FLAG_MAP_OK) {
 	if (cleanup_rcpt_canon_maps
@@ -205,7 +219,7 @@ void    cleanup_addr_bcc(CLEANUP_STATE *state, const char *bcc)
 	    && (cleanup_masq_flags & CLEANUP_MASQ_FLAG_ENV_RCPT))
 	    cleanup_masquerade_internal(clean_addr, cleanup_masq_domains);
     }
-    cleanup_out_recipient(state, NO_DSN_ORCPT, DSN_NOTIFY_NEVER,
+    cleanup_out_recipient(state, dsn_orcpt, dsn_notify,
 			  STR(clean_addr), STR(clean_addr));
     vstring_free(clean_addr);
 }

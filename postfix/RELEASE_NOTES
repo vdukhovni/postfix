@@ -33,19 +33,30 @@ This is supported only when the default value is stress-dependent
 postscreen parameters always evaluate as if the stress value is 
 equal to the empty string.
 
+Incompatibility with snapshot 20101103
+======================================
+
+Postfix now requests default delivery status notifications when
+adding a recipient with the Milter smfi_addrcpt action, instead of
+"never notify" as with Postfix automatically-added recipients
+(always_bcc and sender/recipient_bcc_maps).
+
 Incompatibility with snapshot 20101006
 ======================================
 
-To avoid repeated delivery to mailing list members with pathological
-nested alias configurations, the local(8) delivery agent now keeps
-the owner-alias attribute of the parent alias, when delivering mail
-to a child alias that does not have its own owner alias.
+To avoid repeated delivery to mailing lists with pathological nested
+alias configurations, the local(8) delivery agent now keeps the
+owner-alias attribute of a parent alias, when delivering mail to a
+child alias that does not have its own owner alias.
 
 With this change, local addresses from that child alias will be
 written to a new queue file, and a temporary error with one local
 address will no longer result in repeated delivery to other mailing
 list members.  Specify "reset_owner_alias = yes" for the older,
 more fragile, behavior.
+
+The postconf(5) manpage entry for "reset_owner_alias" has more
+background information on this issue.
 
 Incompatibility with snapshot 20100912
 ======================================

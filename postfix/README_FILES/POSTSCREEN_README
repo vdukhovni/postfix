@@ -217,7 +217,7 @@ postscreen_dnsbl_action, respectively.
 iiggnnoorree (default)
     Ignore the failure of this test. Allow other tests to complete. Repeat this
     test the next time the client connects. This option is useful for testing
-    and collecting statistics without interfering with mail deliveries.
+    and collecting statistics without blocking mail.
 eennffoorrccee
     Allow other tests to complete. Reject attempts to deliver mail with a 550
     SMTP reply, and log the helo/sender/recipient information. Repeat this test

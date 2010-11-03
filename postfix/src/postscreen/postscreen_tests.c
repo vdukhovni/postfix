@@ -30,7 +30,7 @@
 /* DESCRIPTION
 /*	The functions in this module overwrite the per-test expiration
 /*	time stamps and all flags bits.  Some functions are implemented
-/*	as unsafe macros, meaning they evaluate one ore more arguments
+/*	as unsafe macros, meaning they evaluate one or more arguments
 /*	multiple times.
 /*
 /*	PS_INIT_TESTS() is an unsafe macro that sets the per-test
@@ -132,6 +132,7 @@ void    ps_new_tests(PS_STATE *state)
     state->pipel_stamp = PS_TIME_STAMP_NEW;
     state->nsmtp_stamp = PS_TIME_STAMP_NEW;
     state->barlf_stamp = PS_TIME_STAMP_NEW;
+    state->penal_stamp = PS_TIME_STAMP_NEW;
 
     /*
      * Don't flag disabled tests as "todo", because there would be no way to
@@ -155,11 +156,14 @@ void    ps_parse_tests(PS_STATE *state,
 		               const char *stamp_str,
 		               time_t time_value)
 {
+    const char *myname = "ps_parse_tests";
     unsigned long pregr_stamp;
     unsigned long dnsbl_stamp;
     unsigned long pipel_stamp;
     unsigned long nsmtp_stamp;
     unsigned long barlf_stamp;
+    unsigned long penal_stamp;
+    time_t  penalty_left;
 
     /*
      * We don't know what tests have expired or have never passed.
@@ -175,9 +179,9 @@ void    ps_parse_tests(PS_STATE *state,
      * enabled tests, but the remote SMTP client has not yet passed all those
      * tests.
      */
-    switch (sscanf(stamp_str, "%lu;%lu;%lu;%lu;%lu",
+    switch (sscanf(stamp_str, "%lu;%lu;%lu;%lu;%lu;%lu",
 		   &pregr_stamp, &dnsbl_stamp, &pipel_stamp, &nsmtp_stamp,
-		   &barlf_stamp)) {
+		   &barlf_stamp, &penal_stamp)) {
     case 0:
 	pregr_stamp = PS_TIME_STAMP_DISABLED;
     case 1:
@@ -188,6 +192,8 @@ void    ps_parse_tests(PS_STATE *state,
 	nsmtp_stamp = PS_TIME_STAMP_DISABLED;
     case 4:
 	barlf_stamp = PS_TIME_STAMP_DISABLED;
+    case 5:
+	penal_stamp = PS_TIME_STAMP_DISABLED;
     default:
 	break;
     }
@@ -196,6 +202,7 @@ void    ps_parse_tests(PS_STATE *state,
     state->pipel_stamp = pipel_stamp;
     state->nsmtp_stamp = nsmtp_stamp;
     state->barlf_stamp = barlf_stamp;
+    state->penal_stamp = penal_stamp;
 
     if (pregr_stamp == PS_TIME_STAMP_NEW
 	|| dnsbl_stamp == PS_TIME_STAMP_NEW
@@ -253,6 +260,41 @@ void    ps_parse_tests(PS_STATE *state,
 	    state->flags |= PS_STATE_FLAG_DNSBL_TODO;
     }
 #endif
+
+    /*
+     * Apply unexpired penalty for past behavior.
+     * 
+     * XXX Before we can drop connections, change this function to return
+     * success/fail, to inform the caller that the state object no longer
+     * exists.
+     */
+#ifdef NONPROD
+    if ((penalty_left = state->penal_stamp - event_time()) > 0) {
+	msg_info("PENALTY %ld for %s",
+		 (long) penalty_left, state->smtp_client_addr);
+	PS_FAIL_SESSION_STATE(state, PS_STATE_FLAG_PENAL_FAIL);
+#if 0
+	switch (ps_penal_action) {
+	case PS_ACT_DROP:
+	    PS_DROP_SESSION_STATE(state,
+			     "421 4.3.2 Service currently unavailable\r\n");
+	    break;
+	case PS_ACT_ENFORCE:
+#endif
+	    PS_ENFORCE_SESSION_STATE(state,
+			     "450 4.3.2 Service currently unavailable\r\n");
+#if 0
+	    break;
+	case PS_ACT_IGNORE:
+	    PS_UNFAIL_SESSION_STATE(state, PS_STATE_FLAG_PENAL_FAIL);
+	    break;
+	default:
+	    msg_panic("%s: unknown penalty action value %d",
+		      myname, ps_penal_action);
+	}
+#endif
+    }
+#endif						/* NONPROD */
 }
 
 /* ps_print_tests - print postscreen cache record */
@@ -266,6 +308,25 @@ char   *ps_print_tests(VSTRING *buf, PS_STATE *state)
      */
     if ((state->flags & PS_STATE_MASK_ANY_UPDATE) == 0)
 	msg_panic("%s: attempt to save a no-update record", myname);
+
+    /*
+     * Don't record a client as "passed" while subject to penalty. Be sure to
+     * produce correct PASS OLD/NEW logging.
+     * 
+     * XXX This needs to be refined - we should not reset the result of tests
+     * that were passed in previous sessions, otherwise a client may never
+     * pass a multi-stage test such as greylisting. One solution is to keep
+     * the original and updated time stamps around, and to save an updated
+     * time stamp only when the corresponding "pass" flag is raised.
+     */
+#ifdef NONPROD
+    if (state->flags & PS_STATE_FLAG_PENAL_FAIL) {
+	state->pregr_stamp = state->dnsbl_stamp = state->pipel_stamp =
+	    state->nsmtp_stamp = state->barlf_stamp =
+	    ((state->flags & PS_STATE_FLAG_NEW) ?
+	     PS_TIME_STAMP_NEW : PS_TIME_STAMP_DISABLED);
+    }
+#endif
 
     /*
      * Give disabled tests a dummy time stamp so that we don't log a client
@@ -283,12 +344,13 @@ char   *ps_print_tests(VSTRING *buf, PS_STATE *state)
     if (var_ps_barlf_enable == 0 && state->barlf_stamp == PS_TIME_STAMP_NEW)
 	state->barlf_stamp = PS_TIME_STAMP_DISABLED;
 
-    vstring_sprintf(buf, "%lu;%lu;%lu;%lu;%lu",
+    vstring_sprintf(buf, "%lu;%lu;%lu;%lu;%lu;%lu",
 		    (unsigned long) state->pregr_stamp,
 		    (unsigned long) state->dnsbl_stamp,
 		    (unsigned long) state->pipel_stamp,
 		    (unsigned long) state->nsmtp_stamp,
-		    (unsigned long) state->barlf_stamp);
+		    (unsigned long) state->barlf_stamp,
+		    (unsigned long) state->penal_stamp);
     return (STR(buf));
 }
 

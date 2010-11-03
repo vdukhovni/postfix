@@ -62,7 +62,7 @@
 /*	port arguments are null-terminated strings with the remote
 /*	SMTP client endpoint. The _reply members are set to
 /*	polite "try again" SMTP replies. The protocol member is set
-/*	to "SMTP". 
+/*	to "SMTP".
 /*
 /*	The ps_stress variable is set to non-zero when
 /*	ps_check_queue_length passes over a high-water mark.
@@ -223,6 +223,9 @@ const char *ps_print_state_flags(int flags, const char *context)
 	"BLIST_FAIL", PS_STATE_FLAG_BLIST_FAIL,
 	"HANGUP", PS_STATE_FLAG_HANGUP,
 	"CACHE_EXPIRED", PS_STATE_FLAG_CACHE_EXPIRED,
+
+	"PENAL_UPDATE", PS_STATE_FLAG_PENAL_UPDATE,
+	"PENAL_FAIL", PS_STATE_FLAG_PENAL_FAIL,
 
 	"PREGR_FAIL", PS_STATE_FLAG_PREGR_FAIL,
 	"PREGR_PASS", PS_STATE_FLAG_PREGR_PASS,

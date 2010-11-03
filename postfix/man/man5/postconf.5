@@ -3963,8 +3963,9 @@ one-letter suffix that specifies the time unit).  Time units: s
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_forbidden_commands (default: $smtpd_forbidden_commands)
-List of commands that \fBpostscreen\fR(8) server considers in violation
-of the SMTP protocol. See also: postscreen_non_smtp_command_action.
+List of commands that the \fBpostscreen\fR(8) server considers in
+violation of the SMTP protocol. See smtpd_forbidden_commands for
+syntax, and postscreen_non_smtp_command_action for possible actions.
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_greet_action (default: ignore)
@@ -4246,6 +4247,12 @@ clogging up the Postfix active queue. Specify 0 to disable.
 This feature is enabled with the helpful_warnings parameter.
 .PP
 This feature is available in Postfix 2.0 and later.
+.SH qmgr_daemon_timeout (default: 1000s)
+How much time a Postfix queue manager process may take to handle
+a request before it is terminated by a built-in watchdog timer.
+.PP
+Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).
 .SH qmgr_fudge_factor (default: 100)
 Obsolete feature: the percentage of delivery resources that a busy
 mail system will use up for delivery of a large mailing  list
@@ -4253,6 +4260,14 @@ message.
 .PP
 This feature exists only in the \fBoqmgr\fR(8) old queue manager. The
 current queue manager solves the problem in a better way.
+.SH qmgr_ipc_timeout (default: 60s)
+The time limit for the queue manager to send or receive information
+over an internal communication channel.  The purpose is to break
+out of deadlock situations. If the time limit is exceeded the
+software either retries or aborts the operation.
+.PP
+Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).
 .SH qmgr_message_active_limit (default: 20000)
 The maximal number of messages in the active queue.
 .SH qmgr_message_recipient_limit (default: 20000)

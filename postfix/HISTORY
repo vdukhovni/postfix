@@ -16040,6 +16040,21 @@ Apologies for any names omitted.
 	postscreen/postscreen_misc.c, postscreen/postscreen.h,
 	postscreen/postscreen_tests.c.
 
+	Feature: preliminary postscreen penalty mechanism. Basic
+	idea: when a client exceeds some threshold, don't allow it
+	to pass any tests until the penalty expires. Penalties
+	provide a way to slow down clients without blocking mail
+	permanently.  Files: postscreen/postscreen_misc.c,
+	postscreen/postscreen_tests.c, postscreen/postscreen.c.
+
+	A first application of the postscreen penalty mechanism
+	triggers on clients that make brief connections to find out
+	if the mail server is up.  With "postscreen_early_hangup_penalty
+	= 600" they will disqualify themselves for 10 minutes.
+	Unfortunately, this behavior is used by legitimate bulk
+	mail services. This application was removed 20101103.  The
+	penalty mechanism itself is left in place as #ifdef NONPROD.
+
 20100923
 
 	Cleanup: renamed MUMBLE_FLAG_MUMBLE aggregates to
@@ -16076,3 +16091,35 @@ Apologies for any names omitted.
 20101007
 
 	Bugfix (introduced: 2100923): duplicate "PASS OLD" logging.
+	File: postscreen/postscreen_misc.c.
+
+20101008
+
+	Cleanup: dnsblog now logs "addr X listed by domain Y as Z"
+	instead of "addr X blocked by domain Y as Z", because the
+	service may be used for whitelist lookups. File:
+	dnsblog/dnsblog.c.
+
+20101023
+
+	Cleanup: don't apply reject_rhsbl_helo to non-domain forms
+	such as network addresses.  This would cause false positives
+	with dbl.spamhaus.org.  File: smtpd/smtpd_check.c.
+
+20101103
+
+	Cleanup: new qmgr_ipc_timeout parameter (default: 60s) to
+	override the system-wide ipc_timeout setting (default:
+	3600s). The shorter timeout allows the queue manager to
+	reset a deadlocked IPC connection before the watchdog timer
+	goes off. Files: *qmgr/qmgr.c.
+
+	Cleanup: new qmgr_daemon_timeout parameter (default: 1000s)
+	to make the hard-coded 1000s watchdog timeout configurable.
+	Files: *qmgr/qmgr.c.
+
+	Cleanup: request default DSN notification when adding a
+	recipient with smfi_addrcpt, instead of requesting "never
+	notify" as with Postfix automatically-added BCC recipients.
+	Files: cleanup/cleanup_addr.c, cleanup/cleanup.h,
+	cleanup/cleanup_milter.c.

@@ -359,6 +359,8 @@ while (<>) {
     s;\bqmgr_message_active_limit\b;<a href="postconf.5.html#qmgr_message_active_limit">$&</a>;g;
     s;\bqmgr_message_recip[-</bB>]*\n* *[<bB>]*ient_limit\b;<a href="postconf.5.html#qmgr_message_recipient_limit">$&</a>;g;
     s;\bqmgr_message_recip[-</bB>]*\n* *[<bB>]*ient_minimum\b;<a href="postconf.5.html#qmgr_message_recipient_minimum">$&</a>;g;
+    s;\bqmgr_daemon_timeout\b;<a href="postconf.5.html#qmgr_daemon_timeout">$&</a>;g;
+    s;\bqmgr_ipc_timeout\b;<a href="postconf.5.html#qmgr_ipc_timeout">$&</a>;g;
     s;\bqmqpd_authorized_clients\b;<a href="postconf.5.html#qmqpd_authorized_clients">$&</a>;g;
 
     s;\bdefault_destination_concur[-</Bb>]*\n* *[<Bb>]*rency_negative_feedback\b;<a href="postconf.5.html#default_destination_concurrency_negative_feedback">$&</a>;g;

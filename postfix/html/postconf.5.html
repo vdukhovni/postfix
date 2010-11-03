@@ -6980,8 +6980,9 @@ one-letter suffix that specifies the time unit).  Time units: s
 <DT><b><a name="postscreen_forbidden_commands">postscreen_forbidden_commands</a>
 (default: $<a href="postconf.5.html#smtpd_forbidden_commands">smtpd_forbidden_commands</a>)</b></DT><DD>
 
-<p> List of commands that <a href="postscreen.8.html">postscreen(8)</a> server considers in violation
-of the SMTP protocol. See also: <a href="postconf.5.html#postscreen_non_smtp_command_action">postscreen_non_smtp_command_action</a>.
+<p> List of commands that the <a href="postscreen.8.html">postscreen(8)</a> server considers in
+violation of the SMTP protocol. See <a href="postconf.5.html#smtpd_forbidden_commands">smtpd_forbidden_commands</a> for
+syntax, and <a href="postconf.5.html#postscreen_non_smtp_command_action">postscreen_non_smtp_command_action</a> for possible actions.
 </p>
 
 <p> This feature is available in Postfix 2.8.  </p>
@@ -7482,6 +7483,21 @@ This feature is available in Postfix 2.0 and later.
 
 </DD>
 
+<DT><b><a name="qmgr_daemon_timeout">qmgr_daemon_timeout</a>
+(default: 1000s)</b></DT><DD>
+
+<p> How much time a Postfix queue manager process may take to handle
+a request before it is terminated by a built-in watchdog timer.
+</p>
+
+<p>
+Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).
+</p>
+
+
+</DD>
+
 <DT><b><a name="qmgr_fudge_factor">qmgr_fudge_factor</a>
 (default: 100)</b></DT><DD>
 
@@ -7494,6 +7510,22 @@ message.
 <p>
 This feature exists only in the <a href="qmgr.8.html">oqmgr(8)</a> old queue manager. The
 current queue manager solves the problem in a better way.
+</p>
+
+
+</DD>
+
+<DT><b><a name="qmgr_ipc_timeout">qmgr_ipc_timeout</a>
+(default: 60s)</b></DT><DD>
+
+<p> The time limit for the queue manager to send or receive information
+over an internal communication channel.  The purpose is to break
+out of deadlock situations. If the time limit is exceeded the
+software either retries or aborts the operation. </p>
+
+<p>
+Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).
 </p>
 
 

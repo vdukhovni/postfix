@@ -188,7 +188,7 @@ static VSTRING *dnsblog_query(VSTRING *result, const char *dnsbl_domain,
 		msg_warn("%s: skipping reply record type %s for query %s: %m",
 			 myname, dns_strtype(rr->type), STR(query));
 	    } else {
-		msg_info("addr %s blocked by domain %s as %s",
+		msg_info("addr %s listed by domain %s as %s",
 			 addr, dnsbl_domain, hostaddr.buf);
 		if (LEN(result) > 0)
 		    vstring_strcat(result, " ");
@@ -198,7 +198,7 @@ static VSTRING *dnsblog_query(VSTRING *result, const char *dnsbl_domain,
 	dns_rr_free(addr_list);
     } else if (dns_status == DNS_NOTFOUND) {
 	if (msg_verbose)
-	    msg_info("%s: addr %s not listed under domain %s",
+	    msg_info("%s: addr %s not listed by domain %s",
 		     myname, addr, dnsbl_domain);
     } else {
 	msg_warn("%s: lookup error for DNS query %s: %s",
