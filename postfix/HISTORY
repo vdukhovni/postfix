@@ -16123,3 +16123,16 @@ Apologies for any names omitted.
 	notify" as with Postfix automatically-added BCC recipients.
 	Files: cleanup/cleanup_addr.c, cleanup/cleanup.h,
 	cleanup/cleanup_milter.c.
+
+20101105
+
+	Feature: DNS whitelist support in the Postfix SMTP server.
+	permit_dnswl_client whitelists a client by IP address, and
+	permit_rhswl_client whitelists a client by its hostname.
+	The syntax is the same as reject_rbl_client etc., but the
+	result is PERMIT instead of REJECT.  For safety reasons,
+	permit_xxx_client are silently ignored when they would
+	override reject_unauth_destination.  The result is
+	DEFER_IF_REJECT when DNSWL lookup fails.  The implementation
+	is based on a design documented by Noel Jones (August 2010).
+	File: smtpd/smtpd_check.c.

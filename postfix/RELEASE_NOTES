@@ -33,6 +33,26 @@ This is supported only when the default value is stress-dependent
 postscreen parameters always evaluate as if the stress value is 
 equal to the empty string.
 
+Major changes with snapshot 20101105
+====================================
+
+The Postfix SMTP server now supports DNS-based whitelisting with
+several safety features: permit_dnswl_client whitelists a client
+by IP address, and permit_rhswl_client whitelists a client by its
+hostname.  These features use the same syntax as reject_rbl_client
+and reject_rhsbl_client, respectively. The main difference is that
+they return PERMIT instead of REJECT.
+
+Whitelisting is primarily a tool to reduce the false positive rate
+of DNS blocklist lookups.  Client name whitelisting should not be
+used to make exceptions to access rules. The reason is that client
+name lookup can fail unpredictably due to some temporary outage.
+
+For safety reasons, permit_dnswl_client and permit_rhswl_client are
+silently ignored when they would override reject_unauth_destination.
+Also for safety reasons, the result is DEFER_IF_REJECT when DNS
+whitelist lookup fails (this result will be made configurable).
+
 Incompatibility with snapshot 20101103
 ======================================
 

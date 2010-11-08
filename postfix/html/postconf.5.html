@@ -11688,7 +11688,18 @@ specifies the default server reply, and the <a href="postconf.5.html#rbl_reply_m
 specifies tables with server replies indexed by <i>rbl_domain</i>.
 This feature is available in Postfix 2.0 and later.  </dd>
 
-<dt><b><a name="reject_rhsbl_client">reject_rhsbl_client <i>rbl_domain=d.d.d.d</i></a></b></dt>
+<dt><b><a name="permit_dnswl_client">permit_dnswl_client <i>dnswl_domain=d.d.d.d</i></a></b></dt>
+
+<dd>Accept the request when the reversed client network address is
+listed with the A record "<i>d.d.d.d</i>" under <i>dnswl_domain</i>.
+If no "<i>=d.d.d.d</i>" is specified, accept the request when the
+reversed client network address is listed with any A record under
+<i>dnswl_domain</i>. <br> For safety, <a href="postconf.5.html#permit_dnswl_client">permit_dnswl_client</a> is silently
+ignored when it would override <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>.  The
+result is DEFER_IF_REJECT when whitelist lookup fails.  This feature
+is available in Postfix 2.8 and later.  </dd>
+
+</dd> <dt><b><a name="reject_rhsbl_client">reject_rhsbl_client <i>rbl_domain=d.d.d.d</i></a></b></dt>
 
 <dd>Reject the request when the client hostname is listed with the
 A record "<i>d.d.d.d</i>" under <i>rbl_domain</i> (Postfix version
@@ -11699,6 +11710,21 @@ description above for additional RBL related configuration parameters.
 This feature is available in Postfix 2.0 and later; with Postfix
 version 2.8 and later, <a href="postconf.5.html#reject_rhsbl_reverse_client">reject_rhsbl_reverse_client</a> will usually
 produce better results.  </dd>
+
+</dd> <dt><b><a name="permit_rhswl_client">permit_rhswl_client <i>rhswl_domain=d.d.d.d</i></a></b></dt>
+
+<dd>Accept the request when the client hostname is listed with the
+A record "<i>d.d.d.d</i>" under <i>rhswl_domain</i>.  If no
+"<i>=d.d.d.d</i>" is specified, accept the request when the client
+hostname is listed with any A record under <i>rhswl_domain</i>.
+<br> Caution: client name whitelisting is fragile, since the client
+name lookup can fail due to temporary outages.  Client name
+whitelisting should be used only to reduce false positives in e.g.
+DNS-based blocklists, and not for making access rule exceptions.
+<br> For safety, <a href="postconf.5.html#permit_rhswl_client">permit_rhswl_client</a> is silently ignored when it
+would override <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>.  The result is DEFER_IF_REJECT
+when whitelist lookup fails.  This feature is available in Postfix
+2.8 and later.  </dd>
 
 <dt><b><a name="reject_rhsbl_reverse_client">reject_rhsbl_reverse_client <i>rbl_domain=d.d.d.d</i></a></b></dt>
 

@@ -2151,6 +2151,9 @@ extern int var_map_defer_code;
 #define REJECT_RHSBL_SENDER	"reject_rhsbl_sender"
 #define REJECT_RHSBL_RECIPIENT	"reject_rhsbl_recipient"
 
+#define PERMIT_DNSWL_CLIENT	"permit_dnswl_client"
+#define PERMIT_RHSWL_CLIENT	"permit_rhswl_client"
+
 #define VAR_RBL_REPLY_MAPS	"rbl_reply_maps"
 #define DEF_RBL_REPLY_MAPS	""
 extern char *var_rbl_reply_maps;

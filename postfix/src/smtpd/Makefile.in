@@ -66,7 +66,7 @@ tidy:	clean
 
 tests: smtpd_check_test smtpd_check_test2 smtpd_acl_test smtpd_exp_test \
 	smtpd_token_test smtpd_check_test4 smtpd_check_dsn_test \
-	smtpd_check_backup_test
+	smtpd_check_backup_test smtpd_dnswl_test
 
 root_tests:
 
@@ -123,6 +123,13 @@ smtpd_token_test: smtpd_token smtpd_token.in smtpd_token.ref
 	./smtpd_token <smtpd_token.in >smtpd_token.tmp 2>&1
 	diff smtpd_token.ref smtpd_token.tmp
 	rm -f smtpd_token.tmp
+
+# This requires that the DNS server can query porcupine.org and rfc-ignorant.org
+
+smtpd_dnswl_test: smtpd_check smtpd_dnswl.in smtpd_dnswl.ref
+	./smtpd_check <smtpd_dnswl.in >smtpd_dnswl.tmp 2>&1
+	diff smtpd_dnswl.ref smtpd_dnswl.tmp
+	rm -f smtpd_dnswl.tmp
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \

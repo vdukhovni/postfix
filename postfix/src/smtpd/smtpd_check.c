@@ -2939,6 +2939,15 @@ static const char *smtpd_expand_lookup(const char *name, int unused_mode,
     }
 }
 
+/* Support for different DNSXL lookup results. */
+
+static SMTPD_RBL_STATE dnsxl_stat_soft[1];
+
+#define SMTPD_DNSXL_STAT_SOFT(dnsxl_res) ((dnsxl_res) == dnsxl_stat_soft)
+#define SMTPD_DNXSL_STAT_HARD(dnsxl_res) ((dnsxl_res) == 0)
+#define SMTPD_DNSXL_STAT_OK(dnsxl_res) \
+	!(SMTPD_DNXSL_STAT_HARD(dnsxl_res) || SMTPD_DNSXL_STAT_SOFT(dnsxl_res))
+
 /* rbl_pagein - look up an RBL lookup result */
 
 static void *rbl_pagein(const char *query, void *unused_context)
@@ -2947,7 +2956,7 @@ static void *rbl_pagein(const char *query, void *unused_context)
     DNS_RR *txt_list;
     VSTRING *why;
     int     dns_status;
-    SMTPD_RBL_STATE *rbl;
+    SMTPD_RBL_STATE *rbl = 0;
     DNS_RR *addr_list;
     MAI_HOSTADDR_STR hostaddr;
     DNS_RR *rr;
@@ -2964,11 +2973,13 @@ static void *rbl_pagein(const char *query, void *unused_context)
      */
     why = vstring_alloc(10);
     dns_status = dns_lookup(query, T_A, 0, &addr_list, (VSTRING *) 0, why);
-    if (dns_status != DNS_OK && dns_status != DNS_NOTFOUND)
+    if (dns_status != DNS_OK && dns_status != DNS_NOTFOUND) {
 	msg_warn("%s: RBL lookup error: %s", query, STR(why));
+	rbl = dnsxl_stat_soft;
+    }
     vstring_free(why);
     if (dns_status != DNS_OK)
-	return (0);
+	return ((void *) rbl);
 
     /*
      * Save the result. Yes, we cache negative results as well as positive
@@ -3013,7 +3024,7 @@ static void rbl_pageout(void *data, void *unused_context)
 {
     SMTPD_RBL_STATE *rbl = (SMTPD_RBL_STATE *) data;
 
-    if (rbl != 0) {
+    if (SMTPD_DNSXL_STAT_OK(rbl)) {
 	if (rbl->txt)
 	    myfree(rbl->txt);
 	if (rbl->a)
@@ -3059,7 +3070,7 @@ static const char *rbl_expand_lookup(const char *name, int mode,
 
 /* rbl_reject_reply - format reply after RBL reject */
 
-static int rbl_reject_reply(SMTPD_STATE *state, SMTPD_RBL_STATE *rbl,
+static int rbl_reject_reply(SMTPD_STATE *state, const SMTPD_RBL_STATE *rbl,
 			            const char *rbl_domain,
 			            const char *what,
 			            const char *reply_class)
@@ -3144,12 +3155,13 @@ static int rbl_match_addr(SMTPD_RBL_STATE *rbl, const char *addr)
     return (0);
 }
 
-/* reject_rbl_addr - reject if address in real-time blackhole list */
+/* find_dnsxl_addr - look up address in DNSXL */
 
-static int reject_rbl_addr(SMTPD_STATE *state, const char *rbl_domain,
-			           const char *addr, const char *reply_class)
+static const SMTPD_RBL_STATE *find_dnsxl_addr(SMTPD_STATE *state,
+					              const char *rbl_domain,
+					              const char *addr)
 {
-    const char *myname = "reject_rbl";
+    const char *myname = "find_dnsxl_addr";
     ARGV   *octets;
     VSTRING *query;
     int     i;
@@ -3157,9 +3169,6 @@ static int reject_rbl_addr(SMTPD_STATE *state, const char *rbl_domain,
     const char *reply_addr;
     struct addrinfo *res;
     unsigned char *ipv6_addr;
-
-    if (msg_verbose)
-	msg_info("%s: %s %s", myname, reply_class, addr);
 
     query = vstring_alloc(100);
 
@@ -3203,30 +3212,78 @@ static int reject_rbl_addr(SMTPD_STATE *state, const char *rbl_domain,
     rbl = (SMTPD_RBL_STATE *) ctable_locate(smtpd_rbl_cache, STR(query));
 
     /*
-     * If the record exists, the address is blacklisted.
+     * If the record exists, match the result address.
      */
-    if (rbl == 0 || (reply_addr != 0 && !rbl_match_addr(rbl, reply_addr))) {
-	vstring_free(query);
+    if (SMTPD_DNSXL_STAT_OK(rbl) && reply_addr != 0
+	&& !rbl_match_addr(rbl, reply_addr))
+	rbl = 0;
+    vstring_free(query);
+    return (rbl);
+}
+
+/* reject_rbl_addr - reject address in real-time blackhole list */
+
+static int reject_rbl_addr(SMTPD_STATE *state, const char *rbl_domain,
+			           const char *addr, const char *reply_class)
+{
+    const char *myname = "reject_rbl_addr";
+    const SMTPD_RBL_STATE *rbl;
+
+    if (msg_verbose)
+	msg_info("%s: %s %s", myname, reply_class, addr);
+
+    rbl = find_dnsxl_addr(state, rbl_domain, addr);
+    if (!SMTPD_DNSXL_STAT_OK(rbl)) {
 	return (SMTPD_CHECK_DUNNO);
     } else {
-	vstring_free(query);
 	return (rbl_reject_reply(state, rbl, rbl_domain, addr, reply_class));
     }
 }
 
-/* reject_rbl_domain - reject if domain in real-time blackhole list */
+/* permit_dnswl_addr - permit address in DNSWL */
 
-static int reject_rbl_domain(SMTPD_STATE *state, const char *rbl_domain,
-			          const char *what, const char *reply_class)
+static int permit_dnswl_addr(SMTPD_STATE *state, const char *dnswl_domain,
+			          const char *addr, const char *reply_class)
 {
-    const char *myname = "reject_rbl_domain";
+    const char *myname = "permit_dnswl_addr";
+    const SMTPD_RBL_STATE *dnswl_result;
+
+    if (msg_verbose)
+	msg_info("%s: %s", myname, addr);
+
+    /* Safety: don't whitelist unauthorized recipients. */
+    if (strcmp(state->where, SMTPD_CMD_RCPT) == 0 && state->recipient != 0
+      && permit_auth_destination(state, state->recipient) != SMTPD_CHECK_OK)
+	return (SMTPD_CHECK_DUNNO);
+
+    dnswl_result = find_dnsxl_addr(state, dnswl_domain, addr);
+    if (SMTPD_DNXSL_STAT_HARD(dnswl_result)) {
+	return (SMTPD_CHECK_DUNNO);
+    } else if (SMTPD_DNSXL_STAT_SOFT(dnswl_result)) {
+	/* XXX: Make configurable as dnswl_tempfail_action. */
+	DEFER_IF_REJECT3(state, MAIL_ERROR_POLICY,
+			 450, "4.7.1",
+			 "<%s>: %s rejected: %s",
+			 addr, reply_class,
+			 "Service unavailable");
+	return (SMTPD_CHECK_DUNNO);
+    } else if (SMTPD_DNSXL_STAT_OK(dnswl_result)) {
+	return (SMTPD_CHECK_OK);
+    } else {
+	/* Future proofing, in case find_dnsxl_addr() result is changed. */
+	msg_panic("%s: find_dnsxl_addr API failure", myname);
+    }
+}
+
+/* find_dnsxl_domain - reject if domain in real-time blackhole list */
+
+static const SMTPD_RBL_STATE *find_dnsxl_domain(SMTPD_STATE *state,
+			           const char *rbl_domain, const char *what)
+{
     VSTRING *query;
     SMTPD_RBL_STATE *rbl;
     const char *domain;
     const char *reply_addr;
-
-    if (msg_verbose)
-	msg_info("%s: %s %s", myname, reply_class, what);
 
     /*
      * Extract the domain, tack on the RBL domain name and query the DNS for
@@ -3247,14 +3304,66 @@ static int reject_rbl_domain(SMTPD_STATE *state, const char *rbl_domain,
     rbl = (SMTPD_RBL_STATE *) ctable_locate(smtpd_rbl_cache, STR(query));
 
     /*
-     * If the record exists, the domain is blacklisted.
+     * If the record exists, match the result address.
      */
-    if (rbl == 0 || (reply_addr != 0 && !rbl_match_addr(rbl, reply_addr))) {
-	vstring_free(query);
+    if (SMTPD_DNSXL_STAT_OK(rbl) && reply_addr != 0
+	&& !rbl_match_addr(rbl, reply_addr))
+	rbl = 0;
+    vstring_free(query);
+    return (rbl);
+}
+
+/* reject_rbl_domain - reject if domain in real-time blackhole list */
+
+static int reject_rbl_domain(SMTPD_STATE *state, const char *rbl_domain,
+			          const char *what, const char *reply_class)
+{
+    const char *myname = "reject_rbl_domain";
+    const SMTPD_RBL_STATE *rbl;
+
+    if (msg_verbose)
+	msg_info("%s: %s %s", myname, rbl_domain, what);
+
+    rbl = find_dnsxl_domain(state, rbl_domain, what);
+    if (!SMTPD_DNSXL_STAT_OK(rbl)) {
 	return (SMTPD_CHECK_DUNNO);
     } else {
-	vstring_free(query);
 	return (rbl_reject_reply(state, rbl, rbl_domain, what, reply_class));
+    }
+}
+
+/* permit_dnswl_domain - permit domain in DNSWL */
+
+static int permit_dnswl_domain(SMTPD_STATE *state, const char *dnswl_domain,
+			          const char *what, const char *reply_class)
+{
+    const char *myname = "permit_dnswl_domain";
+    const SMTPD_RBL_STATE *dnswl_result;
+
+    if (msg_verbose)
+	msg_info("%s: %s", myname, what);
+
+    /* Safety: don't whitelist unauthorized recipients. */
+    if (strcmp(state->where, SMTPD_CMD_RCPT) == 0 && state->recipient != 0
+      && permit_auth_destination(state, state->recipient) != SMTPD_CHECK_OK)
+	return (SMTPD_CHECK_DUNNO);
+
+    dnswl_result = find_dnsxl_domain(state, dnswl_domain, what);
+    if (SMTPD_DNXSL_STAT_HARD(dnswl_result)) {
+	return (SMTPD_CHECK_DUNNO);
+    } else if (SMTPD_DNSXL_STAT_SOFT(dnswl_result)) {
+	/* XXX: Make configurable as rhswl_tempfail_action. */
+	DEFER_IF_REJECT3(state, MAIL_ERROR_POLICY,
+			 450, "4.7.1",
+			 "<%s>: %s rejected: %s",
+			 what, reply_class,
+			 "Service unavailable");
+	return (SMTPD_CHECK_DUNNO);
+    } else if (SMTPD_DNSXL_STAT_OK(dnswl_result)) {
+	return (SMTPD_CHECK_OK);
+    } else {
+	/* Future proofing, in case find_dnsxl_addr() result is changed. */
+	msg_panic("%s: find_dnsxl_addr API failure", myname);
     }
 }
 
@@ -3680,6 +3789,12 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    else
 		status = reject_rbl_addr(state, *(cpp += 1), state->addr,
 					 SMTPD_NAME_CLIENT);
+	} else if (strcasecmp(name, PERMIT_DNSWL_CLIENT) == 0) {
+	    if (cpp[1] == 0)
+		msg_warn("restriction %s requires domain name argument", name);
+	    else
+		status = permit_dnswl_addr(state, *(cpp += 1), state->addr,
+					   SMTPD_NAME_CLIENT);
 	} else if (strcasecmp(name, REJECT_RHSBL_CLIENT) == 0) {
 	    if (cpp[1] == 0)
 		msg_warn("restriction %s requires domain name argument",
@@ -3689,6 +3804,16 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		if (strcasecmp(state->name, "unknown") != 0)
 		    status = reject_rbl_domain(state, *cpp, state->name,
 					       SMTPD_NAME_CLIENT);
+	    }
+	} else if (strcasecmp(name, PERMIT_RHSWL_CLIENT) == 0) {
+	    if (cpp[1] == 0)
+		msg_warn("restriction %s requires domain name argument",
+			 name);
+	    else {
+		cpp += 1;
+		if (strcasecmp(state->name, "unknown") != 0)
+		    status = permit_dnswl_domain(state, *cpp, state->name,
+						 SMTPD_NAME_CLIENT);
 	    }
 	} else if (strcasecmp(name, REJECT_RHSBL_REVERSE_CLIENT) == 0) {
 	    if (cpp[1] == 0)
@@ -4979,7 +5104,7 @@ static const INT_TABLE int_table[] = {
     VAR_VIRT_ALIAS_CODE, DEF_VIRT_ALIAS_CODE, &var_virt_alias_code,
     VAR_VIRT_MAILBOX_CODE, DEF_VIRT_MAILBOX_CODE, &var_virt_mailbox_code,
     VAR_SHOW_UNK_RCPT_TABLE, DEF_SHOW_UNK_RCPT_TABLE, &var_show_unk_rcpt_table,
-    VAR_VERIFY_POLL_COUNT, DEF_VERIFY_POLL_COUNT, &var_verify_poll_count,
+    VAR_VERIFY_POLL_COUNT, 3, &var_verify_poll_count,
     VAR_SMTPD_REJ_UNL_FROM, DEF_SMTPD_REJ_UNL_FROM, &var_smtpd_rej_unl_from,
     VAR_SMTPD_REJ_UNL_RCPT, DEF_SMTPD_REJ_UNL_RCPT, &var_smtpd_rej_unl_rcpt,
     VAR_PLAINTEXT_CODE, DEF_PLAINTEXT_CODE, &var_plaintext_code,
@@ -5237,6 +5362,12 @@ int     main(int argc, char **argv)
 	 */
 	resp = "bad command";
 	switch (args->argc) {
+
+	    /*
+	     * Emtpy line.
+	     */
+	case 0:
+	    continue;
 
 	    /*
 	     * Special case: client identity.

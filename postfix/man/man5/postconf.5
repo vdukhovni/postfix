@@ -7175,6 +7175,17 @@ rejected requests (default:  554), the default_rbl_reply  parameter
 specifies the default server reply, and the rbl_reply_maps  parameter
 specifies tables with server replies indexed by \fIrbl_domain\fR.
 This feature is available in Postfix 2.0 and later.
+.IP "\fBpermit_dnswl_client \fIdnswl_domain=d.d.d.d\fR\fR"
+Accept the request when the reversed client network address is
+listed with the A record "\fId.d.d.d\fR" under \fIdnswl_domain\fR.
+If no "\fI=d.d.d.d\fR" is specified, accept the request when the
+reversed client network address is listed with any A record under
+\fIdnswl_domain\fR.
+.br
+For safety, permit_dnswl_client is silently
+ignored when it would override reject_unauth_destination.  The
+result is DEFER_IF_REJECT when whitelist lookup fails.  This feature
+is available in Postfix 2.8 and later.
 .IP "\fBreject_rhsbl_client \fIrbl_domain=d.d.d.d\fR\fR"
 Reject the request when the client hostname is listed with the
 A record "\fId.d.d.d\fR" under \fIrbl_domain\fR (Postfix version
@@ -7185,6 +7196,21 @@ description above for additional RBL related configuration parameters.
 This feature is available in Postfix 2.0 and later; with Postfix
 version 2.8 and later, reject_rhsbl_reverse_client will usually
 produce better results.
+.IP "\fBpermit_rhswl_client \fIrhswl_domain=d.d.d.d\fR\fR"
+Accept the request when the client hostname is listed with the
+A record "\fId.d.d.d\fR" under \fIrhswl_domain\fR.  If no
+"\fI=d.d.d.d\fR" is specified, accept the request when the client
+hostname is listed with any A record under \fIrhswl_domain\fR.
+.br
+Caution: client name whitelisting is fragile, since the client
+name lookup can fail due to temporary outages.  Client name
+whitelisting should be used only to reduce false positives in e.g.
+DNS-based blocklists, and not for making access rule exceptions.
+.br
+For safety, permit_rhswl_client is silently ignored when it
+would override reject_unauth_destination.  The result is DEFER_IF_REJECT
+when whitelist lookup fails.  This feature is available in Postfix
+2.8 and later.
 .IP "\fBreject_rhsbl_reverse_client \fIrbl_domain=d.d.d.d\fR\fR"
 Reject the request when the unverified reverse client hostname
 is listed with the A record "\fId.d.d.d\fR" under \fIrbl_domain\fR.
