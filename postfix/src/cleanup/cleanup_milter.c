@@ -370,8 +370,7 @@ static char *cleanup_milter_hbc_extend(void *context, const char *command,
 	}
 	return ((char *) buf);
     }
-    msg_warn("unknown command in %s map: %s", map_class, command);
-    return ((char *) buf);
+    return ((char *) HBC_CHECKS_STAT_UNKNOWN);
 }
 
 /* cleanup_milter_header_checks - inspect Milter-generated header */
