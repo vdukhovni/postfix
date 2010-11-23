@@ -3755,7 +3755,8 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 			 name);
 	    else {
 		cpp += 1;
-		if (state->helo_name)
+		if (state->helo_name
+		    && valid_hostname(state->helo_name, DONT_GRIPE))
 		    status = reject_rbl_domain(state, *cpp, state->helo_name,
 					       SMTPD_NAME_HELO);
 	    }
