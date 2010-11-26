@@ -4,6 +4,17 @@ Wish list:
 
 	anvil rate limit for sasl_username.
 
+	postscreen per-client connection count limit.
+
+	smtpd xclient option for sasl_username.
+
+	Documentation: add a note that smtpd_helo_required=yes is
+	needed to really enforce HELO restrictions.
+
+	Use different ipc_timeout settings for email message
+	transactions (smtpd, pickup)->cleanup and for quick query/reply
+	transactions such as address rewriting/resolution.
+
 	permit_tempfail_action (default: defer_if_reject) to be
 	used as the default value for dnswl_tempfail_action and
 	rhswl_tempfail_action. Steal liberally from the code that

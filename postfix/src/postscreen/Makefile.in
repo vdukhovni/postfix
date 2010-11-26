@@ -81,6 +81,7 @@ postscreen.o: ../../include/myaddrinfo.h
 postscreen.o: ../../include/mymalloc.h
 postscreen.o: ../../include/name_code.h
 postscreen.o: ../../include/set_eugid.h
+postscreen.o: ../../include/string_list.h
 postscreen.o: ../../include/sys_defs.h
 postscreen.o: ../../include/vbuf.h
 postscreen.o: ../../include/vstream.h
@@ -95,6 +96,7 @@ postscreen_dict.o: ../../include/events.h
 postscreen_dict.o: ../../include/match_list.h
 postscreen_dict.o: ../../include/match_ops.h
 postscreen_dict.o: ../../include/msg.h
+postscreen_dict.o: ../../include/string_list.h
 postscreen_dict.o: ../../include/sys_defs.h
 postscreen_dict.o: ../../include/vbuf.h
 postscreen_dict.o: ../../include/vstream.h
@@ -110,6 +112,7 @@ postscreen_dnsbl.o: ../../include/dict_cache.h
 postscreen_dnsbl.o: ../../include/events.h
 postscreen_dnsbl.o: ../../include/htable.h
 postscreen_dnsbl.o: ../../include/iostuff.h
+postscreen_dnsbl.o: ../../include/ip_match.h
 postscreen_dnsbl.o: ../../include/mail_params.h
 postscreen_dnsbl.o: ../../include/mail_proto.h
 postscreen_dnsbl.o: ../../include/match_list.h
@@ -117,6 +120,7 @@ postscreen_dnsbl.o: ../../include/match_ops.h
 postscreen_dnsbl.o: ../../include/msg.h
 postscreen_dnsbl.o: ../../include/mymalloc.h
 postscreen_dnsbl.o: ../../include/split_at.h
+postscreen_dnsbl.o: ../../include/string_list.h
 postscreen_dnsbl.o: ../../include/sys_defs.h
 postscreen_dnsbl.o: ../../include/valid_hostname.h
 postscreen_dnsbl.o: ../../include/vbuf.h
@@ -134,6 +138,7 @@ postscreen_early.o: ../../include/match_list.h
 postscreen_early.o: ../../include/match_ops.h
 postscreen_early.o: ../../include/msg.h
 postscreen_early.o: ../../include/mymalloc.h
+postscreen_early.o: ../../include/string_list.h
 postscreen_early.o: ../../include/stringops.h
 postscreen_early.o: ../../include/sys_defs.h
 postscreen_early.o: ../../include/vbuf.h
@@ -152,6 +157,7 @@ postscreen_misc.o: ../../include/mail_params.h
 postscreen_misc.o: ../../include/match_list.h
 postscreen_misc.o: ../../include/match_ops.h
 postscreen_misc.o: ../../include/msg.h
+postscreen_misc.o: ../../include/string_list.h
 postscreen_misc.o: ../../include/sys_defs.h
 postscreen_misc.o: ../../include/vbuf.h
 postscreen_misc.o: ../../include/vstream.h
@@ -168,6 +174,7 @@ postscreen_send.o: ../../include/iostuff.h
 postscreen_send.o: ../../include/match_list.h
 postscreen_send.o: ../../include/match_ops.h
 postscreen_send.o: ../../include/msg.h
+postscreen_send.o: ../../include/string_list.h
 postscreen_send.o: ../../include/sys_defs.h
 postscreen_send.o: ../../include/vbuf.h
 postscreen_send.o: ../../include/vstream.h
@@ -181,12 +188,14 @@ postscreen_smtpd.o: ../../include/dict.h
 postscreen_smtpd.o: ../../include/dict_cache.h
 postscreen_smtpd.o: ../../include/events.h
 postscreen_smtpd.o: ../../include/iostuff.h
+postscreen_smtpd.o: ../../include/is_header.h
 postscreen_smtpd.o: ../../include/mail_params.h
 postscreen_smtpd.o: ../../include/mail_proto.h
 postscreen_smtpd.o: ../../include/match_list.h
 postscreen_smtpd.o: ../../include/match_ops.h
 postscreen_smtpd.o: ../../include/msg.h
 postscreen_smtpd.o: ../../include/mymalloc.h
+postscreen_smtpd.o: ../../include/string_list.h
 postscreen_smtpd.o: ../../include/stringops.h
 postscreen_smtpd.o: ../../include/sys_defs.h
 postscreen_smtpd.o: ../../include/vbuf.h
@@ -208,6 +217,7 @@ postscreen_state.o: ../../include/match_ops.h
 postscreen_state.o: ../../include/msg.h
 postscreen_state.o: ../../include/mymalloc.h
 postscreen_state.o: ../../include/name_mask.h
+postscreen_state.o: ../../include/string_list.h
 postscreen_state.o: ../../include/sys_defs.h
 postscreen_state.o: ../../include/vbuf.h
 postscreen_state.o: ../../include/vstream.h
@@ -223,6 +233,7 @@ postscreen_tests.o: ../../include/mail_params.h
 postscreen_tests.o: ../../include/match_list.h
 postscreen_tests.o: ../../include/match_ops.h
 postscreen_tests.o: ../../include/msg.h
+postscreen_tests.o: ../../include/string_list.h
 postscreen_tests.o: ../../include/sys_defs.h
 postscreen_tests.o: ../../include/vbuf.h
 postscreen_tests.o: ../../include/vstream.h

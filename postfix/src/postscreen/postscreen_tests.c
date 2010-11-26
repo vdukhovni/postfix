@@ -163,7 +163,11 @@ void    ps_parse_tests(PS_STATE *state,
     unsigned long nsmtp_stamp;
     unsigned long barlf_stamp;
     unsigned long penal_stamp;
+
+#ifdef NONPROD
     time_t  penalty_left;
+
+#endif
 
     /*
      * We don't know what tests have expired or have never passed.

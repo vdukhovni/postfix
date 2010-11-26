@@ -14,7 +14,7 @@
 /*
 /*	Arguments:
 /* .IP fd
-/*	File descriptor.
+/*	File descriptor that connects the sending and receiving processes.
 /* DIAGNOSTICS
 /*	unix_recv_fd() returns -1 upon failure.
 /* LICENSE

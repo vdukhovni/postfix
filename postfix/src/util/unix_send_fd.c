@@ -15,9 +15,9 @@
 /*
 /*	Arguments:
 /* .IP fd
-/*	File descriptor.
+/*	File descriptor that connects the sending and receiving processes.
 /* .IP sendfd
-/*	Another file descriptor.
+/*	The file descriptor to be sent.
 /* DIAGNOSTICS
 /*	unix_send_fd() returns -1 upon failure.
 /* LICENSE

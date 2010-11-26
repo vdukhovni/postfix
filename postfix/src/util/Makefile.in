@@ -32,7 +32,8 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	write_buf.c write_wait.c sane_basename.c format_tv.c allspace.c \
 	allascii.c load_file.c killme_after.c vstream_tweak.c upass_connect.c \
 	upass_listen.c upass_trigger.c edit_file.c inet_windowsize.c \
-	unix_pass_fd_fix.c dict_cache.c valid_utf_8.c dict_thash.c
+	unix_pass_fd_fix.c dict_cache.c valid_utf_8.c dict_thash.c \
+	ip_match.c ip_lmatch.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -66,7 +67,8 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	write_buf.o write_wait.o sane_basename.o format_tv.o allspace.o \
 	allascii.o load_file.o killme_after.o vstream_tweak.o upass_connect.o \
 	upass_listen.o upass_trigger.o edit_file.o inet_windowsize.o \
-	unix_pass_fd_fix.o dict_cache.o valid_utf_8.o dict_thash.o
+	unix_pass_fd_fix.o dict_cache.o valid_utf_8.o dict_thash.o \
+	ip_match.o ip_lmatch.o
 HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	chroot_uid.h cidr_match.h clean_env.h connect.h ctable.h dict.h \
 	dict_cdb.h dict_cidr.h dict_db.h dict_dbm.h dict_env.h dict_ht.h \
@@ -86,7 +88,8 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	stringops.h sys_defs.h timed_connect.h timed_wait.h trigger.h \
 	username.h valid_hostname.h vbuf.h vbuf_print.h vstream.h vstring.h \
 	vstring_vstream.h watchdog.h format_tv.h load_file.h killme_after.h \
-	edit_file.h dict_cache.h dict_thash.h
+	edit_file.h dict_cache.h dict_thash.h \
+	ip_match.h ip_lmatch.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c test_send_fd test_recv_fd
 DEFS	= -I. -D$(SYSTYPE)
@@ -104,7 +107,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	attr_scan0 host_port attr_scan_plain attr_print_plain htable \
 	unix_recv_fd unix_send_fd stream_recv_fd stream_send_fd hex_code \
 	myaddrinfo myaddrinfo4 inet_proto sane_basename format_tv \
-	test_send_fd test_recv_fd valid_utf_8
+	test_send_fd test_recv_fd valid_utf_8 ip_match ip_lmatch
 
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
@@ -147,7 +150,7 @@ shar:
 	@shar $(FILES)
 
 lint:
-	lint $(SRCS)
+	lint $(DEFS) $(SRCS) $(LINTFIX)
 
 clean:
 	rm -f *.o $(LIB) *core $(TESTPROG) junk $(MAKES) *.tmp
@@ -419,11 +422,21 @@ valid_utf_8: $(LIB)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
+ip_match: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
+ip_lmatch: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
 tests: valid_hostname_test mac_expand_test dict_test unescape_test \
 	hex_quote_test ctable_test inet_addr_list_test base64_code_test \
 	attr_scan64_test attr_scan0_test dict_pcre_test host_port_test \
 	dict_cidr_test attr_scan_plain_test htable_test hex_code_test \
-	myaddrinfo_test format_tv_test
+	myaddrinfo_test format_tv_test ip_match_test ip_lmatch_test
 
 root_tests:
 
@@ -544,6 +557,16 @@ format_tv_test: format_tv format_tv.in format_tv.ref
 	./format_tv <format_tv.in >format_tv.tmp
 	diff format_tv.ref format_tv.tmp
 	rm -f format_tv.tmp
+
+ip_match_test: ip_match ip_match.in ip_match.ref
+	./ip_match <ip_match.in >ip_match.tmp
+	diff ip_match.ref ip_match.tmp
+	rm -f ip_match.tmp
+
+ip_lmatch_test: ip_lmatch ip_lmatch.in ip_lmatch.ref
+	./ip_lmatch <ip_lmatch.in >ip_lmatch.tmp
+	diff ip_lmatch.ref ip_lmatch.tmp
+	rm -f ip_lmatch.tmp
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \
@@ -1184,6 +1207,20 @@ inet_windowsize.o: inet_windowsize.c
 inet_windowsize.o: iostuff.h
 inet_windowsize.o: msg.h
 inet_windowsize.o: sys_defs.h
+ip_match.o: ip_match.c
+ip_match.o: ip_match.h
+ip_match.o: msg.h
+ip_match.o: mymalloc.h
+ip_match.o: sys_defs.h
+ip_match.o: vbuf.h
+ip_match.o: vstring.h
+ip_lmatch.o: ip_lmatch.c
+ip_lmatch.o: ip_lmatch.h
+ip_lmatch.o: msg.h
+ip_lmatch.o: mymalloc.h
+ip_lmatch.o: sys_defs.h
+ip_lmatch.o: vbuf.h
+ip_lmatch.o: vstring.h
 killme_after.o: killme_after.c
 killme_after.o: killme_after.h
 killme_after.o: sys_defs.h

@@ -57,6 +57,7 @@
 #include <myaddrinfo.h>
 #include <sock_addr.h>
 #include <inet_proto.h>
+#include <split_at.h>
 
 /* Global library. */
 
@@ -149,6 +150,14 @@ void    qmqpd_peer_init(QMQPD_STATE *state)
 	    msg_fatal("%s: cannot convert client address/port to string: %s",
 		      myname, MAI_STRERROR(aierr));
 	state->port = mystrdup(client_port.buf);
+
+	/*
+	 * XXX Strip off the IPv6 datalink suffix to avoid false alarms with
+	 * strict address syntax checks.
+	 */
+#ifdef HAS_IPV6
+	(void) split_at(client_addr.buf, '%');
+#endif
 
 	/*
 	 * We convert IPv4-in-IPv6 address to 'true' IPv4 address early on,

@@ -54,6 +54,9 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <sys/socket.h>			/* AF_INET */
+#include <netinet/in.h>			/* inet_pton() */
+#include <arpa/inet.h>			/* inet_pton() */
 #include <stdio.h>			/* sscanf */
 
 /* Utility library. */
@@ -67,6 +70,8 @@
 #include <connect.h>
 #include <split_at.h>
 #include <valid_hostname.h>
+#include <ip_match.h>
+#include <myaddrinfo.h>
 
 /* Global library. */
 
@@ -199,13 +204,15 @@ static void ps_dnsbl_add_site(const char *site)
 {
     const char *myname = "ps_dnsbl_add_site";
     char   *saved_site = mystrdup(site);
+    VSTRING *byte_codes = 0;
     PS_DNSBL_HEAD *head;
     PS_DNSBL_SITE *new_site;
     char    junk;
     const char *weight_text;
-    const char *pattern_text;
+    char *pattern_text;
     int     weight;
     HTABLE_INFO *ht;
+    char   *parse_err;
 
     /*
      * Parse the required DNSBL domain name, the optional reply filter and
@@ -221,11 +228,11 @@ static void ps_dnsbl_add_site(const char *site)
     } else {
 	weight = 1;
     }
-    /* Preliminary fixed-string filter. */
+    /* Reply filter. */
     if ((pattern_text = split_at(saved_site, '=')) != 0) {
-	if (valid_ipv4_hostaddr(pattern_text, DO_GRIPE) == 0)
-	    msg_fatal("bad DNSBL filter syntax \"%s\" in \"%s\"",
-		      pattern_text, site);
+	byte_codes = vstring_alloc(100);
+	if ((parse_err = ip_match_parse(byte_codes, pattern_text)) != 0)
+	    msg_fatal("bad DNSBL filter syntax: %s", parse_err);
     }
     if (valid_hostname(saved_site, DO_GRIPE) == 0)
 	msg_fatal("bad DNSBL domain name \"%s\" in \"%s\"",
@@ -256,26 +263,33 @@ static void ps_dnsbl_add_site(const char *site)
      * name.
      */
     new_site = (PS_DNSBL_SITE *) mymalloc(sizeof(*new_site));
-    new_site->filter = (pattern_text ? mystrdup(pattern_text) : 0);
+    new_site->filter = (pattern_text ? ip_match_save(byte_codes) : 0);
     new_site->weight = weight;
     new_site->next = head->first;
     head->first = new_site;
 
     myfree(saved_site);
+    if (byte_codes)
+	vstring_free(byte_codes);
 }
 
 /* ps_dnsbl_match - match DNSBL reply filter */
 
 static int ps_dnsbl_match(const char *filter, ARGV *reply)
 {
+    char    addr_buf[MAI_HOSTADDR_STRSIZE];
     char  **cpp;
 
     /*
-     * Preliminary fixed-string implementation.
+     * Run the replies through the pattern-matching engine.
      */
-    for (cpp = reply->argv; *cpp != 0; cpp++)
-	if (strcmp(filter, *cpp) == 0)
+    for (cpp = reply->argv; *cpp != 0; cpp++) {
+	if (inet_pton(AF_INET, *cpp, addr_buf) != 1)
+	    msg_warn("address conversion error for %s -- ignoring this reply",
+		     *cpp);
+	if (ip_match_execute(filter, addr_buf))
 	    return (1);
+    }
     return (0);
 }
 

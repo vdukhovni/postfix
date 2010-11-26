@@ -255,6 +255,7 @@ smtpd_check.o: ../../include/inet_addr_list.h
 smtpd_check.o: ../../include/inet_proto.h
 smtpd_check.o: ../../include/input_transp.h
 smtpd_check.o: ../../include/iostuff.h
+smtpd_check.o: ../../include/ip_match.h
 smtpd_check.o: ../../include/is_header.h
 smtpd_check.o: ../../include/mac_expand.h
 smtpd_check.o: ../../include/mac_parse.h
@@ -344,6 +345,7 @@ smtpd_peer.o: ../../include/mymalloc.h
 smtpd_peer.o: ../../include/name_code.h
 smtpd_peer.o: ../../include/name_mask.h
 smtpd_peer.o: ../../include/sock_addr.h
+smtpd_peer.o: ../../include/split_at.h
 smtpd_peer.o: ../../include/stringops.h
 smtpd_peer.o: ../../include/sys_defs.h
 smtpd_peer.o: ../../include/tls.h

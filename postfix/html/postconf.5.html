@@ -6802,7 +6802,8 @@ and error commands.  </p>
 (default: ${stress?10}${stress:300}s)</b></DT><DD>
 
 <p> The command "read" time limit for <a href="postscreen.8.html">postscreen(8)</a>'s built-in SMTP
-protocol engine.  </p>
+protocol engine. This bounds the time to receive an entire command.
+</p>
 
 <p> This feature is available in Postfix 2.8.  </p>
 
@@ -11679,9 +11680,12 @@ Postfix version 2.5).  This feature is available with Postfix version
 
 <dd>Reject the request when the reversed client network address is
 listed with the A record "<i>d.d.d.d</i>" under <i>rbl_domain</i>
-(Postfix version 2.1 and later only).  If no "<i>=d.d.d.d</i>" is
-specified, reject the request when the reversed client network
-address is listed with any A record under <i>rbl_domain</i>. <br>
+(Postfix version 2.1 and later only).  Each "<i>d</i>" can be a
+pattern inside "[]" that contains one or more comma-separated decimal
+numbers or number..number ranges (Postfix version 2.8 and later).
+If no "<i>=d.d.d.d</i>" is specified, reject the request when the
+reversed client network address is listed with any A record under
+<i>rbl_domain</i>. <br>
 The <a href="postconf.5.html#maps_rbl_reject_code">maps_rbl_reject_code</a> parameter specifies the response code for
 rejected requests (default:  554), the <a href="postconf.5.html#default_rbl_reply">default_rbl_reply</a>  parameter
 specifies the default server reply, and the <a href="postconf.5.html#rbl_reply_maps">rbl_reply_maps</a>  parameter
@@ -11692,6 +11696,8 @@ This feature is available in Postfix 2.0 and later.  </dd>
 
 <dd>Accept the request when the reversed client network address is
 listed with the A record "<i>d.d.d.d</i>" under <i>dnswl_domain</i>.
+Each "<i>d</i>" can be a pattern inside "[]" that contains one or
+more comma-separated decimal numbers or number..number ranges.
 If no "<i>=d.d.d.d</i>" is specified, accept the request when the
 reversed client network address is listed with any A record under
 <i>dnswl_domain</i>. <br> For safety, <a href="postconf.5.html#permit_dnswl_client">permit_dnswl_client</a> is silently
@@ -11699,12 +11705,15 @@ ignored when it would override <a href="postconf.5.html#reject_unauth_destinatio
 result is DEFER_IF_REJECT when whitelist lookup fails.  This feature
 is available in Postfix 2.8 and later.  </dd>
 
-</dd> <dt><b><a name="reject_rhsbl_client">reject_rhsbl_client <i>rbl_domain=d.d.d.d</i></a></b></dt>
+<dt><b><a name="reject_rhsbl_client">reject_rhsbl_client <i>rbl_domain=d.d.d.d</i></a></b></dt>
 
 <dd>Reject the request when the client hostname is listed with the
 A record "<i>d.d.d.d</i>" under <i>rbl_domain</i> (Postfix version
-2.1 and later only).  If no "<i>=d.d.d.d</i>" is specified, reject
-the request when the client hostname is listed with
+2.1 and later only).  Each "<i>d</i>" can be a pattern inside "[]"
+that contains one or more comma-separated decimal numbers or
+number..number ranges (Postfix version 2.8 and later).  If no
+"<i>=d.d.d.d</i>" is specified, reject the request when the client
+hostname is listed with
 any A record under <i>rbl_domain</i>. See the <a href="postconf.5.html#reject_rbl_client">reject_rbl_client</a>
 description above for additional RBL related configuration parameters.
 This feature is available in Postfix 2.0 and later; with Postfix
@@ -11714,7 +11723,9 @@ produce better results.  </dd>
 </dd> <dt><b><a name="permit_rhswl_client">permit_rhswl_client <i>rhswl_domain=d.d.d.d</i></a></b></dt>
 
 <dd>Accept the request when the client hostname is listed with the
-A record "<i>d.d.d.d</i>" under <i>rhswl_domain</i>.  If no
+A record "<i>d.d.d.d</i>" under <i>rhswl_domain</i>.  Each "<i>d</i>"
+can be a pattern inside "[]" that contains one or more comma-separated
+decimal numbers or number..number ranges. If no
 "<i>=d.d.d.d</i>" is specified, accept the request when the client
 hostname is listed with any A record under <i>rhswl_domain</i>.
 <br> Caution: client name whitelisting is fragile, since the client
@@ -11730,6 +11741,8 @@ when whitelist lookup fails.  This feature is available in Postfix
 
 <dd>Reject the request when the unverified reverse client hostname
 is listed with the A record "<i>d.d.d.d</i>" under <i>rbl_domain</i>.
+Each "<i>d</i>" can be a pattern inside "[]" that contains one or
+more comma-separated decimal numbers or number..number ranges.
 If no "<i>=d.d.d.d</i>" is specified, reject the request when the
 unverified reverse client hostname is listed with any A record under
 <i>rbl_domain</i>. See the <a href="postconf.5.html#reject_rbl_client">reject_rbl_client</a> description above for
@@ -12368,7 +12381,10 @@ rejected requests (default: 504).</dd>
 
 <dd>Reject the request when the HELO or EHLO hostname hostname is
 listed with the A record "<i>d.d.d.d</i>" under <i>rbl_domain</i>
-(Postfix version 2.1 and later only).  If no "<i>=d.d.d.d</i>" is
+(Postfix version 2.1 and later only).  Each "<i>d</i>" can be a
+pattern inside "[]" that contains one or more comma-separated decimal
+numbers or number..number ranges (Postfix version 2.8 and later).
+If no "<i>=d.d.d.d</i>" is
 specified, reject the request when the HELO or EHLO hostname is
 listed with any A record under <i>rbl_domain</i>. See the
 <a href="postconf.5.html#reject_rbl_client">reject_rbl_client</a> description for additional RBL related configuration
@@ -12784,7 +12800,10 @@ rejected requests (default: 504). </dd>
 
 <dd>Reject the request when the RCPT TO domain is listed with the
 A record "<i>d.d.d.d</i>" under <i>rbl_domain</i> (Postfix version
-2.1 and later only).  If no "<i>=d.d.d.d</i>" is specified, reject
+2.1 and later only).  Each "<i>d</i>" can be a pattern inside "[]"
+that contains one or more comma-separated decimal numbers or
+number..number ranges (Postfix version 2.8 and later). If no
+"<i>=d.d.d.d</i>" is specified, reject
 the request when the RCPT TO domain is listed with
 any A record under <i>rbl_domain</i>. <br> The <a href="postconf.5.html#maps_rbl_reject_code">maps_rbl_reject_code</a>
 parameter specifies the response code for rejected requests (default:
@@ -13328,7 +13347,10 @@ rejected requests (default: 504). </dd>
 
 <dd>Reject the request when the MAIL FROM domain is listed with
 the A record "<i>d.d.d.d</i>" under <i>rbl_domain</i> (Postfix
-version 2.1 and later only).  If no "<i>=d.d.d.d</i>" is specified,
+version 2.1 and later only).  Each "<i>d</i>" can be a pattern
+inside "[]" that contains one or more comma-separated decimal numbers
+or number..number ranges (Postfix version 2.8 and later). If no
+"<i>=d.d.d.d</i>" is specified,
 reject the request when the MAIL FROM domain is
 listed with any A record under <i>rbl_domain</i>. <br> The
 <a href="postconf.5.html#maps_rbl_reject_code">maps_rbl_reject_code</a> parameter specifies the response code for

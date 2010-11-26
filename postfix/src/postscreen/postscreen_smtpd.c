@@ -350,6 +350,8 @@ static int ps_data_cmd(PS_STATE *state, char *args)
      * so that we dont't have to deal with broken zombies that fall silent at
      * the first reject response. For now we rely on stress-dependent command
      * read timeouts.
+     * 
+     * If we proceed into the data phase, enforce over-all DATA time limit.
      */
     return (PS_SEND_REPLY(state,
 			  "554 5.5.1 Error: no valid recipients\r\n"));
@@ -614,15 +616,14 @@ static void ps_smtpd_read_event(int event, char *context)
 	    }
 
 	    /*
-	     * Yield this pseudo thread when the VSTREAM buffer is empty.
+	     * Yield this pseudo thread when the VSTREAM buffer is empty in
+	     * the middle of a command.
 	     * 
-	     * Set a short per-command timeout if under stress.
+	     * XXX Do not reset the read timeout. The entire command must be
+	     * received within the time limit.
 	     */
-	    if (PS_SMTPD_BUFFER_EMPTY(state)) {
-		event_request_timer(ps_smtpd_time_event, (char *) state,
-				    PS_EFF_CMD_TIME_LIMIT);
+	    if (PS_SMTPD_BUFFER_EMPTY(state))
 		return;
-	    }
 	}
 
 	/*
@@ -789,15 +790,16 @@ static void ps_smtpd_read_event(int event, char *context)
 	}
 
 	/*
-	 * Yield this pseudo thread when the VSTREAM buffer is empty.
-	 * 
-	 * Set a short per-command timeout if under stress.
+	 * Reset the command read timeout before reading the next command.
 	 */
-	if (PS_SMTPD_BUFFER_EMPTY(state)) {
-	    event_request_timer(ps_smtpd_time_event, (char *) state,
-				PS_EFF_CMD_TIME_LIMIT);
+	event_request_timer(ps_smtpd_time_event, (char *) state,
+			    PS_EFF_CMD_TIME_LIMIT);
+
+	/*
+	 * Yield this pseudo thread when the VSTREAM buffer is empty.
+	 */
+	if (PS_SMTPD_BUFFER_EMPTY(state))
 	    return;
-	}
     }
 }
 

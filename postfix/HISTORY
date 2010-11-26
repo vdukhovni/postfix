@@ -15826,13 +15826,13 @@ Apologies for any names omitted.
 	Bugfix (introduced Postfix 2.2): Postfix no longer appends
 	the system default CA certificates to the lists specified
 	with *_tls_CAfile or with *_tls_CApath.  This prevents
-	third-party certificates from being trusted and given mail
-	relay permission with permit_tls_all_clientcerts.  This
-	change may break valid configurations that do not use
-	permit_tls_all_clientcerts.  To get the old behavior, specify
-	"tls_append_default_CA = yes".  Files: tls/tls_certkey.c,
-	tls/tls_misc.c, global/mail_params.h.  proto/postconf.proto,
-	mantools/postlink.
+	third-party certificates from getting mail relay permission
+	with the permit_tls_all_clientcerts feature.  Unfortunately
+	this may cause compatibility problems with configurations
+	that rely on certificate verification for other purposes.
+	To get the old behavior, specify "tls_append_default_CA =
+	yes".  Files: tls/tls_certkey.c, tls/tls_misc.c,
+	global/mail_params.h.  proto/postconf.proto, mantools/postlink.
 
 20100615
 
@@ -16136,3 +16136,43 @@ Apologies for any names omitted.
 	DEFER_IF_REJECT when DNSWL lookup fails.  The implementation
 	is based on a design documented by Noel Jones (August 2010).
 	File: smtpd/smtpd_check.c.
+
+20101108
+
+	Workaround: strip off IPv6 datalink suffix from peer address
+	to avoid problems with strict address checking code. Files:
+	smtpd/smtpd_peer.c, qmqpd/qmqpd_peer.c.
+
+20101114
+
+	Robustness: postscreen(8) now implements a time limit on
+	reading an entire command, instead of a time limit for
+	reading individual characters. File: postscreen/postscreen_smtpd.c.
+
+20101117
+
+	Bugfix: the "421" reply after Milter error was overruled
+	by Postfix 1.1 code that replied with "503" for RFC 2821
+	compliance. We now make an exception for "final" replies,
+	as permitted by RFC. Solution by Victor Duchovni. File:
+	smtpd/smtpd.c.
+
+20101023
+
+	Cleanup: don't apply reject_rhsbl_helo to non-domain forms
+	such as network addresses.  This would cause false positives
+	with dbl.spamhaus.org.  File: smtpd/smtpd_check.c.
+
+20101124-6
+
+	Feature: pattern matching for DNSWL/DNSBL responses.  For
+	example, with "reject_rbl_client example.com=d.d.d.d", each
+	"d" can now be a pattern inside "[]" that contains one or
+	more comma-separated decimal numbers or number..number
+	ranges.  Files: smtpd/smtpd_check.c, postscreen/postscreen_dnsbl.c,
+	util/ip_match.c, util/ip_match.h.
+
+20101126
+
+	Cleanup: don't log "blocked using example.com=127.0.0.1",
+	just log the domain name. File: smtpd/smtpd_check.c.

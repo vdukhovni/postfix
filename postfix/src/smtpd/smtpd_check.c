@@ -203,6 +203,7 @@
 #include <attr_clnt.h>
 #include <myaddrinfo.h>
 #include <inet_proto.h>
+#include <ip_match.h>
 
 /* DNS library. */
 
@@ -266,6 +267,7 @@ static jmp_buf smtpd_check_buf;
   */
 static VSTRING *error_text;
 static CTABLE *smtpd_rbl_cache;
+static CTABLE *smtpd_rbl_byte_cache;
 
  /*
   * Pre-opened SMTP recipient maps so we can reject mail for unknown users.
@@ -418,18 +420,20 @@ static int PRINTFLIKE(5, 6) smtpd_check_reject(SMTPD_STATE *, int, int, const ch
   */
 typedef struct {
     char   *txt;			/* TXT content or NULL */
-    ARGV   *a;				/* A records */
+    DNS_RR *a;				/* A records */
 } SMTPD_RBL_STATE;
 
 static void *rbl_pagein(const char *, void *);
 static void rbl_pageout(void *, void *);
+static void *rbl_byte_pagein(const char *, void *);
+static void rbl_byte_pageout(void *, void *);
 
  /*
   * Context for RBL $name expansion.
   */
 typedef struct {
     SMTPD_STATE *state;			/* general state */
-    const char *domain;			/* query domain */
+    char *domain;			/* query domain */
     const char *what;			/* rejected value */
     const char *class;			/* name of rejected value */
     const char *txt;			/* randomly selected trimmed TXT rr */
@@ -639,6 +643,8 @@ void    smtpd_check_init(void)
      * sessions so we cannot make it dependent on session state.
      */
     smtpd_rbl_cache = ctable_create(100, rbl_pagein, rbl_pageout, (void *) 0);
+    smtpd_rbl_byte_cache = ctable_create(1000, rbl_byte_pagein,
+					 rbl_byte_pageout, (void *) 0);
 
     /*
      * Pre-parse the restriction lists. At the same time, pre-open tables
@@ -2952,13 +2958,11 @@ static SMTPD_RBL_STATE dnsxl_stat_soft[1];
 
 static void *rbl_pagein(const char *query, void *unused_context)
 {
-    const char *myname = "rbl_pagein";
     DNS_RR *txt_list;
     VSTRING *why;
     int     dns_status;
     SMTPD_RBL_STATE *rbl = 0;
     DNS_RR *addr_list;
-    MAI_HOSTADDR_STR hostaddr;
     DNS_RR *rr;
     DNS_RR *next;
     VSTRING *buf;
@@ -3006,15 +3010,7 @@ static void *rbl_pagein(const char *query, void *unused_context)
 	dns_rr_free(txt_list);
     } else
 	rbl->txt = 0;
-    rbl->a = argv_alloc(1);
-    for (rr = addr_list; rr != 0; rr = rr->next) {
-	if (dns_rr_to_pa(rr, &hostaddr) == 0)
-	    msg_warn("%s: skipping record type %s for query %s: %m",
-		     myname, dns_strtype(rr->type), query);
-	else
-	    argv_add(rbl->a, hostaddr.buf, ARGV_END);
-    }
-    dns_rr_free(addr_list);
+    rbl->a = addr_list;
     return ((void *) rbl);
 }
 
@@ -3028,9 +3024,33 @@ static void rbl_pageout(void *data, void *unused_context)
 	if (rbl->txt)
 	    myfree(rbl->txt);
 	if (rbl->a)
-	    argv_free(rbl->a);
+	    dns_rr_free(rbl->a);
 	myfree((char *) rbl);
     }
+}
+
+/* rbl_byte_pagein - parse RBL reply pattern, save byte codes */
+
+static void *rbl_byte_pagein(const char *query, void *unused_context)
+{
+    VSTRING *byte_codes = vstring_alloc(100);
+    char   *saved_query = mystrdup(query);
+    char   *saved_byte_codes;
+    char   *err;
+
+    if ((err = ip_match_parse(byte_codes, saved_query)) != 0)
+	msg_fatal("RBL reply error: %s", err);
+    saved_byte_codes = ip_match_save(byte_codes);
+    myfree(saved_query);
+    vstring_free(byte_codes);
+    return (saved_byte_codes);
+}
+
+/* rbl_byte_pageout - discard parsed RBL reply byte codes */
+
+static void rbl_byte_pageout(void *data, void *unused_context)
+{
+    myfree(data);
 }
 
 /* rbl_expand_lookup - RBL specific $name expansion */
@@ -3091,7 +3111,8 @@ static int rbl_reject_reply(SMTPD_STATE *state, const SMTPD_RBL_STATE *rbl,
     }
     why = vstring_alloc(100);
     rbl_exp.state = state;
-    rbl_exp.domain = rbl_domain;
+    rbl_exp.domain = mystrdup(rbl_domain);
+    (void) split_at(rbl_exp.domain, '=');
     rbl_exp.what = what;
     rbl_exp.class = reply_class;
     rbl_exp.txt = (rbl->txt == 0 ? "" : rbl->txt);
@@ -3138,6 +3159,7 @@ static int rbl_reject_reply(SMTPD_STATE *state, const SMTPD_RBL_STATE *rbl,
     /*
      * Clean up.
      */
+    myfree(rbl_exp.domain);
     vstring_free(why);
 
     return (result);
@@ -3145,13 +3167,20 @@ static int rbl_reject_reply(SMTPD_STATE *state, const SMTPD_RBL_STATE *rbl,
 
 /* rbl_match_addr - match address list */
 
-static int rbl_match_addr(SMTPD_RBL_STATE *rbl, const char *addr)
+static int rbl_match_addr(SMTPD_RBL_STATE *rbl, const char *byte_codes)
 {
-    char  **cpp;
+    const char *myname = "rbl_match_addr";
+    DNS_RR *rr;
 
-    for (cpp = rbl->a->argv; *cpp; cpp++)
-	if (strcmp(*cpp, addr) == 0)
-	    return (1);
+    for (rr = rbl->a; rr != 0; rr = rr->next) {
+	if (rr->type == T_A) {
+	    if (ip_match_execute(byte_codes, rr->data))
+		return (1);
+	} else {
+	    msg_warn("%s: skipping record type %s for query %s",
+		     myname, dns_strtype(rr->type), rr->qname);
+	}
+    }
     return (0);
 }
 
@@ -3167,6 +3196,7 @@ static const SMTPD_RBL_STATE *find_dnsxl_addr(SMTPD_STATE *state,
     int     i;
     SMTPD_RBL_STATE *rbl;
     const char *reply_addr;
+    const char *byte_codes;
     struct addrinfo *res;
     unsigned char *ipv6_addr;
 
@@ -3210,12 +3240,14 @@ static const SMTPD_RBL_STATE *find_dnsxl_addr(SMTPD_STATE *state,
     vstring_strcat(query, rbl_domain);
     reply_addr = split_at(STR(query), '=');
     rbl = (SMTPD_RBL_STATE *) ctable_locate(smtpd_rbl_cache, STR(query));
+    if (reply_addr != 0)
+	byte_codes = ctable_locate(smtpd_rbl_byte_cache, reply_addr);
 
     /*
      * If the record exists, match the result address.
      */
     if (SMTPD_DNSXL_STAT_OK(rbl) && reply_addr != 0
-	&& !rbl_match_addr(rbl, reply_addr))
+	&& !rbl_match_addr(rbl, byte_codes))
 	rbl = 0;
     vstring_free(query);
     return (rbl);
@@ -3284,6 +3316,7 @@ static const SMTPD_RBL_STATE *find_dnsxl_domain(SMTPD_STATE *state,
     SMTPD_RBL_STATE *rbl;
     const char *domain;
     const char *reply_addr;
+    const char *byte_codes;
 
     /*
      * Extract the domain, tack on the RBL domain name and query the DNS for
@@ -3302,12 +3335,14 @@ static const SMTPD_RBL_STATE *find_dnsxl_domain(SMTPD_STATE *state,
     vstring_sprintf(query, "%s.%s", domain, rbl_domain);
     reply_addr = split_at(STR(query), '=');
     rbl = (SMTPD_RBL_STATE *) ctable_locate(smtpd_rbl_cache, STR(query));
+    if (reply_addr != 0)
+	byte_codes = ctable_locate(smtpd_rbl_byte_cache, reply_addr);
 
     /*
      * If the record exists, match the result address.
      */
     if (SMTPD_DNSXL_STAT_OK(rbl) && reply_addr != 0
-	&& !rbl_match_addr(rbl, reply_addr))
+	&& !rbl_match_addr(rbl, byte_codes))
 	rbl = 0;
     vstring_free(query);
     return (rbl);
