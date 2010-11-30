@@ -16176,3 +16176,21 @@ Apologies for any names omitted.
 
 	Cleanup: don't log "blocked using example.com=127.0.0.1",
 	just log the domain name. File: smtpd/smtpd_check.c.
+
+20101129
+
+	Cleanup: postscreen_client_connection_count_limit (default:
+	$smtpd_client_connection_count_limit) to limit the number
+	of connections from the same IP address to the postscreen(8)
+	daemon. Files: postscreen/postscreen.c, postscreen/postscreen.h,
+	postscreen/postscreen_state.c.
+
+20101130
+
+	Cleanup: all postscreen(8) logging now reports the client
+	as [address]:port.  This requires an update of tools that
+	process postscreen logging.  Files: postscreen/*.c,
+	proto/POSTSCREEN_README.html.
+
+	Cleanup: polishing recent documentation and code. Files:
+	postscreen/postscreen_dnsbl.c, util/ip_match.c.

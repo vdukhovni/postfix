@@ -131,11 +131,11 @@ handling of known clients. </p>
 
 <p> The postscreen_whitelist_networks parameter (default: $mynetworks)
 specifies a permanent whitelist for SMTP client IP addresses.  When
-the SMTP client address matches the permanent whitelist, this is
-logged as: </p>
+the SMTP client address matches the permanent whitelist, postscreen(8)
+logs this with the client address and port number as: </p>
 
 <pre>
-    <b>WHITELISTED</b> <i>address</i>
+    <b>WHITELISTED</b> <i>[address]:port</i>
 </pre>
 
 <p> The action is not configurable: immediately hand off the
@@ -146,10 +146,11 @@ connection to a Postfix SMTP server process. </p>
 <p> The postscreen_blacklist_networks parameter (default: empty)
 specifies a permanent blacklist for SMTP client IP addresses.  The
 address syntax is as with mynetworks.  When the SMTP client address
-matches the permanent blacklist, postscreen(8) logs this as: </p>
+matches the permanent blacklist, postscreen(8) logs this with the
+client address and port number as: </p>
 
 <pre>
-    <b>BLACKLISTED</b> <i>address</i>
+    <b>BLACKLISTED</b> <i>[address]:port</i>
 </pre>
 
 <p> The postscreen_blacklist_action parameter specifies the action
@@ -166,10 +167,11 @@ temporary whitelist is not used for SMTP client addresses
 that appear on the <i>permanent</i> blacklist or whitelist. </p>
 
 <p> When the SMTP client address appears on the temporary
-whitelist, postscreen(8) logs this as: </p>
+whitelist, postscreen(8) logs this with the client address and port
+number as: </p>
 
 <pre>
-    <b>PASS OLD</b> <i>address</i>
+    <b>PASS OLD</b> <i>[address]:port</i>
 </pre>
 
 <p> The action is not configurable: immediately hand off the
@@ -238,10 +240,10 @@ postscreen_greet_wait time has elapsed, postscreen(8) logs this as:
 </p>
 
 <pre>
-    <b>PREGREET</b> <i>count</i> <b>after</b> <i>time</i> <b>from</b> <i>address text...</i>
+    <b>PREGREET</b> <i>count</i> <b>after</b> <i>time</i> <b>from</b> <i>[address]:port text...</i>
 </pre>
 
-<p> Translation: the client at <i>address</i> sent <i>count</i>
+<p> Translation: the client at <i>[address]:port</i> sent <i>count</i>
 bytes before its turn to speak. This happened <i>time</i> seconds
 after the postscreen_greet_wait timer was started.  The <i>text</i>
 is what the client sent (truncated to 100 bytes, and with non-printable
@@ -271,10 +273,10 @@ DNSBL score is equal to or greater than the postscreen_dnsbl_threshold
 parameter value, postscreen(8) logs this as: </p>
 
 <pre>
-    <b>DNSBL rank</b> <i>count</i> <b>for</b> <i>address</i>
+    <b>DNSBL rank</b> <i>count</i> <b>for</b> <i>[address]:port</i>
 </pre>
 
-<p> Translation: the SMTP client at <i>address</i> has a combined
+<p> Translation: the SMTP client at <i>[address]:port</i> has a combined
 DNSBL score of <i>count</i>. </p>
 
 <p> The postscreen_dnsbl_action parameter specifies the action that
@@ -380,10 +382,10 @@ logging more informative. </p>
 as: </p>
 
 <pre>
-    <b>COMMAND PIPELINING after</b> <i>time</i> <b>from</b> <i>address</i>
+    <b>COMMAND PIPELINING after</b> <i>time</i> <b>from</b> <i>[address]:port</i>
 </pre>
 
-<p> Translation: the SMTP client at <i>address</i> sent multiple
+<p> Translation: the SMTP client at <i>[address]:port</i> sent multiple
 SMTP commands, instead of sending one command and then waiting for
 the server to reply. This happened <i>time</i> seconds after the
 "220 " server greeting was sent. </p>
@@ -416,10 +418,10 @@ logging more informative.  </p>
 as: </p>
 
 <pre>
-    <b>NON-SMTP COMMAND from</b> <i>address command</i>
+    <b>NON-SMTP COMMAND from</b> <i>[address]:port command</i>
 </pre>
 
-<p> Translation: the SMTP client at <i>address</i> sent a
+<p> Translation: the SMTP client at <i>[address]:port</i> sent a
 <i>command</i> that matches the postscreen_forbidden_commands
 parameter, or that has the syntax of a message header label. </p>
 
@@ -448,10 +450,10 @@ this as:
 </p>
 
 <pre>
-    <b>BARE NEWLINE from</b> <i>address</i>
+    <b>BARE NEWLINE from</b> <i>[address]:port</i>
 </pre>
 
-<p> Translation: the SMTP client at <i>address</i> sent a bare
+<p> Translation: the SMTP client at <i>[address]:port</i> sent a bare
 newline character, that is newline not preceded by carriage
 return. </p>
 
@@ -499,10 +501,10 @@ feature. </dd>
 postscreen(8) logs this as: </p>
 
 <pre>
-    <b>HANGUP after</b> <i>time</i> <b>from</b> <i>address</i> <b>in</b> <i>test name</i>
+    <b>HANGUP after</b> <i>time</i> <b>from</b> <i>[address]:port</i> <b>in</b> <i>test name</i>
 </pre>
 
-<p> Translation: the SMTP client at <i>address</i> disconnected
+<p> Translation: the SMTP client at <i>[address]:port</i> disconnected
 unexpectedly, <i>time</i> seconds after the start of the
 test named <i>test name</i>. </p>
 
@@ -513,7 +515,7 @@ allowed to pass any tests, and  postscreen(8) logs each connection
 with the remaining amount of penalty time as: </p>
 
 <pre>
-    <b>PENALTY</b> <i>time</i> <b>for</b> <i>address</i>
+    <b>PENALTY</b> <i>time</i> <b>for</b> <i>[address]:port</i>
 </pre>
 
 <p> During this time, all attempts by the client to deliver mail
@@ -526,29 +528,41 @@ This engine never accepts mail, therefore it has per-session limits
 on the number of commands and on the session length. </p>
 
 <pre>
-    <b>COMMAND TIME LIMIT</b> <b>from</b> <i>address</i>
+    <b>COMMAND TIME LIMIT</b> <b>from</b> <i>[address]:port</i>
 </pre>
 
-<p> Translation: the SMTP client at <i>address</i> reached the
+<p> Translation: the SMTP client at <i>[address]:port</i> reached the
 per-command time limit as specified with the postscreen_command_time_limit
 parameter.  The session is terminated immediately. </p>
 
 <pre>
-    <b>COMMAND COUNT LIMIT from</b> <i>address</i>
+    <b>COMMAND COUNT LIMIT from</b> <i>[address]:port</i>
 </pre>
 
-<p> Translation: the SMTP client at <i>address</i> reached the
+<p> Translation: the SMTP client at <i>[address]:port</i> reached the
 per-session command count limit as specified with the
 postscreen_command_count_limit parameter.  The session is terminated
 immediately. </p>
 
 <pre>
-    <b>COMMAND LENGTH LIMIT from</b> <i>address</i>
+    <b>COMMAND LENGTH LIMIT from</b> <i>[address]:port</i>
 </pre>
 
-<p> Translation: the SMTP client at <i>address</i> reached the
+<p> Translation: the SMTP client at <i>[address]:port</i> reached the
 per-command length limit, as specified with the line_length_limit
 parameter.  The session is terminated immediately. </p>
+
+<p> When an SMTP client makes too many connections at the same time,
+or when all postscreen(8) ports are busy, postscreen(8) rejects the
+connection with a 421 status code and logs: </p>
+
+<pre>
+    <b>NOQUEUE: reject: CONNECT from</b> <i>[address]:port</i><b>: too many connections</b>
+    <b>NOQUEUE: reject: CONNECT from</b> <i>[address]:port</i><b>: all server ports busy</b>
+</pre>
+
+<p> The postscreen_client_connection_count_limit and
+postscreen_pre_queue_limit parameters control these limits.  </p>
 
 <h2> <a name="victory">When all tests succeed</a> </h2>
 
@@ -556,10 +570,11 @@ parameter.  The session is terminated immediately. </p>
 via some mechanism), postscreen(8) logs this as: </p>
 
 <pre>
-    <b>PASS NEW</b> <i>address</i>
+    <b>PASS NEW</b> <i>[address]:port</i>
 </pre>
 
-<p> Where <i>address</i> is the client IP address. Then, postscreen(8)
+<p> Where <i>[address]:port</i> are the client IP address and port.
+Then, postscreen(8)
 creates a temporary whitelist entry that excludes the client IP
 address from further tests until the temporary whitelist entry
 expires, as controlled with the postscreen_*_ttl parameters. </p>

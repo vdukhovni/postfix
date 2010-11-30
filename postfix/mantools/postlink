@@ -944,6 +944,7 @@ while (<>) {
     s;\bpostscreen_whitelist_networks\b;<a href="postconf.5.html#postscreen_whitelist_networks">$&</a>;g;
     s;\bpostscreen_black[-</bB>]*\n*[ <bB>]*list_networks\b;<a href="postconf.5.html#postscreen_blacklist_networks">$&</a>;g;
     s;\bpostscreen_black[-</bB>]*\n*[ <bB>]*list_action\b;<a href="postconf.5.html#postscreen_blacklist_action">$&</a>;g;
+    s;\bpostscreen_client_connection_count_limit\b;<a href="postconf.5.html#postscreen_client_connection_count_limit">$&</a>;g;
 
     # Hyperlink URLs and RFC documents
 

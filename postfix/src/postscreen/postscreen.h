@@ -19,6 +19,7 @@
 #include <vstream.h>
 #include <vstring.h>
 #include <events.h>
+#include <htable.h>
 
  /*
   * Global library.
@@ -41,6 +42,7 @@ typedef struct {
     int     smtp_server_fd;		/* real SMTP server */
     char   *smtp_client_addr;		/* client address */
     char   *smtp_client_port;		/* client port */
+    int     client_concurrency;		/* per-client */
     const char *final_reply;		/* cause for hanging up */
     /* Test context. */
     struct timeval start_time;		/* start of current test */
@@ -288,6 +290,7 @@ extern int ps_stress;			/* stress level */
 extern int ps_check_queue_length_lowat;	/* stress low-water mark */
 extern int ps_check_queue_length_hiwat;	/* stress high-water mark */
 extern DICT *ps_dnsbl_reply;		/* DNSBL name mapper */
+extern HTABLE *ps_client_concurrency;	/* per-client concurrency */
 
 #define PS_EFF_GREET_WAIT \
 	(ps_stress ? ps_stress_greet_wait : ps_normal_greet_wait)
@@ -323,40 +326,40 @@ extern DICT *ps_dnsbl_reply;		/* DNSBL name mapper */
 
 #define PS_PASS_SESSION_STATE(state, what, bits) do { \
 	if (msg_verbose) \
-	    msg_info("PASS %s %s:%s", (what), PS_CLIENT_ADDR_PORT(state)); \
+	    msg_info("PASS %s [%s]:%s", (what), PS_CLIENT_ADDR_PORT(state)); \
 	(state)->flags |= (bits); \
     } while (0)
 #define PS_FAIL_SESSION_STATE(state, bits) do { \
 	if (msg_verbose) \
-	    msg_info("FAIL %s:%s", PS_CLIENT_ADDR_PORT(state)); \
+	    msg_info("FAIL [%s]:%s", PS_CLIENT_ADDR_PORT(state)); \
 	(state)->flags |= (bits); \
     } while (0)
 #define PS_SKIP_SESSION_STATE(state, what, bits) do { \
 	if (msg_verbose) \
-	    msg_info("SKIP %s %s:%s", (what), PS_CLIENT_ADDR_PORT(state)); \
+	    msg_info("SKIP %s [%s]:%s", (what), PS_CLIENT_ADDR_PORT(state)); \
 	(state)->flags |= (bits); \
     } while (0)
 #define PS_DROP_SESSION_STATE(state, reply) do { \
 	if (msg_verbose) \
-	    msg_info("DROP %s:%s", PS_CLIENT_ADDR_PORT(state)); \
+	    msg_info("DROP [%s]:%s", PS_CLIENT_ADDR_PORT(state)); \
 	(state)->flags |= PS_STATE_FLAG_NOFORWARD; \
 	(state)->final_reply = (reply); \
 	ps_conclude(state); \
     } while (0)
 #define PS_ENFORCE_SESSION_STATE(state, reply) do { \
 	if (msg_verbose) \
-	    msg_info("ENFORCE %s:%s", PS_CLIENT_ADDR_PORT(state)); \
+	    msg_info("ENFORCE [%s]:%s", PS_CLIENT_ADDR_PORT(state)); \
 	(state)->rcpt_reply = (reply); \
 	(state)->flags |= PS_STATE_FLAG_NOFORWARD; \
     } while (0)
 #define PS_UNPASS_SESSION_STATE(state, bits) do { \
 	if (msg_verbose) \
-	    msg_info("UNPASS %s:%s", PS_CLIENT_ADDR_PORT(state)); \
+	    msg_info("UNPASS [%s]:%s", PS_CLIENT_ADDR_PORT(state)); \
 	(state)->flags &= ~(bits); \
     } while (0)
 #define PS_UNFAIL_SESSION_STATE(state, bits) do { \
 	if (msg_verbose) \
-	    msg_info("UNFAIL %s:%s", PS_CLIENT_ADDR_PORT(state)); \
+	    msg_info("UNFAIL [%s]:%s", PS_CLIENT_ADDR_PORT(state)); \
 	(state)->flags &= ~(bits); \
     } while (0)
 #define PS_ADD_SERVER_STATE(state, fd) do { \

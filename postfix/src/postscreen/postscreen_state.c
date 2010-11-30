@@ -123,6 +123,7 @@
 #include <msg.h>
 #include <mymalloc.h>
 #include <name_mask.h>
+#include <htable.h>
 
 /* Global library. */
 
@@ -143,6 +144,7 @@ PS_STATE *ps_new_session_state(VSTREAM *stream,
 			               const char *port)
 {
     PS_STATE *state;
+    HTABLE_INFO *ht;
 
     state = (PS_STATE *) mymalloc(sizeof(*state));
     PS_INIT_TESTS(state);
@@ -171,6 +173,15 @@ PS_STATE *ps_new_session_state(VSTREAM *stream,
 	msg_info("entering STRESS mode with %d connections",
 		 ps_check_queue_length);
     }
+
+    /*
+     * Update the per-client session count.
+     */
+    if ((ht = htable_locate(ps_client_concurrency, addr)) == 0)
+	ht = htable_enter(ps_client_concurrency, addr, (char *) 0);
+    ht->value += 1;
+    state->client_concurrency = (int) ht->value;
+
     return (state);
 }
 
@@ -178,6 +189,18 @@ PS_STATE *ps_new_session_state(VSTREAM *stream,
 
 void    ps_free_session_state(PS_STATE *state)
 {
+    const char *myname = "ps_free_session_state";
+    HTABLE_INFO *ht;
+
+    /*
+     * Update the per-client session count.
+     */
+    if ((ht = htable_locate(ps_client_concurrency, state->smtp_client_addr)) == 0)
+	msg_panic("%s: unknown client address: %s", 
+		  myname, state->smtp_client_addr);
+    if (--(ht->value) == 0)
+	htable_delete(ps_client_concurrency, state->smtp_client_addr, (void (*) (char *)) 0);
+
     if (state->smtp_client_stream != 0) {
 	event_server_disconnect(state->smtp_client_stream);
 	ps_check_queue_length--;

@@ -24,8 +24,8 @@
 /*	This module supports IP address pattern matching. See below
 /*	for a description of the supported address pattern syntax.
 /*
-/*	This implementation aims to minimize the cost of translating
-/*	the pattern to internal form, while still providing good
+/*	This implementation aims to minimize the cost of encoding
+/*	the pattern in internal form, while still providing good
 /*	matching performance in the typical case.   The first byte
 /*	of an encoded pattern specifies the expected address family
 /*	(for example, AF_INET); other details of the encoding are
@@ -357,8 +357,8 @@ int     ip_match_execute(const char *byte_codes, const char *addr_bytes)
 static int ip_match_next_token(char **pstart, char **psaved_start, int *poval)
 {
     unsigned char *cp;
-    unsigned char *next;
-    int     oval;
+    int     oval;			/* octet value */
+    int     type;			/* token value */
 
     /*
      * Return a literal, error, or EOF token. Update the read pointer to the
@@ -370,8 +370,8 @@ static int ip_match_next_token(char **pstart, char **psaved_start, int *poval)
     /*
      * Return a token that contains an IPv4 address octet value.
      */
-#define IP_MATCH_RETURN_TOK_OVAL(next, oval) do { \
-	*poval = (oval); IP_MATCH_RETURN_TOK((next), IP_MATCH_CODE_OVAL); \
+#define IP_MATCH_RETURN_TOK_VAL(next, type, oval) do { \
+	*poval = (oval); IP_MATCH_RETURN_TOK((next), type); \
     } while (0)
 
     /*
@@ -382,13 +382,14 @@ static int ip_match_next_token(char **pstart, char **psaved_start, int *poval)
     cp = (unsigned char *) *pstart;
     if (ISDIGIT(*cp)) {
 	oval = *cp - '0';
-	for (next = cp + 1; ISDIGIT(*next); next++) {
+	type = IP_MATCH_CODE_OVAL;
+	for (cp += 1; ISDIGIT(*cp); cp++) {
 	    oval *= 10;
-	    oval += *next - '0';
+	    oval += *cp - '0';
 	    if (oval > 255)
-		IP_MATCH_RETURN_TOK(next + 1, IP_MATCH_CODE_ERR);
+		type = IP_MATCH_CODE_ERR;
 	}
-	IP_MATCH_RETURN_TOK_OVAL(next, oval);
+	IP_MATCH_RETURN_TOK_VAL(cp, type, oval);
     } else {
 	IP_MATCH_RETURN_TOK(*cp ? cp + 1 : cp, *cp);
     }

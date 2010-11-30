@@ -68,6 +68,7 @@ postscreen.o: ../../include/data_redirect.h
 postscreen.o: ../../include/dict.h
 postscreen.o: ../../include/dict_cache.h
 postscreen.o: ../../include/events.h
+postscreen.o: ../../include/htable.h
 postscreen.o: ../../include/iostuff.h
 postscreen.o: ../../include/mail_conf.h
 postscreen.o: ../../include/mail_params.h
@@ -93,6 +94,7 @@ postscreen_dict.o: ../../include/argv.h
 postscreen_dict.o: ../../include/dict.h
 postscreen_dict.o: ../../include/dict_cache.h
 postscreen_dict.o: ../../include/events.h
+postscreen_dict.o: ../../include/htable.h
 postscreen_dict.o: ../../include/match_list.h
 postscreen_dict.o: ../../include/match_ops.h
 postscreen_dict.o: ../../include/msg.h
@@ -118,6 +120,7 @@ postscreen_dnsbl.o: ../../include/mail_proto.h
 postscreen_dnsbl.o: ../../include/match_list.h
 postscreen_dnsbl.o: ../../include/match_ops.h
 postscreen_dnsbl.o: ../../include/msg.h
+postscreen_dnsbl.o: ../../include/myaddrinfo.h
 postscreen_dnsbl.o: ../../include/mymalloc.h
 postscreen_dnsbl.o: ../../include/split_at.h
 postscreen_dnsbl.o: ../../include/string_list.h
@@ -133,6 +136,7 @@ postscreen_early.o: ../../include/argv.h
 postscreen_early.o: ../../include/dict.h
 postscreen_early.o: ../../include/dict_cache.h
 postscreen_early.o: ../../include/events.h
+postscreen_early.o: ../../include/htable.h
 postscreen_early.o: ../../include/mail_params.h
 postscreen_early.o: ../../include/match_list.h
 postscreen_early.o: ../../include/match_ops.h
@@ -152,6 +156,7 @@ postscreen_misc.o: ../../include/dict.h
 postscreen_misc.o: ../../include/dict_cache.h
 postscreen_misc.o: ../../include/events.h
 postscreen_misc.o: ../../include/format_tv.h
+postscreen_misc.o: ../../include/htable.h
 postscreen_misc.o: ../../include/iostuff.h
 postscreen_misc.o: ../../include/mail_params.h
 postscreen_misc.o: ../../include/match_list.h
@@ -170,6 +175,7 @@ postscreen_send.o: ../../include/connect.h
 postscreen_send.o: ../../include/dict.h
 postscreen_send.o: ../../include/dict_cache.h
 postscreen_send.o: ../../include/events.h
+postscreen_send.o: ../../include/htable.h
 postscreen_send.o: ../../include/iostuff.h
 postscreen_send.o: ../../include/match_list.h
 postscreen_send.o: ../../include/match_ops.h
@@ -187,6 +193,7 @@ postscreen_smtpd.o: ../../include/attr.h
 postscreen_smtpd.o: ../../include/dict.h
 postscreen_smtpd.o: ../../include/dict_cache.h
 postscreen_smtpd.o: ../../include/events.h
+postscreen_smtpd.o: ../../include/htable.h
 postscreen_smtpd.o: ../../include/iostuff.h
 postscreen_smtpd.o: ../../include/is_header.h
 postscreen_smtpd.o: ../../include/mail_params.h
@@ -209,6 +216,7 @@ postscreen_state.o: ../../include/attr.h
 postscreen_state.o: ../../include/dict.h
 postscreen_state.o: ../../include/dict_cache.h
 postscreen_state.o: ../../include/events.h
+postscreen_state.o: ../../include/htable.h
 postscreen_state.o: ../../include/iostuff.h
 postscreen_state.o: ../../include/mail_proto.h
 postscreen_state.o: ../../include/mail_server.h
@@ -229,6 +237,7 @@ postscreen_tests.o: ../../include/argv.h
 postscreen_tests.o: ../../include/dict.h
 postscreen_tests.o: ../../include/dict_cache.h
 postscreen_tests.o: ../../include/events.h
+postscreen_tests.o: ../../include/htable.h
 postscreen_tests.o: ../../include/mail_params.h
 postscreen_tests.o: ../../include/match_list.h
 postscreen_tests.o: ../../include/match_ops.h

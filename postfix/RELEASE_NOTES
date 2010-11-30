@@ -33,12 +33,20 @@ This is supported only when the default value is stress-dependent
 postscreen parameters always evaluate as if the stress value is 
 equal to the empty string.
 
+Incompatibility with snapshot 20101130
+======================================
+
+The postscreen(8) daemon now logs the client as [address]:port.
+The port helps to distinguish between simultaneous sessions from
+the same address, and the [] allow the same tool to be used with
+old and new format logfiles, without producing errors for IPv6.
+
 Major changes with snapshot 20101126
 ====================================
 
 Support for address patterns in DNSBL and DNSWL lookup results. 
 
-For example, "reject_rbl_client example.com = 127.0.0.[2,4,6..8]"
+For example, "reject_rbl_client example.com=127.0.0.[2,4,6..8]"
 will reject clients when the lookup result is 127.0.0.2, 127.0.0.4,
 127.0.0.6, 127.0.0.7, or 127.0.0.8.
 

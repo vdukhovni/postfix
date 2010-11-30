@@ -104,8 +104,8 @@ void    ps_conclude(PS_STATE *state)
     if ((state->flags & PS_STATE_MASK_ANY_PASS) != 0
 	&& (state->flags & PS_STATE_MASK_ANY_PASS) ==
 	PS_STATE_FLAGS_TODO_TO_PASS(state->flags & PS_STATE_MASK_ANY_TODO))
-	msg_info("PASS %s %s", (state->flags & PS_STATE_FLAG_NEW) == 0 ?
-		 "OLD" : "NEW", state->smtp_client_addr);
+	msg_info("PASS %s [%s]:%s", (state->flags & PS_STATE_FLAG_NEW) == 0 ?
+		 "OLD" : "NEW", PS_CLIENT_ADDR_PORT(state));
 
     /*
      * Update the postscreen cache. This still supports a scenario where a
@@ -128,7 +128,7 @@ void    ps_conclude(PS_STATE *state)
 	    (void) ps_send_reply(vstream_fileno(state->smtp_client_stream),
 			   state->smtp_client_addr, state->smtp_client_port,
 				 state->final_reply);
-	msg_info("DISCONNECT %s", state->smtp_client_addr);
+	msg_info("DISCONNECT [%s]:%s", PS_CLIENT_ADDR_PORT(state));
 	ps_free_session_state(state);
     }
 }
@@ -148,9 +148,9 @@ void    ps_hangup_event(PS_STATE *state)
      * phase.
      */
     state->flags |= PS_STATE_FLAG_HANGUP;
-    msg_info("HANGUP after %s from %s in %s",
+    msg_info("HANGUP after %s from [%s]:%s in %s",
 	     ps_format_delta_time(ps_temp, state->start_time, &elapsed),
-	     state->smtp_client_addr, state->test_name);
+	     PS_CLIENT_ADDR_PORT(state), state->test_name);
     state->flags |= PS_STATE_FLAG_NOFORWARD;
     ps_conclude(state);
 }

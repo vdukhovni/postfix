@@ -107,7 +107,8 @@ typedef struct {
 } PS_DNSBL_HEAD;
 
 typedef struct PS_DNSBL_SITE {
-    char   *filter;			/* reply filter (default: null) */
+    char   *filter;			/* printable filter (default: null) */
+    char   *byte_codes;			/* encoded filter (default: null) */
     int     weight;			/* reply weight (default: 1) */
     struct PS_DNSBL_SITE *next;		/* linked list */
 } PS_DNSBL_SITE;
@@ -209,7 +210,7 @@ static void ps_dnsbl_add_site(const char *site)
     PS_DNSBL_SITE *new_site;
     char    junk;
     const char *weight_text;
-    char *pattern_text;
+    char   *pattern_text;
     int     weight;
     HTABLE_INFO *ht;
     char   *parse_err;
@@ -263,7 +264,8 @@ static void ps_dnsbl_add_site(const char *site)
      * name.
      */
     new_site = (PS_DNSBL_SITE *) mymalloc(sizeof(*new_site));
-    new_site->filter = (pattern_text ? ip_match_save(byte_codes) : 0);
+    new_site->filter = (pattern_text ? mystrdup(pattern_text) : 0);
+    new_site->byte_codes = (byte_codes ? ip_match_save(byte_codes) : 0);
     new_site->weight = weight;
     new_site->next = head->first;
     head->first = new_site;
@@ -382,8 +384,8 @@ static void ps_dnsbl_receive(int event, char *context)
 		htable_find(dnsbl_site_cache, STR(reply_dnsbl));
 	    site = (head ? head->first : (PS_DNSBL_SITE *) 0);
 	    for (reply_argv = 0; site != 0; site = site->next) {
-		if (site->filter == 0
-		    || ps_dnsbl_match(site->filter, reply_argv ? reply_argv :
+		if (site->byte_codes == 0
+		|| ps_dnsbl_match(site->byte_codes, reply_argv ? reply_argv :
 			 (reply_argv = argv_split(STR(reply_addr), " ")))) {
 		    if (score->dnsbl == 0)
 			score->dnsbl = head->safe_dnsbl;

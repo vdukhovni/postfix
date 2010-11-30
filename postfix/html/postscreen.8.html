@@ -233,41 +233,46 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
               of  at  most this length; upon delivery, long lines
               are reconstructed.
 
+       <b><a href="postconf.5.html#postscreen_client_connection_count_limit">postscreen_client_connection_count_limit</a></b>
+       <b>($<a href="postconf.5.html#smtpd_client_connection_count_limit">smtpd_client_connection_count_limit</a>)</b>
+              How many simultaneous  connections  any  client  is
+              allowed to have with the <a href="postscreen.8.html"><b>postscreen</b>(8)</a> daemon.
+
        <b><a href="postconf.5.html#postscreen_command_count_limit">postscreen_command_count_limit</a> (20)</b>
-              The limit on the total number of commands per  SMTP
-              session  for <a href="postscreen.8.html"><b>postscreen</b>(8)</a>'s built-in SMTP protocol
+              The  limit on the total number of commands per SMTP
+              session for <a href="postscreen.8.html"><b>postscreen</b>(8)</a>'s built-in SMTP  protocol
               engine.
 
        <b><a href="postconf.5.html#postscreen_command_time_limit">postscreen_command_time_limit</a> (${stress?10}${stress:300}s)</b>
-              The command "read" time limit  for  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>'s
+              The  command  "read" time limit for <a href="postscreen.8.html"><b>postscreen</b>(8)</a>'s
               built-in SMTP protocol engine.
 
        <b><a href="postconf.5.html#postscreen_post_queue_limit">postscreen_post_queue_limit</a> ($<a href="postconf.5.html#default_process_limit">default_process_limit</a>)</b>
-              The  number of clients that can be waiting for ser-
+              The number of clients that can be waiting for  ser-
               vice from a real SMTP server process.
 
        <b><a href="postconf.5.html#postscreen_pre_queue_limit">postscreen_pre_queue_limit</a> ($<a href="postconf.5.html#default_process_limit">default_process_limit</a>)</b>
-              The number of non-whitelisted clients that  can  be
-              waiting  for  a  decision whether they will receive
+              The  number  of non-whitelisted clients that can be
+              waiting for a decision whether  they  will  receive
               service from a real SMTP server process.
 
        <b><a href="postconf.5.html#postscreen_watchdog_timeout">postscreen_watchdog_timeout</a> (10s)</b>
-              How much time a <a href="postscreen.8.html"><b>postscreen</b>(8)</a> process may  take  to
-              respond  to  an SMTP client command or to perform a
+              How  much  time a <a href="postscreen.8.html"><b>postscreen</b>(8)</a> process may take to
+              respond to an SMTP client command or to  perform  a
               cache operation before it is terminated by a built-
               in watchdog timer.
 
 <b>MISCELLANEOUS CONTROLS</b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The  default  location  of  the Postfix <a href="postconf.5.html">main.cf</a> and
+              The default location of  the  Postfix  <a href="postconf.5.html">main.cf</a>  and
               <a href="master.5.html">master.cf</a> configuration files.
 
        <b><a href="postconf.5.html#delay_logging_resolution_limit">delay_logging_resolution_limit</a> (2)</b>
-              The maximal number  of  digits  after  the  decimal
+              The  maximal  number  of  digits  after the decimal
               point when logging sub-second delay values.
 
        <b><a href="postconf.5.html#command_directory">command_directory</a> (see 'postconf -d' output)</b>
-              The  location  of  all  postfix administrative com-
+              The location of  all  postfix  administrative  com-
               mands.
 
        <b><a href="postconf.5.html#ipc_timeout">ipc_timeout</a> (3600s)</b>
@@ -275,24 +280,24 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
               over an internal communication channel.
 
        <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
-              The  maximum  amount  of  time that an idle Postfix
-              daemon process waits  for  an  incoming  connection
+              The maximum amount of time  that  an  idle  Postfix
+              daemon  process  waits  for  an incoming connection
               before terminating voluntarily.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
-              The  process  ID  of  a  Postfix  command or daemon
+              The process ID  of  a  Postfix  command  or  daemon
               process.
 
        <b><a href="postconf.5.html#process_name">process_name</a> (read-only)</b>
-              The process name of a  Postfix  command  or  daemon
+              The  process  name  of  a Postfix command or daemon
               process.
 
        <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              The  mail  system  name  that  is  prepended to the
-              process name in syslog  records,  so  that  "smtpd"
+              The mail system  name  that  is  prepended  to  the
+              process  name  in  syslog  records, so that "smtpd"
               becomes, for example, "postfix/smtpd".
 
 <b>SEE ALSO</b>
@@ -304,12 +309,12 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
        <a href="POSTSCREEN_README.html">POSTSCREEN_README</a>, Postfix Postscreen Howto
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>HISTORY</b>
-       Many  ideas in <a href="postscreen.8.html"><b>postscreen</b>(8)</a> were explored in earlier work
-       by Michael Tokarev, in OpenBSD spamd, and in  MailChannels
+       Many ideas in <a href="postscreen.8.html"><b>postscreen</b>(8)</a> were explored in earlier  work
+       by  Michael Tokarev, in OpenBSD spamd, and in MailChannels
        Traffic Control.
 
 <b>AUTHOR(S)</b>

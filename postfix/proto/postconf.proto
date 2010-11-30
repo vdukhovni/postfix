@@ -4879,8 +4879,8 @@ Postfix version 2.5).  This feature is available with Postfix version
 
 <dd>Reject the request when the reversed client network address is
 listed with the A record "<i>d.d.d.d</i>" under <i>rbl_domain</i>
-(Postfix version 2.1 and later only).  Each "<i>d</i>" can be a
-pattern inside "[]" that contains one or more comma-separated decimal
+(Postfix version 2.1 and later only).  Each "<i>d</i>" is a number,
+or a pattern inside "[]" that contains one or more comma-separated
 numbers or number..number ranges (Postfix version 2.8 and later).
 If no "<i>=d.d.d.d</i>" is specified, reject the request when the
 reversed client network address is listed with any A record under
@@ -4895,8 +4895,8 @@ This feature is available in Postfix 2.0 and later.  </dd>
 
 <dd>Accept the request when the reversed client network address is
 listed with the A record "<i>d.d.d.d</i>" under <i>dnswl_domain</i>.
-Each "<i>d</i>" can be a pattern inside "[]" that contains one or
-more comma-separated decimal numbers or number..number ranges.
+Each "<i>d</i>" is a number, or a pattern inside "[]" that contains
+one or more comma-separated numbers or number..number ranges.
 If no "<i>=d.d.d.d</i>" is specified, accept the request when the
 reversed client network address is listed with any A record under
 <i>dnswl_domain</i>. <br> For safety, permit_dnswl_client is silently
@@ -4908,8 +4908,8 @@ is available in Postfix 2.8 and later.  </dd>
 
 <dd>Reject the request when the client hostname is listed with the
 A record "<i>d.d.d.d</i>" under <i>rbl_domain</i> (Postfix version
-2.1 and later only).  Each "<i>d</i>" can be a pattern inside "[]"
-that contains one or more comma-separated decimal numbers or
+2.1 and later only).  Each "<i>d</i>" is a number, or a pattern
+inside "[]" that contains one or more comma-separated numbers or
 number..number ranges (Postfix version 2.8 and later).  If no
 "<i>=d.d.d.d</i>" is specified, reject the request when the client
 hostname is listed with
@@ -4923,8 +4923,8 @@ produce better results.  </dd>
 
 <dd>Accept the request when the client hostname is listed with the
 A record "<i>d.d.d.d</i>" under <i>rhswl_domain</i>.  Each "<i>d</i>"
-can be a pattern inside "[]" that contains one or more comma-separated
-decimal numbers or number..number ranges. If no
+is a number, or a pattern inside "[]" that contains one or more
+comma-separated numbers or number..number ranges. If no
 "<i>=d.d.d.d</i>" is specified, accept the request when the client
 hostname is listed with any A record under <i>rhswl_domain</i>.
 <br> Caution: client name whitelisting is fragile, since the client
@@ -4940,8 +4940,8 @@ when whitelist lookup fails.  This feature is available in Postfix
 
 <dd>Reject the request when the unverified reverse client hostname
 is listed with the A record "<i>d.d.d.d</i>" under <i>rbl_domain</i>.
-Each "<i>d</i>" can be a pattern inside "[]" that contains one or
-more comma-separated decimal numbers or number..number ranges.
+Each "<i>d</i>" is a number, or a pattern inside "[]" that contains
+one or more comma-separated numbers or number..number ranges.
 If no "<i>=d.d.d.d</i>" is specified, reject the request when the
 unverified reverse client hostname is listed with any A record under
 <i>rbl_domain</i>. See the reject_rbl_client description above for
@@ -5346,50 +5346,58 @@ received with the HELO or EHLO command.
 
 <dd>Search the specified access(5) database for the HELO or EHLO
 hostname or parent domains, and execute the corresponding action.
-</dd>
+Note: specify "smtpd_helo_required = yes" to fully enforce this
+restriction.  </dd>
 
 <dt><b><a name="check_helo_mx_access">check_helo_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access(5) database for the MX hosts for
 the HELO or EHLO hostname, and execute the corresponding action.
-Note: a result of "OK" is not allowed for safety reasons. Instead,
-use DUNNO in order to exclude specific hosts from blacklists.  This
-feature is available in Postfix 2.1 and later.  </dd>
+Note 1: a result of "OK" is not allowed for safety reasons. Instead,
+use DUNNO in order to exclude specific hosts from blacklists.  Note
+2: specify "smtpd_helo_required = yes" to fully enforce this
+restriction.  This feature is available in Postfix 2.1 and later.
+</dd>
 
 <dt><b><a name="check_helo_ns_access">check_helo_ns_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access(5) database for the DNS servers
 for the HELO or EHLO hostname, and execute the corresponding action.
-Note: a result of "OK" is not allowed for safety reasons. Instead,        
-use DUNNO in order to exclude specific hosts from blacklists.  This
-feature is available in Postfix 2.1 and later.  </dd>
+Note 1: a result of "OK" is not allowed for safety reasons. Instead,
+use DUNNO in order to exclude specific hosts from blacklists.  Note
+2: specify "smtpd_helo_required = yes" to fully enforce this
+restriction. This feature is available in Postfix 2.1 and later.
+</dd>
 
 <dt><b><a name="reject_invalid_helo_hostname">reject_invalid_helo_hostname</a></b> (with Postfix &lt; 2.3: reject_invalid_hostname)</dt>
 
 <dd>Reject the request when the HELO or EHLO hostname syntax is
-invalid. <br> The invalid_hostname_reject_code specifies the response
-code for rejected requests (default: 501).</dd>
+invalid. Note: specify "smtpd_helo_required = yes" to fully enforce
+this restriction. <br> The invalid_hostname_reject_code specifies
+the response code for rejected requests (default: 501).</dd>
 
 <dt><b><a name="reject_non_fqdn_helo_hostname">reject_non_fqdn_helo_hostname</a></b> (with Postfix &lt; 2.3: reject_non_fqdn_hostname)</dt>
 
 <dd>Reject the request when the HELO or EHLO hostname is not in
-fully-qualified domain form, as required by the RFC. <br> The
-non_fqdn_reject_code parameter specifies the response code for
+fully-qualified domain form, as required by the RFC. Note: specify
+"smtpd_helo_required = yes" to fully enforce this restriction.  <br>
+The non_fqdn_reject_code parameter specifies the response code for
 rejected requests (default: 504).</dd>
 
 <dt><b><a name="reject_rhsbl_helo">reject_rhsbl_helo <i>rbl_domain=d.d.d.d</i></a></b></dt>
 
 <dd>Reject the request when the HELO or EHLO hostname hostname is
 listed with the A record "<i>d.d.d.d</i>" under <i>rbl_domain</i>
-(Postfix version 2.1 and later only).  Each "<i>d</i>" can be a
-pattern inside "[]" that contains one or more comma-separated decimal
+(Postfix version 2.1 and later only).  Each "<i>d</i>" is a number,
+or a pattern inside "[]" that contains one or more comma-separated
 numbers or number..number ranges (Postfix version 2.8 and later).
 If no "<i>=d.d.d.d</i>" is
 specified, reject the request when the HELO or EHLO hostname is
 listed with any A record under <i>rbl_domain</i>. See the
 reject_rbl_client description for additional RBL related configuration
-parameters.  This feature is available in Postfix 2.0 and later.
-</dd>
+parameters.  Note: specify "smtpd_helo_required = yes" to fully
+enforce this restriction. This feature is available in Postfix 2.0
+and later.  </dd>
 
 <dt><b><a name="reject_unknown_helo_hostname">reject_unknown_helo_hostname</a></b> (with Postfix &lt; 2.3: reject_unknown_hostname)</dt>
 
@@ -5398,7 +5406,8 @@ or MX record. <br> The unknown_hostname_reject_code parameter
 specifies the numerical response code for rejected requests (default:
 450). <br> The unknown_helo_hostname_tempfail_action parameter
 specifies the action after a temporary DNS error (default:
-defer_if_permit). </dd>
+defer_if_permit). Note: specify "smtpd_helo_required = yes" to fully
+enforce this restriction. </dd>
 
 </dl>
 
@@ -5674,8 +5683,8 @@ rejected requests (default: 504). </dd>
 
 <dd>Reject the request when the RCPT TO domain is listed with the
 A record "<i>d.d.d.d</i>" under <i>rbl_domain</i> (Postfix version
-2.1 and later only).  Each "<i>d</i>" can be a pattern inside "[]"
-that contains one or more comma-separated decimal numbers or
+2.1 and later only).  Each "<i>d</i>" is a number, or a pattern
+inside "[]" that contains one or more comma-separated numbers or
 number..number ranges (Postfix version 2.8 and later). If no
 "<i>=d.d.d.d</i>" is specified, reject
 the request when the RCPT TO domain is listed with
@@ -6052,8 +6061,8 @@ rejected requests (default: 504). </dd>
 
 <dd>Reject the request when the MAIL FROM domain is listed with
 the A record "<i>d.d.d.d</i>" under <i>rbl_domain</i> (Postfix
-version 2.1 and later only).  Each "<i>d</i>" can be a pattern
-inside "[]" that contains one or more comma-separated decimal numbers
+version 2.1 and later only).  Each "<i>d</i>" is a number, or a
+pattern inside "[]" that contains one or more comma-separated numbers
 or number..number ranges (Postfix version 2.8 and later). If no
 "<i>=d.d.d.d</i>" is specified,
 reject the request when the MAIL FROM domain is
@@ -13328,6 +13337,17 @@ one-letter suffix that specifies the time unit).  Time units: s
 server. These tests are expensive: a client must disconnect after
 it passes the test, before it can talk to a real Postfix SMTP server.
 </p>
+
+<p> This feature is available in Postfix 2.8.  </p>
+
+%PARAM postscreen_client_connection_count_limit $smtpd_client_connection_count_limit
+
+<p> How many simultaneous connections any client is allowed to have
+with the postscreen(8) daemon. By default, this limit is the same
+as with the Postfix SMTP server. Note that the triage process can
+take several seconds, with the time spent in postscreen_greet_wait
+delay, and with the time spent talking to the postscreen(8) built-in
+dummy SMTP protocol engine. </p>
 
 <p> This feature is available in Postfix 2.8.  </p>
 

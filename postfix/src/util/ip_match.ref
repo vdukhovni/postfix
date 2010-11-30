@@ -2,6 +2,8 @@
 Code: 1.2.3.4
 > 1.2.300.4
 Error: need decimal number 0..255 or "[" at "1.2.>300<.4"
+> 1.2.3000.4
+Error: need decimal number 0..255 or "[" at "1.2.>3000<.4"
 > 1.2.3.
 Error: need decimal number 0..255 or "[" at "1.2.3.><"
 > 1.2.3

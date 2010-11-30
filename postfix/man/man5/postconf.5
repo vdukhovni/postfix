@@ -3818,6 +3818,15 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w
 (weeks).
 .PP
 This feature is available in Postfix 2.8.
+.SH postscreen_client_connection_count_limit (default: $smtpd_client_connection_count_limit)
+How many simultaneous connections any client is allowed to have
+with the \fBpostscreen\fR(8) daemon. By default, this limit is the same
+as with the Postfix SMTP server. Note that the triage process can
+take several seconds, with the time spent in postscreen_greet_wait
+delay, and with the time spent talking to the \fBpostscreen\fR(8) built-in
+dummy SMTP protocol engine.
+.PP
+This feature is available in Postfix 2.8.
 .SH postscreen_command_count_limit (default: 20)
 The limit on the total number of commands per SMTP session for
 \fBpostscreen\fR(8)'s built-in SMTP protocol engine.  This SMTP engine
@@ -7166,8 +7175,8 @@ Postfix version 2.5).  This feature is available with Postfix version
 .IP "\fBreject_rbl_client \fIrbl_domain=d.d.d.d\fR\fR"
 Reject the request when the reversed client network address is
 listed with the A record "\fId.d.d.d\fR" under \fIrbl_domain\fR
-(Postfix version 2.1 and later only).  Each "\fId\fR" can be a
-pattern inside "[]" that contains one or more comma-separated decimal
+(Postfix version 2.1 and later only).  Each "\fId\fR" is a number,
+or a pattern inside "[]" that contains one or more comma-separated
 numbers or number..number ranges (Postfix version 2.8 and later).
 If no "\fI=d.d.d.d\fR" is specified, reject the request when the
 reversed client network address is listed with any A record under
@@ -7181,8 +7190,8 @@ This feature is available in Postfix 2.0 and later.
 .IP "\fBpermit_dnswl_client \fIdnswl_domain=d.d.d.d\fR\fR"
 Accept the request when the reversed client network address is
 listed with the A record "\fId.d.d.d\fR" under \fIdnswl_domain\fR.
-Each "\fId\fR" can be a pattern inside "[]" that contains one or
-more comma-separated decimal numbers or number..number ranges.
+Each "\fId\fR" is a number, or a pattern inside "[]" that contains
+one or more comma-separated numbers or number..number ranges.
 If no "\fI=d.d.d.d\fR" is specified, accept the request when the
 reversed client network address is listed with any A record under
 \fIdnswl_domain\fR.
@@ -7194,8 +7203,8 @@ is available in Postfix 2.8 and later.
 .IP "\fBreject_rhsbl_client \fIrbl_domain=d.d.d.d\fR\fR"
 Reject the request when the client hostname is listed with the
 A record "\fId.d.d.d\fR" under \fIrbl_domain\fR (Postfix version
-2.1 and later only).  Each "\fId\fR" can be a pattern inside "[]"
-that contains one or more comma-separated decimal numbers or
+2.1 and later only).  Each "\fId\fR" is a number, or a pattern
+inside "[]" that contains one or more comma-separated numbers or
 number..number ranges (Postfix version 2.8 and later).  If no
 "\fI=d.d.d.d\fR" is specified, reject the request when the client
 hostname is listed with
@@ -7207,8 +7216,8 @@ produce better results.
 .IP "\fBpermit_rhswl_client \fIrhswl_domain=d.d.d.d\fR\fR"
 Accept the request when the client hostname is listed with the
 A record "\fId.d.d.d\fR" under \fIrhswl_domain\fR.  Each "\fId\fR"
-can be a pattern inside "[]" that contains one or more comma-separated
-decimal numbers or number..number ranges. If no
+is a number, or a pattern inside "[]" that contains one or more
+comma-separated numbers or number..number ranges. If no
 "\fI=d.d.d.d\fR" is specified, accept the request when the client
 hostname is listed with any A record under \fIrhswl_domain\fR.
 .br
@@ -7224,8 +7233,8 @@ when whitelist lookup fails.  This feature is available in Postfix
 .IP "\fBreject_rhsbl_reverse_client \fIrbl_domain=d.d.d.d\fR\fR"
 Reject the request when the unverified reverse client hostname
 is listed with the A record "\fId.d.d.d\fR" under \fIrbl_domain\fR.
-Each "\fId\fR" can be a pattern inside "[]" that contains one or
-more comma-separated decimal numbers or number..number ranges.
+Each "\fId\fR" is a number, or a pattern inside "[]" that contains
+one or more comma-separated numbers or number..number ranges.
 If no "\fI=d.d.d.d\fR" is specified, reject the request when the
 unverified reverse client hostname is listed with any A record under
 \fIrbl_domain\fR. See the reject_rbl_client description above for
@@ -7666,42 +7675,49 @@ received with the HELO or EHLO command.
 .IP "\fBcheck_helo_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the HELO or EHLO
 hostname or parent domains, and execute the corresponding action.
+Note: specify "smtpd_helo_required = yes" to fully enforce this
+restriction.
 .IP "\fBcheck_helo_mx_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the MX hosts for
 the HELO or EHLO hostname, and execute the corresponding action.
-Note: a result of "OK" is not allowed for safety reasons. Instead,
-use DUNNO in order to exclude specific hosts from blacklists.  This
-feature is available in Postfix 2.1 and later.
+Note 1: a result of "OK" is not allowed for safety reasons. Instead,
+use DUNNO in order to exclude specific hosts from blacklists.  Note
+2: specify "smtpd_helo_required = yes" to fully enforce this
+restriction.  This feature is available in Postfix 2.1 and later.
 .IP "\fBcheck_helo_ns_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the DNS servers
 for the HELO or EHLO hostname, and execute the corresponding action.
-Note: a result of "OK" is not allowed for safety reasons. Instead,
-use DUNNO in order to exclude specific hosts from blacklists.  This
-feature is available in Postfix 2.1 and later.
+Note 1: a result of "OK" is not allowed for safety reasons. Instead,
+use DUNNO in order to exclude specific hosts from blacklists.  Note
+2: specify "smtpd_helo_required = yes" to fully enforce this
+restriction. This feature is available in Postfix 2.1 and later.
 .IP "\fBreject_invalid_helo_hostname\fR (with Postfix < 2.3: reject_invalid_hostname)"
 Reject the request when the HELO or EHLO hostname syntax is
-invalid.
+invalid. Note: specify "smtpd_helo_required = yes" to fully enforce
+this restriction.
 .br
-The invalid_hostname_reject_code specifies the response
-code for rejected requests (default: 501).
+The invalid_hostname_reject_code specifies
+the response code for rejected requests (default: 501).
 .IP "\fBreject_non_fqdn_helo_hostname\fR (with Postfix < 2.3: reject_non_fqdn_hostname)"
 Reject the request when the HELO or EHLO hostname is not in
-fully-qualified domain form, as required by the RFC.
+fully-qualified domain form, as required by the RFC. Note: specify
+"smtpd_helo_required = yes" to fully enforce this restriction.
 .br
-The
-non_fqdn_reject_code parameter specifies the response code for
+The non_fqdn_reject_code parameter specifies the response code for
 rejected requests (default: 504).
 .IP "\fBreject_rhsbl_helo \fIrbl_domain=d.d.d.d\fR\fR"
 Reject the request when the HELO or EHLO hostname hostname is
 listed with the A record "\fId.d.d.d\fR" under \fIrbl_domain\fR
-(Postfix version 2.1 and later only).  Each "\fId\fR" can be a
-pattern inside "[]" that contains one or more comma-separated decimal
+(Postfix version 2.1 and later only).  Each "\fId\fR" is a number,
+or a pattern inside "[]" that contains one or more comma-separated
 numbers or number..number ranges (Postfix version 2.8 and later).
 If no "\fI=d.d.d.d\fR" is
 specified, reject the request when the HELO or EHLO hostname is
 listed with any A record under \fIrbl_domain\fR. See the
 reject_rbl_client description for additional RBL related configuration
-parameters.  This feature is available in Postfix 2.0 and later.
+parameters.  Note: specify "smtpd_helo_required = yes" to fully
+enforce this restriction. This feature is available in Postfix 2.0
+and later.
 .IP "\fBreject_unknown_helo_hostname\fR (with Postfix < 2.3: reject_unknown_hostname)"
 Reject the request when the HELO or EHLO hostname has no DNS A
 or MX record.
@@ -7712,7 +7728,8 @@ specifies the numerical response code for rejected requests (default:
 .br
 The unknown_helo_hostname_tempfail_action parameter
 specifies the action after a temporary DNS error (default:
-defer_if_permit).
+defer_if_permit). Note: specify "smtpd_helo_required = yes" to fully
+enforce this restriction.
 .PP
 Other restrictions that are valid in this context:
 .IP \(bu
@@ -7939,8 +7956,8 @@ rejected requests (default: 504).
 .IP "\fBreject_rhsbl_recipient \fIrbl_domain=d.d.d.d\fR\fR"
 Reject the request when the RCPT TO domain is listed with the
 A record "\fId.d.d.d\fR" under \fIrbl_domain\fR (Postfix version
-2.1 and later only).  Each "\fId\fR" can be a pattern inside "[]"
-that contains one or more comma-separated decimal numbers or
+2.1 and later only).  Each "\fId\fR" is a number, or a pattern
+inside "[]" that contains one or more comma-separated numbers or
 number..number ranges (Postfix version 2.8 and later). If no
 "\fI=d.d.d.d\fR" is specified, reject
 the request when the RCPT TO domain is listed with
@@ -8312,8 +8329,8 @@ rejected requests (default: 504).
 .IP "\fBreject_rhsbl_sender \fIrbl_domain=d.d.d.d\fR\fR"
 Reject the request when the MAIL FROM domain is listed with
 the A record "\fId.d.d.d\fR" under \fIrbl_domain\fR (Postfix
-version 2.1 and later only).  Each "\fId\fR" can be a pattern
-inside "[]" that contains one or more comma-separated decimal numbers
+version 2.1 and later only).  Each "\fId\fR" is a number, or a
+pattern inside "[]" that contains one or more comma-separated numbers
 or number..number ranges (Postfix version 2.8 and later). If no
 "\fI=d.d.d.d\fR" is specified,
 reject the request when the MAIL FROM domain is

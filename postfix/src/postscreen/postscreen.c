@@ -188,6 +188,9 @@
 /* .IP "\fBline_length_limit (2048)\fR"
 /*	Upon input, long lines are chopped up into pieces of at most
 /*	this length; upon delivery, long lines are reconstructed.
+/* .IP "\fBpostscreen_client_connection_count_limit ($smtpd_client_connection_count_limit)\fR"
+/*	How many simultaneous connections any client is allowed to have
+/*	with the \fBpostscreen\fR(8) daemon.
 /* .IP "\fBpostscreen_command_count_limit (20)\fR"
 /*	The limit on the total number of commands per SMTP session for
 /*	\fBpostscreen\fR(8)'s built-in SMTP protocol engine.
@@ -348,6 +351,8 @@ int     var_ps_barlf_ttl;
 int     var_ps_cmd_count;
 char   *var_ps_cmd_time;
 
+int     var_ps_cconn_limit;
+
  /*
   * Global variables.
   */
@@ -372,6 +377,7 @@ int     ps_stress;			/* stress level */
 int     ps_check_queue_length_lowat;	/* stress low-water mark */
 int     ps_check_queue_length_hiwat;	/* stress high-water mark */
 DICT   *ps_dnsbl_reply;			/* DNSBL name mapper */
+HTABLE *ps_client_concurrency;		/* per-client concurrency */
 
  /*
   * Local variables.
@@ -501,11 +507,11 @@ static void ps_service(VSTREAM *smtp_client_stream,
 	memmove(smtp_client_addr.buf, smtp_client_addr.buf + 7,
 		sizeof(smtp_client_addr.buf) - 7);
     if (msg_verbose > 1)
-	msg_info("%s: sq=%d cq=%d connect from %s:%s",
+	msg_info("%s: sq=%d cq=%d connect from [%s]:%s",
 		 myname, ps_post_queue_length, ps_check_queue_length,
 		 smtp_client_addr.buf, smtp_client_port.buf);
 
-    msg_info("CONNECT from %s", smtp_client_addr.buf);
+    msg_info("CONNECT from [%s]:%s", smtp_client_addr.buf, smtp_client_port.buf);
 
     /*
      * Bundle up all the loose session pieces. This zeroes all flags and time
@@ -515,11 +521,23 @@ static void ps_service(VSTREAM *smtp_client_stream,
 				 smtp_client_port.buf);
 
     /*
+     * Reply with 421 when the client has too many open connections.
+     */
+    if (var_ps_cconn_limit > 0
+	&& state->client_concurrency  > var_ps_cconn_limit) {
+	msg_info("NOQUEUE: reject: CONNECT from [%s]:%s: too many connections",
+		 state->smtp_client_addr, state->smtp_client_port);
+	PS_DROP_SESSION_STATE(state,
+			      "421 4.7.0 Error: too many connections\r\n");
+	return;
+    }
+
+    /*
      * Reply with 421 when we can't forward more connections.
      */
     if (var_ps_post_queue_limit > 0
 	&& ps_post_queue_length >= var_ps_post_queue_limit) {
-	msg_info("reject: connect from %s:%s: all server ports busy",
+	msg_info("NOQUEUE: reject: CONNECT from [%s]:%s: all server ports busy",
 		 state->smtp_client_addr, state->smtp_client_port);
 	PS_DROP_SESSION_STATE(state,
 			      "421 4.3.2 All server ports are busy\r\n");
@@ -532,7 +550,7 @@ static void ps_service(VSTREAM *smtp_client_stream,
      */
     if (ps_wlist_nets != 0
       && ps_addr_match_list_match(ps_wlist_nets, state->smtp_client_addr)) {
-	msg_info("WHITELISTED %s", state->smtp_client_addr);
+	msg_info("WHITELISTED [%s]:%s", PS_CLIENT_ADDR_PORT(state));
 	ps_conclude(state);
 	return;
     }
@@ -544,7 +562,7 @@ static void ps_service(VSTREAM *smtp_client_stream,
      */
     if (ps_blist_nets != 0
       && ps_addr_match_list_match(ps_blist_nets, state->smtp_client_addr)) {
-	msg_info("BLACKLISTED %s", state->smtp_client_addr);
+	msg_info("BLACKLISTED [%s]:%s", PS_CLIENT_ADDR_PORT(state));
 	PS_FAIL_SESSION_STATE(state, PS_STATE_FLAG_BLIST_FAIL);
 	switch (ps_blist_action) {
 	case PS_ACT_DROP:
@@ -581,7 +599,7 @@ static void ps_service(VSTREAM *smtp_client_stream,
 	    msg_info("%s: cached + recent flags: %s",
 		     myname, ps_print_state_flags(state->flags, myname));
 	if ((state->flags & PS_STATE_MASK_ANY_TODO_FAIL) == 0) {
-	    msg_info("PASS OLD %s", state->smtp_client_addr);
+	    msg_info("PASS OLD [%s]:%s", PS_CLIENT_ADDR_PORT(state));
 	    ps_conclude(state);
 	    return;
 	}
@@ -599,7 +617,7 @@ static void ps_service(VSTREAM *smtp_client_stream,
      */
     if (var_ps_pre_queue_limit > 0
 	&& ps_check_queue_length - ps_post_queue_length >= var_ps_pre_queue_limit) {
-	msg_info("reject: connect from %s:%s: all screening ports busy",
+	msg_info("reject: connect from [%s]:%s: all screening ports busy",
 		 state->smtp_client_addr, state->smtp_client_port);
 	PS_DROP_SESSION_STATE(state,
 			      "421 4.3.2 All screening ports are busy\r\n");
@@ -807,6 +825,11 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 	msg_info(VAR_PS_CMD_TIME ": stress=%d normal=%d lowat=%d hiwat=%d",
 		 ps_stress_cmd_time_limit, ps_normal_cmd_time_limit,
 		 ps_check_queue_length_lowat, ps_check_queue_length_hiwat);
+
+    /*
+     * Per-client concurrency.
+     */
+    ps_client_concurrency = htable_create(var_ps_pre_queue_limit);
 }
 
 MAIL_VERSION_STAMP_DECLARE;
@@ -848,6 +871,7 @@ int     main(int argc, char **argv)
     static const CONFIG_NINT_TABLE nint_table[] = {
 	VAR_PS_POST_QLIMIT, DEF_PS_POST_QLIMIT, &var_ps_post_queue_limit, 5, 0,
 	VAR_PS_PRE_QLIMIT, DEF_PS_PRE_QLIMIT, &var_ps_pre_queue_limit, 10, 0,
+	VAR_PS_CCONN_LIMIT, DEF_PS_CCONN_LIMIT, &var_ps_cconn_limit, 0, 0,
 	0,
     };
     static const CONFIG_TIME_TABLE time_table[] = {

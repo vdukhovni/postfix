@@ -62,7 +62,7 @@ static void ps_early_event(int event, char *context)
     const char *dnsbl_name;
 
     if (msg_verbose > 1)
-	msg_info("%s: sq=%d cq=%d event %d on smtp socket %d from %s:%s flags=%s",
+	msg_info("%s: sq=%d cq=%d event %d on smtp socket %d from [%s]:%s flags=%s",
 		 myname, ps_post_queue_length, ps_check_queue_length,
 		 event, vstream_fileno(state->smtp_client_stream),
 		 state->smtp_client_addr, state->smtp_client_port,
@@ -117,8 +117,8 @@ static void ps_early_event(int event, char *context)
 		PS_PASS_SESSION_STATE(state, "dnsbl test",
 				      PS_STATE_FLAG_DNSBL_PASS);
 	    } else {
-		msg_info("DNSBL rank %d for %s",
-			 dnsbl_score, state->smtp_client_addr);
+		msg_info("DNSBL rank %d for [%s]:%s",
+			 dnsbl_score, PS_CLIENT_ADDR_PORT(state));
 		PS_FAIL_SESSION_STATE(state, PS_STATE_FLAG_DNSBL_FAIL);
 		switch (ps_dnsbl_action) {
 		case PS_ACT_DROP:
@@ -174,9 +174,9 @@ static void ps_early_event(int event, char *context)
 	    return;
 	}
 	read_buf[read_count] = 0;
-	msg_info("PREGREET %d after %s from %s: %.100s", read_count,
+	msg_info("PREGREET %d after %s from [%s]:%s: %.100s", read_count,
 		 ps_format_delta_time(ps_temp, state->start_time, &elapsed),
-		 state->smtp_client_addr, printable(read_buf, '?'));
+		 PS_CLIENT_ADDR_PORT(state), printable(read_buf, '?'));
 	PS_FAIL_SESSION_STATE(state, PS_STATE_FLAG_PREGR_FAIL);
 	switch (ps_pregr_action) {
 	case PS_ACT_DROP:
@@ -228,7 +228,7 @@ static void ps_early_dnsbl_event(int unused_event, char *context)
     PS_STATE *state = (PS_STATE *) context;
 
     if (msg_verbose)
-	msg_info("%s: notify %s:%s", myname, PS_CLIENT_ADDR_PORT(state));
+	msg_info("%s: notify [%s]:%s", myname, PS_CLIENT_ADDR_PORT(state));
 
     /*
      * Terminate the greet delay if we're just waiting for DNSBL lookup to

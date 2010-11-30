@@ -210,6 +210,9 @@ a successful "pipelining" SMTP protocol test.
 .IP "\fBline_length_limit (2048)\fR"
 Upon input, long lines are chopped up into pieces of at most
 this length; upon delivery, long lines are reconstructed.
+.IP "\fBpostscreen_client_connection_count_limit ($smtpd_client_connection_count_limit)\fR"
+How many simultaneous connections any client is allowed to have
+with the \fBpostscreen\fR(8) daemon.
 .IP "\fBpostscreen_command_count_limit (20)\fR"
 The limit on the total number of commands per SMTP session for
 \fBpostscreen\fR(8)'s built-in SMTP protocol engine.

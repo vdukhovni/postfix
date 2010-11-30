@@ -156,7 +156,6 @@ void    ps_parse_tests(PS_STATE *state,
 		               const char *stamp_str,
 		               time_t time_value)
 {
-    const char *myname = "ps_parse_tests";
     unsigned long pregr_stamp;
     unsigned long dnsbl_stamp;
     unsigned long pipel_stamp;

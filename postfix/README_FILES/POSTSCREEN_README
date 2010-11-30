@@ -93,9 +93,10 @@ PPeerrmmaanneenntt wwhhiitteelliisstt tteesstt
 
 The postscreen_whitelist_networks parameter (default: $mynetworks) specifies a
 permanent whitelist for SMTP client IP addresses. When the SMTP client address
-matches the permanent whitelist, this is logged as:
+matches the permanent whitelist, postscreen(8) logs this with the client
+address and port number as:
 
-    WWHHIITTEELLIISSTTEEDD address
+    WWHHIITTEELLIISSTTEEDD [address]:port
 
 The action is not configurable: immediately hand off the connection to a
 Postfix SMTP server process.
@@ -105,9 +106,9 @@ PPeerrmmaanneenntt bbllaacckklliisstt tteesstt
 The postscreen_blacklist_networks parameter (default: empty) specifies a
 permanent blacklist for SMTP client IP addresses. The address syntax is as with
 mynetworks. When the SMTP client address matches the permanent blacklist,
-postscreen(8) logs this as:
+postscreen(8) logs this with the client address and port number as:
 
-    BBLLAACCKKLLIISSTTEEDD address
+    BBLLAACCKKLLIISSTTEEDD [address]:port
 
 The postscreen_blacklist_action parameter specifies the action that is taken
 next. See "When tests fail before the 220 SMTP server greeting" below.
@@ -121,9 +122,9 @@ whitelist. The temporary whitelist is not used for SMTP client addresses that
 appear on the permanent blacklist or whitelist.
 
 When the SMTP client address appears on the temporary whitelist, postscreen(8)
-logs this as:
+logs this with the client address and port number as:
 
-    PPAASSSS OOLLDD address
+    PPAASSSS OOLLDD [address]:port
 
 The action is not configurable: immediately hand off the connection to a
 Postfix SMTP server process. The client is excluded from further tests until
@@ -174,12 +175,12 @@ postscreen_whitelist_networks feature or else specify an empty teaser banner:
 When an SMTP client sends a command before the postscreen_greet_wait time has
 elapsed, postscreen(8) logs this as:
 
-    PPRREEGGRREEEETT count aafftteerr time ffrroomm address text...
+    PPRREEGGRREEEETT count aafftteerr time ffrroomm [address]:port text...
 
-Translation: the client at address sent count bytes before its turn to speak.
-This happened time seconds after the postscreen_greet_wait timer was started.
-The text is what the client sent (truncated to 100 bytes, and with non-
-printable characters replaced with "?").
+Translation: the client at [address]:port sent count bytes before its turn to
+speak. This happened time seconds after the postscreen_greet_wait timer was
+started. The text is what the client sent (truncated to 100 bytes, and with
+non-printable characters replaced with "?").
 
 The postscreen_greet_action parameter specifies the action that is taken next.
 See "When tests fail before the 220 SMTP server greeting" below.
@@ -199,9 +200,10 @@ When the postscreen_greet_wait time has elapsed, and the combined DNSBL score
 is equal to or greater than the postscreen_dnsbl_threshold parameter value,
 postscreen(8) logs this as:
 
-    DDNNSSBBLL rraannkk count ffoorr address
+    DDNNSSBBLL rraannkk count ffoorr [address]:port
 
-Translation: the SMTP client at address has a combined DNSBL score of count.
+Translation: the SMTP client at [address]:port has a combined DNSBL score of
+count.
 
 The postscreen_dnsbl_action parameter specifies the action that is taken when
 the combined DNSBL score is equal to or greater than the threshold. See "When
@@ -278,11 +280,11 @@ in SMTP engine anyway. This is to make postscreen(8) logging more informative.
 
 When a client sends multiple commands, postscreen(8) logs this as:
 
-    CCOOMMMMAANNDD PPIIPPEELLIINNIINNGG aafftteerr time ffrroomm address
+    CCOOMMMMAANNDD PPIIPPEELLIINNIINNGG aafftteerr time ffrroomm [address]:port
 
-Translation: the SMTP client at address sent multiple SMTP commands, instead of
-sending one command and then waiting for the server to reply. This happened
-time seconds after the "220 " server greeting was sent.
+Translation: the SMTP client at [address]:port sent multiple SMTP commands,
+instead of sending one command and then waiting for the server to reply. This
+happened time seconds after the "220 " server greeting was sent.
 
 The postscreen_pipelining_action parameter specifies the action that is taken
 next. See "When tests fail after the 220 SMTP server greeting" below.
@@ -306,9 +308,9 @@ in SMTP engine anyway. This is to make postscreen(8) logging more informative.
 
 When a client sends non-SMTP commands, postscreen(8) logs this as:
 
-    NNOONN--SSMMTTPP CCOOMMMMAANNDD ffrroomm address command
+    NNOONN--SSMMTTPP CCOOMMMMAANNDD ffrroomm [address]:port command
 
-Translation: the SMTP client at address sent a command that matches the
+Translation: the SMTP client at [address]:port sent a command that matches the
 postscreen_forbidden_commands parameter, or that has the syntax of a message
 header label.
 
@@ -330,10 +332,10 @@ in SMTP engine anyway. This is to make postscreen(8) logging more informative.
 
 When a client sends bare newline characters, postscreen(8) logs this as:
 
-    BBAARREE NNEEWWLLIINNEE ffrroomm address
+    BBAARREE NNEEWWLLIINNEE ffrroomm [address]:port
 
-Translation: the SMTP client at address sent a bare newline character, that is
-newline not preceded by carriage return.
+Translation: the SMTP client at [address]:port sent a bare newline character,
+that is newline not preceded by carriage return.
 
 The postscreen_bare_newline_action parameter specifies the action that is taken
 next. See "When tests fail after the 220 SMTP server greeting" below.
@@ -364,44 +366,54 @@ OOtthheerr eerrrroorrss
 When an SMTP client hangs up unexpectedly during any tests, postscreen(8) logs
 this as:
 
-    HHAANNGGUUPP aafftteerr time ffrroomm address iinn test name
+    HHAANNGGUUPP aafftteerr time ffrroomm [address]:port iinn test name
 
-Translation: the SMTP client at address disconnected unexpectedly, time seconds
-after the start of the test named test name.
+Translation: the SMTP client at [address]:port disconnected unexpectedly, time
+seconds after the start of the test named test name.
 
 The following errors are reported by the built-in SMTP engine. This engine
 never accepts mail, therefore it has per-session limits on the number of
 commands and on the session length.
 
-    CCOOMMMMAANNDD TTIIMMEE LLIIMMIITT ffrroomm address
+    CCOOMMMMAANNDD TTIIMMEE LLIIMMIITT ffrroomm [address]:port
 
-Translation: the SMTP client at address reached the per-command time limit as
-specified with the postscreen_command_time_limit parameter. The session is
-terminated immediately.
-
-    CCOOMMMMAANNDD CCOOUUNNTT LLIIMMIITT ffrroomm address
-
-Translation: the SMTP client at address reached the per-session command count
-limit as specified with the postscreen_command_count_limit parameter. The
+Translation: the SMTP client at [address]:port reached the per-command time
+limit as specified with the postscreen_command_time_limit parameter. The
 session is terminated immediately.
 
-    CCOOMMMMAANNDD LLEENNGGTTHH LLIIMMIITT ffrroomm address
+    CCOOMMMMAANNDD CCOOUUNNTT LLIIMMIITT ffrroomm [address]:port
 
-Translation: the SMTP client at address reached the per-command length limit,
-as specified with the line_length_limit parameter. The session is terminated
-immediately.
+Translation: the SMTP client at [address]:port reached the per-session command
+count limit as specified with the postscreen_command_count_limit parameter. The
+session is terminated immediately.
+
+    CCOOMMMMAANNDD LLEENNGGTTHH LLIIMMIITT ffrroomm [address]:port
+
+Translation: the SMTP client at [address]:port reached the per-command length
+limit, as specified with the line_length_limit parameter. The session is
+terminated immediately.
+
+When an SMTP client makes too many connections at the same time, or when all
+postscreen(8) ports are busy, postscreen(8) rejects the connection with a 421
+status code and logs:
+
+    NNOOQQUUEEUUEE:: rreejjeecctt:: CCOONNNNEECCTT ffrroomm [address]:port:: ttoooo mmaannyy ccoonnnneeccttiioonnss
+    NNOOQQUUEEUUEE:: rreejjeecctt:: CCOONNNNEECCTT ffrroomm [address]:port:: aallll sseerrvveerr ppoorrttss bbuussyy
+
+The postscreen_client_connection_count_limit and postscreen_pre_queue_limit
+parameters control these limits.
 
 WWhheenn aallll tteessttss ssuucccceeeedd
 
 When a new SMTP client passes all tests (i.e. it is not whitelisted via some
 mechanism), postscreen(8) logs this as:
 
-    PPAASSSS NNEEWW address
+    PPAASSSS NNEEWW [address]:port
 
-Where address is the client IP address. Then, postscreen(8) creates a temporary
-whitelist entry that excludes the client IP address from further tests until
-the temporary whitelist entry expires, as controlled with the postscreen_*_ttl
-parameters.
+Where [address]:port are the client IP address and port. Then, postscreen(8)
+creates a temporary whitelist entry that excludes the client IP address from
+further tests until the temporary whitelist entry expires, as controlled with
+the postscreen_*_ttl parameters.
 
 When no "deep protocol tests" are configured, postscreen(8) hands off the
 "live" connection to a Postfix SMTP server process. The client can then

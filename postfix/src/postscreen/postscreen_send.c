@@ -78,7 +78,7 @@ int     ps_send_reply(int smtp_client_fd, const char *smtp_client_addr,
     int     ret;
 
     if (msg_verbose)
-	msg_info("> %s:%s: %.*s", smtp_client_addr, smtp_client_port,
+	msg_info("> [%s]:%s: %.*s", smtp_client_addr, smtp_client_port,
 		 (int) strlen(text) - 2, text);
 
     /*
@@ -88,7 +88,7 @@ int     ps_send_reply(int smtp_client_fd, const char *smtp_client_addr,
     ret = (write_buf(smtp_client_fd, text, strlen(text),
 		     PS_SEND_TEXT_TIMEOUT) < 0);
     if (ret != 0 && errno != EPIPE)
-	msg_warn("write %s:%s: %m", smtp_client_addr, smtp_client_port);
+	msg_warn("write [%s]:%s: %m", smtp_client_addr, smtp_client_port);
     return (ret);
 }
 
@@ -100,7 +100,7 @@ static void ps_send_socket_close_event(int event, char *context)
     PS_STATE *state = (PS_STATE *) context;
 
     if (msg_verbose > 1)
-	msg_info("%s: sq=%d cq=%d event %d on send socket %d from %s:%s",
+	msg_info("%s: sq=%d cq=%d event %d on send socket %d from [%s]:%s",
 		 myname, ps_post_queue_length, ps_check_queue_length,
 		 event, state->smtp_server_fd, state->smtp_client_addr,
 		 state->smtp_client_port);
@@ -128,7 +128,7 @@ void    ps_send_socket(PS_STATE *state)
     int     window_size;
 
     if (msg_verbose > 1)
-	msg_info("%s: sq=%d cq=%d send socket %d from %s:%s",
+	msg_info("%s: sq=%d cq=%d send socket %d from [%s]:%s",
 		 myname, ps_post_queue_length, ps_check_queue_length,
 		 vstream_fileno(state->smtp_client_stream),
 		 state->smtp_client_addr, state->smtp_client_port);

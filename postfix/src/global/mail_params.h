@@ -3366,6 +3366,10 @@ extern bool var_ps_helo_required;
 #define DEF_PS_DISABLE_VRFY	"$" VAR_DISABLE_VRFY_CMD
 extern bool var_ps_disable_vrfy;
 
+#define VAR_PS_CCONN_LIMIT	"postscreen_client_connection_count_limit"
+#define DEF_PS_CCONN_LIMIT	"$" VAR_SMTPD_CCONN_LIMIT
+extern int var_ps_cconn_limit;
+
 #define VAR_DNSBLOG_DELAY	"dnsblog_reply_delay"
 #define DEF_DNSBLOG_DELAY	"0s"
 extern int var_dnsblog_delay;

@@ -321,9 +321,9 @@ static int ps_rcpt_cmd(PS_STATE *state, char *args)
     if ((addr = ps_extract_addr(ps_temp, colon + 1)) == 0)
 	return (PS_SEND_REPLY(state,
 			      "501 5.1.3 Bad recipient address syntax\r\n"));
-    msg_info("NOQUEUE: reject: RCPT from [%s]: %.*s; "
+    msg_info("NOQUEUE: reject: RCPT from [%s]:%s: %.*s; "
 	     "from=<%s>, to=<%s>, proto=%s, helo=<%s>",
-	     state->smtp_client_addr,
+	     PS_CLIENT_ADDR_PORT(state),
 	     (int) strlen(state->rcpt_reply) - 2, state->rcpt_reply,
 	     state->sender, addr, state->protocol,
 	     state->helo_name ? state->helo_name : "");
@@ -428,13 +428,13 @@ static void ps_smtpd_time_event(int event, char *context)
     PS_STATE *state = (PS_STATE *) context;
 
     if (msg_verbose > 1)
-	msg_info("%s: sq=%d cq=%d event %d on smtp socket %d from %s:%s flags=%s",
+	msg_info("%s: sq=%d cq=%d event %d on smtp socket %d from [%s]:%s flags=%s",
 		 myname, ps_post_queue_length, ps_check_queue_length,
 		 event, vstream_fileno(state->smtp_client_stream),
 		 state->smtp_client_addr, state->smtp_client_port,
 		 ps_print_state_flags(state->flags, myname));
 
-    msg_info("COMMAND TIME LIMIT from %s", state->smtp_client_addr);
+    msg_info("COMMAND TIME LIMIT from [%s]:%s", PS_CLIENT_ADDR_PORT(state));
     PS_CLEAR_EVENT_DROP_SESSION_STATE(state, ps_smtpd_time_event,
 				      ps_smtpd_timeout_reply);
 }
@@ -499,7 +499,7 @@ static void ps_smtpd_read_event(int event, char *context)
     int     write_stat;
 
     if (msg_verbose > 1)
-	msg_info("%s: sq=%d cq=%d event %d on smtp socket %d from %s:%s flags=%s",
+	msg_info("%s: sq=%d cq=%d event %d on smtp socket %d from [%s]:%s flags=%s",
 		 myname, ps_post_queue_length, ps_check_queue_length,
 		 event, vstream_fileno(state->smtp_client_stream),
 		 state->smtp_client_addr, state->smtp_client_port,
@@ -543,8 +543,8 @@ static void ps_smtpd_read_event(int event, char *context)
 	     */
 	    if (state->read_state == PS_SMTPD_CMD_ST_ANY
 		&& VSTRING_LEN(state->cmd_buffer) >= var_line_limit) {
-		msg_info("COMMAND LENGTH LIMIT from %s",
-			 state->smtp_client_addr);
+		msg_info("COMMAND LENGTH LIMIT from [%s]:%s",
+			 PS_CLIENT_ADDR_PORT(state));
 		PS_CLEAR_EVENT_DROP_SESSION_STATE(state, ps_smtpd_time_event,
 						  ps_smtpd_421_reply);
 		return;
@@ -580,7 +580,8 @@ static void ps_smtpd_read_event(int event, char *context)
 	    if (ch == '\n') {
 		if ((state->flags & PS_STATE_MASK_BARLF_TODO_SKIP)
 		    == PS_STATE_FLAG_BARLF_TODO) {
-		    msg_info("BARE NEWLINE from %s", state->smtp_client_addr);
+		    msg_info("BARE NEWLINE from [%s]:%s",
+			     PS_CLIENT_ADDR_PORT(state));
 		    PS_FAIL_SESSION_STATE(state, PS_STATE_FLAG_BARLF_FAIL);
 		    PS_UNPASS_SESSION_STATE(state, PS_STATE_FLAG_BARLF_PASS);
 		    state->barlf_stamp = PS_TIME_STAMP_DISABLED;	/* XXX */
@@ -644,7 +645,7 @@ static void ps_smtpd_read_event(int event, char *context)
 	 */
 	cmd_buffer_ptr = vstring_str(state->cmd_buffer);
 	if (msg_verbose)
-	    msg_info("< %s:%s: %s", state->smtp_client_addr,
+	    msg_info("< [%s]:%s: %s", state->smtp_client_addr,
 		     state->smtp_client_port, cmd_buffer_ptr);
 
 	/* Parse the command name. */
@@ -668,8 +669,8 @@ static void ps_smtpd_read_event(int event, char *context)
 		|| (*var_ps_forbid_cmds
 		    && string_list_match(ps_forbid_cmds, command)))) {
 	    printable(command, '?');
-	    msg_info("NON-SMTP COMMAND from %s %.100s",
-		     state->smtp_client_addr, command);
+	    msg_info("NON-SMTP COMMAND from [%s]:%s %.100s",
+		     PS_CLIENT_ADDR_PORT(state), command);
 	    PS_FAIL_SESSION_STATE(state, PS_STATE_FLAG_NSMTP_FAIL);
 	    PS_UNPASS_SESSION_STATE(state, PS_STATE_FLAG_NSMTP_PASS);
 	    state->nsmtp_stamp = PS_TIME_STAMP_DISABLED;	/* XXX */
@@ -703,8 +704,8 @@ static void ps_smtpd_read_event(int event, char *context)
 	if ((state->flags & PS_STATE_MASK_PIPEL_TODO_SKIP)
 	    == PS_STATE_FLAG_PIPEL_TODO && !PS_SMTPD_BUFFER_EMPTY(state)) {
 	    printable(command, '?');
-	    msg_info("COMMAND PIPELINING from %s after %.100s",
-		     state->smtp_client_addr, command);
+	    msg_info("COMMAND PIPELINING from [%s]:%s after %.100s",
+		     PS_CLIENT_ADDR_PORT(state), command);
 	    PS_FAIL_SESSION_STATE(state, PS_STATE_FLAG_PIPEL_FAIL);
 	    PS_UNPASS_SESSION_STATE(state, PS_STATE_FLAG_PIPEL_PASS);
 	    state->pipel_stamp = PS_TIME_STAMP_DISABLED;	/* XXX */
@@ -766,7 +767,8 @@ static void ps_smtpd_read_event(int event, char *context)
 	/* Command COUNT limit test. */
 	if (++state->command_count > var_ps_cmd_count
 	    && cmdp->action != ps_quit_cmd) {
-	    msg_info("COMMAND COUNT LIMIT from %s", state->smtp_client_addr);
+	    msg_info("COMMAND COUNT LIMIT from [%s]:%s",
+		     PS_CLIENT_ADDR_PORT(state));
 	    PS_CLEAR_EVENT_DROP_SESSION_STATE(state, ps_smtpd_time_event,
 					      ps_smtpd_421_reply);
 	    return;
