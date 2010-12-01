@@ -351,6 +351,7 @@ int     var_ps_barlf_ttl;
 int     var_ps_cmd_count;
 char   *var_ps_cmd_time;
 
+int     var_smtpd_cconn_limit;
 int     var_ps_cconn_limit;
 
  /*
@@ -866,6 +867,7 @@ int     main(int argc, char **argv)
 	VAR_PROC_LIMIT, DEF_PROC_LIMIT, &var_proc_limit, 1, 0,
 	VAR_PS_DNSBL_THRESH, DEF_PS_DNSBL_THRESH, &var_ps_dnsbl_thresh, 0, 0,
 	VAR_PS_CMD_COUNT, DEF_PS_CMD_COUNT, &var_ps_cmd_count, 1, 0,
+	VAR_SMTPD_CCONN_LIMIT, DEF_SMTPD_CCONN_LIMIT, &var_smtpd_cconn_limit, 0, 0,
 	0,
     };
     static const CONFIG_NINT_TABLE nint_table[] = {

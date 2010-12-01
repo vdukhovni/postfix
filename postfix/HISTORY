@@ -16194,3 +16194,14 @@ Apologies for any names omitted.
 
 	Cleanup: polishing recent documentation and code. Files:
 	postscreen/postscreen_dnsbl.c, util/ip_match.c.
+
+20101201
+
+	Bugfix (introduced 20101129): broken default value for
+	postscreen_client_connection_count_limit if the
+	smtpd_client_connection_count_limit parameter was left at
+	its default.  File: postscreen/postscreen.c.
+
+	Workaround: BSD-ish mkdir() ignores the effective GID
+	and copies group ownership from the parent directory.
+	File: util/make_dirs.c.

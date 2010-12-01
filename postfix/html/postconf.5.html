@@ -6925,9 +6925,10 @@ comma or whitespace.  </p>
 <ul>
 
 <li> <p> When no "=filter" is specified, <a href="postscreen.8.html">postscreen(8)</a> will use any
-non-error DNSBL reply.  Otherwise, the filter must be an IPv4
-address, and <a href="postscreen.8.html">postscreen(8)</a> uses only DNSBL replies that match the
-filter.  </p>
+non-error DNSBL reply.  Otherwise, <a href="postscreen.8.html">postscreen(8)</a> uses only DNSBL
+replies that match the filter. The filter has the form d.d.d.d,
+where each d is a number, or a pattern inside [] that contains one
+or more comma-separated numbers or number..number ranges.  </p>
 
 <li> <p> When no "*weight" is specified, <a href="postscreen.8.html">postscreen(8)</a> increments
 the SMTP client's DNSBL score by 1.  Otherwise, the weight must be
@@ -12343,6 +12344,11 @@ restriction lists" for a discussion of evaluation context and time.
 The default is to permit everything.
 </p>
 
+<p> Note: specify "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes" to fully enforce this
+restriction (without "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes", a client can
+simply skip <a href="postconf.5.html#smtpd_helo_restrictions">smtpd_helo_restrictions</a> by not sending HELO or EHLO).
+</p>
+
 <p>
 Specify a list of restrictions, separated by commas and/or whitespace.
 Continue long lines by starting the next line with whitespace.
@@ -12362,7 +12368,8 @@ received with the HELO or EHLO command.
 <dd>Search the specified <a href="access.5.html">access(5)</a> database for the HELO or EHLO
 hostname or parent domains, and execute the corresponding action.
 Note: specify "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes" to fully enforce this
-restriction.  </dd>
+restriction (without "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes", a client can
+simply skip <a href="postconf.5.html#check_helo_access">check_helo_access</a> by not sending HELO or EHLO).  </dd>
 
 <dt><b><a name="check_helo_mx_access">check_helo_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
@@ -12371,7 +12378,9 @@ the HELO or EHLO hostname, and execute the corresponding action.
 Note 1: a result of "OK" is not allowed for safety reasons. Instead,
 use DUNNO in order to exclude specific hosts from blacklists.  Note
 2: specify "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes" to fully enforce this
-restriction.  This feature is available in Postfix 2.1 and later.
+restriction (without "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes", a client can
+simply skip <a href="postconf.5.html#check_helo_mx_access">check_helo_mx_access</a> by not sending HELO or EHLO).  This
+feature is available in Postfix 2.1 and later.
 </dd>
 
 <dt><b><a name="check_helo_ns_access">check_helo_ns_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
@@ -12381,21 +12390,27 @@ for the HELO or EHLO hostname, and execute the corresponding action.
 Note 1: a result of "OK" is not allowed for safety reasons. Instead,
 use DUNNO in order to exclude specific hosts from blacklists.  Note
 2: specify "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes" to fully enforce this
-restriction. This feature is available in Postfix 2.1 and later.
+restriction (without "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes", a client can
+simply skip <a href="postconf.5.html#check_helo_ns_access">check_helo_ns_access</a> by not sending HELO or EHLO). This
+feature is available in Postfix 2.1 and later.
 </dd>
 
 <dt><b><a name="reject_invalid_helo_hostname">reject_invalid_helo_hostname</a></b> (with Postfix &lt; 2.3: reject_invalid_hostname)</dt>
 
 <dd>Reject the request when the HELO or EHLO hostname syntax is
 invalid. Note: specify "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes" to fully enforce
-this restriction. <br> The <a href="postconf.5.html#invalid_hostname_reject_code">invalid_hostname_reject_code</a> specifies
-the response code for rejected requests (default: 501).</dd>
+this restriction (without "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes", a client can simply
+skip <a href="postconf.5.html#reject_invalid_helo_hostname">reject_invalid_helo_hostname</a> by not sending HELO or EHLO).
+<br> The <a href="postconf.5.html#invalid_hostname_reject_code">invalid_hostname_reject_code</a> specifies the response code
+for rejected requests (default: 501).</dd>
 
 <dt><b><a name="reject_non_fqdn_helo_hostname">reject_non_fqdn_helo_hostname</a></b> (with Postfix &lt; 2.3: reject_non_fqdn_hostname)</dt>
 
 <dd>Reject the request when the HELO or EHLO hostname is not in
 fully-qualified domain form, as required by the RFC. Note: specify
-"<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes" to fully enforce this restriction.  <br>
+"<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes" to fully enforce this restriction
+(without "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes", a client can simply skip
+<a href="postconf.5.html#reject_non_fqdn_helo_hostname">reject_non_fqdn_helo_hostname</a> by not sending HELO or EHLO).  <br>
 The <a href="postconf.5.html#non_fqdn_reject_code">non_fqdn_reject_code</a> parameter specifies the response code for
 rejected requests (default: 504).</dd>
 
@@ -12411,7 +12426,9 @@ specified, reject the request when the HELO or EHLO hostname is
 listed with any A record under <i>rbl_domain</i>. See the
 <a href="postconf.5.html#reject_rbl_client">reject_rbl_client</a> description for additional RBL related configuration
 parameters.  Note: specify "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes" to fully
-enforce this restriction. This feature is available in Postfix 2.0
+enforce this restriction (without "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes", a
+client can simply skip <a href="postconf.5.html#reject_rhsbl_helo">reject_rhsbl_helo</a> by not sending HELO or
+EHLO). This feature is available in Postfix 2.0
 and later.  </dd>
 
 <dt><b><a name="reject_unknown_helo_hostname">reject_unknown_helo_hostname</a></b> (with Postfix &lt; 2.3: reject_unknown_hostname)</dt>
@@ -12422,7 +12439,9 @@ specifies the numerical response code for rejected requests (default:
 450). <br> The <a href="postconf.5.html#unknown_helo_hostname_tempfail_action">unknown_helo_hostname_tempfail_action</a> parameter
 specifies the action after a temporary DNS error (default:
 <a href="postconf.5.html#defer_if_permit">defer_if_permit</a>). Note: specify "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes" to fully
-enforce this restriction. </dd>
+enforce this restriction (without "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes", a
+client can simply skip <a href="postconf.5.html#reject_unknown_helo_hostname">reject_unknown_helo_hostname</a> by not sending
+HELO or EHLO). </dd>
 
 </dl>
 
