@@ -125,9 +125,7 @@ void    ps_conclude(PS_STATE *state)
 	ps_send_socket(state);
     } else {
 	if ((state->flags & PS_STATE_FLAG_HANGUP) == 0)
-	    (void) ps_send_reply(vstream_fileno(state->smtp_client_stream),
-			   state->smtp_client_addr, state->smtp_client_port,
-				 state->final_reply);
+	    (void) PS_SEND_REPLY(state, state->final_reply);
 	msg_info("DISCONNECT [%s]:%s", PS_CLIENT_ADDR_PORT(state));
 	ps_free_session_state(state);
     }

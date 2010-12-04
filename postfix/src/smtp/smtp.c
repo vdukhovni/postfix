@@ -753,7 +753,7 @@ int     var_smtp_mxsess_limit;
 int     var_smtp_cache_conn;
 int     var_smtp_reuse_time;
 char   *var_smtp_cache_dest;
-char   *var_scache_service;
+char   *var_scache_service;		/* You can now leave this here. */
 bool    var_smtp_cache_demand;
 char   *var_smtp_ehlo_dis_words;
 char   *var_smtp_ehlo_dis_maps;

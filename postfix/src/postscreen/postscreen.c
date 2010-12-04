@@ -46,7 +46,14 @@
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* BUGS
-/*	Some of the non-default protocol tests involve
+/*	The \fBpostscreen\fR(8) built-in SMTP protocol engine does
+/*	not announce support for STARTTLS, AUTH, XCLIENT or XFORWARD.
+/*	Support for STARTTLS and AUTH may be added in the future.
+/*	In the mean time, if you need to make these services available
+/*	on port 25, then do not enable the optional "after 220
+/*	server greeting" tests.
+/*
+/*	The optional "after 220 server greeting" tests involve
 /*	\fBpostscreen\fR(8)'s built-in SMTP protocol engine. When
 /*	these tests succeed, \fBpostscreen\fR(8) adds the client
 /*	to the temporary whitelist but it cannot not hand off the
@@ -58,14 +65,6 @@
 /*	server process to deliver mail. \fBpostscreen\fR(8) mitigates
 /*	the impact of this limitation by giving such tests a long
 /*	expiration time.
-/*
-/*	The \fBpostscreen\fR(8) built-in SMTP protocol engine does
-/*	not announce support for STARTTLS, AUTH, XCLIENT or XFORWARD
-/*	(support for STARTTLS and AUTH may be added in the future).
-/*	End-user clients should connect directly to the submission
-/*	service; other systems that require the above features
-/*	should directly connect to a Postfix SMTP server, or they
-/*	should be placed on the \fBpostscreen\fR(8) whitelist.
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
@@ -525,7 +524,7 @@ static void ps_service(VSTREAM *smtp_client_stream,
      * Reply with 421 when the client has too many open connections.
      */
     if (var_ps_cconn_limit > 0
-	&& state->client_concurrency  > var_ps_cconn_limit) {
+	&& state->client_concurrency > var_ps_cconn_limit) {
 	msg_info("NOQUEUE: reject: CONNECT from [%s]:%s: too many connections",
 		 state->smtp_client_addr, state->smtp_client_port);
 	PS_DROP_SESSION_STATE(state,

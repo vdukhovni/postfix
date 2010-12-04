@@ -67,7 +67,10 @@ decision based on a single measurement. This is necessary because
 many zombies avoid spamming the same site repeatedly, in an attempt
 to fly under the radar.  Once <a href="postscreen.8.html">postscreen(8)</a> decides that a client
 is not-a-zombie, it whitelists the client temporarily to avoid
-further delays for legitimate mail.  </p>
+further delays for legitimate mail. Clients that pass <a href="postscreen.8.html">postscreen(8)</a>
+are still subject to the checks that are built into Postfix <a href="smtpd.8.html">smtpd(8)</a>,
+Postfix built-in content filters, and external content filters.
+</p>
 
 <p> Zombies have challenges too: they have only a limited amount
 of time to deliver spam before their IP address becomes blacklisted.
@@ -79,25 +82,24 @@ mail even when the server tells them to go away. </p>
 <p> <a href="postscreen.8.html">postscreen(8)</a> uses a variety of measurements to recognize
 zombies.  First, <a href="postscreen.8.html">postscreen(8)</a> determines if the remote SMTP client
 IP address is blacklisted.  Second, <a href="postscreen.8.html">postscreen(8)</a> looks for protocol
-compromises that are made to speed up delivery.  The results of
-such measurements don't change with each delivery attempt, and are
-therefore good for making an is-it-a-zombie decision based on a
-single measurement.  </p>
+compromises that are made to speed up delivery.  These are good
+indicators for making is-it-a-zombie decisions based on single
+measurements.  </p>
 
 <p> <a href="postscreen.8.html">postscreen(8)</a> does not inspect message content. Message content
-can vary widely with each delivery attempt, especially with clients
-that (also) send legitimate email. Content is therefore not good
-for making an is-it-a-zombie decision based on a single measurement,
+can vary from one delivery to the next, especially with clients
+that (also) send legitimate email.  Content is not a good indicator
+for making is-it-a-zombie decisions based on single measurements,
 and that is the problem that <a href="postscreen.8.html">postscreen(8)</a> is focused on.  </p>
 
 <h2> <a name="general"> General operation </a> </h2>
 
 <p> The <a href="postscreen.8.html">postscreen(8)</a> triage process involves a number of tests,
 in the order as described below.  Some tests introduce a delay of
-a few seconds.  Once a client passes all tests, its IP address is
-temporarily excluded from any tests, typically 24 hours for simple
-tests or 1 week for complex tests.  This minimizes the impact of
-the tests on legitimate mail clients. </p>
+a few seconds.  Once a client passes a test, its IP address is
+whitelisted from 24 hours for simple tests, to 1 week for complex
+tests.  Whitelisting minimizes the impact of <a href="postscreen.8.html">postscreen(8)</a>'s tests
+on legitimate mail clients. </p>
 
 <p> After logging its findings, <a href="postscreen.8.html">postscreen(8)</a> by default hands off
 all connections to a Postfix SMTP server process. This mode is
@@ -340,14 +342,15 @@ a relatively long expiration time. </p>
 
 <li> <p> <a href="postscreen.8.html">postscreen(8)</a>'s built-in SMTP engine does not implement
 the AUTH, STARTTLS, XCLIENT, and XFORWARD features.  STARTTLS and
-AUTH support may be added in a future version. </p>
+AUTH support may be added in a future version. In the mean time,
+if you need to make these services available on port 25, then do
+not enable the tests after the 220 server greeting. </p>
 
 </ul>
 
 <p> End-user clients should connect directly to the submission
-service. Other systems that require the above features
-should directly connect to a Postfix SMTP server, or they
-should be placed on the <a href="postscreen.8.html">postscreen(8)</a> whitelist. </p>
+service, so that they never have to deal with <a href="postscreen.8.html">postscreen(8)</a>'s tests.
+</p>
 
 <ul>
 

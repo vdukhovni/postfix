@@ -626,7 +626,7 @@ char   *var_allow_commands;
 char   *var_allow_files;
 char   *var_alias_maps;
 int     var_dup_filter_limit;
-int     var_command_maxtime;
+int     var_command_maxtime;		/* You can now leave this here. */
 char   *var_home_mailbox;
 char   *var_mailbox_command;
 char   *var_mailbox_cmd_maps;

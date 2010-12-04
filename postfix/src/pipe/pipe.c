@@ -530,7 +530,7 @@
   * Tunable parameters. Values are taken from the config file, after
   * prepending the service name to _name, and so on.
   */
-int     var_command_maxtime;		/* system-wide */
+int     var_command_maxtime;		/* You can now leave this here. */
 
  /*
   * For convenience. Instead of passing around lists of parameters, bundle

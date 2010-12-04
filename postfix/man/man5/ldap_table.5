@@ -422,13 +422,26 @@ The LDAP search scope: \fBsub\fR, \fBbase\fR, or \fBone\fR.
 These translate into LDAP_SCOPE_SUBTREE, LDAP_SCOPE_BASE,
 and LDAP_SCOPE_ONELEVEL.
 .IP "\fBbind (default: yes)\fR"
-Whether or not to bind to the LDAP server. Newer LDAP
+Whether or how to bind to the LDAP server. Newer LDAP
 implementations don't require clients to bind, which saves
 time. Example:
 
 .nf
+    # Don't bind
     bind = no
+    # Use SIMPLE bind
+    bind = yes
+    # Use SASL bind
+    bind = sasl
 .fi
+
+Postfix versions prior to 2.8 only support "bind = no" which
+means don't bind, and "bind = yes" which means do a SIMPLE bind.
+Postfix 2.8 and later also supports "bind = SASL" when compiled
+with LDAP SASL support as described in LDAP_README, it also adds
+the synonyms "bind = none" and "bind = simple" for "bind = no"
+and "bind = yes" respectively. See the SASL section below for
+additional parameters available with "bind = sasl".
 
 If you do need to bind, you might consider configuring
 Postfix to connect to the local machine on a port that's
@@ -443,6 +456,8 @@ If you do have to bind, do it with this distinguished name. Example:
 .nf
     bind_dn = uid=postfix, dc=your, dc=com
 .fi
+With "bind = sasl" (see above) the DN may be optional for some SASL
+mechanisms, don't specify a DN if not needed.
 .IP "\fBbind_pw (default: empty)\fR"
 The password for the distinguished name above. If you have
 to use this, you probably want to make the map configuration
@@ -456,6 +471,8 @@ command. Example:
 .nf
     bind_pw = postfixpw
 .fi
+With "bind = sasl" (see above) the password may be optional
+for some SASL mechanisms, don't specify a password if not needed.
 .IP "\fBcache (IGNORED with a warning)\fR"
 .IP "\fBcache_expiry (IGNORED with a warning)\fR"
 .IP "\fBcache_size (IGNORED with a warning)\fR"
@@ -512,6 +529,49 @@ Sets (or clears) LDAP_OPT_REFERRALS (requires LDAP version
 Specifies the LDAP protocol version to use.
 .IP "\fBdebuglevel (default: 0)\fR"
 What level to set for debugging in the OpenLDAP libraries.
+.SH "LDAP SASL PARAMETERS"
+.na
+.nf
+.ad
+.fi
+If you're using the OpenLDAP libraries compiled with SASL
+support, Postfix 2.8 and later built with LDAP SASL support
+as described in LDAP_README can authenticate to LDAP servers
+via SASL.
+
+This enables authentication to the LDAP server via mechanisms
+other than a simple password. The added flexibility has a cost:
+it is no longer practical to set an explicit timeout on the duration
+of an LDAP bind operation. Under adverse conditions, whether a SASL
+bind times out, or if it does, the duration of the timeout is
+determined by the LDAP and SASL libraries.
+
+It is best to use tables that use SASL binds via proxymap(8), this
+way the requesting process can time-out the proxymap request. This
+also lets you tailer the process environment by overriding the
+proxymap(8) import_environment setting in master.cf(5). Special
+environment settings may be needed to configure GSSAPI credential
+caches or other SASL mechanism specific options. The GSSAPI
+credentials used for LDAP lookups may need to be different than
+say those used for the Postfix SMTP client to authenticate to remote
+servers.
+
+Using SASL mechanisms requires LDAP protocol version 3, the default
+protocol version is 2 for backwards compatibility. You must set
+"version = 3" in addition to "bind = sasl".
+
+The following parameters are relevant to using LDAP with SASL
+.IP "\fBsasl (default: no)\fR"
+Whether or not to use SASL binds to the server.  Can be yes or no.
+.IP "\fBsasl_mechs (default: empty)\fR"
+Space separated list of SASL mechanism(s) to try.
+.IP "\fBsasl_realm (default: empty)\fR"
+SASL Realm to use, if applicable.
+.IP "\fBsasl_authz_id (default: empty)\fR"
+The SASL authorization identity to assert, if applicable.
+.IP "\fBsasl_minssf (default: 0)\fR"
+The minimum required sasl security factor required to establish a
+connection.
 .SH "LDAP SSL AND STARTTLS PARAMETERS"
 .na
 .nf

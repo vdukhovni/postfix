@@ -103,6 +103,16 @@
 /* .IP version
 /*	Specifies the LDAP protocol version to use.  Default is version
 /*	\fI2\fR.
+/* .IP "\fBsasl (no)\fR"
+/*	Whether or not to use SASL binds with the server.
+/* .IP "\fBsasl_mechs (empty)\fR"
+/*	Specifies a space-separated list of LDAP SASL Mechanisms.
+/* .IP "\fBsasl_realm (empty)\fR"
+/*	The realm to use for SASL binds.
+/* .IP "\fBsasl_authz_id (empty)\fR"
+/*	The SASL Authorization Identity to assert.
+/* .IP "\fBsasl_minssf (0)\fR"
+/*	The minimum SASL SSF to allow.
 /* .IP start_tls
 /*	Whether or not to issue STARTTLS upon connection to the server.
 /*	At this time, STARTTLS and LDAP SSL are only available if the
@@ -208,15 +218,43 @@
 #include <dict.h>
 #include <stringops.h>
 #include <binhash.h>
+#include <name_code.h>
 
 /* Global library. */
 
 #include "cfg_parser.h"
 #include "db_common.h"
+#include "mail_conf.h"
+
+#if defined(USE_LDAP_SASL) && defined(LDAP_API_FEATURE_X_OPENLDAP)
+ /*
+  * SASL headers, for sasl_interact_t. Either SASL v1 or v2 should be fine.
+  */
+#include <sasl.h>
+#endif
 
 /* Application-specific. */
 
 #include "dict_ldap.h"
+
+#define DICT_LDAP_BIND_NONE	0
+#define DICT_LDAP_BIND_SIMPLE	1
+#define DICT_LDAP_BIND_SASL	2
+#define DICT_LDAP_DO_BIND(d)	((d)->bind != DICT_LDAP_BIND_NONE)
+#define DICT_LDAP_DO_SASL(d)	((d)->bind == DICT_LDAP_BIND_SASL)
+
+static const NAME_CODE bindopt_table[] = {
+    CONFIG_BOOL_NO,	DICT_LDAP_BIND_NONE,
+    "none",		DICT_LDAP_BIND_NONE,
+    CONFIG_BOOL_YES,	DICT_LDAP_BIND_SIMPLE,
+    "simple",		DICT_LDAP_BIND_SIMPLE,
+#ifdef LDAP_API_FEATURE_X_OPENLDAP
+#if defined(USE_LDAP_SASL)
+    "sasl", 		DICT_LDAP_BIND_SASL,
+#endif
+#endif
+    0, -1,
+};
 
 typedef struct {
     LDAP   *conn_ld;
@@ -254,6 +292,13 @@ typedef struct {
     int     debuglevel;
     int     version;
 #ifdef LDAP_API_FEATURE_X_OPENLDAP
+#if defined(USE_LDAP_SASL)
+    int     sasl;
+    char    *sasl_mechs;
+    char    *sasl_realm;
+    char    *sasl_authz;
+    int     sasl_minssf;
+#endif
     int     ldap_ssl;
     int     start_tls;
     int     tls_require_cert;
@@ -407,6 +452,49 @@ static int dict_ldap_set_errno(LDAP *ld, int rc)
     return rc;
 }
 
+#if defined(USE_LDAP_SASL) && defined(LDAP_API_FEATURE_X_OPENLDAP)
+ /*
+  * Context structure for SASL property callback.
+  */
+typedef struct bind_props {
+    char *authcid;
+    char *passwd;
+    char *realm;
+    char *authzid;
+} bind_props;
+
+static int
+ldap_b2_interact(LDAP *ld, unsigned flags, void *props, void *inter)
+{
+
+    sasl_interact_t *in;
+    bind_props *ctx = (bind_props *)props;
+
+    for (in = inter; in->id != SASL_CB_LIST_END; in++)
+    {
+	in->result = NULL;
+	switch(in->id)
+	{
+	case SASL_CB_GETREALM:
+	    in->result = ctx->realm;
+	    break;
+	case SASL_CB_AUTHNAME:
+	    in->result = ctx->authcid;
+	    break;
+	case SASL_CB_USER:
+	    in->result = ctx->authzid;
+	    break;
+	case SASL_CB_PASS:
+	    in->result = ctx->passwd;
+	    break;
+	}
+	if (in->result)
+	    in->len = strlen(in->result);
+    }
+    return LDAP_SUCCESS;
+}
+#endif
+
 /* dict_ldap_result - Read and parse LDAP result */
 
 static int dict_ldap_result(LDAP *ld, int msgid, int timeout, LDAPMessage **res)
@@ -426,6 +514,40 @@ static int dict_ldap_result(LDAP *ld, int msgid, int timeout, LDAPMessage **res)
     }
     return LDAP_SUCCESS;
 }
+
+#if defined(USE_LDAP_SASL) && defined(LDAP_API_FEATURE_X_OPENLDAP)
+
+/* Asynchronous SASL auth if SASL is enabled */
+
+static int dict_ldap_bind_sasl(DICT_LDAP *dict_ldap)
+{
+    int     rc;
+    bind_props props;
+    static VSTRING *minssf = 0;
+
+    if (minssf == 0)
+	minssf = vstring_alloc(12);
+
+    vstring_sprintf(minssf, "minssf=%d", dict_ldap->sasl_minssf);
+
+    if ((rc = ldap_set_option(dict_ldap->ld, LDAP_OPT_X_SASL_SECPROPS,
+			       (char *) minssf)) != LDAP_OPT_SUCCESS)
+	return (rc);
+
+    props.authcid = dict_ldap->bind_dn;
+    props.passwd = dict_ldap->bind_pw;
+    props.realm = dict_ldap->sasl_realm;
+    props.authzid = dict_ldap->sasl_authz;
+
+    if ((rc = ldap_sasl_interactive_bind_s(dict_ldap->ld, NULL,
+					    dict_ldap->sasl_mechs, NULL, NULL,
+					    LDAP_SASL_QUIET, ldap_b2_interact,
+					    &props)) != LDAP_SUCCESS)
+	return (rc);
+
+    return (LDAP_SUCCESS);
+}
+#endif
 
 /* dict_ldap_bind_st - Synchronous simple auth with timeout */
 
@@ -746,26 +868,36 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
     }
 #endif
 
+#define DN_LOG_VAL(dict_ldap) \
+	((dict_ldap)->bind_dn[0] ? (dict_ldap)->bind_dn : "empty or implicit")
     /*
      * If this server requires a bind, do so. Thanks to Sam Tardieu for
      * noticing that the original bind call was broken.
      */
-    if (dict_ldap->bind) {
+    if (DICT_LDAP_DO_BIND(dict_ldap)) {
 	if (msg_verbose)
-	    msg_info("%s: Binding to server %s as dn %s",
-		     myname, dict_ldap->server_host, dict_ldap->bind_dn);
+	    msg_info("%s: Binding to server %s with dn %s",
+		     myname, dict_ldap->server_host, DN_LOG_VAL(dict_ldap));
 
+#if defined(USE_LDAP_SASL) && defined(LDAP_API_FEATURE_X_OPENLDAP)
+	if (DICT_LDAP_DO_SASL(dict_ldap)) {
+	    rc = dict_ldap_bind_sasl(dict_ldap);
+	} else {
+	    rc = dict_ldap_bind_st(dict_ldap);
+	}
+#else
 	rc = dict_ldap_bind_st(dict_ldap);
+#endif
 
 	if (rc != LDAP_SUCCESS) {
-	    msg_warn("%s: Unable to bind to server %s as %s: %d (%s)",
-		     myname, dict_ldap->server_host, dict_ldap->bind_dn,
+	    msg_warn("%s: Unable to bind to server %s with dn %s: %d (%s)",
+		     myname, dict_ldap->server_host, DN_LOG_VAL(dict_ldap),
 		     rc, ldap_err2string(rc));
 	    DICT_LDAP_UNBIND_RETURN(dict_ldap->ld, DICT_ERR_RETRY, -1);
 	}
 	if (msg_verbose)
-	    msg_info("%s: Successful bind to server %s as %s ",
-		     myname, dict_ldap->server_host, dict_ldap->bind_dn);
+	    msg_info("%s: Successful bind to server %s with dn %s",
+		     myname, dict_ldap->server_host, DN_LOG_VAL(dict_ldap));
     }
     /* Save connection handle in shared container */
     DICT_LDAP_CONN(dict_ldap)->conn_ld = dict_ldap->ld;
@@ -798,13 +930,19 @@ static void dict_ldap_conn_find(DICT_LDAP *dict_ldap)
     ADDSTR(keybuf, dict_ldap->server_host);
     ADDINT(keybuf, dict_ldap->server_port);
     ADDINT(keybuf, dict_ldap->bind);
-    ADDSTR(keybuf, dict_ldap->bind ? dict_ldap->bind_dn : "");
-    ADDSTR(keybuf, dict_ldap->bind ? dict_ldap->bind_pw : "");
+    ADDSTR(keybuf, DICT_LDAP_DO_BIND(dict_ldap) ? dict_ldap->bind_dn : "");
+    ADDSTR(keybuf, DICT_LDAP_DO_BIND(dict_ldap) ? dict_ldap->bind_pw : "");
     ADDINT(keybuf, dict_ldap->dereference);
     ADDINT(keybuf, dict_ldap->chase_referrals);
     ADDINT(keybuf, dict_ldap->debuglevel);
     ADDINT(keybuf, dict_ldap->version);
 #ifdef LDAP_API_FEATURE_X_OPENLDAP
+#if defined(USE_LDAP_SASL)
+    ADDSTR(keybuf, DICT_LDAP_DO_SASL(dict_ldap) ? dict_ldap->sasl_mechs : "");
+    ADDSTR(keybuf, DICT_LDAP_DO_SASL(dict_ldap) ? dict_ldap->sasl_realm : "");
+    ADDSTR(keybuf, DICT_LDAP_DO_SASL(dict_ldap) ? dict_ldap->sasl_authz : "");
+    ADDINT(keybuf, DICT_LDAP_DO_SASL(dict_ldap) ? dict_ldap->sasl_minssf : 0);
+#endif
     ADDINT(keybuf, dict_ldap->ldap_ssl);
     ADDINT(keybuf, dict_ldap->start_tls);
     ADDINT(keybuf, sslon ? dict_ldap->tls_require_cert : 0);
@@ -1437,6 +1575,13 @@ static void dict_ldap_close(DICT *dict)
     if (dict_ldap->ctx)
 	db_common_free_ctx(dict_ldap->ctx);
 #ifdef LDAP_API_FEATURE_X_OPENLDAP
+#if defined(USE_LDAP_SASL)
+    if (DICT_LDAP_DO_SASL(dict_ldap)) {
+	myfree(dict_ldap->sasl_mechs);
+	myfree(dict_ldap->sasl_realm);
+	myfree(dict_ldap->sasl_authz);
+    }
+#endif
     myfree(dict_ldap->tls_ca_cert_file);
     myfree(dict_ldap->tls_ca_cert_dir);
     myfree(dict_ldap->tls_cert);
@@ -1461,6 +1606,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     char   *server_host;
     char   *scope;
     char   *attr;
+    char   *bindopt;
     int     tmp;
     int     vendor_version = dict_ldap_vendor_version();
 
@@ -1666,9 +1812,14 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     myfree(attr);
 
     /*
-     * get configured value of "bind"; default to true
+     * get configured value of "bind"; default to simple bind
      */
-    dict_ldap->bind = cfg_get_bool(dict_ldap->parser, "bind", 1);
+    bindopt = cfg_get_str(dict_ldap->parser, "bind", CONFIG_BOOL_YES, 1, 0);
+    dict_ldap->bind = name_code(bindopt_table, NAME_CODE_FLAG_NONE, bindopt);
+    if (dict_ldap->bind < 0)
+	msg_fatal("%s: unsupported parameter value: %s = %s",
+		  dict_ldap->parser->name, "bind", bindopt);
+    myfree(bindopt);
 
     /*
      * get configured value of "bind_dn"; default to ""
@@ -1723,6 +1874,25 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 					      "chase_referrals", 0);
 
 #ifdef LDAP_API_FEATURE_X_OPENLDAP
+#if defined(USE_LDAP_SASL)
+    /*
+     * SASL options
+     */
+    if (DICT_LDAP_DO_SASL(dict_ldap)) {
+	dict_ldap->sasl_mechs =
+	    cfg_get_str(dict_ldap->parser, "sasl_mechs", "", 0, 0);
+	dict_ldap->sasl_realm =
+	    cfg_get_str(dict_ldap->parser, "sasl_realm", "", 0, 0);
+	dict_ldap->sasl_authz =
+	    cfg_get_str(dict_ldap->parser, "sasl_authz_id", "", 0, 0);
+	dict_ldap->sasl_minssf =
+	    cfg_get_int(dict_ldap->parser, "sasl_minssf", 0, 0, 4096);
+    } else {
+	dict_ldap->sasl_mechs = 0;
+	dict_ldap->sasl_realm = 0;
+	dict_ldap->sasl_authz = 0;
+    }
+#endif
 
     /*
      * TLS options

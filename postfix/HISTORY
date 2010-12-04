@@ -16205,3 +16205,30 @@ Apologies for any names omitted.
 	Workaround: BSD-ish mkdir() ignores the effective GID
 	and copies group ownership from the parent directory.
 	File: util/make_dirs.c.
+
+20101202
+
+	Feature: the LDAP client can now authenticate to LDAP servers
+	via SASL. This is tested with SASL GSSAPI and Kerberos 5.
+	Code by Victor Duchovni. Files: global/dict_ldap.c,
+	proto/LDAP_README.html, proto/ldap_table.
+
+	Cleanup: the cleanup server now reports a temporary delivery
+	error when it reaches the virtual_alias_expansion_limit or
+	virtual_alias_recursion_limit. Previously, it would silently
+	ignore the excess recipients and deliver the message.  File:
+	cleanup/cleanup_map1n.c.
+
+20101204
+
+	Cleanup: sache_clnt_create() had an unnecessary data
+	dependency on the non-library var_scache_service variable,
+	causing problems with shared library builds.  Instead, it
+	should use its service argument (which has the same value).
+	File: global/scache.c.
+
+	Cleanup: pipe_command.c had an unnecessary data dependency
+	on the non-library var_command_maxtime variable, causing
+	problems with shared library builds. The dependency was not
+	necessary because the callers already specify an explicit
+	time limit.  File: global/pipe_command.c.

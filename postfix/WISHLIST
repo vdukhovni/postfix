@@ -6,9 +6,10 @@ Wish list:
 
 	smtpd xclient option for sasl_username.
 
-	Use different ipc_timeout settings for email message
-	transactions (smtpd, pickup)->cleanup and for quick query/reply
-	transactions such as address rewriting/resolution.
+	Use different ipc time limits for email message transactions
+	(smtpd, pickup)->cleanup and for quick query/reply transactions
+	such as address rewriting/resolution. Beware of large time
+	limits for local or virtual alias expansion.
 
 	permit_tempfail_action (default: defer_if_reject) to be
 	used as the default value for dnswl_tempfail_action and
@@ -22,9 +23,11 @@ Wish list:
 	Replace sscanf() numerical conversions by strto[dl]()
 	for better error reporting.
 
-	Consistency: in postconf.proto make <dt>..</dt> tags bold.
+	As postscreen implements more ESMTP keywords, need to copy
+	inter-operability features from smtpd to filter keywords
+	and command syntax.
 
-	Milter addrcpt - use Sendmail-compatible default DSN settings.
+	Consistency: in postconf.proto make <dt>..</dt> tags bold.
 
 	postscreen(8): listen on multiple IP addresses and enforce
 	that the client contacts the primary MX address first (i.e.

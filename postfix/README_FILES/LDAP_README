@@ -81,6 +81,11 @@ AUXLIBS line to point to libldap10.so or libldapssl30.so or whatever you have,
 and you may need to use the appropriate linker option (e.g. '-R') so the
 executables can find it at runtime.
 
+If you are using OpenLDAP, and the libraries were built with SASL support, you
+can add -DUSE_LDAP_SASL to the CCARGS to enable SASL support. For example:
+
+         CCARGS="-I/usr/local/include -DHAS_LDAP -DUSE_LDAP_SASL"
+
 CCoonnffiigguurriinngg LLDDAAPP llooookkuuppss
 
 In order to use LDAP lookups, define an LDAP source as a table lookup in
@@ -89,8 +94,8 @@ main.cf, for example:
     alias_maps = hash:/etc/aliases, ldap:/etc/postfix/ldap-aliases.cf
 
 The file /etc/postfix/ldap-aliases.cf can specify a great number of parameters,
-including parameters that enable LDAP SSL and STARTTLS. For a complete
-description, see the ldap_table(5) manual page.
+including parameters that enable LDAP SSL or STARTTLS, and LDAP SASL. For a
+complete description, see the ldap_table(5) manual page.
 
 EExxaammppllee:: llooccaall((88)) aalliiaasseess
 
@@ -440,6 +445,8 @@ CCrreeddiittss
   * Gunnar Wrobel provided a first implementation of a feature to limit LDAP
     search results to leaf nodes only. Victor generalized this into the Postfix
     2.4 "leaf_result_attribute" feature.
+  * Quanah Gibson-Mount contributed support for advanced LDAP SASL mechanisms,
+    beyond the password-based LDAP "simple" bind.
 
 And of course Wietse.
 

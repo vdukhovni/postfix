@@ -85,8 +85,7 @@
 /*	configuration parameter. The group ID must be non-zero.
 /* .IP "PIPE_CMD_TIME_LIMIT (int)"
 /*	The amount of time the command is allowed to run before it
-/*	is terminated with SIGKILL. The default is the limit given
-/*	with the \fIcommand_time_limit\fR configuration parameter.
+/*	is terminated with SIGKILL. The default is DEF_COMMAND_MAXTIME.
 /* .IP "PIPE_CMD_SHELL (char *)"
 /*	The shell to use when executing the command specified with
 /*	PIPE_CMD_COMMAND. This shell is invoked regardless of the
@@ -211,7 +210,7 @@ static void get_pipe_args(struct pipe_args * args, va_list ap)
     args->cwd = 0;
     args->chroot = 0;
 
-    pipe_command_maxtime = var_command_maxtime;
+    pipe_command_maxtime = DEF_COMMAND_MAXTIME;
 
     /*
      * Then, override the defaults with user-supplied inputs.

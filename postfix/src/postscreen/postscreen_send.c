@@ -85,9 +85,8 @@ int     ps_send_reply(int smtp_client_fd, const char *smtp_client_addr,
      * XXX Need to make sure that the TCP send buffer is large enough for any
      * response, so that a nasty client can't cause this process to block.
      */
-    ret = (write_buf(smtp_client_fd, text, strlen(text),
-		     PS_SEND_TEXT_TIMEOUT) < 0);
-    if (ret != 0 && errno != EPIPE)
+    ret = write_buf(smtp_client_fd, text, strlen(text), PS_SEND_TEXT_TIMEOUT);
+    if (ret < 0 && errno != EPIPE)
 	msg_warn("write [%s]:%s: %m", smtp_client_addr, smtp_client_port);
     return (ret);
 }
@@ -164,9 +163,7 @@ void    ps_send_socket(PS_STATE *state)
 	 LOCAL_CONNECT(ps_smtpd_service_name, NON_BLOCKING,
 		       PS_SEND_SOCK_CONNECT_TIMEOUT)) < 0) {
 	msg_warn("cannot connect to service %s: %m", ps_smtpd_service_name);
-	ps_send_reply(vstream_fileno(state->smtp_client_stream),
-		      state->smtp_client_addr, state->smtp_client_port,
-		      "421 4.3.2 All server ports are busy\r\n");
+	PS_SEND_REPLY(state, "421 4.3.2 All server ports are busy\r\n");
 	ps_free_session_state(state);
 	return;
     }
@@ -175,9 +172,7 @@ void    ps_send_socket(PS_STATE *state)
 		      vstream_fileno(state->smtp_client_stream)) < 0) {
 	msg_warn("cannot pass connection to service %s: %m",
 		 ps_smtpd_service_name);
-	ps_send_reply(vstream_fileno(state->smtp_client_stream),
-		      state->smtp_client_addr, state->smtp_client_port,
-		      "421 4.3.2 No system resources\r\n");
+	PS_SEND_REPLY(state, "421 4.3.2 No system resources\r\n");
 	ps_free_session_state(state);
 	return;
     } else {

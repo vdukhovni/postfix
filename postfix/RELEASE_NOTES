@@ -33,6 +33,14 @@ This is supported only when the default value is stress-dependent
 postscreen parameters always evaluate as if the stress value is 
 equal to the empty string.
 
+Incompatibility with snapshot 20101202
+======================================
+
+Postfix now reports a temporary delivery error when the result of
+virtual alias expansion would exceed the virtual_alias_recursion_limit
+or virtual_alias_expansion_limit. Previously, Postfix would silently
+drop the excess recipients and deliver the message.
+
 Incompatibility with snapshot 20101130
 ======================================
 

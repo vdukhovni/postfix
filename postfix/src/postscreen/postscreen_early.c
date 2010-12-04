@@ -258,9 +258,7 @@ void    ps_early_tests(PS_STATE *state)
      */
     if ((state->flags & PS_STATE_FLAG_PREGR_TODO) != 0
 	&& ps_teaser_greeting != 0
-	&& ps_send_reply(vstream_fileno(state->smtp_client_stream),
-			 state->smtp_client_addr, state->smtp_client_port,
-			 ps_teaser_greeting) != 0) {
+	&& PS_SEND_REPLY(state, ps_teaser_greeting) != 0) {
 	ps_hangup_event(state);
 	return;
     }
