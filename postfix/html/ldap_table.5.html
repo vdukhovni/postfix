@@ -607,10 +607,6 @@ LDAP_TABLE(5)                                                    LDAP_TABLE(5)
        The  following  parameters are relevant to using LDAP with
        SASL
 
-       <b>sasl (default: no)</b>
-              Whether or not to use SASL  binds  to  the  server.
-              Can be yes or no.
-
        <b>sasl_mechs (default: empty)</b>
               Space separated list of SASL mechanism(s) to try.
 
@@ -622,15 +618,15 @@ LDAP_TABLE(5)                                                    LDAP_TABLE(5)
               applicable.
 
        <b>sasl_minssf (default: 0)</b>
-              The minimum required sasl security factor  required
+              The  minimum required sasl security factor required
               to establish a connection.
 
 <b>LDAP SSL AND STARTTLS PARAMETERS</b>
-       If  you're  using the OpenLDAP libraries compiled with SSL
-       support, Postfix can connect to LDAP SSL servers  and  can
+       If you're using the OpenLDAP libraries compiled  with  SSL
+       support,  Postfix  can connect to LDAP SSL servers and can
        issue the STARTTLS command.
 
-       LDAP  SSL service can be requested by using a LDAP SSL URL
+       LDAP SSL service can be requested by using a LDAP SSL  URL
        in the server_host parameter:
 
            server_host = ldaps://ldap.example.com:636
@@ -639,82 +635,82 @@ LDAP_TABLE(5)                                                    LDAP_TABLE(5)
 
            start_tls = yes
 
-       Both forms require LDAP protocol version 3, which  has  to
+       Both  forms  require LDAP protocol version 3, which has to
        be set explicitly with:
 
            version = 3
 
        If any of the Postfix programs querying the map is config-
-       ured in <a href="master.5.html">master.cf</a> to run chrooted,  all  the  certificates
+       ured  in  <a href="master.5.html">master.cf</a>  to run chrooted, all the certificates
        and keys involved have to be copied to the chroot jail. Of
-       course, the private keys should only be  readable  by  the
+       course,  the  private  keys should only be readable by the
        user "postfix".
 
-       The  following  parameters  are  relevant  to LDAP SSL and
+       The following parameters are  relevant  to  LDAP  SSL  and
        STARTTLS:
 
        <b>start_tls (default: no)</b>
               Whether or not to issue STARTTLS upon connection to
-              the  server.  Don't set this with LDAP SSL (the SSL
+              the server.  Don't set this with LDAP SSL (the  SSL
               session is setup automatically when the TCP connec-
               tion is opened).
 
-       <b>tls_ca_cert_dir   (No   default;   set   either   this  or</b>
+       <b>tls_ca_cert_dir  (No   default;   set   either   this   or</b>
        <b>tls_ca_cert_file)</b>
               Directory  containing  X509  Certificate  Authority
-              certificates in PEM format which are to  be  recog-
-              nized  by  the  client  in SSL/TLS connections. The
-              files each contain one CA certificate.   The  files
-              are  looked  up  by the CA subject name hash value,
-              which must hence be available. If more than one  CA
-              certificate  with  the  same name hash value exist,
-              the extension must be different  (e.g.  9d66eef0.0,
-              9d66eef0.1  etc).  The  search  is performed in the
-              ordering of the  extension  number,  regardless  of
+              certificates  in  PEM format which are to be recog-
+              nized by the client  in  SSL/TLS  connections.  The
+              files  each  contain one CA certificate.  The files
+              are looked up by the CA subject  name  hash  value,
+              which  must hence be available. If more than one CA
+              certificate with the same name  hash  value  exist,
+              the  extension  must be different (e.g. 9d66eef0.0,
+              9d66eef0.1 etc). The search  is  performed  in  the
+              ordering  of  the  extension  number, regardless of
               other  properties  of  the  certificates.  Use  the
               c_rehash utility (from the OpenSSL distribution) to
               create the necessary links.
 
-       <b>tls_ca_cert_file   (No   default;   set   either  this  or</b>
+       <b>tls_ca_cert_file  (No  default;   set   either   this   or</b>
        <b>tls_ca_cert_dir)</b>
               File containing the X509 Certificate Authority cer-
-              tificates in PEM format which are to be  recognized
-              by  the client in SSL/TLS connections. This setting
+              tificates  in PEM format which are to be recognized
+              by the client in SSL/TLS connections. This  setting
               takes precedence over tls_ca_cert_dir.
 
        <b>tls_cert (No default; you must set this)</b>
-              File containing client's  X509  certificate  to  be
+              File  containing  client's  X509  certificate to be
               used by the client in SSL/ TLS connections.
 
        <b>tls_key (No default; you must set this)</b>
-              File  containing  the  private key corresponding to
+              File containing the private  key  corresponding  to
               the above tls_cert.
 
        <b>tls_require_cert (default: no)</b>
               Whether or not to request server's X509 certificate
-              and  check  its  validity when establishing SSL/TLS
-              connections.  The supported values are <b>no</b> and  <b>yes</b>.
+              and check its validity  when  establishing  SSL/TLS
+              connections.   The supported values are <b>no</b> and <b>yes</b>.
 
-              With  <b>no</b>, the server certificate trust chain is not
-              checked, but with OpenLDAP  prior  to  2.1.13,  the
+              With <b>no</b>, the server certificate trust chain is  not
+              checked,  but  with  OpenLDAP  prior to 2.1.13, the
               name in the server certificate must still match the
               LDAP server name. With OpenLDAP 2.0.0 to 2.0.11 the
-              server  name is not necessarily what you specified,
-              rather it is determined (by  reverse  lookup)  from
-              the  IP address of the LDAP server connection. With
-              OpenLDAP prior  to  2.0.13,  subjectAlternativeName
+              server name is not necessarily what you  specified,
+              rather  it  is  determined (by reverse lookup) from
+              the IP address of the LDAP server connection.  With
+              OpenLDAP  prior  to  2.0.13, subjectAlternativeName
               extensions  in  the  LDAP  server  certificate  are
-              ignored: the server name  must  match  the  subject
+              ignored:  the  server  name  must match the subject
               CommonName. The <b>no</b> setting corresponds to the <b>never</b>
-              value of <b>TLS_REQCERT</b> in LDAP  client  configuration
+              value  of  <b>TLS_REQCERT</b> in LDAP client configuration
               files.
 
-              Don't  use  TLS with OpenLDAP 2.0.x (and especially
+              Don't use TLS with OpenLDAP 2.0.x  (and  especially
               with x &lt;= 11) if you can avoid it.
 
-              With <b>yes</b>, the server certificate must be issued  by
-              a  trusted  CA, and not be expired. The LDAP server
-              name must match one of the  name(s)  found  in  the
+              With  <b>yes</b>, the server certificate must be issued by
+              a trusted CA, and not be expired. The  LDAP  server
+              name  must  match  one  of the name(s) found in the
               certificate (see above for OpenLDAP library version
               dependent behavior). The <b>yes</b> setting corresponds to
               the <b>demand</b> value of <b>TLS_REQCERT</b> in LDAP client con-
@@ -722,27 +718,27 @@ LDAP_TABLE(5)                                                    LDAP_TABLE(5)
 
               The "try" and "never" values of <b>TLS_REQCERT</b> have no
               equivalents  here.  They  are  not  available  with
-              OpenLDAP 2.0, and in  any  case  have  questionable
-              security  properties.  Either you want TLS verified
+              OpenLDAP  2.0,  and  in  any case have questionable
+              security properties. Either you want  TLS  verified
               LDAP connections, or you don't.
 
               The <b>yes</b> value only works correctly with Postfix 2.5
-              and  later,  or  with OpenLDAP 2.0. Earlier Postfix
-              releases or  later  OpenLDAP  releases  don't  work
-              together  with  this setting. Support for LDAP over
-              TLS was added to Postfix based on the OpenLDAP  2.0
+              and later, or with OpenLDAP  2.0.  Earlier  Postfix
+              releases  or  later  OpenLDAP  releases  don't work
+              together with this setting. Support for  LDAP  over
+              TLS  was added to Postfix based on the OpenLDAP 2.0
               API.
 
        <b>tls_random_file (No default)</b>
-              Path  of  a  file  to  obtain random bits from when
-              /dev/[u]random is not available, to be used by  the
+              Path of a file to  obtain  random  bits  from  when
+              /dev/[u]random  is not available, to be used by the
               client in SSL/TLS connections.
 
        <b>tls_cipher_suite (No default)</b>
               Cipher suite to use in SSL/TLS negotiations.
 
 <b>EXAMPLE</b>
-       Here's  a basic example for using LDAP to look up <a href="local.8.html">local(8)</a>
+       Here's a basic example for using LDAP to look up  <a href="local.8.html">local(8)</a>
        aliases.  Assume that in <a href="postconf.5.html">main.cf</a>, you have:
 
            <a href="postconf.5.html#alias_maps">alias_maps</a> = hash:/etc/aliases,
@@ -753,14 +749,14 @@ LDAP_TABLE(5)                                                    LDAP_TABLE(5)
            server_host = ldap.example.com
            search_base = dc=example, dc=com
 
-       Upon receiving mail for a local  address  "ldapuser"  that
-       isn't  found  in  the  /etc/aliases database, Postfix will
+       Upon  receiving  mail  for a local address "ldapuser" that
+       isn't found in the  /etc/aliases  database,  Postfix  will
        search the LDAP server listening at port 389 on ldap.exam-
-       ple.com.   It will bind anonymously, search for any direc-
-       tory entries  whose  mailacceptinggeneralid  attribute  is
+       ple.com.  It will bind anonymously, search for any  direc-
+       tory  entries  whose  mailacceptinggeneralid  attribute is
        "ldapuser", read the "maildrop" attributes of those found,
        and build a list of their maildrops, which will be treated
-       as  <a href="http://tools.ietf.org/html/rfc822">RFC822</a>  addresses  to which the message will be deliv-
+       as <a href="http://tools.ietf.org/html/rfc822">RFC822</a> addresses to which the message  will  be  deliv-
        ered.
 
 <b>SEE ALSO</b>
@@ -774,13 +770,13 @@ LDAP_TABLE(5)                                                    LDAP_TABLE(5)
        <a href="LDAP_README.html">LDAP_README</a>, Postfix LDAP client guide
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>
-       Carsten Hoeger, Hery  Rakotoarisoa,  John  Hensley,  Keith
-       Stevenson,  LaMont Jones, Liviu Daia, Manuel Guesdon, Mike
-       Mattice, Prabhat K Singh, Sami Haahtinen, Samuel  Tardieu,
+       Carsten  Hoeger,  Hery  Rakotoarisoa,  John Hensley, Keith
+       Stevenson, LaMont Jones, Liviu Daia, Manuel Guesdon,  Mike
+       Mattice,  Prabhat K Singh, Sami Haahtinen, Samuel Tardieu,
        Victor Duchovni, and many others.
 
                                                                  LDAP_TABLE(5)

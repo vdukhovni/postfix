@@ -85,8 +85,9 @@ int     ps_send_reply(int smtp_client_fd, const char *smtp_client_addr,
      * XXX Need to make sure that the TCP send buffer is large enough for any
      * response, so that a nasty client can't cause this process to block.
      */
-    ret = write_buf(smtp_client_fd, text, strlen(text), PS_SEND_TEXT_TIMEOUT);
-    if (ret < 0 && errno != EPIPE)
+    ret = (write_buf(smtp_client_fd, text, strlen(text),
+		     PS_SEND_TEXT_TIMEOUT) < 0);
+    if (ret != 0 && errno != EPIPE)
 	msg_warn("write [%s]:%s: %m", smtp_client_addr, smtp_client_port);
     return (ret);
 }

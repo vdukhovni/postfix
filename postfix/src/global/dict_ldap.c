@@ -103,8 +103,6 @@
 /* .IP version
 /*	Specifies the LDAP protocol version to use.  Default is version
 /*	\fI2\fR.
-/* .IP "\fBsasl (no)\fR"
-/*	Whether or not to use SASL binds with the server.
 /* .IP "\fBsasl_mechs (empty)\fR"
 /*	Specifies a space-separated list of LDAP SASL Mechanisms.
 /* .IP "\fBsasl_realm (empty)\fR"

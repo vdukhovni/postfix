@@ -547,8 +547,6 @@
 #	"version = 3" in addition to "bind = sasl".
 #
 #	The following parameters are relevant to using LDAP with SASL
-# .IP "\fBsasl (default: no)\fR"
-#	Whether or not to use SASL binds to the server.  Can be yes or no.
 # .IP "\fBsasl_mechs (default: empty)\fR"
 #	Space separated list of SASL mechanism(s) to try. 
 # .IP "\fBsasl_realm (default: empty)\fR"

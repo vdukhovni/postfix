@@ -16210,8 +16210,9 @@ Apologies for any names omitted.
 
 	Feature: the LDAP client can now authenticate to LDAP servers
 	via SASL. This is tested with SASL GSSAPI and Kerberos 5.
-	Code by Victor Duchovni. Files: global/dict_ldap.c,
-	proto/LDAP_README.html, proto/ldap_table.
+	Original code by Quanah Gibson-Mount adapted by Victor
+	Duchovni.  Files: global/dict_ldap.c, proto/LDAP_README.html,
+	proto/ldap_table.
 
 	Cleanup: the cleanup server now reports a temporary delivery
 	error when it reaches the virtual_alias_expansion_limit or
@@ -16232,3 +16233,8 @@ Apologies for any names omitted.
 	problems with shared library builds. The dependency was not
 	necessary because the callers already specify an explicit
 	time limit.  File: global/pipe_command.c.
+
+20101206
+
+	postscreen hung up due to incorrect output error test. File:
+	postscreen/postscreen_send.c.
