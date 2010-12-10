@@ -55,12 +55,12 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
        Problems and transactions are logged to <b>syslogd</b>(8).
 
 <b>BUGS</b>
-       The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> built-in SMTP protocol engine  does  not
-       announce  support for STARTTLS, AUTH, XCLIENT or XFORWARD.
-       Support for STARTTLS and AUTH may be added in the  future.
-       In  the  mean  time,  if  you  need to make these services
-       available on port 25, then  do  not  enable  the  optional
-       "after 220 server greeting" tests.
+       The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> built-in SMTP protocol engine  currently
+       does  not  announce support for STARTTLS, AUTH, XCLIENT or
+       XFORWARD.  Support for STARTTLS and AUTH may be  added  in
+       the  future.   In the mean time, if you need to make these
+       services available on port 25,  then  do  not  enable  the
+       optional "after 220 server greeting" tests.
 
        The  optional  "after  220  server greeting" tests involve
        <a href="postscreen.8.html"><b>postscreen</b>(8)</a>'s built-in SMTP protocol engine. When  these

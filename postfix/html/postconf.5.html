@@ -15224,12 +15224,21 @@ The default time unit is s (seconds).
 </DD>
 
 <DT><b><a name="undisclosed_recipients_header">undisclosed_recipients_header</a>
-(default: To: undisclosed-recipients:;)</b></DT><DD>
+(default: see "postconf -d" output)</b></DT><DD>
 
 <p>
 Message header that the Postfix <a href="cleanup.8.html">cleanup(8)</a> server inserts when a
-message contains no To: or Cc: message header. With Postfix 2.4
-and later, specify an empty value to disable this feature.  </p>
+message contains no To: or Cc: message header. With Postfix 2.8
+and later, the default value is empty. With Postfix 2.4-2.7,
+specify an empty value to disable this feature.  </p>
+
+<p> Example: </p>
+
+<pre>
+# Default value before Postfix 2.8.
+# Note: the ":" and ";" are both required.
+<a href="postconf.5.html#undisclosed_recipients_header">undisclosed_recipients_header</a> = To: undisclosed-recipients:;
+</pre>
 
 
 </DD>

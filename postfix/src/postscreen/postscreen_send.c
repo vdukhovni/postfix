@@ -21,8 +21,7 @@
 /*	ps_send_reply() sends the specified text to the specified
 /*	remote SMTP client.  In case of an immediate error, it logs
 /*	a warning (except EPIPE) with the client address and port,
-/*	and returns -1 (including EPIPE). Otherwise, the result
-/*	value is the number of bytes sent.
+/*	and returns a non-zero result (all errors including EPIPE).
 /*
 /*	PS_SEND_REPLY() is a convenience wrapper for ps_send_reply().
 /*	It is an unsafe macro that evaluates its arguments multiple

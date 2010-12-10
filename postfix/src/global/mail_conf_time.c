@@ -75,7 +75,7 @@
 
 #include <sys_defs.h>
 #include <stdlib.h>
-#include <stdio.h>			/* sscanf() */
+#include <stdio.h>			/* BUFSIZ */
 #include <ctype.h>
 
 /* Utility library. */

@@ -79,7 +79,8 @@
 
 #include <sys_defs.h>
 #include <stdlib.h>
-#include <stdio.h>			/* sscanf() */
+#include <stdio.h>			/* BUFSIZ */
+#include <errno.h>
 
 /* Utility library. */
 
@@ -97,10 +98,12 @@
 static int convert_mail_conf_long(const char *name, long *longval)
 {
     const char *strval;
-    char    junk;
+    char   *end;
 
     if ((strval = mail_conf_lookup_eval(name)) != 0) {
-	if (sscanf(strval, "%ld%c", longval, &junk) != 1)
+	errno = 0;
+	*longval = strtol(strval, &end, 10);
+	if (*strval == 0 || *end != 0 || errno == ERANGE)
 	    msg_fatal("bad numerical configuration: %s = %s", name, strval);
 	return (1);
     }

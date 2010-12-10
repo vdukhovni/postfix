@@ -41,7 +41,8 @@
 
 #include <sys_defs.h>
 #include <limits.h>			/* INT_MAX */
-#include <stdio.h>			/* sscanf() */
+#include <stdlib.h>
+#include <errno.h>
 
 /* Utility library. */
 
@@ -60,50 +61,48 @@
 
 int     conv_time(const char *strval, int *timval, int def_unit)
 {
-    char    unit;
-    char    junk;
+    char   *end;
     int     intval;
+    long    longval;
 
-    switch (sscanf(strval, "%d%c%c", &intval, &unit, &junk)) {
-    case 1:
-	unit = def_unit;
-	/* FALLTHROUGH */
-    case 2:
-	if (intval < 0)
-	    return (0);
-	switch (unit) {
-	case 'w':
-	    if (intval < INT_MAX / WEEK) {
-		*timval = intval * WEEK;
-		return (1);
-	    } else {
-		return (0);
-	    }
-	case 'd':
-	    if (intval < INT_MAX / DAY) {
-		*timval = intval * DAY;
-		return (1);
-	    } else {
-		return (0);
-	    }
-	case 'h':
-	    if (intval < INT_MAX / HOUR) {
-		*timval = intval * HOUR;
-		return (1);
-	    } else {
-		return (0);
-	    }
-	case 'm':
-	    if (intval < INT_MAX / MINUTE) {
-		*timval = intval * MINUTE;
-		return (1);
-	    } else {
-		return (0);
-	    }
-	case 's':
-	    *timval = intval;
+    errno = 0;
+    intval = longval = strtol(strval, &end, 10);
+    if (*strval == 0 || errno == ERANGE || longval != intval || intval < 0
+	|| (*end != 0 && end[1] != 0))
+	return (0);
+
+    switch (*end ? *end : def_unit) {
+    case 'w':
+	if (intval < INT_MAX / WEEK) {
+	    *timval = intval * WEEK;
 	    return (1);
+	} else {
+	    return (0);
 	}
+    case 'd':
+	if (intval < INT_MAX / DAY) {
+	    *timval = intval * DAY;
+	    return (1);
+	} else {
+	    return (0);
+	}
+    case 'h':
+	if (intval < INT_MAX / HOUR) {
+	    *timval = intval * HOUR;
+	    return (1);
+	} else {
+	    return (0);
+	}
+    case 'm':
+	if (intval < INT_MAX / MINUTE) {
+	    *timval = intval * MINUTE;
+	    return (1);
+	} else {
+	    return (0);
+	}
+    case 's':
+	*timval = intval;
+	return (1);
     }
     return (0);
 }

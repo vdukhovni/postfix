@@ -33,6 +33,21 @@ This is supported only when the default value is stress-dependent
 postscreen parameters always evaluate as if the stress value is 
 equal to the empty string.
 
+Incompatibility with snapshot 20101206
+======================================
+
+Postfix by default no longer adds a "To: undisclosed-recipients:;"
+header when no recipient specified in the message header.  The
+Internet mail RFCs have supported messages without recipient header
+for almost 10 years now. 
+
+For backwards compatibility, specify:
+
+/etc/postfix/main.cf
+   To: undisclosed-recipients:;
+
+Note: both the ":" and ";" are required.
+
 Incompatibility with snapshot 20101202
 ======================================
 

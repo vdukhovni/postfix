@@ -46,8 +46,9 @@
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* BUGS
-/*	The \fBpostscreen\fR(8) built-in SMTP protocol engine does
-/*	not announce support for STARTTLS, AUTH, XCLIENT or XFORWARD.
+/*	The \fBpostscreen\fR(8) built-in SMTP protocol engine
+/*	currently does not announce support for STARTTLS, AUTH,
+/*	XCLIENT or XFORWARD.
 /*	Support for STARTTLS and AUTH may be added in the future.
 /*	In the mean time, if you need to make these services available
 /*	on port 25, then do not enable the optional "after 220

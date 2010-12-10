@@ -82,7 +82,8 @@
 
 #include "sys_defs.h"
 
-#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
 #include <string.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H
@@ -146,11 +147,14 @@ static int get_dict_int(const struct CFG_PARSER *parser,
 		             const char *name, int defval, int min, int max)
 {
     const char *strval;
+    char   *end;
     int     intval;
-    char    junk;
+    long    longval;
 
     if ((strval = (char *) dict_lookup(parser->name, name)) != 0) {
-	if (sscanf(strval, "%d%c", &intval, &junk) != 1)
+	errno = 0;
+	intval = longval = strtol(strval, &end, 10);
+	if (*strval == 0 || *end != 0 || errno == ERANGE || longval != intval)
 	    msg_fatal("%s: bad numerical configuration: %s = %s",
 		      parser->name, name, strval);
     } else

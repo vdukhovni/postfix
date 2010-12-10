@@ -180,7 +180,7 @@ PS_STATE *ps_new_session_state(VSTREAM *stream,
     if ((ht = htable_locate(ps_client_concurrency, addr)) == 0)
 	ht = htable_enter(ps_client_concurrency, addr, (char *) 0);
     ht->value += 1;
-    state->client_concurrency = (int) ht->value;
+    state->client_concurrency = CAST_CHAR_PTR_TO_INT(ht->value);
 
     return (state);
 }

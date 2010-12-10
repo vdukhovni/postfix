@@ -9656,10 +9656,23 @@ load.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
-.SH undisclosed_recipients_header (default: To: undisclosed-recipients:;)
+.SH undisclosed_recipients_header (default: see "postconf -d" output)
 Message header that the Postfix \fBcleanup\fR(8) server inserts when a
-message contains no To: or Cc: message header. With Postfix 2.4
-and later, specify an empty value to disable this feature.
+message contains no To: or Cc: message header. With Postfix 2.8
+and later, the default value is empty. With Postfix 2.4-2.7,
+specify an empty value to disable this feature.
+.PP
+Example:
+.PP
+.nf
+.na
+.ft C
+# Default value before Postfix 2.8.
+# Note: the ":" and ";" are both required.
+undisclosed_recipients_header = To: undisclosed-recipients:;
+.fi
+.ad
+.ft R
 .SH unknown_address_reject_code (default: 450)
 The numerical Postfix SMTP server response code when a sender or
 recipient address is rejected by the reject_unknown_sender_domain

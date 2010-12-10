@@ -8150,12 +8150,21 @@ delivery is requested with "<b>sendmail -v</b>".
 This feature is available in Postfix 2.1 and later.
 </p>
 
-%PARAM undisclosed_recipients_header To: undisclosed-recipients:;
+%PARAM undisclosed_recipients_header see "postconf -d" output
 
 <p>
 Message header that the Postfix cleanup(8) server inserts when a
-message contains no To: or Cc: message header. With Postfix 2.4
-and later, specify an empty value to disable this feature.  </p>
+message contains no To: or Cc: message header. With Postfix 2.8
+and later, the default value is empty. With Postfix 2.4-2.7,
+specify an empty value to disable this feature.  </p>
+
+<p> Example: </p>
+
+<pre>
+# Default value before Postfix 2.8.
+# Note: the ":" and ";" are both required.
+undisclosed_recipients_header = To: undisclosed-recipients:;
+</pre>
 
 %PARAM unknown_relay_recipient_reject_code 550
 

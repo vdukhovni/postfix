@@ -338,7 +338,7 @@ extern char *var_always_bcc;
   * MTAs routinely strip Bcc: headers from message headers.
   */
 #define VAR_RCPT_WITHELD	"undisclosed_recipients_header"
-#define DEF_RCPT_WITHELD	"To: undisclosed-recipients:;"
+#define DEF_RCPT_WITHELD	""
 extern char *var_rcpt_witheld;
 
  /*

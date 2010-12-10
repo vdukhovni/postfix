@@ -16220,7 +16220,7 @@ Apologies for any names omitted.
 	ignore the excess recipients and deliver the message.  File:
 	cleanup/cleanup_map1n.c.
 
-20101204
+20101205
 
 	Cleanup: sache_clnt_create() had an unnecessary data
 	dependency on the non-library var_scache_service variable,
@@ -16236,5 +16236,17 @@ Apologies for any names omitted.
 
 20101206
 
-	postscreen hung up due to incorrect output error test. File:
-	postscreen/postscreen_send.c.
+	Bugfix (introduced 20101205): postscreen hung up due to
+	incorrect output error test. File: postscreen/postscreen_send.c.
+
+20101207
+
+	Cleanup: the undisclosed_recipients_header default value
+	is now the empty string. The Internet mail RFCs have supported
+	messages without recipient header for almost 10 years now.
+	File: global/mail_params.h.
+
+	Cleanup: use strtol() instead of sscanf() for consistent
+	handling of out-of-range numbers. Files: global/cfg_parser.c,
+	global/conv_time.c, global/mail_conf_int.c,
+	global/mail_conf_long.c, global/mail_conf_nint.c.
