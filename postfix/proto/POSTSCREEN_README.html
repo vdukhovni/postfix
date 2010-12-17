@@ -23,10 +23,33 @@ process keeps zombies away from Postfix SMTP server processes,
 more Postfix SMTP server processes remain available for legitimate
 clients. </p>
 
-<p> By doing these checks in a single postscreen(8) process, Postfix
-can avoid wasting one SMTP server process per zombie. A side benefit
-of postscreen(8)'s DNSBL lookups is that DNS records will already be
-cached before the Postfix SMTP server looks them up later.  </p>
+<p> postscreen(8) is the first layer in a multi-layer defense. <p>
+
+<ul>
+
+<li> <p> The postscreen(8) layer blocks connections from zombies
+and other spambots that are responsible for about 90% of all spam.
+It is implemented as a single process to make this defense as cheap
+as possible. </p>
+
+<li> <p> The second layer implements more complex SMTP-level access
+checks that are available with Postfix SMTP servers, policy daemons,
+and Milter applications. </p>
+
+<li> <p> The third layer performs light-weight content inspection
+with the Postfix built-in header_checks and body_checks. This can
+block unacceptable attachments such as executable programs, and
+worms or viruses with easy-to-recognize signatures. </p>
+
+<li> <p> The fourth layer provides heavy-weight content inspection
+with external content filters. Typical examples are Amavisd-new,
+SpamAssassin, and Milter applications. </p>
+
+</ul>
+
+<p> Each layer reduces the spam volume. The general strategy is to
+eliminate spam early with the less expensive defenses and to use
+the more expensive defenses for the spam that remains. </p>
 
 <p> Topics in this document: </p>
 
@@ -67,10 +90,7 @@ decision based on a single measurement. This is necessary because
 many zombies avoid spamming the same site repeatedly, in an attempt
 to fly under the radar.  Once postscreen(8) decides that a client
 is not-a-zombie, it whitelists the client temporarily to avoid
-further delays for legitimate mail. Clients that pass postscreen(8)
-are still subject to the checks that are built into Postfix smtpd(8),
-Postfix built-in content filters, and external content filters.
-</p>
+further delays for legitimate mail. </p>
 
 <p> Zombies have challenges too: they have only a limited amount
 of time to deliver spam before their IP address becomes blacklisted.

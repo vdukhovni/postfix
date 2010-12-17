@@ -112,6 +112,7 @@ tls_certkey.o: ../../include/vstring.h
 tls_certkey.o: tls.h
 tls_certkey.o: tls_certkey.c
 tls_client.o: ../../include/argv.h
+tls_client.o: ../../include/iostuff.h
 tls_client.o: ../../include/mail_params.h
 tls_client.o: ../../include/msg.h
 tls_client.o: ../../include/mymalloc.h
@@ -235,6 +236,7 @@ tls_seed.o: tls_seed.c
 tls_server.o: ../../include/argv.h
 tls_server.o: ../../include/dict.h
 tls_server.o: ../../include/hex_code.h
+tls_server.o: ../../include/iostuff.h
 tls_server.o: ../../include/mail_params.h
 tls_server.o: ../../include/msg.h
 tls_server.o: ../../include/mymalloc.h

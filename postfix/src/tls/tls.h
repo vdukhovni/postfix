@@ -92,8 +92,6 @@ typedef struct {
     int     cipher_algbits;
     /* Private. */
     SSL    *con;
-    BIO    *internal_bio;		/* postfix/TLS side of pair */
-    BIO    *network_bio;		/* network side of pair */
     char   *cache_type;			/* tlsmgr(8) cache type if enabled */
     char   *serverid;			/* unique server identifier */
     char   *namaddr;			/* nam[addr] for logging */

@@ -582,8 +582,6 @@ TLS_SESS_STATE *tls_alloc_sess_context(int log_level, const char *namaddr)
     TLScontext = (TLS_SESS_STATE *) mymalloc(sizeof(TLS_SESS_STATE));
     memset((char *) TLScontext, 0, sizeof(*TLScontext));
     TLScontext->con = 0;
-    TLScontext->internal_bio = 0;
-    TLScontext->network_bio = 0;
     TLScontext->cache_type = 0;
     TLScontext->serverid = 0;
     TLScontext->peer_CN = 0;
@@ -609,8 +607,6 @@ void    tls_free_context(TLS_SESS_STATE *TLScontext)
      */
     if (TLScontext->con != 0)
 	SSL_free(TLScontext->con);
-    if (TLScontext->network_bio)
-	BIO_free(TLScontext->network_bio);
 
     if (TLScontext->namaddr)
 	myfree(TLScontext->namaddr);

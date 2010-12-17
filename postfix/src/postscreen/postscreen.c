@@ -464,6 +464,9 @@ static void ps_service(VSTREAM *smtp_client_stream,
     /*
      * This program handles all incoming connections, so it must not block.
      * We use event-driven code for all operations that introduce latency.
+     * 
+     * Note: instead of using VSTREAM-level timeouts, we enforce limits on the
+     * total amount of time to receive a complete SMTP command line.
      */
     non_blocking(vstream_fileno(smtp_client_stream), NON_BLOCKING);
 

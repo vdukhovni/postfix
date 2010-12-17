@@ -554,9 +554,9 @@ static void ps_smtpd_read_event(int event, char *context)
 	    /*
 	     * Try to match the current character desired by the state
 	     * machine. If that fails, try to restart the machine with a
-	     * match for its first state. smtpd(8) incompatibility: we
-	     * require that lines end in <CR><LF>, while smtpd(8) allows
-	     * lines ending in <CR><LF> and bare <LF>.
+	     * match for its first state. Like smtpd(8), we understand lines
+	     * ending in <CR><LF> and bare <LF>. Unlike smtpd(8), we may
+	     * treat lines ending in bare <LF> as an offense.
 	     */
 	    for (transp = cmd_trans; transp->state != state->read_state; transp++)
 		if (transp->want == 0)

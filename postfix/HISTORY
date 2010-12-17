@@ -16250,3 +16250,16 @@ Apologies for any names omitted.
 	handling of out-of-range numbers. Files: global/cfg_parser.c,
 	global/conv_time.c, global/mail_conf_int.c,
 	global/mail_conf_long.c, global/mail_conf_nint.c.
+
+20101217
+
+	Cleanup: eliminated the code that copied TLS protocol
+	messages between the OpenSSL TLS engine and the network.
+	This change hopefully simplifies the TLS library enough
+	that it can be used in an event-driven TLS proxy in front
+	of postscreen.  Files: tls/tls_bio.c, tls/tls_server.c,
+	tls/tls_client.c.
+
+	This change eliminates an obscure bug where the SMTP server
+	would wait for another $smtpd_timeout seconds after sending
+	the "421 Error: timeout exceeded" message to the client.
