@@ -1137,7 +1137,7 @@ extern char *var_smtpd_banner;
 extern int var_smtpd_tmout;
 
 #define VAR_SMTPD_STARTTLS_TMOUT "smtpd_starttls_timeout"
-#define DEF_SMTPD_STARTTLS_TMOUT "300s"
+#define DEF_SMTPD_STARTTLS_TMOUT "${stress?10}${stress:300}s"
 extern int var_smtpd_starttls_tmout;
 
 #define VAR_SMTPD_RCPT_LIMIT	"smtpd_recipient_limit"
@@ -2988,6 +2988,39 @@ extern char *var_tls_eecdh_strong;
 #define DEF_TLS_EECDH_ULTRA	"secp384r1"
 extern char *var_tls_eecdh_ultra;
 
+#define VAR_TLS_PREEMPT_CLIST	"tls_preempt_cipherlist"
+#define DEF_TLS_PREEMPT_CLIST	0
+extern bool var_tls_preempt_clist;
+
+#ifdef USE_TLS
+
+ /*
+  * The tweak for CVE-2005-2969 is needed in some versions prior to 1.0.0
+  */
+#if (OPENSSL_VERSION_NUMBER < 0x1000000fL)
+#define TLS_BUG_TWEAK_A	" CVE-2005-2969"
+#else
+#define TLS_BUG_TWEAK_A ""
+#endif
+
+ /*
+  * The tweak for CVE-2010-4180 is needed in some versions prior to 1.0.1
+  */
+#if (OPENSSL_VERSION_NUMBER < 0x1000100fL)
+#define TLS_BUG_TWEAK_B	" CVE-2010-4180"
+#else
+#define TLS_BUG_TWEAK_B	" "
+#endif
+
+#else /* USE_TLS */
+#define TLS_BUG_TWEAK_A	""
+#define TLS_BUG_TWEAK_B	" "
+#endif /* USE_TLS */
+
+#define VAR_TLS_BUG_TWEAKS	"tls_disable_workarounds"
+#define DEF_TLS_BUG_TWEAKS	((TLS_BUG_TWEAK_A TLS_BUG_TWEAK_B)+1)
+extern char *var_tls_bug_tweaks;
+
  /*
   * Sendmail-style mail filter support.
   */
@@ -3226,153 +3259,300 @@ extern char *var_multi_cntrl_cmds;
  /*
   * postscreen(8)
   */
-#define VAR_PS_CACHE_MAP	"postscreen_cache_map"
-#define DEF_PS_CACHE_MAP	"btree:$data_directory/ps_cache"
-extern char *var_ps_cache_map;
+#define VAR_PSC_CACHE_MAP	"postscreen_cache_map"
+#define DEF_PSC_CACHE_MAP	"btree:$data_directory/psc_cache"
+extern char *var_psc_cache_map;
 
 #define VAR_SMTPD_SERVICE	"smtpd_service"
 #define DEF_SMTPD_SERVICE	"smtpd"
 extern char *var_smtpd_service;
 
-#define VAR_PS_POST_QLIMIT	"postscreen_post_queue_limit"
-#define DEF_PS_POST_QLIMIT	"$" VAR_PROC_LIMIT
-extern int var_ps_post_queue_limit;
+#define VAR_PSC_POST_QLIMIT	"postscreen_post_queue_limit"
+#define DEF_PSC_POST_QLIMIT	"$" VAR_PROC_LIMIT
+extern int var_psc_post_queue_limit;
 
-#define VAR_PS_PRE_QLIMIT	"postscreen_pre_queue_limit"
-#define DEF_PS_PRE_QLIMIT	"$" VAR_PROC_LIMIT
-extern int var_ps_pre_queue_limit;
+#define VAR_PSC_PRE_QLIMIT	"postscreen_pre_queue_limit"
+#define DEF_PSC_PRE_QLIMIT	"$" VAR_PROC_LIMIT
+extern int var_psc_pre_queue_limit;
 
-#define VAR_PS_CACHE_RET	"postscreen_cache_retention_time"
-#define DEF_PS_CACHE_RET	"7d"
-extern int var_ps_cache_ret;
+#define VAR_PSC_CACHE_RET	"postscreen_cache_retention_time"
+#define DEF_PSC_CACHE_RET	"7d"
+extern int var_psc_cache_ret;
 
-#define VAR_PS_CACHE_SCAN	"postscreen_cache_cleanup_interval"
-#define DEF_PS_CACHE_SCAN	"12h"
-extern int var_ps_cache_scan;
+#define VAR_PSC_CACHE_SCAN	"postscreen_cache_cleanup_interval"
+#define DEF_PSC_CACHE_SCAN	"12h"
+extern int var_psc_cache_scan;
 
-#define VAR_PS_GREET_WAIT	"postscreen_greet_wait"
-#define DEF_PS_GREET_WAIT	"${stress?2}${stress:6}s"
-extern int var_ps_greet_wait;
+#define VAR_PSC_GREET_WAIT	"postscreen_greet_wait"
+#define DEF_PSC_GREET_WAIT	"${stress?2}${stress:6}s"
+extern int var_psc_greet_wait;
 
-#define VAR_PS_PREGR_BANNER	"postscreen_greet_banner"
-#define DEF_PS_PREGR_BANNER	"$" VAR_SMTPD_BANNER
-extern char *var_ps_pregr_banner;
+#define VAR_PSC_PREGR_BANNER	"postscreen_greet_banner"
+#define DEF_PSC_PREGR_BANNER	"$" VAR_SMTPD_BANNER
+extern char *var_psc_pregr_banner;
 
-#define VAR_PS_PREGR_ENABLE	"postscreen_greet_enable"
-#define DEF_PS_PREGR_ENABLE	no
-extern char *var_ps_pregr_enable;
+#define VAR_PSC_PREGR_ENABLE	"postscreen_greet_enable"
+#define DEF_PSC_PREGR_ENABLE	no
+extern char *var_psc_pregr_enable;
 
-#define VAR_PS_PREGR_ACTION	"postscreen_greet_action"
-#define DEF_PS_PREGR_ACTION	"ignore"
-extern char *var_ps_pregr_action;
+#define VAR_PSC_PREGR_ACTION	"postscreen_greet_action"
+#define DEF_PSC_PREGR_ACTION	"ignore"
+extern char *var_psc_pregr_action;
 
-#define VAR_PS_PREGR_TTL	"postscreen_greet_ttl"
-#define DEF_PS_PREGR_TTL	"1d"
-extern int var_ps_pregr_ttl;
+#define VAR_PSC_PREGR_TTL	"postscreen_greet_ttl"
+#define DEF_PSC_PREGR_TTL	"1d"
+extern int var_psc_pregr_ttl;
 
-#define VAR_PS_DNSBL_SITES	"postscreen_dnsbl_sites"
-#define DEF_PS_DNSBL_SITES	""
-extern char *var_ps_dnsbl_sites;
+#define VAR_PSC_DNSBL_SITES	"postscreen_dnsbl_sites"
+#define DEF_PSC_DNSBL_SITES	""
+extern char *var_psc_dnsbl_sites;
 
-#define VAR_PS_DNSBL_THRESH	"postscreen_dnsbl_threshold"
-#define DEF_PS_DNSBL_THRESH	1
-extern int var_ps_dnsbl_thresh;
+#define VAR_PSC_DNSBL_THRESH	"postscreen_dnsbl_threshold"
+#define DEF_PSC_DNSBL_THRESH	1
+extern int var_psc_dnsbl_thresh;
 
-#define VAR_PS_DNSBL_ENABLE	"postscreen_dnsbl_enable"
-#define DEF_PS_DNSBL_ENABLE	0
-extern char *var_ps_dnsbl_enable;
+#define VAR_PSC_DNSBL_ENABLE	"postscreen_dnsbl_enable"
+#define DEF_PSC_DNSBL_ENABLE	0
+extern char *var_psc_dnsbl_enable;
 
-#define VAR_PS_DNSBL_ACTION	"postscreen_dnsbl_action"
-#define DEF_PS_DNSBL_ACTION	"ignore"
-extern char *var_ps_dnsbl_action;
+#define VAR_PSC_DNSBL_ACTION	"postscreen_dnsbl_action"
+#define DEF_PSC_DNSBL_ACTION	"ignore"
+extern char *var_psc_dnsbl_action;
 
-#define VAR_PS_DNSBL_TTL	"postscreen_dnsbl_ttl"
-#define DEF_PS_DNSBL_TTL	"1h"
-extern int var_ps_dnsbl_ttl;
+#define VAR_PSC_DNSBL_TTL	"postscreen_dnsbl_ttl"
+#define DEF_PSC_DNSBL_TTL	"1h"
+extern int var_psc_dnsbl_ttl;
 
-#define	VAR_PS_DNSBL_REPLY	"postscreen_dnsbl_reply_map"
-#define	DEF_PS_DNSBL_REPLY	""
-extern char *var_ps_dnsbl_reply;
+#define	VAR_PSC_DNSBL_REPLY	"postscreen_dnsbl_reply_map"
+#define	DEF_PSC_DNSBL_REPLY	""
+extern char *var_psc_dnsbl_reply;
 
-#define VAR_PS_PIPEL_ENABLE	"postscreen_pipelining_enable"
-#define DEF_PS_PIPEL_ENABLE	0
-extern bool var_ps_pipel_enable;
+#define VAR_PSC_PIPEL_ENABLE	"postscreen_pipelining_enable"
+#define DEF_PSC_PIPEL_ENABLE	0
+extern bool var_psc_pipel_enable;
 
-#define VAR_PS_PIPEL_ACTION	"postscreen_pipelining_action"
-#define DEF_PS_PIPEL_ACTION	"enforce"
-extern char *var_ps_pipel_action;
+#define VAR_PSC_PIPEL_ACTION	"postscreen_pipelining_action"
+#define DEF_PSC_PIPEL_ACTION	"enforce"
+extern char *var_psc_pipel_action;
 
-#define VAR_PS_PIPEL_TTL	"postscreen_pipelining_ttl"
-#define DEF_PS_PIPEL_TTL	"30d"
-extern int var_ps_pipel_ttl;
+#define VAR_PSC_PIPEL_TTL	"postscreen_pipelining_ttl"
+#define DEF_PSC_PIPEL_TTL	"30d"
+extern int var_psc_pipel_ttl;
 
-#define VAR_PS_NSMTP_ENABLE	"postscreen_non_smtp_command_enable"
-#define DEF_PS_NSMTP_ENABLE	0
-extern bool var_ps_nsmtp_enable;
+#define VAR_PSC_NSMTP_ENABLE	"postscreen_non_smtp_command_enable"
+#define DEF_PSC_NSMTP_ENABLE	0
+extern bool var_psc_nsmtp_enable;
 
-#define VAR_PS_NSMTP_ACTION	"postscreen_non_smtp_command_action"
-#define DEF_PS_NSMTP_ACTION	"drop"
-extern char *var_ps_nsmtp_action;
+#define VAR_PSC_NSMTP_ACTION	"postscreen_non_smtp_command_action"
+#define DEF_PSC_NSMTP_ACTION	"drop"
+extern char *var_psc_nsmtp_action;
 
-#define VAR_PS_NSMTP_TTL	"postscreen_non_smtp_command_ttl"
-#define DEF_PS_NSMTP_TTL	"30d"
-extern int var_ps_nsmtp_ttl;
+#define VAR_PSC_NSMTP_TTL	"postscreen_non_smtp_command_ttl"
+#define DEF_PSC_NSMTP_TTL	"30d"
+extern int var_psc_nsmtp_ttl;
 
-#define VAR_PS_BARLF_ENABLE	"postscreen_bare_newline_enable"
-#define DEF_PS_BARLF_ENABLE	0
-extern bool var_ps_barlf_enable;
+#define VAR_PSC_BARLF_ENABLE	"postscreen_bare_newline_enable"
+#define DEF_PSC_BARLF_ENABLE	0
+extern bool var_psc_barlf_enable;
 
-#define VAR_PS_BARLF_ACTION	"postscreen_bare_newline_action"
-#define DEF_PS_BARLF_ACTION	"ignore"
-extern char *var_ps_barlf_action;
+#define VAR_PSC_BARLF_ACTION	"postscreen_bare_newline_action"
+#define DEF_PSC_BARLF_ACTION	"ignore"
+extern char *var_psc_barlf_action;
 
-#define VAR_PS_BARLF_TTL	"postscreen_bare_newline_ttl"
-#define DEF_PS_BARLF_TTL	"30d"
-extern int var_ps_barlf_ttl;
+#define VAR_PSC_BARLF_TTL	"postscreen_bare_newline_ttl"
+#define DEF_PSC_BARLF_TTL	"30d"
+extern int var_psc_barlf_ttl;
 
-#define VAR_PS_WLIST_NETS	"postscreen_whitelist_networks"
-#define DEF_PS_WLIST_NETS	"$" VAR_MYNETWORKS
-extern char *var_ps_wlist_nets;
+#define VAR_PSC_WLIST_NETS	"postscreen_whitelist_networks"
+#define DEF_PSC_WLIST_NETS	"$" VAR_MYNETWORKS
+extern char *var_psc_wlist_nets;
 
-#define VAR_PS_BLIST_NETS	"postscreen_blacklist_networks"
-#define DEF_PS_BLIST_NETS	""
-extern char *var_ps_blist_nets;
+#define VAR_PSC_BLIST_NETS	"postscreen_blacklist_networks"
+#define DEF_PSC_BLIST_NETS	""
+extern char *var_psc_blist_nets;
 
-#define VAR_PS_BLIST_ACTION	"postscreen_blacklist_action"
-#define DEF_PS_BLIST_ACTION	"ignore"
-extern char *var_ps_blist_nets;
+#define VAR_PSC_BLIST_ACTION	"postscreen_blacklist_action"
+#define DEF_PSC_BLIST_ACTION	"ignore"
+extern char *var_psc_blist_nets;
 
-#define VAR_PS_CMD_COUNT	"postscreen_command_count_limit"
-#define DEF_PS_CMD_COUNT	20
-extern int var_ps_cmd_count;
+#define VAR_PSC_CMD_COUNT	"postscreen_command_count_limit"
+#define DEF_PSC_CMD_COUNT	20
+extern int var_psc_cmd_count;
 
-#define VAR_PS_CMD_TIME		"postscreen_command_time_limit"
-#define DEF_PS_CMD_TIME		DEF_SMTPD_TMOUT
-extern char *var_ps_cmd_time;
+#define VAR_PSC_CMD_TIME		"postscreen_command_time_limit"
+#define DEF_PSC_CMD_TIME		DEF_SMTPD_TMOUT
+extern char *var_psc_cmd_time;
 
-#define VAR_PS_WATCHDOG		"postscreen_watchdog_timeout"
-#define DEF_PS_WATCHDOG		"10s"
-extern int var_ps_watchdog;
+#define VAR_PSC_WATCHDOG		"postscreen_watchdog_timeout"
+#define DEF_PSC_WATCHDOG		"10s"
+extern int var_psc_watchdog;
 
-#define VAR_PS_FORBID_CMDS	"postscreen_forbidden_commands"
-#define DEF_PS_FORBID_CMDS	"$" VAR_SMTPD_FORBID_CMDS
-extern char *var_ps_forbid_cmds;
+#define VAR_PSC_EHLO_DIS_WORDS	"postscreen_discard_ehlo_keywords"
+#define DEF_PSC_EHLO_DIS_WORDS	"$" VAR_SMTPD_EHLO_DIS_WORDS
+extern char *var_psc_ehlo_dis_words;
 
-#define VAR_PS_HELO_REQUIRED	"postscreen_helo_required"
-#define DEF_PS_HELO_REQUIRED	"$" VAR_HELO_REQUIRED
-extern bool var_ps_helo_required;
+#define VAR_PSC_EHLO_DIS_MAPS	"postscreen_discard_ehlo_keyword_address_maps"
+#define DEF_PSC_EHLO_DIS_MAPS	"$" VAR_SMTPD_EHLO_DIS_MAPS
+extern char *var_psc_ehlo_dis_maps;
 
-#define VAR_PS_DISABLE_VRFY	"postscreen_disable_vrfy_command"
-#define DEF_PS_DISABLE_VRFY	"$" VAR_DISABLE_VRFY_CMD
-extern bool var_ps_disable_vrfy;
+#define VAR_PSC_TLS_LEVEL	"postscreen_tls_security_level"
+#define DEF_PSC_TLS_LEVEL	"$" VAR_SMTPD_TLS_LEVEL
+extern char *var_psc_tls_level;
 
-#define VAR_PS_CCONN_LIMIT	"postscreen_client_connection_count_limit"
-#define DEF_PS_CCONN_LIMIT	"$" VAR_SMTPD_CCONN_LIMIT
-extern int var_ps_cconn_limit;
+#define VAR_PSC_USE_TLS		"postscreen_use_tls"
+#define DEF_PSC_USE_TLS		"$" VAR_SMTPD_USE_TLS
+extern bool var_psc_use_tls;
+
+#define VAR_PSC_ENFORCE_TLS	"postscreen_enforce_tls"
+#define DEF_PSC_ENFORCE_TLS	"$" VAR_SMTPD_ENFORCE_TLS
+extern bool var_psc_enforce_tls;
+
+#define VAR_PSC_FORBID_CMDS	"postscreen_forbidden_commands"
+#define DEF_PSC_FORBID_CMDS	"$" VAR_SMTPD_FORBID_CMDS
+extern char *var_psc_forbid_cmds;
+
+#define VAR_PSC_HELO_REQUIRED	"postscreen_helo_required"
+#define DEF_PSC_HELO_REQUIRED	"$" VAR_HELO_REQUIRED
+extern bool var_psc_helo_required;
+
+#define VAR_PSC_DISABLE_VRFY	"postscreen_disable_vrfy_command"
+#define DEF_PSC_DISABLE_VRFY	"$" VAR_DISABLE_VRFY_CMD
+extern bool var_psc_disable_vrfy;
+
+#define VAR_PSC_CCONN_LIMIT	"postscreen_client_connection_count_limit"
+#define DEF_PSC_CCONN_LIMIT	"$" VAR_SMTPD_CCONN_LIMIT
+extern int var_psc_cconn_limit;
 
 #define VAR_DNSBLOG_DELAY	"dnsblog_reply_delay"
 #define DEF_DNSBLOG_DELAY	"0s"
 extern int var_dnsblog_delay;
+
+#define VAR_TLSP_WATCHDOG	"tlsproxy_watchdog_timeout"
+#define DEF_TLSP_WATCHDOG	"10s"
+extern int var_tlsp_watchdog;
+
+#define VAR_TLSP_TLS_LEVEL	"tlsproxy_tls_security_level"
+#define DEF_TLSP_TLS_LEVEL	"$" VAR_SMTPD_TLS_LEVEL
+extern char *var_tlsp_tls_level;
+
+#define VAR_TLSP_USE_TLS	"tlsproxy_use_tls"
+#define DEF_TLSP_USE_TLS	"$" VAR_SMTPD_USE_TLS
+extern bool var_tlsp_use_tls;
+
+#define VAR_TLSP_ENFORCE_TLS	"tlsproxy_enforce_tls"
+#define DEF_TLSP_ENFORCE_TLS	"$" VAR_SMTPD_ENFORCE_TLS
+extern bool var_tlsp_enforce_tls;
+
+#define VAR_TLSP_TLS_ACERT	"tlsproxy_tls_ask_ccert"
+#define DEF_TLSP_TLS_ACERT	"$" VAR_SMTPD_TLS_ACERT
+extern bool var_tlsp_tls_ask_ccert;
+
+#define VAR_TLSP_TLS_RCERT	"tlsproxy_tls_req_ccert"
+#define DEF_TLSP_TLS_RCERT	"$" VAR_SMTPD_TLS_RCERT
+extern bool var_tlsp_tls_req_ccert;
+
+#define VAR_TLSP_TLS_CCERT_VD	"tlsproxy_tls_ccert_verifydepth"
+#define DEF_TLSP_TLS_CCERT_VD	"$" VAR_SMTPD_TLS_CCERT_VD
+extern int var_tlsp_tls_ccert_vd;
+
+#define VAR_TLSP_TLS_CERT_FILE	"tlsproxy_tls_cert_file"
+#define DEF_TLSP_TLS_CERT_FILE	"$" VAR_SMTPD_TLS_CERT_FILE
+extern char *var_tlsp_tls_cert_file;
+
+#define VAR_TLSP_TLS_KEY_FILE	"tlsproxy_tls_key_file"
+#define DEF_TLSP_TLS_KEY_FILE	"$" VAR_SMTPD_TLS_KEY_FILE
+extern char *var_tlsp_tls_key_file;
+
+#define VAR_TLSP_TLS_DCERT_FILE "tlsproxy_tls_dcert_file"
+#define DEF_TLSP_TLS_DCERT_FILE	"$" VAR_SMTPD_TLS_DCERT_FILE
+extern char *var_tlsp_tls_dcert_file;
+
+#define VAR_TLSP_TLS_DKEY_FILE	"tlsproxy_tls_dkey_file"
+#define DEF_TLSP_TLS_DKEY_FILE	"$" VAR_SMTPD_TLS_DKEY_FILE
+extern char *var_tlsp_tls_dkey_file;
+
+#define VAR_TLSP_TLS_ECCERT_FILE "tlsproxy_tls_eccert_file"
+#define DEF_TLSP_TLS_ECCERT_FILE	"$" VAR_SMTPD_TLS_ECCERT_FILE
+extern char *var_tlsp_tls_eccert_file;
+
+#define VAR_TLSP_TLS_ECKEY_FILE	"tlsproxy_tls_eckey_file"
+#define DEF_TLSP_TLS_ECKEY_FILE	"$" VAR_SMTPD_TLS_ECKEY_FILE
+extern char *var_tlsp_tls_eckey_file;
+
+#define DEF_TLSP_TLS_ECKEY_FILE	"$" VAR_SMTPD_TLS_ECKEY_FILE
+extern char *var_tlsp_tls_eckey_file;
+
+#define VAR_TLSP_TLS_CA_FILE	"tlsproxy_tls_CAfile"
+#define DEF_TLSP_TLS_CA_FILE	"$" VAR_SMTPD_TLS_CA_FILE
+extern char *var_tlsp_tls_CAfile;
+
+#define VAR_TLSP_TLS_CA_PATH	"tlsproxy_tls_CApath"
+#define DEF_TLSP_TLS_CA_PATH	"$" VAR_SMTPD_TLS_CA_PATH
+extern char *var_tlsp_tls_CApath;
+
+#define VAR_TLSP_TLS_PROTO	"tlsproxy_tls_protocols"
+#define DEF_TLSP_TLS_PROTO	"$" VAR_SMTPD_TLS_PROTO
+extern char *var_tlsp_tls_proto;
+
+#define VAR_TLSP_TLS_MAND_PROTO	"tlsproxy_tls_mandatory_protocols"
+#define DEF_TLSP_TLS_MAND_PROTO	"$" VAR_SMTPD_TLS_MAND_PROTO
+extern char *var_tlsp_tls_mand_proto;
+
+#define VAR_TLSP_TLS_CIPH	"tlsproxy_tls_ciphers"
+#define DEF_TLSP_TLS_CIPH	"$" VAR_SMTPD_TLS_CIPH
+extern char *var_tlsp_tls_ciph;
+
+#define VAR_TLSP_TLS_MAND_CIPH	"tlsproxy_tls_mandatory_ciphers"
+#define DEF_TLSP_TLS_MAND_CIPH	"$" VAR_SMTPD_TLS_MAND_CIPH
+extern char *var_tlsp_tls_mand_ciph;
+
+#define VAR_TLSP_TLS_EXCL_CIPH  "tlsproxy_tls_exclude_ciphers"
+#define DEF_TLSP_TLS_EXCL_CIPH	"$" VAR_SMTPD_TLS_EXCL_CIPH
+extern char *var_tlsp_tls_excl_ciph;
+
+#define VAR_TLSP_TLS_MAND_EXCL  "tlsproxy_tls_mandatory_exclude_ciphers"
+#define DEF_TLSP_TLS_MAND_EXCL	"$" VAR_SMTPD_TLS_MAND_EXCL
+extern char *var_tlsp_tls_mand_excl;
+
+#define VAR_TLSP_TLS_FPT_DGST	"tlsproxy_tls_fingerprint_digest"
+#define DEF_TLSP_TLS_FPT_DGST	"$" VAR_SMTPD_TLS_FPT_DGST
+extern char *var_tlsp_tls_fpt_dgst;
+
+#define VAR_TLSP_TLS_512_FILE	"tlsproxy_tls_dh512_param_file"
+#define DEF_TLSP_TLS_512_FILE	"$" VAR_SMTPD_TLS_512_FILE
+extern char *var_tlsp_tls_dh512_param_file;
+
+#define VAR_TLSP_TLS_1024_FILE	"tlsproxy_tls_dh1024_param_file"
+#define DEF_TLSP_TLS_1024_FILE	"$" VAR_SMTPD_TLS_1024_FILE
+extern char *var_tlsp_tls_dh1024_param_file;
+
+#define VAR_TLSP_TLS_EECDH	"tlsproxy_tls_eecdh_grade"
+#ifdef SNAPSHOT
+#define DEF_TLSP_TLS_EECDH	"$" VAR_SMTPD_TLS_EECDH
+#else
+#define DEF_TLSP_TLS_EECDH	"$" VAR_SMTPD_TLS_EECDH
+#endif
+extern char *var_tlsp_tls_eecdh;
+
+#define VAR_TLSP_TLS_LOGLEVEL	"tlsproxy_tls_loglevel"
+#define DEF_TLSP_TLS_LOGLEVEL	"$" VAR_SMTPD_TLS_LOGLEVEL
+extern int var_tlsp_tls_loglevel;
+
+#define VAR_TLSP_TLS_RECHEAD	"tlsproxy_tls_received_header"
+#define DEF_TLSP_TLS_RECHEAD	"$" VAR_SMTPD_TLS_RECHEAD
+extern bool var_tlsp_tls_received_header;
+
+#define VAR_TLSP_TLS_SCACHE_DB	"tlsproxy_tls_session_cache_database"
+#define DEF_TLSP_TLS_SCACHE_DB	"$" VAR_SMTPD_TLS_SCACHE_DB
+extern char *var_tlsp_tls_scache_db;
+
+#define VAR_TLSP_TLS_SCACHTIME	"tlsproxy_tls_session_cache_timeout"
+#define DEF_TLSP_TLS_SCACHTIME	"$" VAR_SMTPD_TLS_SCACHTIME
+extern int var_tlsp_tls_scache_timeout;
+
+#define VAR_TLSP_TLS_SET_SESSID	"tlsproxy_tls_always_issue_session_ids"
+#define DEF_TLSP_TLS_SET_SESSID	"$" VAR_SMTPD_TLS_SET_SESSID
+extern bool var_tlsp_tls_set_sessid;
 
 /* LICENSE
 /* .ad

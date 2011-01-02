@@ -6,14 +6,14 @@
 /* SYNOPSIS
 /*	#include <postscreen.h>
 /*
-/*	void	ps_dnsbl_init(void)
+/*	void	psc_dnsbl_init(void)
 /*
-/*	int	ps_dnsbl_request(client_addr, callback, context)
+/*	int	psc_dnsbl_request(client_addr, callback, context)
 /*	char	*client_addr;
 /*	void	(*callback)(int, char *);
 /*	char	*context;
 /*
-/*	int	ps_dnsbl_retrieve(client_addr, dnsbl_name, dnsbl_index)
+/*	int	psc_dnsbl_retrieve(client_addr, dnsbl_name, dnsbl_index)
 /*	char	*client_addr;
 /*	const char **dnsbl_name;
 /*	int	dnsbl_index;
@@ -22,10 +22,10 @@
 /*	Multiple requests for the same information are handled with
 /*	reference counts.
 /*
-/*	ps_dnsbl_init() initializes this module, and must be called
+/*	psc_dnsbl_init() initializes this module, and must be called
 /*	once before any of the other functions in this module.
 /*
-/*	ps_dnsbl_request() requests a blocklist score for the
+/*	psc_dnsbl_request() requests a blocklist score for the
 /*	specified client IP address and increments the reference
 /*	count.  The request completes in the background. The client
 /*	IP address must be in inet_ntop(3) output format.  The
@@ -34,11 +34,11 @@
 /*	on to the callback function. The callback should ignore its
 /*	first argument (it exists for compatibility with Postfix
 /*	generic event infrastructure).
-/*	The result value is the index for the ps_dnsbl_retrieve()
+/*	The result value is the index for the psc_dnsbl_retrieve()
 /*	call.
 /*
-/*	ps_dnsbl_retrieve() retrieves the result score requested with
-/*	ps_dnsbl_request() and decrements the reference count. It
+/*	psc_dnsbl_retrieve() retrieves the result score requested with
+/*	psc_dnsbl_request() and decrements the reference count. It
 /*	is an error to retrieve a score without requesting it first.
 /* LICENSE
 /* .ad
@@ -103,15 +103,15 @@ static HTABLE_INFO **dnsbl_site_list;	/* flattened cache */
 
 typedef struct {
     const char *safe_dnsbl;		/* from postscreen_dnsbl_reply_map */
-    struct PS_DNSBL_SITE *first;	/* list of (filter, weight) tuples */
-} PS_DNSBL_HEAD;
+    struct PSC_DNSBL_SITE *first;	/* list of (filter, weight) tuples */
+} PSC_DNSBL_HEAD;
 
-typedef struct PS_DNSBL_SITE {
+typedef struct PSC_DNSBL_SITE {
     char   *filter;			/* printable filter (default: null) */
     char   *byte_codes;			/* encoded filter (default: null) */
     int     weight;			/* reply weight (default: 1) */
-    struct PS_DNSBL_SITE *next;		/* linked list */
-} PS_DNSBL_SITE;
+    struct PSC_DNSBL_SITE *next;	/* linked list */
+} PSC_DNSBL_SITE;
 
  /*
   * Per-client DNSBL scores.
@@ -132,7 +132,7 @@ static HTABLE *dnsbl_score_cache;	/* indexed by client address */
 typedef struct {
     void    (*callback) (int, char *);	/* generic call-back routine */
     char   *context;			/* generic call-back argument */
-} PS_CALL_BACK_ENTRY;
+} PSC_CALL_BACK_ENTRY;
 
 typedef struct {
     const char *dnsbl;			/* one contributing DNSBL */
@@ -142,18 +142,18 @@ typedef struct {
     /* Call-back table support. */
     int     index;			/* next table index */
     int     limit;			/* last valid index */
-    PS_CALL_BACK_ENTRY table[1];	/* actually a bunch */
-} PS_DNSBL_SCORE;
+    PSC_CALL_BACK_ENTRY table[1];	/* actually a bunch */
+} PSC_DNSBL_SCORE;
 
-#define PS_CALL_BACK_INIT(sp) do { \
+#define PSC_CALL_BACK_INIT(sp) do { \
 	(sp)->limit = 0; \
 	(sp)->index = 0; \
     } while (0)
 
-#define PS_CALL_BACK_INDEX_OF_LAST(sp) ((sp)->index - 1)
+#define PSC_CALL_BACK_INDEX_OF_LAST(sp) ((sp)->index - 1)
 
-#define PS_CALL_BACK_CANCEL(sp, idx) do { \
-	PS_CALL_BACK_ENTRY *_cb_; \
+#define PSC_CALL_BACK_CANCEL(sp, idx) do { \
+	PSC_CALL_BACK_ENTRY *_cb_; \
 	if ((idx) < 0 || (idx) >= (sp)->index) \
 	    msg_panic("%s: index %d must be >= 0 and < %d", \
 		      myname, (idx), (sp)->index); \
@@ -163,30 +163,30 @@ typedef struct {
 	_cb_->context = 0; \
     } while (0)
 
-#define PS_CALL_BACK_EXTEND(hp, sp) do { \
+#define PSC_CALL_BACK_EXTEND(hp, sp) do { \
 	if ((sp)->index >= (sp)->limit) { \
 	    int _count_ = ((sp)->limit ? (sp)->limit * 2 : 5); \
 	    (hp)->value = myrealloc((char *) (sp), sizeof(*(sp)) + \
 				    _count_ * sizeof((sp)->table)); \
-	    (sp) = (PS_DNSBL_SCORE *) (hp)->value; \
+	    (sp) = (PSC_DNSBL_SCORE *) (hp)->value; \
 	    (sp)->limit = _count_; \
 	} \
     } while (0)
 
-#define PS_CALL_BACK_ENTER(sp, fn, ctx) do { \
-	PS_CALL_BACK_ENTRY *_cb_ = (sp)->table + (sp)->index++; \
+#define PSC_CALL_BACK_ENTER(sp, fn, ctx) do { \
+	PSC_CALL_BACK_ENTRY *_cb_ = (sp)->table + (sp)->index++; \
 	_cb_->callback = (fn); \
 	_cb_->context = (ctx); \
     } while (0)
 
-#define PS_CALL_BACK_NOTIFY(sp, ev) do { \
-	PS_CALL_BACK_ENTRY *_cb_; \
+#define PSC_CALL_BACK_NOTIFY(sp, ev) do { \
+	PSC_CALL_BACK_ENTRY *_cb_; \
 	for (_cb_ = (sp)->table; _cb_ < (sp)->table + (sp)->index; _cb_++) \
 	    if (_cb_->callback != 0) \
 		_cb_->callback((ev), _cb_->context); \
     } while (0)
 
-#define PS_NULL_EVENT	(0)
+#define PSC_NULL_EVENT	(0)
 
  /*
   * Per-request state.
@@ -199,15 +199,15 @@ static VSTRING *reply_client;		/* client address in DNSBLOG reply */
 static VSTRING *reply_dnsbl;		/* domain in DNSBLOG reply */
 static VSTRING *reply_addr;		/* adress list in DNSBLOG reply */
 
-/* ps_dnsbl_add_site - add DNSBL site information */
+/* psc_dnsbl_add_site - add DNSBL site information */
 
-static void ps_dnsbl_add_site(const char *site)
+static void psc_dnsbl_add_site(const char *site)
 {
-    const char *myname = "ps_dnsbl_add_site";
+    const char *myname = "psc_dnsbl_add_site";
     char   *saved_site = mystrdup(site);
     VSTRING *byte_codes = 0;
-    PS_DNSBL_HEAD *head;
-    PS_DNSBL_SITE *new_site;
+    PSC_DNSBL_HEAD *head;
+    PSC_DNSBL_SITE *new_site;
     char    junk;
     const char *weight_text;
     char   *pattern_text;
@@ -248,13 +248,13 @@ static void ps_dnsbl_add_site(const char *site)
      * Look up or create the (filter, weight) list head for this DNSBL domain
      * name.
      */
-    if ((head = (PS_DNSBL_HEAD *)
+    if ((head = (PSC_DNSBL_HEAD *)
 	 htable_find(dnsbl_site_cache, saved_site)) == 0) {
-	head = (PS_DNSBL_HEAD *) mymalloc(sizeof(*head));
+	head = (PSC_DNSBL_HEAD *) mymalloc(sizeof(*head));
 	ht = htable_enter(dnsbl_site_cache, saved_site, (char *) head);
 	/* Translate the DNSBL name into a safe name if available. */
-	if (ps_dnsbl_reply == 0
-	  || (head->safe_dnsbl = dict_get(ps_dnsbl_reply, saved_site)) == 0)
+	if (psc_dnsbl_reply == 0
+	 || (head->safe_dnsbl = dict_get(psc_dnsbl_reply, saved_site)) == 0)
 	    head->safe_dnsbl = ht->key;
 	head->first = 0;
     }
@@ -263,7 +263,7 @@ static void ps_dnsbl_add_site(const char *site)
      * Append the new (filter, weight) node to the list for this DNSBL domain
      * name.
      */
-    new_site = (PS_DNSBL_SITE *) mymalloc(sizeof(*new_site));
+    new_site = (PSC_DNSBL_SITE *) mymalloc(sizeof(*new_site));
     new_site->filter = (pattern_text ? mystrdup(pattern_text) : 0);
     new_site->byte_codes = (byte_codes ? ip_match_save(byte_codes) : 0);
     new_site->weight = weight;
@@ -275,9 +275,9 @@ static void ps_dnsbl_add_site(const char *site)
 	vstring_free(byte_codes);
 }
 
-/* ps_dnsbl_match - match DNSBL reply filter */
+/* psc_dnsbl_match - match DNSBL reply filter */
 
-static int ps_dnsbl_match(const char *filter, ARGV *reply)
+static int psc_dnsbl_match(const char *filter, ARGV *reply)
 {
     char    addr_buf[MAI_HOSTADDR_STRSIZE];
     char  **cpp;
@@ -295,26 +295,26 @@ static int ps_dnsbl_match(const char *filter, ARGV *reply)
     return (0);
 }
 
-/* ps_dnsbl_retrieve - retrieve blocklist score, decrement reference count */
+/* psc_dnsbl_retrieve - retrieve blocklist score, decrement reference count */
 
-int     ps_dnsbl_retrieve(const char *client_addr, const char **dnsbl_name,
-			          int dnsbl_index)
+int     psc_dnsbl_retrieve(const char *client_addr, const char **dnsbl_name,
+			           int dnsbl_index)
 {
-    const char *myname = "ps_dnsbl_retrieve";
-    PS_DNSBL_SCORE *score;
+    const char *myname = "psc_dnsbl_retrieve";
+    PSC_DNSBL_SCORE *score;
     int     result_score;
 
     /*
      * Sanity check.
      */
-    if ((score = (PS_DNSBL_SCORE *)
+    if ((score = (PSC_DNSBL_SCORE *)
 	 htable_find(dnsbl_score_cache, client_addr)) == 0)
 	msg_panic("%s: no blocklist score for %s", myname, client_addr);
 
     /*
      * Disable callbacks.
      */
-    PS_CALL_BACK_CANCEL(score, dnsbl_index);
+    PSC_CALL_BACK_CANCEL(score, dnsbl_index);
 
     /*
      * Reads are destructive.
@@ -330,18 +330,18 @@ int     ps_dnsbl_retrieve(const char *client_addr, const char **dnsbl_name,
     return (result_score);
 }
 
-/* ps_dnsbl_receive - receive DNSBL reply, update blocklist score */
+/* psc_dnsbl_receive - receive DNSBL reply, update blocklist score */
 
-static void ps_dnsbl_receive(int event, char *context)
+static void psc_dnsbl_receive(int event, char *context)
 {
-    const char *myname = "ps_dnsbl_receive";
+    const char *myname = "psc_dnsbl_receive";
     VSTREAM *stream = (VSTREAM *) context;
-    PS_DNSBL_SCORE *score;
-    PS_DNSBL_HEAD *head;
-    PS_DNSBL_SITE *site;
+    PSC_DNSBL_SCORE *score;
+    PSC_DNSBL_HEAD *head;
+    PSC_DNSBL_SITE *site;
     ARGV   *reply_argv;
 
-    PS_CLEAR_EVENT_REQUEST(vstream_fileno(stream), ps_dnsbl_receive, context);
+    PSC_CLEAR_EVENT_REQUEST(vstream_fileno(stream), psc_dnsbl_receive, context);
 
     /*
      * Receive the DNSBL lookup result.
@@ -360,12 +360,12 @@ static void ps_dnsbl_receive(int event, char *context)
      */
     if (event == EVENT_READ
 	&& attr_scan(stream,
-		     ATTR_FLAG_MORE | ATTR_FLAG_STRICT,
+		     ATTR_FLAG_STRICT,
 		     ATTR_TYPE_STR, MAIL_ATTR_RBL_DOMAIN, reply_dnsbl,
 		     ATTR_TYPE_STR, MAIL_ATTR_ACT_CLIENT_ADDR, reply_client,
 		     ATTR_TYPE_STR, MAIL_ATTR_RBL_ADDR, reply_addr,
 		     ATTR_TYPE_END) == 3
-	&& (score = (PS_DNSBL_SCORE *)
+	&& (score = (PSC_DNSBL_SCORE *)
 	    htable_find(dnsbl_score_cache, STR(reply_client))) != 0) {
 
 	/*
@@ -380,12 +380,12 @@ static void ps_dnsbl_receive(int event, char *context)
 		     myname, STR(reply_client), score->total,
 		     STR(reply_dnsbl), STR(reply_addr));
 	if (*STR(reply_addr) != 0) {
-	    head = (PS_DNSBL_HEAD *)
+	    head = (PSC_DNSBL_HEAD *)
 		htable_find(dnsbl_site_cache, STR(reply_dnsbl));
-	    site = (head ? head->first : (PS_DNSBL_SITE *) 0);
+	    site = (head ? head->first : (PSC_DNSBL_SITE *) 0);
 	    for (reply_argv = 0; site != 0; site = site->next) {
 		if (site->byte_codes == 0
-		|| ps_dnsbl_match(site->byte_codes, reply_argv ? reply_argv :
+		    || psc_dnsbl_match(site->byte_codes, reply_argv ? reply_argv :
 			 (reply_argv = argv_split(STR(reply_addr), " ")))) {
 		    if (score->dnsbl == 0)
 			score->dnsbl = head->safe_dnsbl;
@@ -407,23 +407,23 @@ static void ps_dnsbl_receive(int event, char *context)
 	 */
 	score->pending_lookups -= 1;
 	if (score->pending_lookups == 0)
-	    PS_CALL_BACK_NOTIFY(score, PS_NULL_EVENT);
+	    PSC_CALL_BACK_NOTIFY(score, PSC_NULL_EVENT);
     }
     /* Here, score may be a null pointer. */
     vstream_fclose(stream);
 }
 
-/* ps_dnsbl_request  - send dnsbl query, increment reference count */
+/* psc_dnsbl_request  - send dnsbl query, increment reference count */
 
-int     ps_dnsbl_request(const char *client_addr,
-			         void (*callback) (int, char *),
-			         char *context)
+int     psc_dnsbl_request(const char *client_addr,
+			          void (*callback) (int, char *),
+			          char *context)
 {
-    const char *myname = "ps_dnsbl_request";
+    const char *myname = "psc_dnsbl_request";
     int     fd;
     VSTREAM *stream;
     HTABLE_INFO **ht;
-    PS_DNSBL_SCORE *score;
+    PSC_DNSBL_SCORE *score;
     HTABLE_INFO *hash_node;
 
     /*
@@ -441,35 +441,35 @@ int     ps_dnsbl_request(const char *client_addr,
      * a zero-delay timer request and call the notification function from
      * there.
      * 
-     * ps_dnsbl_request() could instead return a result value to indicate that
+     * psc_dnsbl_request() could instead return a result value to indicate that
      * the DNSBL score is already available, but that would complicate the
      * caller with two different notification code paths: one asynchronous
      * code path via the callback invocation, and one synchronous code path
-     * via the ps_dnsbl_request() result value. That would be a source of
+     * via the psc_dnsbl_request() result value. That would be a source of
      * future bugs.
      */
     if ((hash_node = htable_locate(dnsbl_score_cache, client_addr)) != 0) {
-	score = (PS_DNSBL_SCORE *) hash_node->value;
+	score = (PSC_DNSBL_SCORE *) hash_node->value;
 	score->refcount += 1;
-	PS_CALL_BACK_EXTEND(hash_node, score);
-	PS_CALL_BACK_ENTER(score, callback, context);
+	PSC_CALL_BACK_EXTEND(hash_node, score);
+	PSC_CALL_BACK_ENTER(score, callback, context);
 	if (msg_verbose > 1)
 	    msg_info("%s: reuse blocklist score for %s refcount=%d pending=%d",
 		     myname, client_addr, score->refcount,
 		     score->pending_lookups);
 	if (score->pending_lookups == 0)
 	    event_request_timer(callback, context, EVENT_NULL_DELAY);
-	return (PS_CALL_BACK_INDEX_OF_LAST(score));
+	return (PSC_CALL_BACK_INDEX_OF_LAST(score));
     }
     if (msg_verbose > 1)
 	msg_info("%s: create blocklist score for %s", myname, client_addr);
-    score = (PS_DNSBL_SCORE *) mymalloc(sizeof(*score));
+    score = (PSC_DNSBL_SCORE *) mymalloc(sizeof(*score));
     score->dnsbl = 0;
     score->total = 0;
     score->refcount = 1;
     score->pending_lookups = 0;
-    PS_CALL_BACK_INIT(score);
-    PS_CALL_BACK_ENTER(score, callback, context);
+    PSC_CALL_BACK_INIT(score);
+    PSC_CALL_BACK_ENTER(score, callback, context);
     (void) htable_enter(dnsbl_score_cache, client_addr, (char *) score);
 
     /*
@@ -493,19 +493,19 @@ int     ps_dnsbl_request(const char *client_addr,
 	    vstream_fclose(stream);
 	    continue;
 	}
-	PS_READ_EVENT_REQUEST(vstream_fileno(stream), ps_dnsbl_receive,
-			      (char *) stream, DNSBLOG_TIMEOUT);
+	PSC_READ_EVENT_REQUEST(vstream_fileno(stream), psc_dnsbl_receive,
+			       (char *) stream, DNSBLOG_TIMEOUT);
 	score->pending_lookups += 1;
     }
-    return (PS_CALL_BACK_INDEX_OF_LAST(score));
+    return (PSC_CALL_BACK_INDEX_OF_LAST(score));
 }
 
-/* ps_dnsbl_init - initialize */
+/* psc_dnsbl_init - initialize */
 
-void    ps_dnsbl_init(void)
+void    psc_dnsbl_init(void)
 {
-    const char *myname = "ps_dnsbl_init";
-    ARGV   *dnsbl_site = argv_split(var_ps_dnsbl_sites, ", \t\r\n");
+    const char *myname = "psc_dnsbl_init";
+    ARGV   *dnsbl_site = argv_split(var_psc_dnsbl_sites, ", \t\r\n");
     char  **cpp;
 
     /*
@@ -521,7 +521,7 @@ void    ps_dnsbl_init(void)
      */
     dnsbl_site_cache = htable_create(13);
     for (cpp = dnsbl_site->argv; *cpp; cpp++)
-	ps_dnsbl_add_site(*cpp);
+	psc_dnsbl_add_site(*cpp);
     argv_free(dnsbl_site);
     dnsbl_site_list = htable_list(dnsbl_site_cache);
 

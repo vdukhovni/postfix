@@ -3845,6 +3845,21 @@ Disable the SMTP VRFY command in the \fBpostscreen\fR(8) daemon.  See
 disable_vrfy_command for details.
 .PP
 This feature is available in Postfix 2.8.
+.SH postscreen_discard_ehlo_keyword_address_maps (default: $smtpd_discard_ehlo_keyword_address_maps)
+Lookup tables, indexed by the remote SMTP client address, with
+case insensitive lists of EHLO keywords (pipelining, starttls, auth,
+etc.) that the \fBpostscreen\fR(8) server will not send in the EHLO response
+to a remote SMTP client. See smtpd_discard_ehlo_keywords for details.
+The table is not searched by hostname for robustness reasons.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH postscreen_discard_ehlo_keywords (default: $smtpd_discard_ehlo_keywords)
+A case insensitive list of EHLO keywords (pipelining, starttls,
+auth, etc.) that the \fBpostscreen\fR(8) server will not send in the EHLO
+response to a remote SMTP client. See smtpd_discard_ehlo_keywords
+for details.
+.PP
+This feature is available in Postfix 2.8 and later.
 .SH postscreen_dnsbl_action (default: ignore)
 The action that \fBpostscreen\fR(8) takes when an SMTP client's combined
 DNSBL score is equal to or greater than a threshold (as defined
@@ -3972,6 +3987,13 @@ one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 .PP
 This feature is available in Postfix 2.8.
+.SH postscreen_enforce_tls (default: $smtpd_enforce_tls)
+Mandatory TLS: announce STARTTLS support to SMTP clients, and
+require that clients use TLS encryption.  See smtpd_postscreen_enforce_tls
+for details.
+.PP
+This feature is available in Postfix 2.8 and later.
+Preferably, use postscreen_tls_security_level instead.
 .SH postscreen_forbidden_commands (default: $smtpd_forbidden_commands)
 List of commands that the \fBpostscreen\fR(8) server considers in
 violation of the SMTP protocol. See smtpd_forbidden_commands for
@@ -4127,6 +4149,19 @@ process. When this queue is full, all non-whitelisted clients will
 receive a 421 reponse.
 .PP
 This feature is available in Postfix 2.8.
+.SH postscreen_tls_security_level (default: $smtpd_tls_security_level)
+The SMTP TLS security level for the \fBpostscreen\fR(8) server; when
+a non-empty value is specified, this overrides the obsolete parameters
+postscreen_use_tls and postscreen_enforce_tls. See smtpd_tls_security_level
+for details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH postscreen_use_tls (default: $smtpd_use_tls)
+Opportunistic TLS: announce STARTTLS support to SMTP clients,
+but do not require that clients use TLS encryption.
+.PP
+This feature is available in Postfix 2.8 and later.
+Preferably, use postscreen_tls_security_level instead.
 .SH postscreen_watchdog_timeout (default: 10s)
 How much time a \fBpostscreen\fR(8) process may take to respond to
 an SMTP client command or to perform a cache operation before it
@@ -8451,9 +8486,11 @@ delays all responses by $smtpd_error_sleep_time seconds.
 .IP \(bu
 With Postfix versions 2.0 and earlier, the Postfix SMTP
 server delays all responses by (number of errors) seconds.
-.SH smtpd_starttls_timeout (default: 300s)
+.SH smtpd_starttls_timeout (default: see "postconf -d" output)
 The time limit for Postfix SMTP server write and read operations
-during TLS startup and shutdown handshake procedures.
+during TLS startup and shutdown handshake procedures. The current
+default value is stress-dependent. Before Postfix version 2.8, it
+was fixed at 300s.
 .PP
 This feature is available in Postfix 2.2 and later.
 .SH smtpd_timeout (default: normal: 300s, overload: 10s)
@@ -9389,6 +9426,58 @@ bytes (equivalent to 256 bits) is sufficient to generate a 128bit
 (or 168bit) session key.
 .PP
 This feature is available in Postfix 2.2 and later.
+.SH tls_disable_workarounds (default: see "postconf -d" output)
+List or bit-mask of OpenSSL bug work-arounds to disable.
+.PP
+The OpenSSL toolkit includes a set of work-arounds for buggy SSL/TLS
+implementations. Applications, such as Postfix, that want to maximize
+interoperability ask the OpenSSL library to enable the full set of
+recommended work-arounds.
+.PP
+From time to time, it is discovered that a work-around creates a
+security issue, and should no longer be used. If upgrading OpenSSL
+to a fixed version is not an option or an upgrade is not available
+in a timely manner, or in closed environments where no buggy clients
+or servers exist, it may be appropriate to disable some or all of the
+OpenSSL interoperability work-arounds. This parameter specifies which
+bug work-arounds to disable.
+.PP
+If the value of the parameter is a hexadecimal long integer starting
+with "0x", the bug work-arounds corresponding to the bits specified in
+its value are removed from the \fBSSL_OP_ALL\fR work-around bit-mask
+(see openssl/ssl.h and SSL_CTX_\fBset_options\fR(3)). You can specify more
+bits than are present in SSL_OP_ALL, excess bits are ignored. Specifying
+0xFFFFFFFF disables all bug-workarounds on a 32-bit system. This should
+also be sufficient on 64-bit systems, until OpenSSL abandons support
+for 32-bit systems and starts using the high 32 bits of a 64-bit
+bug-workaround mask.
+.PP
+Otherwise, the parameter is a white-space or comma separated list
+of specific named bug work-arounds chosen from the list below. It
+is possible that your OpenSSL version includes new bug work-arounds
+added after your Postfix source code was last updated, in that case
+you can only disable one of these via the hexadecimal syntax above.
+.IP "\fBMICROSOFT_SESS_ID_BUG\fRSee SSL_CTX_\fBset_options\fR(3)"
+.IP "\fBNETSCAPE_CHALLENGE_BUG\fRSee SSL_CTX_\fBset_options\fR(3)"
+.IP "\fBLEGACY_SERVER_CONNECT\fRSee SSL_CTX_\fBset_options\fR(3)"
+.IP "\fBNETSCAPE_REUSE_CIPHER_CHANGE_BUG\fR also aliased as
+\fBCVE-2010-4180\fR. Postfix 2.8 disables this work-around by default
+with OpenSSL versions that may predate the fix. Fixed in OpenSSL 0.9.8q
+and OpenSSL 1.0.0c."
+.IP "\fBSSLREF2_REUSE_CERT_TYPE_BUG\fRSee SSL_CTX_\fBset_options\fR(3)"
+.IP "\fBMICROSOFT_BIG_SSLV3_BUFFER\fRSee SSL_CTX_\fBset_options\fR(3)"
+.IP "\fBMSIE_SSLV2_RSA_PADDING\fR also aliased as
+\fBCVE-2005-2969\fR. Postfix 2.8 disables this work-around by default
+with OpenSSL versions that may predate the fix. Fixed in OpenSSL 0.9.7h
+and OpenSSL 0.9.8a."
+.IP "\fBSSLEAY_080_CLIENT_DH_BUG\fRSee SSL_CTX_\fBset_options\fR(3)"
+.IP "\fBTLS_D5_BUG\fRSee SSL_CTX_\fBset_options\fR(3)"
+.IP "\fBTLS_BLOCK_PADDING_BUG\fRSee SSL_CTX_\fBset_options\fR(3)"
+.IP "\fBTLS_ROLLBACK_BUG\fRSee SSL_CTX_\fBset_options\fR(3). This is disabled
+in OpenSSL 0.9.7 and later. Nobody should still be using 0.9.6!"
+.IP "\fBDONT_INSERT_EMPTY_FRAGMENTS\fRSee SSL_CTX_\fBset_options\fR(3)"
+.IP "\fBCRYPTOPRO_TLSEXT_BUG\fRNew with GOST support in OpenSSL 1.0.0."
+This feature is available in Postfix 2.8 and later.
 .SH tls_eecdh_strong_curve (default: prime256v1)
 The elliptic curve used by the SMTP server for sensibly strong
 ephemeral ECDH key exchange. This curve is used by the Postfix SMTP
@@ -9484,6 +9573,25 @@ lmtp_tls_mandatory_ciphers.  You are strongly encouraged to not
 change this setting.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH tls_preempt_cipherlist (default: no)
+With SSLv3 and later, use the server's cipher preference order
+instead of the client's cipher preference order.
+.PP
+By default, the OpenSSL server selects the client's most preferred
+cipher that the server supports. With SSLv3 and later, the server may
+choose its own most preferred cipher that is supported (offered) by
+the client. Setting "tls_preempt_cipherlist = yes" enables server cipher
+preferences.
+.PP
+While server cipher selection may in some cases lead to a more secure
+or performant cipher choice, there is some risk of interoperability
+issues. In the past, some SSL clients have listed lower priority ciphers
+that they did not implement correctly. If the server chooses a cipher
+that the client prefers less, it may select a cipher whose client
+implementation is flawed.
+.PP
+This feature is available in Postfix 2.8 and later, in combination
+with OpenSSL 0.9.7 and later.
 .SH tls_random_bytes (default: 32)
 The number of bytes that \fBtlsmgr\fR(8) reads from $tls_random_source
 when (re)seeding the in-memory pseudo random number generator (PRNG)
@@ -9530,6 +9638,187 @@ Note: on OpenBSD systems specify /dev/arandom when /dev/urandom
 gives timeout errors.
 .PP
 This feature is available in Postfix 2.2 and later.
+.SH tlsproxy_enforce_tls (default: $smtpd_enforce_tls)
+Mandatory TLS: announce STARTTLS support to SMTP clients, and
+require that clients use TLS encryption. See smtpd_enforce_tls for
+further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_CAfile (default: $smtpd_tls_CAfile)
+A file containing (PEM format) CA certificates of root CAs
+trusted to sign either remote SMTP client certificates or intermediate
+CA certificates.  See smtpd_tls_CAfile for further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_CApath (default: $smtpd_tls_CApath)
+A directory containing (PEM format) CA certificates of root CAs
+trusted to sign either remote SMTP client certificates or intermediate
+CA certificates. See smtpd_tls_CApath for further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_always_issue_session_ids (default: $smtpd_tls_always_issue_session_ids)
+Force the Postfix \fBtlsproxy\fR(8) server to issue a TLS session id,
+even when TLS session caching is turned off. See
+smtpd_tls_always_issue_session_ids for further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_ask_ccert (default: $smtpd_tls_ask_ccert)
+Ask a remote SMTP client for a client certificate. See
+smtpd_tls_ask_ccert for further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_ccert_verifydepth (default: $smtpd_tls_ccert_verifydepth)
+The verification depth for remote SMTP client certificates. A
+depth of 1 is sufficient if the issuing CA is listed in a local CA
+file. See smtpd_tls_ccert_verifydepth for further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_cert_file (default: $smtpd_tls_cert_file)
+File with the Postfix \fBtlsproxy\fR(8) server RSA certificate in PEM
+format.  This file may also contain the Postfix \fBtlsproxy\fR(8) server
+private RSA key.  See smtpd_tls_cert_file for further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_ciphers (default: $smtpd_tls_ciphers)
+The minimum TLS cipher grade that the Postfix \fBtlsproxy\fR(8) server
+will use with opportunistic TLS encryption. See smtpd_tls_ciphers
+for further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_dcert_file (default: $smtpd_tls_dcert_file)
+File with the Postfix \fBtlsproxy\fR(8) server DSA certificate in PEM
+format.  This file may also contain the Postfix \fBtlsproxy\fR(8) server
+private DSA key.  See smtpd_tls_dcert_file for further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_dh1024_param_file (default: $smtpd_tls_dh1024_param_file)
+File with DH parameters that the Postfix \fBtlsproxy\fR(8) server
+should use with EDH ciphers. See smtpd_tls_dh1024_param_file for
+further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_dh512_param_file (default: $smtpd_tls_dh512_param_file)
+File with DH parameters that the Postfix \fBtlsproxy\fR(8) server
+should use with EDH ciphers. See smtpd_tls_dh512_param_file for
+further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_dkey_file (default: $smtpd_tls_dkey_file)
+File with the Postfix \fBtlsproxy\fR(8) server DSA private key in PEM
+format.  This file may be combined with the Postfix \fBtlsproxy\fR(8)
+server DSA certificate file specified with $smtpd_tls_dcert_file.
+See smtpd_tls_dkey_file for further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_eccert_file (default: $smtpd_tls_eccert_file)
+File with the Postfix \fBtlsproxy\fR(8) server ECDSA certificate in
+PEM format.  This file may also contain the Postfix \fBtlsproxy\fR(8)
+server private ECDSA key.  See smtpd_tls_eccert_file for further
+details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_eckey_file (default: $smtpd_tls_eckey_file)
+File with the Postfix \fBtlsproxy\fR(8) server ECDSA private key in
+PEM format.  This file may be combined with the Postfix \fBtlsproxy\fR(8)
+server ECDSA certificate file specified with $smtpd_tls_eccert_file.
+See smtpd_tls_eckey_file for further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_eecdh_grade (default: $smtpd_tls_eecdh_grade)
+The Postfix \fBtlsproxy\fR(8) server security grade for ephemeral
+elliptic-curve Diffie-Hellman (EECDH) key exchange. See
+smtpd_tls_eecdh_grade for further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_exclude_ciphers (default: $smtpd_tls_exclude_ciphers)
+List of ciphers or cipher types to exclude from the \fBtlsproxy\fR(8)
+server cipher list at all TLS security levels. See
+smtpd_tls_exclude_ciphers for further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_fingerprint_digest (default: $smtpd_tls_fingerprint_digest)
+The message digest algorithm used to construct client-certificate
+fingerprints. See smtpd_tls_fingerprint_digest for further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_key_file (default: $smtpd_tls_key_file)
+File with the Postfix \fBtlsproxy\fR(8) server RSA private key in PEM
+format.  This file may be combined with the Postfix \fBtlsproxy\fR(8)
+server RSA certificate file specified with $smtpd_tls_cert_file.
+See smtpd_tls_key_file for further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_loglevel (default: $smtpd_tls_loglevel)
+Enable additional Postfix \fBtlsproxy\fR(8) server logging of TLS
+activity.  Each logging level also includes the information that
+is logged at a lower logging level. See smtpd_tls_loglevel for
+further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_mandatory_ciphers (default: $smtpd_tls_mandatory_ciphers)
+The minimum TLS cipher grade that the Postfix \fBtlsproxy\fR(8) server
+will use with mandatory TLS encryption. See smtpd_tls_mandatory_ciphers
+for further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_mandatory_exclude_ciphers (default: $smtpd_tls_mandatory_exclude_ciphers)
+Additional list of ciphers or cipher types to exclude from the
+\fBtlsproxy\fR(8) server cipher list at mandatory TLS security levels.
+See smtpd_tls_mandatory_exclude_ciphers for further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_mandatory_protocols (default: $smtpd_tls_mandatory_protocols)
+The SSL/TLS protocols accepted by the Postfix \fBtlsproxy\fR(8) server
+with mandatory TLS encryption. If the list is empty, the server
+supports all available SSL/TLS protocol versions.  See
+smtpd_tls_mandatory_protocols for further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_protocols (default: $smtpd_tls_protocols)
+List of TLS protocols that the Postfix \fBtlsproxy\fR(8) server will
+exclude or include with opportunistic TLS encryption. See
+smtpd_tls_protocols for further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_req_ccert (default: $smtpd_tls_req_ccert)
+With mandatory TLS encryption, require a trusted remote SMTP
+client certificate in order to allow TLS connections to proceed.
+See smtpd_tls_req_ccert for further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_security_level (default: $smtpd_tls_security_level)
+The SMTP TLS security level for the Postfix \fBtlsproxy\fR(8) server;
+when a non-empty value is specified, this overrides the obsolete
+parameters smtpd_use_tls and smtpd_enforce_tls. See
+smtpd_tls_security_level for further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_session_cache_timeout (default: $smtpd_tls_session_cache_timeout)
+The expiration time of Postfix \fBtlsproxy\fR(8) server TLS session
+cache information. A cache cleanup is performed periodically every
+$smtpd_tls_session_cache_timeout seconds. See
+smtpd_tls_session_cache_timeout for further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_use_tls (default: $smtpd_use_tls)
+Opportunistic TLS: announce STARTTLS support to SMTP clients,
+but do not require that clients use TLS encryption. See smtpd_use_tls
+for further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_watchdog_timeout (default: 10s)
+How much time a \fBtlsproxy\fR(8) process may take to process local
+or remote I/O before it is terminated by a built-in watchdog timer.
+This is a safety mechanism that prevents \fBtlsproxy\fR(8) from becoming
+non-responsive due to a bug in Postfix itself or in system software.
+To avoid false alarms and unnecessary cache corruption this limit
+cannot be set under 10s.
+.PP
+Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+.PP
+This feature is available in Postfix 2.8.
 .SH trace_service_name (default: trace)
 The name of the trace service. This service is implemented by the
 \fBbounce\fR(8) daemon and maintains a record

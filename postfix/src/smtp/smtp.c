@@ -413,6 +413,10 @@
 /*	Try to detect a mail hijacking attack based on a TLS protocol
 /*	vulnerability (CVE-2009-3555), where an attacker prepends malicious
 /*	HELO, MAIL, RCPT, DATA commands to a Postfix SMTP client TLS session.
+/* .PP
+/*	Available in Postfix version 2.8 and later:
+/* .IP "\fBtls_disable_workarounds (see 'postconf -d' output)\fR"
+/*	List or bit-mask of OpenSSL bug work-arounds to disable.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -965,7 +969,7 @@ static void post_init(char *unused_name, char **unused_argv)
      * Select DNS query flags.
      */
     smtp_dns_res_opt = name_mask(VAR_SMTP_DNS_RES_OPT, dns_res_opt_masks,
-				var_smtp_dns_res_opt);
+				 var_smtp_dns_res_opt);
 }
 
 /* pre_init - pre-jail initialization */

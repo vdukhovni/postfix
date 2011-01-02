@@ -443,6 +443,10 @@ Available in Postfix version 2.7 and later:
 Try to detect a mail hijacking attack based on a TLS protocol
 vulnerability (CVE-2009-3555), where an attacker prepends malicious
 HELO, MAIL, RCPT, DATA commands to a Postfix SMTP client TLS session.
+.PP
+Available in Postfix version 2.8 and later:
+.IP "\fBtls_disable_workarounds (see 'postconf -d' output)\fR"
+List or bit-mask of OpenSSL bug work-arounds to disable.
 .SH "OBSOLETE STARTTLS CONTROLS"
 .na
 .nf

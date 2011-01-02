@@ -15666,7 +15666,7 @@ Apologies for any names omitted.
 	2821 (and 5321) is vague about the VRFY request format, but
 	spends lots of text on the reply format.  File: smtpd/smtpd.c.
 
-20010117
+20100117
 
 	Cleanup: when a content_filter parameter or FILTER command
 	specifies an empty next-hop destination, the queue manager
@@ -16263,3 +16263,79 @@ Apologies for any names omitted.
 	This change eliminates an obscure bug where the SMTP server
 	would wait for another $smtpd_timeout seconds after sending
 	the "421 Error: timeout exceeded" message to the client.
+
+20101221
+
+	Cleanup: simplified the VSTREAM "large buffer" support by
+	dropping the Postfix 2.4 "binary compatibility" requirement.
+	Files: util/vstream.c, util/vstream.h.
+
+20101222
+
+	Cleanup: the SMTP client PIPELINING code did not account
+	for TLS protocol overhead. This could (only in theory)
+	result in deadlock when the remote SMTP server announces a
+	very small receive window after the client and server have
+	synchronized their SMTP state. Victor Duchovni.  File:
+	smtp/smtp_proto.c.
+
+20101223
+
+	Feature: with "tls_preempt_cipherlist = yes" the Postfix
+	SMTP server will preempt the remote SMTP client's cipher
+	preference order. This requires OpenSSL 0.9.7 and later.
+	Victor Duchovni. Files: src/smtpd/smtpd.c, src/tls/tls_server.c,
+	proto/TLS_README.html, proto/postconf.proto.
+
+	Future proofing: specify "tls_disable_workarounds = a list
+	or bit-mask of OpenSSL bug work-arounds to disable". This
+	may become necessary when a bug workaround is found to cause
+	problems (security or interoperability). Victor Duchovni.
+	Files: tls/tls_misc.c, proto/TLS_README.html, proto/postconf.proto.
+
+	Infrastructure: extended name_mask module feature set with
+	extensive documentation and 32-bit regression tests.  Victor
+	and Wietse.  File: util/name_mask.[hc].
+
+20101224
+
+	Cleanup: sanitized the name_mask API so that errors will be
+	ignored only upon explicit request. Files: util/name_mask.[hc],
+	src/global/ehlo_mask.c, src/smtp/smtp_proto.c,
+	src/util/name_mask.c, src/xsasl/xsasl_dovecot_server.c.
+
+	Cleanup: more TLS overhead horrors for the SMTP client's
+	PIPELINING engine. Wietse and Victor. File: smtp/smtp_proto.c.
+
+20101226
+
+	Cleanup: the SMTP client logic for pipelining the "." and
+	"QUIT" commands was bogus - the pipelining engine could not
+	know how much unacknowledged data is pending in the local
+	TCP stack.  We now ignore the buffer check for sending
+	"QUIT" after ".".  Wietse and Victor. File: smtp/smtp_proto.c.
+
+20110101
+
+	Cleanup: the Postfix SMTP server now always refreshes the
+	SASL authentication mechanism list after STARTTLS. Some
+	Dovecot versions may change their responses when they know
+	that the SMTP connection is encrypted. File: smtpd/smtpd.c.
+
+	Cleanup: the smtpd_starttls_timeout default value is now
+	stress-dependent.  Files: global/mail_params.h,
+	proto/postconf.proto.
+
+20110102
+
+	Feature: STARTTLS support for the postscreen(8) daemon.
+	With early testing feedback from Victor Duchovni and Ralf
+	Hildebrandt.  Files: postscreen/postscreen_smtpd,
+	postscreen/postscreen_starttls.c.
+
+	Feature: event-driven tlsproxy(8) daemon that translates
+	TLS <=> plaintext for postscreen(8). One tlsproxy(8) process
+	can translate traffic for multiple remote SMTP clients.
+	With early testing feedback from Victor Duchovni and Christian
+	Roessner.  Files: util/nbbio.c, tlsproxy/starttlsd.c,
+	tlsproxy/starttlsd_state.c.

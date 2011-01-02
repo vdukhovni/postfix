@@ -12,6 +12,9 @@
 /*	TLS_SESS_STATE *tls_server_start(props)
 /*	const TLS_SERVER_START_PROPS *props;
 /*
+/*	TLS_SESS_STATE *tls_server_post_accept(TLScontext)
+/*	TLS_SESS_STATE *TLScontext;
+/*
 /*	void	tls_server_stop(app_ctx, stream, failure, TLScontext)
 /*	TLS_APPL_STATE *app_ctx;
 /*	VSTREAM	*stream;
@@ -21,6 +24,9 @@
 /*	This module is the interface between Postfix TLS servers,
 /*	the OpenSSL library, and the TLS entropy and cache manager.
 /*
+/*	See "EVENT_DRIVEN APPLICATIONS" below for using this code
+/*	in event-driven programs.
+/*
 /*	tls_server_init() is called once when the SMTP server
 /*	initializes.
 /*	Certificate details are also decided during this phase,
@@ -28,7 +34,7 @@
 /*
 /*	tls_server_start() activates the TLS feature for the VSTREAM
 /*	passed as argument. We assume that network buffers are flushed
-/*	and the TLS handshake can begin	immediately.
+/*	and the TLS handshake can begin	immediately. 
 /*
 /*	tls_server_stop() sends the "close notify" alert via
 /*	SSL_shutdown() to the peer and resets all connection specific
@@ -69,6 +75,29 @@
 /*	certificate is available.
 /* .PP
 /*	If no peer certificate is presented the peer_status is set to 0.
+/* EVENT_DRIVEN APPLICATIONS
+/* .ad
+/* .fi
+/*	Event-driven programs manage multiple I/O channels.  Such
+/*	programs cannot use the synchronous VSTREAM-over-TLS
+/*	implementation that the current TLS library provides,
+/*	including tls_server_stop() and the underlying tls_stream(3)
+/*	and tls_bio_ops(3) routines. 
+/*
+/*	With the current TLS library implementation, this means
+/*	that the application is responsible for calling and retrying
+/*	SSL_accept(), SSL_read(), SSL_write() and SSL_shutdown().
+/*
+/*	To maintain control over TLS I/O, an event-driven server
+/*	invokes tls_server_start() with a null VSTREAM argument.
+/*	Then, tls_server_start() performs all the necessary
+/*	preparations before the TLS handshake and returns a partially
+/*	populated TLS context. The event-driven application is then
+/*	responsible for invoking SSL_accept(), and if successful,
+/*	for invoking tls_server_post_accept() to finish the work
+/*	that was started by tls_server_start(). In case of unrecoverable
+/*	failure, tls_server_post_accept() destroys the TLS context
+/*	and returns a null pointer value.
 /* LICENSE
 /* .ad
 /* .fi
@@ -370,6 +399,21 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
 		 | ((protomask & TLS_PROTOCOL_SSLv3) ? SSL_OP_NO_SSLv3 : 0L)
 	       | ((protomask & TLS_PROTOCOL_SSLv2) ? SSL_OP_NO_SSLv2 : 0L));
 
+#if OPENSSL_VERSION_NUMBER >= 0x0090700fL
+
+    /*
+     * Some sites may want to give the client less rope. On the other hand,
+     * this could trigger inter-operability issues, the client should not
+     * offer ciphers it implements poorly, but this hasn't stopped some
+     * vendors from getting it wrong.
+     * 
+     * XXX: Given OpenSSL's security history, nobody should still be using
+     * 0.9.7, let alone 0.9.6 or earlier. Warning added to TLS_README.html.
+     */
+    if (var_tls_preempt_clist)
+	SSL_CTX_set_options(server_ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
+#endif
+
     /*
      * Set the call-back routine to debug handshake progress.
      */
@@ -555,9 +599,6 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
 {
     int     sts;
     TLS_SESS_STATE *TLScontext;
-    const SSL_CIPHER *cipher;
-    X509   *peer;
-    char    buf[CCERT_BUFSIZ];
     const char *cipher_list;
     TLS_APPL_STATE *app_ctx = props->ctx;
 
@@ -584,6 +625,9 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
 
     TLScontext->serverid = mystrdup(props->serverid);
     TLScontext->am_server = 1;
+
+    TLScontext->fpt_dgst = mystrdup(props->fpt_dgst);
+    TLScontext->stream = props->stream;
 
     ERR_clear_error();
     if ((TLScontext->con = (SSL *) SSL_new(app_ctx->ssl_ctx)) == 0) {
@@ -614,10 +658,28 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
     SSL_set_accept_state(TLScontext->con);
 
     /*
+     * If the debug level selected is high enough, all of the data is dumped:
+     * 3 will dump the SSL negotiation, 4 will dump everything.
+     * 
+     * We do have an SSL_set_fd() and now suddenly a BIO_ routine is called?
+     * Well there is a BIO below the SSL routines that is automatically
+     * created for us, so we can use it for debugging purposes.
+     */
+    if (props->log_level >= 3)
+	BIO_set_callback(SSL_get_rbio(TLScontext->con), tls_bio_dump_cb);
+
+    /*
+     * If we don't trigger the handshake in the library, leave control over
+     * SSL_accept/read/write/etc with the application.
+     */
+    if (props->stream == 0)
+	return (TLScontext);
+
+    /*
      * Connect the SSL connection with the network socket.
      */
     if (SSL_set_fd(TLScontext->con, vstream_fileno(props->stream)) != 1) {
-	msg_info("SSL_set_fd error to %s: %d", props->namaddr, sts);
+	msg_info("SSL_set_fd error to %s", props->namaddr);
 	tls_print_errors();
 	uncache_session(app_ctx->ssl_ctx, TLScontext);
 	tls_free_context(TLScontext);
@@ -629,17 +691,6 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
      * I/O.
      */
     non_blocking(vstream_fileno(props->stream), NON_BLOCKING);
-
-    /*
-     * If the debug level selected is high enough, all of the data is dumped:
-     * 3 will dump the SSL negotiation, 4 will dump everything.
-     * 
-     * We do have an SSL_set_fd() and now suddenly a BIO_ routine is called?
-     * Well there is a BIO below the SSL routines that is automatically
-     * created for us, so we can use it for debugging purposes.
-     */
-    if (props->log_level >= 3)
-	BIO_set_callback(SSL_get_rbio(TLScontext->con), tls_bio_dump_cb);
 
     /*
      * Start TLS negotiations. This process is a black box that invokes our
@@ -656,8 +707,19 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
 	tls_free_context(TLScontext);
 	return (0);
     }
+    return (tls_server_post_accept(TLScontext));
+}
+
+/* tls_server_post_accept - post-handshake processing */
+
+TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *TLScontext)
+{
+    const SSL_CIPHER *cipher;
+    X509   *peer;
+    char    buf[CCERT_BUFSIZ];
+
     /* Only loglevel==4 dumps everything */
-    if (props->log_level < 4)
+    if (TLScontext->log_level < 4)
 	BIO_set_callback(SSL_get_rbio(TLScontext->con), 0);
 
     /*
@@ -678,7 +740,7 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
 	if (SSL_get_verify_result(TLScontext->con) == X509_V_OK)
 	    TLScontext->peer_status |= TLS_CERT_FLAG_TRUSTED;
 
-	if (props->log_level >= 2) {
+	if (TLScontext->log_level >= 2) {
 	    X509_NAME_oneline(X509_get_subject_name(peer),
 			      buf, sizeof(buf));
 	    msg_info("subject=%s", buf);
@@ -688,11 +750,12 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
 	}
 	TLScontext->peer_CN = tls_peer_CN(peer, TLScontext);
 	TLScontext->issuer_CN = tls_issuer_CN(peer, TLScontext);
-	TLScontext->peer_fingerprint = tls_fingerprint(peer, props->fpt_dgst);
+	TLScontext->peer_fingerprint =
+	    tls_fingerprint(peer, TLScontext->fpt_dgst);
 
-	if (props->log_level >= 1) {
+	if (TLScontext->log_level >= 1) {
 	    msg_info("%s: %s: subject_CN=%s, issuer=%s, fingerprint=%s",
-		     props->namaddr,
+		     TLScontext->namaddr,
 		  TLS_CERT_IS_TRUSTED(TLScontext) ? "Trusted" : "Untrusted",
 		     TLScontext->peer_CN, TLScontext->issuer_CN,
 		     TLScontext->peer_fingerprint);
@@ -714,19 +777,22 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
 					     &(TLScontext->cipher_algbits));
 
     /*
-     * The TLS engine is active. Switch to the tls_timed_read/write()
-     * functions and make the TLScontext available to those functions.
+     * If the library triggered the SSL handshake, switch to the
+     * tls_timed_read/write() functions and make the TLScontext available to
+     * those functions. Otherwise, leave control over SSL_read/write/etc.
+     * with the application.
      */
-    tls_stream_start(props->stream, TLScontext);
+    if (TLScontext->stream != 0)
+	tls_stream_start(TLScontext->stream, TLScontext);
 
     /*
      * All the key facts in a single log entry.
      */
-    if (props->log_level >= 1)
+    if (TLScontext->log_level >= 1)
 	msg_info("%s TLS connection established from %s: %s with cipher %s "
 	      "(%d/%d bits)", !TLS_CERT_IS_PRESENT(TLScontext) ? "Anonymous"
 		 : TLS_CERT_IS_TRUSTED(TLScontext) ? "Trusted" : "Untrusted",
-	      props->namaddr, TLScontext->protocol, TLScontext->cipher_name,
+	 TLScontext->namaddr, TLScontext->protocol, TLScontext->cipher_name,
 		 TLScontext->cipher_usebits, TLScontext->cipher_algbits);
 
     tls_int_seed();

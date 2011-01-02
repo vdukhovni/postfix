@@ -323,7 +323,8 @@ static int xsasl_dovecot_server_connect(XSASL_DOVECOT_SERVER_IMPL *xp)
 		sec_props =
 		    name_mask_delim_opt(myname,
 					xsasl_dovecot_serv_sec_props,
-					line, "\t", NAME_MASK_ANY_CASE);
+					line, "\t",
+				     NAME_MASK_ANY_CASE | NAME_MASK_IGNORE);
 		if ((sec_props & SEC_PROPS_PRIVATE) != 0)
 		    continue;
 	    } else

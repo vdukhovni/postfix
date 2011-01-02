@@ -274,8 +274,6 @@ int     smtp_helo(SMTP_STATE *state)
 	XFORWARD_DOMAIN, SMTP_FEATURE_XFORWARD_DOMAIN,
 	0, 0,
     };
-    SOCKOPT_SIZE optlen;
-    int     sndbufsize;
     const char *ehlo_words;
     int     discard_mask;
     static const NAME_MASK pix_bug_table[] = {
@@ -354,7 +352,8 @@ int     smtp_helo(SMTP_STATE *state)
 	    }
 	    if (*pix_bug_words) {
 		pix_bug_mask = name_mask_opt(pix_bug_source, pix_bug_table,
-					 pix_bug_words, NAME_MASK_ANY_CASE);
+					     pix_bug_words,
+				     NAME_MASK_ANY_CASE | NAME_MASK_IGNORE);
 		msg_info("%s: enabling PIX workarounds: %s for %s",
 			 request->queue_id,
 			 str_name_mask("pix workaround bitmask",
@@ -560,27 +559,64 @@ int     smtp_helo(SMTP_STATE *state)
      * XXX No need to do this before and after STARTTLS, but it's not a big deal
      * if we do.
      * 
-     * XXX This critically depends on VSTREAM buffers to never be smaller than
-     * VSTREAM_BUFSIZE.
+     * XXX When TLS is turned on, the SMTP-level writes will be encapsulated as
+     * TLS messages. Thus, the TCP-level payload will be larger than the
+     * SMTP-level payload. This has implications for the PIPELINING engine.
+     * 
+     * To avoid deadlock, the PIPELINING engine needs to request a TCP send
+     * buffer size that can hold the unacknowledged commands plus the TLS
+     * encapsulation overhead.
+     * 
+     * The PIPELINING engine keeps the unacknowledged command size <= the
+     * default VSTREAM buffer size (to avoid small-write performance issues
+     * when the VSTREAM buffer size is at its default size). With a default
+     * VSTREAM buffer size of 4096 there is no reason to increase the
+     * unacknowledged command size as the TCP MSS increases. It's safer to
+     * spread the remote SMTP server's recipient processing load over time,
+     * than dumping a very large recipient list all at once.
+     * 
+     * For TLS encapsulation overhead we make a conservative guess: take the
+     * current protocol overhead of ~40 bytes, double the number for future
+     * proofing (~80 bytes), then round up the result to the nearest power of
+     * 2 (128 bytes). Plus, be prepared for worst-case compression that
+     * expands data by 1 kbyte, so that the worst-case SMTP payload per TLS
+     * message becomes 15 kbytes.
      */
+#define PIPELINING_BUFSIZE	VSTREAM_BUFSIZE
+#ifdef USE_TLS
+#define TLS_WORST_PAYLOAD	16384
+#define TLS_WORST_COMP_OVERHD	1024
+#define TLS_WORST_PROTO_OVERHD	128
+#define TLS_WORST_SMTP_PAYLOAD	(TLS_WORST_PAYLOAD - TLS_WORST_COMP_OVERHD)
+#define TLS_WORST_TOTAL_OVERHD	(TLS_WORST_COMP_OVERHD + TLS_WORST_PROTO_OVERHD)
+#endif
+
     if (session->features & SMTP_FEATURE_PIPELINING) {
-	optlen = sizeof(sndbufsize);
+	SOCKOPT_SIZE optlen;
+	int     tcp_bufsize;
+	int     enc_overhead = 0;
+
+	optlen = sizeof(tcp_bufsize);
 	if (getsockopt(vstream_fileno(session->stream), SOL_SOCKET,
-		       SO_SNDBUF, (char *) &sndbufsize, &optlen) < 0)
+		       SO_SNDBUF, (char *) &tcp_bufsize, &optlen) < 0)
 	    msg_fatal("%s: getsockopt: %m", myname);
-	if (sndbufsize > VSTREAM_BUFSIZE)
-	    sndbufsize = VSTREAM_BUFSIZE;
-	if (sndbufsize < VSTREAM_BUFSIZE) {
-	    sndbufsize = VSTREAM_BUFSIZE;
+#ifdef USE_TLS
+	if (state->misc_flags & SMTP_MISC_FLAG_IN_STARTTLS)
+	    enc_overhead +=
+		(1 + (PIPELINING_BUFSIZE - 1)
+		 / TLS_WORST_SMTP_PAYLOAD) * TLS_WORST_TOTAL_OVERHD;
+#endif
+	if (tcp_bufsize < PIPELINING_BUFSIZE + enc_overhead) {
+	    tcp_bufsize = PIPELINING_BUFSIZE + enc_overhead;
 	    if (setsockopt(vstream_fileno(session->stream), SOL_SOCKET,
-			   SO_SNDBUF, (char *) &sndbufsize, optlen) < 0)
+			   SO_SNDBUF, (char *) &tcp_bufsize, optlen) < 0)
 		msg_fatal("%s: setsockopt: %m", myname);
 	}
 	if (msg_verbose)
-	    msg_info("Using %s PIPELINING, TCP send buffer size is %d",
-		     (state->misc_flags &
-		      SMTP_MISC_FLAG_USE_LMTP) ? "LMTP" : "ESMTP",
-		     sndbufsize);
+	    msg_info("Using %s PIPELINING, TCP send buffer size is %d, "
+		     "PIPELINING buffer size is %d", (state->misc_flags &
+				SMTP_MISC_FLAG_USE_LMTP) ? "LMTP" : "ESMTP",
+		     tcp_bufsize, PIPELINING_BUFSIZE);
     }
 #ifdef USE_TLS
 
@@ -1470,13 +1506,32 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	 * Flush unsent output if command pipelining is off or if no I/O
 	 * happened for a while. This limits the accumulation of client-side
 	 * delays in pipelined sessions.
+	 * 
+	 * The PIPELINING engine will flush the VSTREAM buffer if the sender
+	 * could otherwise produce more output than fits the PIPELINING
+	 * buffer. This generally works because we know exactly how much
+	 * output we produced since the last time that the sender and
+	 * receiver synchronized the SMTP state. However this logic is not
+	 * applicable after the sender enters the DATA phase, where it does
+	 * not synchronize with the receiver until the <CR><LF>.<CR><LF>.
+	 * Thus, the PIPELINING engine no longer knows how much data is
+	 * pending in the TCP send buffer. For this reason, if PIPELINING is
+	 * enabled, we always pipeline QUIT after <CR><LF>.<CR><LF>. This is
+	 * safe because once the receiver reads <CR><LF>.<CR><LF>, its TCP
+	 * stack either has already received the QUIT<CR><LF>, or else it
+	 * acknowledges all bytes up to and including <CR><LF>.<CR><LF>,
+	 * making room in the sender's TCP stack for QUIT<CR><LF>.
 	 */
+#define CHECK_PIPELINING_BUFSIZE \
+	(recv_state != SMTP_STATE_DOT || send_state != SMTP_STATE_QUIT)
+
 	if (SENDER_IN_WAIT_STATE
 	    || (SENDER_IS_AHEAD
 		&& ((session->features & SMTP_FEATURE_PIPELINING) == 0
-		    || (VSTRING_LEN(next_command) + 2
+		    || (CHECK_PIPELINING_BUFSIZE
+			&& (VSTRING_LEN(next_command) + 2
 		    + vstream_bufstat(session->stream, VSTREAM_BST_OUT_PEND)
-			> VSTREAM_BUFSIZE)
+			    > PIPELINING_BUFSIZE))
 		    || time((time_t *) 0)
 		    - vstream_ftime(session->stream) > 10))) {
 	    while (SENDER_IS_AHEAD) {

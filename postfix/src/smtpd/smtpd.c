@@ -419,6 +419,13 @@
 /* .IP "\fBtls_eecdh_ultra_curve (secp384r1)\fR"
 /*	The elliptic curve used by the SMTP server for maximally strong
 /*	ephemeral ECDH key exchange.
+/* .PP
+/*	Available in Postfix version 2.8 and later:
+/* .IP "\fBtls_preempt_cipherlist (no)\fR"
+/*	With SSLv3 and later, use the server's cipher preference order
+/*	instead of the client's cipher preference order.
+/* .IP "\fBtls_disable_workarounds (see 'postconf -d' output)\fR"
+/*	List or bit-mask of OpenSSL bug work-arounds to disable.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -4046,12 +4053,14 @@ static void smtpd_start_tls(SMTPD_STATE *state)
     /*
      * When TLS is turned on, we may offer AUTH methods that would not be
      * offered within a plain-text session.
+     * 
+     * XXX Always refresh SASL the mechanism list after STARTTLS. Dovecot
+     * responses may depend on whether the SMTP connection is encrypted.
      */
 #ifdef USE_SASL_AUTH
     if (var_smtpd_sasl_enable) {
 	/* Non-wrappermode, presumably. */
-	if (smtpd_sasl_is_active(state)
-	    && strcmp(var_smtpd_sasl_opts, var_smtpd_sasl_tls_opts) != 0) {
+	if (smtpd_sasl_is_active(state)) {
 	    smtpd_sasl_auth_reset(state);
 	    smtpd_sasl_deactivate(state);
 	}

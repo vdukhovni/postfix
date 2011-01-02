@@ -19,8 +19,10 @@
  /*
   * External interface.
   */
-typedef void (*EVENT_NOTIFY_RDWR_FN) (int, char *);
-typedef void (*EVENT_NOTIFY_TIME_FN) (int, char *);
+typedef void (*EVENT_NOTIFY_FN) (int, char *);
+
+#define EVENT_NOTIFY_TIME_FN EVENT_NOTIFY_FN	/* legacy */
+#define EVENT_NOTIFY_RDWR_FN EVENT_NOTIFY_FN	/* legacy */
 
 extern time_t event_time(void);
 extern void event_enable_read(int, EVENT_NOTIFY_RDWR_FN, char *);

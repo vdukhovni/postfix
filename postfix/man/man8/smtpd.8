@@ -451,6 +451,13 @@ ephemeral ECDH key exchange.
 .IP "\fBtls_eecdh_ultra_curve (secp384r1)\fR"
 The elliptic curve used by the SMTP server for maximally strong
 ephemeral ECDH key exchange.
+.PP
+Available in Postfix version 2.8 and later:
+.IP "\fBtls_preempt_cipherlist (no)\fR"
+With SSLv3 and later, use the server's cipher preference order
+instead of the client's cipher preference order.
+.IP "\fBtls_disable_workarounds (see 'postconf -d' output)\fR"
+List or bit-mask of OpenSSL bug work-arounds to disable.
 .SH "OBSOLETE STARTTLS CONTROLS"
 .na
 .nf

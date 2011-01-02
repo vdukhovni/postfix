@@ -6,31 +6,31 @@
 /* SYNOPSIS
 /*	#include <postscreen.h>
 /*
-/*	char	*ps_format_delta_time(buf, tv, delta)
+/*	char	*psc_format_delta_time(buf, tv, delta)
 /*	VSTRING	*buf;
 /*	struct timeval tv;
 /*	DELTA_TIME *delta;
 /*
-/*	void	ps_conclude(state)
-/*	PS_STATE *state;
+/*	void	psc_conclude(state)
+/*	PSC_STATE *state;
 /*
-/*	void	ps_hangup_event(state)
-/*	PS_STATE *state;
+/*	void	psc_hangup_event(state)
+/*	PSC_STATE *state;
 /* DESCRIPTION
-/*	ps_format_delta_time() computes the time difference between
+/*	psc_format_delta_time() computes the time difference between
 /*	tv (past) and the present, formats the time difference with
 /*	sub-second resolution in a human-readable way, and returns
 /*	the integer time difference in seconds through the delta
 /*	argument.
 /*
-/*	ps_conclude() logs when a client passes all necessary tests,
+/*	psc_conclude() logs when a client passes all necessary tests,
 /*	updates the postscreen cache for any testes that were passed,
 /*	and either forwards the connection to a real SMTP server or
 /*	replies with the text in state->error_reply and hangs up the
 /*	connection (by default, state->error_reply is set to a
 /*	default 421 reply).
 /*
-/*	ps_hangup_event() cleans up after a client connection breaks
+/*	psc_hangup_event() cleans up after a client connection breaks
 /*	unexpectedly. If logs the test where the break happened,
 /*	and how much time as spent in that test before the connection
 /*	broke.
@@ -64,30 +64,31 @@
 
 #include <postscreen.h>
 
-/* ps_format_delta_time - pretty-formatted delta time */
+/* psc_format_delta_time - pretty-formatted delta time */
 
-char   *ps_format_delta_time(VSTRING *buf, struct timeval tv, DELTA_TIME *delta)
+char   *psc_format_delta_time(VSTRING *buf, struct timeval tv,
+			              DELTA_TIME *delta)
 {
     DELTA_TIME pdelay;
     struct timeval now;
 
     GETTIMEOFDAY(&now);
-    PS_CALC_DELTA(pdelay, now, tv);
+    PSC_CALC_DELTA(pdelay, now, tv);
     VSTRING_RESET(buf);
     format_tv(buf, pdelay.dt_sec, pdelay.dt_usec, SIG_DIGS, var_delay_max_res);
     *delta = pdelay;
     return (STR(buf));
 }
 
-/* ps_conclude - bring this session to a conclusion */
+/* psc_conclude - bring this session to a conclusion */
 
-void    ps_conclude(PS_STATE *state)
+void    psc_conclude(PSC_STATE *state)
 {
-    const char *myname = "ps_conclude";
+    const char *myname = "psc_conclude";
 
     if (msg_verbose)
 	msg_info("flags for %s: %s",
-		 myname, ps_print_state_flags(state->flags, myname));
+		 myname, psc_print_state_flags(state->flags, myname));
 
     /*
      * Handle clients that passed at least one test other than permanent
@@ -95,45 +96,45 @@ void    ps_conclude(PS_STATE *state)
      * blacklisting. There may still be unfinished tests; those tests will
      * need to be completed when the client returns in a later session.
      */
-    if (state->flags & PS_STATE_MASK_ANY_FAIL)
-	state->flags &= ~PS_STATE_MASK_ANY_PASS;
+    if (state->flags & PSC_STATE_MASK_ANY_FAIL)
+	state->flags &= ~PSC_STATE_MASK_ANY_PASS;
 
     /*
      * Log our final blessing when all unfinished tests were completed.
      */
-    if ((state->flags & PS_STATE_MASK_ANY_PASS) != 0
-	&& (state->flags & PS_STATE_MASK_ANY_PASS) ==
-	PS_STATE_FLAGS_TODO_TO_PASS(state->flags & PS_STATE_MASK_ANY_TODO))
-	msg_info("PASS %s [%s]:%s", (state->flags & PS_STATE_FLAG_NEW) == 0 ?
-		 "OLD" : "NEW", PS_CLIENT_ADDR_PORT(state));
+    if ((state->flags & PSC_STATE_MASK_ANY_PASS) != 0
+	&& (state->flags & PSC_STATE_MASK_ANY_PASS) ==
+	PSC_STATE_FLAGS_TODO_TO_PASS(state->flags & PSC_STATE_MASK_ANY_TODO))
+	msg_info("PASS %s [%s]:%s", (state->flags & PSC_STATE_FLAG_NEW) == 0 ?
+		 "OLD" : "NEW", PSC_CLIENT_ADDR_PORT(state));
 
     /*
      * Update the postscreen cache. This still supports a scenario where a
      * client gets whitelisted in the course of multiple sessions, as long as
      * that client does not "fail" any test.
      */
-    if ((state->flags & PS_STATE_MASK_ANY_UPDATE) != 0
-	&& ps_cache_map != 0) {
-	ps_print_tests(ps_temp, state);
-	ps_cache_update(ps_cache_map, state->smtp_client_addr, STR(ps_temp));
+    if ((state->flags & PSC_STATE_MASK_ANY_UPDATE) != 0
+	&& psc_cache_map != 0) {
+	psc_print_tests(psc_temp, state);
+	psc_cache_update(psc_cache_map, state->smtp_client_addr, STR(psc_temp));
     }
 
     /*
      * Either hand off the socket to a real SMTP engine, or say bye-bye.
      */
-    if ((state->flags & PS_STATE_FLAG_NOFORWARD) == 0) {
-	ps_send_socket(state);
+    if ((state->flags & PSC_STATE_FLAG_NOFORWARD) == 0) {
+	psc_send_socket(state);
     } else {
-	if ((state->flags & PS_STATE_FLAG_HANGUP) == 0)
-	    (void) PS_SEND_REPLY(state, state->final_reply);
-	msg_info("DISCONNECT [%s]:%s", PS_CLIENT_ADDR_PORT(state));
-	ps_free_session_state(state);
+	if ((state->flags & PSC_STATE_FLAG_HANGUP) == 0)
+	    (void) PSC_SEND_REPLY(state, state->final_reply);
+	msg_info("DISCONNECT [%s]:%s", PSC_CLIENT_ADDR_PORT(state));
+	psc_free_session_state(state);
     }
 }
 
-/* ps_hangup_event - handle unexpected disconnect */
+/* psc_hangup_event - handle unexpected disconnect */
 
-void    ps_hangup_event(PS_STATE *state)
+void    psc_hangup_event(PSC_STATE *state)
 {
     DELTA_TIME elapsed;
 
@@ -145,10 +146,10 @@ void    ps_hangup_event(PS_STATE *state)
      * Log the current test phase, and the elapsed time after the start of that
      * phase.
      */
-    state->flags |= PS_STATE_FLAG_HANGUP;
+    state->flags |= PSC_STATE_FLAG_HANGUP;
     msg_info("HANGUP after %s from [%s]:%s in %s",
-	     ps_format_delta_time(ps_temp, state->start_time, &elapsed),
-	     PS_CLIENT_ADDR_PORT(state), state->test_name);
-    state->flags |= PS_STATE_FLAG_NOFORWARD;
-    ps_conclude(state);
+	     psc_format_delta_time(psc_temp, state->start_time, &elapsed),
+	     PSC_CLIENT_ADDR_PORT(state), state->test_name);
+    state->flags |= PSC_STATE_FLAG_NOFORWARD;
+    psc_conclude(state);
 }

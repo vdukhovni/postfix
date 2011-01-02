@@ -4,7 +4,7 @@
 .SH NAME
 postscreen
 \-
-Postfix SMTP triage server
+Postfix zombie blocker
 .SH "SYNOPSIS"
 .na
 .nf
@@ -51,8 +51,19 @@ can be run chrooted at fixed low privilege.
 .SH "STANDARDS"
 .na
 .nf
-RFC 5321 (SMTP, including multi-line 220 greetings)
+RFC 821 (SMTP protocol)
+RFC 1123 (Host requirements)
+RFC 1652 (8bit-MIME transport)
+RFC 1869 (SMTP service extensions)
+RFC 1870 (Message Size Declaration)
+RFC 1985 (ETRN command)
+RFC 2034 (SMTP Enhanced Error Codes)
+RFC 2821 (SMTP protocol)
 RFC 2920 (SMTP Pipelining)
+RFC 3207 (STARTTLS command)
+RFC 3461 (SMTP DSN Extension)
+RFC 3463 (Enhanced Status Codes)
+RFC 5321 (SMTP protocol, including multi-line 220 greetings)
 .SH DIAGNOSTICS
 .ad
 .fi
@@ -61,9 +72,9 @@ Problems and transactions are logged to \fBsyslogd\fR(8).
 .ad
 .fi
 The \fBpostscreen\fR(8) built-in SMTP protocol engine
-currently does not announce support for STARTTLS, AUTH,
-XCLIENT or XFORWARD.
-Support for STARTTLS and AUTH may be added in the future.
+currently does not announce support for AUTH, XCLIENT or
+XFORWARD.
+Support for AUTH may be added in the future.
 In the mean time, if you need to make these services available
 on port 25, then do not enable the optional "after 220
 server greeting" tests.
@@ -93,11 +104,27 @@ change.
 The text below provides only a parameter summary. See
 \fBpostconf\fR(5) for more details including examples.
 
-NOTE: Some \fBpostscreen\fR(8)  parameters implement
+NOTE: Some \fBpostscreen\fR(8) parameters implement
 stress-dependent behavior.  This is supported only when the
-default value is stress-dependent (that is, it looks like
-${stress?X}${stress:Y}).  Other parameters always evaluate
-as if the stress value is the empty string.
+default parameter value is stress-dependent (that is, it
+looks like ${stress?X}${stress:Y}, or it is the $\fIname\fR
+of an smtpd parameter with a stress-dependent default).
+Other parameters always evaluate as if the \fBstress\fR
+parameter value is the empty string.
+.SH "COMPATIBILITY CONTROLS"
+.na
+.nf
+.ad
+.fi
+.IP "\fBpostscreen_discard_ehlo_keyword_address_maps ($smtpd_discard_ehlo_keyword_address_maps)\fR"
+Lookup tables, indexed by the remote SMTP client address, with
+case insensitive lists of EHLO keywords (pipelining, starttls, auth,
+etc.) that the \fBpostscreen\fR(8) server will not send in the EHLO response
+to a remote SMTP client.
+.IP "\fBpostscreen_discard_ehlo_keywords ($smtpd_discard_ehlo_keywords)\fR"
+A case insensitive list of EHLO keywords (pipelining, starttls,
+auth, etc.) that the \fBpostscreen\fR(8) server will not send in the EHLO
+response to a remote SMTP client.
 .SH "TRIAGE PARAMETERS"
 .na
 .nf
@@ -230,6 +257,28 @@ process.
 How much time a \fBpostscreen\fR(8) process may take to respond to
 an SMTP client command or to perform a cache operation before it
 is terminated by a built-in watchdog timer.
+.SH "STARTTLS CONTROLS"
+.na
+.nf
+.ad
+.fi
+.IP "\fBpostscreen_tls_security_level ($smtpd_tls_security_level)\fR"
+The SMTP TLS security level for the \fBpostscreen\fR(8) server; when
+a non-empty value is specified, this overrides the obsolete parameters
+postscreen_use_tls and postscreen_enforce_tls.
+.SH "OBSOLETE STARTTLS SUPPORT CONTROLS"
+.na
+.nf
+.ad
+.fi
+These parameters are supported for compatibility with
+\fBsmtpd\fR(8) legacy parameters.
+.IP "\fBpostscreen_use_tls ($smtpd_use_tls)\fR"
+Opportunistic TLS: announce STARTTLS support to SMTP clients,
+but do not require that clients use TLS encryption.
+.IP "\fBpostscreen_enforce_tls ($smtpd_enforce_tls)\fR"
+Mandatory TLS: announce STARTTLS support to SMTP clients, and
+require that clients use TLS encryption.
 .SH "MISCELLANEOUS CONTROLS"
 .na
 .nf
@@ -262,6 +311,7 @@ records, so that "smtpd" becomes, for example, "postfix/smtpd".
 .na
 .nf
 smtpd(8), Postfix SMTP server
+tlsproxy(8), Postfix TLS proxy server
 dnsblog(8), temporary DNS helper
 syslogd(8), system logging
 .SH "README FILES"

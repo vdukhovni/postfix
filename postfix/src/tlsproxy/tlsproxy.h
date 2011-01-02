@@ -1,0 +1,54 @@
+/*++
+/* NAME
+/*	tlsproxy 3h
+/* SUMMARY
+/*	tlsproxy internal interfaces
+/* SYNOPSIS
+/*	#include <tlsproxy.h>
+/* DESCRIPTION
+/* .nf
+
+ /*
+  * Utility library.
+  */
+#include <vstream.h>
+#include <nbbio.h>
+
+ /*
+  * TLS library.
+  */
+#include <tls.h>
+
+ /*
+  * Internal interface.
+  */
+typedef struct {
+    int     flags;			/* see below */
+    char   *service;			/* argv[0] */
+    VSTREAM *plaintext_stream;		/* local peer: postscreen(8), etc. */
+    NBBIO  *plaintext_buf;		/* plaintext buffer */
+    int     ciphertext_fd;		/* remote peer */
+    EVENT_NOTIFY_FN ciphertext_timer;	/* kludge */
+    int     timeout;			/* read/write time limit */
+    char   *remote_endpt;		/* printable remote endpoint */
+    TLS_SESS_STATE *tls_context;	/* llibtls state */
+    int     ssl_last_err;		/* TLS I/O state */
+    int     tls_use_tls;		/* legacy libtls API */
+    int     tls_enforce_tls;		/* legacy libtls API */
+} TLSP_STATE;
+
+#define TLSP_FLAG_DO_HANDSHAKE	(1<<0)
+
+extern TLSP_STATE *tlsp_state_create(const char *, VSTREAM *);
+extern void tlsp_state_free(TLSP_STATE *);
+
+/* LICENSE
+/* .ad
+/* .fi
+/*	The Secure Mailer license must be distributed with this software.
+/* AUTHOR(S)
+/*	Wietse Venema
+/*	IBM T.J. Watson Research
+/*	P.O. Box 704
+/*	Yorktown Heights, NY 10598, USA
+/*--*/

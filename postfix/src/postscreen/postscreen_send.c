@@ -6,33 +6,33 @@
 /* SYNOPSIS
 /*	#include <postscreen.h>
 /*
-/*	int	ps_send_reply(client_fd, client_addr, client_port, text)
+/*	int	psc_send_reply(client_fd, client_addr, client_port, text)
 /*	int	client_fd;
 /*	const char *client_addr;
 /*	const char *client_port;
 /*	const char *text;
 /*
-/*	int	PS_SEND_REPLY(state, text)
+/*	int	PSC_SEND_REPLY(state, text)
 /*	const char *text;
 /*
-/*	void	ps_send_socket(state)
-/*	PS_STATE *state;
+/*	void	psc_send_socket(state)
+/*	PSC_STATE *state;
 /* DESCRIPTION
-/*	ps_send_reply() sends the specified text to the specified
+/*	psc_send_reply() sends the specified text to the specified
 /*	remote SMTP client.  In case of an immediate error, it logs
 /*	a warning (except EPIPE) with the client address and port,
 /*	and returns a non-zero result (all errors including EPIPE).
 /*
-/*	PS_SEND_REPLY() is a convenience wrapper for ps_send_reply().
+/*	PSC_SEND_REPLY() is a convenience wrapper for psc_send_reply().
 /*	It is an unsafe macro that evaluates its arguments multiple
 /*	times.
 /*
-/*	ps_send_socket() sends the specified socket to the real
+/*	psc_send_socket() sends the specified socket to the real
 /*	Postfix SMTP server. The socket is delivered in the background.
 /*	This function must be called after all other session-related
 /*	work is finished including postscreen cache updates.
 /*
-/*	In case of an immediate error, ps_send_socket() sends a 421
+/*	In case of an immediate error, psc_send_socket() sends a 421
 /*	reply to the remote SMTP client and closes the connection.
 /* LICENSE
 /* .ad
@@ -65,14 +65,14 @@
   * This program screens all inbound SMTP connections, so it better not waste
   * time.
   */
-#define PS_SEND_SOCK_CONNECT_TIMEOUT	1
-#define PS_SEND_SOCK_NOTIFY_TIMEOUT	100
-#define PS_SEND_TEXT_TIMEOUT		1
+#define PSC_SEND_SOCK_CONNECT_TIMEOUT	1
+#define PSC_SEND_SOCK_NOTIFY_TIMEOUT	100
+#define PSC_SEND_TEXT_TIMEOUT		1
 
-/* ps_send_reply - send reply to remote SMTP client */
+/* psc_send_reply - send reply to remote SMTP client */
 
-int     ps_send_reply(int smtp_client_fd, const char *smtp_client_addr,
-		              const char *smtp_client_port, const char *text)
+int     psc_send_reply(int smtp_client_fd, const char *smtp_client_addr,
+		             const char *smtp_client_port, const char *text)
 {
     int     ret;
 
@@ -85,22 +85,22 @@ int     ps_send_reply(int smtp_client_fd, const char *smtp_client_addr,
      * response, so that a nasty client can't cause this process to block.
      */
     ret = (write_buf(smtp_client_fd, text, strlen(text),
-		     PS_SEND_TEXT_TIMEOUT) < 0);
+		     PSC_SEND_TEXT_TIMEOUT) < 0);
     if (ret != 0 && errno != EPIPE)
 	msg_warn("write [%s]:%s: %m", smtp_client_addr, smtp_client_port);
     return (ret);
 }
 
-/* ps_send_socket_close_event - file descriptor has arrived or timeout */
+/* psc_send_socket_close_event - file descriptor has arrived or timeout */
 
-static void ps_send_socket_close_event(int event, char *context)
+static void psc_send_socket_close_event(int event, char *context)
 {
-    const char *myname = "ps_send_socket_close_event";
-    PS_STATE *state = (PS_STATE *) context;
+    const char *myname = "psc_send_socket_close_event";
+    PSC_STATE *state = (PSC_STATE *) context;
 
     if (msg_verbose > 1)
 	msg_info("%s: sq=%d cq=%d event %d on send socket %d from [%s]:%s",
-		 myname, ps_post_queue_length, ps_check_queue_length,
+		 myname, psc_post_queue_length, psc_check_queue_length,
 		 event, state->smtp_server_fd, state->smtp_client_addr,
 		 state->smtp_client_port);
 
@@ -110,25 +110,25 @@ static void ps_send_socket_close_event(int event, char *context)
      * possible that the real SMTP server will receive the socket so we
      * should not interfere.
      */
-    PS_CLEAR_EVENT_REQUEST(state->smtp_server_fd, ps_send_socket_close_event,
-			   context);
+    PSC_CLEAR_EVENT_REQUEST(state->smtp_server_fd, psc_send_socket_close_event,
+			    context);
     if (event == EVENT_TIME)
 	msg_warn("timeout sending connection to service %s",
-		 ps_smtpd_service_name);
-    ps_free_session_state(state);
+		 psc_smtpd_service_name);
+    psc_free_session_state(state);
 }
 
-/* ps_send_socket - send socket to real SMTP server process */
+/* psc_send_socket - send socket to real SMTP server process */
 
-void    ps_send_socket(PS_STATE *state)
+void    psc_send_socket(PSC_STATE *state)
 {
-    const char *myname = "ps_send_socket";
+    const char *myname = "psc_send_socket";
     int     server_fd;
     int     window_size;
 
     if (msg_verbose > 1)
 	msg_info("%s: sq=%d cq=%d send socket %d from [%s]:%s",
-		 myname, ps_post_queue_length, ps_check_queue_length,
+		 myname, psc_post_queue_length, psc_check_queue_length,
 		 vstream_fileno(state->smtp_client_stream),
 		 state->smtp_client_addr, state->smtp_client_port);
 
@@ -160,20 +160,20 @@ void    ps_send_socket(PS_STATE *state)
      * Postfix-specific.
      */
     if ((server_fd =
-	 LOCAL_CONNECT(ps_smtpd_service_name, NON_BLOCKING,
-		       PS_SEND_SOCK_CONNECT_TIMEOUT)) < 0) {
-	msg_warn("cannot connect to service %s: %m", ps_smtpd_service_name);
-	PS_SEND_REPLY(state, "421 4.3.2 All server ports are busy\r\n");
-	ps_free_session_state(state);
+	 LOCAL_CONNECT(psc_smtpd_service_name, NON_BLOCKING,
+		       PSC_SEND_SOCK_CONNECT_TIMEOUT)) < 0) {
+	msg_warn("cannot connect to service %s: %m", psc_smtpd_service_name);
+	PSC_SEND_REPLY(state, "421 4.3.2 All server ports are busy\r\n");
+	psc_free_session_state(state);
 	return;
     }
-    PS_ADD_SERVER_STATE(state, server_fd);
+    PSC_ADD_SERVER_STATE(state, server_fd);
     if (LOCAL_SEND_FD(state->smtp_server_fd,
 		      vstream_fileno(state->smtp_client_stream)) < 0) {
 	msg_warn("cannot pass connection to service %s: %m",
-		 ps_smtpd_service_name);
-	PS_SEND_REPLY(state, "421 4.3.2 No system resources\r\n");
-	ps_free_session_state(state);
+		 psc_smtpd_service_name);
+	PSC_SEND_REPLY(state, "421 4.3.2 No system resources\r\n");
+	psc_free_session_state(state);
 	return;
     } else {
 
@@ -183,10 +183,10 @@ void    ps_send_socket(PS_STATE *state)
 	 * it has already received the real SMTP server's 220 greeting!
 	 */
 #if 0
-	PS_DEL_CLIENT_STATE(state);
+	PSC_DEL_CLIENT_STATE(state);
 #endif
-	PS_READ_EVENT_REQUEST(state->smtp_server_fd, ps_send_socket_close_event,
-			      (char *) state, PS_SEND_SOCK_NOTIFY_TIMEOUT);
+	PSC_READ_EVENT_REQUEST(state->smtp_server_fd, psc_send_socket_close_event,
+			       (char *) state, PSC_SEND_SOCK_NOTIFY_TIMEOUT);
 	return;
     }
 }

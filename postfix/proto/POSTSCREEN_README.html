@@ -284,7 +284,7 @@ client IP address. This test is disabled by default. </p>
 
 <blockquote>
 <p>
-CAUTION: when postscreen rejects mail, it's SMTP reply contains the
+CAUTION: when postscreen rejects mail, its SMTP reply contains the
 DNSBL domain name. Use the postscreen_dnsbl_reply_map feature to
 hide "password" information in DNSBL domain names.
 </p>
@@ -361,10 +361,10 @@ impact of this limitation, postscreen(8) gives deep protocol tests
 a relatively long expiration time. </p>
 
 <li> <p> postscreen(8)'s built-in SMTP engine does not implement
-the AUTH, STARTTLS, XCLIENT, and XFORWARD features.  STARTTLS and
-AUTH support may be added in a future version. In the mean time,
-if you need to make these services available on port 25, then do
-not enable the tests after the 220 server greeting. </p>
+the AUTH, XCLIENT, and XFORWARD features.  AUTH support may be added
+in a future version. In the mean time, if you need to make these
+services available on port 25, then do not enable the tests after
+the 220 server greeting. </p>
 
 </ul>
 
@@ -672,6 +672,15 @@ service in master.cf. </p>
     smtp      inet  n       -       n       -       1       postscreen
 </pre>
 
+<li> <p> Uncomment the new "<tt>tlsproxy unix ... tlsproxy</tt>"
+service in master.cf.  This service implements STARTTLS support for
+postscreen(8). </p>
+
+<pre>
+/etc/postfix/master.cf:
+    tlsproxy  unix  -       -       n       -       0       tlsproxy
+</pre>
+
 <li> <p> Uncomment the new "<tt>dnsblog  unix ... dnsblog</tt>"
 service in master.cf.  This service does DNSBL lookups for postscreen(8)
 and logs results. </p>
@@ -775,8 +784,8 @@ disconnect. </p>
 <p> When the good client comes back in a later session, it is allowed
 to talk directly to a Postfix SMTP server.  See "after_220 <a
 href="#after_220">Tests after the 220 SMTP server greeting</a> above
-for limitations with STARTTLS, AUTH and other features that clients
-may need. </p>
+for limitations with AUTH and other features that clients may need.
+</p>
 
 <p> An unexpected benefit from "<a href="#after_220">deep protocol
 tests</a>" is that some "good" clients don't return after the 4XX
@@ -825,14 +834,23 @@ that follow. </p>
     #    -o parameter=value ...
 </pre>
 
-
-<li> <p> Uncomment the "<tt>smtp  inet ... smtpd</tt>" service in
-master.cf, including any "<tt>-o parameter=value</tt>" entries that
-follow.  </p>
+<li> <p> Comment out the "<tt>tlsproxy unix ... tlsproxy</tt>"
+service in master.cf, including any "<tt>-o parameter=value</tt>"
+entries that follow. </p>
 
 <pre>
 /etc/postfix/master.cf:
-    smtp      inet  n       -       n       -       -       smtpd
+    #tlsproxy  unix  -       -       n       -       0       tlsproxy
+    #    -o parameter=value ...
+</pre>
+
+<li> <p> Uncomment the "<tt>smtp  inet ... smtpd</tt>" service in
+master.cf, including any "<tt>-o parameter=value</tt>" entries that
+may follow.  </p>
+
+<pre>
+/etc/postfix/master.cf:
+    smtp       inet  n       -       n       -       -       smtpd
         -o parameter=value ...
 </pre>
 

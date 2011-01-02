@@ -865,7 +865,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      * Connect the SSL connection with the network socket.
      */
     if (SSL_set_fd(TLScontext->con, vstream_fileno(props->stream)) != 1) {
-	msg_info("SSL_set_fd error to %s: %d", props->namaddr, sts);
+	msg_info("SSL_set_fd error to %s", props->namaddr);
 	tls_print_errors();
 	uncache_session(app_ctx->ssl_ctx, TLScontext);
 	tls_free_context(TLScontext);

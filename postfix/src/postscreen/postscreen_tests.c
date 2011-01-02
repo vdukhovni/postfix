@@ -6,22 +6,22 @@
 /* SYNOPSIS
 /*	#include <postscreen.h>
 /*
-/*	void	PS_INIT_TESTS(state)
-/*	PS_STATE *state;
+/*	void	PSC_INIT_TESTS(state)
+/*	PSC_STATE *state;
 /*
-/*	void	ps_new_tests(state)
-/*	PS_STATE *state;
+/*	void	psc_new_tests(state)
+/*	PSC_STATE *state;
 /*
-/*	void	ps_parse_tests(state, stamp_text, time_value)
-/*	PS_STATE *state;
+/*	void	psc_parse_tests(state, stamp_text, time_value)
+/*	PSC_STATE *state;
 /*	const char *stamp_text;
 /*	time_t time_value;
 /*
-/*	char	*ps_print_tests(buffer, state)
+/*	char	*psc_print_tests(buffer, state)
 /*	VSTRING	*buffer;
-/*	PS_STATE *state;
+/*	PSC_STATE *state;
 /*
-/*	char	*ps_print_grey_key(buffer, client, helo, sender, rcpt)
+/*	char	*psc_print_grey_key(buffer, client, helo, sender, rcpt)
 /*	VSTRING	*buffer;
 /*	const char *client;
 /*	const char *helo;
@@ -33,27 +33,27 @@
 /*	as unsafe macros, meaning they evaluate one or more arguments
 /*	multiple times.
 /*
-/*	PS_INIT_TESTS() is an unsafe macro that sets the per-test
-/*	expiration time stamps to PS_TIME_STAMP_INVALID, and that
+/*	PSC_INIT_TESTS() is an unsafe macro that sets the per-test
+/*	expiration time stamps to PSC_TIME_STAMP_INVALID, and that
 /*	zeroes all the flags bits. These values are not meant to
 /*	be stored into the postscreen(8) cache.
 /*
-/*	ps_new_tests() sets all test expiration time stamps to
-/*	PS_TIME_STAMP_NEW, and overwrites all flags bits. Only
-/*	enabled tests are flagged with PS_STATE_FLAG_TODO; the
-/*	object is flagged with PS_STATE_FLAG_NEW.
+/*	psc_new_tests() sets all test expiration time stamps to
+/*	PSC_TIME_STAMP_NEW, and overwrites all flags bits. Only
+/*	enabled tests are flagged with PSC_STATE_FLAG_TODO; the
+/*	object is flagged with PSC_STATE_FLAG_NEW.
 /*
-/*	ps_parse_tests() parses a cache file record and overwrites
+/*	psc_parse_tests() parses a cache file record and overwrites
 /*	all flags bits. Tests are considered "expired" when they
 /*	would be expired at the specified time value. Only enabled
 /*	tests are flagged as "expired"; the object is flagged as
 /*	"new" if some enabled tests have "new" time stamps.
 /*
-/*	ps_print_tests() creates a cache file record for the
+/*	psc_print_tests() creates a cache file record for the
 /*	specified flags and per-test expiration time stamps.
 /*	This may modify the time stamps for disabled tests.
 /*
-/*	ps_print_grey_key() prints a greylist lookup key.
+/*	psc_print_grey_key() prints a greylist lookup key.
 /* LICENSE
 /* .ad
 /* .fi
@@ -85,8 +85,8 @@
  /*
   * Kludge to detect if some test is enabled.
   */
-#define PS_PREGR_TEST_ENABLE()	(*var_ps_pregr_banner != 0)
-#define PS_DNSBL_TEST_ENABLE()	(*var_ps_dnsbl_sites != 0)
+#define PSC_PREGR_TEST_ENABLE()	(*var_psc_pregr_banner != 0)
+#define PSC_DNSBL_TEST_ENABLE()	(*var_psc_dnsbl_sites != 0)
 
  /*
   * Format of a persistent cache entry (which is almost but not quite the
@@ -94,14 +94,14 @@
   * 
   * Each cache entry has one time stamp for each test.
   * 
-  * - A time stamp of PS_TIME_STAMP_INVALID must never appear in the cache. It
+  * - A time stamp of PSC_TIME_STAMP_INVALID must never appear in the cache. It
   * is reserved for in-memory objects that are still being initialized.
   * 
-  * - A time stamp of PS_TIME_STAMP_NEW indicates that the test never passed.
+  * - A time stamp of PSC_TIME_STAMP_NEW indicates that the test never passed.
   * Postscreen will log the client with "pass new" when it passes the final
   * test.
   * 
-  * - A time stamp of PS_TIME_STAMP_DISABLED indicates that the test never
+  * - A time stamp of PSC_TIME_STAMP_DISABLED indicates that the test never
   * passed, and that the test was disabled when the cache entry was written.
   * 
   * - Otherwise, the test was passed, and the time stamp indicates when that
@@ -111,50 +111,50 @@
   * expired.
   */
 
-/* ps_new_tests - initialize new test results from scratch */
+/* psc_new_tests - initialize new test results from scratch */
 
-void    ps_new_tests(PS_STATE *state)
+void    psc_new_tests(PSC_STATE *state)
 {
 
     /*
      * We know this client is brand new.
      */
-    state->flags = PS_STATE_FLAG_NEW;
+    state->flags = PSC_STATE_FLAG_NEW;
 
     /*
-     * Give all tests a PS_TIME_STAMP_NEW time stamp, so that we can later
+     * Give all tests a PSC_TIME_STAMP_NEW time stamp, so that we can later
      * recognize cache entries that haven't passed all enabled tests. When we
      * write a cache entry to the database, any new-but-disabled tests will
-     * get a PS_TIME_STAMP_DISABLED time stamp.
+     * get a PSC_TIME_STAMP_DISABLED time stamp.
      */
-    state->pregr_stamp = PS_TIME_STAMP_NEW;
-    state->dnsbl_stamp = PS_TIME_STAMP_NEW;
-    state->pipel_stamp = PS_TIME_STAMP_NEW;
-    state->nsmtp_stamp = PS_TIME_STAMP_NEW;
-    state->barlf_stamp = PS_TIME_STAMP_NEW;
-    state->penal_stamp = PS_TIME_STAMP_NEW;
+    state->pregr_stamp = PSC_TIME_STAMP_NEW;
+    state->dnsbl_stamp = PSC_TIME_STAMP_NEW;
+    state->pipel_stamp = PSC_TIME_STAMP_NEW;
+    state->nsmtp_stamp = PSC_TIME_STAMP_NEW;
+    state->barlf_stamp = PSC_TIME_STAMP_NEW;
+    state->penal_stamp = PSC_TIME_STAMP_NEW;
 
     /*
      * Don't flag disabled tests as "todo", because there would be no way to
      * make those bits go away.
      */
-    if (PS_PREGR_TEST_ENABLE())
-	state->flags |= PS_STATE_FLAG_PREGR_TODO;
-    if (PS_DNSBL_TEST_ENABLE())
-	state->flags |= PS_STATE_FLAG_DNSBL_TODO;
-    if (var_ps_pipel_enable)
-	state->flags |= PS_STATE_FLAG_PIPEL_TODO;
-    if (var_ps_nsmtp_enable)
-	state->flags |= PS_STATE_FLAG_NSMTP_TODO;
-    if (var_ps_barlf_enable)
-	state->flags |= PS_STATE_FLAG_BARLF_TODO;
+    if (PSC_PREGR_TEST_ENABLE())
+	state->flags |= PSC_STATE_FLAG_PREGR_TODO;
+    if (PSC_DNSBL_TEST_ENABLE())
+	state->flags |= PSC_STATE_FLAG_DNSBL_TODO;
+    if (var_psc_pipel_enable)
+	state->flags |= PSC_STATE_FLAG_PIPEL_TODO;
+    if (var_psc_nsmtp_enable)
+	state->flags |= PSC_STATE_FLAG_NSMTP_TODO;
+    if (var_psc_barlf_enable)
+	state->flags |= PSC_STATE_FLAG_BARLF_TODO;
 }
 
-/* ps_parse_tests - parse test results from cache */
+/* psc_parse_tests - parse test results from cache */
 
-void    ps_parse_tests(PS_STATE *state,
-		               const char *stamp_str,
-		               time_t time_value)
+void    psc_parse_tests(PSC_STATE *state,
+			        const char *stamp_str,
+			        time_t time_value)
 {
     unsigned long pregr_stamp;
     unsigned long dnsbl_stamp;
@@ -186,17 +186,17 @@ void    ps_parse_tests(PS_STATE *state,
 		   &pregr_stamp, &dnsbl_stamp, &pipel_stamp, &nsmtp_stamp,
 		   &barlf_stamp, &penal_stamp)) {
     case 0:
-	pregr_stamp = PS_TIME_STAMP_DISABLED;
+	pregr_stamp = PSC_TIME_STAMP_DISABLED;
     case 1:
-	dnsbl_stamp = PS_TIME_STAMP_DISABLED;
+	dnsbl_stamp = PSC_TIME_STAMP_DISABLED;
     case 2:
-	pipel_stamp = PS_TIME_STAMP_DISABLED;
+	pipel_stamp = PSC_TIME_STAMP_DISABLED;
     case 3:
-	nsmtp_stamp = PS_TIME_STAMP_DISABLED;
+	nsmtp_stamp = PSC_TIME_STAMP_DISABLED;
     case 4:
-	barlf_stamp = PS_TIME_STAMP_DISABLED;
+	barlf_stamp = PSC_TIME_STAMP_DISABLED;
     case 5:
-	penal_stamp = PS_TIME_STAMP_DISABLED;
+	penal_stamp = PSC_TIME_STAMP_DISABLED;
     default:
 	break;
     }
@@ -207,12 +207,12 @@ void    ps_parse_tests(PS_STATE *state,
     state->barlf_stamp = barlf_stamp;
     state->penal_stamp = penal_stamp;
 
-    if (pregr_stamp == PS_TIME_STAMP_NEW
-	|| dnsbl_stamp == PS_TIME_STAMP_NEW
-	|| pipel_stamp == PS_TIME_STAMP_NEW
-	|| nsmtp_stamp == PS_TIME_STAMP_NEW
-	|| barlf_stamp == PS_TIME_STAMP_NEW)
-	state->flags |= PS_STATE_FLAG_NEW;
+    if (pregr_stamp == PSC_TIME_STAMP_NEW
+	|| dnsbl_stamp == PSC_TIME_STAMP_NEW
+	|| pipel_stamp == PSC_TIME_STAMP_NEW
+	|| nsmtp_stamp == PSC_TIME_STAMP_NEW
+	|| barlf_stamp == PSC_TIME_STAMP_NEW)
+	state->flags |= PSC_STATE_FLAG_NEW;
 
     /*
      * Don't flag a cache entry as expired just because some test was never
@@ -221,30 +221,30 @@ void    ps_parse_tests(PS_STATE *state,
      * Don't flag disabled tests as "todo", because there would be no way to
      * make those bits go away.
      */
-    if (PS_PREGR_TEST_ENABLE() && time_value > state->pregr_stamp) {
-	state->flags |= PS_STATE_FLAG_PREGR_TODO;
-	if (state->pregr_stamp > PS_TIME_STAMP_DISABLED)
-	    state->flags |= PS_STATE_FLAG_CACHE_EXPIRED;
+    if (PSC_PREGR_TEST_ENABLE() && time_value > state->pregr_stamp) {
+	state->flags |= PSC_STATE_FLAG_PREGR_TODO;
+	if (state->pregr_stamp > PSC_TIME_STAMP_DISABLED)
+	    state->flags |= PSC_STATE_FLAG_CACHE_EXPIRED;
     }
-    if (PS_DNSBL_TEST_ENABLE() && time_value > state->dnsbl_stamp) {
-	state->flags |= PS_STATE_FLAG_DNSBL_TODO;
-	if (state->dnsbl_stamp > PS_TIME_STAMP_DISABLED)
-	    state->flags |= PS_STATE_FLAG_CACHE_EXPIRED;
+    if (PSC_DNSBL_TEST_ENABLE() && time_value > state->dnsbl_stamp) {
+	state->flags |= PSC_STATE_FLAG_DNSBL_TODO;
+	if (state->dnsbl_stamp > PSC_TIME_STAMP_DISABLED)
+	    state->flags |= PSC_STATE_FLAG_CACHE_EXPIRED;
     }
-    if (var_ps_pipel_enable && time_value > state->pipel_stamp) {
-	state->flags |= PS_STATE_FLAG_PIPEL_TODO;
-	if (state->pipel_stamp > PS_TIME_STAMP_DISABLED)
-	    state->flags |= PS_STATE_FLAG_CACHE_EXPIRED;
+    if (var_psc_pipel_enable && time_value > state->pipel_stamp) {
+	state->flags |= PSC_STATE_FLAG_PIPEL_TODO;
+	if (state->pipel_stamp > PSC_TIME_STAMP_DISABLED)
+	    state->flags |= PSC_STATE_FLAG_CACHE_EXPIRED;
     }
-    if (var_ps_nsmtp_enable && time_value > state->nsmtp_stamp) {
-	state->flags |= PS_STATE_FLAG_NSMTP_TODO;
-	if (state->nsmtp_stamp > PS_TIME_STAMP_DISABLED)
-	    state->flags |= PS_STATE_FLAG_CACHE_EXPIRED;
+    if (var_psc_nsmtp_enable && time_value > state->nsmtp_stamp) {
+	state->flags |= PSC_STATE_FLAG_NSMTP_TODO;
+	if (state->nsmtp_stamp > PSC_TIME_STAMP_DISABLED)
+	    state->flags |= PSC_STATE_FLAG_CACHE_EXPIRED;
     }
-    if (var_ps_barlf_enable && time_value > state->barlf_stamp) {
-	state->flags |= PS_STATE_FLAG_BARLF_TODO;
-	if (state->barlf_stamp > PS_TIME_STAMP_DISABLED)
-	    state->flags |= PS_STATE_FLAG_CACHE_EXPIRED;
+    if (var_psc_barlf_enable && time_value > state->barlf_stamp) {
+	state->flags |= PSC_STATE_FLAG_BARLF_TODO;
+	if (state->barlf_stamp > PSC_TIME_STAMP_DISABLED)
+	    state->flags |= PSC_STATE_FLAG_CACHE_EXPIRED;
     }
 
     /*
@@ -256,11 +256,11 @@ void    ps_parse_tests(PS_STATE *state,
      * full postscreen_greet_wait too frequently.
      */
 #if 0
-    if (state->flags & PS_STATE_MASK_EARLY_TODO) {
-	if (PS_PREGR_TEST_ENABLE())
-	    state->flags |= PS_STATE_FLAG_PREGR_TODO;
-	if (PS_DNSBL_TEST_ENABLE())
-	    state->flags |= PS_STATE_FLAG_DNSBL_TODO;
+    if (state->flags & PSC_STATE_MASK_EARLY_TODO) {
+	if (PSC_PREGR_TEST_ENABLE())
+	    state->flags |= PSC_STATE_FLAG_PREGR_TODO;
+	if (PSC_DNSBL_TEST_ENABLE())
+	    state->flags |= PSC_STATE_FLAG_DNSBL_TODO;
     }
 #endif
 
@@ -275,41 +275,41 @@ void    ps_parse_tests(PS_STATE *state,
     if ((penalty_left = state->penal_stamp - event_time()) > 0) {
 	msg_info("PENALTY %ld for %s",
 		 (long) penalty_left, state->smtp_client_addr);
-	PS_FAIL_SESSION_STATE(state, PS_STATE_FLAG_PENAL_FAIL);
+	PSC_FAIL_SESSION_STATE(state, PSC_STATE_FLAG_PENAL_FAIL);
 #if 0
-	switch (ps_penal_action) {
-	case PS_ACT_DROP:
-	    PS_DROP_SESSION_STATE(state,
+	switch (psc_penal_action) {
+	case PSC_ACT_DROP:
+	    PSC_DROP_SESSION_STATE(state,
 			     "421 4.3.2 Service currently unavailable\r\n");
 	    break;
-	case PS_ACT_ENFORCE:
+	case PSC_ACT_ENFORCE:
 #endif
-	    PS_ENFORCE_SESSION_STATE(state,
+	    PSC_ENFORCE_SESSION_STATE(state,
 			     "450 4.3.2 Service currently unavailable\r\n");
 #if 0
 	    break;
-	case PS_ACT_IGNORE:
-	    PS_UNFAIL_SESSION_STATE(state, PS_STATE_FLAG_PENAL_FAIL);
+	case PSC_ACT_IGNORE:
+	    PSC_UNFAIL_SESSION_STATE(state, PSC_STATE_FLAG_PENAL_FAIL);
 	    break;
 	default:
 	    msg_panic("%s: unknown penalty action value %d",
-		      myname, ps_penal_action);
+		      myname, psc_penal_action);
 	}
 #endif
     }
 #endif						/* NONPROD */
 }
 
-/* ps_print_tests - print postscreen cache record */
+/* psc_print_tests - print postscreen cache record */
 
-char   *ps_print_tests(VSTRING *buf, PS_STATE *state)
+char   *psc_print_tests(VSTRING *buf, PSC_STATE *state)
 {
-    const char *myname = "ps_print_tests";
+    const char *myname = "psc_print_tests";
 
     /*
      * Sanity check.
      */
-    if ((state->flags & PS_STATE_MASK_ANY_UPDATE) == 0)
+    if ((state->flags & PSC_STATE_MASK_ANY_UPDATE) == 0)
 	msg_panic("%s: attempt to save a no-update record", myname);
 
     /*
@@ -323,11 +323,11 @@ char   *ps_print_tests(VSTRING *buf, PS_STATE *state)
      * time stamp only when the corresponding "pass" flag is raised.
      */
 #ifdef NONPROD
-    if (state->flags & PS_STATE_FLAG_PENAL_FAIL) {
+    if (state->flags & PSC_STATE_FLAG_PENAL_FAIL) {
 	state->pregr_stamp = state->dnsbl_stamp = state->pipel_stamp =
 	    state->nsmtp_stamp = state->barlf_stamp =
-	    ((state->flags & PS_STATE_FLAG_NEW) ?
-	     PS_TIME_STAMP_NEW : PS_TIME_STAMP_DISABLED);
+	    ((state->flags & PSC_STATE_FLAG_NEW) ?
+	     PSC_TIME_STAMP_NEW : PSC_TIME_STAMP_DISABLED);
     }
 #endif
 
@@ -336,16 +336,16 @@ char   *ps_print_tests(VSTRING *buf, PS_STATE *state)
      * with "pass new" when some disabled test becomes enabled at some later
      * time.
      */
-    if (PS_PREGR_TEST_ENABLE() == 0 && state->pregr_stamp == PS_TIME_STAMP_NEW)
-	state->pregr_stamp = PS_TIME_STAMP_DISABLED;
-    if (PS_DNSBL_TEST_ENABLE() == 0 && state->dnsbl_stamp == PS_TIME_STAMP_NEW)
-	state->dnsbl_stamp = PS_TIME_STAMP_DISABLED;
-    if (var_ps_pipel_enable == 0 && state->pipel_stamp == PS_TIME_STAMP_NEW)
-	state->pipel_stamp = PS_TIME_STAMP_DISABLED;
-    if (var_ps_nsmtp_enable == 0 && state->nsmtp_stamp == PS_TIME_STAMP_NEW)
-	state->nsmtp_stamp = PS_TIME_STAMP_DISABLED;
-    if (var_ps_barlf_enable == 0 && state->barlf_stamp == PS_TIME_STAMP_NEW)
-	state->barlf_stamp = PS_TIME_STAMP_DISABLED;
+    if (PSC_PREGR_TEST_ENABLE() == 0 && state->pregr_stamp == PSC_TIME_STAMP_NEW)
+	state->pregr_stamp = PSC_TIME_STAMP_DISABLED;
+    if (PSC_DNSBL_TEST_ENABLE() == 0 && state->dnsbl_stamp == PSC_TIME_STAMP_NEW)
+	state->dnsbl_stamp = PSC_TIME_STAMP_DISABLED;
+    if (var_psc_pipel_enable == 0 && state->pipel_stamp == PSC_TIME_STAMP_NEW)
+	state->pipel_stamp = PSC_TIME_STAMP_DISABLED;
+    if (var_psc_nsmtp_enable == 0 && state->nsmtp_stamp == PSC_TIME_STAMP_NEW)
+	state->nsmtp_stamp = PSC_TIME_STAMP_DISABLED;
+    if (var_psc_barlf_enable == 0 && state->barlf_stamp == PSC_TIME_STAMP_NEW)
+	state->barlf_stamp = PSC_TIME_STAMP_DISABLED;
 
     vstring_sprintf(buf, "%lu;%lu;%lu;%lu;%lu;%lu",
 		    (unsigned long) state->pregr_stamp,
@@ -357,11 +357,11 @@ char   *ps_print_tests(VSTRING *buf, PS_STATE *state)
     return (STR(buf));
 }
 
-/* ps_print_grey_key - print postscreen cache record */
+/* psc_print_grey_key - print postscreen cache record */
 
-char   *ps_print_grey_key(VSTRING *buf, const char *client,
-			          const char *helo, const char *sender,
-			          const char *rcpt)
+char   *psc_print_grey_key(VSTRING *buf, const char *client,
+			           const char *helo, const char *sender,
+			           const char *rcpt)
 {
     return (STR(vstring_sprintf(buf, "%s/%s/%s/%s",
 				client, helo, sender, rcpt)));

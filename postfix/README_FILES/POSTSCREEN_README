@@ -209,7 +209,7 @@ blocklist servers with optional filters and weight factors. These servers will
 be queried in parallel with the reverse client IP address. This test is
 disabled by default.
 
-    CAUTION: when postscreen rejects mail, it's SMTP reply contains the DNSBL
+    CAUTION: when postscreen rejects mail, its SMTP reply contains the DNSBL
     domain name. Use the postscreen_dnsbl_reply_map feature to hide "password"
     information in DNSBL domain names.
 
@@ -267,11 +267,10 @@ discussed next.
     limitation, postscreen(8) gives deep protocol tests a relatively long
     expiration time.
 
-  * postscreen(8)'s built-in SMTP engine does not implement the AUTH, STARTTLS,
-    XCLIENT, and XFORWARD features. STARTTLS and AUTH support may be added in a
-    future version. In the mean time, if you need to make these services
-    available on port 25, then do not enable the tests after the 220 server
-    greeting.
+  * postscreen(8)'s built-in SMTP engine does not implement the AUTH, XCLIENT,
+    and XFORWARD features. AUTH support may be added in a future version. In
+    the mean time, if you need to make these services available on port 25,
+    then do not enable the tests after the 220 server greeting.
 
 End-user clients should connect directly to the submission service, so that
 they never have to deal with postscreen(8)'s tests.
@@ -480,13 +479,19 @@ mail:
     /etc/postfix/master.cf:
         smtp      inet  n       -       n       -       1       postscreen
 
- 4. Uncomment the new "dnsblog unix ... dnsblog" service in master.cf. This
+ 4. Uncomment the new "tlsproxy unix ... tlsproxy" service in master.cf. This
+    service implements STARTTLS support for postscreen(8).
+
+    /etc/postfix/master.cf:
+        tlsproxy  unix  -       -       n       -       0       tlsproxy
+
+ 5. Uncomment the new "dnsblog unix ... dnsblog" service in master.cf. This
     service does DNSBL lookups for postscreen(8) and logs results.
 
     /etc/postfix/master.cf:
         dnsblog   unix  -       -       n       -       0       dnsblog
 
- 5. To enable DNSBL lookups, list some DNS blocklist sites in main.cf,
+ 6. To enable DNSBL lookups, list some DNS blocklist sites in main.cf,
     separated by whitespace. Different sites can have different weights. For
     example:
 
@@ -509,7 +514,7 @@ mail:
     run postmap(1) before the file can be used, and that it does not detect
     changes after the file is read. It is new with Postfix version 2.8.
 
- 6. Read the new configuration with "postfix reload".
+ 7. Read the new configuration with "postfix reload".
 
 Notes:
 
@@ -556,8 +561,8 @@ more of:
 
     When the good client comes back in a later session, it is allowed to talk
     directly to a Postfix SMTP server. See "after_220 Tests after the 220 SMTP
-    server greeting above for limitations with STARTTLS, AUTH and other
-    features that clients may need.
+    server greeting above for limitations with AUTH and other features that
+    clients may need.
 
     An unexpected benefit from "deep protocol tests" is that some "good"
     clients don't return after the 4XX reply; these clients were not so good
@@ -592,14 +597,21 @@ processes:
         #smtpd     pass  -       -       n       -       -       smtpd
         #    -o parameter=value ...
 
- 4. Uncomment the "smtp inet ... smtpd" service in master.cf, including any "-
-    o parameter=value" entries that follow.
+ 4. Comment out the "tlsproxy unix ... tlsproxy" service in master.cf,
+    including any "-o parameter=value" entries that follow.
 
     /etc/postfix/master.cf:
-        smtp      inet  n       -       n       -       -       smtpd
+        #tlsproxy  unix  -       -       n       -       0       tlsproxy
+        #    -o parameter=value ...
+
+ 5. Uncomment the "smtp inet ... smtpd" service in master.cf, including any "-
+    o parameter=value" entries that may follow.
+
+    /etc/postfix/master.cf:
+        smtp       inet  n       -       n       -       -       smtpd
             -o parameter=value ...
 
- 5. Read the new configuration with "postfix reload".
+ 6. Read the new configuration with "postfix reload".
 
 HHiissttoorriiccaall nnootteess aanndd ccrreeddiittss
 

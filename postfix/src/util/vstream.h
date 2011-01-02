@@ -44,6 +44,7 @@ typedef struct VSTREAM {
     int     fd;				/* file handle, no 256 limit */
     VSTREAM_FN read_fn;			/* buffer fill action */
     VSTREAM_FN write_fn;		/* buffer fill action */
+    ssize_t req_bufsize;		/* requested read/write buffer size */
     void   *context;			/* application context */
     off_t   offset;			/* cached seek info */
     char   *path;			/* give it at least try */
@@ -56,8 +57,6 @@ typedef struct VSTREAM {
     int     timeout;			/* read/write timout */
     VSTREAM_JMP_BUF *jbuf;		/* exception handling */
     struct timeval iotime;		/* time of last fill/flush */
-    /* At bottom for Postfix 2.4 binary compatibility. */
-    ssize_t req_bufsize;		/* write buffer size */
 } VSTREAM;
 
 extern VSTREAM vstream_fstd[];		/* pre-defined streams */
@@ -106,6 +105,7 @@ extern int vstream_fdclose(VSTREAM *);
 #define VSTREAM_GETCHAR()	VSTREAM_GETC(VSTREAM_IN)
 
 #define vstream_fileno(vp)	((vp)->fd)
+#define vstream_req_bufsize(vp)	((const ssize_t) ((vp)->req_bufsize))
 #define vstream_context(vp)	((vp)->context)
 #define vstream_ferror(vp)	vbuf_error(&(vp)->buf)
 #define vstream_feof(vp)	vbuf_eof(&(vp)->buf)

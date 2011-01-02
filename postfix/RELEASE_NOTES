@@ -29,9 +29,62 @@ down.
 
 NOTE: Some postscreen parameters implement stress-dependent behavior.
 This is supported only when the default value is stress-dependent
-(that is, the default looks like ${stress?XX}${stress:YY}).  Other
-postscreen parameters always evaluate as if the stress value is 
-equal to the empty string.
+(that is, the default looks like ${stress?XX}${stress:YY}, or it
+is the $name of an smtpd_xxx parameter with a stress-dependent
+default).  Other postscreen parameters always evaluate as if the
+stress value is equal to the empty string.
+
+Incompatibility with snapshot 20110102
+======================================
+
+The smtpd_starttls_timeout default value is now stress-dependent.
+By default, TLS negotiations must now complete under overload in
+10s instead of 300s.
+
+The Postfix SMTP server now always re-computes the SASL mechanism
+list after successful completion of the STARTTLS command. Earlier
+versions only re-computed the mechanism list when the values of
+smtp_sasl_tls_security_options and smtp_sasl_security_options differ.
+This could produce incorrect results, because the Dovecot authentication
+server may change responses when the SMTP session is encrypted.
+
+Major changes with snapshot 20110102
+====================================
+
+STARTTLS support for the postscreen(8) daemon. This is implemented
+by a new tlsproxy(8) daemon that you will need to enable in master.cf
+(see POSTSCREEN_README for instructions).  tlsproxy(8) implements
+its own tlsproxy_mumble versions of TLS-related smtpd_mumble
+parameters. This leaves no confusion about which parameters will
+affect tlsproxy(8) behavior, but it adds another 25 parameters to
+the documentation.
+
+Major changes with snapshot 20101223
+====================================
+
+The new tls_disable_workarounds parameter specifies a list or
+bit-mask of OpenSSL bug work-arounds to disable. This may be necessary
+if one of the work-arounds enabled by default in OpenSSL proves to
+pose a security risk, or introduces an unexpected interoperability
+issue. Some bug work-arounds known to be problematic are disabled
+in the default value of the parameter when linked with an OpenSSL
+library that could be vulnerable. See postconf(5) and TLS_README
+for details.
+
+With "tls_preempt_cipherlist = yes" the Postfix SMTP server will
+choose its most preferred cipher that is supported (offered) by the
+client. This can lead to a more secure or performant cipher choice,
+but may also introduce interoperability problems when a client
+announces support for a cipher that does not work.  See postconf(5)
+and TLS_README for details.
+
+Major changes with snapshot 20101217
+====================================
+
+The lower-level code in the TLS engine was simplified by removing
+an unnecessary layer of data copying. OpenSSL now writes directly
+to the network. The difference in performance should be hardly
+noticeable.
 
 Incompatibility with snapshot 20101206
 ======================================

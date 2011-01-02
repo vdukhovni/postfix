@@ -236,6 +236,15 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_DSN_NOTIFY	"notify_flags"	/* dsn notify flags */
 #define MAIL_ATTR_DSN_ORCPT	"dsn_orig_rcpt"	/* dsn original recipient */
 
+ /*
+  * PROXY support.
+  */
+#define MAIL_ATTR_REMOTE_ENDPT	"remote_endpoint"	/* name[addr]:port */
+#define MAIL_ATTR_ROLE		"role"	/* requested role */
+#define MAIL_ATTR_ROLE_SERVER	"server"
+#define MAIL_ATTR_ROLE_CLIENT	"client"
+#define MAIL_ATTR_TIMEOUT	"timeout"
+
 /* LICENSE
 /* .ad
 /* .fi

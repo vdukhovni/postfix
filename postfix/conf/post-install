@@ -767,6 +767,16 @@ EOF
 EOF
     }
 
+    # Postfix 2.8.
+    # Add tlsproxy (unix-domain) service to master.cf.
+
+    grep '^#*tlsproxy.*tlsproxy' $config_directory/master.cf >/dev/null || {
+	echo Editing $config_directory/master.cf, adding missing entry for tlsproxy unix-domain service
+	cat >>$config_directory/master.cf <<EOF || exit 1
+#tlsproxy unix  -       -       n       -       0       tlsproxy
+EOF
+    }
+
     # Report (but do not remove) obsolete files.
 
     test -n "$obsolete" && {

@@ -9072,10 +9072,12 @@ smtpd_tls_dh512_param_file = /etc/postfix/dh_512.pem
 
 <p>This feature is available with Postfix version 2.2.</p>
 
-%PARAM smtpd_starttls_timeout 300s
+%PARAM smtpd_starttls_timeout see "postconf -d" output
 
 <p> The time limit for Postfix SMTP server write and read operations
-during TLS startup and shutdown handshake procedures. </p>
+during TLS startup and shutdown handshake procedures. The current
+default value is stress-dependent. Before Postfix version 2.8, it
+was fixed at 300s. </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
 
@@ -13456,4 +13458,367 @@ a request before it is terminated by a built-in watchdog timer.
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 </p>
+
+%PARAM tls_preempt_cipherlist no
+
+<p> With SSLv3 and later, use the server's cipher preference order
+instead of the client's cipher preference order. </p>
+
+<p> By default, the OpenSSL server selects the client's most preferred
+cipher that the server supports. With SSLv3 and later, the server may
+choose its own most preferred cipher that is supported (offered) by
+the client. Setting "tls_preempt_cipherlist = yes" enables server cipher
+preferences. </p>
+
+<p> While server cipher selection may in some cases lead to a more secure
+or performant cipher choice, there is some risk of interoperability
+issues. In the past, some SSL clients have listed lower priority ciphers
+that they did not implement correctly. If the server chooses a cipher
+that the client prefers less, it may select a cipher whose client
+implementation is flawed. </p>
+
+<p> This feature is available in Postfix 2.8 and later, in combination
+with OpenSSL 0.9.7 and later. </p>
+
+%PARAM tls_disable_workarounds see "postconf -d" output
+
+<p> List or bit-mask of OpenSSL bug work-arounds to disable. </p>
+
+<p> The OpenSSL toolkit includes a set of work-arounds for buggy SSL/TLS
+implementations. Applications, such as Postfix, that want to maximize
+interoperability ask the OpenSSL library to enable the full set of
+recommended work-arounds. </p>
+
+<p> From time to time, it is discovered that a work-around creates a
+security issue, and should no longer be used. If upgrading OpenSSL
+to a fixed version is not an option or an upgrade is not available
+in a timely manner, or in closed environments where no buggy clients
+or servers exist, it may be appropriate to disable some or all of the
+OpenSSL interoperability work-arounds. This parameter specifies which
+bug work-arounds to disable. </p>
+
+<p> If the value of the parameter is a hexadecimal long integer starting
+with "0x", the bug work-arounds corresponding to the bits specified in
+its value are removed from the <b>SSL_OP_ALL</b> work-around bit-mask
+(see openssl/ssl.h and SSL_CTX_set_options(3)). You can specify more
+bits than are present in SSL_OP_ALL, excess bits are ignored. Specifying
+0xFFFFFFFF disables all bug-workarounds on a 32-bit system. This should
+also be sufficient on 64-bit systems, until OpenSSL abandons support
+for 32-bit systems and starts using the high 32 bits of a 64-bit
+bug-workaround mask. </p>
+
+<p> Otherwise, the parameter is a white-space or comma separated list
+of specific named bug work-arounds chosen from the list below. It
+is possible that your OpenSSL version includes new bug work-arounds
+added after your Postfix source code was last updated, in that case
+you can only disable one of these via the hexadecimal syntax above. </p>
+
+<dl>
+<dt><b>MICROSOFT_SESS_ID_BUG</b>See SSL_CTX_set_options(3)</dt>
+<dt><b>NETSCAPE_CHALLENGE_BUG</b>See SSL_CTX_set_options(3)</dt>
+<dt><b>LEGACY_SERVER_CONNECT</b>See SSL_CTX_set_options(3)</dt>
+<dt><b>NETSCAPE_REUSE_CIPHER_CHANGE_BUG</b> also aliased as
+<b>CVE-2010-4180</b>. Postfix 2.8 disables this work-around by default
+with OpenSSL versions that may predate the fix. Fixed in OpenSSL 0.9.8q
+and OpenSSL 1.0.0c.</dt>
+<dt><b>SSLREF2_REUSE_CERT_TYPE_BUG</b>See SSL_CTX_set_options(3)</dt>
+<dt><b>MICROSOFT_BIG_SSLV3_BUFFER</b>See SSL_CTX_set_options(3)</dt>
+<dt><b>MSIE_SSLV2_RSA_PADDING</b> also aliased as
+<b>CVE-2005-2969</b>. Postfix 2.8 disables this work-around by default
+with OpenSSL versions that may predate the fix. Fixed in OpenSSL 0.9.7h
+and OpenSSL 0.9.8a.</dt>
+<dt><b>SSLEAY_080_CLIENT_DH_BUG</b>See SSL_CTX_set_options(3)</dt>
+<dt><b>TLS_D5_BUG</b>See SSL_CTX_set_options(3)</dt>
+<dt><b>TLS_BLOCK_PADDING_BUG</b>See SSL_CTX_set_options(3)</dt>
+<dt><b>TLS_ROLLBACK_BUG</b>See SSL_CTX_set_options(3). This is disabled
+in OpenSSL 0.9.7 and later. Nobody should still be using 0.9.6! </dt>
+<dt><b>DONT_INSERT_EMPTY_FRAGMENTS</b>See SSL_CTX_set_options(3)</dt>
+<dt><b>CRYPTOPRO_TLSEXT_BUG</b>New with GOST support in OpenSSL 1.0.0.</dt>
+</dl>
+
+<p> This feature is available in Postfix 2.8 and later.  </p>
+
+%PARAM tlsproxy_watchdog_timeout 10s
+
+<p> How much time a tlsproxy(8) process may take to process local
+or remote I/O before it is terminated by a built-in watchdog timer.
+This is a safety mechanism that prevents tlsproxy(8) from becoming
+non-responsive due to a bug in Postfix itself or in system software.
+To avoid false alarms and unnecessary cache corruption this limit
+cannot be set under 10s.  </p>
+
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
+
+<p> This feature is available in Postfix 2.8.  </p>
+
+%PARAM postscreen_discard_ehlo_keywords $smtpd_discard_ehlo_keywords
+
+<p> A case insensitive list of EHLO keywords (pipelining, starttls,
+auth, etc.) that the postscreen(8) server will not send in the EHLO
+response to a remote SMTP client. See smtpd_discard_ehlo_keywords
+for details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM postscreen_discard_ehlo_keyword_address_maps $smtpd_discard_ehlo_keyword_address_maps
+
+<p> Lookup tables, indexed by the remote SMTP client address, with
+case insensitive lists of EHLO keywords (pipelining, starttls, auth,
+etc.) that the postscreen(8) server will not send in the EHLO response
+to a remote SMTP client. See smtpd_discard_ehlo_keywords for details.
+The table is not searched by hostname for robustness reasons.  </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM postscreen_use_tls $smtpd_use_tls
+
+<p> Opportunistic TLS: announce STARTTLS support to SMTP clients,
+but do not require that clients use TLS encryption. </p>
+
+<p> This feature is available in Postfix 2.8 and later. 
+Preferably, use postscreen_tls_security_level instead. </p>
+
+%PARAM postscreen_enforce_tls $smtpd_enforce_tls
+
+<p> Mandatory TLS: announce STARTTLS support to SMTP clients, and
+require that clients use TLS encryption.  See smtpd_postscreen_enforce_tls
+for details.  </p>
+
+<p> This feature is available in Postfix 2.8 and later.
+Preferably, use postscreen_tls_security_level instead. </p>
+
+%PARAM postscreen_tls_security_level $smtpd_tls_security_level
+
+<p> The SMTP TLS security level for the postscreen(8) server; when
+a non-empty value is specified, this overrides the obsolete parameters
+postscreen_use_tls and postscreen_enforce_tls. See smtpd_tls_security_level
+for details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_enforce_tls $smtpd_enforce_tls
+
+<p> Mandatory TLS: announce STARTTLS support to SMTP clients, and
+require that clients use TLS encryption. See smtpd_enforce_tls for
+further details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_CAfile $smtpd_tls_CAfile
+
+<p> A file containing (PEM format) CA certificates of root CAs
+trusted to sign either remote SMTP client certificates or intermediate
+CA certificates.  See smtpd_tls_CAfile for further details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_CApath $smtpd_tls_CApath
+
+<p> A directory containing (PEM format) CA certificates of root CAs
+trusted to sign either remote SMTP client certificates or intermediate
+CA certificates. See smtpd_tls_CApath for further details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_always_issue_session_ids $smtpd_tls_always_issue_session_ids
+
+<p> Force the Postfix tlsproxy(8) server to issue a TLS session id,
+even when TLS session caching is turned off. See
+smtpd_tls_always_issue_session_ids for further details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_ask_ccert $smtpd_tls_ask_ccert
+
+<p> Ask a remote SMTP client for a client certificate. See
+smtpd_tls_ask_ccert for further details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_ccert_verifydepth $smtpd_tls_ccert_verifydepth
+
+<p> The verification depth for remote SMTP client certificates. A
+depth of 1 is sufficient if the issuing CA is listed in a local CA
+file. See smtpd_tls_ccert_verifydepth for further details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_cert_file $smtpd_tls_cert_file
+
+<p> File with the Postfix tlsproxy(8) server RSA certificate in PEM
+format.  This file may also contain the Postfix tlsproxy(8) server
+private RSA key.  See smtpd_tls_cert_file for further details.  </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_ciphers $smtpd_tls_ciphers
+
+<p> The minimum TLS cipher grade that the Postfix tlsproxy(8) server
+will use with opportunistic TLS encryption. See smtpd_tls_ciphers
+for further details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_dcert_file $smtpd_tls_dcert_file
+
+<p> File with the Postfix tlsproxy(8) server DSA certificate in PEM
+format.  This file may also contain the Postfix tlsproxy(8) server
+private DSA key.  See smtpd_tls_dcert_file for further details.
+</p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_dh1024_param_file $smtpd_tls_dh1024_param_file
+
+<p> File with DH parameters that the Postfix tlsproxy(8) server
+should use with EDH ciphers. See smtpd_tls_dh1024_param_file for
+further details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_dh512_param_file $smtpd_tls_dh512_param_file
+
+<p> File with DH parameters that the Postfix tlsproxy(8) server
+should use with EDH ciphers. See smtpd_tls_dh512_param_file for
+further details.  </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_dkey_file $smtpd_tls_dkey_file
+
+<p> File with the Postfix tlsproxy(8) server DSA private key in PEM
+format.  This file may be combined with the Postfix tlsproxy(8)
+server DSA certificate file specified with $smtpd_tls_dcert_file.
+See smtpd_tls_dkey_file for further details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_eccert_file $smtpd_tls_eccert_file
+
+<p> File with the Postfix tlsproxy(8) server ECDSA certificate in
+PEM format.  This file may also contain the Postfix tlsproxy(8)
+server private ECDSA key.  See smtpd_tls_eccert_file for further
+details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_eckey_file $smtpd_tls_eckey_file
+
+<p> File with the Postfix tlsproxy(8) server ECDSA private key in
+PEM format.  This file may be combined with the Postfix tlsproxy(8)
+server ECDSA certificate file specified with $smtpd_tls_eccert_file.
+See smtpd_tls_eckey_file for further details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_eecdh_grade $smtpd_tls_eecdh_grade
+
+<p> The Postfix tlsproxy(8) server security grade for ephemeral
+elliptic-curve Diffie-Hellman (EECDH) key exchange. See
+smtpd_tls_eecdh_grade for further details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_exclude_ciphers $smtpd_tls_exclude_ciphers
+
+<p> List of ciphers or cipher types to exclude from the tlsproxy(8)
+server cipher list at all TLS security levels. See
+smtpd_tls_exclude_ciphers for further details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_fingerprint_digest $smtpd_tls_fingerprint_digest
+
+<p> The message digest algorithm used to construct client-certificate
+fingerprints. See smtpd_tls_fingerprint_digest for further details.
+</p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_key_file $smtpd_tls_key_file
+
+<p> File with the Postfix tlsproxy(8) server RSA private key in PEM
+format.  This file may be combined with the Postfix tlsproxy(8)
+server RSA certificate file specified with $smtpd_tls_cert_file.
+See smtpd_tls_key_file for further details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_loglevel $smtpd_tls_loglevel
+
+<p> Enable additional Postfix tlsproxy(8) server logging of TLS
+activity.  Each logging level also includes the information that
+is logged at a lower logging level. See smtpd_tls_loglevel for
+further details.  </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_mandatory_ciphers $smtpd_tls_mandatory_ciphers
+
+<p> The minimum TLS cipher grade that the Postfix tlsproxy(8) server
+will use with mandatory TLS encryption. See smtpd_tls_mandatory_ciphers
+for further details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_mandatory_exclude_ciphers $smtpd_tls_mandatory_exclude_ciphers
+
+<p> Additional list of ciphers or cipher types to exclude from the
+tlsproxy(8) server cipher list at mandatory TLS security levels.
+See smtpd_tls_mandatory_exclude_ciphers for further details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_mandatory_protocols $smtpd_tls_mandatory_protocols
+
+<p> The SSL/TLS protocols accepted by the Postfix tlsproxy(8) server
+with mandatory TLS encryption. If the list is empty, the server
+supports all available SSL/TLS protocol versions.  See
+smtpd_tls_mandatory_protocols for further details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_protocols $smtpd_tls_protocols
+
+<p> List of TLS protocols that the Postfix tlsproxy(8) server will
+exclude or include with opportunistic TLS encryption. See
+smtpd_tls_protocols for further details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_req_ccert $smtpd_tls_req_ccert
+
+<p> With mandatory TLS encryption, require a trusted remote SMTP
+client certificate in order to allow TLS connections to proceed.
+See smtpd_tls_req_ccert for further details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_security_level $smtpd_tls_security_level
+
+<p> The SMTP TLS security level for the Postfix tlsproxy(8) server;
+when a non-empty value is specified, this overrides the obsolete
+parameters smtpd_use_tls and smtpd_enforce_tls. See
+smtpd_tls_security_level for further details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_tls_session_cache_timeout $smtpd_tls_session_cache_timeout
+
+<p> The expiration time of Postfix tlsproxy(8) server TLS session
+cache information. A cache cleanup is performed periodically every
+$smtpd_tls_session_cache_timeout seconds. See
+smtpd_tls_session_cache_timeout for further details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_use_tls $smtpd_use_tls
+
+<p> Opportunistic TLS: announce STARTTLS support to SMTP clients,
+but do not require that clients use TLS encryption. See smtpd_use_tls
+for further details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
 

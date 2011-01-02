@@ -4,6 +4,8 @@ Wish list:
 
 	anvil rate limit for sasl_username.
 
+	encapsulate nbbio buffer access and update by tlsproxy.
+
 	smtpd xclient option for sasl_username.
 
 	Use different ipc time limits for email message transactions
