@@ -260,7 +260,8 @@ static int psc_helo_cmd(PSC_STATE *state, char *args)
 
 /* psc_smtpd_format_ehlo_reply - format EHLO response */
 
-static void psc_smtpd_format_ehlo_reply(VSTRING *buf, int discard_mask)
+static void psc_smtpd_format_ehlo_reply(VSTRING *buf, int discard_mask
+	/*, const char *sasl_mechanism_list */)
 {
     const char *myname = "psc_smtpd_format_ehlo_reply";
     int     saved_len = 0;
@@ -1063,6 +1064,9 @@ void    psc_smtpd_init(void)
 	case TLS_LEV_SECURE:
 	case TLS_LEV_VERIFY:
 	case TLS_LEV_FPRINT:
+	    msg_warn("%s: unsupported TLS level \"%s\", using \"encrypt\"",
+		     VAR_PSC_TLS_LEVEL, var_psc_tls_level);
+	    /* FALLTHROUGH */
 	case TLS_LEV_ENCRYPT:
 	    var_psc_enforce_tls = var_psc_use_tls = 1;
 	    break;

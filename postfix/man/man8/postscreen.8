@@ -63,7 +63,7 @@ RFC 2920 (SMTP Pipelining)
 RFC 3207 (STARTTLS command)
 RFC 3461 (SMTP DSN Extension)
 RFC 3463 (Enhanced Status Codes)
-RFC 5321 (SMTP protocol, including multi-line 220 greetings)
+RFC 5321 (SMTP protocol, including multi-line 220 banners)
 .SH DIAGNOSTICS
 .ad
 .fi
@@ -71,6 +71,9 @@ Problems and transactions are logged to \fBsyslogd\fR(8).
 .SH BUGS
 .ad
 .fi
+The \fBpostscreen\fR(8) server does not yet implement
+the \fBsoft_bounce\fR feature.
+
 The \fBpostscreen\fR(8) built-in SMTP protocol engine
 currently does not announce support for AUTH, XCLIENT or
 XFORWARD.

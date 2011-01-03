@@ -53,10 +53,13 @@
 /*	RFC 3207 (STARTTLS command)
 /*	RFC 3461 (SMTP DSN Extension)
 /*	RFC 3463 (Enhanced Status Codes)
-/*	RFC 5321 (SMTP protocol, including multi-line 220 greetings)
+/*	RFC 5321 (SMTP protocol, including multi-line 220 banners)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* BUGS
+/*	The \fBpostscreen\fR(8) server does not yet implement
+/*	the \fBsoft_bounce\fR feature.
+/*
 /*	The \fBpostscreen\fR(8) built-in SMTP protocol engine
 /*	currently does not announce support for AUTH, XCLIENT or
 /*	XFORWARD.
@@ -542,9 +545,10 @@ static void psc_service(VSTREAM *smtp_client_stream,
     if (getpeername(vstream_fileno(smtp_client_stream), (struct sockaddr *)
 		    & addr_storage, &addr_storage_len) < 0) {
 	msg_warn("getpeername: %m -- dropping this connection");
-	psc_send_reply(vstream_fileno(smtp_client_stream),
-		       "unknown_address", "unknown_port",
-		       "421 4.3.2 No system resources\r\n");
+	/* Best effort - if this non-blocking write(2) fails, so be it. */
+	(void) write(vstream_fileno(smtp_client_stream),
+		     "421 4.3.2 No system resources\r\n",
+		     sizeof("421 4.3.2 No system resources\r\n") - 1);
 	PSC_SERVICE_DISCONNECT_AND_RETURN(smtp_client_stream);
     }
 
@@ -558,9 +562,10 @@ static void psc_service(VSTREAM *smtp_client_stream,
 	msg_warn("cannot convert client address/port to string: %s"
 		 " -- dropping this connection",
 		 MAI_STRERROR(aierr));
-	psc_send_reply(vstream_fileno(smtp_client_stream),
-		       "unknown_address", "unknown_port",
-		       "421 4.3.2 No system resources\r\n");
+	/* Best effort - if this non-blocking write(2) fails, so be it. */
+	(void) write(vstream_fileno(smtp_client_stream),
+		     "421 4.3.2 No system resources\r\n",
+		     sizeof("421 4.3.2 No system resources\r\n") - 1);
 	PSC_SERVICE_DISCONNECT_AND_RETURN(smtp_client_stream);
     }
     if (strncasecmp("::ffff:", smtp_client_addr.buf, 7) == 0)

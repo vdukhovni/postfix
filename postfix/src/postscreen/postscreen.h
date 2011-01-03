@@ -44,6 +44,7 @@ typedef struct {
     char   *smtp_client_port;		/* client port */
     int     client_concurrency;		/* per-client */
     const char *final_reply;		/* cause for hanging up */
+    VSTRING *send_buf;			/* pending output */
     /* Test context. */
     struct timeval start_time;		/* start of current test */
     const char *test_name;		/* name of current test */
@@ -438,12 +439,8 @@ extern void psc_hangup_event(PSC_STATE *);
  /*
   * postscreen_send.c
   */
-#define PSC_SEND_REPLY(state, text) \
-    psc_send_reply(vstream_fileno((state)->smtp_client_stream), \
-		  (state)->smtp_client_addr, \
-		  (state)->smtp_client_port, \
-		  (text))
-extern int psc_send_reply(int, const char *, const char *, const char *);
+#define PSC_SEND_REPLY psc_send_reply	/* legacy macro */
+extern int psc_send_reply(PSC_STATE *, const char *);
 extern void psc_send_socket(PSC_STATE *);
 
  /*

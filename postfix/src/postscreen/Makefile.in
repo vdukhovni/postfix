@@ -180,6 +180,7 @@ postscreen_send.o: ../../include/dict_cache.h
 postscreen_send.o: ../../include/events.h
 postscreen_send.o: ../../include/htable.h
 postscreen_send.o: ../../include/iostuff.h
+postscreen_send.o: ../../include/mail_params.h
 postscreen_send.o: ../../include/match_list.h
 postscreen_send.o: ../../include/match_ops.h
 postscreen_send.o: ../../include/msg.h

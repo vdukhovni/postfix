@@ -293,6 +293,7 @@ int     var_tlsp_watchdog;
 static TLS_APPL_STATE *tlsp_server_ctx;
 static int ask_client_cert;
 static int enforce_tls;
+static int tlsp_tls_enforce_tls;
 
  /*
   * SLMs.
@@ -625,9 +626,13 @@ static void tlsp_ciphertext_event(int event, char *context)
     if (event == EVENT_READ || event == EVENT_WRITE) {
 	tlsp_strategy(state);
     } else {
-	msg_warn("read/write %s for %s",
-		 event == EVENT_TIME ? "timeout" : "error",
-		 state->remote_endpt);
+	if (event == EVENT_TIME && state->ssl_last_err == SSL_ERROR_NONE)
+	    msg_warn("deadlock on plaintext stream for %s",
+		     state->remote_endpt);
+	else
+	    msg_warn("read/write %s for %s",
+		     event == EVENT_TIME ? "timeout" : "error",
+		     state->remote_endpt);
 	tlsp_state_free(state);
     }
 }
@@ -645,8 +650,6 @@ static void tlsp_start_tls(TLSP_STATE *state)
      * going to sanitize this because doing so surely will break things in
      * unexpected ways.
      */
-    state->tls_use_tls = var_tlsp_use_tls | var_tlsp_enforce_tls;
-    state->tls_enforce_tls = var_tlsp_enforce_tls;
 
     /*
      * Perform the before-handshake portion of the per-session initalization.
@@ -680,7 +683,7 @@ static void tlsp_start_tls(TLSP_STATE *state)
 			 log_level = var_tlsp_tls_loglevel,
 			 timeout = 0,		/* unused */
 			 requirecert = (var_tlsp_tls_req_ccert
-					&& state->tls_enforce_tls),
+					&& tlsp_tls_enforce_tls),
 			 serverid = state->service,
 			 namaddr = state->remote_endpt,
 			 cipher_grade = cipher_grade,
@@ -894,7 +897,39 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      * The code in this routine is pasted literally from smtpd(8). I am not
      * going to sanitize this because doing so surely will break things in
      * unexpected ways.
-     * 
+     */
+    if (*var_tlsp_tls_level) {
+	switch (tls_level_lookup(var_tlsp_tls_level)) {
+	default:
+	    msg_fatal("Invalid TLS level \"%s\"", var_tlsp_tls_level);
+	    /* NOTREACHED */
+	    break;
+	case TLS_LEV_SECURE:
+	case TLS_LEV_VERIFY:
+	case TLS_LEV_FPRINT:
+	    msg_warn("%s: unsupported TLS level \"%s\", using \"encrypt\"",
+		     VAR_TLSP_TLS_LEVEL, var_tlsp_tls_level);
+	    /* FALLTHROUGH */
+	case TLS_LEV_ENCRYPT:
+	    var_tlsp_enforce_tls = var_tlsp_use_tls = 1;
+	    break;
+	case TLS_LEV_MAY:
+	    var_tlsp_enforce_tls = 0;
+	    var_tlsp_use_tls = 1;
+	    break;
+	case TLS_LEV_NONE:
+	    var_tlsp_enforce_tls = var_tlsp_use_tls = 0;
+	    break;
+	}
+    }
+    tlsp_tls_enforce_tls = var_tlsp_enforce_tls;
+    if (!(var_tlsp_use_tls || var_tlsp_enforce_tls)) {
+	msg_warn("TLS service is requested, but disabled with %s or %s",
+		 VAR_TLSP_TLS_LEVEL, VAR_TLSP_USE_TLS);
+	return;
+    }
+
+    /*
      * Load TLS keys before dropping privileges.
      * 
      * Can't use anonymous ciphers if we want client certificates. Must use

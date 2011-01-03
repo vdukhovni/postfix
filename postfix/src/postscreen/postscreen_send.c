@@ -6,13 +6,12 @@
 /* SYNOPSIS
 /*	#include <postscreen.h>
 /*
-/*	int	psc_send_reply(client_fd, client_addr, client_port, text)
-/*	int	client_fd;
-/*	const char *client_addr;
-/*	const char *client_port;
+/*	int	psc_send_reply(state, text)
+/*	PSC_STATE *state;
 /*	const char *text;
 /*
 /*	int	PSC_SEND_REPLY(state, text)
+/*	PSC_STATE *state;
 /*	const char *text;
 /*
 /*	void	psc_send_socket(state)
@@ -23,9 +22,8 @@
 /*	a warning (except EPIPE) with the client address and port,
 /*	and returns a non-zero result (all errors including EPIPE).
 /*
-/*	PSC_SEND_REPLY() is a convenience wrapper for psc_send_reply().
-/*	It is an unsafe macro that evaluates its arguments multiple
-/*	times.
+/*	PSC_SEND_REPLY() is a legacy wrapper for psc_send_reply().
+/*	It will eventually be replaced by its expansion.
 /*
 /*	psc_send_socket() sends the specified socket to the real
 /*	Postfix SMTP server. The socket is delivered in the background.
@@ -57,6 +55,10 @@
 #include <iostuff.h>
 #include <connect.h>
 
+/* Global library. */
+
+#include <mail_params.h>
+
 /* Application-specific. */
 
 #include <postscreen.h>
@@ -67,28 +69,53 @@
   */
 #define PSC_SEND_SOCK_CONNECT_TIMEOUT	1
 #define PSC_SEND_SOCK_NOTIFY_TIMEOUT	100
-#define PSC_SEND_TEXT_TIMEOUT		1
 
 /* psc_send_reply - send reply to remote SMTP client */
 
-int     psc_send_reply(int smtp_client_fd, const char *smtp_client_addr,
-		             const char *smtp_client_port, const char *text)
+int     psc_send_reply(PSC_STATE *state, const char *text)
 {
+    int     start;
     int     ret;
 
     if (msg_verbose)
-	msg_info("> [%s]:%s: %.*s", smtp_client_addr, smtp_client_port,
-		 (int) strlen(text) - 2, text);
+	msg_info("> [%s]:%s: %.*s", state->smtp_client_addr,
+		 state->smtp_client_port, (int) strlen(text) - 2, text);
 
     /*
-     * XXX Need to make sure that the TCP send buffer is large enough for any
-     * response, so that a nasty client can't cause this process to block.
+     * Append the new text to earlier text that could not be sent because the
+     * output was throttled.
      */
-    ret = (write_buf(smtp_client_fd, text, strlen(text),
-		     PSC_SEND_TEXT_TIMEOUT) < 0);
-    if (ret != 0 && errno != EPIPE)
-	msg_warn("write [%s]:%s: %m", smtp_client_addr, smtp_client_port);
-    return (ret);
+    start = VSTRING_LEN(state->send_buf);
+    vstring_strcat(state->send_buf, text);
+
+    /*
+     * XXX For soft_bounce support, it is not sufficient to fix replies here.
+     * We also need to fix the REJECT messages that are logged by the dummy
+     * SMTP engine. Those messages are set with the PSC_DROP_SESSION_STATE
+     * and PSC_ENFORCE_SESSION_STATE macros, and we should not mess up all
+     * the code that invokes those macros.
+     */
+#if 0
+    if (var_soft_bounce) {
+	if (text[0] == '5')
+	    STR(state->send_buf)[start + 0] = '4';
+	if (text[4] == '5')
+	    STR(state->send_buf)[start + 4] = '4';
+    }
+#endif
+
+    /*
+     * Do a best effort sending text, but don't block when the output is
+     * throttled by a hostile peer.
+     */
+    ret = write(vstream_fileno(state->smtp_client_stream),
+		STR(state->send_buf), LEN(state->send_buf));
+    if (ret > 0)
+	vstring_truncate(state->send_buf, ret - LEN(state->send_buf));
+    if (ret < 0 && errno != EAGAIN && errno != EPIPE)
+	msg_warn("write [%s]:%s: %m", state->smtp_client_addr,
+		 state->smtp_client_port);
+    return (ret < 0 && errno != EAGAIN);
 }
 
 /* psc_send_socket_close_event - file descriptor has arrived or timeout */

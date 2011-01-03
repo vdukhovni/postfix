@@ -153,6 +153,7 @@ PSC_STATE *psc_new_session_state(VSTREAM *stream,
     state->smtp_server_fd = (-1);
     state->smtp_client_addr = mystrdup(addr);
     state->smtp_client_port = mystrdup(port);
+    state->send_buf = vstring_alloc(100);
     state->test_name = "TEST NAME HERE";
     state->dnsbl_reply = 0;
     state->final_reply = "421 4.3.2 Service currently unavailable\r\n";
@@ -212,6 +213,8 @@ void    psc_free_session_state(PSC_STATE *state)
 	close(state->smtp_server_fd);
 	psc_post_queue_length--;
     }
+    if (state->send_buf != 0)
+	state->send_buf = vstring_free(state->send_buf);
     myfree(state->smtp_client_addr);
     myfree(state->smtp_client_port);
     if (state->dnsbl_reply)

@@ -4,7 +4,12 @@ Wish list:
 
 	anvil rate limit for sasl_username.
 
-	encapsulate nbbio buffer access and update by tlsproxy.
+	Encapsulate nbbio buffer access and update by tlsproxy.
+
+	Full-duplex support for tlsproxy(8). This requires updating
+	events(3) and nbbio(3).
+
+	Register automagic destructor for object attached to VSTREAM.
 
 	smtpd xclient option for sasl_username.
 

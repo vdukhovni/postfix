@@ -16337,5 +16337,15 @@ Apologies for any names omitted.
 	TLS <=> plaintext for postscreen(8). One tlsproxy(8) process
 	can translate traffic for multiple remote SMTP clients.
 	With early testing feedback from Victor Duchovni and Christian
-	Roessner.  Files: util/nbbio.c, tlsproxy/starttlsd.c,
-	tlsproxy/starttlsd_state.c.
+	Roessner.  Files: util/nbbio.[hc], tlsproxy/*.[hc],
+	postscreen/postscreen_starttlsd.c, postscreen/postscreen_smtpd.c.
+
+20101103
+
+	Cleanup: missing tls_level support in tlsproxy (it has no
+	way to send plaintext, but perhaps an informative error
+	message is in order anyway).  File: tlsproxy/tlsproxy.c.
+
+	Cleanup: simplified the handling of throttled output (i.e.
+	output that can't be sent because the receiver tries to be
+	nasty).  File: postscreen/postscreen_send.c.

@@ -33,8 +33,6 @@ typedef struct {
     char   *remote_endpt;		/* printable remote endpoint */
     TLS_SESS_STATE *tls_context;	/* llibtls state */
     int     ssl_last_err;		/* TLS I/O state */
-    int     tls_use_tls;		/* legacy libtls API */
-    int     tls_enforce_tls;		/* legacy libtls API */
 } TLSP_STATE;
 
 #define TLSP_FLAG_DO_HANDSHAKE	(1<<0)
