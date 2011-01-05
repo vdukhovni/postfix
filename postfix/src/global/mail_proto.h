@@ -111,6 +111,7 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_ERRTO		"errors-to"
 #define MAIL_ATTR_RRCPT		"return-receipt"
 #define MAIL_ATTR_TIME		"time"
+#define MAIL_ATTR_LOCALTIME	"localtime"
 #define MAIL_ATTR_CREATE_TIME	"create_time"
 #define MAIL_ATTR_RULE		"rule"
 #define MAIL_ATTR_ADDR		"address"
@@ -244,6 +245,14 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_ROLE_SERVER	"server"
 #define MAIL_ATTR_ROLE_CLIENT	"client"
 #define MAIL_ATTR_TIMEOUT	"timeout"
+#define MAIL_ATTR_PEER_CN	"peer_CN"
+#define MAIL_ATTR_ISSUER_CN	"issuer_CN"
+#define MAIL_ATTR_PEER_FPT	"peer_fingerprint"
+#define MAIL_ATTR_PEER_STATUS	"peer_status"
+#define MAIL_ATTR_CIPHER_PROTOCOL	"cipher_protocol"
+#define MAIL_ATTR_CIPHER_NAME	"cipher_name"
+#define MAIL_ATTR_CIPHER_USEBITS	"cipher_usebits"
+#define MAIL_ATTR_CIPHER_ALGBITS	"cipher_algbits"
 
 /* LICENSE
 /* .ad

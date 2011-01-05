@@ -3554,6 +3554,13 @@ extern int var_tlsp_tls_scache_timeout;
 #define DEF_TLSP_TLS_SET_SESSID	"$" VAR_SMTPD_TLS_SET_SESSID
 extern bool var_tlsp_tls_set_sessid;
 
+ /*
+  * SMTPD "reject" contact info.
+  */
+#define VAR_SMTPD_REJ_CONTACT	"smtpd_reject_contact_information"
+#define DEF_SMTPD_REJ_CONTACT	""
+extern char *var_smtpd_rej_contact;
+
 /* LICENSE
 /* .ad
 /* .fi

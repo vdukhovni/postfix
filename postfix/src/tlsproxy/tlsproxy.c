@@ -218,6 +218,7 @@
 #ifdef USE_TLS
 #define TLS_INTERNAL			/* XXX */
 #include <tls.h>
+#include <tls_proxy.h>
 
  /*
   * Application-specific.
@@ -292,8 +293,6 @@ int     var_tlsp_watchdog;
   */
 static TLS_APPL_STATE *tlsp_server_ctx;
 static int ask_client_cert;
-static int enforce_tls;
-static int tlsp_tls_enforce_tls;
 
  /*
   * SLMs.
@@ -468,6 +467,15 @@ static void tlsp_strategy(TLSP_STATE *state)
 	    tlsp_state_free(state);
 	    return;
 	}
+	if ((state->req_flags & TLS_PROXY_FLAG_SEND_CONTEXT) != 0
+	    && (attr_print(state->plaintext_stream, ATTR_FLAG_NONE,
+			   ATTR_TYPE_FUNC, tls_proxy_print_state,
+			   (char *) state->tls_context, ATTR_TYPE_END) != 0
+		|| vstream_fflush(state->plaintext_stream) != 0)) {
+	    msg_warn("cannot send TLS context: %m");
+	    tlsp_state_free(state);
+	    return;
+	}
 	state->flags &= ~TLSP_FLAG_DO_HANDSHAKE;
     }
 
@@ -630,7 +638,7 @@ static void tlsp_ciphertext_event(int event, char *context)
 	    msg_warn("deadlock on plaintext stream for %s",
 		     state->remote_endpt);
 	else
-	    msg_warn("read/write %s for %s",
+	    msg_warn("ciphertext read/write %s for %s",
 		     event == EVENT_TIME ? "timeout" : "error",
 		     state->remote_endpt);
 	tlsp_state_free(state);
@@ -668,10 +676,10 @@ static void tlsp_start_tls(TLSP_STATE *state)
 
     if (cipher_grade == 0) {
 	cipher_grade =
-	    enforce_tls ? var_tlsp_tls_mand_ciph : var_tlsp_tls_ciph;
+	    var_tlsp_enforce_tls ? var_tlsp_tls_mand_ciph : var_tlsp_tls_ciph;
 	cipher_exclusions = vstring_alloc(10);
 	ADD_EXCLUDE(cipher_exclusions, var_tlsp_tls_excl_ciph);
-	if (enforce_tls)
+	if (var_tlsp_enforce_tls)
 	    ADD_EXCLUDE(cipher_exclusions, var_tlsp_tls_mand_excl);
 	if (ask_client_cert)
 	    ADD_EXCLUDE(cipher_exclusions, "aNULL");
@@ -683,7 +691,7 @@ static void tlsp_start_tls(TLSP_STATE *state)
 			 log_level = var_tlsp_tls_loglevel,
 			 timeout = 0,		/* unused */
 			 requirecert = (var_tlsp_tls_req_ccert
-					&& tlsp_tls_enforce_tls),
+					&& var_tlsp_enforce_tls),
 			 serverid = state->service,
 			 namaddr = state->remote_endpt,
 			 cipher_grade = cipher_grade,
@@ -779,17 +787,15 @@ static void tlsp_get_request_event(int event, char *context)
     VSTREAM *plaintext_stream = state->plaintext_stream;
     int     plaintext_fd = vstream_fileno(plaintext_stream);
     static VSTRING *remote_endpt;
-    static VSTRING *role;
+    int     req_flags;
     int     timeout;
     int     ready;
 
     /*
      * One-time initialization.
      */
-    if (remote_endpt == 0) {
+    if (remote_endpt == 0)
 	remote_endpt = vstring_alloc(10);
-	role = vstring_alloc(10);
-    }
 
     /*
      * At this point we still manually manage plaintext read/write/timeout
@@ -807,7 +813,7 @@ static void tlsp_get_request_event(int event, char *context)
     if (event != EVENT_READ
 	|| attr_scan(plaintext_stream, ATTR_FLAG_STRICT,
 		     ATTR_TYPE_STR, MAIL_ATTR_REMOTE_ENDPT, remote_endpt,
-		     ATTR_TYPE_STR, MAIL_ATTR_ROLE, role,
+		     ATTR_TYPE_INT, MAIL_ATTR_FLAGS, &req_flags,
 		     ATTR_TYPE_INT, MAIL_ATTR_TIMEOUT, &timeout,
 		     ATTR_TYPE_END) != 3) {
 	msg_warn("%s: receive request attributes: %m", myname);
@@ -820,7 +826,7 @@ static void tlsp_get_request_event(int event, char *context)
      * If the requested TLS engine is unavailable, hang up after making sure
      * that the plaintext peer has received our "sorry" indication.
      */
-    ready = (strcmp(STR(role), MAIL_ATTR_ROLE_SERVER) == 0
+    ready = ((req_flags & TLS_PROXY_FLAG_ROLE_SERVER) != 0
 	     && tlsp_server_ctx != 0);
     if (attr_print(plaintext_stream, ATTR_FLAG_NONE,
 		   ATTR_TYPE_INT, MAIL_ATTR_STATUS, ready,
@@ -841,7 +847,11 @@ static void tlsp_get_request_event(int event, char *context)
      */
     else {
 	state->remote_endpt = mystrdup(STR(remote_endpt));
-	msg_info("CONNECT %s", state->remote_endpt);
+	msg_info("CONNECT %s %s",
+		 (req_flags & TLS_PROXY_FLAG_ROLE_SERVER) ? "from" :
+		 (req_flags & TLS_PROXY_FLAG_ROLE_CLIENT) ? "to" :
+		 "(bogus direction)", state->remote_endpt);
+	state->req_flags = req_flags;
 	state->timeout = timeout + 10;		/* XXX */
 	event_enable_read(plaintext_fd, tlsp_get_fd_event, (char *) state);
 	event_request_timer(tlsp_get_fd_event, (char *) state,
@@ -868,10 +878,13 @@ static void tlsp_service(VSTREAM *plaintext_stream,
     /*
      * This program handles multiple connections, so it must not block. We
      * use event-driven code for all operations that introduce latency.
+     * Except that attribute lists are sent/received synchronously, once the
+     * socket is found to be ready for transmission.
      */
     non_blocking(plaintext_fd, NON_BLOCKING);
     vstream_control(plaintext_stream,
 		    VSTREAM_CTL_PATH, "plaintext",
+		    VSTREAM_CTL_TIMEOUT, 5,
 		    VSTREAM_CTL_END);
 
     /*
@@ -922,8 +935,8 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 	    break;
 	}
     }
-    tlsp_tls_enforce_tls = var_tlsp_enforce_tls;
-    if (!(var_tlsp_use_tls || var_tlsp_enforce_tls)) {
+    var_tlsp_use_tls = var_tlsp_use_tls || var_tlsp_enforce_tls;
+    if (!var_tlsp_use_tls) {
 	msg_warn("TLS service is requested, but disabled with %s or %s",
 		 VAR_TLSP_TLS_LEVEL, VAR_TLSP_USE_TLS);
 	return;
@@ -937,7 +950,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      */
     ask_client_cert = require_server_cert =
 	(var_tlsp_tls_ask_ccert
-	 || (enforce_tls && var_tlsp_tls_req_ccert));
+	 || (var_tlsp_enforce_tls && var_tlsp_tls_req_ccert));
     if (strcasecmp(var_tlsp_tls_cert_file, "none") == 0) {
 	no_server_cert_ok = 1;
 	cert_file = "";
@@ -951,7 +964,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     /* Some TLS configuration errors are not show stoppers. */
     if (!have_server_cert && require_server_cert)
 	msg_warn("Need a server cert to request client certs");
-    if (!enforce_tls && var_tlsp_tls_req_ccert)
+    if (!var_tlsp_enforce_tls && var_tlsp_tls_req_ccert)
 	msg_warn("Can't require client certs unless TLS is required");
     /* After a show-stopper error, log a warning. */
     if (have_server_cert || (no_server_cert_ok && !require_server_cert))
@@ -980,7 +993,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 			    dh512_param_file
 			    = var_tlsp_tls_dh512_param_file,
 			    eecdh_grade = var_tlsp_tls_eecdh,
-			    protocols = enforce_tls ?
+			    protocols = var_tlsp_enforce_tls ?
 			    var_tlsp_tls_mand_proto :
 			    var_tlsp_tls_proto,
 			    ask_ccert = ask_client_cert,

@@ -13822,3 +13822,62 @@ for further details. </p>
 
 <p> This feature is available in Postfix 2.8 and later. </p>
 
+%PARAM smtpd_reject_contact_information
+
+<p> Optional contact information that is appended after each SMTP
+server 4XX or 5XX response. </p>
+
+<p> Example: </p>
+
+<pre>
+/etc/postfix/main.cf:
+    smtpd_reject_contact_information = For assistance, call 800-555-0101.
+     Please provide the following information in your problem report:
+     time ($localtime) and client address ($client_address).
+</pre>
+
+<p> Server response: </p>
+
+<pre>
+550-5.5.1 &lt;user@example&gt; Recipient address rejected: User unknown
+550 5.5.1 For assistance, call 800-555-0101. Please provide the
+following information in your problem report: time (Jan 4 15:42:00)
+and client address (192.168.1.248).
+</pre>
+
+<p> Note: this text is meant to make it easier to find the Postfix
+logfile records for a failed SMTP session. The text itself is not
+logged to the Postfix server's maillog file. </p>
+
+<p> Be sure to keep the text as short as possible. Long text may
+be truncated before it is logged in the senders maillog file, or
+before it is returned to the sender in a delivery status notification.
+</p>
+
+<p> This feature supports a limited number of $name attributes in
+the contact text. These are replaced by their current value for the
+SMTP session: </p>
+
+<dl>
+
+<dt> client_address </dt> <dd> Client IP address </dd>
+
+<dt> client_port </dt> <dd> Client TCP port </dd>
+
+<dt> localtime </dt> <dd> Server local time (Mmm dd hh:mm:ss) </dd>
+
+<dt> recipient </dt> <dd> The address in the RCPT TO command </dd>
+
+<dt> sender  </dt> <dd> The address in the MAIL FROM command </dd>
+
+</dl>
+
+<p> For safety reasons, text that does not match $smtpd_expansion_filter
+is censored. </p>
+
+<p> This feature supports \n as a request for a line break in the
+contact text. Postfix automatically inserts after each line break
+the three-digit SMTP reply code (and optional enhanced status code)
+from the original Postfix reject message.  </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>

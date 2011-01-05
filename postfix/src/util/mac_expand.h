@@ -22,6 +22,7 @@
   */
 #define MAC_EXP_FLAG_NONE	(0)
 #define MAC_EXP_FLAG_RECURSE	(1<<0)
+#define MAC_EXP_FLAG_APPEND	(1<<1)
 
  /*
   * Real lookup or just a test?

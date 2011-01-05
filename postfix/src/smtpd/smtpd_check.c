@@ -246,6 +246,7 @@
 #include "smtpd_check.h"
 #include "smtpd_dsn_fix.h"
 #include "smtpd_resolve.h"
+#include "smtpd_expand.h"
 
 #define RESTRICTION_SEPARATORS ", \t\r\n"
 
@@ -330,11 +331,6 @@ static HTABLE *smtpd_rest_classes;
 static HTABLE *policy_clnt_table;
 
 static ARGV *local_rewrite_clients;
-
- /*
-  * Pre-parsed expansion filter.
-  */
-static VSTRING *expand_filter;
 
  /*
   * The routine that recursively applies restrictions.
@@ -703,12 +699,6 @@ void    smtpd_check_init(void)
     if (!has_required(rcpt_restrctions, rcpt_required))
 	fail_required(VAR_RCPT_CHECKS, rcpt_required);
 #endif
-
-    /*
-     * Expand the expansion filter :-)
-     */
-    expand_filter = vstring_alloc(10);
-    unescape(expand_filter, var_smtpd_exp_filter);
 
     /*
      * Local rewrite policy.
@@ -2828,123 +2818,6 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
     CHECK_MAIL_ACCESS_RETURN(SMTPD_CHECK_DUNNO);
 }
 
-/* smtpd_expand_unknown - report unknown macro name */
-
-static void smtpd_expand_unknown(const char *name)
-{
-    msg_warn("unknown macro name \"%s\" in expansion request", name);
-}
-
-/* smtpd_expand_addr - return address or substring thereof */
-
-static const char *smtpd_expand_addr(VSTRING *buf, const char *addr,
-				           const char *name, int prefix_len)
-{
-    const char *p;
-    const char *suffix;
-
-    /*
-     * Return NULL only for unknown names in expansion requests.
-     */
-    if (addr == 0)
-	return ("");
-
-    suffix = name + prefix_len;
-
-    /*
-     * MAIL_ATTR_SENDER or MAIL_ATTR_RECIP.
-     */
-    if (*suffix == 0) {
-	if (*addr)
-	    return (addr);
-	else
-	    return ("<>");
-    }
-
-    /*
-     * "sender_name" or "recipient_name".
-     */
-#define STREQ(x,y) (*(x) == *(y) && strcmp((x), (y)) == 0)
-
-    else if (STREQ(suffix, MAIL_ATTR_S_NAME)) {
-	if (*addr) {
-	    if ((p = strrchr(addr, '@')) != 0) {
-		vstring_strncpy(buf, addr, p - addr);
-		return (STR(buf));
-	    } else {
-		return (addr);
-	    }
-	} else
-	    return ("<>");
-    }
-
-    /*
-     * "sender_domain" or "recipient_domain".
-     */
-    else if (STREQ(suffix, MAIL_ATTR_S_DOMAIN)) {
-	if (*addr) {
-	    if ((p = strrchr(addr, '@')) != 0) {
-		return (p + 1);
-	    } else {
-		return ("");
-	    }
-	} else
-	    return ("");
-    }
-
-    /*
-     * Unknown. Return NULL to indicate an "unknown name" error.
-     */
-    else {
-	smtpd_expand_unknown(name);
-	return (0);
-    }
-}
-
-/* smtpd_expand_lookup - generic SMTP attribute $name expansion */
-
-static const char *smtpd_expand_lookup(const char *name, int unused_mode,
-				               char *context)
-{
-    SMTPD_STATE *state = (SMTPD_STATE *) context;
-
-    if (state->expand_buf == 0)
-	state->expand_buf = vstring_alloc(10);
-
-    if (msg_verbose > 1)
-	msg_info("smtpd_expand_lookup: ${%s}", name);
-
-#define STREQN(x,y,n) (*(x) == *(y) && strncmp((x), (y), (n)) == 0)
-#define CONST_LEN(x)  (sizeof(x) - 1)
-
-    /*
-     * Don't query main.cf parameters, as the result of expansion could
-     * reveal system-internal information in server replies.
-     * 
-     * Return NULL only for non-existent names.
-     */
-    if (STREQ(name, MAIL_ATTR_ACT_CLIENT)) {
-	return (state->namaddr);
-    } else if (STREQ(name, MAIL_ATTR_ACT_CLIENT_ADDR)) {
-	return (state->addr);
-    } else if (STREQ(name, MAIL_ATTR_ACT_CLIENT_NAME)) {
-	return (state->name);
-    } else if (STREQ(name, MAIL_ATTR_ACT_REVERSE_CLIENT_NAME)) {
-	return (state->reverse_name);
-    } else if (STREQ(name, MAIL_ATTR_ACT_HELO_NAME)) {
-	return (state->helo_name ? state->helo_name : "");
-    } else if (STREQN(name, MAIL_ATTR_SENDER, CONST_LEN(MAIL_ATTR_SENDER))) {
-	return (smtpd_expand_addr(state->expand_buf, state->sender,
-				  name, CONST_LEN(MAIL_ATTR_SENDER)));
-    } else if (STREQN(name, MAIL_ATTR_RECIP, CONST_LEN(MAIL_ATTR_RECIP))) {
-	return (smtpd_expand_addr(state->expand_buf, state->recipient,
-				  name, CONST_LEN(MAIL_ATTR_RECIP)));
-    } else {
-	smtpd_expand_unknown(name);
-	return (0);
-    }
-}
-
 /* Support for different DNSXL lookup results. */
 
 static SMTPD_RBL_STATE dnsxl_stat_soft[1];
@@ -3061,6 +2934,8 @@ static const char *rbl_expand_lookup(const char *name, int mode,
     SMTPD_RBL_EXPAND_CONTEXT *rbl_exp = (SMTPD_RBL_EXPAND_CONTEXT *) context;
     SMTPD_STATE *state = rbl_exp->state;
 
+#define STREQ(x,y) (*(x) == *(y) && strcmp((x), (y)) == 0)
+
     if (state->expand_buf == 0)
 	state->expand_buf = vstring_alloc(10);
 
@@ -3121,7 +2996,7 @@ static int rbl_reject_reply(SMTPD_STATE *state, const SMTPD_RBL_STATE *rbl,
 	if (template == 0)
 	    template = var_def_rbl_reply;
 	if (mac_expand(why, template, MAC_EXP_FLAG_NONE,
-		       STR(expand_filter), rbl_expand_lookup,
+		       STR(smtpd_expand_filter), rbl_expand_lookup,
 		       (char *) &rbl_exp) == 0)
 	    break;
 	if (template == var_def_rbl_reply)

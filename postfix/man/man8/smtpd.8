@@ -341,7 +341,7 @@ smtpd_use_tls and smtpd_enforce_tls.
 .IP "\fBsmtpd_sasl_tls_security_options ($smtpd_sasl_security_options)\fR"
 The SASL authentication security options that the Postfix SMTP
 server uses for TLS encrypted SMTP sessions.
-.IP "\fBsmtpd_starttls_timeout (300s)\fR"
+.IP "\fBsmtpd_starttls_timeout (see 'postconf -d' output)\fR"
 The time limit for Postfix SMTP server write and read operations
 during TLS startup and shutdown handshake procedures.
 .IP "\fBsmtpd_tls_CAfile (empty)\fR"
@@ -527,6 +527,9 @@ before-queue content inspection by non_smtpd_milters, header_checks
 and body_checks.
 .IP "\fBnotify_classes (resource, software)\fR"
 The list of error classes that are reported to the postmaster.
+.IP "\fBsmtpd_reject_contact_information (empty)\fR"
+Optional contact information that is appended after each SMTP
+server 4XX or 5XX response.
 .IP "\fBsoft_bounce (no)\fR"
 Safety net to keep mail queued that would otherwise be returned to
 the sender.

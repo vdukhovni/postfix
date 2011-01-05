@@ -267,6 +267,10 @@
 /*	The argument specifies the file descriptor to be used for writing.
 /*	This feature is limited to double-buffered streams, and makes the
 /*	stream non-seekable.
+/* .IP "VSTREAM_CTL_SWAP_FD (VSTREAM *)"
+/*	The argument specifies a VSTREAM pointer; the request swaps the
+/*	file descriptor members of the two streams. This feature is limited
+/*	to streams that are both double-buffered or both single-buffered.
 /* .IP "VSTREAM_CTL_DUPFD (int)"
 /*	The argument specifies a minimum file descriptor value. If
 /*	the actual stream's file descriptors are below the minimum,
@@ -1222,6 +1226,9 @@ void    vstream_control(VSTREAM *stream, int name,...)
     int     floor;
     int     old_fd;
     ssize_t req_bufsize = 0;
+    VSTREAM *stream2;
+
+#define SWAP(type,a,b) do { type temp = (a); (a) = (b); (b) = (temp); } while (0)
 
     for (va_start(ap, name); name != VSTREAM_CTL_END; name = va_arg(ap, int)) {
 	switch (name) {
@@ -1263,8 +1270,20 @@ void    vstream_control(VSTREAM *stream, int name,...)
 	    stream->write_fd = va_arg(ap, int);
 	    stream->buf.flags |= VSTREAM_FLAG_NSEEK;
 	    break;
-	case VSTREAM_CTL_WAITPID_FN:
-	    stream->waitpid_fn = va_arg(ap, VSTREAM_WAITPID_FN);
+	case VSTREAM_CTL_SWAP_FD:
+	    stream2 = va_arg(ap, VSTREAM *);
+	    if ((stream->buf.flags & VSTREAM_FLAG_DOUBLE)
+		!= (stream2->buf.flags & VSTREAM_FLAG_DOUBLE))
+		msg_panic("VSTREAM_CTL_SWAP_FD can't swap descriptors between "
+			  "single-buffered and double-buffered streams");
+	    if (stream->buf.flags & VSTREAM_FLAG_DOUBLE) {
+		SWAP(int, stream->read_fd, stream2->read_fd);
+		SWAP(int, stream->write_fd, stream2->write_fd);
+		stream->fd = ((stream->buf.flags & VSTREAM_FLAG_WRITE) ?
+			      stream->write_fd : stream->read_fd);
+	    } else {
+		SWAP(int, stream->fd, stream2->fd);
+	    }
 	    break;
 	case VSTREAM_CTL_TIMEOUT:
 	    if (stream->timeout == 0)

@@ -47,6 +47,8 @@
 /* .IP MAC_EXP_FLAG_RECURSE
 /*	Expand macros in lookup results. This should never be done with
 /*	data whose origin is untrusted.
+/* .IP MAC_EXP_FLAG_APPEND
+/*	Append text to the result buffer.
 /* .PP
 /*	The constant MAC_EXP_FLAG_NONE specifies a manifest null value.
 /* .RE
@@ -231,7 +233,8 @@ int     mac_expand(VSTRING *result, const char *pattern, int flags,
     mc.context = context;
     mc.status = 0;
     mc.level = 0;
-    VSTRING_RESET(result);
+    if ((flags & MAC_EXP_FLAG_APPEND) == 0)
+	VSTRING_RESET(result);
     status = mac_parse(pattern, mac_expand_callback, (char *) &mc);
     VSTRING_TERMINATE(result);
 

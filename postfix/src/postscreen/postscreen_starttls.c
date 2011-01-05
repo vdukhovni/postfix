@@ -55,6 +55,10 @@
 #include <mail_params.h>
 #include <mail_proto.h>
 
+/* TLS library. */
+
+#include <tls_proxy.h>
+
 /* Application-specific. */
 
 #include <postscreen.h>
@@ -74,7 +78,6 @@ typedef struct {
     PSC_STATE *smtp_state;		/* SMTP session state */
 } PSC_STARTTLS;
 
-#define TLSPROXY_SERVICE		"tlsproxy"
 #define TLSPROXY_INIT_TIMEOUT		10
 
 /* psc_starttls_finish - complete negotiation with TLS proxy */
@@ -155,9 +158,15 @@ static void psc_starttls_finish(int event, char *context)
 	 * Replace our SMTP client stream by the TLS proxy stream.  Once the
 	 * TLS handshake is done, the TLS proxy will deliver plaintext SMTP
 	 * commands to postscreen(8).
+	 * 
+	 * Swap the file descriptors from under the VSTREAM so that we don't
+	 * have to worry about loss of user-configurable VSTREAM attributes.
 	 */
-	vstream_fclose(smtp_state->smtp_client_stream);
-	smtp_state->smtp_client_stream = tlsproxy_stream;
+	vstream_fpurge(smtp_state->smtp_client_stream, VSTREAM_PURGE_BOTH);
+	vstream_control(smtp_state->smtp_client_stream,
+			VSTREAM_CTL_SWAP_FD, tlsproxy_stream,
+			VSTREAM_CTL_END);
+	vstream_fclose(tlsproxy_stream);	/* direct-to-client stream! */
 	smtp_state->flags |= PSC_STATE_FLAG_USING_TLS;
     }
 
@@ -210,7 +219,7 @@ void    psc_starttls_open(PSC_STATE *smtp_state, EVENT_NOTIFY_FN resume_event)
 			       smtp_state->smtp_client_port, (char *) 0);
     attr_print(tlsproxy_stream, ATTR_FLAG_NONE,
 	       ATTR_TYPE_STR, MAIL_ATTR_REMOTE_ENDPT, remote_endpt,
-	       ATTR_TYPE_STR, MAIL_ATTR_ROLE, MAIL_ATTR_ROLE_SERVER,
+	       ATTR_TYPE_INT, MAIL_ATTR_FLAGS, TLS_PROXY_FLAG_ROLE_SERVER,
 	       ATTR_TYPE_INT, MAIL_ATTR_TIMEOUT, psc_normal_cmd_time_limit,
 	       ATTR_TYPE_END);
     myfree(remote_endpt);

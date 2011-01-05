@@ -166,7 +166,7 @@ int     smtpd_sasl_auth_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	}
     }
 #ifdef USE_TLS
-    if (state->tls_auth_only && !state->tls_context) {
+    if (var_smtpd_tls_auth_only && !state->tls_context) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	/* RFC 4954, Section 4. */
 	smtpd_chat_reply(state, "504 5.5.4 Encryption required for requested authentication mechanism");

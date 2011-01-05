@@ -74,6 +74,7 @@ tlsproxy.o: ../../include/name_mask.h
 tlsproxy.o: ../../include/nbbio.h
 tlsproxy.o: ../../include/sys_defs.h
 tlsproxy.o: ../../include/tls.h
+tlsproxy.o: ../../include/tls_proxy.h
 tlsproxy.o: ../../include/vbuf.h
 tlsproxy.o: ../../include/vstream.h
 tlsproxy.o: ../../include/vstring.h

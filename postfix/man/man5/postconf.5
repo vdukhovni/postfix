@@ -8094,6 +8094,67 @@ smtpd_recipient_restrictions = permit_mynetworks, reject_unauth_destination
 .fi
 .ad
 .ft R
+.SH smtpd_reject_contact_information (default: empty)
+Optional contact information that is appended after each SMTP
+server 4XX or 5XX response.
+.PP
+Example:
+.PP
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    smtpd_reject_contact_information = For assistance, call 800-555-0101.
+     Please provide the following information in your problem report:
+     time ($localtime) and client address ($client_address).
+.fi
+.ad
+.ft R
+.PP
+Server response:
+.PP
+.nf
+.na
+.ft C
+550-5.5.1 <user@example> Recipient address rejected: User unknown
+550 5.5.1 For assistance, call 800-555-0101. Please provide the
+following information in your problem report: time (Jan 4 15:42:00)
+and client address (192.168.1.248).
+.fi
+.ad
+.ft R
+.PP
+Note: this text is meant to make it easier to find the Postfix
+logfile records for a failed SMTP session. The text itself is not
+logged to the Postfix server's maillog file.
+.PP
+Be sure to keep the text as short as possible. Long text may
+be truncated before it is logged in the senders maillog file, or
+before it is returned to the sender in a delivery status notification.
+.PP
+This feature supports a limited number of $name attributes in
+the contact text. These are replaced by their current value for the
+SMTP session:
+.IP "client_address"
+Client IP address
+.IP "client_port"
+Client TCP port
+.IP "localtime"
+Server local time (Mmm dd hh:mm:ss)
+.IP "recipient"
+The address in the RCPT TO command
+.IP "sender"
+The address in the MAIL FROM command
+.PP
+For safety reasons, text that does not match $smtpd_expansion_filter
+is censored.
+.PP
+This feature supports \en as a request for a line break in the
+contact text. Postfix automatically inserts after each line break
+the three-digit SMTP reply code (and optional enhanced status code)
+from the original Postfix reject message.
+.PP
+This feature is available in Postfix 2.8 and later.
 .SH smtpd_reject_unlisted_recipient (default: yes)
 Request that the Postfix SMTP server rejects mail for unknown
 recipient addresses, even when no explicit reject_unlisted_recipient

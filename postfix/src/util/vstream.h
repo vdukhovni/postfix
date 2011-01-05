@@ -132,6 +132,7 @@ extern void vstream_control(VSTREAM *, int,...);
 #define VSTREAM_CTL_DUPFD	11
 #endif
 #define VSTREAM_CTL_BUFSIZE	12
+#define VSTREAM_CTL_SWAP_FD	13
 
 extern VSTREAM *PRINTFLIKE(1, 2) vstream_printf(const char *,...);
 extern VSTREAM *PRINTFLIKE(2, 3) vstream_fprintf(VSTREAM *, const char *,...);

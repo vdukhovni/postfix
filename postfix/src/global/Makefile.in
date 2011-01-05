@@ -802,6 +802,7 @@ dict_ldap.o: ../../include/match_list.h
 dict_ldap.o: ../../include/match_ops.h
 dict_ldap.o: ../../include/msg.h
 dict_ldap.o: ../../include/mymalloc.h
+dict_ldap.o: ../../include/name_code.h
 dict_ldap.o: ../../include/stringops.h
 dict_ldap.o: ../../include/sys_defs.h
 dict_ldap.o: ../../include/vbuf.h
@@ -811,6 +812,7 @@ dict_ldap.o: cfg_parser.h
 dict_ldap.o: db_common.h
 dict_ldap.o: dict_ldap.c
 dict_ldap.o: dict_ldap.h
+dict_ldap.o: mail_conf.h
 dict_ldap.o: string_list.h
 dict_mysql.o: ../../include/sys_defs.h
 dict_mysql.o: dict_mysql.c

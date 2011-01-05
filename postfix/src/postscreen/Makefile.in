@@ -234,9 +234,13 @@ postscreen_starttls.o: ../../include/match_list.h
 postscreen_starttls.o: ../../include/match_ops.h
 postscreen_starttls.o: ../../include/msg.h
 postscreen_starttls.o: ../../include/mymalloc.h
+postscreen_starttls.o: ../../include/name_code.h
+postscreen_starttls.o: ../../include/name_mask.h
 postscreen_starttls.o: ../../include/string_list.h
 postscreen_starttls.o: ../../include/stringops.h
 postscreen_starttls.o: ../../include/sys_defs.h
+postscreen_starttls.o: ../../include/tls.h
+postscreen_starttls.o: ../../include/tls_proxy.h
 postscreen_starttls.o: ../../include/vbuf.h
 postscreen_starttls.o: ../../include/vstream.h
 postscreen_starttls.o: ../../include/vstring.h

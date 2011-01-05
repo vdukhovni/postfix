@@ -309,7 +309,7 @@
 /* .IP "\fBsmtpd_sasl_tls_security_options ($smtpd_sasl_security_options)\fR"
 /*	The SASL authentication security options that the Postfix SMTP
 /*	server uses for TLS encrypted SMTP sessions.
-/* .IP "\fBsmtpd_starttls_timeout (300s)\fR"
+/* .IP "\fBsmtpd_starttls_timeout (see 'postconf -d' output)\fR"
 /*	The time limit for Postfix SMTP server write and read operations
 /*	during TLS startup and shutdown handshake procedures.
 /* .IP "\fBsmtpd_tls_CAfile (empty)\fR"
@@ -489,6 +489,9 @@
 /*	and body_checks.
 /* .IP "\fBnotify_classes (resource, software)\fR"
 /*	The list of error classes that are reported to the postmaster.
+/* .IP "\fBsmtpd_reject_contact_information (empty)\fR"
+/*	Optional contact information that is appended after each SMTP
+/*	server 4XX or 5XX response.
 /* .IP "\fBsoft_bounce (no)\fR"
 /*	Safety net to keep mail queued that would otherwise be returned to
 /*	the sender.
@@ -1048,6 +1051,7 @@
 #include <valid_mailhost_addr.h>
 #include <dsn_mask.h>
 #include <xtext.h>
+#include <tls_proxy.h>
 
 /* Single-threaded server skeleton. */
 
@@ -1067,6 +1071,7 @@
 #include <smtpd_sasl_glue.h>
 #include <smtpd_proxy.h>
 #include <smtpd_milter.h>
+#include <smtpd_expand.h>
 
  /*
   * Tunable parameters. Make sure that there is some bound on the length of
@@ -1182,6 +1187,7 @@ bool    var_smtpd_enforce_tls;
 bool    var_smtpd_tls_wrappermode;
 bool    var_smtpd_tls_auth_only;
 char   *var_smtpd_cmd_filter;
+char   *var_smtpd_rej_contact;
 
 #ifdef USE_TLS
 char   *var_smtpd_relay_ccerts;
@@ -1323,8 +1329,6 @@ static TLS_APPL_STATE *smtpd_tls_ctx;
 static int ask_client_cert;
 
 #endif
-
-static int enforce_tls;
 
  /*
   * SMTP command mapping for broken clients.
@@ -1640,7 +1644,7 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	ENQUEUE_FIX_REPLY(state, reply_buf, SMTPD_CMD_ETRN);
 #ifdef USE_TLS
     if ((discard_mask & EHLO_MASK_STARTTLS) == 0)
-	if ((state->tls_use_tls || state->tls_enforce_tls) && (!state->tls_context))
+	if (var_smtpd_use_tls && (!state->tls_context))
 	    ENQUEUE_FIX_REPLY(state, reply_buf, SMTPD_CMD_STARTTLS);
 #endif
 #ifdef USE_SASL_AUTH
@@ -3958,11 +3962,11 @@ static void smtpd_start_tls(SMTPD_STATE *state)
     } while (0)
 
     if (cipher_grade == 0) {
-	cipher_grade =
-	    enforce_tls ? var_smtpd_tls_mand_ciph : var_smtpd_tls_ciph;
+	cipher_grade = var_smtpd_enforce_tls ?
+	    var_smtpd_tls_mand_ciph : var_smtpd_tls_ciph;
 	cipher_exclusions = vstring_alloc(10);
 	ADD_EXCLUDE(cipher_exclusions, var_smtpd_tls_excl_ciph);
-	if (enforce_tls)
+	if (var_smtpd_enforce_tls)
 	    ADD_EXCLUDE(cipher_exclusions, var_smtpd_tls_mand_excl);
 	if (ask_client_cert)
 	    ADD_EXCLUDE(cipher_exclusions, "aNULL");
@@ -3979,7 +3983,7 @@ static void smtpd_start_tls(SMTPD_STATE *state)
 			 log_level = var_smtpd_tls_loglevel,
 			 timeout = var_smtpd_starttls_tmout,
 			 requirecert = (var_smtpd_tls_req_ccert
-					&& state->tls_enforce_tls),
+					&& var_smtpd_enforce_tls),
 			 serverid = state->service,
 			 namaddr = state->namaddr,
 			 cipher_grade = cipher_grade,
@@ -4079,6 +4083,11 @@ static int starttls_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     const char *err;
     int     rate;
 
+#ifdef USE_TLSPROXY
+    VSTREAM *proxy_stream;
+
+#endif
+
     if (argc != 1) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 5.5.4 Syntax: STARTTLS");
@@ -4102,18 +4111,20 @@ static int starttls_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	smtpd_chat_reply(state, "554 5.5.1 Error: TLS already active");
 	return (-1);
     }
-    if (state->tls_use_tls == 0
+    if (var_smtpd_use_tls == 0
 	|| (state->ehlo_discard_mask & EHLO_MASK_STARTTLS)) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "502 5.5.1 Error: command not implemented");
 	return (-1);
     }
+#ifndef USE_TLS_PROXY
     if (smtpd_tls_ctx == 0) {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
 	/* RFC 4954 Section 6. */
 	smtpd_chat_reply(state, "454 4.7.0 TLS not available due to local problem");
 	return (-1);
     }
+#endif
 
     /*
      * Enforce TLS handshake rate limit when this client negotiated too many
@@ -4139,9 +4150,11 @@ static int starttls_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 			 state->namaddr);
 	return (-1);
     }
+#ifndef USE_TLSPROXY
     smtpd_chat_reply(state, "220 2.0.0 Ready to start TLS");
     /* Flush before we switch the stream's read/write routines. */
     smtp_flush(state->client);
+    vstream_fpurge(state->client, VSTREAM_PURGE_READ);	/* Yay! */
 
     /*
      * Reset all inputs to the initial state.
@@ -4159,6 +4172,73 @@ static int starttls_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      */
     smtpd_start_tls(state);
     return (0);
+#else						/* USE_TLSPROXY */
+
+    /*
+     * This is non-production code, for tlsproxy(8) load testing only. It
+     * implements enough to enable the Postfix features that depend on TLS
+     * encryption.
+     */
+#define PROXY_OPEN_FLAGS \
+	(TLS_PROXY_FLAG_ROLE_SERVER | TLS_PROXY_FLAG_SEND_CONTEXT)
+
+    proxy_stream = tls_proxy_open(PROXY_OPEN_FLAGS, state->client, state->addr,
+				  state->port, var_smtpd_tmout);
+    if (proxy_stream == 0) {
+	state->error_mask |= MAIL_ERROR_SOFTWARE;
+	/* RFC 4954 Section 6. */
+	smtpd_chat_reply(state, "454 4.7.0 TLS not available due to local problem");
+	return (-1);
+    }
+    smtpd_chat_reply(state, "220 2.0.0 Ready to start TLS");
+    smtp_flush(state->client);
+    vstream_fpurge(state->client, VSTREAM_PURGE_READ);
+
+    /*
+     * Reset all inputs to the initial state.
+     * 
+     * XXX RFC 2487 does not forbid the use of STARTTLS while mail transfer is
+     * in progress, so we have to allow it even when it makes no sense.
+     */
+    helo_reset(state);
+    mail_reset(state);
+    rcpt_reset(state);
+#ifdef USE_SASL_AUTH
+    if (var_smtpd_sasl_enable) {
+	if (smtpd_sasl_is_active(state)) {
+	    smtpd_sasl_auth_reset(state);
+	    smtpd_sasl_deactivate(state);
+	}
+	smtpd_sasl_activate(state, VAR_SMTPD_SASL_TLS_OPTS,
+			    var_smtpd_sasl_tls_opts);
+    }
+#endif
+
+    /*
+     * To insert tlsproxy(8) between this process and the SMTP client, we
+     * swap the file descriptors between the proxy_stream and state->client
+     * VSTREAMS, so that we don't have to worry about loss of all the
+     * user-configurable state->client attributes (such as longjump buffers).
+     */
+    vstream_control(proxy_stream, VSTREAM_CTL_DOUBLE, VSTREAM_CTL_END);
+    vstream_control(state->client, VSTREAM_CTL_SWAP_FD, proxy_stream,
+		    VSTREAM_CTL_END);
+    (void) vstream_fclose(proxy_stream);	/* direct-to-client stream! */
+
+    /*
+     * After plumbing the plaintext stream, receive the TLS context object.
+     * For this we must use the same VSTREAM buffer that we also use to
+     * receive subsequent SMTP commands.
+     * 
+     * When the TLS handshake fails, the conversation is in an unknown state.
+     * There is nothing we can do except to disconnect from the client.
+     */
+    state->tls_context = tls_proxy_state_receive(state->client);
+    if (state->tls_context == 0)
+	vstream_longjmp(state->client, SMTP_ERR_EOF);
+
+    return (0);
+#endif						/* USE_TLSPROXY */
 }
 
 /* tls_reset - undo STARTTLS */
@@ -4174,8 +4254,12 @@ static void tls_reset(SMTPD_STATE *state)
 	if (vstream_feof(state->client) || vstream_ferror(state->client))
 	    failure = 1;
 	vstream_fflush(state->client);		/* NOT: smtp_flush() */
+#ifndef USE_TLSPROXY
 	tls_server_stop(smtpd_tls_ctx, state->client, var_smtpd_starttls_tmout,
 			failure, state->tls_context);
+#else
+	tls_proxy_state_free(state->tls_context);
+#endif
 	state->tls_context = 0;
     }
 }
@@ -4294,6 +4378,9 @@ static void smtpd_proto(SMTPD_STATE *state)
 	 */
 #ifdef USE_TLS
 	if (SMTPD_STAND_ALONE(state) == 0 && var_smtpd_tls_wrappermode) {
+#ifdef USE_TLSPROXY
+	    msg_fatal("Wrapper-mode is unimplemented.");
+#else						/* USE_TLSPROXY */
 	    if (smtpd_tls_ctx == 0) {
 		msg_warn("Wrapper-mode request dropped from %s for service %s."
 		       " TLS context initialization failed. For details see"
@@ -4314,6 +4401,7 @@ static void smtpd_proto(SMTPD_STATE *state)
 		break;
 	    }
 	    smtpd_start_tls(state);
+#endif						/* USE_TLSPROXY */
 	}
 #endif
 
@@ -4473,7 +4561,7 @@ static void smtpd_proto(SMTPD_STATE *state)
 #ifdef USE_SASL_AUTH
 	if (var_smtpd_sasl_enable && smtpd_sasl_is_active(state) == 0
 #ifdef USE_TLS
-	    && state->tls_context == 0 && !state->tls_auth_only
+	    && state->tls_context == 0 && !var_smtpd_tls_auth_only
 #else
 	    && var_smtpd_tls_auth_only == 0
 #endif
@@ -4558,7 +4646,7 @@ static void smtpd_proto(SMTPD_STATE *state)
 		continue;
 	    }
 #ifdef USE_TLS
-	    if (state->tls_enforce_tls &&
+	    if (var_smtpd_enforce_tls &&
 		!state->tls_context &&
 		(cmdp->flags & SMTPD_CMD_FLAG_PRE_TLS) == 0) {
 		smtpd_chat_reply(state,
@@ -4674,26 +4762,13 @@ static void smtpd_service(VSTREAM *stream, char *service, char **argv)
     msg_info("connect from %s", state.namaddr);
 
     /*
-     * With TLS wrapper mode, we run on a dedicated port and turn on TLS
-     * before actually speaking the SMTP protocol. This implies TLS enforce
-     * mode.
-     * 
-     * With non-wrapper mode, TLS enforce mode implies that we don't advertise
-     * AUTH before the client issues STARTTLS.
+     * Disable TLS when running in stand-alone mode via "sendmail -bs".
      */
-#ifdef USE_TLS
-    if (!SMTPD_STAND_ALONE((&state))) {
-	if (var_smtpd_tls_wrappermode) {
-	    state.tls_use_tls = 1;
-	    state.tls_enforce_tls = 1;
-	} else {
-	    state.tls_use_tls = var_smtpd_use_tls | var_smtpd_enforce_tls;
-	    state.tls_enforce_tls = var_smtpd_enforce_tls;
-	}
-	if (var_smtpd_tls_auth_only || state.tls_enforce_tls)
-	    state.tls_auth_only = 1;
+    if (SMTPD_STAND_ALONE((&state))) {
+	var_smtpd_use_tls = 0;
+	var_smtpd_enforce_tls = 0;
+	var_smtpd_tls_auth_only = 0;
     }
-#endif
 
     /*
      * XCLIENT must not override its own access control.
@@ -4742,7 +4817,6 @@ static void pre_accept(char *unused_name, char **unused_argv)
 
 static void pre_jail_init(char *unused_name, char **unused_argv)
 {
-    int     use_tls;
 
     /*
      * Initialize blacklist/etc. patterns before entering the chroot jail, in
@@ -4767,6 +4841,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      */
     if (getuid() == 0 || getuid() == var_owner_uid)
 	smtpd_check_init();
+    smtpd_expand_init();
     debug_peer_init();
 
     if (var_smtpd_sasl_enable)
@@ -4818,8 +4893,18 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 	    break;
 	}
     }
-    enforce_tls = var_smtpd_tls_wrappermode || var_smtpd_enforce_tls;
-    use_tls = var_smtpd_use_tls || enforce_tls;
+
+    /*
+     * With TLS wrapper mode, we run on a dedicated port and turn on TLS
+     * before actually speaking the SMTP protocol. This implies TLS enforce
+     * mode.
+     * 
+     * With non-wrapper mode, TLS enforce mode implies that we don't advertise
+     * AUTH before the client issues STARTTLS.
+     */
+    var_smtpd_enforce_tls = var_smtpd_tls_wrappermode || var_smtpd_enforce_tls;
+    var_smtpd_tls_auth_only = var_smtpd_tls_auth_only || var_smtpd_enforce_tls;
+    var_smtpd_use_tls = var_smtpd_use_tls || var_smtpd_enforce_tls;
 
     /*
      * Keys can only be loaded when running with suitable permissions. When
@@ -4827,7 +4912,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      * announce STARTTLS support.
      */
     if (getuid() == 0 || getuid() == var_owner_uid) {
-	if (use_tls) {
+	if (var_smtpd_use_tls) {
 #ifdef USE_TLS
 	    TLS_SERVER_INIT_PROPS props;
 	    const char *cert_file;
@@ -4843,7 +4928,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 	     */
 	    ask_client_cert = require_server_cert =
 		(var_smtpd_tls_ask_ccert
-		 || (enforce_tls && var_smtpd_tls_req_ccert));
+		 || (var_smtpd_enforce_tls && var_smtpd_tls_req_ccert));
 	    if (strcasecmp(var_smtpd_tls_cert_file, "none") == 0) {
 		no_server_cert_ok = 1;
 		cert_file = "";
@@ -4857,7 +4942,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 	    /* Some TLS configuration errors are not show stoppers. */
 	    if (!have_server_cert && require_server_cert)
 		msg_warn("Need a server cert to request client certs");
-	    if (!enforce_tls && var_smtpd_tls_req_ccert)
+	    if (!var_smtpd_enforce_tls && var_smtpd_tls_req_ccert)
 		msg_warn("Can't require client certs unless TLS is required");
 	    /* After a show-stopper error, reply with 454 to STARTTLS. */
 	    if (have_server_cert || (no_server_cert_ok && !require_server_cert))
@@ -4888,7 +4973,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 				    dh512_param_file
 				    = var_smtpd_tls_dh512_param_file,
 				    eecdh_grade = var_smtpd_tls_eecdh,
-				    protocols = enforce_tls ?
+				    protocols = var_smtpd_enforce_tls ?
 				    var_smtpd_tls_mand_proto :
 				    var_smtpd_tls_proto,
 				    ask_ccert = ask_client_cert,
@@ -5175,6 +5260,7 @@ int     main(int argc, char **argv)
     static const CONFIG_RAW_TABLE raw_table[] = {
 	VAR_SMTPD_EXP_FILTER, DEF_SMTPD_EXP_FILTER, &var_smtpd_exp_filter, 1, 0,
 	VAR_DEF_RBL_REPLY, DEF_DEF_RBL_REPLY, &var_def_rbl_reply, 1, 0,
+	VAR_SMTPD_REJ_CONTACT, DEF_SMTPD_REJ_CONTACT, &var_smtpd_rej_contact, 0, 0,
 	0,
     };
 

@@ -165,9 +165,6 @@ typedef struct {
      * TLS related state.
      */
 #ifdef USE_TLS
-    int     tls_use_tls;		/* can use TLS */
-    int     tls_enforce_tls;		/* must use TLS */
-    int     tls_auth_only;		/* use SASL over TLS only */
     TLS_SESS_STATE *tls_context;	/* TLS session state */
 #endif
 

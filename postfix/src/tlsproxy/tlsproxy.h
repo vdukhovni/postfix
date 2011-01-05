@@ -24,6 +24,7 @@
   */
 typedef struct {
     int     flags;			/* see below */
+    int     req_flags;			/* request flags, see tls_proxy.h */
     char   *service;			/* argv[0] */
     VSTREAM *plaintext_stream;		/* local peer: postscreen(8), etc. */
     NBBIO  *plaintext_buf;		/* plaintext buffer */

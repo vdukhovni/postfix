@@ -2,6 +2,8 @@ Wish list:
 
 	Remove this file from the stable release.
 
+	Re-run "make depend" with all plugins enabled.
+
 	anvil rate limit for sasl_username.
 
 	Encapsulate nbbio buffer access and update by tlsproxy.

@@ -206,20 +206,6 @@ static MAPS *psc_ehlo_discard_maps;
 static int psc_ehlo_discard_mask;
 
  /*
-  * STARTTLS support. Note the complete absence of #ifdef USE_TLS throughout
-  * the postscreen(8) source code. If Postfix is built without TLS support,
-  * then the TLS proxy will simply report that TLS is not available, and
-  * conventional error handling will take care of the issue.
-  */
-static int psc_tls_use_tls;
-static int psc_tls_enforce_tls;
-
-#ifdef TODO_USE_SASL_AUTH
-static int psc_tls_auth_only;
-
-#endif
-
- /*
   * Encapsulation. We must not forget turn off input/timer events when we
   * terminate the SMTP protocol engine.
   * 
@@ -261,7 +247,7 @@ static int psc_helo_cmd(PSC_STATE *state, char *args)
 /* psc_smtpd_format_ehlo_reply - format EHLO response */
 
 static void psc_smtpd_format_ehlo_reply(VSTRING *buf, int discard_mask
-	/*, const char *sasl_mechanism_list */)
+				   /* , const char *sasl_mechanism_list */ )
 {
     const char *myname = "psc_smtpd_format_ehlo_reply";
     int     saved_len = 0;
@@ -291,12 +277,11 @@ static void psc_smtpd_format_ehlo_reply(VSTRING *buf, int discard_mask
 	PSC_EHLO_APPEND(saved_len, psc_temp, "250-VRFY\r\n");
     if ((discard_mask & EHLO_MASK_ETRN) == 0)
 	PSC_EHLO_APPEND(saved_len, psc_temp, "250-ETRN\r\n");
-    if ((discard_mask & EHLO_MASK_STARTTLS) == 0
-	&& (psc_tls_use_tls || psc_tls_enforce_tls))
+    if ((discard_mask & EHLO_MASK_STARTTLS) == 0 && var_psc_use_tls)
 	PSC_EHLO_APPEND(saved_len, psc_temp, "250-STARTTLS\r\n");
 #ifdef TODO_SASL_AUTH
     if ((discard_mask & EHLO_MASK_AUTH) == 0 && sasl_mechanism_list
-	&& (psc_tls_auth_only == 0 || (discard_mask & EHLO_MASK_STARTTLS))) {
+	&& (!var_psc_tls_auth_only || (discard_mask & EHLO_MASK_STARTTLS))) {
 	PSC_EHLO_APPEND1(saved_len, psc_temp, "AUTH %s", sasl_mechanism_list);
 	if (var_broken_auth_clients)
 	    PSC_EHLO_APPEND1(saved_len, psc_temp, "AUTH=%s", sasl_mechanism_list);
@@ -393,7 +378,7 @@ static int psc_starttls_cmd(PSC_STATE *state, char *args)
     if (state->flags & PSC_STATE_FLAG_USING_TLS)
 	return (PSC_SEND_REPLY(state,
 			       "554 5.5.1 Error: TLS already active\r\n"));
-    if (psc_tls_use_tls == 0 || (state->ehlo_discard_mask & EHLO_MASK_STARTTLS))
+    if (var_psc_use_tls == 0 || (state->ehlo_discard_mask & EHLO_MASK_STARTTLS))
 	return (PSC_SEND_REPLY(state,
 			   "502 5.5.1 Error: command not implemented\r\n"));
 
@@ -955,7 +940,7 @@ static void psc_smtpd_read_event(int event, char *context)
 	if (cmdp->name == 0 || (cmdp->flags & PSC_SMTPD_CMD_FLAG_ENABLE) == 0) {
 	    write_stat = PSC_SEND_REPLY(state,
 			     "502 5.5.2 Error: command not recognized\r\n");
-	} else if (psc_tls_enforce_tls
+	} else if (var_psc_enforce_tls
 		   && (state->flags & PSC_STATE_FLAG_USING_TLS) == 0
 		   && (cmdp->flags & PSC_SMTPD_CMD_FLAG_PRE_TLS) == 0) {
 	    write_stat = PSC_SEND_REPLY(state,
@@ -1052,8 +1037,14 @@ void    psc_smtpd_init(void)
     psc_smtpd_helo_reply = mystrdup(STR(psc_temp));
 
     /*
-     * Legacy code copied from smtpd(8). The pre-fabricated EHLO reply
-     * depends on this.
+     * STARTTLS support. Note the complete absence of #ifdef USE_TLS
+     * throughout the postscreen(8) source code. If Postfix is built without
+     * TLS support, then the TLS proxy will simply report that TLS is not
+     * available, and conventional error handling will take care of the
+     * issue.
+     * 
+     * Legacy code copied from smtpd(8). The pre-fabricated EHLO reply depends
+     * on this.
      */
     if (*var_psc_tls_level) {
 	switch (tls_level_lookup(var_psc_tls_level)) {
@@ -1079,11 +1070,9 @@ void    psc_smtpd_init(void)
 	    break;
 	}
     }
-    psc_tls_enforce_tls = var_psc_enforce_tls;
-    psc_tls_use_tls = var_psc_use_tls || var_psc_enforce_tls;
+    var_psc_use_tls = var_psc_use_tls || var_psc_enforce_tls;
 #ifdef TODO_SASL_AUTH
-    if (var_psc_tls_auth_only || psc_tls_enforce_tls)
-	psc_tls_auth_only = 1;
+    var_psc_tls_auth_only = var_psc_tls_auth_only || var_psc_enforce_tls;
 #endif
 
     /*

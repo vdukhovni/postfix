@@ -16340,7 +16340,7 @@ Apologies for any names omitted.
 	Roessner.  Files: util/nbbio.[hc], tlsproxy/*.[hc],
 	postscreen/postscreen_starttlsd.c, postscreen/postscreen_smtpd.c.
 
-20101103
+20110103
 
 	Cleanup: missing tls_level support in tlsproxy (it has no
 	way to send plaintext, but perhaps an informative error
@@ -16349,3 +16349,24 @@ Apologies for any names omitted.
 	Cleanup: simplified the handling of throttled output (i.e.
 	output that can't be sent because the receiver tries to be
 	nasty).  File: postscreen/postscreen_send.c.
+
+20110104
+
+	Feature: add contact information to each SMTP server reject
+	message. For example, "smtpd_reject_contact_information =
+	call 800-555-0101 for assistance", with macro expansion and
+	with multi-line support. Files: global/mail_params.h,
+	mantools/postlink, proto/postconf.proto, smtpd/smtpd.c,
+	smtpd/smtpd_chat.c, smtpd/smtpd_expand.[hc], util/mac_expand.[hc].
+
+20110105
+
+	Cleanup: the forest of TLS-related booleans was shrunk.
+	Victor Duchovni. Files: smtpd/smtpd.c, postscreen/postscreen.c,
+	postscreen/postscreen_smtpd.c, tlsproxy/tlsproxy.c.
+
+	Non-production: tlsproxy support in the Postfix SMTP server
+	for stress testing of the tlsproxy daemon (#ifdef TLSPROXY).
+	Seen from outside, Postfix works just as if it has TLS
+	support built into in smtpd(8). Files: smtpd/smtpd.c,
+	tls/tls_proxy*.[hc], tlsproxy/tlsproxy.c, util/vstream.[hc].
