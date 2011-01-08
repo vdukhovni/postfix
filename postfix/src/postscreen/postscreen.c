@@ -101,6 +101,8 @@
 /* COMPATIBILITY CONTROLS
 /* .ad
 /* .fi
+/* .IP "\fBpostscreen_command_filter ($smtpd_command_filter)\fR"
+/*	A mechanism to transform commands from remote SMTP clients.
 /* .IP "\fBpostscreen_discard_ehlo_keyword_address_maps ($smtpd_discard_ehlo_keyword_address_maps)\fR"
 /*	Lookup tables, indexed by the remote SMTP client address, with
 /*	case insensitive lists of EHLO keywords (pipelining, starttls, auth,
@@ -254,6 +256,15 @@
 /* .IP "\fBpostscreen_enforce_tls ($smtpd_enforce_tls)\fR"
 /*	Mandatory TLS: announce STARTTLS support to SMTP clients, and
 /*	require that clients use TLS encryption.
+/* TROUBLE SHOOTING CONTROLS
+/* .ad
+/* .fi
+/* .IP "\fBpostscreen_expansion_filter (see 'postconf -d' output)\fR"
+/*	List of characters that are permitted in postscreen_reject_footer
+/*	attribute expansions.
+/* .IP "\fBpostscreen_reject_footer ($smtpd_reject_footer)\fR"
+/*	Optional information that is appended after a 4XX or 5XX server
+/*	response.
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi
@@ -265,9 +276,6 @@
 /*	sub-second delay values.
 /* .IP "\fBcommand_directory (see 'postconf -d' output)\fR"
 /*	The location of all postfix administrative commands.
-/* .IP "\fBipc_timeout (3600s)\fR"
-/*	The time limit for sending or receiving information over an internal
-/*	communication channel.
 /* .IP "\fBmax_idle (100s)\fR"
 /*	The maximum amount of time that an idle Postfix daemon process waits
 /*	for an incoming connection before terminating voluntarily.
@@ -353,6 +361,9 @@ char   *var_smtpd_banner;
 bool    var_disable_vrfy_cmd;
 bool    var_helo_required;
 
+char   *var_smtpd_cmd_filter;
+char   *var_psc_cmd_filter;
+
 char   *var_smtpd_forbid_cmds;
 char   *var_psc_forbid_cmds;
 
@@ -410,8 +421,14 @@ int     var_psc_barlf_ttl;
 int     var_psc_cmd_count;
 char   *var_psc_cmd_time;
 
+char   *var_smtpd_rej_footer;
+char   *var_psc_rej_footer;
+
 int     var_smtpd_cconn_limit;
 int     var_psc_cconn_limit;
+
+char   *var_smtpd_exp_filter;
+char   *var_psc_exp_filter;
 
  /*
   * Global variables.
@@ -835,6 +852,7 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 	0, -1,
     };
     int     cache_flags;
+    const char *tmp;
 
     /*
      * This routine runs after the skeleton code has entered the chroot jail.
@@ -842,6 +860,24 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      * requests. It is OK to terminate after a limited amount of idle time.
      */
     var_use_limit = 0;
+
+    /*
+     * Workaround for parameters whose values may contain "$", and that have
+     * a default of "$parametername". Not sure if it would be a good idea to
+     * always to this in the mail_conf_raw(3) module.
+     */
+    if (*var_psc_rej_footer == '$'
+	&& mail_conf_lookup(var_psc_rej_footer + 1)) {
+	tmp = mail_conf_eval_once(var_psc_rej_footer);
+	myfree(var_psc_rej_footer);
+	var_psc_rej_footer = mystrdup(tmp);
+    }
+    if (*var_psc_exp_filter == '$'
+	&& mail_conf_lookup(var_psc_exp_filter + 1)) {
+	tmp = mail_conf_eval_once(var_psc_exp_filter);
+	myfree(var_psc_exp_filter);
+	var_psc_exp_filter = mystrdup(tmp);
+    }
 
     /*
      * Other one-time initialization.
@@ -952,6 +988,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_EHLO_DIS_WORDS, DEF_SMTPD_EHLO_DIS_WORDS, &var_smtpd_ehlo_dis_words, 0, 0,
 	VAR_SMTPD_EHLO_DIS_MAPS, DEF_SMTPD_EHLO_DIS_MAPS, &var_smtpd_ehlo_dis_maps, 0, 0,
 	VAR_SMTPD_TLS_LEVEL, DEF_SMTPD_TLS_LEVEL, &var_smtpd_tls_level, 0, 0,
+	VAR_SMTPD_CMD_FILTER, DEF_SMTPD_CMD_FILTER, &var_smtpd_cmd_filter, 0, 0,
 	VAR_PSC_CACHE_MAP, DEF_PSC_CACHE_MAP, &var_psc_cache_map, 0, 0,
 	VAR_PSC_PREGR_BANNER, DEF_PSC_PREGR_BANNER, &var_psc_pregr_banner, 0, 0,
 	VAR_PSC_PREGR_ACTION, DEF_PSC_PREGR_ACTION, &var_psc_pregr_action, 1, 0,
@@ -968,6 +1005,7 @@ int     main(int argc, char **argv)
 	VAR_PSC_EHLO_DIS_MAPS, DEF_PSC_EHLO_DIS_MAPS, &var_psc_ehlo_dis_maps, 0, 0,
 	VAR_PSC_DNSBL_REPLY, DEF_PSC_DNSBL_REPLY, &var_psc_dnsbl_reply, 0, 0,
 	VAR_PSC_TLS_LEVEL, DEF_PSC_TLS_LEVEL, &var_psc_tls_level, 0, 0,
+	VAR_PSC_CMD_FILTER, DEF_PSC_CMD_FILTER, &var_psc_cmd_filter, 0, 0,
 	0,
     };
     static const CONFIG_INT_TABLE int_table[] = {
@@ -1007,6 +1045,10 @@ int     main(int argc, char **argv)
     };
     static const CONFIG_RAW_TABLE raw_table[] = {
 	VAR_PSC_CMD_TIME, DEF_PSC_CMD_TIME, &var_psc_cmd_time, 1, 0,
+	VAR_SMTPD_REJ_FOOTER, DEF_SMTPD_REJ_FOOTER, &var_smtpd_rej_footer, 0, 0,
+	VAR_PSC_REJ_FOOTER, DEF_PSC_REJ_FOOTER, &var_psc_rej_footer, 0, 0,
+	VAR_SMTPD_EXP_FILTER, DEF_SMTPD_EXP_FILTER, &var_smtpd_exp_filter, 1, 0,
+	VAR_PSC_EXP_FILTER, DEF_PSC_EXP_FILTER, &var_psc_exp_filter, 1, 0,
 	0,
     };
     static const CONFIG_NBOOL_TABLE nbool_table[] = {

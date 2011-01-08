@@ -119,6 +119,8 @@ parameter value is the empty string.
 .nf
 .ad
 .fi
+.IP "\fBpostscreen_command_filter ($smtpd_command_filter)\fR"
+A mechanism to transform commands from remote SMTP clients.
 .IP "\fBpostscreen_discard_ehlo_keyword_address_maps ($smtpd_discard_ehlo_keyword_address_maps)\fR"
 Lookup tables, indexed by the remote SMTP client address, with
 case insensitive lists of EHLO keywords (pipelining, starttls, auth,
@@ -282,6 +284,17 @@ but do not require that clients use TLS encryption.
 .IP "\fBpostscreen_enforce_tls ($smtpd_enforce_tls)\fR"
 Mandatory TLS: announce STARTTLS support to SMTP clients, and
 require that clients use TLS encryption.
+.SH "TROUBLE SHOOTING CONTROLS"
+.na
+.nf
+.ad
+.fi
+.IP "\fBpostscreen_expansion_filter (see 'postconf -d' output)\fR"
+List of characters that are permitted in postscreen_reject_footer
+attribute expansions.
+.IP "\fBpostscreen_reject_footer ($smtpd_reject_footer)\fR"
+Optional information that is appended after a 4XX or 5XX server
+response.
 .SH "MISCELLANEOUS CONTROLS"
 .na
 .nf
@@ -295,9 +308,6 @@ The maximal number of digits after the decimal point when logging
 sub-second delay values.
 .IP "\fBcommand_directory (see 'postconf -d' output)\fR"
 The location of all postfix administrative commands.
-.IP "\fBipc_timeout (3600s)\fR"
-The time limit for sending or receiving information over an internal
-communication channel.
 .IP "\fBmax_idle (100s)\fR"
 The maximum amount of time that an idle Postfix daemon process waits
 for an incoming connection before terminating voluntarily.

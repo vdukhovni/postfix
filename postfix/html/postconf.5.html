@@ -6813,6 +6813,17 @@ and error commands.  </p>
 
 </DD>
 
+<DT><b><a name="postscreen_command_filter">postscreen_command_filter</a>
+(default: $<a href="postconf.5.html#smtpd_command_filter">smtpd_command_filter</a>)</b></DT><DD>
+
+<p> A mechanism to transform commands from remote SMTP clients.
+See <a href="postconf.5.html#smtpd_command_filter">smtpd_command_filter</a> for further details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="postscreen_command_time_limit">postscreen_command_time_limit</a>
 (default: ${stress?10}${stress:300}s)</b></DT><DD>
 
@@ -7030,6 +7041,18 @@ for details.  </p>
 
 <p> This feature is available in Postfix 2.8 and later.
 Preferably, use <a href="postconf.5.html#postscreen_tls_security_level">postscreen_tls_security_level</a> instead. </p>
+
+
+</DD>
+
+<DT><b><a name="postscreen_expansion_filter">postscreen_expansion_filter</a>
+(default: see "postconf -d" output)</b></DT><DD>
+
+<p> List of characters that are permitted in <a href="postconf.5.html#postscreen_reject_footer">postscreen_reject_footer</a>
+attribute expansions.  See <a href="postconf.5.html#smtpd_expansion_filter">smtpd_expansion_filter</a> for further
+details. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
 
 
 </DD>
@@ -7300,6 +7323,17 @@ process. When this queue is full, all non-whitelisted clients will
 receive a 421 reponse. </p>
 
 <p> This feature is available in Postfix 2.8. </p>
+
+
+</DD>
+
+<DT><b><a name="postscreen_reject_footer">postscreen_reject_footer</a>
+(default: $<a href="postconf.5.html#smtpd_reject_footer">smtpd_reject_footer</a>)</b></DT><DD>
+
+<p> Optional information that is appended after a 4XX or 5XX server
+response. See <a href="postconf.5.html#smtpd_reject_footer">smtpd_reject_footer</a> for further details.  </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
 
 
 </DD>
@@ -13002,64 +13036,79 @@ Example:
 
 </DD>
 
-<DT><b><a name="smtpd_reject_contact_information">smtpd_reject_contact_information</a>
+<DT><b><a name="smtpd_reject_footer">smtpd_reject_footer</a>
 (default: empty)</b></DT><DD>
 
-<p> Optional contact information that is appended after each SMTP
-server 4XX or 5XX response. </p>
+<p> Optional information that is appended after each SMTP server
+4XX or 5XX response. </p>
 
 <p> Example: </p>
 
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
-    <a href="postconf.5.html#smtpd_reject_contact_information">smtpd_reject_contact_information</a> = For assistance, call 800-555-0101.
+    <a href="postconf.5.html#smtpd_reject_footer">smtpd_reject_footer</a> = For assistance, call 800-555-0101.
      Please provide the following information in your problem report:
-     time ($localtime) and client address ($client_address).
+     time ($localtime), client ($client_address) and server
+     ($server_name).
 </pre>
 
 <p> Server response: </p>
 
 <pre>
-550-5.5.1 &lt;user@example&gt; Recipient address rejected: User unknown
-550 5.5.1 For assistance, call 800-555-0101. Please provide the
-following information in your problem report: time (Jan 4 15:42:00)
-and client address (192.168.1.248).
+    550-5.5.1 &lt;user@example&gt; Recipient address rejected: User unknown
+    550 5.5.1 For assistance, call 800-555-0101. Please provide the
+    following information in your problem report: time (Jan 4 15:42:00),
+    client (192.168.1.248) and server (mail1.example.com).
 </pre>
 
-<p> Note: this text is meant to make it easier to find the Postfix
-logfile records for a failed SMTP session. The text itself is not
-logged to the Postfix server's maillog file. </p>
+<p> Note: the above text is meant to make it easier to find the
+Postfix logfile records for a failed SMTP session. The text itself
+is not logged to the Postfix SMTP server's maillog file. </p>
 
 <p> Be sure to keep the text as short as possible. Long text may
-be truncated before it is logged in the senders maillog file, or
-before it is returned to the sender in a delivery status notification.
-</p>
+be truncated before it is logged in the Postfix SMTP server's maillog
+file, or before it is returned to the sender in a delivery status
+notification.  </p>
 
 <p> This feature supports a limited number of $name attributes in
-the contact text. These are replaced by their current value for the
+the footer text. These are replaced by their current value for the
 SMTP session: </p>
 
 <dl>
 
-<dt> client_address </dt> <dd> Client IP address </dd>
+<dt> <b>client_address</b> </dt> <dd> The Client IP address that
+is logged in the maillog file. </dd>
 
-<dt> client_port </dt> <dd> Client TCP port </dd>
+<dt> <b>client_port</b> </dt> <dd> The client TCP port that is
+logged in the maillog file. </dd>
 
-<dt> localtime </dt> <dd> Server local time (Mmm dd hh:mm:ss) </dd>
+<dt> <b>localtime</b> </dt> <dd> The server local time (Mmm dd
+hh:mm:ss) that is logged in the maillog file. </dd>
 
-<dt> recipient </dt> <dd> The address in the RCPT TO command </dd>
-
-<dt> sender  </dt> <dd> The address in the MAIL FROM command </dd>
+<dt> <b>server_name</b> </dt> <dd> The server's <a href="postconf.5.html#myhostname">myhostname</a> value.
+This attribute is made available for sites with multiple MTAs
+(perhaps behind a load-balancer), where the server name can help
+the server support team to quickly find the right log files.  </dd>
 
 </dl>
 
-<p> For safety reasons, text that does not match $<a href="postconf.5.html#smtpd_expansion_filter">smtpd_expansion_filter</a>
-is censored. </p>
+<p> Notes: </p>
 
-<p> This feature supports \n as a request for a line break in the
-contact text. Postfix automatically inserts after each line break
-the three-digit SMTP reply code (and optional enhanced status code)
-from the original Postfix reject message.  </p>
+<ul>
+
+<li> <p> NOT SUPPORTED are other attributes such as sender, recipient,
+or <a href="postconf.5.html">main.cf</a> parameters.  </p>
+
+<li> <p> For safety reasons, text that does not match
+$<a href="postconf.5.html#smtpd_expansion_filter">smtpd_expansion_filter</a> is censored. </p>
+
+</ul>
+
+<p> This feature supports the two-character sequence \n as a request
+for a line break in the footer text. Postfix automatically inserts
+after each line break the three-digit SMTP reply code (and optional
+enhanced status code) from the original Postfix reject message.
+</p>
 
 <p> This feature is available in Postfix 2.8 and later. </p>
 

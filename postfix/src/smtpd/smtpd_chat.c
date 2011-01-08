@@ -83,7 +83,7 @@
 #include <mail_addr.h>
 #include <post_mail.h>
 #include <mail_error.h>
-#include <dsn_util.h>
+#include <smtp_reply_footer.h>
 
 /* Application-specific. */
 
@@ -147,7 +147,6 @@ void    smtpd_chat_reply(SMTPD_STATE *state, const char *format,...)
     char   *cp;
     char   *next;
     char   *end;
-    ssize_t dsn_len;
 
     /*
      * Slow down clients that make errors. Sleep-on-anything slows down
@@ -156,48 +155,16 @@ void    smtpd_chat_reply(SMTPD_STATE *state, const char *format,...)
     if (state->error_count >= var_smtpd_soft_erlim)
 	sleep(delay = var_smtpd_err_sleep);
 
-    /*
-     * The caller may send multi-line text, so we can't assume that there is
-     * only one SMTP reply code at the beginning of the response.
-     */
     va_start(ap, format);
     vstring_vsprintf(state->buffer, format, ap);
     va_end(ap);
 
-    /*
-     * Append the optional contact footer. Caution: as we append parts from
-     * the buffer to itself, extend the buffer before updating it, or else we
-     * have a dangling pointer bug.
-     */
-    if (*var_smtpd_rej_contact
-	&& (*(cp = STR(state->buffer)) == '4' || *cp == '5')
-	&& ISDIGIT(cp[1]) && ISDIGIT(cp[2]) && cp[3] == ' ') {
-	dsn_len = dsn_valid(cp + 4);
-	for (cp = var_smtpd_rej_contact, end = cp + strlen(cp);;) {
-	    if ((next = strstr(cp, "\\n")) != 0) {
-		*next = 0;
-	    } else {
-		next = end;
-	    }
-	    /* Append a clone of the SMTP reply code. */
-	    VSTRING_SPACE(state->buffer, sizeof("\r\n550 "));
-	    vstring_sprintf_append(state->buffer, "\r\n%.3s ",
-				   STR(state->buffer));
-	    /* Append a clone of the optional enhanced status code. */
-	    if (dsn_len > 0) {
-		VSTRING_SPACE(state->buffer, dsn_len + 1);
-		vstring_sprintf_append(state->buffer, "%.*s ",
-				     (int) dsn_len, STR(state->buffer) + 4);
-	    }
-	    /* Append the actual contact information. */
-	    smtpd_expand(state, state->buffer, cp, MAC_EXP_FLAG_APPEND);
-	    if (next < end) {
-		*next = '\\';
-		cp = next + 2;
-	    } else
-		break;
-	}
-    }
+    if (*var_smtpd_rej_footer
+	&& (*(cp = STR(state->buffer)) == '4' || *cp == '5'))
+	smtp_reply_footer(state->buffer, 0, var_smtpd_rej_footer,
+			  STR(smtpd_expand_filter), smtpd_expand_lookup,
+			  (char *) state);
+
     /* All 5xx replies must have a 5.xx.xx detail code. */
     for (cp = STR(state->buffer), end = cp + strlen(STR(state->buffer));;) {
 	if (var_soft_bounce) {

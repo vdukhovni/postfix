@@ -29,7 +29,8 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	user_acl.c valid_mailhost_addr.c verify.c verify_clnt.c \
 	verp_sender.c wildcard_inet_addr.c xtext.c delivered_hdr.c \
 	fold_addr.c header_body_checks.c mkmap_proxy.c data_redirect.c \
-	match_service.c mail_conf_nint.c addr_match_list.c mail_conf_nbool.c
+	match_service.c mail_conf_nint.c addr_match_list.c mail_conf_nbool.c \
+	smtp_reply_footer.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
@@ -60,7 +61,8 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	user_acl.o valid_mailhost_addr.o verify.o verify_clnt.o \
 	verp_sender.o wildcard_inet_addr.o xtext.o delivered_hdr.o \
 	fold_addr.o header_body_checks.o mkmap_proxy.o data_redirect.o \
-	match_service.o mail_conf_nint.o addr_match_list.o mail_conf_nbool.o
+	match_service.o mail_conf_nint.o addr_match_list.o mail_conf_nbool.o \
+	smtp_reply_footer.o
 HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	canon_addr.h cfg_parser.h cleanup_user.h clnt_stream.h config.h \
 	conv_time.h db_common.h debug_peer.h debug_process.h defer.h \
@@ -85,7 +87,7 @@ HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	trace.h user_acl.h valid_mailhost_addr.h verify.h verify_clnt.h \
 	verp_sender.h wildcard_inet_addr.h xtext.h delivered_hdr.h \
 	fold_addr.h header_body_checks.h data_redirect.h match_service.h \
-	addr_match_list.h
+	addr_match_list.h smtp_reply_footer.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
@@ -795,25 +797,8 @@ delivered_hdr.o: quote_822_local.h
 delivered_hdr.o: quote_flags.h
 delivered_hdr.o: rec_type.h
 delivered_hdr.o: record.h
-dict_ldap.o: ../../include/argv.h
-dict_ldap.o: ../../include/binhash.h
-dict_ldap.o: ../../include/dict.h
-dict_ldap.o: ../../include/match_list.h
-dict_ldap.o: ../../include/match_ops.h
-dict_ldap.o: ../../include/msg.h
-dict_ldap.o: ../../include/mymalloc.h
-dict_ldap.o: ../../include/name_code.h
-dict_ldap.o: ../../include/stringops.h
 dict_ldap.o: ../../include/sys_defs.h
-dict_ldap.o: ../../include/vbuf.h
-dict_ldap.o: ../../include/vstream.h
-dict_ldap.o: ../../include/vstring.h
-dict_ldap.o: cfg_parser.h
-dict_ldap.o: db_common.h
 dict_ldap.o: dict_ldap.c
-dict_ldap.o: dict_ldap.h
-dict_ldap.o: mail_conf.h
-dict_ldap.o: string_list.h
 dict_mysql.o: ../../include/sys_defs.h
 dict_mysql.o: dict_mysql.c
 dict_pgsql.o: ../../include/sys_defs.h
@@ -1444,15 +1429,7 @@ mime_state.o: mail_params.h
 mime_state.o: mime_state.c
 mime_state.o: mime_state.h
 mime_state.o: rec_type.h
-mkmap_cdb.o: ../../include/argv.h
-mkmap_cdb.o: ../../include/dict.h
-mkmap_cdb.o: ../../include/dict_cdb.h
-mkmap_cdb.o: ../../include/mymalloc.h
 mkmap_cdb.o: ../../include/sys_defs.h
-mkmap_cdb.o: ../../include/vbuf.h
-mkmap_cdb.o: ../../include/vstream.h
-mkmap_cdb.o: ../../include/vstring.h
-mkmap_cdb.o: mkmap.h
 mkmap_cdb.o: mkmap_cdb.c
 mkmap_db.o: ../../include/argv.h
 mkmap_db.o: ../../include/dict.h
@@ -1829,6 +1806,15 @@ sent.o: sent.c
 sent.o: sent.h
 sent.o: trace.h
 sent.o: verify.h
+smtp_reply_footer.o: ../../include/mac_expand.h
+smtp_reply_footer.o: ../../include/mac_parse.h
+smtp_reply_footer.o: ../../include/msg.h
+smtp_reply_footer.o: ../../include/sys_defs.h
+smtp_reply_footer.o: ../../include/vbuf.h
+smtp_reply_footer.o: ../../include/vstring.h
+smtp_reply_footer.o: dsn_util.h
+smtp_reply_footer.o: smtp_reply_footer.c
+smtp_reply_footer.o: smtp_reply_footer.h
 smtp_stream.o: ../../include/iostuff.h
 smtp_stream.o: ../../include/msg.h
 smtp_stream.o: ../../include/sys_defs.h

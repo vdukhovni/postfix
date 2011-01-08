@@ -58,6 +58,7 @@
 /* Global library. */
 
 #include <mail_params.h>
+#include <smtp_reply_footer.h>
 
 /* Application-specific. */
 
@@ -74,7 +75,7 @@
 
 int     psc_send_reply(PSC_STATE *state, const char *text)
 {
-    int     start;
+    ssize_t start;
     int     ret;
 
     if (msg_verbose)
@@ -87,6 +88,10 @@ int     psc_send_reply(PSC_STATE *state, const char *text)
      */
     start = VSTRING_LEN(state->send_buf);
     vstring_strcat(state->send_buf, text);
+    if (*var_psc_rej_footer && (*text == '4' || *text == '5'))
+	smtp_reply_footer(state->send_buf, start, var_psc_rej_footer,
+			   STR(psc_expand_filter), psc_expand_lookup,
+			   (char *) state);
 
     /*
      * XXX For soft_bounce support, it is not sufficient to fix replies here.

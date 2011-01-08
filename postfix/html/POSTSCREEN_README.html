@@ -269,7 +269,8 @@ an empty teaser banner: </p>
 bytes before its turn to speak. This happened <i>time</i> seconds
 after the <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> timer was started.  The <i>text</i>
 is what the client sent (truncated to 100 bytes, and with non-printable
-characters replaced with "?"). </p>
+characters replaced with C-style escapes such as \r for carriage-return
+and \n for newline). </p>
 
 <p> The <a href="postconf.5.html#postscreen_greet_action">postscreen_greet_action</a> parameter specifies the action that
 is taken next.  See "<a href="#fail_before_220">When tests fail

@@ -14,10 +14,10 @@
 /*	const char *peer_port;
 /*	int	timeout;
 /*
-/*	TLS_SESS_STATE *tls_proxy_state_receive(proxy_stream)
+/*	TLS_SESS_STATE *tls_proxy_context_receive(proxy_stream)
 /*	VSTREAM *proxy_stream;
 /*
-/*	void	tls_proxy_state_free(tls_context)
+/*	void	tls_proxy_context_free(tls_context)
 /*	TLS_SESS_STATE *tls_context;
 /* DESCRIPTION
 /*	tls_proxy_open() prepares for inserting the tlsproxy(8)
@@ -34,17 +34,17 @@
 /*	buffer, timeout, etc.). Once the file descriptors are
 /*	swapped, the proxy stream should be closed.
 /*
-/*	tls_proxy_state_receive() receives the TLS context object
+/*	tls_proxy_context_receive() receives the TLS context object
 /*	for the named proxy stream. This function must be called
 /*	only if the TLS_PROXY_SEND_CONTEXT flag was specified in
 /*	the tls_proxy_open() call. Note that this TLS context object
 /*	is not compatible with tls_session_free(). It must be given
-/*	to tls_proxy_state_free() instead.
+/*	to tls_proxy_context_free() instead.
 /*
 /*	After this, the proxy_stream is ready for plain-text I/O.
 /*
-/*	tls_proxy_state_free() destroys a TLS context object that
-/*	was received with tls_proxy_state_receive().
+/*	tls_proxy_context_free() destroys a TLS context object that
+/*	was received with tls_proxy_context_receive().
 /*
 /*	Arguments:
 /* .IP flags
@@ -68,7 +68,7 @@
 /* .IP proxy_stream
 /*	Stream from tls_proxy_open().
 /* .IP tls_context
-/*	TLS session object from tls_proxy_state_receive().
+/*	TLS session object from tls_proxy_context_receive().
 /* LICENSE
 /* .ad
 /* .fi
@@ -188,27 +188,27 @@ VSTREAM *tls_proxy_open(int flags, VSTREAM *peer_stream,
     return (tlsproxy_stream);
 }
 
-/* tls_proxy_state_receive - receive TLS session object from tlsproxy(8) */
+/* tls_proxy_context_receive - receive TLS session object from tlsproxy(8) */
 
-TLS_SESS_STATE *tls_proxy_state_receive(VSTREAM *proxy_stream)
+TLS_SESS_STATE *tls_proxy_context_receive(VSTREAM *proxy_stream)
 {
     TLS_SESS_STATE *tls_context;
 
     tls_context = (TLS_SESS_STATE *) mymalloc(sizeof(*tls_context));
 
     if (attr_scan(proxy_stream, ATTR_FLAG_STRICT,
-		  ATTR_TYPE_FUNC, tls_proxy_scan_state, (char *) tls_context,
+		  ATTR_TYPE_FUNC, tls_proxy_context_scan, (char *) tls_context,
 		  ATTR_TYPE_END) != 1) {
-	tls_proxy_state_free(tls_context);
+	tls_proxy_context_free(tls_context);
 	return (0);
     } else {
 	return (tls_context);
     }
 }
 
-/* tls_proxy_state_free - destroy object from tls_proxy_state_receive() */
+/* tls_proxy_context_free - destroy object from tls_proxy_context_receive() */
 
-void tls_proxy_state_free(TLS_SESS_STATE *tls_context)
+void tls_proxy_context_free(TLS_SESS_STATE *tls_context)
 {
     if (tls_context->peer_CN)
 	myfree(tls_context->peer_CN);

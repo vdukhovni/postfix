@@ -143,6 +143,7 @@
 #include <string_list.h>
 #include <maps.h>
 #include <ehlo_mask.h>
+#include <lex_822.h>
 
 /* TLS library. */
 
@@ -204,6 +205,11 @@ static void psc_smtpd_read_event(int, char *);
   */
 static MAPS *psc_ehlo_discard_maps;
 static int psc_ehlo_discard_mask;
+
+ /*
+  * Command editing filter.
+  */
+static DICT *psc_cmd_filter;
 
  /*
   * Encapsulation. We must not forget turn off input/timer events when we
@@ -319,8 +325,8 @@ static int psc_ehlo_cmd(PSC_STATE *state, char *args)
      * smtpd(8) compatibility: dynamic reply filtering.
      */
     if (psc_ehlo_discard_maps != 0
-	&& (ehlo_words = maps_find(psc_ehlo_discard_maps,
-				   state->smtp_client_addr, 0)) != 0
+	&& (ehlo_words = psc_maps_find(psc_ehlo_discard_maps,
+				       state->smtp_client_addr, 0)) != 0
 	&& (discard_mask = ehlo_mask(ehlo_words)) != psc_ehlo_discard_mask) {
 	if (discard_mask && !(discard_mask & EHLO_MASK_SILENT))
 	    msg_info("[%s]%s: discarding EHLO keywords: %s",
@@ -348,13 +354,14 @@ static void psc_starttls_resume(int unused_event, char *context)
     PSC_STATE *state = (PSC_STATE *) context;
 
     /*
-     * Reset SMTP server state if STARTTLS was successful. Todo: reset SASL
-     * AUTH state. Dovecot responses may change when it knows that a
-     * connection is encrypted.
+     * Reset SMTP server state if STARTTLS was successful.
      */
     if (state->flags & PSC_STATE_FLAG_USING_TLS) {
 	PSC_STRING_RESET(state->helo_name);
 	PSC_STRING_RESET(state->sender);
+#ifdef TODO_SASL_AUTH
+	/* Reset SASL AUTH state. Dovecot responses may change. */
+#endif
     }
 
     /*
@@ -791,11 +798,28 @@ static void psc_smtpd_read_event(int event, char *context)
 	}
 
 	/*
-	 * Terminate the command line, and reset the command buffer write
-	 * pointer and state machine in preparation for the next command. For
-	 * this to work as expected, VSTRING_RESET() must be non-destructive.
+	 * Terminate the command buffer, and apply the last-resort command
+	 * editing workaround.
 	 */
 	VSTRING_TERMINATE(state->cmd_buffer);
+	if (psc_cmd_filter != 0) {
+	    const char *cp;
+
+	    for (cp = STR(state->cmd_buffer); *cp && IS_SPACE_TAB(*cp); cp++)
+		 /* void */ ;
+	    if ((cp = psc_dict_get(psc_cmd_filter, cp)) != 0) {
+		msg_info("[%s]:%s: replacing command \"%.100s\" with \"%.100s\"",
+			 state->smtp_client_addr, state->smtp_client_port,
+			 STR(state->cmd_buffer), cp);
+		vstring_strcpy(state->cmd_buffer, cp);
+	    }
+	}
+
+	/*
+	 * Reset the command buffer write pointer and state machine in
+	 * preparation for the next command. For this to work as expected,
+	 * VSTRING_RESET() must be non-destructive.
+	 */
 	state->read_state = PSC_SMTPD_CMD_ST_ANY;
 	VSTRING_RESET(state->cmd_buffer);
 
@@ -1099,6 +1123,12 @@ void    psc_smtpd_init(void)
     vstring_sprintf(psc_temp, "421 %s Service unavailable - try again later\r\n",
 		    var_myhostname);
     psc_smtpd_421_reply = mystrdup(STR(psc_temp));
+
+    /*
+     * Initialize the reply footer.
+     */
+    if (*var_psc_rej_footer)
+	psc_expand_init();
 }
 
 /* psc_smtpd_pre_jail_init - per-process deep protocol test initialization */
@@ -1113,8 +1143,16 @@ void    psc_smtpd_pre_jail_init(void)
      * 
      * XXX Bugger. This means we have to restart when the table changes!
      */
-    psc_ehlo_discard_maps = maps_create(VAR_PSC_EHLO_DIS_MAPS,
-					var_psc_ehlo_dis_maps,
-					DICT_FLAG_LOCK);
+    if (*var_psc_ehlo_dis_maps)
+	psc_ehlo_discard_maps = maps_create(VAR_PSC_EHLO_DIS_MAPS,
+					    var_psc_ehlo_dis_maps,
+					    DICT_FLAG_LOCK);
     psc_ehlo_discard_mask = ehlo_mask(var_psc_ehlo_dis_words);
+
+    /*
+     * Last-resort command editing support.
+     */
+    if (*var_psc_cmd_filter)
+	psc_cmd_filter = dict_open(var_psc_cmd_filter, O_RDONLY,
+				   DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
 }

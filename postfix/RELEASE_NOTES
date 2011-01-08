@@ -43,7 +43,7 @@ aren't logged to the maillog file, such as responses to syntax
 errors, or unsupported commands.
 
 Example:
-   smtpd_reject_contact_information = For assistance, call 800-555-0101.
+   smtpd_reject_footer = For assistance, call 800-555-0101.
 
 Server response:
    550-5.5.1 <user@example> Recipient address rejected: User unknown
@@ -51,6 +51,10 @@ Server response:
 
 This feature supports macro expansion ($client_address, $localtime,
 etc.), as documented in the postconf(5) manpage.
+
+This feature is also supported as postscreen_reject_footer
+using the same setting as smtpd_reject_footer by
+default.
 
 Incompatibility with snapshot 20110102
 ======================================

@@ -191,9 +191,18 @@ const char *smtpd_expand_lookup(const char *name, int unused_mode,
      * Don't query main.cf parameters, as the result of expansion could
      * reveal system-internal information in server replies.
      * 
+     * XXX: This said, multiple servers may be behind a single client-visible
+     * name or IP address, and each may generate its own logs. Therefore, it
+     * may be useful to expose the replying MTA id (myhostname) in the
+     * contact footer, to identify the right logs. So while we don't expose
+     * the raw configuration dictionary, we do expose "$myhostname" as
+     * expanded in var_myhostname.
+     * 
      * Return NULL only for non-existent names.
      */
-    if (STREQ(name, MAIL_ATTR_ACT_CLIENT)) {
+    if (STREQ(name, MAIL_ATTR_SERVER_NAME)) {
+	return (var_myhostname);
+    } else if (STREQ(name, MAIL_ATTR_ACT_CLIENT)) {
 	return (state->namaddr);
     } else if (STREQ(name, MAIL_ATTR_ACT_CLIENT_PORT)) {
 	return (state->port);

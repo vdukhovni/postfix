@@ -527,9 +527,9 @@ before-queue content inspection by non_smtpd_milters, header_checks
 and body_checks.
 .IP "\fBnotify_classes (resource, software)\fR"
 The list of error classes that are reported to the postmaster.
-.IP "\fBsmtpd_reject_contact_information (empty)\fR"
-Optional contact information that is appended after each SMTP
-server 4XX or 5XX response.
+.IP "\fBsmtpd_reject_footer (empty)\fR"
+Optional information that is appended after each SMTP server
+4XX or 5XX response.
 .IP "\fBsoft_bounce (no)\fR"
 Safety net to keep mail queued that would otherwise be returned to
 the sender.

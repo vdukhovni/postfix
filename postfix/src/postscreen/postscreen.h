@@ -26,6 +26,7 @@
   */
 #include <addr_match_list.h>
 #include <string_list.h>
+#include <maps.h>
 
  /*
   * Preliminary stuff, to be fixed.
@@ -67,6 +68,7 @@ typedef struct {
     int     read_state;			/* command read state machine */
     /* smtpd(8) compatibility */
     int     ehlo_discard_mask;		/* EHLO filter */
+    VSTRING *expand_buf;		/* macro expansion */
 } PSC_STATE;
 
 #define PSC_TIME_STAMP_NEW		(0)	/* test was never passed */
@@ -384,6 +386,8 @@ extern const char *psc_print_state_flags(int, const char *);
 extern int psc_addr_match_list_match(ADDR_MATCH_LIST *, const char *);
 extern const char *psc_cache_lookup(DICT_CACHE *, const char *);
 extern void psc_cache_update(DICT_CACHE *, const char *, const char *);
+const char *psc_dict_get(DICT *, const char *);
+const char *psc_maps_find(MAPS *, const char *, int);
 
  /*
   * postscreen_dnsbl.c
@@ -447,6 +451,13 @@ extern void psc_send_socket(PSC_STATE *);
   * postscreen_starttls.c
   */
 extern void psc_starttls_open(PSC_STATE *, EVENT_NOTIFY_FN);
+
+ /*
+  * postscreen_expand.c
+  */
+extern VSTRING *psc_expand_filter;
+extern void psc_expand_init(void);
+extern const char *psc_expand_lookup(const char *, int, char *);
 
 /* LICENSE
 /* .ad

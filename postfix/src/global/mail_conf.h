@@ -40,6 +40,7 @@ extern void mail_conf_flush(void);
 extern void mail_conf_update(const char *, const char *);
 extern const char *mail_conf_lookup(const char *);
 extern const char *mail_conf_eval(const char *);
+extern const char *mail_conf_eval_once(const char *);
 extern const char *mail_conf_lookup_eval(const char *);
 
  /*

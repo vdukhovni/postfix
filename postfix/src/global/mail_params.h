@@ -3423,6 +3423,18 @@ extern bool var_psc_disable_vrfy;
 #define DEF_PSC_CCONN_LIMIT	"$" VAR_SMTPD_CCONN_LIMIT
 extern int var_psc_cconn_limit;
 
+#define VAR_PSC_REJ_FOOTER	"postscreen_reject_footer"
+#define DEF_PSC_REJ_FOOTER	"$" VAR_SMTPD_REJ_FOOTER
+extern char *var_psc_rej_footer;
+
+#define VAR_PSC_EXP_FILTER	"postscreen_expansion_filter"
+#define DEF_PSC_EXP_FILTER	"$" VAR_SMTPD_EXP_FILTER
+extern char *var_psc_exp_filter;
+
+#define VAR_PSC_CMD_FILTER	"postscreen_command_filter"
+#define DEF_PSC_CMD_FILTER	""
+extern char *var_psc_cmd_filter;
+
 #define VAR_DNSBLOG_DELAY	"dnsblog_reply_delay"
 #define DEF_DNSBLOG_DELAY	"0s"
 extern int var_dnsblog_delay;
@@ -3557,9 +3569,9 @@ extern bool var_tlsp_tls_set_sessid;
  /*
   * SMTPD "reject" contact info.
   */
-#define VAR_SMTPD_REJ_CONTACT	"smtpd_reject_contact_information"
-#define DEF_SMTPD_REJ_CONTACT	""
-extern char *var_smtpd_rej_contact;
+#define VAR_SMTPD_REJ_FOOTER	"smtpd_reject_footer"
+#define DEF_SMTPD_REJ_FOOTER	""
+extern char *var_smtpd_rej_footer;
 
 /* LICENSE
 /* .ad

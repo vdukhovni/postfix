@@ -216,7 +216,6 @@ smtpd.o: smtpd_token.h
 smtpd_chat.o: ../../include/argv.h
 smtpd_chat.o: ../../include/attr.h
 smtpd_chat.o: ../../include/cleanup_user.h
-smtpd_chat.o: ../../include/dsn_util.h
 smtpd_chat.o: ../../include/int_filt.h
 smtpd_chat.o: ../../include/iostuff.h
 smtpd_chat.o: ../../include/line_wrap.h
@@ -236,6 +235,7 @@ smtpd_chat.o: ../../include/name_mask.h
 smtpd_chat.o: ../../include/post_mail.h
 smtpd_chat.o: ../../include/rec_type.h
 smtpd_chat.o: ../../include/record.h
+smtpd_chat.o: ../../include/smtp_reply_footer.h
 smtpd_chat.o: ../../include/smtp_stream.h
 smtpd_chat.o: ../../include/stringops.h
 smtpd_chat.o: ../../include/sys_defs.h

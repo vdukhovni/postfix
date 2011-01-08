@@ -35,10 +35,10 @@
 
 extern VSTREAM *tls_proxy_open(int, VSTREAM *, const char *,
 			               const char *, int);
-extern TLS_SESS_STATE *tls_proxy_state_receive(VSTREAM *);
-extern void tls_proxy_state_free(TLS_SESS_STATE *);
-extern int tls_proxy_print_state(ATTR_SCAN_MASTER_FN, VSTREAM *, int, void *);
-extern int tls_proxy_scan_state(ATTR_SCAN_MASTER_FN, VSTREAM *, int, void *);
+extern TLS_SESS_STATE *tls_proxy_context_receive(VSTREAM *);
+extern void tls_proxy_context_free(TLS_SESS_STATE *);
+extern int tls_proxy_context_print(ATTR_PRINT_MASTER_FN, VSTREAM *, int, void *);
+extern int tls_proxy_context_scan(ATTR_SCAN_MASTER_FN, VSTREAM *, int, void *);
 
 #endif
 

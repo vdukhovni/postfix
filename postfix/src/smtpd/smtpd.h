@@ -165,6 +165,9 @@ typedef struct {
      * TLS related state.
      */
 #ifdef USE_TLS
+#ifdef USE_TLSPROXY
+    VSTREAM *tlsproxy;			/* tlsproxy(8) temp. handle */
+#endif
     TLS_SESS_STATE *tls_context;	/* TLS session state */
 #endif
 

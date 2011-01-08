@@ -165,6 +165,7 @@ PSC_STATE *psc_new_session_state(VSTREAM *stream,
     state->cmd_buffer = 0;
     state->read_state = 0;
     state->ehlo_discard_mask = 0;		/* XXX Should be ~0 */
+    state->expand_buf = 0;
 
     /*
      * Update the stress level.
@@ -225,6 +226,8 @@ void    psc_free_session_state(PSC_STATE *state)
 	myfree(state->sender);
     if (state->cmd_buffer)
 	vstring_free(state->cmd_buffer);
+    if (state->expand_buf)
+	vstring_free(state->expand_buf);
     myfree((char *) state);
 
     if (psc_check_queue_length < 0 || psc_post_queue_length < 0)

@@ -18,6 +18,15 @@
 /*	DICT_CACHE *cache;
 /*	const char *key;
 /*	const char *value;
+/*
+/*	void	psc_dict_get(dict, key)
+/*	DICT	*dict;
+/*	const char *key;
+/*
+/*	void	psc_maps_find(maps, key, flags)
+/*	MAPS	*maps;
+/*	const char *key;
+/*	int	flags;
 /* DESCRIPTION
 /*	This module implements wrappers around time-critical table
 /*	access functions.  The functions log a warning when table
@@ -28,6 +37,9 @@
 /*
 /*	psc_cache_lookup() and psc_cache_update() are wrappers around
 /*	the corresponding dict_cache() methods.
+/*
+/*	psc_dict_get() and psc_maps_find() are wrappers around
+/*	dict_get() and maps_find(), respectively.
 /* LICENSE
 /* .ad
 /* .fi
@@ -46,6 +58,11 @@
 /* Utility library. */
 
 #include <msg.h>
+#include <dict.h>
+
+/* Global library. */
+
+#include <maps.h>
 
 /* Application-specific. */
 
@@ -104,4 +121,30 @@ void    psc_cache_update(DICT_CACHE *cache, const char *key, const char *value)
     PSC_GET_TIME_BEFORE_LOOKUP;
     dict_cache_update(cache, key, value);
     PSC_CHECK_TIME_AFTER_LOOKUP(dict_cache_name(cache), "update");
+}
+
+/* psc_dict_get - time-critical table lookup */
+
+const char *psc_dict_get(DICT *dict, const char *key)
+{
+    const char *myname = "psc_dict_get";
+    const char *result;
+
+    PSC_GET_TIME_BEFORE_LOOKUP;
+    result = dict_get(dict, key);
+    PSC_CHECK_TIME_AFTER_LOOKUP(dict->name, "lookup");
+    return (result);
+}
+
+/* psc_maps_find - time-critical table lookup */
+
+const char *psc_maps_find(MAPS *maps, const char *key, int flags)
+{
+    const char *myname = "psc_maps_find";
+    const char *result;
+
+    PSC_GET_TIME_BEFORE_LOOKUP;
+    result = maps_find(maps, key, flags);
+    PSC_CHECK_TIME_AFTER_LOOKUP(maps->title, "lookup");
+    return (result);
 }

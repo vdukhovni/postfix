@@ -197,7 +197,8 @@ elapsed, postscreen(8) logs this as:
 Translation: the client at [address]:port sent count bytes before its turn to
 speak. This happened time seconds after the postscreen_greet_wait timer was
 started. The text is what the client sent (truncated to 100 bytes, and with
-non-printable characters replaced with "?").
+non-printable characters replaced with C-style escapes such as \r for carriage-
+return and \n for newline).
 
 The postscreen_greet_action parameter specifies the action that is taken next.
 See "When tests fail before the 220 SMTP server greeting" below.

@@ -6,18 +6,18 @@
 /* SYNOPSIS
 /*	#include <tls_proxy.h>
 /*
-/*	int     tls_proxy_print_state(print_fn, stream, flags, ptr)
+/*	int     tls_proxy_context_print(print_fn, stream, flags, ptr)
 /*	ATTR_PRINT_MASTER_FN print_fn;
 /*	VSTREAM *stream;
 /*	int     flags;
 /*	void    *ptr;
 /* DESCRIPTION
-/*	tls_proxy_print_state() writes a TLS_SESS_STATE structure
+/*	tls_proxy_context_print() writes a TLS_SESS_STATE structure
 /*	to the named stream using the specified attribute print
 /*	routine. TLS_SESS_STATE() is meant to be passed as a call-back
 /*	to attr_print(), thusly:
 /*
-/*	... ATTR_TYPE_FUNC, tls_proxy_print_state, (void *) tls_context, ...
+/*	... ATTR_TYPE_FUNC, tls_proxy_context_print, (void *) tls_context, ...
 /* DIAGNOSTICS
 /*	Fatal: out of memory.
 /* LICENSE
@@ -50,9 +50,9 @@
 #include <tls.h>
 #include <tls_proxy.h>
 
-/* tls_proxy_print_state - send TLS session state over stream */
+/* tls_proxy_context_print - send TLS session state over stream */
 
-int     tls_proxy_print_state(ATTR_PRINT_MASTER_FN print_fn, VSTREAM *fp,
+int     tls_proxy_context_print(ATTR_PRINT_MASTER_FN print_fn, VSTREAM *fp,
 			              int flags, void *ptr)
 {
     TLS_SESS_STATE *tp = (TLS_SESS_STATE *) ptr;

@@ -469,7 +469,7 @@ static void tlsp_strategy(TLSP_STATE *state)
 	}
 	if ((state->req_flags & TLS_PROXY_FLAG_SEND_CONTEXT) != 0
 	    && (attr_print(state->plaintext_stream, ATTR_FLAG_NONE,
-			   ATTR_TYPE_FUNC, tls_proxy_print_state,
+			   ATTR_TYPE_FUNC, tls_proxy_context_print,
 			   (char *) state->tls_context, ATTR_TYPE_END) != 0
 		|| vstream_fflush(state->plaintext_stream) != 0)) {
 	    msg_warn("cannot send TLS context: %m");

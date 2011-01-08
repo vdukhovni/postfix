@@ -6,18 +6,18 @@
 /* SYNOPSIS
 /*	#include <tls_proxy.h>
 /*
-/*	int     tls_proxy_scan_state(scan_fn, stream, flags, ptr)
+/*	int     tls_proxy_context_scan(scan_fn, stream, flags, ptr)
 /*	ATTR_SCAN_MASTER_FN scan_fn;
 /*	VSTREAM *stream;
 /*	int     flags;
 /*	void    *ptr;
 /* DESCRIPTION
-/*	tls_proxy_scan_state() reads a TLS_SESS_STATE structure
+/*	tls_proxy_context_scan() reads a TLS_SESS_STATE structure
 /*	from the named stream using the specified attribute scan
-/*	routine.  tls_proxy_scan_state() is meant to be passed as
+/*	routine.  tls_proxy_context_scan() is meant to be passed as
 /*	a call-back to attr_scan(), thusly:
 /*
-/*	... ATTR_TYPE_FUNC, tls_proxy_scan_state, (void *) tls_context, ...
+/*	... ATTR_TYPE_FUNC, tls_proxy_context_scan, (void *) tls_context, ...
 /* DIAGNOSTICS
 /*	Fatal: out of memory.
 /* LICENSE
@@ -50,9 +50,9 @@
 #include <tls.h>
 #include <tls_proxy.h>
 
-/* tls_proxy_scan_state - receive TLS session state from stream */
+/* tls_proxy_context_scan - receive TLS session state from stream */
 
-int     tls_proxy_scan_state(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
+int     tls_proxy_context_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
 			             int flags, void *ptr)
 {
     TLS_SESS_STATE *tls_context = (TLS_SESS_STATE *) ptr;

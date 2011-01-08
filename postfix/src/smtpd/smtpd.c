@@ -489,9 +489,9 @@
 /*	and body_checks.
 /* .IP "\fBnotify_classes (resource, software)\fR"
 /*	The list of error classes that are reported to the postmaster.
-/* .IP "\fBsmtpd_reject_contact_information (empty)\fR"
-/*	Optional contact information that is appended after each SMTP
-/*	server 4XX or 5XX response.
+/* .IP "\fBsmtpd_reject_footer (empty)\fR"
+/*	Optional information that is appended after each SMTP server
+/*	4XX or 5XX response.
 /* .IP "\fBsoft_bounce (no)\fR"
 /*	Safety net to keep mail queued that would otherwise be returned to
 /*	the sender.
@@ -1187,7 +1187,7 @@ bool    var_smtpd_enforce_tls;
 bool    var_smtpd_tls_wrappermode;
 bool    var_smtpd_tls_auth_only;
 char   *var_smtpd_cmd_filter;
-char   *var_smtpd_rej_contact;
+char   *var_smtpd_rej_footer;
 
 #ifdef USE_TLS
 char   *var_smtpd_relay_ccerts;
@@ -3936,10 +3936,51 @@ static void chat_reset(SMTPD_STATE *state, int threshold)
 static void smtpd_start_tls(SMTPD_STATE *state)
 {
     int     rate;
+    int     cert_present;
+    int     requirecert;
+
+#ifdef USE_TLSPROXY
+
+    /*
+     * This is non-production code, for tlsproxy(8) load testing only. It
+     * implements enough to enable some Postfix features that depend on TLS
+     * encryption.
+     * 
+     * To insert tlsproxy(8) between this process and the SMTP client, we swap
+     * the file descriptors between the state->tlsproxy and state->client
+     * VSTREAMS, so that we don't lose all the user-configurable
+     * state->client attributes (such as longjump buffers or timeouts).
+     * 
+     * As we implement tlsproy support in the Postfix SMTP client we should
+     * develop a usable abstraction that encapsulates this stream plumbing in
+     * a library module.
+     */
+    vstream_control(state->tlsproxy, VSTREAM_CTL_DOUBLE, VSTREAM_CTL_END);
+    vstream_control(state->client, VSTREAM_CTL_SWAP_FD, state->tlsproxy,
+		    VSTREAM_CTL_END);
+    (void) vstream_fclose(state->tlsproxy);	/* direct-to-client stream! */
+    state->tlsproxy = 0;
+
+    /*
+     * After plumbing the plaintext stream, receive the TLS context object.
+     * For this we must use the same VSTREAM buffer that we also use to
+     * receive subsequent SMTP commands. The attribute protocol is robust
+     * enough that an adversary cannot inject their own bogus TLS context
+     * attributes into the stream.
+     */
+    state->tls_context = tls_proxy_context_receive(state->client);
+
+    /*
+     * XXX Maybe it is better to send this information to tlsproxy(8) when
+     * requesting service, effectively making a remote tls_server_start()
+     * call.
+     */
+    requirecert = (var_smtpd_tls_req_ccert && var_smtpd_enforce_tls);
+
+#else						/* USE_TLSPROXY */
     TLS_SERVER_START_PROPS props;
     static char *cipher_grade;
     static VSTRING *cipher_exclusions;
-    int     cert_present;
 
     /*
      * Wrapper mode uses a dedicated port and always requires TLS.
@@ -3976,19 +4017,22 @@ static void smtpd_start_tls(SMTPD_STATE *state)
      * Perform the TLS handshake now. Check the client certificate
      * requirements later, if necessary.
      */
+    requirecert = (var_smtpd_tls_req_ccert && var_smtpd_enforce_tls);
+
     state->tls_context =
 	TLS_SERVER_START(&props,
 			 ctx = smtpd_tls_ctx,
 			 stream = state->client,
 			 log_level = var_smtpd_tls_loglevel,
 			 timeout = var_smtpd_starttls_tmout,
-			 requirecert = (var_smtpd_tls_req_ccert
-					&& var_smtpd_enforce_tls),
+			 requirecert = requirecert,
 			 serverid = state->service,
 			 namaddr = state->namaddr,
 			 cipher_grade = cipher_grade,
 			 cipher_exclusions = STR(cipher_exclusions),
 			 fpt_dgst = var_smtpd_tls_fpt_dgst);
+
+#endif						/* USE_TLSPROXY */
 
     /*
      * For new (i.e. not re-used) TLS sessions, increment the client's new
@@ -4034,7 +4078,7 @@ static void smtpd_start_tls(SMTPD_STATE *state)
      * here. We have a usable TLS session with the client, so no need to
      * disable I/O, ...  we can even be polite and send "421 ...".
      */
-    if (props.requirecert && TLS_CERT_IS_TRUSTED(state->tls_context) == 0) {
+    if (requirecert && TLS_CERT_IS_TRUSTED(state->tls_context) == 0) {
 
 	/*
 	 * Fetch and reject the next command (should be EHLO), then
@@ -4083,11 +4127,6 @@ static int starttls_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     const char *err;
     int     rate;
 
-#ifdef USE_TLSPROXY
-    VSTREAM *proxy_stream;
-
-#endif
-
     if (argc != 1) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 5.5.4 Syntax: STARTTLS");
@@ -4117,14 +4156,32 @@ static int starttls_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	smtpd_chat_reply(state, "502 5.5.1 Error: command not implemented");
 	return (-1);
     }
-#ifndef USE_TLS_PROXY
+#ifdef USE_TLSPROXY
+
+    /*
+     * Note: state->tlsproxy is left open when smtp_flush() calls longjmp(),
+     * so we garbage-collect the VSTREAM in smtpd_state_reset().
+     */
+#define PROXY_OPEN_FLAGS \
+	(TLS_PROXY_FLAG_ROLE_SERVER | TLS_PROXY_FLAG_SEND_CONTEXT)
+
+    state->tlsproxy = tls_proxy_open(PROXY_OPEN_FLAGS, state->client,
+				     state->addr, state->port,
+				     var_smtpd_tmout);
+    if (state->tlsproxy == 0) {
+	state->error_mask |= MAIL_ERROR_SOFTWARE;
+	/* RFC 4954 Section 6. */
+	smtpd_chat_reply(state, "454 4.7.0 TLS not available due to local problem");
+	return (-1);
+    }
+#else						/* USE_TLSPROXY */
     if (smtpd_tls_ctx == 0) {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
 	/* RFC 4954 Section 6. */
 	smtpd_chat_reply(state, "454 4.7.0 TLS not available due to local problem");
 	return (-1);
     }
-#endif
+#endif						/* USE_TLSPROXY */
 
     /*
      * Enforce TLS handshake rate limit when this client negotiated too many
@@ -4148,13 +4205,17 @@ static int starttls_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	smtpd_chat_reply(state,
 		       "454 4.7.0 Error: too many new TLS sessions from %s",
 			 state->namaddr);
+#ifdef USE_TLSPROXY
+	(void) vstream_fclose(state->tlsproxy);
+	state->tlsproxy = 0;
+#endif
 	return (-1);
     }
-#ifndef USE_TLSPROXY
     smtpd_chat_reply(state, "220 2.0.0 Ready to start TLS");
-    /* Flush before we switch the stream's read/write routines. */
+    /* Flush before we switch read/write routines or file descriptors. */
     smtp_flush(state->client);
-    vstream_fpurge(state->client, VSTREAM_PURGE_READ);	/* Yay! */
+    /* At this point there must not be any pending plaintext. */
+    vstream_fpurge(state->client, VSTREAM_PURGE_BOTH);
 
     /*
      * Reset all inputs to the initial state.
@@ -4172,73 +4233,6 @@ static int starttls_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      */
     smtpd_start_tls(state);
     return (0);
-#else						/* USE_TLSPROXY */
-
-    /*
-     * This is non-production code, for tlsproxy(8) load testing only. It
-     * implements enough to enable the Postfix features that depend on TLS
-     * encryption.
-     */
-#define PROXY_OPEN_FLAGS \
-	(TLS_PROXY_FLAG_ROLE_SERVER | TLS_PROXY_FLAG_SEND_CONTEXT)
-
-    proxy_stream = tls_proxy_open(PROXY_OPEN_FLAGS, state->client, state->addr,
-				  state->port, var_smtpd_tmout);
-    if (proxy_stream == 0) {
-	state->error_mask |= MAIL_ERROR_SOFTWARE;
-	/* RFC 4954 Section 6. */
-	smtpd_chat_reply(state, "454 4.7.0 TLS not available due to local problem");
-	return (-1);
-    }
-    smtpd_chat_reply(state, "220 2.0.0 Ready to start TLS");
-    smtp_flush(state->client);
-    vstream_fpurge(state->client, VSTREAM_PURGE_READ);
-
-    /*
-     * Reset all inputs to the initial state.
-     * 
-     * XXX RFC 2487 does not forbid the use of STARTTLS while mail transfer is
-     * in progress, so we have to allow it even when it makes no sense.
-     */
-    helo_reset(state);
-    mail_reset(state);
-    rcpt_reset(state);
-#ifdef USE_SASL_AUTH
-    if (var_smtpd_sasl_enable) {
-	if (smtpd_sasl_is_active(state)) {
-	    smtpd_sasl_auth_reset(state);
-	    smtpd_sasl_deactivate(state);
-	}
-	smtpd_sasl_activate(state, VAR_SMTPD_SASL_TLS_OPTS,
-			    var_smtpd_sasl_tls_opts);
-    }
-#endif
-
-    /*
-     * To insert tlsproxy(8) between this process and the SMTP client, we
-     * swap the file descriptors between the proxy_stream and state->client
-     * VSTREAMS, so that we don't have to worry about loss of all the
-     * user-configurable state->client attributes (such as longjump buffers).
-     */
-    vstream_control(proxy_stream, VSTREAM_CTL_DOUBLE, VSTREAM_CTL_END);
-    vstream_control(state->client, VSTREAM_CTL_SWAP_FD, proxy_stream,
-		    VSTREAM_CTL_END);
-    (void) vstream_fclose(proxy_stream);	/* direct-to-client stream! */
-
-    /*
-     * After plumbing the plaintext stream, receive the TLS context object.
-     * For this we must use the same VSTREAM buffer that we also use to
-     * receive subsequent SMTP commands.
-     * 
-     * When the TLS handshake fails, the conversation is in an unknown state.
-     * There is nothing we can do except to disconnect from the client.
-     */
-    state->tls_context = tls_proxy_state_receive(state->client);
-    if (state->tls_context == 0)
-	vstream_longjmp(state->client, SMTP_ERR_EOF);
-
-    return (0);
-#endif						/* USE_TLSPROXY */
 }
 
 /* tls_reset - undo STARTTLS */
@@ -4254,11 +4248,11 @@ static void tls_reset(SMTPD_STATE *state)
 	if (vstream_feof(state->client) || vstream_ferror(state->client))
 	    failure = 1;
 	vstream_fflush(state->client);		/* NOT: smtp_flush() */
-#ifndef USE_TLSPROXY
+#ifdef USE_TLSPROXY
+	tls_proxy_context_free(state->tls_context);
+#else
 	tls_server_stop(smtpd_tls_ctx, state->client, var_smtpd_starttls_tmout,
 			failure, state->tls_context);
-#else
-	tls_proxy_state_free(state->tls_context);
 #endif
 	state->tls_context = 0;
     }
@@ -4379,7 +4373,17 @@ static void smtpd_proto(SMTPD_STATE *state)
 #ifdef USE_TLS
 	if (SMTPD_STAND_ALONE(state) == 0 && var_smtpd_tls_wrappermode) {
 #ifdef USE_TLSPROXY
-	    msg_fatal("Wrapper-mode is unimplemented.");
+	    /* We garbage-collect the VSTREAM in smtpd_state_reset() */
+	    state->tlsproxy = tls_proxy_open(PROXY_OPEN_FLAGS, state->client,
+					     state->addr, state->port,
+					     var_smtpd_tmout);
+	    if (state->tlsproxy == 0) {
+		msg_warn("Wrapper-mode request dropped from %s for service %s."
+		       " TLS context initialization failed. For details see"
+			 " earlier warnings in your logs.",
+			 state->namaddr, state->service);
+		break;
+	    }
 #else						/* USE_TLSPROXY */
 	    if (smtpd_tls_ctx == 0) {
 		msg_warn("Wrapper-mode request dropped from %s for service %s."
@@ -4388,6 +4392,7 @@ static void smtpd_proto(SMTPD_STATE *state)
 			 state->namaddr, state->service);
 		break;
 	    }
+#endif						/* USE_TLSPROXY */
 	    if (var_smtpd_cntls_limit > 0
 		&& !xclient_allowed
 		&& anvil_clnt
@@ -4401,7 +4406,6 @@ static void smtpd_proto(SMTPD_STATE *state)
 		break;
 	    }
 	    smtpd_start_tls(state);
-#endif						/* USE_TLSPROXY */
 	}
 #endif
 
@@ -4517,25 +4521,6 @@ static void smtpd_proto(SMTPD_STATE *state)
 		smtp_flush(state->client);
 #endif
 	    } else {
-#ifdef PREGREET
-		if (*var_stress == 0 && strcmp(state->name, "unknown") == 0) {
-		    smtpd_chat_reply(state, "220-%s", var_smtpd_banner);
-		    smtp_flush(state->client);
-		    if (read_wait(vstream_fileno(state->client), 1) == 0) {
-			int     n = peekfd(vstream_fileno(state->client));
-
-			smtpd_chat_query(state);
-			msg_info("PREGREET %d from %s: %s",
-			     n, state->namaddr, vstring_str(state->buffer));
-			state->error_mask |= MAIL_ERROR_POLICY;
-			smtpd_chat_reply(state,
-				   "521 %s ESMTP not accepting connections",
-					 var_myhostname);
-			/* Not: state->error_count++; */
-			break;
-		    }
-		}
-#endif
 		smtpd_chat_reply(state, "220 %s", var_smtpd_banner);
 	    }
 	}
@@ -4587,7 +4572,7 @@ static void smtpd_proto(SMTPD_STATE *state)
 		for (cp = STR(state->buffer); *cp && IS_SPACE_TAB(*cp); cp++)
 		     /* void */ ;
 		if ((cp = dict_get(smtpd_cmd_filter, cp)) != 0) {
-		    msg_info("%s: replacing client command \"%s\" with \"%s\"",
+		    msg_info("%s: replacing command \"%.100s\" with \"%.100s\"",
 			     state->namaddr, STR(state->buffer), cp);
 		    vstring_strcpy(state->buffer, cp);
 		}
@@ -4914,6 +4899,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     if (getuid() == 0 || getuid() == var_owner_uid) {
 	if (var_smtpd_use_tls) {
 #ifdef USE_TLS
+#ifndef USE_TLSPROXY
 	    TLS_SERVER_INIT_PROPS props;
 	    const char *cert_file;
 	    int     have_server_cert;
@@ -4980,6 +4966,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 				    fpt_dgst = var_smtpd_tls_fpt_dgst);
 	    else
 		msg_warn("No server certs available. TLS won't be enabled");
+#endif						/* USE_TLSPROXY */
 #else
 	    msg_warn("TLS has been selected, but TLS support is not compiled in");
 #endif
@@ -5260,7 +5247,7 @@ int     main(int argc, char **argv)
     static const CONFIG_RAW_TABLE raw_table[] = {
 	VAR_SMTPD_EXP_FILTER, DEF_SMTPD_EXP_FILTER, &var_smtpd_exp_filter, 1, 0,
 	VAR_DEF_RBL_REPLY, DEF_DEF_RBL_REPLY, &var_def_rbl_reply, 1, 0,
-	VAR_SMTPD_REJ_CONTACT, DEF_SMTPD_REJ_CONTACT, &var_smtpd_rej_contact, 0, 0,
+	VAR_SMTPD_REJ_FOOTER, DEF_SMTPD_REJ_FOOTER, &var_smtpd_rej_footer, 0, 0,
 	0,
     };
 

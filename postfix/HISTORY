@@ -16326,6 +16326,10 @@ Apologies for any names omitted.
 	stress-dependent.  Files: global/mail_params.h,
 	proto/postconf.proto.
 
+	Compatibility: postscreen_discard_ehlo_keyword(s|maps)
+	support for compatibility with smtpd_discard_ehlo_keyword(s|maps).
+	Files: postscreen/postscreen_smtpd.c.
+
 20110102
 
 	Feature: STARTTLS support for the postscreen(8) daemon.
@@ -16353,7 +16357,7 @@ Apologies for any names omitted.
 20110104
 
 	Feature: add contact information to each SMTP server reject
-	message. For example, "smtpd_reject_contact_information =
+	message. For example, "smtpd_reject_footer =
 	call 800-555-0101 for assistance", with macro expansion and
 	with multi-line support. Files: global/mail_params.h,
 	mantools/postlink, proto/postconf.proto, smtpd/smtpd.c,
@@ -16370,3 +16374,35 @@ Apologies for any names omitted.
 	Seen from outside, Postfix works just as if it has TLS
 	support built into in smtpd(8). Files: smtpd/smtpd.c,
 	tls/tls_proxy*.[hc], tlsproxy/tlsproxy.c, util/vstream.[hc].
+
+	Bugfix (introduced with the Postfix TLS patch): discard
+	plaintext following the STARTTLS command or response. This
+	matters only for the minority of SMTP clients that actually
+	verify server certificates.  Files: smtpd/smtpd.c,
+	smtp/smtp_proto.c.
+
+20110106:
+
+	Non-production: cleaned up the tlsproxy support in the
+	Postfix SMTP server for stress testing of the tlsproxy
+	daemon (still #ifdef TLSPROXY). File: smtpd/smtpd.c.
+
+20110107
+
+	Cleanup: smtpd_reject_contact_information is renamed to
+	smtpd_reject_footer, because it can be used for non-contact
+	information.
+
+	Compatibility: postscreen_reject_footer support for
+	compatibility with smtpd_reject_footer.  Files:
+	global/smtp_reply_footer.[hc], global/mail_conf.[hc],
+	postscreen/postscreen_expand.c, postscreen/postscreen_send.c,
+	postscreen/postscreen.c, smtpd/smtpd_chat.c.
+
+	Compatibility: postscreen_command_filter support for
+	compatibility with smtpd_command_filter. Files:
+	postscreen/postscreen_dict.c, postscreen/postscreen_smtpd.c
+
+	Cleanup: postscreen(8) now displays control characters in
+	PREGREET responses as C-style \letter escapes, instead of
+	"?".  File: postscreen/postscreen_early.c.

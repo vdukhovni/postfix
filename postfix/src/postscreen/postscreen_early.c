@@ -48,6 +48,7 @@
 #include <postscreen.h>
 
 static char *psc_teaser_greeting;
+static VSTRING *psc_escape_buf;
 
 /* psc_early_event - handle pre-greet, EOF, and DNSBL results. */
 
@@ -172,9 +173,10 @@ static void psc_early_event(int event, char *context)
 	    return;
 	}
 	read_buf[read_count] = 0;
+	escape(psc_escape_buf, read_buf, read_count);
 	msg_info("PREGREET %d after %s from [%s]:%s: %.100s", read_count,
 	       psc_format_delta_time(psc_temp, state->start_time, &elapsed),
-		 PSC_CLIENT_ADDR_PORT(state), printable(read_buf, '?'));
+		 PSC_CLIENT_ADDR_PORT(state), STR(psc_escape_buf));
 	PSC_FAIL_SESSION_STATE(state, PSC_STATE_FLAG_PREGR_FAIL);
 	switch (psc_pregr_action) {
 	case PSC_ACT_DROP:
@@ -288,5 +290,6 @@ void    psc_early_init(void)
     if (*var_psc_pregr_banner) {
 	vstring_sprintf(psc_temp, "220-%s\r\n", var_psc_pregr_banner);
 	psc_teaser_greeting = mystrdup(STR(psc_temp));
+	psc_escape_buf = vstring_alloc(100);
     }
 }
