@@ -126,13 +126,13 @@ int     make_dirs(const char *path, int perms)
 	     * GID. Don't change the effective UID for doing this.
 	     */
 	    if ((ret = stat(saved_path, &st)) < 0) {
-		msg_warn("%s: stat saved_path: %m", myname);
+		msg_warn("%s: stat %s: %m", myname, saved_path);
 		break;
 	    }
 	    if (egid == -1)
 		egid = getegid();
 	    if (st.st_gid != egid && (ret = chown(saved_path, -1, egid)) < 0) {
-		msg_warn("%s: chgrp saved_path: %m", myname);
+		msg_warn("%s: chgrp %s: %m", myname, saved_path);
 		break;
 	    }
 	}

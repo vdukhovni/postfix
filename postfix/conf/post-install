@@ -743,7 +743,7 @@ EOF
     grep '^#*smtp.*postscreen' $config_directory/master.cf >/dev/null || {
 	echo Editing $config_directory/master.cf, adding missing entry for postscreen TCP service
 	cat >>$config_directory/master.cf <<EOF || exit 1
-#smtp     inet  n       -       n       -       1       postscreen
+#smtp      inet  n       -       n       -       1       postscreen
 EOF
     }
 
@@ -763,7 +763,7 @@ EOF
     grep '^#*dnsblog.*dnsblog' $config_directory/master.cf >/dev/null || {
 	echo Editing $config_directory/master.cf, adding missing entry for dnsblog unix-domain service
 	cat >>$config_directory/master.cf <<EOF || exit 1
-#dnsblog  unix  -       -       n       -       0       dnsblog
+#dnsblog   unix  -       -       n       -       0       dnsblog
 EOF
     }
 
@@ -773,7 +773,7 @@ EOF
     grep '^#*tlsproxy.*tlsproxy' $config_directory/master.cf >/dev/null || {
 	echo Editing $config_directory/master.cf, adding missing entry for tlsproxy unix-domain service
 	cat >>$config_directory/master.cf <<EOF || exit 1
-#tlsproxy unix  -       -       n       -       0       tlsproxy
+#tlsproxy  unix  -       -       n       -       0       tlsproxy
 EOF
     }
 

@@ -22,7 +22,9 @@
 extern int unix_connect(const char *, int, int);
 extern int inet_connect(const char *, int, int);
 extern int stream_connect(const char *, int, int);
-extern int upass_connect(const char *, int, int);
+extern int stream_pass_connect(const char *, int, int);
+
+#define unix_pass_connect unix_connect
 
 /* LICENSE
 /* .ad

@@ -1,18 +1,18 @@
 /*++
 /* NAME
-/*	upass_trigger 3
+/*	unix_pass_trigger 3
 /* SUMMARY
 /*	wakeup UNIX-domain file descriptor listener
 /* SYNOPSIS
 /*	#include <trigger.h>
 /*
-/*	int	upass_trigger(service, buf, len, timeout)
+/*	int	unix_pass_trigger(service, buf, len, timeout)
 /*	const char *service;
 /*	const char *buf;
 /*	ssize_t	len;
 /*	int	timeout;
 /* DESCRIPTION
-/*	upass_trigger() wakes up the named UNIX-domain server by sending
+/*	unix_pass_trigger() wakes up the named UNIX-domain server by sending
 /*	a brief connection to it and writing the named buffer.
 /*
 /*	The connection is closed by a background thread. Some kernels
@@ -32,7 +32,7 @@
 /* DIAGNOSTICS
 /*	The result is zero in case of success, -1 in case of problems.
 /* SEE ALSO
-/*	upass_connect(3), UNIX-domain client
+/*	unix_pass_connect(3), UNIX-domain client
 /* LICENSE
 /* .ad
 /* .fi
@@ -60,17 +60,18 @@
 #include <events.h>
 #include <trigger.h>
 
-struct upass_trigger {
+struct unix_pass_trigger {
     int     fd;
     char   *service;
+    int    *pair;
 };
 
-/* upass_trigger_event - disconnect from peer */
+/* unix_pass_trigger_event - disconnect from peer */
 
-static void upass_trigger_event(int event, char *context)
+static void unix_pass_trigger_event(int event, char *context)
 {
-    struct upass_trigger *up = (struct upass_trigger *) context;
-    static const char *myname = "upass_trigger_event";
+    struct unix_pass_trigger *up = (struct unix_pass_trigger *) context;
+    static const char *myname = "unix_pass_trigger_event";
 
     /*
      * Disconnect.
@@ -78,19 +79,25 @@ static void upass_trigger_event(int event, char *context)
     if (event == EVENT_TIME)
 	msg_warn("%s: read timeout for service %s", myname, up->service);
     event_disable_readwrite(up->fd);
-    event_cancel_timer(upass_trigger_event, context);
+    event_cancel_timer(unix_pass_trigger_event, context);
+    /* Don't combine multiple close() calls into one boolean expression. */
     if (close(up->fd) < 0)
 	msg_warn("%s: close %s: %m", myname, up->service);
+    if (close(up->pair[0]) < 0)
+	msg_warn("%s: close pipe: %m", myname);
+    if (close(up->pair[1]) < 0)
+	msg_warn("%s: close pipe: %m", myname);
     myfree(up->service);
     myfree((char *) up);
 }
 
-/* upass_trigger - wakeup UNIX-domain server */
+/* unix_pass_trigger - wakeup UNIX-domain server */
 
-int     upass_trigger(const char *service, const char *buf, ssize_t len, int timeout)
+int     unix_pass_trigger(const char *service, const char *buf, ssize_t len, int timeout)
 {
-    const char *myname = "upass_trigger";
-    struct upass_trigger *up;
+    const char *myname = "unix_pass_trigger";
+    int     pair[2];
+    struct unix_pass_trigger *up;
     int     fd;
 
     if (msg_verbose > 1)
@@ -99,7 +106,7 @@ int     upass_trigger(const char *service, const char *buf, ssize_t len, int tim
     /*
      * Connect...
      */
-    if ((fd = upass_connect(service, BLOCKING, timeout)) < 0) {
+    if ((fd = unix_pass_connect(service, BLOCKING, timeout)) < 0) {
 	if (msg_verbose)
 	    msg_warn("%s: connect to %s: %m", myname, service);
 	return (-1);
@@ -107,17 +114,26 @@ int     upass_trigger(const char *service, const char *buf, ssize_t len, int tim
     close_on_exec(fd, CLOSE_ON_EXEC);
 
     /*
+     * Create a pipe, and send one pipe end to the server.
+     */
+    if (pipe(pair) < 0)
+	msg_fatal("%s: pipe: %m", myname);
+    if (unix_send_fd(fd, pair[0]) < 0)
+	msg_fatal("%s: send file descriptor: %m", myname);
+
+    /*
      * Stash away context.
      */
-    up = (struct upass_trigger *) mymalloc(sizeof(*up));
+    up = (struct unix_pass_trigger *) mymalloc(sizeof(*up));
     up->fd = fd;
     up->service = mystrdup(service);
+    up->pair = pair;
 
     /*
      * Write the request...
      */
-    if (write_buf(fd, buf, len, timeout) < 0
-	|| write_buf(fd, "", 1, timeout) < 0)
+    if (write_buf(pair[1], buf, len, timeout) < 0
+	|| write_buf(pair[1], "", 1, timeout) < 0)
 	if (msg_verbose)
 	    msg_warn("%s: write to %s: %m", myname, service);
 
@@ -125,7 +141,7 @@ int     upass_trigger(const char *service, const char *buf, ssize_t len, int tim
      * Wakeup when the peer disconnects, or when we lose patience.
      */
     if (timeout > 0)
-	event_request_timer(upass_trigger_event, (char *) up, timeout + 100);
-    event_enable_read(fd, upass_trigger_event, (char *) up);
+	event_request_timer(unix_pass_trigger_event, (char *) up, timeout + 100);
+    event_enable_read(fd, unix_pass_trigger_event, (char *) up);
     return (0);
 }

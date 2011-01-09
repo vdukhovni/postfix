@@ -7,10 +7,15 @@
 /*	\fBpostscreen\fR [generic Postfix daemon options]
 /* DESCRIPTION
 /*	The Postfix \fBpostscreen\fR(8) server performs triage on
-/*	multiple inbound SMTP connections in parallel. While a
-/*	single \fBpostscreen\fR(8) process keeps spambots away from
-/*	Postfix SMTP server processes, more Postfix SMTP server
+/*	multiple inbound SMTP connections at the same time. While
+/*	a single \fBpostscreen\fR(8) process keeps spambots away
+/*	from Postfix SMTP server processes, more Postfix SMTP server
 /*	processes remain available for legitimate clients.
+/*
+/*	This program should not be used on SMTP ports that receive
+/*	mail from end-user clients (MUAs). In a typical deployment,
+/*	\fBpostscreen\fR(8) is used on the "port 25" service, while
+/*	MUA clients submit mail via the \fBsubmission\fR service.
 /*
 /*	\fBpostscreen\fR(8) maintains a temporary whitelist for
 /*	clients that have passed a number of tests.  When an SMTP

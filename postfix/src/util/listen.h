@@ -24,12 +24,15 @@ extern int inet_listen(const char *, int, int);
 extern int fifo_listen(const char *, int, int);
 extern int stream_listen(const char *, int, int);
 
-#define upass_listen(path, mode, log) unix_listen((path), (mode), (log))
+#define unix_pass_listen	unix_listen
+#define stream_pass_listen	stream_listen
 
 extern int inet_accept(int);
 extern int unix_accept(int);
 extern int stream_accept(int);
-extern int upass_accept(int);
+extern int unix_pass_accept(int);
+
+#define stream_pass_accept	stream_accept
 
 /* LICENSE
 /* .ad

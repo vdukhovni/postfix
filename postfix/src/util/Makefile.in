@@ -30,10 +30,10 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	username.c valid_hostname.c vbuf.c vbuf_print.c vstream.c \
 	vstream_popen.c vstring.c vstring_vstream.c watchdog.c writable.c \
 	write_buf.c write_wait.c sane_basename.c format_tv.c allspace.c \
-	allascii.c load_file.c killme_after.c vstream_tweak.c upass_connect.c \
-	upass_listen.c upass_trigger.c edit_file.c inet_windowsize.c \
+	allascii.c load_file.c killme_after.c vstream_tweak.c \
+	unix_pass_listen.c unix_pass_trigger.c edit_file.c inet_windowsize.c \
 	unix_pass_fd_fix.c dict_cache.c valid_utf_8.c dict_thash.c \
-	ip_match.c nbbio.c
+	ip_match.c nbbio.c stream_pass_connect.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -65,10 +65,10 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	username.o valid_hostname.o vbuf.o vbuf_print.o vstream.o \
 	vstream_popen.o vstring.o vstring_vstream.o watchdog.o writable.o \
 	write_buf.o write_wait.o sane_basename.o format_tv.o allspace.o \
-	allascii.o load_file.o killme_after.o vstream_tweak.o upass_connect.o \
-	upass_listen.o upass_trigger.o edit_file.o inet_windowsize.o \
+	allascii.o load_file.o killme_after.o vstream_tweak.o \
+	unix_pass_listen.o unix_pass_trigger.o edit_file.o inet_windowsize.o \
 	unix_pass_fd_fix.o dict_cache.o valid_utf_8.o dict_thash.o \
-	ip_match.o nbbio.o
+	ip_match.o nbbio.o stream_pass_connect.o
 HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	chroot_uid.h cidr_match.h clean_env.h connect.h ctable.h dict.h \
 	dict_cdb.h dict_cidr.h dict_db.h dict_dbm.h dict_env.h dict_ht.h \
@@ -1599,6 +1599,11 @@ stream_listen.o: listen.h
 stream_listen.o: msg.h
 stream_listen.o: stream_listen.c
 stream_listen.o: sys_defs.h
+stream_pass_connect.o: connect.h
+stream_pass_connect.o: iostuff.h
+stream_pass_connect.o: msg.h
+stream_pass_connect.o: stream_pass_connect.c
+stream_pass_connect.o: sys_defs.h
 stream_recv_fd.o: iostuff.h
 stream_recv_fd.o: msg.h
 stream_recv_fd.o: stream_recv_fd.c
@@ -1679,6 +1684,20 @@ unix_pass_fd_fix.o: sys_defs.h
 unix_pass_fd_fix.o: unix_pass_fd_fix.c
 unix_pass_fd_fix.o: vbuf.h
 unix_pass_fd_fix.o: vstring.h
+unix_pass_listen.o: iostuff.h
+unix_pass_listen.o: listen.h
+unix_pass_listen.o: msg.h
+unix_pass_listen.o: sane_accept.h
+unix_pass_listen.o: sys_defs.h
+unix_pass_listen.o: unix_pass_listen.c
+unix_pass_trigger.o: connect.h
+unix_pass_trigger.o: events.h
+unix_pass_trigger.o: iostuff.h
+unix_pass_trigger.o: msg.h
+unix_pass_trigger.o: mymalloc.h
+unix_pass_trigger.o: sys_defs.h
+unix_pass_trigger.o: trigger.h
+unix_pass_trigger.o: unix_pass_trigger.c
 unix_recv_fd.o: iostuff.h
 unix_recv_fd.o: msg.h
 unix_recv_fd.o: sys_defs.h
@@ -1698,30 +1717,6 @@ unix_trigger.o: unix_trigger.c
 unsafe.o: safe.h
 unsafe.o: sys_defs.h
 unsafe.o: unsafe.c
-upass_connect.o: connect.h
-upass_connect.o: events.h
-upass_connect.o: iostuff.h
-upass_connect.o: msg.h
-upass_connect.o: mymalloc.h
-upass_connect.o: sane_connect.h
-upass_connect.o: sane_socketpair.h
-upass_connect.o: sys_defs.h
-upass_connect.o: timed_connect.h
-upass_connect.o: upass_connect.c
-upass_listen.o: iostuff.h
-upass_listen.o: listen.h
-upass_listen.o: msg.h
-upass_listen.o: sane_accept.h
-upass_listen.o: sys_defs.h
-upass_listen.o: upass_listen.c
-upass_trigger.o: connect.h
-upass_trigger.o: events.h
-upass_trigger.o: iostuff.h
-upass_trigger.o: msg.h
-upass_trigger.o: mymalloc.h
-upass_trigger.o: sys_defs.h
-upass_trigger.o: trigger.h
-upass_trigger.o: upass_trigger.c
 uppercase.o: stringops.h
 uppercase.o: sys_defs.h
 uppercase.o: uppercase.c

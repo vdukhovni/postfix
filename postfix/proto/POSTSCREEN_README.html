@@ -18,10 +18,15 @@
 <h2> <a name="intro">Introduction</a> </h2>
 
 <p> The Postfix postscreen(8) server performs triage on multiple
-inbound SMTP connections in parallel. While a single postscreen(8)
-process keeps zombies away from Postfix SMTP server processes,
-more Postfix SMTP server processes remain available for legitimate
+inbound SMTP connections at the same time. While a single postscreen(8)
+process keeps zombies away from Postfix SMTP server processes, more
+Postfix SMTP server processes remain available for legitimate
 clients. </p>
+
+<p> postscreen(8) should not be used on SMTP ports that receive
+mail from end-user clients (MUAs). In a typical deployment,
+postscreen(8) is used on the "port 25" service, while MUA clients
+submit mail via the submission service. </p>
 
 <p> postscreen(8) is the first layer in a multi-layer defense. <p>
 

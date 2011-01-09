@@ -192,8 +192,8 @@ void    psc_send_socket(PSC_STATE *state)
      * Postfix-specific.
      */
     if ((server_fd =
-	 LOCAL_CONNECT(psc_smtpd_service_name, NON_BLOCKING,
-		       PSC_SEND_SOCK_CONNECT_TIMEOUT)) < 0) {
+	PASS_CONNECT(psc_smtpd_service_name, NON_BLOCKING,
+		     PSC_SEND_SOCK_CONNECT_TIMEOUT)) < 0) {
 	msg_warn("cannot connect to service %s: %m", psc_smtpd_service_name);
 	PSC_SEND_REPLY(state, "421 4.3.2 All server ports are busy\r\n");
 	psc_free_session_state(state);

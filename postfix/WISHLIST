@@ -1,23 +1,34 @@
 Wish list:
 
+	Things to do before the stable release:
+
 	Remove this file from the stable release.
 
-	Re-run "make depend" with all plugins enabled.
+	To speed up postscreen_whitelist/blacklist_networks lookups 
+	invent match_list support that does not recompile CIDR
+        patterns on every call. Otherwise, large CIDR files will
+	make postscreen unacceptably slow.
 
-	Make very clear in postscreen manpage and readme that this
-	program is not to be used against your own mail clients.
+	Better, replace the postscreen_whitelist/blacklist_networks
+	mechanisms with one single postscreen_client_restrictions
+	mechanism that understands "permit_mynetworks" and (cidr)
+	access maps with entries of "pattern permit", "pattern
+	reject", or "pattern dunno". Tables that require locking
+	should not be used for performance reasons. The new mechanism
+	can reduce the number of table lookups when sites have both
+	whitelists and blacklists.  We then use "permit_mynetworks"
+	to whitelist local networks by default.  Unlike match_lists,
+	PCRE maps in access tables are compiled once, and even
+	Stan's very large tables resolve in a millisecond or so on
+	modern hardware.
 
-	Test postscreen on Solaris.
-
-	match_list support that does not recompile CIDR patterns
-	on every call.
+	Things to do after the stable release:
 
 	tlsproxy(8) should receive TLS preferences from postscreen(8)
 	and smtpd(8), instead of reading them from main.cf. This
 	means that many tlsproxy_ parameters become postscreen_
-	parameters. This also means that tls_server_init() must not
-	"validate" preferences that are supplied later at
-	tls_server_start() time, which was dubious design anyway.
+	parameters, and that tls_server_init() parameters move to
+	to tls_server_start(). That is a significant API change.
 
 	anvil rate limit for sasl_username.
 

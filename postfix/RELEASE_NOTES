@@ -52,9 +52,8 @@ Server response:
 This feature supports macro expansion ($client_address, $localtime,
 etc.), as documented in the postconf(5) manpage.
 
-This feature is also supported as postscreen_reject_footer
-using the same setting as smtpd_reject_footer by
-default.
+This feature is also supported as postscreen_reject_footer using
+the same setting as smtpd_reject_footer by default.
 
 Incompatibility with snapshot 20110102
 ======================================
@@ -119,7 +118,7 @@ for almost 10 years now.
 For backwards compatibility, specify:
 
 /etc/postfix/main.cf
-   To: undisclosed-recipients:;
+   undisclosed_recipients_header = To: undisclosed-recipients:;
 
 Note: both the ":" and ";" are required.
 

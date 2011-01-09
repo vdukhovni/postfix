@@ -18,7 +18,9 @@ extern int unix_trigger(const char *, const char *, ssize_t, int);
 extern int inet_trigger(const char *, const char *, ssize_t, int);
 extern int fifo_trigger(const char *, const char *, ssize_t, int);
 extern int stream_trigger(const char *, const char *, ssize_t, int);
-extern int upass_trigger(const char *, const char *, ssize_t, int);
+extern int unix_pass_trigger(const char *, const char *, ssize_t, int);
+
+#define stream_pass_trigger	stream_trigger
 
 /* LICENSE
 /* .ad
