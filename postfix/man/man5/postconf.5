@@ -3723,6 +3723,66 @@ as "stop" commands. For these commands, disabled instances are skipped,
 and enabled instances are processed in reverse order.
 .PP
 This feature is available in Postfix 2.6 and later.
+.SH postscreen_access_list (default: permit_mynetworks)
+Permanent white/blacklist for remote SMTP client IP addresses;
+\fBpostscreen\fR(8) searches this list immediately after a remote SMTP
+client connects.  Specify a comma- or whitespace-separated list of
+commands (in upper or lower case) or lookup tables. The search stops
+upon the first command that fires for the client IP address.
+.IP "\fB permit_mynetworks \fR"
+Whitelist the client and
+terminate the search if the client IP address matches $mynetworks.
+Do not subject the client to any before/after 220 greeting tests.
+Pass the connection immediately to a Postfix SMTP server process.
+.IP "\fB type:table \fR"
+Query the specified lookup
+table. Each table lookup result is an access list, except that
+access lists inside a table cannot specify type:table entries.
+.br
+To discourage the use of hash, btree, etc. tables, there is no
+support for substring matching like \fBsmtpd\fR(8). Use CIDR tables
+instead.
+.IP "\fB permit \fR"
+Whitelist the client and terminate
+the search. Do not subject the client to any before/after 220
+greeting tests. Pass the connection immediately to a Postfix SMTP
+server process.
+.IP "\fB reject \fR"
+Blacklist the client and terminate
+the search. Subject the client to the action configured with the
+postscreen_blacklist_action configuration parameter.
+.IP "\fB dunno \fR"
+When used inside a lookup table,
+return from the lookup table and evaluate the next command.
+.br
+When used outside a lookup table, terminate the search, and subject
+the client to the configured before/after 220 greeting tests.
+.PP
+Example:
+.PP
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    postscreen_access_list = permit_mynetworks,
+		cidr:/etc/postfix/postscreen_access.cidr
+.fi
+.ad
+.ft R
+.PP
+.nf
+.na
+.ft C
+/etc/postfix/postscreen_access.cidr:
+    # Rules are evaluated in the order as specified.
+    # Blacklist 192.168.* except 192.168.0.1.
+    192.168.0.1         dunno
+    192.168.0.0/16      reject
+.fi
+.ad
+.ft R
+.PP
+This feature is available in Postfix 2.8.
 .SH postscreen_bare_newline_action (default: ignore)
 The action that \fBpostscreen\fR(8) takes when an SMTP client sends
 a bare newline character, that is, a newline not preceded by carriage
@@ -3776,14 +3836,6 @@ Repeat this test the next time the client connects.
 .IP "\fBdrop\fR"
 Drop the connection immediately with a 521 SMTP reply. Repeat
 this test the next time the client connects.
-.PP
-This feature is available in Postfix 2.8.
-.SH postscreen_blacklist_networks (default: empty)
-Network addresses that are permanently blacklisted; see the
-postscreen_blacklist_action parameter for possible actions.  This
-parameter uses the same address syntax as the mynetworks parameter.
-The blacklist has higher precedence than whitelists. This feature
-never uses the remote SMTP client hostname.
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_cache_cleanup_interval (default: 12h)
@@ -4190,13 +4242,6 @@ set under 10s.
 Specify a non-zero time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
-.PP
-This feature is available in Postfix 2.8.
-.SH postscreen_whitelist_networks (default: $mynetworks)
-Network addresses that are permanently whitelisted, and that
-will not be subjected to \fBpostscreen\fR(8) checks. This parameter uses
-the same address syntax as the mynetworks parameter. This feature
-never uses the remote SMTP client hostname.
 .PP
 This feature is available in Postfix 2.8.
 .SH prepend_delivered_header (default: command, file, forward)

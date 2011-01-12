@@ -78,7 +78,9 @@
 #include <msg.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 #include <vstream.h>
+#include <vstring_vstream.h>
 #include <msg_vstream.h>
 
 static void usage(char *progname)
@@ -89,7 +91,6 @@ static void usage(char *progname)
 int     main(int argc, char **argv)
 {
     ADDR_MATCH_LIST *list;
-    char   *host;
     char   *addr;
     int     ch;
 
@@ -108,9 +109,19 @@ int     main(int argc, char **argv)
 	usage(argv[0]);
     list = addr_match_list_init(MATCH_FLAG_PARENT, argv[optind]);
     addr = argv[optind + 1];
-    vstream_printf("%s: %s\n", addr,
-		   addr_match_list_match(list, addr) ?
-		   "YES" : "NO");
+    if (strcmp(addr, "-") == 0) {
+	VSTRING *buf = vstring_alloc(100);
+
+	while (vstring_get_nonl(buf, VSTREAM_IN) != VSTREAM_EOF)
+	    vstream_printf("%s: %s\n", vstring_str(buf),
+			   addr_match_list_match(list, vstring_str(buf)) ?
+			   "YES" : "NO");
+	vstring_free(buf);
+    } else {
+	vstream_printf("%s: %s\n", addr,
+		       addr_match_list_match(list, addr) ?
+		       "YES" : "NO");
+    }
     vstream_fflush(VSTREAM_OUT);
     addr_match_list_free(list);
     return (0);

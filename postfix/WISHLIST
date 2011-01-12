@@ -4,25 +4,12 @@ Wish list:
 
 	Remove this file from the stable release.
 
-	To speed up postscreen_whitelist/blacklist_networks lookups 
-	invent match_list support that does not recompile CIDR
-        patterns on every call. Otherwise, large CIDR files will
-	make postscreen unacceptably slow.
-
-	Better, replace the postscreen_whitelist/blacklist_networks
-	mechanisms with one single postscreen_client_restrictions
-	mechanism that understands "permit_mynetworks" and (cidr)
-	access maps with entries of "pattern permit", "pattern
-	reject", or "pattern dunno". Tables that require locking
-	should not be used for performance reasons. The new mechanism
-	can reduce the number of table lookups when sites have both
-	whitelists and blacklists.  We then use "permit_mynetworks"
-	to whitelist local networks by default.  Unlike match_lists,
-	PCRE maps in access tables are compiled once, and even
-	Stan's very large tables resolve in a millisecond or so on
-	modern hardware.
-
 	Things to do after the stable release:
+
+	inline table where the "whitespace replacement" character
+	is specified in-line. Ex: inline:XYname1Xvalue1Yname2Xvalue2
+	would instantiate a table with (name1, value1) and (name2,
+	value2).  I'm afraid this is just too ugly.
 
 	tlsproxy(8) should receive TLS preferences from postscreen(8)
 	and smtpd(8), instead of reading them from main.cf. This

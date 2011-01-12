@@ -164,6 +164,10 @@
 #define PSC_SMTPD_NEXT_CHAR(state) \
 	VSTREAM_GETC((state)->smtp_client_stream)
 
+#define PSC_SMTPD_BUFFER_EMPTY(state) \
+	(!PSC_SMTPD_HAVE_PUSH_BACK(state) \
+	&& vstream_peek(state->smtp_client_stream) <= 0)
+
  /*
   * Dynamic reply strings. To minimize overhead we format these once.
   */
@@ -357,6 +361,7 @@ static void psc_starttls_resume(int unused_event, char *context)
      * Reset SMTP server state if STARTTLS was successful.
      */
     if (state->flags & PSC_STATE_FLAG_USING_TLS) {
+	/* Purge the push-back buffer, when implemented. */
 	PSC_STRING_RESET(state->helo_name);
 	PSC_STRING_RESET(state->sender);
 #ifdef TODO_SASL_AUTH
@@ -365,9 +370,12 @@ static void psc_starttls_resume(int unused_event, char *context)
     }
 
     /*
-     * Wait for the client to respond.
+     * Resume read/timeout events. If we still have unread input, resume the
+     * command processor immediately.
      */
     PSC_RESUME_SMTP_CMD_EVENTS(state);
+    if (!PSC_SMTPD_BUFFER_EMPTY(state))
+	psc_smtpd_read_event(EVENT_READ, (char *) state);
 }
 
 /* psc_starttls_cmd - activate the tlsproxy server */
@@ -620,11 +628,12 @@ typedef struct {
 #define PSC_SMTPD_CMD_FLAG_ENABLE	(1<<0)	/* command is enabled */
 #define PSC_SMTPD_CMD_FLAG_DESTROY	(1<<1)	/* dangling pointer alert */
 #define PSC_SMTPD_CMD_FLAG_PRE_TLS	(1<<2)	/* allowed with mandatory TLS */
+#define PSC_SMTPD_CMD_FLAG_SUSPEND	(1<<3)	/* suspend command engine */
 
 static const PSC_SMTPD_COMMAND command_table[] = {
     "HELO", psc_helo_cmd, PSC_SMTPD_CMD_FLAG_ENABLE | PSC_SMTPD_CMD_FLAG_PRE_TLS,
     "EHLO", psc_ehlo_cmd, PSC_SMTPD_CMD_FLAG_ENABLE | PSC_SMTPD_CMD_FLAG_PRE_TLS,
-    "STARTTLS", psc_starttls_cmd, PSC_SMTPD_CMD_FLAG_ENABLE | PSC_SMTPD_CMD_FLAG_PRE_TLS,
+    "STARTTLS", psc_starttls_cmd, PSC_SMTPD_CMD_FLAG_ENABLE | PSC_SMTPD_CMD_FLAG_PRE_TLS | PSC_SMTPD_CMD_FLAG_SUSPEND,
     "XCLIENT", psc_noop_cmd, PSC_SMTPD_CMD_FLAG_NONE,
     "XFORWARD", psc_noop_cmd, PSC_SMTPD_CMD_FLAG_NONE,
     "AUTH", psc_noop_cmd, PSC_SMTPD_CMD_FLAG_NONE,
@@ -688,9 +697,6 @@ static void psc_smtpd_read_event(int event, char *context)
      * was called. Also, yielding the pseudo thread will improve fairness for
      * other pseudo threads.
      */
-#define PSC_SMTPD_BUFFER_EMPTY(state) \
-	(!PSC_SMTPD_HAVE_PUSH_BACK(state) \
-	&& vstream_peek(state->smtp_client_stream) <= 0)
 
     /*
      * Note: on entry into this function the VSTREAM buffer is still empty,
@@ -982,6 +988,14 @@ static void psc_smtpd_read_event(int event, char *context)
 	    PSC_CLEAR_EVENT_HANGUP(state, psc_smtpd_time_event);
 	    return;
 	}
+
+	/*
+	 * We're suspended, waiting for some external event to happen.
+	 * Hopefully, someone will call us back to process the remainder of
+	 * the pending input, otherwise we could hang.
+	 */
+	if (cmdp->flags & PSC_SMTPD_CMD_FLAG_SUSPEND)
+	    return;
 
 	/*
 	 * Reset the command read timeout before reading the next command.

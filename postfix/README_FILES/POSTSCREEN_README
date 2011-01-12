@@ -106,28 +106,40 @@ QQuuiicckk tteessttss bbeeffoorree eevveerryytthhiinng
 Before engaging in SMTP-level tests. postscreen(8) queries a number of local
 black and whitelists. These tests speed up the handling of known clients.
 
-  * Permanent whitelist test
-  * Permanent blacklist test
+  * Permanent white/blacklist test
   * Temporary whitelist test
 
-PPeerrmmaanneenntt wwhhiitteelliisstt tteesstt
+PPeerrmmaanneenntt wwhhiittee//bbllaacckklliisstt tteesstt
 
-The postscreen_whitelist_networks parameter (default: $mynetworks) specifies a
-permanent whitelist for SMTP client IP addresses. When the SMTP client address
-matches the permanent whitelist, postscreen(8) logs this with the client
-address and port number as:
+The postscreen_access_list parameter (default: permit_mynetworks) specifies a
+permanent access list for SMTP client IP addresses. Typically one would specify
+something that whitelists local networks, followed by a CIDR table for
+selective white- and blacklisting.
+
+Example:
+
+/etc/postfix/main.cf:
+    postscreen_access_list = permit_mynetworks,
+        /etc/postfix/postscreen_access.cidr
+
+/etc/postfix/postscreen_access.cidr:
+   # Rules are evaluated in the order as specified.
+   # Blacklist 192.168.* except 192.168.0.1.
+   192.168.0.1          permit
+   192.168.0.0/16       reject
+
+See the postscreen_access_list manpage documentation for more details.
+
+When the SMTP client address matches a "permit" action, postscreen(8) logs this
+with the client address and port number as:
 
     WWHHIITTEELLIISSTTEEDD [address]:port
 
-The action is not configurable: immediately hand off the connection to a
-Postfix SMTP server process.
+The whitelist action is not configurable: immediately hand off the connection
+to a Postfix SMTP server process.
 
-PPeerrmmaanneenntt bbllaacckklliisstt tteesstt
-
-The postscreen_blacklist_networks parameter (default: empty) specifies a
-permanent blacklist for SMTP client IP addresses. The address syntax is as with
-mynetworks. When the SMTP client address matches the permanent blacklist,
-postscreen(8) logs this with the client address and port number as:
+When the SMTP client address matches a "reject" action, postscreen(8) logs this
+with the client address and port number as:
 
     BBLLAACCKKLLIISSTTEEDD [address]:port
 
@@ -165,7 +177,7 @@ continue as if postscreen(8) never even existed (except of course for the short
 postscreen_greet_wait delay).
 
   * Pregreet test
-  * DNS Blocklist test
+  * DNS White/blacklist test
   * When tests fail before the 220 SMTP server greeting
 
 PPrreeggrreeeett tteesstt
@@ -183,11 +195,16 @@ effect on SMTP clients that correctly implement the protocol.
 
 To avoid problems with poorly-implemented SMTP engines in network appliances or
 network testing tools, either exclude them from all tests with the
-postscreen_whitelist_networks feature or else specify an empty teaser banner:
+postscreen_access_list feature or else specify an empty teaser banner:
 
 /etc/postfix/main.cf:
-    # Exclude broken clients by whitelisting. $mynetworks is default.
-    postscreen_whitelist_networks = $mynetworks, 192.168.254.0/24
+    # Exclude broken clients by whitelisting. Clients in mynetworks
+    # should always be whitelisted.
+    postscreen_access_list = permit_mynetworks,
+        cidr:/etc/postfix/postscreen_access.cidr
+
+/etc/postfix/postscreen_access.cidr:
+    192.168.254.0/24 permit
 
 /etc/postfix/main.cf:
     # Disable the teaser banner (try whitelisting first if you can).
@@ -207,12 +224,12 @@ return and \n for newline).
 The postscreen_greet_action parameter specifies the action that is taken next.
 See "When tests fail before the 220 SMTP server greeting" below.
 
-DDNNSS BBlloocckklliisstt tteesstt
+DDNNSS WWhhiittee//bbllaacckklliisstt tteesstt
 
 The postscreen_dnsbl_sites parameter (default: empty) specifies a list of DNS
-blocklist servers with optional filters and weight factors. These servers will
-be queried in parallel with the reverse client IP address. This test is
-disabled by default.
+blocklist servers with optional filters and weight factors (positive weights
+for blacklisting, negative for whitelisting). These servers will be queried in
+parallel with the reverse client IP address. This test is disabled by default.
 
     CAUTION: when postscreen rejects mail, its SMTP reply contains the DNSBL
     domain name. Use the postscreen_dnsbl_reply_map feature to hide "password"
@@ -574,9 +591,8 @@ more of:
     after all. Wietse enables "deep protocol tests" on his own internet-facing
     mail server.
 
-  * There is also support for permanent blacklists and whitelists; see the
-    description of the postscreen_whitelist_networks and
-    postscreen_blacklist_networks parameters for details.
+  * There is also support for permanent blacklisting and whitelisting; see the
+    description of the postscreen_access_list parameter for details.
 
 TTuurrnniinngg ooffff ppoossttssccrreeeenn((88))
 

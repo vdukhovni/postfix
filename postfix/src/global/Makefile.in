@@ -283,6 +283,9 @@ header_body_checks: header_body_checks.c $(LIB) $(LIBS)
 data_redirect: data_redirect.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
+addr_match_list: addr_match_list.c $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
+
 tests: tok822_test mime_tests strip_addr_test tok822_limit_test \
 	xtext_test scache_multi_test ehlo_mask_test \
 	namadr_list_test mail_conf_time_test header_body_checks_tests

@@ -146,35 +146,50 @@ handling of known clients. </p>
 
 <ul>
 
-<li> <a href="#perm_white"> Permanent whitelist test </a>
-
-<li> <a href="#perm_black"> Permanent blacklist test </a>
+<li> <a href="#perm_white_black"> Permanent white/blacklist test </a>
 
 <li> <a href="#temp_white"> Temporary whitelist test </a>
 
 </ul>
 
-<h3> <a name="perm_white"> Permanent whitelist test </a> </h3>
+<h3> <a name="perm_white_black"> Permanent white/blacklist test </a> </h3>
 
-<p> The <a href="postconf.5.html#postscreen_whitelist_networks">postscreen_whitelist_networks</a> parameter (default: $<a href="postconf.5.html#mynetworks">mynetworks</a>)
-specifies a permanent whitelist for SMTP client IP addresses.  When
-the SMTP client address matches the permanent whitelist, <a href="postscreen.8.html">postscreen(8)</a>
-logs this with the client address and port number as: </p>
+<p> The <a href="postconf.5.html#postscreen_access_list">postscreen_access_list</a> parameter (default: <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>)
+specifies a permanent access list for SMTP client IP addresses. Typically
+one would specify something that whitelists local networks, followed
+by a CIDR table for selective white- and blacklisting. </p>
+
+<p> Example: </p>
+
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#postscreen_access_list">postscreen_access_list</a> = <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>,
+        /etc/postfix/postscreen_access.cidr
+
+/etc/postfix/postscreen_access.<a href="cidr_table.5.html">cidr</a>:
+   # Rules are evaluated in the order as specified.
+   # Blacklist 192.168.* except 192.168.0.1.
+   192.168.0.1          permit
+   192.168.0.0/16       reject
+</pre>
+
+<p> See the <a href="postconf.5.html#postscreen_access_list">postscreen_access_list</a> manpage documentation for more
+details.  </p>
+
+<p> When the SMTP client address matches a "permit" action,
+<a href="postscreen.8.html">postscreen(8)</a> logs this with the client address and port number as:
+</p>
 
 <pre>
     <b>WHITELISTED</b> <i>[address]:port</i>
 </pre>
 
-<p> The action is not configurable: immediately hand off the
+<p> The whitelist action is not configurable: immediately hand off the
 connection to a Postfix SMTP server process. </p>
 
-<h3> <a name="perm_black"> Permanent blacklist test </a>  </h3>
-
-<p> The <a href="postconf.5.html#postscreen_blacklist_networks">postscreen_blacklist_networks</a> parameter (default: empty)
-specifies a permanent blacklist for SMTP client IP addresses.  The
-address syntax is as with <a href="postconf.5.html#mynetworks">mynetworks</a>.  When the SMTP client address
-matches the permanent blacklist, <a href="postscreen.8.html">postscreen(8)</a> logs this with the
-client address and port number as: </p>
+<p> When the SMTP client address matches a "reject" action,
+<a href="postscreen.8.html">postscreen(8)</a> logs this with the client address and port number as:
+</p>
 
 <pre>
     <b>BLACKLISTED</b> <i>[address]:port</i>
@@ -224,7 +239,7 @@ for the short <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_w
 
 <li> <a href="#pregreet"> Pregreet test </a>
 
-<li> <a href="#dnsbl"> DNS Blocklist test </a>
+<li> <a href="#dnsbl"> DNS White/blacklist test </a>
 
 <li> <a href="#fail_before_220">When tests fail before the 220 SMTP server greeting</a>
 
@@ -247,13 +262,18 @@ SMTP clients that correctly implement the protocol.  </p>
 
 <p> To avoid problems with poorly-implemented SMTP engines in network
 appliances or network testing tools, either exclude them from all
-tests with the <a href="postconf.5.html#postscreen_whitelist_networks">postscreen_whitelist_networks</a> feature or else specify
+tests with the <a href="postconf.5.html#postscreen_access_list">postscreen_access_list</a> feature or else specify
 an empty teaser banner: </p>
 
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
-    # Exclude broken clients by whitelisting. $<a href="postconf.5.html#mynetworks">mynetworks</a> is default.
-    <a href="postconf.5.html#postscreen_whitelist_networks">postscreen_whitelist_networks</a> = $<a href="postconf.5.html#mynetworks">mynetworks</a>, 192.168.254.0/24
+    # Exclude broken clients by whitelisting. Clients in <a href="postconf.5.html#mynetworks">mynetworks</a>
+    # should always be whitelisted.
+    <a href="postconf.5.html#postscreen_access_list">postscreen_access_list</a> = <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>, 
+        <a href="cidr_table.5.html">cidr</a>:/etc/postfix/postscreen_access.cidr
+
+/etc/postfix/postscreen_access.<a href="cidr_table.5.html">cidr</a>:
+    192.168.254.0/24 permit
 </pre>
 
 <pre>
@@ -281,12 +301,13 @@ and \n for newline). </p>
 is taken next.  See "<a href="#fail_before_220">When tests fail
 before the 220 SMTP server greeting</a>" below. </p>
 
-<h3> <a name="dnsbl"> DNS Blocklist test </a> </h3>
+<h3> <a name="dnsbl"> DNS White/blacklist test </a> </h3>
 
 <p> The <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> parameter (default: empty) specifies
 a list of DNS blocklist servers with optional filters and weight
-factors.  These servers will be queried in parallel with the reverse
-client IP address. This test is disabled by default. </p>
+factors (positive weights for blacklisting, negative for whitelisting).
+These servers will be queried in parallel with the reverse client
+IP address.  This test is disabled by default. </p>
 
 <blockquote>
 <p>
@@ -799,9 +820,9 @@ reply; these clients were not so good after all.  Wietse enables
 "<a href="#after_220">deep protocol tests</a>" on his own internet-facing
 mail server.  </p>
 
-<li> <p> There is also support for permanent blacklists and whitelists;
-see the description of the <a href="postconf.5.html#postscreen_whitelist_networks">postscreen_whitelist_networks</a> and
-<a href="postconf.5.html#postscreen_blacklist_networks">postscreen_blacklist_networks</a> parameters for details. </p>
+<li> <p> There is also support for permanent blacklisting and
+whitelisting; see the description of the <a href="postconf.5.html#postscreen_access_list">postscreen_access_list</a>
+parameter for details. </p>
 
 </ul>
 

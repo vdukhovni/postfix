@@ -16418,11 +16418,26 @@ Apologies for any names omitted.
 	was useless code. Files: util/stream_pass_connect.c,
 	util/unix_pass_listen.c, util/unix_pass_trigger.c.
 
-	Cleanup: on Solaris the Postfix event engine was deaf for
-	SIGHUP and SIGALRM (and probably more) signals after the
-	switch to /dev/poll. Symptoms were delayed "postfix reload"
-	response, and killed processes when the watchdog timeout
-	was less than max_idle.  The fix is to set up SIGHUP and
-	SIGALRM handlers that write to a pipe, and to monitor that
-	pipe for read events via the Postfix event engine. Files:
-	master/master_sig.c, util/watchdog.c.
+	Bugfix (introduced Postfix 2.4): on Solaris the Postfix
+	event engine was deaf for SIGHUP and SIGALRM signals after
+	the switch to /dev/poll. Symptoms were delayed "postfix
+	reload" response, and killed processes when the watchdog
+	timeout was less than max_idle.  The fix is to set up SIGHUP
+	and SIGALRM handlers that write to a pipe, and to monitor
+	that pipe for read events via the Postfix event engine.
+	Files: master/master_sig.c, util/watchdog.c, util/sys_defs.h.
+
+20110111
+
+	Cleanup: replaced the postscreen(8) separate blacklist and
+	whitelist lookup tables by one postscreen_access_list table.
+	See postconf(5) and POSTSCREEN_README for examples.  Files:
+	postscreen/postscreen_access.c, postscreen/postscreen.c,
+	proto/postconf.proto, proto/POSTSCREEN_README.html.
+
+20110112
+
+	Cleanup: suspend/resume logic for postscreen(8) SMTP sessions
+	that temporarily switch control to an external program such
+	as tlsproxy, or perhaps a future policy plugin.  Files:
+	postscreen/postscreen_smtpd, postscreen/postscreen_starttls.c.

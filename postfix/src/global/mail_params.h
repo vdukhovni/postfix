@@ -3435,6 +3435,16 @@ extern char *var_psc_exp_filter;
 #define DEF_PSC_CMD_FILTER	""
 extern char *var_psc_cmd_filter;
 
+#define PSC_ACL_NAME_WL_MYNETWORKS "permit_mynetworks"
+#define PSC_ACL_NAME_WHITELIST	"permit"
+#define PSC_ACL_NAME_BLACKLIST	"reject"
+#define PSC_ACL_NAME_DUNNO	"dunno"
+#define PSC_ACL_NAME_ERROR	"error"
+
+#define VAR_PSC_ACL		"postscreen_access_list"
+#define DEF_PSC_ACL		PSC_ACL_NAME_WL_MYNETWORKS
+extern char *var_psc_acl;
+
 #define VAR_DNSBLOG_DELAY	"dnsblog_reply_delay"
 #define DEF_DNSBLOG_DELAY	"0s"
 extern int var_dnsblog_delay;

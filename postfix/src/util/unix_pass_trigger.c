@@ -118,6 +118,8 @@ int     unix_pass_trigger(const char *service, const char *buf, ssize_t len, int
      */
     if (pipe(pair) < 0)
 	msg_fatal("%s: pipe: %m", myname);
+    close_on_exec(pair[0], CLOSE_ON_EXEC);
+    close_on_exec(pair[1], CLOSE_ON_EXEC);
     if (unix_send_fd(fd, pair[0]) < 0)
 	msg_fatal("%s: send file descriptor: %m", myname);
 

@@ -34,6 +34,16 @@ is the $name of an smtpd_xxx parameter with a stress-dependent
 default).  Other postscreen parameters always evaluate as if the
 stress value is equal to the empty string.
 
+Incompatibility with snapshot 20110111
+======================================
+
+For performance reasons the postscreen_access_list feature replaces
+the postscreen_whitelist_networks and postscreen_blacklist_networks
+features. CIDR-style access maps are some 100x faster than the code
+that implemented the postscreen_white/blacklist_networks support.
+It can match about 100 million CIDR patterns/second on a modern CPU,
+which is not blindingly fast but adequate for the near future.
+
 Major changes with snapshot 20110105
 ====================================
 

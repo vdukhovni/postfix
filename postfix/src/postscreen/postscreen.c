@@ -117,16 +117,13 @@
 /*	A case insensitive list of EHLO keywords (pipelining, starttls,
 /*	auth, etc.) that the \fBpostscreen\fR(8) server will not send in the EHLO
 /*	response to a remote SMTP client.
-/* TRIAGE PARAMETERS
+/* BEFORE-GREETING TRIAGE
 /* .ad
 /* .fi
-/* .IP "\fBpostscreen_bare_newline_action (ignore)\fR"
-/*	The action that \fBpostscreen\fR(8) takes when an SMTP client sends
-/*	a bare newline character, that is, a newline not preceded by carriage
-/*	return.
-/* .IP "\fBpostscreen_bare_newline_enable (no)\fR"
-/*	Enable "bare newline" SMTP protocol tests in the \fBpostscreen\fR(8)
-/*	server.
+/* .IP "\fBpostscreen_access_list (permit_mynetworks)\fR"
+/*	Permanent white/blacklist for remote SMTP client IP addresses;
+/*	\fBpostscreen\fR(8) searches this list immediately after a remote SMTP
+/*	client connects.
 /* .IP "\fBpostscreen_blacklist_action (ignore)\fR"
 /*	The action that \fBpostscreen\fR(8) takes when an SMTP client is
 /*	permanently blacklisted with the postscreen_blacklist_networks
@@ -134,8 +131,6 @@
 /* .IP "\fBpostscreen_blacklist_networks (empty)\fR"
 /*	Network addresses that are permanently blacklisted; see the
 /*	postscreen_blacklist_action parameter for possible actions.
-/* .IP "\fBpostscreen_disable_vrfy_command ($disable_vrfy_command)\fR"
-/*	Disable the SMTP VRFY command in the \fBpostscreen\fR(8) daemon.
 /* .IP "\fBpostscreen_dnsbl_action (ignore)\fR"
 /*	The action that \fBpostscreen\fR(8) takes when an SMTP client's combined
 /*	DNSBL score is equal to or greater than a threshold (as defined
@@ -152,9 +147,6 @@
 /*	The inclusive lower bound for blocking an SMTP client, based on
 /*	its combined DNSBL score as defined with the postscreen_dnsbl_sites
 /*	parameter.
-/* .IP "\fBpostscreen_forbidden_commands ($smtpd_forbidden_commands)\fR"
-/*	List of commands that the \fBpostscreen\fR(8) server considers in
-/*	violation of the SMTP protocol.
 /* .IP "\fBpostscreen_greet_action (ignore)\fR"
 /*	The action that \fBpostscreen\fR(8) takes when an SMTP client speaks
 /*	before its turn within the time specified with the postscreen_greet_wait
@@ -170,6 +162,21 @@
 /*	client to send a command before its turn, and for DNS blocklist
 /*	lookup results to arrive (default: up to 2 seconds under stress,
 /*	up to 6 seconds otherwise).
+/* AFTER-GREETING TRIAGE
+/* .ad
+/* .fi
+/* .IP "\fBpostscreen_bare_newline_action (ignore)\fR"
+/*	The action that \fBpostscreen\fR(8) takes when an SMTP client sends
+/*	a bare newline character, that is, a newline not preceded by carriage
+/*	return.
+/* .IP "\fBpostscreen_bare_newline_enable (no)\fR"
+/*	Enable "bare newline" SMTP protocol tests in the \fBpostscreen\fR(8)
+/*	server.
+/* .IP "\fBpostscreen_disable_vrfy_command ($disable_vrfy_command)\fR"
+/*	Disable the SMTP VRFY command in the \fBpostscreen\fR(8) daemon.
+/* .IP "\fBpostscreen_forbidden_commands ($smtpd_forbidden_commands)\fR"
+/*	List of commands that the \fBpostscreen\fR(8) server considers in
+/*	violation of the SMTP protocol.
 /* .IP "\fBpostscreen_helo_required ($smtpd_helo_required)\fR"
 /*	Require that a remote SMTP client sends HELO or EHLO before
 /*	commencing a MAIL transaction.
@@ -186,9 +193,9 @@
 /* .IP "\fBpostscreen_pipelining_enable (no)\fR"
 /*	Enable "pipelining" SMTP protocol tests in the \fBpostscreen\fR(8)
 /*	server.
-/* .IP "\fBpostscreen_whitelist_networks ($mynetworks)\fR"
-/*	Network addresses that are permanently whitelisted, and that
-/*	will not be subjected to \fBpostscreen\fR(8) checks.
+/* AFTER-TRIAGE CONTROLS
+/* .ad
+/* .fi
 /* .IP "\fBsmtpd_service_name (smtpd)\fR"
 /*	The internal service that \fBpostscreen\fR(8) forwards allowed
 /*	connections to.
@@ -394,8 +401,14 @@ int     var_psc_post_queue_limit;
 int     var_psc_pre_queue_limit;
 int     var_psc_watchdog;
 
+#define MIGRATION_WARNING
+
+#ifdef MIGRATION_WARNING
 char   *var_psc_wlist_nets;
 char   *var_psc_blist_nets;
+
+#endif
+char   *var_psc_acl;
 char   *var_psc_blist_action;
 
 char   *var_psc_greet_ttl;
@@ -464,8 +477,12 @@ HTABLE *psc_client_concurrency;		/* per-client concurrency */
  /*
   * Local variables.
   */
+#ifdef MIGRATION_WARNING
 static ADDR_MATCH_LIST *psc_wlist_nets;	/* permanently whitelisted networks */
 static ADDR_MATCH_LIST *psc_blist_nets;	/* permanently blacklisted networks */
+
+#endif
+static ARGV *psc_acl;			/* permanent white/backlist */
 static int psc_blist_action;		/* PSC_ACT_DROP/ENFORCE/etc */
 
 /* psc_dump - dump some statistics before exit */
@@ -539,7 +556,6 @@ static void psc_service(VSTREAM *smtp_client_stream,
     MAI_SERVPORT_STR smtp_client_port;
     int     aierr;
     const char *stamp_str;
-    int     window_size;
     int     saved_flags;
 
     /*
@@ -632,6 +648,58 @@ static void psc_service(VSTREAM *smtp_client_stream,
     }
 
     /*
+     * The permanent white/blacklist has highest precedence.
+     */
+    if (psc_acl != 0) {
+	switch (psc_acl_eval(state, psc_acl, VAR_PSC_ACL)) {
+
+	    /*
+	     * Permanently blacklisted.
+	     */
+	case PSC_ACL_ACT_BLACKLIST:
+	    msg_info("BLACKLISTED [%s]:%s", PSC_CLIENT_ADDR_PORT(state));
+	    PSC_FAIL_SESSION_STATE(state, PSC_STATE_FLAG_BLIST_FAIL);
+	    switch (psc_blist_action) {
+	    case PSC_ACT_DROP:
+		PSC_DROP_SESSION_STATE(state,
+			     "521 5.3.2 Service currently unavailable\r\n");
+		return;
+	    case PSC_ACT_ENFORCE:
+		PSC_ENFORCE_SESSION_STATE(state,
+			     "550 5.3.2 Service currently unavailable\r\n");
+		break;
+	    case PSC_ACT_IGNORE:
+		PSC_UNFAIL_SESSION_STATE(state, PSC_STATE_FLAG_BLIST_FAIL);
+
+		/*
+		 * Not: PSC_PASS_SESSION_STATE. Repeat this test the next
+		 * time.
+		 */
+		break;
+	    default:
+		msg_panic("%s: unknown blacklist action value %d",
+			  myname, psc_blist_action);
+	    }
+	    break;
+
+	    /*
+	     * Permanently whitelisted.
+	     */
+	case PSC_ACL_ACT_WHITELIST:
+	    msg_info("WHITELISTED [%s]:%s", PSC_CLIENT_ADDR_PORT(state));
+	    psc_conclude(state);
+	    return;
+
+	    /*
+	     * Other: dunno (don't know) or error.
+	     */
+	default:
+	    break;
+	}
+    }
+#ifdef MIGRATION_WARNING
+
+    /*
      * The permanent whitelist has highest precedence (never block mail from
      * whitelisted sites, and never run tests against those sites).
      */
@@ -669,6 +737,7 @@ static void psc_service(VSTREAM *smtp_client_stream,
 		      myname, psc_blist_action);
 	}
     }
+#endif
 
     /*
      * The temporary whitelist (i.e. the postscreen cache) has the lowest
@@ -713,18 +782,6 @@ static void psc_service(VSTREAM *smtp_client_stream,
     }
 
     /*
-     * Before commencing the tests we could set the TCP window to the
-     * smallest possible value to save some network bandwidth, at least with
-     * spamware that waits until the server starts speaking.
-     */
-#if 0
-    window_size = 1;
-    if (setsockopt(vstream_fileno(smtp_client_stream), SOL_SOCKET, SO_RCVBUF,
-		   (char *) &window_size, sizeof(window_size)) < 0)
-	msg_warn("setsockopt SO_RCVBUF %d: %m", window_size);
-#endif
-
-    /*
      * If the client has no up-to-date results for some tests, do those tests
      * first. Otherwise, skip the tests and hand off the connection.
      */
@@ -766,6 +823,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      * Open read-only maps before dropping privilege, for consistency with
      * other Postfix daemons.
      */
+#ifdef MIGRATION_WARNING
     if (*var_psc_wlist_nets)
 	psc_wlist_nets =
 	    addr_match_list_init(MATCH_FLAG_NONE, var_psc_wlist_nets);
@@ -773,6 +831,16 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     if (*var_psc_blist_nets)
 	psc_blist_nets = addr_match_list_init(MATCH_FLAG_NONE,
 					      var_psc_blist_nets);
+    if (psc_blist_nets || psc_wlist_nets) {
+	msg_warn("The %s and %s features will be removed soon. Use %s instead",
+		 VAR_PSC_WLIST_NETS, VAR_PSC_BLIST_NETS, VAR_PSC_ACL);
+	msg_warn("To stop this warning, specify empty values for %s and %s",
+		 VAR_PSC_WLIST_NETS, VAR_PSC_BLIST_NETS);
+    }
+#endif
+    psc_acl_pre_jail_init();
+    if (*var_psc_acl)
+	psc_acl = psc_acl_parse(var_psc_acl, VAR_PSC_ACL);
     if (*var_psc_forbid_cmds)
 	psc_forbid_cmds = string_list_init(MATCH_FLAG_NONE,
 					   var_psc_forbid_cmds);
@@ -1002,8 +1070,11 @@ int     main(int argc, char **argv)
 	VAR_PSC_PIPEL_ACTION, DEF_PSC_PIPEL_ACTION, &var_psc_pipel_action, 1, 0,
 	VAR_PSC_NSMTP_ACTION, DEF_PSC_NSMTP_ACTION, &var_psc_nsmtp_action, 1, 0,
 	VAR_PSC_BARLF_ACTION, DEF_PSC_BARLF_ACTION, &var_psc_barlf_action, 1, 0,
+#ifdef MIGRATION_WARNING
 	VAR_PSC_WLIST_NETS, DEF_PSC_WLIST_NETS, &var_psc_wlist_nets, 0, 0,
 	VAR_PSC_BLIST_NETS, DEF_PSC_BLIST_NETS, &var_psc_blist_nets, 0, 0,
+#endif
+	VAR_PSC_ACL, DEF_PSC_ACL, &var_psc_acl, 0, 0,
 	VAR_PSC_BLIST_ACTION, DEF_PSC_BLIST_ACTION, &var_psc_blist_action, 1, 0,
 	VAR_PSC_FORBID_CMDS, DEF_PSC_FORBID_CMDS, &var_psc_forbid_cmds, 0, 0,
 	VAR_PSC_EHLO_DIS_WORDS, DEF_PSC_EHLO_DIS_WORDS, &var_psc_ehlo_dis_words, 0, 0,

@@ -146,35 +146,50 @@ handling of known clients. </p>
 
 <ul>
 
-<li> <a href="#perm_white"> Permanent whitelist test </a>
-
-<li> <a href="#perm_black"> Permanent blacklist test </a>
+<li> <a href="#perm_white_black"> Permanent white/blacklist test </a>
 
 <li> <a href="#temp_white"> Temporary whitelist test </a>
 
 </ul>
 
-<h3> <a name="perm_white"> Permanent whitelist test </a> </h3>
+<h3> <a name="perm_white_black"> Permanent white/blacklist test </a> </h3>
 
-<p> The postscreen_whitelist_networks parameter (default: $mynetworks)
-specifies a permanent whitelist for SMTP client IP addresses.  When
-the SMTP client address matches the permanent whitelist, postscreen(8)
-logs this with the client address and port number as: </p>
+<p> The postscreen_access_list parameter (default: permit_mynetworks)
+specifies a permanent access list for SMTP client IP addresses. Typically
+one would specify something that whitelists local networks, followed
+by a CIDR table for selective white- and blacklisting. </p>
+
+<p> Example: </p>
+
+<pre>
+/etc/postfix/main.cf:
+    postscreen_access_list = permit_mynetworks,
+        /etc/postfix/postscreen_access.cidr
+
+/etc/postfix/postscreen_access.cidr:
+   # Rules are evaluated in the order as specified.
+   # Blacklist 192.168.* except 192.168.0.1.
+   192.168.0.1          permit
+   192.168.0.0/16       reject
+</pre>
+
+<p> See the postscreen_access_list manpage documentation for more
+details.  </p>
+
+<p> When the SMTP client address matches a "permit" action,
+postscreen(8) logs this with the client address and port number as:
+</p>
 
 <pre>
     <b>WHITELISTED</b> <i>[address]:port</i>
 </pre>
 
-<p> The action is not configurable: immediately hand off the
+<p> The whitelist action is not configurable: immediately hand off the
 connection to a Postfix SMTP server process. </p>
 
-<h3> <a name="perm_black"> Permanent blacklist test </a>  </h3>
-
-<p> The postscreen_blacklist_networks parameter (default: empty)
-specifies a permanent blacklist for SMTP client IP addresses.  The
-address syntax is as with mynetworks.  When the SMTP client address
-matches the permanent blacklist, postscreen(8) logs this with the
-client address and port number as: </p>
+<p> When the SMTP client address matches a "reject" action,
+postscreen(8) logs this with the client address and port number as:
+</p>
 
 <pre>
     <b>BLACKLISTED</b> <i>[address]:port</i>
@@ -224,7 +239,7 @@ for the short postscreen_greet_wait delay).  </p>
 
 <li> <a href="#pregreet"> Pregreet test </a>
 
-<li> <a href="#dnsbl"> DNS Blocklist test </a>
+<li> <a href="#dnsbl"> DNS White/blacklist test </a>
 
 <li> <a href="#fail_before_220">When tests fail before the 220 SMTP server greeting</a>
 
@@ -247,13 +262,18 @@ SMTP clients that correctly implement the protocol.  </p>
 
 <p> To avoid problems with poorly-implemented SMTP engines in network
 appliances or network testing tools, either exclude them from all
-tests with the postscreen_whitelist_networks feature or else specify
+tests with the postscreen_access_list feature or else specify
 an empty teaser banner: </p>
 
 <pre>
 /etc/postfix/main.cf:
-    # Exclude broken clients by whitelisting. $mynetworks is default.
-    postscreen_whitelist_networks = $mynetworks, 192.168.254.0/24
+    # Exclude broken clients by whitelisting. Clients in mynetworks
+    # should always be whitelisted.
+    postscreen_access_list = permit_mynetworks, 
+        cidr:/etc/postfix/postscreen_access.cidr
+
+/etc/postfix/postscreen_access.cidr:
+    192.168.254.0/24 permit
 </pre>
 
 <pre>
@@ -281,12 +301,13 @@ and \n for newline). </p>
 is taken next.  See "<a href="#fail_before_220">When tests fail
 before the 220 SMTP server greeting</a>" below. </p>
 
-<h3> <a name="dnsbl"> DNS Blocklist test </a> </h3>
+<h3> <a name="dnsbl"> DNS White/blacklist test </a> </h3>
 
 <p> The postscreen_dnsbl_sites parameter (default: empty) specifies
 a list of DNS blocklist servers with optional filters and weight
-factors.  These servers will be queried in parallel with the reverse
-client IP address. This test is disabled by default. </p>
+factors (positive weights for blacklisting, negative for whitelisting).
+These servers will be queried in parallel with the reverse client
+IP address.  This test is disabled by default. </p>
 
 <blockquote>
 <p>
@@ -799,9 +820,9 @@ reply; these clients were not so good after all.  Wietse enables
 "<a href="#after_220">deep protocol tests</a>" on his own internet-facing
 mail server.  </p>
 
-<li> <p> There is also support for permanent blacklists and whitelists;
-see the description of the postscreen_whitelist_networks and
-postscreen_blacklist_networks parameters for details. </p>
+<li> <p> There is also support for permanent blacklisting and
+whitelisting; see the description of the postscreen_access_list
+parameter for details. </p>
 
 </ul>
 

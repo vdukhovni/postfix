@@ -90,8 +90,8 @@ int     psc_send_reply(PSC_STATE *state, const char *text)
     vstring_strcat(state->send_buf, text);
     if (*var_psc_rej_footer && (*text == '4' || *text == '5'))
 	smtp_reply_footer(state->send_buf, start, var_psc_rej_footer,
-			   STR(psc_expand_filter), psc_expand_lookup,
-			   (char *) state);
+			  STR(psc_expand_filter), psc_expand_lookup,
+			  (char *) state);
 
     /*
      * XXX For soft_bounce support, it is not sufficient to fix replies here.
@@ -156,24 +156,12 @@ void    psc_send_socket(PSC_STATE *state)
 {
     const char *myname = "psc_send_socket";
     int     server_fd;
-    int     window_size;
 
     if (msg_verbose > 1)
 	msg_info("%s: sq=%d cq=%d send socket %d from [%s]:%s",
 		 myname, psc_post_queue_length, psc_check_queue_length,
 		 vstream_fileno(state->smtp_client_stream),
 		 state->smtp_client_addr, state->smtp_client_port);
-
-    /*
-     * This is where we would adjust the window size to a value that is
-     * appropriate for this client class.
-     */
-#if 0
-    window_size = 65535;
-    if (setsockopt(vstream_fileno(state->smtp_client_stream), SOL_SOCKET, SO_RCVBUF,
-		   (char *) &window_size, sizeof(window_size)) < 0)
-	msg_warn("setsockopt SO_RCVBUF %d: %m", window_size);
-#endif
 
     /*
      * Connect to the real SMTP service over a local IPC channel, send the
@@ -192,8 +180,8 @@ void    psc_send_socket(PSC_STATE *state)
      * Postfix-specific.
      */
     if ((server_fd =
-	PASS_CONNECT(psc_smtpd_service_name, NON_BLOCKING,
-		     PSC_SEND_SOCK_CONNECT_TIMEOUT)) < 0) {
+	 PASS_CONNECT(psc_smtpd_service_name, NON_BLOCKING,
+		      PSC_SEND_SOCK_CONNECT_TIMEOUT)) < 0) {
 	msg_warn("cannot connect to service %s: %m", psc_smtpd_service_name);
 	PSC_SEND_REPLY(state, "421 4.3.2 All server ports are busy\r\n");
 	psc_free_session_state(state);

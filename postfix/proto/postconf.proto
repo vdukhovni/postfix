@@ -12810,23 +12810,80 @@ IP address. </p>
 
 <p> This feature is available in Postfix 2.8. </p>
 
-%PARAM postscreen_whitelist_networks $mynetworks
+#%PARAM postscreen_whitelist_networks $mynetworks
+#
+#<p> Network addresses that are permanently whitelisted, and that
+#will not be subjected to postscreen(8) checks. This parameter uses
+#the same address syntax as the mynetworks parameter. This feature
+#never uses the remote SMTP client hostname.  </p>
+#
+#<p> This feature is available in Postfix 2.8. </p>
+#
+#%PARAM postscreen_blacklist_networks 
+#
+#<p> Network addresses that are permanently blacklisted; see the
+#postscreen_blacklist_action parameter for possible actions.  This
+#parameter uses the same address syntax as the mynetworks parameter.
+#The blacklist has higher precedence than whitelists. This feature
+#never uses the remote SMTP client hostname.  </p>
+#
+#<p> This feature is available in Postfix 2.8. </p>
 
-<p> Network addresses that are permanently whitelisted, and that
-will not be subjected to postscreen(8) checks. This parameter uses
-the same address syntax as the mynetworks parameter. This feature
-never uses the remote SMTP client hostname.  </p>
+%PARAM postscreen_access_list permit_mynetworks
 
-<p> This feature is available in Postfix 2.8. </p>
+<p> Permanent white/blacklist for remote SMTP client IP addresses;
+postscreen(8) searches this list immediately after a remote SMTP
+client connects.  Specify a comma- or whitespace-separated list of
+commands (in upper or lower case) or lookup tables. The search stops
+upon the first command that fires for the client IP address. </p>
 
-%PARAM postscreen_blacklist_networks 
+<dl>
 
-<p> Network addresses that are permanently blacklisted; see the
-postscreen_blacklist_action parameter for possible actions.  This
-parameter uses the same address syntax as the mynetworks parameter.
-The blacklist has higher precedence than whitelists. This feature
-never uses the remote SMTP client hostname.  </p>
+<dt> <b> permit_mynetworks </b> </dt> <dd> Whitelist the client and
+terminate the search if the client IP address matches $mynetworks.
+Do not subject the client to any before/after 220 greeting tests.
+Pass the connection immediately to a Postfix SMTP server process.
+</dd>
 
+<dt> <b> type:table </b> </dt> <dd> Query the specified lookup
+table. Each table lookup result is an access list, except that
+access lists inside a table cannot specify type:table entries.  <br>
+To discourage the use of hash, btree, etc. tables, there is no
+support for substring matching like smtpd(8). Use CIDR tables
+instead.  </dd>
+
+<dt> <b> permit </b> </dt> <dd> Whitelist the client and terminate
+the search. Do not subject the client to any before/after 220
+greeting tests. Pass the connection immediately to a Postfix SMTP
+server process. </dd>
+
+<dt> <b> reject </b> </dt> <dd> Blacklist the client and terminate
+the search. Subject the client to the action configured with the
+postscreen_blacklist_action configuration parameter. </dd>
+
+<dt> <b> dunno </b> </dt> <dd> When used inside a lookup table,
+return from the lookup table and evaluate the next command.  <br>
+When used outside a lookup table, terminate the search, and subject
+the client to the configured before/after 220 greeting tests. </dd>
+
+</dl>
+
+<p> Example: </p>
+
+<pre>
+/etc/postfix/main.cf:
+    postscreen_access_list = permit_mynetworks, 
+		cidr:/etc/postfix/postscreen_access.cidr
+</pre>
+
+<pre>
+/etc/postfix/postscreen_access.cidr:
+    # Rules are evaluated in the order as specified.
+    # Blacklist 192.168.* except 192.168.0.1.
+    192.168.0.1         dunno
+    192.168.0.0/16      reject
+</pre>
+    
 <p> This feature is available in Postfix 2.8. </p>
 
 %PARAM postscreen_greet_banner $smtpd_banner

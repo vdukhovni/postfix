@@ -459,6 +459,18 @@ extern VSTRING *psc_expand_filter;
 extern void psc_expand_init(void);
 extern const char *psc_expand_lookup(const char *, int, char *);
 
+ /*
+  * postscreen_access.c
+  */
+#define PSC_ACL_ACT_WHITELIST	1
+#define PSC_ACL_ACT_DUNNO	0
+#define PSC_ACL_ACT_BLACKLIST	(-1)
+#define PSC_ACL_ACT_ERROR	(-2)
+
+extern void psc_acl_pre_jail_init(void);
+extern ARGV *psc_acl_parse(const char *, const char *);
+extern int psc_acl_eval(PSC_STATE *,ARGV *, const char *);
+
 /* LICENSE
 /* .ad
 /* .fi
