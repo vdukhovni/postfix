@@ -120,7 +120,7 @@ Example:
 
 /etc/postfix/main.cf:
     postscreen_access_list = permit_mynetworks,
-        /etc/postfix/postscreen_access.cidr
+        cidr:/etc/postfix/postscreen_access.cidr
 
 /etc/postfix/postscreen_access.cidr:
    # Rules are evaluated in the order as specified.
@@ -469,8 +469,8 @@ impact of this limitation by giving deep protocol tests a long expiration time.
 
 CCoonnffiigguurriinngg tthhee ppoossttssccrreeeenn((88)) sseerrvviiccee
 
-postscreen(8) has been tested on FreeBSD [4-8] and Linux 2.[4-6] systems. It
-probably needs additional work before it can be used on Solaris.
+postscreen(8) has been tested on FreeBSD [4-8], Linux 2.[4-6] and Solaris 9
+systems.
 
   * Turning on postscreen(8) without blocking mail
   * Blocking mail with postscreen(8)
@@ -650,4 +650,9 @@ major code rewrite, deep protocol tests, helo/sender/recipient logging, and
 stress-adaptive behavior in September. Ralf Hildebrandt ran this code on
 several servers to collect real-world statistics. This version still used the
 embarrassing dnsblog(8) ad-hoc DNS client program.
+
+Wietse added STARTTLS support in December 2010. This makes postscreen(8) usable
+for sites that require TLS support. The implementation introduces the tlsproxy
+(8) event-driven TLS proxy that decrypts/encrypts the sessions for multiple
+SMTP clients.
 

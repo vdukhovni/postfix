@@ -12630,7 +12630,7 @@ receive a 421 reponse. </p>
 
 %PARAM postscreen_greet_ttl 1d
 
-<p> The amount of time that postscreen(8) will cache results from
+<p> The amount of time that postscreen(8) will use the result from
 a successful PREGREET test. During this time, the client IP address
 is excluded from this test. The default is relatively short, because
 a good client can immediately talk to a real Postfix SMTP server. </p>
@@ -13186,7 +13186,7 @@ protocol engine. This bounds the time to receive an entire command.
 
 %PARAM postscreen_dnsbl_ttl 1h
 
-<p> The amount of time that postscreen(8) will cache results from
+<p> The amount of time that postscreen(8) will use the result from
 a successful DNS blocklist test. During this time, the client IP address
 is excluded from this test. The default is relatively short, because a
 good client can immediately talk to a real Postfix SMTP server.
@@ -13231,7 +13231,7 @@ this test the next time the client connects. </dd>
 
 %PARAM postscreen_pipelining_ttl 30d
 
-<p> The amount of time that postscreen(8) will cache results from
+<p> The amount of time that postscreen(8) will use the result from
 a successful "pipelining" SMTP protocol test. During this time, the
 client IP address is excluded from this test. The default is
 long because a good client must disconnect after it passes the test,
@@ -13326,7 +13326,7 @@ feature.  </dd>
 
 %PARAM postscreen_non_smtp_command_ttl 30d
 
-<p> The amount of time that postscreen(8) will cache results from
+<p> The amount of time that postscreen(8) will use the result from
 a successful "non_smtp_command" SMTP protocol test. During this
 time, the client IP address is excluded from this test. The default
 is long because a client must disconnect after it passes the test,
@@ -13406,7 +13406,7 @@ this test the next time the client connects.  </dd>
 
 %PARAM postscreen_bare_newline_ttl 30d
 
-<p> The amount of time that postscreen(8) will cache results from
+<p> The amount of time that postscreen(8) will use the result from
 a successful "bare newline" SMTP protocol test. During this
 time, the client IP address is excluded from this test. The default
 is long because a client must disconnect after it passes the test,

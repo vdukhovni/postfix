@@ -3809,7 +3809,7 @@ it passes the test, before it can talk to a real Postfix SMTP server.
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_bare_newline_ttl (default: 30d)
-The amount of time that \fBpostscreen\fR(8) will cache results from
+The amount of time that \fBpostscreen\fR(8) will use the result from
 a successful "bare newline" SMTP protocol test. During this
 time, the client IP address is excluded from this test. The default
 is long because a client must disconnect after it passes the test,
@@ -4034,7 +4034,7 @@ parameter.
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_dnsbl_ttl (default: 1h)
-The amount of time that \fBpostscreen\fR(8) will cache results from
+The amount of time that \fBpostscreen\fR(8) will use the result from
 a successful DNS blocklist test. During this time, the client IP address
 is excluded from this test. The default is relatively short, because a
 good client can immediately talk to a real Postfix SMTP server.
@@ -4094,7 +4094,7 @@ value to disable this feature.
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_greet_ttl (default: 1d)
-The amount of time that \fBpostscreen\fR(8) will cache results from
+The amount of time that \fBpostscreen\fR(8) will use the result from
 a successful PREGREET test. During this time, the client IP address
 is excluded from this test. The default is relatively short, because
 a good client can immediately talk to a real Postfix SMTP server.
@@ -4150,7 +4150,7 @@ test, before it can talk to a real Postfix SMTP server.
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_non_smtp_command_ttl (default: 30d)
-The amount of time that \fBpostscreen\fR(8) will cache results from
+The amount of time that \fBpostscreen\fR(8) will use the result from
 a successful "non_smtp_command" SMTP protocol test. During this
 time, the client IP address is excluded from this test. The default
 is long because a client must disconnect after it passes the test,
@@ -4188,7 +4188,7 @@ server.
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_pipelining_ttl (default: 30d)
-The amount of time that \fBpostscreen\fR(8) will cache results from
+The amount of time that \fBpostscreen\fR(8) will use the result from
 a successful "pipelining" SMTP protocol test. During this time, the
 client IP address is excluded from this test. The default is
 long because a good client must disconnect after it passes the test,

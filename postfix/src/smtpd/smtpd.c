@@ -42,7 +42,7 @@
 /*	RFC 1869 (SMTP service extensions)
 /*	RFC 1870 (Message Size Declaration)
 /*	RFC 1985 (ETRN command)
-/*	RFC 2034 (SMTP Enhanced Error Codes)
+/*	RFC 2034 (SMTP Enhanced Status Codes)
 /*	RFC 2554 (AUTH command)
 /*	RFC 2821 (SMTP protocol)
 /*	RFC 2920 (SMTP Pipelining)

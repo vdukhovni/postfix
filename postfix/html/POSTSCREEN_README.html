@@ -164,7 +164,7 @@ by a CIDR table for selective white- and blacklisting. </p>
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#postscreen_access_list">postscreen_access_list</a> = <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>,
-        /etc/postfix/postscreen_access.cidr
+        <a href="cidr_table.5.html">cidr</a>:/etc/postfix/postscreen_access.cidr
 
 /etc/postfix/postscreen_access.<a href="cidr_table.5.html">cidr</a>:
    # Rules are evaluated in the order as specified.
@@ -649,9 +649,8 @@ time. </p>
 <h2> <a name="config"> Configuring the postscreen(8) service</a>
 </h2>
 
-<p> <a href="postscreen.8.html">postscreen(8)</a> has been tested on FreeBSD [4-8] and Linux 2.[4-6]
-systems.  It probably needs additional work before it can be used
-on Solaris. </p>
+<p> <a href="postscreen.8.html">postscreen(8)</a> has been tested on FreeBSD [4-8], Linux 2.[4-6]
+and Solaris 9 systems. </p>
 
 <ul>
 
@@ -890,7 +889,7 @@ may follow.  </p>
 
 <p> Many ideas in <a href="postscreen.8.html">postscreen(8)</a> were explored in earlier work by
 Michael Tokarev, in OpenBSD spamd, and in MailChannels Traffic
-Control.  </p>
+Control. </p>
 
 <p> Wietse threw together a crude prototype with pregreet and dnsbl
 support in June 2009, because he needed something new for a Mailserver
@@ -905,6 +904,11 @@ helo/sender/recipient logging, and stress-adaptive behavior in
 September. Ralf Hildebrandt ran this code on several servers to
 collect real-world statistics. This version still used the embarrassing
 <a href="dnsblog.8.html">dnsblog(8)</a> ad-hoc DNS client program.  </p>
+
+<p> Wietse added STARTTLS support in December 2010. This makes
+<a href="postscreen.8.html">postscreen(8)</a> usable for sites that require TLS support.  The
+implementation introduces the <a href="tlsproxy.8.html">tlsproxy(8)</a> event-driven TLS proxy
+that decrypts/encrypts the sessions for multiple SMTP clients. </p>
 
 </body>
 

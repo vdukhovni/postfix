@@ -190,10 +190,13 @@ static void psc_smtpd_read_event(int, char *);
   * resume SMTP command events after receiving the asynchrounous proxy
   * response.
   */
-#define PSC_RESUME_SMTP_CMD_EVENTS(state) \
-    PSC_READ_EVENT_REQUEST2(vstream_fileno((state)->smtp_client_stream), \
-			   psc_smtpd_read_event, psc_smtpd_time_event, \
-			   (char *) (state), PSC_EFF_CMD_TIME_LIMIT)
+#define PSC_RESUME_SMTP_CMD_EVENTS(state) do { \
+	PSC_READ_EVENT_REQUEST2(vstream_fileno((state)->smtp_client_stream), \
+			       psc_smtpd_read_event, psc_smtpd_time_event, \
+			       (char *) (state), PSC_EFF_CMD_TIME_LIMIT); \
+	if (!PSC_SMTPD_BUFFER_EMPTY(state)) \
+	    psc_smtpd_read_event(EVENT_READ, (char *) state); \
+    } while (0)
 
 #define PSC_SUSPEND_SMTP_CMD_EVENTS(state) \
     PSC_CLEAR_EVENT_REQUEST(vstream_fileno((state)->smtp_client_stream), \
@@ -374,8 +377,6 @@ static void psc_starttls_resume(int unused_event, char *context)
      * command processor immediately.
      */
     PSC_RESUME_SMTP_CMD_EVENTS(state);
-    if (!PSC_SMTPD_BUFFER_EMPTY(state))
-	psc_smtpd_read_event(EVENT_READ, (char *) state);
 }
 
 /* psc_starttls_cmd - activate the tlsproxy server */

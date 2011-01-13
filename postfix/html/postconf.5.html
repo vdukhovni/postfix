@@ -6732,7 +6732,7 @@ it passes the test, before it can talk to a real Postfix SMTP server.
 <DT><b><a name="postscreen_bare_newline_ttl">postscreen_bare_newline_ttl</a>
 (default: 30d)</b></DT><DD>
 
-<p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will cache results from
+<p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will use the result from
 a successful "bare newline" SMTP protocol test. During this
 time, the client IP address is excluded from this test. The default
 is long because a client must disconnect after it passes the test,
@@ -7064,7 +7064,7 @@ parameter. </p>
 <DT><b><a name="postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>
 (default: 1h)</b></DT><DD>
 
-<p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will cache results from
+<p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will use the result from
 a successful DNS blocklist test. During this time, the client IP address
 is excluded from this test. The default is relatively short, because a
 good client can immediately talk to a real Postfix SMTP server.
@@ -7172,7 +7172,7 @@ value to disable this feature.  </p>
 <DT><b><a name="postscreen_greet_ttl">postscreen_greet_ttl</a>
 (default: 1d)</b></DT><DD>
 
-<p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will cache results from
+<p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will use the result from
 a successful PREGREET test. During this time, the client IP address
 is excluded from this test. The default is relatively short, because
 a good client can immediately talk to a real Postfix SMTP server. </p>
@@ -7268,7 +7268,7 @@ test, before it can talk to a real Postfix SMTP server. </p>
 <DT><b><a name="postscreen_non_smtp_command_ttl">postscreen_non_smtp_command_ttl</a>
 (default: 30d)</b></DT><DD>
 
-<p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will cache results from
+<p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will use the result from
 a successful "non_smtp_command" SMTP protocol test. During this
 time, the client IP address is excluded from this test. The default
 is long because a client must disconnect after it passes the test,
@@ -7334,7 +7334,7 @@ server. </p>
 <DT><b><a name="postscreen_pipelining_ttl">postscreen_pipelining_ttl</a>
 (default: 30d)</b></DT><DD>
 
-<p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will cache results from
+<p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will use the result from
 a successful "pipelining" SMTP protocol test. During this time, the
 client IP address is excluded from this test. The default is
 long because a good client must disconnect after it passes the test,

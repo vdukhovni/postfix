@@ -164,7 +164,7 @@ by a CIDR table for selective white- and blacklisting. </p>
 <pre>
 /etc/postfix/main.cf:
     postscreen_access_list = permit_mynetworks,
-        /etc/postfix/postscreen_access.cidr
+        cidr:/etc/postfix/postscreen_access.cidr
 
 /etc/postfix/postscreen_access.cidr:
    # Rules are evaluated in the order as specified.
@@ -649,9 +649,8 @@ time. </p>
 <h2> <a name="config"> Configuring the postscreen(8) service</a>
 </h2>
 
-<p> postscreen(8) has been tested on FreeBSD [4-8] and Linux 2.[4-6]
-systems.  It probably needs additional work before it can be used
-on Solaris. </p>
+<p> postscreen(8) has been tested on FreeBSD [4-8], Linux 2.[4-6]
+and Solaris 9 systems. </p>
 
 <ul>
 
@@ -890,7 +889,7 @@ may follow.  </p>
 
 <p> Many ideas in postscreen(8) were explored in earlier work by
 Michael Tokarev, in OpenBSD spamd, and in MailChannels Traffic
-Control.  </p>
+Control. </p>
 
 <p> Wietse threw together a crude prototype with pregreet and dnsbl
 support in June 2009, because he needed something new for a Mailserver
@@ -905,6 +904,11 @@ helo/sender/recipient logging, and stress-adaptive behavior in
 September. Ralf Hildebrandt ran this code on several servers to
 collect real-world statistics. This version still used the embarrassing
 dnsblog(8) ad-hoc DNS client program.  </p>
+
+<p> Wietse added STARTTLS support in December 2010. This makes
+postscreen(8) usable for sites that require TLS support.  The
+implementation introduces the tlsproxy(8) event-driven TLS proxy
+that decrypts/encrypts the sessions for multiple SMTP clients. </p>
 
 </body>
 

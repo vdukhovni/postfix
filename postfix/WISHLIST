@@ -4,7 +4,14 @@ Wish list:
 
 	Remove this file from the stable release.
 
+	Make tlsproxy_service and dnsblog_service configurable.
+
 	Things to do after the stable release:
+
+	When does it pay off to send domains in the active queue
+	to a DNS prefetch daemon? Could this generalize to a dynamic
+	transport map that piggy-backs domains with the same MX
+	host into the same mail delivery transaction?
 
 	inline table where the "whitespace replacement" character
 	is specified in-line. Ex: inline:XYname1Xvalue1Yname2Xvalue2

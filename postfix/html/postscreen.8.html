@@ -59,7 +59,7 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
        <a href="http://tools.ietf.org/html/rfc1869">RFC 1869</a> (SMTP service extensions)
        <a href="http://tools.ietf.org/html/rfc1870">RFC 1870</a> (Message Size Declaration)
        <a href="http://tools.ietf.org/html/rfc1985">RFC 1985</a> (ETRN command)
-       <a href="http://tools.ietf.org/html/rfc2034">RFC 2034</a> (SMTP Enhanced Error Codes)
+       <a href="http://tools.ietf.org/html/rfc2034">RFC 2034</a> (SMTP Enhanced Status Codes)
        <a href="http://tools.ietf.org/html/rfc2821">RFC 2821</a> (SMTP protocol)
        <a href="http://tools.ietf.org/html/rfc2920">RFC 2920</a> (SMTP Pipelining)
        <a href="http://tools.ietf.org/html/rfc3207">RFC 3207</a> (STARTTLS command)
@@ -247,27 +247,27 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
               removed.
 
        <b><a href="postconf.5.html#postscreen_bare_newline_ttl">postscreen_bare_newline_ttl</a> (30d)</b>
-              The amount of time that  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  will  cache
-              results  from a successful "bare newline" SMTP pro-
-              tocol test.
+              The amount of time that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will use  the
+              result from a successful "bare newline" SMTP proto-
+              col test.
 
        <b><a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a> (1h)</b>
-              The amount of time that  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  will  cache
-              results from a successful DNS blocklist test.
+              The amount of time that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will use  the
+              result from a successful DNS blocklist test.
 
        <b><a href="postconf.5.html#postscreen_greet_ttl">postscreen_greet_ttl</a> (1d)</b>
-              The  amount  of  time that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will cache
-              results from a successful PREGREET test.
+              The  amount of time that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will use the
+              result from a successful PREGREET test.
 
        <b><a href="postconf.5.html#postscreen_non_smtp_command_ttl">postscreen_non_smtp_command_ttl</a> (30d)</b>
-              The amount of time that  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  will  cache
-              results  from  a successful "non_smtp_command" SMTP
+              The amount of time that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will use  the
+              result  from  a  successful "non_smtp_command" SMTP
               protocol test.
 
        <b><a href="postconf.5.html#postscreen_pipelining_ttl">postscreen_pipelining_ttl</a> (30d)</b>
-              The amount of time that  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  will  cache
-              results  from a successful "pipelining" SMTP proto-
-              col test.
+              The amount of time that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will use  the
+              result from a successful "pipelining" SMTP protocol
+              test.
 
 <b>RESOURCE CONTROLS</b>
        <b><a href="postconf.5.html#line_length_limit">line_length_limit</a> (2048)</b>

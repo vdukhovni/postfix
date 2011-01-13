@@ -76,7 +76,7 @@
 
 #include <postscreen.h>
 
-#define PSC_ACL_SEPARATORS	" \t\r"
+#define PSC_ACL_SEPARATORS	", \t\r"
 
 static ADDR_MATCH_LIST *psc_mynetworks;
 

@@ -1,6 +1,6 @@
 /*++
 /* NAME
-/*	tlsp_state 3
+/*	tlsproxy_state 3
 /* SUMMARY
 /*	Postfix SMTP server
 /* SYNOPSIS

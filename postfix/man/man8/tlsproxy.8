@@ -13,21 +13,20 @@ Postfix TLS proxy
 .ad
 .fi
 The \fBtlsproxy\fR(8) server implements a server-side TLS
-proxy. Its primary use is to talk plaintext SMTP with
-\fBpostscreen\fR(8), and to talk SMTP-over-TLS with remote
-SMTP clients whose whitelist status has expired, but it
-should also work for non-SMTP protocols.
+proxy. It is used by \fBpostscreen\fR(8) to talk SMTP-over-TLS
+with remote SMTP clients whose whitelist status has expired,
+but it should also work for non-SMTP protocols.
 
 Although one \fBtlsproxy\fR(8) process can serve multiple
 sessions at the same time, it is a good idea to allow the
 number of processes to increase with load, so that the
-service remains available.
+service remains responsive.
 .SH "PROTOCOL EXAMPLE"
 .na
 .nf
 .ad
 .fi
-The example below involves \fBpostscreen\fR(8). However,
+The example below concerns \fBpostscreen\fR(8). However,
 the \fBtlsproxy\fR(8) server is agnostic of the application
 protocol, and the example is easily adapted to other
 applications.
